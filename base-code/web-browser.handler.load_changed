@@ -60,7 +60,7 @@ if (    $load_status eq 'finished'
         2, "[$load_uri] loaded in $load_time seconds. [$actual_uri]"
     );
 
-    <web-browser.fade.reply_mode> = 'ack';
+    <web-browser.fade.reply_mode> = 'true';
     <web-browser.fade.reply_msg>  = 'finished loading';
 
     my $swap_delay
@@ -119,19 +119,19 @@ if (    $load_status eq 'finished'
 
     <web-browser.slideshow.temp_delay> = <web-browser.slideshow.err_delay>;
 
-    <web-browser.fade.reply_mode> = 'nak';
+    <web-browser.fade.reply_mode> = 'false';
     <web-browser.fade.reply_msg>  = 'loading failed';
 
     #<[base.callback.cmd_reply]>->(
     #    $reply_id,
-    #    { 'mode' => 'nak', 'data' => "failed to load" . $reason_txt }
+    #    { 'mode' => 'false', 'data' => "failed to load" . $reason_txt }
     #);
 
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
 #.............................................................................
-#WO3GAJD2B3HAONZOK74ZULFL2B76AONEM43U7JA5UFPTIHITWGY6X5MCQRMGUBFEVHJLDHHLNVP4K
-#::: 4YGW7NDSXFQE4B4ETTOJX6XIKZ5UM32MDYN67Z6SMWKP5CE7URI :::: NAILARA AMOS :::
-# :: NGE3USB53LJ4QT2MGIQEDU7JAS7GGC7DFSO7YED2LM3C4HVYDCAA :: CODE SIGNATURE ::
+#XQINWK6KB6S7UAO7AJ7OGOABDRCHWME66D4JUSNCMEXQM3K2SKCKWUK7B2RD2O7OFG7L3MHFXTXNO
+#::: T6IZVSYVNF4WC3H3NHPFJI2FJRX4S6SQ4PNTUTBZA7K3WWWQQWO :::: NAILARA AMOS :::
+# :: XJMOJBW72U4VZHWD3KF54I2JI4W5FHRWRCPFD4RQCAFV5IS724AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

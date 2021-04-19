@@ -11,17 +11,17 @@ $config_type //= 'config';
 my $export_file = "$zenka_name.$config_type.json";
 my $export_path = "$export_dir/$export_file";
 
-my $mode      = 'nak';
+my $mode      = 'false';
 my $reply_str = $reply->{'call_args'}->{'args'};
 
-if (    $reply->{'cmd'} eq 'NAK'
+if (    $reply->{'cmd'} eq 'FALSE'
     and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
     $reply_str
         = $zenka_name eq 'cube'
         ? "reply refused by 'cube' zenka"
         : "zenka '$zenka_name' not online [ or refusing reply ]";
 } elsif ( $reply->{'cmd'} eq 'DATA' ) {
-    $mode      = 'ack';
+    $mode      = 'true';
     $reply_str = "config written to export directory ('$export_file')";
     undef $EVAL_ERROR;
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
@@ -31,7 +31,7 @@ if (    $reply->{'cmd'} eq 'NAK'
             0, "config export to '$export_file' failed. [$EVAL_ERROR]"
         );
         $EVAL_ERROR =~ s|^[^:]+: ||;
-        $mode      = 'nak';
+        $mode      = 'false';
         $reply_str = "config export failed [ write error: $EVAL_ERROR ]";
     }
 }
@@ -41,7 +41,7 @@ if (    $reply->{'cmd'} eq 'NAK'
 );
 
 #.............................................................................
-#IHRBGBLTIU4VD6ED7OIIJFDCK6ITEKCDUCNLJS75UP7BBLHIC2CIOFLBHHRXOHE6LMTRAC5A36EHE
-#::: OAWCIWKQ3MAGYG3ETPMFMUCUG4YYJOTFIKA3PUJP53RNZKSOLZO :::: NAILARA AMOS :::
-# :: Z5NLVVAJAVIZJE2FZ24VJVC4G2TSWFJL5KIGXODTPOC4KQRMTYCQ :: CODE SIGNATURE ::
+#474SZYVBI3C5RTTFTMC2HDGOYILY6ZM3LS2KEXZHH474C2GBCRVPHQIWTEXGTGEOD5L6FSDAA6MEU
+#::: QIBK7ZADHDU7HIYJQHALYSSFMWMF6QO73LFPMBJNYJZWXJGCY6I :::: NAILARA AMOS :::
+# :: WPVXONGXE3OOXX374WABPWS4LHXIPV4N3UBYN2EYLFSNHV2QNACY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ my $id = $$call{'session_id'};
 
 <base.debug.keep_on_reload> = 0;
 
-return { 'mode' => 'nak', 'data' => 'debug module not loaded' }
+return { 'mode' => 'false', 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
 ## [LLL] create interface
@@ -25,15 +25,15 @@ if ( delete $mod{'debug'} ) {
 
 <[base.purge_code]>->('debug') and delete <base.p7_mod.loaded.debug>;
 
-return { 'mode' => 'ack', 'data' => 'debug commands removed =)' }
+return { 'mode' => 'true', 'data' => 'debug commands removed =)' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
 <[base.log]>->( 0, '<< removing debug module not successful >>' );
 
-return { 'mode' => 'nak', 'data' => 'cannot remove debug module `:|' }
+return { 'mode' => 'false', 'data' => 'cannot remove debug module `:|' }
 
 #.............................................................................
-#JYQVP7Y5PMATJEN3NX5YGG44OHXHMMLY5JAIWTPBSTECZCFEE2XVTEBVD7YCBZXJNHPCKYSEPGXAW
-#::: J3RGUWTAO2KYIBAHWMU534JSMQPXW5473JRZ6C7TOA2PHMDCGMZ :::: NAILARA AMOS :::
-# :: GZKR5O7PFRLAZWREVT3J4QFFHR6NEEZ6ATQ64P2R7KOBUJKRTOCY :: CODE SIGNATURE ::
+#JQ7IAIJ7PJ2F47PXOGU5GKMTWBYQUC6Y46BVLCWRDCDDIQKTGIRWCR7WHZ4CSJ4RUZDAMQJOHGT6O
+#::: VSKVXS2AB64QSNKH3CTZ3SSLBVLDS4RV3TH46UWVBYU2MGMU4CP :::: NAILARA AMOS :::
+# :: SDAGHXFPJFV27OBU6UIUK6ENWKAO3NK76JAIPPPJ5IQRXBQBJUAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

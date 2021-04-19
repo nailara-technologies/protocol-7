@@ -6,13 +6,14 @@
 # todo  = improve/extend error handling
 
 my ( $key, $val ) = split( m| |, $$call{'args'} // '', 2 );
-return { 'mode' => 'nak', 'data' => 'no key specified' }
+return { 'mode' => 'false', 'data' => 'no key specified' }
     if not defined $key or !length($key);
 my @validation_result = ( <[base.validate.data_key_syntax]>->($key) );
-return { 'mode' => 'nak', 'data' => 'invalid key' }
+return { 'mode' => 'false', 'data' => 'invalid key' }
     if not $validation_result[0];
 
-return { 'mode' => 'nak', 'data' => 'no value supplied' } if not defined $val;
+return { 'mode' => 'false', 'data' => 'no value supplied' }
+    if not defined $val;
 
 my $key_init = 0;
 my $cid      = $$call{'session_id'};
@@ -34,26 +35,27 @@ if ( defined $key_ref and $key_ref ne '' and !$EVAL_ERROR ) {
     if ($key_init) {
         $$key_ref = $val;
         <[base.log]>->( 1, "[$cid] set: initialized [ $key = '$val' ]" );
-        $reply = { 'mode' => 'ack', 'data' => 'initialized' };
+        $reply = { 'mode' => 'true', 'data' => 'initialized' };
     } elsif ( $$key_ref eq $val ) {
         <[base.log]>->(
             1, "[$cid] set: no change, values identical [ $key = '$val' ]"
         );
-        $reply = { 'mode' => 'nak', 'data' => 'no change, values identical' };
+        $reply
+            = { 'mode' => 'false', 'data' => 'no change, values identical' };
     } else {
         $$key_ref = $val;
         <[base.log]>->( 1, "[$cid] set: value changed [ $key = '$val' ]" );
-        $reply = { 'mode' => 'ack', 'data' => 'value changed' };
+        $reply = { 'mode' => 'true', 'data' => 'value changed' };
     }
 } else {
     <[base.log]>->(
         0, "[$cid] set: unable to assign value [ $key = '$val' ]"
     );
-    $reply = { 'mode' => 'nak', 'data' => 'unable to assign value' };
+    $reply = { 'mode' => 'false', 'data' => 'unable to assign value' };
 }
 
 #.............................................................................
-#DW4TO6ZQM3AVKS6SQ3RNC3W4L2JYC7MA5YI72HJIMES5BLTZRSOCJZXYC6OYUJVVMVGS6X2PCPWEO
-#::: UXSGZARMGPPOHCKRQNMARXFRKPWOLHINJKHK2YZLVO5XRYKYRCI :::: NAILARA AMOS :::
-# :: 7SXCRSCZRV4FY52FETV7ENNRSRLLXT7Y4PS4OCDSB4WFR3EPC2BY :: CODE SIGNATURE ::
+#C7BDUZSJNS2H7R2RIRCPHNCNRSV24HCN3CYB5DOA5FHQHURD2CZ7VEG6BQ6U3AXYEH5KOSDMCFVRO
+#::: WKZD5UOVIOAAFUUMWAMKJRB5PSH5AYVD7BKK2JWEFI6S2ZG6NS7 :::: NAILARA AMOS :::
+# :: PB2L5WPF45Y7SSZLWHIBSZZI6CE4W34W6LNGO4T7QRSOB3P3ASBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

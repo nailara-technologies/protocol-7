@@ -7,9 +7,9 @@
 
 my ( $timeout, $title_pattern ) = split( m| +|, $$call{'args'}, 2 );
 
-return { 'mode' => 'nak', 'data' => 'expected numerical timeout argument' }
+return { 'mode' => 'false', 'data' => 'expected numerical timeout argument' }
     if not defined $timeout or $timeout !~ m|^\d+(\.\d+)?$|;
-return { 'mode' => 'nak', 'data' => 'expected title [sub]string argument' }
+return { 'mode' => 'false', 'data' => 'expected title [sub]string argument' }
     if not defined $title_pattern or !length($title_pattern);
 
 $title_pattern =~ s{^['"]|\\|["']$}{}g;    ## <-- removing quotes and \-es ##
@@ -22,12 +22,12 @@ $title_pattern = qr|$start_match\Q$title_pattern\E$end_match|;
 foreach my $window_id (<[X-11.get_window_ids]>) {
     my $window_title = <[X-11.get_window_title]>->($window_id);
 
-    return { 'mode' => 'ack', 'data' => $window_id }
+    return { 'mode' => 'true', 'data' => $window_id }
         if $window_title =~ $title_pattern;
 }
 
 # <[X-11.process-x11-error]>->( $EVAL_ERROR, caller )
-#     and return { 'mode' => 'nak', 'data' => 'cannot get window list' }
+#     and return { 'mode' => 'false', 'data' => 'cannot get window list' }
 #     if $EVAL_ERROR;
 
 my $req_id = <[base.gen_id]>->( <X-11.waiting> //= {} );
@@ -64,7 +64,7 @@ push(
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#34DSB4GXDI74ZJT7PWOVXCJO4IAPCQBWSV3JO4BMPSTSESGELEKZHEMZEN5GMCUS4B2QWK3XD74DI
-#::: FTZEUUXYUKLCANPQYBBUXMDZWZHHLS2GSYRI7ZQGK6G3JABCSUG :::: NAILARA AMOS :::
-# :: SQYJPQXCT23PO4Y34JMQNUWG7YHQJRN5W7PR2RMKMLFXWUWSEYCA :: CODE SIGNATURE ::
+#VIDHPZVVYEBK27S4WZYGD23EATF3YSTWHWVDPIJBU434YP4UPCCZWNFLI7ABOK3QAEI62MW4C7SFW
+#::: Q35N3UQSCPKWNILI4SXS5HJNFWAQ3ZCZ2QQBI5G574FXEUSNJHD :::: NAILARA AMOS :::
+# :: BJ4DQ7K6HVWTKITGCXNERWZPSCYZ5DCETCJOTHU7NUZNB44S7KAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

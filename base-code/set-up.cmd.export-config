@@ -4,16 +4,16 @@
 # param = <zenka> [type]
 # descr = export zenka config to disk (.json file)
 
-return { 'mode' => 'nak', 'data' => 'expected zenka name parameter' }
+return { 'mode' => 'false', 'data' => 'expected zenka name parameter' }
     if not defined <set-up.json.export_allowed>
     or !<set-up.json.export_allowed>;
 
 my ( $zenka_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
-return { 'mode' => 'nak', 'data' => 'expected zenka name parameter' }
+return { 'mode' => 'false', 'data' => 'expected zenka name parameter' }
     if not defined $zenka_name;
 $config_type //= 'set-up';    # default
 
-return { 'mode' => 'nak', 'data' => 'invalid zenka name syntax' }
+return { 'mode' => 'false', 'data' => 'invalid zenka name syntax' }
     if $zenka_name !~ <regex.base.usr>;
 
 <[set-up.chk_profile_dir]>;
@@ -21,7 +21,7 @@ return { 'mode' => 'nak', 'data' => 'invalid zenka name syntax' }
 my $type_args = {};
 $type_args = { 'args' => $config_type } if defined $config_type;
 
-return { 'mode' => 'nak', 'data' => 'invalid config type syntax!' }
+return { 'mode' => 'false', 'data' => 'invalid config type syntax!' }
     if $config_type !~ /^\w+$/;
 
 my $cmd_path = "cube.$zenka_name.get-config";
@@ -44,7 +44,7 @@ $cmd_path = "cube.get-config" if $zenka_name eq 'cube';
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#M5M42GYHEDFM7BQEH67JGSHOCAAS6MAE2J2VLNB4C3D6R5MYFP2CHVWEQKXFOG7ZHVKMNL6CJHAI2
-#::: AW52C3T3VBBUWFMHTT5PAWTKOHPPGYEJNGHWWT7R66VDFZRHXEO :::: NAILARA AMOS :::
-# :: PDJEDML5RXHVLNIQB5CWISY4F5JJFBIOK6BXPFBIVE24HMSMPODI :: CODE SIGNATURE ::
+#O6E5UITQC2KI7J7N7ZW7OU6QPX4RFAVHRGQ4SCA2WFFWRTG2YIBA3TEYQQ3F6U3ID7MN6XAIAOTVY
+#::: JTJ3IWS3OIKERSJFXWZU3DEVVBMMDASIYUNILMYF6ULGBR3YZR2 :::: NAILARA AMOS :::
+# :: 4EQ4KLLNLAS55SEVTTCSACGLVWVFFCFUXTOBPBZEUG4EO6YJGYDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

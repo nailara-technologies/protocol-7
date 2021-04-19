@@ -9,10 +9,10 @@ my $cmd_rep_str
 my $log_msg_str = $response->{'params'}->{'log_message'};
 
 return warn "received instance id is not numerical"
-    if $response->{'cmd'} eq 'ACK'
+    if $response->{'cmd'} eq 'TRUE'
     and $cmd_rep_str !~ m|^\d+$|;
 
-if ( $response->{'cmd'} eq 'ACK' ) {    # restart by 'nroot' zenka
+if ( $response->{'cmd'} eq 'TRUE' ) {    # restart by 'nroot' zenka
     my $instance_id = $cmd_rep_str;
     <[base.log]>->( 0, " : asking 'nroot' to restart instance $instance_id" );
 
@@ -34,7 +34,7 @@ if ( $response->{'cmd'} eq 'ACK' ) {    # restart by 'nroot' zenka
 }
 
 #.............................................................................
-#G7DRO4VBI5MVL7OZZ6YJUZUA2W6ELZF7VWUGR6ZULRFFD7DL63AQSRWXPOMRG5O5K5ZEOKNQO7BLK
-#::: YMUGETQKG5OUBSIO6KZXALEUW67BDA2TY3DOP4AXCDFPRMIRVAO :::: NAILARA AMOS :::
-# :: PQAFZ4ZQKEYDR7CIUXUGBAGEY6YWXQDUVCI4RQSGYTI7R7FPQWDI :: CODE SIGNATURE ::
+#NUMOMSXCTVCPCLCDSEECOCBGCRS7OSTPZ2XM72IQPB5UR7PCZCGOUYMRHMYVDJ6KNWVKKSABEWLSW
+#::: IBIVFJVODOBR64QUYLTEZA4CDU2TSLQRIZM57YUER2XAJXKYDYA :::: NAILARA AMOS :::
+# :: GXWDE5TC2P4M47DFYYBGMKJKMVHQSUDHZBUNPWRIEIJGCN7X3GBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

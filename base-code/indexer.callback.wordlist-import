@@ -21,7 +21,7 @@ if ($stop_requested) {    ## logging required .., ##
     ## clean-up incomplete results ? ##
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        { 'mode' => 'nak', 'data' => 'job aborted [ admin request ]' }
+        { 'mode' => 'false', 'data' => 'job aborted [ admin request ]' }
     );
 }
 
@@ -33,14 +33,14 @@ say ": $chk_sum : $line";
 if ( ++$index_job->{'iterations'} == $file_entries ) {
     $watcher->cancel if $watcher->is_active;
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'ack', 'data' => 'job completed [testing]' }
+        $reply_id, { 'mode' => 'true', 'data' => 'job completed [testing]' }
     );
 }
 
 # ,.. }
 
 #.............................................................................
-#GHDMR4PJZKQMCBXVMJUBOG7WB7GB6GWQL6OCUCPU5DD3USQNCON5Z2PV5X33M3DA5242RUCHC4FOK
-#::: PMEUKVBUXEYK26HPYQTTYMUM3HHKB76IM2YSU2Q4NLODXD55NWT :::: NAILARA AMOS :::
-# :: CW3H23T266URL5MNBLV5VXK5OT3WAZGSRT2UAJPIRID5MSVTSKBI :: CODE SIGNATURE ::
+#MJ7G7CGOAH3XQQAOPW44M4SXZFQ7NXCXEOYZ5YIXCU4CUXH5RNOW4HJ2PBZWFNDLB4MT3SAHZR4EC
+#::: RCCXLO3OZEKIVEJIYQJUSSCY7EQVUX2F4CNU7LHZSBALDQIILGD :::: NAILARA AMOS :::
+# :: RD7VDACGM5323DMHDFFF4QOGB75LILGSI5JQU3SMIVUMOFJWIKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

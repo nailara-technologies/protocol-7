@@ -11,7 +11,7 @@ my $session = $data{'session'}{$sid};
 my $base_re = <regex.base.base_32>;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected [ RFC 4648 base32 encoded ] C25519 public key'
     }
     if not defined $key_str
@@ -23,7 +23,7 @@ $session->{'client_key'} = decode_b32r($key_str);
 if ( length( $session->{'client_key'} // '' ) != 32 ) {
     delete $session->{'client_key'};
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'decoding not successful [ BASE32 expected ]'
             . length( $session->{'client_key'} // '' )
     };
@@ -33,12 +33,12 @@ my $base_ntime  = <[base.ntime.b32]>->(3);
 my $key_sig_str = <[crypt.C25519.sign_data]>->( \"[$base_ntime|$key_str]" );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => '[' . join( '|', $base_ntime, encode_b32r($key_sig_str) ) . ']'
 };
 
 #.............................................................................
-#U6DCGAF53O2RY4E73QLJZR6VFJME2WMNV332IGVV63J3MLFT2FABH7ISSMRKY4R73VZ77AU6UJE24
-#::: JCT4UHQORBKWDY3TZUZN5ZTQOJUCCN5R53A66LQU3IQICROONJ7 :::: NAILARA AMOS :::
-# :: 46T56R4COYX3LMGCUY6CIUC4MXIAYJLPIHM6XCAW7OLVJN74VQCA :: CODE SIGNATURE ::
+#IOORNKCLXFHEWP5F5H7G27276MH2P7JVOVXHX6AIQBEE4UCB4B5K5Z6XTQHIN4HLNZEXHGV4LRVUC
+#::: T6QJ2I6DSYECZNUMZIALEFBIM5KJWYIH6EKOFNWHOP3PK3VSOG6 :::: NAILARA AMOS :::
+# :: T6THCFONJX6EC2FI34WZ5HZXXGESAHNKNWRHQ2LK3TVB2ZWJWSAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

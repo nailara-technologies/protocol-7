@@ -5,7 +5,7 @@
 # descr = mount the specified device or filesystem
 
 my ( $mount_point, $device ) = reverse split( m| +|, $$call{'args'}, 2 );
-return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
+return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 
@@ -14,18 +14,18 @@ my $bin_mount = qw| /bin/mount |;    ## auto-detect ##
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specified mount-point does not exist'
     }
     if not defined $device and $status == -1 or !-d $mount_point;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specified device does not exist'
     }
     if defined $device and !-e $device;
 
-return { 'mode' => 'nak', 'data' => 'already mounted' } if $status == 1;
+return { 'mode' => 'false', 'data' => 'already mounted' } if $status == 1;
 
 if ( not defined $device ) {
     <[base.log]>->( 1, "mounting '$mount_point'.," );
@@ -33,7 +33,7 @@ if ( not defined $device ) {
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": mounting was not successful ['$mount_point']" );
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => 'mounting was not successful'
         };
     }
@@ -43,16 +43,16 @@ if ( not defined $device ) {
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": unable to mount $device to $mount_point" );
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "unable to mount $device to $mount_point"
         };
     }
 }
 
-return { 'mode' => 'ack', 'data' => 'successfully mounted' };
+return { 'mode' => 'true', 'data' => 'successfully mounted' };
 
 #.............................................................................
-#N7Y7F7TGLBQJ75QDLOBHFIWSLDPC7YV6SETEDQEG737QHOGKOMYT6QCRAMVCWR6PNRXR6UPXKMSC6
-#::: S6AKAAAQVL2F546BVGGFHPLAHG4YOP7AVWFEQD53NOW4BSPYEKC :::: NAILARA AMOS :::
-# :: CYZJFXMOB3YHQKIFD7PQZ5T65SJLH46E7S55GABAF7PWPOYT4CCQ :: CODE SIGNATURE ::
+#ACXVC75GBJO7M7OE7H7FTSYZRIKPL6EU6LB6UDY5BHMO3XH4CNTB732KCWV4T62GO6PIP4SSMTSBS
+#::: D4CQFD6T6563KEM2RRUXXHYHUCOLE6XZ5SNONU4JRPANBGJGRAI :::: NAILARA AMOS :::
+# :: S27M5U22UUNEMWOPTTARXNDMNIYBXLMB26QX5UIKHN3FMEOCAYAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

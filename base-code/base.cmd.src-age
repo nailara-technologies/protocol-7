@@ -14,7 +14,7 @@ my $current_ntime = <[base.ntime]>;
 if ( ( not exists <system.zenka.type> or <system.zenka.type> ne 'cube' )
     and length($param_str) ) {  # <-- no second param for non-cube type zenki.
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "ask a 'cube'-type zenka for custom values"
     };
 } elsif ( $param_str =~ m|^($B32_re+)\-\d+\.\d+$| )
@@ -22,18 +22,18 @@ if ( ( not exists <system.zenka.type> or <system.zenka.type> ne 'cube' )
     $network_time = $LAST_PAREN_MATCH;
 } elsif ( length($param_str) ) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "version syntax not valid [ check 'src-ver' ]"
     };
 } elsif ( <protocol-7.src-ver> =~ m|^($B32_re+)\-\d+\.\d+$| ) {
     $network_time = $LAST_PAREN_MATCH;
 }
-return { 'mode' => 'nak', 'data' => 'have no version time-stamp' }
+return { 'mode' => 'false', 'data' => 'have no version time-stamp' }
     if not defined $network_time;
 
 my $src_ntime = <[base.b32.ntime]>->($network_time);
 
-return { 'mode' => 'nak', 'data' => 'decoding not successful' }
+return { 'mode' => 'false', 'data' => 'decoding not successful' }
     if not defined $src_ntime
     or $src_ntime < 2455747200000;    # <-- network-time begin
 
@@ -42,12 +42,12 @@ my $src_unix = <[base.n2u_time]>->($src_ntime);
 ( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
 ( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
 
-return { 'mode' => 'ack', 'data' => $date_stamp } if $date_mode;
+return { 'mode' => 'true', 'data' => $date_stamp } if $date_mode;
 
-return { 'mode' => 'ack', 'data' => $duration_str }
+return { 'mode' => 'true', 'data' => $duration_str }
 
 #.............................................................................
-#FWHMT6NTR6WT77YOJPQTATJ6EFJ6N5NGTWE7BBSYM7P7N7VDY5FS5A6N2WRV7BXCJDMOOCZ2LWSLE
-#::: QNNYEMVY4VBFZ7272XZZC7UDUUHPBPPFTBTJYSQBLJZ5BSYGLT5 :::: NAILARA AMOS :::
-# :: KT5XSYQDOV7WVIRLCUSEDNSDDKQSMDU3ZA737QI4WLOCC53RCWDQ :: CODE SIGNATURE ::
+#IPJQTZYUC6JL6MXHNI77LFOQHWWIZU3NIEKNKL2QNK4DG5SEFU6Z7A6UP44FSZ7QYUMDN45XCQV3Y
+#::: 3ZS4WDUI2EPNUKFASX2DCDD45JOO3TF3VVYQ6GAKP5OM4C7ZQUQ :::: NAILARA AMOS :::
+# :: URX2KDXV5C4WWOXQV554TOLMIOPPNV5UB3P5EGICP34JVA2Z7CAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

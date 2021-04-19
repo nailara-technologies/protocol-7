@@ -4,7 +4,7 @@
 # param = <zenka-name>
 # descr = purge specified zenka from dependency chains
 
-return { 'mode' => 'nak', 'data' => 'expected valid zenka name' }
+return { 'mode' => 'false', 'data' => 'expected valid zenka name' }
     if !length( $$call{'args'} )
     or not my $zenka_id = <[zenka.get_id]>->( $$call{'args'} );
 
@@ -20,17 +20,17 @@ foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
 # LLL: add full p7-log / restore feature?
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no zenka seems to depend on '$zenka_name' (already dropped?)"
     }
     if !$del_count;
 
 my $ies = $del_count > 1 ? 'ies' : 'y';
 
-return { 'mode' => 'ack', 'data' => "dropped $del_count dependenc$ies" };
+return { 'mode' => 'true', 'data' => "dropped $del_count dependenc$ies" };
 
 #.............................................................................
-#W64W4WT5JCYBEEEJWED2C3WRR6EH5AKQF22ISLHKVYP5E5RFVTJZPINH52XCZF44KZDKUMCTDVA74
-#::: AUS54Z7KIYFKSADHHJMMXCO7I43XJH3SHCFLUI2U2GEUIEP6M3O :::: NAILARA AMOS :::
-# :: TX45E3XO4NT75HNXRHVVMR4NCWM2R5YGTWM4ABLJV7X7VALQB2DI :: CODE SIGNATURE ::
+#5PX67OQ7TSRSDY4AS4EVCYSJD24YSYT4USKWFKE5Q3UTJ2URO47CQO2TCMXPRHNK4MVDOX73GVHM6
+#::: LLBLHAC2ENJ6LD3RZ2QGWGDWUDTEV5NBIOT2KSF2YCSHIOJ7EFI :::: NAILARA AMOS :::
+# :: CHNHDO6U3TNW46MO2HW6S2BE56V7WBBDHDJBXLVLPSXYN6LPOUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

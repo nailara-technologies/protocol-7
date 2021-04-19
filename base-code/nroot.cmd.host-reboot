@@ -9,10 +9,10 @@ my $param = $$call{'args'} // '';
 my $reboot_enabled
     = <[base.cfg_boolean]>->( <nroot.host-reboot.enabled> // 1 );
 
-return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
+return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
     if !-e '/proc/sysrq-trigger';
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specifically disabled [ nroot.host-reboot.enabled = 0 ]'
     }
     if not $reboot_enabled;
@@ -31,10 +31,10 @@ system('/bin/sync') if $param ne 'nosync';
     }
 );
 
-return { 'mode' => 'ack', 'data' => '<< rebooting host system >>' }
+return { 'mode' => 'true', 'data' => '<< rebooting host system >>' }
 
 #.............................................................................
-#AFEXTZBTNODY6VXBT7WU3DUEOEABJSRJYMBOBJN4NJCSPJ5P7AR3G7D5MXTOK2HH6A3MNWM7WB35W
-#::: SV6M4TGZQQRPBQF7BWRRFLWHYERV4Y7GSMH3XIZIQ64UBV7UEX3 :::: NAILARA AMOS :::
-# :: IJQ7MG7ZMAJ65URPX35TVRPPSWWQBCNB4MTGZE4MOMTPFO2T6SBA :: CODE SIGNATURE ::
+#OKQYJLRFRL5NFB67YHNJNT25TY3Q3MJPUFZMJ6N3EFN4GDNPM2OUDDXLVD6OG25ZELDOK7EZYJKY6
+#::: ISRG7XWZDUCKX452PNUXCGBQFG7Z62S7MTKAB7FQWIJZVRDSSDJ :::: NAILARA AMOS :::
+# :: VJX2MW5N5JJ53TEV4BKRF57W5URJHKUVZTMOGINT6SZYJYXULYCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

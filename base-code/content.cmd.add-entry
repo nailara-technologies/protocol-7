@@ -7,14 +7,17 @@
 my $s_id  = $call->{'session_id'};
 my $entry = $call->{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected content entry parameter' }
+return { 'mode' => 'false', 'data' => 'expected content entry parameter' }
     if not length($entry);
 
 if (    $entry !~ m|^(\w+)://|
     and $entry !~ m|^\[.+\]$|
     and ( !-e $entry or !-r $entry ) ) {
     my $reason_str = !-r $entry ? "denied access" : "not found";
-    return { 'mode' => 'nak', 'data' => "cannot add entry [ $reason_str ]" };
+    return {
+        'mode' => 'false',
+        'data' => "cannot add entry [ $reason_str ]"
+    };
 }
 
 <[base.log]>->( 1, "[$s_id] adding list entry.," );
@@ -28,10 +31,10 @@ push( @{ <content.file_list> //= [] }, $entry );
     }
 );
 
-return { 'mode' => 'ack', 'data' => 'appending entry' }
+return { 'mode' => 'true', 'data' => 'appending entry' }
 
 #.............................................................................
-#J7Q6UAUYWJLUHEQMPW5TPXE3XLSATO3CVDMF62ZLCFEFVWDK2R5UALCA24RKRP54AJTAIUEZKBHPC
-#::: QWQMVBUKJTTF3SCCWCS6SJ7JBRV45N7ZF32TE7G7ATUIZWHYMF4 :::: NAILARA AMOS :::
-# :: Y5VS4CTNBQ52VXLCI7CGB3BHXT5WSU5V4CRDIE7AKNWNYKWOEKCI :: CODE SIGNATURE ::
+#HERDOHSAEV7EE5N3C2RPXUPGA73BSFWBP6D3PPQ3EZVYHAEVMITY4KOYKGDTZY3TEOBO2AVDRZYJQ
+#::: GMKSOZE6LLVHW3V4VGSX6UJU5R4CNJJDBMRBEPPYR3LQOQRP5AU :::: NAILARA AMOS :::
+# :: B3WBEGNPXLH2NYXEE7UCCLEKCPWHKEWKFOKJ6BLVXKVRXG6HSGBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

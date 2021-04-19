@@ -7,17 +7,17 @@
 <power.cfg.devices> //= {};
 my ( $device_id, $sock_num ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
+return { 'mode' => 'false', 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
 
-return { 'mode' => 'nak', 'data' => 'power socket number expected [1..4]' }
+return { 'mode' => 'false', 'data' => 'power socket number expected [1..4]' }
     if not defined $sock_num or $sock_num !~ /^[1234]$/;
 
 my @set_states = ( undef, undef, undef, undef );
@@ -34,13 +34,13 @@ if ( not defined $new_state ) {
                 { 'args' => join( ' ', $device_id, @{<power.last_states>} ) }
         }
     ) if defined <power.last_states>;
-    return { 'mode' => 'NAK', 'data' => 'connection to device failed' };
+    return { 'mode' => 'FALSE', 'data' => 'connection to device failed' };
 }
 
 if ( $new_state ne '0' ) {
     my $err_msg = 'unable to retrieve new socket state';
     $err_msg = 'unable to set socket state to \'OFF\'' if $new_state eq '0';
-    return { 'mode' => 'NAK', 'data' => $err_msg };
+    return { 'mode' => 'FALSE', 'data' => $err_msg };
 }
 
 <[base.protocol-7.command.send.local]>->(
@@ -49,10 +49,10 @@ if ( $new_state ne '0' ) {
     }
 );
 
-return { 'mode' => 'ACK', 'data' => "socket $sock_num switched OFF" }
+return { 'mode' => 'TRUE', 'data' => "socket $sock_num switched OFF" }
 
 #.............................................................................
-#DXPOYGARCL2BDRZNNXTNJ45JS4Y6QFQ5DRH47GFUD4MSWLVNPYEID5HTXZ4ZBTTPH7SPFJ6MPDS66
-#::: XPZXTXSGNGFZOMHWS3M4BI5SJABAL44JHYI2KQPVICUAOI25BUS :::: NAILARA AMOS :::
-# :: YZ53WJE2XVZNW6LLTJCYAAN7IKSJ3GBZ5OCJLFK4JGBOLDUAZGCQ :: CODE SIGNATURE ::
+#WOTUZRX23PQSOVFUZYU7XVTYFIDFPNHMAAQPDZ5IYZMXRCWRW66RJ4KV3RWA7V34T4KXO7EATLHHQ
+#::: KG6S3C7NH5OZVPXBZEYBDL5BPBEOPUVOQJNKPMO5PU2MJDE5WH6 :::: NAILARA AMOS :::
+# :: UTX7GESS7FX5Y5WDNJEHLGAFXNLGVAHSEHZCXF32F7UPTEEC5QBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

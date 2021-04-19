@@ -7,7 +7,7 @@
 my $verbosity_type = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'incorrect verbosity type parameter [buffer|logfile|console]'
     }
     if defined $verbosity_type and $verbosity_type !~ m,buffer|file|console,;
@@ -19,10 +19,10 @@ if ( defined $verbosity_type ) {
     $verbosity_type =~ s{^(file)$}{log$1};
     $verbosity_type =~ s{^(buffer|logfile)$}{zenka_$1};
 
-    return { 'mode' => 'nak', 'data' => 'type not valid' }
+    return { 'mode' => 'false', 'data' => 'type not valid' }
         if not exists $verbosities->{$verbosity_type};
 
-    return { 'mode' => 'ack', 'data' => $verbosities->{$verbosity_type} };
+    return { 'mode' => 'true', 'data' => $verbosities->{$verbosity_type} };
 }
 
 my $v_report;
@@ -35,7 +35,7 @@ foreach my $key ( reverse sort keys %{$verbosities} ) {
 return { 'mode' => 'data', 'data' => ":\n$v_report:\n" };
 
 #.............................................................................
-#4LDCUDWYZ43B5S2RSEHROKOUQLPFD2ZGJST4LNGUIZOIMZORP5WIEYNZBFOVDLGUQSETGGUMKB2TW
-#::: XK7WWAY7DMJH7B7UTWGNBRZHFYVTHB6YKHPFNQBNZQZWKQGX5BB :::: NAILARA AMOS :::
-# :: VGYT36OAIVERJKHTHGALXZPYZYTRS6RFUUQMNDVBET6CKP3G3AAA :: CODE SIGNATURE ::
+#NU6I7OFNMXLTPTOXSGQWQ43LEPKT7Q5I3UUKNJE7VHDGC4KEFE3N55QI4R32M7YAUVVQDV7ASNVAA
+#::: LRJULGVVEM674Q4F6R2OKXTS6SKXFMIZ6YE7R26QG4BFCSOGXBM :::: NAILARA AMOS :::
+# :: BGWKWSJDHLZWJZUPY5JI4MVQBZASQLV2VIGBLEIZTWRLETK24QDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

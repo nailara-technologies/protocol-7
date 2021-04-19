@@ -7,20 +7,20 @@
 my $del_key = $$call{'args'};
 my $cid     = $$call{'session_id'};
 
-return { 'mode' => 'nak', 'data' => 'no key specified' }
+return { 'mode' => 'false', 'data' => 'no key specified' }
     if not defined $del_key or !length($del_key);
-return { 'mode' => 'nak', 'data' => 'invalid key' }
+return { 'mode' => 'false', 'data' => 'invalid key' }
     if $del_key =~ m{^\.|\.$}
     or $del_key !~ m|^[\w\d_\-\[\]\.']+$|
     or $del_key =~ m|~\0|;
 my $_del_key = $del_key;
 $_del_key =~ s{'(([^']|\.)+)'}{my$k=$1;$k=~s|\.|\0|g;$k}ge;
-return { 'mode' => 'nak', 'data' => 'invalid key' } if $_del_key =~ m|'|;
+return { 'mode' => 'false', 'data' => 'invalid key' } if $_del_key =~ m|'|;
 
 my $del_key_ref = <[base.resolve_key]>->($del_key);
 if ( not defined $del_key_ref ) {
     <[base.log]>->( 0, "[$cid] del: no such key ['$del_key']" );
-    return { 'mode' => 'nak', 'data' => 'no such key' };
+    return { 'mode' => 'false', 'data' => 'no such key' };
 }
 
 my $deleted    = 0;
@@ -44,14 +44,14 @@ while ( my $sub_key = pop(@del_key_chain) ) {
 
 if ($deleted) {
     <[base.log]>->( 1, "[$cid] del: key '$del_key' deleted" );
-    return { 'mode' => 'ack', 'data' => 'deleted' };
+    return { 'mode' => 'true', 'data' => 'deleted' };
 } else {
     <[base.log]>->( 0, "[$cid] del: unable to delete key '$del_key'" );
-    return { 'mode' => 'nak', 'data' => 'not successful' };
+    return { 'mode' => 'false', 'data' => 'not successful' };
 }
 
 #.............................................................................
-#55ALBDNPAMMN4OJAZMKYVBMEYAR4DS5NZCRCVJF2LGWSKIGWWALMK45ZECMLAWHQDTYF5TX7FOQGY
-#::: NZCSRM65ZW47L47UTSPOKWCPENVNSLFG5U26IBLXLY24K6ISGMC :::: NAILARA AMOS :::
-# :: 3Y4ILWA6Z62FNHCHXE3OI52UNPAEW3ZWKN2AHNCPI2UPEFEVFACQ :: CODE SIGNATURE ::
+#5UJ6AGXYVTTEINSSDVJ4RBK6ZOYLG3L6S66YR73QUBNNRCDJ7ELJXYUGHRANNIIOUSSXXQLM4ZOSW
+#::: HPYPXXDNAAFOJ5G3XO5V5P4VCGSFBMGWLYH5T7PQI4F5PTSTH57 :::: NAILARA AMOS :::
+# :: 7BYXIAADTNLEMIKOUMXRDDFACVLBZPGBKTCV57NWNLMZD4CD3ABI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

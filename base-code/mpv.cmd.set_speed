@@ -6,15 +6,15 @@
 
 my $speed = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected speed factor (float value)' }
+return { 'mode' => 'false', 'data' => 'expected speed factor (float value)' }
     if !length($speed)
     or $speed !~ /^\d+(\.\d+)?%?$/;
 
 my $speed_val = sprintf( "%0.2f", $speed );
 
-return { 'mode' => 'nak', 'data' => 'minimum value 0.01' }
+return { 'mode' => 'false', 'data' => 'minimum value 0.01' }
     if $speed_val < 0.01;
-return { 'mode' => 'nak', 'data' => 'maximum speed value is 100' }
+return { 'mode' => 'false', 'data' => 'maximum speed value is 100' }
     if $speed_val > 100;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
@@ -27,7 +27,7 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#E4XST5WYCAXBQYQEZW7WLA6LY7KHOFCM6D5OGTRXRFZ3AIFHT3WPK5N4OQ67V7B4UACNDVZYZMJBW
-#::: JV6DL7T2CLIUCH4TLLWXQGKYMLZDM4RXFLHLLXIAXJR5E3GYAKE :::: NAILARA AMOS :::
-# :: NYCPG2AEI3H7YKB3H4EPZBBDC6JUYSMSQUZWCUL3AKX5SDA7YUBI :: CODE SIGNATURE ::
+#EOULHH7YTVZCOMUP5CGPQCYUFCUGJ3BICONIWLBG6CJV5FJWQBX2LBE3WVOQUDWH573L3YDAPX636
+#::: TYCILVLYF72Y3BX7VIKX5IOWU24H22422QYYD4A3MQDSNJUEJKE :::: NAILARA AMOS :::
+# :: 4Z64WB4OT4XAF26LZ3HT4J36C62AAGQG2AF2K45ZEXXMKCDMCUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

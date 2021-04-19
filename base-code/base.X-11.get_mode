@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.mode> = $1;
     <[base.log]>->( 1, "received X-11 mode name [" . <x11.mode> . "]" );
     return <x11.mode>;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#TJD46BO67HAQP5AXC5X5KVNY3M5CY444T4FOITKPDO3QGOT4H67SMYFMI66CHT74YVIDQKFD4XMRY
-#::: KFHWR7VVEKD56DZ7ONM7RD4OWD2XS6HWDHBZBXJOMRVD25ZZ2UT :::: NAILARA AMOS :::
-# :: DESK7B35ABBJ4QA22XLRREDEEXTKYITFCHQPM4ELPJKLLH7MR2BY :: CODE SIGNATURE ::
+#A6ESDNOFB44X3JEHPCSLTS26GCMOZ34EVW63AMQX4GMUI3E3EFNAEC7MGP6AHRXB6LWLNWLFGEU2M
+#::: K6SPK622SESZMSWME5P7WN5RBXG2U3CITOZXJNKUHSN32Q3Q6TC :::: NAILARA AMOS :::
+# :: 7TZXWZMA6YGX4DSATJPX6DVDGSTSV7SQ5SKKHXTH65BQZGK6UACA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

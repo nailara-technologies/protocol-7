@@ -10,22 +10,25 @@
 my $who_bin_path  = <[file.which]>->('who');
 my $wall_bin_path = <[file.which]>->('wall');
 
-return { mode => 'nak', 'data' => "numerical 'seconds' parameter expected" }
+return {
+    mode   => 'false',
+    'data' => "numerical 'seconds' parameter expected"
+    }
     if !length( $warn_seconds // '' )
     or $warn_seconds !~ m|^\d+$|;
-return { mode => 'nak', 'data' => "'reason' parameter expected" }
+return { mode => 'false', 'data' => "'reason' parameter expected" }
     if !length( $reboot_reason // '' );
 return {
-    mode   => 'nak',
+    mode   => 'false',
     'data' => "'reason' parameter too long [ max. 32 characters ]"
     }
     if length( $reboot_reason // '' ) > 32;
 return {
-    mode   => 'nak',
+    mode   => 'false',
     'data' => "invalid character '$1' in 'reason' parameter"
     }
     if $reboot_reason =~ m|([^\s\d\w\-\+\'\"\.,_])|;
-return { mode => 'nak', 'data' => "'wall' binary not found" }
+return { mode => 'false', 'data' => "'wall' binary not found" }
     if !length($wall_bin_path);
 
 <[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
@@ -37,12 +40,12 @@ if (system( $wall_bin_path,
 ) {
     my $err_msg = lcfirst($OS_ERROR);
     warn "$err_msg [ $wall_bin_path ]";
-    return { mode => 'nak', 'data' => "'wall' command error : $err_msg" };
+    return { mode => 'false', 'data' => "'wall' command error : $err_msg" };
 }
-return { mode => 'ack', 'data' => 'message sent to all terminals.' };
+return { mode => 'true', 'data' => 'message sent to all terminals.' };
 
 #.............................................................................
-#I2MKYINGP4X7IFUVVM3RQOZQILRLMMKO3D2NEQEU3T44PEFMHTQV4VVSTX2Z7PP7R5PEL6DKQNRLY
-#::: QF36A6GVVS64SQRZQSR2TD7D46MYFJ77IPAWPGXWZPIL44ZXPNF :::: NAILARA AMOS :::
-# :: LFTFM2SZZ5IZJ5KUN5JZEJKHBZYVN5IBHXUSQ2ZP46ARWY42JMAQ :: CODE SIGNATURE ::
+#RIBZG6XJRT4OFXFGHCW6OMVNRWRBSJDPSPOXASLBXPUAA2MWPZFTSVYMCAPWIZR7NSQAO7V3YK75U
+#::: CB375HT7QT4IPDQIYATHDQ27YXS7VYW57SDADI53GS2P7MLUJVK :::: NAILARA AMOS :::
+# :: BIK4HWCGROTIOWXPO2EYUXXM3VLWAMLJC5VBMY6VOKZXNEA6JAAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

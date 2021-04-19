@@ -5,7 +5,7 @@
 # descr = [manually] shutdown zenka instance[s]
 
 my $params = $$call{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected zenka name or instance id' }
+return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if !length($params);
 
 my $stop_mode
@@ -20,7 +20,7 @@ my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
     if ( $param_str =~ m|^\d+$| ) {    # instance id
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "unknown zenka instance '$param_str' [see 'list zenki']"
             }
             if not exists <nroot.zenka.instance>->{$param_str};
@@ -122,13 +122,13 @@ foreach my $name ( keys %shutdown_names ) {
 map { <[zenka.change_status]>->( $ARG, 'shutdown' ) } @instance_ids;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no zenka '$not_found_name' found in setup [ see 'list zenki' ]"
     }
     if !$setup_found and $not_found;
 
 if ($count) {
-    return { 'mode' => 'ack', 'data' => $msg_str };
+    return { 'mode' => 'true', 'data' => $msg_str };
 } else {
     ## clean up orphaned start jobs ###
     foreach my $param_str ( split m| +|, $params ) {
@@ -149,13 +149,13 @@ if ($count) {
     }
     ##
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'there is no zenka matching zenka running'
     };
 }
 
 #.............................................................................
-#SCDY7PTWRIN66MLVHI2EHJYF7P32MHJKQVCT7YIQ63AW4OQTT2RLQ6LTRAWN7UXLB2AJWKCSAZYGC
-#::: U36CBIZIVQBF3RNARFKQIX4MODFAPELVTWITZFA5FVDBAFSP2QH :::: NAILARA AMOS :::
-# :: DEBLU2F6GZFVRZ27IBDCXTCF7GOIGRZFLLCWIVK6UJRSCLLMMGBI :: CODE SIGNATURE ::
+#37E2YZJU2RE5ZDPWL6FLVY4CU47WIKTJQ56UJLOVNAKTJFQD5XWQKBE2KOX3VOEJCCAKSPMVNUJBO
+#::: J5YJGPQGQA77F7TUS3YHPXLXFKQNHYMULKWNRK3ETPTYDBG5BHV :::: NAILARA AMOS :::
+# :: WMWIPAVV5FVNAQJCGPW47VNBQ3JXTJ6DV5C4A3IVZ27TCUSLKKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

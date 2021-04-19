@@ -15,22 +15,25 @@ if ( not defined $target_path and $box_size !~ /^\d+x\d+$/ ) {
     undef $box_size;
 }
 
-return { 'mode' => 'nak', 'data' => 'expected path to video file' }
+return { 'mode' => 'false', 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'nak', 'data' => 'expected new video size' }
+return { 'mode' => 'false', 'data' => 'expected new video size' }
     if not defined $new_size;
-return { 'mode' => 'nak', 'data' => 'syntax error in video size parameter' }
+return {
+    'mode' => 'false',
+    'data' => 'syntax error in video size parameter'
+    }
     if $new_size !~ /^\d+(x\d+)?$/;
-return { 'mode' => 'nak', 'data' => 'syntax error in box size parameter' }
+return { 'mode' => 'false', 'data' => 'syntax error in box size parameter' }
     if defined $box_size and $box_size !~ /^\d+x\d+$/;
-return { 'mode' => 'nak', 'data' => 'target_path does not exist' }
+return { 'mode' => 'false', 'data' => 'target_path does not exist' }
     if defined $target_path and !-d $target_path;
-return { 'mode' => 'nak', 'data' => 'video file not found!' }
+return { 'mode' => 'false', 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my ( $w, $h ) = ( $1, $3 ) if $new_size =~ /^(\d+)(x(\d+))?$/;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'invalid size parameters for libx264 codec'
     }
     if $w % 16
@@ -120,7 +123,7 @@ if ( !-f $output_file ) {
                 . join( ' ', @ffmpeg_params ) . ")"
         );
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "ffmpeg unable to execute [$err_str]"
         };
     } else {
@@ -132,10 +135,10 @@ unlink($error_log_file) if -f $error_log_file;
 
 <[base.log]>->( 1, ": done. [ success ]" );
 
-return { 'mode' => 'ack', 'data' => $output_file }
+return { 'mode' => 'true', 'data' => $output_file }
 
 #.............................................................................
-#FNRWVDUBYHI7DEUVMXZDQEROPYXX4N7KEXMXFIDBY6FNERZTLSFHIWS3NFIKSXI4QWWYUGTLAJHPU
-#::: NQ7PFZWRD2VGHBIFSWXXA54D6OGPGIV5N6QOBLOUUWRKTNCNHUH :::: NAILARA AMOS :::
-# :: GDCDBSNHFHNARGNJCRVNDYLB746LQH26XBPJBSOK2JMYNUUXHKCY :: CODE SIGNATURE ::
+#LG6FEYFLG5BFO5M2N5CGXEYVNPBSN6AXSXA74NZKB5WLVBYYALSTRS43FKMXXP7JA3B7ARLSGMX26
+#::: OZWQBDFU7FQERTMDOPYLTMI7GV3OCY2S5JQIGOSZPL3XFEADYPT :::: NAILARA AMOS :::
+# :: TJIQ4BGJIXZ73WTWWSAGLCYGNOBWEZBHJAMYKZPUJGDD55LPPACA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

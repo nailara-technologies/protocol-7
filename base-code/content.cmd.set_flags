@@ -5,13 +5,13 @@
 # descr = set url flags for given playlist url
 
 my ( $flag_str, $url ) = split( / +/, shift->{'args'}, 2 );
-return { 'mode' => 'nak', 'data' => 'flag name expected!' }
+return { 'mode' => 'false', 'data' => 'flag name expected!' }
     if not defined $flag_str or !length($flag_str);
 $flag_str =~ s|,,|,|g;
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "invalid url flag name '$flag_name'"
             . " .. comma seperated .. < "
             . join( ' | ', sort keys( %{<content.url_flags>} ) ) . ' >'
@@ -21,7 +21,7 @@ map {
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "URL expected for '$flag_name' flag!"
         }
         if not defined $url
@@ -31,11 +31,11 @@ map {
 my $match = 0;
 map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
-return { 'mode' => 'nak', 'data' => 'no match in playlist!' } if !$match;
+return { 'mode' => 'false', 'data' => 'no match in playlist!' } if !$match;
 
 my $un = <content.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "not allowed for ${un}determined content type!"
     }
     if <content.http.check_content_types>
@@ -47,12 +47,12 @@ return {
 map {
     if ( $ARG !~ /^delay=\d+(\.\d+)?$/ and $ARG =~ /^([^=]+)=/ ) {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "no parameter expected for flag '$1'!"
         };
     } elsif ( $ARG =~ /^delay/ and $ARG !~ /^delay=\d+(\.\d+)?$/ ) {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "expected time in seconds parameter for 'delay' flag!"
         };
     }
@@ -72,10 +72,10 @@ map {
 
 my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 
-return { 'mode' => 'ack', 'data' => $msgstr };
+return { 'mode' => 'true', 'data' => $msgstr };
 
 #.............................................................................
-#MNO6QGPCHW72G4PWCSQDH34SAA4I6S2M4WZA7HYOZI6GJGOJHN2YINZK4UQ7TFB65PDGHQHPLJOZ4
-#::: KZU2OP2MW6LUHEXQUUAATZVMNQIQ6QYTEL5LSOVA6IFXY4KUGJS :::: NAILARA AMOS :::
-# :: EZF56CDZFBX2V4IZPTWNXQ6BSSSAHHG6WSRIFBQNXAVUUDQ5UKCA :: CODE SIGNATURE ::
+#6KPMPYUJT4LUTPUXLVWTN3SSIEV4JNMMDOAOBKWWH7E64N5DBCV2D6E2ZZCZHA7RQE7DMYBQIWCOK
+#::: BV4OIODKBCWBOQWK5GSTMJOI5WWPCIH463JVWTI2ZRTJGYPI4CB :::: NAILARA AMOS :::
+# :: ED5QBVVLTAN7L6BTVEBLPMO44KOTPOICCCLJLDTA7WVU65WHUKDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,13 +40,13 @@ my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die "cube handle had an exception" if not defined $reply_string;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
+if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
     <[base.log]>->( 0, "set_opacity command failed with '$1'.," );
     return 0;
 } else {
@@ -54,7 +54,7 @@ if ( $reply_string =~ /^\($cmd_id\)NAK (.+)$/ ) {
 }
 
 #.............................................................................
-#FMLH4YGGF5HJAHN37N45J5TWS3BE3BBBVJQUNXIJKWOHT6C5B3E6NNGUCFCTGZYF7YF2PBWN6QFLW
-#::: 6W3CTBEDVLOVQV4AZUCP22NTE5DGZIUQA2BNJMB5GE7AVB3MUDB :::: NAILARA AMOS :::
-# :: ZBYRJWYEREJY323MLFAGNUOSVGBY276ZLSU7HMIVHCFGUTVUMMCY :: CODE SIGNATURE ::
+#EAX7OWUTKC2DEYV2XGWPN2SQBLW744LYHBAEDUSKLT2Q5X3G4WHFUTQKHQ7HDE5RJCGYYRMNB6ILA
+#::: U57ESOM2TUIFJ4LGFPSCGRHL7YRWY5HJSZCYQPTIRG4TUXQSBR5 :::: NAILARA AMOS :::
+# :: P7UPIFM2DQW76OUYOMC55VCURBQMPTJDMPTWFSBAR6PZRUET3QCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

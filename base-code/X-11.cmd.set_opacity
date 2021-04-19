@@ -6,16 +6,16 @@
 
 my ( $window_id, $opacity ) = split( m| +|, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
-return { 'mode' => 'nak', 'data' => 'window <opacity> required' }
+return { 'mode' => 'false', 'data' => 'window <opacity> required' }
     if not defined $opacity;
-return { 'mode' => 'nak', 'data' => 'invalid window <opacity> [0..100]' }
+return { 'mode' => 'false', 'data' => 'invalid window <opacity> [0..100]' }
     if $opacity !~ m|^\d+$| or $opacity > 100;
 
-return { 'mode' => 'nak', 'data' => 'no such window' }
+return { 'mode' => 'false', 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
@@ -27,10 +27,10 @@ my $result = <[X-11.set_window_opacity]>->( $window_id, $opacity / 100 );
     "error during set_opacity [ $opacity ] for window $window_id [ closed? ]"
 ) if not defined $result;
 
-return { 'mode' => 'ack', 'data' => "set opacity to $opacity%" };
+return { 'mode' => 'true', 'data' => "set opacity to $opacity%" };
 
 #.............................................................................
-#KGOG33DW4Q7CY6UQCKNVVQKGAQWMQBCOMKLWLMNCM4HLZMZWDM7W7QDONIYR3PRTAZMWTAL36WUJ6
-#::: GQRMGVPQOLQG5HO4WELC7CCUPZKUKYQOUD7T35XLXRZNIAQPLGC :::: NAILARA AMOS :::
-# :: JID7VV2O7B3ZJX5KSWEO5MS4QEKRUKNT5K6VHB7VSU64N4BVCQCY :: CODE SIGNATURE ::
+#VYPJR25Y7NUM6SYPZTT57DQH5XSEQNH7XIB6ZRXKAD3Z22PWJWATREB7JVWU725BSQAHVELKDBRXA
+#::: AZGNY2EAQAV7FCYFSI37FOXCV3YRL2VNF7IXGTSIJSDYY7D3YQF :::: NAILARA AMOS :::
+# :: PKMHW6GHTNETGFGZETAXDUBNNSUXBVRXMKXCKS2PPGDMCWHAL2DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

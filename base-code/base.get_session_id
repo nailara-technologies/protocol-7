@@ -29,13 +29,13 @@ while ( !$matched_reply ) {
         );
         exit(1);
     }
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (\w[\w\-\d]*) (\d+)\n$} ) {
     my ( $zenka_name, $cube_session_id ) = ( $1, $2 );
     if ( $zenka_name ne <system.zenka.name> ) {
         <[base.log]>->(
@@ -57,7 +57,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\w[\w\-\d]*) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#5DY44KNZUSCLVG7OOHABA7RYDTMZCKCGOZQWLZSWHLJBDGIC3ITBAVLTIGJFQDCIOHTZNUMX3SSTC
-#::: FALRFLDUBVB4QIHNGDRCLCPR67R3DTYKLIDMJDLGRECHLBHF4FU :::: NAILARA AMOS :::
-# :: 4E2CLIHCBYV5BVXI6C2DV6PJJOXA6KXZM76AT4LEU37PKKH3NKBQ :: CODE SIGNATURE ::
+#QCYUNDJSR6NBQ4AQTZ2RMI57YNNC5CI2ZR6DUJ2KZ5LDE5BRFBLWYGYTNQSU5GDU2G2P75TLWE5KS
+#::: 5DKT75SSZLCFGAR2CRSS7N2EK4RGROOP3PY34IOJ6EVSQAIQLPH :::: NAILARA AMOS :::
+# :: WUNE3CMICSMXISWCAYL7FSDXSABLX7NDXHK3JRA4YOBRFFVALGCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

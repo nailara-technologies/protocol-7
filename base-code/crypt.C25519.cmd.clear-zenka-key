@@ -7,9 +7,12 @@ my $key_name   = <crypt.C25519.key_vars.key_name>;
 my $s_key_name = <system.zenka.name>;
 my $id         = $$call{'session_id'};
 
-return { 'mode' => 'nak', 'data' => 'C25519 key name is not defined' }
+return { 'mode' => 'false', 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
-return { 'mode' => 'nak', 'data' => "C25519 key '$key_name' is not loaded" }
+return {
+    'mode' => 'false',
+    'data' => "C25519 key '$key_name' is not loaded"
+    }
     if not defined $KEYS{'C25519'}{$key_name}{'public'};
 
 <[base.log]>->( 0, "[$id] flushing C25519 key '$key_name'., [ requested ]" );
@@ -42,10 +45,10 @@ if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
 
 delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
 
-return { 'mode' => 'ack', 'data' => "deleted '$key_name' key from memory" }
+return { 'mode' => 'true', 'data' => "deleted '$key_name' key from memory" }
 
 #.............................................................................
-#SFRVXXOVDSHRNMTKXNIPASMFSYRRVDGQMDQ6FQUFZ2AMUTOZQPWML3DJXUHULXNHMWAZUZOUWGKTS
-#::: BCACONLCW7ZIEKCMUA53N3OFNECXGXEDNI34JQVS4XSE5CFFEWR :::: NAILARA AMOS :::
-# :: THWSFCFDCPRDHKQ7DPS5P2Y5MFUWEGBUMOAZAVNTB6WLEHE5KSAA :: CODE SIGNATURE ::
+#OCMII2DEAXL35SSKGUGT43HRTC3OHAPMCBSKRN3KV3FBR4ULJ7KJSO6RNLR2VDQG4NWONGXNH5AM4
+#::: HASBYBKHX2DFDOSNWBWYOHS6UWCKANYVXRXD4KYT4XVVTANTL2I :::: NAILARA AMOS :::
+# :: 7ZZRVOGWY53MWVCYJAQLJHSEJOK3Z2DN62XAP3VRUCLGFIRTJMAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

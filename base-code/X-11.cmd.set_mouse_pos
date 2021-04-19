@@ -8,7 +8,7 @@ my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
-    return { 'mode' => 'nak', 'data' => "expected $ARG parameter" }
+    return { 'mode' => 'false', 'data' => "expected $ARG parameter" }
         if not defined $coords{$ARG}
         or $coords{$ARG} !~ /^\d+$/
 } ( 'x', 'y' );
@@ -23,7 +23,7 @@ my %screen_geom = <X-11.obj>->GetGeometry( <X-11.obj>->root );
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "mouse position must be within screen dimensions!"
         . " [${width}x$height]"
     }
@@ -33,10 +33,10 @@ return {
 <[X-11.move_pointer]>->( $coords{'x'}, $coords{'y'} );
 <X-11.obj>->QueryPointer( <X-11.obj>->root );
 
-return { 'mode' => 'ack', 'data' => "mouse position set" }
+return { 'mode' => 'true', 'data' => "mouse position set" }
 
 #.............................................................................
-#WB77HD3KEETX3J5DAMPNWMZXGTFZYSXYPRZ45SB4PWWA63DF7QKCIR5JIVQTQU72IIPOD62KRSSFC
-#::: UEWHFJSKBBVRNSVZFLFNDJS7XKRRHE564X2LN3A5YBH3SYAIUIH :::: NAILARA AMOS :::
-# :: SUNF7IYXR4K6VDWXAHGP66XWGOBQOEOZ6FKK4I66ACYU3GF64UBA :: CODE SIGNATURE ::
+#GSETUHLME5LJYBC333DAC7B33FRMNCORCOMWQSIPMY3SU6XKEPRDJ7A4EARP3WFVB7OL2BZP4Z5DM
+#::: TQMY3VTWOTKM6JOGES2TBAJC3DZSR6MRXQP5MA4VIJJN463TZYM :::: NAILARA AMOS :::
+# :: DDFR6PJT4PAZAV7IWRMZFTQXHHKQTO2R72G3423TQHYTZW54D6AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

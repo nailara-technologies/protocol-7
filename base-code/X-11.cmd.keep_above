@@ -7,9 +7,9 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -23,7 +23,8 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 eval {
     for ( 1 .. 2 ) {    # <-- workaround (ignored state requests)
@@ -33,12 +34,12 @@ eval {
             "ABOVE" );
     }
 };
-return { 'mode' => 'nak', 'data' => "unable to set window state 'above'" }
+return { 'mode' => 'false', 'data' => "unable to set window state 'above'" }
     if $EVAL_ERROR;
-return { 'mode' => 'ack', 'data' => "set window state 'above'" };
+return { 'mode' => 'true', 'data' => "set window state 'above'" };
 
 #.............................................................................
-#DWQ5E5XIPUB6OY7D2SJMCB7J6GZKG4Y6WM5JH2MCPFVRIHHRRYMVHR2ZEIDXR2O6U3AFSQY3ENSME
-#::: SWPPJT3M7QEKWYAZBDRNJE5AS4NHV7VVNQGA3O2VZP53KLTB6QR :::: NAILARA AMOS :::
-# :: JVUHT7XLAVQ5IMTPDRXH5AILMPAKPOXP6FOEFK3P46QKDCIC3OCY :: CODE SIGNATURE ::
+#6VNZ4RDGLAULJK34Z6NYO4CSMMDRJB7SOJ7OCUOQMLP6A4XR7B4BY6XKLKKPUGYK56KHKRCKYRQ26
+#::: NGU24SGIYXGSTY6V4TKETEQDOXCZBXWDHJFIAWZT6CD2B3UUG4V :::: NAILARA AMOS :::
+# :: CPEMAJXGCW6RMHYDHNWL2VDRIN5ANZWNJ4IN4NFWSFVKSP2HOKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

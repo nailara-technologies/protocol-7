@@ -46,7 +46,7 @@ my $log_fh;
 if ( !<log.files>->{$log_name}->{'locked'} ) {
     <[base.log]>->( 2, "opening log '$log_name'..," );
     open( $log_fh, ">>$log_file_encoding", "$log_path/$log_file" )
-    or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
+        or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
     flock( $log_fh, 2 )    # LOCK_EX
         or return ( 0, "unable to lock logfile [ \l$OS_ERROR ]" );
     <log.files>->{$log_name}->{'locked'} = 1;
@@ -67,7 +67,7 @@ print {$log_fh} $$log_msg_ref;
 return 1;
 
 #.............................................................................
-#7PHDXFWKRWLDHVSHQYP4R5X7M6VTPKYLTUOMCIP7YQHFKYSC3GUY53APY3OLEMTQNPDB4SXIQYA6C
-#::: SUTPTEEDTCJBEPPKLN2QS5KSZHPJCRGIXCAPGK7KIQP37QHBEMX :::: NAILARA AMOS :::
-# :: K7BZAZ2HOL4TDGIBOQ272WXNLEWPZ7KMPZSH3RCQMVM4EA4ZQSAA :: CODE SIGNATURE ::
+#SXX6DZIO3OIJUDNVM7VMWAANRX6VPL2Q4X34LWKKOS2VQHW777ZCYLXCJM3Z7QIBO4O7HG44OBY6A
+#::: QY45VVAGIPZEDRGMRZDXYWLCIMRQF6EBPNIKELBI5MPEIXGQOVD :::: NAILARA AMOS :::
+# :: H2HNFJJU7NYVIOWFWZWY5N5TFZEMDUUGJLGVTMC4AK3XZBJISOBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

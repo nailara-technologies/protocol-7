@@ -7,10 +7,10 @@
 my $param = $$call{'args'} // '';
 my $poweroff_enabled = <nroot.system-poweroff.enabled> //= 1;
 
-return { 'mode' => 'nak', 'data' => "not found : '/proc/sysrq-trigger'" }
+return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
     if !-e '/proc/sysrq-trigger';
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specifically disabled [ nroot.system-poweroff.enabled = 0 ]'
     }
     if not $poweroff_enabled;
@@ -29,10 +29,10 @@ system('/bin/sync') if $param ne 'nosync';
     }
 );
 
-return { 'mode' => 'ack', 'data' => '<< powering off host system >>' }
+return { 'mode' => 'true', 'data' => '<< powering off host system >>' }
 
 #.............................................................................
-#ICL2J3JUAHDJBY5VYZHN47MROYGE6RWZE35FPTLZEZUIMX6VAX4ZNK4CZJAYFLW7Q3F4VUPMYLKWM
-#::: KCV4RHUWOEACB56FC7Q6BFLEHV337RLJEEEVIF32PVXMD3KE754 :::: NAILARA AMOS :::
-# :: KZOCHNLB2TS55SDCAIIRSHTBWSVWHIYXLZTCECTCNS3S7XG75CBI :: CODE SIGNATURE ::
+#3L76632L2TZLFMWAOCOZHFACMK6EJ7LKZGQ6MWMJVOSYMHMN3GTJWLCGKUXCSPLVASIFN2EETVGCM
+#::: AHREOZ5HKZ7Y3TR5234ZMR6O2BPP35A7BJSULOLWS7LUVN5A7YF :::: NAILARA AMOS :::
+# :: ILRLYYXAMFWHZ5K2ELPM7HZV7S5YMSKEDFXWAA735OG643RMBMBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

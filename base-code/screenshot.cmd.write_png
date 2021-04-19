@@ -4,10 +4,10 @@
 # param = [coords]
 # descr = grab screen or region and return path
 
-return { 'mode' => 'nak', 'data' => "not implemented yet" };    # <-- << ! >>
+return { 'mode' => 'false', 'data' => "not implemented yet" };   # <-- << ! >>
 
 my $param_str = shift->{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'expected screen region coordinates' }
+return { 'mode' => 'false', 'data' => 'expected screen region coordinates' }
     if $param_str !~ /^(\d+ +){3}\d+$/;
 my @coords = ( split( / +/, $param_str ) );
 
@@ -15,13 +15,13 @@ my $image   = <[screenshot.grab_region]>->(@coords);
 my $err_str = $image if ref($image) ne 'Imager';
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "unable to acquire screenshot [ $err_str ]"
     }
     if defined $err_str;
 
 #.............................................................................
-#GRWE3RNI7CU52M6RG72ZHSTNYOVVIXAIREUW4ENRYXQ6KHJPMOT475WVXMENKVK2C6E3JFHGT3YPG
-#::: XAYVBUHIYKGLIYBBKESIAF6RSXMGUH7CFP2ZZHFR2ELGIV4MJ6I :::: NAILARA AMOS :::
-# :: LOHGWG2FH6QMKQIYXAMXQADVRTY3VI5F5CJATB4WSCBX5VAEBEDI :: CODE SIGNATURE ::
+#KI7BOF4ZN7GZ63BDHRMURP2VVQXWRAS5BHEPHQAEHS5DOAOZAAZN3ZDQYGTO2UM77HWYA5LLXCVP2
+#::: VJPKT4BSYPNE66JCOSRODTWUZZFPWUFDVW7OX4LGKPT7LTT2XR5 :::: NAILARA AMOS :::
+# :: S6CHRIMOT2JFSTLPRL6TYCVALTU4CMRWMX55DEPAGO6CF3STF4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,13 +7,13 @@
 my $wordlist_path   = $$call{'args'};
 my $index_data_path = <indexer.path.index-files> . '/wordlists/';
 
-return { 'mode' => 'nak', 'data' => 'no write access to data path' }
+return { 'mode' => 'false', 'data' => 'no write access to data path' }
     if not -w <indexer.path.index-files>;
-return { 'mode' => 'nak', 'data' => 'expected wordlist path' }
+return { 'mode' => 'false', 'data' => 'expected wordlist path' }
     if not defined $wordlist_path;
-return { 'mode' => 'nak', 'data' => 'wordlist not found' }
+return { 'mode' => 'false', 'data' => 'wordlist not found' }
     if not -f $wordlist_path;
-return { 'mode' => 'nak', 'data' => 'wordlist not readable' }
+return { 'mode' => 'false', 'data' => 'wordlist not readable' }
     if not -r $wordlist_path;
 
 <indexer.jobs> // {};
@@ -22,7 +22,7 @@ my $name_checksum = Digest::Elf::elf($wordlist_path);
 
 ## use base.gen-id , create seperate checksum look-up .., ##
 
-return { 'mode' => 'nak', 'data' => 'indexing job already exists' }
+return { 'mode' => 'false', 'data' => 'indexing job already exists' }
     if exists <indexer.jobs>->{$name_checksum};
 
 $index_data_path .= join( '-', $name_checksum, <[base.ntime.b32]> );
@@ -34,14 +34,14 @@ say "< wordlist-path > '$wordlist_path'";
 my $wordlist_fh = <[file.open]>->($wordlist_path);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'cannot open wordlist file'
     }
     if not defined $wordlist_fh;
 
 my $wordlist_aref = <[file.tie_array]>->($wordlist_fh);    ## <-- ..,
 
-return { 'mode' => 'nak', 'data' => 'cannot open wordlist' }
+return { 'mode' => 'false', 'data' => 'cannot open wordlist' }
     if not defined $wordlist_fh;
 
 <indexer.jobs>->{$name_checksum} = {};
@@ -68,7 +68,7 @@ my $index_job = {
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#QBGIYQSNDE62BHRFMSYGRWRND7VJC27HG5GAIAXXWALAUQXND36KPQXR2OH746KBBCB62L4TWVJ4E
-#::: QI6OTDJBPEMN3XR4D3LRJ5PG4RBY6KJ5IIYP7F2ALHDMEHBEEH3 :::: NAILARA AMOS :::
-# :: P4WHYGZCCSOQK35AI67QUFXHY5RSZYIEIWYHP6XBVT7624YWAQAY :: CODE SIGNATURE ::
+#FGOV3X2VQWYZP3Q6KCSQ7GWAQ2JX3XIVFMR5HZK7BHUXLF4T3UVEPARKGBSV7PA7EA3IUFMXGADU6
+#::: 5C2FO3VNZ7WPQC2GZGTTXRN35ATZAP76QLZZFZKE55KL2KXOEUP :::: NAILARA AMOS :::
+# :: 4TV6O26FJKDX72MP76I4KHXQ42TVYG3NHZIFKQZF7A4VO6EEFSBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

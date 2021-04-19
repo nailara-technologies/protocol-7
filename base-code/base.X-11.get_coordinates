@@ -32,13 +32,13 @@ while ( !$matched_reply ) {
     die "cube handle had an exception!"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
 {
     <x11.coordinates>
         = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
@@ -50,8 +50,8 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
 my $err_msg = "unexpected reply from composition zenka ['$reply_string']";
 
 $err_msg = ': coordinates undefined'
-    if $reply_string =~ /NAK no coordinates/
-    or $reply_string =~ /NAK command unknown/;
+    if $reply_string =~ /FALSE no coordinates/
+    or $reply_string =~ /FALSE command unknown/;
 
 <[base.log]>->( 1, $err_msg );
 
@@ -65,13 +65,13 @@ while ( !$matched_reply ) {
     die "<< 'cube' handle had an exception >>"
         if not defined $reply_string or !length($reply_string);
 
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     <[base.log]>->( 1, "using x11 root window coordinates [0,0,$1,$2]" );
     <x11.coordinates>
         = { 'left' => 0, 'top' => 0, 'right' => $1, 'bottom' => $2 };
@@ -83,7 +83,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#GBNDWQ4KHTE3ZLWNWEDITF6ANUIMGXCJIBZT2R4ZFHRYZGL4OW2CWYTNIKSPLF566BZ553EEQF2BS
-#::: V7PD2PNWM5FDLII37T6QXGZG5ATZOZJ7TSLLUQIVC7BN6C6MKVV :::: NAILARA AMOS :::
-# :: H4UOFN2Q5GIRXSQLHZVVM3ZXXFI4TCQK24ZB6KHLG32JDSK3ZIAY :: CODE SIGNATURE ::
+#FTYCCVCPBRBMVGYS4GPX7RY4YXYM2E3LKUP6J3MLN7XGACPUG6LXF2NMZYQU2QE5GBLS2BSJCQZF2
+#::: GEENO72YIFAALPIXCBZAOZJBZU2VSMXQ7KT5773EVQZRVZQIQ25 :::: NAILARA AMOS :::
+# :: 5QQL23N6RBUABCYN7BDTR2RFHKPF5KR4WK6R4IFSAFZKKGAKEKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

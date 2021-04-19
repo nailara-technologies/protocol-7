@@ -5,7 +5,7 @@
 # descr = verify root instance id through log feedback
 
 my $random_string = $$call{'args'} // '';
-return { 'mode' => 'nak', 'data' => 'no random string supplied' }
+return { 'mode' => 'false', 'data' => 'no random string supplied' }
     if !length($random_string);
 
 <[base.log]>->( 1, "instance verification [KEY:$random_string]" );
@@ -20,10 +20,10 @@ map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } ) }
     if defined <system.timer>->{'send_reports'}
     and <system.timer>->{'send_reports'}->is_active;
 
-return { 'mode' => 'ack', 'data' => 'verification code logged' };
+return { 'mode' => 'true', 'data' => 'verification code logged' };
 
 #.............................................................................
-#JH6WV2DVAIZZVCSDLMYDYIWREDA26XQ4BL6T6GWA7FYX7WT2T2KIBHVETNLJ6LIMVV42OLMQCFARO
-#::: 4W5LODB63NR6T244QVR3Q2FXEGTCN5VXVUZW7YVHIGDNGNPQUDF :::: NAILARA AMOS :::
-# :: Y2Q7HZHMFAW4GMX6AOKWPOWDK7CJSWB46HJKALK5JM3XHB2JLUDA :: CODE SIGNATURE ::
+#4QTHMECMAL7VJBH24G7BDZHHTJNQWN6VJXF4SGEEIDM6OFVXKNKI7C4SYMBWXOUZGI4H65YOK2OUO
+#::: NCKSWZR5XJTLOMEZSYN3TRGHYAS2V7FPWIBD4DLP3YGOTQ3J4QB :::: NAILARA AMOS :::
+# :: NBQ3GPLJJQGVPCHIAR5NRXMQGG6HXCO5GTXFLMMGSNTZMOLOPCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

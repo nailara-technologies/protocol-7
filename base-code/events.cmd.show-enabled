@@ -3,11 +3,11 @@
 # name  = events.cmd.show-enabled
 # descr = list events enabled in set-up
 
-return { 'mode' => 'nak', 'data' => 'no events configured' }
+return { 'mode' => 'false', 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
     or !keys %{<events.unix.timetable>};
 
-return { 'mode' => 'nak', 'data' => 'no events are enabled' }
+return { 'mode' => 'false', 'data' => 'no events are enabled' }
     if not defined <events.enabled>
     or !keys %{<events.enabled>};
 
@@ -19,7 +19,7 @@ return {
     }
 
 #.............................................................................
-#VFSH3VMCOKXJQO7K75724QJFPWTUBICW24VXDIXESS77Z4YBXLVFOLCYWRP45OKLOBYKIKKDXCYPO
-#::: OLBDBMLTEK63DHWAY7WHFKKMIVJIANZSUSAGNGENDGA2WXDZUUT :::: NAILARA AMOS :::
-# :: 6OEJLQZUA6GON5TIT3VB43CYDPTXWWYMVDLU7Y2WWWJLTB5HJKAY :: CODE SIGNATURE ::
+#KOQZIBJAJKTOI3HPZNLOEM72CEEBFKOFC5SEMJAY4SNVCVM5CADBVMWCMTSCE4CMW5KKZTMBDBSQI
+#::: FHCAHNPNQVHRGZ6IPUN3W2SR76C5WGSCDWNNB5YJPSOWGWFNYFJ :::: NAILARA AMOS :::
+# :: BEQHTYAOSNZF3SQWQETLPU33M5YDGF2B2KVHXMEP7FT2BAWNQQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

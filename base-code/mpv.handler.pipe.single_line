@@ -10,7 +10,7 @@ my $property = delete <mpv.request.property>->{$reply_id} // 'unknown';
 if ( length($cmd_reply_str) ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'ack',
+        {   'mode' => 'true',
             'data' => $cmd_reply_str
         }
     );
@@ -18,14 +18,14 @@ if ( length($cmd_reply_str) ) {
     <[base.log]>->( 2, "<< empty reply from mpv pipe >> [prop:'$property']" );
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => "undefined"
         }
     );
 }
 
 #.............................................................................
-#CCKRCT5UGGFZZUY2XC25MRQZCFWHSDUUIRIJXKDTOTUQGQGF5S7SL4ADFC52VC6J4O24IUWQH4OFU
-#::: 2VSM7RSL7OGPVCWWLKHEA374LSSLSBWTBJZWVRLHMD5TM6ACLJN :::: NAILARA AMOS :::
-# :: FB4BVJ66MZMDWQRYJ3A5UNKKRGNZDPC7HONUBUPFVR4XPWIBM6BQ :: CODE SIGNATURE ::
+#GXQBL5MRQCOU6BU4JX27JO2KM4BNWJFQTSXGY5OG3CLCZSZE33KRBWKSX2G6H5EHAFYPARCVLDXUO
+#::: I3KOBQKE65NQADOYQEUN3HT4VKTEOWHTBLVDJI2K5KA36TVLKE4 :::: NAILARA AMOS :::
+# :: Q5ZAB63Z4XMIJ2A3Q65BDXY2TMZ34GHZXERXOXVBLT6YUAEAO4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,17 +5,17 @@
 # descr = return parsed playlist entry for given b32id
 
 my $b32id = $$call{'args'};
-return { 'mode' => 'nak', 'data' => 'valid <b32id> expected!' }
+return { 'mode' => 'false', 'data' => 'valid <b32id> expected!' }
     if not defined $b32id
     or $b32id !~ m|^\w{5,23}$|;
 
-return { 'mode' => 'nak', 'data' => 'no matching playlist entry found!' }
+return { 'mode' => 'false', 'data' => 'no matching playlist entry found!' }
     if not defined <content.b32id_src_str>->{$b32id};
 
-return { 'mode' => 'ack', 'data' => <content.b32id_src_str>->{$b32id} };
+return { 'mode' => 'true', 'data' => <content.b32id_src_str>->{$b32id} };
 
 #.............................................................................
-#Q6LHBRQ7KBMUZRNX4B5O24XZMBIEUB5RD4CZ6KPE5ZIERRVRO7SWLIZUYPVPNB2GB3QDOREIJJXCS
-#::: HCROLVBWOCGOUBPS3P4ZNUT3EIGJXEZ3LFQ7ZR37PBXZG6PERYU :::: NAILARA AMOS :::
-# :: 2BNEU232I3BYCGRCTDPUXR7BCYE6E4EVSN5J3ERHU4JSYNM7XMDA :: CODE SIGNATURE ::
+#HYH3N6O5PZ4JJXKWSOZI3HXWW5LEXROKDG5HDWM5PIZZ4LBWME7KND2JB6ELIIT7WAYPSG5Z5VVJM
+#::: QUJD6FCE2CUHCKQX2UWAGE2ZG4WEJHBQKI2VGJU46WBAF45PVEG :::: NAILARA AMOS :::
+# :: 45ANHQLF5DTDODUY2IXW4V6U4UNUZYGR7KLPSW7HH5EAGUB4NCCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

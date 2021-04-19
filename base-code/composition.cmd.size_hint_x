@@ -4,7 +4,7 @@
 # param = <zenka[tile]> [ratio]
 # descr = return matching X % to fit ratio [16:9]
 
-return { 'mode' => 'nak', 'data' => "expected valid zenka name" }
+return { 'mode' => 'false', 'data' => "expected valid zenka name" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\d+:\d+))?$/;
 
@@ -12,7 +12,7 @@ my ( $zenka_name, $ratio_str ) = ( $1, $3 // '16:9' );    # <-- default ratio!
 
 my $coords_reply = <[composition.cmd.get_coordinates]>->($zenka_name);
 
-return $coords_reply if $coords_reply->{'mode'} ne 'ack';
+return $coords_reply if $coords_reply->{'mode'} ne 'true';
 
 my @coords = split( / /, $coords_reply->{'data'} );
 
@@ -35,12 +35,12 @@ my $old_percent = sprintf( "%.02f", $width * 100 / $x_total );
 my $new_percent = sprintf( "%.02f", $new_width * 100 / $x_total );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "[$ratio_str] X = $old_percent% --> $new_percent%"
     }
 
 #.............................................................................
-#7XVX7GYDJERJY3TRY4HKE34C72I62PT7AXP7SP34RGWN5A5YFJ46R46UVNGBTTNLQZY6QFFIZOYHM
-#::: 74JXEIV3QMJRUMA2CTFFKYD75FFFY46BGJMHEAJHI4ZUH3MLLOB :::: NAILARA AMOS :::
-# :: YWMHMFFUROOQWLYBIVDW7DP64HXRHCPSTOKDQM3PLWB3XVHPA2AI :: CODE SIGNATURE ::
+#WOMQK6HI743ZTAMXO7OAPLIQG3VLY3BJJY4BRG3CTEWD64JW52RZNK7MSUKN4ZAO242PBLGS3XETE
+#::: 5WI5HSBRAJZRLYI2APJJN52VSLSKXN7TTEOQPSKW45E6UGDN247 :::: NAILARA AMOS :::
+# :: R264MUBP4KY2AW7IPBGK2BFJDHA5RVO2UTTTVQLJQZXU2YF67CDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

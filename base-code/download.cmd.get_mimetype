@@ -7,7 +7,7 @@
 my $content_type;
 my $url = shift->{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'url parameter expected' }
+return { 'mode' => 'false', 'data' => 'url parameter expected' }
     if !length($url);
 
 my $uagent = <download.obj.ua>;
@@ -16,7 +16,7 @@ $uagent->protocols_allowed( [ 'http', 'https' ] );
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
-return { 'mode' => 'nak', 'data' => 'url parameter expected' }
+return { 'mode' => 'false', 'data' => 'url parameter expected' }
     if not defined $url
     or !length($url)
     or $url !~ m|^http[s]?://|;
@@ -38,13 +38,13 @@ if ( $response->is_success ) {
     $content_type //= 'unknown';
 } else {
     my $err_reason = $response->status_line;
-    return { 'mode' => 'nak', 'data' => $err_reason };
+    return { 'mode' => 'false', 'data' => $err_reason };
 }
-my $mode = $content_type eq 'unknown' ? 'nak' : 'ack';
+my $mode = $content_type eq 'unknown' ? 'false' : 'true';
 return { 'mode' => $mode, 'data' => $content_type };
 
 #.............................................................................
-#A2MD6SVD4KWPJFH4DXLMZVYBTFFOD2EEBQRWNGSNCNA2TFIMAXP4WZCJR3XUBXO5HOHSYWZNHFSN2
-#::: XHLXSI66JTJG6ZMWRVZMDTGINNGAJIAL5H5UBZYRZMQFPJYI7O7 :::: NAILARA AMOS :::
-# :: BJML7NZHZUAILZHU6H3SUDZMRYF62U6DXKLOQ2KMK3M5LD5UYEBY :: CODE SIGNATURE ::
+#QEHMREFFUITWPAVXBNACBSXXRO4XSLG2N3OXPUPL2ANVPCCHTKNDCWTNHNDR3MPGXWJCJ2ACQ6EQQ
+#::: HEDFHYO2PC7MSWDIQJTXH7TXE2MXHRRQ5PQABSIDSNC2B6XLMEX :::: NAILARA AMOS :::
+# :: WA7YKVTXPQYQNRC3RTXY47TSS5AWMUIMKYIW6FQTFDR2I3VTA4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

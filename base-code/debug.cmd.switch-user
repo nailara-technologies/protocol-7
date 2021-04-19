@@ -10,14 +10,14 @@ my $new_usr = $params->{'args'};
 my $id      = $params->{'session_id'};
 my $old_usr = $data{'session'}{$id}{'user'};
 
-return { 'mode' => 'nak', 'data' => "you are '$new_usr' already!" }
+return { 'mode' => 'false', 'data' => "you are '$new_usr' already!" }
     if $new_usr eq $old_usr;
 
 if ( not defined $new_usr or !length($new_usr) ) {
     $$reply{'data'} = 'no username specified';
 } elsif ( $new_usr =~ <regex.base.usr> ) {
 
-    return { 'mode' => 'nak', 'data' => "no user '$new_usr' found!" }
+    return { 'mode' => 'false', 'data' => "no user '$new_usr' found!" }
         if not defined <auth.setup.usr>->{$new_usr};
 
     <[base.log]>->(
@@ -39,16 +39,16 @@ if ( not defined $new_usr or !length($new_usr) ) {
     }
 
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "switched session to user '$new_usr'"
     };
 
 } else {
-    return { 'mode' => 'nak', 'data' => 'invalid user name syntax' };
+    return { 'mode' => 'false', 'data' => 'invalid user name syntax' };
 }
 
 #.............................................................................
-#3D4SAREZZRTNSMY573WN7SBCOBK26R6H5E53D4QU5MHIHPWGIYJUFVE22EMW3VFUW242QPZ5ADHPO
-#::: S5TNCVDYOFT36ADOX2T2UNWHDGBDQZA5KIHIKG4BVI5WS7P3KJY :::: NAILARA AMOS :::
-# :: GKGZIINYQ7JW2XWOQ4PIGKZ263TZHEHUCNFDXW73BBZ74TA2DECA :: CODE SIGNATURE ::
+#X2UZUELI4SMVYVQ5LKCZFIBNA6DTIG7BNBPYNQJDIMR6BTZ3FK6AVVLIETBN3JDAWPPBHQYVRYNJ2
+#::: JTII7Z3HSCMVYJHCAUCAH6MJXFO2RFIYAQZHCYCDIZ4XVFI77U7 :::: NAILARA AMOS :::
+# :: THKNZ7TDLTD5X4CITOI5F5YTSGMSRSLKCVKJRA4L4WJZRGOYOEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

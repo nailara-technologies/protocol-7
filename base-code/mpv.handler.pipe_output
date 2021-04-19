@@ -53,11 +53,11 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $reply_id = shift @{<mpv.reply_ids>} ) {
 
         <[base.log]>->(
-            0, "[$reply_id] pipe-NAK [" . $decoded->{'error'} . "]"
+            0, "[$reply_id] pipe-FALSE [" . $decoded->{'error'} . "]"
         );
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'nak',
+            {   'mode' => 'false',
                 'data' => 'player child replied "'
                     . $decoded->{'error'} . '"!'
             }
@@ -86,10 +86,10 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $reply_id = shift @{<mpv.reply_ids>} ) {
 
         <[base.log]>->(
-            2, "[$reply_id] pipe-ACK [" . <mpv.success_reply_str> . "]"
+            2, "[$reply_id] pipe-TRUE [" . <mpv.success_reply_str> . "]"
         );
         <[base.callback.cmd_reply]>->(
-            $reply_id, { 'mode' => 'ack', 'data' => <mpv.success_reply_str> }
+            $reply_id, { 'mode' => 'true', 'data' => <mpv.success_reply_str> }
         );
         delete <mpv.success_reply_str>;
         next;
@@ -105,7 +105,7 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#LGRHSQU374U2BJXN4NFUG5KTRPQKPJ5FBVKVDMU4SHPBMS2P2NGROBREKTB5FCQZIAZ4V7VDFISK2
-#::: 3LPSCV3NQCZYZU2DOTGSOQ6ABIYHRFMZCLCNSVOYZLZNPFCQYNJ :::: NAILARA AMOS :::
-# :: CW63NIO5DXLWQHTALLXIB3MBD63TD6JIPIRA7JMWVIBI555JHGBQ :: CODE SIGNATURE ::
+#44R3OC65R4H3WOVSJCKPVGFB3JVNTXX7G234C4RVMIYCUQ4PEV4OWZ7WFKAC2AKNUV56BKYXZQTPY
+#::: W4QXZMWIDUU2WSVAW2K4WMCKNQNUAWXZV7BTRC7NACHXXWJRJSG :::: NAILARA AMOS :::
+# :: 7OUUJEXRH7KM6M6TEZRVHKQIUTTVDSARRCJIGOQXGBGWLOJH5ADI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

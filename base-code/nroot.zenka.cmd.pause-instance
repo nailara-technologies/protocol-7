@@ -6,9 +6,9 @@
 
 my $instance_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'instance id must be numeric!' }
+return { 'mode' => 'false', 'data' => 'instance id must be numeric!' }
     if $instance_id !~ m|^\d+$|;
-return { 'mode' => 'nak', 'data' => "instance not found." }
+return { 'mode' => 'false', 'data' => "instance not found." }
     if not exists <nroot.zenka.instance>->{$instance_id};
 
 my $instance = <nroot.zenka.instance>->{$instance_id};
@@ -26,12 +26,12 @@ my $es = $count > 1 ? 'es' : '';
 <[base.log]>->( 0, "instance $instance_id paused. [ $count process$es ]" );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "$count process$es paused (SIGSTOP)"
 };
 
 #.............................................................................
-#GIPQH5TA4PHH3QAHOAKNWU2URKAENV26T6ONZ3O6SSAEDFKQBH5MM7K47KJ722W6TGA5UALG5CPFI
-#::: 2RKVUQD2LWX3UGWK5CGFLYPMV2UHYLLLV2OTME4LVCGF2WPNPQX :::: NAILARA AMOS :::
-# :: XY6UXZZONWMVPDDGHAJD5B6QLC4LCMEAVNZZS44WUGPH46MUJ6DQ :: CODE SIGNATURE ::
+#QLEFWQ5XXTGKHTB7PFG6LOIUQOA2SSLOGQHF4MVI6OTQDYUDAO4J726FQZXGSQRELGLMQHEKEOTOY
+#::: QG2PKRBXWK6IM2HGSI4CZ7URPX3W6QQUNIKHQA2ZVVAMTNTL4O6 :::: NAILARA AMOS :::
+# :: R2YLTCUKPT3GKP6ZHGBEGVV5DFARN477AHFVTW6Z3UIVLKJDLYAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

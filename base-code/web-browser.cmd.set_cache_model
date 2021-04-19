@@ -10,14 +10,14 @@ my %cache_models
     ( 'web-browser', 'document-viewer', 'document-browser' );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => sprintf( "use one of : %s",
         join( ', ', map {"'$ARG'"} sort keys(%cache_models) ) )
     }
     unless exists $cache_models{$selected_model};
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => sprintf("web cache model already '$selected_model'(!)")
     }
     if $web_context->get_cache_model() eq $selected_model;
@@ -30,12 +30,12 @@ return {
 $web_context->set_cache_model($selected_model);
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => sprintf("web cache model set to '$selected_model'")
 };
 
 #.............................................................................
-#SFF4NDNDS5LNZJVMUEVGXZQNQQ2CJ3ODMMUK7YIJWQNIIEVJGSR2WQT4ZOTBGAPWZSBRJN6SM2UGU
-#::: 7LJVCYHAWKY5S5EMVM2T6WFJ4TFOMWLBXAYHSFEGP3U4GP6P3QV :::: NAILARA AMOS :::
-# :: 4ZLB7P667JZRR2BT7SP4M2ZP3F4Q3ERBZUEEU6WSMCJLAACMI4BI :: CODE SIGNATURE ::
+#HAF4NC7IQ2MWMY2AMZVSHXVCP235PLC5BAGZQW6IK3ENNQGXWZVMXCWXGJMM6EC5RGIDGGLNHZZNY
+#::: FC3XKAP4I62PIFXC2UA36J6OL5MLB6DG5TDHVP7OPNRP7YBLUVD :::: NAILARA AMOS :::
+# :: 47W6AFR4JMKCEWTUCONG23KBEMI5IA2F43X2C6SLQPV5442QESAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <tile|zenka>
 # descr = return configured layer for tile or zenka
 
-return { 'mode' => 'nak', 'data' => 'expected zenka name' }
+return { 'mode' => 'false', 'data' => 'expected zenka name' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 
@@ -23,7 +23,7 @@ if ( $zenka_name =~ /^\[([^\]]+)\]$/ ) {    # <-- only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <composition.layers>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required!"
         if $match > 1;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $msg_str
         }
         if $match != 1;
@@ -51,12 +51,12 @@ if ( not exists <composition.layers>->{$zenka_name} ) {
 }
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => <composition.layers>->{$zenka_name}
     }
 
 #.............................................................................
-#WCHPKE66GT2W4GUR3GY2TLNNSYB5QOQT3JASGHRSIB37LPMF2QUBIFUB5UEYJSR746LQAVCH2TUOM
-#::: AV5LGWXLDBVGD5HEJOSSXZOBGK34FAC5AZXKXR4CBZRM6RSY7L2 :::: NAILARA AMOS :::
-# :: GBXKAGMSYGQJW7XLUHNMVDRRDB6ZM2MDWRYTZPCQGQT4SU5BMEAA :: CODE SIGNATURE ::
+#SFVHIX4PDOIW4KMFOM45YHHPGNTNY2EFEX7CNFDRNDO2SSELZLVCWJGQYX7LSWCDU4C672ESRG23A
+#::: F5P7GWOBTN4VWG56PHUIYLVK7645GHD3K5HMY26IBV556HAHLSJ :::: NAILARA AMOS :::
+# :: VLNFS5W2W75H2NL5BLNE3KGABW7SATDFTEZ2BJK4YRJBGY3QZWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

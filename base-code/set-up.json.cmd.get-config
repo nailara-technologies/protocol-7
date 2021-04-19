@@ -10,14 +10,14 @@ my $config_type   = $$call{'args'} || 'set-up';
 my $zenka_name    = <system.zenka.name>;
 my $rules_subname = "$zenka_name.set-up.export_rules";
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no export rules defined for zenka '$zenka_name'"
     }
     if not exists $code{$rules_subname};
 my $export_rules = $code{$rules_subname}->();
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "config type '$config_type' not defined in export rules"
     }
     if not exists $export_rules->{'keys'}->{$config_type};
@@ -25,7 +25,7 @@ return {
 my @export_keys = @{ $export_rules->{'keys'}->{$config_type}->{'export'} };
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "type '$config_type' export key list is empty"
     }
     if !@export_keys;
@@ -66,7 +66,7 @@ $EVAL_ERROR = undef;
 my $err_msg;
 eval '$json_data = $data{json}{parser}->encode($data_copy)';
 ( $err_msg = $EVAL_ERROR ) =~ s|at \(.+\n$|| if defined $EVAL_ERROR;
-return { 'mode' => 'nak', 'data' => $err_msg }
+return { 'mode' => 'false', 'data' => $err_msg }
     if defined $err_msg and length($err_msg);
 
 return {
@@ -75,7 +75,7 @@ return {
 };
 
 #.............................................................................
-#MB7MLFLRMYQA36CDNYPUQZOIBZUK56CTRQ6ASROQTBFSK6S6KYOWRJO3DP5HZKJ4GZSKBTDRV4ML2
-#::: PUME5LDHPSLRWBLIOMMCMQTL4LQLOYG4BEIH7HOS7DZ7DGMJPET :::: NAILARA AMOS :::
-# :: 5V5DCBOQNVOAA74ZA2YXA6GT2K4DU5FKB3RLWBMKE2BW67FHDWDA :: CODE SIGNATURE ::
+#L363ERB7VIFGXVWUMZS65GFHRLBRERCQZSDAU4NH36MDFIR5NWSKEA5Y3P2GYNR7RHVODH62C6F52
+#::: ET43AUCE25EQFHJVG5OXUH2LGNEBD2MCHCNMBIZP2BZVPHJYKYK :::: NAILARA AMOS :::
+# :: DBK335VKB5B4H26WVMR7DQS7JJASZ2TPJDJUMLXTJEJQ6LJJ5UAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

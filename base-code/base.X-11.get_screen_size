@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+) ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+) ([^\n]+)\n$} ) {
     ( <x11.screen.width>, <x11.screen.height> ) = ( $1, $2 );
     <[base.log]>->( 1, "received screen size [$1x$2]" );
     return ( <x11.screen.width>, <x11.screen.height> );
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+) ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#V3RW2RZMKUQ7YJ3W6F2FQ4Z7VEPVNVW4HNSWYA6R57HY65ORY345HS6MSBU2LOZKSTPKN43GPDM3I
-#::: VLRU37NPP3DPAYZGSQSI5633BJFIPS6HQ74FG77I26DZSDNR4DZ :::: NAILARA AMOS :::
-# :: JPNMFQ6I77RBVB72Z63IAUZH5JSBEENKFMEHKCG4URJTZ6YK3MAQ :: CODE SIGNATURE ::
+#A73WUYNBOT56J2RVZRYH2F3Z6PPFCR23JRCF3CPWXPO4S7SML2SDXR3ZCB4XBXRWOYBSTERO4PBMA
+#::: IAV2ZQ3HHCWA6FKZEIUTUVRB2IMZTCNNGYBJCAC6DTW2BOQ7IIY :::: NAILARA AMOS :::
+# :: VRPCT2EPT4HLNSWURNTUPNAP25BBHIEWIBC2WMYDQNZQEEXFAYBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

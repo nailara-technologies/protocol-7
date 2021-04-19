@@ -8,7 +8,7 @@ my $id = $$call{'session_id'};
 
 my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
 
-return { 'mode' => 'nak', 'data' => 'expected numerical percent value' }
+return { 'mode' => 'false', 'data' => 'expected numerical percent value' }
     if !length($volume)
     or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
 
@@ -19,13 +19,13 @@ $volume = 0 if $volume < 0;
 
 $speed //= <mpv.audio.fade_speed> //= 0.013;
 
-return { 'mode' => 'nak', 'data' => 'fade-speed is a float number [0..100]' }
+return { 'mode' => 'false', 'data' => 'fade-speed is a float number [0..100]' }
     if $speed !~ /^\d+(\.\d+)?$/
     or sprintf( "%.5f", $speed ) <= 0
     or $speed > 100;    # min. 0.00001, max. 100
 
 ( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
-return { 'mode' => 'ack', 'data' => "audio volume already at $vol_str%" }
+return { 'mode' => 'true', 'data' => "audio volume already at $vol_str%" }
     if sprintf( "%.2f", <mpv.current.volume> ) == $vol_str;
 
 my $id_str = defined $id ? "[$id] " : '';
@@ -46,7 +46,7 @@ delete <mpv.time.fade_volume>;
     and <mpv.timer.audio_fade>->is_active;
 <[base.callback.cmd_reply]>->(
     shift( @{<mpv.audio_fade.reply_ids>} ),
-    {   'mode' => 'ack',
+    {   'mode' => 'true',
         'data' => "volume fade cancelled (overridden)"
     }
     )
@@ -73,7 +73,7 @@ $interval_delay = $min_delay if $interval_delay < $min_delay;
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#WV4BG6B2OA62M7OJS56JMVQW2Z5QG5WK4ALBGFZ2V23GTAGFOSCWYQKCNUG25FPV3GCBVRSLDUD2A
-#::: M3GNTGVCKV4MLSSSAVAOHWKG76M7CLL4DERGTJZKHANGUF26I5T :::: NAILARA AMOS :::
-# :: XCSSMPTV3L2I5LO3FCNWX6KMCVOR5RRSUQYQF4ORNL4FYDXLP4BQ :: CODE SIGNATURE ::
+#G42LTU4A4HESDVDVOZGMKXUT6X63MMWZT6U72AEX7SM5YJEPWNGUZGAOWWANCIL7BUWUUKZ6K4RKE
+#::: VVYQAVAQD2W6HLAY54C732ZKBMPXQ3LHNJ6CYIYD7UZTN6GOKT2 :::: NAILARA AMOS :::
+# :: 7VDWUNGYU2RHNZNXK4ERAYYZ3TPJYABMOWEHZITWY4ODOQRJCGAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,12 +10,12 @@ my $tile_group_name = $$call{'args'};
 <composition.transition_queue> //= [];
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected tile group name'
     }
     if not defined $tile_group_name or !length($tile_group_name);
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "tile group '$tile_group_name' not found."
     }
     if not exists <composition.setup.tile-groups>->{$tile_group_name};
@@ -23,13 +23,13 @@ return {
 if (<composition.transition_in_progress>) {
     push( @{<composition.transition_queue>}, $tile_group_name );
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => 'transition queued..,'
     };
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "tile group '$tile_group_name' is already active."
     }
     if $tile_group_name eq <composition.current_tile_group>;
@@ -39,12 +39,12 @@ return {
 <[composition.switch-tile-group]>->($tile_group_name);
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "switching to tile group '$tile_group_name'"
 };
 
 #.............................................................................
-#CIQCJVDKE255MSAUAMZHIITMWT2N5V6NFBNSCQW2BUOREX4KA3PH2KUZO5YAXQCEEMZYDZ3G5RJAU
-#::: 6WWXWP64XBIEWQRFUI75TC32G6U6IBTODPJG4QJJXY7LXOUJJOQ :::: NAILARA AMOS :::
-# :: 5UQGYCEYJ35GGIYYXITABFFJQDNEP4BW4DURZMZFWGOPQJQQCYCA :: CODE SIGNATURE ::
+#PY6WFANZYZOTHZ5RUIFT3M2LWVSQPVKRLSSTIYMEHZM662YU6H2GUGF6CJ7E3UCDY6MWXT7HUWWI4
+#::: QN4R5IQBWOPUGPVGFA6MW24YGJCYH7OBR2HOT35QKCVPJMVLINK :::: NAILARA AMOS :::
+# :: DVTJHORQJB5WV6AV5KDW64JUYH5OHOTL5TVPQGRFJ5PVUDTJV4BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

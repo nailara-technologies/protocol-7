@@ -7,7 +7,7 @@
 my $search_pattern = $$call{'args'} // '';
 my @matching_zenki;
 
-return { 'mode' => 'nak', 'data' => 'expected search pattern' }
+return { 'mode' => 'false', 'data' => 'expected search pattern' }
     if !length($search_pattern);
 
 foreach my $zenka_name ( keys %{<nroot.zenki.available>} ) {
@@ -18,7 +18,7 @@ foreach my $zenka_name ( keys %{<nroot.zenki.available>} ) {
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' =>
         'no matches ( see \'nroot.list available\' for a complete list )'
     }
@@ -37,7 +37,7 @@ foreach my $zenka_name ( sort @matching_zenki ) {
 return { 'mode' => 'data', 'data' => $reply_str }
 
 #.............................................................................
-#VVJ53JTJYKYVXALUUCJ2LT23YWUYXESRNBDPTVZJ3RYP66TLZY4PFU3SOVLKXCEPQLGFDZP2IZCOS
-#::: THQXGBL4A6N3RH2Z467DEJFVRK5OOQKHPIEMWEVSK542AM42XTO :::: NAILARA AMOS :::
-# :: AA62AQRIZD4CCVQIR2HO4ZTL3OR42W4FXERWKGXCBAOAECRYVSBY :: CODE SIGNATURE ::
+#NH4X6O7T5XXJCDHSHY4TOMZSD6ODS2FC3RH7DB6VEU2LUS37C4UXSKYZA6LY4DV6ISR6RVECSQWIQ
+#::: IFA4L2QCRHHO25JVI5NVMHWY74VUK42KPWY3QSGCIUIKZLIGVQH :::: NAILARA AMOS :::
+# :: HO6VXUHXIG6JUTWTS7CJ4WB3CHIUL6ASZO7CN2SLYSCYQIIKLIBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

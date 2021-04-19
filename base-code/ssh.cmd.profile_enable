@@ -6,13 +6,13 @@
 my $profile_name = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "there is no ssh profile '$profile_name' defined"
     }
     if not exists <ssh.cfg.profiles>->{$profile_name};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "ssh profile '$profile_name' is already enabled"
     }
     if <ssh.status.profiles>->{$profile_name} eq 'enabled';
@@ -20,12 +20,12 @@ return {
 <[ssh.enable_profile]>->($profile_name);
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "ssh profile '$profile_name' enabled"
 };
 
 #.............................................................................
-#MMEK3SRWUODLBWHXB4MSX36ANE4AD6PUCHYIN6VC5B76DQMFOPJY2HVMK7IMHWIJKUW6YLYZ7TUTG
-#::: OCWBANBFAGVNFME6FFDNJCE44J3M63TOISAXXKPQW4YTDI5UYEO :::: NAILARA AMOS :::
-# :: FUWSNHDCHAMF4RNXTQZQIHR2J2QGXG2ESPGAVP4BQELJZLQJIEBI :: CODE SIGNATURE ::
+#PRA2YRBZP5HQ5S7TE2SAJ3JOW6HT64MZUMSWZ2ZN6NZGQRGDY6GG7CTN4U43LAKAWECRRD3ORFNMA
+#::: 4JUXKNMVUDPSQWD4FQYHKNAXBNAUZPQ35FWR7DBOEA7W5ZOU3IC :::: NAILARA AMOS :::
+# :: CKLTWTC4LZMLNLYIKWKRHWTPCNIUQE3FDSBNHGUDMJACXBBB7KCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

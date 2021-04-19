@@ -6,20 +6,21 @@
 my $code_name = $$call{'args'};
 my $src_path  = catfile( <source.code_path>, $code_name );
 
-return { 'mode' => 'nak', 'data' => 'requested code name is not valid' }
+return { 'mode' => 'false', 'data' => 'requested code name is not valid' }
     if !<[source.valid_src_name]>->($code_name);
-return { 'mode' => 'nak', 'data' => 'code file not found' } if !-f $src_path;
+return { 'mode' => 'false', 'data' => 'code file not found' }
+    if !-f $src_path;
 
 <[file.slurp]>->( $src_path, \my $src_str );
-return { 'mode' => 'nak', 'data' => 'failed to read code file' }
+return { 'mode' => 'false', 'data' => 'failed to read code file' }
     if not defined $src_path;
-return { 'mode' => 'nak', 'data' => 'requested code file is not valid' }
+return { 'mode' => 'false', 'data' => 'requested code file is not valid' }
     if substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
 return { 'mode' => 'data', 'data' => $src_str }
 
 #.............................................................................
-#2LT2DSFXCJ6NMWHIN6LQJD5FCZZIPPFUNIRL3C7SACJGEY6J7IEYCBWVTKKFKWLAPI32ROBOEMBJC
-#::: 5TPPDPT2HJLMIPINDHAHAKKWSL3LOXMACO7O32DMPNDD2QZXMKK :::: NAILARA AMOS :::
-# :: 5IJSA5I4OZRMG2QCEIK4MHSQNWLR23N3I3UA3KNMJH732UBLF2CY :: CODE SIGNATURE ::
+#MHL4WEMCJ5QG44XUKGTUJGBZRH7V72EBVQXC36QE54DCUBY535MVUK2YFMENL2ABO52FNYBNR4JKC
+#::: M34GUJ3W5KTL5TGOI46H26RWS2NV6FXEN2JMI5L3YUURA2MXYZI :::: NAILARA AMOS :::
+# :: 7IRMC3PGT6PGMHAA64K5ZYJBS3HVAHMRW2EEJZVRNJGJOXFPR6BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

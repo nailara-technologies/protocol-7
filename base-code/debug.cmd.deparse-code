@@ -6,9 +6,9 @@
 
 my $code_name = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'expected sub-routine name' }
+return { 'mode' => 'false', 'data' => 'expected sub-routine name' }
     if not defined $code_name;
-return { 'mode' => 'nak', 'data' => 'sub-routine not found' }
+return { 'mode' => 'false', 'data' => 'sub-routine not found' }
     if not defined $code{$code_name};
 
 my $deparse = B::Deparse->new(qw| -p -sC |);
@@ -18,7 +18,7 @@ my $code_body = $deparse->coderef2text( $code{$code_name} ) . "\n";
 return { 'mode' => 'data', 'data' => $code_body }
 
 #.............................................................................
-#ZVR2ZFI7WAW7G6IMNHZZXBPZ47MYKDDQBNFQEDLPJXZMOATVVP2ZGIZKPFVXAA2TY33C7W57DAGNS
-#::: LJZJIRJBBMHG4URZWXSSJQBVALTPMF7CNFXNWCEB2IASAMP5TRD :::: NAILARA AMOS :::
-# :: RW6D5GK5PSTNPQKTWTEEDH6OCZWEYYSACZG77GKUG4QPJVBN2KDQ :: CODE SIGNATURE ::
+#4X6Z6RVL56QBCVHM33FXI4DAAZZG6PGEJZOBJ2DVLAAKSHAHOJSIAT2R3VT6NQSVHICKFIK2CQOFC
+#::: REVHDCYMDJOMEGW4BE7I46T55FLX4PLKA4PDDJQYNPDJBNBGRWG :::: NAILARA AMOS :::
+# :: NIV2KWU4HWYEE53JD2SA4OYXJIXF74VLQUQUYVFSNZR4UH6T62AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,9 @@
 
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -22,14 +22,15 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 X11::Protocol::WM::iconify( <X-11.obj>, $window_id );
 
-return { 'mode' => 'ack', 'data' => 'window iconified' };
+return { 'mode' => 'true', 'data' => 'window iconified' };
 
 #.............................................................................
-#P6O6UDARBSMQRO7JDYIRQYQPPBPYVJWG4EKAS3QCNU43KNRN7SRSNRITBEAST7MI5IOSORY7IZGH4
-#::: YZLZDYW7FCSEGMCB7KV64BYJOZ2CYZ62WJ4A4R5MWHFFKG6LB5Y :::: NAILARA AMOS :::
-# :: MB6DBMQTE6HORT4PFRYDX2WUZVNHR6B72KVL5AZVMQGWZPAPDIBI :: CODE SIGNATURE ::
+#NQFSB7DJC5TATES6FTOLKILBVCLPR73JR5FLSTSE2NH3SNEBOP3RX5VL3YH4JAGF74AGVJTZGECUA
+#::: UTK4R22XEL34BLX27WKPBBVAR2RSBYUBYZXM42WXUYYY3K2Q55R :::: NAILARA AMOS :::
+# :: SCXD63U4CYE5WMORXUX7D6K2DEKJPIAZWWEMSWUVMMS5VARJV4DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

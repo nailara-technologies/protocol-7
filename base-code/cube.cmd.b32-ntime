@@ -7,7 +7,7 @@ my $param  = $$call{'args'} // '';
 my $B32_re = <regex.base.base_32>;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected BASE-32 encoded network time'
     }
     if $param !~ m|^$B32_re{1,22}$|;
@@ -15,22 +15,22 @@ return {
 my $ntime_ber = eval { decode_b32r($param) };
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'BASE32 decoding error [ timestamp not valid ]'
     }
     if $EVAL_ERROR
     or not length( $ntime_ber // '' );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'decoded number is not valid [ expected compressed integer ]'
     }
     if not <[base.comp-int.is_valid]>->($ntime_ber);
 
-return { 'mode' => 'ack', 'data' => unpack( 'w', $ntime_ber ) };
+return { 'mode' => 'true', 'data' => unpack( 'w', $ntime_ber ) };
 
 #.............................................................................
-#3ZIWSNVV2NCKCXPGFUW64QKTS5OPFLPTPC23R2FMDGDGRUEY64HPFB2FOPXJJ4YYOAOHKPZV5KRH6
-#::: L6JJVS2YDHNUDBILA7NVGHSCPGE5AOCT437PIP3ZUADLQXT3JPM :::: NAILARA AMOS :::
-# :: IPOMWWUTQOFSCXVDHTM7AE4ORSWU5D6ZS6EEWAABEKQDHNQV2GAQ :: CODE SIGNATURE ::
+#7YOGWBG3RAG6WXL7YM6RXKCMF42ICYZDCQ3ZQOGEUQ62KDFKLN6DBRRUJRIYKUYQTYOFV4TSG2URY
+#::: FI6AOFWXI6GZI227FAE6WTACJLCRGC3VGRC22G26NHIYX7L5IJC :::: NAILARA AMOS :::
+# :: LDFEEJCCIELYIWBSCZL7YCRPUQNXGOMRPFUJFMAPY2RMFC254GBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

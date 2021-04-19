@@ -6,23 +6,23 @@
 
 my $b32_str = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected base32 encoded elf value' }
+return { 'mode' => 'false', 'data' => 'expected base32 encoded elf value' }
     if $b32_str !~ /^[0-9A-Z]+$/;
 
 my $elf_bin = Crypt::Misc::decode_b32r($b32_str);
 
-return { 'mode' => 'nak', 'data' => 'expected base32 encoding' }
+return { 'mode' => 'false', 'data' => 'expected base32 encoding' }
     if not defined $elf_bin;
 
 my $elf_int = unpack( 'V', $elf_bin );
 
-return { 'mode' => 'nak', 'data' => 'not an encoded number' }
+return { 'mode' => 'false', 'data' => 'not an encoded number' }
     if $elf_int !~ /^\d+$/;
 
-return { 'mode' => 'ack', 'data' => $elf_int }
+return { 'mode' => 'true', 'data' => $elf_int }
 
 #.............................................................................
-#I2IPBEHFQYCPJVO5A3X6XHBYIHFQTRDWVDILKUVKTXLPNVLCX6OR6PXHE53ADGA7TQDGC6C5PIOEI
-#::: WKUC3W2OBTSZYDM45GSP3WF3OCHFCS5WKDFFGUC4LO4ALAE5IVF :::: NAILARA AMOS :::
-# :: 7UIQ3F4ARHY6OXDF4LI6U233CF4MEU33X475ZEDQGPNUSVG7MSBI :: CODE SIGNATURE ::
+#HBJSXBV7U7NAP24RQSCL4RWOXD7WY7OWZYHOCH6VF4JX7IWVPRORQJFPUMH2FY6ABFT3CI5C7Z6V6
+#::: TD7PKYAQLTRTRAXNY34CHAOVNGD4IEYBAYHSSHCRET5LL63IH7M :::: NAILARA AMOS :::
+# :: N57KC6VUO6XWEHTSC2SS7E5XHTVW2WM546WZFROCGH4DPJBSJ2DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -24,9 +24,9 @@ foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 
     next if not <[base.has_access]>->( $user, $cmd );
 
-    #        # command description mode
-    #        return { 'mode' => 'nak', 'data' => "not implemented yet... :/" }
-    #            if defined $keyword and exists <base.cmd>->{$keyword};
+  #        # command description mode
+  #        return { 'mode' => 'false', 'data' => "not implemented yet... :/" }
+  #            if defined $keyword and exists <base.cmd>->{$keyword};
 
     # keyword search mode
     next
@@ -41,7 +41,7 @@ foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no commands matching '$keyword' available"
     }
     if defined $keyword and !@commands;
@@ -66,7 +66,7 @@ $$reply{'data'} .= "\n";
 $$reply{'mode'} = 'data';
 
 #.............................................................................
-#ANRPFWUBECIIV7VGBUXSGY4XZT3R4TA3ILUDQJRUPO55BJOAXJCSBAQY3LJ2H3PYM6LIQPVSETWIG
-#::: 7ZCGYBR6MTFFRL7A7LHERXISEYKMPBBURZBY3QTX7V6OLLKZ5DL :::: NAILARA AMOS :::
-# :: VYZF4ALQLFPCSDYLDSQB4WJVXYN4QPTIT2JZVPCJBM5ZQRBFQGCI :: CODE SIGNATURE ::
+#FD5B3BVLPWD4VFR2WL4VAXHR4D466I5NNII77XCFQVP7LWOIB4B5KV4CKHTWUPPAVI5YFQNPNELDC
+#::: JHSJWDJCGMC2GR5MRG46LBDEYFDEHEJFOE2OFMOM2YLFYNSGKVE :::: NAILARA AMOS :::
+# :: CKKA5EITZCBEKOEVE2VQV5A7LTXGDH67D4NXSUJ666OC2756EWDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

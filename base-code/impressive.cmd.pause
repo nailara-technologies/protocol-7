@@ -3,16 +3,16 @@
 # name  = impressive.cmd.pause
 # descr = send STOP signal to impressive process
 
-return { 'mode' => 'nak', 'data' => 'was already paused' }
+return { 'mode' => 'false', 'data' => 'was already paused' }
     if <impressive.process_paused>;
 
 kill( 'STOP', <impressive.pid> );
 <impressive.process_paused> = 1;
 
-return { 'mode' => 'ack', 'data' => 'paused' }
+return { 'mode' => 'true', 'data' => 'paused' }
 
 #.............................................................................
-#AQJLABLSI4M7ITQUYSRMLLQXZQRJRAXWIBCAYRMICTG5QPJWIB5I7QHGT2SQXDUJBTABQSDN7MP5K
-#::: ADW2EGHAUBGOKREMKJQM3OA2UVZ4IDGO5S6VS5FD7K4NIHKF33T :::: NAILARA AMOS :::
-# :: OH4S5TMVMXQHHPH7VKPNTGV5OCL4WC3IALWB53UNQTMH33IK4WDQ :: CODE SIGNATURE ::
+#TXVITEKXS3S6EZ2FJD4G5NHSSRPPBGONTDIXCZFPUXOKJBGCRT2BLRCELEVZXVHRUHDQDMUX4A47E
+#::: WTXTF3LLNRR7A7L4NNUNHG2MZGVSLZULKGAZU443FZBUCCB5YF3 :::: NAILARA AMOS :::
+# :: FOIHVZHKVSFW4NKFZXTOPAPOX6LEWTTAVD3SY6LQRUROS57TL6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

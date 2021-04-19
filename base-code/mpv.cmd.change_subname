@@ -5,10 +5,10 @@
 
 my $new_subname = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'subname parameter expected' }
+return { 'mode' => 'false', 'data' => 'subname parameter expected' }
     if not defined $new_subname or !length($new_subname);
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'subnames identical - no changes'
     }
     if defined <system.zenka.subname>
@@ -20,10 +20,10 @@ return {
 
 <[mpv.cmd.reload_playlist]>;    # fetching entries for new subname / tile_name
 
-return { 'mode' => 'ack', 'data' => 'subname changed, playlist reloaded' }
+return { 'mode' => 'true', 'data' => 'subname changed, playlist reloaded' }
 
 #.............................................................................
-#I62PC346BGDZM2FANPKINI7HL66YNG2DQVPTV2Y2IW4GK7375QVZJY2B6FKF5QURDKNEP26KHPLGA
-#::: 5GU4DNHLSOCCIEMMQSL3CZOBC5HPFZ4Y2O53W7P7UDGMTYHBHVG :::: NAILARA AMOS :::
-# :: RSWCBBYXDT4BBT3MGCOWLZFB7D3BGWWNSAJT2ZHSGWTU3STDYOCI :: CODE SIGNATURE ::
+#Z4RYYC3PWE3H2MFA2CNZDXCB3VG25RU4GQ3CC74C6AA4MT4RSH3AJE2F2UJOKJUPAMR6D64EQEQFG
+#::: GINFXPFD2TDLTQGSUFOJ2S5XVUSQA75JIETWTJDAEQAFU2VKGK3 :::: NAILARA AMOS :::
+# :: B57PIKQFRYTSTDMKYNHL6Z7BRSNB2BZGCYL3E3QLWU57PUPOQMCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

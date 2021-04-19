@@ -4,13 +4,13 @@
 # param = <input-sring>
 # descr = return elf checksum for given input string
 
-return { 'mode' => 'nak', 'data' => 'expected input string to checksum' }
+return { 'mode' => 'false', 'data' => 'expected input string to checksum' }
     if not defined $call->{'args'};
 
-return { 'mode' => 'ack', 'data' => <[chk-sum.elf]>->( $call->{'args'} ) };
+return { 'mode' => 'true', 'data' => <[chk-sum.elf]>->( $call->{'args'} ) };
 
 #.............................................................................
-#Y6ALAKZMIB6ARWYDUG5EQ5UAEO2OUAOXDLLCHPN5FG7BNQ6NGY5BH42I2DIEXGTONUAHCQHEJSFQY
-#::: AAI6V7ENWL62Q5BSSF5BOWPLQJUPDPWP3JSKQY36JKEHEX3HSML :::: NAILARA AMOS :::
-# :: XKPKWDGN2TMOMB6SUOHF72U373MJR72HSGISDSGYXZANN4J5YKBY :: CODE SIGNATURE ::
+#53HC27LILWRMZBEOEGNYGYMO4NT66C2UAVXD4ZK2WSUIMNKI657EKWXQWHJCZWWVPII7JF6LMVVWQ
+#::: M5JOX2QCA6Z45DDF6YU3NRBQ5HAA4F6IQCQ5I4GPAE3QKV3BGEO :::: NAILARA AMOS :::
+# :: QTBUUBIYZPXZG2BK4LTBYUFB2T5GYR3HKQAE6KVHOR7PFDQL2YDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,12 +7,12 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
 
-return { 'mode' => 'nak', 'data' => 'no such window' }
+return { 'mode' => 'false', 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 $X->MapWindow($window_id);
@@ -20,10 +20,10 @@ $X->ConfigureWindow( $window_id, stack_mode => 'Above' );
 
 <[X-11.get_window_ids]>;    ## <-- update to visualize action ##
 
-return { 'mode' => 'ack', 'data' => 'raised to top' };
+return { 'mode' => 'true', 'data' => 'raised to top' };
 
 #.............................................................................
-#R2S4VFVBZMXYRJYTAIIYOT25LHCKJBWX7MES2JWMYOZXYHNHZVWOGA7I5C7573XSREB56ZN4KPWFQ
-#::: 4FLTULHXTSYONVB6JIXU5AMNFGATFGYFATARGZ23KK6MMDFELFO :::: NAILARA AMOS :::
-# :: 4KECGH2MIGHN2Q7CUWCUPGGTSZU6Z2LC5LIKPPPOJNNDLGLKZYBY :: CODE SIGNATURE ::
+#WJV6DANIDWRJB7ZXSQVMODJNDJBYYB5UCUUTLTEPVEDBI5FUE6WO7R5OMLU643KQCUZJXNHVPICOK
+#::: YQGCULY2TXAOGNWYS2VTJDVIXPFGJOTIKR5OWNLHD6ZROWRTCIW :::: NAILARA AMOS :::
+# :: SWVSESNFDHS735OEUWZRWERVTP47AA4IBP4GBF66GNHTE37SAUDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

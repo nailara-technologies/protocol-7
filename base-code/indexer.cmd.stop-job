@@ -4,7 +4,7 @@
 
 my $job_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'no such job' }
+return { 'mode' => 'false', 'data' => 'no such job' }
     if not exists <indexer.jobs>->{$job_id};
 
 my $index_job = <indexer.jobs>->{$job_id};    ## callback data href
@@ -17,10 +17,10 @@ $index_job->{'stop-requested'} = 1;
 
 ## requires deferred reply to $reply_id ##
 
-return { 'mode' => 'ack', 'data' => "stopping $job_type job ..," };
+return { 'mode' => 'true', 'data' => "stopping $job_type job ..," };
 
 #.............................................................................
-#5UDAMY7CVG24E4YPKDPKK5C5DWHRL4VGLZNICWKHMKFFOHZGYZXWCSR2CIYGKSW55YZHWWFY6SMDW
-#::: DQTR7VUILXYH3FHMMNFW3R6WYUY6Q2TZD4XI5OEZV7GBL66BSNL :::: NAILARA AMOS :::
-# :: EVSFNJC4FX7OJ4KTEYDNATJZSXSFR2MFNHNHMBJ6BIFE3L7HF4AY :: CODE SIGNATURE ::
+#2JEVZQDGCCCZMHJFP6ZPYAZOUEFFMADTRE2L2JRNAW3W5ITI4HNBHT7OUXQPBP7VZ5VUFAIUTTQTE
+#::: XGGSGEEMOM3TW2D53RKBTRNIVMFGP2R7QO3K7LOP2M7VH5BYYVT :::: NAILARA AMOS :::
+# :: SIFSMGD76KNWX3YNR2NKELZJ3XNHTOZ7JLH5DWOK2NPWD3T63WAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

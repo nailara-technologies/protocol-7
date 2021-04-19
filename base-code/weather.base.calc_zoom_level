@@ -39,13 +39,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     <x11.screen_width>  = $1;
     <x11.screen_height> = $2;
     <[base.log]>->(
@@ -76,7 +76,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
         1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
     );
     return <weather.zoom_level>;
-} elsif ( $reply_string =~ /NAK command unknown$/ ) {
+} elsif ( $reply_string =~ /FALSE command unknown$/ ) {
     <[base.log]>->( 1, 'X-11 zenka unreachable [running?]' );
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
@@ -84,7 +84,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#AYX67WDANOFQYC2YWA77EVUZFDXGHWB2ZMPXQMQJ4AJSDZODBQAZUEZN45LJJM2MJHM3QNN2GKSA4
-#::: BOXLVVLZCIGF7LTHMCXFNVMCYOIDL5E2MZ2NGL6Y7ZFCDAYUYZE :::: NAILARA AMOS :::
-# :: ECU2JOBS7JM4R4EUQHQCYFK5RL7XQLUXOB3XTQRZAQT3A6G5VGCA :: CODE SIGNATURE ::
+#SGTCCTUZYFUHT5BUV25MWTGRJLRA27SDKERT6DHDGELEZWNQKNAX2HAMHDAIIXIOWCAPVPTNCMV66
+#::: V3WPT3Z3HGH2MABQSHCHZDMEWBEYEX23TE7UU5SSLY5Y6N7FC5Q :::: NAILARA AMOS :::
+# :: WEDPBWKUEW4BR27NZXXM522F3GCJEYGF4YXKZOBPY5U7E7SGROAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

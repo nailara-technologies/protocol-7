@@ -11,7 +11,7 @@ my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected zenka name or instance parameter'
     }
     if not defined $query_param or !length($query_param);
@@ -27,14 +27,14 @@ if (    not defined <[zenka.get_id]>->($query_param)
         ? "no such zenka instance ($query_param)"
         : "no such zenka in setup [$query_param]";
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $rep_msg
     };
 }
 
 if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "zenka instance '$id' already offline!"
         }
         if not defined <nroot.zenka.instance>->{$id}
@@ -53,7 +53,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
         }
     }
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "zenka '$query_copy' is not online."
         }
         if !$found;
@@ -68,7 +68,7 @@ push( @{ <nroot.zenka.notify_offline>->{$query_copy} }, $reply_id );
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#YKYS2UA4R565EIACOWPFCKTSIMXMDB6DM4KXYM6EMW47UI2I572C2PAG4P2Y4H4MVYIAWB2MYKQXS
-#::: CJLRICVDEN36KPUETBIFXK2M6LYNEEHB7SYOUNHEKRLZTT7PBMV :::: NAILARA AMOS :::
-# :: UG2RPCO2ISONRBOHD54Y5WWNNTO4EEZ4WO6UBVUCDYXM67IL5CDQ :: CODE SIGNATURE ::
+#JCRR2O7R2JY6AEERPOQJBP4OGDGOSEVAFBF3I7YG2DSC532SE6NONTWXYI7LGCG4354HV5BJMUUDI
+#::: ELNGTCMITJPAZHPIOE4TB7VVBZMS3QPP4CAUTSTT42H76B7E4UX :::: NAILARA AMOS :::
+# :: XJJFAFJJR23KJKEFNBEA2T5CGJJKBOYJXAU7VORZLZBS7PCFAMCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

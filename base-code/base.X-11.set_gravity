@@ -22,13 +22,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.display> = $1;
     <[base.log]>->( 2, ": ok, gravity applied." );
     return 1;
@@ -38,7 +38,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#XICNV6EUQJQUF7IZJCWTEHHHF5NEARDQN4HOPNAZF3LKOKANW7Q4QO4KTLGIUGHXJ5GVWHBDSPPV2
-#::: 2HBWHTAN3UIVWGRKONN373XDTH2JVBCHYRX4JTFNIYHFXYASMIH :::: NAILARA AMOS :::
-# :: 6XEZA5NALB6ORTJCLSHCUAEURLGOJP2LFJYPRQWVT6VA6F6SV4CQ :: CODE SIGNATURE ::
+#Q56ABQNUT4GACM6DQW3G7JS5OHCRCBE6O7FBDLPM5SAUQUIREOZCSNPJBBQTXXA5EN3CK26HT3X5Q
+#::: NS4ICEQMKBURJ2U7CTF5PKXSCEI5VUQSWFLVAIISHMSDDWPECTC :::: NAILARA AMOS :::
+# :: KRIGUXCMKZO7IYHH6FFIADL5ZO2MVZOLVSWNCBSO7E4IQZOXHQAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

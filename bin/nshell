@@ -284,7 +284,7 @@ sub unix_auth {
     my $answer = <$fh>;
     die "\n  << connection was prematurely terminated >>\n\n"
         if not defined $answer;
-    if ( $answer !~ m|^ACK continue| ) {
+    if ( $answer !~ m|^TRUE continue| ) {
         die "\n  :: unix auth not available ::\n\n";
     }
     s_write( $fh, "auth $user\n" );
@@ -381,7 +381,7 @@ sub shell_loop {
                 sleep(0.2);
                 if (   $line eq '[quit]'
                     or defined $stored_cmd and $stored_cmd eq 'exit'
-                    or $line =~ "ACK session closed\n" ) {
+                    or $line =~ "TRUE session closed\n" ) {
                     print {$sock} "exit user quit shell session\n"
                         if $line eq '[quit]';
                     close($sock);
@@ -490,7 +490,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#BGI2OBNWUGWVF3JCQ6FPNYMVOTZZYPGUYJR6DNYSEAV5YLZHQJRTN7X52MFLHVE5X7F4U57GHVXTS
-#::: U5HTIC7XSYZTMIEYEHEYOJ5YJULYSZUQXQHTEQHWDODWRNTLQYE :::: NAILARA AMOS :::
-# :: JAHWMWE7VIAYM63GVANVUU7Y5GDNN6HWB6KK66RBYVBI4G6LSWBI :: CODE SIGNATURE ::
+#S42TIR3PLGVQDVKFLZSZOINSRNQHACG5AJNVSRURPGNMXTUT74F7Q7HIOASQM27JZ5FY4NY26TU4A
+#::: JK3SM22LOFL6SOIUTZCJV66DZE3DPZNKWVCXX3XXQ4WQ7F6ZQC4 :::: NAILARA AMOS :::
+# :: KIMH3Q23UCXWFAXAHSYZUTJJXFYWNFBFQBH73MIEUUS56JM7DEBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -46,7 +46,7 @@ if ( $image_location =~ m|^https?://| ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
-                {   'mode' => 'nak',
+                {   'mode' => 'false',
                     'data' => "download of '$image_url' failed!"
                 }
             );
@@ -224,7 +224,7 @@ close($touch_fh);
 while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'ack',
+        {   'mode' => 'true',
             'data' => "conversion complete"
         }
     );
@@ -237,7 +237,7 @@ error:
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => $error_msg
         }
     );
@@ -245,7 +245,7 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 }
 
 #.............................................................................
-#J25I3UBMSOFYASPY6J34TTQYWJJV3DY2DBY67NPSIQQ3BNCJOPPKNAPY5TPDUTPGUKIX6SHLEFFXE
-#::: YODBRUJCCLBKICRXGYY62VGOB45PUBQ7VCM4DIJWNSKJJKJIVKB :::: NAILARA AMOS :::
-# :: NC5AUAI55IN7UPUSM3IOBLVY5USM2GD4WHKIQOQTAFSPASRZYUBY :: CODE SIGNATURE ::
+#BTHD6EOPO4M6UVAGJM5UDKJBVISKRYONTQMVNBGWWLAX6OU6GHMSJNTDI7XHAHWCFJX7DHEMPGPUC
+#::: YKNR4RDNZUSCCMYT2CYOKYW5YNSHKRV44LHFCW5E2Z6LMILFQC2 :::: NAILARA AMOS :::
+# :: RLA2ZDGESTKZHHMAGIPHZVHNCYMQEXREZA5XRJAHEOXGWITVNYDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,23 +7,23 @@
 <power.cfg.devices> //= {};
 my ( $device_id, @state_param ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'numerical device id expected' }
+return { 'mode' => 'false', 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
 
-return { 'mode' => 'nak', 'data' => 'socket state parameters expected' }
+return { 'mode' => 'false', 'data' => 'socket state parameters expected' }
     if @state_param < 4;
 
 my $skip_count = 0;
 map {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "invalid state \"$ARG\" requested! "
             . "( valid states are '0', '1' or '-' [skip] )"
         }
@@ -32,7 +32,7 @@ map {
 } @state_param;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no changes [ all 'skip'ped! ]"
     }
     if $skip_count == 4;
@@ -78,10 +78,10 @@ if ( $dev->{poller}->can_write(0.1) ) {
     }
 );
 
-return { 'mode' => 'ACK', 'data' => join( ' ', @new_states ) }
+return { 'mode' => 'TRUE', 'data' => join( ' ', @new_states ) }
 
 #.............................................................................
-#P4SNAGDPQAEB46VQGIWN6YCTR2Q4WPSOESHLW5O2KIGFZPXKLZO6UE3ADJW3AK3V3YASES6VIDRIA
-#::: RGSMNZP4FKW7EML5PSKZ4556Q67FX56BEANHBCJTYLQBLMHWWO3 :::: NAILARA AMOS :::
-# :: II3TNF4K6FHHPHPHPD7QF2VMHBUCF52BNVORDILNWZYUKNPFT4CQ :: CODE SIGNATURE ::
+#4WUT4S3NZZPMZRBO53H7PPCI2VXB2YZHE6SDRWNAOSNOCKSDBMYC7ISGPOBEULHHF6IMKMR3NOSPO
+#::: A4U7U7DCCNVBLDJ2QDVNYX3O5HT74FE5CRND5KGLXKN3SDCIHZU :::: NAILARA AMOS :::
+# :: W2OQSUCE3WEGXJXPP62XKBIDF2CUC43HNFB7CNTPL4L2VHZ5ESDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

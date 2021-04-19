@@ -11,7 +11,7 @@ my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected zenka name or instance parameter'
     }
     if not defined $query_param or !length($query_param);
@@ -26,7 +26,7 @@ if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
         $query_param = $instance_id;
     } else {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "unknown job id '$job_id'"
         };
     }
@@ -43,7 +43,7 @@ if (    not defined <[zenka.get_id]>->($query_param)
         ? "no such zenka instance ($query_param)"
         : "no such zenka in setup [$query_param]";
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $rep_msg
     };
 }
@@ -61,7 +61,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
         );
 
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "[$zenka_status] external program"
                 . " '$query_copy' [PID=$prog_pid] < since $duration >"
             }
@@ -72,7 +72,7 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
             ? " [$zenka_status] < since $duration > [ cube-sid $cube_sid ]"
             : " [$zenka_status] < since $duration >";
 
-        return { 'mode' => 'ack', 'data' => $status_msg };
+        return { 'mode' => 'true', 'data' => $status_msg };
     }
 }
 
@@ -93,7 +93,7 @@ foreach my $id ( keys %{<nroot.zenka.instance>} ) {    # zenka name [+subname]
         );
 
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => "[$zenka_status] external program "
                 . " '$query_copy' [PID=$prog_pid] < since $duration >"
             }
@@ -104,14 +104,14 @@ foreach my $id ( keys %{<nroot.zenka.instance>} ) {    # zenka name [+subname]
             ? "[ $zenka_status ] < since $duration > [ cube-sid $cube_sid ]"
             : "[ $zenka_status ] <$duration>";
 
-        return { 'mode' => 'ack', 'data' => $status_msg };
+        return { 'mode' => 'true', 'data' => $status_msg };
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'not present' }
+return { 'mode' => 'false', 'data' => 'not present' }
 
 #.............................................................................
-#LRE75DEAPKBSD27RDZ5ZWYGVEABQFYLGY2SRYLXI45RZEMJJMEYJ6F7UDTNQHI3OTUVZ5MUWDYPNG
-#::: QZEHLOXUP4DCNFLC73PGTV3HQOURTMUNEDLQKODETCRZCH42RHB :::: NAILARA AMOS :::
-# :: 52QJGZRCMW4AE5OGRMGQDX4G4WDKOM5DWEVAFLLF7EV2PINSKCAY :: CODE SIGNATURE ::
+#YGDQOVB2SUIJZLM3PUQOKQTJCAXXBDFBK25NVJ5N6FDQTBW4GWXHDCQHOP27UQRFHZXND7DEBRARM
+#::: YSBGFWPQORLOLWDT6ARJ7O2D37DBPZX7JMAGHIOCVRH25INOVRS :::: NAILARA AMOS :::
+# :: FMY6GVHQKNUX6BTFAZSKHFIBPYDKU3NKTH6BCUJC62Q44HXTMKDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

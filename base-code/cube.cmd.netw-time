@@ -8,16 +8,16 @@ my $parameter = $$call{'args'}
     // 3;    #  <--  precision or given unix time value
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' =>
         'precision\time parameter not valid [ integer or float expected ]'
     }
     if $parameter !~ m|^\d+(\.\d+)?$|;
 
-return { 'mode' => 'ack', 'data' => <[base.ntime.b32]>->($parameter) };
+return { 'mode' => 'true', 'data' => <[base.ntime.b32]>->($parameter) };
 
 #.............................................................................
-#VI3ECCRO7Z66LLW7HWPXZNQLNDLDJZV5R6U5VLXF52J3F3G34GC5HE4LOAZASOGZARLWQVJMSD6S2
-#::: 73NHKPRLFBO6TIW3M5LN7ZFLFBREFKHKJONPVC7ZALJCOMP4R3L :::: NAILARA AMOS :::
-# :: DEN2NGOJMQRT7GVVV4SBAHTRSHNHW2FY5B6U2LNTBA5VHGVFIWCI :: CODE SIGNATURE ::
+#YSDM5JM5PHJADAWU2XRYQOCA2HABU2Y2PU3ZFDUYRCZMLTQITOUUENPCWMXMJBYXRFUPSWIEX2HCY
+#::: 76OHMDPXKRKZPXUXKEFH2UC3M3EVF3ML32JIATMGMGOG7JF7PHH :::: NAILARA AMOS :::
+# :: AR73NKX4ECLK2QKVC6O7G5RUBPJU23TZ3ENGBSBBA6GEQ6MRMSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,11 +14,11 @@ if ( $zenka ne '' and $key ne '' ) {
     if ( exists <auth.setup.usr>->{$zenka}
         and <auth.setup.usr>->{$zenka} eq ':zenka:' ) {
         $KEYS{'auth'}{'zenka'}{$sn_zenka} = blake2b_384_b64($key);
-        $reply = { 'mode' => 'ack', 'data' => 'key added' };
+        $reply = { 'mode' => 'true', 'data' => 'key added' };
         <[base.log]>->( 1, "[$id] received session key for '$zenka'" );
     } else {
         $reply = {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "user '$zenka' not accepted for :zenka: auth."
         };
         <[base.log]>->(
@@ -28,13 +28,13 @@ if ( $zenka ne '' and $key ne '' ) {
         );
     }
 } else {
-    $reply = { 'mode' => 'nak', 'data' => 'not enough arguments' };
+    $reply = { 'mode' => 'false', 'data' => 'not enough arguments' };
     &{ $code{'base.log'} }
         ( 0, "[$id] add_session_key: not enough arguments" );
 }
 
 #.............................................................................
-#RAFFXCQ2QL3CASIT6CNMF3HQBYAH437CD3ONSIDJZIMX57ITM6PQUQDPIX2KFHG5J3YGBIQKOTCU4
-#::: UXMVLPQCDBRUMS2BIX4UDSEMNXZR5Z44HE5MKIBXLOOYNR6D3HB :::: NAILARA AMOS :::
-# :: K3YEA446PM3MJRFO5U3RQYMPC3PLTYBGOFEM7ZEI52RX3DQLYIDY :: CODE SIGNATURE ::
+#4NGUCV4HHDXU3WHNYSDA4SIVO27NXS4CZL2WSYOUL6Q7WNC5TQWRASESFE33LSRTSTE3E2SVYQVU4
+#::: TOLHIFTYZHV7472BJOPY6O3V3ALDYSHTT7T33UDOYFFXUENWAY7 :::: NAILARA AMOS :::
+# :: TZ6DRXTEXIVBO7OKDCPLMLHVMATDGLOE233GQVDB4UVV4T2DC4DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,22 +4,22 @@
 # descr = insert page on foreground view
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'web-browser zenka shutdown in progress'
     }
     if defined <web-browser.shutdown> and <web-browser.shutdown>;
 
 my $load_uri = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'uri parameter required!' }
+return { 'mode' => 'false', 'data' => 'uri parameter required!' }
     if not defined $load_uri or !length($load_uri);
 
 <[web-browser.fg_view_insert]>->($load_uri);
 
-return { 'mode' => 'ack', 'data' => 'loading to front view!' };
+return { 'mode' => 'true', 'data' => 'loading to front view!' };
 
 #.............................................................................
-#P23N4IPSTACQJWUP3CB5ZBRK72IWWC5WUWZS5H57HE6AQAS5FYUJCMV3OS3AXCIWMJ7DZOWQLXJUW
-#::: I4DTLVUUWGBSJAKAPGB2XYALFXPHN4KDM73DV3RO6MOW7XR5KIE :::: NAILARA AMOS :::
-# :: S7YGI2GHJGHBGSKRKTORN7V5V42L4Y3F5AGGGRY5I2H6AJEURACY :: CODE SIGNATURE ::
+#YDDSI5OZYRM74RTGLFVGYXVXOU2GBUN7HWDZXXWZHFUZLBMF7PSESDEPXQQITNQPYODKHM7DAL5V2
+#::: VL5YUJCNE5UVJ6DY63QZKUKGKMTNWZOH5442C5DVLPSAC5WFI3A :::: NAILARA AMOS :::
+# :: EYDFXB3YBBIWDZLFP5DVUYYCPEJUP4RQUDWXZR4NHQ453NU4GSBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

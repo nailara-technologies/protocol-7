@@ -4,7 +4,7 @@
 # param = [zenka_name]
 # descr = window geometry for named or current zenka
 
-return { 'mode' => 'nak', 'data' => 'no zenka name received' }
+return { 'mode' => 'false', 'data' => 'no zenka name received' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
 
@@ -23,7 +23,7 @@ if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    #  <--  only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <composition.coordinates>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required."
         if $match > 1;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $msg_str
         }
         if $match != 1;
@@ -56,7 +56,7 @@ my @coordinates;
 my @borders = ( 'left', 'top', 'right', 'bottom' );
 foreach my $border_name (@borders) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "coordinates for $border_name border are missing"
         }
         if not exists $coordinates_data->{$border_name};
@@ -64,12 +64,12 @@ foreach my $border_name (@borders) {
 }
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => <[base.X-11.coordinates_to_geometry]>->(@coordinates)
     }
 
 #.............................................................................
-#QZWP4BFSYYYWLW5L4U5NVVAN4TFDBN5IN5TVUSVOJA24TKN4CNZVSCURJPYORROFWTCGI4AZM6E6E
-#::: PPQ4TWZCIWGCHIWN75UQTJSY2QATJSPOMMNMSMUFURIWZ6XVM5D :::: NAILARA AMOS :::
-# :: VHUX7SXSANBM6U6TN25JZJJ5HJCFLHHYYQLYV7PKNDDKPHXFBIBA :: CODE SIGNATURE ::
+#Z2Q62V5VX74A4VRKHEJWC27QNXKFHWZMFY34QXOZPEXDPQ3ZMPUVI6BU3C6HPGMBQUKLDEOBFVIYQ
+#::: PMDI7KEJBMHN3IFDN4ZRGAZMUS3EMUBJ6ZOKWU3SY6WFLS5RLWE :::: NAILARA AMOS :::
+# :: Y3KZPBMWM4IQYZRZRLJFOFQBUNQO6AUEIGTICL65UY65RCN732AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,14 +8,14 @@ my $usr_sid = $$call{'session_id'};
 my $llvl    = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'you need to supply an integer value [0..,5]'
     }
     if !length( $llvl // '' )
     or $llvl !~ /^\d+$/;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => sprintf( "already at '%s'", $llvl // '' )
     }
     if $llvl == <system.verbosity.console>;
@@ -27,10 +27,10 @@ my $user = $data{'session'}{$usr_sid}{'user'};
 
 <[base.log]>->( 0, "changed verbosity : '$llvl' [ requested by '$user' ]" );
 
-return { 'mode' => 'ack', 'data' => "verbosity = $llvl" }
+return { 'mode' => 'true', 'data' => "verbosity = $llvl" }
 
 #.............................................................................
-#ZEDVMCD2M36HZPDRVW56GMS3EAAE3UKYDYYCAGMF3AK6QWGTFOCZG5NAHZDCRZMFXC4JAU4LNGKWY
-#::: ALIC5JYUHG5T3KJOXVBGJESUYVDJWIVELFK3XAD5KPQB7ZHST3W :::: NAILARA AMOS :::
-# :: T322DZZQYEH7DUXDPXOLGAJIOTK4BLFW3SHD3HTOHWX76TKXL6BI :: CODE SIGNATURE ::
+#TR6QUPFQLVKACL7WRCAJJVHIEW34WNBCXDKVGI6JEU5VPNU67MJXZCUIIMH6I7Y6WTEWAD3KPOZAM
+#::: WKCSMTXLM3FED5PJ5DOFGTD2DM6C6QVMHORYP6D5F3ACGJDC7DQ :::: NAILARA AMOS :::
+# :: 4NR75JHL2TRK6BVK47CVLL3YQXVDFE4GFOUKYPXSNGFYJFY72QAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

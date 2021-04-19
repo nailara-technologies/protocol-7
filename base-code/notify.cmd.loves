@@ -7,7 +7,7 @@
 my $txt_param = $$call{'args'} // '';
 my $id        = $$call{'session_id'};
 
-return { 'mode' => 'nak', 'data' => 'no message text submitted' }
+return { 'mode' => 'false', 'data' => 'no message text submitted' }
     if !length($txt_param);
 
 if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
@@ -55,15 +55,15 @@ if ( defined $title or @matches ) {
             <notify.path.loves_icon>,  @msg
         )
     ) {
-        return { 'mode' => 'ack', 'data' => 'notification message sent' };
+        return { 'mode' => 'true', 'data' => 'notification message sent' };
     } elsif ( $CHILD_ERROR == -1 ) {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "cannot run process [ \l$OS_ERROR ]"
         };
     } else {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => sprintf(
                 "notify-send exited with code %d%s",
                 ( $CHILD_ERROR >> 8 ),
@@ -73,11 +73,11 @@ if ( defined $title or @matches ) {
         };
     }
 } else {
-    return { 'mode' => 'nak', 'data' => 'no message text submitted' };
+    return { 'mode' => 'false', 'data' => 'no message text submitted' };
 }
 
 #.............................................................................
-#5P6JVBC3ZSZHOUOW4JNCWWLDRP4ZHIVKEKZNU3J7H7ME5PDDN5A2P2DHVH26GAJ7FDQYCEBTTIYYS
-#::: J2KIHDCDVHBW7KO5FWNWHST55YB33I2HRA4AUKFE2ZVKK5HFAAS :::: NAILARA AMOS :::
-# :: NCYR32R7KT4KQ7ZRM64FFM7HMWUUZXCKFUN5WGE2GLYZWXAUF4DQ :: CODE SIGNATURE ::
+#JKJE4FEK7OTRGO2ETS2HEE3A3GPAX4LDRLRMGZ6AGS4MMAE32UOGMJBBAJMMLKDRFLKB54ZB6HEM6
+#::: 6RRW5ESGBEZOSNKSC5RDIWPZ67ESBNZYHGK4LXJKU3Y2HCOIMAU :::: NAILARA AMOS :::
+# :: AGVDRYGRDRNIZOC2XDIGLWASIQH5M5TOA4GP72GNVPZIHEV3VICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

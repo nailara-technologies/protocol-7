@@ -6,17 +6,17 @@ my $fp_val_str = shift // '';
 my $reply_id   = shift @{<mpv.reply_ids>};
 
 return <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'nak', 'data' => 'undefined' }
+    $reply_id, { 'mode' => 'false', 'data' => 'undefined' }
 ) if defined $reply_id and $fp_val_str !~ /\d$/;
 $fp_val_str = sprintf( "%.2f", $fp_val_str );
 $fp_val_str =~ s/\.?0+$//g;
 
 <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => 'ack', 'data' => $fp_val_str }
+    $reply_id, { 'mode' => 'true', 'data' => $fp_val_str }
 );
 
 #.............................................................................
-#QB7WGT7S2PUCIILIAPOQK6YEMUA7HTLVK5IKIHGL4VR7SPUTHHLPUMB3X2JPPZIHA4MEI4Q3W63BG
-#::: RIMGZ6RIT3ES43KWHIL62GW7TWXGSCI2NRIAQ5JNPRQVHFCWURO :::: NAILARA AMOS :::
-# :: YMK6SALH3OKBOATQ7QNI4TJRM4GXHVLMVBUIEFFJJI22PIKKN6BA :: CODE SIGNATURE ::
+#NI3AY2XGU2JNQZZUGNVWBN3BSV7RK6EY2Z3GFYSQEZ4AXUKVLVXIECYTYU5NYQABG564CRKGIIGTE
+#::: 5DEZYIUOIQMD4V43XM4AAMN5ZZXNQ4QBPVM266JIVRPDF5IKHIH :::: NAILARA AMOS :::
+# :: YSYYBM7UAF2WOZVYPFBIDNBVBW4A7G65IQBUWPI2LN6PJ5L7DYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

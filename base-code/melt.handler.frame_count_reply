@@ -15,19 +15,19 @@ my $vid_path  = $params->{'vid_path'};
 if ( !$frames ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => "no frames counted in specified file!"
         }
     );
-} elsif ( $reply->{'cmd'} eq 'NAK' ) {
+} elsif ( $reply->{'cmd'} eq 'FALSE' ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        { 'mode' => 'nak', 'data' => "ffmpeg said '$frames'" }    # msg!
+        { 'mode' => 'false', 'data' => "ffmpeg said '$frames'" }    # msg!
     );
 } elsif ( abs($frame_num) >= $frames ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' =>
                 sprintf( "requested frame out of range [0-%d]", --$frames )
         }
@@ -69,7 +69,7 @@ eval {
 if ( -f $out_file_path ) {
     <[base.log]>->( 1, ": $out_file_path" );
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'ack', 'data' => $out_file_path }
+        $reply_id, { 'mode' => 'true', 'data' => $out_file_path }
     );
 } else {
     <[base.log]>->(
@@ -78,14 +78,14 @@ if ( -f $out_file_path ) {
     );
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'nak',
+        {   'mode' => 'false',
             'data' => "failed to extract [ frame $frame_num ]"
         }
     );
 }
 
 #.............................................................................
-#NAYVATA74AVPWEWCPVDQNAB2QAIN3U3NSLGLBCSQT33LS5SUAHXZ6ZMTOIJ4H2J73P3IXXYZC3PUK
-#::: CXVZ3BHVDVMGUC6ZBVI5N7PCVFUNC3KBE6EAFENUZJI7OBM5J6C :::: NAILARA AMOS :::
-# :: IPWTB7VO2HMYSYQ5LAISHNHYQ7I62LBRHBLHEQGTRXQZYB7W2MAQ :: CODE SIGNATURE ::
+#JQTQT6AAZ23EP4XRCBXRNI6XH7WAOFAPK6LK37PFAZSG6PCQVU4P6HBPKZOOKUHQEMW72M64344WS
+#::: 4E7E4ZS65FIJKTIXJCBODQCKZ3GYIEZIHHBJUHWYXYZW4RWYR3Y :::: NAILARA AMOS :::
+# :: FJTNILE7LEUJMKYBKLR4CPVTPNTXVVVJD7HYBEZ6OZQLOOWHPKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

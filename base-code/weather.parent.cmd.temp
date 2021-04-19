@@ -6,7 +6,7 @@
 my $station_id = <weather.station_id>;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'no city selected (undefined station id)'
     }
     if not defined $station_id;
@@ -16,10 +16,10 @@ my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n/a';
 $temp .= Encode::encode( 'UTF-8', "\N{DEGREE SIGN}C" )
     if $temp =~ /^-?\d+(\.\d+)?$/;
 
-return { 'mode' => 'ack', 'data' => $temp }
+return { 'mode' => 'true', 'data' => $temp }
 
 #.............................................................................
-#6RVOFJWTMKLAAU66VHOU3YQC3AOVIL4IBBR3RXSCKN76YBYRZ327GEMR3SV7JVV3ZO55GJGOUHYY6
-#::: 375LACTGK6X5WBJ7W3Z2L5DGOFLQTCOZYNOULXTDNZVF5Q3VL35 :::: NAILARA AMOS :::
-# :: WLS44NWSDWJ3DIIQ3JI6XDB5F6BVUQ24ODITLX6T3LRRSWY3JYCA :: CODE SIGNATURE ::
+#AHWL2HVSKS5BC6PNW3SQHDNVVDVONGYGBN4LMULNSAJIVJHOHDGXAZCAZ7X35EXSHXC243SSSJWPG
+#::: SU3Q6UAEUTGIE3C34P7U5XPJ34NSKS36DPJTN6RDZ7J7JEZVHY5 :::: NAILARA AMOS :::
+# :: ZO7HIF32UT3NBHMYYPOE6B5TSAVZH4HAWC5GFRLNC2GFSBK74MAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

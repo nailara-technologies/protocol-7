@@ -9,7 +9,7 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
 } elsif ( $$call{'args'} =~ <regex.base.usr> ) {
     my $user = $$call{'args'};
 
-    return { 'mode' => 'nak', 'data' => 'seen no such client' }
+    return { 'mode' => 'false', 'data' => 'seen no such client' }
         if not exists $data{'user'}{$user}
         or (not exists $data{'user'}{$user}{'last_seen'}
         and not exists $data{'user'}{$user}{'session'} );
@@ -24,13 +24,13 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     if ( not exists $data{'user'}{$user}{'last_seen'}
         and exists $data{'user'}{$user}{'session'} ) {
         return {
-            'mode' => 'ack',
+            'mode' => 'true',
             'data' => 'present since '
                 . <[base.parser.timestamp]>->( $mode, $utime )
         };
     } else {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => 'last seen '
                 . <[base.parser.timestamp]>->( $mode, $utime )
         };
@@ -41,7 +41,7 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
 }
 
 #.............................................................................
-#556SQPXUL3ZPX5QWA44A7N3MS2XRAZZDCCY5RM6SUS74B7OQACZXYLUX7XRO6HVQCHQXMNH2AOK7O
-#::: ITUS3CRBNZDTRX2UPS3QUQPLOAXTU2NU5MHY43JDF6CZALAVOPC :::: NAILARA AMOS :::
-# :: IE4ZAYOLEU2XQQZWTE2ZSCLDY6JFAGAWSJOSBVLMU3H3Z6TBCQBY :: CODE SIGNATURE ::
+#BVK7XC5XDYT2G7OW7ATHSKGKN7C5POHMFMY2IDWKNNRI56BVDOVJTYPDO2QWC3YPH7XAD2Z3Y7E4Y
+#::: D5TCLUT76B4OGTKDCFUANV5JANEGG7PWEK4TA622RIIU2G6YICC :::: NAILARA AMOS :::
+# :: SKFPUIQ5PDEB3EKKQJDM4KJJJBA5MO6RKHLUKVUG4QD6GFDZF4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

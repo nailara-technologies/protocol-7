@@ -4,12 +4,12 @@
 # param = <file> [info_keys]
 # descr = return information about audio or video files
 
-return { 'mode' => 'nak', 'data' => 'expected path to content file' }
+return { 'mode' => 'false', 'data' => 'expected path to content file' }
     if !length( $$call{'args'} );
 
 my ( $file_path, @info_keys ) = split( m| +|, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'file not found' } if !-f $file_path;
+return { 'mode' => 'false', 'data' => 'file not found' } if !-f $file_path;
 
 my $file_info = new Mediainfo( 'filename' => $file_path );
 
@@ -20,7 +20,7 @@ my $key_max_len = max map {length} @info_keys;
 my $m_reply;
 foreach my $i_key (@info_keys) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "mediainfo property key not found ['$i_key']"
         }
         if not exists $file_info->{$i_key};
@@ -33,7 +33,7 @@ foreach my $i_key (@info_keys) {
 return { 'mode' => 'data', 'data' => $m_reply };
 
 #.............................................................................
-#GSVP5DLSOHMA5BP752GB7VKUMCHKASDBGRF7SK4WOKAKFMWCLEZ2ERDPK3JZFZO6DBT4SPVRIF5UI
-#::: ZZZJMYGDH4764GD5DMN6457GQ6QA5H2OQR77POTTJO7KT26L4LH :::: NAILARA AMOS :::
-# :: TH4FBEBZMYL24CGVZQL5PL5SBIVOZHBNL5PMZSHFEWBX3GPRIOAQ :: CODE SIGNATURE ::
+#KOBOU6LFMYJOL7LSJQINOZGEZSC7LT6JVDIPFMDXNCYPPJG4AI7X74NIIE6XG5DLONCXXRAMJLACM
+#::: Q7S7ZKROYV6NFARS6LFVJXDGFSC5Z6R5VQPUDB3RVC46F3NYLGC :::: NAILARA AMOS :::
+# :: YROKPASXIHOBGTQCIM7PJ7MWVKD4A66TTNKUIO22VJWT54NFXECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

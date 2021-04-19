@@ -7,9 +7,9 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'x11 window id required' }
+return { 'mode' => 'false', 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'nak', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -23,7 +23,8 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 eval {
     for ( 1 .. 2 ) {    # <-- workaround (ignored state requests)
@@ -33,12 +34,12 @@ eval {
             "BELOW" );
     }
 };
-return { 'mode' => 'nak', 'data' => "unable to set window state 'below'" }
+return { 'mode' => 'false', 'data' => "unable to set window state 'below'" }
     if $EVAL_ERROR;
-return { 'mode' => 'ack', 'data' => "set window state 'below'" };
+return { 'mode' => 'true', 'data' => "set window state 'below'" };
 
 #.............................................................................
-#ANRGIIPJOIDNJRZJPOU3HPWE6SAR3CWACSTEXVSBOHTXQZ5XTLIDS3GVGJNWE72DEVQ5D5LWPN5CE
-#::: 2W4XQOEVJCGLQPOBFSTCXICSO722I3NSVADOETP4U4K7YNHAUHF :::: NAILARA AMOS :::
-# :: BEREQFZ2YTNZIAK2QH4I53CPWCN5ALDVO25F3BZU5NCTRK76LCCY :: CODE SIGNATURE ::
+#G5GYBEL4JYOENNYJ42ZVOWZNIX6TRKLN4BLV6F5FCZLOVKUHXCWJXE5S7DAMKXVIWJXN7JHMCWHGA
+#::: OKUWB5OROZDLMA4FF2W2T7QWQU2KD4NEMNBKT4D7VASLMEJLACF :::: NAILARA AMOS :::
+# :: 7P726EG3BQNP7QNPOP6A5YREQ2TK4TVLAYNYEEFEX4VJOTOD3IBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

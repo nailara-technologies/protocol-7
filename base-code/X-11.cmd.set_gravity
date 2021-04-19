@@ -6,12 +6,15 @@
 
 my ( $id, $gravity ) = split( / +/, $$call{'args'}, 2 );
 
-return { 'mode' => 'nak', 'data' => 'required x11 window id and <gravity>' }
+return {
+    'mode' => 'false',
+    'data' => 'required x11 window id and <gravity>'
+    }
     if not defined $id or not defined $gravity;
-return { 'mode' => 'nak', 'data' => 'invalid <id> syntax' }
+return { 'mode' => 'false', 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' =>
         "invalid gravity keyword, valid are: left, right, top and bottom"
     }
@@ -28,7 +31,8 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'nak', 'data' => 'no such window' } if not defined $window;
+return { 'mode' => 'false', 'data' => 'no such window' }
+    if not defined $window;
 
 my ( $w, $h, $x, $y ) = $window->geometry;
 my ( $nx, $ny ) = ( "+$x", "+$y" );
@@ -46,10 +50,10 @@ if ( $gravity eq 'top' ) {
 $window->move("${w}x${h}$nx$ny");
 <[X-11.update_X11_WM]>;
 
-return { 'mode' => 'ack', 'data' => "gravity set to '$gravity'" };
+return { 'mode' => 'true', 'data' => "gravity set to '$gravity'" };
 
 #.............................................................................
-#LVNB3LR27Q2SVPOLCLLAC7M6VAWFNHU3DN7CIXVIB4PEC7UHLADKZQ2EZQMI5WN4V4GBU5W2JTNTM
-#::: AKP37VNCONMXTGMCEBQ6WFQLTC4DJPEF5WQAK56BCFBIOQ42QG4 :::: NAILARA AMOS :::
-# :: MWWLIVTC32VSVUMLLCATP3ZWMLGHL5ZSPF7NM6Q3SR2JZVOGXIAA :: CODE SIGNATURE ::
+#JE4MEEQHM7DEM7BH4XXL7YYVJI6WWV4SZOHGUQWXEZWISEJ4TWKQEWI5BCZS5A2WTNQLQ3O663C4S
+#::: FXDDR3MYPZOFZYRMWNWV2BQID7BAE4JJRPKRN6QH54VUMKYKIVC :::: NAILARA AMOS :::
+# :: TQESCW7WLPP626OVS4PBOYRKDL4RAHJ3PDQCCPPSNX5B5QOV4ICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,19 +6,19 @@
 
 my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'expected path to pdf file!' }
+return { 'mode' => 'false', 'data' => 'expected path to pdf file!' }
     if not defined $pdf_path or !length($pdf_path);
-return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+return { 'mode' => 'false', 'data' => 'file does not exist!' }
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 if ( !<[pdf.html.base.valid_pdf]>->($pdf_path) ) {
     my $err_msg = "'$pdf_path' is not a valid PDF format file!";
     <[base.log]>->( 0, $err_msg );
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => $err_msg
     };
 }
-return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
 
@@ -33,9 +33,9 @@ if ( not defined $target_width ) {
 my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
 my $stub_file = "$html_path/pdf.html";
 
-return { 'mode' => 'nak', 'data' => 'expected html dir does not exist!' }
+return { 'mode' => 'false', 'data' => 'expected html dir does not exist!' }
     if !-d $html_path;
-return { 'mode' => 'nak', 'data' => 'pdf.html stub file does not exist!' }
+return { 'mode' => 'false', 'data' => 'pdf.html stub file does not exist!' }
     if !-f $stub_file;
 
 ( my $html_dir_name = $html_path ) =~ s|^.*/||g;
@@ -67,7 +67,7 @@ my $conversion_setup = {
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#CHR6Y7GAQSTN2LVAWOOKSUWC3FUCZ22YMEG4XQ7GO2HM5ETWWSQL4O36YWVRNSXMBY4CM5QS6TYX4
-#::: 4RGYTKBGCJ3OMDBSY2MR2MROC6S4IIRYXWNOTMPZMJE25C2JEH6 :::: NAILARA AMOS :::
-# :: VJVHLQ4JRB7UBDXLJXH7BA6SYRWVJD7FKUYHLCPD4UQJURFUCUDA :: CODE SIGNATURE ::
+#3THNO3ICY6CBSEW7HIY6CPBDIKVRAKQ3IHKLMEPW3ZEMB37MVSTYBTSOFJGBZVC6CHCLTWFRCOGDU
+#::: D4RQLHNGIEGXS2UTUYLDEZ5SX4GDDDXSWV654QDM2KFZSD7BOZZ :::: NAILARA AMOS :::
+# :: 2NS5Q744LUEBZI443WTA45X7OIPTY5WVS7YPEG4VYQCESTV3MWAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

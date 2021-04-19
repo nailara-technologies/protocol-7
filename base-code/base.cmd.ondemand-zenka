@@ -6,7 +6,7 @@
 
 my $re = $data{'regex'}{'base'};
 
-return { 'mode' => 'nak', 'data' => 'expected <add|del> <zenka_name>' }
+return { 'mode' => 'false', 'data' => 'expected <add|del> <zenka_name>' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} )
     or $$call{'args'} !~ m{^(add|del) ($re->{'usr_str'})$};
@@ -16,7 +16,7 @@ my ( $cmd, $zenka_name ) = split / +/, $$call{'args'};
 if ( $cmd eq 'add' ) {
     map {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "there already is one registered ondemand type zenka "
                 . "'$zenka_name'"
             }
@@ -39,7 +39,7 @@ if ( $cmd eq 'add' ) {
         2, "registered ondemand zenka '$zenka_name' [id=$zenka_id]"
     );
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "zenka registered [ id = $zenka_id ]"
     };
 
@@ -54,20 +54,20 @@ if ( $cmd eq 'add' ) {
         }
     } keys %{<zenki.virtual>};
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "no such zenka registered ['$zenka_name']"
         }
         if not defined $del_id;
     <[base.log]>
         ->( 1, "unregistered ondemand zenka $del_id ['$zenka_name']" );
     return {
-        'mode' => 'ack',
+        'mode' => 'true',
         'data' => "virtual zenka $del_id ['$zenka_name'] unregistered"
     };
 }
 
 #.............................................................................
-#SIONY5ELRGMAQ777PD7JBXW4G2FXVO55VNKLVKGPQPKRXDXPNXEVI7WLD3UPLYVATLTFRYZPKBHWO
-#::: MY4UXEN2XENI2J77EZEBVM56O4676AQ5RPIXCZTSPLTNEN3YX6G :::: NAILARA AMOS :::
-# :: BJFMH6F3L6GCFQGOJ3IFRF56KX3XQ5ECHG7DYEAJAAZUZXINH6CY :: CODE SIGNATURE ::
+#INZRZVXVGWTJNDPHBIRYWKGQQQGWNVM5HEO7BO7F4C676ERRQ6ZZDYNBGJKYC43BT5KU7GRK7G2F2
+#::: Y2BQTSIK3KSASFVWGDUH26NM5HG47Z5MYZXILDE4XK4ZZTH7QOT :::: NAILARA AMOS :::
+# :: UAGEJFZUHPDKOLAVFLFBA5FCIWCLZBKSLXAO2LO667HONZTNH4BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

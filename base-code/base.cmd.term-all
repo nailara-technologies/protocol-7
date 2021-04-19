@@ -46,7 +46,7 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
         $reply_string .= ", $yours_str" if $killed_own;
         $reply_string = $msg_string     if $killed_own and $killed == 1;
         return {
-            'mode' => $killed_own ? 'term' : 'ack',
+            'mode' => $killed_own ? 'term' : 'true',
             'data' => $reply_string
         };
     } else {
@@ -55,7 +55,7 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
         $fail_msg = "will not destroy server mode sessions! >;["
             if exists $data{'session'}{$param}
             and $data{'session'}{$param}{'mode'} eq 'server';
-        return { 'mode' => 'nak', 'data' => $fail_msg };
+        return { 'mode' => 'false', 'data' => $fail_msg };
     }
 } else {
     ( my $term_usr = $$call{'args'} ) =~ s| .+$||;
@@ -64,7 +64,7 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
 }
 
 #.............................................................................
-#LC3K3ZLULEX4ELQP6J5CCXOFKTS6KM6VLUDUMODU2C7UVCVHFPYH47CFZLXGCGGJLESAZDFSZRCBY
-#::: KZA3RMEO4SYGBG7FMSGPO2KT4N2UBP7A3MV2M2RJNVNCGQK7MYH :::: NAILARA AMOS :::
-# :: 5RPU7HZ5M7SYC7VIQXBZEEIQ6646ZLLNYTR33LXV6W7FZUAU7CDY :: CODE SIGNATURE ::
+#24UJF4CBMCZIJNWBTBWGZQLLG5IL4WRKQERC6E354MSEQKMKQRLB6Q4WFFEPA4C2C5BWHIFH4F3D6
+#::: 6Q25JVM6WD4DJYI5SH34Q5WPKOFJXTBF6NJD2Z2JXQES5BWZLKU :::: NAILARA AMOS :::
+# :: T7CNRVHIMNNBLXDZXEGA4MSC5QHV5H4KO5OZHJBVJKXSUSBAXYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

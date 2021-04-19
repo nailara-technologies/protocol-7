@@ -3,7 +3,7 @@
 # name  = web-browser.cmd.resume
 # descr = 'unpause' slideshow
 
-return { 'mode' => 'nak', 'data' => 'slideshow was not paused' }
+return { 'mode' => 'false', 'data' => 'slideshow was not paused' }
     if !<web-browser.slideshow.paused>;
 
 <web-browser.slideshow.paused> = 0;
@@ -12,7 +12,7 @@ my @url_list = @{<web-browser.url.list>};
 
 if ( !@url_list ) {
     <web-browser.slideshow.running> = 0;
-    return { 'mode' => 'nak', 'data' => 'url list is empty' };
+    return { 'mode' => 'false', 'data' => 'url list is empty' };
 }
 <web-browser.slideshow.url_index> = 0
     if <web-browser.slideshow.url_index> >= @url_list;
@@ -30,10 +30,10 @@ while ( $looped < 2
 <web-browser.slideshow.status> = 'load';
 <[web-browser.handler.slideshow]>;
 
-return { 'mode' => 'ack', 'data' => 'resumed slideshow' }
+return { 'mode' => 'true', 'data' => 'resumed slideshow' }
 
 #.............................................................................
-#EHHQBEKRFWA6E6HQTTE4LBR2DSJL43VKXNPWPC5SC26W4E6QMWFGFR7PTHY7NYJIFPY3PGTRNPR5O
-#::: VKJM55YTRUOINSP2KCJIHU4H2BQDEH2DD43PDACVJFP2JTQPZYU :::: NAILARA AMOS :::
-# :: EEPQUPKOCGIIIP2HFQHDIE4IF6DWQJJ2CSLEW4RDLJHXDT2AKCDY :: CODE SIGNATURE ::
+#CC3PLMR3O2ORPW4CJ5NTIXA5J63VBV2GKMUYALHQ3IQE4Z6R3FFCNZPU5ISGIVEPXNKAFXXQ4SNCI
+#::: VU4WJCJKVLH47UC5QVRR7OWHDCO2NJ3CEPDNUIKGLFLRUVAQSS7 :::: NAILARA AMOS :::
+# :: GJS3ZCZ26NET6XHMZUNVXOBWAT2OE5ONQGZSF37FIS3RGVBIQEBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

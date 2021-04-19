@@ -5,14 +5,14 @@
 
 my $sid = shift->{'session_id'};
 
-return { 'mode' => 'nak', 'data' => 'not set' }
+return { 'mode' => 'false', 'data' => 'not set' }
     if not defined $data{'session'}{$sid}{'base_path'}
     or !length( $data{'session'}{$sid}{'base_path'} );
 
-return { 'mode' => 'ack', 'data' => $data{'session'}{$sid}{'base_path'} }
+return { 'mode' => 'true', 'data' => $data{'session'}{$sid}{'base_path'} }
 
 #.............................................................................
-#YQSEQRIDZRSGWEXO2XOCGWWZRFNLUPBJ3KVTHMRTLNYLVCLCHNSML5TJESGVBCTN44TZSSRLROTD6
-#::: 5RFU44PD5DWPBAPCW2RYV32H3ZVAWB35QV25TKXWHADU7OAKIWH :::: NAILARA AMOS :::
-# :: IPHOK24XDU67D5W3MPDOHKDLS7G3FQ6YOW6KZEM33B4GSBEFGMDI :: CODE SIGNATURE ::
+#3HBCYFEYEOYOSB5VQOK4LUIIOX3I53UUWETJWYCKEOAOMUTNC3M62W5FVKKC546FKR2AJBFRFJTCC
+#::: INHF66OSAM7RMR245WRS2MIJLY6E4A7ZOFMMCFEQ6UZXZKV3O3S :::: NAILARA AMOS :::
+# :: A6JPGWAPNJI6PFZW6SUKJIYSX7IZM5WRVSN3GKP6APWRLXBKI4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

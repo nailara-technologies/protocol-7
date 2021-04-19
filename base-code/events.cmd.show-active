@@ -3,7 +3,7 @@
 # name  = events.cmd.show-active
 # descr = return list of currently active events
 
-return { 'mode' => 'nak', 'data' => 'no events configured' }
+return { 'mode' => 'false', 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
     or !keys %{<events.unix.timetable>};
 
@@ -19,7 +19,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         and $current_time > <events.unix.timetable>->{$ev_id}->{'start'};
 }
 
-return { 'mode' => 'nak', 'data' => 'no events active' } if !@events_active;
+return { 'mode' => 'false', 'data' => 'no events active' } if !@events_active;
 
 return {
     'mode' => 'data',
@@ -27,7 +27,7 @@ return {
     }
 
 #.............................................................................
-#QKEYJGCJFFW2D7XA72VD7A3S7ICPMZLAHLU7DLCLD2PNVGJKMXF5LU2F2EEEYAWWJA6Q7CTESOA2M
-#::: 7CLNE2DF3FTZL2N4YSGKMPR27BVVCBN6D3FCQW5BVIWJ6JWEGKB :::: NAILARA AMOS :::
-# :: A7LI35H75BPNX3FXLUJCDXDGVEFGS7RP5H4TSFUT7SMW7UEXMODI :: CODE SIGNATURE ::
+#DVEUBTOTX6RWSDWCJALRSH3OUPVU7R7WX4BUNSEVLMLLJF4DJJ3QEFBFBZ5RN3SVSU6AS6TT5OF5M
+#::: NIUFUS53E5MUTYR7SBHCENU2SNI3I634NWJB2BGS6OUPBRYYPAZ :::: NAILARA AMOS :::
+# :: X37655WKBMUHEEGHDY5O73GDIX2RPJIJSZLQDZR6DMJMSW6WQODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

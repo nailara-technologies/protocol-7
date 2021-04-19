@@ -8,7 +8,7 @@ my $usr_sid = $$call{'session_id'};
 my $usr_str = $$call{'args'};
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'you need to supply a string to return'
     }
     if !length( $usr_str // '' );
@@ -18,10 +18,10 @@ $data{'session'}{$usr_sid}{'echo_str'}
 
 <[base.log]>->( 1, "echo string : '$usr_str'" );
 
-return { 'mode' => 'ack', 'data' => $usr_str }
+return { 'mode' => 'true', 'data' => $usr_str }
 
 #.............................................................................
-#GST3B4G57TOXTHX5XL37X2CCGCKCO7VMY4BWZVKYA6OQ7UADKSSFVOSROIX64YGSRLLWPPTOQUB7G
-#::: YJXXHIJEOV32CBGDRRRQV5N6RIAWDRK6OVI6LAGTEFBMOIW7I6U :::: NAILARA AMOS :::
-# :: YSGLRHB7CLFBBAHSDNITY56OVR657AL72V7434JVTDJJTGTLKCAQ :: CODE SIGNATURE ::
+#4FRKS75ZNPEKX4KZ3JI63JS2WLJVQMMXBHECHOANVBD4NIFSL5KKCONN5DU2ULEZQWANRHL6VNVJG
+#::: SS4BDHDARAOOXSBRHV5MNA7KWVN2T5YK7FRDYFFB3A3EXSCLXGC :::: NAILARA AMOS :::
+# :: SQWPQRDEFJQNWTCKNKGTVHT37JPITGOES323FZULTSMQ4RNWZ2CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

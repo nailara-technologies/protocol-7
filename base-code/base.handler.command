@@ -80,7 +80,7 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     my $cmd_id = $1 // '';
     $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
     <[base.log]>->( 1, "[$id] invalid command id ['$cmd_id']" );
-    $$output .= "NAK invalid command id syntax or length\n";
+    $$output .= "FALSE invalid command id syntax or length\n";
     return 0;    ## comand complete ##
 }
 
@@ -130,7 +130,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
                         );
                         $$output
                             .= $_cmd_id
-                            . "NAK [multi-line] command parameter"
+                            . "FALSE [multi-line] command parameter"
                             . " syntax not valid\n";  ## <-- [re]define. [LLL]
 
                         $_[0]->w->start;
@@ -202,7 +202,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
 elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
     <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
-    $$output .= $_cmd_id . "NAK $protocol_error\n";
+    $$output .= $_cmd_id . "FALSE $protocol_error\n";
     $_[0]->w->start;
     return 0;    ## command complete ##
 }
@@ -319,7 +319,7 @@ $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
 
 ##[ COMMAND REPLY \ MATCH TYPE ]################################################
 
-if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
+if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     if ( exists $data{'session'}{$id}
         and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
@@ -333,7 +333,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                 $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
             }
 
-            if ( $cmd =~ m,^(ACK|NAK|WAIT|GET|TERM)$, ) {
+            if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) {
 
                 # check if reply handler is set
 
@@ -557,7 +557,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
-    $$output .= $_cmd_id . "NAK protocol mismatch [ invalid reply type ]\n";
+    $$output .= $_cmd_id . "FALSE protocol mismatch [ invalid reply type ]\n";
 
 ##[ PROCESSING \ LOCAL COMMAND ]################################################
 
@@ -641,7 +641,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 if ( ref($reply) ne 'HASH' ) {    # <-- catches undef
                     $reply          = {};
-                    $$reply{'mode'} = 'nak';
+                    $$reply{'mode'} = 'false';
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                     <[base.log]>->(
@@ -663,7 +663,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
                             . uc( $$reply{'mode'} )
                             . "-reply attempted [$source_str]"
                     );
-                    $$reply{'mode'} = 'nak';
+                    $$reply{'mode'} = 'false';
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                 }
@@ -672,7 +672,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 ## check answer mode ##
 
-                if ( $$reply{'mode'} =~ m,^(ACK|NAK|WAIT)$,io ) {
+                if ( $$reply{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
                     $$reply{'data'} =~ s|\n|\\n|go;
                     $$output
                         .= $_cmd_id
@@ -701,7 +701,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             <[base.log]>->( 1, "[$id] command unknown '$cmd'" );
         }
 
-        $$output .= $_cmd_id . "NAK $unkown_command\n";
+        $$output .= $_cmd_id . "FALSE $unkown_command\n";
 
         return 0;    ## command complete ##
     }
@@ -716,7 +716,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
-        $$output .= "NAK not implemented yet.,\n";
+        $$output .= "FALSE not implemented yet.,\n";
         return 0;    ## command complete ##
 
         if ( exists $data{'user'}{$1}{'session'}
@@ -838,10 +838,10 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             }
         }
 
-##[ NAK REPLY \ CLIENT NOT PRESENT ]############################################
+##[ FALSE REPLY \ CLIENT NOT PRESENT ]############################################
 
         if ( !@send_sids ) {
-            $$output .= $_cmd_id . "NAK $unkown_command\n";
+            $$output .= $_cmd_id . "FALSE $unkown_command\n";
             my $l_lvl = $target_name eq 'p7-log' ? 2 : 1;
             <[base.log]>->(
                 $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
@@ -867,7 +867,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
             }
 
           # if 'zenka'-mode session and not initialized allowing replies only.
-            $$output .= $_cmd_id . "NAK $uninitialized\n";
+            $$output .= $_cmd_id . "FALSE $uninitialized\n";
             <[base.log]>->(
                 0,
                 "[$id] unroutable command \"$command_str\" "
@@ -1002,7 +1002,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         ## nothing was sent ##
         if ( $targets_denied == @send_sids ) {
-            $$output .= $_cmd_id . "NAK $permission_message\n";
+            $$output .= $_cmd_id . "FALSE $permission_message\n";
             <[base.log]>->(
                 0,
                 "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
@@ -1017,7 +1017,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 ##[ PROCESS \ SYNTAX NOT VALID ]################################################
 
     } else {    ## command syntax not valid ##
-        $$output .= $_cmd_id . "NAK $protocol_error\n";
+        $$output .= $_cmd_id . "FALSE $protocol_error\n";
         <[base.log]>->( 1, "[$id] protocol mismatch ['$cmd']" );
         return 0;    ## command complete ##
     }
@@ -1025,10 +1025,10 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 ##[ PROCESS \ COMMAND UNKNOWN ]#################################################
 
     ## command unknown ##
-    $$output .= $_cmd_id . "NAK $unkown_command\n";
+    $$output .= $_cmd_id . "FALSE $unkown_command\n";
     <[base.log]>->( 1, "[$id] command unknown [ usr:'$user' cmd:'$cmd' ]" );
 } else {    ## insufficient access permissions ##
-    $$output .= $_cmd_id . "NAK $permission_message for '$cmd'\n";
+    $$output .= $_cmd_id . "FALSE $permission_message for '$cmd'\n";
     <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
     return 0;    ## command complete ##
 }
@@ -1038,7 +1038,7 @@ if ( $cmd =~ m,^(ACK|NAK|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#APCKWFXXDBS4OS6V3YQ3OLF3PDEZL76Q4GX44Z4ZSQJJGMDMLV73D7VQ7AXGE3JS6KUR3UK2BBX3O
-#::: PDM434OIYYTIY6MZ4AGL2VYNFJ47LSNJKTK4XPE3BNVO5HMSIII :::: NAILARA AMOS :::
-# :: MNNYPOALSVW342BV4IRFXPZK6ZCB77BXBCLLUYZ6YVTFAJNV6ADA :: CODE SIGNATURE ::
+#CKBT5PYFNSRGEECPL6VDOKXHL2V3ORHQ32WJV4Q6BR67MG4VRJA352IWLZZKTEERBDEVQTV325CDW
+#::: ZTIHTUQVUOFDSMXTNIV5H6S56M5TG2UOEY7OWSD3H7BAQIZXYXV :::: NAILARA AMOS :::
+# :: GDFXCZYB5REXAHQEJTX7GTA46FLLHKDUZ2ZZA6U3E5MRBHNU4GCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

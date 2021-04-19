@@ -6,21 +6,21 @@
 
 ( my $mount_point_str = $$call{'args'} // '' ) =~ s|/$||g;
 
-return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
+return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
     if !length($mount_point_str);
 
 my $status = <[fs.is_mounted]>->($mount_point_str);
 
 if ( $status == 1 ) {
-    return { 'mode' => 'ack', 'data' => 'is mounted' };
+    return { 'mode' => 'true', 'data' => 'is mounted' };
 } elsif ( $status == 0 ) {
-    return { 'mode' => 'nak', 'data' => 'is not mounted' };
+    return { 'mode' => 'false', 'data' => 'is not mounted' };
 } elsif ( $status == -1 ) {
-    return { 'mode' => 'nak', 'data' => 'mount-point does not exist' };
+    return { 'mode' => 'false', 'data' => 'mount-point does not exist' };
 }
 
 #.............................................................................
-#VAWNS2GQVM5VPCG62SGVM4HG3TYTSAULV3VSVZQDQ67DKTKH4NAEAKL2LBE5SZDZGTMGMW4OHEFFA
-#::: NT75TKKCME3AXXKVJZUFDZJQL4WMBSY6N2DGEEBGGZNCLYXPZGQ :::: NAILARA AMOS :::
-# :: 7BYRW2J5S7TFAJTZ25YREDWSLVGE3G7SP3L2IY25JUIDZHISDKBQ :: CODE SIGNATURE ::
+#LKJJSM7A2XTSDX4OPNS4FUS54GBOSQUTZIQ6ZZJ2GHKFZMS4ERGUZDU44WGEJN7VTFSWEWP2W53C4
+#::: DYPOYDUL23TOMRSPE2UZS6UTPD4P7SYG62LEL3IUXJMPMIZYQDZ :::: NAILARA AMOS :::
+# :: LHPABWX7IZ23N7GMDBL6R4GES63TDAV6WQX3MGWJV4U7JNHVJAAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

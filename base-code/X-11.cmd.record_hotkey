@@ -7,7 +7,10 @@
 my $re      = <regex.base>;
 my $command = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected valid nailara command string' }
+return {
+    'mode' => 'false',
+    'data' => 'expected valid nailara command string'
+    }
     if $command !~ m|^($re->{usr_str}\.)+$re->{cmd_str} ?|;
 
 <X-11.hotkeys.recording> = $command;
@@ -17,7 +20,7 @@ push( @{<X-11.hotkeys.rec_reply_ids>}, $$call{'reply_id'} );
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#POH7JE2CQN2ICUPQLPBCFZVZ7THMJYIXXYCK2RGH4QDJGXIVRFPGKJPMOSHNLHDRABYLD6SVJPJNA
-#::: JTMQBZI4KDYSCMU4TX4YYUHECKLXL6T6QAIZLCHGKCKHXLYKLHB :::: NAILARA AMOS :::
-# :: VFWFQPTZ5MCIV5QQZUY7E6LAVHTNVA7YA2ZEJAH46DQRLLUVWCAQ :: CODE SIGNATURE ::
+#O26WUY2DI3MPLEV6BGVH3ET27U7CZ4WASIBNOOTF5Z2D5AMJ2VEBMTNIBUVQZNACTRPAJR6TB7D2K
+#::: CX5NHELBN3CIXOTPK7D4ZFWE4KMN2HVT3KKHNKSNBTVRGBASUF6 :::: NAILARA AMOS :::
+# :: FBZUO4GQGJ5QY6KNIWETD53X22AMUJZL4SXX4OZHEZT7ZQZXUSCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

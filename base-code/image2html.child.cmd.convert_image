@@ -7,16 +7,19 @@
 my ( $image_path, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'nak', 'data' => 'expected path to image file!' }
+return { 'mode' => 'false', 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
-return { 'mode' => 'nak', 'data' => 'file does not exist!' }
+return { 'mode' => 'false', 'data' => 'file does not exist!' }
     if $image_path =~ m|^(file://)?(/.+)$| and !-f $2;
-return { 'mode' => 'nak', 'data' => "image2html UID can't read image file" }
+return {
+    'mode' => 'false',
+    'data' => "image2html UID can't read image file"
+    }
     if $image_path =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'nak', 'data' => 'invalid target width parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'nak', 'data' => 'invalid target height parameter!' }
+return { 'mode' => 'false', 'data' => 'invalid target height parameter!' }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -32,9 +35,12 @@ my $html_path = <[image2html.base.get_html_path]>->(
 );
 my $stub_file = "$html_path/image.html";
 
-return { 'mode' => 'nak', 'data' => 'expected html dir does not exist!' }
+return { 'mode' => 'false', 'data' => 'expected html dir does not exist!' }
     if !-d $html_path;
-return { 'mode' => 'nak', 'data' => 'image2html stub file does not exist!' }
+return {
+    'mode' => 'false',
+    'data' => 'image2html stub file does not exist!'
+    }
     if !-f $stub_file;
 
 ( my $html_dir_name = $html_path ) =~ s|^.*/||g;
@@ -68,7 +74,7 @@ my $conversion_setup = {
 return { 'mode' => 'deferred' };
 
 #.............................................................................
-#UKRBSC2NLJMEOOEJ56R326TEK2VAHARQVDX6J677K3XTSAORF4REQZVSZCFX24CSTQA5CFN3ZBT7Y
-#::: SWPKLUYL753MQHA6MHUVN3QBMIEXVIF5TPJ4VZKD36ESJGZXXZ5 :::: NAILARA AMOS :::
-# :: 37XYVJ4IVIAJRLXGELVW3SMDB6E26V7AHCVFPHUPF4YTXY7VJMBI :: CODE SIGNATURE ::
+#UTKLO7UXVDJOCUDUMPMKEW6QZQO6AWDFIID3X3RGZBSCLW2LIU6MJX3OLTLFBTCOSGS3QDHBAHG2Y
+#::: YNDWZZWVHPBQLU6SRY3WJ4BPP65YMJK25JR7DKGRNNBAHRKEYUX :::: NAILARA AMOS :::
+# :: ZXEODUZQG27YCJIYE5YW3HUL2PCHZMXAC4FZBXDTU4MMY4YS5YBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

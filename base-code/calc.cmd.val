@@ -9,7 +9,7 @@ my $expr_str    = $$call{'args'} // '';
 $plain_value = 1 if $expr_str =~ s|^plain ||;
 my $cb_name = <calc.log_buffer.name>;
 
-return { 'mode' => 'nak', 'data' => 'expected mathematical expression' }
+return { 'mode' => 'false', 'data' => 'expected mathematical expression' }
     if !length($expr_str);
 
 $expr_str =~ s,([^\d\w\s]+|)?(\-?[\w\d\.]+)([^\d\w\s]+|)?,$1 $2 $3,g;
@@ -17,18 +17,20 @@ $expr_str = " $expr_str ";
 $expr_str =~ s|  +| |g;
 
 my $formula = Math::Symbolic::parse_from_string($expr_str)
-    or return
-    return { 'mode' => 'nak', 'data' => "expression not valid [$expr_str]" };
+    or return return {
+    'mode' => 'false',
+    'data' => "expression not valid [$expr_str]"
+    };
 
 my $value_str = $formula->value;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "calculation not successful [$expr_str]"
     }
     if not defined $value_str;
 
 ### plain value mode ###
-return { 'mode' => 'ack', 'data' => $value_str } if $plain_value;
+return { 'mode' => 'true', 'data' => $value_str } if $plain_value;
 
 ### formatted mode ###
 $expr_str =~ s,^ +| +$,,g;
@@ -40,7 +42,7 @@ my $result_str = "____ $value_str ___ [ $expr_str ]";
 return { 'mode' => 'data', 'data' => "        $result_str\n\n" };
 
 #.............................................................................
-#2TCJMAADHCX5DEXBSCU2NJJ6NDDQWDG75COYWMTILMGCK5JVSJJZZM2O563JXVQX35N6QNCIZ6YF2
-#::: P5PLIYD4KUPURMOHFEQEVJJ7YK2L3D6T3MDKIM2BJTL5LXMNFRM :::: NAILARA AMOS :::
-# :: ISPGPT7UEJEKM43ALHU4CSK4L3WJJMROE7DWVFBPTFVN6INKYADQ :: CODE SIGNATURE ::
+#LKS4UYR7J6A4IYDLJC7FMTISBSRU4QFY5UNLZLOMCMOJ4DD4PG2ALWTUF5GIZPXPHIUUXDNSP3OVC
+#::: IFJZGRW5U3RHVNLMXN4HFRCYB34XYSFX6X7OYBT6OXXIOGMIC6L :::: NAILARA AMOS :::
+# :: 6KY3ZTXTIXZCATLQ7VEJJELGXYPWWYKHG5FWVZYQIGQUYJRTKACI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

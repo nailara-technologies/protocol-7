@@ -6,8 +6,8 @@ my $params   = shift // {};
 my $new_path = $params->{'call_args'}->{'args'};
 my $warn_img = <system.root_path> . '/data/gfx/patterns/warning.svg';
 
-if ( $params->{'cmd'} eq 'NAK' or !-f $new_path ) {
-    my $reason = $params->{'cmd'} eq 'ACK' ? 'file not found' : $new_path;
+if ( $params->{'cmd'} eq 'FALSE' or !-f $new_path ) {
+    my $reason = $params->{'cmd'} eq 'TRUE' ? 'file not found' : $new_path;
     <[base.log]>->( 0, "unable to obtain valid logo image path [ $reason ]" );
 }
 
@@ -33,7 +33,7 @@ if ( defined <osd-logo.cfg.bg_alpha> ) {
 }
 
 #.............................................................................
-#ZSO3Q55IZKBGGYYXA2U2QDOV4N4XCOXKXCERD4GL2J57ISIVO7ZYAHZYYWSBI7PC2SIUKDGR3YUFM
-#::: N53ZWMST6Q3SC2XAOZPS7XQN64ROCSK6X2XYGFQ2KFLKVMGCOEX :::: NAILARA AMOS :::
-# :: VKQM3JXIYD2FDIIFIPDF7DEML63YIJ6HQBGBOGWEZEAAXNY7V2BI :: CODE SIGNATURE ::
+#SKTTLWA7GJGSDC7MJCTCAHYMEPM3FBWCY23SCSTFIYWRFVKIABSBGNSYB2FDGDLE7YUTDPPE2WI24
+#::: B7SVVFPVFK6PDYCG2CJFGH3EW7NFTETAPBUJIW52CVZ2SLT75AO :::: NAILARA AMOS :::
+# :: 5KJQK6YYTDC2VF6WRCH7BW2OR5QYIDHNRZDPIKD2YIEOZZTXJMCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

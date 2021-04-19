@@ -20,7 +20,7 @@ eval { $pattern_re = qr|$pattern| };
 if ($EVAL_ERROR) {
     ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "regular expression '$pattern' not valid [ \l$reason ]"
     };
 }
@@ -28,7 +28,7 @@ if ($EVAL_ERROR) {
 my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no loaded zenka-subroutine matches '$pattern'"
     }
     if !@sub_list;
@@ -40,7 +40,7 @@ return {
     }
 
 #.............................................................................
-#JRM2MSAMRBEZMFLTFKSJGPQVZLHP2BECXUOQQDFPFS7PSF2T3VGFCIO3AWWTXW46RKOSRF7I37Z6E
-#::: 3O3X5TQ7BWN3N7DE74JWW6V2BA2ZLVXZUJNKZWYDUAPGVCG3RR5 :::: NAILARA AMOS :::
-# :: GBSSM6T6EAVWTMQ3CD3ERWX64DHHVN5LYUADSBRYVQPG3P7HSYBQ :: CODE SIGNATURE ::
+#5FNEML6M32JQTG5SZJZLA3SOA322KZPBR3BKKW7OPLTREZUHJDGO2EHTPI7MDDT7QDBASL3RQFAG4
+#::: AYRHVK5U4TYDFPX23WMA7VMZ6OPC2NNPJPUVCKLWDBY54L2LGZS :::: NAILARA AMOS :::
+# :: JLWZE2KWU64FV47UQG4HVGDI4GJMMI6GTSHIVHAKRLF7CJFTKWAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

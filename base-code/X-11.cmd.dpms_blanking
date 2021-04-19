@@ -4,7 +4,7 @@
 # param = [timeout]
 # descr = enable screen blanking using DPMS
 
-return { 'mode' => 'nak', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my $param = shift;
@@ -14,7 +14,7 @@ if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
     $t_sec = $1;
 } elsif ( defined $param->{'args'} ) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "parameter invalid (optional timeout in seconds)"
     };
 }
@@ -28,12 +28,12 @@ my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 <[base.log]>->( 1, "manually enabled DPMS blanking (${t_sec}s)" );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "automatic display poweroff enabled [timeout=${t_sec}s]"
 };
 
 #.............................................................................
-#X3KMB5MVSKDZ3EJX6GJ6VEJV5NBSK3G5GRUVRD5NA6ZBYIFU7K2AJGR2BZJ3Y7NFBV5Q2TS35AD5Q
-#::: AWTOUAVBVHFCSQQNNAQYFACDM3TOHI532C37HTPSJUPR2TNAM6J :::: NAILARA AMOS :::
-# :: CF5T2SV5E3G5A74LUFAQ57YPUA75UGZACO655GG2LTHCZ2LFSSAI :: CODE SIGNATURE ::
+#FYHTPNPRM573G7L4FE4SHNQZYC4J2DZS7V6N2G37RVEGJNXKFA7BF2GJNCBZVYLD4FOMBGYOXN43O
+#::: I25XU263MV4DQT3YW4F5REGG23ZFK2MI3JEHGXZD6LJN7FKVBNX :::: NAILARA AMOS :::
+# :: RHC4F4QBRIKJJPBEXCCDDGPXRSWCBZQQVA2G5GHOUIVEM4NDOEBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

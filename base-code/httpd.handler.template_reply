@@ -7,7 +7,7 @@ my $sid      = $reply->{'params'}->{'client_sid'};
 my $session  = $data{'session'}{$sid};
 my $args_str = $reply->{'call_args'}->{'args'};
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
 
     if ( $args_str =~ /^\d\d\d$/ ) {
         $session->{'buffer'}->{'output'}
@@ -25,7 +25,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 
 my $content_part = $reply->{'params'}->{'part'};
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     <[httpd.send_error_page]>->( $sid, 500 );
     delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
@@ -77,7 +77,7 @@ if ($cmd_count) {
 }
 
 #.............................................................................
-#MNZQZX2MGQTYNGFSOYH6V5OYLYZKO4XVQPCNKRMFNVIOOW7QXAGA473TQWBJARL3TMOGKFOLLZCDS
-#::: G37VKHV7JB4WNOWRSXGRSYKMRVVN6RRQP7LONTLIB7ZXVXHKYHW :::: NAILARA AMOS :::
-# :: GMZUPNXJWQMMF7E4M4H6FNJBTVWO26PCFSBAEWL5WWNMLB4CLSBA :: CODE SIGNATURE ::
+#5NKJ66JLPNRHYOCWYUHWMN4DVBY5NUURR3ESQJWZB67FQJWBALL7UZNUFJN325S7DUP57XFAGY3VY
+#::: 5KRXCE4KPME7JV54XA2QYP37N3NTQ7XLAEOBNDZXJUAFPOH2UST :::: NAILARA AMOS :::
+# :: N2L25B6FENUYHPH6VXZGSKNTVSZUNQSM5TBT2UETFN2X24EPUCBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

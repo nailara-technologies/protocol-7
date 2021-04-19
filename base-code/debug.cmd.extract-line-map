@@ -10,7 +10,7 @@ state $last_warned = '';
 
 my $std_msg = 'file not found or insufficient read permissions';
 $std_msg = 'expected file path for line map' if not defined $file_name;
-return { 'mode' => 'nak', 'data' => $std_msg }
+return { 'mode' => 'false', 'data' => $std_msg }
     if not defined $file_name or !-f $file_name;
 
 if ( !-r $file_name ) {
@@ -20,7 +20,7 @@ if ( !-r $file_name ) {
         "[$usr_sid] <extract_line_map> no read permission [ $file_name ]"
     );
     $last_warned = $file_name;
-    return { 'mode' => 'nak', 'data' => $std_msg };
+    return { 'mode' => 'false', 'data' => $std_msg };
 }
 
 my $response = "\n# .: $file_name :.\n\n# [line-num] [offset]\n\n";
@@ -34,7 +34,7 @@ map {
 return { 'mode' => 'data', 'data' => $response . "\n" };
 
 #.............................................................................
-#J7IZRIBX3GG56EWLL4F4FGMDKDAQBMIUJEKVJDOQWCU2UH3VVPSRWDACXLZI7KJNTYQNWTCC2XQA2
-#::: FTL3G5DR3CGQK2ZOUCYPQUAO2ITTZXYXKCSPNGIYNBOBVV46THE :::: NAILARA AMOS :::
-# :: 2VL6TRBDU3OUO5SVDN4N6RDNWPP5N2P3CGZREG3UDJAVDZOL5SAA :: CODE SIGNATURE ::
+#M7DPTSSHPHG7YTK4MQJTRGOTWLWNX6OBTLZ4RK5JUAD4LSDNFFR3VJ5BMIJIDHRBFOXJGKQMJ2OAI
+#::: HXRKRMDCDXT4LU3FJWQDMVXLB5EEUEJRQKLMBHULRWLERHZD45Z :::: NAILARA AMOS :::
+# :: LJUGRZ2VEYJC5G5W3XE4E7FJRSVTKXSDNUYY2ZEMFW4NYALKGEBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

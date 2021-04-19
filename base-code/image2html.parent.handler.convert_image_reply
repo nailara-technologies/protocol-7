@@ -9,7 +9,7 @@ my $image_path = $reply->{'params'}->{'image_path'};
 my $html_path  = $reply->{'params'}->{'html_path'};
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
-if ( $reply->{'cmd'} eq 'NAK' ) {
+if ( $reply->{'cmd'} eq 'FALSE' ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$image_path' failed [$reason]" );
     my $errors;
@@ -28,7 +28,7 @@ if ( $reply->{'cmd'} eq 'NAK' ) {
 delete <image2html.converting>->{$html_dir};
 
 #.............................................................................
-#ZKSQKPWYNFOIWEUPZUFQW5V6IL6G4NHKPGZLKP4DTJYWD6J2EZ7PP7QE2PMFILWISIPUXKLCHI2WY
-#::: EDGSW4IBG4SSII3QFP46NFDTUB3R4ARSXHCRSXBHSJBS4R2YSCP :::: NAILARA AMOS :::
-# :: VKWEG5VVOVUICUIL4NPWGDLTQ4VFVU3UXNULDVHDAYWJAAGVYUCI :: CODE SIGNATURE ::
+#YKE62MDJ77B73KPLXBDMMTUN37HCDP2A3AHJBBQL7RPZEBMOD7VA75OISIAMOMBAZJ2OLRNZYSX6G
+#::: 2WGPWQUVL6FWWAUAQLZ2KZHCAYMEYSJF7TOVCVKO75ER4PSN6QY :::: NAILARA AMOS :::
+# :: TWBSW7VXX6JAYC2ZK7GQV2XODJ2WB7DL6NOB2LAR24AGN6XDAEDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

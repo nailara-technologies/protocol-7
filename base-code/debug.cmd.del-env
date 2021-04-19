@@ -6,15 +6,17 @@
 
 my $key = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'key name required' } if not defined $key;
-return { 'mode' => 'nak', 'data' => 'no such key' } if not exists $ENV{$key};
+return { 'mode' => 'false', 'data' => 'key name required' }
+    if not defined $key;
+return { 'mode' => 'false', 'data' => 'no such key' }
+    if not exists $ENV{$key};
 
 delete $ENV{$key};
 
-return { 'mode' => 'ack', 'data' => 'deleted' };
+return { 'mode' => 'true', 'data' => 'deleted' };
 
 #.............................................................................
-#AU6RJKAKLHMTRTWXK3WEPLM5ENXUKRYD27MOZKY3I6SLBLSASQZHVSF4PZU2LHZCH5PHJD4WTJDMG
-#::: Y4R4SLUGS2UE2CAEJVPK2ET6TF3ZFIQI2Q5CRM7LGCABGO3RM2O :::: NAILARA AMOS :::
-# :: 3QTC2ENANVRMZJGVDN3EKCP7QEA4PWTS4Y2EKGIWL3LJTMH5BCCY :: CODE SIGNATURE ::
+#AMAAUGHIOZGHLBD3U3P5C4NK7XHCSAX2A53AQVF6VAZMCFFBJRYTYCR23JO5DFNWTQ7JQH356PUJE
+#::: NX5OHNMKPECU2SYCWLXXW2A5YU5DLYARS4LKEHQ54WTXK6U4YPL :::: NAILARA AMOS :::
+# :: HN65F2D34ETANWURG2CFXPGSWR375H7BPZDV6UXIRWFSB5PYS2DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

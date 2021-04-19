@@ -7,18 +7,18 @@
 my $device_id = $$call{'args'} // '';
 <power.cfg.devices> //= {};
 
-return { 'mode' => 'nak', 'data' => 'expected device id' }
+return { 'mode' => 'false', 'data' => 'expected device id' }
     if !length($device_id);
-return { 'mode' => 'nak', 'data' => "device '$device_id' does not exist" }
+return { 'mode' => 'false', 'data' => "device '$device_id' does not exist" }
     if not exists <power.cfg.devices>->{$device_id};
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => <power.cfg.devices>->{$device_id}->{'ip'}
 };
 
 #.............................................................................
-#Z7GR3ENUTOK2TARG4H42SXY775RUWHI6YNU4WOGHVV7OSQESZ5XJSMJ2GXSUCEADU2HPI7LTPRZVQ
-#::: 2A3XVOCZ5B2TSYKZHBY5EW6BPYJXUMLVVEMR7O5GI37CH6S3FMU :::: NAILARA AMOS :::
-# :: S6ZJHBYI5XVTVEV55XNJBK2F4MM5KLMKBZ6KFEBKQ5PNMLK3XAAA :: CODE SIGNATURE ::
+#QZ6LEV45KFIMCVGBKILU2C7W23RPW2X6IRY3FJS5CYLHSTO7PDKT2N43NUKVUYPXU2GRXIQPWFDQO
+#::: J3XFY5UWXOHFLAPSL5KD65WBLTIEB7DHWWA4QA4HBCTVBRZY3NF :::: NAILARA AMOS :::
+# :: HZDJZ4CTFDJN77DXRVWRCBRPVR3P7MGVTAA5APZMWB3A2K73EOAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

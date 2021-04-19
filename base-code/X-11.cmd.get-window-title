@@ -6,18 +6,18 @@
 
 my $window_id = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'expected numerical window id' }
+return { 'mode' => 'false', 'data' => 'expected numerical window id' }
     if $window_id !~ m|^\d{1,13}$|;
 
 my $window_title = <[X-11.get_window_title]>->($window_id);
 
-return { 'mode' => 'nak', 'data' => 'no such window' }
+return { 'mode' => 'false', 'data' => 'no such window' }
     if not defined $window_title;
 
-return { 'mode' => 'ack', 'data' => "'$window_title'" }
+return { 'mode' => 'true', 'data' => "'$window_title'" }
 
 #.............................................................................
-#3ZHCJZAWDR3F5U3HYR3YSLQGR73G6K5KKNLNRFBP4T3ZEH2QCUZADEDJ36W6MLGNX255OHA3ZF3F6
-#::: 3NSETMEO6TDUCIZRZ73EFSCJV7JG5Y3Z7CH3R3YYTCILLWVOFQ4 :::: NAILARA AMOS :::
-# :: 5SVKYGNVJG5ZROTJSAQFROVWTK4F24N4KT4FKSSS3LO3WNUQ5YCY :: CODE SIGNATURE ::
+#SV46OU34WQT2W6J27GV5GEJG4TN7KS44KMIESOCUDJE5PHHPWACDIRWMGJP2IYYTOISHELQAWGSXW
+#::: HLULTPYGKTTKQEH5WCA34BI2VURYPU2B5LZFFPGOBVJHFCA2RBZ :::: NAILARA AMOS :::
+# :: SKJQ27L2PZBCJUBUD7RPLZUM5SM34SQG4JE2Q36RN45JFSYF3ICA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

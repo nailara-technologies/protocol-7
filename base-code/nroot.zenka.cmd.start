@@ -17,7 +17,7 @@ my $once
         and exists $_[0]->{'once'}
         and defined $_[0]->{'once'} ) ? $_[0]->{'once'} : 0;
 
-return { 'mode' => 'nak', 'data' => 'zenka name or id expected' }
+return { 'mode' => 'false', 'data' => 'zenka name or id expected' }
     if not defined $$call{'args'}
     or !length( $$call{'args'} );
 
@@ -34,7 +34,7 @@ if ( $$call{'args'} =~ m|^\d+$| ) {
     $zenka_name = <nroot.zenka.setup>->{$zenka_id}->{'name'}
         if exists <nroot.zenka.setup>->{$zenka_id};
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "found no zenka with id $zenka_id"
         }
         if not defined $zenka_name;
@@ -45,7 +45,7 @@ if ( $$call{'args'} =~ m|^\d+$| ) {
     ( my $chars = $zenka_subname // '' ) =~ s|$sn_regex||g;
     if ( length($chars) and length($chars) != length($zenka_subname) ) {
         return {
-            'mode' => 'nak',
+            'mode' => 'false',
             'data' => "invalid characters in zenka subname ['$chars']"
         };
     }
@@ -53,19 +53,19 @@ if ( $$call{'args'} =~ m|^\d+$| ) {
 
 my $zenka_config = <nroot.start_setup.zenki.config>->{$zenka_name};
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "start setup contains no zenka named '$zenka_name'"
     }
     if not defined $zenka_config;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'zenka is explicitly disabled in config'
     }
     if <[zenka.is_disabled]>->($zenka_name);
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "zenka '$zenka_name' already running [ 'start-once' mode ]"
     }
     if $once
@@ -74,7 +74,7 @@ return {
     or not defined $zenka_subname and <[nroot.start_count]>->($zenka_name) );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "reached configured maximum concurrency for zenka '$zenka_name'"
     }
     if exists $zenka_config->{'max_concurrency'}
@@ -84,7 +84,7 @@ return {
 if ( defined $zenka_subname
     and exists $zenka_config->{'max_subname_concurrency'} ) {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' =>
             "maximum concurrency reached for $zenka_name\[$zenka_subname]"
         }
@@ -93,7 +93,7 @@ if ( defined $zenka_subname
 }
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "zenka '$zenka_name' has 'manually stopped' status"
     }
     if $start_mode eq 'implicit'
@@ -164,12 +164,12 @@ my $job_id = <[jobqueue.add_job]>->(
 );
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "job queued [ID=$job_id]"
     }
 
 #.............................................................................
-#YYUZFJTOH2KLCVCZ47C7DADPFWKJTOPC4R6D5JLZJRZOBZUFZO5Y4F6NQXEN5USJP2VC75JKCAIDY
-#::: WYJFDQQCHK5QTSEDDJAWFO3XJQWMHCCODH24ZN65O4GC7KCQPIA :::: NAILARA AMOS :::
-# :: GU733DD6YMAMCKGKZNNJLOWCBAFVCCCEKFCMMO62KG4GXV5AG4BI :: CODE SIGNATURE ::
+#DXOKSKGBBIXPACHICHV4XYHJUVDB26MMRPU7VGCVUSD2L5BG6ZKVOMCH37FRXTRJS67PAEAIJ52VA
+#::: LV3G432TXXHSDYP5RMAEMEGCETJAMKAYG3CNPO5QS3PRIIVVXC4 :::: NAILARA AMOS :::
+# :: ASP5JCXKNM5RWSSXPF5B6IYVWULCRNPHJOXXOJSRVWMP3NYAYKBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ eval { $pattern_re = qr|$pattern| };
 if ($EVAL_ERROR) {
     ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => "invalid regular expression '$pattern' [ $reason ]"
     };
 }
@@ -28,7 +28,7 @@ if ($EVAL_ERROR) {
 my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no loaded subroutines match '$pattern'"
     }
     if !@sub_list;
@@ -40,7 +40,7 @@ return {
     }
 
 #.............................................................................
-#IVBTCFZBCYZVGQ63GXIFCJ5ZWS5MMV4RNSLEZGKRORZXXJ7MIWP2LEXLVKSL2AHNQMLLQDJJNJDYO
-#::: YBU7VOO3GNOWRZSAKAKAKV4TSLW7ASRCWLVCCWNB6H5H43MHFV3 :::: NAILARA AMOS :::
-# :: 46VEAKE33ZNJOOAEGMX2SPBUZJUTKLUAD55FHOW7RRVUHLSE5YDA :: CODE SIGNATURE ::
+#GAN6C5TVS2NFOCOH3OA66JXE6GXFKDAKHBOKUYN2BAXOOR7C6WCOGLHNC7JKIPDXWUIUBM67PXMQS
+#::: KEC4Y6CRZTDCFLNFVJLI5K4LUPOBPT5Q32V2CW6AMMYHMQ25DKA :::: NAILARA AMOS :::
+# :: PI2FXYJ7POMKBMMVL7PM54VXW4P3BQY5RBNQWDQG4MWG3FGF2WAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

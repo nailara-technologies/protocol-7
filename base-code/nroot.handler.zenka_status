@@ -267,7 +267,7 @@ foreach my $name_or_id (@check_keys) {
         map {
             <[base.callback.cmd_reply]>->(
                 $ARG,
-                {   'mode' => 'ack',
+                {   'mode' => 'true',
                     'data' => "instance $name_str is terminated"
                 }
             );
@@ -279,7 +279,7 @@ foreach my $name_or_id (@check_keys) {
             map {
                 <[base.callback.cmd_reply]>->(
                     $ARG,
-                    {   'mode' => 'nak',
+                    {   'mode' => 'false',
                         'data' => "instance $name_str is terminated"
                     }
                 );
@@ -292,8 +292,8 @@ foreach my $name_or_id (@check_keys) {
                 = shift @{ <nroot.zenka.notify_online>->{$name_or_id} } ) {
                 my $startup_reply_mode
                     = ( $status eq 'online' or $status eq 'extbin' )
-                    ? 'ack'
-                    : 'nak';
+                    ? 'true'
+                    : 'false';
                 my $what
                     = $name_or_id =~ m|^\d+$| ? 'zenka instance' : 'zenka';
                 my $startup_reply_msg
@@ -355,7 +355,8 @@ if ( $status eq 'shutdown'
     delete <zenka.instance.shutdown>->{$instance_id};
     <[base.log]>->( 2, "instance $instance_id terminated ['shutdown']" );
 
-    if ( <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq 'nak' ) {
+    if ( <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq 'false' )
+    {
         delete <nroot.zenka.prefix_width>->{$zenka_name}; ## <-- improve [LLL]
         <[nroot.calc_prefix_lengths]>->( keys %{<nroot.online-zenki>} );
     }
@@ -429,7 +430,7 @@ if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
 <[jobqueue.check_dependencies]>;
 
 #.............................................................................
-#ZXAYUZOP4GNMOYUVQWCAB4ORE6ZZ454XXHPIP3YRO2Y5YW2U2JGPL26ARCZXOP5DKZ4ELLURL4JZG
-#::: TMTSSPJOU5SAACHCALFJJRPTAG7W5UNCPIGLTQ6RJNZOUVCKYOL :::: NAILARA AMOS :::
-# :: MVCL23SUDB5KYQYTWL6XTNVCHENK3QBLBG7D2R26QWWMSZQYJYDA :: CODE SIGNATURE ::
+#66QWZGCFG3TMC66CTJVYYRW7C2RVSJ3WVZPU4PZTF7URX6GTFDZUMZLERI4TG7VBIBBJWS7W7CJ5O
+#::: 4YOUBTWMEOVEX5SEI2MWJF24FYF767I4WQQR6OS5DZC7RBPK7LU :::: NAILARA AMOS :::
+# :: 2UAWQM7Q6SN25MS6L2NAMX5QQYVSRBV7I77TDKKYMPFAX4YLESCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

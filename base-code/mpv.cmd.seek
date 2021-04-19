@@ -7,12 +7,12 @@
 my $seek_mode  = 'absolute';
 my $seek_value = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'expected seek value' }
+return { 'mode' => 'false', 'data' => 'expected seek value' }
     if not defined $seek_value or !length($seek_value);
-return { 'mode' => 'nak', 'data' => 'invalid seek value' }
+return { 'mode' => 'false', 'data' => 'invalid seek value' }
     if $seek_value !~ /^[\-\+]?\d+(\.\d{1,5})?%?$/;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'percentage value not allowed in relative mode'
     }
     if $seek_value =~ /^[\-\+]\d+(\.\d+)?%$/;
@@ -23,7 +23,7 @@ $seek_mode = 'relative'
 $seek_mode = 'absolute-percent' if $seek_value =~ s|%$||;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'valid percentages are between 0 and 100'
     }
     if $seek_mode eq 'absolute-percent' and $seek_value > 100;
@@ -36,7 +36,7 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#DVLGJNN6GUCJYMDX2VP6SDWFGUHM2RCUFDSKQNN4RSJGKGIQD5Q3QR2HJAJIQ4SYCXVOCKLW322EC
-#::: MJJYRHSCLCC2BPIJTE3AQO7I7NFBZWAVH3REWD6O5MEDM6J54AX :::: NAILARA AMOS :::
-# :: KOTVPTPGUHVGSSLFCJHJRQB5SB2ADOEJNHBYTOBUWFF2HR7CR2DY :: CODE SIGNATURE ::
+#UEXTZIVP7BOUBEQSL4HBYKOGY5RAQIU65HCHWTTWNJMSMJFCE2FXKNRX7XIN4GISW7RFEONJQGADW
+#::: GYQAFUFLYGGU6MCKYN7SDPLYILLWGQMFNTHRB56YLUN2BOEQPRO :::: NAILARA AMOS :::
+# :: SOMCOT67JNZGCC2LAD276QAYL5FJUGWNBDLLYIYGKO7TM6LLCUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

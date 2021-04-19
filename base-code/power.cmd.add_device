@@ -8,7 +8,7 @@ my @parameters;
 <power.cfg.devices> //= {};
 my $params_str = $$call{'args'} // '';
 
-return { 'mode' => 'nak', 'data' => 'hostname or ip address expected' }
+return { 'mode' => 'false', 'data' => 'hostname or ip address expected' }
     if !length($params_str);
 
 my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
@@ -18,30 +18,30 @@ my ( $host, $port, $pass ) = split( / +/, $params_str, 3 );
 my $ip_addr = $host;    # LLL
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "device '$host' unreachable"
     }
     if not <[power.host_reachable]>->($host);
 
 map {
     return {
-        'mode' => 'nak',
+        'mode' => 'false',
         'data' => 'device already exists'
         }
         if <power.cfg.devices>->{$ARG}->{'ip'} eq $ip_addr
 } keys %{<power.cfg.devices>};
 
-return { 'mode' => 'nak', 'data' => 'invalid port parameter' }
+return { 'mode' => 'false', 'data' => 'invalid port parameter' }
     if defined $port and $port !~ /\d+/;
 
 <[base.log]>->( 2, "resolving mac address for $ip_addr.." );
 
 my $mac_addr = <power.net_mac>->get($ip_addr);
 
-return { 'mode' => 'nak', 'data' => 'unable to resolve mac address' }
+return { 'mode' => 'false', 'data' => 'unable to resolve mac address' }
     if not defined $mac_addr;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'not a gembird device (mac address not recognized)'
     }
     if $mac_addr !~ <power.pattern.gembird_mac>;
@@ -60,10 +60,10 @@ my $dev_id = <[base.gen_id]>->(<power.cfg.devices>);
 
 <[power.save_config]>;
 
-return { 'mode' => 'ack', 'data' => "device added [id=$dev_id]" }
+return { 'mode' => 'true', 'data' => "device added [id=$dev_id]" }
 
 #.............................................................................
-#3IOO3JWJYYYN6UNOBQUHSSJOHS774DQM3TFBTUWKBHEO5MVKUFD4AJR67MNCFSTM3CKRWSURZT444
-#::: P4PCPLJRO3N24XRS63R3JU7F65FHOXF33DOBKHJTD5QYNFCFUC7 :::: NAILARA AMOS :::
-# :: SSTKLES5CPLUN5P4QMDIHKVDLKFK5PVKMGNVEZPL2GYMCDR5DYDY :: CODE SIGNATURE ::
+#ZL5RT2XKHJUH6BTNXCIUUIIOMNANBVGHEZOP662YND735YBYDHNXMX4QVZNMILH6YA33FJFCRHUVW
+#::: I3AYQAIJFOGVN3VI2RNHESVACMWALS7PJUUYCLTP6IRKYFCAXII :::: NAILARA AMOS :::
+# :: SKTUF4ISF3LKTWZA6354O22TRLAAE2ZAOXG6ISQXR63MSDJVTQCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

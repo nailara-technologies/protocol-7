@@ -74,7 +74,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
 
     <composition.transition.status.waiting.i_id>--;
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
-    if (    $cube_reply->{'cmd'} eq 'ACK'
+    if (    $cube_reply->{'cmd'} eq 'TRUE'
         and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
         my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
@@ -132,7 +132,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     my $window_ids
-        = (     $cube_reply->{'cmd'} eq 'ACK'
+        = (     $cube_reply->{'cmd'} eq 'TRUE'
             and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
         ? $cube_reply->{'call_args'}->{'args'}
         : 0;    # <-- 0 == failed, fade will be skipped!
@@ -194,7 +194,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     <composition.transition.status.waiting.start>--;
 } elsif ( $event_type eq 'start' ) {
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
-    if ( $cube_reply->{'cmd'} eq 'NAK' ) {
+    if ( $cube_reply->{'cmd'} eq 'FALSE' ) {
         my $reason = $cube_reply->{'call_args'}->{'args'};
         if ( $reason =~ /concurrency/ ) {
             $zenka =~ s/\[.+$// if $reason !~ /subname/;
@@ -283,7 +283,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 #.............................................................................
-#Y26CNIAP4KSBD6AJCY4U3HGETRNJZ6WAPIZFFUNXHP7RWRZG45ELNU5XKPVZ22Y6PX4OYIDX2PODK
-#::: 5QGL3M4JJQAX4BD6IJSICZM4ENFRNYBHLBJY6M76YNC2DB7G2M4 :::: NAILARA AMOS :::
-# :: WIALYSMQWDYNJ6QUM4ZOFUEHJUZFYDB73VIEAQGJ2R2M6OG564AQ :: CODE SIGNATURE ::
+#POXWBJ4JA4UT3YLXV4PRVSWEOFPLKHQDYQEESMTTZGKVG4N6AVQMKNXEESXS37VAA7U3N7CVIHX7I
+#::: ULT26JV24I2MTJPXLIIQ3YMTMXGSM2UG5BCM24BAEWV3NJ42T24 :::: NAILARA AMOS :::
+# :: QUAJX4RRRQJ5DANKSQSK6L5Y77SJBVCC7W52OQSZSYAY7SMU3SAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

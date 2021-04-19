@@ -5,11 +5,11 @@
 # descr = mount the specified device / filesystem
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'nak', 'data' => 'expected mount-point parameter' }
+return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'specified mount-point does not exist'
     }
     if !-d $mount_point;
@@ -17,7 +17,7 @@ return {
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "no filesystem mounted on $mount_point"
     }
     if $status != 1;
@@ -30,16 +30,16 @@ if ( system( '/bin/umount', $mount_point ) != 0 ) {
     if ( system( '/bin/umount', '-f', '-l', $mount_point ) != 0
         or <[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
-        return { 'mode' => 'nak', 'data' => 'unmount failed!' };
+        return { 'mode' => 'false', 'data' => 'unmount failed!' };
     } else {
         <[base.log]>->( 1, ": : forced unmount was successful" );
     }
 }
 
-return { 'mode' => 'ack', 'data' => $msg };
+return { 'mode' => 'true', 'data' => $msg };
 
 #.............................................................................
-#RYB2BSD6P6CBVZHEN3ZZFRQYF734JHVB3NIV2BBGZZDAPJ27OM4T3NVSIASWK7XCKOMMQWWOVVEG4
-#::: CVO6MHLQZTNW3NWDCJEHEZ6B3BCNLEHFFMFYY7FAV55GNPUE7HY :::: NAILARA AMOS :::
-# :: KZQ57H6XZCX2DCO4X4TADSIT4TDOSLIAI6O72IUN5RJ42U6HZGCA :: CODE SIGNATURE ::
+#SHBTZK2EPRLODCD2B5WQCXIYHLJHI4FB467Z3MZHLHGTMS7BTCCM57WVR75EKX22IHQUDBBPLKLAG
+#::: QXTPFXP7O7OJB42VAZLLSPHFR3QGLGFZU2EIHRO5QZCXC57M3OC :::: NAILARA AMOS :::
+# :: LQAFICK5JCF34LHIFY5QEH4ZHBXDBKZW343NGGZLA46JHYF7MABA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

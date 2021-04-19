@@ -4,20 +4,20 @@
 # descr  = compile a filter chain
 # params = <name> [chain_list]
 
-return { 'mode' => 'nak', 'data' => 'chain <name> expected' }
+return { 'mode' => 'false', 'data' => 'chain <name> expected' }
     if not defined $$call{'args'};
 
 if ( my $filter_id
     = <[filter.compile_chain]>->( split( / +/, $$call{'args'} ) ) ) {
 
-    return { 'mode' => 'ack', 'data' => "chain compiled: id=$filter_id" };
+    return { 'mode' => 'true', 'data' => "chain compiled: id=$filter_id" };
 
 } else {
-    return { 'mode' => 'nak', 'data' => 'unable to compile filter chain' };
+    return { 'mode' => 'false', 'data' => 'unable to compile filter chain' };
 }
 
 #.............................................................................
-#ZKE5DBIDV5ZB7BHJU62DQQGYJ3JGV4O7OBPHVP6EWFGSU6PZ7ITGBVPMUNSBUPPFUTKO4TOW6KTGC
-#::: AL2YNVPHWS4WC4NP2DIZBDUY7A5E4ZB6CBC7OHP57X72BVMRHJY :::: NAILARA AMOS :::
-# :: DJK3WOGSABNQVNKWPXYRHFCRFMJOTSI4WBX3EQLBSLHMMBRJIIAY :: CODE SIGNATURE ::
+#EWFXOVGMPTI44GJOLWF2HPU6QDP2P4O3OJXKRFKNDZF255VSXNUHD5JQPY4YBXIGJNU26LKWN2YZA
+#::: YW44OGS6SMQ44DDFOT4CYWEKT2J7N7XWZGN6I7LUOQCVT54DHEX :::: NAILARA AMOS :::
+# :: WVOE4M5ZW6THHQSE5PX5KYK62ZO6DOZNXUP6WWX5I7UNVHCSTIDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

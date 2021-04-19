@@ -5,17 +5,17 @@
 
 my $skip_interval = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'no active autoskip timer' }
+return { 'mode' => 'false', 'data' => 'no active autoskip timer' }
     if not exists <mpv.timer.autoskip>;
 
 <mpv.timer.autoskip>->cancel if <mpv.timer.autoskip>->is_active;
 
 delete <mpv.timer.autoskip>;
 
-return { 'mode' => 'ack', 'data' => 'autoskip timer deactivated!' };
+return { 'mode' => 'true', 'data' => 'autoskip timer deactivated!' };
 
 #.............................................................................
-#HNXAV37UXV5BWGYQLVOHBDFQJSJISGXL5433MB2MFWJDLNBEZQNVEGPBKIJ4RJ4LY3WA3GA5H2RSY
-#::: DVYYVEIM3N2RTLXUI6E5E4YELPLNSDUPXG4L2A75BPYFWTJWLIA :::: NAILARA AMOS :::
-# :: GGAFE3LE7FAWMAJX7G7P7UPCNRX5KS3OBAWX2MHZS2JNN225GICI :: CODE SIGNATURE ::
+#SJXRK3SYFTLU2O2EZLIZ36QYFKMIFELTH7MFTYIUHVVKDK4L4OJZJ6QI6Z5B5DHJMHSFTVT3WHTHS
+#::: HKD77KV46PHEAEUCHHJ7PMHC4NN2OT3MHKNJNUG4EII5KCWVOF3 :::: NAILARA AMOS :::
+# :: G6Y2INJZF74VQXN3LLBNOGLRCRTCOKZCMBSOCQ7XJKEIKYKY3MAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

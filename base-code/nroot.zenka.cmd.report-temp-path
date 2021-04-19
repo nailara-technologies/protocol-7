@@ -89,7 +89,7 @@ if ( not defined $err_reason ) {
 
 <[base.log]>->( 0, "<<$zenka>> [$zenka_sid] <report-temp-path> $err_reason" )
     if defined $err_reason;
-return { 'mode' => 'nak', 'data' => $err_reason } if defined $err_reason;
+return { 'mode' => 'false', 'data' => $err_reason } if defined $err_reason;
 
 push(
     @{ <nroot.zenka.instance>->{$zenka_instance}->{'temp-path'} },
@@ -101,10 +101,10 @@ my $str_len = 52 - length(<system.node.name>);
 my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 <[base.log]>->( 1, "[$zenka_instance] <pth> $tmppath_str" );
 
-return { 'mode' => 'ack', 'data' => "registered '$tmppath'" };
+return { 'mode' => 'true', 'data' => "registered '$tmppath'" };
 
 #.............................................................................
-#RIUQR3HT5LKHCZAYQ2KEA64TE2WCI6YF3OP3URMF3P7XPEHR63P6NVJYEGQ2XLEVI6KD5F6HWORPU
-#::: Y565CPK4YQO2VE4NQBGYAKR2YAXBRB7GJN6SRMNGV7QHZR353OH :::: NAILARA AMOS :::
-# :: ECPAXPXTGJ7NRVRPE7BPRMGGCBBP4HQG4GOFAA6HJKAD6AGZUODA :: CODE SIGNATURE ::
+#C3VB4GW7EEVAL4LWGG6MWM5UO2GKAPDPNNOAGD4G2YJS2U44QUEDYHWQO7ASPBPFDHFALD7MK32QS
+#::: DGSGVY4RWZWMYNYFMAQLBA5XFNOTKQW2HNOSN3NTMB5I56AVDI6 :::: NAILARA AMOS :::
+# :: BTHGAN6G4BPNLT6YGYOK2LMDJHQESTPCRD4FQ4O2SIOEP6CCFQDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

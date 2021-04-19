@@ -7,17 +7,17 @@
 my $path_str = $$call{'args'}      // '';
 my $path_abs = abs_path($path_str) // '';
 
-return { 'mode' => 'nak', 'data' => "path not readable [ '$path_str' ]" }
+return { 'mode' => 'false', 'data' => "path not readable [ '$path_str' ]" }
     if !length($path_abs)
     or !-r $path_abs;
 
 # ..,
 
-return { 'mode' => 'nak', 'data' => '.not implemented yet.,' };      # << ! >>
-return { 'mode' => 'ack', 'data' => "adding new path $path_str" };
+return { 'mode' => 'false', 'data' => '.not implemented yet.,' };    # << ! >>
+return { 'mode' => 'true',  'data' => "adding new path $path_str" };
 
 #.............................................................................
-#YYHETZE2AM4LBW7ATZKZ7HKTXWKULBCQRXDFKOSEW3HJNZ32U6ESGAXYBOUUXDMQYF5JR4VJAWSIY
-#::: IISHTZKEDTTUTWGIDVZJ5WBZZFKDXD3LMNUV32IGUZHVITUHZ2G :::: NAILARA AMOS :::
-# :: JRJNV7435VIMNJZ4J7WGFY5QAX53UDY4P5PTPAQKBSYPLIEAAMCQ :: CODE SIGNATURE ::
+#Z7VIN622WOTJGJWAUWKAHAD7L6PKSP7M7MWPLSKL5ET7QDTACWIG7ZOWIMMPC3QUV547HSPGDCM2O
+#::: ZOJEWHRI27F5YWSPZJLXOK27DF2PXW3JZOFS6HDNYD6LE4H2LPL :::: NAILARA AMOS :::
+# :: 32JWG4DFPZ252EV3H2OXRURQKEU4PK4547GNM5EJRN4JMVRA7WAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 <debug.allow_eat_mem_cmd> //= 0;
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'this command must be specificly enabled'
         . ' [ set debug.allow_eat_mem_cmd 1 ]'
     }
@@ -15,14 +15,14 @@ return {
 
 my $amount = $$call{'args'};
 
-return { 'mode' => 'nak', 'data' => 'ammount required' }
+return { 'mode' => 'false', 'data' => 'ammount required' }
     if not defined $amount;
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'memory ammount format not understood'
     }
     if $amount !~ /^(\d+(\.\d+)?)([mg])?$/io;
-return { 'mode' => 'nak', 'data' => 'nothing to allocate' } if !$amount;
+return { 'mode' => 'false', 'data' => 'nothing to allocate' } if !$amount;
 
 my $value = $1;
 my $unit  = lc($3);
@@ -34,12 +34,12 @@ $value = sprintf( "%.0f", $value );
 <debug.eaten_memory> .= '7' x $value;
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "allocated $value bytes [ free-mem to return it ]"
     }
 
 #.............................................................................
-#VBCJ4ODSTG2BDQ55QVJACHBUM2JROGUAY2TUG5LHQEZCLH36PAFVPBKDHLVZGARCHJUP2POBTMBDA
-#::: MVCQMW2IIU2MLFJ5QTWUV62OJHDHS3DIPBRRHJXUGVIY25BAONT :::: NAILARA AMOS :::
-# :: I5ATSFBLNVNZLWJBQC6IJH7I5PTJJJESLLCKEBCSL2BGP7BY5UBA :: CODE SIGNATURE ::
+#GZVN2TZPUHQDEAZ2UH74SYZAJUFPKYMBQMX4GTTDWZG653ONDNKMX2SKYPLOLNELC3FUSD6LBP6AQ
+#::: JCVR45P2RHXNGQE2BNKYRKCYCUSSID26CPJ6AXBTGOOL636S5YU :::: NAILARA AMOS :::
+# :: KZK4EO26CZFAXVPHMVOGTX7DJZP62P7OIO66C5G55LPEBTLQ5WAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,13 +15,13 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string  = <$cube_fh>;
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(ACK|NAK) };
+    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
-if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
+if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.screen.orientation> = $1;
     <[base.log]>->( 1, "received X screen orientation [$1]" );
     return <x11.orientation>;
@@ -31,7 +31,7 @@ if ( $reply_string =~ m{^\($cmd_id\)ACK ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#25OUHQ5YBQGSM22PQAITLBVFPT5PSZ5YFXPCXBXGPZ3VFKQLDTLDIERCMWKMDFN7FB3EUAKHJPDSO
-#::: R6VMW6UJUNVWG6ODLNT7OYT4B5VHAXOE7ZSCWFRUV6Q2N5HCCSE :::: NAILARA AMOS :::
-# :: UJY6E65W4T2XHDHVYD7PGCWNSREIAGRZWWI5H5QI6KLANSUCSKBY :: CODE SIGNATURE ::
+#YSWAOTN4VUEGAQZ2NIWNKK3E2XXOU2LVEBBDJEZWAXLPT2UOVYNTKBGKTLZZHS32TSP6ALMW7G4QG
+#::: 2OGF5WQCLKBUNDPHZTUACPUCLOMNQQQLIUPVJ2MJBEX6743AQ63 :::: NAILARA AMOS :::
+# :: GKHXXSWJ3LDBLI3QHHMKKNCJFYM2ETJCTYTNHASBUTSSSH6TFWCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

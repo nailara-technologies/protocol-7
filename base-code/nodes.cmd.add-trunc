@@ -8,7 +8,7 @@
 my @params = split( m| +|, $$call{'args'} // '' );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => 'expected <name> <addr> and <pkey> parameters'
     }
     if @params != 3;
@@ -33,7 +33,7 @@ $err_msg = 'specified IP address is not valid'
 $err_msg = 'expect base32 encoded [C25519] public key'
     if length($pkey) !~ 52 or $pkey !~ m|^[A-Z0-9]+$|;
 
-return { 'mode' => 'nak', 'data' => $err_msg } if defined $err_msg;
+return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
 
 $addr = ip_transform($addr);    # ..expanding..,
 
@@ -50,18 +50,18 @@ my $node_id = <[base.list.element.add]>->(
 );
 
 return {
-    'mode' => 'nak',
+    'mode' => 'false',
     'data' => "failed to add node [ details in log ]"
     }
     if not defined $node_id;
 
 return {
-    'mode' => 'ack',
+    'mode' => 'true',
     'data' => "node '$name' added"
 };
 
 #.............................................................................
-#BINUIMEI6XOJJ2VAN4F2SUAGD2AGZFD3PEQZB6PAQRZVWI75TZ6DF4VEE4MEIXDNMBXBMVINEX37Y
-#::: ETYXZ2NWJSR2PLOJUWGT6ZN5KNLT4BMIKU5CMIAM72Z4XQP6PIH :::: NAILARA AMOS :::
-# :: R5WP7ZPQTJDPNSE7XRIMO6MYSLD6ULMLFA3QW454K3BWIPKVDOBY :: CODE SIGNATURE ::
+#4XK5DBFV72CS63FOIKGT3H5C263FKOEERMSKLGPV4S75EQ6XEMGUQCNODHPCF6IOVKL53BUMACDGC
+#::: 3XREJTL3YVDR53VHU2HKLHUIHG377KEWJGJHEIWA5YVDXWAWERT :::: NAILARA AMOS :::
+# :: Q2NGNDVFFHNVJQE3MGMTAYF5Q26CDYB6T4Z6Z3U4HFNGRYZVCACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
