@@ -5,24 +5,26 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
+@EXPORT = qw| is_true |;
+
 use v5.24;
 use strict;
 use English;
 use warnings;
 use Math::BigFloat;
 
+our @deep_assertion_modes = qw| 3 4 |;
+
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-our @deep_assertion_modes = qw| 4 7 |;
-
-@EXPORT = qw| is_true |;
+use AMOS::Assert;
 
 ##[ MAIN FUNCTION ]###########################################################
 
 sub is_true {
     my $calc_str;
     my $data_ref     = shift;
-    my $check_as_num = shift // 1;    ## also check as numerical ##
+    my $check_as_num = shift // 2;    ## also check as numerical ##
     my $check_as_elf = shift // 1;    ## check elf checksum ##
 
     return warn_err('no checks enabled')
@@ -34,9 +36,16 @@ sub is_true {
     my @assertion_modes = @ARG ? @ARG : @deep_assertion_modes;
 
     return 0                          ## check as mumber when numerical ##
-        if $check_as_num
-        and is_numerical($$data_ref)
+        if $check_as_num == 1
+        and AMOS::Assert::numerical($$data_ref)
         and not calc_true( scalar($$data_ref) );
+
+    return 0                          ## when numerical with no 0 prefix ##
+        if $check_as_num == 2
+        and AMOS::Assert::numerical_no_prefix($$data_ref)
+        and not calc_true( scalar($$data_ref) );
+
+    return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
 
     ## assert selected elf checksum modes ##
 
@@ -57,7 +66,8 @@ sub is_true {
 
 sub calc_true {
     my $check_num = shift;
-    error_exit('input not numerical') if not is_numerical($check_num);
+    error_exit('input not numerical')
+        if not AMOS::Assert::numerical($check_num);
 
     Math::BigFloat->round_mode(qw| trunc |);
 
@@ -72,13 +82,9 @@ sub calc_true {
     return 1;
 }
 
-sub is_numerical {    ## export from parent module ## [LLL]
-    return ( not defined $ARG[0] or $ARG[0] !~ m{^\d+(\.\d+)?$} )
-        ? 0
-        : 1;
-}
-
 ##[ ERROR HANDLING ]##########################################################
+
+## add these to AMOS.pm ##
 
 sub warn_err {
     my $err_str = shift;
@@ -104,7 +110,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#IJ65RWHV5PM2Q4OMCMPOOEHQCJSIQO76MKILPHRJNFSKK7MT7YXT2WRXD2IFVG3LLLECTFHXJBINM
-#::: NB7373HCT57I45RJLI2IYJJ5OLTKCKTYLVBCS7EIGYBE2X7R2OR :::: NAILARA AMOS :::
-# :: ULA2CPRB5F5L4Q3MLNT44RVCRQEJLSFMFQBXAWTCJRRUSXWMTGCQ :: CODE SIGNATURE ::
+#DNST3VMMQN2IELZVPN2CJJQHGPATGFLSBUAR5RDKE6GXVO4RSTHDN3D7VH2AE5DXRLOABVX4JHZR6
+#::: 5ZPL6YBLVPMAPOZANOQ5YWAWJE6D37OPS4PLDAKSZW543HBMG2W :::: NAILARA AMOS :::
+# :: LVVCJNIVPBHBCTHZXXL4KDR7FW6X2YERVQEWH5BGY7QQEB4R4UDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

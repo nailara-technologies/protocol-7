@@ -4,9 +4,15 @@ use strict;
 use English;
 use warnings;
 
-my $silent = 0;
+## add elf mode[s] option ## [LLL]
 
-$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent | and shift(@ARGV);
+my $silent          = 0;
+my $force_numerical = 0;
+my $no_num_chk      = 0;
+
+$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
+$force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
+$no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
 
 BEGIN {
     use File::Spec;
@@ -24,7 +30,8 @@ BEGIN {
 
 my $FXI = 202;    ## program return code for asserted FALSE ##
 
-use AMOS::Assert::Truth qw| is_true |;    ## <-- expand \ import routines ..,
+use AMOS::Assert qw| numerical numerical_no_prefix |;
+use AMOS::Assert::Truth qw| is_true |;
 
 my $check_string = join( ' ', @ARGV );
 
@@ -36,7 +43,11 @@ my $fg  = "\e[38;2;68;39;172m";
 my $no  = "\e[38;2;197;141;7m";
 my $ng  = "\e[38;2;71;195;6m";
 
-my ( $true, @modes ) = is_true($check_string);
+my $check_elf = $force_numerical ? 0 : 1;
+my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
+
+my ( $true, @modes ) = is_true( $check_string, $numerical, $check_elf );
+
 my $mode_str = @modes ? sprintf( " : %s", join( ' ', @modes ) ) : '';
 
 if ($true) {
@@ -54,7 +65,7 @@ if ($true) {
 }
 
 #.............................................................................
-#XP4UZSU5KCUGM7ZGMKCBK4OCK4KCQBNR76MC5AEN6RL5KV32BEEXQV6WDFBOYXJ5T6KKSIRRD7JQ6
-#::: 26KQZDIF4XZ45PYUV6WVYSWJ5NWBETWJ3ASHUCXALTO4WADC7X5 :::: NAILARA AMOS :::
-# :: X72YK6NQE5E2TANBXGNCQP3FJU5ZR6PQZC5UH6WDYHSGJMLIDQDY :: CODE SIGNATURE ::
+#MWRFJZSKOS5OP3GLWEDK6BTD74GQICMOZ47W2LOFZKVLALU3IKLWYXLCW3LFBTFULM3XDD7LTMC5A
+#::: KLJSULKY4JZTADWASJGXUQUS3D7MI6KK5LTZNFFWHICX3RD7SXY :::: NAILARA AMOS :::
+# :: JQJVOZ6S6CSF2J7XES4P7U6JWCPMLDS5SWJ7XQ5UILGW6DQT54BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
