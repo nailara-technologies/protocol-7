@@ -15,7 +15,7 @@ use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
 
 ## inline elf test output checksum ##
 ##
-our $VERSION = qw| ELF-JCZT3HA |;    ##  calculate  :  amos-chksum -VL  ##
+our $VERSION = qw| ELF-GWH2PQQ |;    ##  calculate  :  amos-chksum -VL  ##
 
 @EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
 
@@ -87,7 +87,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#HDJW2CY37QB52HFA7T6UODMNTO5FF7BLVAITDZ7U4CF5BWJWKWNOK5ML76OJJVPFDXQZUW7CGAWZG
-#::: GP3IZHYK6MHKEX2S6WKQWDX4D4OVR33BWETIRQFMEACLIPSP5DI :::: NAILARA AMOS :::
-# :: U2VYZWZPI5MLCHEHSK7FX7EMW3DG5H2TI6RG4Z3F5J2CMXPIS4AI :: CODE SIGNATURE ::
+#ELC25ONK43Z2YYJ3A6Q6PBGHAOQL7WHKJZUMJ4RC6UNHJ2KZ7IINUJDVKM3USJRSZQR5KYAOYZUJS
+#::: BIX3VAOC3GVTKUGWYINVDOM65YCROYJTMY5YOOXFQ36P3L732GZ :::: NAILARA AMOS :::
+# :: Z4WH2A4RILIUW4MYAIEVXD6WDOTASHHNR26QU35UJT42ED4IA4DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

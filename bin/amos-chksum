@@ -5,6 +5,7 @@ use English;
 use warnings;
 use Getopt::Std;
 use Digest::BMW;
+use List::Util qw| uniqint |;
 
 ####           ####
 ##  amos-chksum  ##
@@ -28,22 +29,56 @@ use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
 use AMOS::CHKSUM::ELF::Inline;
 
+my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
+
 ##[ RUNTIME OPTIONS ]#########################################################
 
 ## -q ## quiet output \ value only \
 ## -n ## return checksum as numerical value
 ## -v ## visualize additional checksum data
+#
+## -elf-modes=<elf-modes> ## comma seperated elf modes list ##
 
 ##  -VA   ## show AMOS checksum algorithm version and exit    ##
 ##  -VL   ## calculate inline elf output checksum and exit    ##
 ##  -VLS  ## calculate inline elf sourcecode version and exit ##
 
-##[ PREPARING ]###############################################################
+##[ COLORS ]##################################################################
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $fg  = "\e[38;2;68;39;172m";
+my $ng  = "\e[38;2;71;195;6m";
+my $no  = "\e[38;2;197;141;7m";
+my $TC  = "\e[38;2;6;71;195m";
+
+##[ INITIALIZATION \ OPTIONS ]################################################
 
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( 'vnqV:', \my %option );
+getopts( 'vnqV:e:', \my %option );
+
+if ( defined $option{'e'} ) {
+    my @elf_modes_override;
+    error_exit( "elf modes syntax$fg: $bg$no-elf-modes$rst"
+            . "${fg}[=$TC$bg<n>$rst${fg}[,$TC$bg<n>$rst$fg..,]]" )
+        if $option{'e'}  !~ m|^lf-mode=\d{1,2}$|
+        and $option{'e'} !~ m|^lf-modes(=\d{1,2}(,\d{1,2})*)?$|;
+    @elf_modes_override = uniqint split( ',', $+{m0} // $+{M} )
+        if $option{'e'}
+        =~ m{^lf-mode(=(?<m0>\d{1,2})|s=(?<M>\d{1,2}(,\d{1,2})*))$};
+
+    if ( !@elf_modes_override ) {
+        say sprintf( "$fg:\n::$TC  elf modes  ${fg}:. %s${fg} .:\n$fg:$rst",
+            join( '', map {" $bg$TC$bl$ARG$rst$fg "} sort @modes ) )
+            and exit;
+    } else {
+
+        @modes = @elf_modes_override;
+    }
+}
 
 ### move version calculation to AMOS::CHKSUM module ### [LLL]
 
@@ -86,22 +121,14 @@ my $data_str = join( ' ', @ARGV );
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $checksum_encoded = AMOS::CHKSUM::amos_chksum( \$data_str );
+my $checksum_encoded = AMOS::CHKSUM::amos_chksum( \$data_str, @modes );
 
 ##[ VERBOSE RESULT VALUES ]###################################################
-
-my $rst = "\e[0m";
-my $bl  = "\e[1m";
-my $bg  = "\e[48;2;9;5;42m";
-my $fg  = "\e[38;2;68;39;172m";
-my $ng  = "\e[38;2;71;195;6m";
-my $no  = "\e[38;2;197;141;7m";
-my $TC  = "\e[38;2;6;71;195m";
 
 if ( $option{'v'} ) {
     my $offset_str
         = $AMOS::CHKSUM::bmw_mod_step
-        ? ' [ bmw-mod-step : ' . $AMOS::CHKSUM::bmw_mod_step . ' ]'
+        ? " [ bmw-mod-step : ${AMOS::CHKSUM::bmw_mod_step} ]"
         : '';
 
     my @mod_bits = @AMOS::CHKSUM::mod_bits;
@@ -117,37 +144,40 @@ if ( $option{'v'} ) {
         )
         : ();
 
-    my $len_delta = 11 - length($AMOS::CHKSUM::checksum_num);
-    my $checksum_num_str
-        = sprintf( ": %d %s", $AMOS::CHKSUM::checksum_num, ':' x $len_delta );
+    my $len_delta        = 11 - length($AMOS::CHKSUM::checksum_num);
+    my $checksum_num_str = sprintf( ":$TC %d $fg%s",
+        $AMOS::CHKSUM::checksum_num, ':' x $len_delta );
 
     my %COLOR = (
-        'input' => is_true( $data_str,                    1, 1 ) ? $TC : $ng,
-        'bits'  => is_true( $AMOS::CHKSUM::checksum_bits, 0, 1 ) ? $TC : $ng
+        'input' => is_true( $data_str, 1, 1, @modes ) ? $TC : $ng,
+        'bits'  => is_true( $AMOS::CHKSUM::checksum_bits, 0, 1, @modes )
+        ? $TC
+        : $ng
     );
 
     map {say} (
-        $fg,
-        '  input-string  : '
+        '',
+        "$fg  input-string  : "
             . TRUE_FALSE($data_str)
             . " $bg$COLOR{'input'} $data_str $rst$fg ",
-        $fg,
-        '   reverse-elf  :  ' . $AMOS::CHKSUM::elf_bits,
-        '    bmw-R-bits  :  ' . $AMOS::CHKSUM::bmw_b_R,
-        '    bmw-L-bits  :  ' . $AMOS::CHKSUM::bmw_b_L,
-        '    bmw-C-bits  :  ' . $AMOS::CHKSUM::bmw_b_C,
         '',
-        '     AMOS-bits  : '
-            . "$bg $COLOR{'bits'}"
-            . $AMOS::CHKSUM::checksum_bits
-            . "$fg $rst$fg",
+        "$fg   reverse-elf  :  ${AMOS::CHKSUM::elf_bits}",
+        "$fg    bmw-R-bits  :  ${AMOS::CHKSUM::bmw_b_R}",
+        "$fg    bmw-L-bits  :  ${AMOS::CHKSUM::bmw_b_L}",
+        "$fg    bmw-C-bits  :  ${AMOS::CHKSUM::bmw_b_C}",
+        '',
+        "$fg     AMOS-bits  :  $bg$COLOR{'bits'}"
+            . "${AMOS::CHKSUM::checksum_bits}$fg$rst$fg ",
         @mod_bits_str,
         '',
-        join( ' ', "$fg   VAX-encoded  : " . TRUE_FALSE($checksum_encoded) )
-            . "$bg$TC$bl $checksum_encoded $fg$rst$fg"
-            . $checksum_num_str,
+        sprintf(
+            '%s   truth-modes  :  elf-mode %s',
+            $fg, join( '', map {" $bg$TC $ARG $rst$fg "} sort @modes )
+        ),
         '',
-        $rst
+        join( ' ', "$fg   VAX-encoded  : " . TRUE_FALSE($checksum_encoded) )
+            . " $bg$TC$bl$checksum_encoded$rst$fg $checksum_num_str",
+        '', $rst
     );
 } elsif ( $option{'n'} ) {
 
@@ -180,11 +210,13 @@ sub error_exit {
 sub TRUE_FALSE {
     my $C = shift;
     return '' if not length $C or $C =~ m|^\e|;
-    is_true( $C, 1, 1 ) ? ":: ${TC}TRUE$fg ::" : ":: ${ng}FALSE$fg ::";
+    is_true( $C, 1, 1, @modes )
+        ? "${fg}:: ${TC}TRUE$fg ::"
+        : ":: ${ng}FALSE$fg ::";
 }
 
 #.............................................................................
-#GY633AOMS6GNAGMT3YR6EYGCNSX3V3OBJUQS2XGLEA3S65QCN7QMHH3ZKHYLZ3TGQ223WROVNEILQ
-#::: LKHPUTK64OQH5RCBVZOUJDZ4TNLBQEGX35APWQMSR74DBU47H6J :::: NAILARA AMOS :::
-# :: A3M4QNZVNA6QMG76KHRRJLX3JH6GRA5KCNRBRFZA4L4YFPQUIKBY :: CODE SIGNATURE ::
+#XWMJRSORRRZFR72XBHEH5VG7BRHD53Y4DIPODOQ4HAG4FI33MHHDTPMLKQI3OIGODSCHIIRZJ5ZQ2
+#::: HD47GVJI2TLRGEV2D7ZBX32WA77I4NKBVWNMCAQJMUCQSF6OOD4 :::: NAILARA AMOS :::
+# :: GVOQWGBHAHAREHJ2UXDK5T2FW7V5W4ZXSUCP5264PP2Y77DUMKCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
