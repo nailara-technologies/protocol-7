@@ -16,7 +16,7 @@ if (   not %KEYS
     <[base.log]>->(
         0, "[$id] cannot authenticate zenka session [..no key.,]"
     );
-    $$output .= "NOPE >:|\n";    # LLL: move down?
+    $$output .= "AUTH_ERROR `:|\n";    # LLL: move down?
     return 2;
 }
 
@@ -34,7 +34,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             }
 
             delete $KEYS{'auth'}{'zenka'}{$user};
-            $$output .= "YEAH >:P\n";
+            $$output .= "AUTH_TRUE >:]\n";
 
             ## <[net.update.client_conf]>->($id);
 
@@ -46,24 +46,26 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             <[base.log]>->(
                 0, "[$id] '$auth_name' [zenka] access denied [ key ]"
             );
-            $$output .= "NOPE >:|\n";
+            $$output .= "AUTH_ERROR `:|\n";
             return 1;
         }
     } else {
         <[base.log]>->(
             0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
         );
-        $$output .= "NOPE >:|\n";
+        $$output .= "AUTH_ERROR `:|\n";
         return 1;
     }
 } else {
-    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ zenka ]" );
+    <[base.log]>->(
+        0, "[$id] authentication protocol mismatch [ zenka ] `:|"
+    );
     $$output .= ">:[\n";
     return 1;
 }
 
 #.............................................................................
-#TRAKCW7BZ7ZKP66B3FSS7MEN5FZKFKJK3PZAXP2EHCIC3CGHXNNSD5R2RJJTT7BAZMWUKLQ6GNGY2
-#::: CGKQ5NM4T5H22OH4WK36FD2NW7532Y4ZNKH75SU4GOKW3SBBA24 :::: NAILARA AMOS :::
-# :: Z4KXVAYCXZUXL7EEQ4K2HZWKX5L5Y7OSMCFG4IL7DMRT2FHLIGAY :: CODE SIGNATURE ::
+#WQKEFXJWISYLL6RSXYIIDCQAIVW6NDXOIC7KXNAKJ725S2OXNY56VPYRGFYT3IVPBOVIEQDMLEJI2
+#::: CFIE5A4FOH4XRLXXUHU2HPWAGE6SAJFPOTIS66EJBAHZYV7JD73 :::: NAILARA AMOS :::
+# :: O2WPQSCDHU4GMFLQJ5JBFJY6DXSXP64RFSDGPQMJLFTVJR7GTCDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

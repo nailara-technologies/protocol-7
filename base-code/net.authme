@@ -1,37 +1,31 @@
 # >:]
 
 # name  = net.authme
-# descr = plain text password auth. (client side)
+# descr = plain text 'pwd' authentication mode [client]
 # todo  = check for possible race conditions ..,
 
 my $answer;
 my $banner_string;
 my $backend_socket = $_[0], $banner_string = "", $answer = "";
-die "net.authme: no password supplied" if not defined $_[2];
+die 'net.authme: no password supplied' if not defined $_[2];
 if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
-    if ( $banner_string =~ />:\]\n/ ) {
-        <[base.log]>->( 2, '[*] protocol banner detected..' );
+    if ( $banner_string eq ">:]\n" ) {
+        <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
     } else {
-        <[base.log]>->( 0, '[#] no valid banner_string found! :(' );
+        <[base.log]>->(
+            0, '[#] protocol mismatch [ no valid connection banner ]'
+        );
         return undef;
     }
     <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
-    if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
-        if ( $answer =~ /YEAH/ ) {
-            <[base.log]>->( 1, '[*] successfully authenticated =)' );
-            return $backend_socket;
-        } elsif ( $answer =~ /NOPE/ ) {
-            <[base.log]>->( 0, '[#] access denied :(' );
-            return undef;
-        } else {
-            <[base.log]>->( 0, '[#] protocol mismatch >:[' );
-            return undef;
-        }
-    }
+
+    return <[auth.zenka.process_auth_reply]>->(
+        $backend_socket, 'successfully authenticated =)'
+    );
 }
 
 #.............................................................................
-#BTMVMTOFD247VFXZABNC76NI667XPAX5NHKYZG5FUMM4MUYWXU5GIYOBJEGQZBOBMI7OCDZHMR5J6
-#::: ZKIOPP4NTPKPSFDQBXFVNPYZFPSAUIQOLSOX4YFHWRFVKVLPAPB :::: NAILARA AMOS :::
-# :: PWZ5Y7I3GZ53MLSEV5BU2CVDFTQ57P3BJKTJJEGTVAGWXLZFRUAI :: CODE SIGNATURE ::
+#WNIEW4UVQRHZOKCCMTKCTZKEO7PTZXLVAKYAE4HRPVPHIN36SKOIYVVROZSGOCT4CLGR4KSLRHR4M
+#::: FUD6H744WWYDTTPYCJ4SOILIDGN2462VR4SNV4PIWWKPKDFGVDT :::: NAILARA AMOS :::
+# :: RWFRWSA2DFFAWXCHW64HGOHVKZ2QRAQEULRPN3EH34OOXWGPXWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

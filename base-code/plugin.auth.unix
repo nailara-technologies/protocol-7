@@ -11,13 +11,14 @@ my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
-    my $auth_user = $1;
+    my $auth_user = $LAST_PAREN_MATCH;
 
     if ($data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne 'unix' )
     {
         <[base.log]>->(
             0,
-            "[$id] [ auth unix ] access denied to user '$1' [ not a unix link ]"
+            "[$id] [ auth unix ] access denied to "
+                . "user '$auth_user' [ not a unix link ]"
         );
         $$output .= ">:[\n";
         return 2;
@@ -32,7 +33,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     if ( not defined $client_uname ) {
         $$output .= ">:[\n";
         <[base.log]>->(
-            0, "[$id] peer UID is undefined, unix auth aborted.."
+            0, "[$id] peer UID is undefined, unix auth aborted..,"
         );
         return 2;
     }
@@ -45,14 +46,14 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     }
 
     if ($auth_ok) {
-        $$output .= "YEAH >:P\n";
+        $$output .= "AUTH_TRUE >:]\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
         <[base.log]>->(
             1, "[$id] session authorized as '$auth_user'" . $s_usr
         );
         return ( 0, $auth_user );
     } else {
-        $$output .= "NOPE >:|\n";
+        $$output .= "AUTH_ERROR `:|\n";
         my $s_usr
             = $client_uname ne $auth_user ? " [uname=$client_uname]" : '';
         <[base.log]>->(
@@ -62,7 +63,8 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     }
 } elsif ( $$input =~ m|\n| ) {
     $$output .= ">:[\n";
-    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ unix ]" );
+    <[base.log]>
+        ->( 0, "[$id] authentication protocol mismatch [ unix ] `:|" );
 } else {
     return 1;
 }
@@ -70,7 +72,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 return 2;
 
 #.............................................................................
-#SCYYYBDVSNH5LC4FRVD2KLSXWCKIPXRIUOUTH6M45FIZVESMF7MTAUZXHU3NRE4MK2VEVGSM2JDF2
-#::: OB57LUI3GKCFFQW4LB7EBPAFS7FHL3W4CDVH3L3VBOZWU4HQCEY :::: NAILARA AMOS :::
-# :: 3NOUOBSBKSLTHAJMIMLMUMPCOB3PQ5USBRALFW4EKY7RXCC6ZOCQ :: CODE SIGNATURE ::
+#PZ6W4SECHEJIKNNAN4NOSRLZOZTQNHC5T6Z74RDK2W4PSL6DVCVG42RSWI2VBCGDBPNBA252SKITE
+#::: QQVBCKIDWTKES5LA6U6HMPTK6Y4QBBSJQZY7ATJEKS7UXDOSOLU :::: NAILARA AMOS :::
+# :: WH2MBJG5P4ZSUXZ7V3HD3OO3JZ4MCJQQQZRH6AULLAZF647MVOAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
