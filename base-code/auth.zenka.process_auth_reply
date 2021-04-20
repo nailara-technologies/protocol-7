@@ -1,0 +1,52 @@
+# >:]
+
+# name  = auth.zenka.process_auth_reply
+
+my $backend_socket  = shift;
+my $success_message = shift // 'success., =), cube authorized session.';
+
+if (   not defined $backend_socket
+    or !-S $backend_socket
+    or !$backend_socket->connected ) {
+    <[base.log]>->(
+        0,
+        'cannot authenticate [ expecting valid socket ] '
+            . <[base.caller]>->(1)
+    );
+    return undef;
+}
+
+( my $plugin = <[base.caller]>->(1) ) =~ s{^.*\[([^\.]+\.[^\.]+):\d+\]}{${1}};
+
+if ( my $answer = readline($backend_socket) ) {
+    chomp($answer) if defined $answer;
+    if ( not defined $answer ) {
+        <[base.log]>->( 0, '[X] connection lost `:|' );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return undef;
+    } elsif ( $answer eq 'AUTH_TRUE >:]' ) {
+        <[base.log]>->( 1, "[*] $success_message" );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return $backend_socket;
+    } elsif ( $answer eq 'AUTH_ERROR `:|' ) {
+        <[base.log]>->( 0, '[#] access denied >:|' );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return undef;
+    } elsif ( $answer eq '>:|' ) {
+        <[base.log]>->( 0, '[#] authentication timeout :|' );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return undef;
+    } else {    ##  >:[ .., ##
+        <[base.log]>->( 0, "[#] protocol mismatch >:[ [ $plugin ]" );
+        <[base.log]>->( 0, "::: '$answer'" );
+        return undef;
+    }
+} else {
+    <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+}
+
+#.............................................................................
+#46E3GWLZJ3RBIZXPVVXB2W3CC4IGW3TUO5KLMR5QBYN6PFDZBIBCRB5C6NXNCREJTIIOUKHE2RUDQ
+#::: RLHJTLLJAFMONLRWVVTZOSNP5EDRAM2VPFWJATDKDMI5GXYUNXZ :::: NAILARA AMOS :::
+# :: YVIRI5R2MT224IFT6SCNMZDDDZDURULL3PQPW3XEEZJL7COCMYCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
