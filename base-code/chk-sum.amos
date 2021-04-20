@@ -4,18 +4,15 @@
 # descr = AMOS-checksum calculation
 # param = input string or scalar reference [ + <follow_truth> ]
 
+my $input;
+my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
+
 return warn 'expected input string for AMOS-checksum calculation <{C1}>'
     if not @ARG;
 
-my $input;
-my $follow_truth = 0;    ## adjust output harmony for input truth state ? ##
-
 if ( ref( $ARG[0] ) eq 'SCALAR' ) {
-
-    $input        = shift(@ARG);                             ## scalar ref ##
-    $follow_truth = <[base.cfg_boolean]>->( shift(@ARG) );   ## input truth ##
-
-    $AMOS::CHKSUM::follow_truth = $follow_truth;    ## temporary switch ##
+    $input = shift(@ARG);    ## scalar ref ##
+    @modes = uniqint( grep {m|^\d{1,2}$|} @ARG ) if grep {m|^\d{1,2}$|} @ARG;
 
 } else {
     $input = join( ' ', @ARG );
@@ -26,10 +23,10 @@ return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-return AMOS::CHKSUM::amos_chksum($input);    ## passing by reference ##
+return AMOS::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
 
 #.............................................................................
-#DLXMHHENODCQB74UHWXB3GGVEQI7ET7GAUC3F2HM5RSYKB4JJSOOPQVYAA3KNHH5UPGURYPOD7NDA
-#::: IPWJRDCATF2NMGH2EQ3DUWZ7DSHNQHPW6RSUJ4HOBQM65HSIJP7 :::: NAILARA AMOS :::
-# :: NCAAQHFWTYFVA2GY7AQ5PXYGA6LK664IX3CXXJVUIML4WWMABICI :: CODE SIGNATURE ::
+#STSBMK42VBX4JSNXKJQBK25JWIUNK624QSVYOIUILTVC6SWQIVRWLNJGV2X6MPXASXUCSJRVO6LD4
+#::: HK646LX2OH44TJXAXOLBGBZVOA6QE3ZJP32W2ZVVXIDYIZ6ARPJ :::: NAILARA AMOS :::
+# :: EAM3JRRIR7UGYMUYOYUWPBZ4I3AGNTUAHXE3ACRFEYDFELBEREDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

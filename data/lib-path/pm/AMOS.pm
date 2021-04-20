@@ -3,7 +3,7 @@ package AMOS;  ###############################################################
 
 ## use AMOS::Version;    ## use to calculate new version ##
 
-our $VERSION = qw| AMOS-MODULE-0.0.89 |;
+our $VERSION = qw| AMOS-MODULE-0.0.90 |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -14,7 +14,7 @@ use vars qw| $VERSION @EXPORT |;
 return 1;  ###################################################################
 
 #.............................................................................
-#TRWDCRFPE57H6E3S3WGFCWTUQCR3NM2HJOR644F3EGYFIOP6PYNXEUMXWGYAMBVWAY4H3SRTLIX3K
-#::: 3EKL7CAHXPVSDPLKSPFS5USVHVCC2G4SJO7SC5CDOPX55GKLCQR :::: NAILARA AMOS :::
-# :: SNZDZQ47IXZJMJJ3DQPKOT7WITNRLPHOWDHR27S4KQ5ROVHUVYAY :: CODE SIGNATURE ::
+#JTCMHGPJI5BADAPUSZTKLSJUZXN7QDU5JKFYST2ZNA3WGMGUY2FM5ZRTS7GG7LPGEN3NB6EYEMRYI
+#::: Y4XH5A7IJMEZSK3WE563ILNBS5Q3XIQSOAGVO4S2EWHKG4PW27V :::: NAILARA AMOS :::
+# :: 7SSFR2OXG24FZBGG4QZHZUL5A77JMQRIVTEC2EU7YHHVAYDGFIDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

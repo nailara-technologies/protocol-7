@@ -12,12 +12,13 @@ use strict;
 use English;
 use warnings;
 use Math::BigFloat;
-
-our @deep_assertion_modes = qw| 3 4 |;
-
-use AMOS::CHKSUM::ELF qw| elf_chksum |;
+use List::Util 'uniqint';
 
 use AMOS::Assert;
+
+our @assertion_modes = qw[ 4 7 ];
+
+use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
 ##[ MAIN FUNCTION ]###########################################################
 
@@ -33,7 +34,7 @@ sub is_true {
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
     $data_ref = \"$data_ref"              if ref($data_ref) eq '';
 
-    my @assertion_modes = @ARG ? @ARG : @deep_assertion_modes;
+    my @assertion_modes = uniqint @ARG ? @ARG : @assertion_modes;
 
     return 0                          ## check as mumber when numerical ##
         if $check_as_num == 1
@@ -110,7 +111,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#DNST3VMMQN2IELZVPN2CJJQHGPATGFLSBUAR5RDKE6GXVO4RSTHDN3D7VH2AE5DXRLOABVX4JHZR6
-#::: 5ZPL6YBLVPMAPOZANOQ5YWAWJE6D37OPS4PLDAKSZW543HBMG2W :::: NAILARA AMOS :::
-# :: LVVCJNIVPBHBCTHZXXL4KDR7FW6X2YERVQEWH5BGY7QQEB4R4UDA :: CODE SIGNATURE ::
+#BTRIMMON3FM6OJQK327EHIDWE5NXV7XE6BSE5ABXBDLQPLD6KY26TR75ZKTVTHTFDEMXUZIC765WY
+#::: MV3F3AZ7MREHMTZXT74DGKJPRKGYZXPRBHUTVKATY5CKFWOPAD5 :::: NAILARA AMOS :::
+# :: ONJB74JPYKQ6YGWBHEZPGJ3CSZHRUSY4ENYMBKJYZ526AOZSKWAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

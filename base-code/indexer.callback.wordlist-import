@@ -15,6 +15,11 @@ my $file_handle  = $index_job->{'file-handle'};    ## open wordlist-path file
 my $file_aref    = $index_job->{'file-aref'};      ## tied wordlist array ref.
 my $file_entries = $index_job->{'file-entries'};   ## wordlist word-count
 
+my @elf_modes;                                     ## indexing elf mode[s] ##
+@elf_modes = @{ $index_job->{'elf-modes'} }
+    if defined $index_job->{'elf-modes'}
+    and ref( $index_job->{'elf-modes'} ) eq 'ARRAY';
+
 if ($stop_requested) {    ## logging required .., ##
     $watcher->cancel if $watcher->is_active;
     delete <indexer.jobs>->{$name_checksum};
@@ -25,8 +30,12 @@ if ($stop_requested) {    ## logging required .., ##
     );
 }
 
-my $line    = $file_aref->[$iteration];
-my $chk_sum = <[chk-sum.amos]>->( \$line );
+chomp( my $line = $file_aref->[$iteration] );
+
+my $chk_sum
+    = @elf_modes == 0
+    ? <[chk-sum.amos]>->( \$line )
+    : <[chk-sum.amos]>->( \$line, @elf_modes );
 
 say ": $chk_sum : $line";
 
@@ -40,7 +49,7 @@ if ( ++$index_job->{'iterations'} == $file_entries ) {
 # ,.. }
 
 #.............................................................................
-#MJ7G7CGOAH3XQQAOPW44M4SXZFQ7NXCXEOYZ5YIXCU4CUXH5RNOW4HJ2PBZWFNDLB4MT3SAHZR4EC
-#::: RCCXLO3OZEKIVEJIYQJUSSCY7EQVUX2F4CNU7LHZSBALDQIILGD :::: NAILARA AMOS :::
-# :: RD7VDACGM5323DMHDFFF4QOGB75LILGSI5JQU3SMIVUMOFJWIKAY :: CODE SIGNATURE ::
+#CQPY4ZVZ7WMMXRQW4VK376PJAOKWH6MK4PILTO5USYQKXUWZBXGPIJGLIXC3ATDFRA4T2W7SKZSV6
+#::: QTDUW3RH7ZD5O4HUH3B6KZC5ZXWOTDNJ4EVXFXU3ZM5TYJ5WBNY :::: NAILARA AMOS :::
+# :: TS6LX2Z4QVETWHW3Q2WS5J5QKLVDNAO2JWDITOZJRA67YCCEH4CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
