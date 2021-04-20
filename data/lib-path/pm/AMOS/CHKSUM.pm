@@ -13,14 +13,12 @@ use warnings;
 use Crypt::Misc;       ## encode_b32r ##
 use Digest::BMW;
 use Math::BigFloat;
+use List::Util qw| uniqint |;
 
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-# use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to |;##AMOS::CHKSUM::ELF
-# compile_inline_elf_to(qw| /tmp/ELF |);
-
-our $VERSION = qw| AMOS-MLE6IRI |;    ##  amos-chksum -VA  ##
+our $VERSION = qw| AMOS-DYUFHMQ |;    ##  amos-chksum -VA  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -32,7 +30,7 @@ our $VERSION = qw| AMOS-MLE6IRI |;    ##  amos-chksum -VA  ##
     'chksum_numerical' => 1,
     'chksum_bits'      => 1,
     'chksum_B32'       => 1,
-    'elf_truth_modes'  => [ 3, 4 ]
+    'elf_truth_modes'  => [7]    ##  <--  AMOS::CHKSUM  elf mode : 7  ##
 ) if !keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
@@ -49,7 +47,15 @@ our $checksum_bits;
 
 sub amos_chksum {
     warn "expected input string for AMOS-checksum calculation\n" if not @ARG;
-    my $data_ref = ref( $ARG[0] ) eq 'SCALAR' ? shift : \$ARG[0];
+
+    my $data_ref = shift;
+
+    $data_ref = \$data_ref if ref($data_ref) ne 'SCALAR';
+
+    my @elf_modes
+        = uniqint @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
+    map { die "not a valid elf mode ['$ARG']" if $ARG !~ m|^\d{1,2}$| }
+        @elf_modes;
 
     ## reset \ init ##
     @mod_bits      = ();
@@ -59,8 +65,6 @@ sub amos_chksum {
     $checksum_bits = '';
     $bmw_mod_step  = 0;
     $checksum_num  = 0;
-
-    my @elf_modes = @{ $algorithm_set_up{'elf_truth_modes'} // [ 3, 4 ] };
 
     my $elf_csum = elf_chksum( $$data_ref, 0, 7 );   ## elf-checksum mode 7 ##
 
@@ -140,7 +144,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#I27FIKANCD4U2Q5QDSRESLOBF67OAQFLQLXD2JEMRS5F4KVHOZKWTSTUIEGBQXJ5EDN7N7HEW6GUO
-#::: J74NQWTVJZIDZSTKHE4NZ6SWRYL5FFV4GQI6PPFHM7FI7G4JMTV :::: NAILARA AMOS :::
-# :: QXO7HRAAI4DJIZCQCWIPP5A2RE67SYEOMTHMPTGVAJWGQDXX46CA :: CODE SIGNATURE ::
+#IGJDCRVACH75RY53ED3LSPJOZSH35CYTLDVRA262ZLMVS545ZWLPCQIGFCHYAWUDO2OEUSPZLNUS4
+#::: LXAKNQHWWHGYRVXPTU65AMVBPPODCMZRF3BJ2J4W4EPQCC62O2D :::: NAILARA AMOS :::
+# :: DOFRJEKHNA4GKOGQHDGXNIN4XARTS5LRAECF5SNFGXNTYONZRSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

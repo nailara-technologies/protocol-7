@@ -20,7 +20,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| ELF-25Q4JHY-L |;    ##  calculate : amos-chksum -VLS  ##
+our $VERSION = qw| ELF-4FKWEAI-L |;    ##  calculate : amos-chksum -VLS  ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -128,7 +128,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#FE5YCOWHDEXIUF7HXKHPAF4RE3WEOSAHGJY56MKTNHNOKD7Q63TBZUOSF6B3VQOB27W6MZQNQXN52
-#::: IVJO4CF232NA32EDG3N4GWXAWYA3WUDD3D6SBJNEYHA65RFNXQT :::: NAILARA AMOS :::
-# :: M6GZOIW5ND2XWT27H6QNOD3XQU7ZSXXSRARXBFDYIK2ZU7T2S2DI :: CODE SIGNATURE ::
+#SLT6QHH5WGJI5ARURBJSZE5XJRJD6F4D3ESJ4532J6HYMFLUPXBKB3DTHQB3QBIYFSMXDMM56K6XK
+#::: 4HA6RCTW33DBNNBLO352BBGC7XDFP5U355ZCFYWSD5AQFK27OSU :::: NAILARA AMOS :::
+# :: 436ISZZG72LAR5ODGCIRV5UY37GZEA4T5KZUWVFOPZ5BPB7OEEBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
