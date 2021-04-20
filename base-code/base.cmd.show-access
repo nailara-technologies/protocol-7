@@ -2,7 +2,6 @@
 
 # name  = base.cmd.show-access
 # param = [user]
-# todo  = implement wrapping for long permission strings
 
 my $user = $$call{'args'};
 
@@ -21,6 +20,7 @@ my $special_users = {
 };
 
 my @mapped_users;
+my $wrap_len = 57;
 
 @mapped_users
     = map {"<$ARG>"} grep { $special_users->{$ARG} eq $user }
@@ -34,6 +34,7 @@ if ( defined $user ) {
         }
         if not defined <access.cmd.usr>->{$user} and not @mapped_users;
     my $max_len   = max map {length} ( $user, @mapped_users );
+    my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = defined <access.cmd.usr>->{'*'} ? '' : ":\n";
     my $map_names = {};
     if ( not defined <access.cmd.usr>->{$user} ) {  ## no custom [$user] rules
@@ -46,22 +47,37 @@ if ( defined $user ) {
             : '';
     }
     if ( $user ne '*' and defined <access.cmd.usr>->{'*'} ) {
-        $reply_str .= sprintf ".\n:  %${max_len}s  :    %s%s\n", "'*'",
-            join ' ',
-            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{'*'} ),
+        $reply_str .= sprintf ".\n:  %${max_len}s  :  %s%s\n", "'*'",
+            <[base.wrap_text]>->(
+            $w_prefix,
+            $wrap_len,
+            <[base.reverse-sort]>->( split m|\s+|, <access.cmd.usr>->{'*'} )
+            ),
             '    ::  [  matches all users  ]';
         $reply_str .= ".\n:\n";
     }
     foreach my $map_user (@mapped_users) {
-        $reply_str .= sprintf ":  %${max_len}s  :    %s%s\n", $map_user,
-            join ' ',
-            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{$map_user} ),
+
+        $reply_str .= sprintf ":  %${max_len}s  :  %s%s\n", $map_user,
+            <[base.wrap_text]>->(
+            $w_prefix,
+            $wrap_len,
+            <[base.reverse-sort]>->(
+                split m|\s+|, <access.cmd.usr>->{$map_user}
+            )
+            ),
             $map_names->{$map_user};
     }
     if ( defined <access.cmd.usr>->{$user} ) {
         $reply_str .= sprintf( ":  %${max_len}s  :\n", '' ) if @mapped_users;
-        $reply_str .= sprintf ":  %${max_len}s  :  %s%s\n", $user, join ' ',
-            <[base.sort]>->( split m|\s+|, <access.cmd.usr>->{$user} ),
+        $reply_str .= sprintf  ":  %${max_len}s  :  %s%s\n", $user,
+            <[base.wrap_text]>->(
+            $w_prefix,
+            $wrap_len,
+            <[base.reverse-sort]>->(
+                split m|\s+|, <access.cmd.usr>->{$user}
+            )
+            ),
             $map_names->{$user};
     }
 
@@ -71,11 +87,14 @@ if ( defined $user ) {
 
 } elsif ( keys( %{<access.cmd.usr>} ) ) {
     my $max_len   = max map {length} keys( %{<access.cmd.usr>} );
+    my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = ":\n";
     foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
-        $reply_str .= sprintf ":\n:  %${max_len}s  :    %s\n", $user,
-            join ' ',
-            <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) );
+        $reply_str .= sprintf ":\n:  %${max_len}s  :  %s\n", $user,
+            <[base.wrap_text]>->(
+            $w_prefix, $wrap_len,
+            , <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) )
+            );
     }
 
     $reply_str .= ":\n:\n";
@@ -90,7 +109,7 @@ if ( defined $user ) {
 }
 
 #.............................................................................
-#4A2KAACUYCIVJ3P64DL2PFW6EK4WVTTJXWMCDZNU5W3XJ6GFUBPAU4JTLAMOWXKN2KVR53XQDRFTA
-#::: AQP2PXNL4NSNDADICL6BCZ6LJQXWQMHJW2OBT33QHTYJ6SGFNN6 :::: NAILARA AMOS :::
-# :: JHHNAKALUCFD46D7JOJMT5D22RRI4TLM3M6RKDWFVO6N7VNME4DI :: CODE SIGNATURE ::
+#MUZX27SAC6E7UIQKBDGSAWC5BH2KJBGTBZSVUXOTWNFT6NWMBSDKR5MFQEVG5GTQGLBHTWGSIEQB2
+#::: 63Z32FSNBAPA2J3EI2OU2Z645EAI2RGBNKPTPB3AVIDERD3LXDO :::: NAILARA AMOS :::
+# :: YSJ7GOXNGRRVTFHKLO3KJDGOP3EPPTC2SWHFFOG63IT3YGA76KCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
