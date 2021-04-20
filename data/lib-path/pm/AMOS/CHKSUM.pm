@@ -20,7 +20,9 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
 # use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to |;##AMOS::CHKSUM::ELF
 # compile_inline_elf_to(qw| /tmp/ELF |);
 
-@EXPORT = qw| amos_chksum |;
+our $VERSION = qw| AMOS-MLE6IRI |;    ##  amos-chksum -VA  ##
+
+@EXPORT = qw| amos_chksum $VERSION |;
 
 ## algorithm configuration ##
 %algorithm_set_up = (
@@ -32,8 +34,6 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
     'chksum_B32'       => 1,
     'elf_truth_modes'  => [ 3, 4 ]
 ) if !keys %algorithm_set_up;
-
-$AMOS::CHKSUM::ELF::VERSION = qw|  |;
 
 ## accessible internal variables [ for visualizations ] ##
 our @mod_bits;
@@ -140,7 +140,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#RYQFMYYLU7OUASIOFSQPS2N23NNNMCWZYHSNJZQ2PKEDXG44JUCSE4HYJPNBNHLNKYOHFJKKUWWBW
-#::: 7H6S2CIDVOMUSWPYLG34PHYIWYVPLM3VZ6KSYI72FDR23KPJAMK :::: NAILARA AMOS :::
-# :: 2AHXJ45H6GQWEEBN7ZNRYXTWN3KHUA37MQWFUH2FBFH7WHX2FGAY :: CODE SIGNATURE ::
+#I27FIKANCD4U2Q5QDSRESLOBF67OAQFLQLXD2JEMRS5F4KVHOZKWTSTUIEGBQXJ5EDN7N7HEW6GUO
+#::: J74NQWTVJZIDZSTKHE4NZ6SWRYL5FFV4GQI6PPFHM7FI7G4JMTV :::: NAILARA AMOS :::
+# :: QXO7HRAAI4DJIZCQCWIPP5A2RE67SYEOMTHMPTGVAJWGQDXX46CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

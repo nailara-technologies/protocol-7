@@ -8,31 +8,45 @@ use base qw| Exporter |;
 
 use v5.24;
 use strict;
-use Inline;
 use English;
 use warnings;
-use List::Util qw| min |;
-
-use AMOS;
-
-# use AMOS::CHKSUM qw| amos_chksum |;
+use List::Util;
+use File::Path qw| make_path |;
 
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 @EXPORT = qw| compile_inline_elf_to inl_elf_src $VERSION |;
 
-our $VERSION;    ## algorithm version ## receive from parent module
+## inline elf source code version ##
+##
+our $VERSION = qw| ELF-25Q4JHY-L |;    ##  calculate : amos-chksum -VLS  ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
 sub compile_inline_elf_to {
 
-    my $inline_directory = shift;
-    my $elf_code         = inl_elf_src();
+    my $inline_directory = shift // '';
+    die 'require at least a <path> parameter' if not length $inline_directory;
+    my $uid      = shift;           ## optional ##
+    my $gid      = shift;           ## optional ##
+    my $elf_code = inl_elf_src();
 
-    die "<inline_directory> '$inline_directory' not found"
-        if !-d $inline_directory;
+    my @params = ( mode => 0755 );
+    push( @params, 'uid'   => $uid ) if defined $uid;
+    push( @params, 'group' => $gid ) if defined $gid;
+
+    die "inline elf directory '$inline_directory' not readable [ repair .., ]"
+        if -d $inline_directory and !-r $inline_directory;
+
+    if ( !-d $inline_directory ) {
+
+        make_path( $inline_directory, {@params} )
+            or die ": \l$OS_ERROR : $inline_directory";
+
+        die "cannot create <inline_elf_directory> '$inline_directory'"
+            if !-d $inline_directory;
+    }
 
 ### [RE]COMPILING \ LOADING .., ###
     eval {
@@ -64,7 +78,7 @@ sub inl_elf_src {
     $source_code =~ s{\n\s*\n}{\n}sg;    ## empty lines ##
     $source_code =~ s{^\n|\n$}{}sg;      ## empty lines [ first and last ] ##
     $source_code =~ s{\s+$}{}sg;         ## trailing tabs|spaces ##
-    my $min_indent = min map { m|^\s+| ? length($MATCH) : 0 }
+    my $min_indent = List::Util::min map { m|^\s+| ? length($MATCH) : 0 }
         split( "\n", $source_code );
     $source_code =~ s|^\s{$min_indent}||mg;    ## indent to start of source ##
     return $source_code;    ## return cleaned source code version ##
@@ -114,7 +128,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#YCENU2LUTA6HAEL2FLKQBC5UPZ4TQPLZXSYQEK4SPPK4BL6R5VF66MW6J4G65OPCYQ2ZIHECFU4KE
-#::: HG6GPOFJBVMSZ6ZXEW5ZIX455MZKKWQBMTIU4NH2PER57Z6JYK4 :::: NAILARA AMOS :::
-# :: RUZKUXKDETDXZDEIZU3JBDG35SIV2CX7CT67I7KIIJEUEDPW7YDA :: CODE SIGNATURE ::
+#FE5YCOWHDEXIUF7HXKHPAF4RE3WEOSAHGJY56MKTNHNOKD7Q63TBZUOSF6B3VQOB27W6MZQNQXN52
+#::: IVJO4CF232NA32EDG3N4GWXAWYA3WUDD3D6SBJNEYHA65RFNXQT :::: NAILARA AMOS :::
+# :: M6GZOIW5ND2XWT27H6QNOD3XQU7ZSXXSRARXBFDYIK2ZU7T2S2DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

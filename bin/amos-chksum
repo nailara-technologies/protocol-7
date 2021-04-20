@@ -50,15 +50,16 @@ getopts( 'vnqV:', \my %option );
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
     if ( $option{'V'} eq 'A' ) {    ## AMOS checksum ouput test version ##
-
-        say sprintf( "AMOS-%s", amos_chksum('CALC AMOS CHKSUM VERS') );
+        say sprintf(
+            "AMOS-%s",   ## --> harmony -Ty  ## 2V0 RмѕU *4L4 \ Жй5ЛB:лЖэН! ##
+            amos_chksum( sprintf( '%sAMOS-CHKSUM%s', chr(255), chr(0) ) )
+        );
 
     } elsif ( $option{'V'} =~ m|^LS?$| ) { ## elf_sum() source code version ##
 
-        my $calc_input = sprintf( qw| .:ELF::[%s]:: |,
-            join( '', reverse map {chr} ( 0 .. 255 ) ) );
+        my $calc_input = sprintf( '%sELF-INLINE-CHKSUM%s', chr(255), chr(0) );
 
-        my $elf_output  = elf_chksum($calc_input);
+        my $elf_output  = elf_chksum($calc_input);    ## я80л <>З Сдєм D0 ##
         my $elf_out_ver = sprintf( qw| ELF-%s |, amos_chksum($elf_output) );
 
         if ( $option{'V'} eq 'L' ) {    ## elf_sum() output test checksun ##
@@ -66,9 +67,10 @@ if ( defined $option{'V'} ) {
             say $elf_out_ver;
 
         } else {                        ## version of elf_sum() source code ##
-
-            say sprintf( qw| ELF-%s-L |,
-                amos_chksum( "$elf_out_ver\n" . inl_elf_src() ) );
+            say sprintf(
+                qw| ELF-%s-L |,         ## *ЙА VГH:Й \ кЌ;`йQкIM3N K9mАд ##
+                amos_chksum( "$elf_out_ver\n" . inl_elf_src() )
+            );
         }
     } else {
         die ":\n: version option not recognized : [ A | L | LS ]\n:\n";
@@ -79,8 +81,6 @@ if ( defined $option{'V'} ) {
 warn "expected input string for AMOS-checksum calculation\n" if not @ARGV;
 
 $AMOS::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
-
-# say scalar @{$AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'}};
 
 my $data_str = join( ' ', @ARGV );
 
@@ -184,7 +184,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#4Z2O25M4XRL74HN4YRFSI44UKHJ6HPQFW2JSYLMOS3EGYUE7WEGXHQNISDHPH5HAES5A5FBPLOUCG
-#::: HYZMAREBLEPJRMC4HVZNOD2SGVOYSNKAZZMQOKNKE3C6W732ABF :::: NAILARA AMOS :::
-# :: NSAZGEG5B7WXBSWLEY6TLTGA5GT7MNVFM7AP6ETMUHJ26C6AV6BI :: CODE SIGNATURE ::
+#GY633AOMS6GNAGMT3YR6EYGCNSX3V3OBJUQS2XGLEA3S65QCN7QMHH3ZKHYLZ3TGQ223WROVNEILQ
+#::: LKHPUTK64OQH5RCBVZOUJDZ4TNLBQEGX35APWQMSR74DBU47H6J :::: NAILARA AMOS :::
+# :: A3M4QNZVNA6QMG76KHRRJLX3JH6GRA5KCNRBRFZA4L4YFPQUIKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,13 @@ BEGIN {
 
 our $VERSION = calc_version( calc_ntime() );
 
-printf ":\n:: our \$VERSION = '%s';\n:\n", $VERSION and exit;
+use Exporter;
+use base qw| Exporter |;
+use vars qw| $VERSION @EXPORT |;
+
+@EXPORT = qw| $VERSION |;
+
+printf( ":\n: our \$VERSION = qw| AMOS-MODULE-%s |;\n:\n", $VERSION );
 
 return 1;  ###################################################################
 
@@ -36,7 +42,7 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 }
 
 #.............................................................................
-#ERZVMKXNYCPI6XZJKKSJ3PJQI5643QNHE4OADRVSFZGAIV6QWWMBNYKKJJI76V7GAQEVYLUC5PAXG
-#::: 7FRRBLRX52NGMTI2VJOJPGMIDSUHB5EB5TXGQYHRXOZV5Q3UOX4 :::: NAILARA AMOS :::
-# :: ILEF237NI6V2QGGQ7RBYZAZDDX5FZIQ4HMAHVFSIN6F6EVPKH6AI :: CODE SIGNATURE ::
+#AFKZGGEU3RDYMRH4PWYOSES7L4LV7HQLULXLNLFSQJAPVTTZY3KUPM54GHOR2BXYR2EKHCOCOCWYU
+#::: N2UABJSHKBMMECGV2P7HH5N2QRDW7MRCA7WW3RVZMFHUDN653G3 :::: NAILARA AMOS :::
+# :: 34C43NQBRLJMVO4C6DBJJGACJVHP5XUO5E74DEEPA7HB7EGERUAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

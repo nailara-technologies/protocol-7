@@ -11,33 +11,29 @@ use strict;
 use English;
 use warnings;
 
-# use AMOS::CHKSUM qw| amos_chksum |;
+use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
 
-use AMOS::CHKSUM::ELF::Inline
-    qw[ compile_inline_elf_to inl_elf_src $VERSION ];
+## inline elf test output checksum ##
+##
+our $VERSION = qw| ELF-JCZT3HA |;    ##  calculate  :  amos-chksum -VL  ##
 
-### use calculated \ generated paths and caller context awareness ### [LLL]
-
-@EXPORT = qw| elf_chksum $VERSION |;
+@EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
 
 our $inline_base_path  //= qw| /var/tmp/inline-elf/<version>/<user> |;
 our $use_inline_elf    //= 1;    ## compile and use inline-elf version ? ##
 our $use_external_elf  //= 1;    ## use /usr/local/bin/elf as fallback ? ##
 our $elf_checksum_mode //= 4;    ## elf-checksum base algorithm setting ##
 
-## install inline_elf() as currently available ## [ trigger in parent module? ]
-
-## load latest version here, recompile in parent with version string available?
+## installing inline_elf() as currently available ##
 
 if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
     *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
 } else {
-    *inline_elf = compile_inline_elf_to(qw| /tmp/ELF |);
+    *inline_elf = compile_inline_elf_to( gen_inline_path('/var/tmp/.') );
 }
 
-if ( not defined &inline_elf ) {
-    die 'no inline_elf() code reference available';
-}
+die 'loading \ compiling of inline_elf() subroutine not successful'
+    if not defined &inline_elf;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -83,14 +79,15 @@ sub elf_chksum {
 ##[ STAND ALONE INVOCATION ]##################################################
 
 sub gen_inline_path {
-    my $user = getpwuid($UID);
-
+    my $base_path = shift // qw| /var/tmp/. |;
+    my $user      = getpwuid($UID);
+    return sprintf( '%sinline_elf.%s.%s', $base_path, $user, $VERSION );
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#AI5W3SGGMAFTRBMWRT5GUVK7747E2FLMGZQ364VFO2H3MWYEKH2FYQKGIXY4D6BWZPMN2V53YNJLQ
-#::: HCAA3A6UJ55REMHBLDPY34WPXV2C3RSFHUC7REJVRMPA76TXRJL :::: NAILARA AMOS :::
-# :: UQEJJR2KVJ3LH4RE73XL44OYIT3C6G5KT3GWXLMZFAM3DTIYVUDA :: CODE SIGNATURE ::
+#HDJW2CY37QB52HFA7T6UODMNTO5FF7BLVAITDZ7U4CF5BWJWKWNOK5ML76OJJVPFDXQZUW7CGAWZG
+#::: GP3IZHYK6MHKEX2S6WKQWDX4D4OVR33BWETIRQFMEACLIPSP5DI :::: NAILARA AMOS :::
+# :: U2VYZWZPI5MLCHEHSK7FX7EMW3DG5H2TI6RG4Z3F5J2CMXPIS4AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
