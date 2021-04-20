@@ -4,7 +4,7 @@
 # descr = authenticate to cube in zenka mode
 # note  : zenka name can now contain subnames
 
-my ( $filehandle, $zenka, $key_str ) = @_;
+my ( $backend_socket, $zenka, $key_str ) = @_;
 
 if ( defined $key_str
     or %KEYS
@@ -12,11 +12,11 @@ if ( defined $key_str
     and $KEYS{'zenka'}{'session_key'} ne '' ) {
     $key_str //= $KEYS{'zenka'}{'session_key'};
     my $banner_string;
-    my $bytes_read = <[base.s_read]>->( $filehandle, \$banner_string, 4 )
+    my $bytes_read = <[base.s_read]>->( $backend_socket, \$banner_string, 4 )
         // 0;
     if ( $bytes_read > 0 ) {
         if ( $banner_string eq ">:]\n" ) {
-            <[base.log]>->( 2, '[*] protocol banner detected.,' );
+            <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
         } else {
             <[base.log]>->(
                 0, '[#] protocol mismatch [ no valid connection banner ]'
@@ -28,8 +28,8 @@ if ( defined $key_str
         ) and return undef;
     }
 
-    <[net.out]>->( $filehandle, "select zenka\n" );
-    chomp( my $answer = readline($filehandle) );
+    <[net.out]>->( $backend_socket, "select zenka\n" );
+    chomp( my $answer = readline($backend_socket) );
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
     } elsif ( $answer ne 'TRUE continue' ) {
@@ -38,7 +38,7 @@ if ( defined $key_str
     }
 
     <[base.log]>->( 2, "[<] authenticating as '$zenka'.," );
-    <[net.out]>->( $filehandle, "$zenka $key_str\n" );
+    <[net.out]>->( $backend_socket, "$zenka $key_str\n" );
 
     if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
         my $rand_len = length( $KEYS{'zenka'}{'session_key'} );
@@ -49,21 +49,7 @@ if ( defined $key_str
         delete $KEYS{'zenka'}{'session_key'};
     }
 
-    chomp( $answer = readline($filehandle) );
-
-    if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
-    } elsif ( $answer =~ m|^YEAH | ) {
-        <[base.log]>->( 1, '[*] success., =), cube authorized session.' );
-        return $filehandle;
-    } elsif ( $answer =~ m|^NOPE | ) {
-        <[base.log]>->( 0, '[#] access denied >:|' ) and return undef;
-    } elsif ( $answer eq '>:|' ) {
-        <[base.log]>->( 0, '[#] authentication timeout :|' ) and return undef;
-    } else {    ##  >:[ .., ##
-        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
-            and return undef;
-    }
+    return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
 } else {
     <[base.log]>
@@ -72,7 +58,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#WSJUKTNPHGUHPO4RSC7B43V4FYC4OUFXYEG2ZAORUVDETCZY4A3UFKM7DFPSAKPKDW3B2VO2VKO7Y
-#::: FPKEVLILMRN6ID53X2MEKDYTWABYK6UINDOYXOJAAXZASJANWY7 :::: NAILARA AMOS :::
-# :: 3Z52M7QX4V3YETNTMVUJNQYZFOCQMJ5FWIEIWQ4HSFAZGG6LY6DA :: CODE SIGNATURE ::
+#RI3ZBCA2RRCVBXLZPOTSGW3RQZOWC5XOQLQMCWOAPONGUYJUSLI45WRBAVJXJY23VE7YHPTA46XHU
+#::: BMFAOWLGTZGUTNJ2XTP5G6H5VLIRAUEKDJACGJVJCPHMVNHSPBF :::: NAILARA AMOS :::
+# :: 3GAXZKEN56Y5IFZ2GKDPPGSVJIUK4AAIUTKCESPEPXY4UUXGKUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

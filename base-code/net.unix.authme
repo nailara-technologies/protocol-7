@@ -1,7 +1,7 @@
 # >:]
 
 # name  = net.unix.authme
-# descr = unix domain socket auth. (client side)
+# descr = unix domain socket auth. [ client ]
 # todo  = implement client side authentication timeout
 
 my $answer;
@@ -12,15 +12,14 @@ if (   not defined $backend_socket
     or !-S $backend_socket
     or !$backend_socket->connected ) {
     <[base.log]>->(
-        0,
-        "[!] net.unix.authme: cannot authenticate (no valid socket supplied)"
+        0, '\<net.unix.authme> cannot authenticate [ expecting valid socket ]'
     );
     return undef;
 }
 
 if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
     if ( $banner_string eq ">:]\n" ) {
-        <[base.log]>->( 2, '[*] protocol banner detected.,' );
+        <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
     } else {
         <[base.log]>->(
             0, '[#] protocol mismatch [ no valid connection banner ]'
@@ -42,26 +41,11 @@ if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
     }
     <[net.out]>->( $backend_socket, "auth $user\n" );
 
-    if ( <[base.s_read]>->( $backend_socket, \$answer, 9 ) ) {
-        if ( not defined $answer ) {
-            <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
-        } elsif ( $answer =~ m|^YEAH | ) {
-            <[base.log]>->( 1, '[*] success., =), cube authorized session.' );
-            return $backend_socket;
-        } elsif ( $answer =~ m|^NOPE | ) {
-            <[base.log]>->( 0, '[#] access denied >:|' ) and return undef;
-        } elsif ( $answer eq '>:|' ) {
-            <[base.log]>->( 0, '[#] authentication timeout :|' )
-                and return undef;
-        } else {    ##  >:[ .., ##
-            <[base.log]>->( 0, '[#] protocol mismatch >:[' )
-                and return undef;
-        }
-    }
+    return <[auth.zenka.process_auth_reply]>->($backend_socket);
 }
 
 #.............................................................................
-#2KM56E6EF5UMIVYNNQX66OB3I7H35HTTCXYKP3YEOC6MDFHMEBAK64LK4CBGAUS42ZT4YRXWPAGSS
-#::: J5RFQ6WPTG3OCTENDJ4KSMI74ZPPCUFD5GBQI5SLZBV2ARGWAAE :::: NAILARA AMOS :::
-# :: Y6M7I6E4HQ645UTFSB4NZOGPGEX6C72PKP2MXHGZAVJ7MPTRYWBQ :: CODE SIGNATURE ::
+#K3UCAQXZXE6DFJXCSMXTTSMPMFDXYBIDB7ANVKKNNCDFEZJCGJQDGPTLXAEGK2C5BHRMZYPH2NDCG
+#::: ULPP7PAYNYINQBJGMPJASYICWIK35VFCZQPB6VW4WNUSAG7X6VO :::: NAILARA AMOS :::
+# :: M7ALDQLAJGG5DLS4IEMINCDOXEERTZLMWRCIHBGEZX4HK5K7AEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

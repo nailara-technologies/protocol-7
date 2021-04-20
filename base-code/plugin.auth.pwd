@@ -13,11 +13,11 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
     if ( <[auth.pwd.success]>->( $1, $2 ) ) {
-        $$output .= "YEAH >:P\n";
+        $$output .= "AUTH_TRUE >:]\n";
         <[base.log]>->( 1, "[$id] user session authorized to '$1'" );
         return ( 0, $1 );
     } else {
-        $$output .= "NOPE >:|\n";
+        $$output .= "AUTH_ERROR `:|\n";
         <[base.log]>->( 0, "[$id] [ auth pwd ] access denied to user '$1'" );
         return 2;
     }
@@ -31,7 +31,7 @@ if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 return 2;
 
 #.............................................................................
-#AD3CLNKY5KRXAGKI2KQENPKJR7XBQAXDXLKKVL7776RYU3PON76663VKDL4ESZE7DKONEWEKGQWJ4
-#::: PGRDR4U4IROKL2VSWMMQ73N2A6P76XDZQDKBUYZHRVN65JXVBOO :::: NAILARA AMOS :::
-# :: W7E5LB7EAR4ULFPIT6S7P5MTPWMXR5BZ7KTAMH7CRCYNAQEJ3OBI :: CODE SIGNATURE ::
+#LRUV6FDCKPTO6V5OO4UUNICAESNN4BO642FZYKU7MOZF2SJMXQ7OFLMPLU5LOMD5KDBOMKUX2G4PM
+#::: 7V2NQD4VYIGRH5HU5RLJ5IQM43OIXNDOWND62UKKOI6JQ5JBDYP :::: NAILARA AMOS :::
+# :: CFYIO5S3YT2TJQUVEU7U7BVGSBVS2EXQWKTGVXRVXPRMIC3GMYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
