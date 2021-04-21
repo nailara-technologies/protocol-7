@@ -12,14 +12,14 @@ use strict;
 use English;
 use warnings;
 use Math::BigFloat;
-use List::Util 'uniq';
+use List::Util 'uniqint';
 
 use AMOS::Assert;
 
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
-our @assertion_modes = qw[ 4 7 ];
+our @assertion_modes = (7);    ## <-- base truth assertion [elf] mode : 7 ###
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
@@ -37,9 +37,9 @@ sub is_true {
         if not $check_as_num and not $check_as_elf;
 
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
-    $data_ref = \"$data_ref"              if ref($data_ref) eq '';
+    $data_ref = \"$data_ref"              if ref($data_ref) ne 'SCALAR';
 
-    my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
+    my @assertion_modes = uniqint @ARG ? @ARG : @assertion_modes;
 
     return 0                          ## check as mumber when numerical ##
         if $check_as_num == 1
@@ -151,7 +151,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#7LFVPRS4QX7YKH5JDVTPR2QBRNSYXTTJYTGLLQTJEMDFXW2OIB6LEBCBP3BISUJ7YT7WRIAZ73LSM
-#::: LMGEBSARIZ3MBWHYFGH2O74YZWNZ4B2QRZLOVWT4UY5V4J3FGQP :::: NAILARA AMOS :::
-# :: D77NYS7DQEZNRIHQSGHP6LN3XW4BSQQGQDCN3E4PTWDNANOF6WDY :: CODE SIGNATURE ::
+#PV75KQEOTJOAAQF3NRMA55RFDVEUL76V5YQHJAXNFI3WKFJ6X3UM76JLJPG27RSN7VNWPZ4GYGK22
+#::: 7CNCWNRZBUYBV7RH2AUW5TA4OUPJEN6SYCYW36WB3HGHLVCFBEZ :::: NAILARA AMOS :::
+# :: KSM6DRKAYXT5WHDCZV7WIPI3RX4RPHG34KH52R7GYAGCZEHJ3YAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

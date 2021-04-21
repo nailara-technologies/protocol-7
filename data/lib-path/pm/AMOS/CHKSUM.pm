@@ -18,7 +18,7 @@ use List::Util qw| uniqint |;
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-our $VERSION = qw| AMOS-DYUFHMQ |;    ##  amos-chksum -VA  ##
+our $VERSION = qw| AMOS-SLR6AYI |;    ##  amos-chksum -VA  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -144,7 +144,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#NO2QX4M2FUSLILS6QIFHDML23WH24LCR6QMMLOQSTPTEGSLBC5UVMQIYB2KOOAO6MPXTRNOMQJOQG
-#::: NGKLHGOWWG7WBRMJE7AM26LGKSNQ66MKO5THZCRWLSLG4F5LJEJ :::: NAILARA AMOS :::
-# :: VAJWS7524SK4J5FCLRYKJWKIHAMS7AJFXIQUCX6IYX3DGLVUM4DI :: CODE SIGNATURE ::
+#VGFQGAORLKAWVWB4FHRAUUDFR53NOIVRRNGGREY6VNBE72IZCO6F2QMHP6NE2KGCZEHR2HQPRR7R4
+#::: LSUUAX6QXKYFMWINR4MGMFV22533FVP2GTJM7B3OGK26E464IW3 :::: NAILARA AMOS :::
+# :: FES457EFOME6WGM37PXMGWOSJTNVRA7WMOYG22NQ76BOF6SS7QDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
