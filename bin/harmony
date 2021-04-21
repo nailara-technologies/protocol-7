@@ -9,7 +9,7 @@ use warnings;
 
 BEGIN {
     use English;
-    use Cwd 'abs_path';
+    use Cwd qw| abs_path |;
     my $script_path = abs_path($PROGRAM_NAME);
     ( my $local_lib_path = $script_path )
         =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
@@ -18,12 +18,12 @@ BEGIN {
 
 my $FXI = 202;    ## program return code for asserted FALSE ##
 
-use AMOS::Assert::Truth;    ## <-- expand \ extract routines ..,
+use AMOS::CHKSUM::ELF qw| elf_chksum |;
+use AMOS::Assert::Truth;    ## <-- expand \ use ..,
 
-use Digest::Elf;
 use Getopt::Std;
 use Math::BigFloat;
-use IPC::System::Simple qw| capturex |;
+
 binmode( STDOUT, ':encoding(UTF-8)' );
 
 getopts( 'VNDC:canhqvBl:d:A:T:Zz', \my %option );
@@ -84,13 +84,12 @@ $option{'q'} = 1 if $option{'v'} or $option{'V'};
 my $nailara_bg  = "\e[48;2;9;5;42m";
 my $blacklight  = "\e[38;2;68;39;172m";
 my $nailara_fg  = "\e[38;2;38;46;153m";
-my $error_color = "\e[38;2;197;141;7m";
+my $neon_orange = "\e[38;2;197;141;7m";
 my $neon_green  = "\e[38;2;71;195;6m";
-my $true_color  = "\e[38;2;6;71;195m", my $blink = "\e[6m";
+my $true_color  = "\e[38;2;6;71;195m";
+my $blink       = "\e[6m";
 my $bold        = "\e[1m";
 my $reset       = "\e[0m";
-
-# my $reset     = "\c[[m";
 
 $SIG{'INT'} = sub { print "\b\b"; int_exit() };
 
@@ -115,13 +114,11 @@ say ":\n:: expected numerical check value [ -n option ]\n"
     if $option{'n'}
     and $check_string !~ m|^\-?\d+(\.\d+)?$|;
 
-my $elf_checksum = $option{'n'} ? $check_string : elf_checksum($check_string);
+my $elf_checksum = $option{'n'} ? $check_string : elf_chksum($check_string);
 
 my $bmw_checksum;
-eval {
-    chomp( $bmw_checksum
-            = capturex( qw| bmw -d |, "-$option{'l'}", $check_string ) );
-} if $option{'B'};
+eval { chomp( $bmw_checksum = qx| bmw -d -$option{l} $check_string | ); }
+    if $option{'B'} and defined $option{'l'};
 
 my $accuracy = 17;
 
@@ -244,7 +241,7 @@ sub display_result {
 
     # say "< res-0000.1 > '$result'";
 
-    @asc_enc = ( qw|asc-enc -qM -r0 -C|, $table_name );
+    @asc_enc = ( qw| asc-enc -qM -r0 -C |, $table_name );
 
     push( @asc_enc, qw| -s0 | ) if $status ne 'true';
 
@@ -293,21 +290,10 @@ sub display_result {
     }
 }
 
-sub elf_checksum {
-    my $input    = shift // '';
-    my $checksum = '000000000';
-    return $checksum                     if not length($input);
-    $checksum = Digest::Elf::elf($input) if length($input) <= 47;
-    chomp( $checksum = capturex( 'elf', $input ) )
-        if length($input) > 47
-        or length($checksum) > 9;
-    return sprintf( "%09d", $checksum );
-}
-
 sub int_exit { print $reset; exit(4) }
 
 #.............................................................................
-#HC44EIYMKDK7P2NMETUS366LWDHWLVDJIGAH3BS4RUZPGYGF3X3UKLHSNMNPHJZTSETOQIYFZT5Z2
-#::: FJVPBOGWRICS3DIROSZBE2QE2KUI3BJS5O6CWDI3ATOX46CSYKV :::: NAILARA AMOS :::
-# :: ZWHTZXO3RYL5QA7SUATBIFHTFKG5R3U2NCKYVMYPETC3S6QLGKDQ :: CODE SIGNATURE ::
+#5DBZUYGE27CI6E6KPU25Y3XBYLAHD5W3KXWXTLUC6NGOXBOCZMOEZGZLVMIRH4QUQVYQRAF2YYOIG
+#::: 5JI47P53X2CRTBQJ7GNJDN6R2ABT7RNXVS6COFMHEXQLTCPPULN :::: NAILARA AMOS :::
+# :: IPSS4KZL3RBRVFD36OEDCCDVIQER236DV3RWGRRYSTMO4I3F7IBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
