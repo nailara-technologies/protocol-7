@@ -12,9 +12,12 @@ use strict;
 use English;
 use warnings;
 use Math::BigFloat;
-use List::Util 'uniqint';
+use List::Util 'uniq';
 
 use AMOS::Assert;
+
+our %true  = init_table(qw| true |);
+our %false = init_table(qw| false |);
 
 our @assertion_modes = qw[ 4 7 ];
 
@@ -24,7 +27,9 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
 sub is_true {
     my $calc_str;
-    my $data_ref     = shift;
+
+    my $data_ref = shift;
+
     my $check_as_num = shift // 2;    ## also check as numerical ##
     my $check_as_elf = shift // 1;    ## check elf checksum ##
 
@@ -34,28 +39,27 @@ sub is_true {
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
     $data_ref = \"$data_ref"              if ref($data_ref) eq '';
 
-    my @assertion_modes = uniqint @ARG ? @ARG : @assertion_modes;
+    my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
     return 0                          ## check as mumber when numerical ##
         if $check_as_num == 1
         and AMOS::Assert::numerical($$data_ref)
-        and not calc_true( scalar($$data_ref) );
+        and calc_true( scalar($$data_ref) ) < 0;
 
     return 0                          ## when numerical with no 0 prefix ##
         if $check_as_num == 2
         and AMOS::Assert::numerical_no_prefix($$data_ref)
-        and not calc_true( scalar($$data_ref) );
+        and calc_true( scalar($$data_ref) ) < 0;
 
     return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
 
     ## assert selected elf checksum modes ##
 
     foreach my $elf_mode (@assertion_modes) {
-        if ( not calc_true( elf_chksum( $data_ref, 0, $elf_mode ) ) ) {
+        if ( calc_true( elf_chksum( $data_ref, 0, $elf_mode ) ) < 0 ) {
             return 0 if not wantarray;
             return ( 0, $elf_mode );    ## report mode level of objection ##
         }
-
     }
     ## success : TRUE .: ##
     return 1 if not wantarray;
@@ -65,21 +69,57 @@ sub is_true {
 
 ##[ HELPER ROUTINES ]#########################################################
 
+sub init_table {
+    my $mode = shift // '';
+    die 'expected mode parameter [false|true]' if !length($mode);
+    my $init_sequence = $mode eq 'true' ? qw| 461538 | : qw| 230769 |;
+    my @pairs;
+    foreach my $offset ( reverse 0 .. length($init_sequence) ) {
+        my $num_t = join(
+            '',
+            substr( $init_sequence, $offset,
+                length($init_sequence) - $offset )
+                . substr( $init_sequence, 0, $offset )
+        );
+        push( @pairs, sprintf( "%06d", $num_t - 1 ) => $offset );  ## round ##
+        push( @pairs, sprintf( "%06d", $num_t + 1 ) => $offset );  ## round ##
+        push( @pairs, sprintf( "%06d", $num_t + 0 ) => $offset );  ## trunc ##
+    }
+    return @pairs;
+}
+
 sub calc_true {
     my $check_num = shift;
     error_exit('input not numerical')
         if not AMOS::Assert::numerical($check_num);
 
-    Math::BigFloat->round_mode(qw| trunc |);
+    my $calc_str;
+    my $num_len = length($check_num);
+    my $factor  = join( '', '1', 0 x $num_len );
 
-    ## implement alternative mode for short lengths ## [LLL]
-    my $calc_str = Math::BigFloat->new($check_num)
-        ->bdiv( 13, 13 + length($check_num) );
+    if ( $num_len < 10 ) {
+        $calc_str = sprintf '%.0f', ( $check_num / 13 ) * $factor;
+        substr( $calc_str, 0, length($calc_str) - 6, '' );
+
+    } else {
+        Math::BigFloat->round_mode(qw| trunc |);
+
+        $calc_str
+            = Math::BigFloat->new($check_num)->bmul($factor)
+            ->bdiv( 13, 7 + length($check_num) )->bdstr();
+
+        substr( $calc_str, 0, length($calc_str) - 6, '' );
+    }
 
     ## FALSE ### 230769 ####
-    return 0 if index( scalar $calc_str, qw| 230769 | ) >= 0;
+    return -$false{$calc_str}
+        if exists $false{$calc_str};
 
-    ### TRUE ### 384615 | 00000000 ####
+    ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
+    return 1 + $true{$calc_str}
+        if exists $true{$calc_str};
+
+    ### TRUE ### 0000000 | 1 ####
     return 1;
 }
 
@@ -111,7 +151,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#BTRIMMON3FM6OJQK327EHIDWE5NXV7XE6BSE5ABXBDLQPLD6KY26TR75ZKTVTHTFDEMXUZIC765WY
-#::: MV3F3AZ7MREHMTZXT74DGKJPRKGYZXPRBHUTVKATY5CKFWOPAD5 :::: NAILARA AMOS :::
-# :: ONJB74JPYKQ6YGWBHEZPGJ3CSZHRUSY4ENYMBKJYZ526AOZSKWAY :: CODE SIGNATURE ::
+#7LFVPRS4QX7YKH5JDVTPR2QBRNSYXTTJYTGLLQTJEMDFXW2OIB6LEBCBP3BISUJ7YT7WRIAZ73LSM
+#::: LMGEBSARIZ3MBWHYFGH2O74YZWNZ4B2QRZLOVWT4UY5V4J3FGQP :::: NAILARA AMOS :::
+# :: D77NYS7DQEZNRIHQSGHP6LN3XW4BSQQGQDCN3E4PTWDNANOF6WDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
