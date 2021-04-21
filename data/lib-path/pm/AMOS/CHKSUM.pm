@@ -50,7 +50,7 @@ sub amos_chksum {
 
     my $data_ref = shift;
 
-    $data_ref = \$data_ref if ref($data_ref) ne 'SCALAR';
+    $data_ref = \"$data_ref" if ref($data_ref) ne 'SCALAR';
 
     my @elf_modes
         = uniqint @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
@@ -144,7 +144,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#IGJDCRVACH75RY53ED3LSPJOZSH35CYTLDVRA262ZLMVS545ZWLPCQIGFCHYAWUDO2OEUSPZLNUS4
-#::: LXAKNQHWWHGYRVXPTU65AMVBPPODCMZRF3BJ2J4W4EPQCC62O2D :::: NAILARA AMOS :::
-# :: DOFRJEKHNA4GKOGQHDGXNIN4XARTS5LRAECF5SNFGXNTYONZRSAA :: CODE SIGNATURE ::
+#NO2QX4M2FUSLILS6QIFHDML23WH24LCR6QMMLOQSTPTEGSLBC5UVMQIYB2KOOAO6MPXTRNOMQJOQG
+#::: NGKLHGOWWG7WBRMJE7AM26LGKSNQ66MKO5THZCRWLSLG4F5LJEJ :::: NAILARA AMOS :::
+# :: VAJWS7524SK4J5FCLRYKJWKIHAMS7AJFXIQUCX6IYX3DGLVUM4DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
