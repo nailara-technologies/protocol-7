@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+BEGIN {
+    use Cwd;
+    use strict;
+    use English;
+    use warnings;
+    my $local_lib_path = Cwd::abs_path($PROGRAM_NAME);
+    $local_lib_path =~ s|(/[^/]+){3}$|/data/lib-path/pm|;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+}
+
+use v5.24;
+use AMOS::CHKSUM;
+use AMOS::CHKSUM::ELF;
+use AMOS::CHKSUM::ELF::Inline;
+use List::Util 'max';
+
+my $old_versions = {
+    qw| AMOS::CHKSUM |              => $AMOS::CHKSUM::VERSION,
+    qw| AMOS::CHKSUM::ELF |         => $AMOS::CHKSUM::ELF::VERSION,
+    qw| AMOS::CHKSUM::ELF::Inline | => $AMOS::CHKSUM::ELF::Inline::VERSION
+};
+
+my $new_versions = {
+    qw| AMOS::CHKSUM |              => qx| amos-chksum -VA |,
+    qw| AMOS::CHKSUM::ELF |         => qx| amos-chksum -VL |,
+    qw| AMOS::CHKSUM::ELF::Inline | => qx| amos-chksum -VLS |,
+};
+
+my $o_mlen = max map { length $old_versions->{$ARG} } keys %{$old_versions};
+my $n_mlen = max map { length $new_versions->{$ARG} } keys %{$old_versions};
+
+my $bg  = "\e[48;2;9;5;42m";
+my $fg0 = "\e[38;2;38;46;153m";
+my $fg4 = "\e[38;2;68;39;172m";
+my $TC  = "\e[38;2;6;71;195m";
+my $rst = "\e[0m";
+
+say "$bg$fg0:$rst";
+foreach my $module ( sort keys( %{$old_versions} ) ) {
+    chomp( $new_versions->{$module} );
+    next if $old_versions->{$module} eq $new_versions->{$module};
+    say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$TC%${o_mlen}s $rst"
+        . "$fg4 $bg : $rst$fg4 $bg$TC %-${o_mlen}s $rst$fg4 $bg.:$rst",
+        $old_versions->{$module},
+        $new_versions->{$module};
+}
+say "$bg$fg4:$rst";
+foreach my $module ( sort keys( %{$old_versions} ) ) {
+    chomp( $new_versions->{$module} );
+    next if $old_versions->{$module} eq $new_versions->{$module};
+    system(
+        qw| ncode replace all |,
+        $old_versions->{$module},
+        $new_versions->{$module}
+    );
+}
+say "$bg$TC:.,$rst";
+
+#.............................................................................
+#TKYERMYFQDPUCTHJTGUMYR6FXV4SS722PTH3B6LXJWWY2PVVTLGTBEZPHF5GCDLG4QC7OFT2HWZGS
+#::: LEKTTCWRFHC4BRL5HLUFKTXGKFD3IEMC63QUAAPOFQJBTMUF45T :::: NAILARA AMOS :::
+# :: 3ZDSY4ZRFTMAM5ZICYU23AIV6ZQW76PMNTN4WAKKV62SDTC3OOBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

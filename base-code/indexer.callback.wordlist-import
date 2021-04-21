@@ -41,6 +41,7 @@ say ": $chk_sum : $line";
 
 if ( ++$index_job->{'iterations'} == $file_entries ) {
     $watcher->cancel if $watcher->is_active;
+    delete <indexer.jobs>->{$name_checksum};
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => 'true', 'data' => 'job completed [testing]' }
     );
@@ -49,7 +50,7 @@ if ( ++$index_job->{'iterations'} == $file_entries ) {
 # ,.. }
 
 #.............................................................................
-#CQPY4ZVZ7WMMXRQW4VK376PJAOKWH6MK4PILTO5USYQKXUWZBXGPIJGLIXC3ATDFRA4T2W7SKZSV6
-#::: QTDUW3RH7ZD5O4HUH3B6KZC5ZXWOTDNJ4EVXFXU3ZM5TYJ5WBNY :::: NAILARA AMOS :::
-# :: TS6LX2Z4QVETWHW3Q2WS5J5QKLVDNAO2JWDITOZJRA67YCCEH4CQ :: CODE SIGNATURE ::
+#GKTBXGIL5HMV6C3XRNUBCST77GA2DQJSIDWDLM7DH63QXOVFQBNIVFJ4LR7U2ZFAHUUBVADQM2OOU
+#::: IK6JUMRBZ4NEM4DDSFCH43B27ZVEX255DY4WVCT7IRHSTO72UGG :::: NAILARA AMOS :::
+# :: KICFFJSDONWB66EKSXMYRK75IVDUD4DP6BQ267J7WQPJQA5HFMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
