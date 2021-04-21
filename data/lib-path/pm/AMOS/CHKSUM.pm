@@ -8,6 +8,7 @@ use base qw| Exporter |;
 
 use v5.24;
 use strict;
+use Encode;
 use English;
 use warnings;
 use Crypt::Misc;       ## encode_b32r ##
@@ -18,7 +19,7 @@ use List::Util qw| uniqint |;
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-our $VERSION = qw| AMOS-SLR6AYI |;    ##  amos-chksum -VA  ##
+our $VERSION = qw| AMOS-NXJ7PSY |;    ##  amos-chksum -VA  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -51,6 +52,8 @@ sub amos_chksum {
     my $data_ref = shift;
 
     $data_ref = \"$data_ref" if ref($data_ref) ne 'SCALAR';
+
+    $$data_ref = Encode::decode_utf8( $$data_ref, 8 );
 
     my @elf_modes
         = uniqint @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
@@ -144,7 +147,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#VGFQGAORLKAWVWB4FHRAUUDFR53NOIVRRNGGREY6VNBE72IZCO6F2QMHP6NE2KGCZEHR2HQPRR7R4
-#::: LSUUAX6QXKYFMWINR4MGMFV22533FVP2GTJM7B3OGK26E464IW3 :::: NAILARA AMOS :::
-# :: FES457EFOME6WGM37PXMGWOSJTNVRA7WMOYG22NQ76BOF6SS7QDI :: CODE SIGNATURE ::
+#P7DF73AUJBI2TAVRNWMQYTNSYJBWAUY2MFLIA4X46NBX3XQ57P2QNLMOKW6AKO646MN5OUTYIC5EC
+#::: OLIG4YGIYSP5BNCLKZ4QJ66VY7VORH4WRTFFX7OOUMZ75GUEVXN :::: NAILARA AMOS :::
+# :: 3TWU7BDCGIVCPH5QGMHTUBNID26W7EVJRBK5BTMBC2LMC2QW6CCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
