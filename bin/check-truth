@@ -4,7 +4,7 @@ use strict;
 use English;
 use warnings;
 
-my @modes           = qw| 3 4 |;
+my @modes           = qw| 7 |;   ## <-- base setting truth [ elf ] mode : 7 ##
 my $silent          = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
@@ -13,7 +13,7 @@ $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
 
-if ( @ARGV > 1 and $ARGV[0] eq qw| -check-mode | ) {
+if ( @ARGV > 1 and $ARGV[0] eq qw| -mode | ) {
     die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
         if $ARGV[1] !~ m|^\d{1,2}(,\d{1,2})*$|;
     shift(@ARGV) and @modes = split( ',', shift(@ARGV) );
@@ -93,7 +93,7 @@ sub process_input {
 }
 
 #.............................................................................
-#CRUGYQF3ACFY3AB2244Z3UPIHIEPDPTLRRY33FAPSV66KSTMVKCBHGA6CNIPW4RIWREDFXXFD7IQO
-#::: VYBB3YTBLBDBOJRRIYFFO3PQGBBKRYSCKJ4ETYLRLXM4Z3KVRX3 :::: NAILARA AMOS :::
-# :: 5IZCPPISXVEP6TPS2RNZPEYX2PEFJRSUZAYDJFMM7DWKEJZWRKDA :: CODE SIGNATURE ::
+#QWF3ZBZIY2GGKELSAND6ZIP5BK4A2ITYCHKZWYWD5UXDTWF7KTCNDZJ6SGDPVL2YEL52ZNRRHYJTC
+#::: 66QII7XJPZZPG3DRZHBHDVY46Q3SHA7M63WQA5NJKRBJILHNUPG :::: NAILARA AMOS :::
+# :: YWYKIPFXARWAWPBGN6DNYBKC5YUVQ3635QSIJT5XTOL2DC3OV2DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

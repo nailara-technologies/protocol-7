@@ -95,9 +95,10 @@ if ( defined $option{'V'} ) {
     } elsif ( $option{'V'} =~ m|^LS?$| ) { ## elf_sum() source code version ##
 
         $data_str = elf_chksum(
-            sprintf( '%sELF-INLINE-CHKSUM%s', chr(255), chr(0) ) );
+            sprintf( '%sAMOS-ELF-CHKSUM%s', chr(255), chr(0) ) );
 
-        my $elf_out_ver = sprintf( qw| ELF-%s |, amos_chksum($data_str) );
+        my $elf_out_ver
+            = sprintf( qw| AMOS-INLINE-ELF-V-%s |, amos_chksum($data_str) );
 
         if ( $option{'V'} eq 'L' ) {    ## elf_sum() output test checksun ##
 
@@ -105,9 +106,9 @@ if ( defined $option{'V'} ) {
 
         } else {                        ## version of elf_sum() source code ##
 
-            $data_str = "\n /* $elf_out_ver */\n\n" . inl_elf_src();
+            $data_str = "  /* $elf_out_ver */\n\n" . inl_elf_src();
 
-            say sprintf( qw| ELF-%s-VLS |, amos_chksum($data_str) )
+            say sprintf( qw| ELF-%s-LS |, amos_chksum($data_str) )
                 if not $option{'v'};
         }
     } else {
@@ -236,7 +237,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#GCQULLKMXH4CZAL5QCL6UIVZAKP3MFTM36GJKY7VEI2CGKWIK3NO4W532CJEXF3L7KWBF3ACTM6JQ
-#::: LGDBBZI6EASLWM4HUVA5N6RQGIOO6K4BGNDAPLXCJIANML5A67K :::: NAILARA AMOS :::
-# :: NP6EHSMZ6G7C7LODJDO6OYC46CLY4MOHJKHY4OIQ6OQQVWZVLWBQ :: CODE SIGNATURE ::
+#JJK5TJHA6ODPPRST6GZ7YZFRFPAGZRLE7Y5KX5BOW44L2GGMZSKLYNTGUP26KQAGEH2JPOWUDFHGA
+#::: JFYPZIAFHBCV3DKMCDRQVH645DI47GLXSEVPPVLP4TBIPYM6Y57 :::: NAILARA AMOS :::
+# :: RJKZZU2MJ3I445GYBH4TQSX7OYDMBDTAHRWEE7ROLBI3AALUA2CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
