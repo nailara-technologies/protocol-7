@@ -5,7 +5,7 @@ use English;
 use warnings;
 use Getopt::Std;
 use Digest::BMW;
-use List::Util qw| uniqint |;
+use List::Util 'uniqint';
 
 ####           ####
 ##  amos-chksum  ##
@@ -34,6 +34,7 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
 ##[ RUNTIME OPTIONS ]#########################################################
 
 ## -q ## quiet output \ value only \
+## -s ## STDIN data input mode
 ## -n ## return checksum as numerical value
 ## -v ## visualize additional checksum data
 #
@@ -55,10 +56,12 @@ my $TC  = "\e[38;2;6;71;195m";
 
 ##[ INITIALIZATION \ OPTIONS ]################################################
 
+my $data_str;
+
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( 'vnqV:e:', \my %option );
+getopts( 'vsnqV:e:', \my %option );
 
 if ( defined $option{'e'} ) {
     my @elf_modes_override;
@@ -85,39 +88,47 @@ if ( defined $option{'e'} ) {
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
     if ( $option{'V'} eq 'A' ) {    ## AMOS checksum ouput test version ##
-        say sprintf(
-            "AMOS-%s",   ## --> harmony -Ty  ## 2V0 RмѕU *4L4 \ Жй5ЛB:лЖэН! ##
-            amos_chksum( sprintf( '%sAMOS-CHKSUM%s', chr(255), chr(0) ) )
-        );
+
+        $data_str = sprintf( '%sAMOS-CHKSUM%s', chr(255), chr(0) );
+        say sprintf( "AMOS-%s", amos_chksum($data_str) ) if not $option{'v'};
 
     } elsif ( $option{'V'} =~ m|^LS?$| ) { ## elf_sum() source code version ##
 
-        my $calc_input = sprintf( '%sELF-INLINE-CHKSUM%s', chr(255), chr(0) );
+        $data_str = elf_chksum(
+            sprintf( '%sELF-INLINE-CHKSUM%s', chr(255), chr(0) ) );
 
-        my $elf_output  = elf_chksum($calc_input);    ## я80л <>З Сдєм D0 ##
-        my $elf_out_ver = sprintf( qw| ELF-%s |, amos_chksum($elf_output) );
+        my $elf_out_ver = sprintf( qw| ELF-%s |, amos_chksum($data_str) );
 
         if ( $option{'V'} eq 'L' ) {    ## elf_sum() output test checksun ##
 
-            say $elf_out_ver;
+            say $elf_out_ver if not $option{'v'};
 
         } else {                        ## version of elf_sum() source code ##
-            say sprintf(
-                qw| ELF-%s-L |,         ## *ЙА VГH:Й \ кЌ;`йQкIM3N K9mАд ##
-                amos_chksum( "$elf_out_ver\n" . inl_elf_src() )
-            );
+
+            $data_str = "\n /* $elf_out_ver */\n\n" . inl_elf_src();
+
+            say sprintf( qw| ELF-%s-VLS |, amos_chksum($data_str) )
+                if not $option{'v'};
         }
     } else {
         die ":\n: version option not recognized : [ A | L | LS ]\n:\n";
     }
-    exit;
+    exit if not $option{'v'};
 }
 
-warn "expected input string for AMOS-checksum calculation\n" if not @ARGV;
+warn "expected input string for AMOS-checksum calculation\n"
+    if not defined $data_str
+    and not $option{'s'}
+    and not @ARGV;
 
 $AMOS::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
 
-my $data_str = join( ' ', @ARGV );
+if ( not defined $data_str and not $option{'s'} ) {   ## COMMAND LINE INPUT ##
+    $data_str = join( ' ', @ARGV );
+
+} elsif ( not defined $data_str ) {    ## STDIN INPUT ## [ amos-chksum -s ]
+    $data_str = join( '', <STDIN> );
+}
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -155,11 +166,20 @@ if ( $option{'v'} ) {
         : $ng
     );
 
+    my $header_string
+        = ( $data_str =~ m|\n| )
+        ? sprintf(
+        "$bg${TC}::$rst\n\n%s\n$bg${TC}::$rst %s",
+        join( '',
+            map {"   $bg$COLOR{'input'}$ARG$rst\n"} split "\n", $data_str ),
+        TRUE_FALSE($data_str)
+        )
+        : sprintf( "$fg  input-string  : %s",
+        TRUE_FALSE($data_str) . " $bg$COLOR{'input'} $data_str $rst$fg " );
+
     map {say} (
         '',
-        "$fg  input-string  : "
-            . TRUE_FALSE($data_str)
-            . " $bg$COLOR{'input'} $data_str $rst$fg ",
+        $header_string,
         '',
         "$fg   reverse-elf  :  ${AMOS::CHKSUM::elf_bits}",
         "$fg    bmw-R-bits  :  ${AMOS::CHKSUM::bmw_b_R}",
@@ -201,7 +221,7 @@ sub error_exit {
     $emsg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
     $emsg =~ s|(*plb:\w): (\S+)|$bl : $no$LAST_PAREN_MATCH|;
 
-    say "$bl:\n: $no$emsg$bl\n:$rst";
+    say "$rst$bl:\n: $no$emsg$bl\n:$rst";
     exit(110);
 }
 
@@ -211,12 +231,12 @@ sub TRUE_FALSE {
     my $C = shift;
     return '' if not length $C or $C =~ m|^\e|;
     is_true( $C, 1, 1, @modes )
-        ? "${fg}:: ${TC}TRUE$fg ::"
-        : ":: ${ng}FALSE$fg ::";
+        ? "${fg}:: ${TC}TRUE$fg ::$rst"
+        : "${fg}:: ${ng}FALSE$fg ::$rst";
 }
 
 #.............................................................................
-#XWMJRSORRRZFR72XBHEH5VG7BRHD53Y4DIPODOQ4HAG4FI33MHHDTPMLKQI3OIGODSCHIIRZJ5ZQ2
-#::: HD47GVJI2TLRGEV2D7ZBX32WA77I4NKBVWNMCAQJMUCQSF6OOD4 :::: NAILARA AMOS :::
-# :: GVOQWGBHAHAREHJ2UXDK5T2FW7V5W4ZXSUCP5264PP2Y77DUMKCA :: CODE SIGNATURE ::
+#GCQULLKMXH4CZAL5QCL6UIVZAKP3MFTM36GJKY7VEI2CGKWIK3NO4W532CJEXF3L7KWBF3ACTM6JQ
+#::: LGDBBZI6EASLWM4HUVA5N6RQGIOO6K4BGNDAPLXCJIANML5A67K :::: NAILARA AMOS :::
+# :: NP6EHSMZ6G7C7LODJDO6OYC46CLY4MOHJKHY4OIQ6OQQVWZVLWBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
