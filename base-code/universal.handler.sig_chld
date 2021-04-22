@@ -15,46 +15,52 @@ do {
         delete <universal.running>->{$child_name};
         <[base.log]>->(
             0,
-            "<< SEGMENTATION FAULT >> \\ zenka '$child_name' [ PID $child_pid ]"
+            ':: SEGMENTATION FAULT :: \\ zenka '
+                . "'$child_name' [ PID $child_pid ]"
         ) if $e_sig == 11;
 
-        ## record web-browser segfault [ crash mitigation ] ##
-        if ( $e_sig == 11 and $child_name eq 'web-browser' ) {
+        ## record web-browser segfaults [ crash mitigation ] ##
+        if ( $e_sig == 11 and $child_name eq qw| web-browser | ) {
             my $zenka_subname = <system.zenka.subname>;
             my $subname_b32
-                = ( defined $zenka_subname and length($zenka_subname) )
+                = ( defined $zenka_subname and length $zenka_subname )
                 ? '.' . encode_b32r($zenka_subname)
                 : '';
-            my $file_name = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
+            my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
             <[file.put]>->( $file_name, "$child_pid\n" )
-                or warn("$file_name : \l$OS_ERROR");
-            chmod( 0644, $file_name ) or warn("$file_name : \l$OS_ERROR");
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
+            chmod( 0644, $file_name )
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
         }
 
     } elsif ($child_pid) {
         push( @names, $child_pid );
-        <[base.log]>->( 0, "<< SEGMENTATION FAULT >> [ PID $child_pid ]" )
+        <[base.log]>->( 0, ":: SEGMENTATION FAULT :: [ PID $child_pid ]" )
             if $e_sig == 11;
     }
 } while $child_pid > 0;
 
 <[base.log]>->(
     0,
-    sprintf( "<< universal-child %s crashed, restarting.., >>",
-        join( ' and ', @names ) )
+    sprintf( '<< universal-child %s crashed, restarting.., >>',
+        join( qq| and |, @names ) )
 );
 <universal.restarting_zenka> //= 0;
 <[event.add_timer]>->(
     {   'after'   => <universal.cfg.self_restart_timeout> //= 4.2,
-        'handler' => 'universal.self_restart'
+        'handler' => qw| universal.self_restart |
     }
 ) if !<universal.restarting_zenka>;
 <universal.restarting_zenka> = 1;
-$SIG{'CHLD'} = 'IGNORE';
+
+$SIG{'CHLD'} = qw| IGNORE |;
+
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 #.............................................................................
-#ZBNZKET4XYAOCWEGQAI6WQLPNRF2STWNUBRUQQZOZC4CQIEMGHIOZ26QF3F5UPE4TFUV5HCXIS4B4
-#::: JLT3WUG2RTLTZ26ZRQCPNLU57FDKBNLXHOFUI42L2YCUZDVYTU6 :::: NAILARA AMOS :::
-# :: SPZYXSPD2U56NBTWTHSM4QDVXH2DFNIR4A4U6CSQZOKPCFMBGOAA :: CODE SIGNATURE ::
+#6QGX6NPOL7NE6JRLSTBMZ53T72ATCERXENLWDTS5GG6RI55MS5FS2HOXXYHFNNP73CTR7MNB5D34K
+#::: NHUFTVJQ6TB4Y4YHJWUDLIKQTL3CCJNI23BMUR6Z7GSGUOCZLKS :::: NAILARA AMOS :::
+# :: N6R476RSAIKCRO4YVVZADFU5TJOU6TQ5KYTROSZF5C3X3PF4QKBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
