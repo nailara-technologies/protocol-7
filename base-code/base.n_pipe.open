@@ -2,74 +2,70 @@
 
 # name  = base.n_pipe.open
 
-my $path        = shift // '';     ## auto-create ? ##
+my $fifo_path   = shift // '';     ## auto-create ? ##
 my $permissions = shift // 0640;
 my $reconnect   = shift // 1;
 my $overwrite   = shift // 1;
 
-warn 'expected path parameter for named pipe creation <{C1}>'
+warn qq|expected path parameter for named pipe creation <{C1}>|
     and return undef
-    if !length($path);
+    if !length($fifo_path);
 
-if ( -e $path ) {
+if ( -e $fifo_path ) {
     if ( not $reconnect and not $overwrite ) {
-        warn 'named pipe path already exists [ no clean-up ? ] <{C1}>';
+        warn qq|named pipe path already exists [ no clean-up ? ] <{C1}>|;
         return undef;
     }
-    my $stat_ref = File::stat::stat($path);
+    my $stat_ref = File::stat::stat($fifo_path);
 
     if (not $stat_ref->cando( S_IWUSR(), $UID )    ## no write perm ##
-        or $stat_ref->cando( S_IWGRP(), $GID )
+        and not $stat_ref->cando( S_IWGRP(), $GID )
     ) {
         warn 'named pipe path already exists and no write permission <{NC}>';
-        warn "$path <{C1}>";
+        warn "$fifo_path <{C1}>";
         return undef;
     }
-    if ( not $stat_ref->cando( S_IFIFO() ) ) {     ## S_ISFIFO ? ##
-        warn "named pipe path '$path' is not a FIFO <{C1}>";
+    if ( not $stat_ref->cando( S_IFIFO() ) ) {    ## S_ISFIFO ? ##
+        warn "named pipe path '$fifo_path' is not a FIFO <{C1}>";
         return undef;
     }
-    if ( not $reconnect and $overwrite and not unlink($path) ) {    ## rm ##
+    if ( not $reconnect and $overwrite and not unlink($fifo_path) ) { ## rm ##
         my $err_str = <[base.format_error]>->( $OS_ERROR, -1 );
-        warn 'cannot unlink %s : %s <{C1>', $path, $err_str;
+        warn 'cannot unlink %s : %s <{C1>', $fifo_path, $err_str;
         return undef;
     }
 } else {    ## create named pipe when not exists ##
 
-    if ( system( qw| /bin/mknod |, $path, qw| p | ) != 0 ) {    ## mknod ##
+    if ( system( qw| /bin/mknod |, $fifo_path, qw| p | ) != 0 ) {  ## mknod ##
         my $err_str = <[base.format_error]>->($OS_ERROR);
-        warn "<mknod> $path : $err_str <{C1>";
+        warn "<mknod> $fifo_path : $err_str <{C1>";
         return undef;
     }
-    if ( not -p $path ) {                                       ##  exists? ##
-        warn 'cannot create fifo file path <{C1}>';
+    if ( !-p $fifo_path ) {    ##  exists? ##
+        warn qq|cannot create fifo file path <{C1}>|;
         return undef;
     }
-    if ( not chmod( $permissions, $path ) ) {                   ## chmod ##
+    if ( not chmod( $permissions, $fifo_path ) ) {    ## chmod ##
         my $err_str = <[base.format_error]>->($OS_ERROR);
-        warn "$path : chmod $permissions : $err_str <{C1}>";
+        warn "$fifo_path : chmod $permissions : $err_str <{C1}>";
         ## in case of permission error, remove again ##
-        unlink($path) or warn "left existing [ $path ]";
+        unlink($fifo_path) or warn "left existing [ $fifo_path ]";
         return undef;
     }
 }
 
 if ( not $reconnect ) {
-
-    ##  register $path for removal ..,  ##  [LLL]
+    push(
+        @{<system.init_reports>},
+        {   'param'          => $fifo_path,
+            'descr'          => qq|registering fifo pipe..,|,
+            'target_command' => qw| nroot.report-temp-path |,
+        }
+    );
 }
-
-my $fifo_pipe_fh;
-if ( not open( $fifo_pipe_fh, '>', $path ) or not fileno $fifo_pipe_fh ) {
-    my $err_str = <[base.format_error]>->($OS_ERROR);
-    warn "cannot open FIFO file for writing $err_str <{C1}>";
-    return undef;
-}
-
-return $fifo_pipe_fh;    ## success ##
 
 #.............................................................................
-#CEZBWILCIBIUPXPF5S53C4OUL2DAISBTFUOCOEUWDV63KU4DYVFZ7RICX2QCIWLMVQJI7NYEPVHPQ
-#::: P6GGQXCF6IQI7WXYG2KES47YLH5LWKY5XZDIYE7SW4J27NLWDHN :::: NAILARA AMOS :::
-# :: MMGIOHCHG47XX6YYRLFOMZCJJBPWKPC4X2573USTUILMCNTFGSCY :: CODE SIGNATURE ::
+#FNILMJUYLBJVHW2YP3WBKLU2ZX4VSMLZZGYSNZB7KXUVEURZYAD4DDFTB7PY4KGP5GJTWEGFIX2SK
+#::: FNF3SOEEMHWCGOW5YT6XWUOLWX6M4R7ZDKB6H64TGOSX4AMIYMW :::: NAILARA AMOS :::
+# :: Z2OA5O5FFLM3ECPZZ3FDRUPKMZIZNUYDZJP32UDFFIQA7PIIQMDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
