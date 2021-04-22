@@ -125,7 +125,8 @@ sub prepare_subs {
     $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1
         if defined $th_ref and ref($th_ref) eq 'ARRAY';
     $th_ref = [ sub { time() }, sub { select( undef, undef, undef, $_[0] ) } ]
-        if not defined $th_ref
+        if $EVAL_ERROR
+        or not defined $th_ref
         or ref($th_ref) ne 'ARRAY';
     $code{'base.time'}  = \&{ $th_ref->[0] };
     $code{'base.sleep'} = \&{ $th_ref->[1] };
@@ -741,15 +742,18 @@ sub prepare_subs {
 
         ## initializing early zenka buffer capture ###
         $data{'system'}{'start'}{'zenka-buffer'} = [];
-        my $seperator_len = 18 + length( $data{'system'}{'zenka'}{'name'} );
+        my $zenkaname = $data{'system'}{'zenka'}{'name'};
+        my $s_version = $data{'protocol-7'}{'src-ver'};
+        my $tenki
+            = length($s_version) > ( length("zenka $zenkaname") )
+            ? sprintf ' %s,',
+            '.' x ( length($s_version) - length("zenka $zenkaname") - 1 )
+            : '';
         map { push( @{ $data{'system'}{'start'}{'zenka-buffer'} }, $ARG ) } (
-            join( ' ',
-                $code{'base.anum_log_time'}->(),
-                1, '_' x $seperator_len ),
             $code{'base.anum_log_time'}->()
-                . " 1 STARTUP 'zenki/$data{system}{zenka}{name}'/",
+                . sprintf( ' 0 . startup zenka %s%s', $zenkaname, $tenki ),
             $code{'base.anum_log_time'}->()
-                . " 1 VERSION '$data{'protocol-7'}{'src-ver'}'"
+                . sprintf( ' 0 . version %s', $s_version )
         );
     };
 
@@ -886,7 +890,7 @@ sub prepare_subs {
                 ++$purge_count
                     and $data{'code'}{$ARG}{'status'} = 'purged'
                     and
-                    eval { undef &{ delete $code{$ARG} } }; # <--improve [LLL]
+                    eval { undef &{ delete $code{$ARG} } }; #<-- improve [LLL]
 
                 #  #[ debug ]##
                 #     and $code{$ARG} = eval "sub { print STDERR \"\n"
@@ -2022,7 +2026,7 @@ END {
 }
 
 #.............................................................................
-#3756A2CM7LDS6RZJCIRYCO3E7W4IE46YMCHUGIKEXH42Y5SSA2IJNAXCBYTYP5JCNPON2K2L3JZVQ
-#::: GXQGJCNECJRWX3SIC7PY46HAXZT3K2LUCUAUY6UZQ5XHIIER53K :::: NAILARA AMOS :::
-# :: 4ZTBQ25U4L2YQJMVAI6QNLTIQAGFHP3UNAMPSEFLAKWNOJQSFACI :: CODE SIGNATURE ::
+#HHJ27K7DUOQPFQRPRCQZAKDGWSCHSBBR2Y3M3V7NO5CYBMJYY6QP5S4BXYDZYFC7OH4N36N3OMG2Y
+#::: E5YTJVZ2V634MR3VCAYZCUHJURVP6NINZRFZRHEKVJAQM5KAFWX :::: NAILARA AMOS :::
+# :: NVGEAQUVG6XUKSD5AMF44MFLN2HTS5X6T6EJ64ZIJUKYSTOD5WDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
