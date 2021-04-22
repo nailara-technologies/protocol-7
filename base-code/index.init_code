@@ -1,0 +1,52 @@
+# >:]
+
+# name = index.init_code
+
+<[base.perlmod.autoload]>->('Digest::BMW');
+<[base.perlmod.autoload]>->('Linux::Inotify2');
+<[base.perlmod.autoload]>->('Crypt::PRNG::Fortuna');
+<[base.perlmod.autoload]>->( 'File::Path', qw| make_path | );
+
+<[base.perlmod.autoload]>->( 'AMOS::Assert::Truth', qw| is_true | );
+
+<[base.perlmod.load]>->(
+    'Crypt::Misc',
+    qw(
+        decode_b32r encode_b32r
+        decode_b58s encode_b58s
+        read_rawfile write_rawfile
+    )
+);
+
+<index.permissions.index_root_path> //= 0700; ## zenka set-up less restrictive
+
+<index.jobs> //= {};
+
+<list.index-jobs> = {
+    'var'   => 'data',
+    'key'   => 'index.jobs',
+    'mask'  => '<key>:job-id type',
+    'align' => {
+        'name' => 'left',
+        'type' => 'center-2',
+    },
+    ##  'filters' => {
+    ##      'status'  => 'base.parser..,',
+    ##      'session' => 'base.parser..,'
+    ##  },
+    'descr' => 'active [running] index jobs'
+};
+
+<index.data_paths> //= {};
+
+my $create_perm = <index.permissions.index_root_path>;
+map { <[file.make_path]>->( $ARG, $create_perm, <system.amos-zenka-user> ) }
+    ( <index.path.index-cfg>, <index.path.index-files> );
+
+0;
+
+#.............................................................................
+#FZFDQTEDBHSLOG4NKXEJYFRWRVF32TWSBX2ZG55JFHIKMK446BWEWE4ECHVHHDSV2TIYHCURUBDIE
+#::: YXIPYF5ZOHBQJWYJ7KTK5VJYYKCYKREDP7DIHI6WOQJIIWRJBDA :::: NAILARA AMOS :::
+# :: FKKWAP5ACBH7U7PNZBHOQP6SOTTEVM2HIRME63W3COQ7XPG6MKCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

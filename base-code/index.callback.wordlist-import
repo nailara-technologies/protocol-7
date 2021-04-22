@@ -1,0 +1,85 @@
+# >:]
+
+# name  = index.callback.wordlist-import
+
+my $watcher         = shift->w;          ## callback idle watcher
+my $name_checksum   = $watcher->data;    ## wordlist name elf-checksum
+my $index_job       = <index.jobs>->{$name_checksum};   ## callback data href
+my $reply_id        = $index_job->{'reply_id'};         ## protocol-7 reply id
+my $iteration       = $index_job->{'iterations'};       ## callback call count
+my $stop_requested  = $index_job->{'stop-requested'};   ## abort import job ?
+my $job_type        = $index_job->{'job-type'};         ## 'wordlist-import'
+my $index_data_path = $index_job->{'data-path'};     ## where to store results
+my $wordlist_path   = $index_job->{'wordlist-path'}; ## only for reference
+my $language_code   = $index_job->{'language-code'}; ## 3 letter language code
+my $file_handle  = $index_job->{'file-handle'};    ## open wordlist-path file
+my $file_aref    = $index_job->{'file-aref'};      ## tied wordlist array ref.
+my $file_entries = $index_job->{'file-entries'};   ## wordlist word-count
+
+my @elf_modes;                                     ## indexing elf mode[s] ##
+@elf_modes = @{ $index_job->{'elf-modes'} }
+    if defined $index_job->{'elf-modes'}
+    and ref( $index_job->{'elf-modes'} ) eq 'ARRAY';
+
+if ($stop_requested) {    ## logging required .., ##
+    $watcher->cancel if $watcher->is_active;
+    delete <index.jobs>->{$name_checksum};
+    ## clean-up incomplete results ? ##
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        { 'mode' => 'false', 'data' => 'job aborted [ admin request ]' }
+    );
+}
+
+chomp( my $word_str = $file_aref->[$iteration] );    ## check if word ## [LLL]
+
+$index_data_path =~ s|/+$||;    ## clean trailing slashes ##
+
+my $abs_path = sprintf( '%s/%s', $index_data_path,
+    <[index.gen_path]>->( \$word_str ) );
+
+if ( !-d $abs_path ) {
+    eval { make_path( $abs_path, { chmod => 0755 } ) };
+    if ($EVAL_ERROR) {
+        my $err_msg = <[base.format_error]>->($EVAL_ERROR);   ## OS_ERROR ? ##
+        <[base.log]>->( 0, "[ index job $index_job ] $err_msg" );
+        $watcher->cancel if $watcher->is_active;
+        delete <index.jobs>->{$name_checksum};
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {   'mode' => 'false',
+                'data' => 'wordlist import aborted with errors [ logged ]'
+            }
+        );
+
+    }
+}
+
+my $start_existence = 0;
+INCREMENT:
+my $link_path = sprintf( '%s/%03d:LANG:%s', $abs_path, $start_existence,
+    $language_code );
+#####
+++$start_existence   and goto INCREMENT
+    if -e $link_path and readlink($link_path) eq $word_str;
+#########
+
+if ( !-l $link_path ) {
+    symlink( $word_str, $link_path )
+        or warn <[base.format_error]>->( $OS_ERROR, -1 );
+}
+### else [ report, collect ] ###
+
+if ( ++$index_job->{'iterations'} == $file_entries ) {
+    $watcher->cancel if $watcher->is_active;
+    delete <index.jobs>->{$name_checksum};
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'true', 'data' => 'wordlist import completed' }
+    );
+}
+
+#.............................................................................
+#TROT7C4OTQKLZVV6XT5S723YEIQZGZ3YKP72WV7RDVGHUS2HN6LZXUJGZSIIST3ZINDNPQL2MUCHW
+#::: L2IEU53JRHDFPS67SVOTFNCOO4ZQ35TKB5SL5BKU6RNZJMQKQG6 :::: NAILARA AMOS :::
+# :: SOG6RHUSGOPTZLZNFCCO4QL4LSE56PXO7QPLTFU3E7BF6KD2YQBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
