@@ -2,10 +2,16 @@
 
 # name  = file-matrix.init_code
 
+my $usock_dir = <system.path.unix_socket_dir> //= qw| /var/run/.7/UNIX |;
+
+<[file.make_path]>->( $usock_dir, 0775, <system.amos-zenka-user> );
+
+<file-matrix.permissions.amos_chksum_socket> //= 0664;
+
 return 0;
 
 #.............................................................................
-#TN3UDGS5PX2DCA2XOEOWELBWPOO5SLY6BVAJYSHXRT3ZNVTB2A7G2H3ZQIIT2UK6EOWF2VZEXPJPG
-#::: GRKLPB2NNNX32PFQDYHEXX5GPKPKGQ6Q4G52CBIBMA6V2PRUVXB :::: NAILARA AMOS :::
-# :: GK27AJUZGXSAQV6PANA434GZ5CTNOUHRVDWZYFVTKUB5LB5WTAAQ :: CODE SIGNATURE ::
+#LAR7EKD7RL2JEQDLYQYAARHWIRORDAEDDI5PE5TVJCYY4IUKMBUIC6H3ETPD57F5BI5LI3KR4QZKA
+#::: KUN7KA2LBHKSYZNDP7T7JRQA7YA2M223OKMA6V4YK7B5XYM6CCP :::: NAILARA AMOS :::
+# :: 3SQHUNKSOZGPBOU5EOUC2LY6NYRICUBHMT73T7GUJO5PQRQZ66CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,27 +6,30 @@
 
 if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
 {
-    <[base.log]>->( 1, "..starting 'unlink' child..," );
-    ( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
+    my $zenka_name_chars = qr|0-9A-Za-z_\-|;
+    <[base.log]>->( 1, ': : starting unlink-child ..,' );
+    ( my $zenka_name = <system.zenka.name> ) =~ s|[^$zenka_name_chars]+||g;
 
     my $child_code = <<~ "EOT";
-    use strict; use warnings; use English;
+    use v5.24; use strict; use warnings; use English;
     map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
-    \$PROGRAM_NAME = q|$zenka_name-<root>-'unlink'-child|;
-    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) }
+    \$PROGRAM_NAME = q|$zenka_name-<root>-unlink-child|;
+    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) if -f \$file }
     EOT
 
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
-        '-e', $child_code )
-        || die "unable to start perl unlink child process [ \l$OS_ERROR ]";
-    <[base.log]>->(
-        2, ": started unlink child [pid=" . <process.unlink_child.pid> . "]"
+        qw| -e |, $child_code )
+        || die sprintf( 'unable to start perl unlink child process [ %s ]',
+        <[base.format_error]>->($OS_ERROR) );
+    <[base.logs]>->(
+        2, qq|: started unlink child [pid=%s]|,
+        <process.unlink_child.pid>
     );
 }
 
 #.............................................................................
-#JC3PFKFX36JALQQR5OJCHQR65KD7MSMYW4IHB4POD2BONASBZ2ETPP4VPHRCJKHTKVI5NL72V7EU2
-#::: O6UASXJMPMAD3O6KBP5DG7TIQOMMHBGL2YOHOWPLPMTX5M2I43B :::: NAILARA AMOS :::
-# :: 5VOZ4BBTVE5HYEYJYM6TUP6QPAMURXNGTEUW33HU5VFZI46IFMBA :: CODE SIGNATURE ::
+#4CCNXISX7I2YPPJZKJP5DAICXHWDFMDFHG6UOVUEYBKOAT7XDUMWDIEJGMUHGAMXWDJ34DDH2PLX4
+#::: IQKIALJ5OVGWBWEDY6AFEB5QR5WVYB4QSI3HY3TW7P5KENL3X75 :::: NAILARA AMOS :::
+# :: VDIVOPRHNYZU6KOCP4YWVDZS5GN57TGELO7S6HR6KMCCH7I6BQDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
