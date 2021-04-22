@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-/* LLL: needs at least a timeout, cut param at endlines, read line or RAW <n> */
+/* LLL: needs at least timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/var/tmp/.7/UNIX/HKLAKCI";        /* or ENV{'P7C_UNX'} */
+char * socket_path = "/var/run/.7/UNIX/HKLAKCI";      /* or ENV{'P7C_UNX'} */
 char * src_bmw_b32 = "[BMW_FILE_CHkSUM]";
 
 char* concat(const char *s1, const char *s2)
@@ -41,7 +41,7 @@ int main( int argc, char * argv[] ) {
         socket_path = nailara_socket;
     }
 
-    char * auth_user = concat("unix-",unix_user);
+    char * auth_user = concat( "unix-", unix_user );
     const char close_cmd [] = "close\n";
 
     if ( argc < 2 ) {
@@ -56,15 +56,15 @@ int main( int argc, char * argv[] ) {
            {
                 if (argv[i][2] == 'q') // -dq == checksum only
                 {
-                    printf("%s\n", src_bmw_b32);
+                    printf( "%s\n", src_bmw_b32 );
                 } else {
-                    printf(":\n: nlr.c :. %s .:\n:\n", src_bmw_b32);
+                    printf( ":\n: %s.c :. %s .:\n:\n", argv[0], src_bmw_b32 );
                 }
                 return 0;
            }
            else
            {
-                printf(
+                fprintf( stderr,
                   "\n  << option not valid >>  [ -d[q] for BMW checksum ]\n\n"
                 );
                 return 2;
@@ -73,10 +73,11 @@ int main( int argc, char * argv[] ) {
     }
 
     // debug:
-    // printf(": unix_user = %s\n: auth_user = %s\n", unix_user, auth_user);
+    // fprintf( stderr,
+    //     ": unix_user = %s\n: auth_user = %s\n", unix_user, auth_user );
 
     /* prepare authentication */
-    asprintf(&auth_str, "select unix\nauth %s\n", auth_user);
+    asprintf( &auth_str, "select unix\nauth %s\n", auth_user );
 
     /* prepare command string */
     int i;
@@ -94,7 +95,7 @@ int main( int argc, char * argv[] ) {
 
     /* prepare socket */
     if ( ( socket_fd = socket( AF_UNIX, SOCK_STREAM, 0 ) ) == -1 ) {
-        perror("[!] socket error");
+        perror("<< socket error >>");
         exit(-1);
     }
 
@@ -104,8 +105,9 @@ int main( int argc, char * argv[] ) {
     strncpy( addr . sun_path, socket_path, sizeof( addr . sun_path ) - 1 );
 
     /* connect to socket */
-    if (connect( socket_fd, ( struct sockaddr * ) & addr, sizeof(addr) ) == -1){
-        printf( "< connection not successful > %s [unix:%s]\n",
+    if (connect(socket_fd, ( struct sockaddr * ) & addr, sizeof(addr)) == -1)
+    {
+        fprintf( stderr, "< connection not successful > %s [unix:%s]\n",
                 strerror(errno), socket_path );
         exit(-1);
     }
@@ -118,7 +120,9 @@ int main( int argc, char * argv[] ) {
     while ( match < 2 ) {
         result = recv( socket_fd, &byte, 1, 0 );
         if ( result < 0 ) {
-            printf( "[!] error during authentication : %s\n", strerror(errno) );
+            fprintf( stderr,
+                "<< error during authentication : %s >>\n", strerror(errno)
+            );
             exit(-1);
         }
         if ( byte == '\n' ) { match++; }
@@ -144,7 +148,8 @@ int main( int argc, char * argv[] ) {
                 free(cmd_str);
 
                 /* read and print output until connection is closed */
-                while ( ( result = read( socket_fd, buf, sizeof(buf) ) ) > 0 ) {
+                while ( ( result = read( socket_fd, buf, sizeof(buf) ) ) > 0 )
+                {
                     if ( close_sent == 0 ) {
                         /* receiving output, send 'close' command */
                         write( socket_fd, close_cmd, strlen(close_cmd) );
@@ -156,7 +161,8 @@ int main( int argc, char * argv[] ) {
             }
         }
     } else if ( result < 0 ) {
-        printf( "<< ! >> error on select() call : %s", strerror(errno) );
+        fprintf( stderr, "<< error on select() call : %s >>",
+            strerror(errno) );
     }
     return 0;
 }
