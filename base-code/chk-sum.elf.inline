@@ -9,9 +9,11 @@ my $elf_mode  = 4;      ## base elf mode ##
 if ( ref( $ARG[0] ) eq 'SCALAR' ) {
     $input_ref = shift;
     $start_sum = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
-    $elf_mode  = shift if @ARG and $ARG[0] =~ m|^\d{2}$|;
+    $elf_mode  = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$|;
 
-    warn '< elf.inline > option not recognized [ ' . shift . ' ] <{C1}>'
+    warn '< elf.inline > option not expected [ '
+        . shift
+        . ' ] redundant mode param ? <{C1}>'
         if @ARG;
 
 } elsif ( @ARG and ref( $ARG[0] ) eq '' ) {    ## string input \ no mode ., ##
@@ -32,7 +34,7 @@ return
     sprintf( '%09d', inline_elf( $elf_mode, $start_sum, $$input_ref, $len ) );
 
 #.............................................................................
-#FDLGH2K5XRTZ3OLB6CEOVOLSPJ6O76QBZTSXQIGZYACBW55C7T6LGKOA3ATY4WXNUVTV652V2TM7S
-#::: 76TKKBKEE3OZKFGGYDKHIIZGGTLSIQHZFTCCP2YA3GWB6CW3ZMF :::: NAILARA AMOS :::
-# :: AUOC4EGH5TJP2OFHKK5ZM4GT7NYY2LDZ55PGSDP4PUIPO3BMJSCY :: CODE SIGNATURE ::
+#OQEKVUKQAM2WBKKC7BE3DHXYZLMWP6EO3FKI5UYBAH7A4AN3AG7OJRO22X4TNAWYJBY5L6ZKFWHAM
+#::: DITRQL7CHXFTUFQHQRPYWUA4NCFUW7RSVH23M32GTMDB2Q272FH :::: NAILARA AMOS :::
+# :: RB2W55N6Y6MQHLRYLTLBD5RQ3J4LLTB36QLDFI4L6DG7LWPHQUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
