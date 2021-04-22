@@ -19,12 +19,12 @@ my @aosd_opts
     = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
 
 my $msg;
-my $result_code = system( qw| harmony -q -- |, $check_string );
+my $result_code = system( qw| check-truth -ext |, $check_string );
 $result_code = $result_code >> 8 if $result_code != -1;
 
 my $numeric_result
     = $check_string =~ m{^(0|[1-9]\d*)(\.\d+)?$} ## use AMOS module version ##
-    ? system( qw| harmony -qn |, $check_string )
+    ? system( qw| check-truth -ext-num |, $check_string )
     : 13;
 $numeric_result = $numeric_result >> 8
     if $numeric_result != 13 and $numeric_result > 0;
@@ -51,7 +51,7 @@ close FILE;
 system( qw| /usr/bin/aosd_cat |, @aosd_opts );
 
 #.............................................................................
-#RWGCTY6AFHPYY3MST3I5IVWYJONFG2FP3IVKE6SRIQ5J7NF5V5VLADSQ5SXRN4EB5EP4LSTP4VMVU
-#::: 73WSA6REKKKK63YSAGPNCVE3IBYG67UD34TEW55HRPHWTSAUKEB :::: NAILARA AMOS :::
-# :: XXCMUCJTXCNQTTVEMXVGJRV3JY7FDA2CAXH2MCGAUXBIA5A2Z4CI :: CODE SIGNATURE ::
+#MJSE5S4S45J3CDW3NCIMU3AYT3FFPQKWA4CLOUWMIPHWVZ4VFPPBCVFMNDM4TVQ4UMFHNIVF3T436
+#::: XKBM47CRD224MLVP2LWPOFMCOVQNJ7H4TXCR54K4HXVPJWISCNM :::: NAILARA AMOS :::
+# :: JTL4QQ3YYEW2E7FA3CFKANJAFX52HGPGWBCBJILXTC7TPKR3COCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

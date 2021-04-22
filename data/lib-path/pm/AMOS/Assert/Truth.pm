@@ -19,7 +19,7 @@ use AMOS::Assert;
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
-our @assertion_modes = (7);    ## <-- base truth assertion [elf] mode : 7 ###
+our @assertion_modes = qw| 4 7 |;    ##  elf truth modes  ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
@@ -151,7 +151,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#PV75KQEOTJOAAQF3NRMA55RFDVEUL76V5YQHJAXNFI3WKFJ6X3UM76JLJPG27RSN7VNWPZ4GYGK22
-#::: 7CNCWNRZBUYBV7RH2AUW5TA4OUPJEN6SYCYW36WB3HGHLVCFBEZ :::: NAILARA AMOS :::
-# :: KSM6DRKAYXT5WHDCZV7WIPI3RX4RPHG34KH52R7GYAGCZEHJ3YAY :: CODE SIGNATURE ::
+#DADKBWSXVOAGDQRHISISJXRMXENWNJKRJWREQHVFGYSZX75GB3CMT4H5ZDAH6Y5EBBGV5I47GGSM4
+#::: LUZMT22GVFUYBAXOZNR3ICMLIQSN5D2SZ7LYO6LGUNVS6PT3ZX5 :::: NAILARA AMOS :::
+# :: NTVYF3VQA2OVXMWXVZDTHDPCYTQTGFW53JHOTM57CJZJ53XCKMCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
