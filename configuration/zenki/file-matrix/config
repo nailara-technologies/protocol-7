@@ -1,0 +1,31 @@
+
+.:[ 'file-matrix' zenka ]:.
+
+[load_config_file:'shared-params']
+
+modules.load          = auth net protocol io.ip chk-sum.elf io.unix \
+                        chk-sum.amos chk-sum.bmw file-matrix          ## debug
+
+access.cmd.usr.cube-13 = heart commands
+
+access.cmd.usr.cube    = verify-instance commands heart reload subname \
+                         cur-pid list show-buffer clear-buffer list-deps \
+                         src-ver rel-ver src-age  ## * ## <-- debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[net.connect_to_cube:'unix','13','127.0.0.1','cube-13']
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[net.connect_to_cube:'ip.tcp']
+[base.get_session_id]
+
+[event.loop]
+
+#.............................................................................
+#APA5JHNQHHVOOEIPB5QLTNQFACFE5CVMPJNBHMKARTFRIADPHM6HWRAYOURBSPDVZUQ672GNJ4KEC
+#::: KOYEKGFBJ3FFZLUNFTR75T7GOQTETETDXBC6BQWBPKGUTOQFQ2I :::: NAILARA AMOS :::
+# :: J3VG54WBGCJCMFUAFEY3URLJB4FGX4Y6PQM2A5LVD4FZLW55I4CI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
