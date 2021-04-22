@@ -1,0 +1,50 @@
+# >:]
+
+# name  = index.gen_path
+
+my $s_ref = shift;    ##[  string or scalar reference  ]##
+
+my @path_structure;
+my $minimum_subdir_count  = 4;
+my @subdir_modes          = qw| 5 7 |;
+my $truth_elf_mode_filter = qw| 7 9 |;
+
+$s_ref = \"$s_ref" if ref($s_ref) eq '';
+
+while ( !@path_structure ) {
+    my @checksums = map { <[chk-sum.amos]>->( $s_ref, $ARG ) } @subdir_modes;
+
+##                                                                     ##
+##   splitting amos-chksum entropy into anti-entropic directory tree   ##
+##                                                                     ##
+
+    my %checksum_map;
+    for my $offset ( 0 .. 6 ) {    ##  create amos chksum character matrix  ##
+        foreach my $checksum (@checksums) {
+            ++$checksum_map{$offset}{ substr( $checksum, $offset, 1 ) };
+        }
+    }
+    for my $offset ( 0 .. 6 ) {    ##  iterating through checksum width  ##
+        my $dir_name = join(
+            '',
+            sort { $checksum_map{$offset}{$b} <=> $checksum_map{$offset}{$a} }
+                reverse sort keys %{ $checksum_map{$offset} }
+        );
+        push( @path_structure, $dir_name )
+            if    ## truth filtering names ##
+            is_true( $dir_name, $truth_elf_mode_filter );
+    }
+    if ( @path_structure < $minimum_subdir_count ) {
+        my $path_reseed = join( '', reverse sort ( @checksums, $$s_ref ) );
+        $s_ref          = \"$path_reseed";
+        @path_structure = ();
+    }
+}
+
+return join qw| / |, @path_structure;
+
+#.............................................................................
+#E4ITHNJOHABDPXKUKKX6PHUNOQDGVYQHLJ2PUDHBAOZ5N5CB3XFU2P2LPPZ472TULOK4FTPLU34ZS
+#::: WZH7AAH4CBVBZ2SWWMJKUEQT5NNIVTBUUXXKSYAO7OIXICISBN6 :::: NAILARA AMOS :::
+# :: J7RJAU7Y5NSZ54T4SM6FENUVCZ5XELZWQAMAFQLM7MCAYY6K3IAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
