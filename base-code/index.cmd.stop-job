@@ -1,0 +1,26 @@
+# >:]
+
+# name  = index.cmd.stop-job
+
+my $job_id = $$call{'args'};
+
+return { 'mode' => 'false', 'data' => 'no such job' }
+    if not exists <index.jobs>->{$job_id};
+
+my $index_job = <index.jobs>->{$job_id};     ## callback data href
+my $reply_id  = $index_job->{'reply_id'};    ## protocol-7 reply id
+my $job_type  = $index_job->{'job-type'};    ## 'wordlist-import'
+
+## inject stop request .., ##
+
+$index_job->{'stop-requested'} = 1;
+
+## requires deferred reply to $reply_id ##
+
+return { 'mode' => 'true', 'data' => "stopping $job_type job ..," };
+
+#.............................................................................
+#UJ2FP5WZSWO65UI3P75UYPJP7OH5PIZIADD2KCSB42QVDJSAMRTLEH7DAIYPNB3NERHV5O2NGLELU
+#::: GT6QSURD3QSTMLVHUVIOYGWQB62OFF2KMK5WDAQFP6DAW2YPP5W :::: NAILARA AMOS :::
+# :: 3A6ASGLMTRJDDCGW7M6Z7YWBN2ES2OIPS7ZJNDSUIYYH475M7MCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

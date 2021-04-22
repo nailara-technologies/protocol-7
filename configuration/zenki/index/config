@@ -1,18 +1,20 @@
 
-.:[ nailara [ file ] 'indexer' zenka ]:.
+.:[ nailara [ file ] 'index' zenka ]:.
 
 [load_config_file:'shared-params']
 
 modules.load          = net protocol io.ip auth chk-sum.amos chk-sum.elf \
-                        indexer ## debug
+                        index ## debug
 
 access.cmd.usr.cube   = verify-instance commands heart reload \
                         clear-buffer list show-buffer stop-job \
                         add-wordlist del-wordlist dependencies \
-                        add-path rescan-paths search # *
+                        add-path gen-path rescan-paths search # *
 
-indexer.path.index-cfg   = /var/run/protocol-7/indexer/set-up/index-paths
-indexer.path.index-files = /var/run/protocol-7/indexer/data/indexer-state
+index.path.index-cfg   = /data/index/set-up/index-paths
+index.path.index-files = /data/index/data/index-state
+
+index.permissions.index_root_path = 0770
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -25,7 +27,7 @@ indexer.path.index-files = /var/run/protocol-7/indexer/data/indexer-state
 [event.loop]
 
 #.............................................................................
-#DONPXXCNAXLKWUIVYDR6ZTWCXJX3HJ6T7T7VS66CDAKCPMABNHU5WW5CYOACQO5V6UE7XHKJZIUAM
-#::: ZAJX5MX3HEIMBUERZGWWUW5NWK64W3BW3TH3ZEQHEFKUSK2LIZF :::: NAILARA AMOS :::
-# :: 2SWUHU6LJODZYGLNH7DSSDGSUCNG2PB7DYPPQMTKGLTND7HRR6AY :: CODE SIGNATURE ::
+#NEHURJ7VD2PVG3XTZNYRBJYI32U7MOAAI6IJ7ATWVKF6KXOTI6QIXQORUYCCRQFLZBQTYESGBZ2JS
+#::: BCZNBOV3RL5BKZVVDOWX5GUGANMVIHTFMGBQNDGOHSCTNBNECBB :::: NAILARA AMOS :::
+# :: JL7K7UB72NI5UBCDQA7R5D7FAEUASGMWOKII7YXTCENL3DID5YCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

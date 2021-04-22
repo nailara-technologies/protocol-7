@@ -1,0 +1,82 @@
+# >:]
+
+# name  = index.cmd.add-wordlist
+# param = <wordlist> <language>
+# descr = include a wordlist from file into index
+
+( my $wordlist_path, my $language_code ) = split( m| +|, $$call{'args'}, 2 );
+
+## create language auto-detection [ from name, codeset, .., ] ## [LLL]
+
+my $index_data_path = <index.path.index-files>;
+
+return { 'mode' => 'false', 'data' => 'no write access to data path' }
+    if not -w <index.path.index-files>;
+return { 'mode' => 'false', 'data' => 'expected wordlist path' }
+    if not defined $wordlist_path;
+return { 'mode' => 'false', 'data' => 'expected language code' }
+    if not defined $language_code;
+return {
+    'mode' => 'false',
+    'data' => 'language code not valid [ 3 letter ]'
+    }
+    if $language_code !~ m|^[A-Z]{3}$|;    ## match locale list ## [LLL]
+return { 'mode' => 'false', 'data' => 'wordlist not found' }
+    if not -f $wordlist_path;
+return { 'mode' => 'false', 'data' => 'wordlist not readable' }
+    if not -r $wordlist_path;
+
+<index.jobs> // {};
+
+( my $wordlist_name = $wordlist_path ) =~ s|^.*/||g;
+
+my $name_checksum = <[chk-sum.elf.inline]>->($wordlist_path);
+
+## use base.gen-id , create seperate checksum look-up .., ##
+return { 'mode' => 'false', 'data' => 'indexing job already exists' }
+    if exists <index.jobs>->{$name_checksum};
+
+my $wordlist_fh = <[file.open]>->($wordlist_path);
+
+return { 'mode' => 'false', 'data' => 'cannot open wordlist file' }
+    if not defined $wordlist_fh;
+
+<[base.log]>->( 1, ": opening wordlist file in array mode ..," );
+
+my $wordlist_aref = <[file.tie_array]>->($wordlist_fh);    ## <-- ..,
+
+return { 'mode' => 'false', 'data' => 'cannot open wordlist' }
+    if not defined $wordlist_fh;
+
+<index.jobs>->{$name_checksum} = {};
+
+my $index_job = {
+    'reply_id'       => $$call{'reply_id'},
+    'iterations'     => 0,
+    'stop-requested' => 0,
+    'data-path'      => $index_data_path,
+    'job-type'       => 'wordlist-import',
+    'wordlist-path'  => $wordlist_path,
+    'language-code'  => $language_code,
+    'file-handle'    => $wordlist_fh,
+    'file-aref'      => $wordlist_aref,
+    'file-entries'   => scalar @{$wordlist_aref},
+    'idle-event'     => Event->idle(
+        cb     => $code{'index.callback.wordlist-import'},
+        'data' => $name_checksum,
+        repeat => 1
+    ),
+    ## 'elf-modes' => [ 7 ]  ##  <--  configuration and inheritance  ##  [LLL]
+};
+
+<index.jobs>->{$name_checksum} = $index_job;
+
+<[base.log]>->( 1, ":. starting indexing job [ $name_checksum ]" );
+
+return { 'mode' => 'deferred' };
+
+#.............................................................................
+#5XIAXAMDKY4QDY7EZN45OTCJSPWFGSHV5AHQFOL3TP7QF2Z4LXW3QZ2RJ4GPZRYON6YXIZRSNVALW
+#::: I6DCQM7XJENPHSDRTB7HLO4FZQ4ZBXWOZRVZ53YJHESZTVIR3W4 :::: NAILARA AMOS :::
+# :: PWQSTHQ7SDNPE36ZZSR4IXSN7RCXN5Y5KR2E6YSU4XGXE2KPUIBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
