@@ -1,0 +1,74 @@
+# >:]
+
+# name  = base.n_pipe.open
+
+my $path        = shift // '';     ## auto-create ? ##
+my $permissions = shift // 0640;
+my $reconnect   = shift // 1;
+my $overwrite   = shift // 1;
+
+warn 'expected path parameter for named pipe creation <{C1}>'
+    and return undef
+    if !length($path);
+
+if ( -e $path ) {
+    if ( not $reconnect and not $overwrite ) {
+        warn 'named pipe path already exists [ no clean-up ? ] <{C1}>';
+        return undef;
+    }
+    my $stat_ref = File::stat::stat($path);
+
+    if (not $stat_ref->cando( S_IWUSR(), $UID )    ## no write perm ##
+        or $stat_ref->cando( S_IWGRP(), $GID )
+    ) {
+        warn 'named pipe path already exists and no write permission <{C1}>';
+        return undef;
+    }
+    if ( not $stat_ref->cando( S_IFIFO() ) ) {     ## S_ISFIFO ? ##
+        warn "named pipe path '$path' is not a FIFO <{C1}>";
+        return undef;
+    }
+    if ( not $reconnect and $overwrite and not unlink($path) ) {    ## rm ##
+        my $err_str = <[base.format_error]>->( $OS_ERROR, -1 );
+        warn 'cannot unlink %s : %s <{C1>', $path, $err_str;
+        return undef;
+    }
+} else {    ## create named pipe when not exists ##
+
+    if ( system( qw| /bin/mknod |, $path, qw| p | ) != 0 ) {    ## mknod ##
+        my $err_str = <[base.format_error]>->($OS_ERROR);
+        warn "<mknod> $path : $err_str <{C1>";
+        return undef;
+    }
+    if ( not -p $path ) {                                       ##  exists? ##
+        warn 'cannot create fifo file path <{C1}>';
+        return undef;
+    }
+    if ( not chmod( $permissions, $path ) ) {                   ## chmod ##
+        my $err_str = <[base.format_error]>->($OS_ERROR);
+        warn "$path : chmod $permissions : $err_str <{C1}>";
+        ## in case of permission error, remove again ##
+        unlink($path) or warn "left existing [ $path ]";
+        return undef;
+    }
+}
+
+if ( not $reconnect ) {
+
+    ##  register $path for removal ..,  ##  [LLL]
+}
+
+my $fifo_pipe_fh;
+if ( not open( $fifo_pipe_fh, '>', $path ) or not fileno $fifo_pipe_fh ) {
+    my $err_str = <[base.format_error]>->($OS_ERROR);
+    warn "cannot open FIFO file for writing $err_str <{C1}>";
+    return undef;
+}
+
+return $fifo_pipe_fh;    ## success ##
+
+#.............................................................................
+#JN7PHVRPWNYAEHGN3DBH3WQELEJBMBDLI7NLMOKSOAJZWFGLX6GEZORZNAL7BCD4HJO245YPBWXUS
+#::: QKJOKNKKGPAH3U477YHLOCJSJBSFAB2F7SRIPLY47SBWE5XE5WG :::: NAILARA AMOS :::
+# :: D2RUVVCW6RBYW7IW7XTQRD63AXVPZHWPZJWFG73XHWN4MMH7DMBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
