@@ -16,7 +16,7 @@ if ( ref( $ARG[0] ) eq 'SCALAR' ) {
 
 } else {
     $input = join( ' ', @ARG );
-    $input = \$input if ref($input) ne 'SCALAR';
+    $input = \"$input" if not length ref($input);
 }
 
 return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
@@ -26,7 +26,7 @@ return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
 return AMOS::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
 
 #.............................................................................
-#STSBMK42VBX4JSNXKJQBK25JWIUNK624QSVYOIUILTVC6SWQIVRWLNJGV2X6MPXASXUCSJRVO6LD4
-#::: HK646LX2OH44TJXAXOLBGBZVOA6QE3ZJP32W2ZVVXIDYIZ6ARPJ :::: NAILARA AMOS :::
-# :: EAM3JRRIR7UGYMUYOYUWPBZ4I3AGNTUAHXE3ACRFEYDFELBEREDY :: CODE SIGNATURE ::
+#WRAU2RUFAMWTMHXEVQORLB3J423WLL7DLQJ5PIXQCX2RT37GYU762C2YRB6WICGKOQCK7YIAHPYEC
+#::: GNTJIDB4FSCN3QCWXDDW6YVIO3FP5FCPO2QTP5ADXO2RMTL7IOV :::: NAILARA AMOS :::
+# :: H2RRJFLEZQYNPJVKLWSBZ7SZLRM7WAZVJ52YIFOAFD2LE2R4IECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

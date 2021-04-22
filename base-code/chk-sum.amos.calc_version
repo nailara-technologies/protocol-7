@@ -1,0 +1,19 @@
+# >:]
+
+# name  = chk-sum.amos.calc_version
+
+my $AMOS_prefix = shift // 7; ## 0 to not prepend 'AMOS-' to version string ##
+
+my $input_str = sprintf( '%sAMOS-CHKSUM%s', chr(255), chr(0) );
+
+my $version_chksum = <[chk-sum.amos]>->( \$input_str );
+
+return sprintf( "AMOS-%s", $version_chksum ) if $AMOS_prefix;
+
+return $version_chksum;
+
+#.............................................................................
+#AW6Z2O46LESBHAYP7HBHI5MUPILJDD54MRRONRTLKHKG5S6AHYDXLMQ3ELWO3CR2GZTSOEY57KHD6
+#::: JAWQEFXALJPQ7Z7XEJ3DX5U63URGTK6NXEOLC25UPXJ7WYURN6V :::: NAILARA AMOS :::
+# :: 3ABXXKUUDTWTRHAVIMZJP3A4W7PLITUIN465VDP4F4A35T3RIYCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
