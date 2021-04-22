@@ -4,11 +4,21 @@ use strict;
 use English;
 use warnings;
 
-my @modes           = qw| 7 |;   ## <-- base setting truth [ elf ] mode : 7 ##
+my @modes = qw| 4 7 |;    ##  elf truth modes  ##
+
 my $silent          = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
 
+## special parameters [ used by harmony-osd ] ##
+if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
+    $silent = 1;
+    if ( defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq '-n' ) {
+        $force_numerical = 1;
+    }
+    goto SKIP_PARAMS;
+}
+## regular invocation ##
 $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
@@ -18,6 +28,8 @@ if ( @ARGV > 1 and $ARGV[0] eq qw| -mode | ) {
         if $ARGV[1] !~ m|^\d{1,2}(,\d{1,2})*$|;
     shift(@ARGV) and @modes = split( ',', shift(@ARGV) );
 }
+
+SKIP_PARAMS:
 
 BEGIN {
     use File::Spec;
@@ -93,7 +105,7 @@ sub process_input {
 }
 
 #.............................................................................
-#QWF3ZBZIY2GGKELSAND6ZIP5BK4A2ITYCHKZWYWD5UXDTWF7KTCNDZJ6SGDPVL2YEL52ZNRRHYJTC
-#::: 66QII7XJPZZPG3DRZHBHDVY46Q3SHA7M63WQA5NJKRBJILHNUPG :::: NAILARA AMOS :::
-# :: YWYKIPFXARWAWPBGN6DNYBKC5YUVQ3635QSIJT5XTOL2DC3OV2DA :: CODE SIGNATURE ::
+#6LXRPCKGX4LPLMCCCFFSXHLX3ZV63S2YDBDJAUETY3K3UOIE46ZIBQZ7VOP5WOOCRVF6GHZIXXFF2
+#::: XBD3TKWX245V22G2XVMZYFBQ2PZ7Q5DDHO7W3YUKBIW7DFVFGA3 :::: NAILARA AMOS :::
+# :: IMGNT5OL5UKTW2PMHKXY6OSAE3DCAQC4LDB3FYXOIWWYAFK3SCDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

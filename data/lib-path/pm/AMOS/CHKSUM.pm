@@ -11,10 +11,11 @@ use strict;
 use Encode;
 use English;
 use warnings;
-use Crypt::Misc;       ## encode_b32r ##
+
+use Crypt::Misc;
 use Digest::BMW;
-use Math::BigFloat;
-use List::Util qw| uniqint |;
+
+use List::Util 'uniqint';
 
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
@@ -31,7 +32,7 @@ our $VERSION = qw| AMOS-NXJ7PSY |;    ##  amos-chksum -VA  ##
     'chksum_numerical' => 1,
     'chksum_bits'      => 1,
     'chksum_B32'       => 1,
-    'elf_truth_modes'  => [7]    ##  <--  AMOS::CHKSUM  elf mode : 7  ##
+    'elf_truth_modes'  => [qw| 7 |]    ##  AMOS::CHKSUM truth mode  ##
 ) if !keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
@@ -47,13 +48,20 @@ our $checksum_bits;
 ##[ CHECKSUM CALCULATION ]####################################################
 
 sub amos_chksum {
-    warn "expected input string for AMOS-checksum calculation\n" if not @ARG;
 
-    my $data_ref = shift;
+    my $data_ref = shift // '';
 
-    $data_ref = \"$data_ref" if ref($data_ref) ne 'SCALAR';
+    my $data_ref_type = ref($data_ref);
+    if ( not length $data_ref_type ) {
 
-    $$data_ref = Encode::decode_utf8( $$data_ref, 8 );
+        $data_ref = \"$data_ref";    ## creating scalar reference ##
+
+    } elsif ( $data_ref_type ne 'SCALAR' and $data_ref_type ne 'REF' ) {
+        die sprintf "unexpected reference type '%s' supplied", $data_ref_type;
+    }
+
+    $$data_ref = Encode::decode( qw| UTF-8 |, $$data_ref, 8 )
+        if not Encode::is_utf8( $$data_ref, 1 );
 
     my @elf_modes
         = uniqint @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
@@ -147,7 +155,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#P7DF73AUJBI2TAVRNWMQYTNSYJBWAUY2MFLIA4X46NBX3XQ57P2QNLMOKW6AKO646MN5OUTYIC5EC
-#::: OLIG4YGIYSP5BNCLKZ4QJ66VY7VORH4WRTFFX7OOUMZ75GUEVXN :::: NAILARA AMOS :::
-# :: 3TWU7BDCGIVCPH5QGMHTUBNID26W7EVJRBK5BTMBC2LMC2QW6CCI :: CODE SIGNATURE ::
+#DNFPRL5RZPP4M6SIFIBCVZ5XF2O7JPR2UICQUYJHPOYU5TQ625I4G572YJAWQLBA36ZMDZOVDLAUG
+#::: X2XYZU2B4T2SOURHZKH7YZKQ2P4F6BCO2ZID4EV5LRKU3HZX2BM :::: NAILARA AMOS :::
+# :: FBFLSKIKYOPCFFH2X2S7TGBUEARAPJ2Q6OM3ETBOISLSVTKZF6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
