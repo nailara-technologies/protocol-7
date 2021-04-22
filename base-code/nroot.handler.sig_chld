@@ -24,8 +24,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $e_sig     = $CHILD_ERROR & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
     $log_level = 0
-        if $e_sig_str =~ s|(signal 11)$|$1 << SEGMENTATION FAULT >>|;
-    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with cube dump ]' : '';
+        if $e_sig_str =~ s|(signal 11)$|$1 :: SEGMENTATION FAULT ::|;
+    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
     $log_level = 1 if $e_val;
     $log_level = 0 if $CHILD_ERROR & 128;
     my $zenka_str = defined $zenka_name ? "< $zenka_name > " : '';
@@ -38,8 +38,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[nroot.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 
-    <[nroot.terminate_process]>->($pid)
-        ;    # <-- cleaning up children as well ..,
+    <[nroot.terminate_process]>->($pid); # <-- cleaning up children  .., [LLL]
 
     delete <nroot.process.instance_cache>->{$pid};
     delete <nroot.process.instance_cache>
@@ -58,41 +57,45 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         <[base.log]>->( 2, ": had status : '$old_status'" );
 
         ## record web-browser segfaults [ for crash mitigation ] ##
-        if ( $e_sig == 11 and $zenka_name eq 'web-browser' ) {
+        if ( $e_sig == 11 and $zenka_name eq qw| web-browser | ) {
             my $web_browser_uname = <system.X-11-user>;
             my $subname_b32
                 = ( defined $zenka_subname and length($zenka_subname) )
                 ? '.' . encode_b32r($zenka_subname)
                 : '';
-            my $file_name = "/var/tmp/.7/web-browser.crash_pid$subname_b32";
+            my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
+
             <[file.put]>->( $file_name, "$pid\n" )
-                or warn("$file_name : \l$OS_ERROR");
-            chmod( 0644, $file_name ) or warn("$file_name : \l$OS_ERROR");
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
+            chmod( 0644, $file_name )
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
             my @pwn = getpwnam($web_browser_uname);
-            chown( $pwn[2], $pwn[3], $file_name )
-                or warn("$file_name : \l$OS_ERROR");
+            chown( $pwn[2], $pwn[3], $file_name ) or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
         }
 
         my $next_status = (
-                   $old_status eq 'online'
-                or $old_status eq 'starting'
-                or $old_status eq 'error'
-        ) ? 'error' : 'offline';
+                   $old_status eq qw| error |
+                or $old_status eq qw| online |
+                or $old_status eq qw| starting |
+        ) ? qw| error | : qw| offline |;
 
-        $next_status = 'restart' if $old_status eq 'restart';
+        $next_status = qw| restart | if $old_status eq qw| restart |;
 
         if ( $old_status eq 'online' and defined <nroot.ondemand_zenki> ) {
-            map { $next_status = 'offline' if $ARG eq $zenka_name }
+            map { $next_status = qw| offline | if $ARG eq $zenka_name }
                 @{<nroot.ondemand_zenki>};
         }
 
         if ( <[nroot.instance_pid_count]>->($instance_id) ) {
-            <[zenka.change_status]>->( $instance_id, 'delayed' )
-                if $old_status eq 'restart';
+            <[zenka.change_status]>->( $instance_id, qw| delayed | )
+                if $old_status eq qw| restart |;
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.07,
-                    'interval' => '0.1',
-                    'handler'  => 'nroot.handler.children_left',
+                    'interval' => 0.1,
+                    'handler'  => qw| nroot.handler.children_left |,
                     'data'     => {
                         'instance_id' => $instance_id,
                         'next_status' => $next_status
@@ -103,13 +106,14 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             <[zenka.change_status]>->( $instance_id, $next_status )
                 if $old_status ne $next_status;
             <[nroot.init_restart_timer]>->($instance_id)
-                if $next_status ne 'offline' and $next_status ne 'shutdown';
+                if $next_status ne qw| offline |
+                and $next_status ne qw| shutdown |;
         }
     }
 }
 
 #.............................................................................
-#W3C3W5AADYSXMSY7LPLCLD7A7P2K3QSEOUOKWD6NG5CHULPG4ONUXD3VXW6ODTCPDJ3RYKDPALNGC
-#::: QEJMTH3A7RPOQPET3XVJMD3SV46K2VLXO25JF5N6GTLNAUKR4KY :::: NAILARA AMOS :::
-# :: GMFPLYPI4SU6YQRYM7XZROIASZLV6J6XTORX7B7FJSTKOWIPGCAQ :: CODE SIGNATURE ::
+#4NA5AUCG6XVJENS6POTOCBGD7QR6SQQMYHQVBGFUEY5TPF6EED3VSSF3OICZRBC6L5TRBSWELBVRS
+#::: UMY6YBVQ73QMDYMC5X4K6UTQEEDZAN5PSYFJRXM7D73PSM4KZBE :::: NAILARA AMOS :::
+# :: WDYBPHP5IXABNYRLLLG5LAPBYKZ5VYTWYCWLCRW5EKOR3RBECGCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

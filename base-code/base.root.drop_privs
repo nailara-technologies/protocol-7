@@ -29,7 +29,7 @@ if ( !length( $user // '' ) ) {
     if (    !$noop
         and defined $name
         and exists $_gid{$gid}
-        and exists $egid{$gid}    # [LLL] complete secondary group[s] setup .,
+        and exists $egid{$gid}   ## [LLL] complete secondary group[s] set-up.,
         and $EUID == $uid and $UID == $uid
     ) {
         <[base.log]>->( 1, "< drop_privs > already '$user', doing nothing." );
@@ -65,7 +65,7 @@ if ( !length( $user // '' ) ) {
                 <[base.log]>->(
                     0,
                     sprintf(
-                        "<< user '%s' has no home dir [ creating %s ] >>",
+                        qq|<< user '%s' has no home dir [ creating %s ] >>|,
                         $user, $home_dir
                     )
                 );
@@ -94,7 +94,7 @@ if ( !length( $user // '' ) ) {
                         = <system.zenka.name> ne 'nroot'
                         ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>,
                         $user, $PID
-                        : sprintf "temp-home.%s.XXXXXXXXXX", $user;
+                        : sprintf 'temp-home.%s.XXXXXXXXXX', $user;
                     $home_dir
                         = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
                     if ( -d $home_dir ) {
@@ -143,7 +143,7 @@ if ( !length( $user // '' ) ) {
 }
 
 #.............................................................................
-#EBEH77WWRHMIENINXSIYIC3GSVIS3DUSD7PJBHYDPLV43EZCYY3XSHG5EKAIMQMGDSZMEBAJE4VAS
-#::: WTLBHB7JCJCVNOACHLVSGSMVENT5QVYNKDAYPOTFG4L4TRONSY3 :::: NAILARA AMOS :::
-# :: DLAO3JZIICDNFLKCCTXNNWLQM5BBMPKB3GQFQFUW7AAWVU4TR2AA :: CODE SIGNATURE ::
+#JJO6GT47YP63BJW2PXYYBX3L6QSUXXOXP6HOHQKGIRTUFT5D4RMDGBZGCL7WL3MSTL7APOKTWWMWI
+#::: RAMCDJCTF5KBIMJ3T3E7HEP7MTSOG4OX2R624TOS2G7FXFNDD3K :::: NAILARA AMOS :::
+# :: 3TKVS2CO5WZZIOR2N4O7UEXMOZVW3CUWNUSVNURSY5RDOVZP4WAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

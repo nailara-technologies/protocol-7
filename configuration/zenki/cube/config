@@ -50,9 +50,9 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
-[file.make_path:'/var/tmp/.7/UNIX',0775,<system.amos-zenka-user>]
+[file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
 unix.path = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
-unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
+unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
 
 ## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
@@ -68,7 +68,7 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
 [event.loop]
 
 #.............................................................................
-#Z5F75X5U5XGN6Q4BX6AVINQPC5SNOJK6HJ7C733XPMVEONSSCXIMMUAGDFLSEJEYIMDY7DB5RIG5G
-#::: SD52RSVNMVRRTTUZXXHX322HTSQMSTK6KZ7F7U67TY2HEGA6A2Y :::: NAILARA AMOS :::
-# :: JEFOW4ED4D3MRA4JHPQ3HKSDK3YRIREFWY3E3WTEJ27K3AY65IBY :: CODE SIGNATURE ::
+#KCYTB66DPA3RDEAJQJAKY2MU7BTHHE2YZM4E6KU4DBJNKOOYNUOIU7UEU25CKLCMMJA6FBZH67ECC
+#::: ZXF77JLPEITB42MFKYGB6YNFUPCY6M4CRURHWT4DTPJNNSG3KET :::: NAILARA AMOS :::
+# :: F6EADW3NA5HJ2X2HDV4Q5KBCD5UMVRFBFXMDCPFAT3Q6C32ZVGDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,9 +37,9 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.zulum = <protocol-7.network.zulum>
 
 ## local unix domain socket ##
-[file.make_path:'/var/tmp/.7/UNIX',0775,<system.amos-zenka-user>]
+[file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
 unix.path = [base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
-unix.sock = [base.open:'unix','input',"/var/tmp/.7/UNIX/<unix.path>",0777]
+unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
 
 ## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
@@ -58,7 +58,7 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
 [event.loop]
 
 #.............................................................................
-#RDL4W7QMGHDVGOQOZSAG7SQMXAXJTHK5RXPSISWNYRWBYMDI6TJP4VMAC6UFB36ALZEQ7DIZFKE46
-#::: H26XOAOOTTP7SHV33MCPUX36ASCVYVCPSHH6S3QELV5G7SP7RBA :::: NAILARA AMOS :::
-# :: XXTAZLQL5W3HGKNYOPP6GCOEHOKV73F23ZEDUGKBYVPI5PIMIWAI :: CODE SIGNATURE ::
+#BVO5PMMGFUKGKDVJGFCC7SBC3IHHGCFPI4UVGDCLTYNOCS3HPSNGYFW5X7TVRVD4PSTYB5DQ3PSDS
+#::: SA436PQGBSLVIWHACXEGY32HRG3UR7EQGXH6QD7THIAOLD2SODN :::: NAILARA AMOS :::
+# :: ZFKDSEV63P7UQCPBOD25SUT3TCAHGHUGQ5PNITVHXQHYF5WATEBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
