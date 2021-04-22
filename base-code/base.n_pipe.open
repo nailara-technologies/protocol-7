@@ -21,7 +21,8 @@ if ( -e $path ) {
     if (not $stat_ref->cando( S_IWUSR(), $UID )    ## no write perm ##
         or $stat_ref->cando( S_IWGRP(), $GID )
     ) {
-        warn 'named pipe path already exists and no write permission <{C1}>';
+        warn 'named pipe path already exists and no write permission <{NC}>';
+        warn "$path <{C1}>";
         return undef;
     }
     if ( not $stat_ref->cando( S_IFIFO() ) ) {     ## S_ISFIFO ? ##
@@ -68,7 +69,7 @@ if ( not open( $fifo_pipe_fh, '>', $path ) or not fileno $fifo_pipe_fh ) {
 return $fifo_pipe_fh;    ## success ##
 
 #.............................................................................
-#JN7PHVRPWNYAEHGN3DBH3WQELEJBMBDLI7NLMOKSOAJZWFGLX6GEZORZNAL7BCD4HJO245YPBWXUS
-#::: QKJOKNKKGPAH3U477YHLOCJSJBSFAB2F7SRIPLY47SBWE5XE5WG :::: NAILARA AMOS :::
-# :: D2RUVVCW6RBYW7IW7XTQRD63AXVPZHWPZJWFG73XHWN4MMH7DMBQ :: CODE SIGNATURE ::
+#CEZBWILCIBIUPXPF5S53C4OUL2DAISBTFUOCOEUWDV63KU4DYVFZ7RICX2QCIWLMVQJI7NYEPVHPQ
+#::: P6GGQXCF6IQI7WXYG2KES47YLH5LWKY5XZDIYE7SW4J27NLWDHN :::: NAILARA AMOS :::
+# :: MMGIOHCHG47XX6YYRLFOMZCJJBPWKPC4X2573USTUILMCNTFGSCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

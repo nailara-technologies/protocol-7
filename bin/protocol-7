@@ -1922,9 +1922,9 @@ sub prepare_subs {
                            | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx
             } @err;
             push( @err, $spaces ) if length($spaces);
-            if ( $err[0] =~ m|^Deep recursion | ) {
+            if ( $err[0] =~ m|^deep recursion |i ) {
                 no warnings 'recursion';    # no follow-ups
-                my $msg = join( ' ', '<< FATAL >>', @err );
+                my $msg = join( ' ', ': FATAL :', @err );
                 undef $code{'base.log'}
                     if $err[0] =~ m{$PROGRAM_NAME|protocol-7};
                 $code{'log.error'}->($msg);
@@ -1945,11 +1945,12 @@ sub prepare_subs {
                 $ARG =~ s| at $filename line $line[\.,].*$||;
                 $ARG =~ s|no success on eval ('\$code\{\S+)
                          |<< $LAST_PAREN_MATCH >>|x;
-                $level = ${^CAPTURE}[0] || 1
-                    if $ARG =~ s| *<\{C(\d{1,3})?\}>$||
+                $level = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
+                    if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||
+                    ## no caller string : level = 0 ##
             } @err;
             if ($level) {    # <-- log parent caller instead ('<{C[level]}>')
-                @caller = caller($level);
+                @caller = $level > -1 ? caller($level) : caller(1);
                 ( $package, $filename, $line, $subroutine ) = @caller;
             }
 
@@ -1980,14 +1981,17 @@ sub prepare_subs {
                 my $cb_name
                     = $data{'base'}{'warn-match-handler'}{$match_param};
                 ( my $msg_str = join( ' ', @err ) ) =~ s{^\s+|\s+$}{}g;
+
                 $log_warning
                     = $code{$cb_name}->( $msg_str, $match_param, @caller )
                     if defined $code{$cb_name};
             }
             ##
-            push( @err, $caller_str );
-            $code{'log.error'}->( join( ' ', '<< warn >>', @err ) )
-                if $log_warning;
+            if ($log_warning) {
+                $code{'log.error'}->( join( ' ', qq|: warn :|, @err ) );
+                $code{'log.error'}->(":$caller_str")
+                    if $level > -1;
+            }
         }
         return 1;
     };
@@ -2005,8 +2009,7 @@ sub prepare_subs {
                 $code{'base.log'}->(
                     0,
                     '<<  referenced end_code callback '
-                        . "'$callback_name'"
-                        . ' does not exist >>'
+                        . "'$callback_name' does not exist >>"
                 );
             }
         }
@@ -2026,7 +2029,7 @@ END {
 }
 
 #.............................................................................
-#HHJ27K7DUOQPFQRPRCQZAKDGWSCHSBBR2Y3M3V7NO5CYBMJYY6QP5S4BXYDZYFC7OH4N36N3OMG2Y
-#::: E5YTJVZ2V634MR3VCAYZCUHJURVP6NINZRFZRHEKVJAQM5KAFWX :::: NAILARA AMOS :::
-# :: NVGEAQUVG6XUKSD5AMF44MFLN2HTS5X6T6EJ64ZIJUKYSTOD5WDA :: CODE SIGNATURE ::
+#GGPOBGWIIHCCINLFP3ANRHQFE6WMAMURJMRWP2U3NPDFOW76IMSYJA5LJ57RO2QEWN55K7HFNYIMY
+#::: LSX33Z2JY2A7W2HE3KHRJRPXMPNHVFY6EZJTONEAH43T2VKL5EQ :::: NAILARA AMOS :::
+# :: OKWD3JJFULAP47JMHCZIBX6V2DH5LMSUP2APCJNP3F2UMS3KOKCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
