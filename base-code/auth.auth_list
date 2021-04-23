@@ -1,27 +1,23 @@
 # >:]
 
 # name  = auth.auth_list
+# descr = return available auth methods for given session id
 
-my @available;
-my $id      = shift;
-my @methods = split( m|\s+|, <auth.supported_methods> );
+my $id = shift;
 
-foreach my $current (@methods) {
+my @auth_methods = split( m|\s+|, <auth.supported_methods> );
+my $link_type    = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'};
 
-    next
-        if $current eq
-        'unix'    # exclude 'unix' if not a unix domain socket link
-        and ( not defined $id
-        or $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne
-        'unix' );
-
-    push( @available, $current );
-}
-
-return join( "\n", @available, '' );
+## if not unix domain socket link : excluding methods 'unix' and 'pwd' ##
+##
+return sprintf "%s\n", join "\n", <[base.reverse-sort]>->(
+    $link_type ne qw| unix |
+    ? grep { !m{unix|pwd} } @auth_methods    ##  ip.tcp, ..,  ##
+    : @auth_methods                          ##  unix domain socket  ##
+);
 
 #.............................................................................
-#R2TTYKTRPW4SOREYW25VNVH4HFNSTPUGKSILY4DWSPMAPYVNWHL3B77Z7PLHZ4O7CQ2WCSK3WQVOW
-#::: APWNX3OLBNOSPNYS6BRHLQ45IQGBJP5TUWBZETYVV7NAH63MVRJ :::: NAILARA AMOS :::
-# :: YTTEJV5VT6CRK23YK7S5VOELH2RPGZX3E77W4RFMEOIKPBNHNGCA :: CODE SIGNATURE ::
+#ZOMNDFV5BHZ7U7XE7KDTNZAWGEG55OHZEBXUIUMCCAQUQYJZFVLVZTMRMP3HYNUWOK23KJFQ724LC
+#::: HTLMV5SSLKNP2357QJTOGHBCA3W53ZCPNWJH4OURATCF5DFK5LE :::: NAILARA AMOS :::
+# :: MYI2RANZ34BSDCBR2LZF3SZJISWQOQ7KJ5KR4Q7BIRTDQDTLIUBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

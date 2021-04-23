@@ -2,12 +2,12 @@
 
 # name  = io.unix.socket.input.connect
 
+my $fd = $_[0]->w->fd;     ## <-- $data{'session'}{$id}{'handle'} ##
 my $id = $_[0]->w->data;
-my $fd = $_[0]->w->fd;
 
 return undef if not defined $data{'session'}{$id};
 
-if ( $fd->connected and -S $fd ) {
+if ( ref($fd) eq qw| IO::Socket::UNIX | and -S $fd ) {
     my $unix_client;
     if ( $unix_client = $fd->accept() ) {
 
@@ -23,13 +23,18 @@ if ( $fd->connected and -S $fd ) {
         $data{'handle'}{$unix_client} = {
             'encryption' => qw| none |,
             'mode'       => qw| input |,
-            'link'       => qw| ip.tcp |,
+            'link'       => qw| unix |,
             'unix'       => {
                 qw| pid | => $peercred[0],    # <-- process id  ###
                 qw| uid | => $peercred[1],    # <-- unix-user-id  ###
                 qw| gid | => $peercred[2]     # <-- unix-group id  ###
             }
         };
+
+        <[base.logs]>->(
+            2,   '[%s] unix.connect [ PID : %d, UID : %d, GID : %d ]',
+            $id, @peercred
+        );
 
         return $unix_client;    ## <-- success ##
 
@@ -40,14 +45,14 @@ if ( $fd->connected and -S $fd ) {
     }
 } else {
     <[base.logs]>->(
-        0,   '[%d] socket is not valid [ connection closed ? ] %s',
+        0,   '[%d] server socket is not valid %s',
         $id, <[base.caller]>
     );
     return undef;    ## <-- error connecting ##
 }
 
 #.............................................................................
-#IHHG7FGKXFYCIJ3JF3XMAH3GHSLJTJ5J3JD5H6ZJGFXJJCWCPJK4WVFTX7VRPLQ426ZTG6LBK6CSC
-#::: INT6TO2EG5ZHSVA66C5QQ62M2NPT73ZLZHW7PXFJTNT2AFI54S3 :::: NAILARA AMOS :::
-# :: QYE2LPHYLH74SLRVOJ6OAO4NJ5GOWXEA6MQYMTSIEIJZ3I6OTGCQ :: CODE SIGNATURE ::
+#L6JVH7KRHPD4I6EFX4MIOKS465ZQSDYGLZGY4YCRYJAXIZNKYT4E4L2EE3QDMPKQGXPIL6IIY6W3K
+#::: C6WIHUOYDVZVDNI2FM7WNDW6NQMWVYWMLNNHDOLYWTIXQTFTMCR :::: NAILARA AMOS :::
+# :: TENOVFLPUW67UX4AGZZ2TH2WICDSQ7TR5HS4NJ32GR4FG4DGCWAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
