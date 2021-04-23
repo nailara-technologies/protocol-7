@@ -1,0 +1,26 @@
+# >:]
+
+# name  = base.handler.session_error
+# descr = socket exception handler [ terminates session ]
+
+my $fd = $_[0]->w->fd;
+my $id = $_[0]->w->data;
+
+<[base.logs]>->( 2, '[%d] socket exception, stopping input ..,', $id );
+
+if ( defined $data{'session'}->{$id} ) {
+    my $session = $data{'session'}->{$id};
+    $session->{'shutdown'} = 1;
+    map { $session->{'watcher'}->{$ARG}->cancel } ## halting input-watchers ##
+        grep {m|input(*nla:_buffer)|} ## input buffer allowed to keep state ##
+        <[base.reverse-sort]>->( $session->{'watcher'} );
+} else {
+    shutdown( $fd, 2 );
+    close($fd);
+}
+
+#.............................................................................
+#LKR7X3JRI2AAQC7R4DDMKFQANO5A2OZ6R7EMUOWOSMBXEDNFZ3HEDLT3D3TM6RFUVCHAB2MCDLYBA
+#::: RTOVXPKU5BBXO2SR3ITEPRM26XQYXU42VFEFSJO7BHQ3P6Q2TCD :::: NAILARA AMOS :::
+# :: HL6G7NOSKYEYUQEX3FVJUOD7G2KU2R4A4B2GJE2BYDRJH6E26QBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
