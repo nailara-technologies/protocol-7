@@ -812,15 +812,16 @@ sub prepare_subs {
         $err_msg =~ s|"\s|' |g;
         $err_msg =~ s|\s"| '|g;
         $err_msg =~ s{( at .+$|\n.*|BEGIN failed.+)$}{}sg;
+        $err_msg =~ s|(\S+):|$LAST_PAREN_MATCH :|;
+
+        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
 
         if ( defined $file ) {
-            $file =~ s{^/usr/share/perl5/|^.+/protocol-7/data/}{,.}g;
+            $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
             $caller_str = join( ':', $file, $line );
-            $err_msg .= " [$caller_str]";
+            $err_msg .= " [$caller_str]" if $c_lvl >= 0;
         }
-        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
-        $err_msg =~ s,(can't|unable),cannot,g;
-        return $err_msg if $c_lvl < 0;
+        $err_msg =~ s,(can't|unable to),cannot,g;
         $caller_str = $code{'base.caller'}->($c_lvl);
         return ( $err_msg, $caller_str ) if wantarray;
         return $err_msg;
@@ -830,7 +831,8 @@ sub prepare_subs {
         my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
         $c_lvl++;                  ## <-- accounting for this subroutine ##
         my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
-
+        $filename =~ s{^/usr/share/perl5/|^.+/protocol-7/data/}{,.}g;
+        $filename =~ s{^.+/perl\-base/}{,.perl-base/};
         return "[$filename:$line]";
     };
 
@@ -875,24 +877,25 @@ sub prepare_subs {
         map {
             if (    $ARG !~ m{\.(callback|handler)\.}
                 and not exists $data{'base'}{'core_subs'}{$ARG}
-                and $ARG ne 'base.log'
-                and $ARG ne 'base.caller'
-                and $ARG ne 'base.s_read'
-                and $ARG ne 'base.gen_id'
-                and $ARG ne 'base.sig_int'
-                and $ARG ne 'base.s_write'
-                and $ARG ne 'base.sig_warn'
-                and $ARG ne 'base.route.add'
-                and $ARG ne 'base.format_error'
-                and $ARG ne 'base.clean_unicode'
-                and $ARG ne 'base.buffer.add_line'
-                and $ARG ne 'base.list.element.add'
-                and $ARG ne 'base.utf8.decode_clean'
-                and $ARG ne 'base.utf8.clean_not_valid'
-                and $ARG ne 'base.log.send_buffer_line'
-                and $ARG ne 'base.log.handler.log_reply'
-                and $ARG ne 'nroot.handler.zenka_output'
-                and $ARG ne 'base.protocol-7.command.send.local' ) {
+                and $ARG ne qw|  base.log       |
+                and $ARG ne qw|  base.caller    |
+                and $ARG ne qw|  base.s_read    |
+                and $ARG ne qw|  base.gen_id    |
+                and $ARG ne qw|  base.sig_int   |
+                and $ARG ne qw|  base.s_write           |
+                and $ARG ne qw|  base.sig_warn          |
+                and $ARG ne qw|  base.route.add         |
+                and $ARG ne qw|  base.format_error      |
+                and $ARG ne qw|  base.clean_unicode     |
+                and $ARG ne qw|  base.clean_up_caller   |
+                and $ARG ne qw|  base.buffer.add_line   |
+                and $ARG ne qw|  base.list.element.add               |
+                and $ARG ne qw|  base.utf8.decode_clean              |
+                and $ARG ne qw|  base.utf8.clean_not_valid           |
+                and $ARG ne qw|  base.log.send_buffer_line           |
+                and $ARG ne qw|  base.log.handler.log_reply          |
+                and $ARG ne qw|  nroot.handler.zenka_output          |
+                and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
                 ++$purge_count
                     and $data{'code'}{$ARG}{'status'} = 'purged'
                     and
@@ -1925,7 +1928,8 @@ sub prepare_subs {
             chomp( my @err = @_ );
             map {
                 $ARG =~ s|([^[:print:]])
-                           | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx
+                           | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
+                $ARG = $code{'base.format_error'}->( $ARG, -1 );
             } @err;
             push( @err, $spaces ) if length($spaces);
             if ( $err[0] =~ m|^deep recursion |i ) {
@@ -1938,18 +1942,20 @@ sub prepare_subs {
             }
             my @caller = caller;
             my ( $package, $filename, $line, $subroutine ) = @caller;
-            if ( defined $data{'sig_warn_blacklist'} )
-            {    # LLL: <-- use an array.
+
+            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+
+            if ( defined $data{'sig_warn_blacklist'} ) { # <-- use array [LLL]
                 return
                     if defined $data{'sig_warn_blacklist'}{'package'}
                     and $package eq $data{'sig_warn_blacklist'}{'package'}
                     or defined $data{'sig_warn_blacklist'}{'pattern'}
                     and join( ' ', @err )
                     =~ $data{'sig_warn_blacklist'}{'pattern'};
-            } # todo: human readable way do debug [eval] callers., [+stacktrc?]
+            }    ## human readable way to stacktrace [eval] callers ? [LLL]
             map {
                 $ARG =~ s| at $filename line $line[\.,].*$||;
-                $ARG =~ s|, <GEN\d+>.*$||g;
+                $ARG =~ s{, <GEN\d+>.*|GEN\d+$}{}g;
                 $ARG =~ s|no success on eval ('\$code\{\S+)
                          |<< $LAST_PAREN_MATCH >>|x;
                 $level = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
@@ -1976,10 +1982,14 @@ sub prepare_subs {
                 $line = $data{'base'}{'eval_error'}{'line'}
                     //= [ caller($l) ]->[2];
             }
-            $filename =~ s|^/usr/share/perl5/||;    ## shorten for .pm mods ##
+
+            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+
             my $caller_str = "[$filename:$line]";
-            $caller_str = "[ ... caller level $level too high .., ]"
-                if !length( $filename . $line );
+            map {s| *\Q$caller_str\E$||g} @err;  # redundant caller clean-up #
+
+            $caller_str = "[ caller level $level too high ]"
+                if not length( join( '', $filename, $line ) );
             my $log_warning = 1;
             ## alternative handlers registered for filename:line ? ##
             my $match_param = "$filename:$line";    # <-- expand .., [LLL]
@@ -2012,10 +2022,21 @@ sub prepare_subs {
         return 1;
     };
 
+    $code{'base.clean_up_caller'} = sub {
+        my $filename_sref = shift;
+        my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
+        $filename_sref = \"$filename_sref" if not $was_ref;
+        ## shorten for .pm mods ##
+        $$filename_sref =~ s{^/usr/share/perl5/}{,../};
+        $$filename_sref =~ s{^.+/protocol-7/data/}{,../};
+        $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
+        return $$filename_sref if not $was_ref;
+    };
+
     $code{'base.handler.end_code'} = sub {
         goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
-        foreach
-            my $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } )
+        my $callback_name;
+        foreach $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } )
         {
             if ( exists $code{$callback_name} ) {
                 $code{'base.log'}
@@ -2033,19 +2054,16 @@ sub prepare_subs {
         eval { print STDERR $ANSI{'reset'} }   ## [LLL] check 'output' mode ##
             if defined $ANSI{'reset'} and fileno(STDERR);
     };
-
     map {
         $data{'base'}{'core_subs'}{$ARG} = $code{$ARG};
         $data{'code'}{$ARG}{'status'} = 'core-sub'
     } keys %code;
 }
 
-END {
-    $code{'base.handler.end_code'}->();
-}
+END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#SPOCVBUVN3YPL52IKBEOGNGEUX74RNFP5DN5JVMGA4AW4H4PCR7LF5OH5DOXPQZDRLUNY76GRZF2S
-#::: 3XI3LIQCCRU7Y5O2QZ2YSJ636UP6QG25V2PDUFDG3GEWVQILFSH :::: NAILARA AMOS :::
-# :: 52P4BEMXJDA7C6WDHR7T5IPFBLTDEPJVM2XUWJKG5JXFVLTE2WAI :: CODE SIGNATURE ::
+#FALD4756RDYV3Y6S3MGQ6K3KATZ3APIGAEH742OCF43FP4AIYKNC7GH2EXIEPRI4VHBU6TAKQMTSI
+#::: JYKFJ3M7BLHYH24PTUUDNWKCSLFW4DPISHGGAP4735GZCVV4P3D :::: NAILARA AMOS :::
+# :: FXCYFTDRZZHY4DN6ZFTUOWDEGWKLQCCMIJLCSNPV46UVWTZLPUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
