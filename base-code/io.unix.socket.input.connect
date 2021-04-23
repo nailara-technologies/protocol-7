@@ -3,38 +3,51 @@
 # name  = io.unix.socket.input.connect
 
 my $id = $_[0]->w->data;
-my $fd = $data{'session'}{$id}{'handle'};
+my $fd = $_[0]->w->fd;
 
-if ( -S $fd ) {
-    my $new_sock;
-    if ( $new_sock = $fd->accept() ) {
-        $data{'handle'}{$new_sock}{'link'} = 'unix';
-        $data{'handle'}{$new_sock}{'mode'} = 'input';
-        no strict;
-        my @peercred = unpack( 'i*', $new_sock->sockopt( SO_PEERCRED() ) );
-        die "[$id] SO_PEERCRED failed" if @peercred != 3;
+return undef if not defined $data{'session'}{$id};
+
+if ( $fd->connected and -S $fd ) {
+    my $unix_client;
+    if ( $unix_client = $fd->accept() ) {
+
+        no strict;   ##  retrieving peer credentials [ unix user details ]  ##
+        my @peercred = unpack( 'i*', $unix_client->sockopt( SO_PEERCRED() ) );
         use strict;
-        $data{'handle'}{$new_sock}{'unix'} = {
-            'pid' => $peercred[0],
-            'uid' => $peercred[1],
-            'gid' => $peercred[2]
+
+        if ( @peercred != 3 ) {
+            warn "[$id] no success with SO_PEERCRED()";
+            return undef;
+        }
+
+        $data{'handle'}{$unix_client} = {
+            'encryption' => qw| none |,
+            'mode'       => qw| input |,
+            'link'       => qw| ip.tcp |,
+            'unix'       => {
+                qw| pid | => $peercred[0],    # <-- process id  ###
+                qw| uid | => $peercred[1],    # <-- unix-user-id  ###
+                qw| gid | => $peercred[2]     # <-- unix-group id  ###
+            }
         };
-        return $new_sock;
+
+        return $unix_client;    ## <-- success ##
+
     } else {
-        <[base.log]>->(
-            0, "io.unix.socket.input.connect: cannot accept [ \l$OS_ERROR ]"
-        );
+        my $err_msg = <[base.format_error]>->($OS_ERROR);
+        <[base.log]>->( 0, "[$id] cannot accept() connection : $err_msg" );
         return undef;
     }
 } else {
-    <[base.log]>->(
-        0, "io.unix.socket.input.connect: no valid socket supplied"
+    <[base.logs]>->(
+        0,   '[%d] socket is not valid [ connection closed ? ] %s',
+        $id, <[base.caller]>
     );
-    return undef;
+    return undef;    ## <-- error connecting ##
 }
 
 #.............................................................................
-#BOA4XP74QWSIP3KIQNIY4BXUP4FCFPJQC22IEKDIGKPJ5RHNTB5R7KM4X76NFLN3LFQGC3EZD4APU
-#::: WT2NKWRGQEEF3OARWADXZT5OIZ4INTAHCD65ZMTA2R2LHQBA6O5 :::: NAILARA AMOS :::
-# :: SN52OYQ3MEXA6QMWZZMWPWTR5JSP7JIF7LH2AW53IA6X4W2MVQBI :: CODE SIGNATURE ::
+#IHHG7FGKXFYCIJ3JF3XMAH3GHSLJTJ5J3JD5H6ZJGFXJJCWCPJK4WVFTX7VRPLQ426ZTG6LBK6CSC
+#::: INT6TO2EG5ZHSVA66C5QQ62M2NPT73ZLZHW7PXFJTNT2AFI54S3 :::: NAILARA AMOS :::
+# :: QYE2LPHYLH74SLRVOJ6OAO4NJ5GOWXEA6MQYMTSIEIJZ3I6OTGCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

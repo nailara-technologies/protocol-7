@@ -2,50 +2,54 @@
 
 # name = io.ip.tcp.input.connect
 
+my $fd = $_[0]->w->fd;
 my $id = $_[0]->w->data;
-my $fd = $data{'session'}{$id}{'handle'};
 
-if ( -S $fd ) {
-    my $new_sock = $fd->accept()
-        or <[base.log]>->(
-        0, "tcp.connect_handler: cannot accept [ \l$OS_ERROR ]"
-        );
+return undef if not defined $data{'session'}{$id};
+
+if ( $fd->connected and -S $fd ) {
+    my $client_sock_fd;
+    if ( not $client_sock_fd = fd->accept() ) {
+        my $err_msg = <[base.format_error]>->($OS_ERROR);
+        <[base.log]>->( 0, "[$id] cannot accept() connection : $err_msg" );
+        return undef;
+    }
+
     my ( $p_host, $p_port )
-        = ( $new_sock->peerhost(), $new_sock->peerport() );
+        = ( $client_sock_fd->peerhost(), $client_sock_fd->peerport() );
 
-    return undef
+    return undef    ##  <-- closed .., ##
         if not defined $p_host
-        or not defined $p_port;    # <-- closed[!]
+        or not defined $p_port;
 
-    my $v4_over_6 = $p_host =~ s|^::ffff:|| ? 1 : 0;
-
-    $data{'handle'}{$new_sock} = {
-        'mode'       => 'input',
-        'encryption' => 'none',
-        'link'       => 'ip.tcp',
+    $data{'handle'}{$client_sock_fd} = {
+        'encryption' => qw| none |,
+        'mode'       => qw| input |,
+        'link'       => qw| ip.tcp |,
         'peerhost'   => $p_host,
         'peerport'   => $p_port,
-        'v4_over_6'  => $v4_over_6
+        'v4_over_6'  => $p_host =~ s|^::ffff:|| ? 1 : 0
     };
 
-    <[base.log]>->(
-        1,
-        sprintf(
-            '[%s] IN.-TCP [%s:%s]',
-            $id,
-            $data{'handle'}{$new_sock}{'peerhost'},
-            $data{'handle'}{$new_sock}{'peerport'}
-        )
+    <[base.logs]>->(
+        1, '[%s] IN.-TCP [%s:%s]',
+        $id,
+        $data{'handle'}{$client_sock_fd}{'peerhost'},
+        $data{'handle'}{$client_sock_fd}{'peerport'}
     );
 
-    return $new_sock;
+    return $client_sock_fd;    ## <-- success \ returning client socket ##
+
 } else {
-    <[base.log]>->( 0, "tcp.connect_handler: no socket supplied" );
-    return undef;
+    <[base.logs]>->(
+        0,   '[%d] socket is not valid [ connection closed ? ] %s',
+        $id, <[base.caller]>
+    );
+    return undef;              ## <-- connection closed \ error connecting ##
 }
 
 #.............................................................................
-#I6IGSS47OXSPRASU2V44DMFZURGNEI2KR57PJGRMBSTNQF7NFMNR3CYPPBJEC5C5PEDTSLQ5TYIXO
-#::: WL7ZPG7DTEQDISWCEUMKV77EYCFIN3RF3DM4UXZT2QENPO2JLHR :::: NAILARA AMOS :::
-# :: LLVTHUSKXEIZCSNUGBWS66YGTXJV75262NX22PFLHLE4YVZ5WWAY :: CODE SIGNATURE ::
+#7U3XHNJYZHZ4JULOKMHMKZPGSVBQOY4ITYBKTJTWPZ5KW25QJAKM4EE2N2TURSH2QU7B6SBHTGU42
+#::: MDSEZPWVMBKK6RXKPQXV32AH2LJ57EV55E4U3LPFU3NN7G2RWRI :::: NAILARA AMOS :::
+# :: IO7WDGCYNNX4LPW2VRQMKS3YO7NRHNAPSMJS4FAYR4EQD2TAJEBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
