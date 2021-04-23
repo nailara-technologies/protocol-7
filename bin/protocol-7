@@ -10,6 +10,9 @@ our %data;
 our %KEYS;
 our %ANSI;
 our $SUB_NAME;
+our $NODE_NAME;
+our $ZENKA_NAME;
+our $ZENKA_SUBNAME;
 
 prepare_subs();
 
@@ -739,19 +742,22 @@ sub prepare_subs {
                 exit(0)                if $show_banner_mode;
             }
         }
+        ## global name variables ## set variable-watcher to update them [LLL]
+        $NODE_NAME     = $data{'system'}{'node'}{'name'};
+        $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
+        $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
 
         ## initializing early zenka buffer capture ###
         $data{'system'}{'start'}{'zenka-buffer'} = [];
-        my $zenkaname = $data{'system'}{'zenka'}{'name'};
         my $s_version = $data{'protocol-7'}{'src-ver'};
         my $tenki
-            = length($s_version) > ( length("zenka $zenkaname") )
+            = length($s_version) > ( length("zenka $ZENKA_NAME") )
             ? sprintf ' %s,',
-            '.' x ( length($s_version) - length("zenka $zenkaname") - 1 )
+            '.' x ( length($s_version) - length("zenka $ZENKA_NAME") - 1 )
             : '';
         map { push( @{ $data{'system'}{'start'}{'zenka-buffer'} }, $ARG ) } (
             $code{'base.anum_log_time'}->()
-                . sprintf( ' 0 . startup zenka %s%s', $zenkaname, $tenki ),
+                . sprintf( ' 0 . startup zenka %s%s', $ZENKA_NAME, $tenki ),
             $code{'base.anum_log_time'}->()
                 . sprintf( ' 0 . version %s', $s_version )
         );
@@ -1943,6 +1949,7 @@ sub prepare_subs {
             } # todo: human readable way do debug [eval] callers., [+stacktrc?]
             map {
                 $ARG =~ s| at $filename line $line[\.,].*$||;
+                $ARG =~ s|, <GEN\d+>.*$||g;
                 $ARG =~ s|no success on eval ('\$code\{\S+)
                          |<< $LAST_PAREN_MATCH >>|x;
                 $level = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
@@ -1969,8 +1976,7 @@ sub prepare_subs {
                 $line = $data{'base'}{'eval_error'}{'line'}
                     //= [ caller($l) ]->[2];
             }
-            $filename
-                =~ s|^/usr/share/perl5/||;    ## shorten path for .pm modules
+            $filename =~ s|^/usr/share/perl5/||;    ## shorten for .pm mods ##
             my $caller_str = "[$filename:$line]";
             $caller_str = "[ ... caller level $level too high .., ]"
                 if !length( $filename . $line );
@@ -1988,9 +1994,19 @@ sub prepare_subs {
             }
             ##
             if ($log_warning) {
-                $code{'log.error'}->( join( ' ', qq|: warn :|, @err ) );
-                $code{'log.error'}->(":$caller_str")
-                    if $level > -1;
+                my $log_msg = join( ' ', qq|: warn :|, @err );
+                if ( $level > -1 ) {
+                    my $max_len = 67 - length($ZENKA_NAME);
+                    if ( length($log_msg) + length($caller_str) > $max_len ) {
+                        $code{'log.error'}->($log_msg);
+                        $code{'log.error'}->(":.    .: $caller_str");
+                    } else {
+                        $code{'log.error'}
+                            ->( join( ' ', $log_msg, $caller_str ) );
+                    }
+                } else {
+                    $code{'log.error'}->($log_msg);
+                }
             }
         }
         return 1;
@@ -2029,7 +2045,7 @@ END {
 }
 
 #.............................................................................
-#GGPOBGWIIHCCINLFP3ANRHQFE6WMAMURJMRWP2U3NPDFOW76IMSYJA5LJ57RO2QEWN55K7HFNYIMY
-#::: LSX33Z2JY2A7W2HE3KHRJRPXMPNHVFY6EZJTONEAH43T2VKL5EQ :::: NAILARA AMOS :::
-# :: OKWD3JJFULAP47JMHCZIBX6V2DH5LMSUP2APCJNP3F2UMS3KOKCY :: CODE SIGNATURE ::
+#SPOCVBUVN3YPL52IKBEOGNGEUX74RNFP5DN5JVMGA4AW4H4PCR7LF5OH5DOXPQZDRLUNY76GRZF2S
+#::: 3XI3LIQCCRU7Y5O2QZ2YSJ636UP6QG25V2PDUFDG3GEWVQILFSH :::: NAILARA AMOS :::
+# :: 52P4BEMXJDA7C6WDHR7T5IPFBLTDEPJVM2XUWJKG5JXFVLTE2WAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
