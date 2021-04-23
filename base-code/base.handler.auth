@@ -1,7 +1,9 @@
 # >:]
 
 # name   = base.handler.auth
-# return = 0 --> session authorized, 1 --> keep state , 2 --> not valid: disconnect
+# return = 0 <-- session authorized [ change state ]
+#          1 <-- keep state [ protocol continues ]
+#          2 <-- not valid [ disconnect client ]
 
 my $id           = $_[0]->w->data;
 my $session      = $data{'session'}{$id};
@@ -10,7 +12,7 @@ my $output       = \$$session{'buffer'}{'output'};
 my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
 my ( $auth_method, $auth_code, $auth_name );
 
-$count_select->{'limit'}  //= 3;    #  <-- < ! >
+$count_select->{'limit'}  //= 3; ##  <-- limiting allowed 'select' commands ##
 $count_select->{'errors'} //= 0;
 $count_select->{'calls'}  //= 0;
 
@@ -24,8 +26,9 @@ if ( not defined $s_met ) {
         $msg .= " [session:$id]";
     }
     warn $msg;
+
     $$output .= "`:|\n";
-    return 2;                                   # <-- disconnect
+    return 2;    ## <-- disconnecting client ##
 
 }
 ($auth_method) = $$session{'auth'}{'method'} // split( m|\s+|, $s_met );
@@ -33,11 +36,13 @@ if ( not defined $s_met ) {
 $_[0]->w->stop;    # <-- stopping event handler to modify buffer
 
 if ( $$input =~ s|^(auth\.)?close\n|| ) {
-    $$output .= "TRUE connection closed\n";
+
     <[base.log]>->( 1, "[$id] connection shutdown requested" );
-    return 2;      # <-- disconnect
-} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| )
-{    # <-- auth method
+
+    $$output .= "TRUE connection closed\n";
+    return 2;    ## <-- disconnecting ##
+
+} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) {  ## auth method
     my $req_method = $+{method};
     $_[0]->w->start;
 
@@ -45,20 +50,25 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
         <[base.log]>->(
             0, "[$id] auth module not loaded, 'select' rejected."
         );
-        $$session{'shutdown'} = 1;
+
         $$output .= ">:[\n";
+        return 2;    ## <-- disconnecting ##
+
     } elsif ( $req_method !~ <regex.base.authmethod> ) {
         <[base.log]>->( 0, "[$id] invalid characters in auth method string" );
         <[base.log]>
             ->( 2, "[$id] :: requested auth method :: '$req_method'" );
-        $$session{'shutdown'} = 1;
+
         $$output .= ">:[\n";
+        return 2;    ## <-- disconnecting client ##
 
     } else {
         if ( $count_select->{'calls'} >= $count_select->{'limit'} ) {
             <[base.log]>->( 0, "[$id] auth select count limit exceeded >:[" );
-            $$session{'shutdown'} = 1;
+
             $$output .= ">:[\n";
+            return 2;    ## <-- disconnecting client ##
+
         } else {
             if ( <[auth.auth_select]>->( $id, $req_method ) ) {
                 $count_select->{'calls'}++;
@@ -66,42 +76,55 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
                 $count_select->{'errors'}++;
             }
             if ( $count_select->{'errors'} > 2 ) {
-                $$session{'shutdown'} = 1;
+
                 $$output .= ">:[\n";
+                return 2;    ## <-- disconnecting client ##
+
             }
+            return 1;        ## continue protocol ##
         }
     }
-} elsif ( $$input =~ s|^(auth\.)?list\n|| ) {    # list auth methods
+} elsif ( $$input =~ s|^(auth\.)?list\n|| ) {    ## list auth methods ##
 
     $_[0]->w->start;
 
     if ( not exists $code{'auth.auth_list'} ) {
         <[base.log]>->( 0, "[$id] auth module not loaded, 'list' rejected." );
+
         $$output .= ">:[\n";
-        $$session{'shutdown'} = 1;
+        return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 1 ) {
+
         <[base.log]>->( 0, "[$id] 3rd auth list requested >:[" );
+
         $$output .= ">:[\n";
-        $$session{'shutdown'} = 1;
+        return 2;    ## <-- disconnecting ##
+
     } elsif ( ( $count_select->{'list'} // 0 ) > 0 ) {
+
         <[base.log]>->( 0, "[$id] repeated auth list requested.," );
+
         $$output .= "FALSE once should be enough >;]\n";
         $count_select->{'list'}++;
+
     } else {
+
         <[base.log]>->( 1, "[$id] auth method list requested" );
 
         my $auth_list = <[auth.auth_list]>->($id);
         $auth_list = 'DATA ' . length($auth_list) . "\n" . $auth_list;
         $count_select->{'list'}++;
         $$output .= $auth_list;
+
     }
+    return 1;    ## continue protocol ##
 }
 
-# ... calling selected authentication plugin ..,
+##### calling selected authentification plugin #####
 elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
-    $_[0]->w->start;    # <-- resume event watcher
+    $_[0]->w->start;    ## <-- resuming input event watcher ., ##
 
     ( $auth_code, $auth_name )
         = ( $code{"plugin.auth.$auth_method"}->( $_[0] ) );
@@ -112,11 +135,11 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         my $fh = $data{'session'}{$id}{'handle'};
         $$session{'encryption'} = $data{'handle'}{$fh}{'encryption'}
             // 'none';
-        $$session{'mode'}          = 'client';
         $$session{'user'}          = $auth_name;
+        $$session{'mode'}          = qw| client |;
         $$session{'auth_time'}     = <[base.time]>->(5);
-        $$session{'initialized'}   = 1 if $auth_method ne 'zenka';
-        $$session{'authenticated'} = 'yes';
+        $$session{'initialized'}   = 1 if $auth_method ne qw| zenka |;
+        $$session{'authenticated'} = qw| yes |;
 
         my $unauth_client = <base.session.uname.client>;
         delete $data{'user'}{$unauth_client}{'session'}{$id};   ## clean-up ##
@@ -131,25 +154,30 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
         <[base.session.init_state]>->( $id, 1 );
 
-        # disable the authentication timeout
+        ## authentification timeout disabled ##
         $$session{'watcher'}{'input_handler'}->timeout(undef);
 
-        undef $count_select;    # .. clean-up .,
+        undef $count_select;    ## clean-up ##
         delete $$session{'counter'}{'auth'};
         delete $$session{'counter'} if !keys( %{ $$session{'counter'} } );
-        return 0;               # <-- authorized
+
+        return 0;               ## <-- authorized ##
+
     } elsif ( $auth_code == 1 ) {
-        return 1;               # <-- continue..,
+        return 1;               ## continue protocol ##
     } else {
-        return 2;               # <-- disconnect
+        return 2;               ## <-- disconnecting ##
     }
 } else {
     <[base.log]>->( 0, "auth plugin '$auth_method' not loaded" );
-    return 2;                   # <-- disconnect
+    return 2;                   ## <-- disconnecting client ##
 }
 
+warn 'reached not expected state in authentification protocol';
+return 2;    ## terminate connection \ not expected state ##
+
 #.............................................................................
-#YS422ENCNHFB2EMC3D5BJZPSKTRJNG3JVNJFYAAPM5ILRYKE5NRMODILXDYCLUXZEZOI24HFBFF3G
-#::: GXMOEDPECD6QZOBEUWHSRMCFRPLLTHKUP5QIMXFTC5EZ6IU7ODN :::: NAILARA AMOS :::
-# :: I2OC6DE524AMNF4K7V56MGU4TKQ5VSOICMID3JI5SYUE365ECMCY :: CODE SIGNATURE ::
+#IXWBFL7F6E6V7YPNFY7ZR6OSHHPNDMFEBZJA46RNLGM4ZVKS6QG2JLAFZKGF22TVRWKUEUNUNW6HK
+#::: GAV5UOHL7KMTD537P3WYE5QEHTZ6AJMYK3JTCAY5ICNUHQTAVT2 :::: NAILARA AMOS :::
+# :: 34AKN3R3QJBKTRM5Q6PYRTZQQXBWBIFEIPR5KLXT7ZUSXJLRWKDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
