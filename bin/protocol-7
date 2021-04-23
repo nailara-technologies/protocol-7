@@ -802,7 +802,7 @@ sub prepare_subs {
     };
 
     $code{'base.format_error'} = sub {
-        my $err_msg = shift // '';
+        my $err_msg = shift // qw| :undef: |;
         my $c_lvl   = shift // 1;
         my ( $caller_str, $file, $line );
         $err_msg =~ s|\n$||;
@@ -822,6 +822,8 @@ sub prepare_subs {
             $err_msg .= " [$caller_str]" if $c_lvl >= 0;
         }
         $err_msg =~ s,(can't|unable to),cannot,g;
+        $err_msg =~ s|^warning : something's wrong$|:undef:|g;
+        $err_msg =~ s|^use of uninitialized value in warn$|:undef:|g;
         $caller_str = $code{'base.caller'}->($c_lvl);
         return ( $err_msg, $caller_str ) if wantarray;
         return $err_msg;
@@ -831,8 +833,7 @@ sub prepare_subs {
         my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
         $c_lvl++;                  ## <-- accounting for this subroutine ##
         my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
-        $filename =~ s{^/usr/share/perl5/|^.+/protocol-7/data/}{,.}g;
-        $filename =~ s{^.+/perl\-base/}{,.perl-base/};
+        $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
         return "[$filename:$line]";
     };
 
@@ -1925,8 +1926,9 @@ sub prepare_subs {
         my $spaces = ' ' x $s_len;
         if (@_) {
             my $level = 0;
-            chomp( my @err = @_ );
+            chomp( my @err = @ARG );
             map {
+                $ARG //= qw| :undef: |;
                 $ARG =~ s|([^[:print:]])
                            | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
                 $ARG = $code{'base.format_error'}->( $ARG, -1 );
@@ -2056,14 +2058,14 @@ sub prepare_subs {
     };
     map {
         $data{'base'}{'core_subs'}{$ARG} = $code{$ARG};
-        $data{'code'}{$ARG}{'status'} = 'core-sub'
+        $data{'code'}{$ARG}{'status'} = qw| core-sub |
     } keys %code;
 }
 
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#FALD4756RDYV3Y6S3MGQ6K3KATZ3APIGAEH742OCF43FP4AIYKNC7GH2EXIEPRI4VHBU6TAKQMTSI
-#::: JYKFJ3M7BLHYH24PTUUDNWKCSLFW4DPISHGGAP4735GZCVV4P3D :::: NAILARA AMOS :::
-# :: FXCYFTDRZZHY4DN6ZFTUOWDEGWKLQCCMIJLCSNPV46UVWTZLPUCQ :: CODE SIGNATURE ::
+#JFZGNHMSSUICRULPYADD33UG3WDLURFXUEEEDWE4SHL3QSSCMSCFVKMSPLVDOIZIVT3YSPRIAIIGI
+#::: 5POGBMW2MN4TTIVUYI2FGDRGXA3NFTSZDY7V6LD3N6V3OH7KLEM :::: NAILARA AMOS :::
+# :: CKDJDLKQC4YAYUZDXRKA2EY2D7ITMQO2BGYP2ZJKCISQJGBTM6DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
