@@ -3,18 +3,27 @@
 # name  = base.handler.connect
 
 my $id     = $_[0]->w->data;
-my $fd_srv = $data{'session'}{$id}{'handle'};
-my $type   = $data{'handle'}{$fd_srv}{'link'};
-my $proto  = $data{'session'}{$id}{'protocol'};
-my $state  = $data{'session'}{$id}{'state'};
-my $mode   = $data{'handle'}{$fd_srv}{'mode'};
+my $fd_srv = $_[0]->w->fd;
+
+##  closed server session  ##
+if ( not defined $data{'session'}{$id} ) {
+    ## removing from event management ##
+    $_[0]->w->cancel if $_[0]->w->is_active;
+    return undef;
+}
+
+my $type  = $data{'handle'}{$fd_srv}{'link'};
+my $proto = $data{'session'}{$id}{'protocol'};
+my $state = $data{'session'}{$id}{'state'};
+my $mode  = $data{'handle'}{$fd_srv}{'mode'};
 
 my $handler       = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
 my $banner_string = $data{'protocol'}{$proto}{'connect'}{'banner'} // '';
 
 if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
-    <[base.log]>->(
-        1, 'base.handler.connect: no protocol defined for submitted handle'
+    <[base.logs]>->(
+        0,   '[%s] no protocol defined for submitted handle %s',
+        $id, <[base.caller]>
     );
     <[base.session.check_remaining]>;
     return undef;
@@ -22,22 +31,24 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     ( my $handler_str = $handler ) =~ s{^io\.|\.connect$}{}g;
     <[base.log]>->( 1, "[$id] calling connect handler [$handler_str]" );
     my $fd_client = $code{$handler}->( $_[0] );
-    if ( defined $fd_client and $fd_client->connected() ) {
-        my $id = <[base.session.init]>->( $fd_client, $proto, $mode );
+    if ( defined $fd_client and fileno($fd_client) and $fd_client->connected )
+    {
+        my $cid = <[base.session.init]>->( $fd_client, $proto, $mode );
 
         ## sending protocol banner string ., ##
-        if ( length($banner_string) and $mode eq 'input' ) {
+        if ( length($banner_string) and $mode eq qw| input | ) {
             <[net.out]>->( $fd_client, $banner_string );
         }
-        <[base.log]>->( 1, "[$id] establishing $proto protocol link" );
+        <[base.log]>->( 1, "[$cid] establishing $proto protocol link" );
+
     } else {
-        <[base.log]>->( 1, "[$id] connection was closed .," );
+        <[base.log]>->( 1, "[$id] connection was closed [?] .," );
         return undef;
     }
 }
 
 #.............................................................................
-#GTLCXW6ISZJQIJN2DWC4PBG3R4QHPIGFYDV5NBOXMXFXDHKFWLTJ34VQ4I3CE63MAU3XTHZ63LC7A
-#::: ZYSCPDY6TLDKKO7SZEHQJLCHP44QTGIMTCVDDJ6XZQOBV3T3HOZ :::: NAILARA AMOS :::
-# :: BGTOKJ7OHBUNWT6IHOA3FBWLQJOOP7ZLX6TF624NIBR3D6GQCECI :: CODE SIGNATURE ::
+#AOZSBCI5NV5JT3QEBJY3YMR5HACKYMOU574ETL2SHGG64TH46B6L3S2R735AY527ACFJ5GNN7WLNI
+#::: DJ4KHLAD5K75MLTHV5LVMPXDKJ6CCO4WEJRSRFRCHAJPMGX5JPC :::: NAILARA AMOS :::
+# :: IBWZADM5DH6FIQE224RYMOP2NKRJ2TC7IAPUEBKRCSPZCOIYQ6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
