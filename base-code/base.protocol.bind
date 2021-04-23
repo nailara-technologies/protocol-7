@@ -7,40 +7,46 @@
 return warn 'expected protocol name parameter' if not defined $_[1];
 if ( not defined $_[0] or not defined $data{'protocol'}{ $_[1] } ) {
     my $protocol_name = $_[1];
-    my $reason        = 'undefined filehandle';
-    $reason = 'unknown protocol'
-        if not defined $data{'protocol'}{$protocol_name};
-    <[base.log]>->(
-        0, "unable to bind protocol '$protocol_name' [ $reason ]"
-    );
+    my $reason
+        = defined $data{'protocol'}{$protocol_name}
+        ? 'unknown protocol'
+        : 'undefined filehandle';
+    <[base.log]>->( 0, "cannot bind protocol '$protocol_name' [ $reason ]" );
     <[base.session.check_remaining]>;
     return undef;
 }
 $data{'handle'}{ $_[0] }{'protocol'} = $_[1];
-my $mode = $_[2] || 'server';
+my $mode = $_[2] // qw| server |;
 
 my $fd = eval { fileno( $_[0] ) };
 
 if ( $EVAL_ERROR or not defined $fd ) {
     my $ref_str = ref( $_[0] );
-    do { $EVAL_ERROR =~ s|\n+| |g and $EVAL_ERROR =~ s|\.? +$||g }
-        if defined $EVAL_ERROR;
-    <[base.log]>->(
-        0,
-        "<<!>> unable to bind protocol '$_[1]' to '$ref_str'-filehandle [$EVAL_ERROR]"
-    );
+    my $err_msg = "<< cannot bind protocol '$_[1]' to '$ref_str'-fd";
+    $err_msg .= ' ' . <[base.format_error]>->($EVAL_ERROR) if $EVAL_ERROR;
+    $err_msg .= ' >>';
+    <[base.log]>->( 0, $err_msg );
     <[base.session.check_remaining]>;
 } else {
-    warn "file handle '$fd' does not have a real file descriptor"
-        if $fd == -1;
-    <[base.log]>->(
-        2, "bound protocol '$_[1]' to handle '$_[0]' [ $mode mode ]"
-    );
+    warn "file handle '$fd' has no file descriptor" if $fd == -1;
     my $id = <[base.session.init]>->( $_[0], $_[1], $mode );
+    if ( defined $id ) {
+        <[base.log]>->(
+            2, "bound protocol '$_[1]' to handle '$_[0]' [ $mode mode ]"
+        );
+    } else {
+        <[base.log]>->(
+            0,
+            "session.init error : protocol '$_[1]'"
+                . " [ handle '$_[0]' [ $mode mode ]"
+        );
+        eval { shutdown( $_[0], 2 ) };
+        eval { close( $_[0] ) };
+    }
 }
 
 #.............................................................................
-#G342SQPJ4A6KCECTTRMCY3BLLETHAORCWET5OSJ32F4CNRVJZMO3MABTC4272SB2GHGX4DMV4ACU6
-#::: KB5RGLODV6OENK3DKRMZFA2PGGLQKJ3CPIDYG6I4ZWF4TIKDNDS :::: NAILARA AMOS :::
-# :: W4H3HCML67AC5WYLTIGPPRJNAVDPQKFJPV5JOR4SEFZVSI7CPUCQ :: CODE SIGNATURE ::
+#AGC2ATZ26ZRETNAD66IXNCRZAJJXFQ6DAZ7WZCFLPIPRAFULII6REJH3XLIERNMSK2UF3L647I5SC
+#::: XAO3QXL6ZQZIIBWSBICFGEEU2FQP7FDLIUEIK2U2UKDP64YXUAD :::: NAILARA AMOS :::
+# :: EVWHIGVXZMQJSBWKQRJPZKJH5LZQGAIGQUGFR7TFIFK6W2JKROAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

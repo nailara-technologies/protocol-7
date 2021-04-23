@@ -4,6 +4,7 @@
 # descr = session input handler
 
 my $id = $_[0]->w->data;
+my $fd = $_[0]->w->fd;
 
 if (   not defined $id
     or not defined $data{'session'}{$id}
@@ -11,9 +12,11 @@ if (   not defined $id
     and $data{'session'}{$id}{'shutdown'} // 0 ) {
     $_[0]->w->cancel; ## removing from event management ##
     $id //= '---';    ## <-- !!! session p7-log ?                        [LLL]
-    my $type = defined $data{'session'}{$id} ? 'removed' : 'closing';
-    <[base.log]>->( 1, "[$id] handler of $type session called." );
-    return undef;
+    my $type = defined $data{'session'}{$id} ? qw| removed | : qw| closing |;
+    if ( $type ne qw| closing | or not $fd->eof ) {
+        <[base.log]>->( 1, "[$id] handler of $type session called." );
+        return undef;
+    }
 }
 
 my $session = $data{'session'}{$id};
@@ -31,7 +34,7 @@ if (not fileno $session->{'handle'}
     $session->{'shutdown'} = 1;
 }
 
-my $n_bfs = length( $session->{'buffer'}->{'input'} );
+my $n_bfs = length( $session->{'buffer'}->{'input'} ) // 0;
 
 $data{'handle'}{ $session->{'handle'} }->{'bytes'}->{'in'} += $n_bfs - $bfs;
 
@@ -40,7 +43,7 @@ $bfs = $n_bfs;
 if ( $bfs > $session->{'size'}->{'buffer'}->{'input'} ) {
     my $max_len = $session->{'size'}->{'buffer'}->{'input'};
     my $err_msg = 'input buffer size exceeded';
-    $session->{'buffer'}->{'input'} = '';
+    truncate( $session->{'buffer'}->{'input'}, $max_len );
     <[base.log]>->( 0, "[$id] $err_msg. [ $bfs > $max_len ]" );
     <[base.session.shutdown]>->( $id, "$err_msg [ max size ${max_len}B ]" );
 } elsif ($bfs) {
@@ -48,7 +51,7 @@ if ( $bfs > $session->{'size'}->{'buffer'}->{'input'} ) {
 }
 
 #.............................................................................
-#3EYMO4DOMNVMIKRQTQBX2AHVBDUIN756DLZ7HBQFI3MRBX7ORLDBDCBQSSG6CGDZMVUUT7JGU3BRC
-#::: KCJBI7N2A5KYYLRDGW5GY3VC2AVGHVTJAPYLPYSHSIS26STCVYI :::: NAILARA AMOS :::
-# :: 42DK6Z5IEKXDQZO5ZIBNNNYGZMOGBIMHFHBK7TSWNCHHPWRW2KBI :: CODE SIGNATURE ::
+#RJCPVKI4ARCIOYQYMQSZFGMKCDJHHIGTSF3CEWO4PO4ASSBWURZZ6VGJXS4XN3WW6AIIMAUMZWZPQ
+#::: JPPG3Z5IIG47AXSVDPL4ZY26LIACCXFLZNM3EX5OZSTWZMOK5EM :::: NAILARA AMOS :::
+# :: EV734IIKUG45VBBLFT64FJSRXMJ4D2LF47IDJHO4MQUCS2WEI6BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

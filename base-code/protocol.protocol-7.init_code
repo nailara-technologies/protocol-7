@@ -3,33 +3,38 @@
 # name  = protocol.protocol-7.init_code
 
 <protocol.protocol-7> = {
-    'connect' => { 'banner' => ">:]\n" },
-    'state'   => {
-        '0' => {
-            'input'  => { 'handler' => 'base.handler.auth' },
-            'output' => { 'handler' => 'base.handler.command' }
+    qw| connect | => { qw| banner | => ">:]\n" },
+    qw| state |   => {
+        qw| 0 | => {
+
+            qw| input |  => { qw| handler | => qw| base.handler.auth | },
+            qw| output | => { qw| handler | => qw| base.handler.command | },
+
+            qw| error | => { 'handler' => qw| base.handler.session_error | }
         },
-        '1' => {
-            'input'  => { 'handler' => 'base.handler.command' },
-            'output' => { 'handler' => 'base.handler.command' }
+        qw| 1 | => {
+
+            qw| input |  => { qw| handler | => qw| base.handler.command | },
+            qw| output | => { qw| handler | => qw| base.handler.command | },
+
+            qw| error | => { 'handler' => qw| base.handler.session_error | }
         }
 
-            # ,'2' => { ## .. encrypted session state .., ? ## }
+            # , qw| 2 | => { ## .. encrypted session state .., ? ## }
     },
     'clean-up-regex' => [qr|^(\s*\n)+$|], ## <-- applied before cmd processing
-    'command-handlers' =>
-        { 'input' => [qw| multi-line |], 'process' => [qw||] }
+    qw| command-handlers | =>
+        { qw| input | => [qw| multi-line |], qw| process | => [qw||] }
 };
 
-<protocol.protocol-7.settings.do-clean-up>
-    //= 1;                                # override in configuration ##
+<protocol.protocol-7.settings.do-clean-up> //= 5; ## <-- override in set-up ##
 
 <protocol.protocol-7.messages> = <[protocol.protocol-7.protocol-messages]>;
 
 0;
 
 #.............................................................................
-#KTTY74QR5B2VVXTBCIY5LEDBWRIHK44EJV2VI26BIHTA6SE4ZBNVUXJ2QSH4A6LD3ILPV4J54PSAY
-#::: PJF7WYIUYJKYUOEARARBJ22KOH7WZQZVL3AS3TSXPUU3GGX7IHB :::: NAILARA AMOS :::
-# :: DSV3S5ZQPRNXWJ7PCQ3GJEKMCJFYLRMVIHTVA7DTEL5WB6O3WEDA :: CODE SIGNATURE ::
+#JHVBKOFOCH4MCSY7SLNP3XL3NKPKGSKNY4WS2FAPD5IOATNLJ4HXBKYJZTTS3AH23LI56DUWQKIMO
+#::: WMOYB3IRPTRNQJ7BEHX34BHNO7YOIEKDPULM2LHAR64GGTNRZE7 :::: NAILARA AMOS :::
+# :: QVDGSKB66ADK7ORKIGDPXDCBKDB34PPXAZ3V6ZHBXIYG2ZA5WCBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,8 @@
 my $id = $_[0]->w->data;
 
 if ( not defined $id or not defined $data{'session'}{$id} ) {
-    my $id = '!' if not defined $id;
+    my $id = '!!!' if not defined $id;
     $_[0]->w->cancel;
-
     ## call cleanup handler.., [protocol.,]                              [LLL]
     <[base.log]>->( 0, "[$id] input handler session was already closed.," );
     return undef;
@@ -24,19 +23,20 @@ my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
 my $start_len = length( $session->{'buffer'}->{'input'} );
 
-if ( defined $$session{'shutdown'} and $$session{'shutdown'} ) {
-    <[base.log]>->( 0, "[$id] called [input] handler of closing session." );
-    close( $data{'session'}{$id}{'handle'} );
-    $_[0]->w->cancel;
-    return;
-}
-
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 
     my $ret_code = $code{$handler}->( $_[0] );
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
+
+    ## call [registered] error handler in next case ##                   [LLL]
+    warn "return code of $handler not defined" and $ret_code = 2
+        if not defined $ret_code;
+    warn "not exoected return code fron $handler : '$ret_code'"
+        and $ret_code = 2
+        if $ret_code !~ m|^\d+$|;
+    ##
 
     $session->{'complete'} = $ret_code == 1 ? 0 : 1;
 
@@ -92,7 +92,7 @@ if (    $len > 0
 # }
 
 #.............................................................................
-#OONNONWP642RNVPPJJSPMW2RZJZ3TYRU6ROBCAD2TXFS7GMCPQVWTBGF3MPA2Q44766DWIXZLEAR6
-#::: RPKTPIZ2QG4U4JBIQ7LZLNVFUFEAWHEPZWQGKWUSE7Z2LIY64WF :::: NAILARA AMOS :::
-# :: D3NWA7YPH5S6BBD2NA7KQOQXKRQFGCM7MDBEB7ZYIHAMY4PZ3MAI :: CODE SIGNATURE ::
+#JCXH5MQUMOILBAT4YALW4FG6VZKLFZAWEAUKJYJYFDWQRO6F2EIQ3MLN7A5PC57SHZW5OBVF7LMSG
+#::: GI6DGN46IIGJOTAF3ZHGBRJNRBANN4QFSBT7YTSVYJDZVN4LCGX :::: NAILARA AMOS :::
+# :: KMZI6MN3Y7VZEYEDUL3PXLTAFJKQHVPM2BHA3ESQS3AEJSJ5KUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
