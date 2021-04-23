@@ -12,7 +12,8 @@ return {
     }
     if not exists $data{'session'}{$id}{'authenticated'};
 
-$data{'session'}{$id}{'shutdown'} = 1;
+$data{'session'}{$id}{'shutdown'}     = 1;
+$data{'session'}{$id}{'user-closing'} = 1;
 
 my $reason_max_len = 42;
 my $reason_str     = defined $$call{'args'} ? "'$$call{args}'" : ' exit ';
@@ -27,14 +28,14 @@ substr(
 
 my $night_hour = [localtime]->[2];
 $reply = {
-    'mode' => 'term',
-    'data' => ( $night_hour > 18 or $night_hour < 5 )
-    ? '.have a spacy night., >:]'
-    : '.have a nice day., >:]'
+    'mode' => qw| term |,
+    'data' => ( $night_hour > 19 or $night_hour < 5 )
+    ? ',. have a spacy night ., >:]'
+    : ',. have a sunny day ., >:]'
     }
 
 #.............................................................................
-#XR27PN5BRUDIWCZCFL3XRAIEWP3KLG6MHZYAZ4YG4CP4TKWNLN24RVCG6LIOPVRWVFY4SQXUSRULC
-#::: N4H7DHQFKFMR6HEFH6AHOX6E3UD56VFCBZUIUZ7XDK2LYFOEQTJ :::: NAILARA AMOS :::
-# :: WUPSE2EBDQ3SM33XER6FNFBPDEFS6TWOBN6VC5RBJ4YH62TEX2AQ :: CODE SIGNATURE ::
+#AWEJCH5FT7UZDUV4RJJ5O46AOOXLZNTLVAFFKRLLW25ULRJGRRZ3YM4NYOOL7IY5NPF4J3ZPJBW3S
+#::: OAVF3Y4E5KRILEHVBBKBXLJRB7X7B2X62KOMDIRXHE5MC6SXOIP :::: NAILARA AMOS :::
+# :: 7QUR4JN77ZRFJALHUYOYORD7K73UYF7MV7FRDDYGSJBA2B7DW4BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
