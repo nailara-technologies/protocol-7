@@ -1,7 +1,7 @@
 # >:]
 
-# name   = plugin.auth.enc
-# return = str(user name) (success), undef [error]
+# name   = plugin.auth.twofish
+# return = <user_name> [success] | undef [error]
 
 my $id = $_[0]->w->data;
 my $re = <regex.base>;
@@ -14,9 +14,9 @@ my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 my $key_name   = <system.zenka.name>;
 
 if ( $$input =~ s|^get-version\n|| )
-{    ## get authentication protocol version ##
+{    ##  return authentication protocol version  ##
     $$output .= sprintf( "TRUE %s\n", $auth_versn );
-    return 1;    # <-- keep state
+    return 1;    ## <-- keep connected ##
 }
 if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     my $cmd_type = $1;
@@ -24,7 +24,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
     if (not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
     {
-        $$output .= "FALSE not available `:|\a\n";
+        $$output .= "FALSE not available `:|\n";
         return 2;    # <-- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
@@ -50,21 +50,23 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     $auth_state->{'peer_pubkey'}        = $2;
     $auth_state->{'peer_net_signature'} = $3;    # optional in 'anon-usr' case
 
-    ## search and check signature [if given]
+    ## search and check signature [ when provided ] ##
     my $has_net_sig = defined $auth_state->{'peer_net_signature'} ? 1 : 0;
 
-    return 1;                                    # <-- keep state
+    return 1;                                    ## <-- keep connected ##
 
 } elsif ( $$input =~ m|\n| ) {
     $$output .= ">:[\n";
-    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ enc ]" );
+    <[base.log]>->(
+        0, "[$id] authentication protocol mismatch [ twofish ]"
+    );
     return 2;                                    # <-- terminate
 } else {
-    return 1;                                    # <-- keep state
+    return 1;                                    ## <-- keep connected ##
 }
 
 #.............................................................................
-#3N3I634AX6B2YQNJETPQLEJCZFL2UN5GB7JEPEDZHHQPYFTASC3CX2ZBWLTSVU3YCSLPO6YWKDFYI
-#::: 3GNJAKPE7ALB5AUVR46MZBW6OKU7CK74DAZC7TRJUXEIUZA5WKC :::: NAILARA AMOS :::
-# :: YYT2MH76JZC6MNR3YM4PEYT7NFA2ODCMGE6AR5RWHKMWAYJG5SDI :: CODE SIGNATURE ::
+#24SVW7GYFXDQ4D2JUUY2L24SJKNRFJEBRKYDQ6PDDVEJXK5AYB7DLEAUS2UAUMGZ2TOL5DGGCLN5I
+#::: VR7VPC2ET6ZADDF2LL2OJSFJXQS4T5RPYXXQSVQ4H2JG4LS65RJ :::: NAILARA AMOS :::
+# :: 74KYCIDJEGNRYYFVDWVP7MAA7DSUVMGUF46B7AX3KN7KJKPQJUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
