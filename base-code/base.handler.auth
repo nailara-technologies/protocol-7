@@ -121,7 +121,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
     return 1;    ## continue protocol ##
 }
 
-##### calling selected authentification plugin #####
+##### calling selected authentication plugin #####
 elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
     $_[0]->w->start;    ## <-- resuming input event watcher ., ##
@@ -154,7 +154,7 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 
         <[base.session.init_state]>->( $id, 1 );
 
-        ## authentification timeout disabled ##
+        ## authentication timeout disabled ##
         $$session{'watcher'}{'input_handler'}->timeout(undef);
 
         undef $count_select;    ## clean-up ##
@@ -169,15 +169,15 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
         return 2;               ## <-- disconnecting ##
     }
 } else {
-    <[base.log]>->( 0, "auth plugin '$auth_method' not loaded" );
+    <[base.log]>->( 0, "auth-plugin '$auth_method' not defined" );
     return 2;                   ## <-- disconnecting client ##
 }
 
-warn 'reached not expected state in authentification protocol';
+warn 'protocol handler reached unexpected state';
 return 2;    ## terminate connection \ not expected state ##
 
 #.............................................................................
-#IXWBFL7F6E6V7YPNFY7ZR6OSHHPNDMFEBZJA46RNLGM4ZVKS6QG2JLAFZKGF22TVRWKUEUNUNW6HK
-#::: GAV5UOHL7KMTD537P3WYE5QEHTZ6AJMYK3JTCAY5ICNUHQTAVT2 :::: NAILARA AMOS :::
-# :: 34AKN3R3QJBKTRM5Q6PYRTZQQXBWBIFEIPR5KLXT7ZUSXJLRWKDY :: CODE SIGNATURE ::
+#BYCTFPT56SZ6FSVRVJH2GSOQW3QKUITWCV4EUTXYW36DA5XGK426WKGUK3YHXMYXVCQLCFG4VMDRG
+#::: N36HDZGS3VO7XNDQKF6I5ASS66MBWOMFJYCLQMXYNRFLFEEUGY5 :::: NAILARA AMOS :::
+# :: NECBJA3XRGTGN6SDC2CN4FU5KK2VGH7IWQPT3KSQUZPRMRGL76DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
