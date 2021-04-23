@@ -13,20 +13,24 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
         0, "base.session.shutdown: session '$sid' does not exist"
     );
 } else {
-    my $shutdown_msg = "!TERM! $msg";
-    my $user         = $data{'session'}{$sid}{'user'};
+    my $session       = $data{'session'}{$sid};
+    my $user          = $session->{'user'};
+    my $user_exit_cmd = $session->{'user-closing'} || 0;
+
+    my $shutdown_msg = $user_exit_cmd ? "TRUE $msg" : "!TERM! $msg";
+
     if ( exists $data{'user'}{$user}{'shutdown_msg'} ) {
         $shutdown_msg = $data{'user'}{$user}{'shutdown_msg'};
         $shutdown_msg =~ s|__MSG__|$msg|;
     }
     my $lmsg = $msg eq 'session closed' ? '' : " [ $msg ]";
     <[base.log]>->( 1, "[$sid] session shutdown$lmsg" );
-    $data{'session'}{$sid}{'buffer'}{'output'} .= "$shutdown_msg\n";
-    $data{'session'}{$sid}{'shutdown'} = 1;
+    $session->{'buffer'}{'output'} .= "$shutdown_msg\n";
+    $session->{'shutdown'} = 1;
 }
 
 #.............................................................................
-#A7VSUAZZFSOKID4ZXNYUK7N7R6ZDX5HFVSUIEKN3TFHQP74UTLCYFRFQULQHMIUUJCOS342O6BFPY
-#::: RUK343WOPTZ2M6PRYXZWAD46FSPATIGINAIPTGFX52ZTDRDCBAX :::: NAILARA AMOS :::
-# :: AMMVSIOWZUQGRTLZD2UPQBUFLDVZ7TENWBN22DFBTCEWG7Z7DIBA :: CODE SIGNATURE ::
+#UE3T4WAXPENSEQIPE5WXOVOQURZMVLHBO5MFHXSPNWUGR4YKMH4LKF2POLDVPYAUOBEPL3UKFBN6I
+#::: CRIEXK73KORQ35AVY2IN2BUOZ3NP7BB4DKKOC4Y5KNQZFQ7A7PB :::: NAILARA AMOS :::
+# :: 5I5PYVSLQWM255A4LHLBFSETDQUA2SMMPBFBR6Y6F7H5GIBCF2DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
