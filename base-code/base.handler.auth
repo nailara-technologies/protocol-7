@@ -15,7 +15,19 @@ $count_select->{'errors'} //= 0;
 $count_select->{'calls'}  //= 0;
 
 my $s_met = <auth.supported_methods>;
-die 'no auth methods defined' if not defined $s_met;
+if ( not defined $s_met ) {
+    my $msg = 'no auth methods defined';
+    if ( defined $code{'chk-sum.amos'} ) {
+        my $socket_checksum = <[chk-sum.amos]>->( $session->{'handle'} );
+        $msg .= " [socket:$socket_checksum]";   ## add 'list sockets' [LLL] ##
+    } else {
+        $msg .= " [session:$id]";
+    }
+    warn $msg;
+    $$output .= "`:|\n";
+    return 2;                                   # <-- disconnect
+
+}
 ($auth_method) = $$session{'auth'}{'method'} // split( m|\s+|, $s_met );
 
 $_[0]->w->stop;    # <-- stopping event handler to modify buffer
@@ -137,7 +149,7 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
 }
 
 #.............................................................................
-#PZ5EVRR43THPWQYUE7C6QPD7XPLJUDPKIHGUI7VNFKEZE4J5K4IBMCJWZFVQFNBWM7RTB2RXQGYXU
-#::: G6UMPKWTX3GI5T4OVFNZYMSRW7ZPXSZZ5UZ4QETTBNP6EXVP24T :::: NAILARA AMOS :::
-# :: NNHPKCDIJKL4X4W5EQGRIEHSPTU7WDWSRYWFS7AUQAFV526NLUDA :: CODE SIGNATURE ::
+#YS422ENCNHFB2EMC3D5BJZPSKTRJNG3JVNJFYAAPM5ILRYKE5NRMODILXDYCLUXZEZOI24HFBFF3G
+#::: GXMOEDPECD6QZOBEUWHSRMCFRPLLTHKUP5QIMXFTC5EZ6IU7ODN :::: NAILARA AMOS :::
+# :: I2OC6DE524AMNF4K7V56MGU4TKQ5VSOICMID3JI5SYUE365ECMCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
