@@ -9,22 +9,30 @@ if ( not defined $id or not defined $data{'session'}{$id} ) {
     my $id = '!' if not defined $id;
     $_[0]->w->cancel;
 
-    ## call cleanup handler.., [protocol.,]                                [LLL]
+    ## call cleanup handler.., [protocol.,]                              [LLL]
     <[base.log]>->( 0, "[$id] input handler session was already closed.," );
     return undef;
 }
 
-my $session = $data{'session'}{$id};
-my $fd      = $session->{'input'}->{'handle'} // $session->{'handle'};
-my $type    = $data{'handle'}{$fd}{'link'};
-my $proto   = $session->{'protocol'};
-my $state   = $session->{'state'};
-my $mode    = $data{'handle'}{$fd}{'mode'};
-my $handler = $session->{'input'}->{'handler'};
-
+my $session   = $data{'session'}{$id};
+my $fd        = $session->{'input'}->{'handle'} // $session->{'handle'};
+my $type      = $data{'handle'}{$fd}{'link'};
+my $proto     = $session->{'protocol'};
+my $binary    = $session->{'binary'} // 0;
+my $state     = $session->{'state'};
+my $mode      = $data{'handle'}{$fd}{'mode'};
+my $handler   = $session->{'input'}->{'handler'};
 my $start_len = length( $session->{'buffer'}->{'input'} );
 
+if ( defined $$session{'shutdown'} and $$session{'shutdown'} ) {
+    <[base.log]>->( 0, "[$id] called [input] handler of closing session." );
+    close( $data{'session'}{$id}{'handle'} );
+    $_[0]->w->cancel;
+    return;
+}
+
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
+
     my $ret_code = $code{$handler}->( $_[0] );
 
     ## return code 0 ## command processed  [ removed from buffer ]
@@ -33,19 +41,24 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     $session->{'complete'} = $ret_code == 1 ? 0 : 1;
 
     ## return code 2 ## terminate session and close connection ##
-    if ( defined $ret_code and $ret_code =~ m|^\d+$| and $ret_code == 2 ) {
+    if (   defined $ret_code and $ret_code =~ m|^\d+$| and $ret_code == 2
+        or defined $session->{'shutdown'} and $session->{'shutdown'} == 1 ) {
+        $_[0]->w->cancel;
+        truncate( $session->{'buffer'}->{'input'}, 0 );
         $session->{'shutdown'} = 1;
+        <[base.log]>->(
+            2, "[$id] stopped input processing [ session shutdown ]"
+        );
     }
     ##
 } else {
 
     $_[0]->w->stop;
-    $session->{'buffer'}->{'input'} = '';
+    truncate( $session->{'buffer'}->{'input'}, 0 );
     $_[0]->w->start;
 
     <[base.log]>->(
-        0,
-        "[$id] undefined input handler '$handler', buffer content dropped.,"
+        0, "[$id] input handler '$handler' not defined, buffer emptied.,"
     );
 
     if (   $session->{'mode'} eq 'client'
@@ -55,10 +68,9 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 }
 
 my $len = length( $session->{'buffer'}->{'input'} );
-return $_[0]->w->cancel if not defined $len;    ## <-- buffer undefined ##
+return $_[0]->w->cancel if not defined $len;    ## <-- buffer 'not defined' ##
 
-if ( $len < $data{'size'}{'buffer'}{'input'}
-    and !$session->{'shutdown'} ) {
+if ( $len < $data{'size'}{'buffer'}{'input'} and !$session->{'shutdown'} ) {
     push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
@@ -80,7 +92,7 @@ if (    $len > 0
 # }
 
 #.............................................................................
-#74IJEYZWLZ3EN5XV2EWUNEPEB5SUEEFQNOTV7NRGCAERZ2DDOHF3CYQJQ4MLNJH2PCZ4TQ2XOOSOI
-#::: AWVTOGHKKTYKFOXPH5XZHDIUH4HE3CHS5GKK4XWAVADRKOVXQYY :::: NAILARA AMOS :::
-# :: V7B376EQAONDLUYBZQTGHTF42ABB2EPOGN62QZLNBJTDUXU6JKAQ :: CODE SIGNATURE ::
+#OONNONWP642RNVPPJJSPMW2RZJZ3TYRU6ROBCAD2TXFS7GMCPQVWTBGF3MPA2Q44766DWIXZLEAR6
+#::: RPKTPIZ2QG4U4JBIQ7LZLNVFUFEAWHEPZWQGKWUSE7Z2LIY64WF :::: NAILARA AMOS :::
+# :: D3NWA7YPH5S6BBD2NA7KQOQXKRQFGCM7MDBEB7ZYIHAMY4PZ3MAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
