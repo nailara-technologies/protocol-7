@@ -235,28 +235,32 @@ sub shell_connect {
                 Type => SOCK_STREAM(),
                 Peer => $sock_path,
                 )
-                or warn
-                "\n << connection error : unix:$sock_path [ \l$OS_ERROR ] >>\n";
+                or warn "\n << connection error : "
+                . "unix:$sock_path [ \l$OS_ERROR ] >>\n";
         }
     }
     if ( not defined $sock ) {
         $sock = new IO::Socket::IP(
             PeerAddr => $cube_addr,
             PeerPort => $cube_port,
-            Proto    => 'tcp'
+            Proto    => qw| tcp |
             )
-            or die
-            "\n << connection error : $cube_addr:$cube_port [ \l$OS_ERROR ] >>\n\n";
+            or die "\n << connection error : "
+            . "$cube_addr:$cube_port [ \l$OS_ERROR ] >>\n\n";
     } else {
-        $link_type = 'unix';
+        $link_type = qw| unix |;
     }
+
+    my $banner_message = readline($sock);
+
+    die "\n << connection to peer has been lost >>\n\n"
+        if not defined $banner_message;
+    die "\n << protocol mismatch ['$banner_message'] >>\n\n"
+        if $banner_message ne ">:]\n";
 
     binmode( $sock, ':encoding(UTF-8)' );
 
-    die " << connection not successful [ protocol mismatch ] >>\n"
-        if <$sock> !~ m|>:\]|;
     return $sock;
-
 }
 
 sub shell_auth {
@@ -440,8 +444,8 @@ sub rl_filename_list_lcl
         $readline::rl_completer_terminator_character = '';
         use warnings 'once';
         if ( !$WARNED and $line !~ m|^\. | ) {
-            print "\n<< ! >> prefix '. ' can be used for local shell commands"
-                . ", type 'commands' for netw. << ! >>\n";
+            print "\n<< prefix '. ' can be used for local shell commands"
+                . ", check 'commands' for network >>\n";
             $WARNED = 1;
         }
         return '';
@@ -490,7 +494,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#TUKV7ZDVBYZDUWRQSIVOCSZMRXW4KOW3I2PIRNGCUOFJY5APX3YJZSMR6MUYB3B4NLWWGP5NUJ7L4
-#::: RLRX4RPECPGCCWR3ASGU5AYRDC3I46UHVRU4WSD3KO6LKDNBA7R :::: NAILARA AMOS :::
-# :: MMDXG6RPXWGPF43ZXB2XSQ34HZ2FU46SFEZEC6VPKYO26GXLQ4CI :: CODE SIGNATURE ::
+#3NGPBEJYEALE3EFFQSITZQISFXRCNCBKW2LM3RFXKSPSSGPM6Z5QPGDNIRQHOY4MDHCGS3QFC3RAY
+#::: K4Q3RUTMXAYG4BGHIN4KVIW26JBOJGTHJTXVJM2OQSIBAVQPEVU :::: NAILARA AMOS :::
+# :: SO3AWJSDQVIOWN6ZOGORWRIR6UIOMATXTDRRFSAXLK5TLEJJFADI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
