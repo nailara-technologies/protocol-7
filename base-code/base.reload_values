@@ -6,7 +6,7 @@ my $zenka_name = <system.zenka.name>;
 my $u          = length( $_[1] ) > 20 ? '' : 'uration';
 my $log_msg
     = $_[1] eq "zenki/$zenka_name/config"
-    ? sprintf( ": reloading %s zenka description .,", $zenka_name )
+    ? sprintf( ': reloading %s zenka description .,', $zenka_name )
     : ": reloading '$_[1]' config$u .,";
 
 <[base.log]>->( 1, $log_msg );
@@ -14,14 +14,14 @@ my $log_msg
 <base.parser.config.reloading> = 1;
 my $result = <[base.extract_values]>->(
     $_[0],
-    [ ( <[base.get_file]>->( $data{'system'}{'conf_path'} . '/' . $_[1] ) ) ],
-    'resolved'
+    [ ( <[base.get_file]>->( join( '/', <system.conf_path>, $_[1] ) ) ) ],
+    qw| resolved |
 );
 delete <base.parser.config.reloading>;
 return $result;
 
 #.............................................................................
-#SNQ6PQV4HPHRRGTMNAMEVUMALMHEJGRSZ73GSREUIJGLCTDMAWBXJ5GKRDO4KENL7RVB2YDHPW4E6
-#::: VVAUSAZBFMV2GC4OUOSFISO3ITMR7B2GUXJFOO4UTDY5BSP66L6 :::: NAILARA AMOS :::
-# :: RQSKARYUMOSQHBE4U4J4DPYT75X3MIOYDCGTDKYX7HBB5FMMLKBA :: CODE SIGNATURE ::
+#PY5OBNACJ3WU53LTAM2DLAJBXWXW5EWATBYW55DCYQMY2WTF7QRZ7QL4COAQQZOCU7XLXROGF6ADQ
+#::: PB45IHYFV55ANDKCGVOH5HSIWBKN24HDGYDT6OGQU6BS55WPFRB :::: NAILARA AMOS :::
+# :: GG4P5SUEPHL5XWD364QLJWTMTSWBBQPFTVZXSWJXYFGLWZOYAQCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

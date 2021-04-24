@@ -27,24 +27,25 @@ push( @{<unix.socket_paths>}, $socket_path );
 chmod( $socket_umask, $socket_path )
     or die "io.unix.socket.input.open: chmod: \l$OS_ERROR";
 
-<[base.log]>->( 1, "UNX server launched [unix:$socket_path]" );
+( my $sp_str = $socket_path ) =~ s{^\Q/var/run/.7/UNIX/\E}{};
+<[base.logs]>->( 1, "UNX server launched [unix:%s]", $sp_str );
 
 if ( defined $data{'handle'}{$unix_sock} ) {
     <[base.log]>->(
         0,
         "io.unix.socket.input.open: handle '$unix_sock' "
-            . "was not cleaned up, doing now .."
+            . "was not cleaned up, doing now .,"
     );
     delete $data{'handle'}{$unix_sock};
 }
 
-$data{'handle'}{$unix_sock}{'mode'} = 'input';
-$data{'handle'}{$unix_sock}{'link'} = 'unix';
+$data{'handle'}{$unix_sock}{'link'} = qw| unix |;
+$data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
 #.............................................................................
-#AJEQVJGSWRWTO6CIOBF7RC3Z2E5ZKRVSB3SFA466V5OJZVH6TPAPLJLCQYCURV7RGC7VHZPA5MQXS
-#::: XAF5NEGDQC2DBA7XCIVT4IDX5RBA3Z5F3HGY6KQZCYCLKFRXCIA :::: NAILARA AMOS :::
-# :: TBLLGPKRUAS55ARG3AGUZQJJ4WDAIZTGU2SUKNX7RSJFGJS5W2AA :: CODE SIGNATURE ::
+#SWDRJVLOQEVWTW25FIJHBZW373IFBA2L3UIHVFMH5LQ4C2T4DAX62HBWYM77VIFSN2OWEKENCDAWS
+#::: YJLPFZ4MD6GPLBUNRHOU7CAV6MLBMQEHOFCWE3IVNDNRDNQWGKA :::: NAILARA AMOS :::
+# :: DDEXK42W3I6ZC44ZQIELRUEJAKLKX7WUO62LKJYDAJX55SC73OCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
