@@ -1,0 +1,25 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'pdf2html' zenka startup configuration used by 'p7' zenka
+
+dependencies  = cube content
+start.on-demand    = 1
+heartbeat.disabled = 1
+restart.disabled   = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  command_line_modules = FindBin Glib::Object::Introspection
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:147]
+
+#.............................................................................
+#OTTM2LJFOWGHXMYA3CBU2TJIIGWGQ36W2Y5SD5IZ2VXKD5IQP74PENXA3VELF5LM6PS5C72XUSEIE
+#::: G3NZ2TVIYSZLANM4KSEFTVLRYLQAPQRERAI2AEZGMCXQXWHUPP6 :::: NAILARA AMOS :::
+# :: F53VHQRP77KT64LTQ4O3OZ2P7SXWQVGHBJ3DTFBS4EDAY4XBLWCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ my $zenka_name = <system.zenka.name>;
 $PROGRAM_NAME .= " :. shutdown in progress.., one moment ., [$zenka_name]";
 <[base.log]>->( 0, "<<< SIGINT >>> stopping '$zenka_name' zenka ..," );
 
-#if ( <system.zenka.type> eq 'nroot' or <system.zenka.type> eq 'cube' ) {
+#if ( <system.zenka.type> eq 'p7' or <system.zenka.type> eq 'cube' ) {
 #    $SIG{'INT'} = 'IGNORE';
 #} else {
 
@@ -32,8 +32,8 @@ if ( exists $code{'net.send_all'} ) {
 print "\n < DEBUG MODE > zenka state :\n\n" . <[base.dump_data]> . "\n"
     if <system.verbosity.console> >= 2 and <debug.sig_int_dump>;
 
-<[nroot.teardown]>
-    if exists <system.zenka.type> and <system.zenka.type> eq 'nroot';
+<[p7.teardown]>
+    if exists <system.zenka.type> and <system.zenka.type> eq 'p7';
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
     map { kill( 9, $ARG ) } @{<system.kill_list>};
@@ -43,7 +43,7 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
 exit(130);
 
 #.............................................................................
-#TCM7RSQ6LV3C4CL5363H4AN7QDWTU3NENQEZ7VTQ753DHML55QEDTA22XQK4KRI7A7NX7YMMHDRAE
-#::: S6VFQASCX2KVQEWMVJIXLIOPMYZAPMZEAINZDIYBJQAISGECKTR :::: NAILARA AMOS :::
-# :: 6Q5CKEI3IJNAGZLRW2QWVD3LIG7SLBCGCXRGU672Q6OFUZMOPWCY :: CODE SIGNATURE ::
+#SQVLDKVBEG7X3IFKPKBQC2EFGVK4HKRCXHE3DJDOVO6QUFWAOI5UGOPMB4JBHGXI75UFW4XEDIRRC
+#::: RYDPQ76H44X2XZEGXQZOJMPQNZG6LMPJHP5PFVF4QZW4KYJBJAY :::: NAILARA AMOS :::
+# :: FWSODUUOHANEJCPIFYE2SFEI27HI7NREQBR42DIFEJZNEDATBGBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,17 @@
+# >:]
+
+# name = p7.handler.reset_restart_delay
+
+my $instance_id = shift->w->data;
+die "expected instance id" if not defined $instance_id;
+my $instance = <p7.zenka.instance>->{$instance_id};
+
+<[base.log]>->( 2, "[$instance_id] resetting restart delay" );
+delete $instance->{'timer'}->{'restart_delay'};
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+#.............................................................................
+#AUPY4NPUIKMTWSKXL7Z7FKNKNY5KPVU2G4ZXOJWSLJWLLCP5L6FS4GOC22DG3JR4VUKFA4IS3J3EC
+#::: GQVXWU25LUWWX5UELZRYNQBAK2Q4UEQ5YOG34H7QFBA7RF646OD :::: NAILARA AMOS :::
+# :: T3TQ42G6ZQZXO2XFVYNO5J2SIG535MLKCM3VSIMDMSE5XWTBEMDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

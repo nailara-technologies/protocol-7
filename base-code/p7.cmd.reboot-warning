@@ -1,0 +1,51 @@
+# >:]
+
+# name  = p7.cmd.reboot-warning
+# param = <delay> <reason>
+# descr = broadcast a reboot warning to all unix users
+
+( my $warn_seconds, my $reboot_reason )
+    = split( m| +|, $$call{'args'} // '', 2 );
+
+my $who_bin_path  = <[file.which]>->('who');
+my $wall_bin_path = <[file.which]>->('wall');
+
+return {
+    mode   => 'false',
+    'data' => "numerical 'seconds' parameter expected"
+    }
+    if !length( $warn_seconds // '' )
+    or $warn_seconds !~ m|^\d+$|;
+return { mode => 'false', 'data' => "'reason' parameter expected" }
+    if !length( $reboot_reason // '' );
+return {
+    mode   => 'false',
+    'data' => "'reason' parameter too long [ max. 32 characters ]"
+    }
+    if length( $reboot_reason // '' ) > 32;
+return {
+    mode   => 'false',
+    'data' => "invalid character '$1' in 'reason' parameter"
+    }
+    if $reboot_reason =~ m|([^\s\d\w\-\+\'\"\.,_])|;
+return { mode => 'false', 'data' => "'wall' binary not found" }
+    if !length($wall_bin_path);
+
+<[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
+
+if (system( $wall_bin_path,
+        "\n\n  <<< REBOOTING SYSTEM IN $warn_seconds SECONDS [ $reboot_reason ]"
+            . " >>>\n\n\n\r   < [ TO ABORT REBOOT "
+            . "RUN 'p7c system.abort-reboot' ] >\n\n" ) != 0
+) {
+    my $err_msg = lcfirst($OS_ERROR);
+    warn "$err_msg [ $wall_bin_path ]";
+    return { mode => 'false', 'data' => "'wall' command error : $err_msg" };
+}
+return { mode => 'true', 'data' => 'message sent to all terminals.' };
+
+#.............................................................................
+#QZK6XYYWV5LPHGLFIPULOOQL3NHKTLYCSS256XGP6SP6C5MLGCRLWXVGW37LTURVJF2IGUYALIPZO
+#::: ESBPNSXXRXH6Q2Q3ETJKU57BGHEWJU2P5EGKHM5IRPKAOMTHUSZ :::: NAILARA AMOS :::
+# :: TSXE6RPIGPG3EIRWFRDHTE6CAQB54OQUWOWCHWAQNBHAMMWAJ2BA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

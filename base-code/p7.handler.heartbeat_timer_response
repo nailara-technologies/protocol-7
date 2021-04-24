@@ -1,0 +1,67 @@
+# >:]
+
+# name = p7.handler.heartbeat_timer_response
+
+my $response    = shift;
+my $instance_id = $response->{'params'}->{'instance_id'};
+if ( not exists <p7.zenka.instance>->{$instance_id} ) {
+    <[base.log]>
+        ->( 1, "instance $instance_id gone, skipping response timer" );
+    return;
+}
+my $instance        = <p7.zenka.instance>->{$instance_id};
+my $is_cube_zenka   = $instance->{'is-cube'};
+my $zenka_name      = $instance->{'zenka_name'};
+my $fail_count      = $instance->{'heartbeat'}->{'errors'}++;
+my $heartbeat_retry = $fail_count ? 0 : 1;                      # retry once
+
+$instance->{'timer'}->{'heartbeat-timeout'}->cancel
+    if defined $instance->{'timer'}->{'heartbeat-timeout'}
+    and !$instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
+
+if (    $response->{'cmd'} eq 'TRUE'
+    and $response->{'call_args'}->{'args'} eq 'beating' ) {    # success again
+    delete $instance->{'heartbeat'}->{'errors'};
+    <[base.log]>->(
+        2,
+        "instance $instance_id [$zenka_name] heartbeat response ( success )"
+    ) if !<debug.skip_p7_heartbeat>;
+
+} elsif ( !$heartbeat_retry ) {
+
+    return if $instance->{'status'} eq 'error';
+
+    <[base.log]>->(
+        0, "instance $instance_id [$zenka_name] heartbeat response ( error )"
+    );
+    delete <callback.session.closing_last>
+        if $is_cube_zenka;    # for safe restart
+
+    <[p7.stop_heartbeat_timer]>->($instance_id);
+    $instance->{'heartbeat'}->{'errors'} = 0;    # <-- resetting error counter
+    <[zenka.change_status]>->( $instance_id, 'error' );
+
+} else {
+    <[base.log]>->(
+        0,
+        "instance $instance_id [$zenka_name]"
+            . " heartbeat response ( error ) [..retrying..]"
+    );
+
+    # setting shorter heartbeat timeout..,
+    $instance->{'timer'}->{'heartbeat-timeout'}->cancel
+        if defined $instance->{'timer'}->{'heartbeat-timeout'}
+        and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+    $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $instance->{'heartbeat'}->{'retry_timeout'} // 2,
+            'handler' => 'p7.handler.heartbeat_response_timeout',
+            'data'    => $instance_id
+        }
+    );
+}
+
+#.............................................................................
+#MRTE62Z7DNQJCXIPAEDWJYZ2IV6RLL5PVAY32FE4GGJGTG4KAN5FIT2HS4JPEO6DDY7QQ5QVSOL6C
+#::: 6JV6OUWFHWKDCMMGXQGLEA2EYV72RBWAN4UY3QAC2SVWEECLG23 :::: NAILARA AMOS :::
+# :: JP25CMK7L6KCZQWVSSXCE5DXBGX63DN2YBK3KKBPTON3VKCZLEDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

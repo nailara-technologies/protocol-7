@@ -1,0 +1,32 @@
+# >:]
+
+# name  = p7.zenka.change_status
+# descr = wrapper function for zenka status change handler
+
+my ( $instance_id, $new_status ) = @_;
+die 'no instance id specified'       if not defined $instance_id;
+die 'no new status string submitted' if not defined $new_status;
+
+my $zenka_name = <p7.zenka.instance>->{$instance_id}->{'zenka_name'};
+
+if ( defined $zenka_name ) {
+    <p7.online-zenki> //= {};
+    my $online_count = scalar keys %{<p7.online-zenki>};
+    if ( $new_status eq 'online' ) {
+        <p7.online-zenki>->{$zenka_name}++;
+    } elsif ( $new_status ne 'starting'
+        and exists <p7.online-zenki>->{$zenka_name} ) {
+        delete <p7.online-zenki>->{$zenka_name}
+            if --<p7.online-zenki>->{$zenka_name} == 0;
+    }
+    <[p7.calc_prefix_lengths]>->( keys %{<p7.online-zenki>} )
+        if $online_count != scalar keys %{<p7.online-zenki>};
+}
+
+<[p7.handler.zenka_status]>->( $instance_id, $new_status );
+
+#.............................................................................
+#BB6TMDRMFZJBPNFHO4JTMEZ6WPETGT33BLMD2EHSTLRN6JLI6VE4CT3AI4DQ2HRYITIGZAANRR55S
+#::: 7RFEDGMQ5CCXHJWWSCUCDTDO5WLMJ7W5FDZRECMFGZQ66BD6XMK :::: NAILARA AMOS :::
+# :: G433ZZAO2ZA7AT2TGNT7QVW2MIVFKTQEJDC7ZWURGCQVYHSKZKAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+# >:]
+
+# name = p7.init_restart_timer
+
+my $instance_id = shift;
+die 'expected instance id' if not defined $instance_id;
+my $instance = <p7.zenka.instance>->{$instance_id};
+
+my $fallback_delay = 0.7;    ## <-- when 'restart_delay' not defined ##
+
+if ( not defined $instance ) {
+    ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
+    <[base.log]>->(
+        2,
+        "< init_restart_timer > instance $instance_id gone ? [$caller_str]"
+    );
+    return undef;
+}
+my $zenka_name = <p7.zenka.setup>->{ $instance->{'zenka_id'} }->{'name'};
+
+if ( not defined $instance->{'restart_delay'} ) {
+    <[base.log]>->(
+        0, 'restart_delay is not defined : setting to ' . $fallback_delay
+    );
+    $instance->{'restart_delay'} = $fallback_delay;
+}
+
+$instance->{'timer'}->{'restart'}->cancel
+    if defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active;
+
+map { <[base.log]>->( 1, $ARG ) } (
+    ": preparing instance $instance_id ['$zenka_name'] :: restart ::",
+    ": :. current restart delay : $instance->{restart_delay}"
+);
+
+$instance->{'timer'}->{'restart'} = <[event.add_timer]>->(
+    {   'after'   => $instance->{'restart_delay'},
+        'handler' => 'p7.callback.instance.restart',
+        'data'    => $instance_id
+    }
+);
+
+#.............................................................................
+#MSVB5CZHISPIXJHPE2APJ23EV6U7TODZ73OKTQ5PORRWGSSV54WDMGDNFLIRQSAREIOWCKLLLEUN6
+#::: W4KNIH2VVRUXRPHUYF2E5F4U5QNVBBYWZPTX2FP54ZUNJ743BQH :::: NAILARA AMOS :::
+# :: KDLEWBGPLHP2BLQV76YJK5GCQKDTVF5TF2YJA4U5DMUA5HYOAWDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

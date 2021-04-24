@@ -1,0 +1,22 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'reenc-msg' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube X-11 openbox compton
+max_subname_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  command_line_modules = Gtk3 Glib::Event
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#3VKJ4VDXH2N54O55TSAU3COE4TALKIM73VZ46NFQBPJUUZW2WUSHHZ35NY6RONYQ67WQRT6MPC7JA
+#::: 63JJEUIUPRI6HD7O47AU6JEP3N6JESZXZEKKX4KMXRSHLBNAZ5S :::: NAILARA AMOS :::
+# :: 6KDNDBAPKBFR6OAJZHYLSOXJQM3Z3BSEQPRY776FRKLS52JT7CCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

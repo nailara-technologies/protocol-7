@@ -1,0 +1,73 @@
+# >:]
+
+# name  = p7.post_init
+# descr = starts configured zenki
+
+my $module_reinitialization = shift;
+
+<[p7.cleanup_temp_files]> if not $module_reinitialization;
+
+my $zenka_config = <p7.start_setup.zenki.config> // {};
+my @all_zenki    = <[base.sort]>->($zenka_config);
+my @start_zenki  = @{<p7.start_setup.zenki.startup.start_order>};
+
+## start_order needs dependency type sort order [ currently base.sort ] ##
+
+#### say Dumper( \@start_zenki ); <[base.exit]>;
+
+my $prev_all   = <p7.init_state.all_zenki>   //= [];
+my $prev_start = <p7.init_state.start_zenki> //= [];
+
+<p7.zenki.available> = {};    # <-- ::: reset on reload :::
+
+## locate zenka config files and extract descriptions ##
+
+my @found_zenki = <[p7.available_zenki]>;
+
+(   <p7.zenki.found_types.no_start_cfg> = [],
+    <p7.zenki.found_types.no_cfg_file> = []
+) = <[base.diff_array]>->( \@all_zenki, \@found_zenki );
+
+# prepare configured zenka startup sequence
+my ( $added_start_ref, $removed_start_ref )
+    = <[base.diff_array]>->( $prev_start, \@start_zenki );
+my ( $added_all_ref, $removed_all_ref )
+    = <[base.diff_array]>->( $prev_all, \@all_zenki );
+
+<p7.init_state.all_zenki>   = \@all_zenki;
+<p7.init_state.start_zenki> = \@start_zenki;
+
+## requires time based decrease --> implement ##
+# <[p7.calc_prefix_lengths]>->( qw| p7 cube |, @start_zenki );
+
+<[p7.calc_prefix_lengths]>->(qw| p7 cube |);    # <-- running, not starting
+
+if ( @{$added_all_ref} ) {
+    <[p7.set_up_zenka_dependencies]>->( @{$added_all_ref} );
+    <[p7.set_up_ondemand_zenki]>->( @{$added_all_ref} );
+}
+
+map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 4 ) {
+    ( my $debug_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
+    print "\n < p7.start_setup.zenki.config >\n\n$debug_str\n";
+}
+
+map { <[p7.autostart_zenki]>->($ARG) if !<[p7.start_count]>->($ARG) }
+    @{$added_start_ref};
+
+print Dumper( $data{'jobqueue'} )
+    if exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 4;
+
+0;
+
+#.............................................................................
+#VKYT3T62DNKBV5SDXQ4UZ3U56UOMLM3DMKXSXDRRVTXIUBSPNEACAQN5O2QZK3EEORX7NQWMQRR4U
+#::: WOZJ7HHP7YU3MFR3AJGQNPOONB36CFZBKSPEIPYKG4GNCKMMCTO :::: NAILARA AMOS :::
+# :: ZVNZ74Y7R2RODJ53ZVNDUK2ZCC46MHXZROQKILHJIIUMMOE3A2AA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

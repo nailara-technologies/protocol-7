@@ -1,0 +1,18 @@
+# >:]
+
+# name = p7.instance_child_pids
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <p7.zenka.instance>->{$instance_id};
+
+return
+    exists $instance->{'process'}->{'child'}
+    ? sort keys %{ $instance->{'process'}->{'child'} }
+    : ();
+
+#.............................................................................
+#MSP6YFRFKKCPZGFJZOCCNHJ6HWIWFXV7ELMANZZ2QD67SUPH7DNSU6OB55GII3W4HJQRVNXRQDDQW
+#::: 3K2W4B33IYLNYTCR3EHM32GERTOMCMY22NWVPYYEPHP6L5QZGGK :::: NAILARA AMOS :::
+# :: NR3IMH3WJZRLAUOQ6RRCOR4JULCOUO46W3X2NSWJVKZTR67H5OAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

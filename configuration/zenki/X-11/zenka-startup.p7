@@ -1,0 +1,34 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'X-11' zenka startup configuration used by 'p7' zenka
+
+dependencies   = cube
+max_concurrency   = 1
+heartbeat.timeout = 14
+restart.min_delay = 0.7
+zenka-start.timeout = 24
+## [ in case of immediate errors ]
+startup-error.retry-count   = 2
+startup-error.retry-min-delay = 5
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+: p7-post-init :
+  [p7.callback.get_x11_display]
+  status.post-init = 1
+
+: startup-error :
+  [p7.callback.xorg-error-handler:<instance_id>]
+
+#.............................................................................
+#3W5GVCTEACS5H5Q5W2PVNAQPP7KAP273WSGWGETIGGZZSJTKMVI5TBWWRIKJSCQF27I47RIZPNKYY
+#::: DT7FW6HBMEUQSURMCCZCFE6LMCVVUZLAF3NNIL6UGYTRQXA45RM :::: NAILARA AMOS :::
+# :: JQJNIYHM4M7YQ7WHWCZKEIBRGTDEWD53IUTQWMP2TBNNXZNMTWDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

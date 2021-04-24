@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'notify-osd' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube X-11 compton dbus
+max_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#2D2O4YRJ5NDEERBSQV3GWFQRNETA34KMSIZ5XS6LU3I47G3IOBKL2BIIORTHDEPZDB3LZAYEVCV2K
+#::: AU36EMQY6DBF3TECZBT3XCAMLXW5Q5TTABBFTSIWBU5IGKIPSZF :::: NAILARA AMOS :::
+# :: 6WEDAWPTWYQRMA2ZJXPFKT6GMGFKZZOLFUSRVXWK3HMTGFACW4CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

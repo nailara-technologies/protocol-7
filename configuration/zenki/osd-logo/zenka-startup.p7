@@ -1,0 +1,23 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'osd-logo' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube X-11 openbox compton
+max_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  command_line_modules = Gtk3 Glib::Event
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:33]
+
+#.............................................................................
+#V4WP64LFG54GVGBTOZWRBTN6KEVIFQX7HRYSZF76JJDET7ZNMTRQPVK5P4EG2HKHP5KTIE6X5KTQE
+#::: 3ZINVTSSNVU25BNABRYMLZLWQGYQGFZEHZV7RYWESGYTST3KJAC :::: NAILARA AMOS :::
+# :: XE4A3A5CKX6EHBTEYMAZWAXRXV5UFHVPIWDCTUMA3VGHXP7OQEBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

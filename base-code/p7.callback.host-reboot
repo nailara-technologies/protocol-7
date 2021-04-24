@@ -1,0 +1,71 @@
+# >:]
+
+# name = p7.callback.host-reboot
+
+my $sysrq_file = '/proc/sysrq-trigger';
+
+my $reboot_enabled = <system.host-reboot.enabled>   //= 1;
+my $term_delay     = <system.host-reboot.term_time> //= 1.3787;
+my $reboot_message = '<<< rebooting host system >>>';
+
+return <[base.log]>->(
+    0, "[ system.host-reboot.enabled = 0  <-- reboot cancelled., ]"
+) if !$reboot_enabled;
+
+#
+### [  alternative method  ] ### [  userspace commands  ]
+#
+
+if ( !-e $sysrq_file ) {
+    <[base.log]>->(
+        0, "[ '$sysrq_file' not found, rebooting using userspace., ]"
+    );
+    if ( my $sync_bin = <[file.which]>->('sync') ) {
+        <[base.log]>->( 0, '<< syncing disks >>' );
+        qx| $sync_bin |;
+    } else {
+        <[base.log]>->( 0, "'sync' binary not found in path.," );
+    }
+    if ( my $systemctl = <[file.which]>->('systemctl') ) {
+        <[base.log]>->( 0, $reboot_message );
+        qx| $systemctl reboot |;
+    } else {
+        my $reboot_cmd
+            = -x '/sbin/reboot' ? '/sbin/reboot' : <[file.which]>->('reboot');
+        if ( !-x $reboot_cmd ) {
+            <[base.log]>->(
+                0, 'neither systemctl nor reboot command found.,'
+            );
+            <[base.log]>->( 0, ':. unable to reboot - do not know how .' );
+        } else {
+            <[base.log]>->( 0, $reboot_message );
+            qx| $reboot_cmd |;
+        }
+    }
+}
+
+#
+### [  regular method  ] ### [  /proc/sysrq-trigger  ]
+#
+
+map {
+    open( my $sysrq_fh, ">$sysrq_file" )
+        or die "[ $sysrq_file : \l$OS_ERROR ]";
+    print {$sysrq_fh} "$ARG\n";
+    if ( $ARG eq 'e' ) {    # SIGTERM
+        <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
+        <[base.sleep]>->($term_delay);
+        print {$sysrq_fh} "i\n";    # SIGKILL
+        <[base.log]>->( 0, $reboot_message );
+    }
+    close($sysrq_file)
+} ( 's', 's', 'u', 'e', 'b' );
+
+#
+##
+
+#.............................................................................
+#734VZ7AT6K6UXZYBARV4MRJG6QPMRJYBPWU4R4SXJCB5N22HAX6EQV6UJEVISWXZ6M66TWJQZUSM2
+#::: TXTJQTIJ23GFQ6GKH62WLFJBQAABLBYM6U7C5VJFMYQIGNQP7W2 :::: NAILARA AMOS :::
+# :: DCVYONXUA3GXM5F6IKKTT4NKRQ5XMIJ54WRVOCFZITKOUQ235YCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

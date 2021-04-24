@@ -1,0 +1,35 @@
+# >:]
+
+# name  = p7.zenka.cmd.gone_child
+# param = <child-pid>
+# descr = notify about gone instance child subprocess
+
+my $instance_id;
+my $child_pid = $$call{'args'};
+
+<p7.process.instance_cache>->{$child_pid} = $instance_id;
+
+my $parent_pid = <[p7.sub-process.get_ppid]>->($child_pid);
+return { 'mode' => 'false', 'data' => 'child still here' }
+    if defined $parent_pid and $parent_pid > 0;
+
+foreach my $iid ( keys( %{<p7.zenka.instance>} ) ) {
+    my $children
+        = defined <p7.zenka.instance>->{$iid}->{'process'}{'child'}
+        ? <p7.zenka.instance>->{$iid}->{'process'}{'child'}
+        : {};
+    next
+        if not delete <p7.child>->{$child_pid}
+        and not delete $children->{$child_pid};
+
+    <[base.log]>->( 1, "[instance:$iid] child pid $child_pid unlinked!" );
+    return { 'mode' => 'true', 'data' => 'unregistered' };
+}
+
+return { 'mode' => 'false', 'data' => 'was not registered' }
+
+#.............................................................................
+#HKIGKUJEPWXVOFLJPPXC6Z5IQCUHSYBAMBZ22YE55777CBJJW6MIZV3EA6ETSGJS3OJCPCBY343CA
+#::: IGWWPE7T3WHOUIIM4EID4IKAHXS7DWM7NXBCBUAFEVNW7QDDDGZ :::: NAILARA AMOS :::
+# :: WQUSPI5UIRXGC2BHYI5LRM5ODLGUSC5IHO5MUCDYO7CQJWHG2YCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

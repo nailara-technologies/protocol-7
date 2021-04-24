@@ -1,0 +1,31 @@
+# >:]
+
+# name = p7.callback.object.zenka
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+my $object_type = <dependency.object>->{$object_id}->{'type'};
+if ( $object_type ne 'zenka' ) {
+    <[base.log]>->(
+        0, "object $object_id is of type '$object_type' and not 'zenka'."
+    );
+    return undef;
+}
+my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
+return undef if not exists <p7.zenka.setup>->{$zenka_id};
+
+foreach my $id ( keys %{<p7.zenka.instance>} ) {
+    return 1
+        if defined <p7.zenka.instance>->{$id}->{'zenka_id'}
+        and defined <p7.zenka.instance>->{$id}->{'status'}
+        and <p7.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id
+        and ( <p7.zenka.instance>->{$id}->{'status'} eq 'online'
+        or <p7.zenka.instance>->{$id}->{'status'} eq 'extbin' );
+}
+return 0;    # not online
+
+#.............................................................................
+#M3BCK5VJETF3YECMSJ6C7H4VCW3JEQ6CGDEEGCFYCLN7BIEFNYYVQOPB6NTTTK3TLI4BU6VKIB4TU
+#::: YLEXWWSQRI2VV6NHOBDLUQSGXG4ARYZAKCF6CNEP7YTTKM4TYUU :::: NAILARA AMOS :::
+# :: SDDUSTLYETGXO2IPHYSX4IFOIJSKSHUE45OYVHTCEG26OM56A4AI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

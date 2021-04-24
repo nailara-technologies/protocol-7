@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'nodes' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube
+max_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#VJKNWKZB4VKVKG3CMFPWOW7F5YSE4CAXZFNNFSI7ORVB6LBBZKUNT7ON4IPYZQQPVWLG3N34DWSMK
+#::: L5EK5GVV56D6TE4NDZUN4X3PAACEB7ZMZU5ENEPZYNO7OYLRUTJ :::: NAILARA AMOS :::
+# :: 5O3BA4PCRBMKR73SAMQAWOFVQW7ERP63I3KSMJHSQKROX76GVCBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

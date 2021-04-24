@@ -1,0 +1,24 @@
+# >:]
+
+# name = p7.callback.setup_zenka_key
+
+my ( $instance_id, $zenka_name, $zenka_key ) = @_;
+
+my $instance_data = <p7.zenka.instance>->{$instance_id};
+
+# take first one [ for now ]
+my ($root_sid) = keys %{ $data{'session'} };
+die "no valid session defined yet [ cannot determine root_sid ]"
+    if not defined $root_sid;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.session-key",
+        'call_args' => { 'args' => "$zenka_name $zenka_key" }
+    }
+);
+
+#.............................................................................
+#EJSZK2UW3WA7FHSVBM5UNQVOPJEXACBGGYYWXAUBY7M3JOEKNJOLYJZWTMIXTUCTC3OQ5GDRMWJV6
+#::: H7LYCYZ74RQOLSL5NTU73K2NJQ3MCYJM3BXYINIYAWUOU7SOHJX :::: NAILARA AMOS :::
+# :: 3U4YDUDZVYGAJKJBPISMEAO7DWLR4X2P4H3NUXSNHLBB2HCK6SCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

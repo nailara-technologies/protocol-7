@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'c-trade' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube btrx plnx
+max_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#BQKXU42BKTLUZO2CKL4ZBAVBY3AL5ODQ2563EZN3EEMMNZZVDROUOIGRJOXYQ2M4LJNM6AZZXBTFU
+#::: 4LDYVCUYFY7Y6MFXIGSHTVVSHPX6I22TJQTICY6RGTQX7GSKRKS :::: NAILARA AMOS :::
+# :: Z2SPU2TEJGOE26CGVIZWIFDKMGTZHGMUJ2ZHXZD5LH6VHJ3Z22BI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

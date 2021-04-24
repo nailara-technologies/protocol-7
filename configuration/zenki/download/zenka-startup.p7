@@ -1,0 +1,24 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'download' zenka startup configuration used by 'p7' zenka
+
+dependencies  = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:33]
+
+#.............................................................................
+#DLTHTO62NUHRWQAE3KV6ZER4RCHH6M6IIOSB44O6PYJZHJR4FDXDHDWR6UGKY45VYCW3WU6BKWXIE
+#::: TV7KJUABT6WEDHTONSVJP7DUCRT4K7KQ55AZ7W34FMUYOC2QSZK :::: NAILARA AMOS :::
+# :: 75MSUJQTEXK67ZM66S7RAA7YHTSSOZWJP3CLNR5FWIACI6TMDOBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

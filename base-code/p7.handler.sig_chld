@@ -1,0 +1,120 @@
+# >:]
+
+# name  = p7.handler.sig_chld
+
+<[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
+local ( $OS_ERROR, $CHILD_ERROR );
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+
+    my $instance_id;
+    my $instance;
+    my $zenka_name;
+    my $zenka_subname;
+
+    if ( my $child = <p7.child>->{$pid} ) {
+        $instance_id   = $child->{'instance_id'};
+        $instance      = <p7.zenka.instance>->{$instance_id};
+        $zenka_name    = $instance->{'zenka_name'};
+        $zenka_subname = $instance->{'subname'};
+    }
+
+    # determine exit status
+    my $log_level = 2;
+    my $e_val     = $CHILD_ERROR >> 8;
+    my $e_sig     = $CHILD_ERROR & 127;
+    my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
+    $log_level = 0
+        if $e_sig_str =~ s|(signal 11)$|$1 :: SEGMENTATION FAULT ::|;
+    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
+    $log_level = 1 if $e_val;
+    $log_level = 0 if $CHILD_ERROR & 128;
+    my $zenka_str = defined $zenka_name ? "< $zenka_name > " : '';
+    <[base.log]>->(
+        $log_level,
+        $zenka_str
+            . "child pid=$pid shut down"
+            . " [ exit code $e_val$e_sig_str ]$e_dmp"
+    );
+
+    <[p7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
+
+    <[p7.terminate_process]>->($pid);    # <-- cleaning up children  .., [LLL]
+
+    delete <p7.process.instance_cache>->{$pid};
+    delete <p7.process.instance_cache>
+        if !keys %{<p7.process.instance_cache>};
+
+    if ( my $child = <p7.child>->{$pid} ) {
+
+        <[base.log]>->( 2, ": was instance $instance_id" );
+
+        delete <p7.child>->{$pid};
+        delete $instance->{'restart_pids'}->{$pid}
+            if exists $instance->{'restart_pids'};
+
+        my $old_status = $instance->{'status'} || 'undefined';
+
+        <[base.log]>->( 2, ": had status : '$old_status'" );
+
+        ## record web-browser segfaults [ for crash mitigation ] ##
+        if ( $e_sig == 11 and $zenka_name eq qw| web-browser | ) {
+            my $web_browser_uname = <system.X-11-user>;
+            my $subname_b32
+                = ( defined $zenka_subname and length($zenka_subname) )
+                ? '.' . encode_b32r($zenka_subname)
+                : '';
+            my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
+
+            <[file.put]>->( $file_name, "$pid\n" )
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
+            chmod( 0644, $file_name )
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
+            my @pwn = getpwnam($web_browser_uname);
+            chown( $pwn[2], $pwn[3], $file_name )
+                or warn join( qq| : |,
+                $file_name, <[base.format_error]>->($OS_ERROR) );
+        }
+
+        my $next_status = (
+                   $old_status eq qw| error |
+                or $old_status eq qw| online |
+                or $old_status eq qw| starting |
+        ) ? qw| error | : qw| offline |;
+
+        $next_status = qw| restart | if $old_status eq qw| restart |;
+
+        if ( $old_status eq 'online' and defined <p7.ondemand_zenki> ) {
+            map { $next_status = qw| offline | if $ARG eq $zenka_name }
+                @{<p7.ondemand_zenki>};
+        }
+
+        if ( <[p7.instance_pid_count]>->($instance_id) ) {
+            <[zenka.change_status]>->( $instance_id, qw| delayed | )
+                if $old_status eq qw| restart |;
+            $instance->{'pid_check_timer'} = <[event.add_timer]>->(
+                {   'after'    => 0.07,
+                    'interval' => 0.1,
+                    'handler'  => qw| p7.handler.children_left |,
+                    'data'     => {
+                        'instance_id' => $instance_id,
+                        'next_status' => $next_status
+                    }
+                }
+            );
+        } else {
+            <[zenka.change_status]>->( $instance_id, $next_status )
+                if $old_status ne $next_status;
+            <[p7.init_restart_timer]>->($instance_id)
+                if $next_status ne qw| offline |
+                and $next_status ne qw| shutdown |;
+        }
+    }
+}
+
+#.............................................................................
+#Q4VJS4MAQGWX2PD44UHABTS4FETVSWNP2RM777DBDWFM47SDXXDYDTUAUZIGDZKVT5HDZY2BRURH4
+#::: IDI2MHAN2DLKYFDNLBQCSP5NY3PXDRSM7TXNM3ZHLLFYBTAHCQP :::: NAILARA AMOS :::
+# :: IXWQ43J4KGT7PHGYTRNLBHCMCAWO6EVCP3WRIUKCTW3IOFD346DI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

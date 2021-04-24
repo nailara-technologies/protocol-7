@@ -1,0 +1,56 @@
+# >:]
+
+# name = p7.handler.heartbeat_timer
+
+my $watcher     = shift->w;
+my $instance_id = $watcher->data;
+
+if ( not defined <p7.zenka.instance>->{$instance_id} ) {
+    $watcher->cancel if $watcher->is_active;
+    <[base.log]>->(
+        0, "[$instance_id] instance gone - stopping status-timer .,"
+    );
+}
+
+my $instance = <p7.zenka.instance>->{$instance_id};
+$instance->{'heartbeat'}->{'errors'} //= 0;
+my $globals      = <p7.start_setup.globals> // {};
+my $zenka_name   = $instance->{'zenka_name'};
+my $root_sid     = $instance->{'root_sid'};
+my $cube_sid     = $instance->{'cube_sid'};
+my $zenka_config = <p7.start_setup.zenki.config>->{$zenka_name};
+my $timeout_secs
+    = $zenka_config->{'heartbeat'}->{'timeout'}
+    || $globals->{'heartbeat'}->{'timeout'}
+    || 13;    # <-- internal timeout default
+
+$instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+    {   'after'   => $timeout_secs,
+        'handler' => 'p7.handler.heartbeat_response_timeout',
+        'data'    => $instance_id
+    }
+    )
+    if not defined $instance->{'timer'}->{'heartbeat-timeout'}
+    or !$instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+
+my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$command_route.heart",
+        'call_args' => { 'args' => 'notime' },
+        'reply'     => {
+            'handler' => 'p7.handler.heartbeat_timer_response',
+            'params'  => { 'instance_id' => $instance_id }
+        }
+    }
+);
+
+delete $zenka_config->{'heartbeat'}
+    if !keys %{ $zenka_config->{'heartbeat'} };
+delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
+
+#.............................................................................
+#6SP66X52YLF3ZCUZCNLCMLTNP5N32B6MBOX4SVGNZOEBL25JV7J4X2737AWZDOJYXC2HTBIVAF5F4
+#::: Q7MJ7BG4N5MSYMWEZ4KZLYOXA7JP3LDBQNHW77VIDN26P2A45F2 :::: NAILARA AMOS :::
+# :: 27OH7USV6RF6QM5KJTW6E3352T7RRHEXEUK4M6XTO7S5TMPJHECQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

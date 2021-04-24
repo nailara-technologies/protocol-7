@@ -1,0 +1,48 @@
+# >:]
+
+# name  = p7.zenka-instances.get-ids
+# descr = return zenka instance ids for given name[s]
+
+my $names = shift // '';
+
+return warn 'expected zenka name[s] <{C1}>' if !length($names);
+
+my @instance_ids;
+my $not_found    = 0;
+my $found_set_up = 0;
+my $unknown_name;
+foreach my $param_str ( split m| +|, $names ) {
+    my $zenka_name = $param_str;
+    my $zenka_subname;
+    $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+    my $zenka_id = <[zenka.get_id]>->($zenka_name);
+    if ( defined $zenka_id ) { $found_set_up++ }
+    else { $not_found++; $unknown_name //= $zenka_name; next }
+    foreach my $iid ( keys %{<p7.zenka.instance>} ) {
+        next
+            if defined $zenka_subname
+            and not exists <p7.zenka.instance>->{$iid}->{'subname'}
+            or defined $zenka_subname
+            and exists <p7.zenka.instance>->{$iid}->{'subname'}
+            and <p7.zenka.instance>->{$iid}->{'subname'} ne $zenka_subname;
+
+        push( @instance_ids, $iid )
+            if <p7.zenka.instance>->{$iid}->{'zenka_id'} == $zenka_id;
+    }
+}
+
+return {
+    'ids'          => \@instance_ids,
+    'found'        => $found_set_up,
+    'not-found'    => $not_found,
+    'unknown-name' => $unknown_name
+    }
+    if not wantarray;
+
+return @instance_ids;    ## list context ##
+
+#.............................................................................
+#QSN4PQ72RPO5HADQ45SZTY2KLWM3UVKFFPR3TU6ISRIL5PB27TNBBKZKDPCV5NBSOT6TEEJ2AWRJ4
+#::: TV3UNHNT2S5VOJ4POSSYTLT24MRR3DVW4V5T725FFMY5GWKW3GJ :::: NAILARA AMOS :::
+# :: VWD76P7CCYXOZ27OCPOK6UZ253YS7NH5QLAELQDKJ5SKLOUE7QCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

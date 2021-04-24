@@ -1,0 +1,64 @@
+# >:]
+
+# name  = p7.calc_prefix_lengths
+# descr = initializing zenki name lengths for start-up
+
+my $apw_href = <p7.zenka.prefix_width> //= {};
+
+my @online_zenki = keys %{<p7.online-zenki>};
+
+my $max_len = 0;
+my $min_len = length join( '.', $NODE_NAME, qw| cube-13 | );
+foreach my $zenka_name ( uniqstr @ARG, @online_zenki, $ZENKA_NAME ) {
+    my $new_len = <[base.get_start_lpw]>->($zenka_name);
+    $new_len = $min_len if $new_len < $min_len;
+    $apw_href->{$zenka_name} //= $new_len;
+    $max_len = $new_len if $new_len > $max_len;
+
+}
+
+foreach my $zenka_name ( keys %{$apw_href} ) {
+    next if $apw_href->{$zenka_name} == $max_len;
+    my @zenki_pid;
+    map {
+        push( @zenki_pid, <p7.zenka.instance>->{$ARG}->{'process'}{'id'} )
+            if $ARG =~ m|^\d+$|;
+    } split( "\n",
+        <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
+        if $zenka_name ne 'p7';
+
+    if ( $apw_href->{$zenka_name} < $max_len ) {
+        my $delta_len = $max_len - $apw_href->{$zenka_name};
+
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne 'p7' ) {
+                kill qw| SIGUSR1 |, @zenki_pid;
+                <[base.sleep]>->(0.007)
+                    if $delta_len;    # <-- make async ?., [LLL]
+            } else {
+                <[base.sig_usr1]>;
+            }
+        }
+
+    } elsif ( $apw_href->{$zenka_name} > $max_len ) {
+        my $delta_len = $apw_href->{$zenka_name} - $max_len;
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne 'p7' ) {
+                kill qw| SIGUSR2 |, @zenki_pid;
+                <[base.sleep]>->(0.007)
+                    if $delta_len;    # <-- make async ?., [LLL]
+            } else {
+                <[base.sig_usr2]>;
+            }
+        }
+    }
+}
+
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
+    ( keys %{$apw_href} );
+
+#.............................................................................
+#7XWRDVSMZ5TNQDBQC5IE3TGYAYZIEHYKJM75MUEGO6WWK6VHU6UEOBJUMRIOVBR6QTSNYWAKI3LKM
+#::: AQBHIJYAJLSLMPC43HSVLLPJ2AQNY5YP3FQH4JLH2GX2P52TMF2 :::: NAILARA AMOS :::
+# :: OX4CRO5DYYYIJ2N3YMJ2DMSN6IG44MF4YHLK6LYE3M7MHNHBZYAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

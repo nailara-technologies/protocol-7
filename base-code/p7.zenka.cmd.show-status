@@ -1,0 +1,117 @@
+# >:]
+
+# name  = p7.zenka.cmd.show-status
+# param = <zenka|instance>
+# descr = return agtent status with duration unchanged
+
+<p7.zenka.notify_online> //= {};
+
+my $zenka_subname;
+my $query_param = $$call{'args'};
+my $reply_id    = $$call{'reply_id'};
+
+return {
+    'mode' => 'false',
+    'data' => 'expected zenka name or instance parameter'
+    }
+    if not defined $query_param or !length($query_param);
+
+if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
+    my $instance_id;
+    map {
+        $instance_id = $ARG
+            if <p7.zenka.instance>->{$ARG}->{'job_id'} == $job_id
+    } keys %{<p7.zenka.instance>};
+    if ( defined $instance_id ) {
+        $query_param = $instance_id;
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "unknown job id '$job_id'"
+        };
+    }
+}
+
+my $query_copy = $query_param;
+$zenka_subname = $1
+    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
+
+if (    not defined <[zenka.get_id]>->($query_param)
+    and not defined <p7.zenka.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ /^\d+$/
+        ? "no such zenka instance ($query_param)"
+        : "no such zenka in setup [$query_param]";
+    return {
+        'mode' => 'false',
+        'data' => $rep_msg
+    };
+}
+
+if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+    my $cube_sid = <p7.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <p7.zenka.instance>->{$id}->{'process'}->{'id'};
+    if ( defined <p7.zenka.instance>->{$id} ) {
+        my $zenka_status = <p7.zenka.instance>->{$id}->{'status'};
+
+        my $duration = <[base.parser.duration]>->(
+            <[base.n2u_time]>->(
+                <p7.zenka.instance>->{$id}->{'status-since'}
+            )
+        );
+
+        return {
+            'mode' => 'true',
+            'data' => "[$zenka_status] external program"
+                . " '$query_copy' [PID=$prog_pid] < since $duration >"
+            }
+            if <p7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+
+        my $status_msg
+            = ( $zenka_status eq 'online' and defined $cube_sid )
+            ? " [$zenka_status] < since $duration > [ cube-sid $cube_sid ]"
+            : " [$zenka_status] < since $duration >";
+
+        return { 'mode' => 'true', 'data' => $status_msg };
+    }
+}
+
+foreach my $id ( keys %{<p7.zenka.instance>} ) {    # zenka name [+subname]
+    my $cube_sid = <p7.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <p7.zenka.instance>->{$id}->{'process'}->{'id'};
+    if (<p7.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
+        and (  not defined $zenka_subname
+            or not defined <p7.zenka.instance>->{$id}->{'subname'}
+            or <p7.zenka.instance>->{$id}->{'subname'} eq $zenka_subname )
+    ) {
+        my $zenka_status = <p7.zenka.instance>->{$id}->{'status'};
+
+        my $duration = <[base.parser.duration]>->(
+            <[base.n2u_time]>->(
+                <p7.zenka.instance>->{$id}->{'status-since'}
+            )
+        );
+
+        return {
+            'mode' => 'true',
+            'data' => "[$zenka_status] external program "
+                . " '$query_copy' [PID=$prog_pid] < since $duration >"
+            }
+            if <p7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+
+        my $status_msg
+            = ( $zenka_status eq 'online' and defined $cube_sid )
+            ? "[ $zenka_status ] < since $duration > [ cube-sid $cube_sid ]"
+            : "[ $zenka_status ] <$duration>";
+
+        return { 'mode' => 'true', 'data' => $status_msg };
+    }
+}
+
+return { 'mode' => 'false', 'data' => 'not present' }
+
+#.............................................................................
+#36N75DFEUFPEGZXZXMG46YY3YL25WWDFLRPRCOQLTWM3YJNWZJHUMDN2MAXEVLJFTIU6ZUNUY4URU
+#::: 5U7D4EYXO6HL6DOBZDB5C3PMTMVJ7AW2CLZ4G4LWQPQHKWJASZE :::: NAILARA AMOS :::
+# :: S4DGKDPUVV3DJ2KHDOQ4GYWIJ3NBOF3PKZT4YVL5J37QTV5SVQCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

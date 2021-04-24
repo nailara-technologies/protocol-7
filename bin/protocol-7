@@ -473,7 +473,10 @@ sub prepare_subs {
     $code{'base.get_start_lpw'} = sub {
         my $zenka_name = shift // $data{'system'}{'zenka'}{'name'};
         my $node_name  = $data{'system'}{'node'}{'name'};
-        return length("$node_name.$zenka_name");
+        my $min_lpw    = length join( '.', $node_name, qw| cube-13 | );
+        my $start_lpw  = length("$node_name.$zenka_name");
+        $start_lpw = $min_lpw if $start_lpw < $min_lpw;
+        return $start_lpw;
     };
 
     ### basic subroutine definitions ###
@@ -617,7 +620,7 @@ sub prepare_subs {
             } elsif ($stdin_mode) {
                 $data{'system'}{'zenka'}{'name'} = '<stdin>';
             }
-            if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {   # <-- used by 'nroot' zenka
+            if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'p7' zenka
                 $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
             }
             if ( $arg eq '-use-http-src' ) {
@@ -900,7 +903,7 @@ sub prepare_subs {
                 and $ARG ne qw|  base.utf8.clean_not_valid           |
                 and $ARG ne qw|  base.log.send_buffer_line           |
                 and $ARG ne qw|  base.log.handler.log_reply          |
-                and $ARG ne qw|  nroot.handler.zenka_output          |
+                and $ARG ne qw|  p7.handler.zenka_output          |
                 and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
                 ++$purge_count
                     and $data{'code'}{$ARG}{'status'} = 'purged'
@@ -1499,7 +1502,7 @@ sub prepare_subs {
                 if defined $s_comp_stderr and $s_comp_stderr;
             ( my $lpw )
                 = ( $data{'system'}{'start'}{'log_prefix_width'}
-                    // $code{'base.get_start_lpw'}->() || 24 );
+                    // $code{'base.get_start_lpw'}->() || 12 );
             my $width = 76 - $lpw;
             local $Text::Wrap::columns   = $width;
             local $Text::Wrap::separator = "\n";
@@ -2029,7 +2032,8 @@ sub prepare_subs {
             if ($log_warning) {
                 my $log_msg = join( ' ', qq|: warn :|, @err );
                 if ( $level > -1 ) {
-                    my $max_len = 67 - length($ZENKA_NAME);
+                    my $max_len
+                        = 67 - length( $data{'system'}{'zenka'}{'name'} );
                     if ( length($log_msg) + length($caller_str) > $max_len ) {
                         $code{'log.error'}->($log_msg);
                         $code{'log.error'}->(":.    .: $caller_str");
@@ -2086,7 +2090,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#ISHBTFMLTTF5IXJPXIDZIEXPURXS6K47UM6MS3G5IPV3QVQ3KB7S6USAUYN7CYTLDFJLRS56P7DVG
-#::: E2BAAEFB6MRNI6IOPVI5JL5SG23JLAU4F42HXQZDIXJJNSYBTJZ :::: NAILARA AMOS :::
-# :: Y3HGUSK4YJUKTYRORNOUT3BN6SBUVWG7YXSQJSY7AG3CLQSOMSBY :: CODE SIGNATURE ::
+#MPF6U35CWA7ZQIJK7QW4M53JFHMGCUA54EASBWWZOEUSNLPGAKH4RRTDSMCT5P5XSCXLIXZ7W6YSS
+#::: MUWJB6XJWQQMC5M5R7VQA7JHSOLITSUJZMVOEULXFADP5HSP6OR :::: NAILARA AMOS :::
+# :: TTWVBUL3DAG6LLD5P25F5YF5444OVFEJ6B7V4KDDZR2T3S7IZEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

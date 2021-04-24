@@ -1,0 +1,36 @@
+# >:]
+
+# name  = p7.zenka.cmd.get-instance-ids
+# param = <name[s]>
+# descr = return instance ids for matching zenka names
+
+my $names = $$call{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected zenka name[s]' }
+    if !length($names);
+
+my $results = <[p7.zenka-instances.get-ids]>->($names);
+
+my ( $instance_ids_aref, $found_set_up, $not_found, $unknown_name ) = (
+    $results->{'ids'},       $results->{'found'},
+    $results->{'not-found'}, $results->{'unknown-name'}
+);
+
+return {    ## single name with no matching zenka instance ##
+    'mode' => 'false',
+    'data' => "zenka '$unknown_name' not in set-up [ see 'list zenki' ]"
+    }
+    if !$found_set_up and $not_found;
+
+## multiple names [ including partial results ] ##
+
+if ( @{$instance_ids_aref} ) {
+    return { 'mode' => 'true', 'data' => join( ' ', @{$instance_ids_aref} ) };
+} else {
+    return { 'mode' => 'false', 'data' => 'no matches found' };
+}
+
+#.............................................................................
+#D2GNJNOPOHCRSSH6RKTMRBXLSVN7UVNWWWB3LSGRGINJCBU4S6Q7YSVTDJDO73ILZO4HVCTBYYPJ2
+#::: EGLFKXYHTGSBBBU3HGM23L2L5UDVFKGKY46OQB2IZLXNC5TMFYG :::: NAILARA AMOS :::
+# :: NH27PA6BEYVNXDLKURIQOU6JRVMSZIWPE6GPQSHRRXPCHFJ2MSAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

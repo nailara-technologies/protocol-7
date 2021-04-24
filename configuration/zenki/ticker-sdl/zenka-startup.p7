@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'ticker-sdl' zenka startup configuration used by 'p7' zenka
+
+dependencies = cube X-11 openbox
+max_concurrency = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#JKPTGFC6OSIHYDMVIFO4A7W5KHVZIUZYQIE667S4LAIIYNTZRTUFXKVGOAC62WFPGIQ35Z6SNGMBI
+#::: CFHPQTAZIQA4L7KJLYQIVXIJY6G6FNRGXLUFAHMT4JSA43ZEMKM :::: NAILARA AMOS :::
+# :: OKDDYIKJEMQEY6UD6KT4NXWI32TYIPPUCJ44RYFTLU6YHA67UOCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

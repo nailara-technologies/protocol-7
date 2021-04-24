@@ -1,0 +1,36 @@
+# >:]
+
+# name  = zenka-output.patterns
+# descr = zenka startup message patterns to trigger state change
+
+.: output patterns :.
+
+  - !p7::^\[\d+\] selected auth method 'zenka'\.,$::
+    [p7.calc_prefix_lengths:<zenka_name>]
+
+  - cube::switched to unix user '[^\']+'\.,$::
+    [zenka.change_status:<instance_id>,'online'];
+
+  - cube::^\[(\d+)\] zenka '([^']+)' session authorized\.$::
+    [p7.handler.cube_session_auth:<instance_id>,<match_1>,'zenka',<match_2>]
+
+  - cube::^\[(\d+)\] session authorized as '([^']+)'( \[u:[^\]]+\])?$::
+    [p7.handler.cube_session_auth:<instance_id>,<match_1>,'unix',<match_2>]
+
+  - cube::^\[(\d+)\] user session authorized to '([^']+)'$::
+    [p7.handler.cube_session_auth:<instance_id>,<match_1>,'pwd',<match_2>]
+
+  - cube::^\[(\d+)\] connection closed\.$::
+    [p7.handler.cube_session_close:<instance_id>,<match_1>]
+
+  - !cube::^cube session id received \[(\d+)\]$::
+    [zenka.set_cube_sid:<instance_id>,<match_1>]
+
+  - !cube::^instance verification \[KEY:([a-zA-Z\d]+)\]$::
+    [p7.handler.instance_verification:<instance_id>,<match_1>]
+
+#.............................................................................
+#ORG2QBDK6BFNWQTO3WG7YP6LMUZN4ESVZIDBZ5BFIMUKBBIQHOOP7SYXCXX3P4UKLGBRM5G3EGBQ6
+#::: U3UT6C5MZWVW23ETYI4Q6J3XW4GDFP6BAG7ZBQ4GQVI4ECXS2L5 :::: NAILARA AMOS :::
+# :: QKBGXI763R2AXYTXU2M4E2Q2EBGLMWHPVXLYM5U4BO6A5QXAYGBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

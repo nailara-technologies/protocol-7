@@ -1,0 +1,45 @@
+# >:]
+
+# name = p7.load_zenka_output_patterns
+
+my %pattern_handlers;
+my $pattern_file = shift // '';
+my $zenka_name
+    = <system.zenka.name> eq '<stdin>' ? 'p7' : <system.zenka.name>;
+
+my $base_file_name = "zenka-output.patterns";    # <-- << ! >>
+
+my $pattern_file_txt = $pattern_file;
+<p7.patterns.zenka_output> //= {};
+$pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
+my $loading_message = ": loading zenka output patterns$pattern_file_txt";
+( my $pattern_filename = join( '.', $base_file_name, $pattern_file ) )
+    =~ s/\.$//;
+
+my $pattern_data;
+my $cfg_base_path = <system.conf_path>;
+{
+    local <system.conf_path>
+        = "$cfg_base_path/zenki/$zenka_name";    #  <-- <<!>>
+    if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
+        <[base.log]>->(
+            0, "zenka pattern file '$pattern_filename' not found"
+        );
+        return;
+    } else {
+        <[base.log]>->( 1, $loading_message );
+    }
+    $pattern_data = <[base.load_section_code]>
+        ->($pattern_filename)->[0]->{'output patterns'};
+}
+die "unable to load pattern data"
+    if not defined $pattern_data
+    or ref($pattern_data) ne 'ARRAY';
+
+<p7.pattern_config> = $pattern_data;
+
+#.............................................................................
+#4KWSP3FF3T5V2GCTRFCM7PJZLUJU4ICXGAB3VQRS3CRYEDGY7XRF3LDQG7PG7GI27QZ5OWWYJDXXW
+#::: M65QNJCPEACQSUFXXVQYAQQIYBNTV5NHIBL5YWHL3Y2CGHY5HWL :::: NAILARA AMOS :::
+# :: WJGALMDJTTNXVXLVIEZ6DSXKM7Z3PHSW64XNJVUJFOKUU7J3SSBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

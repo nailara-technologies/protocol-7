@@ -783,7 +783,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
         } elsif ( my $v_id
             = <[base.zenki.ondemand_registered]>->($target_name) )
         {    # ondemand
-            my $target_user    = 'nroot';
+            my $target_user    = 'p7';
             my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
                 and $target_command =~ m|^([^\.]+)\.[^\.]+$| ) {
@@ -796,7 +796,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
-                $target_command //= 'nroot.start_once';
+                $target_command //= 'p7.start_once';
 
                 # ..,
 
@@ -859,7 +859,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or <system.zenka.mode> ne 'cube'
                 )
                 or $user eq
-                'nroot'    # [LLL] improve check if really nroot zenka
+                'p7'    # [LLL] improve check if really 'p7' zenka
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
@@ -934,9 +934,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or !<debug.skip_log_msg> )
                     and ( $cmd ne 'p7-log.append'
                     or !<debug.skip_log_msg> )
-                    and ( $user ne 'nroot'
+                    and ( $user ne 'p7'
                     or $cmd ne 'heart'
-                    or !<debug.skip_nroot_heartbeat> );
+                    or !<debug.skip_p7_heartbeat> );
             }
 
 ##[ LOGGING \ DEBUG MODE ]######################################################
@@ -1038,7 +1038,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#CKBT5PYFNSRGEECPL6VDOKXHL2V3ORHQ32WJV4Q6BR67MG4VRJA352IWLZZKTEERBDEVQTV325CDW
-#::: ZTIHTUQVUOFDSMXTNIV5H6S56M5TG2UOEY7OWSD3H7BAQIZXYXV :::: NAILARA AMOS :::
-# :: GDFXCZYB5REXAHQEJTX7GTA46FLLHKDUZ2ZZA6U3E5MRBHNU4GCY :: CODE SIGNATURE ::
+#WSW3QZISHGXMQ3UQ377TLJPIODGJIV3G7E75HPCPXFTZ2DBZI5UIBQXKOI72Z3PKVWSGFLPSU3RO4
+#::: UEHV2FGTQNEOUZSDN2SGTSJCSZBYHO56ISDEPXCAYWGFXWM44FG :::: NAILARA AMOS :::
+# :: V5DG74KIFJEBJM6JCO2NKYUTZKBHUI57JJLDQIFIGTBZTMPVAOCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

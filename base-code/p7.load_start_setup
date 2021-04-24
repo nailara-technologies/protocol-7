@@ -1,0 +1,36 @@
+# >:]
+
+# name  = p7.load_start_setup
+# descr = loads startup configuration for zenki into zenka setup [ single cfg ]
+
+my $config_to_load = shift;
+my $cfg_root_path  = <system.conf_path>;
+my $base_file_name = 'zenki/p7/start-set-up.';
+die 'load_start_setup: no start setup specified'
+    if not defined $config_to_load;
+
+my $start_setup_pattern = join( ' ',
+    map { $base_file_name . $ARG } split( m|\s+|, $config_to_load ) );
+
+return <[base.log]>->(
+    0, "<< zenki start config '$start_setup_pattern' not found >>"
+) if !-f "$cfg_root_path/$start_setup_pattern";
+
+<[base.log]>->( 1, ": loading '$config_to_load' process start set-up" );
+my $start_setup_data;
+{
+    local <system.conf_path> = "$cfg_root_path/zenki/p7";
+    $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
+}
+
+return <[base.log]>->(
+    0, "<< zenki start config '$start_setup_pattern' is empty >>"
+) if !@{$start_setup_data};
+
+push( @{<p7.cfg_data.start_setup>}, $start_setup_data );
+
+#.............................................................................
+#WJ72M4LUHTR6FB3L2RNUFI5E7QXJC2OOXYYH4EX7A56ESIDELDAIVJPP5P45Y7IMEYGJAG37FFNRW
+#::: 2YHWEHMGEQGC2KN6WTD44DOJBIZLGN5XYKED744RY34NTZULMFB :::: NAILARA AMOS :::
+# :: GAK2FXWCXN6ACT6UQEP66HYEIUT3GIBQPZKUZAS3DKYMZHUTN6DQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

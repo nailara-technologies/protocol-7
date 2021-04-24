@@ -1,0 +1,27 @@
+# >:]
+
+# name  = p7.zenka.instance.add
+# descr = register new zenka and return its id
+
+my $zenka_id = shift // '';
+die "zenka id '$zenka_id' does not exist."
+    if not exists <p7.zenka.setup>->{$zenka_id};
+
+my $network_time = <[base.ntime]>->(3);
+my $instance_id  = <[base.gen_id]>->(<p7.zenka.instance>);
+
+<p7.zenka.instance>->{$instance_id} = {
+    'zenka_id'     => $zenka_id,
+    'zenka_name'   => <p7.zenka.setup>->{$zenka_id}->{'name'},
+    'created'      => $network_time,
+    'status-since' => $network_time,
+    'status'       => 'offline'
+};
+
+return $instance_id;
+
+#.............................................................................
+#MROSTFX4ILOKOQAH2NEVOHOGSNFD3PZ5VNZIMFPK7AXPZ5SE2PQ26YYSYLOFYZMFDV3BNSF2FIMXY
+#::: UOH5T2R7O3BCIYMRT5SA2OWRAVB5DSLRYKUKKUTTT3VTXT6LKNO :::: NAILARA AMOS :::
+# :: YUSR5DRSHRFOATMJ625RIU3ZLUVIJ743VFIHFFDV33QX6Y5HDYCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

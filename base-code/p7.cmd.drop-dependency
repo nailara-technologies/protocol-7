@@ -1,0 +1,36 @@
+# >:]
+
+# name  = p7.cmd.drop-dependency
+# param = <zenka-name>
+# descr = purge specified zenka from dependency chains
+
+return { 'mode' => 'false', 'data' => 'expected valid zenka name' }
+    if !length( $$call{'args'} )
+    or not my $zenka_id = <[zenka.get_id]>->( $$call{'args'} );
+
+my $zenka_name = $$call{'args'};
+
+my $del_count = 0;
+my $object_id = <[zenka.get_object_id]>->($zenka_id);
+
+foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
+    $del_count += <[dependency.del]>->( $dep_obj, $object_id );
+}
+
+# LLL: add full p7-log / restore feature?
+
+return {
+    'mode' => 'false',
+    'data' => "no zenka seems to depend on '$zenka_name' (already dropped?)"
+    }
+    if !$del_count;
+
+my $ies = $del_count > 1 ? 'ies' : 'y';
+
+return { 'mode' => 'true', 'data' => "dropped $del_count dependenc$ies" };
+
+#.............................................................................
+#HFGITSLKEI6ULQAHC4SUCDV2R56IRXAJXFQOQHWDPGMNKCSXSFEK5MNPUQ7MIBE7LMVZ5MD4M7BZK
+#::: ENPWSRMUGLO2RAVS5KCVJ36QE6ZYFNCPKJ53BA32JR2D22WJUMV :::: NAILARA AMOS :::
+# :: 6YFZOQIXTN2UBZZPQMCISST5P2LZWF5E3UIKOSBSUF2TE7M6ISBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

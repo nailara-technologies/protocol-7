@@ -1,0 +1,39 @@
+# >:]
+
+# name  = p7.cmd.host-reboot
+# param = [nosync]
+# descr = force host system reboot using sysrq-trigger
+
+my $param = $$call{'args'} // '';
+
+my $reboot_enabled = <[base.cfg_boolean]>->( <p7.host-reboot.enabled> // 1 );
+
+return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
+    if !-e '/proc/sysrq-trigger';
+return {
+    'mode' => 'false',
+    'data' => 'specifically disabled [ p7.host-reboot.enabled = 0 ]'
+    }
+    if not $reboot_enabled;
+
+<[base.log]>->( 0, "<< ! >> <<< initiating force-reboot >>> << ! >>" );
+
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
+
+system('/bin/sync') if $param ne 'nosync';
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => 'p7.callback.host-reboot'
+    }
+);
+
+return { 'mode' => 'true', 'data' => '<< rebooting host system >>' }
+
+#.............................................................................
+#3DTYSJMR2WJ6WQBWNRTZXFD5NS2CX6NEWA7LU7HTWRWQ6DOW2OFTQBDLMYPZW6DHHUBUZEUOJ56JC
+#::: MC5Y4N2BPBUCJC2U447HYT6T2KZX6IMZDSL64LNZBKN3V65MZWT :::: NAILARA AMOS :::
+# :: CCVONMN6GBZYCX3BVQEYXWYKARKW7PUC5T7GF2Z4QU7VRQW3XMCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

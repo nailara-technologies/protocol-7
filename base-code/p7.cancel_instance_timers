@@ -1,0 +1,35 @@
+# >:]
+
+# name = p7.cancel_instance_timers
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <p7.zenka.instance>->{$instance_id};
+
+return undef if not defined $instance;
+
+my $instance_timers = $instance->{'timer'} // {};
+
+my $cancelled = 0;
+
+foreach my $timer_name ( keys( %{$instance_timers} ) ) {
+    if ( ref( $instance_timers->{$timer_name} ) eq 'Event::timer'
+        and $instance_timers->{$timer_name}->is_active ) {
+        $instance_timers->{$timer_name}->cancel;
+        $cancelled++;
+        <[base.log]>->(
+            2, ": stopped instance $instance_id '$timer_name' timer"
+        );
+    }
+    delete $instance_timers->{$timer_name};
+}
+undef $instance_timers;
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+return $cancelled;
+
+#.............................................................................
+#F6FGMVRNQDJAO2FVCWIEONXBXZLPUFJCDZZZPHMTE27VUKL73GO3DYIVHTKW4CF35MXVYG73A2BJQ
+#::: ZYZPQZXUXJI3STIORTJU34USFEQ2T2U4VKC7N2QYAD6AUGKQ3KB :::: NAILARA AMOS :::
+# :: 26REIFD7CEE6IQS76SBSJAYGAVLIB2B4GXNNOY74DDLPC235IIAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

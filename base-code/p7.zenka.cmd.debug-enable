@@ -1,0 +1,81 @@
+# >:]
+
+# name  = p7.zenka.cmd.debug-enable
+# param = [instance|name]
+# descr = notify zenka [instance] to load debug module
+
+my $params = $$call{'args'};
+
+return { 'mode' => 'false', 'data' => 'instance id[s] or name[s] expected' }
+    if not defined $params or $params !~ m{\d+|\w+};
+
+my $user_re        = <regex.base>->{'usr'};
+my $user_substr_re = <regex.base>->{'usr_subn'};
+
+my @instance_ids;
+
+foreach my $param_str ( split( m| +|, $params ) ) {
+    if ( $param_str =~ m|^\d+$| ) {
+        return {
+            'mode' => 'false',
+            'data' => "instance $param_str not found"
+                . " [ use 'p7.list' to see IDs ]"
+            }
+            if not exists <p7.zenka.instance>->{$param_str};
+        push( @instance_ids, $param_str );    ## numerical instance id ##
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "zenka name '$param_str' not valid [syntax]"
+            }
+            if $param_str !~ $user_re and $param_str !~ $user_substr_re;
+        my @results = <[p7.zenka-instances.get-ids]>->($param_str);
+        return {
+            'mode' => 'false',
+            'data' => "no instance matches for zenka '$param_str'"
+            }
+            if not @results;
+
+        push( @instance_ids, @results );  ## matching [resolved] zenka name ##
+    }
+}
+
+my @pids;
+my $total_count = 0;
+foreach my $instance_id (@instance_ids) {
+
+    my $instance      = <p7.zenka.instance>->{$instance_id};
+    my $name_of_zenka = $instance->{'zenka_name'};
+    my $zenka_pid     = $instance->{'process'}{'id'};
+
+    $total_count += my $count = kill( 5, $zenka_pid );
+    push( @pids, $zenka_pid ) if $count;
+    <[base.logs]>->(
+        0,            "< debug-enable > notifying instance %d [ '%s' ]",
+        $instance_id, $name_of_zenka
+    );
+}
+
+return {
+    'mode' => 'true',
+    'data' => sprintf(
+        'sent SIGTRAP [ loads dbg mod ] to %d instance process%s [%s]',
+        $total_count,
+        <[base.cnt_s]>->( $total_count, 'es' ),
+        join( ',', @pids )
+    )
+    }
+    if $total_count;
+
+## else ##  [ kill command returned no matches ]
+
+return {
+    'mode' => 'false',
+    'data' => 'no success sending a signal to any process'
+};
+
+#.............................................................................
+#H22WQU4DD2KSCYMAIYVDUCDSAUB7ZSWKCNW3CIAQAYB2NGZPXP7GMRSKQA3WPENRY5O2VT7IKWZII
+#::: LPZATYC3QYUH4DUC5O3XISJW5TGZX5TBC76SNBBY5CC7QXV7MDT :::: NAILARA AMOS :::
+# :: TAANKLDRY6RTJ66DDTGPHTHENODJNKKNMOQ2UBOKIQBJUY2XTMAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,308 @@
+# >:]
+
+# name = p7.zenka.start
+# descr = start p7-AMOS zenka and add it to process maintenance table
+# notes = require mechanism to change PID to harmonic at start [ using STDOUT ]
+
+my $job_id     = $_[0]->{'job_id'};
+my $zenka_name = $_[0]->{'params'};
+my $stdin_mode = 0;
+my @exec_args  = qw| -nb |;
+my $zenka_subname;
+$zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+
+if (<system.ansi_color>) {
+    push( @exec_args, '-c' );
+} else {
+    push( @exec_args, '-nc' );
+}
+
+my $perl_bin            = <system.path.perl_bin>;
+my $bin_protocol_7_path = <system.start.exec_name>;
+
+die 'no zenka name supplied' if not defined $zenka_name;
+my $globals   = <p7.start_setup.globals> // {};
+my $init_code = <p7.start_setup.zenki.startup.init_code>->{$zenka_name};
+my $instances = <p7.zenka.instance>;
+my $zenka_id  = <[zenka.get_id]>->($zenka_name);
+
+# reuse instance id or create new one if none exists
+my $instance_id = <jobqueue.joblist.by_id>->{$job_id}->{'instance_id'};
+$instance_id //= <[zenka.instance.add]>->($zenka_id);
+
+my $instance = $instances->{$instance_id};
+
+<jobqueue.joblist.by_id>->{$job_id}->{'instance_id'} //= $instance_id;
+$instance->{'job_id'} = $job_id;
+
+my $starting = 0;    # check status of zenki with same name ..,
+map { $starting++ if $instances->{$ARG}->{'status'} eq 'starting' }
+    @{ <[zenka.instance.get_ids]>->($zenka_id) };
+
+if ($starting) {    # delay zenka start-up until previous one is online ..,
+    <[base.log]>->( 1, "delaying next '$zenka_name' zenka instance ..," );
+    <[zenka.change_status]>->( $instance_id, 'delayed' );
+    return;
+}
+
+# initialize zenka instance start-up ..,
+<[zenka.change_status]>->( $instance_id, 'starting' );
+
+### [ start-up timeout ]
+my $start_timeout
+    = <p7.start_setup.zenki.start-up.timeout>->{$zenka_name}
+    // $globals->{'start-up'}->{'timeout'} // 47;
+<[base.log]>->(
+    2,
+    sprintf(
+        "instance %d ['%s'] start timeout = %.1fs",
+        $instance_id, $zenka_name, $start_timeout
+    )
+);
+if ( defined $instance->{'timer'}->{'start-time-out'} ) {
+    $instance->{'timer'}->{'start-time-out'}->cancel
+        if $instance->{'timer'}->{'start-time-out'}->is_active();
+}
+$instance->{'timer'}->{'start-time-out'} = <[event.add_timer]>->(
+    {   'after'   => $start_timeout,
+        'handler' => 'p7.handler.start-time-out',
+        'data'    => {
+            'instance_id' => $instance_id,
+            'timeout'     => $start_timeout
+        }
+    }
+);
+###
+
+# execute p7-init code
+my $init_result_data = {};
+my $namespace_str
+    = "\$data{'p7'}{'zenka'}{'instance'}{$instance_id}{'init_data'}";
+if ( exists $init_code->{'p7-init'} ) {
+    <[base.log]>->(
+        2, "executing start init-code for instance $instance_id [$zenka_name]"
+    );
+    my @root_init_code
+        = <[base.parser.config]>->( $init_code->{'p7-init'}, $namespace_str );
+    map {
+        $ARG =~ s|<instance_id>|$instance_id|g;
+        $ARG =~ s|<zenka_name>|$zenka_name|g
+    } @root_init_code;
+    my $success = <[base.execute_zenka_code]>->(@root_init_code);
+    $init_result_data = $instance->{'init_data'};
+
+    if ( !$success ) {
+        <[base.log]>->(
+            0,
+            "<< errors in zenka '$zenka_name' init-code, aborting start-up >>"
+        );
+        <[zenka.change_status]>->( $instance_id, 'error' );
+        return undef;
+    }
+}
+
+my $zenka_sn_str
+    = defined $zenka_subname ? "$zenka_name\[$zenka_subname]" : $zenka_name;
+
+my ( $pid, $out_fh, $in_fh );
+
+$instance->{'external'} = 0;
+
+if ( exists $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external' ) {
+
+    $instance->{'external'} = 1;
+
+    my $exec_bin = $init_result_data->{'exec_bin'};
+    my $prog_usr = $init_result_data->{'exec_usr'};
+
+    if ( defined $prog_usr and $prog_usr eq '<X-11-user>' ) {
+        if ( defined <system.X-11-user> ) {
+            $prog_usr = <system.X-11-user>;
+        } else {
+            <[base.log]>->(
+                0,
+                "exec_usr for '$zenka_name' [\<system.X-11-user>] is "
+                    . "not defined - ERROR"
+            );
+            <[zenka.change_status]>->( $instance_id, 'error' );
+            return undef;
+        }
+    }
+
+    ## local ./bin/ path ## [ no /-es in exec_bin param ]
+    map {
+        $exec_bin = <system.root_path> . $ARG . $exec_bin
+            if $exec_bin !~ m|/| and -x <system.root_path> . $ARG . $exec_bin;
+    } qw| /bin/ /bin/dependencies/ |;
+
+    if ( not defined $exec_bin or not defined $prog_usr ) {
+        my $reason
+            = "expected program name [exec_bin] in '$zenka_name' setup";
+        $reason = "expected 'exec_usr' for '$zenka_name' to be defined"
+            if defined $exec_bin and not defined $prog_usr;
+        <[base.log]>->( 0, "$reason - ABORTED.," );
+        <[zenka.change_status]>->( $instance_id, 'error' );
+        <[zenka.cmd.stop]>
+            ->( { 'args' => $instance_id, 'mode' => 'implicit' } );
+        return undef;
+    } elsif ( $exec_bin =~ m|\s| or !-x $exec_bin ) {
+        <[base.log]>->(
+            0,
+            "'$zenka_name' exec_bin '$exec_bin' "
+                . "not a valid executable - ERROR"
+        );
+        <[zenka.change_status]>->( $instance_id, 'error' );
+        return undef;
+    } else {
+        my $privs = <[base.root.drop_privs]>->( $prog_usr, 'noop' );
+        if ( not defined $privs or ref($privs) ne 'HASH' ) {
+            <[base.log]>->(
+                0, "exec_usr for '$zenka_name' is invalid - ERROR"
+            );
+            <[zenka.change_status]>->( $instance_id, 'error' );
+            return undef;
+        }
+        map { $privs->{$ARG} =~ s|'||g }
+            keys %{$privs};    # LLL: abort on match ?
+
+        # LLL: implement exec_args..,
+
+        my $prepare_code = qq|%ENV=();|;
+
+        my $display = <x11.display>;
+        $prepare_code .= "\$ENV{'DISPLAY'}='$display';"
+            if defined $display;
+
+        $prepare_code .= join( '',
+            "\$EGID='$privs->{all_gids}';\$GID='$privs->{gid}';",
+            "\$EUID='$privs->{uid}';\$UID='$privs->{uid}';",
+            "\$ENV{'USER'}='$prog_usr';",
+            "\$ENV{'HOME'}='$privs->{home}';",
+            "\$ENV{'XDG_RUNTIME_DIR'}='$privs->{home}';",
+            "\$ENV{'NO_AT_BRIDGE'}=1;",
+            "chdir('$privs->{home}'); " );
+
+        <[base.log]>->(
+            1, "starting external '$zenka_sn_str' program as '$prog_usr' ..,"
+        );
+        eval {
+            $pid
+                = open2( $out_fh, $in_fh, '/usr/bin/perl', '-e',
+                "$prepare_code exec \"$exec_bin\"" );
+        };
+        goto exec_skip;
+    }
+}
+
+## initialize $ENV{'USER'} with EUID user .., ## [LLL]
+
+$stdin_mode = 1 && push( @exec_args, '-stdin' )
+    if exists $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'stdin-zenka'
+    and exists $init_code->{'zenka-init'};
+
+my $apw_href = <p7.zenka.prefix_width> //= {};
+push( @exec_args, '-lpw=' . $apw_href->{$zenka_name} )
+    if defined $apw_href->{$zenka_name};
+
+my $zenka_verbosity
+    = <system.verbosity.console> || 1;  # -v is min. [ zenka output patterns ]
+push( @exec_args, '-' . 'v' x $zenka_verbosity );
+
+<[base.log]>->( 1, "starting of zenka '$zenka_sn_str' initiated .," );
+<[base.log]>->( 2, ": exec args : ' " . join( ' ', @exec_args ) . " '" );
+
+my @cmd_line_mods
+    = defined $init_result_data->{'command_line_modules'}
+    ? map {"-M$ARG"}
+    split( m| +|, $init_result_data->{'command_line_modules'} )
+    : ();
+
+if (@cmd_line_mods) {
+    my $_C = <system.perl_unicode>;
+    push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
+            $bin_protocol_7_path, $zenka_sn_str, @exec_args );
+    };
+} else {
+    eval {
+        $pid
+            = open2( $out_fh, $in_fh, $bin_protocol_7_path, $zenka_sn_str,
+            @exec_args );
+    };
+}
+
+exec_skip:
+
+if ( not defined $pid or $EVAL_ERROR ) {
+    ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
+    my $err_reason
+        = ( defined $OS_ERROR and length($OS_ERROR) )
+        ? " ['\l$OS_ERROR']"
+        : '';
+    <[base.log]>->(
+        0,
+        join( '',
+            "unable to start zenka '$zenka_name'",
+            $err_reason, " [ $err_msg ]" )
+    );
+    <[zenka.change_status]>->( $instance_id, 'error' );
+    return undef;
+}
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => 'p7.handler.zenka_output',
+        'data'    => $instance_id
+    }
+);
+
+<[p7.child.add]>->(
+    $pid,
+    { 'instance_id' => $instance_id, 'start_time' => <[base.time]>->(4) }
+);
+
+$instance->{'process'} = { 'id' => $pid, };                          # ..,
+$instance->{'subname'} = $zenka_subname if defined $zenka_subname;
+
+<[zenka.change_status]>->( $instance_id, "extbin" )
+    if defined $init_result_data->{'start_mode'}
+    and $init_result_data->{'start_mode'} eq 'exec-external';
+
+# push init code to zenka <stdin> if in 'stdin' mode.,
+if ($stdin_mode) {
+    <[base.log]>->(
+        1, ": pushing start-up init-code < zenka '$zenka_name' >"
+    );
+    foreach my $_line ( @{ $init_code->{'zenka-init'} } ) {
+        my $code_line = $_line;    # <-- keeping copy
+           # <{foo.bar}> [ zenka instance namespace ] variable fetching syntax
+        while ( $code_line =~ m|<\{([^\}]+)\}>| ) {
+            ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
+            my $var_value;
+            eval "\$var_value = $namespace_str$var_str";
+            if ($EVAL_ERROR) {
+                $EVAL_ERROR =~ s|\n| |g;
+                <[base.log]>->(
+                    0, "<< error in zenka init-code : \l$EVAL_ERROR >>"
+                );
+                last;
+            } else {
+                $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
+            }
+        }
+        print {$in_fh} "$code_line\n";
+    }
+}
+close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
+
+<[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
+
+#.............................................................................
+#E72XAWCRQFNGTWBW2EHR63TS4SDOHXCBUVANVCV3KJ3JTL2G3ZOQWXHUX6VG574CH4A52YNIGS7EM
+#::: T2BWDW6CCWW6KKNVH7R56BWYAKFM63X32GEMAVZ4JKHGEOVZZ2A :::: NAILARA AMOS :::
+# :: 4GXVMQG4TLRIGGXQOPEYHKS5A75OFSFAU2OQGMT5GVC57NPWRQDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

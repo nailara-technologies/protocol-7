@@ -1,0 +1,40 @@
+# >:]
+
+# name  = p7.zenka.cmd.pid-instance
+# param = <pid>
+# descr = return instance id for a given process IDs
+
+my $process_id = $$call{'args'};
+
+return {
+    'mode' => 'false',
+    'data' => "expected numerical PID parameter"
+    }
+    if not defined $process_id or $process_id !~ /^\d+$/;
+
+my $match_iid;
+foreach my $i_id ( keys %{<p7.zenka.instance>} ) {
+    my $parent_pid = <p7.zenka.instance>->{$i_id}->{'process'}{'id'};
+    if ( $process_id == $parent_pid ) {
+        $match_iid = $i_id;
+        last;
+    } else {
+        map {
+            if ( $ARG == $process_id ) { $match_iid = $i_id; last }
+        } @{ <[p7.sub-process.get_children]>->($parent_pid) };
+    }
+}
+
+return { 'mode' => 'true', 'data' => $match_iid }
+    if defined $match_iid;    # match
+
+return {
+    'mode' => 'false',
+    'data' => "found no matching instance"
+};                            # no match
+
+#.............................................................................
+#2WH6ZEOBZ3UVPDLNER7OEMFULLFNMZL2DHE2OLMCQ5KHUICOKXVQFDZLQZLLPDAD46SJL2SXUIXE2
+#::: L6NZ2BBCVHEHPERRFYW6FCR3SWWCE65L3PKCEFOZORRJUCZNTAH :::: NAILARA AMOS :::
+# :: NHQJSJYYKITZT6AK4KXBXRRCREMEHCCOBCZMCQPHP2C2HBTQJQDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+# >:]
+
+# name = p7.init_start_setup
+
+my $start_setup_data = shift // [];
+
+<[base.execute_zenka_code]>->(
+    <[base.parser.config]>->(
+        shift( @{$start_setup_data} )->{'globals'},
+        qw| <p7.start_setup.globals> |
+    )
+);
+
+my $zenki_init_code;
+while ( not defined $zenki_init_code ) {    # skip other sections
+    $zenki_init_code = shift( @{$start_setup_data} )->{'zenki'};
+}
+
+<p7.start_setup.zenki.startup.init_code> //= {};
+<p7.start_setup.zenki.startup.start_order> = [];
+
+foreach my $zenka_ref ( @{$zenki_init_code} ) {
+    <[base.log]>->(
+        0,
+        ": : start cfg syntax error : '$zenka_ref'"
+            . ' [ expected " - <zenka_name>" ]'
+        )
+        and next
+        if ref($zenka_ref) ne 'HASH';
+
+    my ( $zenka_name, $zenka_init_code ) = each(%$zenka_ref); ## single key ##
+
+    push( @{<p7.start_setup.zenki.startup.start_order>}, $zenka_name )
+        if <[zenka.is_enabled]>->($zenka_name);
+    my @config_code;
+    foreach my $config_element ( @{$zenka_init_code} ) {
+
+        if ( ref($config_element) eq 'HASH' ) { ## ': zenka-init :' section ##
+            my ( $init_keyword, $init_code ) = each %{$config_element};
+            <p7.start_setup.zenki.startup.init_code>
+                ->{$zenka_name}->{$init_keyword} = $init_code;
+        } else {
+            push( @config_code, $config_element );    # [zenka] config section
+        }
+    }
+    <[base.execute_zenka_code]>->(
+        <[base.parser.config]>->(
+            \@config_code,
+            qw| <p7.start_setup.zenki.config> | . "{'$zenka_name'}"
+        )
+    );
+
+    ## 'start-set-up' values [ from zenka config section ] ##
+    my $start_setup = <p7.start_setup.zenki.config>->{$zenka_name} //= {};
+    if ( defined $start_setup->{'zenka-start'}
+        and ref( $start_setup->{'zenka-start'} ) eq 'HASH' ) {
+        $start_setup = $start_setup->{'zenka-start'};
+        <p7.start_setup.zenki.startup.timeout>->{$zenka_name}
+            = $start_setup->{'timeout'}
+            if defined $start_setup->{'timeout'}
+            and $start_setup->{'timeout'} =~ m|^\d+(\.\d+)?$|;
+    }
+}
+
+#.............................................................................
+#YSPTL6DZKBBSE2Z6PLPBXAKB2WO2EGHO6YLUDV5RFB5SWEJTLP7M4PBZDGXVBFH44SWGVZIKF4QOK
+#::: A7JPVKTR2AUAP5VVR3HIK3HSCVAQHN37Q34ZJQFMCKHVMFL6SLM :::: NAILARA AMOS :::
+# :: BKB4SC5YOPIWLPFJ5RXCLHOOSGWZ3AXG6UIX2QS4GK24VQHM2YDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

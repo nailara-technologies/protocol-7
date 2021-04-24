@@ -1,0 +1,54 @@
+# >:]
+
+# name = p7.zenka.set_cube_sid
+
+my ( $instance_id, $cube_sid ) = @_;
+my $instance_data = <p7.zenka.instance>->{$instance_id};
+
+if ( exists $instance_data->{'cube_sid'} ) {
+    <[base.log]>->(
+        0, "<< cube sid for instance $instance_id was already set >>"
+    );
+    <[zenka.change_status]>->( $instance_id, 'error' )
+        ;    # compromisation attempt
+    return;
+}
+
+<[base.log]>->( 2, "instance $instance_id : cube sid = $cube_sid" );
+$instance_data->{'cube_sid'} = $cube_sid;
+
+## LLL: unclear if will be required \ used later ##
+my $inst_pid = $instance_data->{'process'}->{'id'};
+<p7.process.instance_cache>->{$inst_pid} = $instance_id
+    if defined $inst_pid;
+##
+
+# acquire local cube sid [ get first and only sid for now ]
+my ($root_sid) = keys %{ $data{'session'} };
+
+$instance_data->{'root_sid'} = $root_sid;
+
+# send instance verification request
+<p7.timeout.verify_instance> //= 13;
+my $verification_str = uc( <[base.prng.chars-anum]>->(13) );
+$instance_data->{'instance_verification'} = $verification_str;
+$instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
+    {   'after'   => <p7.timeout.verify_instance>,
+        'handler' => 'p7.handler.verify_instance_timeout',
+        'data'    => { 'instance_id' => $instance_id }
+    }
+);
+
+<[base.log]>->( 1, "[$instance_id] verification request <$cube_sid>" );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "$root_sid.$cube_sid.verify-instance",
+        'call_args' => { 'args' => $verification_str }
+    }
+);
+
+#.............................................................................
+#WYBBJ7Q5H6BSC5FWMWY47AU6C3JWQFYCLYGIRMHP4T4ILYYGPD6B766ZWUXCP6AGWOKTJJ3GDM2FU
+#::: GUCPY2P3QPGXTDOGTYUEIGJOBZ24ZVBBBLEGEI3X2JKRPFSUG6X :::: NAILARA AMOS :::
+# :: Z3KBAVEV63JI6FJOI4YCSZYBYZFE3FNWLQUZ4W4NDLKZYNGIJGCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

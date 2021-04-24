@@ -1,0 +1,54 @@
+# >:]
+
+# name  = p7.zenka.cmd.instance_pids
+# param = [instance]
+# descr = return list of instance process IDs
+
+my $instance_id = $$call{'args'};
+
+return {
+    'mode' => 'false',
+    'data' => "invalid instance id parameter [numerical value expected]"
+    }
+    if defined $instance_id and $instance_id !~ /^\d+$/;
+
+if ( not defined $instance_id ) {
+    my %pids;
+    my $reply_list = '';
+    foreach my $i_id ( sort { $a <=> $b } keys %{<p7.zenka.instance>} ) {
+        my $parent_pid = <p7.zenka.instance>->{$i_id}->{'process'}{'id'};
+        map { $pids{$ARG} = 1 } (
+            $parent_pid, @{ <[p7.sub-process.get_children]>->($parent_pid) }
+        );
+    }
+    $reply_list .= join( ' ', sort keys(%pids) );
+    return {
+        'mode' => 'true',
+        'data' => $reply_list
+    };
+
+} elsif ( $instance_id =~ /^\d+$/ ) {
+    return {
+        'mode' => 'false',
+        'data' => "instance not found [ p7.list (zenki|children) ]"
+        }
+        if not exists <p7.zenka.instance>->{$instance_id};
+    my $parent_pid
+        = <p7.zenka.instance>->{$instance_id}->{'process'}{'id'};
+    return {
+        'mode' => 'true',
+        'data' => join( ' ',
+            $parent_pid, @{ <[p7.sub-process.get_children]>->($parent_pid) } )
+    };
+} else {
+    return {
+        'mode' => 'false',
+        'data' => 'instance id must be numeric'
+    };
+}
+
+#.............................................................................
+#LYAYMUBMIIIC64EULXH45QLYMOQ2AG7FJ3BFH5WVWRKUPVWTSSFL5UJSH2LCXOFVL4CAJXDDIBOKC
+#::: LHLKBWORLL4PRLZAQP5FGUHLJMXVGVX7JNKKKMX6BAYNLXZW5ID :::: NAILARA AMOS :::
+# :: PEDXV2DYSEJLHVVE7GGQZ65ZKR367JRVZCOMT33XGWF3YDWGBKBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

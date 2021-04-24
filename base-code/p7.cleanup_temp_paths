@@ -1,0 +1,54 @@
+# >:]
+
+# name  = p7.cleanup_temp_paths
+
+( my $process_id, my $instance_id ) = @_;
+
+return warn 'process_id not defined <{C1}>' if not defined $process_id;
+
+$instance_id //= <[p7.sub-process.retrieve_cached_iid]>->($process_id);
+
+return warn 'instance_id not defined <{C1}>' if not defined $instance_id;
+my $instance = <p7.zenka.instance>->{$instance_id};
+return if not defined $instance;    # <-- gone..,
+return
+    <[base.log]>->( 1, "no temp-paths to clean up for instance $instance_id" )
+    if not defined $instance->{'temp-path'}
+    or !@{ $instance->{'temp-path'} };
+
+<[base.perlmod.autoload]>->( 'File::Path', qw| remove_tree | )
+    if not defined &{'remove_tree'};
+
+<[base.log]>->(
+    1, "cleaning up temp paths for instance $instance_id [PID:$process_id]"
+);
+
+my $stat_uid = delete $instance->{'stat_uid'};
+my $stat_gid = delete $instance->{'stat_gid'};
+
+while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
+    if ( length($clean_path) > 1 and -e $clean_path ) {
+        my $stat_ref = File::stat::stat($clean_path);
+        if (   $stat_ref->cando( S_IWUSR(), $stat_uid )
+            or $stat_ref->cando( S_IWGRP(), $stat_gid ) ) {
+            my $len      = 52 - length(<system.node.name>);
+            my $type_str = -d $clean_path ? 'dir.' : 'path';
+            my $pth_str
+                = <[base.parser.ellipse_center]>->( $clean_path, $len );
+            <[base.log]>->( 1, ":. unlink $type_str '$pth_str'" );
+            eval { remove_tree($clean_path) };
+            $EVAL_ERROR = 'still exists'
+                if not $EVAL_ERROR and -e $clean_path;
+            warn "<remove_path> $clean_path [ $EVAL_ERROR ]"
+                if length( $EVAL_ERROR // '' );
+        }
+    }
+}
+
+delete $instance->{'temp-path'};
+
+#.............................................................................
+#QROFVQDAQQB2SI4MKTUWEOARZ5SV3KRCGJ6SY55EGYE7IKHBIWLR35L27VUPQZ4XDT2VE6SDQ2VK2
+#::: KMZ4TQA65OIJ5ZT2LSBEJSY3W2PVWWQ7IXGEKATXNJ6ZQZEMFWU :::: NAILARA AMOS :::
+# :: AWFEW6GJS72HAH5YTNN3JZ4T2EO7C2SNXCJUVKW7T6L2VNJRRQBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

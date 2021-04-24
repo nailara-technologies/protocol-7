@@ -1,0 +1,56 @@
+# >:]
+
+# name = p7.init_zenka_output_patterns
+
+if ( not defined <p7.pattern_config>
+    or ref(<p7.pattern_config>) ne 'ARRAY' ) {
+    <[base.log]>
+        ->( 1, 'no zenka output patterns to initialize, skipping..,' );
+    return;
+}
+
+my $zenka_pattern_data = <p7.pattern_config>;
+
+my $re            = '::';                 ## <-- regex delimiter ##
+my $name_chars    = qr|!\w\d_\-,\s\*|;    ## <-- zenka-name pattern
+my $pattern_chars = qr|\\<>\w\d_\|\-\+\?,\s\.\[\]\:\'\^\$\*|;    ## <-- regex.
+
+foreach my $p_ref (@$zenka_pattern_data) {
+    foreach my $pattern ( keys %$p_ref ) {
+        my $p_key = $pattern;
+        if ( $pattern
+            =~ s{^([$name_chars]+)$re([$pattern_chars]+)$re(i?)}{$2}g ) {
+            my ( $zenka_string, $pattern_string, $i ) = ( $1, $2, $3 // '' );
+            $zenka_string =~ s|[ \t]+||g;
+            foreach my $zenka_match ( split( m|,|, $zenka_string ) ) {
+                my $pattern_code_aref = $p_ref->{$p_key};
+                my $pattern_re
+                    = $i eq 'i'
+                    ? qr|$pattern_string|i
+                    : qr|$pattern_string|;
+                my $sub_code
+                    = 'sub { my $instance_id = shift;'
+                    . ' my $zenka_name = shift;'
+                    . ' my @matches = @_; '
+                    . join( '; ',
+                    <[base.parser.config]>->($pattern_code_aref) )
+                    . ' }';
+                $sub_code =~ s|<zenka_name>|\$zenka_name|g;
+                $sub_code =~ s|<instance_id>|\$instance_id|g;
+                $sub_code =~ s|<match_([1-9])>|\$matches[$1-1]|g;
+                <p7.patterns.zenka_output>->{$zenka_string}->{$pattern_re}
+                    = eval $sub_code;
+            }
+        } else {
+            <[base.log]>->(
+                0, "<< syntax error in zenka output pattern ['$pattern'] >>"
+            );
+        }
+    }
+}
+
+#.............................................................................
+#EBOPB5I7YSVUMFWEEULM4CCI54NXQKGPPIOPZEMTVP4NKT4RX2NUJLQTZDUKOMVJBAC27OAHCRNLM
+#::: SJTCWUB3HFPRNTUMBOH3S4S3I6A2EAXL64NSQDUX3R64VFVZJKA :::: NAILARA AMOS :::
+# :: CONRV34D6AYGRWE5CMS7N4OWFRVBETD2AD3CAKZSU5QG6DK4EKBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

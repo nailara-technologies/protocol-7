@@ -1,0 +1,17 @@
+# name   = p7.zenka.get_dependencies
+# descr  = return zenka dependencies of specified zenka
+# return = <list_of_zenki> [ as space seperated string ]
+
+my $zenka_name = shift;
+
+return warn '<get_dependencies> expected zenka name {C1}'
+    if not length( $zenka_name // '' );
+return undef if not exists <p7.start_setup.zenki.config>;
+my $config = <p7.start_setup.zenki.config>->{$zenka_name} || {};
+return $config->{'dependencies'}                             || undef;
+
+#.............................................................................
+#VWK7343R5TREYQCLQJ77OJ7JMYDYSVA4DGT2GMEVXGG66U2CU2FZKTDDR24UU2OY2PXPCXKZWZU2O
+#::: 47BRLVBQX3WISA6QBKZ37XOKV5TJK3T3MZC2CEINNSBXQRT6PLT :::: NAILARA AMOS :::
+# :: YVZKQ7QICZRDXYPJ5JXH7ANEWFSWOPSY4G5L4RPOI7C6XQUPV6AQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

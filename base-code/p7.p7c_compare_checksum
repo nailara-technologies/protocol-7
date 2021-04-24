@@ -1,0 +1,42 @@
+# >:]
+
+# name  = p7.p7c_compare_checksum
+# descr = parses the binary to find the checksum that is reported by `p7c -dq`
+
+my $p7c_bin_path    = shift;
+my $checksum_string = shift;
+
+( warn "expected 'p7c' binary \\ executable path <{C1}>" and return 0 )
+    if not defined $p7c_bin_path;
+( warn "expected source checksum parameter <{C1}>" and return 0 )
+    if not defined $checksum_string;
+
+return 0
+    if not -e $p7c_bin_path;    ## no binary present \ checksum not found.. ##
+
+( <[base.log]>->( 0, "no read access to '$p7c_bin_path'" ) and return 0 )
+    if not -r $p7c_bin_path;
+
+my $binary_fh;
+if ( !open( $binary_fh, join( ' ', '<', ':raw' ), $p7c_bin_path ) ) {
+    <[base.log]>->( 0, "unable to open '$p7c_bin_path' ., [ \l$OS_ERROR ]" );
+    return 0;
+}
+
+my $checksum_found = 0;
+while (<$binary_fh>) {
+    if ( index( $ARG, $checksum_string ) >= 0 ) {
+        <[base.log]>->( 2, "checksum found in binary [ line $NR ]" );
+        $checksum_found = 1;
+        last;
+    }
+}
+
+close($binary_fh);
+return $checksum_found;
+
+#.............................................................................
+#X77GOPMT3SPNZAIOU4KBVWNZCT3VUWNDTB5WQLDIAG65OQZ42NHOVFFILHZUTO63IGWNOBIXXZWKM
+#::: JQPEDWME3AR4XHGG3SIXB34NLXFKO2EW723Q3VWZHCJ7WFKRW4Z :::: NAILARA AMOS :::
+# :: XQLLLBERZN2AKQVRVVKX3O45EOIWF2MF2H5Q5LQTXMKVMTTXZGAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,31 @@
+# >:]
+
+# name = p7.callback.instance.restart
+
+my $instance_id = shift->w->data;
+
+if ( not exists <p7.zenka.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        2,
+        "instance $instance_id no longer exists, aborting restart callback."
+    );
+    return;
+}
+
+my $instance = <p7.zenka.instance>->{$instance_id};
+$instance->{'timer'}->{'restart'}->cancel;
+delete $instance->{'timer'}->{'restart'};
+delete $instance->{'cube_sid'};
+
+return
+    if defined <zenka.instance.shutdown>
+    and defined <zenka.instance.shutdown>->{$instance_id}
+    or not defined $instance->{'job_id'};
+
+<[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
+
+#.............................................................................
+#2EF7GAH6PBR2XZDRRC5YXJBE3ZF2BT2W2DXAVP22F5RCW4TZGNDBTEJGV6X2L3IBWQIN7IT22CAUK
+#::: EP3ASUZNUTXAT63U6Q7JC2RY6J2N2WKYLYJUSMFB32EXSMXIRDP :::: NAILARA AMOS :::
+# :: 3PX6UKV7Q3BJ7XACOCJCSCAVQPFLK6ZK75J5AQV264FKESUTCMCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

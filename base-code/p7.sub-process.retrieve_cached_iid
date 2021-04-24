@@ -1,0 +1,28 @@
+# >:]
+
+# name  = p7.sub-process.retrieve_cached_iid
+
+my $pid = shift // '';
+die "expected process id" if $pid !~ m|^\d+$|;
+
+my $cache_ref   = <p7.process.instance_cache> // {};
+my $instance_id = $cache_ref->{$pid};
+
+foreach my $pid ( keys %{$cache_ref} ) {
+    my $pid_stat = waitpid( $pid, WNOHANG() );
+    if ( $pid_stat <=> 0 ) {
+        <[base.log]>->( 2, "removing process $pid from instance id cache.," );
+        delete $cache_ref->{$pid};
+    }
+}
+
+delete <p7.process.instance_cache> and undef $cache_ref
+    if !keys %{$cache_ref};
+
+return $instance_id;
+
+#.............................................................................
+#O2YJC4IVZBWP4YUHT4N3P7SJMP3ROF2OHEJTLUVDALEMSDEMLWUR5JGPL2KB7E6MMSDVAO7JUTE6Y
+#::: R5IJMTQGZBNUAAB4KBMVUQFGVNIQHF7NRCGLTP34YVVSY6RK4ES :::: NAILARA AMOS :::
+# :: JQ5KB6WUX4CW5XP3OTMBFYEDCHBNGFHNIV4NSRTMLG3PJ6FMEEBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

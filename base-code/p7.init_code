@@ -1,0 +1,191 @@
+# >:]
+
+# name  = p7.init_code
+# descr = initializes root module
+
+<[base.perlmod.load]>->('IO::Handle');
+<[base.perlmod.autoload]>->('Proc::ProcessTable');
+<[base.perlmod.load]>->( 'Clone',               qw| clone | );
+<[base.perlmod.load]>->( 'IPC::Open3',          qw| open3 | );
+<[base.perlmod.load]>->( 'Crypt::Misc',         qw| encode_b32r | );
+<[base.perlmod.load]>->( 'Hash::Merge::Simple', qw| merge | );
+
+<system.path.perl_bin> //= <[base.get_path.perl_exec]>;
+
+<system.zenka.type> = 'p7';
+
+<p7.timeout.kill_list>       //= 2;
+<p7.timeout.verify_instance> //= 13;
+
+<p7.zenka.notify_online>    //= {};
+<p7.zenka.manually_stopped> //= {};
+
+<p7.cfg_data.start_setup> = [];    ##  <--  << RESETTING >>   ##
+
+<p7.host-reboot.enabled>        //= 1;
+<p7.host-reboot.term_delay>     //= 1.3787;
+<p7.system-poweroff.enabled>    //= 1;
+<p7.system-poweroff.term_delay> //= 1.3787;
+
+<system.acfg_path> = <system.conf_path> . '/zenki';
+
+map { <[base.disable_command]>->($ARG) } qw{
+    subname
+    switch-user
+    verify-instance
+};
+
+<p7.gcc_bin> = '/usr/bin/gcc';
+<p7.cfg.install_bin_p7c> //= 'yes';                  # LLL: only when root..,
+<p7.cfg.p7c_bin_path>    //= '/usr/local/bin/p7c';
+
+## gcc \ p7c ##
+<p7.gcc_bin> = <[base.required_bin_path]>->('gcc');
+if ( !-x <p7.gcc_bin> ) {
+    <p7.gcc_bin> = undef;
+    <[base.log]>->( 0, "<< 'gcc' binary not found >>>" )
+        if defined <p7.cfg.install_bin_p7c>
+        and <p7.cfg.install_bin_p7c> =~ m{^(1|yes)$};
+} elsif ( defined <p7.cfg.install_bin_p7c>
+    and <p7.cfg.install_bin_p7c> =~ m{^(1|yes)$}
+    and not <[p7.bin_p7c_is_current]> ) {
+    <[p7.compile_bin_p7c]>;
+}
+## modprobe ##
+<p7.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
+if ( !-x <p7.modprobe_bin> ) {
+    <p7.modprobe_bin> = undef;
+    <[base.log]>->( 0, "<< 'modprobe' binary not found >>" );
+}
+## rmmod ##
+<p7.rmmod_bin> = <[base.required_bin_path]>->('rmmod');
+if ( !-x <p7.rmmod_bin> ) {
+    <p7.rmmod_bin> = undef;
+    <[base.log]>->( 0, "<< 'rmmod' binary not found >>" );
+}
+
+# single named file based startup configuration ##
+<[p7.load_start_setup]>->(<load.start_setup>)
+    if defined <load.start_setup>;
+
+## zenka dir based startup configs #
+<[p7.load_zenka_startup_cfgs]>;
+
+# json based configuration import ## replace with generic \ yaml based version.,
+<[set-up.json.import_file]>->('p7.start_setup.json')
+    if defined $code{'set-up.json.import_file'}
+    ;    ## <-- when not disabled., ###
+
+map { <[p7.init_start_setup]>->($ARG) } @{ clone(<p7.cfg_data.start_setup>) };
+
+if (    exists <system.subs_loaded.debug>
+    and <system.subs_loaded.debug> > 1
+    and <system.verbosity.console> > 4 ) {
+
+    <[base.perlmod.autoload]>->('Data::Dumper');
+    $Data::Dumper::Sortkeys = 1;
+
+    ( my $debug_str = Dumper(<p7.start_setup.globals>) ) =~ s,^.{7}|;$,  ,mg;
+    print "\n < p7.start_setup.globals >\n\n$debug_str\n";
+}
+
+<[event.add_signal]>
+    ->( { 'signal' => 'CHLD', 'handler' => 'p7.handler.sig_chld' } );
+
+<[p7.load_zenka_output_patterns]>;
+<[p7.init_zenka_output_patterns]>;
+
+delete <list.users>;
+
+<list.zenki> = {
+    'var'   => 'data',
+    'key'   => 'p7.zenka.instance',
+    'descr' => 'currently running / managed zenka instances',
+    'mask'  => '<key>:instance job_id zenka_name:name zenka_id status',
+    'align' => {
+        'zenka_id'   => 'right-5',
+        'zenka_name' => 'left+1',
+        'instance'   => 'left+1',
+        'job_id'     => 'right-4',
+        'status'     => 'center-1'
+    }
+};
+
+<list.available> = {
+    'var'   => 'data',
+    'key'   => 'p7.zenki.available',
+    'descr' => 'available zenki / descriptions',
+    'mask'  => '<key>:zenka_name short_desc:zenka_short_decription',
+    'align' => {
+        'zenka_name'  => 'right-3',
+        'description' => 'left'
+    }
+};
+
+<list.children> = {
+    'var'   => 'data',
+    'key'   => 'p7.zenka.instance',
+    'descr' => 'PIDs of zenki and their children',
+    'mask'  =>
+        '<key>:instance zenka_name:zenka <key>:process <key>:process_children',
+    'align' => {
+        'instance'         => 'left+1',
+        'zenka_name'       => 'left+1',
+        'process'          => 'left',
+        'process_children' => 'left',
+    },
+    'filters' => {
+        'process'          => 'p7.parser.process_id',
+        'process_children' => 'p7.parser.children'
+    }
+};
+
+<list.subnames> = {
+    'var'   => 'data',
+    'key'   => 'p7.zenka.instance',
+    'descr' => "'subnames' of registered zenki [ when available ]",
+    'mask'  => '<key>:instance status zenka_name:zenka subname',
+    'align' => {
+        'instance'   => 'left+1',
+        'status'     => 'center-2',
+        'zenka_name' => 'right-2',
+        'subname'    => 'left+1',
+    }
+};
+
+<list.manual> = {
+    'var'   => 'data',
+    'key'   => 'p7.zenka.manually_stopped',
+    'descr' => "zenki marked as 'manually stopped'",
+    'mask'  => '<key>:zenka_name <key>:stopped_at',
+    'align' => {
+        'zenka_name' => 'left+1',
+        'stopped_at' => 'left'
+    },
+    'filters' => { 'stopped_at' => 'p7.parser.manually_stopped_tstamp' }
+};
+
+<list.dependency> = {
+    'var'      => 'data',
+    'key'      => 'dependency.object',
+    'sort_key' => 'zenka_name',
+    'descr'    => 'current zenka dependency status',
+    'mask'     => 'zenka_name <key>:depends_on_zenki <key>:status',
+    'align'    => {
+        'zenka_name'       => 'center',
+        'depends_on_zenki' => 'center-5',
+        'status'           => 'left'
+    },
+    'filters' => {
+        'depends_on_zenki' => 'p7.parser.dependency_chain',
+        'status'           => 'p7.parser.dependency_status'
+    }
+};
+
+return 0;
+
+#.............................................................................
+#FZFFCOUEZTAJQRAZLLYHFOY2QCGHQ3CPISBHKU5F5DDEF7LVDK7D5EAWU3Q57UCBD3E4DNEFM7Z2I
+#::: QTIN7P4VJIUOPHZE6FBU4WST5G2XINZXNNB5IAV5NS7XBKZST3H :::: NAILARA AMOS :::
+# :: MJD667OLQMVMOZD5EUC2ZMVPXKD4VQSJIKJCXHBCJIFVHARWU4CI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

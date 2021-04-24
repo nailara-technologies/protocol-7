@@ -1,0 +1,131 @@
+# >:]
+
+# name  = p7.teardown
+# descr = shut down 'p7' zenka [with an optional error message]
+
+my $reason    = shift // '';
+my $exit_code = length($reason) ? 1 : $CHILD_ERROR;
+my $log_level = length($reason) ? 0 : 1;
+my $t_res     = 3;    # <-- time delta float resolution
+
+my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
+my $abort_timeout = 2;
+
+my %wait_pids = map { $ARG => 1 } keys %{<p7.child>};
+foreach my $p_pid ( keys %{<p7.child>} ) {
+    map { $wait_pids{$ARG} = 1 }
+        @{ <[p7.sub-process.get_children]>->($p_pid) };
+    <p7.child>->{$p_pid}->{'start_time'} //= <[base.time]>;    # ..in case.,
+}
+
+my $child_count = keys %wait_pids;
+
+while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+    $child_count-- if $pid and delete $wait_pids{$pid};
+}
+
+my $es = $child_count == 1 ? ' process' : 'es';
+$reason = ".. $child_count sub-process$es .,"
+    if !length($reason)
+    and $child_count;
+my $reason_txt = length($reason) ? " [ $reason ]" : '';
+
+<[base.log]>->( $log_level, "'p7' zenka shutdown" . $reason_txt );
+
+<[base.log]>->( 1, ".:[ terminating sub-process$es ]:." )
+    if $child_count and <system.verbosity.console> == 1;
+
+foreach my $pid (
+    sort {
+        <p7.child>->{$b}->{'start_time'} <=> <p7.child>->{$a}->{'start_time'}
+    }
+    keys %{<p7.child>}
+) {
+    next if exists <p7.child>->{$pid}->{'zenka_child'};
+    my $inst_id    = <p7.child>->{$pid}->{'instance_id'};
+    my $zenka_name = <p7.zenka.instance>->{$inst_id}->{'zenka_name'}
+        // 'unknown';
+    my @children = @{ <[p7.sub-process.get_children]>->($pid) };
+    if ( kill( 15, $pid ) ) {
+        <[base.log]>->(
+            1, sprintf( ": <TERM> PID %-7s  <-= %11s", $pid, "$zenka_name" )
+        );
+    } else {
+        delete <p7.child>->{$pid};
+    }
+    if (@children) {
+        my $es = scalar @children == 1 ? ' -- :' : 'es :';
+        <[base.log]>->(
+            1, ": <TERM> `-- sub-process$es " . join( ', ', @children )
+        );
+        map { delete <p7.child>->{$pid} if !kill( 15, $ARG ) } @children;
+    }
+}
+
+map { <[base.log]>->( 1, ": <TERM> orphan $ARG" ) if kill( 15, $ARG ); }
+    <[p7.sub-process.orphan_pids]>;
+
+while ( ( my $w_pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+    delete <p7.child>->{$w_pid};
+}
+
+my %children_left = map { $ARG => 1 } keys %{<p7.child>};
+
+my $wait_start = <[base.time]>->($t_res);
+
+while ( keys %children_left ) {
+    foreach my $pid (
+        sort {
+            <p7.child>->{$b}->{'start_time'}
+                // 0 <=> <p7.child>->{$a}->{'start_time'} // 0
+        }
+        keys %children_left
+    ) {
+        my $inst_id      = <p7.child>->{$pid}->{'instance_id'};
+        my $zenka_name   = <p7.zenka.instance>->{$inst_id}->{'zenka_name'};
+        my $time_now     = <[base.time]>->($t_res);
+        my $waiting_secs = $time_now - $wait_start;
+        if ( !kill( 15, $pid ) ) {
+            delete $children_left{$pid};    # <-- gone now .,
+        } elsif ( $waiting_secs >= ( $kill_timeout + $abort_timeout ) ) {
+            kill( 9, keys %children_left );
+            <[base.log]>->( 0, "ABORT TIMEOUT during process shut-down ..," );
+            exit(1);
+        }
+        if ( $waiting_secs >= $kill_timeout ) {
+            my @children = @{ <[p7.sub-process.get_children]>->($pid) };
+            if ( not exists <p7.child>->{$pid}->{'zenka_child'} ) {
+                <[base.log]>->(
+                    1,
+                    sprintf(
+                        ": <KILL> PID %-7s  <-= %11s",
+                        $pid, "$zenka_name"
+                    )
+                ) if kill( 9, $pid );
+            }
+            delete $children_left{$pid};
+            if (@children) {
+                my $es = scalar @children == 1 ? ' -- :' : 'es :';
+                <[base.log]>->(
+                    1,
+                    ": <KILL> `-- sub-process$es " . join( ', ', @children )
+                );
+                kill( 9, @children );
+                map { delete $children_left{$pid}; } @children;
+            }
+        }
+    }
+    <[base.sleep]>->(0.042);
+}
+
+map { <[base.log]>->( 1, ": <KILL> orphan process $ARG" ); kill( 9, $ARG ) }
+    <[p7.sub-process.orphan_pids]>;
+
+<[base.log]>->( 1, ':. done.' );
+exit($exit_code);
+
+#.............................................................................
+#2F22AAHQGZXWO2XK5O7ZV52676QF6TZARZT52RSDAUE2C2H5NO67LL2LP5WKN24ETF5NYD5XRQUYG
+#::: 4RUNK7WNYC3HQYDVBKEZE5BS625ECN7CNCOCBRK7JJAF6WR2A7G :::: NAILARA AMOS :::
+# :: 6YMWTZPUD6YR6XG2CIDI444HSWR5UPCFQ6ZIJK3VRV3CYRYOACCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

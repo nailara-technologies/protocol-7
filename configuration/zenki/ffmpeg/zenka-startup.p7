@@ -1,0 +1,24 @@
+# >:]
+
+# name  = zenka-startup.p7
+# descr = 'ffmpeg' zenka startup configuration used by 'p7' zenka
+
+dependencies  = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: p7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [p7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:42]
+
+#.............................................................................
+#AIGDUV4OL7JK7QI42RNUYSMYJXTLHB57N6URT6GMQMHYZIKIUE4HAFE2DXZSZSA2MD6ZEW5P7Y7MW
+#::: NPRWK5Q2MJ64EFDLM7LQEXQEDRLXOJ5IRI64FL5L6JEOUBS5MHD :::: NAILARA AMOS :::
+# :: L4UL5SJNUGXUHKOCBDXHOGZZ6QJISFDIRPN72FUCXPTD3VCJOSDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
