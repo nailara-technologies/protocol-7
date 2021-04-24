@@ -29,14 +29,15 @@ if (not fileno $session->{'handle'}
         \$data{'session'}{$id}{'buffer'}{'input'},
         $data{'size'}->{'buffer'}->{'input'},
         $bfs
-    )
+    ) // 0
 ) {
     $session->{'shutdown'} = 1;
+    $_[0]->w->cancel;
 }
 
-my $n_bfs = length( $session->{'buffer'}->{'input'} ) // 0;
-
-$data{'handle'}{ $session->{'handle'} }->{'bytes'}->{'in'} += $n_bfs - $bfs;
+my $n_bfs      = length( $session->{'buffer'}->{'input'} ) // 0;
+my $read_bytes = $session->{'last-bytes-read'} = $n_bfs - $bfs;
+$data{'handle'}{ $session->{'handle'} }->{'bytes'}->{'in'} += $read_bytes;
 
 $bfs = $n_bfs;
 
@@ -51,7 +52,7 @@ if ( $bfs > $session->{'size'}->{'buffer'}->{'input'} ) {
 }
 
 #.............................................................................
-#RJCPVKI4ARCIOYQYMQSZFGMKCDJHHIGTSF3CEWO4PO4ASSBWURZZ6VGJXS4XN3WW6AIIMAUMZWZPQ
-#::: JPPG3Z5IIG47AXSVDPL4ZY26LIACCXFLZNM3EX5OZSTWZMOK5EM :::: NAILARA AMOS :::
-# :: EV734IIKUG45VBBLFT64FJSRXMJ4D2LF47IDJHO4MQUCS2WEI6BI :: CODE SIGNATURE ::
+#IFHX4SKWM4HEJZLKKKQNI5QMOP2ANIARNVIZG2GEM4ARV7N33GGWQDFI4ZSWV6D3LDVFMACMY7FL6
+#::: 3NARWEH2ICU2ZBGOVRL3CU5BOLFOGBUTQI575DBVYY6TGROF23H :::: NAILARA AMOS :::
+# :: OAYZOLUKXEZ6PFPDQPGI2FGNGIWV76QJTL6AUWPYCAI7TNE4FMBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

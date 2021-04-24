@@ -11,6 +11,15 @@ my $input        = \$$session{'buffer'}{'input'};
 my $output       = \$$session{'buffer'}{'output'};
 my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
 my ( $auth_method, $auth_code, $auth_name );
+my $Blen = length($$input);
+
+if ( $session->{'last-bytes-read'} == 0 and length $$input ) {
+    warn "shred buffer case < buffer > '$$input'";
+    return 2;    ## <-- disconnecting client ##
+} elsif ( $session->{'last-bytes-read'} == 0 ) {
+    warn "silent disconnect < empty buffer >";
+    return 2;    ## <-- disconnecting client ##
+}
 
 $count_select->{'limit'}  //= 3; ##  <-- limiting allowed 'select' commands ##
 $count_select->{'errors'} //= 0;
@@ -29,9 +38,9 @@ if ( not defined $s_met ) {
 
     $$output .= "`:|\n";
     return 2;    ## <-- disconnecting client ##
-
 }
-($auth_method) = $$session{'auth'}{'method'} // split( m|\s+|, $s_met );
+
+$auth_method = $session->{'auth'}->{'method'};
 
 $_[0]->w->stop;    # <-- stopping event handler to modify buffer
 
@@ -84,6 +93,16 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             return 1;        ## continue protocol ##
         }
     }
+} elsif ( $$input =~ s|^(auth\.)?selected\n|| ) {   ## selected auth method ##
+    $_[0]->w->start;
+    if ( defined $auth_method ) {
+        $$output .= "TRUE $auth_method\n";
+        return 1;
+    } else {
+        $$output .= "FALSE not selected yet\n";
+        return 1;
+    }
+
 } elsif ( $$input =~ s|^(auth\.)?list\n|| ) {    ## list auth methods ##
 
     $_[0]->w->start;
@@ -122,7 +141,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
 }
 
 ##### calling selected authentication plugin #####
-elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
+elsif ( defined $auth_method and defined $code{"plugin.auth.$auth_method"} ) {
 
     $_[0]->w->start;    ## <-- resuming input event watcher ., ##
 
@@ -168,16 +187,30 @@ elsif ( exists $code{ 'plugin.auth.' . $auth_method } ) {
     } else {
         return 2;               ## <-- disconnecting ##
     }
-} else {
+} elsif ( defined $auth_method ) {
     <[base.log]>->( 0, "auth-plugin '$auth_method' not defined" );
     return 2;                   ## <-- disconnecting client ##
+} else {
+    if ( $Blen <= 13 and $$input =~ m|^\s+$|s ) {
+        $$output .= ">:|\n";
+    } elsif ( length $$input ) {
+        my $id_len = length($id);
+        <[base.logs]>->(
+            1,   '[%s] : pre-auth protocol error : %04d B',
+            $id, $Blen
+        );
+        ## truncate buffer msg .., ##
+        <[base.logs]>->( 2, ": %${id_len}s : :., [BUF:'%s']", '', $$input );
+        $$output .= ">:[\n";
+    }
+    return 2;    ##  no auth method selected + session closing  ##
 }
 
 warn 'protocol handler reached unexpected state';
-return 2;    ## terminate connection \ not expected state ##
+return 2;        ## terminate connection \ not expected state ##
 
 #.............................................................................
-#BYCTFPT56SZ6FSVRVJH2GSOQW3QKUITWCV4EUTXYW36DA5XGK426WKGUK3YHXMYXVCQLCFG4VMDRG
-#::: N36HDZGS3VO7XNDQKF6I5ASS66MBWOMFJYCLQMXYNRFLFEEUGY5 :::: NAILARA AMOS :::
-# :: NECBJA3XRGTGN6SDC2CN4FU5KK2VGH7IWQPT3KSQUZPRMRGL76DY :: CODE SIGNATURE ::
+#VTUEUIFOS7N2H5CUSPMFGORH3HQ5JLLPLYCNOYZO7BMVAESNRH2BFVLMZICXUGWUA4CQ4GY6VQIIM
+#::: CEBTZXZ35CAGTO2SVU2N3NMCI3R3NN2GAQHZIRVWUN4GKY67FIJ :::: NAILARA AMOS :::
+# :: YVPXBRNOIYICCM5ZTSAT5BUGJKHBPJQOMZ342XNEM53C4JM2VCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

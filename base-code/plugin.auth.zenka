@@ -8,15 +8,23 @@ my $re     = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if (   not %KEYS
-    or not exists $KEYS{'auth'}
-    or not exists $KEYS{'auth'}{'zenka'}
-    or ref( $KEYS{'auth'}{'zenka'} ) ne 'HASH'
-    or !keys( %{ $KEYS{'auth'}{'zenka'} } ) ) {
-    <[base.log]>->(
-        0, "[$id] cannot authenticate zenka session [..no key.,]"
-    );
-    $$output .= "AUTH_ERROR `:|\n";    # LLL: move down?
+my $link_type = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'};
+
+if (<[plugin.auth.zenka.no-keys-defined]>) {
+    if ( $data{'session'}{$id}{'last-bytes-read'} ) {
+        my $id_len = length($id);
+        my $l      = $link_type eq qw| unix | ? 0 : 1;
+        <[base.logs]>->( $l, "[%d] cannot authenticate zenka session", $id );
+        $l++ if $l > 0;
+        <[base.log]>->( $l, ':,. zenka user not expected [ no keys ] .,:' );
+        my $keyless_user
+            = $$input =~ m{^($re->{usr_str}|$re->{usr_subn_str}) }
+            ? $LAST_PAREN_MATCH
+            : undef;
+        <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
+            if defined $keyless_user;
+        $$output .= "AUTH_ERROR `:|\n";
+    }
     return 2;
 }
 
@@ -65,7 +73,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 }
 
 #.............................................................................
-#WQKEFXJWISYLL6RSXYIIDCQAIVW6NDXOIC7KXNAKJ725S2OXNY56VPYRGFYT3IVPBOVIEQDMLEJI2
-#::: CFIE5A4FOH4XRLXXUHU2HPWAGE6SAJFPOTIS66EJBAHZYV7JD73 :::: NAILARA AMOS :::
-# :: O2WPQSCDHU4GMFLQJ5JBFJY6DXSXP64RFSDGPQMJLFTVJR7GTCDI :: CODE SIGNATURE ::
+#DD273VSPFSR7YSE46EUYNIPIF2GTZZEAFUZ4QXRXKY7CVQ5Z27DCGEZ6II4NA6OUMS4L6ENVMRCMC
+#::: MCA5ENL33IYD2XSESYKZUUMAW63LNIBWUL7TNX5CYD6DZQLCMYX :::: NAILARA AMOS :::
+# :: K2HETVB6QBCF77XWJB2O4IVABUXV4YNTVR4I64LC56QG65J4K6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
