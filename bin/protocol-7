@@ -703,6 +703,11 @@ sub prepare_subs {
             map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A } # \1?
                 keys %ANSI
         );
+        ## global name variables ## set variable-watcher to update them [LLL]
+        $NODE_NAME     = $data{'system'}{'node'}{'name'};
+        $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
+        $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
+        ## initializing console output ##
         print STDERR $ANSI{'p7_fg_0002'};
 
         my $start_string = '\\';
@@ -728,6 +733,7 @@ sub prepare_subs {
                     $prefix = ' ' x $x_offset;
                 }
             }
+            my $spaces = '';
             if (   $data{'system'}{'verbosity'}{'console'}
                 && $data{'system'}{'start'}{'showbanner'}
                 or $show_banner_mode ) {
@@ -740,13 +746,12 @@ sub prepare_subs {
                 $code{'base.banner'}->($prefix);
                 print "\n" x $y_offset if $show_banner_mode and $y_offset;
                 exit(0)                if $show_banner_mode;
+            } else {
+                my $lpw = $data{'system'}{'zenka'}{'log_prefix_width'};
+                $spaces = ' ' x int( 72 - $lpw );
             }
+            $code{'log.noerr'}->( qw| .\\7 | . $spaces );
         }
-        ## global name variables ## set variable-watcher to update them [LLL]
-        $NODE_NAME     = $data{'system'}{'node'}{'name'};
-        $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
-        $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
-
         ## initializing early zenka buffer capture ###
         $data{'system'}{'start'}{'zenka-buffer'} = [];
         my $s_version = $data{'protocol-7'}{'src-ver'};
@@ -1143,10 +1148,10 @@ sub prepare_subs {
         my ( $file, $code_name );
 
         my $base = 0;    ## loading 'base' first ##
-        map { $base = 1 if $ARG eq 'base' } @_;
+        map { $base = 1 if $ARG eq qw| base | } @_;
         my @module_names = sort { length $a <=> length $b } reverse sort
-            grep { !m|^base$| } @_;
-        unshift( @module_names, 'base' ) if $base;
+            grep { !m|^base$| } @ARG;
+        unshift( @module_names, qw| base | ) if $base;
 
         $data{'callbacks'}{'end_code'} //= [];
 
@@ -1799,15 +1804,30 @@ sub prepare_subs {
 
     $code{'log.name_template'} = sub {
         my $lpw = shift;
-        return sprintf(
-            "%s%s. %s.%-${lpw}s .%s",
-            $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
-            $data{'system'}{'node'}{'name'},
-            $data{'system'}{'zenka'}{'name'},
-            $ANSI{'p7_bg_0000'}
-        );
+        if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
+            return sprintf(
+                "%s%s.%s %s.%-${lpw}s %s.%s",
+                $ANSI{'p7_bg'},
+                $ANSI{'p7_fg_0000'},
+                $ANSI{'p7_bg_0000'} . $ANSI{'bold'},
+                $data{'system'}{'node'}{'name'},
+                $data{'system'}{'zenka'}{'name'},
+                $ANSI{'reset'} . $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'},
+                $ANSI{'p7_bg_0000'} . $ANSI{'bold'}
+            );
+        } else {               ## regular log line output [ not .\7 line ] ##
+            return sprintf(
+                "%s%s. %s.%-${lpw}s .%s",
+                $ANSI{'p7_bg'},
+                $ANSI{'p7_fg_0000'},
+                $data{'system'}{'node'}{'name'},
+                $data{'system'}{'zenka'}{'name'},
+                $ANSI{'p7_bg_0000'}
+            );
+        }
     };
     $code{'log.format_name'} = sub {
+        my $hl = shift // 0;    ## highlight name and line [ bold \ ansi ] ##
         my $last_lpw = $data{'log'}{'lpw'}{'last'} // 0;
         my $lpw
             = $data{'system'}{'zenka'}{'log_prefix_width'}
@@ -1824,7 +1844,7 @@ sub prepare_subs {
         }
 
         $data{'log'}{'lpw'}{'last'} = $lpw;
-        return $code{'log.name_template'}->($lpw);
+        return $code{'log.name_template'}->( $lpw, $hl );
     };
 
     $code{'log.noerr'} = sub {
@@ -1836,9 +1856,10 @@ sub prepare_subs {
         if ( defined $code{'base.log'} ) {
             map { $code{'base.log'}->( 1, $ARG ) } @_;
         } else {
+            my $hl = index( $ARG[0], '.\\7', 0 ) == 0 ? 1 : 0;
             if ( $data{'system'}{'verbosity'}{'console'} ) {
                 map {
-                    say &{ $code{'log.format_name'} }, ' ',
+                    say $code{'log.format_name'}->($hl), ' ',
                         $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
                         $spaces
                 } @_;
@@ -2065,7 +2086,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#JFZGNHMSSUICRULPYADD33UG3WDLURFXUEEEDWE4SHL3QSSCMSCFVKMSPLVDOIZIVT3YSPRIAIIGI
-#::: 5POGBMW2MN4TTIVUYI2FGDRGXA3NFTSZDY7V6LD3N6V3OH7KLEM :::: NAILARA AMOS :::
-# :: CKDJDLKQC4YAYUZDXRKA2EY2D7ITMQO2BGYP2ZJKCISQJGBTM6DY :: CODE SIGNATURE ::
+#ISHBTFMLTTF5IXJPXIDZIEXPURXS6K47UM6MS3G5IPV3QVQ3KB7S6USAUYN7CYTLDFJLRS56P7DVG
+#::: E2BAAEFB6MRNI6IOPVI5JL5SG23JLAU4F42HXQZDIXJJNSYBTJZ :::: NAILARA AMOS :::
+# :: Y3HGUSK4YJUKTYRORNOUT3BN6SBUVWG7YXSQJSY7AG3CLQSOMSBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
