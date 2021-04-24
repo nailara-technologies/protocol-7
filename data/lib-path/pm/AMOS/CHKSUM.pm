@@ -60,8 +60,10 @@ sub amos_chksum {
         die sprintf "unexpected reference type '%s' supplied", $data_ref_type;
     }
 
-    $$data_ref = Encode::decode( qw| UTF-8 |, $$data_ref, 8 )
-        if not Encode::is_utf8( $$data_ref, 1 );
+    if ( not Encode::is_utf8( $$data_ref, 1 ) ) {
+        my $data_copy = Encode::decode( qw| UTF-8 |, $$data_ref, 8 );
+        $data_ref = \$data_copy;
+    }
 
     my @elf_modes
         = uniqint @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
@@ -155,7 +157,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#DNFPRL5RZPP4M6SIFIBCVZ5XF2O7JPR2UICQUYJHPOYU5TQ625I4G572YJAWQLBA36ZMDZOVDLAUG
-#::: X2XYZU2B4T2SOURHZKH7YZKQ2P4F6BCO2ZID4EV5LRKU3HZX2BM :::: NAILARA AMOS :::
-# :: FBFLSKIKYOPCFFH2X2S7TGBUEARAPJ2Q6OM3ETBOISLSVTKZF6DA :: CODE SIGNATURE ::
+#4VUAM5T44XWHEBNDHGUIRSI55AZQPB2MHOHFNBMD23UCOMQXQ6HO45GVJS3KYTVEXOSC5CO7PKNO6
+#::: HZFJN4MO6EIYKIHGLD4DDTFPUKSA6DNOOIQ7GHNAZ3KGRRA5XZY :::: NAILARA AMOS :::
+# :: XFKZXR5JIEXLIEI24CQB5O7ELOUDXQ25QA4GQRWFERJI3GG6UGCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
