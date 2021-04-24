@@ -2,12 +2,19 @@
 
 # name  = base.load_config_file
 
-my $cfg_name  = shift;
-my $cfg_level = <base.modules.cfg_level>++;
-my $max_level = <system.zenka.initialized> ? 1                 : 2;
-my $log_level = $cfg_level < 1             ? 1                 : $max_level;
-my $l_str     = $cfg_level                 ? ': ' x $log_level : '';
-<[base.log]>->( $log_level, $l_str . "loading config '$cfg_name'" );
+my $cfg_name   = shift;
+my $zenka_name = <system.zenka.name>;
+my $cfg_level  = <base.modules.cfg_level>++;
+my $max_level  = <system.zenka.initialized> ? 1                 : 2;
+my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
+my $l_str      = $cfg_level                 ? ': ' x $log_level : '';
+my $u          = length($cfg_name) > 20     ? ''                : 'uration';
+my $log_msg
+    = $cfg_name eq "zenki/$zenka_name/config"
+    ? sprintf( '%s: loading %s zenka description.,', $l_str, $zenka_name )
+    : $l_str . "loading '$cfg_name' config$u .,";
+
+<[base.log]>->( $log_level, $log_msg );
 
 # store additional config filenames for later reload [rewrite when problematic]
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
@@ -42,7 +49,7 @@ return 1 if <base.parser.config.errors>;
 return $status;
 
 #.............................................................................
-#WK746XGO7SWAPGLDRUUPHEI3DL6MI3KZ7DZSBSSIRAEGO5PBP2DXPI7PSCZQNNM5C3DFHTR57ZY6A
-#::: 4BE2J6SRZ3ZA2V7DNUJ5WEP32TPNPBLFSNUOLIT2KQKYFQNQEC4 :::: NAILARA AMOS :::
-# :: R4MOJKHCHOYTKPOUDZ2B24MQXRVANBSIB7QRKYAZ2JBP4WNALYDY :: CODE SIGNATURE ::
+#YBH4M6TNFEIHOZBSGJB2UDHQEMMPKISCLZQ73ISBGJLFCCW43AV7RZPK7WYICZYKKGAWIARTKOZQY
+#::: OWNXDNPHXCSV77C5ENWWZJJY7PUQAZSMWBCTNGIQRSDFUZNDEOG :::: NAILARA AMOS :::
+# :: QSRF6DUW3BXVO2FXTJXKILOHC4PRH3UW74XWA3LYUF6UU7MUBWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
