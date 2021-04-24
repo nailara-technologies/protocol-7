@@ -7,20 +7,30 @@ my $method = shift;
 
 warn "[$id] expected auth _method_ parameter" if not defined $method;
 
+my $client_sock_fd = $data{'session'}{$id}{'handle'};
+
 my @available_auth_methods
     = <[base.reverse-sort]>->( split( "\n", <[auth.auth_list]>->($id) ) );
 
 if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
+
+    if ( $method eq qw| zenka | and <[plugin.auth.zenka.no-keys-defined]> ) {
+        <[net.out]>->(
+            $client_sock_fd, "FALSE no zenka authentication expected >:[\n"
+        );
+        return 0;
+    }
+
     $data{'session'}{$id}{'auth'}{'method'} = $method;
-    <[net.out]>->( $data{'session'}{$id}{'handle'}, "TRUE continue\n" );
+    <[net.out]>->( $client_sock_fd, "TRUE continue\n" );
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
     return 1;
 } else {
     my $link_type
-        = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'};
+        = $data{'handle'}{$client_sock_fd}{'link'};
 
     <[net.out]>->(
-        $data{'session'}{$id}{'handle'},
+        $client_sock_fd,
         "FALSE not available \ enabled, see 'list' command\n"
     ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
     my $m_len = 23;
@@ -38,7 +48,7 @@ if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
 }
 
 #.............................................................................
-#MUEUAFJX4KEW2EO2FRTSV3NLM66A7XH3DRFFQVWEPXYURUPF5DMPENP2XVDP5XPK67TGGZRHF7OGA
-#::: RRGSWBJDC5TKOXEI4CJURWAPHYNIAU7ZAZWQP2A647RHRQ3QKGD :::: NAILARA AMOS :::
-# :: NG4UTZIQJQWH5V3KQSVKAAD5ZWZTN3CL4LZ6XJ474AV4OT7RDCBA :: CODE SIGNATURE ::
+#DHRWK2IYLMLQAHV2W3ZIVIS4FK5LXG7B7MWCV4YKUTXOSLSQTCPLH227H3BJ3N3BOB6ZAQECJYPNI
+#::: OCD75FSJSZSJPLG5WYPEU3INMGZQE7R3D26ZCD6VR64A2CPETEK :::: NAILARA AMOS :::
+# :: HWJITX3B4KPGKSBV2QTHDV5TIDAFEGTVS2VSR633FU5REGBCOCCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
