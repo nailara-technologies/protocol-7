@@ -5,7 +5,7 @@
 # descr = reload or reinit config and source code
 my @keywords = qw|  config  source  plugins  init  all  |;
 
-my $arg = $$call{'args'} // 'all';    ## [LLL] enable multiple keyword param
+my $arg = $$call{'args'} // qw| all |;  ## [LLL] enable multiple keyword param
 my $id  = $$call{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
@@ -13,7 +13,7 @@ my ( $success, $output ) = ( 0, '' );
 <base.debug.keep_on_reload>      //= 0; # <-- dbg. module persistence override
 <base.reload.success.clean-code> //= 1; # <-- delete $data{'code'} [ success ]
 
-my $s = '     ';
+my $s = ' ' x 5;
 $$reply{'data'} = ":\n\n\n::\n\n";      # <-- header
 my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
 my $keyword_match = 0;
@@ -134,11 +134,11 @@ if ($success) {
 
 delete <system.reload>;    ## completed ##
 
-$$reply{'mode'} = 'data';
+$$reply{'mode'} = qw| data |;
 $$reply{'data'} .= $reply_footer;
 
 #.............................................................................
-#2S2FROI4NO7CURJH4R4KXZMVLKJ6RFNCATWJL6ZAGDCG4L5VHEYSFI65F5IKD7IFSM6LQVLF35JQY
-#::: ZAFCQZGRVUY4AZUN3M4AI4LSUSUHS4EYRXE255EXCFV3KGSWMO6 :::: NAILARA AMOS :::
-# :: K2CV5KE4REI5SAJWEXIRCUUYQKNEI46ANGL4VJY2AXOH6PI6K6AA :: CODE SIGNATURE ::
+#BO2FEW5XAZ5HIQEBWE7D4BZTBPTBJFSQUVUEEZYSPB4WF5YBKST5UXZ6V3L6QEKTXGV2H36S4IE5G
+#::: 3WIKBLRL7OMBDYUAO2FS7J2RSSL5EGJDE2LTQRXSJMVDGE225YW :::: NAILARA AMOS :::
+# :: BCWK5W4VTAHPZCFS74G3IJWMFHY6FDZIMBBOQ3SPK3VCHSY4TUAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
