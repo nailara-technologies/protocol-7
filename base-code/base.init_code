@@ -6,7 +6,6 @@
 use Safe;
 use Module::Load;
 use Time::Seconds;
-use List::Util qw| reduce max uniqstr |;    ## <-- expand as required ., ##
 
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
@@ -29,12 +28,15 @@ use warnings qw| once redefine |;
 <zenka.shutdown> //= 0;
 
 $data{'debug'} //= {};
-## reducing debug ( verbosity >= 2 ) log output ###
-<debug.sig_int_dump> = 0;    # dump %data state on SIGINT in log level 2
-<debug.skip_log_msg>
-    = 1;    # skip p7-log.append commands in log level 2 debug output
-<debug.skip_nroot_heartbeat>
-    = 1;    # skip nroot zenka status heartbeats [ and responses ]
+## reducing debug [ verbosity >= 2 ] log output ###
+##
+<debug.sig_int_dump> = 0;    ## dump %data state on SIGINT in log level 2 ##
+
+## skipping p7-log.append commands in log level 2 debug output ##
+<debug.skip_log_msg> = 1;
+
+## skipping p7-zenka heartbeat [zenka-status] requests and responses ##
+<debug.skip_p7_heartbeat> = 1;
 ##
 $data{'system'}{'process_start'} = {
     'time'  => <[base.time]>->(5),
@@ -220,7 +222,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 #.............................................................................
-#LEOJMNBU7DD2B5YCJUMW2UZ7WZWO3BRYI3PI22VSV2MULUSTRPGLTMVNLS67MUTT2AZIMYM4Y4PYC
-#::: 5SJ4U4CDP6BR57LBDYC57GEQCCCAHXL3ZZ324HCXKDDR2MBDGAZ :::: NAILARA AMOS :::
-# :: 5RZXPDYKB3GOSMOLBD74X4ETKSFCPANRBY7WFDPFXKINOARXKYCI :: CODE SIGNATURE ::
+#TALXVDUXBW5CHXUIB3WNM5GRRQ7645ZZAK2BB2MTQ6QWAJAQTVKHNUTNNJ2ESB2TBDZVCG7OOB7M6
+#::: PMLMFPJPV2ULGQURIRW4EKG3PVEMSSOZNAHTD7G2MUAB6SKL7UN :::: NAILARA AMOS :::
+# :: 2QEPXHJCFNA2KJO6H37FGIQMF7I2KPPQIQUMGARA3CSYMWEMTGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
