@@ -5,7 +5,7 @@ use English;
 use warnings;
 use Getopt::Std;
 use Digest::BMW;
-use List::Util 'uniqint';
+use List::Util qw < uniqint >;
 
 ####           ####
 ##  amos-chksum  ##
@@ -29,7 +29,7 @@ use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
 use AMOS::CHKSUM::ELF::Inline;
 
-my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
+my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} // [] };
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -154,13 +154,13 @@ if ( $option{'v'} ) {
         ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
         '',
         sprintf( "    C-SUM-bits  : $bg$CT %032b $fg$rst",
-            $AMOS::CHKSUM::checksum_num ),
+            $AMOS::CHKSUM::num_amos_csum ),
         )
         : ();
 
-    my $len_delta        = 11 - length($AMOS::CHKSUM::checksum_num);
-    my $checksum_num_str = sprintf( ":$CT %d $fg%s",
-        $AMOS::CHKSUM::checksum_num, ':' x $len_delta );
+    my $len_delta         = 11 - length($AMOS::CHKSUM::num_amos_csum);
+    my $num_amos_csum_str = sprintf( ":$CT %d $fg%s",
+        $AMOS::CHKSUM::num_amos_csum, ':' x $len_delta );
 
     my %COLOR = (
         'input' => is_true( $data_str, 1, 1, @modes ) ? $CT : $ng,
@@ -199,13 +199,13 @@ if ( $option{'v'} ) {
         ),
         '',
         join( ' ', "$fg   VAX-encoded  : " . TRUE_FALSE($checksum_encoded) )
-            . " $bg$CT$bl$checksum_encoded$rst$fg $checksum_num_str",
+            . " $bg$CT$bl$checksum_encoded$rst$fg $num_amos_csum_str",
         '', $rst
     );
 } elsif ( $option{'n'} ) {
 
-    say $AMOS::CHKSUM::checksum_num and exit if $option{'q'};
-    say "$fg:\n:$bg $CT${AMOS::CHKSUM::checksum_num}$fg $rst\n$fg:$rst";
+    say $AMOS::CHKSUM::num_amos_csum and exit if $option{'q'};
+    say "$fg:\n:$bg $CT${AMOS::CHKSUM::num_amos_csum}$fg $rst\n$fg:$rst";
 
 } else {
     say $checksum_encoded and exit if $option{'q'};
@@ -225,6 +225,7 @@ sub error_exit {
     $emsg =~ s|(*plb:\w): (\S+)|$bl : $no$LAST_PAREN_MATCH|;
 
     say "$rst$bl:\n: $no$emsg$bl\n:$rst";
+
     exit(110);
 }
 
@@ -239,7 +240,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#JSCYFPO5RJGD2MH4HUU25I7DXYSF3W6OXS4YB5SDCI2Y5A4BZ23CJP4TVY7VZGE5OSJNEX66KGGC2
-#::: JFLT3CCQQNJY7GRNAGHELZTD6J75YPUILUAHAGZIJ4UIYH4YBZ6 :::: NAILARA AMOS :::
-# :: TKTT6427XQ6LOQCT5FI2W3OS4VVOPNOED7LUJ737O4V2D4VKK2DA :: CODE SIGNATURE ::
+#3GS5NVVDTMNJ5SFTSINCBG2HXFWQ72DSROJF7LIAERLTDUZQ2WXMDMKVHS74IRK4IMSJ6DE7MQWAA
+#::: PGVAYMV3KA56XN6OZ37AWTRBPR2VTVSP33W4ZQGA6XV7R32OPY4 :::: NAILARA AMOS :::
+# :: AJ7CS67A7F7GLUL74RT2AGFZGXRCBDANPWM6TSWOX7SN56PDPMDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
