@@ -1397,15 +1397,15 @@ sub prepare_subs {
 
             $data{'base'}{'p7_mod'}{'sbytes'}->{$module_name} = $source_len;
 
-            local $SIG{'__WARN__'} = 'IGNORE';
-            local $SIG{'__DIE__'}  = 'IGNORE';
+            local $SIG{'__WARN__'} = qw| IGNORE |;
+            local $SIG{'__DIE__'}  = qw| IGNORE |;
 
             my $sub_code     = undef;
             my $code_header  = '';
             my $code_footer  = '';
             my $sub_conflict = 0;
 
-            if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) { ## include proto.,
+            if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
                 my $cmd_type = ${^CAPTURE}[0];
                 my $cmd_name = ${^CAPTURE}[1];
                 next
@@ -1609,7 +1609,7 @@ sub prepare_subs {
                 $warn_count = 0;
             }
 
-            if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} )  ## include protocol
+            if ( $sub_name =~ m{\.(cmd|console|ext-cmd)\.(.+)$} )
             {    # command desciptions #
                 my $section = ${^CAPTURE}[0];
                 my $command = ${^CAPTURE}[1];
@@ -1623,7 +1623,7 @@ sub prepare_subs {
                             = ${^CAPTURE}[0];
                     } else {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                            = '<<< \'descr\' header key not defined >>>';
+                            = qq|<<[ 'descr' header key not defined ]>>|;
                     }
 
                 # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
@@ -2099,7 +2099,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#WZTEUJ72O2EVPYDYB5YHCNQ2RTMVVUBI2QPMVMPYIEY4XRCD6PN3SXSVXMHQIO7Q46W6D5EOINSM6
-#::: A6LSCGITCPEUIAALZNNMDMEISO7RWSZU7A23H2QI2RHG2PQPBPP :::: NAILARA AMOS :::
-# :: SMXCV2QYFFYI5SU6OTUXETLLOKQZM3UM3RXLVTQ5CLJA7QVIO4AI :: CODE SIGNATURE ::
+#EQNXHA4GL6R3ECGQJNWZOV36N7433PEBN3FCFXVVMQ4NSPSN2TYXO7YHOQEHUOWFBJ56TBNSHMFYO
+#::: BGYAHCMOJIINPYQM25L36EQ27RAJ3HEM5P4HW6IQBQV6432FUCQ :::: NAILARA AMOS :::
+# :: PZVH3E5RJDU6R5PSFSQYQDOXD6P4LMBLYDM5J32JBTTS3SJMIGDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
