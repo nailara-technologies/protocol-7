@@ -34,15 +34,15 @@ my $n_mlen = max map { length $new_versions->{$ARG} } keys %{$old_versions};
 my $bg  = "\e[48;2;9;5;42m";
 my $fg0 = "\e[38;2;38;46;153m";
 my $fg4 = "\e[38;2;68;39;172m";
-my $TC  = "\e[38;2;6;71;195m";
+my $CT  = "\e[38;2;6;71;195m";
 my $rst = "\e[0m";
 
 say "$bg$fg0:$rst";
 foreach my $module ( sort keys( %{$old_versions} ) ) {
     chomp( $new_versions->{$module} );
     next if $old_versions->{$module} eq $new_versions->{$module};
-    say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$TC%${o_mlen}s $rst"
-        . "$fg4 $bg : $rst$fg4 $bg$TC %-${o_mlen}s $rst$fg4 $bg.:$rst",
+    say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$CT%${o_mlen}s $rst"
+        . "$fg4 $bg : $rst$fg4 $bg$CT %-${o_mlen}s $rst$fg4 $bg.:$rst",
         $old_versions->{$module},
         $new_versions->{$module};
 }
@@ -56,10 +56,10 @@ foreach my $module ( sort keys( %{$old_versions} ) ) {
         $new_versions->{$module}
     );
 }
-say "$bg$TC:.,$rst";
+say "$bg$CT:.,$rst";
 
 #.............................................................................
-#TKYERMYFQDPUCTHJTGUMYR6FXV4SS722PTH3B6LXJWWY2PVVTLGTBEZPHF5GCDLG4QC7OFT2HWZGS
-#::: LEKTTCWRFHC4BRL5HLUFKTXGKFD3IEMC63QUAAPOFQJBTMUF45T :::: NAILARA AMOS :::
-# :: 3ZDSY4ZRFTMAM5ZICYU23AIV6ZQW76PMNTN4WAKKV62SDTC3OOBI :: CODE SIGNATURE ::
+#PRTZ6TIFHLVKCQUO3E6CYS3Q4RMRPSCZ56IRLKMMIFOZD72G7K5A63RFPYGL66XGKJY7IIZBQSPHI
+#::: IPLDYGBUXQHFP4D3KYWUJDN5S5ON5YXDV2YIIRP4RLOUJP4OSGO :::: NAILARA AMOS :::
+# :: IRJWFJ474Y5PQH2FWFYG4O6DEZ5R3OUP77WX5PJ3UEFZ63FGS4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
