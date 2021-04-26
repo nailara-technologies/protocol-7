@@ -5,28 +5,36 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw| is_true |;
+###                                                                 ###
+##  ASSERT HARMONIC TRUTH BASED ON DIVISION BY 13 CALCULATION RESULT ##
+###                                                                 ###
+
+#######################
+@EXPORT = qw| is_true |;      ##  <--  main function  ##
+#######################
 
 use v5.24;
 use strict;
 use English;
 use warnings;
 use Math::BigFloat;
-use List::Util 'uniqint';
+use List::Util qw[ uniq ];
+
+##[ AMOS MODULE ]#############################################################
 
 use AMOS::Assert;
 
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
-our @assertion_modes = qw| 4 7 |;    ##  elf truth modes  ##
+our @assertion_modes = qw| 4 7 |;    ##  elf truth modes  ##  MAIN SET-UP  ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
 ##[ MAIN FUNCTION ]###########################################################
 
 sub is_true {
-    my $calc_str;
+    my $calc_result;
 
     my $data_ref = shift;
 
@@ -39,7 +47,7 @@ sub is_true {
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
     $data_ref = \"$data_ref"              if ref($data_ref) ne 'SCALAR';
 
-    my @assertion_modes = uniqint @ARG ? @ARG : @assertion_modes;
+    my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
     return 0                          ## check as mumber when numerical ##
         if $check_as_num == 1
@@ -63,7 +71,7 @@ sub is_true {
     }
     ## success : TRUE .: ##
     return 1 if not wantarray;
-    return ( 1, @assertion_modes );    #scalar @assert_modes );
+    return ( 1, @assertion_modes );
 
 }
 
@@ -93,31 +101,33 @@ sub calc_true {
     error_exit('input not numerical')
         if not AMOS::Assert::numerical($check_num);
 
-    my $calc_str;
-    my $num_len = length($check_num);
-    my $factor  = join( '', '1', 0 x $num_len );
+    my $calc_result;
+    my $input_len = length($check_num);
+    my $factor    = join( '', qw| 1 |, qw| 0 | x $input_len );
 
-    if ( $num_len < 10 ) {
-        $calc_str = sprintf '%.0f', ( $check_num / 13 ) * $factor;
-        substr( $calc_str, 0, length($calc_str) - 6, '' );
+    if ( $input_len < 10 ) {  ## skipping Math::BigFloat for shorter values ##
 
-    } else {
+        $calc_result = sprintf '%.0f', ( $check_num / 13 ) * $factor;
+
+    } else { ##  gemeric division by 13 calculation [ arbitary precision ]  ##
+
         Math::BigFloat->round_mode(qw| trunc |);
 
-        $calc_str
+        $calc_result
             = Math::BigFloat->new($check_num)->bmul($factor)
             ->bdiv( 13, 7 + length($check_num) )->bdstr();
-
-        substr( $calc_str, 0, length($calc_str) - 6, '' );
     }
 
+    ## truncate to match ##
+    substr( $calc_result, 0, length($calc_result) - 6, '' );
+
     ## FALSE ### 230769 ####
-    return -$false{$calc_str}
-        if exists $false{$calc_str};
+    return -$false{$calc_result}
+        if exists $false{$calc_result};
 
     ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
-    return 1 + $true{$calc_str}
-        if exists $true{$calc_str};
+    return 1 + $true{$calc_result}
+        if exists $true{$calc_result};
 
     ### TRUE ### 0000000 | 1 ####
     return 1;
@@ -130,14 +140,14 @@ sub calc_true {
 sub warn_err {
     my $err_str = shift;
     my $c_lvl   = shift // 1;
-    warn "$err_str " . caller_str($c_lvl) . "\n";
+    warn sprintf( "%s %s\n", $err_str, caller_str($c_lvl) );
     return undef;
 }
 
 sub error_exit {
     my $err_str = shift;
     my $c_lvl   = shift // 1;
-    die "$err_str " . caller_str($c_lvl) . "\n";
+    die sprintf( "%s %s\n", $err_str, caller_str($c_lvl) );
 }
 
 sub caller_str {
@@ -151,7 +161,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#DADKBWSXVOAGDQRHISISJXRMXENWNJKRJWREQHVFGYSZX75GB3CMT4H5ZDAH6Y5EBBGV5I47GGSM4
-#::: LUZMT22GVFUYBAXOZNR3ICMLIQSN5D2SZ7LYO6LGUNVS6PT3ZX5 :::: NAILARA AMOS :::
-# :: NTVYF3VQA2OVXMWXVZDTHDPCYTQTGFW53JHOTM57CJZJ53XCKMCI :: CODE SIGNATURE ::
+#MLQATYWBO4DDLVM6FEISNCMWZ6OVFFLNURGWRLJMJKT4GQ5T264FYLTMILBJ3EOAQEEDC2JWOLNGE
+#::: D6PQCHPWOIWN6VE2QMGYPJ7QKZ2EPHD33DVCYOFY6JQCCTAJYTW :::: NAILARA AMOS :::
+# :: RVNMFBT5VRWG53AEXK3YTKVEGCVNNOIEO75BZXV4VF6QCKTXLUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

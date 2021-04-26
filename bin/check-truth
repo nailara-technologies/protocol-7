@@ -4,7 +4,15 @@ use strict;
 use English;
 use warnings;
 
-my @modes = qw| 4 7 |;    ##  elf truth modes  ##
+####           ####
+##  check-truth  ##
+###            ####
+
+my @modes;    ##  AMOS::Assert::Truth elf truth modes  ##
+
+my $FXI = 202;    ## program return code for asserted FALSE ##
+
+##[ RUNTIME OPTIONS ]#########################################################
 
 my $silent          = 0;
 my $force_numerical = 0;
@@ -13,7 +21,7 @@ my $no_num_chk      = 0;
 ## special parameters [ used by harmony-osd ] ##
 if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
     $silent = 1;
-    if ( defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq '-n' ) {
+    if ( defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq qw| -n | ) {
         $force_numerical = 1;
     }
     goto SKIP_PARAMS;
@@ -23,7 +31,7 @@ $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
 
-if ( @ARGV > 1 and $ARGV[0] eq qw| -mode | ) {
+if ( @ARGV > 1 and $ARGV[0] =~ m|(-elf)?-modes?| ) {
     die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
         if $ARGV[1] !~ m|^\d{1,2}(,\d{1,2})*$|;
     shift(@ARGV) and @modes = split( ',', shift(@ARGV) );
@@ -31,7 +39,9 @@ if ( @ARGV > 1 and $ARGV[0] eq qw| -mode | ) {
 
 SKIP_PARAMS:
 
+##[ LOCAL PM LIB PATH ]#######################################################
 BEGIN {
+    use English;
     use File::Spec;
     use Cwd qw| abs_path |;
     use FindBin qw| $RealBin |;
@@ -41,14 +51,31 @@ BEGIN {
     my $local_lib_path = abs_path( c_dir( $root_path, 'data/lib-path/pm' ) );
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
     unshift( @INC, $local_lib_path )               if -d $local_lib_path;
-    sub c_dir  { File::Spec->catdir(@_) }
-    sub r2_abs { File::Spec->rel2abs(@_) }
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-my $FXI = 202;    ## program return code for asserted FALSE ##
+##[ AMOS MODULE ]#############################################################
 
 use AMOS::Assert qw| numerical numerical_no_prefix |;
 use AMOS::Assert::Truth qw| is_true |;
+
+##[ COLORS ]##################################################################
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $CT  = "\e[38;2;6;71;195m";
+my $fg  = "\e[38;2;68;39;172m";
+my $no  = "\e[38;2;197;141;7m";
+my $ng  = "\e[38;2;71;195;6m";
+
+##[ INPUT PROCESSING OPTIONS ]################################################
+
+my $check_elf = $force_numerical ? 0 : 1;
+my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
+
+##[ DATA INPUT MODES ]########################################################
 
 my $stdin_mode = 0;
 my $single_line_input;
@@ -59,19 +86,6 @@ if (@ARGV) {
     $stdin_mode = 1;
 }
 
-my $rst = "\e[0m";
-my $bl  = "\e[1m";
-my $bg  = "\e[48;2;9;5;42m";
-my $fT  = "\e[38;2;6;71;195m";
-my $fg  = "\e[38;2;68;39;172m";
-my $no  = "\e[38;2;197;141;7m";
-my $ng  = "\e[38;2;71;195;6m";
-
-##############################################################################
-
-my $check_elf = $force_numerical ? 0 : 1;
-my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
-
 ## COMMAND LINE INPUT ##
 exit( process_input($single_line_input) ) if not $stdin_mode;
 
@@ -79,6 +93,7 @@ exit( process_input($single_line_input) ) if not $stdin_mode;
 my $success_code = 0;
 
 while (<STDIN>) {
+    chomp($ARG);
     $success_code = $FXI if not process_input($ARG);
 }
 
@@ -92,20 +107,20 @@ sub process_input {
     my $mode_str = @r_modes ? sprintf( " : %s", join( ' ', @r_modes ) ) : '';
 
     if ($true) {
-        say "$fg:\n:: $bl${fT}TRUE$rst$fg$mode_str :: "
-            . "$bg'$fT$ARG[0]$fg'$rst$fg .:\n:$rst"
+        say "$fg:\n${fg}:: $bl${CT}TRUE$rst$fg$mode_str :: "
+            . "$bg'$CT$ARG[0]$fg'$rst$fg .:\n$fg:$rst"
             if not $silent;
         return 0;
     } else {
-        say "$fg:\n:: $bl${ng}FALSE$rst$fg$mode_str : "
-            . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n:$rst"
+        say "$fg:\n${fg}:: $bl${ng}FALSE$rst$fg$mode_str : "
+            . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n$fg:$rst"
             if not $silent;
         return $FXI;
     }
 }
 
 #.............................................................................
-#6LXRPCKGX4LPLMCCCFFSXHLX3ZV63S2YDBDJAUETY3K3UOIE46ZIBQZ7VOP5WOOCRVF6GHZIXXFF2
-#::: XBD3TKWX245V22G2XVMZYFBQ2PZ7Q5DDHO7W3YUKBIW7DFVFGA3 :::: NAILARA AMOS :::
-# :: IMGNT5OL5UKTW2PMHKXY6OSAE3DCAQC4LDB3FYXOIWWYAFK3SCDA :: CODE SIGNATURE ::
+#VOULKSFN4OBAKLKRDYVKP6GSHV7AUOU4ERSDXFY7RA4WZOWVU64I6BT3JBPPQKMMTRAXC6Q4UUZAI
+#::: F3BTT4ZPBSOSCBFO2MQH2SMEVOJQLCVZTIXZP7NLZ22E7GVKIF2 :::: NAILARA AMOS :::
+# :: 7FC3OXDCG5RH5NLFFEZDN4N7LECPI5ZOSQGTUEGYRG3CU3GFX4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
