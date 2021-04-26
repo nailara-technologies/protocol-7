@@ -1,0 +1,27 @@
+# >:]
+
+# name  = protocol.amos-chksum.ext-cmd.reset
+# descr = reset selected amos-chksum elf modes
+
+my $id = shift;
+return 2 if not defined $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+$session->{'amos-chksum'}->{'modes'}    ##  set to AMOS::CHKSUM modes  ##
+    = $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'};
+
+my @modes = <[base.sort-num]>->( $session->{'amos-chksum'}->{'modes'} // [] );
+
+my $modes_str
+    = @modes
+    ? join( ' ', 'modes [re]set to', @modes )
+    : 'elf modes unset [ internal error ]';
+
+return { 'mode' => qw| true |, 'data' => $modes_str };
+
+#.............................................................................
+#YKEGIFCWFC2ZYEGOAO32PQ7K6672LBTKDDTUYWBRLCIPYCVSSQ7NP2RGQ6UUTJT3FPIUSRCN7MM7M
+#::: 6E3K3BECDZHULRJMQMUYXQWBCJJ7AFNGB5WNIO46R47AAWCGFD4 :::: NAILARA AMOS :::
+# :: CXKPWPZT7SUPTXRPJUYVF3N2NAD74OCZ53GTNZ667BNBMSPD3MDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
