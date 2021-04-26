@@ -11,6 +11,9 @@ return 2 if not defined $data{'session'}{$id};
 my $session = $data{'session'}{$id};
 my $user    = $session->{'user'};
 
+$session->{'amos-chksum'}->{'modes'}    ##  set from AMOS::CHKSUM  ##
+    //= $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'};
+
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
@@ -22,7 +25,7 @@ if ( $$input =~ m|^[^\n]{$max_cmd_len}\n?| ) {
     <[base.log]>->(
         0, "[$id] maximum command length [ $max_cmd_len bytes ] exceeded."
     );
-    $$output .= "FALSE maximum command size exceeded\n";
+    $$output .= "maximum command size exceeded\n";
     return 2;    ##  <-- closing connection \ command not parseable  ##
 }
 
@@ -33,54 +36,69 @@ my $peer_fh = $session->{'handle'};
 $session->{'amos-chksum'}
     //= { 'modes' => $AMOS::CHKSUM::algorithm_set_up::elf_truth_modes };
 
-return 1 if $$input =~ s|^\r?\n+||s or $$input !~ s|^(.+)\r?\n+||s;
+return 1 if $$input =~ s|^\r?\n+||s or $$input !~ s|^([^\n]+)\r?\n+||s;
 
 ## : <mode> [<mode[s]>] : ## <-- modes syntax example
-if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
+if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
     my @modes_str = split( m|\D+|, ${^CAPTURE}[0] );
     $session->{'amos-chksum'}->{'modes'} = \@modes_str;
 
-    $session->{'buffer'}->{'output'} .= sprintf(
-        ": mode%s set : %s\n",
-        <[base.cnt_s]>->( scalar @modes_str ),
-        join( ' ', @modes_str )
-    );
-
 } elsif ( $LAST_PAREN_MATCH =~ m|^  (.+)$| ) { ##  indented chksum request  ##
     my $modes_ref = $session->{'amos-chksum'}->{'modes'};
-    $session->{'buffer'}->{'output'} .= sprintf( "%s\n",
-        <[chk-sum.amos]>->( \$LAST_PAREN_MATCH, @{$modes_ref} ) );
 
-} elsif ( $LAST_PAREN_MATCH !~ m|^(\S+)( +(.+))$| ) {   ## protocol command ##
+    my $chksum_str
+        = eval { <[chk-sum.amos]>->( \$LAST_PAREN_MATCH, @{$modes_ref} ) };
+
+    if ( $EVAL_ERROR or not length( $chksum_str // '' ) ) {
+        if ($EVAL_ERROR) {
+            warn join( ' ',
+                '[chk-sum.amos]',
+                <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+        } else {
+            warn '[chk-sum.amos] no result returned';
+        }
+        return 2;   ## disconnect [ without tainted or missing result string ]
+    }
+
+    $$output .= sprintf( "%s\n", $chksum_str );
+
+} elsif ( $LAST_PAREN_MATCH =~ m|^(\S+)( +(.+))?$| ) {  ## protocol command ##
     my $command     = ${^CAPTURE}[0];
     my $params      = ${^CAPTURE}[2];
     my $cmd_handler = "protocol.amos-chksum.ext-cmd.$command";
     if ( not defined $code{$cmd_handler} ) {
-        $$output .= "FALSE no such command\n";
+        $$output .= "no such command\n";
         return 0;
     } else {
-        my $return_href = $code{$cmd_handler}->( $id, $params );
-        if ( ref($return_href) ne 'HASH' ) {
-            warn 'expected hash reference <{C1}>';
-            $$output .= "FALSE command handler returned not expected data\n";
+        my $return_href = eval { $code{$cmd_handler}->( $id, $params ) };
+        if ( $EVAL_ERROR or ref( $return_href // '' ) ne 'HASH' ) {
+            if ($EVAL_ERROR) {
+                warn join( ' ',
+                    "[amos-ext-cmd:$command]",
+                    <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+            } else {
+                warn '[amos-ext-cmd:$command] expected hash reference';
+            }
+            $$output .= "[ error in command handler ]\n";
             return 0;
         }
+
         my ( $mode, $return_data )
             = ( $return_href->{'mode'}, $return_href->{'data'} );
         my $return_code = $mode eq 'term' ? 2 : 0;
-        if ( $mode eq 'data' ) {
 
-           # $$output .= sprintf( "%s %d\n", qw|DATA|, length($return_data) );
+        if ( $mode eq qw| data | ) {
             $$output .= $return_data;
+
         } else {
-            $$output .= sprintf( "%s %s\n", uc($mode), $return_data );
+            $$output .= sprintf( "%s\n", $return_data );
         }
         return $return_code;
     }
 } else {
-    $session->{'buffer'}->{'output'} .= sprintf( ": protocol error : %s\n",
-        'content requires 2 space indentation' );
+    $$output .= sprintf( "protocol hint : %s\n",
+        'content to checksum requires 2 space indentation' );
     return 0;
 }
 
@@ -88,18 +106,16 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
 
 ### NEXT COMMANDS ## [LLL]
 ##
-## version ## display amos chksum algorithm version
 ## select ## keep modes, disable commands and remove prefix requirement
 ## seperator ## set data seperator [ i.e. \n or \t ,.. ]
-## binary <n> ## announce <n> bytes of binary data, returns to commands after it
+## binary <n> ## announce <n> bytes of binary data,
+##            ## ,.return to commands after it
 ## [ binary bits : data width selection [ i.e. 7 bit multiples ]
-## modes ## show select modes
-## : reset : ## mode reset
 
 return 0;
 
 #.............................................................................
-#HPGWGECIOUNR2NA2LXROBWXJL4O6MHFMWHCYMRVG6P2B6A2J2CLOOVRJD6K767BA5GPV6PCMENVWQ
-#::: N6X7F3ZRERRJUWVQRUSJ2BHXS4CS5KLWRLIVIBNHPSPT5AACLMU :::: NAILARA AMOS :::
-# :: H6RCII5HKYRZGZGDC3L3ZA74YBFE2UUHZEVTVSTPV7CAXX3UBIBQ :: CODE SIGNATURE ::
+#QMDA7WGX342AMJUQDZAW56AJOVNSDG4PAFA67ZR2L4BHT73UCWIE3JGWN35FCDJST7ZY24ENPHTWE
+#::: 4MFVZ5WDU6VDKKJ6LXK6X7UG6ZRPPOAGV6HTL7GP2UEYTKIQGXH :::: NAILARA AMOS :::
+# :: Q2R6RXEQMUILKRGTWYDNXS2F7TRBPBBGSZG5MTSWVD322WS244CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

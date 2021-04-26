@@ -1,0 +1,24 @@
+# >:]
+
+# name  = protocol.amos-chksum.ext-cmd.modes
+# descr = display selected amos-chksum elf modes
+
+my $id = shift;
+return 2 if not defined $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+my @modes = <[base.sort-num]>->( $session->{'amos-chksum'}->{'modes'} // [] );
+
+my $modes_str
+    = @modes
+    ? join( ' ', 'selected modes', ':', @modes )
+    : 'no modes defined';
+
+return { 'mode' => qw| true |, 'data' => $modes_str };
+
+#.............................................................................
+#MAQHD23IVX5PHEGKZBPUHDWQZMC7F46ELAG7COV3NZQJX2SEBA2MQ5HRMTCXSOR2KWVMLFGWCMHAI
+#::: LIAHJLYOQLAYUN66R6AO2OFHIPMMWLW4YZ5WFGWCWALIOOOEG7U :::: NAILARA AMOS :::
+# :: FDXNGXAMW2MAQA2ML7SGLNIWEBZPTPY6LC7BGS4BIS73Z4ELTSBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

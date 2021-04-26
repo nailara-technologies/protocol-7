@@ -13,12 +13,12 @@ map      { delete $command_cache->{$ARG} }    ## clean-up old caches ##
 if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
 
     my @commands_list = <[base.reverse-sort]>
-        ->( grep {m|^protocol.amos-chksum.ext-cmd\.$|} keys %code );
+        ->( grep {s|^protocol\.amos-chksum\.ext\-cmd\.||} keys %code );
 
     my $max_len = max map {length} @commands_list;
     $command_cache->{$source_version} = join '', map {
         ##  prevent namespace collisions [ protocol.., ]  ##  [LLL]
-        sprintf( ": %${max_len}s .: %s\n",
+        sprintf( "%${max_len}s : %s\n",
             $ARG, <base.commands.ext-cmd>->{$ARG}->{'descr'} )
     } @commands_list;
 }
@@ -26,7 +26,7 @@ if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
 return { 'mode' => qw| data |, 'data' => $command_cache->{$source_version} };
 
 #.............................................................................
-#6TWWD22XG35IUGLW47Z5EFAPYE6CWTNP3NLI3DJGSTOAJLKJ7J7NEJBAVP7C7Y3CC4LG2NI7LKQDS
-#::: UELOYWLA7JJ627OESVJLDJDYQJIP4CLBQ6DNRRXPEFYZY55F7UV :::: NAILARA AMOS :::
-# :: YJ46IH5NJQFETKEWXOOMDQTPOLWZRRP72S6PGYY5VMS5KTDYUKAA :: CODE SIGNATURE ::
+#B7XYJEARYCIBEXMFTF23QOL6G6IORI6SFRX2WKRRYPHIY75N63A3XSWNX6UX6IRHU5FK7E6BBSZSU
+#::: NDPEFNH4GEILCPMY3NS7GCLXPN2Z2EL4EICKYZDMCFTC5FOTKBL :::: NAILARA AMOS :::
+# :: Q4WTPIGNLOMDQVU2UDGJOFSTVRWQJI42QKRY6EZ42KCGW7CVV6DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

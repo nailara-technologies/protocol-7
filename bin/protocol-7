@@ -109,8 +109,11 @@ sub prepare_subs {
             =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
         unshift( @INC, $local_lib_path ) if -d $local_lib_path;
     }
-
-    use List::Util qw| uniq uniqnum uniqstr max min reduce |;
+    use List::Util qw <
+        reductions pairvalues pairfirst pairkeys pairgrep unpairs
+        uniqstr uniqnum uniqint shuffle product pairmap reduce notall
+        minstr maxstr pairs first uniq sum0 none sum min max any all
+    >;
     $data{'base'}{'perlmod'}{'loaded'}->{'List::Util'} = 1;
 
     # somewhat reduntant with -C31 ... to be decided later [which to drop]..,
@@ -839,7 +842,8 @@ sub prepare_subs {
         $err_msg =~ s,(can't|unable to),cannot,g;
         $err_msg =~ s|^warning : something's wrong$|:undef:|g;
         $err_msg =~ s|^use of uninitialized value in warn$|:undef:|g;
-        $caller_str = $code{'base.caller'}->($c_lvl);
+        ++$c_lvl if $c_lvl < 0;
+        $caller_str = $code{'base.caller'}->( abs($c_lvl) );
         return ( $err_msg, $caller_str ) if wantarray;
         return $err_msg;
     };
@@ -848,8 +852,12 @@ sub prepare_subs {
         my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
         $c_lvl++;                  ## <-- accounting for this subroutine ##
         my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
-        $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
-        return "[$filename:$line]";
+        if ( not defined $filename ) {
+            return sprintf( "[ caller level too high : %03d ]", $c_lvl );
+        } else {
+            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+            return "[$filename:$line]";
+        }
     };
 
     $code{'dump_core_subs'} = sub {
@@ -1958,7 +1966,7 @@ sub prepare_subs {
         $s_len //= 0;
         my $spaces = ' ' x $s_len;
         if (@_) {
-            my $level = 0;
+            my $c_lvl = 0;
             chomp( my @err = @ARG );
             map {
                 $ARG //= qw| :undef: |;
@@ -1993,12 +2001,12 @@ sub prepare_subs {
                 $ARG =~ s{, <GEN\d+>.*|GEN\d+$}{}g;
                 $ARG =~ s|no success on eval ('\$code\{\S+)
                          |<< $LAST_PAREN_MATCH >>|x;
-                $level = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
+                $c_lvl = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
                     if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||
                     ## no caller string : level = 0 ##
             } @err;
-            if ($level) {    # <-- log parent caller instead ('<{C[level]}>')
-                @caller = $level > -1 ? caller($level) : caller(1);
+            if ($c_lvl) {    # <-- log parent caller instead ('<{C[level]}>')
+                @caller = $c_lvl > -1 ? caller($c_lvl) : caller(1);
                 ( $package, $filename, $line, $subroutine ) = @caller;
             }
 
@@ -2023,7 +2031,8 @@ sub prepare_subs {
             my $caller_str = "[$filename:$line]";
             map {s| *\Q$caller_str\E$||g} @err;  # redundant caller clean-up #
 
-            $caller_str = "[ caller level $level too high ]"
+            $caller_str
+                = sprintf( "[ caller level too high : %03d ]", $c_lvl )
                 if not length( join( '', $filename, $line ) );
             my $log_warning = 1;
             ## alternative handlers registered for filename:line ? ##
@@ -2040,7 +2049,7 @@ sub prepare_subs {
             ##
             if ($log_warning) {
                 my $log_msg = join( ' ', qq|: warn :|, @err );
-                if ( $level > -1 ) {
+                if ( $c_lvl > -1 ) {
                     my $max_len
                         = 67 - length( $data{'system'}{'zenka'}{'name'} );
                     if ( length($log_msg) + length($caller_str) > $max_len ) {
@@ -2099,7 +2108,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#EQNXHA4GL6R3ECGQJNWZOV36N7433PEBN3FCFXVVMQ4NSPSN2TYXO7YHOQEHUOWFBJ56TBNSHMFYO
-#::: BGYAHCMOJIINPYQM25L36EQ27RAJ3HEM5P4HW6IQBQV6432FUCQ :::: NAILARA AMOS :::
-# :: PZVH3E5RJDU6R5PSFSQYQDOXD6P4LMBLYDM5J32JBTTS3SJMIGDA :: CODE SIGNATURE ::
+#MECWPVCWMWXXQ5JLYMH64AWHQZSEOX3IVYOOAKFQSQKRKQJPXUUQWFKMARHWGTYFNB6BZDX55Z2JS
+#::: NL6LAMSN5CBC4TXRMPAIVS6Z4PE377W7VOJZCQK5PONT7BRJJJG :::: NAILARA AMOS :::
+# :: EYQTTF5AZWQ4Q75ELG27NMPV7DZDZAXY3PHOZEB5U4MS5OF36UCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
