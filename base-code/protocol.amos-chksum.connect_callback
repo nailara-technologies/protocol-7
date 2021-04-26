@@ -1,0 +1,56 @@
+# >:]
+
+# name  = protocol.amos-chksum.connect_callback
+
+my $client_fd = shift;
+
+if ( not defined $client_fd or !-S $client_fd ) {
+    <[base.log]>->( 2, ': expected valid socket, declining init..,' );
+    return 0;
+}
+my $socket_id = <[chk-sum.amos]>->( \$client_fd );
+
+if ( not defined $data{'handle'}{$client_fd}{'link'}
+    or $data{'handle'}{$client_fd}{'link'} ne qw| unix | ) {
+    <[base.log]>->(
+        0, ": [%s] connection type not 'unix', declining init..,", $socket_id
+    );
+    return 0;
+}
+
+my $unix = $data{'handle'}{$client_fd}{'unix'} // {};
+
+if (   not defined $unix->{'pid'}
+    or not defined $unix->{'uid'}
+    or not defined $unix->{'gid'} ) {
+    <[base.logs]>->(
+        0, ": socket %s missing unix credentials, declining init..,",
+        $socket_id
+    );
+    return 0;
+}
+
+my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
+
+my $user = getpwuid($uid);
+
+if ( not defined $user ) {
+    <[base.log]>->(
+        0,
+        '[%s] cannot retrieve username from passwd file, init declined ..,',
+        $socket_id
+    );
+    return 0;
+}
+
+##                                                  ##
+##  check credentials here \ user \ group allowed ? ##
+##                                                  ##
+
+return ( 5, $user );    ## access approved \ init accepted ## [ testing .., ]
+
+#.............................................................................
+#3BOONWK5KNCDMS3FFQ27NNUM3DMNXSPGTB7MRKS4J2RHIHZB5GP3MCZYTV3WXETS7KYWLRCKPZ5I6
+#::: S22NWTAQZIUUNGQOP677LZVX5C4TGMVPY5KLD2KPKXY3WPCM7GE :::: NAILARA AMOS :::
+# :: N7GQT6CUIHGFOKZXG4JP4THFZOSWXNWEGL2HXHHQKM7WOJRD5EAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

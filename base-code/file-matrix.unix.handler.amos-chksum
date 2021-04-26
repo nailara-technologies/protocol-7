@@ -1,0 +1,70 @@
+# >:]
+
+# name  = file-matrix.unix.handler.amos-chksum
+
+my $id      = $_[0]->w->data;
+my $session = $data{'session'}{$id};
+
+my $max_req_len = 4200;
+
+if ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
+    $max_req_len--;
+    <[base.log]>->(
+        0, "[$id] maximum request size [ $max_req_len bytes ] exceeded."
+    );
+    ## reply ##
+    return 2;
+}
+
+my $peer_fh = $session->{'handle'};
+
+$session->{'amos-chksum'}
+    //= { 'modes' => $AMOS::CHKSUM::algorithm_set_up::elf_truth_modes };
+
+return 1
+    if $session->{'buffer'}{'input'} =~ s|^\r?\n+||s
+    or $session->{'buffer'}{'input'} !~ s|^(.+)\r?\n+||s;
+
+### NEXT COMMANDS ## [LLL]
+##
+## commands ## show available commands [ help references to 'commands' only ]
+## version ## display amos chksum algorithm version
+## clear ## return ANSI sequence to clear terminal
+## close ## close connection
+## exit  ## close connection
+## select ## keep modes, disable commands and remove prefix requirement
+## seperator ## set data seperator [ i.e. \n or \t ,.. ]
+## binary <n> ## announce <n> bytes of binary data, returns to commands after it
+## [ binary bits : data width selection [ i.e. 7 bit multiples ]
+## modes ## show select modes
+## : reset : ## mode reset
+
+## : <mode> [<mode[s]>] : ## <-- modes syntax example
+if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
+
+    my @modes_str = split( m|\D+|, ${^CAPTURE}[0] );
+    $session->{'amos-chksum'}->{'modes'} = \@modes_str;
+
+    $session->{'buffer'}->{'output'} .= sprintf(
+        ": mode%s set : %s\n",
+        <[base.cnt_s]>->( scalar @modes_str ),
+        join( ' ', @modes_str )
+    );
+
+} elsif ( $LAST_PAREN_MATCH !~ m|^  (.+)$| ) {
+    $session->{'buffer'}->{'output'} .= sprintf( ": protocol error : %s\n",
+        'content requires 2 space indentation' );
+    return 0;
+} else {
+    my $modes_ref = $session->{'amos-chksum'}->{'modes'};
+    $session->{'buffer'}->{'output'} .= sprintf( "%s\n",
+        <[chk-sum.amos]>->( \$LAST_PAREN_MATCH, @{$modes_ref} ) );
+}
+
+return 0;
+
+#.............................................................................
+#5E5DXPQ3UMIEKMODLHUGJOUQBLJ3Z56XLPEOAET62RUVSWR4I53Y77A2JMC65KWGJG2A6G6W75MMO
+#::: TBR7XGCM2SGEUJU3UMURMYTNS6FR4XQV5VCTM75P2ZHLDFN4CSU :::: NAILARA AMOS :::
+# :: 42QW4PZ5VCPDMHQYO4ETHMQC3NSJDTFRPJHXK62NCI5AJX7VK6DY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
