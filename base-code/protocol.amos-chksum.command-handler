@@ -55,7 +55,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
 } elsif ( $LAST_PAREN_MATCH !~ m|^(\S+)( +(.+))$| ) {   ## protocol command ##
     my $command     = ${^CAPTURE}[0];
     my $params      = ${^CAPTURE}[2];
-    my $cmd_handler = "protocol.amos-chksum.commands.$command";
+    my $cmd_handler = "protocol.amos-chksum.ext-cmd.$command";
     if ( not defined $code{$cmd_handler} ) {
         $$output .= "FALSE no such command\n";
         return 0;
@@ -88,7 +88,6 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
 
 ### NEXT COMMANDS ## [LLL]
 ##
-## commands ## show available commands [ help references to 'commands' only ]
 ## version ## display amos chksum algorithm version
 ## select ## keep modes, disable commands and remove prefix requirement
 ## seperator ## set data seperator [ i.e. \n or \t ,.. ]
@@ -100,7 +99,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
 return 0;
 
 #.............................................................................
-#URTFOQWRYEG2VTKKD5CDXIPVDVY77M3WBONIREKB2RHV25RJMNF76UBRSXJVLFBKY6C6UL2SIKU5A
-#::: VQCLXZ5D6YOYEXOM7OLPX6XIBB5IF4QVWSONG45NKUSBQE66TRT :::: NAILARA AMOS :::
-# :: BGC3TFBM2GLSK2HT5PG7ZF4FILFUUOBBP72VNATBI4ZIKZUZVEAY :: CODE SIGNATURE ::
+#HPGWGECIOUNR2NA2LXROBWXJL4O6MHFMWHCYMRVG6P2B6A2J2CLOOVRJD6K767BA5GPV6PCMENVWQ
+#::: N6X7F3ZRERRJUWVQRUSJ2BHXS4CS5KLWRLIVIBNHPSPT5AACLMU :::: NAILARA AMOS :::
+# :: H6RCII5HKYRZGZGDC3L3ZA74YBFE2UUHZEVTVSTPV7CAXX3UBIBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
