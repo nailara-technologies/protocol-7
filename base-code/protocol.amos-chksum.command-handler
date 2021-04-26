@@ -1,0 +1,106 @@
+# >:]
+
+# name  = protocol.amos-chksum.command-handler
+
+my $id = $_[0]->w->data;
+
+return 2 if not defined $data{'session'}{$id};
+
+##[ INITIALIZATION \ VARIABLE SET-UP ]########################################
+
+my $session = $data{'session'}{$id};
+my $user    = $session->{'user'};
+
+my $input  = \$session->{'buffer'}->{'input'};
+my $output = \$session->{'buffer'}->{'output'};
+
+my $max_cmd_len = 64;
+
+##[ LIMITING REQUEST SIZE ]###################################################
+
+if ( $$input =~ m|^[^\n]{$max_cmd_len}\n?| ) {
+    <[base.log]>->(
+        0, "[$id] maximum command length [ $max_cmd_len bytes ] exceeded."
+    );
+    $$output .= "FALSE maximum command size exceeded\n";
+    return 2;    ##  <-- closing connection \ command not parseable  ##
+}
+
+##[ PARSING COMMANDS ]########################################################
+
+my $peer_fh = $session->{'handle'};
+
+$session->{'amos-chksum'}
+    //= { 'modes' => $AMOS::CHKSUM::algorithm_set_up::elf_truth_modes };
+
+return 1 if $$input =~ s|^\r?\n+||s or $$input !~ s|^(.+)\r?\n+||s;
+
+## : <mode> [<mode[s]>] : ## <-- modes syntax example
+if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
+
+    my @modes_str = split( m|\D+|, ${^CAPTURE}[0] );
+    $session->{'amos-chksum'}->{'modes'} = \@modes_str;
+
+    $session->{'buffer'}->{'output'} .= sprintf(
+        ": mode%s set : %s\n",
+        <[base.cnt_s]>->( scalar @modes_str ),
+        join( ' ', @modes_str )
+    );
+
+} elsif ( $LAST_PAREN_MATCH =~ m|^  (.+)$| ) { ##  indented chksum request  ##
+    my $modes_ref = $session->{'amos-chksum'}->{'modes'};
+    $session->{'buffer'}->{'output'} .= sprintf( "%s\n",
+        <[chk-sum.amos]>->( \$LAST_PAREN_MATCH, @{$modes_ref} ) );
+
+} elsif ( $LAST_PAREN_MATCH !~ m|^(\S+)( +(.+))$| ) {   ## protocol command ##
+    my $command     = ${^CAPTURE}[0];
+    my $params      = ${^CAPTURE}[2];
+    my $cmd_handler = "protocol.amos-chksum.commands.$command";
+    if ( not defined $code{$cmd_handler} ) {
+        $$output .= "FALSE no such command\n";
+        return 0;
+    } else {
+        my $return_href = $code{$cmd_handler}->( $id, $params );
+        if ( ref($return_href) ne 'HASH' ) {
+            warn 'expected hash reference <{C1}>';
+            $$output .= "FALSE command handler returned not expected data\n";
+            return 0;
+        }
+        my ( $mode, $return_data )
+            = ( $return_href->{'mode'}, $return_href->{'data'} );
+        my $return_code = $mode eq 'term' ? 2 : 0;
+        if ( $mode eq 'data' ) {
+
+           # $$output .= sprintf( "%s %d\n", qw|DATA|, length($return_data) );
+            $$output .= $return_data;
+        } else {
+            $$output .= sprintf( "%s %s\n", uc($mode), $return_data );
+        }
+        return $return_code;
+    }
+} else {
+    $session->{'buffer'}->{'output'} .= sprintf( ": protocol error : %s\n",
+        'content requires 2 space indentation' );
+    return 0;
+}
+
+##############################################################################
+
+### NEXT COMMANDS ## [LLL]
+##
+## commands ## show available commands [ help references to 'commands' only ]
+## version ## display amos chksum algorithm version
+## select ## keep modes, disable commands and remove prefix requirement
+## seperator ## set data seperator [ i.e. \n or \t ,.. ]
+## binary <n> ## announce <n> bytes of binary data, returns to commands after it
+## [ binary bits : data width selection [ i.e. 7 bit multiples ]
+## modes ## show select modes
+## : reset : ## mode reset
+
+return 0;
+
+#.............................................................................
+#URTFOQWRYEG2VTKKD5CDXIPVDVY77M3WBONIREKB2RHV25RJMNF76UBRSXJVLFBKY6C6UL2SIKU5A
+#::: VQCLXZ5D6YOYEXOM7OLPX6XIBB5IF4QVWSONG45NKUSBQE66TRT :::: NAILARA AMOS :::
+# :: BGC3TFBM2GLSK2HT5PG7ZF4FILFUUOBBP72VNATBI4ZIKZUZVEAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
