@@ -23,6 +23,8 @@ my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
 my $start_len = length( $session->{'buffer'}->{'input'} );
 
+$session->{'shutdown'} //= 0;
+
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 
     my $ret_code = $code{$handler}->( $_[0] );
@@ -41,11 +43,13 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     $session->{'complete'} = $ret_code == 1 ? 0 : 1;
 
     ## return code 2 ## terminate session and close connection ##
-    if (   defined $ret_code and $ret_code =~ m|^\d+$| and $ret_code == 2
-        or defined $session->{'shutdown'} and $session->{'shutdown'} == 1 ) {
-        $_[0]->w->cancel;
-        truncate( $session->{'buffer'}->{'input'}, 0 );
-        $session->{'shutdown'} = 1;
+    if ( $ret_code == 2 or $session->{'shutdown'} == 1 ) {
+        $_[0]->w->cancel;    ##  no longer watching buffer content  ##
+
+        ##  secure buffer erasing  ##
+        <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
+
+        $session->{'shutdown'} = 1 if $session->{'shutdown'} == 0;
         <[base.log]>->(
             2, "[$id] stopped input processing [ session shutdown ]"
         );
@@ -53,16 +57,19 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     ##
 } else {
 
-    $_[0]->w->stop;
-    truncate( $session->{'buffer'}->{'input'}, 0 );
-    $_[0]->w->start;
+    $_[0]->w->stop; ##  stopping variable watcher to modify buffer content  ##
+
+    ##  secure buffer erasing  ##
+    <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
+
+    $_[0]->w->start;    ##  modification complete restarting watcher  ##
 
     <[base.log]>->(
         0, "[$id] input handler '$handler' not defined, buffer emptied.,"
     );
 
-    if (   $session->{'mode'} eq 'client'
-        or $session->{'mode'} eq 'in' ) {
+    if (   $session->{'mode'} eq qw| client |
+        or $session->{'mode'} eq qw| in | ) {
         $session->{'shutdown'} = 1;
     }
 }
@@ -77,9 +84,12 @@ if ( $len < $data{'size'}{'buffer'}{'input'} and !$session->{'shutdown'} ) {
     }
 }
 
+##  restarting watcher if it was still stopped  ##
 if ( !$session->{'watcher'}->{'input_buffer'}->is_running ) {
     $session->{'watcher'}->{'input_buffer'}->now;
 }
+
+##  buffer contains complete line ?  ##
 
 if (    $len > 0
     and $len != $start_len
@@ -92,7 +102,7 @@ if (    $len > 0
 # }
 
 #.............................................................................
-#S6ZJRWNX5GZJRD6Y6MPEPL3CBOMLKCWUQI466JVAJFRC3KS6IUBWXSWA3MOQHQIV3DESH7SA2MUCO
-#::: 3FVB6FWJET3BA2X3LON23S7JSP6DKPA3L6E722VBKIYJU2CZOSQ :::: NAILARA AMOS :::
-# :: EQSDDFSM4UNMYRU4XXUUJHCXWELIFQGGAAPFOHOLWOMZBT2RZEAI :: CODE SIGNATURE ::
+#RL4KLUT6OG2UXSYYQVAAONUN5M3LTBNF4XHY6BEHTJ3GERUCLS5UOEVFML47JZRMG5MHPA2I2IAFY
+#::: 3VLWJOSAAUK2MHWGC7QD5WHNNCS44RUJYQA4CU3SOBDNJPXNF6T :::: NAILARA AMOS :::
+# :: ALKBYFOHRAVAC6BRA3ZFWXNFESOAL6HEYDEITICNFWCKBRRYYUDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
