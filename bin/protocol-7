@@ -109,12 +109,8 @@ sub prepare_subs {
             =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
         unshift( @INC, $local_lib_path ) if -d $local_lib_path;
     }
-    use List::Util qw <
-        reductions pairvalues pairfirst pairkeys pairgrep unpairs
-        uniqstr uniqnum uniqint shuffle product pairmap reduce notall
-        minstr maxstr pairs first uniq sum0 none sum min max any all
-    >;
-    $data{'base'}{'perlmod'}{'loaded'}->{'List::Util'} = 1;
+
+    use List::MoreUtils qw| :all |;
 
     # somewhat reduntant with -C31 ... to be decided later [which to drop]..,
     use open qw| :encoding(UTF-8) |;
@@ -1166,9 +1162,8 @@ sub prepare_subs {
 
         my $base = 0;    ## loading 'base' first ##
         map { $base = 1 if $ARG eq qw| base | } @ARG;
-        my @module_names
-            = uniqstr sort { length $a <=> length $b } reverse sort
-            grep { !m|^base$| } @ARG;
+        my @module_names = sort { length $a <=> length $b } reverse sort
+            grep { !m|^base$| } uniq @ARG;
         unshift( @module_names, qw| base | ) if $base;
 
         $data{'callbacks'}{'end_code'} //= [];
@@ -2108,7 +2103,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#MECWPVCWMWXXQ5JLYMH64AWHQZSEOX3IVYOOAKFQSQKRKQJPXUUQWFKMARHWGTYFNB6BZDX55Z2JS
-#::: NL6LAMSN5CBC4TXRMPAIVS6Z4PE377W7VOJZCQK5PONT7BRJJJG :::: NAILARA AMOS :::
-# :: EYQTTF5AZWQ4Q75ELG27NMPV7DZDZAXY3PHOZEB5U4MS5OF36UCY :: CODE SIGNATURE ::
+#L5ZQQ3NZ72W5ELMRCX6CTRYRG4IGHZSKSELMY7WWALC5JMQK2K3G7IT26IIGERXMAJFCSX2MT4I2C
+#::: M2O4TESI4NSZWPQDW3KVJIB7NBAPUXUVWZK6YCOMQ2MC5JNAJZA :::: NAILARA AMOS :::
+# :: OSOJPNWIDEZBAVPAQYOTZFZYYSGYLQMMSSG4AIQU3Z5MEDZSLCAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
