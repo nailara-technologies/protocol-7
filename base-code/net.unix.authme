@@ -28,7 +28,8 @@ if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
     <[net.out]>->( $backend_socket, "select unix\n" );
     <[base.sleep]>->(0.2);
 
-    chomp( my $answer = readline($backend_socket) );
+    my $answer = readline($backend_socket);
+    chomp($answer) if defined $answer;
 
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
@@ -45,7 +46,7 @@ if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
 }
 
 #.............................................................................
-#K3UCAQXZXE6DFJXCSMXTTSMPMFDXYBIDB7ANVKKNNCDFEZJCGJQDGPTLXAEGK2C5BHRMZYPH2NDCG
-#::: ULPP7PAYNYINQBJGMPJASYICWIK35VFCZQPB6VW4WNUSAG7X6VO :::: NAILARA AMOS :::
-# :: M7ALDQLAJGG5DLS4IEMINCDOXEERTZLMWRCIHBGEZX4HK5K7AEAY :: CODE SIGNATURE ::
+#34FWZC4RJD74N2X4GYH5I5VOAY2SYF7Z2IBNR5D7VMGG2KKD53KV6L44I7XIK67F5ZL2EM4TODVH6
+#::: H4VGMTS5BZB2SINNL2LVG2DAPJQIGQZA5NP5BIKH2QP6YYWQ6LW :::: NAILARA AMOS :::
+# :: VFXEVJLMCMUQSGVZFJ5JTN3VGIBN4L2LXH42SQAIPZ5RFGPII2BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
