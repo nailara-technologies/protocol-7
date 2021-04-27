@@ -3,12 +3,18 @@
 # name  = base.session.init
 # descr = creates and initializes a new session
 
-my ( $fd, $protocol, $mode, $name ) = @_;
+##[ PARAMETERS ]##############################################################
+
+my ( $fd, $protocol, $mode, $name ) = @ARG;
+
+##[ PROTOCOL DEFAULTS ]#######################################################
 
 $protocol //= qw| protocol-7 |;
 $mode     //= qw| client |;
 
 my $re = <regex.base>;
+
+##[ VALID FILEHANDLE ? ]######################################################
 
 if ( not defined $fd ) {
     <[base.log]>->(
@@ -19,6 +25,8 @@ if ( not defined $fd ) {
     return undef;
 }
 
+##[ VALID USERNAME ? ]########################################################
+
 if ( defined $name and $name !~ $re->{usr} ) {
     <[base.log]>->(
         0,
@@ -27,6 +35,8 @@ if ( defined $name and $name !~ $re->{usr} ) {
     <[base.session.check_remaining]>;
     return undef;
 }
+
+##[ INIT NAME ]###############################################################
 
 $name //=
     $mode eq qw| server |
@@ -39,7 +49,11 @@ if ( not defined $data{'protocol'}{$protocol} ) {
     return undef;
 }
 
+##[ INITIALIZATION ? ]########################################################
+
 my $initialized = $mode eq qw| server | ? 1 : 0;
+
+##[ SESSION ELEMENT ]#########################################################
 
 my $id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'session'},
@@ -67,18 +81,26 @@ my $id = <[base.list.element.add]>->(
     }
 );
 
+my $session = $data{'session'}{$id};
+
+##[ PAUSED WATCHERS ]#$#######################################################
+
+$data{'watcher_list'}{'paused'} = []
+    if not defined $data{'watcher_list'}{'paused'}
+    or ref( $data{'watcher_list'}{'paused'} ) ne qw| ARRAY |;
+
+##[ SERVER OR CLIENT ]########################################################
+
 if ( $name ne <base.session.uname.server> ) {
     $mode = $data{'user'}{$name}{'session'}{$id}{'mode'} = qw| client |;
 }
 
 $data{'handle'}{$fd}{'cid'} = $id if $mode eq qw| client |;
 
-$data{'watcher_list'}{'paused'} = []
-    if not defined $data{'watcher_list'}{'paused'}
-    or ref( $data{'watcher_list'}{'paused'} ) ne qw| ARRAY |;
+##[ SESSION SHUTDOWN \ IMMEDIATE ]############################################
 
-$data{'session'}{$id}{'watcher'}{'shutdown_trigger'} = <[event.add_var]>->(
-    {   'var'     => \$data{'session'}{$id}{'shutdown'},    ## VARIABLE ##
+$session->{'watcher'}{'shutdown_trigger'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'shutdown'},          ## VARIABLE ##
         'poll'    => qw| w |,
         'handler' => qw| base.session.check.close |,
         'repeat'  => 0,
@@ -87,8 +109,10 @@ $data{'session'}{$id}{'watcher'}{'shutdown_trigger'} = <[event.add_var]>->(
     }
 );
 
-$data{'session'}{$id}{'watcher'}{'flush_shutdown'} = <[event.add_var]>->(
-    {   'var'     => \$data{'session'}{$id}{'flush_shutdown'},  ## VARIABLE ##
+##[ SESSION SHUTDOWN ]########################################################
+
+$session->{'watcher'}{'flush_shutdown'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'flush_shutdown'},             ## VARIABLE ##
         'poll'    => qw| w |,
         'handler' => qw| base.session.check.flushed |,
         'repeat'  => 0,
@@ -97,8 +121,10 @@ $data{'session'}{$id}{'watcher'}{'flush_shutdown'} = <[event.add_var]>->(
     }
 );
 
-$data{'session'}{$id}{'watcher'}{'input_buffer'} = <[event.add_var]>->(
-    {   'var'     => \$data{'session'}{$id}{'buffer'}{'input'}, ## VARIABLE ##
+##[ INPUT HANDLER ]###########################################################
+
+$session->{'watcher'}{'input_buffer'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'buffer'}->{'input'},          ## VARIABLE ##
         'handler' => qw| base.handler.input |,
         'poll'    => qw| w |,
         'repeat'  => 1,
@@ -107,8 +133,10 @@ $data{'session'}{$id}{'watcher'}{'input_buffer'} = <[event.add_var]>->(
     }
 );
 
-$data{'session'}{$id}{'watcher'}{'output_buffer'} = <[event.add_var]>->(
-    {   'var' => \$data{'session'}{$id}{'buffer'}{'output'},    ## VARIABLE ##
+##[ OUTPUT BUFFER ]###########################################################
+
+$session->{'watcher'}{'output_buffer'} = <[event.add_var]>->(
+    {   'var'     => \$session->{'buffer'}->{'output'},         ## VARIABLE ##
         'handler' => qw| base.handler.write |,
         'poll'    => qw| w |,
         'data'    => $id,
@@ -117,6 +145,8 @@ $data{'session'}{$id}{'watcher'}{'output_buffer'} = <[event.add_var]>->(
         'desc'    => "[$id] output buffer"
     }
 );
+
+##[ CLIENT CONNECTION ]#######################################################
 
 if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
 
@@ -127,14 +157,10 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
             'poll'    => qw| r |                     ## connection requests ##
         }
     );
-    <[event.add_io]>->(                              ### ,.. TESTING .., ###
-        {   'fd'   => $fd,
-            'cb'   => sub { warn "[$id] socket exception handler called" },
-            'data' => $id,
-            'poll' => qw| e |
-        }
-    );
+
 } else {
+
+##[ AUTH TIMEOUT ]############################################################
 
     my @timeout_callback
         = (
@@ -148,29 +174,34 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         'timeout'    => <net.auth.timeout> || 13,
         'timeout_cb' => sub {
             <[base.log]>->( 1, "[$id] authentication timeout.," );
-            $data{'session'}{$id}{'buffer'}{'output'} .= ">:|\n";
-            $data{'session'}{$id}{'shutdown'} = 1;
+            $session->{'buffer'}->{'output'} .= ">:|\n";
+            $session->{'shutdown'} = 1;
         }
         );
 
-    if ( $protocol eq 'http' and $name eq <base.session.uname.server> ) {
+##[ HTTP TIMEOUT ]############################################################
+
+    if ( $protocol eq qw| http | and $name eq <base.session.uname.server> ) {
 
         # http[d] timeout
         @timeout_callback = (
             'timeout'    => <httpd.timeout> || 13,
             'timeout_cb' => sub {
-                <[base.log]>->( 1, "[$id] .. http timeout .," );
-                $data{'session'}{$id}{'shutdown'} = 1;
+                <[base.log]>->( 1, "[$id] ,. http timeout ..," );
+                $session->{'shutdown'} = 1;
             }
         );
+
+##[ GENERIC TIMEOUT ]#########################################################
+
     } elsif ( defined <net.input_timeout> ) {    # generic input timeout
         <[base.logs]>->(
             2,                   'setting up %s second%s input timeout',
             <net.input_timeout>, <[base.cnt_s]>->(<net.input_timeout>)
         );
         @timeout_callback = (
-            'timeout'    => <net.input_timeout>,
-            'timeout_cb' => sub {
+            qw| timeout |    => <net.input_timeout>,
+            qw| timeout_cb | => sub {
                 <[base.log]>->(
                     1,
                     sprintf(
@@ -179,11 +210,14 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
                         <[base.cnt_s]>->(<net.input_timeout>)
                     )
                 );
-                $data{'session'}{$id}{'shutdown'} = 1;
+                $session->{'shutdown'} = 1;
             }
         );
     }
-    $data{'session'}{$id}{'watcher'}{'input_handler'} = Event->io(
+
+##[ FILEHANDLER READING ]#####################################################
+
+    $session->{'watcher'}->{'input_handler'} = Event->io(
         'fd'     => $fd,
         'cb'     => sub { &{ $code{'base.handler.read'} } },
         'poll'   => scalar(@timeout_callback) ? qw| rt | : qw| r |,
@@ -194,28 +228,33 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         @timeout_callback    # disabled eventually in 'base.handler.auth'
     );
 
-    ## set error handler here ## [LLL]
-    $data{'session'}{$id}{'watcher'}{'input_error'} = Event->io(
+##[ FILEHANDLE EXCEPTION ]####################################################
+
+    $session->{'watcher'}->{'input_error'} = Event->io(
         'fd'     => $fd,
         'cb'     => sub { &{ $code{'base.handler.session_error'} } },
         'poll'   => qw| e |,
         'prio'   => 2,
         'data'   => $id,
         'repeat' => 0,
-        'desc'   => "[$id] input error handler"
+        'desc'   => "[$id] input exception handler"
     );
 }
 
+##[ INITIALIZING SESSION \ INIT ERROR ]#######################################
+
 if ( not <[base.session.init_state]>->( $id, 0 ) ) {
-    $data{'session'}{$id}{'shutdown'} = 1;
     warn "cannot initialize $protocol protocol session $id";
+    $session->{'shutdown'} = 1;
     return undef;
 }
+
+##[ RETURNING SESSION ID ]####################################################
 
 return $id;
 
 #.............................................................................
-#MUF2XFZRNAM3ZCQ5BP4JTUFDHDKQCTBUVUH3MQFLQWS3OCFZ4CZYFG4C4HO5NKXKR6XKNJ5M2YZQW
-#::: LHKYVLCHQIYRI4IIX5LXQD2O6OKHKKW7AL6TFXCTCBX34BFCEP6 :::: NAILARA AMOS :::
-# :: Z4AT4LA5BJHWA2N5M7C4IFPAKZZ66J7YEN5MN3D6VI3M2FCMREAA :: CODE SIGNATURE ::
+#Y6UQWBFAH3WTPS5GNYNFVMOFIFRPG4EPRSGD2WZPG7XBEGJNPDQWVHQWTXK7Z5SJAFXOOC3DYNYSY
+#::: PL64R4X64AT57QX27DDZ4W5MDJOJOABI7K7C3AMT3Y3OFKY4WLS :::: NAILARA AMOS :::
+# :: MJMY6X3ED3CQE2RWOWDBSNTYPZMDASHZOB5MHLGLJV3U62R7N4CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
