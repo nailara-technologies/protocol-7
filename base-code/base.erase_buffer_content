@@ -1,0 +1,30 @@
+# >:]
+
+# name  = base.erase_buffer_content
+# descr = secure erasure of buffer content, returns number of bytes erased
+
+my $buffer_sref   = shift;       ##  reference to buffer \ scalar to erase  ##
+my $padding_bytes = shift // 0;  ##  add additional bytes to length  ##
+
+return warn 'expected scalar reference <{C1}>'
+    if ref($buffer_sref) ne qw| SCALAR |
+    and ref($buffer_sref) ne qw| REF |;
+
+my $r_cnt
+    = utf8::is_utf8($$buffer_sref)
+    ? length( Encode::encode( 'UTF-8', $$buffer_sref ) )
+    : length( $$buffer_sref // '' );
+
+$r_cnt += $padding_bytes;    ##  for masking length when erasing passwords  ##
+
+return 0 if $r_cnt == 0;
+
+substr( $$buffer_sref, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) );
+
+return $r_cnt;
+
+#.............................................................................
+#OVZ2ZXA73TCIIC573YRFAXSNH64SGRERNIJSARFCZPEOOQXZ2EQWX6RQUXWGANFXQKGMMA5GIEX7A
+#::: YMQWWUCSTD7PCQS5F7D65HVQ7PKWMHC25JCKKL4K3ZK7PCMQVEE :::: NAILARA AMOS :::
+# :: VJFIRVZEHIAJSMY7CVGYE6S4JKME6KR5W5TTYN7AQZ43ZRA434DA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
