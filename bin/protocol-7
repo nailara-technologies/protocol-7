@@ -179,7 +179,7 @@ sub prepare_subs {
         my ( $unix_time, $precision ) = ( undef, 0 );
         if ( length($param) >= 9 ) {    # < unix time + inherited precision >
             $unix_time      = $param;
-            $unix_precision = length( ${^CAPTURE}[0] )
+            $unix_precision = length( ${^CAPTURE}[0] // '' )
                 if $unix_time =~ m{\.(\d+)$};
             $ntime_precision = $unix_precision - 2;
             $ntime_precision = 0 if $ntime_precision < 0;
@@ -1454,13 +1454,13 @@ sub prepare_subs {
                     : sub { };
                 $code_footer
                     .= "\$code{'stats.sub_end'}->(\$sub_name)"
-                    . " if ref(\$code{'stats.sub_end'}) eq 'CODE';";
+                    . " if ref(\$code{'stats.sub_end'}) eq qw| CODE |;";
                 $code_header
-                    = 'my $call={}; my $reply={ \'mode\' => \'false\', \'data\''
+                    = "my \$call={}; my \$reply={ 'mode' => 'false', 'data'"
                     . " => \"error during invocation of '$cmd_name' command"
                     . " [ details logged ]\" }; "
                     . "\$code{'stats.sub_start'}->(\$sub_name) if defined "
-                    . "ref(\$code{'stats.sub_start'}) eq 'CODE'; "
+                    . "ref(\$code{'stats.sub_start'}) eq qw| CODE |; "
                     . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
                     . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
                 $code_footer = ' ; return $reply';
@@ -1495,7 +1495,7 @@ sub prepare_subs {
 
             my $compilation_success
                 = ( $code{$sub_name} = eval($sub_code)
-                    and ref( $code{$sub_name} ) eq 'CODE' )
+                    and ref( $code{$sub_name} ) eq qw| CODE | )
                 ? 1
                 : 0;
 
@@ -2103,7 +2103,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#L5ZQQ3NZ72W5ELMRCX6CTRYRG4IGHZSKSELMY7WWALC5JMQK2K3G7IT26IIGERXMAJFCSX2MT4I2C
-#::: M2O4TESI4NSZWPQDW3KVJIB7NBAPUXUVWZK6YCOMQ2MC5JNAJZA :::: NAILARA AMOS :::
-# :: OSOJPNWIDEZBAVPAQYOTZFZYYSGYLQMMSSG4AIQU3Z5MEDZSLCAI :: CODE SIGNATURE ::
+#Z7J7DKBWOJCNYAI3SLE7GZHL4KSDP2JDF4JR5YHFS6VQJQ4J2P2JUKFAJ3QH2IPIBWLX7HHVUYKO6
+#::: RH4RK36NVRTZJBB2JKHEYVGRXQPRJDBOO477R6MUQWBPUUKLD5B :::: NAILARA AMOS :::
+# :: HK2JPS7HOWXM7ZU44HZX35J5FVVN4E64EA5EZ6QPDDQ2GHWLRMBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

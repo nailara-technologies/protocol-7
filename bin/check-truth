@@ -47,8 +47,10 @@ BEGIN {
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
     my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
-    my $local_lib_path = abs_path( c_dir( $root_path, 'data/lib-path/pm' ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
     unshift( @INC, $local_lib_path )               if -d $local_lib_path;
     sub c_dir  { File::Spec->catdir(@ARG) }
@@ -108,7 +110,7 @@ sub process_input {
 
     if ($true) {
         say "$fg:\n${fg}:: $bl${CT}TRUE$rst$fg$mode_str :: "
-            . "$bg'$CT$ARG[0]$fg'$rst$fg .:\n$fg:$rst"
+            . "$bg$CT$ARG[0]$fg$rst$fg .:\n$fg:$rst"
             if not $silent;
         return 0;
     } else {
@@ -120,7 +122,7 @@ sub process_input {
 }
 
 #.............................................................................
-#VOULKSFN4OBAKLKRDYVKP6GSHV7AUOU4ERSDXFY7RA4WZOWVU64I6BT3JBPPQKMMTRAXC6Q4UUZAI
-#::: F3BTT4ZPBSOSCBFO2MQH2SMEVOJQLCVZTIXZP7NLZ22E7GVKIF2 :::: NAILARA AMOS :::
-# :: 7FC3OXDCG5RH5NLFFEZDN4N7LECPI5ZOSQGTUEGYRG3CU3GFX4CY :: CODE SIGNATURE ::
+#5APOLW7Q6SPDOSAR6X2QQ56O5V6XDTZXMT4GKH4RJIAB3LG456CSIFSHMWOOLP244OUXAKWGZ5K76
+#::: 54MCD4YRZI5TDI4WBBNQRAMMSJ6LCRF7JDDZC55RT7IQPIKUXGG :::: NAILARA AMOS :::
+# :: SBI56YFWIHE5XIXSRPFDDP3W62BJHQW747KPP7AGEXC3HZI2FIAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
