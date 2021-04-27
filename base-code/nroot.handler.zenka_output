@@ -88,8 +88,8 @@ while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
     utf8::decode($output_line);
 
-    say $output_line
-        if <system.verbosity.console> or $output_line =~ m|\Q$ANSI{bold}|;
+    say $output_line    ##  display when verbose or log level 0  ##
+        if <system.verbosity.console> or $output_line =~ m|\Q $ANSI{bold}\E|;
 
     ## remove colors before matching .., ##
     <[base.strip_ansi]>->( \$output_line );
@@ -117,7 +117,7 @@ while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#JGF5MS77QH427YIRYLOACODH23NOJLUA2AEQVKNWSNSNUKWL63IACVWG6VPNBL3ROY726RXBF26WK
-#::: EAGHG5DR5XFM32KEWBMB4QTYOBWRC3JFH5EAI4ABRSY3T4JOR4B :::: NAILARA AMOS :::
-# :: XCQKZN2GHKL6X5FIROCRZKN4PJMNSAEPXECN7ITP2KZKM33ITWBQ :: CODE SIGNATURE ::
+#AJ72AIOEB3LCL2S4FZCHGVNJSM6BU42I7HZQMTUH363NYGFOBY7TNETKIJSP5MBU3Q5DFSDGNFCJW
+#::: 26PTTUXQD7RBTTF2NBP75MNFBKMVMV5OTSUPTG24FUXM2A3L5Z6 :::: NAILARA AMOS :::
+# :: 6ADEATM3UM3QXJEPCMQ565V4ZYFRLBFTTYSUI5CMU4UT5WKFCEBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
