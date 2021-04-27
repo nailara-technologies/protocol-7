@@ -6,25 +6,28 @@
 my $buffer_sref   = shift;       ##  reference to buffer \ scalar to erase  ##
 my $padding_bytes = shift // 0;  ##  add additional bytes to length  ##
 
-return warn 'expected scalar reference <{C1}>'
+return warn 'expected scalar reference <{C1}>' ## SCALAR reference expected ##
     if ref($buffer_sref) ne qw| SCALAR |
     and ref($buffer_sref) ne qw| REF |;
 
-my $r_cnt
+my $r_cnt    ##  correct length for UTF-8 content  ##
     = utf8::is_utf8($$buffer_sref)
-    ? length( Encode::encode( 'UTF-8', $$buffer_sref ) )
+    ? length( Encode::encode( qw| UTF-8 |, $$buffer_sref ) )
     : length( $$buffer_sref // '' );
 
 $r_cnt += $padding_bytes;    ##  for masking length when erasing passwords  ##
 
-return 0 if $r_cnt == 0;
+return 0 if $r_cnt == 0;     ##  return early \ already empty  ##
 
+##  overwrite with entropy to erase \ protect content  ##
 substr( $$buffer_sref, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) );
 
-return $r_cnt;
+truncate( $$buffer_sref, 0 );    ##  zulum length  ##
+
+return $r_cnt;                   ##  return length of overwritten content  ##
 
 #.............................................................................
-#OVZ2ZXA73TCIIC573YRFAXSNH64SGRERNIJSARFCZPEOOQXZ2EQWX6RQUXWGANFXQKGMMA5GIEX7A
-#::: YMQWWUCSTD7PCQS5F7D65HVQ7PKWMHC25JCKKL4K3ZK7PCMQVEE :::: NAILARA AMOS :::
-# :: VJFIRVZEHIAJSMY7CVGYE6S4JKME6KR5W5TTYN7AQZ43ZRA434DA :: CODE SIGNATURE ::
+#QSQMR43AENSY3HVN4WLONM4KUZHAZVGZ6J2JCNQNKPCSJAZT7YIODGGRUGHA4Y23Z6EHC6POXK6GI
+#::: N7REBEA3MOUO3BUMLWRLZI7AVIGBQNU2O3HC5BW7Z7DXYCMOMLZ :::: NAILARA AMOS :::
+# :: BSDVJB35KSPUTLMIR4V4GOD4JKIWVX7VGHWZVOB6POKUXBHWPUAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
