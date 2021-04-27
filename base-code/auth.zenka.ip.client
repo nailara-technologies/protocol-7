@@ -29,7 +29,10 @@ if ( defined $key_str
     }
 
     <[net.out]>->( $backend_socket, "select zenka\n" );
-    chomp( my $answer = readline($backend_socket) );
+
+    my $answer = readline($backend_socket);
+    chomp($answer) if defined $answer;
+
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
     } elsif ( $answer ne 'TRUE continue' ) {
@@ -58,7 +61,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#RI3ZBCA2RRCVBXLZPOTSGW3RQZOWC5XOQLQMCWOAPONGUYJUSLI45WRBAVJXJY23VE7YHPTA46XHU
-#::: BMFAOWLGTZGUTNJ2XTP5G6H5VLIRAUEKDJACGJVJCPHMVNHSPBF :::: NAILARA AMOS :::
-# :: 3GAXZKEN56Y5IFZ2GKDPPGSVJIUK4AAIUTKCESPEPXY4UUXGKUCI :: CODE SIGNATURE ::
+#EBFQX5QRROQKF6RHWRZBKV6CT6YSV7LXRJF47SAWMIVMFBF4TXQAH3BDLLPFZYSBSBIG22IWFYBUM
+#::: RRB3ZFOEFKSG7ACK4XXTXV6FGAOUX7ZXCJYK7STWHCMNEU6ME7F :::: NAILARA AMOS :::
+# :: AAL4O5TO657SAYOSIBAUDL3YEFYWTTCHGFZJXMWQNRZ2YG4SDEBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
