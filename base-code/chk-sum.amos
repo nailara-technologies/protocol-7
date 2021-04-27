@@ -10,13 +10,11 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
 return warn 'expected input string for AMOS-checksum calculation <{C1}>'
     if not @ARG;
 
-if ( ref( $ARG[0] ) eq 'SCALAR' ) {
-    $input = shift(@ARG);    ## scalar ref ##
-    @modes = uniqint( grep {m|^\d{1,2}$|} @ARG ) if grep {m|^\d{1,2}$|} @ARG;
-
+if ( not length ref( $ARG[0] ) ) {
+    $input = \join( ' ', @ARG );    ## CREATING REFERENCE TO DATA ##
 } else {
-    $input = join( ' ', @ARG );
-    $input = \"$input" if not length ref($input);
+    $input = shift(@ARG);           ## PASSED BY REFERENCE ##
+    @modes = grep {m|^\d{1,2}$|} @ARG if grep {m|^\d{1,2}$|} @ARG;
 }
 
 return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
@@ -26,7 +24,7 @@ return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
 return AMOS::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
 
 #.............................................................................
-#WRAU2RUFAMWTMHXEVQORLB3J423WLL7DLQJ5PIXQCX2RT37GYU762C2YRB6WICGKOQCK7YIAHPYEC
-#::: GNTJIDB4FSCN3QCWXDDW6YVIO3FP5FCPO2QTP5ADXO2RMTL7IOV :::: NAILARA AMOS :::
-# :: H2RRJFLEZQYNPJVKLWSBZ7SZLRM7WAZVJ52YIFOAFD2LE2R4IECY :: CODE SIGNATURE ::
+#B6ZPHOGBYVUQJGKOKRRKEU4G5TMUXDEZ3VIFHOM5D7YSMJX6TL7I4XAEIYDEXQZIQ7MTBUYLAJUYM
+#::: XOUY6NE365J54SNKFYKRRYLEELOQ7SR5ZTFPTWP5J2JRDKRUTEE :::: NAILARA AMOS :::
+# :: 2UMZ77QEH25WE4T47OQ6FDLYNRXDBFTLIW7VBQRTXU2A5BJ5VKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

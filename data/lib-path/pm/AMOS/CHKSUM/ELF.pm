@@ -15,7 +15,7 @@ use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
 
 ## inline elf test output checksum ##
 ##
-our $VERSION = qw| AMOS-INLINE-ELF-V-TAIIQCI |;    ##  amos-chksum -VL  ##
+our $VERSION = qw| AMOS-INLINE-ELF-V-3W6IUEA |;    ##  amos-chksum -VL  ##
 
 @EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
 
@@ -45,20 +45,21 @@ sub elf_chksum {
     my $start_checksum = 0;
 
     ## start checksum and mode parameters when passing by reference ##
-    if ( ref( $ARG[0] ) eq 'SCALAR' ) {
+    if ( ref( $ARG[0] ) eq '' ) {
 
-        $data_ref = shift;
-
-        if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,9}$| ) {
-            $start_checksum = shift;
-        }
-
-        if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,2}$| ) {
-            $elf_checksum_mode = shift;
-        }
+        $data_ref = \shift;    ## CREATING REFERENCE TO DATA ##
 
     } else {
-        $data_ref = \$ARG[0];
+        $data_ref = shift;     ## PASSED BY REFERENCE ##
+    }
+
+    ## START CHECKSUM ##
+    if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,9}$| ) {
+        $start_checksum = shift;
+    }
+    ## ELF MODE ##
+    if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,2}$| ) {
+        $elf_checksum_mode = shift;
     }
 
     ####                  ####
@@ -66,6 +67,7 @@ sub elf_chksum {
     ####                  ####
 
     my $len = length( $$data_ref // '' );
+
     my $elf_checksum
         = $len > 0
         ? inline_elf( $elf_checksum_mode, $start_checksum, $$data_ref, $len )
@@ -87,7 +89,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#4BKYK5LUXE2ESYO6ICTNEIQBS3SDNZPQBHRFO7SG7KZDZ5TMFP4JZAH7GN5S374Q6THYXXUIGKHVQ
-#::: K34LT25VU3VDDXANWQP3S5NKXEY55MNURPSLXATNM72RHWJEOET :::: NAILARA AMOS :::
-# :: HMYLUJLF4MQPTOFCKH2ST5N624TUNCJ4NRXBWS6SPWDFD2KLPODA :: CODE SIGNATURE ::
+#GFCKWA35PL4NIFGIXMEMCATBPNHVYMMSYAXWAVCVISTNEOLY3FE22DMH2QMECWPW5NJTYUSG5J3YW
+#::: 6FVHA2EEBSQCUF2WVUQXPA67Q4DAJ6NV2COKL2CEF6BXUAN3QZY :::: NAILARA AMOS :::
+# :: 55AIDLAIJZUADLU2FXWSJH33CMJ4SHV2BWWKRRZN5XQJOPBQTOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
