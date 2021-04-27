@@ -8,21 +8,19 @@ use base qw| Exporter |;
 
 use v5.24;
 use strict;
-use Encode;
 use English;
 use warnings;
 
+use Encode;
 use Crypt::Misc;
 use Digest::BMW;
-
-use List::Util qw[ uniq ];
 
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-our $VERSION = qw| AMOS-X2GYHDA |;    ##  amos-chksum -VA  ##
+our $VERSION = qw| AMOS-JKBK7XY |;    ##  amos-chksum -VA  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -54,6 +52,9 @@ our $checksum_bits;
 
 sub amos_chksum {
 
+    my $input_elf_chksum;
+    my $input_BMW_checksum;
+
     my $data_ref = shift // '';
 
     my $data_ref_type = ref($data_ref);
@@ -61,17 +62,28 @@ sub amos_chksum {
 
         $data_ref = \"$data_ref";    ## creating scalar reference ##
 
-    } elsif ( $data_ref_type ne 'SCALAR' and $data_ref_type ne 'REF' ) {
+    } elsif ( $data_ref_type eq qw| HASH | ) {
+
+        $input_elf_chksum = $data_ref->{'elf_checksum'}
+            if defined $data_ref->{'elf_checksum'};
+
+        $input_BMW_checksum = $data_ref->{'BMW_checksum'}
+            if defined $data_ref->{'BMW_checksum'};
+
+    } elsif ( $data_ref_type ne qw|SCALAR| and $data_ref_type ne qw|REF| ) {
         die sprintf "unexpected reference type '%s' supplied", $data_ref_type;
     }
 
-    if ( not Encode::is_utf8( $$data_ref, 1 ) ) {
+    if (    not defined $input_elf_chksum
+        and not defined $input_BMW_checksum
+        and not Encode::is_utf8( $$data_ref, 1 ) ) {
+
         my $data_copy = Encode::decode( qw| UTF-8 |, $$data_ref, 8 );
         $data_ref = \$data_copy;
     }
 
     my @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
-        = sort uniq @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} };
+        = sort ( @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} } );
 
     map { die "not a valid elf mode ['$ARG']" if $ARG !~ m|^\d{1,2}$| }
         @elf_modes;
@@ -87,12 +99,20 @@ sub amos_chksum {
 
     ##  left shift 7 [ modified ] elf checksum algorithm  ##
     ##
-    my $elf_csum = elf_chksum( $$data_ref, 0, 7 );   ## elf-checksum mode 7 ##
+    my $elf_csum //= $input_elf_chksum;    ##  use parameter when given  ##
+
+    ## elf-checksum mode 7 ##
+    $elf_csum = sprintf '%09d', elf_chksum( $$data_ref, 0, 7 )
+        if not defined $elf_csum;
     ##
 
     $elf_bits = sprintf( '%032b', join( '', reverse split '', $elf_csum ) );
 
-    my $bmw_512b = unpack( qw| B512 |, Digest::BMW::bmw_512($$data_ref) );
+    ## calculate blue midnight wish checksum [ if not given ] ##
+    my $bmw_512b = unpack( qw| B512 |,
+        $input_BMW_checksum // Digest::BMW::bmw_512($$data_ref) );
+    ##
+
     my $bmw_512R = join( '', reverse split '', $bmw_512b );
 
     $bmw_b_R = substr( $bmw_512R, 0,   32 );
@@ -107,6 +127,7 @@ sub amos_chksum {
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
     $num_amos_csum = eval "0b$checksum_bits";    ## numerical ##
+
     $num_amos_csum ^= eval "0b$bmw_b_L";         ## elf checksum protection ##
 
     my $resaturation_offset = 0;
@@ -168,7 +189,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#ZAIQ7CFY7Q52AUU7DRDQBW2H7QYCD2QITHOP5QUKCDZI3KFXDEZBUOCHETLRQTXNQYOTZVSP5LKQM
-#::: OJ2TRQH63FHASYC7XHHDXIVCASTVD4WFI54U2E4KUIGWAJVAFZB :::: NAILARA AMOS :::
-# :: OMFKGR6IYTLB5AE7FHXW2RPFECQQEBCSPDX6XMFV2XRXRWDF3YCY :: CODE SIGNATURE ::
+#I7LUXV2SLYBDGP4FWE6F2IXA4VYKO5ZJLZTTMIQKS2JOUPKOCT7MJDLIGSOOFIHCPFLP5OK4MZJCI
+#::: ORDTTU5A4AAVFJ54QCIPW5AKAF5DBVHVEPBFGLY4K55JWPPJ7K4 :::: NAILARA AMOS :::
+# :: ZSP5G64ODHSQIXXFBTVEBEZTX4RZAOTXD4VFXOBLZPM55ISJJAAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

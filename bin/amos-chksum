@@ -5,7 +5,6 @@ use English;
 use warnings;
 use Getopt::Std;
 use Digest::BMW;
-use List::Util qw < uniqint >;
 
 ####           ####
 ##  amos-chksum  ##
@@ -71,7 +70,7 @@ if ( defined $option{'e'} ) {
             . "${fg}[=$CT$bg<n>$rst${fg}[,$CT$bg<n>$rst$fg..,]]" )
         if $option{'e'}  !~ m|^lf-mode=\d{1,2}$|
         and $option{'e'} !~ m|^lf-modes(=\d{1,2}(,\d{1,2})*)?$|;
-    @elf_modes_override = uniqint split( ',', $+{m0} // $+{M} )
+    @elf_modes_override = split( ',', $+{m0} // $+{M} )
         if $option{'e'}
         =~ m{^lf-mode(=(?<m0>\d{1,2})|s=(?<M>\d{1,2}(,\d{1,2})*))$};
 
@@ -89,15 +88,18 @@ if ( defined $option{'e'} ) {
 
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
+
+    my $version_template = '.%s:AMOS::CHKSUM:%s.';
+
     if ( $option{'V'} eq 'A' ) {    ## AMOS checksum ouput test version ##
 
-        $data_str = sprintf( '%s:AMOS-CHKSUM:%s', chr(255), chr(0) );
+        $data_str = sprintf( $version_template, chr(255), chr(0) );
         say sprintf( "AMOS-%s", amos_chksum($data_str) ) if not $option{'v'};
 
     } elsif ( $option{'V'} =~ m|^LS?$| ) { ## elf_sum() source code version ##
 
-        $data_str = elf_chksum(
-            sprintf( '%sAMOS-ELF-CHKSUM%s', chr(255), chr(0) ) );
+        $data_str
+            = elf_chksum( sprintf( $version_template, chr(255), chr(0) ), 7 );
 
         my $elf_out_ver
             = sprintf( qw| AMOS-INLINE-ELF-V-%s |, amos_chksum($data_str) );
@@ -240,7 +242,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#3GS5NVVDTMNJ5SFTSINCBG2HXFWQ72DSROJF7LIAERLTDUZQ2WXMDMKVHS74IRK4IMSJ6DE7MQWAA
-#::: PGVAYMV3KA56XN6OZ37AWTRBPR2VTVSP33W4ZQGA6XV7R32OPY4 :::: NAILARA AMOS :::
-# :: AJ7CS67A7F7GLUL74RT2AGFZGXRCBDANPWM6TSWOX7SN56PDPMDA :: CODE SIGNATURE ::
+#U66ZH6FYJYP4EA5JASPDFVNPBZOBP6BCI3XXOAA4MCGBOFGL3GIODJBE3ODGFW2XBFACPPUCRALFI
+#::: ALT2KOLKNMFRAMBDPXWHBRLBC53PZNJLXZYYMMQZUHREICDLOP2 :::: NAILARA AMOS :::
+# :: GW5TYQC6D7AV4NDEN2BZKGC4LQEMKSMAFPPMT74FZRZB5KIS3ADI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
