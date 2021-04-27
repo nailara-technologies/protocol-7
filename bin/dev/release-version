@@ -5,84 +5,135 @@ use English;
 use warnings;
 use File::Spec;
 use Cwd qw| abs_path |;
+use vars qw| $root_path |;
 use FindBin qw| $RealBin |;
 use Crypt::Misc qw| decode_b32r |;
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
 
 my $ver_seed = 54;
 my $release_version;
 
-my $mode = ( @ARGV and $ARGV[0] eq '-m' ) ? 'msg_str' : 'rel_ver';
-if ( @ARGV and $ARGV[0] eq '-s' ) { $mode = 'set_tag'; shift @ARGV }
+my $mode = ( @ARGV and $ARGV[0] eq qw| -m | ) ? qw| msg_str | : qw| rel_ver |;
+if ( @ARGV and $ARGV[0] eq qw| -s | ) { $mode = qw| set_tag |; shift @ARGV }
 
-if (    $mode eq 'set_tag'
+if (    $mode eq qw| set_tag |
     and @ARGV
     and $ARGV[0] =~ m|^(AMOS-)?v?(\d+\.\d+\.\d+)$| ) {
     $release_version = sprintf( "AMOS-v%s", $LAST_PAREN_MATCH )
         and shift @ARGV;    ## <-- setting custom rel. version ##
 }
 
-my $u = File::Spec->updir;
-my $root_path
-    = abs_path(
-    File::Spec->rel2abs( File::Spec->catdir( $RealBin, $u, $u ) ) );
-my $harmony_bin
-    = File::Spec->catfile( File::Spec->catdir( $root_path, 'bin' ),
-    qw| harmony | );
-my $version_file
-    = File::Spec->catfile( File::Spec->catdir( $root_path, 'configuration' ),
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub c_file { File::Spec->catfile(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+##[ AMOS MODULE ]#############################################################
+
+use AMOS::Assert::Truth qw| is_true |;
+
+##[ COLORS ]##################################################################
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $CT  = "\e[38;2;6;71;195m";
+my $fg  = "\e[38;2;68;39;172m";
+my $no  = "\e[38;2;197;141;7m";
+my $ng  = "\e[38;2;71;195;6m";
+
+##############################################################################
+
+my $src_vers_file = c_file( c_dir( $root_path, qw| configuration | ),
     qw| protocol-7.src-ver | );
 
-die ":\n:: 'harmony' binary not found\n\n" if !-x $harmony_bin;
+my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
+    qw| protocol-7.src-ver | );
 
 {
     local $| = 1;
     local $/ = undef;
-    if ( open( my $v_fh, '<' . $version_file ) ) {
-        ( my $src_ver_str = <$v_fh> ) =~ s|\s.+$||sg;
+    if ( open( my $v_fh, qw| < |, $src_vers_file ) ) {
+        ( my $src_ver_str = <$v_fh> ) =~ s|\s.+$||sg; ## truncate signature ##
+        close($v_fh);
+
+        my $current_r_vers = '';
+        if ( open( my $v_fh, qw| < |, $rel_ve_file ) ) {
+            ( $current_r_vers = <$v_fh> ) =~ s|\s.+$||sg;  ## truncate sig. ##
+            close($v_fh);
+        }
 
         ( my $ntime_B32, my $commit ) = split( m|\-|, $src_ver_str, 2 );
 
         my $ntime = ntime_dec($ntime_B32);
 
-        if ( not defined $release_version ) {
-            (   $release_version = sprintf( "AMOS-v%.3f",
-                    ( $commit * $ntime / $ver_seed / ( 7777777 * 12242707 ) )
+        my $offset = 0;
+        while (not defined $release_version
+            or $release_version eq $current_r_vers
+            or not is_true($release_version) ) {
+            (   $release_version = sprintf(
+                    "AMOS-v%.3f",
+                    $offset + (
+                        $commit * $ntime / $ver_seed / ( 7777777 * 12242707 )
+                    )
                 )
             ) =~ s|(\d)$|\.$1|;
+            $offset += 0.001;
         }
 
         my $tag_msg
             = sprintf(
             "<< rel \\\\// p7-AMOS-base-v%s || base-code \\\\// %s >>",
             $release_version, $src_ver_str );
-        if ( $mode eq 'rel_ver' ) {
-            print STDOUT ":\n: calculated release version : ";
-            print STDERR "$release_version\n";
-            print STDOUT ":\n";
 
-        } elsif ( $mode eq 'msg_str' ) {
-            print "'$tag_msg'\n";
-        } elsif ( $mode eq 'set_tag' ) {
-            print ":\n: setting release tag [ '$release_version' ]\n:\n::";
-            system( 'git', 'tag', "$release_version", '-m', $tag_msg, @ARGV )
-                && die "::<<!>>:\n\n";
+        if ( $mode eq qw| rel_ver | ) {
+
+            print "$fg:\n${fg}:: ${CT}calculated"
+                . " release version$rst$fg : $bg${CT}";
+            say STDERR $release_version;
+            say "$fg:$rst";
+
+        } elsif ( $mode eq qw| msg_str | ) {
+
+            print "\n $fg $bg${CT}$tag_msg $rst$fg $rst\n\n";
+
+        } elsif ( $mode eq qw| set_tag | ) {
+
+            print "$fg:\n: setting release tag ["
+                . "$bg${CT} $release_version $rst$fg]\n$fg:\n::$rst";
+            system( qw| git tag |, "$release_version", '-m', $tag_msg, @ARGV )
+                && die "${no}::<< ! >>:\n\n";
             print ":\n\n";
+
         }
     } else {
-        die "$version_file: $!\n";
+        die "${no}$src_vers_file: $!\n";
     }
 }
 
 sub ntime_dec {
     my $network_time = shift;
 
-    die ":\n:: invalid network time format in 'src-ver' file\n\n"
+    die "${no}:\n:: invalid network time format in 'src-ver' file ::\n:\n"
         if $network_time !~ m|^[A-Z2-7]{1,22}$|;
 
     my $ntime_dec;
     eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
 
-    die ":\n:: network time decoding not successful\n\n"
+    die "${no}:\n:: network time decoding not successful ::\n:\n"
         if $EVAL_ERROR
         or !length( $ntime_dec // '' );
 
@@ -90,7 +141,7 @@ sub ntime_dec {
 }
 
 #.............................................................................
-#Z4FUYRQHEXM6PVA7VPLSSANIWGZASDUV6YQI4FZDOSPWPC7CLUMMVPMCBLQSDCDY737U4NUGJJBUY
-#::: DIJLZGHWUMOUPZHE7PYI2EICT6CZ2XA42FQF76NPXKPHDZP7QXO :::: NAILARA AMOS :::
-# :: UNLCXLAFNCLRA2QPYVSGXMKYK4P7WP3ZKJ2KRNRF4QERUHBUOMCQ :: CODE SIGNATURE ::
+#A7TVIKSK37ASBLYIQDBTISC2TF4CDOOKWMJ6M4HHOCT5ICFPXKHYSEYIZJEIXYZOA25NFEXVLE33I
+#::: CVBBHZZT3INGIJUT53M2HU6J6T5R37APYM62IOXR4TGDADV364M :::: NAILARA AMOS :::
+# :: ONXK3FU4DRHXETEFPGXW7ND7TUIBFSQCGGGBSJQB2J7F55LHDUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

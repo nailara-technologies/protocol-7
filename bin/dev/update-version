@@ -12,17 +12,49 @@ use FindBin '$RealBin';
 use Digest::Elf qw| elf |;
 use Crypt::Misc qw| encode_b32r |;
 
-my $readme_file_path = 'read-me/md/README.md';
+my $readme_file_path = qw| read-me/md/README.md |;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+##[ AMOS MODULE ]#############################################################
+
+use AMOS::Assert::Truth qw| is_true |;
+
+##[ COLORS ]##################################################################
+
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $bg  = "\e[48;2;9;5;42m";
+my $CT  = "\e[38;2;6;71;195m";
+my $fg  = "\e[38;2;68;39;172m";
+my $no  = "\e[38;2;197;141;7m";
+my $ng  = "\e[38;2;71;195;6m";
+
+##[ INPUT PROCESSING OPTIONS ]################################################
 
 our $amend = 0;
 my $reset = 0;
 my $down  = 0;
 
 if (@ARGV) {
-    map { $amend = 1 if $_ eq 'amend' } @ARGV;
-    map { $down  = 1 if $_ eq 'down'; } @ARGV;
+    map { $amend = 1 if $_ eq qw| amend | } @ARGV;
+    map { $down  = 1 if $_ eq qw| down |; } @ARGV;
     map {
-        if ( $_ eq 'reset' ) { $down = 0; $reset = 1 }
+        if ( $_ eq qw| reset | ) { $down = 0; $reset = 1 }
     } @ARGV;
 }
 
@@ -66,10 +98,10 @@ $git->add($rl_v_file)
     if !$amend
     and $version_string ne $old_version
     and -f $rl_v_file
-    and $git->ls_files('cfg/protocol-7.rel-ver');
+    and $git->ls_files(qw| configuration/protocol-7.rel-ver |);
 
 ## ./cfg/protocol-7.src-ver ##
-open( my $ver_fh, '>' . $vers_file ) or die " --> $vers_file : $!\n";
+open( my $ver_fh, qw| > |, $vers_file ) or die " --> $vers_file : $!\n";
 say {$ver_fh} $version_string;
 close($ver_fh);
 $git->add($vers_file);
@@ -78,7 +110,7 @@ $git->add($vers_file);
 {
     local $/ = undef;
     my $B32_re = qr|[A-Z2-7]{10}|;
-    open( my $md_fh, '<' . $readme_md ) or die "$readme_md : $!\n";
+    open( my $md_fh, qw| < |, $readme_md ) or die "$readme_md : $!\n";
     my $md_copy = my $md_str = <$md_fh>;
     close($md_fh);
 
@@ -86,14 +118,15 @@ $git->add($vers_file);
         if $md_str !~ s|\Q$old_version\E|$version_string|g;
 
     if ( $md_str ne $md_copy ) {
-        open( $md_fh, '>' . $readme_md ) or die " --> $readme_md : $!\n";
+        open( $md_fh, qw| > |, $readme_md ) or die " --> $readme_md : $!\n";
         print {$md_fh} $md_str;
         close($md_fh);
         $git->add($readme_md);
     }
 }
 
-say ":\n:: source version :: $version_string\n:";
+say "$fg:\n${fg}:: $bl${CT}source version$rst$fg :: "
+    . "$bg$CT$version_string$fg$rst$fg .:\n$fg:$rst";
 
 ### SUBROUTINES ################################################################
 
@@ -101,12 +134,12 @@ sub gen_ver_string {
     my $version_str;
     my $count_str = shift;
     my $new_minor = shift // '';
-    $count_str .= '.' . $new_minor if length($new_minor);
+    $count_str .= join( '', qw| . |, $new_minor ) if length($new_minor);
 RECALC_VERSION:
     $version_str = '';
-    $version_str = join( '-', ntime_B32(), $count_str );
+    $version_str = join( qw| - |, ntime_B32(), $count_str );
     Time::HiRes::sleep(0.013) and goto RECALC_VERSION
-        if not assert_harmony($version_str);
+        if not is_true($version_str);
 
     return $version_str;
 }
@@ -170,39 +203,15 @@ RETRY_BASE_NTIME_B32:              ## only choose harmonic values ##
     my $encoded_ntime = encode_b32r( pack( 'w*', @nt ) );
 
     Time::HiRes::sleep(0.013) and goto RETRY_BASE_NTIME_B32
-        if assert_harmony($encoded_ntime) == 0;
+        if is_true($encoded_ntime) == 0;
 
     return $encoded_ntime;
 }
 
 ################################################################################
 
-sub assert_harmony {
-    my $input_string = shift // '';
-    my $check_elf    = shift // 1;
-
-    Math::BigFloat->round_mode('trunc');
-
-    my $calc_str;
-    ## check as mumber ##
-
-    my $accuracy = 13;
-
-    ## check as string ##
-    my $elf_checksum = elf($input_string);
-    $calc_str = Math::BigFloat->new($elf_checksum)
-        ->bdiv( 13, 13 + length($elf_checksum) );
-
-    my $check_str = scalar $calc_str;
-    return 0 if index( $check_str, '230769' ) >= 0;
-    ##
-    return 1;    ## assertion complete : harmony detected ## [ no 230769.., ]
-}
-
-################################################################################
-
 #.............................................................................
-#HIRGMXBOBX5XA5ZD44UM4MMMGDPX4FBL4ZPIJGVBRSYBBLLDRYDCB7YJ523FTOATK27TNL7YTEABQ
-#::: AKQ7AWXJPU7M4LJOOE2RSQ7RXRGBAPOKMKY5FLXBP4IOZFAHH2D :::: NAILARA AMOS :::
-# :: 3NL6GAGN5A4DOQROFORYR7KCXWWRXZCQ65TAYQKNMHA5DYKHI2CI :: CODE SIGNATURE ::
+#6J5MBU4N4X5BO62NT5LJSHHYXBM2BPE5VX4DIGZHCEVGVRXEMX7V5RTUYG5MTQUUYHUTWWTFCGGMQ
+#::: 62C7LL3IICMH7BKI7JGQ4LEKGCLEKMRYFHJYAMIQWNT3TPKIKEM :::: NAILARA AMOS :::
+# :: 7PJK6GPJDOOCRW46B2LUWQJNT4GCI5UXWIDFTYRDVKLAVOGAYECQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
