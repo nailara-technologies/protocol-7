@@ -1,0 +1,20 @@
+# >:]
+
+# name  = protocol.amos-chksum.ext-cmd.select
+# descr = disable space prefixes [ indented data mode ]
+
+my $id        = shift;
+my $input_len = shift;
+return 2 if not defined $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+$session->{'space-prefixes'} = 0;
+
+return { 'mode' => qw| true |, 'data' => '' }
+
+#.............................................................................
+#BO7UVV3JO736DGOLT5VN3TKZW4ETNWMPZP7VEMAO3GPIDD23ZAGIEQJJXUYKEYSUJVFS2OIAH4JBU
+#::: 5VXKP5GR2TM7ZKQP53GIQV5RVWXFBDTNTCCM2NZ4XOKFW4FPQCU :::: NAILARA AMOS :::
+# :: MWAUOWKCVWCTBVCEOV47RPHZ4HOTSRW5FZVFJVJ6XP3PKAHQZ2BI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
