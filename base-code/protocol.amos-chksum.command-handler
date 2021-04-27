@@ -11,15 +11,69 @@ return 2 if not defined $data{'session'}{$id};
 my $session = $data{'session'}{$id};
 my $user    = $session->{'user'};
 
+##  initialize empty  ##
+$session->{'binary-mode'}         //= 0;
+$session->{'binary-input-length'} //= 0;
+
 $session->{'amos-chksum'}->{'modes'}    ##  set from AMOS::CHKSUM  ##
     //= $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'};
 
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
-my $max_cmd_len = 64;
+##[ BINARY MODE DATA INPUT ]##################################################
+
+if ( $session->{'binary-mode'} ) {
+
+    my $binary_state;
+
+    if ( $session->{'binary-input-length'} > 0 ) {    ##  more imput data  ##
+        $session->{'binary-input'} //= {
+            'elf_checksum' => 0,
+            'bmw-context'  => Digest::BMW->new(512)
+        };
+        return 1 if not length($$input);              ##  <-- not expected  ##
+        $binary_state = $session->{'binary-input'};
+
+        my $buffer_len = length($$input);
+
+        my $buffer_str
+            = substr( $$input, 0, $session->{'binary-input-length'}, '' );
+
+        ##  add elf checksum state  ##  input data at elf mode 7  ##
+        $binary_state->{'elf_checksum'} = <[chk-sum.elf.inline]>->(
+            \$buffer_str, $binary_state->{'elf_checksum'}, 7
+        );
+        ##  add to bmw checksum state  ##
+        $binary_state->{'bmw-context'}->add($buffer_str);
+
+        $session->{'binary-input-length'} -= $buffer_len - length($$input);
+
+        return 1 if $session->{'binary-input-length'} > 0; ## more expected ##
+    }
+
+    if ( defined $binary_state and $session->{'binary-input-length'} == 0 )
+    {    ## calc amos-chksum ##
+
+        $$output .= sprintf(
+            "%s\n",
+            AMOS::CHKSUM::amos_chksum(
+                {   'elf_checksum' => $binary_state->{'elf_checksum'},
+                    'BMW_checksum' => $binary_state->{'bmw-context'}->digest
+
+                },
+                @{ $session->{'amos-chksum'}->{'modes'} }
+            )
+        );
+
+        $session->{'binary-mode'} = 0;
+        delete $session->{'binary-input'};
+    }    ## else not defined $binary_state ..,
+}
 
 ##[ LIMITING REQUEST SIZE ]###################################################
+
+my $max_cmd_len = 64;
 
 if ( $$input =~ m|^[^\n]{$max_cmd_len}\n?| ) {
     <[base.log]>->(
@@ -88,9 +142,12 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
             = ( $return_href->{'mode'}, $return_href->{'data'} );
         my $return_code = $mode eq 'term' ? 2 : 0;
 
-        if ( $mode eq qw| data | ) {
-            $$output .= $return_data;
+        if ( $mode eq qw| binary | ) {
+            $session->{'binary-mode'}         = 1;
+            $session->{'binary-input-length'} = $return_data;
 
+        } elsif ( $mode eq qw| data | ) {
+            $$output .= $return_data;
         } else {
             $$output .= sprintf( "%s\n", $return_data );
         }
@@ -108,14 +165,13 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 ##
 ## select ## keep modes, disable commands and remove prefix requirement
 ## seperator ## set data seperator [ i.e. \n or \t ,.. ]
-## binary <n> ## announce <n> bytes of binary data,
-##            ## ,.return to commands after it
-## [ binary bits : data width selection [ i.e. 7 bit multiples ]
+##
+## [ binary bits : data width selection [ i.e. 7 bit multiples ] ?
 
 return 0;
 
 #.............................................................................
-#QMDA7WGX342AMJUQDZAW56AJOVNSDG4PAFA67ZR2L4BHT73UCWIE3JGWN35FCDJST7ZY24ENPHTWE
-#::: 4MFVZ5WDU6VDKKJ6LXK6X7UG6ZRPPOAGV6HTL7GP2UEYTKIQGXH :::: NAILARA AMOS :::
-# :: Q2R6RXEQMUILKRGTWYDNXS2F7TRBPBBGSZG5MTSWVD322WS244CQ :: CODE SIGNATURE ::
+#VN45RSLFLY3HEMQ2DBZJ3KAGHDJ5V5DZPPBGUYMVNXQVVNZLD5WNZMHIDDCVPXKLB2GND7SB2FYIY
+#::: ZCJHSUPUZKJOF7YVKFBFE2WDFR3ML34X5EFKM2MQP23QQP6QZJN :::: NAILARA AMOS :::
+# :: A4FUULAGLLZBYUZM4VISRUK3WZXUX6X46TWE6Q643XJ5HBGRDOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

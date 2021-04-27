@@ -1,0 +1,24 @@
+# >:]
+
+# name  = protocol.amos-chksum.ext-cmd.binary
+# descr = announce arbitary length data
+
+my $id        = shift;
+my $input_len = shift;
+return 2 if not defined $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <input-length> parameter'
+    }
+    if $input_len !~ m|^\d+$|;
+
+return { 'mode' => qw| binary |, 'data' => $input_len };
+
+#.............................................................................
+#EFUBQTEO6JLBAYHVMFZ3TE5DFPT25ZCKO5MAQGMKKWU7FCBKKVGH6777Z5UZC7SISSVB4AZEFXB7U
+#::: GCL5ZNFPASPSU54XAEHYKLZSMM2QRMIEVYKJCS42AKRO4S4LD72 :::: NAILARA AMOS :::
+# :: Q3QA63IQAAEKRI2V6QNMNGZQYJOAANFKSOTR23T6SNROUYH4EGDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
