@@ -12,6 +12,7 @@ my $session = $data{'session'}{$id};
 my $user    = $session->{'user'};
 
 ##  initialize empty  ##
+$session->{'space-prefixes'}      //= 2;
 $session->{'binary-mode'}         //= 0;
 $session->{'binary-input-length'} //= 0;
 
@@ -49,6 +50,8 @@ if ( $session->{'binary-mode'} ) {
 
         $session->{'binary-input-length'} -= $buffer_len - length($$input);
 
+        ## needs idle watcher mode ##  [ and read size limit ]
+
         return 1 if $session->{'binary-input-length'} > 0; ## more expected ##
     }
 
@@ -73,7 +76,7 @@ if ( $session->{'binary-mode'} ) {
 
 ##[ LIMITING REQUEST SIZE ]###################################################
 
-my $max_cmd_len = 64;
+my $max_cmd_len = 512;
 
 if ( $$input =~ m|^[^\n]{$max_cmd_len}\n?| ) {
     <[base.log]>->(
@@ -98,7 +101,9 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
     my @modes_str = split( m|\D+|, ${^CAPTURE}[0] );
     $session->{'amos-chksum'}->{'modes'} = \@modes_str;
 
-} elsif ( $LAST_PAREN_MATCH =~ m|^  (.+)$| ) { ##  indented chksum request  ##
+} elsif ( $LAST_PAREN_MATCH =~ m|^\ {$session->{'space-prefixes'}}(.+)$| ) {
+
+    ##  indented chksum request  ##
     my $modes_ref = $session->{'amos-chksum'}->{'modes'};
 
     my $chksum_str
@@ -116,6 +121,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
     }
 
     $$output .= sprintf( "%s\n", $chksum_str );
+    return 1;       ## needs idle watcher mode ##
 
 } elsif ( $LAST_PAREN_MATCH =~ m|^(\S+)( +(.+))?$| ) {  ## protocol command ##
     my $command     = ${^CAPTURE}[0];
@@ -163,7 +169,6 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
 ### NEXT COMMANDS ## [LLL]
 ##
-## select ## keep modes, disable commands and remove prefix requirement
 ## seperator ## set data seperator [ i.e. \n or \t ,.. ]
 ##
 ## [ binary bits : data width selection [ i.e. 7 bit multiples ] ?
@@ -171,7 +176,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 return 0;
 
 #.............................................................................
-#VN45RSLFLY3HEMQ2DBZJ3KAGHDJ5V5DZPPBGUYMVNXQVVNZLD5WNZMHIDDCVPXKLB2GND7SB2FYIY
-#::: ZCJHSUPUZKJOF7YVKFBFE2WDFR3ML34X5EFKM2MQP23QQP6QZJN :::: NAILARA AMOS :::
-# :: A4FUULAGLLZBYUZM4VISRUK3WZXUX6X46TWE6Q643XJ5HBGRDOAA :: CODE SIGNATURE ::
+#KMESY5ES55X32ZKARSTEIAXYKSVMLGPS2OE6MJ5UYXI3FLVCKDNLWQFRQLYVAJKUKVSCGVSXZNNE6
+#::: JLDVKN6YCUIDZ7MZ2U2UVOAACULREKW2EHU72TAM33UK5YGZMKE :::: NAILARA AMOS :::
+# :: 5FOYVYD5E2HXXBZAI3VRTEXLDJBE5UC62YFE6GDB5RJDPW27NACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
