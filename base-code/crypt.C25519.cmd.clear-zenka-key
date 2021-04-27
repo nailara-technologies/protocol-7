@@ -18,11 +18,15 @@ return {
 <[base.log]>->( 0, "[$id] flushing C25519 key '$key_name'., [ requested ]" );
 
 my $usr_key = $KEYS{'C25519'}{$key_name};
-map {
-    my $k_len = length( $usr_key->{$ARG} );
-    substr( $usr_key->{$ARG}, 0, $k_len, <[base.prng.bytes]>->($k_len) );
-    undef $usr_key->{$ARG};
-} keys %{$usr_key};
+
+map {    ##  secret | public  ##
+    <[base.erase_buffer_content]>->(
+        \$usr_key->{$ARG},
+        int( rand(13) ) + 7    ##  <-- additional bytes as padding  ##
+    );
+    $usr_key->{$ARG} = undef;
+    delete $usr_key->{$ARG};
+} <[base.reverse-sort]>->($usr_key);
 undef $usr_key;
 delete $KEYS{'C25519'}{$key_name};
 
@@ -31,13 +35,19 @@ if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
     <[base.log]>->(
         1, "[$id] :. erasing session key '$s_key_name'., [ from memory ]"
     );
+
     my $s_key = $KEYS{'C25519'}{'session'}{$s_key_name};
-    map {
-        my $k_len = length( $s_key->{$ARG} );
-        substr( $s_key->{$ARG}, 0, $k_len, <[base.prng.bytes]>->($k_len) );
-        undef $s_key->{$ARG};
-    } keys %{$s_key};
+
+    map {    ##  secret | public  ##
+        <[base.erase_buffer_content]>->(
+            \$s_key->{$ARG},
+            int( rand(13) ) + 7    ##  <-- additional bytes as padding  ##
+        );
+        $s_key->{$ARG} = undef;
+        delete $s_key->{$ARG};
+    } <[base.reverse-sort]>->($s_key);
     undef $s_key;
+
     delete $KEYS{'C25519'}{'session'}{$s_key_name};
     delete $KEYS{'C25519'}{'session'}
         if !keys( %{ $KEYS{'C25519'}{'session'} } );
@@ -48,7 +58,7 @@ delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
 return { 'mode' => 'true', 'data' => "deleted '$key_name' key from memory" }
 
 #.............................................................................
-#OCMII2DEAXL35SSKGUGT43HRTC3OHAPMCBSKRN3KV3FBR4ULJ7KJSO6RNLR2VDQG4NWONGXNH5AM4
-#::: HASBYBKHX2DFDOSNWBWYOHS6UWCKANYVXRXD4KYT4XVVTANTL2I :::: NAILARA AMOS :::
-# :: 7ZZRVOGWY53MWVCYJAQLJHSEJOK3Z2DN62XAP3VRUCLGFIRTJMAI :: CODE SIGNATURE ::
+#RDB6UHMD4QWA3DEFGYL2A2Q6A4SC4SWAESQMZNXLJKITLXTRCH2K2QWQB2XHK2BTRFGMCCMLYJGRQ
+#::: LC3RPLYUIF7L3S6Q3TVNMCRR677BRNMXZVWODWZDBN55HHDVR7L :::: NAILARA AMOS :::
+# :: EMINFMH5UN34BEYHW2MRSYIUQEYPLBYRWPML3TADY32ZQL6KIMCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
