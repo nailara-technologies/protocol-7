@@ -4,57 +4,66 @@
 # args   = hashref <id_var>, integer <max_ids> [, string <number_range> ]
 # return = integer <id> [harmonic]
 
-my $verbose = 0;    ## <-- report harmony requests to console., [debug] ##
+my $new_id;
 
-my $href = shift;   ## <-- where elements are to be placed .., ##
-
-die '< base.gen_id > expected hash reference' if ref($href) ne 'HASH';
+my $href = shift;    ## <-- where elements are to be placed .., ##
+return warn 'expected hash reference <{C1}>' if ref($href) ne qw| HASH |;
 
 my $max_ids       = shift || 13747;
-my $num_range     = shift || '01234577790';
+my $num_range     = shift || qw| 01234577790 |;
 my $want_harmony  = shift // 1;
 my $element_count = scalar keys %{$href};
 my $id_length     = length($max_ids) + 2;
-$id_length
-    += int( $element_count / ( $max_ids / 5 ) );    # expand towards limit.,
+$id_length += int( $element_count / ( $max_ids / 5 ) ); ## expand --> limit ##
 
-my $retries     = 0;
-my $new_id      = 0;
-my $max_retries = 32 + int( $max_ids / 1000 );
+( my $nums_except_0 = $num_range ) =~ s|0||g;    ##  skipping prefix '0'  ##
+
+my $collisions  = 0;
+my $retries     = -1;
+my $max_retries = 42 + int( $max_ids / 1000 );
 $max_retries = 4096 if $max_retries > 4096;
 
-while (exists $href->{$new_id}
-    or index( $new_id, '0' ) == 0
-    or ( $want_harmony and <[base.assert.harmony]>->($new_id) == 0 ) ) {
+while (not defined $new_id
+    or exists( $href->{$new_id} ) && ++$collisions
+    or $want_harmony and not AMOS::Assert::Truth::is_true($new_id) ) {
 
-    $new_id = <base.prng.fortuna>->string_from( $num_range, $id_length );
+    ##  generate id that does not begin with '0'  ##
+    $new_id = join( '',
+        <base.prng.fortuna>->string_from( $nums_except_0, 1 ),
+        <base.prng.fortuna>->string_from( $num_range,     $id_length - 1 ) );
+    ##
 
-    say "<   > $new_id" if $verbose and $want_harmony;
+    if ( $retries >= $max_retries ) {
+        warn 'max_retries limit reached [ '
+            . "$max_retries \\ collisions: $collisions ] <{NC}>";
 
-    if ( $retries > $max_retries ) {
-        <[base.log]>->(
-            0, "< gen_id > max_retries [ $max_retries ] reached."
-        );
-        $new_id = undef;
-        goto abort;
+        ##  skip truth if max_retries / 2 < collisions  ##
+        if ( $want_harmony and int( $max_retries / 2 ) > $collisions ) {
+
+            warn 'retrying without numerical truth assertion';
+            $want_harmony = 0;
+            $retries      = -1;
+
+        } else {    ##  giving up on successful id  and returning undef  ##
+            warn 'giving up on id generation [ will be undef ] <{C1>';
+            $new_id = undef;
+            goto abort;
+        }
+
     } else {
         $retries++;
     }
 }
 
-say "< $retries > $new_id " . [caller]->[1] . ' \\ ' . [ caller(1) ]->[1]
-    if $verbose and $want_harmony;
-
 abort:
-
-warn "max_ids [$max_ids] reached" if $element_count == $max_ids;
-warn "max_ids [$max_ids] exceeded [$element_count]"
+warn "element count reached max_ids [$max_ids]" if $element_count == $max_ids;
+warn "element count exceeded max_ids [$element_count:$max_ids]"
     if $element_count > $max_ids;
 
 return $new_id;
 
 #.............................................................................
-#RS5O7NTU7DAFSYTWVMJ7ZOJFMZQPMNMUP7UNX4KB44YQ772GWLLZC72B75AZP5ARBHP6QXE2KHSQI
-#::: D5D6AZK2LQLKKAW42BLY4VJP5GHT3W3Y2HD3OVQSO7MMDPLCJTY :::: NAILARA AMOS :::
-# :: 2LB33DLZEW47KPK2UF3HIVYS4KFOSPV3ABU2WD7FWXAJD2YLTWAA :: CODE SIGNATURE ::
+#PTEW7CP3D3Y3BILAH27Z66FPWNQMBSG5X2YUEBOEN2FZ2RKO7TKOIBENR6NGZVOZUPXH3G3DLFUTC
+#::: 2LZVRXWB2KKV7PKTWAWER47II44YBFWGKDIS5X7I3IBIVRMADUJ :::: NAILARA AMOS :::
+# :: Z3B5TKQVP3HNGUMFQXZZCKWXUZGL6S3E25DVS4NZUI3AJACC5ICI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
