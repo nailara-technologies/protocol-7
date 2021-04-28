@@ -1,16 +1,89 @@
 # >:]
 
 # name  = base.balanced-average
+# descr = calculate and store averages with outliers removed from input
 
-my $average_value;
-my @values = <[base.context.list]>->(@ARG);
+my $value_ref = shift;    ##  scalar reference to stored average  ##
+my @values    = <[base.context.list]>->(@ARG);    ##  input data  ##
 
-my $base_mass = 0.7;  ##  outliers to it excluded from average calculation  ##
+@values = grep {m|^-?\d+(\.\d+)?$|} @values;      ##  filter for numbers  ##
 
-return $average_value;
+my $result_precision   = 5;    ##  floating point precision of calculation  ##
+my $internal_precision = 7;    ##  for intermediate values  ##
+
+my $base_mass  = 0.7; ##  outliers to it excluded from average calculation  ##
+my $change_rel = 0.7; ##  stored average to new average ratio  ##
+my $outlier_rel = 0.07; ##  proportion when result outlier to stored value  ##
+
+return warn 'expected <value_ref> [ scalar ref ] parameter <{C1}>'
+    if ref $value_ref ne qw| SCALAR | and ref $value_ref ne qw| REF |;
+warn 'expected at least one numerical parameter <{C1}>' if !@values;
+warn "<value_ref>s content is not numerical ['$$value_ref'] <{C1}>"
+    if defined $$value_ref and $$value_ref !~ m|^-?\d+(\.\d+)?$|;
+
+my $base_value_average;
+
+if ( @values == 1 ) {    ##  single input value  ##
+    ($base_value_average) = @values;
+} else {    ##  multiple values : filtered for outliers to their average  ##
+
+##  determine potential  ##
+    my ( $low_value, $high_val ) = minmax @values;
+    my $middle_value = sprintf( "%.${internal_precision}f",
+        $low_value + ( ( $high_val - $low_value ) / 2 ) );
+
+##  unfiltered total average  ##
+    my $total_average = sprintf( "%.${internal_precision}f",
+        ( reduce_0 { $a + $b } @values ) / scalar @values );
+
+##  calculating distance with removed value potential  ##
+    my $average_floored = $total_average - $low_value;
+    my $floored_07      = sprintf "%.${internal_precision}f",
+        $average_floored * $base_mass;
+
+    my @base_values    ##  filter outliers to base mass  ##
+        = grep { abs( $total_average - $ARG ) <= $floored_07 } @values;
+
+    @base_values = @values if !@base_values;    ##  take all  ##
+
+##  calculating average excluding outliers to base_mass  ##
+    $base_value_average = sprintf( "%.${internal_precision}f",
+        ( reduce_0 { $a + $b } @base_values ) / scalar @base_values );
+
+}
+
+$$value_ref //= $base_value_average;    ##  initializing [ with current ]  ##
+
+return $base_value_average if $$value_ref == $base_value_average; ##  skip  ##
+
+## adjusting for minimal differences ##
+if (abs( $$value_ref - $base_value_average )
+    <= sprintf( "%.${result_precision}f",
+        1 / sprintf( '1%d', '0' x $result_precision ) )
+) {
+    $$value_ref = sprintf( "%.${result_precision}f", $base_value_average );
+    $$value_ref =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitize zulum  ##
+    return $base_value_average;
+}
+
+##  calculated average : outlier to stored value : increase change_rel  ####
+$change_rel = ( 1 - $outlier_rel )
+    if sprintf( "%.${internal_precision}f",
+    abs( $$value_ref - $base_value_average ) )
+    > sprintf( "%.${internal_precision}f", $$value_ref * $base_mass );
+###  otherwise no updates when started with outlier value  ###
+
+$$value_ref = sprintf(    ##  storing result value  ##
+    "%.${result_precision}f",
+    ( $$value_ref * $change_rel )    ##  old value proportion  ##
+        + ( $base_value_average * ( 1 - $change_rel ) ) ## new average part ##
+);
+$$value_ref =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitizing zulum  ##
+
+return $base_value_average;   ##  returning filtered average of input data  ##
 
 #.............................................................................
-#MBDNVNIFL35KQCK5N5PHBH5Q53NV6HLPWJYWQG7LG4U3EBXCVLMH6YGOYTZXSPDYTGKW6YL3X7D2Q
-#::: LYTKXB7TAFTGORTV7VLMZ7F7HMTV6AXPRHQ6AUK2WBLUUX4D4QJ :::: NAILARA AMOS :::
-# :: Z4SQQL6O6YPH4XFVSOGA4LYMMVMCTIBTEPAJ2F6BSNIHMEHZFGAA :: CODE SIGNATURE ::
+#NVLNNCJRL5YVAZUHLERW66Z2DQFJW37M55LHPQJJNR62K6ZOXHHORXUU3MT7PKO4KBX5OIW6RPTWE
+#::: EDUDTMKOQXEPIB5O3VQV2EMLFGUYEY7D5SB3VVDZLTQIPJI3PLH :::: NAILARA AMOS :::
+# :: HSZMJI2X6XUDBDAMXUSHUMQGKXSZICVEKZ7AKATER7SUM2CMAUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
