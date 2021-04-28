@@ -1,0 +1,59 @@
+# >:]
+
+# name  = base.session.calc_cmd_stats
+
+my $id         = shift;
+my $buffer_ref = shift;
+
+return undef if not defined $id or not exists $data{'session'}{$id};
+if ( ref($buffer_ref) ne qw| SCALAR | and ref($buffer_ref) eq qw| REF | ) {
+    warn '<buffer_ref> is not a scalar reference';
+    return undef;
+}
+
+my $protocol_stats;    ##  protocol wide  ##
+if ( defined $data{'session'}{$id}{'protocol'} ) {
+    my $protocol = $data{'session'}{$id}{'protocol'};
+    $protocol_stats = $data{'protocol'}{$protocol}{'statistics'} //= {};
+}
+
+##  calculate and store average command line length  ##
+if ( $data{'session'}{$id}{'read-mode'} eq qw| line |
+    and ( my $endline_pos = index( $$buffer_ref, "\n" ) ) >= 0 ) {
+
+    my $history_max_size = 13;
+    my $stats_ref        = $data{'session'}{$id}{'command'} //= {
+        'commands-total' => 0,
+        'recent_lengths' => [],
+        'average-length' => $endline_pos
+    };
+    $stats_ref->{'commands-total'}++;
+    push( @{ $stats_ref->{'recent_lengths'} }, $endline_pos );
+    if ( $stats_ref->{'commands-total'} < $history_max_size
+        or scalar @{ $stats_ref->{'recent_lengths'} } >= $history_max_size ) {
+        ##  update average  ##
+        my $current_length_value = <[base.balanced-average]>->(
+            \$stats_ref->{'average-length'},
+            @{ $stats_ref->{'recent_lengths'} }
+        );
+        ##  reset history  ##
+        $stats_ref->{'recent_lengths'} = [];
+
+        ##  update protocol average  ##
+        <[base.balanced-average]>->(
+            \$protocol_stats->{'average-command-line-length'},
+            $current_length_value
+        ) if defined $protocol_stats;
+
+        ##  return current value  ##
+        return $current_length_value;
+    }
+} else {
+    return undef;    ##  not in read-mode 'line'  ##
+}
+
+#.............................................................................
+#4H6AI4PNQQ4MWLAQ2445MDP3TRZBQ4IV232O3TCAC2LNXRRWCZNXSYGN4D6BCNJ2M5MNQPPWZJGYY
+#::: AACJGFCQMJ4FCJAWOIVCLZ77GDSQSTGNIN5SUIGWPNJYC35KQ6Y :::: NAILARA AMOS :::
+# :: K46BYZ62V6JLX72OIIE7FMMTGYXQPJQQQQT7P6CT6QO3DYPYZEAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

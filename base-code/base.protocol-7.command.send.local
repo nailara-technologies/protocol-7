@@ -37,11 +37,11 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             if exists $data{'session'}{$target_sid};
         next    ## skip unauthorized connections \ modes ##
             if not defined $session
-            or $session->{'mode'} ne 'client'
+            or $session->{'mode'} ne qw| client |
             or $session->{'user'} eq <base.session.uname.server>
             or $session->{'user'} eq <base.session.uname.client>
             or defined $session->{'authenticated'}
-            and $session->{'authenticated'} ne 'yes';
+            and $session->{'authenticated'} ne qw| yes |;
 
         ## setting up route ##
 
@@ -87,34 +87,37 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
         if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
 
-        $data{'session'}{$target_sid}{'buffer'}{'output'}
-            .= $target_cmd_id . $cmd . $$call_args{'args'} . "\n";
+        my $command_string    ##  prepare full command line  ##
+            = join( '', $target_cmd_id, $cmd, $$call_args{'args'}, "\n" );
+
+        ##  append command to target buffer  ##
+        $data{'session'}{$target_sid}{'buffer'}{'output'} .= $command_string;
+
+        ##  calculate and store average command line length  ##
+        <[base.session.calc_cmd_stats]>->( $target_sid, \$command_string );
+
         $count++;
 
-        ## [ LLL ] set up timeout handler ###
+        ###  set up timeout handler ?  ###  [LLL]
 
-        #            }
-        #            elsif ( $command_mode == 2 )    # multi line command mode
-        #            {
-        #                my $header = '';
-
-        #                if ( defined $$call_args{'param'}
-        #                    and ref( $$call_args{'param'} ) eq
-        #                    'HASH' )    # prepare parameter header
-        #                {
-        #                    my ( $key, $val );
-
-#                    while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
-#                    {
-#                        $header .= $key . '=' . $val . "\n";
-#                    }
-#                }
-
-        #                $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-        #                  $target_cmd_id . $cmd . "+\n" . $header . "\n"
-        #                  . $$call_args{'data'} . ".\n";
-
-        #            }
+        # }
+        # elsif ( $command_mode == 2 )    # multi line command mode
+        # {
+        #     my $header = '';
+        #     if ( defined $$call_args{'param'}
+        #         and ref( $$call_args{'param'} ) eq
+        #         'HASH' )    # prepare parameter header
+        #     {
+        #         my ( $key, $val );
+        #         while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
+        #         {
+        #             $header .= $key . '=' . $val . "\n";
+        #         }
+        #     }
+        #     $data{'session'}{$target_sid}{'buffer'}{'output'} .=
+        #       $target_cmd_id . $cmd . "+\n" . $header . "\n"
+        #       . $$call_args{'data'} . ".\n";
+        # }
     }
     return $count;
 } else {
@@ -123,7 +126,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 #.............................................................................
-#YA6HXOG3OI7KBIVVJGNGK26BQ2P6GL6A2F34XN6P5R3NEEC6NM4VT4B57EWPX7GA3KFDXYY7XHVJI
-#::: NVMWWLVGV36WDAKUCN3EP4N72GFUPMIEEK4ZGO5Z24CSBC7XLHN :::: NAILARA AMOS :::
-# :: BSTBTFIFDYER3TXYH6HYOVSGGA62WG7QA33UGDO76VUGLTJSJKAY :: CODE SIGNATURE ::
+#QCF4IAUAUBT2W4YFYQIVRJEZKDRTSGIIHX4EKGZUED7ZG4HE542PRU3SNZOACMNQQPXE5PPFTG6JC
+#::: FDEXHAD4NZY6MOB5QW5TKPZPVP677JULN6SS3JGI7KPR5F6FDTR :::: NAILARA AMOS :::
+# :: CNHALJBQ3D6JH3VZFIIMHDFK2IM63BAVTXVAYGCIUTIFVULKBKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
