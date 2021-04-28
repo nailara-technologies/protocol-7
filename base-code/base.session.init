@@ -27,7 +27,7 @@ if ( not defined $fd ) {
 
 ##[ VALID USERNAME ? ]########################################################
 
-if ( defined $name and $name !~ $re->{usr} ) {
+if ( defined $name and $name !~ $re->{'usr'} ) {
     <[base.log]>->(
         0,
         "< base.session.init > value '$name' for parameter name is not valid"
@@ -58,25 +58,27 @@ my $initialized = $mode eq qw| server | ? 1 : 0;
 my $id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'session'},
         'val_ref' => \{
-            'start_time'     => <[base.time]>->(5),          ## ntime ## [LLL]
-            'protocol'       => $protocol,
-            'handle'         => $fd,
-            'link'           => $data{'handle'}{$fd}{'link'},
-            'mode'           => $mode,
-            'state'          => 0,
-            'paused'         => 0,
-            'complete'       => 1,
-            'shutdown'       => 0,
+            'start_time' => <[base.time]>->(5),             ## ntime ## [LLL]
+            'protocol'   => $protocol,
+            'handle'     => $fd,
+            'link'       => $data{'handle'}{$fd}{'link'},
+            'mode'       => $mode,
+            'state'      => 0,
+            'paused'     => 0,
+            'complete'   => 1,
+            'shutdown'   => 0,
+            'read-mode'  => qw| line |,  ## line | bytes ## [ protocol state ]
+            'read-to-fh' => undef,       ##  bypass buffer when set  ##
             'initialized'    => $initialized,
             'flush_shutdown' => 0,
             'user'           => $name,
-            'size'           => {
-                'buffer' => {
-                    'input'  => $data{'size'}{'buffer'}{'input'},
-                    'output' => $data{'size'}{'buffer'}{'output'},
+            qw| size |       => {
+                qw| buffer | => {
+                    qw| input |  => <size.buffer.input>,
+                    qw| output | => <size.buffer.output>,
                 }
             },
-            'buffer' => { 'input' => '', 'output' => '' }
+            qw| buffer | => { qw| input | => '', qw| output | => '' }
         }
     }
 );
@@ -254,7 +256,7 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 return $id;
 
 #.............................................................................
-#Y6UQWBFAH3WTPS5GNYNFVMOFIFRPG4EPRSGD2WZPG7XBEGJNPDQWVHQWTXK7Z5SJAFXOOC3DYNYSY
-#::: PL64R4X64AT57QX27DDZ4W5MDJOJOABI7K7C3AMT3Y3OFKY4WLS :::: NAILARA AMOS :::
-# :: MJMY6X3ED3CQE2RWOWDBSNTYPZMDASHZOB5MHLGLJV3U62R7N4CI :: CODE SIGNATURE ::
+#SZPM5EIO6BVLNWDIYB3C25VVJE5QQH6U4CGM55DTG4NDOLPM4AIIJCW4ZAII772JUOA5CCHETNKKS
+#::: IC4EN3XGTZ7FCBU47HDPHIXRQETSQGCK2AT7X4AK2XRAJJZEIGT :::: NAILARA AMOS :::
+# :: KQTTPNNQYMPEHAYINYI65B5ZORLUAQG733WHJKWEFKV7FFMVPUAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

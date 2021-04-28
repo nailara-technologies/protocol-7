@@ -72,6 +72,12 @@ if ( $session->{'binary-mode'} ) {
         $session->{'binary-mode'} = 0;
         delete $session->{'binary-input'};
     }    ## else not defined $binary_state ..,
+
+} else {    ##  line-mode  ##
+
+    ##  calculate and store average command line length  ##
+    <[base.session.calc_cmd_stats]>->( $id, $input );
+
 }
 
 ##[ LIMITING REQUEST SIZE ]###################################################
@@ -176,7 +182,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 return 0;
 
 #.............................................................................
-#KMESY5ES55X32ZKARSTEIAXYKSVMLGPS2OE6MJ5UYXI3FLVCKDNLWQFRQLYVAJKUKVSCGVSXZNNE6
-#::: JLDVKN6YCUIDZ7MZ2U2UVOAACULREKW2EHU72TAM33UK5YGZMKE :::: NAILARA AMOS :::
-# :: 5FOYVYD5E2HXXBZAI3VRTEXLDJBE5UC62YFE6GDB5RJDPW27NACQ :: CODE SIGNATURE ::
+#RVRE5UNYZHCZKKVBJYMDAOBWDD66THWLI7HJAPXFNK3ZUX7TH7Q5QEEAQPTKOUBFPIRZZXIQHTCVE
+#::: KRSGGZLQATN2KSGGZJ2HSZ3VLWGWSK36BFGPYZJR7Y4X5KMRO7L :::: NAILARA AMOS :::
+# :: Y3BJGPAGG7GBJ5ZEVN3VEEQHFYZWUKDVSTS5BYJ4VHP36RO7UWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
