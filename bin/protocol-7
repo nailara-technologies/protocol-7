@@ -53,7 +53,7 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
 
 } else {
     if ( !@ARGV or not defined $data{'system'}{'zenka'}{'name'} ) {
-        $data{'system'}{'zenka'}{'name'} = '<stdin>';
+        $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
     }
     $PROGRAM_NAME = "protocol-7.$data{'system'}{'zenka'}{'name'}";
     $RS           = "\n";
@@ -73,7 +73,7 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
     }
 }
 
-$code{'log.noerr'}->("done.");
+$code{'log.noerr'}->(qw|  done. |);
 close;
 exit;
 
@@ -83,9 +83,9 @@ sub prepare_subs {
 
     ## SOME BASIC SECURITY HARDENING ##
 
-    $ENV{'PATH'} = '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin';
+    $ENV{'PATH'} = qw| /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin |;
     delete @ENV{qw| IFS CDPATH ENV BASH_ENV |};
-    $ENV{'LC_NUMERIC'} = 'en_US.UTF-8';
+    $ENV{'LC_NUMERIC'} = qw| en_US.UTF-8 |;
     umask(0027);    ## <-- restricted, set manually .., ###
 
     BEGIN {
@@ -1208,7 +1208,7 @@ sub prepare_subs {
                 ->(": reading source file list over $method ..,");
             my $remote_data_str
                 = $code{'base.httpc.remote_file'}
-                ->( '.v7/file-list/base', \@http_src_base_urls );
+                ->( qw| .v7/file-list/base |, \@http_src_base_urls );
             if ( defined $remote_data_str ) {
                 my $read_len = length($remote_data_str);
                 @subroutine_names = split( m|\n|, $remote_data_str );
@@ -2103,7 +2103,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#Z7J7DKBWOJCNYAI3SLE7GZHL4KSDP2JDF4JR5YHFS6VQJQ4J2P2JUKFAJ3QH2IPIBWLX7HHVUYKO6
-#::: RH4RK36NVRTZJBB2JKHEYVGRXQPRJDBOO477R6MUQWBPUUKLD5B :::: NAILARA AMOS :::
-# :: HK2JPS7HOWXM7ZU44HZX35J5FVVN4E64EA5EZ6QPDDQ2GHWLRMBI :: CODE SIGNATURE ::
+#OT2O7572VYMD5L4AJDNNDGSAFBUHGSBFE7MWXJOQOWBUHCPIT5XHS7MIYFOZ3RTBNWMVWSNEBDHUC
+#::: IYV57LK5OUK4XT5GRFZPJ5TFFNZQRCMIEEXHZGHCDBSYBCLV6ZC :::: NAILARA AMOS :::
+# :: F6MVCIIKNRL4YFC3T5JVM4GMV62SOLG46SWLHP6MAY6J7BA266BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

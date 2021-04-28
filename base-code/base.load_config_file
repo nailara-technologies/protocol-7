@@ -2,21 +2,24 @@
 
 # name  = base.load_config_file
 
-my $cfg_name   = shift;
+my $cfg_name = shift // '';
+return warn 'expected <configuration_name> parameter <{C1}>'
+    if not length $cfg_name;
 my $zenka_name = <system.zenka.name>;
 my $cfg_level  = <base.modules.cfg_level>++;
 my $max_level  = <system.zenka.initialized> ? 1                 : 2;
 my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
-my $l_str      = $cfg_level                 ? ': ' x $log_level : '';
-my $u          = length($cfg_name) > 20     ? ''                : 'uration';
+my $log_str    = $cfg_level                 ? ': ' x $log_level : '';
+my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : 'configuration';
 my $log_msg
     = $cfg_name eq "zenki/$zenka_name/config"
-    ? sprintf( '%s: loading %s zenka description.,', $l_str, $zenka_name )
-    : $l_str . "loading '$cfg_name' config$u .,";
+    ? sprintf( '%s: loading %s zenka description.,', $log_str, $zenka_name )
+    : $cfg_name =~ m|/[^/]+/| ? "${log_str}loading cfg.: ,./$cfg_name"
+    :                           "${log_str}loading $cfg_str : $cfg_name";
 
 <[base.log]>->( $log_level, $log_msg );
 
-# store additional config filenames for later reload [rewrite when problematic]
+# store additional config filenames for later reload [rewrite if problematic]
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
 my $already_pushed = 0;
 map { $already_pushed = 1 if $ARG eq $cfg_name }
@@ -24,7 +27,7 @@ map { $already_pushed = 1 if $ARG eq $cfg_name }
 push( @{<system.config.reload_order>}, $cfg_name )
     if $cfg_name ne <system.path.rel.cur_zenka_cfg> and !$already_pushed;
 
-<base.config_parser.cfg_type> = 'exec_cfg'
+<base.config_parser.cfg_type> = qw| exec_cfg |
     if not defined <base.config_parser.cfg_type>;
 <base.config_parser.cfg_name> = $cfg_name
     if not defined <base.config_parser.cfg_name>;
@@ -32,11 +35,13 @@ push( @{<system.config.reload_order>}, $cfg_name )
 my $status = <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
         <[base.get_file.aref]>->(
-            join( '/', $data{'system'}{'conf_path'}, $cfg_name ),
+            join( qw| / |, <system.conf_path>, $cfg_name ),
             sub {
                 $cfg_name =~ s|^.+/||g;
-                <[log.error]>
-                    ->("unable to load '$cfg_name' config [ \l$OS_ERROR ]");
+                <[logs]>->(
+                    0,         "unable to load '%s' config [ %s ]",
+                    $cfg_name, <[base.format_error]>->( $OS_ERROR, -1 )
+                );
                 <base.modules.cfg_level>--;
                 return undef;
             }
@@ -49,7 +54,7 @@ return 1 if <base.parser.config.errors>;
 return $status;
 
 #.............................................................................
-#YBH4M6TNFEIHOZBSGJB2UDHQEMMPKISCLZQ73ISBGJLFCCW43AV7RZPK7WYICZYKKGAWIARTKOZQY
-#::: OWNXDNPHXCSV77C5ENWWZJJY7PUQAZSMWBCTNGIQRSDFUZNDEOG :::: NAILARA AMOS :::
-# :: QSRF6DUW3BXVO2FXTJXKILOHC4PRH3UW74XWA3LYUF6UU7MUBWCY :: CODE SIGNATURE ::
+#CNVYNEOGIZBFLHMM2WVIWFNB7QDPLA3VBICWB4ROTNIWZQL5RRO2327JS65UMQLMLFK22PIYHWTYM
+#::: FWIX23YAITANWU3IALROFB6CSATSS6ETKY5JOT4BUTWHNZAD5XQ :::: NAILARA AMOS :::
+# :: WD7WB5AZERWAQWXGE2M5X2WT32PF67ZZ3AGPKJG7S6WKMJXF4SDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
