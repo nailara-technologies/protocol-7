@@ -2,8 +2,9 @@
 # name = httpd.request_handler
 # note : return 2 to close connection
 
-my $id          = $_[0]->w->data;
-my $session     = $data{'session'}{$id};
+my $id      = $_[0]->w->data;
+my $session = $data{'session'}{$id};
+
 my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length>     || 1024 * 7 );
 my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 13 );
 
@@ -37,9 +38,14 @@ $session->{'http'} //= {
 };
 my $request = $session->{'http'}->{'request'};
 
-return 0 if $session->{'buffer'}{'input'} !~ s|^(.+\r?\n\r?\n)||s;
+return 0 if $session->{'buffer'}->{'input'} !~ s|^(.+\r?\n\r?\n)||s;
 
-$session->{'http'}->{'request'}->{'data'} = $1 // '';
+$session->{'http'}->{'request'}->{'data'} = $LAST_PAREN_MATCH // '';
+
+##  calculate and store average command line length  ##
+my $req_len = <[base.session.calc_cmd_stats]>->(
+    $id, \$session->{'http'}->{'request'}->{'data'}
+);
 
 my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
 
@@ -87,7 +93,7 @@ $session->{'meta'}->{'client_port'}    = $request->{'client'}->{'port'};
 
 $session->{'http'}->{'close'} = 0
     if defined $request->{'headers'}->{'connection'}
-    and lc( $request->{'headers'}->{'connection'} ) eq 'keep-alive';
+    and lc( $request->{'headers'}->{'connection'} ) eq qw| keep-alive |;
 
 if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
     my $handler_name = <http.handler>->{ lc( $request->{'method'} ) };
@@ -96,7 +102,8 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
     } else {
         <[base.log]>->(
             0,
-            "[$id] http [$request->{method}] handler defined + callback missing"
+            "[$id] http [$request->{method}] "
+                . "handler defined + callback missing"
         );
         <[httpd.send_error_page]>->( $id, 500 );
         return 2;    # Internal Server Error
@@ -109,10 +116,10 @@ if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
     return 2;    # Method Not Allowed
 }
 
-return 2;
+return 2;        ## <-- disconnecting client ##
 
 #.............................................................................
-#P6TE32XHKLYUAXZVPLXR2SGJ5DF2MBGVGJMXSLHBFFXDBOT6JVD37NLZ35VKXA2DN3CF32C3Y4AEK
-#::: 4MRLLVA6GTRNE5CESYEBHPIHUVSMD74ZPV2Y6YYD5FGQQISW26L :::: NAILARA AMOS :::
-# :: SPVLQJ3ZGN5GTDTTCENBHHLSFOJMVYLTGJ3PDNFHAPWLUCQ7J2BQ :: CODE SIGNATURE ::
+#XEVZATHU5IY5ZFYWX5LQ2RUNFWV5FPOVXMXN4YTJ27XKDLK3FWWICSMKMHTBPMOQZYJ7RRUA7RZOG
+#::: DOPC6ABMERMWINMDPV4LZSRWW76N4H7YOZUZBUSQQFQQEWFGB2V :::: NAILARA AMOS :::
+# :: 2H3MDIJKETX2Y27PVDW33GDT6KRHUMSHJUG3JF6GHLOVZAPKNKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

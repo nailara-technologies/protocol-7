@@ -84,6 +84,10 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
     return 0;    ## comand complete ##
 }
 
+##  calculate and store average command line length  ##
+
+<[base.session.calc_cmd_stats]>->( $id, $input );   ## updates for protocol ##
+
 ##[ MULTI-LINE ]################################################################
 
 ## checking for multi-line commands ###
@@ -1038,7 +1042,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#CKBT5PYFNSRGEECPL6VDOKXHL2V3ORHQ32WJV4Q6BR67MG4VRJA352IWLZZKTEERBDEVQTV325CDW
-#::: ZTIHTUQVUOFDSMXTNIV5H6S56M5TG2UOEY7OWSD3H7BAQIZXYXV :::: NAILARA AMOS :::
-# :: GDFXCZYB5REXAHQEJTX7GTA46FLLHKDUZ2ZZA6U3E5MRBHNU4GCY :: CODE SIGNATURE ::
+#U47WEC7XNRJBMMG45CJXXRZF3W3ATF62GGNZWJKVK3BENV7W44Y4AFK7TT2ZFYGYDK5EPDC3CWD2O
+#::: HN4Z2XBJSFFUWNSKDMCPCTF7G4HTADCXQKNOJT6P2SRT3KJTKIH :::: NAILARA AMOS :::
+# :: EWL5MTR4X2LSHLQMXSDGF2AZPTTDM22FFW5IXEMEBZUPKKWWLGAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
