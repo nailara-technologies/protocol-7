@@ -4,23 +4,23 @@
 # descr = write data to client
 # args  = filehandle, data [string]
 
-if ( fileno $_[0] ) {
-    my $cid = $data{'handle'}{ $_[0] }{'cid'};
+if ( fileno $ARG[0] ) {
+    my $cid = $data{'handle'}{ $ARG[0] }{'cid'};
 
-    if (    defined $data{'handle'}{ $_[0] }
+    if (    defined $data{'handle'}{ $ARG[0] }
         and defined $cid
         and defined $data{'session'}{$cid}{'output'}
         and defined $data{'session'}{$cid}{'output'}{'handler'} ) {
         if (defined &{ $code{ $data{'session'}{$cid}{'output'}{'handler'} } }
         ) {
             <[base.s_write]>->(
-                $_[0],
+                $ARG[0],
                 $code{ $data{'session'}{$cid}{'output'}{'handler'} }
-                    ->( $_[1] )
+                    ->( $ARG[1] )
             );
         } else {
             <[base.log]>->(
-                0, "[$_[0]] output chain handler is not valid. [ deleted ]"
+                0, "[$ARG[0]] output chain handler is not valid. [ deleted ]"
             );
             $data{'session'}{$cid}{'output'}{'handler'} = undef;
 
@@ -29,23 +29,22 @@ if ( fileno $_[0] ) {
             return 1;
         }
     } else {
-        <[base.s_write]>->( $_[0], $_[1] );
+        <[base.s_write]>->( $ARG[0], $ARG[1] );
     }
 
     if ( defined $cid ) {
-        $data{'session'}{$cid}{'bytes'}{'in'}
-            += length( $_[1] );
+        $data{'session'}{$cid}{'bytes'}{'in'} += length( $ARG[1] );
     } else {
-        $data{'handle'}{ $_[0] }{'bytes'}{'in'} += length( $_[1] );
+        $data{'handle'}{ $ARG[0] }{'bytes'}{'in'} += length( $ARG[1] );
     }
     return 0;
 } else {
-    <[base.log]>->( 0, "[$_[0]] cannot send to socket" );
+    <[base.log]>->( 0, "[$ARG[0]] cannot send to socket" );
     return 1;
 }
 
 #.............................................................................
-#VXV5TOC7EMNXJX3KTONBTYII33NK5OFXDTQ3YYLKDWQPNSSRKWT67YK7CR4RYNAFEHPLYHZ6KH4UQ
-#::: YSTRFSAHFM24WPKTQM7TXPED34JPH25VPX57XZNXKH6AKGETZHN :::: NAILARA AMOS :::
-# :: Q7PJQ3UYOHVUE6MKXCNXAC4N5YV3USMPBMBNQOEY3YANFTMIMSCY :: CODE SIGNATURE ::
+#CK3I3LRH2VRORL5JBG3EF5Z6MFPLS24VVYDRVTH3B2662Q6UOKMJDQPWXJPRFR6PB4DN22SF3NKDA
+#::: 3YNQI3JC2Y6XOVQKTLEVCOMPIW6Z4IK5RUKO4KIYVMPWRYCXOSE :::: NAILARA AMOS :::
+# :: BWSBJFVBCXUDVHI34J4ZXVNP2BBTIZ2DA5FQ255KMU5LTAJAE2BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

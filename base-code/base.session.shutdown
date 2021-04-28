@@ -15,7 +15,7 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
 } else {
     my $session       = $data{'session'}{$sid};
     my $user          = $session->{'user'};
-    my $user_exit_cmd = $session->{'user-closing'} || 0;
+    my $user_exit_cmd = $session->{'user-closing'} // 0;
 
     my $shutdown_msg = $user_exit_cmd ? "TRUE $msg" : "!TERM! $msg";
 
@@ -25,12 +25,12 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
     }
     my $lmsg = $msg eq 'session closed' ? '' : " [ $msg ]";
     <[base.log]>->( 1, "[$sid] session shutdown$lmsg" );
-    $session->{'buffer'}{'output'} .= "$shutdown_msg\n";
-    $session->{'shutdown'} = 1;
+    $session->{'buffer'}->{'output'} .= "$shutdown_msg\n";
+    $session->{'flush_shutdown'} = 1;   ##  allow output write to complete  ##
 }
 
 #.............................................................................
-#UE3T4WAXPENSEQIPE5WXOVOQURZMVLHBO5MFHXSPNWUGR4YKMH4LKF2POLDVPYAUOBEPL3UKFBN6I
-#::: CRIEXK73KORQ35AVY2IN2BUOZ3NP7BB4DKKOC4Y5KNQZFQ7A7PB :::: NAILARA AMOS :::
-# :: 5I5PYVSLQWM255A4LHLBFSETDQUA2SMMPBFBR6Y6F7H5GIBCF2DI :: CODE SIGNATURE ::
+#CXO3JM2T5BHCEXKKATWY74U27EOSVMNNFPW3F3VDVIHNXZYVQ3HI2I7M6JCRDEGZTIDKA75KDALJS
+#::: 3EPQI3ANQSLDMNINXQ5RM6JNTIZBQIQYDN3UVSMAYATIIE3KTTV :::: NAILARA AMOS :::
+# :: 5U3VD3ROAYPXJBDIXL5OW6EJMBZAUXRYUXYFEIRIR2IVNWYYDODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

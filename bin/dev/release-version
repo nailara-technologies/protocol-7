@@ -101,10 +101,10 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 
         if ( $mode eq qw| rel_ver | ) {
 
-            print "$fg:\n${fg}:: ${CT}calculated"
+            print "$fg:$rst\n${fg}:: ${CT}calculated"
                 . " release version$rst$fg : $bg${CT}";
             say STDERR $release_version;
-            say "$fg:$rst";
+            say "$rst$fg:$rst\r";
 
         } elsif ( $mode eq qw| msg_str | ) {
 
@@ -116,7 +116,7 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
                 . "$bg${CT} $release_version $rst$fg]\n$fg:\n::$rst";
             system( qw| git tag |, "$release_version", '-m', $tag_msg, @ARGV )
                 && die "${no}::<< ! >>:\n\n";
-            print ":\n\n";
+            print "$fg:$rst\n";
 
         }
     } else {
@@ -141,7 +141,7 @@ sub ntime_dec {
 }
 
 #.............................................................................
-#A7TVIKSK37ASBLYIQDBTISC2TF4CDOOKWMJ6M4HHOCT5ICFPXKHYSEYIZJEIXYZOA25NFEXVLE33I
-#::: CVBBHZZT3INGIJUT53M2HU6J6T5R37APYM62IOXR4TGDADV364M :::: NAILARA AMOS :::
-# :: ONXK3FU4DRHXETEFPGXW7ND7TUIBFSQCGGGBSJQB2J7F55LHDUCI :: CODE SIGNATURE ::
+#7PS5EWSRVUSB4TWHFZRTD5AEDUT3FMIXKURO4JVLGTBUTC3Y2NHLLRAW3EEOJRDLF4SEDLUUZFACC
+#::: L4MBVCFDLZTMVBLK2WOUAXALPW24ODNDDXRCZE7U2OM6QOD7L2R :::: NAILARA AMOS :::
+# :: CZUIT46QAJV53UALV2MLTQH354G5KN5UES4WDG74RW3OKZEDM4CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
