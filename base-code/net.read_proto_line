@@ -1,0 +1,125 @@
+# >:]
+
+# name  = net.read_proto_line
+# descr = read a protocol line to buffer or handle
+
+my $id = shift;
+warn 'expected session_id parameter <{C1}>' if not defined $id;
+
+return 2 if not defined $data{'session'}{$id};
+my $session = $data{'session'}{$id};
+my $target  = shift // \$session->{'buffer'}->{'input'};
+
+warn 'target parameter expected to be '
+    . 'scalar_ref session id or filehandle <{C1}>'
+    if ref($target) ne qw| SCALAR |
+    and $target !~ m|^\d+$|
+    and not length fileno($target);
+
+my $protocol = $session->{'protocol'};
+
+my $protocol_stats = $data{'protocol'}{$protocol}{'statistics'}
+    //= { 'line-reads' => 0, 'read-iterations' => 0 };
+
+my $handle_href = $data{'handle'}{ $session->{'handle'} };
+
+$handle_href->{'paused'} //= 0;
+
+my $bfs        = length( $session->{'buffer'}->{'input'} ) // 0;
+my $size_left  = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+my $start_read = $bfs;    ##  ignore start position for endline match  ##
+
+my $avg_cmd_length        ##  tracked minus endline  ##
+    = defined $session->{'command'}->{'average-length'}
+    ? $session->{'command'}->{'average-length'}
+    : $protocol_stats->{'average-command-line-length'} // 42;
+
+my $read_len = $size_left < $avg_cmd_length ? $size_left : ++$avg_cmd_length;
+
+my $read_bytes_total = 0;
+my $read_iterations  = 0;
+my $endline_pos;
+
+while ( $size_left
+    and $endline_pos
+    = index( $session->{'buffer'}->{'input'}, "\n", $start_read ) == -1 ) {
+
+    $read_len = $size_left if $size_left < $read_len;    ##  decrease  ##
+
+    my $read_bytes = <[base.s_read]>->(
+        $session->{'handle'}, \$session->{'buffer'}->{'input'},
+        $read_len,            $bfs
+    ) // 0;
+
+    $read_iterations++ if $read_bytes;    ##  for average calculation  ##
+    $bfs              += $read_bytes;
+    $size_left        -= $read_bytes;
+    $read_bytes_total += $read_bytes;
+
+    return 2 if $read_bytes == 0;         ##  client gone  ##
+}
+
+$session->{'last-bytes-read'} = $read_bytes_total;
+
+$handle_href->{'bytes'}->{'in'} += $session->{'last-bytes-read'};
+
+$protocol_stats->{'read-iterations'} += $read_iterations;
+$protocol_stats->{'line-reads'}++;
+
+if ( $endline_pos == -1 and $size_left <= 0 ) {
+    my $msg = 'input buffer size exceeded [ and no endline ]';
+    $session->{'buffer'}->{'output'} .= "!TERM! $msg\n";
+    <[base.logs]>->( 1, "[%d] %s [%d]", $id, $msg, $bfs + $read_bytes_total );
+
+    return 2;    ## <-- closing connection ##
+
+} elsif ( $endline_pos == -1 and $size_left > 0 ) {  ##  read not complete  ##
+
+    return 1;    ##  request not complete  ##
+
+}
+
+if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
+
+    return 0;                            ##  request completed  ##
+
+} elsif ( $target =~ m|\d+| ) {    ##  session id target node  ##
+
+    my $line_str                   ##  removing line from input buffer  ##
+        = substr( $session->{'buffer'}->{'input'}, 0, $endline_pos + 1, '' );
+
+    if ( not exists $data{'session'}{$target} ) { ##  notify session [LLL]  ##
+
+        ##  put back data  ##
+        $data{'session'}{$target}{'buffer'}{'output'} .= $line_str;
+
+        my $msg_template = '[%d] target session not found [%d]';
+        <[base.logs]>->( 2, $msg_template, $id, $target );
+        return 0;
+
+    } else {
+        $data{'session'}{$target}{'buffer'}{'output'} .= $line_str;
+    }
+
+} else {    ##  target is filehandle  ##
+
+    my $line_str
+        = substr( $session->{'buffer'}->{'input'}, 0, $endline_pos + 1, '' );
+
+    if (not length fileno($target)    ##  notify session [LLL]  ##
+        or !<[base.s_write]>->( $target, $line_str )
+    ) {
+        ##  put back data  ##
+        $data{'session'}{$target}{'buffer'}{'output'} .= $line_str;
+
+        my $msg_template = '[%d] target filehandle is not available';
+        <[base.logs]>->( 2, $msg_template, $id, $target );
+        return 0;
+    }
+}
+
+#.............................................................................
+#NOLT4QEDEXWEI5DTVPOSNVG4WXTHTXHOFYTNUVJTFTTVH4VP5QRY4QVBYXZYPS55Y4HARORPXZY3Y
+#::: OS5NE5ME5YO7D5NBIFNQEJMJV3NHBV6N6KH4XOORFLNEBT6PYJQ :::: NAILARA AMOS :::
+# :: VIEYP7HMHYFRQVGL5HKBBZI4SXLT26QLJ6XFU4NGKGDASFTWCECI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
