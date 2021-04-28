@@ -9,7 +9,9 @@ my $fd = $_[0]->w->fd;
 if (   not defined $id
     or not defined $data{'session'}{$id}
     or defined $data{'session'}{$id}
-    and $data{'session'}{$id}{'shutdown'} // 0 ) {
+    and (  $data{'session'}{$id}{'shutdown'} // 0
+        or $data{'session'}{$id}{'flush_shutdown'} // 0 )
+) {
     $_[0]->w->cancel; ## removing from event management ##
     $id //= '---';    ## <-- !!! session p7-log ?                        [LLL]
     my $type = defined $data{'session'}{$id} ? qw| removed | : qw| closing |;
@@ -21,38 +23,44 @@ if (   not defined $id
 
 my $session = $data{'session'}{$id};
 
-my $bfs = length( $session->{'buffer'}->{'input'} ) // 0;
-
-if (not fileno $session->{'handle'}
-    or !<[base.s_read]>->(
-        $session->{'handle'},
-        \$data{'session'}{$id}{'buffer'}{'input'},
-        $data{'size'}->{'buffer'}->{'input'},
-        $bfs
-    ) // 0
-) {
-    $session->{'shutdown'} = 1;
+if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
+    $session->{'last-bytes-read'} = 0;
+    $session->{'flush_shutdown'}  = 1;
     $_[0]->w->cancel;
+    return;
 }
 
-my $n_bfs      = length( $session->{'buffer'}->{'input'} ) // 0;
-my $read_bytes = $session->{'last-bytes-read'} = $n_bfs - $bfs;
-$data{'handle'}{ $session->{'handle'} }->{'bytes'}->{'in'} += $read_bytes;
+$data{'handle'}{ $session->{'handle'} }->{'paused'} //= 0;
 
-$bfs = $n_bfs;
+#    'read-mode'      => 'line',  ## line | bytes ## [ protocol state ]
+#    'read-to-fh'     => undef,   ##  bypass buffer when set  ##
 
-if ( $bfs > $session->{'size'}->{'buffer'}->{'input'} ) {
-    my $max_len = $session->{'size'}->{'buffer'}->{'input'};
-    my $err_msg = 'input buffer size exceeded';
-    truncate( $session->{'buffer'}->{'input'}, $max_len );
-    <[base.log]>->( 0, "[$id] $err_msg. [ $bfs > $max_len ]" );
-    <[base.session.shutdown]>->( $id, "$err_msg [ max size ${max_len}B ]" );
-} elsif ($bfs) {
-    $_[0]->w->start;
+my $return_code = <[net.read_proto_line]>->($id);    ##  read one line  ##
+
+if ( $return_code > 1 ) {    ##  disconnect  ##
+    $session->{'last-bytes-read'} = 0;
+    $session->{'flush_shutdown'}  = 1;
+    $_[0]->w->cancel;
+} else {
+
+    ##  pause session input when no size left or target not reading  ## [LLL]
+
+    my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
+    my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+
+    if ( $size_left > 0 ) {
+
+    $_[0]->w->start ;  ##  when == 0 : set timeout  ##  [LLL]
+
+    } else {
+        warn "<< input paused >> size left : $size_left";
+     }
 }
+
+return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
 #.............................................................................
-#IFHX4SKWM4HEJZLKKKQNI5QMOP2ANIARNVIZG2GEM4ARV7N33GGWQDFI4ZSWV6D3LDVFMACMY7FL6
-#::: 3NARWEH2ICU2ZBGOVRL3CU5BOLFOGBUTQI575DBVYY6TGROF23H :::: NAILARA AMOS :::
-# :: OAYZOLUKXEZ6PFPDQPGI2FGNGIWV76QJTL6AUWPYCAI7TNE4FMBA :: CODE SIGNATURE ::
+#2WAU62X4ADSQTI4KTDUEGPE5Q42YZ4K4CDSHC2PCJL5FW76JGWUGY4VVEMCAGWN363T53FMXT2AFC
+#::: QQ5BEGA5O5HI7EX5TUEDPI3PBHBEPTQZB4QBXRYXBWGXUFTMVZX :::: NAILARA AMOS :::
+# :: WEHGPGICATJRBH4DXGJ776CR3MVGSQEVRT6SSJ7NLY44VA2G4MDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
