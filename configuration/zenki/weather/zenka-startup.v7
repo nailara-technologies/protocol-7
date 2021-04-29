@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'weather' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+start.on-demand = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#3PAV7I6WTU2PRC2VSALGBJCKWS4NGMDERYMNKFNZD4FFF4ARV5PKBMRTA2R6BRNIBLNBUVAIG7LG6
+#::: WFEZAVVKCTYNRNL22FYVRHEKOGRH35SI5CXRT4MPHTIRX547CDL :::: NAILARA AMOS :::
+# :: DF2EHFTQP2V62HXSDPT4MGMLQ3WNTUBDUXN3Q3LKSXS5YKKW4QDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

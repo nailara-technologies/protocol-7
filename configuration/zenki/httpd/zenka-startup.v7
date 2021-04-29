@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'httpd' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+
+: v7-init :
+  start_mode = stdin-zenka
+  max_concurrency = 1
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#4DOCM2332ET36WQDTYLEAK2QF5HBVNLT4OYR46TK2JWQ5BBQJ3D2Q65HE4WBF5A2372TUBDSXVJD6
+#::: J4EQKXCNOCVFBXUICASOQSPJSYJF5UTK3JCIZ3GO5X6SM2CKGSX :::: NAILARA AMOS :::
+# :: Z6GXANAXO37UIAVZ2SRQZRLXJJQUZIQHT4TLSLF5UHVE6S32F4CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

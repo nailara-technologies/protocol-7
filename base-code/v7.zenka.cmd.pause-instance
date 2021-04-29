@@ -1,0 +1,37 @@
+# >:]
+
+# name  = v7.zenka.cmd.pause-instance
+# param = <id>
+# descr = send STOP signal to instance processes
+
+my $instance_id = $$call{'args'};
+
+return { 'mode' => 'false', 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ m|^\d+$|;
+return { 'mode' => 'false', 'data' => "instance not found." }
+    if not exists <v7.zenka.instance>->{$instance_id};
+
+my $instance = <v7.zenka.instance>->{$instance_id};
+
+$instance->{'paused_status_timer'}
+    = <[v7.stop_heartbeat_timer]>->($instance_id);
+
+my $parent_pid = <v7.zenka.instance>->{$instance_id}->{'process'}{'id'};
+my @pids
+    = ( $parent_pid, @{ <[v7.sub-process.get_children]>->($parent_pid) } );
+
+my $count = kill 'STOP', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 0, "instance $instance_id paused. [ $count process$es ]" );
+
+return {
+    'mode' => 'true',
+    'data' => "$count process$es paused (SIGSTOP)"
+};
+
+#.............................................................................
+#TBTACHXVP74DERJIHVDUQKA6OREUYRXQ2F4LJACQBGRN7Y4VRAVCWQCHILAB3D57V43BH3MQJH6JA
+#::: XRPT7JEO3EOAPKOL6YQEC5BNHY3C73HNNIFIKSUEL6YAND3QBL5 :::: NAILARA AMOS :::
+# :: XOT4RW7CFB6ESSJRSGOETL7NGMJAFEI4OJRC6PL4IYWNP24U5EBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

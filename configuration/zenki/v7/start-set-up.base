@@ -1,0 +1,40 @@
+
+  .:[  'basic' : defines a basic ['v7'] zenka startup configuration ]:.
+
+.: globals :.
+
+  zenki.enabled  = cube p7-log cube-13 zulum index system events nodes
+# zenki.disabled =
+
+.: zenki :.
+
+# specific configuration imported : zenki/<zenka_name>/zenka-startup.v7 ###
+
+  - dist-upgrade
+
+      max_concurrency     = 1
+      restart.disabled    = 1
+      heartbeat.disabled  = 1
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+### external program example ###    [ supports '<X-11-user>' from 'X11-vars' ]
+
+  - namesrv
+
+      max_concurrency = 1
+      dependencies = cube
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = /usr/local/bin/namesrv
+        exec_usr = root
+
+#.............................................................................
+#FFETMERS6UYVISRNHF56WVPWSBOBU7WGZMZKTBRVXO3WMQIVADDJPQA7FJKD53KV3P3BOXSXR3W7W
+#::: NVKLAOOROTLOHHQD6S3LGNQ262RTLQDASPDGMYQH4UEPFOKTS7A :::: NAILARA AMOS :::
+# :: T6VBTALVBAYZZMBX2P7QKXH4PIKSDSDI7WQ2CVLQWYXNYK2RC4DY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

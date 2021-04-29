@@ -1,0 +1,23 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'rss-ticker' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube content
+max_concurrency   = 1
+inherit_subname   = 1
+heartbeat.timeout = 42
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#YLYE2BRMWTUF6JVCZIAD3EKM54UUU3WTS7K3O7VBYRSUOGUVD7KFJ3MDSUGEFWSJCMI4COEREIOZ2
+#::: DUQHRYM6LZBPSJ3DNPBRY2XTBT56RH66TC5K7SSE4S76PEZOCCN :::: NAILARA AMOS :::
+# :: 2XYGFVFHIYMIK5GQQJBROL3PKYQTGFRZS3WW7O4SGHDTTHCSP6AI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

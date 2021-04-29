@@ -1,0 +1,72 @@
+# >:]
+
+# name = v7.callback.system-poweroff
+
+my $sysrq_file = '/proc/sysrq-trigger';
+
+my $poweroff_enabled = <system.system-poweroff.enabled>    //= 1;
+my $term_delay       = <system.system-poweroff.term-delay> //= 1.3787;
+my $poweroff_message = '<<< powering off host system >>>';
+return <[base.log]>->(
+    0, "[ system.system-poweroff.enabled = 0  <-- shutdown cancelled., ]"
+) if !$poweroff_enabled;
+
+#
+### [  alternative method  ] ### [  userspace commands  ]
+#
+
+if ( !-e $sysrq_file ) {
+    <[base.log]>->(
+        0, "[ '$sysrq_file' not found, halting system using userspace., ]"
+    );
+    if ( my $sync_bin = <[file.which]>->('sync') ) {
+        <[base.log]>->( 0, '<< syncing disks >>' );
+        qx| $sync_bin |;
+    } else {
+        <[base.log]>->( 0, "'sync' binary not found in path.," );
+    }
+    if ( my $systemctl = <[file.which]>->('systemctl') ) {
+        <[base.log]>->( 0, $poweroff_message );
+        qx| $systemctl poweroff |;
+    } else {
+        my $poweroff_cmd
+            = -x '/sbin/poweroff'
+            ? '/sbin/poweroff'
+            : <[file.which]>->('poweroff');
+        if ( !-x $poweroff_cmd ) {
+            <[base.log]>->(
+                0, "neither systemctl nor 'poweroff' command found.,"
+            );
+            <[base.log]>->( 0, ':. unable to power off - do not know how .' );
+        } else {
+            <[base.log]>->( 0, $poweroff_message );
+            qx| $poweroff_cmd |;
+        }
+    }
+}
+
+#
+### [  regular method  ] ### [  /proc/sysrq-trigger  ]
+#
+
+map {
+    open( my $sysrq_fh, ">$sysrq_file" )
+        or die "[ $sysrq_file : \l$OS_ERROR ]";
+    print {$sysrq_fh} "$ARG\n";
+    if ( $ARG eq 'e' ) {    # SIGTERM
+        <[base.log]>->( 0, "<<< TERM sent, KILL in $term_delay seconds >>>" );
+        <[base.sleep]>->($term_delay);
+        print {$sysrq_fh} "i\n";    # SIGKILL
+        <[base.log]>->( 0, $poweroff_message );
+    }
+    close($sysrq_file)
+} ( 's', 's', 'u', 'e', 'o' );
+
+#
+##
+
+#.............................................................................
+#6RJT7MKWTOB7HEKQXU2RHH6GRLKOYNR7ZKDZ4EJZJYRNAXHWFNPVOWRJ5XS3PF5RPGUBGPAJXWUWA
+#::: 3UZF2K3QEAMRCPB7LR6EO22BGKKAHPFIOZYJYNNOTBR775VDCFP :::: NAILARA AMOS :::
+# :: HYHOSMUW7CXCPVZOSTTN6PNDKSHGOBH6ZPA3NMX525BPKSBMWGBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+# >:]
+
+# name = v7.handler.set_initialized_reply
+
+my $reply      = shift;
+my $session_id = $reply->{'sid'};
+
+if ( $reply->{'cmd'} eq 'TRUE' ) {
+    $data{'session'}{$session_id}{'initialized'} = 1;
+    <[base.log]>->( 1, "bidirectional cube connection initialized. =)" );
+    <[base.log]>->( 2, ":. local cube session id is : $session_id ...:" );
+} else {
+    $data{'session'}{$session_id}{'initialized'} = 0;
+    my $err_reason = $reply->{'call_args'}->{'args'};
+    <[base.log]>->( 0, "initializing cube session was not successful.," );
+    <[base.log]>->( 2, ":. ['$session_id'] cube-reply '$err_reason' .," );
+}
+
+#.............................................................................
+#D6YDPXZ2GXNUFKBOWTJDL7AOPJCPELFSWLMLFTQNOD4VUR5D4PBLHJNKNMHU4WEQR3DA3GHLIINAG
+#::: 6PNM577KV2NSZMJZ3AR5YGUY3NBWGK5LEIF5VPFULN3PBBGTCUH :::: NAILARA AMOS :::
+# :: 3GYYHGYZ7EYBCLEBUFLFJV37RV7W5FPH6HQGQQRQZ6YUIFU64UDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

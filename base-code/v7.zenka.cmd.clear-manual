@@ -1,0 +1,46 @@
+# >:]
+
+# name  = v7.zenka.cmd.clear-manual
+# param = [zenka-name(s)]
+# descr = clear "manually stopped" status for zenki
+
+my $clear_zenki = $$call{'args'} // '';
+
+<v7.zenka.manually_stopped> //= {};
+return {
+    'mode' => 'false',
+    'data' => "no zenki have 'manually stopped' status"
+    }
+    if !keys( %{<v7.zenka.manually_stopped>} );
+
+my $cleared_count = 0;
+
+if ( !length($clear_zenki) ) {
+    $cleared_count = scalar keys( %{<v7.zenka.manually_stopped>} );
+    <v7.zenka.manually_stopped> = {};
+} else {
+    map {
+        return {
+            'mode' => 'false',
+            'data' =>
+                "no 'manually stopped' status exits for '$ARG', aborted!"
+            }
+            if not exists <v7.zenka.manually_stopped>->{$ARG}
+    } split / +/, $clear_zenki;
+
+    map { $cleared_count++ if delete <v7.zenka.manually_stopped>->{$ARG} }
+        split / +/, $clear_zenki;
+}
+
+my $s = $cleared_count > 1 ? 's' : '';
+
+return {
+    'mode' => 'true',
+    'data' => "'manually stopped' status cleared ( $cleared_count zenka$s )"
+    }
+
+#.............................................................................
+#LD5N7SBZBDDRXHEB2IIAZ2APV4VEUTIF3EHSODJOA444FVVMSDB26TX4NT5LSHP42OJWPEHA2I2QC
+#::: GWEURVCM3OFO3MXTEHJBA44L5PICNQ45HHZZLH52QVG6QQCK567 :::: NAILARA AMOS :::
+# :: JFCSCUTNFHLNNXRRAJOWGWV54ULVZP5V5GABM77VFBV6IUX7GWCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

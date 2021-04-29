@@ -787,7 +787,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
         } elsif ( my $v_id
             = <[base.zenki.ondemand_registered]>->($target_name) )
         {    # ondemand
-            my $target_user    = 'nroot';
+            my $target_user    = qw| v7 |;
             my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
             if ( defined $target_command
                 and $target_command =~ m|^([^\.]+)\.[^\.]+$| ) {
@@ -800,7 +800,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
-                $target_command //= 'nroot.start_once';
+                $target_command //= 'v7.start_once';
 
                 # ..,
 
@@ -860,10 +860,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
         {    # check if session initialized yet
             if (
                 (   not defined <system.zenka.mode>
-                    or <system.zenka.mode> ne 'cube'
+                    or <system.zenka.mode> ne qw| cube |
                 )
-                or $user eq
-                'nroot'    # [LLL] improve check if really nroot zenka
+                or $user eq 'v7'    # [LLL] improve check if really v7 zenka
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
@@ -938,9 +937,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or !<debug.skip_log_msg> )
                     and ( $cmd ne 'p7-log.append'
                     or !<debug.skip_log_msg> )
-                    and ( $user ne 'nroot'
+                    and ( $user ne qw| v7 |
                     or $cmd ne 'heart'
-                    or !<debug.skip_nroot_heartbeat> );
+                    or !<debug.skip_v7_heartbeat> );
             }
 
 ##[ LOGGING \ DEBUG MODE ]######################################################
@@ -1042,7 +1041,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 return 0;        ## command complete ##
 
 #.............................................................................
-#U47WEC7XNRJBMMG45CJXXRZF3W3ATF62GGNZWJKVK3BENV7W44Y4AFK7TT2ZFYGYDK5EPDC3CWD2O
-#::: HN4Z2XBJSFFUWNSKDMCPCTF7G4HTADCXQKNOJT6P2SRT3KJTKIH :::: NAILARA AMOS :::
-# :: EWL5MTR4X2LSHLQMXSDGF2AZPTTDM22FFW5IXEMEBZUPKKWWLGAA :: CODE SIGNATURE ::
+#YTX67NYPZPBTKJS3JY44MVNH3TH6SAAXAXNIHVGECTZ4CDSUJ3TXW2MO2XDQMKWBHXQSN57WPLDM6
+#::: LHXBMBOULE6BNORQRVLV2I4YGTR7HNJWBSFWKTJY4DCFMUIGR7N :::: NAILARA AMOS :::
+# :: TGUUJBDO35XZATU32GNM7XBCIOE3ZVYXYVO5RR3ZDFAQ3GQDVCCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

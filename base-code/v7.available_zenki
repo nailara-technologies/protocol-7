@@ -1,0 +1,34 @@
+# >:]
+
+# name = v7.available_zenki
+
+my @found_zenki;
+my $skip_re  = qr'(~|\.orig)$';  ## <-- skipping 'joe' and 'meld' backup files
+my $acfg_dir = <system.acfg_path>;
+
+my $dir_fh;
+unless ( opendir( $dir_fh, $acfg_dir ) ) {
+    warn "\l$OS_ERROR : $acfg_dir";
+    return ();
+}
+
+foreach my $zenka_name ( <[base.sort]>->( readdir($dir_fh) ) ) {
+    next if $zenka_name =~ m|^\.| or $zenka_name =~ $skip_re;
+    my $zenka_cfg_file = "$acfg_dir/$zenka_name";
+    $zenka_cfg_file = "$acfg_dir/$zenka_name/config" if -d $zenka_cfg_file;
+    next if !-f $zenka_cfg_file;
+
+    push( @found_zenki, $zenka_name );
+
+    my $zenka_desc_str = <[v7.extract_short_desc]>->($zenka_cfg_file);
+    <v7.zenki.available>->{$zenka_name}->{'short_desc'} = $zenka_desc_str;
+}
+close($dir_fh);
+
+return @found_zenki;
+
+#.............................................................................
+#GC6EBW6MNW5AAFD5HISHGZKUFFOU6UPLXYA6IHQ6JYT5WK3SX5AJXTGCSLZSZWRWGS5VZP4IPFUYE
+#::: VQIZIZLLTP6MHH3BR4ULCTN54NGBQ4V2SWJLPOT3HXMB7WCEPDH :::: NAILARA AMOS :::
+# :: VEHD57GA5FYAIE3CO7UTXEFWGN3BQFOCCYRJRV2SCO4YAV6TCSBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

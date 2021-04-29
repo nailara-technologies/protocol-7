@@ -1,0 +1,32 @@
+# >:]
+
+# name = v7.handler.restart-timeout
+
+my $params      = shift->w->data;
+my $restart_id  = $params->{'restart_id'};
+my $instance_id = $params->{'instance_id'};
+my $instance    = <v7.zenka.instance>->{$instance_id};
+my $zenka_name  = $instance->{'zenka_name'};
+
+if (    defined $instance->{'status'}
+    and $instance->{'status'} eq 'restart'
+    and defined $instance->{'restart_id'}
+    and $instance->{'restart_id'} eq $restart_id ) {
+    <[base.log]>->(
+        0, "<< restart timed out for $zenka_name instance $instance_id ., >>"
+    );
+    <[zenka.change_status]>->( $instance_id, 'error' );
+}    ## else { left-over restart timer ? }
+
+delete $instance->{'restart_id'};
+
+delete $instance->{'timer'}->{'restart_timeout'}->{$restart_id};
+delete $instance->{'timer'}->{'restart_timeout'}
+    if !keys %{ $instance->{'timer'}->{'restart_timeout'} };
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+#.............................................................................
+#BN5GEMAE2SCTOMANCJTG75AVKCNRQNQWTVDRBD5S7QUKROZLARHYGNIHGBBPMZ2KES74J5W6CQ6IA
+#::: 5SJ5NP4PQH5CKJF2YX5N3F4W2A3IVQP5LGM5YGP2TTL4EBYLFAD :::: NAILARA AMOS :::
+# :: IJG24J32IAQ6TMDAFNAJP45V3F6MZOOPQJYENG2WX5R6R6XHIACQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

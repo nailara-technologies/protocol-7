@@ -1,0 +1,435 @@
+# >:]
+
+# name = v7.handler.zenka_status
+
+my ( $instance_id, $status ) = @_;
+die 'no instance id specified' if not defined $instance_id;
+die 'no status submitted'      if not defined $status;
+if ( $status eq 'shutdown'
+    and not exists <v7.zenka.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        2, "instance $instance_id is not present [ status-skip ]"
+    );
+    return;
+}
+return <[base.log]>->(
+    2,
+    "zenka_status : no such zenka instance [ $instance_id ] <status:$status>"
+    )
+    if not exists <v7.zenka.instance>
+    or not exists <v7.zenka.instance>->{$instance_id};
+
+my $globals  = <v7.start_setup.globals> || {};
+my $instance = <v7.zenka.instance>->{$instance_id};
+
+my $old_status   = $instance->{'status'} // $status;
+my $zenka_id     = $instance->{'zenka_id'};
+my $object_id    = <[zenka.get_object_id]>->($zenka_id);
+my $zenka_name   = <v7.zenka.setup>->{$zenka_id}->{'name'};
+my $job_id       = $instance->{'job_id'};
+my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
+
+# some cleanup
+<[base.clean_hashref]>->($globals);
+<[base.clean_hashref]>->($zenka_config);
+
+# initialize timer defaults
+$instance->{'restart_delay'}
+    //= $zenka_config->{'restart'}->{'min_delay'}
+    || $globals->{'restart'}->{'min_delay'}
+    || 0.05;    # <-- minimum restart delay default [ in seconds ]
+my $max_restart_delay
+    = $zenka_config->{'restart'}->{'max_delay'}
+    || $globals->{'restart'}->{'max_delay'}
+    || 300;     # <-- 5 minutes [ internal default ]
+my $status_timer_delay
+    = $zenka_config->{'heartbeat'}->{'after'}
+    || $globals->{'heartbeat'}->{'after'}
+    || 2;       # <-- [initial] heartbeat delay default
+my $status_timer_interval
+    = $zenka_config->{'heartbeat'}->{'interval'}
+    || $globals->{'heartbeat'}->{'interval'}
+    || 5;       # <-- heartbeat interval default
+
+return
+        if defined $status
+    and defined $instance->{'status'}
+    and $instance->{'status'} eq $status;
+
+## record previus status and duration ##
+$instance->{'prev-status'}          = $old_status;
+$instance->{'prev-status-duration'} = <[base.parser.duration]>
+    ->( <[base.n2u_time]>->( $instance->{'status-since'} ) );
+
+<v7.zenka.instance>->{$instance_id}->{'status-since'}
+    = <[base.ntime]>->(3);
+
+$instance->{'heartbeat'} //= {};
+$instance->{'heartbeat'}->{'retry_timeout'}
+    //= 2;    # short timeout on heartbeat error
+
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( exists $instance->{'pid_check_timer'} and $status ne 'delayed' ) {
+    $instance->{'pid_check_timer'}->cancel;
+    delete $instance->{'pid_check_timer'};
+}
+
+# prevent undesired cube shutdown [ 'session.check.last' ]
+if ( $status eq 'offline' and exists $instance->{'session_id'} ) {
+    <[base.log]>->( 0, "removing session.closing_last callback.," );
+    delete <callback.session.closing_last>;
+}
+
+delete $instance->{'cube_sid'}
+    if $status ne 'online'
+    and $status ne 'extbin'
+    and ( $old_status eq 'online' or $old_status eq 'extbin' );
+
+# 'v7-post-init' code
+my $init_code = <v7.start_setup.zenki.startup.init_code>->{$zenka_name};
+if ( ( $status eq 'online' or $status eq 'extbin' )
+    and exists $init_code->{'v7-post-init'} ) {
+    <[base.log]>->( 2, "'$zenka_name'-zenka post-init-code.," );
+    <v7.current-init-data> = $instance->{'init_data'};
+    my @post_init_code = <[base.parser.config]>->(
+        $init_code->{'v7-post-init'},
+        "\$data{'v7'}{'zenka'}{'instance'}{$instance_id}{'init_data'}"
+    );
+    map {
+        $ARG =~ s|<instance_id>|$instance_id|g;
+        $ARG =~ s|<zenka_name>|$zenka_name|g;
+    } @post_init_code;
+    <[base.execute_zenka_code]>->(@post_init_code);
+}
+if (    ( $status eq 'online' or $status eq 'extbin' )
+    and exists $init_code->{'v7-post-init'}
+    and exists $instance->{'init_data'} ) {
+    my $init_status = $instance->{'init_data'}->{'status'} || {};
+    if ( not exists $init_status->{'post-init'}
+        or !$init_status->{'post-init'} ) {
+        <[base.log]>
+            ->( 0, "instance $instance_id : error in post-init code" );
+        $status = 'error';
+    }
+    <[base.log]>->( 2, "cleaning up instance $instance_id init_data" );
+    delete <v7.current-init-data>;
+    delete $instance->{'init_data'};
+}
+
+$instance->{'status'} = $status;
+<[base.log]>->(
+    1,
+    sprintf(
+        "instance %d %-9s %8s --> %s",
+        $instance_id, <[base.center_string]>->( "['$zenka_name']", 9 ),
+        $old_status,  $status
+    )
+);
+
+# quickly terminate leftover processes
+if (    $status ne 'starting'
+    and $status ne 'online'
+    and $status ne 'extbin'
+    and exists $instance->{'process'}
+    and defined $instance->{'process'}->{'id'} ) {
+    my $parent_pid = $instance->{'process'}->{'id'};
+    map { <[v7.terminate_process]>->($ARG) } (
+        $parent_pid,
+        <[v7.instance_child_pids]>->($instance_id),
+        <[v7.sub-process.orphan_pids]>    # LLL: <-- make obsolete. [ heavy ]
+    );
+    <[v7.cleanup_temp_paths]>->( $parent_pid, $instance_id );   ## clean-up ##
+}
+
+if ( $old_status ne 'error' and $status eq 'error' ) {
+    $instance->{'restart_delay'}
+        = sprintf( "%.2f", $instance->{'restart_delay'} * 1.2 );
+    $instance->{'restart_delay'}
+        = sprintf( "%.1f", $instance->{'restart_delay'} )
+        if $instance->{'restart_delay'} > 10;
+    $instance->{'restart_delay'}
+        = sprintf( "%.0f", $instance->{'restart_delay'} )
+        if $instance->{'restart_delay'} > 20;
+
+    # warn ' < restart-delay > ' . $instance->{'restart_delay'};
+    # warn " < old-status > $old_status [ $status ]";
+}
+$instance->{'restart_delay'} = $max_restart_delay
+    if $instance->{'restart_delay'} > $max_restart_delay;
+
+if (    $status ne 'online'
+    and $status ne 'extbin'
+    and exists $instance->{'timer'}->{'reset_restart_delay'} ) {
+    $instance->{'timer'}->{'reset_restart_delay'}->cancel;
+    delete $instance->{'timer'}->{'reset_restart_delay'};
+}
+
+# instance startup error hooks
+if (    $old_status ne 'online'
+    and $old_status ne 'extbin'
+    and $status eq 'error' ) {
+    $instance->{'startup_error'} //= $zenka_config->{'startup-error'}
+        if defined $zenka_config->{'startup-error'};
+    my $start_err_cfg = $instance->{'startup_error'} // {};
+    ## : startup-error : section code ###
+    if (    exists $init_code->{'startup-error'}
+        and ref( $init_code->{'startup-error'} ) eq 'ARRAY'
+        and my @start_error_code = @{ $init_code->{'startup-error'} } ) {
+        ## : startup-error : zenka code section :
+        map {
+            $ARG =~ s|<instance_id>|$instance_id|g;
+            $ARG =~ s|<zenka_name>|$zenka_name|g
+        } @start_error_code;
+        <[base.execute_zenka_code]>
+            ->( <[base.parser.config]>->( \@start_error_code ) );
+        ##
+    }
+    ##
+    if ( not defined $instance->{'startup-error-retries'}
+        or $instance->{'startup-error-retries'} !~ m|^\d+$| ) {
+        $instance->{'startup-error-retries'}
+            = $start_err_cfg->{'retry-count'};    ## global value fallback ##
+    }
+    ## [LLL] sanitize keywords for harmony ##
+    $instance->{'restart_delay'} //= $start_err_cfg->{'retry-min-delay'}
+        if defined $start_err_cfg->{'retry-min-delay'};
+
+    ## 'limitless' retries if not defined \ not numerical ##
+    if ( not defined $instance->{'startup-error-retries'} ) {
+        $instance->{'start-up-retries-left'} = 'limitless';
+    } else {
+        $instance->{'start-up-retries-left'}
+            //= $instance->{'startup-error-retries'};
+    }
+
+    if (   $instance->{'start-up-retries-left'} eq 'limitless'
+        or $instance->{'start-up-retries-left'} > 0 ) {
+        <[base.log]>->(
+            1,
+            sprintf(
+                ": instance %d ['$zenka_name'] : start-retries : %s :",
+                $instance_id, $instance->{'start-up-retries-left'}
+            )
+        );
+        $instance->{'start-up-retries-left'}--
+            if $instance->{'start-up-retries-left'} !~ m|\d+|;
+
+        <[v7.init_restart_timer]>->($instance_id);
+    }
+    #### [ end retries ]####
+    else {
+        delete $instance->{'cube_sid'};
+        <[zenka.change_status]>->( $instance_id, 'offline' )
+            if $old_status ne 'error';
+        return;
+    }
+}
+
+if (   $status eq 'offline'
+    or $status eq 'error'
+    and defined $zenka_config->{'restart'}->{'disabled'}
+    and $zenka_config->{'restart'}->{'disabled'} == 1 ) {
+    <[base.log]>->( 1, ": no auto-restart for instance $instance_id" );
+    <[zenka.cmd.stop]>->( { 'args' => $instance_id, 'mode' => 'implicit' } );
+    return;
+}
+
+delete $instance->{'cube_sid'} if $status eq 'restart';
+
+# select correct target job queue
+my $target_queue;
+$target_queue = 'running' if $status eq 'online' or $status eq 'extbin';
+$target_queue = 'error'   if $status eq 'error';
+$target_queue = 'queued'  if $status eq 'offline' or $status eq 'restart';
+
+<[jobqueue.move_job]>->( $instance->{'job_id'}, $target_queue )
+    if defined $target_queue and $target_queue ne 'queued';
+
+# replying to startup notification requests.,
+
+my @check_keys
+    = defined $instance->{'subname'}
+    ? (
+    $zenka_name . '[' . $instance->{'subname'} . ']',
+    $zenka_name, $instance_id
+    )
+    : ( $zenka_name, $instance_id );
+foreach my $name_or_id (@check_keys) {
+    my $name_str = $name_or_id =~ m|^\d+$| ? $name_or_id : "'$name_or_id'";
+    if ( exists <v7.zenka.notify_offline>->{$name_or_id}
+        and $status eq 'shutdown' ) {
+        map {
+            <[base.callback.cmd_reply]>->(
+                $ARG,
+                {   'mode' => 'true',
+                    'data' => "instance $name_str is terminated"
+                }
+            );
+        } @{ <v7.zenka.notify_offline>->{$name_or_id} };
+        delete <v7.zenka.notify_offline>->{$name_or_id};
+    }
+    if ( exists <v7.zenka.notify_online>->{$name_or_id} ) {
+        if ( $status eq 'shutdown' ) {
+            map {
+                <[base.callback.cmd_reply]>->(
+                    $ARG,
+                    {   'mode' => 'false',
+                        'data' => "instance $name_str is terminated"
+                    }
+                );
+            } @{ <v7.zenka.notify_online>->{$name_or_id} };
+        } elsif ( $status =~ m{^(online|extbin|error)$}
+            or $status eq 'offline'
+            and defined $zenka_config->{'restart'}->{'disabled'}
+            and $zenka_config->{'restart'}->{'disabled'} == 1 ) {
+            while ( my $reply_id
+                = shift @{ <v7.zenka.notify_online>->{$name_or_id} } ) {
+                my $startup_reply_mode
+                    = ( $status eq 'online' or $status eq 'extbin' )
+                    ? 'true'
+                    : 'false';
+                my $what
+                    = $name_or_id =~ m|^\d+$| ? 'zenka instance' : 'zenka';
+                my $startup_reply_msg
+                    = "$what '$name_or_id' startup "
+                    . "not successful [status=$status]";
+
+                if ( $status eq 'online' ) {
+                    $startup_reply_msg
+                        = sprintf( "$what '$name_or_id' is online [%d]",
+                        $instance->{'cube_sid'} );
+                } elsif ( $status eq 'extbin' ) {
+                    $what =~ s|^zenka|external program|;
+                    $startup_reply_msg
+                        = sprintf( "$what '$name_or_id' is running [PID=%d]",
+                        $instance->{'process'}->{'id'} );
+                }
+
+                <[base.callback.cmd_reply]>->(
+                    $reply_id,
+                    {   'mode' => $startup_reply_mode,
+                        'data' => $startup_reply_msg
+                    }
+                );
+            }
+            delete <v7.zenka.notify_online>->{$name_or_id};
+        }
+    }
+}
+
+# delayed restarting on startup error [ .. slowing down with errors .., ]
+<[v7.init_restart_timer]>->($instance_id)
+    if defined $target_queue
+    and $target_queue eq 'queued'
+    and !<[v7.instance_pid_count]>->($instance_id);
+
+if (    $status ne 'online'
+    and $status ne 'extbin'
+    and $status ne 'starting'
+    and ( $old_status eq 'online' or $old_status eq 'extbin' ) ) {
+
+    # shutdown instances with unresolved dependencies
+    foreach my $dep_id ( <[dependency.get_reverse]>->($object_id) ) {
+        next if <[dependency.ok]>->($dep_id);
+        map {
+            <[zenka.instance.restart]>->($ARG)
+                if not exists <v7.zenka.instance>->{$ARG}->{'stopping'}
+            } @{
+            <[zenka.instance.get_ids]>->(
+                <dependency.object>->{$dep_id}->{'zenka_id'}
+            )
+            };
+    }
+}
+
+if ( $status eq 'shutdown'
+    or exists <zenka.instance.shutdown>->{$instance_id} ) {
+    $status = 'shutdown' if $status ne 'shutdown';
+    delete <v7.zenka.instance>->{$instance_id};
+    delete <zenka.instance.shutdown>->{$instance_id};
+    <[base.log]>->( 2, "instance $instance_id terminated ['shutdown']" );
+
+    if ( <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq 'false' )
+    {
+        delete <v7.zenka.prefix_width>->{$zenka_name};    ## <-- improve [LLL]
+        <[v7.calc_prefix_lengths]>->( keys %{<v7.online-zenki>} );
+    }
+}
+
+if ( $old_status ne 'online' and $status eq 'online' ) {    # LLL: extbin ?
+
+    delete $instance->{'startup-error-retries'};    ## <-- if present ##
+
+    if ( defined $instance->{'timer'}->{'start-time-out'} ) {
+        $instance->{'timer'}->{'start-time-out'}->cancel
+            if $instance->{'timer'}->{'start-time-out'}->is_active;
+        delete $instance->{'timer'}->{'start-time-out'};
+    }
+
+    $instance->{'timer'}->{'reset_restart_delay'} = <[event.add_timer]>->(
+        {   'repeat'  => 0,
+            'after'   => 4.2,
+            'handler' => qw| v7.handler.reset_restart_delay |,
+            'data'    => $instance_id
+        }
+    );
+
+    if ( not exists $zenka_config->{'heartbeat'}->{'disabled'}
+        or !$zenka_config->{'heartbeat'}->{'disabled'} ) {
+        <[base.log]>->(
+            2, "setting up heartbeat response timer < instance $instance_id >"
+        );
+
+        <[v7.stop_heartbeat_timer]>->($instance_id);
+        <[v7.enable_heartbeat_timer]>->($instance_id);
+
+    } else {
+        <[base.log]>->(
+            2, ": no heartbeat check enabled < $instance_id [$zenka_name] >"
+        );
+    }
+
+    # clean up temporary zenka instance startup data
+    delete $instance->{'init_data'};
+
+    # set cube session to 'initialized'
+    if (    defined $instance->{'cube_sid'}
+        and $old_status ne 'online'
+        and $status eq 'online' ) {
+        my $root_sid = $instance->{'root_sid'};
+        my $cube_sid = $instance->{'cube_sid'};
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "$root_sid.set-initialized",
+                'call_args' => { 'args' => $cube_sid }
+            }
+        );
+    }
+
+    # start next delayed zenka of the same name ..,
+    foreach my $id ( @{ <[zenka.instance.get_ids]>->($zenka_id) } ) {
+        next
+            if $id == $instance_id
+            or <v7.zenka.instance>->{$id}->{'status'} ne 'delayed';
+        my $j_id = <v7.zenka.instance>->{$id}->{'job_id'};
+        <[base.log]>->(
+            1, "starting delayed '$zenka_name' zenka instance..,"
+        );
+        <[jobqueue.exec_job]>->($j_id);
+        last;
+    }
+}
+
+<[v7.stop_heartbeat_timer]>->($instance_id) if $status ne 'online';
+
+<[jobqueue.check_dependencies]>;
+
+#.............................................................................
+#L7OCIF2RQ532BWQYBJAOLMWFXXZOIFJZKZ46OBXWRU6RZLBL4W4ZXENG4DQ45YY4OC2BYYB2AF5YK
+#::: 7AM2IVPDU6OGIZ5C6YOBCDGVJU45TBSWKYE7ZY25HH6STVZOWU6 :::: NAILARA AMOS :::
+# :: DDXQBHHAF53BRDNSYNDDWWQXPAHGJQUUKXZLPOJXLN4S5E3JWABA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

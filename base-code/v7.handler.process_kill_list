@@ -1,0 +1,26 @@
+# >:]
+
+# name = v7.handler.process_kill_list
+
+my @kill_list = @{ shift->w->data };
+
+<[base.log]>->(
+    2, sprintf( "processing kill list [%s]", join( ',', @kill_list ) )
+);
+
+my @actually_killed;
+map { push( @actually_killed, $ARG ) if kill( 9, $ARG ) } @kill_list;
+
+my $chld_str = scalar(@actually_killed) == 1 ? 'child' : 'children';
+
+<[base.log]>->(
+    1, sprintf( ": <KILL>ed $chld_str : %s", join( ', ', @actually_killed ) )
+) if @actually_killed;
+
+map { delete <v7.terminating.pid>->{$ARG} } @kill_list;
+
+#.............................................................................
+#6N5YRR5ODOCCJZAZVM5GN5XJCCU7V6Z3CJPAKUD5WJWVLDOBMXTKYAFP2ILGINMFVXLFHXWBJER7M
+#::: YJJPSTUFPNWBVUR5SJAKYHP35FGMJ3BLLXH7U357HRVV7EPLN7R :::: NAILARA AMOS :::
+# :: KOSK5ZPHXSVC7JZSFTOXM3P5353IJKXJ3YW3HEPE3RMMKJFK7KBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
