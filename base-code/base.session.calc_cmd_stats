@@ -14,7 +14,8 @@ if ( ref($buffer_ref) ne qw| SCALAR | and ref($buffer_ref) eq qw| REF | ) {
 my $protocol_stats;    ##  protocol wide  ##
 if ( defined $data{'session'}{$id}{'protocol'} ) {
     my $protocol = $data{'session'}{$id}{'protocol'};
-    $protocol_stats = $data{'protocol'}{$protocol}{'statistics'} //= {};
+    $protocol_stats = $data{'protocol'}{$protocol}{'statistics'}
+        //= { 'read-iterations' => 0 };
 }
 
 ##  calculate and store average command line length  ##
@@ -23,14 +24,18 @@ if ( $data{'session'}{$id}{'read-mode'} eq qw| line |
 
     my $history_max_size = 13;
     my $stats_ref        = $data{'session'}{$id}{'command'} //= {
-        'commands-total' => 0,
-        'recent_lengths' => [],
-        'average-length' => $endline_pos
+        'commands-total'     => 0,
+        'recent_lengths'     => [],
+        'average-length'     => $endline_pos,
+        'read-iteration-avg' => 0
     };
     $stats_ref->{'commands-total'}++;
     push( @{ $stats_ref->{'recent_lengths'} }, $endline_pos );
     if ( $stats_ref->{'commands-total'} < $history_max_size
         or scalar @{ $stats_ref->{'recent_lengths'} } >= $history_max_size ) {
+
+        my $count_values = @{ $stats_ref->{'recent_lengths'} };
+
         ##  update average  ##
         my $current_length_value = <[base.balanced-average]>->(
             \$stats_ref->{'average-length'},
@@ -45,6 +50,14 @@ if ( $data{'session'}{$id}{'read-mode'} eq qw| line |
             $current_length_value
         ) if defined $protocol_stats;
 
+        ##  track file handle reads per cmd  ##
+        <[base.balanced-average]>->(
+            \$stats_ref->{'read-iteration-avg'},
+            $protocol_stats->{'read-iterations'}
+                / $protocol_stats->{'line-reads'}
+        ) if $protocol_stats->{'line-reads'};
+        map { $protocol_stats->{$ARG} = 0 } qw| line-reads read-iterations |;
+
         ##  return current value  ##
         return $current_length_value;
     }
@@ -53,7 +66,7 @@ if ( $data{'session'}{$id}{'read-mode'} eq qw| line |
 }
 
 #.............................................................................
-#4H6AI4PNQQ4MWLAQ2445MDP3TRZBQ4IV232O3TCAC2LNXRRWCZNXSYGN4D6BCNJ2M5MNQPPWZJGYY
-#::: AACJGFCQMJ4FCJAWOIVCLZ77GDSQSTGNIN5SUIGWPNJYC35KQ6Y :::: NAILARA AMOS :::
-# :: K46BYZ62V6JLX72OIIE7FMMTGYXQPJQQQQT7P6CT6QO3DYPYZEAI :: CODE SIGNATURE ::
+#O7SYZRSACEBG35MJWOCYEEOXXNXLYEPTZF4RXWZS2574LSNOBLTWLODRFLROU4FFNDOHKOXPTRUOA
+#::: STWIJ6NMNNSOE3WI4KKX6FRPY56QFPJ63Y4SFNYXMRKCFHDUOAN :::: NAILARA AMOS :::
+# :: IRLBJ5JRSQVZZS3ZYVGEAJV2AI2LVW2HFM5TGT4R4MAULOGMNUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
