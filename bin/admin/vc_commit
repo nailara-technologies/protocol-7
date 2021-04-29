@@ -3,9 +3,53 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use File::Spec;
 use Term::ReadLine;
-use SigAction::SetCallBack;
+use Cwd qw| abs_path |;
+use vars qw| $root_path |;
+use FindBin qw| $RealBin |;
 use Time::HiRes qw| sleep |;
+use SigAction::SetCallBack;
+use Crypt::Misc qw| decode_b32r |;
+
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub c_file { File::Spec->catfile(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+##[ AMOS MODULE ]#############################################################
+
+use AMOS::Assert::Truth qw| is_true |;
+
+##############################################################################
+
+my $ver_seed = 54;
+my $release_version;
+
+my $mode = ( @ARGV and $ARGV[0] eq qw| -m | ) ? qw| msg_str | : qw| rel_ver |;
+if ( @ARGV and $ARGV[0] eq qw| -s | ) { $mode = qw| set_tag |; shift @ARGV }
+
+if (    $mode eq qw| set_tag |
+    and @ARGV
+    and $ARGV[0] =~ m|^(AMOS-)?v?(\d+\.\d+\.\d+)$| ) {
+    $release_version = sprintf( "AMOS-v%s", $LAST_PAREN_MATCH )
+        and shift @ARGV;    ## <-- setting custom rel. version ##
+}
 
 my $term = new Term::ReadLine('[ version control commit terminal ]');
 $term->ornaments('mh,md');    # ,me;
@@ -30,7 +74,7 @@ my $blacklight = "\e[38;2;68;39;172m";
 
 map { $SIG{$ARG} = \&exit } qw| INT TERM HUP |;
 
-my $message;
+my $msg_text = '';
 
 my $min_len   = 13;
 my $max_len   = 76;
@@ -40,7 +84,7 @@ my $prompt    = join( '', "\e[${y_pos}H", ' :. ' );
 
 clear();
 
-while ( !length($message) ) {
+while ( not length($msg_text) ) {
 
     override_signals();
     print blacklight_line();
@@ -59,29 +103,22 @@ while ( !length($message) ) {
             clear();
         }
     } else {
-        my $return_code = system( qw| harmony -q |, $line );
-        $return_code = $return_code >> 8 if $return_code > 0;
-        die "$reset:\n:: harmony incovation error ::"
-            . " $return_code :: \l$OS_ERROR ::\n\n"
-            if $return_code != 0 and $return_code != 202;
-        $message = $line if $return_code == 0;
-
-        if ( $return_code == 202 ) {
+        if ( not is_true($line) ) {
             clear();
             print blacklight_line()
                 . "\r :.   .:[ message not in harmony ]:."
                 . "\r :. ";
             sleep $msg_delay;
             clear();
-
+        } else {
+            $msg_text = $line;
         }
-
     }
     $last_line = $line;
 }
 print $reset and clear();
 
-exec( qw| git commit -m |, $message );
+exec( qw| /usr/bin/git commit -m |, $msg_text );
 
 exit(4);
 
@@ -100,6 +137,7 @@ sub term_size {
 }
 
 sub blacklight_line {
+
     ( $x, $y ) = term_size();
 
     if ( $y <= 1 ) {
@@ -143,7 +181,7 @@ sub readline_signals {
 }
 
 #.............................................................................
-#CW2EBX5CXIMA4JG4C2BMZRRGLXGNSH4IJW3YRDTE3RKLGLC6CYMU7J3JA4AXJ43QDPLGT2NPRWBBK
-#::: ZUFXHWDHZEYCSYVTREUCNIW2LLXZSCF4SWMEEGJJORFTO6BFONC :::: NAILARA AMOS :::
-# :: DAU4OFBBHPJCCOHFZBXF3POLILEAX3TONJB4ZOOFFBAZS2HGHYBI :: CODE SIGNATURE ::
+#QNTKDH74Y6L5HZCS4P3HJFKJ7TKTTO4YABTGVD34W52WTHQFFOBYHA3P4ODCPWK4ONM57HYNVHPXA
+#::: PISMXBIGATWZ5KCFZQSUCQ3RNEI7SUWNIWUBONQVC7Q72Z4KNOV :::: NAILARA AMOS :::
+# :: 66BPCK6FYQDPGFMM7ZAK6ZGJF5SMAQFLTAF3DOW2S2CKV7L2VMCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
