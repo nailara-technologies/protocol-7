@@ -1,0 +1,27 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'cube' zenka startup configuration used by 'v7' zenka
+
+max_concurrency   = 1
+heartbeat.timeout = 3
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+
+: zenka-init :
+  [base.auth.set_v7_key:'<{cube.key}>']
+
+: v7-post-init :
+  status.post-init = [v7.callback.connect_to_cube:<instance_id>]
+  [v7.callback.register_ondemand]
+
+: startup-error :
+  [v7.teardown:"no success at 'cube' start-up"]
+
+#.............................................................................
+#OXOOYKTR6WYQTFRMLNAER7M4JGHO3GIQDZ5PYF3XYD7XESBDJXT3LZY5EVJRR7LH5HQ5IYNFMDUWK
+#::: Z7JDD7S7OQJRMIKA46CA5ARPD6PWIYWJ3QAMOWO37CW7TAK3UFV :::: NAILARA AMOS :::
+# :: 3RXP2UDX4PUWRBUJEJ7URJEBTEWWRH7WALPNKJMCHDJ5HWFLXODA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

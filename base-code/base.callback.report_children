@@ -10,16 +10,16 @@ my $route_str = <system.net.cube_route> // 'cube';
 $route_str .= '.' if length($route_str);
 
 map {
-    <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'nroot'" );
+    <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'v7'" );
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "${route_str}nroot.register_child",
+        {   'command'   => "${route_str}v7.register_child",
             'call_args' => { 'args' => $ARG }
         }
     );
 } @{<system.report_children>};
 
 #.............................................................................
-#QCQWNEBWCUHFACBMJTOXX7ASKCEXS2Y2OZ2BDEURPDSIQZ7UELRHIZIFTYD3YJ7XCK44ZTT2SEK6U
-#::: FZY2TCE6P5IOC7GOTBGDXFFIUW2U7RHOOMUTQHTPW4EMQVSKGFK :::: NAILARA AMOS :::
-# :: 7JWK5YWABD6M3BXEKJCSN26WSGJEDOGP4PIKHNRBIHNDHMYDZWAI :: CODE SIGNATURE ::
+#TQC5YACY42GTNUZDC4EAJLO7HUESRUK6PWO76IJF7HKUG2Z6OUPINNBTQ3WWK7VOIT27TJ2DJG5JI
+#::: 3XHHEUT5QH2A6UEPPOHLIDBVEVGJYMPDHUE5RV4YNQGBHMEGHKZ :::: NAILARA AMOS :::
+# :: VTI2RC62VLXULPZSBSU6JLZTFA4JULT4K2DJBRL5KHK2KQPPSWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

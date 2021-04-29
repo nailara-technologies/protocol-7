@@ -9,8 +9,8 @@ $PROGRAM_NAME .= ' :. shutdown in progress ., please wait .,';
 # $SIG{'ALRM'} = sub { <[base.log]>->( 1, 'done.'); exit(0); };
 # alarm( $data{'sigterm'}{'timeout'} || 1 );
 
-<[nroot.teardown]>
-    if exists <system.zenka.type> and <system.zenka.type> eq 'nroot';
+<[v7.teardown]>
+    if exists <system.zenka.type> and <system.zenka.type> eq qw| v7 |;
 
 if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
     map { kill( 9, $ARG ) } @{<system.kill_list>};
@@ -20,7 +20,7 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
 exit(0);
 
 #.............................................................................
-#K3E44W7QDT4LX75KFLDXLISHQC52AD4XL5MRYTSPEULJ2MAZUXC5QJRCG4O4VAKCVRJECE4A7IW5M
-#::: 2BJLKOKG6MZ6Y4HEFQ26MG5T23T7G3N5IJ7YE3OW35YHVIKIW2N :::: NAILARA AMOS :::
-# :: 4QDOWWOW72O742F4HQ5MUAY4QUN3CKSPXBRKIAS5MPJBXILOOWCI :: CODE SIGNATURE ::
+#QA5ZZVURAGRZYMVFDI75U4FUAZV7KRI3RQ37HO7Y2GA2IT2CE5EP67ADRCSEPFCARIIRS3HUR7LIK
+#::: GCF7XZ5II36KU6XBP3LXYWU2S2J3VAOAAGH577UXLSLWSKTM6E7 :::: NAILARA AMOS :::
+# :: T46T47AGBJPKQGZTID7P2JV5V3QKETM4QFRIXCXYTWACOL4I5QCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

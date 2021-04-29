@@ -1,0 +1,26 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'ticker-gtk' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube X-11 compton # openbox rss-ticker
+max_subname_concurrency = 1         # ^-- enable rss_updates in ticker-gtk
+inherit_subname = 1
+## [ in case of immediate errors [ font.size = 0 ] ]
+startup-error.retry-count   = 3
+startup-error.retry-min-delay = 1.2
+
+: v7-init :
+  start_mode = stdin-zenka
+  command_line_modules = Gtk3 Glib::Event Cairo
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#4P75CMF4BWHGI7CLAWQ7NQX2WNDOJVEVPPAJVXHG4GG5VQOTHSYZUBZ53BU3W6QESKS5753G7B5SM
+#::: AEIVBP62ISWUKG746OEMRUOOOVN5HDNVHSZW56XLJI2AFSTSQAM :::: NAILARA AMOS :::
+# :: XK3YNDUO3A7DPYF7EMVFXYIFVFHNI2OOZTKUO5KFD7FDB2T2M2AY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

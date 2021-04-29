@@ -67,16 +67,16 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             <[base.log]>->(
                 2, ":network: $src_name ..:. $target_name ..:. $cmd"
                 )
-                if ( $src_name ne 'cube'
+                if ( $src_name ne qw| cube |
                 or $target_name ne 'p7-log'
                 or $cmd ne 'append'
                 or !<debug.skip_log_msg> )
-                and ( $target_name ne 'cube'
+                and ( $target_name ne qw| cube |
                 or $cmd ne 'p7-log.append'
                 or !<debug.skip_log_msg> )
-                and ( $src_name ne 'nroot'
+                and ( $src_name ne qw| v7 |
                 or ( $cmd ne 'heart' and substr( $cmd, -5, 5 ) ne '.heart' )
-                or !<debug.skip_nroot_heartbeat> );
+                or !<debug.skip_v7_heartbeat> );
         }
 
         $target_cmd_id =~ s|^(\d+)$|($1)|;
@@ -126,7 +126,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 #.............................................................................
-#GEDHXZYLD4GRGLSOOBGEAVQZZX4I6UMJIQIN7QJNRSUGQ2YDVWZTDQJQ4ZQPFHOSPM5BORCMCFCEM
-#::: 5OCRTJSRHJPMUPNYJF7KBQL4PMXX6XDPFXWSUBDAK52H5XRST5P :::: NAILARA AMOS :::
-# :: TX5LCKHPIWABVAG2AXNQ2FM3W5AQ73FDEOFA2GFMOWCRHJRWYWCA :: CODE SIGNATURE ::
+#YTR5ZHXW5L2GXG6VK5LDFBTICQOCUOCDH3QIENCPBZBOKLMMJIHKOHLPEDWXGL5VWYAZXUQ34XHJI
+#::: 32XIICVY3ALTXN6RM5A2ZGSIPFPBSNCAURYIBWCFGQBS43IUJYT :::: NAILARA AMOS :::
+# :: FH3KKGT6DBBWRZK25HTNLXB3KRH2OXNQ47ZX3DO5JFDZ2CPR26CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

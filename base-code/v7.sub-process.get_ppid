@@ -1,0 +1,20 @@
+# >:]
+
+# name = v7.sub-process.get_ppid
+# todo = use BSD::Process on xBSD!
+
+my $child_pid = shift // '';
+return undef if $child_pid !~ /^\d+$/ or !-d "/proc/$child_pid";
+
+if ( <[file.content]>->("/proc/$child_pid/status") =~ /\nPPid:\s+(\d+)\n/s ) {
+    return $1;
+} else {
+    warn "unable to extract ppid value from '/proc/$child_pid/status'";
+    return undef;
+}
+
+#.............................................................................
+#EHSOMY5A3FZMKNS2TG32IO4LSGOCWA3OYYDPNY4KWRLYFWWKVBSLPJW4K3XOCUGBGVLC4NZWHU4XE
+#::: 7VN6OXL5E6Q6ERTQ4HYPNZ3ILDLDL4I5RGRIEW4OXMHVDCBPSJN :::: NAILARA AMOS :::
+# :: AMSF6IEHXC2J5IDAFSMWEEQMGESKUXGWG4Q254KLJ2UXHPLM2OAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

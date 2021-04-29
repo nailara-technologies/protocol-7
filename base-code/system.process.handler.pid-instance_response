@@ -12,29 +12,26 @@ return warn "received instance id is not numerical"
     if $response->{'cmd'} eq 'TRUE'
     and $cmd_rep_str !~ m|^\d+$|;
 
-if ( $response->{'cmd'} eq 'TRUE' ) {    # restart by 'nroot' zenka
+if ( $response->{'cmd'} eq 'TRUE' ) {    # restart by 'v7' zenka
     my $instance_id = $cmd_rep_str;
-    <[base.log]>->( 0, " : asking 'nroot' to restart instance $instance_id" );
+    <[base.log]>->( 0, " : asking 'v7' to restart instance $instance_id" );
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => 'cube.nroot.restart',
+        {   'command'   => qw| cube.v7.restart |,
             'call_args' => { 'args' => $instance_id }
         }
     );
 } elsif ( $cmd_rep_str eq 'found no matching instance' ) {    # kill allowed
-    <[base.log]>->(
-        1, "[PID:$process_id] process not managed by nroot zenka"
-    );
+    <[base.log]>->( 1, "[PID:$process_id] process not managed by v7 zenka" );
 
     <[system.process.callback.send_kill]>->( $process_id, $log_msg_str );
 
-} else {    # unclear --> warn [ no nroot zenka access ? ]
-    return
-        warn "aborted autokill for pid $process_id [no nroot zenka access?]";
+} else {    # unclear --> warn [ no v7 zenka access ? ]
+    return warn "aborted autokill for pid $process_id [no v7 zenka access?]";
 }
 
 #.............................................................................
-#NUMOMSXCTVCPCLCDSEECOCBGCRS7OSTPZ2XM72IQPB5UR7PCZCGOUYMRHMYVDJ6KNWVKKSABEWLSW
-#::: IBIVFJVODOBR64QUYLTEZA4CDU2TSLQRIZM57YUER2XAJXKYDYA :::: NAILARA AMOS :::
-# :: GXWDE5TC2P4M47DFYYBGMKJKMVHQSUDHZBUNPWRIEIJGCN7X3GBY :: CODE SIGNATURE ::
+#EJNOM5ED7I4OP5BCDT7OHYPSWUUGZAMO2SFVCIF2R4HLOJB33ADMP7XFTTW2JUO5BJPVDLSKZRZMY
+#::: TZXKZQY2BKFISBVJ2NT7B3QLUG7SN5Q575F26QZGYOMS7WAE4K3 :::: NAILARA AMOS :::
+# :: SKQVZDKVDSOUUEXFM5WSWSWWZPJR77HEAKPEJUZKSILFVI5T76BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

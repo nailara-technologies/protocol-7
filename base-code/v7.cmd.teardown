@@ -1,0 +1,30 @@
+# >:]
+
+# name  = v7.cmd.teardown
+# param = [reason]
+# descr = shut down v7 zenka and all zenka instances
+
+my $params = shift;
+my $reason = $params->{'args'};
+my $user   = $1 if $reason =~ s|^([^\s]+) *||;
+$user =~ s|^[^\.]+\.||;
+
+<[base.log]>->( 1, "<<!>> specified shutdown reason : $reason <<!>>" )
+    if length($reason);
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'repeat'  => 0,
+        'prio'    => 5,
+        'handler' => qw| v7.handler.shutdown_cmd |,
+        'data'    => "requested by '$user'"
+    }
+);
+
+return { 'mode' => 'true', 'data' => "shutting down 'v7' zenka ..," };
+
+#.............................................................................
+#3EQDN6SHPQNB6RQNAIDWWROK4DILCKSROGBVB4AE4GL7RI7F6ZEJDJ4M7PEVCOPFV7T57XOENCCHS
+#::: PXLYLBFS5CQ4YMAFI23LZ2QSZAMIMCGOUM7OMEB3JJKXYJWD5CF :::: NAILARA AMOS :::
+# :: HYIQ2PATBBNFFC74ZLQWDY4WU5EHYDP2WJY5VS3IT6DJB6EX4CAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

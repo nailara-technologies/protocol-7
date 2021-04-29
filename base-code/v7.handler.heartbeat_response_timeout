@@ -1,0 +1,69 @@
+# >:]
+
+# name = v7.handler.heartbeat_response_timeout
+
+my $instance_id   = shift->w->data;
+my $instance      = <v7.zenka.instance>->{$instance_id};
+my $zenka_name    = $instance->{'zenka_name'};
+my $zenka_status  = $instance->{'status'};
+my $is_cube_zenka = $instance->{'is-cube'};
+my $error_count   = $instance->{'heartbeat'}->{'errors'}++;
+
+my $heartbeat_ref = $instance->{'heartbeat'} //= {};
+
+delete $heartbeat_ref->{'retry_count'}
+    if --$heartbeat_ref->{'retry_count'} < 0;
+
+my $retry_count   = $heartbeat_ref->{'retry_count'} //= 0;
+my $retry_timeout = $heartbeat_ref->{'retry_count'} //= 2.1;
+
+( my $dots = '.' x ( $error_count % 3 ) ) =~ s|\.{3}$|..,|;
+my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
+<[base.log]>->(
+    0, "instance $instance_id ['$zenka_name'] response timeout$retry_str"
+);
+
+if ( $retry_count <= 0 ) {    # [ no further retries.., ]
+    $heartbeat_ref->{'retry_count'} = $heartbeat_ref->{'retry_reset'};
+    if ($is_cube_zenka) {
+        if ( $zenka_status eq 'error' ) { #   <--  was already not successful.
+            <callback.session.closing_last> = {
+                'name'   => qw| v7.teardown |,
+                'params' => ['fatal cube zenka error']
+            };
+            <[base.session.check_remaining]>;
+        } else {
+            delete <callback.session.closing_last>;  # allowing safe restart #
+            <[zenka.change_status]>->( $instance_id, 'error' );
+        }
+    } else {
+        <[zenka.change_status]>->( $instance_id, 'error' );
+    }
+} else {
+    $instance->{'timer'}->{'heartbeat-timeout'}->cancel
+        if defined $instance->{'timer'}->{'heartbeat-timeout'}
+        and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
+
+    ## decreasing heartbeat timeout .,
+
+    $retry_timeout = sprintf( "%.3f", $retry_timeout / 2 );
+    $retry_timeout = 0.7 if $retry_timeout < 0.7;
+
+    $heartbeat_ref->{'retry_timeout'} = $retry_timeout;
+
+    ##
+    $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $heartbeat_ref->{'retry_timeout'},
+            'handler' => qw| v7.handler.heartbeat_response_timeout |,
+            'data'    => $instance_id
+        }
+    );
+    <[v7.stop_heartbeat_timer]>->($instance_id);
+    <[v7.enable_heartbeat_timer]>->( $instance_id, 0 ); # <-- retrying now [0]
+}
+
+#.............................................................................
+#WC2K3MSWYOQIM7DDTVJYJK3SAZY5MTIPO2KVKBDZLRREYCHF3HOI3JOVLXBPLIPERMD4VDE4CVJWO
+#::: RZV4JREPB7MR6LYWJAA6W2DBRQMSAIJXIGWEG4L2BOSGVYI24C3 :::: NAILARA AMOS :::
+# :: QGKDOHL7NNEDX66V5PFWHH524WY2MCUXDJAUVOAHHMXRJU7V6YBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,18 @@
+# >:]
+
+# name  = v7.extract_short_desc
+# descr = extract and return short decription texts from zenka config files
+
+my $file_path = shift // '';
+
+die "expected zenka config file path"       if !length($file_path);
+warn "zenka config '$file_path' not found!" if !-f $file_path;
+
+return $1 if <[file.content]>->($file_path) =~ m|\.:\[ +([^\n]+) +\]:\.\n|;
+return '[ no description available ]';
+
+#.............................................................................
+#7COGMN47R36KHW227SQFDPKW3N47IPMPCSKXYNMQHBEVNGT3Z4IS6PPNWQMQNP3QCJRQMBV5J5SRW
+#::: NH5BQ63PNLWA7WGESBTTEU3URRLDZMO6FG6IOF5GOJHUNFEBR3C :::: NAILARA AMOS :::
+# :: XRZMYZIRNEX75YHB2PHDZQLNRBFCWCU5TE2SWRA6AGQAM4KEGSAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

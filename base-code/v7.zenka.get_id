@@ -1,0 +1,26 @@
+# >:]
+
+# name  = v7.zenka.get_id
+# descr = return zenka id for given name from setup
+# note  = doesn't deal with multiple zenka setups for same name yet!
+
+my $zenka_subname;
+my $zenka_name = shift;
+
+$zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)]$||;
+
+die 'expected zenka name' if not defined $zenka_name or !length($zenka_name);
+
+foreach my $id ( keys %{<v7.zenka.setup>} ) {
+    my $setup_zenka = <v7.zenka.setup>->{$id}->{'name'};
+    return $id if defined $setup_zenka and $setup_zenka eq $zenka_name;
+}
+
+<[base.log]>->( 2, "v7.zenka.get_id: no zenka '$zenka_name' found in setup" );
+return undef;    # no such zenka
+
+#.............................................................................
+#Z5ZMPXXKJW4GURZG4TT4NNLAXAH4O63V46UW6UAVX3UNWBFTYBSECPSSV5P7FCJNFET2Q2DJRCXL4
+#::: AU2MJLIHF7V4G42KNH6HXX3I44TAWY5XKYKLVEWQSJU46NUIDUA :::: NAILARA AMOS :::
+# :: O6F2FHZMTHOW6IWAQJ3DOCMZI3AQJ4VUEQQPXUVSX5SQQH2UPEAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

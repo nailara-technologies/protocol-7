@@ -1,0 +1,37 @@
+# >:]
+
+# name  = v7.zenka.cmd.resume-instance
+# param = <id>
+# descr = send CONT signal to instance processes
+
+my $instance_id = $$call{'args'};
+
+return { 'mode' => 'false', 'data' => 'instance id must be numeric!' }
+    if $instance_id !~ m|^\d+$|;
+return { 'mode' => 'false', 'data' => "instance not found!" }
+    if not exists <v7.zenka.instance>->{$instance_id};
+
+my $instance = <v7.zenka.instance>->{$instance_id};
+
+<[v7.enable_heartbeat_timer]>->($instance_id)
+    if delete $instance->{'paused_status_timer'};
+
+my $parent_pid = <v7.zenka.instance>->{$instance_id}->{'process'}{'id'};
+my @pids
+    = ( $parent_pid, @{ <[v7.sub-process.get_children]>->($parent_pid) } );
+
+my $count = kill 'CONT', @pids;
+
+my $es = $count > 1 ? 'es' : '';
+<[base.log]>->( 0, "instance $instance_id resumed [ $count process$es ]" );
+
+return {
+    'mode' => 'true',
+    'data' => "$count process$es paused (SIGCONT)"
+};
+
+#.............................................................................
+#U34IMHTNTBKEOSB4T4P2WJJ7MZJZ2URCOW6RXLYPKTJMQE3RYMASLTLQPQGK7BWUUR6BWAS4OWAW2
+#::: 5CBJFKMJRZ2DL3BDAZZPTCLPCM6MYWGVITTIESSQFXJQBAQ6RQT :::: NAILARA AMOS :::
+# :: HL54NIF7O6IXKEI6IEOXZZFNRWAFWW6YFOMXGML7NPPW227EN6AQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

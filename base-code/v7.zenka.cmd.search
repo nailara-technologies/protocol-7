@@ -1,0 +1,42 @@
+# >:]
+
+# name  = v7.zenka.cmd.search
+# param = <pattern>
+# descr = search zenka names and short descriptions
+
+my $search_pattern = $$call{'args'} // '';
+my @matching_zenki;
+
+return { 'mode' => 'false', 'data' => 'expected search pattern' }
+    if !length($search_pattern);
+
+foreach my $zenka_name ( keys %{<v7.zenki.available>} ) {
+    push( @matching_zenki, $zenka_name )
+        if $zenka_name =~ /\Q$search_pattern\E/i
+        or <v7.zenki.available>->{$zenka_name}->{'short_desc'}
+        =~ /\Q$search_pattern\E/i;
+}
+
+return {
+    'mode' => 'false',
+    'data' => 'no matches ( see \'v7.list available\' for a complete list )'
+    }
+    if !@matching_zenki;
+
+my $reply_str;
+my $max_cmd_len = 0;
+map { $max_cmd_len = length($ARG) if length($ARG) > $max_cmd_len }
+    @matching_zenki;
+
+foreach my $zenka_name ( sort @matching_zenki ) {
+    $reply_str .= sprintf( "  %-${max_cmd_len}s   #  %s\n",
+        $zenka_name, <v7.zenki.available>->{$zenka_name}->{'short_desc'} );
+}
+
+return { 'mode' => 'data', 'data' => $reply_str }
+
+#.............................................................................
+#CXEKGNL26KA7TKHIED7FS7YKWFIBTIJY6Y55PX3COY7VBWL4GHZQJCYNQWWG3R2FRHVQEEVUVW7MU
+#::: KF7HGHZVYXS474PUM35S2AUJLZ7KHQCOLNOLK2KL3XJTCPNWIBE :::: NAILARA AMOS :::
+# :: 657D3SGON3SUNSY7PLDG2U5MHOIDJNM3CQ44WSZQZJ7FJA6SVCAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,29 @@
+# >:]
+
+# name = v7.handler.verify_instance_timeout
+
+my $params      = shift->w->data;
+my $instance_id = $params->{'instance_id'};
+if ( not exists <v7.zenka.instance>->{$instance_id} ) {
+    <[base.log]>->(
+        2, "<verify_instance_timeout> gone instance $instance_id"
+    );
+    return;
+}
+my $instance   = <v7.zenka.instance>->{$instance_id};
+my $zenka_name = $instance->{'zenka_name'};
+
+<[base.log]>->(
+    0, "<< instance $instance_id ('$zenka_name') verification timeout >>"
+);
+
+<[zenka.change_status]>->( $instance_id, 'error' );
+
+delete $instance->{'timer'}->{'verify_instance'};
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+#.............................................................................
+#JSSSHW7XVZA5TXKYHZLDWGPOF57ZZZNGUDNAG5V5ZOGWOIXSYNXIJEVTON6PBXUGRRCCZ35IIPYLO
+#::: B72II2QBL5O2YS4GDEEG52SN4GTJBMHIEGAG4WBJS6YJSS4MUSK :::: NAILARA AMOS :::
+# :: UNCVCWCG6XACNREKK434UUZT46ZF34ALV7K4A5TXO4GPP5GKDOCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

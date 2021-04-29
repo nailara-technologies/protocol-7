@@ -1,0 +1,38 @@
+# >:]
+
+# name  = v7.cmd.system-poweroff
+# param = [nosync]
+# descr = force power off using sysrq-trigger [host]
+
+my $param = $$call{'args'} // '';
+my $poweroff_enabled = <v7.system-poweroff.enabled> //= 1;
+
+return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
+    if !-e '/proc/sysrq-trigger';
+return {
+    'mode' => 'false',
+    'data' => 'specifically disabled [ v7.system-poweroff.enabled = 0 ]'
+    }
+    if not $poweroff_enabled;
+
+<[base.log]>->( 0, "<< ! >> <<< initiating force-poweroff >>> << ! >>" );
+
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
+
+system('/bin/sync') if $param ne 'nosync';
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| v7.callback.system-poweroff |
+    }
+);
+
+return { 'mode' => 'true', 'data' => '<< powering off host system >>' }
+
+#.............................................................................
+#E63QA5HBFVW73AFQOKZ6GKGCREFAVMCVF4DBTOTS6OSRXFGXGLRJDW4AZ3BJCYBCQP3GU2CPQBQNQ
+#::: 3TQZA6WVIJHLDERXGHO6N6FOOK3CW2M2HHXZCFZCC5PAAXQTIYJ :::: NAILARA AMOS :::
+# :: 5ZWU4QHIS6LKNFJNNJUG5LY6XSLNGW2JKC4QPGN22RPJFRK4S2CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

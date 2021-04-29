@@ -1,0 +1,28 @@
+# >:]
+
+# name  = v7.sub-process.get_uid
+
+my $pid = shift;
+
+return -1 if !<[v7.sub-process.exists]>->($pid);
+
+my $proc_table = <v7.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+
+foreach my $process ( @{ $proc_table->table } ) {
+    if ( $process->pid == $pid ) {
+        return ( $process->uid, $process->gid ) if wantarray;
+        warn "< passing scalar >";
+        return $process->uid;
+    }
+}
+
+warn "process $pid not found in table";
+
+return -1;
+
+#.............................................................................
+#QLNGACPEBK4DYPCKBDEWPBFK72F7BXISXP2KSPGNXDA5UFURGGAKK7JISGKRO2P2IR6J3MP7Y3MVE
+#::: UTRCEVFWOYUZV6N5FQFBXA2YTM6PMHHXM2AA26JU7M2VQDSTXJL :::: NAILARA AMOS :::
+# :: 3RU4YUZHXC5BD6ABQNJ2FP2JAKN47EOZ5R5FN26JYJVSEV7642DY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

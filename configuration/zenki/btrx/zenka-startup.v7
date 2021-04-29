@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'btrx' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+max_concurrency = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#O7JTKBGBTH6F7SLE6CQUWICDEAKVZM3CMWIRF767ETDWFKMT5GRNNYS4LKDWS23DGDLUAXWHX6YOU
+#::: YJPMKTO2LQSSSBPU7UNRNJ6PPHQWMTIAVZFXLJJ4FWDNXPLGYXL :::: NAILARA AMOS :::
+# :: RR3VDABEWLOOPQQU6KH3M64AWHM7I4TXQCCOKBRRBTVLG3IWSICA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

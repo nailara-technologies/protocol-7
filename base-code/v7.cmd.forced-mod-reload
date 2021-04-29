@@ -1,0 +1,77 @@
+# >:]
+
+# name  = v7.cmd.forced-mod-reload
+# param = <module-name>
+# descr = rmmod + modprobe of a kernel module
+# todo  = open rmmod as pipe, create output handler [make async.]
+
+my $module_name = $$call{'args'} // '';
+
+return { 'mode' => 'false', 'data' => 'expected valid <module> parameter' }
+    if !length($module_name)
+    or length($module_name) > 42
+    or $module_name !~ /^[\w\s_]+$/;
+
+return { 'mode' => 'false', 'data' => "'rmmod' binary not found!" }
+    if not defined <v7.rmmod_bin>;
+my $rmmod_bin = <v7.rmmod_bin>;
+return { 'mode' => 'false', 'data' => "'modprobe' binary not found!" }
+    if not defined <v7.modprobe_bin>;
+my $modprobe_bin = <v7.modprobe_bin>;
+
+<[base.log]>->(
+    0, "<< ! >> [forced] reloading module '$module_name' << ! >>"
+);
+
+my @restart_timers;
+map {
+    if ( defined <v7.zenka.instance>->{$ARG}->{'timeout_timer'}
+        and <v7.zenka.instance>->{$ARG}->{'timeout_timer'}->is_active ) {
+        push( @restart_timers,
+            <v7.zenka.instance>->{$ARG}->{'timeout_timer'} );
+        <v7.zenka.instance>->{$ARG}->{'timeout_timer'}->stop;
+    }
+} keys %{<v7.zenka.instance>};
+
+my $reply_mode = 'true';
+my $reply_data = 'module reloaded';
+
+chomp( my $modprobe_output
+        = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( !length($modprobe_output) ) {
+    $reply_data = 'module loaded';
+    goto do_reply;
+} elsif ( $modprobe_output =~ / not found / ) {
+    $reply_data = "module '$module_name' not found!";
+    goto do_reply;
+}
+
+## already in kernel ##
+
+chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
+if ( length($rmmod_output) ) {
+    $reply_mode = 'false';
+    $rmmod_output =~ s/(^.*rmmod: (FATAL: )?(Module )?|\.$)//g;
+    $reply_data = "unable to unload module ['$rmmod_output']";
+    goto do_reply;
+}
+
+chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
+if ( length($modprobe_output) ) {
+    $reply_mode = 'false';
+    $modprobe_output =~ s/(^modprobe: FATAL: (Module )?|\.$)//g;
+    $reply_data = "unable to load module ['$modprobe_output']";
+    goto do_reply;
+}
+
+do_reply:
+
+map { $ARG->start } @restart_timers;
+
+return { 'mode' => $reply_mode, 'data' => $reply_data }
+
+#.............................................................................
+#22CNN6LDAS5XTK7X3UDAOBTPL3SBKMJ4YVOM62RO5RVLA2NKJNTKZ4A5TM5RUH6DN5HKTMXCFTNAQ
+#::: AB5SP5FIP32KKTXSWUH4JOVWTUY6T6TZK6I4IQB6S5IV74QGGB2 :::: NAILARA AMOS :::
+# :: 2MYNNP4G4XEKNUCSS3PI4TKQFK4XGCVIF6WVBOYCANF2WHQCTEBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

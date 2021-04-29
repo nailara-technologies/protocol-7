@@ -1,0 +1,28 @@
+# >:]
+
+# name = v7.instance_pid_count
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance   = <v7.zenka.instance>->{$instance_id};
+my $parent_pid = $instance->{'process'}->{'id'};
+
+return 0 if not defined $parent_pid;
+
+my %check_pids = ( $parent_pid => 1 );
+map { $check_pids{$ARG} = 1 }
+    ( @{ <[v7.sub-process.get_children]>->($parent_pid) } );
+map { $check_pids{$ARG} = 1 } keys %{ $instance->{'restart_pids'} }
+    if exists $instance->{'restart_pids'};
+
+my $processes_left = 0;
+map { $processes_left++ if <[v7.sub-process.exists]>->($ARG) }
+    reverse sort keys %check_pids;
+
+return $processes_left;
+
+#.............................................................................
+#MAGAH7O73PPCZNHYJDZ5JCUMWRWHGWLIREWSQX5VRTUESEE2P3CHDLB4SLCLVCDVK4OK2VSAZZVF2
+#::: XDNQ6ZZ3M3C33D4PKEJITHH7LLHJKIALOPZZJX65QPUJLAM3ZEJ :::: NAILARA AMOS :::
+# :: IRSOMFEYOQCCBUK5GVIZQVWGB4IUYJBDQQQ2ELIWWLO3OGKIR6CA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

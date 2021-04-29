@@ -1,0 +1,42 @@
+# >:]
+
+# name  = v7.zenka.cmd.subname-sids
+# param = <pattern>
+# descr = list cube sid[s] for given subname pattern
+
+my $subname_query = $$call{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected zenka subname pattern' }
+    if !length($subname_query);
+
+my @reply_list;
+foreach my $instance_id ( keys %{<v7.zenka.instance>} ) {
+    my $instance = <v7.zenka.instance>->{$instance_id};
+    next
+        if not exists $instance->{'subname'}
+        or not exists $instance->{'cube_sid'}
+        or $instance->{'subname'} !~ qr/$subname_query/;
+    push(
+        @reply_list,
+        join( ' ',
+            $instance->{'cube_sid'},
+            "$instance->{zenka_name} \[ $instance->{subname} ]" )
+    );
+}
+
+if (@reply_list) {
+    return {
+        'mode' => 'data',
+        'data' => join( '', map {"$ARG\n"} @reply_list )
+    };
+} else {
+    return {
+        'mode' => 'false',
+        'data' => "no match for subname pattern /$subname_query/"
+    };
+}
+
+#.............................................................................
+#6T3MECCN3G7D4MVNXFOUHQILMACHGWXWEAJOVGPNOBPDTE5Z2IBSL5HPHYNSGSX4XJ2ZE5QQKLTQW
+#::: 6QLZATJZHNSTCUSMCFT5QZTRV66225GBL6M42HHIEKMEIB6U2G5 :::: NAILARA AMOS :::
+# :: L534265HWSYRT3U4JG3EVQUW7IXH7W2GUXQQQTWXZREZM2J5GKDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

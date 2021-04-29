@@ -1,0 +1,51 @@
+# >:]
+
+# name  = v7.zenka.is_enabled
+# descr = returns true if zenka is enabled \ not disabled in the configuration
+
+my $zenka_name = shift;
+die 'v7.zenka.is_enabled: no zenka name specified'
+    if not defined $zenka_name;
+
+my $config_href   = <v7.start_setup.globals.zenki>;
+my $zenka_name_re = <regex.base.usr_str>;
+
+# checking config syntax
+foreach my $check_key ( 'enabled', 'disabled' ) {
+    if (    exists $config_href->{$check_key}
+        and defined $config_href->{$check_key}
+        and $config_href->{$check_key} !~ m|^(($zenka_name_re*\ *)+)?\s*$|i )
+    {
+        <[base.log]>->(
+            0,
+            "start setup syntax error: zenki.$check_key = '"
+                . $config_href->{$check_key}
+                . "' <-- expecting valid zenka name[s]"
+        );
+        die 'critical configuration error';
+    }
+}
+
+# all zenki are considered enabled in absence of explicit statements ..,
+return 1
+    if not defined $config_href->{'enabled'}
+    and ( not defined $config_href->{'disabled'}
+    or $config_href->{'disabled'} =~ m|^\s+$| );
+
+# zenki.diabled takes precedence to zenki.enabled.,
+map { return 0 if $ARG eq $zenka_name }
+    split( m|\s+|, $config_href->{'disabled'} )
+    if defined $config_href->{'disabled'};
+
+return 1 if not defined $config_href->{'enabled'};
+
+# if zenki.enabled is present, all zenki not listed there count as disabled .,
+map { return 1 if $ARG eq $zenka_name }
+    split( m|\s+|, $config_href->{'enabled'} );
+return 0;
+
+#.............................................................................
+#YFHRDF7ZNIQKCX3V6ALONWB5WPTUQR5IYILHAILYHBRDIWXUICHQE6KHCT2FFN23SEIYDHMJ4X5AS
+#::: ZER753V5DKFK6NIK6BQV7V53EATTVFH54C4ZM2WKAGMN4VE7NBN :::: NAILARA AMOS :::
+# :: I3SBMSHGJV56W2RCJ64POUZM5JG5COEGAB62KQCELP7TWLN3ESBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
