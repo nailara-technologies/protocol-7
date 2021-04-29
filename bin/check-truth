@@ -17,6 +17,8 @@ my $FXI = 202;    ## program return code for asserted FALSE ##
 my $silent          = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
+my $only_FALSE      = 0;
+my $only_TRUE       = 0;
 
 ## special parameters [ used by harmony-osd ] ##
 if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
@@ -30,6 +32,8 @@ if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
 $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
+$only_FALSE = 1 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift(@ARGV);
+$only_TRUE  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift(@ARGV);
 
 if ( @ARGV > 1 and $ARGV[0] =~ m|(-elf)?-modes?| ) {
     die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
@@ -108,12 +112,12 @@ sub process_input {
         = is_true( $ARG[0], $numerical, $check_elf, @modes );
     my $mode_str = @r_modes ? sprintf( " : %s", join( ' ', @r_modes ) ) : '';
 
-    if ($true) {
+    if ( $true and not $only_FALSE ) {
         say "$fg:\n${fg}:: $bl${CT}TRUE$rst$fg$mode_str :: "
             . "$bg$CT$ARG[0]$fg$rst$fg .:\n$fg:$rst"
             if not $silent;
         return 0;
-    } else {
+    } elsif ( not $only_TRUE ) {
         say "$fg:\n${fg}:: $bl${ng}FALSE$rst$fg$mode_str : "
             . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n$fg:$rst"
             if not $silent;
@@ -122,7 +126,7 @@ sub process_input {
 }
 
 #.............................................................................
-#5APOLW7Q6SPDOSAR6X2QQ56O5V6XDTZXMT4GKH4RJIAB3LG456CSIFSHMWOOLP244OUXAKWGZ5K76
-#::: 54MCD4YRZI5TDI4WBBNQRAMMSJ6LCRF7JDDZC55RT7IQPIKUXGG :::: NAILARA AMOS :::
-# :: SBI56YFWIHE5XIXSRPFDDP3W62BJHQW747KPP7AGEXC3HZI2FIAA :: CODE SIGNATURE ::
+#TXA2COTFMWFIROY35P2UJU5D3IEQYNC7NC4OIXOSJGN43O727CX4GLULHIDBARXIU5ZZQZ375EAIO
+#::: MBY5WYFGSRDP5I3X7VQTUYZMHLFOY7I5D4NE7ZN7WCAB7QIXPKR :::: NAILARA AMOS :::
+# :: L254KP67VFJYJT3V6LPLOBAZAG6XR23U6F3UZMBAUZXYKUILVEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
