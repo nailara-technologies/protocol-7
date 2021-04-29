@@ -7,15 +7,17 @@ my @setup_names = @ARG;
 
 <udev.rules> = {};    ## reset loaded rules ##
 
-my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . '/zenki/udev';
+my $cfg_dir = <udev.cfg_search_path> //= <system.conf_path> . qw|/zenki/udev|;
 
 <[base.log]>->( 1, '..loading udev rule set-up files..,' );
 
 if (@setup_names) {
     @rule_files = map {"rules-set-up.$ARG"} @setup_names;
-    my $s = @rule_files == 1 ? '' : 's';
-    <[base.log]>->(
-        1, sprintf( ":. intend to load %d rule file$s", scalar @setup_names )
+    <[base.logs]>->(
+        1,
+        ':. intend to load %d rule file%s',
+        scalar @setup_names,
+        <[base.cnt_s]>->( scalar @rule_files )
     );
 } else {
     my $dir_fh;
@@ -35,12 +37,12 @@ foreach my $file (@rule_files) {
     } else {
         ( my $rf_name = $file ) =~ s|^rules-set-up.||;
         <udev.rule-files>->{$rf_name}->{'load-ntime'} = <[base.ntime.b32]>;
-        <[base.load_section_config]>->( <udev.rules>, $cfg_dir, $file );
+        <[base.load_section_conf]>->( <udev.rules>, $cfg_dir, $file );
     }
 }
 
 #.............................................................................
-#K6W3FUHUA3AE2PQPE3OKSILLWA4OMYHEKODVXVANPMLIC6TCNN4OUFZ2ES4FGVAZNFVENU5UECE5Q
-#::: RL7J7M4NWJXVRFENU3FCUX5UNBMOLUHJ5AFA7IF6AYVH2SXICVJ :::: NAILARA AMOS :::
-# :: HXHHHI7P4J452SRDST3IADWFUVDA2LNZGMGYQZ3MCPJJJRMQKWDI :: CODE SIGNATURE ::
+#E4UBJOKXJ3M4ZQWJKEYTCJXN5ETZZNFEMFAZ2RECFIH2VF2CEUAHCTP3G76LVUJGBVKRNFUGT3FBM
+#::: 2MKTH44ZOHFLHER5DX4C5VNH6EKIQKAX3ISCDV22KOH3CYI7RIA :::: NAILARA AMOS :::
+# :: KBSPOP73MET557OIVISSCTTFATMO2BMTG7S7FOMKXCHKCPALWEAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
