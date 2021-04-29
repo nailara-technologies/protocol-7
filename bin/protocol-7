@@ -915,6 +915,7 @@ sub prepare_subs {
                 and $ARG ne qw|  base.log.send_buffer_line           |
                 and $ARG ne qw|  base.log.handler.log_reply          |
                 and $ARG ne qw|  nroot.handler.zenka_output          |
+                and $ARG ne qw|  base.session.calc_cmd_stats         |
                 and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
                 ++$purge_count
                     and $data{'code'}{$ARG}{'status'} = qw| purged |
@@ -1025,9 +1026,8 @@ sub prepare_subs {
         warn 'expected http file name' and return undef
             if !length($file_name);
         warn 'expected array ref to base urls' and return undef
-            if ref($base_urls) ne 'ARRAY' or !@{$base_urls};
+            if ref($base_urls) ne qw| ARRAY | or !@{$base_urls};
         ####
-        # $code{'log.debug'}->(": $file_name .,");
         $OUTPUT_AUTOFLUSH = 1;
         foreach my $http_base_url ( @{$base_urls} ) {
             my $abs_url = join( '/', $http_base_url, $file_name );
@@ -2103,7 +2103,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#OT2O7572VYMD5L4AJDNNDGSAFBUHGSBFE7MWXJOQOWBUHCPIT5XHS7MIYFOZ3RTBNWMVWSNEBDHUC
-#::: IYV57LK5OUK4XT5GRFZPJ5TFFNZQRCMIEEXHZGHCDBSYBCLV6ZC :::: NAILARA AMOS :::
-# :: F6MVCIIKNRL4YFC3T5JVM4GMV62SOLG46SWLHP6MAY6J7BA266BQ :: CODE SIGNATURE ::
+#CXV2AGN4NMOE4MGZCDQU6PJJW4AQMFOS7ISRKLYZQRRBSJHIMR6UP2P5OBU77XDWKCZGKMPDLMO22
+#::: GSFTFOBRRM6HJFHLPNYOVEQL6665UWPOEADBRBJGBVRP36QNJML :::: NAILARA AMOS :::
+# :: BWTV4BKJ2GCVTALMHVY6TAMQMAUSBJTEYMMYVBK3NPVYFJCHEWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
