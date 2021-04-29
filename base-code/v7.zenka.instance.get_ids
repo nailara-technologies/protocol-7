@@ -1,0 +1,27 @@
+# >:]
+
+# name  = v7.zenka.instance.get_ids
+# descr = return zenka id for given name from set-up [ in order of creation ]
+
+my $zenka_id     = shift;
+my $instance_ids = [];
+die 'expected zenka id' if not defined $zenka_id or $zenka_id !~ m|^\d+$|;
+
+foreach my $id (
+    sort {
+        <v7.zenka.instance>->{$a}->{'created'} <=>
+            <v7.zenka.instance>->{$b}->{'created'}
+    } grep { defined <v7.zenka.instance>->{$ARG}->{'created'} }
+    keys %{<v7.zenka.instance>}
+) {
+    push( @{$instance_ids}, $id )
+        if <v7.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id;
+}
+
+return $instance_ids;
+
+#.............................................................................
+#VOJB6BYX25L4T2G3NSIUQWUTGFG4Y32CECDSTIJWDLOLA5CAZOI7UKFRR3UBJIWEMP7JJHP2I2AG4
+#::: ZI6YCBOAM4Y4HQ4RI7CY7ZHYMNEDOS2RD4D5HZPZB4NOE3B4D6I :::: NAILARA AMOS :::
+# :: M6WZNLAOZMUHT3TPJFB6F5VAAIMVKIB3N2SFZV3K4DV22IUC7ODY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

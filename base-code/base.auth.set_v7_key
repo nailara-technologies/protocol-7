@@ -1,0 +1,21 @@
+# >:]
+
+# name  = base.auth.set_v7_key
+# descr = set up session auth key for 'v7' zenka
+
+my $key_str    = shift;
+my $zenka_name = shift // qw| v7 |;
+die "no session key supplied" if not defined $key_str or !length($key_str);
+
+# LLL: temporary solution
+<[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', 'blake2b_384_b64' )
+    if not defined <base.modules.initialized.base.init_code>;
+
+<[base.log]>->( 1, "setting up session key for 'v7' zenka" );
+$KEYS{'auth'}{'zenka'}{$zenka_name} = blake2b_384_b64($key_str);
+
+#.............................................................................
+#YGJBZ4SWMGTTSH5BFOUP24LGO2WFIL3CW4FFTEJ6O2HG44HN5IQYUPF22AD4ZHRCP4DFPZCKNHDGM
+#::: 56FFZX26WSCBWEP3NLJPHUQCFCO65HS5N2NRXBWADMHWHE346M6 :::: NAILARA AMOS :::
+# :: LB3Z7UQTY6P74ATW4GX4JLTK4AZPMG3S4WORCWX4XUSBNQG7TSDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

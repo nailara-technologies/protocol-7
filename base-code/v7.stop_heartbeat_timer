@@ -1,0 +1,36 @@
+# >:]
+
+# name = v7.stop_heartbeat_timer
+
+my $instance_id = shift;
+die "expected instance id" if not defined $instance_id;
+my $instance = <v7.zenka.instance>->{$instance_id};
+
+return undef if not defined $instance;
+
+my $instance_timers = $instance->{'timer'} // {};
+
+my $cancelled = 0;
+
+foreach my $timer_name ( keys( %{$instance_timers} ) ) {
+    next if $timer_name !~ m{^heartbeat-(status|timeout)$};
+    my $timer_type = $1;
+    if ( $instance_timers->{$timer_name}->is_active ) {
+        $instance_timers->{$timer_name}->cancel;
+        $cancelled++;
+        <[base.log]>->(
+            2, ": cancelled instance $instance_id heartbeat $timer_type timer"
+        );
+    }
+    delete $instance_timers->{$timer_name};
+}
+undef $instance_timers;
+delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+
+return $cancelled;
+
+#.............................................................................
+#SU5SG4N4IEA4GW42TMUNPQP77HWLVWLG5AOLXLX5T527PGJUY5PXKFN2GBAJ2M6TT7Y5AYF5J4ILA
+#::: CH7GJUZJWQF4VWS3IP55RRIXDDJDJA7VHIG6OCZKZDEKGNIAPYO :::: NAILARA AMOS :::
+# :: NGONBBJHLHOXQJ6PD5A4XVP4JDLG2FMEDN2C4UH56KFUPEBTNEDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

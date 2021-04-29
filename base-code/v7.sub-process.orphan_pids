@@ -1,0 +1,48 @@
+# >:]
+
+# name  = v7.sub-process.orphan_pids
+# descr = returns PIDs of orphaned children of deceased zenki
+# todo  = sort pids by process start time
+
+my $proc_table = <v7.process.pt>
+    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+
+my %own_children;
+foreach my $i_id ( keys %{<v7.zenka.instance>} ) {
+    next if not defined <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
+    my $pid = <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
+    $own_children{$pid} //= <v7.zenka.instance>->{$i_id}->{'zenka_name'};
+}
+
+my %orphans;
+map {
+    $orphans{ $ARG->pid } = $ARG->exec // $ARG->cmndline // ''
+        if $ARG->pid > 2
+    }
+    grep {
+    $ARG->ppid == 1               # parent is 'init'
+        and $ARG->pgrp == $GID    # process group was 'v7' zenka
+        and $ARG->pid != $PID     # and is not this process ['v7']
+        and not exists $own_children{ $ARG->pid }
+        and ( not defined $ARG->exec
+        or $ARG->exec ne
+        '/usr/bin/dbus-launch' )    # <-- whitelist :. config [LLL]
+    } @{ $proc_table->table };
+
+map {
+    my $name_str = '';
+    if ( length( $orphans{$ARG} ) ) {
+        $orphans{$ARG} =~ s|^.+/||;
+        $name_str = " '$orphans{$ARG}'";
+    }
+    <[base.log]>->( 1, ": found orphan process [$ARG]" . $name_str )
+    }
+    sort keys %orphans;
+
+return sort keys %orphans;
+
+#.............................................................................
+#Q3R64SEPRWGVJVV72PXGPFLZIUVGLEENJTBWKM3X437CGG6GHW4KIQEMYQCB7KDOTZTYYAL36ICTK
+#::: 6BLUMEIX4RGWCPHOT7WKVGY7N55KEZ3Z7XAIOGJQEX5K5X5IEOW :::: NAILARA AMOS :::
+# :: MZLX3N5DMWX7WXG424JCCAF6RFQ42TLN2ESHHAIE3T734E3M7SCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+
+.:[ nailara 'v7' process management zenka ]:.
+
+[load_config_file:'shared-params']
+system.verbosity.zenka_buffer = 1
+[load_config_file:'X11-vars']
+
+modules.load = v7 jobqueue net protocol io.ip auth.zenka chk-sum.bmw # \
+                                                    ## chk-sum.amos ? ## debug
+
+load.start_setup = 'base'        #    <--   [ ,../zenki/v7/start-set-up.base ]
+
+access.cmd.usr.cube = *
+
+v7.host-reboot.enabled        = 1
+v7.host-reboot.term-delay     = 1.3787
+v7.system-poweroff.enabled    = 1
+v7.system-poweroff.term-delay = 1.3787
+
+## P7C BINARY AUTO INSTALLATION ##
+v7.cfg.install_bin_p7c   =  yes
+v7.cfg.p7c_static        =  yes
+v7.cfg.p7c_make_symlink  =  auto # [yes|no|auto]
+#
+system.p7c_src_path      = 'bin/src/p7c.c'         ## /usr/local/protocol-7 .,
+v7.cfg.p7c_bin_path      = '/usr/local/bin/p7c'
+
+  ## not enabled yet.., ##
+  # v7.cfg.p7c_bin_path      = '<system.root_path>/bin/p7c'
+  # v7.cfg.p7c_symlink_path  = '/usr/local/bin/p7c'
+
+##
+
+# create protocol-7 user if required.,
+[root.check_system_user:<system.amos-zenka-user>]
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[v7.call_cmd:<system.args>]
+
+[event.loop]
+
+#.............................................................................
+#KT6VXD7CTKQPID4T7SCUO3SH6BRPAFJJXJJWPAQADOCNB4K3BGL3LZ4WV6AH6FCLOQGDZ5SOQXIJG
+#::: BCTR6HOOF65NQGFNFGE5AB3GE6CDKW6NWHJCLTIAFVLA4ME76C4 :::: NAILARA AMOS :::
+# :: EI6RGU6USN46JDBXQSOJDCTSSJIR7M5HRHPDVFWEMPTF6Y5JSCAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

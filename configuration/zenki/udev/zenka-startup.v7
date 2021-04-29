@@ -1,0 +1,21 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'udev' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+max_concurrency = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+
+#.............................................................................
+#GKI5GYNLDJQPO576XKQL7LOOJ76C3ZJ3NUB24S2NLCKIP75EBJF4ZIIL2STIBLMGAOEGEA3FSCKH4
+#::: IUVIYUPVKJH22G52O4P4SFP6MDEXUB47KJUDLKEWORDMECILRPB :::: NAILARA AMOS :::
+# :: U52AOPIGEXZATFOCJUAAZDI42LHB4U4VGKMVAAWM2FE7STSVVMAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

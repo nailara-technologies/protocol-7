@@ -1,0 +1,28 @@
+# >:]
+
+# name = v7.instance_count
+
+my $zenka_subname;
+my $zenka_name = shift;
+
+return scalar keys %{<v7.zenka.instance>} if not defined $zenka_name;
+
+$zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+
+my $instance_count = 0;
+map {
+    $instance_count++
+        if <v7.zenka.instance>->{$ARG}->{'zenka_name'} eq $zenka_name
+        and ( not defined $zenka_subname
+        or defined $zenka_subname
+        and defined <v7.zenka.instance>->{$ARG}->{'subname'}
+        and $zenka_subname eq <v7.zenka.instance>->{$ARG}->{'subname'} )
+} keys %{<v7.zenka.instance>};
+
+return $instance_count;
+
+#.............................................................................
+#26ZYCYJH4KVL3QNXYCQYK5LJEUNWJWRZI7JLJK7QH6U3E6T2LRTM3LLRSPB47LXMWUTILC6YIWVCY
+#::: 64SZSTK46FJCOZMBWYH7KDATFA53NXNC5HXLWZOUHFCAMTYL3DB :::: NAILARA AMOS :::
+# :: YBWHMDNA2GIPR5V4VT77PQ34KDHFKD7E65JBIR7JYZLSDMACVSCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

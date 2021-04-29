@@ -1,0 +1,102 @@
+# >:]
+
+# name  = v7.zenka.cmd.notify_online
+# param = <zenka|instance>
+# descr = reply when zenka startup complete or failed
+
+<v7.zenka.notify_online> //= {};
+
+my $zenka_subname;
+my $query_param = $$call{'args'};
+my $reply_id    = $$call{'reply_id'};
+
+return {
+    'mode' => 'false',
+    'data' => 'expected zenka name or instance parameter'
+    }
+    if not defined $query_param or !length($query_param);
+
+if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
+    my $instance_id;
+    map {
+        $instance_id = $ARG
+            if <v7.zenka.instance>->{$ARG}->{'job_id'} == $job_id
+    } keys %{<v7.zenka.instance>};
+    if ( defined $instance_id ) {
+        $query_param = $instance_id;
+    } else {
+        return {
+            'mode' => 'false',
+            'data' => "unknown job id '$job_id'"
+        };
+    }
+}
+
+my $query_copy = $query_param;
+$zenka_subname = $1
+    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
+
+if (    not defined <[zenka.get_id]>->($query_param)
+    and not defined <v7.zenka.instance>->{$query_param} ) {
+    my $rep_msg
+        = $query_param =~ /^\d+$/
+        ? "no such zenka instance [$query_param]"
+        : "no such zenka in setup [$query_param]";
+    return {
+        'mode' => 'false',
+        'data' => $rep_msg
+    };
+}
+
+if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+    my $cube_sid = <v7.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <v7.zenka.instance>->{$id}->{'process'}->{'id'};
+    if ( defined <v7.zenka.instance>->{$id} ) {
+        return {
+            'mode' => 'true',
+            'data' => "zenka instance '$id' already online., [$cube_sid]"
+            }
+            if <v7.zenka.instance>->{$id}->{'status'} eq 'online';
+        return {
+            'mode' => 'true',
+            'data' => "external program instance '$id'"
+                . " already running., [PID=$prog_pid]"
+            }
+            if <v7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+    }
+}
+
+foreach my $id ( keys %{<v7.zenka.instance>} ) {    # zenka name [ +subname ]
+    my $cube_sid = <v7.zenka.instance>->{$id}->{'cube_sid'};
+    my $prog_pid = <v7.zenka.instance>->{$id}->{'process'}->{'id'};
+    if (<v7.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
+        and (  not defined $zenka_subname
+            or not defined <v7.zenka.instance>->{$id}->{'subname'}
+            or <v7.zenka.instance>->{$id}->{'subname'} eq $zenka_subname )
+    ) {
+        return {
+            'mode' => 'true',
+            'data' => "zenka '$query_copy' already online., [$cube_sid]"
+            }
+            if defined $cube_sid
+            and <v7.zenka.instance>->{$id}->{'status'} eq 'online';
+        return {
+            'mode' => 'true',
+            'data' => "external program '$query_copy'"
+                . " already running., [PID=$prog_pid]"
+            }
+            if <v7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+    }
+}
+
+<[base.log]>->( 2, "startup notification request ['$query_copy']" );
+
+push( @{ <v7.zenka.notify_online>->{$query_copy} }, $reply_id );
+
+return { 'mode' => 'deferred' }
+
+#.............................................................................
+#UYUBJQHK6NRR3O5RRD45VNUMRPQLWTQ3ZYQDYO4FV7O3VDX3PP2FKMT6C6AS4JJDLPU5W2KGLZCOK
+#::: Y3I7ZTD72NPBXHJKVGNGYSNNF3LLXRKLI7GO7LS2E6JBFVXGJU7 :::: NAILARA AMOS :::
+# :: OROAWWRFZ6SVCNLCERRBBR6SCQR7TDGNNFSNQINKH3VG4FPHZUDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

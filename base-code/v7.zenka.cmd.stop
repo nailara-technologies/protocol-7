@@ -1,0 +1,161 @@
+# >:]
+
+# name  = v7.zenka.cmd.stop
+# param = <name[s]|instance[s]>
+# descr = [manually] shutdown zenka instance[s]
+
+my $params = $$call{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
+    if !length($params);
+
+my $stop_mode
+    = ( defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    ? 'implicit'
+    : 'manual';
+
+my @instance_ids;
+my $not_found_name;
+my $not_found   = 0;
+my $setup_found = 0;
+foreach my $param_str ( split m| +|, $params ) {
+    if ( $param_str =~ m|^\d+$| ) {    # instance id
+        return {
+            'mode' => 'false',
+            'data' => "unknown zenka instance '$param_str' [see 'list zenki']"
+            }
+            if not exists <v7.zenka.instance>->{$param_str};
+        push( @instance_ids, $param_str );
+    } else {                           # zenka name [ LLL: validate syntax ]
+        my $zenka_name = $param_str;
+        my $zenka_subname;
+        $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+        my $zenka_id = <[zenka.get_id]>->($zenka_name);
+        if ( defined $zenka_id ) { $setup_found++ }
+        else { $not_found++; $not_found_name //= $zenka_name; next }
+        foreach my $iid ( keys %{<v7.zenka.instance>} ) {
+            next
+                if defined $zenka_subname
+                and not exists <v7.zenka.instance>->{$iid}->{'subname'}
+                or defined $zenka_subname
+                and exists <v7.zenka.instance>->{$iid}->{'subname'}
+                and <v7.zenka.instance>->{$iid}->{'subname'} ne
+                $zenka_subname;
+
+            push( @instance_ids, $iid )
+                if <v7.zenka.instance>->{$iid}->{'zenka_id'} == $zenka_id;
+        }
+    }
+}
+
+map {
+    <[zenka.instance.stop]>->($ARG);
+    ## clean-up., ##
+    delete <v7.zenka.instance>->{$ARG}->{'startup-error-retries'};
+    delete <v7.zenka.instance>->{$ARG}->{'start-up-retries-left'};
+    ##
+} @instance_ids;
+
+my $count   = scalar @instance_ids;
+my $s       = $count > 1 ? 's' : '';
+my $msg_str = "shutting down $count zenka instance$s";
+
+my %zenka_names;
+map {
+    my $zenka_name
+        = <v7.zenka.setup>
+        ->{ <v7.zenka.instance>->{$ARG}->{'zenka_id'} }->{'name'};
+    $zenka_names{$zenka_name}++;
+} keys %{<v7.zenka.instance>};
+my %shutdown_names;
+map {
+    my $zenka_name
+        = <v7.zenka.setup>
+        ->{ <v7.zenka.instance>->{$ARG}->{'zenka_id'} }->{'name'};
+    <v7.zenka.instance>->{$ARG}->{'stopping'} = 1;
+    $shutdown_names{$zenka_name}++;
+} @instance_ids;
+foreach my $name ( keys %shutdown_names ) {
+    if ( exists <v7.zenka.auto_cleanup>->{$name} ) {
+        delete <v7.zenka.auto_cleanup>->{$name};
+        delete <v7.zenka.auto_cleanup>
+            if !keys %{<v7.zenka.auto_cleanup>};
+    }
+    my $instances_remaining = $zenka_names{$name} - $shutdown_names{$name};
+    if ( !$instances_remaining ) {
+
+        my %zenka_list;
+        map { $zenka_list{$ARG} = 1 } split m| +|,
+            <v7.start_setup.globals.zenki.enabled>;
+        delete $zenka_list{$name};
+        <v7.start_setup.globals.zenki.enabled>
+            = join( ' ', keys %zenka_list );
+
+        <v7.zenka.manually_stopped>->{$name} = <[base.time]>->(4)
+            if $stop_mode eq 'manual';
+
+        <[base.log]>->(
+            2, "disabled zenka '$name' [ no more instances present ]"
+        );
+        <[base.log]>->(
+            1, ": << added '$name' to 'manually stopped' list >>"
+        ) if $stop_mode eq 'manual';
+
+        next if not exists <v7.zenka.dependency>;
+        foreach my $dep_name ( keys %{<v7.zenka.dependency>} ) {
+            delete <v7.zenka.dependency>->{$dep_name}->{$name};
+            if ( !keys %{ <v7.zenka.dependency>->{$dep_name} } ) {
+                delete <v7.zenka.dependency>->{$dep_name};
+                if ( exists <v7.zenka.auto_cleanup>->{$dep_name} ) {
+                    <[base.log]>->(
+                        1, "dependency based auto-start cleanup [ $dep_name ]"
+                    );
+                    <[zenka.cmd.stop]>
+                        ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
+                }
+            }
+        }
+        delete <v7.zenka.dependency>
+            if !keys( %{<v7.zenka.dependency>} );
+    }
+}
+
+map { <[zenka.change_status]>->( $ARG, 'shutdown' ) } @instance_ids;
+
+return {
+    'mode' => 'false',
+    'data' => "no zenka '$not_found_name' found in setup [ see 'list zenki' ]"
+    }
+    if !$setup_found and $not_found;
+
+if ($count) {
+    return { 'mode' => 'true', 'data' => $msg_str };
+} else {
+    ## clean up orphaned start jobs ###
+    foreach my $param_str ( split m| +|, $params ) {
+        my $job_attr = { 'job_callback' => 'zenka.start' };
+        if ( $param_str =~ m|^\d+$| ) {
+            $job_attr->{'instance_id'} = $param_str;
+        } else {
+            $job_attr->{'callback_params'} = $param_str;
+        }
+        map {
+            if ( my @removed_job = <[jobqueue.remove_job]>->($ARG) ) {
+                my $a_n
+                    = $removed_job[0]->{'callback_params'};   ## zenka_name ##
+                <[base.log]>->( 0, "removed orphaned start job [$ARG]" );
+                <[base.log]>->( 0, ": zenka : $a_n" );
+            }
+        } <[jobqueue.find_jobs]>->($job_attr);
+    }
+    ##
+    return {
+        'mode' => 'false',
+        'data' => 'there is no zenka matching zenka running'
+    };
+}
+
+#.............................................................................
+#3GDBNIAFKOEKQHHMTOJYJDMWSLAL4S5GAASBMBMPGDD2W66MVLVH7OSJPRFNNPM3DV762CZKOCOGI
+#::: 6GEQR77KPBAV2IBD4VPEVJTLDTENDUT3QIQNMPVFH4AZB4OVILA :::: NAILARA AMOS :::
+# :: KIEDECX6KPRF4XHNP4E57BMWJLZ4V65XALF54E3RXF6VCKJGDEBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

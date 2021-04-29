@@ -1,0 +1,62 @@
+# >:]
+
+# name  = v7.calc_prefix_lengths
+# descr = initialize zenki for automatic \ immediate startup
+
+my $apw_href = <v7.zenka.prefix_width> //= {};
+
+my @online_zenki = keys %{<v7.online-zenki>};
+
+my $max_len = 0;
+foreach my $zenka_name ( uniqstr @ARG, @online_zenki, 'v7' ) {
+    my $new_len = <[base.get_start_lpw]>->($zenka_name);
+    $apw_href->{$zenka_name} //= $new_len;
+    $max_len = $new_len if $new_len > $max_len;
+
+}
+
+foreach my $zenka_name ( keys %{$apw_href} ) {
+    next if $apw_href->{$zenka_name} == $max_len;
+    my @zenki_pid;
+    map {
+        push( @zenki_pid, <v7.zenka.instance>->{$ARG}->{'process'}{'id'} )
+            if $ARG =~ m|^\d+$|;
+    } split( "\n",
+        <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
+        if $zenka_name ne qw| v7 |;
+
+    if ( $apw_href->{$zenka_name} < $max_len ) {
+        my $delta_len = $max_len - $apw_href->{$zenka_name};
+
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne qw| v7 | ) {
+                kill qw| SIGUSR1 |, @zenki_pid;
+                <[base.sleep]>->(0.007)
+                    if $delta_len;    # <-- make async ?., [LLL]
+            } else {
+                <[base.sig_usr1]>;
+            }
+        }
+
+    } elsif ( $apw_href->{$zenka_name} > $max_len ) {
+        my $delta_len = $apw_href->{$zenka_name} - $max_len;
+        while ( $delta_len-- ) {
+            if ( $zenka_name ne qw| v7 | ) {
+                kill qw| SIGUSR2 |, @zenki_pid;
+                <[base.sleep]>->(0.007)
+                    if $delta_len;    # <-- make async ?., [LLL]
+            } else {
+                <[base.sig_usr2]>;
+            }
+        }
+    }
+}
+
+map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
+    ( keys %{$apw_href} );
+
+#.............................................................................
+#TY7CXI6KCUK4DYECTL6EML2THXTY2WRWE37S65TUT2ZOJ5XLJWEIU63JX4VCB7OGARTBYMUJNWZJK
+#::: H22TSSKQDRY7PQBTBNGRLMRQRBVUE4CZJ7FERNNG6QGCKQG2QAF :::: NAILARA AMOS :::
+# :: 6UXFR7HIE76H6I2NNSDSG3XS4DHBIQ2WSWWWSUDEPULIP4D63MDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

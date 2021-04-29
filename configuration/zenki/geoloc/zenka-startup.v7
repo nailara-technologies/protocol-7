@@ -1,0 +1,24 @@
+# >:]
+
+# name  = zenka-startup.v7
+# descr = 'geoloc' zenka startup configuration used by 'v7' zenka
+
+dependencies  = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:13]
+
+#.............................................................................
+#CL5ZACZVVLTUPVLRKOZLNGWINOZ4NSCNAV2QH5AOA7SAI4MFZ7NGRJLYQHSJAEXL44SHNSU7CM6Z6
+#::: OFBQZNQEKYBIDFWYKBGN224UO2KI6KFTYFEEJXNFKRN2AED7EPI :::: NAILARA AMOS :::
+# :: VDYFY43DT3H36VXTSCOTHEOOWRH4IKG7HQJVO7FA3STI22UNWSAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

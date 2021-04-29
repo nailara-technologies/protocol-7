@@ -1,0 +1,28 @@
+# >:]
+
+# name = v7.handler.instance_verification
+
+my ( $instance_id, $verification_string ) = @_;
+my $instance = <v7.zenka.instance>->{$instance_id};
+
+if ( exists $instance->{'timer'}->{'verify_instance'} ) {
+    $instance->{'timer'}->{'verify_instance'}->cancel;
+    delete $instance->{'timer'}->{'verify_instance'};
+    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+}
+
+if ( $verification_string eq $instance->{'instance_verification'} ) {
+    <[base.log]>->( 1, "instance $instance_id : verified : success =)" );
+    delete $instance->{'instance_verification'};
+    <[zenka.change_status]>->( $instance_id, 'online' );
+} else {
+    <[base.log]>->( 0, "instance $instance_id could not be verified ..," );
+    delete $instance->{'instance_verification'};
+    <[zenka.change_status]>->( $instance_id, 'error' );
+}
+
+#.............................................................................
+#ERNN7NTYXYGCX7AKC3KUNJN3BKE2NMZ7ZNX2EPZPT7EGCCUNOUECISMJFI6BMOCD2UJWW6AOY6JHI
+#::: HJFYOXLH4NKYAD7VDVNYTSBDOTY7W6XCLPPQ5B5NRCSX3HVV3CN :::: NAILARA AMOS :::
+# :: YPKMNKJBTUE6LT4EPYAPWZERWVIRQQQCDGMEXQF7FVRGGVO2ZCBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

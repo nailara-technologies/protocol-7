@@ -1,0 +1,38 @@
+# >:]
+
+# name = v7.callback.register_ondemand
+
+my $ondemand_zenki = shift;
+$ondemand_zenki //= <v7.ondemand_zenki>;
+
+my $cube_path = 'cube.';
+
+## check previous post-init command status [ 'connect_to_cube' ] ..,
+my $post_init_status = <v7.current-init-data.status.post-init> // 0;
+return <[base.log]>->( 0, 'cube authentication was not successful .,' )
+    if $post_init_status == 0;
+##
+return warn 'expected array reference with zenka names'
+    if not defined $ondemand_zenki
+    or ref($ondemand_zenki) ne 'ARRAY';
+
+<[base.log]>->( 1, 'registering ondemand zenki at cube .,' )
+    if @{$ondemand_zenki};
+
+foreach my $zenka_name ( @{$ondemand_zenki} ) {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command' => $cube_path . 'ondemand-zenka',
+            'reply'   => {
+                'handler' => 'base.handler.warn_nak_reply',
+                'params'  => "${cube_path}ondemand-zenka add $zenka_name"
+            },
+            'call_args' => { 'args' => "add $zenka_name" }
+        }
+    );
+}
+
+#.............................................................................
+#XQUHK26UEFCKBTZOTJVYHFHYAKTF6BF2XMFC4N6E5MYBWHGEI63P2PIQIK53MPXTDSADN53FE7HPU
+#::: W4H4D3ABSOHO2QR42RGQ5RLKQRJVRIOOJDMDV7TIXKKOVTL6KZX :::: NAILARA AMOS :::
+# :: N7532BIQBKNFS2BHWVUYDEKPWRJNTWEQ5OKU7IN73272W7HOZWDA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

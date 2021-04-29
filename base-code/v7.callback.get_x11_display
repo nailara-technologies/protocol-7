@@ -1,0 +1,22 @@
+# >:]
+
+# name = v7.callback.get_x11_display
+
+# take first one [ for now ]
+my ($root_sid) = keys %{ $data{'session'} };
+die "no valid session defined yet [ cannot determine root_sid ]"
+    if not defined $root_sid;
+
+<[base.log]>->( 1, "requesting x11.display from X-11 zenka.," );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command' => "$root_sid.X-11.get_display",
+        'reply'   => { 'handler' => qw| v7.handler.get_display_reply | }
+    }
+);
+
+#.............................................................................
+#NHGRKROW3ILRFWNS6WL2ASCGFSKEC2F7U2DXB7HNUCDN4F3NYBXEZKKBZHPD6WY57BHE2IG36NRYC
+#::: WDORXIEI3QHHTJBBCHJSSOQTE7P6MKVPXQIGWM3ZHO4T5Z4KUCY :::: NAILARA AMOS :::
+# :: CJMB5TYVDOWNTBEFRGDQKALL6QV22MVH7X43HEJEWMG4AUQTMUDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

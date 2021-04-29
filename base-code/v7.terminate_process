@@ -1,0 +1,49 @@
+# >:]
+
+# name = v7.terminate_process
+
+my $instance_id;
+my $kill_pid = shift;
+
+return if exists <v7.terminating.pid>->{$kill_pid};
+
+$instance_id = <v7.child>->{$kill_pid}->{'instance_id'}
+    if exists <v7.child>->{$kill_pid};
+
+my @children = @{ <[v7.sub-process.get_children]>->($kill_pid) };
+
+map {
+    <v7.child>->{$ARG}->{'instance_id'} = $instance_id
+        if defined $instance_id
+} @children;
+
+<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid )
+    if kill( 'TERM', $kill_pid );
+
+my @kill_list = ($kill_pid);
+
+my @actually_killed;
+map { push( @actually_killed, $ARG ) if kill( 'TERM', $ARG ) } @children;
+
+if (@actually_killed) {
+    push( @kill_list, @actually_killed );
+    my $ren = scalar @actually_killed == 1 ? '' : 'ren :';
+    <[base.log]>->(
+        1, ": <TERM> child$ren " . join( ', ', @actually_killed )
+    );
+}
+
+map { <v7.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
+
+<[event.add_timer]>->(
+    {   'after'   => <v7.timeout.kill_list>,
+        'handler' => qw| v7.handler.process_kill_list |,
+        'data'    => \@kill_list
+    }
+) if @kill_list;
+
+#.............................................................................
+#VAVSIV5MOLPIUIXUNXLYMKJSH2OER4C2MFONBRNWLJFHRD4NT6YHQVVQV7ARDTVOC5GXYNA3TRYII
+#::: JKBBHANVDYDUOMS2OITYFJNLXJ53TCWDUJV4XWPBL4HFBUWRPAU :::: NAILARA AMOS :::
+# :: LAFHEDTJKAENK572BGQIA6N657SGSH5H7BLE4AQII57IJXW7ZKCI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

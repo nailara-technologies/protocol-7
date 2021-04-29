@@ -33,7 +33,7 @@ if ( not defined <composition.transition.status.waiting.stop>
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "cube.nroot.get-instance-ids",
+                {   'command'   => "cube.v7.get-instance-ids",
                     'call_args' => { 'args' => $zenka },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -79,7 +79,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "cube.nroot.notify_offline",
+            {   'command'   => "cube.v7.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -96,7 +96,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
             or <composition.transition.status.zenki.fade_out>->{$zenka} ne
             '1' ) {
             <[base.protocol-7.command.send.local]>->(    ## stop (no fade) ##
-                {   'command'   => "cube.nroot.stop_implicit",
+                {   'command'   => "cube.v7.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
@@ -138,7 +138,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         : 0;    # <-- 0 == failed, fade will be skipped!
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "cube.nroot.get-instance-ids",
+        {   'command'   => "cube.v7.get-instance-ids",
             'call_args' => { 'args' => $zenka },
             'reply'     => {
                 'handler' => 'composition.handler.transition',
@@ -154,7 +154,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     <[base.protocol-7.command.send.local]>->(    ## stop (fading complete) ##
-        {   'command'   => "cube.nroot.stop_implicit",
+        {   'command'   => "cube.v7.stop_implicit",
             'call_args' => { 'args' => $instance_id }
         }
     );
@@ -174,7 +174,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         if (exists <composition.transition.status.zenki.concurrency>->{$ARG} )
         {
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => "cube.nroot.start",
+                {   'command'   => "cube.v7.start",
                     'call_args' => { 'args' => $ARG },
                     'reply'     => {
                         'handler' => 'composition.handler.transition',
@@ -207,7 +207,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         ( my $job_id = $cube_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
         ## notify_online ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "cube.nroot.notify_online",
+            {   'command'   => "cube.v7.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -230,7 +230,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
     foreach my $zenka (@start_zenki) {
         ## start ##
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "cube.nroot.start",
+            {   'command'   => "cube.v7.start",
                 'call_args' => { 'args' => $zenka },
                 'reply'     => {
                     'handler' => 'composition.handler.transition',
@@ -283,7 +283,7 @@ if ( defined <composition.transition.status.waiting> ) {    ## in progress? ##
 #     if $event_type eq 'fade_out';
 
 #.............................................................................
-#POXWBJ4JA4UT3YLXV4PRVSWEOFPLKHQDYQEESMTTZGKVG4N6AVQMKNXEESXS37VAA7U3N7CVIHX7I
-#::: ULT26JV24I2MTJPXLIIQ3YMTMXGSM2UG5BCM24BAEWV3NJ42T24 :::: NAILARA AMOS :::
-# :: QUAJX4RRRQJ5DANKSQSK6L5Y77SJBVCC7W52OQSZSYAY7SMU3SAI :: CODE SIGNATURE ::
+#THJJJZ37J4RCHE6KXG2NKKK4ZJEPVGMYJ6CR26AYON5DWB4FOMU7AP4QNAM2IPNVVZ54G6AVPEWTA
+#::: 7O7D3RAR4UDEIDFVDZIV6RLW6JFCY2RH2ZHJNYXFGHDQBTMJDTA :::: NAILARA AMOS :::
+# :: E4BPEYO3UB4R2OTTDOGCTB6VFWJ7Z2TQIM4TKMAOLDA2JOBENMAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
