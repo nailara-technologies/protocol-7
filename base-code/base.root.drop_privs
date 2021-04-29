@@ -3,7 +3,7 @@
 # name = base.root.drop_privs
 # note = more cleanup required .,
 
-my $noop = ( defined $_[1] and $_[1] eq 'noop' ) ? 1 : 0;
+my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? 1 : 0;
 
 my $user = shift;
 
@@ -15,12 +15,12 @@ if ( !length( $user // '' ) ) {
     <[base.log]>->(
         0, '<< cannot drop priviledges [ no user name supplied ] >>'
     );
-    <[base.exit]>->('0110') if !$noop;
+    <[base.exit]>->(qw| 0110 |) if !$noop;
     return -1;
 } else {
 
-    my ($name,    $pwd,  $uid,      $gid, $quota,
-        $comment, $gcos, $home_dir, $shell
+    my ($name,    $pwd,  $uid,         $gid, $quota,
+        $comment, $gcos, $h_directory, $shell
     ) = getpwnam($user);
 
     my %_gid = map { $ARG => 1 } split( ' ', $GID );
@@ -38,14 +38,14 @@ if ( !length( $user // '' ) ) {
         <[base.log]>->(
             0, "<< cannot drop privs to user '$user' [ not root ] >>"
         );
-        <[base.exit]>->('0110') if !$noop;
+        <[base.exit]>->(qw| 0110 |) if !$noop;
         return -1;
     } else {
         if ( not defined $name or $name ne $user ) {
             <[base.log]>->(
                 0, "<< cannot drop privs to '$user' [ no such user ] >>"
             );
-            <[base.exit]>->('0110') if !$noop;
+            <[base.exit]>->(qw| 0110 |) if !$noop;
             return -1;
         } else {
             my @rgids;
@@ -54,39 +54,40 @@ if ( !length( $user // '' ) ) {
                     if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
             }
 
-            if ( !length( $home_dir // '' ) ) {
+            if ( !length( $h_directory // '' ) ) {
                 <[base.log]>->(
                     0,
                     sprintf( "<< undefined homedir [ user '%s' ] >>", $user )
                 );
                 <[base.log]>->( 2, " :. setting to '/'.," );
-                $home_dir = '/';
-            } elsif ( !-d $home_dir and $home_dir ne '/nonexistent' ) {
+                $h_directory = qw| / |;
+            } elsif ( !-d $h_directory and $h_directory ne '/nonexistent' ) {
                 <[base.log]>->(
                     0,
                     sprintf(
                         qq|<< user '%s' has no home dir [ creating %s ] >>|,
-                        $user, $home_dir
+                        $user, $h_directory
                     )
                 );
                 make_path(
-                    $home_dir,
+                    $h_directory,
                     {   'mode'  => 0700,
                         'uid'   => $uid,
                         'group' => $gid
                     }
                 );
-            } elsif ( !-d $home_dir or $user eq 'nobody' ) {    # /nonexistent
+            } elsif ( !-d $h_directory or $user eq 'nobody' ) { # /nonexistent
                 <[base.log]>->(
-                    0, "<< unable to create home directory '$home_dir' >>"
-                ) if $home_dir ne '/nonexistent';
+                    0, "<< unable to create home directory '$h_directory' >>"
+                ) if $h_directory ne '/nonexistent';
                 ### temporary home directory ###
                 <system.privs.create_temp_home> //= 0;
 
                 if ( !<system.privs.create_temp_home> ) {
-                    $home_dir = '/';
+                    $h_directory = qw| / |;
                     <[base.log]>->(
-                        1, "[unix:'nobody'] changing home path to '$home_dir'"
+                        1,
+                        "[unix:'nobody'] changing home path to '$h_directory'"
                     );
                 } else
                 {    # creating temporary home directory for user 'nobody':.
@@ -95,20 +96,20 @@ if ( !length( $user // '' ) ) {
                         ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>,
                         $user, $PID
                         : sprintf 'temp-home.%s.XXXXXXXXXX', $user;
-                    $home_dir
-                        = <[base.temp_dir]>->( '/var/tmp/', $tdir_template );
-                    if ( -d $home_dir ) {
-                        chown( $uid, $gid, $home_dir )
-                            or warn "chown[$uid,$gid,$home_dir] : "
+                    $h_directory
+                        = <[base.tmp_dir]>->( qw|/var/tmp/|, $tdir_template );
+                    if ( -d $h_directory ) {
+                        chown( $uid, $gid, $h_directory )
+                            or warn "chown[$uid,$gid,$h_directory] : "
                             . <[base.format_error]>->( $OS_ERROR, -1 );
                         map { <[base.log]>->( 1, $ARG ) } (
                             ':. created temporary home directory',
-                            " : $home_dir"
+                            " : $h_directory"
                         );
                         push(
                             @{<system.init_reports>},
                             {   'target_command' => qw| v7.report-temp-path |,
-                                'param'          => $home_dir,
+                                'param'          => $h_directory,
                                 'descr' => 'registering temporary directory'
                             }
                         );
@@ -120,7 +121,7 @@ if ( !length( $user // '' ) ) {
                 'uid'      => $uid,
                 'gid'      => $gid,
                 'all_gids' => join( ' ', $gid, @rgids ),
-                'home'     => $home_dir
+                'home'     => $h_directory
                 }
                 if $noop;
 
@@ -130,11 +131,11 @@ if ( !length( $user // '' ) ) {
             $UID  = $uid;
 
             $ENV{'USER'}            = $name;
-            $ENV{'HOME'}            = $home_dir;
-            $ENV{'XDG_RUNTIME_DIR'} = $home_dir;
+            $ENV{'HOME'}            = $h_directory;
+            $ENV{'XDG_RUNTIME_DIR'} = $h_directory;
             $ENV{'NO_AT_BRIDGE'}    = 1;
-            chdir($home_dir)
-                or warn sprintf( ":: %s : chdir [ $home_dir ] ::\n",
+            chdir($h_directory)
+                or warn sprintf( ":: %s : chdir [ $h_directory ] ::\n",
                 <[base.format_error]>->( $OS_ERROR, -1 ) );
 
             <[base.log]>->( 1, "switched to unix user '$user'.," );
@@ -143,7 +144,7 @@ if ( !length( $user // '' ) ) {
 }
 
 #.............................................................................
-#OAUZVH5GOYGOP7IBMZB2KW4QHTQREORG6T3KISMZ4CKH2MYIHVGQBRWY473UKBQUOVZMKTD7IJYVY
-#::: DASKH2E5OXEYQHFSVRU45XUYBH57JHLRHZMRRDPOIEDJOTHEWY4 :::: NAILARA AMOS :::
-# :: ZDBPUSBL5U63RDFFISRK24FZCEHPVD5BNSKVNFWQB2FTT65DIWDA :: CODE SIGNATURE ::
+#KMSKJF6S7HYOPIZE7EMUDPSF43JF4OC4ZTFKLVYGMPQUQA34KU2QOQINOP5CZ2BOXH7ZWXHNJXTWC
+#::: ASWCTXATVLHBLSEH7MQIEQG6PAPJB6OGJ7N4PBIE5LOKYWWKZEY :::: NAILARA AMOS :::
+# :: 7JRHIFZEIKNII5CLRO4X5ML3XRHGLEMCINANZARZS2JDJORT24DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
