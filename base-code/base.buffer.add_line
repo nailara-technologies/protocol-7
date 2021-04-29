@@ -10,7 +10,7 @@ my $log_cmd_level
 my $min_b_size = 13747;
 
 $code{'base.log'}
-    //= sub { say "<<< $_[1] >>>" };    ##<--catch compilation errors
+    //= sub { say "<< $ARG[1] >>" };    ##<--catch compilation errors
 
 if ( !length( $name // '' ) ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
@@ -30,7 +30,6 @@ if ( defined $code{'base.utf8.clean_not_valid'} ) {
 $log_message =~ s{^\s+|\s+$}{};
 $log_message =~ s|\n|\\n|g;
 $log_message =~ s|\r|\\r|g;
-$log_message =~ s|\0|\\0|g;
 
 my $message_len = length($log_message);
 
@@ -96,13 +95,14 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
 }
 
 if (    defined $data{'buffer'}{$name}{'log_cmd'}
-    and $data{'buffer'}{$name}{'log_cmd'} ne ''
-    and (  $name ne 'zenka'
+    and length $data{'buffer'}{$name}{'log_cmd'}
+    and (  $name ne qw| zenka |
         or not defined $log_cmd_level
         or not defined <system.verbosity.zenka_logfile>
         or $log_cmd_level <= <system.verbosity.zenka_logfile> )
 ) {
     my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
+
     <[base.log.send_buffer_line]>->( $name, $buffer_index )
         if defined $code{'base.log.send_buffer_line'}
         and not exists $data{'p7-log'}
@@ -112,7 +112,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 #.............................................................................
-#COOBQXK25HMFP6BPPHK4HNDIE46SJUMIMEQRRHRDR3CQDL2M3EWKNY22PIM34XJ3UUAITIFIXCFPK
-#::: 3EOAMSOOMWTXQFXHTBGWR42JHA4SFID2YF3VT2P7VHOAFJVLUDZ :::: NAILARA AMOS :::
-# :: SPVKBCKTKQPLTYSK3KYXDDOF7UBG4PJQSHXZQ2LILXU3II7G3IBY :: CODE SIGNATURE ::
+#WHMWTI5RJKL3GBHODSMI4ATJ43JAAA2GEJRR6ABIEFSZD3KAFF76WDXN74VGVKAH3XIKHW7IRP3YS
+#::: GOJZ3FUIMETY6TJLDAF53RJR4NJZNOVXG3ABRCLWU55SDOKW3MH :::: NAILARA AMOS :::
+# :: 777K35MQ4457GHTEVWRMPI656LRZX4XVQ743CWANFQARZGXCC4CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

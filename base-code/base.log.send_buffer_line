@@ -1,6 +1,7 @@
 # >:]
 
-# name = base.log.send_buffer_line
+# name  = base.log.send_buffer_line
+# descr = send log buffer content to configured zenka [ i.e. p7-log ]
 
 my $name         = shift;
 my $buffer_index = shift;
@@ -15,24 +16,25 @@ return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
     'resend_slowdown' => 1.8,
 };
 
-return if not exists <base.log.allow_buffer_send>;    #  <--  connected ?.,
+return if not exists <base.log.allow_buffer_send>;    ##  <-- connected ?  ##
 
 my $log_data   = <log.file>->{$name};
 my $next_index = $log_data->{'next_index'};
 
+##  no such buffer  ##
 return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
 
-# find path to log zenka..,
-my $route_prefix = 'cube.';
+# find path to target zenka..,
+my $route_prefix = qw| cube. |;
 my @send_line;
 
 ##[ cube has sid 0 ]##
-if ( <system.zenka.type> eq 'cube' ) {
+if ( <system.zenka.type> eq qw| cube | ) {
     push( @send_line, "<system.node.name>.<system.zenka.name>", 0 );
     $route_prefix = '';
 }
 
-##[ buffer name ]##
+##  log buffer name  ##
 push( @send_line, $name );
 
 ##[ t-stmp, lvl, msg ]##
@@ -47,20 +49,20 @@ my $protocol_messages = <protocol.protocol-7.messages>;
         'call_args' =>
             { 'args' => join( ' ', map { $ARG // '' } @send_line ) },
         'reply' => {
-            'handler' => 'base.log.handler.log_reply',
+            'handler' => qw| base.log.handler.log_reply |,
             'params'  => { 'name' => $name }
         }
     }
     )
     or <[base.log.handler.log_reply]>->(
-    {   'cmd'       => 'FALSE',
+    {   'cmd'       => qw| FALSE |,
         'call_args' => { 'args' => $protocol_messages->{'command_unknown'} },
         'params'    => { 'name' => $name }
     }
     );
 
 #.............................................................................
-#LSJRIAXUV3NM5TKS3POBMTPKAT5WZBQGU7ROLYQ6WJFRXSZU2VZGUJKRNLAMFGU4IL5C4JKTNHU5W
-#::: 6JFGYMZELUFJLJKAQIXN6ZEFN2XLH6RCZ6XMTGVIB6WTHLD5IZ3 :::: NAILARA AMOS :::
-# :: CCAV4MBPC7UUBZIXNEWS6AGEEXFCZ5S7HLW26XDWFLH2ZOXIG6BQ :: CODE SIGNATURE ::
+#R3EMELYIB6NSBK7O5NM2C2VLFFADQDCCV24HDXJWOHJ5BI7ELXMKC3B7HRZCUBF26NLN5REPRHF44
+#::: BA52E3TJNY5SYHJWYKYZ4YKELNR4OKXEKTEYHF6PKZVDZYDLOPI :::: NAILARA AMOS :::
+# :: K2USH5ZT52TGFTH4HG3MDHJ2Z576NVR7A7JDSAGKRCMYRLUVLGAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
     my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
-    my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // 'dev.null';
+    my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // qw| dev.null |;
     my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
     my $target_name = $1;
@@ -126,7 +126,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 #.............................................................................
-#QCF4IAUAUBT2W4YFYQIVRJEZKDRTSGIIHX4EKGZUED7ZG4HE542PRU3SNZOACMNQQPXE5PPFTG6JC
-#::: FDEXHAD4NZY6MOB5QW5TKPZPVP677JULN6SS3JGI7KPR5F6FDTR :::: NAILARA AMOS :::
-# :: CNHALJBQ3D6JH3VZFIIMHDFK2IM63BAVTXVAYGCIUTIFVULKBKBA :: CODE SIGNATURE ::
+#GEDHXZYLD4GRGLSOOBGEAVQZZX4I6UMJIQIN7QJNRSUGQ2YDVWZTDQJQ4ZQPFHOSPM5BORCMCFCEM
+#::: 5OCRTJSRHJPMUPNYJF7KBQL4PMXX6XDPFXWSUBDAK52H5XRST5P :::: NAILARA AMOS :::
+# :: TX5LCKHPIWABVAG2AXNQ2FM3W5AQ73FDEOFA2GFMOWCRHJRWYWCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,16 +2,16 @@
 
 # name   = base.route.add
 
-if ( ref( $_[0] ) ne 'HASH' ) {
+if ( ref( $ARG[0] ) ne qw| HASH | ) {
     <[base.log]>->( 0, 'add_route: argument is no hash reference' );
     return undef;
 }
 
-my $id            = ${ $_[0] }{'source'}{'sid'};
-my $cmd_id        = ${ $_[0] }{'source'}{'cmd_id'};
-my $reply_handler = ${ $_[0] }{'reply'}{'handler'};
-my $reply_params  = ${ $_[0] }{'reply'}{'params'};
-my $target_sid    = ${ $_[0] }{'target'}{'sid'};
+my $id            = ${ $ARG[0] }{'source'}{'sid'};
+my $cmd_id        = ${ $ARG[0] }{'source'}{'cmd_id'};
+my $reply_handler = ${ $ARG[0] }{'reply'}{'handler'};
+my $reply_params  = ${ $ARG[0] }{'reply'}{'params'};
+my $target_sid    = ${ $ARG[0] }{'target'}{'sid'};
 
 return 0
     if not exists $data{'session'}{$target_sid}
@@ -42,9 +42,9 @@ my $route_id = <[base.list.element.add]>->(
             },
             'start_time' => <[base.time]>->(5),
 
-            #          'protocol'      => $proto,
-            #          'handle'     => $fd,
-            #         'mode'       => $mode,
+            ## 'protocol' => $proto,
+            ## 'handle'   => $fd,
+            ## 'mode'     => $mode,
             'state'    => 0,
             'shutdown' => 0,
             'user'     => <base.session.uname.server>,
@@ -65,7 +65,7 @@ $data{'session'}{$id}{'route'}{$cmd_id}
 return $data{'route'}{$route_id};
 
 #.............................................................................
-#RLKW3G3JZG4F5ZA3UBXECHHTFEQ23Z2M6FHZ5RDTINTSGJQN3MZUWCYL5BVVOIJ4MAU3HG3AEA5NC
-#::: OARORVW3MJTLHBA7PWOJSWWCYHSZ2UBVF3JBF3SMXAOJRRX3EBU :::: NAILARA AMOS :::
-# :: RPHTGHOPJ4JT22HQ4AGAB536XH6N2F2HHCR5DH3UFNP3N6W55KBI :: CODE SIGNATURE ::
+#6URJWYHLZPRG27UUNANOQUFVTETHOJTYUTGZK333AF4RQNQ5HRYWKURJWXEE555RH2NXLW4TOC7E6
+#::: CGRIDBNCSPRMGI7MPYT2CN33CNCI44OFY3VJXPMQBHY3KSQHR77 :::: NAILARA AMOS :::
+# :: Q2M7MXIKYSXHYTQB3KF2J6SYHKGXXCCHCER5B2QAQIOGLH2JSGBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
