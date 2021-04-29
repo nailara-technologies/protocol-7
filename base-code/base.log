@@ -5,7 +5,7 @@
 # args  = log_level log_msg [log_buffer] [time-stamp]
 
 my ( $log_level, $log_msg, $log_buffer, $time_stamp )
-    = ( $_[0] || 0, $_[1] // '', $_[2] // '', $_[3] );
+    = ( $ARG[0] || 0, $ARG[1] // '', $ARG[2] // '', $ARG[3] );
 
 $log_level = 0 if $log_level !~ m|^\d+$|;
 
@@ -18,7 +18,7 @@ return 1
     and $log_level > <system.verbosity.zenka_buffer>
     and $log_level > <system.verbosity.zenka_logfile>;
 
-$log_buffer = 'zenka' if !length($log_buffer);
+$log_buffer = qw| zenka | if !length($log_buffer);
 
 $log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
 
@@ -32,14 +32,14 @@ $log_msg =~ s|\e|\\e|g;
 
 ## prevent deep recursions in error log system ###
 my $fatal_exit
-    = ( $log_msg =~ m|Deep recursion | and $log_msg =~ m,log|buffer, )
+    = ( $log_msg =~ m|deep recursion |i and $log_msg =~ m,log|buffer, )
     ? 1
     : 0;
 
-$log_msg
-    = "$ANSI{'p7_fg_0002'}call to unknown subroutine while executing '$1'"
+$log_msg = sprintf( "%scall to unknown subroutine while executing '%s'",
+    $ANSI{'p7_fg_0002'}, ${^CAPTURE}[0] )
     if $log_msg
-    =~ m|\$code\{'([^\']*)'\}.+Can't use string \(""\) as a subroutine|;
+    =~ m|\$code\{'([^\']*)'\}.+ use string \(""\) as a subroutine|;
 
 my $bg   = $ANSI{'p7_bg'};
 my $rst  = $ANSI{'reset'};
@@ -50,8 +50,10 @@ my $zenka_prefix = <[log.format_name]>;
 
 my $log_str;
 
-# say '< caller 0 > '.[caller(1)]->[1].':'.[caller(1)]->[2] if $log_level == 0;
-# say '< caller 4 > '.[caller(1)]->[1].':'.[caller(1)]->[2] and sleep 0.24 if $log_level == 2;
+# say '< caller 0 > '.[caller(1)]->[1].':'
+#  .[caller(1)]->[2] if $log_level == 0;
+# say '< caller 4 > '.[caller(1)]->[1].':'
+#  .[caller(1)]->[2] and sleep 0.24 if $log_level == 2;
 
 ## log colors ##
 my $c_l = 2;
@@ -76,7 +78,8 @@ if ($fatal_exit) {    ## improve detection ## [LLL]
 
 ## write imto 'zenka' log buffer ##
 if ( defined $code{'base.buffer.add_line'} ) {
-    $time_stamp //= $code{'base.anum_log_time'}->( 5, $want_harmony );
+    $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
+
     <[base.buffer.add_line]>->(
         $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
         $log_level
@@ -98,7 +101,7 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 return 1;
 
 #.............................................................................
-#NLJVIHKO2NE7JGH56T3F6B5ME4Y5PVTA42MMBOTRODPCB3KUZSW6C4QHU742CJ76TZVHV33WIKZE2
-#::: JYMCHIN3U3MNIFONOOMYZM4INUB3BYMXTGH6UJCOE7YN7OTSGKP :::: NAILARA AMOS :::
-# :: XZGTAEP6NV2JUZQWP3PATSGVAK47P57BXV7OE7K3PGABJPTENUDQ :: CODE SIGNATURE ::
+#UUSN4YNKGSODU7GTCLHZ7HGTGOGORO2MUIY6G64YAQYGK27ZNWGMXO6PRVWZOL336MLPFRTDOBHWG
+#::: 4R4BYXXEM6QE2CF5G5CRG7GX3A7EGB4IIV6CFBPPXRFWBIZESTA :::: NAILARA AMOS :::
+# :: 7L5FEA3P6YMXS6HHYU4NE5HZFFHFL6XT4XCCLV3QHRX2UZNOW4DY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

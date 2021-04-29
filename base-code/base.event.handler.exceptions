@@ -6,39 +6,44 @@ my $event   = shift;
 my $err_str = shift;
 my $watcher = $event->w;
 
-return if $err_str eq '?';    # <-- WEIIIRD and redundant
+return if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
 
 my $ev_desc = 'not named';
 $ev_desc = $watcher->desc if $event and $watcher;
 
-$err_str =~ s| at (\S+) line (\d+).*\n$||;
-my $file = $1;
-my $line = $2 // '';
-$err_str =~ s|^(.)|lc($1)|e;
-$err_str =~ s|can\'t|cannot|g;
-$err_str .= " < $EVAL_ERROR >" if $EVAL_ERROR;
+my $file;
+my $line;
+( $file, $line ) = ( ${^CAPTURE}[0] // '', ${^CAPTURE}[1] // '' )
+    if $err_str =~ m| at (\S+) line (\d+).*\n$|;
 
-$file =~ s|^/usr/share/perl5/||;   ##  <--  shortening path for .pm modules ##
+$err_str = <[base.format_error]>->($err_str)
+    if defined $code{'base.format_error'};
 
 my $log_warning = 1;
+
 ## alternative handlers registered for filename:line ? ##
 my $match_param = "$file:$line";    # <-- expand .., [LLL]
 if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
     my $cb_name
         = $data{'base'}{'warn-match-handler'}{$match_param};
-    $err_str =~ s{^\s+|\s+$}{}g;
     $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
         if defined $code{$cb_name};
 }
 ##
 
 ## catching compilation errors ###
-$code{'base.log'} //= sub { say STDERR ' <<< ! >>> ' . $_[1] };
+$code{'base.log'} //= sub { say STDERR ' << ! >> ' . $ARG[1] };
 
-eval {
-    <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
-        if $log_warning;
-};
+##
+$data{'error'}{'prev_msg'} //= '';    ##  catching recursive errors  ##
+return say sprintf( '%s%s<<< %s : %s >>>%s',
+    $ANSI{'p7_bg'}, $ANSI{'p7_fg_0002'}, $SUB_NAME, $err_str, $ANSI{'reset'} )
+    if $err_str eq <error.prev_msg>;
+$data{'error'}{'prev_msg'} = $err_str;
+##
+
+<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
+    if $log_warning;
 
 return
        if not $watcher
@@ -51,16 +56,16 @@ my $lvl  = 2;
 my $mlen = 0;
 map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
-eval { <[base.log]>->( $lvl, ".:[ event ]:." ); };
+<[base.log]>->( $lvl, ".:[ event ]:." );
 
 foreach my $akey (@attr_names) {
     my $val = $watcher->$akey // '<undef>';
-    next if $akey eq 'debug' and !length($val);
+    next if $akey eq qw| debug | and !length($val);
     <[base.log]>->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
 }
 
 #.............................................................................
-#2SPO3MZ7FPYHGI6UWZ4BZQPT3KKVTJTUKJY6RCTRPBTQZ6E7XQLFGZEQTNCJPUJ3QGWABVPO3V5XC
-#::: 4P3LRYIH5YVC2JJCUSQJEAYVHR45XJGS46OJY2HUZSQLXUCWNPR :::: NAILARA AMOS :::
-# :: Z4SGJVMTAYVF7B72CKC4PUH4DFSEW7JTEQN6652ZOKLFWSDLLCAA :: CODE SIGNATURE ::
+#M3WJBCAR4ERD2PTGOZOMAPOCPHDBMQ6VCLJMLNY6SOBT5MTBL6OMNSCD2GMS2MOXPGPIYNDO4LMIA
+#::: C44HBE3GEEKR2EA7PLMHWDH6AOTTM6IQ762JOHAMZFN5AYSFVOP :::: NAILARA AMOS :::
+# :: 3LVPVWPAN66CZIDPZS6SD7FDEPPMKLPAJEIGYXNF5KFSEULBCSBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
