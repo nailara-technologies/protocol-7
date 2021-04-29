@@ -21,17 +21,19 @@ my $count_written;
 #    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 ##
 
-if ( $write_len > 0 and utf8::is_utf8($write_str) ) {
+if (    $write_len > 0
+    and utf8::is_utf8($write_str)
+    and $write_str =~ m|[^\p{ASCII}]| ) {
+
     my $prev_len = length($write_str);
 
     utf8::encode($write_str);
     utf8::downgrade( $write_str, 1 );
 
     my $delta_len = length($write_str) - $prev_len;
-    $write_len += $delta_len if $delta_len != 0;    ## string lengthened ##
-}
 
-## use syswrite again ? ## [LLL] create speed statistics to decide..,
+    $write_len += $delta_len if $delta_len != 0;    ##  string lengthened  ##
+}
 
 IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_str,
     $str_offset, sub { $count_written = $_[0] } );
@@ -42,7 +44,7 @@ return undef if $count_written < 0;    # <-- syswrite() behaviour
 return $count_written;
 
 #.............................................................................
-#VNWMVC3K3EU3CX5K6G44QECIAAKQOPXIRD5XICTWU7HFIEXZJGQLIHJNERCAXAKEZ2O7G4JX3V43W
-#::: DQI3TMDGK3PJLNQFJV6CYM47SRZPJV2FV673AGLF5RUGIN6LFDS :::: NAILARA AMOS :::
-# :: LIW6EJKI5YD4NBCQFHNCOYTAWOEU5UHY5HWA3DUXAMN3MVQ4GCAA :: CODE SIGNATURE ::
+#YP35B7XX745FFYRLOOB2QSOUMYKK2WBJIJUB3WHGF4NXQ36FIBCMKVCOUQI4AV624JYWK77ANKCUY
+#::: WXESGPGQU25V3GLWID246DLSDQEISEYVIXBDYX6BYVE4366CFSE :::: NAILARA AMOS :::
+# :: BHSPMWERFACOSSNBIFTNYZMVCF5YC4CY5DSQPIUQK6RQNE4H4GAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
