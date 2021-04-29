@@ -34,7 +34,10 @@ my $avg_cmd_length        ##  tracked minus endline  ##
     ? $session->{'command'}->{'average-length'}
     : $protocol_stats->{'average-command-line-length'} // 42;
 
-my $read_len = $size_left < $avg_cmd_length ? $size_left : ++$avg_cmd_length;
+my $read_len = (
+           $session->{'read-mode'} ne qw| lines |
+        or $size_left < $avg_cmd_length
+) ? $size_left : ++$avg_cmd_length;
 
 my $read_bytes_total = 0;
 my $read_iterations  = 0;
@@ -119,7 +122,7 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
 }
 
 #.............................................................................
-#NOLT4QEDEXWEI5DTVPOSNVG4WXTHTXHOFYTNUVJTFTTVH4VP5QRY4QVBYXZYPS55Y4HARORPXZY3Y
-#::: OS5NE5ME5YO7D5NBIFNQEJMJV3NHBV6N6KH4XOORFLNEBT6PYJQ :::: NAILARA AMOS :::
-# :: VIEYP7HMHYFRQVGL5HKBBZI4SXLT26QLJ6XFU4NGKGDASFTWCECI :: CODE SIGNATURE ::
+#J7YQFJS2G5I5NY6Q326B4WFDAYBUHFPFHBD3BFPK5ZL5T5Z5Y2NABJDZIDBUHM3B5O6XQXJ5ICOKA
+#::: M4ZTCIJYT24AAYERZBLEQS7H4AQZJWI3VDXHOP2QUCNCAB5L4PD :::: NAILARA AMOS :::
+# :: AEPW372LLBXSAQSPO2TBR2CSK5QZAX37WLCW5NEYZZOTUNEMK2BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
