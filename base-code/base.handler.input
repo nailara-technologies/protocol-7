@@ -3,11 +3,11 @@
 # name  = base.handler.input
 # descr = call input handler
 
-my $id = $_[0]->w->data;
+my $id = $ARG[0]->w->data;
 
 if ( not defined $id or not defined $data{'session'}{$id} ) {
     my $id = '!!!' if not defined $id;
-    $_[0]->w->cancel;
+    $ARG[0]->w->cancel;
     ## call cleanup handler.., [protocol.,]                              [LLL]
     <[base.log]>->( 0, "[$id] input handler session was already closed.," );
     return undef;
@@ -17,7 +17,6 @@ my $session   = $data{'session'}{$id};
 my $fd        = $session->{'input'}->{'handle'} // $session->{'handle'};
 my $type      = $data{'handle'}{$fd}{'link'};
 my $proto     = $session->{'protocol'};
-my $binary    = $session->{'binary'} // 0;
 my $state     = $session->{'state'};
 my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
@@ -27,7 +26,7 @@ $session->{'shutdown'} //= 0;
 
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 
-    my $ret_code = $code{$handler}->( $_[0] );
+    my $ret_code = $code{$handler}->( $ARG[0] );
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
@@ -43,13 +42,18 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     $session->{'complete'} = $ret_code == 1 ? 0 : 1;
 
     ## return code 2 ## terminate session and close connection ##
-    if ( $ret_code == 2 or $session->{'shutdown'} == 1 ) {
-        $_[0]->w->cancel;    ##  no longer watching buffer content  ##
+    if (   $ret_code == 2
+        or $session->{'shutdown'}
+        or $session->{'flush_shutdown'} ) {
+        $ARG[0]->w->cancel;    ##  no longer watching buffer content  ##
 
         ##  secure buffer erasing  ##
         <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
 
-        $session->{'shutdown'} = 1 if $session->{'shutdown'} == 0;
+        $session->{'flush_shutdown'} = 1
+            if not $session->{'shutdown'}
+            and not $session->{'flush_shutdown'};
+
         <[base.log]>->(
             2, "[$id] stopped input processing [ session shutdown ]"
         );
@@ -57,12 +61,13 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     ##
 } else {
 
-    $_[0]->w->stop; ##  stopping variable watcher to modify buffer content  ##
+    ##  stopping variable watcher to modify buffer content  ##
+    $ARG[0]->w->stop;
 
     ##  secure buffer erasing  ##
     <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
 
-    $_[0]->w->start;    ##  modification complete restarting watcher  ##
+    $ARG[0]->w->start;    ##  modification complete restarting watcher  ##
 
     <[base.log]>->(
         0, "[$id] input handler '$handler' not defined, buffer emptied.,"
@@ -75,10 +80,12 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 }
 
 my $len = length( $session->{'buffer'}->{'input'} );
-return $_[0]->w->cancel if not defined $len;    ## <-- buffer 'not defined' ##
+return $ARG[0]->w->cancel if not defined $len;  ## <-- buffer 'not defined' ##
 
-if ( $len < $data{'size'}{'buffer'}{'input'} and !$session->{'shutdown'} ) {
-    push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
+if (    $len < $data{'size'}{'buffer'}{'input'}
+    and not $session->{'shutdown'}
+    and not $session->{'flush_shutdown'} ) {
+    push( @{ $data{'watcher_list'}{'paused'} }, \$ARG[0] );
     if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
     }
@@ -90,19 +97,19 @@ if ( !$session->{'watcher'}->{'input_buffer'}->is_running ) {
 }
 
 ##  buffer contains complete line ?  ##
-
-if (    $len > 0
+$session->{'watcher'}->{'input_buffer'}->now
+    if $len
     and $len != $start_len
-    and $session->{'buffer'}->{'input'} =~ m|\n| ) {
-    $session->{'watcher'}->{'input_buffer'}->now;
-}
+    and not $session->{'shutdown'}
+    and not $session->{'flush_shutdown'}
+    and index( $session->{'buffer'}->{'input'}, "\n" ) >= 0;
 
 # if ( !$session->{'watcher'}->{'output_buffer'}->is_running ) {
 #    $session->{'watcher'}->{'output_buffer'}->now;
 # }
 
 #.............................................................................
-#RL4KLUT6OG2UXSYYQVAAONUN5M3LTBNF4XHY6BEHTJ3GERUCLS5UOEVFML47JZRMG5MHPA2I2IAFY
-#::: 3VLWJOSAAUK2MHWGC7QD5WHNNCS44RUJYQA4CU3SOBDNJPXNF6T :::: NAILARA AMOS :::
-# :: ALKBYFOHRAVAC6BRA3ZFWXNFESOAL6HEYDEITICNFWCKBRRYYUDQ :: CODE SIGNATURE ::
+#M2S7RRSW7ITWLBSVGFAZTV3XEVJ7NXNHTEK2IGJRT3TBJZUETZ5YUGEZOM6J44TSNKREQLLU7QEEY
+#::: 56ZW3R324FDNR6P36GCGURUFG7L6KCBXQLOJXMHTXO45N53AE2U :::: NAILARA AMOS :::
+# :: 2JXOSAQXPIESQGXYOQTR4LK3QCCV7B3BE3FOD6IXLTKG7F5CQSDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
