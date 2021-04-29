@@ -18,7 +18,7 @@ use strict;
 use English;
 use warnings;
 use Math::BigFloat;
-use List::Util qw[ uniq ];
+use List::MoreUtils qw| uniq |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -44,8 +44,8 @@ sub is_true {
     return warn_err('no checks enabled')
         if not $check_as_num and not $check_as_elf;
 
-    $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq 'ARRAY';
-    $data_ref = \"$data_ref"              if ref($data_ref) ne 'SCALAR';
+    $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq qw| ARRAY |;
+    $data_ref = \"$data_ref"              if ref($data_ref) ne qw| SCALAR |;
 
     my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
@@ -161,7 +161,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#MLQATYWBO4DDLVM6FEISNCMWZ6OVFFLNURGWRLJMJKT4GQ5T264FYLTMILBJ3EOAQEEDC2JWOLNGE
-#::: D6PQCHPWOIWN6VE2QMGYPJ7QKZ2EPHD33DVCYOFY6JQCCTAJYTW :::: NAILARA AMOS :::
-# :: RVNMFBT5VRWG53AEXK3YTKVEGCVNNOIEO75BZXV4VF6QCKTXLUBI :: CODE SIGNATURE ::
+#FCAG44VBEWXH7RE72IH5BK3BHOMDOZXF657ZTPUGYBICW6A4WV4RVFHVXTPVPKUH5GA2D7MDOQMLC
+#::: WHIWRIK3AIJOQ673LQQKVPMWDBDDMFUFJIKUDEV3CUXZRYLC4II :::: NAILARA AMOS :::
+# :: KXMTI6CENV4Y3ZZIDFETW7CI373GVAU4MKFS2SJ7NOCLNAKRO2CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
