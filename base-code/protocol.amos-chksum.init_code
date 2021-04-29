@@ -2,20 +2,25 @@
 
 # name  = protocol.amos-chksum.init_code
 
-<protocol.amos-chksum.version> = 0.7;
+<protocol.amos-chksum.version> = qw| 0.7 |;
 
 <protocol.amos-chksum> = {
     qw| connect | => {
+
         qw| callback | => qw| protocol.amos-chksum.connect_callback |,
-        qw| banner |   => sprintf(
-            ".\\7AMOS-chksum\\%s\n", <protocol.amos-chksum.version>
-        )
+
+        qw| banner | => sprintf( ".7\\\\AMOS-chksum\\\\%s\n",
+            <protocol.amos-chksum.version> )
     },
     qw| state | => {
+
         qw| 0 | => {
             qw| input | => {
-                qw| read-mode | => qw| lines |,    ##  lines | bytes  ##
-                qw| handler |   => qw| protocol.amos-chksum.command-handler |
+
+                qw| handler | => qw| protocol.amos-chksum.command-handler |,
+
+                qw| read-mode | => qw| lineswise |  ## [ linewise | bytewise ]
+
             },
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
         }
@@ -25,7 +30,7 @@
 0;
 
 #.............................................................................
-#MB27F7BUHCTJYSEXSZ57RXCMQYQ2KTJNAHLCIPZSUIU5HUXYX3GPA3EDWU7N2QZPMMPETC5AXAZYM
-#::: 2IY6RPCVD6JAW2OONUO7I5OVIJZEWVOFF2KWCIC3K2TG2PGZESH :::: NAILARA AMOS :::
-# :: F3BPYNV63ZLQHVREGID6MBTFX7BUSVJ43B2LLYLDAHFIC5NRK4DA :: CODE SIGNATURE ::
+#VNQBMG5AF3JG35DDY7FM7BZ53I4L7W33RGII2C6WSTDARN2GMWSLVQOG6IDBKTC5D4XOTZTVQNVKU
+#::: K6LDZPAKT4WH2WWN4M3PARRCOE5MCDSHKH46TQS645WCEFAXURT :::: NAILARA AMOS :::
+# :: 7D52ME4KGVTTLRTJHGCNYXW7KREDGCNUDZ6H7EWOFL5VBKUTA2CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

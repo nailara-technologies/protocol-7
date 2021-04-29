@@ -30,14 +30,22 @@ my $size_left  = $data{'size'}->{'buffer'}->{'input'} - $bfs;
 my $start_read = $bfs;    ##  ignore start position for endline match  ##
 
 my $avg_cmd_length        ##  tracked minus endline  ##
-    = defined $session->{'command'}->{'average-length'}
+    = sprintf( '%.0f',
+    defined $session->{'command'}->{'average-length'}
     ? $session->{'command'}->{'average-length'}
-    : $protocol_stats->{'average-command-line-length'} // 42;
+    : $protocol_stats->{'average-command-line-length'} // 63 );
 
 my $read_len = (
-           $session->{'read-mode'} ne qw| lines |
+           $session->{'read-mode'} ne qw| linewise |
         or $size_left < $avg_cmd_length
 ) ? $size_left : ++$avg_cmd_length;
+
+## read-mode : bytewise ##  [ will be replaced by different handler ? ]  [LLL]
+$read_len = $session->{'bytes-to-read'}
+    if $session->{'read-mode'} eq qw| bytewise |
+    and defined $session->{'bytes-to-read'}
+    and $session->{'bytes-to-read'} < $read_len;
+###
 
 my $read_bytes_total = 0;
 my $read_iterations  = 0;
@@ -122,7 +130,7 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
 }
 
 #.............................................................................
-#J7YQFJS2G5I5NY6Q326B4WFDAYBUHFPFHBD3BFPK5ZL5T5Z5Y2NABJDZIDBUHM3B5O6XQXJ5ICOKA
-#::: M4ZTCIJYT24AAYERZBLEQS7H4AQZJWI3VDXHOP2QUCNCAB5L4PD :::: NAILARA AMOS :::
-# :: AEPW372LLBXSAQSPO2TBR2CSK5QZAX37WLCW5NEYZZOTUNEMK2BY :: CODE SIGNATURE ::
+#PB3HCXJAINIANKQK4LV7FQT5QTGEWYJNEEXACFCKUOYR56GSFAG5RMCCBDOWUW7Y3RDHLK7LLFZVU
+#::: R37O6R7HV3CHSWKDWXQQT4Z32DTZ5WK7VKIIWFINNYOQVMWF6DJ :::: NAILARA AMOS :::
+# :: AS6NDTZPICJXLD6PVNNH6HLGWUIOILJNZCE4W5W3KCBSQNG7TYBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

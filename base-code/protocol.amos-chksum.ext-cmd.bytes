@@ -1,6 +1,6 @@
 # >:]
 
-# name  = protocol.amos-chksum.ext-cmd.binary
+# name  = protocol.amos-chksum.ext-cmd.bytes
 # descr = announce arbitary length data
 
 my $id        = shift;
@@ -15,10 +15,15 @@ return {
     }
     if $input_len !~ m|^\d+$|;
 
-return { 'mode' => qw| binary |, 'data' => $input_len };
+<[base.logs]>->(
+    1,   '[%d] expecting %04d bytes input data .,',
+    $id, $input_len
+);
+
+return { 'mode' => qw| data |, 'data' => $input_len };
 
 #.............................................................................
-#EFUBQTEO6JLBAYHVMFZ3TE5DFPT25ZCKO5MAQGMKKWU7FCBKKVGH6777Z5UZC7SISSVB4AZEFXB7U
-#::: GCL5ZNFPASPSU54XAEHYKLZSMM2QRMIEVYKJCS42AKRO4S4LD72 :::: NAILARA AMOS :::
-# :: Q3QA63IQAAEKRI2V6QNMNGZQYJOAANFKSOTR23T6SNROUYH4EGDQ :: CODE SIGNATURE ::
+#C6MI7PXL7XUD2KQGQIPDGUMI5VP6DCM52VODCEEYTWVRF6UJDXRXVHU7LQ7QE55HYPQMGG67CE6IS
+#::: NOEHVO4332SFY2B6B6AFBTW6DHIY4SDDQY2DVM5A3IWHO7FWNOM :::: NAILARA AMOS :::
+# :: HHTFXNDK3ZEYWBYZGZYO4YVLUDOZN54M4LWYYW26FBR464H7DIAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

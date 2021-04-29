@@ -2,7 +2,7 @@
 
 # name  = protocol.amos-chksum.command-handler
 
-my $id = $_[0]->w->data;
+my $id = $ARG[0]->w->data;
 
 return 2 if not defined $data{'session'}{$id};
 
@@ -11,10 +11,8 @@ return 2 if not defined $data{'session'}{$id};
 my $session = $data{'session'}{$id};
 my $user    = $session->{'user'};
 
-##  initialize empty  ##
-$session->{'space-prefixes'}      //= 2;
-$session->{'binary-mode'}         //= 0;
-$session->{'binary-input-length'} //= 0;
+##  initializing  ##
+$session->{'space-prefixes'} //= 2;
 
 $session->{'amos-chksum'}->{'modes'}    ##  set from AMOS::CHKSUM  ##
     //= $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'};
@@ -22,74 +20,68 @@ $session->{'amos-chksum'}->{'modes'}    ##  set from AMOS::CHKSUM  ##
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
-##[ BINARY MODE DATA INPUT ]##################################################
+##  read-mode bytewise  ##
+my $amos_ref = defined $session->{'amos'} ? $session->{'amos'} : undef;
 
-if ( $session->{'binary-mode'} ) {
+##[ bytes MODE DATA INPUT ]##################################################
 
-    my $binary_state;
+##  read-mode bytewise  ##
+if ( defined $amos_ref ) {
 
-    if ( $session->{'binary-input-length'} > 0 ) {    ##  more imput data  ##
-        $session->{'binary-input'} //= {
-            'elf_checksum' => 0,
-            'bmw-context'  => Digest::BMW->new(512)
-        };
-        return 1 if not length($$input);              ##  <-- not expected  ##
-        $binary_state = $session->{'binary-input'};
+    if ( $amos_ref->{'bytes-to-read'} > 0 ) {    ##  more imput data  ##
+
+        return 1 if not length($$input);         ##  <-- not expected  ##
 
         my $buffer_len = length($$input);
 
-        my $buffer_str
-            = substr( $$input, 0, $session->{'binary-input-length'}, '' );
+        my $read_size
+            = $amos_ref->{'bytes-to-read'} < $buffer_len
+            ? $amos_ref->{'bytes-to-read'}
+            : $buffer_len;
+
+        my $buffer_str = substr( $$input, 0, $read_size, '' );
+
+        $amos_ref->{'bytes-to-read'} -= $read_size;
 
         ##  add elf checksum state  ##  input data at elf mode 7  ##
-        $binary_state->{'elf_checksum'} = <[chk-sum.elf.inline]>->(
-            \$buffer_str, $binary_state->{'elf_checksum'}, 7
+        $amos_ref->{'elf_checksum'} = <[chk-sum.elf.inline]>->(
+            \$buffer_str, $amos_ref->{'elf_checksum'}, 7
         );
         ##  add to bmw checksum state  ##
-        $binary_state->{'bmw-context'}->add($buffer_str);
+        $amos_ref->{'bmw-context'}->add($buffer_str);
 
-        $session->{'binary-input-length'} -= $buffer_len - length($$input);
+        ## needs idle watcher mode ##
 
-        ## needs idle watcher mode ##  [ and read size limit ]
-
-        return 1 if $session->{'binary-input-length'} > 0; ## more expected ##
+        return 1 if $amos_ref->{'bytes-to-read'} > 0;    ## more expected ##
     }
-
-    if ( defined $binary_state and $session->{'binary-input-length'} == 0 )
-    {    ## calc amos-chksum ##
-
-        $$output .= sprintf(
-            "%s\n",
-            AMOS::CHKSUM::amos_chksum(
-                {   'elf_checksum' => $binary_state->{'elf_checksum'},
-                    'BMW_checksum' => $binary_state->{'bmw-context'}->digest
-
-                },
-                @{ $session->{'amos-chksum'}->{'modes'} }
-            )
-        );
-
-        $session->{'binary-mode'} = 0;
-        delete $session->{'binary-input'};
-    }    ## else not defined $binary_state ..,
 
 } else {    ##  line-mode  ##
 
     ##  calculate and store average command line length  ##
     <[base.session.calc_cmd_stats]>->( $id, $input );
-
 }
 
-##[ LIMITING REQUEST SIZE ]###################################################
+##[ BYTES INPUT COMPLETE ]####################################################
 
-my $max_cmd_len = 512;
+if ( defined $amos_ref and $amos_ref->{'bytes-to-read'} <= 0 ) {
 
-if ( $$input =~ m|^[^\n]{$max_cmd_len}\n?| ) {
-    <[base.log]>->(
-        0, "[$id] maximum command length [ $max_cmd_len bytes ] exceeded."
+    ## calc amos-chksum ##
+    $$output .= sprintf(
+        "%s\n",
+        AMOS::CHKSUM::amos_chksum(
+            {   'elf_checksum' => $amos_ref->{'elf_checksum'},
+                'BMW_checksum' => $amos_ref->{'bmw-context'}->digest
+
+            },
+            @{ $session->{'amos-chksum'}->{'modes'} }
+        )
     );
-    $$output .= "maximum command size exceeded\n";
-    return 2;    ##  <-- closing connection \ command not parseable  ##
+
+    undef $amos_ref;
+    delete $session->{'amos'};
+    $session->{'read-mode'} = qw| linewise |;
+
+    return 0;    ##  request complete  ##
 }
 
 ##[ PARSING COMMANDS ]########################################################
@@ -99,7 +91,7 @@ my $peer_fh = $session->{'handle'};
 $session->{'amos-chksum'}
     //= { 'modes' => $AMOS::CHKSUM::algorithm_set_up::elf_truth_modes };
 
-return 1 if $$input =~ s|^\r?\n+||s or $$input !~ s|^([^\n]+)\r?\n+||s;
+return 1 if $$input =~ s|^\s*\r?\n+||s or $$input !~ s|^([^\n]+)\r?\n+||s;
 
 ## : <mode> [<mode[s]>] : ## <-- modes syntax example
 if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
@@ -152,11 +144,19 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
         my ( $mode, $return_data )
             = ( $return_href->{'mode'}, $return_href->{'data'} );
-        my $return_code = $mode eq 'term' ? 2 : 0;
+        my $return_code = $mode eq qw| term | ? 2 : 0;
 
-        if ( $mode eq qw| binary | ) {
-            $session->{'binary-mode'}         = 1;
-            $session->{'binary-input-length'} = $return_data;
+        if ( $command eq qw| bytes | and $mode eq qw| data | ) {
+
+            $session->{'amos'} = {
+                'bytes-to-read' => $return_data,
+                'elf_checksum'  => 0,
+                'bmw-context'   => Digest::BMW->new(512)
+            };
+
+            ##  notify read handler  ##
+            $session->{'read-mode'}     = qw| bytewise |;
+            $session->{'bytes-to-read'} = $return_data;
 
         } elsif ( $mode eq qw| data | ) {
             $$output .= $return_data;
@@ -168,6 +168,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 } else {
     $$output .= sprintf( "protocol hint : %s\n",
         'content to checksum requires 2 space indentation' );
+
     return 0;
 }
 
@@ -177,12 +178,12 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 ##
 ## seperator ## set data seperator [ i.e. \n or \t ,.. ]
 ##
-## [ binary bits : data width selection [ i.e. 7 bit multiples ] ?
+## [ bytes bits : data width selection [ i.e. 7 bit multiples ] ?
 
 return 0;
 
 #.............................................................................
-#RVRE5UNYZHCZKKVBJYMDAOBWDD66THWLI7HJAPXFNK3ZUX7TH7Q5QEEAQPTKOUBFPIRZZXIQHTCVE
-#::: KRSGGZLQATN2KSGGZJ2HSZ3VLWGWSK36BFGPYZJR7Y4X5KMRO7L :::: NAILARA AMOS :::
-# :: Y3BJGPAGG7GBJ5ZEVN3VEEQHFYZWUKDVSTS5BYJ4VHP36RO7UWAI :: CODE SIGNATURE ::
+#7FR3P3X73W6EAF62S3A47ZJAB4GUIBOFJRZCCNN4HBK6SZSNC4EXDOEIYRWHG3DMW5LNCSX2ALB3A
+#::: 27J536SC5J2BKFS6RQOUPUL56SATOSCNOSJCKWTT57BG4WUJAZR :::: NAILARA AMOS :::
+# :: EBPCENFIZOTOR46O5BVGGZ2IBVYBB25S4GWN3JWX2R6PH3VZRADQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
