@@ -13,8 +13,9 @@ if ( not defined $id or not defined $data{'session'}{$id} ) {
     return undef;
 }
 
-my $session   = $data{'session'}{$id};
-my $fd        = $session->{'input'}->{'handle'} // $session->{'handle'};
+my $session = $data{'session'}{$id};
+my $fd      = $session->{'input'}->{'handle'} // $session->{'handle'};
+
 my $type      = $data{'handle'}{$fd}{'link'};
 my $proto     = $session->{'protocol'};
 my $state     = $session->{'state'};
@@ -22,7 +23,13 @@ my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
 my $start_len = length( $session->{'buffer'}->{'input'} );
 
-$session->{'shutdown'} //= 0;
+my $handle_href = $data{'handle'}{ $session->{'handle'} };
+
+$session->{'shutdown'}       //= 0;
+$session->{'flush_shutdown'} //= 0;
+
+$session->{'read-mode'}     //= qw| linewise |;  ## [ linewise | bytewise ] ##
+$session->{'bytes-to-read'} //= 0;
 
 if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 
@@ -82,34 +89,40 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 my $len = length( $session->{'buffer'}->{'input'} );
 return $ARG[0]->w->cancel if not defined $len;  ## <-- buffer 'not defined' ##
 
-if (    $len < $data{'size'}{'buffer'}{'input'}
+if (    $len < <size.buffer.input>
     and not $session->{'shutdown'}
     and not $session->{'flush_shutdown'} ) {
-    push( @{ $data{'watcher_list'}{'paused'} }, \$ARG[0] );
-    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
+    push( @{ $data{'watcher_list'}{'paused'} }, \$ARG[0] );    ## ? ## [LLL]
+    if ( !$data{'watcher'}{'io'}{'transfer'}->is_active ) {
         $data{'watcher'}{'io'}{'transfer'}->start;
+    }
+
+    if ( $handle_href->{'paused'} //= 0 ) {    ##  restart reading  ##
+        <[base.log]>->( 2, 'restarting input handler =)' );
+        if ( defined $handle_href->{'paused-watcher'} ) {
+            $handle_href->{'paused-watcher'}->start
+                if not $handle_href->{'paused-watcher'}->is_active;
+            delete $handle_href->{'paused-watcher'};
+        } else {
+            warn 'paused input watcher not registered';
+        }
+        $handle_href->{'paused'} = 0;
     }
 }
 
-##  restarting watcher if it was still stopped  ##
-if ( !$session->{'watcher'}->{'input_buffer'}->is_running ) {
-    $session->{'watcher'}->{'input_buffer'}->now;
-}
+if ( $session->{'read-mode'} eq qw| linewise | ) {
 
 ##  buffer contains complete line ?  ##
-$session->{'watcher'}->{'input_buffer'}->now
-    if $len
-    and $len != $start_len
-    and not $session->{'shutdown'}
-    and not $session->{'flush_shutdown'}
-    and index( $session->{'buffer'}->{'input'}, "\n" ) >= 0;
-
-# if ( !$session->{'watcher'}->{'output_buffer'}->is_running ) {
-#    $session->{'watcher'}->{'output_buffer'}->now;
-# }
+    $session->{'watcher'}->{'input_buffer'}->now
+        if $len
+        and $len != $start_len
+        and not $session->{'shutdown'}
+        and not $session->{'flush_shutdown'}
+        and index( $session->{'buffer'}->{'input'}, "\n" ) >= 0;
+}
 
 #.............................................................................
-#M2S7RRSW7ITWLBSVGFAZTV3XEVJ7NXNHTEK2IGJRT3TBJZUETZ5YUGEZOM6J44TSNKREQLLU7QEEY
-#::: 56ZW3R324FDNR6P36GCGURUFG7L6KCBXQLOJXMHTXO45N53AE2U :::: NAILARA AMOS :::
-# :: 2JXOSAQXPIESQGXYOQTR4LK3QCCV7B3BE3FOD6IXLTKG7F5CQSDI :: CODE SIGNATURE ::
+#D65THDWND6YZ3FY5EMOD2SCNHBYD5E365XXJ66KZ2OHLGJTQ3WO6Q2CKTVSKXAMKOQXPH4EPEMVXG
+#::: N52U7GWJV3JS3BHI6NW7J453YEJVSSL2ZHDRWSV2IB7VMTZMKCT :::: NAILARA AMOS :::
+# :: 364BCWHMGSPVCKU5GBLH3BOEB73S4LQBCT75P6GNEXB6WEGTPQAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
