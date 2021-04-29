@@ -15,6 +15,7 @@ my $FXI = 202;    ## program return code for asserted FALSE ##
 ##[ RUNTIME OPTIONS ]#########################################################
 
 my $silent          = 0;
+my $plain           = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
 my $only_FALSE      = 0;
@@ -30,6 +31,7 @@ if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
 }
 ## regular invocation ##
 $silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
+$plain  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift(@ARGV);
 $force_numerical = 1 if @ARGV > 1 and $ARGV[0] eq qw| -num | and shift(@ARGV);
 $no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
 $only_FALSE = 1 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift(@ARGV);
@@ -63,8 +65,8 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS::Assert qw| numerical numerical_no_prefix |;
 use AMOS::Assert::Truth qw| is_true |;
+use AMOS::Assert qw| numerical numerical_no_prefix |;
 
 ##[ COLORS ]##################################################################
 
@@ -113,20 +115,26 @@ sub process_input {
     my $mode_str = @r_modes ? sprintf( " : %s", join( ' ', @r_modes ) ) : '';
 
     if ( $true and not $only_FALSE ) {
-        say "$fg:\n${fg}:: $bl${CT}TRUE$rst$fg$mode_str :: "
-            . "$bg$CT$ARG[0]$fg$rst$fg .:\n$fg:$rst"
-            if not $silent;
+        if ( $plain and not $silent ) {
+            say $ARG[0];
+        } elsif ( not $silent ) {
+            say "$fg:\n${fg}:: $bl${CT}TRUE$rst$fg$mode_str :: "
+                . "$bg$CT$ARG[0]$fg$rst$fg .:\n$fg:$rst";
+        }
         return 0;
     } elsif ( not $only_TRUE ) {
-        say "$fg:\n${fg}:: $bl${ng}FALSE$rst$fg$mode_str : "
-            . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n$fg:$rst"
-            if not $silent;
+        if ( $plain and not $silent ) {
+            say $ARG[0];
+        } elsif ( not $silent ) {
+            say "$fg:\n${fg}:: $bl${ng}FALSE$rst$fg$mode_str : "
+                . "$bg'$ng$ARG[0]$fg'$rst$fg :.\n$fg:$rst";
+        }
         return $FXI;
     }
 }
 
 #.............................................................................
-#TXA2COTFMWFIROY35P2UJU5D3IEQYNC7NC4OIXOSJGN43O727CX4GLULHIDBARXIU5ZZQZ375EAIO
-#::: MBY5WYFGSRDP5I3X7VQTUYZMHLFOY7I5D4NE7ZN7WCAB7QIXPKR :::: NAILARA AMOS :::
-# :: L254KP67VFJYJT3V6LPLOBAZAG6XR23U6F3UZMBAUZXYKUILVEAY :: CODE SIGNATURE ::
+#DJRXJHWWOXFWGF6O4BFZW6P2JCAN4XPYFZ5OZPAKK7Y6GPKX7UAWOGHTXISW7UKMFZRQG2YDIKKVY
+#::: GFER7IIITP5E4VLJ6O7EVSMQXJLHW4EGOWHPZZL35LAMN3ZPR6I :::: NAILARA AMOS :::
+# :: TPLY7S6ODH7IP7F53Q2KXMHEXLMXLYPQNDMLZZXPOJTEGTLDTKAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
