@@ -9,11 +9,8 @@ warn 'filehandle not defined <{C1}>' and return undef if not defined $_[0];
 my $read_fh    = $_[0];
 my $buffer_ref = $_[1];
 my $read_len   = $_[2];
-my $buf_offset = $_[3];
+my $buf_offset = $_[3];    ##  obsolete : remove  ##
 my $fh_offset  = $_[4];
-
-$$buffer_ref //= '';
-$buf_offset  //= length($$buffer_ref);
 
 #    sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
 #    sysread FILEHANDLE,SCALAR,LENGTH
@@ -21,23 +18,22 @@ $buf_offset  //= length($$buffer_ref);
 #    aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 
 my $b_read;
-IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, $$buffer_ref,
-    $buf_offset, sub { $b_read = $_[0] } );
+
+IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
+    0, sub { $b_read = $_[0] } );
 
 IO::AIO::flush();
 
-if ( $b_read > 0 ) {
-    my $prev_len = length($$buffer_ref);
-    utf8::decode($$buffer_ref);
-    my $delta_len = $prev_len - length($$buffer_ref);
-    $b_read -= $delta_len if $delta_len != 0;    ## string shortened ##
-}
+utf8::decode($r_buff) if $b_read > 0;
 
-return undef if $b_read < 0;                     # <-- sysread() behaviour
+$b_read = length($r_buff);    ##  adjust for decoding  ##
+$$buffer_ref .= $r_buff;
+
+return undef if $b_read < 0;    # <-- sysread() behaviour
 return $b_read;
 
 #.............................................................................
-#CZNECRGBXEBYBR63LGRZI6XNHUDJWFODDXBRHBUOEZFX2NBOFMRCLHABQZSRKLN2CNEPTDTOKGBRS
-#::: ANZSLOAI4DCTFYZM56PS7JXYV3FEJUYBDFCQAS5T74XMDJ4TIM2 :::: NAILARA AMOS :::
-# :: GYY6LJIC6QFTMGWFQ3EXVZSEX2L5JTNSS3IZZANU4V2VDFZ6AECY :: CODE SIGNATURE ::
+#UIMD7BZR6SESCFRBD6QIWXO3TTG46KUXBQWMBRYGN7N7DW4GO7AJU37R6PSSUT3ZPYWJPJGWUGFM4
+#::: D6YXQVWBMT2SJW6BGENDGFTXPLLIQF7WEFXFQGXGYG6DOMY42BF :::: NAILARA AMOS :::
+# :: FQQTKGHWQO34OHIYVWTO3KBEBJRUKFYH22EPY2UOJDZKOIEYQABA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
