@@ -13,7 +13,8 @@ if ( not defined <v7.zenka.instance>->{$instance_id} ) {
 }
 
 my $instance = <v7.zenka.instance>->{$instance_id};
-$instance->{'heartbeat'}->{'errors'} //= 0;
+$instance->{'heartbeat'}->{'errors'}      //= 0;
+$instance->{'heartbeat'}->{'load-factor'} //= 0;
 my $globals      = <v7.start_setup.globals> // {};
 my $zenka_name   = $instance->{'zenka_name'};
 my $root_sid     = $instance->{'root_sid'};
@@ -22,7 +23,22 @@ my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
 my $timeout_secs
     = $zenka_config->{'heartbeat'}->{'timeout'}
     || $globals->{'heartbeat'}->{'timeout'}
-    || 13;    # <-- internal timeout default
+    || 17;    ##  <-- internal timeout fallback  ##
+
+##  increase heartbeat response timeout when log output has high load  ##
+if ( <system.verbosity.console> > 1
+    and $instance->{'heartbeat'}->{'load-factor'} == 0 ) {
+    my $verbosity_factor = 5.447 * ( <system.verbosity.console> - 1 );
+    $instance->{'heartbeat'}->{'load-factor'} = $verbosity_factor;
+    <[base.logs]>->(
+        1, 'increased %s heartbeat response timeout to %.3f s [ verbosity ]',
+        $zenka_name, $timeout_secs
+    );
+}
+##
+$timeout_secs *= $instance->{'heartbeat'}->{'load-factor'}
+    if $instance->{'heartbeat'}->{'load-factor'} > 0;
+###
 
 $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
     {   'after'   => $timeout_secs,
@@ -50,7 +66,7 @@ delete $zenka_config->{'heartbeat'}
 delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
 
 #.............................................................................
-#3MCLIYBBCZZJPCJ35KKNOVXVBNYOQBFPQ2SGSREMVFL4UHKOCCRYDYXFSK2ZFRYWIL773A4VITRHC
-#::: JJIOHLKWOG4RFKWIVAFYEKO7YU43DLI3MEIMXFIS4HFHQEPCM2O :::: NAILARA AMOS :::
-# :: FCPDQZHBPS76YWU5JFOJESK6ATWCXVYJVB6ATNH7655E75V2RYCY :: CODE SIGNATURE ::
+#I2UNUP33E3DRQPMSJGC37ZT6RCL56WBHN3IHHXMSNAHX3EJU5CX7ZFNUFBS3MNSE4IJGD4A2JBGVW
+#::: JLQ4MUR33FABU4EPGYPHRNSBVRACV2G2O7TKHTDWPATN2W65H7D :::: NAILARA AMOS :::
+# :: GF7RZ4TDZF2MM2LIN6CTAX6P3WZFF7JY5GQMCPNTDY43WHUY5YCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

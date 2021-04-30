@@ -2,7 +2,7 @@
 
 # name = v7.zenka.start
 # descr = start nailara zenka and add it to process maintenance table
-# notes = require mechanism to change PID to harmonic at start [ using STDOUT ]
+# notes = require mechanism to change PID to harmonic at start ?
 
 my $job_id     = $_[0]->{'job_id'};
 my $zenka_name = $_[0]->{'params'};
@@ -12,9 +12,9 @@ my $zenka_subname;
 $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
 
 if (<system.ansi_color>) {
-    push( @exec_args, '-c' );
+    push( @exec_args, qw| -c | );
 } else {
-    push( @exec_args, '-nc' );
+    push( @exec_args, qw| -nc | );
 }
 
 my $perl_bin            = <system.path.perl_bin>;
@@ -302,7 +302,7 @@ close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
 <[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
 
 #.............................................................................
-#L5DYHY3H4EHX4QVG7QN65ESQJ5VRQJ34EGZDV24OMGABP4ZZJ4HFQLCEYPQ2Q666LXTCKXPZ4ZU72
-#::: BZ7FDGFKUKATZZ75Z3MQHXZSUETJ63Q3WKQBYY63TOKJULQLDNF :::: NAILARA AMOS :::
-# :: YKW6CGR5FQ3PBL5OATDK5MEMUITKCJS47QUXFNREQZAL7NEUHYAI :: CODE SIGNATURE ::
+#52VXCP6RYDISNGP6TQ4R7KELQJAPMIMLPHOHFIXZBU6YQUI65JBVMOXQRMAJWFSOH2BNSGS6NZED4
+#::: S4B6VIIRCIQDQY6RVPTF2W34HN4FTB4BOS4EKDRKBMI5KJ3XN3M :::: NAILARA AMOS :::
+# :: HN25TY2NX52NYL7NXHKTD3OXTMASGROYCILPQZSIBMGSFDMJEEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
