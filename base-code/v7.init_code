@@ -27,38 +27,48 @@
 <v7.system-poweroff.enabled>    //= 1;
 <v7.system-poweroff.term_delay> //= 1.3787;
 
-<system.acfg_path> = <system.conf_path> . '/zenki';
+<system.acfg_path> = join( qw| / |, <system.conf_path>, qw| zenki | );
 
-map { <[base.disable_command]>->($ARG) } qw{
+map { <[base.disable_command]>->($ARG) } qw[
     subname
     switch-user
     verify-instance
-};
+];
 
-<v7.gcc_bin> = '/usr/bin/gcc';
-<v7.cfg.install_bin_p7c> //= 'yes';                  # LLL: only when root..,
-<v7.cfg.p7c_bin_path>    //= '/usr/local/bin/p7c';
+##  INCREASE INSTANCE VERIFICATION TIMEOUT WHEN LOG OUTPUT HAS HIGH LOAD  ##
+if ( <system.verbosity.console> > 1 ) {
+    my $verbosity_factor = 5.447 * ( <system.verbosity.console> - 1 );
+    <v7.timeout.verify_instance> *= $verbosity_factor;
+    <[base.logs]>->(
+        1,
+        ': increased instance-verification timeout to %.3f s [ verbosity ]',
+        <v7.timeout.verify_instance>
+    );
+}
+##
+
+<v7.gcc_bin> = qw| /usr/bin/gcc |;
+<v7.cfg.install_bin_p7c> //= $UID == 0 ? qw| yes | : qw| no |; ## when root ##
+<v7.cfg.p7c_bin_path>    //= qw| /usr/local/bin/p7c |;
 
 ## gcc \ p7c ##
 <v7.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <v7.gcc_bin> ) {
     <v7.gcc_bin> = undef;
-    <[base.log]>->( 0, "<< 'gcc' binary not found >>>" )
-        if defined <v7.cfg.install_bin_p7c>
-        and <v7.cfg.install_bin_p7c> =~ m{^(1|yes)$};
-} elsif ( defined <v7.cfg.install_bin_p7c>
-    and <v7.cfg.install_bin_p7c> =~ m{^(1|yes)$}
+    <[base.log]>->( 0, "<< 'gcc' binary not found >>" )
+        if <[base.cfg_boolean]>->(<v7.cfg.install_bin_p7c>);
+} elsif ( <[base.cfg_boolean]>->(<v7.cfg.install_bin_p7c>)
     and not <[v7.bin_p7c_is_current]> ) {
     <[v7.compile_bin_p7c]>;
 }
 ## modprobe ##
-<v7.modprobe_bin> = <[base.required_bin_path]>->('modprobe');
+<v7.modprobe_bin> = <[base.required_bin_path]>->(qw| modprobe |);
 if ( !-x <v7.modprobe_bin> ) {
     <v7.modprobe_bin> = undef;
     <[base.log]>->( 0, "<< 'modprobe' binary not found >>" );
 }
 ## rmmod ##
-<v7.rmmod_bin> = <[base.required_bin_path]>->('rmmod');
+<v7.rmmod_bin> = <[base.required_bin_path]>->(qw| rmmod |);
 if ( !-x <v7.rmmod_bin> ) {
     <v7.rmmod_bin> = undef;
     <[base.log]>->( 0, "<< 'rmmod' binary not found >>" );
@@ -71,10 +81,9 @@ if ( !-x <v7.rmmod_bin> ) {
 ## zenka dir based startup configs #
 <[v7.load_zenka_startup_cfgs]>;
 
-# json based configuration import ## replace with generic \ yaml based version.,
-<[set-up.json.import_file]>->('v7.start_setup.json')
-    if defined $code{'set-up.json.import_file'}
-    ;    ## <-- when not disabled., ###
+## json based config import ## replace with YAML based, generic version  [LLL]
+<[set-up.json.import_file]>->(qw| v7.start_setup.json |)
+    if defined $code{'set-up.json.import_file'}; ##  <-- when not disabled  ##
 
 map { <[v7.init_start_setup]>->($ARG) } @{ clone(<v7.cfg_data.start_setup>) };
 
@@ -82,15 +91,15 @@ if (    exists <system.subs_loaded.debug>
     and <system.subs_loaded.debug> > 1
     and <system.verbosity.console> > 4 ) {
 
-    <[base.perlmod.autoload]>->('Data::Dumper');
+    <[base.perlmod.autoload]>->(qw| Data::Dumper |);
     $Data::Dumper::Sortkeys = 1;
 
-    ( my $debug_str = Dumper(<v7.start_setup.globals>) ) =~ s,^.{7}|;$,  ,mg;
+    ( my $debug_str = Dumper(<v7.start_setup.globals>) ) =~ s'^.{7}';$,  'mg;
     print "\n < v7.start_setup.globals >\n\n$debug_str\n";
 }
 
 <[event.add_signal]>
-    ->( { 'signal' => 'CHLD', 'handler' => qw| v7.handler.sig_chld | } );
+    ->( { 'signal' => qw| CHLD |, 'handler' => qw| v7.handler.sig_chld | } );
 
 <[v7.load_zenka_output_patterns]>;
 <[v7.init_zenka_output_patterns]>;
@@ -98,94 +107,96 @@ if (    exists <system.subs_loaded.debug>
 delete <list.users>;
 
 <list.zenki> = {
-    'var'   => 'data',
-    'key'   => qw| v7.zenka.instance |,
-    'descr' => 'currently running / managed zenka instances',
-    'mask'  => '<key>:instance job_id zenka_name:name zenka_id status',
-    'align' => {
-        'zenka_id'   => 'right-5',
-        'zenka_name' => 'left+1',
-        'instance'   => 'left+1',
-        'job_id'     => 'right-4',
-        'status'     => 'center-1'
+    qw| var |   => qw| data |,
+    qw| key |   => qw| v7.zenka.instance |,
+    qw| descr | => 'currently running \\ managed zenka instances',
+    qw| mask |  => '<key>:instance job_id zenka_name:name zenka_id status',
+    qw| align | => {
+        qw| zenka_id |   => qw| right-5 |,
+        qw| zenka_name | => qw| left+1 |,
+        qw| instance |   => qw| left+1 |,
+        qw| job_id |     => qw| right-4 |,
+        qw| status |     => qw| center-1 |
     }
 };
 
 <list.available> = {
-    'var'   => 'data',
-    'key'   => qw| v7.zenki.available |,
-    'descr' => 'available zenki / descriptions',
-    'mask'  => '<key>:zenka_name short_desc:zenka_short_decription',
-    'align' => {
-        'zenka_name'  => 'right-3',
-        'description' => 'left'
+    qw| var |   => qw| data |,
+    qw| key |   => qw| v7.zenki.available |,
+    qw| descr | => 'available zenki \\ descriptions',
+    qw| mask |  => '<key>:zenka_name short_desc:zenka_short_decription',
+    qw| align | => {
+        qw| zenka_name |  => qw| right-3 |,
+        qw| description | => qw| left |
     }
 };
 
 <list.children> = {
-    'var'   => 'data',
-    'key'   => qw| v7.zenka.instance |,
-    'descr' => 'PIDs of zenki and their children',
-    'mask'  =>
-        '<key>:instance zenka_name:zenka <key>:process <key>:process_children',
-    'align' => {
-        'instance'         => 'left+1',
-        'zenka_name'       => 'left+1',
-        'process'          => 'left',
-        'process_children' => 'left',
+    qw| var |   => qw| data |,
+    qw| key |   => qw| v7.zenka.instance |,
+    qw| descr | => 'PIDs of zenki and their children',
+    qw| mask |  => join( '',
+        '<key>:instance zenka_name:zenka ',
+        '<key>:process <key>:process_children' ),
+    qw| align | => {
+        qw| instance |         => qw| left+1 |,
+        qw| zenka_name |       => qw| left+1 |,
+        qw| process |          => qw| left |,
+        qw| process_children | => qw| left |
     },
-    'filters' => {
-        'process'          => qw| v7.parser.process_id |,
-        'process_children' => qw| v7.parser.children |
+    qw| filters | => {
+        qw| process |          => qw| v7.parser.process_id |,
+        qw| process_children | => qw| v7.parser.children |
     }
 };
 
 <list.subnames> = {
-    'var'   => 'data',
-    'key'   => qw| v7.zenka.instance |,
-    'descr' => "'subnames' of registered zenki [ when available ]",
-    'mask'  => '<key>:instance status zenka_name:zenka subname',
-    'align' => {
-        'instance'   => 'left+1',
-        'status'     => 'center-2',
-        'zenka_name' => 'right-2',
-        'subname'    => 'left+1',
+    qw| var |   => qw| data |,
+    qw| key |   => qw| v7.zenka.instance |,
+    qw| descr | => "'subnames' of registered zenki [ when available ]",
+    qw| mask |  => '<key>:instance status zenka_name:zenka subname',
+    qw| align | => {
+        qw| instance |   => qw| left+1 |,
+        qw| status |     => qw| center-2 |,
+        qw| zenka_name | => qw| right-2 |,
+        qw| subname |    => qw| left+1 |
     }
 };
 
 <list.manual> = {
-    'var'   => 'data',
-    'key'   => qw| v7.zenka.manually_stopped |,
-    'descr' => "zenki marked as 'manually stopped'",
-    'mask'  => '<key>:zenka_name <key>:stopped_at',
-    'align' => {
-        'zenka_name' => 'left+1',
-        'stopped_at' => 'left'
+    qw| var |   => qw| data |,
+    qw| key |   => qw| v7.zenka.manually_stopped |,
+    qw| descr | => "zenki marked as 'manually stopped'",
+    qw| mask |  => '<key>:zenka_name <key>:stopped_at',
+    qw| align | => {
+        qw| zenka_name | => qw| left+1 |,
+        qw| stopped_at | => qw| left |
     },
-    'filters' => { 'stopped_at' => qw| v7.parser.manually_stopped_tstamp | }
+    qw| filters | =>
+        { qw| stopped_at | => qw| v7.parser.manually_stopped_tstamp | }
 };
 
 <list.dependency> = {
-    'var'      => 'data',
-    'key'      => 'dependency.object',
-    'sort_key' => 'zenka_name',
-    'descr'    => 'current zenka dependency status',
-    'mask'     => 'zenka_name <key>:depends_on_zenki <key>:status',
-    'align'    => {
-        'zenka_name'       => 'center',
-        'depends_on_zenki' => 'center-5',
-        'status'           => 'left'
+    qw| var |      => qw| data |,
+    qw| key |      => qw| dependency.object |,
+    qw| sort_key | => qw| zenka_name |,
+    qw| descr |    => 'current zenka dependency status',
+    qw| mask |     => 'zenka_name <key>:depends_on_zenki <key>:status',
+    qw| align |    => {
+        qw| zenka_name |       => qw| center |,
+        qw| depends_on_zenki | => qw| center-5 |,
+        qw| status |           => qw| left |
     },
-    'filters' => {
-        'depends_on_zenki' => qw| v7.parser.dependency_chain |,
-        'status'           => qw| v7.parser.dependency_status |
+    qw| filters | => {
+        qw| depends_on_zenki | => qw| v7.parser.dependency_chain |,
+        qw| status |           => qw| v7.parser.dependency_status |
     }
 };
 
 return 0;
 
 #.............................................................................
-#TMBM5MAQUKLTYEFFQ3BN27Q2U3NGGMV7GGXW3YNN3WAU5EEOK5O4E6XFCT7VEBIK3VUCWZ7E4SM3O
-#::: 4UFOOS2YDOSW6H3Z2HMVEON52G6YE5QFCSKUVS6GPNPB3C2L72Z :::: NAILARA AMOS :::
-# :: UIHPGKOOIYQ6SKC2YL4MSHOGS22ZGDPP2S2WWBHC727DTBYFMSDA :: CODE SIGNATURE ::
+#DD5HZYH4JSKZ7T6LKL2MNTHUGQGSA74EEQJH3CLL4LBQFPTZ7J3PHBHTA7YWHCWLTKLKLEBBOV5RU
+#::: 7EYPPE3OOZEJS6FSACUMW7IKXMPRVKGMOQFXAARSD4CSZ6POFIS :::: NAILARA AMOS :::
+# :: 5FQKKM6MLY5AC33XZQ6FA6WPZ3UAP44QRFS77DXO6RRFAUFAQYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
