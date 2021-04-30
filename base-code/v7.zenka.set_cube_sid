@@ -2,16 +2,19 @@
 
 # name = v7.zenka.set_cube_sid
 
-my ( $instance_id, $cube_sid ) = @_;
+my ( $instance_id, $cube_sid ) = @ARG;
 my $instance_data = <v7.zenka.instance>->{$instance_id};
 
-if ( exists $instance_data->{'cube_sid'} ) {
-    <[base.log]>->(
-        0, "<< cube sid for instance $instance_id was already set >>"
-    );
-    <[zenka.change_status]>->( $instance_id, 'error' )
-        ;    # compromisation attempt
-    return;
+if ( not defined $cube_sid or exists $instance_data->{'cube_sid'} ) {
+    my $error_msg
+        = defined $cube_sid
+        ? '<< cube sid for instance %d was already set, no verification >>'
+        : '<< no cube session id, skipping instance %d verification >>';
+
+    <[base.logs]>->( 0, $error_msg, $instance_id );
+
+    <[zenka.change_status]>->( $instance_id, qw| error | );
+    return;    ##  compromisation attempt ?  ## [ when set ]
 }
 
 <[base.log]>->( 2, "instance $instance_id : cube sid = $cube_sid" );
@@ -48,7 +51,7 @@ $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
 );
 
 #.............................................................................
-#UPWV7OIYYJ6WHIY3R4OVECAVGGYA7M5BHPRFJU3T4VYB5ARXDACHRWIEKYJ5OCAG27S73OOGIVVFK
-#::: GNX3XNBQVJRJJVGKPXPXWIIIYKVS2QEDRMX4XKAWAKTR7T7XAAI :::: NAILARA AMOS :::
-# :: UZVQBRCQ3JUI57EBV4NWJH4OBGDG7U5CFHZKIXLELLC5OE3KDECA :: CODE SIGNATURE ::
+#KBVW3NPUWAFTGMRAVU7F3HZ542ZNWKE4GR3OAMYS6BVXGIJ7X4WLI5WWXBPNVSTYPDZWVW4PQE6HE
+#::: 3XEHDWCL7ZFNP3DZKZARHWVFJAQIHOIH554XSNRSGG4SH5IKJ4B :::: NAILARA AMOS :::
+# :: WVDNIQ6OM2OBHT77BGWUSK5RKXRPCNWB6C4OYQMYW2MJEJZOKUDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

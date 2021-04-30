@@ -1,20 +1,20 @@
 # >:]
 
 # name  = base.event.add_io
-# descr = install I/O watcher on a filehandle
+# descr = install I\O watcher\handler on a filehandle
 
 return undef
-    if ref( $_[0] ) ne 'HASH'
+    if ref( my $params = shift // '' ) ne qw| HASH |
     and warn 'expected a hash reference <{C1}>';
 
 ##  alternative direct code ref callback parameters  ##
 my $code_ref
-    = ( defined ${ $_[0] }{'cb'} and ref( ${ $_[0] }{'cb'} ) eq qw| CODE | )
-    ? ${ $_[0] }{'cb'}
+    = ( defined $params->{'cb'} and ref( $params->{'cb'} ) eq qw| CODE | )
+    ? $params->{'cb'}
     : undef;
 
 ## regular %code callback name ##
-my $callback = ${ $_[0] }{'handler'};   ##  <-- $code{'<handler_name>'} .., ##
+my $callback = $params->{'handler'};    ##  <-- $code{'<handler_name>'} .., ##
 
 return undef
     if not $code_ref
@@ -26,28 +26,28 @@ return undef
     and warn ": event.add_io : callback '$callback' does not exist <{C1}>";
 
 my @timeout_callback
-    = defined ${ $_[0] }{'timeout_cb'}
-    ? ( 'timeout_cb' => sub { &{ ${ $_[0] }{'timeout_cb'} } } )
+    = defined $params->{'timeout_cb'}
+    ? ( 'timeout_cb' => sub { &{ $params->{'timeout_cb'} } } )
     : ();
 
 my $poll_def = scalar(@timeout_callback) ? qw| rt | : qw| r |;
 
-return Event->io(
-    'fd'      => ${ $_[0] }{'fd'},
-    'poll'    => ${ $_[0] }{'poll'}    // $poll_def,
-    'repeat'  => ${ $_[0] }{'repeat'}  // 1,
-    'async'   => ${ $_[0] }{'async'}   // 0,
-    'desc'    => ${ $_[0] }{'desc'}    // $callback,
-    'prio'    => ${ $_[0] }{'desc'}    // 3,
-    'timeout' => ${ $_[0] }{'timeout'} // 0,
-    'hard'    => ${ $_[0] }{'hard'}    // 0,
-    'data'    => ${ $_[0] }{'data'},
+return Event->io(    ##  bytewise-mode -1 ?  ## [LLL]
+    'fd'      => $params->{'fd'},
+    'poll'    => $params->{'poll'}    // $poll_def,
+    'repeat'  => $params->{'repeat'}  // 1,
+    'async'   => $params->{'async'}   // 0,
+    'desc'    => $params->{'desc'}    // $callback,
+    'prio'    => $params->{'desc'}    // 3,
+    'timeout' => $params->{'timeout'} // 0,
+    'hard'    => $params->{'hard'}    // 0,
+    'data'    => $params->{'data'},
     'cb'      => $code_ref // sub { &{ $code{$callback} } },  ## 'cb' first ##
     @timeout_callback
 );
 
 #.............................................................................
-#LQQ2RMJZDKPHI56CBWMFWBJYQ4EIFXOBHMHAWZV5JYIF23YE5VPBK2E2CKBGHYXPACBCD7TFJMZAY
-#::: QJB6SQKGINYVTEYHJ4UTSK4E4VHNL3CVJ4AXFHBTBCQQYCYO6H4 :::: NAILARA AMOS :::
-# :: RC3RAB225XOUMQHEQFAEANWMRP63RJQEJJXARFQEKW3Z6SCPDYCI :: CODE SIGNATURE ::
+#MAPX5OICZFFVFZ6EPILHVTLND4GL2DRMNKEBNPCVQPZGELAASXAGFQ4D3PHLR2OLRBSE365A2SUYA
+#::: 7KP34ZPF6377D6EVEJFDIEVUY6H57T4X2KE76J4RYVF2TULA6JT :::: NAILARA AMOS :::
+# :: ZVYAM5S4MIFQAVKKVN3QOMTFMUGNE3YGAPHYXRKMM66KZYQGT4CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

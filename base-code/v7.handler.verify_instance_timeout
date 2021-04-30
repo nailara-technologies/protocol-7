@@ -5,25 +5,25 @@
 my $params      = shift->w->data;
 my $instance_id = $params->{'instance_id'};
 if ( not exists <v7.zenka.instance>->{$instance_id} ) {
-    <[base.log]>->(
-        2, "<verify_instance_timeout> gone instance $instance_id"
+    <[base.logs]>->(
+        2, '<verify_instance_timeout> gone instance %d', $instance_id
     );
     return;
 }
-my $instance   = <v7.zenka.instance>->{$instance_id};
-my $zenka_name = $instance->{'zenka_name'};
+my $instance = <v7.zenka.instance>->{$instance_id};
 
-<[base.log]>->(
-    0, "<< instance $instance_id ('$zenka_name') verification timeout >>"
+<[base.logs]>->(
+    0,            '<< instance %d [ %s ] verification timeout >>',
+    $instance_id, $instance->{'zenka_name'}
 );
 
-<[zenka.change_status]>->( $instance_id, 'error' );
+<[zenka.change_status]>->( $instance_id, qw| error | );
 
 delete $instance->{'timer'}->{'verify_instance'};
-delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
 
 #.............................................................................
-#JSSSHW7XVZA5TXKYHZLDWGPOF57ZZZNGUDNAG5V5ZOGWOIXSYNXIJEVTON6PBXUGRRCCZ35IIPYLO
-#::: B72II2QBL5O2YS4GDEEG52SN4GTJBMHIEGAG4WBJS6YJSS4MUSK :::: NAILARA AMOS :::
-# :: UNCVCWCG6XACNREKK434UUZT46ZF34ALV7K4A5TXO4GPP5GKDOCI :: CODE SIGNATURE ::
+#PO47GCHGEYUVV7ZHLXU6Y5LHGK7UGIUKRFMX27HWOCKE6YN2ZA4LR7YZKBXD3FQXPQFH2GKVD3ZM2
+#::: L6GRV2OF4XMKBBOBNL64HMV3CSZM4JQ3YWVIX64NNJ7XUGHXVZH :::: NAILARA AMOS :::
+# :: P3M3KYPDU2SIFNFXB7CY6JK5NYCCETVZFRTZ5DTTPWB6QD2LLGDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

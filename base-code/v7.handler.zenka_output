@@ -25,9 +25,12 @@ my $zenka_name     = <v7.zenka.setup>->{$zenka_id}->{'name'};
 
 $zenka_instance->{'output_buffer'} //= '';
 
+my $output_length = length( $zenka_instance->{'output_buffer'} );
+my $read_length   = 84;    ##  create avg line length stats and use them ., ##
+
 my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$zenka_instance->{'output_buffer'},
-    4096,     length( $zenka_instance->{'output_buffer'} )
+    $read_fh,     \$zenka_instance->{'output_buffer'},
+    $read_length, $output_length
 );
 if ( not defined $read_bytes or $read_bytes == 0 )
 {    # [ filehandle exception ]
@@ -117,7 +120,7 @@ while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
 }
 
 #.............................................................................
-#2M6PSQECG5OCUG7A3R3NHBV3RXK5MALR5DAVHGLEQSPYYSLTGU5IGPXOSUPCFPM3VQCXQBRYMXQ4W
-#::: 6IYSLF5BBPQSGLYZEKR4TAR564H3Z7UKJNH2VAZAWSTSUECSDL5 :::: NAILARA AMOS :::
-# :: SZWRJJVZUCQOUUXC2MKWKVI3MV4LLTHVBEZD7N7IZDDTNSKOF2BI :: CODE SIGNATURE ::
+#67DR3RW722PYWYUJWY7E5M56PII4DCJM3LPLBJWZICQKKFUH3TIHYG6BPFBSGNODSPKWC6OQKMADA
+#::: VGIOHHWK3ASWGFJGI4UJGOJLFNC76RYP7ISSLUHKFKBFNNRHHJ6 :::: NAILARA AMOS :::
+# :: 6VKIUCB7ZYLHDLZY6BDUXPFO5LZ7XOCFOW4SYJLJUKI372NZFGDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

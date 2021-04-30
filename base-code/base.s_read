@@ -4,13 +4,13 @@
 # desc = utf8 safe sysread replacement [ with optional fh_offset parameter ]
 # note = buffer parameter expects passing by reference
 
-warn 'filehandle not defined <{C1}>' and return undef if not defined $_[0];
+warn 'filehandle not defined <{C1}>' and return undef if not defined $ARG[0];
 
-my $read_fh    = $_[0];
-my $buffer_ref = $_[1];
-my $read_len   = $_[2];
-my $buf_offset = $_[3];    ##  obsolete : remove  ##
-my $fh_offset  = $_[4];
+my $read_fh    = $ARG[0];
+my $buffer_ref = $ARG[1];
+my $read_len   = $ARG[2];
+my $buf_offset = $ARG[3];    ##  obsolete : remove  ##
+my $fh_offset  = $ARG[4];
 
 #    sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
 #    sysread FILEHANDLE,SCALAR,LENGTH
@@ -20,7 +20,7 @@ my $fh_offset  = $_[4];
 my $b_read;
 
 IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
-    0, sub { $b_read = $_[0] } );
+    0, sub { $b_read = $ARG[0] } );
 
 IO::AIO::flush();
 
@@ -33,7 +33,7 @@ return undef if $b_read < 0;    # <-- sysread() behaviour
 return $b_read;
 
 #.............................................................................
-#UIMD7BZR6SESCFRBD6QIWXO3TTG46KUXBQWMBRYGN7N7DW4GO7AJU37R6PSSUT3ZPYWJPJGWUGFM4
-#::: D6YXQVWBMT2SJW6BGENDGFTXPLLIQF7WEFXFQGXGYG6DOMY42BF :::: NAILARA AMOS :::
-# :: FQQTKGHWQO34OHIYVWTO3KBEBJRUKFYH22EPY2UOJDZKOIEYQABA :: CODE SIGNATURE ::
+#DA65PUMFBV4PQVNM2QJZCWFHBS7PZFRJT3A2GPK22FSZ4WKAO7XGTXWPXYNJA6L375ZI55K4V7MEC
+#::: UYDVIP4EFVTPRPPGACGAS7MTSWZ4IKW3ZHRLMFMPZUIBQCU4QB5 :::: NAILARA AMOS :::
+# :: YOA7JEAWCXGVHMZEYTIQGTUPQZMUN72KMJDGWCVG7GUC6CHA7MCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
