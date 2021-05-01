@@ -3,7 +3,6 @@
 # name  = protocol.amos-chksum.command-handler
 
 my $id = $ARG[0]->w->data;
-
 return 2 if not defined $data{'session'}{$id};
 
 ##[ INITIALIZATION \ VARIABLE SET-UP ]########################################
@@ -111,7 +110,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
         if ($EVAL_ERROR) {
             warn join( ' ',
                 '[chk-sum.amos]',
-                <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+                scalar <[base.format_error]>->( $EVAL_ERROR, -1 ) );
         } else {
             warn '[chk-sum.amos] no result returned';
         }
@@ -134,7 +133,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
             if ($EVAL_ERROR) {
                 warn join( ' ',
                     "[amos-ext-cmd:$command]",
-                    <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+                    scalar <[base.format_error]>->( $EVAL_ERROR, -1 ) );
             } else {
                 warn '[amos-ext-cmd:$command] expected hash reference';
             }
@@ -183,7 +182,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 return 0;
 
 #.............................................................................
-#7FR3P3X73W6EAF62S3A47ZJAB4GUIBOFJRZCCNN4HBK6SZSNC4EXDOEIYRWHG3DMW5LNCSX2ALB3A
-#::: 27J536SC5J2BKFS6RQOUPUL56SATOSCNOSJCKWTT57BG4WUJAZR :::: NAILARA AMOS :::
-# :: EBPCENFIZOTOR46O5BVGGZ2IBVYBB25S4GWN3JWX2R6PH3VZRADQ :: CODE SIGNATURE ::
+#LCGXKBB5VPMXGUQYU77BVGB2DPDYRXLSCVJIJUEOMXHP6VNZJSHYUVZLS57VQUY25EDPAOYSCTK26
+#::: X3BQCFFHWT6DOZURQVD6PO3QLLNGX2QSHUYBRPNSVOHMWHRDZ4C :::: NAILARA AMOS :::
+# :: YTOIRTGVSUEU4HS5F62WS4ISOQAVMQOLANSFIL3BOCYGUQAWA2DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,23 +5,22 @@
 my %pattern_handlers;
 my $pattern_file = shift // '';
 my $zenka_name
-    = <system.zenka.name> eq '<stdin>' ? 'v7' : <system.zenka.name>;
+    = <system.zenka.name> eq qw| <stdin> | ? qw| v7 | : <system.zenka.name>;
 
-my $base_file_name = "zenka-output.patterns";    # <-- << ! >>
+my $base_file_name = qw| zenka-output.patterns |;    # <-- << ! >>
 
 my $pattern_file_txt = $pattern_file;
 <v7.patterns.zenka_output> //= {};
 $pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
 my $loading_message = ": loading zenka output patterns$pattern_file_txt";
-( my $pattern_filename = join( '.', $base_file_name, $pattern_file ) )
-    =~ s/\.$//;
+( my $pattern_filename = "$base_file_name.$pattern_file" ) =~ s|\.$||;
 
 my $pattern_data;
 my $cfg_base_path = <system.conf_path>;
 {
     local <system.conf_path>
         = "$cfg_base_path/zenki/$zenka_name";    #  <-- <<!>>
-    if ( !-f <system.conf_path> . '/' . $pattern_filename ) {
+    if ( !-f join( qw| / |, <system.conf_path>, $pattern_filename ) ) {
         <[base.log]>->(
             0, "zenka pattern file '$pattern_filename' not found"
         );
@@ -34,12 +33,12 @@ my $cfg_base_path = <system.conf_path>;
 }
 die "unable to load pattern data"
     if not defined $pattern_data
-    or ref($pattern_data) ne 'ARRAY';
+    or ref($pattern_data) ne qw| ARRAY |;
 
 <v7.pattern_config> = $pattern_data;
 
 #.............................................................................
-#WVTISBBJTJIFJAKL2ZXZSLED4SQN4EVXLQVOVR27FW7H5YA2N5WQOPXNLPM5LUGR2FVH4YC4U334K
-#::: 4IEIG64ULSCTUQ7NI6TK5MQIHDKJHQTEFGL4FHCRN3KZD5T62TR :::: NAILARA AMOS :::
-# :: KJ66G4KOQFDDKBTWQGFW24EG4PXMIXCGX2AAN5TVXQ62CHOBV2CQ :: CODE SIGNATURE ::
+#KYCYGCLUMO4TGGKRANYLMWSEUDT5WWITHYLESZBQIGENDHXXTCMFZ4ETKWF7H6ZQ4SC32ASZHBN3U
+#::: NBJUT5O3XGCMWEWR2WZVJS4HL5CY6TVIYO4STLFZDEYRWNPK3V5 :::: NAILARA AMOS :::
+# :: WSKRRDTFGZARNP557HREMV7KNFFGXNDFQJJVXSTJ7T4PSYNGIUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,27 +4,28 @@
 # descr = returns array reference to specified code section segment [if exists]
 
 my $code_data_aref = shift;
-die 'no section name specified' if !@_;
-my @section_name_chain = @_;
+die 'no section name specified' if !@ARG;
+my @section_name_chain = @ARG;
 
 die 'no code data reference supplied' if not defined $code_data_aref;
-die 'expected an ARRAY reference'     if ref($code_data_aref) ne 'ARRAY';
+die 'expected an ARRAY reference'     if ref($code_data_aref) ne qw| ARRAY |;
 
 my $expected_section = shift(@section_name_chain);
 
 foreach my $data_href ( @{$code_data_aref} ) {
-    next if ref($data_href) ne 'HASH';
+    next if ref($data_href) ne qw| HASH |;
 
-    my ($section_name)
-        = keys( %{$data_href} );    # only one expected [ ordering ]
+    ##  only one expected [ ordering ]  ##
+    my ($section_name) = keys( %{$data_href} );
+
     if ( $section_name eq $expected_section ) {
 
         my $section_aref = $data_href->{$section_name};
         die "section name '$section_name' did not point to ARRAY reference"
-            if ref($section_aref) ne 'ARRAY';
+            if ref($section_aref) ne qw| ARRAY |;
 
         if ( !@section_name_chain ) {
-            return $section_aref;    # (end of recursion)
+            return $section_aref;    # [ end of recursion ]
         } else {
             return <[base.code_section_exists]>->(
                 $section_aref, @section_name_chain
@@ -35,7 +36,7 @@ foreach my $data_href ( @{$code_data_aref} ) {
 return undef;    # section not found
 
 #.............................................................................
-#ONVT5BMFUCKA26FJ4H2YDK3M47DKTVAO66BX2KRQNFKKMY4HR7ZJLIKVJTDIFC7X2LNHGJVVMQJIO
-#::: BVXNJ6HOLYVMWFAUEGXBKBO2PPZUWZKMD6UGDMIXWZG2WOYHMHC :::: NAILARA AMOS :::
-# :: Y7PAAP2ZC734CSKF3LXZQSE3Z7YQQI7MEHMRZQU732ZFOLFTRODA :: CODE SIGNATURE ::
+#7BF4MZLRPCPN22SHL3SDEJLTF6WHGZ64ELNFIALQSW3M7DF5Z4AYCKMYNZ3NOVQUWWKWBWSC5NUFI
+#::: 27DATBHNA5ERM6FDRMRVGVHXBK27EKE7GU46HTJEBDU7CDBI42C :::: NAILARA AMOS :::
+# :: VX6BBRTVOBL46BFGMO6XGK46FAJVZSHHNPOO3CYNM4T7SPIVWSDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ my $shred_bin = <keys.bin_path.shred>;
 
 opendir( my $dir_fh, $key_dir )
     or return printf( ":\n: << %s : %s >>\n:\n",
-    <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
+    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'" );
 closedir($dir_fh);
@@ -44,7 +44,7 @@ my $del_count = 0;
 
 chdir($key_dir)
     or die sprintf( "<< %s : chdir [ %s ] >>\n",
-    <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
+    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
 
 print "\n::\n";
 
@@ -56,7 +56,7 @@ foreach my $file_name (@key_files) {
         if length($shred_bin)
         and -x $shred_bin;
     return printf( ":\n: unlink failed : %s\n:\n",
-        <[base.format_error]>->( $OS_ERROR, -1 ) )
+        scalar <[base.format_error]>->( $OS_ERROR, -1 ) )
         unless unlink($file_name)
         or !-f $file_name;
     $del_count++;
@@ -65,7 +65,7 @@ my $s = $del_count == 1 ? '' : 's';
 print " :\n :: [ removed $del_count key file$s ]\n\n";
 
 #.............................................................................
-#KRSWY34DHLXJOLEHCBFIKVUDCQZ5ZP5DUDHSLSU4JZGCJOREMNEUXXFFXTKBVXFAILHR4IHG3TCY4
-#::: XGOJEG5CNTS7BHNGAK3AF6BDB2VJJQH6GBQW3EY26NN57HX7A4F :::: NAILARA AMOS :::
-# :: NAIKRJQKCRTNRII37VFRYS5YEGKZT7ZJWW33C27GUJW2FLYX2SAQ :: CODE SIGNATURE ::
+#JTTXO34GUCZ3FBGEYPN2M3KUXA6DX3XLZZAXKIFTC3FEJSTCOD6BNLMASI7IZ24QKOZZU4ULHYTFU
+#::: NNPHSQSLJM5KGELGT43EOQKL4MTGIGDSMPP4NMT2BPBCEUGSEFM :::: NAILARA AMOS :::
+# :: 26VMD2BKKSD6FFRJJXQGOE6CJ3OWNUXPVWIJENFAH6MJYKXLWKCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

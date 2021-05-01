@@ -7,8 +7,9 @@ my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? 1 : 0;
 
 my $user = shift;
 
-<[base.root.check_system_user]>->($user);
+return warn 'expected <user> parameter <{C2}>' if not defined $user;
 
+<[base.root.check_system_user]>->($user);
 <[base.check_dependency_dirs]>->($user);
 
 if ( !length( $user // '' ) ) {
@@ -95,7 +96,7 @@ if ( !length( $user // '' ) ) {
                         = <system.zenka.name> ne qw| v7 |
                         ? sprintf "temp-home.%s.%s.%d", <system.zenka.name>,
                         $user, $PID
-                        : sprintf 'temp-home.%s.XXXXXXXXXX', $user;
+                        : sprintf( qw| temp-home.%s.XXXXXXXXXX |, $user );
                     $h_directory
                         = <[base.tmp_dir]>->( qw|/var/tmp/|, $tdir_template );
                     if ( -d $h_directory ) {
@@ -118,10 +119,10 @@ if ( !length( $user // '' ) ) {
             }
 
             return {
-                'uid'      => $uid,
-                'gid'      => $gid,
-                'all_gids' => join( ' ', $gid, @rgids ),
-                'home'     => $h_directory
+                qw| uid |      => $uid,
+                qw| gid |      => $gid,
+                qw| all_gids | => join( ' ', $gid, @rgids ),
+                qw| home |     => $h_directory
                 }
                 if $noop;
 
@@ -136,7 +137,7 @@ if ( !length( $user // '' ) ) {
             $ENV{'NO_AT_BRIDGE'}    = 1;
             chdir($h_directory)
                 or warn sprintf( ":: %s : chdir [ $h_directory ] ::\n",
-                <[base.format_error]>->( $OS_ERROR, -1 ) );
+                scalar <[base.format_error]>->( $OS_ERROR, -1 ) );
 
             <[base.log]>->( 1, "switched to unix user '$user'.," );
         }
@@ -144,7 +145,7 @@ if ( !length( $user // '' ) ) {
 }
 
 #.............................................................................
-#KMSKJF6S7HYOPIZE7EMUDPSF43JF4OC4ZTFKLVYGMPQUQA34KU2QOQINOP5CZ2BOXH7ZWXHNJXTWC
-#::: ASWCTXATVLHBLSEH7MQIEQG6PAPJB6OGJ7N4PBIE5LOKYWWKZEY :::: NAILARA AMOS :::
-# :: 7JRHIFZEIKNII5CLRO4X5ML3XRHGLEMCINANZARZS2JDJORT24DQ :: CODE SIGNATURE ::
+#S2EMZIGQVR2DBDM546XKUSYZLXC6D5VLUJWCPZIMNEQEPBPR2ZK4ABCGDOTVY2H7HBSZ2MJJ3RDY2
+#::: MD2DA3P3MTLBZNRCRTL3ZQ2Z56GXQIXMEUTFLD67ZET7USCNYSH :::: NAILARA AMOS :::
+# :: ODHGO2SSUYPMYNLCRHZBPZ7N5LHWVGOF64ZY7H5OZUG235L7TSCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
