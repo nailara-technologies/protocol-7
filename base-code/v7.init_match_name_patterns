@@ -1,0 +1,35 @@
+# >:]
+
+# name  = v7.init_match_name_patterns
+
+my $zenka_name = shift;
+return warn 'expected zenka-name parameter' if not defined $zenka_name;
+
+my @match_name;
+my $patterns_output = <v7.patterns.zenka_output> // {};
+foreach my $a_name ( keys %{$patterns_output} ) {
+
+    if ( $a_name =~ m|\*| ) {    # wildcard match
+        my $inverse_match = 0;
+        my $pattern       = $a_name;
+        $inverse_match = 1 if $pattern =~ s|^\!||;
+        $pattern =~ s|[^a-zA-Z0-9\-_\*]||g;
+        $pattern =~ s|\*\*|*|g;
+        $pattern =~ s|\*|\.*|g;
+        push( @match_name, $a_name )
+            if $zenka_name =~ m|^$pattern$|
+            or $inverse_match and $zenka_name !~ m|^$pattern$|;
+        next;
+    }
+    push( @match_name, $a_name )
+        if $a_name eq $zenka_name    # zenka name matches
+        or $a_name =~ m|^\!(.+)$| and $LAST_PAREN_MATCH ne $zenka_name; # inv.
+}
+
+return \@match_name;
+
+#.............................................................................
+#MBFAGXGFYKTSAFDACQYDU3ILI2JJ3WJ7CY55EADYDRLISQRSKBFPQXHDXDEAOXKZKXEK52AOM3OAY
+#::: QRA37NESFSDMLVHAET6C6ZA5OEBDTI2IRIJTXOROIS6YSSNVQFZ :::: NAILARA AMOS :::
+# :: 3CYWQ3HYFFJXUCEBDRYN62GASSHK4HERIAUKGT7LGJRGJEO6GAAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

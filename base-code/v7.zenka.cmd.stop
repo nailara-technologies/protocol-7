@@ -4,12 +4,12 @@
 # param = <name[s]|instance[s]>
 # descr = [manually] shutdown zenka instance[s]
 
-my $params = $$call{'args'} // '';
+my $params = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if !length($params);
 
 my $stop_mode
-    = ( defined $$call{'mode'} and $$call{'mode'} eq 'implicit' )
+    = ( defined $$call{'mode'} and $$call{'mode'} eq qw| implicit | )
     ? 'implicit'
     : 'manual';
 
@@ -91,14 +91,14 @@ foreach my $name ( keys %shutdown_names ) {
             = join( ' ', keys %zenka_list );
 
         <v7.zenka.manually_stopped>->{$name} = <[base.time]>->(4)
-            if $stop_mode eq 'manual';
+            if $stop_mode eq qw| manual |;
 
         <[base.log]>->(
             2, "disabled zenka '$name' [ no more instances present ]"
         );
         <[base.log]>->(
             1, ": << added '$name' to 'manually stopped' list >>"
-        ) if $stop_mode eq 'manual';
+        ) if $stop_mode eq qw| manual |;
 
         next if not exists <v7.zenka.dependency>;
         foreach my $dep_name ( keys %{<v7.zenka.dependency>} ) {
@@ -110,7 +110,7 @@ foreach my $name ( keys %shutdown_names ) {
                         1, "dependency based auto-start cleanup [ $dep_name ]"
                     );
                     <[zenka.cmd.stop]>
-                        ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
+                        ->( { 'args' => $dep_name, 'mode' => qw|implicit| } );
                 }
             }
         }
@@ -119,11 +119,12 @@ foreach my $name ( keys %shutdown_names ) {
     }
 }
 
-map { <[zenka.change_status]>->( $ARG, 'shutdown' ) } @instance_ids;
+map { <[zenka.change_status]>->( $ARG, qw| shutdown | ) } @instance_ids;
 
 return {
     'mode' => 'false',
-    'data' => "no zenka '$not_found_name' found in setup [ see 'list zenki' ]"
+    'data' => sprintf( "zenka '%s' not in set-up [ see 'list zenki' ]",
+        $not_found_name )
     }
     if !$setup_found and $not_found;
 
@@ -132,7 +133,7 @@ if ($count) {
 } else {
     ## clean up orphaned start jobs ###
     foreach my $param_str ( split m| +|, $params ) {
-        my $job_attr = { 'job_callback' => 'zenka.start' };
+        my $job_attr = { 'job_callback' => qw| zenka.start | };
         if ( $param_str =~ m|^\d+$| ) {
             $job_attr->{'instance_id'} = $param_str;
         } else {
@@ -155,7 +156,7 @@ if ($count) {
 }
 
 #.............................................................................
-#3GDBNIAFKOEKQHHMTOJYJDMWSLAL4S5GAASBMBMPGDD2W66MVLVH7OSJPRFNNPM3DV762CZKOCOGI
-#::: 6GEQR77KPBAV2IBD4VPEVJTLDTENDUT3QIQNMPVFH4AZB4OVILA :::: NAILARA AMOS :::
-# :: KIEDECX6KPRF4XHNP4E57BMWJLZ4V65XALF54E3RXF6VCKJGDEBI :: CODE SIGNATURE ::
+#FHOW67DDNV3SW6RAJFVDU2XGMKCCEQOH2R7CYJQLV5ZFCBSZPNGSEVHXL2FNPPFPME6SXAYVXXKKI
+#::: XCXLEZGPBAXBGWH6TOY4DS5N36WNO7ERQDTTYD2SSY3KU2FGZ32 :::: NAILARA AMOS :::
+# :: 6LPM6BKDQ27Z3LOLT7JLAEGVCVYI5NZHLRXF7AV6X4FJ646HQEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
