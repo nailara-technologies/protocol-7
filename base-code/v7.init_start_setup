@@ -6,14 +6,14 @@ my $start_setup_data = shift // [];
 
 <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
-        shift( @{$start_setup_data} )->{'globals'},
+        shift( @{$start_setup_data} )->{qw| globals |},
         qw| <v7.start_setup.globals> |
     )
 );
 
 my $zenki_init_code;
-while ( not defined $zenki_init_code ) {    # skip other sections
-    $zenki_init_code = shift( @{$start_setup_data} )->{'zenki'};
+while ( not defined $zenki_init_code ) {    ## skip other sections ##
+    $zenki_init_code = shift( @{$start_setup_data} )->{qw| zenki |};
 }
 
 <v7.start_setup.zenki.startup.init_code> //= {};
@@ -21,12 +21,11 @@ while ( not defined $zenki_init_code ) {    # skip other sections
 
 foreach my $zenka_ref ( @{$zenki_init_code} ) {
     <[base.log]>->(
-        0,
-        ": : start cfg syntax error : '$zenka_ref'"
-            . ' [ expected " - <zenka_name>" ]'
+        ': : start cfg syntax error : \'%s\' [ expected " - <zenka_name>" ]',
+        $zenka_ref
         )
         and next
-        if ref($zenka_ref) ne 'HASH';
+        if ref($zenka_ref) ne qw| HASH |;
 
     my ( $zenka_name, $zenka_init_code ) = each(%$zenka_ref); ## single key ##
 
@@ -53,17 +52,20 @@ foreach my $zenka_ref ( @{$zenki_init_code} ) {
     ## 'start-set-up' values [ from zenka config section ] ##
     my $start_setup = <v7.start_setup.zenki.config>->{$zenka_name} //= {};
     if ( defined $start_setup->{'zenka-start'}
-        and ref( $start_setup->{'zenka-start'} ) eq 'HASH' ) {
+        and ref( $start_setup->{'zenka-start'} ) eq qw| HASH | ) {
         $start_setup = $start_setup->{'zenka-start'};
-        <v7.start_setup.zenki.startup.timeout>->{$zenka_name}
-            = $start_setup->{'timeout'}
+        my $start_timeout = $start_setup->{'timeout'}
             if defined $start_setup->{'timeout'}
             and $start_setup->{'timeout'} =~ m|^\d+(\.\d+)?$|;
+        <v7.start_setup.zenki.start-up.timeout>->{$zenka_name}
+            = $start_timeout
+            if defined $start_timeout;
+        ##
     }
 }
 
 #.............................................................................
-#QLAAZ2QG7NCWZV4PCC2NYDHFISJ3KJSK5NVJD2AILCGJXFKY3PDWUTTZJUUE722PZHFKRMBGOBFJ4
-#::: VUZ3RFRUL54ZFB3LGHX7D2IDVAWU2BZ4HSJHJ3M4TIUSNFNGKA7 :::: NAILARA AMOS :::
-# :: 366MEJ2UJ6DTKDPESOBO5IEVWA3RDRIKP2PAVFX5L2NWJRNY7SAI :: CODE SIGNATURE ::
+#DDWXITRTZ525B3SNNEGWRL4M2RNB2XVUMZ7546IKG4MKVIOXI26SPQQSW5I3TS7JIZOWFIH7W7HW6
+#::: GKTONRM4F523PWDEP2PA2DFKQNNC2EICFLSPZDI7SJZJEEFDYMR :::: NAILARA AMOS :::
+# :: IUHOSQRVD2GN63OIMEVKUEI2W7YREWLAI3BD4X7GTFYUBAAENKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,41 +2,48 @@
 
 # name = io.unix.socket.output.open
 
-my $socket_file = $_[0];
+my $socket_file = shift;
+return warn 'expected unix domain socket path <{C1}>'
+    if not defined $socket_file;
 
 if ( !-S $socket_file ) {
-    <[base.log]>->(
-        0, "[!] unix domain socket '$socket_file' does not exist.,"
+    <[base.logs]>->(
+        0, "<< unix domain socket '%s' does not exist.,", $socket_file
     );
     return undef;
 }
 
 my $return_socket = IO::Socket::UNIX->new(
-    Type => SOCK_STREAM(),
-    Peer => $socket_file,
+    qw| Type | => SOCK_STREAM(),
+    qw| Peer | => $socket_file
     )
-    or <[base.log]>->(
-    0, "io.unix.socket.output.open : \l$OS_ERROR! ('$socket_file')"
+    or <[base.logs]>->(
+    0,
+    'io.unix.socket.output.open : %s [ %s ]',
+    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $socket_file
     );
 
 if (    defined $return_socket
     and -S $return_socket
     and $return_socket->connected ) {
-    <[base.log]>->( 1, "connected to unix socket [$socket_file]" );
+    <[base.logs]>->( "connected to unix socket [%s]", $socket_file );
 
-    $data{'handle'}{$return_socket}{'link'} = 'unix';
-    $data{'handle'}{$return_socket}{'mode'} = 'output';
+    $data{'handle'}{$return_socket}->{'link'} = qw| unix |;
+    $data{'handle'}{$return_socket}->{'mode'} = qw| output |;
 
     return $return_socket;
 } else {
-    <[base.log]>->(
-        0, "[!] can't connect to unix socket [$socket_file] : \l$OS_ERROR"
+    <[base.logs]>->(
+        0, '<< cannot connect to unix socket [ %s ] : %s >>',
+        $socket_file,
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+
     );
     return 0;
 }
 
 #.............................................................................
-#FZQ3TP6ONLA4534KTFPB6SBN4BO5YWLBWWNSSGMF5JGJ47GZBJS6JGLJQ7DI2XQ6I6H4BPNXDJ3TE
-#::: ZMIAJNEYBY2LYH4C2GNPEIIB6UFPZV6FG2ZYT52JEIU5POQJCBP :::: NAILARA AMOS :::
-# :: OHT2F7IJRJKFZ5FACZMISF6FQG4DQGGKLQZYAQ2ACWNOFZ7MVCDQ :: CODE SIGNATURE ::
+#HX5Y6HVHI2LGPUYNW2V5B5KYLIDL5KL2LMLL2QYCCCG74KFNC74AZLYMOHQXEGVWC67LDSQANDS4C
+#::: NG5XSHJKVVFH53GVDD4LNFUJK5OOL362SNZQIUHCDDCGWPRREJE :::: NAILARA AMOS :::
+# :: VY4R2BO37P2BFRVBEJLE7MS3YZV4KZJF4HJ7OA65XJ2CBWSDVEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

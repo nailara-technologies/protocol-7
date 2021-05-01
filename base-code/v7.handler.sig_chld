@@ -24,7 +24,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $e_sig     = $CHILD_ERROR & 127;
     my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
     $log_level = 0
-        if $e_sig_str =~ s|(signal 11)$|$1 :: SEGMENTATION FAULT ::|;
+        if $e_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
     my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
     $log_level = 1 if $e_val;
     $log_level = 0 if $CHILD_ERROR & 128;
@@ -67,14 +67,14 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
             <[file.put]>->( $file_name, "$pid\n" )
                 or warn join( qq| : |,
-                $file_name, <[base.format_error]>->($OS_ERROR) );
+                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
             chmod( 0644, $file_name )
                 or warn join( qq| : |,
-                $file_name, <[base.format_error]>->($OS_ERROR) );
+                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
             my @pwn = getpwnam($web_browser_uname);
             chown( $pwn[2], $pwn[3], $file_name )
                 or warn join( qq| : |,
-                $file_name, <[base.format_error]>->($OS_ERROR) );
+                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
         }
 
         my $next_status = (
@@ -114,7 +114,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 #.............................................................................
-#7SNUSDGXMX3HMKB5UVBRY2HP4QW7PGSIYS4CRHEMHUKIIFI33IF5KVWOMQIOJENPK5RXVXCEFGDIG
-#::: WPPMI5MSNEV6HSZHEMEMVYQJG2ATV2JETNJP5AK3HRCGS3USIJU :::: NAILARA AMOS :::
-# :: F3AQCV7HUWNFWVAWLCWJAKNTWDMKMGIWQIFXIW6ZBV5XAVF22EBA :: CODE SIGNATURE ::
+#Z2UYSAKAOZSXMS6M236DCVGNQQWUBT6NYQY5RZNX6U2FNJ3XKCUB3XFMOGBF7VXLHQ2TLBFFFHOS4
+#::: J5RACPS4GHXR4BW7A4VPZHF2RX7A5BZCEGVN2RGJHALTI4GDSKM :::: NAILARA AMOS :::
+# :: HOL2IZ4U3UJWQD24T6DG3DPP43DNSO5K4MZDTXG2QDGSDYGHTWDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
