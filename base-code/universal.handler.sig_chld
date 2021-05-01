@@ -15,7 +15,7 @@ do {
         delete <universal.running>->{$child_name};
         <[base.log]>->(
             0,
-            ':: SEGMENTATION FAULT :: \\ zenka '
+            ':: segmentation fault :: \\ zenka '
                 . "'$child_name' [ PID $child_pid ]"
         ) if $e_sig == 11;
 
@@ -26,18 +26,20 @@ do {
                 = ( defined $zenka_subname and length $zenka_subname )
                 ? '.' . encode_b32r($zenka_subname)
                 : '';
+
             my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
+
             <[file.put]>->( $file_name, "$child_pid\n" )
                 or warn join( qq| : |,
-                $file_name, <[base.format_error]>->($OS_ERROR) );
+                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
             chmod( 0644, $file_name )
                 or warn join( qq| : |,
-                $file_name, <[base.format_error]>->($OS_ERROR) );
+                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
         }
 
     } elsif ($child_pid) {
         push( @names, $child_pid );
-        <[base.log]>->( 0, ":: SEGMENTATION FAULT :: [ PID $child_pid ]" )
+        <[base.log]>->( 0, ":: segmentation fault :: [ PID $child_pid ]" )
             if $e_sig == 11;
     }
 } while $child_pid > 0;
@@ -60,7 +62,7 @@ $SIG{'CHLD'} = qw| IGNORE |;
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
 #.............................................................................
-#6QGX6NPOL7NE6JRLSTBMZ53T72ATCERXENLWDTS5GG6RI55MS5FS2HOXXYHFNNP73CTR7MNB5D34K
-#::: NHUFTVJQ6TB4Y4YHJWUDLIKQTL3CCJNI23BMUR6Z7GSGUOCZLKS :::: NAILARA AMOS :::
-# :: N6R476RSAIKCRO4YVVZADFU5TJOU6TQ5KYTROSZF5C3X3PF4QKBQ :: CODE SIGNATURE ::
+#M5FPPW367T7BJPG7RLJET4TORVEYU4HAT5XION4TDY5ZM75YDU2QU4ADMLR2SCZCNYSGUEKX6STLM
+#::: 57PZWIRMKWMVZOPESY26TG7TVQ3RYPGXYKD6X46HAWZW4XG44NQ :::: NAILARA AMOS :::
+# :: QGMWEGPZFWQG5MMFZ6YGHEQDJXFMCS55MA47CFHF6J7DTHSSWYAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

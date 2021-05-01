@@ -3,13 +3,13 @@
 # name = net.connect_to_cube
 
 my $cube_sock;
-my $cube_name = 'cube';
+my $cube_name = qw| cube |;
 my $cube_port = <protocol-7.network.internal.port>;
 my $cube_addr = <protocol-7.network.internal.addr>;
 
 my @connection_types;
 my $custom_addr = 0;
-foreach my $param (@_) {
+foreach my $param (@ARG) {
     if ( $param =~ m|^\d+$| ) {
         $cube_port = $param;
     } elsif ( -S $param ) {    ##  <--  implement   ##    [LLL]
@@ -24,15 +24,15 @@ foreach my $param (@_) {
     }
 }
 
-@connection_types = ('unix') if !@connection_types and defined <unix.path>;
+@connection_types = (qw|unix|) if !@connection_types and defined <unix.path>;
 
 my $unix_path     = defined <unix.path> ? <unix.path> : undef;
 my $zenka_name    = <system.zenka.name>;
 my $zenka_subname = <system.zenka.subname>;
 
 foreach my $c_type (@connection_types) {
-    <[base.log]>->( 1, "initiating cube connection [$c_type].," );
-    if ( $c_type eq 'unix' ) {
+    <[base.logs]>->( 1, 'initiating cube connection [%s].,', $c_type );
+    if ( $c_type eq qw| unix | ) {
         if ( not defined $unix_path ) {
             if ( not defined $cube_addr and defined $cube_port ) {
                 <[base.log]>->(
@@ -50,7 +50,7 @@ foreach my $c_type (@connection_types) {
                     and next
                     if not defined $socket_name;
                 <unix.path> = $unix_path
-                    = join( '', '/var/run/.7/UNIX/', $socket_name );
+                    = join( '', qw| /var/run/.7/UNIX/ |, $socket_name );
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
@@ -60,7 +60,7 @@ foreach my $c_type (@connection_types) {
             next;
         }
 
-        $cube_sock = <[base.open]>->( 'unix', 'output', $unix_path );
+        $cube_sock = <[base.open]>->( qw| unix output |, $unix_path );
         if (    defined $cube_sock
             and -S $cube_sock
             and $cube_sock->connected ) {
@@ -71,9 +71,9 @@ foreach my $c_type (@connection_types) {
         } else {
             $cube_sock = undef;
         }
-    } elsif ( $c_type eq 'ip.tcp' ) {
+    } elsif ( $c_type eq qw| ip.tcp | ) {
         $cube_sock
-            = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
+            = <[base.open]>->( qw| ip.tcp output |, $cube_addr, $cube_port );
         if (    defined $cube_sock
             and -S $cube_sock
             and $cube_sock->connected ) {
@@ -83,7 +83,7 @@ foreach my $c_type (@connection_types) {
         } else {
             $cube_sock = undef;
         }
-    } elsif ( $c_type eq 'pipe' ) {
+    } elsif ( $c_type eq qw| pipe | ) {
         die "<<< connection type 'pipe' not implemented yet >>>";
     } else {
         die "<<< unknown connection type '$c_type' requested >>>";
@@ -97,7 +97,7 @@ foreach my $c_type (@connection_types) {
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
                 'after'   => 0.777,
-                'handler' => 'base.session.send_init_reports'
+                'handler' => qw| base.session.send_init_reports |
             }
         );
         return $cube_sock;
@@ -113,7 +113,7 @@ if ( not defined $cube_sock ) {
 }
 
 #.............................................................................
-#J6YLGIFG4OZTT4NGMM5PD2DD2KARBLJ436MITVRC3PWHNYASJLLNVYPQAQNM4LKXTLQWUFSUWTRGW
-#::: BEQLCJILG4AICXR5YPMCKDGR3ZAV37GOLTRZ5R6ICTNKJCRVYBC :::: NAILARA AMOS :::
-# :: 45YS7QVTL7ILICSX3ICTDD665EHGYJFHDR7ZJYQQNBDPAST75QCI :: CODE SIGNATURE ::
+#6BFAFOURMSTKOK3SYMYOP7GMFO5AN552SY2QZ3DSWP35PQ4345OT5MXQQDCD3H3CLUGH77BOL5DZ4
+#::: LMPZAF7NLMWMGG2PZRX7UZCRKAWFBOZU7P4BDKLJBTEHIR7L2ME :::: NAILARA AMOS :::
+# :: L7TL7WXWH74IP7JNISDG2UVSK2G3P23SIXBPQP45LVNZ7HT7CADY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
