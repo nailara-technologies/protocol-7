@@ -1,0 +1,85 @@
+# >:]
+
+# name  = base.calculate_line_length_stats
+# descr = calculate \ update average line length statistics for buffer content
+
+my $buffer_ref       = shift;
+my $stats_ref        = shift;
+my $total_stat_ref   = shift;
+my $history_max_size = shift // 13;
+
+warn 'expected <buffer_ref> parameter <{C1}>' and return undef
+    if not defined $buffer_ref
+    or ref($buffer_ref) ne qw| SCALAR |;
+warn 'expected stats_ref parameter <{C1}>' and return undef
+    if not defined $stats_ref
+    or ref($stats_ref) ne qw| HASH |;
+warn 'total_stat_ref param not a hash reference <{C1}>' and return undef
+    if defined $stats_ref and ref($stats_ref) ne qw| HASH |;
+warn 'history_max_size param not numerical <{C1}>' and return undef
+    if not defined $history_max_size or $history_max_size !~ m|^\d+$|;
+
+##  init  ##
+##
+$stats_ref->{'lines-total'}         //= 0;
+$stats_ref->{'average-length'}      //= 0;
+$stats_ref->{'recent_lengths'}      //= [];
+$stats_ref->{'read-iteration-avg'}  //= 0;
+$total_stat_ref->{'average-length'} //= undef if defined $total_stat_ref;
+###
+
+my @length_val;
+my $endline_pos = -2;
+
+while ( $endline_pos != -1 ) {
+    my $start_pos = $endline_pos > -1 ? $endline_pos + 1 : 0;
+    $endline_pos = index( $$buffer_ref, "\n", $start_pos );
+    push( @length_val, $endline_pos - $start_pos ) if $endline_pos != -1;
+}
+
+my $value_count = scalar @length_val;
+
+return if $value_count == 0;    ##  no complete line yet  ##
+
+##  calculate and store average log line length  ##
+push( @{ $stats_ref->{'recent_lengths'} }, @length_val );
+
+$stats_ref->{'lines-total'} += $value_count;
+
+if (  !$history_max_size
+    or $stats_ref->{'lines-total'} < $history_max_size
+    or scalar @{ $stats_ref->{'recent_lengths'} } >= $history_max_size ) {
+
+    my $count_values = scalar @{ $stats_ref->{'recent_lengths'} };
+
+    ##  update average  ##
+    my $current_length_value = <[base.balanced-average]>->(
+        \$stats_ref->{'average-length'},
+        @{ $stats_ref->{'recent_lengths'} }
+    );
+
+    if ($history_max_size) {
+        $stats_ref->{'recent_lengths'} = [];    ##  reset history  ##
+    } else {
+        delete $stats_ref->{'recent_lengths'};   ##  clean-up \ no history  ##
+    }
+
+    ##  read iterations per line average  ##
+    <[base.balanced-average]>->(
+        \$stats_ref->{'read-iteration-avg'}, $value_count
+    );
+
+    ##  update total average  ##
+    <[base.balanced-average]>->(
+        \$total_stat_ref->{'average-length'},
+        $current_length_value
+    ) if defined $total_stat_ref;
+
+    return $current_length_value;    ##  return current value  ##
+}
+
+#.............................................................................
+#4JNKRCANSX3LMUHTFPDSMWJ7I2QXYVQ54RCVDZNNHXKSLBNQ7RYM2MQ3D4NN2EWN6U3PIEKJZCVGG
+#::: FHY7XQURCYDWXZX3X5Z7VDHXSWWXHPI5NGAKDP5T5QPZ6YGMXPH :::: NAILARA AMOS :::
+# :: NQ2Z4NKHGDMX6TDTBMHN74SFV435EZHGWIF25XMK6FJXY6HJFSAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
