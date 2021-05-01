@@ -4,8 +4,8 @@
 # descr = start nailara zenka and add it to process maintenance table
 # notes = require mechanism to change PID to harmonic at start ?
 
-my $job_id     = $_[0]->{'job_id'};
-my $zenka_name = $_[0]->{'params'};
+my $job_id     = $ARG[0]->{'job_id'};
+my $zenka_name = $ARG[0]->{'params'};
 my $stdin_mode = 0;
 my @exec_args  = qw| -nb |;
 my $zenka_subname;
@@ -20,7 +20,8 @@ if (<system.ansi_color>) {
 my $perl_bin            = <system.path.perl_bin>;
 my $bin_protocol_7_path = <system.start.exec_name>;
 
-die 'no zenka name supplied' if not defined $zenka_name;
+return warn 'expected zenka name <{C1}>' if not defined $zenka_name;
+
 my $globals   = <v7.start_setup.globals> // {};
 my $init_code = <v7.start_setup.zenki.startup.init_code>->{$zenka_name};
 my $instances = <v7.zenka.instance>;
@@ -197,18 +198,18 @@ if ( exists $init_result_data->{'start_mode'}
 
 ## initialize $ENV{'USER'} with EUID user .., ## [LLL]
 
-$stdin_mode = 1 && push( @exec_args, '-stdin' )
+$stdin_mode = 1 && push( @exec_args, qw| -stdin | )
     if exists $init_result_data->{'start_mode'}
-    and $init_result_data->{'start_mode'} eq 'stdin-zenka'
+    and $init_result_data->{'start_mode'} eq qw| stdin-zenka |
     and exists $init_code->{'zenka-init'};
 
 my $apw_href = <v7.zenka.prefix_width> //= {};
-push( @exec_args, '-lpw=' . $apw_href->{$zenka_name} )
+push( @exec_args, join( '', qw| -lpw= |, $apw_href->{$zenka_name} ) )
     if defined $apw_href->{$zenka_name};
 
 my $zenka_verbosity
     = <system.verbosity.console> || 1;  # -v is min. [ zenka output patterns ]
-push( @exec_args, '-' . 'v' x $zenka_verbosity );
+push( @exec_args, join( '', qw| - |, 'v' x $zenka_verbosity ) );
 
 <[base.log]>->( 1, "starting of zenka '$zenka_sn_str' initiated .," );
 <[base.log]>->( 2, ": exec args : ' " . join( ' ', @exec_args ) . " '" );
@@ -249,16 +250,26 @@ if ( not defined $pid or $EVAL_ERROR ) {
             "unable to start zenka '$zenka_name'",
             $err_reason, " [ $err_msg ]" )
     );
-    <[zenka.change_status]>->( $instance_id, 'error' );
+    <[zenka.change_status]>->( $instance_id, qw| error | );
     return undef;
 }
 
+### ZENKA CONSOLE OUTPUT ###
+
+my $io = IO::Handle->new();
+$io->fdopen( fileno($out_fh), qw| r | );
+$io->blocking(0);
+
+$instance->{'console-output'} = IO::Select->new();
+$instance->{'console-output'}->add($io);    ## <-- [ can_read ] ##
+
 <[event.add_io]>->(
-    {   'fd'      => $out_fh,
+    {   'fd'      => $io,
         'handler' => qw| v7.handler.zenka_output |,
         'data'    => $instance_id
     }
 );
+###
 
 <[v7.child.add]>->(
     $pid,
@@ -281,7 +292,7 @@ if ($stdin_mode) {
         my $code_line = $_line;    # <-- keeping copy
            # <{foo.bar}> [ zenka instance namespace ] variable fetching syntax
         while ( $code_line =~ m|<\{([^\}]+)\}>| ) {
-            ( my $var_str = "{'$1'}" ) =~ s|\.|'}{'|g;
+            ( my $var_str = "{'$LAST_PAREN_MATCH'}" ) =~ s|\.|'}{'|g;
             my $var_value;
             eval "\$var_value = $namespace_str$var_str";
             if ($EVAL_ERROR) {
@@ -297,12 +308,12 @@ if ($stdin_mode) {
         print {$in_fh} "$code_line\n";
     }
 }
-close($in_fh);    # <-- no further use for zenka stdin handle [ for now ]
+close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
-<[base.log]>->( 1, "zenka '$zenka_sn_str' started [ pid : $pid ]" );
+<[base.logs]>->( 1, "zenka '%s' started [ pid : %d ]", $zenka_sn_str, $pid );
 
 #.............................................................................
-#52VXCP6RYDISNGP6TQ4R7KELQJAPMIMLPHOHFIXZBU6YQUI65JBVMOXQRMAJWFSOH2BNSGS6NZED4
-#::: S4B6VIIRCIQDQY6RVPTF2W34HN4FTB4BOS4EKDRKBMI5KJ3XN3M :::: NAILARA AMOS :::
-# :: HN25TY2NX52NYL7NXHKTD3OXTMASGROYCILPQZSIBMGSFDMJEEDY :: CODE SIGNATURE ::
+#L3LQEDEPTXX4PLBV3LLRLXSTQY6KKWQ7CCJ26V6RNKESSJLZX67VRHTAUUYWDIYRDHRG6O4MBU22S
+#::: KP6VXDH3BHDOJYVNDVJWZEH33UE5EZKUWH4ACX6RKUFVZALWMWP :::: NAILARA AMOS :::
+# :: EPWCNFZCUPG3675HNGR55QR3SWY5Z67JWY456UMQFUOEIVLAWOBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
