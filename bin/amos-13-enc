@@ -1,0 +1,71 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+####           ####
+##  amos-13-enc  ##
+###            ####
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $sign = 0;
+
+## regular invocation ##
+
+$sign = 1 if @ARGV > 1 and $ARGV[0] eq qw| -sign | and shift @ARGV;
+
+my $passphrase = shift if @ARGV > 1 and $ARGV[0] eq qw|-key| and shift @ARGV;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS::13::cipher qw| error_exit encrypt sign |;
+
+##[ DATA INPUT MODES ]########################################################
+
+my $stdin_mode = 0;
+my $single_line_input;
+
+if (@ARGV) {
+    $single_line_input = join( ' ', @ARGV ) // '';
+} else {
+    $stdin_mode = 1;
+}
+
+## COMMAND LINE INPUT ##
+say encrypt( $passphrase, \$single_line_input ) and exit if not $stdin_mode;
+
+## STDIN \ PIPE MODE ##
+my $success_code = 0;
+
+while (<STDIN>) {
+    chomp($ARG);
+    $success_code = 13 if not encrypt( $passphrase, \$ARG );
+}
+
+exit($success_code);
+
+#.............................................................................
+#CIROZNANQBAYG3K2OEGO4OSWGFH6IZHJ4OSRBOECEA4Q4HVNPN2ULNQY7MMQXX53MREUPMYG6W55E
+#::: ERIGMFPGV73S4V7H5F37U4SJZWMEFOTKJJ3PNGDZCKQSVHKZQ2G :::: NAILARA AMOS :::
+# :: YWZKIQE2ODO4NGHHODGI5LW6555M4VMCTPPWZTWBGVGTT33EHQCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

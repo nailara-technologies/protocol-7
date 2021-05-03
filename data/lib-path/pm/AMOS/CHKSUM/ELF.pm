@@ -13,9 +13,9 @@ use warnings;
 
 use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
 
-## inline elf test output checksum ##
+## INLINE ELF OUTPUT CHECKSUM ##
 ##
-our $VERSION = qw| AMOS-INLINE-ELF-V-3W6IUEA |;    ##  amos-chksum -VL  ##
+our $VERSION = qw| AMOS-ELF-7L-R6TXGYI |;    ##  amos-chksum -VL  ##
 
 @EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
 
@@ -89,7 +89,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#GFCKWA35PL4NIFGIXMEMCATBPNHVYMMSYAXWAVCVISTNEOLY3FE22DMH2QMECWPW5NJTYUSG5J3YW
-#::: 6FVHA2EEBSQCUF2WVUQXPA67Q4DAJ6NV2COKL2CEF6BXUAN3QZY :::: NAILARA AMOS :::
-# :: 55AIDLAIJZUADLU2FXWSJH33CMJ4SHV2BWWKRRZN5XQJOPBQTOAY :: CODE SIGNATURE ::
+#4ZPYXJ4QFWDS66IENKVBS5OX34JM3QHDX5AQFGUFUZ36AX6ZJZXZQOP3XRSQXM2XK3MBR6WNRK3KU
+#::: ZQNFQEKARGBEO6H4XFVVEJQ2MBPBOQISCN3RMI7G2TEMHITCNPE :::: NAILARA AMOS :::
+# :: TOLPT75RKOANY2XADNIY6YFTID57NNR2H623ZC6MTHS5LKLFT6AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
