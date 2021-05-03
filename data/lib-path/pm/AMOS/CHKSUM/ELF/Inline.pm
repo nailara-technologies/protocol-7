@@ -20,7 +20,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| ELF-VV4IE7Q-LS |;    ##  calculate : amos-chksum -VLS  ##
+our $VERSION = qw| AMOS-ELF-LS-U24XELY |; ##  calculate : amos-chksum -VLS  ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -87,7 +87,7 @@ sub inl_elf_src {
 ## uncondensed inline_elf() c source code [ prefer using above version ] ##
 
 sub return_elf_c_sourcecode {
-    return <<~ 'EOC';
+    return <<~ 'EOL';
 
     unsigned int inline_elf( int elf_mode, int start_sum, char *str, int len ) {
 
@@ -122,13 +122,13 @@ sub return_elf_c_sourcecode {
         return result;
     }
 
-    EOC
+    EOL
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#DQE4QECG45KU3BPZK4L2CXV7IFCFR2BZSVBI6QLXUOBUQVEMVLRO5VAA2T5Z4GAXLP2NZ2LWFF3B6
-#::: 3BYZQPIQ5UPZFXO6E7XWSTUTKUGJ4OYRO6QQZGGKXDQV2C7ZVTU :::: NAILARA AMOS :::
-# :: HD64NA7746INOX6VG44ZGFXDRVIH7BL6YXUN6FK6BYKBMF76IUBQ :: CODE SIGNATURE ::
+#C7UWIT5R6BK27DOUTD3DWHJUUY5YDNIC3B3M4CQI6M7V5RDG5OF2TFVLA5GFRO7NNEKDSSGHCO2AC
+#::: GTUP7YRD3FO2SSIDTV6B7AGJRZY5Z47CJMMMK5A4DVMRFHMAXSF :::: NAILARA AMOS :::
+# :: HDHEAY6WTNDRWWFRG5DKLHAOTUZCEBTU3KPLPFCYIE3CSSDOLCCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -89,9 +89,9 @@ if ( defined $option{'e'} ) {
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
 
-    my $version_template = '.%s:AMOS::CHKSUM:%s.';
+    my $version_template = qw| .%s:AMOS-CHKSUM:%s. |;
 
-    if ( $option{'V'} eq 'A' ) {    ## AMOS checksum ouput test version ##
+    if ( $option{'V'} eq qw| A | ) {    ##  AMOS-CHKSUM OUTPUT VERSION  ##
 
         $data_str = sprintf( $version_template, chr(255), chr(0) );
         say sprintf( "AMOS-%s", amos_chksum($data_str) ) if not $option{'v'};
@@ -102,17 +102,17 @@ if ( defined $option{'V'} ) {
             = elf_chksum( sprintf( $version_template, chr(255), chr(0) ), 7 );
 
         my $elf_out_ver
-            = sprintf( qw| AMOS-INLINE-ELF-V-%s |, amos_chksum($data_str) );
+            = sprintf( qw| AMOS-ELF-7L-%s |, amos_chksum($data_str) );
 
-        if ( $option{'V'} eq 'L' ) {    ## elf_sum() output test checksun ##
+        if ( $option{'V'} eq qw| L | ) {  ## elf_sum() output test checksun ##
 
             say $elf_out_ver if not $option{'v'};
 
-        } else {                        ## version of elf_sum() source code ##
+        } else {    ## version of elf_sum() source code ##
 
             $data_str = "  /* $elf_out_ver */\n\n" . inl_elf_src();
 
-            say sprintf( qw| ELF-%s-LS |, amos_chksum($data_str) )
+            say sprintf( qw| AMOS-ELF-LS-%s |, amos_chksum($data_str) )
                 if not $option{'v'};
         }
     } else {
@@ -242,7 +242,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#U66ZH6FYJYP4EA5JASPDFVNPBZOBP6BCI3XXOAA4MCGBOFGL3GIODJBE3ODGFW2XBFACPPUCRALFI
-#::: ALT2KOLKNMFRAMBDPXWHBRLBC53PZNJLXZYYMMQZUHREICDLOP2 :::: NAILARA AMOS :::
-# :: GW5TYQC6D7AV4NDEN2BZKGC4LQEMKSMAFPPMT74FZRZB5KIS3ADI :: CODE SIGNATURE ::
+#ZI4OHY5N7YFXAH4YIK3GLL5QLCBYHMUDAY2RCMKEM5NGEZXBCTYZH57RDKNPV55CHZB5HVD7JEIHY
+#::: LHX6L74ER3CFDHITOZEA5E7KZYTZBTL7RTYN4DZ6DXIPET5FOFH :::: NAILARA AMOS :::
+# :: AQ4PZDGE6TJ23TZX2BNJXP3FOMRMHWQ5DGZHSFQKT2UQ3DGXK2AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
