@@ -1,0 +1,227 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+####               ####
+##  amos-data-pager  ##
+###                ####
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $filename;
+
+if ( @ARGV and length( $ARGV[0] // '' ) ) {
+    $filename = shift;
+    error_exit("not found : '$filename'") if !-f $filename;
+}
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##  read example file  ##
+
+my $root_path = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+$filename //= "$root_path/read-me/documentation/true-false-description.asc";
+
+##
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::13;
+use AMOS::Utils;
+
+##[ RUNTIME COMMANDS ]########################################################
+
+# qr|^seek$|}
+#    = { 'param' => qr<([\-\+]?\d+)( ([210]))\n> . 'callback' => \&seek_pos };
+
+$AMOS::Utils::command_setup{qr{^seek$}} = {
+
+    #        'param'    => qr'([\-\+]?\d+)( ([210]))?'s,
+    'param'    => qr'(\d+)\n',
+    'callback' =>
+        sub { say '< seek >' . $1; sleep 3; seek_pos( ${^CAPTURE}[0] ) }
+};
+
+add_command( qw| 027:091:053:126 |, \&page_up );
+add_command( qw| 027:091:054:126 |, \&page_down );
+
+add_command( qw| 027:091:065 |, \&line_up );
+add_command( qw| 027:091:066 |, \&line_down );
+
+##[ OTHER MODULES ]###########################################################
+
+use IO::File;
+use IO::Handle;   ## for STDIN mode ## [ numbers to binary ] [ LLL dec \ oct ]
+
+##[ INTERRUPTS ]##############################################################
+
+$SIG{'INT'} = \&do_exit;
+
+##[ DATA INPUT MODES ]########################################################
+
+my $stdin_mode = defined $filename ? 0 : 1;
+error_exit('expected filename [ stdin mode not implemented yet ]')
+    if $stdin_mode;
+error_exit('file is empty') if -z $filename;
+
+my $fh = IO::File->new();
+
+my $STDIN  = IO::Handle->new();
+my $STDOUT = IO::Handle->new();
+$STDIN->fdopen( fileno(STDIN), qw| r | );
+$STDOUT->fdopen( fileno(STDOUT), qw| w | );
+$STDOUT->autoflush(1);
+
+$| = 1;
+
+error_exit( lcfirst($OS_ERROR) ) if not $fh->open( $filename, qw| < | );
+$fh->binmode(1);
+
+##############################################################################
+
+sub seek_pos {
+    my $pos = shift;
+    error_exit('expected position parameter')
+        if not defined $pos or $pos !~ m|^[\-\+]?\d+$|;
+    my $whence = shift // $pos !~ m|^[\-\+]| ? 0 : 1;
+    eval { $fh->seek( $pos, $whence ) };
+}
+
+##############################################################################
+
+## ALPHABETIC-REPRESENTATION : 65..90 [ + 97 .. 122 ] == 52 / 4 == 13 [BCD]
+
+## bin-num  [ bin -> oct -> dec ]
+
+print $clear;
+
+my $scan_speed = 0;
+
+# my $scan_speed = 0.24; ## 0.07 ##
+
+##  binary to numbers mode  ##
+
+my $p_offset        = 0;
+my $show_lines      = 20;
+my $line_size_bytes = 9;
+
+while ( $fh->opened and ( $scan_speed == 0 or !$fh->eof ) ) {    ## paging ##
+
+    seek_pos($p_offset);
+
+    my $buf_aref = read_bf_page( $fh, $show_lines, $line_size_bytes );
+    visualize_binary($buf_aref);
+
+    line_down() if $scan_speed > 0;
+
+    if ($scan_speed) {
+        process_key_press( -2, $scan_speed, 0.7 );
+    } else {
+        process_key_press( -1, 0.07, 0.7 );
+    }
+
+}
+
+ReadMode(0);
+exit(00000);
+
+sub read_bf_page {
+    my $fh              = shift;
+    my $show_lines      = shift // 20;
+    my $line_size_bytes = shift // 9;
+
+    my @buffer;
+    while ( --$show_lines
+        and $fh->sysread( my $data_buffer, $line_size_bytes ) ) {
+        push @buffer, $data_buffer;
+    }
+
+    return \@buffer;
+}
+
+##[ NAVIGATING DATA ]#########################################################
+
+sub page_up {
+    my $l_num = shift // 1;    ## use tell() for limit ##
+    $p_offset -= abs($l_num) * $show_lines * $line_size_bytes;
+    $p_offset = 0 if $p_offset < 0;
+    return '';
+}
+
+sub page_down {
+    my $l_num = shift // 1;    ## use tell() for limit ##
+    $p_offset += abs($l_num) * $show_lines * $line_size_bytes;
+
+    my $current_size = [ $fh->stat ]->[7];
+
+    $p_offset = $current_size - $show_lines * $line_size_bytes
+        if $p_offset > $current_size - $show_lines * $line_size_bytes;
+    return '';
+}
+
+sub line_up {
+    my $l_num = shift // 1;    ## use tell() for limit ##
+    $p_offset -= abs($l_num) * $line_size_bytes;
+    $p_offset = 0 if $p_offset < 0;
+    return '';
+}
+
+sub line_down {
+    my $l_num = shift // 1;    ## use tell() for limit ##
+    $p_offset += abs($l_num) * $line_size_bytes;
+
+    my $current_size = [ $fh->stat ]->[7];
+
+    $p_offset = $current_size - $show_lines * $line_size_bytes
+        if $p_offset > $current_size - $show_lines * $line_size_bytes;
+    return '';
+}
+
+##[ VISUALIZING BUFFER ]######################################################
+
+sub visualize_binary {
+    my $buf_aref = shift;
+
+    return error_exit 'expected array reference' if ref $buf_aref ne 'ARRAY';
+    printf "%s$C{R}\n\n  $C{b}$C{0}  %-72s  $C{R}\n", $HOME, '';
+    foreach my $buffer_line ( @{$buf_aref} ) {
+
+        ## 24 oct ##
+        my $oct_bits = unpack( qw| B72 |, $buffer_line );
+        printf "  $C{b}$C{0}  %-72s  $C{R}\n", $oct_bits;
+    }
+    printf "  $C{b}$C{0}  %-72s  $C{R}\n\n", '';
+}
+
+##############################################################################
+
+$fh->close;
+
+exit;
+
+##############################################################################
+
+#.............................................................................
+#HXKYD263SJEUAQIOTP3GCLNLH3FZUNF5DIDYLHXPRILLIP4PRZAQ6HLGPABGAFAP2EMP4E5HZEV4O
+#::: UKLBK7RY7UCDAOYNEM2EXOT56OM4I6EN7IKWVP7S4JLRPSNMIDC :::: NAILARA AMOS :::
+# :: IEKWLL6IPQOUXJZJO3BRCA7DKUQMFE46YEG7TJDCTB5PXJZZCGCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

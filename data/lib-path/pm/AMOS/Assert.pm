@@ -1,7 +1,7 @@
 
-package AMOS::Assert;
+package AMOS::Assert;   ######################################################
 
-BEGIN { use AMOS }
+# BEGIN { use AMOS }
 
 use v5.24;
 use strict;
@@ -9,13 +9,13 @@ use English;
 use warnings;
 use AMOS::Assert::Truth;
 
-# print " module version : $VERSION\n"; exit;
+use base qw| AMOS |;
 
 use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw| numerical numerical_no_prefix |;
+@EXPORT = qw[ numerical numerical_no_prefix zulum_prefix_length ];
 
 ##[ NUMERICAL ASSERTIONS ]####################################################
 
@@ -31,10 +31,18 @@ sub numerical_no_prefix {
         : 1;
 }
 
+sub zulum_prefix_length {
+    return 0 if not defined $ARG[0];
+    my $num_len
+        = sprintf( '%09.0f', $ARG[0] ) =~ m|^(0+)|
+        ? length($LAST_PAREN_MATCH)
+        : 0;
+}
+
 return 1;  ###################################################################
 
 #.............................................................................
-#D5YGJHP7SC6QXNLBAQUPBNMMLAAOYELQ2TL3CREUBJSANI2IK7YCEKIDZTIEJJHFSQSQFOCM7LWQK
-#::: EHCMD62GRBXBBYHPCD3AKF7KKHGDPFGKXFAQXWSNFT3TV27CQVZ :::: NAILARA AMOS :::
-# :: N5VB2UGVEFTFLTXGEOP277N52JN7LCI6P6BLP5DTJLTMLGDFCYCA :: CODE SIGNATURE ::
+#UHVKPB72PII23TSPPCOM7E3RMZZ6ORZRPJ2P6TEUV6CYI2LNVQ5RS47RBWFTCBN25RJAEJJFTBVDK
+#::: LAPWEBABFLW3BLJ2THMMCAD5UVGKZ2H7LGLLX4B5C3H422TL5GA :::: NAILARA AMOS :::
+# :: DYO66SDBOB2332BRIU5BBIU2ICXSPUHEYLRVNEKYI6FU7743FOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
