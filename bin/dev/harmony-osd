@@ -6,52 +6,52 @@ use English;
 
 $ENV{'DISPLAY'} //= ':0.0';
 
-my $check_string = @ARGV ? join( ' ', @ARGV ) : qx | xsel -o |;
-$check_string =~ s'^\s+|\s+$''sg;
+my $check_str = @ARGV ? join( ' ', @ARGV ) : qx | xsel -o |;
+$check_str =~ s'^\s+|\s+$''sg;
 
-exit(0) if not length $check_string;
+exit(0) if not length $check_str;
 
 ## stop previous assertion [osd_cat] ##
-system( qw| /usr/bin/pkill -u |, $EUID, qw| -f .osd_harmony. | );
+system( qw| /usr/bin/pkill -u |, $EUID, qw| -f .harmony-osd. | );
 
 my $text_file = '/var/tmp/.harmony-osd.' . $PID;
 my @aosd_opts
     = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
 
 my $msg;
-my $result_code = system( qw| check-truth -ext |, $check_string );
+my $result_code = system( qw| check-truth -ext |, $check_str );
 $result_code = $result_code >> 8 if $result_code != -1;
 
 my $numeric_result
-    = $check_string =~ m{^(0|[1-9]\d*)(\.\d+)?$} ## use AMOS module version ##
-    ? system( qw| check-truth -ext-num |, $check_string )
+    = $check_str =~ m{^(0|[1-9]\d*)(\.\d+)?$} ## use AMOS module version ##
+    ? system( qw| check-truth -ext-num |, $check_str )
     : 13;
 $numeric_result = $numeric_result >> 8
     if $numeric_result != 13 and $numeric_result > 0;
 
 if ( $numeric_result == 0 or $numeric_result == 13 and $result_code == 0 ) {
-    $msg = "'$check_string'    TRUE  IS  =)\n";
-    push( @aosd_opts, qw| -u 2777 -R |, '#230769' );
+    $msg = ".:  '$check_str' =)  ::\n";
+    push( @aosd_opts, qw| -u 2777 -S #09052A -R #0647C3 | );
 } elsif ( $result_code == 202 and $numeric_result == 13
     or $numeric_result == 202 ) {
-    $msg = "'$check_string'   is  FALSE `:|\n";
-    push( @aosd_opts, qw| -u 1389 -R |, '#690723' );
+    $msg = ":.  '$check_str' `:|  ::\n";
+    push( @aosd_opts, qw| -u 1389 -S #09052A -R #C58D07 | );
 } else {
     $msg
         = "<< invocation error : "
         . "$result_code : $numeric_result"
         . " : check harmony executable >>\n";
-    push( @aosd_opts, qw| -u 5007 -R |, '#776407' );
+    push( @aosd_opts, qw| -u 5007 -S #09052A -R #776407 | );
 }
 
-open( FILE, '>', $text_file ) or die "[ $text_file ] $!\n";
-print FILE $msg;
-close FILE;
+open( TEXT, qw| > |, $text_file ) or die "[ $text_file ] $!\n";
+print TEXT $msg;
+close TEXT;
 
 system( qw| /usr/bin/aosd_cat |, @aosd_opts );
 
 #.............................................................................
-#KRQRY7RASXNJRNIARKPDKSKRR7NUZQQQNIRKQNGVNIIG3UQ7RVKPWIYUQU3SUTEPNXTK2DEZYMLP6
-#::: VBOHT2H2HVGF3YW3G4KUSF2EHEPCCCKU4NPDMVY5UGHW4ZU7JOO :::: NAILARA AMOS :::
-# :: VURIES7MMPYWJSUXFK3IHP2ET22JLKCGFRL6DDG5UBWBEG4LD4AY :: CODE SIGNATURE ::
+#MBE3C5ERESC5ZFPCMI77BODEGEW2IVGPCHRTTCTUUCFO3WB6HN5JT5LVBB4V4RZH44Y2XA75Z7TZ6
+#::: WZXCOEMXWKZIH7AZKXUCU5FSFRSFYOMAWIFFMOKTGHTYXDHLDYM :::: NAILARA AMOS :::
+# :: LJ2LKC3W6G3XCQ4XEUIZZS4EGM5EMDV2JFXFQWT7ISQG4D4PWQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
