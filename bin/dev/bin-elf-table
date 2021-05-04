@@ -1,0 +1,159 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+
+####             ####
+##  bin-elf-table  ##   [ usage example ]  bin-elf-table -m 9 -R 511 -T -M '!'
+###              ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+my $root_path = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::13;
+use AMOS::CHKSUM::ELF;
+use AMOS::Assert::Truth;
+
+##[ INTERRUPTS ]##############################################################
+
+my $true = 0;
+$SIG{'INT'} = \&do_exit;
+
+$SIG{'__WARN__'} = sub {
+    ( my $msg = shift ) =~ s|(*plb:\w):| :|g;
+    CORE::warn sprintf "$C{'o'}:\n: %s:$C{R}\n", lcfirst $msg;
+    exit(0110);
+};
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+##
+##  -F  ## filter FALSE ##
+##  -T  ## filter for TRUE ##
+##  -M <char[s]> ## match filter elf-sum characters ##
+##  -N <char[s]> ## negated match for elf-sum characters ##
+##  -R [<lower>..<upper>] | [<total>] ## supply ascii range
+##
+
+getopts( qw| FTR:M:N:m: |, \my %option );
+
+my @range_limit;
+@range_limit = split( '\.\.', $option{'R'} ) if defined $option{'R'};
+
+--$range_limit[0] if @range_limit == 1;
+
+unshift( @range_limit, 0 ) if @range_limit < 2;
+push( @range_limit, 63 )   if @range_limit < 2;
+
+my @range = ( $range_limit[0] .. $range_limit[1] );
+
+my @modes = defined $option{'m'} ? split( ':', $option{'m'} ) : qw[ 13 ];
+
+##############################################################################
+
+binmode( STDOUT, ':encoding(UTF-8)' );
+
+##############################################################################
+
+say '';
+
+foreach my $num (@range) {
+    my $d      = length( sprintf( '%07b', $range[ scalar @range - 1 ] ) );
+    my $result = sprintf( '%0' . $d . 'b', $num );
+    my $elfsum = sprintf( '%09d', elf_chksum( $result, 1, $modes[0] ) );
+    my $bit_00 = eval '0b' . substr( sprintf( '%07b', $num ), -7, 3 );
+    my $bit_01 = eval '0b' . substr( sprintf( '%07b', $num ), -4, 1 );
+    my $bit_02 = eval '0b' . substr( sprintf( '%07b', $num ), -3, 3 );
+    my $char_0 = substr( $elfsum, 0, 3 );
+    my $char_L = substr( $elfsum, 4, 2 );
+    my $char_M = substr( $elfsum, 5, 2 );
+    my $char_R = substr( $elfsum, 7, 2 );
+    my $T      = is_true( $elfsum, 1, 0, @modes );
+
+    next if $T and $option{'F'};
+
+    next if $option{'T'} and not $T;
+
+    my @elf_chars = (
+        ( $char_0 =~ m|[[:print:]]| and $char_0 > 31 ) ? $char_0 : 32,
+        ( $char_L =~ m|[[:print:]]| and $char_L > 31 ) ? $char_L : 32,
+        ( $char_M =~ m|[[:print:]]| and $char_M > 31 ) ? $char_M : 32,
+        ( $char_R =~ m|[[:print:]]| and $char_R > 31 ) ? $char_R : 32,
+    );
+
+    ## [ -M < MATCH ELF CHAR > ] ##
+    my $row_next = 0;
+    if ( defined $option{'M'} ) {
+        $row_next = 1;
+        foreach my $M ( split( '', $option{'M'} ) ) {
+            map { $row_next = 0 if ord($M) == $ARG } @elf_chars;
+        }
+    }
+    next if $row_next;
+
+    ## [ -N < NEGATED ELF CHAR MATCH > ] ##
+    $row_next = 0;
+    if ( defined $option{'N'} ) {
+        $row_next = 0;
+        foreach my $N ( split( '', $option{'N'} ) ) {
+            map { $row_next = 1 if ord($N) == $ARG } @elf_chars;
+        }
+    }
+    next if $row_next;
+    ###
+
+    printf(
+        "  %s  %03d  %s  %03d  %s%d   %07s   %9s $C{0}: %s"
+            . " %c  %c %c %c  $C{b}$C{0}:$C{T} %c $C{0}:%s\n",
+        ( $T and ++$true )
+        ? $C{'T'} . $C{'b'}
+        : $C{0}, $num,
+        $T      ? '.:' : ':.', $bit_00,
+        $bit_01 ? '-'  : ' ',  $bit_02,
+        "$result", $elfsum,
+        $T ? $C{g} : $C{o}, @elf_chars,
+        chr($num) =~ m|[[:print:]]| ? $num : 32, $C{'R'}
+    );
+}
+
+say '';
+
+say $C{'T'}
+    . $C{'B'} . '  '
+    . sprintf( '%05d  %s',
+    $true, @modes < 13 ? '[ ' . join( ' ', @modes ) . ' ]' : '' );
+
+say $C{'0'} . '  ' . sprintf( qw| %05d |, scalar @range - $true );
+say $C{'R'};
+
+##############################################################################
+
+exit(00000);
+
+#.............................................................................
+#YZPHEK5IYUOKRVG3TZ2PQVQACCBKKXJNHNREEAW3ZHFERNPWL6YCNGWLEGCCU4VTDCVOK4QH63C4M
+#::: UTLMYWQUB4KZQOZ6OTMVLJ64P4N72S2FWIJMUQYPO5RGLMCZH7C :::: NAILARA AMOS :::
+# :: LZEMF45U2SERD7K52EKVUAI5WN45YXBYA4W2EPSI3FGFDYERJCDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
