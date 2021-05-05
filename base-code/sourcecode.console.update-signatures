@@ -6,7 +6,7 @@
 my $source_version  = <protocol-7.src-ver>;
 my $release_version = <protocol-7.rel-ver>;
 
-my $exclude_files = { 'bin/p7c' => 1 };    ## <-- expand as required., ###
+my $exclude_files = { qw| bin/p7c | => 1 };    ## <-- expand as required., ###
 
 my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
 
@@ -64,7 +64,7 @@ map {
     die "source path '$source_path' does not exist" if !-d $source_path;
     if ( !-w $source_path ) {
         <[base.log]>->(
-            0, "<<< write permission missing for '$source_path' >>>"
+            0, "<< missing write permissions for '$source_path' >>"
         );
         <[base.exit]>->(4);
     }
@@ -104,7 +104,7 @@ foreach my $path_rel (@source_paths) {
         and $code_data_ref->{'data'} eq 'still valid. =)';
 
     die "failed to create signature for \"$path_rel\""
-        if $code_data_ref->{'mode'} ne 'data'
+        if $code_data_ref->{'mode'} ne qw| size |
         or !length( $code_data_ref->{'data'} );
 
     <[base.log]>->( 1, ':.' );
@@ -118,7 +118,7 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
 #.............................................................................
-#KAJ7AB4LXMROQI2VBOX3NNO5PMY4MYIEGIIQIESPXEWP6KO4GJNHIZW6BKZ625DKLZDIU7HIB4CNO
-#::: XSJATJVTC6YQRPHVOS54IHNK4FCNVS2NUKARVXCG22MQ327LAUW :::: NAILARA AMOS :::
-# :: 67HWTUWKJ3V6DGRCCMLMPOSWQGQHPRO4XKVATJIILE5AD5I4QOCY :: CODE SIGNATURE ::
+#B6NKPN67LMZOFJD7D2X5L2GZ4Z3AKUXFSHOOP5EGYKSNFTX2VDJGGRZ6IWXJPPGESLJLIBWFV4GIU
+#::: 627SU3DBNN27V7I4F3ZDJHV4PDJQ4XFNXTLR3BQDGUXT6J6EKTO :::: NAILARA AMOS :::
+# :: ZKKORN37JBMDMLXNJK5FIHAXB7HJ7UGGUHHYKJYIJPVZC766TSCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

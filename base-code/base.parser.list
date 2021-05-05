@@ -8,14 +8,20 @@
 (   my $h_name, my $h_key,    my $sub_key, my $display_keys,
     my $align,  my $defaults, my $filters, my $sort_key
     )
-    = map { $_[0]->{$ARG} }
+    = map { $ARG[0]->{$ARG} }
     qw|  var  key  sub_key  mask  align  defaults  filters  sort_key  |;
+
+my $list_error = sprintf "\n\n%67s\n\n\n",
+    'error in list definition  [  details have been logged  ]';
 
 my %max_len;
 my $data_ref;
 my $spacing      = 4;
 my $table_string = "\n";
-die "invalid variable name '$h_name'" if $h_name !~ m|^[a-z][\w_]*$|i;
+
+warn "invalid variable name '$h_name' <{C1}>" and return $list_error
+    if $h_name !~ m|^[a-z][\w_]*$|i;
+
 if ( $h_key !~ m|\.| ) {
     no strict 'refs';
     $data_ref = ${$h_name}{$h_key};
@@ -29,6 +35,10 @@ if ( $h_key !~ m|\.| ) {
 } else {
     die "invalid list key syntax in '$h_key'";
 }
+
+warn "parser.list: data reference '\$$h_name' not defined <{C1}>"
+    and return $list_error
+    if not defined $data_ref;
 
 # .: preparation :.
 my $table_width = 0;
@@ -83,14 +93,14 @@ my @sorted_keys = <[base.reverse-sort]>->($data_ref);
 # .: custom sorting :.
 
 if ( defined $sort_key ) {
-    my $sort_type = $sort_key =~ s|^([^:]+):|| ? $1 : 'reverse-len-alpha';
+    my $sort_type = $sort_key =~ s|^([^:]+):|| ? $1 : qw| reverse-len-alpha |;
 
     if ( $sort_type eq 'alpha-len' ) {  ## length-ascending \ reverse-alpha ##
         @sorted_keys
             = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
-    } elsif ( $sort_type eq 'alpha' ) {
+    } elsif ( $sort_type eq qw| alpha | ) {
         eval { @sorted_keys = sort keys( %{$data_ref} ); };
-    } elsif ( $sort_type eq 'num' ) {
+    } elsif ( $sort_type eq qw| num | ) {
         eval {
             @sorted_keys = grep {m|.|} sort {
                 ( $data_ref->{$a}->{$sort_key} // 0 )
@@ -98,14 +108,14 @@ if ( defined $sort_key ) {
                 }
                 keys %{$data_ref};
         };
-    } elsif ( $sort_type eq 'reverse-num' ) {
+    } elsif ( $sort_type eq qw| reverse-num | ) {
         eval {
             @sorted_keys = sort {
                 $data_ref->{$b}->{$sort_key} <=> $data_ref->{$a}->{$sort_key}
                 }
                 keys %{$data_ref};
         };
-    } elsif ( $sort_type eq 'reverse-len-alpha' )
+    } elsif ( $sort_type eq qw| reverse-len-alpha | )
     {    ##  [ base sort order ]  length-descending \ reverse-alpha ##
         @sorted_keys
             = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
@@ -116,19 +126,21 @@ if ( defined $sort_key ) {
 
 warn "custom sort failed [$EVAL_ERROR]" if defined $sort_key and $EVAL_ERROR;
 
-# .: data :.
+##  .: data :.  ##
+
 foreach my $key_val (@sorted_keys) {
     next if exists $data{'lists_hidden'}{$key_val};
     next
         if defined $sub_key
-        and not exists $data_ref->{$key_val}->{$sub_key}
-        ;    # show only requested
+        and not defined $data_ref->{$key_val}->{$sub_key}
+        ;    ## only requested ##
+
     foreach my $key_name ( @{$display_keys} ) {
         my $key_name_str = $key_name;
         if ( $key_name_str =~ s|^<key>:|| ) {
             $table_string .= '  '
                 . <[base.parser.align]>->(
-                $align->{$key_name_str} || 'left',
+                $align->{$key_name_str} || qw| left |,
                 <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
                 $max_len{$key_name} - 1
                 ) . ' ';    # <-- LLL: remove ' '!
@@ -145,7 +157,7 @@ foreach my $key_val (@sorted_keys) {
             $value
                 = <[base.call_filter]>->( $filters, $key_name_str, $value );
             $table_string .= <[base.parser.align]>->(
-                $align->{$key_name_str} || 'left',
+                $align->{$key_name_str} || qw| left |,
                 $value, $len - 1
             ) . ' ';
         }
@@ -153,11 +165,11 @@ foreach my $key_val (@sorted_keys) {
     $table_string =~ s| +$||;
     $table_string .= "\n";
 }
-$table_string .= "\n";
-return $table_string;
+
+return $table_string . "\n";
 
 #.............................................................................
-#D4RRH56GV3QFKBJ5HSNPIKSP2XNHQC5XIXDJYAFUAXVQW5RFSGYZWCP5GUMFYFBMFWTD5GT6V3MDS
-#::: WUHLHYPLSNIQXKOWGIEY5MRGAGXPSRXMYJLAW2GNNWZX7LYTWW5 :::: NAILARA AMOS :::
-# :: LZ5JCVT6ND6QHHBTC6TYNEQWU3L36I3R5BTBVK2KKYBK7Y5POUCA :: CODE SIGNATURE ::
+#RB6Q2S24WMW6TBRV723ZEKIBMKYNHWGZNO4UENJVHZIXBTNUGN3KXKRT2M3EF3RVKOPL3CWJAWZ5U
+#::: AOALSWTQVSSH253F5ZXRVYYRZTHT4YXUJOKMAHYSOSAX76MRSHS :::: NAILARA AMOS :::
+# :: EYHCTYPMOUOG4RHNOKI3ZEK4TMGFRN4QSYO5HBKQ33BL5ACQHWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

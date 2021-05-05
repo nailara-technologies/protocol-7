@@ -8,23 +8,22 @@ my $title_pattern = $$call{'args'};
 
 <X-11.WM>->update;
 
-my $reply_str;
+my $reply_msg = '';
 my @window_list;
 for my $win ( @{ <X-11.WM>->sorted } ) {
+
     my $window_title = <[base.utf8.sanitize]>->( $win->title // '' );
-    $reply_str .= join( ' ', $win->id, $window_title ) . "\n"
+
+    $reply_msg .= sprintf( "%d %s\n", $win->id, $window_title )
         if not defined $title_pattern
         or index( $win->instance, $title_pattern ) != -1
         or index( $window_title,  $title_pattern ) != -1;
 }
-$reply_str //= '';
-return {
-    'mode' => 'data',
-    'data' => $reply_str
-};
+
+return { 'mode' => qw| size |, 'data' => $reply_msg };
 
 #.............................................................................
-#C2PLEQ73SPQDMT35ZFEFSEUYZN2UUZD7WTL336UFIK3YZIBI33EXWJWE5W663XQT4ESZ7AL7HTOHE
-#::: VNSVMONPLEMLXI5J2T22QZ3SNGUEI4CO5DS5BPW2EW42HBJ3AV7 :::: NAILARA AMOS :::
-# :: PX5K6C22AQWQKOEW4PTLL2CAMWBFFTICGW3PXN7NOSNUTGROXWBA :: CODE SIGNATURE ::
+#W2VUJGIKMRPEVPVIH74Q3ILHVBOQHMAIGVIFDPURXXRYFZUXKLIAN654DRQ7UOH4XXYS33NPBAH7M
+#::: YGDSYAXVU3FKOQXF3XXNCSZ4GC36ATZNDPJOGVA4AV42YNVAJ2J :::: NAILARA AMOS :::
+# :: 6S3YGCGF6PUMXKDWL2JPU4CPTFD672FHRQ2764SS6M42DLA3JOCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

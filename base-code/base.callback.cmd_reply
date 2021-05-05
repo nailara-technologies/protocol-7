@@ -46,7 +46,7 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
     <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
 
 } elsif ( not defined $$reply{'data'}
-    or $$reply{'mode'} ne 'data' and !length( $$reply{'data'} ) ) {
+    or $$reply{'mode'} ne qw| size | and !length( $$reply{'data'} ) ) {
     <[base.log]>->(
         0,
         "[$session_id] empty "
@@ -63,12 +63,12 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
 
 if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $$reply{'data'} =~ s|\n|\\n|go;
-    $$output
-        .= $_cmd_id . uc( $$reply{'mode'} ) . ' ' . $$reply{'data'} . "\n";
-} elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
+    $$output .= sprintf "%s%s %s\n",
+        $_cmd_id, uc( $$reply{'mode'} ), $$reply{'data'};
+} elsif ( uc( $$reply{'mode'} ) eq qw| SIZE | ) {
     my $len = length( $$reply{'data'} );
-    $$output .= $_cmd_id . 'DATA ' . $len . "\n" . $$reply{'data'};
-} elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
+    $$output .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $$reply{'data'} );
+} elsif ( uc( $$reply{'mode'} ) eq qw| TERM | ) {
     <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
 }
 
@@ -77,7 +77,7 @@ if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 delete <base.cmd_reply>->{$reply_id};
 
 #.............................................................................
-#HHLZLODOSKAREGTPYTHFLUSCNE5FFGJ72SCSN4W7CSXNI7SAJRKEIL744AMVVOBSYUYNCSVGLUNEO
-#::: HW36XLWGTTT2XJ35SQAIUU3H4IQBEUFZJTDO3V6AWFMFEDNQRK5 :::: NAILARA AMOS :::
-# :: MRKWQKIDZXQOO37IKFECKW67FKHMKXRCGXHRRHUW7DLNVS23EMAQ :: CODE SIGNATURE ::
+#A3JY4AV62OODI2ADXVWMGLKYRDFDPEULMGMZQ4AUX3QZHQXFG6P2D7KQQNMVKQ2E37ZV3CCMCVQZO
+#::: S4BLZMDORW7CQJ5VOXK5R3KTS4HPYAQG5EDR3HY3F2QARDLZMT5 :::: NAILARA AMOS :::
+# :: QACJFCIZZYDA6NISSBFJACRGAR2ZLRVTNPN4Z6ZB2EP5DJEZNWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

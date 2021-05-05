@@ -9,24 +9,32 @@ my $buffer_index = shift;
 return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
 
 <log.file>->{$name} //= {
-    'complete'        => 1,
-    'start_index'     => $buffer_index,
-    'next_index'      => 0,
-    'resend_delay'    => 0.1,
-    'resend_slowdown' => 1.8,
+    qw| complete        | => 1,
+    qw| next_index      | => 0,
+    qw| start_index     | => $buffer_index,    ##  <-- can be undef  ##
+    qw| resend_delay    | => 0.1,
+    qw| resend_slowdown | => 1.8,
 };
 
-return if not exists <base.log.allow_buffer_send>;    ##  <-- connected ?  ##
+##  use notify-online  ##  [LLL]
+return if not exists <base.log.allow_buffer_send>;    ##  <-- connected ?
 
 my $log_data   = <log.file>->{$name};
 my $next_index = $log_data->{'next_index'};
 
 ##  no such buffer  ##
-return if not defined $data{'buffer'}{$name}{'data'}[$next_index];
+return warn "send_buffer_line : no such buffer ['$name'] <{C1}>"
+    if not defined $data{'buffer'}{$name};
 
-# find path to target zenka..,
+my $buffer_data_ref = $data{'buffer'}{$name}->{'data'};
+
+##  no such buffer content line [sent]  ##
+return if not defined $buffer_data_ref->[$next_index];
+
+my @send_line;    ##  protocol line messages  ##
+
+## path to target zenka.., ##
 my $route_prefix = qw| cube. |;
-my @send_line;
 
 ##[ cube has sid 0 ]##
 if ( <system.zenka.type> eq qw| cube | ) {
@@ -38,31 +46,31 @@ if ( <system.zenka.type> eq qw| cube | ) {
 push( @send_line, $name );
 
 ##[ t-stmp, lvl, msg ]##
-push( @send_line, $data{'buffer'}{$name}{'data'}[$next_index] );
+push( @send_line, $buffer_data_ref->[$next_index] );
 
 $log_data->{'complete'} = 0;
 
 my $protocol_messages = <protocol.protocol-7.messages>;
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
-        'call_args' =>
-            { 'args' => join( ' ', map { $ARG // '' } @send_line ) },
-        'reply' => {
-            'handler' => qw| base.log.handler.log_reply |,
-            'params'  => { 'name' => $name }
+    {   qw| command |   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
+        qw| call_args | =>
+            { qw| args | => join( ' ', map { $ARG // '' } @send_line ) },
+        qw| reply | => {
+            qw| handler | => qw| base.log.handler.log_reply |,
+            qw| params |  => { qw| name | => $name }
         }
     }
     )
     or <[base.log.handler.log_reply]>->(
-    {   'cmd'       => qw| FALSE |,
-        'call_args' => { 'args' => $protocol_messages->{'command_unknown'} },
-        'params'    => { 'name' => $name }
+    {   qw| cmd |    => qw| FALSE |,
+        'call_args'  => { 'args' => $protocol_messages->{'command_unknown'} },
+        qw| params | => { qw| name | => $name }
     }
     );
 
 #.............................................................................
-#R3EMELYIB6NSBK7O5NM2C2VLFFADQDCCV24HDXJWOHJ5BI7ELXMKC3B7HRZCUBF26NLN5REPRHF44
-#::: BA52E3TJNY5SYHJWYKYZ4YKELNR4OKXEKTEYHF6PKZVDZYDLOPI :::: NAILARA AMOS :::
-# :: K2USH5ZT52TGFTH4HG3MDHJ2Z576NVR7A7JDSAGKRCMYRLUVLGAI :: CODE SIGNATURE ::
+#7NJI2J4F6AMZVNRRQZPE62H6MJICVNDJBD3IVL4JUQLWTFE5FW4SXPARQDM4QMHBQUGSCHK4FDHJO
+#::: 5MZKX6LUGAQBU64LZYC5UQXRRS6TL56JK3NPWXW7K5GJAJF7EGG :::: NAILARA AMOS :::
+# :: QZEN6TXBYUUNSVTOSGZVVNVGWXND4UDGH3OB43IWLZBMV3KNCUDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
