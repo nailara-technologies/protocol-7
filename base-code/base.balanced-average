@@ -21,6 +21,7 @@ warn 'expected at least one numerical parameter <{C1}>' if !@values;
 warn "<value_ref>s content is not numerical ['$$value_ref'] <{C1}>"
     if defined $$value_ref and $$value_ref !~ m|^-?\d+(\.\d+)?$|;
 
+my $total_average;
 my $base_value_average;
 
 if ( @values == 1 ) {    ##  single input value  ##
@@ -33,8 +34,14 @@ if ( @values == 1 ) {    ##  single input value  ##
         $low_value + ( ( $high_val - $low_value ) / 2 ) );
 
 ##  unfiltered total average  ##
-    my $total_average = sprintf( "%.${internal_precision}f",
-        ( reduce_0 { $a + $b } @values ) / scalar @values );
+    eval {
+        $total_average = sprintf( "%.${internal_precision}f",
+            ( reduce_0 { $a + $b } @values ) / scalar @values );
+    };
+
+    return warn sprintf 'balanced-average : %s <{C1}>',
+        <[base.format_error]>->( $EVAL_ERROR, -1 )
+        if $EVAL_ERROR or not defined $total_average;
 
 ##  calculating distance with removed value potential  ##
     my $average_floored = $total_average - $low_value;
@@ -83,7 +90,7 @@ $$value_ref =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitizing zulum  ##
 return $base_value_average;   ##  returning filtered average of input data  ##
 
 #.............................................................................
-#NVLNNCJRL5YVAZUHLERW66Z2DQFJW37M55LHPQJJNR62K6ZOXHHORXUU3MT7PKO4KBX5OIW6RPTWE
-#::: EDUDTMKOQXEPIB5O3VQV2EMLFGUYEY7D5SB3VVDZLTQIPJI3PLH :::: NAILARA AMOS :::
-# :: HSZMJI2X6XUDBDAMXUSHUMQGKXSZICVEKZ7AKATER7SUM2CMAUDY :: CODE SIGNATURE ::
+#X37UAL5LGMLDTZ4ZH6AGOF6N356KZYJLRWWXIR5CIXVGVYIVELS5OPJAB4OBVJSYBMYJWWDG2PDJS
+#::: 7F4DU5GBTBIPS6WAJZ4WTYEOMDXUZD7RPAZNQKUGSVVQR2KZCBX :::: NAILARA AMOS :::
+# :: AE3ASD7UM5Q54QUPQZABPTW5GLFF3POBF3GAKUTB37RGW5P7USBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

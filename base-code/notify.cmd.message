@@ -9,10 +9,10 @@
 my $txt_param = $$call{'args'} // '';
 my $id        = $$call{'session_id'};
 
-return { 'mode' => 'false', 'data' => 'no message text submitted' }
+return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
     if !length($txt_param);
 
-my $title = 'nailara message';
+my $title = 'protocol-7 AMOS message';
 
 if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
     utf8::decode($txt_param);
@@ -21,44 +21,47 @@ if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
 
 $ENV{'DISPLAY'} = <x11.display>;
 
-$title = $1 if $txt_param =~ s/^(\S+)\s+//;
+$title = $1 if $txt_param =~ s|^(\S+)\s+||;
 
 map { $ARG =~ s|\\0||go }
     ( $title, $txt_param );    # <-- prevents msg being cut off
 
 if ( defined $txt_param and $txt_param ne '' ) {
     my $msg_str
-        = <system.verbosity.console> >= 3 ? " ['$txt_param']" : ' ...';
+        = <system.verbosity.console> >= 3 ? " ['$txt_param']" : ' ..,';
     <[base.log]>->( 2, "[$id] sending notification" . $msg_str );
     if (!system(
-            <notify.path.notify_send>,  '-i',
+            <notify.path.notify_send>,  qw| -i |,
             <notify.path.nailara_icon>, " < $title >",
             "\n$txt_param\n"
         )
     ) {
-        return { 'mode' => 'true', 'data' => 'message sent' };
+        return { 'mode' => qw| true |, 'data' => 'message sent' };
     } elsif ( $CHILD_ERROR == -1 ) {
         return {
-            'mode' => 'false',
-            'data' => "cannot run process [ \l$OS_ERROR ]"
+            'mode' => qw| false |,
+            'data' => sprintf( 'cannot run process [ %s ]',
+                <[base.format_error]>->( $OS_ERROR, -1 ) )
         };
     } else {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => sprintf(
-                "notify-send exited with code %d%s",
+                'notify-send exited with code %d%s',
                 ( $CHILD_ERROR >> 8 ),
-                defined $OS_ERROR
-                    && length($OS_ERROR) ? " [ \l$OS_ERROR ]" : ''
+                defined $OS_ERROR && length($OS_ERROR)
+                ? sprintf( ' [ %s ]',
+                    <[base.format_error]>->( $OS_ERROR, -1 ) )
+                : ''
             )
         };
     }
 } else {
-    return { 'mode' => 'false', 'data' => 'no message text submitted' };
+    return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
 #.............................................................................
-#ZEUHVKWWMYJE7NIUWIMKHADCX2ZN5E2KNQG7GWS4RWO6QBIJQGCK2TWQPPDCJAJ4MV5X6ML46HODU
-#::: X222MGMADXTJ4XRBLDDZOBRT4247C76UUPMN63OMXV22WIRJYQL :::: NAILARA AMOS :::
-# :: ZQ63RDQ5FXN2PI47PSPRACVM3Q4CDF4UGLHCNMUSP5JVZCUHDOBA :: CODE SIGNATURE ::
+#NHHKWWA5BHSXTDZ5B7VGX5JA626MUOYFXR7FH4O2PY4GH6MJUN3IC2JMTAWMDWPXVC4FAGUSI3F5Y
+#::: EU5XH7X7UP3BXHR6JSOP2PU5IXAJ35SZAVOKLEQ3KWO5TDN2GB3 :::: NAILARA AMOS :::
+# :: OJYW2NUEBZCBWCIWECMYUGC7C424DJFOHKASBLDN2QVYTX3Y5KBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

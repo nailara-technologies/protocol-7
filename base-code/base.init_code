@@ -59,12 +59,12 @@ $data{'debug'} //= {};
 ##
 $data{'system'}{'process_start'} = {
     'time'  => <[base.time]>->(5),
-    'pid'   => $PID,
     'pname' => $PROGRAM_NAME,
-    'uid'   => $UID,
     'euid'  => $EUID,
+    'egid'  => $EGID,
+    'pid'   => $PID,
+    'uid'   => $UID,
     'gid'   => $GID,
-    'egid'  => $EGID
     }
     if not exists $data{'system'}{'process_start'};
 
@@ -93,9 +93,9 @@ $data{'regex'} = { 'base' => <[base.regex]> };
 $data{'list'} //= {};
 
 <list.users> = {
-    'var'     => 'data',
-    'key'     => 'user',
-    'sub_key' => 'session',
+    'var'     => qw| data |,
+    'key'     => qw| user |,
+    'sub_key' => qw| session |,
     'mask'    => '<key>:user connected_since session:sessions',
     'align'   => { 'session' => 'center' },
     'filters' => {
@@ -105,8 +105,8 @@ $data{'list'} //= {};
     'descr' => 'connected users'
 };
 <list.sessions> = {
-    'var'      => 'data',
-    'key'      => 'session',
+    'var'      => qw| data |,
+    'key'      => qw| session |,
     'sort_key' => 'num:start_time',
     'mask'     => '<key>:usid protocol link:type mode '
         . 'user:uname start_time:since',
@@ -121,8 +121,8 @@ $data{'list'} //= {};
     'descr'   => 'registered / connected sessions'
 };
 <list.buffers> = {
-    'var'   => 'data',
-    'key'   => 'buffer',
+    'var'   => qw| data |,
+    'key'   => qw| buffer |,
     'mask'  => '<key>:name data:lines size:bytes max_size:of_bytes',
     'align' => {
         'data'     => 'right-5',
@@ -146,8 +146,8 @@ if (    defined <system.zenka.type>
     $data{'base'}{'element'}{$key_ref}{'max_count'}
         //= 4097;    # LLL: --> config.,
     <list.virtual> = {
-        'var'   => 'data',
-        'key'   => 'zenki.virtual',
+        'var'   => qw| data |,
+        'key'   => qw| zenki.virtual |,
         'mask'  => '<key>:id name type status session',
         'align' => {
             'name'    => 'left',
@@ -210,7 +210,7 @@ map {
 if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
 
 <[base.list.init]>->(
-    {   'name'         => 'sessions',
+    {   qw| name |     => qw| sessions |,
         'key_ref'      => \$data{'session'},
         'max_elements' => <limits.client_sessions>
     }
@@ -242,7 +242,7 @@ if ( defined <setup.aliases> ) {
 return 0;
 
 #.............................................................................
-#3ZP2E5LADN4ALAMPUZH7YZNS6BLN5C5FSUCM3L2LTO4HRKWF2JPB6FK2VGCGNTJGAABXMOHMHGXMS
-#::: CCX3ZNCCTYMXQTUJH4FKW6MUPTPUSIKLHAXRYV55AVOERS33TQR :::: NAILARA AMOS :::
-# :: OTLLOR4BRUOZSR6JIW54DPIM6LHION6YA5J4SMAVWKRLLZRVVUCQ :: CODE SIGNATURE ::
+#RQZL4IPWRWG3QKJ34VPDA427I5E7HQEUJBPGGMHWMIIA3CFQAFFZDIDLC2NGRMVTYK7BN4UBGP7GY
+#::: Z3W6IMKXD3NMP22EKATT6E7JXC2ZMFTYBZODDQIDC64KR3XJNSO :::: NAILARA AMOS :::
+# :: EVUQEKCXJQ4LCPO54ZZCI53R2FH46JAB7AY75ECE3UHNZYPEXGCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

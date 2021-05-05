@@ -2,17 +2,18 @@
 
 # name = content.handler.get_exclusive_reply
 
-my @exclusive_b32ids;
 my $reply = shift;
+return 'reply href expected' if not defined $reply or ref($reply) ne qw|HASH|;
 
+my @exclusive_b32ids;
 <content.exclusive_b32id> = {};
 
-if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
+if ( $reply->{'cmd'} eq qw| SIZE | and $reply->{'call_args'}->{'args'} > 0 ) {
     chomp( $reply->{'data'} );
-    @exclusive_b32ids = split( /\n+/, $reply->{'data'} );
+    @exclusive_b32ids = split( m|\n+|, $reply->{'data'} );
     map {
-        if ( <content.b32id_src_str>->{$ARG} =~ /^([^:]+):/ ) {
-            my $tile_name = $1;   # LLL: handle no tilename case? (global ex.)
+        if ( <content.b32id_src_str>->{$ARG} =~ m|^([^:]+):| ) {
+            my $tile_name = $1;   # LLL: handle no tilename case? [global ex.]
             <content.exclusive_b32id>->{$tile_name} //= [];
             push( @{ <content.exclusive_b32id>->{$tile_name} }, $ARG );
         }
@@ -22,7 +23,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} > 0 ) {
 <[content.update_hidden]>;
 
 #.............................................................................
-#QCLLXF7JNW6SE7AN5Z55K7NULXD44PUD5YCB54UTLLGEEQSBPG2ZZBYZNCULUGT4L7FKGWY6OVG2Y
-#::: ZKIFGVG5UQ5XM7OJC2G4Q4M65PHW2RSLLVIHOLSNHC5Z3BAOXM5 :::: NAILARA AMOS :::
-# :: ONGWQAJC4BCFHXQ3RYN5ACWSNRFKKCUPNVDRJIJ52D5IU7L66YAI :: CODE SIGNATURE ::
+#RVVDQBKEBG5MCUSSA6ERNXGONSTFCHJ6PW3DMN3RCBNXVN36G6IMALPHO3OPY72LILA32T2WU4XHK
+#::: T2HWYYLHZLY7IHMZPAVMNKA5DAOBHDEKLCJ4JSIFKQROGNVTJ3P :::: NAILARA AMOS :::
+# :: YWFO2IUS4E5IBA46MOXLIPRA2SXN2ECWK4LU66S2EIWIGUP6PKAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

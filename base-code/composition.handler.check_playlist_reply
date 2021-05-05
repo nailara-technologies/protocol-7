@@ -7,18 +7,18 @@ my $reply = shift // {};
 my $zenka_name = $reply->{'params'}->{'zenka_name'};
 my $tile_name  = $reply->{'params'}->{'tile_name'};
 
-warn "unexpected [FALSE] reply from playlist zenka"
-    if $reply->{'cmd'} eq 'FALSE';
+warn 'unexpected [FALSE] reply from playlist zenka'
+    if $reply->{'cmd'} eq qw| FALSE |;
 
-if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
+if ( $reply->{'cmd'} eq qw|SIZE| and $reply->{'call_args'}->{'args'} == 0 ) {
 
     <[base.log]>->(
-        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart!"
+        0, " :  playlist for tile '$tile_name' is empty <-> skipping restart"
     );
 
 } else {
 
-    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries!" );
+    <[base.log]>->( 1, " : : tile '$tile_name' does have playlist entries" );
     <[base.log]>->( 0, " :  restarting zenka '$zenka_name' ..." );
 
     <[base.protocol-7.command.send.local]>->(
@@ -29,7 +29,7 @@ if ( $reply->{'cmd'} eq 'DATA' and $reply->{'call_args'}->{'args'} == 0 ) {
 }
 
 #.............................................................................
-#4FE4ZGPJ4T5QCFNUWZHYL4EOCNFYVKN5IA67MEV6RIYMWFOMS7QPLI5BRTD6US6BVHOMYDODCAHKC
-#::: S3YM2CVZ2GZYBA3LE7PUDAYPQRTT3YZKCQVIOKXZ3JIZLSLJ4TT :::: NAILARA AMOS :::
-# :: YVVGRPBLVKPJEO3YWSQUAZDNFPPAOSWO3PYCAREHZD7DF6KLKUCA :: CODE SIGNATURE ::
+#CFDKTJ2UQX3SG5MLBNK2JEKQJWCRJ6YXFLXIRXCFDZJNRX3EMT4LM5APG23KDHHGWYCTNS7UDZ2Z4
+#::: 6ABWDVEMS4T53BJCFCSBVN537ZKYQSYF2ELBFXAALLELV4OE3RX :::: NAILARA AMOS :::
+# :: J5PGK4TK4SBXGMM6D3QIEQ3EPNPWZ5D3G2B6Y6FFELXOL2JURKDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

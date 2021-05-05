@@ -1,13 +1,13 @@
 # >:]
 
-# name = base.protocol-7.command.send.local
+# name =
 
-my $cmd       = ${ $_[0] }{'command'};
-my $call_args = ${ $_[0] }{'call_args'};
-${ $_[0] }{'reply'} //= {};
-$$call_args{'args'} //= '';
+my $cmd       = ${ $ARG[0] }{'command'};
+my $call_args = ${ $ARG[0] }{'call_args'};
+${ $ARG[0] }{'reply'} //= {};
+$$call_args{'args'}   //= '';
 
-die "'command' parameter expected" if not defined $cmd;
+return warn 'expected <command> parameter <{C1}>' if not defined $cmd;
 
 return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
 
@@ -17,11 +17,11 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // qw| dev.null |;
     my $reply_params  = ${ $_[0] }{'reply'}{'params'};
 
-    my $target_name = $1;
+    my $target_name = ${^CAPTURE}[0];
 
-    # [LLL] needs error handling on unknown target
+    ## error handling on unknown target ## [LLL]
 
-    ## send to all clients with that session id or username [ in group mode ] ##
+    ## send to all clients with that session id or username [in group mode] ##
     my @send_sids;
     my $target_sid = $target_name =~ m|^\d+$| ? $target_name : undef;
     if ( defined $target_sid
@@ -30,6 +30,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
         @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
     }
+
     my $count = 0;
     foreach my $target_sid (@send_sids) {
         my $session;
@@ -68,14 +69,15 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
                 2, ":network: $src_name ..:. $target_name ..:. $cmd"
                 )
                 if ( $src_name ne qw| cube |
-                or $target_name ne 'p7-log'
-                or $cmd ne 'append'
+                or $target_name ne qw| p7-log |
+                or $cmd ne qw| append |
                 or !<debug.skip_log_msg> )
                 and ( $target_name ne qw| cube |
-                or $cmd ne 'p7-log.append'
+                or $cmd ne qw| p7-log.append |
                 or !<debug.skip_log_msg> )
                 and ( $src_name ne qw| v7 |
-                or ( $cmd ne 'heart' and substr( $cmd, -5, 5 ) ne '.heart' )
+                or
+                ( $cmd ne qw|heart| and substr( $cmd, -5, 5 ) ne qw|.heart| )
                 or !<debug.skip_v7_heartbeat> );
         }
 
@@ -126,7 +128,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 }
 
 #.............................................................................
-#YTR5ZHXW5L2GXG6VK5LDFBTICQOCUOCDH3QIENCPBZBOKLMMJIHKOHLPEDWXGL5VWYAZXUQ34XHJI
-#::: 32XIICVY3ALTXN6RM5A2ZGSIPFPBSNCAURYIBWCFGQBS43IUJYT :::: NAILARA AMOS :::
-# :: FH3KKGT6DBBWRZK25HTNLXB3KRH2OXNQ47ZX3DO5JFDZ2CPR26CA :: CODE SIGNATURE ::
+#RE7UOMAGYXJ3SDU53SXPDG63FBIHUFYKLI4NVRW4DSAMLB6WA7WMXBDIBY7D3537TASENQZCEG35I
+#::: AXXLLTECXPFWDJX5UB3LGRWAQR2CF5Q2SEFFPBDN3PVLI4SBTAK :::: NAILARA AMOS :::
+# :: A3KMXIF7SPJ4JB2CMV7E4D55X7KD5WIQKMEWQYZXQVOQGNLRVIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

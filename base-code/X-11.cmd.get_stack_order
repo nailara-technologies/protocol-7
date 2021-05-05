@@ -1,19 +1,19 @@
 # >:]
 
 # name  = X-11.cmd.get_stack_order
-# descr = return the window stacking order (win ids)
+# descr = return the window stacking order [win ids]
 
 my $xtops = <X-11.WM>;
 <[X-11.update_X11_WM]>;
 
-my $reply_str = join( "\n", reverse( $xtops->stacking ) );
-$reply_str //= '';
+my $reply_str = join( "\n", reverse( $xtops->stacking ) ) // '';
+
 $reply_str .= "\n" if length($reply_str);
 
-return { 'mode' => 'data', 'data' => $reply_str };
+return { 'mode' => qw| size |, 'data' => $reply_str };
 
 #.............................................................................
-#MTEA5HWFI7VSL6PPLAI2VIJVWRPE6NRZP5SVXNFERIXSR2HA6LIEOC43GKEU7NGI77YRGMHKOPBF2
-#::: OXIA5EN5YHJXZYSGGGBURELKC2XNEG3JHJTHL4P4AXFYUSZ26TN :::: NAILARA AMOS :::
-# :: VUSJFG7PBIXKGEQ6ZR4X5MKMGJDF6YVAHGXIKSSHOQB24LMVZYCI :: CODE SIGNATURE ::
+#KF4GBFOX2RGG27EWTKR3CDRC6NOUESPTWRHP7ZSW76YJZQYIHUTWZMVMYOIQDT3Z6LEKGCMAR3HPI
+#::: JMLON2U24W2YA5WIS5QR4MWAPVCFVQXPVXJUN4E6DPHPMXH72GZ :::: NAILARA AMOS :::
+# :: UTN77SKAQZ53NDUBNZATUOJGNZ5CKYZ2O4N67PBSK3J2WR4EP4AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

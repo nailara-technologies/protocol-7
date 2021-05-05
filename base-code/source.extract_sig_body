@@ -14,7 +14,7 @@ my $footer_data = {
 $strip = $strip eq 'strip' ? 1 : 0;
 my $bit_size = <source.chksum_bitsize>;
 die "invalid keyword '$strip' for 'strip' parameter" if $strip !~ m,^[0|1]$,;
-die "expected source_str scalar reference" if ref($src_ref) ne 'SCALAR';
+die 'expected source_str scalar reference' if ref($src_ref) ne qw| SCALAR |;
 
 ### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
@@ -68,30 +68,28 @@ if ( $emptied_footer ne <source.sign_template> ) {    ## [E: structural ]
 ##############################################################################
 
 my @err_loc;
-push( @err_loc, 'bmw-chksum' ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
-push( @err_loc, 'c25519-b32' ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
+push( @err_loc, qw| bmw-chksum | ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
+push( @err_loc, qw| c25519-b32 | ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
 
 if (@err_loc) {    ## [E: alien characters ]
     $footer_data->{'encountered-error'}
-        = sprintf( "invalid characters in signature data [ %s ]",
+        = sprintf( 'invalid characters in signature data [ %s ]',
         join( ' and ', @err_loc ) );
     return $footer_data;
 }
 
 $footer_data->{'structure-was-valid'} = 1;
 
-$footer_data->{'data-type'} = 'CODE';   # [ other types soon: DATA, ZCFG,.., ]
-$footer_data->{'checksum-type'}
-    = 'BMW-384-B32';                    # only ones implemented so far
-$footer_data->{'signature-type'}
-    = 'C25519-B32';                     # <-- ########################
-$footer_data->{'bmw-chksum'} = $signed_chksum;
-$footer_data->{'signature'}  = $signature_B32;
+$footer_data->{'data-type'} = 'CODE';   # [ other types soon: SIZE, ZCFG,.., ]
+$footer_data->{'checksum-type'}  = qw| BMW-384-B32 |;  # only ones implemented
+$footer_data->{'signature-type'} = qw| C25519-B32 |; # <-- ###################
+$footer_data->{'bmw-chksum'}     = $signed_chksum;
+$footer_data->{'signature'}      = $signature_B32;
 
 return $footer_data;
 
 #.............................................................................
-#VVTS2WTTE35URA4IYK5N4ENIGO223XY65YWAX7VQR3SRIM3KMF3ACNMYINBOO4LO4E54FSVEXLAWI
-#::: EBLCTN3GES2XY4BLYPSGCSSGCFUOIC6Y4TD3FTULBTKQG4UX7TP :::: NAILARA AMOS :::
-# :: QHRJS55W3LWVZBIZ5Q6EJDYO6U37LQXUCNLJPPFCT4M43FNHD6CI :: CODE SIGNATURE ::
+#MI3K22ORYVOGMFUNWW75G7BB7FNI57MA4CRP7SK6FF7F2HG6RD4FNTCSELSKNN2ZXXXAWLPTPYZF4
+#::: VEXEIKEKHDVP2ZJVG6M6TQYYP7F46R6ZH4POUADPNUHABR43MFY :::: NAILARA AMOS :::
+# :: RYN7U4UV7AVRCCY7GMXDGSYHVSWMXRO2D7Y2KSNTQ2LKPQY2KCAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

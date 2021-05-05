@@ -7,41 +7,43 @@ my $reply_id    = $reply->{'params'}->{'reply_id'};
 my $zenka_name  = $reply->{'params'}->{'zenka_name'};
 my $config_type = $reply->{'params'}->{'config_type'};
 my $export_dir  = <set-up.json.export_dir>;
-$config_type //= 'config';
+$config_type //= qw| config |;
 my $export_file = "$zenka_name.$config_type.json";
 my $export_path = "$export_dir/$export_file";
 
-my $mode      = 'false';
+my $mode      = qw| false |;
 my $reply_str = $reply->{'call_args'}->{'args'};
 
-if (    $reply->{'cmd'} eq 'FALSE'
+if (    $reply->{'cmd'} eq qw| FALSE |
     and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
     $reply_str
         = $zenka_name eq qw| cube |
         ? "reply refused by 'cube' zenka"
         : "zenka '$zenka_name' not online [ or refusing reply ]";
-} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+} elsif ( $reply->{'cmd'} eq qw| SIZE | ) {
     $mode      = 'true';
     $reply_str = "config written to export directory ('$export_file')";
     undef $EVAL_ERROR;
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
     if ( defined $EVAL_ERROR and $EVAL_ERROR ) {
         $EVAL_ERROR =~ s| at base.file.put.+\n$||;
-        <[base.log]>->(
-            0, "config export to '$export_file' failed. [$EVAL_ERROR]"
+        <[base.logs]>->(
+            0,            "config export to '%s' failed. [%s]",
+            $export_file, <[base.format_error]>->($EVAL_ERROR)
         );
         $EVAL_ERROR =~ s|^[^:]+: ||;
-        $mode      = 'false';
-        $reply_str = "config export failed [ write error: $EVAL_ERROR ]";
+        $mode      = qw| false |;
+        $reply_str = sprintf "config export failed [ write error: %s ]",
+            <[base.format_error]>->($EVAL_ERROR);
     }
 }
 
 <[base.callback.cmd_reply]>->(
-    $reply_id, { 'mode' => $mode, 'data' => $reply_str }
+    $reply_id, { qw| mode | => $mode, qw| data | => $reply_str }
 );
 
 #.............................................................................
-#36COFDRQBOP6AYPUSLVFTIDZ4KNKD3GZDNDP2AGL7FIA3CVLN3TS5BKETMY5O6WNJ5KT3Q7QO6WUY
-#::: E6KM5OLG2AGC7CTOQJXMUE77GFJAEIMI2FTZHUPCRICIG2BYO7E :::: NAILARA AMOS :::
-# :: 32FD2JDOXGPEFFZFZFXSQ3W34YQXAPGCUCDBYFN7KTZ27GJ4Y4CA :: CODE SIGNATURE ::
+#5TUV45EB6TGLMEMV37IV7LZOIHXJJ3DQ43TODLS63AG3T72YBB46WOGA53BIBLOB43SPNIJBJGBSE
+#::: UZW4QVCPFRBGO5LN3HHDIFLMTUI4MSHH63OLLHWE7JLW2F5FIID :::: NAILARA AMOS :::
+# :: C4D65ZEASO63QLZ5CSL5YPX5BGE7ZGQQO542F5DE2BPQ3NLUVUAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,7 +41,7 @@ foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no commands matching '$keyword' available"
     }
     if defined $keyword and !@commands;
@@ -51,7 +51,7 @@ return {
 $$reply{'data'} = sprintf( "%78s\n\n",
     sprintf( "%-43s", ".: '$zenka_name' zenka commands :." ) );
 ( my $h_str, my $h_len )
-    = <[base.parser.command_list]>->( \@commands, 'cmd', );
+    = <[base.parser.command_list]>->( \@commands, qw| cmd |, );
 $$reply{'data'} .= $$h_str;
 
 if (@dbg_cmds) {
@@ -63,10 +63,10 @@ if (@dbg_cmds) {
 }
 
 $$reply{'data'} .= "\n";
-$$reply{'mode'} = 'data';
+$$reply{'mode'} = qw| size |;
 
 #.............................................................................
-#FD5B3BVLPWD4VFR2WL4VAXHR4D466I5NNII77XCFQVP7LWOIB4B5KV4CKHTWUPPAVI5YFQNPNELDC
-#::: JHSJWDJCGMC2GR5MRG46LBDEYFDEHEJFOE2OFMOM2YLFYNSGKVE :::: NAILARA AMOS :::
-# :: CKKA5EITZCBEKOEVE2VQV5A7LTXGDH67D4NXSUJ666OC2756EWDQ :: CODE SIGNATURE ::
+#P3GGD3RRY5ZTZMO46BTLOVUVKXZ73TXBHNSWLVN7XANBBSWUPCUAEOA4NZ2UH2JMAGHIQWGPP72CA
+#::: KEUX3YOLHIMASHTOVC7GK4U2IFPJNZZ3CZ5WMPESSKH2IHPFWWC :::: NAILARA AMOS :::
+# :: 2GD2UTI6F37OUJDNLJPGF2H6NXUGCZLWMBL3HNHIZUEPQOEEPYCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

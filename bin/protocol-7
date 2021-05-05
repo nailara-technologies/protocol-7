@@ -55,8 +55,8 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
     if ( !@ARGV or not defined $data{'system'}{'zenka'}{'name'} ) {
         $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
     }
-    $PROGRAM_NAME = "protocol-7.$data{'system'}{'zenka'}{'name'}";
     $RS           = "\n";
+    $PROGRAM_NAME = "protocol-7.$data{'system'}{'zenka'}{'name'}";
 
     my @zenka_code = <STDIN>;
 
@@ -65,9 +65,9 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
     }
 
     if (@zenka_code) {
-        $data{'base'}{'config_parser'}{'cfg_type'}  = 'start_cfg';
-        $data{'base'}{'config_parser'}{'cfg_name'}  = 'zenka';
-        $data{'base'}{'config_parser'}{'cfg_descr'} = '<STDIN>';
+        $data{'base'}{'config_parser'}{'cfg_type'}  = qw| start_cfg |;
+        $data{'base'}{'config_parser'}{'cfg_name'}  = qw| zenka |;
+        $data{'base'}{'config_parser'}{'cfg_descr'} = qw| <STDIN> |;
         $code{'base.execute_zenka_code'}
             ->( $code{'base.parser.config'}->( \@zenka_code ) );
     }
@@ -142,7 +142,7 @@ sub prepare_subs {
 ##############################################################################
 
     $code{'base.choose_true_pid'} = sub {
-        local $SIG{'CHLD'} = 'IGNORE';
+        local $SIG{'CHLD'} = qw| IGNORE |;
         $data{'system'}{'start'}{'fork-count'} //= 0;
         local $data{'system'}{'verbosity'}{'console'}      = 1;
         local $data{'system'}{'verbosity'}{'zenka_buffer'} = 1;
@@ -191,7 +191,7 @@ sub prepare_subs {
             $unix_precision  = 11 if $unix_precision > 11;
         }
         my $zulum_len = $unix_precision - 1;
-        $collision_delay = join( '', '0.', qw| 0 | x $zulum_len, qw| 7 | );
+        $collision_delay = join( '', qw|0.|, qw| 0 | x $zulum_len, qw| 7 | );
 
     RETRY_BASE_NTIME:
         $last_time = $unix_time if defined $unix_time;
@@ -214,7 +214,7 @@ sub prepare_subs {
                 and goto RETRY_BASE_NTIME;
         }
 
-        say '< exceeded >' if !$retries_left;
+        say '< ntime attempts xceeded >' if !$retries_left;
 
         return $ntime;
     };
@@ -869,9 +869,9 @@ sub prepare_subs {
                 $sub_src{$sub_name} //= [];
                 push( @{ $sub_src{$sub_name} }, $src_line );
             }
+            my $code_re = qr|\s*\$code\{\'([^\']+)\'\}\s*|;
             $sub_name = ${^CAPTURE}[0]
-                if $src_line    ## LLL : break-up regex..,
-                =~ m|^\s*\$code\{\'([^\']+)\'\}\s*=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
+                if $src_line =~ m|^$code_re=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
         }
         print "\n";
         close($p7_fh);
@@ -933,8 +933,8 @@ sub prepare_subs {
                     if $ARG =~ m|\.cmd\.(.+)$|;
                 --$purge_count if $EVAL_ERROR;
             } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
-                $data{'code'}{$ARG}{'status'}
-                    = 'leftover';    ## kept \ essential ##
+                ##  kept \ essential  ##
+                $data{'code'}{$ARG}{'status'} = qw| leftover |;
             }
             }
             grep {m|^$code_name(\..+)?$|} keys %code;
@@ -948,13 +948,13 @@ sub prepare_subs {
     $code{'base.parser.ellipse_center'} = sub {
         my $str_param = shift;
         my $len_param = shift;
-        die "expected string and maximum length [>=5] parameters"
+        die 'expected string and maximum length [>=5] parameters'
             if not defined $str_param
             or not defined $len_param
             or $len_param =~ m|^\d+$| and $len_param < 5;
 
-        my $by_reference = ref($str_param) eq 'SCALAR' ? 1 : 0;
-        my $str_ref      = $by_reference ? $str_param      : \$str_param;
+        my $by_reference = ref($str_param) eq qw| SCALAR | ? 1 : 0;
+        my $str_ref      = $by_reference ? $str_param          : \$str_param;
         my $str_len      = length($$str_ref);
         my $start_pos    = int( $len_param / 2 ) - 1;
         my $chars_cut    = $str_len - $len_param + 3;
@@ -971,8 +971,12 @@ sub prepare_subs {
         $data{'base'}{'modules'}{'load_errors'} //= 0;
         if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
             $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.error'}->( ': cannot open source code directory'
-                    . " '$data{'system'}{'code_path'}' [ \l$OS_ERROR ]" );
+            $code{'log.error'}->(
+                ': cannot open source code directory'
+                    . sprintf " '%s' [ %s ]",
+                $data{'system'}{'code_path'},
+                $code{'base.format_error'}->($OS_ERROR)
+            );
             return undef;
         }
         my @subroutine_names = sort { length $a <=> length $b }
@@ -983,7 +987,7 @@ sub prepare_subs {
 
     $code{'base.code.sort_filter'} = sub {
         my @filtered_subroutines;
-        my @subroutine_names = @_;
+        my @subroutine_names = @ARG;
         my %subroutines      = map { $ARG => 0 } @subroutine_names;
         my $occurrence       = 0;
 
@@ -1407,16 +1411,16 @@ sub prepare_subs {
             local $SIG{'__DIE__'}  = qw| IGNORE |;
 
             my $sub_code     = undef;
-            my $code_header  = '';
-            my $code_footer  = '';
             my $sub_conflict = 0;
 
             if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
                 my $cmd_type = ${^CAPTURE}[0];
                 my $cmd_name = ${^CAPTURE}[1];
+
                 next
                     if $cmd_type eq qw| cmd |
                     and exists $disabled_commands{$cmd_name};
+
                 if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
                     my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
                     if (not exists $data{'base'}{'overwritten'}{$cmd_type}
@@ -1429,8 +1433,8 @@ sub prepare_subs {
                         }
                         $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
                             = {
-                            'old' => $old_sub,
-                            'new' => $sub_name
+                            qw| old | => $old_sub,
+                            qw| new | => $sub_name
                             };
                     } else {
                         push(
@@ -1455,37 +1459,77 @@ sub prepare_subs {
                     = defined $code{'stats.sub_end'}
                     ? $code{'stats.sub_end'}->($sub_name)
                     : sub { };
-                $code_footer
-                    .= "\$code{'stats.sub_end'}->(\$sub_name)"
-                    . " if ref(\$code{'stats.sub_end'}) eq qw| CODE |;";
-                $code_header
-                    = "my \$call={}; my \$reply={ 'mode' => 'false', 'data'"
-                    . " => \"error during invocation of '$cmd_name' command"
-                    . " [ details logged ]\" }; "
-                    . "\$code{'stats.sub_start'}->(\$sub_name) if defined "
-                    . "ref(\$code{'stats.sub_start'}) eq qw| CODE |; "
-                    . 'if ( ref( $_[0] ) eq \'HASH\' ) { '
-                    . ' $call=$_[0]; } else { $$call{\'args\'}=$_[0] } ';
-                $code_footer = ' ; return $reply';
 
-                $data{'code'}{$sub_name}{'source'}
-                    = $code_header
-                    . $data{'code'}{$sub_name}{'source'}
-                    . $code_footer;
+                if ( $cmd_type eq qw| cmd | ) { ## not for console commands ##
+
+                    ## command type routine code header ##
+                    my $code_header = <<~ "EOC";
+
+                    ##                                 ##
+                    ##  compiled-in .cmd. code header  ##
+                    ##                                 ##
+
+                    my \$call  = {};
+                    my \$reply = { qw| mode | => qw| false |,
+                                  qw| data | => join( '',
+                                    'error during invocation',
+                                    " of '$cmd_name' command",
+                                    ' [ details logged ]' )
+                                };
+                    \$code{'stats.sub_start'}->( \$sub_name )
+                        if defined \$code{'stats.sub_start'} and
+                            ref( \$code{'stats.sub_start'} ) eq qw| CODE |;
+
+                    if ( ref( \$ARG[0] ) eq qw| HASH | ) { \$call = \$ARG[0] }
+                    else { \$call->{'args'} = \$ARG[0] }
+                    ##
+
+                    EOC
+
+                    ##  command type routine code footer  ##
+                    my $code_footer = <<~ 'EOC';
+
+                    ##                               ##
+                    ## compiled-in .cmd. code-footer ##
+                    ##                               ##
+                    ;
+                    ##  renamed reply type  ##
+                    ##
+                    if ( defined $reply->{'type'} and
+                            $reply->{'type'} eq qw| data | ) {
+
+                        $reply->{'type'} = qw| size |;
+                        warn 'replaced meanwhile renamed'
+                            .' DATA reply type [ fix ]';
+                    }
+                    ##
+
+                    ###  'sub_end' callback  ###
+                    $code{'stats.sub_end'}->($sub_name)
+                        if ref( $code{'stats.sub_end'} ) eq qw| CODE |;
+
+                    return $reply;
+                    EOC
+
+                    $data{'code'}{$sub_name}{'source'} = join( '',
+                        $code_header, $data{'code'}{$sub_name}{'source'},
+                        ,             $code_footer );
+                }
             }
 
             if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
-                my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code
-                    = 'sub {'
-                    . $line_comment
-                    . "\&{\$code{'base.debug_sub'}}('$sub_name',\@_); "
-                    . $data{'code'}{$sub_name}{'source'} . ' }';
+                $sub_code = <<~ "EOC";
+                sub {
+                # line 1 "$sub_name"
+                \$code{'base.debug_sub'}->( qw| $sub_name |, \@ARG );
+                $data{'code'}{$sub_name}{'source'}}
+                EOC
             } else {
-                my $line_comment = "\n# line 1 \"" . $sub_name . "\"\n";
-                $sub_code = join ' ',
-                    'sub {', $line_comment,
-                    ( $data{'code'}{$sub_name}{'source'} ), '}';
+                $sub_code = <<~ "EOC";
+                sub {
+                # line 1 "$sub_name"
+                $data{'code'}{$sub_name}{'source'}}
+                EOC
             }
 
             ##                      ###
@@ -1560,7 +1604,7 @@ sub prepare_subs {
 
                 delete $data{'code'}{$sub_name}{'source'};
                 $data{'code'}{$sub_name}{'status'}
-                    = $warn_count ? 'warned' : 'no-error';
+                    = $warn_count ? qw| warned | : qw| no-error |;
                 $ok_count++;
                 if (    $sub_name !~ m{\.(cmd|console)\.}
                     and $sub_name =~ m|\.end_code$| ) {
@@ -1574,13 +1618,13 @@ sub prepare_subs {
                 $code{$sub_name} = sub {
                     if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) { ## proto.,
                         $code{'log.error'}
-                            ->("<<< called broken routine :: $sub_name >>>");
+                            ->("<< called broken routine :: $sub_name >>");
                         return undef;
                     } else {
                         $code{'log.error'}
-                            ->("<<< broken command called :: $sub_name >>>");
+                            ->("<< broken command called :: $sub_name >>");
                         return {
-                            'mode' => 'false',
+                            'mode' => qw| false |,
                             'data' => "command '$sub_name' is broken.,"
                                 . " details in startup log.,"
                         };
@@ -1646,7 +1690,7 @@ sub prepare_subs {
         delete $data{'callbacks'}{'end_code'}
             if !@{ $data{'callbacks'}{'end_code'} };
         map {
-            $data{'code'}{$ARG}{'status'} = 'undefined'
+            $data{'code'}{$ARG}{'status'} = qw| undefined |
                 if not defined $code{$ARG}
             }
             keys %{ $data{'code'} };
@@ -1678,7 +1722,7 @@ sub prepare_subs {
     $code{'base.stderr_redir'} = sub {
         my $redir_ref = shift // \my $redir_var;
         open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
-            or print "\n<< ! >> cannot clone STDERR [ \l$OS_ERROR ]\n\n";
+            or print "\n<< cannot clone STDERR [ \l$OS_ERROR ] >>\n\n";
         close(STDERR);
         open( STDERR, '>', $redir_ref ) or say "< stderr_redir > \l$OS_ERROR";
         return $redir_ref;
@@ -1689,12 +1733,12 @@ sub prepare_subs {
         close(STDERR);
         if ( defined $restore_fh ) {
             open( STDERR, '>&', $restore_fh )
-                or print "\n<< ! >> cannot restore STDERR"
-                . " to $restore_fh [ \l$OS_ERROR ]\n\n";
+                or print "\n<< cannot restore STDERR"
+                . " to $restore_fh [ \l$OS_ERROR ] >>\n\n";
         } else {
             open( STDERR, '>', File::Spec->devnull() )
-                or print "\n<< ! >> cannot restore STDERR"
-                . " to '/dev/null' [ \l$OS_ERROR ]\n\n";
+                or print "\n<< cannot restore STDERR"
+                . " to '/dev/null' [ \l$OS_ERROR ] >>\n\n";
         }
     };
 
@@ -1704,14 +1748,14 @@ sub prepare_subs {
 
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'}{'console'} < 2;
-        my $sub_name = shift(@_);
+        my $sub_name = shift(@ARG);
         ## $code{'base.collect_sub_stats'}->($sub_name); # <-- replace touch_dir
         my $quoted_chars = qr{[\ ;:,\.'\\]|^$};
-        my @_p           = @_;
+        my @_p           = @ARG;
 
       # log all used subroutines if $sub_touch_dir exist and is owned by root.
         my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
-            // '/var/tmp/protocol-7_debug.sub_log';
+            // qw| /var/tmp/protocol-7_debug.sub_log |;
         if ( -d $sub_touch_dir
             and File::stat::stat($sub_touch_dir)->uid == 0 ) {
             my $zenka_name = $data{'system'}{'zenka'}{'name'};
@@ -1729,8 +1773,8 @@ sub prepare_subs {
                 chown( $dir_uid, $dir_gid, $actual_dir ) if defined $dir_gid;
                 chmod( $dir_mode, $actual_dir ) or warn "$actual_dir : $!";
             }
-            open( my $_fh, ">$actual_dir/$sub_name" )
-                if !-f ">$actual_dir/$sub_name";
+            my $sub_path = join( qw| / |, $actual_dir, $sub_name );
+            open( my $_fh, qw| > |, $sub_path ) if !-f $sub_path;
             if ( fileno($_fh) ) {
                 say {$_fh} $code{'base.ntime'}->(3);
                 close($_fh);
@@ -1738,11 +1782,11 @@ sub prepare_subs {
         }
 
       # hiding plain text passwords in debug output [not including conf files]
-        $_p[2] = '*' x 7 if $sub_name eq 'net.authme';
-        $_p[1] = '*' x 7 if $sub_name eq 'auth.ok';
-        $_p[0] = '*' x 7 if $sub_name eq 'chk-sum.sha.1';
+        $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
+        $_p[2] = '*' x 7 if $sub_name eq qw| net.authme |;
+        $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
         $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
-            if $sub_name eq 'net.out';
+            if $sub_name eq qw| net.out |;
 
         map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
         my @params = map {
@@ -1783,9 +1827,10 @@ sub prepare_subs {
             $data{'system'}{'zenka'}{'name'},
             $sub_name, $param_list
             )
-            if $sub_name ne 'base.log'
-            and ( $sub_name ne 'base.buffer.add_line' or $_[0] ne 'zenka' )
-            and $sub_name ne 'base.dump_data';  # skipping too much output ..,
+            if $sub_name ne qw| base.log |
+            and ( $sub_name ne qw| base.buffer.add_line |
+            or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
+            and $sub_name ne qw| base.dump_data |;
     };
 
     $code{'base.log_hook'} = sub {
@@ -1872,7 +1917,7 @@ sub prepare_subs {
         $s_len //= 1;    # <-- << ! >>
         my $spaces = ' ' x $s_len;
         if ( defined $code{'base.log'} ) {
-            map { $code{'base.log'}->( 1, $ARG ) } @_;
+            map { $code{'base.log'}->( 1, $ARG ) } @ARG;
         } else {
             my $hl = index( $ARG[0], '.\\7', 0 ) == 0 ? 1 : 0;
             if ( $data{'system'}{'verbosity'}{'console'} ) {
@@ -1880,7 +1925,7 @@ sub prepare_subs {
                     say $code{'log.format_name'}->($hl), ' ',
                         $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
                         $spaces
-                } @_;
+                } @ARG;
             }
             ## early start-up buffer ##
             map {
@@ -1888,7 +1933,7 @@ sub prepare_subs {
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
                     join( ' ', $code{'base.anum_log_time'}->(), 1, $ARG )
                 )
-            } @_ if $data{'system'}{'verbosity'}{'zenka_buffer'};
+            } @ARG if $data{'system'}{'verbosity'}{'zenka_buffer'};
         }
     };
 
@@ -1899,7 +1944,7 @@ sub prepare_subs {
             : '';
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} and defined &{ $code{'base.log'} } ) {
-            map { $code{'base.log'}->( 0, $ARG ) } @_;
+            map { $code{'base.log'}->( 0, $ARG ) } @ARG;
         } else {
             map {
                 if ( defined $ARG ) {
@@ -1918,21 +1963,21 @@ sub prepare_subs {
                 } else {
                     warn '<< error message undefined >> <{C1}>';
                 }
-            } @_;
+            } @ARG;
             ## early start-up buffer ##
             map {
                 push(
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
                     join( ' ', $code{'base.anum_log_time'}->(), 0, $ARG )
                 )
-            } @_;
+            } @ARG;
         }
     };
 
     $code{'log.debug'} = sub {
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} ) {
-            map { $code{'base.log'}->( 2, $ARG ) } @_;
+            map { $code{'base.log'}->( 2, $ARG ) } @ARG;
         } else {
             if ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
                 my $s_len;
@@ -1944,7 +1989,7 @@ sub prepare_subs {
                     say &{ $code{'log.format_name'} }, $ANSI{'p7_fg_0001'},
                         $ARG, $ANSI{'reset'},
                         $spaces
-                } @_;
+                } @ARG;
             }
             ## early start-up buffer ##
             map {
@@ -1952,7 +1997,7 @@ sub prepare_subs {
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
                     join( ' ', $code{'base.anum_log_time'}->(), 2, $ARG )
                 )
-            } @_ if $data{'system'}{'verbosity'}{'zenka_buffer'} > 1;
+            } @ARG if $data{'system'}{'verbosity'}{'zenka_buffer'} > 1;
         }
     };
 
@@ -1963,7 +2008,7 @@ sub prepare_subs {
         $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         $s_len //= 0;
         my $spaces = ' ' x $s_len;
-        if (@_) {
+        if (@ARG) {
             my $c_lvl = 0;
             chomp( my @err = @ARG );
             map {
@@ -2016,7 +2061,7 @@ sub prepare_subs {
                 and defined $abs_ex_name
                 and defined $abs_filename
                 and $abs_filename eq $abs_ex_name
-                and $SUB_NAME eq 'base.init' ) {
+                and $SUB_NAME eq qw| base.init | ) {
                 my $l = 0;
                 $filename = $data{'base'}{'eval_error'}{'name'}
                     //= [ caller($l) ]->[1];
@@ -2106,7 +2151,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#3Q3FW7XDQL2M2T44Y62AQYCC52BUTYDDZKNXRSDCINUFXZ3QBGECXCFT37HZ562EL5HG3FQA54ADM
-#::: IZOLS7HBIZPRCD6TIYKL56TOFRLXLNZQOHOENAZOPKE47KODAII :::: NAILARA AMOS :::
-# :: EIUKXVSM7V3HY7UJQNME3ZI6FW5B5OG7GBLTYEQZ35F55L2YYSCY :: CODE SIGNATURE ::
+#JNQLH4ITQQYH7TD26MR3FXOK7D7XBA5VA7C3GA53GUIHDHJXNF5EANGEL37HLOE4TJAAYKYIPT3YM
+#::: EP27HCMEYTQLT2QJEDLAK7H2NHKBZC5SOXSRXLJI2XHXMBPR3SH :::: NAILARA AMOS :::
+# :: MXIZJDQQRGC4G23MFESBAFIUHJIBUVPZNY4LIYBVTS6RSIF4LCDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

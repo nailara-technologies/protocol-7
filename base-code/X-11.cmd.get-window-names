@@ -4,15 +4,17 @@
 # descr = return list of window ids and titles
 
 my $reply_str = '';
+
 foreach my $window_id (<[X-11.get_window_ids]>) {
+
     my $title = <[X-11.get_window_title]>->($window_id);
-    $reply_str .= "$window_id $title\n";
+    $reply_str .= sprintf "%d %s\n", $window_id, $title;
 }
 
-return { 'mode' => 'data', 'data' => $reply_str }
+return { 'mode' => qw| size |, 'data' => $reply_str }
 
 #.............................................................................
-#XFGCNNXDGRJ4RY7X22SFESV63MQ4MZY7OU3IDD2KZ7DIKP7KMWWWGUELH5BRKVZ3FNIDIW5EACUVU
-#::: E5SNKEHB3HX47FRZIJIMWNDXUEW3TXHLZNJE7F7DKYXZIL3RGZ5 :::: NAILARA AMOS :::
-# :: JKE6JLOZZ2J2SBDGREVRVQQPTUZGUBETMKC7ZWLZHNDTRRSNYCBA :: CODE SIGNATURE ::
+#PUZH3LDBSFRR55LNBEMVDID5NYFLX4BQYJQZWFA55PYPEV7KEUQPM2XAQDWCSPYFGD6HX5YE5DNE2
+#::: UXHR67R6NSMEWVS6RRU33F5TZEEWFNGLUKKB2GSXY6V57AMEXYX :::: NAILARA AMOS :::
+# :: M7RJE54S2CTCULVD66IZHFZWL3VAAQIBRYTG32Q5VOH5KTKWBYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

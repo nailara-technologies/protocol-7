@@ -28,9 +28,9 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 my $cmd    = '';
 my $cmd_id = 0;
 
-##[ DROP \ DATA REPLIES ]#######################################################
+##[ DROP \ SIZE REPLIES ]#####################################################
 
-if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
+if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
         <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore-]bytes.," );
         if ( length($$input) >= $ignore_bytes ) {
@@ -45,13 +45,13 @@ if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped DATA replies.,
     }
 }
 
-##[ STOP WATCHER TO MODIFY INPUT BUFFER ]#######################################
+##[ STOP WATCHER TO MODIFY INPUT BUFFER ]#####################################
 
 # stop handler to modify buffer without calling the handler
 
 $_[0]->w->stop;
 
-##[ STOP TIMER \ ONDEMAND TIMEOUT ]#############################################
+##[ STOP TIMER \ ONDEMAND TIMEOUT ]###########################################
 
 # cancel ondemand timeout [ reinstalled in idle watcher ]
 if ( exists <base.timer.ondemand_timeout> ) {
@@ -59,20 +59,20 @@ if ( exists <base.timer.ondemand_timeout> ) {
     delete <base.timer.ondemand_timeout>;
 }
 
-##[ CLEAN-UP ]##################################################################
+##[ CLEAN-UP CMD LINE ]#######################################################
 
 ### cleaning up command line ###
 
 $$input =~ s|^\s+||;
 $$input =~ s|^([^\n]+?)[ \t]+\n|$1\n|;
 
-##[ SET-UP \ VARIABLES ]########################################################
+##[ SET-UP \ VARIABLES ]######################################################
 
 my @args;
 my $command_mode = 0;
 my $call_args    = {};
 
-##[ SYNTAX CHECK \ CMD-ID ]#####################################################
+##[ CHECK SYNTAX \ CMD-ID ]###################################################
 
 # check cmd_id regex [ for numbers or valid length ]
 if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
@@ -88,7 +88,7 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 <[base.session.calc_cmd_stats]>->( $id, $input );   ## updates for protocol ##
 
-##[ MULTI-LINE ]################################################################
+##[ MULTI-LINE ]##############################################################
 
 ## checking for multi-line commands ###
 
@@ -138,7 +138,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
                             . " syntax not valid\n";  ## <-- [re]define. [LLL]
 
                         $_[0]->w->start;
-                        return 0;                     ## command complete ##
+                        return 0;    ##  command processing was complete  ##
                     }
                 } elsif ( $header == 1 ) {
                     $header = 0;
@@ -154,7 +154,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
     }
 }
 
-##[ RETURN \ INCOMPLETE MULTI-LINE ]############################################
+##[ RETURN \ INCOMPLETE MULTI-LINE ]##########################################
 
 ## incomplete multiple line command ##
 
@@ -164,18 +164,18 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
     return 1;    ## command not complete ###
 }
 
-##[ RETURN \ INCOMPLETE DATA ]##################################################
+##[ RETURN \ INCOMPLETE 'SIZE' REPLY ]########################################
 
-## incomplete DATA reply ## [LLL] switch to stream type transfer ..,
+## incomplete SIZE reply ## [LLL] switch to stream type transfer ..,
 
-elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *DATA +(\d+)\n),o
+elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *SIZE +(\d+)\n),o
     and length($$input) < ( $3 + length($1) ) ) {
 
     $_[0]->w->start;
     return 1;    ## command not complete ###
 }
 
-##[ SINGLE LINE ]###############################################################
+##[ SINGLE LINE CMD ]#########################################################
 
 ### single command line ###
 
@@ -199,7 +199,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
     $command_mode = 1;
 }
 
-##[ REPLY TO PROTOCOL ERRORS ]##################################################
+##[ REPLY TO PROTOCOL ERRORS ]################################################
 
 ## protocol error ##
 
@@ -208,26 +208,26 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
     $$output .= $_cmd_id . "FALSE $protocol_error\n";
     $_[0]->w->start;
-    return 0;    ## command complete ##
+    return 0;    ##  command processing was complete  ##
 }
 
-##[ RETURN \ EMPTY COMMAND LINE ]###############################################
+##[ RETURN \ EMPTY COMMAND LINE ]#############################################
 
 # empty command line
 
 elsif ( $$input =~ s|^$|| ) { $_[0]->w->start; return 0 }
 
-##[ RETURN \ COMMAND NOT COMPLETE ]#############################################
+##[ RETURN \ COMMAND NOT COMPLETE ]###########################################
 
 # incomplete command line
 
 else { $_[0]->w->start; return 1 }    ## command not complete ###
 
-# won't modify buffer again
+# not going to modify buffer again
 
 $_[0]->w->start;
 
-##[ PROCESS \ COMMAND \ EXTRACT ID ]############################################
+##[ PROCESS COMMAND \ EXTRACT ID ]############################################
 
 # extract command id
 
@@ -236,7 +236,7 @@ if ( $cmd =~ s|^\(($re->{cmd_id})\) *||o ) { $cmd_id = $1 }
 $$call_args{'command_id'} = $cmd_id;
 $$call_args{'session_id'} = $id;
 
-##[ REROUTE ]###################################################################
+##[ REROUTE ]#################################################################
 
 # 'reroute' replacement regex
 
@@ -260,19 +260,19 @@ if ( defined <cube.reroute> ) {
         and exists <cube.reroute.command>->{$cmd};
 }
 
-##[ ALIASES ]###################################################################
+##[ COMMAND ALIASES ]#########################################################
 
 # alias check and replacement
 
 my $alias_to;
 
-##[ ALIASES \ GLOBAL ]##########################################################
+##[ ALIASES \ GLOBAL ]########################################################
 
 # global alias
 $alias_to = $data{'alias'}{$cmd}
     if exists $data{'alias'} and exists $data{'alias'}{$cmd};
 
-##[ ALIASES \ USERNAME ]########################################################
+##[ ALIASES \ USERNAME ]######################################################
 
 # per user alias
 $alias_to = $data{'user'}{$user}{'alias'}{$cmd}
@@ -281,7 +281,7 @@ $alias_to = $data{'user'}{$user}{'alias'}{$cmd}
 my $cmd_orig  = $cmd;
 my $args_orig = $$call_args{'args'};
 
-##[ PROCESS \ ALIASES ]#########################################################
+##[ PROCESS \ ALIASES ]#######################################################
 
 if ( defined $alias_to and length($alias_to) ) {
     $$call_args{'cmd'}{'unalias'} = $cmd;
@@ -301,12 +301,12 @@ if ( defined $alias_to and length($alias_to) ) {
     }
 }
 
-##[ PREPARE REPLY \ HAS REPLY ID ]##############################################
+##[ PREPARE REPLY \ HAS REPLY ID ]############################################
 
 my $_cmd_id = '';
 if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
-##[ COMMAND REPLIES ]###########################################################
+##[ COMMAND REPLIES ]#########################################################
 
 # check reply types
 my $valid_answer = 0;
@@ -316,14 +316,14 @@ my $cmd_usr_str
     = $cmd;    # used for access checking [ relevant with <sid>.<cmd> ]
 $cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
     if $cmd =~ m|^($re->{sid_str})(\..+)$|
-    and $_m1 = $1
-    and $_m2 = $2
+    and $_m1 = ${^CAPTURE}[0]
+    and $_m2 = ${^CAPTURE}[1]
     and exists $data{'session'}{$_m1}
     and $data{'session'}{$_m1}{'user'} =~ $re->{usr};
 
-##[ COMMAND REPLY \ MATCH TYPE ]################################################
+##[ COMMAND REPLY \ MATCH TYPE ]##############################################
 
-if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
+if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
     if ( exists $data{'session'}{$id}
         and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
@@ -367,7 +367,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                 } elsif (
                     defined $data{'session'}{ $$route{'source'}{'sid'} } ) {
                     my $source_sid = $$route{'source'}{'sid'};
-                    ##  calling reply handler if a filter hook was applied., ###
+                    ## calling reply handler if a filter hook was applied., ##
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
                             'args' => \$$call_args{'args'},
@@ -388,7 +388,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     <[base.log]>->(
                         0,
                         sprintf(
-                            '{%s} unknown session, dropped reply.. [%d bytes]',
+                            '[%s] unknown session, reply dropped., [ %d B ]',
                             $$route{'source'}{'sid'},
                             length("$s_cmd_id$cmd $$call_args{args}\n")
                         )
@@ -417,9 +417,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 $valid_answer = 1;
 
-##[ PROCESS REPLY \ DATA ]######################################################
+##[ PROCESS REPLY : 'SIZE' ]##################################################
 
-            } elsif ( $cmd eq 'DATA' ) {
+            } elsif ( $cmd eq qw| SIZE | ) {
                 if ( $$call_args{'args'} =~ m|^\d+$| ) {
                     my $msg_len = $$call_args{'args'};
 
@@ -458,7 +458,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                             }
                         } else {
 
-                            ## sending DATA reply to target ##
+                            ## sending SIZE reply to target ##
 
                             $data{'session'}{ $$route{'source'}{'sid'} }
                                 {'buffer'}{'output'}
@@ -487,13 +487,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     } else {    # should never reach this point
                         <[base.log]>->(
                             1,
-                            "[$id] [DATA] buffer is missing data [ $msg_len <= "
+                            "[$id] [SIZE] buffer is missing data [ $msg_len <= "
                                 . $$call_args{'args'} . "]"
                         );
                     }
                 }
 
-##[ PROCESS REPLY \ STRM ]######################################################
+##[ PROCESS REPLY \ STRM ]####################################################
 
             } elsif ( $cmd eq 'STRM' ) {
                 ####
@@ -516,11 +516,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     1, "[$id] called unimplemented answer type ['$cmd']"
                 );
                 $$output .= "[$cmd] answer type not implemented yet.\n";
-                return 0;    ## command complete ##
+                return 0;    ##  command processing was complete  ##
             }
         }
 
-##[ PROCESS REPLY \ UNKNOWN ROUTE ID ]##########################################
+##[ PROCESS REPLY \ UNKNOWN ROUTE ID ]########################################
 
     } else {
         my $ignore_log_level = 1;
@@ -534,21 +534,21 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             "[$id] $cmd-reply to unknown route id, ignored."
         );
 
-        if (    $cmd eq 'DATA'
+        if (    $cmd eq qw| SIZE |
             and $call_args->{'args'} =~ m|^\d+$|
             and my $ignore_bytes = $call_args->{'args'} ) {
             if ( length($$input) >= $ignore_bytes ) {
                 substr( $$input, 0, $ignore_bytes, '' );
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : dropped next $ignore_bytes bytes too.. [DATA body]"
+                    "[$id] : dropped next $ignore_bytes bytes., [ SIZE body ]"
                 );
-                return 0;    ## command complete ###
+                return 0;    ##  command processing was complete  ###
 
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : ignoring next $ignore_bytes bytes as well., [DATA]"
+                    "[$id] : to ignore next $ignore_bytes bytes., [ SIZE ]"
                 );
                 $data{'session'}{'ignore_bytes'} -= length($$input);
                 truncate( $$input, 0 );
@@ -557,13 +557,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
         return 1;    ## command not complete ###
     }
 
-##[ PROCESS REPLY \ UNKNOWN TYPE ]##############################################
+##[ PROCESS REPLY \ UNKNOWN TYPE ]############################################
 
 } elsif ( $cmd eq uc($cmd) ) {
-    <[base.log]>->( 1, "[$id] invalid reply type '$cmd'" );
-    $$output .= $_cmd_id . "FALSE protocol mismatch [ invalid reply type ]\n";
+    <[base.log]>->( 1, "[$id] reply type '$cmd' not valid" );
+    $$output .= $_cmd_id . "FALSE protocol error [ reply type not valid ]\n";
 
-##[ PROCESSING \ LOCAL COMMAND ]################################################
+##[ PROCESSING \ LOCAL COMMAND ]##############################################
 
 } elsif ( <[base.has_access]>->( $user, $cmd_usr_str ) ) {
 
@@ -575,7 +575,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
                 and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
 
-##[ LOCAL COMMAND \ PREPARING DEFERRED ]########################################
+##[ LOCAL COMMAND \ PREPARING DEFERRED ]######################################
 
                 ## prepare reply id [ used in 'deferred' mode ] ##
 
@@ -590,7 +590,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                 };
                 $call_args->{'reply_id'} = $reply_id;
 
-##[ LOCAL COMMAND \ CALLING HANDLER ]###########################################
+##[ LOCAL COMMAND \ CALLING HANDLER ]#########################################
 
                 ## calling command handler ##
                 my $reply;
@@ -603,7 +603,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                             = <[base.format_error]>->( $EVAL_ERROR, -1 );
                         $caller = defined $caller ? " $caller" : '';
                         my $log_error = 1;
-                        ## alternative handler registered for filename:line ? ##
+                        ##  alternative handler for filename:line ?  ##
                         my $warn_handlers = <base.warn-match-handler> // {};
                         if ( defined $warn_handlers->{$caller} ) {
                             my $cb_name = $warn_handlers->{$caller};
@@ -625,7 +625,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     }
                 }
 
-##[ LOCAL COMMAND \ DEFERRED ]##################################################
+##[ LOCAL CMD \ DEFERRED ]####################################################
 
                 ### deferred reply., ###
 
@@ -635,30 +635,38 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     <[base.log]>->( 2, "setting up reply for id $reply_id" );
 
                     # [LLL] set up reply timeout .,
-                    return 0;    ## command complete ##
+                    return 0;    ##  command processing was complete  ##
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
-##[ LOCAL COMMAND \ REPLY ERROR CHECK ]#########################################
+##[ LOCAL CMD \ REPLY ERROR CHECK ]###############@@@@########################
+
+                ##  REPLACING RENAMED REPLY TYPE  ##
+                $reply->{'mode'} = qw| size |
+                    if ref($reply) eq qw| HASH |
+                    and $reply->{'mode'} eq qw| data |;
+                ###
 
                 ## reply error check ##
 
-                if ( ref($reply) ne 'HASH' ) {    # <-- catches undef
+                if ( ref($reply) ne qw| HASH | ) {    # <-- catches undef
                     $reply          = {};
-                    $$reply{'mode'} = 'false';
+                    $$reply{'mode'} = qw| false |;
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                     <[base.log]>->(
                         0, "[$id] cmd ['$cmd'] <-- [ hashref expected ]"
                     );
                 } elsif (
-                    $$reply{'mode'} ne 'data'
-                    and ( not defined $$reply{'data'}
-                        or !length( $$reply{'data'} ) )
+                    (   $reply->{'mode'} ne qw| size | ## <-- new type name ##
+                        and $reply->{'mode'} ne qw| data |  ## <-- old type ##
+                    )
+                    and (  not defined $reply->{'data'}
+                        or not length $reply->{'data'} )
                 ) {
                     ( undef, my $file, my $line ) = ( caller(0) );
                     my $source_str
-                        = $file eq 'base.handler.input'
+                        = $file eq qw| base.handler.input |
                         ? "'$cmd'"
                         : "$file:$line";
                     <[base.log]>->(
@@ -667,31 +675,29 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                             . uc( $$reply{'mode'} )
                             . "-reply attempted [$source_str]"
                     );
-                    $$reply{'mode'} = 'false';
+                    $$reply{'mode'} = qw| false |;
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                 }
 
-##[ LOCAL COMMAND \ CHECK ANSWER MODE ]#########################################
+##[ LOCAL CMD \ CHECKING ANSWER MODE ]########################################
 
                 ## check answer mode ##
-
                 if ( $$reply{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
                     $$reply{'data'} =~ s|\n|\\n|go;
-                    $$output
-                        .= $_cmd_id
-                        . uc( $$reply{'mode'} ) . ' '
-                        . $$reply{'data'} . "\n";
-                } elsif ( uc( $$reply{'mode'} ) eq 'DATA' ) {
-                    my $len = length( $$reply{'data'} );
-                    $$output
-                        .= $_cmd_id . 'DATA ' . $len . "\n" . $$reply{'data'};
-                } elsif ( uc( $$reply{'mode'} ) eq 'TERM' ) {
-                    <[base.session.shutdown]>->( $id, $$reply{'data'} );
+                    $$output .= sprintf( "%s%s %s\n",
+                        $_cmd_id, uc( $reply->{'mode'} ),
+                        $reply->{'data'} );
+                } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
+                    my $len = length $reply->{'data'};
+                    $$output .= sprintf( "%sSIZE %d\n%s",
+                        $_cmd_id, $len, $reply->{'data'} );
+                } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
+                    <[base.session.shutdown]>->( $id, $reply->{'data'} );
                 }
-                return 0;    ## command complete ##
+                return 0;    ##  command processing was complete  ##
 
-##[ LOCAL COMMAND \ HANDLER NOT DEFINED ########################################
+##[ LOCAL COMMAND \ HANDLER NOT DEFINED ######################################
 
             } else {
                 <[base.log]>->(
@@ -699,7 +705,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                 );
             }
 
-##[ LOCAL COMMAND \ UNKNOWN COMMAND ]###########################################
+##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
         } else {
             <[base.log]>->( 1, "[$id] command unknown '$cmd'" );
@@ -707,10 +713,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
         $$output .= $_cmd_id . "FALSE $unkown_command\n";
 
-        return 0;    ## command complete ##
+        return 0;    ##  command processing was complete  ##
     }
 
-##[ PARENT BRANCH \ EXTERNAL CORE ]#############################################
+##[ PARENT BRANCH \ EXTERNAL CORE ]###########################################
 
     ## tree upwards., ##
 
@@ -721,14 +727,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
         <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
 
         $$output .= "FALSE not implemented yet.,\n";
-        return 0;    ## command complete ##
+        return 0;    ##  command processing was complete  ##
 
         if ( exists $data{'user'}{$1}{'session'}
-            and $data{'user'}{$1}{'mode'} eq 'link' ) {
+            and $data{'user'}{$1}{'mode'} eq qw| link | ) {
 
        #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
-        return 0;    ## command complete ##
+        return 0;    ##  command processing was complete  ##
     }
 
 ##[ ABSOLUTE PATH ROUTING ]#####################################################
@@ -737,29 +743,31 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
     elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
     {    # LLL: regex invalid: <only host>
-        my $network_name = $1;
-        my $node_name    = $1;
+        my $network_name = ${^CAPTURE}[0];
+        my $node_name    = ${^CAPTURE}[0];
 
         # ^ not yet implemented [ route discovery feature.., ]
 
-##[ PROCESS \ PREPARE TARGET SIDS ]#############################################
+##[ PROCESS \ PREPARE TARGET SIDS ]###########################################
 
     } elsif (
         $cmd =~ s,^($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.
                     ((($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.)*
                     $re->{cmd_str})$,$2,gxo
     ) {
-        my $target_name = $1;    # usr|sid
-        my $command_str = $2;    # [ deeper targets + ] command
+        my $target_name = ${^CAPTURE}[0];    # usr|sid
+        my $command_str = ${^CAPTURE}[1];    # [ deeper targets + ] command
         my $target_subname
-            = $target_name =~ s|\[($re->{subname})\]$|| ? $1 : undef;
+            = $target_name =~ s|\[($re->{subname})\]$||
+            ? $LAST_PAREN_MATCH
+            : undef;
 
         my @send_sids;
 
         if ( $target_name =~ $re->{sid} ) {    ## <session_id>.<command> mode
             my $target_sid = $target_name;
             if ( exists $data{'session'}{$target_sid}
-                and $data{'session'}{$target_sid}{'mode'} eq 'client' ) {
+                and $data{'session'}{$target_sid}{'mode'} eq qw| client | ) {
                 @send_sids = ($target_sid);
             }
         } elsif (
@@ -770,7 +778,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             ) {                                ## [ online \ present ]
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
-                next if $data{'session'}{$target_sid}{'mode'} ne 'client';
+                next if $data{'session'}{$target_sid}{'mode'} ne qw| client |;
 
                 #### 'target[subname]' syntax:
                 next
@@ -782,7 +790,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                 push( @send_sids, $target_sid );
             }
 
-##[ ONDEMAND AGENTS ]###########################################################
+##[ ONDEMAND ZENKI ]##########################################################
 
         } elsif ( my $v_id
             = <[base.zenki.ondemand_registered]>->($target_name) )
@@ -800,7 +808,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
-                $target_command //= 'v7.start_once';
+                $target_command //= qw| v7.start_once |;
 
                 # ..,
 
@@ -830,19 +838,20 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                         {   'command'   => $target_command,
                             'call_args' => { 'args' => $start_name },
                             'reply'     => {
-                                'handler' => 'base.handler.ondemand_startup',
-                                'params'  => { 'v_id' => $v_id }
+                                'handler' =>
+                                    qw| base.handler.ondemand_startup |,
+                                'params' => { 'v_id' => $v_id }
                             }
                         }
                     );
                 }
-                return 0;    ## command complete ##
+                return 0;    ##  command processing was complete  ##
             } else {
                 <[base.log]>->( 1, ": target user '$target_user' not found" );
             }
         }
 
-##[ FALSE REPLY \ CLIENT NOT PRESENT ]############################################
+##[ 'FALSE' REPLY : CLIENT NOT PRESENT ]######################################
 
         if ( !@send_sids ) {
             $$output .= $_cmd_id . "FALSE $unkown_command\n";
@@ -850,10 +859,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             <[base.log]>->(
                 $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
             );
-            return 0;    ## command complete ###
+            return 0;    ##  command processing was complete  ###
         }
 
-##[ CHECK INITIALIZED ]#########################################################
+##[ CHECK INITIALIZED ]#######################################################
 
         my @send_sids_left;
         foreach my $target_sid (@send_sids)
@@ -878,12 +887,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             );
         }
 
-##[ RETURN \ CHECK NONE LEFT ]##################################################
+##[ RETURN \ CHECK NONE LEFT ]################################################
 
         return 0 if @send_sids_left == 0;    ##  <--  all done.,  ###
         @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
-##[ PROCESS \ FILTER HOOKS ]####################################################
+##[ PROCESS \ FILTER HOOKS ]##################################################
 
         # command [argument] filter hooks  ..,
         my $cmd_hook_data = <[base.handler.cmd_filter_hooks]>->(
@@ -894,7 +903,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             }
         );
 
-##[ PROCESS \ GROUP MODE ]######################################################
+##[ PROCESS \ GROUP MODE ]####################################################
 
         # send to all clients with that username [ group mode ]
         my $targets_denied = 0;
@@ -909,7 +918,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                 next;    # skip unauthorized connections
             }
 
-##[ SET UP ROUTE ]##############################################################
+##[ SET UP ROUTE ]############################################################
 
             ## setting up route ##
 
@@ -923,7 +932,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
-##[ LOGGING ]###################################################################
+##[ CMD LOGGING ]#############################################################
 
             if (   <system.verbosity.console> >= 2
                 or <system.verbosity.zenka_buffer> >= 2 ) {
@@ -942,7 +951,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
                     or !<debug.skip_v7_heartbeat> );
             }
 
-##[ LOGGING \ DEBUG MODE ]######################################################
+##[ LOGGING \ DEBUG MODE ]####################################################
 
             if ( <system.verbosity.console> >= 3
                 and defined $$call_args{'args'}
@@ -954,11 +963,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
             $target_cmd_id =~ s|^($re->{cmd_id})$|($1)|;
 
-##[ PROCESS \ SINGLE LINE ]#####################################################
+##[ PROCESS \ SINGLE LINE CMD ]###############################################
 
-            if ( $command_mode == 1 )    ## single line command mode ##
-            {
+            if ( $command_mode == 1 ) {    ## single line command mode ##
+
                 my $args = '';
+
                 local $$call_args{'args'} = ''
                     if not defined $$call_args{'args'};
 
@@ -969,16 +979,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
 
                 # [LLL] set up timeout handler
 
-##[ PROCESS \ MULTI-LINE ]######################################################
+##[ PROCESS \ MULTI-LINE ]####################################################
 
-            } elsif ( $command_mode == 2 )    ## multi line command mode ##
-            {
+            } elsif ( $command_mode == 2 ) {    ## multi line command mode ##
+
                 my $header = '';
 
+                ## preparing parameter header ##
                 if ( defined $$call_args{'param'}
-                    and ref( $$call_args{'param'} ) eq
-                    'HASH' )    ## preparing parameter header ##
-                {
+                    and ref( $$call_args{'param'} ) eq qw| HASH | ) {
                     my ( $key, $val );
 
                     while ( ( $key, $val )
@@ -1001,47 +1010,58 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|DATA|STRM|GET|TERM)$, ) {
             }
         }
 
-##[ PROCESS \ NOTHING SENT ]####################################################
+##[ PROCESS \ NOTHING SENT ]##################################################
 
         ## nothing was sent ##
         if ( $targets_denied == @send_sids ) {
-            $$output .= $_cmd_id . "FALSE $permission_message\n";
+            $$output .= sprintf "%sFALSE %s\n", $_cmd_id, $permission_message;
             <[base.log]>->(
                 0,
                 "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
             );
-            return 0;    ## command complete ##
+            return 0;    ##  command processing was complete  ##
         }
 
         ## at least one target was valid ##
 
-        return 0;        ## command complete ##
+        return 0;        ##  command processing was complete  ##
 
-##[ PROCESS \ SYNTAX NOT VALID ]################################################
+##[ PROCESS \ NOT VALID SYNTAX ]##############################################
 
     } else {    ## command syntax not valid ##
         $$output .= $_cmd_id . "FALSE $protocol_error\n";
-        <[base.log]>->( 1, "[$id] protocol mismatch ['$cmd']" );
-        return 0;    ## command complete ##
+        <[base.logs]>->( '[%d] protocol mismatch [\'%s\']', $id, $cmd );
+
+        return 0;    ##  command processing was complete  ##
     }
 
-##[ PROCESS \ COMMAND UNKNOWN ]#################################################
+##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
     ## command unknown ##
+
     $$output .= $_cmd_id . "FALSE $unkown_command\n";
-    <[base.log]>->( 1, "[$id] command unknown [ usr:'$user' cmd:'$cmd' ]" );
+    <[base.logs]>->(
+        '[%d] command unknown [ src \'%s\' cmd \'%s\' ]',
+        $id, $user, $cmd
+    );
+
 } else {    ## insufficient access permissions ##
+
     $$output .= $_cmd_id . "FALSE $permission_message for '$cmd'\n";
-    <[base.log]>->( 0, "[$id] blocked access [ usr:'$user' cmd:'$cmd' ]" );
-    return 0;    ## command complete ##
+    <[base.logs]>->(
+        0,   '[%d] blocked access [ src \'%s\' cmd \\ usr \'%s\' ]',
+        $id, $user, $cmd
+    );
+
+    return 0;    ##  command processing was complete  ##
 }
 
-##[ RETURN \ PROCESSING COMPLETE ]##############################################
+##[ RETURN : PROCESSING COMPLETE ]############################################
 
-return 0;        ## command complete ##
+return 0;        ##  command processing was complete  ##
 
 #.............................................................................
-#YTX67NYPZPBTKJS3JY44MVNH3TH6SAAXAXNIHVGECTZ4CDSUJ3TXW2MO2XDQMKWBHXQSN57WPLDM6
-#::: LHXBMBOULE6BNORQRVLV2I4YGTR7HNJWBSFWKTJY4DCFMUIGR7N :::: NAILARA AMOS :::
-# :: TGUUJBDO35XZATU32GNM7XBCIOE3ZVYXYVO5RR3ZDFAQ3GQDVCCI :: CODE SIGNATURE ::
+#2OADOH7UJ7IQWAEVIT36JBLSF2I777WVYBSSKI5C3VKUNAVSOPZDYF4HORHCZM6RZ4WWXLQOS3NQ6
+#::: D2YIKA5WUVDARSQS6SZVU253EJ24JLZQJXYMLZUNHASA5RVQXDX :::: NAILARA AMOS :::
+# :: 43ZFWWGUETWNXU2MKF4JCGBK3OWYE25TH2U5PCZH6XCMXI5EGQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

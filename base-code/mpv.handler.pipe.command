@@ -16,14 +16,14 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     $cmd_reply_str .= "\n" if length($cmd_reply_str);
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'data',
+        {   'mode' => qw| size |,
             'data' => $cmd_reply_str
         }
     );
 }
 
 #.............................................................................
-#M46EDREPI3HXOUOGQ7JJ5PGXA5GF2THXV4VFREJRUMLHTUOONS72GHUPNNLT744ZQKNV2QCMOFIDU
-#::: 2FOWQJTPBUAXKN33FE3PF2663NQOEUG2YDPQKEFNWBIS5G4OP6J :::: NAILARA AMOS :::
-# :: N327BG7K5TW6WQWWQGOYNPDYKGEPLU4ZXHY67CZP6VW4NTFI46DQ :: CODE SIGNATURE ::
+#QXHDCKXYGHJMQYDIGURXSQTABUFZ3EZEGMUVDCBDZUA4FE4RT4RLG52ZAWFCKMUNOGJYM5FAM2KMO
+#::: DV6AYCJKK7VJZZZKCGAI7TKRADZQ2OSN35TUHYTM5Q3DN3ZLFX2 :::: NAILARA AMOS :::
+# :: 736AJNZ7W2OIPU5YOMT65GHRCJR6X4Q2TV7QOUM74HQJUOU5X2AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

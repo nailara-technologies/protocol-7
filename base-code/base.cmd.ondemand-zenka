@@ -11,12 +11,12 @@ return { 'mode' => 'false', 'data' => 'expected <add|del> <zenka_name>' }
     or !length( $$call{'args'} )
     or $$call{'args'} !~ m{^(add|del) ($re->{'usr_str'})$};
 
-my ( $cmd, $zenka_name ) = split / +/, $$call{'args'};
+my ( $cmd, $zenka_name ) = split m| +|, $$call{'args'};
 
 if ( $cmd eq 'add' ) {
     map {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "there already is one registered ondemand type zenka "
                 . "'$zenka_name'"
             }
@@ -35,39 +35,40 @@ if ( $cmd eq 'add' ) {
             }
         }
     );
-    <[base.log]>->(
-        2, "registered ondemand zenka '$zenka_name' [id=$zenka_id]"
+    <[base.logs]>->(
+        2,           "registered ondemand zenka '%s' [id=%d]",
+        $zenka_name, $zenka_id
     );
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "zenka registered [ id = $zenka_id ]"
     };
 
-} elsif ( $cmd eq 'del' ) {
+} elsif ( $cmd eq qw| del | ) {
     my $_zenka;
     my $del_id;
     map {
-        if (    <zenki.virtual>->{$ARG}->{'type'} eq 'ondemand'
+        if (    <zenki.virtual>->{$ARG}->{'type'} eq qw| ondemand |
             and <zenki.virtual>->{$ARG}->{'name'} eq $zenka_name ) {
             $_zenka = delete <zenki.virtual>->{$ARG};
             $del_id = $ARG;
         }
     } keys %{<zenki.virtual>};
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "no such zenka registered ['$zenka_name']"
         }
         if not defined $del_id;
     <[base.log]>
         ->( 1, "unregistered ondemand zenka $del_id ['$zenka_name']" );
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "virtual zenka $del_id ['$zenka_name'] unregistered"
     };
 }
 
 #.............................................................................
-#INZRZVXVGWTJNDPHBIRYWKGQQQGWNVM5HEO7BO7F4C676ERRQ6ZZDYNBGJKYC43BT5KU7GRK7G2F2
-#::: Y2BQTSIK3KSASFVWGDUH26NM5HG47Z5MYZXILDE4XK4ZZTH7QOT :::: NAILARA AMOS :::
-# :: UAGEJFZUHPDKOLAVFLFBA5FCIWCLZBKSLXAO2LO667HONZTNH4BI :: CODE SIGNATURE ::
+#OXNGL5NRKQK6MK5FSPZ4NWDEHQIRDBSVJRH4TL7WZSR5U2XJLE4GRKFDGUEGJ7SPUD2ARDWFFD77Y
+#::: EMUCNETB5XOVGKSUVLYGXDL32BFYIVNQ7JKKO7MNI4425PEE2XP :::: NAILARA AMOS :::
+# :: EQ4IXNBOMOQ7N6QKDJVJ4FBEGEQZPZVCUAHRNQRFABDGI3TYHIDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

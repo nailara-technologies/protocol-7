@@ -6,6 +6,11 @@
 my $user = shift;
 my $cmnd = shift;
 
+return warn 'has_access : expected <user> parameter <{C1}>'
+    if not defined $user or not length $user;
+return warn 'has_access :expected <command> parameter <{C1}>'
+    if not defined $cmnd or not length $cmnd;
+
 return 1    ## <-- has access ###
     if defined <access.cmd.regex.usr>->{$user}
     and $cmnd =~ <access.cmd.regex.usr>->{$user}
@@ -15,7 +20,7 @@ return 1    ## <-- has access ###
 return 0;    ## <-- no access ###
 
 #.............................................................................
-#UVBJ44OJHT7UMXY5QRPS4MQJPBXG7HCS7UTUN525JV7WHBTFH73SQU57764XWS3XQYCF6CNQUNHVI
-#::: DPTUZM2JCXLQ2HJMEPXAUY5VGXU3ASQGSUHBWEURZZRSVP5H2FI :::: NAILARA AMOS :::
-# :: VDMJDFREYAMSWQMT6VXCBTPSOZOJWPYNLAFJAIM4J44QTDE3QWAY :: CODE SIGNATURE ::
+#XT25XAQOZEEYNKGFAFBIXSAWF7IE3ZGWDSGAT34CLBVZTYLYXLDYXEEK2CXHUKS5T3DV35HY2Q3D2
+#::: KWBYZTQ6JQWP5ISMMOYHMFEATJQJQ25PJIQDB2SI7KOW2OB3CGB :::: NAILARA AMOS :::
+# :: UP4TSMG6Y7Z5VEMQEV3BWDCDXWBLF2VO7ZBHNUAJRSOIGXKEE2CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

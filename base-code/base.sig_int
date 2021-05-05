@@ -7,35 +7,27 @@ print "\b\b\r" if fileno(STDOUT);    ## removing ^C ##
 
 my $zenka_name = <system.zenka.name>;
 $PROGRAM_NAME .= " :. shutdown in progress.., one moment ., [$zenka_name]";
-<[base.log]>->( 0, "<<< SIGINT >>> stopping '$zenka_name' zenka ..," );
-
-#if ( <system.zenka.type> eq qw| v7 | or <system.zenka.type> eq qw| cube | ) {
-#    $SIG{'INT'} = 'IGNORE';
-#} else {
+<[base.log]>->( 0, "::: SIGINT ::: stopping '$zenka_name' zenka ..," );
 
 $SIG{'INT'} = sub {
     print "\b\b" if fileno(STDOUT);    ## removing ^C ##
-    <[base.log]>->( 0, '<<< SIGINT >>> emergency shutdown .,' );
+    <[base.log]>->( 0, '::: SIGINT ::: emergency shutdown ..,' );
     CORE::exit(1);
 };
 
-#}
-
 if ( exists $code{'net.send_all'} ) {
-    eval(     "# line "
-            . __LINE__
-            . " \"base.sig_int\"\n"
+    eval(     "# line 1 \"base.sig_int\"\n"
             . '$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");'
     );
 }
 
-print "\n < DEBUG MODE > zenka state :\n\n" . <[base.dump_data]> . "\n"
+printf( "\n < DEBUG MODE > zenka state :\n\n%s\n", <[base.dump_data]> )
     if <system.verbosity.console> >= 2 and <debug.sig_int_dump>;
 
 <[v7.teardown]>
-    if exists <system.zenka.type> and <system.zenka.type> eq qw| v7 |;
+    if defined <system.zenka.type> and <system.zenka.type> eq qw| v7 |;
 
-if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
+if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
     map { kill( 9, $ARG ) } @{<system.kill_list>};
 }
 
@@ -43,7 +35,7 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq 'ARRAY' ) {
 exit(130);
 
 #.............................................................................
-#CMR2K4KFMEK5NE643OK6F4DIWIA4D6TEO3QBU6ZBUFTQTFGBX4DRDTL725QD7AKDZ3RBZLHZVZHJS
-#::: D5EOE4Q2YYGCSAH4XNJDLE37X3CBQJVJ2WEC6Q5WBBWGN7ROY7K :::: NAILARA AMOS :::
-# :: PB6FT76BXWVK37MMTDOFSZPVLGKL2RHERPYGWBP6TBP5VRCIXUDA :: CODE SIGNATURE ::
+#U2PVS73HDSFZXNBP4LJZ7PCK37Y4BUEFY4IEYY6BRDLMT2QI4D7KU6H6QVWIQUK3T73NWHVK2343E
+#::: YZLCGOACX2HYYCTD4RV4P2VGOM4I7KI6BV4YNB5NBA4YHNVQYW3 :::: NAILARA AMOS :::
+# :: BZPSCVQ5UIBACQRAPGWLO7NGOPJLSTLFXFLQOPHXRK4PYRWKT6BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

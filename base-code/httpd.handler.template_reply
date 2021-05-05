@@ -2,14 +2,15 @@
 
 # name = httpd.handler.template_reply
 
-my $reply    = shift;
+my $reply = shift;
+return 'reply href expected' if not defined $reply or ref($reply) ne qw|HASH|;
 my $sid      = $reply->{'params'}->{'client_sid'};
 my $session  = $data{'session'}{$sid};
 my $args_str = $reply->{'call_args'}->{'args'};
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
 
-    if ( $args_str =~ /^\d\d\d$/ ) {
+    if ( $args_str =~ m|^\d{3}$| ) {
         $session->{'buffer'}->{'output'}
             .= <[httpd.send_error_page]>->( $sid, $args_str )
             if $args_str > 0;    # 000 == drop connection, no reply
@@ -18,20 +19,20 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
         return;
 
     } elsif ( defined $session->{'content'}->{'type'}
-        and $session->{'content'}->{'type'} =~ /html/ ) {
-        $args_str = '<b style="color:#A01">' . $args_str . '</b>';
+        and $session->{'content'}->{'type'} =~ m|html| ) {
+        $args_str = sprintf( '<b style="color:#C58D07">%s</b>', $args_str );
     }
 }
 
 my $content_part = $reply->{'params'}->{'part'};
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[httpd.send_error_page]>->( $sid, 500 );
     delete $session->{'content'};
     $session->{'flush_shutdown'} = 1;
     return;
 
-} elsif ( $reply->{'cmd'} eq 'DATA' ) {
+} elsif ( $reply->{'cmd'} eq qw| SIZE | ) {
     $content_part->{'data'} = \$reply->{'data'};
 } else {
     $content_part->{'data'} = \$args_str;
@@ -53,7 +54,7 @@ if ($cmd_count) {
     map { $content_length += length( ${ $ARG->{'data'} } ) }
         @{ $session->{'content'}->{'sequence'} };
 
-    my $s = $cmd_count > 1 ? 's' : '';
+    my $s = <[base.cnt_s]>->($cmd_count);
     <[base.log]>->(
         1,
         "content segments complete, returning page [${content_length} bytes]"
@@ -65,8 +66,8 @@ if ($cmd_count) {
             'Content-Type'   => $session->{'content'}->{'type'},
             'Last-Modified'  => $session->{'content'}->{'date'},
             'Connection'     => $session->{'http'}->{'close'}
-            ? 'close'
-            : 'keep-alive'
+            ? qw| close |
+            : qw| keep-alive |
         }
         )
         . join( '',
@@ -77,7 +78,7 @@ if ($cmd_count) {
 }
 
 #.............................................................................
-#5NKJ66JLPNRHYOCWYUHWMN4DVBY5NUURR3ESQJWZB67FQJWBALL7UZNUFJN325S7DUP57XFAGY3VY
-#::: 5KRXCE4KPME7JV54XA2QYP37N3NTQ7XLAEOBNDZXJUAFPOH2UST :::: NAILARA AMOS :::
-# :: N2L25B6FENUYHPH6VXZGSKNTVSZUNQSM5TBT2UETFN2X24EPUCBA :: CODE SIGNATURE ::
+#5BLX63JUDYJ43L635MKWEY4SX5QMVJQBKK7M3VXWXDQQ4VJD7J4GX4KR7DF6EMJO3VZEBVVXWHSVC
+#::: CB3BYSYJ6MGXKIXDLPHLHYMLGCHP2QSRUV3C76RYD5GN7O3EBL6 :::: NAILARA AMOS :::
+# :: IXHWM3LZMYRXL7WYBRA3HZQRBIK5K7RK2NK5ISL5MMSDBC2W3QBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

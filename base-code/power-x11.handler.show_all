@@ -4,27 +4,32 @@
 
 my $reply = shift;
 
-if ( $reply->{'cmd'} ne 'DATA' ) {
-    <[base.log]>->( 0, "unable to fetch device list from power zenka!" );
+if ( $reply->{'cmd'} ne qw| SIZE | ) {
+    <[base.log]>->( 0, 'cannot fetch device list from power zenka' );
     exit(1);
 }
 
 <power-x11.devices> //= {};
 chomp( my $reply_data_str = $reply->{'data'} );
-foreach my $reply_line ( split( /\n/, $reply_data_str ) ) {
+foreach my $reply_line ( split( m|\n|, $reply_data_str ) ) {
     my ( $d_id, $mac_addr, $ip_addr, $s_1, $s_2, $s_3, $s_4 )
-        = split( / /, $reply_line );
+        = split( m| |, $reply_line );
     <power-x11.devices>->{$d_id} = {
         'ip'    => $ip_addr,
         'mac'   => $mac_addr,
-        'state' => { '1' => $s_1, '2' => $s_2, '3' => $s_3, '4' => $s_4 }
+        'state' => {
+            qw| 1 | => $s_1,
+            qw| 2 | => $s_2,
+            qw| 3 | => $s_3,
+            qw| 4 | => $s_4
+        }
     };
 }
 
 <[power-x11.open_window]>;
 
 #.............................................................................
-#RSSD5WXMVMNP4YRYPLLAZECUE2WABNNCSLRAF4VVZW65RK54T6M4Q4J64BGELYFVO6SIJ3WRD74LA
-#::: ZNKJJNFJC57PZPWFJ7ZCOR35WN7WNOWPZWTRYKZXBWUQDHR5OBW :::: NAILARA AMOS :::
-# :: PK4LJODJNMOOSLKACUVWLJLLU3ITWIHORG56YLKANW4UOJFMKKBQ :: CODE SIGNATURE ::
+#KLALRPYX5DLDCHCWKC7VP7KFWJ3WYOVGTFAKVF3MKPNOIEOGF2G4PLJFDVKMMG3DDLR4KGNXTQZ2U
+#::: 7ZGTP75BNBB3WTY62JZN4SZFOEUGZVAMZL6UU22HOFXPVCX2T7X :::: NAILARA AMOS :::
+# :: TU3IQ6S42TNY5QSX4YU7PIDDKFJAAE4SC772Q5XZZDCX6FQ2RKBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
