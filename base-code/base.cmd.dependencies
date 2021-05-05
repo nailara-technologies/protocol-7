@@ -9,18 +9,22 @@ my $pattern    = $call->{'args'};
 my $return_str = "\n";
 
 my @pmods = <[base.reverse-sort]>->(<base.perlmod.loaded>);
+
 @pmods = grep {m|\Q$pattern\E|i} @pmods if defined $pattern;
+
 my $width = 77;    # < left-side [bin] > + <[base.max-len]>->(@pmods);
 
 $return_str .= sprintf( ' %' . int( $width + 2 ) . "s\n", '.: perl-mod :.' );
 $return_str .= sprintf( '%' . int( $width + 3 ) . "s\n",  '.' );
+
 map { $return_str .= sprintf( " %${width}s :\n", $ARG ) } @pmods;
+
 $return_str .= sprintf( '%' . int( $width + 3 ) . "s\n", '.:' );
 
-return { 'mode' => 'data', 'data' => $return_str }
+return { 'mode' => qw| size |, qw| data | => $return_str }
 
 #.............................................................................
-#QOAWL7WVVP3NEY3XZ5QOWWD4BGKT277TIVYOWP4MJQNKBTZRXT5EC5SDI52FSE4MCHB5WNZIO4KGM
-#::: 4DY4AWHSIYEQOOMKNKVD2256Q225ANJ477MIYMHSHQBOW5W5EFG :::: NAILARA AMOS :::
-# :: WZ4ZQN3V6ZJ5FG47WXDN52TT7VHU3HR5N4WAKA3UXS7P3G37WUCY :: CODE SIGNATURE ::
+#NIUNNYW3XTVP4MHBKDRJYUS6Q3CRDJC3YF3Y4WW4H6EBRXCTK4RHBW653SQSHMZKTOQINDDQNX6JM
+#::: HQPZQTL3YGF46J4Z2VFH5QWG22WTKQNW5DBFV5RQ5I5VKV4FPLW :::: NAILARA AMOS :::
+# :: G5CUSLNNCYW32F7K5BCGWKLKP2KPONIFKIRVAMOQYT7WRGOYIKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,33 +11,37 @@ my $retry
     = ( $reply->{'cmd'} eq 'FALSE' and defined $reply->{'call_args'}->{'args'}
         and $reply->{'call_args'}->{'args'} eq 'command unknown' ) ? 1 : 0;
 
-if ( $reply->{'cmd'} eq 'TRUE' ) {    # success =)
-    $log_data->{'next_index'}++;
-    $log_data->{'resend_delay'} = 0.1;
+if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
+
+    $log_data->{'resend_delay'} = 0.113;
+
     if ( $log_data->{'next_index'} < $buffer_count ) {    # more to send .,
         $log_data->{'retry_timer'} = <[event.add_timer]>->(
-            {   'after'   => 0,
-                'handler' => 'base.log.handler.send_timer',
-                'data'    => $name
+            {   qw| handler | => qw| base.log.handler.send_timer |,
+                qw| after   | => 0.07,
+                qw| data    | => $name
             }
         );
     } else {
         $log_data->{'complete'} = 1;
     }
-} elsif ($retry) {    # was not written .,
+} elsif ($retry) {    ##  was not written  ##  <--  use notify_online  [LLL]
+
+    $log_data->{'resend_delay'} *= $log_data->{'resend_slowdown'};
+
     $log_data->{'retry_timer'} = <[event.add_timer]>->(
-        {   'after' => $log_data->{'resend_delay'}
-                *= $log_data->{'resend_slowdown'},
-            'handler' => 'base.log.handler.send_timer',
-            'data'    => $name
+        {   qw| handler | => qw| base.log.handler.send_timer |,
+            qw| after   | => $log_data->{'resend_delay'},
+            qw| data    | => $name
         }
     );
+
 } else {    # giving up \ parameter mismatch
-    ## <[base.log]>->( 0, "[ '$name' buffer ] loosing log line $buffer_count" );
+    ## <[base.log]>->( 0, "[ '$name' buffer ] log line $buffer_count lost" );
 }
 
 #.............................................................................
-#N5OEYL7C6OXIDT44BUR2ZMSTC7K36MQGU6DGSCQYXM3ZYF4FIEH4SFSND6D7ADGG2GPQ6KMJJ3AX6
-#::: AQ6SXNEFCOSB4ZENXKSPGH2KCYEUAC3PCSHODWXS5ADWXW2D3PY :::: NAILARA AMOS :::
-# :: UJHULIJDOE3IMOFJ6LVP7QULJGJQZ3BQOYLCMCT7AL5F2MNNFOCI :: CODE SIGNATURE ::
+#ZHIWG2TQGE5CTTZNLXUZDCZW7XKTW3Z3JB6HAMI65WD73VGVMB3WD6QP2HWEAAAJJTGEXNHKTPYZ4
+#::: CWW3VW6KFMYLIBQIOVII4R2CUYMPGNQFUOHS2SDAH76YHOIRAAA :::: NAILARA AMOS :::
+# :: I7CHKM2MLBNF4HCTAPVFXBEPSMKTXLAAUS7D23GAWDN6K2WKRODY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,20 +27,20 @@ return {
 
 my $current_size_index = $screen_info{'size'};
 
-my $reply_str  = '';
+my $reply_msg  = '';
 my $size_index = 0;
 
 map {
     my $marker_l = $size_index++ == $current_size_index ? '-->'  : '   ';
     my $marker_r = $marker_l =~ m|\S|                   ? ' <--' : '';
-    $reply_str .= sprintf( " %s %d x %d%s\n",
+    $reply_msg .= sprintf( " %s %d x %d%s\n",
         $marker_l, $ARG->[0], $ARG->[1], $marker_r )
 } @{ $screen_info{'sizes'} };
 
-return { 'mode' => 'data', 'data' => $reply_str }
+return { 'mode' => qw| size |, 'data' => $reply_msg }
 
 #.............................................................................
-#GFCMNWRF2Q2U4WRIN2D3IAFRT5BW5JM3S5325PXCMAQOTINM2XR4XK6LW7JXOZ2XRZA2D32GPLOTE
-#::: AMTHQG5EXCPIOY6VJIYWQISUQHM3WJBJSSW5PF7WUF2E5QMD4RY :::: NAILARA AMOS :::
-# :: C6NIKD6U22SWPCTTDKZ3L3GMQWDF57HDRHD3HPNUYJZJQZ66E2DI :: CODE SIGNATURE ::
+#IDUPKRVPZQ4RQTH2DU7QBUCHJNVNMJOIJDEMPDWRIMDGSNILZEZJLCY7JXCKCCGM5L2MYXGNANIOY
+#::: ZXYVFITS3V5VLLSCIHRSABC3XC4STGS3KCST35VPOMBDYRZD2L3 :::: NAILARA AMOS :::
+# :: W6XUELEV2XYGL5OTEG3G63NSWHA34AROE5WFARYOMIZWNJSEZSAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
