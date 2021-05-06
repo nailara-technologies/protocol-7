@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+use v5.10;
+use strict;
+use English;
+use warnings;
+use IPC::Open2 qw| open2 |;
+use IPC::System::Simple qw| capturex |;
+
+$ENV{'DISPLAY'} //= qw| :0.0 |;
+
+my $check_str = @ARGV ? join( ' ', @ARGV ) : capturex qw| xsel -o |;
+$check_str =~ s'^\s+|\s+$''sg;
+
+exit(0) if not length $check_str;
+
+chomp( my $chksum_str = capturex qw| amos-chksum -q -- |, $check_str );
+
+$chksum_str = ' < amos checksum error > ' if not length( $chksum_str // '' );
+
+foreach my $mode (qw| selection clipboard |) {   ## selection and clipboard ##
+
+    my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -i |;
+    my $pid       = open2( my $out_fh, my $xsel_in, qw| xsel |, @xsel_args );
+
+    print {$xsel_in} $chksum_str;                # store amos checksum ##
+    close($xsel_in);
+
+    my $err_str = readline($out_fh);
+    close($out_fh);
+    waitpid( $pid, 0 );
+    die ":\n: xsel : \l$err_str:\n" if defined $err_str;
+}
+
+exit(0000);
+
+#.............................................................................
+#UR7RXGXKOTMBBLSCIHOFLBVBJLDMDPSETBEX7YB7AL6XNPHR2UT3UBSZ5LEQDXMM7VELZYQOGXN56
+#::: MBZBQESEH6LSGOOHA47S7LCPC5CGLZFN7TYYI6HROF4QANCLXPU :::: NAILARA AMOS :::
+# :: UAHMBRYB4ADIP6R3G27IXOD2LBIJMTLEJS6ZGUYZ63UHIERNT2AA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
