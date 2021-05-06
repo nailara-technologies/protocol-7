@@ -1,11 +1,6 @@
 
 package AMOS::CHKSUM;  #######################################################
 
-use vars qw| @EXPORT $VERSION %algorithm_set_up |;
-
-use Exporter;
-use base qw| Exporter |;
-
 use v5.24;
 use strict;
 use English;
@@ -14,6 +9,11 @@ use warnings;
 use Encode;
 use Crypt::Misc;
 use Digest::BMW;
+
+use vars qw| @EXPORT $VERSION %algorithm_set_up |;
+
+use Exporter;
+use base qw| Exporter |;
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -107,7 +107,7 @@ sub amos_chksum {
         if not defined $elf_csum;
     ##
 
-    $elf_bits = bin_reverse($elf_csum);
+    $elf_bits = reverse_bin_032($elf_csum);
 
     ## calculate blue midnight wish checksum [ if not given ] ##
     my $bmw_512b = unpack( qw| B512 |,
@@ -158,7 +158,7 @@ INVERT_TRUTH_STATE:
         and not is_true( $num_amos_csum, 1, 1, @elf_modes )  ##  numerical  ##
 
         or $algorithm_set_up{'chksum_bits'}    ##  binary [ as string ]  ##
-        and not is_true( show_bin($num_amos_csum), 0, 1, @elf_modes )
+        and not is_true( bin_032($num_amos_csum), 0, 1, @elf_modes )
 
         or $algorithm_set_up{'chksum_B32'}     ##  encoded result string  ##
         and not is_true( $checksum_encoded, 0, 1, @elf_modes )
@@ -172,7 +172,7 @@ INVERT_TRUTH_STATE:
 
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
-            $bmw_mod_bits .= show_bin(
+            $bmw_mod_bits .= bin_032(
                 eval(
                     join( '', '0b', substr( $bmw_512b, $bmw_offset, 32 ) )
                 ) ^ $num_amos_csum
@@ -188,7 +188,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#2DQV3F35R76XIKWGPWOYIK3TY6OEOEUBYDZRA5NIMX2T27ILJTPFXYMFXMDT6QBFWOKTODJ2FBE24
-#::: GDQFSARYETVMNLRR5D2TT3VFEK4KNZX5VHI7YBMTNAIAYXRYBMG :::: NAILARA AMOS :::
-# :: B53622ESHDWNJC2YOVBRLSVHTDWG2XGLQPAQ3SGSWY3OVNASP4CI :: CODE SIGNATURE ::
+#6IWZOF2FCGM5RPRU5U2HE3G7KEYHFRD7FYDZQA6QXUPRP4XPP5PYGJLBERZKXXI2WSEA3C35UGY7U
+#::: YIW54RJUJNMWJFERAAFQZLHPM443EZUFFOKJXQKYGT4A7II2X3V :::: NAILARA AMOS :::
+# :: 22FKAMRWNEY7HLIA5C5VNB5IDXSAEIZZOTRYM6WT7CGHMRFNZCAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

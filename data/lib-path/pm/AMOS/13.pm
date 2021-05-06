@@ -22,8 +22,8 @@ use base qw| Exporter |;
     harmonize_13
     gen_seed_val
     num_to_str
-    show_bin
-    bin_reverse
+    bin_032
+    reverse_bin_032
 ];
 
 ##[ INITIALIZATIONS ]#########################################################
@@ -31,8 +31,10 @@ use base qw| Exporter |;
 my $verbose = 1;
 
 my $min_seed_data_len = 13;
-my $iterations_1001   = 113;
-my $iterations_0000   = 113;
+my $iterations_1001   = 4200;
+my $iterations_0000   = 4200;
+
+@AMOS::Assert::Truth::assertion_modes = qw| 4 7 13 |;
 
 my $result_tmpl = {
     qw| TRUE | => " $C{b}$C{T}:$C{0}"
@@ -51,7 +53,7 @@ my $result_tmpl = {
 
 sub divide_13 {    ## for short numbers only ## use Math::Bigint later too ##
     my $num = shift;
-    return error_exit('parameter is not numerical') if not numerical($num);
+    return error_exit('parameter is not numerical') if not is_number($num);
 
     return 0 if $num == 0;
 
@@ -66,30 +68,41 @@ sub divide_13 {    ## for short numbers only ## use Math::Bigint later too ##
 ##[ DATA HARMONIZATION ]######################################################
 
 sub harmonize_13 {
-    my $value_num = shift;
+    my $value_num  = shift;
+    my $show_TRUE  = shift // 0;
+    my $show_FALSE = shift // 0;
     return error_exit('expected numerical input value')
-        if not numerical($value_num);
+        if not is_number($value_num);
 
-    my $bin_str = show_bin($value_num);
-    my $rev_bin = bin_reverse($value_num);
+    my $bin_str = bin_032($value_num);
+    my $rev_bin = reverse_bin_032($value_num);
 
-    say '' if $verbose;
     my $iterations = 0;
-    while (not is_true($value_num)
-        or not is_true($bin_str)
-        or not is_true($rev_bin) ) {
+    my $all_true   = 0;
+
+    ## recalculate until all values are true ##
+    while ( not $all_true and ++$iterations ) {
 
         $value_num = divide_13($value_num);
+        $bin_str   = bin_032($value_num);
+        $rev_bin   = reverse_bin_032($value_num);
 
-        $bin_str = show_bin($value_num);
-        $rev_bin = bin_reverse($value_num);
+        my @truth_states = (
+            scalar is_true( $value_num, 1, 0 ),
+            scalar is_true( $bin_str,   0, 1 ),
+            scalar is_true( $rev_bin,   0, 1 )
+        );
 
-        visualize( $iterations++, $value_num ) if $verbose;
+        $all_true = 1;
+        map { $all_true = 0 if $ARG == 0 } @truth_states;
+        $iterations++;
+
+        visualize_bin_032( $iterations, $value_num, @truth_states )
+            if $show_TRUE and $all_true
+            or not $all_true and $show_FALSE;
     }
-    visualize( $iterations, $value_num ) if $verbose and $iterations == 0;
 
-    say ''                                  if $verbose;
-    return ( $value_num, abs($iterations) ) if wantarray;
+    return ( $value_num, $iterations ) if wantarray;
     return $value_num;
 }
 
@@ -112,7 +125,7 @@ sub gen_seed_val {
         map { sprintf '%03d', ord($ARG) }
             split( '', substr( $$seed_data_sref, 0, 3 ) ) );
 
-    say $C{0} . ':.';
+    #    say $C{0} . ':.';
 
     while ( length $$seed_data_sref ) {
         my $pkey_block = substr( $$seed_data_sref, 0, 3, '' );
@@ -123,10 +136,15 @@ sub gen_seed_val {
         $p_num .= substr( $first_part, 0, 9 - $blklen ) if $blklen < 9;
 
         ## make passphrase seed harmonic  ##
-        push( @seed_blocks, harmonize_13($p_num) );
+        push( @seed_blocks, scalar harmonize_13($p_num) );
     }
 
-    say $C{0} . '.:';
+    #    say $C{0} . '.:';
+
+    # say $C{'T'} . $C{'B'}, map {"$ARG\n"} @seed_blocks;
+    say map {"$ARG\n"} @seed_blocks;
+
+    exit;
 
     my $result;
     my $first_val = divide_13( $seed_blocks[0] );
@@ -147,8 +165,9 @@ sub gen_seed_val {
 
         say $C{0}
             . '< BLOCK > '
-            . join( ' ', show_bin($cur_block_val), $cur_block_val )
-            . $C{R};
+            . join( ' ', bin_032($cur_block_val), $cur_block_val )
+            . $C{R}
+            if 1;
 
         my $xord_str = sprintf( '%09d', $result ^ $cur_block_val );
         my $xord_num = $xord_str;
@@ -166,8 +185,9 @@ sub gen_seed_val {
 
         say $C{0}
             . '< x-ord > '
-            . join( ' ', show_bin($xord_num), sprintf '%9s', $xord_num )
-            . $C{R};
+            . join( ' ', bin_032($xord_num), sprintf '%9s', $xord_num )
+            . $C{R}
+            if 1;
 
     RECALC_0000:
 
@@ -175,7 +195,7 @@ sub gen_seed_val {
 
         goto RECALC_0000 if not is_true($result);
 
-        visualize( $iteration, $result ) if $verbose;
+        #        visualize_bin_032( $iteration, $result ) if $verbose;
 
         ++$iteration;
 
@@ -192,11 +212,11 @@ sub gen_seed_val {
 
         ++$iteration;
 
-        visualize( $iteration, $result ) if $verbose;
+        #        visualize_bin_032( $iteration, $result ) if $verbose;
 
     }
 
-    visualize( $iteration, $result ) if not $verbose;
+    #    visualize_bin_032( $iteration, $result ) if not $verbose;
 
     ## time ellapsed ##
     printf "$C{0} $C{b}::::::::$C{R}$C{0} $C{b}%s s$C{R}\n\n",
@@ -209,12 +229,26 @@ sub gen_seed_val {
 
 ##[ BINARY OPERATIONS ]#######################################################
 
-sub show_bin {
-    sprintf( qw| %032b |, shift // 0 );
+sub bin_032 {
+    my $digits_032 = shift // 0;
+
+    return warn sprintf( 'expected 32 bit number, got %d digits %s',
+        length($digits_032), caller_str(1) )
+        if not is_number($digits_032)
+        or $digits_032 > 4294967295;
+
+    sprintf qw| %032b |, $digits_032;
 }
 
-sub bin_reverse {
-    join( '', reverse( split( '', sprintf( qw| %032b |, shift // 0 ) ) ) );
+sub reverse_bin_032 {
+    my $digits_032 = shift // 0;
+
+    return warn sprintf( 'expected 32 bit number, got %d digits %s',
+        length($digits_032), caller_str(1) )
+        if not is_number($digits_032)
+        or $digits_032 > 4294967295;
+
+    join( '', reverse( split '', sprintf( qw| %032b |, $digits_032 ) ) );
 }
 
 ##[ UTILITY FUCTIONS ]########################################################
@@ -222,9 +256,11 @@ sub bin_reverse {
 sub padded_num {
     my $input_num   = shift;
     my $padding_num = shift;
-    return error_exit('expected numerical input parameters')
-        if not numerical($input_num)
-        or not numerical($padding_num);
+
+    return warn 'expected numerical input parameters'
+        if not is_number($input_num)
+        or not is_number($padding_num);
+
     my $input_len = length($input_num);
     my $pad_len   = length($padding_num);
 
@@ -236,7 +272,13 @@ sub padded_num {
 ##[ STRING CONVERSIONS ]######################################################
 
 sub num_to_str {
-    return '' if @ARG or not defined $ARG[0];
+    my $digits_032 = shift;
+
+    return '' if not length( $digits_032 // '' );
+    return warn 'expected 9 digit decimal value'
+        if not is_number($digits_032)
+        or length($digits_032) > 9;
+
     return join( '',
         map {chr} substr( $ARG[0], 0, 1 ),
         substr( $ARG[0], 1, 2 ),
@@ -247,14 +289,22 @@ sub num_to_str {
 
 ##[ VERBOSE MODE ]############################################################
 
-sub visualize {
-    my $index     = shift;
-    my $value_num = shift;
-    my $T_state   = is_true($value_num) ? qw| TRUE | : qw| FALSE |;
-    my $bin_0000  = bin_reverse($value_num);    ## reverse left ##
-    my $bin_0110  = show_bin($value_num);       ## actual right ##
-    my $c0        = is_true($bin_0000) ? join( '', $C{T}, $C{B} ) : $C{0};
-    my $c1        = is_true($bin_0110) ? join( '', $C{T}, $C{B} ) : $C{0};
+sub visualize_bin_032 {
+    my $index     = shift(@ARG);
+    my $value_num = shift(@ARG);
+
+    my @truth_states = @ARG;
+
+    return warn 'expected numerical index argument' if not is_number($index);
+    return warn 'expected numerical <value>'    if not is_number($value_num);
+    return warn 'expected 3 truth state values' if not @truth_states == 3;
+
+    my $T_state  = $truth_states[0] ? qw| TRUE | : qw| FALSE |;
+    my $bin_0000 = reverse_bin_032($value_num);    ## reverse left ##
+    my $bin_0110 = bin_032($value_num);            ## actual right ##
+    my $c0       = $truth_states[1] ? join( '', $C{T}, $C{B} ) : $C{0};
+    my $c1       = $truth_states[2] ? join( '', $C{T}, $C{B} ) : $C{0};
+
     printf( $result_tmpl->{$T_state},
         $index, $value_num,
         join( '', $c0, $bin_0000 ),
@@ -265,7 +315,7 @@ sub visualize {
 return 1;  ###################################################################
 
 #.............................................................................
-#EGJXEX3ACZ6YJBMRSBLXB5VPWREIM7YHZ6EGYKOAVOE7ROZ4JJVUDORZHIB66TVEZTSMM4ZF3JYIW
-#::: RKYKPF7TQG3GOCIGG3RKAZHSEHA6JOHM2ILVJVXJAN2V7YZR2PU :::: NAILARA AMOS :::
-# :: BSURSWJC4JUS64AWAZK7YFRMMF2MCHKRF6EGDV6PAE4O2RT25CDA :: CODE SIGNATURE ::
+#IPNF3UUWD4GY3G2ZPSI6O5HY5ER7ATLQRD7534OMKNN5GONVWNLWUP7355BQJJJPNP6DPBNXMS6UA
+#::: STPYTUBUTYOR26627B74EMLT3VPYNTPIRHG3KX3G2NBVE2I6LAG :::: NAILARA AMOS :::
+# :: CMC6MXBN6EGPEKSJ3634Y5FK3KNPVBYU5X7YCNQARVDTKT3W44CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
