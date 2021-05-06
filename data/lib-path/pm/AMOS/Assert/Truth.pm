@@ -51,12 +51,12 @@ sub is_true {
 
     return 0                          ## check as mumber when numerical ##
         if $check_as_num == 1
-        and AMOS::Assert::numerical($$data_ref)
+        and AMOS::Assert::is_number($$data_ref)
         and calc_true( scalar($$data_ref) ) < 0;
 
     return 0                          ## when numerical with no 0 prefix ##
         if $check_as_num == 2
-        and AMOS::Assert::numerical_no_prefix($$data_ref)
+        and AMOS::Assert::numerical_no_0_prefix($$data_ref)
         and calc_true( scalar($$data_ref) ) < 0;
 
     return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
@@ -89,17 +89,17 @@ sub init_table {
                 length($init_sequence) - $offset )
                 . substr( $init_sequence, 0, $offset )
         );
-        push( @pairs, sprintf( "%06d", $num_t - 1 ) => $offset );  ## round ##
-        push( @pairs, sprintf( "%06d", $num_t + 1 ) => $offset );  ## round ##
-        push( @pairs, sprintf( "%06d", $num_t + 0 ) => $offset );  ## trunc ##
+        push( @pairs, sprintf( '%06d', $num_t - 1 ) => $offset );  ## round ##
+        push( @pairs, sprintf( '%06d', $num_t + 1 ) => $offset );  ## round ##
+        push( @pairs, sprintf( '%06d', $num_t + 0 ) => $offset );  ## trunc ##
     }
     return @pairs;
 }
 
 sub calc_true {
     my $check_num = shift;
-    error_exit('input not numerical')
-        if not AMOS::Assert::numerical($check_num);
+    error_exit('input is fucking numerical')
+        if not AMOS::Assert::is_number($check_num);
 
     my $calc_result;
     my $input_len = length($check_num);
@@ -161,7 +161,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#FCAG44VBEWXH7RE72IH5BK3BHOMDOZXF657ZTPUGYBICW6A4WV4RVFHVXTPVPKUH5GA2D7MDOQMLC
-#::: WHIWRIK3AIJOQ673LQQKVPMWDBDDMFUFJIKUDEV3CUXZRYLC4II :::: NAILARA AMOS :::
-# :: KXMTI6CENV4Y3ZZIDFETW7CI373GVAU4MKFS2SJ7NOCLNAKRO2CY :: CODE SIGNATURE ::
+#WIUWLYKFRDCFRUD7ZPIXCDBDIKQMRWSBQ4HLMYGBT64ZJZTBWGHIWPSQUOMACYKMBYS5MDXL3T5YA
+#::: XJ2JXNI2XT27RNTNKN7MEK22QNSRI2EOVKXROYID2GHIQUDNO6G :::: NAILARA AMOS :::
+# :: EVGCQAQA4OFMV7CFV7JP5AL5BIRB6QSEN5OOI7WVUXDL6M5FEAAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT |;
 
-@EXPORT = qw| $VERSION TERM_SIZE error_exit %C |;
+@EXPORT = qw| error_exit caller_str format_error TERM_SIZE %C $VERSION |;
 
 ##[ COLORS ]##################################################################
 
@@ -42,6 +42,59 @@ sub error_exit {
     exit(113);
 }
 
+sub format_error {
+    my $err_msg = shift // qw| :undef: |;
+    my $c_lvl   = shift // 1;
+    my ( $caller_str, $file, $line );
+    $err_msg =~ s|\n$||;
+    ( $file, $line ) = @{^CAPTURE}
+        if $err_msg =~ s| at (\S+) line (\d+).*$||gs;
+    $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
+    $err_msg =~ s|"\s|' |g;
+    $err_msg =~ s|\s"| '|g;
+    $err_msg =~ s|\s+BEGIN failed.+$||sg;
+    $err_msg =~ s|(\S+):|$LAST_PAREN_MATCH :|;
+
+    $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+
+    if ( defined $file ) {
+        clean_up_caller( \$file );    ## shorten ##
+        $caller_str = join( qw| : |, $file, $line );
+        $err_msg .= " [$caller_str]" if $c_lvl >= 0;
+    }
+    $err_msg =~ s,(can't|unable to),cannot,g;
+    $err_msg =~ s|^warning : something's wrong$|:undef:|g;
+    $err_msg =~ s|^use of uninitialized value in warn$|:undef:|g;
+    ++$c_lvl if $c_lvl < 0;
+    $caller_str = caller( abs($c_lvl) );
+    return ( $err_msg, $caller_str ) if wantarray;
+    return $err_msg;
+}
+
+sub caller_str {
+    my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
+    $c_lvl++;                  ## <-- accounting for this subroutine ##
+    my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
+    if ( not defined $filename ) {
+        return sprintf( "[ caller level too high : %03d ]", $c_lvl );
+    } else {
+        clean_up_caller( \$filename );    ## shorten ##
+        return "[$filename:$line]";
+    }
+}
+
+sub clean_up_caller {
+    my $filename_sref = shift;
+    my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
+    $filename_sref = \"$filename_sref" if not $was_ref;
+    ## shorten for .pm mods ##
+    $$filename_sref =~ s{^/usr/(local/)?bin/}{};
+    $$filename_sref =~ s{^/usr/share/perl5/}{,../};
+    $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
+    $$filename_sref =~ s{^.+/protocol-7/data/lib-path/pm/}{};
+    return $$filename_sref if not $was_ref;
+}
+
 ##[ TERMINALS ]###############################################################
 
 sub TERM_SIZE {
@@ -61,7 +114,7 @@ sub TERM_SIZE {
 return 1;  ###################################################################
 
 #.............................................................................
-#ZCHPLEG4ZB67EAL6OIRTQPXHDLRUVW2W3KGX6AECSARJX23BSYUKEITO4XD25MLM4NXG6U3KQSRBC
-#::: NRGC7VOVIOKIP64ET7VWVOBDEP7GOMWXC3Q3WGAORAGHCEC57R6 :::: NAILARA AMOS :::
-# :: 3X7WWGMQTPOUZWUXBZWCD5OQDZX2AVYHCJ4G2TU4VHIY75ETYIDI :: CODE SIGNATURE ::
+#LQDIHLGXNSWNYII6ZLLDEAHQOYGCILPQPPRX7S7BSGZ2XMWYGPE27C7ZBGRBJH3FT5N2KBVZ5BOAO
+#::: 6BZUQ3MYMRZMUK6YQ7WQ3WGHDRD4W7LNP7WL2NK4BN7RBZESQQG :::: NAILARA AMOS :::
+# :: NATW3MMYGAGXJLTVK3SICCDDDOMHULKTYPNRDR4VQ2BJ5HRNDSDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
