@@ -56,24 +56,26 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return $subcfg_data;
 } elsif (
     $reply_string =~ m|^\($cmd_id\)FALSE no set-up for zenka '([^ ]+)'| ) {
-    <[base.log]>->(
-        1, ": << ! >> composition zenka has no set-up for \"$1\" << ! >>"
+    <[base.logs]>->(
+        ": << composition zenka has no set-up for '%s' >>",
+        ${^CAPTURE}[0]
     );
     return undef;
-} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command unknown\n$| ) {
-    <[base.log]>->( 1, ": << get_subconfig [ FALSE ] >> for '$name_str'" );
+} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command | ) {
+    <[base.logs]>->( ": << get_subconfig [ FALSE ] >> for '%s'", $name_str );
     return undef;
 } else {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
-        "[ protocol mismatch ] unexpected reply from composition zenka"
-            . " ['$reply_string']"
+        "[ protocol mismatch ] not expected reply"
+            . " from composition zenka ['%s']",
+        $reply_string
     );
     return undef;
 }
 
 #.............................................................................
-#JR745FAGJGFEM23YSMO6QEDZMHTUVLXVHRNL3PXE3SAPXBQ7ZEGSHBWUZ2WKQ4JOOTHU6AU2FR6Q4
-#::: LTBAE3NMVOJ77GZZKGOPGUQOM4ICGD3TYYUQKAYV5MEWLI74OUI :::: NAILARA AMOS :::
-# :: RL6S7XPGYAA273OV7YU326ABHK4RGBIQIOVOMDBB3HBUAM6KP6DI :: CODE SIGNATURE ::
+#A35L5FNRWEGNVDJSVN6PV2FDH2KJFHWH7PDSHXD4DUDWAHBLKDY3DKZRHOEMGE46GLDYAUMFKDXX6
+#::: I2RHJONSQNOT6BUP3ZZYIEEBFHDWPPH6W27T7BAHZMAX5GTYTCZ :::: NAILARA AMOS :::
+# :: 66SOI6AZ4QKOHJMNQ5FBZUG2QO2QKGF6C5XOUC5DRRSOY7KD54AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

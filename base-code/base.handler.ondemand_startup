@@ -4,10 +4,9 @@
 # param = error reason [ FALSE reply ]
 
 my $reply = shift;
+my $v_id  = $reply->{'params'}->{'v_id'};
 
-my $v_id = $reply->{'params'}->{'v_id'};
-
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     delete <zenki.virtual>->{$v_id}->{'starting'};
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "ondemand zenka startup error [ $reason ]" );
@@ -15,23 +14,24 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
         my $sid    = $element->{'source_id'};
         my $cmd_id = $element->{'cmd_id'};
         next if not exists $data{'session'}{$sid};
+
         $data{'session'}{$sid}{'buffer'}{'output'}
-            .= $cmd_id . "FALSE command unknown\n";
+            .= <[base.sprint_t]>->( qw| GLPLXJQ |, $cmd_id );
     }
 } else {
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => qw| v7.notify_online |,
-            'call_args' => { 'args' => <zenki.virtual>->{$v_id}->{'name'} },
+            'call_args' => { qw|args| => <zenki.virtual>->{$v_id}->{'name'} },
             'reply'     => {
-                'handler' => 'base.zenki.ondemand.handler.startup_reply',
-                'params'  => { 'v_id' => $v_id }
+                'handler' => qw| base.zenki.ondemand.handler.startup_reply |,
+                'params'  => { qw| v_id | => $v_id }
             }
         }
     );
 }
 
 #.............................................................................
-#YKBUPCQJORRAT2UE5WFPBZTOKEGSF7AAXKLBY77TNO4KOMYUCKXLJEBJXWPZ2E2RED5YHFS5HEGLK
-#::: QRRZSEEKFCGQPD5YVZK25FUOP5ZXXOZGOF3S5SMKRAPSOCHJW3M :::: NAILARA AMOS :::
-# :: 2VHR3RAYXHDZJKUHCM57ERLOFNF3JZLO5ABIJ5TUSWG7BVNPMABA :: CODE SIGNATURE ::
+#3N4EISQCRQ5ZPFDM3ZMGOF4RZOZALCB7PCOYYZXEMQDIOGQMTFI3TZZ42YYRFNAHBCV6NQP33IPWW
+#::: 2BNZJE2FVKJHCURLM3V5UIZAAE3JIKQQKDWFGEQZP65RSVO52ST :::: NAILARA AMOS :::
+# :: APK2D3NCKLOTZRUAL2R6VQLKOALSK3ENJPAOBVN6AUA63MWLKWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,7 @@
 
 # name  = base.X-11.get_coordinates
 
-my $user     = shift // 'cube';
+my $user     = shift // qw| cube |;
 my $cmd_path = shift // '';
 $cmd_path .= '.' if length($cmd_path);
 my $zenka_name = shift // <system.zenka.name>; # <-- '' == req. tile-name only
@@ -50,8 +50,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
 my $err_msg = "unexpected reply from composition zenka ['$reply_string']";
 
 $err_msg = ': coordinates undefined'
-    if $reply_string =~ /FALSE no coordinates/
-    or $reply_string =~ /FALSE command unknown/;
+    or $reply_string =~ m|FALSE command |,
+    if $reply_string =~ m|FALSE no coordinates|;
 
 <[base.log]>->( 1, $err_msg );
 
@@ -83,7 +83,7 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#FTYCCVCPBRBMVGYS4GPX7RY4YXYM2E3LKUP6J3MLN7XGACPUG6LXF2NMZYQU2QE5GBLS2BSJCQZF2
-#::: GEENO72YIFAALPIXCBZAOZJBZU2VSMXQ7KT5773EVQZRVZQIQ25 :::: NAILARA AMOS :::
-# :: 5QQL23N6RBUABCYN7BDTR2RFHKPF5KR4WK6R4IFSAFZKKGAKEKAQ :: CODE SIGNATURE ::
+#UDY7EFCPZ2UAJLWJQ445Y26P3PR3Y6QB4UQEWBF4WV7CYFYPHGCIHOIIKGV7IXCDIPAG22LUJD5TA
+#::: RWTXIFRJUUC7DC2P5FYF36OVMKXYVAP52VLBZMKTSQRCK4RRVL3 :::: NAILARA AMOS :::
+# :: 27Q4IE2M2BQ6MKR2VFI3BZSMJIUF53MC5JYJ2DCY43NQQFZENICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

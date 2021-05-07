@@ -9,7 +9,7 @@ my $buffer_count = @{ $data{'buffer'}{$name}{'data'} };
 my $log_data     = <log.file>->{$name};
 my $retry
     = ( $reply->{'cmd'} eq 'FALSE' and defined $reply->{'call_args'}->{'args'}
-        and $reply->{'call_args'}->{'args'} eq 'command unknown' ) ? 1 : 0;
+        and $reply->{'call_args'}->{'args'} =~ m|^command | ) ? 1 : 0;
 
 if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
 
@@ -41,7 +41,7 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
 }
 
 #.............................................................................
-#ZHIWG2TQGE5CTTZNLXUZDCZW7XKTW3Z3JB6HAMI65WD73VGVMB3WD6QP2HWEAAAJJTGEXNHKTPYZ4
-#::: CWW3VW6KFMYLIBQIOVII4R2CUYMPGNQFUOHS2SDAH76YHOIRAAA :::: NAILARA AMOS :::
-# :: I7CHKM2MLBNF4HCTAPVFXBEPSMKTXLAAUS7D23GAWDN6K2WKRODY :: CODE SIGNATURE ::
+#KRJJXYGHTVHROO3UGTYGOZCQVKXJ6VY3G2R263RQPPUFPAX5Z7CTQEIIX2SHAIIZLWX4BBEKITVKO
+#::: W5CJURP4HQZA35SOSHGZUZTUGOIR4B72XWTG5XKEZEYM5XF2DG2 :::: NAILARA AMOS :::
+# :: 4BNET2LPXN54UF5EMGD25OUTZHW5C55TJ5PMDB3C56IC4FIRIUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

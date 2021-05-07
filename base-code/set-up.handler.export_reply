@@ -15,10 +15,10 @@ my $mode      = qw| false |;
 my $reply_str = $reply->{'call_args'}->{'args'};
 
 if (    $reply->{'cmd'} eq qw| FALSE |
-    and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
+    and $reply->{'call_args'}->{'args'} =~ m|^command | ) {
     $reply_str
         = $zenka_name eq qw| cube |
-        ? "reply refused by 'cube' zenka"
+        ? 'cube zenka refused reply'
         : "zenka '$zenka_name' not online [ or refusing reply ]";
 } elsif ( $reply->{'cmd'} eq qw| SIZE | ) {
     $mode      = 'true';
@@ -33,7 +33,7 @@ if (    $reply->{'cmd'} eq qw| FALSE |
         );
         $EVAL_ERROR =~ s|^[^:]+: ||;
         $mode      = qw| false |;
-        $reply_str = sprintf "config export failed [ write error: %s ]",
+        $reply_str = sprintf 'config export failed [ error writing : %s ]',
             <[base.format_error]>->($EVAL_ERROR);
     }
 }
@@ -43,7 +43,7 @@ if (    $reply->{'cmd'} eq qw| FALSE |
 );
 
 #.............................................................................
-#5TUV45EB6TGLMEMV37IV7LZOIHXJJ3DQ43TODLS63AG3T72YBB46WOGA53BIBLOB43SPNIJBJGBSE
-#::: UZW4QVCPFRBGO5LN3HHDIFLMTUI4MSHH63OLLHWE7JLW2F5FIID :::: NAILARA AMOS :::
-# :: C4D65ZEASO63QLZ5CSL5YPX5BGE7ZGQQO542F5DE2BPQ3NLUVUAA :: CODE SIGNATURE ::
+#LKVK62H7MPDE6TZSQ6LWERESZBNXLF46PZKCTPHHJDZ2G5CESEU3CT3U54NAQ2RGFGNZJ7PJJ22OI
+#::: ZRUY23MPFJJAU4OAUP7N24OLVGXQKMKSKF5PBVEF3IN7UBO6NP5 :::: NAILARA AMOS :::
+# :: JLTW3MVYWYA3VGVI7LFY3HQB3IYSRWNP4EHACHVBVA24YCX5QABA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -675,13 +675,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 ## check answer mode ##
                 if ( $$reply{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
                     $$reply{'data'} =~ s|\n|\\n|go;
-                    $$output .= sprintf( "%s%s %s\n",
-                        $_cmd_id, uc( $reply->{'mode'} ),
-                        $reply->{'data'} );
+
+                    $$output .= <[base.sprint_t]>->(    #  single line  #
+                        qw| ZTLA6BI |, $_cmd_id, uc( $reply->{'mode'} ),
+                        $reply->{'data'}                ##  <-- message  ##
+                    );
+
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
-                    my $len = length $reply->{'data'};
-                    $$output .= sprintf( "%sSIZE %d\n%s",
-                        $_cmd_id, $len, $reply->{'data'} );
+                    $$output .= <[base.sprint_t]>->(    ##  SIZE template  ##
+                        qw| DFSFKQA |, $_cmd_id, length( $reply->{'data'} ),
+                        $reply->{'data'}
+                    );
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
                     <[base.session.shutdown]>->( $id, $reply->{'data'} );
                 }
@@ -697,11 +701,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
-        } else {
-            <[base.logt]>->( qw| TLIOPBY |, $id, $cmd ); ## command unknown ##
+        } else {    ## command does not exist ##
+            <[base.logt]>->( qw| IPWI3HI |, $id, $cmd );
         }
 
-        $$output .= <[base.sprint_t]>->( qw| NYPO7DQ |, $_cmd_id );
+        $$output .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
 
         return 0;    ##  command processing was complete  ##
     }
@@ -1029,8 +1033,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
-    $$output .= <[base.sprint_t]>->( qw| NYPO7DQ |, $_cmd_id );
-    <[base.logt]>->( qw| CSCAWOA |, $id, $user, $cmd );  ## command unknown ##
+    ## command does not exist ##
+    $$output .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
+    <[base.logt]>->( qw| OZZAS3I |, $id, $user, $cmd );
 
 } else {    ## insufficient access permissions ##
 
@@ -1046,7 +1051,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 return 0;        ##  command processing was complete  ##
 
 #.............................................................................
-#LHCQOAR7GHP3XDN5VYQG6YIJCMFUOWNA245UICD6A5JWXMFQK6EN6FB4FVMFPUF2O6QCJWTFSVM6O
-#::: 4X5CZPWSBWCBWZ4M7EJYBRNHLBIFEAOPJH6UG35FHOBUUUMDJCF :::: NAILARA AMOS :::
-# :: PPSAJ2MFBOZZX6MBW5IOMF6OLBOYN3YNGZYEQW5UHMFYGSDCVYCI :: CODE SIGNATURE ::
+#JX6V2M25Y6JZBDXX25QZE4WZU6BEEYA2W3K4MKYJMRK5FPJJPNGO3E3HEXJLHUDFWO7JSFWGWACPU
+#::: QRPI6SSDYQ474TYPFBDNMERN7QZW3MPXGUJMXRLHE667QSGZTP4 :::: NAILARA AMOS :::
+# :: P66MKFYECYF52ZSTX2U6FKOYTSNCTGDTC27S476CGS6PJM55UKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
