@@ -9,8 +9,7 @@ my $log_cmd_level
     = shift;    #  <--  [lvl]  <-- optional log level [ for log_cmd ]
 my $min_b_size = 13747;
 
-$code{'base.log'}
-    //= sub { say "<< $ARG[1] >>" };    ##<--catch compilation errors
+$code{'base.log'} //= $code{'log.noerr'} // sub { say "<< $ARG[1] >>" };
 
 if ( !length( $name // '' ) ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
@@ -94,6 +93,8 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     }
 }
 
+return if not <[base.cfg_boolean]>->(<base.log.allow_buffer_send>);
+
 if (    defined $data{'buffer'}{$name}{'log_cmd'}
     and length $data{'buffer'}{$name}{'log_cmd'}
     and (  $name ne qw| zenka |
@@ -113,7 +114,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 #.............................................................................
-#N5BH2DAB3GAHSHEI2GL7MB3WHCWRH6HPTJTCJCF5UBFZ3ZL2RAP4NSHDYXZAKBZPGR3AISJSADRJK
-#::: HRNNV6RLMLKD7SOFL4IYCU2VY6LIJUDTDSJCSQW4YPMCOUEN6HL :::: NAILARA AMOS :::
-# :: GR6KFSRWSZNMR3H65BXMMY6XXYNEHVLAZHAIDNWSB3ZJA3TRK2AY :: CODE SIGNATURE ::
+#MMH5YPXJIIZXJD3UYUMOFBYVPLI2SEZBUALWREQFEKEVKIZCFA6AP3U74KGWS6JT7YQUQ6DMSXBTO
+#::: M47N5LZOE2OEIHBPAAMVTUNNOY5X4HXIC4GIV4OO4UTUNC3PZDP :::: NAILARA AMOS :::
+# :: HTNE7YDSZA2555OPHY6CCBWWTWMTUBZ4UR64B3N5ARKLXBBHY6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
