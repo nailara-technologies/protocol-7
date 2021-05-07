@@ -93,13 +93,13 @@ foreach my $c_type (@connection_types) {
         <[base.session.init]>->(
             $cube_sock, qw| protocol-7 client |, $cube_name
         );
-
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
                 'after'   => 0.777,
                 'handler' => qw| base.session.send_init_reports |
             }
         );
+        <base.log.allow_buffer_send> = 1;
         return $cube_sock;
     }
 }
@@ -113,7 +113,7 @@ if ( not defined $cube_sock ) {
 }
 
 #.............................................................................
-#6BFAFOURMSTKOK3SYMYOP7GMFO5AN552SY2QZ3DSWP35PQ4345OT5MXQQDCD3H3CLUGH77BOL5DZ4
-#::: LMPZAF7NLMWMGG2PZRX7UZCRKAWFBOZU7P4BDKLJBTEHIR7L2ME :::: NAILARA AMOS :::
-# :: L7TL7WXWH74IP7JNISDG2UVSK2G3P23SIXBPQP45LVNZ7HT7CADY :: CODE SIGNATURE ::
+#ZFNO2QCZMRUU3MJTTHSPV7MVZVB7I2NVI2EGZR4Y5HLMO3V5Z7NHI6SE2SLLSEAXOKBI4YX6KCOEM
+#::: V5WOHE5K4G34G4YEMVIFKGTHKO5EIZPWUUUU4BP2REIZR2YY2J2 :::: NAILARA AMOS :::
+# :: QDNY6G6QAA3BBKIPZYUUNQGUKYOOENS23E56A7EI4SETNCDYB4DQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
