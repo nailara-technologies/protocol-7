@@ -1616,13 +1616,18 @@ sub prepare_subs {
                 $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
 
                 $code{$sub_name} = sub {
+                    my $caller_str = $code{'base.caller'}->(1);
+                    undef $code{$sub_name}    ##  removing  ##
+                        if $sub_name =~ m{^base.(log|buffer)};
                     if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) { ## proto.,
                         $code{'log.error'}
-                            ->("<< called broken routine :: $sub_name >>");
+                            ->(": called broken routine : '$sub_name'");
+                        $code{'log.error'}->(":. $caller_str");
                         return undef;
                     } else {
                         $code{'log.error'}
-                            ->("<< broken command called :: $sub_name >>");
+                            ->(": broken command called : '$sub_name'");
+                        $code{'log.error'}->(":. $caller_str");
                         return {
                             'mode' => qw| false |,
                             'data' => "command '$sub_name' is broken.,"
@@ -1956,8 +1961,7 @@ sub prepare_subs {
                         : 0;
                     my $spaces = ' ' x $s_len;
                     say &{ $code{'log.format_name'} }, ' ',
-                        $ANSI{'p7_fg_0004'}, $ARG,
-                        $spaces, $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
+                        $ANSI{'p7_fg_0002'}, $ARG,
                         $spaces;
 
                 } else {
@@ -2018,13 +2022,23 @@ sub prepare_subs {
                 $ARG = $code{'base.format_error'}->( $ARG, -1 );
             } @err;
             push( @err, $spaces ) if length($spaces);
-            if ( $err[0] =~ m|^deep recursion |i ) {
-                no warnings 'recursion';    # no follow-ups
-                my $msg = join( ' ', ': FATAL :', @err );
-                undef $code{'base.log'}
-                    if $err[0] =~ m{$PROGRAM_NAME|protocol-7};
-                $code{'log.error'}->($msg);
-                exit(2);
+            {
+                no warnings 'experimental';
+                if ( @err ~~ m|deep recursion | ) {
+                    no warnings 'recursion';    # no follow-ups
+                                                # remove offending routine #
+                    foreach my $c_lvl ( 1 .. 5 ) {
+                        next
+                            if $code{'base.caller'}->($c_lvl)
+                            !~ m{\[(base\.(log.*|buffer.add_line)):\d+\]};
+                        say ' < undefining > ' . ${^CAPTURE}[0];
+                        undef $code{ ${^CAPTURE}[0] };
+                    }
+                    my $msg = join( ' ',
+                        ': FATAL ERROR :',
+                        @err, $code{'base.caller'}->(3) );
+                    $code{'log.error'}->($msg);    ## count and exit ## [LLL]
+                }
             }
             my @caller = caller;
             my ( $package, $filename, $line, $subroutine ) = @caller;
@@ -2091,6 +2105,18 @@ sub prepare_subs {
             }
             ##
             if ($log_warning) {
+
+                ##  parent caller exception for sprintf template warnings  ##
+                ##
+                if (    $caller_str =~ m{base.logt|base.sprint_t}
+                    and $err[0] =~ m| argument in sprintf| ) {
+                    $err[0] =~ s| argument in sprintf$| sprint_t parameter|;
+                    $caller_str = $code{'base.caller'}->(1);
+                    $caller_str = $code{'base.caller'}->(2)
+                        if $caller_str =~ m|logt|;    ##  parent caller  ##
+                }
+                ##
+
                 my $log_msg = join( ' ', qq|: warn :|, @err );
                 if ( $c_lvl > -1 ) {
                     my $max_len
@@ -2151,7 +2177,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#JNQLH4ITQQYH7TD26MR3FXOK7D7XBA5VA7C3GA53GUIHDHJXNF5EANGEL37HLOE4TJAAYKYIPT3YM
-#::: EP27HCMEYTQLT2QJEDLAK7H2NHKBZC5SOXSRXLJI2XHXMBPR3SH :::: NAILARA AMOS :::
-# :: MXIZJDQQRGC4G23MFESBAFIUHJIBUVPZNY4LIYBVTS6RSIF4LCDA :: CODE SIGNATURE ::
+#OVEYRKS7TGAVMM5JEGVPLJAXFW5HQMPK6VK32KJXJIXZL5GDUL5JPHUQUV2SJYLYA3GKCVHRAB4H6
+#::: G66BVSIQUCIMRYDTPZNRGUM242DREQTSLZKGK7KRMS56A2OBTR4 :::: NAILARA AMOS :::
+# :: FRJXMPO5LL4DG6DATNVUMB7IUC2MCW5BE4EFO2DDK2LYFO5AASAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

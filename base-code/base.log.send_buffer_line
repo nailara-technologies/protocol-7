@@ -6,6 +6,8 @@
 my $name         = shift;
 my $buffer_index = shift;
 
+##  connected to cube ?  ##      ##  use notify-online  ##  [LLL]
+return if not <[base.cfg_boolean]>->(<base.log.allow_buffer_send>);
 return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
 
 <log.file>->{$name} //= {
@@ -16,21 +18,17 @@ return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
     qw| resend_slowdown | => 1.8,
 };
 
-##  use notify-online  ##  [LLL]
-return if not exists <base.log.allow_buffer_send>;    ##  <-- connected ?
-
 my $log_data   = <log.file>->{$name};
 my $next_index = $log_data->{'next_index'};
 
 ##  no such buffer  ##
-return warn "send_buffer_line : no such buffer ['$name'] <{C1}>"
+return warn sprintf "send_buffer_line : no such buffer ['%s'] <{C1}>", $name
     if not defined $data{'buffer'}{$name};
 
-my $buffer_data_ref = $data{'buffer'}{$name}->{'data'};
+my $buffer_data_ref = $data{'buffer'}->{$name}->{'data'};
 
 ##  no such buffer content line [sent]  ##
 return if not defined $buffer_data_ref->[$next_index];
-
 my @send_line;    ##  protocol line messages  ##
 
 ## path to target zenka.., ##
@@ -38,7 +36,7 @@ my $route_prefix = qw| cube. |;
 
 ##[ cube has sid 0 ]##
 if ( <system.zenka.type> eq qw| cube | ) {
-    push( @send_line, "<system.node.name>.<system.zenka.name>", 0 );
+    push @send_line, join( '.', <system.node.name>, <system.zenka.name> ), 0;
     $route_prefix = '';
 }
 
@@ -47,10 +45,7 @@ push( @send_line, $name );
 
 ##[ t-stmp, lvl, msg ]##
 push( @send_line, $buffer_data_ref->[$next_index] );
-
 $log_data->{'complete'} = 0;
-
-my $protocol_messages = <protocol.protocol-7.messages>;
 
 <[base.protocol-7.command.send.local]>->(
     {   qw| command |   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
@@ -63,14 +58,14 @@ my $protocol_messages = <protocol.protocol-7.messages>;
     }
     )
     or <[base.log.handler.log_reply]>->(
-    {   qw| cmd |    => qw| FALSE |,
-        'call_args'  => { 'args' => $protocol_messages->{'command_unknown'} },
-        qw| params | => { qw| name | => $name }
+    {   qw| cmd |       => qw| FALSE |,    ## command unknown ##
+        qw| call_args | => { qw| args | => <[base.sprint_t]>->(qw|6LJDO3Q|) },
+        qw| params |    => { qw| name | => $name }
     }
     );
 
 #.............................................................................
-#7NJI2J4F6AMZVNRRQZPE62H6MJICVNDJBD3IVL4JUQLWTFE5FW4SXPARQDM4QMHBQUGSCHK4FDHJO
-#::: 5MZKX6LUGAQBU64LZYC5UQXRRS6TL56JK3NPWXW7K5GJAJF7EGG :::: NAILARA AMOS :::
-# :: QZEN6TXBYUUNSVTOSGZVVNVGWXND4UDGH3OB43IWLZBMV3KNCUDI :: CODE SIGNATURE ::
+#5KWGOZQNEDGELZFZSMWYXJZLBYYM3Q7PYPMHVBMRBYLNJ2WNHK774PSBJZHXQNSKBVBJW2VJPH72G
+#::: JVTHDQWP7DPNRGRJQ2KOXJN525Z45MR2HHFSAXPOZ4T4S4FO7KN :::: NAILARA AMOS :::
+# :: Q2HYMY7XSBHCVHDXMMBERBLFEDZI7J3P4EM4NBMDMKHS4H3WOEDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

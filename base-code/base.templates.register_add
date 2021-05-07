@@ -1,0 +1,53 @@
+# >:]
+
+# name  = base.templates.register_add
+# descr = registering sprintf templates for 'base.sprint_t' and 'base.logt'
+
+my $group_name = shift;
+my $templates  = <base.templates.sprintf> //= {};
+
+if ( defined $group_name and ref($group_name) eq qw| HASH | ) { ##  single  ##
+    my $t_entry = $group_name;
+    return warn 'template <key> parameter missing'
+        if not defined $t_entry->{'tmp-key'};
+    return warn 'template <str> parameter missing'
+        if not defined $t_entry->{'str'};
+    return warn sprintf( "a template with key '%s' is already present",
+        $t_entry->{'tmp-key'} )
+        if defined $templates->{ $t_entry->{'tmp-key'} };
+    ##  set template in main namespace  ##
+    $templates->{ $t_entry->{'tmp-key'} } = $t_entry->{'str'};
+}
+
+if ( not defined $group_name ) {    ##  module registry mode  ##
+    my ( $package, $filename, $line, $subroutine ) = caller(0);
+    ( my $module_name = $filename ) =~ s|\.[^\.]+$||;
+    my $template_code = "$module_name.message-templates";
+    my $t_group       = ":amos-p7-mod:$module_name";
+    return
+        warn sprintf
+        "no 'message-templates' subroutine defined for '%s' module <{C1}>",
+        $module_name
+        if not defined $code{$template_code};
+
+    my $templates_href = $code{$template_code}->();
+
+    warn "templates in '$template_code' appear empty"
+        if ref $templates_href ne qw| HASH | or !keys %$templates_href;
+
+    ##  group namespace  ##
+    $templates->{$t_group} = $templates_href;
+
+    ##  copy in main namespace  ##
+    map { $templates->{$ARG} //= $templates->{$t_group}->{$ARG} }
+        keys %{ $templates->{$t_group} };
+
+} else {
+    return warn 'named group mode not implemented yet <{C1}>';
+}
+
+#.............................................................................
+#I4LS6ZMQT6ETYVRR4V7WZKTSC5GKCPK7QDP5HGQO7LZRVOKIPQM7FRKMO74ODSP5V4P5CWSWV6S2A
+#::: 2Q7K5KYXDWVLRTQSRVVWPN23RWATSF4CY7SPA72WIAJZI5C73DD :::: NAILARA AMOS :::
+# :: 5TR2JCGFZPDOHEDQ75ZX6HN5TDTQWSFEUASTV3E2AE2HWMAY7CBI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
