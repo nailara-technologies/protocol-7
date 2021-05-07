@@ -5,7 +5,7 @@
 my $reply = shift;
 return 'reply href expected <{C1}>'
     if not defined $reply
-    or ref($reply) ne qw|HASH|;
+    or ref($reply) ne qw| HASH |;
 my $reply_id   = $reply->{'params'}->{'reply_id'};
 my $zenka_name = $reply->{'params'}->{'zenka_name'};
 
@@ -13,13 +13,13 @@ my $mode      = qw| false |;
 my $reply_str = $reply->{'call_args'}->{'args'};
 
 if (    $reply->{'cmd'} eq qw| FALSE |
-    and $reply->{'call_args'}->{'args'} eq 'command unknown' ) {
+    and $reply->{'call_args'}->{'args'} =~ m|^command | ) {
     $reply_str
         = $zenka_name eq qw| cube |
         ? "reply refused by 'cube' zenka"
         : "zenka '$zenka_name' not online or refusing reply";
 } elsif ( $reply->{'cmd'} eq qw| SIZE | ) {
-    $mode      = 'data';
+    $mode      = qw| data |;
     $reply_str = $reply->{'data'};
 }
 
@@ -28,7 +28,7 @@ if (    $reply->{'cmd'} eq qw| FALSE |
 );
 
 #.............................................................................
-#3YI4B5DCJHQ7OSVZYG5B4JFJ4CO5UXV2NI37BAPKOUKPWZ6AIOESFUVA24QCQ4H3VH5CDJUV5HG3M
-#::: JNHZAJZLZJ6OAKVMT2ZW57ENSUMQOPCEV7WHRCB7UON6PPEHCPH :::: NAILARA AMOS :::
-# :: J72NHTDTBOFVIM6Q7NZJOG5PXUFUQG2DEIPAZJXMWEU2DWNAEQCA :: CODE SIGNATURE ::
+#7KVFLRCJWOHXDFADBWUGNAA5XFKIDVSAWPZUIWQHDLEFR2DWFGHLBYRW3ILYK5IAYR2SQQ4CDBL2I
+#::: GUG2UKWEQMWWNDXEB5JH2JIRVS6YIHOA5MPBAYPZAGCGW4LXZOM :::: NAILARA AMOS :::
+# :: Y3LOSY6MD6ESYNP32ET7HTJVTZEGM2Q63LOTNL43ITNA2EHIF4AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

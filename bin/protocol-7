@@ -274,7 +274,7 @@ sub prepare_subs {
     $code{'base.b32.ntime'} = sub {
         my $network_time = shift;
         my $ntime_dec;
-        warn 'invalid network time format <{C1}>' and return undef
+        warn 'network time format not valid <{C1}>' and return undef
             if $network_time !~ m|^[A-Z2-7]{1,22}$|;    ## <-- inc. len. [LLL]
         eval {
             no warnings;
@@ -906,6 +906,7 @@ sub prepare_subs {
                 and $ARG ne qw|  base.sig_int   |
                 and $ARG ne qw|  base.sig_warn          |
                 and $ARG ne qw|  base.route.add         |
+                and $ARG ne qw|  base.cfg_boolean       |
                 and $ARG ne qw|  base.format_error      |
                 and $ARG ne qw|  base.context.list      |
                 and $ARG ne qw|  base.clean_unicode     |
@@ -1620,9 +1621,15 @@ sub prepare_subs {
                     undef $code{$sub_name}    ##  removing  ##
                         if $sub_name =~ m{^base.(log|buffer)};
                     if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) { ## proto.,
-                        $code{'log.error'}
-                            ->(": called broken routine : '$sub_name'");
+                        my $lmsg = ": called broken routine : '$sub_name'";
+                        $code{'log.error'}->($lmsg);
                         $code{'log.error'}->(":. $caller_str");
+                        push(
+                            @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                            join( ' ',
+                                $code{'base.anum_log_time'}->(), 0,
+                                join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
+                        ) if $sub_name eq qw| base.log |;
                         return undef;
                     } else {
                         $code{'log.error'}
@@ -1921,24 +1928,43 @@ sub prepare_subs {
             if defined $code{'base.log_hook'};
         $s_len //= 1;    # <-- << ! >>
         my $spaces = ' ' x $s_len;
-        if ( defined $code{'base.log'} ) {
-            map { $code{'base.log'}->( 1, $ARG ) } @ARG;
-        } else {
-            my $hl = index( $ARG[0], '.\\7', 0 ) == 0 ? 1 : 0;
-            if ( $data{'system'}{'verbosity'}{'console'} ) {
-                map {
+        while ( my $lmsg = shift @ARG ) {
+            if ( defined $code{'base.log'}
+                and $code{'base.log'} ne $code{'log.noerr'} ) {
+                $code{'base.log'}->( 1, $lmsg );
+            } else {
+                if (defined $code{'base.log'}    ##  routine was purged  ##
+                    and $code{'base.log'} eq $code{'log.noerr'}
+                    ) {    ## setting emergenncy log levels ##
+                    $data{'system'}{'verbosity'}{'console'} //= 1;
+                    $data{'system'}{'verbosity'}{'console'} = 1
+                        if $data{'system'}{'verbosity'}{'console'} < 1;
+                    $data{'system'}{'verbosity'}{'zenka_buffer'} //= 1;
+                    $data{'system'}{'verbosity'}{'zenka_buffer'} = 1
+                        if $data{'system'}{'verbosity'}{'zenka_buffer'} < 1;
+                }
+                my $llvl = 1;
+                if ( $lmsg =~ m|\-?\d+$| and @ARG ) {
+                    $llvl = $lmsg;
+                    $lmsg = shift @ARG;
+                }
+                my $color = $llvl < 1 ? qw| p7_fg_0002 | : qw| p7_fg_0004 |;
+                my $hl    = index( $lmsg, '.\\7', 0 ) == 0 ? 1 : 0;
+                if (    $data{'system'}{'verbosity'}{'console'}
+                    and $llvl <= $data{'system'}{'verbosity'}{'console'} ) {
                     say $code{'log.format_name'}->($hl), ' ',
-                        $ANSI{'p7_fg_0004'}, $ARG, $ANSI{'reset'},
-                        $spaces
-                } @ARG;
-            }
-            ## early start-up buffer ##
-            map {
+                        $ANSI{$color}, $lmsg, $ANSI{'reset'},
+                        $spaces;
+                }
+                ## early start-up buffer ##
                 push(
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
-                    join( ' ', $code{'base.anum_log_time'}->(), 1, $ARG )
-                )
-            } @ARG if $data{'system'}{'verbosity'}{'zenka_buffer'};
+                    join(
+                        ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg
+                    )
+                    )
+                    if $llvl <= $data{'system'}{'verbosity'}{'zenka_buffer'};
+            }
         }
     };
 
@@ -1949,7 +1975,10 @@ sub prepare_subs {
             : '';
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         if ( defined $code{'base.log'} and defined &{ $code{'base.log'} } ) {
-            map { $code{'base.log'}->( 0, $ARG ) } @ARG;
+            map {
+                $code{'base.log'}->( 0, $ARG )
+                    if defined $code{'base.log'}    ##  still defined ?  ##
+            } @ARG;
         } else {
             map {
                 if ( defined $ARG ) {
@@ -1965,11 +1994,11 @@ sub prepare_subs {
                         $spaces;
 
                 } else {
-                    warn '<< error message undefined >> <{C1}>';
+                    warn '<< error message not defined >> <{C1}>';
                 }
             } @ARG;
-            ## early start-up buffer ##
-            map {
+
+            map {    ## early start-up buffer ##
                 push(
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
                     join( ' ', $code{'base.anum_log_time'}->(), 0, $ARG )
@@ -1995,8 +2024,7 @@ sub prepare_subs {
                         $spaces
                 } @ARG;
             }
-            ## early start-up buffer ##
-            map {
+            map {    ## early start-up buffer ##
                 push(
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
                     join( ' ', $code{'base.anum_log_time'}->(), 2, $ARG )
@@ -2009,6 +2037,9 @@ sub prepare_subs {
 
     $code{'base.sig_warn'} = sub {
         my $s_len;
+        state $deep_recusrsion   //= 0;
+        state $recent_warn_cnt   //= 0;
+        state $last_warning_time //= $code{'base.time'}->(10);
         $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
         $s_len //= 0;
         my $spaces = ' ' x $s_len;
@@ -2023,10 +2054,10 @@ sub prepare_subs {
             } @err;
             push( @err, $spaces ) if length($spaces);
             {
-                no warnings 'experimental';
+                no warnings qw| experimental |;
                 if ( @err ~~ m|deep recursion | ) {
-                    no warnings 'recursion';    # no follow-ups
-                                                # remove offending routine #
+                    no warnings qw| recursion |;  # no follow-ups
+                    $deep_recusrsion++;           # remove offending routine #
                     foreach my $c_lvl ( 1 .. 5 ) {
                         next
                             if $code{'base.caller'}->($c_lvl)
@@ -2037,7 +2068,11 @@ sub prepare_subs {
                     my $msg = join( ' ',
                         ': FATAL ERROR :',
                         @err, $code{'base.caller'}->(3) );
-                    $code{'log.error'}->($msg);    ## count and exit ## [LLL]
+                    $code{'log.error'}->($msg);
+                    if ( $deep_recusrsion >= 5 ) {
+                        $code{'log.error'}->(': terminating program .,');
+                        exit('000113');
+                    }
                 }
             }
             my @caller = caller;
@@ -2133,7 +2168,31 @@ sub prepare_subs {
                 }
             }
         }
+        my $time = $code{'base.time'}->(10);
+        if ( sprintf( qw| %0.7f |, $time - $last_warning_time <= 0.04707 ) ) {
+
+            $code{'base.delay_warning'}    ##  slowing down with errors  ##
+                ->( $time, $last_warning_time, $recent_warn_cnt )
+                if $recent_warn_cnt++;
+
+            $last_warning_time = $time;
+        } else {
+            $recent_warn_cnt = 0;
+            undef $last_warning_time;
+        }
         return 1;
+    };
+
+    $code{'base.delay_warning'} = sub {
+        my ( $time, $last_warning_time, $recent_warn_cnt ) = @ARG;
+        my $delay_factor = sprintf( qw| %.07f |, $recent_warn_cnt / 13 );
+        $delay_factor = 1 if $delay_factor > 1;
+        my $log_delay = sprintf( qw| %.07f |,
+            0.00007 - (
+                $delay_factor * ( ( $time - $last_warning_time ) / 1300 ) ) );
+        $log_delay = qw| 0 |       if $log_delay < 0;
+        $log_delay = qw| 0.00007 | if $log_delay > 0.00007;
+        $code{'base.sleep'}->($log_delay);
     };
 
     $code{'base.clean_up_caller'} = sub {
@@ -2177,7 +2236,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#OVEYRKS7TGAVMM5JEGVPLJAXFW5HQMPK6VK32KJXJIXZL5GDUL5JPHUQUV2SJYLYA3GKCVHRAB4H6
-#::: G66BVSIQUCIMRYDTPZNRGUM242DREQTSLZKGK7KRMS56A2OBTR4 :::: NAILARA AMOS :::
-# :: FRJXMPO5LL4DG6DATNVUMB7IUC2MCW5BE4EFO2DDK2LYFO5AASAQ :: CODE SIGNATURE ::
+#OCBM5O5U7NJ77MBSJNXILHF2P4KJH5PE46QYSWLU4ZGYGYF6BZGAJWZPXP6IWFVVQLYMQJ6WDTE2S
+#::: NHTVATPMLN6NS4JITM52IXWMBWB2XWC4PELJQNW5Y7IOQNOUYQH :::: NAILARA AMOS :::
+# :: PV7FE5VMBLDTWJXVREY2WUUG5NYA7PJ5WI45OODAOD2PUXZPI6CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

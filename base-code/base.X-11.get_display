@@ -16,7 +16,7 @@ my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
-    die "cube handle exception" if not defined $reply_string;
+    die 'cube handle exception' if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -24,23 +24,23 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
-    <x11.display> = $1;
-    <[base.log]>->( 1, "received X display name [" . <x11.display> . "]" );
+    <x11.display> = ${^CAPTURE}[0];
+    <[base.logs]>->( 'received X display name [%s]', <x11.display> );
     return <x11.display>;
-} elsif ( $reply_string =~ /^\($cmd_id\)FALSE command unknown\n$/ ) {
-    <x11.display> //= ':0.0';
-    <[base.log]>->(
-        1,
-        "no X-11 zenka found, using default display [" . <x11.display> . "]"
+} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command | ) {
+    <x11.display> //= qw| :0.0 |;
+    <[base.logs]>->(
+        'no X-11 zenka found, using default display [%s]',
+        <x11.display>
     );
     return <x11.display>;
 } else {
-    <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
+    <[base.logs]>->( 0, "not expected X-11 reply ['%s']", $reply_string );
     return undef;
 }
 
 #.............................................................................
-#TT47UBRMDNQDICWI3QGOS5IR4T4AGP3NRNA32BOMPQPXIK7MYBBTTUAYTAUNVO2L3X6EUXJ6E6JVG
-#::: FV5KKBPPFAWMFRNCZKF7Y2ISN2VXZXYZLBUAUEI7IRT3AK2LN47 :::: NAILARA AMOS :::
-# :: VOXOY4KT76UA4NRRQWJVXMOWGMJDIISV2EBXHL7GQUOVIDGAM4DI :: CODE SIGNATURE ::
+#ZK32EFVQ76XW5FNYSZTUV7EBVLVCFQQXSGNS64ICTN34QUQA4YSD6IVVOFP442ISYRRVQFXBKTSKW
+#::: PAXPWEJU4HM536LLNTOEPWOXAO62WDV3BZ2G7XXIG6WJ3ZF2B27 :::: NAILARA AMOS :::
+# :: JR4GVXAD6WYREUDGMC57533PSZIA4EYGUS4KP6SOCOQ7MWSQFQAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

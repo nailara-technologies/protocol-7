@@ -38,17 +38,17 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
-    <x11.geometry> = $1;
-    <[base.log]>->( 1, "received window geometry ., [$1]" );
+    <x11.geometry> = ${^CAPTURE}[0];
+    <[base.logs]>->( 'received window geometry ., [%s]', <x11.geometry> );
     return <x11.geometry>;
 }
 
 # else [ no composition zenka present or no geometry for zenka configured ]
 my $err_msg = "unexpected reply from composition zenka ['$reply_string']";
 
-$err_msg = ": << geometry not defined$sn_log_str >>"
+$err_msg = sprintf( ': << geometry not defined%s >>', $sn_log_str )
     if $reply_string =~ m|FALSE no geometry|
-    or $reply_string =~ m|FALSE command unknown|;
+    or $reply_string =~ m|FALSE command |;
 
 <[base.log]>->( 1, $err_msg );
 
@@ -60,7 +60,7 @@ $matched_reply = 0;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     die '<< cube handle had an exception >>'
-        if not defined $reply_string or !length($reply_string);
+        if not defined $reply_string or not length $reply_string;
 
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
@@ -80,7 +80,7 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
 }
 
 #.............................................................................
-#56B4TVHLRRGWGUTVEBWR7TCF7GQMVCXKI4CSA4JRUODXTQEYEX5DYBFH3324RZLTUMGMGOVQBMHAW
-#::: S3ZHPO2GPNJVDDF45RCWEXPRG3XQ64G6C46P2EFNW4WSXOUX3U7 :::: NAILARA AMOS :::
-# :: YUUB36MWYDSERXFZSUROS2YH5SM55OMMSH6WIRITEHZN2OFAQQDQ :: CODE SIGNATURE ::
+#HUU6S5WIMCPZXE2KR53IIZ2N2UDRYB7LRGPKNAA6VSMZNOZASXF235EJEDNT6WFLL7TIMN6MJ7IXU
+#::: 57PUOBXVOZWOHYDPWVMDPKB5DUSDPB7IX7G53W7EU2QVMUWDUVU :::: NAILARA AMOS :::
+# :: RLZ2XX3IKC3SH2NXV4XIYIEUK4FI7EEJIMOLHFVSOG7BKERNWKDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

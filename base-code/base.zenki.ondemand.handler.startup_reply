@@ -7,12 +7,14 @@ my $reply = shift;
 
 my $v_id       = $reply->{'params'}->{'v_id'};
 my $zenka_name = <zenki.virtual>->{$v_id}->{'name'};
+
 delete <zenki.virtual>->{$v_id}->{'starting'};
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->(
-        0, "on demand startup of zenka '$zenka_name' failed [ $reason ]"
+    <[base.logs]>->(
+        0,           'ondemand start-up of %s zenka not successful [ %s ]',
+        $zenka_name, $reason
     );
     while ( my $element = shift @{ <zenki.virtual>->{$v_id}->{'queue'} } ) {
         my $cmd_id = $element->{'cmd_id'};
@@ -20,15 +22,17 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
 
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= $cmd_id . "FALSE command unknown\n";
+            .= <[base.sprint_t]>->( qw| GLPLXJQ |, $cmd_id );
     }
 } else {
-    <[base.log]>->( 1, "ondemand zenka '$zenka_name' now present.," );
+    <[base.logs]>->( 'ondemand %s zenka has come online..,', $zenka_name );
+
     while ( my $element = shift @{ <zenki.virtual>->{$v_id}->{'queue'} } ) {
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
 
         my $cmd_id = $element->{'cmd_id'};
+
         my $subname
             = defined $element->{'cmd_subname'}
             ? sprintf( "[%s]", $element->{'cmd_subname'} )
@@ -41,13 +45,12 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
             if defined $element->{'cmd_args'};
 
         # [LLL] add multiline command parameters ..,
-
         $data{'session'}{$src_id}{'buffer'}{'input'} .= "$output_str\n";
     }
 }
 
 #.............................................................................
-#AYOE5JT2XWUM354D5XLURBHDRHC6VQIXZMCWVZSZKE4YO5CPDIBVRUEN2L4XBADYWJ7SQEIYDHJKS
-#::: OBDNBG5FQE4BYUGA4APVPBHKR54NEHIK2ER3DHZBM33KZQZBUNP :::: NAILARA AMOS :::
-# :: JGKRT7TRW7C4HQDTBKRE7HYLNU6HALYYF4VZJGOOHG25MGIYTACA :: CODE SIGNATURE ::
+#XE4ZPK4HXBBJVY7GJH4WVKTOQPBAV4MUVET74BYML34TWQQ74EN6ELL3AAT3CP3SCZCRDO53EKXVY
+#::: THSZLIWZP4B7R7MJQB7D5CCQGUIFOMT4ITCGIH7IGCUCDOC2K2D :::: NAILARA AMOS :::
+# :: HAQFJAZW3YJRJY3PUUY6LB7WONSQG6HNZUBXU4DZWROS4GHV36CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

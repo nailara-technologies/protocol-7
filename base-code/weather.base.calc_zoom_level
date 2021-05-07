@@ -76,7 +76,7 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
         1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
     );
     return <weather.zoom_level>;
-} elsif ( $reply_string =~ /FALSE command unknown$/ ) {
+} elsif ( $reply_string =~ m|FALSE command | ) {
     <[base.log]>->( 1, 'X-11 zenka unreachable [running?]' );
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
@@ -84,7 +84,7 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
 }
 
 #.............................................................................
-#SGTCCTUZYFUHT5BUV25MWTGRJLRA27SDKERT6DHDGELEZWNQKNAX2HAMHDAIIXIOWCAPVPTNCMV66
-#::: V3WPT3Z3HGH2MABQSHCHZDMEWBEYEX23TE7UU5SSLY5Y6N7FC5Q :::: NAILARA AMOS :::
-# :: WEDPBWKUEW4BR27NZXXM522F3GCJEYGF4YXKZOBPY5U7E7SGROAQ :: CODE SIGNATURE ::
+#GE4FH27DS5UEMYYNFA6BMKYR5RZUSY5J33OPTXDRF5Y5LZ2SQRZX5WHD3AQ7GKMQ32ANA2IAQAFLO
+#::: PWBF6D2OZQMYWRZNOSA3VRVFOIC454RPD5Y4GD2T3SGW3F2236R :::: NAILARA AMOS :::
+# :: MZXXTRVS3VJ6DPWDAUFXUKMVGRMNLGE2POO27TVORNZVXU3T6GAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

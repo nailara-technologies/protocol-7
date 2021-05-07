@@ -17,8 +17,8 @@ BEGIN {
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
-    my $data_pm_path   = qw| data/lib-path/pm |;
-    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path    = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
     $local_lib_path //= $data_pm_path;
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
@@ -44,7 +44,7 @@ $SIG{'INT'} = \&do_exit;
 $SIG{'__WARN__'} = sub {
     ( my $msg = shift ) =~ s|(*plb:\w):| :|g;
     CORE::warn sprintf "$C{'o'}:\n: %s:$C{R}\n", lcfirst $msg;
-    exit(0110);
+    exit('000113');
 };
 
 ##[ RUNTIME OPTIONS ]#########################################################
@@ -80,12 +80,12 @@ binmode( STDOUT, ':encoding(UTF-8)' );
 say '';
 
 foreach my $num (@range) {
-    my $d      = length( sprintf( '%07b', $range[ scalar @range - 1 ] ) );
-    my $result = sprintf( '%0' . $d . 'b', $num );
-    my $elfsum = sprintf( '%09d', elf_chksum( $result, 1, $modes[0] ) );
-    my $bit_00 = eval '0b' . substr( sprintf( '%07b', $num ), -7, 3 );
-    my $bit_01 = eval '0b' . substr( sprintf( '%07b', $num ), -4, 1 );
-    my $bit_02 = eval '0b' . substr( sprintf( '%07b', $num ), -3, 3 );
+    my $d      = length( sprintf( qw| %07b |, $range[ scalar @range - 1 ] ) );
+    my $result = sprintf( "%0${d}b",  $num );
+    my $elfsum = sprintf( qw| %09d |, elf_chksum( $result, 1, $modes[0] ) );
+    my $bit_00 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -7, 3 );
+    my $bit_01 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -4, 1 );
+    my $bit_02 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -3, 3 );
     my $char_0 = substr( $elfsum, 0, 3 );
     my $char_L = substr( $elfsum, 4, 2 );
     my $char_M = substr( $elfsum, 5, 2 );
@@ -150,10 +150,10 @@ say $C{'R'};
 
 ##############################################################################
 
-exit(00000);
+exit(0000000);
 
 #.............................................................................
-#YZPHEK5IYUOKRVG3TZ2PQVQACCBKKXJNHNREEAW3ZHFERNPWL6YCNGWLEGCCU4VTDCVOK4QH63C4M
-#::: UTLMYWQUB4KZQOZ6OTMVLJ64P4N72S2FWIJMUQYPO5RGLMCZH7C :::: NAILARA AMOS :::
-# :: LZEMF45U2SERD7K52EKVUAI5WN45YXBYA4W2EPSI3FGFDYERJCDY :: CODE SIGNATURE ::
+#WB7KNYOM622I73EEMRGSZO4EPZ3Z423IMUACDZY5NGEBGQWSSYWT7SS22G7FUIMNJMLPDEFKVZ7N4
+#::: IZT5Y7257JHPUAEMVVOC5LEUY5JPYLLRHO5BQYTG7MXYQBMEPBU :::: NAILARA AMOS :::
+# :: J7UCCJJEJXJ4QGJJ5SLW75J6TK2THO7NUFRWZEV75JWBLOUWEOAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
