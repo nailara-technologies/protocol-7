@@ -1,0 +1,44 @@
+# >:]
+
+# name  = base.sprint_t
+# desc = registered template based sprintf wrapper
+
+my $template_name = shift;
+my $templates     = <base.templates.sprintf> // {};
+return warn 'no sprintf templates defined yet <{C1}>' if !keys %$templates;
+return warn 'no template name parameter given <{C1}>'
+    if not defined $template_name;
+
+my $t_group
+    = $template_name =~ s|^(:[^:]+:([^:]+:(*pla:.))?)||
+    ? $LAST_PAREN_MATCH
+    : undef;
+
+return warn sprintf "template group '%s' does not exist <{C1}>"
+    if defined $t_group and not defined $templates->{$t_group};
+
+if ( not defined $t_group ) {
+    my ( $package, $filename, $line, $subroutine ) = caller(0);
+##  want module registry  ##   [LLL]
+    ( my $module_name = $filename ) =~ s|\.[^\.]+$||;
+    $t_group = sprintf( ':amos-p7-mod:%s', $module_name );
+}
+
+## search module namespace first, then main ##
+my $template_str
+    = (     defined $t_group
+        and defined $templates->{$t_group}->{$template_name} )
+    ? $templates->{$t_group}->{$template_name}
+    : defined $templates->{$template_name} ? $templates->{$template_name}
+    :                                        undef;
+
+return warn "sprintf template '$template_name' not detined"
+    if not defined $template_str;
+
+return sprintf( $template_str, @ARG );    ##  <-- can be without argument  ##
+
+#.............................................................................
+#D7SOI4IR4KYSHOEU2IOHYTS6ZRZNKBZBWU3QZKJSYJX34H44RIB5L5AU3QDWOV37PRMAGIGSIUEHG
+#::: YEREKKT4CLT2FFLLFR76JYSUKMWT6J2KNM2C3DQPW4QSQWZMXC6 :::: NAILARA AMOS :::
+# :: LCHV7V4IGDF7JR2R36FXU7CDTVQWJTVSMHCBUC7T5Z2R4P7LFCBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

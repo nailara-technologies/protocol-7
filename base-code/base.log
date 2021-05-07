@@ -77,9 +77,9 @@ if ($fatal_exit) {    ## improve detection ## [LLL]
 }
 
 ## write imto 'zenka' log buffer ##
-if ( defined $code{'base.buffer.add_line'} ) {
+if ( <[base.cfg_boolean]>->(<base.log.allow_buffer_send>)
+    and defined $code{'base.buffer.add_line'} ) {
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
-
     <[base.buffer.add_line]>->(
         $log_buffer, join( ' ', $time_stamp, $log_level, $log_msg ),
         $log_level
@@ -89,9 +89,7 @@ if ( defined $code{'base.buffer.add_line'} ) {
 }
 
 ## console output ##
-
 if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
-
     if ( defined $code{'base.utf8.clean_not_valid'} ) {
         <[base.utf8.clean_not_valid]>->( \$log_str, 2, 2 ); ## warn level 2 ##
     }
@@ -101,7 +99,7 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 return 1;
 
 #.............................................................................
-#UUSN4YNKGSODU7GTCLHZ7HGTGOGORO2MUIY6G64YAQYGK27ZNWGMXO6PRVWZOL336MLPFRTDOBHWG
-#::: 4R4BYXXEM6QE2CF5G5CRG7GX3A7EGB4IIV6CFBPPXRFWBIZESTA :::: NAILARA AMOS :::
-# :: 7L5FEA3P6YMXS6HHYU4NE5HZFFHFL6XT4XCCLV3QHRX2UZNOW4DY :: CODE SIGNATURE ::
+#N76KHIMEBQVO6MPHYDTRQA3VMPUD5XKD7CUOHH3RFF2Y3ADXBJBV66QDGRZWWBPDXTFMLEYTASZZY
+#::: LCPJMGZHESBPZS2Q3HVTCIOOEHEIMI2WCRGZCTOG4V3TRVHYUZD :::: NAILARA AMOS :::
+# :: RUSB5CQFZ7LTNSDHCIHJZRH5JUQFWEAKPWBNFJAEIS2MBREB5QDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

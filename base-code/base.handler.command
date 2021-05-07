@@ -15,13 +15,6 @@ my $user = $data{'session'}{$id}{'user'};
 
 my $re = <regex.base>;    # <-- regex cache
 
-my $protocol_messages = <protocol.protocol-7.messages>;
-
-my $uninitialized      = $protocol_messages->{'uninitialized'};
-my $protocol_error     = $protocol_messages->{'protocol_error_message'};
-my $unkown_command     = $protocol_messages->{'command_unknown'};
-my $permission_message = $protocol_messages->{'permission_message'};
-
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
@@ -205,8 +198,11 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
 
 elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
-    <[base.log]>->( 0, "[$id] protocol mismatch ['$cmd_string\']" );
-    $$output .= $_cmd_id . "FALSE $protocol_error\n";
+
+    <[base.logt]>->( qw| HTKSXIY |, $id, $cmd_string );  # protocol mismatch #
+
+    $$output .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+
     $_[0]->w->start;
     return 0;    ##  command processing was complete  ##
 }
@@ -296,7 +292,7 @@ if ( defined $alias_to and length($alias_to) ) {
         if ( defined $$call_args{'args'} ) {
             $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} );
         } else {
-            $$call_args{'args'} = $2;
+            $$call_args{'args'} = ${^CAPTURE}[1];
         }
     }
 }
@@ -378,7 +374,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         and $cmd =~ $route->{'hook_data'}->{'mode'};
 
                     # route reply
-                    $$call_args{'args'} //= 'UNDEFINED';
+                    $$call_args{'args'} //= qw| UNDEFINED |;
                     $data{'session'}{$source_sid}{'buffer'}{'output'}
                         .= $s_cmd_id
                         . $cmd . ' '
@@ -396,7 +392,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 }
 
                 ### deleting route ###
-                if ( $cmd ne 'WAIT' ) {
+                if ( $cmd ne qw| WAIT | ) {
                     my $src_sid    = $$route{'source'}{'sid'};
                     my $src_cmd_id = $$route{'source'}{'cmd_id'};
                     delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
@@ -456,16 +452,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                         . $$route{'reply'}{'handler'} . "']"
                                 );
                             }
-                        } else {
-
-                            ## sending SIZE reply to target ##
-
+                        } else {    ## sending SIZE reply to target ##
                             $data{'session'}{ $$route{'source'}{'sid'} }
-                                {'buffer'}{'output'}
-                                .= $s_cmd_id
-                                . $cmd . ' '
-                                . $$call_args{'args'} . "\n"
-                                . $data_reply;
+                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
+                                qw| DFSFKQA |,       $s_cmd_id,
+                                $$call_args{'args'}, $data_reply
+                                );
                         }
 
                         # delete route
@@ -485,17 +477,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                         $valid_answer = 1;
                     } else {    # should never reach this point
-                        <[base.log]>->(
-                            1,
-                            "[$id] [SIZE] buffer is missing data [ $msg_len <= "
-                                . $$call_args{'args'} . "]"
+                        <[base.logt]>->(
+                            qw| QQ4HHXI |, $id, $msg_len, $$call_args{'args'}
                         );
                     }
                 }
 
 ##[ PROCESS REPLY \ STRM ]####################################################
 
-            } elsif ( $cmd eq 'STRM' ) {
+            } elsif ( $cmd eq qw| STRM | ) {
                 ####
                 if ( $$call_args{'args'} =~ m|^open( (\d+))?$| ) {
                     my $open_size = $2 || 0;
@@ -708,10 +698,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
         } else {
-            <[base.log]>->( 1, "[$id] command unknown '$cmd'" );
+            <[base.logt]>->( qw| TLIOPBY |, $id, $cmd ); ## command unknown ##
         }
 
-        $$output .= $_cmd_id . "FALSE $unkown_command\n";
+        $$output .= <[base.sprint_t]>->( qw| NYPO7DQ |, $_cmd_id );
 
         return 0;    ##  command processing was complete  ##
     }
@@ -853,13 +843,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ 'FALSE' REPLY : CLIENT NOT PRESENT ]######################################
 
-        if ( !@send_sids ) {
-            $$output .= $_cmd_id . "FALSE $unkown_command\n";
-            my $l_lvl = $target_name eq 'p7-log' ? 2 : 1;
-            <[base.log]>->(
-                $l_lvl, "[$id] offline : '$target_name' : '$command_str'"
+        if ( !@send_sids ) {    ## FALSE client not present ##
+            $$output .= <[base.sprint_t]>->( qw| FZJASRY |, $_cmd_id );
+
+            my $llvl = $target_name eq 'p7-log' ? 2 : 1;
+            <[base.logt]>->(    ##  offline  ##
+                $llvl, qw| ADMN6PY |, $id, $target_name, $command_str
             );
-            return 0;    ##  command processing was complete  ###
+
+            return 0;           ##  command processing was complete  ###
         }
 
 ##[ CHECK INITIALIZED ]#######################################################
@@ -879,11 +871,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             }
 
           # if 'zenka'-mode session and not initialized allowing replies only.
-            $$output .= $_cmd_id . "FALSE $uninitialized\n";
-            <[base.log]>->(
-                0,
-                "[$id] unroutable command \"$command_str\" "
-                    . "[ $target_name session $target_sid not initialized yet ]"
+            $$output .= <[base.sprint_t]>->( qw| GBAMFKI |, $_cmd_id );
+            <[base.logt]>->(    #  session not initialized  #
+                0, qw| J3OAOPQ |, $id, $command_str, $target_name, $target_sid
             );
         }
 
@@ -1014,11 +1004,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
         ## nothing was sent ##
         if ( $targets_denied == @send_sids ) {
-            $$output .= sprintf "%sFALSE %s\n", $_cmd_id, $permission_message;
-            <[base.log]>->(
-                0,
-                "[$id] blocked access [ usr:'$user' cmd:'$target_name.$cmd' ]"
-            );
+
+            ##  no perm. .., ##
+            $$output .= <[base.sprint_t]>->( qw| 3KWYQCI |, $_cmd_id );
+            <[base.logt]>->( qw| XY6BQLA |, $id, $user, $target_name, $cmd );
+
             return 0;    ##  command processing was complete  ##
         }
 
@@ -1029,29 +1019,24 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS \ NOT VALID SYNTAX ]##############################################
 
     } else {    ## command syntax not valid ##
-        $$output .= $_cmd_id . "FALSE $protocol_error\n";
-        <[base.logs]>->( '[%d] protocol mismatch [\'%s\']', $id, $cmd );
+
+        $$output .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+
+        <[base.logt]>->( qw| HTKSXIY |, $id, $cmd );    # protocol mismatch #
 
         return 0;    ##  command processing was complete  ##
     }
 
 ##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
-    ## command unknown ##
-
-    $$output .= $_cmd_id . "FALSE $unkown_command\n";
-    <[base.logs]>->(
-        '[%d] command unknown [ src \'%s\' cmd \'%s\' ]',
-        $id, $user, $cmd
-    );
+    $$output .= <[base.sprint_t]>->( qw| NYPO7DQ |, $_cmd_id );
+    <[base.logt]>->( qw| CSCAWOA |, $id, $user, $cmd );  ## command unknown ##
 
 } else {    ## insufficient access permissions ##
 
-    $$output .= $_cmd_id . "FALSE $permission_message for '$cmd'\n";
-    <[base.logs]>->(
-        0,   '[%d] blocked access [ src \'%s\' cmd \\ usr \'%s\' ]',
-        $id, $user, $cmd
-    );
+    $$output .= <[base.sprint_t]>->( qw| 2QWSHTY |, $_cmd_id, $cmd );
+
+    <[base.logt]>->( 0, qw| CQL5VPA |, $id, $user, $cmd ); ##  no perm. .., ##
 
     return 0;    ##  command processing was complete  ##
 }
@@ -1061,7 +1046,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 return 0;        ##  command processing was complete  ##
 
 #.............................................................................
-#2OADOH7UJ7IQWAEVIT36JBLSF2I777WVYBSSKI5C3VKUNAVSOPZDYF4HORHCZM6RZ4WWXLQOS3NQ6
-#::: D2YIKA5WUVDARSQS6SZVU253EJ24JLZQJXYMLZUNHASA5RVQXDX :::: NAILARA AMOS :::
-# :: 43ZFWWGUETWNXU2MKF4JCGBK3OWYE25TH2U5PCZH6XCMXI5EGQAQ :: CODE SIGNATURE ::
+#LHCQOAR7GHP3XDN5VYQG6YIJCMFUOWNA245UICD6A5JWXMFQK6EN6FB4FVMFPUF2O6QCJWTFSVM6O
+#::: 4X5CZPWSBWCBWZ4M7EJYBRNHLBIFEAOPJH6UG35FHOBUUUMDJCF :::: NAILARA AMOS :::
+# :: PPSAJ2MFBOZZX6MBW5IOMF6OLBOYN3YNGZYEQW5UHMFYGSDCVYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

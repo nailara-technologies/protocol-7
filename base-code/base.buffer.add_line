@@ -103,16 +103,17 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 ) {
     my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
 
-    <[base.log.send_buffer_line]>->( $name, $buffer_index )
-        if defined $code{'base.log.send_buffer_line'}
-        and not exists $data{'p7-log'}
-        or not exists <log.file>
-        or not exists <log.file>->{$name}
-        or <log.file>->{$name}->{'complete'} == 1;
+    if ( defined $code{'base.log.send_buffer_line'} ) {
+        <[base.log.send_buffer_line]>->( $name, $buffer_index )
+            if not exists $data{'p7-log'}
+            or not exists <log.file>
+            or not exists <log.file>->{$name}
+            or <log.file>->{$name}->{'complete'} == 1;
+    }
 }
 
 #.............................................................................
-#WHMWTI5RJKL3GBHODSMI4ATJ43JAAA2GEJRR6ABIEFSZD3KAFF76WDXN74VGVKAH3XIKHW7IRP3YS
-#::: GOJZ3FUIMETY6TJLDAF53RJR4NJZNOVXG3ABRCLWU55SDOKW3MH :::: NAILARA AMOS :::
-# :: 777K35MQ4457GHTEVWRMPI656LRZX4XVQ743CWANFQARZGXCC4CQ :: CODE SIGNATURE ::
+#N5BH2DAB3GAHSHEI2GL7MB3WHCWRH6HPTJTCJCF5UBFZ3ZL2RAP4NSHDYXZAKBZPGR3AISJSADRJK
+#::: HRNNV6RLMLKD7SOFL4IYCU2VY6LIJUDTDSJCSQW4YPMCOUEN6HL :::: NAILARA AMOS :::
+# :: GR6KFSRWSZNMR3H65BXMMY6XXYNEHVLAZHAIDNWSB3ZJA3TRK2AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
