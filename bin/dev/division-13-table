@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+
+our $Z = shift(@ARGV);
+die ":\n: expected numerical seed input\n:\n"
+    if defined $Z and $Z !~ m|^\d+(\.\d+)?$|;
+$Z =~ s|\.||;    ##  removing floating point  ##
+die ":\n: seed input exceeds 64 bit size ..,\n:\n"
+    if $Z > 18446744073709551615;
+
+$Z //= 1;  ##  base value demonstrating division by 13 entropy build-up .,  ##
+
+if ( length int($Z) < 7 ) {    ## if not a continuation ##
+    $Z *= 13;    ##  seed as multiples of 13 because integer calculation  ##
+}
+
+my $iteration       = 0;
+my $entropy_started = length($Z) >= 17 ? 0 : -7;
+
+our %C = (       ##  color table  ##
+    qw|  T  | => "\e[38;2;6;71;195m",
+    qw|  b  | => "\e[48;2;9;5;42m",
+    qw|  0  | => "\e[38;2;68;39;172m",
+    qw|  B  | => "\e[1m",
+    qw|  R  | => "\e[0m",
+);
+
+while ( ++$iteration ) {
+
+    $Z /= 13;
+    $Z <<= 5;
+
+    display_result($Z);
+}
+
+sub display_result {
+    my $num         = shift;
+    my $num_bits_64 = sprintf( qw| %064b |, $num );
+    my $main_42     = substr( $num_bits_64, 0,  42 );
+    my $main_3      = substr( $num_bits_64, 42, 3 );
+    my $main_3_oct  = ord( pack qw| B8 |, qw| 00000 | . $main_3 );
+    my $aux_4_0     = substr( $num_bits_64, 44, 1 );
+    my $aux_4_1     = substr( $num_bits_64, 45, 3 );
+    my $aux_4_int   = ord( pack qw| B8 |, qw| 00000 | . $aux_4_1 );
+    my $aux_4_s
+        = $aux_4_int == 0
+        ? $aux_4_0 == 0
+            ? '='
+            : '!'
+        : $aux_4_0 == 0 ? '-'
+        :                 '+';
+
+    ## AUXILARY 15 ARE NOT USED FOR ENTROPY, ONLY KEPT ##
+    # [ IMPLEMENTATION PRECISION AND DETACHING FROM INPUT SEED ] #
+    my $auxilary_15 = substr( $num_bits_64, 49, 15 );
+
+    entropy_body() if $entropy_started < 5 and length int($Z) == 20;
+
+    printf "%s%116s %s\n", "$C{0}$C{b}.", '.', $C{R}
+        if $iteration == 1 and $entropy_started < 5;
+
+    say $C{'b'} . $C{'0'} . join ' ', qq|:|, sprintf( '%05d', $iteration ),
+        qq|:|, sprintf( $C{'T'} . '%020s' . $C{'0'}, int $num ), '|',
+        $C{T} . $C{B} . $main_42 . $C{R} . $C{b} . $C{0}, '|', $main_3,
+        qq|:|, $C{'T'} . $main_3_oct,
+        $aux_4_s, $aux_4_int . $C{'0'}, qq|:|, $aux_4_0, $aux_4_1,
+        '|', $auxilary_15, '|', $C{'R'};
+
+    entropy_body() if $entropy_started < 1 and length int($Z) >= 17;
+
+}
+
+sub entropy_body {
+    return ++$entropy_started if $entropy_started < 0;
+    printf "%s: ===== : $C{0} MAIN ENTROPY"
+        . " START$C{0}  | %42s | === :OCT+DEC:%s%s%s%s\n",
+        "$C{0}$C{b}",
+        scalar( '-' x 9 )
+        . " .:$C{T}$C{B} MAIN ENTROPY BODY $C{0}:. "
+        . '-' x 8, "$C{R}$C{b}$C{0} " . '=' x 5, ' |', '-' x 17, '|';
+    return $entropy_started = 5;
+}
+
+#.............................................................................
+#M3O44ANCFVEHTS35R37LH4JJZEWWXNEB7GF64WNXJOGZSRSCEAETV7COAREVJQZGKYM7KVTS4GOLM
+#::: COLJ3UJC2KT7RVIJUEYBXUVOZRHNHWCTWIZCQ2FYUWQBHTAGIL7 :::: NAILARA AMOS :::
+# :: 3EJWY3X6GURNZE6H7HUD4564ZDWSSALM7ARHBIEYJEJUOK6JXSBQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
