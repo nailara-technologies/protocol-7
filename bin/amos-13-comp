@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use IO::File;
+
+####            ####
+##  amos-13-comp  ##
+###             ####
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+## regular invocation ##
+
+my $extraction
+    = ( @ARGV > 1 and $ARGV[0] eq qw| -d | and shift @ARGV ) ? 1 : 0;
+
+my $file = shift @ARGV;
+
+## error_exit('expected <file> parameter') if not length( $file // '' );
+
+error_exit("file path does not exist : $file") if defined $file and !-e $file;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+    sub up_dir { return File::Spec->updir }
+}
+
+my $root_path = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
+
+## test input ##
+$file //= join qw| / |, $root_path,
+    qw| read-me/documentation/meditation.by_T_chai.asc |;
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::13;
+use AMOS::Utils;
+
+##[ INTERRUPTS ]##############################################################
+
+$SIG{'INT'} = \&do_exit;
+
+##[ INPUT DATA PROCESSING ]###################################################
+
+my $fh = IO::File->new();
+error_exit( lcfirst($OS_ERROR) ) if not $fh->open( $file, qw| < | );
+$fh->binmode(1);
+
+my $read_size_bytes = 7;
+
+my @file_buffer;
+
+while ( ( $fh->opened and !$fh->eof )
+    and $fh->read( my $data_buffer, $read_size_bytes ) ) {
+
+    # push( @file_buffer, $data_buffer ) if length($data_buffer) == 7;
+    # say sprintf qw| %056B |, bin_to_int( \$data_buffer ) if length($data_buffer) == 7;
+
+    say bin_to_int( \$data_buffer ) if length($data_buffer) == 7;
+}
+
+# visualize_binary( \@file_buffer );
+exit;
+
+my @bit_buffer = map { asc_to_bin_056($ARG) } @file_buffer;
+
+my $buffer_iterations = 7777;
+
+my $total_size = 7 * scalar(@file_buffer) * $buffer_iterations;
+printf ": %s running speed test [ %d computations : %d bytes ] ..,\n\n",
+    $C{T},
+    scalar(@file_buffer) * $buffer_iterations,
+    $total_size;
+
+use Time::HiRes qw| time |;
+
+my $start_time = sprintf qw| %.5f |, time;
+
+for ( 1 .. $buffer_iterations ) {
+    foreach my $bits (@file_buffer) {
+        bin_to_int( \$bits );
+    }
+}
+
+my $time_secs = time - $start_time;
+say sprintf ": bin_to_int : time ellapsed : %.05f [ %.03f M/s ]\n",
+    $time_secs, ( $total_size / $time_secs ) / 1024**2;
+
+##[ VISUALIZING BUFFER ]######################################################
+
+sub visualize_binary {
+    my $buf_aref = shift;
+
+    return error_exit 'expected array reference' if ref $buf_aref ne 'ARRAY';
+    printf "$C{R}\n\n  $C{b}$C{0}  %-56s  $C{R}\n", '';
+    foreach my $buffer_line ( @{$buf_aref} ) {
+
+        my $bits = asc_to_bin_056($buffer_line);
+
+        printf "  $C{b}$C{0}  %-56s  [ %017d ]$C{R}\n", $bits,
+            bin_to_int( \$buffer_line, $bits );
+    }
+    printf "  $C{b}$C{0}  %-56s  $C{R}\n\n", '';
+}
+
+##############################################################################
+
+$fh->close();
+exit(00000);
+
+#.............................................................................
+#7VZEU3GVVUCDO5QSZ6422XTTJH3M4YH7CHX5TLCYJM2NKT2OVJQR4X7O267SYVRK2PPWFYEC3YCFE
+#::: HRQLUHTRYL7HPEINDPOXGRDJY65RLUI73J2LDQ45BOVQITMD55S :::: NAILARA AMOS :::
+# :: 3AA4FBMT4POOA7KPYZFH5SKL4EX4BPJBOGDZFVU6ZTHEWAPXI4AY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
