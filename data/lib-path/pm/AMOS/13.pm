@@ -21,9 +21,18 @@ use base qw| Exporter |;
     divide_13
     harmonize_13
     gen_seed_val
+
     num_to_str
+
     bin_032
     reverse_bin_032
+
+    bin_056
+    asc_to_bin_056
+    reverse_bin_056
+
+    bin_to_int
+
 ];
 
 ##[ INITIALIZATIONS ]#########################################################
@@ -155,7 +164,7 @@ sub gen_seed_val {
 
     my $t_start = sprintf( '%.5f', time ) if $verbose;
 
-    my $iteration = 0;
+    my $iteration = 1;
 
     for ( 1 .. $iterations_1001 ) {    ## seeding with passphrase xor merge ##
 
@@ -237,7 +246,7 @@ sub bin_032 {
         if not is_number($digits_032)
         or $digits_032 > 4294967295;
 
-    sprintf qw| %032b |, $digits_032;
+    sprintf qw| %032B |, $digits_032;
 }
 
 sub reverse_bin_032 {
@@ -248,7 +257,69 @@ sub reverse_bin_032 {
         if not is_number($digits_032)
         or $digits_032 > 4294967295;
 
-    join( '', reverse( split '', sprintf( qw| %032b |, $digits_032 ) ) );
+    join( '', reverse( split '', sprintf( qw| %032B |, $digits_032 ) ) );
+}
+
+sub bin_056 {
+    my $digits_056 = shift // 0;
+
+    return warn sprintf( 'expected 56 bit number, got %d digits %s',
+        length($digits_056), caller_str(1) )
+        if not is_number($digits_056)
+        or $digits_056 > 72057594037927936;
+
+    sprintf qw| %056B |, $digits_056;
+}
+
+sub asc_to_bin_056 {
+    my $bytes_7 = shift // 0;
+
+    return warn sprintf( 'expected 7 bytes string, got %d %s',
+        length($bytes_7), caller_str(1) )
+        if length($bytes_7) != 7;
+
+    unpack qw| B56 |, $bytes_7;
+}
+
+sub reverse_bin_056 {
+    my $digits_056 = shift // 0;
+
+    return warn sprintf( 'expected 56 bit number, got %d digits %s',
+        length($digits_056), caller_str(1) )
+        if not is_number($digits_056)
+        or $digits_056 > 72057594037927936;
+
+    join( '', reverse( split '', sprintf( qw| %056B |, $digits_056 ) ) );
+}
+
+sub bin_to_int {
+    my $buffer_ref = shift;
+
+    return warn sprintf( "expected scalar reference to 7 bytes string %s\n",
+        caller_str(0) )
+        if not defined $buffer_ref
+        or ref($buffer_ref) ne qw| SCALAR |;
+    return
+        warn
+        sprintf( "scalar reference to expected 7 bytes string, got %d %s\n",
+        length($$buffer_ref), caller_str(0) )
+        if length($$buffer_ref) != 7;
+
+    my $bits_56 = shift // unpack qw| B* |, $$buffer_ref;
+
+    my $result_buffer;
+
+    for ( 0 .. 7 ) {
+        if ( $ARG < 7 ) {
+            $result_buffer .= pack qw| B8 |,
+                qw| 1 | . substr( $bits_56, $ARG * 7, 7 );
+        } else {
+            $result_buffer .= pack qw| B8 |,
+                qw| 0 | . substr( $bits_56, $ARG * 7, 7 );
+        }
+    }
+
+    return unpack( qw| w |, $result_buffer );
 }
 
 ##[ UTILITY FUCTIONS ]########################################################
@@ -315,7 +386,7 @@ sub visualize_bin_032 {
 return 1;  ###################################################################
 
 #.............................................................................
-#IPNF3UUWD4GY3G2ZPSI6O5HY5ER7ATLQRD7534OMKNN5GONVWNLWUP7355BQJJJPNP6DPBNXMS6UA
-#::: STPYTUBUTYOR26627B74EMLT3VPYNTPIRHG3KX3G2NBVE2I6LAG :::: NAILARA AMOS :::
-# :: CMC6MXBN6EGPEKSJ3634Y5FK3KNPVBYU5X7YCNQARVDTKT3W44CQ :: CODE SIGNATURE ::
+#M3GJXTAWGWCMAJWREMRWGRFRRE3CLZ4XR6GMDHELWM7SDJKBWPXDUVUPSG6E25QFWIRSMVGJPF5SS
+#::: MCJ4I54T53RAJA7WII4QKAXSLVFPIG66SPKW2XSFXQSMJ4A63JM :::: NAILARA AMOS :::
+# :: UFDAPI62VZUBN247I2WZGFR7P6HQEXCEW4Y43O3ATGX4K4DVUICQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
