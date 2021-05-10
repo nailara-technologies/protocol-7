@@ -80,14 +80,15 @@ my $min_len   = 13;
 my $max_len   = 76;
 my $last_line = '';
 my $msg_delay = 0.7;
-my $prompt    = join( '', "\e[${y_pos}H", ' :. ' );
+
+my $prompt = ' :. ';
 
 clear();
 
 while ( not length($msg_text) ) {
 
     override_signals();
-    print blacklight_line();
+    printf "%s\e[%dH", blacklight_line(), $y_pos;
     my $line = $term->readline($prompt);
 
     $term->add_history($line) if $line ne $last_line;
@@ -181,7 +182,7 @@ sub readline_signals {
 }
 
 #.............................................................................
-#QNTKDH74Y6L5HZCS4P3HJFKJ7TKTTO4YABTGVD34W52WTHQFFOBYHA3P4ODCPWK4ONM57HYNVHPXA
-#::: PISMXBIGATWZ5KCFZQSUCQ3RNEI7SUWNIWUBONQVC7Q72Z4KNOV :::: NAILARA AMOS :::
-# :: 66BPCK6FYQDPGFMM7ZAK6ZGJF5SMAQFLTAF3DOW2S2CKV7L2VMCQ :: CODE SIGNATURE ::
+#QSK7WJG5A6IF6K5XO6BNEC2MEPB2UH4RNHHSZDHXLDCNGK4D6ZEOIFHNC4ZD5ZZ372GFGPDFPGW4U
+#::: RZBT2HWG4HI36BNK4P2UHS4IF7XICXTAIVJFW74GNQFX4FHOUZT :::: NAILARA AMOS :::
+# :: 5GPRRA3ZUVKID3SQHQSEMP6BKQKKBOUYEB72VBJBJCXXOZ4ZDCDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
