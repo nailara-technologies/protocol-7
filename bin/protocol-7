@@ -105,8 +105,14 @@ sub prepare_subs {
                 if $link_target =~ $char_map;
             $bin_path = $link_target;
         }
-        ( my $local_lib_path = $bin_path )
+
+        use File::Spec;    ## ./..,/protocol-7 case .., ##
+        ( my $local_lib_path = File::Spec->rel2abs($bin_path) )
             =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
+
+        warn ':: << local lib path not found >> : ' . $local_lib_path . ' .:'
+            if !-d $local_lib_path;
+
         unshift( @INC, $local_lib_path ) if -d $local_lib_path;
     }
 
@@ -117,16 +123,18 @@ sub prepare_subs {
     map { binmode( $ARG, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
 
     eval { use Text::Wrap qw| wrap | };    ## <-- used in 'base.load_code' ##
-
-    # installing 'Time::HiRes' versions of 'base.time' and 'base.sleep'
-    my $th_ref = (                         ## obsolete eval ## remove [LLL]
-        eval join( '',
-            'use Time::HiRes; return [ ',
-            'sub{ my $f = $ARG[0]; $f = 6 if not defined $f or $f =~ m|\D|;',
-            ' sprintf( "%.${f}f", Time::HiRes::time ) },',
-            ' \&Time::HiRes::sleep',
-            ' ]' )
-    );
+        # installing 'Time::HiRes' versions of 'base.time' and 'base.sleep'
+    my $th_ref;
+    eval {
+        use Time::HiRes;
+        $th_ref = [
+            sub {
+                my $float_prec = $ARG[0] // 7;
+                return sprintf( "%.${float_prec}f", Time::HiRes::time );
+            },
+            \&Time::HiRes::sleep
+        ];
+    };
     if ( defined $th_ref and ref($th_ref) eq qw| ARRAY | ) {
         $data{'base'}{'perlmod'}{'loaded'}->{'Time::HiRes'} = 1;
         $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1;
@@ -826,7 +834,7 @@ sub prepare_subs {
         $err_msg =~ s|"\s|' |g;
         $err_msg =~ s|\s"| '|g;
         $err_msg =~ s|\s+BEGIN failed.+$||sg;
-        $err_msg =~ s|(\S+):|$LAST_PAREN_MATCH :|;
+        $err_msg =~ s|(\S+(*nlb::)):(*nla::)|$LAST_PAREN_MATCH :|g;
 
         $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
 
@@ -2236,7 +2244,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#OCBM5O5U7NJ77MBSJNXILHF2P4KJH5PE46QYSWLU4ZGYGYF6BZGAJWZPXP6IWFVVQLYMQJ6WDTE2S
-#::: NHTVATPMLN6NS4JITM52IXWMBWB2XWC4PELJQNW5Y7IOQNOUYQH :::: NAILARA AMOS :::
-# :: PV7FE5VMBLDTWJXVREY2WUUG5NYA7PJ5WI45OODAOD2PUXZPI6CY :: CODE SIGNATURE ::
+#X7EXKRRSOVEWGY3GQC4JNJ7VJH36MKQOIJVHQ3WWQPIXBHSQ3PHXZ6RVXXJ6J62CUEOMJFNIOPQXQ
+#::: 6MVUITV2QHE62H3BNAY2KI3H33J3LUSECSKZCXMITWBQZAY3LCI :::: NAILARA AMOS :::
+# :: N47XE6MC4NDW3E7QGA5HLAWU7SFBTLX76XGUVQZEK4DQEUYS66DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
