@@ -9,8 +9,8 @@ die "base.change_prio: invalid priority '$prio' given."
     if $prio !~ m|^\-?\d{1,2}$|;
 die "base.change_prio: invalid pid '$rpid' given." if $rpid !~ m|^\d+$|;
 
-return <[base.log]>->( 1, 'skipping setpriority [ not root ]' )
-    if $REAL_USER_ID != 0;
+return <[base.logs]>->('skipping setpriority(%d) [ not root ]')
+    if $prio < 0 and $REAL_USER_ID != 0;
 
 <[base.log]>->( 2, "[ PID $rpid ] <-- set priority $prio" );
 
@@ -23,7 +23,7 @@ my $ret = setpriority( 0, $rpid, $prio );
 return $ret;
 
 #.............................................................................
-#MHLKFGJ6JJGGD2D7GFFX4Y5B6HGHXP7TB5OH24HESDESQFRE3NUMLWMMLRBH6Y42J6BAJFWYODXIE
-#::: DR2KHV4MNMWRZN6JZCKBLDLRTXJXAMTWFTAXOJYPIROVFDV7PPD :::: NAILARA AMOS :::
-# :: 75K347ODTM5WXOHA5DNRCSD4UHWOZLQW2XJ34AWIRW6ABYJMGAAA :: CODE SIGNATURE ::
+#FAOQWSJZPCDHUSASKN2Q7HTFB2N6ZE2EG7VCNKQKUAZZX5VOZUMXUJ4P56CZ57SELFZMDKVPJ44YO
+#::: VMPOBYFUJXJ5DEWY5RSWWX25H6KQLST2CJW6EBVISJJKJLDYFYD :::: NAILARA AMOS :::
+# :: DNVADHFXWREQEIRFACK2I65NOTSHJAXIGT2NJPA7JLU766QXZUBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
