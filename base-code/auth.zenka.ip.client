@@ -4,7 +4,12 @@
 # descr = authenticate to cube in zenka mode
 # note  : zenka name can now contain subnames
 
-my ( $backend_socket, $zenka, $key_str ) = @_;
+my ( $backend_socket, $zenka, $key_str ) = @ARG;
+
+my $protocol_messages  = <protocol.protocol-7.connect>;
+my $protocol_banner    = $protocol_messages->{'banner'};
+my $proto_msg_timeout  = $protocol_messages->{'timeout'};
+my $protocol_error_msg = $protocol_messages->{'protocol_error'};
 
 if ( defined $key_str
     or %KEYS
@@ -12,20 +17,28 @@ if ( defined $key_str
     and $KEYS{'zenka'}{'session_key'} ne '' ) {
     $key_str //= $KEYS{'zenka'}{'session_key'};
     my $banner_string;
-    my $bytes_read = <[base.s_read]>->( $backend_socket, \$banner_string, 4 )
+    my ( $m_len, $read_len )
+        = minmax( map {length} $protocol_banner, $proto_msg_timeout );
+    my $bytes_read
+        = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len )
         // 0;
     if ( $bytes_read > 0 ) {
-        if ( $banner_string eq ">:]\n" ) {
+        if ( $banner_string eq $protocol_banner ) {
             <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
+        } elsif ( $banner_string eq $proto_msg_timeout ) {
+            <[base.log]>->( 2, '[#] authentication timeout :|' );
+            return undef;
         } else {
             <[base.log]>->(
-                0, '[#] protocol mismatch [ no valid connection banner ]'
-            ) and return undef;
+                0, '[#] protocol mismatch [ no valid connection banner \ ip ]'
+            );
+            return undef;
         }
     } else {
         <[base.log]>->(
             0, 'auth.zenka.ip.client: [#] network error [ nothing read ]'
-        ) and return undef;
+        );
+        return undef;
     }
 
     <[net.out]>->( $backend_socket, "select zenka\n" );
@@ -34,10 +47,10 @@ if ( defined $key_str
     chomp($answer) if defined $answer;
 
     if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+        <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
     } elsif ( $answer ne 'TRUE continue' ) {
-        <[base.log]>->( 0, '[#] protocol mismatch >:[' )
-            and return undef;
+        <[base.log]>->( 0, '[#] protocol mismatch >:[' );
+        return undef;
     }
 
     <[base.log]>->( 2, "[<] authenticating as '$zenka'.," );
@@ -61,7 +74,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#EBFQX5QRROQKF6RHWRZBKV6CT6YSV7LXRJF47SAWMIVMFBF4TXQAH3BDLLPFZYSBSBIG22IWFYBUM
-#::: RRB3ZFOEFKSG7ACK4XXTXV6FGAOUX7ZXCJYK7STWHCMNEU6ME7F :::: NAILARA AMOS :::
-# :: AAL4O5TO657SAYOSIBAUDL3YEFYWTTCHGFZJXMWQNRZ2YG4SDEBY :: CODE SIGNATURE ::
+#NRKRQJM5AROIQ7F255NAQNMHLH2NVW5C4XCA5WJMPBI4TPOGSEHKFRDXODEKT3BIXVZ622TYFPTHS
+#::: XLFHS5ELSZTOET53JKQHRHAEDSNUVPBU3XN6ILTECYHO33E6UUS :::: NAILARA AMOS :::
+# :: SOQJGJYPTYDYF5X6AL5BDGS6NSTMEUWUKGHFBWM43C6NQMP5SEBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
