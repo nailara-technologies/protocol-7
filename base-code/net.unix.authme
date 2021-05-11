@@ -6,7 +6,14 @@
 
 my $answer;
 my $banner_string;
-my ( $backend_socket, $user ) = @_;
+my ( $backend_socket, $user ) = @ARG;
+
+my $protocol_messages   = <protocol.protocol-7.connect>;
+my $protocol_banner     = $protocol_messages->{'banner'};
+my $proto_msg_timeout   = $protocol_messages->{'timeout'};
+my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
+my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
+my $auth_method_err     = $protocol_messages->{'auth_method_err'};
 
 if (   not defined $backend_socket
     or !-S $backend_socket
@@ -17,36 +24,56 @@ if (   not defined $backend_socket
     return undef;
 }
 
-if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
-    if ( $banner_string eq ">:]\n" ) {
+my $banner_string;
+my ( $m_len, $read_len )
+    = minmax( map {length} $protocol_banner, $proto_msg_timeout );
+my $bytes_read
+    = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len ) // 0;
+if ( $bytes_read > 0 ) {
+    if ( $banner_string eq $protocol_banner ) {
         <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
+    } elsif ( $banner_string eq $proto_msg_timeout ) {
+        <[base.log]>->( 2, '[#] authentication timeout :|' );
+        return undef;
     } else {
         <[base.log]>->(
-            0, '[#] protocol mismatch [ no valid connection banner ]'
-        ) and return undef;
+            0, '[#] protocol mismatch [ no valid connection banner at unix ]'
+        );
+        return undef;
     }
-    <[net.out]>->( $backend_socket, "select unix\n" );
-    <[base.sleep]>->(0.2);
-
-    my $answer = readline($backend_socket);
-    chomp($answer) if defined $answer;
-
-    if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
-    } elsif ( $answer ne 'TRUE continue' ) {
-        <[base.log]>->( 0, '[#] unix auth. not available >:|' )
-            and return undef;
-    } else {
-        <[base.log]>->( 2, '[*] unix auth. selected' );
-        $answer = '';
-    }
-    <[net.out]>->( $backend_socket, "auth $user\n" );
-
-    return <[auth.zenka.process_auth_reply]>->($backend_socket);
+} else {
+    <[base.log]>->(
+        0, 'net.unix.authme : [#] network error [ nothing read ]'
+    );
+    return undef;
 }
+<[net.out]>->( $backend_socket, "select unix\n" );
+<[base.sleep]>->(0.2);
+
+my $answer = readline($backend_socket);
+chomp($answer) if defined $answer;
+
+if ( not defined $answer ) {
+    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
+} elsif ( "$answer\n" eq $auth_method_warning ) {
+    <[base.log]>->( 0, '[#] server side auth method error >:|' );
+    return undef;
+} elsif ( "$answer\n" eq $auth_method_warning ) {
+    <[base.log]>->( 0, '[#] unix auth. not available >:|' );
+    return undef;
+} elsif ( $answer ne 'TRUE continue' ) {
+    <[base.log]>->( 0, '[#] auth. protocol error >:|' );
+    return undef;
+} else {
+    <[base.log]>->( 2, '[*] unix auth. selected' );
+    $answer = '';
+}
+<[net.out]>->( $backend_socket, "auth $user\n" );
+
+return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
 #.............................................................................
-#34FWZC4RJD74N2X4GYH5I5VOAY2SYF7Z2IBNR5D7VMGG2KKD53KV6L44I7XIK67F5ZL2EM4TODVH6
-#::: H4VGMTS5BZB2SINNL2LVG2DAPJQIGQZA5NP5BIKH2QP6YYWQ6LW :::: NAILARA AMOS :::
-# :: VFXEVJLMCMUQSGVZFJ5JTN3VGIBN4L2LXH42SQAIPZ5RFGPII2BY :: CODE SIGNATURE ::
+#3AK2INHDGSAN3IQYXZO5CKH5XWEB6L6RJVWNSVDMQDB5QKRGQFV4BMNFU45I4R7ABNY7BI6LF7VRU
+#::: HAH6JERF7UUJIEQE6TBQ47MWICNHJGLDDPH3ZDAC5D373ZMLUX6 :::: NAILARA AMOS :::
+# :: 5HEWQW6NYXAZAJB2TUD3AEY6H5Y6OD4BD4HOJGOQE2JTGRAXECCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
