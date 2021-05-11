@@ -38,6 +38,8 @@ sub is_true {
 
     my $data_ref = shift;
 
+    return warn_err('undefined input') if not defined $data_ref;
+
     my $check_as_num = shift // 2;    ## also check as numerical ##
     my $check_as_elf = shift // 1;    ## check elf checksum ##
 
@@ -161,7 +163,7 @@ sub caller_str {
 return 1;  ###################################################################
 
 #.............................................................................
-#WIUWLYKFRDCFRUD7ZPIXCDBDIKQMRWSBQ4HLMYGBT64ZJZTBWGHIWPSQUOMACYKMBYS5MDXL3T5YA
-#::: XJ2JXNI2XT27RNTNKN7MEK22QNSRI2EOVKXROYID2GHIQUDNO6G :::: NAILARA AMOS :::
-# :: EVGCQAQA4OFMV7CFV7JP5AL5BIRB6QSEN5OOI7WVUXDL6M5FEAAY :: CODE SIGNATURE ::
+#ZC4QCJQSFF2WBV6F3EOVS6L2MEWW4T2X5UMQOVAOLMGMZLA5XZS6BQBMV5LL337NZFVQTCNHSDORE
+#::: C3PJCL2I7WNX2BPXAAXQTLZJJAGQI6Z35USYCQQT76X25YU4RJ2 :::: NAILARA AMOS :::
+# :: RGVB3LIQYNPFGPQE5T623VKULECJW5GOAJ5D46D7VFSMFV6BXIDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
