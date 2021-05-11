@@ -21,7 +21,7 @@ use AMOS::13;
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-our $VERSION = qw| AMOS-TOQSPSY |;    ##  CALCULATE : 'amos-chksum -VA'  ##
+our $VERSION = qw| AMOS-CHKSUM-V-SDTO47I |;    ##  amos-chksum -VCS  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -127,9 +127,11 @@ sub amos_chksum {
     $checksum_bits =~ s|0+$|
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
+    ##  replace eval calls with bit_to_num()  ##                         [LLL]
+    ##
     $num_amos_csum = eval "0b$checksum_bits";    ## numerical ##
-
     $num_amos_csum ^= eval "0b$bmw_b_L";         ## elf checksum protection ##
+    ###
 
     my $resaturation_offset = 0;
 
@@ -150,7 +152,7 @@ INVERT_TRUTH_STATE:
     }
 
     my $checksum_encoded    ## VAX-B32 ##
-        = Crypt::Misc::encode_b32r( pack( 'V', $num_amos_csum ) );
+        = Crypt::Misc::encode_b32r( pack( qw| V |, $num_amos_csum ) );
 
     ## ENCODED + VALUE AND STRING HARMONY ##
 
@@ -188,7 +190,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#6IWZOF2FCGM5RPRU5U2HE3G7KEYHFRD7FYDZQA6QXUPRP4XPP5PYGJLBERZKXXI2WSEA3C35UGY7U
-#::: YIW54RJUJNMWJFERAAFQZLHPM443EZUFFOKJXQKYGT4A7II2X3V :::: NAILARA AMOS :::
-# :: 22FKAMRWNEY7HLIA5C5VNB5IDXSAEIZZOTRYM6WT7CGHMRFNZCAA :: CODE SIGNATURE ::
+#27GHOJJHVLW56WGTXSOVUKFYPEM2PLIEJR4IG5TF7OFQ4SVW7RYVBDGH4B3YEVHUCXGBVMDVVBT7A
+#::: RLJWYQF46B26OGZ2D22WW4NS57M6VR3QOY7XHPC5QPMC4BW5UI2 :::: NAILARA AMOS :::
+# :: KEGVOPQ5U7ABGY75DB2BZARFVHYXNNHN6YYNYPJSKQYT3UUZNCBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
