@@ -60,9 +60,9 @@ my $data_str;
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-binmode( STDOUT, ':encoding(UTF-8)' );
+binmode( STDOUT, qw| :encoding(UTF-8) | );
 
-getopts( 'vsnqV:e:', \my %option );
+getopts( qw| vsnqV:e: |, \my %option );
 
 if ( defined $option{'e'} ) {
     my @elf_modes_override;
@@ -89,37 +89,50 @@ if ( defined $option{'e'} ) {
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
 
-    my $version_template = qw| .%s:AMOS-CHKSUM:%s. |;
+    my $version_template = qw| .%s::AMOS-CHKSUM::%s. |;
 
-    if ( $option{'V'} eq qw| A | ) {    ##  AMOS-CHKSUM OUTPUT VERSION  ##
-
+    if ( $option{'V'} eq qw| CS | ) {    ##  AMOS-CHKSUM OUTPUT VERSION  ##
         $data_str = sprintf( $version_template, chr(255), chr(0) );
-        say sprintf( 'AMOS-%s', amos_chksum($data_str) ) if not $option{'v'};
-
-    } elsif ( $option{'V'} =~ m|^LS?$| ) { ## elf_sum() source code version ##
+        my $version_string = gen_version( 'AMOS-CHKSUM-V-%s', $data_str );
+        say $version_string if not $option{'v'};
+    } elsif ( $option{'V'} =~ m,^(L7|S)$, )
+    {                                    ## elf_sum() source code version ##
 
         $data_str
             = elf_chksum( sprintf( $version_template, chr(255), chr(0) ), 7 );
 
-        my $elf_out_ver
-            = sprintf( qw| AMOS-ELF-7L-%s |, amos_chksum($data_str) );
+        my $elf_out_ver = gen_version( qw| AMOS-ELF7_V-%s |, $data_str );
 
-        if ( $option{'V'} eq qw| L | ) {  ## elf_sum() output test checksun ##
+        if ( $option{'V'} eq qw| L7 | ) { ## elf_sum() output test checksun ##
 
             say $elf_out_ver if not $option{'v'};
 
-        } else {    ## version of elf_sum() source code ##
+        } else {    ## version of elf_sum() source code ## [ -VS ] ##
 
-            $data_str = "  /* $elf_out_ver */\n\n" . inl_elf_src();
-
-            say sprintf( qw| AMOS-ELF-LS-%s |, amos_chksum($data_str) )
-                if not $option{'v'};
+            $data_str = "  /*  ::  $elf_out_ver  ::  */\n\n" . inl_elf_src();
+            my $elf_inline_ver
+                = gen_version( qw| AMOS-ELF7-SRC-VER-%s |, $data_str );
+            say $elf_inline_ver if not $option{'v'};
         }
     } else {
-        die ":\n: version option not recognized : [ A | L | LS ]\n:\n";
+        die ":\n: version option not recognized : [ CS | L7 | S ]\n:\n";
     }
     exit if not $option{'v'};
 }
+
+sub gen_version {
+    my $template_str = shift;
+    my $data_str     = shift;
+    my $version_chksum;
+    my $version_string = '';
+    while ( not defined $version_chksum or not is_true($version_string) ) {
+        $version_chksum = amos_chksum( $version_chksum // $data_str );
+        $version_string = sprintf( $template_str, $version_chksum );
+    }
+    return $version_string;
+}
+
+##[ DATA INPUT MODES ]########################################################
 
 warn "expected input string for AMOS-checksum calculation\n"
     if not defined $data_str
@@ -242,7 +255,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#PXPBJFB7GEKSGFW6IVDYBLPRJSKBSCNKJXLTTWOFZSUUWSLUK7Y6XSJYKQVWSZKEMCF535PLV56KQ
-#::: EVQY3KELPVIYKOQBEXYYE3ZZV5O6DE5ZI3Z7QVHFAZCBDSVHGH7 :::: NAILARA AMOS :::
-# :: YCBXKFSD5TOKFSCR57CPBRAOJVNTCRHZSDAALVU3YF4CRLPFHGAA :: CODE SIGNATURE ::
+#6ZWYDMPOX6D2CEVBEVPGACOSUQOFQOVAQWPGLJWNUZS5NFUVXWSGODHZAJURS524ML7VNGSFQL57M
+#::: DIYCQM2P5P53FMK63ZW2JB6UKJNUX2LCTRHAH6XWUMJO3UM6W45 :::: NAILARA AMOS :::
+# :: CHJK3MT6BGRP6IM5OYKD5IVAYSSE43MND2VULE2CCT4W4OUO4SDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
