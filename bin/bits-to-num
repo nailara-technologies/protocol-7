@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+our $inline_directory;
+
+my $bit_str = join( '', @ARGV );    ##  binary string input < 64 bit  ##
+
+die ":\n: expected bit string\n:\n"          if $bit_str =~ m|[^01]|;
+die ":\n: input string size exceeds 64\n:\n" if length($bit_str) > 64;
+
+say bit_to_num($bit_str) and exit(0);
+
+BEGIN {  #[ INIT \ C-CODE ]###################################################
+    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    $inline_directory
+        = join( '.', qw| /var/tmp/.inline.bits_to_num |, $ENV{'USER'} );
+    if ( not -d $inline_directory ) {
+        mkdir($inline_directory)
+            or die ":\n: \l$OS_ERROR : $inline_directory\n:\n";
+    }
+}
+INIT {
+    use Inline ( 'C' => <<~ 'EOC', 'directory' => $inline_directory );
+        unsigned long bit_to_num( char *str ) {
+            unsigned long result = 0;
+            unsigned int pos     = 0;
+            unsigned int slen    = strlen(str);
+
+            if ( slen > 64 ) {
+                fprintf(stderr, "bit_to_num: input string size exceeds 64\n");
+                exit(ERANGE);
+            }
+
+            while ( *str ) {
+                int character = (int) *str++;
+                pos++;
+
+                if ( character == 49 )
+                    result += ldexpl( 1 , slen - pos );
+
+                else if ( character != 48 ) {
+                    fprintf(stderr, "bit_to_num: input not a bit string\n");
+                    exit(EINVAL);
+                }
+            }
+            return result;
+        }
+    EOC
+}
+
+#.............................................................................
+#Z3X7KVGVI5VTTG2OT6S3PSUICTTDFOVLOJN3VRU2RCBOIAMOB7TU224EARZ4X53FMHQ6TNCPARPZM
+#::: M76BSTPX456V7A7HCBMJJKZZEMSB6S5EEKE2FSZPFHOYDUFX2YU :::: NAILARA AMOS :::
+# :: DTXU5ENJ7LL52WDJWJ2AG3UNPRYZO6LSLLDSQ3QNB2NY5VSOA6AY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
