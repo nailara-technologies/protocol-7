@@ -1,21 +1,21 @@
 
 package AMOS::CHKSUM::ELF;  ##################################################
 
-use vars qw| @EXPORT $VERSION |;
-
-use Exporter;
-use base qw| Exporter |;
-
 use v5.24;
 use strict;
 use English;
 use warnings;
 
+use vars qw| @EXPORT $VERSION |;
+
+use Exporter;
+use base qw| Exporter |;
+
 use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
 
 ## INLINE ELF OUTPUT CHECKSUM ##
 ##
-our $VERSION = qw| AMOS-ELF-7L-R6TXGYI |;    ##  amos-chksum -VL  ##
+our $VERSION = qw| AMOS-ELF7_V-BOQREJA |;    #  amos-chksum -VL7  #
 
 @EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
 
@@ -29,7 +29,7 @@ our $elf_checksum_mode //= 4;    ## elf-checksum base algorithm setting ##
 if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
     *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
 } else {
-    *inline_elf = compile_inline_elf_to( gen_inline_path('/var/tmp/.') );
+    *inline_elf = compile_inline_elf_to( gen_inline_path(qw| /var/tmp/. |) );
 }
 
 die 'loading \ compiling of inline_elf() subroutine not successful'
@@ -45,7 +45,7 @@ sub elf_chksum {
     my $start_checksum = 0;
 
     ## start checksum and mode parameters when passing by reference ##
-    if ( ref( $ARG[0] ) eq '' ) {
+    if ( not length ref( $ARG[0] ) ) {
 
         $data_ref = \shift;    ## CREATING REFERENCE TO DATA ##
 
@@ -58,7 +58,7 @@ sub elf_chksum {
         $start_checksum = shift;
     }
     ## ELF MODE ##
-    if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,2}$| ) {
+    if ( @ARG and defined $ARG[0] and $ARG[0] =~ m|^\d{1,3}$| ) {
         $elf_checksum_mode = shift;
     }
 
@@ -71,7 +71,7 @@ sub elf_chksum {
     my $elf_checksum
         = $len > 0
         ? inline_elf( $elf_checksum_mode, $start_checksum, $$data_ref, $len )
-        : sprintf( "%09d", $start_checksum );    ## start chksum for empty ##
+        : sprintf( qw| %09d |, $start_checksum ); ## start chksum for empty ##
 
     $elf_checksum_mode = 4;    ## resetting to elf base-algorithm mode ##
 
@@ -83,13 +83,13 @@ sub elf_chksum {
 sub gen_inline_path {
     my $base_path = shift // qw| /var/tmp/. |;
     my $user      = getpwuid($UID);
-    return sprintf( '%sinline_elf.%s.%s', $base_path, $user, $VERSION );
+    return sprintf( qw| %sinline_elf.%s.%s |, $base_path, $user, $VERSION );
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#4ZPYXJ4QFWDS66IENKVBS5OX34JM3QHDX5AQFGUFUZ36AX6ZJZXZQOP3XRSQXM2XK3MBR6WNRK3KU
-#::: ZQNFQEKARGBEO6H4XFVVEJQ2MBPBOQISCN3RMI7G2TEMHITCNPE :::: NAILARA AMOS :::
-# :: TOLPT75RKOANY2XADNIY6YFTID57NNR2H623ZC6MTHS5LKLFT6AA :: CODE SIGNATURE ::
+#CAWS6FSGR6HZOV5HIBTNDYJOTKNY5YYPCEBYQXFIGAM66GA46Y7SR4WIDIRLTU3FKT3WGNY7FERCO
+#::: IBNE4EAKXUBRKKFOGIWAWH74YELRVBLCFCCYSOVQ4FHGA7DUPPJ :::: NAILARA AMOS :::
+# :: 5XTOEQ62TG7XSXE2VCZNNVP3NIGCX3QSFRQOGTQ2U5XR5O5ZIIBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
