@@ -5,6 +5,11 @@
 my $backend_socket  = shift;
 my $success_message = shift // 'success., =), cube authorized session.';
 
+my $protocol_messages  = <protocol.protocol-7.connect>;
+my $protocol_banner    = $protocol_messages->{'banner'};
+my $proto_msg_timeout  = $protocol_messages->{'timeout'};
+my $protocol_error_msg = $protocol_messages->{'protocol_error'};
+
 if (   not defined $backend_socket
     or !-S $backend_socket
     or !$backend_socket->connected ) {
@@ -21,32 +26,40 @@ if (   not defined $backend_socket
 if ( my $answer = readline($backend_socket) ) {
     chomp($answer) if defined $answer;
     if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost `:|' );
+        <[base.log]>->( 0, '[X] connection lost :|' );
         <[base.log]>->( 2, "::: [ $plugin ]" );
         return undef;
     } elsif ( $answer eq 'AUTH_TRUE >:]' ) {
         <[base.log]>->( 1, "[*] $success_message" );
         <[base.log]>->( 2, "::: [ $plugin ]" );
         return $backend_socket;
-    } elsif ( $answer eq 'AUTH_ERROR `:|' ) {
-        <[base.log]>->( 0, '[#] access denied >:|' );
+    } elsif ( $answer eq 'AUTH_ERROR :|' ) {
+        <[base.log]>->( 0, '[#] authentication error >:|' );
         <[base.log]>->( 2, "::: [ $plugin ]" );
         return undef;
-    } elsif ( $answer eq '>:|' ) {
+    } elsif ( $answer eq '>:| timeout' ) {
         <[base.log]>->( 0, '[#] authentication timeout :|' );
         <[base.log]>->( 2, "::: [ $plugin ]" );
         return undef;
-    } else {    ##  >:[ .., ##
-        <[base.log]>->( 0, "[#] protocol mismatch >:[ [ $plugin ]" );
+    } elsif ( $answer eq ':| auth_methods' ) {
+        <[base.log]>->( 0, '[#] server side auth nethods error :|' );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return undef;
+    } elsif ( $answer eq '>:| auth_methods' ) {
+        <[base.log]>->( 0, '[#] client side auth nethods error :|' );
+        <[base.log]>->( 2, "::: [ $plugin ]" );
+        return undef;
+    } else {    ##  >:[ speak protocol ? .., ##
+        <[base.log]>->( 0, "[#] protocol mismatch :| [ $plugin ]" );
         <[base.log]>->( 0, "::: '$answer'" );
         return undef;
     }
 } else {
-    <[base.log]>->( 0, '[X] connection lost `:|' ) and return undef;
+    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
 }
 
 #.............................................................................
-#46E3GWLZJ3RBIZXPVVXB2W3CC4IGW3TUO5KLMR5QBYN6PFDZBIBCRB5C6NXNCREJTIIOUKHE2RUDQ
-#::: RLHJTLLJAFMONLRWVVTZOSNP5EDRAM2VPFWJATDKDMI5GXYUNXZ :::: NAILARA AMOS :::
-# :: YVIRI5R2MT224IFT6SCNMZDDDZDURULL3PQPW3XEEZJL7COCMYCI :: CODE SIGNATURE ::
+#RM6OVBRNRTNSOPFM5ZC4YFVURYZM5VKYO3ECYW2HRTSJJ7WCWZNBZ4P7FYY2277YV3NX3XJJAS3VI
+#::: G3EF7FQQXIN2YJPQFXZ64JUZRCJT5CUV3AH4S6M7W3NTCE7IISQ :::: NAILARA AMOS :::
+# :: RJB2TFP2PX2RBQLVLCZ5IEIDQ5MJQCB3NOZAKQ6N3ZFQWV2S6WDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

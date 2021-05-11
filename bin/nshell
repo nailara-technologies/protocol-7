@@ -72,11 +72,11 @@ my $cube_pass;
 my $stored_cmd;
 my $term_loop = 0;
 my $lines_up  = 3;
-my $link_type = defined $cube_user ? 'unix' : 'ip.tcp';
-my $cube_addr = shift(@args) || '127.0.0.1';
+my $link_type = defined $cube_user ? qw| unix | : qw| ip.tcp |;
+my $cube_addr = shift(@args) || qw| 127.0.0.1 |;
 my $cube_port = shift(@args) || $protocol_7_port;
 my $sckargcnt = scalar @args;
-my $usock_dir = '/var/run/.7/UNIX';
+my $usock_dir = qw| /var/run/.7/UNIX |;
 
 my $prompt = "\\ $hostname \\:[?]:, ";
 
@@ -255,8 +255,9 @@ sub shell_connect {
 
     die "\n << connection to peer has been lost >>\n\n"
         if not defined $banner_message;
+    chomp($banner_message);
     die "\n << protocol mismatch ['$banner_message'] >>\n\n"
-        if $banner_message ne ">:]\n";
+        if $banner_message ne '>:] ::-.7\\';
 
     binmode( $sock, ':encoding(UTF-8)' );
 
@@ -272,7 +273,7 @@ sub shell_auth {
     if ( $answer =~ m|AUTH_TRUE| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ m,AUTH_ERROR `:\|, ) {
+    } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
         die "\n  :: authentication not successful ::\n\n";
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
@@ -297,7 +298,7 @@ sub unix_auth {
     if ( $answer =~ m|AUTH_TRUE| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ m,AUTH_ERROR `:\|, ) {
+    } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
         die "\n  :: authentication not successful ::\n\n";
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
@@ -494,7 +495,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#3NGPBEJYEALE3EFFQSITZQISFXRCNCBKW2LM3RFXKSPSSGPM6Z5QPGDNIRQHOY4MDHCGS3QFC3RAY
-#::: K4Q3RUTMXAYG4BGHIN4KVIW26JBOJGTHJTXVJM2OQSIBAVQPEVU :::: NAILARA AMOS :::
-# :: SO3AWJSDQVIOWN6ZOGORWRIR6UIOMATXTDRRFSAXLK5TLEJJFADI :: CODE SIGNATURE ::
+#OWMFY6VO3HZDCGMJXSI7CX52JYT2HLSVPINN2MOGGIPD4YNIDNWC56A4BC5HLJGPOGFCXKIDBYUJI
+#::: 5SZZJTZAU7MXZAKDJEDGDHJFUJ6ENYJYHBGUINRKLS5A6IOI55A :::: NAILARA AMOS :::
+# :: GVERS5I2UXV34QS4XTXSEQRLQXMCQTIE32YNYHQ54NLNL7KK2SDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

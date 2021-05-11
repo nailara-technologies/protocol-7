@@ -165,6 +165,10 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
 
 ##[ AUTH TIMEOUT ]############################################################
 
+    my $timeout_reply_msg = <protocol.protocol-7.connect.timeout>;
+    my $auth_timeout      = <protocol-7.connection-timeout>
+        // <protocol.protocol-7.authentication-timeout> || 17;
+
     my @timeout_callback
         = (
                $protocol ne qw| protocol-7 |
@@ -174,11 +178,11 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         ? ()
         : (
         # set up auth. [input] timeout for protocol-7 sessions
-        'timeout'    => <net.auth.timeout> || 13,
+        'timeout'    => $auth_timeout,
         'timeout_cb' => sub {
             <[base.log]>->( 1, "[$id] authentication timeout.," );
-            $session->{'buffer'}->{'output'} .= ">:|\n";
-            $session->{'shutdown'} = 1;
+            $session->{'buffer'}->{'output'} .= $timeout_reply_msg;
+            $session->{'flush_shutdown'} = 1;
         }
         );
 
@@ -257,7 +261,7 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 return $id;
 
 #.............................................................................
-#ASODFH5QD5JMTQ2GMQKYWMR3QFT2ALUCSMGPCNUPDTNJDCWF4FE543GSWZJCYZP3R7BPBJ44UUW7E
-#::: XDLVLOF3D6CIQYXWQK6F65TD2EEGRUODO5P2PBFW3F5T7YSBCDD :::: NAILARA AMOS :::
-# :: IVJXO4CZRLC5OPQPKBQNSAZXYHKAR5NLJEOIKUH76F2NVCLFXEBA :: CODE SIGNATURE ::
+#L3HAX2LO2AEN5IL6HMXGUIWMJF2L76AX3MZLNZOEH74OK3ZDZ3TKZKHBCCY7WOW6UHECMJEGSAO3M
+#::: 3MDRL2OKWTBQQX42PDAULUQD3IYYKEMJJH7Q5XVQKUBT6XVIXAY :::: NAILARA AMOS :::
+# :: X2JXLISVYSP6XI5M5NZG277LYTTUMDV72OX7HPCXZNUISZFEOKBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

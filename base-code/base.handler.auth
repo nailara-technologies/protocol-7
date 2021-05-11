@@ -13,11 +13,16 @@ my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
 my ( $auth_method, $auth_code, $auth_name );
 my $Blen = length($$input);
 
+my $protocol_messages   = <protocol.protocol-7.connect>;
+my $protocol_banner     = $protocol_messages->{'banner'};
+my $proto_msg_timeout   = $protocol_messages->{'timeout'};
+my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
+my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
+my $auth_method_err     = $protocol_messages->{'auth_method_err'};
+
 if ( $session->{'last-bytes-read'} == 0 and length $$input ) {
-    warn "shred buffer case < buffer > '$$input'";
     return 2;    ## <-- disconnecting client ##
 } elsif ( $session->{'last-bytes-read'} == 0 ) {
-    warn "silent disconnect < empty buffer >";
     return 2;    ## <-- disconnecting client ##
 }
 
@@ -35,9 +40,8 @@ if ( not defined $s_met ) {
         $msg .= " [session:$id]";
     }
     warn $msg;
-
-    $$output .= "`:|\n";
-    return 2;    ## <-- disconnecting client ##
+    $$output .= $auth_method_warning;
+    return 2;                                   ## <-- disconnecting client ##
 }
 
 $auth_method = $session->{'auth'}->{'method'};
@@ -60,22 +64,22 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             0, "[$id] auth module not loaded, 'select' rejected."
         );
 
-        $$output .= ">:[\n";
+        $$output .= $auth_method_warning;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( $req_method !~ <regex.base.authmethod> ) {
-        <[base.log]>->( 0, "[$id] invalid characters in auth method string" );
+        <[base.log]>->( 0, "[$id] invalid char[s] in auth method string" );
         <[base.log]>
             ->( 2, "[$id] :: requested auth method :: '$req_method'" );
 
-        $$output .= ">:[\n";
+        $$output .= $auth_method_err;
         return 2;    ## <-- disconnecting client ##
 
     } else {
         if ( $count_select->{'calls'} >= $count_select->{'limit'} ) {
             <[base.log]>->( 0, "[$id] auth select count limit exceeded >:[" );
 
-            $$output .= ">:[\n";
+            $$output .= $auth_method_err;
             return 2;    ## <-- disconnecting client ##
 
         } else {
@@ -86,7 +90,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             }
             if ( $count_select->{'errors'} > 2 ) {
 
-                $$output .= ">:[\n";
+                $$output .= $auth_method_err;
                 return 2;    ## <-- disconnecting client ##
 
             }
@@ -110,21 +114,21 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
     if ( not exists $code{'auth.auth_list'} ) {
         <[base.log]>->( 0, "[$id] auth module not loaded, 'list' rejected." );
 
-        $$output .= ">:[\n";
+        $$output .= $auth_method_warning;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 1 ) {
 
         <[base.log]>->( 0, "[$id] 3rd auth list requested >:[" );
 
-        $$output .= ">:[\n";
+        $$output .= $auth_method_err;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 0 ) {
 
         <[base.log]>->( 0, "[$id] repeated auth list requested.," );
 
-        $$output .= "FALSE once should be enough >;]\n";
+        $$output .= "FALSE once should be enough..,\n";
         $count_select->{'list'}++;
 
     } else {
@@ -189,10 +193,11 @@ elsif ( defined $auth_method and defined $code{"plugin.auth.$auth_method"} ) {
     }
 } elsif ( defined $auth_method ) {
     <[base.log]>->( 0, "auth-plugin '$auth_method' not defined" );
+    $$output .= $auth_method_warning;
     return 2;                   ## <-- disconnecting client ##
 } else {
     if ( $Blen <= 13 and $$input =~ m|^\s+$|s ) {
-        $$output .= ">:|\n";
+        $$output .= $auth_method_err;
     } elsif ( length $$input ) {
         my $id_len = length($id);
         <[base.logs]>->(
@@ -201,7 +206,7 @@ elsif ( defined $auth_method and defined $code{"plugin.auth.$auth_method"} ) {
         );
         ## truncate buffer msg .., ##
         <[base.logs]>->( 2, ": %${id_len}s : :., [BUF:'%s']", '', $$input );
-        $$output .= ">:[\n";
+        $$output .= $protocol_error_msg;
     }
     return 2;    ##  no auth method selected + session closing  ##
 }
@@ -210,7 +215,7 @@ warn 'protocol handler reached unexpected state';
 return 2;        ## terminate connection \ not expected state ##
 
 #.............................................................................
-#K3NRA5NH5F5QNMB4YKXW4BOUE67WUQSJWOICQNYLSZRWPKLOKAWSL5HCVIK6MDPV2CZ5KCE3PG4BU
-#::: HTCKQOHQGHN4J5KAJEWQQFUH4YNWCO3SXNBRO7ACSBTIZD4KIUR :::: NAILARA AMOS :::
-# :: OXOFCHYDKPV6RWAHQSGTOZCZCV43GM4VGCDLSZ462BODLOZUC4AI :: CODE SIGNATURE ::
+#YDPFUJHIEXZK2CA6JCIUQR67UUKSL7EEFFX7LGB7LEYCSDFGPHQHQUIQFLWJ4YRCBZC53YXDI64RG
+#::: EMHKRJIDDPY3YNGB6J2PEZLNWT7VYH7L6TIY5OZYZJDGZKEQ3HA :::: NAILARA AMOS :::
+# :: J5BJ7PNYDMGOUFLSBDARJQBM7ZVWGV6BJVTJ6WRF66VW35ZUBGDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

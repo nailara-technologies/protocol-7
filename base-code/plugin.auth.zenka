@@ -23,7 +23,7 @@ if (<[plugin.auth.zenka.no-keys-defined]>) {
             : undef;
         <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
             if defined $keyless_user;
-        $$output .= "AUTH_ERROR `:|\n";
+        $$output .= "AUTH_ERROR :|\n";
     }
     return 2;
 }
@@ -54,14 +54,14 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             <[base.log]>->(
                 0, "[$id] '$auth_name' [zenka] access denied [ key ]"
             );
-            $$output .= "AUTH_ERROR `:|\n";
+            $$output .= "AUTH_ERROR :|\n";
             return 1;
         }
     } else {
         <[base.log]>->(
             0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
         );
-        $$output .= "AUTH_ERROR `:|\n";
+        $$output .= "AUTH_ERROR :|\n";
         return 1;
     }
 } else {
@@ -73,7 +73,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 }
 
 #.............................................................................
-#T3S64PSA24OWR5GSCP3GOGQ6UXL3LEVKYZNDHKFATCIZH7FEOKERKJMU2WUGLNECDFPSEA6RRVCFE
-#::: D5SBNB2PK54RRWBN4BWRMBNGMQ7NOOTS3CXT5QK6HT4LNZE6XE3 :::: NAILARA AMOS :::
-# :: B53RMCQ5IMGYTCZ3PSSOR4PM5HN3SCPRH6FY22Z75KN7XGELWACA :: CODE SIGNATURE ::
+#7SVN33PONCZTJKE3OAHTX47YTOSMIZF32UTO4MBQXG2F4TBK37IUGWWLZA7C5MTBDR253VK4ELNOE
+#::: JREF2BFQFLICBOXMTTYDNONZHCP7DO7Z4GAYYWLV5XB6VMBWU56 :::: NAILARA AMOS :::
+# :: IGTOK3KQUN5X2EMIX2LNAEK42RNU7OUQWT5BCLPLMU4375DUIIAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
