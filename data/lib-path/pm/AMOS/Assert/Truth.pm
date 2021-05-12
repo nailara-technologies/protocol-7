@@ -22,6 +22,7 @@ use List::MoreUtils qw| uniq |;
 
 ##[ AMOS MODULE ]#############################################################
 
+use AMOS;
 use AMOS::Assert;
 
 our %true  = init_table(qw| true |);
@@ -135,35 +136,10 @@ sub calc_true {
     return 1;
 }
 
-##[ ERROR HANDLING ]##########################################################
-
-## add these to AMOS.pm ##
-
-sub warn_err {
-    my $err_str = shift;
-    my $c_lvl   = shift // 1;
-    warn sprintf( "%s %s\n", $err_str, caller_str($c_lvl) );
-    return undef;
-}
-
-sub error_exit {
-    my $err_str = shift;
-    my $c_lvl   = shift // 1;
-    die sprintf( "%s %s\n", $err_str, caller_str($c_lvl) );
-}
-
-sub caller_str {
-    my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
-    $c_lvl++;                  ## <-- accounting for this subroutine ##
-    my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
-
-    return "[$filename:$line]";
-}
-
 return 1;  ###################################################################
 
 #.............................................................................
-#ZC4QCJQSFF2WBV6F3EOVS6L2MEWW4T2X5UMQOVAOLMGMZLA5XZS6BQBMV5LL337NZFVQTCNHSDORE
-#::: C3PJCL2I7WNX2BPXAAXQTLZJJAGQI6Z35USYCQQT76X25YU4RJ2 :::: NAILARA AMOS :::
-# :: RGVB3LIQYNPFGPQE5T623VKULECJW5GOAJ5D46D7VFSMFV6BXIDQ :: CODE SIGNATURE ::
+#FSJOFCDKQLVPHSW4JE37SPMV3SLMVQQRCMHNJRYX5ZORDVFPUMJWTPK45P3DLH3OILWDWAA4YJ2XS
+#::: KCBHTP2JV44YDE6K6H6Z23P7SYOL4RO5TSL6UYAXZEXCCP4IZJL :::: NAILARA AMOS :::
+# :: 2VM4WLFOXS357R7NGIF4DBBSESKKXGO6IB4KE6AYZ2N7C6ACOEAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
