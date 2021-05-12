@@ -23,6 +23,7 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
+use AMOS;
 use AMOS::CHKSUM;
 use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
@@ -33,7 +34,8 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} // [] };
 ##[ RUNTIME OPTIONS ]#########################################################
 
 ## -q ## quiet output \ value only \
-## -s ## STDIN data input mode
+## -s ## STDIN data input mode [ single ]
+## -S ## STDIN data input mode [ combined ]
 ## -n ## return checksum as numerical value
 ## -v ## visualize additional checksum data
 #
@@ -79,7 +81,6 @@ if ( defined $option{'e'} ) {
             join( '', map {" $bg$CT$bl$ARG$rst$fg "} sort @modes ) )
             and exit;
     } else {
-
         @modes = @elf_modes_override;
     }
 }
@@ -141,11 +142,27 @@ warn "expected input string for AMOS-checksum calculation\n"
 
 $AMOS::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
 
-if ( not defined $data_str and not $option{'s'} ) {   ## COMMAND LINE INPUT ##
-    $data_str = join( ' ', @ARGV );
+if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
+    $data_str = join( ' ', @ARGV );    ## COMMAND LINE INPUT ##
 
-} elsif ( not defined $data_str ) {    ## STDIN INPUT ## [ amos-chksum -s ]
-    $data_str = join( '', <STDIN> );
+} elsif ( not defined $data_str and not $option{'s'} or $option{'S'} ) {
+    $data_str = join( '', <STDIN> ); ## STDIN COMBINED ## [  amos-chksum -S  ]
+} else {
+    while ( my $line = <STDIN> ) {
+        next if not defined $line or not length $line;
+        chomp($line);
+        my $checksum = AMOS::CHKSUM::amos_chksum( \$line, @modes );
+
+        $checksum = sprintf( qw| %010d |, $AMOS::CHKSUM::num_amos_csum )
+            if $option{'n'};
+
+        if ( $option{'q'} ) {
+            say $checksum;
+        } else {
+            say "$fg:\n:$bg $CT$checksum$fg $rst\n$fg:$rst";
+        }
+    }
+    exit(00000);
 }
 
 ##[ CHECKSUM CALCULATION ]####################################################
@@ -229,20 +246,20 @@ if ( $option{'v'} ) {
 
 ##[ ERROR HANDLER ]###########################################################
 
-sub error_exit {
-    chomp( my $emsg = shift );
-
-    my $bl  = "\e[38;2;68;39;172m";
-    my $no  = "\e[38;2;197;141;7m";
-    my $rst = "\e[0m";
-
-    $emsg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
-    $emsg =~ s|(*plb:\w): (\S+)|$bl : $no$LAST_PAREN_MATCH|;
-
-    say "$rst$bl:\n: $no$emsg$bl\n:$rst";
-
-    exit(110);
-}
+# sub error_exit {
+#     chomp( my $emsg = shift );
+#
+#     my $bl  = "\e[38;2;68;39;172m";
+#     my $no  = "\e[38;2;197;141;7m";
+#     my $rst = "\e[0m";
+#
+#     $emsg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
+#     $emsg =~ s|(*plb:\w): (\S+)|$bl : $no$LAST_PAREN_MATCH|;
+#
+#     say "$rst$bl:\n: $no$emsg$bl\n:$rst";
+#
+#     exit(110);
+# }
 
 ##[ VISUALIZE TRUTH ASSERTION ]###############################################
 
@@ -255,7 +272,7 @@ sub TRUE_FALSE {
 }
 
 #.............................................................................
-#6ZWYDMPOX6D2CEVBEVPGACOSUQOFQOVAQWPGLJWNUZS5NFUVXWSGODHZAJURS524ML7VNGSFQL57M
-#::: DIYCQM2P5P53FMK63ZW2JB6UKJNUX2LCTRHAH6XWUMJO3UM6W45 :::: NAILARA AMOS :::
-# :: CHJK3MT6BGRP6IM5OYKD5IVAYSSE43MND2VULE2CCT4W4OUO4SDQ :: CODE SIGNATURE ::
+#DOZKYEX3JOKU4Q2Q6PUUSELKCTQGLKQULOCUDDOYLNURB5VVGULJGK3QV6ZW7CHGZCUG3SGSJZXRC
+#::: 6TUJZIIP46CITRRUB4NVWW27PEHQN5MCDBXR57JMI6SZ7EABINI :::: NAILARA AMOS :::
+# :: 3PHXL7CIQ25IPXNP7T7427TGLUDL332LRYTYUKVV6SL24HFV4MDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
