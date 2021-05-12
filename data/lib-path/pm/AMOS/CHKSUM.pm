@@ -17,6 +17,7 @@ use base qw| Exporter |;
 
 ##[ AMOS MODULE ]#############################################################
 
+use AMOS;
 use AMOS::13;
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
@@ -30,13 +31,11 @@ our $VERSION = qw| AMOS-CHKSUM-V-SDTO47I |;    ##  amos-chksum -VCS  ##
 ## algorithm configuration ##
 %algorithm_set_up = (
     ## permanent switches ##
-    'follow_truth'     => 0,
-    'return_modbits'   => 0,
-    'chksum_numerical' => 1,
-    'chksum_bits'      => 1,
-    'chksum_B32'       => 1,
-    'elf_truth_modes'  => [@AMOS::Assert::Truth::assertion_modes] ## elf modes
-
+    qw| return_modbits   | => 0,
+    qw| chksum_numerical | => 1,
+    qw| chksum_bits      | => 1,
+    qw| chksum_B32       | => 1,
+    qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]
 ) if !keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
@@ -53,6 +52,7 @@ our $checksum_bits;
 
 sub amos_chksum {
 
+    my @elf_modes;
     my $input_elf_chksum;
     my $input_BMW_checksum;
 
@@ -71,8 +71,13 @@ sub amos_chksum {
         $input_BMW_checksum = $data_ref->{'BMW_checksum'}
             if defined $data_ref->{'BMW_checksum'};
 
-    } elsif ( $data_ref_type ne qw|SCALAR| and $data_ref_type ne qw|REF| ) {
-        die sprintf "unexpected reference type '%s' supplied", $data_ref_type;
+        @elf_modes = @{ $data_ref->{'elf-modes'} }
+            if defined $data_ref->{'elf-modes'}
+            and ref( $data_ref->{'elf-modes'} ) eq qw| ARRAY |;
+
+    } elsif ( $data_ref_type ne qw| SCALAR | ) {
+        error_exit( sprintf "unexpected reference type '%s' supplied",
+            $data_ref_type );
     }
 
     if (    not defined $input_elf_chksum
@@ -83,11 +88,19 @@ sub amos_chksum {
         $data_ref = \$data_copy;
     }
 
-    my @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
+    if ( @elf_modes and @ARG ) {
+        warn_err( 'redundant elf mode setting, discarding'
+                . ' arguments after hash reference <{C1}>' );
+        undef @ARG;
+    }
+
+    @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
         = sort ( @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} } );
 
-    map { die "not a valid elf mode ['$ARG']" if $ARG !~ m|^\d{1,2}$| }
-        @elf_modes;
+    map {
+        error_exit("not a valid elf mode [ $ARG ]")
+            if $ARG !~ m|^\d{1,3}$|
+    } @elf_modes;
 
     ## reset \ init ##
     @mod_bits      = ();
@@ -103,7 +116,7 @@ sub amos_chksum {
     my $elf_csum //= $input_elf_chksum;    ##  use parameter when given  ##
 
     ## elf-checksum mode 7 ##
-    $elf_csum = sprintf '%09d', elf_chksum( $$data_ref, 0, 7 )
+    $elf_csum = sprintf qw| %09d |, elf_chksum( $$data_ref, 0, 7 )
         if not defined $elf_csum;
     ##
 
@@ -174,23 +187,21 @@ INVERT_TRUTH_STATE:
 
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
-            $bmw_mod_bits .= bin_032(
-                eval(
-                    join( '', '0b', substr( $bmw_512b, $bmw_offset, 32 ) )
-                ) ^ $num_amos_csum
+            $bmw_mod_bits .= bin_032( ## replace with inline version ##  [LLL]
+                eval( join '', qw| 0b |,
+                    substr( $bmw_512b, $bmw_offset, 32 ) ) ^ $num_amos_csum
             );
         }
-
-        goto INVERT_TRUTH_STATE;    ##  <--  modify checksum   ##
+        goto INVERT_TRUTH_STATE;      ##  <--  modify checksum   ##
     }
 
-    return $checksum_encoded;       ##  VAX AND BASE32 ENCODED  ##
+    return $checksum_encoded;         ##  VAX AND BASE32 ENCODED  ##
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#27GHOJJHVLW56WGTXSOVUKFYPEM2PLIEJR4IG5TF7OFQ4SVW7RYVBDGH4B3YEVHUCXGBVMDVVBT7A
-#::: RLJWYQF46B26OGZ2D22WW4NS57M6VR3QOY7XHPC5QPMC4BW5UI2 :::: NAILARA AMOS :::
-# :: KEGVOPQ5U7ABGY75DB2BZARFVHYXNNHN6YYNYPJSKQYT3UUZNCBA :: CODE SIGNATURE ::
+#WSCBTMECUWQZZQPNNWLYSHSIFANNQEUG523G7BJO3VR2U4JLFNW6EC5UR54IAK3DR6RSRB2NKYHCW
+#::: PICWSCV4R6D7PJVWIPPLIJUFKLCYZRLUADDSJZ3SWBK3RLJ5Y4F :::: NAILARA AMOS :::
+# :: A76ICPKBL6QPIXU3TXI5PY2W4T2OXZVFPSOHGQLENNUCRIGAACBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT |;
 
-@EXPORT = qw| error_exit caller_str format_error TERM_SIZE %C $VERSION |;
+@EXPORT = qw|
+    TERM_SIZE %C $VERSION
+    error_exit warn_err caller_str format_error
+    |;
 
 ##[ COLORS ]##################################################################
 
@@ -29,17 +32,54 @@ our %C = (
     qw|  R  | => "\e[0m",
 );
 
-##[ ERROR HANDLER ]###########################################################
+##[ TERMINALS ]###############################################################
+
+sub TERM_SIZE {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
+
+    return ( $size_aref->[1], $size_aref->[0] );
+}
+
+##[ ERROR HANDLING ]##########################################################
 
 sub error_exit {
-    chomp( my $emsg = shift );
+    chomp( my $err_msg = shift // '' );
+    $err_msg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
+    $err_msg =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
 
-    $emsg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
-    $emsg =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
+    warn_err($err_msg);
 
-    say "$C{R}$C{g}:$C{R}\n$C{g}: $C{o}$emsg$C{R}\n$C{g}:$C{R}";
+    exit(113) if not defined $main::PROTOCOL_SEVEN;
+}
 
-    exit(113);
+sub warn_err {
+    my $err_str   = shift;
+    my $c_lvl     = shift // 1;
+    my $no_caller = 0;
+    $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
+    $no_caller = 1                 if $err_str =~ s| <\{NC\}>$||;
+
+    if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
+        if ($no_caller) {
+            warn sprintf '%s <{NC}>', $err_str;
+        } else {
+            warn sprintf '%s <{C%d}>', $err_str, $c_lvl;
+        }
+    } else {
+        my $caller_str = $no_caller ? '' : caller_str($c_lvl);
+        print STDERR
+            sprintf( "$C{R}$C{g}:$C{R}\n$C{g}: $C{o}%s%s$C{R}\n$C{g}:$C{R}\n",
+            $err_str, " $C{T}$C{B}$caller_str" );
+    }
+    return undef;
 }
 
 sub format_error {
@@ -95,26 +135,10 @@ sub clean_up_caller {
     return $$filename_sref if not $was_ref;
 }
 
-##[ TERMINALS ]###############################################################
-
-sub TERM_SIZE {
-
-    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
-
-    return undef if not -t $handle;
-    state $size       = "\0" x 8;
-    state $TIOCGWINSZ = 21523;
-
-    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
-    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
-
-    return ( $size_aref->[1], $size_aref->[0] );
-}
-
 return 1;  ###################################################################
 
 #.............................................................................
-#LQDIHLGXNSWNYII6ZLLDEAHQOYGCILPQPPRX7S7BSGZ2XMWYGPE27C7ZBGRBJH3FT5N2KBVZ5BOAO
-#::: 6BZUQ3MYMRZMUK6YQ7WQ3WGHDRD4W7LNP7WL2NK4BN7RBZESQQG :::: NAILARA AMOS :::
-# :: NATW3MMYGAGXJLTVK3SICCDDDOMHULKTYPNRDR4VQ2BJ5HRNDSDA :: CODE SIGNATURE ::
+#F7FSF7XXME5E3KSBWCZBKDE2RUW7D22D6EJ2WP5YO4KEDGEIVPXNFCRFVDUUKVSGIKBYOUOHZNUJI
+#::: N457L6IU77U2F27PUV4JL5YH73UKIOFBC3ZT2W6RWOATKCWSRV7 :::: NAILARA AMOS :::
+# :: DDL34SU4CK7KQYNVN2NRDPDA7H3G2XVRKQPNKURQDT32R6ZYUYAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
