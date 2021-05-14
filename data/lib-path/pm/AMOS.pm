@@ -61,7 +61,7 @@ sub error_exit {
 }
 
 sub warn_err {
-    my $err_str   = shift;
+    my $err_str   = shift // ':: warning ::';
     my $c_lvl     = shift // 1;
     my $no_caller = 0;
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
@@ -77,7 +77,7 @@ sub warn_err {
         my $caller_str = $no_caller ? '' : caller_str($c_lvl);
         print STDERR
             sprintf( "$C{R}$C{g}:$C{R}\n$C{g}: $C{o}%s%s$C{R}\n$C{g}:$C{R}\n",
-            $err_str, " $C{T}$C{B}$caller_str" );
+            $err_str, defined $caller_str ? " $C{T}$C{B}$caller_str" : '' );
     }
     return undef;
 }
@@ -138,7 +138,7 @@ sub clean_up_caller {
 return 1;  ###################################################################
 
 #.............................................................................
-#F7FSF7XXME5E3KSBWCZBKDE2RUW7D22D6EJ2WP5YO4KEDGEIVPXNFCRFVDUUKVSGIKBYOUOHZNUJI
-#::: N457L6IU77U2F27PUV4JL5YH73UKIOFBC3ZT2W6RWOATKCWSRV7 :::: NAILARA AMOS :::
-# :: DDL34SU4CK7KQYNVN2NRDPDA7H3G2XVRKQPNKURQDT32R6ZYUYAA :: CODE SIGNATURE ::
+#GEDL4KJQWCI4GUNBDCEFVH5DFYXPCK7HJFD2UPMSGI2DXF3VGM3G4HKEJQQ7QAWVCQOIMRHH46JMC
+#::: DQ253P3BAA3OSPKF5QKYQ3V7NCAHHRISUHKSETJPCJYOLZV27JF :::: NAILARA AMOS :::
+# :: XCJ3UZCO5QCVON7HPYMDBQXQQJAGDNYPCEMJ5FEAGC3AWTPSLKAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
