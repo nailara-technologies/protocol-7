@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 
-###                   ###
-##  division-13-table  ##
-###                   ###
+###                      ###
+## display-D13-collection ##  collecting some decoded data \ display at CTRL-C
+###                      ###
 
 use Encode qw| encode |;
 use Crypt::Misc qw| decode_b32r |;
@@ -48,11 +48,13 @@ die ":\n: seed input exceeds calculation bit size ..,\n:\n"
 
 ##[ SIGNAL HANDLING ]#########################################################
 
-$SIG{'INT'} = sub { say "\b\b\n\n"; exit(0000) };
+$SIG{'INT'} = sub { say "\b\b\n\n", decode_collected(); exit(0000) };
 
 ##[ MAIN PROGRAM ]############################################################
 
 $Z //= 1;  ##  base value demonstrating division by 13 entropy build-up .,  ##
+
+my $collected = { qw| BASE32 | => '', qw| bits | => '' };
 
 my $iteration       = 0;
 my $entropy_started = length($Z) >= 17 ? 0 : -7;
@@ -70,8 +72,6 @@ display_result($Z);
 
 my $shift_count = 0;
 
-# while ( length sprintf( '%b', $Z ) < 63 ) { $Z <<= 1; $shift_count++ }
-
 $iteration = sprintf qw| L%02d<< |, $shift_count;
 display_result($Z);
 
@@ -81,18 +81,11 @@ while ( ++$iteration ) {
 
 RECALC:
 
-    #    while ( length sprintf( '%b', $Z ) < 64 ) {
-    #        $Z <<= 1;
-    #       $Z <<= is_true($Z) ? 4 : 3;    ##  keep truth state  ##
-    #    }
-
     $Z <<= 4;
 
     $Z /= 13;    ##  also : $Z * 11 * 77 / 1001  ##
 
     $Z <<= is_true($Z) ? 2 : 1;
-
-    # $Z <<= 2;
 
     my $num_bits_64      = sprintf( qw| %064b |, $Z );
     my $main_entropy_bin = substr( $num_bits_64, 0, 42 );
@@ -102,10 +95,52 @@ RECALC:
         or not is_true( $main_entropy_bin, 0, 1 );
 
     ## need stats on binary true seen as integer ##
+    foreach my $c_offset ( 0 .. 7 ) {
+        decoded_bits( substr( $num_bits_64, 7 * ( 8 - $c_offset ), 7 ) );
+    }
+
     display_result( $Z, $num_bits_64 );
 }
 
 ## [ SUBROUTINES ] ###########################################################
+
+sub decode_collected {
+    my $dec_B32 = decode_b32r( $collected->{'BASE32'} );
+
+    while ( length( $collected->{'BASE32'} ) > 2 and not defined($dec_B32) ) {
+        substr( $collected->{'BASE32'}, -1, 1, '' );
+        $dec_B32 = decode_b32r( $collected->{'BASE32'} );
+    }
+
+    error_exit( 'BASE32 decoding error', -1 ) if not defined $dec_B32;
+
+    ( my $B32_print = $dec_B32 ) =~ s|[^[:print:]]||g;
+
+    my @bit_row;
+
+    while ( length $collected->{'bits'} ) {
+        push @bit_row, substr( $collected->{'bits'}, 0, 7, '' );
+    }
+
+    printf "\n : B32-printable : %0s\n:\n", $B32_print;
+    $collected->{'BASE32'} = $B32_print = '';
+    $dec_B32 = undef;
+
+    printf "\n  [ BITS ]\n\n%s",
+        join( '',
+        map { sprintf ": %s : %s\n", $ARG, decoded_bits($ARG) }
+        map { sprintf qw| %07s |, $ARG // '' } @bit_row );
+
+    while ( length( $collected->{'BASE32'} ) > 2 and not defined($dec_B32) ) {
+        substr( $collected->{'BASE32'}, -1, 1, '' );
+        $dec_B32 = decode_b32r( $collected->{'BASE32'} );
+    }
+
+    ( $B32_print = $dec_B32 // '' ) =~ s|[^[:print:]]||g;
+    return sprintf "\n: BITS-B32 : %0s\n:\n", $B32_print // '';
+
+    say sprintf "\n : BASE32 UTF-7 : %0s\n:\n", encode( qw|UTF-7|, $dec_B32 );
+}
 
 sub display_result {
 
@@ -189,9 +224,14 @@ sub decoded_bits {
 
     return decoded_bits_chars($bits) if $type eq qw| 01 |;    ## 5x7 pixel ##
 
-    return sprintf qw| %s< |, decoded_bits_BASE32($bits)
-        if $type eq qw| 010 |;    ##  BASE32 UTF-7  ##
+    if ( $type eq qw| 010 | ) {    ##  BASE32 UTF-7  ##
+        my $B_32_c = decoded_bits_BASE32($bits);
 
+        $collected->{'BASE32'} .= $B_32_c
+            if length $collected->{'BASE32'} < 7340032;    ##  limit 7M  ##
+
+        return sprintf qw| %s< |, $B_32_c;
+    }
     return qw| D- | if $type eq qw| 0110 |;    ## monochrome document ##
     return qw| D+ | if $type eq qw| 0111 |;    ## color document ##
 
@@ -258,6 +298,11 @@ sub decoded_bits_chars {
 
     };    ## 3D70 == 0.24 == 24% foreground ##
 
+    if ( length $collected->{'bits'} < 7340032 and chr($result) =~ m|[01]| )
+    {     ##  limit 7M  ##
+        $collected->{'bits'} .= chr($result);
+    }
+
     return $table->{$result} if defined $table->{$result};  ## color change ##
 
     return sprintf qw| %02o |, $result;    ##  <-- 5x7 matrix position  ##
@@ -276,7 +321,7 @@ sub entropy_body {
 }
 
 #.............................................................................
-#WDCSXJ3YWG6PBORZ3C22VCSIC7F2PZHVGI4TBDUQIYEL26W47JKTR5UBXUYULBBJUZTAAHNBIHTM6
-#::: JR46J43LW46H4JXVBN3BSCSFHV37WQFN4KE74O3MX6EWVU2DIHN :::: NAILARA AMOS :::
-# :: WGFGUYIBCMBH5YOYNPABUJ3RXBQJXJRZPR5ZF63AOPS2RNMDEKDY :: CODE SIGNATURE ::
+#DJ64CG4OKJB2WUIX33GCU5AS3HMNI57NH5FCX3YLWO4V6LP6GRKFDWSGPBNW2NRDLYV347OM3P7ZE
+#::: RSKYM6DC5PKHGZNBEC7CG75NIPPONV4EOYCTMDLPFURH3VXCVXY :::: NAILARA AMOS :::
+# :: 3SME3DMFJDQOX4PR57EINJ75BZQIJS6COSDFTX3VQH5WUCN7WMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
