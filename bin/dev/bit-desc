@@ -1,0 +1,157 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###        ###
+#  bit-desc  #
+###        ###
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;    ## colors ##
+use AMOS::Assert::Truth;
+
+##[ COMMAND LINE INPUT ]######################################################
+
+our %C = (    ##  color table  ##
+    qw|  T  | => "\e[38;2;6;71;195m",
+    qw|  b  | => "\e[48;2;9;5;42m",
+    qw|  0  | => "\e[38;2;68;39;172m",
+    qw|  B  | => "\e[1m",
+    qw|  R  | => "\e[0m",
+);
+
+say '';
+
+my $iteration = -1;
+
+my @results;
+
+while ( ++$iteration <= 63 ) {
+    my $bits = sprintf( qw| %06b |, $iteration );
+    say $C{'b'} . $C{'0'} . ' ' . join ' ', qq|:|, $bits,
+        qq|:|, sprintf( qw| %2s |, decoded_bits_5x7($bits) ), $C{'R'};
+}
+
+say '';
+$iteration = -1;
+say $C{0} . qq| .: BASE32 :.| . $C{R};
+say $C{b} . qq|             | . $C{R};
+while ( ++$iteration <= eval qw| 0b11111 | ) {
+    my $bits = sprintf( qw| %05b |, $iteration );
+    say $C{'b'} . $C{'0'} . join ' ', ' ' . qq|:|, $bits,
+        qq|:|, decoded_bits_BASE32($bits), $C{'R'};
+}
+say $C{b} . qq|             | . $C{R};
+
+say '';
+$iteration = -1;
+say $C{0} . qq| .:: ANGLE ::.| . $C{R};
+say $C{b} . qq|              | . $C{R};
+while ( ++$iteration <= eval qw| 0b11111 | ) {
+    my $bits = sprintf( qw| %05b |, $iteration );
+    say $C{'b'} . $C{'0'} . ' ' . join ' ', qq|:|, $bits,
+        qq|:|, decoded_bits_route($bits), $C{'R'};
+}
+say $C{b} . qq|              | . $C{R};
+
+say '';
+
+exit(0000);
+
+## RFC 4648 BASE32 alphabet ## 2-7 A-Z ##
+##
+sub decoded_bits_BASE32 {
+    my $bits = shift;
+    my $num  = eval qw| 0b | . $bits;
+
+    return $num + 2 if $num <= 5;    ## 2 .. 7 ##
+    return chr( 59 + $num );         ## A .. Z ##
+}
+
+###[ 00 00 110 ] hop count is 1 + 3 bit decimal value
+##                     directional nominator : 0 = forward : 110 <-- hop count
+##                                         1 = 90 deg angle : 10 <-- direction
+##                                                            00 : 0 : UP
+##                                                            10 : 2 : LEFT
+##                                                            01 : 1 : RIGHT
+##                                                            11 : 3 : DOWN
+
+sub decoded_bits_route {
+    my @bits = split '', shift;
+
+    state $directions //= {
+        qw| 00 | => qw| U |,
+        qw| 10 | => qw| L |,
+        qw| 01 | => qw| R |,
+        qw| 11 | => qw| D |
+    };
+
+    my $turn = join( '', shift @bits, shift @bits );
+    my $hops = eval qw| 0b | . join( '', @bits );
+
+    return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
+}
+
+##  description or result : addressing a 5 x 7 graphical character matrix ##
+##                        + 60 add color, 61 subtract and  62 .. 77 : b g r B,
+##                        selecting how the next sequence will change color..,
+
+sub decoded_bits_5x7 {    ## [ octal 0 .. 77 ] ##
+    my $result = eval qw| 0b | . join( '', @ARG );
+    state $table //= {
+
+        48 => qw| 0 |,    ## set to background color ##
+        49 => qw| 1 |,    ## set to foreground color ##
+
+        50 => qw| C |,    ## clear color \ to monochrome ##
+        51 => qw| A |,    ## clear alpha ##
+        52 => qw| + |,    ## add color ##
+        53 => qw| - |,    ## subtract color ##
+
+        54 => => qq|0001 0001 0001 0000|,    ##  foreground -+ 1 unit ##
+        55 => => qq|3D70 3D70 3D70 0000|,    ##  foreground  -+  24 % ##
+
+        56 => => qq|0000 0000 0001 0000|,    ##  blue -+ 1 unit ##
+        57 => => qq|0000 0000 3D70 0000|,    ##  blue  -+  24 % ##
+
+        58 => => qq|0000 0001 0000 0000|,    ##  green -+ 1 unit ##
+        59 => => qq|0000 3D70 0000 0000|,    ##  green  -+  24 % ##
+
+        60 => => qq|0001 0000 0000 0000|,    ##  red -+ 1 unit ##
+        61 => => qq|3D70 0000 0000 0000|,    ##  red  -+   24 % ##
+
+        62 => => qq|0000 0000 0000 0001|,    ## alpha -+ 1 unit ##
+        63 => => qq|0000 0000 0000 3D70|     ## alpha  -+  24 % ##
+
+    };
+    return $table->{$result} if defined $table->{$result};  ## color change ##
+    return sprintf qw| %02o |, $result;    ##  <-- 5x7 matrix position  ##
+}
+
+#.............................................................................
+#ZRMQ6JTHI6VGDQBJZZQ43BW7UBJMKBEDEVFTJX2W3GFATYZ2QQPYJOY7I7736DBAN4552KNFY5RUG
+#::: YXWQWMO7USTQUHATODR3QN76YETGTTY7DAMJM3BMKCASI6RLFUI :::: NAILARA AMOS :::
+# :: TQYWUG3S527KTSBVTYD4GHTHWHIHCSJ446O5YMGJ3P4VESZJR6BA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
