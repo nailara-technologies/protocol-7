@@ -37,6 +37,11 @@ BEGIN {
 use AMOS;    ## colors ##
 use AMOS::Assert::Truth;
 
+use AMOS::INLINE;
+
+## AMOS::BinConversion ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+
 ##[ COMMAND LINE INPUT ]######################################################
 
 our $Z = shift(@ARGV);
@@ -54,9 +59,10 @@ $SIG{'INT'} = sub { say "\b\b\n\n", decode_collected(); exit(0000) };
 
 $Z //= 1;  ##  base value demonstrating division by 13 entropy build-up .,  ##
 
-my $collected = { qw| BASE32 | => '', qw| bits | => '' };
+my $collected = { qw| BASE32 | => '', qw| bits | => '' };    ##  ctrl-c  ##
 
-my $iteration       = 0;
+my $iteration = 0;
+
 my $entropy_started = length($Z) >= 17 ? 0 : -7;
 
 our %C = (    ##  color table  ##
@@ -244,7 +250,7 @@ sub decoded_bits_BASE32 {
 
     my $bits = shift;
 
-    my $num = eval qw| 0b | . $bits;
+    my $num = AMOS::BinConversion::bit_to_num($bits);
 
     return $num + 2 if $num <= 5;              ## 2 .. 7 ##
     return chr( 59 + $num );                   ## A .. Z ##
@@ -264,7 +270,7 @@ sub decoded_bits_route {
     };
 
     my $turn = join( '', shift @bits, shift @bits );
-    my $hops = eval qw| 0b | . join( '', @bits );
+    my $hops = AMOS::BinConversion::bit_to_num( join '', @bits );
 
     return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
 }
@@ -274,7 +280,7 @@ sub decoded_bits_chars {
     my $bits = shift;
     return '  ' if not length $bits;
 
-    my $result = eval qw| 0b | . $bits;
+    my $result = AMOS::BinConversion::bit_to_num($bits);
 
     state $table //= {
 
@@ -321,7 +327,7 @@ sub entropy_body {
 }
 
 #.............................................................................
-#DJ64CG4OKJB2WUIX33GCU5AS3HMNI57NH5FCX3YLWO4V6LP6GRKFDWSGPBNW2NRDLYV347OM3P7ZE
-#::: RSKYM6DC5PKHGZNBEC7CG75NIPPONV4EOYCTMDLPFURH3VXCVXY :::: NAILARA AMOS :::
-# :: 3SME3DMFJDQOX4PR57EINJ75BZQIJS6COSDFTX3VQH5WUCN7WMAQ :: CODE SIGNATURE ::
+#3OLU7Z2XZA2JKFN5ZT6FIWTN3CETULQRO3ZDCSIG3WQRGOLES3NQ672BTI7FMZNU7KWYWKUSJ3UEY
+#::: GINGTYMSXLIRURF4XVIUIPTKBJKKSKYSJ3BSFVWGXNAW2MRUOZR :::: NAILARA AMOS :::
+# :: VYFRSZK4DDQQB2EUBOQLFRXKWEELDILEAKF7IM5LNKAXIYDQCEDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

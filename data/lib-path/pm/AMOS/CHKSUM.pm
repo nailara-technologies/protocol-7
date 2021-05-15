@@ -19,8 +19,12 @@ use base qw| Exporter |;
 
 use AMOS;
 use AMOS::13;
+use AMOS::INLINE;
 use AMOS::Assert::Truth qw| is_true |;
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
+
+## AMOS::BinConversion ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
 
 our $VERSION = qw| AMOS-CHKSUM-V-SDTO47I |;    ##  amos-chksum -VCS  ##
 
@@ -140,10 +144,11 @@ sub amos_chksum {
     $checksum_bits =~ s|0+$|
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
-    ##  replace eval calls with bit_to_num()  ##                         [LLL]
-    ##
-    $num_amos_csum = eval "0b$checksum_bits";    ## numerical ##
-    $num_amos_csum ^= eval "0b$bmw_b_L";         ## elf checksum protection ##
+    ## numerical ##
+    $num_amos_csum = AMOS::BinConversion::bit_to_num($checksum_bits);
+
+    ## elf checksum protection ##
+    $num_amos_csum ^= AMOS::BinConversion::bit_to_num($bmw_b_L);
     ###
 
     my $resaturation_offset = 0;
@@ -158,7 +163,9 @@ INVERT_TRUTH_STATE:
             ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
             goto INVERT_TRUTH_STATE;          ##  <--  modify checksum   ##
         }
-        $num_amos_csum ^= eval join( '', qw| 0b |, $cur_mod_bits ); ## XOR-bin
+
+        ## XOR-bin
+        $num_amos_csum ^= AMOS::BinConversion::bit_to_num($cur_mod_bits);
 
         push( @mod_bits, $cur_mod_bits )
             if $algorithm_set_up{'return_modbits'};
@@ -187,21 +194,22 @@ INVERT_TRUTH_STATE:
 
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
-            $bmw_mod_bits .= bin_032( ## replace with inline version ##  [LLL]
-                eval( join '', qw| 0b |,
-                    substr( $bmw_512b, $bmw_offset, 32 ) ) ^ $num_amos_csum
+            $bmw_mod_bits .= bin_032(
+                AMOS::BinConversion::bit_to_num(
+                    substr( $bmw_512b, $bmw_offset, 32 )
+                    ) ^ $num_amos_csum
             );
         }
-        goto INVERT_TRUTH_STATE;      ##  <--  modify checksum   ##
+        goto INVERT_TRUTH_STATE;    ##  <--  modify checksum   ##
     }
 
-    return $checksum_encoded;         ##  VAX AND BASE32 ENCODED  ##
+    return $checksum_encoded;       ##  VAX AND BASE32 ENCODED  ##
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#WSCBTMECUWQZZQPNNWLYSHSIFANNQEUG523G7BJO3VR2U4JLFNW6EC5UR54IAK3DR6RSRB2NKYHCW
-#::: PICWSCV4R6D7PJVWIPPLIJUFKLCYZRLUADDSJZ3SWBK3RLJ5Y4F :::: NAILARA AMOS :::
-# :: A76ICPKBL6QPIXU3TXI5PY2W4T2OXZVFPSOHGQLENNUCRIGAACBI :: CODE SIGNATURE ::
+#PQCDRKZB6QF5M4DO56TQ2EE5DTMLBJWLPXSIPX34URTQH2UZLCZ44ZAB7YHVGRVL3SHSTSQXL3VME
+#::: USHOPQXJ5HHGHTIEP3JSRN5Q75FA6GOZV3RZGO6ROIQZPQLFNVU :::: NAILARA AMOS :::
+# :: VWEMY64ZIRZ4GXDPZH2LBKEBQQ4JJS7DMKUYEEB4VQTMISWRVWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

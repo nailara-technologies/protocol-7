@@ -31,7 +31,7 @@ use base qw| Exporter |;
     asc_to_bin_056
     reverse_bin_056
 
-    bin_to_int
+    bin_to_comp_int
 
 ];
 
@@ -292,7 +292,7 @@ sub reverse_bin_056 {
     join( '', reverse( split '', sprintf( qw| %056B |, $digits_056 ) ) );
 }
 
-sub bin_to_int {
+sub bin_to_comp_int {
     my $buffer_ref = shift;
 
     return warn sprintf( "expected scalar reference to 7 bytes string %s\n",
@@ -386,7 +386,7 @@ sub visualize_bin_032 {
 return 1;  ###################################################################
 
 #.............................................................................
-#M3GJXTAWGWCMAJWREMRWGRFRRE3CLZ4XR6GMDHELWM7SDJKBWPXDUVUPSG6E25QFWIRSMVGJPF5SS
-#::: MCJ4I54T53RAJA7WII4QKAXSLVFPIG66SPKW2XSFXQSMJ4A63JM :::: NAILARA AMOS :::
-# :: UFDAPI62VZUBN247I2WZGFR7P6HQEXCEW4Y43O3ATGX4K4DVUICQ :: CODE SIGNATURE ::
+#HOIWCRPMP7U3JJTJL3GQQWEVBMYAUZ5LXEW6IP2DQBYIRXWVVNWS74LGUWCP5X3H7WLBKOBABXHZY
+#::: LRPEJ3H6WD2VDMO3HGZPUMMXDHKNMPIYZCDKGM6AC6U7HQRCCT2 :::: NAILARA AMOS :::
+# :: CXOXNRWCEHEIZTELTR2367FEENVDPVCWHPSZ3HDV56TJ6WACHOCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

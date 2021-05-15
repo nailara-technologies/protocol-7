@@ -33,8 +33,12 @@ my $root_path = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
 
 use AMOS;
 use AMOS::13;
+use AMOS::INLINE;
 use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
+
+## AMOS::BinConversion ##
+*b2n = compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
 
 ##[ INTERRUPTS ]##############################################################
 
@@ -73,19 +77,15 @@ my @modes = defined $option{'m'} ? split( ':', $option{'m'} ) : qw[ 13 ];
 
 ##############################################################################
 
-binmode( STDOUT, ':encoding(UTF-8)' );
-
-##############################################################################
-
 say '';
 
 foreach my $num (@range) {
     my $d      = length( sprintf( qw| %07b |, $range[ scalar @range - 1 ] ) );
     my $result = sprintf( "%0${d}b",  $num );
     my $elfsum = sprintf( qw| %09d |, elf_chksum( $result, 1, $modes[0] ) );
-    my $bit_00 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -7, 3 );
-    my $bit_01 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -4, 1 );
-    my $bit_02 = eval '0b' . substr( sprintf( qw| %07b |, $num ), -3, 3 );
+    my $bit_00 = b2n( substr( sprintf( qw| %07b |, $num ), -7, 3 ) );
+    my $bit_01 = b2n( substr( sprintf( qw| %07b |, $num ), -4, 1 ) );
+    my $bit_02 = b2n( substr( sprintf( qw| %07b |, $num ), -3, 3 ) );
     my $char_0 = substr( $elfsum, 0, 3 );
     my $char_L = substr( $elfsum, 4, 2 );
     my $char_M = substr( $elfsum, 5, 2 );
@@ -153,7 +153,7 @@ say $C{'R'};
 exit(0000000);
 
 #.............................................................................
-#WB7KNYOM622I73EEMRGSZO4EPZ3Z423IMUACDZY5NGEBGQWSSYWT7SS22G7FUIMNJMLPDEFKVZ7N4
-#::: IZT5Y7257JHPUAEMVVOC5LEUY5JPYLLRHO5BQYTG7MXYQBMEPBU :::: NAILARA AMOS :::
-# :: J7UCCJJEJXJ4QGJJ5SLW75J6TK2THO7NUFRWZEV75JWBLOUWEOAQ :: CODE SIGNATURE ::
+#RO2ZHEIGR7DAIM75PC54UWKP5KKFX26V2CGDLZG6XQHNAKWL6XC5NUEDWJ57UCCM6UCHTV5VFHMTG
+#::: 5DNDEB45DNFV4LDBYVWFFM4SPAD3OPUIUCNYIGEVVLY33I23ZDS :::: NAILARA AMOS :::
+# :: BBMNPCUN2QQ5ASTPDIDJAVKY7M5OAWRZADD2X4RDB6236UYGJYDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
