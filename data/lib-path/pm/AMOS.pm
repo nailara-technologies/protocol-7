@@ -51,7 +51,7 @@ sub TERM_SIZE {
 ##[ ERROR HANDLING ]##########################################################
 
 sub error_exit {
-    chomp( my $err_msg = shift // '' );
+    chomp( my $err_msg = sprintf( shift @ARG // '', @ARG ) );
     $err_msg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
     $err_msg =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
 
@@ -61,13 +61,14 @@ sub error_exit {
 }
 
 sub warn_err {
-    my $err_str   = shift // ':: warning ::';
-    my $c_lvl     = shift // 1;
+    my $err_str = shift // ':: warning ::';
+    my $c_lvl   = shift // 1;
+    if (@ARG) { $err_str = sprintf $err_str, @ARG }   ##  sprintf-template  ##
     my $no_caller = 0;
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
     $no_caller = 1                 if $err_str =~ s| <\{NC\}>$||;
 
-    if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
+    if ( defined $main::PROTOCOL_SEVEN ) {            ##  zenka  ##
         if ($no_caller) {
             warn sprintf '%s <{NC}>', $err_str;
         } else {
@@ -88,12 +89,12 @@ sub format_error {
     my ( $caller_str, $file, $line );
     $err_msg =~ s|\n$||;
     ( $file, $line ) = @{^CAPTURE}
-        if $err_msg =~ s| at (\S+) line (\d+).*$||gs;
+        if $err_msg =~ s| at (.+?) line (\d+).*$||gs;
     $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
     $err_msg =~ s|"\s|' |g;
     $err_msg =~ s|\s"| '|g;
     $err_msg =~ s|\s+BEGIN failed.+$||sg;
-    $err_msg =~ s|(\S+):|$LAST_PAREN_MATCH :|;
+    $err_msg =~ s|(\S+):(*pla:\s)|$LAST_PAREN_MATCH :|;
 
     $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
 
@@ -128,17 +129,18 @@ sub clean_up_caller {
     my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
     $filename_sref = \"$filename_sref" if not $was_ref;
     ## shorten for .pm mods ##
-    $$filename_sref =~ s{^/usr/(local/)?bin/}{};
-    $$filename_sref =~ s{^/usr/share/perl5/}{,../};
-    $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
-    $$filename_sref =~ s{^.+/protocol-7/data/lib-path/pm/}{};
+    $$filename_sref =~ s|//|/|g;
+    $$filename_sref =~ s|^/usr/(local/)?bin/||;
+    $$filename_sref =~ s|^/usr/share/perl5/|,../|;
+    $$filename_sref =~ s|^.+/perl\-base/|,./perl-base/|;
+    $$filename_sref =~ s|^.+/protocol-7/data/lib-path/pm/||;
     return $$filename_sref if not $was_ref;
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#GEDL4KJQWCI4GUNBDCEFVH5DFYXPCK7HJFD2UPMSGI2DXF3VGM3G4HKEJQQ7QAWVCQOIMRHH46JMC
-#::: DQ253P3BAA3OSPKF5QKYQ3V7NCAHHRISUHKSETJPCJYOLZV27JF :::: NAILARA AMOS :::
-# :: XCJ3UZCO5QCVON7HPYMDBQXQQJAGDNYPCEMJ5FEAGC3AWTPSLKAY :: CODE SIGNATURE ::
+#XEPO435LSRUBHFL5E7Z6IL5JYNLCXDSCJKKNDCNSFRT3RMAYUCRDAANV6IH7EBT35VQ7XPS4OQ7NO
+#::: BH2R27Q7TIMQQSM2YWBBGTJWFDQ6BHQCMX3D7L2JXXE4ODFJNTB :::: NAILARA AMOS :::
+# :: N2DLONXBU7COOMWQWJ5UEBYDHXS5BKQRQYCCZP3VJHBAF67B36CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
