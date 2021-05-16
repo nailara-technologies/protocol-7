@@ -22,7 +22,12 @@ BEGIN {  #[ INIT \ C-CODE ]###################################################
 INIT {
     use Inline ( 'C' => <<~ 'EOC', 'directory' => $inline_directory );
 
-        unsigned int inline_elf( int elf_mode, int start_sum, char *str ) {
+        unsigned int inline_elf(
+                unsigned int elf_mode,
+                unsigned int start_sum,
+                unsigned char *str
+            ) {
+
             unsigned int result = start_sum; // 0 if no continuation
             unsigned int carryover = 0;
             int pos_0 = (int) str;
@@ -40,9 +45,6 @@ INIT {
                 if ( !character )    // ascii 0 characters
                     character += z_val;
 
-                if ( character < 0 ) // characters >= ascii 128
-                    character += 256;
-
                 result = ( result << left ) + character;
 
                 if ( ( carryover = result & 0xF0000000 ) )
@@ -56,7 +58,7 @@ INIT {
 }
 
 #.............................................................................
-#PNJKFH7DEXS57NBVQ3WUMKX7MSRTZGZUMTBEBWNDGBNPX2IALFYR4IKZ2ZE5WEKG2ZM63TGPQ26OA
-#::: 5UWPCENBGZZ7MMLFTQKYE7AD3YGJAPFEBZ7I6YML64F4AE6J47P :::: NAILARA AMOS :::
-# :: O4WEQFNDZRX6MZMN4RQWDUKVCVFKHG3C7L3O7ZGAZRSKWRJO2QDQ :: CODE SIGNATURE ::
+#QYAXX6ZOZJCXLFQM6G3CLEBAH45C27HS4M52QGQPJT4RWAMYRHRCQ7GBRVMNREZ5YX47KSC4YVUO6
+#::: ALRXODBPD5NYP7P4O3P6OKJCMRU4EKGOG4PRZLGGYHYBW5WNJWW :::: NAILARA AMOS :::
+# :: 5CB2MH2Y6LEPTS5OO2ROKNLNOPS423CTDHYAGFZQZUJ5OYIFCGDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

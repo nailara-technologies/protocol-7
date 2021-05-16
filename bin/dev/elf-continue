@@ -5,7 +5,7 @@ use English;
 use warnings;
 our $inline_directory;
 
-my $seed_val = sprintf( '%09d',
+my $seed_val = sprintf( qw| %09d |,
     ( @ARGV > 0 and $ARGV[0] =~ m|^\d+$| ? shift(@ARGV) : 0 ) );
 
 say "\n:.   :. $seed_val .:\n:";
@@ -28,14 +28,13 @@ BEGIN {  #[ INIT \ C-CODE ]###################################################
 INIT {
     use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
 
-    void elf( int seed_val, char *sval )
+    void elf( unsigned int seed_val, unsigned char *sval )
     {
+        inline_stack_vars;
         unsigned int h = 0;
-        long g;
+        unsigned long g;
 
-        Inline_Stack_Vars;
-
-        h = seed_val; // testing
+        h = seed_val; // continuation
 
         while ( *sval ) {
 
@@ -43,6 +42,8 @@ INIT {
 
             if ( g = h & 0xF0000000 )
                 h ^= g >> 24;
+
+                // h ^= g >> 17; // <-- new elf mode
 
             printf( ":   %c : %09d \t: %010u\n", 32 , h, g );    // <-- dbg.0
 
@@ -52,16 +53,16 @@ INIT {
             *sval++;
         }
 
-        Inline_Stack_Reset;
-        Inline_Stack_Push(sv_2mortal(newSViv( h )));
-        Inline_Stack_Done;
+        inline_stack_reset;
+        inline_stack_push(sv_2mortal(newSViv( h )));
+        inline_stack_done;
     }
 
     EOT
 }
 
 #.............................................................................
-#ZIABGBKPA3L6WANXL26T5SLRBRORXN4QM4MJJKQ7PPFMC7BYGJ4DSLPFG44T4JZQNERH4HLCLZRVW
-#::: P5WODGD7PBDTJWOB34CUD4ZLROGLB4MSZD7IASZQGORLNFECRQG :::: NAILARA AMOS :::
-# :: UDQOUZSTV2JQAVVUNLRXSIOHM3WFIRBWGMYN3FGAI6CPYA66YYBA :: CODE SIGNATURE ::
+#MJN7GS4UTKXY7FQK3PHERZV5RZSMXYB2KGYMOEUVUC6ORRQUVLJOSHN6A6JGIFVNTHAGDRNO6NHHC
+#::: XWJAKHQMYF7RCCYD5B6X3O5YPU53B3TYPCETX2S5NJTTHN6RJGK :::: NAILARA AMOS :::
+# :: GKFBF7II2I4J2XQO2EPC3HYIDWYZL6VRYKIIBUIJ5QN7DKXWLKAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
