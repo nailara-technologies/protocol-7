@@ -6,7 +6,12 @@
 
 // elf-checksum algorithm [ repaired for characters >= ascii 128 ] + added modes
 
-unsigned int elf_sum( int elf_mode, int start_sum, char *str, int verbosity ) {
+unsigned int elf_sum(
+        unsigned int elf_mode,
+        unsigned int start_sum,
+        unsigned char *str,
+        unsigned int verbosity
+    ) {
 
     if ( verbosity ) {
         if ( elf_mode == 4 ) { // regular elf hash algorithm
@@ -30,8 +35,6 @@ unsigned int elf_sum( int elf_mode, int start_sum, char *str, int verbosity ) {
     while ( *str ) {
         round = (long) str - pos_0;
         int character = (int) *str++;
-        if ( character < 0 ) // characters >= ascii 128
-            character += 256;
 
         result = ( result << left ) + character;
 
@@ -76,14 +79,14 @@ char* join_str(char **str, const char *delimiters) {
 }
 
 int read_program_elf_mode ( char *program_name ){
-    int program_elf_mode = 4; // base elf hash configuration : symlinks override
+    int program_elf_mode = 4; //  base elf hash setting : symlinks override it
     int prog_name_len = strlen( program_name );
     int minus_pos = -1;
     for( int i = prog_name_len; i > prog_name_len - 4; i-- ){
         if ( minus_pos < 0 && program_name[i] == 45 )
             minus_pos = i;
     }
-    if ( minus_pos == -1 || prog_name_len - minus_pos > 3 ) // not a mode [ 4 ]
+    if ( minus_pos == -1 || prog_name_len - minus_pos > 3 ) // not elf mode [4]
         return program_elf_mode;
     program_elf_mode = 0;
     int i = 0;
@@ -110,9 +113,9 @@ long double strtold(const char *nptr, char **endptr);
 int main( int argc, char * argv[] ) {
 
     char *program = argv[0]; // save for later [ implicit elf_mode ]
-    int elf_mode = read_program_elf_mode( program );
-    int verbosity = 0;
-    int start_checksum = 0;
+    unsigned int elf_mode = read_program_elf_mode( program );
+    unsigned int verbosity = 0;
+    unsigned int start_checksum = 0;
 
     // removing program name
     for( int i=0; i<argc; ++i )
@@ -128,7 +131,9 @@ int main( int argc, char * argv[] ) {
 
     if ( argc == 0 ) {             // no argument <-- [000000000]
 
-        printf( "%09u\n", elf_sum( elf_mode, 0, "", verbosity ) );
+        printf( "%09u\n",
+            elf_sum( elf_mode, 0, (unsigned char*) "", verbosity )
+        );
         return 0;
 
     } else if ( strcmp( argv[0], "-s" ) == 0 ) { // single word mode
@@ -139,7 +144,9 @@ int main( int argc, char * argv[] ) {
             printf(":\n");
             for( int arg = 1; arg < argc; arg++ ) {
                 printf( ": %09d : %s\n",
-                    elf_sum( elf_mode, 0, argv[arg], verbosity ), argv[arg] );
+                    elf_sum( elf_mode, 0, (unsigned char*) argv[arg],
+                        verbosity ),
+                argv[arg] );
             }
             printf(":\n");
             return 0;
@@ -165,7 +172,7 @@ int main( int argc, char * argv[] ) {
             return 2;
         }
 
-        if ( argc == 2 ) {  // empty string string case : return start_checksum
+        if ( argc == 2 ) { // empty string string case : return start_checksum
             printf( "%09d\n", start_checksum );
             return 0;
         }
@@ -179,13 +186,15 @@ int main( int argc, char * argv[] ) {
     }
 
     if ( argc == 1 ) {  // only one argument [ single word ]
-        printf( "%09d\n", elf_sum( elf_mode, start_checksum, argv[0],
-            verbosity ) );
+        printf( "%09d\n", elf_sum( elf_mode, start_checksum,
+                                    (unsigned char*) argv[0], verbosity ) );
 
     } else {  // multilple arguments [ join with spaces ]
 
-        printf( "%09u\n", elf_sum( elf_mode, start_checksum, join_str(argv," "),
-            verbosity ) );
+        printf( "%09u\n",
+            elf_sum( elf_mode, start_checksum,
+                (unsigned char*) join_str(argv," "), verbosity )
+        );
     }
 
     return 0;
