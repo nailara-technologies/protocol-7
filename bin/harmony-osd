@@ -1,0 +1,93 @@
+#!/usr/bin/perl
+use v5.10;
+use strict;
+use English;
+use warnings;
+
+###            ####
+##  harmony-osd  ##
+###            ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 1 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::Assert::Truth qw| is_true |;
+
+##[ DISPLAY TRUTH ASSERTION ]#################################################
+
+$ENV{'DISPLAY'} //= qw| :0.0 |;
+
+my $bg_color    = '#09052A';
+my $color_TRUE  = '#0647C3';
+my $color_FALSE = '#C58D07';
+my $color_ERROR = '#776407';    ## currently unused ##
+
+my $check_str = @ARGV ? join( ' ', @ARGV ) : qx| xsel -o |;
+$check_str =~ s'^\s+|\s+$''sg;
+
+exit(0) if not length $check_str;
+
+## stop previous assertion [osd_cat] ##
+system( qw| /usr/bin/pkill -u |, $EUID, qw| -f \.harmony-osd\. | );
+
+my $text_file = sprintf( qw| /var/tmp/.harmony-osd.%d |, $PID );
+my @aosd_opts
+    = ( qw| -p 1 -e 1 -o 7777 -y 44 -x 0 -n WhiteRabbit -i |, $text_file );
+
+my $msg;
+
+if ( $check_str =~ m{^(0|[1-9]\d*)(\.\d+)?$} and is_true( $check_str, 1, 0 )
+    or is_true( $check_str, 0, 1 ) ) {
+
+    $msg = sprintf( ".:  '%s' =)  ::\n", $check_str );
+
+    push( @aosd_opts,
+        split ' ',
+        sprintf( qq| -u 2777 -S %s -R %s |, $bg_color, $color_TRUE ) );
+
+} else {
+
+    $msg = sprintf( ":.  '%s' `:|  ::\n", $check_str );
+
+    push( @aosd_opts,
+        split ' ',
+        sprintf( qq| -u 1389 -S %s -R %s |, $bg_color, $color_FALSE ) );
+}
+
+open( TEXT, qw| > |, $text_file )
+    or error_exit( "[ %s ] %s\n", $text_file, format_error( $OS_ERROR, -1 ) );
+print TEXT $msg;
+close TEXT;
+
+my $pid = fork;
+
+if ( !$pid ) { exec( qw| /usr/bin/aosd_cat |, @aosd_opts ) }
+else {
+    waitpid( $pid, 0 );
+    unlink($text_file);
+}
+
+#.............................................................................
+#2LQLBVL3MBBZZOH6L3D4BKB43IPJMPSR5KZE3VJSPLP5OFDZ5E33Y5PZI3SAKVVSQ5CWO3XMG2BGC
+#::: DHT5WYPTLDJQZKUDRN6MRPTL4VRPL63FVJ4TZ4LEKFZULJ5Q5TH :::: NAILARA AMOS :::
+# :: XQO4GLLD2IUWGMIHC3ZJ5UE54AN6ZSYTNRPX2QWGC5XEJCNZEGCQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
