@@ -18,19 +18,18 @@ use Exporter;
 use base qw| Exporter |;
 
 @EXPORT = qw[
+
     divide_13
     harmonize_13
+
     gen_seed_val
 
-    num_to_str
-
     bin_032
-    reverse_bin_032
-
     bin_056
+    num_to_str
     asc_to_bin_056
+    reverse_bin_032
     reverse_bin_056
-
     bin_to_comp_int
 
 ];
@@ -42,8 +41,6 @@ my $verbose = 1;
 my $min_seed_data_len = 13;
 my $iterations_1001   = 4200;
 my $iterations_0000   = 4200;
-
-@AMOS::Assert::Truth::assertion_modes = qw| 4 7 13 |;
 
 my $result_tmpl = {
     qw| TRUE | => " $C{b}$C{T}:$C{0}"
@@ -134,7 +131,7 @@ sub gen_seed_val {
         map { sprintf '%03d', ord($ARG) }
             split( '', substr( $$seed_data_sref, 0, 3 ) ) );
 
-    #    say $C{0} . ':.';
+    ## say $C{0} . ':.';
 
     while ( length $$seed_data_sref ) {
         my $pkey_block = substr( $$seed_data_sref, 0, 3, '' );
@@ -148,9 +145,9 @@ sub gen_seed_val {
         push( @seed_blocks, scalar harmonize_13($p_num) );
     }
 
-    #    say $C{0} . '.:';
+    ## say $C{0} . '.:';
 
-    # say $C{'T'} . $C{'B'}, map {"$ARG\n"} @seed_blocks;
+    ## say $C{'T'} . $C{'B'}, map {"$ARG\n"} @seed_blocks;
     say map {"$ARG\n"} @seed_blocks;
 
     exit;
@@ -181,11 +178,11 @@ sub gen_seed_val {
         my $xord_str = sprintf( '%09d', $result ^ $cur_block_val );
         my $xord_num = $xord_str;
 
-        #        my $xord_num = join( '', map {ord} split '', $xord_str );
+        ## my $xord_num = join( '', map {ord} split '', $xord_str );
 
-       #my $xord_num = divide_13( join( '', map {ord} split '', $xord_str ) );
+        ## my $xord_num = divide_13( join( '', map {ord} split '', $xord_str ) );
 
-## LLL
+        ## LLL
         #        my $cut_iterations = 0;
         #        my $over_len       = length($xord_num) - 9;
         #        if ($over_len) {
@@ -204,7 +201,7 @@ sub gen_seed_val {
 
         goto RECALC_0000 if not is_true($result);
 
-        #        visualize_bin_032( $iteration, $result ) if $verbose;
+        ## visualize_bin_032( $iteration, $result ) if $verbose;
 
         ++$iteration;
 
@@ -221,11 +218,11 @@ sub gen_seed_val {
 
         ++$iteration;
 
-        #        visualize_bin_032( $iteration, $result ) if $verbose;
+        ## visualize_bin_032( $iteration, $result ) if $verbose;
 
     }
 
-    #    visualize_bin_032( $iteration, $result ) if not $verbose;
+    ## visualize_bin_032( $iteration, $result ) if not $verbose;
 
     ## time ellapsed ##
     printf "$C{0} $C{b}::::::::$C{R}$C{0} $C{b}%s s$C{R}\n\n",
@@ -233,7 +230,6 @@ sub gen_seed_val {
         if $verbose;
 
     return $result;
-
 }
 
 ##[ BINARY OPERATIONS ]#######################################################
@@ -386,7 +382,7 @@ sub visualize_bin_032 {
 return 1;  ###################################################################
 
 #.............................................................................
-#HOIWCRPMP7U3JJTJL3GQQWEVBMYAUZ5LXEW6IP2DQBYIRXWVVNWS74LGUWCP5X3H7WLBKOBABXHZY
-#::: LRPEJ3H6WD2VDMO3HGZPUMMXDHKNMPIYZCDKGM6AC6U7HQRCCT2 :::: NAILARA AMOS :::
-# :: CXOXNRWCEHEIZTELTR2367FEENVDPVCWHPSZ3HDV56TJ6WACHOCQ :: CODE SIGNATURE ::
+#HWNLL4CKCYGNUFBNVY5AMLO6XAZJ5OZSGDVWIZM4PIDPILNICZPNYX25ODMHPT3UI44XJCQTCCVAQ
+#::: CDA7GKRZHJDRWP3O6CKPM2GVSKJWD3COPMO3FGKCNWWBBUE73U6 :::: NAILARA AMOS :::
+# :: RCB2OQJBDSD3PNKHZR566I4CEW5RXBHCPVRMC5INQPCDZIGP22CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

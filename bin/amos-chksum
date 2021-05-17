@@ -12,13 +12,22 @@ use Digest::BMW;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
+##[ LOCAL PM LIB PATH ]#######################################################
+
 BEGIN {
     use English;
-    use Cwd 'abs_path';
-    my $script_path = abs_path($PROGRAM_NAME);
-    ( my $local_lib_path = $script_path )
-        =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
-    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
 ##[ AMOS MODULE ]#############################################################
@@ -29,7 +38,11 @@ use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
 use AMOS::CHKSUM::ELF::Inline;
 
-my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} // [] };
+my @modes      = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
+my $shift_bits = $AMOS::CHKSUM::algorithm_set_up{'shift_bits'};
+
+## configure elf_chksum for AMOS checksum ##
+$AMOS::CHKSUM::ELF::shift_val = $shift_bits;
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -45,16 +58,6 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} // [] };
 ##  -VL   ## calculate inline elf output checksum and exit    ##
 ##  -VLS  ## calculate inline elf sourcecode version and exit ##
 
-##[ COLORS ]##################################################################
-
-my $rst = "\e[0m";
-my $bl  = "\e[1m";
-my $bg  = "\e[48;2;9;5;42m";
-my $fg  = "\e[38;2;68;39;172m";
-my $ng  = "\e[38;2;71;195;6m";
-my $no  = "\e[38;2;197;141;7m";
-my $CT  = "\e[38;2;6;71;195m";
-
 ##[ INITIALIZATION \ OPTIONS ]################################################
 
 my $data_str;
@@ -68,8 +71,9 @@ getopts( qw| vsnqV:e: |, \my %option );
 
 if ( defined $option{'e'} ) {
     my @elf_modes_override;
-    error_exit( "elf modes syntax$fg: $bg$no-elf-modes$rst"
-            . "${fg}[=$CT$bg<n>$rst${fg}[,$CT$bg<n>$rst$fg..,]]" )
+    error_exit( "elf modes syntax$C{0}: $C{b}$C{o}-elf-modes$C{R}"
+            . "$C{0}\[=$C{T}$C{b}<n>$C{R}$C{0}\[,$C{T}$C{b}<n>$C{R}$C{0}..,]]"
+        )
         if $option{'e'}  !~ m|^lf-mode=\d{1,2}$|
         and $option{'e'} !~ m|^lf-modes(=\d{1,2}(,\d{1,2})*)?$|;
     @elf_modes_override = split( ',', $+{m0} // $+{M} )
@@ -77,8 +81,9 @@ if ( defined $option{'e'} ) {
         =~ m{^lf-mode(=(?<m0>\d{1,2})|s=(?<M>\d{1,2}(,\d{1,2})*))$};
 
     if ( !@elf_modes_override ) {
-        say sprintf( "$fg:\n::$CT  elf modes  ${fg}:. %s${fg} .:\n$fg:$rst",
-            join( '', map {" $bg$CT$bl$ARG$rst$fg "} sort @modes ) )
+        say sprintf(
+            "$C{0}:\n::$C{T}  elf modes  $C{0}\:. %s$C{0}\ .:\n$C{0}:$C{R}",
+            join( '', map {" $C{b}$C{T}$C{B}$ARG$C{R}$C{0} "} sort @modes ) )
             and exit;
     } else {
         @modes = @elf_modes_override;
@@ -112,7 +117,7 @@ if ( defined $option{'V'} ) {
 
             $data_str = "  /*  ::  $elf_out_ver  ::  */\n\n" . inl_elf_src();
             my $elf_inline_ver
-                = gen_version( qw| AMOS-ELF7-SRC-VER-%s |, $data_str );
+                = gen_version( qw| AMOS-ELF7-SRC-%s |, $data_str );
             say $elf_inline_ver if not $option{'v'};
         }
     } else {
@@ -159,7 +164,7 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
         if ( $option{'q'} ) {
             say $checksum;
         } else {
-            say "$fg:\n:$bg $CT$checksum$fg $rst\n$fg:$rst";
+            say "$C{0}:\n:$C{b} $C{T}$checksum$C{0} $C{R}\n$C{0}:$C{R}";
         }
     }
     exit(00000);
@@ -185,94 +190,95 @@ if ( $option{'v'} ) {
         '  bmw-mod-bits  :  ' . shift @mod_bits,
         ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
         '',
-        sprintf( "    C-SUM-bits  : $bg$CT %032b $fg$rst",
+        sprintf( "     AMOS-bits  : $C{b}$C{T} %032b $C{0}$C{R}",
             $AMOS::CHKSUM::num_amos_csum ),
         )
         : ();
 
     my $len_delta         = 11 - length($AMOS::CHKSUM::num_amos_csum);
-    my $num_amos_csum_str = sprintf( ":$CT %d $fg%s",
+    my $num_amos_csum_str = sprintf( ":$C{T} %d $C{0}%s",
         $AMOS::CHKSUM::num_amos_csum, ':' x $len_delta );
 
     my %COLOR = (
-        'input' => is_true( $data_str, 1, 1, @modes ) ? $CT : $ng,
+        'input' => is_true( $data_str, 1, 1, @modes ) ? $C{T} : $C{g},
         'bits'  => is_true( $AMOS::CHKSUM::checksum_bits, 0, 1, @modes )
-        ? $CT
-        : $ng
+        ? $C{T}
+        : $C{g}
     );
 
     my $header_string
         = ( $data_str =~ m|\n| )
         ? sprintf(
-        "$bg${CT}::$rst\n\n%s\n$bg${CT}::$rst %s",
+        "$C{b}$C{T}\::$C{R}\n\n%s\n$C{b}$C{T}\::$C{R} %s",
         join( '',
-            map {"   $bg$COLOR{'input'}$ARG$rst\n"} split "\n", $data_str ),
+            map {"   $C{b}$COLOR{'input'}$ARG$C{R}\n"} split "\n",
+            $data_str ),
         TRUE_FALSE($data_str)
         )
-        : sprintf( "$fg  input-string  : %s",
-        TRUE_FALSE($data_str) . " $bg$COLOR{'input'} $data_str $rst$fg " );
+        : sprintf( "$C{0}    input data  : %s",
+        TRUE_FALSE($data_str)
+            . " $C{b}$COLOR{'input'} $data_str $C{R}$C{0} " );
 
     map {say} (
         '',
         $header_string,
         '',
-        "$fg   reverse-elf  :  ${AMOS::CHKSUM::elf_bits}",
-        "$fg    bmw-R-bits  :  ${AMOS::CHKSUM::bmw_b_R}",
-        "$fg    bmw-L-bits  :  ${AMOS::CHKSUM::bmw_b_L}",
-        "$fg    bmw-C-bits  :  ${AMOS::CHKSUM::bmw_b_C}",
+        "$C{0}   reverse-elf  :  " . true_bits($AMOS::CHKSUM::elf_bits),
+        "$C{0}    bmw-R-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_R),
+        "$C{0}    bmw-L-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_L),
+        "$C{0}    bmw-C-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_C),
         '',
-        "$fg     AMOS-bits  :  $bg$COLOR{'bits'}"
-            . "${AMOS::CHKSUM::checksum_bits}$fg$rst$fg ",
+        "$C{0}   chksum-bits  :  " . true_bits($AMOS::CHKSUM::checksum_bits),
         @mod_bits_str,
         '',
         sprintf(
-            '%s   truth-modes  :  elf-mode %s',
-            $fg, join( '', map {" $bg$CT $ARG $rst$fg "} sort @modes )
+            "%s  assert truth  :  $C{T}elf-modes$C{0} %s",
+            $C{0}, join( '', map {"$C{b}$C{T} $ARG $C{R}$C{0} "} sort @modes )
+        ),
+        sprintf(
+            "%s  elf overflow  :  $C{T}bit-shift$C{0} %s",
+            $C{0}, "$C{b}$C{T} $shift_bits $C{R}$C{0} "
         ),
         '',
-        join( ' ', "$fg   VAX-encoded  : " . TRUE_FALSE($checksum_encoded) )
-            . " $bg$CT$bl$checksum_encoded$rst$fg $num_amos_csum_str",
-        '', $rst
+        join(
+            ' ', "$C{0}   VAX-encoded  : " . TRUE_FALSE($checksum_encoded)
+            )
+            . " $C{b}$C{T}$C{B}$checksum_encoded$C{R}"
+            . "$C{0} $num_amos_csum_str",
+        '',
+        $C{R}
     );
 } elsif ( $option{'n'} ) {
 
     say $AMOS::CHKSUM::num_amos_csum and exit if $option{'q'};
-    say "$fg:\n:$bg $CT${AMOS::CHKSUM::num_amos_csum}$fg $rst\n$fg:$rst";
+    say "$C{0}:\n:$C{b} $C{T}${AMOS::CHKSUM::num_amos_csum}$C{0}"
+        . " $C{R}\n$C{0}:$C{R}";
 
 } else {
     say $checksum_encoded and exit if $option{'q'};
-    say "$fg:\n:$bg $CT$checksum_encoded$fg $rst\n$fg:$rst";
+    say "$C{0}:\n:$C{b} $C{T}$checksum_encoded$C{0} $C{R}\n$C{0}:$C{R}";
 }
-
-##[ ERROR HANDLER ]###########################################################
-
-# sub error_exit {
-#     chomp( my $emsg = shift );
-#
-#     my $bl  = "\e[38;2;68;39;172m";
-#     my $no  = "\e[38;2;197;141;7m";
-#     my $rst = "\e[0m";
-#
-#     $emsg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
-#     $emsg =~ s|(*plb:\w): (\S+)|$bl : $no$LAST_PAREN_MATCH|;
-#
-#     say "$rst$bl:\n: $no$emsg$bl\n:$rst";
-#
-#     exit(110);
-# }
 
 ##[ VISUALIZE TRUTH ASSERTION ]###############################################
 
 sub TRUE_FALSE {
-    my $C = shift;
-    return '' if not length $C or $C =~ m|^\e|;
-    is_true( $C, 1, 1, @modes )
-        ? "${fg}:: ${CT}TRUE$fg ::$rst"
-        : "${fg}:: ${ng}FALSE$fg ::$rst";
+    my $check_data = shift;
+    return '' if not defined $check_data;
+    is_true( $check_data, 1, 1, @modes )
+        ? "$C{0}\:: $C{T}TRUE$C{0} ::$C{R}"
+        : "$C{0}\:: $C{g}FALSE$C{0} ::$C{R}";
+}
+
+sub true_bits {    ## not numerical ##
+    my $visualize_data = shift;
+    return '' if not defined $visualize_data;
+    is_true( $visualize_data, 0, 1, @modes )
+        ? "$C{T}$visualize_data$C{R}"
+        : "$C{0}$visualize_data$C{R}";
 }
 
 #.............................................................................
-#DOZKYEX3JOKU4Q2Q6PUUSELKCTQGLKQULOCUDDOYLNURB5VVGULJGK3QV6ZW7CHGZCUG3SGSJZXRC
-#::: 6TUJZIIP46CITRRUB4NVWW27PEHQN5MCDBXR57JMI6SZ7EABINI :::: NAILARA AMOS :::
-# :: 3PHXL7CIQ25IPXNP7T7427TGLUDL332LRYTYUKVV6SL24HFV4MDA :: CODE SIGNATURE ::
+#TW2A33QZOZSAMVJXJ3UCOXBBVNY4FZO4X6QPPW2WORPDGXFERPASWPKMFWLVWJTVNEGVNTLK7U7S4
+#::: KLZCB3JHQ3NHS45S2ASVJLEG75QKVVFMNNSM43CXPJT4OATJBMV :::: NAILARA AMOS :::
+# :: 3DMWFG6VSIGQKEPTL4BAYAFEZHXKHEYNAHHWLS3D2CTSK7NUUMAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

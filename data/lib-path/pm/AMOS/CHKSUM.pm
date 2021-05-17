@@ -26,7 +26,7 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
 ## AMOS::BinConversion ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
 
-our $VERSION = qw| AMOS-CHKSUM-V-SDTO47I |;    ##  amos-chksum -VCS  ##
+our $VERSION = qw| AMOS-CHKSUM-V-JOI4ONQ |;    ##  amos-chksum -VCS  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -39,6 +39,7 @@ our $VERSION = qw| AMOS-CHKSUM-V-SDTO47I |;    ##  amos-chksum -VCS  ##
     qw| chksum_numerical | => 1,
     qw| chksum_bits      | => 1,
     qw| chksum_B32       | => 1,
+    qw| shift_bits       | => $AMOS::Assert::Truth::right_shift_bits,
     qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]
 ) if !keys %algorithm_set_up;
 
@@ -159,12 +160,12 @@ INVERT_TRUTH_STATE:
 
         my $cur_mod_bits = reverse split '', substr( $bmw_mod_bits, 0, 32 );
 
-        if ( $cur_mod_bits eq '0' x 32 ) {    ## skip '0' prefixes ##
+        if ( $cur_mod_bits eq qw| 0 | x 32 ) {    ## skip '0' prefixes ##
             ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
-            goto INVERT_TRUTH_STATE;          ##  <--  modify checksum   ##
+            goto INVERT_TRUTH_STATE;    ##  <--  modify checksum   ##
         }
 
-        ## XOR-bin
+        ## XOR ##
         $num_amos_csum ^= AMOS::BinConversion::bit_to_num($cur_mod_bits);
 
         push( @mod_bits, $cur_mod_bits )
@@ -197,19 +198,20 @@ INVERT_TRUTH_STATE:
             $bmw_mod_bits .= bin_032(
                 AMOS::BinConversion::bit_to_num(
                     substr( $bmw_512b, $bmw_offset, 32 )
-                    ) ^ $num_amos_csum
+                ) ^ $num_amos_csum
             );
         }
-        goto INVERT_TRUTH_STATE;    ##  <--  modify checksum   ##
+        goto INVERT_TRUTH_STATE;                ##  <--  modify checksum   ##
     }
 
-    return $checksum_encoded;       ##  VAX AND BASE32 ENCODED  ##
+    ##  true  ##
+    return $checksum_encoded;                   ##  VAX AND BASE32 ENCODED  ##
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#PQCDRKZB6QF5M4DO56TQ2EE5DTMLBJWLPXSIPX34URTQH2UZLCZ44ZAB7YHVGRVL3SHSTSQXL3VME
-#::: USHOPQXJ5HHGHTIEP3JSRN5Q75FA6GOZV3RZGO6ROIQZPQLFNVU :::: NAILARA AMOS :::
-# :: VWEMY64ZIRZ4GXDPZH2LBKEBQQ4JJS7DMKUYEEB4VQTMISWRVWCY :: CODE SIGNATURE ::
+#KDX4C3EEHMTPNEIMCWBRHJFYM5YWHQBD25MEH7KDANYHVFV45ZY6YKE3A5UJSQC2BHC5OAHN55IPW
+#::: 3G6ZWTTD2WSV6JZP6IQFZ45LDKGVZE33DCE5IS3TRPUQIKZT33D :::: NAILARA AMOS :::
+# :: PHLCYUM5QPDP6NXFTSYWXDO3NAGNMSMGZNHN6QM62RXSVM56ZOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
