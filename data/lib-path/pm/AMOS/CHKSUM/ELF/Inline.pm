@@ -20,7 +20,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| AMOS-ELF7-SRC-VER-ASFY47Y |;    ##  amos-chksum -VS  ##
+our $VERSION = qw| AMOS-ELF7-SRC-Z6342LQ |;    ##  amos-chksum -VS  ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -89,7 +89,13 @@ sub inl_elf_src {
 sub return_elf_c_sourcecode {
     return <<~ 'EOL';
 
-    unsigned int inline_elf( int elf_mode, int start_sum, char *str, int len ) {
+    unsigned int inline_elf(
+            unsigned int elf_mode,
+            unsigned int shift_value,
+            unsigned int start_sum,
+            unsigned char *str,
+            unsigned int len
+        ) {
 
         unsigned int result = start_sum; // 0 if no continuation
         unsigned int carryover;
@@ -97,9 +103,10 @@ sub return_elf_c_sourcecode {
         unsigned int round = 0;
 
         // algorithm configuration
-        unsigned int left  = elf_mode; // 4 == elf hash [ base setting ]
-        unsigned int right = 24;
-        unsigned int z_val = 777;   // special value for "\0" [ instead 0 ]
+        unsigned int left  = elf_mode;       // 4 == elf hash [ base setting ]
+        unsigned int right = shift_value;   // 24 == elf hash, 13 : AMOS-ELF
+
+        unsigned int z_val = 777;      // special value for "\0" [ instead 0 ]
 
         while ( len-- ) {
             round = (long) str - pos_0;
@@ -107,9 +114,6 @@ sub return_elf_c_sourcecode {
 
             if ( character == 0 )    // ascii 0 characters
                 character += z_val;
-
-            if ( character < 0 ) // characters >= ascii 128
-                character += 256;
 
             result = ( result << left ) + character;
 
@@ -128,7 +132,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#O3HCMKVFE7DEY35ICU3YH2A43V5QQ4JOUBMTLQG44NMU6LNB3THGK324RJKK2ZHITLHGZP42S4DVM
-#::: 5N4F5GWABAU6F6RRQTYNAE4PNIL7LXXDR2M37P2XCV2ID73VT7G :::: NAILARA AMOS :::
-# :: XRGYU2YAAEEMSHC2MBRKATLW35FEMGILCOHQ3G5J6774Q4XTRCDY :: CODE SIGNATURE ::
+#FL5VZ6XCZMDD4EH6CISIQVAF45PNX7ETINOWYPDD6BUDLSTCXHC6ALNO6557BVFOSJII5G33W6JXQ
+#::: J7UFSRLUEMWSUDRN563E5VIRLI6MIAI42VQ5ZKIKGAMAKDHH5F2 :::: NAILARA AMOS :::
+# :: 5JY2OWWSXY52AS5JRN5MITPLSUMQFMODONEPQD7EULZRRF3CW4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
