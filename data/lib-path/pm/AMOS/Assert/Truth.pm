@@ -28,7 +28,9 @@ use AMOS::Assert;
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
-our @assertion_modes = qw| 4 7 |;    ##  elf truth modes  ##  MAIN SET-UP  ##
+our @assertion_modes = qw[ 7 ];    ##  elf truth modes : main set-up  ##
+
+our $right_shift_bits = 13;        ## elf shift bits ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
@@ -41,8 +43,9 @@ sub is_true {
 
     return warn_err('undefined input') if not defined $data_ref;
 
-    my $check_as_num = shift // 2;    ## also check as numerical ##
-    my $check_as_elf = shift // 1;    ## check elf checksum ##
+    my $check_as_num = shift // 2;           ## also check as numerical ##
+    my $check_as_elf = shift // 1;           ## check elf checksum ##
+    my $shift_bits   = $right_shift_bits;    ## right shift on overflow ##
 
     return warn_err('no checks enabled')
         if not $check_as_num and not $check_as_elf;
@@ -52,12 +55,12 @@ sub is_true {
 
     my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
-    return 0                          ## check as mumber when numerical ##
+    return 0    ## check as mumber when numerical ##
         if $check_as_num == 1
         and AMOS::Assert::is_number($$data_ref)
         and calc_true( scalar($$data_ref) ) < 0;
 
-    return 0                          ## when numerical with no 0 prefix ##
+    return 0    ## when numerical with no 0 prefix ##
         if $check_as_num == 2
         and AMOS::Assert::numerical_no_0_prefix($$data_ref)
         and calc_true( scalar($$data_ref) ) < 0;
@@ -65,9 +68,10 @@ sub is_true {
     return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
 
     ## assert selected elf checksum modes ##
-
+    ##
     foreach my $elf_mode (@assertion_modes) {
-        if ( calc_true( elf_chksum( $data_ref, 0, $elf_mode ) ) < 0 ) {
+        if ( calc_true( elf_chksum( $data_ref, 0, $elf_mode, $shift_bits ) )
+            < 0 ) {
             return 0 if not wantarray;
             return ( 0, $elf_mode );    ## report mode level of objection ##
         }
@@ -139,7 +143,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#FSJOFCDKQLVPHSW4JE37SPMV3SLMVQQRCMHNJRYX5ZORDVFPUMJWTPK45P3DLH3OILWDWAA4YJ2XS
-#::: KCBHTP2JV44YDE6K6H6Z23P7SYOL4RO5TSL6UYAXZEXCCP4IZJL :::: NAILARA AMOS :::
-# :: 2VM4WLFOXS357R7NGIF4DBBSESKKXGO6IB4KE6AYZ2N7C6ACOEAA :: CODE SIGNATURE ::
+#FAISF7XU75KDCAW2D66O3FWYGCA5V3GGUX6HABBQLK5MN7ZZNJ5X6N3TJTSERQ76MNBMOVUSSXKZS
+#::: LFEDGIYRWD4QEABRPZUO4TYQGMRTNRWMQJVYE4YVMT4CL2NNSGQ :::: NAILARA AMOS :::
+# :: YA4NKTYMRGFNGXQXRT74CDLY2SYHJ7FNPH4QNOYHXA5ZQT4IF4CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
