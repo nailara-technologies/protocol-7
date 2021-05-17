@@ -21,16 +21,19 @@ use Crypt::Misc qw| encode_b32r |;
 
 use AMOS;           ## error handling ##
 
+our $debug_output_to_console = 0;    ##  display build warnings  ##
+
 ## known inline sourcecode modules ##
 use AMOS::INLINE::src::BinConversion;
 
 ##[ INITIALIZATIONS ]#########################################################
 
-my $source_registry = {    ## AMOS::INLINE::src::Elf::elf
+my $source_registry = {
     qw| bit_to_num | => \&AMOS::INLINE::src::BinConversion::bitstring_to_num,
+    qw| num_to_bit | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
 
-   # qw| num_to_bit | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
    # qw| inline_elf | => \&AMOS::CHKSUM::ELF::Inline::return_elf_c_sourcecode,
+    ## AMOS::INLINE::src::Elf::elf
 };
 
 eval qq| require 'Inline/C.pm' |;
@@ -143,9 +146,10 @@ sub compile_inline_source {
         eval {
             no warnings;    # <-- 'redefine' ?
             Inline->bind(
-                qw| C |         => $cleaned_source,
-                qw| name |      => $target_package,
-                qw| directory | => $custom_inline_dir
+                qw| C |           => $cleaned_source,
+                qw| name |        => $target_package,
+                qw| directory |   => $custom_inline_dir,
+                qw| BUILD_NOISY | => $debug_output_to_console
             );
             use warnings;    # <-- 'redefine' ?
         };
@@ -266,7 +270,7 @@ sub encoded_elf_chksum {
 return 1;  ###################################################################
 
 #.............................................................................
-#YSW5KOB2YABPDZTWRW6JICCLWQL4RR5ZMEKKXBYDTENHGGFR4K3QTVF4JGQJ3MNZMXTLUJ6WNBXHY
-#::: WLZEVS37ASUYTXI2K35ZLLAABKIG2Z4PPUTBXQ4ELHVWZ34TQC5 :::: NAILARA AMOS :::
-# :: KU7YIADB6FSBTUXW3LAULUBRFE6RTIJP7DYSYHOJOY4RYYIZY4DA :: CODE SIGNATURE ::
+#NR7ZWCO4QBUPZDTUAK3KPURTX3DYGXVYJ2MYKQRJLB3KA7YTI474CGD5XNTSZJNYA7V5ETRS6WSWW
+#::: 53AHL5MLIF2INE4UO3RDRVSAFPKBDZPCEORB7E527N2GUVMCJEK :::: NAILARA AMOS :::
+# :: ZGBAXNKEP56UPEBO7YIDJREIXY6PI2WLQVQVTPF3M7DBDHA2EACQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

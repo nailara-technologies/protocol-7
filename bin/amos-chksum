@@ -12,8 +12,6 @@ use Digest::BMW;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
-##[ LOCAL PM LIB PATH ]#######################################################
-
 BEGIN {
     use English;
     use File::Spec;
@@ -67,7 +65,7 @@ use warnings FATAL => qw| all |;
 
 binmode( STDOUT, qw| :encoding(UTF-8) | );
 
-getopts( qw| vsnqV:e: |, \my %option );
+getopts( qw| vsSnqV:e: |, \my %option );
 
 if ( defined $option{'e'} ) {
     my @elf_modes_override;
@@ -142,6 +140,7 @@ sub gen_version {
 
 warn "expected input string for AMOS-checksum calculation\n"
     if not defined $data_str
+    and not $option{'S'}
     and not $option{'s'}
     and not @ARGV;
 
@@ -278,7 +277,7 @@ sub true_bits {    ## not numerical ##
 }
 
 #.............................................................................
-#TW2A33QZOZSAMVJXJ3UCOXBBVNY4FZO4X6QPPW2WORPDGXFERPASWPKMFWLVWJTVNEGVNTLK7U7S4
-#::: KLZCB3JHQ3NHS45S2ASVJLEG75QKVVFMNNSM43CXPJT4OATJBMV :::: NAILARA AMOS :::
-# :: 3DMWFG6VSIGQKEPTL4BAYAFEZHXKHEYNAHHWLS3D2CTSK7NUUMAQ :: CODE SIGNATURE ::
+#7ZJARX5O6RS6TCU4MMXGCFF6XITD5ULRBG6X7MUYPY756SC4YFYDQJLNEIXMFCPM4MIVQIC23F3Z6
+#::: WIJ44447M2ZHIYHJRIRQCUYQUZSKRTHMDSCTSEDSONEFBFMAVE3 :::: NAILARA AMOS :::
+# :: XUH7OPM2FJYXZOSJFK2R3B4W2SHDME2AAHAJPHBRGA3BWQ7QHYCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

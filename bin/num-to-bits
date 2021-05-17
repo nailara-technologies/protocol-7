@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 ###           ###
-## bits-to-num ##
+## num-to-bits ##
 ###           ###
 
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -29,26 +29,38 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS;
+
 use AMOS::INLINE;
 
+$AMOS::INLINE::debug_output_to_console = 0;
+
 ## AMOS::BinConversion ##
-compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+compile_inline_source( { qw| subroutine-name | => qw| num_to_bit | } );
 
-##[ BINARY TO NUMERICAL CONVERSION ]##########################################
+##[ NUMERICAL TO BINARY CONVERSION ]##########################################
 
-error_exit('expected bitstring argument <{NC}>') if !@ARGV;
+error_exit('expected numerical argument <{NC}>')
+    if @ARGV == 0
+    or $ARGV[0] =~ m|\D|;
+error_exit('input value exceeds 64 bit size <{NC}>')
+    if $ARGV[0] > 18446744073709551615;
+error_exit('too many arguments, expected : <num> [, <bitsize> ] <{NC}>')
+    if @ARGV > 2;
 
-my $bits = join( '', @ARGV );
+my $num  = shift(@ARGV);
+my $bits = shift(@ARGV);
 
-error_exit('input not a bit string <{NC}>')       if $bits =~ m|[^01]|;
-error_exit('input string size exceeds 64 <{NC}>') if length $bits > 64;
+error_exit('number of bits is not an integer [0..64] <{C1}>')
+    if defined $bits
+    and ( $bits =~ m|\D| or $bits < 0 or $bits > 64 );
 
-say AMOS::BinConversion::bit_to_num($bits);
+## say( sprintf qw| %0*b |, $bits, $num ); ## <-- same, faster ##
+say AMOS::BinConversion::num_to_bit( $num, $bits );
 
 exit(00000);
 
 #.............................................................................
-#TQLO2X3RCKBAI6ZYUWQBHLHY74RZSCSAU5N3Z5HU7XQ3ZEE5CUHZ5SWLKHG7S4UHAXRRWMB2MU6CW
-#::: 2MX5ZTQLCGNVHWYA2M4BFE64SHYHKSDTKFGDZEANOLUZ6LYFC4X :::: NAILARA AMOS :::
-# :: LM3ZKH5VU2S6XTOVT5JBG2XJ7P2SM3UXRYBF33TMSTUZFMFPSCDQ :: CODE SIGNATURE ::
+#URGDVZO4X6OGX7677GD44NZOIL6LSWN7JYJQ7RHENEDOBS3CFMKS23MO2JC4RH2EZEKBVV55SOSSU
+#::: THCTWJD4HCEUM2DVINWL5BRJUODGP6EAJUZVJYAVAFE5CPJ5E37 :::: NAILARA AMOS :::
+# :: KG5BCYTQOBAYFHN7VU2Q2OZICM2AQEBG3BRPC23YSWDNAVUGOOBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
