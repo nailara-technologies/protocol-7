@@ -62,12 +62,12 @@ sub is_true {
     return 0    ## check as mumber when numerical ##
         if $check_as_num == 1
         and AMOS::Assert::is_number($$data_ref)
-        and calc_true( scalar($$data_ref) ) < 0;
+        and calc_true( scalar($$data_ref) ) <= 0;
 
     return 0    ## when numerical with no 0 prefix ##
         if $check_as_num == 2
         and AMOS::Assert::numerical_no_0_prefix($$data_ref)
-        and calc_true( scalar($$data_ref) ) < 0;
+        and calc_true( scalar($$data_ref) ) <= 0;
 
     return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
 
@@ -75,7 +75,7 @@ sub is_true {
     ##
     foreach my $elf_mode (@assertion_modes) {
         if ( calc_true( elf_chksum( $data_ref, 0, $elf_mode, $shift_bits ) )
-            < 0 ) {
+            <= 0 ) {
             return 0 if not wantarray;
             return ( 0, $elf_mode );    ## report mode level of objection ##
         }
@@ -154,7 +154,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#AIDSW7XNALJWCTPXB6WUQADRK4XFIGVWLGPGOE2GXBLRCJIKDOHHXKJKAGBCCCE7YATZRQR66ZPX2
-#::: 3MRQQWXTLH5KBIZSK2E3C5O67Y3R2DTHIQ4TZOUGBRUWHOCCBJ4 :::: NAILARA AMOS :::
-# :: ENIOQMOKAKPDKGWAG5LHLTZSWMQ4SWOQTAA3G356JQ6BKIM5V4BQ :: CODE SIGNATURE ::
+#YIYUZOTIC6QACTITXZS7CY5PVST62UCOHQKN2XLCM7MCFMCJTLOLQHF3IDUOCD2J2SR6SLTQYPJE2
+#::: KAF52XA6R575XKNA5OR6LH6OSUCAULD7ABZWFEO36PFPITPWQEK :::: NAILARA AMOS :::
+# :: DBWIFGPCSUQ4FDHPAUL2ZA24T4PEDRIUBSCH5ZJZ74WYGA47XADA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
