@@ -26,7 +26,7 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
 ## AMOS::BinConversion ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
 
-our $VERSION = qw| AMOS-CHKSUM-V-JFTM2QQ |;    ##  amos-chksum -VCS  ##
+our $VERSION = qw| AMOS-CHKSUM-V-KNDGQPA |;    ##  amos-chksum -VCS  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -219,7 +219,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#ZSCAKCVUDTXRADFCTKGLHUAOV4NZDQWVBFR4GUUVBQKJ2E73FBWB7JEOWW2P4WDP7B5QVDJHCAXL2
-#::: KMOD3IDACD5SWAOVCQS72DPOA3ZJ7OHVXBJ6PWDWRCBYTLCDWDC :::: NAILARA AMOS :::
-# :: ZAIJYEQBWVHDWNDFM72RYEUZ346PNZOBOTLSBWMTUWCOULTBHUCY :: CODE SIGNATURE ::
+#YC74D5S22JQZ64UNCLXN2ND4TWMEETDKIAJYZJKKHT5H4XIAJWTCLF3FGQMVZ4ME4PTAVCK7UHKR4
+#::: 6VTPPXIJEEZLX7UVZF5CV3BZ3FEWBXULMACCSZWYSIMXD33QAKN :::: NAILARA AMOS :::
+# :: 7HFBHS45CFQNZ23LZEGYKZI6TKIAG45BIX7GPQJCIXDMA427C6CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
