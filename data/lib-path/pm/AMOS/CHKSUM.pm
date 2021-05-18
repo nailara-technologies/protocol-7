@@ -26,7 +26,7 @@ use AMOS::CHKSUM::ELF qw| elf_chksum |;
 ## AMOS::BinConversion ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
 
-our $VERSION = qw| AMOS-CHKSUM-V-JOI4ONQ |;    ##  amos-chksum -VCS  ##
+our $VERSION = qw| AMOS-CHKSUM-V-JFTM2QQ |;    ##  amos-chksum -VCS  ##
 
 @EXPORT = qw| amos_chksum $VERSION |;
 
@@ -39,8 +39,9 @@ our $VERSION = qw| AMOS-CHKSUM-V-JOI4ONQ |;    ##  amos-chksum -VCS  ##
     qw| chksum_numerical | => 1,
     qw| chksum_bits      | => 1,
     qw| chksum_B32       | => 1,
-    qw| shift_bits       | => $AMOS::Assert::Truth::right_shift_bits,
-    qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]
+    qw| chksum_elf_mode  | => 7,    ##  <--  AMOS-13 CHKSUM elf mode [ 7 ]
+    qw| elf_shift_bits   | => $AMOS::Assert::Truth::elf_shift_bits,     ## 13
+    qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]   ## 4 7
 ) if !keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
@@ -58,8 +59,11 @@ our $checksum_bits;
 sub amos_chksum {
 
     my @elf_modes;
+    my $start_elfsum = 0;
     my $input_elf_chksum;
     my $input_BMW_checksum;
+    my $shift_bits      = $algorithm_set_up{'elf_shift_bits'};
+    my $chksum_elf_mode = $algorithm_set_up{'chksum_elf_mode'};
 
     my $data_ref = shift // '';
 
@@ -69,6 +73,9 @@ sub amos_chksum {
         $data_ref = \"$data_ref";    ## creating scalar reference ##
 
     } elsif ( $data_ref_type eq qw| HASH | ) {
+
+        $shift_bits = $data_ref->{'elf-shift-bits'}
+            if defined $data_ref->{'elf-shift-bits'};
 
         $input_elf_chksum = $data_ref->{'elf_checksum'}
             if defined $data_ref->{'elf_checksum'};
@@ -121,7 +128,8 @@ sub amos_chksum {
     my $elf_csum //= $input_elf_chksum;    ##  use parameter when given  ##
 
     ## elf-checksum mode 7 ##
-    $elf_csum = sprintf qw| %09d |, elf_chksum( $$data_ref, 0, 7 )
+    $elf_csum = sprintf qw| %09d |,
+        elf_chksum( $$data_ref, $start_elfsum, $chksum_elf_mode, $shift_bits )
         if not defined $elf_csum;
     ##
 
@@ -211,7 +219,7 @@ INVERT_TRUTH_STATE:
 return 1;  ###################################################################
 
 #.............................................................................
-#KDX4C3EEHMTPNEIMCWBRHJFYM5YWHQBD25MEH7KDANYHVFV45ZY6YKE3A5UJSQC2BHC5OAHN55IPW
-#::: 3G6ZWTTD2WSV6JZP6IQFZ45LDKGVZE33DCE5IS3TRPUQIKZT33D :::: NAILARA AMOS :::
-# :: PHLCYUM5QPDP6NXFTSYWXDO3NAGNMSMGZNHN6QM62RXSVM56ZOAA :: CODE SIGNATURE ::
+#ZSCAKCVUDTXRADFCTKGLHUAOV4NZDQWVBFR4GUUVBQKJ2E73FBWB7JEOWW2P4WDP7B5QVDJHCAXL2
+#::: KMOD3IDACD5SWAOVCQS72DPOA3ZJ7OHVXBJ6PWDWRCBYTLCDWDC :::: NAILARA AMOS :::
+# :: ZAIJYEQBWVHDWNDFM72RYEUZ346PNZOBOTLSBWMTUWCOULTBHUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

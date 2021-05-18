@@ -20,7 +20,9 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| AMOS-ELF7-SRC-Z6342LQ |;    ##  amos-chksum -VS  ##
+our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-4FEH26A |;    ##  amos-chksum -VS  ##
+
+our $debug_output_to_console = 0;
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -50,8 +52,12 @@ sub compile_inline_elf_to {
 
 ### [RE]COMPILING \ LOADING .., ###
     eval {
-        no warnings;     # <-- 'redefine' ?
-        Inline->bind( 'C' => $elf_code, 'directory' => $inline_directory );
+        no warnings;    # <-- 'redefine' ?
+        Inline->bind(
+            qw| C |           => $elf_code,
+            qw| directory |   => $inline_directory,
+            qw| BUILD_NOISY | => $debug_output_to_console
+        );
         use warnings;    # <-- 'redefine' ?
     };
 
@@ -89,41 +95,109 @@ sub inl_elf_src {
 sub return_elf_c_sourcecode {
     return <<~ 'EOL';
 
-    unsigned int inline_elf(
-            unsigned int elf_mode,
-            unsigned int shift_value,
-            unsigned int start_sum,
-            unsigned char *str,
-            unsigned int len
+    void inline_elf(
+            SV * input_str,
+            unsigned int start_sum, // make optional [LLL]
+            unsigned int  elf_mode, // make optional [LLL]
+            ...
         ) {
 
-        unsigned int result = start_sum; // 0 if no continuation
+        inline_stack_vars;
+
+        unsigned int overflow_shift_threshold = 0XFE000000; // <-- 7 bit
+        unsigned int result = start_sum;  // start_sum 0 when no continuation
         unsigned int carryover;
-        int pos_0  = (int) str;
-        unsigned int round = 0;
+
+        bool utf_8_as_value = true;    // add utf-8 codepoint value, not bytes
+        bool ignore_0_bytes = false;  // add 777 for 0 bytes, instead 0
+
+        unsigned int shift_reset = 4;
+        unsigned int shift_limit = ~result;
+        shift_limit >>= 4; // limiting left shift [ elf mode ] beyond 27 bits
+
+        STRLEN    len = SvCUR( input_str );       // <-- can contain \0 bytes
+        U8* str       = sv_2pvutf8_nolen( input_str );
+        UV  str_pos_0 = (UV) str;
+
+        STRLEN  c_pos = 0;
+
+        unsigned int shift_value = 13;     //  AMOS-13 : 13  ||  elf-hash : 4
+
+        // overflow threshold value [ up to 32 bit ]
+        if( inline_stack_items >= 5 && SvOK(inline_stack_item(4)) ) {
+            if( !looks_like_number( inline_stack_item(4) ) )
+                croak("overflow threshold parameter not numerical");
+                overflow_shift_threshold = POPu; // overflow right shift threshold
+            if( overflow_shift_threshold > 0XFFFFFFFF ) // elf hash: 0XF0000000
+                croak("overflow threshold out of range [ 32 bit ]");
+        }
+
+        // [right] shift bits [ param 4 ]
+        if( inline_stack_items >= 4 && SvOK(inline_stack_item(3)) ) {
+            if( !looks_like_number( inline_stack_item(3) ) )
+                croak("shift_bits is not an integer [1..64]");
+                shift_value = POPl; // overflow right shift bits
+            if( shift_value < 1 || shift_value > 64 )
+                croak("shift_bits out of range [1..64]");
+        }
 
         // algorithm configuration
-        unsigned int left  = elf_mode;       // 4 == elf hash [ base setting ]
-        unsigned int right = shift_value;   // 24 == elf hash, 13 : AMOS-ELF
+        unsigned int left  = elf_mode;       // 5 : AMOS-ELF ||  4 : elf hash
+        unsigned int right = shift_value;   // 13 : AMOS-ELF || 24 : elf hash
 
         unsigned int z_val = 777;      // special value for "\0" [ instead 0 ]
+        if ( ignore_0_bytes )
+            z_val = 0;     // do not treat 0 as special cases
 
-        while ( len-- ) {
-            round = (long) str - pos_0;
-            int character = (int) *str++;
+        while ( len > 0 ) {
 
-            if ( character == 0 )    // ascii 0 characters
-                character += z_val;
+            if ( left > shift_reset && result >= shift_limit )
+                left = shift_reset; // reset to 4 to avoid entropy loss
+
+            c_pos = (long) str - str_pos_0;
+
+            bool is_ascii = is_ascii_string( str, 1 );
+
+            U8 * next_chr;
+            STRLEN u8_len;
+
+            UV character;
+
+            if( *str == 0 ) {                                 // ASCII 0
+
+                len--;
+                character = z_val;
+                str++;
+
+            } else if ( is_ascii || !utf_8_as_value ) { // ASCII 1 .. 127
+
+                len--;
+                character = *str;
+                str++;
+
+            } else {                            // ASCII 128 .. 255 and UTF-8
+
+                character = utf8_to_uvchr_buf( str, next_chr, &u8_len );
+
+                if ( character < 256 )
+
+                    u8_len = 1;   //   not UTF-8 codepoint, single character
+
+                    len -= u8_len;
+                    str += u8_len;
+            }
 
             result = ( result << left ) + character;
 
-            if ( ( carryover = result & 0xF0000000 ) )
+            if ( carryover = result & overflow_shift_threshold )
                 result ^= carryover >> right;
 
             result &= ~carryover;
         }
 
-        return result;
+        inline_stack_reset;
+        inline_stack_push(sv_2mortal(newSViv( result )));
+        inline_stack_done;
     }
 
     EOL
@@ -132,7 +206,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#FL5VZ6XCZMDD4EH6CISIQVAF45PNX7ETINOWYPDD6BUDLSTCXHC6ALNO6557BVFOSJII5G33W6JXQ
-#::: J7UFSRLUEMWSUDRN563E5VIRLI6MIAI42VQ5ZKIKGAMAKDHH5F2 :::: NAILARA AMOS :::
-# :: 5JY2OWWSXY52AS5JRN5MITPLSUMQFMODONEPQD7EULZRRF3CW4BY :: CODE SIGNATURE ::
+#TC3Q2EU6HUDQ3E7TZMRHURMRV6UMQAPZ4SXUEWGDTNTJ7VFMCMMWL65FE5ZYOE5PQGRM7RPEERITS
+#::: TCELJC3CNVE5KY4Z6ETHCACGLIULLPISTE3BXSYNLAAEOTYAUHJ :::: NAILARA AMOS :::
+# :: XRFC27ROPKJZR2SEVRXL67C74Z32DVLO6ZAJVJ7POIW7RK7XYEDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

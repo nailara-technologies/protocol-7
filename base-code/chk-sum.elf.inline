@@ -2,21 +2,30 @@
 
 # name  = chk-sum.elf.inline
 
-my $input_ref = \'';    ## empty ##
+my $input_ref = \'';    ##   empty   ##
 my $start_sum = 0;      ## new input ##
-my $elf_mode  = 4;      ## base elf mode ##
 
-if ( ref( $ARG[0] ) eq 'SCALAR' ) {
-    $input_ref = shift;
-    $start_sum = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
-    $elf_mode  = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$|;
+## ANOS-13-ELF SETTINGS ##
+##
+my $elf_mode           = 5;             ## elf hash setting :   4        ##
+my $shift_bits         = 13;            ## elf hash setting :  24        ##
+my $overflow_threshold = 0XFE000000;    ## elf hash setting : 0XF0000000 ##
+##
+####
+
+if ( ref( $ARG[0] ) eq qw| SCALAR | ) {
+    $input_ref  = shift;
+    $start_sum  = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
+    $elf_mode   = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
+    $shift_bits = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
+    $overflow_threshold = shift if @ARG and $ARG[0] <= 4294967295;  #[ 32bit ]
 
     warn '< elf.inline > option not expected [ '
         . shift
         . ' ] redundant mode param ? <{C1}>'
         if @ARG;
 
-} elsif ( @ARG and ref( $ARG[0] ) eq '' ) {    ## string input \ no mode ., ##
+} elsif ( @ARG and not length ref $ARG[0] ) {  ## string input \ no mode ., ##
     $input_ref = \$ARG[0];
 }
 
@@ -25,16 +34,18 @@ if ( ref( $ARG[0] ) eq 'SCALAR' ) {
 warn 'inline_elf() not available [ compilation successful ? ] <{C1}>'
     if not defined &inline_elf;
 
-## use AMOS call version ## [LLL]
-
-my $len = length($$input_ref);
-
-## parameters : < elf-mode > , < start-csum > , < input-data >, < data-len >
-return
-    sprintf( '%09d', inline_elf( $elf_mode, $start_sum, $$input_ref, $len ) );
+## parameters ##
+## < input-data >, < start-csum >, < elf-mode >, [ shift-bits ], [shift-thrh.]
+return sprintf(
+    qw| %09d |,
+    AMOS::CHKSUM::ELF::elf_chksum(
+        $$input_ref, $start_sum, $elf_mode,  ##  <--  make optional  ##  [LLL]
+        $shift_bits, $overflow_threshold
+    )
+);
 
 #.............................................................................
-#OQEKVUKQAM2WBKKC7BE3DHXYZLMWP6EO3FKI5UYBAH7A4AN3AG7OJRO22X4TNAWYJBY5L6ZKFWHAM
-#::: DITRQL7CHXFTUFQHQRPYWUA4NCFUW7RSVH23M32GTMDB2Q272FH :::: NAILARA AMOS :::
-# :: RB2W55N6Y6MQHLRYLTLBD5RQ3J4LLTB36QLDFI4L6DG7LWPHQUCA :: CODE SIGNATURE ::
+#I3B2GRQ4MXKGPKQ6QMLNMDF7S6CGBSIFO7I4ULJDGQGZQYVNV73ULIT34K5XV3KLUUKQJSW4OOMCM
+#::: PCLCC34D4B7U3H4U5X3TRCH6ZB6G324FI6SIUZEJK3ZL3Q6G2VN :::: NAILARA AMOS :::
+# :: DQO3SZT5EBIWBWDL45M2I7AQWVJLXOYLDRR6UOKFD66MDYSQZYDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

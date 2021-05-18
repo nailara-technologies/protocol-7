@@ -2,43 +2,47 @@
 
 # name  = chk-sum.elf.pre_init
 
-<chk-sum.elf.use_inline_elf> //= 1;
+<[base.perlmod.load]>->('AMOS::CHKSUM::ELF');    ## AMOS-13-ELF ##
 
+<chk-sum.elf.use_inline_elf> //= 1;
 my $r_lvl = <chk-sum.elf.report_log_level> //= 2;
 
 return 0 if defined &inline_elf; ## <-- create version and check it., ## [LLL]
-###########################   ##  ###
 
 ## silent loading of 'Inline' module, when installed ##
+##
 if (<chk-sum.elf.use_inline_elf>) {
-    <[base.log]>->( 2, "checking whether 'Inline::C' is installed..," );
+    <[base.log]>->( 2, 'checking whether Inline::C is installed ..,' );
     my $missing;
     eval qq| use Inline |;
-    $missing = 'Inline' if $EVAL_ERROR;
+    $missing = qw| Inline | if $EVAL_ERROR;
     if ( not defined $missing ) {
         <base.perlmod.loaded>->{'Inline'} = 1;
         eval qq| require 'Inline/C.pm' |;
-        $missing = 'Inline::C' if $EVAL_ERROR;
+        $missing = qw| Inline::C | if $EVAL_ERROR;
     }
     if ( defined $missing ) {
-        <[base.log]>->(
-            0, "perl module '$missing' not available, disabling inline_elf()"
+        <[base.logs]>->(
+            0, 'perl module %s not available, disabling inline_elf', $missing
         );
         <chk-sum.elf.use_inline_elf> = 0;
     } else {
         <base.perlmod.loaded>->{'Inline::C'} = 1;
-        <[base.log]>->( 2, ':. success, proceeding with inline_elf().,' );
+        <[base.log]>->(
+            2, ':. success, proceeding with inline elf install.,'
+        );
     }
 } else {
     <[base.log]>->( $r_lvl, ':: inline-elf is not enabled, skipping.,' );
 }
+##
 
 <[chk-sum.elf.inline-c.compile]>->($r_lvl) if <chk-sum.elf.use_inline_elf>;
 
 return 0;
 
 #.............................................................................
-#UBPLE3MHZNUFB4BVGL37ORIMZ5QDLW62JYORXTSUGW2JTKFMMZXS2N4AXA2M7L4S3Y2CSV7NJP46Q
-#::: YAXS3HTTW6BLBJTEXOBVFIQ2NVVDKK54QDCAFUGZEOGIRIL5JZF :::: NAILARA AMOS :::
-# :: 2QLSJDOIO3OZWKYKFOTCZ6ZT2RMYPN5AO5G6JSX26ZUCI64BVMAY :: CODE SIGNATURE ::
+#PLVR6KPXGKGN7KIL3MAMXAVBNSIVXXT3M7VXN234VGEXCJ2RJGBWUIRXGCA3TBNPBFA2IDIMOFYFQ
+#::: BESLP6XV2AJWX4PYRRUIOBWOKWNGIAF43QRGKPYTVVKHZB6365Z :::: NAILARA AMOS :::
+# :: WMNT4VOLVZBVLQYNJBV5BY5ZRUXK6H6VU66JZL7KA2MZUEMTEMDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
