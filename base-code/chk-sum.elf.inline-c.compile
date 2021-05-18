@@ -85,20 +85,26 @@ warn 'inline-c elf compilation not successful [ inline_elf() ] <{C1}>'
 
 my $test_string = <[base.ntime.b32]>;
 
-my $mod_elf_sum   = sprintf( '%09d', Digest::Elf::elf($test_string) );
-my $inline_elfsum = sprintf( '%09d', <[chk-sum.elf.inline]>->($test_string) );
+<[base.logs]>->( 2, ': testing AMOS-13-ELF with elf-hash settings ..,' );
+<[base.logs]>->( 2, ': : elf test string : %s', $test_string );
+
+my $mod_elf_sum   = sprintf qw| %09d |, Digest::Elf::elf($test_string);
+my $inline_elfsum = sprintf qw| %09d |,    ##  base elf-hash settings  ##
+    <[chk-sum.elf.inline]>->( \$test_string, 0, 4, 24, 0XF0000000 ); ##[!AMOS]
+
+##  add test with AMOS-13 settings  ##   [ LLL ]
 
 warn sprintf( 'inline_elf test not successful [ %s != %s ] <{C1}>',
     $inline_elfsum, $mod_elf_sum )
     and return 0
     if $inline_elfsum ne $mod_elf_sum;
 
-<[base.log]>->( $r_lvl, ': inline-elf available [ test successful ] =)' );
+<[base.log]>->( $r_lvl, ': inline-elf available [ successful ] =)' );
 
 return 1;    ## success ##
 
 #.............................................................................
-#4D2LGINZAXLUIRDFY56VFWU47RP5JDIZ24WAFBDAXYMNV23B5RFUJBF6MTHIDCLRBIHU7LTYBNMGS
-#::: R5ONSHJQKS63NKKTWCJ3C4QWPECXR4MDBE426N4PZDDSYD5XBRQ :::: NAILARA AMOS :::
-# :: YPXJPMGKNWEI3R25FHH3VZ6DID6NT6P7X7CEGUQMBYLN6CRNHQBI :: CODE SIGNATURE ::
+#GP4LOCBDJFRM2SX2DU7QJODFY4VSX4OZD5KN4PUHZW4YUF4VS6YXJX5DULBWLKFR3KL7U4ZR5ZMBU
+#::: K5262XQBKX4KJRO2IWJWJEWBSUYROL3RDXKYHXKDFJNHLDXLWF4 :::: NAILARA AMOS :::
+# :: S2O7XG5MKVPZDS5A7ZS3D6A2EWXOMGFZRQZ4VPUPKYD3WUOXEGDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

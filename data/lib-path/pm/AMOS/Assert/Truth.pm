@@ -28,24 +28,25 @@ use AMOS::Assert;
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
-our @assertion_modes = qw[ 7 ];    ##  elf truth modes : main set-up  ##
+our $elf_shift_bits = 13;    ##  elf shift bits  ##
 
-our $right_shift_bits = 13;        ## elf shift bits ##
+our @assertion_modes = qw| 4 7 |;    ##  elf truth modes : main set-up  ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
 ##[ MAIN FUNCTION ]###########################################################
 
 sub is_true {
-    my $calc_result;
 
     my $data_ref = shift;
 
+    my $calc_result;
+
     return warn_err('undefined input') if not defined $data_ref;
 
-    my $check_as_num = shift // 2;           ## also check as numerical ##
-    my $check_as_elf = shift // 1;           ## check elf checksum ##
-    my $shift_bits   = $right_shift_bits;    ## right shift on overflow ##
+    my $check_as_num = shift // 2;         ## also check as numerical ##
+    my $check_as_elf = shift // 1;         ## check elf checksum ##
+    my $shift_bits   = $elf_shift_bits;    ## right shift on overflow ##
 
     return warn_err('no checks enabled')
         if not $check_as_num and not $check_as_elf;
@@ -105,7 +106,7 @@ sub init_table {
 
 sub calc_true {
     my $check_num = shift;
-    error_exit('input is fucking numerical')
+    error_exit( "input '%s' not numerical", $check_num )
         if not AMOS::Assert::is_number($check_num);
 
     my $calc_result;
@@ -114,7 +115,7 @@ sub calc_true {
 
     if ( $input_len < 10 ) {  ## skipping Math::BigFloat for shorter values ##
 
-        $calc_result = sprintf '%.0f', ( $check_num / 13 ) * $factor;
+        $calc_result = sprintf( qw| %.0f |, ( $check_num / 13 ) * $factor );
 
     } else { ##  gemeric division by 13 calculation [ arbitary precision ]  ##
 
@@ -129,12 +130,10 @@ sub calc_true {
     substr( $calc_result, 0, length($calc_result) - 6, '' );
 
     ## FALSE ### 230769 ####
-    return -$false{$calc_result}
-        if exists $false{$calc_result};
+    return -$false{$calc_result} if exists $false{$calc_result};
 
     ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
-    return 1 + $true{$calc_result}
-        if exists $true{$calc_result};
+    return 1 + $true{$calc_result} if exists $true{$calc_result};
 
     ### TRUE ### 0000000 | 1 ####
     return 1;
@@ -143,7 +142,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#FAISF7XU75KDCAW2D66O3FWYGCA5V3GGUX6HABBQLK5MN7ZZNJ5X6N3TJTSERQ76MNBMOVUSSXKZS
-#::: LFEDGIYRWD4QEABRPZUO4TYQGMRTNRWMQJVYE4YVMT4CL2NNSGQ :::: NAILARA AMOS :::
-# :: YA4NKTYMRGFNGXQXRT74CDLY2SYHJ7FNPH4QNOYHXA5ZQT4IF4CQ :: CODE SIGNATURE ::
+#VE77OSYJB3IBTTDQQGJEV22U2LNWXORAIR3PEE4FXVPJVD4SPPJ55J672PWBCTDI5LEF2W23J6QOE
+#::: PLHNHYIGORQJWIRVABELVR3HKXPF4QTLRXD42OOY4EUZTV3ANPO :::: NAILARA AMOS :::
+# :: VLD2IUUT2WJ6642UPBUUTSMXZ437UQYK43Q6UD23MJKX6RC53YAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

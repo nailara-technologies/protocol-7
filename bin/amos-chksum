@@ -36,11 +36,10 @@ use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
 use AMOS::CHKSUM::ELF::Inline;
 
-my @modes      = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
-my $shift_bits = $AMOS::CHKSUM::algorithm_set_up{'shift_bits'};
+my $chksum_elf_mode = $AMOS::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ## 7
+my $elf_shift_bits  = $AMOS::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
 
-## configure elf_chksum for AMOS checksum ##
-$AMOS::CHKSUM::ELF::shift_val = $shift_bits;
+my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} }; ##  7  ##
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -62,8 +61,6 @@ my $data_str;
 
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
-
-binmode( STDOUT, qw| :encoding(UTF-8) | );
 
 getopts( qw| vsSnqV:e: |, \my %option );
 
@@ -93,19 +90,19 @@ if ( defined $option{'e'} ) {
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
 
-    my $version_template = qw| .%s::AMOS-CHKSUM::%s. |;
+    my $version_template = qw| .%s:AMOS-13-CHKSUM-VERSION:%s. |;
+    my $data_str         = sprintf( $version_template, chr(255), chr(0) );
 
     if ( $option{'V'} eq qw| CS | ) {    ##  AMOS-CHKSUM OUTPUT VERSION  ##
-        $data_str = sprintf( $version_template, chr(255), chr(0) );
-        my $version_string = gen_version( 'AMOS-CHKSUM-V-%s', $data_str );
+        my $version_string = gen_version( qw| AMOS-CHKSUM-V-%s |, $data_str );
         say $version_string if not $option{'v'};
     } elsif ( $option{'V'} =~ m,^(L7|S)$, )
     {                                    ## elf_sum() source code version ##
 
-        $data_str
-            = elf_chksum( sprintf( $version_template, chr(255), chr(0) ), 7 );
+        my $elf_sum
+            = elf_chksum( $data_str, 0, $chksum_elf_mode, $elf_shift_bits );
 
-        my $elf_out_ver = gen_version( qw| AMOS-ELF7_V-%s |, $data_str );
+        my $elf_out_ver = gen_version( qw| AMOS-13-ELF-7-%s |, $elf_sum );
 
         if ( $option{'V'} eq qw| L7 | ) { ## elf_sum() output test checksun ##
 
@@ -113,9 +110,9 @@ if ( defined $option{'V'} ) {
 
         } else {    ## version of elf_sum() source code ## [ -VS ] ##
 
-            $data_str = "  /*  ::  $elf_out_ver  ::  */\n\n" . inl_elf_src();
+            $data_str = "  /* .: $elf_out_ver :. */\n\n" . inl_elf_src();
             my $elf_inline_ver
-                = gen_version( qw| AMOS-ELF7-SRC-%s |, $data_str );
+                = gen_version( qw| AMOS-13-ELF-7-SRC-VER-%s |, $data_str );
             say $elf_inline_ver if not $option{'v'};
         }
     } else {
@@ -236,7 +233,7 @@ if ( $option{'v'} ) {
         ),
         sprintf(
             "%s  elf overflow  :  $C{T}bit-shift$C{0} %s",
-            $C{0}, "$C{b}$C{T} $shift_bits $C{R}$C{0} "
+            $C{0}, "$C{b}$C{T} $elf_shift_bits $C{R}$C{0} "
         ),
         '',
         join(
@@ -277,7 +274,7 @@ sub true_bits {    ## not numerical ##
 }
 
 #.............................................................................
-#7ZJARX5O6RS6TCU4MMXGCFF6XITD5ULRBG6X7MUYPY756SC4YFYDQJLNEIXMFCPM4MIVQIC23F3Z6
-#::: WIJ44447M2ZHIYHJRIRQCUYQUZSKRTHMDSCTSEDSONEFBFMAVE3 :::: NAILARA AMOS :::
-# :: XUH7OPM2FJYXZOSJFK2R3B4W2SHDME2AAHAJPHBRGA3BWQ7QHYCI :: CODE SIGNATURE ::
+#KDJ52GWE2FKOQWU326FITRXNP5C3OGTB7GR5ETLOMOGS5KIVS3XFEVKJUVLTVIYHTIV4IFOMX7QYO
+#::: ORL4Z43IYKQJTUVQXISORB6UTR3BNBJTBY6FE25RS5IWJXBAJMM :::: NAILARA AMOS :::
+# :: B5HSDYS23JQMI3POFIM2Y2VF6WB5BVY2KL25OYWTAS2ELAAG6EDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
