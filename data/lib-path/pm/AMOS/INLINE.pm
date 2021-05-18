@@ -25,12 +25,14 @@ our $debug_output_to_console = 0;    ##  display build warnings  ##
 
 ## known inline sourcecode modules ##
 use AMOS::INLINE::src::BinConversion;
+use AMOS::INLINE::src::TruthAssertion;
 
 ##[ INITIALIZATIONS ]#########################################################
 
 my $source_registry = {
-    qw| bit_to_num | => \&AMOS::INLINE::src::BinConversion::bitstring_to_num,
-    qw| num_to_bit | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
+    qw| bit_to_num  | => \&AMOS::INLINE::src::BinConversion::bitstring_to_num,
+    qw| num_to_bit  | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
+    qw| is_true_num | => \&AMOS::INLINE::src::TruthAssertion::is_true_num,
 
    # qw| inline_elf | => \&AMOS::CHKSUM::ELF::Inline::return_elf_c_sourcecode,
     ## AMOS::INLINE::src::Elf::elf
@@ -156,8 +158,7 @@ sub compile_inline_source {
 
         #######################################################
 
-        if ( not defined &{$current_sub_name} ) {
-            ## inherit parse_error [ $EVAL_ERROR ]
+        if ($EVAL_ERROR) {
             warn_err( "<< compilation of '%s' not successful >>",
                 0, $current_sub_name );
             if ( defined &{$fallback_ref} ) {
@@ -270,7 +271,7 @@ sub encoded_elf_chksum {
 return 1;  ###################################################################
 
 #.............................................................................
-#NR7ZWCO4QBUPZDTUAK3KPURTX3DYGXVYJ2MYKQRJLB3KA7YTI474CGD5XNTSZJNYA7V5ETRS6WSWW
-#::: 53AHL5MLIF2INE4UO3RDRVSAFPKBDZPCEORB7E527N2GUVMCJEK :::: NAILARA AMOS :::
-# :: ZGBAXNKEP56UPEBO7YIDJREIXY6PI2WLQVQVTPF3M7DBDHA2EACQ :: CODE SIGNATURE ::
+#GBPVVZ7NJGU3CYTPN7OGRD4OSOAVFNBJVTR7NSXMCERG63GL6FJOBCXENROBGHIUFQDWTSG55QXZK
+#::: 3NPTHTJCUS7XGBGBZKBPDF6MD7DGYH3WMZT646CDC2X6W4Q2BFQ :::: NAILARA AMOS :::
+# :: TEJG2SRCX6CQQJURUPEVORFJCNZ2TCHOVRPOHBKZS2Y6UR6X4QAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,7 +51,7 @@ sub TERM_SIZE {
 ##[ ERROR HANDLING ]##########################################################
 
 sub error_exit {
-    chomp( my $err_msg = sprintf( shift @ARG // '', @ARG ) );
+    chomp( my $err_msg = sprintf( shift @ARG // '', @ARG // '' ) );
     $err_msg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
     $err_msg =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
 
@@ -140,7 +140,7 @@ sub clean_up_caller {
 return 1;  ###################################################################
 
 #.............................................................................
-#XEPO435LSRUBHFL5E7Z6IL5JYNLCXDSCJKKNDCNSFRT3RMAYUCRDAANV6IH7EBT35VQ7XPS4OQ7NO
-#::: BH2R27Q7TIMQQSM2YWBBGTJWFDQ6BHQCMX3D7L2JXXE4ODFJNTB :::: NAILARA AMOS :::
-# :: N2DLONXBU7COOMWQWJ5UEBYDHXS5BKQRQYCCZP3VJHBAF67B36CQ :: CODE SIGNATURE ::
+#YVYWADADCDSHVCASLUDFWERPRXE4TBMJ5LKG7FKQ5EJ3SMW7CEWGIKF7CH4TJXPS4LZKUOWAKTHOK
+#::: W2VYSAN4HOLBTTRMFMYVP7TIZHDEGGPSNNIRATFCKBEBK6LOEAQ :::: NAILARA AMOS :::
+# :: TYKY44LONBR222QRDTCG2BKRMF4GKDA4D7RKHHNAS3E7RVKWHGDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

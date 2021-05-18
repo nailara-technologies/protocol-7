@@ -32,24 +32,24 @@ INIT {
     {
         inline_stack_vars;
         unsigned int h = 0;
-        unsigned long g;
+        unsigned int g;
+        int left  = 4;
+        int right = 24;
 
         h = seed_val; // continuation
 
         while ( *sval ) {
 
-            h = ( h << 4 ) + *sval;
+            h = ( h << left ) + *sval;
 
             if ( g = h & 0xF0000000 )
-                h ^= g >> 24;
+                h ^= g >> right;
 
-                // h ^= g >> 17; // <-- new elf mode
-
-            printf( ":   %c : %09d \t: %010u\n", 32 , h, g );    // <-- dbg.0
+            printf( ":   %c : %09u \t: %010lu\n", 32 , h, g );    // <-- dbg.0
 
             h &= ~g;
 
-            printf( ":.. %c : %09d \t: %010u\n", *sval , h, g ); // <-- dbg.2
+            printf( ":.. %c : %09u \t: %010lu\n", *sval , h, g ); // <-- dbg.2
             *sval++;
         }
 
@@ -62,7 +62,7 @@ INIT {
 }
 
 #.............................................................................
-#MJN7GS4UTKXY7FQK3PHERZV5RZSMXYB2KGYMOEUVUC6ORRQUVLJOSHN6A6JGIFVNTHAGDRNO6NHHC
-#::: XWJAKHQMYF7RCCYD5B6X3O5YPU53B3TYPCETX2S5NJTTHN6RJGK :::: NAILARA AMOS :::
-# :: GKFBF7II2I4J2XQO2EPC3HYIDWYZL6VRYKIIBUIJ5QN7DKXWLKAI :: CODE SIGNATURE ::
+#W7BQIZHNVBJQ3F7PXAZTLMCWCTVY2YLYXEXY6ZRTPCRSZVKATIUZVHI7YUFQFF4W3CI6DL7KVITPW
+#::: F6WWASQL3QMFQA6O3ECOWHVN77BY7WEWLHOWBBJSKCUEISHFOAH :::: NAILARA AMOS :::
+# :: 2APW6WZWVKU3PG4L4EXMB4GTNJDLTMNDVUJK2OHMFGBDCWZYTABI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

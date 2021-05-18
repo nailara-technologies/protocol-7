@@ -24,6 +24,9 @@ use List::MoreUtils qw| uniq |;
 
 use AMOS;
 use AMOS::Assert;
+use AMOS::INLINE;
+
+compile_inline_source( { qw| subroutine-name | => qw| is_true_num | } );
 
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
@@ -111,29 +114,38 @@ sub calc_true {
 
     my $calc_result;
     my $input_len = length($check_num);
-    my $factor    = join( '', qw| 1 |, qw| 0 | x $input_len );
+
+    return AMOS::Assert::Truth::is_true_num($check_num) ## <-- AMOS::INLINE ##
+        if $input_len <= 10
+        and defined &is_true_num
+        and \&is_true_num ne \&calc_true;
+
+    my $factor = join( '', qw| 1 |, qw| 0 | x $input_len );
 
     if ( $input_len < 10 ) {  ## skipping Math::BigFloat for shorter values ##
 
-        $calc_result = sprintf( qw| %.0f |, ( $check_num / 13 ) * $factor );
+        $calc_result = sprintf( qw| %.7f |, $check_num / 13 * $factor );
 
     } else { ##  gemeric division by 13 calculation [ arbitary precision ]  ##
 
+        my $accuracy = 7 + length($check_num);
+        Math::BigFloat->accuracy($accuracy);
         Math::BigFloat->round_mode(qw| trunc |);
 
-        $calc_result
-            = Math::BigFloat->new($check_num)->bmul($factor)
-            ->bdiv( 13, 7 + length($check_num) )->bdstr();
+        (   $calc_result    ## cleaned for 00000 inaccuracies at the end ##
+                = Math::BigFloat->new($check_num)->bmul($factor)
+                ->bdiv( 13, $accuracy )->bdstr()
+        ) =~ s|(*nlb:(*nlb:5)3)0+$||;
     }
 
     ## truncate to match ##
     substr( $calc_result, 0, length($calc_result) - 6, '' );
 
     ## FALSE ### 230769 ####
-    return -$false{$calc_result} if exists $false{$calc_result};
+    return 0 if exists $false{$calc_result};
 
     ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
-    return 1 + $true{$calc_result} if exists $true{$calc_result};
+    return 1 if exists $true{$calc_result};
 
     ### TRUE ### 0000000 | 1 ####
     return 1;
@@ -142,7 +154,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#VE77OSYJB3IBTTDQQGJEV22U2LNWXORAIR3PEE4FXVPJVD4SPPJ55J672PWBCTDI5LEF2W23J6QOE
-#::: PLHNHYIGORQJWIRVABELVR3HKXPF4QTLRXD42OOY4EUZTV3ANPO :::: NAILARA AMOS :::
-# :: VLD2IUUT2WJ6642UPBUUTSMXZ437UQYK43Q6UD23MJKX6RC53YAA :: CODE SIGNATURE ::
+#AIDSW7XNALJWCTPXB6WUQADRK4XFIGVWLGPGOE2GXBLRCJIKDOHHXKJKAGBCCCE7YATZRQR66ZPX2
+#::: 3MRQQWXTLH5KBIZSK2E3C5O67Y3R2DTHIQ4TZOUGBRUWHOCCBJ4 :::: NAILARA AMOS :::
+# :: ENIOQMOKAKPDKGWAG5LHLTZSWMQ4SWOQTAA3G356JQ6BKIM5V4BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
