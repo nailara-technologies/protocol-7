@@ -7,9 +7,9 @@
 <[base.perlmod.load]>->('Digest::Elf');
 <[base.perlmod.load]>->('Math::BigFloat');    ## <-- truth assertion ##
 
-<[base.perlmod.load]>->('AMOS::CHKSUM::ELF::Inline');
-
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+my $check_external = 0;    ##  <-- disable external elf test \ fallback  ##
 
 my $elf_bin = qw| /usr/bin/elf |;    ##  <--  auto-compile \ install [LLL]
 if ( not -e $elf_bin or not -r $elf_bin or not -x $elf_bin ) {
@@ -41,7 +41,12 @@ if ( <chk-sum.elf.external.fallback-enabled> and -x $elf_bin ) {
     my $test_string  = <[base.ntime.b32]>;
     my $check_result = <[chk-sum.elf.external]>->($test_string);
 
-    if ( $check_result eq <[chk-sum.elf]>->($test_string) ) {
+    if ( not $check_external //= 1 ) {
+
+        <chk-sum.elf.external.fallback-enabled> = 0;
+        <[base.log]>->( 2, ':: external-elf-fallback disabled [setting] ::' );
+
+    } elsif ( $check_result eq <[chk-sum.elf]>->($test_string) ) {
         <[base.log]>->( 2, ': elf checksums match : fallback enabled =)' );
     } else {
         <[base.log]>->( 2, ': not successful : disabling fallback .,' );
@@ -71,7 +76,7 @@ if ( <chk-sum.elf.external.fallback-enabled> and -x $elf_bin ) {
 0;
 
 #.............................................................................
-#DJ2A6QB7JN7MWREO2432ZUJ3S4UYA4UNQUB3M34D7TFDYMGYDE3GRPYLVQMG6TAK74ZTEJHAM2RFM
-#::: HOGPI7P2YAGHYF7LSD7JTD4SIOHKGF2KMW7RPYWRRDRZGHGC4XK :::: NAILARA AMOS :::
-# :: EKP4ABFEFQC6ZJCWKGTHRTLDATSYQNIBJXW3E3QCUE2TJMPVMEDA :: CODE SIGNATURE ::
+#SD5ZWPFDCL7KOKDXX2ROY2GARWSUENYMAWRWJTZYPMWYTTZABIQ2BSOKYIWRALWK6NFSB7XPT24EQ
+#::: 7IFI4QVSIWZJW2SJAZNOFJGS7AD4Z6YPJUGW2PS6UFX7R2L4QQN :::: NAILARA AMOS :::
+# :: LQEFMD5MS7OSLOFPPUGYQUEH3BKC63ALJ5TKSJDCNOXYYKJJYCAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
