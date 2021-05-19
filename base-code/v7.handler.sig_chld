@@ -22,7 +22,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     my $log_level = 2;
     my $e_val     = $CHILD_ERROR >> 8;
     my $e_sig     = $CHILD_ERROR & 127;
-    my $e_sig_str = $e_sig ? ", signal $e_sig" : '';
+    my $e_sig_str = $e_sig ? sprintf( ', signal %s', $e_sig ) : '';
     $log_level = 0
         if $e_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
     my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
@@ -52,7 +52,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         delete $instance->{'restart_pids'}->{$pid}
             if exists $instance->{'restart_pids'};
 
-        my $old_status = $instance->{'status'} || 'undefined';
+        my $old_status = $instance->{'status'} || qw| undefined |;
 
         <[base.log]>->( 2, ": had status : '$old_status'" );
 
@@ -61,9 +61,10 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             my $web_browser_uname = <system.X-11-user>;
             my $subname_b32
                 = ( defined $zenka_subname and length($zenka_subname) )
-                ? '.' . encode_b32r($zenka_subname)
+                ? join( '', qw| . |, encode_b32r($zenka_subname) )
                 : '';
-            my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
+            my $file_name = join( '',
+                qw| /var/run/.7/web-browser.crash_pid |, $subname_b32 );
 
             <[file.put]>->( $file_name, "$pid\n" )
                 or warn join( qq| : |,
@@ -85,7 +86,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         $next_status = qw| restart | if $old_status eq qw| restart |;
 
-        if ( $old_status eq 'online' and defined <v7.ondemand_zenki> ) {
+        if ( $old_status eq qw| online | and defined <v7.ondemand_zenki> ) {
             map { $next_status = qw| offline | if $ARG eq $zenka_name }
                 @{<v7.ondemand_zenki>};
         }
@@ -98,8 +99,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
                     'interval' => 0.1,
                     'handler'  => qw| v7.handler.children_left |,
                     'data'     => {
-                        'instance_id' => $instance_id,
-                        'next_status' => $next_status
+                        qw| instance_id | => $instance_id,
+                        qw| next_status | => $next_status
                     }
                 }
             );
@@ -114,7 +115,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 #.............................................................................
-#Z2UYSAKAOZSXMS6M236DCVGNQQWUBT6NYQY5RZNX6U2FNJ3XKCUB3XFMOGBF7VXLHQ2TLBFFFHOS4
-#::: J5RACPS4GHXR4BW7A4VPZHF2RX7A5BZCEGVN2RGJHALTI4GDSKM :::: NAILARA AMOS :::
-# :: HOL2IZ4U3UJWQD24T6DG3DPP43DNSO5K4MZDTXG2QDGSDYGHTWDY :: CODE SIGNATURE ::
+#HAJPLU7E3LUTRYR4FSOYSVMQIW23ESKIYVURFVPU4IJXCJ5EZX3ZUBZKKYB7SP5QBCNIWAYYXTO7G
+#::: 4QWWOOMVNN3LVYRYZARLWHAHSVBOAAGBHNMZGGGN4XZTWY6BM4D :::: NAILARA AMOS :::
+# :: RYANO3XZNKTHESZEYQ7KQIZF3Q2DBJI5SUXS5DXD5XOGPXTGDQAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
