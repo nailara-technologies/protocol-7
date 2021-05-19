@@ -1,6 +1,6 @@
 # >:]
 
-# name  = colortoalpha.cmd.filter
+# name  = graphics-matrix.cmd.filter
 # param = <color|'auto'> <image>
 # descr = replaces specified color with transparency
 
@@ -22,14 +22,13 @@ return { 'mode' => 'false', 'data' => "$status" } if "$status";
 
 $image->Trim() if $color_str eq 'auto';
 
-$color_str = <[colortoalpha.guess_bg_color]>->($image)
+$color_str = <[graphics-matrix.guess_bg_color]>->($image)
     if $color_str eq 'auto';
 
 my $color_md5 = <[chk-sum.md5.b64u]>->($color_str);
 
-my $output_file
-    = join( '/', <colortoalpha.cache_dir>,
-    $image_sha1 . $color_md5 . '.png' );
+my $output_file = join( '/',
+    <graphics-matrix.cache_dir>, $image_sha1 . $color_md5 . '.png' );
 
 unlink($output_file)
     if -f $output_file and File::stat::stat($output_file)->size == 0;
@@ -40,7 +39,7 @@ return { 'mode' => 'true', 'data' => $output_file } if -f $output_file;
 
 my ( $img_w, $img_h ) = $image->get( 'width', 'height' );
 
-<[colortoalpha.filter_image]>->( $image, $color_str );    # apply the filter
+<[graphics-matrix.filter_image]>->( $image, $color_str );   # apply the filter
 
 $image->Write($output_file);
 return { 'mode' => 'false', 'data' => "$status" } if "$status";
@@ -48,7 +47,7 @@ return { 'mode' => 'false', 'data' => "$status" } if "$status";
 return { 'mode' => 'true', 'data' => $output_file }
 
 #.............................................................................
-#EJHI57UD5PGZ7X6YYB26OMRMSHMQ2IUPYRZ5IDZB4CVNAFDHNHDLBBVRC3565TGHC255PLF6PSCDO
-#::: HNM4KSR5ODMCOSEEV64DTZC4UGM347G4HOE7PN6ALTCJ4MTFDDR :::: NAILARA AMOS :::
-# :: JLXAS2O5Y7Q32HRGVOQYVE7SB2ZB6WUBLACVJDY7CS7TIIO5KYDI :: CODE SIGNATURE ::
+#TTCWRHXM3M73OJP6L2XY3O6QIQBIIZXSH62XRDS33TGFJJNWHGGMV2ZYSQNR4AOTINHC22H6HHDJW
+#::: ZQMFCAH52X5F7IPQT4JQAJMCYVRRINTBXXQAQWZ4AOVE6R2B477 :::: NAILARA AMOS :::
+# :: WDJSNXOYJ2FA4QHQIBU54VPFW5YMVYC7XMG6WP4VOIRJOTCFMIDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
