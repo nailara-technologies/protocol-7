@@ -1,14 +1,14 @@
 # >:]
 
-# name = colortoalpha.init_code
+# name = graphics-matrix.init_code
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 <[base.perlmod.autoload]>->('Graphics::Magick');
 
-<colortoalpha.cache_dir> //= '/var/cache/colortoalpha';
-my $cache_dir = <colortoalpha.cache_dir>;
+<graphics-matrix.cache_dir> //= '/var/cache/graphics-matrix';
+my $cache_dir = <graphics-matrix.cache_dir>;
 
-my $perms = <colortoalpha.cache_perm> // '0750';
+my $perms = <graphics-matrix.cache_perm> // '0750';
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir' .. [$perms]" );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
@@ -32,7 +32,7 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 0;
 
 #.............................................................................
-#2DUK4FLMIMRK7H3DDYSQWXO5MDCOGYJNTN7M7BVXCRQD5DDY3A432LEZMV2AOMRVYF725O2DSWAF6
-#::: DNWFF3BAP35WF7SFQV27RQIFUR6Z23G2QLZE34SI26WWYGFQF32 :::: NAILARA AMOS :::
-# :: Y24CZ7X3H2PVXPNYX2KWPNHSV4FQJDJM2CVIYJBOLDEN5UXTLACQ :: CODE SIGNATURE ::
+#TJ7XWCBZILSS3CBMI5Y5TNID7Q7HWDYIO667IPIB33Y3FYAM4ZPAGYWIMJ3LXNUKHKSODC2BDPQXA
+#::: ZFSF6HBLTFCVYZ7W2H4FFJMWVQAGNDBSS6KGWKHBTUIIF7Z3WV5 :::: NAILARA AMOS :::
+# :: 4L5LWBRXOBIL7D2IEERGI6MWPYURTALMY2WTDZKVGI75PJGC64BQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

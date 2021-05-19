@@ -1,6 +1,6 @@
 # >:]
 
-# name = colortoalpha.filter_image
+# name = graphics-matrix.filter_image
 
 my ( $image, $alpha_color ) = @_;
 die "expected image object"          if not defined $image;
@@ -27,7 +27,7 @@ for my $y ( 0 .. $img_h - 1 ) {
             = map { $ARG /= 257 }
             split( ',', $image->Get("pixelcolor[$x,$y]") );
 
-        <[colortoalpha.filter.alpha]>->( \@RGBA, \@alRGB );
+        <[graphics-matrix.filter.alpha]>->( \@RGBA, \@alRGB );
         my @hex_cols
             = $img_depth > 8
             ? map { sprintf( "%x", sprintf( "%.0f", $ARG * 257 ) ) } @RGBA
@@ -41,7 +41,7 @@ my $delta_t = sprintf( "%.1f", <[base.time]>->(3) - $time_start );
 <[base.log]>->( 1, "filter applied in $delta_t seconds. [${img_w}x$img_h]" );
 
 #.............................................................................
-#4QB65MK2YECFURNS2RYQFUOUIZL5VWOWWFRRW3NPFD45MZZM3BZEI3NGKB36TR3AM56HO2R77QCXC
-#::: QB55ZHD7GOWGOBBMSXZ4JEQQCZWH272WXK5VTJXMKLAKIR3HCKX :::: NAILARA AMOS :::
-# :: X6HFOAUGEVM5GSLSCKE6JCATVVDGRA4KXPQVE3ZMC7BAA4QTKGAY :: CODE SIGNATURE ::
+#3DHWH4ZNSRND3SYBSNNNKM4MQCVPTITDQPC343NUWFUJPEW42XNWCUAXRYSCOL56S3G7AUK4I6YXE
+#::: YZNCX5FJCT5ZYZIE3CWFZWRLBEJMXDGHAGVN4HGBUA3LH2V6RUU :::: NAILARA AMOS :::
+# :: T2ZRFWMQYQIW3ZEIOLA5ULFETSFOLGSNUVJJCVDNYOZYQUR23ECQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
