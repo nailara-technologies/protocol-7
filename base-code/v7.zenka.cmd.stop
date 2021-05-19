@@ -10,8 +10,8 @@ return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
 
 my $stop_mode
     = ( defined $$call{'mode'} and $$call{'mode'} eq qw| implicit | )
-    ? 'implicit'
-    : 'manual';
+    ? qw| implicit |
+    : qw| manual |;
 
 my @instance_ids;
 my $not_found_name;
@@ -20,12 +20,12 @@ my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
     if ( $param_str =~ m|^\d+$| ) {    # instance id
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "unknown zenka instance '$param_str' [see 'list zenki']"
             }
             if not exists <v7.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );
-    } else {                           # zenka name [ LLL: validate syntax ]
+    } elsif ( defined $param_str ) {    # zenka name [ LLL: validate syntax ]
         my $zenka_name = $param_str;
         my $zenka_subname;
         $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
@@ -44,6 +44,11 @@ foreach my $param_str ( split m| +|, $params ) {
             push( @instance_ids, $iid )
                 if <v7.zenka.instance>->{$iid}->{'zenka_id'} == $zenka_id;
         }
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'expected valid zenka name'
+        };
     }
 }
 
@@ -56,8 +61,8 @@ map {
 } @instance_ids;
 
 my $count   = scalar @instance_ids;
-my $s       = $count > 1 ? 's' : '';
-my $msg_str = "shutting down $count zenka instance$s";
+my $msg_str = sprintf( 'shutting down %d zenka instance%s',
+    $count, <[base.cnt_s]>->($count) );
 
 my %zenka_names;
 map {
@@ -93,11 +98,11 @@ foreach my $name ( keys %shutdown_names ) {
         <v7.zenka.manually_stopped>->{$name} = <[base.time]>->(4)
             if $stop_mode eq qw| manual |;
 
-        <[base.log]>->(
-            2, "disabled zenka '$name' [ no more instances present ]"
+        <[base.logs]>->(
+            2, "disabled zenka '%s' [ no more instances present ]", $name
         );
-        <[base.log]>->(
-            1, ": << added '$name' to 'manually stopped' list >>"
+        <[base.logs]>->(
+            ": << added '%s' to 'manually stopped' list >>", $name
         ) if $stop_mode eq qw| manual |;
 
         next if not exists <v7.zenka.dependency>;
@@ -106,8 +111,9 @@ foreach my $name ( keys %shutdown_names ) {
             if ( !keys %{ <v7.zenka.dependency>->{$dep_name} } ) {
                 delete <v7.zenka.dependency>->{$dep_name};
                 if ( exists <v7.zenka.auto_cleanup>->{$dep_name} ) {
-                    <[base.log]>->(
-                        1, "dependency based auto-start cleanup [ $dep_name ]"
+                    <[base.logs]>->(
+                        'dependency based auto-start cleanup [ %s ]',
+                        $dep_name
                     );
                     <[zenka.cmd.stop]>
                         ->( { 'args' => $dep_name, 'mode' => qw|implicit| } );
@@ -122,14 +128,14 @@ foreach my $name ( keys %shutdown_names ) {
 map { <[zenka.change_status]>->( $ARG, qw| shutdown | ) } @instance_ids;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => sprintf( "zenka '%s' not in set-up [ see 'list zenki' ]",
         $not_found_name )
     }
     if !$setup_found and $not_found;
 
 if ($count) {
-    return { 'mode' => 'true', 'data' => $msg_str };
+    return { 'mode' => qw| true |, 'data' => $msg_str };
 } else {
     ## clean up orphaned start jobs ###
     foreach my $param_str ( split m| +|, $params ) {
@@ -143,20 +149,20 @@ if ($count) {
             if ( my @removed_job = <[jobqueue.remove_job]>->($ARG) ) {
                 my $a_n
                     = $removed_job[0]->{'callback_params'};   ## zenka_name ##
-                <[base.log]>->( 0, "removed orphaned start job [$ARG]" );
-                <[base.log]>->( 0, ": zenka : $a_n" );
+                <[base.logs]>->( 0, 'removed orphaned start job [%s]', $ARG );
+                <[base.logs]>->( 0, ': zenka : %s',                    $a_n );
             }
         } <[jobqueue.find_jobs]>->($job_attr);
     }
     ##
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'there is no zenka matching zenka running'
     };
 }
 
 #.............................................................................
-#FHOW67DDNV3SW6RAJFVDU2XGMKCCEQOH2R7CYJQLV5ZFCBSZPNGSEVHXL2FNPPFPME6SXAYVXXKKI
-#::: XCXLEZGPBAXBGWH6TOY4DS5N36WNO7ERQDTTYD2SSY3KU2FGZ32 :::: NAILARA AMOS :::
-# :: 6LPM6BKDQ27Z3LOLT7JLAEGVCVYI5NZHLRXF7AV6X4FJ646HQEDY :: CODE SIGNATURE ::
+#3UQRP7VHT72LBRPXJ2RFPQHR7MSE3KIPZICJGPC5Q25XVZWXNACG7KZJ2TP6GF3DFXEXNRG2IWSNM
+#::: YNTCDX4Y4IHN5MHD3C7QRYLOG6CNFEFKMCBOR33UF7REP4VBUHI :::: NAILARA AMOS :::
+# :: V4K4ERFB6ED2XIQ25CH5IPE3E3WTPORBY3DE7K7KOUTVLZHPACAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
