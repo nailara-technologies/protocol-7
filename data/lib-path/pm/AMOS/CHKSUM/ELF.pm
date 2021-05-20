@@ -33,12 +33,12 @@ our $overflow_threshold //= 0XFE000000;   ##  elf hash : 0XF0000000 ##
 ##
 ####
 
-## installing inline_elf() as currently available ##
+## installing inline_elf as currently available ##
 
 if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
     *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
 } else {
-    *inline_elf = compile_inline_elf_to( gen_inline_path(qw| /var/tmp/. |) );
+    *inline_elf = compile_inline_elf_to( gen_inline_path(qw|  /var/tmp  |) );
 }
 
 die 'loading \ compiling of inline_elf() subroutine not successful'
@@ -112,7 +112,7 @@ sub gen_inline_path {
 return 1;  ###################################################################
 
 #.............................................................................
-#MT5DS5E53HX5LFCS5IUL4JLH6PJDSJZLGJ6SARO6ICWLADEEWOJIK52QDTZLG2O37RZXJYAV5DAUW
-#::: WGWYT3DHL6HEFZ3JHVSB4HGBIMRIABEFXL7HDB6WE4WM5BSPNGK :::: NAILARA AMOS :::
-# :: QZNIWUWSA6XU7KXYJQQLUMRO57NE5HCFRCW77Z3RNYFYY2LEL2BY :: CODE SIGNATURE ::
+#OX4PIL7VZSOBFTLMXB6HMQJG342B4EPZZBAQKTYTVANKB5XFNKHMAFQXTUJ2BEKYTAGFHH6MXME5G
+#::: WDA3PDFGM5HFDCKV6LP6WRM6XLIMY4T6ALKOGPEHTI3KDMLVMBT :::: NAILARA AMOS :::
+# :: 77HNBEZ4VTCGRJFOKX72AB4IZW4I44KXRJMAIGDIVWNSW4CBQODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,6 +11,7 @@ use strict;
 use English;
 use warnings;
 use List::Util;
+use Cwd qw| abs_path |;
 use File::Path qw| make_path |;
 
 eval qq| require 'Inline/C.pm' |;
@@ -29,6 +30,7 @@ our $debug_output_to_console = 0;
 sub compile_inline_elf_to {
 
     my $inline_directory = shift // '';
+
     die 'require at least a <path> parameter' if not length $inline_directory;
     my $uid      = shift;           ## optional ##
     my $gid      = shift;           ## optional ##
@@ -50,7 +52,9 @@ sub compile_inline_elf_to {
             if !-d $inline_directory;
     }
 
-### [RE]COMPILING \ LOADING .., ###
+    $inline_directory = abs_path($inline_directory);
+
+    ### [RE]COMPILING \ LOADING .., ###
     eval {
         no warnings;    # <-- 'redefine' ?
         Inline->bind(
@@ -61,7 +65,7 @@ sub compile_inline_elf_to {
         use warnings;    # <-- 'redefine' ?
     };
 
-## removing ,./lib/ from @INC again ., ##
+    ## removing ,./lib/ from @INC again ., ##
     shift @INC if $INC[0] =~ m|^$inline_directory/lib|;
 
     ## inherit parse_error [ $EVAL_ERROR ]
@@ -206,7 +210,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#T2QWHW2WFDSX43B7VWLOX5FXVPSYTM25J2KAZTWV466SSAGZYQBSYNDVLDJRZJUS7U2R4X47H6IL4
-#::: NBT6PQ3X3QA4CPIYOWBK7ITEWYFDG4XFVWPZ4AFVZPNIZHLWABY :::: NAILARA AMOS :::
-# :: RJUCMV4HATZW4TO2UOM3WKZETPCXOUTHGLJ4667D75DLP4MNQ4AA :: CODE SIGNATURE ::
+#CDEKYT2FGFOYDKND6OVNBUVAZ3N3NSHGB7VUQECRBP5AUT4ITUTEGU4FGBXOMTM4JGG3HWI2XX55C
+#::: X43YON7UFHNL5YHMPUADM3GTZE7PPXIQHFPEHCM6NZRKCN57G7S :::: NAILARA AMOS :::
+# :: JKUS5WODPUSDIZKABUHOJ5CMOYW2LEB6YOJ2F5O6USO5NL2G5SCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
