@@ -1,0 +1,50 @@
+# >:]
+
+# name = graphics-matrix.filter.rep-col
+
+my ( $image, $trans_color ) = @ARG;
+return warn 'image object expected <{C1}>'    if not defined $image;
+return warn 'expected color parameter <{C1}>' if not defined $trans_color;
+
+$image->Set(qw| colorspace RGB |);
+$image->Set( qw| matte |, 1 );    ## <-- enables transparency
+
+my $img_depth = $image->Get(qw| depth |);
+
+my @alRGB = map { $ARG /= 257 } ( $image->QueryColor($trans_color) ); # 0..255
+
+pop(@alRGB);    ## removing alpha value ##
+
+my ( $img_w, $img_h ) = $image->get(qw| width height |);
+
+my $time_start = <[base.time]>->(3);
+
+for my $y ( 0 .. $img_h - 1 ) {
+
+    # my $perc = sprintf "%.0f", 100 / $img_h * $y;
+    # print STDERR "[ $perc% ]\n";
+
+    for my $x ( 0 .. $img_w - 1 ) {
+
+        my @RGBA    # [0..255]
+            = map { $ARG /= 257 }
+            split( ',', $image->Get("pixelcolor[$x,$y]") );
+
+        <[graphics-matrix.filter.alpha]>->( \@RGBA, \@alRGB );
+        my @hex_cols
+            = $img_depth > 8
+            ? map { sprintf( "%x", sprintf( "%.0f", $ARG * 257 ) ) } @RGBA
+            : map { unpack( "H*", chr( sprintf( "%.0f", $ARG ) ) ) } @RGBA;
+
+        $image->Set( "pixel[$x,$y]", '#' . join( '', @hex_cols ) );
+    }
+}
+
+my $delta_t = sprintf( "%.1f", <[base.time]>->(3) - $time_start );
+<[base.log]>->( 1, "filter applied in $delta_t seconds. [${img_w}x$img_h]" );
+
+#.............................................................................
+#SG3M4E5MN6OQGPLEAJOZH2F5MO6YBCRUHK4E6NUDDJAK7P5W5C57RZ2DOUGMV2C5MPBH2GBHZ6NCM
+#::: CEHQ3225ZO3J6Q64V2XFT2RXSALZMHHUK67D4YGEB4L45F7Y2GA :::: NAILARA AMOS :::
+# :: 5MDXJ446CFXCPBXXECU7C65AEPZB44AJZWUNH6GSICYZ2AUR7SAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

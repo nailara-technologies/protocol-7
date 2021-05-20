@@ -1,20 +1,29 @@
 # >:]
 
 # name  = chk-sum.bmw.filesum
-# note  = this will block on large files --> need event based asynchr. method .,
+# note  = this will block on large files --> event based async. method ..,
+# param = <bit-size> <file-path>
 
-my $bmw = <[chk-sum.bmw.ctx]>->(shift);
-die "expected file name parameter" if not my $fname = shift;
-die "file '$fname' not found" if !-f $fname;
+my $bit_size = shift;
+return warn 'expected bit-size parameter <{C1}>'
+    if not defined $bit_size or $bit_size !~ m,^(224|256|384|512)$,;
+return warn 'expected file name parameter <{C1}>' if not my $fname = shift;
+return warn sprintf( "file '%s' not found <{C1}>", $fname ) if not -f $fname;
 
-open( my $SUM_FD, '<' . $fname ) or die "<< $fname : \l$OS_ERROR >>";
+my $bmw = <[chk-sum.bmw.ctx]>->($bit_size);
+
+open( my $SUM_FD, qw| < |, $fname )
+    or return warn sprintf "<< %s : %s >>", $fname,
+    <[base.format_error]>->($OS_ERROR);
+
 $bmw->addfile($SUM_FD);
+
 close($SUM_FD);
 
 return encode_b32r( $bmw->digest );
 
 #.............................................................................
-#7I5GTJTZM3BQLNBVWOXDO6IMZH5AOCBVBZWSFVNZ7H4RJV26OWWTV4YTUEST4T32EB35DFQJ4ZUDO
-#::: 7ZZ23E2FZV7CI3NM5AN5KYVYM3FWJJNAKM3WSNNTPULGNOW23I6 :::: NAILARA AMOS :::
-# :: SBPM7TFH7I44ADENFDOVUN23FAZ4XMYEM6KR34HC5SKT7D24DUDA :: CODE SIGNATURE ::
+#3M7KERCVOV6NSOZBWGSKQYF6OD3E6PN2JRQ5YC5KKLMAF3Q7LERKF4MQ3HI6KYGKCQQMSZXVDK5KO
+#::: HR4J33YUFAEAVLQOYWUSWRJAKD2FJSKPALWUDNGCXMIHTFUME2K :::: NAILARA AMOS :::
+# :: Y34JM2A5OGYPENXKV2T6T2E3BTDNWXA7CXKLGLETZ5UU5UEULCAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
