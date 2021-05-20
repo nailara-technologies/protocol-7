@@ -288,3 +288,9 @@ while (1) {    # main loop ( exits on QUIT, mouse and key events)
         SDL::delay($delay) if $delay;
     }
 }
+
+#.............................................................................
+#FLJ226ASNVAHMVAQ4PLKB36FS3OHV2UB32EPZ6XYUO3ZSHKJA6JEJ6QI7GC5R7BYTDZ4MFG3U3EEO
+#::: JTWNCBJMADDNM26N3G47GEZONCSMANZIBQF6VVMHT6VY74TYQF5 :::: NAILARA AMOS :::
+# :: DC6JT236ZHFMKYWPC4LHUBBGWACSIUFLLBAAHE25EGUP6PRY5SDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

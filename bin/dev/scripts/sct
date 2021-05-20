@@ -10,6 +10,8 @@ use File::Path qw| make_path |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
+my @window_geometry = qw|  0  347  -77  947  |;
+
 my $protocol_7_path = &p7_root_dir;    ## determine protocol-7 root path ##
 
 my @edit_files;
@@ -29,8 +31,8 @@ my @check_paths = map { abs_path( join( '/', $protocol_7_path, $ARG ) ) } qw[
     ];
 
 {
-    $ENV{'HOME'} //= 'taeki';
-    push( @check_paths, $ENV{'HOME'}, '/tmp' );
+    $ENV{'HOME'} //= qw| taeki |;
+    push( @check_paths, $ENV{'HOME'}, qw| /tmp | );
 }
 
 ## local pm lib path modules ##
@@ -75,8 +77,8 @@ die "\n << error while acquiring screen"
 
 my $wh = $sh + 77 - 20;
 
-my $win_geometry = "'0,0,-77,947,$wh'";
-my $win_name     = "' - SciTE'";
+my $win_geometry = sprintf qw| '%s' |, join( ',', @window_geometry, $wh );
+my $window_name  = "' - SciTE'";
 
 my $found = 0;
 while ( not $found ) {
@@ -86,7 +88,7 @@ while ( not $found ) {
 
 sleep 0.07;
 
-say qx[ wmctrl -e $win_geometry -r $win_name & ];
+say qx[ wmctrl -e $win_geometry -r $window_name & ];
 
 system(qw| wmctrl -a ' - SciTE' & |);
 my $accel = 0.047;
@@ -94,7 +96,7 @@ my $accel = 0.047;
 for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
     qx| transset -n SciTE $t |;
     sleep $accel;
-    $accel = 0.044 - sprintf( "%.04f", $accel * 0.47 );
+    $accel = 0.044 - sprintf( qw| %.04f |, $accel * 0.47 );
 }
 
 sub c_dir  { File::Spec->catdir(@_) }
@@ -107,7 +109,7 @@ sub p7_root_dir {
 }
 
 #.............................................................................
-#GOMPLDGFAZ4VLFTMMBNM4JEIZKXJJJLO3GZY5BGZSO35UKEPQGVBRCAZXDUQ54YU3JAVZICWCWWSK
-#::: J46QCI4INWVD3EOZ2TDXAGVICRPFVZ7UXZNSLZBNNRRHIBKNVBI :::: NAILARA AMOS :::
-# :: P4X7WRKH6Q4RLKV4PAWYCLWNAV4Y32NY2A63QCX2LD4AMRWIDYCY :: CODE SIGNATURE ::
+#IJWMPBZOTW6PZC53NUFV25ABCQUUFYL2KQPAMP3CACCX7H6FGNZOSVCOPERM673WRMDSBUC7C5Q7E
+#::: YTPMTYLJYWADIDCF3CORDGQV4M6PJSEPINEUAYHRX3XH3WS7GH6 :::: NAILARA AMOS :::
+# :: 3FCVTH222ZBKBJLF3XKPUNO75AUUTKP77NCF3SX74SRRVPJRNUCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
