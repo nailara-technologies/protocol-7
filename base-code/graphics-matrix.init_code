@@ -5,12 +5,16 @@
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 <[base.perlmod.autoload]>->('Graphics::Magick');
 
-<graphics-matrix.cache_dir> //= '/var/cache/graphics-matrix';
+<graphics-matrix.cache_dir> //= qw| /var/cache/graphics-matrix |;
 my $cache_dir = <graphics-matrix.cache_dir>;
 
-my $perms = <graphics-matrix.cache_perm> // '0750';
+## graphics-matrix.permission.work_cache_dir   = 0770
+## graphics-matrix.permission.document-storage = 0770
+
+my $perms = <graphics-matrix.permission.document-storage> // '0750';
+
 if ( !-d $cache_dir ) {
-    <[base.log]>->( 1, "creating cache directory '$cache_dir' .. [$perms]" );
+    <[base.logs]>->( "creating directory '%s' .. [%s]", $cache_dir, $perms );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
@@ -32,7 +36,7 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 0;
 
 #.............................................................................
-#TJ7XWCBZILSS3CBMI5Y5TNID7Q7HWDYIO667IPIB33Y3FYAM4ZPAGYWIMJ3LXNUKHKSODC2BDPQXA
-#::: ZFSF6HBLTFCVYZ7W2H4FFJMWVQAGNDBSS6KGWKHBTUIIF7Z3WV5 :::: NAILARA AMOS :::
-# :: 4L5LWBRXOBIL7D2IEERGI6MWPYURTALMY2WTDZKVGI75PJGC64BQ :: CODE SIGNATURE ::
+#MR4CH6EOX44BXZNDRYGCGYTXCILLU3VMGQTIBAGSEB74LKEIVAUZQXQ2NV63PA7EADBX2VKGRLCC2
+#::: HUSCBMGRWYS6BBEHF7JIHJDYUQQ4N75NZ6F4EDZRPI3FMGVK7OV :::: NAILARA AMOS :::
+# :: IDILFOM7N6GFWURT5ABIOKUSNX3TIYYNIK7IUIOD2BEODRLDJCDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
