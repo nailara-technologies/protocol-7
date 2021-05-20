@@ -1,0 +1,56 @@
+# >:]
+
+# name  = graphics-matrix.cmd.filter-c2a
+# param = <color|auto> <image>
+# descr = replace given color with transparency
+
+my $params = shift // {};
+my ( $color_str, $input_file ) = split( m| +|, $params->{'args'}, 2 );
+
+return { 'mode' => 'false', 'data' => 'expected alpha color parameter' }
+    if not defined $color_str or !length($color_str);
+return { 'mode' => 'false', 'data' => 'expected path to image file' }
+    if not defined $input_file or !-f $input_file;
+return { 'mode' => 'false', 'data' => 'input file not found' }
+    if !-f $input_file;
+
+##  check for collisions  ##  [ LLL ]
+my $bmw_chksum   = <[chk-sum.bmw.filesum]>->( 224, $input_file );
+my $image_chksum = substr( $bmw_chksum, 0, 13 );
+
+my $image  = Graphics::Magick->new;
+my $status = $image->Read($input_file);
+return { 'mode' => 'false', 'data' => $status } if $status;
+
+$image->Trim() if $color_str eq qw| auto |;
+
+$color_str = <[graphics-matrix.guess_bg_color]>->($image)
+    if $color_str eq qw| auto |;
+
+my $color_chksum = <[chk-sum.amos]>->($color_str);
+
+my $output_file = sprintf( qw| %s/%s.%s.png |,
+    <graphics-matrix.cache_dir>, $image_chksum, $color_chksum );
+
+unlink($output_file) if -f $output_file and -z $output_file;
+
+<[base.log]>->( 1, "output file: $output_file" );
+
+return { 'mode' => 'true', 'data' => $output_file } if -f $output_file;
+
+my ( $img_w, $img_h ) = $image->get(qw|  width  height  |);
+
+<[graphics-matrix.filter.c-to-a]>->( $image, $color_str )
+    ;    ##  apply filter  ##
+
+$image->Write($output_file);
+
+return { 'mode' => 'false', 'data' => $status } if $status;
+
+return { 'mode' => 'true', 'data' => $output_file }
+
+#.............................................................................
+#HNNREFTEZISFTLNWDWV2GKLNZ3U5U2RGSWQFNLOTFXJ6UTXJ6DZCXNOTXJAWHE24PAKNINBKWC332
+#::: D6WL5OHHU4P7POOFSHNPGVRI4XNDANDMZGYOUBE534C7DKN2LLH :::: NAILARA AMOS :::
+# :: Q27MJGVZROWLQIDIJMCUA4HW3ISNGOCUCNMIFMPZVPYICZBOIGAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
