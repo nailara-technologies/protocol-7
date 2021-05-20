@@ -4,34 +4,35 @@ BEGIN { $ENV{'NO_AT_BRIDGE'} = 1 }
 
 use utf8;
 use strict;
-use warnings;
 use English;
+use warnings;
 use File::Spec;
-use Gtk3 '-init';
-use feature ':5.10';
+use Gtk3 qw| -init |;
+use feature qw| :5.10 |;
 use Glib qw| TRUE FALSE |;
+use Time::HiRes qw| sleep |;
 
-use Data::Dumper 'Dumper';
+use Data::Dumper qw| Dumper |;
 
-my $image_path = File::Spec->rel2abs($0);
+my $image_path = File::Spec->rel2abs($PROGRAM_NAME);
 while ( -l $image_path ) { $image_path = readlink($image_path) }
 $image_path =~ s,[^/]+(/[^/]+){3}$,data/gfx/logos/nailara.png,;
 
-my $scale_factor = 0.044;    # <- of screen width ...
+my $scale_factor = 0.043;    ## nailara icon size [ screen width ] ##
 
-die "display environment variable not set" if not defined $ENV{'DISPLAY'};
+die 'display environment variable not set' if not defined $ENV{'DISPLAY'};
 die "image file '$image_path' not found"   if !-f $image_path;
 
-#open STDERR, '>>/dev/null' or warn "/dev/null: $!"; # silence [xserver]
+## open STDERR, '>>/dev/null' or warn "/dev/null: $OS_ERROR"; ## silence X-11
 
 my $window = Gtk3::Window->new('toplevel');
 
 # my $root_window = $window->get_root_window;
 
-$window->signal_connect( 'delete_event'         => sub { Gtk3->main_quit } );
-$window->signal_connect( 'touch-event'          => \&menu_open );
-$window->signal_connect( 'button-release-event' => \&menu_open );
-$window->signal_connect( 'configure-event'      => \&position_changed );
+$window->signal_connect( qw| touch-event |     => \&menu_open );
+$window->signal_connect( qw| delete_event |    => sub { Gtk3->main_quit } );
+$window->signal_connect( qw| configure-event | => \&position_changed );
+$window->signal_connect( qw| button-release-event | => \&menu_open );
 
 my $use_transparency = $window->is_composited ? 1 : 0;
 $window->set_opacity(1) if $use_transparency;
@@ -44,7 +45,7 @@ $window->stick;
 $window->set_app_paintable(1);
 my $screen = $window->get_screen;
 
-# $screen->signal_connect( 'window-openend-event' => \&window_opened );
+## $screen->signal_connect( 'window-openend-event' => \&window_opened );
 
 if ($use_transparency) {
     my $rgba = $screen->get_rgba_visual();
@@ -68,8 +69,8 @@ my $scr_h = $screen->get_height();
 #########
 my $image = Gtk3::Image->new_from_pixbuf(
     $pbuf->scale_simple(
-        sprintf( "%.0f", $scr_w * $scale_factor ),
-        sprintf( "%.0f", $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) ),
+        sprintf( qw|%.0f|, $scr_w * $scale_factor ),
+        sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) ),
         'hyper'
     )
 );
@@ -79,40 +80,32 @@ $window->add($image);
 ##
 my $menu = Gtk3::Menu->new();
 
-my $trance_item = Gtk3::MenuItem->new_with_label("root.start trance");
-$trance_item->signal_connect(
-    'activate' => sub {qx(/usr/bin/unx root.start trance)} );
-$menu->append($trance_item);
-$trance_item = Gtk3::MenuItem->new_with_label("root.stop trance");
-$trance_item->signal_connect(
-    'activate' => sub {qx(/usr/bin/unx root.stop trance)} );
+my $trance_item = Gtk3::MenuItem->new_with_label(qq|start-up X-11 zenka|);
+$trance_item->signal_connect( 'activate' => sub {qx| p7c v7.start_once X-11 |}
+);
 $menu->append($trance_item);
 
-my $rt_item = Gtk3::MenuItem->new_with_label("root.start rt");
-$rt_item->signal_connect(
-    'activate' => sub {qx(/usr/local/bin/unx root.start rt)} );
-$menu->append($rt_item);
-
-my $dpms_item = Gtk3::MenuItem->new_with_label("xserver.dpms_force_off");
+my $dpms_item = Gtk3::MenuItem->new_with_label(qq|OFF ( backlight )|);
 $dpms_item->signal_connect(
-    'activate' => sub {qx(/usr/bin/unx xserver.dpms_force_off)} );
+    'activate' => sub { sleep 0.13; qx| p7c X-11.dpms_force_off | } );
 $menu->append($dpms_item);
 
-my $quit_item = Gtk3::MenuItem->new_with_label("Quit");
+my $quit_item = Gtk3::MenuItem->new_with_label(qq|exit p7 menu|);
 $quit_item->signal_connect( 'activate' => sub { Gtk3->main_quit } );
 $menu->append($quit_item);
 
-$menu->set_property( 'rect-anchor-dx', -42 );
+$menu->set_property( qw| rect-anchor-dx |, -42 );
 
-#$menu->set_property( 'anchor-hints',   'flip-y' );
-#$menu->set_opacity(0.88);
+## $menu->set_property(qw| anchor-hints flip-y |);
+## $menu->set_opacity(0.88);
+
 $menu->show_all;
 ##
 
-$window->move( 1836, -2 ) if `hostname` =~ /zeropoint/;
+$window->move( 1836, -2 ) if qw| hostname | =~ m|zuluma|;
 $window->move( 1827, -2 );
 
-#   $window->move( 1827, -2 ) if `hostname` =~ /w520/;
+## $window->move( 1827, -2 ) if `hostname` =~ m|aiya-wasu|;
 
 $window->show_all;
 
@@ -121,17 +114,17 @@ Gtk3->main;
 ###[SUBROUTINES]##############################################################
 
 sub window_opened {
-    my ( $window, $event ) = @_;
+    my ( $window, $event ) = @ARG;
 
     printf( " < window > ' %s '  < event > " . Dumper($event), $window );
 }
 
 sub menu_open {
-    my ( $window, $event ) = @_;
+    my ( $window, $event ) = @ARG;
     print "[menu_open]\n";
 
     # Gtk3->main_quit; exit;
-    $menu->popup_at_widget( $window, 'east', 'east' );
+    $menu->popup_at_widget( $window, qw| east east | );
 }
 
 sub position_changed {
@@ -145,3 +138,9 @@ sub handler_menu_activated {
     #my $active_str = $menu->get_active()->get_label;
     print "<activated> $label_str\n";
 }
+
+#.............................................................................
+#WLOIAPN6742AXPST7NBTPDH6CC45EDVJXR2FBY2XXG6HSRZ5WG7BDXHNO5W3NJSNU5IL3MJKTKPLK
+#::: CV2RMMCGMW2HQLYE4BKKAHGLKERKV3X5EFUXACQHM3ZJSIERZRN :::: NAILARA AMOS :::
+# :: TSZ6FWL3ZSTZVU6JVCAOFYUOBBW6FOJPE6QHJWSVUNYGCKZBBKDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

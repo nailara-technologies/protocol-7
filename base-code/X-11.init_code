@@ -28,9 +28,7 @@ if ( defined <system.zenka.subname> ) {
     }
 }
 
-foreach my $bin_name (
-    qw|
-
+foreach my $bin_name ( qw [
     Xvfb
     Xorg
     Xnest
@@ -39,8 +37,7 @@ foreach my $bin_name (
     nxagent
     intel_gpu_top
     intel_gpu_frequency
-
-    |
+    ]
 ) {
     <X-11.bin_path>->{$bin_name} //= <[base.required_bin_path]>->($bin_name);
 }
@@ -94,8 +91,8 @@ if (    <X-11.mode> eq 'xorg'
                     ( $cur_freq, $max_freq ) = ( $1, $2 );
                     <[base.log]>->(
                         0,
-                        "[!] GPU frequency setting failed "
-                            . "[ now $cur_freq, should be $max_freq ]"
+                        "<< cannot set GPU frequency "
+                            . "[ is $cur_freq : should be $max_freq ] >>"
                     ) if $cur_freq ne $max_freq;
                 }
             }
@@ -106,7 +103,7 @@ if (    <X-11.mode> eq 'xorg'
 0;
 
 #.............................................................................
-#2AS32D3MQ5M5TFF66HDOFVGGDQMU3QEAYEPHVOYWY2WY67EGGRN22JMMTVV6QBABHLU56X7FHDXNI
-#::: OYOFZ5J5RH5FRPFX5ARVCE3ZVBPTSEX7VCSY44HNHROSKYNRZTB :::: NAILARA AMOS :::
-# :: ARWN2ZEMSJBF7SM4X2GJPUL4QSF7LVUWGFX42GRL7KLIPOLS4MBQ :: CODE SIGNATURE ::
+#KIPZSNG4ZEXVWDAOHET2KATBPD3OMET2MKZZXSNMTNRQDPMYNHDJWM5L742L4TSTAC2D755AMLJ36
+#::: BXCENJB5ZXLMYJWIBP2H4MID5NVDYLOMY7NUYCT2U3UT2K6KBSV :::: NAILARA AMOS :::
+# :: GKEJZPN2DGA2OH7U7DT3XCDR62M7TCYQVNJPMS5BSL4YSAKHMWAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

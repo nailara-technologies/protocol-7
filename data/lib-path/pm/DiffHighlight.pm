@@ -303,3 +303,9 @@ sub is_pair_interesting {
         || $suffix_a                                  !~ /^$BORING*$/
         || $suffix_b                                  !~ /^$BORING*$/;
 }
+
+#.............................................................................
+#PZKM444QVSZZ4LXG7SH2QFDUYZIRUTEWAY6RXFPWOEXPEFZOA4JPSNQLVXQBH6FFTAG5RPZ3WEEP4
+#::: KCPDAMAQD37L55O7PJUNIOCMWCSDKTFNCQ7FIM6UIAZYJ7TNFOT :::: NAILARA AMOS :::
+# :: 5SDXWV6RDD32AVHCAT3YQ3PY3I34JWV3UELM6HL3HYI3HBNBR6CQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

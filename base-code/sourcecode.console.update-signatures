@@ -14,15 +14,15 @@ my $work_tree    = $paths->{'work_tree'};
 my $source_root  = $paths->{'source_subdir'};
 my $version_root = $paths->{'version_root'};
 
-my @copy_sources = qw[
+my @copy_sources = qw [
     bin
     bin/dev
     read-me
+    bin/dev/*
     base-code
     bin/admin
     read-me/md
     configuration
-    bin/dev/scripts
     bin/dependencies
     bin/dev/git-hooks
     data/lib-path/pm
@@ -45,7 +45,7 @@ my @all_dirs = grep {defined} map {
         push( @all_files, $absolute_path );
         undef;
     } else {
-        <[file.match_dirs]>->( $work_path_abs, 'recursive', $ARG );
+        <[file.match_dirs]>->( $work_path_abs, qw| recursive |, $ARG );
     }
     }
     grep { !m|\*| } @copy_sources;
@@ -89,10 +89,10 @@ map {
         if not -w "$work_tree/$ARG"
 } @source_paths;
 
-<[base.log]>->( 1, "* updating $file_count source file signatures..," );
+<[base.logs]>->( '* updating %s source file signatures..,', $file_count );
 foreach my $path_rel (@source_paths) {
-    my $path_abs = catfile( $work_tree, $path_rel );
 
+    my $path_abs = catfile( $work_tree, $path_rel );
     <[base.log]>->( 2, ':' );
 
     my $code_data_ref = <[source.cmd.get-code-signed]>
@@ -102,7 +102,7 @@ foreach my $path_rel (@source_paths) {
     <[event.once]>;
 
     next
-        if $code_data_ref->{'mode'} eq 'true'
+        if $code_data_ref->{'mode'} eq qw| true |
         and $code_data_ref->{'data'} eq 'still valid. =)';
 
     die "failed to create signature for \"$path_rel\""
@@ -120,7 +120,7 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
 #.............................................................................
-#NHCUDNINLV5VB5YEYGGOY6SJSQWHNDAJ4OMUYZHIOACZQHFG3UBBBH7IQBHXN43ZDG3LFJUXG2UZ2
-#::: QRUBZZKZ22BKK7TG25DMO6DNI2NWNM4AW3OZQ246WXWCCUEE2Q3 :::: NAILARA AMOS :::
-# :: QMWVE3VK74UHLR6PGRTRAMXTGOGTJPJHZFVZIRCXUKTVEUQPXYCY :: CODE SIGNATURE ::
+#SE2PXU26J5BY4SFNBZGFTNSDAPRRDLBX6TYESDGEXCSRBYMX4B4EKSJMW2F33DYSCYTJEFBFF3VQ2
+#::: TB22TX2GD2GSHT255JKMFE66ET66FHVNCNI2GNVTTQFAL76UPO7 :::: NAILARA AMOS :::
+# :: TVUADNTP5M6OMFTKNUNWRYW7XMR2G77VEOUMV4OS6D6O432PEGCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
