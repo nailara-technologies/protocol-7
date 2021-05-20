@@ -11,7 +11,7 @@ use strict;
 use English;
 use warnings;
 use List::Util;
-
+use Cwd qw| abs_path |;
 use File::Path qw| make_path |;
 
 use Digest::Elf;    ## creating directory path names ##
@@ -139,6 +139,9 @@ sub compile_inline_source {
                 1, $custom_inline_dir )
                 if !-d $custom_inline_dir;
         }
+        ## prepare matching precise @INC path ##
+        $custom_inline_dir = abs_path($custom_inline_dir);
+
         ##
 
         ###                                                 ###
@@ -271,7 +274,7 @@ sub encoded_elf_chksum {
 return 1;  ###################################################################
 
 #.............................................................................
-#GBPVVZ7NJGU3CYTPN7OGRD4OSOAVFNBJVTR7NSXMCERG63GL6FJOBCXENROBGHIUFQDWTSG55QXZK
-#::: 3NPTHTJCUS7XGBGBZKBPDF6MD7DGYH3WMZT646CDC2X6W4Q2BFQ :::: NAILARA AMOS :::
-# :: TEJG2SRCX6CQQJURUPEVORFJCNZ2TCHOVRPOHBKZS2Y6UR6X4QAQ :: CODE SIGNATURE ::
+#V7QDUGEQYUIGSB2DFINOL3OUOYQNHIQURYTOAC7ISX6T4M4GMOEDQ4XRQKYIKJ7ETF5BI6HXKVX3I
+#::: Z5M7G7WW2SJLF2C6LMLBU4EG4ZQEWBBR6H47KOIVCCW2T6NDX4T :::: NAILARA AMOS :::
+# :: YIAFAW2U2TCDUCGRZAGM54U5MJO2I765PJNTDUDYJTQX7HYXJICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
