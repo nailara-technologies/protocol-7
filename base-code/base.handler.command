@@ -2,10 +2,11 @@
 
 # name    = base.handler.command
 # descr   = handling of protocol-7 syntax, calling command handlers
-# comment = protocol-7 specific --> move to 'protocol.protocol-7' namespace and
-#                                              replace with a generic version..,
-#                                                            [ needs rewrite. ]
-# [LLL] : reduce memory usage during compilation [ ..3MB for this subroutine., ]
+#
+# comment = protocol-7 specific --> move to protocol.protocol-7 namespace and
+#                                            replace with a generic version..,
+#                                                           [ needs rewrite. ]
+# [LLL] : reduce memory usage during compilation [ ..3MB for this subroutine ]
 
 my $id = $_[0]->w->data;
 
@@ -586,10 +587,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 my $reply;
                 {
                     local $EVAL_ERROR = undef;
-                    $reply
+                    my $caller = <[base.caller]>->(-1)
+                        and $reply
                         = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
+
+                    $EVAL_ERROR
+                        = sprintf(
+                        "command '%s' did not return hash ref [%s]",
+                        $cmd, $reply // qw| undef | )
+                        if not length $EVAL_ERROR and not defined $reply
+                        or ref($reply) ne qw| HASH |;
+
                     if ($EVAL_ERROR) {
-                        my ( $err_str, $caller )
+                        my $err_str
                             = <[base.format_error]>->( $EVAL_ERROR, -1 );
                         $caller = defined $caller ? " $caller" : '';
                         my $log_error = 1;
@@ -1051,7 +1061,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 return 0;        ##  command processing was complete  ##
 
 #.............................................................................
-#JX6V2M25Y6JZBDXX25QZE4WZU6BEEYA2W3K4MKYJMRK5FPJJPNGO3E3HEXJLHUDFWO7JSFWGWACPU
-#::: QRPI6SSDYQ474TYPFBDNMERN7QZW3MPXGUJMXRLHE667QSGZTP4 :::: NAILARA AMOS :::
-# :: P66MKFYECYF52ZSTX2U6FKOYTSNCTGDTC27S476CGS6PJM55UKDI :: CODE SIGNATURE ::
+#O4ZSN7KOW7GUQP7GX6IME6Z6YBQKOMACXVYJTXYFGSRDSQDQYM72YG57XSNWKCTI3VXQR3TOJFFZM
+#::: 34Q6JOOIMXB6BPQ527YXGQJQEG43VOGWEDDOE5JJ656B7C3IOVZ :::: NAILARA AMOS :::
+# :: 3RGR6P3LPMCOVKTYSFKV4NDM5HOTWXICCPUEUDAORHLQFY3JB4BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

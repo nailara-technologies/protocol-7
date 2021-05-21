@@ -4,18 +4,18 @@
 # param = [instance]
 # descr = return list of instance process IDs
 
-my $instance_id = $$call{'args'};
+my $instance_id = $call->{'args'};
 
 return {
-    'mode' => 'false',
-    'data' => "invalid instance id parameter [numerical value expected]"
+    'mode' => qw| false |,
+    'data' => 'expected a valid instance id parameter'
     }
-    if defined $instance_id and $instance_id !~ /^\d+$/;
+    if defined $instance_id and $instance_id !~ <regex.base.iid>;
 
 if ( not defined $instance_id ) {
     my %pids;
     my $reply_list = '';
-    foreach my $i_id ( sort { $a <=> $b } keys %{<v7.zenka.instance>} ) {
+    foreach my $i_id (<[v7.instance_ids]>) {
         my $parent_pid = <v7.zenka.instance>->{$i_id}->{'process'}{'id'};
         map { $pids{$ARG} = 1 } (
             $parent_pid, @{ <[v7.sub-process.get_children]>->($parent_pid) }
@@ -27,28 +27,25 @@ if ( not defined $instance_id ) {
         'data' => $reply_list
     };
 
-} elsif ( $instance_id =~ /^\d+$/ ) {
+} else {
+
     return {
-        'mode' => 'false',
-        'data' => "instance not found [ v7.list (zenki|children) ]"
+        'mode' => qw| false |,
+        'data' => sprintf( 'no instance with id %d found', $instance_id )
         }
-        if not exists <v7.zenka.instance>->{$instance_id};
+        if not defined <v7.zenka.instance>->{$instance_id};
+
     my $parent_pid
         = <v7.zenka.instance>->{$instance_id}->{'process'}{'id'};
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => join( ' ',
             $parent_pid, @{ <[v7.sub-process.get_children]>->($parent_pid) } )
-    };
-} else {
-    return {
-        'mode' => 'false',
-        'data' => 'instance id must be numeric'
     };
 }
 
 #.............................................................................
-#4ATZZU33QKACYXSLEBNX7FCNWEN3EK2EQ2U6XRIG2EXN7FZPS5LJL6WP2O7K7IDJFY7MCLZTCONYI
-#::: 73XXB3TU6UG5FZRK2KT3XLNZ5MGWP3Z4JQYIZ6NQD5DHU4EFNHK :::: NAILARA AMOS :::
-# :: HIO74YF6JOJO24ZUWRXGP5UQUNZQZBWLKW5GILXQRLIU5V4NO6BY :: CODE SIGNATURE ::
+#P4JGOQBAUC7GFUIKKGX3I6B2AFXVEE2G4BWMBBG4FSB76ZSEQCZXGBPU23YDUNU6C5HFIHYAB46LW
+#::: INPV3LYSQO3HEQWKAJJSWHELHHRPBMLI4XJAA44DKPEZCK7J3VY :::: NAILARA AMOS :::
+# :: W3SWYQFQV3KXJAQGLJLUSG7ASUP4PKHYIFGTPO7F6IHCQKFD6SAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

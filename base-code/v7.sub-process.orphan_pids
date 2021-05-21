@@ -4,11 +4,10 @@
 # descr = returns PIDs of orphaned children of deceased zenki
 # todo  = sort pids by process start time
 
-my $proc_table = <v7.process.pt>
-    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+<v7.process.pt> //= new Proc::ProcessTable( qw| enable_ttys | => 0 );
 
 my %own_children;
-foreach my $i_id ( keys %{<v7.zenka.instance>} ) {
+foreach my $i_id (<[v7.instance_ids]>) {
     next if not defined <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
     my $pid = <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
     $own_children{$pid} //= <v7.zenka.instance>->{$i_id}->{'zenka_name'};
@@ -26,23 +25,23 @@ map {
         and not exists $own_children{ $ARG->pid }
         and ( not defined $ARG->exec
         or $ARG->exec ne
-        '/usr/bin/dbus-launch' )    # <-- whitelist :. config [LLL]
-    } @{ $proc_table->table };
+        qw| /usr/bin/dbus-launch | )    ##  <--  whitelist \ config   [LLL]
+    } @{ <v7.process.pt>->table };
 
+my @orphaned_pids = sort keys %orphans;
 map {
     my $name_str = '';
-    if ( length( $orphans{$ARG} ) ) {
+    if ( length $orphans{$ARG} ) {
         $orphans{$ARG} =~ s|^.+/||;
-        $name_str = " '$orphans{$ARG}'";
+        $name_str = sprintf " '%s'", $orphans{$ARG};
     }
-    <[base.log]>->( 1, ": found orphan process [$ARG]" . $name_str )
-    }
-    sort keys %orphans;
+    <[base.logs]>->( ": found orphan process id [%s]%s", $ARG, $name_str )
+} @orphaned_pids;
 
-return sort keys %orphans;
+return @orphaned_pids;
 
 #.............................................................................
-#Q3R64SEPRWGVJVV72PXGPFLZIUVGLEENJTBWKM3X437CGG6GHW4KIQEMYQCB7KDOTZTYYAL36ICTK
-#::: 6BLUMEIX4RGWCPHOT7WKVGY7N55KEZ3Z7XAIOGJQEX5K5X5IEOW :::: NAILARA AMOS :::
-# :: MZLX3N5DMWX7WXG424JCCAF6RFQ42TLN2ESHHAIE3T734E3M7SCI :: CODE SIGNATURE ::
+#35VME5ANZ432L2IYYC66DT3VSAFSOS7NXAGG4JZT5DTA5MEBP2GADLFODGJIIXV5ZFERWE7W74WL4
+#::: W5UJF6F433KE2P4BDE7FURYEXBGV6KKOAA7NGONNMHAWMVNJS5A :::: NAILARA AMOS :::
+# :: RSKZXNLA7MJBG4CBGR5T5GGAFVUZSL63MFJJUQG2UPSY2TVDE2DI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

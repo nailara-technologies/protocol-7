@@ -2,8 +2,16 @@
 
 # name = v7.handler.heartbeat_response_timeout
 
-my $instance_id   = shift->w->data;
-my $instance      = <v7.zenka.instance>->{$instance_id};
+my $w = shift;
+
+my $instance_id = $w->data;
+
+return $w->cancel    ##  not a valid instance entry  ##
+    if not defined <v7.zenka.instance>->{$instance_id}
+    or not defined <v7.zenka.instance>->{$instance_id}->{'status'};
+
+my $instance = <v7.zenka.instance>->{$instance_id};
+
 my $zenka_name    = $instance->{'zenka_name'};
 my $zenka_status  = $instance->{'status'};
 my $is_cube_zenka = $instance->{'is-cube'};
@@ -17,16 +25,19 @@ delete $heartbeat_ref->{'retry_count'}
 my $retry_count   = $heartbeat_ref->{'retry_count'} //= 0;
 my $retry_timeout = $heartbeat_ref->{'retry_count'} //= 2.1;
 
-( my $dots = '.' x ( $error_count % 3 ) ) =~ s|\.{3}$|..,|;
+( my $dots = qw| . | x ( $error_count % 3 ) ) =~ s|\.{3}$|..,|;
 my $retry_str = $retry_count ? " , retrying $dots," : ' `:|';
-<[base.log]>->(
-    0, "instance $instance_id ['$zenka_name'] response timeout$retry_str"
+
+<[base.logs]>->(
+    $error_count == 1 ? 2 : 0,    ##  <-- log level  ##
+    'instance %d [ %s ] response timeout%s',
+    $instance_id, $zenka_name, $retry_str
 );
 
-if ( $retry_count <= 0 ) {    # [ no further retries.., ]
+if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
     $heartbeat_ref->{'retry_count'} = $heartbeat_ref->{'retry_reset'};
     if ($is_cube_zenka) {
-        if ( $zenka_status eq 'error' ) { #   <--  was already not successful.
+        if ( $zenka_status eq qw| error | ) {    ##  once more not successful
             <callback.session.closing_last> = {
                 'name'   => qw| v7.teardown |,
                 'params' => ['fatal cube zenka error']
@@ -34,36 +45,35 @@ if ( $retry_count <= 0 ) {    # [ no further retries.., ]
             <[base.session.check_remaining]>;
         } else {
             delete <callback.session.closing_last>;  # allowing safe restart #
-            <[zenka.change_status]>->( $instance_id, 'error' );
+            <[zenka.change_status]>->( $instance_id, qw| error | );
         }
     } else {
-        <[zenka.change_status]>->( $instance_id, 'error' );
+        <[zenka.change_status]>->( $instance_id, qw| error | );
     }
 } else {
     $instance->{'timer'}->{'heartbeat-timeout'}->cancel
         if defined $instance->{'timer'}->{'heartbeat-timeout'}
         and $instance->{'timer'}->{'heartbeat-timeout'}->is_active;
 
-    ## decreasing heartbeat timeout .,
-
-    $retry_timeout = sprintf( "%.3f", $retry_timeout / 2 );
+    ## decreasing heartbeat response timeout ., ##
+    $retry_timeout = sprintf( qw| %.3f |, $retry_timeout / 2 );
     $retry_timeout = 0.7 if $retry_timeout < 0.7;
-
     $heartbeat_ref->{'retry_timeout'} = $retry_timeout;
-
     ##
+
     $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
-        {   'after'   => $heartbeat_ref->{'retry_timeout'},
-            'handler' => qw| v7.handler.heartbeat_response_timeout |,
-            'data'    => $instance_id
+        {   'handler' => qw| v7.handler.heartbeat_response_timeout |,
+            'after'   => $heartbeat_ref->{'retry_timeout'},
+            'data'    => $instance_id,
+            'prio'    => 4
         }
     );
     <[v7.stop_heartbeat_timer]>->($instance_id);
-    <[v7.enable_heartbeat_timer]>->( $instance_id, 0 ); # <-- retrying now [0]
+    <[v7.enable_heartbeat_timer]>->( $instance_id, 0 );   ##  retrying now [0]
 }
 
 #.............................................................................
-#WC2K3MSWYOQIM7DDTVJYJK3SAZY5MTIPO2KVKBDZLRREYCHF3HOI3JOVLXBPLIPERMD4VDE4CVJWO
-#::: RZV4JREPB7MR6LYWJAA6W2DBRQMSAIJXIGWEG4L2BOSGVYI24C3 :::: NAILARA AMOS :::
-# :: QGKDOHL7NNEDX66V5PFWHH524WY2MCUXDJAUVOAHHMXRJU7V6YBQ :: CODE SIGNATURE ::
+#SAUOM2XKEFSTIVCBQTYSFXT4XBCI25GTVXW4SP3BQ5PWVYVODPEPRX2577ABKFOLCBJA3CRUSK3QK
+#::: B7RGTODU5SXLENF4YUWGYXO5JP4F7IPU5PDHPCWTXWANYHGQYNI :::: NAILARA AMOS :::
+# :: EJL6QQUHVN3SJVNB7722WTDUTQOWFOY7NRJ3267II5YH3KLY5KDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

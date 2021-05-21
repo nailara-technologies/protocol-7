@@ -4,68 +4,79 @@
 
 my $event   = shift;
 my $err_str = shift;
-my $watcher = $event->w;
 
-return if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
+## want last subroutine stack for correct caller string here ##  [LLL]
 
-my $ev_desc = 'not named';
-$ev_desc = $watcher->desc if $event and $watcher;
+eval {    ##  silently prevent deep recursion based segmentation faults  ##
 
-my $file;
-my $line;
-( $file, $line ) = ( ${^CAPTURE}[0] // '', ${^CAPTURE}[1] // '' )
-    if $err_str =~ m| at (\S+) line (\d+).*\n$|;
+    my $watcher = $event->w;
 
-$err_str = <[base.format_error]>->($err_str)
-    if defined $code{'base.format_error'};
+    return if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
 
-my $log_warning = 1;
+    my $ev_desc = 'not named';
+    $ev_desc = $watcher->desc if $event and $watcher;
 
-## alternative handlers registered for filename:line ? ##
-my $match_param = "$file:$line";    # <-- expand .., [LLL]
-if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
-    my $cb_name
-        = $data{'base'}{'warn-match-handler'}{$match_param};
-    $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
-        if defined $code{$cb_name};
-}
-##
+    my $file;
+    my $line;
+    ( $file, $line ) = ( ${^CAPTURE}[0] // '', ${^CAPTURE}[1] // '' )
+        if $err_str =~ m| at (\S+) line (\d+).*\n$|;
 
-## catching compilation errors ###
-$code{'base.log'} //= sub { say STDERR ' << ! >> ' . $ARG[1] };
+    $err_str = <[base.format_error]>->($err_str)
+        if defined $code{'base.format_error'};
 
-##
-$data{'error'}{'prev_msg'} //= '';    ##  catching recursive errors  ##
-return say sprintf( '%s%s<<< %s : %s >>>%s',
-    $ANSI{'p7_bg'}, $ANSI{'p7_fg_0002'}, $SUB_NAME, $err_str, $ANSI{'reset'} )
-    if $err_str eq <error.prev_msg>;
-$data{'error'}{'prev_msg'} = $err_str;
-##
+    my $log_warning = 1;
 
-<[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
-    if $log_warning;
+    ## alternative handlers registered for filename:line ? ##
+    my $match_param = "$file:$line";    # <-- expand .., [LLL]
+    if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
+        my $cb_name
+            = $data{'base'}{'warn-match-handler'}{$match_param};
+        $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
+            if defined $code{$cb_name};
+    }
+    ##
 
-return
-       if not $watcher
-    or !$log_warning
-    or <system.verbosity.console> < 2 and <system.verbosity.zenka_buffer> < 2;
+    ## catching compilation errors ###
+    $code{'base.log'} //= sub { say STDERR ' << ! >> ' . $ARG[1] };
 
-my @attr_names = <[base.sort]>->( $watcher->attributes );
+    ##
+    $data{'error'}{'prev_msg'} //= '';    ##  catching recursive errors  ##
+    return say sprintf( '%s%s<<< %s : %s >>>%s',
+        $ANSI{'p7_bg'}, $ANSI{'p7_fg_0002'}, $SUB_NAME, $err_str,
+        $ANSI{'reset'} )
+        if $err_str eq <error.prev_msg>;
+    $data{'error'}{'prev_msg'} = $err_str;
+    ##
 
-my $lvl  = 2;
-my $mlen = 0;
-map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
+    <[base.log]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
+        if $log_warning;
 
-<[base.log]>->( $lvl, ".:[ event ]:." );
+    return
+           if not $watcher
+        or !$log_warning
+        or <system.verbosity.console> < 2
+        and <system.verbosity.zenka_buffer> < 2;
 
-foreach my $akey (@attr_names) {
-    my $val = $watcher->$akey // '<undef>';
-    next if $akey eq qw| debug | and !length($val);
-    <[base.log]>->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
-}
+    my @attr_names = <[base.sort]>->( $watcher->attributes );
+
+    my $lvl  = 2;
+    my $mlen = 0;
+    map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
+
+    <[base.log]>->( $lvl, ".:[ event ]:." );
+
+    foreach my $akey (@attr_names) {
+        my $val = $watcher->$akey // '<undef>';
+        next if $akey eq qw| debug | and !length($val);
+        <[base.log]>->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
+    }
+
+};
+
+say STDERR <[base.format_error]>->( $EVAL_ERROR, 1 ) if length $EVAL_ERROR;
 
 #.............................................................................
-#M3WJBCAR4ERD2PTGOZOMAPOCPHDBMQ6VCLJMLNY6SOBT5MTBL6OMNSCD2GMS2MOXPGPIYNDO4LMIA
-#::: C44HBE3GEEKR2EA7PLMHWDH6AOTTM6IQ762JOHAMZFN5AYSFVOP :::: NAILARA AMOS :::
-# :: 3LVPVWPAN66CZIDPZS6SD7FDEPPMKLPAJEIGYXNF5KFSEULBCSBY :: CODE SIGNATURE ::
+#RRB6QHAQ4DVSQJAU4O7TCCRHJGZYILHMS62DI3UY44MMA5PWTFDOSIM3KFTWGJCKWMYQDAAE7CARC
+#::: SWUI32ASHR3XYQXW3XKG2TJ2DPQIU5IJO6B2COAVUV3COSBQKWC :::: NAILARA AMOS :::
+# :: ZYWL3HCMBECBNULMNERGM6VBRM5GXUS322IXANR2QCWSZ7ZMMYCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

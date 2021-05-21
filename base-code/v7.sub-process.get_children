@@ -3,15 +3,15 @@
 # name = v7.sub-process.get_children
 
 my $chk_pid = shift;
-if ( not defined $chk_pid or $chk_pid !~ /^\d+$/ ) {
+if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
     ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
-    die "[$caller_str] expected parent process id";
+    return warn sprintf "[%s] expected parent process id <{C1}>", $caller_str;
 }
 
 ### old method ### [ heavy, non-portable, to be removed.. ]
 
 my $proc_table = <v7.process.pt>
-    //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+    //= new Proc::ProcessTable( qw| enable_ttys | => 0 );
 
 my %ppids;
 my %start_times;
@@ -24,7 +24,7 @@ foreach my $proc ( reverse @{ $proc_table->table } ) {
 my %children;
 
 my $found = 0;
-foreach my $pid ( keys(%ppids) ) {
+foreach my $pid ( keys %ppids ) {
     if ( $ppids{$pid} == $chk_pid ) {
         $children{$pid}->{'checked'} = 0;
         $found++;
@@ -35,7 +35,7 @@ while ($found) {
     $found = 0;
     foreach my $child_pid ( keys(%children) ) {
         next if $children{$child_pid}->{'checked'} == 1;
-        foreach my $pid ( keys(%ppids) ) {
+        foreach my $pid ( keys %ppids ) {
             if ( $ppids{$pid} == $child_pid ) {
                 $children{$pid}->{'checked'} = 0;
                 $found++;
@@ -45,26 +45,26 @@ while ($found) {
     }
 }
 
-### new method ### [ requires strict child registration ]
 my $instance_id;
+##
 map {
     $instance_id = $ARG
         if $chk_pid
         == ( <v7.zenka.instance>->{$ARG}->{'process'}{'id'} // -1 )
-} keys %{<v7.zenka.instance>};
+} <[v7.instance_ids]>;
+#
 if ( defined $instance_id ) {
     map { $children{$ARG} = 1 if <[v7.sub-process.exists]>->($ARG) }
         ( <[v7.instance_child_pids]>->($instance_id) );
 }
-###
-
+##
 return [
     reverse sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
         reverse sort keys %children
 ];
 
 #.............................................................................
-#J3XIYK2MFTF73WHDOKER56EQHCAV53FXR4URDOIHIUO7SP6YWONEOHZUVCF3RE3KZQLVGHTYLKT4I
-#::: L7YJ7TAJ6QGEO7BXAF3GVYAVHCID62RLPL33MS4W6WQSQIKRWY3 :::: NAILARA AMOS :::
-# :: G3PQ5XSIP56YPZLNUA6LY5LYV6TNLUKERU6M6PQW6ZB6HPWYJMDQ :: CODE SIGNATURE ::
+#KEYLRRMF6HW3EWWHZP63IEAMQLTB3I7WZII6TBDYYGJQFARU6JLIEKUNU5YDGHN4TZHEEKJZO6PMK
+#::: RX3L6MRFWBVLYRT4V3TKXWBYKGVOVOFP3NKAFOKKKQPECLB6ZWV :::: NAILARA AMOS :::
+# :: XQLYGNA7V3AU6THNSFLDORU3EENKQID46LSGRMM2K3J6LTUF5IBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

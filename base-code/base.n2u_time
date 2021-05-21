@@ -6,16 +6,17 @@
 my $network_time = shift;
 my $precision    = shift // 3;
 
-my $networktime_begin = 2455747200000;
+my $network_time_start = 2455747200000;
 <base.ntime_ustart> //= 1023228000;
 die 'expected valid protocol-7 network time'
-    if $network_time !~ m|^\d{13,}(\.\d+)?|
-    or $network_time < $networktime_begin;
+    if not defined $network_time
+    or $network_time !~ m|^\d{13,}(\.\d+)?|
+    or $network_time < $network_time_start;
 
 $precision = 13 if defined $precision and $precision > 13;
 
 my $unix_float
-    = sprintf( "%.14f", ( $network_time / 4200 ) + <base.ntime_ustart> );
+    = sprintf( qw| %.14f |, ( $network_time / 4200 ) + <base.ntime_ustart> );
 $unix_float =~ s|\.0+$||;
 if ( not defined $precision ) {
     $precision = length($1) if $unix_float =~ m|\.(\d+)0*$|;
@@ -31,7 +32,7 @@ $unix_reply =~ s|0{3,}$||;
 return $unix_reply;
 
 #.............................................................................
-#VNAQHITX5M6RMSHKLWHBLRX7JCJ6N5IABAETIPIQGMWDUAPLVQWHCEJRTSDYHYCHSU6VEJYLUDR7W
-#::: DY3AADYOXBDHKFGO5XAJBYPCMZE3CLQNIR2HJWCMKG6YAIV4W2Y :::: NAILARA AMOS :::
-# :: 2WAYYQUMU67AWGZFIFTNIWSR4XMHIE2CYYCROOSLZXRQF7CGHUCI :: CODE SIGNATURE ::
+#OLBTZWAQISM4QGHDAF3MJPI6JTNO7FROMXZL6QHOCOYA5IQVPRIWK6BUES3USOG7LOZ7UHTME2ELU
+#::: 7XBSSCJVYWBSNIERIZBXCCCE4MAMC5VHUQWNNVAXDW7IVKICO5V :::: NAILARA AMOS :::
+# :: LKACODRMZF4ETHL2NJIUXCAJYCZQ6PDUOQQ25I37YCPHXHYECCBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

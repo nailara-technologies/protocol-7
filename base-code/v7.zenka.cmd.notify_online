@@ -11,62 +11,64 @@ my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected zenka name or instance parameter'
     }
     if not defined $query_param or !length($query_param);
 
-if ( $query_param =~ /^job:(\d+)$/ and my $job_id = $1 ) {
+my @instances = <[v7.instance_ids]>;
+
+if ( $query_param =~ m|^job:(\d+)$| and my $job_id = $LAST_PAREN_MATCH ) {
     my $instance_id;
     map {
         $instance_id = $ARG
             if <v7.zenka.instance>->{$ARG}->{'job_id'} == $job_id
-    } keys %{<v7.zenka.instance>};
+    } @instances;
     if ( defined $instance_id ) {
         $query_param = $instance_id;
     } else {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "unknown job id '$job_id'"
         };
     }
 }
 
 my $query_copy = $query_param;
-$zenka_subname = $1
-    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
+$zenka_subname = $LAST_PAREN_MATCH
+    if $query_param !~ <regex.base.iid> and $query_param =~ s|\[([^\]]+)\]$||;
 
 if (    not defined <[zenka.get_id]>->($query_param)
     and not defined <v7.zenka.instance>->{$query_param} ) {
     my $rep_msg
-        = $query_param =~ /^\d+$/
+        = $query_param =~ <regex.base.iid>
         ? "no such zenka instance [$query_param]"
         : "no such zenka in setup [$query_param]";
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $rep_msg
     };
 }
 
-if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+if ( $query_param =~ <regex.base.iid> and my $id = $query_param ) {  # inst.id
     my $cube_sid = <v7.zenka.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <v7.zenka.instance>->{$id}->{'process'}->{'id'};
     if ( defined <v7.zenka.instance>->{$id} ) {
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => "zenka instance '$id' already online., [$cube_sid]"
             }
-            if <v7.zenka.instance>->{$id}->{'status'} eq 'online';
+            if <v7.zenka.instance>->{$id}->{'status'} eq qw| online |;
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => "external program instance '$id'"
                 . " already running., [PID=$prog_pid]"
             }
-            if <v7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+            if <v7.zenka.instance>->{$id}->{'status'} eq qw| extbin |;
     }
 }
 
-foreach my $id ( keys %{<v7.zenka.instance>} ) {    # zenka name [ +subname ]
+foreach my $id (@instances) {    # zenka name [ +subname ]
     my $cube_sid = <v7.zenka.instance>->{$id}->{'cube_sid'};
     my $prog_pid = <v7.zenka.instance>->{$id}->{'process'}->{'id'};
     if (<v7.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
@@ -75,13 +77,13 @@ foreach my $id ( keys %{<v7.zenka.instance>} ) {    # zenka name [ +subname ]
             or <v7.zenka.instance>->{$id}->{'subname'} eq $zenka_subname )
     ) {
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => "zenka '$query_copy' already online., [$cube_sid]"
             }
             if defined $cube_sid
-            and <v7.zenka.instance>->{$id}->{'status'} eq 'online';
+            and <v7.zenka.instance>->{$id}->{'status'} eq qw| online |;
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => "external program '$query_copy'"
                 . " already running., [PID=$prog_pid]"
             }
@@ -89,14 +91,14 @@ foreach my $id ( keys %{<v7.zenka.instance>} ) {    # zenka name [ +subname ]
     }
 }
 
-<[base.log]>->( 2, "startup notification request ['$query_copy']" );
+<[base.logs]>->( 2, "startup notification request ['%s']", $query_copy );
 
 push( @{ <v7.zenka.notify_online>->{$query_copy} }, $reply_id );
 
-return { 'mode' => 'deferred' }
+return { 'mode' => qw| deferred | }
 
 #.............................................................................
-#UYUBJQHK6NRR3O5RRD45VNUMRPQLWTQ3ZYQDYO4FV7O3VDX3PP2FKMT6C6AS4JJDLPU5W2KGLZCOK
-#::: Y3I7ZTD72NPBXHJKVGNGYSNNF3LLXRKLI7GO7LS2E6JBFVXGJU7 :::: NAILARA AMOS :::
-# :: OROAWWRFZ6SVCNLCERRBBR6SCQR7TDGNNFSNQINKH3VG4FPHZUDI :: CODE SIGNATURE ::
+#XHXKBNIGGGQZKXCI5Q577TEHK4ATTYHC2RKIZGDSCITME7PLOF6T7H2K377FRCI43LCONER6ZHV5W
+#::: TG62QURC45U6A3JE4Q5FPQT2FNVTDQ27ND6SFBBKW5FW4HVFRMN :::: NAILARA AMOS :::
+# :: INQ3V22ZVKRSGCAWMDK33A4JJU76EYTWLIAVP2DGY4RLQGE7OIBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

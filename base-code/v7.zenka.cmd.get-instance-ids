@@ -2,35 +2,38 @@
 
 # name  = v7.zenka.cmd.get-instance-ids
 # param = <name[s]>
-# descr = return instance ids for matching zenka names
+# descr = return instance ids for matching zenki name[s]
 
 my $names = $$call{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected zenka name[s]' }
+return { 'mode' => qw| false |, 'data' => 'expected zenka name[s]' }
     if !length($names);
 
 my $results = <[v7.zenka-instances.get-ids]>->($names);
 
-my ( $instance_ids_aref, $found_set_up, $not_found, $unknown_name ) = (
+my ( $instance_ids_ref, $found_set_up, $not_found, $unknown_name ) = (
     $results->{'ids'},       $results->{'found'},
     $results->{'not-found'}, $results->{'unknown-name'}
 );
 
 return {    ## single name with no matching zenka instance ##
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "zenka '$unknown_name' not in set-up [ see 'list zenki' ]"
     }
     if !$found_set_up and $not_found;
 
 ## multiple names [ including partial results ] ##
 
-if ( @{$instance_ids_aref} ) {
-    return { 'mode' => 'true', 'data' => join( ' ', @{$instance_ids_aref} ) };
+if ( scalar @{$instance_ids_ref} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => join( ' ', @{$instance_ids_ref} )
+    };
 } else {
-    return { 'mode' => 'false', 'data' => 'no matches found' };
+    return { 'mode' => qw| false |, 'data' => 'no matches found' };
 }
 
 #.............................................................................
-#RILUECITDZ2S3IOGPUZO4LZQAFI4Q3EGAIC2WKRBCTBAAEBGU7ESL6NNMSRAS5LANWMD7E5LKNONI
-#::: 5AQMG4KBQFYMWIMWKUKNV6T3KJMDYIP6BSTDT4LAVFCBJP2WTTS :::: NAILARA AMOS :::
-# :: 3DJCFGL6MGOSTHDV5GYCKTE5RZUWUQC2IHIQA2GPTVZ3DLAVXEBY :: CODE SIGNATURE ::
+#JWXDPCLRB75AMENKIXMTRYM6OX5IHA7BR7BQL67MMBZCAKLCCEMQO4K7NSTAPXG4FB3QZELNJTYY4
+#::: 62DNLHKQ2T6MOH33SBLPI6HGPJQBKTVD4CQHJW4Z2HTISNEZU67 :::: NAILARA AMOS :::
+# :: 2WT37TNFUJDFWK7WXLCU2TKGF56AS6R3K554IJC45TYGNSWEMGBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

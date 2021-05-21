@@ -1,7 +1,7 @@
 # name  = base.regex
 # descr = returns precompiled regex cache
 
-<[base.log]>->( 2, 'compiling base regex cache.,' );
+<[base.log]>->( 2, 'compiling cached regular expressions..,' );
 
 my $anum       = qr|0-9A-Za-z|;
 my $anum_lc    = qr|0-9a-z|;
@@ -16,27 +16,28 @@ my $cmd_str_re = qr|[$anum_lc][$anum_lc\-_\.]{0,}|;
 
 return {
     'cmd_id'     => qr|\d{2,15}|,              # valid command [-route] id
+    'iid'        => qr|^\d{7,11}$|,            # zenka instance id
     'sid'        => qr|^\d{3,17}$|,            # numerical session id
     'sid_str'    => qr|\d{3,17}|,              # numerical session id str
     'base_32'    => qr|[A-Z2-7]+|,             # RFC 4648 BASE32 alphabet
     'authmethod' => qr|^[a-zA-Z][$anum\-_]{1,16}$|, # auth method name string
     'usr'        => qr|^$usr_str_re$|,              # user \ zenka name
     'usr_str'    => $usr_str_re,                    # user \ zenka name string
-    'system-usr' => qr|^[a-zA-Z][$anum-\_]{0,31}$|, # unix system user
+    'system-usr' => qr|^[a-zA-Z][$anum-\_]{0,31}$|, # unix system username
     'subname'    => $sn_str_re,                     # '[<subname>]'-string
     'usr_subn'   => qr|^$sn_str_re\[$sn_str_re\]$|, # user + subnme [exact]
-    'usr_subn_str' => qr|$sn_str_re\[$sn_str_re\]|,    # user + subbane [str.]
+    'usr_subn_str' => qr|$sn_str_re\[$sn_str_re\]|, # user + subbane [string]
     'cmd'     => qr|^[a-z][$anum\-_]{1,22}$|,  # nailara command string syntax
     'cmd_str' => $cmd_re,                      # nailara command string syntax
     'cmdp'  => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|,  # cmd path [cmd including '.'s]
     'cmdrp' => qr|[0-9a-zA-Z\-_\[\]\.]{1,}|,   # cmd path including [UC] reply
 
-#   'cmdp'    => $cmd_path_re,                   # cmd path [cmd including '.'s]
-#   'cmdrp'   => qr{($cmd_path_re|$reply_re)}o,  # cmd path including [UC] reply
+## 'cmdp'    => $cmd_path_re,                  # cmd path [cmd including '.'s]
+## 'cmdrp'   => qr{($cmd_path_re|$reply_re)}o, # cmd path including [UC] reply
 };
 
 #.............................................................................
-#ECDPTJHXPYI5C5YBKIT57FBTHNQ36ZLNHGWMHCMC5KL5IZD2FW2VWLRZSWYK2JKNFJRTSHKMWTMGW
-#::: 6PQCEAWJIUJQPMTW5VVUKCSQ34NBK77VV7HF2IKO6Q4MLYUMRJT :::: NAILARA AMOS :::
-# :: W3ZJ3D6JZGUMH4VH2QEUAPY7YSFOJKFZ7H3AI2MYCMSFC24B4YDY :: CODE SIGNATURE ::
+#J63IPTYILSNO4MR2GPKP6NSXCHSBYJYDCSDLMKABIQKT5MNGA22D2FJI7D3G5XOYBEZPK446PG7ES
+#::: ZQIR3YC7XYPGJQYNOHFV7W5Z5OE2ZRY2RGGUY2P4P623FUUT6ES :::: NAILARA AMOS :::
+# :: AGOU2FNOBO6MBYLYZHRIGYQPH4OYUQDDVGURITMR727QHLIFRWAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

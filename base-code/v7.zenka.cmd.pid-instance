@@ -2,39 +2,35 @@
 
 # name  = v7.zenka.cmd.pid-instance
 # param = <pid>
-# descr = return instance id for a given process IDs
+# descr = reply matching instance id for the given pid
 
-my $process_id = $$call{'args'};
+my $proc_id = $call->{'args'};
 
 return {
-    'mode' => 'false',
-    'data' => "expected numerical PID parameter"
+    'mode' => qw| false |,
+    'data' => 'expected numerical PID parameter'
     }
-    if not defined $process_id or $process_id !~ /^\d+$/;
+    if not defined $proc_id or $proc_id !~ m|^\d{1,9}$|;
 
-my $match_iid;
-foreach my $i_id ( keys %{<v7.zenka.instance>} ) {
-    my $parent_pid = <v7.zenka.instance>->{$i_id}->{'process'}{'id'};
-    if ( $process_id == $parent_pid ) {
-        $match_iid = $i_id;
+my $match_id;
+foreach my $i_id (<[v7.instance_ids]>) {
+    my $parent_proc_id = <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
+    if ( $proc_id == $parent_proc_id ) {
+        $match_id = $i_id;
         last;
     } else {
         map {
-            if ( $ARG == $process_id ) { $match_iid = $i_id; last }
-        } @{ <[v7.sub-process.get_children]>->($parent_pid) };
+            if ( $ARG == $proc_id ) { $match_id = $i_id; last }
+        } @{ <[v7.sub-process.get_children]>->($parent_proc_id) };
     }
 }
 
-return { 'mode' => 'true', 'data' => $match_iid }
-    if defined $match_iid;    # match
+return { 'mode' => qw| true |, 'data' => $match_id } if defined $match_id;
 
-return {
-    'mode' => 'false',
-    'data' => "found no matching instance"
-};                            # no match
+return { 'mode' => qw| false |, 'data' => 'found no matching instance' };
 
 #.............................................................................
-#USH37ZL7LBTGDLEE4CK6WI2S6DCBV4WPXPCC3SKOE2TKUVIL5AXEVIGNEUNI4UZRPEJLX3MXJB5QA
-#::: T3CDQW5E3A7YE72IRDD6K7TVQOV2WMPPSHJJ6BXDJMPMA6FZV4F :::: NAILARA AMOS :::
-# :: SELWRW43BSUGVHPH477J7UOJDXQD3TWIKXYAERM4MSE2MY3USMBA :: CODE SIGNATURE ::
+#5S6YQYH3A6334IK3TP5F3L4UCINBTEP47N3CJD3WB2ISWPTGQHTNUL5BZVWGJINQUIEVPEUUJK2YE
+#::: MYNXKXGIPVEIJAMKZ2ICORSMQDONZTUXPDIQDGP3CG3RPVS6PWQ :::: NAILARA AMOS :::
+# :: IT73OYFGUDISQDA6P3VKTBYWKLFGFJX6XQLXMZCHXJNR5IX4EYDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
