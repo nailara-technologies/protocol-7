@@ -27,7 +27,7 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
     if (<[base.reload_config]>) {
         $$reply{'data'} .= "$s reload config  [ success ]\n";
     } else {
-        $$reply{'data'} .= "$s reload config  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reload config  [  error  ]\n";
     }
     <[base.parser.access_conf]> if $arg eq qw| config |;
     $success = 1;
@@ -42,7 +42,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     <base.modules.load_errors> = 0;
     $data{'callbacks'}{'end_code'} = [];
 
-    <[base.log]>->( 1, "[$id] < reload source code >" );
+    <[base.logs]>->( '[%d] < reload source code >', $id );
 
     if ( not <base.debug.keep_on_reload> and not exists $mod{'debug'} ) {
         <[base.log]>->( 0, '[reload] .. removing debug module [mem] .,' )
@@ -62,7 +62,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
         $$reply{'data'} .= "$s reload source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "$s reload source  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reload source  [  error  ]\n";
     }
 
     ## source version ##
@@ -84,7 +84,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     my $rel_version_file
         = catfile( $data{'system'}{'conf_path'}, qw| protocol-7.rel-ver | );
     if ( -f $rel_version_file
-        and open( my $ver_fh, '<' . $rel_version_file ) ) {
+        and open( my $ver_fh, qw| < |, $rel_version_file ) ) {
         my $old_release = <protocol-7.rel-ver> // '';
         ( <protocol-7.rel-ver> = <$ver_fh> ) =~ s|\s||g;
         close($ver_fh);
@@ -101,39 +101,45 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 }
 if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     $keyword_match = 1;
-    <[base.log]>->( 1, "[$id] < reload plugins >" );
+    <[base.logs]>->( '[%d] < reload plugins >', $id );
     if (<[base.reload_plugins]>) {
         $$reply{'data'} .= "$s plugin reload  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "$s plugin reload  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s plugin reload  [  error  ]\n";
     }
 }
 if ( $arg eq qw| init | or $arg eq qw| all | ) {
     $keyword_match = 1;
 
-    delete <base.templates.sprintf>; ##  require automatic reload on 'src'  ##
+    delete <base.templates.sprintf>;   ## require automatic reload on 'src' ##
 
-    <[base.log]>->( 1, "[$id] < source code reinit >" );
+    <[base.logs]>->( '[%d] < source code reinit >', $id );
     if ( <[base.init_modules]>->() ) {
         $$reply{'data'} .= "$s reinit source  [ success ]\n";
         $success = 1;
     } else {
-        $$reply{'data'} .= "$s reinit source  [  ERROR  ]\n";
+        $$reply{'data'} .= "$s reinit source  [  error  ]\n";
     }
 }
 if ( !$keyword_match ) {
-    <[base.log]>->( 0, "[$id] invalid reload keyword '$arg' called.," );
-    return { 'mode' => 'false', 'data' => "unknown reload keyword '$arg'" };
+    <[base.logs]>->(
+        0,   "[%d] unknown reload keyword '%s' called.,",
+        $id, $arg
+    );
+    return { 'mode' => qw|false|, 'data' => "unknown reload keyword '$arg'" };
 }
 if ($success) {
-    <[base.log]>->( 1, "[$id] .. reloading complete =)" );
+    <[base.logs]>->( "[%s] .. reloading complete =)", $id );
     if (<base.reload.success.clean-code>) {
         <[base.log]>->( 2, ":.. cleaning up 'code' namespace .," );
         delete $data{'code'};
     }
 } else {
-    <[base.log]>->( 0, "[$id] reloading $arg was not successful `:|" );
+    <[base.logs]>->(
+        0,   "[%d] reloading %s was not successful `:|",
+        $id, $arg
+    );
 }
 
 delete <system.reload>;    ## completed ##
@@ -142,7 +148,7 @@ $$reply{'mode'} = qw| data |;
 $$reply{'data'} .= $reply_footer;
 
 #.............................................................................
-#R2LH7GG3RPMIQDZJSPXBMRGKXJD2IBXUIFXWH7JZD32TN52JG4S2VYA467WOWKN3ZXPKGCGCAJPGA
-#::: GSOYVFQHQQRV3WIBA4KOUWVWTPJU6TCR4I2STG7E24IMLLE7SUV :::: NAILARA AMOS :::
-# :: NLB5QD5TSH7JMJW5IBCSKGWBX25QDY6UCOW54NVBSMYT5XO3ZYCA :: CODE SIGNATURE ::
+#FCIMLITXDLDXPBKNXHZ4RUHNNZ7N4G2VKONH7A7QUHHPBNVUWICXPMDMP4AWAU6NMFLLT65LODF6A
+#::: GCKFVQMZRON4Z2GYFKOMVGW3FAXAH46LGVUG5CV7X5HFULPAL25 :::: NAILARA AMOS :::
+# :: SY5RLHALAAAM2S6WZQEUVASMLPCA4QKTK6CVDOMOLMNDUVG4YUCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

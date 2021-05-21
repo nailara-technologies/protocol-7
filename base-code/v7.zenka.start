@@ -8,8 +8,10 @@ my $job_id     = $ARG[0]->{'job_id'};
 my $zenka_name = $ARG[0]->{'params'};
 my $stdin_mode = 0;
 my @p_arg      = qw| -nb |;
+
 my $zenka_subname;
-$zenka_subname = $LAST_PAREN_MATCH if $zenka_name =~ s|\[([^\]]+)\]$||;
+my $re_sn = <regex.base.subname>;
+$zenka_subname = ${^CAPTURE}[0] if $zenka_name =~ s|\[($re_sn)\]$||;
 
 if (<system.ansi_color>) {
     push( @p_arg, qw| -c | );
@@ -47,7 +49,7 @@ if ($starting) {    # delay zenka start-up until previous one is online ..,
 }
 
 # initialize zenka instance start-up ..,
-<[zenka.change_status]>->( $instance_id, 'starting' );
+<[zenka.change_status]>->( $instance_id, qw| starting | );
 
 ### [ start-up timeout ]
 my $start_timeout
@@ -206,11 +208,11 @@ if ( exists $init_result_data->{'start_mode'}
                 = open2( $out_fh, $in_fh, $EXECUTABLE_NAME, qw| -e |,
                 "$prepare_code exec \"$exec_bin\"" );
         };
-        goto exec_skip;
+        goto SKIP_OPEN2;
     }
 }
 
-## initialize $ENV{'USER'} with EUID user .., ## [LLL]
+## todo : initializing $ENV{'USER'} with EUID user ..,  ##  [LLL]
 
 $stdin_mode = 1 && push( @p_arg, qw| -stdin | )
     if exists $init_result_data->{'start_mode'}
@@ -248,7 +250,7 @@ if (@cmd_line_mods) {
     };
 }
 
-exec_skip:
+SKIP_OPEN2:
 
 if ( not defined $pid or $EVAL_ERROR ) {
     ( my $err_msg = $EVAL_ERROR ) =~ s,^open2: |\.?\n$,,g;
@@ -327,7 +329,7 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
 #.............................................................................
-#OEDSW5LIP5BDM7T7RDTACYHLYMFKF2X2QJMM6V2CNGM5MLL6LSULOWAYAXW6CWUINT2M5KW3VVD4U
-#::: VJ5VSWAK23TYOHGEN4C3BJN6DYN55NOD3GCHZZZR6S3QBBFKHDA :::: NAILARA AMOS :::
-# :: R76SBDMSQFKY6ZBDOKTQKDTRD5QM7V3WBJKQCJS7OA4DVABOX2CA :: CODE SIGNATURE ::
+#XNXD74BCZGVTTQYXBB67FUMMW7C7AXZKX6IV7KBZBA64RMDL2RVMX3J56FX3SV6MDTOS36HU5RQR2
+#::: DALSARUZDPE5PDZADPRGK3VKUGGQJF2BC4DCMKHM57A6IM3F5C7 :::: NAILARA AMOS :::
+# :: 7H65YPHI5VCNP24BRFGB5IEY6VO57JZPRPLXON6OLEIEGO2T66CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

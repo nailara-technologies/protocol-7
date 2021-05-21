@@ -6,7 +6,7 @@
 
 my $params = $$call{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
-    if !length($params);
+    if not length $params;
 
 my $restart_mode;
 my @instance_ids;
@@ -14,20 +14,26 @@ my $unknown_name;
 my $not_found   = 0;
 my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
-    if ( $param_str =~ m|^\d+$| ) {    ## <-- [ instance-id ]
+    if ( $param_str =~ <regex.base.iid> ) {    ## <-- [ instance-id ]
         return {
-            'mode' => 'false',
-            'data' => "unknown zenka instance '$param_str'"
+            'mode' => qw| false |,
+            'data' => "unknown zenka instance $param_str"
                 . " [ see 'list zenki' ]"
             }
             if not exists <v7.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );
-    } else {                           # zenka name [ LLL: validate syntax., ]
+    } elsif (
+        $param_str =~ <regex.base.usr>            ##   zenka name   ##
+        or $param_str =~ <regex.base.usr_subn>    ##   [ subname ]  ##
+    ) {
         my $zenka_subname;
-        $zenka_subname = $1 if $param_str =~ s|\[([^\]]+)\]$||;
+        my $re_sn = <regex.base.subname>;
+        $zenka_subname = ${^CAPTURE}[0] if $param_str =~ s|\[($re_sn)\]$||;
+
         my $zenka_id = <[zenka.get_id]>->($param_str);
         if ( defined $zenka_id ) { $setup_found++ }
         else { $not_found++; $unknown_name //= $param_str; next }
+
         map {
             push( @instance_ids, $ARG )
                 if <v7.zenka.instance>->{$ARG}->{'zenka_id'} == $zenka_id
@@ -35,7 +41,14 @@ foreach my $param_str ( split m| +|, $params ) {
                 or defined <v7.zenka.instance>->{$ARG}->{'subname'}
                 and $zenka_subname eq
                 <v7.zenka.instance>->{$ARG}->{'subname'} )
-        } keys %{<v7.zenka.instance>};
+
+        } <[v7.instance_ids]>;
+
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'zenka name or instance id expected'
+        };
     }
 }
 
@@ -43,52 +56,56 @@ map {
     my $zenka_id           = <v7.zenka.instance>->{$ARG}->{'zenka_id'};
     my $zenka_name         = <v7.zenka.setup>->{$zenka_id}->{'name'};
     my $zenka_dependencies = <[zenka.get_dependencies]>->($zenka_name);
-    goto skip_dependencies if not defined $zenka_dependencies;
-    foreach my $dep_name ( split( m| +|, $zenka_dependencies ) ) {
 
-        delete <v7.zenka.manually_stopped>->{$dep_name}
-            and <[base.log]>->(
-            0, "[restart] cleared manually stopped status ['$dep_name']"
-            ) if exists <v7.zenka.manually_stopped>->{$dep_name};
-        #
-        #     ^-- forced dependency startup, or....,
-        next
-            if exists <v7.zenka.manually_stopped>->{$dep_name};   # skipped ##
+    if ( defined $zenka_name and defined $zenka_dependencies ) {
 
-        if ( !<[zenka.is_enabled]>->($dep_name) ) {
-            <[base.log]>->( 1, "zenka enabled by dependency ['$dep_name']" );
-            <[zenka.cmd.start_once]>
-                ->( { 'args' => $dep_name, 'mode' => 'implicit' } );
+        foreach my $dep_name ( split( m| +|, $zenka_dependencies ) ) {
+            delete <v7.zenka.manually_stopped>->{$dep_name}
+                and <[base.logs]>->(
+                0, "[restart] cleared manually stopped status [ %s ]",
+                $dep_name
+                ) if exists <v7.zenka.manually_stopped>->{$dep_name};
+            ##
+            ##  ^-- forced dependency start-up, or....,
+            next if exists <v7.zenka.manually_stopped>->{$dep_name}; # skipped
+
+            if ( !<[zenka.is_enabled]>->($dep_name) ) {
+                <[base.logs]>->(
+                    "zenka enabled by dependency [%s]", $dep_name
+                );
+                <[zenka.cmd.start_once]>
+                    ->( { 'args' => $dep_name, 'mode' => qw| implicit | } );
+            }
+            <v7.zenka.dependency>->{$dep_name}->{$zenka_name} = 1
+                if not exists <v7.zenka.autostart>->{$dep_name};
         }
-        <v7.zenka.dependency>->{$dep_name}->{$zenka_name} = 1
-            if not exists <v7.zenka.autostart>->{$dep_name};
     }
-skip_dependencies:
+
 } @instance_ids;
 
 map { <[zenka.instance.restart]>->($ARG) } @instance_ids;
 
 my $count   = scalar @instance_ids;
-my $s       = $count > 1 ? 's' : '';
-my $msg_str = "restart of $count zenka instance$s initiated .,";
+my $msg_str = sprintf( 'restarting %d zenka instance%s .,',
+    $count, <[base.cnt_s]>->($count) );
 
 return {
-    'mode' => 'false',
-    'data' => "no zenka '$unknown_name' found in setup [ see 'list zenki' ]"
+    'mode' => qw| false |,
+    'data' => sprintf( 'no zenka %s found in set-up', $unknown_name )
     }
     if !$setup_found and $not_found;
 
 if ($count) {
-    return { 'mode' => 'true', 'data' => $msg_str };
+    return { 'mode' => qw| true |, 'data' => $msg_str };
 } else {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'there is no matching zenka running'
     };
 }
 
 #.............................................................................
-#DDUEINDGDJ6JWGUFQ72SMJK6PCLPF6MEVJ774CCLMFFJHGU4BMUTJWPLCMOXIHC72FWISAQS24VHE
-#::: R3GLGREVMDLET45XMH7CE5MASIZYHQ4OC6EDZY2LVZEOIDLIE72 :::: NAILARA AMOS :::
-# :: 2IC7LEKJRV6UY5HCTSEN3BHZGBUDDZOSP5XA7OBJGEJSUJ2GF4BI :: CODE SIGNATURE ::
+#WHLFQYMAE35VBBCAOGWBTDFRNCTYTRLPEWHI2VCVIDV5K4TNG2ATE2CNF7RL7HMZGG7ZRJCEMGNN4
+#::: VAYYQU27VPVLJ2XIWIIWQKGKG34NDJ72ATBL7SOSROZLPOZSGUK :::: NAILARA AMOS :::
+# :: BUEX3DOCNQCJ47YQL6L5J7ZLEBWG4R7PBFOHWTY5UBKS4RRXQEDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

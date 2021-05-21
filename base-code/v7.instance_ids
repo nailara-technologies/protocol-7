@@ -1,0 +1,28 @@
+# >:]
+
+# name  = v7.instance_ids
+# descr = return [ sanitized ] zenka instance id list
+
+my @instances;
+map {
+    if (    $ARG =~ <regex.base.iid>
+        and defined <v7.zenka.instance>->{$ARG}->{'zenka_name'}
+        and defined <v7.zenka.instance>->{$ARG}->{'status'} ) {
+
+        push( @instances, $ARG );    ## valid instance ##
+    } else {
+        delete <v7.zenka.instance>->{$ARG};
+        warn sprintf
+            "removed not valid id '%s' from zenka instance list <{C1}>",
+            $ARG;
+    }
+    }
+    keys %{<v7.zenka.instance>};
+
+return @instances;
+
+#.............................................................................
+#YZERDAFWPDM3YJFC2TYKDCPDTLIE52I6GDNK7WUQ6RUDCEWOQBAZTWVK2B66UHMTAJ6EFLKGGPOZQ
+#::: JTNSEODDP6MCILGM65U2Z4ALWO5LNRYUBIY3HHSKUFVAULJ2UQY :::: NAILARA AMOS :::
+# :: B4ZR2ILQA4PZEQSYZW4XAZFGNKX5SINXRAI4NF7322MVXD7TIQCY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
