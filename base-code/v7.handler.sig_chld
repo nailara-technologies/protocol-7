@@ -41,20 +41,19 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     <[v7.terminate_process]>->($pid);    # <-- cleaning up children  .., [LLL]
 
     delete <v7.process.instance_cache>->{$pid};
-    delete <v7.process.instance_cache>
-        if !keys %{<v7.process.instance_cache>};
+    <[base.clean_hashref]>->(<v7.process.instance_cache>);
 
-    if ( my $child = <v7.child>->{$pid} ) {
-
-        <[base.log]>->( 2, ": was instance $instance_id" );
+    if ( $instance_id =~ <regex.base.iid> and my $child = <v7.child>->{$pid} )
+    {
+        <[base.logs]>->( 2, ': was instance %d', $instance_id );
 
         delete <v7.child>->{$pid};
         delete $instance->{'restart_pids'}->{$pid}
             if exists $instance->{'restart_pids'};
 
-        my $old_status = $instance->{'status'} || qw| undefined |;
+        my $old_status = $instance->{'status'} // qw| undefined |;
 
-        <[base.log]>->( 2, ": had status : '$old_status'" );
+        <[base.logs]>->( 2, ": had status : '%s'", $old_status );
 
         ## record web-browser segfaults [ for crash mitigation ] ##
         if ( $e_sig == 11 and $zenka_name eq qw| web-browser | ) {
@@ -66,7 +65,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             my $file_name = join( '',
                 qw| /var/run/.7/web-browser.crash_pid |, $subname_b32 );
 
-            <[file.put]>->( $file_name, "$pid\n" )
+            <[file.put]>->( $file_name, sprintf( "%d\n", $pid ) )
                 or warn join( qq| : |,
                 $file_name, scalar <[base.format_error]>->($OS_ERROR) );
             chmod( 0644, $file_name )
@@ -92,8 +91,10 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         }
 
         if ( <[v7.instance_pid_count]>->($instance_id) ) {
+
             <[zenka.change_status]>->( $instance_id, qw| delayed | )
                 if $old_status eq qw| restart |;
+
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.07,
                     'interval' => 0.1,
@@ -107,6 +108,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         } else {
             <[zenka.change_status]>->( $instance_id, $next_status )
                 if $old_status ne $next_status;
+
             <[v7.init_restart_timer]>->($instance_id)
                 if $next_status ne qw| offline |
                 and $next_status ne qw| shutdown |;
@@ -115,7 +117,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 #.............................................................................
-#HAJPLU7E3LUTRYR4FSOYSVMQIW23ESKIYVURFVPU4IJXCJ5EZX3ZUBZKKYB7SP5QBCNIWAYYXTO7G
-#::: 4QWWOOMVNN3LVYRYZARLWHAHSVBOAAGBHNMZGGGN4XZTWY6BM4D :::: NAILARA AMOS :::
-# :: RYANO3XZNKTHESZEYQ7KQIZF3Q2DBJI5SUXS5DXD5XOGPXTGDQAQ :: CODE SIGNATURE ::
+#5VQRKF5AOA4WD3NXAOLZUQ2FETKN4FOT5FS2A3ULRKS2QBB7NXA63SOFDPA7T2BY6FY5RVIPIBSVU
+#::: SH6URRRHBWOYNV2HOKJ7MSJH6ZE6CAILY4AMST5LSKZ34FV4UJF :::: NAILARA AMOS :::
+# :: AG3JNN2G6Z26GIZ6NDCYHSMRV22CGPQ3USICT75WS5R3SLAXHSAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,9 +3,15 @@
 # name  = v7.zenka.change_status
 # descr = wrapper function for zenka status change handler
 
-my ( $instance_id, $new_status ) = @_;
-die 'no instance id specified'       if not defined $instance_id;
-die 'no new status string submitted' if not defined $new_status;
+my ( $instance_id, $new_status ) = @ARG;
+return warn 'no instance id specified <{C1}>'   if not defined $instance_id;
+return warn 'no status string submitted <{C1}>' if not defined $new_status;
+return warn 'no such instance defined <{C1}>'
+    if not defined <v7.zenka.instance>->{$instance_id};
+if ( not defined <v7.zenka.instance>->{$instance_id}->{'status'} ) {
+    delete <v7.zenka.instance>->{$instance_id};    ## cleaning up ##
+    return warn 'instance %d entry had no status <{C1}>';
+}
 
 my $zenka_name = <v7.zenka.instance>->{$instance_id}->{'zenka_name'};
 
@@ -26,7 +32,7 @@ if ( defined $zenka_name ) {
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
 #.............................................................................
-#3HIK7W35OFMTRMRMSB6K6VJMXKCKVW36V4WL3XUTGQTQKCKUM3UZ2L6SEKM54FRXQDTXWNWG6LLHQ
-#::: JPLUTXWXM5LTGC4TOV46LPPACJYXAAXJRQH536XC2XQZ4YV32UV :::: NAILARA AMOS :::
-# :: XSVGRJFXRJKDBT4KLW77NQPLOFNQRTRDYFTNAIZDIA3KIZAHHGBY :: CODE SIGNATURE ::
+#5VGDWY65DFOROWHFC5UTKEHEIWTQUGU3Z3OSJTSDQYRMC5AFCQX5KW4EQKMUISK6LXET3SHEAC3LM
+#::: B6OBCCTZZHT5UE7Q4YTM4NIUNL6FZMOBL5L4NCMRAMXPO4XXZXT :::: NAILARA AMOS :::
+# :: RHVCDKNHLRE5HUO2OM2IEUP3PW2T36MOMA4USJE4EPBDW2WH7QDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ my $zenka_name   = <v7.zenka.setup>->{$zenka_id}->{'name'};
 my $job_id       = $instance->{'job_id'};
 my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
 
-# some cleanup
+## some clean-up ., ##
 <[base.clean_hashref]>->($globals);
 <[base.clean_hashref]>->($zenka_config);
 
@@ -234,8 +234,9 @@ if (   $status eq qw| offline |
     or $status eq qw| error |
     and defined $zenka_config->{'restart'}->{'disabled'}
     and $zenka_config->{'restart'}->{'disabled'} == 1 ) {
-    <[base.log]>->( 1, ": no auto-restart for instance $instance_id" );
-    <[zenka.cmd.stop]>->( { 'args' => $instance_id, 'mode' => 'implicit' } );
+    <[base.logs]>->( ": no auto-restart for instance %d", $instance_id );
+    <[zenka.cmd.stop]>->( { 'args' => $instance_id, 'mode' => qw|implicit| } )
+        if $status ne qw| offline |;
     return;
 }
 
@@ -255,7 +256,7 @@ $target_queue = 'queued'  if $status eq qw|offline| or $status eq qw|restart|;
 my @check_keys
     = defined $instance->{'subname'}
     ? (
-    $zenka_name . '[' . $instance->{'subname'} . ']',
+    sprintf( qw| %s[%s] |, $zenka_name, $instance->{'subname'} ),
     $zenka_name, $instance_id
     )
     : ( $zenka_name, $instance_id );
@@ -266,7 +267,7 @@ foreach my $name_or_id (@check_keys) {
         map {
             <[base.callback.cmd_reply]>->(
                 $ARG,
-                {   'mode' => 'true',
+                {   'mode' => qw| true |,
                     'data' => "instance $name_str is terminated"
                 }
             );
@@ -278,7 +279,7 @@ foreach my $name_or_id (@check_keys) {
             map {
                 <[base.callback.cmd_reply]>->(
                     $ARG,
-                    {   'mode' => 'false',
+                    {   'mode' => qw| false |,
                         'data' => "instance $name_str is terminated"
                     }
                 );
@@ -294,7 +295,7 @@ foreach my $name_or_id (@check_keys) {
                     ? 'true'
                     : 'false';
                 my $what
-                    = $name_or_id =~ m|^\d+$| ? 'zenka instance' : 'zenka';
+                    = $name_or_id =~ m|^\d+$| ? 'zenka instance' : qw|zenka|;
                 my $startup_reply_msg
                     = "$what '$name_or_id' start-up "
                     . "not successful [status=$status]";
@@ -352,7 +353,7 @@ if ( $status eq qw| shutdown |
     $status = qw| shutdown | if $status ne qw| shutdown |;
     delete <v7.zenka.instance>->{$instance_id};
     delete <zenka.instance.shutdown>->{$instance_id};
-    <[base.log]>->( 2, "instance $instance_id terminated ['shutdown']" );
+    <[base.logs]>->( 2, "instance %s terminated ['shutdown']", $instance_id );
 
     if (<[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq qw|false| )
     {
@@ -381,16 +382,18 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
     if ( not exists $zenka_config->{'heartbeat'}->{'disabled'}
         or !$zenka_config->{'heartbeat'}->{'disabled'} ) {
-        <[base.log]>->(
-            2, "setting up heartbeat response timer < instance $instance_id >"
+        <[base.logs]>->(
+            2, "setting up heartbeat response timer < instance %d >",
+            $instance_id
         );
 
         <[v7.stop_heartbeat_timer]>->($instance_id);
         <[v7.enable_heartbeat_timer]>->($instance_id);
 
     } else {
-        <[base.log]>->(
-            2, ": no heartbeat check enabled < $instance_id [$zenka_name] >"
+        <[base.logs]>->(
+            2,            ": no heartbeat check enabled < %d [%s] >",
+            $instance_id, $zenka_name
         );
     }
 
@@ -404,7 +407,7 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
         my $root_sid = $instance->{'root_sid'};
         my $cube_sid = $instance->{'cube_sid'};
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "$root_sid.set-initialized",
+            {   'command'   => sprintf( qw| %d.set-initialized |, $root_sid ),
                 'call_args' => { 'args' => $cube_sid }
             }
         );
@@ -416,8 +419,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
             if $id == $instance_id
             or <v7.zenka.instance>->{$id}->{'status'} ne qw| delayed |;
         my $j_id = <v7.zenka.instance>->{$id}->{'job_id'};
-        <[base.log]>->(
-            1, "starting delayed '$zenka_name' zenka instance..,"
+        <[base.logs]>->(
+            "starting delayed '%s' zenka instance..,", $zenka_name
         );
         <[jobqueue.exec_job]>->($j_id);
         last;
@@ -429,7 +432,7 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 <[jobqueue.check_dependencies]>;
 
 #.............................................................................
-#6TVFERCYPZWD7SETAOHPT46DZH4LG6EBWDQJFIFFS3A3KMDO2ZO2NT2MBQQDZWHIQGND2DCL6PAI4
-#::: ZJWFMNTRXU3D5ZNY6ZWD5DVMJL4XK6KXQAJFSEJSURKFONWXEXD :::: NAILARA AMOS :::
-# :: Y7RPBEOHPQCXDIOA2JIHWU7ZQ46BMSM2HVMEVDJRUKW5YO4WV6DI :: CODE SIGNATURE ::
+#ZNMNDIUDTQEZMFTT2J3VVZVFILAHH2SMHTFG2YTU46Y7CJFMAEZDG2QMZX2RNZY42LTIVKTTE3YRU
+#::: DUEALMMP5QRTFBEZ4JXIDGNZP5YKMGUH3ZYWSDDN5OYGUE6AOHU :::: NAILARA AMOS :::
+# :: RL3R6HK7HLYYSI2I3ZOH57GMQEE6THF3EBQNHXFH6HECHFK3ZMBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

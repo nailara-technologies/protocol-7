@@ -11,37 +11,40 @@ my $query_param = $$call{'args'};
 my $reply_id    = $$call{'reply_id'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected zenka name or instance parameter'
     }
-    if not defined $query_param or !length($query_param);
+    if not defined $query_param or not length $query_param;
 
 my $query_copy = $query_param;
-$zenka_subname = $1
-    if $query_param !~ /^\d+/ and $query_param =~ s|\[([^\]]+)\]$||;
+
+my $zenka_subname;
+my $re_sn = <regex.base.subname>;
+$zenka_subname = ${^CAPTURE}[0]
+    if $query_param !~ <regex.base.iid> and $query_param =~ s|\[($re_sn)\]$||;
 
 if (    not defined <[zenka.get_id]>->($query_param)
     and not defined <v7.zenka.instance>->{$query_param} ) {
     my $rep_msg
-        = $query_param =~ /^\d+$/
+        = $query_param =~ <regex.base.iid>
         ? "no such zenka instance ($query_param)"
         : "no such zenka in setup [$query_param]";
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $rep_msg
     };
 }
 
-if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
+if ( $query_param =~ <regex.base.iid> and my $id = $query_param ) {  # inst.id
     return {
-        'mode' => 'true',
-        'data' => "zenka instance '$id' already offline!"
+        'mode' => qw| true |,
+        'data' => "zenka instance '$id' already offline"
         }
         if not defined <v7.zenka.instance>->{$id}
-        or <v7.zenka.instance>->{$id}->{'status'} eq 'shutdown';
+        or <v7.zenka.instance>->{$id}->{'status'} eq qw| shutdown |;
 } else {    # zenka name [+subname]
     my $found = 0;
-    foreach my $id ( keys %{<v7.zenka.instance>} ) {
+    foreach my $id (<[v7.instance_ids]>) {
         if (<v7.zenka.instance>->{$id}->{'zenka_name'} eq $query_param
             and (  not defined $zenka_subname
                 or not defined <v7.zenka.instance>->{$id}->{'subname'}
@@ -52,14 +55,14 @@ if ( $query_param =~ /^(\d+)$/ and my $id = $1 ) {    # instance id
         }
     }
     return {
-        'mode' => 'true',
-        'data' => "zenka '$query_copy' is not online."
+        'mode' => qw| true |,
+        'data' => sprintf( 'zenka %s is not online.', $query_copy )
         }
-        if !$found;
+        if not $found;
 }
 
-<[base.log]>->(
-    2, "shutdown notification request for zenka '$query_copy' received"
+<[base.logs]>->(
+    2, "shutdown notification request for zenka '%s' received", $query_copy
 );
 
 push( @{ <v7.zenka.notify_offline>->{$query_copy} }, $reply_id );
@@ -67,7 +70,7 @@ push( @{ <v7.zenka.notify_offline>->{$query_copy} }, $reply_id );
 return { 'mode' => 'deferred' }
 
 #.............................................................................
-#HJW77HC526SYOLW2LQJJFK5VHTRMOTXJDYD3K2NPHYUTNDPRHWF4HFSZFKCNK5TEHJXP46WHNKPGG
-#::: TYRJHDE5L67BR5NLAV62M7HJ6BCHGRYPL7XYEF7LFVSTIENTHMD :::: NAILARA AMOS :::
-# :: NLMAVVMYKJRUUTOOLYOLJS5RV5KJH4RTT7QLTI4RHO3SGFXRXQDQ :: CODE SIGNATURE ::
+#R5A2U5GPASJV2DLHS7AO2Q5SXQVL4ZFI5J7DC2E3UENZV3RICW3VD2B7GN2RMQQ4TJK36RKKDROQA
+#::: TWMOIPUKJM777JAOLBMZHEEQRTNJSF5OS5TVPFJJKS5QJDTC7HH :::: NAILARA AMOS :::
+# :: A7M2Y5SYSR4Q2KMIQOI2I3RZZSUBDKAOHFLKF7SOVN7QMSXNRQCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

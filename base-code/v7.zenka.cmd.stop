@@ -8,31 +8,39 @@ my $params = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if !length($params);
 
+warn sprintf " %s  ['%s']", <[base.caller]>->(1), $params;
+
 my $stop_mode
     = ( defined $$call{'mode'} and $$call{'mode'} eq qw| implicit | )
     ? qw| implicit |
-    : qw| manual |;
+    : qw|  manual  |;
 
 my @instance_ids;
 my $not_found_name;
 my $not_found   = 0;
 my $setup_found = 0;
 foreach my $param_str ( split m| +|, $params ) {
-    if ( $param_str =~ m|^\d+$| ) {    # instance id
+    if ( $param_str =~ <regex.base.iid> ) {    ##  instance id  ##
         return {
             'mode' => qw| false |,
             'data' => "unknown zenka instance '$param_str' [see 'list zenki']"
             }
             if not exists <v7.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );
-    } elsif ( defined $param_str ) {    # zenka name [ LLL: validate syntax ]
+    } elsif (
+        $param_str =~ <regex.base.usr>            ##   zenka name   ##
+        or $param_str =~ <regex.base.usr_subn>    ##   [ subname ]  ##
+    ) {
         my $zenka_name = $param_str;
+
         my $zenka_subname;
-        $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+        my $re_sn = <regex.base.subname>;
+        $zenka_subname = ${^CAPTURE}[0] if $param_str =~ s|\[($re_sn)\]$||;
+
         my $zenka_id = <[zenka.get_id]>->($zenka_name);
         if ( defined $zenka_id ) { $setup_found++ }
         else { $not_found++; $not_found_name //= $zenka_name; next }
-        foreach my $iid ( keys %{<v7.zenka.instance>} ) {
+        foreach my $iid (<[v7.instance_ids]>) {
             next
                 if defined $zenka_subname
                 and not exists <v7.zenka.instance>->{$iid}->{'subname'}
@@ -47,7 +55,7 @@ foreach my $param_str ( split m| +|, $params ) {
     } else {
         return {
             'mode' => qw| false |,
-            'data' => 'expected valid zenka name'
+            'data' => 'zenka name or instance id expected'
         };
     }
 }
@@ -70,7 +78,8 @@ map {
         = <v7.zenka.setup>
         ->{ <v7.zenka.instance>->{$ARG}->{'zenka_id'} }->{'name'};
     $zenka_names{$zenka_name}++;
-} keys %{<v7.zenka.instance>};
+} <[v7.instance_ids]>;
+
 my %shutdown_names;
 map {
     my $zenka_name
@@ -162,7 +171,7 @@ if ($count) {
 }
 
 #.............................................................................
-#3UQRP7VHT72LBRPXJ2RFPQHR7MSE3KIPZICJGPC5Q25XVZWXNACG7KZJ2TP6GF3DFXEXNRG2IWSNM
-#::: YNTCDX4Y4IHN5MHD3C7QRYLOG6CNFEFKMCBOR33UF7REP4VBUHI :::: NAILARA AMOS :::
-# :: V4K4ERFB6ED2XIQ25CH5IPE3E3WTPORBY3DE7K7KOUTVLZHPACAI :: CODE SIGNATURE ::
+#76KBVMJLLFN2CHMF2CIERLPGOJIPWWKG7CNKCNYBBU5WABSGEBGSHIU5YZ33ALIGUTAL745FFMDGM
+#::: CL7ISGDHUUT3W3FEDCZBLUK45FKC7BW2CI75RKH37FRE6VGC3ZU :::: NAILARA AMOS :::
+# :: FO42LIVQ65NQXL4GCNOXM2U4ARSU6DSQRWRJYDUQ22DH6ER2YEAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

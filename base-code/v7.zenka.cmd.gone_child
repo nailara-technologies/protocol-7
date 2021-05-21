@@ -4,16 +4,14 @@
 # param = <child-pid>
 # descr = notify about gone instance child subprocess
 
+my $child_pid = $call->{'args'};
 my $instance_id;
-my $child_pid = $$call{'args'};
-
-<v7.process.instance_cache>->{$child_pid} = $instance_id;
 
 my $parent_pid = <[v7.sub-process.get_ppid]>->($child_pid);
-return { 'mode' => 'false', 'data' => 'child still here' }
+return { 'mode' => qw| false |, 'data' => 'child still here' }
     if defined $parent_pid and $parent_pid > 0;
 
-foreach my $iid ( keys( %{<v7.zenka.instance>} ) ) {
+foreach my $iid (<[v7.instance_ids]>) {
     my $children
         = defined <v7.zenka.instance>->{$iid}->{'process'}{'child'}
         ? <v7.zenka.instance>->{$iid}->{'process'}{'child'}
@@ -22,14 +20,19 @@ foreach my $iid ( keys( %{<v7.zenka.instance>} ) ) {
         if not delete <v7.child>->{$child_pid}
         and not delete $children->{$child_pid};
 
-    <[base.log]>->( 1, "[instance:$iid] child pid $child_pid unlinked!" );
-    return { 'mode' => 'true', 'data' => 'unregistered' };
+    <v7.process.instance_cache>->{$child_pid} = $iid;   ## require clean-up ##
+
+    <[base.logs]>->(
+        '[instance:%d] child pid %d de-registered',
+        $iid, $child_pid
+    );
+    return { 'mode' => qw| true |, 'data' => qw| de-registered | };
 }
 
-return { 'mode' => 'false', 'data' => 'was not registered' }
+return { 'mode' => qw| false |, 'data' => 'was not registered' }
 
 #.............................................................................
-#ZV2OYY2FQNILKJMGGZHI2M3GW35DTMNH7M5EVXBYE53BAGT3V6RDHAF3USNPOPPJ37SA4OXQY4SZA
-#::: 36QRLQ6TJMR4443QIZEHMLVPEEQC4ME5CG5537PC33SW2PW2TJR :::: NAILARA AMOS :::
-# :: Z3N2UHLCYZ7BQSQ434PA3XA2R5UT3RA7UMJLIW4E6NFJAMTYC6DA :: CODE SIGNATURE ::
+#BCHUQAA5AQSVRQJF2YS6E6PQXSL4BGCWAS32F4P4XLLY56OY4TIA5EMKCRYVBYCD3NYOTNEUCXKMW
+#::: QA4VIEZOW26RBKIQGSVQVPBMKLP72ZOZ25ARMD5VMOWMP57YMU6 :::: NAILARA AMOS :::
+# :: AOEODZUPHV5OBNOXKUQQXNSYQFRDBI5U3K5J5UXEECPTQXWJJWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

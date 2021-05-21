@@ -9,12 +9,12 @@ return { 'mode' => 'false', 'data' => 'expected zenka subname pattern' }
     if !length($subname_query);
 
 my @reply_list;
-foreach my $instance_id ( keys %{<v7.zenka.instance>} ) {
+foreach my $instance_id (<[v7.instance_ids]>) {
     my $instance = <v7.zenka.instance>->{$instance_id};
     next
         if not exists $instance->{'subname'}
         or not exists $instance->{'cube_sid'}
-        or $instance->{'subname'} !~ qr/$subname_query/;
+        or $instance->{'subname'} !~ qr{$subname_query};
     push(
         @reply_list,
         join( ' ',
@@ -26,17 +26,17 @@ foreach my $instance_id ( keys %{<v7.zenka.instance>} ) {
 if (@reply_list) {
     return {
         'mode' => qw| size |,
-        'data' => join( '', map {"$ARG\n"} @reply_list )
+        'data' => join( '', map { sprintf "%s\n", $ARG } @reply_list )
     };
 } else {
     return {
-        'mode' => 'false',
-        'data' => "no match for subname pattern /$subname_query/"
+        'mode' => qw| false |,
+        'data' => "no match for subname pattern '$subname_query'"
     };
 }
 
 #.............................................................................
-#LWPSBMFLG4VEFORWOBYWBSXWIDRYRQQ7QZZAN2OST7IJX7AFJI3DU6SKPV5KN4KYROIA4KUIKQCNW
-#::: GIDJ7DFCV7CKJDT6VSCVWDDYYSFD3XFJG6EHMENYNSCYXLTZHVK :::: NAILARA AMOS :::
-# :: 7KBJYJR7NTWPDBSJ2MTJYJWDIEY3OY34HAG3ZEAPGV2PYJWVCGCY :: CODE SIGNATURE ::
+#JT2QQNMTHJKTE327NVBFLXOI75A4Z7A7XK5VTIZOFV4NJZM36HHYMFBB63TRB6NSCITY3TTHFOP2C
+#::: 5WDUFHIXOJCGC5YWGK5JKNXTNQJ2SIFGO727NMUWVDBAK4ASILN :::: NAILARA AMOS :::
+# :: G253WAGN3HHU75SAVM7HNEY6G2XYPYFJSPBWXVUNZZC7QTDX4UDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

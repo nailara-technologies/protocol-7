@@ -1,11 +1,10 @@
 # >:]
 
 # name  = v7.zenka-instances.get-ids
-# descr = return zenka instance ids for given name[s]
+# descr = matching instance ids for zenki name[s]
 
 my $names = shift // '';
-
-return warn 'expected zenka name[s] <{C1}>' if !length($names);
+return warn 'zenka name param[s] expected <{C1}>' if not length $names;
 
 my @instance_ids;
 my $not_found    = 0;
@@ -13,12 +12,17 @@ my $found_set_up = 0;
 my $unknown_name;
 foreach my $param_str ( split m| +|, $names ) {
     my $zenka_name = $param_str;
+
     my $zenka_subname;
-    $zenka_subname = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+    my $re_sn = <regex.base.subname>;
+    $zenka_subname = ${^CAPTURE}[0] if $zenka_name =~ s|\[($re_sn)\]$||;
+
     my $zenka_id = <[zenka.get_id]>->($zenka_name);
+
     if ( defined $zenka_id ) { $found_set_up++ }
     else { $not_found++; $unknown_name //= $zenka_name; next }
-    foreach my $iid ( keys %{<v7.zenka.instance>} ) {
+    foreach my $iid (<[v7.instance_ids]>) {
+
         next
             if defined $zenka_subname
             and not exists <v7.zenka.instance>->{$iid}->{'subname'}
@@ -42,7 +46,7 @@ return {
 return @instance_ids;    ## list context ##
 
 #.............................................................................
-#HK4ZFXUB3ERNGBUUEFRI2P5VS4GEOXFCBBLD5B2YYZ4LFASTNGSEDXCLBWKE5CSYFFD3I35DBKNCC
-#::: WI4EZWDKQGKVEPEWIJ6DLBLQO7IAI75PPJT2OWBDT2GW7MVV76O :::: NAILARA AMOS :::
-# :: XSK2VVOJRFKPYLGDTQAHVU2XQGP5RVJ73V7UJKIEB3KWKYCVDWAQ :: CODE SIGNATURE ::
+#KJCTD5YTHD3SW6E2V45GBFTEH3DZNEMAWHRBXKL6YJLPMJCUUGM4NM6B3PQXYUNOL7XRULUPKR7OG
+#::: ZGPQIJFVL4IJE4IEU4JDW5FNVOQ7HUBDBW5K2BS2GXQO24ZOJZN :::: NAILARA AMOS :::
+# :: 2HVXB4PPXJN4PDVSTR5M3D6F3EXVPOZMZAFA36LBNXBKBSECEQCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

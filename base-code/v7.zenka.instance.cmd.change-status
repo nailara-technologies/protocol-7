@@ -4,38 +4,43 @@
 # param = <id> <status>
 # descr = manually change instance status (debugging)
 
-my ( $instance_id, $new_status ) = split( / +/, $$call{'args'} );
+my ( $instance_id, $new_status ) = split( m| +|, $$call{'args'} );
 $instance_id //= '';
 $new_status  //= '';
-$new_status =~ s/ +$//;
-my $options = 'online|extbin|queued|depending|error|offline';
+$new_status =~ s| +$||;
+my $options = join '|', qw| online extbin queued depending error offline |;
 my $error_msg;
 $error_msg = 'no instance id specified' if !length($instance_id);
-$error_msg = 'instance id is not numerical'
-    if not defined $error_msg and $instance_id !~ /^\d+$/;
-$error_msg = 'no new status string submitted'
-    if not defined $error_msg and !length($new_status);
-$error_msg = "status '$new_status' invalid [$options]"
-    if not defined $error_msg
-    and $new_status !~ /^($options)$/;
-$error_msg = "instance $instance_id does not exist"
-    if not defined $error_msg
-    and not exists <v7.zenka.instance>->{$instance_id};
-$error_msg = "instance $instance_id already has status '$new_status'"
-    if not defined $error_msg
-    and <v7.zenka.instance>->{$instance_id}->{'status'} eq $new_status;
 
-return { 'mode' => 'false', 'data' => $error_msg } if defined $error_msg;
+$error_msg = 'instance id is not numerical'
+    if not defined $error_msg and $instance_id !~ <regex.base.iid>;
+
+$error_msg = 'no new status string submitted'
+    if not defined $error_msg and not length($new_status);
+
+$error_msg = sprintf( "status '%s' invalid [%s]", $new_status, $options )
+    if not defined $error_msg and $new_status !~ m|^($options)$|;
+
+$error_msg = sprintf( 'instance %d does not exist', $instance_id )
+    if not defined $error_msg
+    and not exists <v7.zenka.instance>->{$instance_id}
+    or not defined <v7.zenka.instance>->{$instance_id}->{'status'};
+
+$error_msg = sprintf( "instance %d already has status '%s'",
+    $instance_id, $new_status )
+    if <v7.zenka.instance>->{$instance_id}->{'status'} eq $new_status;
+
+return { 'mode' => qw| false |, 'data' => $error_msg } if defined $error_msg;
 
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "changed status of instance $instance_id to '$new_status'"
 };
 
 #.............................................................................
-#XY53OX4SS6OH3DGAIFWMTJMLMSIRSAAL3ZAHVJ2FCDPMNNLLS7VJSD4XVULJ5R6S4SJOL54YPJVZY
-#::: NNKIMYJUQPQQIBUC56PXX62QTTPFMUHCHN5BSD3J7JMQ22PBKVT :::: NAILARA AMOS :::
-# :: Z2FEHX5B3EGH3XPNP43RUELXENKM7M6FOVAKXIM5OLGYK4YPOWDQ :: CODE SIGNATURE ::
+#SHYTDGUEVGFZV3SX5H7FC5YWQ3CNSIPVAAIJER45X2YQCYLG42K2HZNPPM6BQKPS5AUHK7JDLSCYY
+#::: V7GLGSJ64USXOKD345LMSTYZ6LBJRM5ENLVAKCHHRBSSG5R47HP :::: NAILARA AMOS :::
+# :: RZKRATN2TW6EXH26FLAR2GSIMMBZOJNM4Q5JVRWT67P3OKMDMCCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
