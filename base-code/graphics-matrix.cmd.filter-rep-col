@@ -1,17 +1,18 @@
 # >:]
 
 # name  = graphics-matrix.cmd.filter-rep-col
-# param = <color|auto> <image>
-# descr = replace given color with transparency
+# param = <color|auto> <img>
+# descr = replace color with transparency [ slow ]
+# todo  = replace with already tested [fast] Graphics::Magik code
 
 my $params = shift // {};
 my ( $color_str, $input_file ) = split( m| +|, $params->{'args'}, 2 );
 
-return { 'mode' => 'false', 'data' => 'expected alpha color parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected alpha color parameter' }
     if not defined $color_str or !length($color_str);
-return { 'mode' => 'false', 'data' => 'expected path to image file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to image file' }
     if not defined $input_file or !-f $input_file;
-return { 'mode' => 'false', 'data' => 'input file not found' }
+return { 'mode' => qw| false |, 'data' => 'input file not found' }
     if !-f $input_file;
 
 ##  check for collisions  ##  [ LLL ]
@@ -20,7 +21,7 @@ my $image_chksum = substr( $bmw_chksum, 0, 13 );
 
 my $image  = Graphics::Magick->new;
 my $status = $image->Read($input_file);
-return { 'mode' => 'false', 'data' => $status } if $status;
+return { 'mode' => qw| false |, 'data' => $status } if $status;
 
 $image->Trim() if $color_str eq qw| auto |;
 
@@ -36,20 +37,18 @@ unlink($output_file) if -f $output_file and -z $output_file;
 
 <[base.logs]>->( 'output file : %s', $output_file );
 
-return { 'mode' => 'true', 'data' => $output_file } if -f $output_file;
-
-my ( $img_w, $img_h ) = $image->get(qw|  width  height  |);
+return { 'mode' => qw| true |, 'data' => $output_file } if -f $output_file;
 
 <[graphics-matrix.filter.rep-col]>->( $image, $color_str );    ## apply ##
 
 $image->Write($output_file);
 
-return { 'mode' => 'false', 'data' => $status } if $status;
+return { 'mode' => qw| false |, 'data' => $status } if $status;
 
-return { 'mode' => 'true', 'data' => $output_file }
+return { 'mode' => qw| true |, 'data' => $output_file }
 
 #.............................................................................
-#FGDHEM7EY6NG3T3HMV5JAF34MPPMHFSSDBKCEPEVUADFFZKMIS34XCLWJDHCDZWZWFNPQWZU2YIT4
-#::: ZW63WC2AITPFWU6UPP3ENQ7AGO6WDZXO7NR7NI4VQMD6SFCGLKD :::: NAILARA AMOS :::
-# :: LJ7SH65SMCP6TAC7VBCU3TRT6WPFLHNPJQQLJUI6RMIAEFZU26AA :: CODE SIGNATURE ::
+#SDISQCE57N4PRZWMYZUZUVZ37XA2XTJWA6RDHPSF2FWP4LJZYBA253NPPY42MMTHH26DCR2TQRX62
+#::: SYMUMPQJAJGPVQUOJ5UJVV7YQI2N5RCU5J63B6VMQNHJV56REUW :::: NAILARA AMOS :::
+# :: SSLUEF752UMJTULHDAS3DGHWX5LRUTK3U4GZZLCTR7OL4PJTGOBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,35 +8,23 @@
 <graphics-matrix.cache_dir> //= qw| /var/cache/graphics-matrix |;
 my $cache_dir = <graphics-matrix.cache_dir>;
 
-## graphics-matrix.permission.work_cache_dir   = 0770
-## graphics-matrix.permission.document-storage = 0770
+my $p_c_dir = <graphics-matrix.permission.work_cache_dir>   //= qw| 0770 |;
+my $p_ds    = <graphics-matrix.permission.document-storage> //= qw| 0750 |;
 
-my $perms = <graphics-matrix.permission.document-storage> // '0750';
+<[file.make_path]>->( $cache_dir, $p_c_dir, <system.amos-zenka-user> );
+map {
+    <[file.make_path]>->( $ARG, $p_ds, <graphics-matrix.document-path-owner> )
+} ( <graphics-matrix.import_directory>,
+    <graphics-matrix.export_directory> );
 
-if ( !-d $cache_dir ) {
-    <[base.logs]>->( "creating directory '%s' .. [%s]", $cache_dir, $perms );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
-        or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
-    make_path( $cache_dir,
-        { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
-        or die "make_path : \l$OS_ERROR";
-} else {
-    my $old_perms = <[base.file_perm]>->($cache_dir);
-    if ( $old_perms ne $perms ) {
-        <[base.log]>->(
-            0, "<< ! >> fixing cache dir permissions [ $old_perms->$perms ]"
-        );
-        chmod( oct($perms), $cache_dir )
-            or warn("chmod($cache_dir) : \l$OS_ERROR");
-    }
-}
-
-chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
+-d $cache_dir && chdir($cache_dir)
+    or die sprintf( "chdir[ %s ] : %s",
+    $cache_dir, <[base.format_error]>->($OS_ERROR) );
 
 0;
 
 #.............................................................................
-#MR4CH6EOX44BXZNDRYGCGYTXCILLU3VMGQTIBAGSEB74LKEIVAUZQXQ2NV63PA7EADBX2VKGRLCC2
-#::: HUSCBMGRWYS6BBEHF7JIHJDYUQQ4N75NZ6F4EDZRPI3FMGVK7OV :::: NAILARA AMOS :::
-# :: IDILFOM7N6GFWURT5ABIOKUSNX3TIYYNIK7IUIOD2BEODRLDJCDQ :: CODE SIGNATURE ::
+#AQW3S5CP3IZJYNMUXQGNNZX6INF2FTAK64LFZ3LR2C2HQ5IP2HO3VKEFKL42DTHKLWY5NDFSLPPMU
+#::: ZDKJMNTJADHWI5FDLXDMRURSKKA4Q6FEUH462Q26NRAWTNVPUCU :::: NAILARA AMOS :::
+# :: CEGGA4RC7O3L2EZYP4AGSVDRQUQ4H52N3CGFKTE7JRSSK3BXZ6BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
