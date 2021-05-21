@@ -30,6 +30,19 @@
 
 <system.acfg_path> = join( qw| / |, <system.conf_path>, qw| zenki | );
 
+## instance id cache with automatic clean-up ##
+<v7.process.instance_cache>  //= {};
+<v7.watchers.instance_cache> //= <[event.add_var]>->(
+    {   'var'     => \$data{'v7'}{'process'}{'instance_cache'},
+        'poll'    => qw| r |,    ## cache reset after 5s without access ##
+        'prio'    => 4,
+        'repeat'  => 1,
+        'handler' => qw| v7.callback.cleanup_instance_cache |,
+        'desc'    => 'instance_cache auto clean-up'
+    }
+);
+##
+
 map { <[base.disable_command]>->($ARG) } qw[
     subname
     switch-user
@@ -197,7 +210,7 @@ delete <list.users>;
 return 0;
 
 #.............................................................................
-#YJRAOGLCZSG4Z3O5QRY3DTAVEERCMJDSK5GYI7FJWYRWPGYC67ZGRSNQQFDDMT6WQLB4WSCDT6OS4
-#::: RFXNVEV3RXRNVYMBYT2HL7MSHNRXXBWXGP6LMKZFLNAUOAKLWK7 :::: NAILARA AMOS :::
-# :: JS6C6PP74XA3NP4ZVOASBA62UE5XJMNAQB4NFOMNSTR4CH2ZOOCI :: CODE SIGNATURE ::
+#TR46M3BC2LKJ75KMGSGM2LRTDLK23LGEDRDTKVOGIPHZZUECPTNUMPL6RIRVLHXPJS44BZA2PFGSO
+#::: MCHVME5V2JWNY7UTHZQ3GWULGBV5JMDJH2JTUZDZNLDG2VWYFB6 :::: NAILARA AMOS :::
+# :: R2YEXRMGB2VHENF5GYGFTFBOMTIUH74FW7G6VATNVYKY7VAWIMBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
