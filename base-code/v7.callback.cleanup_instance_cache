@@ -1,0 +1,22 @@
+# >:]
+
+# name  = v7.callback.cleanup_instance_cache
+# descr = called when <v7.process.instance_cache> entries created \ accessed
+
+<v7.timer.reset_instance_cache>->cancel
+    if defined <v7.timer.reset_instance_cache>
+    and <v7.timer.reset_instance_cache>->is_active;    ##  moving timer  ##
+
+<v7.timer.reset_instance_cache> = <[event.add_timer]>->(
+    {   'after'   => 5,
+        'repeat'  => 0,
+        'prio'    => 7,
+        'handler' => qw| v7.callback.delete_instance_cache | ## cache reset ##
+    }
+);
+
+#.............................................................................
+#H5LUFJQCRHS7ZNIKPW336GBKIAE2AEYS4DQHDZDXJBNEHBKSILMZQA6IZMYFQDAMRYIW5IWVUIYIM
+#::: YWN4KKZ2ZVORSHKICIGS3DFXD6VCJVJVEY6JDP7LMKB7MTTAOXM :::: NAILARA AMOS :::
+# :: QU5LJIZCTA4D4JSPFUNKONY6QTH63VGAF4RU35Y4HPG5GRMQR4DI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
