@@ -1,16 +1,18 @@
 # >:]
 
 # name  = base.file_perm
-# descr = return file permisions for specified path as octal (string)
+# descr = return file permisions for specified path as octal [string]
 
 my $path = shift;
-die "expected path parameter" if not defined $path or !length($path);
-die "'$path' not found"       if !-e $path;
 
-return sprintf( "%#o", File::stat::stat($path)->mode & 07777 );
+return warn 'expected path parameter <{C1}>'
+    if not defined $path or not length $path;
+return warn sprintf "'%s' not found <{C1>", $path if !-e $path;
+
+return sprintf '%#o', File::stat::stat($path)->mode & 07777;
 
 #.............................................................................
-#4VTWCJJJOHCW3SFSD4EZBK6BUPUARLZPAK75X35S5DG7J7ERIS4JUJYZR7U6BMPEWV5C5UMKGF3P4
-#::: LANLXW6RZ7AU6HIAJGQJKYT5LF34OMQIAFHWTSE7TZHVWNECS6R :::: NAILARA AMOS :::
-# :: NKT4R3RGNRK2F6H7BEPU4QRBVPA22AGURIFKL6BHIQOQRA6UYQAI :: CODE SIGNATURE ::
+#GG4ZARU7UUBLGYZ43JG7LJGYZYQXM75QVV6ZPN4YJK3TCIGDVI2T5DYAGCYZGNITTYBBIWRHDZ76S
+#::: TGWC3OBHL35QHX5YWNTWETJXG7J7MLSGYDMPJ3F5TIQIZGHHJ36 :::: NAILARA AMOS :::
+# :: QCILUEFUJOJ7KXIS5EVTBVO4L4YIMUJSPFMEC4O4TEDPI5GNRWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
