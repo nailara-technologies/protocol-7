@@ -10,11 +10,11 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use List::Util;
 use Cwd qw| abs_path |;
 use File::Path qw| make_path |;
+use List::MoreUtils qw| minmax |;
 
-use Digest::Elf;    ## creating directory path names ##
+use Digest::Elf;    ## creating directory path names ## [ LLL : replace ]
 use Crypt::Misc qw| encode_b32r |;
 
 ##[ AMOS MODULE ]#############################################################
@@ -39,7 +39,7 @@ my $source_registry = {
 };
 
 eval qq| require 'Inline/C.pm' |;
-die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
+die "'Inline::C' is not available [ installed ? ]" if length $EVAL_ERROR;
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
@@ -62,6 +62,8 @@ sub compile_inline_source {
 
     my $uid = $params->{'uid'};                            ## optional ##
     my $gid = $params->{'gid'};                            ## optional ##
+
+    ## check if root or current user and reset if required ## [LLL]
 
     return warn_err( "inline sourcecode for '%s' not defined",
         1, $subroutine_name )
@@ -173,7 +175,7 @@ sub compile_inline_source {
 
                 eval "*${target_package}::${subroutine_name}= \$fallback_ref";
                 warn_err(
-                    "  : :. installation not successful [ %s ]",
+                    '  : :. installation not successful [ %s ]',
                     0,
                     format_error(
                         length $EVAL_ERROR
@@ -219,7 +221,7 @@ sub compile_inline_source {
 
     ## report if less than expected ##
     my $total_subroutine_count = scalar @subroutines;
-    warn_err( "%d of %d subroutines compiled and installed",
+    warn_err( '%d of %d subroutines compiled and installed',
         1, $success_count, $total_subroutine_count )
         if $success_count < $total_subroutine_count;
 
@@ -243,7 +245,7 @@ sub clean_source {
     $source_code =~ s{\n\s*\n}{\n}sg;    ## empty lines ##
     $source_code =~ s{^\n|\n$}{}sg;      ## empty lines [ first and last ] ##
     $source_code =~ s{\s+$}{}sg;         ## trailing tabs|spaces ##
-    my $min_indent = List::Util::min map { m|^\s+| ? length($MATCH) : 0 }
+    ( my $min_indent, undef ) = minmax map { m|^\s+| ? length($MATCH) : 0 }
         split( "\n", $source_code );
     $source_code =~ s|^\s{$min_indent}||mg;    ## indent to start of source ##
 
@@ -253,9 +255,9 @@ sub clean_source {
 ##[ GENERATING INLINE DIRECTORY PATH ]########################################
 
 sub gen_inline_path {
-    my $user      = getpwuid($UID);
     my $code_name = shift;
     ( my $base_path = shift // qw| /var/tmp | ) =~ s|/$||;
+    my $user     = getpwuid $UID;
     my $abs_path = sprintf( qw| %s/%s/.7/inline-code/%s |,
         $base_path, $user, $code_name );
     return $abs_path;
@@ -263,7 +265,7 @@ sub gen_inline_path {
 
 ##[ SOURCECODE CHECKSUM ]#####################################################
 
-sub encoded_elf_chksum {
+sub encoded_elf_chksum {    ##  LLL : replace with BMW checksum path  ##
     my $subroutine_source = shift // '';
     return warn_err( 'expected subroutine sourcecode', 0 )
         if not length $subroutine_source;
@@ -274,7 +276,7 @@ sub encoded_elf_chksum {
 return 1;  ###################################################################
 
 #.............................................................................
-#V7QDUGEQYUIGSB2DFINOL3OUOYQNHIQURYTOAC7ISX6T4M4GMOEDQ4XRQKYIKJ7ETF5BI6HXKVX3I
-#::: Z5M7G7WW2SJLF2C6LMLBU4EG4ZQEWBBR6H47KOIVCCW2T6NDX4T :::: NAILARA AMOS :::
-# :: YIAFAW2U2TCDUCGRZAGM54U5MJO2I765PJNTDUDYJTQX7HYXJICY :: CODE SIGNATURE ::
+#APLZMVR5H2EB5AWC3LPQQPVZIS2XKRK4XEZUI5KHGL6RXORDMQZ4QG2JD2GBRVGCDRR3YHWJBNMA2
+#::: CFY2H7Y5UPB5KZ3GDXU5GVLZLJCNO7BGTGGNFTR6LMSP7QZCWVM :::: NAILARA AMOS :::
+# :: AUIYNFS76J5FMLNPZTIBGFVEGTESJEUY3A7W5MSC5OQW42AAWQCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,13 +8,14 @@ my $base_path = qw| /var/tmp/.inline-elf |;
 
 ## create user registry \ configuration variable [ to decide with ].., [LLL]
 my $compile_user = <system.X-11-user> // <system.amos-zenka-user>;
+$compile_user = getpwuid($EUID) if $EUID > 0;    ## current user[id] ##
 
 ## actually compile as $compile_user [ fork() ] .., [LLL]
 
-die '<compile_user> not defined [ required ]'
-    if !length( $compile_user // '' );
+return warn '<compile_user> not defined [ required ] <{C1}>'
+    if not length( $compile_user // '' );
 
-our $inline_directory = join( '.', $base_path, $compile_user );
+our $inline_directory = join( qw| . |, $base_path, $compile_user );
 
 if ( not -r $inline_directory and defined &inline_elf ) {
     my $l_lvl   = $r_lvl > 0 ? $r_lvl - 1 : 0;
@@ -104,7 +105,7 @@ warn sprintf( 'inline_elf test not successful [ %s != %s ] <{C1}>',
 return 1;    ## success ##
 
 #.............................................................................
-#GP4LOCBDJFRM2SX2DU7QJODFY4VSX4OZD5KN4PUHZW4YUF4VS6YXJX5DULBWLKFR3KL7U4ZR5ZMBU
-#::: K5262XQBKX4KJRO2IWJWJEWBSUYROL3RDXKYHXKDFJNHLDXLWF4 :::: NAILARA AMOS :::
-# :: S2O7XG5MKVPZDS5A7ZS3D6A2EWXOMGFZRQZ4VPUPKYD3WUOXEGDY :: CODE SIGNATURE ::
+#MVKHOASUHKA367ARZB4UQDWHJTQHF6BI4B7ZL7QSWXOME7PPFM4ZOGDJ3BPFG6WZICTPSOI4PMW76
+#::: BLJ6WLW24GLOGWNJWDY2SCD34PDPDUVGL6OSW4LKNXCU63KN765 :::: NAILARA AMOS :::
+# :: D6OFUKJZF33H7Q3PNR7OUZ44GRSLIPFW3ZNGDYMBOI5TKB7RQWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
