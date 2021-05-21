@@ -2,10 +2,11 @@
 .:[ 'graphics-matrix' graphics processing zenka ]:.
 
 [load_config_file:'shared-params']
+[load_config_file:'X11-vars']
 
-access.cmd.usr.cube  =  commands heart verify-instance list \
-                        clear-buffer show-buffer src-age reload \
-                        filter-c2a filter-rep-col \
+access.cmd.usr.cube  =  commands heart verify-instance list reload \
+                        show-buffer clear-buffer src-ver rel-ver src-age \
+                        dependencies filter-c2a filter-rep-col \
                         filter-document-import filter-import-monochr \
                         filter-export-white filter-inverse-export
 
@@ -13,11 +14,12 @@ graphics-matrix.cache_dir     = /var/cache/graphics-matrix
 graphics-matrix.cache_timeout = 42 ## days ##
 
 graphics-matrix.permission.work_cache_dir   = 0770
-graphics-matrix.permission.document-storage = 0770
+graphics-matrix.permission.document-storage = 0750
 
 graphics-matrix.import_directory = '/data/scanned-documents/blue-doc'
 graphics-matrix.export_directory = '/data/exported-documents/scanned'
 
+graphics-matrix.document-path-owner = <system.X-11-user> ## adjust as desired
 
 modules.load = auth net protocol io.ip chk-sum.bmw chk-sum.amos \
                graphics-matrix
@@ -28,13 +30,11 @@ modules.load = auth net protocol io.ip chk-sum.bmw chk-sum.amos \
 [root.drop_privs:<system.amos-zenka-user>]
 
 [net.connect_to_cube:'ip.tcp']
-
 [base.get_session_id]
-
 [event.loop]
 
 #.............................................................................
-#R6Y3MOVCTLFHEZIPA5IX2RYCFXHSKK2XLYBEO2B3E6ETVYKRODSGNMF7DXUDEUVPNEKBNEXPUJIBQ
-#::: HMXWI2UMJMIJLQJC7IK3APGGCHQETZ652PEJ2CPIHXJGQQGJ2TD :::: NAILARA AMOS :::
-# :: F7Q5EA3HOFMI5VCDPCMY72F5PQ554RJQMMHUNLMBTE3745GYVQDA :: CODE SIGNATURE ::
+#DPLAVPLWBWSCTI35SBDIHGJ2KIMDVK7YKBOQHFUFQD64KGJIHHDMJEZ3GIJ6TPFKCYERR3TIODMGO
+#::: YACPNF2UAL6EYY3JRYCQXSH34BSJQ556TZ6XMH7LE6Y2HNBA7IW :::: NAILARA AMOS :::
+# :: C4KTOKX4GUXSEGEVUZMVUWF6W26RGMYODEEU5XHRXHE2IS5FGCCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
