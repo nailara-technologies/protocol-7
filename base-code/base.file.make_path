@@ -3,7 +3,7 @@
 # name  = base.file.make_path
 # descr = recursively create a directory path
 
-my ( $path, $param_mode, $param_owner ) = @_;
+my ( $path, $param_mode, $param_owner ) = @ARG;
 
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
@@ -14,64 +14,86 @@ return warn 'expected absolute path [ to create ] <{C1}>' and return undef
 my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
-my $modes = ref($param_mode) ne 'ARRAY' ? [$param_mode] : $param_mode;
+my $modes = ref($param_mode) ne qw| ARRAY | ? [$param_mode] : $param_mode;
 
 ### path clean-up ####
 $path =~ s|/[^/]+/\.\./||g;
 $path =~ s|//|/|g;
 $path =~ s|/$||;
 
-die "<file.mkdir> path not valid : '$path'" if $path !~ m|^/[^/]+|;
+return warn sprintf( "path not valid : '%s' <{C1}>", $path )
+    if $path !~ m|^/[^/]+|;
 
 if ( -d $path ) {
     <[base.log]>->( 2, ':. path present =)' );
     <[base.log]>->( 2, ": $path" );
+
+    ## check permissions of existing directory .., ##
+    my $old_perms = <[base.file_perm]>->($path);
+
+    if ( $old_perms ne sprintf '%#o', $param_mode ) {
+        <[base.logs]>->(
+            0, '<< resetting permissions of %s [ %s --> %04o ] >>',
+            $path, $old_perms, $param_mode
+        );
+        chmod( $param_mode, $path )
+            or warn sprintf( 'chmod[ %s ] : %s',
+            $path, <[base.format_error]>->($OS_ERROR) );
+    }
+    ##
     return $path;
 }
 
 my ( $uid, $gid );
 if ( defined $param_owner ) {
-    die "invalid username '$param_owner'" if $param_owner !~ <regex.base.usr>;
+    return warn sprintf( "not valid username ['%s'] <{C1}>", $param_owner )
+        if $param_owner !~ <regex.base.usr>;
     ( undef, undef, $uid, $gid ) = getpwnam($param_owner)
-        or die "owner $param_owner not in passwd file";
+        or return
+        warn sprintf( "owner %s not in passwd file <{C1}>", $param_owner );
 }
 
 my $install_root = <system.root_path>;
 ( my $report_path = $path ) =~ s|^$install_root/?||;
 
-<[base.log]>->( 2, ":. creating., .: ['$report_path']" );
+<[base.logs]>->( 2, ":. creating., .: ['%s']", $report_path );
 
 my $previous_umask = umask($mkdir_umask)
-    or die "umask[ $mkdir_umask ] : [ \l$OS_ERROR ]";
+    or return warn sprintf( "umask[ %s ] : [ %s ] mkdir aborted .., <{C1}>",
+    $mkdir_umask, <[base.format_error]>->($OS_ERROR) );
 
 my $current_mode;
 my $current_path = '';
-foreach my $_dir ( split m|/|, $path ) {
-    next if !length($_dir);
+foreach my $_dir ( split qw| / |, $path ) {
+    next if not length $_dir;
 
-    $current_path .= '/' . $_dir;
-    $current_mode //= shift( @{$modes} );
+    $current_path .= sprintf '/%s', $_dir;
+    $current_mode //= shift @{$modes};
 
     next if -d $current_path;    ## <-- exists \ continue ., ##
 
-    eval {
-        mkdir( $current_path, $current_mode )
-            or warn " mkdir['$current_path'] : [ \l$OS_ERROR ]";
-        chmod( $current_mode, $current_path )
-            or warn " chmod[ $param_mode ] : [ \l$OS_ERROR ]";
-        if ( defined $param_owner ) {
-            chown( $uid, $gid, $current_path )
-                or die " chown [$uid:$gid] '$current_path' : [ \l$OS_ERROR ]";
-        }
-    };
+    mkdir( $current_path, $current_mode )
+        or warn sprintf( 'mkdir[ %s ] : [ %s ] <{C1}>',
+        $current_path, <[base.format_error]>->($OS_ERROR) );
+
+    $current_mode = oct $current_mode if $current_mode =~ m|^0|;
+
+    chmod( $current_mode, $current_path )
+        or warn sprintf( 'chmod[ %04o ] : [ %s ] <{C1}>',
+        $param_mode, <[base.format_error]>->($OS_ERROR) );
+    if ( defined $param_owner ) {
+        chown( $uid, $gid, $current_path )
+            or warn sprintf( 'chown [%d:%d] %s : [ %s ] <{C1}>',
+            $uid, $gid, $current_path, <[base.format_error]>->($OS_ERROR) );
+    }
 }
 
-umask($previous_umask);
+umask $previous_umask;
 
 return $path;
 
 #.............................................................................
-#P2ALL5C4VINFZHFH36T6ZSSLYXAEOKKZCPIJIXEAF7MFPWQUJ3F5DVE6K4FOMRIFHIBIJ4CLFFYO4
-#::: KEW6CJUTUSAVLFF2ENDNA2VJFS2NLV5IK3UOOA4MRZSJW3NWKO5 :::: NAILARA AMOS :::
-# :: OBYADF2OADMQBYY2HWAUR6R5NX3V7PXY7VTXK3KF3Z524KJUKOCQ :: CODE SIGNATURE ::
+#Q4FN4NPT2OE2JZNX36ZXSLIYLD3IVFOLIECNMMNNEM7CODQDUNBE3CYUFLVCZ5EBINVND3TTAJQGG
+#::: 6KLDU5EHACPCKAA7YTW2R4GWXJKFIA6TY2EJV5VOZNHSTHGSDUC :::: NAILARA AMOS :::
+# :: OAPKCOKAUBFXBXNZMNYBTW6FBXZY6R4XYMFFUMY5446ATGZRGGDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
