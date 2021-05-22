@@ -30,11 +30,13 @@ use AMOS::INLINE::src::TruthAssertion;
 ##[ INITIALIZATIONS ]#########################################################
 
 my $source_registry = {
+    qw|  true_int   | => \&AMOS::INLINE::src::TruthAssertion::true_int,
+    qw| true_float  | => \&AMOS::INLINE::src::TruthAssertion::true_float,
     qw| bit_to_num  | => \&AMOS::INLINE::src::BinConversion::bitstring_to_num,
     qw| num_to_bit  | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
-    qw| is_true_num | => \&AMOS::INLINE::src::TruthAssertion::is_true_num,
 
-   # qw| inline_elf | => \&AMOS::CHKSUM::ELF::Inline::return_elf_c_sourcecode,
+# qw|  true_D13  | => \&AMOS::INLINE::src::TruthAssertion::true_D13, ## move ##
+# qw| inline_elf | => \&AMOS::CHKSUM::ELF::Inline::return_elf_c_sourcecode,
     ## AMOS::INLINE::src::Elf::elf
 };
 
@@ -151,19 +153,17 @@ sub compile_inline_source {
         ###                                                 ###
 
         eval {
-            no warnings;    # <-- 'redefine' ?
             Inline->bind(
                 qw| C |           => $cleaned_source,
                 qw| name |        => $target_package,
                 qw| directory |   => $custom_inline_dir,
                 qw| BUILD_NOISY | => $debug_output_to_console
             );
-            use warnings;    # <-- 'redefine' ?
         };
 
         #######################################################
 
-        if ($EVAL_ERROR) {
+        if ($EVAL_ERROR) {    ## LLL : check defined subname ##
             warn_err( "<< compilation of '%s' not successful >>",
                 0, $current_sub_name );
             if ( defined &{$fallback_ref} ) {
@@ -193,9 +193,10 @@ sub compile_inline_source {
                     1, $current_sub_name );
             }
         } else {    ## installing to target name space ##
+
             eval "*${target_package}::$current_sub_name=\\&$current_sub_name";
-            if ( $EVAL_ERROR
-                or not defined &{"${target_package}::$current_sub_name"} ) {
+
+            if ($EVAL_ERROR) {    ## LLL : check defined subname ##
                 warn_err(
                     "  : :. installation not successful [ %s ]",
                     0,
@@ -276,7 +277,7 @@ sub encoded_elf_chksum {    ##  LLL : replace with BMW checksum path  ##
 return 1;  ###################################################################
 
 #.............................................................................
-#APLZMVR5H2EB5AWC3LPQQPVZIS2XKRK4XEZUI5KHGL6RXORDMQZ4QG2JD2GBRVGCDRR3YHWJBNMA2
-#::: CFY2H7Y5UPB5KZ3GDXU5GVLZLJCNO7BGTGGNFTR6LMSP7QZCWVM :::: NAILARA AMOS :::
-# :: AUIYNFS76J5FMLNPZTIBGFVEGTESJEUY3A7W5MSC5OQW42AAWQCQ :: CODE SIGNATURE ::
+#AIXPUBJXUC5IDV5SDOP5BW36BVAMPIWCUQWHYOYS4VE4TOMUJ5ZE5BV55T5PGHHKBEKMFUWVISV2E
+#::: VHEN2GUNDLTUJLMXHRKRAJA3GAO3GTAYR5AF5OV3FD62P6DBCRX :::: NAILARA AMOS :::
+# :: 5MWTJSICHUTLDKGIX5WH4J4NF7YOXYT3RNPBAWZGUBMFFJMRCQAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

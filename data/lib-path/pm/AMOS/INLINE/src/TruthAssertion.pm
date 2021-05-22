@@ -1,7 +1,7 @@
 
 package AMOS::INLINE::src::TruthAssertion;    ##############################
 
-## [ target package name : AMOS:Assert::Truth ] ##
+## [ target package name : AMOS:Assert::Truth::{int,float} ] ##
 
 use strict;
 use English;
@@ -12,9 +12,9 @@ use vars qw| @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw| is_true_num $VERSION |;
+@EXPORT = qw| true_int true_float $VERSION |;
 
-our $VERSION = qw| AMOS-INLINE-SRC-P2UU6VQ |;
+our $VERSION = qw| AMOS-INLINE-SRC-2BPRJKI |;
 
 use AMOS::Assert::Truth;
 
@@ -22,23 +22,26 @@ return 5;    ## true ##
 
 ##[ BITSTRING CONVERSION ]####################################################
 
-sub is_true_num {    ##[  numerical div by 13 truth assertion  ]##
-
+sub true_float {    ##[  numerical div by 13 truth assertion  ]##
+    ##  valid input length  <  17  ##
     my $source = <<~ 'EOC';
 
-    bool is_true_num( double test_num )
-    {
+    bool true_float ( double test_num ) {
+
         if ( test_num == 0 )
             return true; // .0000000 .., TRUE
+
+        // reduce size of assertion number [ modulo based 13 \ float version ]
+        long double  assert_number = fmodl ( test_num, 13.00000 );
 
         int sign;
         int decimal_pt;
 
         char * false_buffer;    // F : 230769 || T: 0||384615
-        false_buffer = fcvt( 3.0 / 13, 13, &decimal_pt, &sign );
+        false_buffer = ecvt( 3.0 / 13, 13, &decimal_pt, &sign );
 
         char * test_num_str;
-        test_num_str = ecvt( test_num  / 13, 17, &decimal_pt, &sign );
+        test_num_str = fcvt( assert_number / 13, 17, &decimal_pt, &sign );
 
         for( unsigned int pos = 0; pos <= 5; pos++ ){
             char sub_str[7];
@@ -51,8 +54,8 @@ sub is_true_num {    ##[  numerical div by 13 truth assertion  ]##
 
             if ( ( unsigned long ) matchptr > 0 ) {  // match in string found
 
-                unsigned long mpaddr  = ( unsigned long ) matchptr;
-                unsigned long m_faddr = ( unsigned long ) test_num_str;
+                unsigned long mpaddr   =  ( unsigned long ) matchptr;
+                unsigned long m_faddr  =  ( unsigned long ) test_num_str;
 
                 unsigned int mpos  =  mpaddr - m_faddr;  // position of match
 
@@ -72,12 +75,76 @@ sub is_true_num {    ##[  numerical div by 13 truth assertion  ]##
         ## pure-perl is_true_num alternative [ arbitary number length ] ##
         qw| fallback | => \&AMOS::Assert::Truth::calc_true,
 
-        qw| package | => qw| AMOS::Assert::Truth |    ##  is_true_num  ##
+        qw| package | => qw| AMOS::Assert::Truth::float |   ##  true_float  ##
+    };
+}
+
+sub true_int {    ##[  numerical div by 13 truth assertion  ]##
+    ##  valid input size  64 bit [integer]  ##
+    my $source = <<~ 'EOC';
+
+    bool true_int ( unsigned long test_num ) {
+
+        if ( test_num == 0 )
+            return true; // .0000000 .., TRUE
+
+        bool warn_64_bit = false; // warn at overflow size
+
+        if ( warn_64_bit && test_num == 18446744073709551615 )
+            fprintf( stderr,
+                "true_int : input at 64-bit limit [ 18446744073709551615 ]\n"
+            );
+
+        // reduce size of assertion  [ modulo 13 ]  ### INTEGER VERSION ###
+        long double assert_number = test_num % 13;
+
+        int sign;
+        int decimal_pt;
+
+        char * false_buffer;    // F : 230769 || T: 0||384615
+        false_buffer = ecvt( 3.0 / 13, 13, &decimal_pt, &sign );
+
+        char * test_num_str;
+        test_num_str = fcvt( assert_number / 13, 13, &decimal_pt, &sign );
+
+        for( unsigned int pos = 0; pos <= 5; pos++ ){
+            char sub_str[7];
+            sub_str[6] = 0;
+            for ( unsigned int ch = 0; ch <= 5; ch++ ){
+                sub_str[ch] = false_buffer[ pos + ch ];
+            }
+
+            char * matchptr = strstr( test_num_str, sub_str );
+
+            if ( ( unsigned long ) matchptr > 0 ) {  // match in string found
+
+                unsigned long mpaddr   =  ( unsigned long ) matchptr;
+                unsigned long m_faddr  =  ( unsigned long ) test_num_str;
+
+                unsigned int mpos  =  mpaddr - m_faddr;  // position of match
+
+                if (  decimal_pt == -1  ||  mpos > decimal_pt  )
+                    return  false; // matches after decimal point valid
+            }
+        }
+
+        return true; // no match for false
+    }
+
+    EOC
+
+    return {
+        qw|  source  | => $source,
+
+        ## pure-perl is_true_num alternative [ arbitary number length ] ##
+        qw| fallback | => \&AMOS::Assert::Truth::calc_true,
+
+        qw| package | => qw| AMOS::Assert::Truth::int |    ##  true_int  ##
     };
 }
 
 #.............................................................................
-#4S7MRC5YGP4CE3CMHYKE7SY52MHFLEFWVNBXBDV2WM6OQJ4V5VJTGVDSR57RIM3X3N4A64Y7JZVDG
-#::: KGIY46FT2JYGIFE4RST6P5MMUZEWYV7JUQCED7IGMOISBVW7ON6 :::: NAILARA AMOS :::
-# :: CT4SE4XG65XVWF2TRNBPAI4VQZZO4SRSSEBNVFEP2QNP6OOK52BY :: CODE SIGNATURE ::
+#IHZNGTV4MQOP6JUWBEMAKGZDAXD2EJKP7QN72DDX7PQQGQI6VLJM2PL6UD3XXCOFHH7DBBIQEHYR4
+#::: 3Y7OGCEM5ICT6PQOH6YCI7AMKWMFQFMIASLMDZKAEEQAXQMTBXG :::: NAILARA AMOS :::
+# :: VDV5F4XIXRQM3TFLEBXRQ3ALA2MPXMKVQXJHNWGCLGAKZBIJIUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
