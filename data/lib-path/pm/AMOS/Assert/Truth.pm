@@ -26,8 +26,6 @@ use AMOS;
 use AMOS::Assert;
 use AMOS::INLINE;
 
-compile_inline_source( { qw| subroutine-name | => qw| is_true_num | } );
-
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
 
@@ -37,16 +35,26 @@ our @assertion_modes = qw| 4 7 |;    ##  elf truth modes : main set-up  ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
+## skip compilation when included from AMOS::INLINE::src::TruthAssertion
+if ( defined &compile_inline_source ) {
+
+    compile_inline_source( { qw| subroutine-name | => qw| true_int | } )
+        if not defined &true_int;
+
+    compile_inline_source( { qw| subroutine-name | => qw| true_float | } )
+        if not defined &true_float;
+
+}
+###
+
 ##[ MAIN FUNCTION ]###########################################################
 
 sub is_true {
-
     my $data_ref = shift;
-
-    my $calc_result;
 
     return warn_err('undefined input') if not defined $data_ref;
 
+    my $calc_result;
     my $check_as_num = shift // 2;         ## also check as numerical ##
     my $check_as_elf = shift // 1;         ## check elf checksum ##
     my $shift_bits   = $elf_shift_bits;    ## right shift on overflow ##
@@ -90,6 +98,7 @@ sub is_true {
 
 sub init_table {
     my $mode = shift // '';
+
     die 'expected mode parameter [false|true]' if !length($mode);
     my $init_sequence = $mode eq 'true' ? qw| 461538 | : qw| 230769 |;
     my @pairs;
@@ -109,16 +118,29 @@ sub init_table {
 
 sub calc_true {
     my $check_num = shift;
+
     error_exit( "input '%s' not numerical", $check_num )
         if not AMOS::Assert::is_number($check_num);
 
     my $calc_result;
     my $input_len = length($check_num);
 
-    return AMOS::Assert::Truth::is_true_num($check_num) ## <-- AMOS::INLINE ##
-        if $input_len <= 10
-        and defined &is_true_num
-        and \&is_true_num ne \&calc_true;
+    ## from AMOS::INLINE ##
+    #
+    return AMOS::Assert::Truth::int::true_int($check_num)
+        if index( $check_num, '.', 0 ) == -1
+        and $check_num <= 18446744073709551615    ## 64 bit ##
+        and defined &AMOS::Assert::Truth::int::true_int
+        and \&AMOS::Assert::Truth::int::true_int ne \&calc_true;
+
+    return AMOS::Assert::Truth::float::true_float($check_num)
+        if $input_len < 17
+        and defined &AMOS::Assert::Truth::int::true_float
+        and \&AMOS::Assert::Truth::int::true_float ne \&calc_true;
+    #
+    ###
+
+    ##  LLL : adopt quotient based reduction method from inline version  ##
 
     my $factor = join( '', qw| 1 |, qw| 0 | x $input_len );
 
@@ -154,7 +176,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#YIYUZOTIC6QACTITXZS7CY5PVST62UCOHQKN2XLCM7MCFMCJTLOLQHF3IDUOCD2J2SR6SLTQYPJE2
-#::: KAF52XA6R575XKNA5OR6LH6OSUCAULD7ABZWFEO36PFPITPWQEK :::: NAILARA AMOS :::
-# :: DBWIFGPCSUQ4FDHPAUL2ZA24T4PEDRIUBSCH5ZJZ74WYGA47XADA :: CODE SIGNATURE ::
+#75T7QD7PAHUPAVIHEAOY5CMLU5CGUUWCWTITVUJYSIUB4YVP5YKVULHCEQ724RIJLGSIZTI7ACF2S
+#::: RL4JAXEFIGYGLS2NGJ5LBDJ3C4O3IYSRRQWNY3OXZORN6USLSUA :::: NAILARA AMOS :::
+# :: I7YHK3G6JTTVEK7XXLYIDWMXZ4L3JA23RRBZX6ZM4YBECKITNUBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
