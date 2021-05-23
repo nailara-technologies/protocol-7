@@ -40,6 +40,9 @@ my $source_registry = {
     ## AMOS::INLINE::src::Elf::elf
 };
 
+##  internal code_ref registry  ##
+my $subroutines_installed //= {};
+
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if length $EVAL_ERROR;
 
@@ -59,11 +62,12 @@ sub compile_inline_source {
         if defined $params and ref $params ne qw| HASH |;
 
     my $subroutine_name  = $params->{'subroutine-name'};
-    my $target_package   = $params->{'target-package'};    ## optional ##
-    my $inline_directory = $params->{'target-path'};       ## optional ##
+    my $target_package   = $params->{'target-package'};         ## optional ##
+    my $inline_directory = $params->{'target-path'};            ## optional ##
+    my $re_compile       = $params->{'update-routine'} // 0;    ## optional ##
 
-    my $uid = $params->{'uid'};                            ## optional ##
-    my $gid = $params->{'gid'};                            ## optional ##
+    my $uid = $params->{'uid'};                                 ## optional ##
+    my $gid = $params->{'gid'};                                 ## optional ##
 
     ## check if root or current user and reset if required ## [LLL]
 
@@ -79,6 +83,9 @@ sub compile_inline_source {
 
     return warn_err( 'no inline subroutines defined', 1 )
         if not @subroutines;
+
+    ## keep track for error reporting ##
+    my $total_subroutine_count = scalar @subroutines;
 
     ## target directory permissions and owner ##
     my @params = ( qw| mode | => 0755 );
@@ -110,6 +117,15 @@ sub compile_inline_source {
         my $cleaned_source = clean_source( $function_href->{'source'} );
         my $fallback_ref   = $function_href->{'fallback'};   ## alternative ##
         $target_package //= $function_href->{'package'};     ## install to ##
+
+        ## skip already installed routines unless update-routine ##
+        ##
+        if ( not $re_compile
+            and defined $subroutines_installed->{ sprintf '%s::%s',
+                $target_package, $current_sub_name } ) {
+            $total_subroutine_count--;    ## do not warn ##
+            next;
+        }
 
         ## preparing inline directory ##
         if ( defined $inline_directory and length $inline_directory ) {
@@ -146,7 +162,18 @@ sub compile_inline_source {
         ## prepare matching precise @INC path ##
         $custom_inline_dir = abs_path($custom_inline_dir);
 
-        ##
+        ## remove previous installation ##
+        eval "undef \\&$current_sub_name";
+        eval "undef *${target_package}::$subroutine_name";
+
+        state $iteration //= 0;
+
+        ## temporary namespace to avoid subroutine 'redefined' ##
+        my $compilation_namespace = sprintf 'COMPILE::%03d::%s',
+            $iteration++, $target_package;
+
+        my $compilation_target = sprintf '%s::%s',
+            $compilation_namespace, $current_sub_name;
 
         ###                                                 ###
         ##  COMPILATION \ INSTALLATION OF INLINE SUBROUTINE  ##
@@ -154,16 +181,36 @@ sub compile_inline_source {
 
         eval {
             Inline->bind(
-                qw| C |           => $cleaned_source,
-                qw| name |        => $target_package,
-                qw| directory |   => $custom_inline_dir,
+                qw|  C  |         => $cleaned_source,
+                qw| name |        => $compilation_target,
+                qw|  directory  | => $custom_inline_dir,
                 qw| BUILD_NOISY | => $debug_output_to_console
             );
         };
+        ## keep compilation errors ##
+        my $comp_err = $EVAL_ERROR;
+
+        ## final installation target ##
+        my $target_subname
+            = sprintf( '%s::%s', $target_package, $subroutine_name );
+
+        ## keep own registry
+        $subroutines_installed->{$target_subname} = \&$current_sub_name;
+
+        ## install to target namespace ##
+        eval "*$target_subname = \\&$current_sub_name";
+
+        ## clean-up temporary namespace ##
+        map { eval "undef &${compilation_target}::$ARG" }
+            ( $current_sub_name, qw| dl_load_flags | );
+        ## entire package ##
+        undef *COMPILE;
 
         #######################################################
 
-        if ($EVAL_ERROR) {    ## LLL : check defined subname ##
+        if ($comp_err    ## $EVAL_ERROR of compilation ##
+            or ref $subroutines_installed->{$target_subname} ne qw| CODE |
+        ) {
             warn_err( "<< compilation of '%s' not successful >>",
                 0, $current_sub_name );
             if ( defined &{$fallback_ref} ) {
@@ -221,7 +268,6 @@ sub compile_inline_source {
     }
 
     ## report if less than expected ##
-    my $total_subroutine_count = scalar @subroutines;
     warn_err( '%d of %d subroutines compiled and installed',
         1, $success_count, $total_subroutine_count )
         if $success_count < $total_subroutine_count;
@@ -277,7 +323,7 @@ sub encoded_elf_chksum {    ##  LLL : replace with BMW checksum path  ##
 return 1;  ###################################################################
 
 #.............................................................................
-#AIXPUBJXUC5IDV5SDOP5BW36BVAMPIWCUQWHYOYS4VE4TOMUJ5ZE5BV55T5PGHHKBEKMFUWVISV2E
-#::: VHEN2GUNDLTUJLMXHRKRAJA3GAO3GTAYR5AF5OV3FD62P6DBCRX :::: NAILARA AMOS :::
-# :: 5MWTJSICHUTLDKGIX5WH4J4NF7YOXYT3RNPBAWZGUBMFFJMRCQAI :: CODE SIGNATURE ::
+#42MX23XILUJPQR75NNBJCWW7FYASHHVJC75LRQZ66EZ3Y2WYPRMDI6O4EJZ5GKR4N2IE6YJFTGSB6
+#::: RYYCCNSM2GS7LSQYOI7O6YAOYOBS2QWBWKQMMTLFVXN23IIOLCD :::: NAILARA AMOS :::
+# :: C4UDKFZ22JTRQJANPYIH55COTDHBRR4KCV47VD65FZ2QRA225UAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
