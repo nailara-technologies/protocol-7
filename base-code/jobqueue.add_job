@@ -3,37 +3,27 @@
 # name  = jobqueue.add_job
 # descr = inserts a new job into the jobqueue
 
-die "no parameter supplied" if !@_ or not defined $_[0];
+return warn 'no parameter supplied <{C1}>' if not @ARG or not defined $ARG[0];
+return warn 'expected href with job params <{C1}>' if ref $ARG[0] ne qw|HASH|;
 
+my $job_params = shift;
 my $max_jobs   = <jobqueue.max_jobs> || 42513;
 my $job_id     = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
-my $job_params = {};
-if    ( ref( $_[0] ) eq 'HASH' ) { $job_params = shift }
-elsif ( exists $code{ $_[0] } ) {
-    $job_params = {
-        'name'            => $_[0],
-        'job_id'          => $job_id,
-        'job_callback'    => shift,
-        'callback_params' => @_
-    };
-} else {
-    die "add_job: callback '$_[0]' does not exist";
-}
 
-my $target_queue = $job_params->{'target_queue'} || 'queued';
+my $target_queue = $job_params->{'target_queue'} // qw| queued |;
 
 # LLL: tune defaults later
 my $job_data = {
-    'name'      => $job_params->{'name'}     || $job_params->{'job_callback'},
-    'priority'  => $job_params->{'priority'} || 0,
+    'name'      => $job_params->{'name'}     // $job_params->{'job_callback'},
+    'priority'  => $job_params->{'priority'} // 0,
     'object_id' => $job_params->{'object_id'},
     'status'    => $target_queue,
     'tstamp'    => {
         'queued'       => <[base.time]>->(4),
-        'dependencies' => undef,
-        'running'      => undef,
         'paused'       => undef,
-        'completed'    => undef
+        'running'      => undef,
+        'completed'    => undef,
+        'dependencies' => undef
     },
     'job_callback'    => $job_params->{'job_callback'},
     'callback_params' => $job_params->{'callback_params'},
@@ -41,7 +31,7 @@ my $job_data = {
     # LLL: following features still need implementation..,
     'repeat_count' => 0,
     'max_repeat'   => undef,
-    'repeat'       => $job_params->{'repeat'}       || 'on_error',
+    'repeat'       => $job_params->{'repeat'} // qw| on_error |,
     'repeat_delay' => $job_params->{'repeat_delay'} || 5,
 };
 
@@ -53,14 +43,14 @@ push(
     },
     $job_id
 );
-push( @{ $joblist->{$target_queue}{'by_timestamp'} }, $job_id );
+push @{ $joblist->{$target_queue}{'by_timestamp'} }, $job_id;
 
 $joblist->{'count'}->{$target_queue}++;
 
 return $job_id;
 
 #.............................................................................
-#4X4K5DITGOH7VUZKDW7Z5VOIRTBIWYV5L7EOYTP2FBN7SB37PBTLAIQKQ64YZLGGMNYAZ6QROACIK
-#::: UQO7HMPSJI65MFMHGO2FUWMVWCOKBJ3U2MPFXHTHW6YGIDUVGTW :::: NAILARA AMOS :::
-# :: 7KWDVEQZKTEBMPXP7BEZIMTK5M6AISCJONMUK67YDAAWYVBI6SAA :: CODE SIGNATURE ::
+#252X5F5AYTJMINQT2M67NYF4ZYLFXANGAGP5MWC3BRP4BTY4AIVL42IM7PIMFXINSTL675ZKCF756
+#::: EF3NI4YAG6HAQZNYWFJLTI7SVZ555LLT7Y66PUCAVFVG4IJRKVN :::: NAILARA AMOS :::
+# :: DWFZCFKFR5RHD6K5EG275KNGAQVEWH3M6QKWMRJDZFC5ZMV3G6AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,9 @@ my $object_id = shift;
 return undef if not exists <dependency.object>->{$object_id};
 my $object_type = <dependency.object>->{$object_id}->{'type'};
 if ( $object_type ne qw| zenka | ) {
-    <[base.log]>->(
-        0, "object $object_id is of type '$object_type' and not 'zenka'."
+    <[base.logs]>->(
+        0,          "object %d is of type '%s' and not 'zenka'",
+        $object_id, $object_type
     );
     return undef;
 }
@@ -19,13 +20,13 @@ foreach my $id (<[v7.instance_ids]>) {
         if defined <v7.zenka.instance>->{$id}->{'zenka_id'}
         and defined <v7.zenka.instance>->{$id}->{'status'}
         and <v7.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id
-        and ( <v7.zenka.instance>->{$id}->{'status'} eq 'online'
-        or <v7.zenka.instance>->{$id}->{'status'} eq 'extbin' );
+        and ( <v7.zenka.instance>->{$id}->{'status'} eq qw| online |
+        or <v7.zenka.instance>->{$id}->{'status'} eq qw| extbin | );
 }
 return 0;    # not online
 
 #.............................................................................
-#4MS6UFP5KAIDHDFSIK4XOHEOTXA7N67X2PSDJOVUKEJJBWVTEK2CBEECEDXGYPEH7WVOCL45ZCBVG
-#::: GBKNMLNQDI4OAGLXX7EHUCYAX3OHXNFWZHF6FPWV7SRM6X5AHQI :::: NAILARA AMOS :::
-# :: TPM4QICSUEEWQBYAKC6IDPZ7QOIW7Q4BCQGCI6RYKMS3THKTBWCI :: CODE SIGNATURE ::
+#JQPDJSEDFZBC6LH7VLAFJSHFV5XVB4J3L7XKCUGIBMZY526YP6OFN37RFVWU6C7ODGX6JQ2VVYE6O
+#::: IGH344N2AWGPX75SIPDTUP3LIBORUXREM6NDU6R32MQDI3EIRCA :::: NAILARA AMOS :::
+# :: QIUAIBICONX77FXOB5LCD47Q3QZ3OEH45M3JYIUGPAZGLHIC22CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

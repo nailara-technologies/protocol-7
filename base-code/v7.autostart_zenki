@@ -1,9 +1,9 @@
 # >:]
 
 # name  = v7.autostart_zenki
-# descr = initialize zenki for automatic / immediate startup
+# descr = initializing zenki for automatic\immediate start-up
 
-foreach my $zenka_name (@_) {
+foreach my $zenka_name (@ARG) {
     my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
     my $zenka_id     = <[zenka.get_id]>->($zenka_name);
     my $obj_id       = <[zenka.get_object_id]>->($zenka_id);
@@ -13,9 +13,9 @@ foreach my $zenka_name (@_) {
     while ( <[zenka.is_enabled]>->($zenka_name) and $instance_count-- ) {
         my $job_id = <[jobqueue.add_job]>->(
             {   'object_id'       => $obj_id,
-                'job_callback'    => 'zenka.start',
-                'callback_params' => $zenka_name,
-                'target_queue'    => $target_queue
+                'target_queue'    => $target_queue,
+                'job_callback'    => qw| zenka.start |,
+                'callback_params' => $zenka_name
             }
         );
         <v7.zenka.autostart>->{$zenka_name}->{'job'} = $job_id;
@@ -23,7 +23,7 @@ foreach my $zenka_name (@_) {
 }
 
 #.............................................................................
-#4NTULW4SG25T25HLFQ3BYI3Q2A7C7SGNBFI5MJNCXTVZBBGXBBBCERNUI4C6LGL5YBHBB3BGILWYU
-#::: LBQQWEPVNX2P3NMEMMAZ7PEPQNDRA2R5E4LSV33SF6ZAF33NEZJ :::: NAILARA AMOS :::
-# :: 6XPXZY4QEW2S5FHD4B7RADAJKYE6UKBHP427UQEJS3PQPNP46AAQ :: CODE SIGNATURE ::
+#2ULGMMSPMONTPD3IIEB5ZNGUWNE5TBUMQWDUTJTHKOCH5T2RPKRK2KC5ZTLEKEBZ2QS2SMVKKC44A
+#::: SQHW63XVGU67PCJMJV5R254JK6LMLRS2TNQ2Y4DBLX3L72UCY77 :::: NAILARA AMOS :::
+# :: ZSRAHGW7QBQURORZQS7PCHDXHJUB3EZNUMKCTARRGVZDEJ4E5ODI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

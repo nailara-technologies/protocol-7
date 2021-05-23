@@ -5,21 +5,23 @@
 
 my $job_id = shift;
 
-<[base.log]>->( 2, "executing job $job_id callback ..." );
+<[base.logs]>->( 2, 'executing job %d callback ..,', $job_id );
 
 my $job_data = <[jobqueue.get_job_data]>->($job_id);
-die "cannot execute job '$job_id' (no such job)"
+return warn sprintf "cannot execute job '%d' [ no such job ] <{C1}>", $job_id
     if not defined $job_data;
-die "cannot execute job '$job_id' (no callback defined)"
+return warn sprintf( "cannot execute job '%d' [ no callback defined ] <{C1}>",
+    $job_id )
     if not exists $job_data->{'job_callback'};
-die "job callback '" . $job_data->{'job_callback'} . "' does not exist"
+return warn sprintf( "job callback '%s' does not exist <{C1}>",
+    $job_data->{'job_callback'} )
     if not exists $code{ $job_data->{'job_callback'} };
 
 return $code{ $job_data->{'job_callback'} }
     ->( { 'job_id' => $job_id, 'params' => $job_data->{'callback_params'} } );
 
 #.............................................................................
-#A7NRDHK7OEDK7PXH7JBDRE7TKGQZWDUPX3SFTNITJFCK4QXC24HZFB2HF5T4GA5XPUEOT2G3VP6SS
-#::: VDS4INSFTWEOVXGZLEQOCLZ2WK3AFTFSDT227M7MKDWWIGZW6JX :::: NAILARA AMOS :::
-# :: NERR42RQLDJZPQSCNGLD25TII3CW7BTUOKABQGQGATPLTKLSWGCQ :: CODE SIGNATURE ::
+#L3LIRSP5STZ5SIGZJ6TWSM4MWVOTWC4ZZAFYTKVV4T54A6GRKKHBUOGPTM3K2MWNHA7V37H4BXHOA
+#::: E4IUAM75BU5PMIVVOCYBLVE2YSWZNRYVCIES6H4XSIOHWLH5NVU :::: NAILARA AMOS :::
+# :: 64ZPHVHBUTGN3W47BV3MIR3AAVQJDJLWOZCQRSIQTUI6YC3BJKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
