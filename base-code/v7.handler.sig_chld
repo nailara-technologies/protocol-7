@@ -6,10 +6,7 @@
 local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
-    my $instance_id;
-    my $instance;
-    my $zenka_name;
-    my $zenka_subname;
+    my ( $instance, $zenka_name, $instance_id, $zenka_subname );
 
     if ( my $child = <v7.child>->{$pid} ) {
         $instance_id   = $child->{'instance_id'};
@@ -17,6 +14,14 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         $zenka_name    = $instance->{'zenka_name'};
         $zenka_subname = $instance->{'subname'};
     }
+
+    $instance_id //= delete <v7.process.instance_cache>->{$pid};
+    <[base.clean_hashref]>->(<v7.process.instance_cache>);
+
+    $instance = <v7.zenka.instance>->{$instance_id}
+        if not defined $instance
+        and defined $instance_id
+        and defined <v7.zenka.instance>->{$instance_id};
 
     # determine exit status
     my $log_level = 2;
@@ -40,11 +45,10 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
     <[v7.terminate_process]>->($pid);    # <-- cleaning up children  .., [LLL]
 
-    delete <v7.process.instance_cache>->{$pid};
-    <[base.clean_hashref]>->(<v7.process.instance_cache>);
-
-    if ( $instance_id =~ <regex.base.iid> and my $child = <v7.child>->{$pid} )
-    {
+    if (    defined $instance_id
+        and $instance_id =~ <regex.base.iid>
+        and defined $instance
+        and my $child = <v7.child>->{$pid} ) {
         <[base.logs]>->( 2, ': was instance %d', $instance_id );
 
         delete <v7.child>->{$pid};
@@ -77,11 +81,10 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
                 $file_name, scalar <[base.format_error]>->($OS_ERROR) );
         }
 
-        my $next_status = (
-                   $old_status eq qw| error |
-                or $old_status eq qw| online |
-                or $old_status eq qw| starting |
-        ) ? qw| error | : qw| offline |;
+        my $next_status
+            = $old_status =~ m,error|online|starting,
+            ? qw|  error  |
+            : qw| offline |;
 
         $next_status = qw| restart | if $old_status eq qw| restart |;
 
@@ -97,7 +100,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.07,
-                    'interval' => 0.1,
+                    'interval' => 0.13,
                     'handler'  => qw| v7.handler.children_left |,
                     'data'     => {
                         qw| instance_id | => $instance_id,
@@ -110,14 +113,15 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
                 if $old_status ne $next_status;
 
             <[v7.init_restart_timer]>->($instance_id)
-                if $next_status ne qw| offline |
-                and $next_status ne qw| shutdown |;
+                if $next_status !~ m,offline|shutdown,;
         }
+    } elsif ( defined $instance_id and defined $instance ) {
+        delete <v7.zenka.instance>->{$instance_id};
     }
 }
 
 #.............................................................................
-#5VQRKF5AOA4WD3NXAOLZUQ2FETKN4FOT5FS2A3ULRKS2QBB7NXA63SOFDPA7T2BY6FY5RVIPIBSVU
-#::: SH6URRRHBWOYNV2HOKJ7MSJH6ZE6CAILY4AMST5LSKZ34FV4UJF :::: NAILARA AMOS :::
-# :: AG3JNN2G6Z26GIZ6NDCYHSMRV22CGPQ3USICT75WS5R3SLAXHSAI :: CODE SIGNATURE ::
+#RMP4S52TVLREMT4AGWZEILDBYJQFGNHMUJJGLTIZHFUT76Q5PAIVN4LB3UYEOW4WV3UXHNKTSRZCO
+#::: 65BCQ2CRH3YKMJVIJWAUK5C42F5EVAK4U4OV6M7QWZZBHATVJRS :::: NAILARA AMOS :::
+# :: WNA5CAKYFQ43KUK3KOXAQHCRMLPXD5H35YG7I5ZV3YAYO4CYLYBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

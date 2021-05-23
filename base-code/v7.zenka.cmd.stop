@@ -8,8 +8,6 @@ my $params = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if !length($params);
 
-warn sprintf " %s  ['%s']", <[base.caller]>->(1), $params;
-
 my $stop_mode
     = ( defined $$call{'mode'} and $$call{'mode'} eq qw| implicit | )
     ? qw| implicit |
@@ -92,7 +90,7 @@ foreach my $name ( keys %shutdown_names ) {
     if ( exists <v7.zenka.auto_cleanup>->{$name} ) {
         delete <v7.zenka.auto_cleanup>->{$name};
         delete <v7.zenka.auto_cleanup>
-            if !keys %{<v7.zenka.auto_cleanup>};
+            if not keys %{<v7.zenka.auto_cleanup>};
     }
     my $instances_remaining = $zenka_names{$name} - $shutdown_names{$name};
     if ( !$instances_remaining ) {
@@ -130,7 +128,7 @@ foreach my $name ( keys %shutdown_names ) {
             }
         }
         delete <v7.zenka.dependency>
-            if !keys( %{<v7.zenka.dependency>} );
+            if not keys %{<v7.zenka.dependency>};
     }
 }
 
@@ -141,7 +139,7 @@ return {
     'data' => sprintf( "zenka '%s' not in set-up [ see 'list zenki' ]",
         $not_found_name )
     }
-    if !$setup_found and $not_found;
+    if not $setup_found and $not_found;
 
 if ($count) {
     return { 'mode' => qw| true |, 'data' => $msg_str };
@@ -171,7 +169,7 @@ if ($count) {
 }
 
 #.............................................................................
-#76KBVMJLLFN2CHMF2CIERLPGOJIPWWKG7CNKCNYBBU5WABSGEBGSHIU5YZ33ALIGUTAL745FFMDGM
-#::: CL7ISGDHUUT3W3FEDCZBLUK45FKC7BW2CI75RKH37FRE6VGC3ZU :::: NAILARA AMOS :::
-# :: FO42LIVQ65NQXL4GCNOXM2U4ARSU6DSQRWRJYDUQ22DH6ER2YEAA :: CODE SIGNATURE ::
+#3ZHWM7XZDBOLW2XYUKT4QRHYG4CJBIE5AMGNIF6LQWUKH3LUQJX4JTETOKWVUPPPTMXW27MKHEEPA
+#::: 6P4TUESMQA5LOE6UW2RKH437VGVCDEL4R245AQ4SGUWOUYAO42M :::: NAILARA AMOS :::
+# :: XUUMJQAINL3TZA2B52VTXIQ2XZHIS3VATAPO6LCMEVK3FUX5VICY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
