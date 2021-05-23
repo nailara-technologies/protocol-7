@@ -8,31 +8,33 @@ return warn 'no instance id specified <{C1}>'   if not defined $instance_id;
 return warn 'no status string submitted <{C1}>' if not defined $new_status;
 return warn 'no such instance defined <{C1}>'
     if not defined <v7.zenka.instance>->{$instance_id};
-if ( not defined <v7.zenka.instance>->{$instance_id}->{'status'} ) {
-    delete <v7.zenka.instance>->{$instance_id};    ## cleaning up ##
-    return warn 'instance %d entry had no status <{C1}>';
-}
+
+map {    ## validity check ##
+    if ( not defined <v7.zenka.instance>->{$instance_id}->{$ARG} ) {
+        delete <v7.zenka.instance>->{$instance_id};    ## cleaning up ##
+        return warn sprintf "instance entry %d had undefined '%s' <{C1}>",
+            $instance_id, $ARG;
+    }
+} qw| status zenka_name |;
 
 my $zenka_name = <v7.zenka.instance>->{$instance_id}->{'zenka_name'};
 
-if ( defined $zenka_name ) {
-    <v7.online-zenki> //= {};
-    my $online_count = scalar keys %{<v7.online-zenki>};
-    if ( $new_status eq 'online' ) {
-        <v7.online-zenki>->{$zenka_name}++;
-    } elsif ( $new_status ne 'starting'
-        and exists <v7.online-zenki>->{$zenka_name} ) {
-        delete <v7.online-zenki>->{$zenka_name}
-            if --<v7.online-zenki>->{$zenka_name} == 0;
-    }
-    <[v7.calc_prefix_lengths]>->( keys %{<v7.online-zenki>} )
-        if $online_count != scalar keys %{<v7.online-zenki>};
+<v7.online-zenki> //= {};
+my $online_count = scalar keys %{<v7.online-zenki>};
+if ( $new_status eq qw| online | ) {
+    <v7.online-zenki>->{$zenka_name}++;
+} elsif ( $new_status ne qw| starting |
+    and exists <v7.online-zenki>->{$zenka_name} ) {
+    delete <v7.online-zenki>->{$zenka_name}
+        if --<v7.online-zenki>->{$zenka_name} == 0;
 }
+<[v7.calc_prefix_lengths]>->( keys %{<v7.online-zenki>} )
+    if $online_count != scalar keys %{<v7.online-zenki>};
 
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
 #.............................................................................
-#5VGDWY65DFOROWHFC5UTKEHEIWTQUGU3Z3OSJTSDQYRMC5AFCQX5KW4EQKMUISK6LXET3SHEAC3LM
-#::: B6OBCCTZZHT5UE7Q4YTM4NIUNL6FZMOBL5L4NCMRAMXPO4XXZXT :::: NAILARA AMOS :::
-# :: RHVCDKNHLRE5HUO2OM2IEUP3PW2T36MOMA4USJE4EPBDW2WH7QDA :: CODE SIGNATURE ::
+#OQK6YFH2GTN44GNQBGSDG2WZ63567YZQPZDYVJZAAHE7RAWZCWYRIYEOHJV64RRDWXG4FERG4LSNG
+#::: 44RI7SPF4MXYJBNY6NCVNEWY4QNXWUBCNV3G2X7USFMZGG2YJEN :::: NAILARA AMOS :::
+# :: VIYLAYJXUTJDCLJOL5IP6D63SEOHBJO5LRPFHBNN7YTXR2AIMADQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
