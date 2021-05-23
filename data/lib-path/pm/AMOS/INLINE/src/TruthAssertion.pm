@@ -1,7 +1,7 @@
 
 package AMOS::INLINE::src::TruthAssertion;    ##############################
 
-## [ target package name : AMOS:Assert::Truth::{int,float} ] ##
+## [ target package : AMOS:Assert::Truth ] ##
 
 use strict;
 use English;
@@ -70,12 +70,12 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
     EOC
 
     return {
-        qw|  source  | => $source,
+        qw| source | => $source,
+
+        qw| package | => qw| AMOS::Assert::Truth |,    ##  true_float  ##
 
         ## pure-perl is_true_num alternative [ arbitary number length ] ##
         qw| fallback | => \&AMOS::Assert::Truth::calc_true,
-
-        qw| package | => qw| AMOS::Assert::Truth::float |   ##  true_float  ##
     };
 }
 
@@ -134,17 +134,17 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
     EOC
 
     return {
-        qw|  source  | => $source,
+        qw| source | => $source,
+
+        qw| package | => qw| AMOS::Assert::Truth |,    ##  true_int  ##
 
         ## pure-perl is_true_num alternative [ arbitary number length ] ##
-        qw| fallback | => \&AMOS::Assert::Truth::calc_true,
-
-        qw| package | => qw| AMOS::Assert::Truth::int |    ##  true_int  ##
+        qw| fallback | => \&AMOS::Assert::Truth::calc_true
     };
 }
 
 #.............................................................................
-#IHZNGTV4MQOP6JUWBEMAKGZDAXD2EJKP7QN72DDX7PQQGQI6VLJM2PL6UD3XXCOFHH7DBBIQEHYR4
-#::: 3Y7OGCEM5ICT6PQOH6YCI7AMKWMFQFMIASLMDZKAEEQAXQMTBXG :::: NAILARA AMOS :::
-# :: VDV5F4XIXRQM3TFLEBXRQ3ALA2MPXMKVQXJHNWGCLGAKZBIJIUDY :: CODE SIGNATURE ::
+#4OZ724C4UNEIOOTEDJOGEELUZJFIQHW72XMYUAMDBXE6RZ4564PD3GW2O5IMPLDV4MBMYZIQUOGFY
+#::: ET6ROMZR5XQS53LB6TDXRTXURTWSMBSXBBF4BJPKYXN2MSOXIVX :::: NAILARA AMOS :::
+# :: FKCK2VWILBSJMGDYPMMW2PPQBPEXV4V4KQDYFZFVMDNEYMTIF2AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

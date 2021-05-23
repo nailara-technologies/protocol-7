@@ -35,15 +35,11 @@ our @assertion_modes = qw| 4 7 |;    ##  elf truth modes : main set-up  ##
 
 use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-## skip compilation when included from AMOS::INLINE::src::TruthAssertion
+## skips compilation when included from AMOS::INLINE::src::TruthAssertion
 if ( defined &compile_inline_source ) {
-
-    compile_inline_source( { qw| subroutine-name | => qw| true_int | } )
-        if not defined &true_int;
-
-    compile_inline_source( { qw| subroutine-name | => qw| true_float | } )
-        if not defined &true_float;
-
+    ## loads when not defined ##
+    map { compile_inline_source( { qw| subroutine-name | => $ARG } ) }
+        qw| true_int true_float |;
 }
 ###
 
@@ -127,16 +123,16 @@ sub calc_true {
 
     ## from AMOS::INLINE ##
     #
-    return AMOS::Assert::Truth::int::true_int($check_num)
+    return AMOS::Assert::Truth::true_int($check_num)
         if index( $check_num, '.', 0 ) == -1
         and $check_num <= 18446744073709551615    ## 64 bit ##
-        and defined &AMOS::Assert::Truth::int::true_int
-        and \&AMOS::Assert::Truth::int::true_int ne \&calc_true;
+        and defined &AMOS::Assert::Truth::true_int
+        and \&AMOS::Assert::Truth::true_int ne \&calc_true;
 
-    return AMOS::Assert::Truth::float::true_float($check_num)
+    return AMOS::Assert::Truth::true_float($check_num)
         if $input_len < 17
-        and defined &AMOS::Assert::Truth::int::true_float
-        and \&AMOS::Assert::Truth::int::true_float ne \&calc_true;
+        and defined &AMOS::Assert::Truth::true_float
+        and \&AMOS::Assert::Truth::true_float ne \&calc_true;
     #
     ###
 
@@ -176,7 +172,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#75T7QD7PAHUPAVIHEAOY5CMLU5CGUUWCWTITVUJYSIUB4YVP5YKVULHCEQ724RIJLGSIZTI7ACF2S
-#::: RL4JAXEFIGYGLS2NGJ5LBDJ3C4O3IYSRRQWNY3OXZORN6USLSUA :::: NAILARA AMOS :::
-# :: I7YHK3G6JTTVEK7XXLYIDWMXZ4L3JA23RRBZX6ZM4YBECKITNUBY :: CODE SIGNATURE ::
+#T37EB5CQQDOJAFPOC76RZJBJ7RP2UT4PZCIEBVXW4FMUTSQ4KOH7SUW75L6NYX53DFVCA4VOUXD46
+#::: HRGLGRZLH4O7FDSDSYJARNEZLDUQRHHD5RJL47P2XVX4ESAHAY5 :::: NAILARA AMOS :::
+# :: QECRPFKOQKGBY6LDNINACTWXCEYBB453GETF2DA73OWG57BSYEAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
