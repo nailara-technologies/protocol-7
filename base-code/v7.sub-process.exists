@@ -1,17 +1,19 @@
 # >:]
 
-# name = v7.sub-process.exists
+# name  = v7.sub-process.exists
+# descr = return true when a child process of current zenka with <PID> exists
 
-my $chk_pid = shift;
-my $stat;
+my $check_pid = shift;
+warn sprintf( "'%s' is not a valid child pid <{C1}>", $check_pid )
+    and return 0
+    if not defined $check_pid
+    or $check_pid !~ m|^\d+$|
+    or abs $check_pid < 2;
 
-warn "expected process id <{C1}>" and return 0
-    if not defined $chk_pid or $chk_pid !~ /^\d+$/;
-return 0 if $stat = waitpid( $chk_pid, WNOHANG() ) <=> 0;
-return 1;
+return waitpid( $check_pid, WNOHANG() ) == 0 ? 5 : 0;
 
 #.............................................................................
-#Q2ANOZWQRAFKX4CSWGL76EFECYJZUQ7V5LEVM5VUIF4DZROP4YZHTIKJOYUH7VMOEYSDIK6RYW7VA
-#::: ER6QTF2QS3B2YYAFD5ZDDGCCPTGVB5CGXSS3KI4G4KVNILYPU2H :::: NAILARA AMOS :::
-# :: UO2LLPPD3T3GKSR32KEEOESSOIV5YJOWGSUBOIR7R7ZBK6ISGYDA :: CODE SIGNATURE ::
+#3BTVCDGNXL27F5T43SGVWO5THRPNEKAF3AJOHKEOS3LPW6GXJH72P55OS4FAYXTA7IOSWILYA77R2
+#::: S2G7ZPEOH2RNUCP4GQZKTLR2Y6MZAOX2DCC5UU7EKPVDDCAU3QF :::: NAILARA AMOS :::
+# :: MQUKVZUXWL44SHXDZTQUW637HVIPOFYCV6RU6ZCJ6Z4LOZ5B5ACA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,11 @@ my $proc_table = <v7.process.pt>
 my %ppids;
 my %start_times;
 foreach my $proc ( reverse @{ $proc_table->table } ) {
-    next if not <[v7.sub-process.exists]>->( $proc->{'pid'} );
+    next
+        if not defined $proc->{'pid'}
+        or not defined <v7.child>->{ $proc->{'pid'} }
+        or not <[v7.sub-process.exists]>->( $proc->{'pid'} );
+
     $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
     $start_times{ $proc->{'pid'} } = $proc->{'start'};
 }
@@ -33,7 +37,7 @@ foreach my $pid ( keys %ppids ) {
 
 while ($found) {
     $found = 0;
-    foreach my $child_pid ( keys(%children) ) {
+    foreach my $child_pid ( keys %children ) {
         next if $children{$child_pid}->{'checked'} == 1;
         foreach my $pid ( keys %ppids ) {
             if ( $ppids{$pid} == $child_pid ) {
@@ -64,7 +68,7 @@ return [
 ];
 
 #.............................................................................
-#KEYLRRMF6HW3EWWHZP63IEAMQLTB3I7WZII6TBDYYGJQFARU6JLIEKUNU5YDGHN4TZHEEKJZO6PMK
-#::: RX3L6MRFWBVLYRT4V3TKXWBYKGVOVOFP3NKAFOKKKQPECLB6ZWV :::: NAILARA AMOS :::
-# :: XQLYGNA7V3AU6THNSFLDORU3EENKQID46LSGRMM2K3J6LTUF5IBY :: CODE SIGNATURE ::
+#YO4QAV4RCQHCY7IAZ6BU3U4YBX4S4UWMZ4LO52P3UCL375KD4OGKW53UNK4QOC5NETZAL6P2H3SJI
+#::: GF3RDQY3XFZ2DIGZPBAQN7OBN4JUFHG3KVLMBKS5B4IG2T4JDTL :::: NAILARA AMOS :::
+# :: VKDYGVYXZGQ26ZEM3KDHGIQ6264T5AOUEIM5SIASVOR6NHQ2JQCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
