@@ -1,0 +1,47 @@
+# >:]
+
+# name  = amos-term.term-params-update
+# descr = update <amos-term.term-param> with values from zenka config file
+
+if ( defined <amos-term.term-param> and keys %{<amos-term.term-param>} ) {
+
+    my %replaced;    ## replacing existing options ##
+    foreach my $option ( @{<amos-term.xterm-params>} ) {
+        if ( $option =~ m|\*(xterm\*)?([^:]{1,20}):(\S+)| ) {
+            my $x_key_name = ${^CAPTURE}[1];
+            my $c_val      = ${^CAPTURE}[2];
+            my $a_key_name = $x_key_name;
+            $a_key_name =~ s|(*plb:\w)([A-Z])|-\l$1|g;
+            next if not defined <amos-term.term-param>->{$a_key_name};
+            next if $c_val eq <amos-term.term-param>->{$a_key_name};
+            my $set_value = <amos-term.term-param>->{$a_key_name};
+            ## replace existing option ##
+            $option =~ s|(*plb::).+$|$set_value|g;
+            $replaced{$a_key_name}++;
+        }
+    }
+
+    my $added = 0;    ## adding not yet defined options ##
+    foreach my $a_key_name ( <[base.sort]>->(<amos-term.term-param>) ) {
+        next if exists $replaced{$a_key_name};
+        ( my $x_key_name = $a_key_name ) =~ s|-([a-z])|\u$1|g;
+        push          ## append xterm option ##
+            @{<amos-term.xterm-params>},
+            sprintf( '%s:%s',
+            $x_key_name, <amos-term.term-param>->{$a_key_name} );
+        $added++;
+    }
+    @{<amos-term.xterm-params>} = <[base.sort]>->(<amos-term.xterm-params>)
+        if $added;
+
+    ##  return number of changes \ additions  ##
+    return scalar( keys %replaced ) + $added;
+}
+
+return 0;    ## no changes ##
+
+#.............................................................................
+#4D3GJ4HAC3BBMPYFBCNCALQA3EMYFDHPSPRJGUTQDWSN5LT2LNEYPXNZQBOKA7HBYU5S6KXS4G4NI
+#::: Y5L4R36UKKOREI4CV3OWTRCZINA77CMXJY3BOOWZS6CEDPHV6NL :::: NAILARA AMOS :::
+# :: E6WC56EIIZHWV5R5G2BHUBSBVCL7GNJTFF5VLTNXESN6BCIGFUDI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
