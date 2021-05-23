@@ -3,18 +3,21 @@
 # name  = jobqueue.move_job
 # descr = moves a job from one queue to another
 
-my ( $job_id, $target_queue ) = @_;
+my $job_id       = shift;
+my $target_queue = shift;
+
+return warn 'expected job id parameter <{C1}>' if not defined $job_id;
+return warn 'no target queue specified <{C1}>' if not defined $target_queue;
+
 my $jobs     = <jobqueue.joblist.by_id>;
 my $job_list = <jobqueue.joblist>;
 
-die "no job id specified!"       if not defined $job_id;
-die "no target queue specified!" if not defined $target_queue;
-die "a queue named '$target_queue' does not exist"
-    if not exists $job_list->{$target_queue};
+return warn sprinf( "job queue does not exist [ %s ] <{C1}>", $target_queue )
+    if not defined $job_list->{$target_queue};
 
-if ( not exists $jobs->{$job_id} ) {
-    <[base.log]>->(
-        1, "jobqueue.move_job: a job with id '$job_id' does not exist!"
+if ( not defined $jobs->{$job_id} ) {
+    <[base.logs]>->(
+        1, 'jobqueue.move_job : job with id %d does not exist', $job_id
     );
     return;
 }
@@ -27,7 +30,7 @@ return if $source_queue eq $target_queue;    # LLL: warn?
 <[base.log]>->(
     2,
     sprintf(
-        "moving job %d [ '%s' --> '%s' ]",
+        'moving job %d [  %s --> %s  ]',
         $job_id, $source_queue, $target_queue
     )
 );
@@ -35,24 +38,26 @@ return if $source_queue eq $target_queue;    # LLL: warn?
 my $sq = $job_list->{$source_queue};
 my $tq = $job_list->{$target_queue};
 
-push( @{ $tq->{'by_priority'}->{$prio} }, $job_id );
-push( @{ $tq->{'by_timestamp'} },         $job_id );
+push @{ $tq->{'by_timestamp'} }, $job_id;
+
+push @{ $tq->{'by_priority'}->{$prio} }, $job_id;
 
 foreach my $s_queue ( $sq->{'by_priority'}->{$prio}, $sq->{'by_timestamp'} ) {
     my $del_index = 0;
     map {
         splice( @$s_queue, $del_index, 1 ) if $ARG == $job_id;
         $del_index++
-    } @$s_queue;
+    } @{$s_queue};
 }
 
 $job_list->{'count'}->{$source_queue}--;
 $job_list->{'count'}->{$target_queue}++;
-$jobs->{$job_id}->{'tstamp'}{$target_queue} = <[base.time]>->(4);
+
 $jobs->{$job_id}->{'status'} = $target_queue;
+$jobs->{$job_id}->{'tstamp'}->{$target_queue} = <[base.time]>->(4);
 
 #.............................................................................
-#AFIGXDBYCA2FDX3KLXIVVHOQJRIALEG5RXB5752TX2OX3RX7TCZTNTMFUS5EBIIZHCC3FJZBRHVI6
-#::: BILOWXABRPEIQMAP2TCQFEUKRSEU6UHRXBXWGRYOEGKA2BW5NZB :::: NAILARA AMOS :::
-# :: 2AC3KQ6D6FN6ZCMC534OH5JCDOKKEIB35WFCYALU6I7MMBM6ZQDI :: CODE SIGNATURE ::
+#PWNOCIMBCMFICRFUIYNKXPU6AAZUP6ASB6I3DVEEKIP7YNKETIUZ7NBSR24VGSORTYI5TKVKJRJL4
+#::: JQTJFHNWBNKPCF4PLRX45K5GABBWOSKE5ZTSLFOUNELQBGOF3DM :::: NAILARA AMOS :::
+# :: AEWOI5JCQERWBZ5UH7BPDNNKQXZAVT67UDMQOIOYGY7MD74Z6SCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

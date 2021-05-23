@@ -6,13 +6,16 @@ my $job_id   = shift;
 my $jobs     = <jobqueue.joblist.by_id>;
 my $job_list = <jobqueue.joblist>;
 my $prio     = $jobs->{$job_id}->{'priority'};
-die "expected numerical job id" if not defined $job_id or $job_id !~ /^\d+$/;
+return warn 'expected numerical job id <{C1}>'
+    if not defined $job_id or $job_id !~ m|^\d+$|;
 
 if ( not exists $jobs->{$job_id} or not defined $prio ) {
-    <[base.log]>->( 2, "remove_job: a job with id $job_id does not exist" );
+    <[base.logs]>->(
+        2, 'remove_job : a job with id %d does not exist', $job_id
+    );
     return undef;
 }
-<[base.log]>->( 2, "removing job $job_id" );
+<[base.logs]>->( 2, 'removing job %d', $job_id );
 
 my $queue_name = $jobs->{$job_id}->{'status'};
 my $job_queue  = $job_list->{$queue_name};
@@ -29,7 +32,7 @@ foreach my $del_queue ( $job_queue->{'by_priority'}->{$prio},
 return ( delete $jobs->{$job_id} );
 
 #.............................................................................
-#KILPJIQNNMWMVBNRXP6ZB6IKKEZ6JGEBTCFSNTSIXZNTKTMP2XBLEEGC2EXQIWNCTL7UKMMHYPHUM
-#::: 3LZWVVMUTZNFR5K7P7XADJGVZTJDXJOZNRABENIWS5LEEZ5IJRH :::: NAILARA AMOS :::
-# :: 3DCTZEYYFX66ELI3LEXIMMOIAYV53NWPUK262OPEY3GR7M2U4YBQ :: CODE SIGNATURE ::
+#RFYY7A7TAQFAS2FG3AVLPDF7QOI5V756TF5YBBZMJVUOMTZLP4AEK7QXIEVEJZNBTLB6LT435DVTY
+#::: YTK6PYEJDZELT2IPBXLE6XZBLHAODMO3HEIEJNJSVOGULKZXQHN :::: NAILARA AMOS :::
+# :: UTLPLHLWUO5LAFBLSSFJAYUMIHCHBTFD66CMSS2KHRW6RZGMPGAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
