@@ -39,15 +39,13 @@ foreach my $param_str ( split m| +|, $params ) {
         if ( defined $zenka_id ) { $setup_found++ }
         else { $not_found++; $not_found_name //= $zenka_name; next }
         foreach my $iid (<[v7.instance_ids]>) {
-            next
+            next    ## skip zenki with different subnames ##
                 if defined $zenka_subname
-                and not exists <v7.zenka.instance>->{$iid}->{'subname'}
-                or defined $zenka_subname
-                and exists <v7.zenka.instance>->{$iid}->{'subname'}
-                and <v7.zenka.instance>->{$iid}->{'subname'} ne
-                $zenka_subname;
+                and ( not defined <v7.zenka.instance>->{$iid}->{'subname'}
+                or <v7.zenka.instance>->{$iid}->{'subname'} ne
+                $zenka_subname );
 
-            push( @instance_ids, $iid )
+            push( @instance_ids, $iid )    ## prepare instance for stopping ##
                 if <v7.zenka.instance>->{$iid}->{'zenka_id'} == $zenka_id;
         }
     } else {
@@ -58,35 +56,37 @@ foreach my $param_str ( split m| +|, $params ) {
     }
 }
 
-map {
-    <[zenka.instance.stop]>->($ARG);
+## shut down prepared zenka instances ##
+foreach my $instance_id (@instance_ids) {
+    <[zenka.instance.stop]>->($instance_id);
     ## clean-up., ##
-    delete <v7.zenka.instance>->{$ARG}->{'startup-error-retries'};
-    delete <v7.zenka.instance>->{$ARG}->{'start-up-retries-left'};
+    delete <v7.zenka.instance>->{$instance_id}->{'startup-error-retries'};
+    delete <v7.zenka.instance>->{$instance_id}->{'start-up-retries-left'};
     ##
-} @instance_ids;
+}
 
 my $count   = scalar @instance_ids;
 my $msg_str = sprintf( 'shutting down %d zenka instance%s',
     $count, <[base.cnt_s]>->($count) );
 
 my %zenka_names;
-map {
+foreach my $instance_id (<[v7.instance_ids]>) {
     my $zenka_name
         = <v7.zenka.setup>
-        ->{ <v7.zenka.instance>->{$ARG}->{'zenka_id'} }->{'name'};
+        ->{ <v7.zenka.instance>->{$instance_id}->{'zenka_id'} }->{'name'};
     $zenka_names{$zenka_name}++;
-} <[v7.instance_ids]>;
+}
 
 my %shutdown_names;
-map {
+foreach my $instance_id (@instance_ids) {
     my $zenka_name
         = <v7.zenka.setup>
-        ->{ <v7.zenka.instance>->{$ARG}->{'zenka_id'} }->{'name'};
-    <v7.zenka.instance>->{$ARG}->{'stopping'} = 1;
+        ->{ <v7.zenka.instance>->{$instance_id}->{'zenka_id'} }->{'name'};
+    <v7.zenka.instance>->{$instance_id}->{'stopping'} = 1;
     $shutdown_names{$zenka_name}++;
-} @instance_ids;
-foreach my $name ( keys %shutdown_names ) {
+}
+
+foreach my $name ( <[base.reverse-sort]>->( \%shutdown_names ) ) {
     if ( exists <v7.zenka.auto_cleanup>->{$name} ) {
         delete <v7.zenka.auto_cleanup>->{$name};
         delete <v7.zenka.auto_cleanup>
@@ -169,7 +169,7 @@ if ($count) {
 }
 
 #.............................................................................
-#3ZHWM7XZDBOLW2XYUKT4QRHYG4CJBIE5AMGNIF6LQWUKH3LUQJX4JTETOKWVUPPPTMXW27MKHEEPA
-#::: 6P4TUESMQA5LOE6UW2RKH437VGVCDEL4R245AQ4SGUWOUYAO42M :::: NAILARA AMOS :::
-# :: XUUMJQAINL3TZA2B52VTXIQ2XZHIS3VATAPO6LCMEVK3FUX5VICY :: CODE SIGNATURE ::
+#W6LUKUJWKYVPXJI5LDO45JZJSVG57HLVHY6BYWEGWPGJGMTJ6RMHM4ZEPG7UHL7WH3RR7Y7YNXM32
+#::: ZCVQDCRYMYCFJUHDDWNFMXSBON5AJFBFJCJ6B3IIAKVOBR6FN5W :::: NAILARA AMOS :::
+# :: DUGEGRVO7B5CIOWKSG7STZ2SJWSW4VFQSTSI445QVAKE7JZPIUAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
