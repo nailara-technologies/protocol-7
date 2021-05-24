@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 use v5.24;
 use strict;
 use English;
@@ -27,8 +28,6 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
-my $root_path = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
-
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS;
@@ -37,8 +36,9 @@ use AMOS::INLINE;
 use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
 
-## AMOS::BinConversion ##
-*b2n = compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+*b2n = compile_inline_source(    ## AMOS::BitConv ##
+    { qw| subroutine-name | => qw| bit_string_to_num | }
+);
 
 ##[ INTERRUPTS ]##############################################################
 
@@ -80,6 +80,7 @@ my @modes = defined $option{'m'} ? split( ':', $option{'m'} ) : qw[ 13 ];
 say '';
 
 foreach my $num (@range) {
+
     my $d      = length( sprintf( qw| %07b |, $range[ scalar @range - 1 ] ) );
     my $result = sprintf( "%0${d}b",  $num );
     my $elfsum = sprintf( qw| %09d |, elf_chksum( $result, 1, $modes[0] ) );
@@ -153,7 +154,7 @@ say $C{'R'};
 exit(0000000);
 
 #.............................................................................
-#RO2ZHEIGR7DAIM75PC54UWKP5KKFX26V2CGDLZG6XQHNAKWL6XC5NUEDWJ57UCCM6UCHTV5VFHMTG
-#::: 5DNDEB45DNFV4LDBYVWFFM4SPAD3OPUIUCNYIGEVVLY33I23ZDS :::: NAILARA AMOS :::
-# :: BBMNPCUN2QQ5ASTPDIDJAVKY7M5OAWRZADD2X4RDB6236UYGJYDY :: CODE SIGNATURE ::
+#36RPQL2R2JLF3PD2FFUZQ4EP2ICOR2R3ZCFEX2UZ2UPTSRAEF72VCOAEYYKWYLCNZ7KSSUZQMBNWU
+#::: RBENBV4NWTWCSYGQKEQHB7QO345ZK7CD2AOJOQTPXAYQTYAG6KZ :::: NAILARA AMOS :::
+# :: CT2LWGGVYQBVWFJDPZH7Y25WHSG6MGURMVSXXKDDCYR62SCEVOCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

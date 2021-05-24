@@ -3,67 +3,14 @@
 # name  = chk-sum.elf
 # descr = elf chk-sum of input value [ as numerical value ]
 
-die 'expected single argument' if scalar @ARG > 1;
-return sprintf( '%09d', 0 )    if not length( $ARG[0] // '' );
+return warn 'expected single argument <{C1}>' if scalar @ARG > 1;
 
-return <[chk-sum.elf.inline]>->( $ARG[0] ) if defined &inline_elf;
+return sprintf( qw| %09d |, 0 ) if not length( $ARG[0] // '' );
 
-## need to allow passing input by reference from here ## [LLL]
-
-my $elf_chksum     = 0;
-my $eight_bit_case = 0;
-
-if ( @ARG == 1 and $ARG[0] =~ m|^\p{ASCII}+$| ) {
-    $elf_chksum = Digest::Elf::elf( $ARG[0] );    ## only 7-bit safe ##
-} else {
-    $eight_bit_case = 1;
-}
-
-return sprintf( '%09d', $elf_chksum )
-    if $elf_chksum > 0 and $elf_chksum <= 999999999;
-
-my $use_external_fallback = <chk-sum.elf.external.fallback-enabled> //= 1;
-
-if ( $eight_bit_case and not $use_external_fallback ) {
-    warn '< chk-sum.elf > characters >= ascii 128'
-        . ' encountered, no fallback <{C1}>';
-    return undef;
-}
-
-if ( not $use_external_fallback ) {
-    if ( $elf_chksum == 0 ) {
-        warn 'input data too long [ external fallback not enabled ]'
-            . " ['$ARG[0]']";
-    } else {
-        warn 'elf checksum error [ external fallback not enabled ]'
-            . " ['$ARG[0]'] == $elf_chksum";
-    }
-
-    return sprintf( '%09d', 0 );    ## returning 0 on errors ##
-
-} else {
-    my $external          = <chk-sum.elf.external>;
-    my $limit             = $external->{'warn-after-count'} //= 4200;
-    my $count             = ++$external->{'fallback-counter'};
-    my $col_buffer_name   = $external->{'collect-buffer-name'};
-    my $collect_offending = $external->{'collect-error-input'} //= 0;
-
-    <[base.log]>->( 2, 'elf checksum error [ calling external command ]' );
-    <[base.logs]>->( 2, ': %s', <[base.caller]> );
-    if ($collect_offending) {
-        <[base.buffer.add_line]>->( $col_buffer_name, $ARG[0] );
-        my $collected_len = length( $ARG[0] );
-        <[base.log]>->( 2, ": input data captured [ ${collected_len}B ]" );
-    }
-    <[base.logs]>->(
-        0, ":. excessive elf checksum errors detected [ %04d ]", $count
-    ) if $count % $limit == 0;
-
-    return <[chk-sum.elf.external]>->( $ARG[0] );
-}
+return <[chk-sum.elf.inline]>->( $ARG[0] );
 
 #.............................................................................
-#GEOFSLRCF6FMEHU3FGLX3BNSCADV7DNAYKKBD3RDWYFDMCW5FMFMBOP2YJC262D5TD7BFCX6C4UUK
-#::: Z6JRMHOSBOWZRQPGDPEYKYYXB4EI3PX6ZWPRJURTEJXJEWDI7OA :::: NAILARA AMOS :::
-# :: 23FXSQUR7EMUN5SH3Z7LHG6TDUSP74I7XXXW5E2LIMVDIJKMDIAY :: CODE SIGNATURE ::
+#PA4GE6QDIKMG2MAOULTFNAGSEZW7RBZD22GN3OISUVMYQQ6RCU3MCK32RPRV5EUPGQVIP4UVVN7QS
+#::: O4MIPFBKTTGA2JTBXMUSRAVLPDIL4K36ZI5NSV5RJLIJ46GRB67 :::: NAILARA AMOS :::
+# :: E3TM5MDLN5KTKCXGYXKEOKP5LOUJVCQR4IXBPUIB5AIMFDYRF4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

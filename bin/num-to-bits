@@ -28,14 +28,10 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-
 use AMOS::INLINE;
 
-$AMOS::INLINE::debug_output_to_console = 0;
-
-## AMOS::BinConversion ##
-compile_inline_source( { qw| subroutine-name | => qw| num_to_bit | } );
+## AMOS::BitConv ##
+compile_inline_source( { qw| subroutine-name | => qw| num_to_bit_string | } );
 
 ##[ NUMERICAL TO BINARY CONVERSION ]##########################################
 
@@ -55,12 +51,13 @@ error_exit('number of bits is not an integer [0..64] <{C1}>')
     and ( $bits =~ m|\D| or $bits < 0 or $bits > 64 );
 
 ## say( sprintf qw| %0*b |, $bits, $num ); ## <-- same, faster ##
-say AMOS::BinConversion::num_to_bit( $num, $bits );
+
+say AMOS::BitConv::num_to_bit_string( $num, $bits );
 
 exit(00000);
 
 #.............................................................................
-#URGDVZO4X6OGX7677GD44NZOIL6LSWN7JYJQ7RHENEDOBS3CFMKS23MO2JC4RH2EZEKBVV55SOSSU
-#::: THCTWJD4HCEUM2DVINWL5BRJUODGP6EAJUZVJYAVAFE5CPJ5E37 :::: NAILARA AMOS :::
-# :: KG5BCYTQOBAYFHN7VU2Q2OZICM2AQEBG3BRPC23YSWDNAVUGOOBQ :: CODE SIGNATURE ::
+#NMNZSG3ZYEVZBL4DS5VCP4HNIBRCTJ477ARV6FI6VAWVNZODKXWYXE2HTX4BRSYEHPDWDUZGMKICK
+#::: Z25XHUU3TPNKAZTMMTMWWAAE7IP5B2A43ETTD35FDWIRGUSS672 :::: NAILARA AMOS :::
+# :: SIDELQFTFMO7E5LJJQZF5WKZ4BT2YQ7MJT3T4FSBKJUOFOQVMWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 use v5.24;
 use strict;
 use English;
@@ -11,8 +12,6 @@ use warnings;
 use Encode qw| encode |;
 use Crypt::Misc qw| decode_b32r |;
 
-binmode( STDOUT, qw| :encoding(UTF-8) | );
-
 ##[ LOCAL PM LIB PATH ]#######################################################
 
 BEGIN {
@@ -20,8 +19,8 @@ BEGIN {
     use File::Spec;
     use Cwd qw| abs_path |;
     use FindBin qw| $RealBin |;
-    our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
+    our $up_dir = File::Spec->updir;
     my $data_pm_path   = qw| data/lib-path/pm |;
     my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
@@ -34,13 +33,13 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;    ## colors ##
-use AMOS::Assert::Truth;
+use AMOS;                   ## colors ##
+use AMOS::Assert::Truth;    ##  exports calc_true()  ##
 
 use AMOS::INLINE;
 
-## AMOS::BinConversion ##
-compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+## AMOS::BitConv ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ COMMAND LINE INPUT ]######################################################
 
@@ -113,12 +112,10 @@ RECALC:
 ## [ SUBROUTINES ] ###########################################################
 
 sub display_result {
-
     my $num         = shift;
     my $num_bits_64 = shift // sprintf( qw| %064b |, $num );
-
-    my $main_42 = substr( $num_bits_64, 0,  42 );
-    my $decoded = substr( $num_bits_64, 42, 7 );
+    my $main_42     = substr( $num_bits_64, 0,  42 );
+    my $decoded     = substr( $num_bits_64, 42, 7 );
 
     ## AUXILARY 15 ARE NOT USED FOR ENTROPY, ONLY KEPT ##
     # [ IMPLEMENTATION PRECISION AND DETACHING FROM INPUT SEED ] #
@@ -181,9 +178,7 @@ sub display_result {
 ##                                        62 .. 63 : alpha
 
 sub decoded_bits {
-
     my $bits = shift;
-
     my $type = substr( $bits, 0, 1, '' );
     $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 0 |;
     $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 01 |;
@@ -206,19 +201,15 @@ sub decoded_bits {
 ## RFC 4648 BASE32 alphabet ## 2-7 A-Z ##
 ##
 sub decoded_bits_BASE32 {
-
     my $bits = shift;
-
-    my $num = AMOS::BinConversion::bit_to_num($bits);
+    my $num  = AMOS::BitConv::bit_string_to_num($bits);
 
     return $num + 2 if $num <= 5;              ## 2 .. 7 ##
     return chr( 59 + $num );                   ## A .. Z ##
 }
 
 sub decoded_bits_route {
-
     return ' ' if @ARG == 0 or not defined $ARG[0];
-
     my @bits = split '', shift;
 
     state $directions //= {
@@ -229,17 +220,15 @@ sub decoded_bits_route {
     };
 
     my $turn = join( '', shift @bits, shift @bits );
-    my $hops = AMOS::BinConversion::bit_to_num( join '', @bits );
+    my $hops = AMOS::BitConv::bit_string_to_num( join '', @bits );
 
     return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
 }
 
 sub decoded_bits_chars {
-
     my $bits = shift;
     return '  ' if not length $bits;
-
-    my $result = AMOS::BinConversion::bit_to_num($bits);
+    my $result = AMOS::BitConv::bit_string_to_num($bits);
 
     state $table //= {
 
@@ -281,7 +270,7 @@ sub entropy_body {
 }
 
 #.............................................................................
-#IFHUZQVIMQA5SYW5TM7XGEIA4SEU2JHACGZP6SZPFKR2STWTONPS36CHF4ERYQUDQQ5Z44IOFRINM
-#::: DUBWXTAVEQE64BKRSZMQPDOKYTHXO2VZH2UXPAZHM5A2DZ3MFEY :::: NAILARA AMOS :::
-# :: MBS5E3XSZSCW5GXJCHQFQN2YLIWA5LC6TWT3QOCBIOX3SALVEKBI :: CODE SIGNATURE ::
+#AZ36RSIKLVHETVB4PGBFVUKA47GWPG5FSWDPUD3SHEDXJD35G2RDPQV72E2VBHFMXNZSBJ3DXTGOU
+#::: N7K5ZDJFCQWI55PPUNSD7TTRRTJ5YF2DNAN6HTXY6UDUMYK67D2 :::: NAILARA AMOS :::
+# :: ZMJ5TUEVQOGRGX5YGI75YEQIYHCH22AAUSD6ZZOF7XTSYYNM24AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

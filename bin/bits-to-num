@@ -28,11 +28,10 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
 use AMOS::INLINE;
 
-## AMOS::BinConversion ##
-compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+## AMOS::BitConv ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ BINARY TO NUMERICAL CONVERSION ]##########################################
 
@@ -43,12 +42,12 @@ my $bits = join( '', @ARGV );
 error_exit('input not a bit string <{NC}>')       if $bits =~ m|[^01]|;
 error_exit('input string size exceeds 64 <{NC}>') if length $bits > 64;
 
-say AMOS::BinConversion::bit_to_num($bits);
+say AMOS::BitConv::bit_string_to_num($bits);
 
 exit(00000);
 
 #.............................................................................
-#TQLO2X3RCKBAI6ZYUWQBHLHY74RZSCSAU5N3Z5HU7XQ3ZEE5CUHZ5SWLKHG7S4UHAXRRWMB2MU6CW
-#::: 2MX5ZTQLCGNVHWYA2M4BFE64SHYHKSDTKFGDZEANOLUZ6LYFC4X :::: NAILARA AMOS :::
-# :: LM3ZKH5VU2S6XTOVT5JBG2XJ7P2SM3UXRYBF33TMSTUZFMFPSCDQ :: CODE SIGNATURE ::
+#4UXIPZBQN74BNQB5JF3KZI35C237WGGOMU3YWO2BTDHEKFXGBSWGNPDS2IK4SZTANONK4RHM3S2AM
+#::: NXTZQBRDMUQYXNZ3ZBRBOQ5NGNZNWSVMCPYOT53YOALSCYBPEYH :::: NAILARA AMOS :::
+# :: 4G3JJAB6SR3ALALH4Q4DAQVEQGAJVBLTCDA4UMGAUTEUCG4XRKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

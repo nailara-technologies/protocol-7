@@ -10,25 +10,26 @@ use Encode;
 use Crypt::Misc;
 use Digest::BMW;
 
-use vars qw| @EXPORT $VERSION %algorithm_set_up |;
-
 use Exporter;
 use base qw| Exporter |;
+use vars qw| @EXPORT $VERSION %algorithm_set_up |;
+
+@EXPORT = qw| amos_chksum $VERSION |;
+
+our $VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    ##  amos-chksum -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
+use AMOS;                                      ##  error handler  ##
 use AMOS::13;
-use AMOS::INLINE;
-use AMOS::Assert::Truth qw| is_true |;
-use AMOS::CHKSUM::ELF qw| elf_chksum |;
 
-## AMOS::BinConversion ##
-compile_inline_source( { qw| subroutine-name | => qw| bit_to_num | } );
+use AMOS::INLINE;                              ## compile_inline_source ##
+use AMOS::CHKSUM::ELF;                         ## elf_chksum ##
+use AMOS::Assert::Truth;                       ## is_true ##
 
-our $VERSION = qw| AMOS-CHKSUM-V-KNDGQPA |;    ##  amos-chksum -VCS  ##
-
-@EXPORT = qw| amos_chksum $VERSION |;
+##  AMOS::BitConv::bit_string_to_num  ##
+##
+compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ SET-UP \ INIT ]###########################################################
 
@@ -42,7 +43,7 @@ our $VERSION = qw| AMOS-CHKSUM-V-KNDGQPA |;    ##  amos-chksum -VCS  ##
     qw| chksum_elf_mode  | => 7,    ##  <--  AMOS-13 CHKSUM elf mode [ 7 ]
     qw| elf_shift_bits   | => $AMOS::Assert::Truth::elf_shift_bits,     ## 13
     qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]   ## 4 7
-) if !keys %algorithm_set_up;
+) if not keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
 our @mod_bits;
@@ -154,10 +155,10 @@ sub amos_chksum {
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
     ## numerical ##
-    $num_amos_csum = AMOS::BinConversion::bit_to_num($checksum_bits);
+    $num_amos_csum = AMOS::BitConv::bit_string_to_num($checksum_bits);
 
     ## elf checksum protection ##
-    $num_amos_csum ^= AMOS::BinConversion::bit_to_num($bmw_b_L);
+    $num_amos_csum ^= AMOS::BitConv::bit_string_to_num($bmw_b_L);
     ###
 
     my $resaturation_offset = 0;
@@ -174,7 +175,7 @@ INVERT_TRUTH_STATE:
         }
 
         ## XOR ##
-        $num_amos_csum ^= AMOS::BinConversion::bit_to_num($cur_mod_bits);
+        $num_amos_csum ^= AMOS::BitConv::bit_string_to_num($cur_mod_bits);
 
         push( @mod_bits, $cur_mod_bits )
             if $algorithm_set_up{'return_modbits'};
@@ -204,7 +205,7 @@ INVERT_TRUTH_STATE:
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
             $bmw_mod_bits .= bin_032(
-                AMOS::BinConversion::bit_to_num(
+                AMOS::BitConv::bit_string_to_num(
                     substr( $bmw_512b, $bmw_offset, 32 )
                 ) ^ $num_amos_csum
             );
@@ -216,10 +217,10 @@ INVERT_TRUTH_STATE:
     return $checksum_encoded;                   ##  VAX AND BASE32 ENCODED  ##
 }
 
-return 1;  ###################################################################
+return 5;  ###################################################################
 
 #.............................................................................
-#YC74D5S22JQZ64UNCLXN2ND4TWMEETDKIAJYZJKKHT5H4XIAJWTCLF3FGQMVZ4ME4PTAVCK7UHKR4
-#::: 6VTPPXIJEEZLX7UVZF5CV3BZ3FEWBXULMACCSZWYSIMXD33QAKN :::: NAILARA AMOS :::
-# :: 7HFBHS45CFQNZ23LZEGYKZI6TKIAG45BIX7GPQJCIXDMA427C6CA :: CODE SIGNATURE ::
+#MZSE5W6O3TQCWMB7ZRLTY7VCEZHMX3XYXAJZXHA2KDNIDH4LCSWCP7FEU63SGRGLJDEQOKDWA5TMS
+#::: LC6H6KX6XFBMZ6NLKVKJHZJI4HOKP44TJBVHB2VTOTAPM4LOUDI :::: NAILARA AMOS :::
+# :: UTWVCFOKFTKQBW4DIC5EEIM3OGL73AEYD2AZBOVMENMHDSTEKQAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

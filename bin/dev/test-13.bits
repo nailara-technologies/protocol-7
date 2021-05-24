@@ -1,0 +1,100 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###            ###
+## test-13.bits ##
+###            ###
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $Bin            = $RealBin;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::INLINE;
+use Time::HiRes qw| sleep |;
+
+use AMOS::Assert::Truth;
+
+#*is_true = AMOS::INLINE::compile_inline_source(
+#    { qw| subroutine-name | => qw| is_true_num | } );
+
+## AMOS::INLINE::compile_inline_source(
+##   { qw| subroutine-name | => qw| true_D13 | } );
+
+##[ BINARY TO NUMERICAL CONVERSION ]##########################################
+
+error_exit('expected numerical argument <{NC}>') if !@ARGV;
+
+my $num = join( '', @ARGV );
+
+error_exit('input not a number <{NC}>') if $num !~ m|^-?\d+(\.\d+)?$|;
+
+my $bits = '';
+
+my $verbosity = 0;
+
+my $T = 0;
+my $F = 0;
+
+while ( $num > 13 ) {
+    my $Q_13 = int( $num / 13 );
+    say "\n", ' Q : ' . $Q_13 if $verbosity > 1;
+
+    $num -= $Q_13 * 13;
+    say ' N : ' . $num, "\n" if $verbosity > 1;
+
+    my $D_13 = $num / 13;
+    say '     <-- ', $D_13 if $verbosity > 2;
+
+    my $bit = AMOS::Assert::Truth::calc_true($num) ? 1 : 0;
+    say ":. " . $bit if $verbosity > 0;
+    $T++             if $bit == 1;
+    $F++             if $bit == 0;
+
+    $bits .= $bit;
+
+    $num = $Q_13;
+
+    # system qw| asc-enc -Ss0 |, $num if length $num;
+
+    sleep 0.13 if $verbosity;
+}
+
+my $R = $F > 0 ? $T / $F : $T;
+
+chomp( my $b_num = 0 < length $bits < 65 ? qx| bits-to-num $bits | : '' );
+
+say sprintf "\n : bits :  %s  : %s  \\  %d : %d  [ %.05f ]\n", $bits,
+    $b_num, $T, $F, $R;
+
+system 'asc-enc', $b_num if length $b_num;
+
+exec( 'test-13', $bits ) if length($bits);
+
+exit(00000);
+
+#.............................................................................
+#ZMX4LVWDJW4B3ZIL5PCRA3RU2AZ762LTUDZMSPPQNFPRFV3VAFJHC2SWKKVQ3M2UEE6UZ7FGD4KAU
+#::: XX47OEIDDISN5PJJALPTRJ2JLFRLPGGSO744TQVB34LNX5SBIL3 :::: NAILARA AMOS :::
+# :: RISY6K7ZTK7H3T55YG6IJIWC4MBLX626V473CADMKGPOZXCH4OAY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

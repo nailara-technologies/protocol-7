@@ -838,7 +838,7 @@ sub prepare_subs {
         $err_msg =~ s|"\s|' |g;
         $err_msg =~ s|\s"| '|g;
         $err_msg =~ s|\s+BEGIN failed.+$||sg;
-        $err_msg =~ s|(\S+(*nlb::)):(*nla::)|$LAST_PAREN_MATCH :|g;
+        $err_msg =~ s|(\S+(*nlb::)):(*pla: )|$LAST_PAREN_MATCH :|g;
 
         $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
 
@@ -1746,9 +1746,12 @@ sub prepare_subs {
     $code{'base.stderr_redir'} = sub {
         my $redir_ref = shift // \my $redir_var;
         open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
-            or print "\n<< cannot clone STDERR [ \l$OS_ERROR ] >>\n\n";
+            or printf "\n<< cannot clone STDERR [ %s ] >>\n\n",
+            $code{'base.format_error'}->($OS_ERROR);
         close(STDERR);
-        open( STDERR, '>', $redir_ref ) or say "< stderr_redir > \l$OS_ERROR";
+        open( STDERR, qw| > |, $redir_ref )
+            or say sprintf '< stderr_redir > %s',
+            $code{'base.format_error'}->($OS_ERROR);
         return $redir_ref;
     };
 
@@ -1756,13 +1759,15 @@ sub prepare_subs {
         my $restore_fh = delete $data{'base'}{'stderr_fh'};
         close(STDERR);
         if ( defined $restore_fh ) {
-            open( STDERR, '>&', $restore_fh )
-                or print "\n<< cannot restore STDERR"
-                . " to $restore_fh [ \l$OS_ERROR ] >>\n\n";
+            open( STDERR, qw| >& |, $restore_fh )
+                or printf "\n<< cannot restore STDERR"
+                . " to $restore_fh [ %s ] >>\n\n",
+                $code{'base.format_error'}->($OS_ERROR);
         } else {
-            open( STDERR, '>', File::Spec->devnull() )
-                or print "\n<< cannot restore STDERR"
-                . " to '/dev/null' [ \l$OS_ERROR ] >>\n\n";
+            open( STDERR, qw| > |, File::Spec->devnull() )
+                or printf "\n<< cannot restore STDERR"
+                . " to '/dev/null' [ %s ] >>\n\n",
+                $code{'base.format_error'}->($OS_ERROR);
         }
     };
 
@@ -1773,7 +1778,7 @@ sub prepare_subs {
     $code{'base.debug_sub'} = sub {
         return if $data{'system'}{'verbosity'}{'console'} < 2;
         my $sub_name = shift(@ARG);
-        ## $code{'base.collect_sub_stats'}->($sub_name); # <-- replace touch_dir
+        ## $code{'base.collect_sub_stats'}->($sub_name); #<--replace touch_dir
         my $quoted_chars = qr{[\ ;:,\.'\\]|^$};
         my @_p           = @ARG;
 
@@ -2248,7 +2253,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#KSJA6B2CE5CEWT2ZM4I4P6UEC6NQK3ZVXI746DQ2DHGSHE3OGU6276ZEEJTAIDHA7V6DC373H7GBM
-#::: DBJTGNOZYZXJIPEG3XDX6LNASB3DC5H6K4WVYAWGXGQI4JDM7UN :::: NAILARA AMOS :::
-# :: YVM37GGL4SVMITPDRCXNEQLPD52O3I6TKB6FHY3C5U36VYVIK2DY :: CODE SIGNATURE ::
+#3KF7LWGPAB4GMEJZWHEVVJ5LIF2BCZWPL5JWAUR6WFMQ5TZERGRJUH7XTMFKDSCWSVW7KEE5E22PE
+#::: FGAWEAA67H47RZWDY73QECW6PWSTDRAURXMNVEJAT2FNQQTRRNE :::: NAILARA AMOS :::
+# :: KFFMLNPHQ5EHQKXQWNVX7DEJ3IIPSHYXWGFGOM5S76U2NGM4UKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

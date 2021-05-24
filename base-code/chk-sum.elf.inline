@@ -29,23 +29,16 @@ if ( ref( $ARG[0] ) eq qw| SCALAR | ) {
     $input_ref = \$ARG[0];
 }
 
-## add start checksum and mode parameters ## [LLL]
-
-warn 'inline_elf() not available [ compilation successful ? ] <{C1}>'
-    if not defined &inline_elf;
-
 ## parameters ##
 ## < input-data >, < start-csum >, < elf-mode >, [ shift-bits ], [shift-thrh.]
-return sprintf(
-    qw| %09d |,
-    AMOS::CHKSUM::ELF::elf_chksum(
-        $$input_ref, $start_sum, $elf_mode,  ##  <--  make optional  ##  [LLL]
-        $shift_bits, $overflow_threshold
-    )
+
+return AMOS::CHKSUM::ELF::elf_chksum(
+    $$input_ref, $start_sum, $elf_mode,    ##  <--  make optional  ##  [LLL]
+    $shift_bits, $overflow_threshold
 );
 
 #.............................................................................
-#I3B2GRQ4MXKGPKQ6QMLNMDF7S6CGBSIFO7I4ULJDGQGZQYVNV73ULIT34K5XV3KLUUKQJSW4OOMCM
-#::: PCLCC34D4B7U3H4U5X3TRCH6ZB6G324FI6SIUZEJK3ZL3Q6G2VN :::: NAILARA AMOS :::
-# :: DQO3SZT5EBIWBWDL45M2I7AQWVJLXOYLDRR6UOKFD66MDYSQZYDA :: CODE SIGNATURE ::
+#7KPOI66T3TGH7RH5Z5X7EMVX5DTFTUTPQVJ5HCROVVYK26XLFXL2G222XWWUUD6FVITDG4H2ZH6CK
+#::: F6ZK3QS7PGH7RDOGJDCWTPQUJZMGJQVGHGCQIGPDENWOWA4ZTNJ :::: NAILARA AMOS :::
+# :: CEC3GR5G5UWZSCGKNT3O5EUGYOMCGIWFPWVUKCDQUBDFYZVNIUAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,10 +1,10 @@
 #!/usr/bin/perl
+
 use v5.24;
 use strict;
 use English;
 use warnings;
 use Getopt::Std;
-use Digest::BMW;
 
 ####           ####
 ##  amos-chksum  ##
@@ -34,7 +34,9 @@ use AMOS;
 use AMOS::CHKSUM;
 use AMOS::CHKSUM::ELF;
 use AMOS::Assert::Truth;
-use AMOS::CHKSUM::ELF::Inline;
+
+## version chksum calculation ##
+use AMOS::INLINE::src::AMOS_13_ELF;   ## implement other versions too ## [LLL]
 
 my $chksum_elf_mode = $AMOS::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ## 7
 my $elf_shift_bits  = $AMOS::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
@@ -59,6 +61,7 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} }; ##  7  ##
 
 my $data_str;
 
+##   AMOS.pm error handler   ##
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
@@ -98,7 +101,6 @@ if ( defined $option{'V'} ) {
         say $version_string if not $option{'v'};
     } elsif ( $option{'V'} =~ m,^(L7|S)$, )
     {                                    ## elf_sum() source code version ##
-
         my $elf_sum
             = elf_chksum( $data_str, 0, $chksum_elf_mode, $elf_shift_bits );
 
@@ -110,7 +112,8 @@ if ( defined $option{'V'} ) {
 
         } else {    ## version of elf_sum() source code ## [ -VS ] ##
 
-            $data_str = "  /* .: $elf_out_ver :. */\n\n" . inl_elf_src();
+            $data_str = "  /* .: $elf_out_ver :. */\n\n"
+                . AMOS::INLINE::src::AMOS_13_ELF::inline_elf();
             my $elf_inline_ver
                 = gen_version( qw| AMOS-13-ELF-7-SRC-VER-%s |, $data_str );
             say $elf_inline_ver if not $option{'v'};
@@ -274,7 +277,7 @@ sub true_bits {    ## not numerical ##
 }
 
 #.............................................................................
-#KDJ52GWE2FKOQWU326FITRXNP5C3OGTB7GR5ETLOMOGS5KIVS3XFEVKJUVLTVIYHTIV4IFOMX7QYO
-#::: ORL4Z43IYKQJTUVQXISORB6UTR3BNBJTBY6FE25RS5IWJXBAJMM :::: NAILARA AMOS :::
-# :: B5HSDYS23JQMI3POFIM2Y2VF6WB5BVY2KL25OYWTAS2ELAAG6EDA :: CODE SIGNATURE ::
+#RAWUJ5AAU745OC4GETVPPO3XVV3LA67TMT3O6CI3LT7NNRZMJ7OOHNL5MPCGW23BSU4TVVZ65RIOY
+#::: GTCEJG2H5MNHFWYLIHO6YO4CZUMFUJVZYZSOFWHFAX26FAFA7BO :::: NAILARA AMOS :::
+# :: 3UCRHZFWKQWV2XNZA6CI5QQDVG2NNTJHMY4NTHUJQE6QCWSTTQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

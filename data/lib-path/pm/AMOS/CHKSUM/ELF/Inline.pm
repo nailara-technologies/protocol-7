@@ -21,7 +21,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-GPUNAJQ |;    ##  amos-chksum -VS  ##
+our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-X6WFHLA |;    ##  amos-chksum -VS  ##
 
 our $debug_output_to_console = 0;
 
@@ -210,7 +210,7 @@ sub return_elf_c_sourcecode {
 return 1;  ###################################################################
 
 #.............................................................................
-#CDEKYT2FGFOYDKND6OVNBUVAZ3N3NSHGB7VUQECRBP5AUT4ITUTEGU4FGBXOMTM4JGG3HWI2XX55C
-#::: X43YON7UFHNL5YHMPUADM3GTZE7PPXIQHFPEHCM6NZRKCN57G7S :::: NAILARA AMOS :::
-# :: JKUS5WODPUSDIZKABUHOJ5CMOYW2LEB6YOJ2F5O6USO5NL2G5SCI :: CODE SIGNATURE ::
+#DJVYNKW5IWXVDLEDTQNAYYHJ2776N5DRDCQRASNDKVLI2LMAEZISOR6T23DVLEQYWTVKSTQTWFKY2
+#::: EZQGJYRTIEXMC7LIBHVWBLDWBNHYMHNNGMVLSLD4VII5SIDUS76 :::: NAILARA AMOS :::
+# :: AHXYACHZSI3ETOK66UDMYU6T27WC34SVCYKHODRPI7FIUXWGLWCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

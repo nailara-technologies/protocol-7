@@ -33,7 +33,7 @@ our $elf_shift_bits = 13;    ##  elf shift bits  ##
 
 our @assertion_modes = qw| 4 7 |;    ##  elf truth modes : main set-up  ##
 
-use AMOS::CHKSUM::ELF qw| elf_chksum |;
+use AMOS::CHKSUM::ELF;
 
 ## skips compilation when included from AMOS::INLINE::src::TruthAssertion
 if ( defined &compile_inline_source ) {
@@ -172,7 +172,7 @@ sub calc_true {
 return 1;  ###################################################################
 
 #.............................................................................
-#T37EB5CQQDOJAFPOC76RZJBJ7RP2UT4PZCIEBVXW4FMUTSQ4KOH7SUW75L6NYX53DFVCA4VOUXD46
-#::: HRGLGRZLH4O7FDSDSYJARNEZLDUQRHHD5RJL47P2XVX4ESAHAY5 :::: NAILARA AMOS :::
-# :: QECRPFKOQKGBY6LDNINACTWXCEYBB453GETF2DA73OWG57BSYEAY :: CODE SIGNATURE ::
+#GVEVQBM36U47W4ULUDWUYLML4QQONX66TE2V474JZZUSWIN2NSX7JY6C6LIND3X5IBPFSDXARMCLG
+#::: ALFMNZGL4MWXYB4P44TXV2RJYZG2J3EUOA6LZ4RJ5YLRFPAADII :::: NAILARA AMOS :::
+# :: 6NHWWYCAL42H5XSPEFB4L2MBM77TS5BCRR2SDLM6VU7AYLZJLACI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
