@@ -1,30 +1,29 @@
 
-package AMOS::INLINE::src::BinConversion;  ###################################
+package AMOS::INLINE::src::BitConv;    ###################################
 
-## [ target package name : AMOS::BinConversion ] ##
+## target namespace : AMOS::BitConv ##
 
+use v5.24;
 use strict;
 use English;
 use warnings;
 
-use vars qw| @EXPORT |;
-
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw| bitstring_to_num $VERSION |;
+use vars qw| @EXPORT $VERSION |;
 
-our $VERSION = qw| AMOS-INLINE-SRC-3PVIREI |;
+$VERSION = qw| AMOS-INLINE-SRC-SQMV42I |;
 
-return 5;    ## true ##
+@EXPORT = qw| $VERSION |;
 
-##[ BITSTRING CONVERSION ]####################################################
+##[ MUMERICAL <--> BINARY CONVERSION ]########################################
 
-sub bitstring_to_num {    ## bit_to_num ##  [ much faster than eval '0b'.., ]
+sub bit_string_to_num { ##  bit_string_to_num  ## [ faster than eval '0b',., ]
 
     my $source = <<~ 'EOC';
 
-    unsigned long bit_to_num( char *str ) {
+    unsigned long bit_string_to_num ( char *str ) {
 
         STRLEN slen = strlen(str);
 
@@ -54,14 +53,13 @@ sub bitstring_to_num {    ## bit_to_num ##  [ much faster than eval '0b'.., ]
 
     EOC
 
-    my $fallback_sub = sub {    ## pure-perl bit_to_num alternative ##
+    my $fallback_sub = sub {    ## pure-perl bitstring_to_num alternative ##
 
-        return warn_err( 'bit_to_num: expected bitstring parameter', 1 )
-            if not defined $ARG[0];
-        return warn_err( 'bit_to_num: input string size exceeds 64', 1 )
+        return warn_err( 'expected bitstring parameter', 1 )
+            if not defined $ARG[0]
+            or $ARG[0] =~ m|[^01]|;
+        return warn_err( 'input bitstring size exceeds 64', 1 )
             if length $ARG[0] > 64;
-        return warn_err( 'bit_to_num: input not a bit string', 1 )
-            if $ARG[0] =~ m|[^01]|;
 
         return eval sprintf qw| 0b%s |, $ARG[0];
     };
@@ -70,15 +68,17 @@ sub bitstring_to_num {    ## bit_to_num ##  [ much faster than eval '0b'.., ]
         qw|  source  | => $source,
         qw| fallback | => $fallback_sub,
 
-        qw| package | => qw| AMOS::BinConversion |    ##  bit_to_num()  ##
+        qw| package | => qw| AMOS::BitConv |    ##  bit_string_to_num  ##
     };
 }
 
-sub num_to_bitstring {  ## bit_to_num ## [ note : slower than sprintf '%0*b' ]
+## DO NOT USE IN PRODUCTION CODE WHEN PERFORMANCE REQUIRED #################
+###
+sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
     ##                                            kept as an example only .,
     my $source = <<~ 'EOC';
 
-    void num_to_bit( unsigned long num, ... ) {
+    void num_to_bit_string ( unsigned long num, ... ) {
 
         // SV* result = newSVpvn( "", 0 );
         SV* result = newSV( 64 );
@@ -123,14 +123,14 @@ sub num_to_bitstring {  ## bit_to_num ## [ note : slower than sprintf '%0*b' ]
 
     EOC
 
-    my $fallback_sub = sub {    ## pure-perl bit_to_num alternative ##
-        return warn_err("too many arguments, expected : <num> [, <bitsize> ]")
-            if @ARG > 2;
-        return warn_err( 'expected numerical parameter', 1 )
-            if not defined $ARG[0]
-            or $ARG[0] =~ m|\D|;
+    my $fallback_sub = sub {    ## pure-perl num_to_bits alternative ##
+        return warn_err('expected <num> [, <num_bits> ]')
+            if @ARG > 2
+            or not defined $ARG[0];
+
         return warn_err( 'input value exceeds 64 bit size', 1 )
             if $ARG[0] > 18446744073709551615;
+
         return warn_err( 'number of bits is not an integer [0..64]', 1 )
             if defined $ARG[1]
             and ( $ARG[1] =~ m|\D| or $ARG[1] < 0 or $ARG[1] > 64 );
@@ -142,12 +142,16 @@ sub num_to_bitstring {  ## bit_to_num ## [ note : slower than sprintf '%0*b' ]
         qw|  source  | => $source,
         qw| fallback | => $fallback_sub,
 
-        qw| package | => qw| AMOS::BinConversion |    ##  num_to_bit()  ##
+        qw| package | => qw| AMOS::BitConv |    ## num_to_bit_string ##
     };
 }
 
+#{ RETURN TRUE VALUE }########################################################
+
+return 5;
+
 #.............................................................................
-#JOBEKM73MFSRNSBQO64APSFRYWNUWTEDYKRMDL6TY7HBTVKSOPPXU7HBICFVENWN47FAMXOJ2MTJA
-#::: HC2VCAOP7WP65FKX4E4VW2XQ3UDWHQXHVOBSRBXOI5COYMKGUZ5 :::: NAILARA AMOS :::
-# :: LD7W6GU32RRWN2KGI5UXFSE5PNATOOQBME27YQLJ62XL2P2YN4DA :: CODE SIGNATURE ::
+#ZTS3PUEMDU2UJR4UNIF5NXHBHYA7V52SDXRQKYQBNBYVQ63VXDX5J6RJTQDKB6P77H7GHPGSNZNRW
+#::: ZTTIAOJXR7RTMTO7U3DFEEA4DRJB4GGB6KUZ5WA5EGI6EFKOEK7 :::: NAILARA AMOS :::
+# :: 5RMNWK6KF4NALPYBAL4YNVBJVDKQCA2CKW7BQ7T2VMIKMZMEBMBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

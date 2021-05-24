@@ -1,54 +1,43 @@
 # >:]
 
 # name  = chk-sum.elf.BASE32.harmony
-# descr = return next harmonic BASE32 encoded elf hash value [VAX]
+# descr = return next true BASE32 encoded elf hash value [ VAX num ]
 
-my $input_string = join( '', @_ );
-
-my $harmony = join( '', map {ord} qw| T = 5 | ); ## <'T'> <'='> <'5'> ###[/13]
-
-my $accuracy = 13;
-Math::BigFloat->round_mode('trunc');
-Math::BigFloat->accuracy($accuracy);
+my $input_string = join( '', @ARG );
 
 my $elf_checksum;
 my $encoded_string;
 my $B32_elf_checksum;
 
-$elf_checksum   = Digest::Elf::elf($input_string);
-$encoded_string = encode_b32r( pack 'V', $elf_checksum );
+$elf_checksum   = <[chk-sum.elf]>->($input_string);
+$encoded_string = encode_b32r( pack qw| V |, $elf_checksum );
 
-my $template = '::%s::%s::%s::';
+my $template = qw| %s::%s::%s |;
 
-my $calc_input = sprintf( $template,
-    $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+my $calc_input
+    = sprintf( $template, $encoded_string, $input_string, $elf_checksum );
 
-my $max_rounds = 42;
+my $max_rounds = 13;
 
 RECALC:
 
-$elf_checksum     = Digest::Elf::elf($calc_input);
-$encoded_string   = encode_b32r( pack 'V', $elf_checksum );
-$B32_elf_checksum = Digest::Elf::elf($encoded_string);
-
-my $calc_0000_str = Math::BigFloat->new($elf_checksum)
-    ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
-
-my $calc_0110_str = Math::BigFloat->new($B32_elf_checksum)
-    ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+$elf_checksum     = <[chk-sum.elf]>->($calc_input);
+$encoded_string   = encode_b32r( pack qw| V |, $elf_checksum );
+$B32_elf_checksum = <[chk-sum.elf]>->($encoded_string);
 
 if (
-    (      $calc_0000_str !~ m{\.(.*$harmony.*|0+)$}
-        or $calc_0110_str !~ m{\.(.*$harmony.*|0+)$}
+    (      not AMOS::Assert::Truth::calc_true($elf_checksum)
+        or not AMOS::Assert::Truth::calc_true($B32_elf_checksum)
     )
     and $max_rounds--
-) {
-    ## ..230769.., == disharmony ..,
+    ) {    ## ..230769.., == disharmony ..,
 
     ## change input with entropy from previous result ##
-    $elf_checksum = $elf_checksum ^ Digest::Elf::elf($encoded_string);
-    $calc_input   = sprintf( $template,
-        $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+    $elf_checksum = sprintf qw| %09d |,
+        $elf_checksum ^ <[chk-sum.elf]>->($calc_input);
+
+    $calc_input = sprintf $template, $encoded_string, $input_string,
+        $elf_checksum;
 
     goto RECALC;
 }
@@ -56,7 +45,7 @@ if (
 return $encoded_string;
 
 #.............................................................................
-#LNDGQRDWEGLERRJTZSJWWBWQ6WDCJDP3XZP4WYNHO7KUASE7M7SI4LM7EOZYUBKU4KSAN7JP6V3UQ
-#::: TJRNQNCG4ETPWOHLTS654XWSWKKC3QCUQEUEC2WWMEII4EPNZRM :::: NAILARA AMOS :::
-# :: YXPT4HBYNH5NKAZVNQ2Y2LP6Q4QHJ2T3UW6RBHEX2ILQ6GMRRQDY :: CODE SIGNATURE ::
+#MXHKP5GNCYCVAZHF72V36TF2TG3TUFDHXK362QJBABGFVWUEJPMOC3KIB53VT4ILZJXXOKSXUIZI6
+#::: WLMUQ76MY2JMJ3CT5WUT3WBWQGNNG2AHSLB3UN2FFK6YWNUVE2T :::: NAILARA AMOS :::
+# :: D54A2JNC2DTQXOSJ5VCVR6VKDMX4S7JHGJK4I4XJNCINMYGUDSAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
