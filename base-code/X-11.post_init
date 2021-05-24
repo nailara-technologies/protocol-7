@@ -14,28 +14,25 @@ if ( <X-11.mode> !~ $modes_re ) {
     exit(1);
 }
 <X-11.params>->{<X-11.mode>} //= '';
-<X-11.host_mode_unchanged> = 0 if <X-11.host_mode_unchanged> eq 'no';
-<X-11.host_mode_unchanged> = 1 if <X-11.host_mode_unchanged> eq 'yes';
-if ( <X-11.mode> eq 'host' ) {
-    if (<X-11.host_mode_unchanged>) {
+
+if ( <X-11.mode> eq qw| host | ) {
+    if ( <[base.cfg_boolean]>->(<X-11.host_mode_unchanged>) ) {
         <X-11.keep_unchanged>  = 1;
         <X-11.keep_background> = 1;
     }
     <X-11.display.host> //= defined $ENV{'DISPLAY'} ? $ENV{'DISPLAY'} : ':0';
 } else {
-    <X-11.display>->{<X-11.mode>} //= ':1';
+    <X-11.display>->{<X-11.mode>} //= qw| :1 |;
     <X-11.keep_unchanged> = 0;
 }
-<[base.log]>->(
-    0,
-    sprintf( "<< X-11 mode changed to '%s', restart required >>",
-        <X-11.mode> )
+<[base.logs]>->(
+    0, "<< X-11 mode changed to '%s', restart required >>", <X-11.mode>
 ) if defined <X-11.old_mode> and <X-11.mode> ne <X-11.old_mode>;
 
 return 0 if <X-11.initialized>;
 
 <X-11.connect_timeout> //= 7.7;
-<X-11.orientation>     //= 'normal';
+<X-11.orientation>     //= qw| normal |;
 <X-11.old_mode> = <X-11.mode>;
 my $mode     = <X-11.mode>;
 my $bg_col   = <X-11.bg_color>;
@@ -46,21 +43,21 @@ my $server_pid;
 my $server_params;
 
 <X-11.params>->{'xephyr'} .= ' -glamor'
-    if $mode eq 'xephyr'
-    and <X-11.orientation> eq 'normal'
+    if $mode eq qw| xephyr |
+    and <X-11.orientation> eq qw| normal |
     and !<X-11.disable_glamor>;
 
-## startup \ connect ##
+## start-up \ connect ##
 
-die 'X-11.mode is not defined' if not defined $mode or !length($mode);
+die 'X-11.mode is not defined' if not defined $mode or not length $mode;
 
-if ( $mode ne 'host' ) {
+if ( $mode ne qw| host | ) {
 
-    $bin_name = $mode eq 'xorg' ? 'Xorg' : 'Xephyr';
+    $bin_name = $mode eq qw| xorg | ? qw| Xorg | : qw| Xephyr |;
 
-    $bin_name = 'Xvfb'    if $mode eq 'xvfb';
-    $bin_name = 'Xnest'   if $mode eq 'xnest';
-    $bin_name = 'nxagent' if $mode eq 'nxagent';
+    $bin_name = qw|  Xvfb   | if $mode eq qw|  xvfb   |;
+    $bin_name = qw|  Xnest  | if $mode eq qw|  xnest  |;
+    $bin_name = qw| nxagent | if $mode eq qw| nxagent |;
 
     $server_bin = <X-11.bin_path>->{$bin_name};
 
@@ -73,7 +70,7 @@ if ( $mode ne 'host' ) {
         = join( ' ', <X-11.display>->{$mode}, <X-11.params>->{$mode} );
 
     my $bin_name_lc = lc($bin_name);
-    my $cmd_line    = "$server_bin $server_params 2>&1 |";
+    my $cmd_line    = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
 
     <[base.logs]>->( 1, "starting '%s'-server..,", $bin_name_lc );
 
@@ -85,13 +82,15 @@ if ( $mode ne 'host' ) {
             = ( defined $OS_ERROR and length($OS_ERROR) )
             ? ": \l$OS_ERROR"
             : '!';
-        <[base.log]>->(
-            0, ": unable to start $bin_name_lc-server$err_reason"
+        <[base.logs]>->(
+            0,            ': unable to start %s-server%s',
+            $bin_name_lc, $err_reason
         );
         exit(2);
     } else {
-        <[base.log]>->(
-            1, ": '$bin_name_lc' process started [PID:$server_pid]"
+        <[base.logs]>->(
+            ": '%s' process started [PID:%s]",
+            $bin_name_lc, $server_pid
         );
         <X-11.pid> = $server_pid;
 
@@ -104,14 +103,18 @@ if ( $mode ne 'host' ) {
 
     <[event.add_io]>->(
         {   'fd'      => $out_fh,
-            'handler' => 'X-11.handler.server_output',
+            'handler' => qw| X-11.handler.server_output |,
             'data'    => { 'bin' => $bin_name, 'pid' => $server_pid }
         }
     );
 } else {
     $bin_name = '[host] x11';
+
     <X-11.connect_timeout> = 15 if <X-11.connect_timeout> < 15;
     <[base.log]>->( 1, 'running in host mode [ using existing X11-server ]' );
+
+    ##  drop before connecting., ##
+    <[base.root.drop_privs]>->(<system.X-11-user>);
 }
 
 <X-11.obj_bin_name> = $bin_name;
@@ -128,7 +131,7 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
     $err_str =~ s|\s*\n+\s*| << ! >> |g;
     $err_str = 'unknown protocol error [ X-server crashed ? ]'
         if !length($err_data);
-    warn( join( ' ', '[protocol-error]', $err_str ), '<{C7}>' );
+    warn( sprintf '[protocol-error] %s <{C7}>', $err_str );
     ## reconnect here, if not successful call: ## [ LLL ]
     #  <[X-11.error_handler]>->($err_str);
 };
@@ -138,7 +141,7 @@ $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
 
 <[X-11.connect_X11]>;
 
-<[base.log]>->( 1, ": : link to '$bin_name_lc' established [ responsive ]" );
+<[base.logs]>->( ': : link to %s established [ responsive ]', $bin_name_lc );
 
 ## extensions ##
 
@@ -160,23 +163,27 @@ if ( $randr_expected and <X-11.obj>->init_extension('RANDR') ) {
         <X-11.has_randr> = 0;
         ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
         <[base.log]>->( 0, ': : : initialization error., RANDR disabled..,' );
-        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+        <[base.logs]>->(
+            0,
+            ": : : ::[ %s ]::",
+            <[base.format_error]>->( $err_msg, -1 )
+        );
     } else {
         <X-11.has_randr> = 1;
     }
 } else {
-    <[base.log]>->( 1, ": : no RANDR support $randr_reason" );
+    <[base.logs]>->( ': : no RANDR support %s', $randr_reason );
     <X-11.has_randr> = 0;
 }
 
 if ( <X-11.obj>->init_extension('DPMS') and <X-11.obj>->DPMSCapable ) {
     <[base.log]>->( 1, ': : DPMS is supported =)' );
-    eval { <X-11.obj>->DPMSGetVersion(); };
+    eval { <X-11.obj>->DPMSGetVersion() };
     if ($EVAL_ERROR) {
         <X-11.has_dpms> = 0;
         ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n$||;
         <[base.log]>->( 0, ': : : initialization error., DPMS disabled..,' );
-        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+        <[base.logs]>->( 0, ': : : ::[ %s ]::', $err_msg );
     } else {
         <X-11.has_dpms> = 1;
     }
@@ -194,7 +201,7 @@ if ( <X-11.obj>->init_extension('Composite') ) {
         <[base.log]>->(
             0, ': : : initialization error., Composite extension disabled..,'
         );
-        <[base.log]>->( 0, ": : : ::[ \l$err_msg ]::" );
+        <[base.logs]>->( 0, ': : : ::[ %s ]::', $err_msg );
     } else {
         <X-11.is_composited> = 1;
     }
@@ -208,7 +215,7 @@ if ( <X-11.obj>->init_extension('Composite') ) {
 
 <X-11.display_connected.any> //= 1;
 
-<[X-11.init_display_states]> if <X-11.mode> eq 'xorg';
+<[X-11.init_display_states]> if <X-11.mode> eq qw| xorg |;
 
 if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
 
@@ -221,21 +228,22 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     <X-11.timer.wait_for_display> = <[event.add_timer]>->(
         {   'after'    => 0.13,
             'interval' => 0.7,
-            'handler'  => 'X-11.handler.poll_size_list'
+            'handler'  => qw| X-11.handler.poll_size_list |
         }
     );
     <[base.log]>->( 0, '    : waiting for a display to restart X-11..,' );
 
     if ( defined <X-11.host_mode.min_size>
         and <X-11.host_mode.min_size> =~ m|^\d+x\d+$| ) {
-        <[base.log]>->(
-            0, "    : setting min_size [" . <X-11.host_mode.min_size> . "]"
+        <[base.logs]>->(
+            0, '    : setting min_size [ %s ]',
+            <X-11.host_mode.min_size>
         );
         <[X-11.cmd.set_screen_size]>
             ->( { 'args' => <X-11.host_mode.min_size> } );
     }
 
-} elsif ( <X-11.mode> eq 'xorg' ) {
+} elsif ( <X-11.mode> eq qw| xorg | ) {
     <[base.log]>->( 1, ': : display is on \ connected =)' );
 
     my @max_size = <[X-11.max_screen_size]>;
@@ -245,7 +253,7 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
     # LLL: make configurable..,
     if (    <X-11.has_randr>
         and defined <X-11.video_driver>
-        and <X-11.video_driver> ne 'qxl'
+        and <X-11.video_driver> ne qw| qxl |
         and (  $max_size[0] > $size_x
             or $max_size[1] > $size_y )
     ) {
@@ -255,11 +263,11 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
         );
         <[event.add_timer]>->(
             {   'after'   => 0.13,
-                'handler' => 'X-11.callback.force_driver_reload'
+                'handler' => qw| X-11.callback.force_driver_reload |
             }
         );
     } else {
-        <X-11.display_status.handler> = 'X-11.handler.display_power_state';
+        <X-11.display_status.handler> = qw|X-11.handler.display_power_state|;
     }
 } else {
     <[X-11.start-up.show-screen-size]>;
@@ -275,13 +283,13 @@ if (<X-11.has_randr>) {
 ## custom xrandr ##
 
     map {
-        system( '/usr/bin/xrandr',
+        system( qw| /usr/bin/xrandr |,
             split( m| +|, <X-11.custom_xrandr>->{$ARG} ) )
         }
         sort { $a <=> $b } keys %{<X-11.custom_xrandr>}
-        if <X-11.mode> eq 'xorg'
+        if <X-11.mode> eq qw| xorg |
         and defined <X-11.custom_xrandr>
-        and ref(<X-11.custom_xrandr>) eq 'HASH';
+        and ref(<X-11.custom_xrandr>) eq qw| HASH |;
 }
 
 ## keyboard ##
@@ -293,7 +301,7 @@ if (<X-11.has_randr>) {
 #  my $any_key = <X-11.kbd>->KeysymToKeycode('AnyKey');
 #  my $any_mod = <X-11.kbd>->KeysymToKeycode('AnyModifier');
 
-<X-11.obj>->{'event_handler'} = 'queue';
+<X-11.obj>->{'event_handler'} = qw| queue |;
 <[event.add_io]>->(
     {   'fd'      => <X-11.obj>->{'connection'}->fh,
         'handler' => 'X-11.handler.global_hotkeys'
@@ -302,17 +310,13 @@ if (<X-11.has_randr>) {
 
 <[X-11.grab_key]>
     if !<X-11.keep_unchanged>
-    and defined <X-11.keybd.grab_all_keys>
-    and ( <X-11.keybd.grab_all_keys> eq '1'
-    or <X-11.keybd.grab_all_keys> eq 'yes' );
+    and <[base.cfg_boolean]>->(<X-11.keybd.grab_all_keys>);
 
 ## screensaver \ blanking ##
 
 if (    <X-11.has_dpms>
     and !<X-11.keep_unchanged>
-    and defined <X-11.disable_blanking>
-    and (  <X-11.disable_blanking> eq 'yes'
-        or <X-11.disable_blanking> eq '1' )
+    and <[base.cfg_boolean]>->(<X-11.disable_blanking>)
 
 ) {
     <[base.log]>->( 1, ': deactivating screen blanking ..,' );
@@ -347,7 +351,7 @@ if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
 if ( <X-11.bg_fade> //= 1 and $bg_col ne '#000000' ) {
     <[X-11.fade_in_bg_col]>->($bg_col);
 } else {
-    <[base.log]>->( 1, "setting background color to '$bg_col'" );
+    <[base.logs]>->( "setting background color to '%s'", $bg_col );
     X11::Protocol::XSetRoot->set_background(
         'color'        => $bg_col,
         'use_esetroot' => 1
@@ -360,17 +364,21 @@ if ( defined $bg_image ) {
     my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
     my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
     if ( !-x $hsetroot_bin ) {
-        <[base.log]>
-            ->( 0, "cannot set bg-image : '$hsetroot_bin' not found" );
+        <[base.logs]>->(
+            0, "cannot set bg-image : '%s' not found",
+            $hsetroot_bin
+        );
         return -1;
     }
     ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
-    <[base.log]>->( 1, "setting background image '$img_txt'" );
-    @hsetroot_params
-        = ( "-$bg_mode", $bg_image );    ##  <--  aquire available  [LLL]
+    <[base.logs]>->( "setting background image '%s'", $img_txt );
+
+    ##  query available hsetroot params here  ##   [LLL]
+    @hsetroot_params = ( sprintf( '-%s', $bg_mode ), $bg_image );
+
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-        <[base.log]>->(
-            0, "unable to execute 'hsetroot' [ returned $CHILD_ERROR ]"
+        <[base.logs]>->(
+            0, "unable to execute 'hsetroot' [ returned %s ]", $CHILD_ERROR
         );
     }
 }
@@ -381,7 +389,7 @@ if ( defined $bg_image ) {
 return 0;
 
 #.............................................................................
-#GSI4D6B5YRN7KWLLZAFDZLB4HPOSVPHTUDLFT4BJAXLMDFUCSM35AIYALFFCMKCI4HPQ6LZX2HZ4S
-#::: CTHYUH3ETRK7W3RGKJIXRSO6UHTQAK4WNOENYH6JGFEF3Q7OQCI :::: NAILARA AMOS :::
-# :: S7RLLO2M3RDB46BGUH6XPLQQO7IHVD7CWCSORGU7EVIVICOWD2DA :: CODE SIGNATURE ::
+#DQE3DXN5FKWDJTLDQQCSB6CKQMZGOX7ZNFZI6YR7MUXXE4W4QR2FWDRXSVYI22DV326YATD2XDDNM
+#::: WAZZX7KWOVSOTTOVDYPA3J5FSRHCTD5NJQDMPLEDZ6OMXWMOOD6 :::: NAILARA AMOS :::
+# :: L2CX2CDXLGDXE5OF7JXKZB4HBUXSBAW3GHDXY37DUPUYPOSQZUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
