@@ -1,7 +1,7 @@
 
 package AMOS::INLINE;  #######################################################
 
-use vars qw| @EXPORT |;
+use vars qw| @EXPORT $VERSION |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -14,30 +14,28 @@ use Cwd qw| abs_path |;
 use File::Path qw| make_path |;
 use List::MoreUtils qw| minmax |;
 
-use Digest::Elf;    ## creating directory path names ## [ LLL : replace ]
+use Digest::BMW qw| bmw_256 |;    ## path name generation ##
 use Crypt::Misc qw| encode_b32r |;
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;           ## error handling ##
+use AMOS;                         ## error handling ##
 
-our $debug_output_to_console = 0;    ##  display build warnings  ##
+our $debug_output_to_console = 0; ##  display build warnings  ##
 
 ## known inline sourcecode modules ##
-use AMOS::INLINE::src::BinConversion;
+use AMOS::INLINE::src::BitConv;
+use AMOS::INLINE::src::AMOS_13_ELF;
 use AMOS::INLINE::src::TruthAssertion;
 
 ##[ INITIALIZATIONS ]#########################################################
 
 my $source_registry = {
-    qw|  true_int   | => \&AMOS::INLINE::src::TruthAssertion::true_int,
-    qw| true_float  | => \&AMOS::INLINE::src::TruthAssertion::true_float,
-    qw| bit_to_num  | => \&AMOS::INLINE::src::BinConversion::bitstring_to_num,
-    qw| num_to_bit  | => \&AMOS::INLINE::src::BinConversion::num_to_bitstring,
-
-# qw|  true_D13  | => \&AMOS::INLINE::src::TruthAssertion::true_D13, ## move ##
-# qw| inline_elf | => \&AMOS::CHKSUM::ELF::Inline::return_elf_c_sourcecode,
-    ## AMOS::INLINE::src::Elf::elf
+    qw| inline_elf  |     => \&AMOS::INLINE::src::AMOS_13_ELF::inline_elf,
+    qw|  true_int   |     => \&AMOS::INLINE::src::TruthAssertion::true_int,
+    qw| true_float  |     => \&AMOS::INLINE::src::TruthAssertion::true_float,
+    qw|num_to_bit_string| => \&AMOS::INLINE::src::BitConv::num_to_bit_string,
+    qw|bit_string_to_num| => \&AMOS::INLINE::src::BitConv::bit_string_to_num,
 };
 
 ##  internal code_ref registry  ##
@@ -48,9 +46,7 @@ die "'Inline::C' is not available [ installed ? ]" if length $EVAL_ERROR;
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-## inline elf source code version ##
-##
-our $VERSION = qw| AMOS-INLINE-3PVIREI |;
+$VERSION = qw| AMOS-INLINE-VER-MEMMQXQ |;
 
 return 5;    ## true ##
 
@@ -102,14 +98,22 @@ sub compile_inline_source {
 
         ### [RE]COMPILING \ LOADING .., ###
 
-        my $function_href;        ##  subroutine source  ##
-        $function_href = $source_registry->{$current_sub_name}->()
-            if defined $source_registry->{$current_sub_name}
-            and defined &{ $source_registry->{$current_sub_name} };
+        if (   not defined $source_registry->{$current_sub_name}
+            or not defined &{ $source_registry->{$current_sub_name} } ) {
+            warn_err( "<< registry callback for '%s' not defined >>",
+                0, $current_sub_name );
+            next;
+        }
 
-        if ( ref $function_href ne qw| HASH |
-            or not defined $function_href->{'source'} ) {
-            warn_err( "<< sourcecode of '%s' not defined >>",
+        my $function_href;        ##  subroutine source  ##
+        $function_href = $source_registry->{$current_sub_name}->();
+
+        if ( ref $function_href ne qw| HASH | ) {
+            warn_err( "<< expected hash ref for '%s' routine >>",
+                0, $current_sub_name );
+            next;
+        } elsif ( not defined $function_href->{'source'} ) {
+            warn_err( "<< '%s' sourcecode not present >>",
                 0, $current_sub_name );
             next;
         }
@@ -117,6 +121,9 @@ sub compile_inline_source {
         my $cleaned_source = clean_source( $function_href->{'source'} );
         my $fallback_ref   = $function_href->{'fallback'};   ## alternative ##
         $target_package //= $function_href->{'package'};     ## install to ##
+
+        warn_err("target_package for $current_sub_name not defined")
+            if not defined $target_package;
 
         ## skip already installed routines unless update-routine ##
         ##
@@ -135,7 +142,7 @@ sub compile_inline_source {
         } else {    ##  generate based on elf-chksum of subroutine source  ##
 
             $custom_inline_dir = gen_inline_path( sprintf qw| %s.%s |,
-                $current_sub_name, encoded_elf_chksum($cleaned_source) );
+                $current_sub_name, encoded_bmw_chksum($cleaned_source) );
         }
 
         ## check \ create inline directory ##
@@ -312,18 +319,22 @@ sub gen_inline_path {
 
 ##[ SOURCECODE CHECKSUM ]#####################################################
 
-sub encoded_elf_chksum {    ##  LLL : replace with BMW checksum path  ##
+sub encoded_bmw_chksum {
     my $subroutine_source = shift // '';
-    return warn_err( 'expected subroutine sourcecode', 0 )
+    return warn_err( 'expecting subroutine source code', 0 )
         if not length $subroutine_source;
-    my $elf_checksum = Digest::Elf::elf( encode_b32r($subroutine_source) );
-    return encode_b32r( pack qw| V |, sprintf qw| %09d |, $elf_checksum );
+
+    ## shortened BMW chksum for path name creation ##
+    my $bmw_checksum   = bmw_256( encode_b32r($subroutine_source) );
+    my $src_chksum_bin = sprintf 'BMW=%s', substr( $bmw_checksum, 0, 5 );
+
+    return encode_b32r($src_chksum_bin);  ## required printable char prefix ##
 }
 
 return 1;  ###################################################################
 
 #.............................................................................
-#42MX23XILUJPQR75NNBJCWW7FYASHHVJC75LRQZ66EZ3Y2WYPRMDI6O4EJZ5GKR4N2IE6YJFTGSB6
-#::: RYYCCNSM2GS7LSQYOI7O6YAOYOBS2QWBWKQMMTLFVXN23IIOLCD :::: NAILARA AMOS :::
-# :: C4UDKFZ22JTRQJANPYIH55COTDHBRR4KCV47VD65FZ2QRA225UAA :: CODE SIGNATURE ::
+#SZO76SJEOUS3YE4KR3DJSXXJG3GORTGAKIVVZT6HWNPVRYTCW5QXVZAKGGISTMFBY46CXV6AXZSMS
+#::: 532KMPDAQDNNYWATPZ4TTZ52K4NZ4DIAKQTLT7OST5TOMPSSLCO :::: NAILARA AMOS :::
+# :: DJJ54IVHAVRL4BJJYHEYENR4XDH5WWHBAO3ZZQANJX4E6IWLIQCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

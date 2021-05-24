@@ -1,48 +1,46 @@
 
-package AMOS::CHKSUM::ELF;  ##################################################
+package AMOS::CHKSUM::ELF;    ################################################
 
 use v5.24;
 use strict;
 use English;
 use warnings;
 
-use vars qw| @EXPORT $VERSION |;
-
-use AMOS;
+use Digest::Elf;    ##  temporary fallback  [ no longer same algorithm ]  ##
 
 use Exporter;
 use base qw| Exporter |;
-
-use AMOS::CHKSUM::ELF::Inline qw| compile_inline_elf_to inl_elf_src |;
+use vars qw| @EXPORT $VERSION |;
 
 ## INLINE ELF OUTPUT CHECKSUM ##
 ##
-our $VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    #  amos-chksum -VL7  #
+$VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    #  amos-chksum -VL7  #
 
-@EXPORT = qw| elf_chksum gen_inline_path $VERSION |;
-
-our $inline_base_path //= qw| /var/tmp/inline-elf/<version>/<user> |;
-our $use_inline_elf   //= 1;    ## compile and use inline-elf version ? ##
-our $use_external_elf //= 0;    ## use /usr/local/bin/elf as fallback ? ##
+@EXPORT = qw| elf_chksum $VERSION |;
 
 ## ANOS-13-ELF SETTINGS ##
 ##
-our $elf_mode           //= 5;            ##  elf hash setting :   4        ##
-our $shift_bits         //= 13;           ##  elf hash setting :  24        ##
-our $overflow_threshold //= 0XFE000000;   ##  elf hash : 0XF0000000 ##
+our $elf_mode   //= 5;                     ##  elf hash setting :   4 ##
+our $shift_bits //= 13;                    ##  elf hash setting :  24 ##
+
+our $overflow_threshold //= 0XFE000000;    ##  elf hash : 0XF0000000 ##
 ##
 ####
 
-## installing inline_elf as currently available ##
+use AMOS;                                  ##  error handler  ##
+use AMOS::INLINE;                          ## inline_elf compilation ##
 
-if ( defined $AMOS::CHKSUM::ELF::inline_elf ) {
-    *inline_elf = $AMOS::CHKSUM::ELF::inline_elf;
-} else {
-    *inline_elf = compile_inline_elf_to( gen_inline_path(qw|  /var/tmp  |) );
+## skips compilation when included from AMOS::INLINE::src::TruthAssertion
+if ( defined &AMOS::INLINE::compile_inline_source ) {
+
+    ## loads when not defined ##
+    compile_inline_source( { qw| subroutine-name | => qw| inline_elf | } );
 }
+###
 
-die 'loading \ compiling of inline_elf() subroutine not successful'
-    if not defined &inline_elf;
+## will use rudimentary Digest::Elf fallback if not compiled ##
+warn_err('compilation of inline_elf subroutine not successful <{C1}>')
+    if not defined &inline_elf;    ##  AMOS::CHKSUM::ELF::inline_elf()  ##
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -79,7 +77,28 @@ sub elf_chksum {
         $overflow_threshold = shift @ARG;
     }
 
-  # $overflow_threshold = shift if @ARG and $ARG[0] <= 4294967295;  #[ 32bit ]
+    ##  temporary fallback to not break __all__ code  ##
+    state $warned_elf //= 0;
+    if ( not defined &inline_elf ) {
+        if ( $start_chksum == 0 ) {
+
+            ++$warned_elf
+                and warn_err(
+                '<< using Digest::Elf fallback [ incompatible algorithm ] >>')
+                if not $warned_elf
+                and ( $elf_mode != 4
+                or $shift_bits != 24
+                or $overflow_threshold != 0XF0000000 );
+
+            ##  Digest::Elf CHKSUM  ##    no elf mode support   ##
+            return sprintf qw| %09d |, Digest::Elf::elf($$data_ref);
+
+        } else {
+            warn 'start checksum not supported by Digest::Elf fallback';
+            return undef;
+        }
+    }
+    ##
 
     ####                  ####
     ## calculating checksum ##
@@ -95,24 +114,16 @@ sub elf_chksum {
 
     $elf_mode   = 5;     ## resetting to AMOS-13-ELF algorithm settings ##
     $shift_bits = 13;    ## resetting to AMOS-13-ELF algorithm settings ##
+
     $overflow_threshold //= 0XFE000000;    ##  AMOS-13-ELF algorithm  ##
 
-    return $elf_checksum;
+    return sprintf qw| %09d |, $elf_checksum;    ## AMOS-13 ELF-7 CHKSUM ##
 }
 
-##[ STAND ALONE INVOCATION ]##################################################
-
-sub gen_inline_path {
-    my $user = getpwuid($UID);
-    ( my $base_path = shift // qw| /var/tmp | ) =~ s|//|/|;
-    $base_path =~ s|/$||;
-    return sprintf( qw| %s/%s/amos-13-elf-%s |, $base_path, $user, $VERSION );
-}
-
-return 1;  ###################################################################
+return 5;  ###################################################################
 
 #.............................................................................
-#OX4PIL7VZSOBFTLMXB6HMQJG342B4EPZZBAQKTYTVANKB5XFNKHMAFQXTUJ2BEKYTAGFHH6MXME5G
-#::: WDA3PDFGM5HFDCKV6LP6WRM6XLIMY4T6ALKOGPEHTI3KDMLVMBT :::: NAILARA AMOS :::
-# :: 77HNBEZ4VTCGRJFOKX72AB4IZW4I44KXRJMAIGDIVWNSW4CBQODA :: CODE SIGNATURE ::
+#4XQCBUE4IX5OQ4PIJZEZBPT22OL4JYQJB5AXG3B7LUNYOBL23HJSXFDIZO7DDENWH5FRMM4IQ2T54
+#::: FCPMAQB5GX4CDQ27J2BB5GMPHSLOQMBDVK4GVFTGXEQMDFCUQDE :::: NAILARA AMOS :::
+# :: SQCSQYIRJUPMWONQHIY4B5MYBEANF2OYX56DQEKXS6XH2EPHGQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
