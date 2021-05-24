@@ -9,7 +9,11 @@ my $overwrite_policy  = shift // 'undefine'; # [undefine|overwrite|if_missing]
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
-map { $subs_matching++ if $ARG =~ m|^$source_sub_prefix\.| } @sub_names;
+map {
+    $subs_matching++
+        if $ARG =~ m|^$source_sub_prefix\.|
+        or $ARG eq $source_sub_prefix    ## exact match ##
+} @sub_names;
 if ( !$subs_matching ) {
     <[base.log]>->(
         2, "<swap_subs> skipped [ no $source_sub_prefix subs present ]"
@@ -21,7 +25,7 @@ if ( $overwrite_policy eq 'undefine' ) {
     map {
         if ( $ARG =~ m|^$target_sub_prefix\.| ) {
             delete $code{$ARG};
-            $data{'code'}{$ARG}{'status'} = 'undefined';
+            $data{'code'}{$ARG}{'status'} = qw| undefined |;
         }
     } @sub_names;
     my $removed_count = @sub_names - keys %code;
@@ -33,8 +37,13 @@ if ( $overwrite_policy eq 'undefine' ) {
 my $moved      = 0;
 my $logged_yet = 0;
 foreach my $sub_name ( keys %code ) {
+
     ( my $new_sub = $sub_name )
         =~ s|^($source_sub_prefix)\.|$target_sub_prefix.|;
+
+    $new_sub = $target_sub_prefix    ## exact match ##
+        if $new_sub eq $sub_name and $new_sub eq $source_sub_prefix;
+
     if ( $new_sub ne $sub_name ) {
         if ( $overwrite_policy eq 'if_missing' and exists $code{$new_sub} ) {
             delete $code{$sub_name};
@@ -53,7 +62,7 @@ foreach my $sub_name ( keys %code ) {
         ## also transfer compilation status ##
         $data{'code'}{$new_sub}{'status'}
             = $data{'code'}{$sub_name}{'status'};
-        $data{'code'}{$sub_name}{'status'} = 'undefined';
+        $data{'code'}{$sub_name}{'status'} = qw| undefined |;
 
         if ( exists $data{'code'}{$sub_name} ) {
             $data{'code'}{$sub_name}{'moved_to'} = $new_sub;
@@ -66,7 +75,7 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
     my $del_index = 0;
     foreach my $sub_name ( @{$$sub_list_ref} ) {
         next if not defined $sub_name;
-        if ( $sub_name =~ m<^$target_sub_prefix(\.|$)> ) {
+        if ( $sub_name =~ m,^$target_sub_prefix(\.|$), ) {
             delete $$sub_list_ref->[$del_index];
         } else {
             $sub_name =~ s{^$source_sub_prefix(\.|$)}{$target_sub_prefix$1};
@@ -101,7 +110,7 @@ if ( !$moved ) {
 }
 
 #.............................................................................
-#AMWGHFAVIC6CARTJV7ELMCQVUVT4LE572HK44EMDDMWXIYZM2TPEKO2OVKEOVFVCWYJZMZM2B7C3G
-#::: JWBBIEHTDXBKDGGVW2OFHYLD557PBTFSKZNFD6GPN3NPGWIFRA3 :::: NAILARA AMOS :::
-# :: YW5UF4IHYI2CCVD73KJ2YT3S7OFGEVUIQMSBNDHPD24MRUBQ2GCI :: CODE SIGNATURE ::
+#7COQXR7XAFG6FNC6SAILLRNNLZQDXJ5G7RGKWBCEKQ5RAVY4YDK7SRKPXJTTIL5C6JLRGVXPTDELU
+#::: SKK3ZCTD7I4YCB5PVLAQETV3LUA4MXLYNAP3XPFI5BQ7I67ZMXO :::: NAILARA AMOS :::
+# :: UF63FU46ATEGI3G46OKEKWZB2TBEQBK3PW6AXNE5AHYKOUJT7SBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
