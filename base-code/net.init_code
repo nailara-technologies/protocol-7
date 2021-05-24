@@ -1,11 +1,15 @@
 # >:]
 
-# name = net.init_code
+# name  = net.init_code
+# descr = calculate \ init protocol 7 ports and addresses
 
-<[base.perlmod.load]>->( 'Digest::Elf', qw| elf | );
+## local <system.root_path> = qw| /usr/local/protocol-7 |;  ##  testing.,  ##
 
-<system.path_chk_sum> //= elf(<system.root_path>);
-<system.path_offset> = <system.path_chk_sum> ^ elf('/usr/local/protocol-7');
+<system.path_chk_sum> //= <[chk-sum.elf]>->(<system.root_path>);
+
+##  based on protocol-7 installation path  ##
+<system.path_offset> = int(<system.path_chk_sum>);  ## calculate difference ##
+<system.path_offset> ^= int( <[chk-sum.elf]>->(qw| /usr/local/protocol-7 |) );
 
 my $port_ranges = {
     'ext' => { 'start' => 47, 'end' => 1021 }, # <-- regular external port: 47
@@ -15,18 +19,18 @@ my $port_ranges = {
 # ..following values can be overridden in './configuration/defaults' and
 #                                         './configuration/network', ..,
 
-<protocol-7.network.external.addr> //= '0.0.0.0';
+<protocol-7.network.external.addr> //= qw| 0.0.0.0 |;
 <protocol-7.network.external.port>
-    //= <[net.calc_port]>->( $port_ranges->{'ext'} );    # <-- soon
+    //= <[net.calc_port]>->( $port_ranges->{'ext'} );    ## <-- not used yet
 
-<protocol-7.network.internal.addr> //= '127.0.0.1';
+<protocol-7.network.internal.addr> //= qw| 127.0.0.1 |;
 <protocol-7.network.internal.port>
-    //= <[net.calc_port]>->( $port_ranges->{'int'} );    # <-- cube
+    //= <[net.calc_port]>->( $port_ranges->{'int'} );    ## <-- cube port
 
 0;
 
 #.............................................................................
-#Y2G3FQCO5Y2WGY43BO5SOPZQ457NCASYXF6WCAPXU3WNMBRYEJGC5DS7U3FE7CPMA3BQB4SD352BY
-#::: P6W3SRR2XWH7MI3623Q3PR2RR3E6OJ363FDNBDS2MZB5IYGCEKI :::: NAILARA AMOS :::
-# :: MNSELFECRZHEJPUASAKBZWD5LNDH2GZSDP5CHMIR5ZRVD7SBHUAI :: CODE SIGNATURE ::
+#L7T3WNDTNAHNHKOY5HTTSI43WCWZ7KNGSCXHPU3KI2HGZ6RSJQUOC35VGERFG2OIBZ7ICDZCJTX7C
+#::: W4APM5HQ65OHYVZTAAAXWBWC2C6QUDJ5PDPJUO2CHPVG26SOQYE :::: NAILARA AMOS :::
+# :: KESRKZCVPCK7PUCAR5G6USBYSSJ4QXINXFJWSC2NKFQ3G7BXR6CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
