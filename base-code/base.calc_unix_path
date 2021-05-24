@@ -1,23 +1,28 @@
 # >:]
 
 # name  = base.calc_unix_path
+# descr = generate BASE32 alphabet unix path based on protocol 7 addr + port
 
-( my $ip_addr, my $ip_port ) = ( shift, shift );
+( my $addr, my $port ) = ( shift, shift );
+
 die 'expected ip address and port parameters'
-    if not defined $ip_addr or not defined $ip_port;
+    if not defined $addr or not defined $port;
 
-<[base.log]>->( 0, "<< 'chk-sum.elf' module not loaded ., >>" ) and return
+<[base.log]>->( 0, '<< calc_unix_path : chk-sum.elf module not loaded ., >>' )
+    and return
     if not defined $code{'chk-sum.elf.BASE32.harmony'};
 
-my $unix_path = <[chk-sum.elf.BASE32.harmony]>->("TCP[$ip_addr:$ip_port]");
+my $unix_path = <[chk-sum.elf.BASE32.harmony]>->("TCP[$addr:$port]");
 
-<[base.log]>
-    ->( 2, "calculated unix path for $ip_addr:$ip_port = $unix_path" );
+<[base.logs]>->(
+    2, 'calculated unix path for %s:%d = %s',
+    $addr, $port, $unix_path
+);
 
 return $unix_path;
 
 #.............................................................................
-#AJWW4TTUAWHNLFXEHBNTVJOPEKTZG7P2YGBNCA67NJSNTWEKBMCFP6CIMPQ6QD6CQRXLXZKV55G3Y
-#::: JLBEHNLN2WJ2JMOSJNIKQ4Z24PNJMZLHJHQRYPQ7APATLZN27T2 :::: NAILARA AMOS :::
-# :: AFNSITMID3QJPZKWNPZRZJ54QR5FZRM3OLQW6QKIEUWQMOEUKCDI :: CODE SIGNATURE ::
+#K3DG2UPLP4QYVYBHE4NWPX2FMA73F7V66VBTFOLBE23YRSRDKH5I6OASPCTSOMHQDOUW3IHDXS7W2
+#::: 5TF4BKXV3Y66H3OLFVWZMMUFQF23Y5AISSNFZLMCYI6ZYBHK7UV :::: NAILARA AMOS :::
+# :: T5QJJGA3OOOQKGBP6HZ4D3IFAYCEQHM6DTPXDWEMYREVWV4JAEDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

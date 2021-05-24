@@ -10,7 +10,7 @@
 
 /* LLL: needs at least timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/var/run/.7/UNIX/HKLAKCI";      /* or ENV{'P7C_UNX'} */
+char * socket_path = "/var/run/.7/UNIX/GBDK6AI";      /* or ENV{'P7C_UNX'} */
 char * src_bmw_b32 = "[BMW_FILE_CHkSUM]";
 
 char* concat(const char *s1, const char *s2)

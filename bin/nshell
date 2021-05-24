@@ -7,40 +7,66 @@ use English;
 use warnings;
 use File::Spec;
 use IO::Socket;
-use Math::BigFloat;
 use IO::Socket::IP;
 use IO::Socket::UNIX;
 use Cwd qw| abs_path |;
 use Term::ReadPassword;
-use Time::HiRes 'sleep';
-use Digest::Elf qw| elf |;
 use SigAction::SetCallBack;
+use Time::HiRes qw| sleep |;
 use Crypt::Misc qw| encode_b32r |;
 use POSIX qw| sys_wait_h WNOHANG |;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+    sub up_dir { return File::Spec->updir }
+}
+
+my $root_path = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;                   ##  error handler and colors  ##
+use AMOS::CHKSUM::ELF;      ## exports elf_chksum ##
+use AMOS::Assert::Truth;    ## exports is_true() ##
+
+##[ PROGRAM INIT ]############################################################
 
 my $lnk_path = File::Spec->rel2abs( File::Spec->canonpath($PROGRAM_NAME) );
 my $bin_path = $lnk_path;
 
 while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
     $bin_path = $readlink_path;
-    last
-        if $bin_path =~ m|/nshell$|; # skip resolving last stage., [ improve ]
+    last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [improve]
 }
-( my $root_path = abs_path($bin_path) ) =~ s,/[^/]+/[^/]+$,,;
 
-my $path_chk_sum = elf($root_path);
-my $path_offset
-    = $path_chk_sum ^ elf('/usr/local/protocol-7');    #[ || current ]
-my $protocol_7_port = calc_port($path_offset);
+my $path_chk_sum = elf_chksum($root_path);    #[ || current ]
+
+my $path_offset = int($path_chk_sum);
+$path_offset ^= int( elf_chksum(qw| /usr/local/protocol-7 |) );
+
+my $protocol_7_port = calc_port($path_offset);  # calc based on install path #
 
 ( my $hostname = qx| hostname | ) =~ s,(\..+|\n)$,,g;
 
-$PROGRAM_NAME = 'nshell';
+$PROGRAM_NAME = qw| nshell |;
 
 $SIG{'PIPE'} = 'IGNORE';
 
-map { $SIG{$ARG} = \&parent_exit }
-    qw| INT TERM HUP |;    # see override_signals ##
+# see override_signals ##
+map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
 
 my $stdout_pid;
 my $parent_pid = $PID;
@@ -111,7 +137,7 @@ while ($connect) {
         $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
-            print "\e[1m\e[5m\e[34m\e-\e[0m\n";
+            print "\e[1m\e[5m$C{0}\e-$C{R}\n";
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
                 sleep(0.1);
@@ -119,14 +145,14 @@ while ($connect) {
 
                 exit(2);    # aborting connection, failed to send.
             } else {
-                printf "\033[${lines_up}A\r\e[5m\e[34m.\e[0m"
-                    . "  \e[34m< \e[32m%-79s\n\n",
-                    "reconnected \e[34m>\e[0m";
+                printf "\033[${lines_up}A\r\e[5m$C{0}.$C{R}"
+                    . "  $C{0}< \e[32m%-79s\n\n",
+                    "reconnected $C{0}>$C{R}";
                 my $l_cmd = length($stored_cmd);
                 $l_cmd = 33 if $l_cmd < 33;
                 printf "\r\e[2m$prompt\e[1m\e[32m%-"
                     . $l_cmd
-                    . "s\e[37m\n\033[1A\n\e[0m",
+                    . "s\e[37m\n\033[1A\n$C{R}",
                     $stored_cmd;
             }
         }
@@ -139,12 +165,24 @@ while ($connect) {
 ##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 737
 
 sub calc_port {
+
     my $path_offset = shift;
+
     my $port_start = 57;  # <-- [ details : 'net.init_code', 'net.calc_port' ]
     my $port_end   = 1021;
     my $port_delta = $port_end - $port_start;
 
-    my $n_port = $port_start + $path_offset % $port_delta * 5;
+    my $iterations_remaining = 42;
+
+    my $n_port;
+    my $factor = 5.707;    ## adjusting target range ##
+
+    while (not defined $n_port
+        or not AMOS::Assert::Truth::calc_true( $n_port, 1, 1 )
+        and $iterations_remaining-- ) {
+        $n_port = int( $factor * $port_start + $path_offset % $port_delta );
+        $factor += 0.7;
+    }
 
     return $n_port;
 }
@@ -172,52 +210,41 @@ sub calc_unix_path {
 }
 
 sub harmony_chk_sum {
-    my $input_string = join( '', @_ );
-    my $harmony      = join( '', map {ord} qw| T = 5 | );    ## <-- [ / 13 ]
-
-    my $accuracy = 13;
-    Math::BigFloat->round_mode('trunc');
-    Math::BigFloat->accuracy($accuracy);
+    my $input_string = join( '', @ARG );
 
     my $elf_checksum;
     my $encoded_string;
     my $B32_elf_checksum;
 
-    $elf_checksum   = elf($input_string);
-    $encoded_string = encode_b32r( pack 'V', $elf_checksum );
+    $elf_checksum   = elf_chksum($input_string);
+    $encoded_string = encode_b32r( pack qw| V |, $elf_checksum );
 
-    my $template = '::%s::%s::%s::';
+    my $template = qw| %s::%s::%s |;
 
-    my $calc_input = sprintf( $template,
-        $encoded_string, $input_string, sprintf( "%09d", $elf_checksum ) );
+    my $calc_input
+        = sprintf( $template, $encoded_string, $input_string, $elf_checksum );
 
-    my $max_rounds = 42;
+    my $max_rounds = 13;
 
 RECALC:
 
-    $elf_checksum     = elf($calc_input);
-    $encoded_string   = encode_b32r( pack 'V', $elf_checksum );
-    $B32_elf_checksum = elf($encoded_string);
-
-    my $calc_0000_str = Math::BigFloat->new($elf_checksum)
-        ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
-
-    my $calc_0110_str = Math::BigFloat->new($B32_elf_checksum)
-        ->bdiv( 13, $accuracy + length($B32_elf_checksum) );
+    $elf_checksum     = elf_chksum($calc_input);
+    $encoded_string   = encode_b32r( pack qw| V |, $elf_checksum );
+    $B32_elf_checksum = elf_chksum($encoded_string);
 
     if (
-        (      $calc_0000_str !~ m{\.(.*$harmony.*|0+)$}
-            or $calc_0110_str !~ m{\.(.*$harmony.*|0+)$}
+        (      not AMOS::Assert::Truth::calc_true($elf_checksum)
+            or not AMOS::Assert::Truth::calc_true($B32_elf_checksum)
         )
         and $max_rounds--
-    ) {
-        ## ..230769.., == disharmony ..,
+        ) {    ## ..230769.., == disharmony ..,
 
         ## change input with entropy from previous result ##
-        $elf_checksum = $elf_checksum ^ elf($encoded_string);
-        $calc_input   = sprintf( $template,
-            $encoded_string, $input_string,
-            sprintf( "%09d", $elf_checksum ) );
+        $elf_checksum = sprintf qw| %09d |,
+            int $elf_checksum ^ int elf_chksum($calc_input);
+
+        $calc_input = sprintf $template, $encoded_string, $input_string,
+            $elf_checksum;
 
         goto RECALC;
     }
@@ -235,8 +262,9 @@ sub shell_connect {
                 Type => SOCK_STREAM(),
                 Peer => $sock_path,
                 )
-                or warn "\n << connection error : "
-                . "unix:$sock_path [ \l$OS_ERROR ] >>\n";
+                or
+                warn_err( ' << connection error : unix:%s [ %s ] >> <{NC}>',
+                -1, $sock_path, scalar format_error( $OS_ERROR, -1 ) );
         }
     }
     if ( not defined $sock ) {
@@ -245,18 +273,19 @@ sub shell_connect {
             PeerPort => $cube_port,
             Proto    => qw| tcp |
             )
-            or die "\n << connection error : "
-            . "$cube_addr:$cube_port [ \l$OS_ERROR ] >>\n\n";
+            or error_exit( '<< connection error : %s:%d [ %s ] >> <{NC}>',
+            $cube_addr, $cube_port, scalar format_error( $OS_ERROR, -1 ) );
     } else {
         $link_type = qw| unix |;
     }
 
     my $banner_message = readline($sock);
 
-    die "\n << connection to peer has been lost >>\n\n"
+    error_exit('<< connection to peer has been lost >> <{NC}>')
         if not defined $banner_message;
     chomp($banner_message);
-    die "\n << protocol mismatch ['$banner_message'] >>\n\n"
+    error_exit( '<< protocol mismatch [ $banner_message ] >> <{NC}>',
+        $banner_message )
         if $banner_message ne '>:] ::-.7\\\\';
 
     binmode( $sock, ':encoding(UTF-8)' );
@@ -268,18 +297,18 @@ sub shell_auth {
     my ( $fh, $user, $pwd ) = @_;
     s_write( $fh, "auth $user $pwd\n" );
     my $answer = <$fh>;
-    die "\n  << connection was prematurely terminated >>\n\n"
+    error_exit('<< connection was terminated prematurely >> <{NC}>')
         if not defined $answer;
     if ( $answer =~ m|AUTH_TRUE| ) {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
-        die "\n  :: authentication not successful ::\n\n";
+        error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die "\n  :: protocol mismatch >:[\n\n";
+        error_exit(':: protocol mismatch >:[ <{NC}>');
     }
 }
 
@@ -287,10 +316,10 @@ sub unix_auth {
     my ( $fh, $user ) = @_;
     s_write( $fh, "select unix\n" );
     my $answer = <$fh>;
-    die "\n  << connection was prematurely terminated >>\n\n"
+    error_exit('<< connection was prematurely terminated >> <{NC}>')
         if not defined $answer;
     if ( $answer !~ m|^TRUE continue| ) {
-        die "\n  :: unix auth not available ::\n\n";
+        error_exit(':: unix auth not available :: <{NC}>');
     }
     s_write( $fh, "auth $user\n" );
     $answer = <$fh>;
@@ -299,12 +328,12 @@ sub unix_auth {
         print " :: authentication successful ::\n";
         return $fh;
     } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
-        die "\n  :: authentication not successful ::\n\n";
+        error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
         return 0;
     } else {
-        die "\n  :: protocol mismatch >:[\n\n";
+        error_exit(':: protocol mismatch >:[ <{NC}>');
     }
 }
 
@@ -357,18 +386,22 @@ sub shell_loop {
             $last_line = $line;
 
             if ( $line =~ m|^\. cd (.+)| ) {
-                if ( !chdir($1) ) { print "cd: \l$OS_ERROR\n" }
+                my $cd_path = $LAST_PAREN_MATCH;
+                if ( !chdir($cd_path) ) {
+                    warn_err( 'cd [ %s ] %s <{NC}>',
+                        -1, $cd_path, scalar format_error( $OS_ERROR, -1 ) );
+                }
             } elsif ( $line =~ m|^\. (.+)$| ) {
                 $lines_up = 1;
                 no warnings;
-                if ( my $err = system($1) ) {
+                if ( my $err = system($LAST_PAREN_MATCH) ) {
                     my $error   = '';
-                    my $err_msg = "exit code: $err";
+                    my $err_msg = "exit code : $err";
                     if ( $err == -1 ) {
-                        $err_msg = lcfirst($OS_ERROR);
+                        $err_msg = format_error( $OS_ERROR, -1 );
                         $error   = ' << error >>';
                     }
-                    print "\n - ! -$error [ " . $err_msg . " ]\n\n";
+                    warn_err( '- ! -%s [ %s ] <{NC}>', -1, $error, $err_msg );
                 }
                 use warnings;
             } else {
@@ -430,10 +463,10 @@ sub stdout_fork {
         print "$out\n";
     }
     close($shell_sock);
-    print "\e[34m.\n      \e[5m.      .     .     "
-        . "\e[0m\e[34m.:\e[34m[\e[\e[0m connection"
-        . " terminated\e[0m \e[34m]\e[34m:.\e[5m  "
-        . "   .     .      .\e[0m\n\e[34m.\e[0m\n";
+    print "$C{0}.\n      \e[5m.      .     .     "
+        . "$C{R}$C{0}.:$C{T}\[$C{b}$C{T} connection"
+        . " terminated $C{R}$C{T}\]$C{0}:.\e[5m  "
+        . "   .     .      .$C{R}\n$C{0}.$C{R}\n";
 }
 
 sub rl_filename_list_lcl
@@ -484,7 +517,7 @@ sub readline_signals {
 }
 
 sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
-    print $term_loop ? "\n\e[34m\e[5m.\n.\n.\n\e[0m\n" : "\n ::\n :\n\n";
+    print $term_loop ? "\n$C{0}\e[5m.\n.\n.\n$C{R}\n" : "\n ::\n :\n\n";
     if ( -S $shell_sock ) {
         $shell_sock->shutdown(2);
         $shell_sock->close();
@@ -495,7 +528,7 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 }
 
 #.............................................................................
-#BPGZXPWX76SNFI2HYBNIZUPUMKIE7LXLKQ6HP2PCKW3R2ZTQEHSR2WUTPVGIOGDOZ57YJ5YBNX3PW
-#::: V5GHPY2STHTQKZCQP322CCGSRAUS3EUL46M2DB7W5X56PAN6HHE :::: NAILARA AMOS :::
-# :: JC5LSXX4EXR2HIBX4GXA2IBKB5DOZHRGA3S5X5KD5BMSABJWPIBA :: CODE SIGNATURE ::
+#O5LPLXYXCHDOKZRD2PBL4VGU7WFAZHAVCKFMNCQGHQUCQWHQIBRTOM5MZSJ6ITLLPHKFF4AGVGVKQ
+#::: 4U6LOCDZCZ7ZQHKWUKELDKQOU2IJ73I6UY5UFDGM7ADHTJZXFYN :::: NAILARA AMOS :::
+# :: 6KVHJYHB6MTBT6ZQZGWVTDJM4SKEAPABWTMHMIHN5P4U2LQAXKAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

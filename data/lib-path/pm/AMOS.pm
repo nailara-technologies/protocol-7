@@ -35,7 +35,6 @@ our %C = (
 ##[ TERMINALS ]###############################################################
 
 sub TERM_SIZE {
-
     my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
 
     return undef if not -t $handle;
@@ -51,24 +50,32 @@ sub TERM_SIZE {
 ##[ ERROR HANDLING ]##########################################################
 
 sub error_exit {
-    chomp( my $err_msg = sprintf( shift @ARG // '', @ARG // '' ) );
-    $err_msg =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
-    $err_msg =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
+    my $err_str = shift // '';
 
-    warn_err($err_msg);
+    chomp( $err_str = sprintf $err_str, @ARG ) if @ARG; ## sprintf template ##
+
+    $err_str =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
+    $err_str =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
+
+    warn_err($err_str);
 
     exit(113) if not defined $main::PROTOCOL_SEVEN;
 }
 
 sub warn_err {
-    my $err_str = shift // ':: warning ::';
+    my $err_str = shift // ':: warn :: undefined <{C1}>';
     my $c_lvl   = shift // 1;
-    if (@ARG) { $err_str = sprintf $err_str, @ARG }   ##  sprintf-template  ##
+
+    say STDERR ': warn_err : caller level as second argument expected'
+        if defined $c_lvl and $c_lvl !~ m|^\-?\d+$|;
+
+    chomp( $err_str = sprintf $err_str, @ARG ) if @ARG; ## sprintf template ##
+
     my $no_caller = 0;
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
     $no_caller = 1                 if $err_str =~ s| <\{NC\}>$||;
 
-    if ( defined $main::PROTOCOL_SEVEN ) {            ##  zenka  ##
+    if ( defined $main::PROTOCOL_SEVEN ) {              ##  zenka  ##
         if ($no_caller) {
             warn sprintf '%s <{NC}>', $err_str;
         } else {
@@ -84,32 +91,32 @@ sub warn_err {
 }
 
 sub format_error {
-    my $err_msg = shift // qw| :undef: |;
+    my $err_str = shift // qw| :undef: |;
     my $c_lvl   = shift // 1;
     my ( $caller_str, $file, $line );
-    $err_msg =~ s|\n$||;
+    $err_str =~ s|\n$||;
     ( $file, $line ) = @{^CAPTURE}
-        if $err_msg =~ s| at (.+?) line (\d+).*$||gs;
-    $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
-    $err_msg =~ s|"\s|' |g;
-    $err_msg =~ s|\s"| '|g;
-    $err_msg =~ s|\s+BEGIN failed.+$||sg;
-    $err_msg =~ s|(\S+):(*pla:\s)|$LAST_PAREN_MATCH :|;
+        if $err_str =~ s| at (.+?) line (\d+).*$||gs;
+    $err_str =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
+    $err_str =~ s|"\s|' |g;
+    $err_str =~ s|\s"| '|g;
+    $err_str =~ s|\s+BEGIN failed.+$||sg;
+    $err_str =~ s|(\S+):(*pla:\s)|$LAST_PAREN_MATCH :|;
 
-    $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+    $err_str = lcfirst($err_str) if $err_str =~ m|^[A-Z][^A-Z]|;
 
     if ( defined $file ) {
         clean_up_caller( \$file );    ## shorten ##
         $caller_str = join( qw| : |, $file, $line );
-        $err_msg .= " [$caller_str]" if $c_lvl >= 0;
+        $err_str .= " [$caller_str]" if $c_lvl >= 0;
     }
-    $err_msg =~ s,(can't|unable to),cannot,g;
-    $err_msg =~ s|^warning : something's wrong$|:undef:|g;
-    $err_msg =~ s|^use of uninitialized value in warn$|:undef:|g;
+    $err_str =~ s,(can't|unable to),cannot,g;
+    $err_str =~ s|^warning : something's wrong$|:undef:|g;
+    $err_str =~ s|^use of uninitialized value in warn$|:undef:|g;
     ++$c_lvl if $c_lvl < 0;
     $caller_str = caller( abs($c_lvl) );
-    return ( $err_msg, $caller_str ) if wantarray;
-    return $err_msg;
+    return ( $err_str, $caller_str ) if wantarray;
+    return $err_str;
 }
 
 sub caller_str {
@@ -140,7 +147,7 @@ sub clean_up_caller {
 return 1;  ###################################################################
 
 #.............................................................................
-#YVYWADADCDSHVCASLUDFWERPRXE4TBMJ5LKG7FKQ5EJ3SMW7CEWGIKF7CH4TJXPS4LZKUOWAKTHOK
-#::: W2VYSAN4HOLBTTRMFMYVP7TIZHDEGGPSNNIRATFCKBEBK6LOEAQ :::: NAILARA AMOS :::
-# :: TYKY44LONBR222QRDTCG2BKRMF4GKDA4D7RKHHNAS3E7RVKWHGDI :: CODE SIGNATURE ::
+#KNRS4E4EXIT6EWIRR2II7VYBW7W5PX63UYGUAMP3AL7UTCETCVLRNZXIPZPLWGORYRAZ6ILHDKDMC
+#::: VIBTXO7Y2E6VU7MKY2VJWT3TWQQLDWTQYQHUMBM6PJFIZQ2JOH5 :::: NAILARA AMOS :::
+# :: AW6LND2DNYNOKD45NLQDGD6HJOSTY3TKQP44Y5LS7T6S4HDKJ4CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

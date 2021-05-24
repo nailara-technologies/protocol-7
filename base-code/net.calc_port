@@ -8,17 +8,27 @@ my $port_range  = shift;
 my $port_start  = $port_range->{'start'};
 my $port_end    = $port_range->{'end'};
 my $port_delta  = $port_end - $port_start;
-my $path_offset = <system.path_offset>;
+my $path_offset = abs(<system.path_offset>);
 
-## calculated values :     /usr/local/protocol-7 : ext-port = 47, int-port = 967
-##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 917
+## calculated values :     /usr/local/protocol-7 : ext-port = 47, int-port = 470
+##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 657
 
-my $n_port = $port_start + $path_offset % $port_delta * 5;
+my $iterations_remaining = 42;
+
+my $n_port;
+my $factor = 5.707;    ## adjusting target range ##
+
+while (not defined $n_port
+    or not AMOS::Assert::Truth::calc_true( $n_port, 1, 1 )
+    and $iterations_remaining-- ) {
+    $n_port = int( $factor * $port_start + $path_offset % $port_delta );
+    $factor += 0.7;
+}
 
 return $n_port;
 
 #.............................................................................
-#Z4ACIJIJNNYLN62THFE2CLYU2RYMJXU23DN4RZ7AQTJHBUWVFNOBIT2COLLMY3UVZQZ5Z2S6VHQ74
-#::: 2PDRXVSYS2G7IOZPQ4I5NUALWETEHC3DUDGQDXVFSP5ABVYITRW :::: NAILARA AMOS :::
-# :: JR6JJVK3NNXAKXV5I2NRGEJWLV4CRY27WZHI4UCPWD3ODYCSHADQ :: CODE SIGNATURE ::
+#AWALLISKJXJ2JLRTLSOWSDI5BMN2NPHMHCPKL2R2DLR53XGERTMVBEVUCZOJKXEI3GS4U5MVQWU7A
+#::: B7OTJWTSEICN5XZARCAVHHVROFW6Q2FX3GXDCF2YV6LGN5B4INF :::: NAILARA AMOS :::
+# :: GPBKLOZ27FENWLYKNX3K7LG7WDXRSIUI2ZQYIA6IRB4UFT7FF4CA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
