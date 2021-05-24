@@ -2,8 +2,9 @@
 
 # name = httpd.http_get
 
-my $id        = shift;
-my $session   = $data{'session'}{$id};
+my $id      = shift;
+my $session = $data{'session'}->{$id};
+
 my $http_host = <[httpd.determine_host]>->($id);
 
 my $allow_overlap = <httpd.cfg.allow_range_overlap> // 0;
@@ -122,7 +123,7 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        my $path_etag = <[chk-sum.elf.BASE32]>
+        my $path_etag = <[chk-sum.elf.vax-BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
@@ -209,7 +210,7 @@ if ( defined $http_host and defined $link_target ) {
             %{ $response->{'params'} }
         };
 
-        $path_etag = <[chk-sum.elf.BASE32]>
+        $path_etag = <[chk-sum.elf.vax-BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
@@ -247,7 +248,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     or !-f $file_path;
 
 #.............................................................................
-#AC3T5R7ACIGQVWRNBOOJIDLBJBEURXCQGCMBGAIYXMWBQAVHBJMTXQ5XGC3NEBV762LEFLJFYWUEO
-#::: S5CEIXSS3JPVRY7GV5DE4A3BJ2GIIYZWDFR74SV57HF3O7JY7Z7 :::: NAILARA AMOS :::
-# :: QNANKIUSQ7MUXGVMEEYKT3H34DPUR3546GOGLDUZCY4XETBC6CAA :: CODE SIGNATURE ::
+#DLT4UXKQXK3F4YZ2AKOMTZ6PKWDZP6FBSXISPCF6LZWQEIWEYG7VQN7QQCWR3T4HNPCFOQYMFNWDS
+#::: GIWS3BSJVMDX5AWMJFSCT5NMXAHEDJA672ACI3HGUBIQ53WOJPK :::: NAILARA AMOS :::
+# :: SNJKCCHHNTP3IXCDWGQOHVNZ67LY3DQ5KRRVXJ47H2HTQN2PIICI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
