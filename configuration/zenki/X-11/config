@@ -80,18 +80,21 @@ access.cmd.usr.cube = commands message heart reload verify-instance get_mode \
                       set_opacity get_opacity get_gpu_load * # [ LLL ]
 
 
-modules.preload = X-11.set-up set-up.json
+modules.preload  =  X-11.set-up set-up.json
+
 [load_modules:<modules.preload>]
 [init_modules]
 
 [set-up.json.import_file:'X-11.set-up.json']
 
 modules.load = auth net protocol io.ip X-11 ## debug
+
 [load_modules:<modules.load>]
-
-[root.drop_privs:<system.X-11-user>]  ## move up [ auto-add X-11-user to grp. ]
-
 [init_modules]
+
+## ,..in host-mode privs are dropped before connecting in 'X-11.post-init'  ##
+
+[root.drop_privs:<system.X-11-user>] ## move up [ auto-add X-11-user to grp. ]
 
 [net.connect_to_cube:'ip.tcp']
 
@@ -101,7 +104,7 @@ modules.load = auth net protocol io.ip X-11 ## debug
 [event.loop]
 
 #.............................................................................
-#UK4NX6QPTVKINYS67QZVWUPPFV5XZZYFCKRL5MKORU7KPP5BR5N6P6DB25SAD3WJ7IA65BMZV3JG4
-#::: J77R44RM6IG5VER7G6WFYF7DBDJOZHWUMN2GVRLZCIQGC2V4AXA :::: NAILARA AMOS :::
-# :: TAE3C6BNKR3WCDKNJRHLGI7FUKGGMNUOCWOJNT6DPCG2NJTDJUCI :: CODE SIGNATURE ::
+#NQC5XYIXUFENXRTTRQI4EAD6I4VQPJN5BOBDJMQBS4FYVVJ55IWKKHOYUFW4C4XRVZ3XZN2Q2XZUS
+#::: EP6CRXIQ3ZHR444H2WGHZ67J4J4N5MEFQAJ5YUKUXEHZN5T7QYE :::: NAILARA AMOS :::
+# :: BG7RBMMRLJZTYG5FM64LZSCS4JWP4OFNOASKSJHIKGJO6W6YUUCI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
