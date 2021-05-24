@@ -13,7 +13,7 @@ my ($node_zenka, $instance_id, $buffer_name,
 <p7-log.checksums>                                     //= {};
 my $node_checksums = <p7-log.checksums>->{$node_zenka} //= {};
 $node_checksums->{$buffer_name}                        //= '';
-my $entry_checksum = <[chk-sum.elf.BASE32]>->( $_[0]->{'args'} );
+my $entry_checksum = <[chk-sum.elf.vax-BASE32]>->( $_[0]->{'args'} );
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
     <[base.log]>->(
         2, "rejected duplicate '$buffer_name' entry from '$node_zenka'.,"
@@ -118,7 +118,7 @@ return { 'mode' => 'true', 'data' => "wrote $msg_len bytes" } if $success;
 return { 'mode' => 'false', 'data' => $err_msg };
 
 #.............................................................................
-#S7ND43XWRG2SWVPKAQRBIGCUIK3VMI7LNWE52USEYA373BV2Y63XN5ACGJW4SKL4LNUTUH7XDMCTE
-#::: CQSFOKAC6CNSVBYWLJ4DU67VUM2QFMU3GKU2VVRNHWIT5SUXPDJ :::: NAILARA AMOS :::
-# :: 3QPOKRIHW4A3BESPEKAXG4JBPJ5XM3XUOF3MW4AICHNHPITQQABQ :: CODE SIGNATURE ::
+#S4N26MCP2XUZVFDLOG6AIPC2KLTBIU6FMYFHNM7CZQPG6Z6MLVESKO5WEUL556I65FU5YMAYZ3YCO
+#::: TQUCFQA6LC4HZK3CLJQ6TY4CGEORXSPJSAY4O34VQEJCMKSEP3N :::: NAILARA AMOS :::
+# :: D6N3IJS7TEISYN4CGEPCEKJUDRPLWRFUHQ57T3WKZUVLP7FWLMDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

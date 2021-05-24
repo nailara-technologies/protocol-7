@@ -1,37 +1,38 @@
 
+
  .:[ generic [universal] content player zenka ]:.
+
 
 [load_config_file:'shared-params']
 system.verbosity.zenka_buffer = 2
-# system.verbosity.console    = 2
 
 universal.vid_frame_dir = /var/tmp/.video_frames
 
 universal.cfg.fade_on_switch  = 1 # fade in on switch [ web-browser <--> mpv ]
 universal.cfg.can_self_restart = 1 # auto-recovery [ universal zenka restart ]
-universal.cfg.autospeed_notrans = 1 # stop mpv \ web-browser fading on load alerts
+universal.cfg.autospeed_notrans = 1 # stop mpv\web-browser fading on load alert
 universal.cfg.self_restart_delay = 4.2 # <-- wait to not interfere with SIGCHLD
 
-access.cmd.usr.cube    = commands heart reload verify-instance * # <-- [ LLL ]
-access.cmd.usr.mpv     = whoami
+access.cmd.usr.cube        = commands heart reload verify-instance
+access.cmd.usr.mpv         = whoami
 access.cmd.usr.web-browser = whoami
 
-modules.load = auth net protocol io.ip io.unix plugin.auth chk-sum universal
+modules.load  =  auth net protocol io.ip io.unix plugin.auth chk-sum universal
+
 [load_modules:<modules.load>]
 [init_modules]
 
-
-auth.supported_methods = unix
 ## local unix domain socket ##
+auth.supported_methods = unix
 [file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
-unix.zenka.path=[chk-sum.elf.BASE32:"<system.zenka.name>:<system.zenka.subname>"]
-unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.zenka.path>",0777]
+unix.sock = [base.open:'unix','input',[universal.get_unix_sock_path],0777]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-cube.reroute.pattern.usr = ^(?!cube)
-cube.reroute.pattern.match = ^(?!composition\.|whoami)
+cube.reroute.pattern.usr     = ^(?!cube)
+cube.reroute.pattern.match   = ^(?!composition\.|whoami)
 cube.reroute.pattern.replace = cube.
+
 [base.protocol.bind:<unix.sock>,'protocol-7']
 
 [net.connect_to_cube:'ip.tcp']
@@ -45,7 +46,7 @@ cube.reroute.pattern.replace = cube.
 [event.loop]
 
 #.............................................................................
-#WAHOD5AXRG5ZG6DBN6D6FRTIFVHFU7QZVXHWCJZ3P7XKDWPSIF5ILDBJEFTUS57M6IZMZYS63PDQE
-#::: YDEPNIQL6O7SCG3ZBCNRP4QS5X4HOMKG5TU5KTZLWEHG54QIPPE :::: NAILARA AMOS :::
-# :: 427X4XYFCLO6WAI5SX3NW24NPZIWPGY4LMLE5QGW7CU7RY2RZEDQ :: CODE SIGNATURE ::
+#HU4HM7HPZLR55KPZO3FPZ4TF3ELCYDH4X6NEFHIYNKKJ4AVZUKPLUNWTGK3MVOSGZETZ7HKGGLJU6
+#::: 663NBEQGI7SZABREBH4QKRF43XIG2H7ZSXO4CBS6UQM3TKAWFDH :::: NAILARA AMOS :::
+# :: G47ISP6UPJZUPR326VGGDHCYMZLEVPK4CJCJFRJQHZHUAB7ZSUDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

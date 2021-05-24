@@ -5,7 +5,8 @@
 my $id         = shift;
 my $reply_code = shift // 200;    # [204|200]
 
-my $session   = $data{'session'}{$id};
+my $session = $data{'session'}->{$id};
+
 my $request   = $session->{'http'}->{'request'};
 my $response  = $session->{'response'};
 my $headers   = $request->{'headers'};
@@ -21,20 +22,25 @@ my $http_uri    = $session->{'http'}{'request'}{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
     if exists <httpd.cfg.hostnames>->{$http_host};
 
-if (    $link_target =~ m|^\d{3}$|
-    and -l <httpd.site_dir> . '/' . $http_host
-    and !-e <httpd.site_dir> . '/' . $link_target ) {    ## special codes ###
+if ($link_target =~ m|^\d{3}$|    ## special codes ###
+    and -l join( qw| / |,  <httpd.site_dir>, $http_host )
+    and !-e join( qw| / |, <httpd.site_dir>, $link_target )
+) {
 
     $session->{'watcher'}->{'input_handler'}->cancel;
-    if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
-        <[base.log]>->(
-            1, "[$id] status '$link_target' for requested host '$req_host'"
+    if ( $link_target ne qw| 000 | ) {    # n > 000 == HTTP error codes
+        <[base.logs]>->(
+            "[%d] status '%s' for requested host '%s'",
+            $id, $link_target, $req_host
         );
         $session->{'buffer'}->{'output'}
             .= <[httpd.send_error_page]>->( $id, $link_target );
         $session->{'flush_shutdown'} = 1;
     } else {
-        <[base.log]>->( 1, "[$id] <000> dropping host request '$req_host'" );
+        <[base.logs]>->(
+            "[%d] <000> dropping host request '%s'",
+            $id, $req_host
+        );
         $session->{'close'} = 1;
     }
     return 2;
@@ -43,17 +49,17 @@ if (    $link_target =~ m|^\d{3}$|
 my $file_path;
 
 if ( defined $http_host and defined $link_target ) {
-    <[base.log]>->(
-        1,
-        sprintf( "[$id] matched Host: '%s' --> '$http_host'",
-            $session->{'http'}{'request'}{'host'} )
+    <[base.logs]>->(
+        "[%d] matched Host: '%s' --> '%s'",    $id,
+        $session->{'http'}{'request'}{'host'}, $http_host
     ) if $http_host ne $session->{'http'}{'request'}{'host'};
 
     my $base_dir = <httpd.cfg.hostnames>->{$http_host};
-    $file_path = "$base_dir$http_uri";
+    $file_path = join( '', $base_dir, $http_uri );
     $file_path =~ s|/$||;
     if ( -d $file_path ) {    # LLL: support !html index
-        $file_path .= '/index.html' if -f $file_path . '/index.html';
+        $file_path .= qw| /index.html |
+            if -f join( qw| / |, $file_path, qw| index.html | );
     }
 
     if ( -f $file_path ) {
@@ -64,13 +70,13 @@ if ( defined $http_host and defined $link_target ) {
 
             my $method = $request->{'method'};
 
-            <[base.log]>->( 1, "[$method] returning 204 \\ no content" );
+            <[base.logs]>->( '[%s] returning 204 \\ no content', $method );
 
             $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
                 $reply_code,
-                {     'Connection' => $session->{'http'}->{'close'}
-                    ? 'close'
-                    : 'keep-alive',
+                {   'Connection' => $session->{'http'}->{'close'}
+                    ? qw| close |
+                    : qw| keep-alive |,
                     %{ $response->{'params'} }
                 }
             );
@@ -80,9 +86,8 @@ if ( defined $http_host and defined $link_target ) {
         }
 
         ## 200 ## [ HEAD ] ##
-
-        $file_path = readlink($file_path)
-            if -l $file_path and -f $file_path;    ##
+        ##
+        $file_path = readlink($file_path) if -l $file_path and -f $file_path;
 
         my $file_stat     = File::stat::stat($file_path);
         my $content_inode = $file_stat->ino;
@@ -90,8 +95,10 @@ if ( defined $http_host and defined $link_target ) {
         my $content_date  = time2str( $file_stat->mtime );
         my $server_date   = time2str(time);
 
-        my $path_etag = <[chk-sum.elf.BASE32]>
-            ->("$content_inode.$content_size.$content_date.$file_path");
+        my $path_etag = <[chk-sum.elf.vax-BASE32]>->(
+            join qw| . |,  $content_inode, $content_size,
+            $content_date, $file_path
+        );
         $response->{'params'}->{'ETag'} = $path_etag;
 
         ## caching meta data ..,
@@ -113,14 +120,16 @@ if ( defined $http_host and defined $link_target ) {
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
             $response->{'params'}->{'ETag'} ) {
-            <[base.log]>->( 1, "[if-none-match] returning 304 [$path_etag]" );
+            <[base.logs]>->(
+                '[if-none-match] returning 304 [%s]', $path_etag
+            );
             $reply_code = 304;    ## 'Not Modified'
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
             and $request->{'headers'}->{'if-modified-since'} eq
             $content_date ) {
-            <[base.log]>->(
-                1, "[if-modified-since] returning 304 [$path_etag]"
+            <[base.logs]>->(
+                '[if-modified-since] returning 304 [%s]', $path_etag
             );
             $reply_code = 304;    ## 'Not Modified'
         }
@@ -130,9 +139,9 @@ if ( defined $http_host and defined $link_target ) {
                 'Last-Modified'  => $content_date,
                 'Content-Length' => $content_size,
                 'Connection'     => $session->{'http'}->{'close'}
-                ? 'close'
-                : 'keep-alive',
-                'Accept-Ranges' => 'bytes',
+                ? qw| close |
+                : qw| keep-alive |,
+                'Accept-Ranges' => qw| bytes |,
                 %{ $response->{'params'} }
             }
         );
@@ -147,7 +156,7 @@ return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
 #.............................................................................
-#V7XTFIQISNCWKVZBRQAAH4JESWG7O2EQFLDQWUK7HTUWENJSWP3AEK3V3PPRUX6UANRKPWE74EQW2
-#::: HP3WS4G2DIY7JAHLQ3UZG7X7Q22746ROLNPKJBXO2MZYD2HLNE7 :::: NAILARA AMOS :::
-# :: 5CNPYSWKMN2OISVU2FBUAYAAG5VHEXPSQECKRXMBMBSA6NKJM2DQ :: CODE SIGNATURE ::
+#CXWIJAD2B3Q6JIQP6H7CGGIOCGO7AABTRAML3FNIMBTOPHERB4H3ZSCAT6ZMP3LNHQVFLO7DGM7KE
+#::: JDQ3X62GT2ZXEPCEBCBFBVMEAZNKGF752ULP4LRG5OBQJ37WZKD :::: NAILARA AMOS :::
+# :: QZ5IGEOB4POFNF7QGMF5FQGZ3TGPZSFP3VQPMN66OCCFQBDZ52CI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,19 @@
+# >:]
+
+# name  = universal.get_unix_sock_path
+# descr = generate unix socket path from zenka name [ optional subname ]
+
+my $path_calc_str = <system.zenka.name>;
+
+$path_calc_str .= sprintf( qw|:%s|, <system.zenka.subname> )
+    if defined <system.zenka.subname>;
+
+my $zenka_path = <[chk-sum.elf.vax-BASE32]>->($path_calc_str);
+
+return sprintf( qw| /var/run/.7/UNIX/%s |, $zenka_path );
+
+#.............................................................................
+#2CYOUCKYSJKXPB5KZB463LX2ZYG44WMMKLG7CJ4ZOOILN2SFXQQV553Z55MR3GYFN2A7DYRBDJKFK
+#::: TRUVFKGMJUAB3E2NBCHCJOAJ2ZDS3AUAMZTCAKD2SIJXEFGQ5EH :::: NAILARA AMOS :::
+# :: QCCJFXV6MNMJDVXGRWFP4JJ7NXNVYU6CU7BSEQ4BGZAWXYG64SCA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

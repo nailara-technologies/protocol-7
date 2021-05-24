@@ -1,0 +1,23 @@
+# >:]
+
+# name  = base.chk-sum.elf.pre_init
+# descr = installing elf routines to chk-sum.elf name space
+
+## used by chk-sum.elf.vax-BASE32[.true] ##
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+<[base.swap_subs]>->(qw|  base.chk-sum.elf  chk-sum.elf  |);  ## <-- moving ##
+
+## AMOS-13-ELF ## [ elf_chksum() ]
+<[base.perlmod.load]>->('AMOS::CHKSUM::ELF');
+
+## exports is_true(), has calc_true() ##
+<[base.perlmod.load]>->('AMOS::Assert::Truth');
+
+return 0;
+
+#.............................................................................
+#4WVDFFP7LCXMTHJGBX7WJDDH57UNPVNENG7R25AGBPYUQ5ZXWDVJADRKGIFKTHAA7KLGEKZD6MLFW
+#::: 6IBMLFIEEEDWHAPFNFIBYHJ7LDVZXJQ3OLLSR6D5VKZAOZORJTD :::: NAILARA AMOS :::
+# :: QU3TPAASIEDCL6AHLCZA2A3TXG4YGQRM6TVAZHBPJSX7F2OOKUAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

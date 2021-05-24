@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 
-####               ####
-##  amos-data-pager  ##   [ 72 bit binary representation ]
-###                ####
+####                  ####
+##  amos-data-pager-56  ##
+###                   ####
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -48,14 +48,24 @@ $filename //= "$root_path/read-me/documentation/true-false-description.asc";
 use AMOS;
 use AMOS::13;
 use AMOS::Utils;
+use AMOS::INLINE;
+
+my %FNC;
+
+map {
+    $FNC{$ARG}
+        = AMOS::INLINE::compile_inline_source(
+        { qw| subroutine-name | => $ARG } );
+} qw| true_int bit_string_to_num num_to_bit_string |;
 
 ##[ RUNTIME COMMANDS ]########################################################
 
 # qr|^seek$|}
 #    = { 'param' => qr<([\-\+]?\d+)( ([210]))\n> . 'callback' => \&seek_pos };
-#        'param'    => qr'([\-\+]?\d+)( ([210]))?'s,
 
 $AMOS::Utils::command_setup{qr{^seek$}} = {
+
+    #        'param'    => qr'([\-\+]?\d+)( ([210]))?'s,
     'param'    => qr'(\d+)\n',
     'callback' =>
         sub { say '< seek >' . $1; sleep 3; seek_pos( ${^CAPTURE}[0] ) }
@@ -116,13 +126,11 @@ print $clear;
 
 my $scan_speed = 0;
 
-## testing auto-scroll ##  my $scan_speed = 0.24; ## 0.07 ##
-
 ##  binary to numbers mode  ##
 
 my $p_offset        = 0;
 my $show_lines      = 20;
-my $line_size_bytes = 9;
+my $line_size_bytes = 7;
 
 while ( $fh->opened and ( $scan_speed == 0 or !$fh->eof ) ) {    ## paging ##
 
@@ -141,14 +149,19 @@ while ( $fh->opened and ( $scan_speed == 0 or !$fh->eof ) ) {    ## paging ##
 
 }
 
+##############################################################################
+
+$fh->close;
+
 ReadMode(0);
 exit(00000);
 
-sub read_bf_page {
+##############################################################################
 
+sub read_bf_page {
     my $fh              = shift;
     my $show_lines      = shift // 20;
-    my $line_size_bytes = shift // 9;
+    my $line_size_bytes = shift // 7;
 
     my @buffer;
     while ( --$show_lines
@@ -163,7 +176,6 @@ sub read_bf_page {
 
 sub page_up {
     my $l_num = shift // 1;    ## use tell() for limit ##
-
     $p_offset -= abs($l_num) * $show_lines * $line_size_bytes;
     $p_offset = 0 if $p_offset < 0;
     return '';
@@ -171,7 +183,6 @@ sub page_up {
 
 sub page_down {
     my $l_num = shift // 1;    ## use tell() for limit ##
-
     $p_offset += abs($l_num) * $show_lines * $line_size_bytes;
 
     my $current_size = [ $fh->stat ]->[7];
@@ -183,7 +194,6 @@ sub page_down {
 
 sub line_up {
     my $l_num = shift // 1;    ## use tell() for limit ##
-
     $p_offset -= abs($l_num) * $line_size_bytes;
     $p_offset = 0 if $p_offset < 0;
     return '';
@@ -191,7 +201,6 @@ sub line_up {
 
 sub line_down {
     my $l_num = shift // 1;    ## use tell() for limit ##
-
     $p_offset += abs($l_num) * $line_size_bytes;
 
     my $current_size = [ $fh->stat ]->[7];
@@ -207,26 +216,54 @@ sub visualize_binary {
     my $buf_aref = shift;
 
     return error_exit 'expected array reference' if ref $buf_aref ne 'ARRAY';
-    printf "%s$C{R}\n\n  $C{b}$C{0}  %-72s  $C{R}\n", $HOME, '';
+    printf "%s$C{R}\n\n      $C{b}$C{0}  %-64s  $C{R}\n", $HOME, '';
     foreach my $buffer_line ( @{$buf_aref} ) {
 
-        ## 24 oct ##
-        my $oct_bits = unpack( qw| B72 |, $buffer_line );
-        printf "  $C{b}$C{0}  %-72s  $C{R}\n", $oct_bits;
+        my $num
+            = $FNC{'bit_string_to_num'}->( unpack qw| B* |, $buffer_line );
+        my $bits = $FNC{'num_to_bit_string'}->( $num, 56 );
+
+        my $color = $FNC{'true_int'}->($num) ? $C{'T'} : $C{'0'};
+        $buffer_line =~ s,[\r\n\t\v], ,g;
+        printf "      $C{b}$color  %-57s %7s $C{R}\n", $bits, $buffer_line;
     }
-    printf "  $C{b}$C{0}  %-72s  $C{R}\n\n", '';
+    printf "      $C{b}$C{0}  %-64s  $C{R}\n\n", '';
 }
 
-##############################################################################
 
-$fh->close;
+sub bin_to_int {
+    my $buffer_ref = shift;
 
-exit;
+    return $FNC{'bit_string_to_num'}->( unpack qw| B* |, $$buffer_ref );
 
-##############################################################################
+}
+
+sub bin_to_comp_int_2 {
+    my $buffer_ref = shift;
+
+    ## my $bits_56 =  join ( '', map { $FNC{'num_to_bit_string'}->(
+    ##  ord $ARG, 8 ) } split ( '', $$buffer_ref ) );
+
+    my $bits_56   = shift // unpack qw| B* |, $$buffer_ref;
+    my $input_len = length $$buffer_ref;
+
+    my $result_buffer;
+
+    for ( 0 .. $input_len ) {
+        if ( $ARG < 7 ) {
+            $result_buffer .= pack qw| B8 |,
+                qw| 1 | . substr( $bits_56, $ARG * 7, 7 );
+        } else {
+            $result_buffer .= pack qw| B8 |,
+                qw| 0 | . substr( $bits_56, $ARG * 7, 7 );
+        }
+    }
+
+    return unpack( qw| w |, $result_buffer );
+}
 
 #.............................................................................
-#JXIQHVA2D4MXS2JM3FHAEJCE7CIOUCUYXQ5IWF3RCVN3MZOJSWVTIKTLK7K3F2USUS6RUMXLZII6U
-#::: DNAU6CI7TDK3AAQMY65BE4XRGEXVBK32BM2FCWWIU64FL77QDQP :::: NAILARA AMOS :::
-# :: HL7ZY6RQJJGI5AKCQULV34EEKQQ3Y4CLXN4AP2GGLMWUUC3F72BA :: CODE SIGNATURE ::
+#5JNLNK7DMC6HR4MO4WAPMVIEGUVH2KCLDOJ5S22O2BYUD2ZGOHUTDUTQJ3KIH7L3PFRY4S5SXHSLY
+#::: JBAVKTC32TMRPRKMNZOI4QOLFXP3FWFZR3GY3QE7E7UMBAW6PNH :::: NAILARA AMOS :::
+# :: DQIYNDIHJB4ZXVUSYHDEHO4T2QH7OHABP7F3BQS37EOP4BSO26BY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

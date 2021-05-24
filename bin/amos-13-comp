@@ -23,6 +23,7 @@ my $file = shift @ARGV;
 error_exit("file path does not exist : $file") if defined $file and !-e $file;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
+
 BEGIN {
     use English;
     use File::Spec;
@@ -50,6 +51,17 @@ $file //= join qw| / |, $root_path,
 use AMOS;
 use AMOS::13;
 use AMOS::Utils;
+use AMOS::Assert::Truth;
+
+use AMOS::INLINE;
+
+my %FNC;
+
+map {
+    $FNC{$ARG}
+        = AMOS::INLINE::compile_inline_source(
+        { qw| subroutine-name | => $ARG } );
+} qw| true_int bit_string_to_num num_to_bit_string |;
 
 ##[ INTERRUPTS ]##############################################################
 
@@ -68,13 +80,15 @@ my @file_buffer;
 while ( ( $fh->opened and !$fh->eof )
     and $fh->read( my $data_buffer, $read_size_bytes ) ) {
 
-    # push( @file_buffer, $data_buffer ) if length($data_buffer) == 7;
-    # say sprintf qw| %056B |, bin_to_int( \$data_buffer ) if length($data_buffer) == 7;
+    push( @file_buffer, $data_buffer ) if length($data_buffer) == 7;
 
-    say bin_to_int( \$data_buffer ) if length($data_buffer) == 7;
+    ## say sprintf qw| %056B |, bin_to_int( \$data_buffer )
+    ##   if length($data_buffer) == 7;
+
+    # say bin_to_int( \$data_buffer ) if length($data_buffer) == 7;
 }
 
-# visualize_binary( \@file_buffer );
+visualize_binary( \@file_buffer );
 exit;
 
 my @bit_buffer = map { asc_to_bin_056($ARG) } @file_buffer;
@@ -101,6 +115,15 @@ my $time_secs = time - $start_time;
 say sprintf ": bin_to_int : time ellapsed : %.05f [ %.03f M/s ]\n",
     $time_secs, ( $total_size / $time_secs ) / 1024**2;
 
+##[ BIN_TO_INT ]##############################################################
+
+sub bin_to_int {
+    my $buffer_ref = shift;
+
+    return sprintf qw| %017d |,
+        $FNC{'bit_string_to_num'}->( unpack qw| B* |, $$buffer_ref );
+}
+
 ##[ VISUALIZING BUFFER ]######################################################
 
 sub visualize_binary {
@@ -112,8 +135,15 @@ sub visualize_binary {
 
         my $bits = asc_to_bin_056($buffer_line);
 
-        printf "  $C{b}$C{0}  %-56s  [ %017d ]$C{R}\n", $bits,
-            bin_to_int( \$buffer_line, $bits );
+        my $c_int = bin_to_int( \$buffer_line, $bits );
+
+        my $b_col
+            = AMOS::Assert::Truth::is_true( $bits, 1, 1 ) ? $C{T} : $C{0};
+        my $n_col = AMOS::Assert::Truth::true_int($c_int) ? $C{T} : $C{0};
+
+        printf "  $C{b}$C{0}  $b_col%-56s$C{0} "
+            . " [ $n_col%017d$C{0} ]$C{R}\n", $bits,
+            $c_int;
     }
     printf "  $C{b}$C{0}  %-56s  $C{R}\n\n", '';
 }
@@ -124,7 +154,7 @@ $fh->close();
 exit(00000);
 
 #.............................................................................
-#7VZEU3GVVUCDO5QSZ6422XTTJH3M4YH7CHX5TLCYJM2NKT2OVJQR4X7O267SYVRK2PPWFYEC3YCFE
-#::: HRQLUHTRYL7HPEINDPOXGRDJY65RLUI73J2LDQ45BOVQITMD55S :::: NAILARA AMOS :::
-# :: 3AA4FBMT4POOA7KPYZFH5SKL4EX4BPJBOGDZFVU6ZTHEWAPXI4AY :: CODE SIGNATURE ::
+#2QZ7QYCMYWVPNNC3MWYSC3WD2HUN56KK25MX45RUMTXL4GP77VT52EHEAHWV7X4EKXSFG524AB422
+#::: N3U275XXUS7GQ6NST7IY5EYUMDO4JZXRASCXK35OJFVTQQIV4SC :::: NAILARA AMOS :::
+# :: 5YAJ3DR6LGEUYASGLRD3MWFHLFNWAVIT6GUTVBXRAYCLPFBRFCDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

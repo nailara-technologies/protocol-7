@@ -1,13 +1,15 @@
 # >:]
 
-# name  = chk-sum.elf.BASE32.harmony
+# name  = base.chk-sum.elf.vax-BASE32.true
 # descr = return next true BASE32 encoded elf hash value [ VAX num ]
 
-my $input_string = join( '', @ARG );
+my $input_string = join( ' ', @ARG );    ## combines words to sentence ##
 
 my $elf_checksum;
 my $encoded_string;
 my $B32_elf_checksum;
+
+my $max_rounds = 31;    ##  limiting calulation iterations  ##
 
 $elf_checksum   = <[chk-sum.elf]>->($input_string);
 $encoded_string = encode_b32r( pack qw| V |, $elf_checksum );
@@ -16,8 +18,6 @@ my $template = qw| %s::%s::%s |;
 
 my $calc_input
     = sprintf( $template, $encoded_string, $input_string, $elf_checksum );
-
-my $max_rounds = 13;
 
 RECALC:
 
@@ -30,7 +30,7 @@ if (
         or not AMOS::Assert::Truth::calc_true($B32_elf_checksum)
     )
     and $max_rounds--
-    ) {    ## ..230769.., == disharmony ..,
+    ) {    ## ..230769.., == false ..,
 
     ## change input with entropy from previous result ##
     $elf_checksum = sprintf qw| %09d |,
@@ -45,7 +45,7 @@ if (
 return $encoded_string;
 
 #.............................................................................
-#MXHKP5GNCYCVAZHF72V36TF2TG3TUFDHXK362QJBABGFVWUEJPMOC3KIB53VT4ILZJXXOKSXUIZI6
-#::: WLMUQ76MY2JMJ3CT5WUT3WBWQGNNG2AHSLB3UN2FFK6YWNUVE2T :::: NAILARA AMOS :::
-# :: D54A2JNC2DTQXOSJ5VCVR6VKDMX4S7JHGJK4I4XJNCINMYGUDSAA :: CODE SIGNATURE ::
+#MJAZ7WVZRQ6QETWFQNRZUKI7NFZZBXUM5BXF54LBK53KONETENNN6SFWSEC4FPQEWLOI6RBOLAQNM
+#::: J2K3LLPOZSIKDQ4IZE6R3RWVLIRYBJA3LN2DWQQ4KNPBI4GPWSU :::: NAILARA AMOS :::
+# :: EZTSNSR5EEHVWE4SHSW4J57KZEPISZBXT2F627PUXKUDZBRAZUBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,13 +4,12 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Encode qw| encode |;
+use Crypt::Misc qw| decode_b32r |;
 
 ###                   ###
 ##  division-13-table  ##
 ###                   ###
-
-use Encode qw| encode |;
-use Crypt::Misc qw| decode_b32r |;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -34,7 +33,7 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS;                   ## colors ##
-use AMOS::Assert::Truth;    ##  exports calc_true()  ##
+use AMOS::Assert::Truth;    ##  exports is_true()  ##
 
 use AMOS::INLINE;
 
@@ -112,6 +111,7 @@ RECALC:
 ## [ SUBROUTINES ] ###########################################################
 
 sub display_result {
+
     my $num         = shift;
     my $num_bits_64 = shift // sprintf( qw| %064b |, $num );
     my $main_42     = substr( $num_bits_64, 0,  42 );
@@ -178,6 +178,7 @@ sub display_result {
 ##                                        62 .. 63 : alpha
 
 sub decoded_bits {
+
     my $bits = shift;
     my $type = substr( $bits, 0, 1, '' );
     $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 0 |;
@@ -209,6 +210,7 @@ sub decoded_bits_BASE32 {
 }
 
 sub decoded_bits_route {
+
     return ' ' if @ARG == 0 or not defined $ARG[0];
     my @bits = split '', shift;
 
@@ -226,6 +228,7 @@ sub decoded_bits_route {
 }
 
 sub decoded_bits_chars {
+
     my $bits = shift;
     return '  ' if not length $bits;
     my $result = AMOS::BitConv::bit_string_to_num($bits);
@@ -255,10 +258,10 @@ sub decoded_bits_chars {
     return $table->{$result} if defined $table->{$result};  ## color change ##
 
     return sprintf qw| %02o |, $result;    ##  <-- 5x7 matrix position  ##
-
 }
 
 sub entropy_body {
+
     return ++$entropy_started if $entropy_started < 0;
     printf "%s: ===== : $C{0} MAIN ENTROPY"
         . " START$C{0}  | %42s | DECODED :%s%s%s\n",
@@ -270,7 +273,7 @@ sub entropy_body {
 }
 
 #.............................................................................
-#AZ36RSIKLVHETVB4PGBFVUKA47GWPG5FSWDPUD3SHEDXJD35G2RDPQV72E2VBHFMXNZSBJ3DXTGOU
-#::: N7K5ZDJFCQWI55PPUNSD7TTRRTJ5YF2DNAN6HTXY6UDUMYK67D2 :::: NAILARA AMOS :::
-# :: ZMJ5TUEVQOGRGX5YGI75YEQIYHCH22AAUSD6ZZOF7XTSYYNM24AQ :: CODE SIGNATURE ::
+#4MSX7FGIQZLVIRSICCTFP6MMMZFYYQSDSQFF427JB43G5HVU6WLDRJE3WKWSRQOFD6TXIINTP3XPE
+#::: 4EJD2NR22C4CZDAKCLGEW2WVJR5R3YIN2SW5UTBLJMWR7LVW6RF :::: NAILARA AMOS :::
+# :: DRDQFWBP2YW2PSR6R5NKZY7MMMRAHJNY63UJPGDV4PEDPCSV2CAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
