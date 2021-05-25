@@ -25,7 +25,7 @@ warn "expected numerical or encoded input string [ integer VAX encoding ]\n"
 
 my $input_string = shift(@ARGV);
 
-##[ BASE32 DECODING ]#########################################################
+##[ BASE32 + VAX DECODING ]###################################################
 
 if ( $option{'d'}
     or defined $input_string and $input_string !~ m|^\-?\d+$| ) {
@@ -35,32 +35,35 @@ if ( $option{'d'}
     warn "input string longer than expected [ 32-bit VAX int ]\n"
         if length($B32_in) > 7;
 
-    my $B32_decoded = decode_b32r($B32_in);
+    my $B32_decoded = decode_b32r($B32_in);    ## BASE32 ##
+
     warn "BASE32 decoding error\n" if not defined $B32_decoded;
 
     warn "decoded value exceeds 32-bit [ 4 bytes ]\n" and exit(3)
         if length($B32_decoded) > 4;
 
-    my $decoded_integer = unpack( $pack_template, $B32_decoded );
+    my $decoded_integer = unpack( $pack_template, $B32_decoded );  # VAX-INT #
+
+    warn "not a VAX int value\n" and exit(4) if not defined $decoded_integer;
 
     say $decoded_integer and exit if $option{'q'};
 
-    printf( "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $decoded_integer );
+    say sprintf "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $decoded_integer;
 
-} else { ##[ ENCODING | 32-BIT VAX INTEGER ]#@@###############################
+} else { ##[ ENCODING | 32-BIT VAX INTEGER ]##################################
 
     my $num_str = $input_string // '';
+
     warn "expected integer number to encode\n"     if not length $num_str;
     warn "cannot compress negative numbers\n"      if $num_str =~ m|^\-\d+$|;
     warn "can only encode integer values\n"        if $num_str !~ m|^\d+$|;
     warn "value exceeds 32-bit [ VAX encoding ]\n" if $num_str > 4294967295;
 
-    my $comp_int_encoded = encode_b32r( pack( $pack_template, $num_str ) );
+    my $vax_int_encoded = encode_b32r( pack $pack_template, $num_str );
 
-    say $comp_int_encoded and exit if $option{'q'};
+    say $vax_int_encoded and exit if $option{'q'};
 
-    printf( "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst\n", $comp_int_encoded );
-
+    say sprintf "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst", $vax_int_encoded;
 }
 
 ##[ ERROR HANDLER ]###########################################################
@@ -74,7 +77,7 @@ sub error_exit {
 }
 
 #.............................................................................
-#NLJYBIYW4OFZDRZTWBMWQ2G3XTQEY4NZKNABZEN7MATRKLASDJT4VWUAWW3WNPBV3RMTGMN3ZAYWK
-#::: VRZGLS3SEFRA72KZXU2ADN5CGJ3D6V5K77R6CYJFRLESCJDVCNA :::: NAILARA AMOS :::
-# :: YF5OI45SZKVJONEPGBSU7A3GC5KHKIVGAFG23YSAK3NIOKU4UYBY :: CODE SIGNATURE ::
+#IRCOXMYHJJM4E3PZJLJYSJ3I6YTBUSGVMBUO4ETZVL2XTPQDS64QYICNUQF6O6REN5LZSVKPQFZJG
+#::: IKKKDSITXEXHMO7MHOEBAJW65BVIHRY2JGULTCYYDQKFSOS5WZJ :::: NAILARA AMOS :::
+# :: SQ54OMQWALHBZPG2AVQ6MUDYM5XFMABTURMHQ6LSWCPBYXZRREDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
