@@ -1,0 +1,41 @@
+# >:]
+
+# name  = protocol-7-menu.cmd.gfx-action-key
+# param = <key-code> [m-key]
+# descr = report X-11 action key press
+
+my $action_key_params_str = $call->{'args'};
+return {
+    'mode' => qw| false |,
+    'data' => 'expected at least key-code parameter'
+    }
+    if not defined $action_key_params_str;
+
+( my $key_code, my $MOD_code ) = split( m| +|, $action_key_params_str );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected at least key-code parameter'
+    }
+    if $key_code !~ m|^\d{1,3}$|;
+return {
+    'mode' => qw| false |,
+    'data' => 'mod-key code not numerical'
+    }
+    if defined $MOD_code and $MOD_code !~ m|^\d{1,3}$|;
+
+$MOD_code //= 0;
+
+my $keys_href = <protocol-7-menu.action-keys.graphical> //= {};
+
+return { 'mode' => qw| false |, 'data' => 'no such key configured' }
+    if not exists $keys_href->{$MOD_code}
+    or not exists $keys_href->{$MOD_code}->{$key_code};
+
+return { 'mode' => qw| false |, 'data' => 'key actions not implemented yet' };
+
+#.............................................................................
+#CK7BTXFX7LBCUJV3JE3NFOQIC2WEQGM65F2DNJYLJNXIAB7WZIJYGOOZB2HQLNULJXWSXBDAXULNE
+#::: P3O5PPJTPXA4C7EBFGUTTNEUNDSNNLZJCAJO4KMLZVIH6BY3GNA :::: NAILARA AMOS :::
+# :: J2MLTAVV4SQIG6DHCYXKJJZYBMGLVYPLH3HTT4YINPGFRHJCAIBY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
