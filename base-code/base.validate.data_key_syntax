@@ -3,28 +3,34 @@
 # name  = base.validate.data_key_syntax
 # descr = validates data key parameters and provides error messages
 
-my $data_key    = shift;
+my $data_key    = shift // '';
 my $max_key_len = 255;
-$data_key
-    =~ s/\'(([^\']|\.)+)\'/my$k=$1;$k=~s|\.|_|g;$k/ge;    # foo.'bar.baz'...
-my $ok = 1;
-my $err_msg;
-my $len_was;
-if ( not defined $data_key or $data_key eq '' ) {
-    ( $ok, $err_msg ) = ( 0, 'no data key name supplied' );
-} elsif ( $len_was = length($data_key) and $len_was > $max_key_len ) {
-    ( $ok, $err_msg ) = (
-        0,
-        "supplied data key too long ( max. $max_key_len bytes but was $len_was )"
-    );
-} elsif ( $data_key !~ /^[A-Za-z0-9-\[\]_\.]+$/ ) {
-    ( $ok, $err_msg ) = ( 0, 'invalid character(s) in key name' );
+
+return warn 'expected %data key string parameter <{C1}>'
+    and return ( 0, 'no data key name supplied' )
+    if not length $data_key;
+
+if ( $data_key =~ m|([^A-Za-z0-9-_\.])| ) {
+    my $err_msg = sprintf( 'not valid character [%s] in key name', $MATCH );
+    return ( 0, $err_msg ) if wantarray;
+    return 0;
 }
-return 1 if $ok;
-return ( 0, $err_msg );
+
+$data_key =~ s,\'(([^\']|\.)+)\', my $k=$1; $k=~s|\.|_|g; $k,ge; ## z.'y.x' ##
+
+my $key_len = length $data_key;
+if ( $key_len > $max_key_len ) {
+    my $err_msg
+        = sprintf 'supplied data key too long [ max. %d bytes but was %d ]',
+        $max_key_len, $key_len;
+    return ( 0, $err_msg ) if wantarray;
+    return 0;
+}
+
+return 5;    ## is valid [true] ##
 
 #.............................................................................
-#UWMIIHQT47MZGRWZM7W6WABRHSRTZDJLMW7KVRFKAI5WSZWRLNJZIP7FYNNKQ7CGVMALE3XY6422K
-#::: 6VMSDGF5CEGKYOQVSEQK3VK4XO5TTDHMPGIHHNMNAACZS5COBQ4 :::: NAILARA AMOS :::
-# :: ORC63TRLWGY7VLWTZWJJOH7XRGUXMWBUBI24355I2VX5N67UHWAI :: CODE SIGNATURE ::
+#I5DHHH3FBA53GANG3VAZ3N2YN4BVH6ZIGLUSPT232DBDRHAMUPMUQLWCEKSATERNL66V4B7QPTAAQ
+#::: 7NKKSXXHCRTW3FIMRUTUDTD7SWFQBXS52MLHS2IREIKNJXR7DOZ :::: NAILARA AMOS :::
+# :: BRLGOYRRUMI75ZCRVEEFBE7E5AM7N5LW2IEHSBQGC7AZNW2HE2BA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
