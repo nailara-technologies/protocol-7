@@ -3,29 +3,31 @@
 # name  = base.resolve_key
 # descr = resolve hash key and return reference to value or undef if not found
 
-my $key_str  = shift;
+my $key_str  = shift // '';
 my $hash_ref = shift // *data{HASH};
+warn 'expected valid key string parameter <{C1}>' if not length $key_str;
+warn 'second parameter not a hash reference <{C1}>'
+    if ref $hash_ref ne qw| HASH |;
 
-# allowing keys containing '.'s by single quoting them
-$key_str =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
-my @key_tree = split( /\./, $key_str );
-map { $ARG =~ s/\0/./g } @key_tree;
-while ( my $sub_key = shift @key_tree ) {
-    if ( ref($hash_ref) ne 'HASH' or not defined ${$hash_ref}{$sub_key} ) {
+## note : syntax is allowing keys containing '.'s by single quoting them ##
+my @dtree = <[base.parser.data_hkey_tree]>->($key_str);
+
+while ( my $sub_key = shift @dtree ) {
+    if ( ref $hash_ref ne qw| HASH | or not defined ${$hash_ref}{$sub_key} ) {
         return undef;
     }
-    if ( @key_tree and ref( ${$hash_ref}{$sub_key} ) eq 'HASH' ) {
+    if ( @dtree and ref ${$hash_ref}{$sub_key} eq qw| HASH | ) {
         $hash_ref = \%{ $$hash_ref{$sub_key} };
-    } elsif ( !@key_tree ) {
+    } elsif ( scalar @dtree == 0 ) {
         return \${$hash_ref}{$sub_key};
     } else {
         return undef;
     }
 }
-return undef;
+return undef;    ## no such key ##
 
 #.............................................................................
-#US6Q66O452UYG2W6TKTUZP43QBC7OVUEM2I6I3LM6DY6ILC7VM7FLCHEBLGWQLSW54C72QAFGBGB6
-#::: 5FZBGIVSXCL4GX6YRUK7SIOVDNDE3LTCVZQZQM5W7I2FCUIOIOZ :::: NAILARA AMOS :::
-# :: Z236KZI2HKDE5N3O4UF4BE4RJKXJKSTNIOL6OQDS2EV6THKPJAAQ :: CODE SIGNATURE ::
+#7LEMKCEPZSZIO3DLQZ2JM6B7NTG4GA2J2PW55A3VX5PFKBRTMSYHVSP4C7LTQO2H5MYEHDKR2ZBFY
+#::: WYEMJSK3UMAEI6DS7YHSOPLCLNWXDKP6IUOLHWFUIBEB35AHCDO :::: NAILARA AMOS :::
+# :: NGXQLYUIHH5DPJMCR4PGGSLTFNB6CET4LAB2HIR2CXKA4KWZ3UBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

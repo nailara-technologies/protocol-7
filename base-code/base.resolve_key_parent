@@ -1,29 +1,32 @@
 # >:]
 
 # name  = base.resolve_key_parent
-# descr = resolve hash key and return parent reference or undef if hey not found
+# descr = resolve hash key and return parent hashref or undef if hey not found
 
-my $key_str  = shift;
+my $key_str  = shift // '';
 my $hash_ref = shift // *data{HASH};
+warn 'expected valid key string parameter <{C1}>' if not length $key_str;
+warn 'second parameter not a hash reference <{C1}>'
+    if ref $hash_ref ne qw| HASH |;
 
-# allowing keys containing '.'s by single quoting them
-$key_str =~ s/\'([^\']+)\'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
-my @key_tree = split( /\./, $key_str );
-map { $ARG =~ s/\0/./g } @key_tree;
-while ( my $sub_key = shift @key_tree ) {
+## note : syntax is allowing keys containing '.'s by single quoting them ##
+my @dtree = <[base.parser.data_hkey_tree]>->($key_str);
+
+while ( my $sub_key = shift @dtree ) {
     if ( not defined ${$hash_ref}{$sub_key} ) { return undef }
-    if ( @key_tree and ref( ${$hash_ref}{$sub_key} ) eq 'HASH' ) {
+    if ( @dtree and ref( ${$hash_ref}{$sub_key} ) eq qw| HASH | ) {
         $hash_ref = \%{ $$hash_ref{$sub_key} };
-    } elsif ( !@key_tree ) {
-        return $hash_ref    # <-- parent reference
+    } elsif ( scalar @dtree == 0 ) {
+        return $hash_ref    ##  <--  parent reference  ##
     } else {
+        ## no such key ##
         return undef;
     }
 }
 return undef;
 
 #.............................................................................
-#5O66D2TIPD4IQROSSJMUSRQBE2ER7MJKXUAK2U274C7PE77RT5KPNIBGY6NSZ6M2YREXJIBHQ3LI2
-#::: HQTGJ2Y6MKTQN6SPCHKCIQDP2LILT43CBKEXLOGWJNN7SW3LEE6 :::: NAILARA AMOS :::
-# :: JOIPX54MY5MGOTFK3JJWCKQX4ZF6OX64ZTBP7GIXPLXTXII5R2AY :: CODE SIGNATURE ::
+#XN6ODUW5LRY7CZCDRDQIX2XHQWO7YSVZFDPBJNQNPRPU2DSO7B2KOSVAYFI65ZHEYAYV7GRCX7KLS
+#::: NRCJLXPHV6X72TYNILI6BYOO6BHYJJUHTENX6WUIPJA22XZMVPI :::: NAILARA AMOS :::
+# :: EGBKHBUJTBGTDQBC5ZXTJVGMZEIOSKZH5GXGDV62MMOTMOKPLSDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
