@@ -2,21 +2,47 @@
 
 # name = protocol-7-menu.init_code
 
-<[base.perlmod.autoload]>->('Gtk3');
+<protocol-7-menu.init-console>   //= 0;
+<protocol-7-menu.init-graphical> //= 0;
+
+<protocol-7-menu.menu-tree>
+    //= { 'character-console' => {}, 'graphical' => {} };
+
+<protocol-7-menu.action-keys>
+    //= { 'character-console' => {}, 'graphical' => {} };
+
+## load generic module deps ##
+## <[base.perlmod.load]>->('AMOS');
 <[base.perlmod.load]>->('File::Spec');
 
-my $logo_image_path = <protocol-7-menu.image_path>
-    //= <system.root_path> . '/data/gfx/logos/nailara.png';
+##  load menu structure and action keys  ##
+<[protocol-7-menu.load-menu-tree]>;
+<[protocol-7-menu.load-action-keys]>;
 
-return <[base.logs]>->( 0, "[ not found ] image '%s'", $logo_image_path )
-    if !-f <protocol-7-menu.image_path>;
+##  load console module dependencies  ##
+if (<protocol-7-menu.init-graphical>) {
+    <[base.perlmod.autoload]>->('Curses::UI');
+}
 
-<[base.stderr_redir]>;    ## redirect STDERR ##
+##  load graphical [X-11] module dependencies  ##
+if (<protocol-7-menu.init-graphical>) {
+
+    <[base.perlmod.autoload]>->('Gtk3');
+
+    my $logo_image_path = <protocol-7-menu.image_path>
+        //= join( '/',
+        <system.root_path> . qw| data/gfx/logos/nailara.png | );
+    <[base.logs]>->( 0, "[ not found ] image file '%s'", $logo_image_path )
+        if !-f <protocol-7-menu.image_path>;
+}
+
+##  silence stderr console output  ##
+<[base.stderr_redir]>;
 
 0;
 
 #.............................................................................
-#ISILHKO5AO5E7OVAKLE5BVRC6SSPFMGRZRSLDJRQJASB3NNS6PAK6MK4C3P37HB47FXBRFDF6LBQG
-#::: B3T67FSQIHNLQ2WU2L3RIGRRXQ52MEVNXM7GK2FLK5RYA62BBUW :::: NAILARA AMOS :::
-# :: PRGTLPG3CIUU7YGN36CR5SCJXRNI2DP5GP4D223CFSDQSHNTVQCA :: CODE SIGNATURE ::
+#ZD7SFAS75NYG3AY4A3OKQGBWPALX4B6GQ2BLWLSMCJTPKODGZYTIQRWWRSQE7AJEHRQL3O7GBVLHG
+#::: QAIKBRZXEFIS2N4MTIJ53I54XUGGADUOMIWSK726QW7VARWM7ZL :::: NAILARA AMOS :::
+# :: FVULXXWFU6KF453JOQMXNNCVF6QADPUGYIGDOZGUZL7AWB63RIDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
