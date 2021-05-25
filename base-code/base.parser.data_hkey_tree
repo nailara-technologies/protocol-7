@@ -4,9 +4,13 @@
 
 my $data_hash_key_str = shift // '';
 
-return warn 'expected valid %data hash key syntax <{C1}>'
-    if not length $data_hash_key_str
-    or not <[base.validate.data_key_syntax]>->($data_hash_key_str);
+warn 'expected valid %data hash key syntax <{C1}>' and return ()
+    if not length $data_hash_key_str;
+
+my @result = <[base.validate.data_key_syntax]>->($data_hash_key_str);
+warn sprintf( 'href key syntax is not valid [ %s ] <{C2}>', $result[1] )
+    and return ()
+    if not $result[0];
 
 ##  allowing keys containing '.'s by quoting them  [ z.'y.x' syntax ]
 $data_hash_key_str =~ s,\'([^\']+)\', my $k=$1; $k =~ s|\.|\0|g; $k ,ge;
@@ -18,7 +22,7 @@ map { $ARG =~ s|\0|.|g } @dtree;    ## restore quoted dots ##
 return @dtree;
 
 #.............................................................................
-#UPRGTLEJRSVW4GAMNRV5SR3N7BCVLMICY2AAU2LO5NSHJ5O5WCWVJEQLQGXEJL6YKPRNBJ6PP4ZU6
-#::: WA2RFLCHCTBEPFOV3JQLDFWAZYCCQSUIYF7VLDDRIV3TSUALN6K :::: NAILARA AMOS :::
-# :: DH7ZUDMDNDOSI3GKS6ZE5IAV5RC3UZQQWEHQ32N7SBYNUIWIXAAI :: CODE SIGNATURE ::
+#57QTRTYJL4ZXV7KO5X6YAGLEOES7ZOHEEDECLAJ3I5WJCUPEWRPQY4TTDIHVUTSN6GMQC7KNQIIOO
+#::: TOMKLDSUXI6RAGVIEQZQP4AGZ4XNWUXA5ORRUD6GPPPNB7JFIR3 :::: NAILARA AMOS :::
+# :: JB4XTDDYBWNOLXDQF7QEIA5BBCJGRDC332XU2J6L4TI55EX6WYDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
