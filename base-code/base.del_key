@@ -5,44 +5,41 @@
 my $params = shift // {};
 
 my $data_ref = *data{HASH};
-my $del_key;
+my $d_key_string;
 my $silent = 1;
 
-$data_ref = $params->{'data_ref'} if exists $params->{'data_ref'};
-$del_key  = $params->{'del_key'}  if exists $params->{'del_key'};
-$silent   = $params->{'silent'}   if exists $params->{'silent'};
+if ( ref $params eq qw| HASH | ) {    ##  parameter hashref syntax  ##
 
-die 'no key specified' if not defined $del_key or !length($del_key);
-die "invalid key '$del_key'"
-    if $del_key =~ /^\.|\.$/
-    or $del_key !~ /^[\w\d_\-\.\[\]']+$/
-    or $del_key =~ /~/;
-my $_del_key = $del_key;
-$_del_key =~ s/'(([^']|\.)+)'/my$k=$1;$k=~s|\.|\0|g;$k/ge;
-die 'invalid key' if $_del_key =~ /\'/;
+    $data_ref     = $params->{'data_ref'} if defined $params->{'data_ref'};
+    $d_key_string = $params->{'del_key'}  if defined $params->{'del_key'};
+    $silent       = $params->{'silent'}   if defined $params->{'silent'};
 
-my $del_key_ref = <[base.resolve_key]>->( $del_key, $data_ref );
-if ( not defined $del_key_ref ) {
-    <[base.log]>->( 0, "base.del_key: no such key ($del_key)" ) if !$silent;
+} elsif ( length $params ) {    ## %data key as string syntax ##
+    $d_key_string = $params;
+}
+
+return warn 'no key specified <{C1}>'
+    if not defined $d_key_string or not length $d_key_string;
+
+my @dtree = <[base.parser.data_hkey_tree]>->($d_key_string);
+
+return if not @dtree;           ## syntax not valid ##
+my $last_key = pop @dtree;
+
+my $parent_href = <[base.resolve_key_parent]>->($d_key_string);
+
+if ( defined $parent_href and ref $parent_href eq qw| HASH | ) {
+
+    <[base.logs]>->( ": del_key : deleting key '%s'", $d_key_string );
+    return delete $parent_href->{$last_key};
+
+} else {
+    warn sprintf( 'no such key [%s] <{C1}>', $d_key_string );
     return 0;
 }
 
-( my $var_str = '${$data_ref}{\'' . $del_key . '\'}' ) =~ s|\.|'}{'|g;
-
-my $code_bubble = Safe->new;
-$code_bubble->permit_only('delete');
-my $deleted = $code_bubble->reval("delete($var_str)") // 0;
-
-if ($deleted) {
-    <[base.log]>->( 1, "base.del_key: key ($del_key) deleted" ) if !$silent;
-    return $deleted;
-} else {
-    <[base.log]>->( 0, "base.del_key: unable to delete key ($del_key)" );
-    return -1;
-}
-
 #.............................................................................
-#RHNCWBMRLTH2IP4PV543A4RX2XLLGGGY7P6APW26YOFPC6GSCJUFJ4ZD7EEAADC5352N5ODTQVZOQ
-#::: NJZ4YNEULJNVVZTJXULEJTZVYOYB3SYZDNA6TTO5H5LW3HXWW5H :::: NAILARA AMOS :::
-# :: MVMOFEYOV56MZLIDX3E6CXI25BTCF6L7T3IHLMRSFQQAXAHTXKCA :: CODE SIGNATURE ::
+#QBGB32INXCLIAKELIU66LZLMA77C6GJ5DM23LRLYWFXLPU4CAMWTIUN64JJ7QWPREEYCSZJYEFFQI
+#::: SDMCDVG24UK2OERYLEE6L6FTAXARGTG3K4GS4TJBNZFXYPNAU6J :::: NAILARA AMOS :::
+# :: GWUNNQ25LZLTGV2D4CQ3DV4WJQC5J5CHNIABJ2ZBFFPWD2UVYQBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
