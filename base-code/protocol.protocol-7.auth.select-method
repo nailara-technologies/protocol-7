@@ -1,0 +1,53 @@
+# >:]
+
+# name  = protocol.protocol-7.auth.select-method
+
+my $backend_socket = shift;
+my $auth_method    = shift // '';
+
+## protocol-7 message strings ##
+##
+my $protocol_messages = <protocol.protocol-7.connect>;
+
+my $protocol_banner     = $protocol_messages->{'banner'};
+my $proto_msg_timeout   = $protocol_messages->{'timeout'};
+my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
+my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
+my $auth_method_err     = $protocol_messages->{'auth_method_err'};
+my $select_method_templ = $protocol_messages->{'select-method'};
+
+####
+
+<[net.out]>->( $backend_socket, sprintf $select_method_templ, $auth_method );
+
+my $answer = readline($backend_socket);
+chomp($answer) if defined $answer;
+
+if ( not defined $answer ) {
+    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
+} elsif ( sprintf( "%s\n", $answer ) eq $auth_method_warning ) {
+    <[base.log]>->( 0, '[#] server side auth method error >:|' );
+    return undef;
+} elsif ( sprintf( "%s\n", $answer ) eq $auth_method_warning ) {
+    <[base.logs]>->(
+        0, '[#] %s authentication not available >:|', $auth_method
+    );
+
+    return -0;    ## not successful ##
+
+} elsif ( $answer ne 'TRUE continue' ) {
+    <[base.log]>->( 0, '[#] authentication protocol error `:|' );
+
+    return -0;    ## not successful ##
+
+} else {
+    <[base.logs]>->( 2, '[*] %s authentication selected', $auth_method );
+
+    return 5;     ## true ##
+}
+
+#.............................................................................
+#5CDQFLUNT3CHLTBOV35XLIXUD4TSPZOVGFUT7TQBNH32LQNE6OH2KQNLAPNN5VGY4F662PSHPJREE
+#::: BVS2MAMHFSPOLTHKTFE5M5O4FIFELKLUEC2C33P5IJ3GGZC4S67 :::: NAILARA AMOS :::
+# :: MSSV6PMUBOG46RUYRCAUFDES7KTVYDDAMIVOLIICOHUQT4W5YCAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,10 +6,9 @@
 
 my ( $backend_socket, $zenka, $key_str ) = @ARG;
 
-my $protocol_messages  = <protocol.protocol-7.connect>;
-my $protocol_banner    = $protocol_messages->{'banner'};
-my $proto_msg_timeout  = $protocol_messages->{'timeout'};
-my $protocol_error_msg = $protocol_messages->{'protocol_error'};
+my $protocol_messages = <protocol.protocol-7.connect>;
+my $protocol_banner   = $protocol_messages->{'banner'};
+my $proto_msg_timeout = $protocol_messages->{'timeout'};
 
 my $link_mode_str = qw| zenka |;
 $link_mode_str = lc($LAST_PAREN_MATCH)
@@ -48,30 +47,21 @@ if ( defined $key_str
         return undef;
     }
 
-    <[net.out]>->( $backend_socket, "select zenka\n" );
-
-    my $answer = readline($backend_socket);
-    chomp($answer) if defined $answer;
-
-    if ( not defined $answer ) {
-        <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
-    } elsif ( $answer ne 'TRUE continue' ) {
-        <[base.log]>->( 0, '[#] protocol mismatch >:[' );
-        return undef;
-    }
+    <[protocol.protocol-7.auth.select-method]>->( $backend_socket, qw|zenka| )
+        or return undef;
 
     <[base.logs]>->(
         2,      "[<] authenticating as '%s'., [%s]",
         $zenka, $link_mode_str
     );
-    <[net.out]>->( $backend_socket, "$zenka $key_str\n" );
+    <[net.out]>->( $backend_socket, sprintf( "%s %s\n", $zenka, $key_str ) );
 
     if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
         my $rand_len = length( $KEYS{'zenka'}{'session_key'} );
         substr( $KEYS{'zenka'}{'session_key'},
             0, $rand_len, <[base.prng.characters]>->($rand_len) );
         $KEYS{'zenka'}{'session_key'}
-            .= <[base.prng.characters]>->( 8 + int( rand(9) ) );
+            .= <[base.prng.characters]>->( 8 + int( rand(11) ) );
         delete $KEYS{'zenka'}{'session_key'};
     }
 
@@ -84,7 +74,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#U4JIGZOSQ645PJZS6OXG76KPXENFLINWH75QYOZSN4MSU6ACTXE4TSERMZ3TLHF4OERNXELST2M4A
-#::: QO3M6Q4IRNUC4M4J6RKIFW2URYUB5IOZUXS6RWXL62QX5C5TX3L :::: NAILARA AMOS :::
-# :: S7HXJ4RBCCR4D7DH5666ILPMCM24ZY5XYH5IZ7QO3XIPSIT5K4AI :: CODE SIGNATURE ::
+#5MVAFK562I2JQXODTDPR7GWSGCDZYAAMAWG7TFIME5PAEQ7U64WSKT2BNYXMOTB3EALLUVOHI6HFO
+#::: HEON7XYWVHCCD6W2OGMIC47AKJUDCFZWHLU6FJ3FBUXIB6OMWMY :::: NAILARA AMOS :::
+# :: AYR4EV5N75R4EDTSBP4LQAIBFY5XMYBYZ3OHKMSWO2YC7X3RCMDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
