@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZGMMNAEQAY-4310.0 ]
+### [ source code version : ZGMN5WFDMA-4311.0 ]
 
 ### ( this is the public domain [license](../license)d 'base' branch )
 ---
@@ -9,7 +9,7 @@
 ---
 
 #.............................................................................
-#B6Y5V5M7LYHTZFNEB26T3NWSRYVW3A2UG4CR2OQ52U6CEBFXRISVEHVDYLH36R26ASF3IGTSTWYPQ
-#::: IPVIZJSLX2EFD5KF76E3FV6UZJM4DI42U7YVLYFMW63MUJNKB46 :::: NAILARA AMOS :::
-# :: D7Y2L44GXJJJRF3LHTBSA6MBHBDJI5QD6CKUU6FH5PJ4FU7TRGBI :: CODE SIGNATURE ::
+#MAAYDHDGBH6WXVB3PNXKQYYO3LNVND35GR5APO2GQGKTSYQ23V7FUDMOOWVZNUB55A7JZRUOSANEK
+#::: 4DLBMRL7FLLEKKJD3ADTALQZQHCHGI36BK5RW46FM7Z7HX7X7RH :::: NAILARA AMOS :::
+# :: DDVLY44GBG7J7GZT3T6LINZDYSDIAXVUILYA2Q5PT3AK3AEMQQDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
