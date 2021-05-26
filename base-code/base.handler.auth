@@ -5,12 +5,13 @@
 #          1 <-- keep state [ protocol continues ]
 #          2 <-- not valid [ disconnect client ]
 
-my $id           = $_[0]->w->data;
+my $event        = shift;
+my $id           = $event->w->data;
 my $session      = $data{'session'}{$id};
 my $input        = \$$session{'buffer'}{'input'};
 my $output       = \$$session{'buffer'}{'output'};
 my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
-my ( $auth_method, $auth_code, $auth_name );
+my ( $auth_method, $auth_code, $auth_name, $auth_handler_name );
 my $Blen = length($$input);
 
 my $protocol_messages   = <protocol.protocol-7.connect>;
@@ -31,6 +32,7 @@ $count_select->{'errors'} //= 0;
 $count_select->{'calls'}  //= 0;
 
 my $s_met = <auth.supported_methods>;
+
 if ( not defined $s_met ) {
     my $msg = 'no auth methods defined';
     if ( defined $code{'chk-sum.amos'} ) {
@@ -46,7 +48,7 @@ if ( not defined $s_met ) {
 
 $auth_method = $session->{'auth'}->{'method'};
 
-$_[0]->w->stop;    # <-- stopping event handler to modify buffer
+$event->w->stop;    # <-- stopping event handler to modify buffer
 
 if ( $$input =~ s|^(auth\.)?close\n|| ) {
 
@@ -56,8 +58,11 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
     return 2;    ## <-- disconnecting ##
 
 } elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) {  ## auth method
+
+    ## client template : <protocol.protocol-7.connect.select-method>
+
     my $req_method = $+{method};
-    $_[0]->w->start;
+    $event->w->start;
 
     if ( not exists $code{'auth.auth_select'} ) {
         <[base.log]>->(
@@ -98,7 +103,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
         }
     }
 } elsif ( $$input =~ s|^(auth\.)?selected\n|| ) {   ## selected auth method ##
-    $_[0]->w->start;
+    $event->w->start;
     if ( defined $auth_method ) {
         $$output .= "TRUE $auth_method\n";
         return 1;
@@ -109,31 +114,33 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
 
 } elsif ( $$input =~ s|^(auth\.)?list\n|| ) {    ## list auth methods ##
 
-    $_[0]->w->start;
+    $event->w->start;
 
     if ( not exists $code{'auth.auth_list'} ) {
-        <[base.log]>->( 0, "[$id] auth module not loaded, 'list' rejected." );
+        <[base.logs]>->(
+            0, "[%d] auth module not loaded, 'list' rejected.", $id
+        );
 
         $$output .= $auth_method_warning;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 1 ) {
 
-        <[base.log]>->( 0, "[$id] 3rd auth list requested >:[" );
+        <[base.logs]>->( 0, '[%d] 3rd auth list requested >:[', $id );
 
         $$output .= $auth_method_err;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 0 ) {
 
-        <[base.log]>->( 0, "[$id] repeated auth list requested.," );
+        <[base.logs]>->( 0, '[%d] repeated auth list requested.,', $id );
 
         $$output .= "FALSE once should be enough..,\n";
         $count_select->{'list'}++;
 
     } else {
 
-        <[base.log]>->( 1, "[$id] auth method list requested" );
+        <[base.logs]>->( '[%d] auth method list requested', $id );
 
         my $auth_list = <[auth.auth_list]>->($id);
         $auth_list = 'SIZE ' . length($auth_list) . "\n" . $auth_list;
@@ -145,12 +152,13 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
 }
 
 ##### calling selected authentication plugin #####
-elsif ( defined $auth_method and defined $code{"plugin.auth.$auth_method"} ) {
+elsif ( defined $auth_method
+    and $auth_handler_name = sprintf( 'plugin.auth.%s', $auth_method )
+    and defined $code{$auth_handler_name} ) {
 
-    $_[0]->w->start;    ## <-- resuming input event watcher ., ##
+    $event->w->start;    ## <-- resuming input event watcher ., ##
 
-    ( $auth_code, $auth_name )
-        = ( $code{"plugin.auth.$auth_method"}->( $_[0] ) );
+    ( $auth_code, $auth_name ) = ( $code{$auth_handler_name}->($event) );
 
     if (    $auth_code == 0
         and defined $auth_name
@@ -192,30 +200,31 @@ elsif ( defined $auth_method and defined $code{"plugin.auth.$auth_method"} ) {
         return 2;               ## <-- disconnecting ##
     }
 } elsif ( defined $auth_method ) {
-    <[base.log]>->( 0, "auth-plugin '$auth_method' not defined" );
+
+    <[base.logs]>->( 0, "auth-plugin '%s' not defined", $auth_method );
     $$output .= $auth_method_warning;
     return 2;                   ## <-- disconnecting client ##
+
 } else {
     if ( $Blen <= 13 and $$input =~ m|^\s+$|s ) {
         $$output .= $auth_method_err;
     } elsif ( length $$input ) {
-        my $id_len = length($id);
+        my $id_len = length $id;
         <[base.logs]>->(
-            1,   '[%s] : pre-auth protocol error : %04d B',
+            '[%s] : pre-auth protocol error : %04d B',
             $id, $Blen
         );
-        ## truncate buffer msg .., ##
-        <[base.logs]>->( 2, ": %${id_len}s : :., [BUF:'%s']", '', $$input );
+        <[base.logs]>->(    ## truncating content for msg ##
+            2, ": %*s : :., [BUF:'%s']",
+            $id_len, '', <[base.parser.ellipse_center]>->( $$input, 17 )
+        );
         $$output .= $protocol_error_msg;
     }
-    return 2;    ##  no auth method selected + session closing  ##
+    return 2;               ##  no auth method selected + session closing  ##
 }
 
-warn 'protocol handler reached unexpected state';
-return 2;        ## terminate connection \ not expected state ##
-
 #.............................................................................
-#YDPFUJHIEXZK2CA6JCIUQR67UUKSL7EEFFX7LGB7LEYCSDFGPHQHQUIQFLWJ4YRCBZC53YXDI64RG
-#::: EMHKRJIDDPY3YNGB6J2PEZLNWT7VYH7L6TIY5OZYZJDGZKEQ3HA :::: NAILARA AMOS :::
-# :: J5BJ7PNYDMGOUFLSBDARJQBM7ZVWGV6BJVTJ6WRF66VW35ZUBGDA :: CODE SIGNATURE ::
+#3BKVDGUBZ5X5TR7U4FLMNZ4WBVXKIQOTCHE7CVXXJGSYTHVCFNJFZFKFZ54ZN5T2NEPZ7RIKBAZXO
+#::: 5BBWE5XNSK6C7ZHCK4WCPGHT5VRMEKKR5ADM3S6CVVL3FIXHBTN :::: NAILARA AMOS :::
+# :: WFD624BLQSXZFUILQ4VMKXTL5LSVNYICKQJBQB3IW6U7GSD442CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
