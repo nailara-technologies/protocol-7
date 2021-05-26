@@ -4,6 +4,7 @@
 # descr = unix domain socket client
 # todo  = implement client side authentication timeout
 
+## use\create protocol module registry for enabled\loaded nethods ##     [LLL]
 return warn "module 'protocol.protocol-7' not loaded <{C1}>"
     if not defined <protocol.protocol-7>
     or not keys %{<protocol.protocol-7>};
@@ -14,12 +15,8 @@ my $answer;
 my $banner_string;
 
 my $protocol_messages = <protocol.protocol-7.connect>;
-
-my $protocol_banner     = $protocol_messages->{'banner'};
-my $proto_msg_timeout   = $protocol_messages->{'timeout'};
-my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
-my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
-my $auth_method_err     = $protocol_messages->{'auth_method_err'};
+my $protocol_banner   = $protocol_messages->{'banner'};
+my $proto_msg_timeout = $protocol_messages->{'timeout'};
 
 if (   not defined $backend_socket
     or !-S $backend_socket
@@ -49,33 +46,17 @@ if ( $bytes_read > 0 ) {
     <[base.log]>->( 0, 'auth.unix : [#] network error [ nothing received ]' );
     return undef;
 }
-<[net.out]>->( $backend_socket, "select unix\n" );
-<[base.sleep]>->(0.2);
 
-my $answer = readline($backend_socket);
-chomp($answer) if defined $answer;
+<[protocol.protocol-7.auth.select-method]>->( $backend_socket, qw| unix | )
+    or return undef;
 
-if ( not defined $answer ) {
-    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
-} elsif ( "$answer\n" eq $auth_method_warning ) {
-    <[base.log]>->( 0, '[#] server side auth method error >:|' );
-    return undef;
-} elsif ( "$answer\n" eq $auth_method_warning ) {
-    <[base.log]>->( 0, '[#] unix authentication not available >:|' );
-    return undef;
-} elsif ( $answer ne 'TRUE continue' ) {
-    <[base.log]>->( 0, '[#] authentication protocol error `:|' );
-    return undef;
-} else {
-    <[base.log]>->( 2, '[*] unix authentication selected' );
-    $answer = '';
-}
+##  registering session as $user  ##
 <[net.out]>->( $backend_socket, sprintf( "auth %s\n", $user ) );
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
 #.............................................................................
-#RCZ54MVO33LGWIXZG77XXOSSUVTD32VQ5P232SZSWP6X5JBSLEMXRQTPVTZDHIV43Q5L2FWFA4YRS
-#::: 3NLHREI6NSPYQHTL5P5245USB2LGZA4ENNRE7ZP2XN5ECVEXQID :::: NAILARA AMOS :::
-# :: KV4IZMM7G44FNLKAC275IMLSYGCRSUJZBSPC5PG3N7JC427CQCDQ :: CODE SIGNATURE ::
+#KEHXVMYTL66C2WPGTX5PRNNZBDFTAR4UGWRQUVQ6IOFYRUIC6DMVXSVGC4JEG3D45WQ3W43GHBKBU
+#::: WMZ54ITB2AAHFFJFY43PMRTALLOUWDDGTMC6357OXNFQL6EXEVN :::: NAILARA AMOS :::
+# :: ASTOC7MXJHYPNNYD75T3TKJUSMWZXZXE7DVN3NGL3BK6U4LADWDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
