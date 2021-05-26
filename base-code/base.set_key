@@ -1,0 +1,62 @@
+# >:]
+
+# name  = base.set_key
+
+my $params;
+my $silent = 1;
+my $d_key_string;
+my $value_content;
+
+if ( @ARG == 2 ) {    ##  parameter list syntax  ##
+
+    ( $d_key_string, $value_content ) = @ARG;
+
+} elsif ( @ARG == 1 and ref $ARG[0] eq qw| HASH | ) {    ## href syntax ##
+    ## hashref ##
+    $params = shift;
+    warn 'expected key \ val pair <{C1}>' and return 0
+        if not defined $params or $params !~ m| |;
+
+}
+
+my $data_ref = *data{HASH};    ## %data if not specified different ##
+
+if ( defined $params ) {    ##  parameter hashref syntax  ##
+
+    $data_ref      = $params->{'data_ref'} if defined $params->{'data_ref'};
+    $d_key_string  = $params->{'data_key'} if defined $params->{'data_key'};
+    $value_content = $params->{'data_key'} if defined $params->{'set_value'};
+    $silent        = $params->{'silent'}   if defined $params->{'silent'};
+}
+
+warn 'no data key supplied <{C1}>' and return 0
+    if not defined $d_key_string or not length $d_key_string;
+
+my @dtree = <[base.parser.data_hkey_tree]>->($d_key_string);
+
+return 0 if not @dtree;    ## syntax not valid ##
+
+my $last_key = pop @dtree;
+
+my $next_ref = $data_ref;
+foreach my $subkey (@dtree) {    ## traverse hash keys ##
+
+    $next_ref->{$subkey} = {}
+        if not defined $next_ref->{$subkey}
+        or ref $next_ref->{$subkey} ne qw| HASH |;
+
+    $next_ref = $next_ref->{$subkey};
+}
+
+<[base.logs]>->( ": set_key : %s = '%s'", $d_key_string, $value_content, );
+
+$next_ref->{$last_key} = $value_content;    ## set value ##
+
+## true ##
+return 5;
+
+#.............................................................................
+#IEWL5UXILSDEXP3TU72P2O6WUZFI2F4IR72EVK6NXDXPWCWPBITFDSXFMPGQUNMS2JMZZI3TSWU5G
+#::: TC7UYS3JVM75YMERJ3NOP7OCSIGLU3HMR7E3KY2PR56WDLXTFKI :::: NAILARA AMOS :::
+# :: GM75MY54U5WG26L2CANVHVU4VCSMPAM6QVVTMMAEYKBHY3YEL2CY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
