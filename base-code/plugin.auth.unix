@@ -11,14 +11,14 @@ my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
 if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
+
     my $auth_user = $LAST_PAREN_MATCH;
 
     if ($data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'} ne 'unix' )
     {
-        <[base.log]>->(
-            0,
-            "[$id] [ auth unix ] access denied to "
-                . "user '$auth_user' [ not a unix link ]"
+        <[base.logs]>->(
+            0,   "[%d] [ auth unix ] access denied to user '%s' %s",
+            $id, $auth_user, '[ not a unix link ]'
         );
         $$output .= ">:[\n";
         return 2;
@@ -32,14 +32,14 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 
     if ( not defined $client_uname ) {
         $$output .= ">:[\n";
-        <[base.log]>->(
-            0, "[$id] peer UID is undefined, unix auth aborted..,"
+        <[base.logs]>->(
+            0, '[%s] peer UID is undefined, unix auth aborted..,', $id
         );
         return 2;
     }
 
     if ( defined <auth.setup.usr>->{$auth_user}
-        and <auth.setup.usr>->{$auth_user} =~ m|^:unix:(.+)$| ) {
+        and <auth.setup.usr>->{$auth_user} =~ m|:unix:(\S+)| ) {
         my @allowed_users = split( m|\s*,\s*|, $1 );
 
         map { $auth_ok = 1 if $client_uname eq $ARG } @allowed_users;
@@ -48,23 +48,28 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     if ($auth_ok) {
         $$output .= "AUTH_TRUE >:]\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
-        <[base.log]>->(
-            1, "[$id] session authorized as '$auth_user'" . $s_usr
+        <[base.logs]>->(
+            "[%d] session authorized as '%s'%s",
+            $id, $auth_user, $s_usr
         );
         return ( 0, $auth_user );
     } else {
         $$output .= "AUTH_ERROR :|\n";
         my $s_usr
-            = $client_uname ne $auth_user ? " [uname=$client_uname]" : '';
-        <[base.log]>->(
-            0, "[$id] [auth unix] access as '$auth_user' denied" . $s_usr
+            = $client_uname ne $auth_user
+            ? sprintf( ' [uname=%s]', $client_uname )
+            : '';
+        <[base.logs]>->(
+            0,   "[%s] [auth unix] access as '%s' denied%s",
+            $id, $auth_user, $s_usr
         );
         return 2;
     }
 } elsif ( $$input =~ m|\n| ) {
     $$output .= ">:[\n";
-    <[base.log]>
-        ->( 0, "[$id] authentication protocol mismatch [ unix ] `:|" );
+    <[base.logs]>->(
+        0, "[%d] authentication protocol mismatch [ unix ] `:|", $id
+    );
 } else {
     return 1;
 }
@@ -72,7 +77,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 return 2;
 
 #.............................................................................
-#TREG4LNLV5BU5SU7JTE3D52P7EHYDJ66VUTD4H7IMQZ7JTN6MZF6XNQ477QNPNO4JRUO5A6J45RIO
-#::: 45SISLKRHZYCOOL2MNOTJSNAET7GA6UXP5B236RHDHIFU5LU24Y :::: NAILARA AMOS :::
-# :: MEBGN7775D2SSFRGQIJNKGV7JJJJ3VHNUWD42ESDGZHWKETZKQDY :: CODE SIGNATURE ::
+#NHPGFCW7MH4RR5FJ67AGAXTVIVFWHWWURF7VTVRSJ2GOZMBXVXXWWNS6D46CAV7BQ2NBNRWEMRAL6
+#::: ZV5C7XAZ4DOQFUN5ZHNB4EFU74FU3TRFKDGWNSSL5CW2XAOBLOO :::: NAILARA AMOS :::
+# :: NOE56FNFBLG2AZEPDM7KRL3S7HGIHIA55WD7B2L4B2OYIDKBQCAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
