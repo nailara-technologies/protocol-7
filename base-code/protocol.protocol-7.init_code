@@ -3,15 +3,25 @@
 # name  = protocol.protocol-7.init_code
 
 <protocol.protocol-7> = {
-    qw| connect | => {    ## reply messages ##
+    qw| connect | => {
+
+        ##  protocol reply messages  ##
+        ##
         qw| banner |          => ">:] ::-.7\\\\\n",
         qw| timeout |         => ">:| timeout\n",
         qw| auth_method_wrn | => ":| auth methods\n",
         qw| auth_method_err | => ">;| auth methods\n",
-        qw| protocol_error |  => ">:[ speak protocol 7 ?\n"
+        qw| protocol_error |  => ">:[ speak protocol 7 ?\n",
+
+        ##  client side activity  ##
+        ##
+        qw| select-method | => "select %s\n"
     },
+
     qw| authentication-timeout | => 17,
-    qw| state |                  => {
+    qw| authentication-methods | => {},    ## registry ##
+
+    qw| state | => {
         qw| 0 | => {
 
             qw| read-mode |  => qw| linewise |,    ##  linewise | bytewise  ##
@@ -49,7 +59,7 @@
 0;
 
 #.............................................................................
-#RSNTYIAMR76RJC57MGHWJPT3TRP3OFH74N6HPP7HK5TF6KXP6XTKE6P2MPMET3OBRT4GROZCXT26U
-#::: DMAAN27IQ4Y4CCOE2SWSJAOT3VGBTSCPQ4GUOIP2AGWHKFLOF56 :::: NAILARA AMOS :::
-# :: SQCEISL5TR3DZLMOKG2ZFPDQERSGNB5WYHD5USO5AP6UYU35WCCA :: CODE SIGNATURE ::
+#JGPW5YRPUND4UE5QYPEA7NNMBMMYNBXKUYRVXCXJZ2YPD6MS2QUGTUSBHFGTPZT66BD4XHSVVTEKU
+#::: 2TA43ZZOYOUIFUU7UT7WXLUDF2STGNGBKIFZJCTBXWQDCE3TEGA :::: NAILARA AMOS :::
+# :: HXEUMEKBC4AH22Y3QGBL7YN3VAC5PDBI55GDUQSPTT45MR35CECQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
