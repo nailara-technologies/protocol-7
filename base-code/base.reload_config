@@ -3,24 +3,22 @@
 # name  = base.reload_config
 # descr = reload configuration files
 
-my $success = 1;
+my $success = 5;    ## true ##
+
 <base.parser.config.errors> = 0;
 if ( exists <config.reload.cleanup_keys>
     and defined <config.reload.cleanup_keys> ) {
-    foreach my $key ( split / +/, <config.reload.cleanup_keys> ) {
-        if ( $key =~ /^[^\.][\w\.]*$/ ) {
-            ( my $_key = $key ) =~ s|\.|'}{'|g;
-            my $count = eval "delete \$data{'$_key'}";
-            if ($EVAL_ERROR) {
-                <[base.log]>->(
-                    0,
-                    "cleanup_keys: error during cleanup of '$key' [$EVAL_ERROR]"
-                );
-            } elsif ($count) {
-                <[base.log]>->( 2, ": cleaned up config key '$key'" );
-            }
+    foreach my $key ( split m| +|, <config.reload.cleanup_keys> ) {
+
+        if ( <[base.validate.data_key_syntax]>->($key) ) {
+
+            <[base.del_key]>->($key);    ## delete %data hash key ##
+
+            <[base.logs]>->( 2, ": cleaned up data key '%s'", $key );
         } else {
-            <[base.log]>->( 0, "cleanup_keys: invalid key syntax '$key'" );
+            <[base.logs]>->(
+                0, ": cleanup_keys : invalid key syntax '%s'", $key
+            );
         }
     }
     delete <config.reload.cleanup_keys>;
@@ -30,11 +28,11 @@ if ( exists <system.config.reload_order> ) {
     <system.config.reload_order> = [];
     foreach my $config_name (@reload_order) {
         my $already_loaded = 0;
-        map { $already_loaded = 1 if "$ARG" eq $config_name }
+        map { $already_loaded = 1 if $ARG eq $config_name }
             @{<system.config.reload_order>};
-        next if $already_loaded;    # ( nested load_config_file )
+        next if $already_loaded;    ## [ nested load_config_file ]
             # resetting password hashes for auth.setup.usr.* files
-        <auth.setup.usr> = {} if $config_name =~ /^auth\.setup\.usr\..+/;
+        <auth.setup.usr> = {} if $config_name =~ m|^auth\.setup\.usr\..+|;
         $success = 0 if !<[base.load_config_file]>->($config_name);
     }
 }
@@ -45,7 +43,7 @@ $success = 0
 return $success;
 
 #.............................................................................
-#YS2KO2L5EBIIU6UVFOCTMBLU3DZLMWVP34HHCCDBH26DSBSCAFRBVUGEWQWW7BPR7QE7EYRQLXTTY
-#::: RRUX7LWSQOIX7SXFPEMFTCW72S6UQNO2XGL6VCKJ5S3HMBAPOH7 :::: NAILARA AMOS :::
-# :: 6XTWLJZEDNRW622O6C6AST3O7O4KBZPIYYCEBIBBRNF2EOHNXUCQ :: CODE SIGNATURE ::
+#LHV7B4IPF5K5O5EALQO73ZES4WJE4WORO42B3NZO22Q2DK3G2HGVJEIJMKRMDWCDE72TUPTDJLNBA
+#::: M3TGTQZZX4L4MCJMCUZERVSNPHUIQBODLTAI7SXLKCG734RHNAL :::: NAILARA AMOS :::
+# :: YWSPWB4PE3C3J6GVXMUUTBOJAL4FMK4A63HQ4CFKTZQQBXQQ4QBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
