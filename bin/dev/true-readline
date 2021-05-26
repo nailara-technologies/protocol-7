@@ -1,0 +1,198 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Term::ReadLine;
+use Cwd qw| abs_path |;
+use vars qw| $root_path |;
+use IPC::Open2 qw| open2 |;
+use FindBin qw| $RealBin |;
+use Time::HiRes qw| sleep |;
+use SigAction::SetCallBack;
+use Crypt::Misc qw| decode_b32r |;
+
+##[ LOCAL PM LIB PATH ]#######################################################
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub c_file { File::Spec->catfile(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;
+use AMOS::Assert::Truth qw| is_true |;
+
+##############################################################################
+
+my $term = new Term::ReadLine('[ text truth assertion terminal ]');
+$term->ornaments('mh,md');    # ,me;
+$term->enableUTF8();
+$term->MinLine(undef);
+
+no warnings 'once';
+$readline::rl_completion_function = "main::rl_filename_list_lcl";
+use warnings 'once';
+
+if (@ARGV) {
+    $term->add_history( join ' ', @ARGV );
+} else {
+    my $selection_text = qx| xsel -o |;
+    $term->add_history($selection_text) if length $selection_text;
+}
+$| = 1;
+
+( my $x, my $y ) = term_size();
+my $y_pos = $y > 2 ? 2 : 1;
+
+my $reset      = "\e[0m";
+my $clear_all  = "\e[2J";
+my $clear_upw  = "\e[1J";
+my $clear_down = "\e[0J";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $blacklight = "\e[38;2;68;39;172m";
+
+map { $SIG{$ARG} = \&exit } qw| INT TERM HUP |;
+
+my $txt_line = '';
+
+my $min_len   = 1;
+my $max_len   = 56;
+my $last_line = '';
+my $msg_delay = 0.7;
+
+my $prompt = ' :. ';
+
+clear();
+
+while ( not length($txt_line) ) {
+
+    override_signals();
+    printf "%s\e[%dH", blacklight_line(), $y_pos;
+    my $line = $term->readline($prompt);
+
+    $term->add_history($line) if $line ne $last_line;
+    my $line_length = length($line);
+    if ( $line_length < $min_len or $line_length > $max_len ) {
+        clear();
+        if ($line_length) {
+            print blacklight_line()
+                . "\r :.   .:[ len :. $line_length .:"
+                . " $min_len .:. $max_len ]:."
+                . "\r :. ";
+            sleep $msg_delay;
+            clear();
+        }
+    } else {
+        if ( not is_true($line) ) {
+            clear();
+            print blacklight_line()
+                . "\r :.   .:[ message not in harmony ]:."
+                . "\r :. ";
+            sleep $msg_delay;
+            clear();
+        } else {
+            $txt_line = $line;
+        }
+    }
+    $last_line = $line;
+}
+print $reset and clear();
+
+## store true text version in selection and clipboard ##
+##
+foreach my $mode (qw| selection clipboard |) {
+    my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -i |;
+    my $pid       = open2( my $out_fh, my $xsel_in, qw| xsel |, @xsel_args );
+    print {$xsel_in} $txt_line;
+    close($xsel_in);
+    my $err_str = readline($out_fh);
+    close($out_fh);
+    waitpid( $pid, 0 );
+    warn_err( "xsel : %s", format_error( $err_str, -1 ) ) if defined $err_str;
+}
+##
+
+##  display result on terminal  ##
+##
+say sprintf "$C{0}:$C{R}\n$C{0}: $C{b}$C{T} %s $C{R}\n$C{0}:$C{R}", $txt_line;
+##
+
+exit(0);
+
+sub term_size {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = qw| 21523 |;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    my $size_aref = [ unpack 'S!S!S!S!', $size ];   ## [<y>,<x>,<y-px>,<x-px>]
+    return ( $size_aref->[1], $size_aref->[0] );
+
+}
+
+sub blacklight_line {
+
+    ( $x, $y ) = term_size();
+
+    if ( $y <= 1 ) {
+        $y_pos = 1;
+        my $s = $x <= 27 ? '' : ' ' x int( ( $x - 27 ) / 2 );
+        print "\r$nailara_bg$clear_all"
+            . "$blacklight$s<<[ increase term-width ]>>\r"
+            and sleep 1.2
+            if $x < 47;
+        return join( '', $blacklight, $nailara_bg, $clear_all );
+    } else {
+        $y_pos = 2;
+        return join( '',
+            "\e[${y_pos}H", $reset,      $clear_upw,
+            $clear_down,    $nailara_bg, ' ' x $x,
+            "\e[${y_pos}H", $nailara_bg, $blacklight );
+    }
+}
+
+sub clear { print "\e[37m\e[H$clear_all" }
+
+sub exit_term {
+    print blacklight_line() . " :: truth assertion aborted :: $reset\n\n";
+    CORE::exit(4);
+}
+
+sub override_signals {
+    map { SigAction::SetCallBack->sig_registry( $ARG, \&readline_signals ) }
+        qw| INT TERM HUP |;
+}
+
+sub restore_signals {
+    map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
+}
+
+sub readline_signals {
+    my $sig_name = shift;
+    $term->free_line_state;
+    $term->cleanup_after_signal;
+    exit_term();
+}
+
+#.............................................................................
+#3XVH4VFJCVEWITCOQ5S2QE4VY53R7SPOXBYJ3OJVK5FHSTAGZT6HOA2BTPEQGNOUVUHVFLJRTNCV2
+#::: SZ5Y2A2EP7KPOSTLZMQ44SVJNQPEWUV5RDO7YN53MTWI5EE57FN :::: NAILARA AMOS :::
+# :: BTEYY3O7OOQ5I7CA7IRMASV5ULM44QNYJX2LRLQB43FZNUMD4QAA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
