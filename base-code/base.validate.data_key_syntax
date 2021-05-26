@@ -10,7 +10,11 @@ return warn 'expected %data key string parameter <{C1}>'
     and return ( 0, 'no data key name supplied' )
     if not length $data_key;
 
-if ( $data_key =~ m|([^A-Za-z0-9-_\.])| ) {
+if ( $data_key =~ m|\.+$| ) {
+    my $err_msg = sprintf( "not permitted ['%s'] at end of key", $MATCH );
+    return ( 0, $err_msg ) if wantarray;
+    return 0;
+} elsif ( $data_key =~ m|([^A-Za-z0-9-_\.])| ) {
     my $err_msg = sprintf( 'not valid character [%s] in key name', $MATCH );
     return ( 0, $err_msg ) if wantarray;
     return 0;
@@ -30,7 +34,7 @@ if ( $key_len > $max_key_len ) {
 return 5;    ## is valid [true] ##
 
 #.............................................................................
-#I5DHHH3FBA53GANG3VAZ3N2YN4BVH6ZIGLUSPT232DBDRHAMUPMUQLWCEKSATERNL66V4B7QPTAAQ
-#::: 7NKKSXXHCRTW3FIMRUTUDTD7SWFQBXS52MLHS2IREIKNJXR7DOZ :::: NAILARA AMOS :::
-# :: BRLGOYRRUMI75ZCRVEEFBE7E5AM7N5LW2IEHSBQGC7AZNW2HE2BA :: CODE SIGNATURE ::
+#BUUQ726FCNDWW6VR5XUXGTZYY6Z7YOXDQEPD4WQKPLVYYJO2TNVEXEJKCEPLVZ4WVMOBKHZG7RJH4
+#::: 6PWFZCMSHTAKGCBT2WNB3TRGQ2AHWDZNPQOGNEY3CHWJBKROL6B :::: NAILARA AMOS :::
+# :: RP5HJKYQLPJEGQEXHH7Q7HOAWYZXUWD3FAYSR7D72QKE7DPM5QCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
