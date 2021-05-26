@@ -2,11 +2,12 @@
 
 # name = base.session.check.close
 
-my $id = $_[0]->w->data;
+my $event = shift;
+my $id    = $event->w->data;
 
-$_[0]->w->cancel;
+$event->w->cancel;
 
-<[base.log]>->( 2, "[$id] session shutdown.," );
+<[base.logs]>->( 2, '[%d] session shutdown.,', $id );
 
 # cancel outstanding commands / routes
 my $route_term_msg = 'FALSE command route collapsed';
@@ -18,7 +19,7 @@ my $route_term_msg = 'FALSE command route collapsed';
 # call rip handler
 if (    defined $data{'session'}{$id}{'rip_handler'}
     and defined &{ $data{'session'}{$id}{'rip_handler'} } ) {
-    &{ $data{'session'}{$id}{'rip_handler'} }( $_[0] );
+    &{ $data{'session'}{$id}{'rip_handler'} }($event);
 }
 
 # cancel watchers
@@ -60,8 +61,10 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
     delete $data{'user'} if !keys( %{ $data{'user'} } );
 }
 
-my $dfh = $data{'session'}{$id}{'handle'};
-close( $data{'session'}{$id}{'handle'} );
+my $dfh;    ## disconnecting file handle ##
+if ( $dfh = $data{'session'}{$id}{'handle'} and fileno($dfh) ) {
+    close( $data{'session'}{$id}{'handle'} );
+}
 
 # force freeing of all memory consumed by buffers ..,
 map { undef $data{'session'}{$id}{'buffer'}->{$ARG} }
@@ -82,12 +85,12 @@ delete $data{'handle'}{$dfh};
 
 map { <[base.clean_hashref]>->( $data{$ARG} ) } qw| user handle session |;
 
-<[base.log]>->( 1, "[$id] connection closed." );
+<[base.logs]>->( '[%d] connection closed.', $id );
 
 <[base.session.check_remaining]>;
 
 #.............................................................................
-#BKZZSF4EGMIDS46CBAHYIZYW5HLHZ2NG5C6PUXORJQNYTB7YYNF2M5VVE33BTH7X35WFERR7KEQLI
-#::: VHF2GX3QRTHTMKHOEBX2ZBQTCEPZTV2BQYERA7D3FIVJ4D7GMY6 :::: NAILARA AMOS :::
-# :: RPAG3ZWWRB6V2CIJMGFS6VJIK7KZ3ACJKED6ETXDK2TJYUSXJWDI :: CODE SIGNATURE ::
+#Y33WXTIWYKZ63SSYK6H4XMEYA7B63YMTYZ7NVR6BSLMRMEAXP2YLXNWUDU7W3BEHPWZKVS6EG4AGI
+#::: 6GHYGUSFNX5AGBFX65HS4AAEEGQ7NJ6ARGVPADR6NDNTVTFL3NX :::: NAILARA AMOS :::
+# :: VJBVI73C5SFWS2WJXDQ4PEEDVP3I5GZOMN2TLINIOZCNI3MDDCAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
