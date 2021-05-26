@@ -1,14 +1,20 @@
 # >:]
 
-# name  = net.unix.authme
-# descr = unix domain socket auth. [ client ]
+# name  = auth.unix.authenticate
+# descr = unix domain socket client
 # todo  = implement client side authentication timeout
+
+return warn "module 'protocol.protocol-7' not loaded <{C1}>"
+    if not defined <protocol.protocol-7>
+    or not keys %{<protocol.protocol-7>};
+
+my ( $backend_socket, $user ) = @ARG;
 
 my $answer;
 my $banner_string;
-my ( $backend_socket, $user ) = @ARG;
 
-my $protocol_messages   = <protocol.protocol-7.connect>;
+my $protocol_messages = <protocol.protocol-7.connect>;
+
 my $protocol_banner     = $protocol_messages->{'banner'};
 my $proto_msg_timeout   = $protocol_messages->{'timeout'};
 my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
@@ -19,7 +25,7 @@ if (   not defined $backend_socket
     or !-S $backend_socket
     or !$backend_socket->connected ) {
     <[base.log]>->(
-        0, '\<net.unix.authme> cannot authenticate [ expecting valid socket ]'
+        0, 'auth.unix : cannot authenticate [ have no valid socket ]'
     );
     return undef;
 }
@@ -36,15 +42,11 @@ if ( $bytes_read > 0 ) {
         <[base.log]>->( 2, '[#] authentication timeout :|' );
         return undef;
     } else {
-        <[base.log]>->(
-            0, '[#] protocol mismatch [ no valid connection banner at unix ]'
-        );
+        <[base.log]>->( 0, '[#] protocol error [ no valid banner : unix ]' );
         return undef;
     }
 } else {
-    <[base.log]>->(
-        0, 'net.unix.authme : [#] network error [ nothing read ]'
-    );
+    <[base.log]>->( 0, 'auth.unix : [#] network error [ nothing received ]' );
     return undef;
 }
 <[net.out]>->( $backend_socket, "select unix\n" );
@@ -59,21 +61,21 @@ if ( not defined $answer ) {
     <[base.log]>->( 0, '[#] server side auth method error >:|' );
     return undef;
 } elsif ( "$answer\n" eq $auth_method_warning ) {
-    <[base.log]>->( 0, '[#] unix auth. not available >:|' );
+    <[base.log]>->( 0, '[#] unix authentication not available >:|' );
     return undef;
 } elsif ( $answer ne 'TRUE continue' ) {
-    <[base.log]>->( 0, '[#] auth. protocol error >:|' );
+    <[base.log]>->( 0, '[#] authentication protocol error `:|' );
     return undef;
 } else {
-    <[base.log]>->( 2, '[*] unix auth. selected' );
+    <[base.log]>->( 2, '[*] unix authentication selected' );
     $answer = '';
 }
-<[net.out]>->( $backend_socket, "auth $user\n" );
+<[net.out]>->( $backend_socket, sprintf( "auth %s\n", $user ) );
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
 #.............................................................................
-#3AK2INHDGSAN3IQYXZO5CKH5XWEB6L6RJVWNSVDMQDB5QKRGQFV4BMNFU45I4R7ABNY7BI6LF7VRU
-#::: HAH6JERF7UUJIEQE6TBQ47MWICNHJGLDDPH3ZDAC5D373ZMLUX6 :::: NAILARA AMOS :::
-# :: 5HEWQW6NYXAZAJB2TUD3AEY6H5Y6OD4BD4HOJGOQE2JTGRAXECCA :: CODE SIGNATURE ::
+#RCZ54MVO33LGWIXZG77XXOSSUVTD32VQ5P232SZSWP6X5JBSLEMXRQTPVTZDHIV43Q5L2FWFA4YRS
+#::: 3NLHREI6NSPYQHTL5P5245USB2LGZA4ENNRE7ZP2XN5ECVEXQID :::: NAILARA AMOS :::
+# :: KV4IZMM7G44FNLKAC275IMLSYGCRSUJZBSPC5PG3N7JC427CQCDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

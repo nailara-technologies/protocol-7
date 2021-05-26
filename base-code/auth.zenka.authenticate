@@ -1,6 +1,6 @@
 # >:]
 
-# name  = auth.zenka.ip.client
+# name  = auth.zenka.authenticate
 # descr = authenticate to cube in zenka mode
 # note  : zenka name can now contain subnames
 
@@ -10,6 +10,10 @@ my $protocol_messages  = <protocol.protocol-7.connect>;
 my $protocol_banner    = $protocol_messages->{'banner'};
 my $proto_msg_timeout  = $protocol_messages->{'timeout'};
 my $protocol_error_msg = $protocol_messages->{'protocol_error'};
+
+my $link_mode_str = qw| zenka |;
+$link_mode_str = lc($LAST_PAREN_MATCH)
+    if ref($backend_socket) =~ m|^IO::Socket::(\S+)$|;
 
 if ( defined $key_str
     or %KEYS
@@ -29,14 +33,17 @@ if ( defined $key_str
             <[base.log]>->( 2, '[#] authentication timeout :|' );
             return undef;
         } else {
-            <[base.log]>->(
-                0, '[#] protocol mismatch [ no valid connection banner \ ip ]'
+            <[base.logs]>->(
+                0,
+                '[#] protocol mismatch [ no valid connection banner \ %s ]',
+                $link_mode_str
             );
             return undef;
         }
     } else {
         <[base.log]>->(
-            0, 'auth.zenka.ip.client: [#] network error [ nothing read ]'
+            0, 'auth.zenka : [#] network error [ nothing read on %s ]',
+            $link_mode_str
         );
         return undef;
     }
@@ -53,7 +60,10 @@ if ( defined $key_str
         return undef;
     }
 
-    <[base.log]>->( 2, "[<] authenticating as '$zenka'.," );
+    <[base.logs]>->(
+        2,      "[<] authenticating as '%s'., [%s]",
+        $zenka, $link_mode_str
+    );
     <[net.out]>->( $backend_socket, "$zenka $key_str\n" );
 
     if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
@@ -74,7 +84,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#NRKRQJM5AROIQ7F255NAQNMHLH2NVW5C4XCA5WJMPBI4TPOGSEHKFRDXODEKT3BIXVZ622TYFPTHS
-#::: XLFHS5ELSZTOET53JKQHRHAEDSNUVPBU3XN6ILTECYHO33E6UUS :::: NAILARA AMOS :::
-# :: SOQJGJYPTYDYF5X6AL5BDGS6NSTMEUWUKGHFBWM43C6NQMP5SEBQ :: CODE SIGNATURE ::
+#U4JIGZOSQ645PJZS6OXG76KPXENFLINWH75QYOZSN4MSU6ACTXE4TSERMZ3TLHF4OERNXELST2M4A
+#::: QO3M6Q4IRNUC4M4J6RKIFW2URYUB5IOZUXS6RWXL62QX5C5TX3L :::: NAILARA AMOS :::
+# :: S7HXJ4RBCCR4D7DH5666ILPMCM24ZY5XYH5IZ7QO3XIPSIT5K4AI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

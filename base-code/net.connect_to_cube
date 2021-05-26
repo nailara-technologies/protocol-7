@@ -31,6 +31,15 @@ my $zenka_name    = <system.zenka.name>;
 my $zenka_subname = <system.zenka.subname>;
 
 foreach my $c_type (@connection_types) {
+    my $type_str = $c_type eq qw| unix | ? qw| unix | : qw| zenka |;
+    if ( not defined $code{ sprintf( 'auth.%s.authenticate', $type_str ) } ) {
+        <[base.logs]>->(
+            0, "protocol-7 module 'auth.%s' not loaded, skipping..,",
+            $type_str
+        );
+        next;
+    }
+
     <[base.logs]>->( 1, 'initiating cube connection [%s].,', $c_type );
     if ( $c_type eq qw| unix | ) {
         if ( not defined $unix_path ) {
@@ -66,7 +75,8 @@ foreach my $c_type (@connection_types) {
             and $cube_sock->connected ) {
 
             ## authenticate without key [ unix uname only ] ##
-            $cube_sock = <[net.unix.authme]>->( $cube_sock, $zenka_name );
+            $cube_sock
+                = <[auth.unix.authenticate]>->( $cube_sock, $zenka_name );
 
         } else {
             $cube_sock = undef;
@@ -79,7 +89,8 @@ foreach my $c_type (@connection_types) {
             and $cube_sock->connected ) {
             my $auth_name = $zenka_name;
             $auth_name .= "[$zenka_subname]" if defined $zenka_subname;
-            $cube_sock = <[auth.zenka.ip.client]>->( $cube_sock, $auth_name );
+            $cube_sock
+                = <[auth.zenka.authenticate]>->( $cube_sock, $auth_name );
         } else {
             $cube_sock = undef;
         }
@@ -113,7 +124,7 @@ if ( not defined $cube_sock ) {
 }
 
 #.............................................................................
-#ZFNO2QCZMRUU3MJTTHSPV7MVZVB7I2NVI2EGZR4Y5HLMO3V5Z7NHI6SE2SLLSEAXOKBI4YX6KCOEM
-#::: V5WOHE5K4G34G4YEMVIFKGTHKO5EIZPWUUUU4BP2REIZR2YY2J2 :::: NAILARA AMOS :::
-# :: QDNY6G6QAA3BBKIPZYUUNQGUKYOOENS23E56A7EI4SETNCDYB4DQ :: CODE SIGNATURE ::
+#B3J6D2GWFMO2JF7LAK3VLARFQLCZKU4RK3VOQD5X26TIOFG7OBBIWSFGE3WNIAFYHLEKODLXG5S7U
+#::: RAK4TUA64UMWIHQCHHJ4GWPAMXHYA3ZRMTQVRY2BHGH5MJFTVEB :::: NAILARA AMOS :::
+# :: 3UME36OMO2JTLCPBGV5U7XHYIDQ6LN4ZC4EEMOS4JWFOY4QY7YCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

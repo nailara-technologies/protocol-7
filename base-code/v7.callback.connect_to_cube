@@ -11,10 +11,13 @@ my $cube_key    = $init_data->{'cube'}->{'key'};
 my $authname = <system.zenka.name> eq '<stdin>' ? 'v7' : <system.zenka.name>;
 $authname = <system.zenka.auth_name> if exists <system.zenka.auth_name>;
 
-<[base.log]>->( 1, "connecting to local cube [$cube_addr:$cube_port] ..," );
+<[base.logs]>->(
+    'connecting to local cube [%s:%d] ..,',
+    $cube_addr, $cube_port
+);
 
-my $c_fh = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
-$c_fh = <[auth.zenka.ip.client]>->( $c_fh, $authname, $cube_key );
+my $c_fh = <[base.open]>->( qw|  ip.tcp  output  |, $cube_addr, $cube_port );
+$c_fh = <[auth.zenka.authenticate]>->( $c_fh, $authname, $cube_key );
 
 if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
     my $rand_len = length( $init_data->{'cube'}->{'key'} );
@@ -33,7 +36,7 @@ return 0 if not defined $c_fh;
 
 my $session_id
     = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
-<[base.log]>->( 1, "auth. to cube successful [ session $session_id ]" );
+<[base.logs]>->( 'auth. to cube successful [ session %d ]', $session_id );
 <v7.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <v7.zenka.instance>->{$instance_id}->{'is-cube'}  = 1;
 
@@ -44,17 +47,17 @@ my $session_id
 
 my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 <[base.protocol-7.command.send.local]>->(
-    {   'command' => "$root_sid.set-initialized",
+    {   'command' => sprintf( '%d.set-initialized', $root_sid ),
         'reply'   => { 'handler' => qw| v7.handler.set_initialized_reply | },
         'call_args' => { 'args' => 0 }    # [ 0 == v7-zenka session [self] ]
     }
 );
 
 #[success]
-return 1;
+return 5;
 
 #.............................................................................
-#TVRA5NDIPVSWLPQFPWL45H3BZPXPWC2VIVVVUSM55XO5T42KWKRDAESGGXOJ2ZNAEPXEEIIQWSDWY
-#::: PQTJ44GNMUDVBKW5GRNKIKAEX6K442KBS4MUA4P6PWVMPVWW5UO :::: NAILARA AMOS :::
-# :: CYPQZQYS5BQ4Y4725GDLLDKTSPR7RLFFQT35NRTGJZKRDTOZ5OBQ :: CODE SIGNATURE ::
+#DOOPN7N3RYQSY6PGNHULDR2IE5ZJXSWMUNVUDM3ZTVVNLVZFCI6CRVOH4MUKBIY2O67KLUS67CMK4
+#::: 5OKG3HJVR2HVG25ZQHA3YVSKQ6QI54ZPU5J2D42UYWGL7K7ZB5O :::: NAILARA AMOS :::
+# :: U5OV3472XAYDUHMXV77KZDO3FZZBZJMNW6XF7JRWQUZ4554KZKBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
