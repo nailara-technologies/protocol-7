@@ -8,15 +8,25 @@ my $re     = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
+my $enabled_link_modes = { qw| unix | => 1, qw| ip.tcp | => 1 }; ## allow ? ##
+
 my $link_type = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'};
 
-if (<[plugin.auth.zenka.no-keys-defined]>) {
+if (   <[plugin.auth.zenka.no-keys-defined]>
+    or not exists $enabled_link_modes->{$link_type}
+    or not $enabled_link_modes->{$link_type} ) {
     if ( $data{'session'}{$id}{'last-bytes-read'} ) {
         my $id_len = length($id);
-        my $l      = $link_type eq qw| unix | ? 0 : 1;
+        my $l      = $link_type eq qw| unix | ? 0 : 0;
         <[base.logs]>->( $l, "[%d] cannot authenticate zenka session", $id );
         $l++ if $l > 0;
-        <[base.log]>->( $l, ':,. zenka user not expected [ no keys ] .,:' );
+        <[base.logs]>->(
+            $l,
+            ':,. zenka user not expected [ %s ] .,:',
+            <[plugin.auth.zenka.no-keys-defined]>
+            ? 'no keys'
+            : 'disabled link type'
+        );
         my $keyless_user
             = $$input =~ m{^($re->{usr_str}|$re->{usr_subn_str}) }
             ? $LAST_PAREN_MATCH
@@ -73,7 +83,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 }
 
 #.............................................................................
-#7SVN33PONCZTJKE3OAHTX47YTOSMIZF32UTO4MBQXG2F4TBK37IUGWWLZA7C5MTBDR253VK4ELNOE
-#::: JREF2BFQFLICBOXMTTYDNONZHCP7DO7Z4GAYYWLV5XB6VMBWU56 :::: NAILARA AMOS :::
-# :: IGTOK3KQUN5X2EMIX2LNAEK42RNU7OUQWT5BCLPLMU4375DUIIAY :: CODE SIGNATURE ::
+#53LA33TCMB7MH3FOS4QAOV74EEAJLKEOS3VB4TD4GCLR5GNIOM2N4IM5QVPVVJR7VHO6SIVX5TKU6
+#::: OBCGWBF6DBYEVURQSF6KVZ2PXFADIGFA2L3TU7FF4BS7J5W5ERH :::: NAILARA AMOS :::
+# :: YWXT74H7K5ASCM277EPGRD5CZVROLDVIZFMAAJX7W7REU4HUSMDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
