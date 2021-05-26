@@ -3,6 +3,7 @@
 # name  = base.log
 # descr = generate a log entry
 # args  = log_level log_msg [log_buffer] [time-stamp]
+# note  = used routines here need to be registered in protocol-7 [ line 911 ]
 
 my ( $log_level, $log_msg, $log_buffer, $time_stamp )
     = ( $ARG[0] || 0, $ARG[1] // '', $ARG[2] // '', $ARG[3] );
@@ -18,9 +19,10 @@ return 1
     and $log_level > <system.verbosity.zenka_buffer>
     and $log_level > <system.verbosity.zenka_logfile>;
 
-$log_buffer = qw| zenka | if !length($log_buffer);
+$log_buffer = qw| zenka | if not length $log_buffer;
 
-$log_msg = 'UNDEFINED LOG MESSAGE' if !length($log_msg);
+my $log_str;
+$log_msg = 'UNDEFINED LOG MESSAGE' if not length $log_msg;
 
 my $h_override = <base.ntime-harmony> // 1;  ## reducing calculation load., ##
 my $want_harmony = $log_level < 3 ? $h_override : 0;
@@ -48,14 +50,8 @@ my $an_c = $ANSI{'p7_fg_0001'};
 
 my $zenka_prefix = <[log.format_name]>;
 
-my $log_str;
-
-# say '< caller 0 > '.[caller(1)]->[1].':'
-#  .[caller(1)]->[2] if $log_level == 0;
-# say '< caller 4 > '.[caller(1)]->[1].':'
-#  .[caller(1)]->[2] and sleep 0.24 if $log_level == 2;
-
 ## log colors ##
+##
 my $c_l = 2;
 $c_l = 3 if $log_level == 0;
 $c_l = 4 if $log_level == 1;
@@ -76,7 +72,8 @@ if ($fatal_exit) {    ## improve detection ## [LLL]
     exit 2;
 }
 
-## write imto 'zenka' log buffer ##
+##  zenka log buffer  ##
+##
 if ( defined $code{'base.buffer.add_line'} ) {
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
     <[base.buffer.add_line]>->(
@@ -88,9 +85,9 @@ if ( defined $code{'base.buffer.add_line'} ) {
 } elsif ( not defined defined $code{'base.buffer.add_line'} ) {
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
     push(
-        @{ $data{'system'}{'start'}{'zenka-buffer'} },
+        @{<system.start.zenka-buffer>},
         join( ' ', $time_stamp, $log_level, $log_msg )
-    ) if $log_level <= $data{'system'}{'verbosity'}{'zenka_buffer'};
+    ) if $log_level <= <system.verbosity.zenka-buffer>;
 }
 
 ## console output ##
@@ -106,7 +103,7 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 return 1;
 
 #.............................................................................
-#4N2RDOL2AFEVGMTFEINJ4QIRXA5ORAA7BR6TDVXAV5VXQLZEJC6II6NRB3BHLO6OFIYH6MS62LK7I
-#::: VISDG3R5ZB5XHNBNT5Q4ZM3TGEHPXQIUGCOZMV6QUE3KL2PTXS3 :::: NAILARA AMOS :::
-# :: 633YEN2EIJWYEDE4JDM67CRGMHPFGIME77APVPNZP5CNVOMFSWAQ :: CODE SIGNATURE ::
+#4PBOISITNWAADTZDJH37GZSY735VDHYQENJPXLVMR6V5BVSCU4VGI7CM7BMHSUBLG7BGSD3WPSXKY
+#::: KHVONNXVLZ46L7Y7YAPTGXRM7ZCDYIETHM2XJYDX4OUUFI7F3GL :::: NAILARA AMOS :::
+# :: PHPMRAUBNK4AJA6BFVMXHLZTYUMB6VRPOG67V332A7B5YIGBXGBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

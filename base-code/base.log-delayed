@@ -1,0 +1,29 @@
+# >:]
+
+# name  = base.log-delayed
+
+my $log_level   = shift // 0;
+my $log_message = shift
+    // sprintf( '[ undefined log message ] %s', <[base.caller]>->(1) );
+
+my @sprintf_params = @ARG;    ## optional ##
+
+push(
+    @{ <base.log.delayed-message-buffer> //= [] },
+    {   qw| log-lvl |     => $log_level,
+        qw| log-message | => sprintf( $log_message, @sprintf_params )
+    }
+);
+
+##  create 'base.event.add_idle' routine ##  [LLL]
+#
+Event->idle(
+    cb     => $code{'base.callback.delayed-log'},
+    repeat => 0
+);
+
+#.............................................................................
+#3Z3Y5XWRRT3BHPA7CFAVDEMPSN4BVIBGATWML75WGZL5FQBBCQWA4ID4QAQBKDHYIPZIUIUBTWGOC
+#::: OB4APYKSMXUWL5467UE2C5EOHK6FSLLKEZW2S7NKJ3EPZE64ISF :::: NAILARA AMOS :::
+# :: Y37PDREQFBRXALT7ELPYESKPZTZANSRB3CZ3WCLZNU3B7BE4IWBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
