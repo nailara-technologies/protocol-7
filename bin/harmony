@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 use v5.24;
 use strict;
 use warnings;
@@ -198,7 +199,7 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
     }
 }
 
-print "$col{r}\n" if not $option{'q'} and not $option{'N'};
+print "$col{r}\n  " if not $option{'q'} and not $option{'N'};
 
 $status = $return_code == 0 ? qw| true | : qw| false |;
 
@@ -218,9 +219,14 @@ if ( not $option{'q'} ) {
     }
 }
 
-# display_result( $status, $result, $option{'T'}, $bmw_checksum );
-
+## done. ##
+say sprintf "\n%s;.,%s\n", $col{'b'}, $col{'r'}
+    if not $option{'q'} and not $option{'N'};
+###
 exit($return_code);
+##
+
+##[ SUBROUTINES ]#########################################################
 
 sub display_result {
 
@@ -250,12 +256,6 @@ sub display_result {
     my $s_len         = 1 + length($result) % 3;
     my $change_offset = scalar( length($result) % 3 ? 1 : 0 );
 
-    # say "< offset > $offset";
-    # say "<  s-len > $s_len";
-    # say "< assert > $change_offset";
-    # say '';
-    # say "< res-0000.0 > '$result'\n\n";
-
     if ( $shift_mode eq qw| left | ) {
         $result_1_0 = substr( $result, $offset, length($result) - $s_len );
         $result_1_1 = substr( $result, 0,       $offset );
@@ -264,15 +264,9 @@ sub display_result {
         $result_1_1 = substr( $result, 0,        length($result) - $offset );
     }    # else [ 'none' ]
 
-    # say "< res-0010 > '$result_1_0'\n";
-    # say "< res-0110 > '$result_1_1'\n";
-    # say '';
-
     $result = join( '', $result_1_0, $result_1_1 );
 
-    # say "< res-0000.1 > '$result'";
-
-    @asc_enc = ( qw| asc-enc -qM -r0 -C |, $table_name );
+    @asc_enc = ( qw| asc-enc -qQM -r0 -C |, $table_name );
 
     push( @asc_enc, qw| -s0 | ) if $status ne qw| true |;
 
@@ -298,7 +292,7 @@ sub display_result {
         @run_args = ( @asc_enc, $code );
     }
 
-    say "< exec-args > " . join( ' ', @run_args ) if $option{'D'};
+    say "< asc-enc exec-args > " . join( ' ', @run_args ) if $option{'D'};
 
     ##########################################
     int_exit() if system(@run_args) >> 8 == 4;
@@ -314,17 +308,16 @@ sub display_result {
         say "< exec-args > " . join( ' ', @run_args, '-N <n>' )
             if $option{'D'};
         int_exit() if system( @run_args, qw| -N |, $num_val ) >> 8 == 4;
+
     } elsif ( $assertion_result == 4 ) {
         int_exit();
-    } else {
-        say $col{'b'} . ':.,' . $col{'r'} . "\n";
     }
 }
 
 sub int_exit { print $reset; exit(4) }
 
 #.............................................................................
-#LJSVUR5EPEIM2XJL5WWA4HWZWQNXRRCXMUO57DSOA3QKEWDGAQ4GLKDQXFU2KXVY263F2V3VS5MXK
-#::: CVIBQSZBBTH3JVJBCJOELTSOBOVRFCKDOGDRUMCFQS7CKEJIY4X :::: NAILARA AMOS :::
-# :: TYW5FRCZU6NQAKKDZE6S2UUII43X3Q6NZ62OIOUNQXRHCULVYGBA :: CODE SIGNATURE ::
+#3PLE2734DIOQGYJAHCX6TSVU4457WS4P5MOCSGQP5EUROBN6KLBLFRKOCHYCRD662ZXEQ6DE6EKN2
+#::: AESUD5IFQZRQ4RPK6LEF5QNTPX6DATP244475ZNQFEP55ICLMIX :::: NAILARA AMOS :::
+# :: COHHNFWHNVZJ23TPOQAB2ZEOCI3ZN64G4PEJBYE5HFRQR2JGLWCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
