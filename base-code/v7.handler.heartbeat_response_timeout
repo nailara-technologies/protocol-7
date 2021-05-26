@@ -2,11 +2,11 @@
 
 # name = v7.handler.heartbeat_response_timeout
 
-my $w = shift;
+my $event = shift;
 
-my $instance_id = $w->data;
+my $instance_id = $event->w->data;
 
-return $w->cancel    ##  not a valid instance entry  ##
+return $event->w->cancel    ##  not a valid instance entry  ##
     if not defined <v7.zenka.instance>->{$instance_id}
     or not defined <v7.zenka.instance>->{$instance_id}->{'status'};
 
@@ -61,6 +61,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
     $heartbeat_ref->{'retry_timeout'} = $retry_timeout;
     ##
 
+    <[v7.stop_heartbeat_timer]>->($instance_id);
+
     $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
         {   'handler' => qw| v7.handler.heartbeat_response_timeout |,
             'after'   => $heartbeat_ref->{'retry_timeout'},
@@ -68,12 +70,12 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
             'prio'    => 4
         }
     );
-    <[v7.stop_heartbeat_timer]>->($instance_id);
+
     <[v7.enable_heartbeat_timer]>->( $instance_id, 0 );   ##  retrying now [0]
 }
 
 #.............................................................................
-#SAUOM2XKEFSTIVCBQTYSFXT4XBCI25GTVXW4SP3BQ5PWVYVODPEPRX2577ABKFOLCBJA3CRUSK3QK
-#::: B7RGTODU5SXLENF4YUWGYXO5JP4F7IPU5PDHPCWTXWANYHGQYNI :::: NAILARA AMOS :::
-# :: EJL6QQUHVN3SJVNB7722WTDUTQOWFOY7NRJ3267II5YH3KLY5KDQ :: CODE SIGNATURE ::
+#HEEK2UCHUXJ4LBUV5XY42TPWPOUQC3VPE3RKNHO3IWSBIQVR3RPHCS7GFVQAOCT62VXC4KM4XSDGA
+#::: AHYBIKOHKRMMRNDGPVPUQOFC7GNB2OIFPAP7ECZZAIAZGJGO7FG :::: NAILARA AMOS :::
+# :: DHNMKWWJYRFMJ3VNS7QEV6EYXQQ6ETKSMSUWGID7X6E5OV22IOAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
