@@ -4,18 +4,30 @@
 # desc = registered template based sprintf wrapper
 
 my $template_name = shift;
+my $silence       = <base.silence.sprint_t>  // 0;
 my $templates     = <base.templates.sprintf> // {};
-return warn 'no sprintf templates defined yet <{C1}>' if !keys %$templates;
-return warn 'no template name parameter given <{C1}>'
+warn 'no template name parameter given <{C1}>' and return undef
     if not defined $template_name;
+
+if ( not keys %$templates ) {
+    if ( not $silence ) {
+        warn 'no sprintf templates defined yet <{C1}>';
+    } else {    ## silence case at 'reload' ##
+        delete <base.silence.sprint_t>;
+        delete <base.silence> if not keys %{<base.silence>};
+    }
+    return undef;
+}
 
 my $t_group
     = $template_name =~ s|^(:[^:]+:([^:]+:(*pla:.))?)||
     ? $LAST_PAREN_MATCH
     : undef;
 
-return warn sprintf "template group '%s' does not exist <{C1}>"
-    if defined $t_group and not defined $templates->{$t_group};
+warn sprintf( "template group '%s' does not exist <{C1}>", $t_group )
+    and return undef
+    if defined $t_group
+    and not defined $templates->{$t_group};
 
 if ( not defined $t_group ) {
     my ( $package, $filename, $line, $subroutine ) = caller(0);
@@ -32,13 +44,13 @@ my $template_str
     : defined $templates->{$template_name} ? $templates->{$template_name}
     :                                        undef;
 
-return warn "sprintf template '$template_name' not detined"
+warn sprintf( "sprintf template '%s' not detined", $template_name )
     if not defined $template_str;
 
 return sprintf( $template_str, @ARG );    ##  <-- can be without argument  ##
 
 #.............................................................................
-#D7SOI4IR4KYSHOEU2IOHYTS6ZRZNKBZBWU3QZKJSYJX34H44RIB5L5AU3QDWOV37PRMAGIGSIUEHG
-#::: YEREKKT4CLT2FFLLFR76JYSUKMWT6J2KNM2C3DQPW4QSQWZMXC6 :::: NAILARA AMOS :::
-# :: LCHV7V4IGDF7JR2R36FXU7CDTVQWJTVSMHCBUC7T5Z2R4P7LFCBQ :: CODE SIGNATURE ::
+#NXIUGD7OFPWVN4KL4EXXJ7Z67E7D67B24QNCV6HJXYRD4GEKWOUYVOYBLEIQQA7LVA7EMBBTXPHZE
+#::: CV24TNPA5UEFKBWEATIP4R6PBU4KHSS7XJHVSW2OGVG7GJTJCO4 :::: NAILARA AMOS :::
+# :: VRV4DTY75CZM7BK6QCLHRJRQIPL7AWVT5J4CSHGMKHXUU5WTQWBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
