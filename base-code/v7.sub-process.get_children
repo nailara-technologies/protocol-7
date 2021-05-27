@@ -53,8 +53,9 @@ my $instance_id;
 ##
 map {
     $instance_id = $ARG
-        if $chk_pid
-        == ( <v7.zenka.instance>->{$ARG}->{'process'}{'id'} // -1 )
+        if $chk_pid == ( defined <v7.zenka.instance>->{$ARG}
+            and defined <v7.zenka.instance>->{$ARG}->{'process'}
+            and <v7.zenka.instance>->{$ARG}->{'process'}->{'id'} // -1 )
 } <[v7.instance_ids]>;
 #
 if ( defined $instance_id ) {
@@ -68,7 +69,7 @@ return [
 ];
 
 #.............................................................................
-#YO4QAV4RCQHCY7IAZ6BU3U4YBX4S4UWMZ4LO52P3UCL375KD4OGKW53UNK4QOC5NETZAL6P2H3SJI
-#::: GF3RDQY3XFZ2DIGZPBAQN7OBN4JUFHG3KVLMBKS5B4IG2T4JDTL :::: NAILARA AMOS :::
-# :: VKDYGVYXZGQ26ZEM3KDHGIQ6264T5AOUEIM5SIASVOR6NHQ2JQCY :: CODE SIGNATURE ::
+#5OWOCKZEAGBZB55YQ4GIMZ3TNUQEY2NJXKUSQABCVU6GUII33QYT6ZI4IJLM7CLBWML5OJAAAUIVS
+#::: N7ZMBNMEB6XCVSECOFIWN2N7BTUIPXUAVG7L2OXCWNXTKS4G4RP :::: NAILARA AMOS :::
+# :: 53UK2FVODB27ZP56QHY4HL2YD55JWUKJJL5WA2EBN355BJG3K4AY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
