@@ -34,23 +34,27 @@ if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
 }
 ##
 
-## catching compilation errors ###
-$code{'base.log'} //= sub { say STDERR ' << ! >> ' . $ARG[1] };
-
 ##  delayed log prevents segmentation faults from base.log recursion  ##
 ##
-<[base.log-delayed]>->( 0, "$err_str [ $file, $line ] \\\\ [EV: $ev_desc ]" )
-    if $log_warning;
+if ($log_warning) {
+    my $caller_str = sprintf '[%s:%d]', $file, $line;
+    $err_str .= sprintf( ' %s', $caller_str )
+        if index( $err_str, $caller_str, 0 ) == -1;
+    $err_str    ##  avoiding redundancy with caller description  ##
+        .= $file ne $ev_desc ? sprintf( ' [EV:%s]', $ev_desc ) : ' [EVENT]';
+    <[base.log-delayed]>->( 0, $err_str );
+}
 
 return
        if not $watcher
     or !$log_warning
     or <system.verbosity.console> < 2 and <system.verbosity.zenka_buffer> < 2;
 
+## detailed event parameters [ debug log levels ]
+##
 my @attr_names = <[base.sort]>->( $watcher->attributes );
-
-my $lvl  = 2;
-my $mlen = 0;
+my $lvl        = 2;
+my $mlen       = 0;
 map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
 <[base.log-delayed]>->( $lvl, ".:[ event ]:." );
@@ -65,7 +69,7 @@ foreach my $akey (@attr_names) {
 say STDERR <[base.format_error]>->( $EVAL_ERROR, 1 ) if length $EVAL_ERROR;
 
 #.............................................................................
-#5ZG2RMTHTUAWV5WPELNWLS4HCHMQP3TEO2ZRZX6XULN6EFRMMXPVSX5VWK5TX5WJNU2XTH57QN5JW
-#::: 2IRZVRCWVG6JLA3GHHWHJVALV7WMM4P63VZOLNXTH4SIFLGMCCP :::: NAILARA AMOS :::
-# :: XVAUV77ZNZNET33VMRTNRHSY5J5UFDQHUXM6XONUYZVCW3K3C2CY :: CODE SIGNATURE ::
+#5Q2JHJFJ42GEKSXV2OXIGIHPNNNYAQSOMMRKM56RXQ4PF4KHZSCL2QVKZJPTHEUIMGPC2BQOM3OF6
+#::: OIBF5XQ5NFJTDHTDP5KHU2JIHVAAZFZYBLMD4MMDGY7YWY7YZP7 :::: NAILARA AMOS :::
+# :: C5WQPVNHSSK5LHGHJFTZP6HVQI4T3X2W27SXUI22YO22XVBUHYCQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

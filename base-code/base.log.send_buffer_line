@@ -48,7 +48,8 @@ push( @send_line, $buffer_data_ref->[$next_index] );
 $log_data->{'complete'} = 0;
 
 <[base.protocol-7.command.send.local]>->(
-    {   qw| command |   => $route_prefix . $data{'buffer'}{$name}{'log_cmd'},
+    {   qw| command | =>
+            join( '', $route_prefix, $data{'buffer'}{$name}{'log_cmd'} ),
         qw| call_args | =>
             { qw| args | => join( ' ', map { $ARG // '' } @send_line ) },
         qw| reply | => {
@@ -57,15 +58,19 @@ $log_data->{'complete'} = 0;
         }
     }
     )
-    or <[base.log.handler.log_reply]>->(
+    ## no warnings during 'reload' ##
+    or <base.silence.sprint_t> = 1 and <[base.log.handler.log_reply]>->(
     {   qw| cmd |       => qw| FALSE |,    ## command does not exist ##
-        qw| call_args | => { qw| args | => <[base.sprint_t]>->(qw|YDZBI2Q|) },
-        qw| params |    => { qw| name | => $name }
+        qw| call_args | => {
+            qw| args | => <[base.sprint_t]>->(qw| YDZBI2Q |)
+                // 'command does not exist'    ## fallback in 'reload' case ##
+        },
+        qw| params | => { qw| name | => $name }
     }
     );
 
 #.............................................................................
-#X44RWPP3AOPFLWDCKV7TABTUGSINU2JRNVGZPAFYF3J4HWIHWS4NN6R4WLPZL4WZTUNYFYSKBOV7W
-#::: LD2EBPLJGBQGGJXMGJBRNIEBN5OKQHLPW24PACXCPLCBS777EG4 :::: NAILARA AMOS :::
-# :: HCJI6YAUX67NEYBBK4WUNZUKQCFANOPDJOQKHHJU2ELUZCCTDGDI :: CODE SIGNATURE ::
+#O46F5SLEFBQOLZ5SHHDSGP4LZRD5O7SLJGBCQC6YOSYUR3UA4K5BH25VSFFHOHHTE2Y6NRZIU5AUM
+#::: ALFZFJ57SO4566MVI2PAFFXMFJGPXJ3X4QDRGGA6GKT3D52PPKD :::: NAILARA AMOS :::
+# :: VMAFOYBV5OG3L44VMMKTGAVMAET36ZIYFKOKQV6PD7G3I4ISNQBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
