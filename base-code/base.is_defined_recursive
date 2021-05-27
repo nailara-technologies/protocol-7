@@ -1,0 +1,32 @@
+# >:]
+
+# name  = base.is_defined_recursive
+# descr = return 1 if %data key exists, 5 when defined and 0 when not present
+
+my $data_key_str = shift // '';
+warn 'expected %data key string parameter' and return undef
+    if not length $data_key_str;
+
+my $data_ref = shift // *data{HASH};    ## %data if not specified different ##
+my $next_ref = $data_ref;
+
+my @dtree = <[base.parser.data_hkey_tree]>->($data_key_str);
+return if not @dtree;                   ## syntax not valid ##
+my $last_key = pop @dtree;
+
+foreach my $subkey (@dtree) {    ## traverse hash keys ##
+    return 0 if not defined $next_ref->{$subkey};
+    $next_ref = $next_ref->{$subkey};
+}
+
+return 5 if defined $next_ref->{$last_key};    ##  defined  ##
+
+return 1 if exists $next_ref->{$last_key};     ## exists only ##
+
+return 0;                                      ## href key not present ##
+
+#.............................................................................
+#AHQBYOGGGJCHWQM5G6AQGS3OGJURCOAOBLKJP3TRWVOKKRKKFCR3ESZD6V3HBNF4BOXCC32YTZ3OE
+#::: KE3BMOA6LQL66QFVFWDC7CBOQ54ZLQ4WMQWTOR4KXHW3WWQOGKN :::: NAILARA AMOS :::
+# :: RTLAILE5NKKV3U2ALNOLRVXJR5VSPWF6BEGADMOSSX56X3MZBUDY :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
