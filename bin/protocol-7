@@ -552,22 +552,19 @@ sub prepare_subs {
         $data{'buffer'}{'zenka'}{'max_size'} //= 64 * 1024;   # 64K log-buffer
 
         ## source code version ##
-        my $ver_str = $data{'protocol-7'}{'src-ver'} = qw| unknown |;
         my $version_file
             = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.src-ver| );
-        if ( -e $version_file and open( my $ver_fh, qw|<|, $version_file ) ) {
-            ( $data{'protocol-7'}{'src-ver'} = $ver_str = <$ver_fh> )
-                =~ s|\s||g;
-            close($ver_fh);
-        }
+
+        $data{'protocol-7'}{'src-ver'}
+            = $code{'base.read_from_version_file'}->($version_file);
+
         ## source code release version ##
         my $release_file
             = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.rel-ver| );
-        if ( -e $release_file and open( my $ver_fh, qw|<|, $release_file ) ) {
-            ( $data{'protocol-7'}{'rel-ver'} = $ver_str = <$ver_fh> )
-                =~ s|\s||g;
-            close($ver_fh);
-        }
+
+        $data{'protocol-7'}{'rel-ver'}
+            = $code{'base.read_from_version_file'}->($release_file);
+
         ## determine zenka name and subname ###
         if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
             $data{'system'}{'zenka'}{'initialized'} = 0;
@@ -796,17 +793,25 @@ sub prepare_subs {
     };
 
     $code{'base.banner'} = sub {
-        my $px          = shift // '';
-        my $version_str = sprintf( "protocol-seven.src-ver :. %s",
-            $data{'protocol-7'}{'src-ver'} );
-        my $release_str = sprintf( "AMOS-release versn.: %s",
-            $data{'protocol-7'}{'rel-ver'} );
-        local $RS = undef;
-        open( my $banner_fh,
+        my $px = shift // '';
+
+        ##  protocol-7 sourcecode version  ##
+        my $version_str = sprintf 'protocol-seven.src-ver .: %s',
+            $data{'protocol-7'}{'src-ver'};
+
+        ## AMOS release version ##
+        my $release_str = sprintf 'release versn.: %s',
+            $data{'protocol-7'}{'rel-ver'};
+
+        open( my $banner_file_fh,
             catfile( $data{'system'}{'conf_path'}, qw| .banner | ) )
             or return;
-        my $nailara_header = <$banner_fh>;
-        close($banner_fh);
+
+        local $RS = undef;    ## slurp mode ##
+        my $nailara_header = <$banner_file_fh>;
+
+        close($banner_file_fh);
+
         my $bg_0 = $ANSI{'p7_bg'};
         my $bg_1 = $ANSI{'p7_bg_0000'};
         my $fg   = $ANSI{'p7_fg_0000'};
@@ -825,6 +830,24 @@ sub prepare_subs {
             "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
             $rst,
             "\r";
+    };
+
+    $code{'base.read_from_version_file'} = sub {
+        my $version_file    = shift;
+        my $version_content = qw| UNKNOWN |;
+        if (    defined $version_file
+            and -e $version_file
+            and open( my $ver_fh, qw|<|, $version_file ) ) {
+            while ( my $line = <$ver_fh> ) {
+                $line =~ s|#.+$||;
+                $line =~ s|\s||g;
+                next if not length $line;
+                $version_content = $line;
+                last;
+            }
+            close($ver_fh);
+        }
+        return $version_content;
     };
 
     $code{'base.format_error'} = sub {
@@ -910,6 +933,7 @@ sub prepare_subs {
             if (    $ARG !~ m{\.(callback|handler)\.}
                 and not exists $data{'base'}{'core_subs'}{$ARG}
                 and $ARG ne qw|  base.log       |
+                and $ARG ne qw|  base.logs      |
                 and $ARG ne qw|  base.sort      |
                 and $ARG ne qw|  base.gen_id    |
                 and $ARG ne qw|  base.caller    |
@@ -932,6 +956,7 @@ sub prepare_subs {
                 and $ARG ne qw|  base.utf8.clean_not_valid           |
                 and $ARG ne qw|  base.log.send_buffer_line           |
                 and $ARG ne qw|  base.log.handler.log_reply          |
+                and $ARG ne qw|  base.read_from_version_file         |
                 and $ARG ne qw|  base.session.calc_cmd_stats         |
                 and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
                 ++$purge_count
@@ -2230,14 +2255,17 @@ sub prepare_subs {
         foreach $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } )
         {
             if ( exists $code{$callback_name} ) {
-                $code{'base.log'}
-                    ->( 2, "calling end_code callback '$callback_name'..," );
+                $code{'base.logs'}->(
+                    2, "calling end_code callback '%s'..,",
+                    $callback_name
+                );
                 $code{$callback_name}->();
             } else {
-                $code{'base.log'}->(
+                $code{'base.logs'}->(
                     0,
-                    '<<  referenced end_code callback '
-                        . "'$callback_name' does not exist >>"
+                    "<<  referenced end_code callback "
+                        . "'%s' does not exist >>",
+                    $callback_name
                 );
             }
         }
@@ -2254,7 +2282,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#2WSQALPKIEQIFIR2HIIXOVUINTSZ3HWADNDPRIRJUOGQP53OCCZF5LHCA4FT7J3OBZM33LCICR64K
-#::: IRKWXYTGJCFJ5Q7OAUFKXITJKUC2Q7BSWVMZ2JGGYSQBG75JHYM :::: NAILARA AMOS :::
-# :: RZGORBT2ELX362I2C6CDM4U26643YERN3Y4WZO2OPMNXCKAVC4DY :: CODE SIGNATURE ::
+#KASGTE24ESPNORRAXVNQRJOUEGXN3WZTVC6M5EZR5XVZLG4FL6CDA57VZAWW3CE2XHWSURKNGIA7G
+#::: 25UFCVWPHUALTYTSXUJMXBQO6EZJZEXVNSHELAXYW3TDX7BZM6T :::: NAILARA AMOS :::
+# :: DLYY3TRZATZIDXGLX5KRSU5DQLOX3EDVCYFJXIATAUAP6SWHPKDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
