@@ -3,38 +3,50 @@
 # name  = auth.zenka.cmd.session-key
 # param = <zenka> <key_str>
 # descr = set up session key for zenka auth.
-# todo  = parameter validation!
+# todo  = parameter validation ..,
 
 my $id = $$call{'session_id'};
-my ( $sn_zenka, $key ) = split( / +/, $$call{'args'}, 2 );
-my $zenka = $sn_zenka; # <-- $sn_zenka also contains subname if zenka has one.
-my $subname = $zenka =~ s/\[(.+)\]$// ? $1 : '';
+my ( $sn_zenka, $key ) = split( m| +|, $$call{'args'}, 2 );
 
-if ( $zenka ne '' and $key ne '' ) {
-    if ( exists <auth.setup.usr>->{$zenka}
-        and <auth.setup.usr>->{$zenka} eq ':zenka:' ) {
-        $KEYS{'auth'}{'zenka'}{$sn_zenka} = blake2b_384_b64($key);
-        $reply = { 'mode' => 'true', 'data' => 'key added' };
-        <[base.log]>->( 1, "[$id] received session key for '$zenka'" );
-    } else {
-        $reply = {
-            'mode' => 'false',
-            'data' => "user '$zenka' not accepted for :zenka: auth."
-        };
-        <[base.log]>->(
-            0,
-            "[$id] add_session_key: user '$zenka'"
-                . " not accepted for :zenka: auth."
-        );
-    }
+my $zenka = $sn_zenka; # <-- $sn_zenka also contains subname if zenka has one.
+my $subname = $zenka =~ s|\[(.+)\]$|| ? $LAST_PAREN_MATCH : '';
+
+<[base.logs]>->( 0, '[%d] <session-key> not enought arguments', $id )
+    and return { 'mode' => qw| false |, 'data' => 'not enough arguments' }
+    if not length( $zenka // '' )
+    or not length( $key   // '' );
+
+my $type_authorized = 0;
+if ( <[base.is_defined_recursive]>->( sprintf( 'auth.setup.usr.%s', $zenka ) )
+    == 5 )    ## <-- defined ##
+{
+    map { $type_authorized = 5 if $ARG eq qw| :zenka: | }    ##  5 == true  ##
+        split( m|[, ]+|, <auth.setup.usr>->{$zenka} );
+}
+
+if ($type_authorized) {    ##  has :zenka:  ##
+
+    $KEYS{'auth'}{'zenka'}->{$sn_zenka} = blake2b_384_b64($key);
+
+    <[base.logs]>->( "[%d] received session key for '%s'", $id, $zenka );
+    return { 'mode' => qw| true |, 'data' => 'key added' };
+
 } else {
-    $reply = { 'mode' => 'false', 'data' => 'not enough arguments' };
-    &{ $code{'base.log'} }
-        ( 0, "[$id] add_session_key: not enough arguments" );
+    <[base.logs]>->(
+        0,
+        "[%d] add_session_key: user '%s' not accepted for auth type :zenka:",
+        $id,
+        $zenka
+    );
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( "user '%s' not accepted for auth type :zenka:", $zenka )
+    };
 }
 
 #.............................................................................
-#4NGUCV4HHDXU3WHNYSDA4SIVO27NXS4CZL2WSYOUL6Q7WNC5TQWRASESFE33LSRTSTE3E2SVYQVU4
-#::: TOLHIFTYZHV7472BJOPY6O3V3ALDYSHTT7T33UDOYFFXUENWAY7 :::: NAILARA AMOS :::
-# :: TZ6DRXTEXIVBO7OKDCPLMLHVMATDGLOE233GQVDB4UVV4T2DC4DI :: CODE SIGNATURE ::
+#FTOYZEA6NKZWOJYV7B2X34O34R6PID5UZ6UKBWUGHN4DH6S7M4FYEBV7X3YDCWIA6JOWYBX73PXWI
+#::: EHGUKLYUUPKPZ7B7TWMCJBLKZO7Q2Y5HRIMJK2HRQ36X2JHE4IX :::: NAILARA AMOS :::
+# :: 5NZ2OFE4IS7JDZNHQCAWD5MFZSUK54FTMY4O23CBTI36KNO43GAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
