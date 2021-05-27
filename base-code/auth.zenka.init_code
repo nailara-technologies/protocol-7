@@ -1,0 +1,27 @@
+# >:]
+
+# name  = auth.zenka.init_code
+# descr = optional setting of zenka session keys with config vars
+
+return 0    ## no zenka key present in config ##
+    if not defined <zenka.init>
+    or not defined <zenka.init.session_key>
+    or not length <zenka.init.session_key>;
+
+if ( defined $KEYS{'zenka'}{'session_key'} ) {
+
+    <[base.log]>->( 2, '[zenka.client] setting zenka-auth session key .,' );
+    $KEYS{'zenka'}{'session_key'} = delete <zenka.init.session_key>;
+    <[base.clean_hashref]>->( $data{'zenka'} );    ## clean when empty ##
+} else {
+    warn '\<zenka.init.session_key> is defined while key already set <{NC}>';
+    return 1;
+}
+
+return 0;
+
+#.............................................................................
+#WALHHKOB2OU4J5POTRF4P4B7KUJGVRIZGME43HE4OAICV233UJU5E4NMGXP2AKUKOAKFNHJCG5AH2
+#::: 25FXRUE2YKGUIZPFGNT2TCIR2JHB4XRHNIYBAC6V4QR6XS7JCS7 :::: NAILARA AMOS :::
+# :: FTJNPVBH52KBXG2YM6VH2YMWYTZXHD7SYME5SY3EFLHNB4H52WBA :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
