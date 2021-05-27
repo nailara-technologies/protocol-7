@@ -11,14 +11,22 @@ return warn 'expected %data key string parameter <{C1}>'
     if not length $data_key;
 
 ## reparse key string to allow quote syntax in match below ##
-$data_key =~ s,\'(([^\']|\.)+)\', my $k=$1; $k=~s|\.|_|g; $k,ge; ## z.'y.x' ##
+
+## z.'y.x' ##
+$data_key =~ s,'(([^']|\.)+)', my $k=$1; $k=~s|\.|_|g; $k,ge;
+
+## z.<y-x> ## <-- [ at end of key ]##
+$data_key =~ s,(*plb:(^|\.))(<[^<\.>]+>)$, my $k=$1; $k=~s|\.|_|g; $k ,ge;
 
 if ( $data_key =~ m|\.+$| ) {
     my $err_msg = sprintf( "not permitted ['%s'] at end of key", $MATCH );
     return ( 0, $err_msg ) if wantarray;
     return 0;
 } elsif ( $data_key =~ m|([^A-Za-z0-9-_\.])| ) {
-    my $err_msg = sprintf( 'character [%s] not valid in data-key', $MATCH );
+    my $position_str = $MATCH =~ m|[<>]|    ? ' position' : '';
+    my $in           = length $position_str ? 'at'        : 'in';
+    my $err_msg      = sprintf( 'character [%s] not valid %s data-key%s',
+        $MATCH, $in, $position_str );
     return ( 0, $err_msg ) if wantarray;
     return 0;
 }
@@ -35,7 +43,7 @@ if ( $key_len > $max_key_len ) {
 return 5;    ## is valid [true] ##
 
 #.............................................................................
-#LHU6XTQRBUGGGBLHJMJCFCGQ5BGPGLCV6U4K4K3JXKCL2QFDH624I2YLFGXCWZ2JPMYHUVOT7QXYO
-#::: 2U5INQU6VCHWSGNLY72IFUBUAV5PRIBPMKV4GXT7W6OWVWR7J4Z :::: NAILARA AMOS :::
-# :: E4HVV4ZUW33A5GFZVS46FZZUQ3US5VSUHNFAU2RFUANDBZLYVADY :: CODE SIGNATURE ::
+#4RRTJBVAGRC7C7PV5CRUCZQW6AXM57FOL5YICYFJMZRKD6LVUH4TQRBQZPDFXULWZPSAESWHRHQQK
+#::: 7XSAM63MPUSCB2VSARPNLXPVLGF2NTFQ36U3ZX6QTGVQYEQX7MC :::: NAILARA AMOS :::
+# :: C45NT7GXAE7B7LFA4LOH5ZT5F4VI6HDROBFIOD3INECHRL52OSDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
