@@ -43,7 +43,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         and defined <system.admin-user> ) {
 
         $user
-            = $LAST_PAREN_MATCH eq 'admin-user'
+            = $LAST_PAREN_MATCH eq qw| admin-user |
             ? <system.admin-user>
             : 'unix-' . <system.admin-user>;
 
@@ -58,9 +58,10 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
     }
 
     if ( $user !~ m,^$user_re*$|^\*$, ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0,
-            "invalid character in user name '$user', access mask dropped.,"
+            "invalid character in user name '%s', access mask dropped.,",
+            $user
         );
         $errors++;
     } else {
@@ -106,19 +107,24 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
                 }
                 next if not length($cmd);
                 push( @patterns_kept, $unchanged_pattern );
-                $cmd = '^' . $cmd . '$';    ## strict match from here ##
 
-                no warnings;
-                if ( eval("qr{$cmd}") ) { push( @regex_mask, $cmd ) }
-                else {
-                    <[base.log]>->(
+                ## strict match from here ##
+                my $completed_re = sprintf( '^%s$', $cmd );
+
+                my $cmd_regex = <[base.eval_regex]>->($completed_re);
+
+                if ( defined $cmd_regex ) {
+                    push( @regex_mask, $cmd_regex );
+                } else {
+                    <[base.logs]>->(
                         0,
                         'syntax error in command regex mask'
-                            . " [ user '$user' pos '$pos' ]"
+                            . " [ user '%s' pos '%s' ]",
+                        $user,
+                        $pos
                     );
                     $errors++;
                 }
-                use warnings;
                 $pos++;
             }
         }
@@ -126,8 +132,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         ## recreate permission configuration when filtered [ wildcards ] ##
         if ($patterns_removed) {
             if (@patterns_kept) {
-                <access.cmd.usr>->{$config_user}
-                    = join( ' ', @patterns_kept );
+                <access.cmd.usr>->{$config_user} = join ' ', @patterns_kept;
             } else {
                 delete <access.cmd.usr>->{$config_user}    ## clean-up ##
             }
@@ -146,7 +151,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         while ( length($log_str_encoded) ) {
             my $segment_str = substr( $log_str_encoded, 0, $wrap_width, '' );
             my $seg_len     = length($segment_str);
-            $segment_str .= 'A' x ( 8 - $seg_len ) if $seg_len < 8;
+            $segment_str .= qw| A | x ( 8 - $seg_len ) if $seg_len < 8;
             push( @encoded_wrap, $segment_str );
         }
 
@@ -156,10 +161,10 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
             my $add_segments = 5;
             $mask_log_str .= ':  ';
             while ( @encoded_wrap and $add_segments-- ) {
-                $mask_log_str .= shift(@encoded_wrap);
+                $mask_log_str .= shift @encoded_wrap;
             }
             $mask_log_str .= "\n";
-            $mask_log_str .= ":.\n" if !@encoded_wrap;
+            $mask_log_str .= ":.\n" if @encoded_wrap == 0;
         }
         $access_regex_log->{$user} = $mask_log_str;
 
@@ -168,17 +173,20 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         ## skip cleaned permissions ##
         goto SKIP_COMPILATION if not length($regex_mask_str);
 
-        no warnings;
-        if ( not <access.cmd.regex.usr>->{$user}
-            = eval("qr{$regex_mask_str}") ) {
-            <[base.log]>->(
+        my $comp_reg_res = <[base.eval_regex]>->($regex_mask_str);
+
+        if ( defined $comp_reg_res ) {
+            <access.cmd.regex.usr>->{$user} = $comp_reg_res;
+
+        } else {
+            <[base.logs]>->(
                 0,
-                "error in command regex mask [ user '$user' ]"
-                    . ' ., access mask dropped.'
+                "error in command regex mask [ user '%s' ]"
+                    . ' ., access mask dropped.',
+                $user
             );
             $errors++;
         }
-        use warnings;
     }
 SKIP_COMPILATION:
 }
@@ -186,37 +194,42 @@ SKIP_COMPILATION:
 ## report matched disallowed access patterns ##
 #
 if ($disallowed_count) {
-    my $s = $disallowed_count == 1 ? '' : 's';
-    map { <[base.log]>->( 0, $ARG ) }
-        ( "::[ disallowed command access pattern wildcard$s ]:.", ':' );
+    map { <[base.log]>->( 0, $ARG ) } (
+        sprintf( '::[ disallowed command access pattern wildcard%s ]:.',
+            <[base.cnt_s]>->($disallowed_count) ),
+        ':'
+    );
 
     my $pm_len = <[base.max-len.val-hash-keys]>->($disallowed_match);
 
     foreach my $user ( <[base.reverse-sort]>->($disallowed_match) ) {
         map {
-            <[base.log]>->(
-                0,
-                sprintf( ":   removed   :   %${pm_len}s   .:.  '$user'",
-                    $ARG )
+            <[base.logs]>->(
+                0, ":   removed   :   %*s   .:.  '%s'",
+                ,  $pm_len, $ARG, $user
             )
         } <[base.sort]>->( $disallowed_match->{$user} );
     }
     <[base.log]>->( 0, ':.' );
 }
 
-return $errors if !keys %{$access_regex_log};
+return $errors if not keys $access_regex_log->%*;
 
 ### logging [remaining] permission mask regex ###
 foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
     my $log_level = 2;    ## create security log buffer ? ##          [LLL]
-    map { <[base.log]>->( $log_level, length($ARG) ? "   $ARG" : ':A:' ) }
+    map {
+        <[base.log]>->(
+            $log_level, length($ARG) ? sprintf( '   %s', $ARG ) : qw| :A: |
+        )
+        }
         split( "\n", $access_regex_log->{$user} );
 }
 
 return $errors;
 
 #.............................................................................
-#GWFA52A6D37UYREQSVHJD52AQL6JFETIHJYGHYSLQFA6HW4MWGLG4ZWCAY4TCAOG33X2QROD26ESW
-#::: TVK7SUDZS44DKGGPGBGZSNRPYCQGJUQIIIRLT6CV32OHNH2KJ7G :::: NAILARA AMOS :::
-# :: T2AOMV4OVWKUHI7OWYTHK7WRRE5JKQ3ET37FT4ZAMR5ZC4ASYIBA :: CODE SIGNATURE ::
+#BASKJXERQ6D7YZF3MQS6JTLNG5XEU3LA6DENSVOLB4HG6KRWX2AZEIWIUSTOF7XJ7YMZ5EZG2USGA
+#::: E52ALWPGSIOYVTGNUJG7J4IAYA4OBB4ET5OQUJ6KEGJGKWJDRFW :::: NAILARA AMOS :::
+# :: OVIERUKWZSK4GDOKW4AAOZMLDD3TSG3SN6ABUH3S6GA4L4RMCKAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

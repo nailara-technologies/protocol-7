@@ -1,0 +1,43 @@
+# >:]
+
+# name  = base.eval_regex
+
+my $regex_str = shift;
+warn 'regex string parameter undefined' if not defined $regex_str;
+
+## regex compilation result details to stdout ##
+my $print_debug_to_console = 0;
+
+## setting up safe namespace ##
+my $parse = new Safe;
+$parse->permit_only(qw| :base_core :base_orig |);
+
+#### create function to by iteration exclude all uneeded opcodes [man Opcode]
+## required from base_core  ## const qr lineseq stringify ##
+
+## evaluate regular expression with 'qr' ##
+#
+my $perlcode_qr_str = sprintf 'qr\'%s\'', $regex_str;
+
+my $result = $parse->reval( $perlcode_qr_str, 1 );
+#
+##
+
+if ($print_debug_to_console) {
+
+    say "\n" . ' < perl code str > ', $perlcode_qr_str;
+    say '   < eval result > ', $result // qw| UNDEF |, "\n";
+
+    warn sprintf ' < eval error > %s <{NC}>',
+        <[base.format_error]>->( $EVAL_ERROR, -1 )
+        if length $EVAL_ERROR;
+}
+
+return undef if length $EVAL_ERROR;
+return $result;    ## undef on eval errors ##
+
+#.............................................................................
+#ZC4TCHOEBFI2SPIQRQJJXMIAGARFFM25GB2JVVYWVPBMXM5645X3SMTDWMDIBMNCI7GD2VM2NO2RO
+#::: KAWVT4VUGKJLIL5OPVGDWEHOV6JC5X4JNVSDVF5FYE5QYDA47JP :::: NAILARA AMOS :::
+# :: CZCSJAJYMKERWFPCP6EOFADRICKCSINXBAOAS5ZQOTOY6QPEBQDQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
