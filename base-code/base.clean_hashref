@@ -1,21 +1,22 @@
 # >:]
 
 # name  = base.clean_hashref
+# descr = delete keys to empty hrefs from a hashref
 
 my $hash_ref = shift // '';
-return warn "expected hash reference <{C0}>" if ref($hash_ref) ne 'HASH';
+return warn 'expected hash reference <{C0}>' if ref $hash_ref ne qw| HASH |;
 
 map {
     delete $hash_ref->{$ARG}
-        if ref( $hash_ref->{$ARG} ) eq 'HASH'
-        and not keys( %{ $hash_ref->{$ARG} } )
+        if ref $hash_ref->{$ARG} eq qw| HASH |
+        and not keys $hash_ref->{$ARG}->%*
     }
-    keys %{$hash_ref};
+    keys $hash_ref->%*;
 
-return scalar keys %{$hash_ref};
+return scalar keys $hash_ref->%*;    ##  number of remaining elements  ##
 
 #.............................................................................
-#SZZFUDXYQY6C3JAUF2CJGMWM7DWVDCEO7O5WWN7R4ZEWMAH2BCIHJSPYCYIHBFMZWBNR7Q3PQ47ZU
-#::: YFC63BEJCVEKQOUNT7ZIMONIWV6T4D3QAG757WE6HLMIVLCMDY3 :::: NAILARA AMOS :::
-# :: GRGABJRCINPHPYZDJQQLACRWQYWPPPKRY6RAF3YWVNZAGBTO5QAQ :: CODE SIGNATURE ::
+#OC4TACAHHKKTGCYEUITH37XNGUR3QWH4UWOZAHTVLPVXEK4ELDXNS35IJXL3ZFTXSQEAZV35DPCVS
+#::: B2UCKKC7FWBBCP2TWVCILF4YZUMVA2M7663WDCDSK26AZFOR6TV :::: NAILARA AMOS :::
+# :: NE52DK4RRE3ECPQTPFKNXG4ZP3BG6N3YA5Z5NSGMFGGXRHBWS6CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

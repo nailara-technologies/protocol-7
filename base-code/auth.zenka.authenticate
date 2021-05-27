@@ -57,12 +57,15 @@ if ( defined $key_str
     <[net.out]>->( $backend_socket, sprintf( "%s %s\n", $zenka, $key_str ) );
 
     if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
+
         my $rand_len = length( $KEYS{'zenka'}{'session_key'} );
         substr( $KEYS{'zenka'}{'session_key'},
             0, $rand_len, <[base.prng.characters]>->($rand_len) );
         $KEYS{'zenka'}{'session_key'}
             .= <[base.prng.characters]>->( 8 + int( rand(11) ) );
         delete $KEYS{'zenka'}{'session_key'};
+
+        <[base.clean_hashref]>->( \%KEYS ); ##  remove empty href elements  ##
     }
 
     return <[auth.zenka.process_auth_reply]>->($backend_socket);
@@ -74,7 +77,7 @@ if ( defined $key_str
 }
 
 #.............................................................................
-#5MVAFK562I2JQXODTDPR7GWSGCDZYAAMAWG7TFIME5PAEQ7U64WSKT2BNYXMOTB3EALLUVOHI6HFO
-#::: HEON7XYWVHCCD6W2OGMIC47AKJUDCFZWHLU6FJ3FBUXIB6OMWMY :::: NAILARA AMOS :::
-# :: AYR4EV5N75R4EDTSBP4LQAIBFY5XMYBYZ3OHKMSWO2YC7X3RCMDI :: CODE SIGNATURE ::
+#H77YDGN4I6JAURJ2EEW2XGOOY2TU5NSIA7P4DMB25ALKAHALAP3NDAOS623W2AAO3CXHF64UBEOA6
+#::: 2OOCYKJMJUN4725YMU7HBRAWRUJJUKFFOZP7J777U5I3JMW7RFG :::: NAILARA AMOS :::
+# :: CJR5VAR27QP7JZK54GNPUMY47WFD7VZUWMYZQJSBOUG6GG5ZYEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

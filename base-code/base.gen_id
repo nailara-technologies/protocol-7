@@ -6,13 +6,13 @@
 
 my $new_id;
 
-my $href = shift;    ## <-- where elements are to be placed .., ##
+my $href = shift;    ## <-- where elements are to be placed ., ##
 return warn 'expected hash reference <{C1}>' if ref($href) ne qw| HASH |;
 
 my $max_ids       = shift || 13747;
 my $num_range     = shift || qw| 01234577790 |;
 my $want_harmony  = shift // 1;
-my $element_count = scalar keys %{$href};
+my $element_count = scalar keys $href->%*;
 my $id_length     = length($max_ids) + 2;
 $id_length += int( $element_count / ( $max_ids / 5 ) ); ## expand --> limit ##
 
@@ -20,7 +20,7 @@ $id_length += int( $element_count / ( $max_ids / 5 ) ); ## expand --> limit ##
 
 my $collisions  = 0;
 my $retries     = -1;
-my $max_retries = 42 + int( $max_ids / 1000 );
+my $max_retries = 50 + int( $max_ids / 1000 );
 $max_retries = 4096 if $max_retries > 4096;
 
 while (not defined $new_id
@@ -63,7 +63,7 @@ warn "element count exceeded max_ids [$element_count:$max_ids]"
 return $new_id;
 
 #.............................................................................
-#PTEW7CP3D3Y3BILAH27Z66FPWNQMBSG5X2YUEBOEN2FZ2RKO7TKOIBENR6NGZVOZUPXH3G3DLFUTC
-#::: 2LZVRXWB2KKV7PKTWAWER47II44YBFWGKDIS5X7I3IBIVRMADUJ :::: NAILARA AMOS :::
-# :: Z3B5TKQVP3HNGUMFQXZZCKWXUZGL6S3E25DVS4NZUI3AJACC5ICI :: CODE SIGNATURE ::
+#PQCODTSR62FENGK3MJLNIOXYZWQI2A7D3XBZDMHQITEKMT36VGE47XIF6ONSGM4IIIX6DLLHNJG3E
+#::: 32EST2EWTF3Z5LKNXEUJKB3UNIQYY2EEPMJDLDUXI4R5JMPWHTX :::: NAILARA AMOS :::
+# :: 36N3FNM5SKZ2ZZLTRLBXCID4LCG5C4CDR57PW6UDQ2PZMPKGI2AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
