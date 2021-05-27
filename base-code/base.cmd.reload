@@ -66,38 +66,28 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     }
 
     ## source version ##
+    my $old_version = <protocol-7.src-ver> // qw| UNKNOWN |;
+
     my $src_version_file
         = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
-    if ( -f $src_version_file
-        and open( my $ver_fh, '<' . $src_version_file ) ) {
-        my $old_version = <protocol-7.src-ver> // '';
-        ( <protocol-7.src-ver> = <$ver_fh> ) =~ s|\s||g;
-        close($ver_fh);
-        <[base.log]>->(
-            0, sprintf( 'NEW SOURCE CODE [ %s ]', <protocol-7.src-ver> )
-        ) if <protocol-7.src-ver> ne $old_version;
-    } else {
-        <protocol-7.src-ver> = 'unknown';
-    }
+    <protocol-7.src-ver>
+        = <[base.read_from_version_file]>->($src_version_file);
+
+    <[base.logs]>->( 0, 'NEW SOURCE CODE [ %s ]', <protocol-7.src-ver> )
+        if <protocol-7.src-ver> ne $old_version;
 
     ## release version ##
+    my $old_release = <protocol-7.rel-ver> // qw| UNKNOWN |;
+
     my $rel_version_file
         = catfile( $data{'system'}{'conf_path'}, qw| protocol-7.rel-ver | );
-    if ( -f $rel_version_file
-        and open( my $ver_fh, qw| < |, $rel_version_file ) ) {
-        my $old_release = <protocol-7.rel-ver> // '';
-        ( <protocol-7.rel-ver> = <$ver_fh> ) =~ s|\s||g;
-        close($ver_fh);
-        <[base.log]>->(
-            0,
-            sprintf(
-                'RELEASE VERSION : %s --> %s',
-                $old_release, <protocol-7.rel-ver>
-            )
-        ) if <protocol-7.rel-ver> ne $old_release;
-    } else {
-        <protocol-7.rel-ver> = qw| unknown |;
-    }
+    <protocol-7.rel-ver>
+        = <[base.read_from_version_file]>->($rel_version_file);
+
+    <[base.logs]>->(
+        0,            'RELEASE VERSION : %s --> %s',
+        $old_release, <protocol-7.rel-ver>
+    ) if <protocol-7.rel-ver> ne $old_release;
 }
 if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     $keyword_match = 1;
@@ -148,7 +138,7 @@ $$reply{'mode'} = qw| data |;
 $$reply{'data'} .= $reply_footer;
 
 #.............................................................................
-#FCIMLITXDLDXPBKNXHZ4RUHNNZ7N4G2VKONH7A7QUHHPBNVUWICXPMDMP4AWAU6NMFLLT65LODF6A
-#::: GCKFVQMZRON4Z2GYFKOMVGW3FAXAH46LGVUG5CV7X5HFULPAL25 :::: NAILARA AMOS :::
-# :: SY5RLHALAAAM2S6WZQEUVASMLPCA4QKTK6CVDOMOLMNDUVG4YUCQ :: CODE SIGNATURE ::
+#LNO6KJHCCGAZ7DPYENGW5IZ24BUOW6NCA4NUOXPYXLSFVV2J22KQCBMPZ7AZ6MWB6MRRALZ3DNS4M
+#::: ALG45NFPXA33CDJBLRPP7N3ITAPGAWIPJWLKG2KWZYHVXRJUFAW :::: NAILARA AMOS :::
+# :: UU5IX4S2JYS6MNRUDYCGZPGAFODKELJ4GCQZVQDU3E3YIE2RMGAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

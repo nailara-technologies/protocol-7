@@ -20,7 +20,7 @@ if ( @ARGV and $ARGV[0] eq qw| -s | ) { $mode = qw| set_tag |; shift @ARGV }
 if (    $mode eq qw| set_tag |
     and @ARGV
     and $ARGV[0] =~ m|^(AMOS-)?v?(\d+\.\d+\.\d+)$| ) {
-    $release_version = sprintf( "AMOS-v%s", $LAST_PAREN_MATCH )
+    $release_version = sprintf( qw| AMOS-v%s |, ${^CAPTURE}[1] )
         and shift @ARGV;    ## <-- setting custom rel. version ##
 }
 
@@ -61,11 +61,11 @@ my $src_vers_file = c_file( c_dir( $root_path, qw| configuration | ),
     qw| protocol-7.src-ver | );
 
 my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
-    qw| protocol-7.src-ver | );
+    qw| protocol-7.rel-ver | );
 
 {
-    local $| = 1;
-    local $/ = undef;
+    local $|  = 1;
+    local $RS = undef;
     if ( open( my $v_fh, qw| < |, $src_vers_file ) ) {
         ( my $src_ver_str = <$v_fh> ) =~ s|\s.+$||sg; ## truncate signature ##
         close($v_fh);
@@ -80,24 +80,27 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 
         my $ntime = ntime_dec($ntime_B32);
 
+        $current_r_vers = sprintf( qw| AMOS-%s |, $current_r_vers )
+            if index( $current_r_vers, qw| AMOS |, 0 ) == -1;  ## v<z>.<y>.<x>
+
         my $offset = 0;
-        while (not defined $release_version
-            or $release_version eq $current_r_vers
-            or not is_true($release_version) ) {
-            (   $release_version = sprintf(
-                    "AMOS-v%.3f",
+        if ( not defined $release_version ) {    # skipping custom version #
+            while (not defined $release_version
+                or $release_version eq $current_r_vers
+                or not is_true($release_version) ) {
+                (   $release_version = sprintf qw| AMOS-v%.3f |,
                     $offset + (
                         $commit * $ntime / $ver_seed / ( 7777777 * 12242707 )
                     )
-                )
-            ) =~ s|(\d)$|\.$1|;
-            $offset += 0.001;
+
+                ) =~ s|(\d)$|\.$1|;
+                $offset += 0.001;
+            }
         }
 
         my $tag_msg
-            = sprintf(
-            "<< rel \\\\// p7-AMOS-base-v%s || base-code \\\\// %s >>",
-            $release_version, $src_ver_str );
+            = sprintf '<< rel \\\\// protocol-7-base-%s | src \\\\// %s >>',
+            $release_version, $src_ver_str;
 
         if ( $mode eq qw| rel_ver | ) {
 
@@ -114,7 +117,7 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 
             print "$fg:\n: setting release tag ["
                 . "$bg${CT} $release_version $rst$fg]\n$fg:\n::$rst";
-            system( qw| git tag |, "$release_version", '-m', $tag_msg, @ARGV )
+            system( qw| git tag |, $release_version, '-m', $tag_msg, @ARGV )
                 && die "${no}::<< ! >>:\n\n";
             print "$fg:$rst\n";
 
@@ -131,7 +134,7 @@ sub ntime_dec {
         if $network_time !~ m|^[A-Z2-7]{1,22}$|;
 
     my $ntime_dec;
-    eval { $ntime_dec = unpack( 'w', decode_b32r($network_time) ) };
+    eval { $ntime_dec = unpack( qw| w |, decode_b32r($network_time) ) };
 
     die "${no}:\n:: network time decoding not successful ::\n:\n"
         if $EVAL_ERROR
@@ -141,7 +144,7 @@ sub ntime_dec {
 }
 
 #.............................................................................
-#7PS5EWSRVUSB4TWHFZRTD5AEDUT3FMIXKURO4JVLGTBUTC3Y2NHLLRAW3EEOJRDLF4SEDLUUZFACC
-#::: L4MBVCFDLZTMVBLK2WOUAXALPW24ODNDDXRCZE7U2OM6QOD7L2R :::: NAILARA AMOS :::
-# :: CZUIT46QAJV53UALV2MLTQH354G5KN5UES4WDG74RW3OKZEDM4CQ :: CODE SIGNATURE ::
+#MRJFSNGOKX6NSXSQFGAL2EDLT2UMRTO5BYP4ALLOHXOOX5EQVOTFO33XBEYQSLT5OZVZN3UYEQUCI
+#::: IJC7YDQCEB4PFXEYY7OUHC4AESZACXAI2DOZKBMGP75DYBGPKJQ :::: NAILARA AMOS :::
+# :: 6WJ4DFKQWXMAOLZCUOBP2D3TD2UNV4BP7BF3UMZXFEXHZJ6DOEAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
