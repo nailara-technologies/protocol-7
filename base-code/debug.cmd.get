@@ -5,30 +5,42 @@
 # descr = return internal 'data' hash value
 # note  = todo: implement access control filter and root namespace
 
-my ( $cid,    $requested_key ) = ( $_[0]->{'session_id'}, $_[0]->{'args'} );
-my ( $key_ok, $err_msg )
-    = <[base.validate.data_key_syntax]>->($requested_key);
-if ( !$key_ok ) {
-    <[base.log]>->( 0, "[$cid] get: $err_msg" );
-    return { 'mode' => 'false', 'data' => $err_msg };
-}
+my ( $cid, $requested_key ) = ( $ARG[0]->{'session_id'}, $ARG[0]->{'args'} );
 my $key_ref;
-if ( $key_ref = <[base.resolve_key]>->($requested_key) and defined $key_ref )
-{
-    return {
-        'mode' => 'true',
-        'data' => $$key_ref
+my ( $key_is_valid, $errmsg )
+    = <[base.validate.data_key_syntax]>->($requested_key);
+if ( not $key_is_valid ) {
+    <[base.logs]>->( 0, '[%d] get: %s', $cid, $errmsg );
+    return { 'mode' => qw| false |, 'data' => $errmsg };
+}
+
+if ( defined( $key_ref = <[base.resolve_key]>->($requested_key) ) ) {
+
+    return { 'mode' => qw| true |, 'data' => $$key_ref }
+        if ref $key_ref eq qw| SCALAR |;    ## returning value ##
+
+    $key_ref = $$key_ref    ## consider modifying base.resolve_key ##  [LLL]
+        if ref $key_ref eq qw| REF | and ref $$key_ref eq qw| HASH |;
+
+    return {    ##  returning key list as size reply if hashref  ##
+        'mode' => qw| size |,
+        'data' => join(
+            '', map { sprintf "%s\n", $ARG } <[base.sort]>->($key_ref)
+        )
         }
-        if ref($key_ref) eq 'SCALAR';
+        if ref $key_ref eq qw| HASH |;
+
     return {
-        'mode' => 'false',
-        'data' => 'only references to scalars are currently implemented'
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( '%s references not implemented', lc( ref $key_ref ) )
     };
 }
-return { 'mode' => 'false', 'data' => 'requested key not found' };
+
+return { 'mode' => qw| false |, 'data' => 'requested key not found' };
 
 #.............................................................................
-#KKOOKTFS3YTASYUL4JS2ZF2UA5CQNZGRQRNOZDSOH5DOIKTJ4KVGEI6BSUYNUQ7I4D3PHBI3ZRO2O
-#::: AJAOOYMWCUVQL2X3QRHKOU44BR5BWRRNMGYTIV2L5VIZDHSVUQW :::: NAILARA AMOS :::
-# :: IZ5575O3SSKGDRSXHUWCRVNGUASO2OBG3MUS72MK25FVDHZ22UDI :: CODE SIGNATURE ::
+#CNOOC5PJI3PK3AOZ54WZEMN2PRBT3IMA4NLGGH53T7H4N5RTU3VC4LS6P677G6NW2RLZS2P4KTNB6
+#::: GPIIFTEAQJIDRXCHIOZB5NIH6XS4MA6S627HEHLLHPPGLLKHISZ :::: NAILARA AMOS :::
+# :: SEZZ3NAKSAWO7RGWPTLZCTTRAZ6K55PELDLPEBXIDYK7GHAWDWAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
