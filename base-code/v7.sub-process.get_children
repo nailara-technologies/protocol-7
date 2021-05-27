@@ -50,26 +50,28 @@ while ($found) {
 }
 
 my $instance_id;
-##
-map {
-    $instance_id = $ARG
-        if $chk_pid == ( defined <v7.zenka.instance>->{$ARG}
-            and defined <v7.zenka.instance>->{$ARG}->{'process'}
-            and <v7.zenka.instance>->{$ARG}->{'process'}->{'id'} // -1 )
-} <[v7.instance_ids]>;
-#
+
+foreach my $id (<[v7.instance_ids]>) {
+    say sprintf( qw| v7.zenka.instance.%d.process |, $id );
+    $instance_id = $id
+        and last
+        if <[base.is_defined_recursive]>
+        ->( sprintf( qw| v7.zenka.instance.%d.process |, $id ) ) == 5
+        and $chk_pid == <v7.zenka.instance>->{$id}->{'process'}->{'id'};
+}
+
 if ( defined $instance_id ) {
     map { $children{$ARG} = 1 if <[v7.sub-process.exists]>->($ARG) }
         ( <[v7.instance_child_pids]>->($instance_id) );
 }
-##
+
 return [
     reverse sort { $start_times{$b} // 0 <=> $start_times{$a} // 0 }
         reverse sort keys %children
 ];
 
 #.............................................................................
-#5OWOCKZEAGBZB55YQ4GIMZ3TNUQEY2NJXKUSQABCVU6GUII33QYT6ZI4IJLM7CLBWML5OJAAAUIVS
-#::: N7ZMBNMEB6XCVSECOFIWN2N7BTUIPXUAVG7L2OXCWNXTKS4G4RP :::: NAILARA AMOS :::
-# :: 53UK2FVODB27ZP56QHY4HL2YD55JWUKJJL5WA2EBN355BJG3K4AY :: CODE SIGNATURE ::
+#GKBBSP4LNO3Q6OEBQTS4PNXXFRTDIRU7EW5ZTPV3QW7WH5B4L6XUE34GDY7K7YOBPASHXLWLEMLZW
+#::: QGMEIT4MEAMTH2DTEGYC32ETDLT4PCKVZ4VGPKJWSMFYRB5BZBR :::: NAILARA AMOS :::
+# :: O6QL4A5THUVNAX3SMWS76VBQCLHWE6QWM6KOWVPOX6ABAKO7RODA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
