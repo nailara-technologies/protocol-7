@@ -1,23 +1,23 @@
 
-.:[ 'notify-info' trigger zenka ]:.
-
-[root.drop_privs:<system.amos-zenka-user>]
+.:[ notify-info trigger zenka ]:.
 
 [load_config_file:'shared-params']
+[load_config_file:'X11-vars']
 
-modules.load = auth net chk-sum io.unix notify-info
+modules.load = auth net protocol io.unix notify-info
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'unix']
+[root.drop_privs:<system.AMOS-user>]
 
+[net.connect_to_cube:'unix']
 [notify-info.send_message]
 
 [event.loop]
 
 #.............................................................................
-#UTAHKUP27UCXXRVP2JOEJ3B74GQPPLKZGMAS6UFVF4HX6FEX4LY6CJHHGSLF5ZW54PQVGJSARK2RW
-#::: 4YF2EFYL2PPJGIJQQ2DZQAYEUALM3ALZPHVAASHUPBXRB77U5OS :::: NAILARA AMOS :::
-# :: K646N6XMR53AT4JWHHS7MKEUBN4DZUH6MUM2POY5RJRTLD73P4CQ :: CODE SIGNATURE ::
+#UQMEUQA3CR2RSI62H7Q42TDZZLZZ62YKCXEJ36ICTKMA4RCPBRYFPKFYVENLQBPJYJVAWFBW3LXIC
+#::: SEUEGRVPRMOS6H7GCUEUOKDYKEYY5CXGSRVXK2NXXZV2ODDWI7Q :::: NAILARA AMOS :::
+# :: VY3OZOUQVRJESHPUHIOCRT42OKTKUKP6CTPVCWRPEENB42EBN2AA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

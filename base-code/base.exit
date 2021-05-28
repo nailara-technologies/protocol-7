@@ -1,18 +1,47 @@
 # >:]
 
-# name = base.exit
+# name  = base.exit
+# descr = end zenka process, has optional command-reply handler mode
 
-my $exit_code = ( scalar @_ and $_[0] =~ m|^\d+$| ) ? shift : 0;
+my $exit_msg;
+my $log_level;
+my $exit_code;
 
-my $exit_msg  = shift;
-my $log_level = shift;
+## called as protocol-7 reply-handler ##
+##
+if ( ref( $ARG[0] // '' ) eq qw| HASH | and exists $ARG[0]->{'cmd'} ) {
+    my $reply_p = shift;
 
-$exit_msg  //= ".. exit [ $exit_code ] called .,";
+    $exit_code = $reply_p->{'return-code'}
+        if defined $reply_p->{'return-code'};
+
+    $exit_msg = $reply_p->{'log-message'}
+        if defined $reply_p->{'log-message'};
+
+    $log_level = $reply_p->{'log-lvl'} if defined $reply_p->{'log-lvl'};
+
+    if ( $reply_p->{'cmd'} eq qw| FALSE | ) {   ##  warn on command errors  ##
+        if ( not exists $reply_p->{'ignore-errors'} ) {
+            $exit_code = 1;
+            $log_level = 0;
+            $exit_msg  = $reply_p->{'call_args'}->{'args'};
+        }
+    } else {
+        $exit_msg //= sprintf( ': success : %s',
+            $reply_p->{'call_args'}->{'args'} );
+    }
+
+} else {    ## regular procedural mode ##
+
+    $exit_code = shift @ARG if @ARG and $ARG[0] =~ m|^\d+$|;
+    ( $exit_msg, $log_level ) = @ARG;
+}
+
+$exit_code //= 0;
 $log_level //= 1;
+$exit_msg  //= sprintf( '.. exit [ %d ] called .,', $exit_code );
 
 <[base.log]>->( $log_level, $exit_msg );
-
-# Event->unloop_all() if defined &Event::unloop_all;
 
 print STDOUT $ANSI{'reset'};
 print STDERR $ANSI{'reset'};
@@ -20,7 +49,7 @@ print STDERR $ANSI{'reset'};
 CORE::exit($exit_code);
 
 #.............................................................................
-#XNISEQFOTYLHX564K4HOTWU5ZIIZEME23CM4OVMNT72V47ZN5XRZAP46V5XVVLUDMXGSAEYFUUGKE
-#::: MJPG4TDKSKR4EO25Y7INHDQHERSL4HBDITG6J5VRGVX7JTS7K4I :::: NAILARA AMOS :::
-# :: WY3NDZ44VAJJR2JNW4NXSWVIE46ITT2AC3NFLMSWH5ZZTUVJLKBA :: CODE SIGNATURE ::
+#AM6J34APVRMHOZV43OBK26KLIO5MTZPRTM2KSYWTSUDXEQUTKUPYKERNUGVPKODO2GO4LMCP6ZJYO
+#::: YHQJFRPLP5JX5YXTGSSQWYJCBOVCAHG2WHHULC3MUU3OCQKBPXR :::: NAILARA AMOS :::
+# :: 4CS4EGEL4AERVCSC6JQ3E3VIZ7T2KXZ3W3YCMPDAWFV6PNBIGOAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
