@@ -7,15 +7,15 @@
 access.cmd.usr.cube     =    heart verify-instance get-pid socket_address \
                              commands list show-buffer reload
 
-modules.load            =    auth net protocol io.ip dbus
+modules.load            =    auth net protocol io.unix dbus
 
-dbus.privs_user =       <system.X-11-user>   ## <-- needs auto-discovery [LLL]
+dbus.privs_user =       <system.AMOS-user>   ## <-- needs auto-discovery [LLL]
 
 [load_modules:<modules.load>]
 [root.drop_privs:<dbus.privs_user>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.X-11.get_display]
 
 [dbus.run_dbus]
@@ -23,7 +23,7 @@ dbus.privs_user =       <system.X-11-user>   ## <-- needs auto-discovery [LLL]
 [event.loop]
 
 #.............................................................................
-#BURNQB236OARXWQPZPGCCE4XWICWKJ6PT2YNCTLUTDYR3ZHTTZJU5OETTYYU64XBW7U6IQNDILZOS
-#::: UGZNIRCN4CDMEYZ5FUEVOKIKIT6DULQJGD3W4TSEZQUBLDGWD7B :::: NAILARA AMOS :::
-# :: BQN6TXQ6YI6I73W5TS5VXUPPCY5FMOBADXOOWNMXGO6PTBXOZ4AI :: CODE SIGNATURE ::
+#OOWTWH7AKJMZOA4VY7WCX7YUVXE5TGD6ZRUIWLOUUTE7VAABXTEYQIET24DRXWZORISVYXGP4LNPG
+#::: HIAIF7QCMAGKAI5GYWEPQW3IXZ6VAOEYGVHWX6NYIHOJ4PPDIZQ :::: NAILARA AMOS :::
+# :: 4NFVYMAMJ25BJVQDGGQ5CGIDOS2FM4LITZK2PTTJZIYNVSYVZOAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

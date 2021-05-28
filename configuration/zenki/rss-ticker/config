@@ -5,9 +5,9 @@
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-access.cmd.usr.cube = commands message heart reload verify-instance show-buffer \
-                      get-config-names get-config name subname playlist_update \
-                      resend_update
+access.cmd.usr.cube = commands message heart reload verify-instance \
+                      show-buffer get-config-names get-config name subname \
+                      playlist_update resend_update
 
 rss.data.tmp_path          = /var/tmp/
 rss.ticker.update_commands = ticker-gtk.read_file ticker-sdl.read_file
@@ -29,11 +29,11 @@ modules.preload = rss-ticker.set-up set-up.json
 [set-up.json.import_file:'rss-ticker.set-up.json']
 [set-up.json.import_file:'rss-ticker.content.json']
 
-modules.load = auth net protocol io.ip chk-sum rss.ticker set-up.json
+modules.load = auth net protocol io.unix io-ip chk-sum rss.ticker set-up.json
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.get_session_id]
 
 [rss.ticker.get_feed_urls]
@@ -41,7 +41,7 @@ modules.load = auth net protocol io.ip chk-sum rss.ticker set-up.json
 [event.loop]
 
 #.............................................................................
-#FAL3IR67XZCNYZZSQNJ2QT2LXVVI74TUJ2V4O6NHYH2FQM3IDCG25AQUAIFHMOHOFIEXZZRZ32BXG
-#::: Z5NPHLJNWSOWYXOLN5MTMTOYEZ2M4CS2V7436SXIAPVXNWJDQLY :::: NAILARA AMOS :::
-# :: 5YTBYRJZBTZVUAIZ3KWL262AHLN6NSZZRVT3SIMTD45ZMGJOWWAY :: CODE SIGNATURE ::
+#RPOQ4VHVE6MNH7VHW7UDEH5CFFPQURO6RMWXPADW5KGDZI5QOYUDYOSVF7IOSONTV6VYDSUSRZZ5G
+#::: NJ4S6Q6OKGOJYL3OOFJEDFGPL3IRQMI2Y6YE6IBYBCGRRSMUIET :::: NAILARA AMOS :::
+# :: 2MV3G2JPJ6BJT2MJNFKWUQ7R7Y2D5VBIWKJACZT466LFDK75N6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

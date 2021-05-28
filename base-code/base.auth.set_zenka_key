@@ -1,19 +1,23 @@
 # >:]
 
 # name  = base.auth.set_zenka_key
-# descr = set up session auth key for zenka client
+# descr = preparing session auth key for zenka client
 
-my $key_str = shift;
-return warn 'expected zenka session key parameter <{C1}>'
-    if not defined $key_str or not length $key_str;
+my $key_str = shift // '';
+return warn 'expected zenka session key parameter <{C1}>' if !length $key_str;
 
-<system.zenka.type> //= qw| zenka-client |;
+##  record start-up type  ##
+<system.zenka.type> = qw| v7-started-zenka |;
 
-<[base.log]>->( 1, 'setting up zenka session key.,' );
+<[base.log]>->( 1, 'configuring :zenka: auth session key.,' );
+
+## prepare :zenka: client auth mode ##
 $KEYS{'zenka'}{'session_key'} = $key_str;
+<system.authentication-type> = qw| zenka |;
+###
 
 #.............................................................................
-#HOPOSRB7ZI2CM27I6MZDZNW2S7K2FNS22STOOR2OURBCFOHZWJRK3N7CEMYOO3TZZVYTRGXV4JV3A
-#::: 4Y2KCGYWYDZ3QG2ZNXETWR3PNZLMSSBNRE3PAZID26RP53BMLCZ :::: NAILARA AMOS :::
-# :: SIAHFWS3J3ASOHJB6XS35EGPBI2B4SDQD4Y3SANFNL6URXIZ2KDI :: CODE SIGNATURE ::
+#OSBK6IK2IASFF7RZHXC5OSLQN3PEV2544P2T4X4UPAEHUN32DT6GU7PN2QUNYEXXTIXDHYE7FLYME
+#::: D6MF4W7U3MVOYFVFUJLSJ42WSNBQ6CERBGLFVBXKKA5IWOHALMI :::: NAILARA AMOS :::
+# :: SSTPGM5UITR73QA7T5J4LI5JWMYLZ25C2SVXHEWXFVWNRJRP7WDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

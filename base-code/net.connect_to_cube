@@ -16,7 +16,7 @@ foreach my $param (@ARG) {
         $cube_sock = $param;
     } elsif ( $param =~ m,^(ip\.|unix), ) {
         push( @connection_types, $param );
-    } elsif ( !$custom_addr ) {
+    } elsif ( not $custom_addr ) {
         $custom_addr = 1;
         $cube_addr   = $param;
     } else {
@@ -26,7 +26,8 @@ foreach my $param (@ARG) {
 
 @connection_types = (qw|unix|) if !@connection_types and defined <unix.path>;
 
-my $unix_path     = defined <unix.path> ? <unix.path> : undef;
+my $unix_path = defined <unix.path> ? <unix.path> : undef;
+
 my $zenka_name    = <system.zenka.name>;
 my $zenka_subname = <system.zenka.subname>;
 
@@ -40,8 +41,10 @@ foreach my $c_type (@connection_types) {
         next;
     }
 
-    <[base.logs]>->( 1, 'initiating cube connection [%s].,', $c_type );
+    <[base.logs]>->( 'initiating cube connection [%s].,', $c_type );
+
     if ( $c_type eq qw| unix | ) {
+
         if ( not defined $unix_path ) {
             if ( not defined $cube_addr and defined $cube_port ) {
                 <[base.log]>->(
@@ -51,46 +54,76 @@ foreach my $c_type (@connection_types) {
                 );
                 exit(2);
             } else {
-                my $socket_name
+                my $unix_chksum
                     = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
                 <[base.log]>->(
                     0, '<< unix socket name calculation not successful >>'
                     )
                     and next
-                    if not defined $socket_name;
-                <unix.path> = $unix_path
-                    = join( '', qw| /var/run/.7/UNIX/ |, $socket_name );
+                    if not defined $unix_chksum;
+                $unix_path
+                    = join( '', qw| /var/run/.7/UNIX/ |, $unix_chksum );
+                <[base.logs]>->(
+                    2, ": connecting to socket path '%s'.,", $unix_path
+                );
+                ##  main cube socket path  ##
+                <unix.path> = $unix_path if not $custom_addr;
             }
         }
         if ( !-e $unix_path or !-S $unix_path and @connection_types ) {
-            <[base.log]>->(
-                2, "unix path '$unix_path' not found, skipping.,"
+            <[base.logs]>->(
+                2, "unix path '%s' not found, skipping..,", $unix_path
             );
             next;
         }
-
+        ## connect to unix socket ##
         $cube_sock = <[base.open]>->( qw| unix output |, $unix_path );
+
         if (    defined $cube_sock
             and -S $cube_sock
             and $cube_sock->connected ) {
 
-            ## authenticate without key [ unix uname only ] ##
-            $cube_sock
-                = <[auth.unix.authenticate]>->( $cube_sock, $zenka_name );
+            ## select correct authentication method ##
+            <system.authentication-type> //= qw| unix |;
 
+            if (not $custom_addr    ##  multiple addresses case  ##
+                and <system.authentication-type> eq qw| zenka |
+                and
+                <[base.is_defined_recursive]>->( ##  has zenka session key  ##
+                    qw| zenka.session_key |, \%KEYS
+                ) == 5
+                ) {    ## authentication set-up ':zenka:' ##
+
+                my $auth_name = $zenka_name;
+                $auth_name .= sprintf( '[%s]', $zenka_subname )
+                    if defined $zenka_subname;
+
+                $cube_sock
+                    = <[auth.zenka.authenticate]>->( $cube_sock, $auth_name );
+
+            } else {    ## authentication set-up :unix:.., ##
+
+                $cube_sock  ## authenticate without key [ unix uname only ] ##
+                    = <[auth.unix.authenticate]>->( $cube_sock, $zenka_name );
+            }
         } else {
             $cube_sock = undef;
         }
+
     } elsif ( $c_type eq qw| ip.tcp | ) {
-        $cube_sock
+        $cube_sock    ## connect to tcp.ip cube socket ##
             = <[base.open]>->( qw| ip.tcp output |, $cube_addr, $cube_port );
+
         if (    defined $cube_sock
             and -S $cube_sock
             and $cube_sock->connected ) {
             my $auth_name = $zenka_name;
-            $auth_name .= "[$zenka_subname]" if defined $zenka_subname;
+            $auth_name .= sprintf( '[%s]', $zenka_subname )
+                if defined $zenka_subname;
+
             $cube_sock
                 = <[auth.zenka.authenticate]>->( $cube_sock, $auth_name );
+
         } else {
             $cube_sock = undef;
         }
@@ -110,7 +143,7 @@ foreach my $c_type (@connection_types) {
                 'handler' => qw| base.session.send_init_reports |
             }
         );
-        <base.log.allow_buffer_send> = 1;
+        <base.log.allow_buffer_send> = 1;    ## enable sending to 'p7-log' ##
         return $cube_sock;
     }
 }
@@ -124,7 +157,7 @@ if ( not defined $cube_sock ) {
 }
 
 #.............................................................................
-#B3J6D2GWFMO2JF7LAK3VLARFQLCZKU4RK3VOQD5X26TIOFG7OBBIWSFGE3WNIAFYHLEKODLXG5S7U
-#::: RAK4TUA64UMWIHQCHHJ4GWPAMXHYA3ZRMTQVRY2BHGH5MJFTVEB :::: NAILARA AMOS :::
-# :: 3UME36OMO2JTLCPBGV5U7XHYIDQ6LN4ZC4EEMOS4JWFOY4QY7YCQ :: CODE SIGNATURE ::
+#V4NK4LSS6WAKWJOIKGKIKTNEXQJWIUOXWBKDMMMHH7IE3G7VDV3PR6PDGFYXKYBINXHM7QAE5L5LU
+#::: T6BTXAGWTR7VS57HBBGIO3YQB77BZXQ3DYNGUPH4GRLWZ6QWQMB :::: NAILARA AMOS :::
+# :: MDG2RHRZUGXZX7GUBALWUP2JS6T5ZK53BPE3QBYHXNHNRP73LUCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

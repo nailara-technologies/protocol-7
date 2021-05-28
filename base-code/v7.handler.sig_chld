@@ -1,8 +1,10 @@
 # >:]
 
 # name  = v7.handler.sig_chld
+# descr = clean up after terminated child process IDs
 
 <[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
+
 local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
@@ -61,7 +63,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 
         ## record web-browser segfaults [ for crash mitigation ] ##
         if ( $e_sig == 11 and $zenka_name eq qw| web-browser | ) {
-            my $web_browser_uname = <system.X-11-user>;
+            my $web_browser_uname = <system.AMOS-user>;
             my $subname_b32
                 = ( defined $zenka_subname and length($zenka_subname) )
                 ? join( '', qw| . |, encode_b32r($zenka_subname) )
@@ -121,7 +123,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
 }
 
 #.............................................................................
-#RMP4S52TVLREMT4AGWZEILDBYJQFGNHMUJJGLTIZHFUT76Q5PAIVN4LB3UYEOW4WV3UXHNKTSRZCO
-#::: 65BCQ2CRH3YKMJVIJWAUK5C42F5EVAK4U4OV6M7QWZZBHATVJRS :::: NAILARA AMOS :::
-# :: WNA5CAKYFQ43KUK3KOXAQHCRMLPXD5H35YG7I5ZV3YAYO4CYLYBA :: CODE SIGNATURE ::
+#EOK3U4ISKXBPTR43M5KVSSDZ646BMMWVIKJZUX2ZZT3JUJKF6I5EMFI6KEII5BZ26FKEIXBIRJ5L6
+#::: WTS2UUMIUFYAU3PMG7XJT4RLOCTWQLI3VZNBTLCSIWQZNRDXKRD :::: NAILARA AMOS :::
+# :: ZMRDNNCOM3ZYA65YTG2AS6VWKFWUF553DLXQE5C7SXVGVUYYFQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

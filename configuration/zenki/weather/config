@@ -3,7 +3,8 @@
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.cube = commands heart verify-instance list show-buffer name reload \
+access.cmd.usr.cube = commands heart verify-instance \
+                      list show-buffer clear-buffer name reload \
                       get-urls station-id child.* clean-cache clear-location \
                       location temp desc clouds humid present \
                       dump echo # <-- require debug module
@@ -77,11 +78,11 @@ weather.cache_timeout = 3 # hours
 weather.update_interval.current  = 13 # mins [ + random[interval] ]
 weather.update_interval.forecast = 33 # mins [ + random[interval] ]
 
-modules.load = auth net protocol io.ip chk-sum.sha weather.base
+modules.load = auth net protocol io.unix io.ip chk-sum.sha weather.base
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [weather.base.calc_zoom_level]
 
@@ -92,7 +93,7 @@ modules.load = auth net protocol io.ip chk-sum.sha weather.base
 [event.loop]
 
 #.............................................................................
-#YN55YXJOUF3MYMMFW5KXB6MH7PWXBCZMPRQQ3RPTFYX2YRGBEOPKLFVCYFDC2WY46OAQQE7YTYGWS
-#::: 3Q7UTZXHSHSQM4EXXHPMZG6HSJA734ZYMDDZQIE2PLYI5AZG7QC :::: NAILARA AMOS :::
-# :: ZRJONBPLRNPVFPAHJ3ZKAQ4ECPTEOFS25EF6VOHB6CAIK3XTNMCI :: CODE SIGNATURE ::
+#43ZOFHUDXED2GSDBASOWVRHQ76SHHTPUHPXQLQ722JU4GMOY3GSDLS57JN2L25PVPP4XXBMFPPBNU
+#::: RHNQ6SMJVOM7LF6653MP42OIDQK5W35TEE7QHEUFF5U27R43TYU :::: NAILARA AMOS :::
+# :: NAIND5GAB5F4XSJIMFTPWWBVPIZQTQYMCWU6DPD43C4K2NDUMOBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

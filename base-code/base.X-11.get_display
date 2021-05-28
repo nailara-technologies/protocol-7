@@ -2,15 +2,17 @@
 
 # name = base.X-11.get_display
 
-my ($local_sid) = keys( %{<user.cube.session>} );
+my $silent_warnings = shift // 0;
 
-<[base.log]>->( 2, "requesting display name from X-11 zenka.," );
+my ($local_sid) = keys %{<user.cube.session>};
+
+<[base.log]>->( 2, 'requesting display name from X-11 zenka.,' );
 
 $data{'route'} //= {};
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_display\n" );
+<[net.out]>->( $cube_fh, sprintf( "(%d)X-11.get_display\n", $cmd_id ) );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -35,12 +37,16 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     );
     return <x11.display>;
 } else {
-    <[base.logs]>->( 0, "not expected X-11 reply ['%s']", $reply_string );
+    <[base.logs]>->(
+        $silent_warnings ? 2 : 0,
+        "not expected X-11 reply ['%s']",
+        $reply_string
+    );
     return undef;
 }
 
 #.............................................................................
-#ZK32EFVQ76XW5FNYSZTUV7EBVLVCFQQXSGNS64ICTN34QUQA4YSD6IVVOFP442ISYRRVQFXBKTSKW
-#::: PAXPWEJU4HM536LLNTOEPWOXAO62WDV3BZ2G7XXIG6WJ3ZF2B27 :::: NAILARA AMOS :::
-# :: JR4GVXAD6WYREUDGMC57533PSZIA4EYGUS4KP6SOCOQ7MWSQFQAI :: CODE SIGNATURE ::
+#6ZB7L5PMSVEOD4RB7ZRRVR7IUUX3E442Y5GCGRQM5UT4U257EKIMR7DNI6VY7EQ6XQSIQEYYYQHD4
+#::: F4YWTWXV4NM3MT3S246OR5X36MRB6HJZURFO2YRH6I2AOEOCY4M :::: NAILARA AMOS :::
+# :: DK33IKL5YBPAPZKQLAMUY2UOSNCP7MU5EOUAIJ3BKDBS56MKDICA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

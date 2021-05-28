@@ -1,25 +1,26 @@
 
- .:[ nailara 'nodes' zenka ]:.
+ .:[ protocol-7 'nodes' zenka ]:.
 
 [load_config_file:'shared-params']
 
-modules.load = auth net protocol io.ip nodes ## debug
 access.cmd.usr.cube = commands heart reload verify-instance *-version src-age \
                       show-buffer clear-buffer list add-trunc add-group-user \
                       cur-pid get set del dump keep-debug-loaded
+
+modules.load = auth net protocol io.unix io.ip nodes ## debug
 
 [load_modules:<modules.load>]
 [init_modules]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#JUXH7CHYM2MPGOEFNUCJFQPTBZHRCIXRRU77QQOYHULWKJWU67XIAC64WW23TEAYGEKJ4442I7YSA
-#::: WKK2FVQYUICPAVQMFFN6B5UWCKWAZOZFGFJMYFVFP76TULVSIDA :::: NAILARA AMOS :::
-# :: FMWBKDGEAA6TWJQK5RUC2IZ66RSXY7SDERWS4BEPS2ZEQWF5WWDI :: CODE SIGNATURE ::
+#CSPSBD77LPDA3EYM4T7MEOGEIST7JOPEHTFHA23RU2YEQ4J3PFRAVE3O4JCLIHFXRAJGEUCAC3QXA
+#::: XDR5JTXPEEETBGWZF7HRWGSWORAW3MTC2D323BJ2RC5WJM4K3KF :::: NAILARA AMOS :::
+# :: IPQXHFJT7J7RFHGA2KYW7RU3TLO4YVCT4RQAHQJ3DCJXGFRGU6AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

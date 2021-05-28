@@ -1,19 +1,19 @@
 
-.:[ simple (X11) 'screenshot' zenka ]:.
+.:[ simple [ X-11 ] screenshot zenka ]:.
 
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-modules.load     = auth net chk-sum io.ip screenshot
+modules.load     = auth net chk-sum io.unix screenshot
 access.cmd.usr.* = commands heart name verify-instance reload src-age \
                    show-buffer clear-buffer get_region_color write_png
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.X-11-user>]
+[root.drop_privs:<system.AMOS-user>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 [base.get_session_id]
@@ -21,7 +21,7 @@ access.cmd.usr.* = commands heart name verify-instance reload src-age \
 [event.loop]
 
 #.............................................................................
-#72FAHV5T2I2244NUCNSNZECRM3YUGXVDGHNW3RJHOGHUCBMQZK5URWGV3QXISEXANTFNDNO33MEL6
-#::: I7OIEEEMII7Y2DI5VDBRSN4DOP56UIVTQ4MZPRZ4DT7HVEXZHHI :::: NAILARA AMOS :::
-# :: DC2OB7KG7HNSSOZVQAG54LHNLL7JU2VK5KZJDZJT6QNE6GLVKQDI :: CODE SIGNATURE ::
+#KGG5DVAWSVUSE6DQEHVBMN7VMHIACPELVSCB5QVLDJTBCFUJLIHU3MI7IDDZHEDA3RDJMUMOPLI3M
+#::: UK2GSBNDORD55AA7GZUPFN44HMEXJ5TMK3QJYE7VPRGXHBFSD6A :::: NAILARA AMOS :::
+# :: NYK6ZLR7L6IX5NKMTDX4UDMHJGNW5U3JQAMLQYHSYQDRY2IH5YCY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

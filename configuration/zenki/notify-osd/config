@@ -6,13 +6,13 @@
 
 access.cmd.usr.cube = commands heart reload verify-instance
 
-modules.load = auth net protocol io.ip notify-osd
+modules.load = auth net protocol io.unix notify-osd
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.X-11-user>]     ## <-- [LLL] X-11-user auto-discovery
+[root.drop_privs:<system.AMOS-user>]     ## <-- [LLL] desktop-user auto-discovery
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 [base.X-11.get_dbus_addr]
@@ -24,7 +24,7 @@ modules.load = auth net protocol io.ip notify-osd
 [event.loop]
 
 #.............................................................................
-#7UDJWR3CPWRXSP3AA7RPTZLHYJULJMHUFMQPEIBFBDOECQCTNLIXF3FG4HJ4MB7VSOTFT6HLM32WM
-#::: 24A74JKUDB5IZ5QQP6VDUCSRBVQXLDGWUYCI22K6CWMZ5IZQ2LH :::: NAILARA AMOS :::
-# :: AR4OFZ4NSL5K6KJERERODO5MD3RFMKHE5XCTCHWCREKWS5WCLKBI :: CODE SIGNATURE ::
+#DXLHOTXYWKUAZZ7VQ345ZC6DNFP6Q2TFOQXRWVLENITX6CMBBW7KFMRBLFGHQQSF2ZR2SULGVY7JK
+#::: 634D7VG4QERKQ2CPITQ76MOH5PY2RAXK5PDF3FDEYHNE3ENEEWK :::: NAILARA AMOS :::
+# :: LZTBVLCDJMZ4VIH5HLFG373INYDMZLS3BAQ6XIS5IJOJLNPI4ECY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,19 +4,36 @@
 # descr = create v7 zenka client session to local cube
 
 my $instance_id = shift;
-my $cube_addr   = <protocol-7.network.internal.addr>;
-my $cube_port   = <protocol-7.network.internal.port>;
-my $init_data   = <v7.zenka.instance>->{$instance_id}->{'init_data'};
-my $cube_key    = $init_data->{'cube'}->{'key'};
-my $authname = <system.zenka.name> eq '<stdin>' ? 'v7' : <system.zenka.name>;
-$authname = <system.zenka.auth_name> if exists <system.zenka.auth_name>;
 
-<[base.logs]>->(
-    'connecting to local cube [%s:%d] ..,',
-    $cube_addr, $cube_port
-);
+my $cube_addr = <protocol-7.network.internal.addr>;
+my $cube_port = <protocol-7.network.internal.port>;
+my $init_data = <v7.zenka.instance>->{$instance_id}->{'init_data'};
+my $cube_key  = $init_data->{'cube'}->{'key'};
 
-my $c_fh = <[base.open]>->( qw|  ip.tcp  output  |, $cube_addr, $cube_port );
+my $authname
+    = <system.zenka.name> eq qw| <stdin> | ? qw| v7 | : <system.zenka.name>;
+$authname = <system.zenka.auth_name> if defined <system.zenka.auth_name>;
+
+my $c_fh;    ## cube filehandle ##
+if ( not <[base.cfg_boolean]>->( <v7.local_cube.connect-unix> //= 1 ) ) {
+    <[base.logs]>->(
+        'connecting to local cube [%s:%d] ..,',
+        $cube_addr, $cube_port
+    );       ## tcp \ ip link type ##
+
+    $c_fh = <[base.open]>->( qw|  ip.tcp  output  |, $cube_addr, $cube_port );
+
+} else {    ## prefering unix by default ##
+    my $unix_chksum = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
+    <[base.log]>->( 0, '<< unix socket name calculation not successful >>' )
+        and next
+        if not defined $unix_chksum;
+    <unix.path> = join( '', qw| /var/run/.7/UNIX/ |, $unix_chksum );
+    <[base.logs]>->( 2, ": connecting to socket path '%s'.,", <unix.path> );
+
+    $c_fh = <[base.open]>->( qw| unix output |, <unix.path> );
+}
+
 $c_fh = <[auth.zenka.authenticate]>->( $c_fh, $authname, $cube_key );
 
 if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
@@ -32,10 +49,11 @@ if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
 #[ error \ <false> ]
 return 0 if not defined $c_fh;
 
-<base.log.allow_buffer_send> = 1;
+<base.log.allow_buffer_send> = 1;    ## enable sending to 'p7-log' ##
 
 my $session_id
     = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
+
 <[base.logs]>->( 'auth. to cube successful [ session %d ]', $session_id );
 <v7.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
 <v7.zenka.instance>->{$instance_id}->{'is-cube'}  = 1;
@@ -46,8 +64,9 @@ my $session_id
 };
 
 my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
+
 <[base.protocol-7.command.send.local]>->(
-    {   'command' => sprintf( '%d.set-initialized', $root_sid ),
+    {   'command' => sprintf( qw| %d.set-initialized |, $root_sid ),
         'reply'   => { 'handler' => qw| v7.handler.set_initialized_reply | },
         'call_args' => { 'args' => 0 }    # [ 0 == v7-zenka session [self] ]
     }
@@ -57,7 +76,7 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 return 5;
 
 #.............................................................................
-#DOOPN7N3RYQSY6PGNHULDR2IE5ZJXSWMUNVUDM3ZTVVNLVZFCI6CRVOH4MUKBIY2O67KLUS67CMK4
-#::: 5OKG3HJVR2HVG25ZQHA3YVSKQ6QI54ZPU5J2D42UYWGL7K7ZB5O :::: NAILARA AMOS :::
-# :: U5OV3472XAYDUHMXV77KZDO3FZZBZJMNW6XF7JRWQUZ4554KZKBA :: CODE SIGNATURE ::
+#JBWWOKSY2XL7MBYWBUH2RMWNHMJX4MFMEY73CHONZT4QE2VFBOCX2DZE753AZCG52D3MXDNQX2PPQ
+#::: RKTCPI2BJBXJQTJV2QSBGMEJ5I4PXOVEMBL77OFDL2Q5KQLHNLB :::: NAILARA AMOS :::
+# :: 33QR35TZN6SI4QWDAKLAR65SRTH6NHFREDY7Y5UUUCSRHLGH4ECA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

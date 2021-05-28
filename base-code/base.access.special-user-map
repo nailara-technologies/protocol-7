@@ -1,0 +1,57 @@
+# >:]
+
+# name  = base.access.special-user-map
+# descr = map '<username>' template syntax to '<system.<username>>' vars
+
+my $template_string = shift // '';    ## returning keyword list on undef ##
+my $do_not_warn     = shift // 0;     ##  optional 'silent' parameter  ##
+
+my $user_map = {                      ##  defining special-user templates  ##
+
+    qw| <admin-user> | => <system.admin-user>,
+    qw| <unix-admin> | => defined <system.admin-user>
+    ? sprintf( 'unix-%s', <system.admin-user> )
+    : undef,
+
+    qw| <AMOS-user> |      => <system.AMOS-user>,
+    qw| <unix-AMOS-user> | => defined <system.AMOS-user>
+    ? sprintf( qw| unix-%s |, <system.AMOS-user> )
+    : undef,
+};
+
+##  returning list of template strings on no input param  ##
+return <[base.sort]>->($user_map) if not length $template_string;
+
+if ( exists $user_map->{$template_string}
+    and defined $user_map->{$template_string} ) {
+
+    return $user_map->{$template_string};    ## template match and defined ##
+
+} elsif ( not defined $user_map->{$template_string}
+    and $template_string =~ m|^<(unix-)?([^>]+)>$| ) {
+
+    my $username = ${^CAPTURE}[1];
+    <[base.s_warn]>->(
+        '<system.%s> not defined <{C1}>',
+        $username eq qw| admin | ? qw| admin-user | : $username
+    ) if $do_not_warn == 0;
+
+    return undef;    ##  template is valid but user not defined  ##
+
+} elsif ( $template_string =~ m,^<(.+)>$, ) {
+    <[base.s_warn]>->(
+        "special user template name '%s' not known <{C1}>",
+        ${^CAPTURE}[0]
+    ) if $do_not_warn == 0;
+
+    return undef;    ##  template name not known  ##
+
+} else {
+    return $template_string;    ##  mot a template syntax  ##
+}
+
+#.............................................................................
+#EWSRPDDYZFVT4DA7TK63327T5EDYPE5FS2WMHWZV4ST3YJX5MCF4D3A5XQQMFKYP6NUOPX7TP3L6A
+#::: PSJLE4NOHAPVOR3EI4VJSKLCBYPOKI2BMZ4FP4ZVJLEUUWNQQ4R :::: NAILARA AMOS :::
+# :: IYXPW3LMGPVM5CDWMGKNF7XYS76JXNWAGYDGK4R5JIFMLT6UCOAI :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

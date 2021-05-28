@@ -4,15 +4,15 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-[root.drop_privs:<system.X-11-user>]  # LLL:  implement X-11-user auto-discovery
+[root.drop_privs:<system.AMOS-user>]#  <--  implement AMOS-user auto-discovery
 
 access.cmd.usr.cube = commands heart verify-instance reload
 
-modules.load = auth net protocol io.ip protocol-7-menu
+modules.load = auth net protocol io.unix protocol-7-menu
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 
@@ -21,7 +21,7 @@ modules.load = auth net protocol io.ip protocol-7-menu
 [event.loop]
 
 #.............................................................................
-#LBGUPTAZVNJ5Q3GZWBJIPIOI4KQ2YTBYHOLQSOTPTADBXISKZK2DFKIFEZ4LJXKK5H2QX3I3W5SVA
-#::: W37GS4HTJ5ECPXYKR6NYVYZZT2C257IAV33YKAXEVO37ZPOKZ2G :::: NAILARA AMOS :::
-# :: YR7MWO2OGTJGMT7KPCGJ6WSFPNC3ZKC7JDKOLZKBEHNXCT4BNQAA :: CODE SIGNATURE ::
+#3CDC5YEFD6SNRLOMKELK6EVK5PSVQDJLEH4BZT4DIC4PINOKZAAHAOJYHOOFBGWVV44WVDRA2IFWO
+#::: UJ3XTDK2QGSDIFUUPURZGFLTELPFJAEW5Y3WCN4ELDSKMLECTTZ :::: NAILARA AMOS :::
+# :: JMVCT4OSIQDAPEXDBNX3KSXTZMVDB4LD4DH2H4PNQT6MIZXPL6DA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

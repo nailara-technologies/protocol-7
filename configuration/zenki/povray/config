@@ -3,23 +3,24 @@
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.cube = commands heart verify-instance list clear-buffer show-buffer \
-                      filter src-age reload *
+access.cmd.usr.cube = commands heart verify-instance list \
+                      clear-buffer show-buffer src-age reload \
+                      filter *
 
-modules.load = auth net protocol io.ip povray
+modules.load = auth net protocol io.unix povray
 [load_modules:<modules.load>]
 [init_modules]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#W2ACYI54G7G2BJFGMXWS34KYB62LIJJ3CY4N7EGSAH2PH7YKDQDPIGWHATXU7TVOAMFKQRVZRJA5U
-#::: IRVMY7WKCM4GGKAO72UB4ZDQYMCV3SH7E3X6QGLKSG75XKMTGDH :::: NAILARA AMOS :::
-# :: OATFCLDXMGQBF72C7IE6K3V63ZOUTNNUVNVLCPYRYJD5ORIC6KCQ :: CODE SIGNATURE ::
+#ZHEUYV2SZBS37DP7WV2J2NKC3DYP6AYRWZB4NMDVQQHYKIRLDAL6DG43JGDXAILY5DZAF44GLEL6O
+#::: ZAZXMCMEHBR24TB2EBAY672KE3PVOCBM3UAQHTPTLX7FIK7ZNR4 :::: NAILARA AMOS :::
+# :: 6TVS3K55XQM2MDAF7LUHGR6JX4C23HRCOU4NIRGS5NR7PRHER4AQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

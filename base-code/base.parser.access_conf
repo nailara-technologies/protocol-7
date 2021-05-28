@@ -39,31 +39,19 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
 
     my $config_user = $user;    ## copy for later ##
 
-    if ( $user =~ m,<(admin-user|unix-admin)>,
-        and defined <system.admin-user> ) {
-
-        $user
-            = $LAST_PAREN_MATCH eq qw| admin-user |
-            ? <system.admin-user>
-            : 'unix-' . <system.admin-user>;
-
-    } elsif ( not defined <system.admin-user> ) {
+    ## $user is passed through when not a template, undef on errors ##
+    if ( not defined( $user = <[base.access.special-user-map]>->($user) ) ) {
         $errors++;
-        <[base.log]>->(
-            0,
-            '\<system.admin-user> not defined,'
-                . ' <admin-user> access mask dropped.'
-        );
         goto SKIP_COMPILATION;
     }
 
     if ( $user !~ m,^$user_re*$|^\*$, ) {
         <[base.logs]>->(
-            0,
-            "invalid character in user name '%s', access mask dropped.,",
+            0, "not valid character in user name '%s', access mask dropped.,",
             $user
         );
         $errors++;
+        goto SKIP_COMPILATION;
     } else {
         my $patterns_removed = 0;
 
@@ -77,7 +65,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
             if ( $cmd =~ m|$cmdp_re^\*]| ) {
                 <[base.log]>->(
                     0,
-                    'invalid character in command regex mask [ user \''
+                    'not valid character in command regex mask [ user \''
                         . $user
                         . '\' pos '
                         . $pos . ' ]'
@@ -229,7 +217,7 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 return $errors;
 
 #.............................................................................
-#BASKJXERQ6D7YZF3MQS6JTLNG5XEU3LA6DENSVOLB4HG6KRWX2AZEIWIUSTOF7XJ7YMZ5EZG2USGA
-#::: E52ALWPGSIOYVTGNUJG7J4IAYA4OBB4ET5OQUJ6KEGJGKWJDRFW :::: NAILARA AMOS :::
-# :: OVIERUKWZSK4GDOKW4AAOZMLDD3TSG3SN6ABUH3S6GA4L4RMCKAQ :: CODE SIGNATURE ::
+#L6MKVMYX4U2C5PLTC2W3MIPGWEGSDML47MTXV2BXYZUAVUG3LRAEC3PUOYOP7CD2CH5WZDJJ7KNNW
+#::: UDEMFCJGME3W6GMNOJF3MNUE6JYCYHXUE572UBZVGM55NINOODL :::: NAILARA AMOS :::
+# :: ICMCS4LARBXIZKX3XDTU2DRKGE5X77K2PBLJV4JSUWR2KBE6TGDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,5 @@
 
-  .:[ 'ssh' link (tunnel) management zenka ]:.
+  .:[ 'ssh' link [ tunnel ] management zenka ]:.
 
 [root.drop_privs:<system.amos-zenka-user>]
 
@@ -17,18 +17,18 @@ modules.preload = set-up.json ssh.set-up
 [set-up.json.import_file:'ssh.link_setup.json']
 [set-up.json.import_file:'ssh.set-up.json']
 
-modules.load = auth net protocol io.ip ssh
+modules.load = auth net protocol io.unix io.ip ssh
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#PZNT5NF2IJXZZWDVMYPEOCMTWDYLH5CK4XWIVT2HV4EU5QDUNBU6YVUDRP3S3BH7RUEOEM4BUX32U
-#::: LQ4G7ZTR6BKE64FNAPTXDUCBXPCLQ723ZVMOBADZ3DZAYM2L53B :::: NAILARA AMOS :::
-# :: DZXB4DEQCKVY2YMRTKEUYOXE7DGII22A7BCTJGF5WZHF5DRU4YAY :: CODE SIGNATURE ::
+#Q7JMHE4RP4Z3KXSANZLLUVZUHJJENVFIEG6GPSHMUWY5LP6YW5GBXQJJN37IJFTLCMH7CW6WPIFSE
+#::: XG4QOOQQXWG2X2RM3RT7GBGAHMUVQNZR72GJUL6LBRZFI3WBXWZ :::: NAILARA AMOS :::
+# :: VSCLIMO6PABKYHQZLU6B4QXMGTV4GDXWIXWB5SR6IIJ3HAURJWBA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

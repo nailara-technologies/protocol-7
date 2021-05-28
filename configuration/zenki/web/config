@@ -3,21 +3,22 @@
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.cube = commands heart reload verify-instance list show-buffer content
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer content
 
-modules.load = auth net protocol io.ip web
+modules.load = auth net protocol io.unix web
 [load_modules:<modules.load>]
 [init_modules]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#BXLAWW7BNFZN22UNSRZ6YGBLVVPLIJBOULUTXWMPYNT7JJBPIM2UH3HPV2J7VWOGFEQZ5MGMQIP34
-#::: NTJX5S2FQJGUKBF56YLUJWKS3NYWM6ZHM3AGKVPGL2RYAHJMR6C :::: NAILARA AMOS :::
-# :: GNIXEICNLJKZHID7MUOUPKFF3VOC6UN4CMPNJAF7QAE6QVRVRAAY :: CODE SIGNATURE ::
+#D6VFZXXKJPIJS7USBSXQEQGAQ3FMEASLHWRKK2NZSWFI2274S3QSMQWLTTZK3LWWMUU425CCFLPPO
+#::: O7UFKCTYVLUZMGBDKRIVDQK5RFSGUT7FIHRNE4IOWXJHWG5AFHC :::: NAILARA AMOS :::
+# :: XDVQRDGV3P4DFS64ROG6ZYD3CRIPGYRQB2PVGMUW2SKZ23SRCUAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
