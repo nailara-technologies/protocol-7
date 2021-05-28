@@ -3,7 +3,8 @@
 # name  = plugin.auth.zenka
 # descr = perform 'zenka' type authentication initiated \ enabled by v7 zenka
 
-my $id     = $_[0]->w->data;
+my $event  = shift;
+my $id     = $event->w->data;
 my $re     = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
@@ -42,7 +43,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
     my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
 
-    if ( exists $KEYS{'auth'}{'zenka'}->{$user} ) {
+    if ( defined $KEYS{'auth'}{'zenka'}->{$user} ) {
 
         if ( $key_hash eq $KEYS{'auth'}{'zenka'}{$user} ) {
 
@@ -83,7 +84,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
 }
 
 #.............................................................................
-#53LA33TCMB7MH3FOS4QAOV74EEAJLKEOS3VB4TD4GCLR5GNIOM2N4IM5QVPVVJR7VHO6SIVX5TKU6
-#::: OBCGWBF6DBYEVURQSF6KVZ2PXFADIGFA2L3TU7FF4BS7J5W5ERH :::: NAILARA AMOS :::
-# :: YWXT74H7K5ASCM277EPGRD5CZVROLDVIZFMAAJX7W7REU4HUSMDY :: CODE SIGNATURE ::
+#YCAAI2RAHMOEE4KSBNUHV6WWMSQXJZMEUTBZ6EEHWKG2JGAVA2GLE5B3HL7ETFZNB6IVOTTUSQIEA
+#::: AVXZMFI4HS6YQYZE3PAO4ECXHUUTF6NUMP26WRQOPKQ4QL76VQO :::: NAILARA AMOS :::
+# :: DQH3MJWFD47XX7GQXN3F2TVNGL6FQFWWKHU7DYH3ALNGC6I3NWDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

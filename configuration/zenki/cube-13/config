@@ -15,7 +15,7 @@ system.verbosity.zenka_buffer = 1
 [load_config_file:'zenki/cube-13/access.users']
 
 system.zenka.type            =  cube
-modules.load                 =  auth net chk-sum.bmw protocol io.ip io.unix \
+modules.load                 =  auth net chk-sum.bmw protocol io.unix io.ip \
                                 crypt.C25519 cube                   ## debug
 plugins.load                 =  plugin.auth
 auth.supported_methods       =  zenka unix
@@ -37,27 +37,27 @@ cube.zulum = <protocol-7.network.zulum>
 
 ## local unix domain socket ##
 [file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
-unix.path = [base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
-unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
+unix-13.path=[base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
+unix-13.sock=[base.open:'unix','input',"/var/run/.7/UNIX/<unix-13.path>",0777]
 
 ## ip.tcp socket ##
-tcp_ip.sock = [base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
+tcp_ip-13.sock=[base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
 
 ## bind protocol-7 to sockets ##
-[base.protocol.bind:<unix.sock>,'protocol-7']
-[base.protocol.bind:<tcp_ip.sock>,'protocol-7']
+[base.protocol.bind:<unix-13.sock>,'protocol-7']
+[base.protocol.bind:<tcp_ip-13.sock>,'protocol-7']
 
 # drop root priviledges [ now 'online' ]
 [root.drop_privs:<system.amos-zenka-user>,<cube.local.port>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.get_session_id]
 
 # run zenka
 [event.loop]
 
 #.............................................................................
-#OQRWXQYJIXM67WYYB5LGVRTLNPK25AQ2NRYCS2K6REJGWJJKDZIHIERMIROKSBQ7TRGRZ2MTYDMRU
-#::: I6RHOA265IVLV5DPVVOEAY3XR67TYI5UVIG3NEJ4HGSTP6URQAJ :::: NAILARA AMOS :::
-# :: QWQ3BBQOKZCMG2T7BBQ55YZCQ2Y3ZFKIYZWU36IVYX7NYVIJKACA :: CODE SIGNATURE ::
+#K2JS5MC6ZOAM6YQ2ENUPGZDIJAIOKUKHH3456UVLWTPBKOVUYT5DWUJOJG2QSZCSFMVW4AELXZBD2
+#::: 4DL7IVJKXRN2LYBLANHUMCS3DZQ4CV2Z7LO7DWSXCHC2ZUQI7QR :::: NAILARA AMOS :::
+# :: GW5Z5EYA7GNOFEBNB6YL6IA6ONYILUFJ7YMCODWHNWVRNRMRDYDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

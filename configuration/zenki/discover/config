@@ -12,20 +12,20 @@ discover.mcast.mesg_loop = 0 # debug echo
 
 access.cmd.usr.cube = * *.*         # <-- LLL: dev, stricter later
 
-modules.load = auth net protocol io.ip chk-sum.sha crypt.C25519 discover
+modules.load = auth net protocol io.unix chk-sum.sha crypt.C25519 discover
 [load_modules:<modules.load>]
 [init_modules]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#7SCMOQCHDJZGDJD7SGBX4ASQYWYT3U2OXCBDH4QWUI3SY2VEQNCTGADU5MKLSEZ7FIWYBY7KM4WZ6
-#::: SPRMKT76XRK42UZNHSFKTUY6IWY5BAUMYP4XWSUF4NOKTBWN2LV :::: NAILARA AMOS :::
-# :: K4SL27GZIAGN6UFY5LVXUYH75DUJYXS3KNMYVCT6I2FQ6F4WS2CQ :: CODE SIGNATURE ::
+#7XNGMBQDWR5HH4G2SZHW5ACBVZANBYAW5ZHUPE6V255B2FJOJQ2Y5YL46QG4DAFIJHAKRX3E5Z2ZC
+#::: QYP63OO2ETBF3H3ICKWMP2BQ2BWBIKIUEMAVOL6JVWEFYODMFIX :::: NAILARA AMOS :::
+# :: AEEDJK7GKZNKXCAO3PMAMKB2B3TD26SNWXDP7BAAHRHKJOCX7MCA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

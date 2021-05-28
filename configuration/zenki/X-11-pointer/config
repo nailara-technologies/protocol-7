@@ -4,16 +4,16 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-[root.drop_privs:<system.X-11-user>]
+[root.drop_privs:<system.AMOS-user>]
 
-modules.load = auth net protocol io.ip X-11-pointer
+modules.load = auth net protocol io.unix X-11-pointer
 
 access.cmd.usr.cube = commands verify-instance blank-cursor restore-cursor
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 [base.get_session_id]
@@ -21,7 +21,7 @@ access.cmd.usr.cube = commands verify-instance blank-cursor restore-cursor
 [event.loop]
 
 #.............................................................................
-#DC3LQL77UBD2RAKCJ2WKKEZ3NIXGJTZ5YE5YGW65QZJI7672U2D44LQRPHPKXOZ3EAOC7OS7BVCGU
-#::: XZGGUKTONLGDYMVUCWF5SVWNCKAK5MT5ZUTQBM75ELGQ4TEDR5P :::: NAILARA AMOS :::
-# :: TPEDPBQGQ6PABJVKZR3WLEZNICYWKGM2LR37GJ2MXMI33532RGBA :: CODE SIGNATURE ::
+#6I6EOZX65FCVVG4IRNPTTCZRVYN23GWCKLSTYXXIYZQMCX2XU5MIFKK5LLWBV7NGP7QLQTDCBZ6TO
+#::: WUDDG3Y2YFTHBQFO4A5DG7ZES4VDINOZREGOROX5GLPEKY55KMB :::: NAILARA AMOS :::
+# :: 4445SBYO7KCOERWTI3FVHPVTMXU5MNOJQWXWWR6TVOCR2ML7WSBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

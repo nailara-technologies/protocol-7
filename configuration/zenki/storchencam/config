@@ -8,12 +8,12 @@ access.cmd.usr.cube = verify-instance heart commands enable_time enable_temp \
                                               disable_time disable_temp
 
 
-storchencam.image_url = http://85.220.149.7/record/current.jpg
+storchencam.image_url  = 'http://85.220.149.7/record/current.jpg'
 
 ## testing :
-#storchencam.image_url = http://dsys/current.jpg
-#storchencam.image_url = http://dsys/current.old.jpg
-#storchencam.image_url = http://dsys/current.night.jpg
+#storchencam.image_url = 'http://dsys/current.jpg'
+#storchencam.image_url = 'http://dsys/current.old.jpg'
+#storchencam.image_url = 'http://dsys/current.night.jpg'
 
 
 storchencam.zoom         = 0.54
@@ -31,11 +31,11 @@ storchencam.mask_left_corner = 1
 
 storchencam.mask_areas = 0,0,32,32 33,0,77,6 70,0,88,6 89,0,100,6 101,0,110,5
 
-modules.load = auth net protocol io.ip storchencam
+modules.load = auth net protocol io.unix storchencam
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 [base.X-11.get_coordinates]
@@ -44,7 +44,7 @@ modules.load = auth net protocol io.ip storchencam
 [storchencam.sdl_loop]
 
 #.............................................................................
-#X7TBSFDFEGCCH6JNTJP4LBRY5K52CDLREBU6257EKUYERYXZAH6ZRG4PITGU4B573XYRT2TXL5M24
-#::: 5ZO224MV24BELQMO4TDNU4YMJZU3KQKILP6PC3UQRTRK43ECQ7E :::: NAILARA AMOS :::
-# :: LIM6ICCAZXTUXFKID4DBNZFOMKBNEJXI2GTSX5NEKMQZ2RJMYKCQ :: CODE SIGNATURE ::
+#IIW7K6WO3S2DAIOJA5R6N2LJ4DYE657D4K4UYUXSJINHGPAOT2O3FYUWOOM7J2CG4K2TKQ7J56RXO
+#::: YUWCNTWBSEVPSYKDLKTKXUBLFEVHK62RNURWJ275LV6LHZMLATP :::: NAILARA AMOS :::
+# :: UMX7A6B5SKRKFTG5MALNIV3IRIRBGKOLPXUC6O3ZVHH5XTLYH4CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

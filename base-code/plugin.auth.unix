@@ -3,9 +3,9 @@
 # name    = plugin.auth.unix
 # return  = user-name [ success ], undef on error
 
-my $ev = shift;
-my $id = $ev->w->data;
-my $re = <regex.base>;
+my $event = shift;
+my $id    = $event->w->data;
+my $re    = <regex.base>;
 
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
@@ -24,7 +24,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
-    my $auth_ok = 0;
+    my $authorize_unix_session = 0;
 
     my $client_uid
         = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'unix'}{'uid'};
@@ -38,22 +38,52 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
+    my $mapped_user_str;
     if ( defined <auth.setup.usr>->{$auth_user}
         and <auth.setup.usr>->{$auth_user} =~ m|:unix:(\S+)| ) {
         my @allowed_users = split( m|\s*,\s*|, $1 );
 
-        map { $auth_ok = 1 if $client_uname eq $ARG } @allowed_users;
+        map { $authorize_unix_session = 5 if $client_uname eq $ARG }
+            @allowed_users;
+
+        if ( not $authorize_unix_session ) {
+
+            ## 'unix-' prefixed users are matched against unix accounts ##
+            foreach my $allowed_user (@allowed_users) {
+                my $special_user
+                    = <[base.access.special-user-map]>->($allowed_user);
+                next
+                    if not defined $special_user
+                    or $special_user !~ s|^unix-||;
+
+                if ( $special_user eq $client_uname ) {  ## unix user match ##
+                    $mapped_user_str = $allowed_user;
+                    ## authorized using special user template ##
+
+                    $authorize_unix_session = 5;
+                    last;                                ##  5 == true  ##
+                }
+            }
+        }
+
     }
 
-    if ($auth_ok) {
+    if ($authorize_unix_session) {
         $$output .= "AUTH_TRUE >:]\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
-        <[base.logs]>->(
-            "[%d] session authorized as '%s'%s",
+
+        <[base.logs]>->(    ## reports unix user seperated if different ##
+            "[%d] '%s' session authorized%s",
             $id, $auth_user, $s_usr
         );
-        return ( 0, $auth_user );
-    } else {
+        <[base.logs]>->(    ##  report matching template  ##
+            "[%d] :. unix user '%s' match in %s",
+            $id, $client_uname, $mapped_user_str
+        ) if defined $mapped_user_str;
+
+        return ( 0, $auth_user );    ## register as authorized ##
+        #######
+    } else {    ##  no match for unix-user \ auth-user pair  ##
         $$output .= "AUTH_ERROR :|\n";
         my $s_usr
             = $client_uname ne $auth_user
@@ -77,7 +107,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 return 2;
 
 #.............................................................................
-#NHPGFCW7MH4RR5FJ67AGAXTVIVFWHWWURF7VTVRSJ2GOZMBXVXXWWNS6D46CAV7BQ2NBNRWEMRAL6
-#::: ZV5C7XAZ4DOQFUN5ZHNB4EFU74FU3TRFKDGWNSSL5CW2XAOBLOO :::: NAILARA AMOS :::
-# :: NOE56FNFBLG2AZEPDM7KRL3S7HGIHIA55WD7B2L4B2OYIDKBQCAI :: CODE SIGNATURE ::
+#FNDIIQY367VQGC47NPGSH4A4ABGI35PHKEOXDD3WE4WFZNI5ALKZDHT3WKJTPG4ROJF5OUFEKOF6S
+#::: YQ3CPZSNEYLWAYZIET44KHLB5CCSIXLLMMOJGUUHKLVY2SLVRYO :::: NAILARA AMOS :::
+# :: CXGP73OPDILEWAGIR4U54CLI5PLYEOSIJCBVEP6H7FFDIEKMVQBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

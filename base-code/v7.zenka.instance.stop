@@ -5,17 +5,18 @@
 my $instance_id = shift;
 
 if ( exists <zenka.instance.shutdown>->{$instance_id} ) {
-    <[base.log]>->(
-        1,
-        "instance $instance_id already shutting down, skipping stop command."
+    <[base.logs]>->(
+        'instance %d already shutting down, skipping stop command.,',
+        $instance_id
     );
     return;
 }
 
 my $instance = <v7.zenka.instance>->{$instance_id};
 
-return warn "instance.stop: instance id $instance_id does not exist."
-    if not defined $instance;
+return <[base.s_warn]>->(
+    'instance.stop : instance id %s does not exist <{C1}>', $instance_id
+) if not defined $instance;
 
 if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     $instance->{'timer'}->{'verify_instance'}->cancel;
@@ -23,10 +24,22 @@ if ( exists $instance->{'timer'}->{'verify_instance'} ) {
     delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
 }
 
+my $process_id;
 my $zenka_name = $instance->{'zenka_name'};
 my $job_id     = $instance->{'job_id'};
 
-<[base.log]>->( 1, "terminating instance $instance_id ['$zenka_name'].," );
+$process_id = $instance->{'process'}->{'id'}
+    if <[base.is_defined_recursive]>
+    ->( sprintf( qw| v7.zenka.instance.%d.process |, $instance_id ) ) == 5;
+
+my $is_running = defined $process_id
+    ? <[v7.sub-process.exists]>->($process_id)    ##  5 == true  ##
+    : 0;
+
+<[base.logs]>->(
+    'terminating instance %d [ %s ]..,',
+    $instance_id, $zenka_name
+) if $is_running;
 
 <zenka.instance.shutdown>->{$instance_id} = <[base.time]>->(5);
 
@@ -34,19 +47,16 @@ my $job_id     = $instance->{'job_id'};
 
 delete <callback.session.closing_last> if $instance->{'is-cube'};
 
-if ( my $process_id = $instance->{'process'}->{'id'} ) {
+if ( defined $process_id and $is_running ) {
     <v7.process.instance_cache>->{$process_id} = $instance_id;
     delete <v7.child>->{$process_id};
     <[v7.terminate_process]>->($process_id);
 }
 
-# <[zenka.change_status]>->( $instance_id, 'shutdown' );
 <[jobqueue.remove_job]>->($job_id);
 
-# undef $zenka_instance->{'output_buffer'}; # --> done in output_handler
-
 #.............................................................................
-#STHKZGPC2J3BXPMQ4QQJFIU6PQDKZZIDMIKGHTNXKDYQAMMCAFDQ3YSXS3GGDHGVELUBEQSFRPPBY
-#::: SXL33HRNOEYDTY6MZON4FWRNPTJVYDUPAMIP4TH4SEG3JCD7PPS :::: NAILARA AMOS :::
-# :: FD72RNQY24O2P4WDS52LDJAOCXN5N4DGSD5CUHBBONADILETI4CY :: CODE SIGNATURE ::
+#ILETSMBZJHH4R7AEX72ZLJBZSBMTTUTEMXV4ADSPQHNHSHFZHVDSBF4L3WU2JZ2AG7VRI3KQB7IGA
+#::: TCK6SNUULHWD2KIEKPLUMYE5LDBHHX2CI3Z4IGIJKSJKISSDAPR :::: NAILARA AMOS :::
+# :: 7OUZPSEWKO6WESMF62R22QEGUBG7MJQB45KRYOA4ONXBBQEZI2BI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

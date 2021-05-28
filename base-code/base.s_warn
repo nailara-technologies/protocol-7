@@ -1,0 +1,19 @@
+# >:]
+
+# name  = base.s_warn
+# descr = warn sprintf wrapper
+
+return warn 'warn message [ not defined ] <{C1}>' if not defined $ARG[0];
+return warn 'sprintf parameter expected <{C1}>'   if @ARG < 2;
+
+my $template = shift @ARG;
+
+$template =~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', ++$c_l |e;
+
+warn sprintf( $template, @ARG );
+
+#.............................................................................
+#SZKR7C3UYYEGB4ZJUNII7TBQDK3MP77TTKTCPHPIFHOPLC22AUTKJ22ZR7Q5YP5AMOLTRMQFV5JBO
+#::: NYGJOHQBBRKTDOCWPMY66KC5FS2VJWDWQDCMSWHOGQ7XQEAOWEZ :::: NAILARA AMOS :::
+# :: R2DU5TYADOHYAFO76HIQ6I6HO2BU74V5YJ46ZPCQUM3W7FPWTUAQ :: CODE SIGNATURE ::
+# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
