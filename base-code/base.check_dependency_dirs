@@ -7,8 +7,8 @@ my $zenka    = <system.zenka.name>;
 my $cfg_path = <system.conf_path>;
 
 my ( undef, undef, $uid, $gid ) = getpwnam($user)
-    or return <[base.log]>->(
-    2, "<< check_dependency_dirs :user '$user' not in passwd file >>"
+    or return <[base.logs]>->(
+    2, "<< check_dependency_dirs :user '%s' not in passwd file >>", $user
     );
 
 my @sub_dirs = qw|
@@ -35,7 +35,10 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
         ## create ##
         if ( !-d $dir_path ) {
             mkdir($dir_path)
-                or warn "mkdir($dir_path) : \l$OS_ERROR";
+                or <[base.s_warn]>->(
+                'mkdir[%s] : %s',
+                $dir_path, <[base.format_error]>->($OS_ERROR)
+                );
         }
         next if !-d $dir_path;
 
@@ -46,12 +49,15 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
         if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
             ## chown ##
             chown( $src_stat->uid, $gid, $dir_path )
-                or warn "$dir_path : \l$OS_ERROR";
+                or <[base.s_warn]>->(
+                'chown[ %s ] : %s',
+                $dir_path, <[base.format_error]>->($OS_ERROR)
+                );
         }
         ## placeholder ##
         my $placeholder_path = "$dir_path/.placeholder";
         if ( !-e $placeholder_path ) {
-            open( my $fh, '>', $placeholder_path ) or next;
+            open( my $fh, qw| > |, $placeholder_path ) or next;
             close($fh);
         }
         chown($placeholder_path);
@@ -59,7 +65,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
 }
 
 #.............................................................................
-#HQ3AQ7XC4YCGL7J7GL75XQIE43P5EDVEGBCVCJMZXKHE7AMCXAXVXMNVAFR6GYLND2GCULVZSHF66
-#::: LVXQT3TQJUUIN2K4X22RZRX6QWIIFGGLMNWPB7OT6DZTICKHH5X :::: NAILARA AMOS :::
-# :: JNMBELXPAHISKDCUOFN4WDCE74HA5JHMUEWEHQV7LEAFJQ5BFCBQ :: CODE SIGNATURE ::
+#XUE43MX2ISBEXSHW4QTTLNUNOZBD4X37I45KOVNZQDTL5IJS6DKNEXE4DP6WG72HUDKBFDB4P44M4
+#::: D5RFY5UQL5SG55EIFJQLSR5LNX3POKK2NKG4YX6HV34CQ5PRKKV :::: NAILARA AMOS :::
+# :: JKCKKKJVIHQT3H3FUT6ZB4UA75EAFJPYHAVBTMGOPHFJM5ZV4UBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
