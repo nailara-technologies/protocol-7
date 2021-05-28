@@ -4,7 +4,8 @@
 [load_config_file:'shared-params']
 [root.drop_privs:<system.amos-zenka-user>]
 
-access.cmd.usr.cube = commands heart verify-instance clear-buffer show-buffer reload
+access.cmd.usr.cube = commands heart verify-instance \
+                      clear-buffer show-buffer reload
 
 osd-logo.logo_size = 9.81 # % [ relative to screen height ]
 
@@ -17,11 +18,11 @@ modules.preload = osd-logo.set-up set-up.json
 
 [set-up.json.import_file:'composition.set-up.json']
 
-modules.load = auth net protocol io.ip osd-logo
+modules.load = auth net protocol io.unix osd-logo
 [load_modules:<modules.load>]
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 
@@ -32,7 +33,7 @@ modules.load = auth net protocol io.ip osd-logo
 [event.loop]
 
 #.............................................................................
-#H5JOE5B5NXQTEBP7J6IPE5FAABJ7NZI4GF3ZBSKXPIHNOB47LU75DSWERNUIJADOO24XL33DEFHFY
-#::: FUEDB7S355JIKP76A6V3LRRDZMJC2QKUOHLHW3M53JDRM4YGQQ2 :::: NAILARA AMOS :::
-# :: FVLJPA2ACHOUYFFDAZKJMG6WXYEZTGDF2ICZPRO53A3JNGQVVACA :: CODE SIGNATURE ::
+#T7NXIKWGOX77SR5U25LSN43MY2CGHIBWKONIEV7LUZSEVGWPFGTJZVXEZS36DQS2LYYMBPBWEI7Y4
+#::: H2EIGT46YS3OYXTPNYOGBQ6WT6OS765OIIL6R67RYNGFNDPXGM6 :::: NAILARA AMOS :::
+# :: VNQKNA7OR35S4BKH52PMOJEEFICIXKH4X3IBLXSAE4D4RCRTCYAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

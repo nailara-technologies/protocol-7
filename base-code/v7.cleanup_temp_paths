@@ -2,25 +2,27 @@
 
 # name  = v7.cleanup_temp_paths
 
-( my $process_id, my $instance_id ) = @_;
-
-return warn 'process_id not defined <{C1}>' if not defined $process_id;
+( my $process_id, my $instance_id ) = @ARG;
+return warn 'process id parameter not defined <{C1}>'
+    if not defined $process_id;
 
 $instance_id //= <[v7.sub-process.retrieve_cached_iid]>->($process_id);
 
 return warn 'instance_id not defined <{C1}>' if not defined $instance_id;
 my $instance = <v7.zenka.instance>->{$instance_id};
 return if not defined $instance;    # <-- gone..,
-return
-    <[base.log]>->( 1, "no temp-paths to clean up for instance $instance_id" )
+return <[base.logs]>->(
+    2, 'no temp-paths to clean up for instance %d ..,', $instance_id
+    )
     if not defined $instance->{'temp-path'}
-    or !@{ $instance->{'temp-path'} };
+    or not @{ $instance->{'temp-path'} };
 
 <[base.perlmod.autoload]>->( 'File::Path', qw| remove_tree | )
-    if not defined &{'remove_tree'};
+    if not defined &remove_tree;
 
-<[base.log]>->(
-    1, "cleaning up temp paths for instance $instance_id [PID:$process_id]"
+<[base.logs]>->(
+    'cleaning up temp paths for instance %d [PID:%d]',
+    $instance_id, $process_id
 );
 
 my $stat_uid = delete $instance->{'stat_uid'};
@@ -35,12 +37,14 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
             my $type_str = -d $clean_path ? 'dir.' : 'path';
             my $pth_str
                 = <[base.parser.ellipse_center]>->( $clean_path, $len );
-            <[base.log]>->( 1, ":. unlink $type_str '$pth_str'" );
+            <[base.logs]>->( ":. unlink %s '%s'", $type_str, $pth_str );
             eval { remove_tree($clean_path) };
             $EVAL_ERROR = 'still exists'
                 if not $EVAL_ERROR and -e $clean_path;
-            warn "<remove_path> $clean_path [ $EVAL_ERROR ]"
-                if length( $EVAL_ERROR // '' );
+            <[base.s_warn]>->(
+                '<remove_path> %s [ %s ]',
+                $clean_path, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+            ) if length $EVAL_ERROR;
         }
     }
 }
@@ -48,7 +52,7 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
 delete $instance->{'temp-path'};
 
 #.............................................................................
-#4XTIPN5W4H4GBNAXY2TNMPO2IA32UNXU4MWYNHVL32AC3VCXUTVRL4WV6V6QTUHXNOUAX6MS4KPNC
-#::: RPWZVZWQR7RID7JMQQQA3R2VB7TC2M7NTAZYWSW7Q2LGQBPN2PB :::: NAILARA AMOS :::
-# :: 6XOAUSMKUX23VLNRB5TGAXTVPHDQ5ETJA4O2BG6YN4SSN4UGI4DY :: CODE SIGNATURE ::
+#CHK5RU2C3YTWZ2YYF3VOGY343TKO3YTICYE32ACZC7BZNRKI6K5OVB36XWNTRWUS5RCKN5BDPHMPG
+#::: 3DWZ3K7B2XNFJYUXDFXIHTZIIVNVOQZZ6VRLTFQD476YKHAUKA3 :::: NAILARA AMOS :::
+# :: Y4PTUATDXZ2OE3MG73UW2YMNB246WYJJST3UMDK4XEL3QVP3T6CQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

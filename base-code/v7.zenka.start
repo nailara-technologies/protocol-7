@@ -2,7 +2,6 @@
 
 # name = v7.zenka.start
 # descr = start nailara zenka and add it to process maintenance table
-# notes = require mechanism to change PID to harmonic at start ?
 
 my $job_id     = $ARG[0]->{'job_id'};
 my $zenka_name = $ARG[0]->{'params'};
@@ -131,12 +130,12 @@ if ( exists $init_result_data->{'start_mode'}
     my $exec_bin = $init_result_data->{'exec_bin'};
     my $prog_usr = $init_result_data->{'exec_usr'};
 
-    if ( defined $prog_usr and $prog_usr eq qw| <X-11-user> | ) {
-        if ( defined <system.X-11-user> ) {
-            $prog_usr = <system.X-11-user>;
+    if ( defined $prog_usr and $prog_usr eq qw| <AMOS-user> | ) {
+        if ( defined <system.AMOS-user> ) {
+            $prog_usr = <system.AMOS-user>;
         } else {
             <[base.logs]>->(
-                0, "<< '%s' exec_usr [\<system.X-11-user>] is not defined >>",
+                0, "<< '%s' exec_usr [\<system.AMOS-user>] is not defined >>",
                 $zenka_name
             );
             <[zenka.change_status]>->( $instance_id, qw| error | );
@@ -329,7 +328,7 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
 #.............................................................................
-#XNXD74BCZGVTTQYXBB67FUMMW7C7AXZKX6IV7KBZBA64RMDL2RVMX3J56FX3SV6MDTOS36HU5RQR2
-#::: DALSARUZDPE5PDZADPRGK3VKUGGQJF2BC4DCMKHM57A6IM3F5C7 :::: NAILARA AMOS :::
-# :: 7H65YPHI5VCNP24BRFGB5IEY6VO57JZPRPLXON6OLEIEGO2T66CY :: CODE SIGNATURE ::
+#OYFIWB3REUDKDBAQF2KTF6LJV5WDNVMFFJ766RDR5NRHFHMXS4IJE32EJKW55NPYFRSOYZK7ZSMAM
+#::: BVJTKTYF24U2CNRZC442K57W74E2L5M3JMRKV5TTE3RPV6BNSLD :::: NAILARA AMOS :::
+# :: SDKVXCJAYW4DDJYUC3PRNNYXKLQ7EDVSXEXJTQK4WHHVLAITKYDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

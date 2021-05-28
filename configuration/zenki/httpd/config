@@ -6,7 +6,7 @@
 chk-sum.elf.use_inline_elf   = 1
 chk-sum.elf.report_log_level = 1
 
-modules.load         =  auth net protocol io.ip chk-sum.bmw httpd
+modules.load         =  auth net protocol io.unix io.ip chk-sum.bmw httpd
 
 net.http.addr        =  0:0:0:0:0:0:0:0
 net.http.port        =  80
@@ -20,8 +20,8 @@ access.cmd.usr.cube  =  *
 httpd.system.user    =  httpd
 httpd.system.group   =  httpd
 
-httpd.site_dir    = /var/httpd/
-httpd.upload_dir  = /var/tmp/httpd/uploads
+httpd.site_dir    = '/var/httpd/'
+httpd.upload_dir  = '/var/tmp/httpd/uploads'
 
 httpd.cfg.external_sitedirs = 1 # allow site_dir links to point outs. httpd dir?
 httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to zenka
@@ -35,7 +35,7 @@ httpd.timeout       =  23
 
 [init_modules]
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 [base.protocol.bind:<httpd.sock>,'http','server']
@@ -47,7 +47,7 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 [event.loop]
 
 #.............................................................................
-#MXGIUVCLYHCGWVCWCA2VVIECJDGZEB7BDZU2HC427CDETYCIVSEUPTVYWOG6BJHJZMJIW4BV67QG4
-#::: BRHGJZOZNWG4SHKXKF2HK6EETNI3KYAPQ6PLWX4OY3OXIBC777F :::: NAILARA AMOS :::
-# :: IODZV65TXKSRREIEDC3RZ6L2V3WLXJ3SN32DW3ETAUOGSM6K6EBY :: CODE SIGNATURE ::
+#6NMOR6FQNDLOHCDDI3CJQSE6J32CUCPIR6T7CIZPTCSXPYRJIANG67CJVJCZ57ZMKA35D2DLOJAGK
+#::: 2JITOCLHWOD4MHRMYVYY2XXABDM3Q6EEQI5H2KGYAYWMJ4ISWO3 :::: NAILARA AMOS :::
+# :: CWHVAGYAZOO7KKWXNUEV2NELUNWWZP6N66WBDPTI7LI7WKF4OQAY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

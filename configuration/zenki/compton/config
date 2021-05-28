@@ -11,16 +11,16 @@ access.cmd.usr.cube = commands heart reload \
 
 # add compton options here
 
-modules.load = auth net protocol io.ip compton
+modules.load = auth net protocol io.unix compton
 [load_modules:<modules.load>]
 [init_modules]
 
 compton.priority  = -16
 compton.prio_fh = [base.start.prio_child]
 
-[root.drop_privs:<system.X-11-user>] # --> needs auto-discovery
+[root.drop_privs:<system.AMOS-user>] # --> needs auto-discovery
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 
 [base.X-11.get_display]
 [base.X-11.get_driver]
@@ -35,7 +35,7 @@ compton.shadow_color = [base.X-11.get_bg_color]
 [event.loop]
 
 #.............................................................................
-#5MXHY6LS52PD4VJ7KI5B5F4AZTXM75UAWQJEL4UGYPYBJVAKSNRY7R5SDSZYK7IP4SNCB3BME6LS6
-#::: 34GSBAHDM5IZ7LZATSPVQNVL7M7Y6W3EHUA7BRF5Z5I46PSIJZ7 :::: NAILARA AMOS :::
-# :: YSXF2XQ7T3BWSHNRZWG4EN25ROSQGFMA36FBCEBG3LGHRAMSQ6BQ :: CODE SIGNATURE ::
+#AIGGPNLFO74YB45X7JQWBUCJTKIXKGJM2TCDFZSJB3V6P5WUNCAFEJYILTEBUNCRX7UYYQXYFJBXE
+#::: 5QNYZODPQSAHJZBOLSY62N2YUDTQGZNL65LP3M5VVR56N7VAUOK :::: NAILARA AMOS :::
+# :: OYKSKKPQGBHBRFE424G7XQQOEO5PHWV6UFSTVRHDU26G4H6MGMDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

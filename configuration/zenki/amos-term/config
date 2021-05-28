@@ -4,14 +4,14 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
-modules.load          = net protocol io.ip io.unix auth amos-term    ## debug
+modules.load          = net protocol io.unix auth amos-term    ## debug
 
 access.cmd.usr.cube   = verify-instance commands heart reload subname \
                         cur-pid list show-buffer clear-buffer list-deps \
                         src-ver rel-ver src-age \
                         * ## <-- debug
 
-amos-term.term-user             =  <system.X-11-user>
+amos-term.term-user             =  <system.AMOS-user>
 
 amos-term.auto-open-terminal    =  1
 amos-term.term-param.face-size  = 24
@@ -22,13 +22,13 @@ amos-term.term-param.face-size  = 24
 [root.drop_privs:<system.amos-zenka-user>,<cube.local.port>]
 [net.connect_to_cube:'unix','13','127.0.0.1','cube-13']
 
-[net.connect_to_cube:'ip.tcp']
+[net.connect_to_cube:'unix']
 [base.get_session_id]
 
 [event.loop]
 
 #.............................................................................
-#7LQKE47DQU4F5ZRZZS6G4H2NTHW6KFUC2ZXXYRXTCQR6KX4KYN5Q23WU6R5CRALE7G6QJ4UISUIWQ
-#::: IMONH2UTXTKJCOHEI2AL4PQJHTZGHXRXYHWDOOTF6IDXOEMOBFY :::: NAILARA AMOS :::
-# :: MAWCPC6IWOXLB4PDC3SJWO5A7WFONL234GJMDRHYQI3RG2KK7MCA :: CODE SIGNATURE ::
+#IDRNSXEWILNUZPE6YDIDD3JEGDUHSG2B4VUSDV3FP4JPAGQB5AH65OIKLCXBQLYQIV5QDR6XSKDS4
+#::: AV4GIKSBH6667DOAJVNQFRCGKRJUTIFLR7FGVEAGRYBNB7I3BSW :::: NAILARA AMOS :::
+# :: MTWODQ6XTN7R6QXWZK7P3IJMXWLQEIEWS45JMAARB4WURYK7BCAQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
