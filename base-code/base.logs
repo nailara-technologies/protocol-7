@@ -3,17 +3,28 @@
 # name = base.logs
 # desc = 'base.log' sprintf wrapper
 
-if ( @ARG > 1 and ( length( $ARG[0] ) > 1 or $ARG[0] !~ m|^\d$| ) )
-{    ## log level 1 when parameter omitted ##
-    <[base.log]>->( 1, sprintf( shift, @ARG ) );
-} elsif ( @ARG < 2 ) {
-    return warn 'not enough parameters <{C1}>';
-} else {
-    <[base.log]>->( shift, sprintf( shift, @ARG ) );  # <lvl> <tmplt> <params>
+return warn 'not enough parameters <{C1}>' if @ARG < 2;
+
+my $log_level    ## log level 1 when parameter omitted ##
+    = ( scalar @ARG > 1 and defined $ARG[0] and $ARG[0] =~ m|^\d$| )
+    ? shift @ARG
+    : 1;
+
+my $log_str = eval {
+    use warnings FATAL => qw| all |;    ##  catches all warnings  ##
+    sprintf( shift @ARG, @ARG );
+};
+
+if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
+    my $e_msg = <[base.format_error]>->( $EVAL_ERROR, -1 );
+    $e_msg =~ s|sprintf|base.logs|;
+    warn sprintf( '%s <{C1}>', $e_msg );
 }
 
+<[base.log]>->( $log_level, $log_str );
+
 #.............................................................................
-#3F5CGPTXTXKJN5ZE53BBGUQV4UKB7JZDQVABCE5UAPB6KRLUJMLVN7IHQQONOKLMTCPMMPTW7K2FO
-#::: MCCREZ3WPQ5E6N64LAJQPQTUIMY35MFMMK5C7IL732HIBNT54NE :::: NAILARA AMOS :::
-# :: DLZDRE5HAULHEHSUPVK5RHWEU6VUZHNX76N62TLOIHV5WSUSWYAA :: CODE SIGNATURE ::
+#XNNQJ3GBGWBPH27CBLM52KLTWUWHPWXZSTHJHM5CZYHA2BMK5NDG6YMFECT2XQY5DPUGTQNC5ZE6S
+#::: LS44DEXY5476NHGU7KIXU5BPVXUCJKNR4M5RB3JOX32XCLF6DVW :::: NAILARA AMOS :::
+# :: YPXDQIKBTINT3VAYYA6YITIYGKHVZOLNQZF4CWVRYPVO22XX4KDY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
