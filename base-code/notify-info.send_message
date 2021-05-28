@@ -2,22 +2,19 @@
 
 # name = notify-info.send_message
 
-<[base.log]>->( 1, "sending 'info' command to notify zenka.." );
+<[base.log]>->( 1, 'sending info command to notify zenka..,' );
 
 my $msg_str = @ARGV == 2 ? join( ' ', map {"'$ARG'"} @ARGV ) : <system.args>;
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "cube.notify.info",
-        'call_args' => { 'args' => $msg_str },
-        'reply'     => {
-            'handler' => 'base.exit',
-            'params'  => {}
-        }
+    {   'command'   => qw| cube.notify.info |,
+        'call_args' => { 'args'    => $msg_str },
+        'reply'     => { 'handler' => qw| base.exit | }
     }
 );
 
 #.............................................................................
-#G4LK7A723HNXRY5RXHZHZ2Z3GBCPPEX5OKAWTAAHOV6LIASPA5YXSINGQGAZUUUI5T4K7ETV5CVTE
-#::: D7MPGWS2FCXDE5RY5ZY55O2MIEU2HASKC4SKJEUBWCT3U3MBQLZ :::: NAILARA AMOS :::
-# :: FKE4LW4G3EAUMZQVF2E35S3LOEDBNICTE5HMYBTYYZGCPFDSDSBQ :: CODE SIGNATURE ::
+#OKCD26RYEJUPRIW24MLCUSK4YIBNELSQL4KHAGGBYSENH7RLNWXLAWSWRWENE6HXQEBJBYIQ62SLK
+#::: 3I2JIBYK57QASFCIFBWZ2UUP27F2HU4GA4TF2BEOJ6RAQDPA3A6 :::: NAILARA AMOS :::
+# :: ST3LW3HHKBCMSPDR4IZH6QL2TVU2JPRUDQR6PFRIGWQDQNNF6WDI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
