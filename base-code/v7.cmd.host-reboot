@@ -4,25 +4,28 @@
 # param = [nosync]
 # descr = force host system reboot using sysrq-trigger
 
-my $param = $$call{'args'} // '';
+my $param = $call->{'args'} // '';
 
-my $reboot_enabled = <[base.cfg_boolean]>->( <v7.host-reboot.enabled> // 1 );
+my $reboot_enabled = <[base.cfg_bool]>->( <v7.host-reboot.enabled> // 1 );
 
-return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
-    if !-e '/proc/sysrq-trigger';
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
+    'data' => 'file not found : /proc/sysrq-trigger'
+    }
+    if !-e qw| /proc/sysrq-trigger |;
+return {
+    'mode' => qw| false |,
     'data' => 'specifically disabled [ v7.host-reboot.enabled = 0 ]'
     }
     if not $reboot_enabled;
 
-<[base.log]>->( 0, "<< ! >> <<< initiating force-reboot >>> << ! >>" );
+<[base.log]>->( 0, '<<< initiating force-reboot >>>' );
 
-while ( keys %{ $data{'route'} } ) {
+while ( keys %{ $data{'route'} } ) {    # wait log written
     <[event.once]>->(0.1);
-}    # wait log written
+}
 
-system('/bin/sync') if $param ne 'nosync';
+system(qw| /bin/sync |) if $param ne qw| nosync |;
 
 <[event.add_timer]>->(
     {   'after'   => 0,
@@ -33,7 +36,7 @@ system('/bin/sync') if $param ne 'nosync';
 return { 'mode' => 'true', 'data' => '<< rebooting host system >>' }
 
 #.............................................................................
-#73X66IETPO4P2R3PV5XPAR5ASHYNDGVSQSBZTXH4GDA5YBXAFPHZGFPHBBMIKXVSZZ7AQAPB45C7W
-#::: DOLBEEHLH2U7ORVZXMMGFRHQ3MREORSTNBR6PXU2VW57ETFQBIH :::: NAILARA AMOS :::
-# :: ZDWQ3LMCMD6F2SEEOMDWYBM4USRW4ONOFVHTIWXR4ATP4L3ERYAQ :: CODE SIGNATURE ::
+#Z5X7ZJ5DG5Q4SBADCS7ENDPM77P3BNYEVFYAOBNJD75S2CYUHSKOLEWPTH7C4XZHET2WT4TKFMINY
+#::: 73POTDJANVXQDEFK6AIYQPTECCYYAKWHGSGKNFAD35BT7WVCAMV :::: NAILARA AMOS :::
+# :: QV4KMYIQHH2Y7UNVXXKWPSAUJPUNCJ3NCM2ZHIONJSVKDEAMJIDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

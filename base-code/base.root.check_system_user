@@ -15,7 +15,7 @@ my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 my $exit_codes = <base.root.useradd.exit-codes>;
 
 my $user_created = 0;
-my $home_setting = <[base.cfg_boolean]>->(<base.root.useradd.create_home>);
+my $home_setting = <[base.cfg_bool]>->(<base.root.useradd.create_home>);
 $not_home = $not_home eq 'not-home' ? 1 : $home_setting ^ 1;
 
 my $uid = getpwnam($usr);
@@ -76,10 +76,10 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
 <[base.root.convert-user.nailara]>
     if $user_created == 1
     and $usr eq 'protocol-7'
-    and <[base.cfg_boolean]>->( <base.root.convert-usr.nailara> // 1 );
+    and <[base.cfg_bool]>->( <base.root.convert-usr.nailara> // 1 );
 
 #.............................................................................
-#RROKZ2MRBIBPHDRPYX7B2DYKKLYT2ENU5OTHXNDRJJNOAHCQUQDDL56CV2M2L6X7XFVK3USDVYD4Q
-#::: 37D2SCEAYZ3VQPKXQQEQI3CECHBC4IX65KHKNXF56FAP6QJIOD6 :::: NAILARA AMOS :::
-# :: 63QFUCQI7XZUEDACQVVL373GSJOG3YPHKIXWJQUH7PX7M2V7LGBY :: CODE SIGNATURE ::
+#YRBM4TYMTRUCE6FIVPLABSDVG7U2JOQXGKO726GYGN2HF5SPC374VXVKMEPISWSCESYRAZDAGAZHS
+#::: RU56XNXQTKVQFIOJXHYUF7MVQWGVNUDOE4KB3LKSGUHMNUDIGON :::: NAILARA AMOS :::
+# :: LAAYX7IMRCNH7JOUWNWXQUPN3C2WKRIA5BEFETW6DHLZNONKF2CY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -214,8 +214,8 @@ sub prepare_subs {
             goto RETRY_BASE_NTIME;
         }
 
-        my $ntime = sprintf( "%.0${ntime_precision}f",
-            ( ( $unix_time - $ntime_start ) * 4200 ) );
+        my $ntime = sprintf( qw| %.*f |,
+            "0$ntime_precision", ( $unix_time - $ntime_start ) * 4200 );
 
         if (    $want_harmony == 1
             and length($param) < 9
@@ -940,10 +940,10 @@ sub prepare_subs {
                 and $ARG ne qw|  base.s_read    |
                 and $ARG ne qw|  base.s_write   |
                 and $ARG ne qw|  base.sig_int   |
+                and $ARG ne qw|  base.cfg_bool          |
                 and $ARG ne qw|  base.sprint_t          |
                 and $ARG ne qw|  base.sig_warn          |
                 and $ARG ne qw|  base.route.add         |
-                and $ARG ne qw|  base.cfg_boolean       |
                 and $ARG ne qw|  base.format_error      |
                 and $ARG ne qw|  base.context.list      |
                 and $ARG ne qw|  base.clean_unicode     |
@@ -2282,7 +2282,7 @@ sub prepare_subs {
 END { $code{'base.handler.end_code'}->() }
 
 #.............................................................................
-#KASGTE24ESPNORRAXVNQRJOUEGXN3WZTVC6M5EZR5XVZLG4FL6CDA57VZAWW3CE2XHWSURKNGIA7G
-#::: 25UFCVWPHUALTYTSXUJMXBQO6EZJZEXVNSHELAXYW3TDX7BZM6T :::: NAILARA AMOS :::
-# :: DLYY3TRZATZIDXGLX5KRSU5DQLOX3EDVCYFJXIATAUAP6SWHPKDI :: CODE SIGNATURE ::
+#NEFDV6EPGOMENM4VMLVRJRMKKMTJJBUMYTDDXDHO7LEOMJIFZB6UDQ5XWE2UMNOROCEFYKR2B6GCM
+#::: Z4E3FLTTIDXPP3KKGIO6MGEMYMHZXYRE3GIU7W2JXUSWXXY6UG3 :::: NAILARA AMOS :::
+# :: CRP2O3XJUIPTGJK7EHYJUAEPTZ3JCJPFQA2VIODC27AHBGOYYECA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

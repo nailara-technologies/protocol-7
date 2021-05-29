@@ -15,7 +15,7 @@ my $authname
 $authname = <system.zenka.auth_name> if defined <system.zenka.auth_name>;
 
 my $c_fh;    ## cube filehandle ##
-if ( not <[base.cfg_boolean]>->( <v7.local_cube.connect-unix> //= 1 ) ) {
+if ( not <[base.cfg_bool]>->( <v7.local_cube.connect-unix> //= 1 ) ) {
     <[base.logs]>->(
         'connecting to local cube [%s:%d] ..,',
         $cube_addr, $cube_port
@@ -52,7 +52,7 @@ return 0 if not defined $c_fh;
 <base.log.allow_buffer_send> = 1;    ## enable sending to 'p7-log' ##
 
 my $session_id
-    = <[base.session.init]>->( $c_fh, qw| protocol-7 client cube | );
+    = <[base.session.init]>->( $c_fh, qw|  protocol-7  client  cube  | );
 
 <[base.logs]>->( 'auth. to cube successful [ session %d ]', $session_id );
 <v7.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
@@ -76,7 +76,7 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 return 5;
 
 #.............................................................................
-#JBWWOKSY2XL7MBYWBUH2RMWNHMJX4MFMEY73CHONZT4QE2VFBOCX2DZE753AZCG52D3MXDNQX2PPQ
-#::: RKTCPI2BJBXJQTJV2QSBGMEJ5I4PXOVEMBL77OFDL2Q5KQLHNLB :::: NAILARA AMOS :::
-# :: 33QR35TZN6SI4QWDAKLAR65SRTH6NHFREDY7Y5UUUCSRHLGH4ECA :: CODE SIGNATURE ::
+#SEQ5MR2WN5BZEAKNVLQVQOQIEBPSMO2U63MH36GL53LDIKMTNIX6FKO5ARPVKMCQ5GVSLCDM6QVAO
+#::: K6Y52PODTPSNPPUCFB6VIHY52QOVT4G3ZMFT62IMLD7F4M6WWZC :::: NAILARA AMOS :::
+# :: 6OTWSXOYPOX3DRBE3LN45POIPFZJNERBTYZRTDVWAJL5XPIJSWBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

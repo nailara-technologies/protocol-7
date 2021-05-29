@@ -70,8 +70,8 @@ if ( <system.verbosity.console> > 1 ) {
 if ( !-x <v7.gcc_bin> ) {
     <v7.gcc_bin> = undef;
     <[base.log]>->( 0, "<< 'gcc' binary not found >>" )
-        if <[base.cfg_boolean]>->(<v7.cfg.install_bin_p7c>);
-} elsif ( <[base.cfg_boolean]>->(<v7.cfg.install_bin_p7c>)
+        if <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>);
+} elsif ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>)
     and not <[v7.bin_p7c_is_current]> ) {
     <[v7.compile_bin_p7c]>;
 }
@@ -109,7 +109,7 @@ if (    exists <system.subs_loaded.debug>
     $Data::Dumper::Sortkeys = 1;
 
     ( my $debug_str = Dumper(<v7.start_setup.globals>) ) =~ s'^.{7}';$,  'mg;
-    print "\n < v7.start_setup.globals >\n\n$debug_str\n";
+    say "\n < v7.start_setup.globals >\n\n$debug_str";
 }
 
 <[event.add_signal]>
@@ -210,7 +210,7 @@ delete <list.users>;
 return 0;
 
 #.............................................................................
-#TR46M3BC2LKJ75KMGSGM2LRTDLK23LGEDRDTKVOGIPHZZUECPTNUMPL6RIRVLHXPJS44BZA2PFGSO
-#::: MCHVME5V2JWNY7UTHZQ3GWULGBV5JMDJH2JTUZDZNLDG2VWYFB6 :::: NAILARA AMOS :::
-# :: R2YEXRMGB2VHENF5GYGFTFBOMTIUH74FW7G6VATNVYKY7VAWIMBI :: CODE SIGNATURE ::
+#UBWAAJRNGQQUIMLD3UHD6KAMF2LVQ5L77RSEWO4GPMXIAJIZEVWAP5DDFLDMITNPBIVZYD5OQC4DA
+#::: CE76AIP2OXAFYZI3VAQFGPXTAAU6AIPHG7VUYLKSJO7ZIFDDEC7 :::: NAILARA AMOS :::
+# :: KLZBKBGOSWVJQCI3WMGICB6BDYL47JOGHZLQKYRHYTQ2DCL74YBY :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
