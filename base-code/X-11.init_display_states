@@ -2,44 +2,50 @@
 
 # name = X-11.init_display_states
 
-my $drm_dir = '/sys/class/drm';
+my $drm_dir = qw| /sys/class/drm |;
 
 if ( !-d $drm_dir ) {
-    <[base.log]>->( 0, "unable to access '$drm_dir' [ not found ]" );
+    <[base.logs]>->( 0, "unable to access '%s' [ not found ]", $drm_dir );
     return;
 }
 
-opendir( my $drm_dir_fh, $drm_dir ) or die "$drm_dir : \l$OS_ERROR";
+opendir( my $drm_dir_fh, $drm_dir )
+    or die sprintf '%s : %s', $drm_dir,
+    scalar <[base.format_error]>->( $OS_ERROR, -1 );
 
 my $connected = 0;
 
 <X-11.path.display_status> = {};
 <X-11.display_connected> //= {};
 
-<[base.log]>->( 2, "scanning $drm_dir.," );
+<[base.logs]>->( 2, 'scanning %s.,', $drm_dir );
 
 foreach my $card_name ( readdir($drm_dir_fh) ) {
     next if !-l "$drm_dir/$card_name" or $card_name !~ m|^card\d+$|;
-    <[base.log]>->( 2, ": $card_name" );
+    <[base.log]>->( 2, ': %s', $drm_dir );
     ( my $target_path = readlink("$drm_dir/$card_name") ) =~ s|^(../)+|/sys/|;
-    <[base.log]>->( 2, ": : $target_path" );
+    <[base.logs]>->( 2, ': : %s', $target_path );
 
     <base.obj.inotify>->watch( $target_path, IN_ACCESS(),
-        $code{'X-11.scan_display_states'} );
+        sub {<[X-11.scan_display_states]>} );
 
     opendir( my $card_dir_fh, $target_path )
-        or die "$target_path : \l$OS_ERROR";
+        or die sprintf '%s : %s', $target_path,
+        <[base.format_error]>->($OS_ERROR);
     foreach my $disp_name ( readdir($card_dir_fh) ) {
-        next if !-d "$target_path/$disp_name" or $disp_name !~ /^$card_name/;
-        my $status_file = "$target_path/$disp_name/status";
+        next if !-d "$target_path/$disp_name" or $disp_name !~ m|^$card_name|;
+        my $status_file = sprintf qw|%s/%s/status|, $target_path, $disp_name;
         die "display status file $status_file not found" if !-f $status_file;
         chomp( my $status_content = ${ <[file.slurp]>->($status_file) } );
 
         <X-11.display_connected>->{$disp_name}
-            = $status_content eq 'connected' ? 1 : 0;
-        my $d = $status_content eq 'connected' ? '.' : ' ';
-        <[base.log]>->( 2, ": : :$d$disp_name < $status_content >" );
-        $connected++ if $status_content eq 'connected';
+            = $status_content eq qw| connected | ? 1 : 0;
+        my $d = $status_content eq qw| connected | ? '.' : ' ';
+        <[base.logs]>->(
+            2,  ": : :%s%s < %s >",
+            $d, $disp_name, $status_content
+        );
+        $connected++ if $status_content eq qw| connected |;
         <X-11.path.display_status>->{$disp_name} = $status_file;
     }
     closedir($card_dir_fh);
@@ -51,7 +57,7 @@ closedir($drm_dir_fh);
 return $connected;
 
 #.............................................................................
-#6WNMP55MZQCFBBYXVOL4AEOVGRAOQCLPNME6BVD7TD5WJZOKPS6B3AHDRV5PO5FECG77Z42HF7LNE
-#::: VLS7ECOXKHI37EPRJAXJE7I6RPZVGXCP5FSMPS732XZUL5VBLQD :::: NAILARA AMOS :::
-# :: KARC5DVMLE7P6DLWAF4GRDKLQS6XVOSW4ES2WYVYDYLQITXW4QBI :: CODE SIGNATURE ::
+#W2D3PJ4F4JPJDPY5WL7ZHCAXST2CJCYZWDWSZTCKRR2MWCUBVENKKJJOQBBCMRWK7NDD3PFH6IQDM
+#::: R3PBQSCLRABSC7QHTYNAEX4B63VCDH6JJ7YQ7G57VQEHFP4Z37F :::: NAILARA AMOS :::
+# :: 4YFMXYH3M2CXD2ZUYBR22TAZOI6EBAJWI5TUCXXW4323PLJFOKDA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

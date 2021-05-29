@@ -2,20 +2,20 @@
 
 # name = base.inotify.install_io_watcher
 
-return if defined <base.obj.inotify>;
+return if defined <base.obj.inotify>;    ## watcher already registered ##
 
-<[base.log]>->( 2, "installing inotify event watcher..." );
+<[base.log]>->( 2, 'installing inotify event watcher .,' );
 
-<base.obj.inotify> = Linux::Inotify2->new();
+<base.obj.inotify> = new Linux::Inotify2;
 
 <[event.add_io]>->(
     {   'fd'      => <base.obj.inotify>->fileno,
-        'handler' => 'base.handler.inotify_poll'
+        'handler' => qw| base.handler.inotify_poll |
     }
 );
 
 #.............................................................................
-#TQH5SUBBWGFYDIZCZFA3GH454AQM3J77D42XKUKY3VE277KODVJYTPGKRPMD23DFGVPM76QIC6W4M
-#::: AMRZ55X6STWGOCUULDGSEG3PW63YW6JGBYWPPPINI4JTQLG5QGJ :::: NAILARA AMOS :::
-# :: AXY3RDB43PVL6LSVCORVFJHDGCSJ7DHRRTVAZFLUSDUIK7ELB6CY :: CODE SIGNATURE ::
+#B2HVOQYD5HJKORAEIV6N66Z7CHBY767AZPNXL6P6HDUJUYGVHGSBBVMOROQZFSEMGAFXXKVOP6QHC
+#::: URFWITO67PUNJKIBEKPBR22HSZQPKNG2I2P5Q36VC7HV35HFFEB :::: NAILARA AMOS :::
+# :: FIVZ7S5ESVAOKGAY4262HHBPXYO3QMUP7XUW7PJSHXETKCZJLWAA :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
