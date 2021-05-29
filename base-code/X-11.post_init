@@ -11,7 +11,7 @@ if ( <X-11.mode> !~ $modes_re ) {
     <[base.log]>->(
         0, sprintf( "configured X-11 mode '%s' is not valid", <X-11.mode> )
     );
-    exit(1);
+    <[base.exit]>->(qw| 0110 |);
 }
 <X-11.params>->{<X-11.mode>} //= '';
 
@@ -48,7 +48,6 @@ my $server_params;
     and !<X-11.disable_glamor>;
 
 ## start-up \ connect ##
-
 die 'X-11.mode is not defined' if not defined $mode or not length $mode;
 
 if ( $mode ne qw| host | ) {
@@ -114,14 +113,13 @@ if ( $mode ne qw| host | ) {
     <[base.log]>->( 1, 'running in host mode [ using existing X11-server ]' );
 
     ##  drop before connecting., ##
-    <[base.root.drop_privs]>->(<system.X-11-user>);
+    <[base.root.drop_privs]>->(<system.AMOS-user>);
 }
 
 <X-11.obj_bin_name> = $bin_name;
 my $bin_name_lc = lc($bin_name);
 
 ## registering custom error handlers ###
-
 $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
     = 'X-11.handler.protocol-warnings';  ## $self->{'connection'}->get(@_); ##
 
@@ -212,7 +210,6 @@ if ( <X-11.obj>->init_extension('Composite') ) {
 }
 
 ## display connected ? ##
-
 <X-11.display_connected.any> //= 1;
 
 <[X-11.init_display_states]> if <X-11.mode> eq qw| xorg |;
@@ -275,14 +272,11 @@ if ( <X-11.mode> eq 'xorg' and !<X-11.display_connected.any> ) {
 
 if (<X-11.has_randr>) {
 
-## orientation ##
-
+    ##  screen orientation  ##
     <[X-11.cmd.rotate-screen]>->( { 'args' => <X-11.orientation> } )
         if not <X-11.keep_unchanged>;
 
-## custom xrandr ##
-
-    map {
+    map {    ## custom xrandr settings ##
         system( qw| /usr/bin/xrandr |,
             split( m| +|, <X-11.custom_xrandr>->{$ARG} ) )
         }
@@ -293,14 +287,10 @@ if (<X-11.has_randr>) {
 }
 
 ## keyboard ##
-
-<X-11.kbd> = X11::Keyboard->new(<X-11.obj>);
-
+<X-11.kbd>                = X11::Keyboard->new(<X-11.obj>);
 <X-11.keycodes.modifiers> = <[X-11.get_modifier_map]>;
 
-#  my $any_key = <X-11.kbd>->KeysymToKeycode('AnyKey');
-#  my $any_mod = <X-11.kbd>->KeysymToKeycode('AnyModifier');
-
+## registering keyboard event handler ##
 <X-11.obj>->{'event_handler'} = qw| queue |;
 <[event.add_io]>->(
     {   'fd'      => <X-11.obj>->{'connection'}->fh,
@@ -308,19 +298,18 @@ if (<X-11.has_randr>) {
     }
 );
 
+## grab keyboard ##
 <[X-11.grab_key]>
     if !<X-11.keep_unchanged>
     and <[base.cfg_boolean]>->(<X-11.keybd.grab_all_keys>);
 
 ## screensaver \ blanking ##
-
 if (    <X-11.has_dpms>
     and !<X-11.keep_unchanged>
     and <[base.cfg_boolean]>->(<X-11.disable_blanking>)
 
 ) {
     <[base.log]>->( 1, ': deactivating screen blanking ..,' );
-
     <X-11.obj>->DPMSDisable();
     <X-11.obj>->SetScreenSaver( 0, 0, 1, 0 );
 }
@@ -334,7 +323,6 @@ if (    <X-11.has_dpms>
     and <X-11.obj>->width_in_pixels >= 3840 );
 
 ## background image / color ##
-
 <X-11.keep_background> //= 0;
 if (<X-11.keep_background>) {    # <-- do not touch background image and color
     <X-11.initialized> = 1;
@@ -358,8 +346,15 @@ if ( <X-11.bg_fade> //= 1 and $bg_col ne '#000000' ) {
     );
 }
 
+## setting background image ##
 my $bg_mode = <X-11.bg_mode>;
 if ( defined $bg_image ) {
+
+    ## check local backgrounds directory first ##
+    my $chk_backgrounds_path = sprintf( '%s/%s/%s',
+        <system.root_path>, qw| data/gfx/backgrounds |, $bg_image );
+    $bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
+    ##
 
     my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
     my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
@@ -378,18 +373,19 @@ if ( defined $bg_image ) {
 
     if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
         <[base.logs]>->(
-            0, "unable to execute 'hsetroot' [ returned %s ]", $CHILD_ERROR
+            0, "cannot execute 'hsetroot' command [ returned %s ]",
+            $CHILD_ERROR
         );
     }
 }
 
+## all done. ##
 <X-11.initialized> = 1;
 
-# success
-return 0;
+return 0;    ## success
 
 #.............................................................................
-#DQE3DXN5FKWDJTLDQQCSB6CKQMZGOX7ZNFZI6YR7MUXXE4W4QR2FWDRXSVYI22DV326YATD2XDDNM
-#::: WAZZX7KWOVSOTTOVDYPA3J5FSRHCTD5NJQDMPLEDZ6OMXWMOOD6 :::: NAILARA AMOS :::
-# :: L2CX2CDXLGDXE5OF7JXKZB4HBUXSBAW3GHDXY37DUPUYPOSQZUBI :: CODE SIGNATURE ::
+#IE3BNFK6BGI5E6V4SU37N7YBOILHJBMWTDH2WMKVV64MRCU7RJNHFT5H2IRV3QV4CFCSCBFOWK2DU
+#::: ZLBHGRC3OQUHKTLFALO6K5QOB75D2PEDJG2NUN5AHZWYQKNK5L3 :::: NAILARA AMOS :::
+# :: F2XYE4IVF6PFPYC5GHV2WHAY3CHUI5ROMBBATAW2WNOIJMEL2YDQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
