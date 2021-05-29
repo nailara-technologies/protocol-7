@@ -16,7 +16,7 @@ if ( <X-11.mode> !~ $modes_re ) {
 <X-11.params>->{<X-11.mode>} //= '';
 
 if ( <X-11.mode> eq qw| host | ) {
-    if ( <[base.cfg_boolean]>->(<X-11.host_mode_unchanged>) ) {
+    if ( <[base.cfg_bool]>->(<X-11.host_mode_unchanged>) ) {
         <X-11.keep_unchanged>  = 1;
         <X-11.keep_background> = 1;
     }
@@ -71,7 +71,7 @@ if ( $mode ne qw| host | ) {
     my $bin_name_lc = lc($bin_name);
     my $cmd_line    = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
 
-    <[base.logs]>->( 1, "starting '%s'-server..,", $bin_name_lc );
+    <[base.logs]>->( 1, "starting '%s' server process .,", $bin_name_lc );
 
     # LLL: change uid for 'xephyr'..,
     $server_pid = open( my $out_fh, $cmd_line );
@@ -301,12 +301,12 @@ if (<X-11.has_randr>) {
 ## grab keyboard ##
 <[X-11.grab_key]>
     if !<X-11.keep_unchanged>
-    and <[base.cfg_boolean]>->(<X-11.keybd.grab_all_keys>);
+    and <[base.cfg_bool]>->(<X-11.keybd.grab_all_keys>);
 
 ## screensaver \ blanking ##
 if (    <X-11.has_dpms>
     and !<X-11.keep_unchanged>
-    and <[base.cfg_boolean]>->(<X-11.disable_blanking>)
+    and <[base.cfg_bool]>->(<X-11.disable_blanking>)
 
 ) {
     <[base.log]>->( 1, ': deactivating screen blanking ..,' );
@@ -351,7 +351,7 @@ my $bg_mode = <X-11.bg_mode>;
 if ( defined $bg_image ) {
 
     ## check local backgrounds directory first ##
-    my $chk_backgrounds_path = sprintf( '%s/%s/%s',
+    my $chk_backgrounds_path = sprintf( qw| %s/%s/%s |,
         <system.root_path>, qw| data/gfx/backgrounds |, $bg_image );
     $bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
     ##
@@ -385,7 +385,7 @@ if ( defined $bg_image ) {
 return 0;    ## success
 
 #.............................................................................
-#IE3BNFK6BGI5E6V4SU37N7YBOILHJBMWTDH2WMKVV64MRCU7RJNHFT5H2IRV3QV4CFCSCBFOWK2DU
-#::: ZLBHGRC3OQUHKTLFALO6K5QOB75D2PEDJG2NUN5AHZWYQKNK5L3 :::: NAILARA AMOS :::
-# :: F2XYE4IVF6PFPYC5GHV2WHAY3CHUI5ROMBBATAW2WNOIJMEL2YDQ :: CODE SIGNATURE ::
+#KDSUSHRMBN36H45ZUZZYXHIJMJPUJR2VWGPJDP7IEKT4YI333T2G3NMTSKWHX54MFOIEYRAFJXFF6
+#::: FOZNLEJAWGSHD4P424CQMBTQACRMUN77CSQ5HX667FFUH67NBER :::: NAILARA AMOS :::
+# :: JGEJIFD2SCPEXSZSTTIFVVLH7WOV3RZ5ALBYOHJQMMIRZQWXKMBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

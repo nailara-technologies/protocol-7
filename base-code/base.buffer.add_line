@@ -16,7 +16,7 @@ if ( !length( $name // '' ) ) {
     warn 'expected buffer name <{C1}>';
     return -1;
 } elsif ( $name !~ m|^[\w\-_]{1,24}$| ) {
-    warn "invalid buffer name '$name' specified <{C1}>";
+    <[base.s_warn]>->( "invalid buffer name '%s' specified <{C1}>", $name );
     return -1;
 }
 
@@ -46,28 +46,29 @@ if ( not defined $buffer_size or $buffer_size < $min_b_size )
     if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
     $buffer_size = $data{'buffer'}{$name}{'max_size'} = $default_size;
     if ($min_size_error) {
-        <[base.log]>->(
-            0,
-            "<<< log buffer size too small,"
-                . " using $size_str for '$name' buffer >>>"
+        <[base.logs]>->(
+            0, "<<< log buffer size too small, using %s for '%s' buffer >>>",
+            $size_str, $name
         );
     } elsif ( !$default_found ) {
-        <[base.log]>->(
-            1, "no log buffer size set [using $size_str for '$name']"
+        <[base.logs]>->(
+            "no log buffer size set [using %s for '%s']",
+            $size_str, $name
         );
     } else {
-        <[base.log]>->(
-            2,
-            "<< no '$name'-buffer size set,"
-                . " using default setting [$size_str] >>"
+        <[base.logs]>->(
+            2, "<< no '%s'-buffer size set, using default setting [%s] >>",
+            $name, $size_str
         );
     }
 }
 if ( $message_len > $buffer_size ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         "WARNING: log message longer than log-buffer-size"
-            . " [ buffer: $buffer_size bytes message: $message_len bytes ]"
+            . " [ buffer: %d bytes message: %d bytes ]",
+        $buffer_size,
+        $message_len
     );
     return 0;
 }
@@ -93,7 +94,7 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
     }
 }
 
-return if not <[base.cfg_boolean]>->(<base.log.allow_buffer_send>);
+return if not <[base.cfg_bool]>->(<base.log.allow_buffer_send>);
 
 if (    defined $data{'buffer'}{$name}{'log_cmd'}
     and length $data{'buffer'}{$name}{'log_cmd'}
@@ -114,7 +115,7 @@ if (    defined $data{'buffer'}{$name}{'log_cmd'}
 }
 
 #.............................................................................
-#MMH5YPXJIIZXJD3UYUMOFBYVPLI2SEZBUALWREQFEKEVKIZCFA6AP3U74KGWS6JT7YQUQ6DMSXBTO
-#::: M47N5LZOE2OEIHBPAAMVTUNNOY5X4HXIC4GIV4OO4UTUNC3PZDP :::: NAILARA AMOS :::
-# :: HTNE7YDSZA2555OPHY6CCBWWTWMTUBZ4UR64B3N5ARKLXBBHY6DA :: CODE SIGNATURE ::
+#XHGHWJAMSKDT2TYHQM6E7JLEOLACC433GVNZMBII2FILE5SNHTEQFCKHIAZNOFS67BL2YEL7XHEWU
+#::: MXNWC3WJEP6R5WFZZJGEULUK5DX33P4HMQQYZF6J6NU4UCWYYPN :::: NAILARA AMOS :::
+# :: CFA6HYXMGVAS3WD2V7L37EP6QOD6OTFDIXIRRVHIEZHKSFU63GBQ :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
