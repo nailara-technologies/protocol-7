@@ -1,13 +1,13 @@
 # >:]
 
 # name  = base.log.send_buffer_line
-# descr = send log buffer content to configured zenka [ i.e. p7-log ]
+# descr = send log buffer content to configured log zenka [ p7-log ]
 
-my $name         = shift;
-my $buffer_index = shift;
+my $name         = shift;    ## buffer name ##
+my $buffer_index = shift;    ##  buffer line num  ##
 
 ##  connected to cube ?  ##      ##  use notify-online  ##  [LLL]
-return if not <[base.cfg_boolean]>->(<base.log.allow_buffer_send>);
+return if not <[base.cfg_bool]>->(<base.log.allow_buffer_send>);
 return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
 
 <log.file>->{$name} //= {
@@ -22,12 +22,13 @@ my $log_data   = <log.file>->{$name};
 my $next_index = $log_data->{'next_index'};
 
 ##  no such buffer  ##
-return warn sprintf "send_buffer_line : no such buffer ['%s'] <{C1}>", $name
-    if not defined $data{'buffer'}{$name};
+return <[base.s_warn]>->(
+    "send_buffer_line : no such buffer ['%s'] <{C1}>", $name
+) if not defined $data{'buffer'}->{$name};
 
 my $buffer_data_ref = $data{'buffer'}->{$name}->{'data'};
 
-##  no such buffer content line [sent]  ##
+##  no such buffer content line [ sent ]  ##
 return if not defined $buffer_data_ref->[$next_index];
 my @send_line;    ##  protocol line messages  ##
 
@@ -41,10 +42,10 @@ if ( <system.zenka.type> eq qw| cube | ) {
 }
 
 ##  log buffer name  ##
-push( @send_line, $name );
+push @send_line, $name;
 
 ##[ t-stmp, lvl, msg ]##
-push( @send_line, $buffer_data_ref->[$next_index] );
+push @send_line, $buffer_data_ref->[$next_index];
 $log_data->{'complete'} = 0;
 
 <[base.protocol-7.command.send.local]>->(
@@ -58,7 +59,7 @@ $log_data->{'complete'} = 0;
         }
     }
     )
-    ## no warnings during 'reload' ##
+    ##  no warnings during 'reload'  ##
     or <base.silence.sprint_t> = 1 and <[base.log.handler.log_reply]>->(
     {   qw| cmd |       => qw| FALSE |,    ## command does not exist ##
         qw| call_args | => {
@@ -70,7 +71,7 @@ $log_data->{'complete'} = 0;
     );
 
 #.............................................................................
-#O46F5SLEFBQOLZ5SHHDSGP4LZRD5O7SLJGBCQC6YOSYUR3UA4K5BH25VSFFHOHHTE2Y6NRZIU5AUM
-#::: ALFZFJ57SO4566MVI2PAFFXMFJGPXJ3X4QDRGGA6GKT3D52PPKD :::: NAILARA AMOS :::
-# :: VMAFOYBV5OG3L44VMMKTGAVMAET36ZIYFKOKQV6PD7G3I4ISNQBQ :: CODE SIGNATURE ::
+#NTQBXN3FU2YQVWMPM3NWMHTAUXIXYQNUIXB57VFT2GCNTKMZTMJPKCAIJTPEMZLXJ4GJ6VRYWDRE6
+#::: YEXDPAIA2ZQ2QODWMIWPIC4YVS7ML5EQURH3QHGJ6IOKNVYV6BC :::: NAILARA AMOS :::
+# :: UGNN2Z5JLO3GQ4SVBTTW5VMD3GJHCV3Z7DFAM3CSW3I6PIJMROAI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

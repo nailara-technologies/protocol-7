@@ -19,7 +19,7 @@ my $warn_level = 1;    ## <-- log level for enabled wildcard pattern masks
 #                                                                      :::
 <system.access.wildcards.allow> //= 0;    #                            :::
 my $wildcard_permissions_allowed          #                            :::
-    = <[base.cfg_boolean]>->(<system.access.wildcards.allow>);    #    :::
+    = <[base.cfg_bool]>->(<system.access.wildcards.allow>);    #       :::
 ## :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 ## [ LLL ] create command registry in module initialization code ..,
@@ -63,12 +63,12 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
             my $unchanged_pattern = $cmd;
             ## prepare command regex mask ##
             if ( $cmd =~ m|$cmdp_re^\*]| ) {
-                <[base.log]>->(
+                <[base.logs]>->(
                     0,
-                    'not valid character in command regex mask [ user \''
-                        . $user
-                        . '\' pos '
-                        . $pos . ' ]'
+                    'not valid character in command regex mask'
+                        . ' [ user \'%s\' pos %d ]',
+                    $user,
+                    $pos
                 );
                 $errors = 1;
             } else {
@@ -122,7 +122,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
             if (@patterns_kept) {
                 <access.cmd.usr>->{$config_user} = join ' ', @patterns_kept;
             } else {
-                delete <access.cmd.usr>->{$config_user}    ## clean-up ##
+                delete <access.cmd.usr>->{$config_user}    ## cleaning up ##
             }
         }
         ##
@@ -144,7 +144,7 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
         }
 
         my $user_differs = $user ne $config_user ? " \t<-- $config_user" : '';
-        my $mask_log_str = "\n,: $user :.$user_differs\n:\n";
+        my $mask_log_str = sprintf "\n,: %s :.%s\n:\n", $user, $user_differs;
         while (@encoded_wrap) {
             my $add_segments = 5;
             $mask_log_str .= ':  ';
@@ -217,7 +217,7 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 return $errors;
 
 #.............................................................................
-#L6MKVMYX4U2C5PLTC2W3MIPGWEGSDML47MTXV2BXYZUAVUG3LRAEC3PUOYOP7CD2CH5WZDJJ7KNNW
-#::: UDEMFCJGME3W6GMNOJF3MNUE6JYCYHXUE572UBZVGM55NINOODL :::: NAILARA AMOS :::
-# :: ICMCS4LARBXIZKX3XDTU2DRKGE5X77K2PBLJV4JSUWR2KBE6TGDI :: CODE SIGNATURE ::
+#OIGLIDHFOVKP2ON2B4CQ7O5KMOVOGQWV7TYXEZ6BHWJG2LNEBFCSII66G5AFZJOW2VWA6OOMUY55U
+#::: DH2UNJGQFK2NAQHB475KNWXKR2MF2PZU3SVD3BEMS2PQ7B36IQQ :::: NAILARA AMOS :::
+# :: YCO3EAOPAJVZQNYXEQXWRPV64SN42D66TF5IZ26GJR3RJXSIMUBI :: CODE SIGNATURE ::
 # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
