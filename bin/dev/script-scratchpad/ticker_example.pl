@@ -289,8 +289,8 @@ while (1) {    # main loop ( exits on QUIT, mouse and key events)
     }
 }
 
-#.............................................................................
-#FLJ226ASNVAHMVAQ4PLKB36FS3OHV2UB32EPZ6XYUO3ZSHKJA6JEJ6QI7GC5R7BYTDZ4MFG3U3EEO
-#::: JTWNCBJMADDNM26N3G47GEZONCSMANZIBQF6VVMHT6VY74TYQF5 :::: NAILARA AMOS :::
-# :: DC6JT236ZHFMKYWPC4LHUBBGWACSIUFLLBAAHE25EGUP6PRY5SDQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,..,,...,.,,,,..,,.,,.,,,,,,,,,.,...,,,.,.,.,,..,.,.,.,.,...,...,..,,,..,
+#WVBBQBUROJIQXNTAXZ3JJDE24WXT4R6XYFC3YFVRR55QQJBGHOIKTVNL7VD3BNYHRVNRMZ4N4MMX4
+#\\\|62H4XIULKX2I6KJMGG5HMYYT4YJC6KG5FRVDQ42LF22JCCFKBWI \ / AMOS7 \ YOURUM ::
+#\[7]2JXDNZV6UQHBFZPMSFVV3GKZBKD5XAHKKVAW2WJ4MUQEPBHEXIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

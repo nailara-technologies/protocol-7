@@ -21,8 +21,8 @@ $u->sendmsg($message);
 # $u->send($message);
 $u->close();
 
-#.............................................................................
-#2XWZNR5URUUUGWVW3G3CDNLYN2PX7CKL4JX7PPNBYB7WU56P7K4HGN3KYS43S2BMNY7VZSJKJICDI
-#::: WHARPIOQU65LDJXNI55UXXW5SUVM4XTD7EB3YMC7EKUTRZVZC2J :::: NAILARA AMOS :::
-# :: PKEQNAQ5IDYFOE7I6OM5DV7VZ7A4KYWAOEUW3ZQHODJPLBYD6GCA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,..,,,,,,,.,,,,,,,..,.,.,,,,,,,.,.,,,...,.,,,,,.,.,.,..,,.,.,..,,,,,,,,.,
+#I6XBJ4NZXMTAUAI5V55GFWAQF5G3KDWZZZLFZTTWHNSAFZU5QJSQQE2XCJFAK3V6TOMGKEV4GX62A
+#\\\|LYWMLKWCKMVZXC3RZJLHMHDELNVIDCQ5ZUBH2UZR7JD46BFBS2N \ / AMOS7 \ YOURUM ::
+#\[7]6IVUFYWN4B7PBSLPAQMLQJNJRITM3TSMA73QPT5SYOQVAQ4QZYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

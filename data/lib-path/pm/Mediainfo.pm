@@ -284,8 +284,8 @@ and/or modify it under the same terms as Perl itself.
 
 L<Video::Info>, L<Movie::Info>
 
-#.............................................................................
-#UPXXWGLXVUDWFI4HJZHNTABYUL6VLMRXIFVZZCDUPXOQURDVJVVRQ4CJC26JB5D5L7KCZ526UBJ72
-#::: QCG5SVLG3KJT5JI6IZSO5UZZ7MJT2T4FJSAR5VZJDQXR2ZTVW6P :::: NAILARA AMOS :::
-# :: AAHNFNWQLUBY6YAXAHW3ZNKQJ7OCCDZPG6HVVSCSSN734PVKWCBI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,..,,,,.,...,,.,,.,,,.,,,,.,,,.,,..,,,.,,..,,...,...,,,.,,,,,.,,,,,,,.,,,
+#D6MR64H4DAZMVNHTICAQP4G3HSQYQ3RIA46GW5QFYTDPVO77JVN3O2KAD424YY7HY23FJRXKQ4UEQ
+#\\\|S27BR4VQENKCILEISMZYHFR5WRUE32RXCIUNUL7QM4ACFWDT534 \ / AMOS7 \ YOURUM ::
+#\[7]MZQKNOB7M7VTJCOAPBYQVHB6RUQZLNC7V2SRF4UHORXUA7CN2YDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

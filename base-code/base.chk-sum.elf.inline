@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = base.chk-sum.elf.inline
 # descr = calculate AMOS-13 ELF-7 checksum value [ numerical and strings ]
@@ -14,18 +14,42 @@ my $overflow_threshold = 0XFE000000;    ## elf hash setting : 0XF0000000 ##
 ##
 ####
 
+state $caller_level = [caller]->[1] eq qw| base.chk-sum.elf |
+    ? qw| <{C2}> |                      ##  reporting warnings  ##
+    : qw| <{C1}> |;
+
 if ( ref( $ARG[0] ) eq qw| SCALAR | ) {
-    $input_ref  = shift;
-    $start_sum  = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
-    $elf_mode   = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
+
+    $input_ref = shift;
+
+    ##  start checksum  ##
+    warn 'start chksum param undefined ' . $caller_level and return undef
+        if @ARG and not defined $ARG[0];
+    $start_sum = shift if @ARG and $ARG[0] =~ m{^(0+|\d{7,9})$};
+
+    ##  elf mode  ##
+    warn 'elf mode param is undef ' . $caller_level and return undef
+        if @ARG and not defined $ARG[0];
+    $elf_mode = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
+
+    ##  shift-bits  ##
+    warn 'shift bits param undefined ' . $caller_level and return undef
+        if @ARG and not defined $ARG[0];
     $shift_bits = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
+
+    ##  overflow shift threshold  ##
+    warn 'undefined overflow threshold param ' . $caller_level
+        and return undef
+        if @ARG and not defined $ARG[0];
     $overflow_threshold = shift if @ARG and $ARG[0] <= 4294967295;  #[ 32bit ]
 
-    warn '< elf.inline > option not expected [ '
-        . shift
-        . ' ] redundant mode param ? <{C1}>'
-        if @ARG;
-
+    while (@ARG) {    ##  sanity check  ##
+        <[base.s_warn]>->(
+            'option [%s] not expected, redundant mode parameter? '
+                . $caller_level,
+            shift @ARG
+        );
+    }
 } elsif ( @ARG and not length ref $ARG[0] ) {  ## string input \ no mode ., ##
     $input_ref = \$ARG[0];
 }
@@ -38,8 +62,8 @@ return AMOS::CHKSUM::ELF::elf_chksum(
     $shift_bits, $overflow_threshold
 );
 
-#.............................................................................
-#QI52HH2H5FYYCLNCP4OMIV3QKNZSRWVZWLHFIGCLBGFKLHACZYO3KTNC4G33MCSDPM2HI6BXT62UA
-#::: NK33ZD2WHB7MGCFBCJHGLOJFRKNZBLEXAIE5MKLADFMIHFQX3W7 :::: NAILARA AMOS :::
-# :: CKPC22D3JOBGO5S7BUY3VMZDRG5PZ3NNFEFPNRWQLP732LAB5OCQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,.,.,,,,,,..,.,.,,.,,.,,,...,.,,,,.,,.,.,..,,...,...,..,,.,.,.,,,.,.,,.,,
+#IIDLK3F3ODRCUAGITJ73OSBQ2HLL6XWYYCAMCY5AUL7MV5USGRI764D3KI5NTZUNAIHH6CNEVGAIC
+#\\\|2JGS3FDX7XWLRE23UMZEGAB5PJB3WJKYFAWIDFFGB4SDIA2PSPG \ / AMOS7 \ YOURUM ::
+#\[7]2Q5PCRWLZ47KVKF4YDMK5PJWWAVJHUE57N2JYGHXVJJHADLKHYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,12 +14,12 @@ use Crypt::Misc qw| encode_b32r decode_b32r |;
 
 no warnings 'experimental';
 
-my $base_size  = '6';
-my $base_table = 'cp10007';
+my $base_size  = qw|  3  |;
+my $base_table = qw| 855 |;    # 'cp10007';
 
 ## [LLL] disable ANSIColor on 'piped' STDOUT mode .., [$option{Q}]
 
-getopts( 'MLhBSvs:r:Ep:eqQd:DC:U:', \my %option );
+getopts( '0MLhBSvs:r:Ep:eqQd:DC:U:', \my %option );
 
 ## table aliases ##
 utf8_charset_alias(
@@ -82,9 +82,9 @@ my $neon_green  = "\e[38;2;71;195;6m";
 
 $SIG{'INT'} = \&int_exit;
 
-$option{'M'} = 0        if $option{'C'};
-$option{'q'} = 1        if $option{'Q'};
-$option{'C'} = 'BASE32' if defined $option{'C'} and $option{'C'} eq 'B';
+$option{'M'} = 0          if $option{'C'};
+$option{'q'} = 1          if $option{'Q'};
+$option{'C'} = qw|BASE32| if defined $option{'C'} and $option{'C'} eq qw| B |;
 
 my @B32_exclude = grep {length}
     map { defined $option{$ARG} && "-$ARG" } qw| S B v r d U |;
@@ -95,7 +95,7 @@ say sprintf( ":\n:: mutually exclusive modes selected [ -C BASE32 and %s ]\n",
     and $option{'C'} eq 'BASE32'
     and scalar(@B32_exclude);
 
-$option{'d'} //= 0;
+$option{'d'} //= $option{'0'} ? qw| 0 | : $base_size;
 
 $SIG{'__WARN__'} = sub {
     my $err = shift;
@@ -128,7 +128,7 @@ if ( not $option{'Q'} ) {
 }
 
 ## randomized selection ##
-if ( $C eq 'R' ) {
+if ( $C eq qw| R | ) {
     my @select_from = utf8_supported_charset;
     my $fortuna     = Crypt::PRNG::Fortuna->new( scalar elf($input_num) );
     my $index       = $fortuna->irand;
@@ -139,12 +139,12 @@ if ( $C eq 'R' ) {
 }
 ##
 
-$C = ':raw' if $C eq 'raw' or $C eq 'r';
+$C = qw| :raw | if $C eq qw| raw | or $C eq qw| r |;
 say ":\n:: ${error_color}character set '$C' not supported\n" . $reset
     and exit(4)
-    if $C ne ':raw'
+    if $C ne qw| :raw |
     and $C !~ m|^UTF-\d{1,2}|
-    and $C ne 'BASE32'
+    and $C ne qw| BASE32 |
     and not utf8_supported_charset($C);
 
 my $encoding      = $C =~ m{^:|^BASE32$} ? $C : sprintf(":encoding($C)");
@@ -153,7 +153,7 @@ my $encoding_mode = 'native';
 my $p = $option{'p'} // '';
 display_charset() and print "\e[${p}H" if $option{'E'};
 
-if ( $C ne 'BASE32' and not utf8_supported_charset($C) ) {
+if ( $C ne qw| BASE32 | and not utf8_supported_charset($C) ) {
 ## testing ##
     no warnings;
     eval 'use warnings FATAL => "all"; binmode( STDOUT, $encoding )';
@@ -268,10 +268,10 @@ while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
 }
 
 ########################################
-binmode( STDOUT, ":raw" );
+binmode( STDOUT, qw| :raw | );
 ########################################
 
-if ( $C eq 'BASE32' ) {    ## special 'character set' BASE32 [ encoding ]
+if ( $C eq qw| BASE32 | ) {    ## special 'character set' BASE32 [ encoding ]
     my $char_buffer = encode_b32r($input_num_copy);
     my $char_length = length($char_buffer);
     my $pad_len     = 8 - $char_length % 8;
@@ -315,8 +315,8 @@ sub display_charset {
     return 1;
 }
 
-#.............................................................................
-#RELJ3IBIC7G5LRFJY5Y7SQFBVCXTSLUJVYIU5M6P5PPWCDEC7A4WFQ4MKJW3NE2XRUAQYR5A3N4PS
-#::: 2ZIZMC3FA3Y7J4BHVFTYYSPUCMFILOQLXQEAQGDLFQQMNCUJM7T :::: NAILARA AMOS :::
-# :: PYHGRO6BQEA4R6PDUVLEPD4WASLW4T45PCS5MRZESRD6BTM2PCBY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,,.,.,.,..,,.,,,,..,,..,,,.,.,.,...,,,,,..,,...,...,..,,.,.,...,.,,,...,
+#B52OE2I2M6K473TEN4ZRO4VHHF4TZ4CDFIPNUCUVCY34DBJSUPHIBIKI3SAY3IU3WCDYHPB3GU3RQ
+#\\\|SEO7RGHIIA7IICHYVBLS7XFWWV4FAMZRJMAGH4URI6GT5CF6N5W \ / AMOS7 \ YOURUM ::
+#\[7]SE63GGMOLWHSQVCINE6BMYXM7R3NHS34OE3ZPPN6SYIQ4657ZKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

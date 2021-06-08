@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS::CHKSUM::ELF;    ################################################
 
@@ -14,13 +15,13 @@ use vars qw| @EXPORT $VERSION |;
 
 ## INLINE ELF OUTPUT CHECKSUM ##
 ##
-$VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    #  amos-chksum -VL7  #
+$VERSION = qw| AMOS-13-ELF-7-SQIG7DQ |;    #  amos-chksum -VL7  #
 
 @EXPORT = qw| elf_chksum $VERSION |;
 
-## ANOS-13-ELF SETTINGS ##
+## AMOS-13-ELF-7 SETTINGS ##
 ##
-our $elf_mode   //= 5;                     ##  elf hash setting :   4 ##
+our $elf_mode   //= 7;                     ##  elf hash setting :   4 ##
 our $shift_bits //= 13;                    ##  elf hash setting :  24 ##
 
 our $overflow_threshold //= 0XFE000000;    ##  elf hash : 0XF0000000 ##
@@ -112,7 +113,7 @@ sub elf_chksum {
             $overflow_threshold );
     }
 
-    $elf_mode   = 5;     ## resetting to AMOS-13-ELF algorithm settings ##
+    $elf_mode   = 7;     ## resetting to AMOS-13-ELF algorithm settings ##
     $shift_bits = 13;    ## resetting to AMOS-13-ELF algorithm settings ##
 
     $overflow_threshold //= 0XFE000000;    ##  AMOS-13-ELF algorithm  ##
@@ -122,8 +123,8 @@ sub elf_chksum {
 
 return 5;  ###################################################################
 
-#.............................................................................
-#4XQCBUE4IX5OQ4PIJZEZBPT22OL4JYQJB5AXG3B7LUNYOBL23HJSXFDIZO7DDENWH5FRMM4IQ2T54
-#::: FCPMAQB5GX4CDQ27J2BB5GMPHSLOQMBDVK4GVFTGXEQMDFCUQDE :::: NAILARA AMOS :::
-# :: SQCSQYIRJUPMWONQHIY4B5MYBEANF2OYX56DQEKXS6XH2EPHGQBI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,..,.,,,.,,,,..,.,,,.,.,,,,,,..,,.,,,,.,..,,...,...,...,...,,..,,,,,,,.,
+#EO3VLZDLT6SR4IKNTWWSWZM7C4O75VZJP7V7WHPKZS455D2DEBZBUNPEGATAD4NFISDC7TD73JXAS
+#\\\|EUUHHZ25OSNLGN2LWV7NMXASSOQS5UGWR3PPVFMJVKEMBNP3EME \ / AMOS7 \ YOURUM ::
+#\[7]SWZ2CPTGFLL4T6B3PY264NSHV3MG2HV54NYUFREASOEBTSMAZADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

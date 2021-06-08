@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = chk-sum.amos
 # descr = AMOS-checksum calculation
@@ -12,19 +12,32 @@ return warn 'expected input string for AMOS-checksum calculation <{C1}>'
 
 if ( not length ref( $ARG[0] ) ) {
     $input = \join( ' ', @ARG );    ## CREATING REFERENCE TO DATA ##
-} else {
-    $input = shift(@ARG);           ## PASSED BY REFERENCE ##
-    @modes = grep {m|^\d{1,2}$|} @ARG if grep {m|^\d{1,2}$|} @ARG;
-}
+} elsif ( ref($input) eq qw| SCALAR | ) {
 
-return warn '< chk-sum.amos > undefined input <{C1}>' if not defined $$input;
+    $input = shift(@ARG);           ## BY SCALAR REFERENCE ##
+    warn '< chk-sum.amos > undefined input <{C1}>' and return undef
+        if not defined $$input;
+
+    @modes = grep {m|^\d{1,2}$|} @ARG if grep {m|^\d{1,2}$|} @ARG;
+
+} elsif ( ref $ARG[0] eq qw| HASH | ) { ## read AMOS::CHKSUM for parameters ##
+
+    return AMOS::CHKSUM::amos_chksum( $ARG[0] );
+
+} else {
+    <[base.s_warn]>->(
+        "< chk-sum.amos > unsupported reference type '%s' <{C1}>",
+        ref( $ARG[0] )
+    );
+    return undef;
+}
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
 return AMOS::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
 
-#.............................................................................
-#YVDUQN4FEFU5WNZ7KAMO7KM3M667QO7DLFHLOLC4NHXIFAEIPY5NGVQ77I4VDEB3JAT3AYMHI2MAC
-#::: WYEDQFQNK3WXWHAGY54VH74NRXM5PG6FR4M5JA7LCXCCGSOQZT6 :::: NAILARA AMOS :::
-# :: MX4IZIJYF4YT655QARSJQ25NLW75GJ5IGQBAICXOGVQ6ZKNYCUCA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,,.,..,,,,,,...,,,,,...,...,..,,,..,,..,..,,...,..,,.,,,,..,...,.,,,,,,,
+#4PESI5BVOUTHYLXTQ7QGVOXPRLVCQTPEEUA7Q4DEF2EIMQP5SDZ774RQRQVY2CQ3RIAWMZX5AUDZI
+#\\\|V5XO7ALHZSPPHPV3RUD2R5X6WCXMG5FDH7AJ24ZCPUPRIQRALE5 \ / AMOS7 \ YOURUM ::
+#\[7]QU6MVV5EH4SY2ZK5RBMVADW2BRZLCDG37B5G5FMLXIXY75MGOKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

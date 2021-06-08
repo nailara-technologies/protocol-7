@@ -6,8 +6,8 @@ cpanm Event IO::Handle::Record JSON::XS\
         Date::Parse Proc::ProcessTable Digest::JHash\
         Term::ReadKey Term::ReadPassword Term::ReadLine::Perl
 
-#.............................................................................
-#E4QQISQL75BXBMIMYZ2PKTHSUKX4LKWSP5DQA4LXYLD3A2ON7UWO7SBD65SF6ZGNH35CAJ3XPTRWS
-#::: DA6JF3ZABBFSBCRTNOEMMHMRAKV6QCF4UPE3KIV245P5UTU2V3P :::: NAILARA AMOS :::
-# :: EHKXQZGBEKV4MWGA6R224LH4Q2PV26O66LUMXIRCU4I4L67F6QDA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,..,,,.,,,,,.,.,,,,,.,.,.,,,,,,,.,,,.,.,..,,...,...,...,..,,.,,,..,,,.,,
+#7DM4D2CQQJILFQM53QKYR2FHJW7E7MCCBEVQER3RMKWMBUE2BLFSK23PSGS4MPOKOKGYCN5VXLJW2
+#\\\|LMBA24BX4O55TSLN5AUVJ26MK6VYFFFARJWS4ZPZCH6YLBYA4D6 \ / AMOS7 \ YOURUM ::
+#\[7]GVNQJ3PHLRNNVX3VRZ272SXORT6KOCG5GVOX7256ACXCBXAU2GBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

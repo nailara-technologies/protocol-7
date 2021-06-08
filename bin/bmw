@@ -4,34 +4,34 @@ use strict;
 use English;
 use warnings;
 use Digest::BMW;
-use Crypt::Misc 'encode_b32r';
+use Crypt::Misc qw| encode_b32r |;
 
 my @sizes = qw| 224 256 384 512 |;
 
 my $bits = 0;
 my $next_size;
 my $numerical = 0;
-map { $numerical = 1 if $ARG eq '-d' } @ARGV;
+map { $numerical = 1 if $ARG eq qw| -d | } @ARGV;
 
 map { $bits = $LAST_PAREN_MATCH if $ARG =~ m|^-(\d+)| } @ARGV;
 
 my $pmode;
 my $bytes;
-if ( length($bits) < 3 ) {    ## bytes mode ##
+if ( $bits > 103 ) {    ## bits mode ##  [ repair not matching bits mode ] LLL
+    $pmode = qw| bits |;
+
+} else {    ## bytes mode ##
+
+    $pmode = qw| bytes |;
     $bytes = $bits;
-    $bits *= 8;
-    $pmode = 'bytes';
-} else {    ## bits mode ##
-    $bytes = int( $bits / 8 );
-    $bytes++ if $bits % 8;
-    $pmode = 'bits';
+    $bits *= 8 / 1.61;
 }
+
 map { $next_size //= $ARG if $bits <= $ARG or $ARG == 512 } @sizes;
 my $b_str
-    = $pmode eq 'bytes' ? sprintf( " [ %d bytes ]", $next_size / 8 ) : '';
+    = $pmode eq qw| bytes | ? sprintf( " [ %d bytes ]", $next_size / 8 ) : '';
 die ":\n:: requested bit size larger than $next_size ::$b_str\n:\n"
     if $bits > $next_size;
-$bytes ||= $next_size / 8;
 
 my $bmw = Digest::BMW->new($next_size);
 
@@ -40,15 +40,15 @@ my @args = grep { !m,^-(b|\d+)$, } @ARGV;
 if ( @args == 2 and $args[0] =~ m|^\-fq?| ) {
     my $fname = $args[1];
     die "\n  << not found : $fname >>" if !-e $fname;
-    open( my $FH, '<' . $fname ) or die "\n << ! >> $fname : $!\n\n";
+    open( my $FH, qw| < |, $fname ) or die "\n << ! >> $fname : $!\n\n";
     $fname =~ s|^.*/||;
     my $bmw_enc = encode( $bmw->addfile($FH)->digest );
     say $bmw_enc and exit if length( $args[0] ) == 3;
     printf( ":\n: $fname :. %s .:\n:\n", $bmw_enc );
     close($FH);
 } elsif ( @args == 2
-    and $args[0] eq '-fl'
-    and ( -f $args[1] or $args[1] eq '-' ) ) {
+    and $args[0] eq qw| -fl |
+    and ( -f $args[1] or $args[1] eq qw| - | ) ) {
     my $fname = $args[1];
     if ( $fname eq '-' ) {
         while (<STDIN>) { say encode( $bmw->add($ARG)->digest ) }
@@ -64,14 +64,19 @@ if ( @args == 2 and $args[0] =~ m|^\-fq?| ) {
 
 sub encode {
     my $checksum = shift;
-    return substr( encode_b32r($checksum), 0, $bytes ) if not $numerical;
-    return join( '',
-        map { sprintf "%03d", $ARG }
-            unpack( 'C*', substr( $checksum, 0, $bytes ) ) );
+    if ( not $numerical ) {
+        return encode_b32r($checksum) if $pmode eq qw| bits |;
+        return substr( encode_b32r($checksum), 0, $bytes );
+    } else {
+        substr( $checksum, $bytes, length($checksum) - $bytes, '' )
+            if $pmode eq qw| bytes |;
+        return join( '',
+            map { sprintf qw| %03d |, $ARG } unpack( qw| C* |, $checksum ) );
+    }
 }
 
-#.............................................................................
-#XWT3SOTBVK73K6AI4C3VD3PI4EWV6WXWVJDOAIGJVDLWFVGOJ4ZBZ7WY3X7TCL72HSNI57SFR7L4Y
-#::: 4W5DLV3FBX7V4OCT7VSLUX2KDOXZZ3NNVY4MVYXBKBAJLMC6SAS :::: NAILARA AMOS :::
-# :: JEZ5IOX2ZYPYPUNIDRSONIBC4MR4TNN7AGFL4WS6XI2AYTOO5MBI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,..,,,,,,,,,,.,.,,.,,,,.,.,.,..,,...,,.,,..,,...,...,.,,,,..,.,.,.,,,,..,
+#3VOK2HR4LV4Y7MQQKEJYNCCSNZAAGQHGFGTJT3TCIV5VEX6Y42SDJAOIRTN5EVXSLRO44GWIVZR34
+#\\\|GHFAWUJE5DVNIGBFQRTOE25OCXDQDIGSWHPRZ3ISMZAUWYQYV46 \ / AMOS7 \ YOURUM ::
+#\[7]5CCIBCNGAMCEXKYNBZ3SLLLUP3MBEDGEPESSPZAMFSXNZD72BIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

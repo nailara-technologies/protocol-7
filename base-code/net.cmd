@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name       = net.cmd
 
@@ -29,8 +29,8 @@ $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }{'params'}
 
 # return $command_id;
 
-#.............................................................................
-#7UMNPTIBWX6YK3MQF6XV7MCIIIPPNED7XB5GLZDHVC5O2CIAT6LBTYFVICIQZGJYPRWOLB2YIW4J2
-#::: MMJODK2LYYL6LMELGORKHCICUBYFYK6VCC4XYTDEM7ZSDA5ND6J :::: NAILARA AMOS :::
-# :: TZIXCRVGL2Z4WHQBIZFWTSFTJ7NIYYNJSX3O533JIZBKHEHD7GCI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,.,,,.,.,..,,,..,...,,,,,,,,,.,,,,,.,,,.,..,,...,...,..,,.,,,.,,,.,,,,.,,
+#KLXMBT3YYLTTRDG2WAPCJ4P7WTYZ25I3XLKEXDPWOLTB75BWWO4JVLWY7L7CBIGPLV5YVPJHRERIG
+#\\\|3MMNQYVUTEEQQO4ZCNRSKCMGMKKE5M7O7BJ2GCMIM7A4VOAHDDE \ / AMOS7 \ YOURUM ::
+#\[7]APPW7Y5DBNPKA35PISSKUUNBKMZN7P2RDLRMDBFLJJOHU5D6ISBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

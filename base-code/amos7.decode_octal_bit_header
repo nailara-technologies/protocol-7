@@ -1,0 +1,91 @@
+## >:] ##
+
+# name  = amos7.decode_octal_bit_header
+
+my $bit_header_string = shift // '';
+
+if ( not length $bit_header_string ) {
+    warn 'expected AMOS7 octal bit-string header parameter <{C1}>';
+    return undef;
+}
+
+my $header_params = {
+    qw| structure-was-valid       | => 0,
+    qw| encountered-error         | => undef,
+    qw| amos-payload-checksum     | => undef,
+    qw| amos-iterations-remaining | => undef,
+    qw| endline-state-encoded     | => undef,
+};
+
+my @AMOS_octal_digits;
+if ( $bit_header_string =~ m|^#?\,(,,,\.){19}$| ) {
+    ##  inverted binary case  ##
+    @AMOS_octal_digits = (0) x 19;    ##  all of them '0'  ##
+
+} elsif ( $bit_header_string !~ m|^#,(([,\.]{3},){19})$| )
+{    ##  19 octal digits  ##
+
+    $header_params->{'encountered-error'}
+        = 'AMOS [first] footer line not valid'
+        . ' [ mismatching octal seperators ]';
+    return $header_params;
+
+} elsif ( my @matches = ${^CAPTURE}[0] =~ m|([,\.]{3}),|g ) {
+    ##  not all '0' case  ##
+
+    @AMOS_octal_digits    ## ',' == 0  '.' == 1 ##
+        = map { $ARG =~ s|\.|1|g; $ARG =~ s|\,|0|g; $ARG } @matches;
+
+    ##  AMOS7-chksum [ digit 0..10 ]  ##
+    my $decoded_amos_oct = join '',
+        map { AMOS::BitConv::bit_string_to_num($ARG) }
+        splice( @AMOS_octal_digits, 0, 11 );
+
+    $decoded_amos_oct = -1 if $decoded_amos_oct > 37777777777;    ## 32 bit ##
+
+    if ( $decoded_amos_oct >= 0 ) {
+        $header_params->{'amos-payload-checksum'}
+            = encode_b32r( pack qw| V* |, oct $decoded_amos_oct );
+    } else {    ##  encoded numerical AMOS chksum overflow  ##
+        $header_params->{'encountered-error'}
+            = 'encoded AMOS chksum exceeded 32-bit [ not valid ]';
+
+        return $header_params;
+    }
+
+    ##  [encoded] stripped endline [ digit 11 ]  ##
+    $header_params->{'endline-state-encoded'}
+        = AMOS::BitConv::bit_string_to_num( shift @AMOS_octal_digits );
+
+    if ( $header_params->{'endline-state-encoded'} == 0 ) {
+        ##  remove this state after resigning all code  ##  [LLL]
+        $header_params->{'encountered-error'}
+            = sprintf
+            'value of endline-state-encoded = %d [ temporarely disallowed ]',
+            $header_params->{'endline-state-encoded'};
+        $header_params->{'endline-state-encoded'} = undef;
+
+        return $header_params;
+    }
+
+    ##  AMOS7-footer iteration counter [ digits 12 .. 19 ]  ##
+    $header_params->{'amos-iterations-remaining'}
+        = oct join '',
+        map { AMOS::BitConv::bit_string_to_num($ARG) } @AMOS_octal_digits;
+
+    $header_params->{'structure-was-valid'} = 5;    ## true ##
+
+    return $header_params;
+
+} else {    ##  syntax error : no match  ##
+    $header_params->{'encountered-error'}
+        = 'AMOS [first] footer line not valid [ syntax not recognized ]';
+
+    return $header_params;
+}
+
+#,,,.,.,.,.,,,,..,,.,,...,..,,..,,,.,,...,,,.,..,,...,...,..,,,,,,.,.,,,,,.,,,
+#HUGET4GE3F2N3RUM7PLBHZQRE7LTFHNOFPDHUTXY5K3YLMBWDLTJDMSRBUZQLEI7MWAAKL4R5ICOK
+#\\\|FHJ4GBGV5FMMGXW2VJHH6LDD2XIDKXMTRE5I7TMAZYFBPCYC355 \ / AMOS7 \ YOURUM ::
+#\[7]JIXOVAOVEFJSZKXHCGEXNZSEJYFMLTUG3SJWIMFNSRG46HJ4AUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

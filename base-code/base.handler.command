@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name    = base.handler.command
 # descr   = handling of protocol-7 syntax, calling command handlers
@@ -1060,8 +1060,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ##  command processing was complete  ##
 
-#.............................................................................
-#O4ZSN7KOW7GUQP7GX6IME6Z6YBQKOMACXVYJTXYFGSRDSQDQYM72YG57XSNWKCTI3VXQR3TOJFFZM
-#::: 34Q6JOOIMXB6BPQ527YXGQJQEG43VOGWEDDOE5JJ656B7C3IOVZ :::: NAILARA AMOS :::
-# :: 3RGR6P3LPMCOVKTYSFKV4NDM5HOTWXICCPUEUDAORHLQFY3JB4BY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,..,,,..,.,,,..,,,,.,.,.,,..,.,.,,,.,,,,,..,,...,...,,..,..,,,,,,...,,,.,
+#6WPALVCI3GAY64WQS4ACUWYS2SKYD3GRBUALVX4MHBCBBF7WV2FBZLB57X44GOYNHR6R33757REVS
+#\\\|Y4QFVYZF3RDWNOLL6BKNTCLAHSSDN4XJDXIQMI2VFT2XZW3ZKXR \ / AMOS7 \ YOURUM ::
+#\[7]NOV5UBOL3EIAUMHUGVKXALUF4MGN5JIJIKHE7KQ3NNU3264X7SAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
