@@ -38,8 +38,8 @@ sub zulum_prefix_length {
 
 return 1;  ###################################################################
 
-#.............................................................................
-#PMXX3USQYG2UDFMMMXVJKN23EXAMNV7FFMEHCW4I6GS6IYYXXWKZIC7BWG4DWVFCZ7CIEXPJ2EMQE
-#::: TRVU2RZU5ZN4C4Q6ASWRHPWXY2MYN3OJ7VILTD2ERGKRKOXODG3 :::: NAILARA AMOS :::
-# :: M3WGCGJMJ4GO2L2WCULMRW2CMII4QNUAH2H7VBNI3ZGJVRKDLKAI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,.,.,,..,,,.,.,.,,.,,,..,,,.,.,,,,.,,.,,,..,,...,...,,,.,.,,,,.,,...,.,.,
+#NJ7L6TFCLVN5JWKJG32TBJWMX75X65SLEJKOMOQFP4EQSCO53DOKPCSY66HXF7YM6BDZ7CMHEIUHM
+#\\\|2VBEERT5E2UPPLOR3DSWVYITX22PRDJORLH75SKYVKX2F6MZKPQ \ / AMOS7 \ YOURUM ::
+#\[7]W2QCT2NPNLJIYDR3YQFWDTVWU62HFXQLS6SBJQIJETYIRQLAKEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

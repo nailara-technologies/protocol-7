@@ -1,0 +1,262 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Encode qw| encode |;
+use Crypt::Misc qw| decode_b32r |;
+
+###           ###
+##  comp-test  ##
+###           ###
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $Bin    = $RealBin;
+    our $up_dir = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS;                   ## colors ##
+use AMOS::Assert::Truth;    ##  exports is_true()  ##
+
+use AMOS::INLINE;
+
+## AMOS::BitConv ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
+
+##[ COMMAND LINE INPUT ]######################################################
+
+our $Z = shift(@ARGV);
+die ":\n: expected numerical seed input\n:\n"
+    if defined $Z and $Z !~ m|^\d+(\.\d+)?$|;
+$Z =~ s|\.|| if defined $Z and $Z =~ m|.|;    ##  removing floating point  ##
+die ":\n: seed input exceeds calculation bit size ..,\n:\n"
+    if defined $Z and sprintf( qw| %d |, $Z * 77 ) < 0;
+
+##[ SIGNAL HANDLING ]#########################################################
+
+$SIG{'INT'} = sub { say "\b\b\n\n"; exit(0000) };
+
+##[ MAIN PROGRAM ]############################################################
+
+$Z //= 1;  ##  base value demonstrating division by 13 entropy build-up .,  ##
+
+my $iteration       = 0;
+my $entropy_started = length($Z) >= 17 ? 0 : -7;
+
+our %C = (    ##  color table  ##
+    qw|  T  | => "\e[38;2;6;71;195m",
+    qw|  b  | => "\e[48;2;9;5;42m",
+    qw|  0  | => "\e[38;2;68;39;172m",
+    qw|  B  | => "\e[1m",
+    qw|  R  | => "\e[0m",
+);
+
+$iteration = qw| INPUT |;
+display_result($Z);
+
+my $shift_count = 0;
+
+# while ( length sprintf( '%b', $Z ) < 63 ) { $Z <<= 1; $shift_count++ }
+
+$iteration = sprintf qw| L%02d<< |, $shift_count;
+display_result($Z);
+
+$iteration = 0;
+
+while ( ++$iteration ) {
+
+RECALC:
+
+    #    while ( length sprintf( '%b', $Z ) < 64 ) {
+    #        $Z <<= 1;
+    #       $Z <<= is_true($Z) ? 4 : 3;    ##  keep truth state  ##
+    #    }
+
+    $Z <<= 4;
+
+    $Z /= 13;    ##  also : $Z * 11 * 77 / 1001  ##
+
+    $Z <<= is_true($Z) ? 2 : 1;
+
+    # $Z <<= 2;
+
+    # my $num_bits   = sprintf( qw| %064b |, $Z );
+
+    #    my $main_entropy_bin = substr( $num_bits, 0, 42 );
+
+    #    goto RECALC
+    #        if not is_true( $Z,                2, 1 )
+    #        or not is_true( $main_entropy_bin, 0, 1 );
+
+    ## need stats on binary true seen as integer ##
+    display_result($Z);
+}
+
+## [ SUBROUTINES ] ###########################################################
+
+sub display_result {
+    my $num      = shift;
+    my $num_bits = shift // sprintf( qw| %064b |, $num );
+
+    say $C{'b'} . $C{'T'} . substr( $num_bits , 7, 7 ),
+        $C{'R'} . "\r";
+}
+
+## decoded states ## of 7 bit data ..,
+##
+###[ 00 00 110 ] hop count is 1 + 3 bit decimal value
+##                     directional nominator : 0 = forward : 110 <-- hop count
+##                                         1 = 90 deg angle : 10 <-- direction
+##                                                            00 : 0 : UP
+##                                                            10 : 2 : LEFT
+##                                                            01 : 1 : RIGHT
+##                                                            11 : 3 : DOWN
+
+###[ 01 <0|1> 00000 ]
+##
+##        0 + 5 bits : BASE32 character [ payload : UTF-7 encoded protocol-7 ]
+##
+##        1[0|1] + 4 bits : numerical document cube header
+##
+##           0 : monochrome document [ 4 + 1 set are size [compressed int] ]
+##           1 : color document [ 4 [ + 1 set ] bits declare color depth ]
+##
+## monochrome bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : style
+##
+## style [ 2 bits background, 2 bits foreground ] : black=0, blue=1, white=2
+##
+##        blue background style : #09052A : foreground blue : #0647C3
+##        when both blue styles enabled, curvature blur 42 is applied
+##
+## color bits: 23 : size, 17 : pages, 12 : files, 1 orientation, 4 : 8 + depth
+##
+## color depth : 8 + value of 4 bits [ depth range in bits : 8 .. 24 ]
+
+###[ 1 000000 ]
+## graphical 5x7 pixel matrix payload, <0-4><oct> [pos]
+##                                       <48> 0 background color
+##                                       <49> 1 monochrome or foreground color
+##                                       <50> reset color [ to monochrome ]
+##                                       <51> reset alpha [ to opaque ]
+##                                       <52> set add color
+##                                       <53> subtract color
+##                                        54 .. 61 : color
+##                                        62 .. 63 : alpha
+
+sub decoded_bits {
+
+    my $bits = shift;
+    my $type = substr( $bits, 0, 1, '' );
+    $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 0 |;
+    $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 01 |;
+    $type .= substr( $bits, 0, 1, '' ) if $type eq qw| 011 |;
+
+    ## graphical character ##
+    return decoded_bits_chars($bits) if $type eq qw| 1 |;
+
+    return decoded_bits_chars($bits) if $type eq qw| 01 |;    ## 5x7 pixel ##
+
+    return sprintf qw| %s< |, decoded_bits_BASE32($bits)
+        if $type eq qw| 010 |;    ##  BASE32 UTF-7  ##
+
+    return qw| D- | if $type eq qw| 0110 |;    ## monochrome document ##
+    return qw| D+ | if $type eq qw| 0111 |;    ## color document ##
+
+    return decoded_bits_route($bits);          ##  directional  ##
+}
+
+## RFC 4648 BASE32 alphabet ## 2-7 A-Z ##
+##
+sub decoded_bits_BASE32 {
+    my $bits = shift;
+    my $num  = AMOS::BitConv::bit_string_to_num($bits);
+
+    return $num + 2 if $num <= 5;              ## 2 .. 7 ##
+    return chr( 59 + $num );                   ## A .. Z ##
+}
+
+sub decoded_bits_route {
+
+    return ' ' if @ARG == 0 or not defined $ARG[0];
+    my @bits = split '', shift;
+
+    state $directions //= {
+        qw| 00 | => qw| U |,
+        qw| 10 | => qw| L |,
+        qw| 01 | => qw| R |,
+        qw| 11 | => qw| D |
+    };
+
+    my $turn = join( '', shift @bits, shift @bits );
+    my $hops = AMOS::BitConv::bit_string_to_num( join '', @bits );
+
+    return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
+}
+
+sub decoded_bits_chars {
+
+    my $bits = shift;
+    return '  ' if not length $bits;
+    my $result = AMOS::BitConv::bit_string_to_num($bits);
+
+    state $table //= {
+
+        48 => qw| =0 |,    ## set to background color ##
+        49 => qw| =1 |,    ## set to foreground color ##
+
+        50 => qw| RC |,    ## clear color \ to monochrome ##
+        51 => qw| RA |,    ## clear alpha ##
+        52 => qw| +C |,    ## add color ##
+        53 => qw| -C |,    ## subtract color ##
+        54 => qw| K0 |,    ##  -+  0001 0001 0001 0000 [ RGB  ]
+        55 => qw| K1 |,    ##  -+  3D70 3D70 3D70 0000 [ RGB  ]
+        56 => qw| B0 |,    ##  -+  0000 0000 0001 0000 [   B  ]
+        57 => qw| B1 |,    ##  -+  0000 0000 3D70 0000 [   B  ]
+        58 => qw| G0 |,    ##  -+  0000 0001 0000 0000 [  G   ]
+        59 => qw| G1 |,    ##  -+  0000 3D70 0000 0000 [  G   ]
+        60 => qw| R0 |,    ##  -+  0001 0000 0000 0000 [ R    ]
+        61 => qw| R1 |,    ##  -+  3D70 0000 0000 0000 [ R    ]
+        62 => qw| A0 |,    ##  -+  0000 0000 0000 0001 [    A ]
+        63 => qw| A1 |,    ##  -+  0000 0000 0000 3D70 [    A ]
+
+    };    ## 3D70 == 0.24 == 24% foreground ##
+
+    return $table->{$result} if defined $table->{$result};  ## color change ##
+
+    return sprintf qw| %02o |, $result;    ##  <-- 5x7 matrix position  ##
+}
+
+sub entropy_body {
+
+    return ++$entropy_started if $entropy_started < 0;
+    printf "%s: ===== : $C{0} MAIN ENTROPY"
+        . " START$C{0}  | %42s | DECODED :%s%s%s\n",
+        "$C{0}$C{b}",
+        scalar( '-' x 9 )
+        . " .:$C{T}$C{B} MAIN ENTROPY BODY $C{0}:. "
+        . '-' x 8, "$C{R}$C{b}$C{0} == |", '-' x 17, '| ' . $C{R};
+    return $entropy_started = 5;
+}
+
+#,,,.,,,.,,,.,.,,,,,,,.,.,.,.,,.,,,,,,..,,...,..,,...,...,,.,,.,.,,,.,.,,,..,,
+#7JGEQ4NGCGXUYKDI6C5PZULUSLNIZDKZABXCMNILN37PBQMGBLP2753NN64HIAMD7JAH24WOR6ARQ
+#\\\|UHQOSVHTJCIIYAPGP5AWQD5QKE7SMYC7GAOBRHAXWYKJVUEDGTV \ / AMOS7 \ YOURUM ::
+#\[7]PY5FKQL4PUD7BIMGYOWXDQLPQEFVNEKZGSDPTWS7RZBXMKN7LYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

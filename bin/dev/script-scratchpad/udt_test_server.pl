@@ -22,8 +22,8 @@ while ( my $client = $server->accept() ) {
 }
 $server->close();
 
-#.............................................................................
-#ILPR34TAD4IF65ZU3DCYJT6FRISX4BFAQGHBK4IFAQDHZMEJWBH7RYNDYTEYTZ3SPFPGQKG6MN5JQ
-#::: TC2DAGAB7KGWV2327TB52KJRB43TXIJUMHCFSTS45X6GOX3BWYK :::: NAILARA AMOS :::
-# :: 72KY255DRWFBPEZL7LPSNHMOX5OURLKEG32UPEQHCLFBDBSWPABA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,...,.,.,,..,,.,,.,,,,,,,,,,,,,.,.,,,,,,,..,,,..,.,.,..,,...,...,..,,...,
+#CH7ACCPIRP7IUPEP7LEY752TJ3YCNNWSMMHKEFPR3CHJ5CIENPNVJG5NQA4SA3JTX2OFTM6JTMC6I
+#\\\|JWOHS5XAX3I6W3EFJARIICTXDACYJVWBS65YR3EI2KCKINTUPSY \ / AMOS7 \ YOURUM ::
+#\[7]4O4KDVMJWKZ57Y5ZLIRMCOALRRWYS5GT7NDRPC6RN545FWB55WDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

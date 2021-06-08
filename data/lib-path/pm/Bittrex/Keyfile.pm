@@ -82,8 +82,8 @@ of this project.
 
 =cut
 
-#.............................................................................
-#QH675V35IALRNBTDI7YBM26VQFYYU6CECEJ4O5B7LVETOFYSSWAEZM2KXUPF7QUXUITNU4HU5LYLK
-#::: 737JEEPB2HP3JQP4LTSBIDU3WO467RWWR3FJO2XQ6RKNS3PYSH6 :::: NAILARA AMOS :::
-# :: PP72YLZOY35NWJQMVKUXL6FWF27LOEW24R3OGDFRM6R27TRJDAAA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,...,...,,..,.,,,,..,..,,,,,,,,.,,..,,..,.,,,,,.,,..,...,,..,,.,,,..,,.,,
+#BK75BYJQUOX47FOBCTAZ4FJBWXW6JZWDZHQBLDKSBAYI2KMDKOQISNUUQZNNQEYSPGXNQMEAA4L2K
+#\\\|2PJVEP5EWYPVPJEXKAV4WVSKSCT4BG5B6GRRSQUTXPBTHDUAIF3 \ / AMOS7 \ YOURUM ::
+#\[7]IJJLZYZ476XPBAAGVOD2SBNWSGHTNOOKDV6LPBJ4JD2SKJ5YOCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

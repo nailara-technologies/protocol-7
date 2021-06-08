@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = base.call.console_command
 # descr = executes specified console command or
@@ -8,18 +8,26 @@
 
 <base.ntime-harmony> = 0;
 
-$console_cmd //= 'commands';
+$console_cmd //= qw| commands |;
 
-if ( not exists $data{'base'}{'console'}{$console_cmd} ) {
+if ( not defined $data{'base'}{'console'}{$console_cmd} ) {
     print "\n  << command '$console_cmd' not found"
         . " [ 'commands' for list ] >>\n\n";
     return;
 }
 
-$code{ $data{'base'}{'console'}{$console_cmd} }->($console_params);
+my $command_handler = $data{'base'}{'console'}{$console_cmd};
 
-#.............................................................................
-#6CFASAMF3CPAGZI5IBQJB567W5RE5TQZK2OHOPMVR75ZS37PBDUJZKOGQ3JZIR62SC6RNM4UYUST2
-#::: FEQC7WMW4JJL7MILHRW54BZGX3E3WOJ4DR2MUXSGSZLFLJGWW6E :::: NAILARA AMOS :::
-# :: AULJ5DQWQMY55TPTQ7TJY3UZVLCH2BPJD6TLDG3633TSLFA2FSAI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+if (   not defined $code{$command_handler}
+    or not defined $code{$command_handler}->&* ) {
+    print "\n  << command handler '$command_handler' not defined";
+    return;
+}
+
+$code{$command_handler}->($console_params);
+
+#,,,,,.,.,.,,,,,.,..,,,,,,.,.,,,.,,,,,,.,,,..,..,,...,...,,.,,,..,...,..,,...,
+#53RUZXESCEJNYR3V4XAKTWR26RKX2DEUV5XLROA43DWLXB5WPSMJTIHR26Z3J6MWQMBSZ4YA7SK62
+#\\\|3K3CNBMUPTS64EPEXZPQ73Y3DVJ7IV2IV5DIGTJ7NDEGJWWELMV \ / AMOS7 \ YOURUM ::
+#\[7]XHVNEKXE4SXOMLNBTR3MGYO67L3CUV2E27ECEJ3R4ZLEULVT4AAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

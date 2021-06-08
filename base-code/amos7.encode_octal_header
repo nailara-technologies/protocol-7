@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = amos7.encode_octal_header
+
+my $header_params = shift // '';
+if ( ref $header_params ne qw| HASH | ) {
+    warn 'expected header params hash reference parameter <{C1}>';
+    return undef;
+}
+map {
+    <[base.s_warn]>->( "missing parameter hashref key '%s' <{C1}>", $ARG )
+        if not defined $header_params->{$ARG}
+} qw|  amos-checksum-num  endline-state-encoded  amos-iterations-remaining  |;
+
+my $AMOS_chksum_num  = $header_params->{'amos-checksum-num'};
+my $iterations_left  = $header_params->{'amos-iterations-remaining'};
+my $stripped_endline = $header_params->{'endline-state-encoded'};
+
+my $numerical_header_start = sprintf qw| %011o%o%07o |,    ## <-- encoding
+    $AMOS_chksum_num, $stripped_endline, $iterations_left;
+
+##  all values 0 does invert the binary encoding mode  ##
+my $inverted_mode = $numerical_header_start == 0 ? 1 : 0;
+
+my @octal_bits
+    = map { sprintf qw| %03b |, sprintf( qw| %o |, $ARG ) } split '',
+    $numerical_header_start;
+
+my $binary_header_start = sprintf qw| 0%s0 |, join( '0', @octal_bits );
+## encode for header representation ##
+if ( not $inverted_mode ) {
+    $binary_header_start =~ s|0|,|g;
+    $binary_header_start =~ s|1|.|g;
+} else {    ##  all zulum mode  ##
+    $binary_header_start =~ s|1|,|g;
+    $binary_header_start =~ s|0|.|g;
+}
+
+return sprintf "#%s\n", $binary_header_start;
+
+#,,.,,,,,,,.,,.,.,,,.,.,.,,,.,.,.,.,.,,..,,..,..,,...,...,,..,...,.,,,,,,,,,,,
+#6RKGNVMSR3JQ7S5CHWXGHGFJ5PTRFPFTYMHECHJQ5RB4ZYUKSCAD6VOF6CKVIAESLXJQRTZTV5Z3A
+#\\\|MBXA3PF76IV5OCW6AODAPOVGYUFOP5KVOARXPHCMYTYNHZ5J25Y \ / AMOS7 \ YOURUM ::
+#\[7]UUAAYPNIVAJRTPIJR7LNOLNDPGK6VVPUNYVE3LNJOPJAI5QIRSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

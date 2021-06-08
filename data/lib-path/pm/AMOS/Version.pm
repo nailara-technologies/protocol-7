@@ -41,8 +41,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     return $ntime;
 }
 
-#.............................................................................
-#AFKZGGEU3RDYMRH4PWYOSES7L4LV7HQLULXLNLFSQJAPVTTZY3KUPM54GHOR2BXYR2EKHCOCOCWYU
-#::: N2UABJSHKBMMECGV2P7HH5N2QRDW7MRCA7WW3RVZMFHUDN653G3 :::: NAILARA AMOS :::
-# :: 34C43NQBRLJMVO4C6DBJJGACJVHP5XUO5E74DEEPA7HB7EGERUAA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,.,.,,,,,..,,,..,.,.,.,.,.,.,,,.,,..,,,.,..,,...,...,...,,,.,...,,,.,,.,,
+#BQ3VBKD4HIRSXYRHATYWPLKM6DLS7NXQ4PBDYBW3HFX5GL5W4GA5XKSNU6NO7V65X74SAUDYBQOFI
+#\\\|65ZGD3N474VAE5IGERTJLKVTHRIMSTVSIQOWU5PHMGIQNYSKMVF \ / AMOS7 \ YOURUM ::
+#\[7]RGPXR6SDVZZ34R3B22VX6D5XPEJI6FXRLLFXFTD5EBAN2K3GH2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

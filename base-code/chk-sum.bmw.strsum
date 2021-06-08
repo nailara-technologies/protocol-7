@@ -1,14 +1,30 @@
-# >:]
+## >:] ##
 
 # name  = chk-sum.bmw.strsum
 
-my $bmw = <[chk-sum.bmw.ctx]>->(shift);
-die 'data parameter is undefined' if not defined $_[0];
+my $data_ref = shift;
+warn 'data param not defined <{C1}>' and return undef
+    if not defined $data_ref
+    or ref $data_ref eq qw| SCALAR | and not defined $$data_ref;
+$data_ref = \$data_ref if not length ref $data_ref;
 
-return encode_b32r( $bmw->add( shift // '' )->digest );
+my $bits = shift;    ## optional ##
 
-#.............................................................................
-#W5ZDD62FDN4DDHPEDSGTDWVAAKRYDEC5552IHE52XA6WXYCL2U7MJZLAUOGG65KRYGMESDLB3INZI
-#::: YDSL6K3UP2IOH2NLEW4SBSIM6HGHMPL4H2OZIVIEXLMZZDRDGJ6 :::: NAILARA AMOS :::
-# :: ZCKY7BJ7AON5UVJDZ2ENY7PR5JN5RVDWOWKBR2J7E72YSPKVVIDA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+<[base.s_warn]>->(
+    "bit size parameter ['%s'] not valid "
+        . "[ valid : 224, 256, 384, 512 ] <{C1}>",
+    $bits
+) if defined $bits and not exists <chk-sum.bmw>->{$bits};
+
+##  get Digest::BMW context  ##
+my $bmw = <[chk-sum.bmw.ctx]>->($bits);
+
+$bmw->add( $data_ref->$* );
+
+return encode_b32r( $bmw->digest );
+
+#,,,,,,.,,.,.,,.,,.,.,,,,,,,.,,.,,,,.,..,,,,.,..,,...,..,,.,,,...,,,.,.,,,,.,,
+#VKK2ZT5AFSNCAEYVSN5AIBTRXMOG4XDATBP7ZBR642CAWZES5W74X4324CH3XDE2MEL5SFKOA5A34
+#\\\|YSBPAPPMYIDAGEDCEJQIX4OKC5D3QLY5A3GCMNECDXVUSESLOWT \ / AMOS7 \ YOURUM ::
+#\[7]QNKLJV3EZSM3EOOFIM4EGG3B7VZN6N2IZITSAVGHZHPXU6D2O4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

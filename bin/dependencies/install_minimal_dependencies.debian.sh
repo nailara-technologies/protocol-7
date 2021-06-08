@@ -50,8 +50,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#.............................................................................
-#ODOQL7TUXKMJRCAH322CX5CQIQ3SFY7GC3IS6OF4JJTF4XO4F4XDSCV6HBVX7P67CJQGL7BTFQLR4
-#::: QZDR6FK3OEOKV544AAJHKIOQS3IP445FEROKM6AK5GPLOYV6QUL :::: NAILARA AMOS :::
-# :: UXXHKBDOMX6ZI7VHDCENGTHBH2IHYKUEG7IF5KYQ2X3VLVCMO6CQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,...,,.,,,,.,.,.,,,.,...,...,...,..,,,.,,..,,...,..,,,.,,..,,.,.,,,.,.,.,
+#NF56XKCO3Q4SCASLTRGPPLPKRWKBVV7GLSFBTVJLV2QI62ZKZACMC7H3PYV42DODBMQZ5XNOVGTYY
+#\\\|J47HX5R2RL6H6UPKEWV2WGIEO65ULFBT6S5YDVF6DLXT5MK2CJC \ / AMOS7 \ YOURUM ::
+#\[7]Z3BD4R3WQUMFDJWQ77GUH2WJZMZD2JCBR5CJGNU4JQRJWFSISODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

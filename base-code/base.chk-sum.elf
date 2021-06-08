@@ -1,16 +1,26 @@
-# >:]
+## >:] ##
 
 # name  = base.chk-sum.elf
 # descr = elf chk-sum of input value [ as numerical value ]
+
+warn 'first parameter is undefined <{C1}>' and return undef
+    if not defined $ARG[0];
+warn 'content of scalar ref is undefined <{C1}>' and return undef
+    if ref $ARG[0] eq qw| SCALAR | and not defined $ARG[0]->$*;
 
 return sprintf qw| %09d |, 0
     if @ARG == 0
     or @ARG == 1 and not length( $ARG[0] // '' );
 
-return <[chk-sum.elf.inline]>->( join ' ', @ARG );
+## join words to sentence ##
+return <[chk-sum.elf.inline]>->( join ' ', @ARG )
+    if ref( $ARG[0] ) ne qw| SCALAR |;
 
-#.............................................................................
-#FT5DKG3ADBOT4OAY7VYYCMMQV6JFOZBFLBFMRUF3FBK66GEY5LPH3XCDHKGWP3WFITK5XIHXX732K
-#::: LT4E7KAPO3C4QZJVCGEQ624N5WA7VGUGEHWIPACWUPPFELXGOJL :::: NAILARA AMOS :::
-# :: VB5RXSRDPJ4JUOEGJASCOAKR6KQH7BFZ4FMG6AOHMDJNBBGED2AY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+##  call by reference [ SCALAR ]  ##
+return <[chk-sum.elf.inline]>->(@ARG);
+
+#,,.,,...,,,,,,..,,.,,,,,,...,,..,.,,,,,,,.,,,..,,...,.,,,.,,,.,,,,.,,,..,.,,,
+#OCNSVQPUVBS2W5RBC4NKLAYHQRVUG34C7XGD7R5GYRLXBVZ5M7LDWLAQACFOGKJEUJEEPJ5LRBYN2
+#\\\|GNI7SHON4OKVUPYOCAFDGAKLO57SHIKIKL5OPOAFKQ46QMDYNFG \ / AMOS7 \ YOURUM ::
+#\[7]ZXYZT6SBI7LOAIOPBA27STZTETXRRFC4P3HI64UPGB3WI27TKADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

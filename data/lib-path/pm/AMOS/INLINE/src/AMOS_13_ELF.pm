@@ -134,8 +134,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#.............................................................................
-#T7ILVUVV6IHH5TRDMTZW6LR3XXDAZDKWRI5YWKT6G2XYIKQESVWEDEINHFMW6HTS4WAWU53ICDFVC
-#::: IEZJRYISEBWBUD5I6OADLKZA7VOBUBHEZ5JJFUT4WQOFL53D674 :::: NAILARA AMOS :::
-# :: 5TI4CBLANR3SIHD7I7UJOZ5IY3YMXY2MIFYXNBZYCLRBKTMYKUBA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,..,.,.,,,.,,..,,,.,.,,,..,,.,.,,..,,.,,..,,...,...,...,.,,,,.,,..,,.,.,
+#VS5RBGZHET5XXJ7SBMVTASOZUWJ2YHMDRGYSNGVM6RPR343VRZWT37U7JVPXBXVNMOX5DJWVKWQN4
+#\\\|LQWETHXQEWL2GRWQKHYXYYGH2ZEH54MCQJVHECNPIVRVHJTO5T2 \ / AMOS7 \ YOURUM ::
+#\[7]YZQL2JZ3VBGINZ764C3MP3IWQEJL6I7QGV4H5AGKACZXFY543ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

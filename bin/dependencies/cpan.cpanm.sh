@@ -34,8 +34,8 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
 # Graphics::Magick : http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/
 #                    ..or check your distribution packages!
 
-#.............................................................................
-#DA7H4KI7G7OZAEV2I4T7TDI5CEFQEMNPBVAEWAKP3D2DWA7EMESFQYOKA66KNEN4N5VIQLYZYIUC6
-#::: Y3PF2XGYY6FTW3AJ45JX6O5IUVD2EQYTT7VTI4EBCM4CKKMOKLN :::: NAILARA AMOS :::
-# :: S7RFE22QR7WTHXUK3PYZ3BH6FAQLOYUAGMDW2524ZDEVRUYUXYDY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,,..,..,,.,,,,,.,,,.,..,,,..,,..,...,...,..,,...,..,,.,.,.,,,,,,,,.,,.,,,
+#YIOBGPSIOKLH62CRBSM7RBCSYSGVAOW6TYBAXYSM3FXP7ULV2PKEWQIZ72AAYM4GGM2QHEURTU34A
+#\\\|WLF7PUCQWIRRYMBTUA67QOAV5BPZKHJYB3TFPN54CQQAS5RTANQ \ / AMOS7 \ YOURUM ::
+#\[7]WUCC2AU7GK4EF5XMC2LILPU5S3QLXJNDM7CVOOZKV2DIQ5BJJABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

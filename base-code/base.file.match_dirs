@@ -1,16 +1,16 @@
-# >:]
+## >:] ##
 
 # name = base.file.match_dirs
 # args = [result_array_ref,] <search_path>, <dir_name_pattern(s)>
 
 my $result_aref;
-$result_aref = shift(@ARG) if ref( $ARG[0] ) eq 'ARRAY';    # [ append mode ]
+$result_aref = shift(@ARG) if ref( $ARG[0] ) eq qw| ARRAY |; # [ append mode ]
 
 my $search_path = shift @ARG;
 
 my $recursion
-    = ( @ARG and $ARG[0] eq 'recursive' and shift @ARG )
-    ? 'recursive'
+    = ( @ARG and $ARG[0] eq qw| recursive | and shift @ARG )
+    ? qw| recursive |
     : undef;
 
 my @wildcard_filenames = @ARG;
@@ -34,26 +34,33 @@ my $results = [];
 $results = $result_aref if defined $result_aref;    ##  [ append mode ]
 my @file_table = map {
     my $key = $ARG // '';
-    $key =~ s|\.|\\.|g;
-    $key =~ s{(\*{2}|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
 
-    qr|$key$|
+    $key =~ s|[\.\\\[\]\(\)\-\+\?]|\\$MATCH|g;
+    $key =~ s{(\*{2}|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+    $key .= '\$';
+
+    <[base.eval_regex]>->($key);
+
+    if ( length $EVAL_ERROR ) {
+        <[base.s_warn]>->(
+            ' regex error [ %s ] <{C1}>',
+            $key, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+        );
+        return undef;
+    }
 } @wildcard_filenames;
 
 foreach my $dir ( @{ <[file.all_dirs]>->( $search_path, $recursion ) } ) {
-    foreach my $pattern (@file_table) {
-        if ( $dir =~ $pattern ) {
-            push( @{$results}, $dir );
-            next;
-        }
+    foreach my $patterm_re (@file_table) {
+        push( @{$results}, $dir ) if $dir =~ $patterm_re;
     }
 }
 
 return scalar @{$results} if defined $result_aref;    # [ append mode ]
 return @{$results};
 
-#.............................................................................
-#ZSFKZR3JBP7CVIWT6UNAMU5SULFBQRNXS6CYMHZRCK4PDYTIL7ZYNUBBWAJB6QYOGGPLBTC4KQQHC
-#::: CR5PXCELOQX6KD63UBRSEYXUHZJMBRRMDNTDA7MS7F2V2TROL73 :::: NAILARA AMOS :::
-# :: MB46VUQ34KH4A5K7WQ5GEMH7PEVPC3GXXMAWLDF3AZP3IH5REODI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,..,,,.,,...,,..,,..,.,,,,,,,.,.,.,,,...,..,,...,...,.,.,,,.,,..,,,.,,.,,
+#JPTYEAZMPNOXSBYUMCFPK3TCM5A6PGUG7JQH45FSMLBBKW46JZHE7BZYOGJZXKQUT6FHLWZGO2H4W
+#\\\|K35X6FHSRXAMTQLRPKUEJPDT2AE5AZXELMCRHU4BMDC67DPA7NL \ / AMOS7 \ YOURUM ::
+#\[7]SBNNHPZ6SFL6QKUJP7G4RMNP6WRQLBGTD3E2OVFGITQLIEGHD2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

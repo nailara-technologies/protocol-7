@@ -1,0 +1,99 @@
+## >:] ##
+
+# name  = sourcecode.collect_files
+# param = array[s] or array reference[s] to source files
+
+my $copy_sources = [];
+my @all_files;
+
+my $param_index = 0;
+foreach my $path_param (@ARG) {
+    if ( not length ref $path_param ) {
+        push( $copy_sources->@*, split m| +|, $path_param );
+    } elsif ( ref $path_param eq qw| ARRAY | ) {
+        push( $copy_sources->@*, $path_param->@* );
+    } else {
+        <[base.s_warn]>->(
+            'unexpected ref type [ %s ] encountered [ parameter %d ]',
+            ref($param_index), $param_index
+        );
+    }
+    $param_index++;
+}
+
+warn 'missing source path [ array or reference to array ] parameter <{C1}>'
+    if not scalar @{$copy_sources};
+
+my $exclude_files = { qw| bin/p7c | => 1 };    ## <-- expand as required., ###
+
+my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+
+my $work_tree     = $paths->{'work_tree'};
+my $source_root   = $paths->{'source_subdir'};
+my $version_root  = $paths->{'version_root'};
+my $work_path_abs = abs_path($work_tree);
+
+my $error_exit = 0;
+my @all_dirs   = grep {defined} map {
+
+    my $rel_path      = catfile( getcwd(), $ARG );    ## relative path ? ##
+    my $absolute_path = abs_path($rel_path);
+    $absolute_path //= abs_path( catfile( $work_path_abs, $ARG ) );
+
+    if ( -f $absolute_path ) {                        ##  is a file  ##
+
+        push( @all_files, $absolute_path );
+        undef;
+
+    } elsif ( -d $absolute_path ) {                   ##  is directory  ##
+        $absolute_path;
+
+    } else {                                          ##  treat as pattern  ##
+        if ( !<[file.match_dirs]>->( $work_path_abs, qw| recursive |, $ARG ) )
+        {
+            <[base.logs]>->( 0, ": no match for patterm '%s'.,", $ARG );
+            $error_exit = 2 if not $error_exit;
+        }
+    }
+    }
+    grep { !m|\*| } @{$copy_sources};
+
+<[base.exit]>->(2) if $error_exit;
+
+push(    ## enabling [non-recursive] wildcard matches ##
+    @all_dirs,
+    map {
+        ( my $base_path = $ARG ) =~ s|/*\*.*$||;
+        ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
+        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        <[file.match_dirs]>->( $absolute_path, $pattern );
+        }
+        grep {m|\*|} @{$copy_sources}
+);
+
+map {
+    my $source_path = $ARG;
+    die "source path '$source_path' does not exist" if !-d $source_path;
+    if ( !-w $source_path ) {
+        <[base.logs]>->(
+            0, "<< missing write permissions for '%s' >>", $source_path
+        );
+        <[base.exit]>->(4);
+    }
+} @all_dirs;
+
+foreach my $absolute_path (@all_dirs) {
+    <[file.all_files]>->( $absolute_path, \@all_files );
+}
+
+my @source_paths
+    = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
+    grep { !m{/\.|~$} } @all_files;
+
+return @source_paths;
+
+#,,,.,,,.,,..,.,.,...,,,,,.,.,,..,,,.,..,,,.,,..,,...,...,..,,.,.,,.,,,..,,.,,
+#2MQ5ZELMTQRCL4AH6FLEB7WJ527NTGTSSQ54SOELPCW4Y2UU7WQSOMTR37LVVPZOY5S5BVKO74EC2
+#\\\|ZKLO5JPO34CPR2C3IBTLUE5LURXL4GCTYF2MU5QJVVSH2E2SLOI \ / AMOS7 \ YOURUM ::
+#\[7]SYSSD3WSPI7YIGF7XAP6PW6UGV7SMKYWKYULFLRHZXCHSNAUNMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

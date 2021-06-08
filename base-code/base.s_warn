@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = base.s_warn
 # descr = warn sprintf wrapper
@@ -8,12 +8,15 @@ return warn 'sprintf parameter expected <{C1}>'   if @ARG < 2;
 
 my $template = shift @ARG;
 
-$template =~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', ++$c_l |e;
+if (    $template !~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', ++$c_l |e
+    and $template !~ m| <{NC}>$| ) {
+    $template .= ' <{C1}>';
+}
 
 warn sprintf( $template, @ARG );
 
-#.............................................................................
-#SZKR7C3UYYEGB4ZJUNII7TBQDK3MP77TTKTCPHPIFHOPLC22AUTKJ22ZR7Q5YP5AMOLTRMQFV5JBO
-#::: NYGJOHQBBRKTDOCWPMY66KC5FS2VJWDWQDCMSWHOGQ7XQEAOWEZ :::: NAILARA AMOS :::
-# :: R2DU5TYADOHYAFO76HIQ6I6HO2BU74V5YJ46ZPCQUM3W7FPWTUAQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,..,,.,,,.,.,,..,.,,,,,.,.,,,...,.,,,,.,,..,,...,..,,...,,,,,,.,,,..,..,,
+#2BFDXI5MSK4T5U5E6KQQIA5D4MZPO3HMIDDBM2Q2WRZVFPQKDXA7UVUG7TH2QOGKF3I54I75KBPGQ
+#\\\|7RBMXG2PMKH4BE7LWF5GACR4RS52DPNM55X6VYO2UV3UTADT2HR \ / AMOS7 \ YOURUM ::
+#\[7]A6E2GCRZIQQB2243JLJLOKCFPTFFCI5JYBL4TXGFR5VZJJZGVCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

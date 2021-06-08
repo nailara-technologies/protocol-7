@@ -322,8 +322,8 @@ perl(1).
 
 =cut
 
-#.............................................................................
-#EYSVVYLFLJ75RFINTSN3N4E7QXB4MSDNX5HO6TURBJKX5B7F6JFAOOP37CQFTGMU5LXHFNV6R4TBU
-#::: X7O7C6KQQOTXXPS37IAKSE7ADA7NQ7ZADZ72B2TTCLI5J3FJFLS :::: NAILARA AMOS :::
-# :: ZPZVUL4TJ6NNRIHDKJY4PFUZHUCUPNDUFXDDIP6WKMSOV6QUFGAY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,...,.,.,,,,,,,,,,..,,,.,,,,,,,.,..,,,,,,..,,,,,,,,,,,,,,,.,,,.,,,,.,,..,
+#BQJF227MKIAQ6N5OG72GX4XAVIZN73OO46CXYYA6M5WIJQZ5DOIDB2QMBHA65GTWFVMA7MDGXJ3LE
+#\\\|BBFHVOKCQQ7AZ5MGA4UKIWICZPCL5KXXL5MYKZ6GRYGFFK27RG3 \ / AMOS7 \ YOURUM ::
+#\[7]QPB5TZREOLXPSW52R4SKVOLHDZ4KEAIG5NH7I5P2Z26CMTSC3WBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,48 +1,102 @@
-# >:]
+## >:] ##
 
 # name  = source.extract_sig_body
 
-my $src_ref     = shift;
-my $strip       = shift // '';
+my $src_ref = shift;
+my $strip   = shift // '';
+
+warn 'expected source_str scalar reference <{C1}>' and return undef
+    if not length ref $src_ref;
+
+<[base.s_warn]>->( 'got ref-type %s , want SCALAR <{C1}>', ref $src_ref )
+    and return undef
+    if ref $src_ref ne qw| SCALAR |;
+
 my $footer_data = {
-    'was-present'         => 0,
-    'footer-length-found' => 0,
-    'structure-was-valid' => 0,
-    'encountered-error'   => undef,
-    'data-reference'      => $src_ref
+    qw| was-present               | => 0,
+    qw| structure-was-valid       | => 0,
+    qw| footer-length-found       | => 0,
+    qw| amos-iterations-remaining | => -1,
+    qw| endline-state-encoded     | => 5,      ##  endline state unchanged  ##
+    qw| amos-payload-checksum     | => undef,
+    qw| checksum-type             | => undef,
+    qw| bmw-chksum                | => undef,
+    qw| signature-type            | => undef,
+    qw| signature                 | => undef,
+    qw| signature-footer-str      | => undef,
+    qw| footer-start-line         | => undef,
+    qw| encountered-error         | => undef,
+    qw| data-reference            | => $src_ref
 };
-$strip = $strip eq 'strip' ? 1 : 0;
+
+$strip = $strip eq qw| strip | ? 1 : 0;
 my $bit_size = <source.chksum_bitsize>;
-die "invalid keyword '$strip' for 'strip' parameter" if $strip !~ m,^[0|1]$,;
-die 'expected source_str scalar reference' if ref($src_ref) ne qw| SCALAR |;
+<[base.s_warn]>->(
+    "invalid keyword '%s' for 'strip' parameter <{C1}>", $strip
+    )
+    and return undef
+    if $strip !~ m,^[0|1]$,;
 
 ### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
-my $footer_start = '#' . '.' x 77;
-if ($strip) {
-    $footer_body = $2   ### NOTE : also matches\strips old type \ multiple ###
-        if $$src_ref =~ s{\n+(# _{78}|$footer_start)\n((#[^\n]+\n){4})$}
-                         {\n}sg;
+my $footer_start;
+my $footer_start_regex = qr|#[\.,]{77}|;    #.......,.......,......., [..,]
+my $footer_start_regex_length = 78;         ##  manually acquired  ##
+
+my $seperator_endline_absent = 0;
+
+if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
+    my $lf_re = qr|(*nlb:[^\n])\n|;
+    $footer_body = ${^CAPTURE}[2]
+        if $$src_ref
+        =~ s,($lf_re)?(# _{78}|$footer_start_regex)\n((#[^\n]+\n){4})$,,sg;
+
+    $seperator_endline_absent = 1
+        if length($$src_ref)    ## missing endline ##
+        and not length( ${^CAPTURE}[0] // '' );
+
+    if ( length( ${^CAPTURE}[0] // '' ) ) {    ##  amend removed  ##
+        $$src_ref .= "\n";
+    }
+    $footer_start = ${^CAPTURE}[1] if defined $footer_body;
+
 } else {
-    $footer_body = $1
-        if $$src_ref =~ m|(*nlb:[^\n])$footer_start\n((#[^\n]+\n){4})$|;
+    $footer_body = ${^CAPTURE}[2]
+        if $$src_ref
+        =~ m|((*nlb:[^\n])\n)($footer_start_regex)\n((#[^\n]+\n){4})$|;
+    $footer_start = ${^CAPTURE}[1] if defined $footer_body;
+
+    $seperator_endline_absent = 1              ## missing endline ##
+        if length($$src_ref) > ( length($footer_start) + $footer_body )
+        and not length( ${^CAPTURE}[0] // '' );
 }
 
-$footer_data->{'data-chksum'}
-    = <[chk-sum.bmw.strsum]>->( $bit_size, $$src_ref );
+#### [ remove ? # missing ? ]  [LLL]
+
+$footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
+    = <[chk-sum.bmw.strsum]>->( $$src_ref . "$footer_start\n", $bit_size )
+    if defined $footer_start;
+
+####
 
 return $footer_data
     if not defined $footer_body;    ## keeping current checksum ##
 
 $footer_data->{'was-present'} = 1;  ## had a signature footer ##
 
-my $footer_length = 1 + length($footer_start) + length($footer_body);
+$footer_data->{'footer-start-line'} = sprintf "%s\n", $footer_start;
+
+$footer_data->{'signature-footer-str'}
+    = join( "\n", $footer_start, $footer_body );
+
+my $footer_length = 1 + $footer_start_regex_length + length $footer_body;
+
 $footer_data->{'footer-length-found'} = $footer_length;
 
-if ( $footer_length != length(<source.sign_template>) ) {    ## [E: length ]
+if ( $footer_length != length <source.sign_template> ) {    ## [ ERR: length ]
     $footer_data->{'encountered-error'}
-        = sprintf( "invalid code signature footer length [ %d != %d ]",
-        $footer_length, length(<source.sign_template>) );
+        = sprintf "data signature footer size mismatch [ %d != %d ]",
+        $footer_length, length <source.sign_template>;
     return $footer_data;
 }
 
@@ -50,21 +104,69 @@ my $signed_chksum;
 my $signature_B32;
 
 ### comparing footer structure with signature template #######################
-my $emptied_footer = join( "\n", $footer_start, $footer_body );
-my @subst_params   = ( ( 80, 77 ), ( 163, 51 ), ( 242, 52 ) );
-my $line_num       = 0;
+
+my $match_template = <source.sign_template>;
+
+if ( not defined $footer_start
+    or $match_template !~ s|^$footer_start_regex|| ) {  ## [ ERR: structural ]
+    $footer_data->{'encountered-error'}
+        = 'data signature footer structure not valid'
+        . ' [ footer-start not matched ]';
+    return $footer_data;
+}
+my $emptied_footer = $footer_data->{'signature-footer-str'};
+
+my @subst_params = ( ( 80, 77 ), ( 163, 51 ), ( 242, 52 ) );
+my $line_num     = 0;
 while (@subst_params) {
     my $pos = shift @subst_params;
     my $len = shift @subst_params;
-    $signature_B32 .= substr( $emptied_footer, $pos, $len, '_' x $len );
+
+    $signature_B32 .= substr $emptied_footer, $pos, $len, '_' x $len;
     $signed_chksum = $signature_B32 and $signature_B32 = ''
         if 0 == $line_num++;
 }
-if ( $emptied_footer ne <source.sign_template> ) {    ## [E: structural ]
+
+( my $match_footer = $emptied_footer ) =~ s|^$footer_start_regex||;
+
+if ( $match_footer ne $match_template ) {    ## [ ERR: structural ]
     $footer_data->{'encountered-error'}
-        = 'invalid signature footer structure [ template mismatch ]';
+        = 'data signature footer structure not valid [ template mismatch ]';
     return $footer_data;
 }
+
+if ($seperator_endline_absent) {    ## [ ERR: policy ]
+    $footer_data->{'encountered-error'}
+        = 'data signature footer not valid [ no seperator endline ]';
+    return $footer_data;
+}
+
+##############################################################################
+
+## decoding AMOS7 [ first ] footer line ##
+
+my $amos7_header = <[amos7.decode_octal_bit_header]>->($footer_start);
+
+if ( not $amos7_header->{'structure-was-valid'} ) {    ## [ ERR: structural ]
+
+    $footer_data->{'encountered-error'}
+        = $amos7_header->{'encountered-error'}
+        // 'unspecified error in amos bit-header';
+    return $footer_data;
+
+} else {    ##  decoding was successful  ##
+
+    <[source.restore_payload_endline_state]>->(
+        $src_ref, $amos7_header->{'endline-state-encoded'}
+    );
+
+    map { $footer_data->{$ARG} = $amos7_header->{$ARG}; } qw[
+        amos-payload-checksum
+        endline-state-encoded
+        amos-iterations-remaining
+    ];
+}
+
 ##############################################################################
 
 my @err_loc;
@@ -73,14 +175,13 @@ push( @err_loc, qw| c25519-b32 | ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
 
 if (@err_loc) {    ## [E: alien characters ]
     $footer_data->{'encountered-error'}
-        = sprintf( 'invalid characters in signature data [ %s ]',
-        join( ' and ', @err_loc ) );
+        = sprintf 'not valid characters in signature data [ %s ]',
+        join( ' and ', @err_loc );
     return $footer_data;
 }
 
 $footer_data->{'structure-was-valid'} = 1;
 
-$footer_data->{'data-type'} = 'CODE';   # [ other types soon: SIZE, ZCFG,.., ]
 $footer_data->{'checksum-type'}  = qw| BMW-384-B32 |;  # only ones implemented
 $footer_data->{'signature-type'} = qw| C25519-B32 |; # <-- ###################
 $footer_data->{'bmw-chksum'}     = $signed_chksum;
@@ -88,8 +189,8 @@ $footer_data->{'signature'}      = $signature_B32;
 
 return $footer_data;
 
-#.............................................................................
-#MI3K22ORYVOGMFUNWW75G7BB7FNI57MA4CRP7SK6FF7F2HG6RD4FNTCSELSKNN2ZXXXAWLPTPYZF4
-#::: VEXEIKEKHDVP2ZJVG6M6TQYYP7F46R6ZH4POUADPNUHABR43MFY :::: NAILARA AMOS :::
-# :: RYN7U4UV7AVRCCY7GMXDGSYHVSWMXRO2D7Y2KSNTQ2LKPQY2KCAI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,..,,,,,,..,,.,,,,,,,,.,,..,,,,,,.,,,,..,..,,...,...,,,,,.,.,.,,,..,,...,
+#6DRAUBSGII5ZZWPEOCWL752TE5WKCFRTFTSRHSUFDJMFAX575SXI4HVNPIG6RAOLPIOUTVDNTBALU
+#\\\|SZQNNH6M5ZR7XFZBS6M7QMKH4EZJGMC3RIJNJUBQHTBIOZ7PKBM \ / AMOS7 \ YOURUM ::
+#\[7]UEH6PGSWF2HDQ5BM2M3VV7M5HNAQONVVIRNNQ77CV46XOVXXCSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

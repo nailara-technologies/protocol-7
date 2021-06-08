@@ -36,7 +36,8 @@ if ( $option{'d'}
     my $B32_decoded = decode_b32r($B32_in);
     warn "BASE32 decoding error\n" if not defined $B32_decoded;
 
-    my $decoded_integer = unpack( $pack_template, $B32_decoded );
+    my $decoded_integer = eval { unpack $pack_template, $B32_decoded };
+    warn "not a compressed integer value\n" if not defined $decoded_integer;
 
     say $decoded_integer and exit if $option{'q'};
 
@@ -67,8 +68,8 @@ sub error_exit {
     exit(110);
 }
 
-#.............................................................................
-#6V73SZVJQF5DREKFFVSVIR3X5GXUQO3M3XNYHNQDVUDEBXLKW72GMIDAK7A3J5TY3GHUXA2JZIRSO
-#::: YWXAKFQHDE4ZHOTCN2VDAKEQ5OCWBXRFYNM7V7IGPMIPG6SY7MC :::: NAILARA AMOS :::
-# :: YTA723C7UU5HTBL3SSAZNJ7J2OCU7QNGCMJ3BIC2QQKVFVCGCUCQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,.,,,...,.,.,,.,,.,,,,,.,.,,,..,,...,.,,,..,,...,...,,..,,..,...,...,.,.,
+#6N6O7I5LFDYPQCKM7QDYD2P6QUFTNFNEULXVK2BHMDV7E4AG4W4OVAWA2MLDBTFR4OYEKDFW4PAHM
+#\\\|ZHLTHOHGPUAQXEYXYFK2LZLOSA7EMUETELPRCY77PJWTMZRITLH \ / AMOS7 \ YOURUM ::
+#\[7]56CZSTNXHUZ5HIIWENGMEY2RLPWVFONDSACFGOOOUYHL5FIPS4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

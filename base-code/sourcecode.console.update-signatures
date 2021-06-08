@@ -1,93 +1,46 @@
-# >:]
+## >:] ##
 
 # name  = sourcecode.console.update-signatures
 # descr = regenerate source code signature sections
 
+my $command_params = shift;
+
 my $source_version  = <protocol-7.src-ver>;
 my $release_version = <protocol-7.rel-ver>;
 
-my $exclude_files = { qw| bin/p7c | => 1 };    ## <-- expand as required., ###
+my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+my $work_tree = $paths->{'work_tree'};
 
-my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+my @source_paths;
 
-my $work_tree    = $paths->{'work_tree'};
-my $source_root  = $paths->{'source_subdir'};
-my $version_root = $paths->{'version_root'};
+if ( defined $command_params ) {
 
-my @copy_sources = qw [
-    bin
-    bin/dev
-    read-me
-    bin/dev/*
-    base-code
-    bin/admin
-    read-me/md
-    configuration
-    bin/dependencies
-    bin/dev/git-hooks
-    data/lib-path/pm
-    data/lib-path/pm/*
-    configuration/zenki/*
-    read-me/documentation/*
-    data/lib-path/pm/AMOS/*
-    data/lib-path/pm/AMOS.pm
-    data/lib-path/pm/AMOS/INLINE/*
-    data/lib-path/pm/AMOS/CHKSUM/*
-];
-
-my @all_files;
-
-my $work_path_abs = abs_path($work_tree);
-
-my @all_dirs = grep {defined} map {
-    my $absolute_path = abs_path( catfile( $work_path_abs, $ARG ) );
-    if ( -f $absolute_path ) {
-        push( @all_files, $absolute_path );
-        undef;
+    if ( not @source_paths = <[sourcecode.collect_files]>->($command_params) )
+    {
+        <[base.logs]>->( 0, ": no files found for '%s'", $command_params );
+        <[base.exit]>;
     } else {
-        <[file.match_dirs]>->( $work_path_abs, qw| recursive |, $ARG );
-    }
-    }
-    grep { !m|\*| } @copy_sources;
-
-push(    ## enabling [non-recursive] wildcard matches ##
-    @all_dirs,
-    map {
-        ( my $base_path = $ARG ) =~ s|/*\*.*$||;
-        ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
-        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
-        <[file.match_dirs]>->( $absolute_path, $pattern );
-        }
-        grep {m|\*|} @copy_sources
-);
-
-map {
-    my $source_path = $ARG;
-    die "source path '$source_path' does not exist" if !-d $source_path;
-    if ( !-w $source_path ) {
-        <[base.log]>->(
-            0, "<< missing write permissions for '$source_path' >>"
+        my $file_count = scalar @source_paths;
+        <[base.logs]>->(
+            ": %d file%s match%s '%s'",
+            $file_count,
+            <[base.cnt_s]>->($file_count),
+            <[base.cnt_s]>->( $file_count, '', 'es' ),
+            <[base.parser.ellipse_center]>->( $command_params, 19 )
         );
-        <[base.exit]>->(4);
     }
-} @all_dirs;
+} else {
+    @source_paths = <[sourcecode.source_path_set_up]>;
+}
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
-foreach my $absolute_path (@all_dirs) {
-    <[file.all_files]>->( $absolute_path, \@all_files );
-}
-
-my @source_paths
-    = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
-    grep { !m{/\.|~$} } @all_files;
+map {
+    <[base.logs]>->( 0, 'file ./%s is not writable', $ARG )
+        if not -w catfile( $work_tree, $ARG )
+} @source_paths;
 
 my $file_count = scalar @source_paths;
-
-map {
-    <[log.error]>->("source file ./$ARG is not writable")
-        if not -w "$work_tree/$ARG"
-} @source_paths;
 
 <[base.logs]>->( '* updating %s source file signatures..,', $file_count );
 foreach my $path_rel (@source_paths) {
@@ -95,8 +48,29 @@ foreach my $path_rel (@source_paths) {
     my $path_abs = catfile( $work_tree, $path_rel );
     <[base.log]>->( 2, ':' );
 
-    my $code_data_ref = <[source.cmd.get-code-signed]>
-        ->( { 'args' => $path_rel, 'skip-valid' => 1 } );
+    my $code_data_ref;
+    eval {
+        use warnings FATAL => qw| all |;    ##  catches all warnings  ##
+        $code_data_ref
+            = <[source.cmd.get-code-signed]>
+            ->( { 'args' => $path_rel, 'skip-valid' => 1 } );
+    };
+
+    <[base.s_warn]>->(
+        '%s <{NC}>', scalar <[base.format_error]>->($EVAL_ERROR)
+    ) if length $EVAL_ERROR;
+
+    <[base.log]>->( 0, $code_data_ref->{'data'} )
+        if defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} eq qw| false |;
+
+    <[base.exit]>->(
+        qw| 0110 |, 'aborting signature update due to error[s]', 0
+        )
+        if not defined $code_data_ref
+        or ref $code_data_ref ne qw| HASH |
+        or $code_data_ref->{'mode'} eq qw| false |;
 
     ## allow for SIGINT ##
     <[event.once]>;
@@ -105,9 +79,13 @@ foreach my $path_rel (@source_paths) {
         if $code_data_ref->{'mode'} eq qw| true |
         and $code_data_ref->{'data'} eq 'still valid. =)';
 
-    die "failed to create signature for \"$path_rel\""
-        if $code_data_ref->{'mode'} ne qw| size |
-        or !length( $code_data_ref->{'data'} );
+    if ( $code_data_ref->{'mode'} ne qw| size |
+        or not length $code_data_ref->{'data'} ) {
+        <[base.logs]>->(
+            0, ": not able to create signature [ %s ]", $path_rel
+        );
+        next;
+    }
 
     <[base.log]>->( 1, ':.' );
     <[base.log]>->( 1, ":::[ $path_rel ]:.<+>.::" );
@@ -119,8 +97,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
-#.............................................................................
-#SE2PXU26J5BY4SFNBZGFTNSDAPRRDLBX6TYESDGEXCSRBYMX4B4EKSJMW2F33DYSCYTJEFBFF3VQ2
-#::: TB22TX2GD2GSHT255JKMFE66ET66FHVNCNI2GNVTTQFAL76UPO7 :::: NAILARA AMOS :::
-# :: TVUADNTP5M6OMFTKNUNWRYW7XMR2G77VEOUMV4OS6D6O432PEGCA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,,.,,..,...,..,,,.,,,,.,,..,.,,,,.,,,,.,..,,...,...,..,,.,.,,.,,.,.,,.,,
+#EYTYP2T74M4YSCLZIP2BXBUODBXEB3IXPBHXJKWL6JPRTFRKR3KXJCWNG6A25IIKV3EEHAUDBVMDK
+#\\\|OCFCCX3KO2Z5BYG5SYY6EQ3MSW6N45WYU52WHP7WMPXQNKS3FFW \ / AMOS7 \ YOURUM ::
+#\[7]MJC7JK3AXA63DCQJX3TEQG3525LIBBVTRKSCRHCWPAIS7ZMPTKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
