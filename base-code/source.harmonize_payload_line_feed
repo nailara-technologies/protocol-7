@@ -1,0 +1,67 @@
+## >:] ##
+
+# name  = source.harmonize_payload_line_feed
+
+my $payload_sref      = shift;
+my $cur_endline_state = shift // 5;    ##  5 == unmodified  ##
+
+warn 'expected sref to payload data <{C1}>' and return undef
+    if not length ref $payload_sref;
+<[base.s_warn]>->( 'got ref-type %s , want SCALAR <{C1}>', ref $payload_sref )
+    and return undef
+    if ref $payload_sref ne qw| SCALAR |;
+
+warn 'expected octal endline state descriptor <{C1}>' and return undef
+    if defined $cur_endline_state and $cur_endline_state !~ m|^\d$|
+    or $cur_endline_state > 7;
+
+##  endline state description  ##
+#
+##  7 : 2 added, 5 : untouched, 0 : 4 removed  ##
+
+my $mod_offset = 0;
+
+## already at modification limit ? ##
+if ( $cur_endline_state == 0 or $cur_endline_state == 7 ) {
+    return $cur_endline_state;    ##  no change, keep previous state  ##
+} elsif ( $cur_endline_state != 5 ) {
+    $mod_offset = $cur_endline_state - 5;
+}
+
+my $endline_state_oct       = $cur_endline_state;         ##  unmodified  ##
+my $payload_size_delta      = 0;
+my $previous_payload_length = length $payload_sref->$*;
+
+##  removing too many training LFs  ##
+if ( $payload_sref->$* =~ m|\n{3}$|s ) {
+
+    my $limit = 4 + $mod_offset;
+
+    ##  leaving one between data and footer  ##
+    $payload_sref->$* =~ s{([^\n]\n|)\n\n{1,$limit}$}{$1\n}s;
+
+} else {
+
+    # ## amend empty line between payload data and footer [ if missing ] ##
+
+    while ( $previous_payload_length > 0
+        and $payload_sref->$* !~ m|[^\n]\n\n$|s
+        and $payload_sref->$* !~ m|(*nlb:[^\n])\n$|s ) {
+
+        $payload_sref->$* .= "\n";
+        last if $mod_offset != 0;
+    }
+
+}
+
+$payload_size_delta = length( $payload_sref->$* ) - $previous_payload_length;
+
+$endline_state_oct = 5 + $payload_size_delta;
+
+return $endline_state_oct;
+
+#,,..,,..,..,,...,.,.,..,,..,,,.,,..,,.,,,,,.,..,,...,...,.,.,,,,,..,,,,,,...,
+#FMULT6LULZPRQ2T6D672IYCB7RGCLX35LYDLFQWWJMG4D2JMRU7MSYUMZNRM7HKEA64U3M4OT2CAM
+#\\\|H6DL4Z5XSMTDIBPNFSBKFLS4B37EJF5NGDFTKBXNYEV7PGTYAGT \ / AMOS7 \ YOURUM ::
+#\[7]L5QF2VZQPBOMGMWTGH4XHVGEINVSWNNU2ALJUQALUC2TIEYM2MCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

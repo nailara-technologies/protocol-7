@@ -1,44 +1,94 @@
-# >:]
+## >:] ##
 
 # name  = source.fill_source_template
 
-my $data_ref     = shift                  // {};
-my $params       = shift                  // {};
+my $payload_data_ref = shift // {};
+
+my $sig_name_str = 'AMOS7 \ YOURUM';
+
+my $sign_full_payload = 0;    ## signs only the checksums if not enabled ##
+
+return warn 'expected hashref to payload data paramaters <{C1}>'
+    if ref $payload_data_ref ne qw| HASH |;
+
 my $template_str = <source.sign_template> // '';
 
-die 'signature template not defined'              if !length($template_str);
-die 'expected has reference to source parameters' if ref($params) ne 'HASH';
+return warn 'signature template not defined <{C1}>'
+    if not length $template_str;
 
-$data_ref->{'signature'} //= <[source.sign_data]>->(
-    $data_ref->{'data-reference'},
-    $data_ref->{'data-chksum'}
-);
+## sign data if signature data key not defined ##
+#
+
+# preparing components for signing [ payload, first two header line ]
+my $sign_data_buffer;
+
+##  get template part prefixing signature to include in signature  ##
+my $sig_template_prefix = substr( $template_str, 158, 5 );
+
+if ( not defined $payload_data_ref->{'signature'} ) {
+    if ($sign_full_payload) {
+        $sign_data_buffer
+            = sprintf "%s%s#%s\n%s",    ##  <--  sign data str template  ##
+            $payload_data_ref->{'data-reference'}->$*,
+            $payload_data_ref->{'first-header-line'},
+            $payload_data_ref->{'data-chksum'},
+            $sig_template_prefix;       ## <-- from temp. ##
+    } else {
+        ##  sign only header with AMOS and BMW chksums of payload data  ##
+        $sign_data_buffer = sprintf "%s#%s\n%s",
+            $payload_data_ref->{'first-header-line'},
+            $payload_data_ref->{'data-chksum'}, $sig_template_prefix;
+    }
+
+    ## update signature ##
+    $payload_data_ref->{'signature'}
+        = <[source.sign_data]>->( \$sign_data_buffer );
+}
+
+my $calc_result_href = { 'signature' => $payload_data_ref->{'signature'} };
+
+## keep for elf truth validation ##
+$calc_result_href->{'sig-part-0'}
+    = substr( $payload_data_ref->{'signature'}, 0, 51 );
+$calc_result_href->{'sig-part-1'}
+    = substr( $payload_data_ref->{'signature'}, 51, 52 );
 
 my %variable_map = (
-    'data-chksum' =>
-        [ { 'pos' => 80, 'len' => 77, 'str' => $data_ref->{'data-chksum'} } ],
-    'signature' => [
-        {   'pos' => 163,
-            'len' => 51,
-            'str' => substr( $data_ref->{'signature'}, 0, 51 )
-        },
-        {   'pos' => 242,
-            'len' => 52,
-            'str' => substr( $data_ref->{'signature'}, 51, 52 )
+    'data-chksum' => [
+        {   'pos' => 80,
+            'len' => 77,
+            'str' => $payload_data_ref->{'data-chksum'}
         }
     ],
-    'data-type'      => [ { 'pos' => 298, 'len' => 4, 'str' => 'CODE' } ],
-    'signature-type' =>
-        [ { 'pos' => 220, 'len' => 12, 'str' => 'NAILARA AMOS' } ],
+    'signature' => [
+        {   'pos' => 163,
+            'len' => length $calc_result_href->{'sig-part-0'},
+            'str' => $calc_result_href->{'sig-part-0'}
+        },
+        {   'pos' => 242,
+            'len' => length $calc_result_href->{'sig-part-1'},
+            'str' => $calc_result_href->{'sig-part-1'}
+        }
+    ],
+    'data-type'      => [ { 'pos' => 298, 'len' => 4, 'str' => qw| DATA | } ],
+    'signature-type' => [
+        {   'pos' => 233 - length $sig_name_str,
+            'len' => length $sig_name_str,
+            'str' => $sig_name_str
+        }
+    ],
 );
 
-my $result_ref = {};
 my $signature_B32;
 foreach my $name ( keys %variable_map ) {
     my $str;
+    my $index = 0;
     while ( my $var_data = shift( @{ $variable_map{$name} } ) ) {
         if ( not defined $var_data->{'str'} ) {
-            warn "template data key '$name' is not defined";
+            <[base.s_warn]>->(
+                "template data key '%s' [ 'str', index %d ] is not defined",
+                $name, $index
+            );
             return undef;
         }
         my $pos = $var_data->{'pos'};
@@ -46,16 +96,21 @@ foreach my $name ( keys %variable_map ) {
         $str = $var_data->{'str'};
 
         substr( $template_str, $pos, $len, $str );
-        $result_ref->{$name} .= $str;
+        $calc_result_href->{$name} //= $str;    ## signature already set ##
+        $index++;
     }
 }
-$result_ref->{'checksum-type'} = 'BMW-384-BASE-32';
-$result_ref->{'source-footer'} = $template_str;
 
-return $result_ref;
+## insert encoded amos checksum ##
+$template_str =~ s|^[^\n]+\n|$payload_data_ref->{'first-header-line'}|s;
 
-#.............................................................................
-#HH2CERXXTPLGOWPQHFVJMOP43AMFGZDHD2HHT46YWOFHQ6Y4J6L43U753LYMEV27KOIJ3OX5X45W6
-#::: YVI7IIPXO5K3AOCAYGX23YO6RG4ANOALLT7DH23V6275YWWWBRD :::: NAILARA AMOS :::
-# :: BLA5A52AXTZOMDYXWM343FIFNHBSKFSLHZMWTEQUVUICSDCN5YBA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+$calc_result_href->{'checksum-type'}        = qw| BMW-384-BASE-32 |;
+$calc_result_href->{'signature-footer-str'} = $template_str;
+
+return $calc_result_href;
+
+#,,..,...,.,.,,.,,,.,,,.,,,.,,,,.,.,,,.,.,...,..,,...,...,..,,..,,,..,...,..,,
+#FSYZSNPLHMNFCJWJZ2SCPQRM3A7TVTF63RJEELH6FQL775QTTWS5R74ZCAQQZT4CPQ5FG2367QYVE
+#\\\|MK5YNJGHRFMVJY5XJDOPMAXBUTWYQTYXZOJK5JROMRG6GOJGMDL \ / AMOS7 \ YOURUM ::
+#\[7]2QDHQBE5SM7KTWC4YB4FJ4BWU74LUJFBCLO3ZWX4ICA26WIGYEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

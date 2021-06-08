@@ -31,8 +31,8 @@ cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit2
 
-#.............................................................................
-#5EOYSB3L7OVNYDXOAISBNFFETPRKDCHHP34DGUIC7PYDPDKD77JQNWONAFNDGMVKKTLMZAJSVP5TU
-#::: WZGXWOWCZBVWSPLB53KKQUGQYQUBNMGDGW4ERE3QEMAYY752VNK :::: NAILARA AMOS :::
-# :: 5EBDZTZJKG46NIHW54ILQAALRFSRRRAUL7SE74VEB7HK4AGKU4BQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,.,,.,.,..,,.,.,,,.,,..,.,.,.,,,..,,..,,..,,...,...,,..,.,,,.,.,.,.,.,.,
+#GEAVMSTLQ4NJVIVZE6XNJYTNMHU3UCQXVWGNC4W623M63N6KUVHGWRZESQNXHKSN52WHK2FSKJQGA
+#\\\|5E6WZFIJILZHHBDPXMB2XA3W6J24AHUFDZ43PR6VG7DNTULU5BB \ / AMOS7 \ YOURUM ::
+#\[7]JONMJU5JCV54BC25UNUNMVG3CUNUIL6UPBEZJXSC6ZM7GHE3AICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

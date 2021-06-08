@@ -37,8 +37,8 @@ gource \
 
 ls -lh $TARGET
 
-#.............................................................................
-#I6UYHYKO6PGSPWMVY2FE7TJCG6GLO6JYGZ2QFFYFTZNVT7NG2POYJAC6WGQ3SOJ7IV5UHATYANM2A
-#::: 6MROT36EDMMMSIWIZBMAHSJU33DOZBE5RZTFH54ZYCCSESND7K2 :::: NAILARA AMOS :::
-# :: VYIYU7UDJIUVA7B4JMAQFNIYSGVC7KLOMZLCYXELU7SKK7MRF2DQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,...,..,,...,.,.,,,,,,.,,,,,,,.,,.,.,,.,,,.,,.,,,.,.,,,.,,,,,..,,,..,.,.,
+#2SWFTX4PZUARLXK4ZPLWHZ4NX7C5YVE7H3E6Q64ITYOBZDOHGIM2AVEH4E4GGI7NC7PYILESUQ24I
+#\\\|YVP2IZUV2ZSZIOGPPZSIY45ZKOAV4RWBI7SL3WVMCLRNNNTKRWP \ / AMOS7 \ YOURUM ::
+#\[7]CJFBWAV35QF6PPOOTNBNPZRUWJD4TD55OUE36HNHXSQSA77YSIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

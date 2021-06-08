@@ -1,30 +1,33 @@
-# >:]
+## >:] ##
 
 # name = crypt.C25519.sign_data
 
-my $data_ref = shift // \'';
+my $msg_ref = shift // \'';
 
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 my $key_name = $key_vars->{'key_name'};
 
-die "expected scalar reference to payload data" if ref($data_ref) ne 'SCALAR';
-die "found no key named '$key_name' [ cannot sign without ]"
+warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
+<[base.s_warn]>->(
+    "found no public key named '%s' [ cannot sign data ]", $key_name
+    )
     if not exists $KEYS{'C25519'}{$key_name}
-    or ref( $KEYS{'C25519'}{$key_name} ) ne 'HASH'
+    or ref( $KEYS{'C25519'}{$key_name} ) ne qw| HASH |
     or ( keys( %{ $KEYS{'C25519'}{$key_name} } ) < 2
     and exists $KEYS{'C25519'}{$key_name}{'root'} );
 
-die "no C25519 private key loaded for key name '$key_name'"
-    if not defined $KEYS{'C25519'}{$key_name}{'secret'};
+<[base.s_warn]>->(
+    "there is no C25519 private key with name '%s' loaded", $key_name
+) if not defined $KEYS{'C25519'}{$key_name}{'secret'};
 
 return Crypt::Ed25519::sign(
-    ${$data_ref},
+    $msg_ref->$*,
     $KEYS{'C25519'}{$key_name}{'public'},
     $KEYS{'C25519'}{$key_name}{'secret'}
 );
 
-#.............................................................................
-#UDCQHCWVFOECSXZV74IBMLNIDPDVCWDB5V7KB6LYIL455R4JLULBPRF27J4LJXNCASZOLR7D6K36I
-#::: 2676FEWYUAEHVCWSPD56MEU3NAWADRSYWFE3E5X2O3OLXCYJS3O :::: NAILARA AMOS :::
-# :: UHE72BWTEH3ISWJIWSGLFUBPQ7NNUUDBH5HKD6JULYALYAO5YOCQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,...,,..,,,.,..,,,,.,..,,.,,,..,,,..,.,,,..,,...,...,.,,,,,,,.,,,.,,,..,,
+#MCZUP5A4RSMVKZY2KBYHZVWUVFPIVP3NE527AUTGIYJKZW6T7AMAMB2WGUHTWN2Z2JLKHJFO4HMNI
+#\\\|Y3L2LPV36KSAQ6XGKDTOYSM6OOQFLO4GU6SMLQOH3GZT6473CW5 \ / AMOS7 \ YOURUM ::
+#\[7]WWA3FH53LZMBOG7C5V6LGS5WOPBLOXJ6FNQU6ZVHR5LBQSAFAADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

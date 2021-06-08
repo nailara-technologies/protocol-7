@@ -146,8 +146,8 @@ sub clean_up_caller {
 
 return 1;  ###################################################################
 
-#.............................................................................
-#KNRS4E4EXIT6EWIRR2II7VYBW7W5PX63UYGUAMP3AL7UTCETCVLRNZXIPZPLWGORYRAZ6ILHDKDMC
-#::: VIBTXO7Y2E6VU7MKY2VJWT3TWQQLDWTQYQHUMBM6PJFIZQ2JOH5 :::: NAILARA AMOS :::
-# :: AW6LND2DNYNOKD45NLQDGD6HJOSTY3TKQP44Y5LS7T6S4HDKJ4CA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,..,,,.,,.,,,.,.,.,.,..,,,..,..,,..,,...,..,,...,...,..,,..,,..,,,,.,,,.,
+#ED7HBV4OA6ZDO625VKCALWOMTRM5JX67EP75JO2GX5SVYEFJO3GZUTYXNNHQRC5ZL3LI3PNSBFOSU
+#\\\|CSJ7V637UTI2WIUVBHHMVTU65QJX5K3ZXTDE24YQV2WITB5SFWD \ / AMOS7 \ YOURUM ::
+#\[7]UFR5UUPH6JGNYNS7BCRKUUHMAQIEHYWYACWA3R33MW4E7DKPIUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

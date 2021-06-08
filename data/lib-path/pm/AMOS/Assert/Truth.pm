@@ -46,9 +46,14 @@ if ( defined &compile_inline_source ) {
 ##[ MAIN FUNCTION ]###########################################################
 
 sub is_true {
+
     my $data_ref = shift;
 
-    return warn_err('undefined input') if not defined $data_ref;
+    ##                                 ##
+    ## returns 5 for true, 0 for false ##
+    ##                                 ##
+
+    return warn_err('undefined input <{C2}>') if not defined $data_ref;
 
     my $calc_result;
     my $check_as_num = shift // 2;         ## also check as numerical ##
@@ -60,6 +65,8 @@ sub is_true {
 
     $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq qw| ARRAY |;
     $data_ref = \"$data_ref"              if ref($data_ref) ne qw| SCALAR |;
+
+    return warn_err('undefined input <{C2}>') if not defined $$data_ref;
 
     my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
@@ -73,7 +80,7 @@ sub is_true {
         and AMOS::Assert::numerical_no_0_prefix($$data_ref)
         and calc_true( scalar($$data_ref) ) <= 0;
 
-    return 1 if not $check_as_elf;    ## numerical only, skip elf check ##
+    return 5 if not $check_as_elf;    ## numerical only, skip elf check ##
 
     ## assert selected elf checksum modes ##
     ##
@@ -85,14 +92,15 @@ sub is_true {
         }
     }
     ## success : TRUE .: ##
-    return 1 if not wantarray;
-    return ( 1, @assertion_modes );
+    return 5 if not wantarray;
+    return ( 5, @assertion_modes );
 
 }
 
 ##[ HELPER ROUTINES ]#########################################################
 
 sub init_table {
+
     my $mode = shift // '';
 
     die 'expected mode parameter [false|true]' if !length($mode);
@@ -113,7 +121,12 @@ sub init_table {
 }
 
 sub calc_true {
+
     my $check_num = shift;
+
+    ##                                 ##
+    ## returns 5 for true, 0 for false ##
+    ##                                 ##
 
     error_exit( "input '%s' not numerical", $check_num )
         if not AMOS::Assert::is_number($check_num);
@@ -163,16 +176,16 @@ sub calc_true {
     return 0 if exists $false{$calc_result};
 
     ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
-    return 1 if exists $true{$calc_result};
+    return 5 if exists $true{$calc_result};
 
     ### TRUE ### 0000000 | 1 ####
-    return 1;
+    return 5;
 }
 
 return 1;  ###################################################################
 
-#.............................................................................
-#GVEVQBM36U47W4ULUDWUYLML4QQONX66TE2V474JZZUSWIN2NSX7JY6C6LIND3X5IBPFSDXARMCLG
-#::: ALFMNZGL4MWXYB4P44TXV2RJYZG2J3EUOA6LZ4RJ5YLRFPAADII :::: NAILARA AMOS :::
-# :: 6NHWWYCAL42H5XSPEFB4L2MBM77TS5BCRR2SDLM6VU7AYLZJLACI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,,,,...,.,.,..,,..,,.,.,.,,,,..,..,,,,.,..,,...,...,..,,,,.,,..,,.,,.,.,
+#4KQBWMVOEENRWTHTDQVT2MCBU4DPXKJMWBFPRM2PMMY5BGV4F7PVNWKFHP7Z3R7OTHKARUAW7E6JK
+#\\\|URWJHY732YWZDCVD75AFK5VVWV5HPNLCW5TIKJ25C7G45OOTLBC \ / AMOS7 \ YOURUM ::
+#\[7]4LPEQCJ4M7DWCV7EQ4NJOSISHN6ROTQWN5B7AUDEHADGWCUIIKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

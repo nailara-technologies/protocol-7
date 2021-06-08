@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name = mpv.handler.pipe.command
 
@@ -22,8 +22,8 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     );
 }
 
-#.............................................................................
-#QXHDCKXYGHJMQYDIGURXSQTABUFZ3EZEGMUVDCBDZUA4FE4RT4RLG52ZAWFCKMUNOGJYM5FAM2KMO
-#::: DV6AYCJKK7VJZZZKCGAI7TKRADZQ2OSN35TUHYTM5Q3DN3ZLFX2 :::: NAILARA AMOS :::
-# :: 736AJNZ7W2OIPU5YOMT65GHRCJR6X4Q2TV7QOUM74HQJUOU5X2AI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,,.,,,,.,,,,,,,,,,.,,.,,,,,.,,,,,,,.,,..,..,,...,...,.,.,..,,,..,...,,..,
+#4N2CJI5CKILJYJE54OC4JB4M7ZMCKKEHQYBE5CHEAWVDOLCGZ7YR4ZNCVQELCNDKGOOKG43HHEUJE
+#\\\|XO5LWVMHWHWCFWPR5ASYVK2M52NWF5BB7B2ZNV6YMVIIAC2OS5Q \ / AMOS7 \ YOURUM ::
+#\[7]RMGYPD77NREIEQ7XQV6N5KPZ3EF5DONZNMXIQEIVMAXU3SIUDUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

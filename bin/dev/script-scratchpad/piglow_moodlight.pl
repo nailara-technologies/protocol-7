@@ -57,8 +57,8 @@ while ( $deg = sprintf( qw| %.5f |, $deg + $step_size ) or 1 ) {
     sleep 0.013;
 }
 
-#.............................................................................
-#JTTEO7NZMZIV3LOC2PPJY4FGMJPVYWVMICTFBQY344IZXNVCPAXF53ATNHFETZBPGFBDOEQNG24R6
-#::: PHSOKW3VLVQEIVQHNCK6PK5PWA3DA7DYY5GIIX336L6B6LTO5VM :::: NAILARA AMOS :::
-# :: H4D5J56YPSWFANJ5SIDHPQT2BFGNRBF4ZN6OYWBWPDB666Z72UAA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,...,...,.,.,..,,,.,,,.,,.,,,,,,,,..,...,,,.,,.,,,.,,,,.,,,,,.,,,,,.,,,,,.,,,
+#W5TCKFXNDUTNICHSOKLVQCB2DL24EMHWREMCL24JO6VP5CRNQK6Y4C4DVWZOR35P3XGNMA5IWWT3O
+#\\\|IEMPKY5QAFKOVKHKQ23WXQPYCJ3VKCJAPDE6PPHMAUUWKL2TYOM \ / AMOS7 \ YOURUM ::
+#\[7]7JFDATOVMO32XTIL4FW5OK4N6IRHMBWTLZOGBOASGHMQOLGRYMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

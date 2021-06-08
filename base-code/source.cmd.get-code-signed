@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = source.cmd.get-code-signed
 # descr = return specified source code subroutine
@@ -6,34 +6,40 @@
 my $code_name      = $$call{'args'};    ## [ LLL ] implement multiple ?
 my $skip_unchanged = $call->{'skip-valid'} // 0;
 
-return { 'mode' => 'true', 'data' => 'still valid. =)' }
-    if $skip_unchanged and $code_name eq 'source.init_code';
+##  expect >:] headers in ./base-code/..,  ##
+my $expect_valid_code_header = 0;       ## temporarely disabled ##
 
 my $code_dir = <source.code_path>;
 $code_dir = <source.path.work_tree> if $code_name =~ m|/|;
 my $src_path = catfile( $code_dir, $code_name );
 
-# <<< ! >>> compare abs path here ..,
-my $bit_size = <source.chksum_bitsize>;
+return {
+    'mode' => qw| false |,
+    'data' => 'requested code name is not valid'
+    }
+    if not <[source.valid_src_name]>->($code_name);
 
-return { 'mode' => 'false', 'data' => 'requested code name is not valid' }
-    if !<[source.valid_src_name]>->($code_name);
-return { 'mode' => 'false', 'data' => 'code file not found' }
+return { 'mode' => qw| false |, 'data' => 'code file not found' }
     if !-f $src_path;
 
+$src_path = abs_path($src_path);
+
 <[file.slurp]>->( $src_path, \my $src_str );
-return { 'mode' => 'false', 'data' => 'failed to read code file' }
+
+return { 'mode' => qw| false |, 'data' => 'no success reading source file' }
     if not defined $src_path;
 ## checking source header ##
-return {
-    'mode' => 'false',
-    'data' => 'requested code file has no valid header'
-    }
-    if $code_dir =~ m|/base-code$|
-    and substr( $src_str, 0, 7 ) ne "# >:]\n\n";
 
-RECALC_CHECKSUM:
-my $footer_data         = <[source.extract_sig_body]>->( \$src_str, 'strip' );
+return {
+    'mode' => qw| false |,
+    'data' => "requested code file has no '>:]' header"
+    }
+    if $expect_valid_code_header
+    and $src_path =~ m|/base-code/|
+    and substr( $src_str, 0, 5 ) ne "## >:] ##\n";
+
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
 my $found_footer_length = $footer_data->{'footer-length-found'};
@@ -42,31 +48,45 @@ my $present_checksum;
 my $present_signature;
 
 ( my $name_rel = $code_name ) =~ s|^.+/(*pla:[^/]+/[^/]+$)||;
-<[base.log]>->( 2, ":::[ $name_rel ]:." );
+<[base.logs]>->( 2, ':::[ %s ]:.', $name_rel );
 <[base.log]>->( 2, ': :' );
 if ( $footer_found and $found_footer_valid ) {
-    $present_checksum  = delete $footer_data->{'bmw-chksum'};
-    $present_signature = delete $footer_data->{'signature'};
-    <[base.log]>->(
-        2, ":+: found valid footer structure [ $found_footer_length bytes ]"
+    $present_checksum  = $footer_data->{'bmw-chksum'};
+    $present_signature = $footer_data->{'signature'};
+    <[base.logs]>->(
+        2, ':+: found valid footer structure [ %d bytes ]',
+        $found_footer_length
     );
 } else {
     if ( not $footer_found ) {
-        <[base.log]>->( 2, ': : had no signature footer..,' );
+        <[base.log]>->( 2, ': : had no signature footer ..,' );
     } else {
         my $footer_error = $footer_data->{'encountered-error'};
-        <[base.log]>->( 2, ":E: $footer_error" );
+        <[base.logs]>->(
+            0, ':E: %s',
+            $footer_error // 'unspecified error in footer structure'
+        );
     }
 }
 
-## amend empty line between payload data and footer [ if missing ] ##
-my $old_src_len = length($src_str) and $src_str =~ s|\n*$|\n\n|s;
-goto RECALC_CHECKSUM if length($src_str) != $old_src_len;
+## checksum and signature verification ## [ LLL implement sig. verification ]
+
+my $is_valid = <[source.signature_valid]>->( \$src_str, $footer_data );
+
+if ($is_valid) {
+    <[base.log]>->( 2, ':.: checksums and signature still valid. =)' );
+
+    ## [ SKIP UNCHANGED MODE ] ##
+    return { 'mode' => qw| true |, 'data' => 'still valid. =)' }
+        if $skip_unchanged;
+    ##
+} else {
+    ###  use returned error messages [ list context ]  ## [LLL]
+}
+
+my $recalc_data = <[source.create_harmonic_footer]>->($footer_data);
+
 ##
-
-## checksum and signature verification ##
-
-my $recalc_data = <[source.fill_source_template]>->($footer_data);
 
 if (   not defined $present_checksum
     or not defined $present_signature
@@ -80,34 +100,35 @@ if (   not defined $present_checksum
         <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
         <[base.log]>->( 2, ': :' );
         <[base.log]>->( 2, ':-: [ BMW data checksum ] < ..found >' );
-        <[base.log]>->( 2, sprintf( ': %s .,', $present_checksum ) );
+        <[base.logs]>->( 2, ': %s .,', $present_checksum );
 
     }
-    $src_str .= $recalc_data->{'source-footer'};
+    $src_str .= $recalc_data->{'signature-footer-str'};
     <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
-    <[base.log]>->( 2, sprintf( ': %s .,', $recalc_data->{'data-chksum'} ) );
+    <[base.logs]>->( 2, ': %s .,', $recalc_data->{'data-chksum'} );
     <[base.log]>->( 2, ': :' );
 
     if ( defined $present_signature ) {
         <[base.log]>->( 2, ':+: [ previous signature ]' );
-        <[base.log]>->( 2, sprintf( ':.%s .,', $present_signature ) );
+        <[base.logs]>->( 2, ':.%s .,', $present_signature );
     }
     <[base.log]>->( 2, ':+: [ current checksum signature ]' );
-    <[base.log]>->( 2, sprintf( ':.%s .,', $recalc_data->{'signature'} ) );
+    <[base.logs]>->( 2, ':.%s .,', $recalc_data->{'signature'} );
 
 } else {
     <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
 
     ## [ SKIP UNCHANGED MODE ] ##
-    return { 'mode' => 'true', 'data' => 'still valid. =)' }
+    return { 'mode' => qw| true |, 'data' => 'still valid. =)' }
         if $skip_unchanged;
     ##
 }
 
-return { 'mode' => qw| size |, 'data' => $src_str }  ## <-- current \ updated src.
+##  current \ updated source  ##
+return { 'mode' => qw| size |, 'data' => $src_str }
 
-#.............................................................................
-#2RJ42VJGIKC4DPMBUAL5VMWOVP7NJLXCJQHCK75E2QHILNKMTNN7AY26TMQL2XQADC2V2G7KGANIU
-#::: BMDY7X5K2JBJB7TTOHVFE7RWJSEM6WME6KMCCYH6ADC63FXQD5K :::: NAILARA AMOS :::
-# :: KGDVVPBONYW7PS5XHHPRQGWZSDV55M4X7QQLBAIJYQDETYNIHKBY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,,.,,,,,,.,,,,.,,,.,,..,,.,.,,.,,,.,,,.,,..,,...,...,,..,.,.,.,.,..,,,.,,
+#YNPFVF7ZS7LHRR656BI33AB23O4GJX3JZIBNJN62TX2PWHUAVATY6FDIZWNURCLPP57NVBZ7EKZGW
+#\\\|MJLWVSZ4EHFX2ULV5BJBWQAARTXX7F3Z3WBMEGZHQX5YQS3B3PJ \ / AMOS7 \ YOURUM ::
+#\[7]V3WFHS22SZ2MROMNDLDSWSPUGXQAGMQCEMACXBVO7FPOKQS7R4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

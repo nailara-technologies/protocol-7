@@ -1,4 +1,4 @@
-# >:]
+## >:] ##
 
 # name  = mpv.cmd.command
 # param = [!]<mpv_cmd>
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s/^\!// ) {
 
 return { 'mode' => 'deferred' };
 
-#.............................................................................
-#4QFBCZTMDHS4HXUPRA2IKDY3UAFC2GYLB33TZPSWPK7TCFPNWJA6Z7PMC2CZNQ54AOOJ4E6V3744U
-#::: RDUEHAADNI5EEBPGOTR5FWV2PPIWHAQYMA7U7BZUPBEOVH5WC26 :::: NAILARA AMOS :::
-# :: WRQJ5TEAZ74MQ4IEJQVLSPZ6YSZ7IFQYYEADLFYNLJDTHFYMGICQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,,,,,..,,...,...,,,,,...,...,,.,,,.,,..,,..,,...,..,,.,,,,..,,..,,,,,...,
+#CNORE2P7B3XJB3X3NXKYTIB22USM2RVR47GJO2EHCKZFNYUWBFQS2TLD4EBY3T4VPQQWP2R7UMDQW
+#\\\|5MYBM3IMT2RVQMGS6DF2L67OS66TROOWKOKYHGD6JVJQRDERAUC \ / AMOS7 \ YOURUM ::
+#\[7]NRASTRPIQGI2KOEU3JYS6UREXNP4USPIMSVYG5XZYG2MEXDDBKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

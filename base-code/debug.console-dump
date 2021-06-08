@@ -1,0 +1,21 @@
+## >:] ##
+
+# name  = debug.console-dump
+# todo  = implement other [ reference ] types
+
+my $dump_key = shift // '';
+
+return warn 'expected valid %data key <{C1}>'
+    if not <[base.validate.data_key_syntax]>->($dump_key);
+
+printf "\n  .:[  < %s >  ]:.\n:`\n%s", $dump_key,
+    join( '',
+    map {": $ARG\n"}
+        split( "\n", <[base.dump_data]>->( undef, undef, $dump_key ) ) )
+    . ":.\n\n";
+
+#,,,,,,..,.,,,,.,,,..,,,.,,.,,...,,..,,,,,...,..,,...,...,,.,,,.,,.,,,,.,,,,.,
+#HOOHO3WU6UWWPKGNGW6HAQS4LNZ3TUGWTNSIMOYHRI7IODRX4S2YJSVKGVCPL4SE2S4XHJB3J3VB4
+#\\\|TQ3OEEI66GFFWYZKZLYS43Q5EB5DGQH2A26K5G3FLXY3D7IAKPW \ / AMOS7 \ YOURUM ::
+#\[7]6QK3VMGS7BQLGY5PTTVCS2NGOITSILMZ3LKIHE2KVK7HPEANJWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use vars qw| @EXPORT |;
 use base qw| Exporter |;
 @EXPORT = qw| $VERSION |;
 
-our $VERSION = qw| AMOS-INLINE-SRC-2BPRJKI |;
+our $VERSION = qw| AMOS-INLINE-SRC-EBVQRJQ |;
 
 ##[ NUMERICAL TRUE \ FALSE ASSERTION ]########################################
 
@@ -25,14 +25,17 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
 
     my $source = <<~ 'EOC';
 
-    bool true_int ( unsigned long test_num ) {
+    unsigned int true_int ( unsigned long test_num ) {
+
+        unsigned const int TRUE_VAL  = 5;
+        unsigned const int FALSE_VAL = 0;
 
         if ( test_num == 0 )
-            return true; // .0000000 .., TRUE
+            return TRUE_VAL; // .0000000 .., TRUE
 
         bool warn_64_bit = false; // warn at overflow size
 
-        if ( warn_64_bit && test_num == 18446744073709551615 )
+        if ( warn_64_bit && test_num == ~0 )
             fprintf( stderr,
                 "true_int : input at 64-bit limit [ 18446744073709551615 ]\n"
             );
@@ -66,11 +69,11 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
                 unsigned int mpos  =  mpaddr - m_faddr;  // position of match
 
                 if (  decimal_pt == -1  ||  mpos > decimal_pt  )
-                    return  false; // matches after decimal point valid
+                    return FALSE_VAL; // matches after decimal point valid
             }
         }
 
-        return true; // no match for false
+        return TRUE_VAL; // no match for false
     }
 
     EOC
@@ -93,10 +96,20 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
     my $source = <<~ 'EOC';
 
-    bool true_float ( double test_num ) {
+    unsigned int true_float ( double test_num ) {
+
+        unsigned const int TRUE_VAL  = 5;
+        unsigned const int FALSE_VAL = 0;
 
         if ( test_num == 0 )
-            return true; // .0000000 .., TRUE
+            return TRUE_VAL; // .0000000 .., TRUE
+
+        bool limit_warn = false; // warn at overflow size
+
+        if ( limit_warn && test_num == ~0 )
+            fprintf( stderr,
+                "true_float : input value is at overflow limit .,\n"
+            );
 
         // reduce size of assertion number [ modulo based 13 \ float version ]
         long double  assert_number = fmodl ( test_num, 13.00000 );
@@ -127,11 +140,11 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
                 unsigned int mpos  =  mpaddr - m_faddr;  // position of match
 
                 if (  decimal_pt == -1  ||  mpos > decimal_pt  )
-                    return  false; // matches after decimal point valid
+                    return FALSE_VAL; // matches after decimal point valid
             }
         }
 
-        return true; // no match for false
+        return TRUE_VAL; // no match for false
     }
 
     EOC
@@ -150,8 +163,11 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
 return 5;    ##  true  ##
 
-#.............................................................................
-#UAXQ7L7NLGUQ7OPQEPYTP4CQ4Z67DOAVCKTRWQSPZIFZ47G2E5ULWQX62NW2FBBSE3ON3Y2V75S6W
-#::: YODRIO2W3HND6BJ7XEYLUWQT5SPMJVEFMIH3ZIRCKWFOTONPJBF :::: NAILARA AMOS :::
-# :: SUP4KMDKDM3NW7KBG2Q6HZKXEGAFN66HI4YGRS425LCAGZFC7CDI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+#,,.,,,..,,,.,,..,..,,...,,..,.,,,...,..,,..,,..,,...,..,,,,,,,..,,..,..,,..,,
+#FG5EB5I7AT4BYLV7S2FWDN4Y5LGWH4C56TIWCACGUMIPMHH7GAT3MR6FT77MWDOCLAZEKXADHGKSI
+#\\\|CE46FTOFNJN3WGXHTGDS4BGNOOABFSP2EMUCNALAG5DT54P25SI \ / AMOS7 \ YOURUM ::
+#\[7]YYU4QCZI5TOED52UL4UXI2OW3MAROZH5GB24EJ7UUWEGCSDTSGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

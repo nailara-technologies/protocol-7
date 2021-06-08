@@ -304,8 +304,8 @@ sub is_pair_interesting {
         || $suffix_b                                  !~ /^$BORING*$/;
 }
 
-#.............................................................................
-#PZKM444QVSZZ4LXG7SH2QFDUYZIRUTEWAY6RXFPWOEXPEFZOA4JPSNQLVXQBH6FFTAG5RPZ3WEEP4
-#::: KCPDAMAQD37L55O7PJUNIOCMWCSDKTFNCQ7FIM6UIAZYJ7TNFOT :::: NAILARA AMOS :::
-# :: 5SDXWV6RDD32AVHCAT3YQ3PY3I34JWV3UELM6HL3HYI3HBNBR6CQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,,,,,,.,.,,,,.,,.,,,,.,,,,.,...,.,,,,..,..,,...,...,,,.,..,,.,,,..,,,..,
+#ZL4LLI7P4PSOMID6N4ZB4RFTZV6SHT4YJVVMVISMDAZ74YZUWZN5EDU7UL6ACNQINK3DKXN5OLL2K
+#\\\|CUSPTSVYIODRPNY525NQYHJDIS2BQFIAI73WOL7D5XZS7JRMIW6 \ / AMOS7 \ YOURUM ::
+#\[7]G5QQ2QMGTNYRRWFUI76FVJCGXBURCOAD42ZSHFUXHXEXE5RNQUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

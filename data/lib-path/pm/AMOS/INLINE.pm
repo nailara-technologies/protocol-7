@@ -159,7 +159,7 @@ sub compile_inline_source {
 
             make_path( $custom_inline_dir, {@params} )
                 or return warn_err( ": %s : %s", 1,
-                format_error( l $OS_ERROR, -1 ),
+                format_error( $OS_ERROR, -1 ),
                 $custom_inline_dir );
 
             return warn_err( "cannot create inline directory '%s'",
@@ -333,8 +333,8 @@ sub encoded_bmw_chksum {
 
 return 1;  ###################################################################
 
-#.............................................................................
-#SZO76SJEOUS3YE4KR3DJSXXJG3GORTGAKIVVZT6HWNPVRYTCW5QXVZAKGGISTMFBY46CXV6AXZSMS
-#::: 532KMPDAQDNNYWATPZ4TTZ52K4NZ4DIAKQTLT7OST5TOMPSSLCO :::: NAILARA AMOS :::
-# :: DJJ54IVHAVRL4BJJYHEYENR4XDH5WWHBAO3ZZQANJX4E6IWLIQCI :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,..,,,,.,,..,.,.,.,,,,,,,,..,...,,..,.,.,..,,...,...,,,,,.,,,,..,,.,,.,,,
+#Q3QZZRWQESA2QYHIVBWFOMA2VL7KJONPZH43UCK76MWY35BRWKJIIJDR3NICKNQ4JBX57XINB35UY
+#\\\|F7ADDSNEYZKNJOR3DDHHTQ4OK4WIJVEJYJYBBVEW7TNBYRARPMU \ / AMOS7 \ YOURUM ::
+#\[7]UYZ74NQLOXPGV6AHYZNTOUJGRE3CX2LTBMRU3OZVWMBHTU2JKUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

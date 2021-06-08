@@ -1,12 +1,19 @@
-# >:]
+## >:] ##
 
 # name = base.logs
 # desc = 'base.log' sprintf wrapper
 
-return warn 'not enough parameters <{C1}>' if @ARG < 2;
+return warn 'expecting sprintf template and parameters <{C1}>' if @ARG < 2;
+my $param_index = 0;
+map {
+    return <[base.s_warn]>->(
+        'base.logs parameter [%d] not defined <{C1}>', $param_index
+    ) if not defined $ARG;
+    $param_index++;
+} @ARG;
 
 my $log_level    ## log level 1 when parameter omitted ##
-    = ( scalar @ARG > 1 and defined $ARG[0] and $ARG[0] =~ m|^\d$| )
+    = ( scalar @ARG > 1 and $ARG[0] =~ m|^\d$| )
     ? shift @ARG
     : 1;
 
@@ -23,8 +30,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#.............................................................................
-#XNNQJ3GBGWBPH27CBLM52KLTWUWHPWXZSTHJHM5CZYHA2BMK5NDG6YMFECT2XQY5DPUGTQNC5ZE6S
-#::: LS44DEXY5476NHGU7KIXU5BPVXUCJKNR4M5RB3JOX32XCLF6DVW :::: NAILARA AMOS :::
-# :: YPXDQIKBTINT3VAYYA6YITIYGKHVZOLNQZF4CWVRYPVO22XX4KDY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,.,,,,,.,,,,,,..,,,,,,,.,..,,,,.,.,.,,,,,..,,...,.,,,...,..,,.,.,..,,.,,,
+#CZ3NJV6FMZJTGMNYBRDJT76HA4X7JYX5EVRPYGZQMLQFKU4WUEG4VPGMHCY6JE2ETLNR2SW7QWCFG
+#\\\|ZI47CEZJJEBNHFBD4P6NNYSV4HO2QUOUWP6Z6ENSBSVCYC6N4BM \ / AMOS7 \ YOURUM ::
+#\[7]L6CP2WC4HFLRKMC4NA3JUT5KP3AOJUPGNQ2HWTO4PPLSHMCAEWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

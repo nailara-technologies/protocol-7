@@ -222,8 +222,8 @@ sub process_key_press {
 
 return 1;  ###################################################################
 
-#.............................................................................
-#CS6KY4VZVOOW2BIP2X3DHOB53WQH3BVVNRJIC7D3ZP4M6T4CD6QYL5JF4W3EAXOGZOQTZZ3A3OHV2
-#::: GNK6ZIQGBKFR4XULO4LLQSAFVN7Z2X4JDIR3RDCCTESTWTUPEFG :::: NAILARA AMOS :::
-# :: EMJCO6G333PBHIQUKOOCLJOIDVWCYC6DHLT3BOHSLCVODBXHQODY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,,,,,,,..,,,,.,...,..,,..,,,,,,,,.,.,,,.,,,..,,...,..,,.,.,.,.,,,,,,..,,.,,
+#G4DT3LTFPNEEZ4IEZUJBHJQVBVJXETR3MMF73KHEXSVPYEA5XKL2CAH34OSRBT3TEXTYF23IX2AFM
+#\\\|NUXS52PIBFQS2JOGZATCFXBERVWS3BSSLH6YCWQEP6HNWTKETJZ \ / AMOS7 \ YOURUM ::
+#\[7]T4W4XL7KBCA4U2LEG4THW2QSJMZ5CIJJ6JWE7A43CBWLNX2VVCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

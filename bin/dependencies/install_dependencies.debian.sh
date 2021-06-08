@@ -28,8 +28,8 @@ cpanm --force XML::RSS::TimingBot  # <-- evaluate if above module still required
 # optional [i.e. not on raspbian]
 apt-get -y install intel-gpu-tools firmware-misc-nonfree 2>/dev/null
 
-#.............................................................................
-#UG57B7BCTCJ3XPMJKHWSLQALBJWQ7R525DAVG4LIFQLTEVC2PMLJCRVRMVTCTUOKTX6SE5ZSICV22
-#::: NJDF3GOSB6AY56BAC646OO7F2T2ZVFBYSL4PJNNISUPUYSZUABE :::: NAILARA AMOS :::
-# :: QY7S4CMKOZ2R3UJ3YXNTL7EOKRT4NKMDWK6HZMTLC7OYTKS7K2AA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,.,.,...,.,,,...,.,,,,.,,...,..,,..,,...,..,,...,...,...,..,,,..,,.,,.,,,
+#3FQ7XORODI5H6YP6ABZJ7H6U6DK4MQ3VL6W3ECBTUNPNPHHKNTQH4HYXZIKJ7SYVCHFTQBKTPAPXE
+#\\\|JEKIEPSTEGBN274LDKI56HUAU62AXUAFD7AAWGZK6YEDV4J6CHV \ / AMOS7 \ YOURUM ::
+#\[7]O3KEJONXE5SYG56F6NZ5A3U6OG3ES7TV2UWLPALQGJFMNF4FHIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

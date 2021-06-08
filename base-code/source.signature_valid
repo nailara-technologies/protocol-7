@@ -1,0 +1,249 @@
+## >:] ##
+
+# name  = source.signature_valid
+
+## input parameters ##
+my $payload_sref          = shift // '';
+my $signature_footer_data = shift;
+my $truth_checks          = shift // {};    ##  optional  ##
+
+map {    ## early exit without further validation ##
+    if ( defined $signature_footer_data->{$ARG}
+        and not $signature_footer_data->{$ARG} ) {
+        return ( 0, undef ) if wantarray;
+        return 0;
+    }
+} qw| was-present structure-was-valid |;
+
+map {    ## verify presence of footer data parameters ##
+    if ( not defined $signature_footer_data->{$ARG} ) {
+        <[base.s_warn]>->(
+            "footer data key '%s' is not present <{C1}>", $ARG
+        ) if not exists $signature_footer_data->{$ARG};
+        return ( 0, undef ) if wantarray;
+        return 0;
+    }
+    } qw| was-present structure-was-valid data-reference amos-payload-checksum
+    amos-iterations-remaining endline-state-encoded checksum-type bmw-chksum
+    signature-type signature footer-length-found signature-footer-str |;
+
+##  return values  ## 5 == TRUE,  0 == FALSE ##
+
+my $verified_true = 5;    ## signature valid and essential checks succeeded ##
+
+##  returned as second [ in list context ]  ##
+my $truth_status_report = { qw| bmw-chksum-matches | => 0 };
+
+##  default enabled checks  ##
+my $truth_check_settings = {
+    qw| footer-bmw          | => 1, ##  1 == eseential [ false on absent ]  ##
+    qw| entire-payload      | => 1,
+    qw| signature-as-parts  | => 1,
+    qw| signature-complete  | => 1,
+    qw| single-footer-lines | => 1,
+    qw| embedded-code-style | => 2, ##  2 == optional [ report only ]  ##
+    qw| footer-complete     | => 2, ##  2 == optional [ report only ]  ##
+};
+
+warn 'expecting scalar reference to payload <{C1}>' and return undef
+    if ref $payload_sref ne qw| SCALAR |;
+warn 'payload data not defined <{C1}>' if not defined $payload_sref->$*;
+warn 'footer data is not a hash reference <{C1}>'
+    and return undef
+    if defined $signature_footer_data
+    and ref $signature_footer_data ne qw| HASH |;
+warn 'truth check set-up is not a hash ref. <{C1}>'
+    and return undef
+    if defined $truth_checks
+    and ref $truth_checks ne qw| HASH |;
+
+##  setting option defaults  ##
+while ( my ( $param_key, $set ) = each $truth_check_settings->%* ) {
+    $truth_checks->{$param_key} //= $set;
+}
+
+my $ELFmode         = 7;   ###  ELF chksum mode for AMOS-chksum generation  ##
+my @t_elf_modes     = qw| 4 7 |;    ## elf modes for truth assertion ##
+my $footer_bit_size = <source.chksum_bitsize>; ## footer BMW bits [ 384 ] ##
+my $AMOS_bitsize    = 512;                     ## AMOS checksum BMW bitsize ##
+
+my $footer_as_string = $signature_footer_data->{'signature-footer-str'};
+
+##  strip signature if not done already  ##
+if ( not defined $signature_footer_data
+    or defined $footer_as_string
+    and $payload_sref->$* =~ m|$footer_as_string$| ) {
+
+    $signature_footer_data    ##  endline state is restored during strip  ##
+        = <[source.extract_sig_body]>->( $payload_sref, qw| strip | );
+}
+
+return 0                      ## no valid signature footer was found ##
+    if not $signature_footer_data->{'was-present'}
+    or not $signature_footer_data->{'structure-was-valid'};
+
+my $found_footer_length = $signature_footer_data->{'footer-length-found'};
+my $footer_bmw          = $signature_footer_data->{'data-chksum'};
+
+##  get Digest::BMW context  ##
+my $bmw_amos_ctx  = <[chk-sum.bmw.ctx]>->(512);
+my $bmw_start_ctx = <[chk-sum.bmw.ctx]>->(384);
+
+##  initialize elf start chksum values  ##
+my $elf_chksum = {
+    qw|   entire-payload     | => { map { $ARG => 0 } @t_elf_modes },
+    qw| embedded-code-style  | => { map { $ARG => 0 } @t_elf_modes }
+};
+
+my $data_pos     = 0;
+my $read_length  = 2400;
+my $content_size = length $payload_sref->$*;
+
+my $lines_remaining = '';
+while ( $data_pos < $content_size ) {
+    my $buffer_str = substr( $payload_sref->$*, $data_pos, $read_length );
+
+    map {    ##  add $buffer_str chksum  ##
+        $elf_chksum->{'entire-payload'}->{$ARG} = <[chk-sum.elf]>->(
+            \$buffer_str, $elf_chksum->{'entire-payload'}->{$ARG}, $ARG
+        )
+    } @t_elf_modes;
+
+    ##  AMOS7 BMW CHKSUM  ## [ 512 ]
+    $bmw_amos_ctx->add($buffer_str);
+
+    ##  FOOTER BMW CHKSUM  ## [ 384 ]
+    $bmw_start_ctx->add($buffer_str);
+
+    ##  embedded code style syntax  ##
+    #
+    if ( $truth_check_settings->{'embedded-code-style'} ) {
+        $lines_remaining .= $buffer_str;
+        while ( $lines_remaining ne '' ) {
+            my $lf_pos = index( $lines_remaining, "\n", 0 );
+            if ( $lf_pos >= 0 ) {
+                my $line = substr( $lines_remaining, 0, $lf_pos + 1, '' );
+                map {
+                    my $ecl = sprintf ': %s', $line;    ##  : <line>  ##
+                    $elf_chksum->{'embedded-code-style'}->{$ARG}
+                        = <[chk-sum.elf]>->(    ##  add line elf checksum  ##
+                        \$ecl, $elf_chksum->{'embedded-code-style'}->{$ARG},
+                        $ARG                    ##  elf mode  ##
+                        )
+                } @t_elf_modes;
+
+            } else {
+                last;    ##  no endline found, read more data  ##
+            }
+        }
+    }
+    #
+    ##
+    $data_pos += $read_length;
+}
+
+##  validating payload + footer and enbedded code style elf  ##
+#
+foreach my $type (qw| entire-payload embedded-code-style |) {
+
+    if ( $truth_check_settings->{$type} ) {    ##  full payload true ?  ##
+        $truth_status_report->{$type} = {
+            map {
+
+                my $test_elf = $elf_chksum->{$type}->{$ARG};
+
+                ##  add footer  ##
+                $test_elf = <[chk-sum.elf]>->(
+                    \$signature_footer_data->{'signature-footer-str'},
+                    $elf_chksum->{$type}->{$ARG}, $ARG
+                ) if $type eq qw| entire-payload |;
+
+                $ARG => AMOS::Assert::Truth::true_int($test_elf)
+
+            } @t_elf_modes
+        };
+        map {
+            $verified_true = 0    ##  overall status  ##
+                if not $truth_status_report->{$type}->{$ARG}
+            } @t_elf_modes
+            if $truth_check_settings->{$type} == 1;    ##  essential  ##8
+    }
+}
+
+##  AMOS7 BMW CHKSUM  ## [ 512 ]
+my $amos_digest_bin = $bmw_amos_ctx->digest;
+
+my $AMOS_B32 = AMOS::CHKSUM::amos_chksum(    ##[  AMOS7-elf chksum mode 7  ]##
+    {   'elf_checksum'   => $elf_chksum->{'entire-payload'}->{$ELFmode},
+        'elf-shift-bits' => 13,
+        'elf-modes'      => [ 4, 7 ],
+        'BMW_checksum'   => \$amos_digest_bin    ##  512 bits [bin]  ##
+    }
+);
+
+if ( $AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'} ) {
+    $truth_status_report->{'AMOS-chksum-matches'} = 1;
+} else {
+    $truth_status_report->{'AMOS-chksum-matches'} = 0;
+    return $verified_true = 0;    ## end assertion ##
+}
+
+## add start line + # to checksum ##
+$bmw_start_ctx->add( sprintf qw| %s# |,
+    $signature_footer_data->{'footer-start-line'} );
+
+##  calculating footer BMW checksum  ##
+my $footer_bmw_bin = $bmw_start_ctx->digest;
+my $footer_bmw     = encode_b32r($footer_bmw_bin);
+
+if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
+    $truth_status_report->{'bmw-chksum-matches'} = 1;
+} else {
+    $truth_status_report->{'bmw-chksum-matches'} = 0;
+    return $verified_true = 0;    ## end assertion ##
+}
+
+##  checking signature validity  ##
+#                          ##  up to signature string  ##
+my $signed_data_str = substr( $footer_as_string, 0, 163 );
+my $signature_str   = $signature_footer_data->{'signature'};
+
+if ( <[crypt.C25519.verify_sign]>->( \$signed_data_str, \$signature_str ) ) {
+    $truth_status_report->{'signature-is-valid'} = 1;
+} else {
+    $truth_status_report->{'signature-is-valid'} = 0;
+    return $verified_true = 0;    ## end assertion ##
+}
+
+## checking footer as block ##
+#
+foreach my $type (qw| footer-complete |) {    ## [..,]
+
+    if ( $truth_check_settings->{$type} ) {    ##  elf-checksums true ?  ##
+
+        $truth_status_report->{$type} = {
+            map {
+                $ARG => AMOS::Assert::Truth::true_int(
+                    $elf_chksum->{$type}->{$ARG} //= 0 )
+            } @t_elf_modes
+        };
+
+        map {
+            $verified_true = 0    ##  overall status  ##
+                if $verified_true
+                and not $truth_status_report->{$type}->{$ARG}
+            } @t_elf_modes
+            if $truth_check_settings->{$type} == 1;    ##  essential  ##
+    }
+}
+
+##  returning report  ##
+
+return ( $verified_true, $truth_status_report ) if wantarray;
+return $verified_true;
+
+#,,,.,,,,,..,,.,.,.,.,..,,,.,,...,..,,,..,,,,,..,,...,...,...,.,,,,,,,.,,,,..,
+#JSBKBDJMGSXIVDEDSYW7D76IABNZSTUDV26Z2JJR7UU7SGKC3MDNSHK4QUNAAGB4HLGBE3C4WLZWS
+#\\\|C4QWV64S5LBQ6SHW5ON23IRPTSYFS5J6L4KQMLYCLQRR3YL5H5M \ / AMOS7 \ YOURUM ::
+#\[7]AGR4CNPIC5I4HPHHGJUYZJELHBYRHX3PAZNLNTINGAPZTHQSPQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

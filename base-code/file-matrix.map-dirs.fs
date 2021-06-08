@@ -1,9 +1,9 @@
-# >:]
+## >:] ##
 
 # name  = file-matrix.map-dirs.fs
 
-#.............................................................................
-#6DNUPNJBBKW62R5RYTL4MXQ6VUBISWJYW66LZHUJPRHL3GBX3JWOB4GCZYOPFOBYUTL4X4RPETVAO
-#::: PQXMT2YVHAWQGCADW6DWPHLJ6SKZNK2XEUCKSA5ZXG2R4FINCI2 :::: NAILARA AMOS :::
-# :: RUKSE2VAH4HO6KZWNDYFCUWE3KHEXYQOAVTZSCTIC5PFLQ4ASQCY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,,,.,,.,,,,.,.,,,.,,,,.,,..,,..,,,..,.,.,..,,...,...,.,.,,,,,,..,,,,,,,,,
+#RPOWSPAPRI6J7SOHG7TYDL5GE32JUCJELLV56ZU7K6RBUL3NBGMIOPKL6JNRU3EKHTOGYKZGF2KBU
+#\\\|4DSH5M4IDGKOKN2B5Y5DXNCVQ3WLD2OFE27QCAQODCMC7H34HOV \ / AMOS7 \ YOURUM ::
+#\[7]4K6JJXFZU7FW7QDDGGZVVFJYG2HQT462HLYABHTAIDPXNAHYJWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

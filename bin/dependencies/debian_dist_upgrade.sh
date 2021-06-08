@@ -37,8 +37,8 @@ rm -rf /root/.cpanm
 
 # dpkg -l | grep '^rc' | awk '{print $2}' | xargs dpkg --purge 2>/dev/null
 
-#.............................................................................
-#DBADJ3O2KOFVNF3EKSL2TKVF6Y3ND3ELDKN4X6NHRLIQGZAEJCC7MVYG2ZKYRJ445RZVML542FI2A
-#::: GDLAU77RRKH2WKSUYDT7JFKTIIEP7CTYSO6YFRIWFOXNXLDXYYL :::: NAILARA AMOS :::
-# :: NC2WYUQZ64HADA76MRVJAYTKGMDEODHENJNVBPGU2PQ3XEAU2ODY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,..,..,,,,.,..,,,,,,...,.,.,,,,,,.,,,..,..,,...,...,,..,,..,..,,,.,,.,,,
+#KDVHXB2FFRQXYJQ5NVGWIUJT4I77UXGEKVMGR6S7FSP46FV56CHXKN36TDZJE3PDIYZDKQT2WXT6A
+#\\\|E3HOBQCGYTFINZXOMAUVFKPBECMTTLY6G7V2DWFLY4XTIXH7AWG \ / AMOS7 \ YOURUM ::
+#\[7]WSWXROEEBPEBZ7I5GJUB3VCSIXT5BQMDSW7WZOGA3KYXEYZMFICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

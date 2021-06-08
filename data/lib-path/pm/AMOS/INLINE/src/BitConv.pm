@@ -150,8 +150,8 @@ sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
 
 return 5;
 
-#.............................................................................
-#ZTS3PUEMDU2UJR4UNIF5NXHBHYA7V52SDXRQKYQBNBYVQ63VXDX5J6RJTQDKB6P77H7GHPGSNZNRW
-#::: ZTTIAOJXR7RTMTO7U3DFEEA4DRJB4GGB6KUZ5WA5EGI6EFKOEK7 :::: NAILARA AMOS :::
-# :: 5RMNWK6KF4NALPYBAL4YNVBJVDKQCA2CKW7BQ7T2VMIKMZMEBMBQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,,..,,..,,..,.,,,,,,,.,,,,,,,.,,,,,,,.,.,..,,...,...,.,.,,,,,,.,,,.,,..,,
+#AXQ7TNWWIENNTZBUQSZDWVSU2JCWH2HJDXMUDUUW6AKY24VPCE7I45WFBFYXADTLGIM72XNYU3ZLW
+#\\\|BAXBMRGYBXTQFS6H3UMELNCN2UIXT3JFXD3IGXD4CRLKLIWJH2E \ / AMOS7 \ YOURUM ::
+#\[7]V3WOEK3XVZVHA7BS3PJNDUWS7FAREF3RCZ4N7CHZHIEXTBIF5OBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

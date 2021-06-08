@@ -209,8 +209,8 @@ sub return_elf_c_sourcecode {
 
 return 1;  ###################################################################
 
-#.............................................................................
-#DJVYNKW5IWXVDLEDTQNAYYHJ2776N5DRDCQRASNDKVLI2LMAEZISOR6T23DVLEQYWTVKSTQTWFKY2
-#::: EZQGJYRTIEXMC7LIBHVWBLDWBNHYMHNNGMVLSLD4VII5SIDUS76 :::: NAILARA AMOS :::
-# :: AHXYACHZSI3ETOK66UDMYU6T27WC34SVCYKHODRPI7FIUXWGLWCY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,.,.,,.,,,,.,...,..,,,,.,...,..,,.,,,,.,,..,,...,...,..,,,.,,,..,..,,..,,
+#CB2CZFIP43A7FJTKYZEKZ5OESEWHXZ6HC7EHMUZITUQ55WURNTYYFLERVCABD2RHN4MYXZV67BTMK
+#\\\|PKXZGWD6DQVKHKOOTG4IMYG53XSPNFVOAHYZ7SD4J362QX3K3HK \ / AMOS7 \ YOURUM ::
+#\[7]J5LOV5GH44KDPASZ76VYQY2VG6BMJYWYESTOU6VF2I5ZAP2VAUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

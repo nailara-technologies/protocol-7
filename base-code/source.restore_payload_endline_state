@@ -1,0 +1,48 @@
+## >:] ##
+
+# name  = source.restore_payload_endline_state
+
+my $payload_sref      = shift;
+my $endline_state_oct = shift;
+
+##  endline state description  ##
+#
+##  7 : 2 added, 5 : untouched, 0 : 4 removed  ##
+
+warn 'expected sref to payload data <{C1}>' and return undef
+    if not length ref $payload_sref;
+<[base.s_warn]>->( 'got ref-type %s , want SCALAR <{C1}>', ref $payload_sref )
+    and return undef
+    if ref $payload_sref ne qw| SCALAR |;
+
+warn 'expected octal endline state descriptor <{C1}>' and return undef
+    if not defined $endline_state_oct
+    or $endline_state_oct !~ m|^\d$|
+    or $endline_state_oct > 7;
+
+return 0 if $endline_state_oct == 5;
+
+my $previous_payload_length = length $payload_sref->$*;
+
+if ( $endline_state_oct < 5 ) {
+
+    ##  amending at signature time removed endlines  ##
+    ##
+    my $endline_count = abs( $endline_state_oct - 4 );
+    $payload_sref->$* .= "\n" x $endline_count;
+
+} else {    ##  removing at signature time added endlines  ##
+
+    my $endline_count = abs( $endline_state_oct - 5 );
+    $payload_sref->$* =~ s|(\n){$endline_count}$||s;
+
+}
+
+##  return length difference [ representing change in trailing endlines ]  ##
+return length( $payload_sref->$* ) - $previous_payload_length;
+
+#,,.,,,..,..,,,,.,..,,.,.,...,,,,,,.,,.,,,,,,,..,,...,..,,.,,,,,.,.,,,,.,,,,.,
+#QTJ43ZGUD4NL4EJV62RW4NYYI6XZDBEDE25TDAFVWCW2TZQ4YAQW4SIX73U6T37HVR3L5VERH23UU
+#\\\|C2LLZ4GQDBQVGO5V3IYUDEGXEBQS7WBV5OW46UK7ECUNLTR7OI4 \ / AMOS7 \ YOURUM ::
+#\[7]TWW6N6O5PXJFRMQUNNZSYGV5CLBCRXMPQ64TREELNSQTZBBJZIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

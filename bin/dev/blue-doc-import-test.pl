@@ -434,8 +434,8 @@ exit;
 
 ## $image->Write('win:');
 
-#.............................................................................
-#L6W3ODRPZHLKRHSYAA4ML7YFBERUHQY3REX2FGJO6HEQZBHFUYEPLDKFNIC2R4HUSMVYWIWQ3RPT2
-#::: GXFXWXPCRIO7C2PEN25XZ5MADIVARDKGVLDMXN7DM2Q5KMDTEJX :::: NAILARA AMOS :::
-# :: EYWGX3PSJYREF5XP6QAHYOEWH2THR6DIVE5HS5BGC34M7S5H6UDQ :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,,.,,..,,..,..,,.,.,.,.,.,,,..,,,,,,,,.,.,.,..,,...,...,..,,,,,,.,,,...,,,,,
+#RY35VIWIOIMKATUGHGC4NJOEVHXURRIG7QBYUV5TC7IOZ7EZC4W4ZGNBQUX4BTJK6BT6LTB6GRO7O
+#\\\|EQOMEFAS3ZDEJNV6I3F7IXZMGP6E2DYOH5OHYD7HUJ27SURRDHF \ / AMOS7 \ YOURUM ::
+#\[7]LOCTWNXVYXYS3MNRMCWQLFAULBK36IU3UWF2NG5KNIPIWV3AHCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

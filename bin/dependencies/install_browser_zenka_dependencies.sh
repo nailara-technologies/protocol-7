@@ -35,8 +35,8 @@ cpanm HTTP::Soup
 
 useradd -m -r nailara
 
-#.............................................................................
-#S7O7KDDM4MSZSVXXQK5RA6N7LZM4KAJFM4BZLJKL7GMDM56JYCIWGLQGZFUJ3GRIEKLBB5WRZNOW6
-#::: 5O2JOM5YBCGYZJL3CNI66FVSEBKDZA2LELPCNSM7BZ4QNBJP4BS :::: NAILARA AMOS :::
-# :: DGOPNNMP7ITQD3V7ENABNNSZPIDX7UK5LWGNLSHRPXJUQOWUROAY :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,.,,..,,,.,,.,,,...,..,,,,,,,,,,..,,,.,,..,,..,,...,...,..,,.,,,,.,,.,,,.,,,
+#S67DISGL76ESPQTAFIPBKTHUB7AAUSV2ZFYW7MA5ZZTOWUGZIK526OOHBOAJ623IASXPP4HOT5NW6
+#\\\|FW4PPWJHCTNV6BTCM6WHBUCHCGHVKBO2N53VQMPFIJEEHP4VEY7 \ / AMOS7 \ YOURUM ::
+#\[7]FBCO4MUWPHPNZZWTQBQ7SG6O3EI4RERNM2EMO7YU5TALCBUFAMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

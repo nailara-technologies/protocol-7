@@ -37,8 +37,10 @@ if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
 ( $zenkaname, @ARGV ) = ( split( m| +|, $zenkaname ), @ARGV )
     if defined $zenkaname and index( $zenkaname, ' ' ) != -1;
 
-( $data{'system'}{'args'} = join( ' ', @ARGV ) )
-    =~ s| *-[v]+h?z?d?( *)|$LAST_PAREN_MATCH|;
+##  remove known parameters from <system.args>  ##
+$data{'system'}{'args'} = join( ' ', @ARGV ) // '';
+$data{'system'}{'args'} =~ s,(^| +)\-[v]+h?z?d?( +|$), ,g;
+$data{'system'}{'args'} =~ s,(^\s+|\s+$),,g;
 
 if ( defined $zenkaname and $zenkaname ne '' ) {
     if ( $data{'system'}{'startup_initcode'} ) {
@@ -2281,8 +2283,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#.............................................................................
-#NEFDV6EPGOMENM4VMLVRJRMKKMTJJBUMYTDDXDHO7LEOMJIFZB6UDQ5XWE2UMNOROCEFYKR2B6GCM
-#::: Z4E3FLTTIDXPP3KKGIO6MGEMYMHZXYRE3GIU7W2JXUSWXXY6UG3 :::: NAILARA AMOS :::
-# :: CRP2O3XJUIPTGJK7EHYJUAEPTZ3JCJPFQA2VIODC27AHBGOYYECA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,.,.,,..,,,.,.,.,..,,..,,,..,.,,,..,,,,.,..,,...,...,,,,,.,.,.,.,..,,..,,
+#MQA4EF6IY3YJ3GADBNXCGA4CMPKK25SCFQJYB74234WVKG36ZEELIXH7WOODQKRRVNNV7HEZZNRW2
+#\\\|3VYTZJHBZ5LT4IR2DT7UNPZQC4VAHGB53T6AZ6FZWD77BJV5R5G \ / AMOS7 \ YOURUM ::
+#\[7]MXMLI6D2O5DG5AGVVN5DMK4SP6W454LVBDGRBUE7RDKJAEXDA2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -137,8 +137,21 @@ sub amos_chksum {
     $elf_bits = reverse_bin_032($elf_csum);
 
     ## calculate blue midnight wish checksum [ if not given ] ##
-    my $bmw_512b = unpack( qw| B512 |,
-        $input_BMW_checksum // Digest::BMW::bmw_512($$data_ref) );
+    my $bmw_512b;
+    if ( defined $input_BMW_checksum
+        and ref $input_BMW_checksum eq qw| SCALAR | ) {
+
+        $bmw_512b = unpack( qw| B512 |, $input_BMW_checksum->$* );
+
+    } elsif ( defined $input_BMW_checksum ) {
+
+        $bmw_512b = unpack( qw| B512 |, $input_BMW_checksum );
+
+    } else {    ##  implement other cases  ##  [LLL]
+        my $ctx = Digest::BMW->new(512);
+        $ctx->add($$data_ref);
+        $bmw_512b = unpack( qw| B512 |, $ctx->digest );
+    }
     ##
 
     my $bmw_512R = join( '', reverse split '', $bmw_512b );
@@ -148,6 +161,8 @@ sub amos_chksum {
     $bmw_b_L = substr( $bmw_512b, 0,   32 );
 
     my $bmw_mod_bits = scalar( '0' x 32 ) . $bmw_512b;
+
+    ## use index !!! ##
 
     ( $checksum_bits = $elf_bits ) =~ s|^0+|
                                         substr $bmw_b_L, 0, length($MATCH) |e;
@@ -219,8 +234,8 @@ INVERT_TRUTH_STATE:
 
 return 5;  ###################################################################
 
-#.............................................................................
-#MZSE5W6O3TQCWMB7ZRLTY7VCEZHMX3XYXAJZXHA2KDNIDH4LCSWCP7FEU63SGRGLJDEQOKDWA5TMS
-#::: LC6H6KX6XFBMZ6NLKVKJHZJI4HOKP44TJBVHB2VTOTAPM4LOUDI :::: NAILARA AMOS :::
-# :: UTWVCFOKFTKQBW4DIC5EEIM3OGL73AEYD2AZBOVMENMHDSTEKQAA :: CODE SIGNATURE ::
-# ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#,,..,,.,,,,,,,.,,,,.,,,,,.,,,..,,,,.,.,.,...,..,,...,.,,,,.,,,,,,.,,,,..,,,,,
+#AE5QP7SWYWUC3K5SRPUWIJXXRZCX4XOQAURNMSEUVJK52BZHQGQVL67IJLJ5FXAZDG7OIOS2OSI7E
+#\\\|MP7ZYHLAU6DGZ4V2CFR47LSMRXQ56OCFZE6GH325VUBUFGGR2PD \ / AMOS7 \ YOURUM ::
+#\[7]2NQ74HWLVJ5L7BNVDXUAYYMAEONY73FP6GYQUNKL3PQXOBWVEWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## >:] ##
+
+# name = crypt.C25519.verify_sig
+
+my $msg_ref             = shift // \'';
+my $signature_data_sref = shift // \'';
+
+my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
+my $key_name = $key_vars->{'key_name'};
+
+warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
+<[base.s_warn]>->(
+    "found no public key named '%s' [ cannot verify sig ]", $key_name
+    )
+    and return undef
+    if not exists $KEYS{'C25519'}{$key_name}
+    or ref $KEYS{'C25519'}{$key_name} ne qw| HASH |
+    or not defined $KEYS{'C25519'}{$key_name}{'public'};
+
+return Crypt::Ed25519::verify(
+    $msg_ref->$*,
+    $KEYS{'C25519'}{$key_name}{'public'},
+    decode_b32r( $signature_data_sref->$* )
+);
+
+#,,.,,,,,,,,,,,..,,,,,...,..,,,,.,,,.,,,,,.,.,..,,...,..,,..,,,,,,..,,.,,,,,.,
+#43UU7RYLLQNVPXMIVYB2VM53RM72JR5EHIYLO2WLYN3ENHTVIPS6GY3JYDQ3TXZDRYTG4HVYNRHFG
+#\\\|4KOIYJYQQ57QURSQYEFIGQNA25N33CDKYMQF6Y6V2MMSAZ3CSGQ \ / AMOS7 \ YOURUM ::
+#\[7]64MIEZPCKDCLYW3BPXINRIGUYT365Q5TU3D3QSNQ3JM44VUZ7YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
