@@ -28,10 +28,10 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::INLINE;
+use AMOS7;
+use AMOS7::INLINE;
 
-## AMOS::BitConv ##
+## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ BINARY TO NUMERICAL CONVERSION ]##########################################
@@ -43,12 +43,12 @@ my $bits = join( '', @ARGV );
 error_exit('input not a bit string <{NC}>')       if $bits =~ m|[^01]|;
 error_exit('input string size exceeds 64 <{NC}>') if length $bits > 64;
 
-say AMOS::BitConv::bit_string_to_num($bits);
+say AMOS7::BitConv::bit_string_to_num($bits);
 
 exit(00000);
 
-#,,..,,,,,,.,,,..,,.,,,..,,.,,,,,,,,,,.,.,...,..,,...,...,,,,,.,,,,..,.,,,.,.,
-#2W7KXMEZEC7YDP7FZT35ZL7HZUWYRBLPGMGNL7LXIRCYVLLDWODL3G5MQ5XFMSPCKOZJ57AHXO2VU
-#\\\|Y3YHABXPHJLLLK7I5O7OC3FNUI5FCYTRDADIV53DJ66LQTFPPEC \ / AMOS7 \ YOURUM ::
-#\[7]CTAFE6VSVUMXI7O74JODGLRCY4HDTCNTA75R3J27X2CF4D7XVUBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,..,,,,,,...,,.,,.,,,,,.,,..,..,,...,.,.,,,,,,..,...,.,,,..,,
+#VTPIC4LKGJKPDM7PTCAARP55W53ZDVY2LM33HOJ7NL6VPOWVWEE2DYDQSZNUTFSXRVMYCHDOKXQG2
+#\\\|LQ7PRX46R44NQ2NSZT6BRTLEYIYGCLRS3T2D2BSY2JWDHXTQ6S2 \ / AMOS7 \ YOURUM ::
+#\[7]T3RRLTUR6XAYE7OIKXMFJG4SKTJVIWJJVUKYMGQ5FXAZMPHX6CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

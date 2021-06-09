@@ -34,12 +34,12 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;    ## colors ##
-use AMOS::Assert::Truth;
+use AMOS7;    ## colors ##
+use AMOS7::Assert::Truth;
 
-use AMOS::INLINE;
+use AMOS7::INLINE;
 
-## AMOS::BitConv ##
+## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ COMMAND LINE INPUT ]######################################################
@@ -250,7 +250,7 @@ sub decoded_bits_BASE32 {
 
     my $bits = shift;
 
-    my $num = AMOS::BitConv::bit_string_to_num($bits);
+    my $num = AMOS7::BitConv::bit_string_to_num($bits);
 
     return $num + 2 if $num <= 5;              ## 2 .. 7 ##
     return chr( 59 + $num );                   ## A .. Z ##
@@ -270,7 +270,7 @@ sub decoded_bits_route {
     };
 
     my $turn = join( '', shift @bits, shift @bits );
-    my $hops = AMOS::BitConv::bit_string_to_num( join '', @bits );
+    my $hops = AMOS7::BitConv::bit_string_to_num( join '', @bits );
 
     return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
 }
@@ -280,7 +280,7 @@ sub decoded_bits_chars {
     my $bits = shift;
     return '  ' if not length $bits;
 
-    my $result = AMOS::BitConv::bit_string_to_num($bits);
+    my $result = AMOS7::BitConv::bit_string_to_num($bits);
 
     state $table //= {
 
@@ -326,8 +326,8 @@ sub entropy_body {
     return $entropy_started = 5;
 }
 
-#,,..,..,,...,,..,.,,,,.,,.,.,...,.,.,..,,.,.,..,,...,...,...,.,.,.,,,,..,,..,
-#YQ2B3KW2VY3HMXF45AFSRUE47SWIDU4W3XEWVLBO4LGHHLVJTQYC7TL34BRZAVM7SR6SADPU754WY
-#\\\|QWZWP6WVXHILE7TF2RU2EOG6PTO5VMQ5QEUY566WOY3NUXY753A \ / AMOS7 \ YOURUM ::
-#\[7]FLAMF3RCMYLOVV7DZTHLJSZ77YW43UXZ3HXIJCHXPDGWQH2W3OCQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,,,,,...,,,,,,..,,,.,.,.,.,.,..,,...,...,...,,,.,,,,,..,,.,,,
+#GNWI2Z5SRWJQZK3TQLIUA6ERWP3X6NWQMIF6EWTGK5QVDCYWW36DGIBMUECITW5LU52NZ7X5IZVU6
+#\\\|7LL4OLU3NPP4Q2NV5MYB3OZCKG3PCQKVZF56FULWHIF5XAS3SKH \ / AMOS7 \ YOURUM ::
+#\[7]AXMH3J47GTEDJH5H7VYDOUZN2IOPBZVMXTYLSPO5MPCEKCIAPWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

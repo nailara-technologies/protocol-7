@@ -1,7 +1,7 @@
 
-package AMOS::INLINE::src::BitConv;    ###################################
+package AMOS7::INLINE::src::BitConv;    ###################################
 
-## target namespace : AMOS::BitConv ##
+## target namespace : AMOS7::BitConv ##
 
 use v5.24;
 use strict;
@@ -68,7 +68,7 @@ sub bit_string_to_num { ##  bit_string_to_num  ## [ faster than eval '0b',., ]
         qw|  source  | => $source,
         qw| fallback | => $fallback_sub,
 
-        qw| package | => qw| AMOS::BitConv |    ##  bit_string_to_num  ##
+        qw| package | => qw| AMOS7::BitConv |    ##  bit_string_to_num  ##
     };
 }
 
@@ -142,7 +142,7 @@ sub num_to_bit_string {   ## num_to_bit_string ## [ sprintf '%0*b' is faster ]
         qw|  source  | => $source,
         qw| fallback | => $fallback_sub,
 
-        qw| package | => qw| AMOS::BitConv |    ## num_to_bit_string ##
+        qw| package | => qw| AMOS7::BitConv |    ## num_to_bit_string ##
     };
 }
 

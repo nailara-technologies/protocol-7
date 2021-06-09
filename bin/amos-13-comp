@@ -48,18 +48,18 @@ $file //= join qw| / |, $root_path,
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::13;
-use AMOS::Utils;
-use AMOS::Assert::Truth;
+use AMOS7;
+use AMOS7::13;
+use AMOS7::Util;
+use AMOS7::Assert::Truth;
 
-use AMOS::INLINE;
+use AMOS7::INLINE;
 
 my %FNC;
 
 map {
     $FNC{$ARG}
-        = AMOS::INLINE::compile_inline_source(
+        = AMOS7::INLINE::compile_inline_source(
         { qw| subroutine-name | => $ARG } );
 } qw| true_int bit_string_to_num num_to_bit_string |;
 
@@ -138,8 +138,8 @@ sub visualize_binary {
         my $c_int = bin_to_int( \$buffer_line, $bits );
 
         my $b_col
-            = AMOS::Assert::Truth::is_true( $bits, 1, 1 ) ? $C{T} : $C{0};
-        my $n_col = AMOS::Assert::Truth::true_int($c_int) ? $C{T} : $C{0};
+            = AMOS7::Assert::Truth::is_true( $bits, 1, 1 ) ? $C{T} : $C{0};
+        my $n_col = AMOS7::Assert::Truth::true_int($c_int) ? $C{T} : $C{0};
 
         printf "  $C{b}$C{0}  $b_col%-56s$C{0} "
             . " [ $n_col%017d$C{0} ]$C{R}\n", $bits,
@@ -153,8 +153,8 @@ sub visualize_binary {
 $fh->close();
 exit(00000);
 
-#,,.,,.,.,.,.,.,.,,,,,,.,,,..,,,,,...,...,.,.,..,,...,...,.,,,,..,.,,,,.,,..,,
-#JNE54YVCSGH5HGGGB233DTR5STAPFSI2XZLWCDM7H4KQLOK2KDWIEQNF3FTGQZN5OIRT73AWSW5DK
-#\\\|GPHTNRVQDKU5GAZDDCGG5GVUYAXNE4GFQ2XHHCZSU7HU47GN3HO \ / AMOS7 \ YOURUM ::
-#\[7]24TJ6KEWTRBCQOW4UDYTAJDSADP67HBRO5ELLDMATCUV46QMAEBQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,,..,,,,,,.,,.,.,,,,,,.,,,,,,..,,...,...,...,..,,,,,,,,,,,.,,
+#PPIJOJKQTYJFV7DVFH7AMIAXACNN6S4LDL3IATNFFSER4DBXK5K7PSPCR734YHMYGHQQBOR3CVVOK
+#\\\|YMQBXIJBDL2FTXX4MJQBD7SSWUT3DSJUUR3BP2EKKQ4HYQ3TAI3 \ / AMOS7 \ YOURUM ::
+#\[7]65AXAPFS654ESXVGQVHAMH4QAXKQB2KDGNE7YJILZP6KTZ6I62DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

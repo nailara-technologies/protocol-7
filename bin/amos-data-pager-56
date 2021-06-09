@@ -45,16 +45,16 @@ $filename //= "$root_path/read-me/documentation/true-false-description.asc";
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::13;
-use AMOS::Utils;
-use AMOS::INLINE;
+use AMOS7;
+use AMOS7::13;
+use AMOS7::Util;
+use AMOS7::INLINE;
 
 my %FNC;
 
 map {
     $FNC{$ARG}
-        = AMOS::INLINE::compile_inline_source(
+        = AMOS7::INLINE::compile_inline_source(
         { qw| subroutine-name | => $ARG } );
 } qw| true_int bit_string_to_num num_to_bit_string |;
 
@@ -63,7 +63,7 @@ map {
 # qr|^seek$|}
 #    = { 'param' => qr<([\-\+]?\d+)( ([210]))\n> . 'callback' => \&seek_pos };
 
-$AMOS::Utils::command_setup{qr{^seek$}} = {
+$AMOS7::Util::command_setup{qr{^seek$}} = {
 
     #        'param'    => qr'([\-\+]?\d+)( ([210]))?'s,
     'param'    => qr'(\d+)\n',
@@ -230,7 +230,6 @@ sub visualize_binary {
     printf "      $C{b}$C{0}  %-64s  $C{R}\n\n", '';
 }
 
-
 sub bin_to_int {
     my $buffer_ref = shift;
 
@@ -262,8 +261,8 @@ sub bin_to_comp_int_2 {
     return unpack( qw| w |, $result_buffer );
 }
 
-#,,,,,.,.,,,.,,..,,..,,,,,,..,,..,,,.,,.,,.,.,..,,...,..,,..,,.,.,..,,,..,..,,
-#WMXM653X3I4NISQOX3JNUQHQABDC7VJTJJDG4VDFBI46PY2ZE6DWT7RBZQHWURBPKA73XTQGI4JTW
-#\\\|LDK52NRCDT2BAA5ITNKV7WBANPWDIMQT2UQBB4J65GRAVFZGH7N \ / AMOS7 \ YOURUM ::
-#\[7]KGTF3NBF6BHTOCCAQSBZNBKZFCPOEABVHPWXMDCCYC5WDGX45QDQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,..,,..,,,.,,,.,,..,,,,.,..,,..,,...,...,...,,.,,,.,,,.,,,.,,
+#U36VCR6WXQKQEM7DEUKNPGG5JRI4FVOYS3PIXC57A62GQKK2I6JXK7HLHXQQ5PQW3HJU5N3O4BFJM
+#\\\|SE6I4NIEVNOC7CFNODABW5ZGXW3L75MFXQOWTZ4GYBF352CMAZN \ / AMOS7 \ YOURUM ::
+#\[7]JPXORWQGALYVHIXKRLRZVZIA7VTZSYO2NMVXWSUYFM7WWFWUE2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

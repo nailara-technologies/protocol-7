@@ -1,14 +1,14 @@
 
-package AMOS::13;  ###########################################################
+package AMOS7::13; ###########################################################
 
 use v5.24;
 use strict;
 use English;
 use warnings;
 
-use AMOS;
-use AMOS::Assert;
-use AMOS::Assert::Truth;
+use AMOS7;
+use AMOS7::Assert;
+use AMOS7::Assert::Truth;
 
 use Time::HiRes qw| time |;
 

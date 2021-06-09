@@ -1,5 +1,5 @@
 
-package AMOS::INLINE::src::TruthAssertion;    ##############################
+package AMOS7::INLINE::src::TruthAssertion;    ##############################
 
 ## [ target package : AMOS:Assert::Truth ] ##
 
@@ -19,7 +19,7 @@ our $VERSION = qw| AMOS-INLINE-SRC-EBVQRJQ |;
 
 sub true_int {    ##[  numerical div by 13 truth assertion  ]##
 
-    require qw| AMOS/Assert/Truth.pm |;    ##  has fallback coderef  ##
+    require qw| AMOS7/Assert/Truth.pm |;    ##  has fallback coderef  ##
 
     ##  valid input size  64 bit [integer]  ##
 
@@ -81,16 +81,16 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
     return {
         qw| source | => $source,
 
-        qw| package | => qw| AMOS::Assert::Truth |,    ##  true_int  ##
+        qw| package | => qw| AMOS7::Assert::Truth |,    ##  true_int  ##
 
         ## pure-perl is_true_num alternative [ arbitary number length ] ##
-        qw| fallback | => \&AMOS::Assert::Truth::calc_true
+        qw| fallback | => \&AMOS7::Assert::Truth::calc_true
     };
 }
 
 sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
-    require qw| AMOS/Assert/Truth.pm |;    ##  has fallback coderef  ##
+    require qw| AMOS7/Assert/Truth.pm |;    ##  has fallback coderef  ##
 
     ##  valid input length  <  17  ##
 
@@ -152,10 +152,10 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
     return {
         qw| source | => $source,
 
-        qw| package | => qw| AMOS::Assert::Truth |,    ##  true_float  ##
+        qw| package | => qw| AMOS7::Assert::Truth |,    ##  true_float  ##
 
         ## pure-perl is_true_num alternative [ arbitary number length ] ##
-        qw| fallback | => \&AMOS::Assert::Truth::calc_true,
+        qw| fallback | => \&AMOS7::Assert::Truth::calc_true,
     };
 }
 

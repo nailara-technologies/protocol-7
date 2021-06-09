@@ -11,21 +11,21 @@ BEGIN {
 }
 
 use v5.24;
-use AMOS::CHKSUM;
-use AMOS::CHKSUM::ELF;
-use AMOS::CHKSUM::ELF::Inline;
+use AMOS7::CHKSUM;
+use AMOS7::CHKSUM::ELF;
+use AMOS7::CHKSUM::ELF::Inline;
 use List::Util 'max';
 
 my $old_versions = {
-    qw| AMOS::CHKSUM |              => $AMOS::CHKSUM::VERSION,
-    qw| AMOS::CHKSUM::ELF |         => $AMOS::CHKSUM::ELF::VERSION,
-    qw| AMOS::CHKSUM::ELF::Inline | => $AMOS::CHKSUM::ELF::Inline::VERSION
+    qw| AMOS7::CHKSUM |              => $AMOS7::CHKSUM::VERSION,
+    qw| AMOS7::CHKSUM::ELF |         => $AMOS7::CHKSUM::ELF::VERSION,
+    qw| AMOS7::CHKSUM::ELF::Inline | => $AMOS7::CHKSUM::ELF::Inline::VERSION
 };
 
 my $new_versions = {
-    qw| AMOS::CHKSUM |              => qx|  amos-chksum -VCS  |,
-    qw| AMOS::CHKSUM::ELF |         => qx|  amos-chksum -VL7  |,
-    qw| AMOS::CHKSUM::ELF::Inline | => qx|  amos-chksum -VS   |,
+    qw| AMOS7::CHKSUM |              => qx|  amos-chksum -VCS  |,
+    qw| AMOS7::CHKSUM::ELF |         => qx|  amos-chksum -VL7  |,
+    qw| AMOS7::CHKSUM::ELF::Inline | => qx|  amos-chksum -VS   |,
 };
 
 my $o_mlen = max map { length $old_versions->{$ARG} } keys %{$old_versions};
@@ -58,8 +58,8 @@ foreach my $module ( sort keys( %{$old_versions} ) ) {
 }
 say "$bg$CT:.,$rst";
 
-#,,,,,,..,..,,...,.,,,,,.,.,,,,..,,.,,,,,,,..,..,,...,..,,...,,,.,,.,,,,.,,.,,
-#2SI4FL575JUXCMTXZCZPQYXRXIEZNRQ4VTGWIDZMDI2N5LXZKHUWVLFIXTBR7IMD2A3QXOLDAKXCI
-#\\\|5APFI7KYGR4F6WZX4MOOM67FFLYPROQKBRAII5BC4LUAWASNVEJ \ / AMOS7 \ YOURUM ::
-#\[7]2THEYAT6OWES4TJBNI45O5P6YEIL5H5VN3DTXOTHEIAJECPNRCBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,,,,,,,,,,,,,,,.,,,.,...,..,,..,,...,...,...,...,..,,..,,.,,,
+#WQYDBD3R2N5OOPEC7MIRAXN6BA3LGLEBXCJGTUORHUMMVBGSMLCOIOVXEGCSLRG7D7HHWZLWURQLG
+#\\\|W3NE3ASY7T4GC4BIFJV74JQHX22CKPWMYID7VLTF5FPTJ7N4ZO2 \ / AMOS7 \ YOURUM ::
+#\[7]P2SO6JXHKOACYEFZ35S6IDD2KKEXHJX2L3ZUQA6N3B3LCYIJIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

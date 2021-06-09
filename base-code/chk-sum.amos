@@ -5,7 +5,7 @@
 # param = input string, scalar reference or hash reference to parameters
 
 my $input;
-my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
+my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
 
 return warn 'expected input string for AMOS-checksum calculation <{C1}>'
     if not @ARG;
@@ -20,9 +20,9 @@ if ( not length ref( $ARG[0] ) ) {
 
     @modes = grep {m|^\d{1,2}$|} @ARG if grep {m|^\d{1,2}$|} @ARG;
 
-} elsif ( ref $ARG[0] eq qw| HASH | ) { ## read AMOS::CHKSUM for parameters ##
+} elsif ( ref $ARG[0] eq qw| HASH | ) { ## read AMOS7::CHKSUM for parameters ##
 
-    return AMOS::CHKSUM::amos_chksum( $ARG[0] );
+    return AMOS7::CHKSUM::amos_chksum( $ARG[0] );
 
 } else {
     <[base.s_warn]>->(
@@ -34,10 +34,10 @@ if ( not length ref( $ARG[0] ) ) {
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-return AMOS::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
+return AMOS7::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
 
-#,,..,,,.,..,,,,,,...,,,,,...,...,..,,,..,,..,..,,...,..,,.,,,,..,...,.,,,,,,,
-#4PESI5BVOUTHYLXTQ7QGVOXPRLVCQTPEEUA7Q4DEF2EIMQP5SDZ774RQRQVY2CQ3RIAWMZX5AUDZI
-#\\\|V5XO7ALHZSPPHPV3RUD2R5X6WCXMG5FDH7AJ24ZCPUPRIQRALE5 \ / AMOS7 \ YOURUM ::
-#\[7]QU6MVV5EH4SY2ZK5RBMVADW2BRZLCDG37B5G5FMLXIXY75MGOKAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,.,,.,,,...,,.,,,,,,.,,,,,,,..,,...,...,,..,.,.,,,.,,.,,.,.,
+#7WEY4E6Y52RNCUDQ2IQFAHRX5JNYMH4KTEZH7NMURSJWNNINJTMRDMHKQJGNWHUNXYMMP2EGOCI4U
+#\\\|7SSH7WCYUUYPCQUGLDACYLYZXWVFBSG4HJGQKGC7F2KTHCL5CSN \ / AMOS7 \ YOURUM ::
+#\[7]ZVTB73LUHFLNRA42DZVUI2S5ESN7WQCNA6WNI2B6KNGMIFOPJKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
