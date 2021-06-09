@@ -1,5 +1,5 @@
 
-package AMOS::13::cipher;  ###################################################
+package AMOS7::13::cipher; ###################################################
 
 use v5.24;
 use utf8;
@@ -7,11 +7,11 @@ use strict;
 use English;
 use warnings;
 
-use AMOS;
-use AMOS::13;
-use AMOS::CHKSUM;
-use AMOS::CHKSUM::ELF;
-use AMOS::Assert::Truth;
+use AMOS7;
+use AMOS7::13;
+use AMOS7::CHKSUM;
+use AMOS7::CHKSUM::ELF;
+use AMOS7::Assert::Truth;
 
 use vars qw| $VERSION @EXPORT |;
 use Exporter;

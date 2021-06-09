@@ -45,9 +45,9 @@ $filename //= "$root_path/read-me/documentation/true-false-description.asc";
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::13;
-use AMOS::Utils;
+use AMOS7;
+use AMOS7::13;
+use AMOS7::Util;
 
 ##[ RUNTIME COMMANDS ]########################################################
 
@@ -55,7 +55,7 @@ use AMOS::Utils;
 #    = { 'param' => qr<([\-\+]?\d+)( ([210]))\n> . 'callback' => \&seek_pos };
 #        'param'    => qr'([\-\+]?\d+)( ([210]))?'s,
 
-$AMOS::Utils::command_setup{qr{^seek$}} = {
+$AMOS7::Util::command_setup{qr{^seek$}} = {
     'param'    => qr'(\d+)\n',
     'callback' =>
         sub { say '< seek >' . $1; sleep 3; seek_pos( ${^CAPTURE}[0] ) }
@@ -225,8 +225,8 @@ exit;
 
 ##############################################################################
 
-#,,..,.,,,.,,,..,,.,,,.,,,,,,,..,,,,.,.,.,...,..,,...,...,...,..,,,,.,,,.,..,,
-#3HC5D4P2DOXMAHHI2AJVZKGNI4OD5D5GLWDXV2DFKSCCMXWN4JS4FQJNGSRUCLI2YRD2RNTGSESQG
-#\\\|7VTYPXO3KACG4Z4E4TCSFAWHT5AEI4SK33KCE2EGZSOW6BXC5JI \ / AMOS7 \ YOURUM ::
-#\[7]BBQPLZJTUECTA4RU7S6C2KZNG6YVUFJPAGVRBBQ7ZP7LH33XPQDI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,..,...,,,,,,..,,,.,,.,,,..,..,,...,...,..,,,,,,..,,,.,,,,,,
+#4AOEXSM3KAFFBUOJOBUE5XFZOECITYHPAG7AX3HCLVCVLED3WF7MZTJQNO5IJDEYF5HZ7ZZ5BJELY
+#\\\|HJKZ3N2ZUKQOI2MW73KNZ6IEVIFKHFQCCUZISINMTFWSJTCF5G2 \ / AMOS7 \ YOURUM ::
+#\[7]T3AWXGZDZUPI4MOP7DBXAO62DAK3FTOK4IMBDR4HN2L2R6QAJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

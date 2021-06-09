@@ -38,7 +38,7 @@ if ( $bit_header_string =~ m|^#?\,(,,,\.){19}$| ) {
 
     ##  AMOS7-chksum [ digit 0..10 ]  ##
     my $decoded_amos_oct = join '',
-        map { AMOS::BitConv::bit_string_to_num($ARG) }
+        map { AMOS7::BitConv::bit_string_to_num($ARG) }
         splice( @AMOS_octal_digits, 0, 11 );
 
     $decoded_amos_oct = -1 if $decoded_amos_oct > 37777777777;    ## 32 bit ##
@@ -55,7 +55,7 @@ if ( $bit_header_string =~ m|^#?\,(,,,\.){19}$| ) {
 
     ##  [encoded] stripped endline [ digit 11 ]  ##
     $header_params->{'endline-state-encoded'}
-        = AMOS::BitConv::bit_string_to_num( shift @AMOS_octal_digits );
+        = AMOS7::BitConv::bit_string_to_num( shift @AMOS_octal_digits );
 
     if ( $header_params->{'endline-state-encoded'} == 0 ) {
         ##  remove this state after resigning all code  ##  [LLL]
@@ -71,7 +71,7 @@ if ( $bit_header_string =~ m|^#?\,(,,,\.){19}$| ) {
     ##  AMOS7-footer iteration counter [ digits 12 .. 19 ]  ##
     $header_params->{'amos-iterations-remaining'}
         = oct join '',
-        map { AMOS::BitConv::bit_string_to_num($ARG) } @AMOS_octal_digits;
+        map { AMOS7::BitConv::bit_string_to_num($ARG) } @AMOS_octal_digits;
 
     $header_params->{'structure-was-valid'} = 5;    ## true ##
 
@@ -84,8 +84,8 @@ if ( $bit_header_string =~ m|^#?\,(,,,\.){19}$| ) {
     return $header_params;
 }
 
-#,,,.,.,.,.,,,,..,,.,,...,..,,..,,,.,,...,,,.,..,,...,...,..,,,,,,.,.,,,,,.,,,
-#HUGET4GE3F2N3RUM7PLBHZQRE7LTFHNOFPDHUTXY5K3YLMBWDLTJDMSRBUZQLEI7MWAAKL4R5ICOK
-#\\\|FHJ4GBGV5FMMGXW2VJHH6LDD2XIDKXMTRE5I7TMAZYFBPCYC355 \ / AMOS7 \ YOURUM ::
-#\[7]JIXOVAOVEFJSZKXHCGEXNZSEJYFMLTUG3SJWIMFNSRG46HJ4AUDI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,..,,.,.,,.,,..,,.,.,,,.,...,..,,...,..,,...,.,.,,,,,,,,,,..,
+#B4MYYEP3OC4UVCROLFD7APZM4MNVNEGQTHNFL4LJIITOPSUE26QWUC7W62T2C6F4YSBQO2MEGXFDE
+#\\\|BS5LFZUNIAOFXSLOSY6T2N5R2ZMEM54Z5WTJVKNM6D4GZMZAIWI \ / AMOS7 \ YOURUM ::
+#\[7]QJA6QRCFOBOMVFBNBTG3XNFIFPKGUJWX4LRPT2FN33P2RCOCMWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

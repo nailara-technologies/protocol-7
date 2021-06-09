@@ -1,5 +1,5 @@
 
-package AMOS::Assert::Truth;  ################################################
+package AMOS7::Assert::Truth; ################################################
 
 use vars qw| $VERSION @EXPORT |;
 use Exporter;
@@ -22,9 +22,9 @@ use List::MoreUtils qw| uniq |;
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::Assert;
-use AMOS::INLINE;
+use AMOS7;
+use AMOS7::Assert;
+use AMOS7::INLINE;
 
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
@@ -33,9 +33,9 @@ our $elf_shift_bits = 13;    ##  elf shift bits  ##
 
 our @assertion_modes = qw| 4 7 |;    ##  elf truth modes : main set-up  ##
 
-use AMOS::CHKSUM::ELF;
+use AMOS7::CHKSUM::ELF;
 
-## skips compilation when included from AMOS::INLINE::src::TruthAssertion
+## skips compilation when included from AMOS7::INLINE::src::TruthAssertion
 if ( defined &compile_inline_source ) {
     ## loads when not defined ##
     map { compile_inline_source( { qw| subroutine-name | => $ARG } ) }
@@ -72,12 +72,12 @@ sub is_true {
 
     return 0    ## check as mumber when numerical ##
         if $check_as_num == 1
-        and AMOS::Assert::is_number($$data_ref)
+        and AMOS7::Assert::is_number($$data_ref)
         and calc_true( scalar($$data_ref) ) <= 0;
 
     return 0    ## when numerical with no 0 prefix ##
         if $check_as_num == 2
-        and AMOS::Assert::numerical_no_0_prefix($$data_ref)
+        and AMOS7::Assert::numerical_no_0_prefix($$data_ref)
         and calc_true( scalar($$data_ref) ) <= 0;
 
     return 5 if not $check_as_elf;    ## numerical only, skip elf check ##
@@ -129,23 +129,23 @@ sub calc_true {
     ##                                 ##
 
     error_exit( "input '%s' not numerical", $check_num )
-        if not AMOS::Assert::is_number($check_num);
+        if not AMOS7::Assert::is_number($check_num);
 
     my $calc_result;
     my $input_len = length($check_num);
 
-    ## from AMOS::INLINE ##
+    ## from AMOS7::INLINE ##
     #
-    return AMOS::Assert::Truth::true_int($check_num)
+    return AMOS7::Assert::Truth::true_int($check_num)
         if index( $check_num, '.', 0 ) == -1
         and $check_num <= 18446744073709551615    ## 64 bit ##
-        and defined &AMOS::Assert::Truth::true_int
-        and \&AMOS::Assert::Truth::true_int ne \&calc_true;
+        and defined &AMOS7::Assert::Truth::true_int
+        and \&AMOS7::Assert::Truth::true_int ne \&calc_true;
 
-    return AMOS::Assert::Truth::true_float($check_num)
+    return AMOS7::Assert::Truth::true_float($check_num)
         if $input_len < 17
-        and defined &AMOS::Assert::Truth::true_float
-        and \&AMOS::Assert::Truth::true_float ne \&calc_true;
+        and defined &AMOS7::Assert::Truth::true_float
+        and \&AMOS7::Assert::Truth::true_float ne \&calc_true;
     #
     ###
 

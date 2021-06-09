@@ -29,16 +29,16 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::INLINE;
+use AMOS7;
+use AMOS7::INLINE;
 use Time::HiRes qw| sleep |;
 
-use AMOS::Assert::Truth;
+use AMOS7::Assert::Truth;
 
-#*is_true = AMOS::INLINE::compile_inline_source(
+#*is_true = AMOS7::INLINE::compile_inline_source(
 #    { qw| subroutine-name | => qw| is_true_num | } );
 
-## AMOS::INLINE::compile_inline_source(
+## AMOS7::INLINE::compile_inline_source(
 ##   { qw| subroutine-name | => qw| true_D13 | } );
 
 ##[ BINARY TO NUMERICAL CONVERSION ]##########################################
@@ -66,7 +66,7 @@ while ( $num > 13 ) {
     my $D_13 = $num / 13;
     say '     <-- ', $D_13 if $verbosity > 2;
 
-    my $bit = AMOS::Assert::Truth::calc_true($num) ? 1 : 0;
+    my $bit = AMOS7::Assert::Truth::calc_true($num) ? 1 : 0;
     say ":. " . $bit if $verbosity > 0;
     $T++             if $bit == 1;
     $F++             if $bit == 0;
@@ -93,8 +93,8 @@ exec( 'test-13', $bits ) if length($bits);
 
 exit(00000);
 
-#,,,.,.,.,,,.,.,,,..,,..,,.,,,..,,..,,,,.,.,.,..,,...,...,.,,,,..,,,.,.,.,..,,
-#RLWVN6GN2XPUYDKZOMWFGW6OYPLG767JG2YLFX5FNP5OTXBFFTPUJMP2HXZ6YNT7CNAQ7S4HMEPMA
-#\\\|HBF47EBRO7B7XZAZVX65LWEPJZMKMGI4EYIMEV3242CGEEKW7TB \ / AMOS7 \ YOURUM ::
-#\[7]H22RJVMGWJYXH3RVCSIS2I7CPWPJGFN2XVXOVRTP4G4CFJHDXADY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,...,,..,,,.,,.,,,,,,,,,,,,,,..,,...,...,...,...,,.,,,..,,.,,
+#7RGTSL2QVPHT3LSP54WV25ZTPJQXV56WXRSTZ5DOC64RQNTDCQXAKSZO43FK6363G7X5CET4KVLME
+#\\\|6ORWMJBQS4E5KTHQ4LIACOCAR7REY37ONLF7CLJH27UMIU4ICIE \ / AMOS7 \ YOURUM ::
+#\[7]JF2CACBO6IRCDX35DAQCVJM26IH2PPPKKDPU752PUTNWDWKG7YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

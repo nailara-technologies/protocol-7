@@ -1,7 +1,7 @@
 
-package AMOS::INLINE::src::AMOS_13_ELF;   ####################################
+package AMOS7::INLINE::src::AMOS_13_ELF;  ####################################
 
-## target namespace : AMOS::CHKSUM::ELF ##
+## target namespace : AMOS7::CHKSUM::ELF ##
 
 use v5.24;
 use strict;
@@ -125,7 +125,7 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
     return {
         qw| source | => $source,
 
-        qw| package | => qw| AMOS::CHKSUM::ELF |,    ## inline_elf ##
+        qw| package | => qw| AMOS7::CHKSUM::ELF |,    ## inline_elf ##
 
         ## pure-perl inline_elf not implemented ##
         qw| fallback | => sub { warn 'no inline_elf fallback available' }

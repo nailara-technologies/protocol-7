@@ -1,7 +1,7 @@
 
-package AMOS;  ###############################################################
+package AMOS7; ###############################################################
 
-## use AMOS::Version;    ## use to calculate new version ##
+## use AMOS7::Version;    ## use to calculate new version ##
 
 our $VERSION = qw| AMOS-MODULE-0.0.95 |;
 
@@ -146,8 +146,8 @@ sub clean_up_caller {
 
 return 1;  ###################################################################
 
-#,,,.,..,,,.,,.,,,.,.,.,.,..,,,..,..,,..,,...,..,,...,...,..,,..,,..,,,,.,,,.,
-#ED7HBV4OA6ZDO625VKCALWOMTRM5JX67EP75JO2GX5SVYEFJO3GZUTYXNNHQRC5ZL3LI3PNSBFOSU
-#\\\|CSJ7V637UTI2WIUVBHHMVTU65QJX5K3ZXTDE24YQV2WITB5SFWD \ / AMOS7 \ YOURUM ::
-#\[7]UFR5UUPH6JGNYNS7BCRKUUHMAQIEHYWYACWA3R33MW4E7DKPIUCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,,,.,.,.,,,,,.,.,,.,,,.,,,,,,..,,...,...,,..,,,,,...,,,,,,,.,
+#DZWTJ5ZLGPH246ND3NIMJNWI26NN7YKLXU5ZRGELPPY42SODVP6OLOO3VRB3WL5CHBPBXQ7EM63L6
+#\\\|5H3MQ2JRH3OMPI4MHYWRO2X5VX5NCM7VHLH7EIHPKXRGMLTDUXI \ / AMOS7 \ YOURUM ::
+#\[7]MGULM4XGTDZQO3ARC6B5Y2PYEOYT5QAEUHNBYM3WXUBI46R7FOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -141,7 +141,7 @@ while ( not $asserted_true and $iterations_left ) {
     ##  checking first line already to skip BMW chksum when false  ##
     if ($check_single_footer_lines) {
         chomp( my $visual_check_line = $first_header_line );
-        if (not AMOS::Assert::Truth::is_true(
+        if (not AMOS7::Assert::Truth::is_true(
                 \$visual_check_line, 0, 1, @footer_line_check_modes
             )
         ) {
@@ -154,7 +154,7 @@ while ( not $asserted_true and $iterations_left ) {
         if $first_header_line =~ m|^#([,\.]+)\n$|s;
 
     if ($check_sig_file_templates    ## check form of external sign. files ##
-        and not AMOS::Assert::Truth::is_true(
+        and not AMOS7::Assert::Truth::is_true(
             \sprintf( $sig_file_template, $binary_header_start ),
             0, 1, @footer_line_check_modes
         )
@@ -165,17 +165,17 @@ while ( not $asserted_true and $iterations_left ) {
 
     if ($verbose) {
         my $binary_colored = $binary_header_start;
-        $binary_colored =~ s|\.|$AMOS::C{0}.|g;
-        $binary_colored =~ s|\,|$AMOS::C{T},|g;
+        $binary_colored =~ s|\.|$AMOS7::C{0}.|g;
+        $binary_colored =~ s|\,|$AMOS7::C{T},|g;
         ## combine same continuous colors ##
-        $binary_colored =~ s|(\e[^\e]+\,){2}|$AMOS::C{T},,|g;
-        $binary_colored =~ s|(\e[^\e]+\.){2}|$AMOS::C{0}..|g;
+        $binary_colored =~ s|(\e[^\e]+\,){2}|$AMOS7::C{T},,|g;
+        $binary_colored =~ s|(\e[^\e]+\.){2}|$AMOS7::C{0}..|g;
         say sprintf
             "%s%77s\r%s #%s %s%s",
-            $AMOS::C{'b'}, '',
-            $AMOS::C{'0'},
+            $AMOS7::C{'b'}, '',
+            $AMOS7::C{'0'},
             $binary_colored,
-            $AMOS::C{'R'},
+            $AMOS7::C{'R'},
             $verbose > 2
             ? sprintf( '  .: %s', scalar( 07777777 - $iterations_left ) )
             : '';
@@ -190,9 +190,9 @@ while ( not $asserted_true and $iterations_left ) {
     $asserted_true = 0    ##  asserting new BMW checksum for elf truth  ##
         if $check_encoded_BMW_chksum
         and (
-        not AMOS::Assert::Truth::is_true( \$encoded_footer_BMW, 0, 1,
+        not AMOS7::Assert::Truth::is_true( \$encoded_footer_BMW, 0, 1,
             @t_elf_modes )
-        or $check_single_footer_lines and not AMOS::Assert::Truth::is_true(
+        or $check_single_footer_lines and not AMOS7::Assert::Truth::is_true(
             \sprintf( '#%s', $encoded_footer_BMW ),    ##  not endline  ##
             0, 1, @t_elf_modes
         )
@@ -214,7 +214,7 @@ while ( not $asserted_true and $iterations_left ) {
         ## signature substrings seperately ##
         foreach my $sig_part (qw| sig-part-0 sig-part-1 |) {
             $asserted_true = 0
-                if not AMOS::Assert::Truth::is_true(
+                if not AMOS7::Assert::Truth::is_true(
                 \$calc_result_href->{$sig_part},
                 0, 1, @partial_sig_elf_modes );
             last if not $asserted_true;
@@ -232,7 +232,7 @@ while ( not $asserted_true and $iterations_left ) {
             );
 
             $asserted_true = 0    ## validate entire file [ with footer ] ##
-                if not AMOS::Assert::Truth::true_int($elf_chksum);
+                if not AMOS7::Assert::Truth::true_int($elf_chksum);
 
             ## last if not $asserted_true;
         }
@@ -242,7 +242,7 @@ while ( not $asserted_true and $iterations_left ) {
     $asserted_true = 0
         if $check_full_signature    ##  check new signature for elf truth  ##
         and
-        not AMOS::Assert::Truth::is_true( \$calc_result_href->{'signature'},
+        not AMOS7::Assert::Truth::is_true( \$calc_result_href->{'signature'},
         0, 1, @full_sig_elf_modes );
     next if not $asserted_true;     ##  aborting iteration  ##
 
@@ -251,7 +251,7 @@ while ( not $asserted_true and $iterations_left ) {
         ##  first two and last line already asserted as true  ##
         foreach my $line ( $lines[2], $lines[3] ) {
             $asserted_true = 0
-                if not AMOS::Assert::Truth::is_true( \$line, 0, 1,
+                if not AMOS7::Assert::Truth::is_true( \$line, 0, 1,
                 @footer_line_check_modes );
             last if not $asserted_true;    ## skip rest ##
         }
@@ -260,7 +260,7 @@ while ( not $asserted_true and $iterations_left ) {
 
     $asserted_true = 0                     ## check footer as single string ##
         if $check_entire_footer
-        and not AMOS::Assert::Truth::is_true(
+        and not AMOS7::Assert::Truth::is_true(
         \$calc_result_href->{'signature-footer-str'},
         , 0, 1, @t_elf_modes );
     next if not $asserted_true;            ##  aborting iteration  ##
@@ -278,7 +278,7 @@ while ( not $asserted_true and $iterations_left ) {
                 );
             }
             $asserted_true = 0    ##  check current elf mode result chksum  ##
-                if not AMOS::Assert::Truth::true_int($embedded_result_elf);
+                if not AMOS7::Assert::Truth::true_int($embedded_result_elf);
             last if not $asserted_true;
         }
         next if not $asserted_true;    ##  aborting iteration  ##
@@ -291,10 +291,10 @@ if ( $verbose > 1 ) {    ## display footer at $verbose > 1 ##
     foreach my $line ( split "\n", $footer_str ) {
         <[base.sleep]>->( $delay *= 1.2 );
         say sprintf '%s %s%s %s',
-            $AMOS::C{b}, $AMOS::C{T}, $line, $AMOS::C{R};
+            $AMOS7::C{b}, $AMOS7::C{T}, $line, $AMOS7::C{R};
     }
     <[base.sleep]>->(0.24);
-    print $AMOS::C{R};
+    print $AMOS7::C{R};
 }
 
 if ( not $iterations_left ) {    ## warn about failed harmonization ##
@@ -304,8 +304,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,.,,...,.,,,,.,,,,,,,,,,,,.,,..,,.,,,.,,.,,,..,,...,...,..,,.,,,...,,,,,.,.,
-#CSQ4E5D6ZZ3IQWVIWNH7EHZKBUFT7FDURUJEVSJUAJ3ILDANI5VXHSIAOF6755EEY5XBPQLE7BCQK
-#\\\|OYC7VBDYJI6RMR5Q5MX26TV3SODOKWWWVZE3Z2TB6C2U4T5BQPV \ / AMOS7 \ YOURUM ::
-#\[7]4DB5UYUX3463HMRBW5KAFOGR7NOWFBOWZZGU6C6A5LPTZRJINYCA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,,,.,..,,...,..,,.,.,..,,.,,,..,,...,..,,..,,,,,,,..,,,,,,..,
+#YNYWA4EFHCQ7N2SMGVB2VC4JUOMIN6WHD2NRZEQMQPBTBNP2AC2EGSQTS2KJ2MLI75C7ESRITXBMO
+#\\\|Y4BTIW5VDBAV7L3QIPF6K3L3FKRB427AJCYTF3NZOWJ2ASRV5JG \ / AMOS7 \ YOURUM ::
+#\[7]2IWIIUIPKRK44AK2UUYKXMX2GNUOJ4P7WG2DV5DV3PT3JJKUSQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

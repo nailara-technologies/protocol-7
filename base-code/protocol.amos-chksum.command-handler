@@ -13,8 +13,8 @@ my $user    = $session->{'user'};
 ##  initializing  ##
 $session->{'space-prefixes'} //= 2;
 
-$session->{'amos-chksum'}->{'modes'}    ##  set from AMOS::CHKSUM  ##
-    //= $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'};
+$session->{'amos-chksum'}->{'modes'}    ##  set from AMOS7::CHKSUM  ##
+    //= $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'};
 
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
@@ -67,7 +67,7 @@ if ( defined $amos_ref and $amos_ref->{'bytes-to-read'} <= 0 ) {
     ## calc amos-chksum ##
     $$output .= sprintf(
         "%s\n",
-        AMOS::CHKSUM::amos_chksum(
+        AMOS7::CHKSUM::amos_chksum(
             {   'elf_checksum' => $amos_ref->{'elf_checksum'},
                 'BMW_checksum' => $amos_ref->{'bmw-context'}->digest
 
@@ -88,7 +88,7 @@ if ( defined $amos_ref and $amos_ref->{'bytes-to-read'} <= 0 ) {
 my $peer_fh = $session->{'handle'};
 
 $session->{'amos-chksum'}
-    //= { 'modes' => $AMOS::CHKSUM::algorithm_set_up::elf_truth_modes };
+    //= { 'modes' => $AMOS7::CHKSUM::algorithm_set_up::elf_truth_modes };
 
 return 1 if $$input =~ s|^\s*\r?\n+||s or $$input !~ s|^([^\n]+)\r?\n+||s;
 
@@ -181,8 +181,8 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
 return 0;
 
-#,,,,,,,.,,..,.,,,.,.,,.,,,..,,,,,,,,,..,,.,,,..,,...,...,.,.,,..,,,.,,,.,.,,,
-#2RA2WHSHBENQQ45CFMVMYN3GGURCRJQAS4DPWLPCNXMIQFAXOS6FTFFT4I5YIIFCH7IQKTGFXZOTG
-#\\\|CFDFQWV4SYZEE4AUZY7E64OHAL6UFAQ3JFQJESQMWM3QNJVH7K2 \ / AMOS7 \ YOURUM ::
-#\[7]DIVENBKYEFVX4Y32HZR4Z2ZG7GCK7VXPLZDTAKUXUDNCGYRDPYCY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,..,,,..,,..,,..,,.,,...,,..,..,,...,..,,.,,,.,.,,,,,...,.,,,
+#IBG4FFLRZIH6AJVBKC5ZWH4J4FXNRKWWBEKBOSHCJLBXCAYVQNIQEBBGDLQPPY4PQSSMDKQO3JT5I
+#\\\|RXKFSIVF62MRTZHIFFSW6NZ544TXDXACBDDQFOFH6XTIXOMANHN \ / AMOS7 \ YOURUM ::
+#\[7]VXKVNWYCUQQWYYBKFOSMG7OEG4C3VJMBFDAASAXAP3IPBAG3BEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

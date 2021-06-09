@@ -32,12 +32,12 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;                   ## colors ##
-use AMOS::Assert::Truth;    ##  exports is_true()  ##
+use AMOS7;                   ## colors ##
+use AMOS7::Assert::Truth;    ##  exports is_true()  ##
 
-use AMOS::INLINE;
+use AMOS7::INLINE;
 
-## AMOS::BitConv ##
+## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 ##[ COMMAND LINE INPUT ]######################################################
@@ -203,7 +203,7 @@ sub decoded_bits {
 ##
 sub decoded_bits_BASE32 {
     my $bits = shift;
-    my $num  = AMOS::BitConv::bit_string_to_num($bits);
+    my $num  = AMOS7::BitConv::bit_string_to_num($bits);
 
     return $num + 2 if $num <= 5;              ## 2 .. 7 ##
     return chr( 59 + $num );                   ## A .. Z ##
@@ -222,7 +222,7 @@ sub decoded_bits_route {
     };
 
     my $turn = join( '', shift @bits, shift @bits );
-    my $hops = AMOS::BitConv::bit_string_to_num( join '', @bits );
+    my $hops = AMOS7::BitConv::bit_string_to_num( join '', @bits );
 
     return join '', $directions->{$turn}, $hops ? $hops : qw| = |;
 }
@@ -231,7 +231,7 @@ sub decoded_bits_chars {
 
     my $bits = shift;
     return '  ' if not length $bits;
-    my $result = AMOS::BitConv::bit_string_to_num($bits);
+    my $result = AMOS7::BitConv::bit_string_to_num($bits);
 
     state $table //= {
 
@@ -272,8 +272,8 @@ sub entropy_body {
     return $entropy_started = 5;
 }
 
-#,,..,,.,,.,.,.,,,,.,,..,,...,,.,,,.,,,.,,,.,,..,,...,...,.,.,.,,,...,..,,.,.,
-#XP5UPLARKIE2SITMALKHZU3MGEMX3UBUQ525D3ZODRNU53PWEYHQRG3SM7PF4U6HYXOMTA3NCDVXM
-#\\\|M5TLPUZZPAAUBNDR4TI2AUPPF6SBM2U4VLWERMVMR23ED4DT4ZS \ / AMOS7 \ YOURUM ::
-#\[7]M42J2IRBJLBIWBUJ6CTZZEE4IR4II6UK73NIXVMNSSYJ5OBQZ6BQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,...,.,.,,.,,,..,...,.,,,...,..,,...,...,,..,,.,,.,,,.,.,,..,
+#HVXLBSMATR3TISVFRVQOVW7TWEME54WX2L677GMFRS66TP746KMO7UFGBGW3SKUU7OKTFSP5LYRKW
+#\\\|GSGNFEYIXKFEA74M473IZB5OLW22IYO6KSIQB6W6YARZLAVDHDM \ / AMOS7 \ YOURUM ::
+#\[7]EOCO2NLVN7XTQ7QZPEYKJNHXNGSVXOJCDIMGMD5ZL4ZUF6WTYQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

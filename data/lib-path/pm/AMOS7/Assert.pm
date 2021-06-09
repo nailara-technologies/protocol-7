@@ -1,5 +1,5 @@
 
-package AMOS::Assert;   ######################################################
+package AMOS7::Assert;  ######################################################
 
 use v5.24;
 use strict;
@@ -7,7 +7,7 @@ use English;
 use warnings;
 use Exporter;
 
-use AMOS::Assert::Truth;
+use AMOS7::Assert::Truth;
 
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT |;

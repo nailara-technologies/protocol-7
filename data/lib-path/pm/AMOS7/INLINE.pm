@@ -1,5 +1,5 @@
 
-package AMOS::INLINE;  #######################################################
+package AMOS7::INLINE; #######################################################
 
 use vars qw| @EXPORT $VERSION |;
 
@@ -19,23 +19,23 @@ use Crypt::Misc qw| encode_b32r |;
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;                         ## error handling ##
+use AMOS7;                        ## error handling ##
 
 our $debug_output_to_console = 0; ##  display build warnings  ##
 
 ## known inline sourcecode modules ##
-use AMOS::INLINE::src::BitConv;
-use AMOS::INLINE::src::AMOS_13_ELF;
-use AMOS::INLINE::src::TruthAssertion;
+use AMOS7::INLINE::src::BitConv;
+use AMOS7::INLINE::src::AMOS_13_ELF;
+use AMOS7::INLINE::src::TruthAssertion;
 
 ##[ INITIALIZATIONS ]#########################################################
 
 my $source_registry = {
-    qw| inline_elf  |     => \&AMOS::INLINE::src::AMOS_13_ELF::inline_elf,
-    qw|  true_int   |     => \&AMOS::INLINE::src::TruthAssertion::true_int,
-    qw| true_float  |     => \&AMOS::INLINE::src::TruthAssertion::true_float,
-    qw|num_to_bit_string| => \&AMOS::INLINE::src::BitConv::num_to_bit_string,
-    qw|bit_string_to_num| => \&AMOS::INLINE::src::BitConv::bit_string_to_num,
+    qw| inline_elf  |     => \&AMOS7::INLINE::src::AMOS_13_ELF::inline_elf,
+    qw|  true_int   |     => \&AMOS7::INLINE::src::TruthAssertion::true_int,
+    qw| true_float  |     => \&AMOS7::INLINE::src::TruthAssertion::true_float,
+    qw|num_to_bit_string| => \&AMOS7::INLINE::src::BitConv::num_to_bit_string,
+    qw|bit_string_to_num| => \&AMOS7::INLINE::src::BitConv::bit_string_to_num,
 };
 
 ##  internal code_ref registry  ##

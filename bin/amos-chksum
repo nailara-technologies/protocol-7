@@ -30,18 +30,18 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::CHKSUM;
-use AMOS::CHKSUM::ELF;
-use AMOS::Assert::Truth;
+use AMOS7;
+use AMOS7::CHKSUM;
+use AMOS7::CHKSUM::ELF;
+use AMOS7::Assert::Truth;
 
 ## version chksum calculation ##
-use AMOS::INLINE::src::AMOS_13_ELF;   ## implement other versions too ## [LLL]
+use AMOS7::INLINE::src::AMOS_13_ELF;  ## implement other versions too ## [LLL]
 
-my $chksum_elf_mode = $AMOS::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ## 7
-my $elf_shift_bits  = $AMOS::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
+my $chksum_elf_mode = $AMOS7::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ##7
+my $elf_shift_bits = $AMOS7::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
 
-my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} }; ##  7  ##
+my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };    ## 7
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -64,7 +64,7 @@ my @modes = @{ $AMOS::CHKSUM::algorithm_set_up{'elf_truth_modes'} }; ##  7  ##
 
 my $data_str;
 
-##   AMOS.pm error handler   ##
+##   AMOS7.pm error handler   ##
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
@@ -103,7 +103,7 @@ if ( defined $option{'T'} ) {
         or $test_string !~ m|ANOTHER WORLD\.,|;
 }
 
-### move version calculation to AMOS::CHKSUM module ### [LLL]
+### move version calculation to AMOS7::CHKSUM module ### [LLL]
 
 ## display source versions ## [ calculated ]
 if ( defined $option{'V'} ) {
@@ -128,7 +128,7 @@ if ( defined $option{'V'} ) {
         } else {    ## version of elf_sum() source code ## [ -VS ] ##
 
             $data_str = "  /* .: $elf_out_ver :. */\n\n"
-                . AMOS::INLINE::src::AMOS_13_ELF::inline_elf();
+                . AMOS7::INLINE::src::AMOS_13_ELF::inline_elf();
             my $elf_inline_ver
                 = gen_version( qw| AMOS-13-ELF-7-SRC-VER-%s |, $data_str );
             say $elf_inline_ver if not $option{'v'};
@@ -159,7 +159,7 @@ warn "expected input string for AMOS-checksum calculation\n"
     and not $option{'s'}
     and not @ARGV;
 
-$AMOS::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
+$AMOS7::CHKSUM::algorithm_set_up{'return_modbits'} = 1 if $option{'v'};
 
 if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
     $data_str = join( ' ', @ARGV );    ## COMMAND LINE INPUT ##
@@ -170,9 +170,9 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
     while ( my $line = <STDIN> ) {
         next if not defined $line or not length $line;
         chomp($line);
-        my $checksum = AMOS::CHKSUM::amos_chksum( \$line, @modes );
+        my $checksum = AMOS7::CHKSUM::amos_chksum( \$line, @modes );
 
-        $checksum = sprintf( qw| %010d |, $AMOS::CHKSUM::num_amos_csum )
+        $checksum = sprintf( qw| %010d |, $AMOS7::CHKSUM::num_amos_csum )
             if $option{'n'};
 
         if ( $option{'q'} ) {
@@ -186,14 +186,24 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $checksum_encoded = AMOS::CHKSUM::amos_chksum( \$data_str, @modes );
+my $checksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
 
 if ( defined $option{'T'} ) {    ## using template for truth verification ##
     my $template    = $option{'T'};
     my $test_string = sprintf $template, $checksum_encoded;
     while ( not is_true($test_string) ) {
         $checksum_encoded    ## recreate checksum from previous template ##
-            = AMOS::CHKSUM::amos_chksum( \$checksum_encoded, @modes );
+            = AMOS7::CHKSUM::amos_chksum( \$checksum_encoded, @modes );
+        $test_string = sprintf $template, $checksum_encoded;
+    }
+}
+
+if ( defined $option{'T'} ) {    ## using template for truth verification ##
+    my $template    = $option{'T'};
+    my $test_string = sprintf $template, $checksum_encoded;
+    while ( not is_true($test_string) ) {
+        $checksum_encoded    ## recreate checksum from previous template ##
+            = AMOS7::CHKSUM::amos_chksum( \$checksum_encoded, @modes );
         $test_string = sprintf $template, $checksum_encoded;
     }
 }
@@ -202,11 +212,11 @@ if ( defined $option{'T'} ) {    ## using template for truth verification ##
 
 if ( $option{'v'} ) {
     my $offset_str
-        = $AMOS::CHKSUM::bmw_mod_step
-        ? " [ bmw-mod-step : ${AMOS::CHKSUM::bmw_mod_step} ]"
+        = $AMOS7::CHKSUM::bmw_mod_step
+        ? " [ bmw-mod-step : ${AMOS7::CHKSUM::bmw_mod_step} ]"
         : '';
 
-    my @mod_bits = @AMOS::CHKSUM::mod_bits;
+    my @mod_bits = @AMOS7::CHKSUM::mod_bits;
     my @mod_bits_str
         = @mod_bits
         ? (
@@ -215,17 +225,17 @@ if ( $option{'v'} ) {
         ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
         '',
         sprintf( "     AMOS-bits  : $C{b}$C{T} %032b $C{0}$C{R}",
-            $AMOS::CHKSUM::num_amos_csum ),
+            $AMOS7::CHKSUM::num_amos_csum ),
         )
         : ();
 
-    my $len_delta         = 11 - length($AMOS::CHKSUM::num_amos_csum);
+    my $len_delta         = 11 - length($AMOS7::CHKSUM::num_amos_csum);
     my $num_amos_csum_str = sprintf( ":$C{T} %d $C{0}%s",
-        $AMOS::CHKSUM::num_amos_csum, ':' x $len_delta );
+        $AMOS7::CHKSUM::num_amos_csum, ':' x $len_delta );
 
     my %COLOR = (
         'input' => is_true( $data_str, 1, 1, @modes ) ? $C{T} : $C{g},
-        'bits'  => is_true( $AMOS::CHKSUM::checksum_bits, 0, 1, @modes )
+        'bits'  => is_true( $AMOS7::CHKSUM::checksum_bits, 0, 1, @modes )
         ? $C{T}
         : $C{g}
     );
@@ -247,12 +257,12 @@ if ( $option{'v'} ) {
         '',
         $header_string,
         '',
-        "$C{0}   reverse-elf  :  " . true_bits($AMOS::CHKSUM::elf_bits),
-        "$C{0}    bmw-R-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_R),
-        "$C{0}    bmw-L-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_L),
-        "$C{0}    bmw-C-bits  :  " . true_bits($AMOS::CHKSUM::bmw_b_C),
+        "$C{0}   reverse-elf  :  " . true_bits($AMOS7::CHKSUM::elf_bits),
+        "$C{0}    bmw-R-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_R),
+        "$C{0}    bmw-L-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_L),
+        "$C{0}    bmw-C-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_C),
         '',
-        "$C{0}   chksum-bits  :  " . true_bits($AMOS::CHKSUM::checksum_bits),
+        "$C{0}   chksum-bits  :  " . true_bits($AMOS7::CHKSUM::checksum_bits),
         @mod_bits_str,
         '',
         sprintf(
@@ -274,8 +284,8 @@ if ( $option{'v'} ) {
     );
 } elsif ( $option{'n'} ) {
 
-    say $AMOS::CHKSUM::num_amos_csum and exit if $option{'q'};
-    say "$C{0}:\n:$C{b} $C{T}${AMOS::CHKSUM::num_amos_csum}$C{0}"
+    say $AMOS7::CHKSUM::num_amos_csum and exit if $option{'q'};
+    say "$C{0}:\n:$C{b} $C{T}${AMOS7::CHKSUM::num_amos_csum}$C{0}"
         . " $C{R}\n$C{0}:$C{R}";
 
 } else {
@@ -301,8 +311,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,.,,,.,,.,,,...,,,.,,,.,.,,,..,,,,.,.,,,.,.,..,,...,...,..,,.,.,,,.,.,,,,.,,
-#2MGTLWIH5EAW43BF57K742Y4NONPWDPG3KMSYTO2UTD56KTA3X6XGVSE5HREJP2LO6CWQU2QAL5EE
-#\\\|Y6I5RB5CGWIFVEV3GLRFRJRR5RVOBNCMUZ3QB6RCPFSGQNJ4WWM \ / AMOS7 \ YOURUM ::
-#\[7]T5NRDHV3GVPADYWEN6GYWXFLWPGOAHASMDTLBCCOVA2GTS5GTEBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,.,,,..,...,.,.,...,,,,,,..,..,,..,,...,..,,...,.,.,.,,,.,.,.,.,
+#HDEADFAFXUZ33PRKD6LPG3LHNPPFYE576F56CMSJLGCEU33XBFIEZVJNIRZMRVGNAS5XQEQ63TSLU
+#\\\|KXWJAWYGJGDBEAPFUDHAELPEEGUKIMYWDX3TFF6TEVKM4TVTFWK \ / AMOS7 \ YOURUM ::
+#\[7]BWGHJIA5HX2CEYWEQ5X2FYH5OSQTQV3TCP56PZCREZVWADDPF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

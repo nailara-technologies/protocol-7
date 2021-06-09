@@ -28,10 +28,10 @@ BEGIN {
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;
-use AMOS::INLINE;
+use AMOS7;
+use AMOS7::INLINE;
 
-## AMOS::BitConv ##
+## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| num_to_bit_string | } );
 
 ##[ NUMERICAL TO BINARY CONVERSION ]##########################################
@@ -53,12 +53,12 @@ error_exit('number of bits is not an integer [0..64] <{C1}>')
 
 ## say( sprintf qw| %0*b |, $bits, $num ); ## <-- same, faster ##
 
-say AMOS::BitConv::num_to_bit_string( $num, $bits );
+say AMOS7::BitConv::num_to_bit_string( $num, $bits );
 
 exit(00000);
 
-#,,,.,..,,,.,,,..,,,,,,.,,,..,,..,.,,,,.,,,,.,..,,...,...,...,,,.,.,.,.,.,.,.,
-#KYD4BJTARFMT2QQE56GIZ646756WSVBDAGYEGBAZ7GWG7E7TH56YTIG62WDOT5KM3AUFFX4AJVO3I
-#\\\|57X3Z5IWJLYAPC2HWVF3LCHUNOW25RECZC5JW4GQXHAVMIOQIJC \ / AMOS7 \ YOURUM ::
-#\[7]2CQ22VSQDMF7W3L6VA5O5HKQJDLQFXLHCATSUJKSBEMZH2RHUCDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,,,.,...,..,,..,,..,,,,.,...,..,,...,...,.,,,,,,,,..,,,.,,,,,
+#JGTVNJ5VRLPG3SOOT6TC7UFE77MNK35GUN2MPBX6MW6BWMJECEDQBHEOHY2LCB7FWEGRCLJIQZLQQ
+#\\\|VPDHPHGNMNOQNBD66BAKLSQTN3OBOEZ7B66YIUEGWFKUYLTZZYB \ / AMOS7 \ YOURUM ::
+#\[7]UALAUTTY5YMUFUU6EGJOZKNHJB5TDKOGP6I3ITDUI6MSR3HHHKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
