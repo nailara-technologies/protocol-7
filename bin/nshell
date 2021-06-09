@@ -38,9 +38,9 @@ my $root_path = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;                   ##  error handler and colors  ##
-use AMOS::CHKSUM::ELF;      ## exports elf_chksum ##
-use AMOS::Assert::Truth;    ## exports is_true() ##
+use AMOS7;                   ##  error handler and colors  ##
+use AMOS7::CHKSUM::ELF;      ## exports elf_chksum ##
+use AMOS7::Assert::Truth;    ## exports is_true() ##
 
 ##[ PROGRAM INIT ]############################################################
 
@@ -178,7 +178,7 @@ sub calc_port {
     my $factor = 5.707;    ## adjusting target range ##
 
     while (not defined $n_port
-        or not AMOS::Assert::Truth::calc_true( $n_port, 1, 1 )
+        or not AMOS7::Assert::Truth::calc_true( $n_port, 1, 1 )
         and $iterations_remaining-- ) {
         $n_port = int( $factor * $port_start + $path_offset % $port_delta );
         $factor += 0.7;
@@ -233,8 +233,8 @@ RECALC:
     $B32_elf_checksum = elf_chksum($encoded_string);
 
     if (
-        (      not AMOS::Assert::Truth::calc_true($elf_checksum)
-            or not AMOS::Assert::Truth::calc_true($B32_elf_checksum)
+        (      not AMOS7::Assert::Truth::calc_true($elf_checksum)
+            or not AMOS7::Assert::Truth::calc_true($B32_elf_checksum)
         )
         and $max_rounds--
         ) {    ## ..230769.., == disharmony ..,
@@ -527,8 +527,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,.,,,.,,...,,,,,,,.,,,,,,.,,,,,,.,,,,,.,,,,,..,,...,...,..,,,.,,..,,...,,,.,
-#KVDWG4WVNIBOHAURUBW6PSTI52BKGFXHCWQIXT4BXEIO7U2D6QQVLB5LVSUJEAJSV6SLWGMHTJWN2
-#\\\|TAVFVPXNR5FZ7L3KCNLGWMNRIVDPLWWQQLF4LM5WC776QACLITM \ / AMOS7 \ YOURUM ::
-#\[7]N2H5PDENZQGBRIZOFFXMFZDCQHAN7W4KQKZSUJMPWVS6XY66XCAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,.,.,.,,,,,,,.,.,,,,,...,,,.,..,,...,...,,..,,,.,,.,,..,,.,.,
+#CH7VBY7D2K5J7IAYRY4OXD6HCCR3TKEZUX3KDY7NTKAGTE5T7HYREIIVMEDM2QQ2VGB5WOVHFS7CI
+#\\\|MBB2BP2IXNF3OYHUTFD7EFZRQU6MXMTZ3XSBBZPNQ5DHQF7CW5X \ / AMOS7 \ YOURUM ::
+#\[7]AKBZ4ZGWDJAOWUR7NZABTKRDZUHVPDBM2JC7I4BR3ZAYGGWRAACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

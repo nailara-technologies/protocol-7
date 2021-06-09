@@ -1,5 +1,5 @@
 
-package AMOS::CHKSUM::ELF::Inline;  ##########################################
+package AMOS7::CHKSUM::ELF::Inline; ##########################################
 
 use vars qw| @EXPORT |;
 

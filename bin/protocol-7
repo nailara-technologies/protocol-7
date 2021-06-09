@@ -436,7 +436,7 @@ sub prepare_subs {
         return 1 if $check_elf == 0;
 
         ## check as string ##
-        my $elf_checksum = Digest::Elf::elf($input_string);   ## use AMOS::..,
+        my $elf_checksum = Digest::Elf::elf($input_string);  ## use AMOS7::..,
         $calc_str = Math::BigFloat->new($elf_checksum)
             ->bdiv( 13, 13 + length($elf_checksum) );
         return 0 if index( $calc_str, qw| 230769 | ) >= 0;
@@ -2283,8 +2283,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,..,.,.,,..,,,.,.,.,..,,..,,,..,.,,,..,,,,.,..,,...,...,,,,,.,.,.,.,..,,..,,
-#MQA4EF6IY3YJ3GADBNXCGA4CMPKK25SCFQJYB74234WVKG36ZEELIXH7WOODQKRRVNNV7HEZZNRW2
-#\\\|3VYTZJHBZ5LT4IR2DT7UNPZQC4VAHGB53T6AZ6FZWD77BJV5R5G \ / AMOS7 \ YOURUM ::
-#\[7]MXMLI6D2O5DG5AGVVN5DMK4SP6W454LVBDGRBUE7RDKJAEXDA2DA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,,.,,..,,.,.,,.,,.,,,..,,...,..,,...,...,..,,,,.,,.,,,,.,...,
+#567QCHE6AKPMPON6T54VKXVW6WHQOFSZNR3SKVVVTP2XAMB5RYJ4RCZ2GUQ66FIVZNZMBRDBQQH6I
+#\\\|TMISKCJX24PZXO6335YROGQBOQN6ZHKPLVI4QCYA42YVMZB7WZ6 \ / AMOS7 \ YOURUM ::
+#\[7]B5JVBGVUC25G5M7LSPAAVI7VAOQIEJYQPUZV7D2Z3UDPTEGIPMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

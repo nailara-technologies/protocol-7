@@ -1,7 +1,7 @@
 
 ## include for calculating new version ##
 
-package AMOS::Version;  ######################################################
+package AMOS7::Version; ######################################################
 
 BEGIN {
     use strict;

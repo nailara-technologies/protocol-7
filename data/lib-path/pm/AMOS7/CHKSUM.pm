@@ -1,5 +1,5 @@
 
-package AMOS::CHKSUM;  #######################################################
+package AMOS7::CHKSUM; #######################################################
 
 use v5.24;
 use strict;
@@ -20,14 +20,14 @@ our $VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    ##  amos-chksum -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS;                                      ##  error handler  ##
-use AMOS::13;
+use AMOS7;                                     ##  error handler  ##
+use AMOS7::13;
 
-use AMOS::INLINE;                              ## compile_inline_source ##
-use AMOS::CHKSUM::ELF;                         ## elf_chksum ##
-use AMOS::Assert::Truth;                       ## is_true ##
+use AMOS7::INLINE;                             ## compile_inline_source ##
+use AMOS7::CHKSUM::ELF;                        ## elf_chksum ##
+use AMOS7::Assert::Truth;                      ## is_true ##
 
-##  AMOS::BitConv::bit_string_to_num  ##
+##  AMOS7::BitConv::bit_string_to_num  ##
 ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
@@ -41,8 +41,8 @@ compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
     qw| chksum_bits      | => 1,
     qw| chksum_B32       | => 1,
     qw| chksum_elf_mode  | => 7,    ##  <--  AMOS-13 CHKSUM elf mode [ 7 ]
-    qw| elf_shift_bits   | => $AMOS::Assert::Truth::elf_shift_bits,     ## 13
-    qw| elf_truth_modes  | => [@AMOS::Assert::Truth::assertion_modes]   ## 4 7
+    qw| elf_shift_bits   | => $AMOS7::Assert::Truth::elf_shift_bits,    ## 13
+    qw| elf_truth_modes  | => [@AMOS7::Assert::Truth::assertion_modes]  ## 4 7
 ) if not keys %algorithm_set_up;
 
 ## accessible internal variables [ for visualizations ] ##
@@ -170,10 +170,10 @@ sub amos_chksum {
                     substr $bmw_b_R, 0, length($MATCH) |e;
 
     ## numerical ##
-    $num_amos_csum = AMOS::BitConv::bit_string_to_num($checksum_bits);
+    $num_amos_csum = AMOS7::BitConv::bit_string_to_num($checksum_bits);
 
     ## elf checksum protection ##
-    $num_amos_csum ^= AMOS::BitConv::bit_string_to_num($bmw_b_L);
+    $num_amos_csum ^= AMOS7::BitConv::bit_string_to_num($bmw_b_L);
     ###
 
     my $resaturation_offset = 0;
@@ -190,7 +190,7 @@ INVERT_TRUTH_STATE:
         }
 
         ## XOR ##
-        $num_amos_csum ^= AMOS::BitConv::bit_string_to_num($cur_mod_bits);
+        $num_amos_csum ^= AMOS7::BitConv::bit_string_to_num($cur_mod_bits);
 
         push( @mod_bits, $cur_mod_bits )
             if $algorithm_set_up{'return_modbits'};
@@ -220,7 +220,7 @@ INVERT_TRUTH_STATE:
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
             $bmw_mod_bits .= bin_032(
-                AMOS::BitConv::bit_string_to_num(
+                AMOS7::BitConv::bit_string_to_num(
                     substr( $bmw_512b, $bmw_offset, 32 )
                 ) ^ $num_amos_csum
             );

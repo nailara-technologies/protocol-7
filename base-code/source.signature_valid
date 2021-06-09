@@ -158,7 +158,7 @@ foreach my $type (qw| entire-payload embedded-code-style |) {
                     $elf_chksum->{$type}->{$ARG}, $ARG
                 ) if $type eq qw| entire-payload |;
 
-                $ARG => AMOS::Assert::Truth::true_int($test_elf)
+                $ARG => AMOS7::Assert::Truth::true_int($test_elf)
 
             } @t_elf_modes
         };
@@ -173,7 +173,7 @@ foreach my $type (qw| entire-payload embedded-code-style |) {
 ##  AMOS7 BMW CHKSUM  ## [ 512 ]
 my $amos_digest_bin = $bmw_amos_ctx->digest;
 
-my $AMOS_B32 = AMOS::CHKSUM::amos_chksum(    ##[  AMOS7-elf chksum mode 7  ]##
+my $AMOS_B32 = AMOS7::CHKSUM::amos_chksum(    ##[  AMOS7-elf chksum mode 7  ]##
     {   'elf_checksum'   => $elf_chksum->{'entire-payload'}->{$ELFmode},
         'elf-shift-bits' => 13,
         'elf-modes'      => [ 4, 7 ],
@@ -223,7 +223,7 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 
         $truth_status_report->{$type} = {
             map {
-                $ARG => AMOS::Assert::Truth::true_int(
+                $ARG => AMOS7::Assert::Truth::true_int(
                     $elf_chksum->{$type}->{$ARG} //= 0 )
             } @t_elf_modes
         };
@@ -242,8 +242,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,.,,,,,..,,.,.,.,.,..,,,.,,...,..,,,..,,,,,..,,...,...,...,.,,,,,,,.,,,,..,
-#JSBKBDJMGSXIVDEDSYW7D76IABNZSTUDV26Z2JJR7UU7SGKC3MDNSHK4QUNAAGB4HLGBE3C4WLZWS
-#\\\|C4QWV64S5LBQ6SHW5ON23IRPTSYFS5J6L4KQMLYCLQRR3YL5H5M \ / AMOS7 \ YOURUM ::
-#\[7]AGR4CNPIC5I4HPHHGJUYZJELHBYRHX3PAZNLNTINGAPZTHQSPQBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,..,,,,.,...,..,,,..,..,,.,.,..,,...,...,..,,.,,,,.,,,,,,,.,,
+#KPDBEH3RQ6ZVDMAMIO3DXWCFJNKSOA23OQ6IEMHI5YGQXY4YP6WQ5BZ7A35L464V7RLRMBFJI6TXU
+#\\\|C7DMBJI43P37HDG3XFCZUF6VNJMBQPEMLVLGAMZUXND2R5C7XLT \ / AMOS7 \ YOURUM ::
+#\[7]U4YER4C3ABR6NBFDPVXL4JLWZKAZQZDF5OXYHR3JSCJVLTFW3KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

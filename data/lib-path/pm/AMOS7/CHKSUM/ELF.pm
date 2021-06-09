@@ -1,6 +1,6 @@
 ## >:] ##
 
-package AMOS::CHKSUM::ELF;    ################################################
+package AMOS7::CHKSUM::ELF;   ################################################
 
 use v5.24;
 use strict;
@@ -28,11 +28,11 @@ our $overflow_threshold //= 0XFE000000;    ##  elf hash : 0XF0000000 ##
 ##
 ####
 
-use AMOS;                                  ##  error handler  ##
-use AMOS::INLINE;                          ## inline_elf compilation ##
+use AMOS7;                                 ##  error handler  ##
+use AMOS7::INLINE;                         ## inline_elf compilation ##
 
-## skips compilation when included from AMOS::INLINE::src::TruthAssertion
-if ( defined &AMOS::INLINE::compile_inline_source ) {
+## skips compilation when included from AMOS7::INLINE::src::TruthAssertion
+if ( defined &AMOS7::INLINE::compile_inline_source ) {
 
     ## loads when not defined ##
     compile_inline_source( { qw| subroutine-name | => qw| inline_elf | } );
@@ -41,7 +41,7 @@ if ( defined &AMOS::INLINE::compile_inline_source ) {
 
 ## will use rudimentary Digest::Elf fallback if not compiled ##
 warn_err('compilation of inline_elf subroutine not successful <{C1}>')
-    if not defined &inline_elf;    ##  AMOS::CHKSUM::ELF::inline_elf()  ##
+    if not defined &inline_elf;    ##  AMOS7::CHKSUM::ELF::inline_elf()  ##
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
