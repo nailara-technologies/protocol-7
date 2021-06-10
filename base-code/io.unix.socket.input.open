@@ -7,7 +7,7 @@ my $socket_umask = shift // 0775;
 
 <[base.start.unlink_child]>;
 
-undef <unix.socket_paths> if ref(<unix.socket_paths>) ne 'ARRAY';
+undef <unix.socket_paths> if ref(<unix.socket_paths>) ne qw| ARRAY |;
 <unix.socket_paths> //= [];
 
 my $uaddr = sockaddr_un($socket_path);
@@ -23,7 +23,9 @@ my $unix_sock = IO::Socket::UNIX->new(
 rename( $tmp_spath, $socket_path )
     or die "io.unix.socket.input.open: rename: \l$OS_ERROR";
 
+##  unlink child removes path in io.unix.socket.end_code  ##
 push( @{<unix.socket_paths>}, $socket_path );
+
 chmod( $socket_umask, $socket_path )
     or die "io.unix.socket.input.open: chmod: \l$OS_ERROR";
 
@@ -44,8 +46,8 @@ $data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
-#,,.,,..,,.,.,..,,.,,,,,.,...,,..,,.,,,,.,,.,,..,,...,...,...,,,.,.,,,,,,,,..,
-#YOLMCH4AHJGEDXW7DT5AYHWEQ2P7RIO3DG5DOATQ7FKX3ZGF2TWXXT7TTKX52ZCN2PTHONAN2HYVY
-#\\\|5SM53LTVXW2TSLDUXOG5MCAMV2XCAW44T6DPZU7OW6QAAIKALFN \ / AMOS7 \ YOURUM ::
-#\[7]LT627WWDNZAZWBQ4A3OPE2AEBHNXBLEWZNIVGGTKDFTDAJ6ROWAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,,,.,..,,..,,.,.,,.,,,,.,.,,,..,,...,...,..,,.,.,,,.,.,.,,,.,
+#7KPZYWYOWNUVQRTHDHY5SWLMOXZ3RSX5DNPPSVVJX7VUFGV2MSRS2YWWJKDXWXRLBRD52AAVMFNZE
+#\\\|L24FTOLU4H77X7WFZCYW7CEU3SDYXEVZXVL6KNUHUDSC52TYD4T \ / AMOS7 \ YOURUM ::
+#\[7]EVAPYNOSLN4VR4C37QERBSFFMUMTRVCEQVTLOMOUICZSU2ZMUCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
