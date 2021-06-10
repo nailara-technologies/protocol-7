@@ -9,12 +9,7 @@ my $port = shift;
 die 'expected ip address and port parameters'
     if not defined $addr or not defined $port;
 
-<[base.log]>->( 0, '<< calc_unix_path : chk-sum.elf module not loaded ., >>' )
-    and return
-    if not defined $code{'chk-sum.elf.vax-BASE32.true'};
-
-my $unix_path
-    = <[chk-sum.elf.vax-BASE32.true]>->( sprintf 'TCP[%s:%d]', $addr, $port );
+my $unix_path = AMOS7::Protocol::P7::calc_unix_path( $addr, $port );
 
 <[base.logs]>->(
     2, 'calculated unix path for %s:%d = %s',
@@ -23,8 +18,8 @@ my $unix_path
 
 return $unix_path;
 
-#,,,.,.,.,...,...,..,,,,.,.,.,,,,,..,,.,.,,,,,..,,...,...,..,,.,.,,..,.,.,,..,
-#HIYYH5ZYFDKZF3FMDYSBGSW3TOUELAPHDCYOQKAPB3T7BM3Z7NEOE4GSLZEHJ2ASI27BGLV5UQYZ6
-#\\\|JTCLJMDNTNH56DPRBFMD4CF2KXRUMC3QQMI6O57QDMNZ3NXLTSS \ / AMOS7 \ YOURUM ::
-#\[7]UKDQ6AF3CMOEO6V7ETFURVSCXV34YQ6NUU6C5ZEKUFJNUZCVHMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,..,,,.,,,.,,,.,.,,,..,,,,,,..,,...,...,,.,,.,,,..,,,..,,..,
+#5QMVOBOLRWBJRTN4JVON2MDO62IIU42RVDI5532GHYWTFMOGI2AEDYLHY3RAUFZGYC23HYB5DFRYI
+#\\\|3XCFTM3MZB5M7ZI4I5OLULGSG2IBC7SSMJW6F4WPBJAOU7YZ2MI \ / AMOS7 \ YOURUM ::
+#\[7]H6UQKXRQEYHBJWT35T7U76BPILEXS2A5XZGCRAP6TN22476BGSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

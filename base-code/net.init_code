@@ -3,34 +3,24 @@
 # name  = net.init_code
 # descr = calculate \ init protocol 7 ports and addresses
 
-## local <system.root_path> = qw| /usr/local/protocol-7 |;  ##  testing.,  ##
+##  calc_port, calc_unix_path  ##
+<[base.perlmod.load]>->('AMOS7::Protocol::P7');
 
-<system.path_chk_sum> //= <[chk-sum.elf]>->(<system.root_path>);
-
-##  based on protocol-7 installation path  ##
-<system.path_offset> = int(<system.path_chk_sum>);  ## calculate difference ##
-<system.path_offset> ^= int( <[chk-sum.elf]>->(qw| /usr/local/protocol-7 |) );
-
-my $port_ranges = {
-    'ext' => { 'start' => 47, 'end' => 1021 }, # <-- regular external port: 47
-    'int' => { 'start' => 57, 'end' => 1021 }  # <-- regular internal port: 57
-};
+##  port ranges and algorithm defined in AMOS7::Protocol::P7 module  ##
 
 # ..following values can be overridden in './configuration/defaults' and
 #                                         './configuration/network', ..,
 
 <protocol-7.network.external.addr> //= qw| 0.0.0.0 |;
-<protocol-7.network.external.port>
-    //= <[net.calc_port]>->( $port_ranges->{'ext'} );    ## <-- not used yet
+<protocol-7.network.external.port> //= <[net.calc_port]>->(qw| external |);
 
 <protocol-7.network.internal.addr> //= qw| 127.0.0.1 |;
-<protocol-7.network.internal.port>
-    //= <[net.calc_port]>->( $port_ranges->{'int'} );    ## <-- cube port
+<protocol-7.network.internal.port> //= <[net.calc_port]>->(qw| internal |);
 
 0;
 
-#,,..,,,.,,,.,...,,.,,,,.,.,,,...,..,,,..,,.,,..,,...,...,.,.,,,,,.,,,..,,.,.,
-#IWGGBI36XVB7NULAGQPTT327NNOWX675OESRRD22PQGLNQXAUTUPTB3ASJLR3H5PUXCWEP3KKHNAI
-#\\\|W32M5U4RXKGO7DJY4ZVPGMHIG5HD5Q4QI56PBT7TCG36AOKU2ZI \ / AMOS7 \ YOURUM ::
-#\[7]KYWM7JROCSWNWNLXV3M35J3AFQ5AUSVVHUWCA7DG6XFCA434WECI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,..,.,,,,,.,,,,,...,..,,,,,,,..,..,,...,...,.,.,.,,,.,.,...,...,
+#I3AA67M7MUM2IAXUSCBQP4LGPQSZWPCFEOAOGPNFUBYFR5LHSJPV5DHADLWS4G7MEHYR6ZR36HRN4
+#\\\|STTBAIAT722OZFTP7MPNXD5TZSF6BTQ7K57XXZKIYHFSTGFLEC5 \ / AMOS7 \ YOURUM ::
+#\[7]DMQQAL5OUJUWNBFMNY3CZ2XSNLCF67JEHQOT3DJGKLM3WOXAYIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,12 +13,18 @@ use warnings;
 
 use Exporter;
 use base qw| Exporter |;
-use vars qw| $VERSION @EXPORT |;
+use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-@EXPORT = qw|
-    TERM_SIZE %C $VERSION
-    error_exit warn_err caller_str format_error
-    |;
+@EXPORT = qw[
+
+    TERM_SIZE %C error_exit warn_err caller_str format_error
+
+];
+
+##  determine protocol-7 install path  ##
+our $protocol_7_root = p7_root_dir();
+
+@EXPORT_OK = qw| $VERSION $protocol_7_root |;
 
 ##[ COLORS ]##################################################################
 
@@ -144,10 +150,27 @@ sub clean_up_caller {
     return $$filename_sref if not $was_ref;
 }
 
-return 1;  ###################################################################
+##[ PROTOCOL-7 INSTALLATION PATH ]###########################################
 
-#,,,,,,..,,,,,.,,,,,.,.,.,,,,,.,.,,.,,,.,,,,,,..,,...,...,,..,,,,,...,,,,,,,.,
-#DZWTJ5ZLGPH246ND3NIMJNWI26NN7YKLXU5ZRGELPPY42SODVP6OLOO3VRB3WL5CHBPBXQ7EM63L6
-#\\\|5H3MQ2JRH3OMPI4MHYWRO2X5VX5NCM7VHLH7EIHPKXRGMLTDUXI \ / AMOS7 \ YOURUM ::
-#\[7]MGULM4XGTDZQO3ARC6B5Y2PYEOYT5QAEUHNBYM3WXUBI46R7FOCQ 7  DATA SIGNATURE ::
+sub p7_root_dir {
+
+    ## module loaded by protocol-7 zenka ##
+    return $main::data{'system'}{'root_path'}
+        if defined *main::data{HASH}
+        and defined $main::data{'system'}
+        and defined $main::data{'system'}{'root_path'};
+
+    ## module is loaded from protocol-7 pm directory ##
+    return $LAST_PAREN_MATCH
+        if __FILE__ =~ m|^(.+)/data/lib-path/pm/AMOS7.pm$|;
+
+    return undef;    ##  other methods not implemented yet  ##
+}
+
+return 5;  ###################################################################
+
+#,,.,,,,.,,,,,,..,,..,.,,,.,,,..,,.,,,.,,,...,..,,...,..,,..,,,,,,.,.,.,.,.,,,
+#Z7NPQPFDX3DU2ZV2ETI2VPCMI3S6SC2WMUC6XI4C4O2INP7ZOWGSNGCWXOSKDJYW6IZZ2VX55H7FY
+#\\\|USUP42EKKCKA6RHCKWJYIEPMM4SCXKPVLY64A4FAUCUP7G3XBBQ \ / AMOS7 \ YOURUM ::
+#\[7]4SO2P7LFUUV2Z265ZRB5HXQKHEGAB2ZCX4IZKPIM2L5CYF2PECDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
