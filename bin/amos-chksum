@@ -93,14 +93,11 @@ if ( defined $option{'e'} ) {
 
 if ( defined $option{'T'} ) {
     my $template    = $option{'T'};
-    my $test_string = eval { sprintf $template, 'ANOTHER WORLD.,' };
+    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
     error_exit(
         "sprintf template '%s' not valid [ expecting single %%s ] <{NC}>",
         $template )
-        if $EVAL_ERROR
-        or not defined $test_string
-        or $template    =~ m|%s| != 1
-        or $test_string !~ m|ANOTHER WORLD\.,|;
+        if @match_count != 1;
 }
 
 ### move version calculation to AMOS7::CHKSUM module ### [LLL]
@@ -153,7 +150,7 @@ sub gen_version {
 
 ##[ DATA INPUT MODES ]########################################################
 
-warn "expected input string for AMOS-checksum calculation\n"
+error_exit('expected input string for AMOS-checksum calculation <{NC}>')
     if not defined $data_str
     and not $option{'S'}
     and not $option{'s'}
@@ -186,26 +183,17 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $checksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
+my $checksum_encoded;
 
 if ( defined $option{'T'} ) {    ## using template for truth verification ##
-    my $template    = $option{'T'};
-    my $test_string = sprintf $template, $checksum_encoded;
-    while ( not is_true($test_string) ) {
-        $checksum_encoded    ## recreate checksum from previous template ##
-            = AMOS7::CHKSUM::amos_chksum( \$checksum_encoded, @modes );
-        $test_string = sprintf $template, $checksum_encoded;
-    }
-}
+    my $template = $option{'T'};
 
-if ( defined $option{'T'} ) {    ## using template for truth verification ##
-    my $template    = $option{'T'};
-    my $test_string = sprintf $template, $checksum_encoded;
-    while ( not is_true($test_string) ) {
-        $checksum_encoded    ## recreate checksum from previous template ##
-            = AMOS7::CHKSUM::amos_chksum( \$checksum_encoded, @modes );
-        $test_string = sprintf $template, $checksum_encoded;
-    }
+    $checksum_encoded
+        = AMOS7::CHKSUM::amos_template_chksum( $template, \$data_str,
+        @modes );
+
+} else {
+    $checksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
 }
 
 ##[ VERBOSE RESULT VALUES ]###################################################
@@ -311,8 +299,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,,,.,.,,..,,.,,,..,...,.,.,...,,,,,,..,..,,..,,...,..,,...,.,.,.,,,.,.,.,.,
-#HDEADFAFXUZ33PRKD6LPG3LHNPPFYE576F56CMSJLGCEU33XBFIEZVJNIRZMRVGNAS5XQEQ63TSLU
-#\\\|KXWJAWYGJGDBEAPFUDHAELPEEGUKIMYWDX3TFF6TEVKM4TVTFWK \ / AMOS7 \ YOURUM ::
-#\[7]BWGHJIA5HX2CEYWEQ5X2FYH5OSQTQV3TCP56PZCREZVWADDPF4DY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,.,,,,,.,,,,,.,.,,,,,...,,.,,..,,...,...,.,.,...,,.,,.,,,,..,
+#JXXHNUEH3NXQPI7LNMKZDXWYXFQRAHRJ2M2C6NJYAW66DTINQ3IGUMADANRDJ2TBRD6SV2HD2F4JM
+#\\\|KXNML3F5H2GU6VIKG2CE47EC54ONFDOSSBYRHYLHBSLUEQHFHNX \ / AMOS7 \ YOURUM ::
+#\[7]NCDSSXZXZP5EQB7L5H43WYRSKTMGR355HG2OUNF3UX6STW2MCICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@ package AMOS7; ###############################################################
 
 ## use AMOS7::Version;    ## use to calculate new version ##
 
-our $VERSION = qw| AMOS-MODULE-0.0.95 |;
+our $VERSION = qw| AMOS-MODULE-0.1.16 |;
 
 use v5.24;
 use utf8;
@@ -169,8 +169,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,.,,,,.,,,,,,..,,..,.,,,.,,,..,,.,,,.,,,...,..,,...,..,,..,,,,,,.,.,.,.,.,,,
-#Z7NPQPFDX3DU2ZV2ETI2VPCMI3S6SC2WMUC6XI4C4O2INP7ZOWGSNGCWXOSKDJYW6IZZ2VX55H7FY
-#\\\|USUP42EKKCKA6RHCKWJYIEPMM4SCXKPVLY64A4FAUCUP7G3XBBQ \ / AMOS7 \ YOURUM ::
-#\[7]4SO2P7LFUUV2Z265ZRB5HXQKHEGAB2ZCX4IZKPIM2L5CYF2PECDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,.,.,,..,,,,,,..,..,,.,.,,.,,..,,...,...,,.,,,,,,.,,,,..,..,,
+#UEMRL5NNOLGM7JJO3NKXH2J5TPXXSMTLNN2AC2M6OBI64TXRH2LKIQTJJNI7OGOTAYOF2QH2IEU2E
+#\\\|3ONCIUEF5XSBIB55DZ6BJEOCNJTKSX7Q7RL2RA6NZMAU6PTGEGJ \ / AMOS7 \ YOURUM ::
+#\[7]DKTZNC63E3QAUTWQ7FLTOTM3GVH5EEQ3R6O257LKT5QN6KWC2OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

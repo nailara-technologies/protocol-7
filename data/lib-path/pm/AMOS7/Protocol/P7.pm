@@ -151,35 +151,19 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
         return undef;
     }
 
-    my $iterations_remaining = 47;
-    my $chksum_template      = qw| ip\\\\%s[%s:%d] |;
-    my $truth_template       = qw| /var/run/.7/UNIX/%s |;
+    my $chksum_template = qw| ip\\\\%s[%s:%d] |;
+    my $truth_template  = qw| /var/run/.7/UNIX/%s |;
 
     my $calc_input_string
         = sprintf( $chksum_template, $ip_proto, $ip_addr, $ip_port );
-    my $path_chksum = amos_chksum($calc_input_string);
 
-    while (
-        not AMOS7::Assert::Truth::is_true(
-            sprintf( $truth_template, $path_chksum ),
-            0, 1 )
-        and $iterations_remaining--
-    ) {
-        $path_chksum
-            = amos_chksum(
-            sprintf join( qw| : |, $chksum_template, qw| %s | ),
-            $ip_proto, $ip_addr, $ip_port, $path_chksum );
-    }
-
-    warn_err('iteration limit exceeded') if not $iterations_remaining;
-
-    return $path_chksum;
+    return amos_template_chksum( $truth_template, \$calc_input_string );
 }
 
 return 5;  ###################################################################
 
-#,,..,,,,,.,.,..,,,,.,...,,.,,.,,,..,,.,.,.,.,..,,...,...,..,,.,.,,.,,,,,,.,.,
-#KQDL3DSAXS72NROERXKM4F5SPT5ULPKBF4RFANPPCLIUM3AC4QGRRN5J3GPLDSFDOW3IHJKUU2V2Y
-#\\\|EEV5S3NR534NEU36O42USXH4ZY2JTYGYWKBH75BMU37SVQIFPP4 \ / AMOS7 \ YOURUM ::
-#\[7]SZW3SNXWW6E7QUARBQS6TH5RG5M2QQCEEJ5NSGG2KD4TWIMYBEAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,..,,.,,,..,.,,,.,.,,..,...,,..,..,,...,...,...,,.,,,.,,,.,,,.,,
+#3ODHOPNUEGBZTZ3RHRWJIW6L6YXC6MF76UH3JSEYDZTRJA4CWIOE2YA3GWBQ4QAM6ZNS6FPCQDK5I
+#\\\|XM3CE6UVUBDEBZGARPGSR7CM5VXIYWMETSMIOASJPVVGDKX5S5I \ / AMOS7 \ YOURUM ::
+#\[7]QA3QJBH6OW2CKAEFXLCXD5B2UMVNKAXZUTIVH2M4CNCSIRIIAOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
