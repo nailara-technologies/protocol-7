@@ -13,7 +13,6 @@ use Cwd qw| abs_path |;
 use Term::ReadPassword;
 use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
-use Crypt::Misc qw| encode_b32r |;
 use POSIX qw| sys_wait_h WNOHANG |;
 
 ##[ LOCAL PM LIB PATH ]#######################################################
@@ -38,9 +37,14 @@ my $root_path = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
 
 ##[ AMOS MODULE ]#############################################################
 
-use AMOS7;                   ##  error handler and colors  ##
-use AMOS7::CHKSUM::ELF;      ## exports elf_chksum ##
-use AMOS7::Assert::Truth;    ## exports is_true() ##
+use AMOS7;    ##  error handler and colors  ##
+
+use AMOS7::Protocol::P7 qw| calc_port calc_unix_path |;
+
+###                                                                      ###
+#   calculated port : /usr/local/protocol-7 : ext = 13, internal = 42      #
+#                 /data/projects/protocol-7 : ext = 44, internal = 171     #
+###                                                                      ###
 
 ##[ PROGRAM INIT ]############################################################
 
@@ -52,14 +56,9 @@ while ( my $readlink_path = readlink($bin_path) // $bin_path ne $bin_path ) {
     last if $bin_path =~ m|/nshell$|;  # skip resolving last stage., [improve]
 }
 
-my $path_chk_sum = elf_chksum($root_path);    #[ || current ]
+my $protocol_7_port = calc_port(qw|internal|);  # calc based on install path #
 
-my $path_offset = int($path_chk_sum);
-$path_offset ^= int( elf_chksum(qw| /usr/local/protocol-7 |) );
-
-my $protocol_7_port = calc_port($path_offset);  # calc based on install path #
-
-( my $hostname = qx| hostname | ) =~ s,(\..+|\n)$,,g;
+( my $hostname = qx| /bin/hostname | ) =~ s,(\..+|\n)$,,g;
 
 $PROGRAM_NAME = qw| nshell |;
 
@@ -125,10 +124,10 @@ use warnings 'once';
 my $shell_sock;
 while ($connect) {
     $shell_sock = shell_connect( $cube_addr, $cube_port );
-    if ( $link_type eq 'unix' and $lnk_path =~ m|\.([^/\.]+)$| ) {
+    if ( $link_type eq qw| unix | and $lnk_path =~ m|\.([^/\.]+)$| ) {
         my $cube_user = $1;
         $shell_sock = unix_auth( $shell_sock, $cube_user );
-    } elsif ( $link_type eq 'unix' and defined $cube_user ) {
+    } elsif ( $link_type eq qw| unix | and defined $cube_user ) {
         $shell_sock = unix_auth( $shell_sock, $cube_user );
     } else {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
@@ -161,32 +160,6 @@ while ($connect) {
     }
 }
 
-## calculated values :      /usr/local/protocol-7 : ext-port = 47, int-port = 57
-##                   : /data/projects/protocol-7 : ext-port = 87, int-port = 737
-
-sub calc_port {
-
-    my $path_offset = shift;
-
-    my $port_start = 57;  # <-- [ details : 'net.init_code', 'net.calc_port' ]
-    my $port_end   = 1021;
-    my $port_delta = $port_end - $port_start;
-
-    my $iterations_remaining = 42;
-
-    my $n_port;
-    my $factor = 5.707;    ## adjusting target range ##
-
-    while (not defined $n_port
-        or not AMOS7::Assert::Truth::calc_true( $n_port, 1, 1 )
-        and $iterations_remaining-- ) {
-        $n_port = int( $factor * $port_start + $path_offset % $port_delta );
-        $factor += 0.7;
-    }
-
-    return $n_port;
-}
-
 sub login_prompt {
     if (    $remember
         and defined $cube_user
@@ -200,56 +173,6 @@ sub login_prompt {
     print "\n";
     ( $cube_user, $cube_pass ) = ( $user, $pass ) if $remember;
     return ( $user, $pass );
-}
-
-sub calc_unix_path {
-    my $ip_addr = shift;
-    my $ip_port = shift;
-
-    return harmony_chk_sum("TCP[$ip_addr:$ip_port]");
-}
-
-sub harmony_chk_sum {
-    my $input_string = shift;
-
-    my $elf_checksum;
-    my $encoded_string;
-    my $B32_elf_checksum;
-
-    $elf_checksum   = elf_chksum($input_string);
-    $encoded_string = encode_b32r( pack qw| V |, $elf_checksum );
-
-    my $template = qw| %s::%s::%s |;
-
-    my $calc_input
-        = sprintf( $template, $encoded_string, $input_string, $elf_checksum );
-
-    my $max_rounds = 13;
-
-RECALC:
-
-    $elf_checksum     = elf_chksum($calc_input);
-    $encoded_string   = encode_b32r( pack qw| V |, $elf_checksum );
-    $B32_elf_checksum = elf_chksum($encoded_string);
-
-    if (
-        (      not AMOS7::Assert::Truth::calc_true($elf_checksum)
-            or not AMOS7::Assert::Truth::calc_true($B32_elf_checksum)
-        )
-        and $max_rounds--
-        ) {    ## ..230769.., == disharmony ..,
-
-        ## change input with entropy from previous result ##
-        $elf_checksum = sprintf qw| %09d |,
-            int $elf_checksum ^ int elf_chksum($calc_input);
-
-        $calc_input = sprintf $template, $encoded_string, $input_string,
-            $elf_checksum;
-
-        goto RECALC;
-    }
-
-    return $encoded_string;
 }
 
 sub shell_connect {
@@ -527,8 +450,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,.,,,.,,,,,,,..,.,.,.,,,,,,,.,.,,,,,...,,,.,..,,...,...,,..,,,.,,.,,..,,.,.,
-#CH7VBY7D2K5J7IAYRY4OXD6HCCR3TKEZUX3KDY7NTKAGTE5T7HYREIIVMEDM2QQ2VGB5WOVHFS7CI
-#\\\|MBB2BP2IXNF3OYHUTFD7EFZRQU6MXMTZ3XSBBZPNQ5DHQF7CW5X \ / AMOS7 \ YOURUM ::
-#\[7]AKBZ4ZGWDJAOWUR7NZABTKRDZUHVPDBM2JC7I4BR3ZAYGGWRAACQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,,.,,,.,,,,.,...,..,,,,.,.,.,..,,...,..,,.,,,,..,,,.,..,,.,,,
+#TZHKODDPXDF4RAJFAOTSSPG5QMQMYRYA427PV247KSSX5C7VSXG53VQ333J4YBCI6ASEQ3PS56FTQ
+#\\\|LQUTISCILGLVHSR7CF7KSGPHX3YZYJMNW3PDDQLAYHUG6K2V6U5 \ / AMOS7 \ YOURUM ::
+#\[7]M2L2UKPVTRZJJUBCLYVOU4YFC4PRSXYEO7CRTRHT3UVADRCANUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
