@@ -4,7 +4,7 @@
 
 my $AMOS_prefix = shift // 7; ## 0 to not prepend 'AMOS-' to version string ##
 
-my $input_str = sprintf( '%sAMOS-CHKSUM%s', chr(255), chr(0) );
+my $input_str = sprintf( qw| %sAMOS-CHKSUM%s |, chr(255), chr(0) );
 
 my $version_chksum = <[chk-sum.amos]>->( \$input_str );
 
@@ -12,8 +12,8 @@ return sprintf( "AMOS-%s", $version_chksum ) if $AMOS_prefix;
 
 return $version_chksum;
 
-#,,,.,,.,,,,.,.,,,,..,...,,,,,,..,,,.,,,,,,..,..,,...,...,.,.,..,,.,.,,,,,...,
-#I77RTRRVUDD6L37WHT5G7JUH7AFO656CMXABD7FPXNNP2UZMGQ2U7N3VSNJHCESQOEJ2RKSHFVKLA
-#\\\|42TUJVL7PHJY35QWOBO5FGHCK77RFQ5BZ24GQHQ7HP3S73K5JEQ \ / AMOS7 \ YOURUM ::
-#\[7]5MT2ULZYVPLQT7GA66B5PLUKKIHJLNN4ODA53IVQV2MOW7YULKBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,,..,...,.,.,,,,,.,.,,.,,.,,,..,,...,...,,,,,.,.,.,.,,..,,.,,
+#ZODPL4UBJIAJSG36S2R2DIZRLZI2KBTIYM5K3AMIYHVISTUPYJL57RWW2MWQAERCNZOS7ADSCO3YC
+#\\\|JNM7LER5DDH7LY6N2TXOSZ5PCRA7WFZD6XTUNXWPQBDZYLVZNSF \ / AMOS7 \ YOURUM ::
+#\[7]W7EIM6QB2F7XMUP4DW5IQ32HTRXFB4K3MLWUKL2JXZFIURI5P4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,9 +14,9 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT $VERSION %algorithm_set_up |;
 
-@EXPORT = qw| amos_chksum $VERSION |;
+@EXPORT = qw| amos_chksum amos_template_chksum $VERSION |;
 
-our $VERSION = qw| AMOS-13-ELF-7-YM2JGIY |;    ##  amos-chksum -VCS  ##
+our $VERSION = qw| AMOS-13-ELF-7-RNHM4WQ |;    ##  amos-chksum -VCS  ##
 
 ##[ AMOS MODULE ]#############################################################
 
@@ -54,6 +54,7 @@ our $bmw_b_C;
 our $num_amos_csum;
 our $bmw_mod_step;
 our $checksum_bits;
+our $truth_template;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -88,16 +89,39 @@ sub amos_chksum {
             if defined $data_ref->{'elf-modes'}
             and ref( $data_ref->{'elf-modes'} ) eq qw| ARRAY |;
 
+        $truth_template = $data_ref->{'sprintf-test-template'}
+            if defined $data_ref->{'sprintf-test-template'};
+
     } elsif ( $data_ref_type ne qw| SCALAR | ) {
         error_exit( sprintf "unexpected reference type '%s' supplied",
             $data_ref_type );
+    }
+
+    if ( defined $truth_template ) {
+        my @match_count = $truth_template =~ m|(*nlb:\%)%s|sg;
+        if ( @match_count != 1 ) {
+            warn_err(
+                "sprintf template '%s' not valid [ expecting single %%s ]",
+                $truth_template );
+
+            $truth_template = undef;
+            return undef;
+        }
     }
 
     if (    not defined $input_elf_chksum
         and not defined $input_BMW_checksum
         and not Encode::is_utf8( $$data_ref, 1 ) ) {
 
-        my $data_copy = Encode::decode( qw| UTF-8 |, $$data_ref, 8 );
+        if ( not defined $data_ref->$* ) {
+            my $caller_lvl
+                = index( caller_str(), qw| AMOS7/CHKSUM.pm | ) == -1 ? 1 : 2;
+
+            warn_err( 'input not defined', $caller_lvl );
+            return undef;
+        }
+
+        my $data_copy = Encode::decode( qw| UTF-8 |, $data_ref->$*, 8 );
         $data_ref = \$data_copy;
     }
 
@@ -149,7 +173,7 @@ sub amos_chksum {
 
     } else {    ##  implement other cases  ##  [LLL]
         my $ctx = Digest::BMW->new(512);
-        $ctx->add($$data_ref);
+        $ctx->add( $data_ref->$* );
         $bmw_512b = unpack( qw| B512 |, $ctx->digest );
     }
     ##
@@ -209,6 +233,11 @@ INVERT_TRUTH_STATE:
 
         or $algorithm_set_up{'chksum_B32'}     ##  encoded result string  ##
         and not is_true( $checksum_encoded, 0, 1, @elf_modes )
+
+        or defined $truth_template
+        and not is_true( sprintf( $truth_template, $checksum_encoded ),
+            0, 1, @elf_modes )
+
     ) {
 
         ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
@@ -227,15 +256,37 @@ INVERT_TRUTH_STATE:
         }
         goto INVERT_TRUTH_STATE;                ##  <--  modify checksum   ##
     }
+    $truth_template = undef;                    ##  reset truth template  ##
+
+    ##  also return numerical checksum in list context  ##
+    return ( $checksum_encoded, $num_amos_csum ) if wantarray;
 
     ##  true  ##
     return $checksum_encoded;                   ##  VAX AND BASE32 ENCODED  ##
 }
 
+sub amos_template_chksum {
+    my $template = shift // '';
+
+    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
+    if ( @match_count != 1 ) {
+        warn_err( "sprintf template '%s' not valid [ expecting single %%s ]",
+            $template );
+        return undef;
+    } elsif ( @ARG == 0 ) {
+        warn_err('expected input parameters');
+        return undef;
+    }
+
+    $truth_template = $template;    ## reset after amos_chksum() call ##
+
+    return amos_chksum(@ARG);
+}
+
 return 5;  ###################################################################
 
-#,,..,,.,,,,,,,.,,,,.,,,,,.,,,..,,,,.,.,.,...,..,,...,.,,,,.,,,,,,.,,,,..,,,,,
-#AE5QP7SWYWUC3K5SRPUWIJXXRZCX4XOQAURNMSEUVJK52BZHQGQVL67IJLJ5FXAZDG7OIOS2OSI7E
-#\\\|MP7ZYHLAU6DGZ4V2CFR47LSMRXQ56OCFZE6GH325VUBUFGGR2PD \ / AMOS7 \ YOURUM ::
-#\[7]2NQ74HWLVJ5L7BNVDXUAYYMAEONY73FP6GYQUNKL3PQXOBWVEWAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,..,,.,,..,,,..,,,.,,..,,.,,..,,..,,...,...,...,..,,,,.,.,.,,.,,
+#6XZHYO2JZLJGARCZEAAE6M76SRXTH3HBYV7UIMIUXA4KRPZLLWGPUX5WFUXN6L46YSSJJC6QH46VO
+#\\\|KGHEQWO4X7YPROGAO2DZCBJMKQOVCJ3NRWEC65S2XGO56F4M2DD \ / AMOS7 \ YOURUM ::
+#\[7]GSVXGMCD4OZYFMUFJ2C6TV6DRRBV6NTPMG3OKHWPRI3LKO7R3UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

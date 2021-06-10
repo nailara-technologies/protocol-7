@@ -21,7 +21,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 
 ## inline elf source code version ##
 ##
-our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-X6WFHLA |;    ##  amos-chksum -VS  ##
+our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-MGF4O4Y |;    ##  amos-chksum -VS  ##
 
 our $debug_output_to_console = 0;
 
