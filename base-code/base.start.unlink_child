@@ -12,9 +12,9 @@ if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
 
     my $child_code = <<~ "EOT";
     use v5.24; use strict; use warnings; use English;
-    map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
+    map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
     \$PROGRAM_NAME = q|$zenka_name-<root>-unlink-child|;
-    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) if -f \$file }
+    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) if -e \$file }
     EOT
 
     <process.unlink_child.pid>
@@ -28,8 +28,8 @@ if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
     );
 }
 
-#,,,.,,,.,,,,,..,,.,,,...,,..,.,.,,,.,,.,,.,.,..,,...,..,,.,.,,.,,,.,,.,,,..,,
-#OUKGOFPRMDFCXSKI24QRCIIZTTNNEYYY3U3SNR4HRH4EF34UCA5MRQY5PT7XFHQDBXDMIZSV7HN5W
-#\\\|AO4HAAOTMKKJYDQBWRJLJYH4N4QW7Q6XGMMQU4NEPJQU2JQZCHT \ / AMOS7 \ YOURUM ::
-#\[7]TEBDJTRF27RN6D4H6JNBA7ZVFPR4VLNOEDYRNBXL2IBAAXKYOIDQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,.,,,.,.,.,,,,,.,.,,,.,.,,..,..,,...,...,...,...,,,,,.,,,,..,
+#EZHDLXPFRUI7NMTFFDO6C63VFEZGIAUYV4NWU2N3AFXIB3NS54OZ3PY5P54D577LXRAYLUZVGCA6W
+#\\\|O3DRTTKWVCWDHVEDPLVMIOYZK733KKORIFSXXQOSKDJ74ZBOOIB \ / AMOS7 \ YOURUM ::
+#\[7]APGTA22TP4TFTW5XULAQBDVC4E2TXLM2LIYMYXJNQSP5VXK5NQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
