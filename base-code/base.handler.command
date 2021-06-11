@@ -181,8 +181,8 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
     ( $cmd, $$call_args{'args'} ) = ( $1, $4 );
 
     # cube zenka 'select' command [ base path prefix handling ]
-    $cmd = 'unselect' if $cmd eq '../';    # 'unselect' alias "../" << ! >>
-    $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
+    $cmd = qw| unselect | if $cmd eq qw| ../ |;    ## 'unselect'-alias '../'
+    $cmd = join( qw| . |, $data{'session'}{$id}{'base_path'}, $cmd )
         if defined $data{'session'}{$id}{'base_path'}
         and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
         and $cmd !~ s,^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|),$1$2,;
@@ -595,8 +595,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         = sprintf(
                         "command '%s' did not return hash ref [%s]",
                         $cmd, $reply // qw| undef | )
-                        if not length $EVAL_ERROR and not defined $reply
-                        or ref($reply) ne qw| HASH |;
+                        if not length $EVAL_ERROR
+                        and ( not defined $reply
+                        or ref($reply) ne qw| HASH | );
 
                     if ($EVAL_ERROR) {
                         my $err_str
@@ -614,8 +615,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
                         ##
                         if ($log_error) {
-                            <[base.log]>->(
-                                0, "[$id] <<< $err_str >>>" . $caller
+                            <[base.logs]>->(
+                                0,   "[%d] <<< %s >>>%s",
+                                $id, $err_str, $caller
                             );
                             my $params = $call_args->{'args'} // '';
                             my $msg    = "[$id]  \\\\\\ <$cmd>";
@@ -627,12 +629,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ LOCAL CMD \ DEFERRED ]####################################################
 
-                ### deferred reply., ###
-
                 if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' )
-                {
-
-                    <[base.log]>->( 2, "setting up reply for id $reply_id" );
+                {    ### deferred reply., ###
+                    <[base.logs]>->(
+                        2, 'setting up reply for id %d', $reply_id
+                    );
 
                     # [LLL] set up reply timeout .,
                     return 0;    ##  command processing was complete  ##
@@ -654,8 +655,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     $$reply{'mode'} = qw| false |;
                     $$reply{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
-                    <[base.log]>->(
-                        0, "[$id] cmd ['$cmd'] <-- [ hashref expected ]"
+                    <[base.logs]>->(
+                        0,   "[%d] cmd ['%s'] <-- [ hashref expected ]",
+                        $id, $cmd
                     );
                 } elsif (
                     (   $reply->{'mode'} ne qw| size | ## <-- new type name ##
@@ -669,11 +671,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         = $file eq qw| base.handler.input |
                         ? "'$cmd'"
                         : "$file:$line";
-                    <[base.log]>->(
-                        0,
-                        "[$id] empty "
-                            . uc( $$reply{'mode'} )
-                            . "-reply attempted [$source_str]"
+                    <[base.logs]>->(
+                        0,   "[%d] empty %s-reply attempted [%s]",
+                        $id, uc( $$reply{'mode'} ), $source_str
                     );
                     $$reply{'mode'} = qw| false |;
                     $$reply{'data'} = 'error during command invocation'
@@ -704,8 +704,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL COMMAND \ HANDLER NOT DEFINED ######################################
 
             } else {
-                <[base.log]>->(
-                    1, "[$id] command '$cmd' configured but not defined"
+                <[base.logs]>->(
+                    "[%d] command '%s' configured but not defined",
+                    $id, $cmd
                 );
             }
 
@@ -728,7 +729,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
         #        not working yet..,
 
-        <[base.log]>->( 1, "outgoing: nexthop: '$1' command: '$2'" );
+        <[base.logs]>->( "outgoing: nexthop: '%s' command: '%s'", $1, $2 );
 
         $$output .= "FALSE not implemented yet.,\n";
         return 0;    ##  command processing was complete  ##
@@ -851,7 +852,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 }
                 return 0;    ##  command processing was complete  ##
             } else {
-                <[base.log]>->( 1, ": target user '$target_user' not found" );
+                <[base.logs]>->(
+                    ": target user '%s' not found", $target_user
+                );
             }
         }
 
@@ -860,7 +863,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if ( !@send_sids ) {    ## FALSE client not present ##
             $$output .= <[base.sprint_t]>->( qw| FZJASRY |, $_cmd_id );
 
-            my $llvl = $target_name eq 'p7-log' ? 2 : 1;
+            my $llvl = $target_name eq qw| p7-log | ? 2 : 1;
             <[base.logt]>->(    ##  offline  ##
                 $llvl, qw| ADMN6PY |, $id, $target_name, $command_str
             );
@@ -877,7 +880,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 (   not defined <system.zenka.mode>
                     or <system.zenka.mode> ne qw| cube |
                 )
-                or $user eq 'v7'    # [LLL] improve check if really v7 zenka
+                or $user eq qw| v7 |  # [LLL] improve check if really v7 zenka
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
                 push( @send_sids_left, $target_sid );
@@ -916,8 +919,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             my $target_session = $data{'session'}{$target_sid};
             if (   $target_session->{'user'} eq <base.session.uname.server>
                 or $target_session->{'user'} eq <base.session.uname.client>
-                or defined $target_session->{'authenticated'}
-                and $target_session->{'authenticated'} ne 'yes' ) {
+                or not
+                <[base.cfg_bool]>->( $target_session->{'authenticated'} ) ) {
                 $targets_denied++;
                 next;    # skip unauthorized connections
             }
@@ -940,19 +943,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
             if (   <system.verbosity.console> >= 2
                 or <system.verbosity.zenka_buffer> >= 2 ) {
-                <[base.log]>->(
-                    2,
-                    "[$id] $data{'session'}{$id}{'user'}"
-                        . " ..:. $target_name ..:. $cmd [M=$command_mode]"
+                <[base.logs]>->(
+                    2,            '[%d] %s ..:. %s ..:. %s [M=%s]',
+                    $id,          $data{'session'}{$id}{'user'},
+                    $target_name, $cmd, $command_mode
                     )
-                    if ( $target_name ne 'p7-log'
-                    or $cmd ne 'append'
-                    or !<debug.skip_log_msg> )
-                    and ( $cmd ne 'p7-log.append'
-                    or !<debug.skip_log_msg> )
+                    if ( $target_name ne qw| p7-log |
+                    or $cmd ne qw| append |
+                    or not <debug.skip_log_msg> )
+                    and ( $cmd ne qw| p7-log.append |
+                    or not <debug.skip_log_msg> )
                     and ( $user ne qw| v7 |
-                    or $cmd ne 'heart'
-                    or !<debug.skip_v7_heartbeat> );
+                    or $cmd ne qw| heart |
+                    or not <debug.skip_v7_heartbeat> );
             }
 
 ##[ LOGGING \ DEBUG MODE ]####################################################
@@ -962,7 +965,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 or <system.verbosity.zenka_buffer> >= 3
                 and defined $$call_args{'args'} ) {
                 ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
-                <[base.log]>->( 3, "[$id] : args [' $args_str ']" );
+                <[base.logs]>->( 3, "[%d] : args ['%s']", $id, $args_str );
             }
 
             $target_cmd_id =~ s|^($re->{cmd_id})$|($1)|;
@@ -979,7 +982,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 $data{'session'}{$target_sid}{'buffer'}{'output'}
                     .= $target_cmd_id
                     . $cmd . ' '
-                    . $$call_args{'args'} . "\n";
+                    . $call_args->{'args'} . "\n";
 
                 # [LLL] set up timeout handler
 
@@ -1060,8 +1063,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ##  command processing was complete  ##
 
-#,,,,,..,,,..,.,,,..,,,,.,.,.,,..,.,.,,,.,,,,,..,,...,...,,..,..,,,,,,...,,,.,
-#6WPALVCI3GAY64WQS4ACUWYS2SKYD3GRBUALVX4MHBCBBF7WV2FBZLB57X44GOYNHR6R33757REVS
-#\\\|Y4QFVYZF3RDWNOLL6BKNTCLAHSSDN4XJDXIQMI2VFT2XZW3ZKXR \ / AMOS7 \ YOURUM ::
-#\[7]NOV5UBOL3EIAUMHUGVKXALUF4MGN5JIJIKHE7KQ3NNU3264X7SAQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,...,...,...,.,,,,.,,.,,,,.,,..,,...,...,..,,,..,...,,,.,,,,,
+#3QSMEHG4PLGBSW7CY5QTCCUVO5TQFC4RSXBIBGRNGU7ZJ3VTJADFQNGSUV7F25YDCTOF73FLZDHIO
+#\\\|Z7YH4FQCRXTLEHHYOUP5UNKUGF3TN2FFLH3DGZXJ4KPP5D3MGR7 \ / AMOS7 \ YOURUM ::
+#\[7]3N7QZZVV6GVOBUPMO323VWU66HMDTB6K4YBRISEA746RFA2SFIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

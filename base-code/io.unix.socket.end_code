@@ -2,16 +2,22 @@
 
 # name = io.unix.socket.end_code
 
-if ( exists <process.unlink_child.w_fh> ) {
-    map { <process.unlink_child.w_fh>->say($ARG) } @{<unix.socket_paths>}
+if ( defined <io.unix.unlink_child_fh> ) {
+    map { <io.unix.unlink_child_fh>->say($ARG) } @{<unix.socket_paths>}
         if defined <unix.socket_paths>;
-    <process.unlink_child.w_fh>->close;
+    <io.unix.unlink_child_fh>->close;
+
+    delete <io.unix.unlink_child_fh>;
+    <[base.clean_hashref]>->(<io.unix>);
+
 } elsif ( defined <unix.socket_paths> ) {
-    map { unlink($ARG) } @{<unix.socket_paths>};
+    map { unlink($ARG) if -e $ARG and -w $ARG } @{<unix.socket_paths>};
 }
 
-#,,..,,.,,...,,..,,,,,,,,,.,.,,.,,,.,,,,.,...,..,,...,..,,...,,,,,..,,,,.,.,,,
-#NHQQBUFAD4APLEC6XO564QKDSG34MEYCXHQYICKCKTSRKHEUMAQTWBRJB2RGUMUVBCWI342HCTSSI
-#\\\|YA3PDRYNVLO343QLD24VBYDCYIKMQJ6AL6UNZJCYGFVKXUD7F3M \ / AMOS7 \ YOURUM ::
-#\[7]D7XJTIKTAOKULIAGJ4RYZKKO2QDRKLYZQPK2KISEOLF3K7VVGABY 7  DATA SIGNATURE ::
+delete <unix.socket_paths>;
+
+#,,,,,,..,,,.,,..,.,.,.,.,,,.,,.,,,..,...,,.,,..,,...,...,,.,,...,...,..,,...,
+#MQDRMQSOIHUODLL7DBU5Z7SCHYCKGK6DRRLSXC52PCHQWADNDXJH6Z46NPPNEQAUORXYHRVVRSM2Y
+#\\\|CJ3TURXJ55YY37U6AZ7LV25SAGZLB6KAXMRWYQPQMGGKJQQ7CKH \ / AMOS7 \ YOURUM ::
+#\[7]C2XG3CA336RZ4XHJIQZCT3KXJXQJI4O5KIDBJY4TYDCOQBBID4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
