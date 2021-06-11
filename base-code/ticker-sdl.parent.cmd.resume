@@ -6,15 +6,21 @@
 <ticker-sdl.child.paused> //= 0;
 
 if (<ticker-sdl.child.paused>) {
-    kill( 'CONT', <ticker-sdl.child.pid> );
+    kill( qw| CONT |, <ticker-sdl.child.pid> );
     <ticker-sdl.child.paused> = 0;
-    return { 'mode' => 'true', 'data' => 'ticker animation resumed' };
+    return {
+        'mode' => qw| true |,
+        'data' => 'ticker animation has been resumed ..,'
+    };
 } else {
-    return { 'mode' => 'false', 'data' => 'ticker was not paused!' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'ticker animation was not paused ..,'
+    };
 }
 
-#,,..,,..,,..,,,.,.,,,...,,.,,,.,,.,.,..,,,,,,..,,...,..,,.,,,.,,,.,.,..,,,.,,
-#U2RZKXLIMMC46JZBFKNLKZLK5BEPR4KBI6A5NPDZ5RSBISMI2INSU6M5DD344OHWHVS2LSIEMBAXM
-#\\\|XUZMH3DVVVKPCQMUOEAQT7V5KRWVDCOBNHFI5SIIGUIIXX2EGK6 \ / AMOS7 \ YOURUM ::
-#\[7]BCEWGM374JJOM6NEMSTCIMP43TD2WWAEU6M4VBFZIAQYMKD2CAAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,,.,,.,,,..,,,.,,...,.,.,.,.,..,,...,..,,,,.,..,,.,,,,,,,,.,,
+#GQN3WQNDMD2JCAKGQTAA5X2ZTXM2ZLLLKLW7D62WCIU3HDMBF5DYCB6CVPSXMRRX7W7ZNOTT625W6
+#\\\|VQJQWJALXRZOYUC7ZTOM526OL5GVLCVFFYFAMIH5YPI4GB7E7AJ \ / AMOS7 \ YOURUM ::
+#\[7]67VHLEUAQLD7J4MLBV3FPQ4YQH2QGFK4JXIFCXYA27RM4FJ2LEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

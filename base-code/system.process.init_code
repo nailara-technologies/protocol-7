@@ -8,39 +8,39 @@
 <[base.perlmod.autoload]>->('Sys::Statistics::Linux');
 
 <system.statistics> = Sys::Statistics::Linux->new(  # LLL: use initfile option
-    sysinfo   => 0,
-    cpustats  => 1,
-    procstats => 0,
-    memstats  => 1,
-    pgswstats => 0,
-    netstats  => 0,
-    sockstats => 0,
-    diskstats => 0,
-    diskusage => 0,
-    loadavg   => 0,
-    filestats => 0,
-    processes => 0,
+    qw| loadavg   | => 0,
+    qw| sysinfo   | => 0,
+    qw| cpustats  | => 1,
+    qw| memstats  | => 1,
+    qw| netstats  | => 0,
+    qw| procstats | => 0,
+    qw| pgswstats | => 0,
+    qw| sockstats | => 0,
+    qw| diskstats | => 0,
+    qw| diskusage | => 0,
+    qw| filestats | => 0,
+    qw| processes | => 0,
 );
 
 <system.statistics>->init;
 
 ## LLL: WHY WAS THIS REQUIRED? ###
 # <[event.add_signal]>
-#   ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+# ->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
 
 <process.table.top>   //= {};
 <process.count>       //= 0;
 <process.top_min.mem> //= 1;
 <process.top_min.cpu> //= 1;
-<system.process.pt>   //= new Proc::ProcessTable( 'enable_ttys' => 0 );
+<system.process.pt>   //= new Proc::ProcessTable( qw| enable_ttys | => 0 );
 <system.process.blacklist_match> = {};
 <system.blacklist.autokill> //= [
     map {qr|$ARG|}
         qw|
-        \.cube$
-        \.root$
+        \.v7(\[[^\]]+\])?$
+        \.cube(\[[^\]]+\])?$
         \.system$
-        kill\-child$
+        term\-child$
         ^(auto)?ssh
         ^\/sbin\/init(\s.+)$
         ^\/lib\/systemd(\s.+)$
@@ -49,7 +49,7 @@
 
 <list.top> = {
     'var'  => qw| size |,
-    'key'  => 'process.table.top',
+    'key'  => qw| process.table.top |,
     'mask' => '<key>:pid state start:running'
         . ' pctcpu:%_CPU pctmem:%_MEM fname:process',
     'align' => {
@@ -59,14 +59,14 @@
         'pctmem' => 'right-5',
         'pctcpu' => 'right-5',
     },
-    'filters' => { 'start' => 'base.parser.duration' },
+    'filters' => { 'start' => qw| base.parser.duration | },
     'descr'   => 'top process table'
 };
 
 0;
 
-#,,..,,..,..,,.,.,,,,,.,.,...,..,,,,.,.,,,.,,,..,,...,...,,..,,..,..,,,..,...,
-#EVRIKUCBZSL3HEBP26DBITWTH5PUOVXULU2VB4C2BLM75NYUK4GNDERVMSFHYGLUOWDX4PXBKABCQ
-#\\\|GXVGPROKT6HAUKRUQ5QGCL6QVC3DWE6QOWXHOY2MKB4BFRSWVKH \ / AMOS7 \ YOURUM ::
-#\[7]I3LFSUIJOP4QINM5UHE7KVWMPM5E7F7N43SNS6BVLMW27TNZ6MAA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,..,,,.,.,,,..,,.,,,,.,,.,,,...,..,,...,...,.,,,,,.,,..,,,.,.,,,
+#2UEE2KML5UYOFKSV7QXNI5BY7MZTOB2GKBFCNIFZNE47GEPGPA6DGYLJSKCVDPLNBPIJLABP36CWA
+#\\\|B2GCCRODKOJ2YY3QNDJVQCQ5X5S3AFNM6CBIETWMF2M5QITN52G \ / AMOS7 \ YOURUM ::
+#\[7]SPJZX6UG6QNZ3SCBR5QOGTPI33M6L44LUK2NPPV6X2TBMF5LFEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,15 +5,15 @@
 my $process_id  = shift;
 my $log_message = shift;
 
-# $log_message //= " : << killing '$rl_name' process >> [PID=$kill_pid]";
+##  $log_message //= " : << killing '$rl_name' process >> [PID=$kill_pid]";
 
 <[base.log]>->( 0, $log_message );
 
-<process.kill_child.w_fh>->print("$process_id\n");
+<process.TERM_chld.w_fh>->say($process_id);
 delete <process.table.top>->{$process_id};
 
-#,,,.,..,,,..,...,.,,,..,,.,,,,,.,.,.,,.,,,.,,..,,...,..,,...,..,,.,.,.,.,,,.,
-#4YCEDUY5SORJWRPV7VUOBWWZOIOT6IGTIZ76I36MIWAVBJ2LDMQQV4Z6NI3RMJ2DHGDBPGGNYQF42
-#\\\|SXVWU4NFSD4ZMH24PR5BATO6MF5KLJGWXK2U7K3VX2G3M3YHI47 \ / AMOS7 \ YOURUM ::
-#\[7]FALWS4WZ3S3ZJ72AQSHGCBQ6DLR5BFL3B7KHTJI3YB3KKVDL6UCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,.,.,.,,,,.,,.,.,,,,,...,,.,,..,,...,...,...,..,,,..,.,,,...,
+#Q5L2PMXTAHMOBFQVBXMACDR7GKW4XFWWC67254AHB7V6ULSE6IR7R5BCQAKJNTS5MNCFFBMIOWOHO
+#\\\|KJDFIMICIXZUPMOBKHB4UESPAFNWR2G3TVAOIHC6ORYNBGV6LP2 \ / AMOS7 \ YOURUM ::
+#\[7]HCU6Y2EQJJDDYWMTYZJPOMZ3U7UZVS557OKT5NIVNU7QJPAC6QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

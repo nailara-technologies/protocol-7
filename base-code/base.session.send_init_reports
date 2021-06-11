@@ -9,35 +9,58 @@ delete <system.timer>->{'send_reports'};
 
 return 0
     if not defined <system.init_reports>
-    or ref(<system.init_reports>) ne 'ARRAY';
+    or ref <system.init_reports> ne qw| ARRAY |;
 my @pending_reports = @{ delete <system.init_reports> };
 my $report_count    = scalar @pending_reports;
-return 0 if !$report_count;
+return 0 if $report_count == 0;
 
-my $s = $report_count == 1 ? '' : 's';
-<[base.log]>->( 1, " :. $report_count initialization report$s pending" );
+<[base.logs]>->(
+    ' :. %d initialization report%s pending',
+    $report_count, <[base.cnt_s]>->($report_count)
+);
 
 foreach my $item (@pending_reports) {
     my $target_command = $item->{'target_command'};
     my $cmd_param      = $item->{'param'};
+    my $reply_handler  = $item->{'handler'} // qw| dev.null |;
     my $description    = $item->{'descr'};
-    my $target_route
-        = substr( $target_command, 0, 5 ) ne 'cube.'
-        ? "cube.$target_command"
-        : $target_command;
-    <[base.log]>->( 1, " : '$description'" );
-    <[base.log]>->( 2, " :: $target_route $cmd_param" );
+
+    my $cmd_prefix;
+    my $target_route;
+
+    if ( <system.zenka.name> eq qw| cube | ) {
+
+        ##  direct route in cube zenka  ##
+        $target_route = $target_command;
+
+        ##  source + sid alias  ##
+        $cmd_prefix = 'cube 0000000';
+
+    } else {
+        $target_route    ##  prepend 'cube.'-prefix when missiong  ##
+            = index( $target_command, qw| cube. |, 0 ) == -1
+            ? sprintf( qw| cube.%s |, $target_command )
+            : $target_command;
+    }
+
+    <[base.logs]>->( " : '%s'", $description );
+    <[base.logs]>->( 2, " :: %s %s", $target_route, $cmd_param );
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => $target_route,
-            'call_args' => { 'args' => $cmd_param }
+            'call_args' => {
+                'args' => defined $cmd_prefix
+                ? join( ' ', $cmd_prefix, $cmd_param )
+                : $cmd_param
+            },
+            'reply' => { 'handler' => $reply_handler, 'params' => $cmd_param }
         }
     );
 }
 
 return $report_count;
 
-#,,,.,,,.,,.,,..,,,.,,,,.,,.,,.,,,,.,,,,,,...,..,,...,...,...,..,,...,,..,,..,
-#RYR23672SF7XDFJZGQB2KGSZCVNRTQ4LHTGRPSRASIJWG4JW2V3MDOIOBF4LRQW3VRL3P66FOAUQM
-#\\\|UR4KFKWSXYM5LH3HLDERP3SDUUIRTK26TKAH5CU64F2YB34AP7P \ / AMOS7 \ YOURUM ::
-#\[7]5ZTHVJEDZWVG4YQXXVLQBW7ETFALS7Q3RZPFM3WBVI65U3RIF6CY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,..,,,,.,,,,,.,,,,..,.,.,,.,,..,,...,...,..,,..,,..,,,.,,.,,,
+#GMKMKLKY3U2P36BE7XNY4U7MNABHNCY263GPL42KYFRBN4TY2G45UR6N32CROZCMIF3D24ZVVANMU
+#\\\|H6YS2BFKSURRV3I5LLUW2CYAYUVRRYUXAU2RWFXQGNVU57MPG2A \ / AMOS7 \ YOURUM ::
+#\[7]2VRAXM5AXPKVRVYAKI3VKPYK364MTLPQUAO3EVBJJWDBKU6V2GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

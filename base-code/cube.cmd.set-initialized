@@ -11,20 +11,31 @@ return { 'mode' => 'false', 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
 return { 'mode' => 'false', 'data' => "not an 'zenka' mode session" }
     if not defined $data{'session'}{$sid}{'auth'}{'method'}
-    or $data{'session'}{$sid}{'auth'}{'method'} ne 'zenka';
-return { 'mode' => 'false', 'data' => 'was already initialized' }
+    or $data{'session'}{$sid}{'auth'}{'method'} ne qw| zenka |;
+return { 'mode' => qw| false |, 'data' => 'was already initialized' }
     if defined $data{'session'}{$sid}{'initialized'}
-    and $data{'session'}{$sid}{'initialized'} eq '1';
+    and $data{'session'}{$sid}{'initialized'};
 
 $data{'session'}{$sid}{'initialized'} = 1;
 
 my $zenka_name = $data{'session'}{$sid}{'user'};
-<[base.log]>->( 1, "[$sid] zenka '$zenka_name' reported 'initialized'" );
+<[base.logs]>->(
+    "[%s] zenka '%s' reported as 'initialized'",
+    $sid, $zenka_name
+);
 
-return { 'mode' => 'true', 'data' => 'initialized' }
+##  if v7 zenka, send init reports when available  ##
+<system.timer>->{'send_reports'} = <[event.add_timer]>->(
+    {   'repeat'  => 0,
+        'after'   => 0.777,
+        'handler' => qw| base.session.send_init_reports |
+    }
+) if $zenka_name eq qw| v7 |;
 
-#,,..,,,.,,,,,,.,,,.,,.,.,.,.,,,,,.,,,...,,,,,..,,...,...,...,,..,.,.,,..,,..,
-#BEGCKZEHZYG5AXQXHOSDFPD4K6I25676AIYCA76RQLR6RSRGVHCVX67YQ5LR5FYCI3HKGQESXW2NE
-#\\\|AA2BA2G6OUD6JWHILPVE5TS6N3GJMONZU45NBLZZ3OT5ID3RAZF \ / AMOS7 \ YOURUM ::
-#\[7]3AXQG5F3DOJDJZRE4UDEGOQUGVKIHXODK24APLW2PEFC6KOSTMBY 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => qw| initialized | }
+
+#,,..,..,,,..,..,,,.,,...,.,,,,.,,..,,,..,,..,..,,...,.,,,..,,,..,,.,,,..,,.,,
+#HF4ACMCI37APUHOO2V2T773JQCDFB3C2WHET3TDNPGFT4WXXQKTC7IOHJAAWXMFYLDCBEKYLFTC26
+#\\\|Q2YCXGICSJK5FAG3PGYFZSJI6KEYTNRFWX4GT64ODMSQ3TSR2QN \ / AMOS7 \ YOURUM ::
+#\[7]VGL737N7FN4ZVNSBECOHZGKEUJSDJQEQCVTWBXOCFO5APVYA6KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -280,13 +280,13 @@ sub amos_template_chksum {
 
     $truth_template = $template;    ## reset after amos_chksum() call ##
 
-    return amos_chksum(@ARG);
+    return scalar amos_chksum(@ARG);
 }
 
 return 5;  ###################################################################
 
-#,,.,,,,.,,..,,..,,.,,..,,,..,,,.,,..,,.,,..,,..,,...,...,...,..,,,,.,.,.,,.,,
-#6XZHYO2JZLJGARCZEAAE6M76SRXTH3HBYV7UIMIUXA4KRPZLLWGPUX5WFUXN6L46YSSJJC6QH46VO
-#\\\|KGHEQWO4X7YPROGAO2DZCBJMKQOVCJ3NRWEC65S2XGO56F4M2DD \ / AMOS7 \ YOURUM ::
-#\[7]GSVXGMCD4OZYFMUFJ2C6TV6DRRBV6NTPMG3OKHWPRI3LKO7R3UAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,,,.,.,.,.,,,,.,,.,.,...,.,,,..,,...,...,..,,,,,,,,,,.,.,.,.,
+#CC3NLXXY47P7GOYVB67BWQAO4BIN54HGZJYC3VZLIJZHAUXD4OGZLX3X33EJAO3M32Q323AYAKYRS
+#\\\|DM4R2JI5BQQ47YZ34APY42TL6KVFKC5CIAY25YU7FBVEPSCRXXR \ / AMOS7 \ YOURUM ::
+#\[7]KRDYLLBEYOWFNJUTMKJLGVCCOSRVPPWB3HLM6EHUK2BDMAHVHQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
