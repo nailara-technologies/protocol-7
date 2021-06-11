@@ -4,16 +4,27 @@
 
 my $socket_path  = shift;
 my $socket_umask = shift // 0775;
+my $socket_owner = shift;
 
-<[base.start.unlink_child]>;
+if ( not defined $socket_owner ) {
+    <[base.start.unlink_child]>;
+    ##  prepare automatic clean-up of unlink-chld when no longer required  ##
+    <io.unix.unlink_child_fh> = delete <process.unlink_child.w_fh>;
+    <[base.clean_hashref]>->(<process.unlink_child>);
+    delete $data{'process'} if not keys $data{'process'}->%*;
+}
 
-undef <unix.socket_paths> if ref(<unix.socket_paths>) ne qw| ARRAY |;
+undef <unix.socket_paths> if ref <unix.socket_paths> ne qw| ARRAY |;
 <unix.socket_paths> //= [];
 
 my $uaddr = sockaddr_un($socket_path);
 my $proto = getprotobyname('tcp');
 
-unlink( my $tmp_spath = "$socket_path.NEW" );
+my $tmp_spath = join qw| . |, $socket_path,
+    AMOS7::CHKSUM::amos_template_chksum( "$socket_path.%s", \$PID );
+
+unlink($tmp_spath);    ## automatic clean-up [ error case ] ##
+
 my $unix_sock = IO::Socket::UNIX->new(
     Type   => SOCK_STREAM(),
     Local  => $tmp_spath,
@@ -26,17 +37,33 @@ rename( $tmp_spath, $socket_path )
 ##  unlink child removes path in io.unix.socket.end_code  ##
 push( @{<unix.socket_paths>}, $socket_path );
 
+push(
+    @{<system.init_reports>},
+    {   'target_command' => qw| v7.report-temp-path |,
+        'param'          => $socket_path,
+        'handler'        => qw| io.unix.socket.handler.report-tmp-path |,
+        'descr'          => 'registering unix domain socket file'
+    }
+);
+
 chmod( $socket_umask, $socket_path )
     or die "io.unix.socket.input.open: chmod: \l$OS_ERROR";
 
+if ( defined $socket_owner ) {
+    my ( undef, undef, $uid, $gid ) = getpwnam($socket_owner);
+    chown( $uid, $gid, $socket_path )
+        or die "io.unix.socket.input.open: chown[$socket_owner]: \l$OS_ERROR";
+}
+
 ( my $sp_str = $socket_path ) =~ s{^\Q/var/run/.7/UNIX/\E}{};
-<[base.logs]>->( 1, "UNX server launched [unix:%s]", $sp_str );
+<[base.logs]>->( "UNX server launched [unix:%s]", $sp_str );
 
 if ( defined $data{'handle'}{$unix_sock} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
-        "io.unix.socket.input.open: handle '$unix_sock' "
-            . "was not cleaned up, doing now .,"
+        "io.unix.socket.input.open: handle '%s' "
+            . "was not cleaned up, doing now .,",
+        $unix_sock
     );
     delete $data{'handle'}{$unix_sock};
 }
@@ -46,8 +73,8 @@ $data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
-#,,,.,...,,,.,.,,,,,.,..,,..,,.,.,,.,,,,.,.,,,..,,...,...,..,,.,.,,,.,.,.,,,.,
-#7KPZYWYOWNUVQRTHDHY5SWLMOXZ3RSX5DNPPSVVJX7VUFGV2MSRS2YWWJKDXWXRLBRD52AAVMFNZE
-#\\\|L24FTOLU4H77X7WFZCYW7CEU3SDYXEVZXVL6KNUHUDSC52TYD4T \ / AMOS7 \ YOURUM ::
-#\[7]EVAPYNOSLN4VR4C37QERBSFFMUMTRVCEQVTLOMOUICZSU2ZMUCCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,...,,,,,,,,,.,.,...,,..,,,,,..,,...,...,.,.,...,,,.,..,,,..,
+#3YQLSKZB7FUE4RESS66A44YBIKIKLOPUHFDXECRDQCJEAGAD3I3IGKGYJERUAGSEMNZKVGDXUVY6Q
+#\\\|HIMFNYROPTDLJANLJ57CVBTEXRKF4L3NJEBEE3KUWUEE3V7KYS7 \ / AMOS7 \ YOURUM ::
+#\[7]UHXTP34CQGNTYZAVOX7D4U53V4TF52FHY6KIZ73WCVJ7WXQYXEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

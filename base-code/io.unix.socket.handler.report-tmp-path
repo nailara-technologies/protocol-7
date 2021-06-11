@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = io.unix.socket.handler.report-tmp-path
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+
+    my $reported_path = $reply->{'params'};
+    return
+           if not defined $reported_path
+        or not defined <unix.socket_paths>
+        or ref <unix.socket_paths> ne qw| ARRAY |;
+
+    my @remaining = grep { !m|^$reported_path$| } <unix.socket_paths>->@*;
+
+    if (@remaining) {
+        <unix.socket_paths> = \@remaining;
+        say '< return 0010 > ' . join( ' ', <unix.socket_paths>->@* )
+            and return;    ##  unlink child still required if running  ##
+
+    } else {
+
+        delete <unix.socket_paths>;
+        <[base.clean_hashref]>->( $data{'unix'} );
+        delete $data{'unix'} if not keys $data{'unix'}->%*;
+
+        ##  other references exist, keep running  ##
+        return if defined <process.unlink_child.w_fh>;
+        return if not defined <io.unix.unlink_child_fh>;
+
+        <[base.log]>->( 2, 'stopping unlink child.., [ paths reported ]' );
+
+        <io.unix.unlink_child_fh>->close;
+        delete <io.unix.unlink_child_fh>;
+        <[base.clean_hashref]>->(<io.unix>);
+        <[base.clean_hashref]>->( $data{'io'} );
+        delete $data{'io'} if not keys $data{'io'}->%*;
+    }
+}
+
+#,,,,,,.,,,.,,,..,..,,...,,.,,,..,..,,..,,,..,..,,...,...,.,.,,,.,,,,,,.,,..,,
+#B24YEZKSO6KRDBLA5QF5J4DRUMT2V7A4YP4US5HXGJD432IABNND46NQJANKZWOJG62T3XCCBWZ36
+#\\\|B42H2BNJS27AKTUT3KDGYK6HUZYBDAI3W6URCPFVZTUUKI6EMNE \ / AMOS7 \ YOURUM ::
+#\[7]AGUPWGEJAMXCRUPEKI5EKLZFLOF3CGMBCICV2FZZAGAL742FMQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

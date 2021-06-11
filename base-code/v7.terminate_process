@@ -17,19 +17,20 @@ map {
         if defined $instance_id
 } @children;
 
-<[base.log]>->( 1, ": <TERM> instance PID " . $kill_pid )
-    if kill( 'TERM', $kill_pid );
+<[base.logs]>->( ': <TERM> instance PID %d', $kill_pid )
+    if kill( qw| TERM |, $kill_pid );
 
 my @kill_list = ($kill_pid);
 
-my @actually_killed;
-map { push( @actually_killed, $ARG ) if kill( 'TERM', $ARG ) } @children;
+my @actually_ended;
+map { push( @actually_ended, $ARG ) if kill( qw| TERM |, $ARG ) } @children;
 
-if (@actually_killed) {
-    push( @kill_list, @actually_killed );
-    my $ren = scalar @actually_killed == 1 ? '' : 'ren :';
-    <[base.log]>->(
-        1, ": <TERM> child$ren " . join( ', ', @actually_killed )
+if (@actually_ended) {
+    push( @kill_list, @actually_ended );
+    <[base.logs]>->(
+        ": <TERM> child%s %s",
+        <[base.cnt_s]>->( scalar @actually_ended, '', 'ren :' ),
+        join( ', ', @actually_ended )
     );
 }
 
@@ -42,8 +43,8 @@ map { <v7.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
     }
 ) if @kill_list;
 
-#,,,,,..,,,..,,,,,,..,.,,,,..,,..,,.,,...,,.,,..,,...,...,.,,,..,,,..,...,,,.,
-#GVBD6TW6WFNFSIAFO4WL46V2ZYCMZGMPJPG2FVBSYPCW5TSXNRM5LTAP7QG2H2INZOQIOOQBCI22A
-#\\\|6QHAUKUJ47AN4FZACTOWE7D6U7ANIQFLJAZ7DEBFWPZDWAZWHWD \ / AMOS7 \ YOURUM ::
-#\[7]KS5XBLRJDTXXYE5DOQDR2KFZILIK3O35LZSTMUN6CSGJ33I32EDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,...,,,.,.,.,,,,,,.,,,.,,,,.,..,,...,...,..,,...,,,,,,..,.,.,
+#JOJPTSFQP52EL2PKDVKGRX5MX4J4GS7HV3BG5WUFZNWAJSTLKEA77DYLTL23HDB5DMGNL45CXWX2G
+#\\\|C3DGTBFL33HFMDD2V65O7P2WCELYTX7IIBT2LQ7ES36JQZ7O6M6 \ / AMOS7 \ YOURUM ::
+#\[7]T2MYZO6MN4O5KGO5R7ZT67XWHDNMQD4EFZHNXTTG7HBIHHMUIMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

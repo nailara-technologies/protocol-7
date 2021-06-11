@@ -14,11 +14,13 @@
                                      X-11.get_screen_size \
                                      X-11.get_stack_order
 
-               access.cmd.usr.v7  =  heart *.heart session-key ondemand-zenka \
-                                     set-initialized *.verify-instance \
+               access.cmd.usr.v7  =  heart *.heart session-key \
+                                     ondemand-zenka set-initialized \
+                                     *.verify-instance \
                                      system.report-X-11-error
 
-           access.usr.cube-13     =  heart p7-log.append list
+          access.cmd.usr.cube-13  =  heart p7-log.append list \
+                                     v7.report-temp-path
 
            access.cmd.usr.system  =  v7.stop v7.start X-11.get_driver \
                                      v7.pid-instance v7.notify_online \
@@ -79,7 +81,8 @@
 
             access.cmd.usr.power  =  power-x11.set_states
 
-          access.cmd.usr.set-up   =  get-config *.get-config *.get-config-names
+          access.cmd.usr.set-up   =  get-config *.get-config \
+                                     *.get-config-names
 
            access.cmd.usr.events  =  content.update v7.start_once \
                                      composition.add_overlay \
@@ -107,9 +110,9 @@
                                      X-11.get_stack_order \
                                      screenshot.get_region_color
 
-           access.cmd.usr.remote-cam  =  content.get_list X-11.wait_visible
+       access.cmd.usr.remote-cam  =  content.get_list X-11.wait_visible
 
-          access.cmd.usr.web-browser  =  pdf2html.get_url X-11.bg_color \
+      access.cmd.usr.web-browser  =  pdf2html.get_url X-11.bg_color \
                                      X-11.gpu_load image2html.get_url \
                                      content.set_flags \
                                      composition.get_subconfig \

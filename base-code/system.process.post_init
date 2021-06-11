@@ -7,22 +7,23 @@
 
 ( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
 
-if ( not exists <process.kill_child.w_fh> ) {
-    <[base.log]>->( 1, "starting 'kill' child..," );
+if ( not defined <process.TERM_chld.w_fh> ) {
+    <[base.log]>->( 1, 'starting term child..,' );
     my $child_code = <<~ "EOT";
     use strict; use warnings; use English;
-    map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
-    \$PROGRAM_NAME = q|$zenka_name-<root>-'kill'-child|;
-    while(<STDIN>){ kill(9, \$1) if m|^(\\d+)\$| }
+    map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
+    \$PROGRAM_NAME = q|$zenka_name-<root>-'term'-child|;
+    while( <STDIN> ){ kill( 9, \$1 ) if m|^(\\d+)\$| }
     EOT
 
-    <process.kill_child.pid>
-        = open2( <process.kill_child.r_fh>, <process.kill_child.w_fh>,
-        <system.path.perl_bin>, '-e', $child_code )
-        || die "unable to start perl kill child process [ \l$OS_ERROR ]";
+    <process.TERM_chld.pid>
+        = open2( <process.TERM_chld.r_fh>, <process.TERM_chld.w_fh>,
+        <system.path.perl_bin>, qw| -e |, $child_code )
+        || die "cannot start perl 'term' child process [ \l$OS_ERROR ]";
 
-    <[base.log]>->(
-        1, ": child process started [pid=" . <process.kill_child.pid> . "]"
+    <[base.logs]>->(
+        ": child process started [PID=%d]",
+        <process.TERM_chld.pid>
     );
 }
 
@@ -37,8 +38,8 @@ if ( not exists <process.kill_child.w_fh> ) {
 
 0;
 
-#,,,,,,.,,,,.,,,.,,,,,...,.,.,,.,,...,,,,,...,..,,...,...,...,.,,,.,.,...,,,,,
-#PDBSE7ZXTQEIN5I46MIGCH5MFJML6H4LQYBVZAICLQTWVXYAVTXDNRKSZAXYKTLNXWI73KEMQUFX4
-#\\\|VYHTVJM24SNCQ7TTAKBB6UA375PP6XB6D7XG2SHHSRMYTSRU57Y \ / AMOS7 \ YOURUM ::
-#\[7]6Z2THSM32ZYUD7ULAZBSEDF2MSQXOQTOH763EMYL4MCLBB7S6QBQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,..,,..,,,..,,,,,,,.,,.,,.,,,..,,...,...,.,.,,..,,,,,..,,.,.,
+#5ZUBX37EAJQJ3ZALHUVEM6LARKIHZGQDUUFYSILQOR3NPLCS2IBCR46YKI7ZFKJQTUHYHCZ52TVUQ
+#\\\|YHYYRDQJRECUVAUBLXUIXY7G7EVGLK2LB2L6CYQPNYQFQBYGLKA \ / AMOS7 \ YOURUM ::
+#\[7]OTHVKD22EIQQJ3NAE23AD3P5R4H3U6TCMPNTBL2WX3SC4BFW54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

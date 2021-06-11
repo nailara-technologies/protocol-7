@@ -16,7 +16,7 @@ system.verbosity.zenka_buffer = 1
 
 system.zenka.type            =  cube
 modules.load                 =  auth net chk-sum.bmw protocol io.unix io.ip \
-                                crypt.C25519 cube                   ## debug
+                                crypt.C25519 cube                  ## debug
 plugins.load                 =  plugin.auth
 auth.supported_methods       =  zenka unix
 
@@ -36,9 +36,11 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.zulum = <protocol-7.network.zulum>
 
 ## local unix domain socket ##
-[file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
-unix-13.path=[base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
-unix-13.sock=[base.open:'unix','input',"/var/run/.7/UNIX/<unix-13.path>",0777]
+unix.owner = <system.amos-zenka-user>
+[file.make_path:'/var/run/.7/UNIX',0775,<unix.owner>]
+unix-13.s_name=[base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
+unix-13.path='/var/run/.7/UNIX/<unix-13.s_name>'
+unix-13.sock=[base.open:'unix','input',<unix-13.path>,0777,<unix.owner>]
 
 ## ip.tcp socket ##
 tcp_ip-13.sock=[base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]

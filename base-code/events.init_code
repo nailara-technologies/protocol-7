@@ -36,7 +36,7 @@ my $config_filename = "event-setup.$config_name";
 <events.timers>    //= {};
 
 if ( keys %{<events.timetable>} ) {
-    <[base.log]>->( 1, ':. skipping event setup [ already initialized ] .,' );
+    <[base.log]>->( 1, ':. skipping event set-up [ already initialized ] .,' );
     return 0;
 }
 
@@ -49,7 +49,7 @@ my $cfg_full_path
 if ( !-f $cfg_full_path ) {
     <[base.log]>->( 0, "<< '$config_filename' set-up not found >>" );
 } else {
-    <[base.log]>->( 1, "<< loading '$config_name' event setup >>" );
+    <[base.log]>->( 1, "<< loading '$config_name' event set-up >>" );
     ## loading events setup configuration ##
     local <system.conf_path> = "$cfg_root_path/zenki/" . <system.zenka.name>;
     $config_data = <[base.load_section_conf]>->($config_filename);
@@ -144,8 +144,8 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 
 0;
 
-#,,..,...,,,,,,.,,.,.,.,,,,,.,.,,,,,,,,..,,.,,..,,...,...,..,,,,.,.,,,.,,,,,.,
-#NLXDXEFUDGRPF6RSWHRIXVOS3XSXI7ZE3K6HQPS2BL3GCITLHDFKVQNI7KLVBUFMN3LVUGHP6P262
-#\\\|FTMN4AK6ND7EPVSNFWHEP3VZ3HVJSKDFSCRWLSQKRJGXBOIA2DE \ / AMOS7 \ YOURUM ::
-#\[7]RJRVYLK5FZB2C635ZG2OK2NCBQKD3Z7O3ZEPR6AQ22R6PPQGRGBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,..,...,.,.,..,,,,.,,.,,.,,,..,,...,..,,,..,,,.,,.,,...,...,
+#H36TABUD4NMTKCDJG7F3WTU5K73E6I6EW3WSKDHYSJY5VW6YAVFFJQYNFKSXNS5PPXO2UMCD2H6SS
+#\\\|3ZGIINICOKPMNOJ4K7A5ZJ5KZHHQM3Y7HQOTVQ6JHLUUKEQMIFH \ / AMOS7 \ YOURUM ::
+#\[7]B6XVV5XNRSME5ROUJA2YXIHH553HMF4CNWV2XNINWSRA53LZHSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
-if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
+if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
 {
     my $zenka_name_chars = qr|0-9A-Za-z_\-|;
     <[base.log]>->( 2, ': : starting unlink-child ..,' );
@@ -26,10 +26,12 @@ if ( not exists <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
         2, qq|: started unlink child [pid=%s]|,
         <process.unlink_child.pid>
     );
+
+    return <process.unlink_child.w_fh>;
 }
 
-#,,,.,,..,,,.,..,,.,,,.,.,.,,,,,.,.,,,.,.,,..,..,,...,...,...,...,,,,,.,,,,..,
-#EZHDLXPFRUI7NMTFFDO6C63VFEZGIAUYV4NWU2N3AFXIB3NS54OZ3PY5P54D577LXRAYLUZVGCA6W
-#\\\|O3DRTTKWVCWDHVEDPLVMIOYZK733KKORIFSXXQOSKDJ74ZBOOIB \ / AMOS7 \ YOURUM ::
-#\[7]APGTA22TP4TFTW5XULAQBDVC4E2TXLM2LIYMYXJNQSP5VXK5NQDI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,..,..,,,,,,,..,,.,,..,,..,,..,,...,...,,.,,...,..,,,,,,,,.,
+#IMS34AQYPZO5XUQNSYC24S5SYDDDNBWEAL3OXH2XFUV7FGJ4GBELONNYLE6MXTRN5HVBOJVPAEQ5O
+#\\\|KHBEPN73FTIQZH2T3VQ3F2NDPYEB4ZK2LFXGIM5ID3LVO66SQW6 \ / AMOS7 \ YOURUM ::
+#\[7]OOWLR6WH3KBU7GB3NHMKAYJ5BOTZALT6W55TPTVB2H647M5SWMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

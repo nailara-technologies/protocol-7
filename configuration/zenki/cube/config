@@ -51,9 +51,11 @@ net.auth.timeout = 13   ## protocol-7 ##
 cube.local = <protocol-7.network.internal>
 
 ## local unix domain socket ##
-[file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
-unix.path = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
-unix.sock = [base.open:'unix','input',"/var/run/.7/UNIX/<unix.path>",0777]
+unix.owner = <system.amos-zenka-user>
+[file.make_path:'/var/run/.7/UNIX',0775,<unix.owner>]
+unix.s_name = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
+unix.path  = '/var/run/.7/UNIX/<unix.s_name>'
+unix.sock = [base.open:'unix','input',<unix.path>,0777,<unix.owner>]
 
 ## ip.tcp socket ##
 tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
