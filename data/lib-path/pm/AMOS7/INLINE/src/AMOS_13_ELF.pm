@@ -9,11 +9,13 @@ use English;
 use warnings;
 
 use Exporter;
-use vars qw| @EXPORT |;
+use vars qw| @EXPORT @EXPORT_OK |;
 use base qw| Exporter |;
-@EXPORT = qw| $VERSION |;
 
-our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-J2FXSQI |;
+@EXPORT    = qw[ ];
+@EXPORT_OK = qw| $VERSION |;
+
+our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-HQ7GNVQ |;
 
 ##[ BITSTRING CONVERSION ]####################################################
 
@@ -28,6 +30,9 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
         ) {
 
         inline_stack_vars;
+
+        if( input_str == &PL_sv_undef )
+            croak("input_str is undefined");
 
         unsigned int overflow_shift_threshold = 0XFE000000; // <-- 7 bit
         unsigned int result = start_sum;  // start_sum 0 when no continuation
@@ -134,8 +139,8 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
 return 5;    ##  true  ##
 
-#,,..,,..,.,.,,,.,,..,,,.,.,,,..,,.,.,,..,,.,,..,,...,...,...,.,,,,.,,..,,.,.,
-#VS5RBGZHET5XXJ7SBMVTASOZUWJ2YHMDRGYSNGVM6RPR343VRZWT37U7JVPXBXVNMOX5DJWVKWQN4
-#\\\|LQWETHXQEWL2GRWQKHYXYYGH2ZEH54MCQJVHECNPIVRVHJTO5T2 \ / AMOS7 \ YOURUM ::
-#\[7]YZQL2JZ3VBGINZ764C3MP3IWQEJL6I7QGV4H5AGKACZXFY543ECY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,,.,,,.,..,,.,.,,,.,.,,,,,.,..,,...,...,.,,,..,,,,,,..,,,..,
+#66LBQ4UHXQSHAKJS7DNHKPADVJPHWNSKUYM4PTGAPJOM76PZC34ZSV3OERJYGGAQHA3OPO3SAS3TE
+#\\\|66UCH6RXL7JZ7GFRKXIO4MSHEV2U2KLFCH2HYNLBYQ77EL6V6PB \ / AMOS7 \ YOURUM ::
+#\[7]NTOYLPAXGCGTMVZU6WKGR2XSLRMZZGAZHLEZWESUR4H6OKI3FIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
