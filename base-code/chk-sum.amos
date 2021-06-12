@@ -4,23 +4,26 @@
 # descr = AMOS-checksum calculation
 # param = input string, scalar reference or hash reference to parameters
 
-my $input;
-my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
-
 return warn 'expected input string for AMOS-checksum calculation <{C1}>'
     if not @ARG;
 
-if ( not length ref( $ARG[0] ) ) {
-    $input = \join( ' ', @ARG );    ## CREATING REFERENCE TO DATA ##
-} elsif ( ref($input) eq qw| SCALAR | ) {
+my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };
 
-    $input = shift(@ARG);           ## BY SCALAR REFERENCE ##
+my $input_scalar_ref;
+if ( not length ref $ARG[0] ) {
+
+    ## CREATING REFERENCE TO DATA ##
+    $input_scalar_ref = \join( ' ', @ARG );
+
+} elsif ( ref $ARG[0] eq qw| SCALAR | ) {
+
+    $input_scalar_ref = shift(@ARG);    ## BY SCALAR REFERENCE ##
     warn '< chk-sum.amos > undefined input <{C1}>' and return undef
-        if not defined $$input;
+        if not defined $input_scalar_ref->$*;
 
     @modes = grep {m|^\d{1,2}$|} @ARG if grep {m|^\d{1,2}$|} @ARG;
 
-} elsif ( ref $ARG[0] eq qw| HASH | ) { ## read AMOS7::CHKSUM for parameters ##
+} elsif ( ref $ARG[0] eq qw| HASH | ) {    ## read AMOS7::CHKSUM for params ##
 
     return AMOS7::CHKSUM::amos_chksum( $ARG[0] );
 
@@ -34,10 +37,11 @@ if ( not length ref( $ARG[0] ) ) {
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-return AMOS7::CHKSUM::amos_chksum( $input, @modes ); ## passing by reference ##
+## passing by reference ##
+return AMOS7::CHKSUM::amos_chksum( $input_scalar_ref, @modes );
 
-#,,..,,,.,,.,,.,.,,.,,.,,,...,,.,,,,,,.,,,,,,,..,,...,...,,..,.,.,,,.,,.,,.,.,
-#7WEY4E6Y52RNCUDQ2IQFAHRX5JNYMH4KTEZH7NMURSJWNNINJTMRDMHKQJGNWHUNXYMMP2EGOCI4U
-#\\\|7SSH7WCYUUYPCQUGLDACYLYZXWVFBSG4HJGQKGC7F2KTHCL5CSN \ / AMOS7 \ YOURUM ::
-#\[7]ZVTB73LUHFLNRA42DZVUI2S5ESN7WQCNA6WNI2B6KNGMIFOPJKAI 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,...,,,,,,,.,,.,,..,,,,.,.,.,..,,...,...,...,,,,,,..,.,.,...,
+#47EFYPOE2P7BFWCMWCQLSJUDRSNPU4GQERCIXLKWG2FTXRNJNWIRCZTKTY7ELUJ5CRSNOKQRLI5LQ
+#\\\|BBIT2NJ7WRZWCQCP3FIQWAJ5AF2DMQAEPIWBGYKPN7LTHPY5R2U \ / AMOS7 \ YOURUM ::
+#\[7]D2G2AEPKBVOWRPG6ZU6LQBN5W3CYAWPX6B5HDM5VMGXZS233V6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
