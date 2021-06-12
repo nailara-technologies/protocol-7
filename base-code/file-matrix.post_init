@@ -2,14 +2,21 @@
 
 # name  = file-matrix.post_init
 
-my $usock_path = <[chk-sum.amos.unix.sock_path]>;
+my $socket_path_amos_chksum     = <[chk-sum.amos.unix.sock_path]>;
+my $unix_sftp_proxy_socket_path = <[file-matrix.sftp.unix.sock_path]>;
 
-<[file-matrix.amos_chksum.open_socket]>->($usock_path) or return -3;
+<[file-matrix.amos_chksum.open_socket]>->($socket_path_amos_chksum)
+    or return -3;
+
+return 0 if not <[base.cfg_bool]>->(<file-matrix.use_SFTP_socket>);
+
+<[file-matrix.protocol.SFTP.open_unix_socket]>->($unix_sftp_proxy_socket_path)
+    or return -3;
 
 return 0;
 
-#,,.,,.,.,..,,,,,,,,,,,,.,,,,,.,.,..,,,,.,.,.,..,,...,...,.,.,.,,,...,,,.,.,,,
-#FAYC3VGFJHROL4SSULDO4YTMDW523GSYASZ5YLDDNN2MRN2J7GJI4VBYLHS645OBMY7UKDOGKTY5C
-#\\\|GX5WLHGT3KHSQEVJTIPSKHWK5HOPYFKNKAGF4POGPBAMNRFYZKC \ / AMOS7 \ YOURUM ::
-#\[7]OZXTYBQNN4XMTBXDN2R3PNRTCMDYGIXKEXDNX25XKDXAVYCRPIDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,.,,,.,.,,.,,.,.,...,,,.,...,..,,...,...,...,,.,,,.,,,..,,.,,
+#NEGLTIA2OZUYU7HSCJ6KK5ERBENHDNR3LBVVI2NYENYMG4HFFG2OQOIQA764LT5W6BH7RRFMVG4CS
+#\\\|2RIBLN3A3QJQ64RDPBN3X7QSUA7DCVZFIA2ZDJG43FP4GQU365E \ / AMOS7 \ YOURUM ::
+#\[7]55GSTOE43NHW64SLUTR62EP64JXZKVC67ZBUTQUXVCWBQCXXCWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,49 @@
+## >:] ##
+
+# name  = chk-sum.amos.truth_template_chksum
+# descr = AMOS-checksum calculation with truth template
+# param = template string, scalar reference  to input string
+
+return
+    warn 'expected template and input '
+    . 'string for AMOS-checksum calculation <{C1}>'
+    if not @ARG == 2
+    or not defined $ARG[0];
+
+my $template_string = shift;
+
+my $input_scalar_ref;
+if ( not length ref $ARG[0] ) {
+
+    ## CREATING REFERENCE TO DATA ##
+    $input_scalar_ref = \join( ' ', @ARG );
+
+} elsif ( ref $ARG[0] eq qw| SCALAR | ) {
+
+    $input_scalar_ref = shift(@ARG);    ## BY SCALAR REFERENCE ##
+    warn '< chk-sum.amos > undefined input <{C1}>' and return undef
+        if not defined $input_scalar_ref->$*;
+
+} elsif ( ref $ARG[0] eq qw| HASH | ) {    ## read AMOS7::CHKSUM for params ##
+
+    return AMOS7::CHKSUM::amos_template_chksum( $template_string, $ARG[0] );
+
+} else {
+    <[base.s_warn]>->(
+        "< chk-sum.amos > unsupported reference type '%s' <{C1}>",
+        ref( $ARG[0] )
+    );
+    return undef;
+}
+
+##[ CHECKSUM CALCULATION ]####################################################
+
+## passing by reference ##
+return AMOS7::CHKSUM::amos_template_chksum( $template_string,
+    $input_scalar_ref, @ARG );
+
+#,,..,...,...,,,,,...,,,,,,,.,,.,,..,,,,.,.,.,..,,...,...,...,,,,,,..,.,.,...,
+#47EFYPOE2P7BFWCMWCQLSJUDRSNPU4GQERCIXLKWG2FTXRNJNWIRCZTKTY7ELUJ5CRSNOKQRLI5LQ
+#\\\|BBIT2NJ7WRZWCQCP3FIQWAJ5AF2DMQAEPIWBGYKPN7LTHPY5R2U \ / AMOS7 \ YOURUM ::
+#\[7]D2G2AEPKBVOWRPG6ZU6LQBN5W3CYAWPX6B5HDM5VMGXZS233V6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

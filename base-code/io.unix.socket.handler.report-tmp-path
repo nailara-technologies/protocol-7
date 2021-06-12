@@ -15,9 +15,9 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     my @remaining = grep { !m|^$reported_path$| } <unix.socket_paths>->@*;
 
     if (@remaining) {
+
         <unix.socket_paths> = \@remaining;
-        say '< return 0010 > ' . join( ' ', <unix.socket_paths>->@* )
-            and return;    ##  unlink child still required if running  ##
+        return;    ##  unlink child still required [ if running ]  ##
 
     } else {
 
@@ -39,8 +39,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {
     }
 }
 
-#,,,,,,.,,,.,,,..,..,,...,,.,,,..,..,,..,,,..,..,,...,...,.,.,,,.,,,,,,.,,..,,
-#B24YEZKSO6KRDBLA5QF5J4DRUMT2V7A4YP4US5HXGJD432IABNND46NQJANKZWOJG62T3XCCBWZ36
-#\\\|B42H2BNJS27AKTUT3KDGYK6HUZYBDAI3W6URCPFVZTUUKI6EMNE \ / AMOS7 \ YOURUM ::
-#\[7]AGUPWGEJAMXCRUPEKI5EKLZFLOF3CGMBCICV2FZZAGAL742FMQDA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,.,,,,.,,,..,,,,,,.,,..,,.,.,..,,...,...,,,.,..,,,.,,,,.,..,,
+#4N6XVSWWTOMD3TFFQQHQY6VDYWSTTY242ZBJNVOOCVREWCI6YMO5FHQ67PVAZ6SO4P4DSYZOWKQJQ
+#\\\|TV4UIXPT3X6CRZCNXH65H2NO4EZZA35QP6SNYLBAGUMKAVZ454Z \ / AMOS7 \ YOURUM ::
+#\[7]ZLWLWXHWI2GEXCX5SNMLH7B5GBSSAZKSGZDESOQ7ULSAZKJDEKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

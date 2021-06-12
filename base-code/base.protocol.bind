@@ -4,49 +4,74 @@
 # args  = filehandle, protocol [, mode]
 # descr = bind a specific protocol to a socket / filehandle
 
-return warn 'expected protocol name parameter' if not defined $_[1];
-if ( not defined $_[0] or not defined $data{'protocol'}{ $_[1] } ) {
-    my $protocol_name = $_[1];
-    my $reason
-        = defined $data{'protocol'}{$protocol_name}
-        ? 'unknown protocol'
-        : 'undefined filehandle';
-    <[base.log]>->( 0, "cannot bind protocol '$protocol_name' [ $reason ]" );
+my $socket_fh  = shift;
+my $proto_name = shift;
+my $mode       = shift // qw| server |;    ##  optional  ##
+
+return warn 'expected protocol name parameter' if not defined $proto_name;
+if ( not defined $socket_fh or not defined $data{'protocol'}{$proto_name} ) {
+    <[base.logs]>->(
+        0, "cannot bind %s protocol [ %s ]", $proto_name,
+        defined $data{'protocol'}{$proto_name}
+        ? 'undefined filehandle'
+        : 'unknown protocol'
+    );
     <[base.session.check_remaining]>;
-    return undef;
+    return undef;    ##  not successful  ##
 }
-$data{'handle'}{ $_[0] }{'protocol'} = $_[1];
-my $mode = $_[2] // qw| server |;
 
-my $fd = eval { fileno( $_[0] ) };
+$data{'handle'}{$socket_fh}{'protocol'} = $proto_name;
 
-if ( $EVAL_ERROR or not defined $fd ) {
-    my $ref_str = ref( $_[0] );
-    my $err_msg = "<< cannot bind protocol '$_[1]' to '$ref_str'-fd";
-    $err_msg .= ' ' . <[base.format_error]>->($EVAL_ERROR) if $EVAL_ERROR;
-    $err_msg .= ' >>';
-    <[base.log]>->( 0, $err_msg );
+my $fd = eval { fileno($socket_fh) };
+
+if ( length $EVAL_ERROR or not defined $fd ) {
+    <[base.log]>->(
+        0,
+        sprintf(
+            "<< cannot bind protocol '%s' to '%s'-fd%s >>",
+            $proto_name,
+            ref $socket_fh,
+            length $EVAL_ERROR
+            ? sprintf( ' %s', scalar <[base.format_error]>->($EVAL_ERROR) )
+            : ''
+        )
+    );
     <[base.session.check_remaining]>;
+    return undef;    ##  not successful  ##
+
 } else {
-    warn "file handle '$fd' has no file descriptor" if $fd == -1;
-    my $id = <[base.session.init]>->( $_[0], $_[1], $mode );
-    if ( defined $id ) {
-        <[base.log]>->(
-            2, "bound protocol '$_[1]' to handle '$_[0]' [ $mode mode ]"
+    <[base.s_warn]>->( "file handle '%s' has no file descriptor", $fd )
+        if $fd == -1;
+
+    my $id = <[base.session.init]>->( $socket_fh, $proto_name, $mode );
+
+    if ( defined $id ) {    ##  protocol bound  ##
+        <[base.logs]>->(
+            2, "bound protocol '%s' to handle '%s' [ %s mode ]",
+            $proto_name, $socket_fh, $mode
         );
+
+        return $id;         ##  client or server session id  ##
+
     } else {
-        <[base.log]>->(
+        <[base.logs]>->(
             0,
-            "session.init error : protocol '$_[1]'"
-                . " [ handle '$_[0]' [ $mode mode ]"
+            "session.init error : protocol '%s'"
+                . " [ handle '%s' [ %s mode ]",
+            $proto_name,
+            $socket_fh,
+            $mode
         );
-        eval { shutdown( $_[0], 2 ) };
-        eval { close( $_[0] ) };
+        ##  silent, no warning  ##
+        eval { shutdown( $socket_fh, 2 ) };
+        eval { close($socket_fh) };
+
+        return undef;    ##  not successful  ##
     }
 }
 
-#,,..,,..,..,,,,,,.,.,..,,,.,,.,.,..,,..,,..,,..,,...,..,,.,.,.,.,,,,,,..,...,
-#PBV2TEHPEHB2WQTXVDZEQKBE4NLTTEDAPUCH6G5NGVHBELBX7PW2NPHNK2I5ATUPQQHRVBP7MMQ2M
-#\\\|2RJBJAALUAUDAFJBJQRQXQGYJSSWR3RHJTAZ7BQQX7S7S34OUDC \ / AMOS7 \ YOURUM ::
-#\[7]URW52M7BAWAVMHJBNMGHXEJ5QP26H3G766MFUMAVWSCDO24P3GBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,.,,,,,.,.,.,..,,,..,..,,,,.,..,,...,...,.,.,...,...,.,,,,.,,
+#7X4E6JS7PQTNECQRO5JA2W3WPM5ZD7L3R5HE32XN6CN22ZUWGRUO5OSC2VYJ7QQUEBWLNMNSKHJ22
+#\\\|YXGHONCVVOSARXACNNN4SDW3SRVIHVH4FC5KTMGEJZHVKFLHLMF \ / AMOS7 \ YOURUM ::
+#\[7]AM7WRFWAIYG266DQFZSIF5IXQIGSSWR2HW6GHKOQIFCZ4E3R2SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

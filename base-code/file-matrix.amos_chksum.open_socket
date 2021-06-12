@@ -8,20 +8,22 @@ my $usock_perm = <file-matrix.permissions.amos_chksum_socket>;
 
 <[base.log]>->( 1, ': opening AMOS-CHKSUM unix-socket .,' );
 
-my $ac_usock = <[base.open]>->( qw| unix input |, $usock_path, $usock_perm );
+my $ac_usock = <[base.open]>->(
+    qw| unix input |,
+    $usock_path, $usock_perm, <system.amos-zenka-user>
+);
 
 return -3 if not -S $ac_usock;
 
 <file-matrix.unix_socket.amos-chksum> = $ac_usock;
 
 ## connecting to event management ##
-
 <[base.protocol.bind]>->( $ac_usock, qw| amos-chksum | );
 
 return 5;
 
-#,,,.,.,.,...,...,..,,,..,...,,,.,,.,,...,.,,,..,,...,...,..,,..,,..,,,.,,,,,,
-#4I5XLRW7MI7K5RX3P4C5EMZ5RXAALU27LWQXIRXTWYBA3BCR4S6QAIZJO642WCKDR7TNCCSHEMT4E
-#\\\|ZMK3JEC6PBMQNGTUWLP6PDDTRE7T27LWFNOXLPDKSAIRXSF5SHR \ / AMOS7 \ YOURUM ::
-#\[7]QWSI2YCYSXTSOW2STPRUTFGA3F2D7WIQG74NOP4QMXBKJAR6KMCY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,.,.,...,,.,,.,,,,..,.,,,,,,,..,,...,..,,,..,.,,,,,.,,,.,.,.,
+#JHXCZYD4F7OYWLIZIPIHIVXDXDCWKJTLFQ6NFLE3UJ33B2WCM5NFH5LFWNTXN7V2DZV265MGEZGGE
+#\\\|AGDZYKOI7Z6FF2YV54H77G4TGV3HPM2D2KONJ5ALNVLI36CRB3B \ / AMOS7 \ YOURUM ::
+#\[7]Y7WWP4WXP7XNJN6BZSHP2MUFFCVDIDLBYWF5LXBO2WBVO3DOGOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

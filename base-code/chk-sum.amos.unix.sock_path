@@ -5,10 +5,16 @@
 my $amos_chksum_ver = <[chk-sum.amos.calc_version]>->(0);
 my $usock_dir       = <system.path.unix_socket_dir> // qw| /var/run/UNIX |;
 
-return sprintf( "%s/%s", $usock_dir, $amos_chksum_ver );
+my $truth_template = sprintf qw| %s/%%s |, $usock_dir;
 
-#,,,.,,,,,,,,,.,.,...,...,,,.,..,,.,,,,,.,...,..,,...,...,...,..,,,,,,,,,,,,.,
-#4FCGKX4RSIL4JTTPOEFPI6Z4GR2NWEZMLUXJSVPTZ434KOZOXLEVFSTQODQH7M7VAA36F27O2QZ6S
-#\\\|MXQ36LFR3LSN2ZSMXNQWXVM2ULETCVMDQ4V4B6HEU4GS6H7YQQ6 \ / AMOS7 \ YOURUM ::
-#\[7]BXQR5TW5OVTC3LQMFDBU3P5JUGRKB2FMKBS2K76MUJU4Z2OJY6CA 7  DATA SIGNATURE ::
+my $usocket_name = <[chk-sum.amos.truth_template_chksum]>->(
+    $truth_template, \$amos_chksum_ver
+);
+
+return sprintf qw| %s/%s |, $usock_dir, $usocket_name;
+
+#,,,.,,,.,.,,,...,.,,,..,,,..,.,.,,,.,.,,,,,,,..,,...,...,.,,,,,,,.,.,,.,,.,,,
+#WMGFFWBW7M6TMPT77WW4L7BNWU6LUCWGFT6S2NTRWVV7J2TRELLFUZTVRAF32Y7AGBUPGTOSZ774E
+#\\\|OLFYJ4A4KFE2T5F6C76PR7ZF7BPFWAR3FGJ7SVNZISS2T3ZFTCI \ / AMOS7 \ YOURUM ::
+#\[7]ZTJTY2VHVMWBN2UBMA3M4ESQRMHFM7MD34WPXU3OKX34KVFBJWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
