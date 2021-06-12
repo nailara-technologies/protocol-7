@@ -14,7 +14,7 @@ my $instance_id = $watcher->data;
 if ( not exists <v7.zenka.instance>->{$instance_id} ) {
     $watcher->cancel;
     close($read_fh);
-    <[base.log]>->( 2, "instance $instance_id : output pipe closed." );
+    <[base.logs]>->( 2, 'instance %d : output pipe closed.', $instance_id );
     return;
 }
 my $zenka_instance = <v7.zenka.instance>->{$instance_id};
@@ -24,7 +24,7 @@ my $zenka_name     = <v7.zenka.setup>->{$zenka_id}->{'name'};
 <v7.patterns.zenka_output> //= {};
 <v7.patterns.log_matches>  //= 0;
 
-<[base.log]>->( 2, "instance $instance_id : zenka name not defined." )
+<[base.logs]>->( 2, 'instance %s : zenka name not defined.', $instance_id )
     and return
     if not defined $zenka_name;
 
@@ -43,10 +43,18 @@ $zenka_instance->{'matched-name-patterns'}
 
 my @match_name = @{ $zenka_instance->{'matched-name-patterns'} };
 
-while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]+)\n||s ) {
-    my $zenka_output_line = $LAST_PAREN_MATCH;
+while ( $zenka_instance->{'output_buffer'} =~ s|(^\s*\n+)*([^\n]+)\n||s ) {
+    my $zenka_output_line = ${^CAPTURE}[1];
 
     utf8::decode($zenka_output_line);
+
+    ##  highlight non-standard output [ debug lines ]  ##
+    $zenka_output_line = sprintf( '%s%s. : <%s>  %s%s %s %s',
+        $ANSI{'p7_fg_0001'}, $ANSI{'p7_bg'},
+        $zenka_name,         $ANSI{'p7_fg_0002'}, $ANSI{'bold'},
+        $zenka_output_line,  $ANSI{'reset'} )
+        if index( $zenka_output_line, "\e", 0 ) == -1
+        and index( $zenka_output_line, '.', 0 ) == -1;
 
     say $zenka_output_line    ##  display when verbose or log level 0  ##
         if <system.verbosity.console>
@@ -57,8 +65,10 @@ while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]+)\n||s ) {
 
     if ( !@match_name ) {
         if ( not exists <v7.status.warning>->{"pattern_$zenka_name"} ) {
-            warn "no defined output patterns matching zenka '$zenka_name'";
-            <v7.status.warning>->{"pattern_$zenka_name"} = 1;
+            <[base.s_warn]>->(
+                "no defined output patterns matching zenka '%s'", $zenka_name
+            );
+            <v7.status.warning>->{ sprintf qw|pattern_%s|, $zenka_name } = 1;
         }
         goto SKIP_PROCESSING;    ##  no pattern matching  ##
     }
@@ -70,7 +80,7 @@ while ( $zenka_instance->{'output_buffer'} =~ s|^([^\n]+)\n||s ) {
         =~ s{^\.( +[^\.]+)?\.+($zenka_name|<zenka_name>) +\. }{};
 
     foreach my $pattern_name (@match_name) {
-        foreach my $pattern ( keys %{ $output_patterns->{$pattern_name} } ) {
+        foreach my $pattern ( keys $output_patterns->{$pattern_name}->%* ) {
 
             if ( my @matches = $zenka_output_line =~ $pattern ) {
 
@@ -89,8 +99,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,..,,.,,..,,.,,,,,,,.,,,,,,,,,,,.,.,,..,...,..,,...,...,.,.,...,.,.,...,..,,
-#ME6BUOI4BNSW7WTBCXRKR3W3GSGSS3GY2KJOIEK6BID3PO4DCSGGBS7AKSIA35Y32WA22NGDZ77AU
-#\\\|2E5ZSXECWD5UCMMTO7O4HDOLEPBFEQHQURDTWXTZFNE7DFH2ZOX \ / AMOS7 \ YOURUM ::
-#\[7]WSCCJM3YVRGESP7K4PLJPZICWPS6SUG6MOM7LABC6MZ3FTGKYSDY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,,.,,,..,,,,,,.,,..,,,..,..,,..,,...,...,...,.,,,.,.,,,,,.,,,
+#JTY67II35EHW32JXRVU4VENEW2LERCB7KUSDYN4F4HFBM36BZAQTB7TSJDU3PAOE5EG3UT3EQIGHQ
+#\\\|I7X3VKCSWDQ2M2AUB5J26TQUCKOHODKJJKS2UHK6WMGBYWDQTZK \ / AMOS7 \ YOURUM ::
+#\[7]ONI4ZFCLUHQESYJTIHJBF3UDKS4HRQ7WDTIIJBJWMMCRAWQF34DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
