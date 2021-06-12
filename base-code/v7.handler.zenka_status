@@ -199,7 +199,7 @@ if (    $old_status ne qw| online |
 
     ## 'limitless' retries if not defined \ not numerical ##
     if ( not defined $instance->{'startup-error-retries'} ) {
-        $instance->{'start-up-retries-left'} = 'limitless';
+        $instance->{'start-up-retries-left'} = qw| limitless |;
     } else {
         $instance->{'start-up-retries-left'}
             //= $instance->{'startup-error-retries'};
@@ -208,7 +208,7 @@ if (    $old_status ne qw| online |
     if (   $instance->{'start-up-retries-left'} eq qw| limitless |
         or $instance->{'start-up-retries-left'} > 0 ) {
         <[base.logs]>->(
-            ': instance %d [ %s ] : start-retries : %d :',
+            ': instance %d [ %s ] : start-retries : %s :',
             $instance_id, $zenka_name, $instance->{'start-up-retries-left'}
         );
         $instance->{'start-up-retries-left'}--
@@ -426,8 +426,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,,.,...,,,,,..,,,.,,,..,,..,..,,,..,...,..,,...,...,,,,,..,,.,,,,.,,,.,,
-#XSGYG4PIMXGX52YONT6QZJD4FR3Z7DJ4RZEVQOJ22DBFNZ24S5LAP5MO6XH7CSC3C75QSQX2NSLHG
-#\\\|3PGZXMTT4ID6PGXLIHBYKDJWX5XLNI45MPSGSI4EW3FLQTRHD7B \ / AMOS7 \ YOURUM ::
-#\[7]S5JHC6L74O5PCOW6UIB4JGDXEQD53MGEPV65WYWSKFCS34A47MBI 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,.,...,,..,,..,,,.,.,,,,,,,..,,...,...,.,.,,,.,.,,,,..,.,,,
+#3WI4NVY6GY3LSW4KAPL3MRL53XUCYGFHD2AAQB4WWQINHHVZW25CEKCQNIQZWK52JKUT6H5E7Z4J4
+#\\\|ZCEO4IOY5U53TTVKF6AEDPCJQTXPXB7JLI5JL3NKR2BHUW64SOH \ / AMOS7 \ YOURUM ::
+#\[7]4D35F3GBHBPD7CQXE4PZX2KYXS5PWUQBXPDQKIDZ7IGP7ZMR5IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
