@@ -2,25 +2,22 @@
 
 # name  = chk-sum.amos.calc_version
 
-my $AMOS_prefix = shift // 7; ## 0 to not prepend 'AMOS-' to version string ##
+my $AMOS_prefix = shift // 5; ## 0 to not prepend 'AMOS-' to version string ##
 
-my $input_str = sprintf( qw| %sAMOS-CHKSUM%s |, chr(255), chr(0) );
-
+##                     move to amos module  [LLL]
+my $input_str        = sprintf( qw| %sAMOS-CHKSUM%s |, chr(255), chr(0) );
 my $version_template = qw| AMOS-%s |;
 
-my $version_chksum    ##  create 'chk-sum.amos'-style wrapper  ##  [ LLL ]
-    = AMOS7::CHKSUM::amos_template_chksum( $version_template, \$input_str );
+my $version_chksum
+    = <[chk-sum.amos.truth_template_chksum]>
+    ->( $version_template, \$input_str );
 
-if ( not $AMOS_prefix ) {
+return $version_chksum if not $AMOS_prefix;
 
-    return $version_chksum;
+return sprintf qw| AMOS-%s |, $version_chksum;
 
-} else {
-    return sprintf qw| AMOS-%s |, $version_chksum;
-}
-
-#,,,.,.,.,..,,,.,,,.,,,,.,,..,..,,,.,,.,.,,..,..,,...,...,...,.,,,,,.,,..,,,.,
-#MKAQSNZDCF2WFAIODOAG6Q5RLCLXI7GW6HCGKSMY5LLAZNWJDVMUOQNJXZARWMLT2X656OAP7GD44
-#\\\|RPKYOJKC3HOC6PBDSZVR3ULVVCBZIO4UED6SGKKEDQRT5NAW6MZ \ / AMOS7 \ YOURUM ::
-#\[7]NAX4D2RL3TCZIHNO7UVCKYZY5QGGE2E2F2GANNBGBAWZVMC43KCA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,,.,,..,.,,,,.,,.,,,,.,,,,.,..,,...,...,..,,.,.,,..,...,,..,
+#7VT34G6B6AJVK6PNBKQYP25TS7GDXEKVAJVA4KUTWU7G7ONC4G6AEBG3LY2NOOL6YPJBJFUY62BQS
+#\\\|PRYEO5N7BKK5C723N7MQ7N5CVPMWGXVBQYFGMI4X4FUURGXO6WI \ / AMOS7 \ YOURUM ::
+#\[7]QOPY7IRBDMOGD3OLXEJDKNZU4YOLMWXZCCJTETUSI5E5GDCPUMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
