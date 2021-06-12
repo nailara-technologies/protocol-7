@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+####        ####
+## bit-count  ##   [  count 0 and 1 bits in a file  ]
+###         ####
+
+##[ RUNTIME OPTIONS ]#########################################################
+
+my $filename;
+
+if ( @ARGV and length( $ARGV[0] // '' ) ) {
+    $filename = shift;
+    error_exit("not found : '$filename'") if !-e $filename;
+}
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+
+##[ OTHER MODULES ]###########################################################
+
+use IO::File;
+use IO::Handle;    ## for STDIN mode ## [ not implemented yet ]
+use File::stat;
+
+##[ INTERRUPTS ]##############################################################
+
+$OUTPUT_AUTOFLUSH = 1;
+
+$SIG{'INT'} = sub { say "\b\b"; exit('0110') };
+
+##[ DATA INPUT MODES ]########################################################
+
+my $stdin_mode = defined $filename ? 0 : 1;
+error_exit('expected filename <{NC}>')
+    if $stdin_mode;
+
+error_exit('file is empty')  if -f $filename and -z $filename;
+error_exit('is a directory') if -d $filename;
+
+my $fh = IO::File->new();
+
+my $STDIN  = IO::Handle->new();
+my $STDOUT = IO::Handle->new();
+$STDIN->fdopen( fileno(STDIN), qw| r | );
+$STDOUT->fdopen( fileno(STDOUT), qw| w | );
+$STDOUT->autoflush(1);
+
+$| = 1;
+
+error_exit( lcfirst($OS_ERROR) . ' <{NC}>' )
+    if not $fh->open( $filename, qw| < | );
+$fh->binmode(1);
+
+my $file_size;
+
+if ( -f $filename ) {
+    $file_size = File::stat::stat($filename)->size;
+} else {
+    $fh->seek( 0, 2 );
+    $file_size = $fh->tell();
+    $fh->seek( 0, 0 );
+}
+
+##############################################################################
+
+say sprintf "\n  < size > %dM [ bits : %d ]\n",
+    $file_size / 1024**2, $file_size * 8;
+
+my $bits = { qw| 0 | => 0, qw| 1 | => 0 };
+
+my $seek_test = 0;
+my $r_size    = 4200 * 57;    ##  | 56  ##
+
+my %count_map = map {
+    my @count = sprintf( qw| %08b|, $ARG ) =~ m|0|g;
+    chr($ARG) => scalar @count
+} ( 0 .. 255 );
+
+while ( $fh->opened ) {
+
+    if ($seek_test) {
+        $fh->seek( $r_size, 1 );
+        my $pos = $fh->tell();
+        printf "\r  POS : %07d\r", $pos;
+        last if $pos >= $file_size - $r_size;
+        next;
+    }
+
+    $fh->sysread( my $data_buffer, $r_size );
+    goto STATS if not my $data_len = length( $data_buffer // '' );
+
+    if ( $data_buffer =~ m|^\0+$| ) {
+        $bits->{'0'} += $data_len * 8;
+    } else {
+
+        foreach my $pos ( 0 .. $data_len - 1 ) {
+            my $zulum_bits = $count_map{ substr( $data_buffer, $pos, 1 ) };
+            $bits->{'0'} += $zulum_bits;
+            $bits->{'1'} += 8 - $zulum_bits;
+        }
+    }
+
+    printf "\r  '0' : %07d '1' : %07d\r", $bits->{'0'}, $bits->{'1'};
+    last if $fh->eof;
+}
+
+STATS:
+
+say sprintf "\n\n [ '0' : '1'  ===  %.1f : 1 ]\n\n",
+    $bits->{'0'} / ( $bits->{'1'} || 1 );
+
+##############################################################################
+
+$fh->close;
+exit('00000');
+
+##############################################################################
+
+#,,,,,...,,.,,,,,,...,,..,..,,,..,.,.,.,.,.,,,..,,...,..,,..,,..,,,..,,..,,,.,
+#RMT5NX4UU6B5576PWVOFDQYNBR4MY4ZM2E3YE52G7LZECSMTOPBAHOYE2A7GHTTPTP6MPQ6U2U5ZK
+#\\\|ND2F4RQXPODUMCLXNJSD3BWZ3CS7HDKWFHAZCOWV2B6SB5XDODK \ / AMOS7 \ YOURUM ::
+#\[7]Z5NOY5X2NRPUSSJCI4BXK6OBU3N6Y26YMVDVLG7EDK4ZCCUR3WDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
