@@ -13,23 +13,20 @@ $watcher->cancel if $watcher->is_active;
 
 if ( defined $instance->{'timer'}->{'start-time-out'} ) {
     delete $instance->{'timer'}->{'start-time-out'};
-    delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+    delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
 }
 
 if ( defined $instance->{'status'}
-    and $instance->{'status'} eq 'starting' ) {
-    <[base.log]>->(
-        0,
-        sprintf(
-            "instance %d ['%s'] start timed out after %.1fs",
-            $instance_id, $zenka_name, $timeout
-        )
+    and $instance->{'status'} eq qw| starting | ) {
+    <[base.logs]>->(
+        0, "instance %d ['%s'] start timed out after %.1fs",
+        $instance_id, $zenka_name, $timeout
     );
-    <[zenka.change_status]>->( $instance_id, 'error' );
+    <[zenka.change_status]>->( $instance_id, qw| error | );
 }
 
-#,,,.,,,,,,,,,,..,,..,,..,,,,,,.,,...,.,,,,.,,..,,...,..,,.,,,..,,,,,,...,,,.,
-#AKRVXCFQ4KM7LMWIIEWXUAZHVOHAQWLDJVNHYHGAFTU5B63HON6R7OV6ZCKXYTOVOHLMM2VBDQYBS
-#\\\|HXMFSHN4CDIQB4GJC74NPGW5BW2KSYEFBN7UTKJLOZB2DZZNNTR \ / AMOS7 \ YOURUM ::
-#\[7]SLWXE4GUFZCMLOO4PAI6UROLITHWOCT6JJ2VJV76ER3FY5SNCMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,.,,,.,.,,,,,.,..,,.,.,,.,,.,.,..,,...,...,.,,,...,...,...,,.,,
+#4LPZNGWCQUKC3X4QTTLZEMRYY7K7P4XOV7JSHONZGC3F6ANBSDHFTEQAAFU3L7WEBROEIRUYHVBSA
+#\\\|ZPL6MGBGD6Z5BTC3TTTJK6QIHMXHRE46F54FBNYSR7R5RB2FQFS \ / AMOS7 \ YOURUM ::
+#\[7]RIESF7MHOQGCA75OSADIKNPBOLTRZCYI35GX3CLX2J3MLQA536BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

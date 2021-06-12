@@ -19,7 +19,7 @@ my $zenka_instance = <v7.zenka.instance>->{$instance_id};
 my $zenka_id       = $zenka_instance->{'zenka_id'};
 my $zenka_name     = <v7.zenka.setup>->{$zenka_id}->{'name'};
 
-<[base.log]>->( 2, "instance $instance_id : zenka name not defined." )
+<[base.logs]>->( 2, 'instance %s : zenka name not defined.', $instance_id )
     and return
     if not defined $zenka_name;
 
@@ -59,8 +59,8 @@ if ( not defined $read_bytes or $read_bytes == 0 ) {    ## exception ##
 
 <[v7.handler.process_output_line]>->( $watcher, $read_bytes );
 
-#,,,.,,.,,,,,,.,,,,,.,.,.,...,.,.,.,,,.,,,,.,,..,,...,.,.,,,,,,,,,...,..,,,,,,
-#KDIXGO4JT52MUDUNCIAUAWBTUBFC2AJEPFCPYHR44T2HZKK7HO7OCN5D3HLR4ZKOEMAHAQ5SO2Q24
-#\\\|IE6PFP5REZ73EZDSLGUY4XELQBXVTYSGNFNR7WD66OIPON2GPS3 \ / AMOS7 \ YOURUM ::
-#\[7]4BOAKQT7NUDXLEAYFA5U5CJ5HXVJT3ZQUQPQOQVOTOORHTUEGSAA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,.,,,.,.,,,.,,.,,,,,,,,.,,..,..,,...,..,,,,.,.,.,.,,,..,,,..,
+#JVRU3YFOANDP2HKJDHUNRNWAXJXLDN34C7V3GAUGJ2XTKJILHGMT7VMSMY3KINQRPXTMXO27YVJT2
+#\\\|LKITG4KC6IVBTJJ5WTHVALX7KJ2HFZALLMX2AZC4UPWKYTVVRQU \ / AMOS7 \ YOURUM ::
+#\[7]64JKWD5WICHKK7BM2QKLKW3BAXVPLZB2Z2SLG4FRO4IBVCIY56AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
