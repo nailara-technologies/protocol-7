@@ -459,7 +459,7 @@ sub cmd_replace {
 # :: cmd_parse_headers :: reparse headers of renamed subroutines ['base-code']
 
 sub cmd_parse_headers {
-    my @params = @_;
+    my @params = @ARG;
 
     if ( defined $params[0] and $params[0] eq 'description_txt' ) {
         return description_txt(
@@ -500,7 +500,7 @@ sub cmd_parse_headers {
 
         #  while ( !$ok ) {
 
-        $regexp{'search'}  = '^(# >:\]\n+# +name += +)[^\n]+\n';
+        $regexp{'search'}  = '^(## >:\] ##\n+# +name += +)[^\n]+\n';
         $regexp{'replace'} = '$1<fname>\n';
         $regexp{'options'} = 's';
 
@@ -532,9 +532,9 @@ sub cmd_parse_headers {
 
             my $backup_metadata = {
 
-                'backup'    => { 'type' => 'changes' },
+                'backup'    => { 'type' => qw| changes | },
                 'operation' => {
-                    'type'          => 'replace',
+                    'type'          => qw| replace |,
                     'target'        => $target,
                     'total_changes' => $changes->{'total_changes'},
                     'files_parsed'  => $changes->{'files_parsed'},
@@ -2301,8 +2301,8 @@ sub print_usage {
     print "\n    " . ansi('cyan') . $usage_txt . ansi('reset');
 }
 
-#,,,,,...,,.,,,,.,.,,,,.,,,.,,,..,,,,,,,.,..,,..,,...,...,,.,,,.,,,.,,,..,,.,,
-#SEUNNUFS3OUYH4IP2TWWGIIJQWVYJGYXWJ6EFIHKC3YICIGYU4YKKPGKDXYRXQYC3VKNSMNPRARSS
-#\\\|V4LTPN6IEQR3A37GWKZQUMQZX7MWYYUECC3A24LW3YIBOZDWUQD \ / AMOS7 \ YOURUM ::
-#\[7]64622JM72NYLKV7JJQXWAU5QE7A3GQHWK4DD3KYLHLXKEURHISBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,,,.,.,.,,,,,,,,,,,.,,,.,..,,..,,...,..,,..,,,,,,...,..,,...,
+#AFDXUGJZD7262OFF6PVFQUIO64VRS5QWMBPVU6Z6TYOQZJ6D6DXPLKEX6F5F55XE35OJWCNMS4SOA
+#\\\|5B24VVX6EGMIJTMJSUA3OU4EGBYX4WMETYB3LJ7YX7GHWN24PIN \ / AMOS7 \ YOURUM ::
+#\[7]QU4NH7EU673V2YE2WVLI67I57PBWKKX6N77BB4ENDON6UJP6IMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
