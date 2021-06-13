@@ -7,50 +7,57 @@ my $id    = $event->w->data;
 
 $event->w->cancel;
 
-<[base.logs]>->( 2, '[%d] session shutdown.,', $id );
+my $session = $data{'session'}{$id};
+
+##  server mode session  ##
+if ( $session->{'mode'} eq qw| server | ) {
+    <[base.logs]>->( 0, '[%d] server-mode session shutdown ..,', $id );
+} else {    ##  client-mode session shutdown  ##
+    <[base.logs]>->( 2, '[%d] session shutdown.,', $id );
+}
 
 # cancel outstanding commands / routes
 my $route_term_msg = 'FALSE command route collapsed';
 
 <[base.session.cancel_route]>->(
-    $id, $route_term_msg, keys %{ $data{'session'}{$id}{'route'} }
+    $id, $route_term_msg, keys $session->{'route'}->%*
 );
 
 # call rip handler
-if (    defined $data{'session'}{$id}{'rip_handler'}
-    and defined &{ $data{'session'}{$id}{'rip_handler'} } ) {
-    &{ $data{'session'}{$id}{'rip_handler'} }($event);
+if (    defined $session->{'rip_handler'}
+    and defined &{ $session->{'rip_handler'} } ) {
+    $session->{'rip_handler'}->($event);
 }
 
 # cancel watchers
-foreach my $watcher ( keys( %{ $data{'session'}{$id}{'watcher'} } ) ) {
-    $data{'session'}{$id}{'watcher'}{$watcher}->cancel;
-    delete $data{'session'}{$id}{'watcher'}{$watcher};
+foreach my $watcher ( keys $session->{'watcher'}->%* ) {
+    $session->{'watcher'}{$watcher}->cancel;
+    delete $session->{'watcher'}{$watcher};
 
     <[httpd.update_download_count]> if $watcher eq 'download_handler';
 }
 
-my $user = $data{'session'}{$id}{'user'};
+my $user = $session->{'user'};
 
 # clean up user to session reference
 if ( defined $data{'user'}{$user}{'session'}{$id} ) {
 
     # first clean up subname to session reference
-    if (    defined $data{'session'}{$id}{'subname'}
+    if (    defined $session->{'subname'}
         and defined $data{'user'}{$user}{'subname'} ) {
-        my $subname = $data{'session'}{$id}{'subname'};
+        my $subname = $session->{'subname'};
         $data{'user'}{$user}{'subname'}{$subname}--
             if defined defined $data{'user'}{$user}{'subname'}{$subname};
         delete $data{'user'}{$user}{'subname'}{$subname}
             if !$data{'user'}{$user}{'subname'}{$subname};
         delete $data{'user'}{$user}{'subname'}
-            if !keys( %{ $data{'user'}{$user}{'subname'} } );
+            if not keys $data{'user'}{$user}{'subname'}->%*;
     }
 
     delete $data{'user'}{$user}{'session'}{$id};
 }
 
-if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
+if ( not keys $data{'user'}{$user}{'session'}->%* ) {
     delete $data{'user'}{$user}{'connected_since'};
 
     # record time-stamp in case it was the last session
@@ -58,39 +65,55 @@ if ( !keys( %{ $data{'user'}{$user}{'session'} } ) ) {
 
     delete $data{'user'}{$user}{'session'};
     delete $data{'user'}{$user};
-    delete $data{'user'} if !keys( %{ $data{'user'} } );
+    delete $data{'user'} if not keys $data{'user'}->%*;
 }
 
 my $dfh;    ## disconnecting file handle ##
-if ( $dfh = $data{'session'}{$id}{'handle'} and fileno($dfh) ) {
-    close( $data{'session'}{$id}{'handle'} );
+if ( $dfh = $session->{'handle'} and fileno($dfh) ) {
+    close( $session->{'handle'} );
 }
 
 # force freeing of all memory consumed by buffers ..,
-map { undef $data{'session'}{$id}{'buffer'}->{$ARG} }
-    keys %{ $data{'session'}{$id}{'buffer'} };
+if ( defined $session->{'buffer'} ) {
+    map {
+        undef $session->{'buffer'}->{$ARG};
+        delete $session->{'buffer'}->{$ARG}
+        }
+        keys $session->{'buffer'}->%*;
+}
 
-map { undef $data{'session'}{$id}->{$ARG} } keys %{ $data{'session'}{$id} };
-map { undef $data{'handle'}{$dfh}->{$ARG} } keys %{ $data{'handle'}{$dfh} };
+my $session_mode = $session->{'mode'};    ##  keep for loggin below  ##
+
+map { undef $session->{$ARG}; delete $session->{$ARG} } keys $session->%*;
+map {
+    undef $data{'handle'}{$dfh}->{$ARG};
+    delete $data{'handle'}{$dfh}->{$ARG}
+} keys $data{'handle'}{$dfh}->%*;
 
 ## cleaning up references ##
 
 map {
     undef $data{'user'}{$ARG}{'session'};
+    delete $data{'user'}{$ARG}{'session'};
     <[base.clean_hashref]>->( $data{'user'}->{$ARG} )
-} keys %{<base.session.uname>};
+} keys <base.session.uname>->%*;
 
+undef $session;
 delete $data{'session'}{$id};
 delete $data{'handle'}{$dfh};
 
 map { <[base.clean_hashref]>->( $data{$ARG} ) } qw| user handle session |;
 
-<[base.logs]>->( '[%d] connection closed.', $id );
+if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
+    <[base.logs]>->( '[%d] : server-socket closed.,', $id );
+} else {    ##  client-mode session shutdown  ##
+    <[base.logs]>->( '[%d] client connection closed.,', $id );
+}
 
 <[base.session.check_remaining]>;
 
-#,,..,.,,,.,,,..,,,,,,,,.,.,.,,..,.,,,,..,,,.,..,,...,..,,,,,,,.,,.,.,,,,,,..,
-#4XZUUP3KRG42MMZQSOH2JIKDBU3QWVHH43GWEE7G5Q6GRQ5PLOQCM7C24D27OF5W4K47E2S6WNZY6
-#\\\|IXTU2FS2WDTQYZNPVHBVK6VIXSBIMIOVPC7JVNS7TPAOYKYJVUR \ / AMOS7 \ YOURUM ::
-#\[7]5UZLA5XTIGPLNLB2HJBSQ5XIQ63R5HAGHHUMFGMRVI5SCG7ATYDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,,,.,,,.,.,.,..,,...,.,.,,..,..,,...,..,,,,,,,,.,,..,,,,,,.,,
+#DM7XB6JPVS4EA4PQLPNRB4XIEO25RGIRJAOLLTYLFU4FOOQNTOR5M2SXJ4OK2BKSRPEAWW6I3LLHK
+#\\\|ICPSRUDQ34GGFS6ZWYG4LKZRZAZDYH4IYTFOVMYOYP74O2AAHJ5 \ / AMOS7 \ YOURUM ::
+#\[7]4WGW5PJQY7C5ZIZCJY5KDUVWQ6LF6KJMTH7WDUUUXF4VCG47SGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

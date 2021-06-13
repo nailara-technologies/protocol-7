@@ -30,7 +30,7 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     return undef;
 } else {
     ( my $handler_str = $handler ) =~ s{^io\.|\.connect$}{}g;
-    <[base.log]>->( 1, "[$id] calling connect handler [$handler_str]" );
+    <[base.logs]>->( '[%d] calling connect handler [%s]', $id, $handler_str );
     my $fd_client = $code{$handler}->( $_[0] );
     if ( defined $fd_client and fileno($fd_client) and $fd_client->connected )
     {
@@ -66,6 +66,15 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
 
         my $cid = <[base.session.init]>->( $fd_client, $proto, $mode, $name );
 
+        if ( not defined $cid ) {
+            <[base.logs]>->(
+                '[%d] session init not successful, closing connection .,', $id
+            );
+            eval { $fd_client->shutdown(2) };
+            $fd_client->close;
+            return undef;
+        }
+
         ## sending protocol banner string ., ##
         if ( length($banner_string) and $mode eq qw| input | ) {
             <[net.out]>->( $fd_client, $banner_string );
@@ -78,8 +87,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,,.,..,,,,.,,,.,,..,...,,..,,,.,,.,,,,.,,..,..,,...,...,..,,,.,,...,,,,,,,,,
-#SMXP4LONJ2NML75WJ4KE6SZ3KJ2G3NJIWY3G2IQRA2XVPWS4MT4677KLLTYDZDGFYJI5DXKS4OZYK
-#\\\|MVZCY5LD7MIVODXRZEMTCHTEGY5QBCQZN6FM2LWVBWDDO5Y465E \ / AMOS7 \ YOURUM ::
-#\[7]EPNQRXLX7EVQZE2YX25ONPDOZYSNDROKDW5BZ2AWQ3JKQF7FGCBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,,,.,..,,,,.,...,,,.,,,.,,,.,..,,...,...,,,.,.,,,,,.,.,,,,,,,
+#YHGY2GOHRI6LAEBZD5EP3C32INTT5NUWKIAS56TUDPD2ON67DCOAOCBYKIIM5AJRT45BEP6Q5DG3I
+#\\\|MGYDIWPYA6O4K7L6WBQCTBXPMYCDWCVDBBKPMODU5P26CKQMS46 \ / AMOS7 \ YOURUM ::
+#\[7]2JITZZLDII2DPYESYIDTWFG4DTPMWURUDUEIRYTZJSOZTVVKNUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

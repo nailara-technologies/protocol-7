@@ -1,5 +1,5 @@
 
- .:[ nailara 'cube' [ local routing ] zenka ]:.
+ .:[ protocol-7 cube zenka ]:.
 
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
@@ -35,34 +35,24 @@ setup.aliases.source_zenka      =    notify.message v7.teardown \
                                      composition.get_coordinates
 
 
-net.auth.timeout = 13   ## protocol-7 ##
-
 # create protocol-7 user if required.,
 [root.check_system_user:<system.amos-zenka-user>]
-
-# load and initialize modules
-[load_modules:<modules.load>]
-[init_modules]
 
 ## loading [auth.] plugins ##
 [load_plugins:<plugins.load>]
 
-## calculated network address \ port ##
-cube.local = <protocol-7.network.internal>
+## protocol-7 ##
+net.auth.timeout = 13
 
-## local unix domain socket ##
-unix.owner = <system.amos-zenka-user>
-[file.make_path:'/var/run/.7/UNIX',0775,<unix.owner>]
-unix.s_name = [base.calc_unix_path:<cube.local.addr>,<cube.local.port>]
-unix.path  = '/var/run/.7/UNIX/<unix.s_name>'
-unix.sock = [base.open:'unix','input',<unix.path>,0777,<unix.owner>]
+##  which sockets to launch ##
+cube.set-up.use_ip_socket   = yes
+cube.set-up.use_unix_socket = yes
 
-## ip.tcp socket ##
-tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
+## calculated network address \ port set in <protocol-7.network.internal> ##
 
-## bind protocol-7 to sockets ##
-[base.protocol.bind:<unix.sock>,'protocol-7']
-[base.protocol.bind:<tcp_ip.sock>,'protocol-7']
+# load and initialize modules
+[load_modules:<modules.load>]
+[init_modules]                   ##  sockets launched in 'cube.post_init'  ##
 
 # drop root priviledges [ now 'online' ]
 [root.drop_privs:<system.amos-zenka-user>]
@@ -70,8 +60,8 @@ tcp_ip.sock = [base.open:'ip.tcp','input',<cube.local.addr>,<cube.local.port>]
 # run zenka
 [event.loop]
 
-#,...,.,.,.,.,...,..,,,,.,,,,,,,,,,,,,..,,,.,,...,,,,,,.,,...,.,.,,.,,,..,,..,
-#W2DCZHSWGESNWTGWKG5FB23UUWWH2GTG7BLRC6JFYU7ZOSY7DJKLINR4YHK2KO7TKFPCZZO2IAQC4
-#\\\|AABRFKJXMIHTCNC6C34CRB6ISSQBKM3PVPZ3PEDDOHJCIRSTZVN \ / AMOS7 \ YOURUM ::
-#\[7]GFOMZL2RQEWDMH4GZZSVDKZH6FP66JOTLNL5OLGW3MKLBWDVOEBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,,,,,,,,,..,,,..,,.,,,..,,,.,.,.,...,..,,.,,,.,.,...,,,.,.,,,
+#42RUP25Q7PZT6IITDUIOPTWGMSQCV2X6PSRR4CICQBNVGUVEO5EA4A6FBMUYLRW6ECBJ2QS5KQ3UQ
+#\\\|MUQRD7NCJSVUBA7KJ3W5H3CV2S63BWNTW5SQBULWLZQEPHAAFLU \ / AMOS7 \ YOURUM ::
+#\[7]24ML37R52E3QVZKMNM3ZOPA4NHOYCF6BLEFGO4PIH6LTDKKLRWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
