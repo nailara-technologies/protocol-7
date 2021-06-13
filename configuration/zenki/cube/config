@@ -19,12 +19,13 @@ system.access.log-permission-masks = 0
 [load_config_file:'zenki/cube/access.users']
 
 system.zenka.type               =    cube
-modules.load                    =    auth chk-sum net protocol io.ip io.unix \
-                                     cube crypt.C25519              ## debug
+##                                                             io.ip
+modules.load                    =    auth chk-sum net protocol io.unix \
+                                     cube crypt.C25519               # debug
+
 plugins.load                    =    plugin.auth
 auth.supported_methods          =    zenka unix twofish pwd
-# get.route                     =    files node_name.file :target:
-get.command                     =    files.get-data
+
 setup.aliases.source_zenka_sid  =    p7-log.append v7.report-temp-path
 setup.aliases.source_zenka      =    notify.message v7.teardown \
                                      system.abort-reboot system.pid_autokill \
@@ -45,7 +46,7 @@ setup.aliases.source_zenka      =    notify.message v7.teardown \
 net.auth.timeout = 13
 
 ##  which sockets to launch ##
-cube.set-up.use_ip_socket   = yes
+cube.set-up.use_ip_socket   = no      ## requires above io.ip module ##
 cube.set-up.use_unix_socket = yes
 
 ## calculated network address \ port set in <protocol-7.network.internal> ##
@@ -60,8 +61,8 @@ cube.set-up.use_unix_socket = yes
 # run zenka
 [event.loop]
 
-#,,,,,,.,,,,.,...,,,,,,,,,..,,,..,,.,,,..,,,.,.,.,...,..,,.,,,.,.,...,,,.,.,,,
-#42RUP25Q7PZT6IITDUIOPTWGMSQCV2X6PSRR4CICQBNVGUVEO5EA4A6FBMUYLRW6ECBJ2QS5KQ3UQ
-#\\\|MUQRD7NCJSVUBA7KJ3W5H3CV2S63BWNTW5SQBULWLZQEPHAAFLU \ / AMOS7 \ YOURUM ::
-#\[7]24ML37R52E3QVZKMNM3ZOPA4NHOYCF6BLEFGO4PIH6LTDKKLRWCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,.,,,..,,,,.,,..,,,,,.,,,,,.,.,.,...,...,...,..,,,,,,,,,,,.,,
+#KHQ3DGUHDD6SXN6QJQ24UNSEJKDQ6N6YT5MKOSXM5EPMPTE65DSJRKWOQRYRVHZUWLVSOZMDVVWNG
+#\\\|KQGEUSL7MF46B3RRRBWBHQBOQMVFG6CWHQSXJBWEPYC4M2LCGVG \ / AMOS7 \ YOURUM ::
+#\[7]DQBMRVN7NBJB4TDODJPLLQZUZRHSAOWQR73AIVTWXSYMKYDFP4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
