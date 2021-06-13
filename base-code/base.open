@@ -2,32 +2,35 @@
 
 # name  = base.open
 
-my ( $type, $mode, @params ) = @_;
+my ( $type, $mode, @params ) = @ARG;
 
 if ( not defined $data{'io'}{'type'}{$type} ) {
-    <[base.log]>->(
-        0, "base.open: io type '$type' not defined [ module loaded ? ]"
+    <[base.logs]>->(
+        0, "base.open: io type '%s' not defined [ module loaded ? ]", $type
     );
     return undef;
 } elsif ( not defined $data{'io'}{'type'}{$type}{'handler'}{$mode} ) {
-    <[base.log]>
-        ->( 0, "base.open: unknown io mode '$mode' for type '$type'" );
+    <[base.logs]>->(
+        0,     "base.open: unknown io mode '%s' for type '%s'",
+        $mode, $type
+    );
     return undef;
 } elsif (
-    not
-    defined &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
-) {
-    <[base.log]>->(
-        0, "base.open: '$type'-handler for mode '$mode' not defined"
+    not defined $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
+    or ref $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} ne
+            qw| CODE | } ) {
+    <[base.logs]>->(
+        0,     "base.open: '%s'-handler for mode '%s' not defined",
+        $type, $mode
     );
     return undef;
 }
 
-return &{ $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} } }
-    (@params);
+return $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
+    ->(@params);
 
-#,,.,,.,,,.,.,,,.,.,.,,,,,..,,.,.,..,,,,,,,..,..,,...,...,,.,,..,,,,.,,,,,..,,
-#LJWNCOYJT6UHZNDLAZKHHHKINSTLVS4M7ARN3TUG2YLO6FM53JN3GHABJ2OTNJH5MVUF37223AX4G
-#\\\|W5DJT6PPADXZJ7UVBJ6R7WZGESXFOOV6LUTOKS5WU7G2YOT2676 \ / AMOS7 \ YOURUM ::
-#\[7]MK5GRKZWOMEUF67DVQ46G6IGU6R55MO7SA3TJICBT25OZZ6XRIDI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,,,.,.,.,,,,,,.,,...,...,,..,..,,...,...,,..,,..,,.,,..,,...,
+#QLSLBLSMJ4T64F2VSQXZSWTUG5RPASVFGRQ3LTNJN6UDBTYGUFBRSKITR53Z3LSG4CASR2GIHIXX4
+#\\\|VO6SEBBOB2WCGN3T4YL24D572YA4ABGRPDED636DY6OFZNTQNMT \ / AMOS7 \ YOURUM ::
+#\[7]QFQXSILUW5L36KRCXQXJRNDD35VW64DZWF3YA3NIOHCZXYWCWWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

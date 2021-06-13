@@ -7,10 +7,9 @@ my $type = qw| cube |;
 my $cube_init = $data{'base'}{$type}{'initializing'} //= 1;
 
 if ( $cube_init and <system.zenka.type> eq $type and $REAL_USER_ID != 0 ) {
-    <[base.log]>->(
-        0, "'$type' type zenki are expecting to be run as root .,"
-    );
-    <[base.log]>->( 0, ":. terminating start-up sequence .," );
+    <[base.logs]>
+        ->( 0, '%s-zenki are expecting to be run as root .,', $type );
+    <[base.log]>->( 0, ':. terminating start up sequence..,' );
     <[base.exit]>->('0110');
 }
 
@@ -18,8 +17,8 @@ $data{'base'}{$type}{'initializing'} = 0;
 
 return 0;
 
-#,,,.,..,,,,,,.,.,...,.,,,,.,,,,.,,,,,,,.,.,.,..,,...,...,,,.,,,,,..,,,..,..,,
-#WS4SA7JOJDQCGVPF6SZNZJUPFU2IKMAVTVQVTOMFMYH77S6XGSHKPICR4YOJ44YMKOVMCA4SZHBGQ
-#\\\|WWSUNDBZI5MLQR6FBNM44BHDNS54EZB5J22ILCVUXDHJSPK4J7G \ / AMOS7 \ YOURUM ::
-#\[7]FQI46R77IJMWJKZR42NBZODA2FXYZHU62J4CDXJV7HBEAIS77CDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,..,...,,,.,,..,...,,,,,.,,,..,,...,...,.,.,,,,,..,,.,.,.,,,
+#3X73L2KTG47Y63S3PFY3LA7XV6T6FLYGKV6NBOEI7CAQOIF3GUXV7ANHMVMANI7HKH6HWESIPWZ6C
+#\\\|UACSNGMCTLLPUXCHN75ZRKHDKSM7SNHN5YXBOKVTSD4TWAXYWA2 \ / AMOS7 \ YOURUM ::
+#\[7]YUWBPNAWPWAZ2NKPO2IHGTFDGE2FNPILEH2HUPGGBMBEFPJPVUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

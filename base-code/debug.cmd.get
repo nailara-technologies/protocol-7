@@ -16,9 +16,16 @@ if ( not $key_is_valid ) {
 
 if ( defined( $key_ref = <[base.resolve_key]>->($requested_key) ) ) {
 
-    return { 'mode' => qw| true |, 'data' => $$key_ref }
-        if ref $key_ref eq qw| SCALAR |;    ## returning value ##
+    if ( ref $key_ref eq qw| SCALAR | ) {    ## returning value ##
 
+        ##  single line value  ##
+        return { 'mode' => qw| true |, 'data' => $key_ref->$* }
+            if length $key_ref->$* and index( $key_ref->$*, "\n", 0 ) == -1;
+
+        ##  empty string \ containing endline[s]  ##
+        return { 'mode' => qw| size |, 'data' => $key_ref->$* };
+
+    }
     $key_ref = $$key_ref    ## consider modifying base.resolve_key ##  [LLL]
         if ref $key_ref eq qw| REF | and ref $$key_ref eq qw| HASH |;
 
@@ -39,8 +46,8 @@ if ( defined( $key_ref = <[base.resolve_key]>->($requested_key) ) ) {
 
 return { 'mode' => qw| false |, 'data' => 'requested key not found' };
 
-#,,,,,,..,...,,,.,,.,,...,,,.,,,.,,..,,.,,,,,,..,,...,...,..,,...,...,.,.,.,.,
-#LQTJTETHTKTS4VBDMJHMGRYUYVU55AETRSMY35RCMWNVOXS7J5VM6YUJ6PUPCEQYHACG2E7W6P53C
-#\\\|IHDZFKKGAH6OMU4V2EMA5AYNUBTIEE5B4M2GFARPFGLIRGVOJEY \ / AMOS7 \ YOURUM ::
-#\[7]Q4ASIOMU4A2HHIRTACD4OK4XOKE4DBL22RQ75D3YREKGJNCXHGCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,.,...,,,.,.,.,,..,.,.,,,.,...,..,,...,...,...,.,,,.,,,.,.,.,.,
+#I6HACWTBMSWHEETDKHIJKMUMBYYJU6Q744GA466INKRRV4O74FAMJC53I7YQOPDSSISQBCPPR7OY4
+#\\\|D55RAHGHAJT43JBGHTE22PE6BG7FNETP2YPYYYPHAFKQURTQLYB \ / AMOS7 \ YOURUM ::
+#\[7]62A6VBQQMO6YORK2EOOKJJCYZHYBC5VUNDKZ6C2DNJLYKCTZVYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,42 +5,65 @@
 my $l_addr = shift;
 my $l_port = shift;
 
+if ( not defined $l_addr ) {
+    warn '[ip.tcp] listen address param not defined <{C1}>';
+    return undef;
+} elsif ( not defined $l_port ) {
+    warn '[ip.tcp] listen port not defined <{C1}>';
+    return undef;
+} elsif ( $l_port < 1024 and $REAL_USER_ID != 0 ) {
+    warn '[ip.tcp] ports below 1024 require root priviledges <{C1}>';
+    return undef;
+}
+
 my $lsock = new IO::Socket::IP(
     LocalAddr => $l_addr,
     LocalPort => $l_port,
-    Proto     => 'tcp',
-    Listen    => 23,
+    Proto     => qw| tcp |,
+    Listen    => 13,
     ReusePort => 1,
     ReuseAddr => 1,
     TimeOut   => 1,
     Blocking  => 0
-    )
-    or
-    <[base.log]>->( 0, "unable to allocate $l_addr:$l_port [ \l$OS_ERROR ]" );
-if ( not defined $lsock ) { return undef }
-else {
-    $l_addr //= '<undefined>';
-    $lsock->listen()
-        or <[base.log]>->( 0, "tcp.server: listen : \l$OS_ERROR" );
-    <[base.log]>->( 1, "TCP server launched [$l_addr:$l_port]" );
+);
+if ( not defined $lsock or !-S $lsock ) {
+    <[base.logs]>->(
+        0, "cannot allocate %s:%d [ %s ]",
+        $l_addr, $l_port, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return undef;
+} else {
+    $l_addr //= qw| <undefined> |;
+    my $status = $lsock->listen();
 
-    if ( defined $data{'handle'}{$lsock} ) {
-        <[base.log]>->(
+    if ( $status == -1 ) {
+        <[base.logs]>->(
             0,
-            "io.ip.tcp.input.open: handle '$lsock' "
-                . "was not cleaned up. cleaning now.,"
+            'tcp.server: listen : %s',
+            scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        );
+        return undef;
+    } else {
+        <[base.logs]>->( 'TCP server launched [%s:%d]', $l_addr, $l_port );
+    }
+    if ( defined $data{'handle'}{$lsock} ) {
+        <[base.logs]>->(
+            0,
+            "io.ip.tcp.input.open: handle '%s' "
+                . "was not cleaned up. cleaning now.,",
+            $lsock
         );
         delete $data{'handle'}{$lsock};
     }
 
-    $data{'handle'}{$lsock}{'mode'} = 'input';
-    $data{'handle'}{$lsock}{'link'} = 'ip.tcp';
+    $data{'handle'}{$lsock}{'mode'} = qw| input  |;
+    $data{'handle'}{$lsock}{'link'} = qw| ip.tcp |;
 
     return $lsock;
 }
 
-#,,,.,,,,,.,,,..,,..,,,,.,...,,,.,,.,,..,,.,,,..,,...,...,..,,,.,,.,,,.,.,,,.,
-#OSHR7RQTNXWDTRXRCLUYXIGJWPAC3ZDRYISZWHJ66KO6LBLVUVWQLO6SFPWIS3WGWXW5NIQXDFFBE
-#\\\|5O3XQYBQVWBZ4MYN4ZWLCCD2Z3DX2MYY5TQFS5HMAI2ANJZ2OB4 \ / AMOS7 \ YOURUM ::
-#\[7]GS2E7IWFWKW7XWMEAI52TLYYJVU4M44DU6QDM575BTZNL5N3CMCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,.,,,..,,,,,,,,.,,,.,.,,,,.,,..,,...,...,...,,,,,.,.,,.,,,.,,
+#CH4NVE73KX5LDSL3SIYPGOIXCVT5NB4NVZR2YGRJ77SBHEO3ZKTY4ENPM5PK7L3AHDCGWUTAYFMAW
+#\\\|6TE6H6KMVOASGLKHADGIOGCYHOVRVDV5QONRAC2D4ET2SQTIUYO \ / AMOS7 \ YOURUM ::
+#\[7]XIN52IUURDDBAVL5USZVERYOTVUBKEJ3EVPE3UCMJZWE3F7EDYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

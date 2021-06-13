@@ -8,12 +8,19 @@ my $msg = shift // 'session closed';
 
 if ( not defined $sid or $sid !~ m|^\d+$| ) {
     <[base.log]>->( 0, "base.session.shutdown: expected session id" );
-} elsif ( not exists $data{'session'}{$sid} ) {
-    <[base.log]>->(
-        0, "base.session.shutdown: session '$sid' does not exist"
+} elsif ( not defined $data{'session'}{$sid} ) {
+    <[base.logs]>->(
+        0, "base.session.shutdown: session '%s' does not exist", $sid
     );
 } else {
-    my $session       = $data{'session'}{$sid};
+    my $session = $data{'session'}{$sid};
+
+    ##  server mode session [ no buffers ]  ##
+    if ( $session->{'mode'} eq qw| server | ) {
+        <[base.logs]>->( 0, '[%d] server-mode session shutdown', $sid );
+        return;
+    }
+
     my $user          = $session->{'user'};
     my $user_exit_cmd = $session->{'user-closing'} // 0;
 
@@ -23,14 +30,14 @@ if ( not defined $sid or $sid !~ m|^\d+$| ) {
         $shutdown_msg = $data{'user'}{$user}{'shutdown_msg'};
         $shutdown_msg =~ s|__MSG__|$msg|;
     }
-    my $lmsg = $msg eq 'session closed' ? '' : " [ $msg ]";
-    <[base.log]>->( 1, "[$sid] session shutdown$lmsg" );
+    my $lmsg = $msg eq 'session closed' ? '' : sprintf( ' [ %s ]', $msg );
+    <[base.logs]>->( 1, "[%d] session shutdown%s", $sid, $lmsg );
     $session->{'buffer'}->{'output'} .= "$shutdown_msg\n";
     $session->{'flush_shutdown'} = 1;   ##  allow output write to complete  ##
 }
 
-#,,.,,,..,.,.,,..,,,.,.,.,,.,,.,,,.,.,,..,,,,,..,,...,...,...,,,,,...,,.,,..,,
-#GO4PGS2MSVZ77BQEJATCYN4ZEBH43A6Z2QDM5BQ77DKZ2EPLH2ASNZAXCV2QXRCZPVARFNGBDHIXS
-#\\\|PC44FFC3TALD5ZGIGIIUNH7K2DWUUKXXNGNU7FSQ3ZXXXJ4PAPG \ / AMOS7 \ YOURUM ::
-#\[7]UB3BWSV2P7ICIKYVD5N5H6WTEL3H6UFV53JJEPATUKSDAG5H2EAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,...,.,,,...,,..,,,.,.,,,,,.,..,,...,...,...,.,.,...,.,.,..,,
+#B7JTZKCIS3RT66JFQ7NOBLQU2FP7X33O3YCDZ2RNB4YK3NZFGIUSDMXWNINLMLUD5UI6WRT3WPLI2
+#\\\|FQJA6RNEXP7JBBQUK6HEOWU2DAXMTJP2YEOU4XMPBXD23B7LZAC \ / AMOS7 \ YOURUM ::
+#\[7]AFOADU4JPAJ3NFE4DPGSRARXN745CIPNUF6T7VPFEYZWAON3G6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

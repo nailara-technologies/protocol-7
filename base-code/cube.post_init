@@ -1,0 +1,175 @@
+## >:] ##
+
+# name  = cube.post_init
+
+<cube.local> = <protocol-7.network.internal>;    ## address \ port set-up ##
+
+if (    not <[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
+    and not <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>) ) {
+    my $type
+        = <[base.is_defined_recursive]>->(qw| cube.server_sid |)
+        ? qw| re-init |
+        : qw| start-up |;
+    <[base.logs]>->(
+        0, 'no sockets are enabled in zenka set-up, %s not possible', $type
+    );
+    return -1;    ##  init != 0  ##
+}
+
+my $sucessful_init           = 5;    ## true ##
+my $no_ip_socket_permissions = 0;
+
+##  shutdown in reinit [ config changed? ]  ##
+##
+if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.unix |)
+    and not <[base.cfg_bool]>->(<cube.set-up.use_unix_socket>) ) {
+
+    my $term_sid = <cube.server_sid.unix>;
+
+    <[base.log]>->(
+        0, 'unix socket has been disabled in zenka set-up, closing..,'
+    );
+
+    ##  ending server session \ socket shut-down  ##
+    $data{'session'}{$term_sid}{'shutdown'} = 1;
+
+    unlink(<unix.sock>)
+        or <[base.s_warn]>->(
+        'cannot unlink unix socket file [%s] : %s',
+        <unix.sock>, scalar <base.format_error>->( $OS_ERROR, -1 )
+        );
+    ## cleaning up ##
+    delete <unix.sock>;
+    delete $data{'unix'} if not keys $data{'unix'}->%*;
+    delete <cube.server_sid.unix>;
+
+} elsif ( <[base.is_defined_recursive]>->(qw| cube.server_sid |)
+    and not <[base.is_defined_recursive]>->(qw| cube.server_sid.unix |)
+    and <[base.cfg_bool]>->(<cube.set-up.use_unix_socket>) ) {
+    <[base.log]>->(
+        0, 'unix socket has been enabled in zenka set-up, starting ..,'
+    );
+}
+
+if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.ip_tcp |)
+    and not <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>) ) {
+
+    my $term_sid = <cube.server_sid.ip_tcp>;
+
+    <[base.log]>->(
+        0, 'ip\tcp-socket has been disabled in zenka set-up, closing..,'
+    );
+
+    ##  ending server session \ socket shut-down  ##
+    $data{'session'}{$term_sid}{'shutdown'} = 1;
+
+    ## cleaning up ##
+    delete <tcp_ip.sock>;
+    delete $data{'tcp_ip'} if not keys $data{'tcp_ip'}->%*;
+    delete <cube.server_sid.ip_tcp>;
+
+} elsif ( <[base.is_defined_recursive]>->(qw| cube.server_sid |)
+    and not <[base.is_defined_recursive]>->(qw| cube.server_sid.ip_tcp |)
+    and <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>) ) {
+
+    if ( <cube.local.port> < 1024 and $REAL_USER_ID != 0 ) {
+        $sucessful_init           = 0;
+        $no_ip_socket_permissions = 5;
+        <[base.logs]>->(
+            0, 'ip\tcp socket re-enabled but listen on port %d needs root .,',
+            <cube.local.port>
+        );
+    } else {
+        <[base.log]>->(
+            0, 'ip\tcp socket has been enabled in zenka set-up, launching ..,'
+        );
+    }
+}
+##
+
+<[base.clean_hashref]>->( $data{'cube'} );
+
+##                          ##
+## local unix domain socket ##
+##                          ##
+
+if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
+    and (  not <[base.is_defined_recursive]>->(qw| unix.sock |)
+        or not fileno <unix.sock>
+        or !-S <unix.sock> )    ##  re-init ?  ##
+) {
+
+    <unix.owner> = <system.amos-zenka-user>;
+    my $unix_sdir = qw| /var/run/.7/UNIX |;
+    <[file.make_path]>->( $unix_sdir, 0775, <unix.owner> )
+        or $sucessful_init = 0;
+
+    if ( -d $unix_sdir and -w $unix_sdir ) {
+
+        <unix.path> = sprintf qw| %s/%s |, $unix_sdir,
+            <[base.calc_unix_path]>->( <cube.local.addr>, <cube.local.port> );
+
+        <unix.sock> = <[base.open]>->(    ## launch socket ##
+            qw| unix input |,
+            <unix.path>, 0777, <unix.owner>
+        );
+
+        if ( defined <unix.sock> and -S <unix.sock> ) {
+
+            ##  bind protocol-7 to socket  ##
+            <cube.server_sid.unix> =    ##  used for auto-shutdown  ##
+                <[base.protocol.bind]>->( <unix.sock>, qw| protocol-7 | );
+
+            $sucessful_init = 0      if not defined <cube.server_sid.unix>;
+            delete <cube.server_sid> if not keys <cube.server_sid>->%*;
+        } else {
+            <[base.log]>->(
+                0, 'launching of unix domain socket was not successful'
+            );
+            delete <unix.sock>;
+            delete $data{'unix'} if not keys $data{'tcp_ip'}->%*;
+            $sucessful_init = 0;
+        }
+    }
+}
+
+##               ##
+## ip.tcp socket ##
+##               ##
+
+if (    not $no_ip_socket_permissions
+    and <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>)
+    and (  not <[base.is_defined_recursive]>->(qw| tcp_ip.sock |)
+        or not fileno <tcp_ip.sock>
+        or !-S <tcp_ip.sock> )    ##  re-init ?  ##
+) {
+
+    <tcp_ip.sock> = <[base.open]>->(
+        qw| ip.tcp input |,
+        <cube.local.addr>, <cube.local.port>
+    );
+
+    if ( defined <tcp_ip.sock> and -S <tcp_ip.sock> ) {
+
+        ##  bind protocol-7 to socket  ##
+        <cube.server_sid.ip_tcp> =    ##  used for auto-shutdown  ##
+            <[base.protocol.bind]>->( <tcp_ip.sock>, qw| protocol-7 | );
+
+        $sucessful_init = 0      if not defined <cube.server_sid.ip_tcp>;
+        delete <cube.server_sid> if not keys <cube.server_sid>->%*;
+
+    } else {
+        <[base.log]>->( 0, 'launching of ip\tcp socket was not successful' );
+        delete <tcp_ip.sock>;
+        undef $data{'tcp_ip'} if not keys $data{'tcp_ip'}->%*;
+        $sucessful_init = 0;
+    }
+}
+
+return $sucessful_init ? 0 : 1;    ##  returning 0 for success  ##
+
+#,,..,,,,,.,.,.,.,..,,...,...,,,,,,,,,.,.,,,,,.,.,...,...,,,,,..,,...,,.,,...,
+#ET66M663OK22H4Z2ZQM3ZD3UMPEIOR3DVVBE7CUUCRDG2B73MH65KOVBFXNFLUCMDOWXOZFA6UQC2
+#\\\|ZSYYCA3WALACY2356RKYOHEOOKU4FJHEVT5S5WSKPUIF4LCSYUB \ / AMOS7 \ YOURUM ::
+#\[7]BFMOF5WBZLBXURUVAVOJDHWIQAL56OOWW6N2LIGN523AFJ2GHGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
