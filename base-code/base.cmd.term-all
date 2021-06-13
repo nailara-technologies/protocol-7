@@ -6,65 +6,88 @@
 
 my $re = <regex.base>;
 
+return {
+    'mode' => qw| false |,
+    'data' => 'expected username or session id parameter'
+    }
+    if not defined $call->{'args'};
+
 if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
-    my $param      = $1;
-    my $term_msg   = $3 || 'session terminated';
-    my $sid        = $$call{'session_id'};
+    my $param      = ${^CAPTURE}[0];
+    my $term_msg   = ${^CAPTURE}[2] || 'session terminated';
+    my $sid        = $call->{'session_id'};
     my $killed     = 0;
     my $killed_own = 0;
 
-    if ( $param =~ /\s/ ) {
-        ( $param, $term_msg ) = split( /\s/, $param, 2 );
+    if ( $param =~ m|\s| ) {
+        ( $param, $term_msg ) = split( m|\s+|, $param, 2 );
     }
 
     if (exists $data{'user'}{$param}{'session'}
         or ( exists $data{'session'}{$param}
-            and $data{'session'}{$param}{'mode'} ne 'server' )
+            and $data{'session'}{$param}{'mode'} ne qw| server | )
     ) {
         my $msg_string = $term_msg;
         my $uname
-            = $param =~ /^\d+$/ ? $data{'session'}{$param}{'user'} : $param;
-        <[base.log]>->( 1, "[$sid] closing all '$uname' sessions << ! >>" );
+            = $param =~ m|^\d+$| ? $data{'session'}{$param}{'user'} : $param;
+        <[base.logs]>->( "[%d] closing all '%s' sessions >>", $sid, $uname );
         foreach my $sid ( keys %{ $data{'session'} } ) {
             if (   $data{'session'}{$sid}{'user'} eq $param
-                or $param =~ /^\d+$/ and $param eq $sid ) {
+                or $param =~ m|^\d+$| and $param eq $sid ) {
+                $killed_own++;
                 if ( $call->{'session_id'} eq $sid ) {
-                    $killed_own = 1;
-                    $msg_string = "..terminated your own session..";
+                    $msg_string = '..terminated your own session..,';
                 } else {
                     <[base.session.shutdown]>->( $sid, $msg_string );
                 }
-                <[base.log]>->( 0, ":. terminating session : [$uname] $sid" );
+                <[base.logs]>->(
+                    0,      ': terminating session [ %s ] %d',
+                    $uname, $sid
+                );
                 $killed++;
             }
         }
-        my $s            = $killed > 1 ? 's' : '';
-        my $reply_string = " : $killed session$s terminated";
-        <[base.log]>->( 1, $reply_string ) if $killed;
-        my $yours_str = 'yours included';
-        $yours_str = 'yours' if $killed == 1;
-        $reply_string .= ", $yours_str" if $killed_own;
-        $reply_string = $msg_string     if $killed_own and $killed == 1;
+        my $reply_string = sprintf( '%d session%s terminated',
+            $killed, <[base.cnt_s]>->($killed) );
+        <[base.logs]>->( 0, ':., %s', $reply_string ) if $killed;
+        my $yours_str
+            = $killed == $killed_own ? 'all yours' : 'yours included';
+        $reply_string .= sprintf( ', %s', $yours_str ) if $killed_own;
+        $reply_string = $msg_string if $killed_own and $killed == 1;
         return {
-            'mode' => $killed_own ? 'term' : 'true',
+            'mode' => $killed_own ? qw| term | : qw| true |,
             'data' => $reply_string
         };
     } else {
-        my $u_str    = $param =~ /^\d+$/ ? 'session' : 'user';
-        my $fail_msg = "found no such $u_str ($param)";
-        $fail_msg = "will not destroy server mode sessions! >;["
-            if exists $data{'session'}{$param}
-            and $data{'session'}{$param}{'mode'} eq 'server';
-        return { 'mode' => 'false', 'data' => $fail_msg };
+        my $u_str    = $param =~ m|^\d+$| ? qw| session | : qw| user |;
+        my $fail_msg = sprintf 'no such %s found [%s]', $u_str, $param;
+        if ( exists $data{'session'}{$param}
+            and $data{'session'}{$param}{'mode'} eq qw| server | ) {
+            $fail_msg = 'will not destroy server mode sessions >:[';
+            <[base.logs]>->(
+                0,
+                "[%d] rejected 'term-all' command on server-mode session ..,",
+                $sid
+            );
+            <[base.log]>->(
+                1,
+                ': use zenka set-up and reload to shut down server sessions..,'
+            );
+        }
+        return { 'mode' => qw| false |, 'data' => $fail_msg };
     }
 } else {
-    ( my $term_usr = $$call{'args'} ) =~ s| .+$||;
-    $$reply{'data'}
-        = "'$term_usr' is not a valid username [ nor session id ]";
+    ( my $term_usr = $call->{'args'} ) =~ s| .+$||;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf
+            '%s is not a neither a valid username nor a session id',
+        $term_usr
+    };
 }
 
-#,,,,,,.,,.,,,,.,,,,,,...,,.,,,.,,,,,,.,,,.,.,..,,...,...,...,,,,,,..,,,.,.,,,
-#7QM2CGMB2S64SOKQSWQTTELIZ3D4GJHJO2GDNFVGVGGWKKZGNCIYAY5R7X7UBCHD7HH32JJJRWFZY
-#\\\|5HKPVCPYCJSVR7DI5PZ2SE4DPCKRDWGJDEKXRIIZK34JFMT3NA5 \ / AMOS7 \ YOURUM ::
-#\[7]H4NNFVNOHYN2QHGRWDK7GNQBYKIKHIVEZBIZYCFMIW5KJWSNZUBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,,,,,.,,,.,,,,,,.,,,,..,,,,,..,,...,...,...,.,,,,,,,.,,,.,.,
+#NWXDGFTIY43BAD7VMAKXKIJFUHHD4DF2BCW4DODBCHKLLF67LL6D6636F6EFFD6LGZEUMD5ZRPZLU
+#\\\|G7PUGLZB4YKOP46ARKO25FTD52RNIADYBAI3CEIEVTLEN3PPOCZ \ / AMOS7 \ YOURUM ::
+#\[7]665AT5MCUSVLVC53X7GL72X4W5SSI5ORNMVNVRB2R6DJYUO7FSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
