@@ -54,7 +54,7 @@ foreach my $id (<[v7.instance_ids]>) {
     $instance_id = $id
         and last
         if <[base.is_defined_recursive]>
-        ->( sprintf( qw| v7.zenka.instance.%d.process |, $id ) ) == 5
+        ->( sprintf( qw| v7.zenka.instance.%d.process.id |, $id ) ) == 5
         and $chk_pid == <v7.zenka.instance>->{$id}->{'process'}->{'id'};
 }
 if ( defined $instance_id ) {
@@ -67,8 +67,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,.,,...,...,,,,,,,,,.,.,..,,...,.,,,.,,,..,,..,,...,...,...,,,.,...,,,.,,..,
-#D4XNROJQ47MFN5O2KVMCKWX25DECDIWO4N4KFNTYA4MLN3WH7GN2QWK5FL5NOUOJZUVXSYHE3GWD2
-#\\\|67BONQIVEYIGDPOP4O7ZED7EUIKVPSWM3WJPDPZXTJXDTUTQHEI \ / AMOS7 \ YOURUM ::
-#\[7]A6WYGRF6LU25NOFLDVAYSRG3F2VBQKTXGWIVTU2GIGS6SRXLDWBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,,..,.,.,.,,,...,,..,..,,...,..,,...,...,...,.,,,,,.,..,,,,.,
+#BDOTEIIATASTDEB7PKMAUVOECATVAY5RT4X57UGLLROZZGFSDPC2GBKNTHUNI23HO7CJ2C4UB2EOM
+#\\\|GLFA6JHSEUAXWLAYLYXFYVFT4J7FPGZJIQN7NVTI2NTFJEYRRSE \ / AMOS7 \ YOURUM ::
+#\[7]6RSZ5AZACC6IGR5LJYUUTEIYHF5RWZP7K2IMYITYTOY3ZZF73GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
