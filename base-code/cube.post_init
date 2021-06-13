@@ -99,6 +99,14 @@ if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
         or !-S <unix.sock> )    ##  re-init ?  ##
 ) {
 
+    if ( not defined $code{'io.unix.socket.input.open'} ) {
+        <[base.log]>->(
+            0, 'unix socket is enabled but the io.unix module is not loaded'
+        );
+        $sucessful_init = 0;
+        goto SKIP_UNIX_SOCKET;
+    }
+
     <unix.owner> = <system.amos-zenka-user>;
     my $unix_sdir = qw| /var/run/.7/UNIX |;
     <[file.make_path]>->( $unix_sdir, 0775, <unix.owner> )
@@ -131,6 +139,7 @@ if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
             $sucessful_init = 0;
         }
     }
+SKIP_UNIX_SOCKET:
 }
 
 ##               ##
@@ -143,6 +152,14 @@ if (    not $no_ip_socket_permissions
         or not fileno <tcp_ip.sock>
         or !-S <tcp_ip.sock> )    ##  re-init ?  ##
 ) {
+
+    if ( not defined $code{'io.ip.tcp.input.open'} ) {
+        <[base.log]>->(
+            0, 'ip\tcp socket is enabled but the io.ip module is not loaded'
+        );
+        $sucessful_init = 0;
+        goto SKIP_IP_SOCKET;
+    }
 
     <tcp_ip.sock> = <[base.open]>->(
         qw| ip.tcp input |,
@@ -164,12 +181,15 @@ if (    not $no_ip_socket_permissions
         undef $data{'tcp_ip'} if not keys $data{'tcp_ip'}->%*;
         $sucessful_init = 0;
     }
+SKIP_IP_SOCKET:
 }
+
+<[base.session.check_remaining]>;
 
 return $sucessful_init ? 0 : 1;    ##  returning 0 for success  ##
 
-#,,..,,,,,.,.,.,.,..,,...,...,,,,,,,,,.,.,,,,,.,.,...,...,,,,,..,,...,,.,,...,
-#ET66M663OK22H4Z2ZQM3ZD3UMPEIOR3DVVBE7CUUCRDG2B73MH65KOVBFXNFLUCMDOWXOZFA6UQC2
-#\\\|ZSYYCA3WALACY2356RKYOHEOOKU4FJHEVT5S5WSKPUIF4LCSYUB \ / AMOS7 \ YOURUM ::
-#\[7]BFMOF5WBZLBXURUVAVOJDHWIQAL56OOWW6N2LIGN523AFJ2GHGAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,..,,,,,,..,,.,,,.,.,,,.,...,.,.,...,..,,.,,,...,,,.,,.,,,,.,
+#D3MPHMLHO72M2L2ROW2WAQX7KBODZWZJINKOVYTNBEG7WP36A7AFI4KZVRJ53ITPG32NZSRMFJ5XU
+#\\\|CYWARMF4BSQWXUJ2W43R3WKXOYBOJOE5DH4N7HUROP34NB2KSIG \ / AMOS7 \ YOURUM ::
+#\[7]SLJCW767GCSOCOO5WUB62IEIKSY4FUFA7RXPQQIDZW4VAHNX3QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
