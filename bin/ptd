@@ -4,7 +4,7 @@ use strict;
 use English;
 use warnings;
 use Term::ReadKey;
-use List::Util qw| max |;
+use List::MoreUtils qw| minmax uniq |;
 use File::Which qw| which |;
 use Time::HiRes qw| sleep |;
 
@@ -12,12 +12,13 @@ $OUTPUT_AUTOFLUSH = 1;
 
 my @ptd_args = qw| -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup' |;
 
-my $reset       = "\e[0m";
-my $nailara_bg  = "\e[48;2;9;5;42m";
-my $blacklight  = "\e[38;2;68;39;172m";
-my $nailara_fg  = "\e[38;2;38;46;153m";
-my $error_color = "\e[38;2;197;141;7m";
-my $neon_green  = "\e[38;2;71;195;6m";
+my $reset             = "\e[0m";
+my $nailara_bg        = "\e[48;2;9;5;42m";
+my $blacklight        = "\e[38;2;68;39;172m";
+my $nailara_fg        = "\e[38;2;38;46;153m";
+my $TRUE_color        = "\e[38;2;6;71;195m";
+my $NEON_orange       = "\e[38;2;197;141;7m";
+my $NEON_green_yellow = "\e[38;2;71;195;6m";
 
 $SIG{'INT'} = \&sig_int;
 
@@ -27,23 +28,24 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
     or not -x $ptd_bin;
 
 ## filter filenames for protocol-7 \ perl code ##
-my @files = grep { is_perl_code($ARG) } @ARGV;
+my @files = grep { is_perl_code($ARG) }
+    uniq sort { length $a <=> length $b } reverse sort @ARGV;
 
-die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
-    . "expected ${neon_green}[${error_color}perl"
-    . "${neon_green}]${error_color} file name${neon_green}"
-    . "[${error_color}s${neon_green}]${error_color}.,$reset\n:\n"
+die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
+    . "expected ${NEON_green_yellow}[${NEON_orange}perl"
+    . "${NEON_green_yellow}]${NEON_orange} file name${NEON_green_yellow}"
+    . "[${NEON_orange}s${NEON_green_yellow}]${NEON_orange}.,$reset\n:\n"
     if not @files;
 
 map {
-    die ":\n:: < ${neon_green}ptd$reset > $reset:$error_color "
-        . "not found $reset : '$neon_green$ARG$reset' $reset\n:\n"
+    die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
+        . "not found $reset : '$NEON_green_yellow$ARG$reset' $reset\n:\n"
         if not -f $ARG
 } @files;
 
 my $file_count = scalar @files;
 
-my $file_maxlen = max map {length} @files;
+( undef, my $file_maxlen ) = minmax map {length} @files;
 
 say $blacklight. ':';
 
@@ -60,8 +62,8 @@ while ( my $file_path = shift @files ) {
 
     if ( not defined $return_code or $return_code != 0 ) {
         my $err_msg = lcfirst( $OS_ERROR // $EVAL_ERROR );
-        die "\n$blacklight:\n::[$error_color $err_msg $blacklight] "
-            . ".: $error_color$file_path$blacklight ::\n:$reset\n";
+        die "\n$blacklight:\n::[$NEON_orange $err_msg $blacklight] "
+            . ".: $NEON_orange$file_path$blacklight ::\n:$reset\n";
     }
 }
 
@@ -77,11 +79,15 @@ sub is_perl_code {
     my $file = shift;
     return 0 if not -f $file or -z $file;
     my $is_code = 0;
-    open( my $fh, '<', $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
+    open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     my $first_line = '';
-    while ( $first_line =~ m{^\s*($|(use|my|our)\s.+;|#(*nla:(\s>|!)))} ) {
+    while (
+        $first_line ne '## >:] ##'    ## <- protocol-7 source code header ##
+        and $first_line =~ m{^\s*($|(use|my|our)\s.+;|#(*nla:!))}
+    ) {
         chomp( $first_line = <$fh> );
     }
+
     $is_code = 1
         if $first_line eq '## >:] ##'
         or $first_line =~ m|^#!.*perl|
@@ -91,8 +97,8 @@ sub is_perl_code {
 }
 
 sub sig_int {
-    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${error_color}SIG"
-        . "INT$blacklight ] $neon_green perltidy run "
+    print "\b\b::\b\b\r$blacklight\:::\n:\n:: [ ${NEON_orange}SIG"
+        . "INT$blacklight ] $NEON_green_yellow perltidy run "
         . "aborted$blacklight ..,\n:$reset\n";
     exit('000113');
 }
@@ -106,15 +112,15 @@ sub show_progress {
     my $char_count  = int( $chars_max * $file_num / $files_total );
     my $perc_chars  = $character x $char_count;
 
-    printf( "\r${blacklight}:::[$nailara_bg$neon_green%-${chars_max}s"
+    printf( "\r${blacklight}:::[$nailara_bg$TRUE_color%-${chars_max}s"
             . "$reset$blacklight]:"
-            . "::[$nailara_bg$neon_green %-${file_maxlen}s"
+            . "::[$nailara_bg$TRUE_color %-${file_maxlen}s"
             . " $reset$blacklight]:.$reset\r",
         $perc_chars, $filename );
 }
 
-#,,.,,,,.,...,,..,,,,,,,.,...,.,,,..,,,,.,.,.,..,,...,...,...,,..,...,,..,,,,,
-#DOCQCTKULHKMCVVSAFKY6YG3MNTOLQKEHIND64XS4OZCLUI5N57YUVXJ2L55BAN5VKCIHWDVJUKOS
-#\\\|YU3DENN7KB36UZBIDZHYOV5SJJPFYEAGQFZXD7VTVDRKVSTYJ5Z \ / AMOS7 \ YOURUM ::
-#\[7]B4Q5HVDCX52JZGZCPAGGKR4IKMRWQVAI72LRMJEBM67GXBDEVWAQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,...,,.,,..,,.,,,.,,,,,.,,.,,...,..,,...,...,.,.,..,,.,.,.,.,..,,
+#VNGGTWYCHXF5WIWN7JZMX6JLP6WAGD65QGHGW2P623HMESY2LTA7J7TS7JZ4P7POZVKJWSEVYWDOA
+#\\\|P75SA5UUECJVRD7F2NJWEMJEYN4U4R2RXBGQBBOF27M3UUKZE5D \ / AMOS7 \ YOURUM ::
+#\[7]ONMR244UW3TJT4BCUWXSR4EM3GQVHKLH24RHBMOXTAKO7DY6QUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
