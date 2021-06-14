@@ -55,6 +55,9 @@ if ( not defined $data{'protocol'}{$protocol} ) {
 
 my $initialized = $mode eq qw| server | ? 1 : 0;
 
+my $read_mode = $data{'protocol'}{$protocol}{'state'}->{'0'}->{'read-mode'}
+    // qw| linewise |;    ## [ linewise | bytewise | binary ] ##
+
 ##[ SESSION ELEMENT ]#########################################################
 
 my $id = <[base.list.element.add]>->(
@@ -69,7 +72,7 @@ my $id = <[base.list.element.add]>->(
             'paused'     => 0,
             'complete'   => 1,
             'shutdown'   => 0,
-            'read-mode'  => qw| linewise |,              ## [ protocol state ]
+            'read-mode'  => $read_mode,                  ## [ protocol state ]
             'read-to-fh'     => undef,          ##  bypass buffer when set  ##
             'initialized'    => $initialized,
             'flush_shutdown' => 0,
@@ -87,11 +90,13 @@ my $id = <[base.list.element.add]>->(
 
 my $session = $data{'session'}{$id};
 
-##[ PAUSED WATCHERS ]#$#######################################################
+##[ PAUSED IO WATCHERS ]######################################################
 
-$data{'watcher_list'}{'paused'} = []
-    if not defined $data{'watcher_list'}{'paused'}
-    or ref( $data{'watcher_list'}{'paused'} ) ne qw| ARRAY |;
+##  used by event.io_idle_restart and event.callback.io-idle-restart  ##
+<watcher_list.paused> = []    ##  contains events : restarted when idle  ##
+    if not defined <watcher_list.paused>
+    or ref <watcher_list.paused> ne qw| ARRAY |;
+###
 
 ##[ SERVER OR CLIENT ]########################################################
 
@@ -268,8 +273,8 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 
 return $id;
 
-#,,,,,,..,,..,.,,,..,,,.,,.,.,.,.,.,,,,,,,,..,..,,...,...,..,,,,.,,,.,,..,..,,
-#VRY4TO6PVQTATO3UWSESA7WYC2JUNVPCVRUVNVH7HBYEUG46L3A4KENLZBYUMYQ4WEQ6Q3AXUEQKG
-#\\\|INK5DA37KRHXIKMXM4DW4OJCPQMXSGJJ67SAVSWKUHEMPM5JIMG \ / AMOS7 \ YOURUM ::
-#\[7]GC3VGT6TGYRLVDUVACORVMEA2QJFTRNA3JK2THK3QVFB6ZZ6RGBA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,,,,,,.,.,,,,,.,...,,.,,...,..,,...,...,.,.,.,.,,.,,...,..,,
+#GRGXJ6B3CQILW4EKCU7X44WV4OD7NNI354FMFG5F7KGSKDTEQOE3JPPLN4BYUQBPGBGIFY23GRC7A
+#\\\|X7MMY5DDGP7EDNB75WZ2P6YQLSN5OYSAL46FVKNU7VSQDNZTSHB \ / AMOS7 \ YOURUM ::
+#\[7]IES6J2RKMCYNX5NHEMMH44V3JZ5Q7NUXLDUB4JGCKL7BQMM5JGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

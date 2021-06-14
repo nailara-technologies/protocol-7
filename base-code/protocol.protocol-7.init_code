@@ -27,8 +27,8 @@
     qw| state | => {
         qw| 0 | => {
 
-            qw| read-mode |  => qw| linewise |,    ##  linewise | bytewise  ##
-            qw| write-mode | => qw| linewise |,    ##  linewise | bytewise  ##
+            ## [ linewise | bytewise | binary ] ##
+            qw| read-mode | => qw| linewise |, ##  bytewise has size limit  ##
 
             qw| input |  => { qw| handler | => qw| base.handler.auth | },
             qw| output | => { qw| handler | => qw| base.handler.command | },
@@ -37,8 +37,8 @@
         },
         qw| 1 | => {
 
-            qw| read-mode |  => qw| linewise |,    ##  linewise | bytewise  ##
-            qw| write-mode | => qw| linewise |,    ##  linewise | bytewise  ##
+            ## [ linewise | bytewise | binary ] ##
+            qw| read-mode | => qw| linewise |,
 
             qw| input |  => { qw| handler | => qw| base.handler.command | },
             qw| output | => { qw| handler | => qw| base.handler.command | },
@@ -56,13 +56,12 @@
 <protocol.protocol-7.settings.do-clean-up> //= 5; ## <-- override in set-up ##
 
 ##  log and protocol messages  ##
-
 <[templates.register_add]>;    ## register module sprintf templates ##
 
 0;
 
-#,,.,,.,.,,..,..,,,,.,,..,,..,,.,,,,,,.,.,,..,..,,...,...,..,,,,,,,..,..,,..,,
-#AKWUQVOWSSCUIS3RLZ6CWOPQ4BDCCIUN4ADTEBSZK2ZP4PQHGXAKPXGCVDO5ADSNKYNPVCCKLF4CA
-#\\\|R5YEBYFMKQNH5ZW2DZSWB5OROOPPZ3ITSW7XM2ZOWARI5XBKPOO \ / AMOS7 \ YOURUM ::
-#\[7]KSLYLNLZFVEPDDDJWAHY2MSGHX4GSQF63KAMHQVQDY5AWKJZOSBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,...,,..,,.,,...,..,,.,,,..,,..,,...,...,.,.,..,,,.,,...,.,,,
+#Z2BKSC3BCLIVKOFOMEF43GBHHI6ZHU7J4FFAMQNFMRGZ7SQXLOD2KIIG4KTKYTVUMPWSY5BE3MEMQ
+#\\\|5YQFJ4IJXLGN3E3CWZQJJ3MX4NVKXVL3EYFEWVWATO264Z2AAVB \ / AMOS7 \ YOURUM ::
+#\[7]PA7WBVZFZOYUENIXQHF6YWP2YUEGUZ6WLCHIDK5B5RMZG4JEZOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
