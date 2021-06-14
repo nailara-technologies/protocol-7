@@ -27,13 +27,13 @@ IO::AIO::flush();
 utf8::decode($r_buff) if $b_read > 0;
 
 $b_read = length($r_buff);    ##  adjust for decoding  ##
-$$buffer_ref .= $r_buff;
+$buffer_ref->$* .= $r_buff;
 
 return undef if $b_read < 0;    # <-- sysread() behaviour
 return $b_read;
 
-#,,..,,..,.,,,...,.,,,,..,.,.,,.,,..,,,,,,...,..,,...,..,,...,...,,,,,,..,,.,,
-#4MQBSC7TUERWQYD3ISIMCLGDO2N26G3RP7OV6DRFS6WQAYE4PCZ2NYC552PQJWFJI7AXO2BR76J3Q
-#\\\|RFL6BG5RTVAHK6BEKD3UBCP4HHLQX4HH2UPF67XAWNAJYVALTUJ \ / AMOS7 \ YOURUM ::
-#\[7]NCWPSV27YYY2AJOS6HNAW2AKH4B5WLTSU4ZYZOTED5AJJLZTFUBY 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,..,,,..,,..,,,,,,,.,,.,,...,..,,...,...,.,,,,,,,,.,,,,,,,..,
+#TGJTZSR5LRFRXYJZRFTNCKZYKU7PNUPZZZDZ24AC3WQ26ASG52IYQVK72T4FM2PLBHJTFP7TQKSLC
+#\\\|4DN4AAAY4L36PQQ2P5EAQUIXTXKCJVPQROR2FUZEI3LZCABEDLN \ / AMOS7 \ YOURUM ::
+#\[7]NPQJGUYD6DY6HVKLC7RXXULB52MLNRLWYWN4VDN27UBL55Y3HWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

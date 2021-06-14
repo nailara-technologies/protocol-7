@@ -3,13 +3,16 @@
 # name  = base.handler.input
 # descr = call input handler
 
-my $id = $ARG[0]->w->data;
+my $event = shift;
+my $id    = $event->w->data;
 
 if ( not defined $id or not defined $data{'session'}{$id} ) {
     my $id = '!!!' if not defined $id;
-    $ARG[0]->w->cancel;
+    $event->w->cancel;
     ## call cleanup handler.., [protocol.,]                              [LLL]
-    <[base.log]>->( 0, "[$id] input handler session was already closed.," );
+    <[base.logs]>->(
+        0, '[%d] input handler of session was already closed.,', $id
+    );
     return undef;
 }
 
@@ -28,20 +31,25 @@ my $handle_href = $data{'handle'}{ $session->{'handle'} };
 $session->{'shutdown'}       //= 0;
 $session->{'flush_shutdown'} //= 0;
 
-$session->{'read-mode'}     //= qw| linewise |;  ## [ linewise | bytewise ] ##
+## [ linewise | bytewise | binary ] ##
+$session->{'read-mode'}     //= qw| linewise |;
 $session->{'bytes-to-read'} //= 0;
 
-if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
+if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
 
-    my $ret_code = $code{$handler}->( $ARG[0] );
+    my $ret_code = $code{$handler}->($event);
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
 
     ## call [registered] error handler in next case ##                   [LLL]
-    warn "return code of $handler not defined" and $ret_code = 2
+    <[base.s_warn]>->( 'return code of %s not defined', $handler )
+        and $ret_code = 2
         if not defined $ret_code;
-    warn "not expected return code from $handler : '$ret_code'"
+    <[base.s_warn]>->(
+        "not expected return code from %s : '%s'",
+        $handler, $ret_code
+        )
         and $ret_code = 2
         if $ret_code !~ m|^\d+$|;
     ##
@@ -52,7 +60,7 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
     if (   $ret_code == 2
         or $session->{'shutdown'}
         or $session->{'flush_shutdown'} ) {
-        $ARG[0]->w->cancel;    ##  no longer watching buffer content  ##
+        $event->w->cancel;    ##  no longer watching buffer content  ##
 
         ##  secure buffer erasing  ##
         <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
@@ -61,23 +69,24 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
             if not $session->{'shutdown'}
             and not $session->{'flush_shutdown'};
 
-        <[base.log]>->(
-            2, "[$id] stopped input processing [ session shutdown ]"
+        <[base.logs]>->(
+            2, '[%d] stopped input processing [ session shutdown ]', $id
         );
     }
     ##
 } else {
 
     ##  stopping variable watcher to modify buffer content  ##
-    $ARG[0]->w->stop;
+    $event->w->stop;
 
     ##  secure buffer erasing  ##
     <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
 
-    $ARG[0]->w->start;    ##  modification complete restarting watcher  ##
+    $event->w->start;    ##  modification complete restarting watcher  ##
 
-    <[base.log]>->(
-        0, "[$id] input handler '$handler' not defined, buffer emptied.,"
+    <[base.logs]>->(
+        0,   "[%d] input handler '%s' not defined, buffer emptied.,",
+        $id, $handler
     );
 
     if (   $session->{'mode'} eq qw| client |
@@ -87,15 +96,18 @@ if ( exists $code{$handler} and defined &{ $code{$handler} } ) {
 }
 
 my $len = length( $session->{'buffer'}->{'input'} );
-return $ARG[0]->w->cancel if not defined $len;  ## <-- buffer 'not defined' ##
+return $event->w->cancel if not defined $len;   ## <-- buffer 'not defined' ##
 
 if (    $len < <size.buffer.input>
     and not $session->{'shutdown'}
     and not $session->{'flush_shutdown'} ) {
-    push( @{ $data{'watcher_list'}{'paused'} }, \$ARG[0] );    ## ? ## [LLL]
-    if ( !$data{'watcher'}{'io'}{'transfer'}->is_active ) {
-        $data{'watcher'}{'io'}{'transfer'}->start;
-    }
+
+    ##  deferred restart [ when idle ]  ##
+    <[event.io_idle_restart]>->($event)    ##  required ?  ##
+        if not $event->w->is_active;
+
+    $data{'watcher'}{'io'}{'transfer'}->start
+        if not $data{'watcher'}{'io'}{'transfer'}->is_active;
 
     if ( $handle_href->{'paused'} //= 0 ) {    ##  restart reading  ##
         <[base.log]>->( 2, 'restarting input handler =)' );
@@ -121,8 +133,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and index( $session->{'buffer'}->{'input'}, "\n" ) >= 0;
 }
 
-#,,..,,.,,.,.,..,,.,.,.,,,,,,,...,,,.,,,,,,.,,..,,...,...,...,,.,,,..,..,,,,.,
-#O74YZU44KCJTHYFE5442MWALFPRYWHPZLGNQSSVZS3DJW7YOQSPHVJ5VOXH4MOHYVEEWMFTRDOHD6
-#\\\|LYWKJZRWSOHY45TMUBRSFXESPVON3MHQDYANTL4A5BYL6JHDAG6 \ / AMOS7 \ YOURUM ::
-#\[7]JXLOPIJOQTEX6TFJHGOV3WXQ2LKRVN3QAM5B2VAYRJCVSQMYY2BI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,..,,..,,,,.,,,.,,.,,.,,,...,..,,...,...,,,.,,..,.,.,,.,,,.,,
+#FDBDDWTSGCZP6MIERDN7ECKY42TVM3CDSJFXURJJWGHIDY4YNL4X54FIMUYLVMLMEJ7LWI3N7YJH2
+#\\\|RK6LXUSDCQ4HV5UB5GJGKSFQTV5QQ76H5AANJBDXYZYG4W6EDQC \ / AMOS7 \ YOURUM ::
+#\[7]TU3EB3YKTLTWLJINSUTVCFPBB7AOH4FHA435ZQCQPWEDVWS3AGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

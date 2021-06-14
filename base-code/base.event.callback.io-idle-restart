@@ -1,0 +1,53 @@
+## >:] ##
+
+# name   = base.event.callback.io-idle-restart
+# descr  = restart watcher when idle
+
+my $event = shift;
+
+if ( defined <watcher_list.paused>
+    and ref <watcher_list.paused> eq qw| ARRAY | ) {
+    foreach my $paused_event ( <watcher_list.paused>->@* ) {
+
+        my $id   = $paused_event->w->data;
+        my $desc = $paused_event->w->desc;
+
+        next if not defined $id or not defined $data{'session'}{$id};
+
+        $paused_event->w->start;
+
+        ## hotfix [ to be improved with the new event module ] ##
+        if ( $desc =~ m|^\[(\d+)\] output buffer$| ) {
+            my $session_id = $LAST_PAREN_MATCH;
+            $paused_event->w->now    ##  more data waiting to write  ##
+                if length $data{'session'}{$session_id}{'buffer'}{'output'};
+        }
+    }
+    <watcher_list.paused> = [];
+    $event->w->stop;
+} else {
+    <watcher_list.paused> = [];
+    $event->w->stop;
+}
+
+if ($PID == <system.process_start.pid>    ##  is parent \ not forked  ##
+    and defined <system.ondemand_timeout>
+    and (  not defined <base.timer.ondemand_timeout>
+        or not <base.timer.ondemand_timeout>->is_active )
+) {
+    ##  shut down zenka after ondemand_timeout  ##
+    <base.timer.ondemand_timeout> = <[event.add_timer]>->(
+        {   'after'   => <system.ondemand_timeout>,
+            'handler' => qw| base.handler.ondemand_timeout |,
+            'data'    => {}
+        }
+        )
+        if not defined $data{'route'}
+        or not keys $data{'route'}->%*;   ## no outstanding command replies ##
+}
+
+#,,..,,,,,,.,,,.,,.,.,..,,,.,,...,,,.,,..,,..,..,,...,..,,..,,,..,,.,,...,.,,,
+#ECT2MYJPITZBJ4E3XDOLHWDPTFPRCV6WTM4IRJ7MJVUAYV2GSCSFPHF4BNYADFB52UAT5JE7UWJ26
+#\\\|VL34AF6TZUSQ4LGIQQIREKPENRV6WCFJ3FEELWKHVI2J4YS4AVY \ / AMOS7 \ YOURUM ::
+#\[7]JBI2MJFSMHAVUKGUWIHJ54NKFYSI4MGV2OLG7S776TD3D2VYBYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,8 +4,14 @@
 # descr = writes buffer content to client handle
 
 my $id;
-if   ( $_[0] =~ m|^\d+| ) { $id = $_[0] }
-else                      { $id = $_[0]->w->data }
+my $event;
+
+if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
+    $id = shift;    ##  direct call with session id  ##
+} else {
+    $event = shift;
+    $id    = $event->w->data;
+}
 
 return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
 
@@ -20,11 +26,11 @@ if ( fileno $session->{'handle'} ) {
         if ( not defined $written ) {
             $session->{'shutdown'} = 1;
         } else {
-            $_[0]->w->stop;
+            $event->w->stop;
             $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'}
                 += $written;
             substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
-            $_[0]->w->start;
+            $event->w->start;
 
             # httpd zenka [ download in progress ]
             if ( defined $session->{'watcher'}->{'download_handler'}
@@ -35,31 +41,28 @@ if ( fileno $session->{'handle'} ) {
         }
     }
 } else {
-    $_[0]->w->cancel;
+    $event->w->cancel;
     return $session->{'shutdown'} = 1;
 }
 
 if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
-    push( @{ $data{'watcher_list'}{'paused'} }, \$_[0] );
 
-    if ( !$data{'watcher'}{'io'}{'transfer'}->is_running ) {
-        $data{'watcher'}{'io'}{'transfer'}->start;
-    }
-} else {
+    ##  deferred restart [ when idle ]  ##
+    <[event.io_idle_restart]>->($event) if defined $event;
 
-    # if ( !$session->{'watcher'}{'output_buffer'}->is_running ) {
+    $data{'watcher'}{'io'}{'transfer'}->start
+        if not $data{'watcher'}{'io'}{'transfer'}->is_active;
 
+} elsif ( not $session->{'watcher'}{'output_buffer'}->is_active ) {
     $session->{'watcher'}->{'output_buffer'}->start;
-
-    # }
 }
 
 $session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,,.,,,,,.,.,..,,,.,,..,,,..,,.,,,,,,..,,.,,,..,,...,..,,..,,.,.,.,.,.,,,,,.,
-#XRDB65G3T2PDZE4JHS4CYUQC7P67TTAWQHFMQY4JOKYQNCHK4NL5WGXPCLWAYHKHBCGG7E4SUJ4Q4
-#\\\|ZSTZ2LRWSKX7UMDLLK4HZECBE4WYKNE45H7JRP2ZWNEXJ34CAHC \ / AMOS7 \ YOURUM ::
-#\[7]LUD6IS27AW5BIWRM2KOFSJ7KNH6UX3WI6CMDZEZ6CP2GPNE5N2DY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,..,,.,.,,.,,..,,...,.,,,..,,..,,...,...,,..,.,.,,.,,,.,,,..,
+#HOFCYED2BWV3LBJUNEM3GG3XMELJIUL6SKD5CANZC552FRRWEA32GJVMWXO6SMKV4AUFSJLYCCV4C
+#\\\|SB3PIPTQEGGJL3TOXVYWEJPPNM37CK5O4X5X4K3EKV2KHO3OAX6 \ / AMOS7 \ YOURUM ::
+#\[7]UV5BTQV4LB5GPFKXTPSISRV7JANIB3EMBZHXB4PRUSI676IXAYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

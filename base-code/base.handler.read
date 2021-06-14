@@ -3,8 +3,10 @@
 # name  = base.handler.read
 # descr = session input handler
 
-my $id = $ARG[0]->w->data;
-my $fd = $ARG[0]->w->fd;
+my $event = shift;
+
+my $id = $event->w->data;
+my $fd = $event->w->fd;
 
 if (   not defined $id
     or not defined $data{'session'}{$id}
@@ -12,11 +14,11 @@ if (   not defined $id
     and (  $data{'session'}{$id}{'shutdown'} // 0
         or $data{'session'}{$id}{'flush_shutdown'} // 0 )
 ) {
-    $ARG[0]->w->cancel;    ## removing from event management ##
-    $id //= '---';    ## <-- !!! session p7-log ?                        [LLL]
+    $event->w->cancel;    ## removing from event management ##
+    $id //= qw| --- |;    ## <-- !!! session p7-log ?                  [LLL]
     my $type = defined $data{'session'}{$id} ? qw| removed | : qw| closing |;
     if ( $type ne qw| closing | or not $fd->eof ) {
-        <[base.log]>->( 1, "[$id] handler of $type session called." );
+        <[base.logs]>->( '[%d] handler of %s session called.', $id, $type );
         return undef;
     }
 }
@@ -27,16 +29,34 @@ my $handle_href = $data{'handle'}{ $session->{'handle'} };
 if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
     $session->{'last-bytes-read'} = 0;
     $session->{'flush_shutdown'}  = 1;
-    $ARG[0]->w->cancel;
+    $event->w->cancel;
     return;
 }
 
-my $return_code = <[net.read_proto_line]>->($id);    ##  read one line  ##
+my $return_code = 2;                        ##  set to disconnecting  ##
+
+my $protocol = $session->{'protocol'};
+
+if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
+
+    my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
+    my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+    my $bytecount = <[base.s_read]>->(
+        $session->{'handle'}, \$session->{'buffer'}->{'input'}, $size_left
+    );
+    $handle_href->{'bytes'}->{'in'} += $bytecount if defined $bytecount;
+
+    $return_code = 1 if defined $bytecount and $bytecount > 0;
+
+} else {    ##  read-mode : bytewise and linewise  ##
+
+    $return_code = <[net.read_proto_line]>->($id);    ##  read one line  ##
+}
 
 if ( $return_code > 1 ) {    ##  disconnect  ##
     $session->{'last-bytes-read'} = 0;
     $session->{'flush_shutdown'}  = 1;
-    $ARG[0]->w->cancel;
+    $event->w->cancel;
 } else {
 
     if ( $session->{'read-mode'} eq qw| bytewise | ) {
@@ -46,10 +66,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
         if ( $session->{'bytes-to-read'} <= 0 ) {    ##  switching back  ##
             $session->{'read-mode'} = qw| linewise |;
 
-            if ( $session->{'bytes-to-read'} < 0 ) {
-                warn ' < over-read > ' . abs( $session->{'bytes-to-read'} );
-                $session->{'bytes-to-read'} = 0;
-            }
+            $session->{'bytes-to-read'} = 0          ## to be sure.., ##
+                if $session->{'bytes-to-read'} < 0;
         }
     }
 
@@ -60,13 +78,13 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
     if ( $size_left > 0 ) {
 
-        $ARG[0]->w->start;    ##  restarting : still space in buffer  ##
+        $event->w->start;    ##  restarting : still space in buffer  ##
         $handle_href->{'paused'} = 0;
 
     } else {    ##  set timeout ? ##  [LLL]
 
         $handle_href->{'paused'}         = 1;
-        $handle_href->{'paused-watcher'} = $ARG[0]->w;
+        $handle_href->{'paused-watcher'} = $event->w;
 
         <[base.log]>->( 2, 'input handler paused [ buffer full ]' );
     }
@@ -74,8 +92,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,..,,,.,,,,,..,,...,,..,...,,..,,,,,...,...,..,,...,..,,.,.,.,.,..,,,,,,,..,
-#BJHTA3D4IYIWA23BUAOG7RWH7QNF52GDIUGZY7ARP6PLFUQR5SK463RDV4FQ2BIFDKLP2442RREBQ
-#\\\|KASAOSZ4BBJHH7LTNAZMUJVLMJ5FBKH6DJTNWRTLTQ6Z3TEIQHM \ / AMOS7 \ YOURUM ::
-#\[7]YLTWZXOJHP5M73MIIOSBYFEEJRLAMXEVDTYK4V2JVH674WUY76CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,..,,,..,,.,,,.,,,,.,,..,.,,,..,,...,.,.,.,.,,..,,.,,...,.,,,
+#4IO242YIGIM3QZROPKX55OUCOOKIGEDCT6DX6FK25P5H6DSUO2GC5HQWQXEQPN34XMUQJVWDLL5WG
+#\\\|HDEF22QFBSM5QV37QEVIQLHY5BOFMFMUUW2UOGW2Z47RW6GVTAU \ / AMOS7 \ YOURUM ::
+#\[7]INNCHD4OKOGP6I3SQUBJ52O3NF7HARBE7NEOUJW66WFBLGQFPWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
