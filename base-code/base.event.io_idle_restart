@@ -1,0 +1,21 @@
+## >:] ##
+
+# name  = base.event.io_idle_restart
+
+my $event = shift;
+
+if ( ref $event ne qw| Event::Event::Io | ) {
+    warn 'expected io event for watcher_list.paused <{C1}>';
+    return undef;
+} elsif ( $event->w->is_active ) {
+    warn 'event [watcher] was active [ stopped it ] <{C1}>';
+    $event->w->stop;
+}
+
+push <watcher_list.paused>->@*, $event;
+
+#,,.,,.,.,,..,...,,.,,,.,,,..,,,,,,,.,.,,,..,,.,.,...,...,.,.,.,.,..,,...,...,
+#IYOJI73NPVMPNEZEXVTTK3BINQV4QZJLUXJHETQSMKTJEVKZLBI6NGDHRKK3JW52LVAIEKDN2XLJO
+#\\\|2NSUM4N2GF4CTGDNYYCEGZXGZLNPKA57AZZDX5KIAMHAVAODLFA \ / AMOS7 \ YOURUM ::
+#\[7]XZ565V5AWVUFDJZGNNSCCNNM7TNWY3K2WZ2HHURKHIAPIXETTCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

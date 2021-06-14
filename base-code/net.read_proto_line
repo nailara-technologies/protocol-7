@@ -19,7 +19,7 @@ warn 'target parameter expected to be '
 my $protocol = $session->{'protocol'};
 
 my $protocol_stats = $data{'protocol'}{$protocol}{'statistics'}
-    //= { 'line-reads' => 0, 'read-iterations' => 0 };
+    //= { qw| line-reads | => 0, qw| read-iterations | => 0 };
 
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
@@ -30,7 +30,7 @@ my $size_left  = $data{'size'}->{'buffer'}->{'input'} - $bfs;
 my $start_read = $bfs;    ##  ignore start position for endline match  ##
 
 my $avg_cmd_length        ##  tracked minus endline  ##
-    = sprintf( '%.0f',
+    = sprintf( qw| %.0f |,
     defined $session->{'command'}->{'average-length'}
     ? $session->{'command'}->{'average-length'}
     : $protocol_stats->{'average-command-line-length'} // 63 );
@@ -79,7 +79,7 @@ $protocol_stats->{'line-reads'}++;
 
 if ( $endline_pos == -1 and $size_left <= 0 ) {
     my $msg = 'input buffer size exceeded [ and no endline ]';
-    $session->{'buffer'}->{'output'} .= "!TERM! $msg\n";
+    $session->{'buffer'}->{'output'} .= sprintf "!TERM! %s\n", $msg;
     <[base.logs]>->( 1, "[%d] %s [%d]", $id, $msg, $bfs + $read_bytes_total );
 
     return 2;    ## <-- closing connection ##
@@ -129,8 +129,8 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
     }
 }
 
-#,,,,,,.,,,.,,,,,,..,,..,,,.,,,,.,,,.,,..,,,.,..,,...,...,,,,,,,,,,,,,,,,,..,,
-#4UO5SHEGWDKRNLZLWRN6K2I6TEGH2IHTLYY2Q7FSOTJGHKFJ6YEIZXROWQBKETEEHNW2HKG6PYAXM
-#\\\|OAZZDBM2ZCP3XDR7B2SJK3YG5RU45JAZIZQ2HOL6Z2X4UFMZ4H7 \ / AMOS7 \ YOURUM ::
-#\[7]UN4OSHYEDMPGDFMCUNZMWDTYI7V2GUF5FAS4MN4JKCVLAHVG26BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,.,.,.,.,,,.,,.,,,.,,,.,,...,..,,...,...,,,.,.,.,...,,..,...,
+#SC6QSQ3EAYCMHMYYBNTU45BLASILMB6G27UVRHXKV5TV3Q3PCXTYOVNQI4ZJUQQ6KCZ6PRH6KXSX2
+#\\\|LDPGLPKL4KTOXH4G3IKOTKFQEHGADMFH23I6K5FWST7RJZRYYES \ / AMOS7 \ YOURUM ::
+#\[7]OASRDSAXD6ZCYK6BBN5KA6XQGKO5SMIW52QAHPYXILWD7V7GQYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,15 +9,17 @@ $Event::DIED       = $code{'event.handler.exceptions'};
 
 # setup io handler
 
-$data{'watcher_list'}{'paused'} = [];
+<watcher_list.paused> = [];
 
-$data{'watcher'}{'io'}{'transfer'}
-    = Event->idle( cb => $code{'event.callback.idle_restart'}, repeat => 1 );
+$data{'watcher'}{'io'}{'transfer'} = Event->idle(
+    cb     => $code{'event.callback.io-idle-restart'},
+    repeat => 1
+);
 
 return 0;
 
-#,,.,,..,,.,,,..,,,..,.,,,...,..,,,,.,,..,.,.,..,,...,...,,,.,,,.,.,.,...,...,
-#KJZMP7347PNFKHFGBSBZ3UGNWLP445Y65PF5R2I6LRZX65WSTNECZY7YJYMJAHOVAK34XH6OWJVVI
-#\\\|RTBMNMP7C2BHNUGKPA6L2IY77GQ5U5S7GNQRPON4UJABUARINFZ \ / AMOS7 \ YOURUM ::
-#\[7]BBVVYB4RTVO4SAZXDASUAWZAUTEKBLQUGHNKHXFP3S3IPCVMBADQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,.,,,,,.,,.,,,.,,.,.,,,,,.,.,.,.,..,,...,...,.,.,,..,,,,,,,.,,,,,
+#DG6KUSTWKRR7L4RYJFRCS36PDDNUTNPOPM3D42MC6KQVAS3SCVMAQUXHNCGK4QKGDVOSK5V6W2HVW
+#\\\|XD2YOTYZ5SWQMHNQVB2THWWHE6JTGW6QEKGLAQFVCG5USH4WSWZ \ / AMOS7 \ YOURUM ::
+#\[7]3NLIYGVULJSJBPJVE3AUP5LQMMRSBYD6OXCN35A7AB4LBM4S32DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

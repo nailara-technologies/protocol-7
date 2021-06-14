@@ -43,7 +43,8 @@ $zenka_instance->{'matched-name-patterns'}
 
 my @match_name = @{ $zenka_instance->{'matched-name-patterns'} };
 
-while ( $zenka_instance->{'output_buffer'} =~ s|(^\s*\n+)*([^\n]+)\n||s ) {
+while (
+    $zenka_instance->{'output_buffer'} =~ s|^(\s*\r*\n+)*([^\n]+)\r?\n||s ) {
     my $zenka_output_line = ${^CAPTURE}[1];
 
     utf8::decode($zenka_output_line);
@@ -54,7 +55,7 @@ while ( $zenka_instance->{'output_buffer'} =~ s|(^\s*\n+)*([^\n]+)\n||s ) {
         $zenka_name,         $ANSI{'p7_fg_0002'}, $ANSI{'bold'},
         $zenka_output_line,  $ANSI{'reset'} )
         if index( $zenka_output_line, "\e", 0 ) == -1
-        and index( $zenka_output_line, '.', 0 ) == -1;
+        and index( $zenka_output_line, '\.', 0 ) == -1;
 
     say $zenka_output_line    ##  display when verbose or log level 0  ##
         if <system.verbosity.console>
@@ -99,8 +100,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,,.,,,.,.,.,..,,,.,,,..,,,,,,.,,..,,,..,..,,..,,...,...,...,.,,,.,.,,,,,.,,,
-#JTY67II35EHW32JXRVU4VENEW2LERCB7KUSDYN4F4HFBM36BZAQTB7TSJDU3PAOE5EG3UT3EQIGHQ
-#\\\|I7X3VKCSWDQ2M2AUB5J26TQUCKOHODKJJKS2UHK6WMGBYWDQTZK \ / AMOS7 \ YOURUM ::
-#\[7]ONI4ZFCLUHQESYJTIHJBF3UDKS4HRQ7WDTIIJBJWMMCRAWQF34DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,,.,,,,,.,.,,.,,,,.,,,.,.,.,..,,...,...,...,...,.,,,.,.,.,.,
+#EZWIJZIFY75YDG2SSY7M74JA6USXATN2GBTGDNG6FCMZJUN2I7Z5OYCNDPKPRQA23L2OAHEKBBGYC
+#\\\|WOFMMNCQFQKS3ED46EE6QKDQWS2PVECMLWL7FY6A44I2B7FGFAK \ / AMOS7 \ YOURUM ::
+#\[7]H7H73DCDQFY3N5HG4LNIPPS6NC77XZJ7BM3RLDUHSDKZTBG3ACBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
