@@ -10,15 +10,20 @@
 
 /* LLL: needs at least timeout, cut param at endlines, read line or RAW <n> */
 
-char * socket_path = "/var/run/.7/UNIX/NIW7OAQ";      /* or ENV{'P7C_UNX'} */
-char * src_bmw_b32 = "[BMW_FILE_CHkSUM]";
+char *src_bmw_b32 = "[BMW_FILE_CHkSUM]";
+char *socket_path = "/var/run/.7/UNIX/NIW7OAQ"; // ENV{'PROTOCOL_7_UNIX_PATH'}
 
 char* concat(const char *s1, const char *s2)
 {
     const size_t len1 = strlen(s1);
     const size_t len2 = strlen(s2);
+    int errno;
     char *result = malloc(len1 + len2 + 1); // +1 for the null-terminator
-    // in real code you would check for errors in malloc here
+    if( result == NULL ) {
+        fprintf( stderr, "< malloc > %s\n", strerror(errno) );
+        exit(-2);
+    }
+
     memcpy(result, s1, len1);
     memcpy(result + len1, s2, len2 + 1); // +1 to copy the null-terminator
     return result;
@@ -28,24 +33,30 @@ int main( int argc, char * argv[] ) {
     fd_set readset;
     char buf [1024];
     char * auth_str = '\0';
+    char * root_usr = "root";
     struct sockaddr_un addr;
     int errno, socket_fd, result;
 
-    char * nailara_socket  = secure_getenv("P7C_UNX");
-    char * unix_user       = secure_getenv("USER");
+    char * p7_unix_user      = secure_getenv("PROTOCOL_7_P7C_USER");
+    char * protocol_7_socket = secure_getenv("PROTOCOL_7_UNIX_PATH");
 
-    if ( unix_user == NULL ) {
-        strncpy( "root", unix_user, 4 );
-    }
-    if ( nailara_socket != NULL ) {
-        socket_path = nailara_socket;
-    }
+    if ( p7_unix_user == NULL )
+        p7_unix_user = secure_getenv("USER");  // use regular unix user
 
-    char * auth_user = concat( "unix-", unix_user );
+    if ( p7_unix_user == NULL )
+        p7_unix_user = secure_getenv("LOGNAME"); // next LOGNAME
+
+    if ( p7_unix_user == NULL )
+        p7_unix_user = root_usr; // try unix user root as a fallback user
+
+    if ( protocol_7_socket != NULL )
+        socket_path = protocol_7_socket;
+
+    char * auth_P7C_USER = concat( "unix-", p7_unix_user );
     const char close_cmd [] = "close\n";
 
     if ( argc < 2 ) {
-        fprintf( stderr, "\n < usage > %s <command> [_args_]\n\n",
+        fprintf( stderr, "\n < usage : %s <command> [args] >\n\n",
             argv[0] );
         exit(1);
     }
@@ -72,12 +83,8 @@ int main( int argc, char * argv[] ) {
         }
     }
 
-    // debug:
-    // fprintf( stderr,
-    //     ": unix_user = %s\n: auth_user = %s\n", unix_user, auth_user );
-
     /* prepare authentication */
-    asprintf( &auth_str, "select unix\nauth %s\n", auth_user );
+    asprintf( &auth_str, "select unix\nauth %s\n", auth_P7C_USER );
 
     /* prepare command string */
     int i;
@@ -102,26 +109,27 @@ int main( int argc, char * argv[] ) {
     /* prepare unix socket path */
     memset( &addr, 0, sizeof(addr) );
     addr . sun_family = AF_UNIX;
-    strncpy( addr . sun_path, socket_path, sizeof( addr . sun_path ) - 1 );
+    strncpy( addr.sun_path, socket_path, sizeof( addr.sun_path ) - 1 );
 
     /* connect to socket */
     if (connect(socket_fd, ( struct sockaddr * ) & addr, sizeof(addr)) == -1)
     {
-        fprintf( stderr, "< connection not successful > %s [unix:%s]\n",
+        fprintf( stderr, "<< connection not successful : %s [unix:%s] >>\n",
                 strerror(errno), socket_path );
         exit(-1);
     }
 
     /* authenticate to nailara core */
     write( socket_fd, auth_str, strlen(auth_str) );
-    free(auth_user);
+    free(auth_P7C_USER);
     int match = 0;
     char byte = ' ';
     while ( match < 2 ) {
         result = recv( socket_fd, &byte, 1, 0 );
         if ( result < 0 ) {
             fprintf( stderr,
-                "<< error during authentication : %s >>\n", strerror(errno)
+                "<< error during authentication sequence : %s >>\n",
+                strerror(errno)
             );
             exit(-1);
         }
@@ -161,8 +169,7 @@ int main( int argc, char * argv[] ) {
             }
         }
     } else if ( result < 0 ) {
-        fprintf( stderr, "<< error on select() call : %s >>",
-            strerror(errno) );
+        fprintf(stderr, "<< error on select() call : %s >>", strerror(errno));
     }
     return 0;
 }
