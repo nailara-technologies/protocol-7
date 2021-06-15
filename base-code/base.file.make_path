@@ -3,97 +3,194 @@
 # name  = base.file.make_path
 # descr = recursively create a directory path
 
-my ( $path, $param_mode, $param_owner ) = @ARG;
+##  owner and group are optional  ##  names not ids  ##
+my ( $path, $param_mode, $param_owner, $owner_group ) = @ARG;
 
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
-warn '<path> not defined <{C1}>' and return undef if not defined $path;
+warn 'expected defined path <{C1}>' and return undef if not defined $path;
 return warn 'expected absolute path [ to create ] <{C1}>' and return undef
     if $path !~ m|^/[^/]+|;
 
 my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
+my $previous_umask;
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
-my $modes = ref($param_mode) ne qw| ARRAY | ? [$param_mode] : $param_mode;
+my $modes = ref $param_mode ne qw| ARRAY | ? [$param_mode] : $param_mode;
 
 ### path clean-up ####
 $path =~ s|/[^/]+/\.\./||g;
 $path =~ s|//|/|g;
 $path =~ s|/$||;
 
-return warn sprintf( "path not valid : '%s' <{C1}>", $path )
-    if $path !~ m|^/[^/]+|;
-
-if ( -d $path ) {
-    <[base.log]>->( 2, ':. path present =)' );
-    <[base.log]>->( 2, ": $path" );
-
-    ## check permissions of existing directory .., ##
-    my $old_perms = <[base.file_perm]>->($path);
-
-    if ( $old_perms ne sprintf '%#o', $param_mode ) {
-        <[base.logs]>->(
-            0, '<< resetting permissions of %s [ %s --> %04o ] >>',
-            $path, $old_perms, $param_mode
-        );
-        chmod( $param_mode, $path )
-            or warn sprintf( 'chmod[ %s ] : %s',
-            $path, <[base.format_error]>->($OS_ERROR) );
-    }
-    ##
-    return $path;
+if ( $path !~ m|^/[^/]+| ) {
+    <[base.s_warn]>->( "path not valid : '%s' <{C1}>", $path );
+    return undef;
 }
+
+## reading optional parameters ##
 
 my ( $uid, $gid );
 if ( defined $param_owner ) {
-    return warn sprintf( "not valid username ['%s'] <{C1}>", $param_owner )
-        if $param_owner !~ <regex.base.usr>;
-    ( undef, undef, $uid, $gid ) = getpwnam($param_owner)
-        or return
-        warn sprintf( "owner %s not in passwd file <{C1}>", $param_owner );
+    if ( $param_owner !~ <regex.base.usr> ) {
+        <[base.s_warn]>->(
+            "specified username ['%s'] not valid <{C1}>", $param_owner
+        );
+        return undef;
+    }
+    ( undef, undef, $uid, $gid ) = getpwnam($param_owner);
+    if ( not defined $uid ) {
+        <[base.s_warn]>->(
+            'owner %s not in passwd file <{C1}>', $param_owner
+        );
+        return undef;
+    }
+}
+if ( defined $owner_group ) {
+    if ( not defined $param_owner ) {
+        warn('the group parameter also requires owner to be defined <{C1}>');
+        return undef;
+    }
+    if ( $owner_group !~ <regex.base.usr> ) {
+        <[base.s_warn]>->(
+            "specified group name not valid ['%s'] <{C1}>", $param_owner
+        );
+        return undef;
+    }
+    my $optional_gid = getgrnam($owner_group);
+    if ( not defined $optional_gid ) {
+        <[base.s_warn]>->(
+            'requested group %s not in passwd file <{C1}>', $owner_group
+        );
+        return undef;
+    } else {
+        $gid = $optional_gid;
+    }
 }
 
+##  checking existing path attributes  ##
+
+if ( -d $path ) {
+    <[base.log]>->( 2, ':. path present =)' );
+    <[base.logs]>->( 2, ': %s', $path );
+
+    ## check permissions of existing directory .., ##
+    my $current_perms = <[base.path_perms]>->($path);
+
+    if ( $current_perms ne sprintf '%#o', $param_mode ) {
+        <[base.logs]>->(
+            0, '<< resetting permissions of %s [ %s --> %04o ] >>',
+            $path, $current_perms, $param_mode
+        );
+        if ( not chmod( $param_mode, $path ) ) {
+            <[base.s_warn]>->(
+                'chmod[ %s ] : %s <{C1}>',
+                $path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+            );
+            return undef;
+        }
+    }
+
+    ## check ownership of already present directory ##
+    if ( defined $param_owner ) {
+        ( my $current_uid, my $current_gid ) = <[base.path_owners]>->($path);
+
+        if ( $current_uid != $uid or $current_gid != $gid ) {
+            my $correction_str = sprintf 'uid %d, gid %d', $uid, $gid;
+            $correction_str = sprintf 'uid %d', $uid if $current_gid == $gid;
+            $correction_str = sprintf 'gid %d', $gid if $current_uid == $uid;
+            <[base.logs]>->(
+                0,     'correcting ownership of %s to %s',
+                $path, $correction_str
+            );
+            if ( not chown( $uid, $gid, $path ) ) {
+                <[base.s_warn]>->(
+                    'chown [%d:%d] %s : [ %s ] <{C1}>',
+                    $uid, $gid, $path,
+                    scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                );
+                return undef;
+            }
+        }
+    }
+
+    return $path;    ##  is as configured  ##
+}
+
+##  recursively creating specified path  ##
+
 my $install_root = <system.root_path>;
+
 ( my $report_path = $path ) =~ s|^$install_root/?||;
 
 <[base.logs]>->( 2, ":. creating., .: ['%s']", $report_path );
+if ( defined $param_owner or defined $owner_group ) {
+    <[base.logs]>
+        ->( 2, ':. : [ configured uid : %d, gid : %d ]', $uid, $gid );
+}
 
-my $previous_umask = umask($mkdir_umask)
-    or return warn sprintf( "umask[ %s ] : [ %s ] mkdir aborted .., <{C1}>",
-    $mkdir_umask, <[base.format_error]>->($OS_ERROR) );
+$previous_umask = umask($mkdir_umask)
+    or return <[base.s_warn]>->(
+    "umask[ %s ] : [ %s ] mkdir aborted .., <{C1}>",
+    $mkdir_umask, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
 
 my $current_mode;
 my $current_path = '';
 foreach my $_dir ( split qw| / |, $path ) {
     next if not length $_dir;
 
-    $current_path .= sprintf '/%s', $_dir;
+    $current_path .= sprintf qw| /%s |, $_dir;
     $current_mode //= shift @{$modes};
 
     next if -d $current_path;    ## <-- exists \ continue ., ##
 
     mkdir( $current_path, $current_mode )
-        or warn sprintf( 'mkdir[ %s ] : [ %s ] <{C1}>',
-        $current_path, <[base.format_error]>->($OS_ERROR) );
+        or <[base.s_warn]>->(
+        'mkdir[ %s ] : [ %s ] <{C1}>',
+        $current_path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        );
 
     $current_mode = oct $current_mode if $current_mode =~ m|^0|;
 
-    chmod( $current_mode, $current_path )
-        or warn sprintf( 'chmod[ %04o ] : [ %s ] <{C1}>',
-        $param_mode, <[base.format_error]>->($OS_ERROR) );
+    if ( not chmod( $current_mode, $current_path ) ) {
+        <[base.s_warn]>->(
+            'chmod[ %04o ] : [ %s ] <{C1}>',
+            $param_mode, <[base.format_error]>->($OS_ERROR)
+        );
+        <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
+        unlink($path)
+            or <[base.s_warn]>->(
+            'unlink[ %s ] : ',
+            scalar <[base.format_error]>->( $OS_ERROR, -1 )
+            );
+        return undef;
+    }
+
     if ( defined $param_owner ) {
-        chown( $uid, $gid, $current_path )
-            or warn sprintf( 'chown [%d:%d] %s : [ %s ] <{C1}>',
-            $uid, $gid, $current_path, <[base.format_error]>->($OS_ERROR) );
+        if ( not chown( $uid, $gid, $current_path ) ) {
+            <[base.s_warn]>->(
+                'chown [%d:%d] %s : [ %s ] <{C1}>',
+                $uid, $gid, $current_path,
+                scalar <[base.format_error]>->( $OS_ERROR, -1 )
+            );
+            <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
+            unlink($path)
+                or <[base.s_warn]>->(
+                'unlink[ %s ] : ',
+                scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                );
+            return undef;
+        }
     }
 }
 
-umask $previous_umask;
+umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,.,,.,.,.,,,,,.,,,.,.,,,,,,,,,.,..,,,,.,,,,,..,,...,...,,..,.,,,,,.,,..,..,,
-#WSLF5XP6EOW4XLR77YQPOJYQSQET4IJ7J7BHWWHKYB4R2LHKZQSBDAO2SIMWJF4REXSXRT7T44I2S
-#\\\|IFSE4UPYWPKRRZN2TLPFIITDU2TTLZX6EGWZYYOL7K2GBFQF6PR \ / AMOS7 \ YOURUM ::
-#\[7]27RLDMWXKB3KX733EID4VRJTE7CDU5EXHUGU6VDKQ3NINATVJGBI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,..,,.,,,..,,..,.,,,.,,,,,,,..,,...,...,.,,,.,.,,,,,..,,,,,,
+#WZMPL2PKPM6ZFDX37MSOR5TTW2ZDLBKR6N62UMOJXPCBRM7H7D65Q74BOJNCIOGU6W5BNWADJHMU2
+#\\\|JILEBZ6CDBVXUITLB6F5GRM36VTD4XNMNV5X4GNGLQSLDJP5IR3 \ / AMOS7 \ YOURUM ::
+#\[7]PPKISYFFZKJGFZRMOGFD3RFPIC26XXIHWIUO2VNTQW24AUEEE4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

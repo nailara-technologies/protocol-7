@@ -1,0 +1,36 @@
+## >:] ##
+
+# name  = base.path_owners
+# descr = return path ownership list for specified path [ uid, gid ]
+
+my $chk_path = shift;
+
+return warn 'path param expected <{C1}>'
+    if not defined $chk_path or not length $chk_path;
+return <[base.s_warn]>->( "path not found [ '%s' ] <{C1}>", $chk_path )
+    if !-e $chk_path;
+
+my $stat_result = File::stat::stat($chk_path);
+
+##  returning uid, gid in list context  ##
+
+return ( $stat_result->uid, $stat_result->gid ) if wantarray;
+
+## return resolved username in scalar context ##
+
+my $username = getpwuid( $stat_result->uid );
+if ( not defined $username ) {
+    <[base.s_warn]>->(
+        'cannot resolve uid %d in passwd file <{C1}>',
+        $stat_result->uid
+    );
+    return undef;
+} else {
+    return $username;
+}
+
+#,,,,,,,.,.,,,..,,,.,,..,,..,,.,,,..,,,.,,..,,..,,...,...,,,,,,..,,..,.,,,,,,,
+#JBZPXJNQUM3KR2YJKFJ7SZEPZ5UQSZXJW7455CIITBWEFYEQ7JQ3IGJI47TQG2APOWZTTOUWYFBPY
+#\\\|GQTWIRRHUJEM222BUYVJBHNBGSOIMNFBNKPAJNKVOHPLG6M7Z3O \ / AMOS7 \ YOURUM ::
+#\[7]VS5MGPZWVEXAQTC2LUO33EYXJROJEYCZZAGN777OGFAKD5P6AICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

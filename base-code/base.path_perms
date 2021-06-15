@@ -1,0 +1,19 @@
+## >:] ##
+
+# name  = base.path_perms
+# descr = return file permisions for specified path as octal [string]
+
+my $chk_path = shift;
+
+return warn 'path param expected <{C1}>'
+    if not defined $chk_path or not length $chk_path;
+return <[base.s_warn]>->( "path not found [ '%s' ] <{C1}>", $chk_path )
+    if !-e $chk_path;
+
+return sprintf '%#o', File::stat::stat($chk_path)->mode & 07777;
+
+#,,,,,,..,.,.,,.,,.,.,,,,,...,,.,,,,.,.,.,,,.,..,,...,...,..,,..,,...,..,,,..,
+#5DKDF3RICTSVODO2VMN5MSBL6B3NEFFRDSY6S6H75WGV6TF4HKITL7KUTOFPFUQMKV3G5MSTSRR72
+#\\\|S5Z7QVK7RYDP2TRK7YY35OJZPRKIS4TO4A3QVJ2OHPCQ2ZE6ONW \ / AMOS7 \ YOURUM ::
+#\[7]JLR4REMXGIWIWWANODPVLPMAQXIQLMIOLMIOMYPADLOM7T7IXQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
