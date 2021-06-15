@@ -24,7 +24,7 @@ if ( !-d $cache_dir ) {
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
         or die "make_path : \l$OS_ERROR";
 } else {
-    my $old_perms = <[base.file_perm]>->($cache_dir);
+    my $old_perms = <[base.path_perms]>->($cache_dir);
     if ( $old_perms ne $perms ) {
         <[base.log]>->(
             0,
@@ -39,8 +39,8 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 0;
 
-#,,,.,...,..,,..,,,,.,,..,,.,,,..,...,.,.,...,..,,...,...,,.,,,,,,..,,...,,,.,
-#BT5SHVYEB4MPP3GDYYNVDKZGINIYTXNS3MX5PNIR3O73NXFIOFLI7LO34F7HKVHBWLRL46J6ROLI2
-#\\\|7FAJF3CUAGURDEQGNTITDGEZIGLFKK75O5752JNZLM6N5HCX4SO \ / AMOS7 \ YOURUM ::
-#\[7]YLW4JJ24Y2OBBSMGKTYTXTZVUFFQQ2S4I7H2J3GPQ5N4HGWWQEBI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,.,.,.,,.,,,..,..,,,.,,,..,,,.,..,,...,...,..,,,,,,,,,,,,.,...,
+#BBVJ3IU3ASNGLT6UMDJVZ2NCNZPKKNBEL67GYJKA4WAMD5D3ZJ5WJOGMU7ESGOPTGOZECMUYSQ7P4
+#\\\|2XRZCSYYDZEL45OZ2VCGZI5TYAKH74F2SSQBMBFWW2JCZMMUFU7 \ / AMOS7 \ YOURUM ::
+#\[7]CTBUI3HCHU62SQ3TNDD3GLYQNFZ4DF465IB4NUV3WMILSLTIIMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
