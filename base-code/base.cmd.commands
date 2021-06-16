@@ -4,9 +4,9 @@
 # param = [keyword]
 # descr = print available commands + descriptions
 
-my $id      = $$call{'session_id'};
+my $id      = $call->{'session_id'};
 my $user    = $data{'session'}{$id}{'user'};
-my $keyword = $$call{'args'};
+my $keyword = $call->{'args'};
 
 my @commands;
 my @dbg_cmds;
@@ -19,14 +19,14 @@ map { $ARG =~ s|^debug\.cmd\.||; <base.commands.is_debug>->{$ARG} //= 1 }
 
 my $max_len = 0;
 
-# getting a list of all commands the user [ who sent the request ] has access to
+## getting list of commands the user [ who sent the request ] has access to
 foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 
     next if not <[base.has_access]>->( $user, $cmd );
 
-  #        # command description mode
-  #        return { 'mode' => 'false', 'data' => "not implemented yet... :/" }
-  #            if defined $keyword and exists <base.cmd>->{$keyword};
+    ##   # command description mode
+    ##   return { 'mode' => 'false', 'data' => 'not implemented yet... :/' }
+    ##       if defined $keyword and exists <base.cmd>->{$keyword};
 
     # keyword search mode
     next
@@ -34,39 +34,42 @@ foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
         and $cmd !~ m|\Q$keyword\E|i
         and <base.commands.cmd>->{$cmd}->{'descr'} !~ m|\Q$keyword\E|i;
 
-    $max_len = length($cmd) if length($cmd) > $max_len;
+    $max_len = length($cmd) if length $cmd > $max_len;
     my $is_debug_command = <base.commands.is_debug>->{$cmd} //= 0;
-    if   ($is_debug_command) { push( @dbg_cmds, $cmd ) }
-    else                     { push( @commands, $cmd ) }
+    if   ($is_debug_command) { push @dbg_cmds, $cmd }
+    else                     { push @commands, $cmd }
 }
 
 return {
     'mode' => qw| false |,
-    'data' => "no commands matching '$keyword' available"
+    'data' => sprintf( "no commands matching '%s' available", $keyword )
     }
-    if defined $keyword and !@commands;
+    if defined $keyword and @commands == 0;
 
 # format and return the command list
 
-$$reply{'data'} = sprintf( "%78s\n\n",
-    sprintf( "%-43s", ".: '$zenka_name' zenka commands :." ) );
+$reply->{'data'} = sprintf( "\n%78s\n\n",
+    sprintf( "%-43s", sprintf( ".: '%s' zenka commands :.", $zenka_name ) ) );
 ( my $h_str, my $h_len )
     = <[base.parser.command_list]>->( \@commands, qw| cmd |, );
-$$reply{'data'} .= $$h_str;
+$reply->{'data'} .= $$h_str;
 
 if (@dbg_cmds) {
-    $$reply{'data'} .= sprintf( "\n %77s\n\n",
-        sprintf( "%-43s", ".: debug commands in '$zenka_name' :." ) );
+    $reply->{'data'} .= sprintf(
+        "\n %77s\n\n",
+        sprintf( "%-43s",
+            sprintf( ".: debug commands in '%s' :.", $zenka_name ) )
+    );
     ( $h_str, undef )
         = ( <[base.parser.command_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
-    $$reply{'data'} .= $$h_str;
+    $reply->{'data'} .= $$h_str;
 }
 
-$$reply{'data'} .= "\n";
-$$reply{'mode'} = qw| size |;
+$reply->{'data'} .= "\n";
+$reply->{'mode'} = qw| size |;
 
-#,,..,.,.,.,.,.,.,,..,,,,,,,,,.,,,,.,,,..,,..,..,,...,...,.,.,,,.,,..,,..,..,,
-#LC6ZDSZAX4N3KZFPK7ZQCSOUOKPA52HZGJKGOEDGTMFYAACBIICGERG7SIGHYOS6HFIQARBHDFOHK
-#\\\|3BMVKD3ZY3BBK25OILOVXAJGKJZ4UXOFMU6S2D7TI55MHYROM3I \ / AMOS7 \ YOURUM ::
-#\[7]364BHCU2MGWDGIDL5IV6JN7UIAVG2AN7ZJZOFTDMY4XEG373SWAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,..,...,.,,,,,.,..,,...,...,..,,...,...,,,,,,,,,...,,..,,.,,
+#TA3HGAMGZPUB4Z5S7OXRIL3QRTC66MDROR7YQFBGU5LNEEJ6IFNV74K7A42UTH6CFGJBJTP24Q5RQ
+#\\\|2AUUG4DQINNJAEDWSTOMXI52IQFPWFWHLSDTIP5WGRZ4WBPKCAY \ / AMOS7 \ YOURUM ::
+#\[7]DHPGUOCUFDCF4G4HTK456D6Y5K5XPBCK4NVEVC7HWOX5QKOZOYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
