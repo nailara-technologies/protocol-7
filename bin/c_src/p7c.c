@@ -16,25 +16,24 @@ char* concat(const char *s1, const char *s2)
     const size_t len1 = strlen(s1);
     const size_t len2 = strlen(s2);
     int errno;
-    char *result = malloc(len1 + len2 + 1); // +1 for the null-terminator
+    char *result = malloc(len1 + len2 + 1 ); // +1 for '\0'
     if( result == NULL ) {
-        fprintf( stderr, "< malloc > %s\n", strerror(errno) );
+        fprintf( stderr, "< malloc [concat] > %s\n", strerror(errno) );
         exit(4);
     }
 
     memcpy(result, s1, len1);
-    memcpy(result + len1, s2, len2 + 1); // +1 to copy the null-terminator
+    memcpy(result + len1, s2, len2 + 1); // +1 for '\0'
     return result;
 }
 
 int main( int argc, char * argv[] ) {
 
     char * auth_str  = '\0';
-    char * root_usr  = "root";
-    char * close_cmd = "close\n";
+    char * root_usr  = "root";    // fallback user
 
+    int errno, socket_fd;
     struct sockaddr_un addr;
-    int errno, socket_fd, result;
 
     char * p7_unix_user      = secure_getenv("PROTOCOL_7_P7C_USER");
     char * protocol_7_socket = secure_getenv("PROTOCOL_7_UNIX_PATH");
@@ -56,7 +55,7 @@ int main( int argc, char * argv[] ) {
     if ( argc < 2 ) {
         fprintf( stderr, "\n < usage : %s <command> [args] >\n\n",
             argv[0] );
-        exit(1);
+        exit(2);
     }
 
     for (int i = 1; i < argc; i++) {
@@ -64,11 +63,9 @@ int main( int argc, char * argv[] ) {
            if (argv[i][1] == 'd')
            {
                 if (argv[i][2] == 'q') // -dq == checksum only
-                {
                     printf( "%s\n", src_bmw_b32 );
-                } else {
+                else
                     printf( ":\n: %s.c :. %s .:\n:\n", argv[0], src_bmw_b32 );
-                }
                 return 0;
            }
            else
@@ -91,6 +88,11 @@ int main( int argc, char * argv[] ) {
         arglen += strlen( argv[i] ) + 1;
     }
     char * cmd_str = (char *) malloc( sizeof(char) * arglen );
+    if( cmd_str == NULL ) {
+        fprintf( stderr, "< malloc [argv] > %s\n", strerror(errno) );
+        exit(4);
+    }
+
     strcpy( cmd_str, argv[1] );
     for ( i = 2; i < argc; ++i ) {
         strcat( cmd_str, " " );
@@ -114,13 +116,14 @@ int main( int argc, char * argv[] ) {
     {
         fprintf( stderr, "<< connection not successful : %s [unix:%s] >>\n",
                 strerror(errno), socket_path );
-        return 2;
+        return 3;
     }
 
     /* authenticate to protocol-7 cube */
     write( socket_fd, auth_str, strlen(auth_str) );
     free(auth_P7C_USER);
     unsigned int line = 0;
+    int result;
     char byte = ' ';
     while ( line <= 2 ) {
 
@@ -131,7 +134,7 @@ int main( int argc, char * argv[] ) {
                 "<< error during authentication sequence : %s >>\n",
                 strerror(errno)
             );
-            return 3;
+            return 4;
         } else if ( byte == '\n' )
             line++;
 
@@ -139,7 +142,7 @@ int main( int argc, char * argv[] ) {
             fprintf( stderr,
                 "<< authentication not successful [ user '%s' ] >>\n",
                 p7_unix_user );
-            return 1;
+            return 3;
         }
     }
 
@@ -147,20 +150,96 @@ int main( int argc, char * argv[] ) {
     /* send protocol-7 command string to socket */
     write( socket_fd, cmd_str, strlen(cmd_str) );
     free(cmd_str);
-    /* closing connection when all data received */
-    write( socket_fd, close_cmd, strlen(close_cmd) );
 
-    //  NEEDS TRUE, FALSE AND SIZE <n> SUPPORT
+    char reply_type[13]   = "\0";
+    char size_str_buf[24] = "\0";
 
+    int output_bytes  = 0;
+    int skip_this_one = 0;
     int continue_read = 1;
+    int close_at_lf   = 1;
+    int reading_size  = 0;
+    long bytes_to_read = -1;
+    int space_seen = 0;
     while ( continue_read ) {
         result = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result < 1 ) {
             continue_read = 0;
         } else {
-            write( STDOUT_FILENO, &byte, result );
+            if( space_seen == 0 && strlen(reply_type) < 9 ) {
+                size_t rtype_len = strlen( reply_type );
+                if ( byte == ' ' ) {
+                    space_seen = 1;
+                    reply_type[rtype_len] = '\0';
+                }
+                else
+                    reply_type[rtype_len] = byte;
+
+            } else if ( space_seen ) {
+
+                if ( output_bytes == 0 ) {
+                    if ( strcmp( reply_type, "TRUE" ) == 0 ||
+                         strcmp( reply_type, "FALSE" ) == 0 )
+                        output_bytes = 1;
+
+                    if ( reading_size ||
+                         strcmp( reply_type, "SIZE" ) == 0 ) {
+                        size_t sizes_len = strlen(size_str_buf);
+
+                        if ( sizes_len > 20 ) {
+                            fprintf( stderr,
+                                "<< SIZE reply error : numeric overflow >>\n"
+                            );
+                            return 20;
+                        }
+
+                        if ( reading_size == 0 )
+                             reading_size = 1;
+
+                        if( byte == '\n' ) {
+                            size_str_buf[sizes_len] = '\0';
+                            bytes_to_read = atoi(size_str_buf);
+                            close_at_lf  = 0;
+                            reading_size = 0;
+                            // SIZE 00000
+                            if( bytes_to_read == 0 )
+                                continue_read = 0;
+                            else {
+                                output_bytes = 1;
+                                skip_this_one = 1; // endline from SIZE reply
+                            }
+                        }
+                        else {
+                            size_str_buf[sizes_len] = byte;
+                        }
+                    }
+                }
+
+                if ( continue_read && output_bytes ) {
+
+                    if ( skip_this_one )
+                        skip_this_one = 0;
+                    else
+                        /*  writing payload-data to stdout  */
+                        write( STDOUT_FILENO, &byte, result );
+
+                    if ( close_at_lf && byte == '\n' ) // TRUE || FALSE line
+                        continue_read = 0;
+
+                    else if ( bytes_to_read > -1 ) {
+                        bytes_to_read--;
+
+                        //  'SIZE <bytes>'-reply completed
+                        if ( bytes_to_read < 0 )
+                            continue_read = 0;
+                    }
+                }
+            }
         }
     }
 
-    return 0;
+    if ( strcmp( reply_type, "FALSE" ) <= 0 )
+        return 1;
+    else
+        return 0; // TRUE || SIZE-reply
 }
