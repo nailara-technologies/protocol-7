@@ -8,8 +8,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-/* LLL: needs at least timeout, cut param at endlines, read line or RAW <n> */
-
 char *src_bmw_b32 = "[BMW_FILE_CHkSUM]";
 char *socket_path = "/var/run/.7/UNIX/NIW7OAQ"; // ENV{'PROTOCOL_7_UNIX_PATH'}
 
@@ -21,7 +19,7 @@ char* concat(const char *s1, const char *s2)
     char *result = malloc(len1 + len2 + 1); // +1 for the null-terminator
     if( result == NULL ) {
         fprintf( stderr, "< malloc > %s\n", strerror(errno) );
-        exit(-2);
+        exit(4);
     }
 
     memcpy(result, s1, len1);
@@ -30,10 +28,11 @@ char* concat(const char *s1, const char *s2)
 }
 
 int main( int argc, char * argv[] ) {
-    fd_set readset;
-    char buf [1024];
-    char * auth_str = '\0';
-    char * root_usr = "root";
+
+    char * auth_str  = '\0';
+    char * root_usr  = "root";
+    char * close_cmd = "close\n";
+
     struct sockaddr_un addr;
     int errno, socket_fd, result;
 
@@ -53,7 +52,6 @@ int main( int argc, char * argv[] ) {
         socket_path = protocol_7_socket;
 
     char * auth_P7C_USER = concat( "unix-", p7_unix_user );
-    const char close_cmd [] = "close\n";
 
     if ( argc < 2 ) {
         fprintf( stderr, "\n < usage : %s <command> [args] >\n\n",
@@ -103,12 +101,12 @@ int main( int argc, char * argv[] ) {
     /* prepare socket */
     if ( ( socket_fd = socket( AF_UNIX, SOCK_STREAM, 0 ) ) == -1 ) {
         perror("<< socket error >>");
-        exit(-1);
+        return 3;
     }
 
     /* prepare unix socket path */
     memset( &addr, 0, sizeof(addr) );
-    addr . sun_family = AF_UNIX;
+    addr.sun_family = AF_UNIX;
     strncpy( addr.sun_path, socket_path, sizeof( addr.sun_path ) - 1 );
 
     /* connect to socket */
@@ -116,60 +114,53 @@ int main( int argc, char * argv[] ) {
     {
         fprintf( stderr, "<< connection not successful : %s [unix:%s] >>\n",
                 strerror(errno), socket_path );
-        exit(-1);
+        return 2;
     }
 
-    /* authenticate to nailara core */
+    /* authenticate to protocol-7 cube */
     write( socket_fd, auth_str, strlen(auth_str) );
     free(auth_P7C_USER);
-    int match = 0;
+    unsigned int line = 0;
     char byte = ' ';
-    while ( match < 2 ) {
+    while ( line <= 2 ) {
+
         result = recv( socket_fd, &byte, 1, 0 );
+
         if ( result < 0 ) {
             fprintf( stderr,
                 "<< error during authentication sequence : %s >>\n",
                 strerror(errno)
             );
-            exit(-1);
+            return 3;
+        } else if ( byte == '\n' )
+            line++;
+
+        if ( line == 2 && byte == 'O' ) { // AUTH_ERROR in second reply line
+            fprintf( stderr,
+                "<< authentication not successful [ user '%s' ] >>\n",
+                p7_unix_user );
+            return 1;
         }
-        if ( byte == '\n' ) { match++; }
     }
 
-    /* preparing select [read] filehandle set */
-    do {
-        FD_ZERO(&readset);
-        FD_SET( socket_fd, &readset );
-        result = select( socket_fd + 1, &readset, NULL, NULL, NULL );
-    } while ( result == -1 && errno == EINTR );
 
-    int close_sent = 0;
-    if ( result > 0 ) {
-        if ( FD_ISSET( socket_fd, &readset ) ) {
-            result = recv( socket_fd, buf, sizeof(buf), 0 );
-            if ( result == 0 ) {
-                close(socket_fd);
-            } else {
+    /* send protocol-7 command string to socket */
+    write( socket_fd, cmd_str, strlen(cmd_str) );
+    free(cmd_str);
+    /* closing connection when all data received */
+    write( socket_fd, close_cmd, strlen(close_cmd) );
 
-                /* send nailara command string to socket */
-                write( socket_fd, cmd_str, strlen(cmd_str) );
-                free(cmd_str);
+    //  NEEDS TRUE, FALSE AND SIZE <n> SUPPORT
 
-                /* read and print output until connection is closed */
-                while ( ( result = read( socket_fd, buf, sizeof(buf) ) ) > 0 )
-                {
-                    if ( close_sent == 0 ) {
-                        /* receiving output, send 'close' command */
-                        write( socket_fd, close_cmd, strlen(close_cmd) );
-                        close_sent = 1;
-                        /* needs improvement */;
-                    }
-                    write( STDOUT_FILENO, buf, result );
-                }
-            }
+    int continue_read = 1;
+    while ( continue_read ) {
+        result = recv( socket_fd, &byte, 1, MSG_WAITALL );
+        if ( result < 1 ) {
+            continue_read = 0;
+        } else {
+            write( STDOUT_FILENO, &byte, result );
         }
-    } else if ( result < 0 ) {
-        fprintf(stderr, "<< error on select() call : %s >>", strerror(errno));
     }
+
     return 0;
 }
