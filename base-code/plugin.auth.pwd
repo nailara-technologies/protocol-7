@@ -13,11 +13,11 @@ my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
     if ( <[auth.pwd.success]>->( $1, $2 ) ) {
-        $$output .= "AUTH_TRUE>:]\n";
+        $$output .= "AUTH_TRUE =)\n";
         <[base.log]>->( 1, "[$id] user session authorized to '$1'" );
         return ( 0, $1 );
     } else {
-        $$output .= "AUTH_ERROR :|\n";
+        $$output .= "AUTH_ERROR >:[\n";
         <[base.log]>->( 0, "[$id] [ auth pwd ] access denied to user '$1'" );
         return 2;
     }
@@ -30,8 +30,8 @@ if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
 return 2;
 
-#,,,.,.,,,,,.,,,,,..,,,,,,,,,,...,,,,,...,.,.,..,,...,...,...,,,,,..,,...,.,.,
-#CF7BAAJYD22KLZ4TM7BFIFLNO3HXUY55KPZCZYBUGKJJZYKSA5F3WDUSLYFTPYVB7RGNTFVSJ5SFM
-#\\\|OWACSTWVY2CXZZQ56Z6VAJ24K7OESVI7YRRB75IYVL4TNPAGL2V \ / AMOS7 \ YOURUM ::
-#\[7]7JJF4ODHNBPX7PKK3XXWGAY2WU4IVSVQJM4MOLFS7N3PX57NJACQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,,,,..,.,.,,,,,.,.,.,,,,,,,,..,..,,...,..,,...,.,,,,,.,,.,,.,.,
+#D7PBEYOBX537O43RNGF4Z3YLSNPIIPEOEEHAJHZBC4OJ57ON47ORD32KJOHQWIEDOKJDPKAFKIJNG
+#\\\|ZQ3AND7WUUOWPAXOCRT6HRXZ3CTHRKVAIBK4HYA34PTOQPHZOJV \ / AMOS7 \ YOURUM ::
+#\[7]3SS3GKWVP2BZWC2USJYIFD2ACLYCGHHZKEG5EQQ6QTYQ46ZVYECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

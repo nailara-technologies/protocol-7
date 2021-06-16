@@ -69,7 +69,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     }
 
     if ($authorize_unix_session) {
-        $$output .= "AUTH_TRUE>:]\n";
+        $$output .= "AUTH_TRUE =)\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
 
         <[base.logs]>->(    ## reports unix user seperated if different ##
@@ -84,7 +84,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
         return ( 0, $auth_user );    ## register as authorized ##
         #######
     } else {    ##  no match for unix-user \ auth-user pair  ##
-        $$output .= "AUTH_ERROR :|\n";
+        $$output .= "AUTH_ERROR >:[\n";
         my $s_usr
             = $client_uname ne $auth_user
             ? sprintf( ' [uname=%s]', $client_uname )
@@ -106,8 +106,8 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,..,,..,,,,,,.,,,.,,,,.,..,,,..,,..,...,,,.,..,,...,...,,.,,.,.,,,.,.,,,.,,,
-#2RUM5WUGU5WASHNEWSJ5JDMZ2R2Z7WIFAAPHKI7X35OH5G6I2BNXHJEGHVGWALBM2PZUWDENRW4DQ
-#\\\|YRJP4JPGEUK5XBNEIG53DLDAL3BY4QZ7WEDQHA7HR3BRQ3EFFCA \ / AMOS7 \ YOURUM ::
-#\[7]LMU2HL73P7YESC3SX22KJRYND6DNRKMVOTKJJHKKAWA3GC2GTMBA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,..,,,.,,,,,,..,,.,,,.,,,..,,..,,...,..,,.,,,,..,..,,,,.,..,,
+#PD4YUSQLWPS3AA7G77JOIFOPGX7NAUTVLZDRMOO65TNF6WB7I67IUOKAL7I3BJ3NJKFFCR6RYN7AK
+#\\\|A2OXHE43SKVYX2XEH7LTZWE7TXK3LP6L2QXVOTS2M4TC6WHNMKO \ / AMOS7 \ YOURUM ::
+#\[7]XFTFMDNPM72XIBN5RPFMD7OIWZ5DJBZIS5EPFMMUDM77YGC6PQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

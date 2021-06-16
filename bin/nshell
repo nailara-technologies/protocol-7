@@ -225,7 +225,7 @@ sub shell_auth {
     if ( $answer =~ m|AUTH_TRUE| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
+    } elsif ( $answer =~ m,AUTH_ERROR >:\[, ) {
         error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
@@ -250,7 +250,7 @@ sub unix_auth {
     if ( $answer =~ m|AUTH_TRUE| ) {
         print " :: authentication successful ::\n";
         return $fh;
-    } elsif ( $answer =~ m,AUTH_ERROR :\|, ) {
+    } elsif ( $answer =~ m,AUTH_ERROR >:\[, ) {
         error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
@@ -450,8 +450,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,.,,,..,,,.,..,,,.,,,.,,,,.,...,..,,,,.,.,.,..,,...,..,,.,,,,..,,,.,..,,.,,,
-#TZHKODDPXDF4RAJFAOTSSPG5QMQMYRYA427PV247KSSX5C7VSXG53VQ333J4YBCI6ASEQ3PS56FTQ
-#\\\|LQUTISCILGLVHSR7CF7KSGPHX3YZYJMNW3PDDQLAYHUG6K2V6U5 \ / AMOS7 \ YOURUM ::
-#\[7]M2L2UKPVTRZJJUBCLYVOU4YFC4PRSXYEO7CRTRHT3UVADRCANUDY 7  DATA SIGNATURE ::
+#,,,,,..,,...,...,...,..,,,.,,..,,,..,,.,,..,,..,,...,...,.,.,.,.,,,.,,..,...,
+#ZXIHYMFQKFKZSRWLI3WNQXBVTHRL3DIM42RAHSJMEEHPSKN2J7PYKYWWE6UVLXWYM6UBKGURILIOO
+#\\\|L74D4QILPC2MLPUS6RDV5RXD4ZIQBQU7C2JWKW4BN5TYPUBSIIG \ / AMOS7 \ YOURUM ::
+#\[7]XAOW2KPV3IHK4V7YY5OFBYVMLEWRRB3XNQLB75K4AH4CBKP7KSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

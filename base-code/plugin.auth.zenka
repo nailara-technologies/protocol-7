@@ -34,7 +34,7 @@ if (   <[plugin.auth.zenka.no-keys-defined]>
             : undef;
         <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
             if defined $keyless_user;
-        $$output .= "AUTH_ERROR :|\n";
+        $$output .= "AUTH_ERROR >:[\n";
     }
     return 2;
 }
@@ -53,7 +53,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             }
 
             delete $KEYS{'auth'}{'zenka'}{$user};
-            $$output .= "AUTH_TRUE>:]\n";
+            $$output .= "AUTH_TRUE =)\n";
 
             ## <[net.update.client_conf]>->($id);
 
@@ -65,14 +65,14 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             <[base.log]>->(
                 0, "[$id] '$auth_name' [zenka] access denied [ key ]"
             );
-            $$output .= "AUTH_ERROR :|\n";
+            $$output .= "AUTH_ERROR >:[\n";
             return 1;
         }
     } else {
         <[base.log]>->(
             0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
         );
-        $$output .= "AUTH_ERROR :|\n";
+        $$output .= "AUTH_ERROR >:[\n";
         return 1;
     }
 } else {
@@ -83,8 +83,8 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,,,,..,,.,,,.,,,.,,,...,...,.,,,.,.,,,.,.,,,..,,...,...,.,,,..,,,..,.,.,,..,
-#4TKTNS5WOUSLHX7EDC3JCWWOMBPPG6S5XLC2KP7UPIA5P3LVYHPWYIOD3EE5ZFKI56UGTAV3AC3DU
-#\\\|VUFH57VMARQ2VXSQ3FAG7LH77QNRE3CAIF7ATDJTUWSAWYIULKP \ / AMOS7 \ YOURUM ::
-#\[7]QJ56ESLYJOMWZSP74ESW233ZQYZ2AYC4PXOT67XKAJ4ZPR66M2DA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,.,,,..,...,,,.,,,.,.,,,,,.,..,,...,...,...,,,.,..,,,,.,...,
+#VJCNPOJ3XRCQTFAV7KGOWKX74BERBDWB2VDGEZB23ZZQZ5567JUZDNC4FVQWPIQJY6JBS7C4D2AVS
+#\\\|VSMF2RIIU5272RLPCDTNL3SPA56VNBCPII374FBCFLJPVDIYTRK \ / AMOS7 \ YOURUM ::
+#\[7]JNUC2KYBDVS7AC6PNHT7VWB4SJ2KYRSCTLMVFWYWSPKPZJOPA4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
