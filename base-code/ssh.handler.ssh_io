@@ -41,7 +41,7 @@ if ( !$connection->{'authorized'} ) {
         my $remote_pass
             = $profile_data->{$link_name}->{'nailara.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
-    } elsif ( $connection->{'buffer'} =~ s|^AUTH_TRUE>:]\n|| ) {
+    } elsif ( $connection->{'buffer'} =~ s|^AUTH_TRUE =)\n|| ) {
         $connection->{'authorized'} = 1;
         <[base.log]>->(
             1, ": : successful remote end nailara auth. [$remote_user]"
@@ -80,11 +80,11 @@ if ( !$connection->{'authorized'} ) {
         );
         $connection->{'linked'} = 1;
 
-    } elsif ( $connection->{'buffer'} =~ s|^AUTH_ERROR `:\|\n|| ) {
+    } elsif ( $connection->{'buffer'} =~ s|^AUTH_ERROR >:\[\n|| ) {
         <[base.log]>
             ->( 0, ": : remote end nailara auth. was not successful" );
         <[ssh.connection.stop]>->($con_id);
-    } elsif ( $connection->{'buffer'} =~ s|^>:\|\n|| ) {
+    } elsif ( $connection->{'buffer'} =~ s|^.?:[\|\[]\n|| ) {   ## `:| >:[ >:|
         <[base.log]>->(
             0, ": : nailara authentication timeout on remote end"
         );
@@ -119,8 +119,8 @@ if ( !$connection->{'authorized'} ) {
 
 }
 
-#,,,,,.,.,.,,,.,,,...,.,,,..,,,.,,.,,,,.,,...,..,,...,...,.,.,,..,...,.,,,,.,,
-#WQEZTWGJEPAPXYQJHL7NAIIPUQIDNYV5OFEZ2S3YDHUDPLM4R7J7FIRONVLL77SYTCS5ILCTTI5NK
-#\\\|PATW5EIPJHTXILX25KJZ3LNGKBA6ATBBTCZUEKUQXPZKICO2HY7 \ / AMOS7 \ YOURUM ::
-#\[7]CGAO65S6B35R4RAINEMPH6G4PKE2VQ2ZFQH3HYHTS6AA54JF3OCI 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,...,,,,,...,.,.,,..,..,,.,.,..,,...,...,...,,..,.,.,.,.,.,,,
+#ASALVBKAF7CAN7FFV7QSCI4DBHPP4OSS2XR7SZ7UFBBFUEVT3MJASXF2FOD3LOQFN3MXZYBYWQ6V4
+#\\\|BUZER7B5ZNPEN6QFRG4LMJ3RXLNMIZEF5UFPODTJPSQIHYITYNY \ / AMOS7 \ YOURUM ::
+#\[7]56TD7D32YYASTQGPPJAL6NZOOEHAVFKI3RJDDOGOUN6KLPKS5YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
