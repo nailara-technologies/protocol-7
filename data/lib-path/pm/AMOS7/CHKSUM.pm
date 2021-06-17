@@ -55,6 +55,8 @@ our $num_amos_csum;
 our $bmw_mod_step;
 our $checksum_bits;
 our $truth_template;
+our $sstr_start = 0;
+our $str_length = 7;
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
@@ -225,6 +227,16 @@ INVERT_TRUTH_STATE:
 
     ## ENCODED + VALUE AND STRING HARMONY ##
 
+    ##  substring  ##
+    if ( defined $truth_template
+        and ( $str_length != 7 or $sstr_start != 0 ) ) {
+        error_exit('substring template out of range [ 1..7 ] <{C3}>')
+            if $str_length < 1
+            or $str_length + $sstr_start > 7;
+        $checksum_encoded    ##  truncating as specified in template case  ##
+            = substr( $checksum_encoded, $sstr_start, $str_length );
+    }
+
     if ($algorithm_set_up{'chksum_numerical'}
         and not is_true( $num_amos_csum, 1, 1, @elf_modes )  ##  numerical  ##
 
@@ -258,11 +270,16 @@ INVERT_TRUTH_STATE:
     }
     $truth_template = undef;                    ##  reset truth template  ##
 
+    if ( $str_length < 7 ) {   ##  resetting substring template parameters  ##
+        $sstr_start = 0;
+        $str_length = 7;
+    }
+
     ##  also return numerical checksum in list context  ##
     return ( $checksum_encoded, $num_amos_csum ) if wantarray;
 
     ##  true  ##
-    return $checksum_encoded;                   ##  VAX AND BASE32 ENCODED  ##
+    return $checksum_encoded;    ##  VAX AND BASE32 ENCODED  ##
 }
 
 sub amos_template_chksum {
@@ -285,8 +302,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,,,,.,,,.,.,..,,,,.,.,.,.,,,,.,,.,.,...,.,,,..,,...,...,..,,,,,,,,,,.,.,.,.,
-#CC3NLXXY47P7GOYVB67BWQAO4BIN54HGZJYC3VZLIJZHAUXD4OGZLX3X33EJAO3M32Q323AYAKYRS
-#\\\|DM4R2JI5BQQ47YZ34APY42TL6KVFKC5CIAY25YU7FBVEPSCRXXR \ / AMOS7 \ YOURUM ::
-#\[7]KRDYLLBEYOWFNJUTMKJLGVCCOSRVPPWB3HLM6EHUK2BDMAHVHQBI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,,..,,,.,..,,,..,,.,,,,.,..,,..,,...,...,.,.,,.,,,,,,.,,,.,,,
+#NH6RJ4AG5YY222ADQB7S636RCOKSFG6OIE53FPMB4YSKTSLG3LONZFM6WJLB6M7UTVN5JDLOAQEQY
+#\\\|GM3GBSE77FX36JE6NP5HL7A5WVD6KBVIT45QNS2UFDWAHV3UV2Q \ / AMOS7 \ YOURUM ::
+#\[7]H5ZWYRN5GSXBWZNDMIPVIFIZNEMXPC4P7CSHIAFGV47BPFCZGUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
