@@ -91,8 +91,32 @@ if ( defined $option{'e'} ) {
     }
 }
 
+##  substring template parameters for -T option  ##
+##
+my $sstr_start = 0;
+my $str_length = 7;
+
 if ( defined $option{'T'} ) {
-    my $template    = $option{'T'};
+    my $template        = $option{'T'};
+    my $substring_templ = ${^CAPTURE}[0]
+        if $template =~ s|(*plb:(*nlb:\%)%s)(*nlb:\\):((\d+,)?\d+)||sg;
+    if ( defined $substring_templ ) {
+        if ( index( $substring_templ, ',', 1 ) == 1 ) {
+            ( $sstr_start, $str_length ) = split( ',', $substring_templ );
+        } else {
+            $str_length = $substring_templ;
+        }
+    }
+
+    error_exit('substring template out of range [ 1..7 ] <{NC}>')
+        if $str_length < 1
+        or $str_length + $sstr_start > 7;
+
+    if ( $str_length < 7 ) {    ##  setting substring template params  ##
+        $AMOS7::CHKSUM::sstr_start = $sstr_start;
+        $AMOS7::CHKSUM::str_length = $str_length;
+    }
+
     my @match_count = $template =~ m|(*nlb:\%)%s|sg;
     error_exit(
         "sprintf template '%s' not valid [ expecting single %%s ] <{NC}>",
@@ -299,8 +323,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,,,...,.,,,.,,,.,,,,,.,,,,,.,.,,,,,...,,.,,..,,...,...,.,.,...,,.,,.,,,,..,
-#JXXHNUEH3NXQPI7LNMKZDXWYXFQRAHRJ2M2C6NJYAW66DTINQ3IGUMADANRDJ2TBRD6SV2HD2F4JM
-#\\\|KXNML3F5H2GU6VIKG2CE47EC54ONFDOSSBYRHYLHBSLUEQHFHNX \ / AMOS7 \ YOURUM ::
-#\[7]NCDSSXZXZP5EQB7L5H43WYRSKTMGR355HG2OUNF3UX6STW2MCICA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,,.,,.,,...,.,.,.,,,..,,.,.,..,,...,...,,,,,,,,,,.,,,.,,,,,,
+#FU2OTEI5VVDSGKWP3FNUPXFOFT4URDL7QOCD6SMOZC2ZC2ZRFM3BPMXCCMZSTDLBM4D57ULOTUCLC
+#\\\|F3TPVC4C25CCVUKJKOFDRYPJRFR6HTHTUCSXQDYZG4MKQ5JNRH2 \ / AMOS7 \ YOURUM ::
+#\[7]UFG6MOSZQJEYEQRDLUTTWZ2J3N3I2VQ3CDQNBNU63WYUBOQFEGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
