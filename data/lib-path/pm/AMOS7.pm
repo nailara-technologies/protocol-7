@@ -30,7 +30,10 @@ our $protocol_7_root = p7_root_dir();
 
 our %C = (
     qw|  T  | => "\e[38;2;6;71;195m",
-    qw|  b  | => "\e[48;2;9;5;42m",
+    qw| B00 | => "\e[48;2;0;0;17m",
+    qw| B01 | => "\e[48;2;9;5;24m",
+    qw| B02 | => "\e[48;2;9;5;42m",
+    qw|  b  | => "\e[48;2;9;5;42m",      ## <-- redundant [replace]
     qw|  0  | => "\e[38;2;68;39;172m",
     qw|  g  | => "\e[38;2;71;195;6m",
     qw|  o  | => "\e[38;2;197;141;7m",
@@ -41,7 +44,7 @@ our %C = (
 ##[ TERMINALS ]###############################################################
 
 sub TERM_SIZE {
-    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+    my $handle = shift // *STDIN;        ## use *STDOUT for pipe detection ##
 
     return undef if not -t $handle;
     state $size       = "\0" x 8;
@@ -169,8 +172,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,,,,,.,,,..,,..,.,.,,..,,,,,,..,..,,.,.,,.,,..,,...,...,,.,,,,,,.,,,,..,..,,
-#UEMRL5NNOLGM7JJO3NKXH2J5TPXXSMTLNN2AC2M6OBI64TXRH2LKIQTJJNI7OGOTAYOF2QH2IEU2E
-#\\\|3ONCIUEF5XSBIB55DZ6BJEOCNJTKSX7Q7RL2RA6NZMAU6PTGEGJ \ / AMOS7 \ YOURUM ::
-#\[7]DKTZNC63E3QAUTWQ7FLTOTM3GVH5EEQ3R6O257LKT5QN6KWC2OAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,...,,,,,,..,..,,..,,,,.,,,,,..,,...,...,.,.,,,,,,,,,,,.,.,.,
+#YDWDZLG7PN4NL6JTTHZV46QEKITC4OIZAITV24IGHBJ4BCFEUBACUKDVFB2RFIJ6OBN67A4FC4KBE
+#\\\|NGFFKDZNEA7P22CLMZYJOPA2RRSPFACP4GSWSV53EHJT3NQAI62 \ / AMOS7 \ YOURUM ::
+#\[7]5ITHJGLOPXMER3OLLTKU2PE3MSZIDDLV5TNPQVV2VZAOM36BAMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
