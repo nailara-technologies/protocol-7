@@ -45,20 +45,29 @@ my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };    ## 7
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
-## -q ## quiet output \ value only \
+my $option_list = << 'EOL';
 
-## -s ## STDIN data input mode [ single ]
-## -S ## STDIN data input mode [ combined ]
-## -n ## return checksum as numerical value
-## -v ## visualize additional checksum data
+    .: amos-chksum command line options :.
 
-## -T ## sprintf template for truth verification
+    -q  .......  quiet output \ value only \
 
-## -elf-mode[s]=<elf-mode[s]> ##  comma seperated elf modes list  ##
+    -s  .......  STDIN data input mode [ single ]
+    -S  .......  STDIN data input mode [ combined ]
+    -n  .......  return checksum as numerical value
+    -v  .......  visualize additional checksum data
 
-##  -VA   ## show AMOS checksum algorithm version and exit    ##
-##  -VL   ## calculate inline elf output checksum and exit    ##
-##  -VLS  ## calculate inline elf sourcecode version and exit ##
+    -options ..  amos-chksum command line option list
+
+    -T  .......  sprintf template for truth verification
+
+    -VA   .....  show AMOS checksum algorithm version and exit
+    -VL   .....  calculate inline elf output checksum and exit
+    -VLS  .....  calculate inline elf sourcecode version and exit
+
+    -elf-mode[s]=<elf-mode[s]>  .....  comma seperated elf modes list
+
+
+EOL
 
 ##[ INITIALIZATION \ OPTIONS ]################################################
 
@@ -68,9 +77,12 @@ my $data_str;
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( qw| vSnsqe:V:T: |, \my %option );
+getopts( qw| vSnsqo:e:V:T: |, \my %option );
 
-if ( defined $option{'e'} ) {
+if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
+    list_options();
+    exit(5);
+} elsif ( defined $option{'e'} ) {
     my @elf_modes_override;
     error_exit( "elf modes syntax$C{0}: $C{b}$C{o}-elf-modes$C{R}"
             . "$C{0}\[=$C{T}$C{b}<n>$C{R}$C{0}\[,$C{T}$C{b}<n>$C{R}$C{0}..,]]"
@@ -305,6 +317,14 @@ if ( $option{'v'} ) {
     say "$C{0}:\n:$C{b} $C{T}$checksum_encoded$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
+sub list_options {
+    chomp( my $options_table_str = $option_list );
+    my @lines = split "\n", $options_table_str;
+    map { $ARG =~ s|(\s?\W+\s?)|$C{B01}$C{0}$1$C{B02}$C{T}|g } @lines;
+    map { $ARG = sprintf "$C{B00}$C{0}$ARG$C{R}\n" } @lines;
+    say join '', @lines;
+}
+
 ##[ VISUALIZE TRUTH ASSERTION ]###############################################
 
 sub TRUE_FALSE {
@@ -323,8 +343,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,,,,,.,,,.,.,,,,,.,,.,,...,.,.,.,,,..,,.,.,..,,...,...,,,,,,,,,,.,,,.,,,,,,
-#FU2OTEI5VVDSGKWP3FNUPXFOFT4URDL7QOCD6SMOZC2ZC2ZRFM3BPMXCCMZSTDLBM4D57ULOTUCLC
-#\\\|F3TPVC4C25CCVUKJKOFDRYPJRFR6HTHTUCSXQDYZG4MKQ5JNRH2 \ / AMOS7 \ YOURUM ::
-#\[7]UFG6MOSZQJEYEQRDLUTTWZ2J3N3I2VQ3CDQNBNU63WYUBOQFEGDY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,,,,..,,,.,,.,.,.,,,.,,,..,,..,,...,...,..,,...,,..,,..,,,.,
+#5QBSHY2CF5MRAMCZ5ASAJJMFUBHIIWJYCREK4J3R3DFHIZC7QLYD623CMKWFIDIBNGTNEAGOJR3YK
+#\\\|6WTS3VJM3BURWYL5MLDWHEARS77ZYXB36Q4R4OITQQAQFWQ7WJX \ / AMOS7 \ YOURUM ::
+#\[7]7L4W4F4JMPFKE3624CMY7GJ5LGWSZCJASDXUVPDFWAM3QNZYFQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
