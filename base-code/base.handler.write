@@ -30,7 +30,21 @@ if ( fileno $session->{'handle'} ) {
             $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'}
                 += $written;
             substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
-            $event->w->start;
+
+            if ( defined $session->{'burst-writes'}
+                and $session->{'burst-writes'} =~ m|^\d+$| ) {
+                $session->{'burst-write-counter'} //= 0;
+                if ( $session->{'burst-write-counter'}++
+                    < $session->{'burst-writes'} ) {
+                    $event->w->start;    ## burst-write mode ##
+                } else {
+                    ##  deferred restart [ idle-watcher ]  ##
+                    delete $session->{'burst-write-counter'};
+                }
+
+            } else {
+                $event->w->start;    ## immediate restart ##
+            }
 
             # httpd zenka [ download in progress ]
             if ( defined $session->{'watcher'}->{'download_handler'}
@@ -42,13 +56,15 @@ if ( fileno $session->{'handle'} ) {
     }
 } else {
     $event->w->cancel;
-    return $session->{'shutdown'} = 1;
+    $session->{'shutdown'} = 1;
+    return 2;
 }
 
 if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
 
     ##  deferred restart [ when idle ]  ##
-    <[event.io_idle_restart]>->($event) if defined $event;
+    <[event.io_idle_restart]>->($event)
+        if defined $event and not $event->w->is_active;
 
     $data{'watcher'}{'io'}{'transfer'}->start
         if not $data{'watcher'}{'io'}{'transfer'}->is_active;
@@ -61,8 +77,8 @@ $session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,..,...,,,,,,,,,..,,.,.,,.,,..,,...,.,,,..,,..,,...,...,,..,.,.,,.,,,.,,,..,
-#HOFCYED2BWV3LBJUNEM3GG3XMELJIUL6SKD5CANZC552FRRWEA32GJVMWXO6SMKV4AUFSJLYCCV4C
-#\\\|SB3PIPTQEGGJL3TOXVYWEJPPNM37CK5O4X5X4K3EKV2KHO3OAX6 \ / AMOS7 \ YOURUM ::
-#\[7]UV5BTQV4LB5GPFKXTPSISRV7JANIB3EMBZHXB4PRUSI676IXAYBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,.,.,.,,.,,,,,,,,,,,,.,..,,..,,...,...,...,,..,,,.,.,.,..,,
+#VZWG2RSKWWW7KD6Q64KIL2SIM3X36FWKHYUZVKD7UYPNGZWF7ITFTN2ENBVKQ7GXXHCU452A37JLG
+#\\\|LI2RVNYCZ5SL5LDBSJNIXFMOCJIGWQS462CGWZURUFY4LKFGNB5 \ / AMOS7 \ YOURUM ::
+#\[7]GACBKEWI6NUJ6OZV3NXNFPIUHX5VMTDP5R5UJP6ISZXFW67K52BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
