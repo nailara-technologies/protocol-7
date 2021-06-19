@@ -1,0 +1,64 @@
+## >:] ##
+
+# name  = protocol.sftp.handler.write_to_server
+
+my $event   = shift;
+my $id      = $event->w->data;
+my $session = $data{'session'}{$id};
+my $user    = $session->{'user'};
+
+my $input  = \$session->{'buffer'}->{'input'};
+my $output = \$session->{'buffer'}->{'output'};
+
+my $server         = $session->{'sftp'}->{'server'};
+my $process_fhs    = $server->{'proc_fhs'};
+my $srv_io_watcher = $server->{'event-io-watcher'};
+my $srv_ev_params  = $server->{'io_watcher'}->{'_user_data_'};
+
+# say Dumper($server);
+
+return 0 if not length $input->$*;    ## [LLL] check when this happens ##
+
+my $server_write_fh = $process_fhs->{'in'};
+
+my $bytecount = <[base.s_write]>->( $server_write_fh, $input->$* );
+
+my $debug_output = 0;
+
+if ($debug_output) {
+    my $input_encoded = Encode::encode( qw| UTF-7 |, $input->$* );
+    $input_encoded =~ s|\n|\\n|g;
+
+    say ' < written-to-server > '
+        . length( $input->$* ) . ' '
+        . $input_encoded;
+}
+
+if ( defined $bytecount and $bytecount < length( $input->$* ) ) {
+    substr( $input->$*, 0, $bytecount, '' );  ## remove written from buffer ##
+
+} elsif ( defined $bytecount ) {    ## complete ##
+    $event->w->stop;
+    $input->$* = '';
+    $event->w->start;
+
+} else {    ##  write error \ process closed  ##
+
+    ## check [LLL] ##
+    <[base.log]>->( '[%d] sftp-server process closed.', $id );
+
+    $srv_io_watcher->cancel if $srv_io_watcher->is_active;
+
+    ## making sure it is gone ##
+    <[protocol.sftp.terminate_server_process]>->($srv_ev_params);
+
+    return 2;
+}
+
+return 0;    ##  keep connection  ##
+
+#,,..,.,.,..,,...,...,..,,,,.,,..,.,.,...,.,,,..,,...,...,..,,,,,,..,,.,.,.,,,
+#KQZVLAY5JP4PAZ4YJXYLN2EEQB5KQ24SSI3ELM4UMXIQ4MQM4OHUCOLQJWA73NX24NL4QEPUYCVHE
+#\\\|5UM4YMB2SAONUYZVQWAR6NVX2JNLGAMZB4PXO67TOEWMVPXZZTQ \ / AMOS7 \ YOURUM ::
+#\[7]UOFU62J3EEKDIWEGIUUC44WNNXL2PWRYGM4BCV3GDWFUWZUXQICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,84 @@
+## >:] ##
+
+# name  = protocol.sftp.handler.read_server_outout
+
+my $event  = shift;
+my $params = $event->w->data;
+
+my $session_id = $params->{'session_id'};
+my $process_id = $params->{'process-id'};
+
+if ( not defined $data{'session'}->{$session_id} ) {
+    $event->w->cancel if $event->w->is_active;
+    <[base.logs]>->(
+        '[%d] session unexpectedly gone, '
+            . 'terminating sftp-srv process [PID=%d]',
+        $session_id, $process_id
+    );
+    <[protocol.sftp.terminate_server_process]>->($params);
+}
+
+my $session        = $data{'session'}->{$session_id};
+my $server_read_fh = $params->{'process-fhs'}->{'out'};
+
+my $is_ssh_connection = 0;    ##  implement detection  ## [LLL]
+
+if ($is_ssh_connection) {    ## move to session init ## [LLL]
+    <[base.logs]>->(
+        0, '[%d] received ssh connection, closing channel .,', $session_id
+    );
+    ## stop input processing ##
+    $event->w->cancel;
+
+    ## getting rid of server process ##
+    <[protocol.sftp.terminate_server_process]>->($params);
+
+    ## sending message to ssh channel ##
+    $session->{'buffer'}->{'output'}
+        .= "only SFTP connections are supported\n";
+
+    ##  closing unix session  ##
+    $session->{'flush_shutdown'} = 1;
+    return 2;
+
+} else {
+
+    my $bfs       = length( $session->{'buffer'}->{'output'} ) // 0;
+    my $size_left = $data{'size'}->{'buffer'}->{'output'} - $bfs;
+
+    ##  implement protocol debug hooks ## [LLL]
+
+    my $bytecount = <[base.s_read]>->(
+        $server_read_fh, \$session->{'buffer'}->{'output'}, $size_left
+    );
+
+    if ( not defined $bytecount ) {
+        ## check [LLL] ##
+        <[base.logs]>->( 0, '[%d] sftp-server process closed.', $session_id );
+
+        ## making sure it is gone ##
+        <[protocol.sftp.terminate_server_process]>->($params);
+
+        $session->{'flush_shutdown'} = 1;
+        $event->w->cancel;
+
+    } elsif ( $bytecount == 0 ) {
+
+        say ' < server-read > stopped at buffer length '
+            . length $session->{'buffer'}->{'output'};
+
+        $event->w->stop;
+        ##  deferred restart [ when idle ]  ##
+        <[event.io_idle_restart]>->($event);
+
+    } else {
+        ## say ' < server-read byte-count > ' . $bytecount if $debug_output;
+    }
+
+}
+
+#,,,,,,.,,,..,,..,...,,..,,,.,..,,.,,,...,,.,,..,,...,...,,,.,,..,,,.,.,,,.,.,
+#5TM3DUZFE2PAPYJVEX4TXMMJUREEK6CK7EN7JKUWJYSS7G6PENGTCYIR2AKLUWPND7COQJKBMS7ZY
+#\\\|MNEUWWEKIMJ4PJIRDS3VWKBEDQ3L5U37UIIMN6CZCFDADJZB4YH \ / AMOS7 \ YOURUM ::
+#\[7]2T3NQDFLOUO2SBOOGLOMJQFYCVVUG25SYMKKTZ3VKZ5VLWLX4WAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

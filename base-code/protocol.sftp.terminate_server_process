@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = protocol.sftp.terminate_server_process
+
+my $params = shift;
+
+my $session_id  = $params->{'session_id'};
+my $srv_proc_id = $params->{'process-id'};
+my $process_fhs = $params->{'process-fhs'};
+
+return 0 if not <[base.exists.sub-process]>->($srv_proc_id);    ## gone. ##
+
+<[base.logs]>->(
+    '[%d] : terminating SFTP-srv process [PID:%d]',
+    $session_id, $srv_proc_id
+);
+
+my $srv_write_fh = $process_fhs->{'in'};
+
+$srv_write_fh->flush();
+
+map {
+    $process_fhs->{$ARG}->close;
+    delete $process_fhs->{$ARG}
+} qw| in out |;
+
+my $status;
+
+if ( $status = kill( 15, $srv_proc_id ) ) {
+    <[event.add_timer]>->(
+        {   after   => 1.2,
+            repeat  => 0,
+            handler => qw| protocol.sftp.callback.kill_server |,
+            data    => $srv_proc_id
+        }
+    );
+}
+
+return $status;
+
+#,,.,,.,,,...,,.,,,.,,,,.,.,.,..,,...,.,,,..,,..,,...,...,,..,,..,,,,,,,.,,,,,
+#IT5CG3WNCXKLEKCG5TD3C2Z552PXFZ33PPQERMRCVJY4D4XPA6TZK7LWTRR7EJVNGBHPOBLI6QGAU
+#\\\|RNHN5CHVFSD3XPYU4I4MLIRAX4KR7IYEJRJ4NLVQUHWDOS6IGLQ \ / AMOS7 \ YOURUM ::
+#\[7]6WRPTN2ABRTJ6PW5CPUALZC2BNHDUA74YXQZXBBAM5T24XYWIYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
