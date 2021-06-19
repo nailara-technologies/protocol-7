@@ -73,7 +73,8 @@ my $id = <[base.list.element.add]>->(
             'complete'   => 1,
             'shutdown'   => 0,
             'read-mode'  => $read_mode,                  ## [ protocol state ]
-            'read-to-fh'     => undef,          ##  bypass buffer when set  ##
+            'burst-writes'   => 13,    ## output writes before idle watcher ##
+            'read-to-fh'     => undef, ##  bypass buffer when set  ##
             'initialized'    => $initialized,
             'flush_shutdown' => 0,
             'user'           => $name,
@@ -124,8 +125,11 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
 
     ##  removing not required session params  ##
     ##
-    map { delete $session->{$ARG} }
-        qw| size buffer read-mode read-to-fh complete flush_shutdown |;
+    map { delete $session->{$ARG} } qw[
+        size buffer
+        read-mode read-to-fh
+        burst-writes
+        complete flush_shutdown ];
     ###
 
     $session->{'watcher'}{'connect'} = <[event.add_io]>->(
@@ -273,8 +277,8 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 
 return $id;
 
-#,,..,..,,,.,,,,,,,,,,,,.,.,,,,,.,...,,.,,...,..,,...,...,.,.,.,.,,.,,...,..,,
-#GRGXJ6B3CQILW4EKCU7X44WV4OD7NNI354FMFG5F7KGSKDTEQOE3JPPLN4BYUQBPGBGIFY23GRC7A
-#\\\|X7MMY5DDGP7EDNB75WZ2P6YQLSN5OYSAL46FVKNU7VSQDNZTSHB \ / AMOS7 \ YOURUM ::
-#\[7]IES6J2RKMCYNX5NHEMMH44V3JZ5Q7NUXLDUB4JGCKL7BQMM5JGBY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,,,.,,,.,.,.,.,,,,,,,,,,,,.,,..,,...,..,,,..,..,,,..,...,,,.,
+#ZLHW5XDR5JUTQLFUTQYYXONYLSRZBSPC5JK72DMDNEKD6EYYL55CSWWOSE3GWIOAYYATV44BNFXHE
+#\\\|FVSHWKTL4W46AVFXFX6ZAQF5XZTKVEIZTOS7Q75JE2IB5I7DEXL \ / AMOS7 \ YOURUM ::
+#\[7]YDNNCVDTC4UKGFGJX42IA6Y6YVXNW2P54M6REJEKDBH6MHYXO2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
