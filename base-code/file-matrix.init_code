@@ -4,15 +4,16 @@
 
 my $usock_dir = <system.path.unix_socket_dir> //= qw| /var/run/.7/UNIX |;
 
-<[file.make_path]>->( $usock_dir, 0775, <system.amos-zenka-user> );
+<[file.make_path]>->( $usock_dir, 0775, <system.amos-zenka-user> )
+    if !-d $usock_dir;    ##  also adjusts ownership and permissions  ##
 
-<file-matrix.permissions.sftp_socket_path>   //= 0644;
+<file-matrix.permissions.sftp_socket_path>   //= 0666;
 <file-matrix.permissions.amos_chksum_socket> //= 0664;
 
 return 0;
 
-#,,,,,,,.,,,,,,,,,,..,...,...,.,.,.,,,.,.,...,..,,...,...,...,.,.,..,,,..,.,,,
-#C75NCM225JLNHYO2TZOAD6RA5YSZ46MN2VOXDS4WVWI5FUJTPNBJTMQ23ENBJVG3GDKDYUNQ6QHYQ
-#\\\|TMQFF2JGGDSWJNEPRHC6756SKGBJLCDLLF24XR7MB2I7HYLMHU5 \ / AMOS7 \ YOURUM ::
-#\[7]THWUWQSFZ4RNLWKYYNRDMRTQ5EYMODF4DRZ27NMLJUSAXGUFFKCI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,...,,,.,,,.,,..,,.,,,..,..,,...,...,.,,,,.,,,.,,,,,,,..,
+#6USLLUJS6N4PO2RDNWQ6ZHVEFPXCFYI6Z3H6OZSEXU45V6UFZ2MLEWBUHLFFJA7UNCEWQZYZGGKFY
+#\\\|PIMOND7UMZDWKBBOD3SMHXDV6GLLZZHX74MREUQ5ISHN6MH7S23 \ / AMOS7 \ YOURUM ::
+#\[7]A6F2RQBJ2FA4EIFYNIUO5ZVOROX4QBT7ONKESIQFLGSGDNJAGGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
