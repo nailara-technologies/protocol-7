@@ -10,6 +10,11 @@ my $write_len  = $_[2] // length $write_str;
 my $str_offset = $_[3] // 0;
 my $fh_offset  = $_[4];
 
+if ( not defined $write_fh ) {
+    warn 'write_fh param not defined <{C1}>';
+    return undef;
+}
+
 my $count_written;
 
 ##   [ replacing syswrite : unicode-safe ]
@@ -43,8 +48,8 @@ IO::AIO::flush();
 return undef if $count_written < 0;    # <-- syswrite() behaviour
 return $count_written;
 
-#,,.,,,,,,,.,,,.,,.,,,,,.,,..,,,,,.,,,..,,.,,,..,,...,...,...,,,,,.,,,.,.,.,.,
-#D2THFC66OZ5WB3NXISCXXFH7YUCDQTA5ZTP6YTYJHJCWVUDCR7UE7AEBVMJO6ZH4BGQRL727F764Y
-#\\\|GEPS2Q5WGLWZLM2PMXHBDWKUPRF2KQAR5KQSEY5VHM4RGUYDUXF \ / AMOS7 \ YOURUM ::
-#\[7]VKXDMEL6PJJCYPCWGON4GRPAMTXZ37TRPZLE4MFUBHMSS3YIBCCY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,.,,,..,,.,,,,.,,..,,,.,,,.,..,,...,...,...,...,.,,,,..,.,.,
+#CYBXIQ45RWV3EDTFFGXU6KY44VKURUVLQOEBUX7NHP7IUIQC3RH757QE4Z3J5OL2A2XPK23CISQRU
+#\\\|SZO6V3TRECD6DZUC7I7U44MLACEHQXKFYTBJOWBSPKJ64WUWZGF \ / AMOS7 \ YOURUM ::
+#\[7]FFFCU73FWTSXI2WE2TO5DU3PQ3EVY64CE76VMPD2NPDXF53LXECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
