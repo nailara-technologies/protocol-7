@@ -3,35 +3,123 @@
 # name   = base.session.init_state
 # params = session_id, state
 
-( my $s_id, my $state_id ) = @_;
+( my $s_id, my $state_id ) = @ARG;
 
-return ( warn "session '$s_id' does not exist <{C1}>" and 0 )
-    if not defined $data{'session'}{$s_id};
+if ( not defined $data{'session'}{$s_id} ) {
+    return <[base.s_warn]>->( "session '%d' does not exist <{C1}>", $s_id );
+    return 0;
+}
 
 my $session = $data{'session'}->{$s_id};
 my $state   = $data{'protocol'}{ $session->{'protocol'} }{'state'}{$state_id};
-return ( warn "protocol state '$state_id' not defined <{C1}>" and 0 )
-    if not defined $state;
+
+if ( not defined $state ) {
+    <[base.s_warn]>->( "protocol state '%d' not defined <{C1}>", $state_id );
+    return 0;
+}
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
 
 if ( not defined $state ) {
-    warn "no $mode handler defined [ protocol state $state_id ] <{C1}>";
+    return <[base.s_warn]>->(
+        "no %s handler defined [ protocol state %d ] <{C1}>",
+        $mode, $state_id
+    );
     return 0;
 }
 
-## setting protocol input handler ###
-$session->{'input'}->{'handler'} = $state->{$mode}->{'handler'};
-## [ LLL ] 'output' handler ?
+if ( $session->{'mode'} ne qw| server | ) {
 
-##[ POST AUTH HOOK CODE ]##
+    ##[ protocol input handler ]##
+    $session->{'input'}->{'handler'} = $state->{$mode}->{'handler'};
 
-####
+    ## [ LLL ] 'output' handler ? ##
 
-return 1;    ## <-- success ###
+    ##  post auth handler  ##  [ state 0 --> 1 ]
+    ##
+    if ( $state_id == 1 and defined $session->{'post-auth'} ) {
+        my $handler_subref;
+        if ( not length ref $session->{'post-auth'}
+            and defined $code{ $session->{'post-auth'} } ) {
+            $handler_subref = $code{ $session->{'post-auth'} };
+        } elsif ( ref $session->{'post-auth'} eq qw| CODE | ) {
+            $handler_subref = $session->{'post-auth'};
+        } else {
+            <[base.logs]>->(
+                0,     "[%d] session post-auth is not valid or defined '%s'",
+                $s_id, $session->{'post-auth'}
+            );
+            return 0;    ## aborting init ##
+        }
+        if ( defined $handler_subref ) {
 
-#,,,.,,,.,.,,,.,.,,,.,.,.,..,,,,.,,,,,,..,.,.,..,,...,...,,..,,..,.,,,.,.,.,,,
-#XAAO6W43DLSJGNHW7XVNDJ7LPUE5FAXSRS6HQMPINVFFESXRBSRP3BYGVX7PAOA2SOVPTZIC6AF6I
-#\\\|ZFXEHBHMSY53KSSI6UIGVIXHEPYZVC4P4UMISJR2O6RKPLRQRQW \ / AMOS7 \ YOURUM ::
-#\[7]4R7UIUVGILJO3BTGAOQORBCHO73OMZ43342PEOHFBC4G6QH7DSCQ 7  DATA SIGNATURE ::
+            <[base.logs]>->(
+                2,     "[%d] calling session post-auth handler '%s'",
+                $s_id, $session->{'post-auth'}
+            );
+
+            ##  specific parameters ?  ##
+            if ( defined $session->{'post-auth-param'} ) {
+                $session->{'post-auth-return-status'}
+                    = $handler_subref->( $session->{'post-auth-param'} );
+            } else {
+                $session->{'post-auth-return-status'}
+                    = $handler_subref->($s_id);   ##  call with session-id  ##
+            }
+
+            if ( not defined $session->{'post-auth-return-status'} ) {
+                <[base.logs]>->(  ## aborting init if return code undefined ##
+                    0,
+                    "[%d] session post-auth inititialization not successful",
+                    $s_id
+                );
+                return 0;
+            }
+        }
+    }
+
+    ##  protocol init handler  ##
+    ##
+    if ( defined $state->{'init'} ) {
+        my $handler_subref;
+        if ( not length ref $state->{'init'}
+            and defined $code{ $state->{'init'} } ) {
+            $handler_subref = $code{ $state->{'init'} };
+        } elsif ( ref $state->{'init'} eq qw| CODE | ) {
+            $handler_subref = $state->{'init'};
+        } else {
+            <[base.logs]>->(
+                0,
+                "[%d] protocol state init handler not valid or defined '%s'",
+                $s_id,
+                $state->{'init'}
+            );
+            return 0;    ## aborting init ##
+        }
+        if ( defined $handler_subref ) {
+
+            <[base.logs]>->(
+                2,     "[%d] calling protocol init handler '%s'",
+                $s_id, $state->{'init'}
+            );
+
+            my $return_code = $handler_subref->( $s_id, $mode, $state_id );
+
+            ## aborting init if return code undefined or not true ##
+            if ( not defined $return_code or not $return_code ) {
+                <[base.logs]>->(
+                    0, "[%d] protocol state init was not successful", $s_id
+                );
+                return 0;
+            }
+        }
+    }
+}
+
+return 5;    ## <-- success ###
+
+#,,,,,,.,,,,.,.,,,.,,,,,.,,.,,.,,,...,..,,,,,,..,,...,...,..,,.,,,..,,,.,,,.,,
+#MKDBCVBB2J72FWGN26UK434QU755MSWCVZZDUMNG4YXESUXV7MO5454R677ZXCHBMGNK3NIPUMBDO
+#\\\|U4CBRNIK3LCKQBSTJAW6VU33KND3TWLHZZVVTXUOG4JCFK22IJR \ / AMOS7 \ YOURUM ::
+#\[7]5G35LWOKPAKHDGQOQTOVTLYZ55KZ2KRSD53ERKD3XMJE5HWLOMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
