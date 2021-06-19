@@ -2,18 +2,40 @@
 
 # name = base.session.check.close
 
-my $event = shift;
-my $id    = $event->w->data;
+my $event   = shift;
+my $id      = $event->w->data;
+my $session = $data{'session'}->{$id};
 
-$event->w->cancel;
+$event->w->cancel if $event->w->is_active;
 
-my $session = $data{'session'}{$id};
-
-##  server mode session  ##
+## reporting server mode session close ##
 if ( $session->{'mode'} eq qw| server | ) {
     <[base.logs]>->( 0, '[%d] server-mode session shutdown ..,', $id );
 } else {    ##  client-mode session shutdown  ##
     <[base.logs]>->( 2, '[%d] session shutdown.,', $id );
+}
+
+## calling session rip handler ##
+if ( defined $session->{'rip_handler'} ) {
+    my $rip_handler_c_ref;
+    if ( not length ref $session->{'rip_handler'}
+        and defined $code{ $session->{'rip_handler'} } ) {
+        $rip_handler_c_ref = $code{ $session->{'rip_handler'} };
+    } elsif ( ref $session->{'rip_handler'} eq qw| CODE | ) {
+        $rip_handler_c_ref = $session->{'rip_handler'};
+    } else {
+        <[base.logs]>->(
+            0,   "[%d] session rip_handler is not valid or defined '%s'",
+            $id, $session->{'rip_handler'}
+        );
+    }
+    if ( ref $rip_handler_c_ref eq qw| CODE | ) {
+        <[base.logs]>->(
+            2,   '[%d] calling session rip_handler [%s] ..,',
+            $id, $session->{'rip_handler'}
+        );
+        $rip_handler_c_ref->($event);
+    }
 }
 
 # cancel outstanding commands / routes
@@ -23,13 +45,7 @@ my $route_term_msg = 'FALSE command route collapsed';
     $id, $route_term_msg, keys $session->{'route'}->%*
 );
 
-# call rip handler
-if (    defined $session->{'rip_handler'}
-    and defined &{ $session->{'rip_handler'} } ) {
-    $session->{'rip_handler'}->($event);
-}
-
-# cancel watchers
+## cancel watchers ##
 foreach my $watcher ( keys $session->{'watcher'}->%* ) {
     $session->{'watcher'}{$watcher}->cancel;
     delete $session->{'watcher'}{$watcher};
@@ -39,7 +55,7 @@ foreach my $watcher ( keys $session->{'watcher'}->%* ) {
 
 my $user = $session->{'user'};
 
-# clean up user to session reference
+## cleaning up user to session reference ##
 if ( defined $data{'user'}{$user}{'session'}{$id} ) {
 
     # first clean up subname to session reference
@@ -112,8 +128,8 @@ if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
 
 <[base.session.check_remaining]>;
 
-#,,.,,...,,.,,.,,,,,.,,,.,.,.,..,,...,.,.,,..,..,,...,..,,,,,,,,.,,..,,,,,,.,,
-#DM7XB6JPVS4EA4PQLPNRB4XIEO25RGIRJAOLLTYLFU4FOOQNTOR5M2SXJ4OK2BKSRPEAWW6I3LLHK
-#\\\|ICPSRUDQ34GGFS6ZWYG4LKZRZAZDYH4IYTFOVMYOYP74O2AAHJ5 \ / AMOS7 \ YOURUM ::
-#\[7]4WGW5PJQY7C5ZIZCJY5KDUVWQ6LF6KJMTH7WDUUUXF4VCG47SGAI 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,,,,.,,,,,.,,,.,..,,...,,,.,..,,...,..,,...,.,.,.,,,..,,,,.,
+#NJZSAIFOGKHH7ICHXIRQCZ4WYBB2FGHPFVOTCORZZBR5CFTS7NNYQ4GEQLB4XRE3QFNVIBLNSY2AU
+#\\\|T3ZLETFFOQ4UVY46QU3SQJBFJ45P3TBPAJ44PBRT22MWCQIK42D \ / AMOS7 \ YOURUM ::
+#\[7]IFROD74MGAVVVDYSEDPDCRWCQOA4NGFAUEO7AMMI4SULW46XPGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
