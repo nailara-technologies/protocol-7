@@ -1,0 +1,42 @@
+## >:] ##
+
+# name  = protocol.sftp.handler.session_close
+
+my $event = shift;
+my $id    = $event->w->data;
+return if not defined $data{'session'}->{$id};
+my $session = $data{'session'}->{$id};
+return if not defined $session->{'sftp'}->{'server'};
+my $server  = $session->{'sftp'}->{'server'};
+my $srv_pid = $server->{'process_id'};
+return if not <[base.exists.sub-process]>->($srv_pid);
+
+<[base.logs]>->(
+    '[%d] terminating sftp server process [PID=%d]',
+    $id, $srv_pid
+);
+
+$server->{'event-io-watcher'}->cancel
+    if defined $server->{'event-io-watcher'}
+    and $server->{'event-io-watcher'}->is_active;
+
+my $srv_proc_fd = $server->{'process_fd'};
+map { close( $srv_proc_fd->{$ARG} ) } qw| in out |;
+
+if ( kill( 15, $srv_pid ) ) {
+    <[event.add_timer]>->(
+        {   after   => 1.2,
+            repeat  => 0,
+            handler => qw| protocol.sftp.callback.kill_server |,
+            data    => $srv_pid
+        }
+    );
+}
+
+$event->w->cancel if $event->w->is_active;
+
+#,,..,..,,,,,,,,.,...,,,,,,..,...,,,,,,..,,,.,..,,...,...,.,.,,,.,.,,,,,.,.,,,
+#VVZFYIA7RZ5BD6RJSLWKGGDI6IFNRUG3I62WJJIGZEGTUPUK4N3XYGF572TEIU2M5BHOJOA3S62IC
+#\\\|NN6LPMXIBQL5J3WSYO7BCYUMBPJBBTEKI75LZB6KJNOF3YH3VR2 \ / AMOS7 \ YOURUM ::
+#\[7]LYBEKDJYNDDO723LADPKSZ5NJSYRFIA7F6ZUV64XUDHFFUAODGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

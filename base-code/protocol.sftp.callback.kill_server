@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = protocol.sftp.callback.kill_server
+
+my $event   = shift;
+my $srv_pid = $event->w->data;
+
+return if not <[base.exists.sub-process]>->($srv_pid);
+
+<[base.logs]>->(
+    'sending signal 9 to sftp server process [PID=%d]', $srv_pid
+);
+
+kill( 9, $srv_pid );
+
+$event->w->cancel if $event->w->is_active;
+
+#,,.,,,,.,.,.,..,,...,.,.,..,,...,..,,,.,,,..,..,,...,...,,,,,..,,..,,,,,,,..,
+#NF7F4H5WFIERZ2CKNP5MHUVEZV4THD6SF4LBJIDTSKZHHLSELBREMBIANRTAAM2FMJHPCUAPAUVVK
+#\\\|GWCZKEXV6P7JVLKD4ONGZ6SYLRHTIJCJS6NH5JBNHZLTXX6LV5I \ / AMOS7 \ YOURUM ::
+#\[7]VS7CQY7G4PZU63V4VKVR7PSFERTFCW23YAFILQDRK3LXVDXY4GAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
