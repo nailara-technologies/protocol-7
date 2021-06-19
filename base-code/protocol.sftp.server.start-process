@@ -38,13 +38,13 @@ if ( not defined $pid or length $EVAL_ERROR ) {
     return 0;    ##  not successful  ##
 }
 
-<[base.logs]>->( 1, '[%d] started sftp-server process [PID:%s]', $id, $pid );
+<[base.logs]>->( '[%d] :. started SFTP-srv process.., [PID:%s]', $id, $pid );
 
 $session->{'rip_handler'} = qw| protocol.sftp.handler.session_close |;
 
 $session->{'sftp'}->{'server'} = {
     qw| process_id | => $pid,
-    qw| process_fd | => {
+    qw| proc_fhs |   => {
         qw| in |  => $sftp_in,
         qw| out | => $sftp_output
     },
@@ -52,16 +52,22 @@ $session->{'sftp'}->{'server'} = {
         {   'fd'      => $sftp_output,
             'poll'    => qw| re |,
             'repeat'  => 1,
-            'handler' => qw| protocol.sftp.handler.server_process |,
-            'data'    => sprintf( 'sftp-server [ PID %d ]', $pid )
+            'handler' => qw| protocol.sftp.handler.read_server_outout |,
+            'data'    => {
+                qw| session_id  | => $id,
+                qw| process-id  | => $pid,
+                qw| process-fhs | =>
+                    { 'in' => $sftp_in, 'out' => $sftp_output }
+            },
+            'desc' => sprintf( '[%d] sftp-server [ PID %d ]', $id, $pid )
         }
     )
 };
 
 return $pid;    ##  server process successfully started  ##
 
-#,,.,,.,.,..,,,.,,..,,.,,,,..,,,,,,,.,..,,..,,.,.,...,...,...,,,,,,.,,,,.,,,,,
-#FRACS3ZMNXQ53NE5EGMWB224BUGVRJD7TYVV6FT5HK2RI3XOC53KBWUFVD2C266TLJCMNAWH7UNXW
-#\\\|JRCZN6EIGCSEPKNE2SJSAM7UJCDHYJQUTDKF6QERMGNRYNYI3VN \ / AMOS7 \ YOURUM ::
-#\[7]F6EYM5PRNSI3PGTBBRZZY3DBMPWBOQOIT3VZLMFIX7NU6QZZ7KAI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,,,.,,,.,,,.,..,,,,,,...,...,.,.,...,...,,,,,,.,,,,,,,.,,,,,,
+#KXAQCZOZYL5AOSXHIRR63AP4BWDP3NQIBR3UWCLOTH3PPJ3HBHKJYLGKPB44XWKI7H3U42FIBVLX4
+#\\\|SOM2M57G4YWRHCQV3GZ7KU2UTSLG7NHMYMMB6RYFBXR6J7UTGCB \ / AMOS7 \ YOURUM ::
+#\[7]TEOCKH6PQXAN3ELMWSL6VT4IP3GDEXSEQGCZHFWTDQLSNUYOBGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

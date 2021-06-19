@@ -1,0 +1,44 @@
+## >:] ##
+
+# name  = protocol.sftp.init_code
+
+<protocol.sftp.version> = qw| 3 |;
+
+<protocol.sftp.server_bin> //= qw| /usr/lib/openssh/sftp-server |;
+
+<protocol.sftp> = {
+    qw| connect | => {
+        qw| banner | => sprintf( "AMOS7-SFTP \\\\ protocol version %d\n",
+            <protocol.sftp.version> ),
+
+        qw| callback | => qw| protocol.sftp.connect_callback |
+    },
+    qw| state | => {
+
+        qw| 0 | => {
+            qw| read-mode | => qw| binary |,
+
+            qw| input | =>
+                { qw| handler | => qw| protocol.sftp.read_ssh_env | },
+
+            qw| error | => { qw|handler| => qw| base.handler.session_error | }
+        },
+        qw| 1 | => {
+            qw| read-mode | => qw| binary |,
+
+            qw| input | => {
+                qw| handler | => qw| protocol.sftp.handler.write_to_server |
+            },
+
+            qw| error | => { qw|handler| => qw| base.handler.session_error | }
+        }
+    }
+};
+
+0;
+
+#,,,,,.,.,,.,,,,,,,,,,,,.,,..,,.,,,..,.,,,,,.,..,,...,...,.,,,,,.,...,,..,,.,,
+#GNPTOIFM4RCUN6T3TIDPOHJWYAZ6QRUPLV3GT7REGWJF57XEFGW5TL5JOJ5SGQC55LUI7PC7BA7O2
+#\\\|M6MBAXKMBWHHQ5QVEKDDVQZEUM2AP2PXOGTNYFA3Z5KFSZHH2BJ \ / AMOS7 \ YOURUM ::
+#\[7]GUOPX6TDWMOKNDUYTXEBEIWJNAZ2FPCLU5SGGTKLY5DVQMC2NWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
