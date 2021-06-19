@@ -16,13 +16,13 @@ map { $check_pids{$ARG} = 1 } keys %{ $instance->{'restart_pids'} }
     if exists $instance->{'restart_pids'};
 
 my $processes_left = 0;
-map { $processes_left++ if <[v7.sub-process.exists]>->($ARG) }
+map { $processes_left++ if <[base.exists.sub-process]>->($ARG) }
     reverse sort keys %check_pids;
 
 return $processes_left;
 
-#,,..,.,.,,..,.,,,.,,,,,,,.,,,,,,,,,,,.,,,.,.,..,,...,..,,...,.,.,,,,,,,.,.,,,
-#QAYD4EMCX4FG2TR2ZVXWBFFBNQCCJH2GXPTWVSWI2SGW5ZEWPFLT3TO4TRBTFDTZ6E3O3LVQX3X4U
-#\\\|5KR4KPZT5RMGCVJ3IBMMDSECZIOS676UHKVK63VYL2XZVY5H7JO \ / AMOS7 \ YOURUM ::
-#\[7]3VKIET22JCN4O57TLV5MZUJPKEOC3BQXM4BYL2SQ25A7KKKGJ4BI 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,...,,,,,,,.,...,...,...,.,.,..,,...,...,,,,,,..,.,,,,,.,,,,,
+#6IOWD33X6K57Y63OTIEVSQQKNOMMMKG7AAYQ2ZJMUURR24UNSZXC4MCMMTGJ752DP2EJGZFCLOE7G
+#\\\|A4UMPHTPNTZUQ54SBGWOEOZLEFZBIQEK4UI75QDGEYIK23IJ6IJ \ / AMOS7 \ YOURUM ::
+#\[7]L4B2HQNXVM2SF3NQNH7YGMTYQODO7YIHVKA6RS4MHULA3GVG5UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ my @remaining_pids;
 my $child_count = 0;
 foreach my $pid ( reverse sort keys %{<v7.child>} ) {
     next if <v7.child>->{$pid}->{'instance_id'} != $instance_id;
-    if ( <[v7.sub-process.exists]>->($pid) ) {
+    if ( <[base.exists.sub-process]>->($pid) ) {
         push( @remaining_pids, $pid );
         $child_count++;
     } else {
@@ -43,8 +43,8 @@ if ( !$child_count ) {    ## done waiting ##
         ->( 2, ": status : $curr_status next_status: '$next_status'" );
 }
 
-#,,.,,...,.,,,,,,,,..,,..,..,,..,,,,,,,,,,,,,,..,,...,...,...,,.,,..,,..,,,,.,
-#MTQJHSUPDM34L7SKDFHF3L7XEY6MRAPCXX3PSK3OXL3DP5F6DSUX7RX5YVBYALRS7NZFGEMDPU3KA
-#\\\|XCKY3LMNZVPGDVYWHAOI6UNCG72E6D263N5Z4353FHROYAIH7Q3 \ / AMOS7 \ YOURUM ::
-#\[7]NSPK6STLDI7RBYCRFMFKPBSNBOLJM42VZR4YQWYDWAOHX3QB26AA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,...,.,.,,,,,.,.,.,.,...,,..,..,,...,..,,...,..,,...,..,,.,.,
+#3O664DFRL72BI55ABVFJO2ZOFO7JXKSHXJFJALWR6IKLYRBRH5CCCTBTK3Q3LYMBNZDJDYQRIWCHS
+#\\\|NZFHNTV6QOMSDIBSZKPPEEVGPHEXFA6F4YHB3VT2JKWYQLKAKQC \ / AMOS7 \ YOURUM ::
+#\[7]UFZJX6YE4KAGQEP5UV2TZ5AUDVWYSZT3FWKN3SXG5FN7BH2H4QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
