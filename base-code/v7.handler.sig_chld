@@ -26,21 +26,22 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         and defined <v7.zenka.instance>->{$instance_id};
 
     # determine exit status
-    my $log_level = 2;
-    my $e_val     = $CHILD_ERROR >> 8;
-    my $e_sig     = $CHILD_ERROR & 127;
-    my $e_sig_str = $e_sig ? sprintf( ', signal %s', $e_sig ) : '';
+    my $log_level    = 2;
+    my $exit_val     = $CHILD_ERROR >> 8;
+    my $exit_sig     = $CHILD_ERROR & 127;
+    my $exit_sig_str = $exit_sig ? sprintf( ', signal %s', $exit_sig ) : '';
     $log_level = 0
-        if $e_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
-    my $e_dmp = $CHILD_ERROR & 128 ? ' [ with core dump ]' : '';
-    $log_level = 1 if $e_val;
+        if $exit_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
+    my $e_core_dump = $CHILD_ERROR & 128 ? ' and a core dump' : '';
+    $log_level = 1 if $exit_val or $exit_sig == 9;
     $log_level = 0 if $CHILD_ERROR & 128;
-    my $zenka_str = defined $zenka_name ? "< $zenka_name > " : '';
-    <[base.log]>->(
-        $log_level,
-        $zenka_str
-            . "child pid=$pid shut down"
-            . " [ exit code $e_val$e_sig_str ]$e_dmp"
+    my $zenka_str
+        = defined $zenka_name
+        ? sprintf( '< %s >', $zenka_name )
+        : qw| child |;
+    <[base.logs]>->(
+        $log_level, '%s [PID:%d] shut down with exit code %s%s%s',
+        $zenka_str, $pid, $exit_val, $exit_sig_str, $e_core_dump
     );
 
     <[v7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
@@ -62,7 +63,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         <[base.logs]>->( 2, ": had status : '%s'", $old_status );
 
         ## record web-browser segfaults [ for crash mitigation ] ##
-        if ( $e_sig == 11 and $zenka_name eq qw| web-browser | ) {
+        if ( $exit_sig == 11 and $zenka_name eq qw| web-browser | ) {
             my $web_browser_uname = <system.AMOS-user>;
             my $subname_b32
                 = ( defined $zenka_subname and length($zenka_subname) )
@@ -122,8 +123,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     }
 }
 
-#,,,,,,.,,.,,,...,..,,,.,,.,,,.,.,,.,,.,,,,,.,..,,...,...,...,,..,,,,,...,.,.,
-#G43VYTZSDHNPBMCI5MFEKDRID3Z6V633RFINLKNAKETG3K7MDR6NVELRBH2NSMZ6YW4E3QHRMFDLA
-#\\\|53XKZWB33AVGGJL6TLX5C7EOXBQDD2K722A7PTRYFMXZV2JVZR2 \ / AMOS7 \ YOURUM ::
-#\[7]C76LVLWPKQPPD444X5W2TBEEH6UQ3MZIGFLMUNYVRMC2EGIIZ6AA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,,,.,.,,,,.,,.,,,.,.,,..,.,,,..,,...,...,..,,.,.,,,.,.,.,,..,
+#HWTEM77VLPFZH73MTFQYSXX5SBZJJFV5TE2XX3E6274GFF2PCORKPTRRNZQ34A7ZR5EZ2F7SONBAK
+#\\\|G4MGO56HXWQIRBHGIFHCEIR6QAAE5GPJVJMZ7QPMRXPT4BAH2DU \ / AMOS7 \ YOURUM ::
+#\[7]MEKRVPFBLIM3G4LEEAGMWZYS7BP5AVB3LEBZGSS5B35M2NVOPOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
