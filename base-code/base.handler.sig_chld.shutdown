@@ -8,31 +8,33 @@ local ( $OS_ERROR, $CHILD_ERROR );
 while ( ( my $pid = waitpid( -1, 0 ) ) > 0 ) {
 
     # determine exit status
-    my $e_val = $CHILD_ERROR >> 8;
-    my $e_sig = $CHILD_ERROR & 127;
-    $e_sig = $e_sig ? ", signal $e_sig" : '';
-    my $e_dmp     = $CHILD_ERROR & 128 ? ' < with a cube dump. >' : '';
+    my $exit_val     = $CHILD_ERROR >> 8;
+    my $exit_sig     = $CHILD_ERROR & 127;
+    my $exit_sig_str = $exit_sig ? sprintf( ', signal %s', $exit_sig ) : '';
+    my $e_core_dump  = $CHILD_ERROR & 128 ? ' < with a cube dump. >'   : '';
+
     my $log_level = 2;
-    $log_level = 1 if $e_val;
+    $log_level = 1 if $exit_val or $exit_sig == 9;
     $log_level = 0 if $CHILD_ERROR & 128;
     $log_level = 2
         if <zenka.shutdown>
-        and !length($e_dmp)
-        and $e_sig ne 'signal 11';
-    <[base.log]>->(
-        $log_level,
-        ": child pid=$pid shut down [ exit code $e_val$e_sig ]$e_dmp"
+        and not length $e_core_dump
+        and $exit_sig == 11;
+
+    <[base.logs]>->(
+        $log_level, ': child pid=%d shut down [ exit code %s ]%s',
+        $pid, $exit_val, $exit_sig_str, $e_core_dump
     );
     $died_pid{$pid} = 1;
 }
 
-<[base.log]>->( 0, ": shutting down " . <system.zenka.name> . " zenka ..," );
+<[base.logs]>->( 0, ': shutting down %s zenka ..,', <system.zenka.name> );
 
-<[base.log]>->( 1, ": done." );
+<[base.log]>->( 1, ': done.' );
 exit(0);
 
-#,,,,,.,,,,.,,,,.,.,.,...,..,,,.,,,.,,..,,..,,..,,...,...,..,,.,,,..,,,.,,..,,
-#JHFLLBO6HYXGU6AHVALSXMA7GC4CGYTVGTDIWC3EEJNDUZ2KEFQCWHZDXRAVBJALRD4HRQZICBFZA
-#\\\|MWE4YTEZQNOQKPUL7XCZL2BAUHTOSHTE3YUV34ETC2T5OAODFIX \ / AMOS7 \ YOURUM ::
-#\[7]2SJWGO6PSUFEC3YZUVH6BK2KWP264NBST3QWTKMRVU43CSHXLMCA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,.,,,,,.,,,.,,,,,.,.,.,..,,..,,..,,...,...,.,.,.,,,,..,.,,,...,
+#4VLU5BOHXCSIW2LOAPXHUEOSOGSWO3CPYLV6KTDGG3HNT3HHGTQ3HR75DRIJMX24YJP6ZITBCB3QW
+#\\\|RJVA7NFHNRDVJE4VPE57LI7PPXFYGMI7TOYKMXF4QIIERD6LE55 \ / AMOS7 \ YOURUM ::
+#\[7]XVWCPH6H6DNINJM2R27MRDGHCP5YIZVMUYMRP3UP3UVIRVTNDOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
