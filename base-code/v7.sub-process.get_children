@@ -19,7 +19,7 @@ foreach my $proc ( reverse @{ $proc_table->table } ) {
     next
         if not defined $proc->{'pid'}
         or not defined <v7.child>->{ $proc->{'pid'} }
-        or not <[v7.sub-process.exists]>->( $proc->{'pid'} );
+        or not <[base.exists.sub-process]>->( $proc->{'pid'} );
 
     $ppids{ $proc->{'pid'} }       = $proc->{'ppid'};
     $start_times{ $proc->{'pid'} } = $proc->{'start'};
@@ -58,7 +58,7 @@ foreach my $id (<[v7.instance_ids]>) {
         and $chk_pid == <v7.zenka.instance>->{$id}->{'process'}->{'id'};
 }
 if ( defined $instance_id ) {
-    map { $children{$ARG} = 1 if <[v7.sub-process.exists]>->($ARG) }
+    map { $children{$ARG} = 1 if <[base.exists.sub-process]>->($ARG) }
         ( <[v7.instance_child_pids]>->($instance_id) );
 }
 
@@ -67,8 +67,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,,.,.,,,..,,..,,,..,.,.,.,,,...,,..,..,,...,..,,...,...,...,.,,,,,.,..,,,,.,
-#BDOTEIIATASTDEB7PKMAUVOECATVAY5RT4X57UGLLROZZGFSDPC2GBKNTHUNI23HO7CJ2C4UB2EOM
-#\\\|GLFA6JHSEUAXWLAYLYXFYVFT4J7FPGZJIQN7NVTI2NTFJEYRRSE \ / AMOS7 \ YOURUM ::
-#\[7]6RSZ5AZACC6IGR5LJYUUTEIYHF5RWZP7K2IMYITYTOY3ZZF73GAA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,.,.,...,.,.,,,.,...,.,,,,..,..,,...,..,,...,,,,,...,,,.,.,.,
+#SJJMOXVTH27LSLQ54GSXKDZVC7RTRDVSKW4NOVYDZXA6S4UYSEZOZN33YSDWD2DV7JXFN4NK2MW7E
+#\\\|C7YLGCRA4WGOCSU2XMAE6Y2NKY5KVNTCB25KNOQVT4KQU5XF357 \ / AMOS7 \ YOURUM ::
+#\[7]27OWH37TT7QAYUTOL4DATWPIDZHO7NTPQ64RRLZPCQDS3KMODOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

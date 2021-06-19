@@ -33,7 +33,7 @@ $process_id = $instance->{'process'}->{'id'}
     ->( sprintf( qw| v7.zenka.instance.%d.process |, $instance_id ) ) == 5;
 
 my $is_running = defined $process_id
-    ? <[v7.sub-process.exists]>->($process_id)    ##  5 == true  ##
+    ? <[base.exists.sub-process]>->($process_id)    ##  5 == true  ##
     : 0;
 
 <[base.logs]>->(
@@ -55,8 +55,8 @@ if ( defined $process_id and $is_running ) {
 
 <[jobqueue.remove_job]>->($job_id);
 
-#,,.,,,,,,,..,,.,,..,,,,.,.,,,..,,.,,,.,.,,,.,..,,...,...,...,,.,,,,,,..,,,,.,
-#LUOTHPIGBOOL3IH7EBBNS6PQCWJ6AJIXYNQ5F5KKGKI36RBJLQIJLAX66XEKJAW6LGTV3W5TC6ZIU
-#\\\|JNPAZDWHV36GZD2TGP7UGA2PXTMKSEW3RUWFHQEMIPQSXNHNG4N \ / AMOS7 \ YOURUM ::
-#\[7]HXLVHB5XCB5J7LJTASYAOLNWLIOZ4CMXPORAJ3RVVKZJZXYWRSAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,.,.,..,,..,,.,.,,.,,.,,,,,.,..,,...,..,,,.,,,,.,,.,,,.,,,,,,
+#7ZEMR553KL65W7Z57EGCHMWVKZXTQQ4QFHV3JZ44RRDEDSISSJLS5U4KRSPNETBDJNAF367SWGQQ6
+#\\\|DLQM2Q7JRRMCBC4XKDPRC6T66G5ZRU3WUBTDFZUSR3XZGJ7ZXQP \ / AMOS7 \ YOURUM ::
+#\[7]FNWJENWF5GYYBCOFGPF3IMTDNUVTPWRAFQSONXIKKJ4CCXY4E4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
