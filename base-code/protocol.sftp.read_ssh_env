@@ -1,0 +1,94 @@
+## >:] ##
+
+# name  = protocol.sftp.read_ssh_env
+
+my $event   = shift;
+my $id      = $event->w->data;
+my $session = $data{'session'}->{$id};
+
+$session->{'SSH-env'} //= {};
+
+while ( $session->{'buffer'}->{'input'} =~ s|^set-ENV (\S+) (.+)\n|| ) {
+    my $env_key = ${^CAPTURE}[0];
+    my $env_val = ${^CAPTURE}[1];
+    <[base.logs]>->( 2, "[%d] ssh-env : %s = %s", $id, $env_key, $env_val );
+    if ( $env_key !~ m,^SSH_(CLIENT|CONNECTION)$, ) {
+        $session->{'buffer'}->{'output'} .= "!TERM! option not expected\n";
+        $session->{'flush_shutdown'} = 1;
+        return 2;
+    } elsif ( $env_val eq qw| undefined | ) {
+        $session->{'buffer'}->{'output'}
+            .= sprintf "!TERM! env-var '%s' is not defined\n", $env_key;
+        $session->{'flush_shutdown'} = 1;
+        return 2;
+    }
+    $session->{'SSH-env'}->{$env_key} = $env_val;
+}
+
+if ( $session->{'buffer'}->{'input'} =~ s|^close\n|| ) {
+    $session->{'buffer'}->{'output'}
+        .= "!TERM! closing session as requested\n";
+    $session->{'flush_shutdown'} = 1;
+    return 2;
+}
+
+if ( $session->{'buffer'}->{'input'} =~ s|^done-init\n|| ) {
+
+    ## check permission [ACLs] ., ##
+
+    <[base.logs]>->(
+        2, '[%d] env-init complete, start ftp-server process..,', $id
+    );
+
+    ##  launching 'sftp-server' process for current session  ##
+
+    if ( not <[protocol.sftp.server.start-process]>->($id) ) {
+        $session->{'buffer'}->{'output'}
+            .= "!TERM! cannot start server process\n";
+        $session->{'flush_shutdown'} = 1;
+        return 2;
+    }
+
+    ### [..,] ###
+
+    if ( not <[base.session.init_state]>->( $id, 1 ) ) {
+        <[base.logs]>->(
+            0, '[%d] session.init_state [ 1 ] was not successful'
+        );
+        $session->{'buffer'}->{'output'}
+            .= "!TERM! unsuccessful protocol init\n";
+        $session->{'flush_shutdown'} = 1;
+        return 2;
+    } else {
+        $session->{'buffer'}->{'output'} .= "TRUE init complete\n";
+
+        return 0;    ##  switching to sftp-server  ##
+    }
+
+}
+
+if ( length $session->{'buffer'}->{'input'}
+    and index( $session->{'buffer'}->{'input'}, "\n", 0 ) != -1 ) {
+    <[base.logs]>->(
+        0, '[%d] protocol error during env init, closing link..,', $id
+    );
+    ( my $buffer_copy = $session->{'buffer'}->{'input'} ) =~ s|\n|\\n|;
+    <[base.parser.ellipse_center]>->( \$buffer_copy, 42 );
+    <[base.logs]>->(
+        1,   "[%d] :., buffer contained '%s' ..,",
+        $id, $buffer_copy
+    );
+    $session->{'buffer'}->{'output'}
+        .= "!TERM! protocol error [ expected"
+        . " 'set-ENV <key> <value>' or 'done-init' ]\n";
+    $session->{'flush_shutdown'} = 1;
+    return 2;
+}
+
+return 0;
+
+#,,.,,..,,.,.,,,,,...,.,.,.,.,,,.,,,.,..,,,.,,..,,...,...,,.,,,,.,,.,,...,...,
+#2KK52XNI474O34WQ6QE3SJD7ZWUYVGTCPBFDMZY5FTWTOXSKWT476QAC45ZDILJPID2I6ND3NJV6A
+#\\\|PQ6LHHGG3C5RKWTHUML2MRH4CXZUDQ2HDROZQFFI4JPZ3ZDGOWE \ / AMOS7 \ YOURUM ::
+#\[7]DKCAPOJNDMGORY7ZWKCUYLJ7BQZ3VFAPZUUV667SMJIFZK7PWGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
