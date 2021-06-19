@@ -1,0 +1,67 @@
+## >:] ##
+
+# name  = protocol.sftp.server.start-process
+
+my $id = shift;    ## session_id ##
+
+my $server_bin_path = <protocol.sftp.server_bin>
+    //= qw| /usr/lib/openssh/sftp-server |;
+
+if ( not defined $data{'session'}{$id} ) {
+    <[base.s_warn]>->( 'expected valid session id <{C1}>', $id );
+    return 0;
+}
+
+my $session = $data{'session'}{$id};
+
+my $bin_path_abs = abs_path($server_bin_path);
+
+if ( not -e $bin_path_abs or not -x $bin_path_abs ) {
+    my $reason = -e $bin_path_abs ? qw| executable | : qw| found |;
+    <[base.logs]>->(
+        0,                "sftp server binary [ %s ] not %s",
+        $server_bin_path, $reason
+    );
+    return 0;    ##  not successful  ##
+}
+
+## open sftp-server process ##
+
+my $sftp_in;
+my $sftp_output;
+my $pid = eval { open2( $sftp_output, $sftp_in, $server_bin_path ) };
+if ( not defined $pid or length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,   "[%d] cannot start server process [ %s ]",
+        $id, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return 0;    ##  not successful  ##
+}
+
+<[base.logs]>->( 1, '[%d] started sftp-server process [PID:%s]', $id, $pid );
+
+$session->{'rip_handler'} = qw| protocol.sftp.handler.session_close |;
+
+$session->{'sftp'}->{'server'} = {
+    qw| process_id | => $pid,
+    qw| process_fd | => {
+        qw| in |  => $sftp_in,
+        qw| out | => $sftp_output
+    },
+    qw| event-io-watcher | => <[event.add_io]>->(
+        {   'fd'      => $sftp_output,
+            'poll'    => qw| re |,
+            'repeat'  => 1,
+            'handler' => qw| protocol.sftp.handler.server_process |,
+            'data'    => sprintf( 'sftp-server [ PID %d ]', $pid )
+        }
+    )
+};
+
+return $pid;    ##  server process successfully started  ##
+
+#,,.,,.,.,..,,,.,,..,,.,,,,..,,,,,,,.,..,,..,,.,.,...,...,...,,,,,,.,,,,.,,,,,
+#FRACS3ZMNXQ53NE5EGMWB224BUGVRJD7TYVV6FT5HK2RI3XOC53KBWUFVD2C266TLJCMNAWH7UNXW
+#\\\|JRCZN6EIGCSEPKNE2SJSAM7UJCDHYJQUTDKF6QERMGNRYNYI3VN \ / AMOS7 \ YOURUM ::
+#\[7]F6EYM5PRNSI3PGTBBRZZY3DBMPWBOQOIT3VZLMFIX7NU6QZZ7KAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
