@@ -27,27 +27,30 @@ foreach my $code_line (@ARG) {
             <[base.check_cfg_cmd_alias]>->($1)|ge;
     ###
 
-    if ( length $code_line ) {
-        local $SIG{'__WARN__'} = sub {
-            ( my $err_str = $ARG[0] ) =~ s| ?<{N?C\d?}>||g;
+    local $SIG{'__WARN__'} = sub {
+        ( my $err_str = $ARG[0] ) =~ s| ?<\{N?C\d?}>||g;
+        if ( index( $err_str, qw| eval |, 0 ) > -1 ) {
             if ( index( $err_str, "[ '", 0 ) == -1 ) {
                 $err_str =~ s| at .+line.+$||g;
             } else {
                 $err_str =~ s| at .+line.+$|' \]|g;
             }
-            <[base.logs]>->(
-                0,          'runtime-error : %s statement %s',
-                $code_name, $code_line_num
-            );
-            <[base.logs]>->(
-                0, ": '%s'", scalar <[base.format_error]>->( $err_str, -1 )
-            );
-            $error_exit = 1;
-        };
+        }
+        <[base.logs]>->(
+            0,          'runtime-error : %s statement %s',
+            $code_name, $code_line_num
+        );
+        <[base.logs]>->(
+            0, ": '%s'", scalar <[base.format_error]>->( $err_str, -1 )
+        );
+        $error_exit = 1;
+        }
+        if index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
+    ## use regular base.sig_warn handler in main event loop ##
 
-        eval($code_line);    ##  evaluate zenka-code \ config line  ##
-    }
-    if ($error_exit) {       ## todo : adapt parser from below ##
+    eval($code_line);    ##  evaluate zenka-code \ config line  ##
+
+    if ($error_exit) {   ## todo : adapt parser from below ##
         return warn 'stopped processing <{C1}>';
         return 1;
     }
@@ -81,8 +84,8 @@ foreach my $code_line (@ARG) {
 }
 return $noerr;
 
-#,,..,..,,...,,.,,...,.,.,...,,,.,,,,,,.,,,,.,..,,...,...,.,,,,..,.,.,..,,,,,,
-#Y6PSMUKWEPIPRJGAFMKUSQUZHM6PARONA6FV5K6VTQFJ5WYV64J6YMBYIL2GDA5QS5SZTNOR7YWL2
-#\\\|3OMZRMDQ3EBR62FLBZP2M3G2REW4TLQCAC6FA3KB3RCREHCYGHU \ / AMOS7 \ YOURUM ::
-#\[7]X62M5O7O4CM4X44OLAUV2T3C5WLKSOMVD5YE2IZC47HKF46BFMDY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,.,,,.,,,,,,,,,,,.,.,,,,,.,,,..,,...,...,.,,,,,.,,.,,...,.,.,
+#S4QC24YITBXTGW3OI3CEX7Z4Z3QETSIN6ZSR4RGJVZLBEPDMGBSMX64QR7MD4NTFAQSDDZHSFQIJ6
+#\\\|VES6PSEU6NHPTZYHGIIJ6YLN52V5L3LB5SEOVARILNABVOPWTNK \ / AMOS7 \ YOURUM ::
+#\[7]GU2DXFCP2S4KB2C4CUYFWLRRKQI2WIN4DOMKUIQ2I4SVNG3YPCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
