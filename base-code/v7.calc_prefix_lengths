@@ -5,17 +5,16 @@
 
 my $apw_href = <v7.zenka.prefix_width> //= {};
 
-my @online_zenki = keys %{<v7.online-zenki>};
+my @online_zenki = keys <v7.online-zenki>->%*;
 
 my $max_len = 0;
-foreach my $zenka_name ( uniqstr @ARG, @online_zenki, 'v7' ) {
+foreach my $zenka_name ( uniqstr @ARG, @online_zenki, qw| v7 | ) {
     my $new_len = <[base.get_start_lpw]>->($zenka_name);
     $apw_href->{$zenka_name} //= $new_len;
     $max_len = $new_len if $new_len > $max_len;
-
 }
 
-foreach my $zenka_name ( keys %{$apw_href} ) {
+foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
     next if $apw_href->{$zenka_name} == $max_len;
     my @zenki_pid;
     map {
@@ -25,16 +24,28 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
         <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
         if $zenka_name ne qw| v7 |;
 
+    ## distance between signals [ increase when required ] ##
+    my $timer_inc   = 0.13;
+    my $timer_delay = 0;      ## start delay ##
+
     if ( $apw_href->{$zenka_name} < $max_len ) {
         my $delta_len = $max_len - $apw_href->{$zenka_name};
 
         while ( $delta_len-- ) {
             if ( $zenka_name ne qw| v7 | ) {
-                kill qw| SIGUSR1 |, @zenki_pid;
-                <[base.sleep]>->(0.007)
-                    if $delta_len;    # <-- make async ?., [LLL]
+
+                ##  async dispatch  ##
+                <[event.add_timer]>->(
+                    {   'after'  => $timer_delay += $timer_inc,
+                        'repeat' => 0,
+                        'prio'   => 7,
+                        'cb'     => sub { kill qw| SIGUSR1 |, @zenki_pid },
+                        'desc'   => 'SIGUSR1 send-timer'
+                    }
+                );
+
             } else {
-                <[base.sig_usr1]>;
+                <[base.sig_usr1]>;    ## own [ v7 zenka ] process ##
             }
         }
 
@@ -42,21 +53,30 @@ foreach my $zenka_name ( keys %{$apw_href} ) {
         my $delta_len = $apw_href->{$zenka_name} - $max_len;
         while ( $delta_len-- ) {
             if ( $zenka_name ne qw| v7 | ) {
-                kill qw| SIGUSR2 |, @zenki_pid;
-                <[base.sleep]>->(0.007)
-                    if $delta_len;    # <-- make async ?., [LLL]
+
+                ##  async dispatch  ##
+                <[event.add_timer]>->(
+                    {   'after'  => $timer_delay += $timer_inc,
+                        'repeat' => 0,
+                        'prio'   => 7,
+                        'cb'     => sub { kill qw| SIGUSR2 |, @zenki_pid },
+                        'desc'   => 'SIGUSR2 send-timer'
+
+                    }
+                );
+
             } else {
-                <[base.sig_usr2]>;
+                <[base.sig_usr2]>;    ## own [ v7 zenka ] process ##
             }
         }
     }
 }
 
 map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
-    ( keys %{$apw_href} );
+    ( keys $apw_href->%* );
 
-#,,,,,...,.,,,...,..,,,,,,,,,,.,,,...,,,,,...,..,,...,...,..,,.,.,.,.,,,,,,,,,
-#4QCFWX7FBK4ZEZMBDQL37PXFAGU6V76CAIE3DRNCGI4SC55DBGP66B7AURVMBAYL7WZ24YLSUM23K
-#\\\|2QF3KDZGGIEENCGHTOL7XPF5PWQENWDWQ24FELIZCK5OPAROWD5 \ / AMOS7 \ YOURUM ::
-#\[7]HAN2TKY53PZ4S4PHIGBDJA4465CTSMWZCP7KC5ZZOOAVBKG7GECQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,,,,..,..,,,,,,,..,.,,,..,,.,.,..,,...,...,,,.,..,,.,.,,..,.,,,
+#ULHIDR3VEH7NOELCTXCEQ6S2QZALQBNSPG4SQDDSEI6X3FU3Q633TKBF52SXR6YKBAWO4ZRS4GSMS
+#\\\|NZIWYEYAOTCA5R72VZPQGW5DKHIRVLTLUP5MR5VPGMDZGMY42WT \ / AMOS7 \ YOURUM ::
+#\[7]J4KWEFAWLULBJCDFM3NTEHNZUOYGQ2JVT2GJHRHLTMFAV6WNCQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
