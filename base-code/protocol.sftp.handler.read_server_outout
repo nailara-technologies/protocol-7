@@ -21,64 +21,31 @@ if ( not defined $data{'session'}->{$session_id} ) {
 my $session        = $data{'session'}->{$session_id};
 my $server_read_fh = $params->{'process-fhs'}->{'out'};
 
-my $is_ssh_connection = 0;    ##  implement detection  ## [LLL]
+my $bfs       = length( $session->{'buffer'}->{'output'} ) // 0;
+my $size_left = $data{'size'}->{'buffer'}->{'output'} - $bfs;
 
-if ($is_ssh_connection) {    ## move to session init ## [LLL]
-    <[base.logs]>->(
-        0, '[%d] received ssh connection, closing channel .,', $session_id
-    );
-    ## stop input processing ##
-    $event->w->cancel;
+##  implement protocol debug hooks ## [LLL]
 
-    ## getting rid of server process ##
-    <[protocol.sftp.terminate_server_process]>->($params);
+my $bytecount = <[base.s_read]>->(
+    $server_read_fh, \$session->{'buffer'}->{'output'}, $size_left
+);
 
-    ## sending message to ssh channel ##
-    $session->{'buffer'}->{'output'}
-        .= "only SFTP connections are supported\n";
+if ( $bytecount < 0 ) {
 
-    ##  closing unix session  ##
-    $session->{'flush_shutdown'} = 1;
-    return 2;
+    $event->w->cancel if $event->w->is_active;
 
-} else {
-
-    my $bfs       = length( $session->{'buffer'}->{'output'} ) // 0;
-    my $size_left = $data{'size'}->{'buffer'}->{'output'} - $bfs;
-
-    ##  implement protocol debug hooks ## [LLL]
-
-    my $bytecount = <[base.s_read]>->(
-        $server_read_fh, \$session->{'buffer'}->{'output'}, $size_left
-    );
-
-    if ( not defined $bytecount ) {
-        ## check [LLL] ##
+    ## making sure it is gone ##
+    if ( not <[base.exists.sub-process]>->($process_id) ) {
         <[base.logs]>->( 0, '[%d] sftp-server process closed.', $session_id );
-
-        ## making sure it is gone ##
-        <[protocol.sftp.terminate_server_process]>->($params);
-
-        $session->{'flush_shutdown'} = 1;
-        $event->w->cancel;
-
-    } elsif ( $bytecount == 0 ) {
-
-        say ' < server-read > stopped at buffer length '
-            . length $session->{'buffer'}->{'output'};
-
-        $event->w->stop;
-        ##  deferred restart [ when idle ]  ##
-        <[event.io_idle_restart]>->($event);
-
     } else {
-        ## say ' < server-read byte-count > ' . $bytecount if $debug_output;
+        <[protocol.sftp.terminate_server_process]>->($params);
     }
-
+    $session->{'flush_shutdown'} = 1;
+    $event->w->cancel;
 }
 
-#,,,,,,.,,,..,,..,...,,..,,,.,..,,.,,,...,,.,,..,,...,...,,,.,,..,,,.,.,,,.,.,
-#5TM3DUZFE2PAPYJVEX4TXMMJUREEK6CK7EN7JKUWJYSS7G6PENGTCYIR2AKLUWPND7COQJKBMS7ZY
-#\\\|MNEUWWEKIMJ4PJIRDS3VWKBEDQ3L5U37UIIMN6CZCFDADJZB4YH \ / AMOS7 \ YOURUM ::
-#\[7]2T3NQDFLOUO2SBOOGLOMJQFYCVVUG25SYMKKTZ3VKZ5VLWLX4WAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,.,.,,.,,,,.,,..,,..,,,.,,,.,..,,...,...,...,,.,,.,,,,.,,...,
+#3CSOFNT7O44N6MMKANKWKELDXTGKJYSMHLYBFXSAMMIDTSARUOO5LOT4MNJZUVQJWG6FJ5KHJXDOQ
+#\\\|Q4JVOQYL7OR7L3NPLONQBVADQVJWWDGM6GB5PUPA2342IZIZV7W \ / AMOS7 \ YOURUM ::
+#\[7]IAMP2F5HCL7RZLQETMVT7KH3CFJQUVJ7LDYSDPEHP5MVHRPVHGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
