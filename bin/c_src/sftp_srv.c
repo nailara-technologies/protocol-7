@@ -326,6 +326,10 @@ int main( int argc, char * argv[] ) {
                         "<< connection source not authorized >>\n"
                     );
                     return 1;
+                } else if ( strncmp( buf_unix, "!TERM-MSG!", 10 ) == 0 ) {
+                    /*  custom termination message - relaying it to user  */
+                    fprintf( stderr, buf_unix + 11 );
+                    return 1;
                 } else {
                     fprintf( stderr,
                       "<<  protocol error : protocol init not sucessful  >>\n"

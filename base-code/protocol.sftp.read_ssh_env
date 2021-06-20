@@ -8,6 +8,8 @@ my $session = $data{'session'}->{$id};
 
 $session->{'SSH-env'} //= {};
 
+$event->w->stop;    ##  pause watcher to modify input buffer  ##
+
 while ( $session->{'buffer'}->{'input'} =~ s|^set-ENV (\S+) (.+)\n|| ) {
     my $env_key = ${^CAPTURE}[0];
     my $env_val = ${^CAPTURE}[1];
@@ -34,7 +36,49 @@ if ( $session->{'buffer'}->{'input'} =~ s|^close\n|| ) {
 
 if ( $session->{'buffer'}->{'input'} =~ s|^done-init\n|| ) {
 
+    $event->w->start;    ##  restart watcher, modifications complete  ##
+
     ## check permission [ACLs] ., ##
+
+    ## checking protocol type ##
+
+    my $notify_close = 0;
+    my $additional_message;
+
+    if ( length( $session->{'buffer'}->{'input'} ) == 1
+        and index( $session->{'buffer'}->{'input'}, "\0", 0 ) == 0 ) {
+
+        ## todo : also implement scp protocol ## [LLL]
+
+        <[base.logs]>->(
+            0, '[%d] received _scp_ connection, notifying remote .,', $id
+        );
+        $additional_message = 'scp not yet';
+        $notify_close       = 1;
+    } elsif ( index( $session->{'buffer'}->{'input'}, "\0\0", 0 ) == -1 ) {
+        <[base.logs]>->(
+            0, '[%d] received ssh connection, closing channel .,', $id
+        );
+        $additional_message = 'not ssh';
+        $notify_close       = 1;
+
+    }
+    if ($notify_close) {    ##  wrong connection type, closing link  ##
+
+        ## sending message to ssh channel ##
+        $session->{'buffer'}->{'output'}
+            .= sprintf "!TERM-MSG!\n\n"
+            . "  only SFTP connections are supported [ %s ]\n\n"
+            . "  please configure the ssh-server appropriately\n\n",
+            $additional_message;
+
+        ##  closing unix session  ##
+        $session->{'flush_shutdown'} = 1;
+
+        return 2;    ## close link ##
+    }
+
+    ## is sftp, continue ##
 
     <[base.logs]>->(
         2, '[%d] env-init complete, start ftp-server process..,', $id
@@ -62,10 +106,16 @@ if ( $session->{'buffer'}->{'input'} =~ s|^done-init\n|| ) {
     } else {
         $session->{'buffer'}->{'output'} .= "TRUE init complete\n";
 
-        return 0;    ##  switching to sftp-server  ##
+        if ( length $session->{'buffer'}->{'input'} ) {   ## more in buffer ##
+            $event->w->now;    ## generate another input read event ##
+        }
+
+        return 0;              ##  switching to sftp-server  ##
     }
 
 }
+
+$event->w->start;    ##  restart watcher, modifications complete  ##
 
 if ( length $session->{'buffer'}->{'input'}
     and index( $session->{'buffer'}->{'input'}, "\n", 0 ) != -1 ) {
@@ -87,8 +137,8 @@ if ( length $session->{'buffer'}->{'input'}
 
 return 0;
 
-#,,.,,..,,.,.,,,,,...,.,.,.,.,,,.,,,.,..,,,.,,..,,...,...,,.,,,,.,,.,,...,...,
-#2KK52XNI474O34WQ6QE3SJD7ZWUYVGTCPBFDMZY5FTWTOXSKWT476QAC45ZDILJPID2I6ND3NJV6A
-#\\\|PQ6LHHGG3C5RKWTHUML2MRH4CXZUDQ2HDROZQFFI4JPZ3ZDGOWE \ / AMOS7 \ YOURUM ::
-#\[7]DKCAPOJNDMGORY7ZWKCUYLJ7BQZ3VFAPZUUV667SMJIFZK7PWGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,,.,,.,,,.,.,,,.,...,,.,,..,,..,,...,...,.,,,...,,..,,,.,...,
+#MNATCBONL6GD6Q67ZGEJN4KQVCFOVIGZP4ZMHABX6NVDVZAMDEBI3HJMW63VCS7LLDXW5EQIX2ZY2
+#\\\|IUORPXXBQGWKV2HNR3ZLOHON3U3FDUOWR43BXJQNT2P2MXJQXPS \ / AMOS7 \ YOURUM ::
+#\[7]MVVCAEONQEIHRX4T322H7UWQTMIA73YB3LIG7HSYVVKSCGBWY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
