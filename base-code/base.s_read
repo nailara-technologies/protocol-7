@@ -4,36 +4,41 @@
 # desc = utf8 safe sysread replacement [ with optional fh_offset parameter ]
 # note = buffer parameter expects passing by reference
 
-warn 'filehandle not defined <{C1}>' and return undef if not defined $ARG[0];
-
 my $read_fh    = $ARG[0];
 my $buffer_ref = $ARG[1];
 my $read_len   = $ARG[2];
-my $buf_offset = $ARG[3];    ##  obsolete : remove  ##
-my $fh_offset  = $ARG[4];
+my $fh_offset  = $ARG[3];
 
-#    sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
-#    sysread FILEHANDLE,SCALAR,LENGTH
+warn 'filehandle not defined <{C1}>' and return undef if not defined $read_fh;
+warn 'buffer ref not present <{C1}>' and return undef
+    if ref $buffer_ref ne qw| SCALAR |;
 
-#    aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+## no more dataoffset parameter because of UTF-8 decoding ##
+
+## for comparison ##
+#
+## sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
+## sysread FILEHANDLE,SCALAR,LENGTH
+#
+## aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 
 my $b_read;
-
 IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
-    0, sub { $b_read = $ARG[0] } );
+    0, sub { $b_read = $ARG[0] // -1 } );
 
-IO::AIO::flush();
+##  wait until read request has been completed  ##
+while ( not defined $b_read ) { IO::AIO::poll() }
 
-utf8::decode($r_buff) if $b_read > 0;
+if ( $b_read > 0 ) {
+    utf8::decode($r_buff);
+    $b_read = length($r_buff);    ##  adjust for decoding  ##
+    $buffer_ref->$* .= $r_buff;
+}
 
-$b_read = length($r_buff);    ##  adjust for decoding  ##
-$buffer_ref->$* .= $r_buff;
+return $b_read;                   ## [ returns -1 on error ] ##
 
-return undef if $b_read < 0;    # <-- sysread() behaviour
-return $b_read;
-
-#,,..,,.,,...,.,,,..,,,..,,..,,,,,,,.,,.,,...,..,,...,...,.,,,,,,,,.,,,,,,,..,
-#TGJTZSR5LRFRXYJZRFTNCKZYKU7PNUPZZZDZ24AC3WQ26ASG52IYQVK72T4FM2PLBHJTFP7TQKSLC
-#\\\|4DN4AAAY4L36PQQ2P5EAQUIXTXKCJVPQROR2FUZEI3LZCABEDLN \ / AMOS7 \ YOURUM ::
-#\[7]NPQJGUYD6DY6HVKLC7RXXULB52MLNRLWYWN4VDN27UBL55Y3HWAI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,...,.,,,,..,,..,.,.,..,,..,,,.,,..,,...,...,...,,,.,,,,,,,.,,..,
+#KOOKGO3SSJR424G5MS57NPT3VSHUWKSMJNSADNLXPJ4LNS3WFWQHZRYSHNYVP23XGW7F5A6YWE6CE
+#\\\|K2I2YB455Y5VRMYYY62HZLAHN3PFGFHFZNSD4472ZOTMSKVABI3 \ / AMOS7 \ YOURUM ::
+#\[7]VYYDPRJKSM6LXIEOOXYRMQRYGX6X4OMTLG6OQEOW3YJ325QUZEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

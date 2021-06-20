@@ -10,11 +10,9 @@ my $self_name  = <system.zenka.name>;
 <universal.zenka.output_buffer>->{$zenka_name} //= '';
 
 my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'universal'}{'zenka.output_buffer'}{$zenka_name},
-    4096,     length( <universal.zenka.output_buffer>->{$zenka_name} )
+    $read_fh, \$data{'universal'}{'zenka.output_buffer'}{$zenka_name}, 4096
 );
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # ( filehandle exception )
+if ( $read_bytes == 0 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
     <[base.log]>->( 1, "( $zenka_name ) output pipe closed." );
@@ -28,8 +26,8 @@ while ( <universal.zenka.output_buffer>->{$zenka_name} =~ s|^([^\n]*)\n||s ) {
     print $output_line . "\n";
 }
 
-#,,..,,,,,..,,..,,.,,,.,.,.,,,,,.,..,,,..,,,,,..,,...,...,...,,,,,..,,.,.,,.,,
-#BFZHAAT2RVVXCDDFM35D6QINLO5CHQC2XU2FKJNKLZMD54WJJYZDOFXBJUN2KGOGXJVYI6OLVP7BE
-#\\\|VYTJOUF76CNW3SPYL7BY6ULC57D6D6N6HVXB6LTTKLPJOU2VPVS \ / AMOS7 \ YOURUM ::
-#\[7]GNSYAKZ4UMDCCZVRSJKFQMKQFASZGUU6WRQB5ZIYOM4F6D2PFEDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,,,,,..,,.,,,.,.,...,.,.,.,,,..,,...,...,,,.,,..,...,,,,,..,,
+#6TLBY6JKOTNA6V2X7K2XLMW3UUW7AIQ4LBDVH6FCZAPMMAHUBX5KOYKOD3JWRYYNK64FTLNZC7HTA
+#\\\|TXHYRLWSXIZJB7VCL3OQ55XYCX37Z4G3TENT3XDBPEIBXG32PNP \ / AMOS7 \ YOURUM ::
+#\[7]V3BCNAIBNNONJI5UFN652DUQSRFTKDGENC2CBSMMGSRHYCGIBGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

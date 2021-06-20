@@ -10,86 +10,86 @@ my $process = $event->data;
 my $pid     = $process->{'pid'};
 
 <mpv.pipe.buffer> //= '';
-if ( defined $read_fh ) {
-    $bytes = <[base.s_read]>->(
-        $read_fh,  \$data{'mpv'}{'pipe'}{'buffer'},
-        16 * 1024, length(<mpv.pipe.buffer>)
-    ) // 0;    # LLL: needs 'safer' read method (len)
+if ( defined $read_fh ) {    # LLL: needs 'safer' read method (len)
+    $bytes = <[base.s_read]>->( 16 * 1024 ) // 0;
 }
 
-if ( not defined $read_fh or $bytes == 0 or not defined <mpv.pipe.buffer> ) {
+if ( $bytes <= 0 or not defined <mpv.pipe.buffer> ) {
     $event->cancel;
     close($read_fh);
     my $exit_code = 2;
     my $log_level = 0;
     if ( !<zenka.shutdown> ) {
-        <[base.log]>->( 0, "mpv control pipe closed unexpectedly!" );
-        <[base.log]>->( 1, "killed mpv-process [PID:$pid].." )
-            if kill( 9, $pid );
+        <[base.log]>->( 0, 'mpv control pipe closed unexpectedly!' );
+        <[base.logs]>->(
+            'sent kill signal to mpv-process [PID:%d] ..,', $pid
+        ) if kill( 9, $pid );
     } else {
         kill( 9, $pid );
         $exit_code = 0;
         $log_level = 1;
     }
-    <[base.log]>->(
-        $log_level, "shutting down " . <system.zenka.name> . "-zenka..."
-    );
+    <[base.logs]>
+        ->( $log_level, 'stopping %s-zenka..,', <system.zenka.name> );
     exit($exit_code);
 }
 
 while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     my $reply_id;
-    my $output_line = $1;
+    my $output_line = $LAST_PAREN_MATCH;
     my $decoded     = <mpv.json.parser>->decode($output_line);
 
     if (    defined $decoded
-        and ref($decoded) eq 'HASH'
+        and ref($decoded) eq qw| HASH |
         and exists $decoded->{'event'} ) {
         <[mpv.handler.event]>->($decoded);
     }
 
     if (    exists $decoded->{'error'}
-        and $decoded->{'error'} ne 'success'
-        and $reply_id = shift @{<mpv.reply_ids>} ) {
+        and $decoded->{'error'} ne qw| success |
+        and $reply_id = shift <mpv.reply_ids>->@* ) {
 
-        <[base.log]>->(
-            0, "[$reply_id] pipe-FALSE [" . $decoded->{'error'} . "]"
+        <[base.logs]>->(
+            0,         "[%d] pipe-FALSE [%s]",
+            $reply_id, $decoded->{'error'}
         );
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'false',
-                'data' => 'player child replied "'
-                    . $decoded->{'error'} . '"!'
+            {   'mode' => qw| false |,
+                'data' => sprintf( "player child replied '%s'.,",
+                    $decoded->{'error'} )
             }
         );
         next;
     } elsif ( exists $decoded->{'error'}
         and exists <mpv.command.reply>
-        and ref(<mpv.command.reply>) eq 'ARRAY'
-        and @{<mpv.command.reply>} ) {
-        my $reply_setup = shift @{<mpv.command.reply>};
+        and ref(<mpv.command.reply>) eq qw| ARRAY |
+        and <mpv.command.reply>->@* ) {
+        my $reply_setup = shift <mpv.command.reply>->@*;
 
         my $command_handler  = $reply_setup->{'handler'}  // '';
         my $command_callback = $reply_setup->{'callback'} // '';
 
         $code{$command_handler}->( $decoded->{'data'} )
-            if $decoded->{'error'} eq 'success'
+            if $decoded->{'error'} eq qw| success |
             and exists $code{$command_handler};
 
         $code{$command_callback}->( $decoded->{'error'} )
-            if exists $code{$command_callback};
+            if defined $code{$command_callback};
 
         next;
     } elsif ( exists $decoded->{'error'}
-        and $decoded->{'error'} eq 'success'
+        and $decoded->{'error'} eq qw| success |
         and exists <mpv.success_reply_str>
-        and $reply_id = shift @{<mpv.reply_ids>} ) {
+        and $reply_id = shift <mpv.reply_ids>->@* ) {
 
-        <[base.log]>->(
-            2, "[$reply_id] pipe-TRUE [" . <mpv.success_reply_str> . "]"
+        <[base.logs]>->(
+            2,         "[%d] pipe-TRUE [%s]",
+            $reply_id, <mpv.success_reply_str>
         );
         <[base.callback.cmd_reply]>->(
-            $reply_id, { 'mode' => 'true', 'data' => <mpv.success_reply_str> }
+            $reply_id,
+            { 'mode' => qw| true |, 'data' => <mpv.success_reply_str> }
         );
         delete <mpv.success_reply_str>;
         next;
@@ -97,15 +97,16 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
 
     # log output [ no reply_id case ]
     my $log_level
-        = ( exists $decoded->{'error'} and $decoded->{'error'} ne 'success' )
+        = ( defined $decoded->{'error'}
+            and $decoded->{'error'} ne qw| success | )
         ? 0
         : 2;
-    $output_line =~ s/[\r\n]+//sg;
-    <[base.log]>->( $log_level, "< mpv > " . $output_line );
+    $output_line =~ s|[\r\n]+||sg;
+    <[base.logs]>->( $log_level, '< mpv > %s', $output_line );
 }
 
-#,,,.,.,,,.,.,.,,,.,,,..,,.,.,.,.,.,.,.,,,.,.,..,,...,...,.,,,.,.,,,.,,.,,,..,
-#E5I6BSCRLONH3G7UQRTKUZP6OICG5PKMPMIHFTX7ZYAZECVL4PVEOEEMEKUA43KPPCNLZT3QQAFZA
-#\\\|7BUD5MDOOBMHOSSOHK3CUR3BRDY3CRA4YEIYEXB5QFR56VUR7L5 \ / AMOS7 \ YOURUM ::
-#\[7]APU4GAQLPDV6HMRKJCGDA3YXHDOGBTLMPK4UFYCCCUQVAA7UCGCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,,..,,,,,,,.,..,,,,,,.,.,...,..,,...,...,.,.,..,,..,,,..,.,.,
+#HWBICBXH66GQLZGGRU7RQGGNHKIDRODIWAHQYXQ2OGUSQ5D5QOHFRAGZWWEADZV25E4QGDUCF7B7Y
+#\\\|WN7ZAGWJJR5UQZWT5D2FB5KHR563FNTXW5557KB26UWYYMNGBD3 \ / AMOS7 \ YOURUM ::
+#\[7]NPEEIVCYDZXLJT7JBSRSAO3SPFS7IKD6G2ZEASPUT2WI2C4YOKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

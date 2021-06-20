@@ -2,16 +2,16 @@
 
 # name = base.handler.debug_io
 
-my $ev = shift->w;
-my $fh = $ev->fd;
+my $ev = shift;
+my $fh = $ev->w->fd;
 
 if ( my $bytes = <[base.s_read]>->( $fh, \my $buffer, 4096 ) ) {
-    <[base.log]>->( 0, "<IO> $buffer" );
-    $ev->again if $bytes == 4096;
+    <[base.logs]>->( 0, '<IO> %s', $buffer );
+    $ev->w->again if $bytes == 4096;
 }
 
-#,,..,..,,...,..,,,.,,...,,..,,,.,..,,..,,,.,,..,,...,...,...,...,.,.,,,.,,,,,
-#JUEWX7Z5AUK4WPI2B5CYH75BWVSVSRYYHQOCGUBAVJMNFUQAZGUIIZVW3B2CYYGNRUX46UGDSX56A
-#\\\|UPDOZJCFTDAW3TYZ3O2W6GZV7I4O2DYTHUSA3P2EI64WLGVJEEG \ / AMOS7 \ YOURUM ::
-#\[7]7GJE3P3P2DUOHTOROXUNSLK2C2BXLRICTSZLP6BKK4ORBXG5QGDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,..,,,.,,,,.,...,,,.,.,,,,,,,..,,...,...,.,,,,.,,.,,,,..,,,,,
+#H6DMHPYT6V3JE7CBTCSD7E3WZPHATBKBHEZOWLL4474QGHJGIZVEBJIK4Z2BIKBKOUJ2UCM777T5A
+#\\\|5HV5JPXRBS5BYBTT7RGUI6R3CRDNFPRPEQ26UKM3RP7F2ZT4BIQ \ / AMOS7 \ YOURUM ::
+#\[7]FIFL53LALGZYHSNHXMI7CN4CVELWRDC6T7DWOGS2QRS4CETFRIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

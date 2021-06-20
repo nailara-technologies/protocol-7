@@ -12,7 +12,8 @@ my $instance_id = $watcher->data;
 if ( not exists <v7.zenka.instance>->{$instance_id} ) {
     $watcher->cancel;
     close($read_fh);
-    <[base.log]>->( 2, "instance $instance_id : output pipe closed." );
+    <[base.logs]>
+        ->( 2, 'instance %d : output pipe was closed', $instance_id );
     return;
 }
 my $zenka_instance = <v7.zenka.instance>->{$instance_id};
@@ -40,27 +41,27 @@ $avg_line_length = undef if defined $avg_line_length and !$avg_line_length;
 
 my $read_length
     = defined $avg_line_length
-    ? sprintf( '%.0f', 1 + $avg_line_length )
+    ? sprintf( qw| %.0f |, 1 + $avg_line_length )
     : 113;
 
 my $read_bytes = <[base.s_read]>->(
     $read_fh, \$zenka_instance->{'output_buffer'}, $read_length
 );
 
-if ( not defined $read_bytes or $read_bytes == 0 ) {    ## exception ##
+if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
     $watcher->cancel;
     close($read_fh);
 
     my $process = $zenka_instance->{'process'};
-    <[base.logs]>->( 2, '[PID:%d] output pipe closed.', $process->{'id'} );
+    <[base.logs]>->( 2, '[PID:%d] output pipe was closed', $process->{'id'} );
 
     return;
 }
 
 <[v7.handler.process_output_line]>->( $watcher, $read_bytes );
 
-#,,..,..,,.,.,...,.,,,.,.,,,.,,.,,,,,,,,.,,..,..,,...,..,,,,.,.,.,.,,,..,,,..,
-#JVRU3YFOANDP2HKJDHUNRNWAXJXLDN34C7V3GAUGJ2XTKJILHGMT7VMSMY3KINQRPXTMXO27YVJT2
-#\\\|LKITG4KC6IVBTJJ5WTHVALX7KJ2HFZALLMX2AZC4UPWKYTVVRQU \ / AMOS7 \ YOURUM ::
-#\[7]64JKWD5WICHKK7BM2QKLKW3BAXVPLZB2Z2SLG4FRO4IBVCIY56AI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,.,.,..,,,,,,,.,,,,,,..,,..,,..,,...,..,,..,,.,.,,,.,,..,.,,,
+#I6DHMV4ZLHITX45CHHPY2BBXYX44TKS75Q2VQDYMMDI7YXDRFUQJUGQRQMSXEIW44MSCJZPYZWMZY
+#\\\|WZNTNJKIPDSY6ZKXBTW6V6XCK5XSCWC6OLKH7CLPVRMCWVLO3J7 \ / AMOS7 \ YOURUM ::
+#\[7]AKMNEUAB2BQ4ZSZ7UMWP3T7PG2JRUMTSOSLY5PAO7NI7ZW4FD4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

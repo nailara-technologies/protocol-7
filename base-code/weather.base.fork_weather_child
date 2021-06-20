@@ -4,21 +4,22 @@
 
 use Socket;
 
-( my $session_id ) = keys( %{<user.cube.session>} );
+( my $session_id ) = keys <user.cube.session>->%*;
 
 <weather.pipe> = { 'child' => {}, 'parent' => {} };
 
-<[base.log]>->( 1, "forking weather child.," );
+<[base.log]>->( 1, 'forking weather child.,' );
 
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair. [ \l$OS_ERROR ]";
-map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
 <[event.add_signal]>->(
-    { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+    { 'signal' => 'CHLD', 'handler' => qw| base.handler.sig_chld.shutdown | }
+);
 
 <weather.child.pid> = fork;
 if ( !<weather.child.pid> ) {    ## child ##
@@ -27,8 +28,8 @@ if ( !<weather.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <weather.pipe.child> if exists <weather.pipe.child>;
 
-    IO::AIO::reinit()
-        ;    # <-- makes base.s_read() and base.s_write() work again..,
+    ## making base.s_read() and base.s_write() work after fork ., ##
+    IO::AIO::reinit();
 
     <weather.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -36,17 +37,17 @@ if ( !<weather.child.pid> ) {    ## child ##
 
     my $subname = <system.zenka.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
-    <system.zenka.subname> = 'child' . $sn_str;
-    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
-    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
 
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     <[base.load_modules]>->('weather.child');
     <[base.init_modules]>->('weather.child');
@@ -61,31 +62,33 @@ if ( !<weather.child.pid> ) {    ## child ##
     <[base.load_modules]>->('weather.parent');
     <[base.init_modules]>->('weather.parent');
 
-    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
     my $id
         = <[base.session.init]>
         ->( $child_pipe, qw| protocol-7 client child | );
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     my $cache_dir = <weather.cache_dir>;
-    my $city_file = "$cache_dir/city.current";
+    my $city_file = sprintf '%s/city.current', $cache_dir;
     if ( -f $city_file ) {
         <[base.log]>->( 1, "found saved location setup in cache.," );
-        <[file.slurp]>->( $city_file, \my $stid_loc_str, ':raw' )
-            ;    # has utf8 ##
+
+        ##  contains UTF8 data  ##
+        <[file.slurp]>->( $city_file, \my $stid_loc_str, qw| :raw | );
 
         my ( $timestamp, $loaded_location );
 
         if ( defined $stid_loc_str and $stid_loc_str =~ m|^(\d+)\s+(.+)$| ) {
 
-            ( $timestamp, $loaded_location ) = ( $1, $2 );
+            ( $timestamp, $loaded_location )
+                = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
 
-            <[base.log]>->( 1, "<*> restoring location '$loaded_location'" );
+            <[base.logs]>
+                ->( "<*> restoring location '%s'", $loaded_location );
             <weather.location> = $loaded_location;
         } else {
             <[base.log]>->(
-                0,
-                "<< ! >> syntax error in location cache file, purging.., << ! >>"
+                0, "<< syntax error in location cache file, purging.., >>"
             );
             unlink($city_file) or warn "unlink failed : \l$OS_ERROR";
         }
@@ -103,8 +106,8 @@ if ( !<weather.child.pid> ) {    ## child ##
 
 }
 
-#,,,,,...,,,,,,..,...,,,.,.,.,,,,,,,.,.,.,,,.,..,,...,..,,..,,.,,,..,,,,.,,,.,
-#4TAC5NNBHJJ4DDUF3NY3YZZ7PUBMBAIC2W67Z4BEFXVHX7ZIOCFGFR5WKKJWCFVFYUN42BZJ7OR4E
-#\\\|K3AMRZQEGZXC3ZT3DOO7XBOPCMNJ3PM4QZJKUB3T5OGXLECEGVH \ / AMOS7 \ YOURUM ::
-#\[7]ZXRIYVIQ5XRCQBMACJS537XMOA2HXWSY2LFTPYNSFD5H246BFMAA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,.,.,.,.,.,.,.,..,,.,,,,,.,..,,..,,...,...,.,.,,,,,,..,,,.,,..,
+#HVC4XRN4EKVEDMSXXVUVKXBI5TSIHCHTSQR4Y6H3ZQ6COTYQTJRRHZT24NSGJRGJ7EJ4LW2LJQPV2
+#\\\|AZZFD6SUGXWT7E7RAXC75QC3RYZZTFWH24TJKDVP6LYCNBV4ZNF \ / AMOS7 \ YOURUM ::
+#\[7]RRJ23GKWY2KWPT6BZXHFIVSNHZXVAI2WXFP5FJJL6R2CQKZ4C6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

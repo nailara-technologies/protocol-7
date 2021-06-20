@@ -10,7 +10,7 @@ my $code_name
     = defined $ZENKA_CFG_NAME
     ? sprintf( "cfg '%s'", $ZENKA_CFG_NAME )
     : qw| zenka-code |;
-$code_name = sprintf '%s-zenka', <system.agent.name>
+$code_name = sprintf qw| %s-zenka |, <system.agent.name>
     if lc($code_name) eq qw| zenka |;
 undef $ZENKA_CFG_NAME;
 
@@ -30,7 +30,11 @@ foreach my $code_line (@ARG) {
     if ( length $code_line ) {
         local $SIG{'__WARN__'} = sub {
             ( my $err_str = $ARG[0] ) =~ s| ?<{N?C\d?}>||g;
-            $err_str =~ s| at .+line.+$|' \]|g;
+            if ( index( $err_str, "[ '", 0 ) == -1 ) {
+                $err_str =~ s| at .+line.+$||g;
+            } else {
+                $err_str =~ s| at .+line.+$|' \]|g;
+            }
             <[base.logs]>->(
                 0,          'runtime-error : %s statement %s',
                 $code_name, $code_line_num
@@ -77,8 +81,8 @@ foreach my $code_line (@ARG) {
 }
 return $noerr;
 
-#,,.,,,,.,,..,,,,,,.,,,,.,,.,,..,,,,,,,,.,.,.,..,,...,..,,,..,.,,,,,.,...,..,,
-#7LNQNJ36SQ3SWWI7MXJNSSVSQIXZN33HNHQUGVAID6XGFJJXZKVZRIH5M2Y5YLSPVHJ4CN7PM3QC4
-#\\\|5RBISAJWZU2ODNEUXIKAIFCJCJ4Y5PCELICMIJ6LOLR6ZSOK2WG \ / AMOS7 \ YOURUM ::
-#\[7]ZI5GINZCV2PKX6TTC2AUSGJ76U3ZM7JIFFYYAAJB6RME5KZOIGDA 7  DATA SIGNATURE ::
+#,,..,..,,...,,.,,...,.,.,...,,,.,,,,,,.,,,,.,..,,...,...,.,,,,..,.,.,..,,,,,,
+#Y6PSMUKWEPIPRJGAFMKUSQUZHM6PARONA6FV5K6VTQFJ5WYV64J6YMBYIL2GDA5QS5SZTNOR7YWL2
+#\\\|3OMZRMDQ3EBR62FLBZP2M3G2REW4TLQCAC6FA3KB3RCREHCYGHU \ / AMOS7 \ YOURUM ::
+#\[7]X62M5O7O4CM4X44OLAUV2T3C5WLKSOMVD5YE2IZC47HKF46BFMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

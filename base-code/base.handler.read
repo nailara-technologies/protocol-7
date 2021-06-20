@@ -27,10 +27,11 @@ my $session     = $data{'session'}{$id};
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
 if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
-    $session->{'last-bytes-read'} = 0;
-    $session->{'flush_shutdown'}  = 1;
+    $session->{'fh-last-read-error'} = 1;
+    $session->{'last-bytes-read'}    = 0;
+    $session->{'flush_shutdown'}     = 1;
     $event->w->cancel;
-    return;
+    return 2;
 }
 
 my $return_code = 2;                        ##  set to disconnecting  ##
@@ -39,14 +40,22 @@ my $protocol = $session->{'protocol'};
 
 if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 
+    $session->{'fh-last-read-error'} = 0;
+
     my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
     my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+
     my $bytecount = <[base.s_read]>->(
         $session->{'handle'}, \$session->{'buffer'}->{'input'}, $size_left
     );
-    $handle_href->{'bytes'}->{'in'} += $bytecount if defined $bytecount;
+    if ( $bytecount > 0 ) {
+        $session->{'fh-last-read-error'} = 0;
+        $handle_href->{'bytes'}->{'in'} += $bytecount;
+        $return_code = 1;
 
-    $return_code = 1 if defined $bytecount and $bytecount > 0;
+    } elsif ( $bytecount < 0 ) {
+        $session->{'fh-last-read-error'} = 1;   ##  client is gone \ error  ##
+    }
 
 } else {    ##  read-mode : bytewise and linewise  ##
 
@@ -92,8 +101,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,,.,.,.,,,.,.,,,..,,,..,,.,,,.,,,,.,,..,.,,,..,,...,.,.,.,.,,..,,.,,...,.,,,
-#4IO242YIGIM3QZROPKX55OUCOOKIGEDCT6DX6FK25P5H6DSUO2GC5HQWQXEQPN34XMUQJVWDLL5WG
-#\\\|HDEF22QFBSM5QV37QEVIQLHY5BOFMFMUUW2UOGW2Z47RW6GVTAU \ / AMOS7 \ YOURUM ::
-#\[7]INNCHD4OKOGP6I3SQUBJ52O3NF7HARBE7NEOUJW66WFBLGQFPWCA 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,...,,..,.,.,,..,,,,,,.,,,,.,..,,...,...,,..,,..,...,,.,,.,,,
+#DT5JQKF7NDOXSV6MORJQUV2X753U7AEKTCGFVEDRVMJPXWRTFRW3ZVTM35NF3JSINVYQBXSPAHA44
+#\\\|ONWDR36TBZ364CZGLOYUVLP5TE6SXHSHGFHMUEXRVBN2P3JRCHU \ / AMOS7 \ YOURUM ::
+#\[7]NLTXIQAOMC7APTNXQPG5QLQT7HCZWHEJW2ZPN7U2IBBVHLBX7WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

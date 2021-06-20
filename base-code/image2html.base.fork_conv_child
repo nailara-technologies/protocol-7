@@ -4,15 +4,15 @@
 
 use Socket;
 
-( my $session_id ) = keys( %{<user.cube.session>} );
+( my $session_id ) = keys <user.cube.session>->%*;    ## first ##
 
 <image2html.pipe> = { 'child' => {}, 'parent' => {} };
 
-<[base.log]>->( 1, "forking image conversion child.." );
+<[base.log]>->( 1, 'forking image conversion child..' );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [ \l$OS_ERROR ]";
-map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
 <image2html.child.pid> = fork;
@@ -20,8 +20,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <image2html.pipe.child> if exists <image2html.pipe.child>;
 
-    IO::AIO::reinit()
-        ;    # <-- makes base.s_read() and base.s_write() work again..,
+    ## making base.s_read() and base.s_write() work after fork ., ##
+    IO::AIO::reinit();
 
     <image2html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -29,43 +29,43 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
     my $subname = <system.zenka.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
-    <system.zenka.subname> = 'child' . $sn_str;
-    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    <callback.session.closing_last.params>->[1]
-        = 1;    # silencing child shutdown
+    ## silencing child shutdown ##
+    <callback.session.closing_last.params>->[1] = 1;
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
-    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>->(
-        $parent_pipe, 'protocol-7', 'client', 'parent'
+        $parent_pipe, qw|  protocol-7  client  parent  |
     );
 
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     <[base.load_modules]>->('image2html.child');
     <[base.init_modules]>->('image2html.child');
 
 } else {    ## parent ##
     close($parent_pipe);
-    delete <image2html.pipe.parent> if exists <image2html.pipe.parent>;
+    delete <image2html.pipe.parent> if defined <image2html.pipe.parent>;
     <image2html.pipe.child> = $child_pipe;
 
     <[base.load_modules]>->('image2html.parent');
     <[base.init_modules]>->('image2html.parent');
 
-    $data{'handle'}{$child_pipe}{'mode'} = 'out';
-    my $id
-        = <[base.session.init]>
-        ->( $child_pipe, qw| protocol-7 client child | );
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>->(
+        $child_pipe, qw|  protocol-7  client  child  |
+    );
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
-    <[base.async.get_session_id]>;    # --> 'online'
+    <[base.async.get_session_id]>;    ## --> 'online' ##
 
 }
 
-#,,..,,.,,..,,...,,.,,..,,,,.,,..,.,.,,,,,.,,,..,,...,...,..,,.,,,,,,,,,.,,,,,
-#IORXL373AGE6XT72RRKRG3DESVRE5RKGHN6RXRQU6QS7IVF4HYVIGUPNWJXYIPXVDSVACJ6FXPUN2
-#\\\|75KSB2VITQQDDQSFUHH4FQ7HMPQXCNAOL6IE22KUZQBMCFXIXO5 \ / AMOS7 \ YOURUM ::
-#\[7]JMGIG7GBI77JZK2KETXRK7BIN3IOCJ6QR73IOJ7Y6PULGDRDJ6CY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,,..,.,.,..,,,..,,,,,,.,,.,.,..,,...,...,..,,,,.,,.,,,,,,,.,,
+#GWGJCNWSFCSR4LSQ6KALH3H3HRJWQMNO5A34MK73ZXGXBR6A2J6P63NUVACWQSGD7TRHYHFBYTBOK
+#\\\|7O2VRTZWJ3U427KIIIWMLG57BD4Z3WXEWH3VAHU3O33DJIVWBRQ \ / AMOS7 \ YOURUM ::
+#\[7]4AQ73S22BBDZXQ2ZEBG4RGFE5VGKQIQ6AL7UNLIARXWJMVBAEYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
