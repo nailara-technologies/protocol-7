@@ -889,6 +889,7 @@ sub prepare_subs {
             return sprintf( "[ caller level too high : %03d ]", $c_lvl );
         } else {
             $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+            return ( $filename, $line ) if wantarray;
             return "[$filename:$line]";
         }
     };
@@ -2283,8 +2284,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,,,,,,.,.,,,..,,,.,,,,,,...,.,,,.,.,..,,.,.,..,,...,..,,.,,,,.,,,..,.,.,,,,,
-#FRPLDETSN3KU5RD5ETUNKVQDMZZ6EKDZPUZ5TFQVBTGDAN4UN4QFV6C5HIFTCNJSZQH236TXOG6FY
-#\\\|6CPTNB5UIQPC4Z46G26ZVVMKVZ5XBRAU476ASV5I2Z7Q3DNY4VZ \ / AMOS7 \ YOURUM ::
-#\[7]X5IZPGET5SAAVH6AV5NYXLVQ462JF57KXSJLGMB2PH6TTEI6WWDI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,..,,...,.,,,..,,,,,,,.,,.,.,..,,...,...,,..,,,,,,,.,.,.,.,,,
+#57BUEUV3WUTGW5HPGO2PN2EGVSTAJLQSQU6JQCQM4OFB2NFPTIOC3VO2UFOCSZJ3URJDUJT2Q4OFY
+#\\\|ETXQQWDBGHYTAENHE4HTBDRQHQ4ZRLRVQC5E43HDAPO6TLXQWPP \ / AMOS7 \ YOURUM ::
+#\[7]SBRMHDMSLJU4LH5LFC5OPKPUTP6IR575DHUG2YYKN65PRXDWYOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
