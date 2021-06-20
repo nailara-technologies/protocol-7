@@ -5,36 +5,80 @@
 
 <[base.log]>->( 2, ': executing protocol-7 zenka code .,' );
 
-my $noerr = 1;
-foreach my $code_line (@_) {
-    $code_line =~ s|&cmd\.([^\(]+)|<[base.check_alias]>->($1)|eg;
-    if ( $code_line ne '' ) { eval($code_line) }
-    if ($EVAL_ERROR) {
+use vars qw| $ZENKA_CFG_NAME |;
+my $code_name
+    = defined $ZENKA_CFG_NAME
+    ? sprintf( "cfg '%s'", $ZENKA_CFG_NAME )
+    : qw| zenka-code |;
+$code_name = sprintf '%s-zenka', <system.agent.name>
+    if lc($code_name) eq qw| zenka |;
+undef $ZENKA_CFG_NAME;
+
+my $use_aliases   = 1;    ## <-- resolve config command aliases ? ##
+my $noerr         = 1;
+my $code_line_num = 0;
+foreach my $code_line (@ARG) {
+    $code_line_num++;
+    my $error_exit = 0;
+
+    ## checking \ resolving command routine aliases ## [ cfg_cmd.<name> ]
+    #
+    $code_line =~ s|(*plb:\$code\{')([^']+)(*pla:'\})|
+            <[base.check_cfg_cmd_alias]>->($1)|ge;
+    ###
+
+    if ( length $code_line ) {
+        local $SIG{'__WARN__'} = sub {
+            ( my $err_str = $ARG[0] ) =~ s| ?<{N?C\d?}>||g;
+            $err_str =~ s| at .+line.+$|' \]|g;
+            <[base.logs]>->(
+                0,          'runtime-error : %s statement %s',
+                $code_name, $code_line_num
+            );
+            <[base.logs]>->(
+                0, ": '%s'", scalar <[base.format_error]>->( $err_str, -1 )
+            );
+            $error_exit = 1;
+        };
+
+        eval($code_line);    ##  evaluate zenka-code \ config line  ##
+    }
+    if ($error_exit) {       ## todo : adapt parser from below ##
+        return warn 'stopped processing <{C1}>';
+        return 1;
+    }
+
+    if ( length $EVAL_ERROR ) {
         if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| )
         {
             my $code_line_copy = $code_line;
-            while ( $code_line_copy =~ s|(\$code\{'([^\']*)'\})|| ) {
-                my ( $sub_call, $sub_name ) = ( $1, $2 // '' );
-                next if length($sub_name) and exists $code{$sub_name};
-                <[base.log]>->(
-                    0, "unknown subroutine '$sub_name' called [ $sub_call ]"
+            while ( $code_line_copy =~ s|(\$code\{'([^']*)'\})|| ) {
+                my ( $sub_call, $sub_name )
+                    = ( ${^CAPTURE}[0], ${^CAPTURE}[1] // '' );
+                next if length $sub_name and defined $code{$sub_name};
+                <[base.logs]>->(
+                    0,         "unknown subroutine '%s' called [ %s ]",
+                    $sub_name, $sub_call
                 );
                 $noerr = 0 if $noerr;
             }
         }
         if ($noerr) {
             $EVAL_ERROR =~ s| at ([^\s]+) line (\d+).+\n||;
-            <base.eval_error.name> = $1;
-            <base.eval_error.line> = $2;
-            warn("no success on eval '$code_line' [ '$EVAL_ERROR' ] <{C3}>");
+            <base.eval_error.name> = ${^CAPTURE}[0];
+            <base.eval_error.line> = ${^CAPTURE}[1];
+            <[base.s_warn]>->(
+                "no success on eval '%s' [ '%s' ] <{C3}>",
+                $code_line, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+            );
         }
         $noerr = 0 if $noerr;
     }
 }
 return $noerr;
 
-#,,.,,,,,,,,.,,,,,...,,,,,...,,,,,...,,,.,.,.,..,,...,...,...,,,.,,..,,.,,.,,,
-#5NOPYOOLEVACBTKRSY7KYZU4VUZTUJTRIHRARLH65QXWVLYU2HZVT6S4I5A2ZI4HQSEPYM62HV7V2
-#\\\|7OHVL5V7HA56J4CIBIXLXDCQCCWCXDYAYXANCMM2J3TUBMBK5BZ \ / AMOS7 \ YOURUM ::
-#\[7]AJ6EMUODZP3FA5BIWGRV7G7L2WBW7LXB5VXOBDSWDZ353T6M3MDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,,,,.,,,,.,,.,,..,,,,,,,,.,.,.,..,,...,..,,,..,.,,,,,.,...,..,,
+#7LNQNJ36SQ3SWWI7MXJNSSVSQIXZN33HNHQUGVAID6XGFJJXZKVZRIH5M2Y5YLSPVHJ4CN7PM3QC4
+#\\\|5RBISAJWZU2ODNEUXIKAIFCJCJ4Y5PCELICMIJ6LOLR6ZSOK2WG \ / AMOS7 \ YOURUM ::
+#\[7]ZI5GINZCV2PKX6TTC2AUSGJ76U3ZM7JIFFYYAAJB6RME5KZOIGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
