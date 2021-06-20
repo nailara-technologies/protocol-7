@@ -10,7 +10,7 @@ my $cfg_level  = <base.modules.cfg_level>++;
 my $max_level  = <system.zenka.initialized> ? 1                 : 2;
 my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
 my $log_str    = $cfg_level                 ? ': ' x $log_level : '';
-my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : 'configuration';
+my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : qw|configuration|;
 my $log_msg
     = $cfg_name eq "zenki/$zenka_name/config"
     ? sprintf( '%s: loading %s zenka description.,', $log_str, $zenka_name )
@@ -23,14 +23,15 @@ my $log_msg
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
 my $already_pushed = 0;
 map { $already_pushed = 1 if $ARG eq $cfg_name }
-    @{<system.config.reload_order>};
+    <system.config.reload_order>->@*;
 push( @{<system.config.reload_order>}, $cfg_name )
     if $cfg_name ne <system.path.rel.cur_zenka_cfg> and !$already_pushed;
 
-<base.config_parser.cfg_type> = qw| exec_cfg |
-    if not defined <base.config_parser.cfg_type>;
-<base.config_parser.cfg_name> = $cfg_name
-    if not defined <base.config_parser.cfg_name>;
+<base.config_parser.cfg_type> //= qw| exec_cfg |;
+<base.config_parser.cfg_name> //= $cfg_name;
+
+##  used for eval error messages  ##
+our $ZENKA_CFG_NAME = $cfg_name;   ## undefined again in execute_zenka_code ##
 
 my $status = <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
@@ -39,7 +40,7 @@ my $status = <[base.execute_zenka_code]>->(
             sub {
                 $cfg_name =~ s|^.+/||g;
                 <[logs]>->(
-                    0,         "unable to load '%s' config [ %s ]",
+                    0,         "cannot load '%s'-config [ %s ]",
                     $cfg_name, scalar <[base.format_error]>->( $OS_ERROR, -1 )
                 );
                 <base.modules.cfg_level>--;
@@ -53,8 +54,8 @@ my $status = <[base.execute_zenka_code]>->(
 return 1 if <base.parser.config.errors>;
 return $status;
 
-#,,,,,.,.,..,,.,,,,,.,...,.,.,..,,.,,,..,,,,.,..,,...,...,...,...,..,,.,.,,,,,
-#CUKP33PDRFOLA4JSH5YTRYBY2C6EVKURJXU4IRFICBWHGNQ6LVJ76XQ7PZF2CYYJO4MO54CVOA2D6
-#\\\|XXXGQVAHU37B72RHJ62QF7BRAISQ2TJQ2QSGXR44NYMXAZR635X \ / AMOS7 \ YOURUM ::
-#\[7]SK4VEF2JVAT744KJR2BZKWPHH2AYQVPDF24XPQHAXFQTFP4OAACI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,,.,,,,,,,.,,,.,,,,,,,..,,.,,..,,...,...,..,,...,.,,,,.,,.,.,
+#V2SWMFFFY7VED57RCTNHUS7S4Q6YZLVLSPLB3M5CTMKUJE2QGD6M6BQ7WRRV6H23IGS2SSKMBLG5I
+#\\\|GOKBDHM2AF3ODVXN5TMAKCXL5XZHXG6IE6LFCVN4AQK4OCE4BCV \ / AMOS7 \ YOURUM ::
+#\[7]BN3OUBQRAR4PQR3IKAXD7FANPHLXD22RDWRJHBGBCEIEVF5HVYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

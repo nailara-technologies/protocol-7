@@ -19,11 +19,10 @@ my $actions  = <udev.rules.actions>;
 my $bufsize = 4096;
 
 my $bytes = <[base.s_read]>->(
-    $read_fh, \$data{'udev'}{'adm'}{'output'}{'buffer'},
-    $bufsize, length(<udev.adm.output.buffer>)
+    $read_fh, \$data{'udev'}{'adm'}{'output'}{'buffer'}, $bufsize
 );
 
-if ( not defined $bytes or !$bytes ) {
+if ( $bytes <= 0 ) {
     $event->cancel;
     close($read_fh);
     <[base.log]>->(
@@ -120,8 +119,8 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     }
 }
 
-#,,,,,,,,,...,,.,,,,.,,,,,,,,,.,.,..,,,..,,,.,..,,...,...,..,,.,.,...,..,,,,.,
-#7ULEKOCAOVSZR7B3HWSOGFBPOKABIVBD5GELYSLR3NVZL4DK65VE23HAD3RWHBPGZQZQILQCFUIGS
-#\\\|KCAVEVQXJIE2S6VXX3TPK5HYCGAQ7FGVJBA54XB5ZVYU6LZUNHH \ / AMOS7 \ YOURUM ::
-#\[7]4YXORHJ6QS2A5LLXIMYJCP7M2HQMZ7OW3Y5Z5K5J2QZROQLLMEBA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,..,,.,,,,.,,.,.,..,,.,,,.,,,..,,...,...,...,...,..,,,,,,.,,,
+#3KA6ZXSZKBHG36OXAFDY7NLRWSNVU7PZVWI3MAEYD6KXFCXYKJIXYI6CJOAFRCCB3X2FRDFXV33TM
+#\\\|MPBNA5AA3CJOALEPXOTD4BOAV4YZX4JVHKOT7CZPSUU3CH2PRDX \ / AMOS7 \ YOURUM ::
+#\[7]SKQCWNQVJLY5VHGQ3C4WAIB4CQ5TAO4XOMWDSLKWIIFRD75JLAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,12 +7,13 @@ my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? 1 : 0;
 
 my $user = shift;
 
-return warn 'expected <user> parameter <{C2}>' if not defined $user;
+return warn 'drop_privs : expected <user> parameter <{C2}>'
+    if not defined $user;
 
 <[base.root.check_system_user]>->($user);
 <[base.check_dependency_dirs]>->($user);
 
-if ( !length( $user // '' ) ) {
+if ( not length( $user // '' ) ) {
     <[base.log]>->(
         0, '<< cannot drop priviledges [ no user name supplied ] >>'
     );
@@ -134,16 +135,18 @@ if ( !length( $user // '' ) ) {
             $ENV{'XDG_RUNTIME_DIR'} = $h_directory;
             $ENV{'NO_AT_BRIDGE'}    = 1;
             chdir($h_directory)
-                or warn sprintf( ":: %s : chdir [ $h_directory ] ::\n",
-                scalar <[base.format_error]>->( $OS_ERROR, -1 ) );
+                or <[base.s_warn]>->(
+                ":: %s : chdir [ %s ] ::\n",
+                scalar <[base.format_error]>->( $OS_ERROR, -1 ), $h_directory
+                );
 
             <[base.logs]>->( "switched to unix user '%s'.,", $user );
         }
     }
 }
 
-#,,,.,,,.,,.,,...,,,,,,,,,.,.,...,,,.,,.,,,..,..,,...,...,,,,,.,,,.,,,,,,,,..,
-#WUDJPLKPQND4G4L7BHR2DQZ6UDPBZNTGC4TCYUVPCCAEETPUY2POST7T7OSC576XGXYXIPMTCTRYY
-#\\\|V6YIJESZTCBOSBCDVBHO42J35H2A6KU7NKTBRQQIVFW662RONPU \ / AMOS7 \ YOURUM ::
-#\[7]LVPAVI5UZS4GVB3F43PYA4AOHLYRK6DRD3PYJVLN2IPW6MHA3CCY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,...,.,,,,,,,.,.,,,,,..,,.,,,..,,...,..,,..,,.,.,,.,,,..,,..,
+#T4RJIUSYEJOASUS7Y7MA7VWR5OAS24NKSRHHAJTX5XDQRX4BM4TC3G2WKFSJZTCWNDL7A2I5ZZYRM
+#\\\|LYPXWGUUZOQQU3WRGEW334NVLOBQ5JOGL5RGBPGSDXAW3OZON6Y \ / AMOS7 \ YOURUM ::
+#\[7]2B25VEUKYWXOQGSHB62PU2ECKZAH4NONB7ACZJ2TEOFQZSPQ3MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

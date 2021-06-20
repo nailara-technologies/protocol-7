@@ -14,24 +14,28 @@ if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
     use v5.24; use strict; use warnings; use English;
     map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
     \$PROGRAM_NAME = q|$zenka_name-<root>-unlink-child|;
-    foreach my \$file (<STDIN>){ chomp(\$file); unlink(\$file) if -e \$file }
+    while ( my \$file = <STDIN> ) {
+        exit if not length( \$file // '' );  ##  no tolerance of errors  ##
+        chomp( \$file );
+        unlink(\$file) if -e \$file and -w \$file;
+    }
     EOT
 
     <process.unlink_child.pid>
         = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
         qw| -e |, $child_code )
-        || die sprintf( 'unable to start perl unlink child process [ %s ]',
-        <[base.format_error]>->($OS_ERROR) );
+        || die sprintf( "cannot start perl unlink child process [ %s ]\n",
+        scalar <[base.format_error]>->($OS_ERROR) );
     <[base.logs]>->(
-        2, qq|: started unlink child [pid=%s]|,
+        2, qq|: started unlink child [pid:%d]|,
         <process.unlink_child.pid>
     );
 
     return <process.unlink_child.w_fh>;
 }
 
-#,,,.,..,,,..,.,,,,..,..,,,,,,,..,,.,,..,,..,,..,,...,...,,.,,...,..,,,,,,,,.,
-#IMS34AQYPZO5XUQNSYC24S5SYDDDNBWEAL3OXH2XFUV7FGJ4GBELONNYLE6MXTRN5HVBOJVPAEQ5O
-#\\\|KHBEPN73FTIQZH2T3VQ3F2NDPYEB4ZK2LFXGIM5ID3LVO66SQW6 \ / AMOS7 \ YOURUM ::
-#\[7]OOWLR6WH3KBU7GB3NHMKAYJ5BOTZALT6W55TPTVB2H647M5SWMDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,.,..,,,,.,,,,,.,.,,..,.,,,..,,...,...,,..,,,,,...,,,,,,.,,
+#34W4P74MRZ4GE5TRTK3AOC2DP3M3RX7XAXZ6GUE6SF6VKFXZEQ5NFYC7HUGT4O3IFO2BH5FNPHMP2
+#\\\|MHFWLDMBYVTKYMOHH2PDVJNJL6MB75ZYPOAQ36OXFQXNGM7RE27 \ / AMOS7 \ YOURUM ::
+#\[7]IGDHBURXD3K54CD7GVBNLKJ45UF24YO56DJP473H4RADGBGRGIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

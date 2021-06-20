@@ -16,20 +16,20 @@ my $channel      = $connection->{'nch'};
 
 my $buffer = '';
 
-my $bytes = <[base.s_read]>->( $read_fh, \$buffer, 4096, length($buffer) );
+my $bytes = <[base.s_read]>->( $read_fh, \$buffer, 4096 );
 
-if ( not defined $bytes or !$bytes ) {
+if ( $bytes <= 0 ) {
     <[ssh.connection.stop]>->($con_id);
 } else {
     my $bytes = $channel->write($buffer);
     if ( not defined $bytes ) {
-        <[base.log]>->( 0, "<< ! >> [nailara_io] WRITE ERROR" );
+        <[base.log]>->( 0, '<< [nailara_io] WRITE ERROR >>' );
         <[ssh.connection.stop]>->($con_id);
     }
 }
 
-#,,,,,,,.,..,,...,,,,,.,.,,,.,,..,,..,,,,,,.,,..,,...,...,,..,.,,,,..,.,.,,..,
-#GJAN6LGSLYCT6HKX2TBGNUIWHBJG4QQ4M3M7LP4TE44B4LHQXSX6AUBQMKUGL2WEDRVBR4FK6XOXW
-#\\\|PM7QBIS5HXNYJ7EYRGFW3ZSHR7KDODCIHTQAJBX6R4IQVCNB6XY \ / AMOS7 \ YOURUM ::
-#\[7]XHW3XZ7FTTMH275XCMC3FLFWFD3E5XTR2FOJBXZJNPEGFEICVQAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,,.,,,.,,.,,,,,,,.,,,,,,,.,,,..,,...,...,,.,,,,.,,.,,,,.,,,.,
+#ZKKEEC2XNQPSI5PWZ3VL6RNAH32UMEQPEFBHONXALRVQV36LMMULRZXIRDOOVXV5E6YTKPNNAGLPO
+#\\\|7ZMWB4KS2YLZ2DKS2QIRBMPM5HQTQBBIR7R6GXZ6CMMRCTQ4ZET \ / AMOS7 \ YOURUM ::
+#\[7]GSEWPLMEABJRXQ3E7JEHQYDWTPYI4MRUHMJZNNLUWTVGZVUHZECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

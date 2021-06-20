@@ -2,33 +2,38 @@
 
 # name = ssl.cmd.read_data
 
-local ( $id, $com_id, $name, $mode, $count ) = @_;
+local ( $id, $com_id, $name, $mode, $count ) = @ARG;
 if ( -S $buffer{'link'}{$name}{'handle'} ) {
-    if ( $mode eq 'bytes' ) {
-        my $buffer;
+    if ( $mode eq qw| bytes | ) {
         if (<[base.s_read]>->(
                 $buffer{'link'}{$name}{'handle'},
-                \$buffer, $count
+                my \$buffer, $count
             )
         ) {
-            <[base.log]>->( 0, "length: " . length($buffer) );
-            <[net.raw_out]>->( $buffer, $com_id );
-            <[base.log]>->( 1, "ok - wrote" );
+            <[base.logs]>->( 0, 'length : %d', length($buffer) );
+            <[net.out]>->( $buffer, $com_id );
+            <[base.log]>->( 1, 'success - wrote' );
             $buffer{'link'}{$name}{'handle'}->flush();
-            <[base.log]>->( 1, "ok - flushed" );
+            <[base.log]>->( 1, 'success - flushed' );
         } else {
-            <[net.false]>->( "link terminated", $_[1] );
-            <[base.log]>->( 0, "link '$name' terminated" );
-            $buffer{'link'}{$name}{'status'} = 'closed';
+            $buffer{'link'}{$name}{'status'} = qw| closed |;
+            <[base.logs]>->( 0, "link '%s' terminated", $name );
+            return {
+                mode => qw| false |,
+                sprintf( "link [%s] terminated", $name )
+            };
         }
     }
 } else {
-    <[net.false]>->( "not a valid link", $_[1] );
-    <[base.log]>->( 0, "[$id] read_data: not a valid link '$name'" );
+    <[base.logs]>->( 0, "[%d] read_data: not a valid link '%s'", $id, $name );
+    return {
+        mode => qw| false |,
+        sprintf( 'link [ %s ] not valid', $name )
+    };
 }
 
-#,,,,,.,,,,,.,.,.,.,.,,,,,,..,.,.,.,.,...,.,.,..,,...,..,,.,.,...,,.,,,.,,,.,,
-#WLFRUPVHQQUO2YM54ZVYM5AURGWX7UYJ3FP5DDH4SDVAKWO7QH6BXFOKYS7JQ3C34UQ5OGU7FVHIA
-#\\\|IXAV7XJSUAQ4F7G3NO6DJUYXI2MDIYQP5GDNKT7CPHCK6HSTBCN \ / AMOS7 \ YOURUM ::
-#\[7]LV7CNHWAAYAM7IZOBOK3J36QGJXFFAUY6PHLFWWIVTZXUF7TNMAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,...,...,...,.,.,,..,.,,,.,.,..,,...,...,,..,,.,,.,,,,,.,.,,,
+#HYIDBYHIE6M7QEAD6323OXEFGMAJFQGPRVEF6FLHQNBIAO34257LOSNGT5R6GWYMQIDWJRQDCNFFW
+#\\\|RQN462K27BY2WSXUWHZKP6SVYZGSF4RJZPCZVWNZJCFS6H6SBGT \ / AMOS7 \ YOURUM ::
+#\[7]4UUKG5IS26HWXAD6K63PJRXD4CE6OY4C6ZT65ZXG3X6ZHXCROUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

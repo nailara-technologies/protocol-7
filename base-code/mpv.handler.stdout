@@ -13,38 +13,38 @@ my $whitelist = $process->{'log_whitelist'} || [];
 <mpv.output.parse_mode> //= '';
 <mpv.output.reply_data> //= [];
 
-my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'mpv'}{'output.buffer'},
-    4096,     length(<mpv.output.buffer>)
-);
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # ( filehandle exception )
+my $read_bytes
+    = <[base.s_read]>->( $read_fh, \$data{'mpv'}{'output.buffer'}, 4096 );
+
+if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "mpv-process [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );    # making sure it's really gone
-    <[base.log]>->( 0, "mpv-process terminated." )
-        if !<zenka.shutdown>;
-    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka..," );
+    <[base.logs]>->(
+        "mpv-process [PID:%d] output filehandle was closed.", $pid
+    );
+    kill( 9, $pid );         ## making sure it is gone ##
+    <[base.log]>->( 0, 'mpv process terminated.' )
+        if not <zenka.shutdown>;
+    <[base.logs]>->( 'stopping %s-zenka..,', <system.zenka.name> );
     exit(2);
 }
 
 while ( <mpv.output.buffer> =~ s|^([^\n]*)\n||s ) {
     my $log_level   = 0;
-    my $output_line = $1;
-    $output_line =~ s/\r//sg;
-    next if !length($output_line);
-    for my $pattern ( @{$whitelist} ) {
-        if ( $output_line =~ /$pattern/ ) {
+    my $output_line = $LAST_PAREN_MATCH;
+    $output_line =~ s|\r||sg;
+    next if not length $output_line;
+    for my $pattern ( $whitelist->@* ) {
+        if ( $output_line =~ m|$pattern| ) {
             $log_level = 2;
             last;
         }
     }
-    <[base.log]>->( $log_level, "< mpv > " . $output_line );
+    <[base.logs]>->( $log_level, '< mpv > %s', $output_line );
 }
 
-#,,.,,.,.,..,,.,.,,,.,..,,...,,..,,..,,,,,,,.,..,,...,.,,,.,.,.,,,.,,,.,.,...,
-#JBKRAWXQ2OYI46G5NM4SKGLYUSZK6XME5B73REAURFLO6HBN5AEB7O4YQMO2YOQJ4LRFZAWR7VSL2
-#\\\|GKORKNOHWAWZGDG7IOW5E5KJTNWINX2USGCQXPZT7XF5OAMFDL6 \ / AMOS7 \ YOURUM ::
-#\[7]NQYMCLZD65EF2ELPMK2BOVW5LGZDRQE5QF5ATMOVIPSVHBQJXACY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,.,.,,.,,..,,,,.,..,,,..,,..,..,,...,...,..,,,..,.,,,.,.,.,.,
+#K6RMO6QUCTOS2E665YPPADZ2YMD4LF5JLOXWEIVIYIG7NP25B72YZJDKZ3JXNOJASTXVEGGLQC4WW
+#\\\|IJ2FR65CRCFJA4RB2S3BTFRNNWORTFI6N6S3RPSEYBEYV2V6XKB \ / AMOS7 \ YOURUM ::
+#\[7]6CXRDDIZSFB735FWIQAZGCWRQQBVIPMHF6Q6G7AB55KEAZFTISAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

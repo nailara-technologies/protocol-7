@@ -4,35 +4,36 @@
 
 use Socket qw| AF_UNIX SOCK_STREAM PF_UNSPEC |;
 
-<[base.log]>->( 1, "forking off ticker animation loop.." );
+<[base.log]>->( 1, 'forking off ticker-animation loop..,' );
 
 <[base.enable_list]>->('sessions');
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [ \l$OS_ERROR ]";
-map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
-$data{'handle'}{$parent_pipe}{'mode'} = 'out';
-$data{'handle'}{$child_pipe}{'mode'}  = 'out';
+$data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+$data{'handle'}{$child_pipe}{'mode'}  = qw| out |;
 
 <ticker-sdl.change_priority>   //= -15;
 <ticker-sdl.use_transparency>  //= 1;
 <ticker-sdl.cfg.assign_window> //= 0;
 
 <ticker-sdl.child.pid> = fork;
-if ( !<ticker-sdl.child.pid> ) {    # child
+if ( !<ticker-sdl.child.pid> ) {    ##  child-process  ##
     close($child_pipe);
 
     my $subname = <system.zenka.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
-    <system.zenka.subname> = 'child' . $sn_str;
-    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
     delete <process.prio_child>;
 
-    IO::AIO::reinit()
-        ;    # <-- makes base.s_read() and base.s_write() work again..,
+    ## making base.s_read() and base.s_write() work after fork ., ##
+
+    IO::AIO::reinit();
 
     <ticker-sdl.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -41,11 +42,12 @@ if ( !<ticker-sdl.child.pid> ) {    # child
     delete <ticker-sdl.child.prio_fh>;
 
     my $id = <[base.session.init]>->(
-        $parent_pipe, 'protocol-7', 'client', 'parent'
+        $parent_pipe, qw|  protocol-7  client  parent  |
     );
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
 
-    ( my $session_id ) = keys( %{<user.cube.session>} );
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    ( my $session_id ) = keys <user.cube.session>->%*;
     $data{'session'}{$session_id}{'shutdown'} = 1;
     <[event.once]>;
 
@@ -54,24 +56,26 @@ if ( !<ticker-sdl.child.pid> ) {    # child
 
     <[ticker-sdl.sdl.display_init]>;
 
-    my $title_pattern = <system.zenka.name> . '\(' . $PID . '\)';
-    <ticker-sdl.window_id>
-        = <[base.X-11.wait_for_window]>->( $title_pattern, 'parent', 'cube' );
+    my $title_pattern = sprintf '%s[%d]', <system.zenka.name>, $PID;
+    <ticker-sdl.window_id> = <[base.X-11.wait_for_window]>->(
+        $title_pattern, qw|  parent  cube  |
+    );
     if ( not defined <ticker-sdl.window_id> ) {
         <[base.log]>->(
-            0, "zenka startup error (ticker window did not open)"
+            0, "zenka startup error [ticker window did not open]"
         );
-        exit(2);    # LLL: deal with parent? (test SIGCHLD handler!)
+        exit(2);    ## deal with parent? [ test SIGCHLD handler! ] ## [LLL]
     } elsif (<ticker-sdl.cfg.assign_window>) {
-        <[base.X-11.assign_window]>->( <ticker-sdl.window_id>, 'parent' );
+        <[base.X-11.assign_window]>->( <ticker-sdl.window_id>, qw| parent | );
     }
 
     if ( !<ticker-sdl.use_transparency> ) {
         <[base.X-11.raise_window]>->(
-            <ticker-sdl.window_id>, 'parent', 'cube'
+            <ticker-sdl.window_id>, qw|  parent  cube  |
         );
-        <[base.X-11.keep_above]>
-            ->( <ticker-sdl.window_id>, 'parent', 'cube' );
+        <[base.X-11.keep_above]>->(
+            <ticker-sdl.window_id>, qw|  parent  cube  |
+        );
         <ticker-sdl.window.raised> = 1;
         unless ( SDL::Video::flip(<sdl.display>) == 0 ) {
             SDL::Video::update_rect( <sdl.display>, 0, 0, <sdl.display_width>,
@@ -81,38 +85,40 @@ if ( !<ticker-sdl.child.pid> ) {    # child
         <[ticker-sdl.sdl.raise_and_fade]>;
     }
 
-    <[base.get_session_id]>->( 'parent', 'cube' ); # zenka status --> 'online'
+    ## zenka status --> 'online' ##
+    <[base.get_session_id]>->(qw| parent cube |);
 
     <[event.add_timer]>->(
         {   'after'   => 0.64,
-            'handler' => 'ticker-sdl.sdl.wait_for_rss_zenka'
+            'handler' => qw| ticker-sdl.sdl.wait_for_rss_zenka |
         }
     ) if <ticker-sdl.request_rss_updates>;
 
-} else {    # parent
+} else {    ##  parent-process  ##
 
     close($parent_pipe);
     <ticker-sdl.pipe.child> = $child_pipe;
     my $child_pid = <ticker-sdl.child.pid>;
-    push( @{<system.kill_list>}, $child_pid );
+    push( <system.kill_list>->@*, $child_pid );
     my $prio = <ticker-sdl.change_priority>;
-    <[base.log]>->(
-        2, "setting priority of ticker child (PID $child_pid) to $prio"
+    <[base.logs]>->(
+        2,          "setting priority of ticker child [PID:%d] to %s",
+        $child_pid, $prio
     );
-    print {<ticker-sdl.child.prio_fh>} "$child_pid $prio\n";
+    print {<ticker-sdl.child.prio_fh>} sprintf "%d %s\n", $child_pid, $prio;
     close(<ticker-sdl.child.prio_fh>);
     delete <ticker-sdl.child.prio_fh>;
 
-    my $id
-        = <[base.session.init]>
-        ->( $child_pipe, qw| protocol-7 client child | );
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    my $id = <[base.session.init]>->(
+        $child_pipe, qw|  protocol-7  client  child  |
+    );
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     <[base.load_modules]>->('ticker-sdl.parent');
 }
 
-#,,.,,,,.,...,..,,...,,,,,.,,,,,.,.,,,.,.,.,,,..,,...,...,...,...,.,.,,,.,.,.,
-#ZSQRFAMJS3BBIUUMEZWX2BA6KXIWCU27A2C6IZGVO3YF45P2PJZ33V3XDR5FRYA5MYU2IK2TRFDT6
-#\\\|DZMESUOO4CWMSEETRZSD2XBVW4UKCPURFDCGSCMMUPGMF5VFR5K \ / AMOS7 \ YOURUM ::
-#\[7]HZSKBZPAYXQ3L4TIQYNQTQWD3VJV3WGYANTGC22ZNNTQ2OTQSMAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,.,.,...,..,,..,,.,.,,.,,,..,..,,...,...,...,..,,,,,,,,.,,,,,
+#PE3QNDQUCUDCIGHFGA35LCZGSCMTRS66FRZSKVRWRTDGRZ5RSCQT56GT3SZSXUNQ5BQWGQF5QIDNK
+#\\\|FPL5L2QDPDPRWNK7TEOYN5D3FS3VTL6KENNTX22QAJB4KFBHNQP \ / AMOS7 \ YOURUM ::
+#\[7]6W7XZ2CNKP7FNDL6WBX2XG62LKI55VCFTY3HTUQPYBH52OETYIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

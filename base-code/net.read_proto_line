@@ -58,16 +58,19 @@ while ( $size_left
     $read_len = $size_left if $size_left < $read_len;    ##  decrease  ##
 
     my $read_bytes = <[base.s_read]>->(
-        $session->{'handle'}, \$session->{'buffer'}->{'input'},
-        $read_len,            $bfs
+        $session->{'handle'}, \$session->{'buffer'}->{'input'}, $read_len
     ) // 0;
 
-    $read_iterations++ if $read_bytes;    ##  for average calculation  ##
-    $bfs              += $read_bytes;
-    $size_left        -= $read_bytes;
-    $read_bytes_total += $read_bytes;
-
-    return 2 if $read_bytes == 0;         ##  client gone  ##
+    if ( $read_bytes > 0 ) {
+        $session->{'fh-last-read-error'} = 0;
+        $read_iterations++;    ##  for average calculation  ##
+        $bfs              += $read_bytes;
+        $size_left        -= $read_bytes;
+        $read_bytes_total += $read_bytes;
+    } else {
+        $session->{'fh-last-read-error'} = 1;
+        return 2;              ##  client gone  ##
+    }
 }
 
 $session->{'last-bytes-read'} = $read_bytes_total;
@@ -129,8 +132,8 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
     }
 }
 
-#,,,,,,,.,.,,,.,,,.,.,.,.,,,.,,.,,,.,,,.,,...,..,,...,...,,,.,.,.,...,,..,...,
-#SC6QSQ3EAYCMHMYYBNTU45BLASILMB6G27UVRHXKV5TV3Q3PCXTYOVNQI4ZJUQQ6KCZ6PRH6KXSX2
-#\\\|LDPGLPKL4KTOXH4G3IKOTKFQEHGADMFH23I6K5FWST7RJZRYYES \ / AMOS7 \ YOURUM ::
-#\[7]OASRDSAXD6ZCYK6BBN5KA6XQGKO5SMIW52QAHPYXILWD7V7GQYAI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,,,,,..,,,,,,,,,.,.,..,,,,,,..,,...,...,..,,.,.,.,,,.,,,,,,,
+#YKPHWY2WIQHSVR5WV3IDI6ZG2ECCMIT46CGV3RPS7KOB7YVYJ7KKD2JI6AEQKJ2FROTO4QYKUXPYG
+#\\\|CADZ34IVQTB5AHJD4SE3VELIXMCOS6NR7PBH7TV5FUANUIVPH3G \ / AMOS7 \ YOURUM ::
+#\[7]RK2HG4BZJ2YQZRFGEEJ6FRMHDXR4JI523O2F2SHCOWJKW4HZN2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

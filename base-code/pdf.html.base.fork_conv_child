@@ -8,11 +8,11 @@ use Socket;
 
 <pdf.html.pipe> = { 'child' => {}, 'parent' => {} };
 
-<[base.log]>->( 1, "forking pdf conversion child.." );
+<[base.log]>->( 1, 'forking PDF-conversion child..,' );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [ \l$OS_ERROR ]";
-map { $data{'handle'}{$ARG}{'link'} = 'ipc.pipe' }
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
 <pdf.html.child.pid> = fork;
@@ -20,53 +20,53 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     close($child_pipe);
     delete <pdf.html.pipe.child> if exists <pdf.html.pipe.child>;
 
-    IO::AIO::reinit()
-        ;    # <-- makes base.s_read() and base.s_write() work again..,
+    ## making base.s_read() and base.s_write() work after fork ., ##
+    IO::AIO::reinit();
 
     <pdf.html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
 
     my $subname = <system.zenka.subname>;
-    my $sn_str  = defined $subname ? ':' . $subname : '';
-    <system.zenka.subname> = 'child' . $sn_str;
-    $PROGRAM_NAME = <system.zenka.name> . "[child$sn_str]";
+    my $sn_str  = defined $subname ? qw| : | . $subname : '';
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    # silencing child shutdown ( incr. loglevel )
+    ## silencing child shutdown ##
     <callback.session.closing_last.params>->[1] = 1;
 
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
-    $data{'handle'}{$parent_pipe}{'mode'} = 'out';
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>->(
-        $parent_pipe, 'protocol-7', 'client', 'parent'
+        $parent_pipe, qw|  protocol-7  client  parent  |
     );
 
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     <[base.load_modules]>->('pdf.html.child');
     <[base.init_modules]>->('pdf.html.child');
 
 } else {    ## parent ##
     close($parent_pipe);
-    delete <pdf.html.pipe.parent> if exists <pdf.html.pipe.parent>;
+    delete <pdf.html.pipe.parent> if defined <pdf.html.pipe.parent>;
     <pdf.html.pipe.child> = $child_pipe;
 
     <[base.load_modules]>->('pdf.html.parent');
     <[base.init_modules]>->('pdf.html.parent');
 
-    $data{'handle'}{$child_pipe}{'mode'} = 'out';
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
     my $id
         = <[base.session.init]>
         ->( $child_pipe, qw| protocol-7 client child | );
-    $data{'session'}{$id}{'input'}{'handler'} = 'base.handler.command';
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
-    <[base.async.get_session_id]>;    # --> 'online'
+    <[base.async.get_session_id]>;    ## --> 'online' ##
 
 }
 
-#,,,,,...,,.,,,,,,...,.,,,..,,.,.,..,,.,.,..,,..,,...,...,..,,,..,,,,,,,.,,.,,
-#PC2QC4CARH5FWIT5EETV63GFGPS7JQJNEGQID5Z7JIVYXM4DH4LZKXEEARGKGGZG3QUK57NM4FBDC
-#\\\|7LMIZITOFDNEW5F3MJSSUJSZTMDZFVJD5Q43CHCBDAEUUF3ZE2D \ / AMOS7 \ YOURUM ::
-#\[7]TSXKPUDZELJ3MJS3B66FNYYJWU44B3HVVSMMQUFA23M3GSMTQSBA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,.,.,,..,,.,,,..,,,,,,,,,.,.,..,,...,...,,,,,.,,,,.,,...,,..,
+#BJ4OQHN6JTV2DZFZAVOW7USPMGXJLJH4L6JFJZNBELHC6PUGW42XBSTPDR4YAYSWRYCVG74CXECRW
+#\\\|TA3E2WJY56EUEUAXBAHALUCKPBFFBGJOMHOGJZUEMTPOMYFOAHS \ / AMOS7 \ YOURUM ::
+#\[7]JHCW3A3ZJOWHRJKXLO4D4Q3AE6ROONSE57TUBRC3GUSAHPQNO2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

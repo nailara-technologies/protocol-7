@@ -5,40 +5,38 @@
 
 <v7.patterns.zenka_output> //= {};
 
-my $event     = shift->w;
-my $read_fh   = $event->fd;
-my $child     = $event->data;
+my $event     = shift;
+my $read_fh   = $event->w->fd;
+my $child     = $event->w->data;
 my $bin       = $child->{'bin'};
 my $pid       = $child->{'pid'};
-my $whitelist = $child->{'log_whitelist'}     || [];
-my $xpatterns = $child->{'callback_patterns'} || {};
+my $whitelist = $child->{'log_whitelist'}     // [];
+my $xpatterns = $child->{'callback_patterns'} // {};
 <base.child_exit>->{$pid}->{'keep-zenka'} // 0;
 
 <child.output_buffer> //= '';
 
-my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'child'}{'output_buffer'},
-    4096,     length(<child.output_buffer>)
-);
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # [ filehandle exception ]
-    $event->cancel;
+my $read_bytes
+    = <[base.s_read]>->( $read_fh, \$data{'child'}{'output_buffer'}, 4096 );
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
+    $event->w->cancel;
     close($read_fh);
-    <[base.log]>->( 2, "$bin-child [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );    # making sure.,
+    <[base.logs]>->(
+        2,    '%s-child [PID:%d] output filehandle closed.',
+        $bin, $pid
+    );
+    kill( 9, $pid );    ## making sure it is gone ##
     my $log_level    = 0;
     my $keep_running = 0;
     if ( <base.child_exit>->{$pid}->{'keep-zenka'} ) {
         $log_level    = 2;
         $keep_running = 1;
     }
-    <[base.log]>->( $log_level, ": $bin-child shut down." );
+    <[base.logs]>->( $log_level, ': %s-child shut down.', $bin );
 
     return 0 if $keep_running;    ##  <-- opc return value ##
 
-    <[base.log]>->(
-        2, ": : shutting down " . <system.zenka.name> . "-zenka."
-    );
+    <[base.logs]>->( 2, ': : shutting down %s-zenka.', <system.zenka.name> );
     $code{<base.child_exit.callback>}->($pid)
         if defined <base.child_exit.callback>
         and defined $code{<base.child_exit.callback>};
@@ -46,11 +44,11 @@ if ( not defined $read_bytes or $read_bytes == 0 )
 }
 
 while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
-    my $output_line = $1;
+    my $output_line = $LAST_PAREN_MATCH;
     $output_line =~ s|\r||sg;
-    next if !length($output_line);
+    next if not length $output_line;
     my $log_level = 0;
-    for my $pattern ( @{$whitelist} ) {
+    for my $pattern ( $whitelist->@* ) {
         if ( $output_line =~ m|$pattern|i ) {
             $log_level = 2;
             last;
@@ -58,21 +56,21 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 
     ## [ translating registered error message strings ] ###
-    map { $output_line = $ARG->($output_line) if ref($ARG) eq 'CODE' }
+    map { $output_line = $ARG->($output_line) if ref($ARG) eq qw| CODE | }
         @{<base.message_parsers.child_output>}
         if defined <base.message_parsers.child_output>
-        and ref(<base.message_parsers.child_output>) eq 'ARRAY';
+        and ref <base.message_parsers.child_output> eq qw| ARRAY |;
     ##
 
-    <[base.log]>->( $log_level, "< $bin > " . lc($output_line) )
+    <[base.logs]>->( $log_level, "< %s > %s", $bin, lc($output_line) )
         if length $output_line;
 
     ### custom callbacks ##
-    for my $pattern ( keys %{$xpatterns} ) {
+    for my $pattern ( keys $xpatterns->%* ) {
         if ( $output_line =~ m|$pattern|i ) {
             my $c_name = $xpatterns->{$pattern};
             next if not defined $code{$c_name};
-            <[base.log]>->( 2, "calling opc '$c_name'" );
+            <[base.logs]>->( 2, "calling opc '%s'", $c_name );
             my $opc_return_code = $code{$c_name}->($MATCH);
             <base.child_exit>->{$pid}->{'keep-zenka'} = $opc_return_code;
             last;
@@ -80,8 +78,8 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,..,...,,..,...,.,.,,,,,.,,,,..,,.,,.,,,..,,..,,...,...,...,,,,,,..,,,,,,,,,
-#LS2GPQ5GVZEY2XDAMREVUSSMCJJ2WFNNBPWF7PQ46335ZY4M3WMFZTFSBTWCXWF46RB5V6EYLBBQS
-#\\\|BE74QOVGI7H6DSLQ7XHBFPGHG6CFBAA75CONGTMUCMQP77VOK3G \ / AMOS7 \ YOURUM ::
-#\[7]FRAOYXLBQIUENBFVH43QLKXUCHPT4Z4KSDCXXPYZAN5O6I6FCKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,.,,,..,,,..,...,...,,.,,,.,,..,,...,..,,...,,,,,.,.,.,,,..,,
+#4VULVUYTUXBQGNDO57XTFWUFDBOALJGE5GHD6FTPZCSVHKUJ44JYGITVQUMS7JWWOQEPDV5YWHZRK
+#\\\|7IZRIBOY74KJPVFWKK4O4TBEJO7RX33XRYDWI6VFGS4P5FHMUIC \ / AMOS7 \ YOURUM ::
+#\[7]6D6NMP4N2WPDWVSZXKIXFP4NGXBQCQE4UYJ7M5G6COJ4QKCKVSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
