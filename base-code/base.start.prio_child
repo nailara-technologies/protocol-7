@@ -2,7 +2,7 @@
 
 # name = base.start.prio_child
 
-<[base.log]>->( 1, "starting 'prio' child..," );
+<[base.log]>->( 2, "starting 'prio' child..," );
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
@@ -14,24 +14,28 @@ my $child_code = << "EOT";
 use strict; use warnings; use English;
 map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
 \$PROGRAM_NAME = q|$zenka_name-<root>-'prio'-child|;
-setpriority( 0, \$1, \$2 ) if <STDIN> =~ m|^(\\d+) (\\-?\\d+)\$|
+my \$prio_str = <STDIN>;
+exit('110') if not defined \$prio_str;  ##  no tolerance of errors  ##
+setpriority( 0, \$1, \$2 ) if \$prio_str =~ m|^(\\d+) (\\-?\\d+)\$|
 EOT
 
-$SIG{'CHLD'} = 'IGNORE';
+$SIG{'CHLD'} = qw| IGNORE |;
 
 <process.prio_child.pid>
     = open2( <process.prio_child.r_fh>, <process.prio_child.w_fh>,
-    <system.path.perl_bin>, '-e', $child_code )
-    || die "unable to start perl prio child process [ \l$OS_ERROR ]";
+    <system.path.perl_bin>, qw| -e |, $child_code )
+    || die sprintf( "cannot start perl prio child process [ %s ]\n",
+    scalar <[base.format_error]>->($OS_ERROR) );
 
-<[base.log]>->(
-    1, ": child process started [pid=" . <process.prio_child.pid> . "]"
+<[base.logs]>->(
+    2, ': started prio child [pid:%d]',
+    <process.prio_child.pid>
 );
 
 return <process.prio_child.w_fh>;
 
-#,,,.,,..,.,,,.,,,,,,,,,,,,,,,.,,,,..,,.,,.,.,..,,...,...,...,,.,,,,.,,..,.,,,
-#7GKEBW3HHXKGZYJJWTBXS23N4P3FJ47OXFEAVT3E3NXPN35LTMB6R33CO4SMN5AXF6IR6MVP3JXQG
-#\\\|NLGQ3WJHKQDQHDW7NKGVJBZ6XPZMAEV4LFZHRLNLPBPAFTZGYWU \ / AMOS7 \ YOURUM ::
-#\[7]EUGV2S4IYWKF47CHRFJMBA4IQ7PWD55DBBB5WGGCNHX4ZQPLCQAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,.,,,.,,,...,..,,,,,,,,.,,.,,..,,...,...,,..,,.,,,.,,...,..,,
+#7ZDCAHGTV6AZFZR5DGTZQCRK6TKYGOZUBLW2Z2ZPP2UAPFDL3KAASOTABJBHOVCJZFBMZIVIBVOJI
+#\\\|IMQUAG4YZ2S5OZIFLUQYDJLDBLSN7T5SVQKJINCBUTU7PCYOY6W \ / AMOS7 \ YOURUM ::
+#\[7]GLVMOE675W7XER4BO6MVC577KVSANVNTTOCSLARHP3Z7CGGFL2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

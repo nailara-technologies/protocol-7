@@ -1,7 +1,7 @@
 ## >:] ##
 
 # name  = mpv.handler.stderr
-# descr = reads and processes stdout output from mpv process
+# descr = reads and processes stdout output from mpv-process
 
 my $event     = shift->w;
 my $read_fh   = $event->fd;
@@ -13,31 +13,30 @@ my $whitelist = $process->{'log_whitelist'} || [];
 <mpv.output.parse_mode> //= '';
 <mpv.output.reply_data> //= [];
 
-my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'mpv'}{'output.buffer'},
-    4096,     length(<mpv.output.err_buffer>)
-);
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # [ filehandle exception ]
+my $read_bytes
+    = <[base.s_read]>->( $read_fh, \$data{'mpv'}{'output.buffer'}, 4096 );
+
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "mpv-process [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );    # making sure it's really gone
-    <[base.log]>->( 0, "mpv-process terminated." )
+    <[base.logs]>
+        ->( 'mpv-child [PID:%d] output-filehandle was closed', $pid );
+    kill( 9, $pid );        ## making sure it is gone ##
+    <[base.log]>->( 0, 'mpv-process terminated.' )
         if !<zenka.shutdown>;
-    <[base.log]>->( 1, "shutting down " . <system.zenka.name> . "-zenka!" );
+    <[base.logs]>->( 'shutting down %s-zenka!', <system.zenka.name> );
     exit(2);
 }
 
 while ( <mpv.output.err_buffer> =~ s|^([^\n]*)\n||s ) {
     my $output_line = $1;
-    $output_line =~ s/\r//sg;
-    next if !length($output_line);
-    <[base.log]>->( 0, "< mpv-err > " . $output_line );
+    $output_line =~ s|\r||sg;
+    next if not length $output_line;
+    <[base.logs]>->( 0, '< mpv-err > %s', $output_line );
 }
 
-#,,..,.,.,.,,,.,,,..,,,..,,,.,,,.,...,,,,,,,,,..,,...,...,..,,.,.,,..,.,.,.,.,
-#VBQT4NNRV5FXHGL4OBGLIPZJ4C5PK2UENG33CM7JAEX4Y6TE2AIJHIEC3XMXJV7DXXI2IBPE2IHPG
-#\\\|AIHX3CFGEIK6E3KWCHT3OZHJ4N5WZ3QDGZWHE4R72KPVPC3T3VH \ / AMOS7 \ YOURUM ::
-#\[7]OL5TRHZ747KVUYEDE7RUCIILD3UDTVUFDC2ASNCVSQ4THLIEWQDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,,,.,.,,,,..,.,,,,,.,...,,,.,..,,...,...,..,,,,.,,,.,,,.,,.,,
+#SF6H77ASBVSXQCZG7ZFLUN7W4PECS6SU22FUODWCWJEKIT4GJBBP2PSL2WHCIPSPMS6NZT2NTXY6M
+#\\\|WVE7IQTHN722VRQ4KQJHZHUAFX6UR6ORXIYHOVDLBGG6SKB3E74 \ / AMOS7 \ YOURUM ::
+#\[7]F3IZJPHJTFGBJYL2RLHKBNQBCP6IVDGTMM44NPDD6OI5QNCXMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

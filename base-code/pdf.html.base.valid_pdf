@@ -13,54 +13,58 @@ return 0
 
 my $file_fh;
 
-<[base.log]>->( 2, "[PDF] '$file_path'.." );
+<[base.logs]>->( 2, "[PDF] '%s' .,", $file_path );
 
-if ( !open( $file_fh, $file_path ) ) { warn lcfirst($OS_ERROR); return 0; }
+if ( !open( $file_fh, $file_path ) ) {
+    <[base.s_warn]>->(
+        ': file %s : %s',
+        $file_path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return 0;
+}
 
 my $file_ok = 2;
 
 my $result = <[base.s_read]>->( $file_fh, \my $buffer, 5 );
 
-if (   not defined $result
-    or $result != 5
+if (   $result != 5
     or not defined $buffer
     or $buffer ne '%PDF-'
     or !sysseek( $file_fh, -7, 2 ) ) {
-    <[base.log]>->( 2, " << ! >>  header mismatch ['$buffer']" );
+    <[base.logs]>->( 2, "<< header mismatch ['%s'] >>", $buffer );
     $file_ok--;
 }
 
 $result = <[base.s_read]>->( $file_fh, \$buffer, 7 );
 
-if (   not defined $result
-    or $result < 6
+if (   $result < 6
     or not defined $buffer
-    or $buffer !~ /(\r?\n)?%%EOF(\r?\n)?$/ ) {
-    <[base.log]>->( 2, " << ! >>  footer mismatch ['$buffer']" );
+    or $buffer !~ m|(\r?\n)?%%EOF(\r?\n)?$| ) {
+    <[base.logs]>->( 2, "<< PDF footer syntax mismatch ['%s'] >>", $buffer );
     $file_ok--;
 
 }
 
 if (    $file_ok == 1
-    and -x '/usr/bin/file'
-    and qx(/usr/bin/file $file_path) =~ /PDF document/ ) {
-    <[base.log]>->(
+    and -x qw| /usr/bin/file |
+    and qx(/usr/bin/file $file_path) =~ m|PDF document| ) {
+    <[base.logs]>->(
         0,
-        "[!] apparent error in internal validation pattern for '$file_path'"
+        "apparent error in internal validation pattern for '%s'", $file_path
     );
     return 1;
 }
 
 if ($file_ok) {
-    <[base.log]>->( 2, ": ok, valid." );
+    <[base.log]>->( 2, ': success, format valid.' );
     return 1 if $file_ok;
 } else {
-    <[base.log]>->( 1, " << ! >>  PDF format check failed : '$file_path'" );
+    <[base.logs]>->( "<< PDF format check failed : '%s' >>", $file_path );
     return 0;
 }
 
-#,,.,,..,,.,.,.,,,...,,.,,.,,,,.,,,..,.,,,.,.,..,,...,...,.,.,...,,.,,.,,,.,,,
-#YPKP4SYD3WZNJX7JAPXR2ZZT735G5GMJREC5LEKB5DEZWKWJTJPGUQUUUGCJYIK6ROAU6RJO3QP3M
-#\\\|PKRDSQ2NU7MAHH5TUECQ5HWGBWMRDESAGOTEEBD22L7KY5B7KLK \ / AMOS7 \ YOURUM ::
-#\[7]PF34YJXFR36F6GEQZ6FH42OLHUMPFT4CP2LM7XFZF6LFUVFDYWAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,...,,.,,,..,..,,.,,,...,.,.,..,,...,...,,,.,..,,,,,,..,,,,.,
+#7CQEBYLROBDRD5RZZZYB3QORXBNV2PPKLHTBJ6ZLSMSMB2JV5O4RRN2WW5UVPSMGN3D3PRZYFNYEE
+#\\\|YM4JWIKTH3I2D5QHBJKMCV64TNZK6DCJFK4BZQXJ5NHWYSQB2ZL \ / AMOS7 \ YOURUM ::
+#\[7]5R2E5ORBZMRDK6MKS2CKJZV6DMKJD2O3EUEYPUJARTGUJ2DDUIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

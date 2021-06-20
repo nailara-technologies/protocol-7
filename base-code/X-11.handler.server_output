@@ -13,21 +13,20 @@ my $pid     = $server->{'pid'};
 
 <X-11.output_buffer> //= '';
 
-my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'X-11'}{'output_buffer'},
-    4096,     length(<X-11.output_buffer>)
-);
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # [ filehandle exception ]
+my $read_bytes
+    = <[base.s_read]>->( $read_fh, \$data{'X-11'}{'output_buffer'}, 4096 );
+
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "$bin-server [ PID $pid ] filehandle closed .," );
-    kill( 9, $pid );    ##  <--  making sure .,
+    <[base.logs]>
+        ->( '%s-server [ PID %d ] filehandle closed .,', $bin, $pid );
+    kill( 9, $pid );        ## making sure it is gone ##
     my $err_str
         = defined <X-11.first_error>
         ? ': "' . <X-11.first_error> . '"'
         : ' unexpectedly. [ unknown reason ]';
-    <[base.log]>->( 0, "$bin-server shut down" . $err_str );
+    <[base.logs]>->( 0, "%s-server shut down%s", $bin, $err_str );
     <[base.log]>->( 1, "done." );
     exit(2);
 }
@@ -38,13 +37,13 @@ while ( <X-11.output_buffer> =~ s|^([^\n]*)\n||s ) {
         if $output_line =~ m|\(EE\) +(.+)$|
         and not defined <X-11.first_error>;
     $output_line =~ s|\r||sg;
-    <[base.log]>->( 2, "< $bin > " . $output_line );
+    <[base.logs]>->( 2, "< %s > %s", $bin, $output_line );
 
     # LLL: terminate server here ?
 }
 
-#,,,.,,..,.,.,...,..,,,,,,...,.,,,,.,,.,.,..,,..,,...,...,,,,,...,..,,.,,,,..,
-#W25BSFPN6CGO3JF4E6VBYDWPD4DXLBEXQGFCSVXTZJLNOYOM2GTFWZ3SQDHDZOZAAWUXNOSNUM2J4
-#\\\|7HRM2FEINPCRQ6KU64TALVQJK2JILLBXUEE5ZPAOAYES7XU5EBJ \ / AMOS7 \ YOURUM ::
-#\[7]WSIFJ77HMYJGOANINUJBQDJHVGCSJCJAILDGCHNP6HQ7C36JWWBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,,,,,.,,,.,.,...,,,,,.,,,,.,,..,,...,...,...,,.,,,.,,,,,,...,
+#4HLBTLSYLPGUBBBKCIP6LBREI2UOYXAONV7VRTPWMUTCRSOUNSGAEAOD4TSBOQUUIGBCWP7TYD4ZM
+#\\\|YN4VJZKJ6W7PW2FBBU6P55F3LTR5TST7KBJ225QF747NHZWPTKU \ / AMOS7 \ YOURUM ::
+#\[7]43QQWHYFK4MDPV7BVUQ7IYRLALEL2PT335BBPZI5UOPRRQV7NMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

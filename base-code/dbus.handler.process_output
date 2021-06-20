@@ -13,42 +13,42 @@ my $pid     = $server->{'pid'};
 
 <dbus.output_buffer> //= '';
 
-my $read_bytes = <[base.s_read]>->(
-    $read_fh, \$data{'dbus'}{'output_buffer'},
-    4096,     length(<dbus.output_buffer>)
-);
-if ( not defined $read_bytes or $read_bytes == 0 )
-{    # ( filehandle exception )
+my $read_bytes
+    = <[base.s_read]>->( $read_fh, \$data{'dbus'}{'output_buffer'}, 4096 );
+if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     $event->cancel;
     close($read_fh);
-    <[base.log]>->( 1, "$bin [PID:$pid] output filehandle closed." );
-    kill( 9, $pid );    # to make sure
+    <[base.logs]>->( '%s [PID:%d] output filehandle closed.', $bin, $pid );
+    kill( 9, $pid );        ## making sure it is gone ##
     my $err_str
         = defined <dbus.first_error>
         ? ': "' . <dbus.first_error> . '"'
         : ' unexpectedly! (reason unknown)';
-    <[base.log]>->( 0, "$bin died" . $err_str );
+    <[base.logs]>->( 0, '%s terminated%s', $bin, $err_str );
     <[base.log]>->( 1, "done." );
     exit(2);
 }
 
 while ( <dbus.output_buffer> =~ s|^([^\n]*)\n||s ) {
-    my $output_line = $1;
+    my $output_line = $LAST_PAREN_MATCH;
     $output_line =~ s|\r||sg;
     if ( $output_line =~ m|^(unix:abstract=([^\n,]+),[^\n]+)$| ) {
-        <dbus.socket_addr> = $1;
-        <dbus.socket_path> = $2;
+        <dbus.socket_addr> = ${^CAPTURE}[0];
+        <dbus.socket_path> = ${^CAPTURE}[1];
         my $privs_user = <dbus.privs_user>;
-        <[base.log]>->( 1, ": socket path : $2 [owner:'$privs_user']" );
+        <[base.logs]>->(
+            ": socket path : %s [owner:'%s']",
+            ${^CAPTURE}[1], $privs_user
+        );
         <[base.async.get_session_id]>;
     } else {
         my $log_level = $output_line =~ m{ctivat(ing|ed) service} ? 2 : 0;
-        <[base.log]>->( $log_level, "< $bin > " . $output_line );
+        <[base.logs]>->( $log_level, '< %s > %s', $bin, $output_line );
     }
 }
 
-#,,,.,...,,,,,..,,,,.,,,,,.,,,...,.,,,..,,,.,,..,,...,...,..,,.,.,,.,,..,,,,,,
-#KV5XXYRLR7ABU2ZCWNVL6PY6TSRTOEE32QD2BOZCUGLGNF5ERR4KWLKGLX66LGDCQYKMJKIJIZDH4
-#\\\|RRCHVHQZ7B6OUD35B67VN4DGKQIQDHZLNNBQ7KE3QCF6YT7RGQN \ / AMOS7 \ YOURUM ::
-#\[7]LTHXUH65QSFG3IPCHPXR6R6HWSRM5E6RMIXGTAG2BTECM7IA7IDY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,..,..,,.,,,..,,,..,...,,,,,..,,...,...,..,,...,.,,,,,,,,,.,
+#E2TQFJD52FZREOW6KM63TMUKW5BBAQGS3X6SA4EJXISAF3XGRNQNAVNWRYPYJLJBDENVQAGMPP22U
+#\\\|CK7V7MZ7ZPU7ICZFNT5LVMYEM3VCAP7IBVGDJYWZTVWWJAVZAV5 \ / AMOS7 \ YOURUM ::
+#\[7]77IOCZ4SRUSVJSSKYFPPZWNDNKISZQSKUHPVZMZI3CX4ISBA3ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

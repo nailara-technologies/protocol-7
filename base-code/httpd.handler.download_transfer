@@ -2,30 +2,32 @@
 
 # name = httpd.handler.download_transfer
 
-my $watcher  = $_[0]->w;
-my $id       = $watcher->data->{'id'};
+my $event    = shift;
+my $id       = $event->w->data->{'id'};
 my $session  = $data{'session'}{$id};
 my $download = $session->{'download'};
 my $clients  = <httpd.downloads.in_progress> ||= 1;
 
 my $min_buf_size = 4096;
 my $max_buf_size
-    = sprintf( "%.0f", <httpd.downloads.total_bufsize_max> / $clients );
+    = sprintf( qw| %.0f |, <httpd.downloads.total_bufsize_max> / $clients );
 $max_buf_size = $min_buf_size if $max_buf_size < $min_buf_size;
 $max_buf_size = <httpd.downloads.max_buffer_size>
     if $max_buf_size > <httpd.downloads.max_buffer_size>;
 
-my $read_size = $max_buf_size - length( $session->{'buffer'}->{'output'} );
+my $read_size = $max_buf_size - length $session->{'buffer'}->{'output'};
 
-return 1 if !$read_size;    ## <-- output buffer full ##
+return 1 if $read_size < 1;    ## <-- output buffer full ##
 
 my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
 my $part_id    = $download->{'part_id'};
 my $ranges     = $download->{'ranges'};
 
-warn "[$id] content filehandle already closed" and goto ABORT_DOWNLOAD
-    if !fileno( $content_fh // '' );
+if ( not fileno( $content_fh // '' ) ) {
+    <[base.s_warn]>->( '[%d] content filehandle already closed', $id );
+    goto ABORT_DOWNLOAD;
+}
 
 if ($part_count) {    ## one or more byteranges ##
     my $part_size_remaining
@@ -40,8 +42,9 @@ my $multipart_footer;
 if ( $read_size <= 0 ) {
     if ( $part_id < $part_count - 1 ) {    ## more parts are queued..,
         $download->{'part_id'} = ++$part_id;
-        <[base.log]>->(
-            1, "[$id] part $part_id of $part_count transferred.,"
+        <[base.logs]>->(
+            '[%d] part %d of %d transferred.,',
+            $id, $part_id, $part_count
         );
         sysseek( $download->{'content_fh'},
             $ranges->[$part_id]->{'start'}, 0 );
@@ -56,21 +59,25 @@ if ( $read_size <= 0 ) {
             if 1 + $part_id == $part_count;    # <-- last multipart segment
 
     } else {    ## transfer was complete ##
-        $watcher->stop;
+        $event->w->stop;
         return 1;
     }
 }
-warn "[$id] content read size was zero" and goto ABORT_DOWNLOAD
-    if !$read_size;
+
+if ( $read_size == 0 ) {
+    <[base.s_warn]>->('[%d] content read size was zero');
+    goto ABORT_DOWNLOAD;
+}
 
 my $bytes_read = <[base.s_read]>->(
-    $content_fh, \$session->{'buffer'}->{'output'},
-    $read_size,  length( $session->{'buffer'}->{'output'} )
+    $content_fh, \$session->{'buffer'}->{'output'}, $read_size
 ) if $read_size;
 
-warn "[$id] unsuccessful read from content filehandle"
-    and goto ABORT_DOWNLOAD
-    if not defined $bytes_read or !$bytes_read;
+if ( $bytes_read < 1 ) {
+    <[base.s_warn]>
+        ->( '[%d] unsuccessful read from content filehandle', $id );
+    goto ABORT_DOWNLOAD;
+}
 
 $download->{'total_bytes_remaining'} -= $bytes_read;
 
@@ -81,8 +88,8 @@ if ( defined $multipart_footer
 }
 
 if ( $download->{'total_bytes_remaining'} == 0 ) {
-    <[base.log]>->( 1, "[$id] download complete." );
-    $watcher->cancel;
+    <[base.logs]>->( '[%d] download transfer completed', $id );
+    $event->w->cancel;
     close( $download->{'content_fh'} );
     delete $session->{'watcher'}->{'download_handler'};
     delete $session->{'download'};
@@ -103,11 +110,11 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
 
 ABORT_DOWNLOAD:
 $session->{'flush_shutdown'} = 1;
-$watcher->stop;
+$event->w->stop;
 return 0;
 
-#,,.,,,,.,..,,,..,.,,,.,.,.,.,,.,,.,.,..,,,,.,..,,...,...,..,,.,.,,,,,,,,,,.,,
-#L7XAQ7TH53L7A6SCTKXO7CLIVGPF6AJS2TKPZ366KZKZFPMWMMVB4I5G7Q3CCOS3AMMSE4EZUQANI
-#\\\|FEXA4LRXLHCWTIGFXE4G6XQNQDRWH5LQVE3ZCAAGLQGXZC4ADGS \ / AMOS7 \ YOURUM ::
-#\[7]2N3OWGXCIBUEI3YRXVWPHW3ZSW4EMH3XOKC3CKFZGLXWGQUD6QAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,,..,,,.,.,,,..,,,..,.,,,.,.,..,,...,...,...,...,,..,,,,,,.,,
+#3HMX6H6QZM36KI5WJ4YBRACW4M3IWTXWRC5RPK2EGIYLHBWOQRMMAYOMNU4LUVY4D2WVC7X2ABBGE
+#\\\|GGT73PVQRXLBRQCNS23NLD34BRV662WXH7HPTQ3YO33F4CLGX6O \ / AMOS7 \ YOURUM ::
+#\[7]MK52DVJY7LHHUULPAZW5DTB5KBI6JNKQEVZNOECYPCEV7E2QIGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

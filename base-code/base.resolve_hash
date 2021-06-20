@@ -1,20 +1,22 @@
 ## >:] ##
 
 # name  = base.resolve_hash
-# descr = translate 'system.zenka.name' type key to %data hash ref and return it
+# descr = translates 'system.zenka.name' type key to \%data href and return it
 
 my $key_ref = *data{HASH};
-foreach my $sub_key ( split( /\./, $_[0] ) ) {
-    if ( ref($key_ref) eq 'HASH' ) {
+
+foreach my $sub_key ( split( '\.', $ARG[0] ) ) {
+    if ( ref $key_ref eq qw| HASH | ) {
         $key_ref = \%{ $$key_ref{$sub_key} };
     } else {
         return undef;
     }
 }
+
 return $key_ref;
 
-#,,.,,.,,,...,,,,,..,,,,,,,,,,,,.,.,,,..,,,,,,..,,...,...,.,.,,.,,,,.,,.,,..,,
-#EEKQON5AOMFWGKHUDDNQ5HU74SER6SOSFSL7OBZYLIP3QYGDS2OCWTYBIC5MFGT5APCYIEB4PUGKC
-#\\\|HNVNEVWOOF7DAYEB2AA2PKO6P2D2Y26B2QQ3REPH2O5CO3OVOVH \ / AMOS7 \ YOURUM ::
-#\[7]W5LZVIQNLAG3MJP2VZLT2MX4GSYD4MRDIDJL5Q2XZ2RKGC7XLABQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,,,..,,,..,.,.,,,.,,.,,,,.,,.,,..,,...,...,,..,..,,...,..,,,..,
+#6N5LV2ACWP4YY4QNUM3UTDQUWZF5DLKCN3DUTPWBRTBRVFKQQKVWWYCLDPQM65FYNYLQDZAAB2V2E
+#\\\|XCOM2MK7EFROH52GMKQAO7K3OZFN2I34GSKV4XXV2RQ6MTDKYML \ / AMOS7 \ YOURUM ::
+#\[7]BDI5RNDEKTLGKKOH5GGDBAN45ISWV6OW5GJXJOY6R7SJZTAYV4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
