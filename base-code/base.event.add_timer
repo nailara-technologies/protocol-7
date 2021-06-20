@@ -3,50 +3,77 @@
 # name  = base.event.add_timer
 # descr = install a timer watcher
 
+my $params = shift;
+
 return undef
-    if ref( $_[0] ) ne 'HASH'
+    if ref($params) ne qw| HASH |
     and warn 'base.event.add_timer: expected hash reference <{C1}>';
-my $callback = ${ $_[0] }{'handler'};
-return undef
-    if not defined $callback
-    and warn "base.event.add_timer: callback ['handler'] is missing <{C1}>";
-return undef
-    if not defined $code{$callback}
-    and warn
-    "base.event.add_timer: callback '$callback' does not exist <{C1}>";
+
+my $cb_name;
+my $callback_cref;
+
+if ( defined $params->{'handler'} ) {
+    $cb_name = $params->{'handler'};
+    if ( defined $params->{'cb'} ) {
+        warn "redundant callback definition [ 'handler' and 'cb' ] <{C1}>";
+        return undef;
+    } elsif ( not defined $code{$cb_name} ) {
+        <[base.s_warn]>->(
+            'callback handler [ %s ] not defined <{C1}>', $cb_name
+        );
+        return undef;
+    } else {
+
+        $callback_cref = $code{$cb_name};   ## callback [ handler ] by name ##
+
+    }
+} elsif ( defined $params->{'cb'} and ref $params->{'cb'} eq qw| CODE | ) {
+
+    ##  wrapped for code updates  ##
+    $callback_cref = sub { $params->{'cb'}->(@ARG) };    ## as code ref ##
+
+} elsif ( defined $params->{'cb'} ) {
+    warn 'callback [cb] param not a code ref <{C1}>';
+    return undef;
+} else {
+    warn 'callback \ handler parameter missing <{C1}>';
+    return undef;
+}
 
 my @event_time;
 map {
-    push( @event_time, ( $ARG => ${ $_[0] }{$ARG} ) )
-        if defined ${ $_[0] }{$ARG}
-} ( 'at', 'after' );
+    push( @event_time, ( $ARG => $params->{$ARG} ) )
+        if defined $params->{$ARG}
+} qw| at after |;
 
 my $repeat
-    = ( defined ${ $_[0] }{'interval'} and ${ $_[0] }{'interval'} ) ? 1 : 0;
+    = ( defined $params->{'interval'} and $params->{'interval'} ) ? 1 : 0;
 
 my $timer;
 eval {
     $timer = Event->timer(
-        'reentrant' => ${ $_[0] }{'reentrant'} // 1,
-        'repeat'    => ${ $_[0] }{'repeat'}    // $repeat,
-        'prio'      => ${ $_[0] }{'prio'}      // 1,
-        'async'     => ${ $_[0] }{'async'}     // 0,
-        'desc'      => ${ $_[0] }{'desc'}      // $callback,
-        'cb'        => sub { &{ $code{$callback} } },
-        'time'      => ${ $_[0] }{'time'},
-        'interval'  => ${ $_[0] }{'interval'},
-        'hard'      => ${ $_[0] }{'hard'},
-        'data'      => ${ $_[0] }{'data'},
+        'reentrant' => $params->{'reentrant'} // 1,
+        'repeat'    => $params->{'repeat'}    // $repeat,
+        'prio'      => $params->{'prio'}      // 1,
+        'async'     => $params->{'async'}     // 0,
+        'desc'      => $params->{'desc'}      // $cb_name,
+        'cb'        => $callback_cref,
+        'time'      => $params->{'time'},
+        'interval'  => $params->{'interval'},
+        'hard'      => $params->{'hard'},
+        'data'      => $params->{'data'},
         @event_time
     );
 };
 
-warn "add_timer: $EVAL_ERROR <{C}>" if $EVAL_ERROR or not defined $timer;
+<[base.s_warn]>->(
+    '%s <{C1}>', scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+) if length $EVAL_ERROR or not defined $timer;
 
 return $timer;
 
-#,,,.,.,,,.,.,.,,,,.,,..,,...,,,,,,..,,..,..,,..,,...,...,.,.,,,.,...,,..,.,,,
-#YHASTNYPAC6Q5BITT4RARLPU3UZBPR6LX7YACDIBUITTEYP4AS3MVK2OB7GPPNTNZUPMIRTDSOLWS
-#\\\|EYVUSOCF5I65R6VBDDL7W4JFWTXOH5HMJDJ5G364YQQI7Q6T2OH \ / AMOS7 \ YOURUM ::
-#\[7]BJ3WTA6OTNHIQRWKN4SQYPNNX3C37TKF2UNFT7OZBBXQHSU7XIAA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,.,..,,,.,,.,.,..,,,..,.,,,,.,,..,,...,...,.,.,,..,,,,,.,.,.,.,
+#Y3AVGVDNZHJF2FLIGO6LGCHIKBKWPXJGEPRWSS3DCWRYCZWQVU6OGMEIG52U7JVSU3IBF45A3F3JK
+#\\\|IBEZ2DJDDHYS6VUZPLROMPNW5XQ2J6HFULSVYRDNJGFCDBDRLSZ \ / AMOS7 \ YOURUM ::
+#\[7]HCCK56YZTHEBDI4SD4NMQWIIVMZDAEC2OOKWFCLE6CNFEFLJYIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
