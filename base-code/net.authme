@@ -6,26 +6,38 @@
 
 my $answer;
 my $banner_string;
-my $backend_socket = $_[0], $banner_string = "", $answer = "";
-die 'net.authme: no password supplied' if not defined $_[2];
-if ( <[base.s_read]>->( $backend_socket, \$banner_string, 4 ) ) {
-    if ( $banner_string eq ">:]\n" ) {
-        <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
+my $backend_socket = shift(@ARG), $banner_string = '', $answer = '';
+
+( my $usr, my $pwd ) = ( shift @ARG, shift @ARG );
+
+if ( not length( $usr // '' ) ) {
+    warn 'username parameter not defined <{C1}>';
+    return undef;
+} elsif ( not length( $pwd // '' ) ) {
+    warn 'password parameter is undefined <{C1}>';
+    return undef;
+}
+
+if ( <[base.s_read]>->( $backend_socket, \$banner_string, 12 ) ) {
+    if ( $banner_string eq ">:] ::-.7\\\\\n" ) {
+        <[base.log]>->( 2, '[*] protocol-7 banner detected.,' );
     } else {
         <[base.log]>->(
             0, '[#] protocol mismatch [ no valid connection banner ]'
         );
         return undef;
     }
-    <[net.out]>->( $backend_socket, "auth $_[1] $_[2]\n" );
+    <[net.out]>->( $backend_socket, "select pwd\n" );
+
+    <[net.out]>->( $backend_socket, sprintf( "auth %s %s\n", $usr, $pwd ) );
 
     return <[auth.zenka.process_auth_reply]>->(
-        $backend_socket, 'successfully authenticated =)'
+        $backend_socket, 'authentication successful. =)'
     );
 }
 
-#,,,.,.,,,,.,,.,.,,,,,,,,,,.,,,..,,..,,,,,,,.,..,,...,..,,...,,.,,,,,,,.,,,,,,
-#LYCIKYDKBHOPPS5MP7Y4GPTLTP62ILV7AJJFA7KO7Z3CEJ73LA27IYEC6UCPKUHVR3X3CDXCB4LLA
-#\\\|X6JRVSKAJ73JNTAIH74M52QPRTLIF5QHEQKBBGVECJOWP46OZVH \ / AMOS7 \ YOURUM ::
-#\[7]VRJNQIZG6KDI3EIZG6G3HYNBMEELJ6EME5A2BPDHJUEAW63O3MBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,,,.,...,.,.,.,,,,.,,,.,,..,,..,,...,...,.,.,,..,,..,..,,.,.,
+#TU6T7YY4DXU4EZUMYLF55FMUFBE2GLTAOW3TYJ7GCMOYVX23Y3XXA5SGDJSFAIWXJXBHEAYN4SWK6
+#\\\|XKZZDFUBY4NMWG54546IFZS3TA3X4ET7MTHHOCYJHREMRRAS7OB \ / AMOS7 \ YOURUM ::
+#\[7]PTVB4HDPVU2AFGWFIZCQCRNU552WXTM2IJK3NZ63526N7444QACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
