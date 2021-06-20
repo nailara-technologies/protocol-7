@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+
+##  list-amos-componemts  ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+
+##[ MAIN CODE ]###############################################################
+
+say sprintf "\n  %s%s: not implemeneted yet :%s\n", $C{'B02'}, $C{'T'},
+    $C{'R'};
+
+#,,,.,...,...,,,,,,,.,..,,..,,.,,,..,,,,.,..,,.,.,...,...,...,..,,,,,,,..,,.,,
+#R4ELHXILALZJFBEPDBDOGRLNIQCPGBHQ7DOY4TQ6CA5ASZCNXEE3VSM2IZG35YTCUZV7ENPDRH4OW
+#\\\|UZ435PH25TRTFDQHMEESNSXQ3U3XJWTS4O6377TS3GQHT5XDHCR \ / AMOS7 \ YOURUM ::
+#\[7]YEBXVSMKCGG3TNDAPHDZQWDRHXQRW5WQCL5UBL5PI5ZMX27BCCAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
