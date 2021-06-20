@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = base.check_cfg_cmd_alias
+# descr = prefixing code routines with cfg_cmd to set config command aliases
+
+my $cmd_name = shift;
+
+if ( not length( $cmd_name // '' ) or index( $cmd_name, qw| . |, 1 ) == -1 ) {
+    warn ' : expected a valid cmd name parameter <{C1}>';
+    return $cmd_name;
+}
+
+my $replacement_command_name;
+##  checking alias prefix str  ##
+my $data_key_name            = sprintf qw| cfg_cmd.%s |, $cmd_name;
+my $new_cmd_name_sref        = <[base.resolve_key]>->($data_key_name);
+my $replacement_command_name = $new_cmd_name_sref->$*
+    if ref $new_cmd_name_sref eq qw| SCALAR |;
+
+if (    defined $replacement_command_name
+    and index( $replacement_command_name, qw| . |, 1 ) > -1
+    and defined $code{$replacement_command_name} ) {
+
+    return $replacement_command_name;   ## returning replacement from alias ##
+
+} else {
+    return $cmd_name;                   ##  returning unresolved  ##
+}
+
+#,,,,,,.,,.,.,,,.,,.,,,..,,.,,,.,,.,,,,,,,...,..,,...,...,,.,,.,,,..,,,.,,,.,,
+#JLRVGPTJU4SEXSJGZ43R3ETAREFPNHPVYB55OREKBVU6YPEBL4GVSA5Q4Y2NAC2Z2DZYF7N4G6O64
+#\\\|I6SNHKSYTAKEMTWQBL2UANC5JYTGQ37WVSUZNKQ3T6B3RLCNFLR \ / AMOS7 \ YOURUM ::
+#\[7]I6QZIEQAJGUAWFLS4EU3RZLM67QFDMOOKGWDXCUADHQACIU2TIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
