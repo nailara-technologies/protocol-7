@@ -258,7 +258,8 @@ sub do_dsf_stuff {
             # the line immediately after the 'index' line
             # should be the --- file line,
             # if it is not it is an empty file add \ delete
-            if ( $next !~ m,^$ansi_color_regex*(-?--|Binary files), ) {
+            if ( defined $next
+                and $next !~ m,^$ansi_color_regex*(-?--|Binary files), ) {
 
                 # we fake out the file names since it is a raw add/delete
                 if ( $last_file_mode eq 'add' ) {
@@ -1030,8 +1031,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,.,,,,.,.,,,...,,.,,.,,,,,.,,.,,,,.,,,,,,,.,..,,...,...,..,,.,,,,,.,,.,,,,,,
-#HG2INH2LUFT4DJOWPRHNPENOKMTGLEOKRIT3XIJRRMR4AHEMRURYM6CDQJHRE2WJM3MD54DHVKVRY
-#\\\|UO2LSS5JVZI7AES3EFFXX3SV4HKW6ZRVCBG2XWUUYKAAFH6MVHQ \ / AMOS7 \ YOURUM ::
-#\[7]C5WM6OYYJ36QXDJY5IPRZIYT5KC77ZHVMFVZVMMSB4S7PJ3WYKBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,.,,.,,,,,,,,,.,,,.,,.,,,,,,...,..,,...,...,,..,.,.,...,,.,,..,,
+#7JGLFHHR3XJZ26F4MSAH5RPTQRDVBQNTWZKZFIRFPCVCVHO4FH2HRDRXM4ZNYANPV4KZ3Z4U3TBCU
+#\\\|O3VKYPYYUY5ZVRDN5QT7GV2AV6A7IV46M2ZQ4VUCWCIW3KJV6Y4 \ / AMOS7 \ YOURUM ::
+#\[7]3DY72ZGBQSWRYEUKSTRHGWQIMFL3KZBPWNGOIGMDF7HZ3V7M5GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
