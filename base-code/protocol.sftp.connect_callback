@@ -6,29 +6,29 @@ my $client_fd = shift;
 
 if ( not defined $client_fd or !-S $client_fd ) {
     <[base.log]>->( 2, ': expected valid socket, declining init..,' );
-    return 0;
+    return 0;    ## init declined ##
 }
 
 my $socket_id = <[chk-sum.amos]>->( \"$client_fd" );
 
 if (   not defined <sftp.allowed_unix_users>
     or not length <sftp.allowed_unix_users> ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0,
         ": [%s] 'sftp.allowed_unix_users' not configured, declining init..,",
         $socket_id
     );
-    return 0;
+    return 0;    ## init declined ##
 }
 
 my $users_str = <sftp.allowed_unix_users>;
 
 if ( not defined $data{'handle'}{$client_fd}{'link'}
     or $data{'handle'}{$client_fd}{'link'} ne qw| unix | ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, ": [%s] connection type not 'unix', declining init..,", $socket_id
     );
-    return 0;
+    return 0;    ## init declined ##
 }
 
 my $unix = $data{'handle'}{$client_fd}{'unix'} // {};
@@ -40,7 +40,7 @@ if (   not defined $unix->{'pid'}
         0, ": socket %s missing unix credentials, declining init..,",
         $socket_id
     );
-    return 0;
+    return 0;    ## init declined ##
 }
 
 my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
@@ -53,7 +53,7 @@ if ( not defined $user ) {
         '[%s] cannot retrieve username from passwd file, init declined ..,',
         $socket_id
     );
-    return 0;
+    return 0;    ## init declined ##
 }
 
 ##                                                  ##
@@ -77,14 +77,18 @@ foreach my $access_str ( split m| +|, $users_str ) {
     }
 }
 
-<[base.log]>->(
-    0, "[%s] user '%s' does not match any configured permission, declined..,",
+<[base.logs]>->(
+    0,          "[%s] unix user '%s' matches no permission >:]",
     $socket_id, $user
 );
-return 0;
+<[base.logs]>->(
+    '[%s] :. init declined, connection not accepted .,', $socket_id
+);
 
-#,,.,,,..,,.,,,.,,.,.,...,...,...,.,.,,..,.,,,..,,...,..,,.,.,.,.,.,,,,.,,.,,,
-#RCC7YTAJNBYQOWK4YYLCORKAF7S5CURY4IMX4DLWRXHS5ZR54XFMLEFPOUMCBB5ZKDXTVYQO6635S
-#\\\|CNZSZODWGL5VEBWAPWVFPTIZDL7DOMXSKXYD5MHRJWDKNU2BYJZ \ / AMOS7 \ YOURUM ::
-#\[7]LDMJ43VVHDEFWMJVO3XKYDQG3WT4P4WLXMHSRIQBUEEBXN54WWAA 7  DATA SIGNATURE ::
+return 0;    ## init declined ##
+
+#,,..,,.,,,,,,,,.,.,.,...,...,,,,,,,,,,,.,,,.,..,,...,...,,..,,..,,.,,...,.,,,
+#W2HZL3R43JOUUCCVYEUXOTKVL44B7X2IFYUAAJQMOVCZXIKBUVGEMBMDMS5UTIG7B5OO7VH6MGLEK
+#\\\|ESOWZ5ECT3FQAHFFVTGZE4NEWORU4X6INEVJCER3HKIOUBZ7XXW \ / AMOS7 \ YOURUM ::
+#\[7]TSTGWEMSXBBHY76EZCZWRFOCFAU76F4G5OLQQGNTBQPWPBAEY6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
