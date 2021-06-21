@@ -1,0 +1,79 @@
+## >:] ##
+
+# name  = base.sourcecode.in-mem.checksums
+# descr = returning harmonized checksum table of all loaded %code subs
+
+my $pattern = shift;
+
+my @sub_names;
+my @sub_sizes;
+my @checksums;
+
+if ( defined $pattern and $pattern =~ s|\$$|| ) {
+    @sub_names = $pattern if defined $code{$pattern};
+} else {
+    @sub_names = <[base.sort]>->( \%code );
+}
+
+foreach my $code_name (@sub_names) {
+    next if defined $pattern and index( $code_name, $pattern, 0 ) != 0;
+
+    my $sub_source_sref = <[base.sourcecode.in-mem.sub-source]>->($code_name);
+
+    my $sub_length = sprintf qw| %07d |, length $sub_source_sref->$*;
+
+    push @sub_sizes, $sub_length;
+
+    my $name_csum = <[chk-sum.amos]>->($code_name);
+
+    my $source_csum = <[chk-sum.amos.truth_template_chksum]>->(
+        sprintf( qw| %s-%%s |, $name_csum ),
+        $sub_source_sref
+    );
+    my $sub_length_csum = <[chk-sum.amos.truth_template_chksum]>->(
+        sprintf( qw| %s-%s-%%s |, $name_csum, $source_csum ),
+        \$sub_length
+    );
+
+    push @checksums, sprintf qw| %s-%s-%s |, $name_csum, $source_csum,
+        $sub_length_csum;
+
+}
+
+if ( @checksums == 0 ) {
+    return [];    ##  no pattern match [ return empty array reference ] ##
+} elsif ( @checksums == 1 ) {
+    return \@checksums;    ##  single match - no header line required  ##
+}
+
+##  creating combined tree checksum  ##
+
+my $sizes_combined_str = join( qw| . |, @sub_sizes );
+my $names_combined_str = join( '', map { sprintf "%s\n", $ARG } @sub_names );
+my $source_chksums_str = join( '', map { sprintf "%s\n", $ARG } @checksums );
+
+my $names_list_csum = <[chk-sum.amos]>->( \$names_combined_str );
+
+my $src_table_csum = <[chk-sum.amos.truth_template_chksum]>->(
+    sprintf( qw| %s-%%s |, $names_list_csum ),
+    \$source_chksums_str
+);
+
+my $sizes_str_csum = <[chk-sum.amos.truth_template_chksum]>->(
+    sprintf( qw| %s-%s-%%s |, $names_list_csum, $src_table_csum ),
+    \$sizes_combined_str
+);
+
+my $tree_checksum = sprintf qw| %s-%s-%s |, $names_list_csum,
+    $src_table_csum, $sizes_str_csum;
+
+##  prepending tree checksum as first element  ##
+unshift( @checksums, $tree_checksum );
+
+return \@checksums;    ##  returning array reference  ##
+
+#,,,.,.,,,,,,,,..,,,,,...,...,,,,,,,.,,,.,..,,..,,...,...,.,.,,,,,.,.,.,,,,.,,
+#E2DPGKH7ZGG6W2KKHSCH54UQ2CJDJSSMAGXNNPUQ67KSXPRQ4TYZZYURVRH6OV57IF6XQDGCTD2GC
+#\\\|XE5MQXJG32JJSFYQ2PJMDQJILQGQYWRVWQNZL65J7JYX22CK574 \ / AMOS7 \ YOURUM ::
+#\[7]PAC2OP4IIRPSNKFX4H22OQFHNSKAND4PINKMECV2Q6ZYSM3DAGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
