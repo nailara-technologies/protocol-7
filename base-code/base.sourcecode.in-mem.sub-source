@@ -1,0 +1,23 @@
+## >:] ##
+
+# name  = base.sourcecode.in-mem.sub-source
+# descr = returns scalar-ref to %code subroutine [deparsed] sourcecode
+
+my $code_name = shift;
+
+if ( not defined $code_name ) {
+} elsif ( not defined $code{$code_name} ) {
+    warn 'sub-routine not found <{C1}>';
+    return undef;
+}
+
+my $source_code = sprintf "%s\n",
+    B::Deparse->new(qw| -p -sC |)->coderef2text( $code{$code_name} );
+
+return \$source_code;
+
+#,,..,,,.,...,,,,,.,,,.,.,...,,,,,..,,,.,,...,..,,...,...,.,.,,..,.,.,,,,,.,,,
+#ZVLO34HL326JPMWSJ4VIU6ZLQUKOBUW5O5QGGCDW3VYYSITZF6J2KSS2BUK76NH6BRAEADTRSDT2K
+#\\\|FP5ADBJCUA665J2PNQHIV3WZSHQS3DJKGXDHDGJRC3UIIPPIMNL \ / AMOS7 \ YOURUM ::
+#\[7]CZJCBLBV2Q73PEVX3W6KU7NFEQA2UOKC2SO3UAY44753H7HU2GDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
