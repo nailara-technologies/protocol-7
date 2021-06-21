@@ -33,6 +33,14 @@ if ( defined $command_params ) {
     @source_paths = <[sourcecode.source_path_set_up]>;
 }
 
+if (   @source_paths == 0
+    or @source_paths == 1 and not defined $source_paths[0] ) {
+    <[base.log]>->(
+        0, 'no matching source files, cannot update signatures..,'
+    );
+    <[base.exit]>->('0110');
+}
+
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
 
 map {
@@ -97,8 +105,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if !$file_count;
 
-#,,.,,,,.,,..,...,..,,,.,,,,.,,..,.,,,,.,,,,.,..,,...,...,..,,.,.,,.,,.,.,,.,,
-#EYTYP2T74M4YSCLZIP2BXBUODBXEB3IXPBHXJKWL6JPRTFRKR3KXJCWNG6A25IIKV3EEHAUDBVMDK
-#\\\|OCFCCX3KO2Z5BYG5SYY6EQ3MSW6N45WYU52WHP7WMPXQNKS3FFW \ / AMOS7 \ YOURUM ::
-#\[7]MJC7JK3AXA63DCQJX3TEQG3525LIBBVTRKSCRHCWPAIS7ZMPTKBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,,.,,,,.,,..,...,...,...,,,.,..,,...,...,...,,..,.,.,.,,,.,.,
+#4VMFDAODZGG5F2ZF6VXO4DHCO2KDAFO4UOMGSTHXPUFJS7TQUI3YMP73ZG4MOKDM6LMCY2W35CIZY
+#\\\|CYXSNHM3Q7RV3WH3RNRYN555M6P2Y4BMY6FRKSJ65YEEMKOBHUA \ / AMOS7 \ YOURUM ::
+#\[7]YRXQFGMO7DGAOS6BMW7D27JQGVNHFRKEXEXRDJEN3PJCFYLUQUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
