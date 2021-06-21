@@ -7,9 +7,15 @@ my $module_reinitialization = shift;
 
 <[v7.cleanup_temp_files]> if not $module_reinitialization;
 
+if ( ref <v7.start_setup.zenki.startup.start_order> ne qw| ARRAY |
+    or <v7.start_setup.zenki.startup.start_order>->@* == 0 ) {
+    <[base.log]>->( 0, ':. no zenki to start found, giving up..,' );
+    <[v7.teardown]>;    ## abort start-up ##
+}
+
 my $zenka_config = <v7.start_setup.zenki.config> // {};
 my @all_zenki    = <[base.sort]>->($zenka_config);
-my @start_zenki  = @{<v7.start_setup.zenki.startup.start_order>};
+my @start_zenki  = <v7.start_setup.zenki.startup.start_order>->@*;
 
 ## start_order needs dependency type sort order [ currently base.sort ] ##
 
@@ -57,7 +63,7 @@ if (    exists <system.subs_loaded.debug>
 }
 
 map { <[v7.autostart_zenki]>->($ARG) if !<[v7.start_count]>->($ARG) }
-    @{$added_start_ref};
+    $added_start_ref->@*;
 
 print Dumper( $data{'jobqueue'} )
     if exists <system.subs_loaded.debug>
@@ -66,8 +72,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,.,,.,.,...,,,,,,,.,...,.,,,.,.,.,.,.,,,,,,,..,,...,...,...,,.,,,.,,...,,..,
-#2L6ZFAHZZGR7PYB2DHON6AFIEGGP2EO5RTMTXAFTC4ZPDU5XYEIC4LZUDJQYT5RST5WONXNIU4KRA
-#\\\|W3G54ANIBPFNFIRQLCHOBSEXKSBBNFIMCKLMXFWTUREENDPR2ZH \ / AMOS7 \ YOURUM ::
-#\[7]AUHFNB7DEXCJRH6U6KXV6C2LYHSMUXZKAJGOILIJ6VORX2L2DUAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,,,,,...,,,,,,..,,..,.,,,.,,,..,,...,...,...,,,.,,.,,..,,,.,,
+#LHJ2DMN7JM5RPVTHJT736IA3F7VVUPSTHXNLET53PIKK4Z2BEUQBXFNGCAS5PQBY6RTCLYE2JC64Q
+#\\\|Z4E2IOSCENLYGKTPXQ2BUIRJIBLOGLEKZTHG6KRDXP7FKGDBQ6B \ / AMOS7 \ YOURUM ::
+#\[7]EKAOEVW6ADVXMSPGZWTU6DX3V4DSP5YB2545JUPXM4HXPI2HIYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
