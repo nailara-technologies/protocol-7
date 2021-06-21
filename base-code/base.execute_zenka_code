@@ -14,9 +14,10 @@ $code_name = sprintf qw| %s-zenka |, <system.agent.name>
     if lc($code_name) eq qw| zenka |;
 undef $ZENKA_CFG_NAME;
 
-my $use_aliases   = 1;    ## <-- resolve config command aliases ? ##
-my $noerr         = 1;
-my $code_line_num = 0;
+my $use_aliases        = 1;    ## <-- resolve config command aliases ? ##
+my $noerr              = 1;
+my $code_line_num      = 0;
+my $event_loop_present = @ARG ~~ m|\$code\{'event.loop'}|;
 foreach my $code_line (@ARG) {
     $code_line_num++;
     my $error_exit = 0;
@@ -27,6 +28,7 @@ foreach my $code_line (@ARG) {
             <[base.check_cfg_cmd_alias]>->($1)|ge;
     ###
 
+    ## change warn handler to report zenka config line numbers ##
     local $SIG{'__WARN__'} = sub {
         ( my $err_str = $ARG[0] ) =~ s| ?<\{N?C\d?}>||g;
         if ( index( $err_str, qw| eval |, 0 ) > -1 ) {
@@ -36,8 +38,8 @@ foreach my $code_line (@ARG) {
                 $err_str =~ s| at .+line.+$|' \]|g;
             }
         }
-        <[base.logs]>->(
-            0,          'runtime-error : %s statement %s',
+        <[base.logs]>->(    ## requires statement to line number map ##
+            0,          'runtime-error : %s [ statement %03d ]',
             $code_name, $code_line_num
         );
         <[base.logs]>->(
@@ -45,8 +47,9 @@ foreach my $code_line (@ARG) {
         );
         $error_exit = 1;
         }
-        if index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
-    ## use regular base.sig_warn handler in main event loop ##
+        if $event_loop_present
+        ## use regular base.sig_warn handler in main event loop ##
+        and index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
 
     eval($code_line);    ##  evaluate zenka-code \ config line  ##
 
@@ -84,8 +87,8 @@ foreach my $code_line (@ARG) {
 }
 return $noerr;
 
-#,,.,,...,..,,...,.,,,.,,,,,,,,,,,.,.,,,,,.,,,..,,...,...,.,,,,,.,,.,,...,.,.,
-#S4QC24YITBXTGW3OI3CEX7Z4Z3QETSIN6ZSR4RGJVZLBEPDMGBSMX64QR7MD4NTFAQSDDZHSFQIJ6
-#\\\|VES6PSEU6NHPTZYHGIIJ6YLN52V5L3LB5SEOVARILNABVOPWTNK \ / AMOS7 \ YOURUM ::
-#\[7]GU2DXFCP2S4KB2C4CUYFWLRRKQI2WIN4DOMKUIQ2I4SVNG3YPCCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,.,.,..,,,,.,...,...,,,.,..,,..,,...,...,...,.,.,,,,,,,.,,..,
+#L5TUMQX2RSZ334ECPGMEL6LC3V55NZXQBLMV76PBSYDOUIZZQL2DMITD6DKXXHTH2AJ37573J7UI6
+#\\\|XGFVEIZLMJLWFDMH3WPHRQVTK76CA34CZ5MJCDEIQO37S3C6AYJ \ / AMOS7 \ YOURUM ::
+#\[7]ZQNWRMQ6QQL26ECW5SUISSSQDQ2NFDCDLQQTFCIJL5FZHMHWSIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
