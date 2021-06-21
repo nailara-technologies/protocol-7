@@ -62,8 +62,6 @@ my $reset      = "\e[0m";
 my $clear_all  = "\e[2J";
 my $clear_upw  = "\e[1J";
 my $clear_down = "\e[0J";
-my $nailara_bg = "\e[48;2;9;5;42m";
-my $blacklight = "\e[38;2;68;39;172m";
 
 map { $SIG{$ARG} = \&exit } qw| INT TERM HUP |;
 
@@ -154,17 +152,17 @@ sub blacklight_line {
     if ( $y <= 1 ) {
         $y_pos = 1;
         my $s = $x <= 27 ? '' : ' ' x int( ( $x - 27 ) / 2 );
-        print "\r$nailara_bg$clear_all"
-            . "$blacklight$s<<[ increase term-width ]>>\r"
+        print "\r$C{'B02'}$clear_all"
+            . "$C{'T'}$s<<[ increase term-width ]>>\r"
             and sleep 1.2
             if $x < 47;
-        return join( '', $blacklight, $nailara_bg, $clear_all );
+        return join( '', $C{'T'}, $C{'B02'}, $clear_all );
     } else {
         $y_pos = 2;
         return join( '',
-            "\e[${y_pos}H", $reset,      $clear_upw,
-            $clear_down,    $nailara_bg, ' ' x $x,
-            "\e[${y_pos}H", $nailara_bg, $blacklight );
+            "\e[${y_pos}H", $reset,    $clear_upw,
+            $clear_down,    $C{'B02'}, ' ' x $x,
+            "\e[${y_pos}H", $C{'B02'}, $C{'T'} );
     }
 }
 
@@ -191,8 +189,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,.,,..,,..,,...,..,,...,,.,,.,,,,.,,,.,,.,,,..,,...,...,.,.,..,,..,,..,,,,.,
-#OY77YYTN63REB6KGM5IAFU4SEGHHSO7V2H325AW5Y6D5ZWAGDYAU7QUNHFTQZ464NLY7ZTTM7Q5DM
-#\\\|T3PL3XVQYQH2TZMRTJ5ELA3AUZSH3FSXQHOB3QJVYU4KPZ2N4WM \ / AMOS7 \ YOURUM ::
-#\[7]4DYH5YXYS5DD6G6TCHXDXVIBVK4KPFOTJG3I5X732M3QJMJPXWAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,..,,..,,...,,..,,,,,,,.,,,.,..,,...,...,,,.,...,..,,.,.,.,,,
+#6DOIIHEOHPG5WNUV7QZIOEVL3FLXSY57OU2FQK6NNIJ5D5DCPMFAJV6S32DERCJNLI6KZCHYPZHL4
+#\\\|KCC4UVFKSZI4MKREN3K3JPG4SCR45CEHMZ3EWFASOFXCXBXNPGQ \ / AMOS7 \ YOURUM ::
+#\[7]EAHUMQP26T6EXO4AJNEKQAQTR7IVAIJERSTP2NSEW5XYGBKOEOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
