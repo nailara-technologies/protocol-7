@@ -20,7 +20,7 @@ my @copy_sources = qw [
     bin/dev/git-hooks
     data/lib-path/pm
     data/lib-path/pm/*
-    configuration/zenki/*
+    configuration/zenki/*/
     read-me/documentation/*
     data/lib-path/pm/AMOS7
     data/lib-path/pm/AMOS7/*
@@ -30,12 +30,21 @@ my @copy_sources = qw [
     data/lib-path/pm/AMOS7/Protocol
     data/lib-path/pm/AMOS7/INLINE/src
 
+    !configuration/zenki/openbox/openbox.minimal.xml
+
 ];
 
-return <[sourcecode.collect_files]>->( \@copy_sources );
+if ( not chdir(<system.root_path>) ) {
+    <[base.s_warn]>
+        ->( ': cannot change workdir to : %s', <system.root_path> );
+    return undef;
+} else {
 
-#,,,,,,..,...,,.,,,..,,,,,...,,,,,,,,,,,.,,,.,..,,...,...,.,.,,,.,.,,,,,,,,.,,
-#HMYSUHFD66W7YCPOUC6EHKMQA56ZLS7SX5TCZGW7AGTE4QZLM4P2XQIQELC4WPUBMF6PAIXRTJHNS
-#\\\|GDLFGZ63RXDQDC4R6KUFFKAOOQMBLIIEUMKLIIEFYOHJT6PCYOQ \ / AMOS7 \ YOURUM ::
-#\[7]YK5FLRLEID5OD32GNA5UD2USTLKLW24XNLS7I6JV63OJHPXW24CY 7  DATA SIGNATURE ::
+    return <[sourcecode.collect_files]>->( \@copy_sources );
+}
+
+#,,..,,..,,..,.,,,,.,,,,.,,,.,,..,..,,...,,..,..,,...,...,...,.,,,,.,,,,.,..,,
+#5IOE2E6CINIH3FJ3ODKLC7BDZGCUS5TBY46CTFZJSZZZLTUO74FMGSECVGLKJHIAE3VIIBZ4KREFU
+#\\\|CCOD2LLD5VCAR3PAEGVBLRXXCOINCGDG2ONHPVV3HE4QHCT5NMW \ / AMOS7 \ YOURUM ::
+#\[7]BAEJNLOOTIXIP6MPQA2H4OXJRLFRJG5CXJLKZB2LI5K6L3QCOKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

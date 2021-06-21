@@ -22,7 +22,7 @@ foreach my $path_param (@ARG) {
 }
 
 warn 'missing source path [ array or reference to array ] parameter <{C1}>'
-    if not scalar @{$copy_sources};
+    if not scalar $copy_sources->@*;
 
 my $exclude_files = { qw| bin/p7c | => 1 };    ## <-- expand as required., ###
 
@@ -40,23 +40,25 @@ my @all_dirs   = grep {defined} map {
     my $absolute_path = abs_path($rel_path);
     $absolute_path //= abs_path( catfile( $work_path_abs, $ARG ) );
 
-    if ( -f $absolute_path ) {                        ##  is a file  ##
+    if ( defined $absolute_path and -f $absolute_path ) {    ##  is a file  ##
 
         push( @all_files, $absolute_path );
         undef;
 
-    } elsif ( -d $absolute_path ) {                   ##  is directory  ##
-        $absolute_path;
+    } elsif ( defined $absolute_path and -d $absolute_path ) {    ## dir ##
 
-    } else {                                          ##  treat as pattern  ##
+        $absolute_path;    ## add to dirs ##
+
+    } else {    ##  treat as pattern  ##
+
         if ( !<[file.match_dirs]>->( $work_path_abs, qw| recursive |, $ARG ) )
         {
-            <[base.logs]>->( 0, ": no match for patterm '%s'.,", $ARG );
+            <[base.logs]>->( 0, ": no match for pattern %s ..,", $ARG );
             $error_exit = 2 if not $error_exit;
         }
     }
     }
-    grep { !m|\*| } @{$copy_sources};
+    grep { !m|\*| } grep { !m|^\!| } $copy_sources->@*;
 
 <[base.exit]>->(2) if $error_exit;
 
@@ -68,7 +70,30 @@ push(    ## enabling [non-recursive] wildcard matches ##
         my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
         <[file.match_dirs]>->( $absolute_path, $pattern );
         }
-        grep {m|\*|} @{$copy_sources}
+        grep { !m|\*/| }
+        grep {m|\*|} $copy_sources->@*
+);
+
+push(    ## glob based wildcard matches ##  [ ,../*/ ]
+    @all_dirs,
+    map {
+        ( my $base_path = $ARG ) =~ s|/*\*.*$||;
+        ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
+        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        }
+        grep {-d} map {glob}
+        grep {m|\*.*/$|} $copy_sources->@*
+);
+
+push(    ## glob based wildcard matches ##  [ ,../*/* files ]
+    @all_files,
+    map {
+        ( my $base_path = $ARG ) =~ s|/*\*.*$||;
+        ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
+        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        }
+        grep {-f} map {glob}
+        grep {m|\*/.*\*$|} $copy_sources->@*
 );
 
 map {
@@ -90,10 +115,17 @@ my @source_paths
     = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
     grep { !m{/\.|~$} } @all_files;
 
-return @source_paths;
+## exclusion patterns [ !..,* ] ##
 
-#,,,.,,,.,,..,.,.,...,,,,,.,.,,..,,,.,..,,,.,,..,,...,...,..,,.,.,,.,,,..,,.,,
-#2MQ5ZELMTQRCL4AH6FLEB7WJ527NTGTSSQ54SOELPCW4Y2UU7WQSOMTR37LVVPZOY5S5BVKO74EC2
-#\\\|ZKLO5JPO34CPR2C3IBTLUE5LURXL4GCTYF2MU5QJVVSH2E2SLOI \ / AMOS7 \ YOURUM ::
-#\[7]SYSSD3WSPI7YIGF7XAP6PW6UGV7SMKYWKYULFLRHZXCHSNAUNMDI 7  DATA SIGNATURE ::
+foreach my $pattern_str ( grep {m|^\!|} $copy_sources->@* ) {
+    $pattern_str =~ s|^\!||;
+    @source_paths = grep { !m|\Q$pattern_str\E| } @source_paths;
+}
+
+return uniq <[base.sort]>->(@source_paths);
+
+#,,.,,.,,,.,,,.,.,.,,,.,.,.,,,,,,,,,,,.,.,,.,,..,,...,...,..,,,,,,,..,.,.,..,,
+#J6FWGKRFKZPUM2ONIP52CI33MHOAO6V7P4PT7YTD2BOSYVJ7OAE2PHB6ZLHYXLXQQW43XN4AWE63E
+#\\\|JBKXXQYYDIPQC5A6XKOQ65RGISKLZG7SQT3DRFNWUQP7L25QE3O \ / AMOS7 \ YOURUM ::
+#\[7]SML6C5AUPN6KGYSVBDBWONAU4NYUWHGVUYRXQRUR6PZMYHX5TEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
