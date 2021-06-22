@@ -1,0 +1,59 @@
+## >:] ##
+
+# name  = sourcecode.extract_modules
+
+my $zenka = shift;
+
+if ( not defined $zenka or not length $zenka ) {
+    warn 'expected zenka name parameter <{C1}>';
+    return undef;
+}
+
+my $zenka_cfg_path = sprintf qw| %s/%s/config |, <source.path.zenki>, $zenka;
+if ( not -f $zenka_cfg_path ) {
+    <[base.logs]>->( 0, 'zenka %s not found', $zenka );
+    <[base.exit]>->(4);
+}
+
+my $config_str = join "\n", <[file.slurp]>->($zenka_cfg_path)->$*;
+
+$config_str =~ s|^.*\[(*nla:load_modules).*]|## $MATCH|mg;
+
+my $current_zenka_name = <system.zenka.name>;
+<system.zenka.name> = $zenka;
+
+my @config_lines = split "\n", $config_str;
+
+## set alias to extract used module list from executed zenka config ##
+<cfg_cmd.base.load_modules> = qw| sourcecode.callback.load_modules |;
+
+my @config_code = (
+    'my %zenka_cfg',
+    <[base.parser.config]>->( \@config_lines, qw| $zenka_cfg | ),
+);
+
+if (not
+    <[base.execute_zenka_code]>->( join '', map {"$ARG;\n"} @config_code ) ) {
+    <[base.logs]>->(
+        0, '%s zenka config execution was not successful', $zenka
+    );
+    <[base.exit]>->(2);
+}
+
+my @modules = <extracted_zenka.used_module_list>->@*;
+
+## cleaning up ##
+
+delete <cfg_cmd.load_modules>;
+delete $data{'extracted_zenka'};
+delete $data{'cfg_cmd'} if not keys $data{'cfg_cmd'}->%*;
+
+<system.zenka.name> = $current_zenka_name;    ## reset to current zenka ##
+
+return @modules;
+
+#,,,.,,,,,.,.,,,.,,..,,..,,,.,,,,,...,,..,..,,..,,...,...,.,.,..,,,.,,...,,..,
+#L3FRQQT5ITCTNBWMZ5KKLZLWBFZOZPSLCCXSCXOL3BMGHQVCWBC7XOHWZ7TJ7ABDP3TICIEXP2OL2
+#\\\|QYPOPUC7GTSXSWDGUCY3AGH7PCZGCAKW5KCIYQOJYMB33KUAU6F \ / AMOS7 \ YOURUM ::
+#\[7]QPCKNTC7ESSZCYNLXUVMWUJRN33MONJKRK4VTP5HU4HUOIQPEOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

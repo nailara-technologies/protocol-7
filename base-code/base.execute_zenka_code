@@ -10,12 +10,15 @@ my $code_name
     = defined $ZENKA_CFG_NAME
     ? sprintf( "cfg '%s'", $ZENKA_CFG_NAME )
     : qw| zenka-code |;
-$code_name = sprintf qw| %s-zenka |, <system.agent.name>
+$code_name = sprintf qw| %s-zenka |, <system.zenka.name>
     if lc($code_name) eq qw| zenka |;
 undef $ZENKA_CFG_NAME;
 
+## storing last return value ##
+<zenka_cfg.ret_val> = undef;
+
 my $use_aliases        = 1;    ## <-- resolve config command aliases ? ##
-my $noerr              = 1;
+my $noerr              = 5;
 my $code_line_num      = 0;
 my $event_loop_present = @ARG ~~ m|\$code\{'event.loop'}|;
 foreach my $code_line (@ARG) {
@@ -51,11 +54,12 @@ foreach my $code_line (@ARG) {
         ## use regular base.sig_warn handler in main event loop ##
         and index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
 
-    eval($code_line);    ##  evaluate zenka-code \ config line  ##
+    ##  evaluate zenka-code \ config line  ##
+    <zenka_cfg.ret_val> = eval($code_line);
 
-    if ($error_exit) {   ## todo : adapt parser from below ##
+    if ($error_exit) {    ## todo : adapt parser from below ##
         return warn 'stopped processing <{C1}>';
-        return 1;
+        return $noerr = 0;
     }
 
     if ( length $EVAL_ERROR ) {
@@ -85,10 +89,11 @@ foreach my $code_line (@ARG) {
         $noerr = 0 if $noerr;
     }
 }
-return $noerr;
 
-#,,,.,,.,,,.,,.,,,.,.,..,,,,.,...,...,,,.,..,,..,,...,...,...,.,.,,,,,,,.,,..,
-#L5TUMQX2RSZ334ECPGMEL6LC3V55NZXQBLMV76PBSYDOUIZZQL2DMITD6DKXXHTH2AJ37573J7UI6
-#\\\|XGFVEIZLMJLWFDMH3WPHRQVTK76CA34CZ5MJCDEIQO37S3C6AYJ \ / AMOS7 \ YOURUM ::
-#\[7]ZQNWRMQ6QQL26ECW5SUISSSQDQ2NFDCDLQQTFCIJL5FZHMHWSIAQ 7  DATA SIGNATURE ::
+return $noerr;    ## return zenka cfg execution status ##
+
+#,,,,,.,.,,..,...,.,,,..,,,.,,...,,.,,,..,..,,..,,...,..,,..,,...,.,.,.,.,..,,
+#KUH4HMHZUPLYJ43G45J5T6UIOKLFWB2KRQHOJK7FKZQP32Y4AGTML6YUDNESHUP4G4TEEZCPM6FXK
+#\\\|XID7P4J7ZGOQQBA4QM5DE4NGQTGGU5ETW7ROTIJFQ2ZICJ7A7MH \ / AMOS7 \ YOURUM ::
+#\[7]VGVHQ7NRGSALH5O7SXYPQ5J7AHGZRICPDO2KVUOAASF3K6RMDCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

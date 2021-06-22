@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = sourcecode.callback.load_modules
+
+my $modules_load_param = shift;
+
+if ( not defined $modules_load_param or not length $modules_load_param ) {
+    warn 'module name parameter not defined <{C1}>';
+    return undef;
+}
+
+my $modules = <extracted_zenka.used_module_list> //= [];
+
+push $modules->@*, uniq <[base.sort]>->( split m| +|, $modules_load_param );
+
+return scalar $modules->@*;
+
+#,,,.,...,...,..,,,.,,..,,..,,,.,,,..,.,,,.,,,..,,...,..,,..,,,..,...,,,.,.,,,
+#4PKO6F7P3HKKSTGBRLRH4UTQ2R5SVFNDQZT2PAWWTR3HXHEUXIV4FOO56TXZC7DEEXM63EDDVW3PC
+#\\\|7MBTVQXFNQ3CSQ3PLUXQUJLXIY2VOBIQZEHKPMJY5KKD3Y4UTDG \ / AMOS7 \ YOURUM ::
+#\[7]IKHSJ5VM2J7R7YA3NRV637X3BKBC2L6I26ULZDRYLOJI4P5GIQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

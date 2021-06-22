@@ -5,12 +5,23 @@
 
 my %C = %AMOS7::C;
 
-my $source_modules = <sourcecode.path.modules>;
+my $zenki_str = shift;
+my @zenki     = defined $zenki_str ? split( m| +|, $zenki_str ) : ();
 
-my @p7_module_names
-    = <[base.sort]>
-    ->( uniq map { $LAST_PAREN_MATCH if $ARG =~ m|^$source_modules/([^\.]+)| }
-        <[file.all_files]>->($source_modules)->@* );
+my @p7_module_names;
+
+if (@zenki) {
+    foreach my $zenka (@zenki) {
+        push @p7_module_names, <[sourcecode.extract_modules]>->($zenka);
+    }
+    @p7_module_names = uniq <[base.sort]>->(@p7_module_names);
+} else {
+    my $source_modules = <sourcecode.path.modules>;
+    @p7_module_names
+        = <[base.sort]>->(
+        uniq map { $LAST_PAREN_MATCH if $ARG =~ m|^$source_modules/([^\.]+)| }
+            <[file.all_files]>->($source_modules)->@* );
+}
 
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 map {
@@ -23,8 +34,8 @@ map {
 } @p7_module_names;
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
-#,,,.,..,,,,.,,..,.,,,,,.,,..,,,.,,.,,.,.,..,,..,,...,...,.,.,,..,...,..,,.,.,
-#CUW54DTLQDRABNAXSRKX4RXVML2M3266ALXC4POITPNO75S7PQMXYIMZJVWCEXGIADQ2PE4PMWY44
-#\\\|EMD4DQMKDY722F4K6FAJD3APLS7F5PO64WBEOSR2ZDQ35DTSQMB \ / AMOS7 \ YOURUM ::
-#\[7]GPTVEISI7AVTPZEJUV5NEKDQBPGCOHYGFATAXHVZ55TE4UB4FYAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,.,.,,..,,.,,,,,,,,.,,,,,.,.,..,,...,...,,,,,...,,..,,,,,,.,,
+#B3UJN7IEKID46X2YZ7WLJSBWLVAPQ5WUIE3QBHEGSFHAEJMSL2DEK7NI4DQRFZXRTAAC574X4PFQM
+#\\\|Q2CH2DFMD5AZR6UK2B43GTFSSZCSPHCILHILPZCRZV2XX6L4PPB \ / AMOS7 \ YOURUM ::
+#\[7]GBUWMIEVYGHOXPHLVJ7U6IG3VHZXRCXPSBFFIUT4QYNPVZG3TADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
