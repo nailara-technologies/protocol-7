@@ -5,7 +5,10 @@
 <[base.perlmod.autoload]>->('Math::Symbolic');
 <[base.perlmod.autoload]>->('Math::Symbolic::Parser::Precompiled');
 
-my $cb_name = <calc.log_buffer.name> //= 'session';
+$Math::Symbolic::Parser
+    = Math::Symbolic::Parser->new( implementation => qw| Yapp | );
+
+my $cb_name = <calc.log_buffer.name> //= qw| session |;
 
 <calc.math.function_names> = [
     qw| partial_derivative  total_derivative  sinh  cosh  asinh  acosh  asin
@@ -19,15 +22,16 @@ my $start_str
     = sprintf(
     "..  %s  \\\\  started calc session  \\\\  %s  \\\\\\  \\\\   \\",
     $time, $date );
-map { <[base.buffer.add_line]>->( $cb_name, join( ' ', '0', '0', $ARG ) ) } (
+map { <[base.buffer.add_line]>->( $cb_name, join( ' ', qw| 0 0 |, $ARG ) ) }
+    (
     ".            \\\\",
     $start_str, "...                                      \\\\"
-);
+    );
 
 0;
 
-#,,,,,...,.,,,..,,.,.,,.,,.,.,,.,,.,.,.,,,...,..,,...,..,,,.,,.,,,,.,,,,.,,..,
-#XA6QUUWZWSPYMQIFARIF66T7XZPWTTBKFXDXLZ6VYNKNKIQFNHVKQAJ7IX5F73OIXE57PXMIYBJGY
-#\\\|4Z7CXZDK7XYAYXNJNUN2GCVIVFSSOGFRLFOP3Q25OGUTYO2Q436 \ / AMOS7 \ YOURUM ::
-#\[7]UKGDOO2HBGISYFUKAM4IRAOAUW47I4AO6JTX37GM2OL4RRTBUWCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,.,,,..,,.,,..,,,..,,,,,,,,,..,,...,...,,,.,...,,,,,,,.,.,,,
+#CBXWJQHAIYDI436DIXRDIBHTGWHK6BFMXXV7ZEI6CCHC7E54GFRIO5BDITBC6GWZLJM63QATEOSWK
+#\\\|AQG5PUUCH4J5VCHXTDXDEIYIYP2PFSGDQSKTXLVCQAFLPP3Z6CE \ / AMOS7 \ YOURUM ::
+#\[7]VJZOVNMCLMERMQFB4RRLFLCKT7SBGYBLWAWKWUHSY7P3IZLTIMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
