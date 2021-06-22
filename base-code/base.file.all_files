@@ -2,7 +2,13 @@
 
 # name = base.file.all_files
 
-my ( $path, $result_aref, $resolved ) = @_;
+my ( $path, $result_aref, $resolved ) = @ARG;
+
+if ( not defined $path or not length $path ) {
+    warn 'path param missing or undefined <{C1}>';
+    return undef;
+}
+
 my $old_path;
 my $recursive         = 0;
 my $recursion_entered = 0;
@@ -38,8 +44,8 @@ if ( -d $path ) {
 
 return $result_aref if !$recursion_entered;
 
-#,,,,,...,.,,,.,.,,.,,..,,,.,,,.,,..,,,.,,,..,..,,...,...,..,,..,,.,,,..,,...,
-#ZBCZ5YYCUR7LX6JGZZTS67V7LB5OAWQ6Z7RE4TPRH6WFZDNCRQ3IRSFXUUS7SRB4MD5DEZBODZ2VY
-#\\\|3BPACU7XI546IO5QFXS7OQJFAOEIANZN2IKWZB53ULHGXD2DWRV \ / AMOS7 \ YOURUM ::
-#\[7]TSTF3M3A2ZNPDAAF52ECHIQIW5JQT5O6EBVWKBAD2QOPKV7SA6CI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,..,,,,,...,,,.,,.,,,,.,,,.,..,,...,...,.,,,,,,,,,,,...,.,.,
+#OA3BKKR3JCCIUHMM5BRHQHWCXIKZD635LQAZNEQ2OF6IWSTT4ZJKXDCNS4LTICUTUOVGCT2FESNL2
+#\\\|LS4AWZIOCVESIATVGOWMQ4QI3ITPDQH2OQ2FECYR5T5GXCTRCYJ \ / AMOS7 \ YOURUM ::
+#\[7]FWZ7XL2FO7O7OSJML62QXK4TFWK5Z626DA4DNJE3PIRSDYJGHGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

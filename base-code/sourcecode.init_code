@@ -5,25 +5,15 @@
 <[base.perlmod.autoload]>->('File::Copy');
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 <sourcecode.path_desc>
-    = { 'version' => 'linking source code to checksummed path names' };
+    = { qw| version | => 'linking source code to checksummed path names' };
 
 my $path_href = <sourcecode.path>;
-map { $path_href->{$ARG} //= <source.path>->{$ARG} } keys %{<source.path>};
-
-## ./
-my $work_tree = $path_href->{'work_tree'}; # overridden in sourcecode.pre_init
-
-## ./source/
-$path_href->{'source_dir'} // catfile( $work_tree, 'source' );
-
-## ./source/version
-$path_href->{'version_root'}
-    = catfile( $path_href->{'source_dir'}, 'version' );
+map { $path_href->{$ARG} //= <source.path>->{$ARG} } keys <source.path>->%*;
 
 0;
 
-#,,,,,...,,,.,,..,.,,,..,,...,,,.,,..,,,.,,..,..,,...,...,..,,.,,,..,,,,.,.,,,
-#WAO743PV4ILQRRHHR6UNBAGGEJ7GVOPABRBHNKAT2XMDDAAHEVVYYL7LUNRDDRW7Y2BVJIV2SETQG
-#\\\|ANS7DMVXVYDI626TXKLWKK4A5LX6VGZ4JOQDAXQFUA7WGCTZQ4L \ / AMOS7 \ YOURUM ::
-#\[7]ZX4Z6SWECKWKV7PO3DDKD4MIB74FE3UAL5S3TEOWACTYWTMYECDI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,,.,,,.,,,..,.,.,,..,.,,,,,.,..,,...,...,..,,,,.,..,,,..,.,,,
+#6CB7Q6ZCBD6TYUWG7YQI6ALMKKQUGCLFCBTZOCWQXWC26YGEZY6D4TCWB6UJIMH7ZJHONIPUQHGSM
+#\\\|GJ62S43RMDCXVSSHU2J5YNXOHUXZGNP62L25S57FIIMHCKUKNYR \ / AMOS7 \ YOURUM ::
+#\[7]BTAM3UYHQN75NPG5M7CBPJNL5N3NNEH2LUYSEZUCGXR35ATNXWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
