@@ -8,21 +8,23 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 Gtk3->init;
 
-my $cursor = Gtk3::Gdk::Cursor->new('left_ptr');
+my $visible_pointer_name = <X-11-pointer.cfg.visible_cursor>;
+
+my $cursor = Gtk3::Gdk::Cursor->new($visible_pointer_name);
 my $screen = Gtk3::Gdk::Screen::get_default();
 
 Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
 
-<[base.log]>->( 1, 'restoring default mouse cursor..' );
+<[base.log]>->( 1, 'restoring visible mouse pointer..,' );
 
 $screen->get_root_window->set_cursor($cursor);
 
 Gtk3->main;
 
-return { 'mode' => 'true', 'data' => 'pointer has been restored' }
+return { 'mode' => qw| true |, 'data' => 'pointer has been restored' }
 
-#,,,,,.,,,.,.,.,,,..,,..,,,,,,,,.,,..,,..,...,..,,...,...,...,.,,,,..,,,.,,,.,
-#RE6G3V3S62H2DFQ4EFJ6SQ4NZZWHAMHKU4KIGGXQ5INALFSKQG3ID5T2MR6GXBANM7EJ3M36LS7JK
-#\\\|J3MPMFZBDBDHLZJIHR77Y6ELFXPRXVPRM2RGFLAXWKEU67MQLGQ \ / AMOS7 \ YOURUM ::
-#\[7]UGO7TRIGRRMU7AFP7B7PBOHMINJXCOE6WM4KJBDBJENL7JCC3OCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,...,.,.,,..,,.,,.,.,,,,,,,,,..,,...,...,,,,,...,,..,..,,,.,,
+#4TZGQVTUSDK7YPDNHQYD27T6V664CLHLJMNKGJVMQI2NL7N6MGBNYBZXMV5CG4N7BJL3TJYHMQJCQ
+#\\\|3NEPQBSYX4P474QWPSL7SU4RAL6QW76DPOT7XC4CRAT3ZUK4AHR \ / AMOS7 \ YOURUM ::
+#\[7]CXTGWLM6WXAX6SGPNTHE3RAI2GISOPLXPNXXSXTTYXIW6TSBKKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
