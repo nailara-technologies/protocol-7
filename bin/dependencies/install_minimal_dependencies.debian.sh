@@ -8,7 +8,7 @@ EXT_LIB_PATH="$NAILARA_ROOT/data/lib-path"
 ln -f -s $NAILARA_ROOT/bin/protocol-7 /usr/local/bin/protocol-7
 ln -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
-cp $EXT_LIB_PATH/systemd/system/protocol-7.service /lib/systemd/system/
+cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
 
 # dependencies for 'nroot','core','config', 'events' agents + nshell
 
@@ -50,8 +50,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,.,,...,,.,,,,.,.,.,,,.,...,...,...,..,,,.,,..,,...,..,,,.,,..,,.,.,,,.,.,.,
-#NF56XKCO3Q4SCASLTRGPPLPKRWKBVV7GLSFBTVJLV2QI62ZKZACMC7H3PYV42DODBMQZ5XNOVGTYY
-#\\\|J47HX5R2RL6H6UPKEWV2WGIEO65ULFBT6S5YDVF6DLXT5MK2CJC \ / AMOS7 \ YOURUM ::
-#\[7]Z3BD4R3WQUMFDJWQ77GUH2WJZMZD2JCBR5CJGNU4JQRJWFSISODA 7  DATA SIGNATURE ::
+#,,..,...,,.,,..,,.,.,.,,,,,,,,,,,,.,,,..,,.,,..,,...,..,,...,.,.,...,,.,,,,,,
+#X7C4NMGQAAMXV2GEDKYHZJBLLA3YYI7BOUK6GBTCT4KOC7LBUKU4UGRSJRRX7732WDCQS2YDEOCHS
+#\\\|SXIROI2MHRWYHT7PMB53JOLM2I6ERJJNMADRI4UMFXXPS2GTJGG \ / AMOS7 \ YOURUM ::
+#\[7]PU653A7I4JB4L7RRINZNTL7SPATXBGTUZOHUJ6NCJIZMRRUYOICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

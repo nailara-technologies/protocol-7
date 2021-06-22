@@ -26,12 +26,12 @@ $code{'base.load_code'}->(qw| base |);
 
 my $zenkaname;
 
-if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
-    $zenkaname = lc($PROGRAM_NAME);
-    $zenkaname =~ s|^.*protocol-7\.||g;
+if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
+    $zenkaname = lc $PROGRAM_NAME;
+    $zenkaname =~ s|^.*protocol-7\.||ig;
 } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
     $zenkaname = $LAST_PAREN_MATCH;
-    shift(@ARGV);
+    shift @ARGV;
 }
 
 ( $zenkaname, @ARGV ) = ( split( m| +|, $zenkaname ), @ARGV )
@@ -62,7 +62,8 @@ if ( defined $zenkaname and $zenkaname ne '' ) {
         $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
     }
     $RS           = "\n";
-    $PROGRAM_NAME = "protocol-7.$data{'system'}{'zenka'}{'name'}";
+    $PROGRAM_NAME = sprintf qw| Protocol-7.%s |,
+        $data{'system'}{'zenka'}{'name'};
 
     my @zenka_code = <STDIN>;
 
@@ -98,7 +99,7 @@ sub prepare_subs {
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
 
-        die "\n\n << invalid characters [ '"
+        die "\n\n << not valid characters [ '"
             . ${^CAPTURE}[0] . "' ]"
             . " in program name '$PROGRAM_NAME' >>\n\n\n"
             if $PROGRAM_NAME =~ $char_map;
@@ -534,9 +535,8 @@ sub prepare_subs {
         my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
         my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
         $data{'system'}{'start'}{'true_exec'} = $actual_exec;
-        $data{'system'}{'start'}{'exec_name'}
-            = File::Spec->rel2abs( canonpath($PROGRAM_NAME) )
-            ;    # apparent exec [symlink]
+        $data{'system'}{'start'}{'exec_name'}    # apparent exec [symlink]
+            = File::Spec->rel2abs( canonpath($PROGRAM_NAME) );
         $data{'system'}{'root_path'}
             = abs_path( catdir( $bin_path, updir() ) );
         $data{'system'}{'perl_execname'} = $EXECUTABLE_NAME;
@@ -568,7 +568,7 @@ sub prepare_subs {
             = $code{'base.read_from_version_file'}->($release_file);
 
         ## determine zenka name and subname ###
-        if ( $PROGRAM_NAME =~ m|^.*protocol-7\.| ) {
+        if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.| ) {
             $data{'system'}{'zenka'}{'initialized'} = 0;
             $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
             $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
@@ -2284,8 +2284,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,..,,,.,,.,,.,.,..,,...,.,,,..,,,,,,,.,,.,.,..,,...,...,,..,,,,,,,.,.,.,.,,,
-#57BUEUV3WUTGW5HPGO2PN2EGVSTAJLQSQU6JQCQM4OFB2NFPTIOC3VO2UFOCSZJ3URJDUJT2Q4OFY
-#\\\|ETXQQWDBGHYTAENHE4HTBDRQHQ4ZRLRVQC5E43HDAPO6TLXQWPP \ / AMOS7 \ YOURUM ::
-#\[7]SBRMHDMSLJU4LH5LFC5OPKPUTP6IR575DHUG2YYKN65PRXDWYOCY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,,.,,.,,,.,,,.,.,.,,,...,,..,..,,...,...,,.,,,..,,..,...,,,.,
+#W7LNOEIL4SER7U7PE5AYDD7XGNNQ5J5NOY34JXSSRY2ADF5EY3I7IZ4KJXGJGCTF7CDZDMYOX232W
+#\\\|FZQWBNT4KSLERFT4BPOX3CNEYIHCXT7NCC3QPQFZCMBVCWPLCH3 \ / AMOS7 \ YOURUM ::
+#\[7]7U55OKWDXGLPX3PT7RZMCZYP6S5B5YLHYPKHLBUZ3G4PNQG7GIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
