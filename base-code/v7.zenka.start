@@ -42,7 +42,7 @@ map { $starting++ if $instances->{$ARG}->{'status'} eq qw| starting | }
     @{ <[zenka.instance.get_ids]>->($zenka_id) };
 
 if ($starting) {    # delay zenka start-up until previous one is online ..,
-    <[base.logs]>->( 1, 'delaying next %s zenka instance ..,', $zenka_name );
+    <[base.logs]>->( 'delaying next %s zenka instance ..,', $zenka_name );
     <[zenka.change_status]>->( $instance_id, qw| delayed | );
     return;
 }
@@ -67,7 +67,7 @@ if ( <system.verbosity.console> > 1 ) {
     my $verbosity_factor = 1.22420707 * ( <system.verbosity.console> - 1 );
     $start_timeout *= $verbosity_factor;
     <[base.logs]>->(
-        1, ': increased instance start timeout to %.3f s [ verbosity ]',
+        ': increased instance start timeout to %.3f s [ verbosity ]',
         $start_timeout
     );
 }
@@ -90,8 +90,9 @@ $instance->{'timer'}->{'start-time-out'} = <[event.add_timer]>->(
 # execute v7-init code
 my $init_result_data = {};
 my $namespace_str
-    = "\$data{'v7'}{'zenka'}{'instance'}{$instance_id}{'init_data'}";
-if ( exists $init_code->{'v7-init'} ) {
+    = sprintf "\$data{'v7'}{'zenka'}{'instance'}{%d}{'init_data'}",
+    $instance_id;
+if ( defined $init_code->{'v7-init'} ) {
     <[base.logs]>->(
         2,            'executing start init-code for instance %d [%s]',
         $instance_id, $zenka_name
@@ -116,7 +117,9 @@ if ( exists $init_code->{'v7-init'} ) {
 }
 
 my $zenka_sn_str
-    = defined $zenka_subname ? "$zenka_name\[$zenka_subname]" : $zenka_name;
+    = defined $zenka_subname
+    ? sprintf qw| %s[%s] |, $zenka_subname
+    : $zenka_name;
 
 my ( $pid, $out_fh, $in_fh );
 
@@ -145,19 +148,22 @@ if ( exists $init_result_data->{'start_mode'}
 
     ## local ./bin/ path ## [ no /-es in exec_bin param ] ##
     map {
-        $exec_bin = <system.root_path> . $ARG . $exec_bin
-            if $exec_bin !~ m|/| and -x <system.root_path> . $ARG . $exec_bin;
+        $exec_bin = sprintf( qw|%s%s%s|, <system.root_path>, $ARG, $exec_bin )
+            if $exec_bin !~ m|/|
+            and -x sprintf qw| %s%s%s |, <system.root_path>, $ARG, $exec_bin;
     } qw| /bin/ /bin/dependencies/ |;
 
     if ( not defined $exec_bin or not defined $prog_usr ) {
         my $reason
-            = "expected program name [exec_bin] in '$zenka_name' set-up";
-        $reason = "expected 'exec_usr' for '$zenka_name' to be defined"
+            = sprintf "expected program-name [exec_bin] in '%s' start set-up",
+            $zenka_name;
+        $reason = sprintf( "expected 'exec_usr' for '%s' to be defined",
+            $zenka_name )
             if defined $exec_bin and not defined $prog_usr;
         <[base.logs]>->( 0, '%s ., aborted.,', $reason );
         <[zenka.change_status]>->( $instance_id, qw| error | );
         <[zenka.cmd.stop]>
-            ->( { 'args' => $instance_id, 'mode' => qw| implicit | } );
+            ->( { 'args' => $instance_id, qw| mode | => qw| implicit | } );
         return undef;
     } elsif ( $exec_bin =~ m|\s| or !-x $exec_bin ) {
         <[base.logs]>->(
@@ -205,7 +211,7 @@ if ( exists $init_result_data->{'start_mode'}
         eval {
             $pid
                 = open2( $out_fh, $in_fh, $EXECUTABLE_NAME, qw| -e |,
-                "$prepare_code exec \"$exec_bin\"" );
+                sprintf( "%s exec '%s'", $prepare_code, $exec_bin ) );
         };
         goto SKIP_OPEN2;
     }
@@ -231,13 +237,13 @@ push( @p_arg, join( '', qw| - |, qw| v | x $zenka_verbosity ) );
 
 my @cmd_line_mods
     = defined $init_result_data->{'command_line_modules'}
-    ? map {"-M$ARG"}
+    ? map { sprintf qw| -M%s |, $ARG }
     split( m| +|, $init_result_data->{'command_line_modules'} )
     : ();
 
 if (@cmd_line_mods) {
     my $_C = <system.perl_unicode>;
-    push( @cmd_line_mods, "-C$_C" ) if defined $_C;
+    push( @cmd_line_mods, sprintf( qw| -C%s |, $_C ) ) if defined $_C;
     eval {
         $pid
             = open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
@@ -289,7 +295,7 @@ $instance->{'console-output'}->add($io);    ## <-- [ can_read ] ##
     { qw|instance_id| => $instance_id, qw|start_time| => <[base.time]>->(4) }
 );
 
-$instance->{'process'} = { 'id' => $pid, };                          # ..,
+$instance->{'process'} = { qw| id | => $pid, };                      # ..,
 $instance->{'subname'} = $zenka_subname if defined $zenka_subname;
 
 <[zenka.change_status]>->( $instance_id, qw| extbin | )
@@ -320,15 +326,15 @@ if ($stdin_mode) {
                 $code_line =~ s|<\{([^\}]+)\}>|$var_value|;
             }
         }
-        print {$in_fh} "$code_line\n";
+        say {$in_fh} $code_line;
     }
 }
 close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,.,...,.,.,,,,,...,,,.,.,,,...,,,,,,.,,,,.,..,,...,...,.,.,,,.,.,.,,,,,,,.,
-#JIGRRDG4VZQSGYSLDBDLZZYCRWU72INIGN5JFID5VN7JMXUSKBTZ43FQ6WH4H2FGTRLJIYANPLKR2
-#\\\|Y6QHTBMDAODYEJU2FA7M4YTNHKTXB4JWJ6AENALP2IP3D7DRFBW \ / AMOS7 \ YOURUM ::
-#\[7]QHHP2UNVQZK542DQE6GAL5H5ERQ3F7SNCOJCLE2CTTDH2JE3IEAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,,,.,.,,,,,...,,,,,,.,,,.,,,,,,..,,...,...,...,..,,..,,,..,.,.,
+#4XD3F6C5U4XYD72K5LQE477WITGBJNDZNZUZ3HE2EXZBRCCLST6N4ZBUVZY4Q4JTTEQMQU4J2N5ZS
+#\\\|7KGJYYJ2PYOWHHCRHJGW5NCR2A6PSO4LANMTQ5BYX6PKBFOVZTV \ / AMOS7 \ YOURUM ::
+#\[7]XDH43WYWUUWLIUR6XHUTVCYZZZKHYFXCNE7GWS4GILWHRLAFJIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
