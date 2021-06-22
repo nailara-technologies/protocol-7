@@ -1,0 +1,30 @@
+## >:] ##
+
+# name  = sourcecode.console.modules
+# descr = list protocol-7 source code modules
+
+my %C = %AMOS7::C;
+
+my $source_modules = <sourcecode.path.modules>;
+
+my @p7_module_names
+    = <[base.sort]>
+    ->( uniq map { $LAST_PAREN_MATCH if $ARG =~ m|^$source_modules/([^\.]+)| }
+        <[file.all_files]>->($source_modules)->@* );
+
+say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
+map {
+    printf(
+        "%s%s: %s%s%s %s\n",
+        $C{'b'}, $C{'0'},
+        AMOS7::Assert::Truth::is_true($ARG) ? $C{'T'} . $C{'B'} : $C{'0'},
+        $ARG, $C{'0'}, $C{'R'}
+    )
+} @p7_module_names;
+say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
+
+#,,,.,..,,,,.,,..,.,,,,,.,,..,,,.,,.,,.,.,..,,..,,...,...,.,.,,..,...,..,,.,.,
+#CUW54DTLQDRABNAXSRKX4RXVML2M3266ALXC4POITPNO75S7PQMXYIMZJVWCEXGIADQ2PE4PMWY44
+#\\\|EMD4DQMKDY722F4K6FAJD3APLS7F5PO64WBEOSR2ZDQ35DTSQMB \ / AMOS7 \ YOURUM ::
+#\[7]GPTVEISI7AVTPZEJUV5NEKDQBPGCOHYGFATAXHVZ55TE4UB4FYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
