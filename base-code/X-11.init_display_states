@@ -22,7 +22,7 @@ my $connected = 0;
 
 foreach my $card_name ( readdir($drm_dir_fh) ) {
     next if !-l "$drm_dir/$card_name" or $card_name !~ m|^card\d+$|;
-    <[base.log]>->( 2, ': %s', $drm_dir );
+    <[base.logs]>->( 2, ': %s', $drm_dir );
     ( my $target_path = readlink("$drm_dir/$card_name") ) =~ s|^(../)+|/sys/|;
     <[base.logs]>->( 2, ': : %s', $target_path );
 
@@ -56,8 +56,8 @@ closedir($drm_dir_fh);
 
 return $connected;
 
-#,,..,,.,,.,,,...,..,,,,.,,.,,...,,,,,...,.,,,..,,...,...,..,,,..,.,.,,,.,..,,
-#MGZWKSYAVDA3KB3ZM3RFNSNHNRYQKYAN55BN73VE2ORKAWLHZ4WPIERPCA6FY3TFVOZULGHFA364Y
-#\\\|Q62SBVUR3NF6NV6KXYMYGUFW4YU55MRW7EA3HII52UZG5Z5XNDK \ / AMOS7 \ YOURUM ::
-#\[7]O32LGVTCHZQWM3W7MK6MEKBCCFORNBCSPTMCTA7CX2AUCF3DE2CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,,,...,,,.,,,.,,.,,...,,,.,,.,,..,,...,..,,.,.,.,,,..,,.,,,..,,
+#L7ITTMCGOZ7XD4V74L6HJ755V5F2CXNBUZOUUVLY6WSO4BDVYU35LQUIHS4E6DXGYZ7QTKZIG5GXE
+#\\\|HKX6ZXF26GBX7PR3VJDKQTPIVOUWIHICVCOSLEM73UJYFWIDLEM \ / AMOS7 \ YOURUM ::
+#\[7]YVN676APNSF62L2MC3SLBTQMQAPMKSN56CIAQOGXMNM4LNLQFACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
