@@ -7,21 +7,23 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 Gtk3->init;
 
-my $cursor = Gtk3::Gdk::Cursor->new('blank-cursor');
+my $transparent_cursor = <X-11-pointer.cfg.blank_cursor>;
+
+my $cursor = Gtk3::Gdk::Cursor->new($transparent_cursor);
 my $screen = Gtk3::Gdk::Screen::get_default();
 
 Glib::Timeout->add( 0, sub { Gtk3->main_quit } );
 
-<[base.log]>->( 1, 'blanking mouse cursor .,' );
+<[base.log]>->( 1, 'blanking mouse cursor..,' );
 
 $screen->get_root_window->set_cursor($cursor);
 
 Gtk3->main;
 
-return { 'mode' => 'true', 'data' => 'cursor is now transparent' }
+return { 'mode' => qw| true |, 'data' => 'cursor is now transparent' }
 
-#,,.,,,,,,...,,,.,.,.,,,,,...,,,,,,..,..,,,.,,..,,...,...,,,.,...,.,.,,,,,...,
-#ILHUTYBSQAPIDIA5MHSO4LX6TP464CXUN6OCZMAJNBCTQXYKEQ5XRPEHZA6N7C7EFHHLG6ZQ7UX3S
-#\\\|YEX3OXMK5HMQEUULTRYJ46BYYFAIP2UIBSZGRA7JHTDD2LV7P4N \ / AMOS7 \ YOURUM ::
-#\[7]4LN7QIANJG6X4WLBP6ABUU6CYQEW2GLMFMRDKPNUSEKZV7PF4KBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,.,,,..,,..,,...,.,.,.,.,.,.,..,,...,...,...,,.,,..,,.,,,,,,,
+#OFC55WTYZR7M2ZGDHPWVSHQ6VBV6HXLRUUBNZQUDN4RR5RH6Y7FJ3VYPIY2BGMMHIOS6SWWZGHE2W
+#\\\|WJSWI7DSD5GXJY7DSIBF2DIPY47YOLGEZFZUE2PUEDD7HX3TD7Y \ / AMOS7 \ YOURUM ::
+#\[7]3GLNJKNNIJ7LY4GZH7UYUQZ3ZLSHEU3NCXNBJAUZY243ZJ3EIMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
