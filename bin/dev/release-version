@@ -19,8 +19,8 @@ if ( @ARGV and $ARGV[0] eq qw| -s | ) { $mode = qw| set_tag |; shift @ARGV }
 
 if (    $mode eq qw| set_tag |
     and @ARGV
-    and $ARGV[0] =~ m|^(AMOS-)?v?(\d+\.\d+\.\d+)$| ) {
-    $release_version = sprintf( qw| AMOS-v%s |, ${^CAPTURE}[1] )
+    and $ARGV[0] =~ m|^(AMOS7-)?v?(\d+\.\d+\.\d+)$| ) {
+    $release_version = sprintf( qw| AMOS7-v%s |, ${^CAPTURE}[1] )
         and shift @ARGV;    ## <-- setting custom rel. version ##
 }
 
@@ -80,15 +80,15 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 
         my $ntime = ntime_dec($ntime_B32);
 
-        $current_r_vers = sprintf( qw| AMOS-%s |, $current_r_vers )
-            if index( $current_r_vers, qw| AMOS |, 0 ) == -1;  ## v<z>.<y>.<x>
+        $current_r_vers = sprintf( qw| AMOS7-%s |, $current_r_vers )
+            if index( $current_r_vers, qw| AMOS7 |, 0 ) == -1; ## v<z>.<y>.<x>
 
         my $offset = 0;
         if ( not defined $release_version ) {    # skipping custom version #
             while (not defined $release_version
                 or $release_version eq $current_r_vers
                 or not is_true($release_version) ) {
-                (   $release_version = sprintf qw| AMOS-v%.3f |,
+                (   $release_version = sprintf qw| AMOS7-v%.3f |,
                     $offset + (
                         $commit * $ntime / $ver_seed / ( 7777777 * 12242707 )
                     )
@@ -99,7 +99,8 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
         }
 
         my $tag_msg
-            = sprintf '<< rel \\\\// protocol-7-base-%s | src \\\\// %s >>',
+            = sprintf
+            '<< AMOS7-base release %s \\\\// protocol-7 source %s >>',
             $release_version, $src_ver_str;
 
         if ( $mode eq qw| rel_ver | ) {
@@ -130,21 +131,21 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 sub ntime_dec {
     my $network_time = shift;
 
-    die "${no}:\n:: invalid network time format in 'src-ver' file ::\n:\n"
+    die "${no}:\n:: network time format in src-ver file is not valid ::\n:\n"
         if $network_time !~ m|^[A-Z2-7]{1,22}$|;
 
     my $ntime_dec;
     eval { $ntime_dec = unpack( qw| w |, decode_b32r($network_time) ) };
 
-    die "${no}:\n:: network time decoding not successful ::\n:\n"
+    die "${no}:\n:: protocol-7 network time decoding not successful ::\n:\n"
         if $EVAL_ERROR
-        or !length( $ntime_dec // '' );
+        or not length( $ntime_dec // '' );
 
     return $ntime_dec;
 }
 
-#,,,,,.,.,.,,,,,,,..,,.,.,.,.,,.,,,..,,..,,,.,..,,...,...,.,,,,,.,..,,,,.,,..,
-#MHAJVLEA5IWJ2OF5K3MNRJ7DHNAFCATXQU7WPHWCPCHBC6SKLVCCRBFJ26ZQGRPEVZHA5MT74D6GK
-#\\\|HY52BJ2BEM7UBAEROQMOXEF3F2HMISWJNXU247Q4C45TRDKLNGQ \ / AMOS7 \ YOURUM ::
-#\[7]33OGTKX3BGR4T2BOB33SMPQ6TORVH3SUHIMVPFVFQ47KNHYRZMBA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,.,.,.,,,...,.,.,.,,,,.,,,..,..,,...,...,,..,,.,,,,.,..,,..,,
+#7KKMDVEUYPUL22DB7V23F23EOBB3CWICLFFRWMNQLA5QQ5U2VDMNBZDMCLPNPRYVR6DNNPQZOVZUA
+#\\\|G33OA3UVUBF7GNOHFFEGIQVVQY624WD73VKINPTF2QZLTJY5T6P \ / AMOS7 \ YOURUM ::
+#\[7]Z4TDAGMZ7J4HTAA5WVBZKYVA4H7HQKRBVNDYI4AQM5MFR6A5WQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
