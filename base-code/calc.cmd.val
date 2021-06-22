@@ -6,43 +6,51 @@
 
 my $plain_value = 0;
 my $expr_str    = $$call{'args'} // '';
-$plain_value = 1 if $expr_str =~ s|^plain ||;
+$plain_value = 5 if $expr_str =~ s|^plain ||;
 my $cb_name = <calc.log_buffer.name>;
 
-return { 'mode' => 'false', 'data' => 'expected mathematical expression' }
-    if !length($expr_str);
+return {
+    'mode' => qw| false |,
+    'data' => 'expected mathematical expression'
+    }
+    if not length $expr_str;
 
 $expr_str =~ s,([^\d\w\s]+|)?(\-?[\w\d\.]+)([^\d\w\s]+|)?,$1 $2 $3,g;
-$expr_str = " $expr_str ";
+$expr_str = sprintf ' %s ', $expr_str;
 $expr_str =~ s|  +| |g;
 
-my $formula = Math::Symbolic::parse_from_string($expr_str)
-    or return return {
-    'mode' => 'false',
-    'data' => "expression not valid [$expr_str]"
-    };
+my $formula = eval { Math::Symbolic::parse_from_string($expr_str) };
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'expression not valid [%s]', $expr_str )
+    }
+    if not defined $formula or length $EVAL_ERROR;
 
 my $value_str = $formula->value;
 return {
-    'mode' => 'false',
-    'data' => "calculation not successful [$expr_str]"
+    'mode' => qw| false |,
+    'data' => sprintf( 'calculation not successful [%s]', $expr_str )
     }
     if not defined $value_str;
 
 ### plain value mode ###
-return { 'mode' => 'true', 'data' => $value_str } if $plain_value;
+return { 'mode' => qw| true |, 'data' => $value_str } if $plain_value;
 
 ### formatted mode ###
 $expr_str =~ s,^ +| +$,,g;
-my $result_str = "____ $value_str ___ [ $expr_str ]";
+my $result_str = sprintf '____ %s ___ [ %s ]', $value_str, $expr_str;
 
-<[base.buffer.add_line]>->( $cb_name, join( ' ', '0', '0', $result_str ) )
-    if !$plain_value;
+<[base.buffer.add_line]>->( $cb_name, join( ' ', qw| 0 0 |, $result_str ) )
+    if not $plain_value;
 
-return { 'mode' => qw| size |, 'data' => "        $result_str\n\n" };
+return {
+    'mode' => qw| size |,
+    'data' => sprintf( "        %s\n\n", $result_str )
+};
 
-#,,.,,,..,.,.,,..,...,..,,,..,.,.,...,.,.,...,..,,...,...,..,,,,.,.,,,..,,,,.,
-#OWZTWDY43UUP2K35EI27SAZ5J4UBFJZWE2QLRQXP3I6RDCT5CBJA7INSWQMLXUXMOYHCQVD3NT7EU
-#\\\|PULXCMPTYTQLG4L4IEDXCB25E322PUA5OMPDPG5H2BEQBFG7I72 \ / AMOS7 \ YOURUM ::
-#\[7]FOCAPFRWMJ44OBTTOQU2ECKWS7V7DYLG5AK6SWPW4I5HNZKGQKDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,,.,.,,,.,.,,,.,,,.,.,.,,,.,..,,...,...,,.,,,,,,,..,,,.,.,,,
+#BH34ACMUBXQ5JKPRXB2LGOVGODS5GXVUGHEESOCZA26GCZG33BZQV3NROBTQUDDANNSBQ453YHRVW
+#\\\|ZCGCUYVCZAWWOVNRRPM2M64LVFXQASPEKRUW5CPSJSVODAQKM7W \ / AMOS7 \ YOURUM ::
+#\[7]CJ7HDGJPZ7TJQ3DRGLFFWX6NVO6E3ALG5QEJXFAQAOEHO75UAGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
