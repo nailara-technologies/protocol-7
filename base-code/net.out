@@ -4,47 +4,65 @@
 # descr = write data to client
 # args  = filehandle, data [string]
 
-if ( fileno $ARG[0] ) {
-    my $cid = $data{'handle'}{ $ARG[0] }{'cid'};
+my $send_fh      = shift;
+my $payload_sref = $ARG[0];    ##  not shifted for referencing  ##
 
-    if (    defined $data{'handle'}{ $ARG[0] }
+if ( not defined $send_fh ) {
+    warn 'send_fh param not defined <{C1}>';
+    return undef;
+} elsif ( not defined $payload_sref ) {
+    warn 'payload param not defined <{C1}>';
+    return undef;
+} elsif ( not length ref $payload_sref ) {
+    $payload_sref = \shift;    ## scalar reference to argument ##
+}
+
+if ( fileno $send_fh ) {
+    my $cid = $data{'handle'}{$send_fh}{'cid'};
+
+    my $size_written = -1;
+    if (    defined $data{'handle'}{$send_fh}
         and defined $cid
         and defined $data{'session'}{$cid}{'output'}
         and defined $data{'session'}{$cid}{'output'}{'handler'} ) {
-        if (defined &{ $code{ $data{'session'}{$cid}{'output'}{'handler'} } }
-        ) {
-            <[base.s_write]>->(
-                $ARG[0],
+        if ( defined $code{ $data{'session'}{$cid}{'output'}{'handler'} } ) {
+            $size_written = <[base.s_write]>->(
+                $send_fh,
                 $code{ $data{'session'}{$cid}{'output'}{'handler'} }
-                    ->( $ARG[1] )
+                    ->( $payload_sref->$* )
             );
         } else {
-            <[base.log]>->(
-                0, "[$ARG[0]] output chain handler is not valid. [ deleted ]"
+            <[base.logs]>->(
+                0, "[%s] output handler '%s' is not defined", $send_fh
             );
             $data{'session'}{$cid}{'output'}{'handler'} = undef;
-
-            ## <[base.session.shutdown]>->( $id, 'filter chain error' );
-
-            return 1;
+            <[base.session.shutdown]>->( $cid, 'filter chain error' );
+            return 2;
         }
     } else {
-        <[base.s_write]>->( $ARG[0], $ARG[1] );
+        $size_written = <[base.s_write]>->( $send_fh, $payload_sref );
     }
 
-    if ( defined $cid ) {
-        $data{'session'}{$cid}{'bytes'}{'in'} += length( $ARG[1] );
-    } else {
-        $data{'handle'}{ $ARG[0] }{'bytes'}{'in'} += length( $ARG[1] );
+    if ( $size_written >= 0 ) {
+        $data{'session'}{$cid}{'bytes'}{'in'} += $size_written
+            if defined $cid;
+        $data{'handle'}{$send_fh}{'bytes'}{'in'} += $size_written;
+    } else {    ##  write error \ recipient fh gone. ##
+        if ( defined $cid ) {
+            $data{'session'}{$cid}{'shutdown'} = 1;
+        } else {
+            eval { $send_fh->close() }    ##  forcing an exception  ##
+        }
+        return 2;
     }
     return 0;
 } else {
-    <[base.log]>->( 0, "[$ARG[0]] cannot send to socket" );
-    return 1;
+    <[base.logs]>->( 0, '[%s] cannot send to socket', $send_fh );
+    return 2;
 }
 
-#,,,,,.,.,...,,,,,..,,..,,...,.,.,,,.,..,,,,.,..,,...,..,,..,,,..,,,.,,..,,,,,
-#UE6XJFVWQXKUHWP3WSDMMM7RJH6FD7ZEOP26XXEK4SV3WG7MXKOA2KRHXBZ4UPSORRW4S7GUBX3LI
-#\\\|6XL6LAYNPGKMSL7DHL7RPAVKBMDV5OX4M5TAUUDZXMTLRDQUC2A \ / AMOS7 \ YOURUM ::
-#\[7]CL5FM7L5LLVMV4B37IDHDWPC2U7NFPCVPZFL2IB6INEI7WBWYQDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,.,.,...,..,,,.,,.,,,..,,,..,..,,...,...,,..,,..,...,.,,,,.,,
+#7YIGTFCQ3UDKVMI7Q2KRNVBQMPMSWLMNFZZV3OKWVLPBVHJYB2LEZSYNW6VBVD4VUEU2HTY2DKQP6
+#\\\|ZFZCBAZ7JENLRUC2DC4QXKLKR2DUGLQJLTI5WJD7SQ5VMRXKO5Y \ / AMOS7 \ YOURUM ::
+#\[7]L4EZ4TF2YVBTO7TXAMPHJ6I6DCYTLPPNNWZHW7FH2NGH2EA7YIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

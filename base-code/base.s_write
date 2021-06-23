@@ -4,18 +4,25 @@
 # desc = utf8 safe syswrite replacement [ with optional fh_offset parameter ]
 # todo = create custom version to pass buffer by reference + reducing overhead
 
-my $write_fh   = $_[0];
-my $write_str  = $_[1];
-my $write_len  = $_[2] // length $write_str;
-my $str_offset = $_[3] // 0;
-my $fh_offset  = $_[4];
+my $write_fh         = $ARG[0];
+my $write_string_ref = $ARG[1];
+my $write_len        = $ARG[2];
+my $str_offset       = $ARG[3] // 0;
+my $fh_offset        = $ARG[4];
 
 if ( not defined $write_fh ) {
     warn 'write_fh param not defined <{C1}>';
     return undef;
+} elsif ( not defined $write_string_ref ) {
+    warn 'write_string param not defined <{C1}>';
+    return undef;
+} elsif ( not length ref $write_string_ref ) {
+    $write_string_ref = \$ARG[1];    ## scalar reference to argument ##
 }
 
-my $count_written;
+$write_len //= length $write_string_ref->$*;
+
+my $count_written = -1;
 
 ##   [ replacing syswrite : unicode-safe ]
 #
@@ -27,29 +34,29 @@ my $count_written;
 ##
 
 if (    $write_len > 0
-    and utf8::is_utf8($write_str)
-    and $write_str =~ m|[^\p{ASCII}]| ) {
+    and utf8::is_utf8( $write_string_ref->$* )
+    and $write_string_ref->$* =~ m|[^\p{ASCII}]| ) {
 
-    my $prev_len = length($write_str);
+    my $prev_len = length $write_string_ref->$*;
 
-    utf8::encode($write_str);
-    utf8::downgrade( $write_str, 1 );
+    utf8::encode( $write_string_ref->$* );
+    utf8::downgrade( $write_string_ref->$*, 1 );
 
-    my $delta_len = length($write_str) - $prev_len;
+    my $delta_len = length( $write_string_ref->$* ) - $prev_len;
 
     $write_len += $delta_len if $delta_len != 0;    ##  string lengthened  ##
 }
 
-IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_str,
-    $str_offset, sub { $count_written = $_[0] } );
+IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
+    $str_offset, sub { $count_written = $ARG[0] } );
 
 IO::AIO::flush();
 
 return undef if $count_written < 0;    # <-- syswrite() behaviour
 return $count_written;
 
-#,,,.,,..,,..,.,.,,.,,,..,,.,,,,.,,..,,,.,,,.,..,,...,...,...,...,.,,,,..,.,.,
-#CYBXIQ45RWV3EDTFFGXU6KY44VKURUVLQOEBUX7NHP7IUIQC3RH757QE4Z3J5OL2A2XPK23CISQRU
-#\\\|SZO6V3TRECD6DZUC7I7U44MLACEHQXKFYTBJOWBSPKJ64WUWZGF \ / AMOS7 \ YOURUM ::
-#\[7]FFFCU73FWTSXI2WE2TO5DU3PQ3EVY64CE76VMPD2NPDXF53LXECI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,...,.,,,...,...,,,,,,,,,.,.,..,,...,...,.,.,,,,,..,,..,,,,.,
+#UFVJYHK4H4DH44KH7Q2RKE2VGV6IKJC2RDPNHFOT4GUTXFK3CMLWUCUMKPVSIS4XXHPYH2NZPHLGI
+#\\\|KOLE36KFST5H465KKQBAO55WSPTNT4WNSJNQE27KORCKNSUV3YB \ / AMOS7 \ YOURUM ::
+#\[7]7EADMJ4SROVJ374LL5GY7OCY5BSFOXF3XFZLEJN4E5OR3THBVQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

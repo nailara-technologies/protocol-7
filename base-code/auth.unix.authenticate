@@ -34,7 +34,7 @@ my $bytes_read
     = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len ) // 0;
 if ( $bytes_read > 0 ) {
     if ( $banner_string eq $protocol_banner ) {
-        <[base.log]>->( 2, '[*] protocol seven banner detected.,' );
+        <[base.log]>->( 2, '[*] Protocol 7 banner detected.,' );
     } elsif ( $banner_string eq $proto_msg_timeout ) {
         <[base.log]>->( 2, '[#] authentication timeout :|' );
         return undef;
@@ -55,8 +55,8 @@ if ( $bytes_read > 0 ) {
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
-#,,.,,,.,,.,.,,,.,.,,,...,..,,,..,,.,,,..,..,,..,,...,...,..,,,.,,..,,...,.,.,
-#FPRBBNYXU3DDN2NIO3AYF5YXFL5SSLU6PYTZWMNY22Y3YCPTYWUAWIXL2HWRMSGGFSO5H7SUFTGR4
-#\\\|YJXBUUSG4APFSBIFS22YQGKSO6ZBEC3STS5G5UX6Q7GZHN3GBNE \ / AMOS7 \ YOURUM ::
-#\[7]I7G7ITG365TJMMTW3OGQZHEVRS3KLEWNQRXRVBE3FATQHJJKSAAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,.,.,,.,,,.,,,..,,.,,...,,..,..,,...,...,,.,,,..,.,,,..,,.,.,
+#ENEC65UBEKNG2JLOE6DAIKBE2SCKNQYPQGS5LOJFNNIIK6PFX7JVHG2JSM5C4SVN4XZCP2ZVJK7XG
+#\\\|XVSXIM7DSLD2QYGEFW6FVAA2N7KAGXSCXG3UIBVZBEYOTBXHPBY \ / AMOS7 \ YOURUM ::
+#\[7]NYA4DEDYIITL3ZPQURULQSQS5UAZ7DYZTLY5IJRU5LJP3MNVWWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
