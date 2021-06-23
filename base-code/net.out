@@ -39,15 +39,25 @@ if ( fileno $send_fh ) {
             <[base.session.shutdown]>->( $cid, 'filter chain error' );
             return 2;
         }
-    } else {
+    } else {    ##  write directly  ##
         $size_written = <[base.s_write]>->( $send_fh, $payload_sref );
     }
 
-    if ( $size_written >= 0 ) {
+    if ( $size_written > 0 ) {
         $data{'session'}{$cid}{'bytes'}{'in'} += $size_written
             if defined $cid;
         $data{'handle'}{$send_fh}{'bytes'}{'in'} += $size_written;
+
+    } elsif ( $size_written == 0 ) {    ## nothing written \ fh buffer full ##
+        <[base.s_warn]>->(
+            '[%s] remote not ready to write to, please make write async !!!',
+            scalar( $cid // $send_fh )
+        );
+        $data{'session'}{$cid}{'flush_shutdown'} = 1;
+        eval { $send_fh->close() };     ##  forcing an exception  ##
+        return 2;
     } else {    ##  write error \ recipient fh gone. ##
+        <[base.s_warn]>->( 'write error in net.out on %s <{C1}>', $send_fh );
         if ( defined $cid ) {
             $data{'session'}{$cid}{'shutdown'} = 1;
         } else {
@@ -61,8 +71,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,,.,.,.,.,.,,,,,.,.,...,..,,,.,,.,,,..,,,..,..,,...,...,,..,,..,...,.,,,,.,,
-#7YIGTFCQ3UDKVMI7Q2KRNVBQMPMSWLMNFZZV3OKWVLPBVHJYB2LEZSYNW6VBVD4VUEU2HTY2DKQP6
-#\\\|ZFZCBAZ7JENLRUC2DC4QXKLKR2DUGLQJLTI5WJD7SQ5VMRXKO5Y \ / AMOS7 \ YOURUM ::
-#\[7]L4EZ4TF2YVBTO7TXAMPHJ6I6DCYTLPPNNWZHW7FH2NGH2EA7YIBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,.,.,.,,,,,,,.,,,,,.,,,.,.,.,..,,...,...,...,,,,,...,,..,.,,,
+#RKQ6H657UKAXA2F5C43WHCKJGSUS3W25IXPNX2GIRRDRFDCOOPVKOBBBLHBT2Y75T5AYNIVUESQPU
+#\\\|CSTAJKYASVQZBBMICCHI7VPAUYU2KKSLXS2WLR4U34XZYPSFPH5 \ / AMOS7 \ YOURUM ::
+#\[7]BKQV7Q5XQCYRN6PCH3KZL2ZZJQSJB7M6QJ4ZRUFV4ED6RG3RV2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

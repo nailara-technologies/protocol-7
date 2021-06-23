@@ -1,25 +1,31 @@
 ## >:] ##
 
-# name       = ssl.connect_handler
+# name  = ssl.connect_handler
 
 if ( -S $_[0] ) {
     if ( not $new_sock = $_[0]->accept() ) {
         my $ssl_err = &IO::Socket::SSL::errstr();
-        $ssl_err =~ s/\n.+//mg;
+        $ssl_err =~ s|\n.+||mg;
         <[base.log]>->( 0, "ssl.connect_handler: cannot accept [$ssl_err]" );
     } else {
-        <[base.s_write]>->( $new_sock, ">:]\n" );
-        $data{'handle'}{$new_sock}{'link'}       = 'ip.tcp';
-        $data{'handle'}{$new_sock}{'encryption'} = 'ssl';
-        return $new_sock;
+        if ( <[base.s_write]>->( $new_sock, ">:]\n" ) > 0 ) {
+            $data{'handle'}{$new_sock}{'link'}       = qw| ip.tcp |;
+            $data{'handle'}{$new_sock}{'encryption'} = qw| ssl |;
+            return $new_sock;
+        } else {
+            <[base.log]>->(
+                0, "ssl.connect_handler: write error during connect"
+            );
+            return undef;
+        }
     }
 } else {
     <[base.log]>->( 0, "ssl.connect_handler: no socket supplied" );
     return 0;
 }
 
-#,,,.,.,.,..,,,,.,.,,,,,,,.,,,.,,,,..,,.,,..,,..,,...,...,..,,,.,,,..,...,,,.,
-#FXSSMIZEBRCHAETHYAIT3AICJZXT4CK2YF55IIATL4TYHDMK4W5YHFT4UEYX3R2WFSU5FN2NT3B3I
-#\\\|UMFIKTN6BG6K5WRKGZNPVGL7PWGAQW4GNTBSIMRDRVLJH5WSVS4 \ / AMOS7 \ YOURUM ::
-#\[7]LSZ3AXUFIOOWFEMNBYDQ7M4HSFSGPCANZYPUJUWCEQ3QCMI3LSAI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,.,,,.,.,..,,,..,.,,,...,,..,..,,...,..,,,,,,.,.,,,.,,,,,...,
+#BMNW5DNQ2JDW6YQAVB4ZLSSS73TWUPMQIXOYZ6HO2OGOEWVMNIINKI7JZ5OX2C3AZJUUDK45HV4DA
+#\\\|KMYSG5EU7FQ5KFZPFZYMHZBMLWGUHINLXVVU72GY2CQXU5UCALI \ / AMOS7 \ YOURUM ::
+#\[7]GZMXZE4IDGU6WAHKADBA4PUWWNXPZ2ST7NZGSUN6KYBVFRJX3QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

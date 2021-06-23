@@ -121,19 +121,25 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
         = substr( $session->{'buffer'}->{'input'}, 0, $endline_pos + 1, '' );
 
     if (not length fileno($target)    ##  notify session [LLL]  ##
-        or !<[base.s_write]>->( $target, $line_str )
+        or my $size_written = <[base.s_write]>->( $target, $line_str ) == 0
     ) {
         ##  put back data  ##
         $data{'session'}{$target}{'buffer'}{'output'} .= $line_str;
+        if ( $size_written < 0 ) {    ##  file handle exception  ##
+            my $msg_template = '[%d] target file handle %s has an exception';
+            <[base.logs]>->( 2, $msg_template, $id, $target );
+            eval { close($target) };    ## making sure it is gone ##
+            return 2;
+        }
 
-        my $msg_template = '[%d] target filehandle is not available';
+        my $msg_template = '[%d] target filehandle %s is not available';
         <[base.logs]>->( 2, $msg_template, $id, $target );
         return 0;
     }
 }
 
-#,,,,,,..,,,.,.,.,,,,,,..,,,,,,,,,.,.,..,,,,,,..,,...,...,..,,.,.,.,,,.,,,,,,,
-#YKPHWY2WIQHSVR5WV3IDI6ZG2ECCMIT46CGV3RPS7KOB7YVYJ7KKD2JI6AEQKJ2FROTO4QYKUXPYG
-#\\\|CADZ34IVQTB5AHJD4SE3VELIXMCOS6NR7PBH7TV5FUANUIVPH3G \ / AMOS7 \ YOURUM ::
-#\[7]RK2HG4BZJ2YQZRFGEEJ6FRMHDXR4JI523O2F2SHCOWJKW4HZN2BA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,,,.,...,,.,,,..,,,,,,..,...,..,,...,..,,...,,..,..,,,..,..,,
+#FRHFXTEU6YL5LN4OONG2KPBV2WUTIYGAAQK4THAZEP3D55N4X3VNEXRT6FNHKOSGUPSIBRUUC6ZJE
+#\\\|6RX6I7OLYDC4SDLN745GKYBVDYZXLY7SV3YLDNFH3C4DBJDL3FZ \ / AMOS7 \ YOURUM ::
+#\[7]UPTOVESBNSUQ5RLKXNK3KL2NAQOKJ7BNJHYPGFTK3UBZYG4KVACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
