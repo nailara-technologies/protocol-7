@@ -4,22 +4,34 @@
 
 my $success  = 0;
 my $key_name = shift // '';
-die "signature key name expected" if length( !$key_name );
+die 'signature key name expected' if not length $key_name;
+
+##  enable in zenka config to auto-create key  ##
+<source.autocreate-sig-key> //= 0;
 
 my $key_vars     = <[crypt.C25519.key_vars]>->($key_name);
 my $key_dir      = $key_vars->{'key_dir'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
-my $action = 'created';
+my $action = qw| created |;
 $success = 1
-    if <[crypt.C25519.load_keypair]>->($key_name) and $action = 'loaded'
-    or <[crypt.C25519.gen_keys]>->($key_name)
-    and <[crypt.C25519.write_keys]>->($key_name);
+    if <[crypt.C25519.load_keypair]>->($key_name) and $action = qw| loaded |
+    or (<[base.cfg_bool]>->(<source.autocreate-sig-key>)
+    and <[crypt.C25519.gen_keys]>->($key_name)
+    and <[crypt.C25519.write_keys]>->($key_name) );
+
+## todo : [more] silently load public key for verification onlu ##
+
+if ( not $success and not <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
+    <[base.log]>->(
+        0, 'autocreate-sig-key not enabled, not creating signature key..,'
+    );
+}
 
 return $success;
 
-#,,.,,..,,,..,,,.,.,.,,.,,,..,,..,..,,...,,.,,..,,...,...,.,.,...,,..,,..,...,
-#GESIQIY4C5EL2BVNVL2ELYZ23ZYZ5U2UKXRFWUNHEM5HOE4WS45K7C4INL4RPDHIEYTQ3HQZ6SKP4
-#\\\|BQG4HC3QUT6FILSNDFKQ2FLUT3HBL7E36TSYTCR267GNWBNYV3Y \ / AMOS7 \ YOURUM ::
-#\[7]CWD4JOKF6XR67NEZG3TXF7MVBUZMOYRIIGHRTNZ6EJRK3NYZVGAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,...,,,.,,,.,.,,,,,.,,,.,,..,..,,..,,...,...,...,..,,,..,...,...,
+#KBZRRYNTR73OKH723TWJVFSCLTMWAAQOMVVIO7SZM7K4ERTTLFNQU63QQETBFGUSRVAXGE4SG4GBI
+#\\\|L4P5VLA4BLYPQQETXGHD6G2TKJQ62Y62A6FYC4QKBP3PPJAJ4PA \ / AMOS7 \ YOURUM ::
+#\[7]MLVZ7YYQWKK5ZSDR4R6D2WBCVA7AFDLKOQZVLIZ6ENXTEAEIIWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
