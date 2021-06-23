@@ -2,26 +2,25 @@
 
 # name  = base.utf8.decode_clean
 
-my $s_ref = shift;
-my $l_lvl = shift // 2;    ## log level for errors ##
-my $c_lvl = shift // 0;    ## caller level for reporting ##
+my $s_ref = $ARG[0];
+my $l_lvl = $ARG[1] // 2;    ## log level for errors ##
+my $c_lvl = $ARG[2] // 0;    ## caller level for reporting ##
 
-$s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+$s_ref = \$ARG[0] if not length ref $s_ref;
 
-# if ( not utf8::decode($$s_ref) ) {
-if ( not utf8::encode($$s_ref) ) {
-    <[base.log]>->(
+if ( not utf8::encode( $s_ref->$* ) ) {
+    <[base.logs]>->(
         $l_lvl,
-        ':: UTF-8 decoding error :: [ cleaning data ] '
-            . <[base.caller]>->($c_lvl)
+        ':: UTF-8 decoding error :: [ cleaning data ] %s',
+        <[base.caller]>->($c_lvl)
     );
     return <[base.clean_unicode]>->($s_ref);   ## <-- num. characters replaced
 } else {
     return 0;                                  ## no changes ##
 }
 
-#,,..,...,..,,..,,..,,,.,,,,.,...,,,,,..,,.,.,..,,...,...,...,.,,,.,,,,..,...,
-#PPX3VRGANMYEMB3F46HRHOSBYBBDIT2ELJI6ONBXBHN7SBKZLSWT4NW6KLXXLSBNQXYUGCP6QYAHI
-#\\\|JWVIHI7RJBMVWIU46ARGM75A6FPZLU6WGZNP3XREWZI33JMR53O \ / AMOS7 \ YOURUM ::
-#\[7]5KLM7A5TNY7LPPUISXHT5AXU7QDCDST3KY7J4P3CN5VGG4IWJCCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,,,,,,..,...,,.,,,,.,.,,,,..,..,,...,...,..,,.,,,...,,..,,.,,
+#ZEOPD6Y3KAERJ2QFODCCTZVQABEXIZ25T4BU336E5UEUAHC5MFRVK6GWRFX6MCHNR5QEEZMGUZ67Y
+#\\\|6DZVKARWA72ABJFZQF2SOXGEK7YZCXG3344I65OBQFLH6KBESST \ / AMOS7 \ YOURUM ::
+#\[7]5XXG4RWWQV3IWD5AYRZB5XOQHM4JJFAX6KPWHUEOMX3GWDGSCIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
