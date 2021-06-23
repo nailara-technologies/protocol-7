@@ -5,19 +5,15 @@
 <crypt.C25519.initialized> //= 0;
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
-<[base.perlmod.load]>->(
-    'Crypt::Misc', map {"$ARG\_b32r"} qw| encode decode |
-);
 
-<[base.perlmod.autoload]>->('Crypt::Ed25519');
-<[base.perlmod.autoload]>->('Crypt::Curve25519');
+##  C25519 and BASE-32 modules loaded in 'pre_init'  ##
 
 <crypt.C25519.key_usr> //= <system.amos-zenka-user>; #  <--  C25519 key owner.
 
 0;
 
-#,,,.,,,.,,,.,.,,,,,.,...,,,,,.,,,.,.,,,,,.,,,..,,...,...,,..,.,,,,,,,,.,,,.,,
-#TJE464CJIORHXRORRDT57C3HL53WJR6QF5NCI5EIYIXJKLBEJJG56MRRWF55WJUWBTSQND4JDO7I6
-#\\\|RUK3CVQQXBGVHVDAVDRML7LV63OUFX2JA5Y3ASNX3PXXK4QB2MV \ / AMOS7 \ YOURUM ::
-#\[7]NSYVWR7NJVLZZLLJIQHWRIZI2PMEFXHKDW6STQ5MZCMT2PH2UEAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,..,,..,,.,.,,,,,..,,,,.,,,.,..,,...,...,,..,,,.,,..,.,.,.,,,
+#AKKBIHS7EUEQQTPTEG54QZ4JFB6MIVVXTU7CXRSFACV2N3BXEIQQVODAC6YO7Z5DYGAS2FDI5HN3M
+#\\\|FT2NTQUG66BNAGHTC2JOHBLOVWC7LOZYQ2T5M3DTCXCMXTSREYL \ / AMOS7 \ YOURUM ::
+#\[7]AT4XRYEVIL53ZQP5VDFVR6Z5CGB7G6XNVKVSYOLTRWHHPI2HDSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

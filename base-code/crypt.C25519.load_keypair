@@ -12,8 +12,6 @@ my $key_filename = $key_vars->{'key_filename'};
 my $secret_key_file = $key_filename->{'secret'};
 my $public_key_file = $key_filename->{'public'};
 
-use Crypt::Misc 'decode_b32r';
-
 if ( -r $secret_key_file and -r $public_key_file ) {
     my $u_str = $key_name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
     <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
@@ -51,8 +49,8 @@ if ( -r $secret_key_file and -r $public_key_file ) {
     return 0;
 }
 
-#,,.,,,,.,.,.,,,,,,.,,,.,,.,,,...,,.,,.,,,,..,..,,...,...,,.,,..,,.,.,..,,,.,,
-#D52OU3TG6E23P4F5PCK36O5OOYJYBZF4IBWR5UDYWMZCMF3CFRLBZPHTSJGOCBRLJXH3VL5DA77OO
-#\\\|5L77OEKC45JVLGJT5DD2LFV34SJLCDTAXT65GXLPIHIRTFW67EL \ / AMOS7 \ YOURUM ::
-#\[7]KGXQULWQLI3S7UYG4EMORLP34O2MKR6VREX44COL7YQPJDCNQYAY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,,,,,,,.,...,..,,...,.,,,,,,,..,,...,.,.,...,,,.,.,.,.,,,..,,
+#RLVJEQ34W7NBARPCIK3QICQGDPAVFWAJTVWV3BIC45DUYCRT26I7TGMAMSF7UHZKC7WY45QHX5VH2
+#\\\|5O2QSJXPXQMOKNX6R4WAT7GFYIL2XEOSVQ3NXENJYFDS26QROTO \ / AMOS7 \ YOURUM ::
+#\[7]4CIA3IXJAZL2KQADJX4SF4WOLNI4MSEJXGBO6JY35I7XYAYTGEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
