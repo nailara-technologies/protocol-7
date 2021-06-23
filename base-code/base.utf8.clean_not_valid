@@ -2,31 +2,34 @@
 
 # name  = base.utf8.clean_not_valid
 
-my $s_ref = shift;
-my $l_lvl = shift // 2;    ## log level for errors ##
-my $c_lvl = shift // 0;    ## caller level for reporting ##
-$s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+my $s_ref = $ARG[0];
+my $l_lvl = $ARG[1] // 2;    ## log level for errors ##
+my $c_lvl = $ARG[2] // 0;    ## caller level for reporting ##
+$s_ref = \$ARG[0] if not length ref $s_ref;
 
-return 0 if not utf8::is_utf8($$s_ref);    ## nothing to do here ##
+return 0 if not utf8::is_utf8( $s_ref->$* );    ## nothing to do here ##
 
 if ( not defined <base.utf8.test_fh> ) {
-    open( <base.utf8.test_fh>, '>', File::Spec->devnull() )
-        or warn "<devnull> : \l$OS_ERROR";
-    binmode( <base.utf8.test_fh>, ':encoding(UTF-8)' );
+    open( <base.utf8.test_fh>, qw| > |, File::Spec->devnull() )
+        or <[base.s_warn]>->(
+        '<devnull> : %s',
+        <[base.format_error]>->( $OS_ERROR, -1 )
+        );
+    binmode( <base.utf8.test_fh>, qw| :encoding(UTF-8) | );
 }
 
 eval {
-    use warnings FATAL => 'utf8';
-    say {<base.utf8.test_fh>} $$s_ref;
+    use warnings FATAL => qw| utf8 |;
+    say {<base.utf8.test_fh>} $s_ref->$*;
 };
 
-if ($EVAL_ERROR) {
-    ( my $err_str = lc($EVAL_ERROR) ) =~ s|(, may not.+)? at .+$||g;
+if ( length $EVAL_ERROR ) {
+    my $err_str = <[base.format_error]>->( $EVAL_ERROR, -1 );
     <[base.log]>->(
         $l_lvl,
         join( ' ', ':: not valid UTF-8 ::', <[base.caller]>->($c_lvl) )
     );
-    <[base.log]>->( ++$l_lvl, ':.' . $err_str );
+    <[base.logs]>->( ++$l_lvl, ':. %s', $err_str );
 
     return <[base.clean_unicode]>->($s_ref);   ## <-- num. characters replaced
 
@@ -34,8 +37,8 @@ if ($EVAL_ERROR) {
     return 0;                                  ## no changes ##
 }
 
-#,,,.,..,,,.,,,,,,,,.,,,.,..,,.,,,,..,,,.,,.,,..,,...,...,.,,,,,,,.,.,,..,,,,,
-#ATBAFPKM5FUWNIPNQRVG2C2F4CCR3EUYRS63WQOEFZ2XXV7LZO5FHSIPP2ZAKAUFQH2GEXO3HNQQY
-#\\\|XLFOEZFVWSOMFFHQZBFKMHEOQQDDCERVFILI73Q2JZE6Z3CACEW \ / AMOS7 \ YOURUM ::
-#\[7]XEISFBUQZQYD5STWFHCSHAO2I4LGMMN2KF7SH6NG757MPCBOFMCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,,,,,,.,,..,,...,...,.,,,,,.,..,,...,...,...,.,,,,,.,,.,,,.,,
+#TGYKF7RK3N5PLWUC5U2HALISWNH7EY4EDFIACZHENRPJE673FQJNQVGAGAZAY7KRDNJOD45PRXOG4
+#\\\|3GMUCP4PDENP4PQYAS7544KERYF5HR47FV6APKE2ROMC6U5LKUC \ / AMOS7 \ YOURUM ::
+#\[7]GARX5RBQ45WWOTPD4HOIPT4KGHP5ZJ2UEI5U2G7TQEWGOBMECSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

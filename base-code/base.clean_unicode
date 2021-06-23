@@ -2,12 +2,12 @@
 
 # name  = base.clean_unicode
 
-my $s_ref = shift;
+my $s_ref = $ARG[0];
 
 my $match_count = 0;
 my $return_data = 0;
 
-$return_data = 1 and $s_ref = \$s_ref if ref($s_ref) ne 'SCALAR';
+$return_data = 5 and $s_ref = \$ARG[0] if not length ref $s_ref;
 
 $match_count = $$s_ref =~ s{([^\p{ASCII}])}
                            { my $v = unpack('U',$LAST_PAREN_MATCH);
@@ -18,12 +18,12 @@ $match_count = $$s_ref =~ s{([^\p{ASCII}])}
                              "[$u$v]"
                            }uge;
 
-return $$s_ref if $return_data;
+return $s_ref->$* if $return_data;
 
 return $match_count;  ## return whether data replaced [ input scalar ref. ] ##
 
-#,,..,,..,...,,,.,.,,,..,,.,,,,.,,...,..,,,..,..,,...,..,,.,.,,,,,.,,,,..,.,.,
-#P4Y2WXXBK7DNDH4V2Q6RUYOKNBSPKP63GYL2GVLRVNGSA423MP3Q5DRMXDEJLLZUWYVI7YOHF57BQ
-#\\\|E2WGMXISTWXVWZ4G77R3HQFSZ7LZDYBD3QGCV3FO4XMZZ2E2J4P \ / AMOS7 \ YOURUM ::
-#\[7]QL5TMATO3YYCF2FHUR4B6XCBSJDK6U76C76KKPSHJKHSXJEGKGAQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,.,,,,.,.,.,,,,,,,.,,,.,,,.,,,.,..,,...,..,,..,,..,,,,,,,..,,.,,
+#JIEVRVWNVDOEBOR56R237TJZRMYWNVKJVOLS6G27WC4X6WFU7HNQY4D3KMMAGSJEDTHRSWBPEMF32
+#\\\|HJECGHPL6BNVHZSFRY2UHFOMFQABTPJASULNXPSOPERJNTWKPGQ \ / AMOS7 \ YOURUM ::
+#\[7]KZ3SOG4V6IUHX56FCPK4FIHUHU6AVVZXFESUVLKVJQ3BUTJFX2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
