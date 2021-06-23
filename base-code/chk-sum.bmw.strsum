@@ -2,13 +2,15 @@
 
 # name  = chk-sum.bmw.strsum
 
-my $data_ref = shift;
-warn 'data param not defined <{C1}>' and return undef
-    if not defined $data_ref
-    or ref $data_ref eq qw| SCALAR | and not defined $$data_ref;
-$data_ref = \$data_ref if not length ref $data_ref;
+my $input_string_sref = $ARG[0];
+my $bits              = $ARG[1];    ## optional ##
 
-my $bits = shift;    ## optional ##
+warn 'data param not defined <{C1}>' and return undef
+    if not defined $input_string_sref
+    or ref $input_string_sref eq qw| SCALAR |
+    and not defined $input_string_sref->$*;
+
+$input_string_sref = \$ARG[0] if not length ref $input_string_sref;
 
 <[base.s_warn]>->(
     "bit size parameter ['%s'] not valid "
@@ -19,12 +21,12 @@ my $bits = shift;    ## optional ##
 ##  get Digest::BMW context  ##
 my $bmw = <[chk-sum.bmw.ctx]>->($bits);
 
-$bmw->add( $data_ref->$* );
+$bmw->add( $input_string_sref->$* );
 
 return encode_b32r( $bmw->digest );
 
-#,,,,,,.,,.,.,,.,,.,.,,,,,,,.,,.,,,,.,..,,,,.,..,,...,..,,.,,,...,,,.,.,,,,.,,
-#VKK2ZT5AFSNCAEYVSN5AIBTRXMOG4XDATBP7ZBR642CAWZES5W74X4324CH3XDE2MEL5SFKOA5A34
-#\\\|YSBPAPPMYIDAGEDCEJQIX4OKC5D3QLY5A3GCMNECDXVUSESLOWT \ / AMOS7 \ YOURUM ::
-#\[7]QNKLJV3EZSM3EOOFIM4EGG3B7VZN6N2IZITSAVGHZHPXU6D2O4DY 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,,,..,,,..,.,.,..,,,..,.,,,.,.,..,,...,...,,,,,,,,,...,.,,,,,,,
+#EH3ELQYLGGNIWJVCZE6GJXDR6M2SRIYAL7HFASBSIOJAC7VBVEZTSA6UGA7CCIPTBEJRILEV3YJM4
+#\\\|MGI5BJH2GIL7VIDZXBAXZ7Z7NBCNZ4RPBO3K55LHFTIOHTUWRPG \ / AMOS7 \ YOURUM ::
+#\[7]52OY5LHPYRDSPBYKSWB2FUQ377PJP7RUKEWWY4ZBT4BI6DBLSWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
