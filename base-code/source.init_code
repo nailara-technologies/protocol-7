@@ -6,8 +6,8 @@
 <source.chksum_bitsize> //= 384;
 <source.sign_template>  //= '';
 
-<source.path.work_tree>
-    //= <system.root_path>;    ## overridden in sourcecode.init_code
+## overridden in sourcecode.init_code
+<source.path.work_tree> //= <system.root_path>;
 
 if ( <source.path.work_tree> ne <system.root_path> ) {
     my $work_tree = <source.path.work_tree>;
@@ -23,7 +23,7 @@ if ( <source.path.work_tree> ne <system.root_path> ) {
 <source.path.zenki>      //= sprintf qw| %s/configuration/zenki |,
     <source.path.work_tree>;
 
-my $sig_key_name = <source.C25519.signature_key_name> //= qw|nailara.source|;
+my $sigkey_name = <source.C25519.signature_key_name> //= qw| nailara.source |;
 
 ###[  NOTES  ]### [ VAX ENCODABLE ]
 ##
@@ -79,14 +79,14 @@ my $sig_key_name = <source.C25519.signature_key_name> //= qw|nailara.source|;
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 EOT
 
-<[source.load_signature_key]>->($sig_key_name);
+<[source.load_signature_key]>->($sigkey_name);
 
 # <[source.acquire_checksums]>;
 
 0;
 
-#,,.,,.,.,,.,,..,,...,..,,.,.,,..,,..,...,.,,,..,,...,...,...,,..,,,,,,,.,.,,,
-#RFJNKAJC7W7R7SLDDHEWEYX3UDMXXIHIEDWFN6EUJT65KYCBS73HYOHYQMBJTCQO32NY4ZDIL7MTU
-#\\\|FA4U6GLCOO6H6WNNDVKNZLDBXXZJF2NGTBKNNPUOZCHRN5R47AH \ / AMOS7 \ YOURUM ::
-#\[7]CXL75RV5GYWHFY4Y7RZS5PH7GWN3HLKJ2YDUSR3RHNV7DAMD4KAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,..,,,,,,,.,..,,.,.,,,.,.,,,...,..,,...,...,..,,..,,...,,,,,.,.,
+#AFTWF65OUYD3SCJW3HXGAF3YUUC3VNLLWINS6HO75OBON6V3DKS53NGS4HP3H5ZLEF5V44W5CD6RI
+#\\\|3HJ5XXNIRCP5CML3UP4OSCKIW5SAWVBKJTIFIHC6PVEQFGX5MDY \ / AMOS7 \ YOURUM ::
+#\[7]6HGD3LJONN5XG3CTCWTNN52NDQZFGJJSCQMTPG6WCVEQ6AHQMCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
