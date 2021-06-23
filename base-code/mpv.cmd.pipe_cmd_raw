@@ -5,28 +5,32 @@
 # descr = sends raw strings through mpv control pipe
 
 my $mpv_socket = <mpv.socket>;
-my $cmd_str    = $$call{'args'};
+my $cmd_str    = $call->{'args'};
 
-return { 'mode' => 'false', 'data' => 'expected mpv command string' }
-    if not defined $cmd_str or !length($cmd_str);
+return { 'mode' => qw| false |, 'data' => 'expected mpv command string' }
+    if not defined $cmd_str or not length $cmd_str;
 
 return {
-    'mode' => 'false',
-    'data' => 'string contains blacklisted byte sequence!'
+    'mode' => qw| false |,
+    'data' => 'string contains blacklisted byte sequence .,,'
     }
     if $cmd_str =~ m,run|hook|subprocess,;
 
 if ( not defined $mpv_socket ) {
-    warn "mpv control socket has been lost";
+    warn 'lost mpv control ipc socket..,';
     exit(2);    # TERM / KILL mpv in END code
 }
 
-<[base.s_write]>->( $mpv_socket, "$cmd_str\n" );
+my $size_written
+    = <[base.s_write]>->( $mpv_socket, \sprintf "%s\n", $cmd_str );
 
-return { 'mode' => 'true', 'data' => 'string sent.' };
+return { 'mode' => qw| false |, 'data' => 'write error.' }
+    if $size_written < length $cmd_str;
 
-#,,,,,,,.,.,.,.,,,.,.,...,...,,..,,,,,,..,,,,,..,,...,...,,,.,,.,,.,,,,,,,...,
-#FIOZFRQCR4WZB4CWOX5URA6ITAHSKF4RKX4YD3VAI34SUU734Z42Y3IEVOGOXVZUDSU5GFDSKREKS
-#\\\|J5WJ4ZRQMSNWPMLTFSBIZDT3GXOVSWLNVAWJSJKZIBAXILWRXDG \ / AMOS7 \ YOURUM ::
-#\[7]THDPNAVEDOHKASP3XJHX2Z2VHSTS7NOPRU7DUI6OAR4WYHHKNIDI 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => 'command string sent' };
+
+#,,..,.,,,,..,..,,.,.,.,.,,,,,.,.,..,,,.,,.,.,..,,...,...,..,,,..,,,,,,,.,,,,,
+#36ZBXPMOJ6L44APCYB7NKYNTSS252HIOMXDZAA46TPKETQDHIIZFWN5HZXT5MNHHBG2644JQNGUT6
+#\\\|LOQPRN45YGSK7NMU37CHUOSKQQD3L4UQDNS5KLCXZFMGTCNGOIV \ / AMOS7 \ YOURUM ::
+#\[7]QAMJ46TY7YAQSAMEMVL7ZCZLXVUBT7BXYU6BMUDRNL4HBGZNSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

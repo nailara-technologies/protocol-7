@@ -18,8 +18,9 @@ my $profile_data = <ssh.cfg.profiles>->{$profile_name};
 my $channel      = $connection->{'nch'};
 
 if ( $channel->eof ) {
-    <[base.log]>->(
-        0, "ssh connection '$link_name' [$con_id] closed by remote host"
+    <[base.logs]>->(
+        0,          "ssh connection '%s' [%s] closed by remote host",
+        $link_name, $con_id
     );
     <[ssh.connection.stop]>->($con_id);
     return;
@@ -106,10 +107,11 @@ if ( !$connection->{'authorized'} ) {
             $connection->{'local_fh'},
             $connection->{'buffer'}
         );
-        if ( not defined $bytes ) {
+        if ( $bytes < 0 ) {
             <[base.log]>->(
                 0,
-                "local nailara link filehandle closed, connection shutdown.,"
+                'local protocol-7 link filehandle closed,'
+                    . ' connection shutdown.,'
             );
             <[ssh.connection.stop]>->($con_id);
         } else {
@@ -119,8 +121,8 @@ if ( !$connection->{'authorized'} ) {
 
 }
 
-#,,,.,...,..,,.,,,...,,,,,...,.,.,,..,..,,.,.,..,,...,...,...,,..,.,.,.,.,.,,,
-#ASALVBKAF7CAN7FFV7QSCI4DBHPP4OSS2XR7SZ7UFBBFUEVT3MJASXF2FOD3LOQFN3MXZYBYWQ6V4
-#\\\|BUZER7B5ZNPEN6QFRG4LMJ3RXLNMIZEF5UFPODTJPSQIHYITYNY \ / AMOS7 \ YOURUM ::
-#\[7]56TD7D32YYASTQGPPJAL6NZOOEHAVFKI3RJDDOGOUN6KLPKS5YAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,.,,,,.,,,,,,.,.,..,,...,,..,..,,...,...,...,...,...,,,,,,.,,
+#L5YUU4SKFHLC27Z2IUQY4ZZ5KQ22VG4BQPSKBS7YELZJ25PM6LZFK6RXQYQKVGFR23IUECQM7Q23G
+#\\\|V4IBAT3GFHNHC3WX6JC2QWKUN27KRGXSCG2YSCEG7ZFW7U72NME \ / AMOS7 \ YOURUM ::
+#\[7]DCODS66GDGW4IACOMTNVU2KUTBGDFINA2AY3HMPSP2ZLXSYBMQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

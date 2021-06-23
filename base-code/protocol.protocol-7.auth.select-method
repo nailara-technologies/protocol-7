@@ -18,7 +18,9 @@ my $select_method_templ = $protocol_messages->{'select-method'};
 
 ####
 
-<[net.out]>->( $backend_socket, sprintf $select_method_templ, $auth_method );
+<[net.out]>->(
+    $backend_socket, \sprintf( $select_method_templ, $auth_method )
+);
 
 my $answer = readline($backend_socket);
 chomp($answer) if defined $answer;
@@ -46,8 +48,8 @@ if ( not defined $answer ) {
     return 5;     ## true ##
 }
 
-#,,,.,.,,,,..,,.,,,.,,...,,,,,,,,,,..,..,,.,.,..,,...,...,..,,...,.,,,...,.,.,
-#OZWTKGCMWS6C3LXJZLOVUUFLZ5VDB7BBFM3F4FJJTWUV7GN6MSXHGLGTEJ5Z6XVGJVUVH5WFOLPJ6
-#\\\|FQ4KFJBMANNTKKSTDPWUUECAUGGZAQPM6LVHNMA62GFFBNT5BW2 \ / AMOS7 \ YOURUM ::
-#\[7]AKUVYRWSYKMRSLROO5RX2NAX2X4XPEXOCCXCYZFOTTUATFPWIIDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,,,.,...,.,.,...,...,..,,,.,,..,,...,...,..,,,..,,,.,..,,...,
+#3TTQFKOIJDG3T7ADHDWFAZYZOPEUYFNAS6AW3KKCAGQISNSFUDAHOD6WE7NL5JBAEWKIBEIR5O7LI
+#\\\|H6IX3TTIU2HASFDA5J3IGCQ7KCR73PMZAB3HP4MX4KVGUPAMVMT \ / AMOS7 \ YOURUM ::
+#\[7]CY26FS3X6NLV2WZYOQJNMUVQVMYU2HX4PGD5AX2UKBUEEL5NKYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

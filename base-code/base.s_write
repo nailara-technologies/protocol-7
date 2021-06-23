@@ -22,8 +22,6 @@ if ( not defined $write_fh ) {
 
 $write_len //= length $write_string_ref->$*;
 
-my $count_written = -1;
-
 ##   [ replacing syswrite : unicode-safe ]
 #
 #    syswrite FILEHANDLE,SCALAR,LENGTH,OFFSET
@@ -32,6 +30,8 @@ my $count_written = -1;
 #
 #    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 ##
+
+my $size_written = undef;    ##  until write attempt  ##
 
 if (    $write_len > 0
     and utf8::is_utf8( $write_string_ref->$* )
@@ -48,15 +48,15 @@ if (    $write_len > 0
 }
 
 IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
-    $str_offset, sub { $count_written = $ARG[0] } );
+    $str_offset, sub { $size_written = $ARG[0] } );
 
-IO::AIO::flush();
+##  blocking until write request has been completed  ##
+while ( not defined $size_written ) { IO::AIO::poll() }
 
-return undef if $count_written < 0;    # <-- syswrite() behaviour
-return $count_written;
+return $size_written;    ## [ returns -1 on error ] ##
 
-#,,..,,,,,,.,,,,,,...,.,,,...,...,,,,,,,,,.,.,..,,...,...,.,.,,,,,..,,..,,,,.,
-#UFVJYHK4H4DH44KH7Q2RKE2VGV6IKJC2RDPNHFOT4GUTXFK3CMLWUCUMKPVSIS4XXHPYH2NZPHLGI
-#\\\|KOLE36KFST5H465KKQBAO55WSPTNT4WNSJNQE27KORCKNSUV3YB \ / AMOS7 \ YOURUM ::
-#\[7]7EADMJ4SROVJ374LL5GY7OCY5BSFOXF3XFZLEJN4E5OR3THBVQDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,...,,..,..,,,..,.,.,.,.,..,,..,,...,...,.,,,.,.,,.,,,,,,,,.,
+#FMT7JOL2THJF6RUC7D2JZCWW6O4N6B7TKORWX3UXLBRD2N7BWIL7UE7MM3YTLXFENP3TL32AX6CMC
+#\\\|SOAD3BQRTUNI24LN3QJXLKX3H3SBGSFKLNPD5VVVMYA4FAPVUDM \ / AMOS7 \ YOURUM ::
+#\[7]N6HWHMTWMY5DX3AQZNHPFXLAYDK4JIL3FSOMGVQ6HUEXP4E2TKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
