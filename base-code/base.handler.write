@@ -13,23 +13,24 @@ if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
     $id    = $event->w->data;
 }
 
-return <[base.session.check_remaining]> if not exists $data{'session'}{$id};
+return <[base.session.check_remaining]> if not defined $data{'session'}{$id};
 
-my $session = $data{'session'}{$id};
-my $dat_len = length( $session->{'buffer'}->{'output'} );
+my $session    = $data{'session'}{$id};
+my $write_size = length $session->{'buffer'}->{'output'};
 
 if ( fileno $session->{'handle'} ) {
-    if ( $dat_len > 0 ) {
-        my $written = <[base.s_write]>->(
-            $session->{'handle'}, $session->{'buffer'}->{'output'}, $dat_len
+    if ( $write_size > 0 ) {
+        my $size_written = <[base.s_write]>->(
+            $session->{'handle'}, \$session->{'buffer'}->{'output'},
+            $write_size
         );
-        if ( not defined $written ) {
+        if ( $size_written < 0 ) {
             $session->{'shutdown'} = 1;
         } else {
             $event->w->stop;
             $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'}
-                += $written;
-            substr( $session->{'buffer'}->{'output'}, 0, $written, '' );
+                += $size_written;
+            substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
 
             if ( defined $session->{'burst-writes'}
                 and $session->{'burst-writes'} =~ m|^\d+$| ) {
@@ -60,7 +61,7 @@ if ( fileno $session->{'handle'} ) {
     return 2;
 }
 
-if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
+if ( $write_size = length $session->{'buffer'}->{'output'} ) {
 
     ##  deferred restart [ when idle ]  ##
     <[event.io_idle_restart]>->($event)
@@ -73,12 +74,12 @@ if ( $dat_len = length( $session->{'buffer'}->{'output'} ) ) {
     $session->{'watcher'}->{'output_buffer'}->start;
 }
 
-$session->{'shutdown'} = 1 if !$dat_len and $session->{'flush_shutdown'};
+$session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,.,,,,,,.,.,,,,,.,.,.,.,,.,,,,,,,,,,,,.,..,,..,,...,...,...,,..,,,.,.,.,..,,
-#VZWG2RSKWWW7KD6Q64KIL2SIM3X36FWKHYUZVKD7UYPNGZWF7ITFTN2ENBVKQ7GXXHCU452A37JLG
-#\\\|LI2RVNYCZ5SL5LDBSJNIXFMOCJIGWQS462CGWZURUFY4LKFGNB5 \ / AMOS7 \ YOURUM ::
-#\[7]GACBKEWI6NUJ6OZV3NXNFPIUHX5VMTDP5R5UJP6ISZXFW67K52BI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,..,...,,,.,,.,,,,.,.,.,..,,...,..,,...,...,,.,,.,,,,,,,..,,.,.,
+#VMNDFNJ2Z3AS7QNFWRO3Y7N56K4HKGX5JOGBYQBR3HGQ7NCELTDOYHCP7QTG5CMAVNBK7IY3CQYEK
+#\\\|OEHRWRBA3EXRBOHIYRJJK3V2UYI56CSHI7XVW3YHAFMAZ775WJU \ / AMOS7 \ YOURUM ::
+#\[7]FQICWOW72OWNEPUN72MSHGD5FC36X2B7OA4H57WG5DQMWZ4F3OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
