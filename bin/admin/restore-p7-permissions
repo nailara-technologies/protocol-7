@@ -8,12 +8,17 @@ use File::Find;
 use Cwd qw| abs_path |;
 use FindBin qw| $RealBin |;
 use File::Path qw| make_path |;
+## SYS_mknod and SYS_lchown ##
+require 'syscall.ph';
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
+## todo ## :target: keyword for implied readlink ## [LLL]
+##      ## add mknod feature \ parameter ##         [LLL]
+
 print "\n  ::[ restoring file permissions ]:.\n  :\n";
 
-my $verbose = ( @ARGV and $ARGV[0] eq '-v' ) ? 1 : 0;
+my $verbose = ( @ARGV and $ARGV[0] eq qw| -v | ) ? 1 : 0;
 
 my $work_dir = p7_root_dir();    ## safely determine protocol-7 root path ##
 chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
@@ -31,32 +36,32 @@ map { read_user_names($ARG) } @{$user_files};
 die "  : ./.restore_permissions file not found.\n  : : [ $perm_file ]\n\n"
     if !-f $perm_file;
 
-open( my $perm_fh, '<' . $perm_file ) or die "$perm_file: $!";
+open( my $perm_fh, qw| < |, $perm_file ) or die "$perm_file: $!";
 local $/ = undef;
 my $target_str;
 my $file_str = <$perm_fh>;
 close($perm_file);
-$file_str =~ s|#[^\n]*||sg;
+$file_str =~ s|\s*#[^\n]*||sg;
 $file_str =~ s|^\n+||mg;
 $file_str =~ s|\n$||;
 
-foreach my $perm_line ( split( "\n", $file_str ) ) {
+foreach my $perm_line ( split "\n", $file_str ) {
     ( my $rules_str, my $path_str, $target_str )
         = split( m| *-?-> *|, $perm_line );
 
     my @rules = split( m|\s+|, $rules_str );
-    push( @rules,         "link_target:$target_str" ) if defined $target_str;
-    push( @{$perm_table}, { $path_str => \@rules } );
+    push( @rules, sprintf( 'link_target:%s', $target_str ) )
+        if defined $target_str;
+    push $perm_table->@*, { $path_str => \@rules };
 }
 
 foreach my $entry ( @{$perm_table} ) {
-    my ( $path, $action_ref ) = each( %{$entry} );
+    my ( $path, $action_ref ) = each $entry->%*;
     $path =~ s|^/+||;
 
-    printf(
-        "\n < %-33s >\t [ " . join( ', ', @{$action_ref} ) . " ]\n\n",
-        $path
-    ) if $verbose;
+    printf( "\n < %-33s >\t [ %s ]\n\n",
+        $path, join( ', ', $action_ref->@* ) )
+        if $verbose;
 
     my $params = {
         'link_target' => undef,
@@ -73,7 +78,7 @@ foreach my $entry ( @{$perm_table} ) {
 
     foreach my $param_str ( @{$action_ref} )
     {    # the above flags 'accumulate'.,
-        my $type = 'unknown';
+        my $type = qw| unknown |;
         if ( $param_str =~ m|^[RFLDC]+$| ) {
             $params->{'recursive'} = 1 if $param_str =~ m|R|;
             $params->{'on_files'}  = 1 if $param_str =~ m|F|;
@@ -89,17 +94,18 @@ foreach my $entry ( @{$perm_table} ) {
         } elsif ( $param_str =~ m|^link_target:\s*(.+)$|
             and $params->{'restricted'} == 1
             and $params->{'on_links'} ) {
-            $params->{'link_target'} = $1;
+            $params->{'link_target'} = $LAST_PAREN_MATCH;
             $type = 'link';
         } elsif ( $param_str =~ m|^([ug]):(\w[-_\w\d]*)$| ) { # u:ser / g:roup
-            if   ( $1 eq 'u' ) { $params->{'user'}  = $2; $type = 'user' }
-            else               { $params->{'group'} = $2; $type = 'group' }
+            if ( $1 eq qw| u | ) { $params->{'user'} = $2; $type = qw|user| }
+            else                 { $params->{'group'} = $2; $type = 'group' }
         } elsif ( $param_str =~ m|^([0-9]+)$| ) {             # file_mode
-            $params->{'file_mode'} = oct( sprintf( "%04d", $1 ) );
-            $type = 'mode';
+            $params->{'file_mode'}
+                = oct( sprintf qw| %04d |, $LAST_PAREN_MATCH );
+            $type = qw| mode |;
         }
         if ( $params->{'recursive'} and -d $path ) {
-            find( sub { action( $File::Find::name, $_, $type, $params ) },
+            find( sub { action( $File::Find::name, $ARG, $type, $params ) },
                 $path );
         } else {
             action( $path, $path, $type, $params );
@@ -108,37 +114,50 @@ foreach my $entry ( @{$perm_table} ) {
 }
 print "\n  :\n" if $verbose;
 my $s = $changes == 1 ? '' : 's';
-$changes = sprintf( "%03d", $changes ) if $changes !~ s|^0$|no|;
+$changes = sprintf( qw| %03d |, $changes ) if $changes !~ s|^0$|no|;
 say "  ::[ $changes change$s ]::\n";
 exit(0);
 
 sub action {
-    my ( $rel_path, $fname, $type, $params ) = @_;
-    ( my $abs_path = "$work_dir/$rel_path" ) =~ s|//|/|g;
+    my ( $rel_path, $fname, $type, $params ) = @ARG;
+    ( my $abs_path = join qw| / |, $work_dir, $rel_path ) =~ s|//|/|g;
 
-    if (    $type eq 'link'
+    if (    $type eq qw| link |
         and defined $params->{'link_target'}
         and !-e $fname ) {
-        printf "  : creating link '$rel_path' --> %s\n  :\n",
-            $params->{'link_target'};
-        symlink( $params->{'link_target'}, $fname ) or warn $!;
+        printf "  : creating link '%s' --> %s\n  :\n",
+            $rel_path, $params->{'link_target'};
+        symlink( $params->{'link_target'}, $fname )
+            or warn sprintf
+            "\n:: cannot create synlink :  %s --> %s  [ %s ]\n\n",
+            $fname, $params->{'link_target'}, lcfirst($OS_ERROR);
+
         ##^^^##
         $changes++ if -l $fname;
-    } elsif ( $type eq 'flags'
+    } elsif ( $type eq qw| flags |
         and $params->{'create'}
         and $params->{'restricted'} == 1
         and !-e $fname ) {
         if ( $params->{'on_dirs'} ) {
-            print "  : creating directory '$rel_path'.,\n  :\n";
-            make_path($fname);
+            printf "  : creating directory '%s'.,\n  :\n", $rel_path;
+            make_path($fname)
+                or warn sprintf
+                "\n:: cannot create directory : %s  [ %s ]\n\n",
+                $fname,
+                lcfirst($OS_ERROR);
             ##^^^^^##
             $changes++ if -d $fname;
         } elsif ( $params->{'on_files'} ) {
             print "  : creating file '$rel_path'.,\n  :\n";
-            if ( open( my $zero_fh, '>' . $fname ) ) {
+            if ( open( my $zero_fh, qw| > |, $fname ) ) {
                 ##^^##
                 close($zero_fh);
                 $changes++ if -f $fname;
+            } else {
+                warn sprintf
+                    "\n:: cannot create file : %s  [ %s ]\n\n",
+                    $fname, lcfirst($OS_ERROR);
+
             }
         }
     }
@@ -146,7 +165,7 @@ sub action {
         or $params->{'on_files'} and -f $fname
         or $params->{'on_links'} and -l $fname
         or $params->{'on_dirs'}  and -d $fname ) {
-        if ( $type eq 'mode' ) {
+        if ( $type eq qw| mode | ) {
             my @stat = lstat($fname);
             chmod( $params->{'file_mode'}, $fname );
             ##^##
@@ -160,13 +179,25 @@ sub action {
                 $changes++;
             }
         }
-        if ( $type eq 'user' or $type eq 'group' ) {
+        if ( $type eq qw| user | or $type eq qw| group | ) {
             my @stat = lstat($fname);
             my ( $uid, $gid ) = ( $stat[4], $stat[5] );
             $uid = getpwnam( $params->{'user'} ) if defined $params->{'user'};
             $gid = getgrnam( $params->{'group'} )
                 if defined $params->{'group'};
-            chown( $uid, $gid, $fname ) if $uid and $gid;
+            if ( defined $uid and defined $gid ) {
+                if ( -l $fname ) {    ##  chown link, not target  ##
+                    syscall( &SYS_lchown, $fname, $uid, $gid, $fname )
+                        && warn sprintf
+                        "\n:: cannot chown link : %s  [ %s ]\n\n",
+                        $fname, lcfirst($OS_ERROR);
+                } else {
+                    chown( $uid, $gid, $fname )
+                        or warn sprintf
+                        "\n:: cannot chown path : %s  [ %s ]\n\n",
+                        $fname, lcfirst($OS_ERROR);
+                }
+            }
             ##^##
             if (-e $fname
                 and (  $stat[4] ne [ lstat($fname) ]->[4]
@@ -202,7 +233,7 @@ sub p7_root_dir {
 
     return $root_path if not $compare_git_path;
 
-    if ( -d c_dir( $root_path, '.git' ) ) {    ## is under version control ##
+    if ( -d c_dir( $root_path, qw| .git | ) ) { ## is under version control ##
         chomp( my $bin_g = qx| which git | );
         if ( length($bin_g) and -x $bin_g ) {
             chdir($root_path) or die ":\n  :: \l$OS_ERROR : $root_path\n\n";
@@ -215,8 +246,8 @@ sub p7_root_dir {
                     . ":: :::: git-root-dir : '$vc_root_path'\n\n"
                     if $root_path ne $vc_root_path;
             } elsif ( not -d $vc_root_path ) {
-                die
-                    ":\n  :: root path reported by 'git' is no directory :.\n  ::\n"
+                die ":\n  :: root path reported by 'git'"
+                    . " is no directory :.\n  ::\n"
                     . ":: : git returned : '$vc_root_path'\n\n";
             }
         }
@@ -235,8 +266,8 @@ sub read_user_names {
 
 }
 
-#,,,,,,,.,...,,,.,..,,,,,,,,.,.,.,,.,,,..,,,.,..,,...,...,.,,,.,.,,,.,,..,...,
-#DIYRP36B5MF4M6PCODUZ7ZXRV6MDYMX23VCTTH27DR5VHGTTVW2B3NW52CUDTZM2O4FXLZVTX2MEE
-#\\\|KK6654MKMOJVC65SLTNHCCBKHLSJ6NLGCPCO5QZU44QBPXNCLFA \ / AMOS7 \ YOURUM ::
-#\[7]TTOAZVMPEFKN4NH7I2UMO5HD7YUKCKQRG3MBPCZLQCK37WJDTKDI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,.,,,.,.,.,,,,,,,,..,...,,.,,..,,...,...,..,,,,.,..,,,..,,.,,
+#ORUMTM7ZAXZ3NW4DPR2PE3RNLEOPAD5FM6XOWJ4EOW7BPNTP3SDQPXJ2FYAWV75WCP4ZCF724H3SK
+#\\\|6XYMTJZWVREH4MDC2X2JPUTHKJW4R3QJGCUKAUD3GLPTLTJO3RX \ / AMOS7 \ YOURUM ::
+#\[7]CN4FCNLOKCDYN2SWAH3DFPLLO7EHR4HHZ3UF3EDRDJ5NE7XHHSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
