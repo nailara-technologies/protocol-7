@@ -1,0 +1,37 @@
+## >:] ##
+
+# name  = base.zenka.loop
+
+my $ev_loop_timeout = shift;    ## loop duration [secs] \ not updated ##
+
+<zenka.init_return> //= 0;      ## init-done status code ##
+
+if ( <zenka.init_return> == 0 ) {    ## init-done not called yet ##
+    ## declare initialization completed ##
+    if ( <[base.init-done]> <= 0 ) {
+        <[base.log]>->(
+            0, 'init-done not successful, skipping zenka event-loop..,'
+        );
+        return <zenka.init_return> = -1;
+    }
+}
+
+<[base.log]>->( 1, ':. ready to process connections..,' )
+    if <system.zenka.type> eq qw| cube |;
+
+if ( defined $ev_loop_timeout ) {
+
+    ## loop for exactly <timeout> seconds ##
+    <[event.loop]>->($ev_loop_timeout);
+
+} else {
+    <[event.loop]>;    ## loop forever [ or unloop was called ] ##
+}
+
+return <zenka.init_return> = 5;
+
+#,,,.,.,.,,,.,.,,,,,.,.,.,,.,,...,,,,,.,.,..,,..,,...,...,,.,,...,...,,..,...,
+#GTGDXCZXNM6XHM5RQEEQXWH2ECIH4UKED6ZF3HIVIG5LNEBQZXEPH3ULN45IFGNUMOIETUPWHJDMA
+#\\\|TQ7W33XKD6B77FERR54TX32STAGJ54JTFYCOP2MUOWK5NLIOE2P \ / AMOS7 \ YOURUM ::
+#\[7]IUO2ZES7TBIXT5PZFXHZSAWBXDFMRLKKAXTQ2WF5N3Q5VQTUVIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

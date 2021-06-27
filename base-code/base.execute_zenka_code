@@ -3,27 +3,65 @@
 # name  = base.execute_zenka_code
 # descr = execute protocol-7 zenka code
 
-<[base.log]>->( 2, ': executing protocol-7 zenka code .,' );
+my @zenka_perl_code = @ARG;
 
-use vars qw| $ZENKA_CFG_NAME |;
-my $code_name
-    = defined $ZENKA_CFG_NAME
-    ? sprintf( "cfg '%s'", $ZENKA_CFG_NAME )
+warn 'expected zenka config perl code to execute <{C1}>'
+    if not @zenka_perl_code
+    or not defined $zenka_perl_code[0];
+
+my $stack_index = scalar(@main::ZENKA_RUN_CFG_STACK) - 1;
+my $cfg_ref     = $main::ZENKA_RUN_CFG_STACK[$stack_index] // {};
+
+my $line_count = scalar scalar @zenka_perl_code;
+<[base.logs]>->(
+    2,           ': executing zenka code., [ %03d %5s ]',
+    $line_count, <[base.cnt_s]>->( $line_count, qw|  lines  line  | )
+);
+<[base.logs]>->( 2, ": :. config '%s'", $cfg_ref->{'name'} )
+    if defined $cfg_ref->{'name'};
+
+<base.zenka_cfg.warnings> = qw| report |;    ## [ silent | fatal | report ] ##
+
+$main::RUN_ZENKA_CONFIG_CNAME
+    = defined $main::LOAD_ZENKA_CFG_NAME
+    ? sprintf( "cfg '%s'", $main::LOAD_ZENKA_CFG_NAME )
     : qw| zenka-code |;
-$code_name = sprintf qw| %s-zenka |, <system.zenka.name>
-    if lc($code_name) eq qw| zenka |;
-undef $ZENKA_CFG_NAME;
+$main::RUN_ZENKA_CONFIG_CNAME = sprintf qw| %s-zenka |, <system.zenka.name>
+    if lc($main::RUN_ZENKA_CONFIG_CNAME) eq qw| zenka |;
+
+undef $main::RUN_ZENKA_CFG_WARNING_STRING;
 
 ## storing last return value ##
 <zenka_cfg.ret_val> = undef;
 
-my $use_aliases        = 1;    ## <-- resolve config command aliases ? ##
-my $noerr              = 5;
-my $code_line_num      = 0;
-my $event_loop_present = @ARG ~~ m|\$code\{'event.loop'}|;
-foreach my $code_line (@ARG) {
-    $code_line_num++;
+use experimental qw| smartmatch |;
+
+my $use_aliases = 1;    ## <-- resolve config command aliases ? ##
+my $noerr       = 5;
+$main::RUN_ZENKA_CFG_LINE = 0;
+my $event_loop_name    = qr,(event.loop|zenka.loop),;
+my $event_loop_present = @zenka_perl_code ~~ m|\$code\{'$event_loop_name'}|;
+foreach my $code_line (@zenka_perl_code) {
+    $main::RUN_ZENKA_CFG_LINE++;
     my $error_exit = 0;
+
+    $main::RUN_ZENKA_CODE_LINE = $code_line;
+
+    ## change warn handler to report zenka config line numbers ##
+    local $SIG{'__WARN__'}
+        = $code{'base.agent_code.handler.sig_warn.end_proc'}
+        if <base.zenka_cfg.warnings> eq qw| report |
+        or $event_loop_present
+        ## use regular base.sig_warn handler in main event loop ##
+        and index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
+
+    ##  silente all warnings  ##
+    local $SIG{'__WARN__'} = sub { }
+        if <base.zenka_cfg.warnings> eq qw| silent |;
+
+    ## restoring global sig_warn handler ##
+    local $SIG{'__WARN__'} = $code{'base.sig_warn'}
+        if $code_line =~ m|\$code\{'$event_loop_name'}|;
 
     ## checking \ resolving command routine aliases ## [ cfg_cmd.<name> ]
     #
@@ -31,31 +69,10 @@ foreach my $code_line (@ARG) {
             <[base.check_cfg_cmd_alias]>->($1)|ge;
     ###
 
-    ## change warn handler to report zenka config line numbers ##
-    local $SIG{'__WARN__'} = sub {
-        ( my $err_str = $ARG[0] ) =~ s| ?<\{N?C\d?}>||g;
-        if ( index( $err_str, qw| eval |, 0 ) > -1 ) {
-            if ( index( $err_str, "[ '", 0 ) == -1 ) {
-                $err_str =~ s| at .+line.+$||g;
-            } else {
-                $err_str =~ s| at .+line.+$|' \]|g;
-            }
-        }
-        <[base.logs]>->(    ## requires statement to line number map ##
-            0,          'runtime-error : %s [ statement %03d ]',
-            $code_name, $code_line_num
-        );
-        <[base.logs]>->(
-            0, ": '%s'", scalar <[base.format_error]>->( $err_str, -1 )
-        );
-        $error_exit = 1;
-        }
-        if $event_loop_present
-        ## use regular base.sig_warn handler in main event loop ##
-        and index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
-
     ##  evaluate zenka-code \ config line  ##
     <zenka_cfg.ret_val> = eval($code_line);
+
+    $noerr = 0 if defined $main::RUN_ZENKA_CFG_WARNING_STRING;
 
     if ($error_exit) {    ## todo : adapt parser from below ##
         return warn 'stopped processing <{C1}>';
@@ -63,7 +80,7 @@ foreach my $code_line (@ARG) {
     }
 
     if ( length $EVAL_ERROR ) {
-        if ( $EVAL_ERROR =~ m|^Can't use string \(""\) as a subroutine ref| )
+        if ($EVAL_ERROR =~ m,^Can't use (string \(""\)) as a subroutine ref, )
         {
             my $code_line_copy = $code_line;
             while ( $code_line_copy =~ s|(\$code\{'([^']*)'\})|| ) {
@@ -77,23 +94,56 @@ foreach my $code_line (@ARG) {
                 $noerr = 0 if $noerr;
             }
         }
+
         if ($noerr) {
-            $EVAL_ERROR =~ s| at ([^\s]+) line (\d+).+\n||;
-            <base.eval_error.name> = ${^CAPTURE}[0];
-            <base.eval_error.line> = ${^CAPTURE}[1];
-            <[base.s_warn]>->(
-                "no success on eval '%s' [ '%s' ] <{C3}>",
-                $code_line, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
-            );
+            <base.eval_error> = { qw| name | => undef, qw| line | => undef };
+            my @error_data = <[base.format_error]>->( $EVAL_ERROR, -1 );
+
+            ## say ' < EVAL ERROR > ' . $EVAL_ERROR;
+            ## say ' < ZENKA CONFIG > ' . $main::RUN_ZENKA_CONFIG_CNAME
+            ##  if defined $main::RUN_ZENKA_CONFIG_CNAME;
+
+            my $caller_string = '';
+            if ( @error_data > 1 ) {
+                $caller_string = $error_data[1];
+                <base.eval_error.name> = $error_data[2];
+                <base.eval_error.line> = $error_data[3];
+            }
+            if ( length $caller_string ) {
+
+                ## say $main::RUN_ZENKA_CONFIG_CNAME;
+                ## say $main::LOAD_ZENKA_CFG_NAME
+                ##  if defined $main::LOAD_ZENKA_CFG_NAME;
+
+                ## need zenka config stack ##
+
+                ## say STDERR ' < pass warn 0000 >';
+
+                <[base.log]>->( 0, $error_data[0] );
+                <[base.logs]>->( 0, ':. %s', $caller_string );
+            } else {
+                <[base.s_warn]>->( 'eval error : %s', $error_data[0] );
+            }
+        } else {
+            ## say ' < pass > has err';
         }
         $noerr = 0 if $noerr;
     }
 }
 
+if ($noerr) {    ##  reset names when no error has occurred  ##
+    undef $main::RUN_ZENKA_CFG_LINE;
+    undef $main::RUN_ZENKA_CODE_LINE;
+    undef $main::LOAD_ZENKA_CFG_NAME;
+    undef $main::RUN_ZENKA_CONFIG_CNAME;
+
+    my $completed_ref = pop @main::ZENKA_RUN_CFG_STACK;
+
+}
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,,,,.,.,,..,...,.,,,..,,,.,,...,,.,,,..,..,,..,,...,..,,..,,...,.,.,.,.,..,,
-#KUH4HMHZUPLYJ43G45J5T6UIOKLFWB2KRQHOJK7FKZQP32Y4AGTML6YUDNESHUP4G4TEEZCPM6FXK
-#\\\|XID7P4J7ZGOQQBA4QM5DE4NGQTGGU5ETW7ROTIJFQ2ZICJ7A7MH \ / AMOS7 \ YOURUM ::
-#\[7]VGVHQ7NRGSALH5O7SXYPQ5J7AHGZRICPDO2KVUOAASF3K6RMDCCQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,..,,,..,,,,,.,.,.,.,,,,,,,,,..,,...,...,...,..,,..,,..,,,,.,
+#64UIAK6OIEOD3ZDLF7ELS43QFN7ZLYPWR57623YB7ZLS74ZP3CLOOSALQ6ZKGVMIEFVJPDDW3Q6YS
+#\\\|GO6KPKJPCDSHYM3B5TYED3HMUAGNJSZOIPM2HCATMVJ2AT734PE \ / AMOS7 \ YOURUM ::
+#\[7]QEEQSVYSJUBTBVSMYXAFNAFCB6JV7NYOUKV6KLLMU723DQCZW6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

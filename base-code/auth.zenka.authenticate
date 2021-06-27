@@ -6,6 +6,11 @@
 
 my ( $backend_socket, $zenka, $key_str ) = @ARG;
 
+if ( not defined $backend_socket ) {
+    warn 'socket param undefined, cannot authenticate [ zenka ] <{C1}>';
+    return undef;
+}
+
 my $protocol_messages = <protocol.protocol-7.connect>;
 my $protocol_banner   = $protocol_messages->{'banner'};
 my $proto_msg_timeout = $protocol_messages->{'timeout'};
@@ -40,7 +45,7 @@ if ( defined $key_str
             return undef;
         }
     } else {
-        <[base.log]>->(
+        <[base.logs]>->(
             0, 'auth.zenka : [#] network error [ nothing read on %s ]',
             $link_mode_str
         );
@@ -76,8 +81,8 @@ if ( defined $key_str
     return undef;
 }
 
-#,,,,,..,,,..,.,,,..,,,,,,...,,.,,,,.,...,,,.,..,,...,...,..,,,,.,,..,,,.,,,,,
-#SBXCIQGO3FUG3A4PJSMGCJTEUPM5R7EQF6VY7WWMCIWIA453NJL4XELX2I34YNCCEXMV3LIIPWN7Y
-#\\\|RHDOZIN3ZS2CRNFQAY7HJNRMKRKH4ZH7TGJWA4GEJEHP2LERQIM \ / AMOS7 \ YOURUM ::
-#\[7]PLWN7RJP3L5OHN62X4DQSGPFUSBE7JRMHANAPUFTCIIFIELQUOBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,...,,.,,...,,.,,,,.,...,..,,..,,...,..,,,,.,,,,,,,.,,..,,,.,
+#PCA3XKJ7V6ITMWKZJJ7Z3NGFJDZJGMMAJWX3DYY5JLULI5SP5IATPZISIMCGZ3TA52TBHTQNO2MSG
+#\\\|25LSPCXIR5IDE24WVI4IHEZAHQU2D3GM5SPZGZQL64NWYZRDP4Q \ / AMOS7 \ YOURUM ::
+#\[7]BBLGJISTUUGMCX7QEJJLC6GBSKP3PT5VZYZSAOGR4CASG4X6FGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

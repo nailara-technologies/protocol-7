@@ -12,7 +12,7 @@ my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
 my $log_str    = $cfg_level                 ? ': ' x $log_level : '';
 my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : qw|configuration|;
 my $log_msg
-    = $cfg_name eq "zenki/$zenka_name/config"
+    = $cfg_name eq sprintf( qw| zenki/%s/config |, $zenka_name )
     ? sprintf( '%s: loading %s zenka description.,', $log_str, $zenka_name )
     : $cfg_name =~ m|/[^/]+/| ? "${log_str}loading cfg.: ,./$cfg_name"
     :                           "${log_str}loading $cfg_str : $cfg_name";
@@ -28,10 +28,20 @@ push( @{<system.config.reload_order>}, $cfg_name )
     if $cfg_name ne <system.path.rel.cur_zenka_cfg> and !$already_pushed;
 
 <base.config_parser.cfg_type> //= qw| exec_cfg |;
-<base.config_parser.cfg_name> //= $cfg_name;
+<base.config_parser.cfg_name> = $cfg_name;
 
 ##  used for eval error messages  ##
-our $ZENKA_CFG_NAME = $cfg_name;   ## undefined again in execute_zenka_code ##
+##
+push @main::ZENKA_RUN_CFG_STACK, {
+    qw| type | => <base.config_parser.cfg_type>,
+    qw| name | => <base.config_parser.cfg_name>,
+    qw| line | => 0,                               ## updated in the parser ##
+    qw| vars | => {},
+    qw| errs | => []
+};
+
+$main::LOAD_ZENKA_CFG_NAME = $cfg_name;    ## replace with stack vars ## [LLL]
+## undefined again in execute_zenka_code ##
 
 my $status = <[base.execute_zenka_code]>->(
     <[base.parser.config]>->(
@@ -54,8 +64,8 @@ my $status = <[base.execute_zenka_code]>->(
 return 1 if <base.parser.config.errors>;
 return $status;
 
-#,,,,,,,.,,.,,..,,,.,,,,,,,.,,,.,,,,,,,..,,.,,..,,...,...,..,,...,.,,,,.,,.,.,
-#V2SWMFFFY7VED57RCTNHUS7S4Q6YZLVLSPLB3M5CTMKUJE2QGD6M6BQ7WRRV6H23IGS2SSKMBLG5I
-#\\\|GOKBDHM2AF3ODVXN5TMAKCXL5XZHXG6IE6LFCVN4AQK4OCE4BCV \ / AMOS7 \ YOURUM ::
-#\[7]BN3OUBQRAR4PQR3IKAXD7FANPHLXD22RDWRJHBGBCEIEVF5HVYDA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,,,,..,,,,.,...,.,,,,.,,,,,,..,,...,..,,.,.,,,.,..,,..,,,,,,
+#VPHOWKZAQQDKLRJ27CKNTHSCQW3VDC2AF4QTILUFS52CWNCFJUOPTKIODYVDJC23TWGCTSEUSAONA
+#\\\|3DU2F5UL23LBXWPHBMUVD3Q5P2NOJFWGO7NB7GAWAYF4XLUHNYM \ / AMOS7 \ YOURUM ::
+#\[7]ZMXNHMHKBVXSNZVTGYFKYS55W2YWIYP7UVFPWPAPWIWQOHIU4SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
