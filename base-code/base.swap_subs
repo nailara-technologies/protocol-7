@@ -5,7 +5,8 @@
 
 my $source_sub_prefix = shift;
 my $target_sub_prefix = shift;
-my $overwrite_policy  = shift // 'undefine'; # [undefine|overwrite|if_missing]
+my $overwrite_policy  = shift // qw| undefine |;
+## policies : < undefine | overwrite | if_missing > ##
 
 my @sub_names     = keys %code;
 my $subs_matching = 0;
@@ -15,13 +16,14 @@ map {
         or $ARG eq $source_sub_prefix    ## exact match ##
 } @sub_names;
 if ( !$subs_matching ) {
-    <[base.log]>->(
-        2, "<swap_subs> skipped [ no $source_sub_prefix subs present ]"
+    <[base.logs]>->(
+        2, '<swap_subs> skipped [ no %s subs present ]',
+        $source_sub_prefix
     );
     return 0;
 }
 
-if ( $overwrite_policy eq 'undefine' ) {
+if ( $overwrite_policy eq qw| undefine | ) {
     map {
         if ( $ARG =~ m|^$target_sub_prefix\.| ) {
             delete $code{$ARG};
@@ -29,8 +31,9 @@ if ( $overwrite_policy eq 'undefine' ) {
         }
     } @sub_names;
     my $removed_count = @sub_names - keys %code;
-    <[base.log]>->(
-        2, "undefined $removed_count subs from '$target_sub_prefix' namespace"
+    <[base.logs]>->(
+        2,              "undefined %d subs from '%s' namespace",
+        $removed_count, $target_sub_prefix
     ) if $removed_count;
 }
 
@@ -50,10 +53,9 @@ foreach my $sub_name ( keys %code ) {
             next;
         }
         if ( !$logged_yet ) {
-            <[base.log]>->(
-                2,
-                ": moving subroutines : "
-                    . "$source_sub_prefix --> $target_sub_prefix"
+            <[base.logs]>->(
+                2,                  ': moving subroutines : %s --> %s',
+                $source_sub_prefix, $target_sub_prefix
             );
             ++$logged_yet;
         }
@@ -70,8 +72,8 @@ foreach my $sub_name ( keys %code ) {
     }
 }
 
-my $sub_list_ref = <[base.resolve_key]>->('base.init_modules.sub_list');
-if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
+my $sub_list_ref = <[base.resolve_key]>->(qw| base.init_modules.sub_list |);
+if ( defined $sub_list_ref and ref($$sub_list_ref) eq qw| ARRAY | ) {
     my $del_index = 0;
     foreach my $sub_name ( @{$$sub_list_ref} ) {
         next if not defined $sub_name;
@@ -87,30 +89,51 @@ if ( defined $sub_list_ref and ref($$sub_list_ref) eq 'ARRAY' ) {
 map {
     <base.cmd>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1,
     }
-    keys %{<base.cmd>}
-    if exists <base.cmd>;
+    keys <base.cmd>->%*
+    if defined <base.cmd>;
 
 map {
     <base.cli>->{$ARG} =~ s,^$source_sub_prefix(\.|$),$target_sub_prefix$1,
     }
-    keys %{<base.cli>}
-    if exists <base.cli>;
+    keys <base.cli>->%*
+    if defined <base.cli>;
 
-if ( !$moved ) {
-    <[base.log]>->(
-        2,
-        "<swap_subs> nothing done "
-            . "[ $source_sub_prefix --> $target_sub_prefix ]"
+if ( not $moved ) {
+    <[base.logs]>->(
+        2,                  '<swap_subs> nothing done [ %s --> %s ]',
+        $source_sub_prefix, $target_sub_prefix
     );
 } else {
     <base.modules.internal_name>->{$target_sub_prefix} = $source_sub_prefix;
     <base.modules.moved_to>->{$source_sub_prefix}      = $target_sub_prefix;
-    my $s = $moved == 1 ? '' : 's';
-    <[base.log]>->( 2, ": : done [ $moved sub$s ]" );
+    <[base.logs]>->(
+        2,      ': : done [ %d sub%s ]',
+        $moved, <[base.cnt_s]>->($moved)
+    );
 }
 
-#,,..,,,,,,,,,,,.,,,,,,,,,..,,...,...,..,,,.,,..,,...,...,.,,,...,...,,,,,,,.,
-#AEL7M3BFNXIPLPKRSS4O2KCRE2G2LU2CRY4QKSGCVIE4LB7VNXCPKC7X2XSJHDJFICYAP22HVT6PW
-#\\\|LI5T3SOVNP67FH5CJU5RLEAWCTV5B4XTVENCWT3IIMCKOHRF6ZF \ / AMOS7 \ YOURUM ::
-#\[7]VQLTGJAOZAGIBNNWXZV3GPHY3N3WS7XHEMA2HH3L5Q3FAYKMTEBY 7  DATA SIGNATURE ::
+<[base.referenced_subroutines.clear_found]>;
+
+##  adjusting names of tracked subroutines [ for error handling ]  ##
+if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
+    foreach my $subname ( keys <base.subroutines.referenced>->%* ) {
+        my $matched_href = <base.subroutines.referenced>->{$subname};
+        foreach my $line ( keys $matched_href->%* ) {
+            foreach my $found_in ( keys $matched_href->{$line}->%* ) {
+                my $prev_name = $found_in;
+                ## move to new name ##
+                $matched_href->{$line}->{$found_in}
+                    = delete $matched_href->{$line}->{$prev_name}
+                    if $found_in   ## adjusting names of parent subroutines ##
+                    =~ s|^($source_sub_prefix)\.|$target_sub_prefix.|
+                    and $found_in ne $prev_name;
+            }
+        }
+    }
+}
+
+#,,..,.,.,.,.,,,,,,,.,,,,,,..,,,.,,,,,,.,,..,,..,,...,...,...,..,,,..,,.,,,,,,
+#US5CJ6NOK6FRGKWGCVUH2FTPB3P42S7DONUUKGLHOYJXSQTBNFAWLT6WPVKC2MM6GI4A2MRPXA6XE
+#\\\|YTQJRGVBNFOQQKZSXXQTM2QRCPU7SOSVPEZZ6A3FZ5ZWH7I4Y2U \ / AMOS7 \ YOURUM ::
+#\[7]R7WMASIPA2B2PWSSFPUG4GCM27REQHVP53N4UHV5ZMF7RSDTE2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

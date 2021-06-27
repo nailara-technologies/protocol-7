@@ -95,6 +95,9 @@ sub prepare_subs {
     $ENV{'LC_NUMERIC'} = qw| en_US.UTF-8 |;
     umask(0027);    ## <-- restricted, set manually .., ###
 
+    ##  silenced experimental warnings  ##
+    use experimental qw| smartmatch |;
+
     BEGIN {
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
@@ -692,8 +695,9 @@ sub prepare_subs {
         ## defining console ansi colors ###
         if ( $data{'system'}{'ansi_color'} ) {
             %ANSI = (
-                'p7_bg'        => "\e[48;2;9;5;42m",
-                'p7_bg_0000'   => "\e[48;2;0;0;17m",
+                qw| B00 |      => "\e[48;2;0;0;17m",
+                qw| B01 |      => "\e[48;2;9;5;24m",
+                qw| B02 |      => "\e[48;2;9;5;42m",
                 'p7_fg_0000'   => "\e[38;2;68;39;172m",
                 'p7_fg_0001'   => "\e[38;2;38;46;153m",
                 'p7_fg_0002'   => "\e[38;2;197;141;7m",
@@ -705,8 +709,9 @@ sub prepare_subs {
             );
         } else {
             %ANSI = (
-                'p7_bg'        => '',
-                'p7_bg_0000'   => '',
+                qw| B00 |      => '',
+                qw| B01 |      => '',
+                qw| B02 |      => '',
                 'p7_fg_0000'   => '',
                 'p7_fg_0001'   => '',
                 'p7_fg_0002'   => '',
@@ -738,7 +743,6 @@ sub prepare_subs {
             my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
             my $show_banner_mode = 0;
             my $center_xy        = 0;
-            no warnings qw| experimental |;
             if ( @ARGV ~~ m{(^| )-show-banner( |$)} ) {
                 $show_banner_mode = 1;
                 $center_xy        = 1 if @ARGV ~~ m{(^| )-center( |$)};
@@ -757,10 +761,10 @@ sub prepare_subs {
             if (   $data{'system'}{'verbosity'}{'console'}
                 && $data{'system'}{'start'}{'showbanner'}
                 or $show_banner_mode ) {
-                say $prefix, $ANSI{'p7_bg'}, $ANSI{'p7_fg_0000'},
+                say $prefix, $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
                     $start_string,
-                    , $ANSI{'p7_bg_0000'},
-                    ' ' x 77, $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'}, qw| / |,
+                    , $ANSI{'B00'},
+                    ' ' x 77, $ANSI{'B02'} . $ANSI{'p7_fg_0000'}, qw| / |,
                     $ANSI{'reset'};
                 ## centered-xy ## ..,
                 $code{'base.banner'}->($prefix);
@@ -798,11 +802,11 @@ sub prepare_subs {
         my $px = shift // '';
 
         ##  protocol-7 sourcecode version  ##
-        my $version_str = sprintf 'protocol-seven.src-ver .: %s',
+        my $version_str = sprintf 'protocol-7 srccode ver. : %s',
             $data{'protocol-7'}{'src-ver'};
 
         ## AMOS release version ##
-        my $release_str = sprintf 'release versn.: %s',
+        my $release_str = sprintf 'release ver. : %s',
             $data{'protocol-7'}{'rel-ver'};
 
         open( my $banner_file_fh,
@@ -814,8 +818,8 @@ sub prepare_subs {
 
         close($banner_file_fh);
 
-        my $bg_0 = $ANSI{'p7_bg'};
-        my $bg_1 = $ANSI{'p7_bg_0000'};
+        my $bg_0 = $ANSI{'B02'};
+        my $bg_1 = $ANSI{'B00'};
         my $fg   = $ANSI{'p7_fg_0000'};
         my $rst  = $ANSI{'reset'};
         map {
@@ -852,13 +856,45 @@ sub prepare_subs {
         return $version_content;
     };
 
+    $code{'base.caller.get_package_name'} = sub {
+        my $file = shift;
+        my $line = shift;
+        if ( not defined $file ) {
+            warn 'file param is not defined <{C1}>';
+            return undef;
+        } elsif ( not defined $line ) {
+            warn 'line param is not defined <{C1}>';
+            return undef;
+        }
+        my $caller_lvl = 0;
+        while ( my @caller_params = eval { caller( ++$caller_lvl ) }
+            and not length $EVAL_ERROR ) {
+            if ($caller_params[2] == $line
+                and (  $caller_params[1] eq $file
+                    or $caller_params[3] eq $file )
+            ) {
+                ## returning package, subroutine in list context ##
+                return ( $caller_params[0], $caller_params[3] ) if wantarray;
+                ## returning package name in scalar context ##
+                return $caller_params[0];
+            }
+        }
+        return undef;    ##[ no match ]##
+    };
+
     $code{'base.format_error'} = sub {
         my $err_msg = shift // qw| :undef: |;
         my $c_lvl   = shift // 1;
         my ( $caller_str, $file, $line );
         $err_msg =~ s|\n$||;
-        ( $file, $line ) = @{^CAPTURE}
-            if $err_msg =~ s| at (\S+) line (\d+).*$||gs;
+
+        while ( $err_msg =~ s| at (\S+) line (\d+).*$|| ) {
+            ( $file, $line ) = @{^CAPTURE};
+        }
+        while ( $err_msg =~ s, ?\[([^\[]+):(\d+)\](( )|$),$3, ) {
+            ( $file, $line ) = @{^CAPTURE};
+        }
+
         $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
         $err_msg =~ s|"\s|' |g;
         $err_msg =~ s|\s"| '|g;
@@ -867,18 +903,63 @@ sub prepare_subs {
 
         $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
 
+        my @package;
         if ( defined $file ) {
-            $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
-            $caller_str = join( qw| : |, $file, $line );
-            $err_msg .= " [$caller_str]" if $c_lvl >= 0;
+            if (    defined $data{'code'}{$file}
+                and defined $data{'code'}{$file}{'moved_to'} ) {
+                ## sub renamed ? ##
+                $file = $data{'code'}{$file}{'moved_to'};
+                ## check where the old caller string comes from ##  [LLL]
+            } else {
+                $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
+            }
+            @package
+                = $code{'base.caller.get_package_name'}->( $file, $line );
+            $caller_str = sprintf '[%s:%d]', $file, $line;
+            $err_msg .= sprintf( ' %s', $caller_str ) if $c_lvl >= 0;
         }
+        $err_msg =~ s,use of ,,g;
+        $err_msg =~ s,no success on ,,g;
         $err_msg =~ s,(can't|unable to),cannot,g;
         $err_msg =~ s|^warning : something's wrong$|:undef:|g;
-        $err_msg =~ s|^use of uninitialized value in warn$|:undef:|g;
-        ++$c_lvl if $c_lvl < 0;
-        $caller_str = $code{'base.caller'}->( abs($c_lvl) );
-        return ( $err_msg, $caller_str ) if wantarray;
-        return $err_msg;
+        $err_msg =~ s|^uninitialized value in warn$|:undef:|g;
+        $err_msg =~ s|uninitialized value|undef value|g;
+        $err_msg =~ s|cannot use (an )?||g;
+        $err_msg =~ s|(*plb: as )a ||g;
+
+        ## check previously seen subroutine names ##
+        if (index( $err_msg, 'undefined value as subroutine reference', 0 )
+            >= 0
+            and defined $data{'base'}{'subroutines'}{'referenced'}
+            and defined $file
+            and defined $line ) {
+            my $sub_list_href = $data{'base'}{'subroutines'}{'referenced'};
+            foreach my $subname ( keys $sub_list_href->%* ) {
+                my $matched_href = $sub_list_href->{$subname};
+                if ( defined $matched_href->{$line}->{$file} ) {
+                    $err_msg = sprintf    ## using an 'educated' guess here ##
+                        'protocol-7 subroutine %s not defined',  ## <{NC}>? ##
+                        $subname;
+                    ## $err_msg .=
+                    ## sprintf( ' %s', $caller_str ) if $c_lvl != -1; ## ? ##
+                }
+            }
+        }
+        if (wantarray) {
+            my $force_caller = 0;
+            if ( $c_lvl < -1 ) {
+                ++$c_lvl;
+                $force_caller = 5;    ## true ##
+            }
+            if ( $c_lvl != -1 or $force_caller ) {
+                my @caller_params = $code{'base.caller'}->( abs($c_lvl) );
+                ( $file, $line, @package ) = @caller_params;
+                $caller_str = sprintf '[%s:%d]', $file, $line;
+            }
+            return ( $err_msg, $caller_str, $file, $line, @package );
+        } else {
+            return $err_msg;    ## scalar context ##
+        }
     };
 
     $code{'base.caller'} = sub {
@@ -889,7 +970,7 @@ sub prepare_subs {
             return sprintf( "[ caller level too high : %03d ]", $c_lvl );
         } else {
             $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
-            return ( $filename, $line ) if wantarray;
+            return ( $filename, $line, $package, $subroutine ) if wantarray;
             return "[$filename:$line]";
         }
     };
@@ -1154,8 +1235,8 @@ sub prepare_subs {
         my $chk_path = shift // '';
         my $d_aref   = shift // [qw| ext/ / |];
         my $base_dir = shift // $data{'system'}{'root_path'} // '';
-        die 'no base_dir defined'        if !length($base_dir);
-        die 'chk_path argument expected' if !length($chk_path);
+        die 'no base_dir defined'        if not length($base_dir);
+        die 'chk_path argument expected' if not length($chk_path);
         die 'expected array ref as second argument'
             if ref($d_aref) ne qw| ARRAY |;
 
@@ -1204,6 +1285,79 @@ sub prepare_subs {
             or -l $src_abs_path and -f readlink($src_abs_path) );
         warn "<< no match : $src_abs_path >> <{C1}>";
         return 0;    # <-- no match.
+    };
+
+    $code{'base.referenced_subroutines.add'} = sub {
+        my $code_name       = shift;
+        my $sub_source_sref = shift;
+
+        state $sub_name_re = qr|\w\d\-\.|;
+
+        if ( not defined $code_name ) {
+            warn 'expected subroutine source name <{C1}>';
+            return undef;
+        } elsif ( ref $sub_source_sref ne qw| SCALAR | ) {
+            warn 'expected subroutine source reference <{C1}>';
+            return undef;
+        }
+
+        my $sub_sourcecode = $sub_source_sref->$*;
+        $sub_sourcecode =~ s|#[^\n]+$||mg;    ## <-- improve ##  [LLL]
+
+        my @source_lines = split "\n", $sub_sourcecode;
+
+        $data{'base'}{'subroutines'}{'referenced'} //= {};
+        my $src_linenum = 0;
+        foreach my $source_line (@source_lines) {
+            $src_linenum++;
+            while ( $source_line =~ s|\$code\{'([$sub_name_re]+)'}|| ) {
+                my $subroutine = $LAST_PAREN_MATCH;
+                ## track where it was found ##
+                $data{'base'}{'subroutines'}{'referenced'}->{$subroutine}
+                    ->{$src_linenum}->{$code_name}++;
+            }
+        }
+    };
+
+    $code{'base.referenced_subroutines.clear_found'} = sub {
+
+        state $clean_found = 1;    ## for later ##
+
+        return -1 if not $clean_found;    ## keep them ##
+
+        my $removed = 0;
+        return $removed
+            if ref $data{'base'}{'subroutines'}{'referenced'} ne qw| HASH |
+            or not keys $data{'base'}{'subroutines'}{'referenced'}->%*;
+        map {
+
+            ++$removed    ## remove all that are found to be loaded ##
+                and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
+                if defined $code{$ARG}
+
+        } uniq $code{'base.sort'}
+            ->( $data{'base'}{'subroutines'}{'referenced'} );
+        return $removed;
+    };
+
+    $code{'base.referenced_subroutines.clear_from_disk'} = sub {
+        state $clean_found = 1;           ## for later ##
+        return -1 if not $clean_found;    ## keep them ##
+
+        my $removed = 0;
+        return $removed
+            if ref $data{'base'}{'subroutines'}{'referenced'} ne qw| HASH |
+            or not keys $data{'base'}{'subroutines'}{'referenced'}->%*;
+        map {
+
+            ++$removed    ## remove all found present in base-code/  ##
+                and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
+                if defined $code{'base.chk_nlr_path'}
+                ->( sprintf qw| base-code/%s |, $ARG )
+
+        } uniq $code{'base.sort'}
+            ->( $data{'base'}{'subroutines'}{'referenced'} );
+        return $removed;
     };
 
     $code{'base.load_code'} = sub {
@@ -1315,7 +1469,7 @@ sub prepare_subs {
             }
 
             foreach my $file_name (@subroutine_names) {
-                next if not defined $file_name or !length($file_name);
+                next if not defined $file_name or not length $file_name;
                 ## todo : reconcile with code_path ##
                 my $src_abs_path;
                 my $src_rel
@@ -1347,7 +1501,7 @@ sub prepare_subs {
                     } else {
                         ## loading code from disk [ including ext directory ]
                         $code{'log.debug'}->(":[disk]: $src_rel .,");
-                        open( my $src_fh, '<', $src_abs_path )
+                        open( my $src_fh, qw| < |, $src_abs_path )
                             or die ":$src_abs_path : \l$OS_ERROR";
                         $data{'code'}{$file_name}{'source'} = <$src_fh>;
                         close($src_fh);
@@ -1355,7 +1509,7 @@ sub prepare_subs {
 
                     # <[sub_name]>->(  -->  $code{'sub_name'}->(
                     my $orig_len
-                        = length( $data{'code'}{$file_name}{'source'} );
+                        = length $data{'code'}{$file_name}{'source'};
 
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
@@ -1376,8 +1530,8 @@ sub prepare_subs {
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'}
                         =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>
-                            |my $k="\$data{'$LAST_PAREN_MATCH'}";
-                                $k=~s/\./'}{'/g;$k|gexo;
+                            |my $k = "\$data{'$LAST_PAREN_MATCH'}";
+                                $k =~ s,\.,'}{',g; $k |gexo;
                     $RS = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len
@@ -1386,8 +1540,13 @@ sub prepare_subs {
                                 . $data{'code'}{$file_name}{'source'} );
                         $data{'plugins'}{'status'}{$code_name}
                             {'load_errors'}++
-                            if !length($src_str);    # <-- is plugin..
+                            if not length($src_str);    # <-- is plugin..
                     }
+
+                    ## track protocol-7 subroutines ##
+
+                    $code{'base.referenced_subroutines.add'}->( $file_name,
+                        \$data{'code'}{$file_name}{'source'} );
 
                     push( @compile_order, $file_name );
 
@@ -1395,9 +1554,12 @@ sub prepare_subs {
                     $module_code_map{$file_name} = $code_name;
 
                 } elsif ( $file_name =~ m|\.orig$| ) {
-                    $code{'log.error'}->("[invalid\\remove.,] $file_name");
+                    $code{'log.error'}->(
+                        sprintf( '[ not valid \\ remove., ] %s', $file_name )
+                    );
                 }
             }
+
             if (    $data{'system'}{'verbosity'}{'console'} == 1
                 and $data{'system'}{'use_http_source'}
                 and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
@@ -1439,7 +1601,7 @@ sub prepare_subs {
         foreach my $sub_name (@compile_order) {
             my $loading_error = 0;
             my $module_name   = $module_code_map{$sub_name};
-            my $source_len    = length( $data{'code'}{$sub_name}{'source'} );
+            my $source_len    = length $data{'code'}{$sub_name}{'source'};
             $source_len //= 0;
 
             ## recompile twice case, now filtered ##
@@ -1752,6 +1914,9 @@ sub prepare_subs {
         my $w     = $warn_count_total == 1 ? ''  : 's';
         my $w_msg = !$warn_count_total ? '' : ", $warn_count_total warning$w";
 
+        ## remove found subroutines from list ##
+        $code{'base.referenced_subroutines.clear_found'}->();
+
         if ($err_count) {
             $code{'log.error'}->( $p
                     . "success on $ok_count sub$s,"
@@ -1760,7 +1925,7 @@ sub prepare_subs {
             $code{'log.error'}
                 ->( $p . "success on $ok_count sub$s$w_msg :|" );
         } else {
-            $src_bytes_total = sprintf( "%.2f", $src_bytes_total / 1024 );
+            $src_bytes_total = sprintf( qw| %.2f |, $src_bytes_total / 1024 );
             $src_bytes_total =~ s|\.?0+$||;
             $code{'log.noerr'}->(
                 sprintf(
@@ -1769,6 +1934,7 @@ sub prepare_subs {
                 )
             );
         }
+
         return ( $ok_count, $err_count );
     };
 
@@ -1924,26 +2090,25 @@ sub prepare_subs {
     };
 
     $code{'log.name_template'} = sub {
-        my $lpw = shift;
+        my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
         if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
             return sprintf(
-                "%s%s.%s %s.%-${lpw}s %s.%s",
-                $ANSI{'p7_bg'},
+                '%s%s.%s %s.%-*s %s.%s',
+                $ANSI{'B02'},
                 $ANSI{'p7_fg_0000'},
-                $ANSI{'p7_bg_0000'} . $ANSI{'bold'},
+                $ANSI{'B00'} . $ANSI{'bold'},
                 $data{'system'}{'node'}{'name'},
+                $lpw,
                 $data{'system'}{'zenka'}{'name'},
-                $ANSI{'reset'} . $ANSI{'p7_bg'} . $ANSI{'p7_fg_0000'},
-                $ANSI{'p7_bg_0000'} . $ANSI{'bold'}
+                $ANSI{'reset'} . $ANSI{'B02'} . $ANSI{'p7_fg_0000'},
+                $ANSI{'B00'} . $ANSI{'bold'}
             );
         } else {               ## regular log line output [ not .\7 line ] ##
             return sprintf(
-                "%s%s. %s.%-${lpw}s .%s",
-                $ANSI{'p7_bg'},
-                $ANSI{'p7_fg_0000'},
-                $data{'system'}{'node'}{'name'},
-                $data{'system'}{'zenka'}{'name'},
-                $ANSI{'p7_bg_0000'}
+                '%s%s. %s.%-*s .%s',
+                $ANSI{'B02'},                     $ANSI{'p7_fg_0000'},
+                $data{'system'}{'node'}{'name'},  $lpw,
+                $data{'system'}{'zenka'}{'name'}, $ANSI{'B00'}
             );
         }
     };
@@ -2020,7 +2185,7 @@ sub prepare_subs {
             ? $ANSI{'bold'}
             : '';
         $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-        if ( defined $code{'base.log'} and defined &{ $code{'base.log'} } ) {
+        if ( defined $code{'base.log'} ) {
             map {
                 $code{'base.log'}->( 0, $ARG )
                     if defined $code{'base.log'}    ##  still defined ?  ##
@@ -2043,7 +2208,6 @@ sub prepare_subs {
                     warn '<< error message not defined >> <{C1}>';
                 }
             } @ARG;
-
             map {    ## early start-up buffer ##
                 push(
                     @{ $data{'system'}{'start'}{'zenka-buffer'} },
@@ -2098,9 +2262,8 @@ sub prepare_subs {
                            | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
                 $ARG = $code{'base.format_error'}->( $ARG, -1 );
             } @err;
-            push( @err, $spaces ) if length($spaces);
+            push( @err, $spaces ) if length $spaces;
             {
-                no warnings qw| experimental |;
                 if ( @err ~~ m|deep recursion | ) {
                     no warnings qw| recursion |;  # no follow-ups
                     $deep_recusrsion++;           # remove offending routine #
@@ -2108,7 +2271,7 @@ sub prepare_subs {
                         next
                             if $code{'base.caller'}->($c_lvl)
                             !~ m{\[(base\.(log.*|buffer.add_line)):\d+\]};
-                        say ' < undefining > ' . ${^CAPTURE}[0];
+                        say ' < undefining > ', ${^CAPTURE}[0];
                         undef $code{ ${^CAPTURE}[0] };
                     }
                     my $msg = join( ' ',
@@ -2140,8 +2303,8 @@ sub prepare_subs {
                 $ARG =~ s|no success on eval ('\$code\{\S+)
                          |<< $LAST_PAREN_MATCH >>|x;
                 $c_lvl = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
-                    if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||
-                    ## no caller string : level = 0 ##
+                    if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||;
+                ## no caller string : level = 0 ##
             } @err;
             if ($c_lvl) {    # <-- log parent caller instead ('<{C[level]}>')
                 @caller = $c_lvl > -1 ? caller($c_lvl) : caller(1);
@@ -2172,6 +2335,7 @@ sub prepare_subs {
             $caller_str
                 = sprintf( "[ caller level too high : %03d ]", $c_lvl )
                 if not length( join( '', $filename, $line ) );
+
             my $log_warning = 1;
             ## alternative handlers registered for filename:line ? ##
             my $match_param = "$filename:$line";    # <-- expand .., [LLL]
@@ -2198,10 +2362,16 @@ sub prepare_subs {
                 }
                 ##
 
+                ##  seperate caller string to allow line wrapping  ##
                 my $log_msg = join( ' ', qq|: warn :|, @err );
+                if ( $log_msg =~ s| (\[[^:]+:\d+\])$|| ) {
+                    $caller_str = $LAST_PAREN_MATCH;
+                    $c_lvl      = 1;
+                }
+                $code{'log.error'}->( join( ' ', $log_msg, $caller_str ) );
                 if ( $c_lvl > -1 ) {
                     my $max_len
-                        = 67 - length( $data{'system'}{'zenka'}{'name'} );
+                        = 67 - length $data{'system'}{'zenka'}{'name'};
                     if ( length($log_msg) + length($caller_str) > $max_len ) {
                         $code{'log.error'}->($log_msg);
                         $code{'log.error'}->(":.    .: $caller_str");
@@ -2226,7 +2396,7 @@ sub prepare_subs {
             $recent_warn_cnt = 0;
             undef $last_warning_time;
         }
-        return 1;
+        return 5;    ## true ##
     };
 
     $code{'base.delay_warning'} = sub {
@@ -2284,8 +2454,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,.,,.,,,.,.,...,,.,,.,,,.,,,.,.,.,,,...,,..,..,,...,...,,.,,,..,,..,...,,,.,
-#W7LNOEIL4SER7U7PE5AYDD7XGNNQ5J5NOY34JXSSRY2ADF5EY3I7IZ4KJXGJGCTF7CDZDMYOX232W
-#\\\|FZQWBNT4KSLERFT4BPOX3CNEYIHCXT7NCC3QPQFZCMBVCWPLCH3 \ / AMOS7 \ YOURUM ::
-#\[7]7U55OKWDXGLPX3PT7RZMCZYP6S5B5YLHYPKHLBUZ3G4PNQG7GIAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,...,.,.,,,.,,,.,,.,,.,.,,.,,..,,...,..,,.,.,,,.,.,,,..,,..,,
+#7TRQ4PEOKK2A2WOQ5P2G36NZSM2XTEMF26HVIF7TIVY3S45UWQPKR6BNSK6LSS6RIA2IJO24BCHJ2
+#\\\|FOGLVEVGVXVEUDTRG4IKIKZAH5VFAYVAGUPT45PN37FT3W7JA2R \ / AMOS7 \ YOURUM ::
+#\[7]QHZTMZGSKSQ4VFD66YFSYQSB45Y6QQBEZGOV46SKITXJHEX4LADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

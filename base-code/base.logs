@@ -5,10 +5,17 @@
 
 return warn 'expecting sprintf template and parameters <{C1}>' if @ARG < 2;
 my $param_index = 0;
+
 map {
-    return <[base.s_warn]>->(
-        'base.logs parameter [%d] not defined <{C1}>', $param_index
-    ) if not defined $ARG;
+    if ( not defined $ARG ) {
+        my $call_lvl = 0;
+        $call_lvl++ if [ <[base.caller]>->(1) ]->[0] eq qw| base.s_warn |;
+        my $warn_string = sprintf '%s parameter %d not defined %s',
+            $call_lvl == 1 ? qw| base.logs | : qw| base.s_warn |,
+            $param_index, scalar <[base.caller]>->($call_lvl);
+        <[base.log]>->( 0, $warn_string );
+        return undef;
+    }
     $param_index++;
 } @ARG;
 
@@ -30,8 +37,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#,,..,.,,,,,.,,,,,,..,,,,,,,.,..,,,,.,.,.,,,,,..,,...,.,,,...,..,,.,.,..,,.,,,
-#CZ3NJV6FMZJTGMNYBRDJT76HA4X7JYX5EVRPYGZQMLQFKU4WUEG4VPGMHCY6JE2ETLNR2SW7QWCFG
-#\\\|ZI47CEZJJEBNHFBD4P6NNYSV4HO2QUOUWP6Z6ENSBSVCYC6N4BM \ / AMOS7 \ YOURUM ::
-#\[7]L6CP2WC4HFLRKMC4NA3JUT5KP3AOJUPGNQ2HWTO4PPLSHMCAEWAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,..,,..,,,,.,,.,,.,.,,.,,,,,,..,,...,...,.,,,..,,,.,,.,.,.,,,
+#67YJPJ5IYJW5GCCEQRWWYV6XB3VZG5UOGEX45KTIO75VU4Q5ASA6FESAUW2TD7EZVSE7G7G6DTZJG
+#\\\|23OGWKJBX3ZGZMRWQQTHKDBM4JIO5JWWSSZPVHPKSJV4MBPU2OS \ / AMOS7 \ YOURUM ::
+#\[7]Q7KHJOCPI3LAKSRT7BOY4MPFKOBXEAACI3FA32JFKL25OOPG3OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

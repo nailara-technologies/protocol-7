@@ -1,0 +1,29 @@
+## >:] ##
+
+# name  = base.config.show_strack_trace
+
+return if scalar @main::ZENKA_RUN_CFG_STACK == 0;
+
+my $log_level = shift // 0;
+
+my $idt_pos = 0;
+
+<[base.log]>->( $log_level, qw| : | );
+foreach my $pos_href (@main::ZENKA_RUN_CFG_STACK) {
+    if ( $idt_pos == 0 ) {
+        <[base.logs]>->( $log_level, ': %s :', $pos_href->{'name'} );
+    } else {
+        my @prefix;
+        @prefix = (': ') x ( $idt_pos - 1 ) if $idt_pos > 1;
+        push @prefix, ': :. ';
+        <[base.log]>->( $log_level, join '', @prefix, $pos_href->{'name'} );
+    }
+    <[base.log]>->( $log_level, qw| : | );
+    $idt_pos++;
+}
+
+#,,,.,...,,,,,,,.,.,,,..,,..,,,,,,,.,,,..,,..,..,,...,..,,,..,,.,,,,.,...,,.,,
+#B3FHGRJCNI53Q5IW3ZW3XABD66RUOYPTYR3PPTRREH2V6OS3HV3LD3B2BNKDO6Z25IUZX3IFW6V3U
+#\\\|TFRYTRK2C2KFYJX4E4ZVZB6H3KFUFNCOSNM3CSJXSYAQDFAX4FV \ / AMOS7 \ YOURUM ::
+#\[7]4DZRL5HOE2BXWHMW7HCHJSZUNRSE2JSLCI6K2QVVOYFZJO57LACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
