@@ -2,12 +2,32 @@
 
 # name  = base.event.loop
 
-my $ret = Event::loop();
-<[base.log]>->( 1, 'event.loop: no more active connections.' );
-return $ret;
+## return after <timeout> seconds [ value is not updated ] ##
+my $ev_loop_timeout = shift;    ## optional ##
 
-#,,,,,.,,,...,,,.,,,.,.,.,,,.,,,.,.,.,..,,.,.,..,,...,...,.,.,,,,,.,.,.,,,..,,
-#5E44GDIFMAVQBXYXJL63XPLRAAIMM6QL5L72WDOUHIWJPGC56AWTVWTNNUAZV4KS7SJKCUOIR7MCM
-#\\\|AKEUI2ETZ2UYM6B645P73V7WU6EHLKQBXJO6UHT53GTJSR7FE6R \ / AMOS7 \ YOURUM ::
-#\[7]HUC3C4KEAJVAASND43ZLLLCJIB4XQ7DRGES5I6XU6YNMH7FWA6BY 7  DATA SIGNATURE ::
+my $time_start = <[base.time]>->(5)
+    if defined $ev_loop_timeout and <[base.get_max_verbosity]> > 1;
+
+my $ret;
+if ( defined $ev_loop_timeout ) {
+    $ret = Event::loop($ev_loop_timeout);    ## exits loop ater <timeout> ##
+} else {
+    $ret = Event::loop();                    ## loop until unloop() called ##
+}
+
+<[base.log]>->( 1, 'event.loop: no more active connections.' )
+    if not defined $ev_loop_timeout;
+
+<[base.logs]>->(
+    2,
+    ': loop exit after %.1f seconds [ timeout value ]',
+    <[base.time]>->(5) - $time_start
+) if defined $ev_loop_timeout and <[base.get_max_verbosity]> >= 2;
+
+return $ret;    ##  contains unloop $result parameter  ##
+
+#,,,,,,,,,.,.,,,,,..,,.,,,,.,,..,,.,,,..,,.,.,..,,...,...,.,.,.,.,,.,,.,,,,..,
+#C6QE7T7TVHUZQH4JHLVZVLNMWZFJA3CNDK53752DFWE5ZZ6MU3HM2HTAO3NFHYACKBCHRV2WNZ2FY
+#\\\|4PMVHP6G2LTDKLQFYMYLSYFIYZQSMQRPKUFAY3RUL6WQ5UIJRQ5 \ / AMOS7 \ YOURUM ::
+#\[7]WGVXBZC7V3NUGX6BAR3AMQCC3EM7OPJ2RAT2ZZQC5G3SJX2XHQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
 <[base.process-into-background]> if <system.background_mode>;
 
 my $success = 1;
-if ( <system.startup_initcode> and @{<startup.init_code>} ) {
+if ( <system.startup_initcode> and <startup.init_code>->@* ) {
     $success = <[base.execute_zenka_code]>
         ->( <[base.parser.config]>->(<startup.init_code>) );
     delete <startup.init_code>;  # clean up., [could contain auth key strings]
@@ -36,11 +36,12 @@ if ( !$success or $EVAL_ERROR ) {
 
 my $zenka_cfg_path = <[base.get_path.zenka_cfg]>->(<system.zenka.name>);
 
-if ( !-e "<system.conf_path>/$zenka_cfg_path" ) {
+if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
     my $zenka_name = <system.zenka.name>;
     local <system.zenka.name> = qw|error|; # <-- changed zenka name to 'error'
     $SUB_NAME = undef;
-    return <[log.error]>->("<< no such zenka ['$zenka_name'] >>");
+    <[base.logs]>->( 0, "<< no such zenka found ['%s'] >>", $zenka_name );
+    return undef;
 }
 
 <system.path.rel.cur_zenka_cfg> = $zenka_cfg_path;
@@ -50,13 +51,15 @@ if ( !-e "<system.conf_path>/$zenka_cfg_path" ) {
 
 # note : load_config_file will not return for zenki invoking the event loop..,
 <[base.load_config_file]>->($zenka_cfg_path)
-    or
-    <[log.error]>->("startup of zenka '<system.zenka.name>' not successful");
+    or <[base.logs]>->(
+    0, "starting of '%s' zenka not successful",
+    <system.zenka.name>
+    );
 
 $SUB_NAME = undef;
 
-#,,..,..,,...,.,,,,..,.,.,.,,,...,..,,,..,.,.,..,,...,..,,,.,,,,,,.,,,,,,,,.,,
-#FXIVVGQQ3SPCV4MAWNP2AOEEVF6RYBF7KGIZBIXWB6W6X6YNRQBSWI3LLGQSES3PBEYA4G2UWWJWI
-#\\\|RWZMBN47G63G374QOICSVKNJ7RXKCE2KOHXK42Z4EHY7SCHOAHA \ / AMOS7 \ YOURUM ::
-#\[7]ZR45FEB5IYTJMYXLIGDEPMETQF6FUISZ7ZO7EE2QX6MP5U4XG4DI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,...,.,.,,,,,,.,,,,,,.,,,,,.,..,,..,,...,...,,.,,,..,...,...,,..,
+#AE6XWATYJMRHLWJKGC5KUI3SB2VXLXNDL4DOMUKOJOWIMSSVRSJXGUKC2N75TYD4ML62S7OJNCY4A
+#\\\|WI5ZX6MOVP7MPGJHPYPY4GENEOPUP3M5EYUU7274TLMCTSPCYHQ \ / AMOS7 \ YOURUM ::
+#\[7]4M77YCUUD67DBY7DKO7LYRS4RVBPNXKHR6DXUAOAHZJWTS762MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

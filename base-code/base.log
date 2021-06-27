@@ -43,11 +43,6 @@ $log_msg = sprintf( "%scall to unknown subroutine while executing '%s'",
     if $log_msg
     =~ m|\$code\{'([^\']*)'\}.+ use string \(""\) as a subroutine|;
 
-my $bg   = $ANSI{'p7_bg'};
-my $rst  = $ANSI{'reset'};
-my $bl_c = $ANSI{'p7_fg_0000'};
-my $an_c = $ANSI{'p7_fg_0001'};
-
 my $zenka_prefix = <[log.format_name]>;
 
 ## log colors ##
@@ -57,18 +52,21 @@ $c_l = 3 if $log_level == 0;
 $c_l = 4 if $log_level == 1;
 $c_l = 1 if $log_level == 2;
 $c_l = 0 if $log_level > 2;
-my $fg_c = $ANSI{"p7_fg_000$c_l"};
+my $c_fg  = $ANSI{ sprintf qw| p7_fg_000%s |, $c_l };
+my $col_b = $log_level == 0 ? $ANSI{'B02'} : $ANSI{'B01'};
 ##
 if ( $log_level > 0 ) {
-    $log_str = "$zenka_prefix ${fg_c}$log_msg$ANSI{'reset'}";
+    $log_str = sprintf '%s %s%s%s%s',
+        $zenka_prefix, $col_b, $c_fg, $log_msg, $ANSI{'reset'};
 } else {
-    $log_str = "$zenka_prefix $ANSI{'bold'}${fg_c}$log_msg$ANSI{'reset'}";
+    $log_str = sprintf '%s %s%s%s%s%s', $zenka_prefix, $ANSI{'bold'}, $col_b,
+        $c_fg, $log_msg, $ANSI{'reset'};
 }
 
 if ($fatal_exit) {    ## improve detection ## [LLL]
-    say STDERR $log_str,
-        "$zenka_prefix$ANSI{'p7_fg_0002'} << EMERGENCY SHUTDOWN >> ",
-        " [ anticipated deep recursion in log system ]";
+    say STDERR sprintf( "%s%s%s\n<< EMERGENCY SHUTDOWN >> %s",
+        $log_str, $zenka_prefix, $ANSI{'p7_fg_0002'},
+        '[ anticipated deep recursion in log system ]' );
     exit 2;
 }
 
@@ -85,7 +83,7 @@ if ( defined $code{'base.buffer.add_line'} ) {
 } elsif ( not defined defined $code{'base.buffer.add_line'} ) {
     $time_stamp //= <[base.anum_log_time]>->( 5, $want_harmony );
     push(
-        @{<system.start.zenka-buffer>},
+        <system.start.zenka-buffer>->@*,
         join( ' ', $time_stamp, $log_level, $log_msg )
     ) if $log_level <= <system.verbosity.zenka-buffer>;
 }
@@ -102,8 +100,8 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return 1;
 
-#,,.,,,,.,,,,,,,.,,..,..,,...,,,,,...,..,,,,,,..,,...,...,..,,.,.,.,.,.,,,...,
-#3YCQ5Z722FSK4X3FDCGSBPF6OVZGS2EYI6H63PKFCCMOXQN5QSQ66E3GJJE3XL6RARPROO36EEP5O
-#\\\|LOC3CX2WS4B45JB5XNARAPYLTO7DAZYEU73OON2EGO64PVSD35G \ / AMOS7 \ YOURUM ::
-#\[7]EGGXJ6RTLQQLHYBANX3VN5IEAAYAJB6PXPE7XL6Y5DTUSNS5OWBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,.,,,..,,.,,..,,..,,,,,,,,,,..,,...,...,,,.,.,.,...,.,,,,..,
+#3NLHFRLUIXVBI4XGCS7RANTCCJETEFS37PXGPQGM5A6XOFONEVT56JQWLCIEFXI5E5W5VYO5BYXSK
+#\\\|UEO4IPTBGXTQ2G3J5T3XA4RA2S6QI7KVTPEWB74LNHJXZQRKDQ5 \ / AMOS7 \ YOURUM ::
+#\[7]VMQQJGPKVSA7GJXK62T7TCSYGVL6DYZ2J7VZKFMNFHHSR5MGCWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

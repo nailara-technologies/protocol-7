@@ -1,0 +1,90 @@
+## >:] ##
+
+# name  = base.agent_code.handler.sig_warn.end_proc
+
+my $err_str         = shift // '';
+my $code_name       = $main::RUN_ZENKA_CONFIG_CNAME;
+my $code_line_num   = $main::RUN_ZENKA_CFG_LINE;
+my $sourcecode_line = $main::RUN_ZENKA_CODE_LINE;
+$main::RUN_ZENKA_CFG_WARNING_STRING = $err_str;
+
+my $stack_index = scalar(@main::ZENKA_RUN_CFG_STACK) - 1;
+my $cfg_ref     = $main::ZENKA_RUN_CFG_STACK[$stack_index] // {};
+
+my $show_src_line   = qw| yes |;    ## display offending line ##
+my $show_stacktrace = qw| yes |;    ## display offending line ##
+
+<base.agent_code.state.error_exit> //= 0;
+
+my $no_caller = 0;
+my $call_lvl  = 1;
+
+if ( $err_str =~ s| ?<\{(N)?C(\d+)?}>||g ) {
+    $no_caller = ${^CAPTURE}[0]
+        if defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq qw| N |;
+    $call_lvl = ${^CAPTURE}[1]
+        if defined ${^CAPTURE}[1] and ${^CAPTURE}[1] =~ m|\d|;
+}
+
+if ( index( $err_str, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
+    if ( index( $err_str, "[ '", 0 ) >= 0 and $err_str !~ m|' ]'?$| ) {
+        $err_str =~ s| at .+line.+$|' \]|g;       ##  amending "' ]"  ##
+    } else {
+        $err_str =~ s| at .+line.+$||g;
+    }
+}
+
+if ( not defined $cfg_ref->{'name'} ) {
+    <[base.logs]>->( 0, '[ %s zenka runtime-error ]', <system.zenka.name> );
+} else {
+    my $num_string
+        = defined $code_line_num
+        ? sprintf( ' < cfg statement : %03d >', $code_line_num )
+        : '';
+## requires statement to line number map ##
+    <[base.logs]>->(
+        0,                  'runtime-error : %s%s',
+        $cfg_ref->{'name'}, $num_string
+    );
+}
+
+<[base.config.show_strack_trace]> if <[base.cfg_bool]>->($show_stacktrace);
+
+$call_lvl = undef
+    if defined $call_lvl
+    and ( $no_caller
+    or index( [ <[base.caller]>->($call_lvl) ]->[0], qw| eval |, 0 ) == 0 );
+$call_lvl //= -1;
+
+<[base.logs]>->(
+    0, ": '%s'", scalar <[base.format_error]>->( $err_str, $call_lvl )
+);
+
+if ( defined $sourcecode_line and <[base.cfg_bool]>->($show_src_line) ) {
+    if ( index( $sourcecode_line, "\n", 0 ) > -1
+        and $sourcecode_line =~ m|\$main::RUN_ZENKA_CFG_LINE = \d+| ) {
+        if ( $sourcecode_line
+            =~ m|\$main::RUN_ZENKA_CFG_LINE = $code_line_num; ([^\n]+)\n|s ) {
+            $sourcecode_line = $LAST_PAREN_MATCH;
+        }
+    }
+
+    ## extract into subroutine ??? ##
+    if ( index( $err_str, $sourcecode_line, 0 ) == -1 ) {
+        my $prefix_string = sprintf( '%s  %s%s',
+            <[log.format_name]>, $ANSI{'p7_fg_0002'}, $ANSI{'B01'} );
+        say $prefix_string,
+            <[base.wrap_text]>->( $prefix_string, 70, $sourcecode_line ),
+            $ANSI{'p7_fg_0000'};
+    }
+}
+
+<base.agent_code.state.error_exit> = 5;    ## true ##
+
+<[base.exit]>->(qw| 0110 |) if <base.zenka_cfg.warnings> eq qw| fatal |;
+
+#,,,,,.,.,,..,,,,,.,,,,..,,.,,,..,...,,,.,.,.,..,,...,...,,..,...,,..,,.,,.,.,
+#ZBHAX2F5U7S6MGG3ZDBFOQ2VGARCY4K7RGCBAVSNZ5QLNELQDOSY7FQ26Q24OOYWXGZUJ54VNAKZK
+#\\\|BLFOQT374QCD73JJL2472YNCKCSKAM4J5RE7OBOMKRFEVMD6JZF \ / AMOS7 \ YOURUM ::
+#\[7]P2WSI4WKM734Q64PCZZ5SABOYGQRC4BPI2CG4UV46UZPO7GRDADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
