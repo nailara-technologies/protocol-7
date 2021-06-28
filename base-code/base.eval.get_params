@@ -1,0 +1,49 @@
+## >:] ##
+
+# name  = base.eval.get_params
+# descr = safely evaluate subroutine parameters
+
+## print perl code result to stdout ##
+my $print_debug_to_console = 1;
+
+my @params = @ARG;
+
+if ( @params == 0 ) {
+    warn 'expected params <{C1}>';
+    return undef;
+}
+
+## setting up safe namespace ##
+my $parse = new Safe;
+$parse->permit_only(qw| :base_core :base_orig |);
+
+#### create function to by iteration exclude all uneeded opcodes [man Opcode]
+## required from base_core  ## const qr lineseq stringify ##
+
+## evaluate supplied parameters ##
+#
+my @result = map { $parse->reval($ARG) } @params;
+#
+##
+
+if ($print_debug_to_console) {
+    say "\n", '< eval result > ',
+        join( ', ',
+        ( map { defined $ARG ? sprintf "'%s'", $ARG : qw| UNDEF | } @result )
+        ),
+        "\n";
+    <[base.logs]>->(
+        0,
+        '< eval error > %s',
+        scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+    ) if length $EVAL_ERROR;
+}
+
+return undef if length $EVAL_ERROR;
+return @result;    ## undef on eval errors ##
+
+#,,,,,...,.,.,,,.,,,.,,,.,,.,,,,.,,..,...,.,,,..,,...,...,,..,,.,,..,,,.,,..,,
+#3OUYIHUNUXC7OH6LKICNQ43462ZJOXAZ7XS2OV2FGNH3NT44PKMJXDUISZWZAWK5NU2FEODRYA7NS
+#\\\|NZ6PS3H4HZGZ2L2QFSY6BFKNVBQFGSPCGDPVMAKNTUOD7L2XAZ4 \ / AMOS7 \ YOURUM ::
+#\[7]AACOE7ZEDPDSYPOKSKRKXLUWG5YR32HE7WZDDMRZQW4CLS5TROAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

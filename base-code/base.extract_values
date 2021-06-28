@@ -17,7 +17,7 @@ if ( not defined $conf_key ) {
 
 ##  use 'base.validate.data_key_syntax'  ##  [LLL]
 
-if ( $conf_key and $conf_key !~ m|[{}]| ) {
+if ( defined $conf_key and $conf_key !~ m|[{}]| ) {
     $conf_key =~ s|'||g;
     $conf_key =~ s|\.|'}{'|g;
     $conf_key = sprintf qw| {'%s'} |, $conf_key;
@@ -87,8 +87,8 @@ foreach my $conf_line ( $file_ref->@* ) {
 }
 return $entries;
 
-#,,..,...,..,,,.,,,..,.,,,,.,,,,,,..,,,.,,,,.,..,,...,...,...,.,,,.,.,..,,,,.,
-#UMVM6FQMDMINBBXBY5ZG5NC43674ZNL3OJP5UT3HC2HKOVQZLBDV34ZDM233ZTP3RQM2QNUMATXCO
-#\\\|UZU4LULS5H4MH52MQCRWS6Q7WZQO4LKU5G6J7G56KQV7Q6FQY3P \ / AMOS7 \ YOURUM ::
-#\[7]HTF6TSMDFWOUFMLNSGGNF6PT3XMUIMUDPY7NDDT6MNSUC64LMOAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,..,,...,..,,,..,,..,...,.,,,..,,...,..,,,.,,.,.,,,,,,.,,...,
+#2O7HN3PLHMADZYAHSRUJNOAOPGU5BBUDK2JUXU6XEP5OY36XB4P35TA3G3MDHZW6TGIGNWVRGZOTA
+#\\\|KBTOUPUCEOYJAEWA6XX73I36VKTA66OWVHDGRYNKEQVLQWNGOWN \ / AMOS7 \ YOURUM ::
+#\[7]3NUGM4RK2DL5SLFTZWGF2RWSIDWLSEDJK5BWPZGEAX6D57JCX2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
