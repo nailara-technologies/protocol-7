@@ -26,7 +26,7 @@ our $protocol_7_root = p7_root_dir();
 
 @EXPORT_OK = qw| $VERSION $protocol_7_root |;
 
-##[ COLORS ]##################################################################
+###[ USED TEXT COLORS ]#######################################################
 
 our %C = (
     qw|  T  | => "\e[38;2;6;71;195m",
@@ -41,7 +41,7 @@ our %C = (
     qw|  R  | => "\e[0m",
 );
 
-##[ TERMINALS ]###############################################################
+##[ TERMINAL [ TTY ] ]########################################################
 
 sub TERM_SIZE {
     my $handle = shift // *STDIN;        ## use *STDOUT for pipe detection ##
@@ -172,8 +172,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,,,,,,,,.,.,.,.,...,,,,,,..,..,,..,,,,.,,,,,..,,...,...,.,.,,,,,,,,,,,.,.,.,
-#YDWDZLG7PN4NL6JTTHZV46QEKITC4OIZAITV24IGHBJ4BCFEUBACUKDVFB2RFIJ6OBN67A4FC4KBE
-#\\\|NGFFKDZNEA7P22CLMZYJOPA2RRSPFACP4GSWSV53EHJT3NQAI62 \ / AMOS7 \ YOURUM ::
-#\[7]5ITHJGLOPXMER3OLLTKU2PE3MSZIDDLV5TNPQVV2VZAOM36BAMAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,,,,,.,.,.,.,,,.,,..,...,.,,,..,,...,...,.,,,,.,,..,,.,,,,.,,
+#ADVORCMIOUQOEEQJT5BDHOZJ7P5LYIP7NAN3S7FOGFXBRZEATWPHJ35AUUNGUHEQRZWT7PG5427DK
+#\\\|VFCRDBGORZXYZNVZWT26XNICD4G6VM3FXROGAUN5V2EPSXHXZAO \ / AMOS7 \ YOURUM ::
+#\[7]6EO4IZI2V7RTMOP4QED6N22ETGFBWEKWVBLYRZNCZ5XCU75T4EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
