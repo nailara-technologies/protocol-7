@@ -2,26 +2,48 @@
 
 # name = base.reload_values
 
-my $zenka_name = <system.zenka.name>;
-my $u          = length( $_[1] ) > 20 ? '' : 'uration';
-my $log_msg
-    = $_[1] eq "zenki/$zenka_name/config"
-    ? sprintf( ': reloading %s zenka description .,', $zenka_name )
-    : ": reloading '$_[1]' config$u .,";
+my $cfg_path       = <system.conf_path>;
+my $zenka_name     = <system.zenka.name>;
+my $start_cfg_name = qw| start |;
 
-<[base.log]>->( 1, $log_msg );
+my $cfg_key_string = shift;    ## <-- swap parameters  [LLL]
+my $conf_fname     = shift;
 
-<base.parser.config.reloading> = 1;
+if ( not defined $cfg_key_string ) {
+    warn 'expected defined cfg key param <{C1}>';
+    return undef;
+} elsif ( not defined $conf_fname ) {
+    warn 'expected config filename parameter <{C1}>';
+    return undef;
+}
+
+<base.parser.config.reloading> = 5;    ## true ##
+
+my $reload_log_msg
+    = $conf_fname eq
+    sprintf( qw| zenki/%s/%s |, $zenka_name, $start_cfg_name )
+    ? sprintf( ': reloading %s-zenka description .,', $zenka_name )
+    : sprintf( ': reloading %s config%s .,',
+    $conf_fname,
+    <[base.cnt_s]>->( length($conf_fname) > 20 ? 1 : 0, '', qw| uration | ) );
+
+<[base.log]>->( 1, $reload_log_msg );
+
 my $result = <[base.extract_values]>->(
-    $_[0],
-    [ ( <[base.get_file]>->( join( '/', <system.conf_path>, $_[1] ) ) ) ],
+    $cfg_key_string,
+    [
+        (   <[base.get_file]>->(
+                sprintf( qw| %s/%s |, $cfg_path, $conf_fname )
+            )
+        )
+    ],
     qw| resolved |
 );
 delete <base.parser.config.reloading>;
 return $result;
 
-#,,.,,.,,,..,,.,,,...,..,,..,,,..,,.,,...,.,,,..,,...,..,,.,,,,,.,,..,,,.,...,
-#E42UXKFZ5NLVAUWN3JYCGNB3RWOFPGUMMOCIFD7IPAH2UAWMS6GHMWCHBANEQIEOAVRYO2WN3455C
-#\\\|H6VDSESFQ4RJQFWQXXZ4F4TOLE3MXMUYIEUJHJUACWCNGJFNBCM \ / AMOS7 \ YOURUM ::
-#\[7]AZQRFKKYZAL5HJEHTLMPLAPEDTERANUXBZYDSC5ESXNI2HCKOEDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,..,,.,,,.,,...,,..,.,,,.,,,..,,...,...,...,..,,.,.,.,.,,.,,
+#H3RYCZ4REM3M6GUZX3GHGOHS32JD4SF4ESBHIJAVQJKFKABU6CBV3IRAB25ODFJ3WCLB75XSKZI6M
+#\\\|NZZUZ5HXMFN6XV4KTJZH7KSRWUEPFGB2BJ5UPS5N4PP65KTMRBT \ / AMOS7 \ YOURUM ::
+#\[7]RVB6Z6IHIXRUJXJ6YXNLZZ5IF4GFXRTL64LK7Y64C3R2N4CEGABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,9 +2,10 @@
 
 # name = base.check_dependency_dirs
 
-my $user     = shift // <system.amos-zenka-user>;
-my $zenka    = <system.zenka.name>;
-my $cfg_path = <system.conf_path>;
+my $user           = shift // <system.amos-zenka-user>;
+my $zenka          = <system.zenka.name>;
+my $cfg_path       = <system.conf_path>;
+my $start_cfg_name = qw| start |;
 
 my ( undef, undef, $uid, $gid ) = getpwnam($user)
     or return <[base.logs]>->(
@@ -21,7 +22,7 @@ my @sub_dirs = qw|
 
 my $dep_dir = <[base.get_path.zenka_cfg]>;
 
-if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
+if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     and -d $dep_dir
     and -w $dep_dir
     and opendir( my $dir_fh, $dep_dir ) ) {
@@ -31,7 +32,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
     my $src_stat = File::stat::stat($dep_dir);
 
     foreach my $sub_dir (@sub_dirs) {
-        my $dir_path = "$dep_dir/$sub_dir";
+        my $dir_path = sprintf qw| %s/%s |, $dep_dir, $sub_dir;
         ## create ##
         if ( !-d $dir_path ) {
             mkdir($dir_path)
@@ -40,7 +41,7 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
                 $dir_path, <[base.format_error]>->($OS_ERROR)
                 );
         }
-        next if !-d $dir_path;
+        next if not -d $dir_path;
 
         my $dir_stat = File::stat::stat($dir_path);
 
@@ -55,17 +56,17 @@ if (    $dep_dir =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka|
                 );
         }
         ## placeholder ##
-        my $placeholder_path = "$dir_path/.placeholder";
-        if ( !-e $placeholder_path ) {
-            open( my $fh, qw| > |, $placeholder_path ) or next;
+        my $placeholder_path = sprintf qw| %s/.placeholder |, $dir_path;
+        if ( not -e $placeholder_path ) {
+            open( my $fh, qw| > |, $placeholder_path ) or next;   ## use mknod
             close($fh);
         }
         chown($placeholder_path);
     }
 }
 
-#,,..,,,.,.,.,,,,,,,.,.,,,...,,,,,,..,,..,.,,,..,,...,...,.,.,,,.,,.,,...,.,.,
-#D4EEVYEYVPRDZT5C3CMC5PEAGZHVXGDP5CBJWYL2L6DYQW4NMO7ASYBCQE36NKDYOUS3AWQTONRUI
-#\\\|ARRYGFUBBYHYV4EHFYOGIK7MUU3D3BWNEMOHB3YCH2RZBDVLSV2 \ / AMOS7 \ YOURUM ::
-#\[7]4B35FSRJGW5UTPVBTQZVKSL5X2F45D6CEXX5DAK56YOLMDADX4BA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,...,.,,,...,...,..,,.,.,,.,,..,,...,...,..,,.,,,,..,,,,,.,,,
+#7IXYWYBVDZDVA4NJ7Q6CNQCPCPB3BZ2NVWM4XP6NEW2UVSTUZSZ6ZHCAA7IXXFHDQ575RDFAYQY2Q
+#\\\|GEQETD7YJPPX2TFWWAWDOHVKXGRY5MLBTFV6LF226CE5BDFLHPK \ / AMOS7 \ YOURUM ::
+#\[7]L3CACVLZXJ2HWF4BGAEBZCCRSY3FMPVVBJSB6TMTOWGZMAF4REAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

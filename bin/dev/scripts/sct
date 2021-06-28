@@ -46,12 +46,12 @@ foreach my $filename (@ARGV) {
         push( @edit_files, $filename );
     } else {
         foreach my $path (@check_paths) {
-            $filename = "$filename/config"
+            $filename = sprintf qw| %s/start |, $filename
                 if $path =~ m|/zenki$|
-                and -d "$path/$filename"
-                and -f "$path/$filename/config";
-            if ( -f "$path/$filename" ) {
-                push( @edit_files, "$path/$filename" );
+                and -d sprintf qw| %s/%s |,       $path, $filename
+                and -f sprintf qw| %s/%s/start |, $path, $filename;
+            if ( -f join qw| / |, $path, $filename ) {
+                push( @edit_files, sprintf( qw| %s/%s |, $path, $filename ) );
                 last;
             }
         }
