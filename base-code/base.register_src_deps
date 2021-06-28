@@ -2,24 +2,28 @@
 
 # name = base.register_src_deps
 
-my %np7_src  = map { $ARG => 1 } @_;
-my $zenka    = <system.zenka.name>;
-my $cfg_path = <system.conf_path>;
+my %np7_src        = map { $ARG => 5 } @ARG;
+my $zenka          = <system.zenka.name>;
+my $cfg_path       = <system.conf_path>;
+my $start_cfg_name = qw| start |;
 
 my $src_deps = <[base.get_path.zenka_cfg]>;
 
-if (    $src_deps =~ s|zenki/$zenka/config|$cfg_path/$zenka/source|
+if (    $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/$zenka/source|
     and -d $src_deps
     and -w $src_deps ) {
     foreach my $mod_name ( sort keys %np7_src ) {
-        next if -e "$src_deps/$mod_name" or $mod_name eq 'debug';
-        my $fh;
-        open( $fh, '>', "$src_deps/$mod_name" ) and close($fh);
+        next
+            if -e join( qw| / |, $src_deps, $mod_name )
+            or $mod_name eq qw| debug |;
+        my $fh;    ## use mknod to create empty files ##  [LLL]
+        open( $fh, qw| > |, sprintf qw| %s/%s |, $src_deps, $mod_name )
+            and close($fh);
     }
 }
 
-#,,.,,,.,,,,,,.,.,...,,,.,,,.,..,,,,.,..,,.,,,..,,...,...,...,,,.,...,..,,,..,
-#S7SYRYAON2KJJK2FYBYI2AS32332K4TS6ORDJ2HRGBIETIFB2P7YF76UCLUYM2OJ7RLGY6NA46LMC
-#\\\|PYWSIS2W7RFHQBG7THADG5RSEFVZ2MJEZ5WYKKUEO22WQKHBYNQ \ / AMOS7 \ YOURUM ::
-#\[7]ELTVNP3WQF5MO4N6UI7VCDHSEZMRWGRWPFERUBPG5RA2HOAZFEBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,...,,.,,,.,,.,.,.,,,.,.,..,,..,,...,.,.,.,,,.,.,.,,,,,.,,,,,
+#YRMTWSHIFMWXBOEQ5DEAVVLNWO6OG65YWL5XUIP5RH4QL5ZKAZWOULLACVRSI3CCFPUIOJMSKCZHC
+#\\\|CAXD5TTSGYQHMURKSGI5FXMMQS32NHSAHKCRZPGG4AEE265WAQO \ / AMOS7 \ YOURUM ::
+#\[7]PMRFZ7GRXPBPXTB2WLCROUKTTA5W7HDDBY7PBLD52STYRSG3SSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
