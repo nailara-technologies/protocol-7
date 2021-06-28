@@ -15,7 +15,7 @@ unless ( opendir( $dir_fh, $acfg_dir ) ) {
 foreach my $zenka_name ( <[base.sort]>->( readdir($dir_fh) ) ) {
     next if $zenka_name =~ m|^\.| or $zenka_name =~ $skip_re;
     my $zenka_cfg_file = "$acfg_dir/$zenka_name";
-    $zenka_cfg_file = "$acfg_dir/$zenka_name/config" if -d $zenka_cfg_file;
+    $zenka_cfg_file = "$acfg_dir/$zenka_name/start" if -d $zenka_cfg_file;
     next if !-f $zenka_cfg_file;
 
     push( @found_zenki, $zenka_name );
@@ -27,8 +27,8 @@ close($dir_fh);
 
 return @found_zenki;
 
-#,,.,,..,,,,,,,,.,,,.,.,.,.,.,,.,,,,,,,,.,.,,,..,,...,...,..,,...,..,,.,.,,.,,
-#ZE5FIUBX4YVMV2V7HNLGCCNFTVWEGGPRSX5MNVE32QNC2U2LPEIQFC2RZLCB63MT6JSEH2TTYQQMI
-#\\\|BVDEW3QSTONIAIDKLKB2CXBJTX4SOHOPG5ZCPGUGYJFNDFFD7Y7 \ / AMOS7 \ YOURUM ::
-#\[7]X5GDEPUJE6OGZVPU5A5S7QKTSNKBT3D5K532W46N3M7WVMHL5YCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,.,,,,.,,...,...,...,,,.,.,.,..,,...,...,.,,,..,,.,,,...,,.,,
+#3KLBQUD4MLABCFBOKOQRJKIYIQRPGTILNE3PL2OFSKR4S2BSRSWOUP67QSVCVS52FK4GASX63R2VY
+#\\\|T2KY6AELHMC4L52WBIGBGIMKQFKH2PVNT53HKF4KXOLTROKVI5F \ / AMOS7 \ YOURUM ::
+#\[7]BPDWTD6P3IKOZBSUKJ3QA4HY4FT367YQX2JELYCIFONUHSDOTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

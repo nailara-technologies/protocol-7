@@ -2,16 +2,18 @@
 
 # name = base.register_pm_deps
 
-my %pmods    = map { $ARG => 1 } grep { !m,^AMOS(::.+|$)$, } @ARG;
-my $zenka    = <system.zenka.name>;
-my $cfg_path = <system.conf_path>;
+my %pmods          = map { $ARG => 1 } grep { !m,^AMOS(::.+|$)$, } @ARG;
+my $zenka          = <system.zenka.name>;
+my $cfg_path       = <system.conf_path>;
+my $start_cfg_name = qw| start |;
 state $access_warned = 0;
 
 my $mod_dir = <[base.get_path.zenka_cfg]>;
 
 my @not_registered;
 
-if ( $mod_dir =~ s|zenki/$zenka/config|$cfg_path/zenki/$zenka/pm-dep| ) {
+if ( $mod_dir
+    =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/pm-dep| ) {
     <[base.check_dependency_dirs]>
         if !-d $mod_dir;    ## <-- find more elegant option., [LLL]
     if (    -d $mod_dir
@@ -41,8 +43,8 @@ if ( $mod_dir =~ s|zenki/$zenka/config|$cfg_path/zenki/$zenka/pm-dep| ) {
     }
 }
 
-#,,..,,,.,,,.,,..,,,.,..,,...,..,,,.,,,..,,..,..,,...,...,...,.,,,...,,.,,.,.,
-#SRPLSTCOGS5FIHJ3RZEGLJBKQ6FRML3UBCPABLBMHMQMYKLUR453F6KYQXC4M5ADTBTHUYZ6AJBAW
-#\\\|V5OVO2GRJN2DZTFLZ5YEAMMBYE5Y2WLKIDLXVIH6LALPLGNJBOK \ / AMOS7 \ YOURUM ::
-#\[7]B4EWGEGDVGFY36YV5QTZUAK5WYAHV7RAPRHDMT7RINVITS5JHCCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,..,,.,,,,,,,..,,..,,,..,,,.,.,,,..,,...,...,.,.,.,.,...,.,.,,,.,
+#NSURH2PM4MUHXZONBBM54WABML6AJ3UW5TDCSRGXH7WKGKKYG2ALSP27V64T74RFOV63NDQ2Q2ROA
+#\\\|JOQ5YD632TTH5N5BGM4FAGOW2QCRHHKCBAKKNSGYL7TNZWGZATJ \ / AMOS7 \ YOURUM ::
+#\[7]BWEVVPWE3E3F2BUJIPXROA3V5MIDDFY2AIPLBINZKPOL2EXMTAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,7 @@
 
 # name = base.register_bin_deps
 
-my %binaries = map { $ARG => 1 } @_;
+my %binaries = map { $ARG => 5 } @ARG;
 my $zenka    = <system.zenka.name>;
 my $cfg_path = <system.conf_path>;
 my $warned   = <base.register_bin_deps.warned> //= 0;
@@ -10,14 +10,15 @@ my $bin_deps = <[base.get_path.zenka_cfg]>;
 
 my @not_registered;
 
-if ( $bin_deps =~ s|zenki/$zenka/config$|$cfg_path/zenki/$zenka/os-dep/binary|
+if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
     and -d $bin_deps
     and -r $bin_deps ) {
     foreach my $bin_name ( <[base.reverse-sort]>->( \%binaries ) ) {
-        next if -e "$bin_deps/$bin_name";
+        next if -e sprintf qw| %s/%s |, $bin_deps, $bin_name;
         if ( -w $bin_deps ) {
-            my $fh;
-            open( $fh, '>', "$bin_deps/$bin_name" ) and close($fh);
+            my $fh;    ## use mknod to create empty files ##  [LLL]
+            open( $fh, qw| > |, join( qw| / |, $bin_deps, $bin_name ) )
+                and close($fh);
         } else {
             push( @not_registered, $bin_name );
         }
@@ -28,14 +29,14 @@ if ( @not_registered and not $warned ) {
     <[base.log]>->(
         0,
         'cannot check \ register binary dep. '
-            . join( ', ', map {"'$ARG'"} @not_registered )
+            . join( ', ', map { sprintf qw| '%s' |, $ARG } @not_registered )
             . ' [ os-dep dir read-only ]'
     );
     <base.register_bin_deps.warned>++;
 }
 
-#,,,,,,,.,,..,,..,,.,,,.,,.,,,,..,,..,.,.,,,.,..,,...,...,.,.,.,,,..,,..,,,,.,
-#3OGDGLIMJ4QJYL4KO6JNFORQARNMPZGTZTSCVCSSYKVWDIZCXIO27UHRRAAUY6SBOKR4QSD7RONQA
-#\\\|PVB5LAXVI5BMWAAZMDUC2SQIGH57WITRNX4Y6XJRQJ2HB6HAIQ3 \ / AMOS7 \ YOURUM ::
-#\[7]6TFGPGIWZWY2CTBUSN7UYDNPR6DZQ7KSFFY4IRKTYACG2TNQOKAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,,.,,,,,,..,.,,,,.,,.,.,.,,,..,,...,...,.,,,..,,..,,,,,,,,.,
+#IPB2M2CD62N5IDQZHRKJ5AWQCP5RLDAQ2INDSG2L6LEZKHIRFL4Y65ZHH6FWBJ3IX3KFXFYOOFRN2
+#\\\|WTABMILWXRX65BKYC4GXPZRQN27P6GHFPQWEG7TYGWO36Y3VQS6 \ / AMOS7 \ YOURUM ::
+#\[7]FPLZQ5WWSSJWO4EUZX7NRXXKTLMQ57A5S7FWG2O7QIWPMGHR6KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,8 @@
 
 # name  = base.load_config_file
 
-my $cfg_name = shift // '';
+my $cfg_name       = shift // '';
+my $start_cfg_name = qw| start |;
 return warn 'expected <configuration_name> parameter <{C1}>'
     if not length $cfg_name;
 my $zenka_name = <system.zenka.name>;
@@ -12,7 +13,7 @@ my $log_level  = $cfg_level < 1             ? 1                 : $max_level;
 my $log_str    = $cfg_level                 ? ': ' x $log_level : '';
 my $cfg_str    = length($cfg_name) > 20     ? 'conf file' : qw|configuration|;
 my $log_msg
-    = $cfg_name eq sprintf( qw| zenki/%s/config |, $zenka_name )
+    = $cfg_name eq sprintf( qw| zenki/%s/%s |, $zenka_name, $start_cfg_name )
     ? sprintf( '%s: loading %s zenka description.,', $log_str, $zenka_name )
     : $cfg_name =~ m|/[^/]+/| ? "${log_str}loading cfg.: ,./$cfg_name"
     :                           "${log_str}loading $cfg_str : $cfg_name";
@@ -24,8 +25,8 @@ my $log_msg
 my $already_pushed = 0;
 map { $already_pushed = 1 if $ARG eq $cfg_name }
     <system.config.reload_order>->@*;
-push( @{<system.config.reload_order>}, $cfg_name )
-    if $cfg_name ne <system.path.rel.cur_zenka_cfg> and !$already_pushed;
+push <system.config.reload_order>->@*, $cfg_name
+    if $cfg_name ne <system.path.rel.cur_zenka_cfg> and not $already_pushed;
 
 <base.config_parser.cfg_type> //= qw| exec_cfg |;
 <base.config_parser.cfg_name> = $cfg_name;
@@ -64,8 +65,8 @@ my $status = <[base.execute_zenka_code]>->(
 return 1 if <base.parser.config.errors>;
 return $status;
 
-#,,.,,.,,,.,,,.,,,,,,,..,,,,.,...,.,,,,.,,,,,,..,,...,..,,.,.,,,.,..,,..,,,,,,
-#VPHOWKZAQQDKLRJ27CKNTHSCQW3VDC2AF4QTILUFS52CWNCFJUOPTKIODYVDJC23TWGCTSEUSAONA
-#\\\|3DU2F5UL23LBXWPHBMUVD3Q5P2NOJFWGO7NB7GAWAYF4XLUHNYM \ / AMOS7 \ YOURUM ::
-#\[7]ZMXNHMHKBVXSNZVTGYFKYS55W2YWIYP7UVFPWPAPWIWQOHIU4SBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,.,,,...,,,,,,..,,,.,.,.,,,.,..,,...,...,.,.,.,.,..,,,.,,.,.,
+#45EERP7CTSFLOK7WGYASCDEI7NGF756TEZBIRG24JIOIMOYLBTNGJAMXAD63BWCHLWLARVQELY2VG
+#\\\|BQOZKYPXIQSHWNB4KIXVVJVXLGN7LT6DCTARSCGZILRXHBFK4LB \ / AMOS7 \ YOURUM ::
+#\[7]CVT4ZKUREYYPFFKHJMCYJ2BSLPHUGVK4GK27KKYBLD5AFFXWI6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

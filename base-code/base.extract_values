@@ -3,29 +3,45 @@
 # name = base.extract_values
 
 my $entries        = 0;
-my $conf_key       = shift;
+my $conf_key       = shift;         ## <-- swap parameters  [LLL]
 my $file_ref       = shift // [];
-my $resolve_values = ( @_ and $_[0] eq 'resolved' ) ? 1 : 0;
+my $resolve_values = ( @ARG and $ARG[0] eq qw| resolved | ) ? 5 : 0;
+
+if ( not defined $conf_key ) {
+    warn 'expected defined cfg key param <{C1}>';
+    return undef;
+} elsif ( ref $file_ref ne qw| ARRAY | ) {
+    warn 'expected array ref to configuration <{C1}>';
+    return undef;
+}
+
+##  use 'base.validate.data_key_syntax'  ##  [LLL]
+
 if ( $conf_key and $conf_key !~ m|[{}]| ) {
     $conf_key =~ s|'||g;
     $conf_key =~ s|\.|'}{'|g;
-    $conf_key = "{'$conf_key'}";
+    $conf_key = sprintf qw| {'%s'} |, $conf_key;
+} else {
+    <[base.s_warn]>->(
+        'not allowed characters in config key [{}] [ %s ] <{C1}>', $conf_key
+    );
+    return undef;
 }
 <base.parser.config.errors> //= 0;
 my $reload_mode = <base.parser.config.reloading> // 0;
 my $last_line   = '';
-foreach my $conf_line ( @{$file_ref} ) {
+foreach my $conf_line ( $file_ref->@* ) {
     $conf_line =~ s{[ \t]*#.*|[ \t]*\.:.*| +$|[\r\n\t]+}{}g;
     if ( $conf_line =~ s|\\ *$|| ) {
         $last_line .= $conf_line;
         next;
-    } elsif ( length($last_line) ) {
+    } elsif ( length $last_line ) {
         $conf_line =~ s|^[ \t]+||;
-        $conf_line = "$last_line$conf_line";
+        $conf_line = join '', $last_line, $conf_line;
         $last_line = '';
     }
     $conf_line =~ s|(^[^=]+=)[ \t]+|$LAST_PAREN_MATCH|;
-    ( my $name, my $value ) = split( '=', $conf_line );
+    ( my $name, my $value ) = split( qw| = |, $conf_line );
     if ( defined $value ) {
         $name  =~ s|[ \t]+||g;
         $name  =~ s|\.|'}{'|g;
@@ -34,26 +50,34 @@ foreach my $conf_line ( @{$file_ref} ) {
             while ( $value =~ m{<([^>]+)>} ) {
                 my $key      = ${^CAPTURE}[0];
                 my $resolved = <[base.resolve_key]>->($key);
-                $resolved = ref($resolved) eq 'SCALAR' ? $$resolved : '';
+                $resolved = ref $resolved eq qw| SCALAR | ? $$resolved : '';
                 $resolved //= '';
                 $value =~ s|<$key>|$resolved|g;
             }
         }
-        my $conf_hash = join( '', '$data', $conf_key, "{'$name'}" );
+
+        ## use base.cmd_set for resolution \ defining ##  [LLL]
+
+        my $conf_hash = sprintf qw| $data%s{'%s'} |, $conf_key, $name;
 
       # do not overwrite results of init commands with raw nailara cmd strings
         next if $reload_mode and $value =~ m|^\[[^\]]+\]|;
 
-        my $cmd = "$conf_hash='$value'";
-        if ( defined $data{'system'}{'verbosity'}{'console'}
-            and $data{'system'}{'verbosity'}{'console'} > 2 ) {
-            <[base.log]>->( 1, $cmd );
-        }
-        eval $cmd;
-        if ($EVAL_ERROR) {
+        my $cmd = sprintf qw| %s='%s' |, $conf_hash, $value;
+
+        <[base.log]>->( 1, $cmd )   ##  debug output of prepared perl code  ##
+            if defined <system.verbosity.console>
+            and <system.verbosity.console> > 2;
+
+        ##  replace eval with base.set_key where applicable  ##
+
+        eval $cmd;                  ##  use 'Safe' module eval ?  ##  [LLL]
+
+        if ( length $EVAL_ERROR ) {
             <base.parser.config.errors>++;
-            <[base.log]>->(
-                0, "<< error during config parsing : ['$cmd'] \l$OS_ERROR >>"
+            <[base.logs]>->(
+                0,    "<< error during config parsing : ['%s'] %s >>",
+                $cmd, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
             );
             undef $EVAL_ERROR;
         } else {
@@ -63,8 +87,8 @@ foreach my $conf_line ( @{$file_ref} ) {
 }
 return $entries;
 
-#,,..,,,,,,,,,.,.,,,.,,.,,...,..,,,..,,,.,.,.,..,,...,...,...,,,,,.,.,,..,,,,,
-#CP2PS35BIVQZDLTNCUMOQUXP6ZYPDQJMV6CB4UZ3ZQ2O36Z47WE4QO5BF5QDVGLNHOPFZVVOY474M
-#\\\|FLPNIOI3SVZKYOE3TG6F6YYMHYALIACQHCTOQTLIEHDWR6HUGAC \ / AMOS7 \ YOURUM ::
-#\[7]I2QYWHHG6TMSJMTTMJ6RKEUFURDUO4SGJ55BZKSKHFDPPPJCZCBA 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,..,.,,,,.,,,,,,..,,,.,,,,.,..,,...,...,...,.,,,.,.,..,,,,.,
+#UMVM6FQMDMINBBXBY5ZG5NC43674ZNL3OJP5UT3HC2HKOVQZLBDV34ZDM233ZTP3RQM2QNUMATXCO
+#\\\|UZU4LULS5H4MH52MQCRWS6Q7WZQO4LKU5G6J7G56KQV7Q6FQY3P \ / AMOS7 \ YOURUM ::
+#\[7]HTF6TSMDFWOUFMLNSGGNF6PT3XMUIMUDPY7NDDT6MNSUC64LMOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

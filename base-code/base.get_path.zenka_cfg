@@ -2,19 +2,19 @@
 
 # name = base.get_path.zenka_cfg
 
-my $zenka_name = shift // <system.zenka.name>;
+my $cfg_path       = <system.conf_path>;
+my $zenka_name     = shift // <system.zenka.name>;
+my $start_cfg_name = qw| start |;
 
-my $cfg_path = <system.conf_path>;
-
-my $zenka_cfg_path = "zenki/$zenka_name";
-$zenka_cfg_path .= "/config"
-    if -d "$cfg_path/$zenka_cfg_path"
-    and -f "$cfg_path/$zenka_cfg_path/config";
+my $zenka_cfg_path = sprintf qw| zenki/%s |, $zenka_name;
+$zenka_cfg_path .= sprintf qw| /%s |, $start_cfg_name
+    if -d sprintf qw| %s/%s |, $cfg_path, $zenka_cfg_path
+    and -f join( qw| / |, $cfg_path, $zenka_cfg_path, $start_cfg_name );
 
 return $zenka_cfg_path;
 
-#,,..,...,..,,,.,,,,.,.,.,,,.,..,,,..,,,.,.,.,..,,...,...,...,..,,,,,,,.,,,,,,
-#DUNF5W7J5QJZUTRGRPAEQO5PATGT6G4CPJWSKG2FHQ5LI3YU7C3SWBEOGEKU6RWJNO43APEI5XU5W
-#\\\|HJZAJGCMCGN27LLKC7DTYQO3OYNUNTCVHAOMDJCMVQ7C2S72Q4X \ / AMOS7 \ YOURUM ::
-#\[7]ZNNAXPVTG6RKVWRHDZ5CTPMSV67236UAASTFJYATT3KX7AUD76AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,...,..,,,,.,...,...,..,,.,.,,,,,..,,...,...,,,.,,.,,...,,.,,,.,,
+#VESEYALTQ5UFBXT66JLWI5AGIW6O3BEGXNCIYCF7PR4775B2T2S2SZEZQALSW3R7623U6TJ4CEJVW
+#\\\|O756NPYUXD3G7NTBEZ5X6ATELNKNWHQSAOZPRTGJOQH7NCK6S7A \ / AMOS7 \ YOURUM ::
+#\[7]GQYWMQYUJKGOXBICNP5SDSCECIOHN5CR2XNN37HGXTOY6THPKCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
