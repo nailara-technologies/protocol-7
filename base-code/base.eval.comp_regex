@@ -25,19 +25,21 @@ my $result = $parse->reval( $perlcode_qr_str, 1 );
 
 if ($print_debug_to_console) {
 
-    say "\n" . ' < perl code str > ', $perlcode_qr_str;
+    say "\n" . '< perl code str > ', $perlcode_qr_str;
     say '   < eval result > ', $result // qw| UNDEF |, "\n";
 
-    warn sprintf ' < eval error > %s <{NC}>',
-        <[base.format_error]>->( $EVAL_ERROR, -1 )
-        if length $EVAL_ERROR;
+    <[base.logs]>->(
+        0,
+        '< eval error > %s',
+        scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+    ) if length $EVAL_ERROR;
 }
 
 return undef if length $EVAL_ERROR;
 return $result;    ## undef on eval errors ##
 
-#,,,,,,.,,...,,,,,,.,,.,.,,,.,.,,,.,,,..,,.,,,..,,...,...,,,,,...,...,,,,,..,,
-#BL35RWX4N4RHH7L2KNN3ODG7HRWJNS4UD45U3JEOU66A6UYTV4TC5BUUGQCSS4YKS7G5PWVCSLWLK
-#\\\|ZP5KUCPS65OU6D4H4N6WUJIMUGR5YISY4B24ZXZM2C6DNYO3LWL \ / AMOS7 \ YOURUM ::
-#\[7]HJLMVBOODMEEZN2WBOIEFRUIVWJFVTMETYRSNWDI2EQBX52NIGBY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,.,.,,,,,..,,,,.,...,,.,,,,.,..,,...,...,,,,,,.,,...,..,,..,,
+#G26E63KQC66ZXCZX5XQE3QUUI6BZXFC72YZOG7CZM4WD75IKJFVXO6AJ5APEVDXWEFVSEO7JRN672
+#\\\|PB4JDWC76PYJBEIXMDBAML22G2FBMLZZV4KV6ZU5INTLB3IZ3O2 \ / AMOS7 \ YOURUM ::
+#\[7]WQ5TDRKFGVGKU3US4ZG4MNTNNEV27WA7EPZF7WVTL2IDH2KOXGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

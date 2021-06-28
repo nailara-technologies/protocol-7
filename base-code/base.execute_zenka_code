@@ -39,7 +39,7 @@ use experimental qw| smartmatch |;
 my $use_aliases = 1;    ## <-- resolve config command aliases ? ##
 my $noerr       = 5;
 $main::RUN_ZENKA_CFG_LINE = 0;
-my $event_loop_name    = qr,(event.loop|zenka.loop),;
+my $event_loop_name    = qr,(event.loop|(base.)?zenka.loop),;
 my $event_loop_present = @zenka_perl_code ~~ m|\$code\{'$event_loop_name'}|;
 foreach my $code_line (@zenka_perl_code) {
     $main::RUN_ZENKA_CFG_LINE++;
@@ -53,9 +53,9 @@ foreach my $code_line (@zenka_perl_code) {
         if <base.zenka_cfg.warnings> eq qw| report |
         or $event_loop_present
         ## use regular base.sig_warn handler in main event loop ##
-        and index( $code_line, '$code{\'event.loop\'}', 0 ) == -1;
+        and $code_line !~ m|\$code\{'$event_loop_name'}|;
 
-    ##  silente all warnings  ##
+    ## silencing all warnings ##
     local $SIG{'__WARN__'} = sub { }
         if <base.zenka_cfg.warnings> eq qw| silent |;
 
@@ -142,8 +142,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,.,,..,,...,,..,..,,,..,,,,,.,.,.,.,,,,,,,,,..,,...,...,...,..,,..,,..,,,,.,
-#64UIAK6OIEOD3ZDLF7ELS43QFN7ZLYPWR57623YB7ZLS74ZP3CLOOSALQ6ZKGVMIEFVJPDDW3Q6YS
-#\\\|GO6KPKJPCDSHYM3B5TYED3HMUAGNJSZOIPM2HCATMVJ2AT734PE \ / AMOS7 \ YOURUM ::
-#\[7]QEEQSVYSJUBTBVSMYXAFNAFCB6JV7NYOUKV6KLLMU723DQCZW6DI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,..,,,.,..,,,.,,..,,,.,,,,.,..,,...,...,,.,,,.,,,,,,.,,,,,,,
+#XEEO6ZHEYLN47DTDX76TKHQGFVFLMNIZTASSJGWPHRPRRFC2YJ56NBLJOHVEACWXD6XJPNDZ4TJSE
+#\\\|37B346QIZDL725EJCFA4FZOAZPC7RDRJAVI3A65XSE3VSQDOSUH \ / AMOS7 \ YOURUM ::
+#\[7]6NSW56CGEGHCIBSQ43HNRLSYFBQEKSXKQPB5J4P5NXWIGXUELOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
