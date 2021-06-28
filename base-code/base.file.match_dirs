@@ -39,7 +39,7 @@ my @file_table = map {
     $key =~ s{(\*{2}|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
     $key .= '\$';
 
-    <[base.eval_regex]>->($key);
+    <[base.eval.comp_regex]>->($key);
 
     if ( length $EVAL_ERROR ) {
         <[base.s_warn]>->(
@@ -59,8 +59,8 @@ foreach my $dir ( @{ <[file.all_dirs]>->( $search_path, $recursion ) } ) {
 return scalar @{$results} if defined $result_aref;    # [ append mode ]
 return @{$results};
 
-#,,..,..,,,.,,...,,..,,..,.,,,,,,,.,.,.,,,...,..,,...,...,.,.,,,.,,..,,,.,,.,,
-#JPTYEAZMPNOXSBYUMCFPK3TCM5A6PGUG7JQH45FSMLBBKW46JZHE7BZYOGJZXKQUT6FHLWZGO2H4W
-#\\\|K35X6FHSRXAMTQLRPKUEJPDT2AE5AZXELMCRHU4BMDC67DPA7NL \ / AMOS7 \ YOURUM ::
-#\[7]SBNNHPZ6SFL6QKUJP7G4RMNP6WRQLBGTD3E2OVFGITQLIEGHD2DY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,,.,,.,.,,,.,.,,,,,,,..,,,.,,..,,...,...,.,.,..,,.,,,,.,,,.,,
+#QF2DZCDELGZ7MHABUP6HKR7G4Y7A4LTUTREKMZW5TQZOIJ4ESGKQ2UMJRGDCAOZD2FMDMPUR2AFZC
+#\\\|XZQDQADO5OJCIM2OSTWZT5UHT5GHOQNLGKGYP25HXJOKKDAH6UZ \ / AMOS7 \ YOURUM ::
+#\[7]JC37DEANKJ6SNSXA72WG34CF2TVR46IJACVHTEC7XPNLVXBXNSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
