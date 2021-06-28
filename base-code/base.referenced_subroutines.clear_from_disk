@@ -1,0 +1,165 @@
+## >:] ##
+
+# name  = base.referenced_subroutines.clear_from_disk
+
+state $clean_found = 1;           ## for later ##
+return -1 if not $clean_found;    ## keep them ##
+
+my $report_not_cleared_names = qw| yes |;
+
+my $removed = 0;
+return $removed
+    if ref <base.subroutines.referenced> ne qw| HASH |
+    or not keys <base.subroutines.referenced>->%*;
+
+my $log_level = 1;
+
+<[base.log]>->( $log_level, 'cleaning up referenced subroutine hash ..,' );
+
+map {
+    ++$removed    ## remove all found present in base-code/  ##
+        and delete <base.subroutines.referenced>->{$ARG}
+        if defined <[base.chk_nlr_path]>->( sprintf qw| base-code/%s |, $ARG )
+
+} uniq <[base.sort]>->(<base.subroutines.referenced>);
+
+<[base.logs]>->(
+    $log_level,
+    ': removed %s entr%s [ subroutine file%s found ] ..,',
+    $removed,
+    <[base.cnt_s]>->( $removed, qw| ies y | ),
+    <[base.cnt_s]>->($removed)
+);
+
+my @remaining_files = <[base.sort]>->(<base.subroutines.referenced>);
+
+if ( @remaining_files == 0 ) {
+    <[base.log]>->( $log_level, ': : done. no remaining subroutine names.' );
+    <[base.clean_hashref]>->(<base.subroutines>);
+    delete $data{'base'}{'subroutines'}
+        if not keys <base.subroutines>->%*;
+    return $removed;
+} else {
+    <[base.logs]>->(
+        $log_level,
+        ': : %d entr%s remaining .,', scalar @remaining_files,
+        <[base.cnt_s]>->( scalar @remaining_files, qw| ies y | ),
+
+    );
+}
+
+# <[debug.console-dump]>->(qw| base.subroutines.referenced |);
+
+my $source_dir = <system.code_path>;
+
+foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
+    ( my $fname_rel = $file ) =~ s|^.*/||;
+    my $module_name = $LAST_PAREN_MATCH if $fname_rel =~ m|^([^\.]+)\.|;
+    next                                if not defined $module_name;
+
+    <[base.log]>->(
+        $log_level,
+        ': checking for swap_subs statements in module init files..,'
+    );
+
+    my @module_initcode_files
+        = grep {m,^(.+/)?$module_name(\..+)?\.((pre|post)_init|init_code)$,}
+        <[file.match_files]>->(
+        $source_dir,
+        map { sprintf qw| %s**.%s$ |, $module_name, $ARG }
+            qw| pre_init init_code post_init |
+        );
+
+    $removed = 0;    ##  reset file counter  ##
+
+    foreach my $module_init_file_path (@module_initcode_files) {
+        <[file.slurp]>->( $module_init_file_path, \my @source_lines ) or next;
+        foreach my $line (@source_lines) {
+            next if index( $line, qw| base.swap_subs |, 0 ) == -1;
+            ##  translating protocol-7 code syntax  ##
+            $line =~ s|#.+$||g;
+            next if not length $line or $line !~ m|swap_subs|;
+            $line =~ s|<\[(base.swap_subs)\]>|\$code{'$1'}|g;
+            next if $line !~ m|\$code{'base.swap_subs'}->\(([^\)]+)\)|;
+            my @swap_params = <[base.eval.get_params]>->($LAST_PAREN_MATCH);
+            map { next if $ARG !~ m|^[\w\-_\d\.]+$| } @swap_params;
+
+            foreach my $remaining_file (@remaining_files) {
+                next
+                    if index( $remaining_file,
+                    sprintf( qw| %s. |, $swap_params[1] ), 0 ) == -1;
+                my $source_filename = $remaining_file;
+
+                ## full match, remove entry from list ##
+                delete <base.subroutines.referenced>->{$remaining_file}
+                    and ++$removed
+                    if $source_filename
+                    =~ s|^$swap_params[1]\.|$swap_params[0]\.|
+                    and defined <[base.chk_nlr_path]>->(    ## file exists ##
+                    sprintf qw| base-code/%s |,
+                    $source_filename
+                    );
+
+            }
+
+        }
+    }
+    <[base.logs]>->(
+        $log_level,
+        ': removed %s entr%s [ subroutine file%s found ] ..,',
+        $removed,
+        <[base.cnt_s]>->( $removed, qw| ies y | ),
+        <[base.cnt_s]>->($removed)
+    );
+
+}
+
+my @remaining_files = <[base.sort]>->(<base.subroutines.referenced>);
+
+if ( @remaining_files == 0 ) {
+    <[base.log]>->( $log_level, ': : done. no remaining subroutine names.' );
+    <[base.clean_hashref]>->(<base.subroutines>);
+    delete $data{'base'}{'subroutines'}
+        if not keys <base.subroutines>->%*;
+    return $removed;
+} else {
+    <[base.logs]>->(
+        $log_level,
+        ': : %d entr%s remaining .,', scalar @remaining_files,
+        <[base.cnt_s]>->( scalar @remaining_files, qw| ies y | ),
+
+    );
+}
+
+if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
+    my $r_cnt    = scalar @remaining_files;
+    my $s_str    = <[base.cnt_s]>->($r_cnt);
+    my $subs_ref = <base.subroutines.referenced>;
+    <[base.logs]>->(
+        0, ':: found call%s to %d non-existing subroutine%s :',
+        $s_str, $r_cnt, $s_str
+    );
+    <[base.log]>->( 0, qw| : | );
+    map {
+        <[base.logs]>->( 0, ": undefined routine :. '%s'", $ARG );
+        my $found_in;
+        foreach my $line ( <[base.sort]>->( $subs_ref->{$ARG} ) ) {
+            $found_in .= ', ' if length $found_in;
+            $found_in .= sprintf '%s [ line %d ]',
+                [ <[base.sort]>->( $subs_ref->{$ARG}->{$line} ) ]->[0],
+                $line;
+        }
+        <[base.log]>->( 1, ':' );
+        <[base.logs]>->( ': :. found in .: %s', $found_in );
+        <[base.log]>->( 1, ':' );
+    } @remaining_files;
+    <[base.log]>->( 0, qw| :. | );
+}
+
+return $removed;
+
+#,,.,,,,,,.,,,,..,.,.,...,,,.,...,..,,..,,.,.,.,.,...,...,..,,...,,,,,..,,,,.,
+#CGYPIEDPEDTTAXRLTFBXH5LK2EI76FUIM5KPJH3IUZGRI7EXXPPPGRQ2MFV2LBISJ3DJSTVV6XPDW
+#\\\|57QKTPLORZCYPZSV5NXBQL33URDOQXZHPVZXO4A5CAHOSOTPZRM \ / AMOS7 \ YOURUM ::
+#\[7]ZKZR5TKOOEDW7YRTHDLL6CIJGXCMZXUZ5AKDHDIEFAOTUFHVPKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1237,8 +1237,8 @@ sub prepare_subs {
         my $chk_path = shift // '';
         my $d_aref   = shift // [qw| ext/ / |];
         my $base_dir = shift // $data{'system'}{'root_path'} // '';
-        die 'no base_dir defined'        if not length($base_dir);
-        die 'chk_path argument expected' if not length($chk_path);
+        die 'no base_dir defined'        if not length $base_dir;
+        die 'chk_path argument expected' if not length $chk_path;
         die 'expected array ref as second argument'
             if ref($d_aref) ne qw| ARRAY |;
 
@@ -1251,18 +1251,18 @@ sub prepare_subs {
             return undef;
         }
         my $f_path;
-        foreach my $chk_parent ( @{$d_aref} ) {
+        foreach my $chk_parent ( $d_aref->@* ) {
             $f_path
-                = canonpath(
-                catfile( catfile( $base_dir, $chk_parent ), $chk_path ) );
+                = canonpath catfile( catfile( $base_dir, $chk_parent ),
+                $chk_path );
             ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
             return $path_str if defined $f_path and -r $f_path;
         }
         $data{'modules'}{'warned'}{$f_path} //= {}; # <-- clean-up later..,LLL
         my $reason
-            = ( -l $f_path and !-r readlink($f_path) ) ? 'readable' : 'found';
+            = ( -l $f_path and !-r readlink $f_path ) ? 'readable' : 'found';
         warn "<< source not $reason : '$chk_path' >> <{C1}>"
-            if !$data{'modules'}{'warned'}{$f_path}++;
+            if not $data{'modules'}{'warned'}{$f_path}++;
         return undef;
     };
 
@@ -1336,26 +1336,6 @@ sub prepare_subs {
             ++$removed    ## remove all that are found to be loaded ##
                 and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
                 if defined $code{$ARG}
-
-        } uniq $code{'base.sort'}
-            ->( $data{'base'}{'subroutines'}{'referenced'} );
-        return $removed;
-    };
-
-    $code{'base.referenced_subroutines.clear_from_disk'} = sub {
-        state $clean_found = 1;           ## for later ##
-        return -1 if not $clean_found;    ## keep them ##
-
-        my $removed = 0;
-        return $removed
-            if ref $data{'base'}{'subroutines'}{'referenced'} ne qw| HASH |
-            or not keys $data{'base'}{'subroutines'}{'referenced'}->%*;
-        map {
-
-            ++$removed    ## remove all found present in base-code/  ##
-                and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
-                if defined $code{'base.chk_nlr_path'}
-                ->( sprintf qw| base-code/%s |, $ARG )
 
         } uniq $code{'base.sort'}
             ->( $data{'base'}{'subroutines'}{'referenced'} );
@@ -2456,8 +2436,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,.,,,..,,,,,,.,,..,,...,,..,..,,,,.,,,.,,,,,..,,...,...,,.,,..,,,,.,,..,,,,,
-#EL5GSDWBRIQTMRH4DIPA4J3ZIWFQUIATR4VJSRLKEJYDIJR4CNZORH6JTDJQGOTHZKJBGHZOZRU6Q
-#\\\|Z4X7DI2UFIMDMAKYELZ6BN3YRAVO4U72HFMBGDROIWZXQGNM4PF \ / AMOS7 \ YOURUM ::
-#\[7]LCXRWV2NYZO7PY5GYYHPJMR4ZB6ENY5FN4NRXGHHLK5DZFCVRCCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,.,,,..,,.,,,.,,,..,,.,,,...,..,,...,...,..,,.,.,...,.,.,,,,,
+#H3TT4MAVGYRPE4ZRDEHIBQRXE56YUDSRWGSFA2PSBGGZB272SH6SNO6WBO34UCDAQM5T5IKSIOEGO
+#\\\|HGLWUVW7S23EYUDOPEEEWNVTFJMURJXIHA7GQU7XUBIKDKSXK4U \ / AMOS7 \ YOURUM ::
+#\[7]ZRJRTHP3V7CNKZVYBJBIGHXAT2SMBBORI3XYVLTIELNNKZVZ32CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
