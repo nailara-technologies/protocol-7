@@ -924,6 +924,8 @@ sub prepare_subs {
         $err_msg =~ s|^warning : something's wrong$|:undef:|g;
         $err_msg =~ s|^uninitialized value in warn$|:undef:|g;
         $err_msg =~ s|uninitialized value|undef value|g;
+        $err_msg =~ s|argument in sprintf|sprintf argument|g;
+        $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
         $err_msg =~ s|cannot use (an )?||g;
         $err_msg =~ s|(*plb: as )a ||g;
 
@@ -2454,8 +2456,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,,,,.,,,,.,,.,.,...,.,.,,,.,,,.,,.,,.,.,,.,,..,,...,..,,.,.,,,.,.,,,..,,..,,
-#7TRQ4PEOKK2A2WOQ5P2G36NZSM2XTEMF26HVIF7TIVY3S45UWQPKR6BNSK6LSS6RIA2IJO24BCHJ2
-#\\\|FOGLVEVGVXVEUDTRG4IKIKZAH5VFAYVAGUPT45PN37FT3W7JA2R \ / AMOS7 \ YOURUM ::
-#\[7]QHZTMZGSKSQ4VFD66YFSYQSB45Y6QQBEZGOV46SKITXJHEX4LADQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,..,,...,,..,..,,,,.,,,.,,,,,..,,...,...,,.,,..,,,,.,,..,,,,,
+#EL5GSDWBRIQTMRH4DIPA4J3ZIWFQUIATR4VJSRLKEJYDIJR4CNZORH6JTDJQGOTHZKJBGHZOZRU6Q
+#\\\|Z4X7DI2UFIMDMAKYELZ6BN3YRAVO4U72HFMBGDROIWZXQGNM4PF \ / AMOS7 \ YOURUM ::
+#\[7]LCXRWV2NYZO7PY5GYYHPJMR4ZB6ENY5FN4NRXGHHLK5DZFCVRCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
