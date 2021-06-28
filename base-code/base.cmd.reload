@@ -5,40 +5,41 @@
 # descr = reload or reinit config and source code
 my @keywords = qw|  config  source  plugins  init  all  |;
 
-my $arg = $$call{'args'} // qw| all |;  ## [LLL] enable multiple keyword param
-my $id  = $$call{'session_id'};
+my $arg = $call->{'args'} // qw| all |; ## [LLL] enable multiple keyword param
+my $id  = $call->{'session_id'};
 
 my ( $success, $output ) = ( 0, '' );
 
 <base.debug.keep_on_reload>      //= 0; # <-- dbg. module persistence override
 <base.reload.success.clean-code> //= 1; # <-- delete $data{'code'} [ success ]
 
-my $s = ' ' x 5;
-$$reply{'data'} = ":\n\n\n::\n\n";      # <-- header
+my $s_str = ' ' x 5;
+$reply->{'data'} = ":\n\n\n::\n\n";     # <-- header
 my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
 my $keyword_match = 0;
 
 <system.reload.mode> = $arg; ## <-- <system.reload> deleted after completition
 
 if ( $arg eq qw| config | or $arg eq qw| all | ) {
-    $keyword_match = 1;
+    $keyword_match = 5;      ## true ##
     delete <access.cmd.usr>;
     <[base.log]>->( 1, "[$id] < reload config >" );
     if (<[base.reload_config]>) {
-        $$reply{'data'} .= "$s reload config  [ success ]\n";
+        $reply->{'data'} .= "$s_str reload config  [ success ]\n";
     } else {
-        $$reply{'data'} .= "$s reload config  [  error  ]\n";
+        $reply->{'data'} .= "$s_str reload config  [  error  ]\n";
     }
     <[base.parser.access_conf]> if $arg eq qw| config |;
-    $success = 1;
+    $success = 5;            ## true ##
 }
 if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     my @reload_modules = <[base.clear_p7_mods]>;
     my %mod            = map { $ARG => 1 } @reload_modules;
 
-    $keyword_match = 1;
+    $keyword_match = 5;      ## true ##
     delete <base.commands>;
+    delete <base.subroutines>;
     <base.modules.load_errors> = 0;
     $data{'callbacks'}{'end_code'} = [];
 
@@ -46,7 +47,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     if ( not <base.debug.keep_on_reload> and not exists $mod{'debug'} ) {
         <[base.log]>->( 0, '[reload] .. removing debug module [mem] .,' )
-            if ref( $code{'debug.dump'} ) eq 'CODE';
+            if ref( $code{'debug.dump'} ) eq qw| CODE |;
         <[base.purge_code]>->('debug');    # [LLL] create unload mechanism
     } elsif (<base.debug.keep_on_reload>) {
         <[base.log]>->( 0, '<< keeping debug module enabled >>' );
@@ -59,19 +60,20 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     my $error = <[base.load_modules]>->(@reload_modules);
     if ( !$error and !<base.modules.load_errors> ) {
-        $$reply{'data'} .= "$s reload source  [ success ]\n";
-        $success = 1;
+        $reply->{'data'} .= "$s_str reload source  [ success ]\n";
+        $success = 5;    ## true ##
     } else {
-        $$reply{'data'} .= "$s reload source  [  error  ]\n";
+        $reply->{'data'} .= "$s_str reload source  [  error  ]\n";
+        $success = 0;    ## false ##
     }
 
     ## source version ##
     my $old_version = <protocol-7.src-ver> // qw| UNKNOWN |;
 
-    my $src_version_file
+    my $s_strrc_version_file
         = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
     <protocol-7.src-ver>
-        = <[base.read_from_version_file]>->($src_version_file);
+        = <[base.read_from_version_file]>->($s_strrc_version_file);
 
     <[base.logs]>->( 0, 'NEW SOURCE CODE [ %s ]', <protocol-7.src-ver> )
         if <protocol-7.src-ver> ne $old_version;
@@ -90,35 +92,49 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     ) if <protocol-7.rel-ver> ne $old_release;
 }
 if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
-    $keyword_match = 1;
+    $keyword_match = 5;    ## true ##
     <[base.logs]>->( '[%d] < reload plugins >', $id );
     if (<[base.reload_plugins]>) {
-        $$reply{'data'} .= "$s plugin reload  [ success ]\n";
-        $success = 1;
+        $reply->{'data'} .= "$s_str plugin reload  [ success ]\n";
+        $success = 5;      ## true ##
     } else {
-        $$reply{'data'} .= "$s plugin reload  [  error  ]\n";
+        $reply->{'data'} .= "$s_str plugin reload  [  error  ]\n";
+        $success = 0;      ## false ##
     }
 }
 if ( $arg eq qw| init | or $arg eq qw| all | ) {
-    $keyword_match = 1;
+    $keyword_match = 5;    ## true ##
 
     delete <base.templates.sprintf>;   ## require automatic reload on 'src' ##
 
     <[base.logs]>->( '[%d] < source code reinit >', $id );
-    if ( <[base.init_modules]>->() ) {
-        $$reply{'data'} .= "$s reinit source  [ success ]\n";
-        $success = 1;
+
+    my $modules_init_success = <[base.init_modules]>;
+
+    ## reports calls to undefined subroutine names ##
+    <[base.referenced_subroutines.clear_from_disk]>
+        if $arg eq qw| init | or $arg eq qw| all |;
+
+    ##  if above call leaves entries, assume not defined or error state  ##
+    $modules_init_success = 0
+        if <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |);
+
+    if ($modules_init_success) {
+        $reply->{'data'} .= "$s_str reinit source  [ success ]\n";
+        $success = 5;    ## true ##
     } else {
-        $$reply{'data'} .= "$s reinit source  [  error  ]\n";
+        $reply->{'data'} .= "$s_str reinit source  [  error  ]\n";
+        $success = 0;    ## false ##
     }
 }
-if ( !$keyword_match ) {
+if ( not $keyword_match ) {
     <[base.logs]>->(
         0,   "[%d] unknown reload keyword '%s' called.,",
         $id, $arg
     );
     return { 'mode' => qw|false|, 'data' => "unknown reload keyword '$arg'" };
 }
+
 if ($success) {
     <[base.logs]>->( "[%s] .. reloading complete =)", $id );
     if (<base.reload.success.clean-code>) {
@@ -127,18 +143,18 @@ if ($success) {
     }
 } else {
     <[base.logs]>->(
-        0,   "[%d] reloading %s was not successful `:|",
+        0,   '[%d] reloading [%s] was not successful `:|',
         $id, $arg
     );
 }
 
 delete <system.reload>;    ## completed ##
 
-$$reply{'mode'} = qw| data |;
-$$reply{'data'} .= $reply_footer;
+$reply->{'mode'} = qw| data |;
+$reply->{'data'} .= $reply_footer;
 
-#,,,,,,..,,,,,,..,,.,,..,,.,.,.,.,,.,,,.,,,,.,..,,...,...,,,.,,..,,,,,,.,,,,.,
-#HSUJVEXTNM2DQE56ESMGRM2VFUWYI7OQEMHL6VXN3YOSP4UVC3INRBF3UZCJI6MO2DVMVGFZCFED4
-#\\\|IHG2LH43BAFZH6IGRD7XICOTIWC252C5L47I765N2APCS2IVTDG \ / AMOS7 \ YOURUM ::
-#\[7]5ZBGFTPQBFEAUMAHATVHB4OB6RKIN3JI423OYQHDP2ZL3NPB4YBA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,,,,,,.,,,,.,.,,,..,,,.,,,..,..,,...,...,.,,,.,,,,,.,..,,,..,
+#YL5LDKT4BHPEODCVFZTUPMRMOMSYCXTBCKG5KCIU535GI42WLDI62EPHK36PQU54Z735232XTVATA
+#\\\|5GN7MNAX43G7VW2SXE7OBCBBKT5RLG3ZT5P3CZHFD64CQDBBHN5 \ / AMOS7 \ YOURUM ::
+#\[7]RGRKHVHVXRK3AVAPNFMVZGPC5RG3JAIDX2IMUNHMIV4JZA6M6IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,7 @@
 
 # name  = base.referenced_subroutines.clear_from_disk
 
-state $clean_found = 1;           ## for later ##
+state $clean_found = 5;           ## for later ##
 return -1 if not $clean_found;    ## keep them ##
 
 my $report_not_cleared_names = qw| yes |;
@@ -12,7 +12,7 @@ return $removed
     if ref <base.subroutines.referenced> ne qw| HASH |
     or not keys <base.subroutines.referenced>->%*;
 
-my $log_level = 1;
+my $log_level = 2;                ## verbose reporting to log buffer ##
 
 <[base.log]>->( $log_level, 'cleaning up referenced subroutine hash ..,' );
 
@@ -158,8 +158,8 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 return $removed;
 
-#,,.,,,,,,.,,,,..,.,.,...,,,.,...,..,,..,,.,.,.,.,...,...,..,,...,,,,,..,,,,.,
-#CGYPIEDPEDTTAXRLTFBXH5LK2EI76FUIM5KPJH3IUZGRI7EXXPPPGRQ2MFV2LBISJ3DJSTVV6XPDW
-#\\\|57QKTPLORZCYPZSV5NXBQL33URDOQXZHPVZXO4A5CAHOSOTPZRM \ / AMOS7 \ YOURUM ::
-#\[7]ZKZR5TKOOEDW7YRTHDLL6CIJGXCMZXUZ5AKDHDIEFAOTUFHVPKCA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,..,,,.,,,,.,.,,,..,,.,,,.,.,.,.,...,...,,..,,,.,..,,...,.,,,
+#GFYUSN4L7QZO2UDY5LTEMDTYKXKMSS33GU7QJNRDJKKUTJYD7PXP3WM4SWC6NYC5SLPLS2A5XFHL4
+#\\\|3TCFT7ZE4GYMX75EI3FY2QPFYVDRQPXQZ6CI7RMI4AOWFG2FA3A \ / AMOS7 \ YOURUM ::
+#\[7]6YC6C6DIIHTXRJEGX2BNCVSQXELDWICY4OFASTENEO6BSTV5PSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
