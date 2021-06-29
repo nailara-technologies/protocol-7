@@ -5,10 +5,11 @@
 
 my $reply        = shift;
 my $name         = $reply->{'params'}->{'name'};
-my $buffer_count = @{ $data{'buffer'}{$name}{'data'} };
+my $buffer_count = $data{'buffer'}{$name}{'data'}->@*;
 my $log_data     = <log.file>->{$name};
 my $retry
-    = ( $reply->{'cmd'} eq 'FALSE' and defined $reply->{'call_args'}->{'args'}
+    = (     $reply->{'cmd'} eq qw| FALSE |
+        and defined $reply->{'call_args'}->{'args'}
         and $reply->{'call_args'}->{'args'} =~ m|^command | ) ? 1 : 0;
 
 if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
@@ -40,8 +41,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
     ## <[base.log]>->( 0, "[ '$name' buffer ] log line $buffer_count lost" );
 }
 
-#,,..,,..,..,,..,,.,.,,,,,.,,,,..,..,,,.,,,.,,..,,...,...,..,,,.,,,,.,..,,..,,
-#WPSLDBYD4TZ3UBMTFQYYJEPZMIZ62JNB62VM3NIJHLF5TKMHSZZDQ3IJ7HBLBL4IEETFCOUIO7TXW
-#\\\|HSBTRVTQC7DBUM5UJOEHT4ZDBXPB5FQ4JAXINYITYNYKBP5MXO3 \ / AMOS7 \ YOURUM ::
-#\[7]GZTZ6EJ6MV4M34QI5ZJETAKHGJF2GXKFSDM7CDFFKEERXUKRF4CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,...,..,,,,.,,..,..,,..,,,,,,..,,...,...,...,..,,,,.,.,,,,,.,
+#HKKDQAXW33OUZHDN3GPN5PIADKPQAIDH7PVJGWMNK4EFIUHYL55U5AU62EN6K4GMZUBZ2MTB7AESQ
+#\\\|FBTYJMOT2C3U7T7DCCETKLT2NB34EBKQWCA2FHSFJFBWXS4PTOM \ / AMOS7 \ YOURUM ::
+#\[7]VVASQINHIZCO2QU7ADLT2HWNLDZXHZ2P5NHCRJRAQGON7FHFGIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

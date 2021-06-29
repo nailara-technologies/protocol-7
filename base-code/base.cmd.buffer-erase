@@ -4,9 +4,9 @@
 # descr = remove [ in-memory ] log buffer content
 # param = <name>
 
-my $param = $ARG[0];
-my $id    = $$param{'session_id'};
-my $name  = $$param{'args'};
+my $param = shift;
+my $id    = $param->{'session_id'};
+my $name  = $param->{'args'};
 
 return { 'mode' => qw| false |, 'data' => 'buffer name expected' }
     if not defined $name;
@@ -15,9 +15,9 @@ return { 'mode' => qw| false |, 'data' => 'no such buffer' }
     if not defined $data{'buffer'}{$name};
 
 my $bytes = $data{'buffer'}{$name}{'size'};
-return { 'mode' => qw| false |, 'data' => 'buffer was empty' } if !$bytes;
+return { 'mode' => qw| false |, 'data' => 'buffer was empty' } if $bytes == 0;
 
-undef @{ $data{'buffer'}{$name}{'data'} };
+undef $data{'buffer'}{$name}{'data'}->@*;
 $data{'buffer'}{$name}{'data'} = [];
 $data{'buffer'}{$name}{'size'} = 0;
 <log.file>->{$name}->{'next_index'}  = 0;
@@ -33,8 +33,8 @@ return {
     'data' => sprintf( "buffer '%s' cleared [ %d bytes ]", $name, $bytes )
 };
 
-#,,,,,..,,,..,...,,,,,.,.,,.,,,,.,,..,...,,.,,..,,...,...,,.,,,.,,..,,,,.,...,
-#RB257TXZD26U3N7Y6XZC6YPMANUIJA44OC5XGPINWU4YEL67WZUG2PVIOTF4RKDCUDDYLFOAOBAXC
-#\\\|D6AO75EQGVVLTN2ISYJK6U3UKQ6O4QJPAS3HO65DMNI5LZ2OSOH \ / AMOS7 \ YOURUM ::
-#\[7]5H435RXIHQPJSSZSVSYPMFUGTY2I6K5GCGBJ7TB5XPF5PZ5KGAAA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,.,,,.,.,,..,,.,,.,.,..,,..,,..,,...,...,,,.,..,,,..,...,,,.,
+#WIZQ3SBFIRIYDMGDLC2YXRA2ATH3ZTW6BSJ57JHW3OPRK6TY5LF5F6E3KMT6XNLYW5NQNHPMSFUZO
+#\\\|2P64LKMTILPV5WNM74LG7Q63JCINYBG36JS6GPGNOY4W6ZWPU6O \ / AMOS7 \ YOURUM ::
+#\[7]NRBDAZ2QZ2UAXNCZL6W5CWFION6INQKE6BHUTJJBC7Y5APL5LODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
