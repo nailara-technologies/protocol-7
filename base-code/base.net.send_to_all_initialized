@@ -1,0 +1,64 @@
+## >:] ##
+
+# name  = base.net.send_to_all_initialized
+
+my $message_string = shift;
+
+if ( not defined $message_string or not length $message_string ) {
+    warn 'expected message parameter <{C1}>';
+    return undef;
+} elsif ( index( $message_string, "\n", 0 ) >= 0
+    or $message_string !~ m|^\![A-Z]+\! | ) {
+    warn 'message parameter format not valid protocol-7 syntax <{C1}>';
+    return undef;
+}
+
+my @send_sessions;
+foreach my $id ( keys $data{'session'}->%* ) {
+    next
+        if not defined $data{'session'}{$id}{'initialized'}
+        or not $data{'session'}{$id}{'initialized'};
+
+    my $session = $data{'session'}{$id};
+
+    next
+        if not defined $session->{'buffer'}->{'output'}
+        or not defined $session->{'read-mode'}
+        or not defined $session->{'handle'};
+    next
+        if $session->{'protocol'} ne qw| protocol-7 |
+        or $session->{'mode'} ne qw| client |
+        or $session->{'read-mode'} ne qw| linewise |;
+
+    my $fh = $session->{'handle'};
+
+    next    ##  incoming connection ?  ##
+        if not defined $data{'handle'}{$fh}
+        or $data{'handle'}{$fh}{'mode'} ne qw| input |;
+
+    ##  all criteria match [ incoming client connection ]  ##
+
+    push @send_sessions, $id;
+}
+
+my $send_count = scalar @send_sessions;
+return $send_count if $send_count == 0;
+
+<[base.logs]>->(
+    2,           'sending broadcast message to %d initialized session%s .,',
+    $send_count, <[base.cnt_s]>->($send_count)
+);
+
+## sending broadcast message ##
+foreach my $id ( keys $data{'session'}->%* ) {
+    my $session = $data{'session'}{$id};
+    $session->{'buffer'}->{'output'} .= sprintf "%s\n", $message_string;
+}
+
+return $send_count;
+
+#,,,.,.,,,,.,,,.,,,..,...,.,.,...,..,,,..,,.,,.,.,...,...,.,,,,,,,,.,,.,.,.,,,
+#EMD3FRJKBM62CZLWEQDMNH34HOLL5BOELYW2LEBSCSDULTOAOR5SYB32PYQBQIYX5SRQNVQZETZGY
+#\\\|NG4RWZBNN2364DCUBQGEFNP4K7WWANXEAEE4HSBWG7ZMCUAIPXC \ / AMOS7 \ YOURUM ::
+#\[7]VZKAA74DRLEWRIL4QU3EK3F7WB6W2K4QFHPML6YIQSZ45Y4V6EDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
