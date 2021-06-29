@@ -38,17 +38,15 @@ if ( @remaining_files == 0 ) {
     <[base.clean_hashref]>->(<base.subroutines>);
     delete $data{'base'}{'subroutines'}
         if not keys <base.subroutines>->%*;
-    return $removed;
+    return $removed;    ## return number or cleared entries ##
 } else {
     <[base.logs]>->(
         $log_level,
-        ': : %d entr%s remaining .,', scalar @remaining_files,
+        ': :. %d entr%s remaining .,', scalar @remaining_files,
         <[base.cnt_s]>->( scalar @remaining_files, qw| ies y | ),
 
     );
 }
-
-# <[debug.console-dump]>->(qw| base.subroutines.referenced |);
 
 my $source_dir = <system.code_path>;
 
@@ -106,7 +104,7 @@ foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
     }
     <[base.logs]>->(
         $log_level,
-        ': removed %s entr%s [ subroutine file%s found ] ..,',
+        ': : removed %s entr%s [ subroutine file%s found ] ..,',
         $removed,
         <[base.cnt_s]>->( $removed, qw| ies y | ),
         <[base.cnt_s]>->($removed)
@@ -121,45 +119,76 @@ if ( @remaining_files == 0 ) {
     <[base.clean_hashref]>->(<base.subroutines>);
     delete $data{'base'}{'subroutines'}
         if not keys <base.subroutines>->%*;
-    return $removed;
+    return $removed;    ## return number or cleared entries ##
 } else {
     <[base.logs]>->(
         $log_level,
-        ': : %d entr%s remaining .,', scalar @remaining_files,
+        ': . :. %d entr%s remaining .,', scalar @remaining_files,
         <[base.cnt_s]>->( scalar @remaining_files, qw| ies y | ),
 
     );
 }
 
+#                                          #
+##  REPORTING  NOT  DEFINED  SUBROUTINES  ##
+#                                          #
+
 if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
     my $r_cnt    = scalar @remaining_files;
     my $s_str    = <[base.cnt_s]>->($r_cnt);
     my $subs_ref = <base.subroutines.referenced>;
-    <[base.logs]>->(
-        0, ':: found call%s to %d non-existing subroutine%s :',
-        $s_str, $r_cnt, $s_str
-    );
-    <[base.log]>->( 0, qw| : | );
-    map {
-        <[base.logs]>->( 0, ": undefined routine :. '%s'", $ARG );
-        my $found_in;
-        foreach my $line ( <[base.sort]>->( $subs_ref->{$ARG} ) ) {
+
+    <buffer.compile-errors.max_size> //= 42 * 1024;
+    <[base.buffer.add_line]>->( qw| compile-errors |, '' );
+
+    my @l_msg_ref;    ##  { log_level => .., log_msg => .., }  ##
+
+    push @l_msg_ref,
+        {
+        qw| log_level | => 0,
+        qw|  log_msg  | => sprintf(
+            ':: found call%s to %d non-existing subroutine%s :',
+            $s_str, $r_cnt, $s_str
+        )
+        };
+
+    push @l_msg_ref, { qw| log_level | => 0, qw| log_msg | => qw| : | };
+
+    foreach my $file (@remaining_files) {
+
+        push @l_msg_ref,
+            {
+            qw| log_level | => 0,
+            qw|  log_msg  | => sprintf( ": undefined routine :. '%s'", $file )
+            };
+
+        my $found_in = ': :. found in .: ';
+        foreach my $line ( <[base.sort]>->( $subs_ref->{$file} ) ) {
             $found_in .= ', ' if length $found_in;
             $found_in .= sprintf '%s [ line %d ]',
-                [ <[base.sort]>->( $subs_ref->{$ARG}->{$line} ) ]->[0],
+                [ <[base.sort]>->( $subs_ref->{$file}->{$line} ) ]->[0],
                 $line;
         }
-        <[base.log]>->( 1, ':' );
-        <[base.logs]>->( ': :. found in .: %s', $found_in );
-        <[base.log]>->( 1, ':' );
-    } @remaining_files;
-    <[base.log]>->( 0, qw| :. | );
+        map {
+            push @l_msg_ref,
+                { qw| log_msg | => $ARG, qw| log_level | => 1 }
+        } ( qw| : |, $found_in, qw| : | );
+    }
+
+    push @l_msg_ref, { qw| log_level | => 0, qw| log_msg | => qw| :. | };
+
+    foreach my $msg_ref (@l_msg_ref) {
+        <[base.log]>->( $msg_ref->{'log_level'}, $msg_ref->{'log_msg'} );
+        <[base.buffer.add_line]>->( 'compile-errors', $msg_ref->{'log_msg'} );
+    }
+    <[base.buffer.add_line]>->( qw| compile-errors |, '' );
+
 }
 
-return $removed;
+return $removed;    ## return number or cleared entries ##
 
-#,,..,,..,,,.,.,,,..,,,.,,,,.,.,,,..,,.,,,.,.,.,.,...,...,,..,,,.,..,,...,.,,,
-#GFYUSN4L7QZO2UDY5LTEMDTYKXKMSS33GU7QJNRDJKKUTJYD7PXP3WM4SWC6NYC5SLPLS2A5XFHL4
-#\\\|3TCFT7ZE4GYMX75EI3FY2QPFYVDRQPXQZ6CI7RMI4AOWFG2FA3A \ / AMOS7 \ YOURUM ::
-#\[7]6YC6C6DIIHTXRJEGX2BNCVSQXELDWICY4OFASTENEO6BSTV5PSDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,,,,,.,,,,.,,.,.,,,,,,..,.,,,.,.,...,...,..,,...,.,.,,.,,,.,,
+#7BXF2QBPEOGF5S2CX3266RQ4O6DW2ZGEVDTE5SV23SSYVFXA3PWTAIUVADYRSBSBMJKFAFUJXHJ44
+#\\\|U6EB3WRJBJWQR2XI7SEVVJRNJLNBIUYIOZ77RT5AV4CM2IPTWON \ / AMOS7 \ YOURUM ::
+#\[7]6F4UJP43KYQPFHIC2HF2KTXAXFJUW2ZPNAL6KSJI4C3YKQ3JMYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
