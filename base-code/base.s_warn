@@ -10,10 +10,21 @@ my $template = shift @ARG;
 
 $template =~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', ++$c_l |e;
 
-warn sprintf( $template, @ARG );
+eval {
+    use warnings FATAL => qw| all |;    ##  catches all warnings  ##
+    warn sprintf( $template, @ARG );
+};
 
-#,,,,,.,,,,.,,.,,,.,,,..,,,..,,.,,.,.,,,,,.,,,..,,...,...,.,.,.,.,,.,,...,..,,
-#DUXLCQ2EAFBIKENAL2YJSC4QRRXKOVGDGFMTT762V7VR3C6ABP4HKGOGB66265MFWX554WIHRXBAU
-#\\\|J2A2HUTWMWQWGPADJUJHUNQPLZ2S3XWFFV2NC7YTSMRMGD74QG5 \ / AMOS7 \ YOURUM ::
-#\[7]IDGXOS2663UG5KHKJ5YM4RKBGLLBNLG4657K4MT5ME5QFNRYXQBQ 7  DATA SIGNATURE ::
+if ( length $EVAL_ERROR ) {
+    my $sprintf_errmsg = <[base.format_error]>->( $EVAL_ERROR, -1 );
+    $sprintf_errmsg =~ s|sprintf|base.s_warn|g;
+    warn sprintf '%s <{C1}>', $sprintf_errmsg;
+}
+
+return 5;    ## true ##
+
+#,,,.,.,,,..,,,..,,.,,..,,,,,,,,,,.,.,,,.,,..,..,,...,...,...,.,,,,,,,,.,,.,.,
+#4W2AWKRHAIPJ5NLALN43IUT7SYIT4COVTQWU7W5VJOL7YA3JYO352MIYBSIU2ETLD2P5WL34OO2DK
+#\\\|SP3SXGMWWKQ6OHF6OT77X35UIF3TI5JGZITFQU6NPUO6VLPOM3I \ / AMOS7 \ YOURUM ::
+#\[7]5TKC5AL3GBYLDHS2TBEKX37K3TLIN77NUHZM6TVMTCSAUVJ7WMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
