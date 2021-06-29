@@ -15,11 +15,7 @@ $SIG{'INT'} = sub {
     CORE::exit(1);
 };
 
-if ( exists $code{'net.send_all'} ) {
-    eval(     "# line 1 \"base.sig_int\"\n"
-            . '$code{\'net.send_all\'}->("close SIGINT manual shutdown\n");'
-    );
-}
+<[base.net.send_to_all_initialized]>->('!TERM! manual shutdown [SIGINT]');
 
 printf( "\n < DEBUG MODE > zenka state :\n\n%s\n", <[base.dump_data]> )
     if <system.verbosity.console> >= 2 and <debug.sig_int_dump>;
@@ -34,8 +30,8 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
 <[base.log]>->( 1, ':. done' );
 exit(130);
 
-#,,.,,..,,.,.,.,,,,..,...,,..,.,.,,,.,..,,...,..,,...,..,,.,.,,,.,..,,,,,,,,.,
-#LUUBYSI3I57ZNTNS673QCEMFP3RADREFIDSAW6ST5ZVMUW6KLFS56O54BSA3PDF6MXMMFXMCBRLYW
-#\\\|OGBOUCPSB3QMICTF5P3KX2MC4BN37Z6AYGJBOU5PS2TBZXMQOHH \ / AMOS7 \ YOURUM ::
-#\[7]BMD5ODNXZTS5OLU22WB5HF4VF34AS5I7H55PXWB3GYPO3RSEVEBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,...,.,,,,,,,..,,..,,,,,,,,.,..,,...,..,,...,.,.,.,.,,..,,.,,
+#HLCAUPGWJ6T6S4BRT5FNJ4F7FNKXICD5J63AZ4DHIUU3PYSFQXWFDEU7VE23JLRO7BFA3WMLJYRWS
+#\\\|QKBNWEOIWVHZW7WAY443O2JV34D2VJVBJARXAUL2HEPDTOH57XI \ / AMOS7 \ YOURUM ::
+#\[7]VWKD6TYQKQ3LUMIZEZ4DEPNIR3VLANTPNQE4DSZ2VX3GMWU7SECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,8 +23,10 @@ if ( fileno $send_fh ) {
     my $size_written = -1;
     if (    defined $data{'handle'}{$send_fh}
         and defined $cid
-        and defined $data{'session'}{$cid}{'output'}
-        and defined $data{'session'}{$cid}{'output'}{'handler'} ) {
+        and <[base.is_defined_recursive]>->(
+            sprintf qw| session.%d.output.handler |, $cid
+        )
+    ) {
         if ( defined $code{ $data{'session'}{$cid}{'output'}{'handler'} } ) {
             $size_written = <[base.s_write]>->(
                 $send_fh,
@@ -71,8 +73,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,..,,..,.,,,.,.,.,.,.,,,,,,,.,,,,,.,,,.,.,.,..,,...,...,...,,,,,...,,..,.,,,
-#RKQ6H657UKAXA2F5C43WHCKJGSUS3W25IXPNX2GIRRDRFDCOOPVKOBBBLHBT2Y75T5AYNIVUESQPU
-#\\\|CSTAJKYASVQZBBMICCHI7VPAUYU2KKSLXS2WLR4U34XZYPSFPH5 \ / AMOS7 \ YOURUM ::
-#\[7]BKQV7Q5XQCYRN6PCH3KZL2ZZJQSJB7M6QJ4ZRUFV4ED6RG3RV2DA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,...,,..,,,.,.,,,,,.,..,,.,.,..,,...,.,,,...,..,,.,,,..,,.,.,
+#ZMP6I5BCRSXZTQJP5VOUEBIGNOLLPMD5O72IFC5W3HWJST7SQ3OAGHTZBCA4WQMYRPA6QRKHEWEGU
+#\\\|YFKH6FWQ6F4UP6DNFFW2ITRF2NK55V25QP6WVYNOMQDUTXMQNMB \ / AMOS7 \ YOURUM ::
+#\[7]75BGW6V5IQF75IWL3D74PCTVEYALPZF4VN4LPOQZ7NLIXCU4TSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
