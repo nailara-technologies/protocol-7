@@ -1992,7 +1992,7 @@ sub prepare_subs {
         $_p[2] = '*' x 7 if $sub_name eq qw| net.authme |;
         $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
         $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
-            if $sub_name eq qw| net.out |;
+            if $sub_name eq qw| base.net.send_to_socket |;
 
         map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
         my @params = map {
@@ -2436,8 +2436,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,..,.,,,,,,,,,.,.,,,..,,.,,,.,,,..,,.,,,...,..,,...,...,..,,.,.,...,.,.,,,,,
-#H3TT4MAVGYRPE4ZRDEHIBQRXE56YUDSRWGSFA2PSBGGZB272SH6SNO6WBO34UCDAQM5T5IKSIOEGO
-#\\\|HGLWUVW7S23EYUDOPEEEWNVTFJMURJXIHA7GQU7XUBIKDKSXK4U \ / AMOS7 \ YOURUM ::
-#\[7]ZRJRTHP3V7CNKZVYBJBIGHXAT2SMBBORI3XYVLTIELNNKZVZ32CA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,,.,,.,.,,.,,,,.,,.,,...,..,,..,,...,...,,,,,,..,..,,...,.,.,
+#KSIVC6ZEZKJLHAH7XGIF7W3WWMV35CYRN6H7OELTLYI6NA43SAMONZ7HLSYNL3COZYZWYZQAQTMKW
+#\\\|FWW2RTIFEPQNMTQVWH7DYUEPCWDIDY5JFFZZFDWOHQFBTTBX3LV \ / AMOS7 \ YOURUM ::
+#\[7]FMGPBP3JERCFJNOC23DKEGNZHDWMRXTQZJOX5ESDUXUYUCV4JQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

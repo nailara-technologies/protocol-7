@@ -19,7 +19,7 @@ if ( not defined <web-browser.auto_zoom> or !<web-browser.auto_zoom> ) {
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
+<[base.net.send_to_socket]>->( $cube_fh, "($cmd_id)X-11.get_screen_size\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -57,8 +57,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,.,,,,.,...,,,,,,,.,,,,,,,.,,,.,,,,,.,,,,,,,..,,...,...,.,,,...,,,.,,,,,,,,,
-#3IJMJ2ZVD5GIAY6YR2V2DBKQMOJ76UD63VAIICMGF4UAVBNCGNTOLPGG46BYL66FUHMV3U2MWVUSC
-#\\\|6HRLCUL47ILDOVFQG74F6CWP272KZJBTMSWLTOK7PVUINDE2MEO \ / AMOS7 \ YOURUM ::
-#\[7]VJGSFCVXXD6RZROZFHRDE4FIZPXBKRJ3V46JSJDRSBZFJTISBQAI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,..,..,,..,,,,,,,.,,,,,,,,,,..,,...,...,..,,,,.,..,,.,,,...,
+#TBOSYMO63YUT4FCXHIVD5SHVCBHIM23TCE5KYI6SVWNWVKP5RHCYXSZNCTB42CY463VO3TRAJMJD4
+#\\\|4C7IRFJKEEMBM63I7HASINJS53YUGSBSJGIPVOQT3DQ77SL33Q7 \ / AMOS7 \ YOURUM ::
+#\[7]DDO5R7YXMKLZGCAUWHEBP3JGI3NDJZ7SLWLPNDMRNO23QMKY3OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

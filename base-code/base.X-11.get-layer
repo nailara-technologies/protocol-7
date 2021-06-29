@@ -21,7 +21,9 @@ my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $cube_fh, "($cmd_id)composition.get-layer $name_str\n" );
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)composition.get-layer $name_str\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -38,8 +40,8 @@ while ( !$matched_reply ) {
     2, "composition layer for '$name_str' = " . <x11.composition.layer>
 ) if defined <x11.composition.layer>;
 
-#,,,,,,..,,..,,..,,.,,...,,..,,,,,.,,,.,.,,,.,..,,...,...,...,..,,...,,,.,,,,,
-#JJSV4C5JUB3IIVTL2WZXAXVTKCWUVKFSA65DGJWXMAELDAPZFKJ3ZCN6U3I57CFUAVG4SBAULJDUO
-#\\\|H7MPPPAVBMKSIUDLSPU4KO7LBIQCUXD65RNTLCQUFIU4YVNDWUL \ / AMOS7 \ YOURUM ::
-#\[7]MWMWSSXWMZR7ZTRQPVMKV5KUEXTBCF2H47FUSTLJLPE5CP6YOGCY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,.,...,.,.,.,.,,,,,,,.,,,.,.,,,..,,...,...,,.,,,,,,,..,,,.,.,.,
+#QMFBUJQE34M6ZNISHCEHDMUOYD3REZUGRJ7CH5BLHE34CDLQ3E7MFTEVM7A52PJRNX5NDI5CHJQGK
+#\\\|INT5A7LHTOQHK75CITT33JP3IKWKILPQVKDGGZZXPPS2J6ETUZR \ / AMOS7 \ YOURUM ::
+#\[7]V6FWM63IB23IDUGG72JRMODKXCQQW2N7VHNQP6JLOP62MHATEGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

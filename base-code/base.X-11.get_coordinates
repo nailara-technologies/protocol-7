@@ -21,7 +21,7 @@ my $sn_log_str = length($sn_str) ? " for zenka$sn_str" : '';
 <[base.log]>->( 1, "requesting coordinates$sn_log_str" );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $cube_fh, "($cmd_id)${cmd_path}composition.get_coordinates$sn_str\n"
 );
 
@@ -57,7 +57,9 @@ $err_msg = ': coordinates undefined'
 
 # use full X server geometry as window geometry..,
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
-<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n" );
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n"
+);
 
 $matched_reply = 0;
 while ( !$matched_reply ) {
@@ -82,8 +84,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,,,,,,,,.,,,,,,,,.,,,,.,,,,,,,.,.,,,.,,,.,,,..,,...,...,.,.,.,,,.,.,.,,,,,.,
-#BHNABNJGRQHGD6VTWSWTNC7ULE3524U6VEVFMQAJIORKRJ5HBLPKCQSSWU3QS753Y754YRYGYIQVS
-#\\\|TSE5XNJEJYMJZ3N5LQYZHOCCTBQ5MT7ADH3QHIGVWJ4ZV3ELB2K \ / AMOS7 \ YOURUM ::
-#\[7]I5KMM6APRBUAS4BGN6QJ355D5T5IDKRU645KO3QWLVXWFEPELWAI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,,.,,,,,,,,,.,.,.,.,...,,..,..,,...,...,..,,.,.,...,..,,,..,
+#A3MTEGV4M6PK5SFYOQEELTFASOXOWIJG77PHJKUVYL6RJ5CYBMXR7U7ZESPNDV2N3HVW4IG73MXDQ
+#\\\|KIJEUQJRBMR2MGTODKE5MBVMMGNCE4SLJMF5KL7K6J2WOGHKPQQ \ / AMOS7 \ YOURUM ::
+#\[7]XQVIBTJPHLGVZNVUROXKZCK6CU4IPZ2QXWXYN34DWY7Q3FTFC4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,21 +15,21 @@ my @available_auth_methods
 if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
 
     if ( $method eq qw| zenka | and <[plugin.auth.zenka.no-keys-defined]> ) {
-        <[net.out]>->(
+        <[base.net.send_to_socket]>->(
             $client_sock_fd, "FALSE no zenka authentication expected >:[\n"
         );
         return 0;
     }
 
     $data{'session'}{$id}{'auth'}{'method'} = $method;
-    <[net.out]>->( $client_sock_fd, "TRUE continue\n" );
+    <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE continue\n" );
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
     return 1;
 } else {
     my $link_type
         = $data{'handle'}{$client_sock_fd}{'link'};
 
-    <[net.out]>->(
+    <[base.net.send_to_socket]>->(
         $client_sock_fd,
         "FALSE not available \ enabled, see 'list' command\n"
     ) if $data{'session'}{$id}{'counter'}{'auth'}{'select'}{'errors'} < 2;
@@ -47,8 +47,8 @@ if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
     return 0;
 }
 
-#,,.,,,..,.,.,,..,..,,..,,.,,,,,.,..,,.,.,,,.,..,,...,...,..,,,.,,..,,,..,.,.,
-#XBFCJNZOPEQJ3RBHHVNKEZLYOYG2TF5NZHBVWF2JMGTB57CK4W7EGJ3GMV6XTUFIGEAJCZQAR7HCC
-#\\\|UXDSKKZ3IOJMVEGKIYABMNCU2XLRGN3EOLLGDNBQ5KE52RSLRMO \ / AMOS7 \ YOURUM ::
-#\[7]ZVKYYKD5FVZCXKEK5OXYYCPIVE2KZZZVEL3JQNCSE7PZ3I4FWWDY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,.,,,..,,,,,,...,,..,..,,...,..,,...,...,,,.,.,.,,,,,...,.,,,
+#D4WT2RT2OBRRXIVJBRS4KWWCT6C3V2ZPHRVKAHPQVCKPXVLMTFSZKM5P5ZNC4V7GZVRJTES6AHO5U
+#\\\|5DVWBFJ6ZQWJ43OLBFTA5CLQNU3IYRMGB547IYOAXANHCAEB4Z6 \ / AMOS7 \ YOURUM ::
+#\[7]KPC2ZKOFFS4GJKJA55O4G6SR4QIVGVQRJMFASYCFH5ILM24ZD4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
