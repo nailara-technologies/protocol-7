@@ -1989,7 +1989,7 @@ sub prepare_subs {
 
       # hiding plain text passwords in debug output [not including conf files]
         $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
-        $_p[2] = '*' x 7 if $sub_name eq qw| net.authme |;
+        $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
         $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
         $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
             if $sub_name eq qw| base.net.send_to_socket |;
@@ -2436,8 +2436,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,.,,,.,,.,,,.,,,,.,,.,.,,.,,,,.,,.,,...,..,,..,,...,...,,,,,,..,..,,...,.,.,
-#KSIVC6ZEZKJLHAH7XGIF7W3WWMV35CYRN6H7OELTLYI6NA43SAMONZ7HLSYNL3COZYZWYZQAQTMKW
-#\\\|FWW2RTIFEPQNMTQVWH7DYUEPCWDIDY5JFFZZFDWOHQFBTTBX3LV \ / AMOS7 \ YOURUM ::
-#\[7]FMGPBP3JERCFJNOC23DKEGNZHDWMRXTQZJOX5ESDUXUYUCV4JQCI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,.,,.,.,.,,,.,,,...,,.,,,,.,..,,...,...,,,.,,,.,..,,..,,,,,,
+#KLO3KZMIAMOCUDMVMU3Y2SUZV37GOD42DDISBBKWLP46VTM7DVD46743T3ICCMN735WD4DIYQCY2K
+#\\\|YG6Y5VJJITKIBFA22XZRKECRRZ4DZFQHCREA6TYM7LJFHK2XWJ4 \ / AMOS7 \ YOURUM ::
+#\[7]342GLSPWC4SAFVUDKNVIE22AHK6Q2QFCT6LDMLYGNQEWVKPPN2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
