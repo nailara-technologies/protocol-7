@@ -1,0 +1,73 @@
+## >:] ##
+
+# name  = base.cmd.buffer-erase-level
+# descr = prune incl. log level from zenka log buffer
+# param = <1..3>
+
+my $param     = shift;
+my $id        = $param->{'session_id'};
+my $log_level = $param->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'expected log level to purge' }
+    if not defined $log_level
+    or $log_level !~ m|^\d+$|
+    or 1 < $log_level > 3;
+
+return { 'mode' => qw| false |, 'data' => 'no zenka buffer present' }
+    if not defined <buffer.zenka>;
+
+my $bytes = <buffer.zenka.size>;
+return { 'mode' => qw| false |, 'data' => 'buffer was empty' } if $bytes == 0;
+
+my $log_index     = 0;
+my $removed_bytes = 0;
+my $start_lines   = scalar <buffer.zenka.data>->@*;
+
+my $iteration_match = 0;
+
+while ( $log_index < scalar <buffer.zenka.data>->@* ) {
+    my $line_level = ${^CAPTURE}[0]
+        if <buffer.zenka.data>->[$log_index] =~ m|^\S+ (\d+) |;
+    ++$log_index and next if $line_level < $log_level;    ## keeping entry ##
+    my $bytes_line = length <buffer.zenka.data>->[$log_index];
+    ## remove current line from array ##
+    splice <buffer.zenka.data>->@*, $log_index, 1;
+
+    my $line_count = scalar <buffer.zenka.data>->@*;
+    $log_index-- if $line_count <= $log_index;
+
+    <buffer.zenka.size> -= $bytes_line;
+    $removed_bytes += $bytes_line;
+
+    if ( <[base.is_defined_recursive]>->(qw| log.file.zenka |)
+        and ref <log.file.zenka> eq qw| HASH | ) {
+        ##  adjusting current value  ##
+        <log.file.zenka.next_index>--
+            if <log.file.zenka.next_index> > 0
+            and <log.file.zenka.next_index> >= $log_index;
+    }
+}
+
+my $cleaned_lines = $start_lines - scalar <buffer.zenka.data>->@*;
+
+return { 'mode' => qw| false |, 'data' => 'no lines removed [ no match ]' }
+    if not $cleaned_lines;
+
+<[base.logs]>->(
+    "[%d] << cleared log level %d [incl.] from zenka buffer [ %d b ] >>",
+    $id, $log_level, $removed_bytes
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        '%d lines pruned from zenka buffer [ %d bytes ]',
+        $cleaned_lines, $removed_bytes
+    )
+};
+
+#,,..,.,.,,,.,,,.,,.,,,,.,,,,,.,.,...,..,,...,..,,...,...,,..,.,,,.,.,,,,,.,,,
+#62XTNADU6BCYU5YWLCHXPHECCBVBBBATV5O7H5KJLCVOYDRWYIGGU23BZJHUFHD6NWBNZSZOJ222I
+#\\\|6XFGDJZG4BLGVBBOFYRDTPSF6EORR24OUXDI6YGMC2U4VRYSDR3 \ / AMOS7 \ YOURUM ::
+#\[7]KVI4TEFKCDG6DA4H3WO6KXZL7F5PQ6OF6QV2XHCKZNY7YIIDT4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

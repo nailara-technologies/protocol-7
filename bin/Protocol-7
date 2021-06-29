@@ -1508,12 +1508,14 @@ sub prepare_subs {
                         =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
                             |\$code{'$LAST_PAREN_MATCH'}->()|gxo;
 
+                    ## needs to skip comments + better key syntax check ##
+
                     # <foo.bar>  -->  $data{'foo'}{'bar'}
                     # (requires at least 1 . in the data key to match)
                     $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)(?<!\\)>
-                            |my $k = "\$data{'$LAST_PAREN_MATCH'}";
-                                $k =~ s,\.,'}{',g; $k |gexo;
+                        =~ s|(?<!\\)<([\w\-:]+\.(\w[\w\-\.:]+)+)(?<!\\)>
+                            | my $k = "\$data{'$1'}"; $k =~ s,\.,'}{',g;
+                                 $k |gexo;
                     $RS = "\n";
                     if (length( $data{'code'}{$file_name}{'source'} )
                         > $orig_len
@@ -2436,8 +2438,8 @@ sub prepare_subs {
 
 END { $code{'base.handler.end_code'}->() }
 
-#,,,.,,,.,...,.,.,,.,,.,.,.,,,.,,,...,,.,,,,.,..,,...,...,,,.,,,.,..,,..,,,,,,
-#KLO3KZMIAMOCUDMVMU3Y2SUZV37GOD42DDISBBKWLP46VTM7DVD46743T3ICCMN735WD4DIYQCY2K
-#\\\|YG6Y5VJJITKIBFA22XZRKECRRZ4DZFQHCREA6TYM7LJFHK2XWJ4 \ / AMOS7 \ YOURUM ::
-#\[7]342GLSPWC4SAFVUDKNVIE22AHK6Q2QFCT6LDMLYGNQEWVKPPN2CI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,,..,..,,,.,,,,,,...,,..,,,,,..,,...,...,...,...,..,,,..,,,,,
+#IBUG4VMSHL5QDPFNUWPXFJ4MIIGTCJP7UHZUPJTSCPIK6X72UZBXYRT45Q4L66RSXZGNMSRVDPWR2
+#\\\|V57G4N6YBTEPFPIKDZ2K5DBBACJ5PLDY7LC2VFXXR3F2N6UTXBA \ / AMOS7 \ YOURUM ::
+#\[7]A4RLMFA5O6HV6MLCX7H72UNDWZNDZSKDBOHXGTNHFAZPGKSBCSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

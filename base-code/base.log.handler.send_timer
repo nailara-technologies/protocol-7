@@ -6,14 +6,14 @@ my $name     = shift->w->data;
 my $log_data = <log.file>->{$name};
 
 $log_data->{'retry_timer'}->cancel
-    and delete( $log_data->{'retry_timer'} )
+    and delete $log_data->{'retry_timer'}
     if defined $log_data->{'retry_timer'}
     and $log_data->{'retry_timer'}->is_active;
 
 <[base.log.send_buffer_line]>->($name);
 
-#,,,,,.,,,,..,,,.,,,.,,,.,,.,,.,.,...,.,,,.,.,..,,...,...,.,,,,..,..,,,,,,,,,,
-#DSGJ6I2Z6FGC4AEPZ3KR2NUCRJDMH33YZZ3CBUKC6LCRAMIDQFBG2YJV4R7IXFHSIS7QAUBN7MPUK
-#\\\|QRNUYNRBO42S2UPP344FYRJ4CI7MOAFOSWZW6GUMKTNBKNK55UH \ / AMOS7 \ YOURUM ::
-#\[7]4ULZHON37Q77BIRESJS2QFUARF2OMFSPXQIP6CCDPHMT6J72JQDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,,.,,,,,,...,,,,,..,,...,..,,..,,...,..,,.,.,,,.,,..,,,,,..,,
+#OBJK5HJCGKKSUWKTICNFNTQUIBKY2D4YFTMXVMXHZAB7TEBE3MO5AFDCBHTXOZMIPKURRV2C5QYH6
+#\\\|5PSYCRZSCJ6TJGIJG5HWR744MAQZLSCOS47LAKZGDV6SGKB7ZEL \ / AMOS7 \ YOURUM ::
+#\[7]5VHXL3KU2URASOD7KHLAK3XGZMQKVTAVWMVUSLUW2QQIFFUSOWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
