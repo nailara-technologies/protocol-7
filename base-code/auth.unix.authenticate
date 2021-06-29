@@ -51,12 +51,14 @@ if ( $bytes_read > 0 ) {
     or return undef;
 
 ##  registering session as $user  ##
-<[net.out]>->( $backend_socket, sprintf( "auth %s\n", $user ) );
+<[base.net.send_to_socket]>->(
+    $backend_socket, sprintf( "auth %s\n", $user )
+);
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
-#,,,.,..,,,..,,,,,.,.,,.,,,.,,,..,,.,,...,,..,..,,...,...,,.,,,..,.,,,..,,.,.,
-#ENEC65UBEKNG2JLOE6DAIKBE2SCKNQYPQGS5LOJFNNIIK6PFX7JVHG2JSM5C4SVN4XZCP2ZVJK7XG
-#\\\|XVSXIM7DSLD2QYGEFW6FVAA2N7KAGXSCXG3UIBVZBEYOTBXHPBY \ / AMOS7 \ YOURUM ::
-#\[7]NYA4DEDYIITL3ZPQURULQSQS5UAZ7DYZTLY5IJRU5LJP3MNVWWAQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,.,,..,,,,,...,,,,,,.,,,,.,..,,..,,...,...,.,,,.,,,,.,,.,,,,.,,
+#FRI4WRTKHXGBJJQSQIWQ54U3W7WTGXXIUGGFHO5HUFYOBIACKNMHW5Y2ZFUMLPWU34Z5N4RABXDO4
+#\\\|EYANAG46FVYS6ELMORRZ52RWPVHUXO7N5EWTRFT4QAUJLNEMDXD \ / AMOS7 \ YOURUM ::
+#\[7]JMO6HY6DE6IBS7L5IWQ43LYWVFXTC3IU6W4G2FZZXIFGOLO53OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

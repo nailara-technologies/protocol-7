@@ -16,7 +16,9 @@ my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $cube_fh, "($cmd_id)composition.get_subconfig $name_str\n" );
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)composition.get_subconfig $name_str\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -74,8 +76,8 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 }
 
-#,,..,,,.,,..,,,,,,,,,,,,,,,.,,.,,.,,,.,.,.,.,..,,...,...,,..,,..,.,.,,.,,,,,,
-#IKYCBHSWBXMET3MEQAVBP2OMTL4MGJM2QFVCDMFOBP5DVSBM2TREAFLMK7ABORTIU6SYPULQK3V2K
-#\\\|NFAGA2FDSNTKC3H74PMXNGOOFXQPHHHT4E2V6GGTU4HOZRMKVWF \ / AMOS7 \ YOURUM ::
-#\[7]75XPJYWDWRXEF4G2KINUXTNW5LCX36N7BDWEWSSG3DNYYKUC6MAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,...,..,,...,...,,..,,..,,..,..,,...,...,,..,,,.,.,.,.,,,,..,
+#FCRCQKAE7MGQ4CVVU6TXFHMV7JWDLXXEUQXEFTR4XITV4XHCTNGHHAE25JSLBUVIIY3CQI5RXQ63Q
+#\\\|6CENWNMUDEYOUEGYM7NT3VGGDVOFFVYFRJCWSL7JTTW7RN2DLRD \ / AMOS7 \ YOURUM ::
+#\[7]UCGTA7VIDGU25SWLX354ZH5ADRD4TTV7KMUJXVHAF2H6ISW52OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

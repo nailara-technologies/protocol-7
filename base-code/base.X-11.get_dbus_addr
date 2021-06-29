@@ -9,7 +9,7 @@ my ($local_sid) = keys( %{<user.cube.session>} );
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->( $cube_fh, "($cmd_id)dbus.socket_address\n" );
+<[base.net.send_to_socket]>->( $cube_fh, "($cmd_id)dbus.socket_address\n" );
 
 my $reply_string;
 my $matched_reply = 0;
@@ -34,8 +34,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,.,,,..,,..,,,.,,,.,.,,,,..,.,.,,,.,,..,,,,,..,,...,...,.,,,.,,,...,,..,,..,
-#ESWRGEWUHB3TBILOPWSWMGKQI7F6V2GCOGEI2LZJLXDVHQA5ILNT47WV4YTJCCZZ4BQBHVAO4PCUW
-#\\\|7M4QH7S6UTHPHKDTR7HUOIXVD22SNQAPDGT3S6M7CYGAQJDUPIO \ / AMOS7 \ YOURUM ::
-#\[7]7IBZCQFAV7EQ47X6EKNT4JMDL3H2N5BD5TP5WMM3KGU4QPW6XABA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,..,,,,,,,..,.,,,,,,,.,.,,..,..,,...,...,...,,.,,,.,,,.,,,.,,
+#TMLSW7FVMWBIT3NYCSH6YLJ4DJHO6JPI4J5DFFFJNFZAHSTM7AT2T2VIJ5D645VV5BKZUPHNQ5W7Y
+#\\\|RLNRDTO2J24RRRVPKTAEWGA44CARVE2KDJRCWTEG5FQZQDXPYWA \ / AMOS7 \ YOURUM ::
+#\[7]FVWBFUXO42PNQ6K2OJ7B2ARUXSRM5MDP3QV6326M5MZ6Z53K3KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

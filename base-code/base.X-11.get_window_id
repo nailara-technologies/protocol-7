@@ -23,7 +23,9 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $retry_count = 5;
 retry:
 
-<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.get_windows $name\n" );
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)${cmd_path}X-11.get_windows $name\n"
+);
 
 my $reply_string;
 my $matched_reply = 0;
@@ -79,8 +81,8 @@ if ( $reply_string =~ /^\($cmd_id\)SIZE (\d+)\n$/ ) {
     return undef;
 }
 
-#,,,,,...,.,.,,,.,...,..,,.,.,,.,,..,,..,,,..,..,,...,...,,,.,,.,,.,.,,.,,,.,,
-#HSGCCQWDQX62QN3TLXQOO772Y3MYQO4QYD5KZCFIUCQCGUSUAGQXRELHXOKTHZXMSJJAOX5N5OTNQ
-#\\\|M2YBGQC6NF5ABILOZMZAXS3CU5VVH7WID24GVNRYPUS2EJP34HE \ / AMOS7 \ YOURUM ::
-#\[7]LNYBXT6LLBDZCPOSODZ4JO3D2NAVNDEQXF6OGJPDV6DRLOTPCIDY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,.,...,..,,,..,.,,,...,,.,,,,,,..,,...,..,,..,,.,,,,,,,.,.,,,,,
+#2QJ5N2Z5MLIXQ6QJD6GC6JTNOU4UYQMKBXKT535KDD5TZGARDC2N6LXNTOTKA6ANC4NJYWECWNLAE
+#\\\|LGNWDFGZKHCWUWEVBWBA6PISUSNXNQFMFJ24ADH7KPI5QRKAFEX \ / AMOS7 \ YOURUM ::
+#\[7]QU7BVGZXYCNHU4VJHHVFRZPA7N7AMGA7XP65ASZF4VOETJF5U4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

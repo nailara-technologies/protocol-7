@@ -22,15 +22,15 @@ $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }
 $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }{'params'}
     = $_[0]->{'handler_params'};
 
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $_[0]->{'handle'},
     '(' . $_[0]->{'target_cid'} . ')' . $_[0]->{'command'} . "\n"
 );
 
 # return $command_id;
 
-#,,.,,.,,,.,.,..,,,..,...,,,,,,,,,.,,,,,.,,,.,..,,...,...,..,,.,,,.,,,.,,,,.,,
-#KLXMBT3YYLTTRDG2WAPCJ4P7WTYZ25I3XLKEXDPWOLTB75BWWO4JVLWY7L7CBIGPLV5YVPJHRERIG
-#\\\|3MMNQYVUTEEQQO4ZCNRSKCMGMKKE5M7O7BJ2GCMIM7A4VOAHDDE \ / AMOS7 \ YOURUM ::
-#\[7]APPW7Y5DBNPKA35PISSKUUNBKMZN7P2RDLRMDBFLJJOHU5D6ISBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,.,.,,.,,,..,..,,.,,,,..,.,,,..,,...,...,...,,,.,.,,,,.,,,,.,
+#4CZPMJIY57L4CFC7XHAZWX2FOMJRFQ4E442SVXMEPS34ZRAH7IDYYWKRXAXMYGWSM3677JSYJU4EI
+#\\\|FEJJ2DPQ3SCTLCYNJBGT7MRWDVZJEZCMUAURFWOX5CN3HWTINQM \ / AMOS7 \ YOURUM ::
+#\[7]YIAACVRPDQAES2FZKNQ76JLHIHVVNDU4LN7KE4BMID3E727UOWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

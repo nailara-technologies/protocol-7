@@ -59,7 +59,9 @@ if ( defined $key_str
         2,      "[<] authenticating as '%s'., [%s]",
         $zenka, $link_mode_str
     );
-    <[net.out]>->( $backend_socket, sprintf( "%s %s\n", $zenka, $key_str ) );
+    <[base.net.send_to_socket]>->(
+        $backend_socket, sprintf( "%s %s\n", $zenka, $key_str )
+    );
 
     if ( exists $KEYS{'zenka'}{'session_key'} ) {    ## secure key erasure ##
 
@@ -81,8 +83,8 @@ if ( defined $key_str
     return undef;
 }
 
-#,,,,,,,,,,.,,,.,,...,,.,,...,,.,,,,.,...,..,,..,,...,..,,,,.,,,,,,,.,,..,,,.,
-#PCA3XKJ7V6ITMWKZJJ7Z3NGFJDZJGMMAJWX3DYY5JLULI5SP5IATPZISIMCGZ3TA52TBHTQNO2MSG
-#\\\|25LSPCXIR5IDE24WVI4IHEZAHQU2D3GM5SPZGZQL64NWYZRDP4Q \ / AMOS7 \ YOURUM ::
-#\[7]BBLGJISTUUGMCX7QEJJLC6GBSKP3PT5VZYZSAOGR4CASG4X6FGCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,.,,,,,,,...,,,.,..,,,..,,,.,..,,...,...,...,,..,.,,,...,..,,
+#H2INKUBSSUEL447EI2BBLFPKVKZAE2JJCAVROX3NA4KB27OUEUMS5ULOTYRSRYWJWOUXK6DI5JX2Y
+#\\\|CDG6JKE32O7GMNITF5N5WXUQLP7RQCLKK3UPYWYEFWYNBKH3GMG \ / AMOS7 \ YOURUM ::
+#\[7]35PRI2BQZTFKVTJRMA7HRFKOR5PWWMSHBBFMAI2KKAXKVZ73RMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
