@@ -77,7 +77,7 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
 
         ## sending protocol banner string ., ##
         if ( length($banner_string) and $mode eq qw| input | ) {
-            <[net.out]>->( $fd_client, $banner_string );
+            <[base.net.send_to_socket]>->( $fd_client, $banner_string );
         }
         <[base.logs]>->( 1, '[%d] established %s connection', $cid, $proto );
 
@@ -87,8 +87,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,,.,,,.,,,.,,,,,,,.,..,,,,.,...,,,.,,,.,,,.,..,,...,...,,,.,.,,,,,.,.,,,,,,,
-#YHGY2GOHRI6LAEBZD5EP3C32INTT5NUWKIAS56TUDPD2ON67DCOAOCBYKIIM5AJRT45BEP6Q5DG3I
-#\\\|MGYDIWPYA6O4K7L6WBQCTBXPMYCDWCVDBBKPMODU5P26CKQMS46 \ / AMOS7 \ YOURUM ::
-#\[7]2JITZZLDII2DPYESYIDTWFG4DTPMWURUDUEIRYTZJSOZTVVKNUDA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,,..,..,,...,.,.,...,.,.,...,..,,...,..,,...,,,,,.,,,,..,..,,
+#77G2BQL3XRGFMTY3M3FGXOOQLMFXAK7PWAH42X7CLDPIWB4V5DTJIQ37KCOB3VZLUQAASK4EWRFQY
+#\\\|2TWWMNZBQOOIZEUXMHWNLQBD5OATFXKGM6OHNLAXUR4JSIEEYFV \ / AMOS7 \ YOURUM ::
+#\[7]YFVJW2FS3BJCDYTQ2T3DW7PG7GZ2F3D6X266OVOLBVKYLJREQUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

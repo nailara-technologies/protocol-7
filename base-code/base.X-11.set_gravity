@@ -14,7 +14,7 @@ my ($local_sid) = keys( %{<user.cube.session>} );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $cube_fh, "($cmd_id)X-11.set_gravity " . <x11.id> . " bottom\n"
 );
 
@@ -37,8 +37,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return 0;
 }
 
-#,,.,,,,,,..,,...,,,.,,..,,,.,...,,.,,.,,,...,..,,...,...,.,,,.,.,,.,,.,.,,,.,
-#535LQEJTIHF5KZ63ZL3WRSQWFIXLRA7WUYXRQZFKIGLTYO7HQDTV3XD7RACBDFSKH35ETKPHGILDU
-#\\\|KOLALNEJMXKCURZ2FXNBJAUUSBVGXAHYY2XVLHK4H5KOBVXVS45 \ / AMOS7 \ YOURUM ::
-#\[7]C6K3THSC2N6DHZORS55UP6UWJJIESPAXR2W6AREHGTSGIRKTH2CQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,.,,.,.,,,,,,..,,,.,,..,.,.,,,.,..,,...,...,,..,..,,,..,..,,...,
+#E2D7RCWSTIA7KEAWLRRAGNNV3DLTWBZTGKA5BVI7D2NOLSRQIO5HXCVTDX3S2Y3J6RO3POJN5RPS2
+#\\\|NMBJM6LFQHO7GDI2P6LOB4PKXS26DF46JALWQA2PEWVI3FRCN7E \ / AMOS7 \ YOURUM ::
+#\[7]N3VUA3P75ZJJ64XDZGF4I57ARFKKKLQCVERD73EABG7QU5S2QUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

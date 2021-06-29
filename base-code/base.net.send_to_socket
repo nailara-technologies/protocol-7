@@ -1,6 +1,6 @@
 ## >:] ##
 
-# name  = net.out
+# name  = base.net.send_to_socket
 # descr = write data to client
 # args  = filehandle, data [string]
 
@@ -59,7 +59,9 @@ if ( fileno $send_fh ) {
         eval { $send_fh->close() };     ##  forcing an exception  ##
         return 2;
     } else {    ##  write error \ recipient fh gone. ##
-        <[base.s_warn]>->( 'write error in net.out on %s <{C1}>', $send_fh );
+        <[base.s_warn]>->(
+            'write error in base.net.send_to_socket on %s <{C1}>', $send_fh
+        );
         if ( defined $cid ) {
             $data{'session'}{$cid}{'shutdown'} = 1;
         } else {
@@ -73,8 +75,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,.,,.,,,..,,..,,...,,..,,,.,.,,,,,.,..,,.,.,..,,...,.,,,...,..,,.,,,..,,.,.,
-#ZMP6I5BCRSXZTQJP5VOUEBIGNOLLPMD5O72IFC5W3HWJST7SQ3OAGHTZBCA4WQMYRPA6QRKHEWEGU
-#\\\|YFKH6FWQ6F4UP6DNFFW2ITRF2NK55V25QP6WVYNOMQDUTXMQNMB \ / AMOS7 \ YOURUM ::
-#\[7]75BGW6V5IQF75IWL3D74PCTVEYALPZF4VN4LPOQZ7NLIXCU4TSDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,,,,,..,,.,,,,.,,,,,,,,,..,,..,,...,...,..,,..,,,..,.,.,...,
+#LTWEM2GI3GRDUP5JYXJD2V5LQVZDW3ZXBPHVNK62MHRVM7PXQLU6RJGFF3543YVL46KOK5ASOXXU2
+#\\\|HQYUJAOCHS7K5CVGR62RKJTEMM724CGFYDVTWA3WQ2BNOMT5RJW \ / AMOS7 \ YOURUM ::
+#\[7]B34BQJUBAMUWT3HJFYKIVJQCXWKFC6LYZAIQFZFPVE6NZBCZQODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

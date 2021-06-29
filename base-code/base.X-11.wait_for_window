@@ -22,7 +22,7 @@ my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $cube_fh, "($cmd_id)${cmd_path}X-11.wait_visible $timeout $name\n"
 );
 
@@ -51,8 +51,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+)\n$} and <x11.id> = $1 ) {
     return undef;
 }
 
-#,,,.,.,,,,,,,,..,,..,,.,,.,.,..,,..,,...,.,,,..,,...,...,...,,.,,,,,,...,,,.,
-#O7QTYLNVQFXGJDVIBUWMN364DHOTNVDHQ4UK73WG5G5RWW36S74Y4SNZSL3WR6GV4UIU7S4X3SXPG
-#\\\|CAKZGWZG3ZH2P3Z4HHDZUKMMN6FDBPMJBVSJZS4HLTK7IYQGRT2 \ / AMOS7 \ YOURUM ::
-#\[7]OZAOXGC7LV335TMLNH4BTBPJRVDRGZTTK76ICYUJBGPU2CEZR4AA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,,,,,,,,,...,,,.,,.,,..,,.,,,..,,...,...,.,,,..,,.,.,,,.,.,,,
+#622YP7IHZTO5GNMAA6INT7NFIZ3FOD2W3BB6EU4TNV3HR75QE7S2AFPCXKWY7RNMZRORLK5WDUMQI
+#\\\|PB7K355T5CE4KRNBRQQORVROHJ6QRGDK5W5BVEXXNS3ZTHP7KF6 \ / AMOS7 \ YOURUM ::
+#\[7]BSVVPTZPQ2BGZ5TOJ4AOOPONBC33WPXUWJTDM4OZVCE4CVFAQGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

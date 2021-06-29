@@ -27,17 +27,19 @@ if ( <[base.s_read]>->( $backend_socket, \$banner_string, 12 ) ) {
         );
         return undef;
     }
-    <[net.out]>->( $backend_socket, "select pwd\n" );
+    <[base.net.send_to_socket]>->( $backend_socket, "select pwd\n" );
 
-    <[net.out]>->( $backend_socket, sprintf( "auth %s %s\n", $usr, $pwd ) );
+    <[base.net.send_to_socket]>->(
+        $backend_socket, sprintf( "auth %s %s\n", $usr, $pwd )
+    );
 
     return <[auth.zenka.process_auth_reply]>->(
         $backend_socket, 'authentication successful. =)'
     );
 }
 
-#,,.,,,,.,.,,,,..,,,.,...,.,.,.,,,,.,,,.,,..,,..,,...,...,.,.,,..,,..,..,,.,.,
-#TU6T7YY4DXU4EZUMYLF55FMUFBE2GLTAOW3TYJ7GCMOYVX23Y3XXA5SGDJSFAIWXJXBHEAYN4SWK6
-#\\\|XKZZDFUBY4NMWG54546IFZS3TA3X4ET7MTHHOCYJHREMRRAS7OB \ / AMOS7 \ YOURUM ::
-#\[7]PTVB4HDPVU2AFGWFIZCQCRNU552WXTM2IJK3NZ63526N7444QACA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,..,.,.,..,,,,,,,.,,,.,,,,,,,,.,..,,...,...,...,,..,..,,,,.,...,
+#553Q2UZR2JOYZHIU5J7XFYYS5JS4UZ2OG7GWRIYT3XDBYPOBEP7LYAQHDGH6VCFWDGMQBSVA43Z7C
+#\\\|FISV4XNUE5YLVFGD6HS7DJF77UHCY2HDXWFLRS6O3UBLHXY23PW \ / AMOS7 \ YOURUM ::
+#\[7]CJPXIUXXXFB6X6NPM2LCFRDUCCP4NQ34DZQ55GHSB3NRMZOLNABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2270,7 +2270,7 @@ sub diff_less {
                         . $1
                         . $C{'R'}
                         . highlight( $diff_line, $search_pattern,
-                        ansi('reverse dark blink') . $C{'0'},
+                        ansi('blink') . $C{'B01'} . $C{'o'},
                         $C{'R'} );
                 } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
                     my $replace_highlight = $replace_pattern;
@@ -2283,7 +2283,7 @@ sub diff_less {
                         . $1
                         . $C{'R'}
                         . highlight( $diff_line, $replace_highlight,
-                        $C{'B02'} . $C{'B'} . $C{'T'},
+                        $C{'B02'} . ansi('blink') . $C{'B'} . $C{'T'},
                         $C{'R'} );
                 } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
                     if ( $diff_line =~ /^diff / ) {
@@ -2347,8 +2347,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,,,.,,..,,,.,.,.,.,.,.,,,..,,.,.,..,,,.,,..,,...,...,.,,,...,..,,.,,,,.,,
-#WA5KSY37TNMP7PPKFXJJOVQM5WBQQKCV7KBWL5DOCXSCXTPCQYQGPRQTESE6G3YKHCXTWZFAYDTOK
-#\\\|CJT2Y6UVZO2PGA6JWUSJFARXPXFGPOGJPDYL3DPQA6TAJKNVDTL \ / AMOS7 \ YOURUM ::
-#\[7]WY7YKRVKF7O36OG4NYJ7CCCJ4KEMOSZSHZNIXVUEK5SZY3MH5QCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,,.,,..,,,.,,,.,,,.,,...,,.,,..,,...,...,...,...,...,,.,,,,.,
+#AICSXCXQZN3DNQJNE2R5R2OQ2WD2IHRE32FKZIVL4EYN3N7HXL32ZF3AV2ISDZLMHUYNSBG3IVFKY
+#\\\|RKMTWEMYRDIHUKLMNCK72AKS3A66HJNZ5TRWA6S3NOFON3D6J73 \ / AMOS7 \ YOURUM ::
+#\[7]CCAYIEZ3B6CZW53CT67GN7WNQQPQLKEK3BTVQF6R3LROBIZ6GIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

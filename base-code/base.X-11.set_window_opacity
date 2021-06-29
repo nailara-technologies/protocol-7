@@ -31,7 +31,7 @@ if ( defined $data{'session'}->{$sid} ) {   # status 'online' # ->{'cube_sid'}
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$sid}{'handle'};
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $cube_fh, "($cmd_id)${route_str}X-11.set_opacity $id $opacity\n"
 );
 
@@ -53,8 +53,8 @@ if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
     return 1;
 }
 
-#,,,,,,..,,.,,.,,,.,.,,.,,.,,,.,,,.,.,...,.,,,..,,...,...,...,..,,...,,.,,...,
-#6TB7CZA3UM3RCQKZPPUEWVBEGVR5AWZDOEXRUAYOSPH4YIUTEMZ4JVOISATMNA6SD4GCM4KVJIYL6
-#\\\|QNES7KZ2WAAZV72YXTYU6K46AF3FZVEMEYIQRPJIC6ZO56UMR6Y \ / AMOS7 \ YOURUM ::
-#\[7]OHCHF6GXGXI5IZL76XKV3MF4NW2T5EUM7VSAYGQHY7DQOD5U66AY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,.,.,..,,.,.,.,,,..,,..,,,,.,..,,...,...,,,.,.,.,...,.,,,.,,,
+#2LCMB2FJX2LCJOZBSKZ3QQZZXQVPDRAXQ2EDCIZYSTTKMJUEGTCYW56RDVLZ7N2Y5657VXICACG54
+#\\\|VDUM7AUCV4J3KZ2CIBKO5LTWHCTS6IGE2RJVXEQZT76HQPXMBJG \ / AMOS7 \ YOURUM ::
+#\[7]R6NH3UZOPSCXP5YKJPBBAY5N6QAAV72QVO3F3NOXRKOXCFKFQGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

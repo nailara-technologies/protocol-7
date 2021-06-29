@@ -20,7 +20,7 @@ my $sn_log_str = length($sn_str) ? " for zenka$sn_str" : '';
 <[base.log]>->( 1, "requesting geometry$sn_log_str .," );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
-<[net.out]>->(
+<[base.net.send_to_socket]>->(
     $cube_fh, "($cmd_id)${cmd_path}composition.get_geometry$sn_str\n"
 );
 
@@ -54,7 +54,9 @@ $err_msg = sprintf( ': << geometry not defined%s >>', $sn_log_str )
 
 # use full X server geometry as window geometry..,
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
-<[net.out]>->( $cube_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n" );
+<[base.net.send_to_socket]>->(
+    $cube_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n"
+);
 
 $matched_reply = 0;
 while ( !$matched_reply ) {
@@ -79,8 +81,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,..,,,.,.,.,.,.,,..,,..,,.,,.,,,.,.,,,.,.,,,..,,...,...,,.,,.,,,.,,,.,,,,..,
-#NYJKRBAGBX3H76NGP4VK4FZNALIQU7NX56556Z6K3LPAOG5EIQ7FMMBO4KBENDLAFXMZJNBNYF7E4
-#\\\|VNIFVROYKJ7VULDM4OPU4CMWMF5BFDIV5BHEKZTP4CSH3KZVKRB \ / AMOS7 \ YOURUM ::
-#\[7]32BQCXP2V7TRLMD3JNEU5OJWBNSTZIJL6HQ2O46UZFVAVCQQUWCA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,.,.,,,.,,..,.,,,.,.,,..,,.,,..,,...,...,.,,,,.,,..,,,,,,,,,,
+#CS5IQZBYNLMSTD6PRJAMALVQQQMWIHCVUEGDKUENRQCVSFEYPJO7DXDNM4XIOJH5AWG53W6CYARN6
+#\\\|ALC65NGKAFKMFOM5OQQMRZ6D7AEO5F775MROQWLQM25TU7DXNMP \ / AMOS7 \ YOURUM ::
+#\[7]2QPV4HDGOSJ32UCGZBTDXHMZMAJMNW6F33UTANSY5NORCI6O2EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
