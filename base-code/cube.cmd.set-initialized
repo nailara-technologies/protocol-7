@@ -9,14 +9,14 @@ my $sid
 
 return { 'mode' => 'false', 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
-return { 'mode' => 'false', 'data' => "not an 'zenka' mode session" }
+return { 'mode' => 'false', 'data' => "session not in 'zenka' mode" }
     if not defined $data{'session'}{$sid}{'auth'}{'method'}
     or $data{'session'}{$sid}{'auth'}{'method'} ne qw| zenka |;
 return { 'mode' => qw| false |, 'data' => 'was already initialized' }
     if defined $data{'session'}{$sid}{'initialized'}
     and $data{'session'}{$sid}{'initialized'};
 
-$data{'session'}{$sid}{'initialized'} = 1;
+$data{'session'}{$sid}{'initialized'} = 5;
 
 my $zenka_name = $data{'session'}{$sid}{'user'};
 <[base.logs]>->(
@@ -34,8 +34,8 @@ my $zenka_name = $data{'session'}{$sid}{'user'};
 
 return { 'mode' => qw| true |, 'data' => qw| initialized | }
 
-#,,..,..,,,..,..,,,.,,...,.,,,,.,,..,,,..,,..,..,,...,.,,,..,,,..,,.,,,..,,.,,
-#HF4ACMCI37APUHOO2V2T773JQCDFB3C2WHET3TDNPGFT4WXXQKTC7IOHJAAWXMFYLDCBEKYLFTC26
-#\\\|Q2YCXGICSJK5FAG3PGYFZSJI6KEYTNRFWX4GT64ODMSQ3TSR2QN \ / AMOS7 \ YOURUM ::
-#\[7]VGL737N7FN4ZVNSBECOHZGKEUJSDJQEQCVTWBXOCFO5APVYA6KDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,..,,,,,,.,,,...,,.,,,.,,...,..,,...,...,.,,,,.,,.,,,.,,,,..,
+#NZXWPUMTYT474ZC5KFUTAAHYP4Y3LQGICSXYLNEL75GRHLMFMYHHF6UHTU47XO4UDXR37SPSFP7TG
+#\\\|U6BUN5OZZGFG4CBEG3UFOM7MMFHLU7WKO77ZOX2MEEVGVHGJQD2 \ / AMOS7 \ YOURUM ::
+#\[7]X5PN2XSARAM7AJ2XKXIWE4ZMCC76IMOREFFWOFM2OHX75MY63IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
