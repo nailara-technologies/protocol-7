@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+
+###          ###
+##  question  ##
+###          ###
+
 use v5.24;
 use strict;
 use English;
@@ -13,11 +18,11 @@ our $FALSE_code = 202;
 our %COLORS     = init_colors();
 
 my $check_truth_bin = get_bin_path();
-error_exit('expected question') if !@ARGV;
+error_exit('expected question') if @ARGV == 0;
 
 # ########################################################################## #
 
-( my $question = join( ' ', @ARGV, '?' ) ) =~ s|(\s*\?)+$| ?|;
+( my $question = join( ' ', @ARGV, qw| ? | ) ) =~ s|(\s*\?)+$| ?|;
 
 my $question_encoded = sprintf( 'Q: %s : %s A!', network_time(), $question );
 
@@ -31,20 +36,20 @@ if ( $exit_code == 0 ) {
     false_answer($question);
     exit($FALSE_code);
 } else {
-    error_exit("invovation error : check-truth returned $exit_code");
+    error_exit("invovation error : is-true returned $exit_code");
 }
 
 # ########################################################################## #
 
-sub network_time { return encode_b32r( pack( 'w*', calc_ntime() ) ) }
+sub network_time { return encode_b32r( pack( qw| w* |, calc_ntime() ) ) }
 
 sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     my $precision      = 5;
     my $ntime_start    = 1023228000;
     my $unix_precision = $precision + 2;
-    my $unix_time      = sprintf( "%.0${unix_precision}f", time() );
-    my $ntime          = sprintf( "%.0${precision}f",
-        ( ( $unix_time - $ntime_start ) * 4200 ) );
+    my $unix_time      = sprintf qw| %.*f |, $unix_precision, time();
+    my $ntime          = sprintf qw| %.*f |,
+        $precision, ( ( $unix_time - $ntime_start ) * 4200 );
 
     return $ntime;
 }
@@ -95,17 +100,17 @@ sub error_exit {
 sub get_bin_path {
     my $bin_path = abs_path( r2_abs( c_dir($Bin) ) );
     die "\n:\n:: not found : $bin_path\n:\n" if not -d $bin_path;
-    my $check_truth_path = abs_path( c_file( $bin_path, 'check-truth' ) );
+    my $check_truth_path = abs_path( c_file( $bin_path, qw| is-true | ) );
     die "\n:\n:: not found : $check_truth_path\n:\n" if !-x $check_truth_path;
     return $check_truth_path;
 }
 
-sub c_dir  { File::Spec->catdir(@_) }
-sub c_file { File::Spec->catfile(@_) }
-sub r2_abs { File::Spec->rel2abs(@_) }
+sub c_dir  { File::Spec->catdir(@ARG) }
+sub c_file { File::Spec->catfile(@ARG) }
+sub r2_abs { File::Spec->rel2abs(@ARG) }
 
-#,,,,,.,,,.,.,.,.,,.,,,,,,,..,,,.,.,.,..,,..,,..,,...,...,.,,,.,,,...,.,,,...,
-#A2J43W2AVYHOOF36R6NBRZQP3SXX73VITOPZTO3762D7R4TJHLOU52FRTG4YTJ4CBGLY3KKDWVCQO
-#\\\|OLWJTIN3ULUM2DKO6LEBB2PRCXN7QBXQYKNUV7XZAD5MOWQLABB \ / AMOS7 \ YOURUM ::
-#\[7]PZQYSLDAIHYPTZZGZ5WTR3KKJ7ANPTMWCT3D3D255YWFYPNAP2AI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,.,,,.,,,,,,,,.,,,.,,.,,,.,,..,,...,...,...,.,.,.,.,..,,..,,
+#SJBUGUFHOUGQE6QJEYDM2SRLOSABCDXZ7AVCMLYOG4WN2AVGO6W4FHCSNPDYIKZE33FCZOMUTEMAQ
+#\\\|SCJJIAITFYFB77UOF6QAV5KVJBHLCF2S32GS5LMC4FHS5UZW6GX \ / AMOS7 \ YOURUM ::
+#\[7]F35ZCPNBBEEBDNGCP7TDJBYH53NJRKLHYCM5RR5WPDEI4K7N7WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
