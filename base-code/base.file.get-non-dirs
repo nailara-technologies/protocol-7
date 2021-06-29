@@ -2,44 +2,90 @@
 
 # name = base.file.get-non-dirs
 
-my ( $path, $result_aref, $resolved ) = @_;
-my $old_path;
-my $recursive         = 0;
-my $recursion_entered = 0;
-$resolved //= 0;    # <-- resolve symlinks
-$resolved = 1 if $resolved eq 'resolved';
+my $path = shift;    ##  first param : parent path  ##
 
-if ( not defined $result_aref ) {
-    $result_aref = [];
-} elsif ( $result_aref eq 'recursive' ) {
-    $result_aref = [];
-    $recursive   = 1;
+## optional params : result array ref, 'recursive' and 'resulve' [symlinks] ##
+
+##  additionally 'ign-perm-errs' allows to only scan readable sub-dirs  ##
+
+if ( not defined $path ) {
+    warn 'expected path as first parameter <{C1}>';
+    return undef;
+} elsif ( not -e $path or not -d $path ) {
+    <[base.s_warn]>->(
+        "cannot open directory ['%s'] not found <{C1}>", $path
+    );
+    return undef;
 } else {
-    $recursion_entered = 1;
+    $path =~ s|//+$|/|g;    ##  clean up redundant slashes  ##
 }
 
-if ( -d $path ) {
-    my $dir_fh;
-    $path =~ s/\/+$//;
-    if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "cannot open directory '$path' [ \l$OS_ERROR ]" );
+my $result_aref;
+my $recursive          = 0;
+my $recurs_depth       = 0;
+my $recursion_entered  = 0;
+my $res_symlinks       = 0;    # <-- resolve symlinks
+my $ignore_permissions = 0;
+
+foreach my $param ( grep {defined} @ARG ) {    ##  optional params  ##
+
+    if ( ref $param eq qw| ARRAY | and not defined $result_aref ) {
+        $result_aref = $param;                 ## optional array reference ##
+
+        ## valid param ? ##
+    } elsif ( $param !~ m,(recursive|resolve|ign-perm-errs|\d+), ) {
+        <[base.s_warn]>->( 'parameter %s not expeced or understood', $param );
         return undef;
-    }
-    foreach my $entry ( sort( readdir($dir_fh) ) ) {
-        next if $entry =~ m|^\.\,?$|;
-        my $file_path = "$path/$entry";
-        my $result_path
-            = $resolved ? abs_path($file_path) : canonpath($file_path);
-        push( @{$result_aref}, $result_path ) if !-d $file_path;
-        <[file.non_dirs_rec]>->( $result_path, $result_aref, $resolved )
-            if -d $file_path and $recursive;
+    } else {
+        $recursive          = 5 if $param eq qw| recursive |;       ## true ##
+        $res_symlinks       = 5 if $param eq qw| resolve |;         ## true ##
+        $ignore_permissions = 5 if $param eq qw| ign-perm-errs |;   ## true ##
+        $recurs_depth       = $param if $param =~ m|^\d+$|;
     }
 }
 
-return $result_aref if !$recursion_entered;
+$result_aref //= [];
 
-#,,,.,,,.,,..,,.,,...,...,,..,.,.,,,.,,..,.,,,..,,...,...,.,.,..,,..,,,.,,,.,,
-#ZN6CLUNU44EIFWYH6MAQAGXIDUQOCSKHWHM6IUTRD5S5X64MZLCNAHE7TRX4IWQO4EMD5HLZ2Z2TE
-#\\\|B2255GQHIZD6DPEV2QBFQ72HQZ6JF5CUFFJ5JG5LFAC5HCK77HB \ / AMOS7 \ YOURUM ::
-#\[7]SI6H6IHXJGFK5B5CELNZT4XMBFQAA5CQNHPL6BC3OBJLZQF4QQAY 7  DATA SIGNATURE ::
+if ( $recurs_depth > 0 ) {    ## internal parameter ##
+    $recursion_entered = 5;    ## true ##
+}
+
+$path = abs_path $path if not $recursion_entered;
+
+my $dir_fh;
+if ( not opendir( $dir_fh, $path ) ) {
+    <[base.s_warn]>->(
+        "error opening directory ['%s'] : %s <{C1}>",
+        $path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    $result_aref = [];    ##  resetting, use 'ign-perm-errs' to keep.., ##
+    return undef;
+}
+foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
+    next if $entry =~ m|^\.\.?$|;    ## skip . and .. ##
+    my $file_path = sprintf qw| %s/%s |, $path, $entry;
+    my $result_path
+        = $res_symlinks ? abs_path($file_path) : canonpath($file_path);
+    push( $result_aref->@*, $result_path ) if not -d $file_path;
+
+    if ( -d $file_path and $recursive ) {
+        next if $ignore_permissions and not -r $file_path;    ##  skip  ##
+
+        if (not defined <[file.get-non-dirs]>->(
+                $result_path,  $result_aref,
+                $res_symlinks, ++$recurs_depth
+            )
+        ) {
+            $result_aref = [];
+            return undef;    ##  resetting, use 'ign-perm-errs' to keep.., ##
+        }
+    }
+}
+
+return $result_aref if not $recursion_entered;
+
+#,,,.,.,,,.,.,.,.,,..,...,,..,.,.,,,,,,,.,..,,..,,...,...,,..,.,.,,,,,...,,,.,
+#VPMH5MDK5MLJXSIH2CQNOF2WIRWULTJ7ZDG2YQFBRITGMO7BJVW6REL7V5GFRY5ZCAJPGS3V7OUBY
+#\\\|QYXMM2M5CZY52VOW65J2KM33IIUSNV6T64G3X6YIHXW4TY6BHV2 \ / AMOS7 \ YOURUM ::
+#\[7]6PHQPZ4TQIFH4JSEH35ON3NTQTZGXUP2VUBLFHZZEHTFRR5AQAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
