@@ -1,0 +1,111 @@
+## >:] ##
+
+# name  = base.parser.pattern_split
+# descr = split string at pattern with optional intermixing of callback result
+
+my $string_sref    = shift;
+my $split_pattern  = shift;
+my $substr_coderef = shift;
+
+if ( ref $string_sref ne qw| SCALAR | ) {
+    warn 'expecting scalar ref to text <{C1}>';
+    return undef;
+} elsif ( not defined $string_sref->$* ) {
+    warn 'scalar ref points to undef value <{C1}>';
+    return undef;
+} elsif ( not defined $split_pattern ) {
+    warn 'expected split pattern parameter <{C1}>';
+    return undef;
+} elsif ( defined $substr_coderef and ref $substr_coderef ne qw| CODE | ) {
+    warn 'substr param expected to be coderef';
+    return undef;
+}
+
+my $result_aref;
+my $pattern_length;
+
+$pattern_length = length $split_pattern if not length ref $split_pattern;
+
+if ( index( ref $split_pattern, qw| Regexp |, 0 ) == -1 ) {
+    ( $split_pattern, my $re_err_sref )
+        = <[base.eval.comp_regex]>->($split_pattern);
+    if ( not defined $split_pattern ) {    ## reporting regexp errors ##
+        warn ':: pattern not valid regexp syntax :: <{NC}>';
+        map { <[base.s_warn]>->( ': %s <{NC}>', $ARG ) }
+            split( m|; (*pla:marked)|, $re_err_sref->$*, 2 );
+        warn ':. <{C1}>';
+        return undef;
+    }
+}
+
+##  split according to given pattern  ##
+##
+$result_aref = [ split( $split_pattern, $string_sref->$*, -13 ) ];
+##
+###
+
+my $str_element_count = scalar $result_aref->@*;
+
+if (defined $pattern_length    ## last element empty on empty match ? ##
+    and $pattern_length == 0
+    and $str_element_count > 1
+    and not length $result_aref->[ $str_element_count - 1 ]
+) {
+    pop $result_aref->@*;      ##  removing redundant empty element  ##
+    $str_element_count--;
+}
+
+return $result_aref if not defined $substr_coderef;   ## nothing else to do ##
+
+return $result_aref if $str_element_count == 1;    ## no match for pattern ##
+
+## counting capture groups in pattern ##
+( my $pattern_cpy = $split_pattern ) =~ s|\\\\||g;
+$pattern_cpy =~ s|^\(?[^:]*:||;    ## remove comp. regexp markers ##
+$pattern_cpy =~ s|\)$||;
+my @capture_grp_count = $pattern_cpy =~ m|(*nlb:\\)(\([^\)]*(*nlb:\\)\))|sg;
+my $capture_grp_count = scalar @capture_grp_count;
+undef @capture_grp_count;
+undef $pattern_cpy;
+
+##  preparing intermixed result aref  ##
+my $next_index           = 1;
+my $current_index        = 0;
+my $extended_result_aref = [];
+
+while ( $current_index < $str_element_count ) {
+
+    push $extended_result_aref->@*, $result_aref->[$current_index];
+
+    my @callback_param = (    ##  preparing split context for callback  ##
+        \$result_aref->[$current_index],    ##  match prefix [sref]  ##
+        \$result_aref->[ $next_index + $capture_grp_count ]    ##  postfix  ##
+    );
+
+    if ($capture_grp_count) {    ##  capture groups are intermixed  ##
+        foreach my $offset ( 1 .. $capture_grp_count ) { ##  add to @param  ##
+            push @callback_param, \$result_aref->[ $current_index + $offset ];
+        }
+        ##  adjusting to skip capture groups from result  ##
+        $current_index += $capture_grp_count;
+        $next_index    += $capture_grp_count;
+    }
+
+    ##  adding callback result to split result list  ##
+    if ( $current_index < $str_element_count - 1 ) {
+        push $extended_result_aref->@*, $substr_coderef->(@callback_param);
+    }
+
+    $current_index++;
+    $next_index++;
+}
+
+undef $result_aref->@*;
+
+return $extended_result_aref;
+
+#,,,,,,..,,,.,..,,.,.,,.,,..,,.,,,...,,..,..,,..,,...,...,...,..,,.,.,,,.,.,,,
+#PSALKY6RG264OZUOJSWQLJFISQGTPGDN3J6S4JTLBOPXEP4QYLW73HR4O6HUGI4QVUWZMCSGPRL2O
+#\\\|5Z5C3APP57PN2IFGEKAE27QJBEMLMXFUBD5XULKSLQD3LPQFJKC \ / AMOS7 \ YOURUM ::
+#\[7]KSLFVQOTLSCAZJNIQS5QE42SZMJCI2HX33Y3KL3GC5VRTUMBLODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
