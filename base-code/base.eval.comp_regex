@@ -6,13 +6,9 @@ my $regex_str  = shift;
 my $error_sref = shift;   ## scalar ref to store regex errors to [optional] ##
 
 if ( not defined $regex_str ) {
-    my $err_message = 'regex string parameter undefined';
-    if ( not defined $error_sref ) {
-        $error_sref = \$err_message;
-    } else {
-        $error_sref->$* = $err_message;
-    }
-    warn $err_message;
+    <[base.s_warn]>->(
+        '%s <{C1}>', $error_sref->$* = 'regex string parameter undefined'
+    );
     return ( undef, $error_sref ) if wantarray;
     return undef;
 }
@@ -36,11 +32,18 @@ my $result          = $parse->reval( $perlcode_qr_str, 1 );
 #
 ##
 
-if ( not defined $result and length $EVAL_ERROR ) {
-    $error_sref->$* = scalar <[base.format_error]>->( $EVAL_ERROR, -1 );
-    $error_sref->$* =~ s| at \(eval \d+\) line 1.$||;
-    $error_sref->$* = 'error in regular expression'    ## track down source ##
-        if index( $error_sref->$*, qw| Math::BigFloat |, 0 ) >= 0;    ## [LLL]
+if ( index( ref $result, qw| Regexp |, 0 ) == -1 or length $EVAL_ERROR ) {
+    if ( length $EVAL_ERROR ) {
+        $error_sref->$* = scalar <[base.format_error]>->( $EVAL_ERROR, -1 );
+        $error_sref->$* =~ s| at \(eval \d+\) line 1.$||;
+        $error_sref->$*
+            = 'error in regular expression'    ## track down source ##
+            if index( $error_sref->$*, qw| Math::BigFloat |, 0 )
+            >= 0;                              ## [LLL]
+    } else {
+        $error_sref->$* = 'regex compilation not successful';
+        $result = undef;
+    }
 }
 
 if ($print_debug_to_console) {    ##  debug output or error report  ##
@@ -59,8 +62,8 @@ if ( defined $error_sref->$* ) {
     return $result;    ##  no errors occured  ##
 }
 
-#,,,,,,.,,..,,,,,,,.,,,,,,,.,,,..,..,,,,,,,..,..,,...,...,...,,,,,...,,,,,.,,,
-#EZDXA6CNLD3LTVAYHYXL4SXS7UROHU3BK2O7BMAUJUDSAIFDVVETYAVXROTBLK3CINX6THDKLO5BY
-#\\\|2UWRD3WPG7UXTK6URON3CW4KQBPK27LRIJAFJSK2VF6USN4WQCD \ / AMOS7 \ YOURUM ::
-#\[7]3WQFLBL4MMXH6L3337I3ZKBBEA4W2OT3JISLBRI27JBGWQMOA4AQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,...,.,.,,,,,..,,.,,,...,,..,..,,...,..,,,.,,.,.,...,,.,,...,
+#CEJAIH3BNXHK3CZMKC3YXB64FKHEFTKO2JG54ZQHNZOHFHEMEZD2POZ6L3QVETWCX5OBDC7XNUWEA
+#\\\|7ENIFQAD3F6VLUOE7ZJF2HMMR3RFBLNPSQKRNFTLJ67I776KDYY \ / AMOS7 \ YOURUM ::
+#\[7]UXFO4Q5FR6IGN2SRNJNKXZE5N2EXJUAWSOS5NN4D4RENZLCWGUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
