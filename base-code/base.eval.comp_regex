@@ -2,10 +2,24 @@
 
 # name  = base.eval.comp_regex
 
-my $regex_str = shift;
-warn 'regex string parameter undefined' if not defined $regex_str;
+my $regex_str  = shift;
+my $error_sref = shift;   ## scalar ref to store regex errors to [optional] ##
+
+if ( not defined $regex_str ) {
+    my $err_message = 'regex string parameter undefined';
+    if ( not defined $error_sref ) {
+        $error_sref = \$err_message;
+    } else {
+        $error_sref->$* = $err_message;
+    }
+    warn $err_message;
+    return ( undef, $error_sref ) if wantarray;
+    return undef;
+}
 
 ## regex compilation result details to stdout ##
+##  1 == debug output, 2 == show errors enly  ##
+
 my $print_debug_to_console = 0;
 
 ## setting up safe namespace ##
@@ -18,28 +32,35 @@ $parse->permit_only(qw| :base_core :base_orig |);
 ## evaluate regular expression with 'qr' ##
 #
 my $perlcode_qr_str = sprintf 'qr\'%s\'', $regex_str;
-
-my $result = $parse->reval( $perlcode_qr_str, 1 );
+my $result          = $parse->reval( $perlcode_qr_str, 1 );
 #
 ##
 
-if ($print_debug_to_console) {
-
-    say "\n" . '< perl code str > ', $perlcode_qr_str;
-    say '   < eval result > ', $result // qw| UNDEF |, "\n";
-
-    <[base.logs]>->(
-        0,
-        '< eval error > %s',
-        scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
-    ) if length $EVAL_ERROR;
+if ( not defined $result and length $EVAL_ERROR ) {
+    $error_sref->$* = scalar <[base.format_error]>->( $EVAL_ERROR, -1 );
+    $error_sref->$* =~ s| at \(eval \d+\) line 1.$||;
+    $error_sref->$* = 'error in regular expression'    ## track down source ##
+        if index( $error_sref->$*, qw| Math::BigFloat |, 0 ) >= 0;    ## [LLL]
 }
 
-return undef if length $EVAL_ERROR;
-return $result;    ## undef on eval errors ##
+if ($print_debug_to_console) {    ##  debug output or error report  ##
+    if ( $print_debug_to_console < 2 ) {
+        say "\n" . '< perl code str > ', $perlcode_qr_str;
+        say '   < eval result > ', $result // qw| UNDEF |, "\n";
+    }
+    <[base.logs]>->( 0, '< eval error > %s', $error_sref->$* )
+        if defined $error_sref->$*;
+}
 
-#,,..,..,,,.,,..,,.,.,,,,,..,,,,.,...,,.,,,,.,..,,...,...,,,,,,.,,...,..,,..,,
-#G26E63KQC66ZXCZX5XQE3QUUI6BZXFC72YZOG7CZM4WD75IKJFVXO6AJ5APEVDXWEFVSEO7JRN672
-#\\\|PB4JDWC76PYJBEIXMDBAML22G2FBMLZZV4KV6ZU5INTLB3IZ3O2 \ / AMOS7 \ YOURUM ::
-#\[7]WQ5TDRKFGVGKU3US4ZG4MNTNNEV27WA7EPZF7WVTL2IDH2KOXGCY 7  DATA SIGNATURE ::
+if ( defined $error_sref->$* ) {
+    return ( undef, $error_sref ) if wantarray;
+    return undef;    ## undef on eval errors ##
+} else {
+    return $result;    ##  no errors occured  ##
+}
+
+#,,,,,,.,,..,,,,,,,.,,,,,,,.,,,..,..,,,,,,,..,..,,...,...,...,,,,,...,,,,,.,,,
+#EZDXA6CNLD3LTVAYHYXL4SXS7UROHU3BK2O7BMAUJUDSAIFDVVETYAVXROTBLK3CINX6THDKLO5BY
+#\\\|2UWRD3WPG7UXTK6URON3CW4KQBPK27LRIJAFJSK2VF6USN4WQCD \ / AMOS7 \ YOURUM ::
+#\[7]3WQFLBL4MMXH6L3337I3ZKBBEA4W2OT3JISLBRI27JBGWQMOA4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
