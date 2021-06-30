@@ -3,11 +3,11 @@
 # name  = base.init_code
 # descr = initializing base module
 
+<zenka.init_return> //= 0;    ## init-done status code ##
+
 use Safe;
 use Module::Load;
 use Time::Seconds;
-
-<zenka.init_return> //= 0;    ## init-done status code ##
 
 map { <base.perlmod.loaded>->{$ARG} = 1 }
     qw| Safe Module::Load Time::Seconds |;
@@ -29,14 +29,11 @@ map { <base.perlmod.loaded>->{$ARG} = 1 }
 
 ##############################################################################
 
-##  phase out for List::MoreUtils  ##  [LLL]
-
-use List::Util qw <
-    reductions pairvalues pairfirst pairkeys pairgrep unpairs
-    uniqstr uniqnum uniqint shuffle product pairmap reduce notall
-    minstr maxstr pairs first sum0 none sum min max any all
+use Scalar::Util qw <
+    blessed dualvar isdual readonly refaddr reftype tainted
+    weaken isweak isvstring looks_like_number set_prototype
 >;
-<base.perlmod.loaded>->{'List::Util'} = 1;
+<base.perlmod.loaded>->{'Scalar::Util'} = 1;
 
 ## installing cryptographically safe fork version ##
 ##
@@ -245,8 +242,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,.,,..,,..,,...,,..,,..,,.,,,,,,,,,,,,,,.,.,..,,...,...,...,,,.,.,.,.,.,.,.,
-#4QE2OWNREOX2ZBVEDZW66GAEGCPSSEKERRQ6OZE2Y3MUOPEBWVWE65BPEZUZ3BSMOKAP732ZFVZBO
-#\\\|ADD5CJN6JPCR7KAEDGVGKBHHGXVB6R4WZ5QBU4QFC6QOJKASKCI \ / AMOS7 \ YOURUM ::
-#\[7]LG7BLNRX4VD7LUMKQXDYGV7LWNFFYDYXQPCXYO4KZQIFQ24PL4AI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,.,,,..,.,,,,..,,,,,,,.,.,.,..,,...,...,.,,,,..,...,,,.,,,,,
+#RB4DWFYI6ELV4D7BH5YNWT5ESOTSP36OTJ25QYSCCFOE5KUVBK3WAJRIUAJUPVJQBKV7AKHMKA23I
+#\\\|UXTBFGAE6ZX7CZY2D3EMWK3JUECQSJNB5YMPE4ZI26ZL5YEGE3E \ / AMOS7 \ YOURUM ::
+#\[7]JYRRR3MPTHJHASB5AZGOOR6NFUOCPAVP3QMB22CZ7MP4B7IMOMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
