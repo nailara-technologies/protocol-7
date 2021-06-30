@@ -8,7 +8,7 @@ my $apw_href = <v7.zenka.prefix_width> //= {};
 my @online_zenki = keys <v7.online-zenki>->%*;
 
 my $max_len = 0;
-foreach my $zenka_name ( uniqstr @ARG, @online_zenki, qw| v7 | ) {
+foreach my $zenka_name ( uniq @ARG, @online_zenki, qw| v7 | ) {
     my $new_len = <[base.get_start_lpw]>->($zenka_name);
     $apw_href->{$zenka_name} //= $new_len;
     $max_len = $new_len if $new_len > $max_len;
@@ -18,10 +18,9 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
     next if $apw_href->{$zenka_name} == $max_len;
     my @zenki_pid;
     map {
-        push( @zenki_pid, <v7.zenka.instance>->{$ARG}->{'process'}{'id'} )
+        push( @zenki_pid, <v7.zenka.instance>->{$ARG}->{'process'}->{'id'} )
             if $ARG =~ m|^\d+$|;
-    } split( "\n",
-        <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'data'} )
+    } <[v7.zenka-instances.get-ids]>->($zenka_name)
         if $zenka_name ne qw| v7 |;
 
     ## distance between signals [ increase when required ] ##
@@ -75,8 +74,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
 map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys $apw_href->%* );
 
-#,,.,,.,,,,.,,,,,,,..,..,,,,,,,..,.,,,..,,.,.,..,,...,...,,,.,..,,.,.,,..,.,,,
-#ULHIDR3VEH7NOELCTXCEQ6S2QZALQBNSPG4SQDDSEI6X3FU3Q633TKBF52SXR6YKBAWO4ZRS4GSMS
-#\\\|NZIWYEYAOTCA5R72VZPQGW5DKHIRVLTLUP5MR5VPGMDZGMY42WT \ / AMOS7 \ YOURUM ::
-#\[7]J4KWEFAWLULBJCDFM3NTEHNZUOYGQ2JVT2GJHRHLTMFAV6WNCQAI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,.,,,,.,,,,,,..,,,,.,..,,,..,..,,...,...,...,...,.,.,..,,,,,,
+#222BOPAMSRHV6HB5EVGCACUIID4IOGLB4X3HOLKABODLQKWEN2JFLKVCD4HYWCYW3PYXC64XMYPI4
+#\\\|KOUIQYD2EZMXAE7DGSX5NG2NNVTUMP6JYPY4MUFGKZV7RW26W6P \ / AMOS7 \ YOURUM ::
+#\[7]BL77YNHFGU7V7IPQEIR3FHWAY3DK443CJJ5CPJIQRYWUGENBHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,9 +10,9 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-use List::Util;
 use Cwd qw| abs_path |;
 use File::Path qw| make_path |;
+use List::MoreUtils qw| minmax |;
 
 eval qq| require 'Inline/C.pm' |;
 die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
@@ -88,7 +88,7 @@ sub inl_elf_src {
     $source_code =~ s{\n\s*\n}{\n}sg;    ## empty lines ##
     $source_code =~ s{^\n|\n$}{}sg;      ## empty lines [ first and last ] ##
     $source_code =~ s{\s+$}{}sg;         ## trailing tabs|spaces ##
-    my $min_indent = List::Util::min map { m|^\s+| ? length($MATCH) : 0 }
+    ( undef, my $min_indent ) = minmax map { m|^\s+| ? length($MATCH) : 0 }
         split( "\n", $source_code );
     $source_code =~ s|^\s{$min_indent}||mg;    ## indent to start of source ##
     return $source_code;    ## return cleaned source code version ##

@@ -5,17 +5,21 @@
 my $site_dir = <httpd.site_dir>;
 
 my $dir_fh;
-if ( !opendir( $dir_fh, $site_dir ) ) {
-    die "<< unable to open site dir '$site_dir' [ \l$OS_ERROR ] >>\n";
+if ( not opendir( $dir_fh, $site_dir ) ) {
+    <[base.s_warn]>->(
+        "cannot open site dir '%s' [ %s ] <{C1}>",
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return undef;
 }
 
-<[base.log]>->( 1, "scanning httpd site dir '$site_dir'.," );
+<[base.logs]>->( "scanning httpd site dir '%s' ..,", $site_dir );
 
 <httpd.cfg.hostnames> = {};
 my @vhosts;
 my @ext_dirs;
 foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
-    ( my $dir_path = "$site_dir/$dir_name" ) =~ s|//|/|g;
+    ( my $dir_path = catdir( $site_dir, $dir_name ) ) =~ s|//|/|g;
     next
         if $dir_name =~ m|^\.|
         or (-l $dir_path
@@ -23,7 +27,7 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
         and !-d readlink($dir_path)
         and readlink($dir_path) !~ m|^\d{3}$| );   # <-- custom status codes.,
     if ( -l $dir_path ) {
-        my $link_target = readlink("$site_dir/$dir_name");
+        my $link_target = readlink( catdir( $site_dir, $dir_name ) );
         if (    <httpd.cfg.external_sitedirs>
             and $link_target =~ m|/|
             and -d $link_target ) {
@@ -33,50 +37,48 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
             push( @vhosts, $dir_name );
         }
     } else {
-        <[base.log]>->( 1, ":   host : $dir_name" );
+        <[base.logs]>->( ':   host : %s', $dir_name );
         <httpd.cfg.hostnames>->{$dir_name} = $dir_path;
     }
 }
 
-my $vh_max_len = max map {length} @vhosts;
+( undef, my $vh_max_len ) = minmax map {length} @vhosts;
 while (@ext_dirs) {
-    my $dir_name    = shift(@ext_dirs);
-    my $link_target = shift(@ext_dirs);
-    <[base.log]>->(
-        1,
-        sprintf(
-            ": extdir : %-${vh_max_len}s --> $link_target", "$dir_name"
-        )
+    my $dir_name    = shift @ext_dirs;
+    my $link_target = shift @ext_dirs;
+    <[base.logs]>->(
+        ": extdir : %-*s --> %s",
+        $vh_max_len, $link_target, $dir_name
     );
 }
 foreach my $link_name (@vhosts) {
-    ( my $link_target = readlink("$site_dir/$link_name") ) =~ s|//|/|g;
+    ( my $link_target = readlink( catdir( $site_dir, $link_name ) ) )
+        =~ s|//|/|g;
     if ( $link_target =~ m|^\d{3}$| ) {
-        <[base.log]>->(
-            1,
-            sprintf( ":   code : %-${vh_max_len}s --> $link_target",
-                "$link_name" )
+        <[base.logs]>->(
+            ":   code : %-*s --> %s",
+            $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name} = $link_target;
     } elsif ( exists <httpd.cfg.hostnames>->{$link_target} ) {
-        <[base.log]>->(
-            1,
-            sprintf( ": v_host : %-${vh_max_len}s --> $link_target",
-                "$link_name" )
+        <[base.logs]>->(
+            ": v_host : %-*s --> %s",
+            $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name}
             = <httpd.cfg.hostnames>->{$link_target};
     } else {
-        <[base.log]>->(
-            0, "<< link '$link_name' target '$link_target' does not exist. >>"
+        <[base.logs]>->(
+            0,          "<< link '%s' target '%s' does not exist. >>",
+            $link_name, $link_target
         );
     }
 }
 
 0;
 
-#,,,,,,..,,,.,,..,.,.,,,,,.,.,,.,,,.,,..,,,,,,..,,...,...,...,,.,,.,,,.,,,...,
-#HEMQKGANNIZI7AXUB7BQ56MZIN723WMBFWHVKG6C5UFIKHKQNWVZBT2U5S553D4EGLOA3KZ4KFGQ2
-#\\\|ABDE4XGCRIXCN7GJLD3XIO32CYBEIW5JZAJKN5YOAM6VLFCM3XB \ / AMOS7 \ YOURUM ::
-#\[7]FFTDJRBCYJGSVET5YUOWSIZNBKOAS5PEUTNK6LUVWATDZ4BECQCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,..,..,,,,.,,..,,..,,.,,,..,..,,...,...,.,.,.,,,,,.,,,.,.,,,
+#4SXZZ5GEY5EYZIRRUV4YOS5LMJJDXIS5PWU45HSLH7KXTCKV65N6FEEG6GSPAZIONKX535NVSACGM
+#\\\|XCQCFB3ZP3ZWNR57VG7P5MG5DLAFNHYXK7JYD5ZXNILQXH2CE4Q \ / AMOS7 \ YOURUM ::
+#\[7]3VQRWIEB74JC26GROPRUD52AZDDWSFJ7BEAQ5LZLLKNP5SCCP2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
