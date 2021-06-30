@@ -8,25 +8,25 @@ my $source_version = <protocol-7.src-ver>;
 my $command_cache = <protocol.amos-chksum.commands-cache> //= {};
 
 map      { delete $command_cache->{$ARG} }    ## clean-up old caches ##
-    grep { !m|^$source_version$| } keys %{$command_cache};
+    grep { !m|^$source_version$| } keys $command_cache->%*;
 
 if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
 
     my @commands_list = <[base.reverse-sort]>
         ->( grep {s|^protocol\.amos-chksum\.ext\-cmd\.||} keys %code );
 
-    my $max_len = max map {length} @commands_list;
+    ( undef, my $maxlen ) = minmax map {length} @commands_list;
     $command_cache->{$source_version} = join '', map {
         ##  prevent namespace collisions [ protocol.., ]  ##  [LLL]
-        sprintf( "%${max_len}s : %s\n",
-            $ARG, <base.commands.ext-cmd>->{$ARG}->{'descr'} )
+        sprintf( "%*s : %s\n",
+            $maxlen, $ARG, <base.commands.ext-cmd>->{$ARG}->{'descr'} )
     } @commands_list;
 }
 
 return { 'mode' => qw| data |, 'data' => $command_cache->{$source_version} };
 
-#,,..,...,,..,,,.,,.,,,,.,,,,,,..,...,,.,,.,.,..,,...,...,..,,,..,.,.,.,,,.,,,
-#2QNBN47A6M4W5IZ4R4JSQGP2RYW3J2OGTWUSNZ2RW3TSV53NAYE4NMNPYILN6KI4LBSGJOPDBCIP4
-#\\\|7B364VADWVE443UCDCL7ZFWGT4JJIGV5LYLY6SEJ6KRHI6NOZOY \ / AMOS7 \ YOURUM ::
-#\[7]K3XNZGE3YGWMUMOIJLTDVBJBNRNK7S3GCHURYUFNYU3FPS7HV2BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,,,,,...,...,.,.,,,.,...,,,.,..,,...,...,...,.,,,,,.,...,,.,,
+#ZFOOWXUYNBCPYRERY2NJOJMEMQDEDMOK4JJ2JT6CRB5EHNUFV7B73RPMFPY6TEKG7CCEOBSIOMOQ6
+#\\\|RBMGBA7J2LZDSIW5NMIP7ABG3CIBIKFFGCSUKWKZC6ZCZWMB34S \ / AMOS7 \ YOURUM ::
+#\[7]7OBIKDS77M75U7S6CJ743L25TTM4XB4LUAS327LUEK4RMIBRKOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

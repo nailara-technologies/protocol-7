@@ -4,54 +4,59 @@
 # param = <zenka[+tile]_name>
 # descr = return 'subconfig' for zenka or tile name
 
-return { 'mode' => 'false', 'data' => "expected syntax is 'zenka[subname]'" }
-    if not defined $$call{'args'}
-    or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
+return {
+    'mode' => qw| false |,
+    'data' => "expected syntax is 'zenka[subname]'"
+    }
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ m|^(\S+)( +(\S+))?$|;
 
-my ( $source_zenka, $zenka_name ) = ( $1, $3 );
+my ( $source_zenka, $zenka_name ) = ( ${^CAPTURE}[0], ${^CAPTURE}[2] );
 $source_zenka =~ s|^.+\.||g;
 $zenka_name = $source_zenka if not defined $zenka_name;
 
 if ( not exists <composition.subconfig>->{$zenka_name} ) {
     my $last_match;
     my $match   = 0;
-    my $msg_str = "no set-up for zenka '$zenka_name'";
+    my $msg_str = sprintf "no set-up for zenka '%s'", $zenka_name;
     if ( $zenka_name !~ m|[\[\]]+| ) {
         map {
-            if ( $ARG =~ m|^([^\[]+)\[| and $1 eq $zenka_name ) {
+            if ( $ARG =~ m|^([^\[]+)\[| and ${^CAPTURE}[0] eq $zenka_name ) {
                 $last_match = $ARG;
                 $match++;
             }
-        } keys %{<composition.subconfig>};
+        } keys <composition.subconfig>->%*;
     }
-    $msg_str
-        = "multiple '$zenka_name' instances defined, zenka subname required."
-        if $match > 1;
+    $msg_str sprintf(
+        = "multiple '%s' instances defined, zenka subname required.",
+        $zenka_name
+    ) if $match > 1;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $msg_str
         }
         if $match != 1;
     $zenka_name = $last_match;
 }
 
-my $max_len
-    = max map {length} keys %{ <composition.subconfig>->{$zenka_name} };
+( undef, my $maxlen )
+    = minmax map {length} keys <composition.subconfig>->{$zenka_name}->%*;
 
 return {
     'mode' => qw| size |,
     'data' => join(
         '',
         map {
-            sprintf( "%-${max_len}s = %s\n",
+            sprintf( "%-*s = %s\n",
+                $maxlen,
                 $ARG, <composition.subconfig>->{$zenka_name}->{$ARG} )
             }
-            sort keys %{ <composition.subconfig>->{$zenka_name} }
+            sort keys <composition.subconfig>->{$zenka_name}->%*
     )
     }
 
-#,,..,,.,,.,,,..,,.,.,.,,,,,,,,,.,.,,,..,,,,.,..,,...,...,.,,,..,,,,,,..,,,,.,
-#2FLJXS3KCQGVHPNS4S3QIQGNME5SUS3S63X57RYCOLYLYDDVTTK62IGUSDZ762M6JDPYRBFXIGNSS
-#\\\|G5G6M2W7WL5UGHRCHRNPU5SEE72CHNH2NOSBGWA3IK3CYWB5YR6 \ / AMOS7 \ YOURUM ::
-#\[7]XLD7E3IEFBD7HXQNLYVKCC4E6CD4RNB67JHIL5ZXUGACBRDIHUBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,,,,,,.,,..,,..,,,,,,.,,,,..,..,,...,..,,..,,,,.,,,,,,.,,,,,,
+#YV632APCZK2I7NJD6WZ2NIOUZM7VKNYRX2HDMIKDGI2UQ74VHQGZUYRFE4KWTZAWHJVPOKJBPANKM
+#\\\|REUQLDDRB2E5JBQRSXA64COPRCF5YFT54EQ5TTC35WD3WXC5F3W \ / AMOS7 \ YOURUM ::
+#\[7]J6N6242F6GBBKBQZ3SDPBM6A2CTMK3O4KQ6HLWALBNOV3ERD6KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

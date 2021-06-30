@@ -6,9 +6,9 @@ use v5.24;
 use English;
 use warnings;
 use charnames ();
-use List::Util qw| max first |;
-use Term::ANSIColor qw| :constants color |;
 use Getopt::Long qw| :config bundling |;
+use List::MoreUtils qw| minmax firstval |;
+use Term::ANSIColor qw| :constants color |;
 
 our $VERSION = "0.30";
 our $CMD     = $0 =~ s{.*/}{}r;
@@ -200,7 +200,8 @@ sub pod_text {
 }    # pod_text
 
 sub pod_nroff {
-    first { -x "$_/nroff" } grep {-d} split m|:+| => $ENV{PATH} or pod_text();
+    firstval { -x "$_/nroff" } grep {-d} split m|:+| => $ENV{PATH}
+        or pod_text();
 
     require Pod::Man;
     my $p = Pod::Man->new();
@@ -401,7 +402,7 @@ sub ccdiff {
             $hfg && defined $clr{$hfg} and $hc .= $clr{$hfg};
             $hbg && defined $clr{$hbg} and $hc .= $clr{$hbg};
         }
-        my $nl = max length $f1, length $f2, 7;
+        ( undef, my $nl ) = minmax length $f1, length $f2, 7;
         my $sl = $hc ? ( $ENV{COLUMNS} || 80 ) - 4 - $nl : 1;
         my @h  = map {
             -f $_
@@ -1323,8 +1324,8 @@ the same terms as The Artistic License 2.0.
 
 =cut
 
-#,,,,,.,,,..,,...,.,.,,.,,.,,,...,,..,,,.,,,,,..,,...,..,,..,,.,,,.,.,,,,,...,
-#3QTNNV3QWPNRITWVR2DVW7VQYKNJZOWCVK6TFHOJRKRUUTVBRTZMUNGYIKWTJ3EZLX3SGSURKVJQE
-#\\\|YAM3XGZDXZ4IEZZOUFSZM3XM3JZBOU5MXLAKXF4QIMUAUHYFRQ7 \ / AMOS7 \ YOURUM ::
-#\[7]3EZH57V4FJ7L34BNJZGASI7YRUAE4LUNKSQNVK3OMVRIIK3TGQDY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,.,,,,,,,,.,,.,.,.,.,..,,,.,,..,,...,...,..,,.,,,,,,,,,,,..,,
+#Y7436TVVDX5BTMMCNYX2C3DMXECWGDR3AJKEDF7VR5HRG74CVLR2L5GBMTJ75MYCJX3O2SIF6QYVY
+#\\\|3CTLQBTS656QSV6RRSXBFVVTOV53YBANA7PQQRZ26OJD2Z2WYKD \ / AMOS7 \ YOURUM ::
+#\[7]PXSC67EUN3FMDVPZJEG4ZQCGIR2LTV5RZ5WBE6ZCEAHCL5R4GICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+##  update-amos-versions  ##
+
 BEGIN {
     use Cwd;
     use strict;
@@ -14,7 +16,7 @@ use v5.24;
 use AMOS7::CHKSUM;
 use AMOS7::CHKSUM::ELF;
 use AMOS7::CHKSUM::ELF::Inline;
-use List::Util 'max';
+use List::MoreUtils qw| minmax |;
 
 my $old_versions = {
     qw| AMOS7::CHKSUM |              => $AMOS7::CHKSUM::VERSION,
@@ -28,8 +30,10 @@ my $new_versions = {
     qw| AMOS7::CHKSUM::ELF::Inline | => qx|  amos-chksum -VS   |,
 };
 
-my $o_mlen = max map { length $old_versions->{$ARG} } keys %{$old_versions};
-my $n_mlen = max map { length $new_versions->{$ARG} } keys %{$old_versions};
+( undef, my $o_mlen )
+    = minmax { length $old_versions->{$ARG} } keys $old_versions->%*;
+( undef, my $n_mlen )
+    = minmax { length $new_versions->{$ARG} } keys $old_versions->%*;
 
 my $bg  = "\e[48;2;9;5;42m";
 my $fg0 = "\e[38;2;38;46;153m";
@@ -38,7 +42,7 @@ my $CT  = "\e[38;2;6;71;195m";
 my $rst = "\e[0m";
 
 say "$bg$fg0:$rst";
-foreach my $module ( sort keys( %{$old_versions} ) ) {
+foreach my $module ( sort keys $old_versions->%* ) {
     chomp( $new_versions->{$module} );
     next if $old_versions->{$module} eq $new_versions->{$module};
     say sprintf "$rst$fg4: ${bg}::$rst$fg4 $bg$CT%${o_mlen}s $rst"
@@ -47,7 +51,7 @@ foreach my $module ( sort keys( %{$old_versions} ) ) {
         $new_versions->{$module};
 }
 say "$bg$fg4:$rst";
-foreach my $module ( sort keys( %{$old_versions} ) ) {
+foreach my $module ( sort keys $old_versions->%* ) {
     chomp( $new_versions->{$module} );
     next if $old_versions->{$module} eq $new_versions->{$module};
     system(
@@ -58,8 +62,8 @@ foreach my $module ( sort keys( %{$old_versions} ) ) {
 }
 say "$bg$CT:.,$rst";
 
-#,,.,,,,,,..,,,,,,,,,,,,,,,,,,,,.,,,.,...,..,,..,,...,...,...,...,..,,..,,.,,,
-#WQYDBD3R2N5OOPEC7MIRAXN6BA3LGLEBXCJGTUORHUMMVBGSMLCOIOVXEGCSLRG7D7HHWZLWURQLG
-#\\\|W3NE3ASY7T4GC4BIFJV74JQHX22CKPWMYID7VLTF5FPTJ7N4ZO2 \ / AMOS7 \ YOURUM ::
-#\[7]P2SO6JXHKOACYEFZ35S6IDD2KKEXHJX2L3ZUQA6N3B3LCYIJIOCY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,.,,,,,,,,,,,,,,,.,.,,,.,.,..,,...,..,,..,,,,,,,.,,,,.,...,
+#W27L3E5GLW2DQ4KCF6NTVS3JJDDXYJWLB5AZA2D5ULBY2CWKXXYKU7EKAW6VBFQTM4CVXB4VLDDGO
+#\\\|YJNBSBV4Z4GE76OPESD2627T4RRR7IYQW3FDEHA74WTABZATQ4X \ / AMOS7 \ YOURUM ::
+#\[7]5DLORW2IJLNGJ4YZLDLW2ICBNMVURQ3EDVYQSRSRGPDUL3SMWCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

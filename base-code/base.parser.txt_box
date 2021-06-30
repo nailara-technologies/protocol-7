@@ -6,11 +6,12 @@
 my $param     = shift;
 my $title_str = shift // '';   # <-- optional title string as second parameter
 
-my $t_ref = ref($param) eq 'SCALAR' ? $param : \$param;
+my $t_ref = ref $param eq qw| SCALAR | ? $param : \$param;
 my @lines = split( "\n", $$t_ref );
 
-my $max_len   = max map {length} ( @lines, " $title_str " );
-my $len_2     = $max_len + 5;               # include third parameter length ?
+( undef, my $maxlen )
+    = minmax map {length} ( @lines, sprintf( ' %s ', $title_str ) );
+my $len_2     = $maxlen + 5;                # include third parameter length ?
 my $title_bar = '  ,' . '.' x $len_2 . ',';
 
 if ( length($title_str) ) {
@@ -18,7 +19,7 @@ if ( length($title_str) ) {
         $title_bar,
         -7 - length($title_str),
         length($title_str) + 4,
-        "[ $title_str ]"
+        sprintf( '[ %s ]', $title_str )
     );
 }
 
@@ -26,13 +27,13 @@ return join( "\n",
     '',
     $title_bar,
     '  :' . ' ' x $len_2 . ':',
-    ( map { sprintf '  :   %-' . $max_len . "s  :", $ARG } sort @lines ),
+    ( map { sprintf '  :   %-*s  :', $maxlen, $ARG } sort @lines ),
     '  :' . ' ' x $len_2 . ':',
     '  :' . '.' x $len_2 . ":\n",
     '' );
 
-#,,,.,.,,,,,.,.,,,..,,,,,,..,,...,.,,,..,,.,.,..,,...,...,.,,,..,,.,.,,..,,.,,
-#AU6CM25JM6GEISPHXUFG6WLLAVYBVZB6LYXLE2A2ZBON6UN22CCTBND2JU2XCYB6RLYAT6FKUW73A
-#\\\|OQT56KD3NKEERBDW2KTFX4D7VTIBR3XPIJJNMETTLBESIXJ43VO \ / AMOS7 \ YOURUM ::
-#\[7]HYUPIEXP3FMV5LJAHRZODYA4BD3XIHNBCBKHWGRYECIOMPGA5IAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,...,,,,,,..,,.,,,..,.,,,..,,.,,,..,,...,...,..,,.,,,..,,,.,,,.,,
+#G6TPFRFHCWAIAIK2DZYE4Q5CWTVNHNNRHQRLCHNZNWDIMK4PJM3LALF6FPL4TVM4U36NJI642BYZ2
+#\\\|23FSQLWPVTAUUVVUDUSXAFC33AW7E3GIDZTHON3KRYAAJZBFRSR \ / AMOS7 \ YOURUM ::
+#\[7]U4KKA3GR5OUHXBLUZQZLNGA3UJUD5CQOKLFE5QSX3PUGBHVTKOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

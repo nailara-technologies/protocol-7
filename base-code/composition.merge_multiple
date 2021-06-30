@@ -2,7 +2,7 @@
 
 # name = composition.merge_multiple
 
-my @overlay_list = @_;
+my @overlay_list = @ARG;
 
 if ( not defined <composition.current_tile_group> ) {
     warn "composition.current_tile_group not defined, skipping merge..";
@@ -11,14 +11,16 @@ if ( not defined <composition.current_tile_group> ) {
 
 ( my $current_one = <composition.current_tile_group> ) =~ s|\+.*$||;
 
-@{<composition.overlays.current>}
-    = uniqstr grep { length($ARG) and $ARG ne $current_one }
-    @{<composition.overlays.current>};
+<composition.overlays.current>->@*
+    = uniq grep { length $ARG and $ARG ne $current_one }
+    <composition.overlays.current>->@*;
 
 my $merged_name
-    = join( '+', $current_one, @{<composition.overlays.current>} );
+    = join( qw| + |, $current_one, <composition.overlays.current>->@* );
 
-<[base.log]>->( 2, "creating merged [overlay] composition '$merged_name'" );
+<[base.logs]>->(
+    2, "creating merged [overlay] composition '%s'", $merged_name
+);
 
 <composition.setup.tile-groups>->{$merged_name}
     = <composition.setup.tile-groups>->{$current_one};
@@ -32,8 +34,8 @@ map {
 
 return $merged_name;
 
-#,,,.,,.,,,.,,,.,,.,.,.,,,,,.,..,,,..,,.,,..,,..,,...,...,...,..,,.,.,..,,...,
-#MD23LY5TTUDCG3JX7P57LMOYW5GSMS6VDE74PF4JYXFP5HUTWNLYP7RQH3USQFJYT6CZNLQRBZO54
-#\\\|D4KFJNWWPJZMI4FRQFKXXSJBIX6AKZJDA42GP7AS3QSHZBJ65GM \ / AMOS7 \ YOURUM ::
-#\[7]R24BRLGHJKER5DUGBWSFYTSJMAN26CTKRQLE4PSERCXOYYB4HYBI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,...,...,...,..,,...,...,..,,.,,,..,,...,...,...,..,,..,,,..,...,
+#DBQTPUBYEJAALZ47T457VKLOGFO2UMOIBRCHFJDQCXSMOJ5U6K3675SSOJ6F5FG4D734UERYZIONS
+#\\\|ZLKZZ37B7VYDCPIUHO65ALRAC2LJ6LOJANRF4G7BLRM3V67RPXD \ / AMOS7 \ YOURUM ::
+#\[7]JR3E6YZ6WF2UD2QSY3SMPVCC7V4KPFOIWSJNTY6KHUC6BQNSXMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

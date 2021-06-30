@@ -8,7 +8,11 @@ return warn 'sprintf parameter expected <{C1}>'   if @ARG < 2;
 
 my $template = shift @ARG;
 
-$template =~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', ++$c_l |e;
+##  adjusting caller level for eval and base.s_warn  ##
+if ( $template !~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', $c_l + 2 |e
+    and $template !~ m|<{NC}>| ) {
+    $template .= '<{C2}>';    ##  caller of base.s_warn [ this parent ]  ##
+}
 
 eval {
     use warnings FATAL => qw| all |;    ##  catches all warnings  ##
@@ -23,8 +27,8 @@ if ( length $EVAL_ERROR ) {
 
 return 5;    ## true ##
 
-#,,,.,.,,,..,,,..,,.,,..,,,,,,,,,,.,.,,,.,,..,..,,...,...,...,.,,,,,,,,.,,.,.,
-#4W2AWKRHAIPJ5NLALN43IUT7SYIT4COVTQWU7W5VJOL7YA3JYO352MIYBSIU2ETLD2P5WL34OO2DK
-#\\\|SP3SXGMWWKQ6OHF6OT77X35UIF3TI5JGZITFQU6NPUO6VLPOM3I \ / AMOS7 \ YOURUM ::
-#\[7]5TKC5AL3GBYLDHS2TBEKX37K3TLIN77NUHZM6TVMTCSAUVJ7WMCY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,...,.,.,.,.,...,,,,,.,.,,.,,..,,...,...,,..,.,,,..,,.,,,,,.,
+#A7HIAXJ4UT6VB3JZDYRFUWE4VFGTK7YCSOV64WNBWJMGUDOVF5EU5NVNT2CDJ4MEYJGJR5NP6U6LY
+#\\\|ZCT25TMJNJDMB6EJQL4U2D6MHMH3VAUFGH2NWXKQRAVHWH6ACV5 \ / AMOS7 \ YOURUM ::
+#\[7]IB37SZ3BQTT7CICFOYF2ILYX7PTVQ6G6XOBUHJCTTQLRUAW772DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

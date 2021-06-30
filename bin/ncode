@@ -10,12 +10,12 @@ use v5.30.0;
 use English;
 use File::Spec;
 use IO::Select;
-use Cwd 'abs_path';
 use Term::ReadLine;
 use Term::ANSIColor;
-use List::Util qw| max |;
+use Cwd qw| abs_path |;
 no warnings 'experimental';
 use Digest::BMW qw| bmw_256 |;
+use List::MoreUtils qw| minmax |;
 use Crypt::Misc qw| encode_b32r |;
 
 my @params   = @ARGV;
@@ -63,7 +63,7 @@ $SIG{'INT'} = sub { printf "%s%s\n\n", "\b" x 11, ' ' x 11; &aborted };
 ## implement deeper recusion [ levels ] ## [LLL]
 
 my %targets = (
-    '.'      => Cwd::cwd(),                        # current directory
+    qw| . |  => Cwd::cwd(),                        # current directory
     'bin'    => $PATH->{'root'} . '/bin/',         # protcol-7 executable code
     'dev'    => $PATH->{'root'} . '/bin/dev/',     # developement tools source
     'admin'  => $PATH->{'root'} . '/bin/admin/',   # node administration tools
@@ -101,7 +101,7 @@ my %commands = (
     'description'    => \&cmd_description
 );
 
-if ( !@params and $cmd ne 'list-targets' ) {
+if ( @params == 0 and $cmd ne qw| list-targets | ) {
     &cmd_description;
     exit;
 }
@@ -109,7 +109,7 @@ if ( !@params and $cmd ne 'list-targets' ) {
 print "\n";
 
 # unknown parser command
-if ( not exists $commands{$cmd} ) {
+if ( not defined $commands{$cmd} ) {
     print $C{'o'} . "\n ::"
         . $C{'R'}
         . " a command '$cmd' does not exist"
@@ -120,13 +120,13 @@ if ( not exists $commands{$cmd} ) {
 }
 
 # <target> = 'all' is an alias for all target paths combined
-if ( @params and $params[0] eq 'all' ) {
-    $params[0] = join( '+', grep { !m|\.| } keys(%targets) );
+if ( @params and $params[0] eq qw| all | ) {
+    $params[0] = join( qw| + |, grep { !m|\.| } keys %targets );
 }
 
 # execute parser command callback if defined
-if ( defined &{ $commands{$cmd} } ) {
-    &{ $commands{$cmd} }(@params);
+if ( ref $commands{$cmd} eq qw| CODE | ) {
+    $commands{$cmd}->(@params);
 } else {
     die "\n :: callback for command '$cmd' not defined\n\n";
 }
@@ -158,14 +158,14 @@ sub cmd_description {
 
         print "\n    c o m m a n d     p a r a m e t e r s\n:\n";
 
-        my $max_len = max map {length} keys %commands;
+        ( undef, my $max_len ) = minmax map {length} keys %commands;
 
-        foreach my $cmd ( sort( keys(%commands) ) ) {
+        foreach my $cmd ( sort( keys %commands ) ) {
             my $description_txt = 'not defined';
 
-            if ( defined &{ $commands{$cmd} } ) {
+            if ( ref $commands{$cmd} eq qw| CODE | ) {
                 $description_txt
-                    = &{ $commands{$cmd} }( 'description_txt', 'params' );
+                    = $commands{$cmd}->(qw| description_txt params |);
 
                 $description_txt = '[ alias to command below ]'
                     if length($cmd) <= 3 or $cmd eq 'parse';
@@ -174,11 +174,11 @@ sub cmd_description {
                 $description_txt = $C{'0'} . 'not yet implemented' . $C{'R'};
             }
 
-            my $line_len = $max_len + 2 - length($cmd);
+            my $line_len = $max_len + 2 - length $cmd;
 
-            if (    $cmd eq 'description'
+            if (    $cmd eq qw| description |
                 and defined $ARGV[0]
-                and $ARGV[0] eq 'description' ) {
+                and $ARGV[0] eq qw| description | ) {
                 $cmd = $C{'B'} . $cmd;
             }
 
@@ -192,11 +192,12 @@ sub cmd_description {
                 . $C{'R'} . "\n";
         }
         print $C{'R'} . ':' . $C{'R'} . "\n\n";
-    } elsif ( defined &{ $commands{$command} } ) {
-        my $params_txt
-            = &{ $commands{$command} }( 'description_txt', 'params' );
+    } elsif ( ref $commands{$command} eq qw| CODE | ) {
+
+        my $params_txt = $commands{$command}->(qw| description_txt params |);
+
         my $description_text
-            = &{ $commands{$command} }( 'description_txt', 'text' );
+            = $commands{$command}->(qw| description_txt text |);
 
         print $C{'R'}
             . "  :\n  : : "
@@ -212,7 +213,7 @@ sub cmd_description {
             . '[  p a r a m e t e r   d e s c r i p t i o n  ]'
             . $C{'R'} . "\n\n";
 
-        $description_text =~ s/(\W+)/$C{'R'}.$1.$C{'T'}/ge;
+        $description_text =~ s|(\W+)|$C{'R'}.$1.$C{'T'}|ge;
 
         print $C{'T'} . $description_text . $C{'R'} . "\n\n";
 
@@ -1800,7 +1801,7 @@ sub move_perl_subs {
         }
     }
 
-    if ( !@selected_perl_subs ) {
+    if ( @selected_perl_subs == 0 ) {
         die $C{'B'}
             . "\n :: "
             . $C{'R'}
@@ -1810,10 +1811,7 @@ sub move_perl_subs {
             . "\n\n\n";
     }
 
-    my $max_len = 0;
-    foreach my $sub_name (@selected_perl_subs) {
-        if ( length($sub_name) > $max_len ) { $max_len = length($sub_name) }
-    }
+    ( undef, my $max_len ) = minmax map {length} @selected_perl_subs;
     $max_len += 1;
 
     foreach my $sub_name ( sort(@selected_perl_subs) ) {
@@ -2347,8 +2345,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,,,.,,,,,,,..,,,.,,..,,,.,,,.,,,.,,...,,.,,..,,...,...,...,...,...,,.,,,,.,
-#AICSXCXQZN3DNQJNE2R5R2OQ2WD2IHRE32FKZIVL4EYN3N7HXL32ZF3AV2ISDZLMHUYNSBG3IVFKY
-#\\\|RKMTWEMYRDIHUKLMNCK72AKS3A66HJNZ5TRWA6S3NOFON3D6J73 \ / AMOS7 \ YOURUM ::
-#\[7]CCAYIEZ3B6CZW53CT67GN7WNQQPQLKEK3BTVQF6R3LROBIZ6GIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,...,.,,,.,.,,,.,,,.,..,,..,,,.,,..,,...,.,.,..,,..,,..,,,,,,,,.,
+#6GZVOSVVQB5MTO7Z274KI6CSW3QQWNGQDQHA4LPXYEX3755H636GYUO5EBTZBBJTNXTJCSA45O6UI
+#\\\|UUPG57MTQFX75EZSMHLWXNMOIW6MRHHJLFXQXVOPIYRE4TIZ7JO \ / AMOS7 \ YOURUM ::
+#\[7]B57A6IRA4CLAUR4XI4KA73KY5LDL7YPFRS4CLEPRXX5BSIHK6UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

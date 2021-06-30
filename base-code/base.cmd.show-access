@@ -3,51 +3,56 @@
 # name  = base.cmd.show-access
 # param = [user]
 
-my $user = $$call{'args'};
+my $user = $call->{'args'};
 
 my $usr_re = <regex.base.usr_str>;
 
-return { 'mode' => 'false', 'data' => "'$user' not a valid user name" }
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "'%s' not a valid user name", $user )
+    }
     if defined $user
-    and $user ne '*'
+    and $user ne qw| * |
     and $user !~ m|^$usr_re$|
     and $user !~ m|^<$usr_re>$|;
 
 my $special_users = {
     map      { $ARG => $data{'system'}->{$ARG} }
         grep { !m|^amos-zenka-user$| }    ## <-- seperate namespace [LLL]
-        grep {m|\-user$|} keys %{ $data{'system'} }
+        grep {m|\-user$|} keys $data{'system'}->%*
 };
 
 my @mapped_users;
 my $wrap_len = 57;
 
-@mapped_users
-    = map {"<$ARG>"} grep { $special_users->{$ARG} eq $user }
+@mapped_users = map { sprintf qw| <%s> |, $ARG }
+    grep { $special_users->{$ARG} eq $user }
     <[base.reverse-sort]>->($special_users)
-    if defined $user and $user ne '*';
+    if defined $user and $user ne qw| * |;
 
 if ( defined $user ) {
     return {
-        'mode' => 'false',
-        'data' => "no permissions set-up for '$user'"
+        'mode' => qw| false |,
+        'data' => sprintf( "no permissions set-up for '%s'", $user )
         }
         if not defined <access.cmd.usr>->{$user} and not @mapped_users;
-    my $max_len   = max map {length} ( $user, @mapped_users );
+    ( undef, my $max_len ) = minmax map {length} ( $user, @mapped_users );
     my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = defined <access.cmd.usr>->{'*'} ? '' : ":\n";
     my $map_names = {};
     if ( not defined <access.cmd.usr>->{$user} ) {  ## no custom [$user] rules
-        map { $map_names->{$ARG} = "    ::  [ $user <-- $ARG ]" }
-            @mapped_users;
+        map {
+            $map_names->{$ARG} = sprintf "    ::  [ %s <-- %s ]", $user, $ARG
+        } @mapped_users;
     } else {
         $map_names->{$user}
             = @mapped_users
-            ? "    ::  [ $user <-- " . join( ', ', @mapped_users ) . ' ]'
+            ? sprintf( "    ::  [ %s <-- %s ]",
+            $user, join( ', ', @mapped_users ) )
             : '';
     }
     if ( $user ne '*' and defined <access.cmd.usr>->{'*'} ) {
-        $reply_str .= sprintf ".\n:  %${max_len}s  :  %s%s\n", "'*'",
+        $reply_str .= sprintf ".\n:  %*s  :  %s%s\n", $max_len, "'*'",
             <[base.wrap_text]>->(
             $w_prefix,
             $wrap_len,
@@ -58,7 +63,7 @@ if ( defined $user ) {
     }
     foreach my $map_user (@mapped_users) {
 
-        $reply_str .= sprintf ":  %${max_len}s  :  %s%s\n", $map_user,
+        $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $map_user,
             <[base.wrap_text]>->(
             $w_prefix,
             $wrap_len,
@@ -69,8 +74,8 @@ if ( defined $user ) {
             $map_names->{$map_user};
     }
     if ( defined <access.cmd.usr>->{$user} ) {
-        $reply_str .= sprintf( ":  %${max_len}s  :\n", '' ) if @mapped_users;
-        $reply_str .= sprintf  ":  %${max_len}s  :  %s%s\n", $user,
+        $reply_str .= sprintf( ":  %*s  :\n", $max_len, '' ) if @mapped_users;
+        $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $user,
             <[base.wrap_text]>->(
             $w_prefix,
             $wrap_len,
@@ -86,11 +91,11 @@ if ( defined $user ) {
     return { 'mode' => qw| size |, 'data' => $reply_str };
 
 } elsif ( keys( %{<access.cmd.usr>} ) ) {
-    my $max_len   = max map {length} keys( %{<access.cmd.usr>} );
+    ( undef, my $max_len ) = minmax map {length} keys( <access.cmd.usr>->%* );
     my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = ":\n";
     foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
-        $reply_str .= sprintf ":\n:  %${max_len}s  :  %s\n", $user,
+        $reply_str .= sprintf ":\n:  %*s  :  %s\n", $max_len, $user,
             <[base.wrap_text]>->(
             $w_prefix, $wrap_len,
             , <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) )
@@ -103,13 +108,13 @@ if ( defined $user ) {
 
 } else {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'no access permissions have been set up'
     };
 }
 
-#,,,.,,,,,,.,,..,,..,,...,...,..,,,.,,,,.,.,,,..,,...,,..,,.,,,,,,,,,,,.,,...,
-#AIXFPYOGO2B3IVDIJHH24RQZPYLH2MV2NV5TTFLXXNHZZHZWI4VUCYMJDXM6ZN2ZQ363RMKEMHCTK
-#\\\|AGW5RRT3FEPUVWPEQQYCJRW4CT2JCVCAIB3TGZJ5EUXAYF4QRS3 \ / AMOS7 \ YOURUM ::
-#\[7]THRLX4SBNOFSIGVW6M23WNMHDLRKOZSOIDY32HVLED5EVUBM5QCY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,,.,,,..,,.,,..,,.,,,,,.,..,,..,,...,...,.,.,,,.,.,.,,,,,.,.,
+#66JXP56JLVJTJHVQYDS74HUREHGXZGL4S2SNAHB5TCYMVSOIEN5W4UVFD2HHPKL5A75O2BZSEDLI6
+#\\\|RFMVO4UD77CT45E4VSJMLPVVZDHEFAZK4POTJ43JQKSY7PQMJCO \ / AMOS7 \ YOURUM ::
+#\[7]6R2GTNRJNYOVDZELSSTA6QLPIW3QJQKSK2TPOXPHS65T7EJMJQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
