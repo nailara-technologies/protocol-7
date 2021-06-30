@@ -44,12 +44,15 @@ return {
     'mode' => qw| false |,
     'data' => sprintf( "no commands matching '%s' available", $keyword )
     }
-    if defined $keyword and @commands == 0;
+    if defined $keyword
+    and @commands == 0
+    and @dbg_cmds == 0;
 
-# format and return the command list
+##[ format and return the command list ]##
 
-$reply->{'data'} = sprintf( "\n%78s\n\n",
-    sprintf( "%-43s", sprintf( ".: '%s' zenka commands :.", $zenka_name ) ) );
+$reply->{'data'} = @commands == 0 ? '' : sprintf( "\n%78s\n\n",
+    sprintf( '%-43s', sprintf( ".: '%s' zenka commands :.", $zenka_name ) ) );
+
 ( my $h_str, my $h_len )
     = <[base.parser.command_list]>->( \@commands, qw| cmd |, );
 $reply->{'data'} .= $$h_str;
@@ -68,8 +71,8 @@ if (@dbg_cmds) {
 $reply->{'data'} .= "\n";
 $reply->{'mode'} = qw| size |;
 
-#,,..,,.,,.,.,,,,,,..,...,.,,,,,.,..,,...,...,..,,...,...,,,,,,,,,...,,..,,.,,
-#TA3HGAMGZPUB4Z5S7OXRIL3QRTC66MDROR7YQFBGU5LNEEJ6IFNV74K7A42UTH6CFGJBJTP24Q5RQ
-#\\\|2AUUG4DQINNJAEDWSTOMXI52IQFPWFWHLSDTIP5WGRZ4WBPKCAY \ / AMOS7 \ YOURUM ::
-#\[7]DHPGUOCUFDCF4G4HTK456D6Y5K5XPBCK4NVEVC7HWOX5QKOZOYCQ 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,.,,,,,.,,..,,..,.,,,,.,,.,.,..,,...,...,.,,,..,,..,,,..,..,,
+#7PWCIQ5QVCOVZPBJSDGEQQSJTHMZDYC3RVOAR34T3SOC5IRNQSBPYOR6ZAEWTHX7UAYKW4WCDZEHS
+#\\\|AVK4S7XMX7DVIPXRO4XPS4IVSHMZZB3QST7P65VP3GR6SSAKA5P \ / AMOS7 \ YOURUM ::
+#\[7]PZL6KXDIUOEY7ZWU7VIYZRF72XDJWBDGT453OYFRE4IWWN6REABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
