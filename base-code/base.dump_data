@@ -1,54 +1,60 @@
 ## >:] ##
 
 # name = base.dump_data
-# todo = variable names
+# todo = named variables \ documenting parameters
 
-my $arg_3 = $_[3];
+my $arg_3 = $ARG[3];
 
-if ( defined $_[3] and defined $_[0] ) {
-    $_[5]  = $_[2];
-    $_[6]  = $_[3];
-    $arg_3 = \%data;
+my $encode_perl_refs = <base.dump_data.encode_perl_refs> //= 5;    ## true ##
+
+if ( defined $ARG[3] and defined $ARG[0] ) {
+    $ARG[5] = $ARG[2];
+    $ARG[6] = $ARG[3];
+    $arg_3  = \%data;
 }
-if ( not defined $_[3] ) { $arg_3 = \%data }
-if ( not defined $_[5] ) { $_[5]  = '' }
-if ( not defined $_[6] ) { $_[6]  = '' }
+if ( not defined $ARG[3] ) { $arg_3  = \%data }
+if ( not defined $ARG[5] ) { $ARG[5] = '' }
+if ( not defined $ARG[6] ) { $ARG[6] = '' }
 my $out = '';
 
-foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
-    my $_val = ${$arg_3}{$_key};
-    $_val = '' if not defined $_val;
-    $_val =~ s|\\|\\\\|g;
-    $_val =~ s|\n|\\n|g;
-    $_key =~ s|\'|\\'|g;    ## <-- not a valid key ##
-    $_key = "'$_key'" if $_key =~ m|[\. \'#]|;
-    if ( defined $_[4] and $_[4] ne '' ) { $_key = "$_[4].$_key" }
-    my $__key = $_key // '';
-    if ( $_[5] ne '' ) { $__key =~ s|$_[5]|$_[6]|ge }
+foreach my $ARGkey ( sort( keys $arg_3->%* ) ) {
+    my $ARGval = $arg_3->{$ARGkey};
+    $ARGval = '' if not defined $ARGval;
+    $ARGval =~ s|\\|\\\\|g;
+    $ARGval =~ s|\n|\\n|g;
+    $ARGkey =~ s|\'|\\'|g;    ## <-- not a valid key ##
+    $ARGkey = "'$ARGkey'" if $ARGkey =~ m|[\. \'#]|;
+    if ( defined $ARG[4] and length $ARG[4] ) {
+        $ARGkey = sprintf qw| %s.%s |, $ARG[4], $ARGkey;
+    }
+    my $ARG_key = $ARGkey // '';
+    if ( $ARG[5] ne '' ) { $ARG_key =~ s|$ARG[5]|$ARG[6]|ge }
 
-    if ( ref($_val) ne 'HASH' ) {
+    if ( ref $ARGval ne qw| HASH | ) {
 
-        if (   not defined $_[2]
-            or $_[2] eq ''
-            or $_key =~ m|^\^|   and $_key =~ m|^\Q^$_[2]|
-            or $_key =~ m|\$PID| and $_key =~ m|\Q$_[2]\$PID|
-            or $_key =~ m|$_[2]| ) {
-            if ( ref($_val) eq 'ARRAY' ) {
+        if (   not defined $ARG[2]
+            or $ARG[2] eq ''
+            or $ARGkey =~ m|^\^|   and $ARGkey =~ m|^\Q^$ARG[2]|
+            or $ARGkey =~ m|\$PID| and $ARGkey =~ m|\Q$ARG[2]\$PID|
+            or $ARGkey =~ m|$ARG[2]| ) {
 
-                if ( tied @$_val ) {
-                    $out .= "$_key = TIED_ARRAY[ " . tied(@$_val) . " ]\n";
+            if ( ref $ARGval eq qw| ARRAY | ) {
+
+                if ( tied @$ARGval ) {
+                    $out .= sprintf "%s = TIED_ARRAY[ %s ]\n",
+                        $ARGkey, tied( $ARGval->@* );
                     next;
                 }
 
-                my @array = @{$_val};
+                my @array = $ARGval->@*;
                 my $count = scalar @array;
                 if ( $count > 42 ) {
-                    $_val = "$_val [$count]";
+                    $ARGval = sprintf '%s [%d]', $ARGval, $count;
                 } else {
                     my $max_len = 68;
                     foreach my $element (@array) {
                         $element =~ s|"|\\"|g;
-                        my $e_len = length($element);
+                        my $e_len = length $element;
                         substr(
                             $element,
                             $max_len - 3,
@@ -58,51 +64,69 @@ foreach my $_key ( sort( keys( %{$arg_3} ) ) ) {
                     my $elements_str = join(
                         ' ',
                         map {
-                            $ARG = "\"$ARG\""
+                            $ARG = sprintf '"%s"', $ARG
                                 if $ARG =~ m{[ '"\{\}#]|TIED_};
                             $ARG
                         } @array
                     );
-                    if ( !$count ) { $_val = '[]' }
-                    else { my @val_str = '['; $_val = "[ $elements_str ]" }
+                    if ( $count == 0 ) { $ARGval = '[]' }
+                    else {
+                        my @val_str = '[';
+                        $ARGval = sprintf '[ %s ]', $elements_str;
+                    }
                 }
             } else {
 
-                if ( tied $_val ) {
-                    $out .= "$_key = TIED_SCALAR[ " . tied($_val) . " ]\n";
+                if ( tied $ARGval ) {
+                    $out .= sprintf "%s = TIED_SCALAR[ %s ]\n", $ARGkey,
+                        tied($ARGval);
                     next;
                 }
-                $_val =~ s|"|\\"|g;
-                $_val = "\"$_val\"" if $_val =~ m,[ '"\{\}#]|TIED_,;
+                $ARGval =~ s|"|\\"|g;
+                $ARGval = sprintf '"%s"', $ARGval
+                    if $ARGval =~ m,[ '"\{\}#]|TIED_,;
             }
 
-            $out .= "$__key = $_val\n";
+            if ( $encode_perl_refs and length ref $ARGval ) {
+                $ARGval
+                    =~ s{((CODE|HASH|SCALAR|ARRAY|GLOB)\(0x[0-9a-f]{12}\))}
+                        { <[base.parser.harmonized_reference]>->($1) }e
+            }
+
+            $out .= sprintf "%s = %s\n", $ARG_key, $ARGval;
         }
     } else {
 
-        if ( tied %$_val ) {
-            $out .= "$_key = TIED_HASH[ " . tied(%$_val) . " ]\n";
+        if ( tied $ARGval->%* ) {
+            $out .= sprintf "%s = TIED_HASH[ %s ]\n", $ARGkey,
+                tied( $ARGval->%* );
             next;
-        } elsif ( !keys(%$_val) and not defined $_[2]
-            or !keys(%$_val) and $_key =~ m|$_[2]| ) {
-            $out .= "$__key = { }\n";
+        } elsif ( not keys $ARGval->%* and not defined $ARG[2]
+            or not keys $ARGval->%* and $ARGkey =~ m|$ARG[2]| ) {
+            $out .= sprintf "%s = { }\n", $ARG_key;
             next;
         }
 
         $out .= <[base.dump_data]>->(
-            undef, undef, $_[2], $_val, $_key, $_[5], $_[6]
+            undef, undef, $ARG[2], $ARGval, $ARGkey, $ARG[5], $ARG[6]
         );
     }
 }
-if ( not defined $_[0] and not defined $_[1] ) { return $out }
+
+$out =~ s{((CODE|HASH|SCALAR|ARRAY|GLOB)\(0x[0-9a-f]{12}\))}
+         { <[base.parser.harmonized_reference]>->($1) }ge
+    if $encode_perl_refs;
+
+if ( not defined $ARG[0] and not defined $ARG[1] ) { return $out }
 else {
+
     # no longer exists:
-    # <[net.raw_out]>->( $out, $_[1] );
+    # <[net.raw_out]>->( $out, $ARG[1] );
     warn 'undefined \\ outdated subroutine usage';
 }
 
-#,,,.,..,,..,,...,,,,,,,,,.,.,,,,,,.,,,,.,.,.,..,,...,..,,.,,,,.,,,..,...,..,,
-#ERDRJTCCXD6HBHEPTKKEEJWZ6GIN7EEHJR25EODKBMYI7K27CP2RVPL6FDOFD3C5CYONB3RAHW3J6
-#\\\|4WPX5N5XNF4NABEQFI5WNVZ6KDBKEIYGOF5SXX7MWNMGHSW6AQR \ / AMOS7 \ YOURUM ::
-#\[7]NEJUZIJ6AOSYUX7YNH6DFNFQXYIBW24WMVGBILRMYVSFUASOWGBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,.,.,,,,,.,,,.,,,,,,,.,.,.,.,..,,...,..,,...,,..,.,.,,..,..,,
+#I4PQBRBYH5X2YXN2P53MWZYNKN7K57I5TTV2VZ3EHPSLH2BDOE3WRGWZC3RYNEQ7IZV6N35A5SAKK
+#\\\|JMBMVHD5HQOUUD6IOU5DNX6Z5OMDZ5M37CFDCUJO5SZOENZ5XEW \ / AMOS7 \ YOURUM ::
+#\[7]BH6DMTGEOEHXYUHAQO46CIIBQQ7ECKOTZBJ345VB3NQF3T7NEUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

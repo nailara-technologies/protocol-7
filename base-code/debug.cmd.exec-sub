@@ -25,22 +25,21 @@ return { 'mode' => qw| false |, 'data' => 'no such subroutine' }
 my @sub_output = eval { $code{$sub_name}->(@params) };
 
 my $err_str;
-if ($EVAL_ERROR) {
+if ( length $EVAL_ERROR ) {
     $err_str = <[base.format_error]>->($EVAL_ERROR);
     $err_str = 'undefined error' if not length $err_str;
-    warn $err_str;
 }
 
 my $err_msg;
 $err_msg = 'errors during subroutine execution' if $EVAL_ERROR;
 $err_msg = 'undefined subroutine output'
-    if not defined $err_msg and !@sub_output
+    if not defined $err_msg and @sub_output == 0
     or @sub_output == 1 and not defined $sub_output[0];
 return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
 
 map { $ARG //= 'UNDEF' } @sub_output if @sub_output > 1;
 
-map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length( ref($ARG) ) }
+map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length( ref $ARG ) }
     @sub_output;
 
 my $rep_mode = qw| true |;
@@ -51,8 +50,8 @@ if ( @sub_output == 1 ) {
 
 return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
 
-#,,.,,...,,..,,.,,,,,,.,.,,,.,...,,..,,,,,,..,..,,...,...,...,.,,,.,,,..,,,..,
-#EDELY26X6BAXHX3ZPZEX5VYUEXNUS33LQFLRVQUHLYEYPCXTU2OFE7H657MID3NSPW2NRWS7P7G5A
-#\\\|V6IELYWCZ5CODTK32APORCIW7DASDN6LJ7FJVWU4TEPGWHMBOI6 \ / AMOS7 \ YOURUM ::
-#\[7]GOEP6AGNLRQGG4BC63EZKWWAFYOZOBFJHUIR46K7VBDZWD7EGKCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,.,.,,..,,,.,,..,,..,,..,,..,..,,...,..,,..,,..,,,.,,,,.,..,,
+#6ZPNZUPTHZVKAKQF65XXZJBAPNWYUIAMUZGAGUZYWSY25EDDQ7MSAIYDFTZ3F4T6DNTHOOIVYD3GA
+#\\\|DD3LH6QE23RBZ4DLCX56B36FYAZOSCJ45G7Z47ZLTAZM5FHTIPB \ / AMOS7 \ YOURUM ::
+#\[7]L6FTP3H4E5SUP7R3QWDEJHD7HT7MYLGZ6TDPEN6WRCVOHPKRV2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
