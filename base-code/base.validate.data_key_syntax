@@ -22,7 +22,7 @@ if ( $data_key =~ m|\.+$| ) {
     my $err_msg = sprintf( "not permitted ['%s'] at end of key", $MATCH );
     return ( 0, $err_msg ) if wantarray;
     return 0;
-} elsif ( $data_key =~ m|([^A-Za-z0-9-_\.])| ) {
+} elsif ( $data_key =~ m|([^A-Za-z0-9=\(\)-_\.:])| ) {
     my $position_str = $MATCH =~ m|[<>]|    ? ' position' : '';
     my $in           = length $position_str ? 'at'        : 'in';
     my $err_msg      = sprintf( 'character [%s] not valid %s data-key%s',
@@ -42,8 +42,8 @@ if ( $key_len > $max_key_len ) {
 
 return 5;    ## is valid [true] ##
 
-#,,,.,,..,,,.,.,,,,..,,,.,.,,,,,.,,..,,..,.,.,..,,...,...,..,,...,.,.,,.,,.,.,
-#AJ6IFDDSDF2CDNXJIDN46UUIMAVHR7MFGA6D4NLIENVYH2FGIK2GHMSUY425M2OJDXIR4STN33C5K
-#\\\|4GXYUO2IOKTXADVUHTNH3K6FT2CFAV3GRLZFBBVBM5ZZJW6LAKJ \ / AMOS7 \ YOURUM ::
-#\[7]YMCP66NOHNXUH6BTXRCUX5YOFBNCCAM2LNEK6VZEJ2MHRZ7RG6AY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,,,,,.,,.,,.,,,,,.,.,,,,,.,..,,..,,...,...,,,.,..,,,,.,,,,,.,,,
+#Q6UAUKQ4VP5BESBZIN4ZPKXYHFHXD5IY7Q3OPBBXRAHBYNCIT6U2ELUFALZJROHDBSGMXDR2VLLPU
+#\\\|A5Y7L5GXLQXZKQG5ZIB3K7R6WZ4A6OHL7JLJ6UC4J3I6WBBK2TU \ / AMOS7 \ YOURUM ::
+#\[7]FLUMXT4V4GCNNDAHQXAMF54UKUDQTBW2DFMVH342WORX7KU6O6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

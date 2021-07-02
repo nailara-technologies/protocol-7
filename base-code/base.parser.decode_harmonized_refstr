@@ -1,0 +1,36 @@
+## >:] ##
+
+# name  = base.parser.decode_harmonized_refstr
+# desc  = decode perl ref string from harmonized compressed integer format
+
+my $cref_str = shift;
+
+if ( not defined $cref_str
+    or $cref_str
+    !~ m,^(CODE|HASH|SCALAR|ARRAY|GLOB):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
+    warn 'expected comp int encoded perl ref str <{C1}>';
+    return undef;
+}
+
+my $perl_ref_type_str = ${^CAPTURE}[0];
+my $B32_encoded_str   = ${^CAPTURE}[1];
+
+my $B32_decoded_num = eval { decode_b32r($B32_encoded_str) };
+
+if ( not defined $B32_decoded_num or length $EVAL_ERROR ) {
+    warn 'not a valid BASE32 encoded string [ decoding error ] <{C1}>';
+    return undef;
+} elsif ( not <[base.comp-int.is_valid]>->($B32_decoded_num) ) {
+    warn 'decoded BASE32 value not in compressed integer format <{C1}>';
+    return undef;
+}
+
+my $decoded_addr = unpack qw| w |, $B32_decoded_num;
+
+return sprintf qw| %s(0x%x) |, $perl_ref_type_str, $decoded_addr;
+
+#,,,.,.,,,,.,,,..,.,,,..,,,,.,,..,,..,,,,,..,,..,,...,..,,...,..,,...,,.,,...,
+#HHPJY2AKWMBKXX5LOXWEX3JZ6WA3DZHVHQCTKPDO2DN36SNERCD3WH5VZUR3DYBPO6HZZ3ZCFN3TS
+#\\\|VZONFRNYUSE264QPIN7W4JS5MO6HFM6BG56KH3OG77J4GH6MFH7 \ / AMOS7 \ YOURUM ::
+#\[7]5UWDSM5JJRB5T2MZWLCZN6HP6N7I7G7YJUXPH6RWB2TD3LRXKEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
