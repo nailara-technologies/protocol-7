@@ -4,22 +4,30 @@
 # param = [key_pattern]
 # descr = internal program state from 'data'
 
-my $keyword = $$call{'args'} // '';
-if ( not eval {qr|$keyword|} ) {
-    ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
+my $keyword = $call->{'args'} // '';
+
+<base.dump_data.encode_perl_refs> = 0 if $keyword =~ s| ?:not\-encode:$||;
+
+my ( $regex_compiled_result, $regex_err )    ##  validate regex syntax  ##
+    = <[base.eval.comp_regex]>->($keyword);
+
+if ( not defined $regex_compiled_result ) {
     return {
-        'mode' => 'false',
-        'data' => "$regex_err in regex [ invalid pattern ]"
+        'mode' => qw| false |,
+        'data' => sprintf( '%s in regex [ invalid pattern ]', $regex_err )
     };
 }
 
 $reply = {
     'mode' => qw| size |,
-    'data' => <[base.dump_data]>->( undef, undef, $$call{'args'} )
+    'data' => <[base.dump_data]>->( undef, undef, $keyword )
 };
 
-#,,.,,,..,.,.,...,,,.,,.,,,..,,,.,...,..,,,.,,..,,...,...,...,,..,...,..,,..,,
-#EA4UKAE5U2BWHTV5XIV7OSKGP75O5BWICRJNUNFZPNIPIGKVY2TFOSMNJX7C77H26R45PCYDUWWVE
-#\\\|HCSD76EOM6G26Q4CEXUMI43DDDPHZBNIXWQ7CPQVKL2EIQXWHBA \ / AMOS7 \ YOURUM ::
-#\[7]5BURIGOZ2T2A3FNHLIFF7E2CDLZRSYZ34X3JCIFODUEMFYBOK6BA 7  DATA SIGNATURE ::
+##  reset to default setting  ##
+<base.dump_data.encode_perl_refs> = 5;    ## true ##
+
+#,,.,,...,,..,...,,..,..,,...,...,,,.,,..,.,,,..,,...,...,,,.,,,.,.,.,,.,,.,.,
+#2DM6IVP6C24EWYI7CNLTPOVDKIFFIA6OHIUGE45ZRPOFRHPA2LEHV6PX55GHFMLXVOZW3K24OO562
+#\\\|N46UXIZWVQXM3T2GHXK2F4JSB7HPKUL32AFABBCY7C4HDXSONFL \ / AMOS7 \ YOURUM ::
+#\[7]IVQB7BNFXQJ6PJZBRWRBLSWRCDAIRFIBPO2WLSNGHL4N7VVKEAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
