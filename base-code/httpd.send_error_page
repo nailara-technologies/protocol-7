@@ -2,26 +2,36 @@
 
 # name = httpd.send_error_page
 
-die "not enough arguments, expected <session_id>,<error_code>" if @_ != 2;
+if ( @ARG < 2 ) {
+    warn 'not enough arguments, expected <session_id>,<error_code> <{C1}>';
+    $data{'session'}->{ $ARG[0] }->{'close'} = 1 if defined $ARG[0];
+    return undef;
+}
 
-my ( $id, $error_code ) = @_;
+my ( $id, $error_code, $additional_reason_str ) = @ARG;
 
-if ( not exists <protocol.http.status_codes>->{$error_code} ) {
-    <[base.log]>->( 0, "[$id] error code $error_code not defined" );
+if ( not defined <protocol.http.status_codes>->{$error_code} ) {
+    <[base.logs]>->( 0, '[%d] error code $error_code not defined', $id );
     $error_code = 500;
 }
+
+$additional_reason_str
+    = defined $additional_reason_str
+    ? sprintf "<BR>\n\n    <P><B>[ %s ]</B></P>\n", $additional_reason_str
+    : '';
 
 return <[httpd.send_raw_html]>->(
     $id,
     $error_code,
     sprintf(
-        "<html>\n  <body>\n    <h1>%d %s.</h1>\n  </body>\n</html>\n",
-        $error_code, <protocol.http.status_codes>->{$error_code}
+        "<html>\n  <body>\n    <h1>%d %s.</h1>%s\n  </body>\n</html>\n",
+        $error_code, <protocol.http.status_codes>->{$error_code},
+        $additional_reason_str
     )
 );
 
-#,,.,,,..,,,.,.,,,..,,,,,,.,.,,.,,,,.,,,.,,,,,..,,...,...,..,,,,,,,..,.,,,,,,,
-#RHPOWXEBUFDME4ZZ7HCUK3JQHB7K4GTNKUIPJK72QKFT2YWSI5GJVEO3WA3TTRFNPXT5W7A57BWNI
-#\\\|DP7ICW2ZUOQPZ6HTFLMIF33XDLSMI6VYHVQB46DVHGB4HHCVEYD \ / AMOS7 \ YOURUM ::
-#\[7]HHQIGYVWTHBKKVZL77CVZ4BRFRHKLKZLDHWZGPWWL376AIC5YOCY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,..,.,,,,,,,..,,..,,.,.,.,,,..,,...,...,,,.,.,.,..,,..,,...,
+#6UJZZP64MJRTS4OTD5VBQT4CXXWI2JJNOEMPXLQ2M4DH63HSOYJSNGVBFD2WG4ALAQ5HER4IAO3SU
+#\\\|YHK72UNHEGI5FIGV2ZUFL5ALP6RI7AXBAKCQVGYLJL6ZEFBXPPI \ / AMOS7 \ YOURUM ::
+#\[7]P7QRDJTBZHIJRXPAMJG2GMRF25S674P5XHAKP2XKSKLU3SF5BKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
