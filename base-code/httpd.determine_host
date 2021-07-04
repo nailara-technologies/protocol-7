@@ -1,59 +1,79 @@
 ## >:] ##
 
-# name = httpd.determine_host
+# name  = httpd.determine_host
+# descr = returns numerical status code or matched site name
 
-my $id      = shift;
-my $session = $data{'session'}{$id};
-return undef if not exists $session->{'http'}{'request'};
-my $http_host   = $session->{'http'}{'request'}{'host'};
-my $http_uri    = $session->{'http'}{'request'}{'uri'};
-my $http_method = $session->{'http'}{'request'}{'method'};
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+return 400 if not defined( my $request = $session->{'http'}->{'request'} );
+
+## can be undefined ##
+my $base_site_directory = <httpd.cfg.default_site_name>;
+
+my $http_host     = $request->{'host'};
+my $http_uri      = $request->{'uri'};
+my $http_method   = $request->{'method'};
+my $http_protocol = $request->{'protocol'};
+
+##  HTTP/1.0 allows for absent Host parameter, using base site  ##
+if ( not defined $http_host and $http_protocol eq qw| HTTP/1.0 | ) {
+    return 404    ##  was not configured  ##
+        if not defined $base_site_directory
+        or not defined <httpd.cfg.hostnames>->{$base_site_directory};
+    $http_host = $base_site_directory;    ## using base site name as host ##
+}
 
 if ( defined $http_host ) {
 
-    return $http_host if exists <httpd.cfg.hostnames>->{$http_host};
+    return $http_host if defined <httpd.cfg.hostnames>->{$http_host};
 
-    foreach my $cfg_host ( keys %{<httpd.cfg.hostnames>} ) {
-        next if $cfg_host !~ /\*/;
+    foreach my $cfg_host ( keys <httpd.cfg.hostnames>->%* ) {
+        next if $cfg_host !~ m|\*|;
         return $cfg_host
-            if $cfg_host =~ /^\*(\..+)$/ and $http_host =~ /^[^\.]+\Q$1\E$/;
+            if $cfg_host =~ m|^\*(\..+)$| and $http_host =~ m|^[^\.]+\Q$1\E$|;
         return $cfg_host
-            if $cfg_host =~ /^(.+\.)\*$/ and $http_host =~ /^\Q$1\E[^\.]+$/;
+            if $cfg_host =~ m|^(.+\.)\*$| and $http_host =~ m|^\Q$1\E[^\.]+$|;
         return $cfg_host
-            if $cfg_host =~ /^\*\*(\..+)$/ and $http_host =~ /\Q$1\E$/;
+            if $cfg_host =~ m|^\*\*(\..+)$| and $http_host =~ m|\Q$1\E$|;
         return $cfg_host
-            if $cfg_host =~ /^(.+\.)\*\*$/ and $http_host =~ /^\Q$1\E/;
+            if $cfg_host =~ m|^(.+\.)\*\*$| and $http_host =~ m|^\Q$1\E|;
         return $cfg_host
-            if $cfg_host   =~ /^\*(\..+\.)\*$/
-            and $http_host =~ /^[^\.]+\Q$1\E[^\.]+$/;
+            if $cfg_host   =~ m|^\*(\..+\.)\*$|
+            and $http_host =~ m|^[^\.]+\Q$1\E[^\.]+$|;
         return $cfg_host
-            if $cfg_host   =~ /^\*\*(\..+\.)\*\*$/
-            and $http_host =~ /\Q$1\E/;
+            if $cfg_host   =~ m|^\*\*(\..+\.)\*\*$|
+            and $http_host =~ m|\Q$1\E|;
     }
 
     <[base.parser.ellipse_center]>->( \$http_host, 37 );
 
-    if ( exists <httpd.cfg.hostnames>->{'default'} ) {
-        <[base.log]>->(
-            1, "[$id] no set-up for \"$http_host\", using 'default'"
+    if (   not defined $base_site_directory
+        or not defined <httpd.cfg.hostnames>->{$base_site_directory} ) {
+        <[base.logs]>->(
+            0,   "[%d] Host '%s' does not match any configured pattern",
+            $id, $http_host
         );
-        return 'default';
-    } else {
-        <[base.log]>->(
-            0, "[$id] Host '$http_host' does not match any configured pattern"
+        return 404;    ##  not configured \ 'Not Found'  ##
+
+    } else {    ##  make behaviour configurable  ##  [ LLL ]
+        <[base.logs]>->(
+            "[%d] no set-up for \"%s\", using '%s'",
+            $id, $http_host, $base_site_directory
         );
-        return undef;
+        return $base_site_directory;
     }
 
 } else {
-    <[base.log]>->(
-        0, "[$id] $http_method request without 'Host' parameter."
+    <[base.logs]>->(
+        0,   "[%d] %s request without 'Host' parameter.",
+        $id, $http_method
     );
-    return undef;
+    return 400;    ## Bad Request ##
 }
 
-#,,,,,,..,,.,,...,...,,,,,...,,..,...,,,,,...,..,,...,...,.,,,..,,.,,,...,,,,,
-#CWUIW5HXXD4JIWLTNE33TQ4XLRLSMBVXTUXTMCZA55EN4U2AYBGV2D7GU27LJNYXCAVEWDOWIOXT4
-#\\\|5Y6ZRT64AXY6WNAHCFS423GYSUZBZX5SD5Z65YCYDKXVRU6T2RP \ / AMOS7 \ YOURUM ::
-#\[7]XOHMGATIT5EZNE5SLBOYWDEB6SPWPNM6ICFDER6UZ4AAN6AOFODI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,.,,,..,,,.,,,,.,,,,,,,.,,..,..,,...,...,,.,,.,.,.,,,.,,,...,
+#R7VCSS3N7R4RRBD2I7I3N5MQXVUEJJQ5KN35LM33K7WLFCIRXAVLTXNYGJDKSR3XKV5NBYQIXYIQO
+#\\\|MN7LXBZEC3HT2DFMO4UK5SDEJ5E7LJAP2XL7U3KUTZIHPWGDB75 \ / AMOS7 \ YOURUM ::
+#\[7]HFSGG6SSX7CMD7JHSEJQ7MYMZULWCHCBACK2LT345MCHMMVTMGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
