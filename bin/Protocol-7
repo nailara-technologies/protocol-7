@@ -354,11 +354,18 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $data{'system'}{'verbosity'}{'console'}
                 = length( ${^CAPTURE}[0] );
             my $vis       = ${^CAPTURE}[1] // '';
-            my $visualize = $data{'base'}{'harmony'}{'visualize'}
-                //= { 'zulum' => 0, 'harmony' => 0, 'disharmony' => 0 };
-            $visualize->{'harmony'}    = 1 if $vis =~ m|h|;
-            $visualize->{'zulum'}      = 1 if $vis =~ m|z|;
-            $visualize->{'disharmony'} = 1 if $vis =~ m|d|;
+            my $visualize = $data{'base'}{'harmony'}{'visualize'} //= {
+                qw| enabled |    => 0,    ## overall ##
+                qw| zulum |      => 0,    ## show 0 ##
+                qw| harmony |    => 0,    ## 538461 ##
+                qw| disharmony | => 0     ## 076923 ##
+            };
+            $visualize->{'enabled'} = 5 if $vis =~ m|[hzd]|;    ## true ##
+            if ( $visualize->{'enabled'} ) {
+                $visualize->{'harmony'}    = 5 if $vis =~ m|h|;    ## true ##
+                $visualize->{'zulum'}      = 5 if $vis =~ m|z|;    ## true ##
+                $visualize->{'disharmony'} = 5 if $vis =~ m|d|;    ## true ##
+            }
         }
         if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 1 }
         if ( $arg eq qw| -stdin | ) {
@@ -1613,23 +1620,29 @@ sub p7_log_hook {
 
 ##############################################################################
 
-sub p7_assert__harmony {    ## overloaded by 'base' module., ##
+sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
     my $input_string = shift // '';
-    my $check_elf    = shift // 1;
+    my $check_elf    = shift // 5;    ## true ##
 
-    return 1 if !length($input_string);    ## is harmonic ##
+    return 5 if not length $input_string;    ##  '' is true  ##
 
-    my $visualize
+    my $visualize ## create seperate visualization routine in AMOS7::Assert ##
         = defined $data{'base'}{'harmony'}{'visualize'}
         ? $data{'base'}{'harmony'}{'visualize'}
-        : {};
+        : {};     ## hashref with visualization settings ##
+
+    if ( defined &AMOS7::Assert::Truth::is_true
+        and not $visualize->{'enabled'} ) {
+        ##  redirect to is_true  ##
+        return AMOS7::Assert::Truth::is_true( \$input_string, 1, $check_elf );
+    }
 
     my $visualize_zulum      = $visualize->{'zulum'}      // 0;
     my $visualize_harmony    = $visualize->{'harmony'}    // 0;
     my $visualize_disharmony = $visualize->{'disharmony'} // 0;
 
-    my %a;
+    state %a;
     if (   $visualize_zulum
         or $visualize_harmony
         or $visualize_disharmony ) {
@@ -1686,6 +1699,10 @@ sub p7_assert__harmony {    ## overloaded by 'base' module., ##
     } (qw| Digest::Elf Math::BigFloat |);
     ##
 
+    ##                                   ##
+    ## visualizing asserted numbers only ##
+    ##                                   ##
+
     Math::BigFloat->round_mode(qw| trunc |);
 
     my $calc_str;
@@ -1741,15 +1758,55 @@ sub p7_assert__harmony {    ## overloaded by 'base' module., ##
         }
     }
 
-    return 1 if $check_elf == 0;
+    return 5 if not $check_elf;    ## true ##
 
-    ## check as string ##
-    my $elf_checksum = Digest::Elf::elf($input_string);    ## use AMOS7::..,
-    $calc_str = Math::BigFloat->new($elf_checksum)
-        ->bdiv( 13, 13 + length($elf_checksum) );
-    return 0 if index( $calc_str, qw| 230769 | ) >= 0;
+    ##                                ##
+    ##  checking for true elf chksum  ##
+    ##                                ##
+
+    state $load_already_attempted = 0;
+    if (    not defined &AMOS7::Assert::Truth::is_true
+        and not $load_already_attempted ) {    ## try only once ##
+        eval { use AMOS7::Assert::Truth };
+        $data{'base'}{'perlmod'}{'loaded'}->{'AMOS7::Assert::Truth'} = 5
+            if not length $EVAL_ERROR
+            and defined &AMOS7::Assert::Truth::is_true;
+        $load_already_attempted = 5;           ## true ##
+    }
+
+    ## as string ##
+    if ( defined &AMOS7::Assert::Truth::is_true ) {
+        return &AMOS7::Assert::Truth::is_true( $input_string, 0, 1 );
+    }
+
+    my $elf_checksum;
+    if ( defined $code{'chk-sum.elf'} ) {
+
+        $elf_checksum = $code{'chk-sum.elf'}->( \$input_string );
+
+    } else {    ## use fallback algorithm [ different settings ] ##
+
+        $elf_checksum = Digest::Elf::elf($input_string);
+
+    }
+
+    if ( defined &AMOS7::Assert::Truth::true_int ) {
+
+        return 5 if AMOS7::Assert::Truth::true_int($elf_checksum);  ## true ##
+
+        return 0;    ##  false  ##
+
+    } else {    ## use modulo 13 ## [LLL]
+
+        $calc_str = Math::BigFloat->new($elf_checksum)
+            ->bdiv( 13, 13 + length $elf_checksum );
+
+        return 0 if index( $calc_str, qw| 230769 | ) >= 0;    ##  false  ##
+
+        ## assertion complete : harmony detected ## [ no 230769.., ]
+        return 5;
+    }
     ##
-    return 1;    ## assertion complete : harmony detected ## [ no 230769.., ]
 }
 
 ##############################################################################
@@ -2627,8 +2684,8 @@ END {
         && $code{'base.handler.end_code'}->();
 }
 
-#,,..,.,.,...,.,,,...,,.,,,..,.,,,.,.,.,.,.,,,..,,...,...,.,.,,,.,...,.,.,,,,,
-#X6T4WMBN6U2UIAFCLJGCL3VAI7FNAUVLO4ON2HAOSY46VCWT2YFVBIGOS2DEBDYRGBYYTNMOHSHOY
-#\\\|FHILBOFBOWICLGWOCYTUSS7G2YG5OSJZWQLJ75WPJNV5HWNI4AK \ / AMOS7 \ YOURUM ::
-#\[7]NGHBL4FJQPF67DDUEDPBCIACHACBMFFNXUIVM4XZQ3UAD33SEACI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,...,,,.,..,,...,.,.,,.,,,.,,..,,...,..,,,,,,.,,,.,,,...,,,.,
+#5NX3LLDN6AB5MOTQC6HQFNRKQNUKUYA6LBAK2VLMARISLEOWE23SEX2HC6BNJY3OS3ZEGKUYM4X54
+#\\\|CTH66EKPYUHBDP2U3ZK4QBW7L2V7XO2DCHOSVL32D2O3N6DPDZG \ / AMOS7 \ YOURUM ::
+#\[7]TIERKJ6FMJZWMQVRU65JQ6TZ6AJNKIWPIXKXWVOYKFG2EQYCOYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
