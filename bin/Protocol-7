@@ -1,8 +1,10 @@
 #!/usr/bin/env -S perl -C31
-use v5.28.0;
+
+use utf8;
 use strict;
-use warnings;
+use v5.28.0;
 use English;
+use warnings;
 
 # globals
 our %code;
@@ -12,20 +14,29 @@ our %ANSI;
 our $SUB_NAME;
 our $NODE_NAME;
 our $ZENKA_NAME;
+our %p7_main_subs;
 our $ZENKA_SUBNAME;
+p7_load_time_hires();
+p7_load_perl_modules();
+## silence experimental warning ##
+use experimental qw| smartmatch |;
 
 # is protocol 7 code? #
 our $PROTOCOL_SEVEN = 5;
 ##
 
-prepare_subs();
+p7_import_main_subroutines();   ##  importing p7_<subname> into %code hash  ##
 
-&{ $code{'base.init_exec'} };
+p7_init_exec();                 ##  main variable initialization  ##
 
-$code{'base.load_code'}->(qw| base |);
+p7_load_code(qw| base |);       ## loading remaining base module routines ##
+
+###                                               ###
+##  additional initializations and zenka start-up  ##
+##                                                 ##
 
 my $zenkaname;
-
+our $START_PROGRAM_NAME = $PROGRAM_NAME;
 if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
     $zenkaname = lc $PROGRAM_NAME;
     $zenkaname =~ s|^.*protocol-7\.||ig;
@@ -84,1574 +95,1086 @@ $code{'log.noerr'}->(qw|  done. |);
 close;
 exit;
 
-# :: definition of basic subroutines and zenka initialization ::
+##                          ##
+##  early used subroutines  ##
+##                          ##
 
-sub prepare_subs {
+##############################################################################
 
-    ## SOME BASIC SECURITY HARDENING ##
+sub p7_import_main_subroutines {    ##  making subroutines P7 available  ##
 
-    $ENV{'PATH'} = qw| /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin |;
-    delete @ENV{qw| IFS CDPATH ENV BASH_ENV |};
-    $ENV{'LC_NUMERIC'} = qw| en_US.UTF-8 |;
-    umask(0027);    ## <-- restricted, set manually .., ###
+    foreach my $subname ( p7_scan_main_subroutines()->@* ) {
+        my $code_subname = $subname;
+        if ( $code_subname !~ s|^p7__||g ) {    ## special syntax ##
+            $code_subname =~ s|^p7_|base.|;     ## otherwise base. prefix ##
+        }
+        $code_subname =~ s|__|\.|g;             ## special syntax ##
 
-    ##  silenced experimental warnings  ##
-    use experimental qw| smartmatch |;
+        ## copying into protocol-7 code hash ##
+        $code{$code_subname} = $p7_main_subs{$subname};
+
+        $data{'p7_subroutine'}{$code_subname} = {    ## updating registry ##
+            qw| installed | => $code{'base.time'}->(7),
+            qw|  sub-cref | => $code{$code_subname}
+        };
+
+        ## old registry namespace [ becomes redundant ] ##
+        $data{'base'}{'core_subs'}{$code_subname} = $code{$code_subname};
+        $data{'code'}{$code_subname}{'status'} = qw| core-sub |;
+
+    }
+}
+
+##############################################################################
+
+sub p7_scan_main_subroutines {
+
+    my $prefix_pattern = shift // qw| p7_ |;
+    my $result_aref    = shift;
+
+    my $update_p7_main_subs_hash = 0;
+    if ( not defined $result_aref and $prefix_pattern eq qw| p7_ | ) {
+        $update_p7_main_subs_hash = 5;    ## true ##
+    }
+    $result_aref //= [];
+    my @symbol_names                      ## collect all symbol names ##
+        = sort { length $a <=> length $b } reverse sort keys %main::;
+    $result_aref->@*    ## filter subroutine names [ maim:: and prefix ] ##
+        = grep { index( $ARG, $prefix_pattern, 0 ) == 0 }
+        grep { defined &{ sprintf qw| main::%s |, $ARG } } @symbol_names;
+    if ($update_p7_main_subs_hash) {
+        %p7_main_subs = map { $ARG => \&{ sprintf qw| main::%s |, $ARG } }
+            $result_aref->@*;    ## update %p7_main_subs subroutine table ##
+    }
+    return $result_aref;         ##  return matching sub names  ##
+}
+
+##############################################################################
+
+sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
+
+    ##  MODULES  ##
+
+    use File::stat;
+    use Sys::Hostname;
+    use Cwd qw| abs_path |;
+    use Text::Wrap qw| wrap |;
+    use File::Spec::Functions;
+    use List::MoreUtils qw| :all |;
+    use Fcntl qw| :seek :mode :flock |;  ##  incl : S_IWUSR, S_IWGRP, S_ISFIFO
+    use FindBin qw| $RealBin $RealScript |;
+
+    ## MATHEMATICAL CONSTANTS ##
+
+    use constant qw| τ |   => 6.28318530717958647692;
+    use constant qw| tau | => qw| τ |;
+
+## registering loaded modules ##
+
+    foreach my $module ( qw[
+        Cwd
+        Fcntl
+        FindBin
+        File::stat
+        Text::Wrap
+        Sys::Hostname
+        List::MoreUtils
+        File::Spec::Functions
+        ]
+    ) {
+        $data{'base'}{'perlmod'}{'loaded'}->{$module} = 5;    ## true ##
+    }
+}
+
+##############################################################################
+
+sub p7_load_time_hires {
+
+    my $TH_aref;
+    ## installing 'Time::HiRes' versions of 'base.time' and 'base.sleep' ##
+    eval {
+        use Time::HiRes;
+        $TH_aref = [    ## takes floating point precision argument ##
+            sub { sprintf qw| %.*f |, $ARG[0] // 7, Time::HiRes::time },
+            \&Time::HiRes::sleep
+        ];
+    };
+    if ( defined $TH_aref and ref($TH_aref) eq qw| ARRAY | ) {
+        $data{'base'}{'perlmod'}{'loaded'}->{'Time::HiRes'} = 5;    ## true ##
+        $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 5;
+    }
+    $TH_aref = [ sub {&time}, sub { select( undef, undef, undef, $ARG[0] ) } ]
+        if length $EVAL_ERROR    ## alternative microsecond sleep version ##
+        or not defined $TH_aref
+        or ref $TH_aref ne qw| ARRAY |;
+    $code{'base.time'}  = \&{ $TH_aref->[0] };
+    $code{'base.sleep'} = \&{ $TH_aref->[1] };
+}
+
+##############################################################################
+
+sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
 
     BEGIN {
+
+        $ENV{'PATH'} = qw| /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin |;
+        delete @ENV{qw| IFS CDPATH ENV BASH_ENV |};
+        $ENV{'LC_NUMERIC'} = qw| en_US.UTF-8 |;
+        umask(0027);    ## <-- restricted, set manually .., ###
+
         ## character whitelist ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
-
-        die "\n\n << not valid characters [ '"
-            . ${^CAPTURE}[0] . "' ]"
-            . " in program name '$PROGRAM_NAME' >>\n\n\n"
+        ## checking program name ##
+        die "\n\n << not valid characters [ '%s' ]"
+            . " in program name '%s' >>\n\n\n",
+            , ${^CAPTURE}[0], $PROGRAM_NAME
             if $PROGRAM_NAME =~ $char_map;
+        ##  verified clean  ##
         my $bin_path = $PROGRAM_NAME;
+        ## checking program name link target ##
         while ( my $link_target = readlink($bin_path) ) {
-            die "\n\n<< invalid characters [ '"
-                . ${^CAPTURE}[0]
-                . "' ] in program name"
-                . " link target '$link_target' >>\n\n\n"
+            die sprintf "\n\n<< not valid characters [ '%s' ]"
+                . " in program name link target '%s' >>\n\n\n",
+                ${^CAPTURE}[0], $link_target
                 if $link_target =~ $char_map;
+            ##  verified clean  ##
             $bin_path = $link_target;
         }
+
+        ## prepending local pm module pach to @INC ##
 
         use File::Spec;    ## ./..,/protocol-7 case .., ##
         ( my $local_lib_path = File::Spec->rel2abs($bin_path) )
             =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
 
-        warn ':: << local lib path not found >> : ' . $local_lib_path . ' .:'
-            if !-d $local_lib_path;
+        warn sprintf ':: << local lib path not found >> : %s .:',
+            $local_lib_path
+            if not -d $local_lib_path;
 
-        unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+        unshift @INC, $local_lib_path if -d $local_lib_path;
     }
+}
 
-    use List::MoreUtils qw| :all |;
+##############################################################################
+
+sub p7_init_exec {    ##  main variable initialization  ##
+
+    $SIG{'INT'} = sub { print "\b\b" if fileno(STDOUT); exit };    ## ^C ##
+
+    ## choose harmonic PID on -NP switch ##
+    #
+    # ISSUES : returns to shell, not working with child zenki yet ##
+    #
+    my $change_pid = 0;
+    map { $change_pid = 1 if $ARG eq '-NP' } @ARGV;
+    &{ $code{'base.choose_true_pid'} } if $change_pid;
+    #
+    ##
+
+    $SIG{'PIPE'} = qw| IGNORE |;
+    ## overriding warn subroutine ###
+    $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
     # somewhat reduntant with -C31 ... to be decided later [which to drop]..,
     use open qw| :encoding(UTF-8) |;
     map { binmode( $ARG, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
 
-    eval { use Text::Wrap qw| wrap | };    ## <-- used in 'base.load_code' ##
-        # installing 'Time::HiRes' versions of 'base.time' and 'base.sleep'
-    my $th_ref;
-    eval {
-        use Time::HiRes;
-        $th_ref = [
-            sub {
-                my $float_prec = $ARG[0] // 7;
-                return sprintf( "%.${float_prec}f", Time::HiRes::time );
-            },
-            \&Time::HiRes::sleep
-        ];
-    };
-    if ( defined $th_ref and ref($th_ref) eq qw| ARRAY | ) {
-        $data{'base'}{'perlmod'}{'loaded'}->{'Time::HiRes'} = 1;
-        $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 1;
+    ## early variable initialization ##
+    my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
+    my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
+    $data{'system'}{'start'}{'true_exec'} = $actual_exec;
+    $data{'system'}{'start'}{'exec_name'}    # apparent exec [symlink]
+        = File::Spec->rel2abs( canonpath($PROGRAM_NAME) );
+    $data{'system'}{'root_path'}
+        = abs_path( catdir( $bin_path, updir() ) );
+    $data{'system'}{'perl_execname'} = $EXECUTABLE_NAME;
+    $data{'system'}{'perl_version'}  = $PERL_VERSION;
+    $data{'system'}{'perl_unicode'}  = ${^UNICODE};
+    my $root_path = $data{'system'}{'root_path'};
+    $data{'system'}{'code_path'} = catdir( $root_path, qw| base-code | );
+    $data{'system'}{'conf_path'}
+        = catdir( $root_path, qw| configuration | );
+    $data{'system'}{'lmod_path'}
+        = catdir( $root_path, qw| data lib-path pm | );
+    delete $data{'system'}{'lmod_path'}
+        if !-d $data{'system'}{'lmod_path'};
+    $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
+    $data{'buffer'}{'zenka'}{'max_size'} //= 64 * 1024;    # 64K log-buffer
+
+    ## source code version ##
+    my $version_file
+        = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.src-ver| );
+
+    $data{'protocol-7'}{'src-ver'}
+        = $code{'base.read_from_version_file'}->($version_file);
+
+    ## source code release version ##
+    my $release_file
+        = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.rel-ver| );
+
+    $data{'protocol-7'}{'rel-ver'}
+        = $code{'base.read_from_version_file'}->($release_file);
+
+    ## determine zenka name and subname ###
+    if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.| ) {
+        $data{'system'}{'zenka'}{'initialized'} = 0;
+        $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
+        $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
+    } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
+        my $zenka_name = $LAST_PAREN_MATCH;
+        $data{'system'}{'zenka'}{'subname'} = ${^CAPTURE}[0]
+            if $zenka_name =~ s|\[([^\]]+)\]$||;
+        $data{'system'}{'zenka'}{'name'} = $zenka_name;
     }
-    $th_ref = [ sub {&time}, sub { select( undef, undef, undef, $ARG[0] ) } ]
-        if $EVAL_ERROR
-        or not defined $th_ref
-        or ref($th_ref) ne qw| ARRAY |;
-    $code{'base.time'}  = \&{ $th_ref->[0] };
-    $code{'base.sleep'} = \&{ $th_ref->[1] };
-    undef $th_ref;
+    if ( not defined $data{'system'}{'zenka'}{'name'}
+        or $data{'system'}{'zenka'}{'name'} eq '' ) {
+        $data{'system'}{'zenka'}{'name'} = qw| <init> |;
+    }
 
-##############################################################################
+    $data{'system'}{'node'}{'name'} = hostname() // qw| protocol-7 |;
+    $data{'system'}{'node'}{'name'} =~ s|\..+$||;
 
-    $code{'base.choose_true_pid'} = sub {
-        local $SIG{'CHLD'} = qw| IGNORE |;
-        $data{'system'}{'start'}{'fork-count'} //= 0;
-        local $data{'system'}{'verbosity'}{'console'}      = 1;
-        local $data{'system'}{'verbosity'}{'zenka_buffer'} = 1;
-        ## choose as TRUE asserted PID by forking ##
-        my $fork_start_time = sprintf( "%.5f", &{ $code{'base.time'} } );
-        local $data{'system'}{'start'}{'zenka_buffer'} = 1;
-        while ( not $code{'base.assert.harmony'}->($PID) ) {
-            $data{'system'}{'start'}{'fork-count'}++;
-            my $new_pid = fork();
-            last    if not defined $new_pid;    ## cannot fork ##
-            exit(0) if $new_pid != 0;
+    #   ( $data{'system'}{'node'}{'name'},
+    #    $data{'system'}{'zenka'}{'name'} ) = split ( m|\.|, $_[0] ); #[LLL]
+
+    ## early verbosity settings ###
+    $data{'system'}{'verbosity'}{'console'}       = 0;
+    $data{'system'}{'verbosity'}{'zenka_buffer'}  = 1;
+    $data{'system'}{'verbosity'}{'zenka_logfile'} = 0;
+
+    $data{'system'}{'ansi_color'} = 1;
+    $data{'system'}{'start'}{'showbanner'} = 1;
+
+    my $stdin_mode = 1;
+    ## process command line arguments ###
+    $data{'system'}{'console-mode'} //= 0;
+    foreach my $arg (@ARGV) {
+        $stdin_mode = 0 if $arg =~ m|^[^\-]|;
+        if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
+            $data{'system'}{'verbosity'}{'console'}
+                = length( ${^CAPTURE}[0] );
+            my $vis       = ${^CAPTURE}[1] // '';
+            my $visualize = $data{'base'}{'harmony'}{'visualize'}
+                //= { 'zulum' => 0, 'harmony' => 0, 'disharmony' => 0 };
+            $visualize->{'harmony'}    = 1 if $vis =~ m|h|;
+            $visualize->{'zulum'}      = 1 if $vis =~ m|z|;
+            $visualize->{'disharmony'} = 1 if $vis =~ m|d|;
         }
-        $data{'system'}{'start-up'}{'fork-duration'}
-            = $data{'system'}{'start'}{'fork-count'}
-            ? sprintf( "%.5f", &{ $code{'base.time'} } - $fork_start_time )
-            : 0;
-    };
+        if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 1 }
+        if ( $arg eq qw| -stdin | ) {
+            $data{'system'}{'startup_initcode'} = 1;
+            $data{'system'}{'console-mode'}     = 0;   ## LLL: more conditions
+        }
+        if ( $arg eq qw| -console | ) {
+            $data{'system'}{'console-mode'} = 1;
+            $code{'log.error'}->('<< in console mode >>');
+        }
+        if ( $arg eq qw| -c | ) {
+            $data{'system'}{'ansi_color'}   = 1;
+            $data{'system'}{'force-colors'} = 1;
+        }
+        if ( $arg eq qw| -nc | ) {
+            $data{'system'}{'ansi_color'}   = 0;
+            $data{'system'}{'force-colors'} = 0;
+        }
+        if ( $arg eq qw| -nb | ) {
+            $data{'system'}{'start'}{'showbanner'} = 0;
+        }
+        if ( $arg =~ m|^-N(.+)$| ) {
+            $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
+        } elsif ($stdin_mode) {
+            $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
+        }
+        if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'p7' zenka
+            $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
+        }
+        if ( $arg eq qw| -use-http-src | ) {
+            $data{'system'}{'use_http_source'} = 1;
+        }
+        if ( $arg eq qw| -export-core-subs | ) {
+            $code{'dump_core_subs'}->();
+            exit(0);
+        }
+    }
 
-##############################################################################
+    ## setting log prefix width values \ defaults ##
+    $data{'system'}{'start'}{'log_prefix_width'}
+        = &{ $code{'base.get_start_lpw'} };
+    $data{'system'}{'zenka'}{'log_prefix_width'}
+        //= $data{'system'}{'start'}{'log_prefix_width'};
 
-    $code{'base.ntime'} = sub { # [ netw. time : secs from 2002-06-05 * 4200 ]
-        my $param        = shift // 0;
-        my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
-        my $ntime_start  = $data{'base'}{'ntime_ustart'} //= 1023228000;
+    ### load zenka code from stdin ###
+    $data{'system'}{'path'}{'rel'}{'cur_zenka_cfg'} = qw| <STDIN> |
+        if $stdin_mode;
 
-        my $retries_left    = 24;    ## <-- configure [ retries-max ]
-        my $collision_delay = 0;
-        my $last_time       = 0;
-        my $unix_precision;
-        my $ntime_precision;
-
-        $data{'base'}{'retry-count'}{'ntime'} //= 0;
-
-        my ( $unix_time, $precision ) = ( undef, 0 );
-        if ( length($param) >= 9 ) {    # < unix time + inherited precision >
-            $unix_time      = $param;
-            $unix_precision = length( ${^CAPTURE}[0] // '' )
-                if $unix_time =~ m{\.(\d+)$};
-            $ntime_precision = $unix_precision - 2;
-            $ntime_precision = 0 if $ntime_precision < 0;
-
+    ## prepare zenka name column width and color mode pipe override ###
+    if ( not defined $code{'base.term.size'}->(*STDIN) ) {
+        $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
+    } else {
+        $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
+    }
+    if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
+        $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
+    } else {
+        $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
+    }
+    if ( not defined $code{'base.term.size'}->(*STDERR) ) {
+        $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
+    } else {
+        $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
+    }
+    ##
+    map {
+        if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
+            $data{'system'}{'term'}{'colors'}{$ARG}
+                = $data{'system'}{'ansi_color'}
+                = $data{'system'}{'force-colors'} // 0;
         } else {
-            $ntime_precision = $param;
-            $ntime_precision = 8 if $ntime_precision > 8;
-            $unix_precision  = $ntime_precision + 2;
-            $unix_precision  = 11 if $unix_precision > 11;
+            $data{'system'}{'term'}{'colors'}{$ARG}
+                = $data{'system'}{'ansi_color'} // 1;
         }
-        my $zulum_len = $unix_precision - 1;
-        $collision_delay = join( '', qw|0.|, qw| 0 | x $zulum_len, qw| 7 | );
+    } qw| stdout stderr |;
+    $data{'system'}{'ansi_color'} //= 1;
+    ##
 
-    RETRY_BASE_NTIME:
-        $last_time = $unix_time if defined $unix_time;
-        $unix_time = $code{'base.time'}->($unix_precision);
+    ## defining console ansi colors ###
+    if ( $data{'system'}{'ansi_color'} ) {
+        %ANSI = (
+            qw| B00 |      => "\e[48;2;0;0;17m",
+            qw| B01 |      => "\e[48;2;9;5;24m",
+            qw| B02 |      => "\e[48;2;9;5;42m",
+            'p7_fg_0000'   => "\e[38;2;68;39;172m",
+            'p7_fg_0001'   => "\e[38;2;38;46;153m",
+            'p7_fg_0002'   => "\e[38;2;197;141;7m",
+            'p7_fg_0003'   => "\e[38;2;71;185;6m",
+            'p7_fg_0004'   => "\e[38;2;6;71;195m",
+            'bold'         => "\e[1m",
+            'reset'        => "\e[0m",
+            'clear_screen' => "\e[H\c[[2J"
+        );
+    } else {
+        %ANSI = (
+            qw| B00 |      => '',
+            qw| B01 |      => '',
+            qw| B02 |      => '',
+            'p7_fg_0000'   => '',
+            'p7_fg_0001'   => '',
+            'p7_fg_0002'   => '',
+            'p7_fg_0003'   => '',
+            'p7_fg_0004'   => '',
+            'bold'         => '',
+            'reset'        => '',
+            'clear_screen' => "\c[[H\c[[2J"
+        );
+    }
+    ## prepare for stripping ansi from output ##
+    $data{'base'}{'ansi_re'} = join(
+        '|',
+        map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }    # \1?
+            keys %ANSI
+    );
+    ## global name variables ## set variable-watcher to update them [LLL]
+    $NODE_NAME     = $data{'system'}{'node'}{'name'};
+    $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
+    $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
+    ## initializing console output ##
+    print STDERR $ANSI{'p7_fg_0002'};
 
-        if ( $unix_time == $last_time ) {    ## same input \ collision ##
+    my $start_string = qw| \\ |;
+    ## nailara start-up banner ##
+    {
+        my $prefix = '';
+        ( my $x, my $y ) = $code{'base.term.size'}->();
+        my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
+        my $show_banner_mode = 0;
+        my $center_xy        = 0;
+        if ( @ARGV ~~ m{(^| )-show-banner( |$)} ) {
+            $show_banner_mode = 1;
+            $center_xy        = 1 if @ARGV ~~ m{(^| )-center( |$)};
+            ( $x, $y ) = @{^CAPTURE}
+                if @ARGV ~~ m{(^| )-size=(\d+)x(\d+)( |$)};
+            if ($center_xy) {
+                ## center-y ##
+                $y_offset += $y > 7 ? int( ( $y - 8 ) / 2 ) : 0;
+                print "\n" x $y_offset;
+                ## center-x ##
+                my $x_offset += $x > 74 ? int( ( $x - 78 ) / 2 ) : 0;
+                $prefix = ' ' x $x_offset;
+            }
+        }
+        my $spaces = '';
+        if (   $data{'system'}{'verbosity'}{'console'}
+            && $data{'system'}{'start'}{'showbanner'}
+            or $show_banner_mode ) {
+            say $prefix, $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
+                $start_string,
+                , $ANSI{'B00'},
+                ' ' x 77, $ANSI{'B02'} . $ANSI{'p7_fg_0000'}, qw| / |,
+                $ANSI{'reset'};
+            ## centered-xy ## ..,
+            $code{'base.banner'}->($prefix);
+            print "\n" x $y_offset if $show_banner_mode and $y_offset;
+            exit(0)                if $show_banner_mode;
+        } else {
+            my $lpw = $data{'system'}{'zenka'}{'log_prefix_width'};
+            $spaces = ' ' x int( 68 - $lpw );
+        }
+        $code{'log.noerr'}->( qw| .\\7 | . $spaces );
+    }
+    ## initializing early zenka buffer capture ###
+    $data{'system'}{'start'}{'zenka-buffer'} = [];
+    my $s_version = $data{'protocol-7'}{'src-ver'};
+    my $tenki
+        = length($s_version) > ( length("zenka $ZENKA_NAME") )
+        ? sprintf ' %s,',
+        '.' x ( length($s_version) - length("zenka $ZENKA_NAME") - 1 )
+        : '';
+    map { push( @{ $data{'system'}{'start'}{'zenka-buffer'} }, $ARG ) } (
+        $code{'base.anum_log_time'}->()
+            . sprintf( ' 0 . startup zenka %s%s', $ZENKA_NAME, $tenki ),
+        $code{'base.anum_log_time'}->()
+            . sprintf( ' 0 . version %s', $s_version )
+    );
+}
+
+##############################################################################
+
+sub p7_term__size {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
+
+    return ( $size_aref->[1], $size_aref->[0] );
+}
+
+##############################################################################
+
+sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
+
+    my $param        = shift // 0;
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
+    my $ntime_start  = $data{'base'}{'ntime_ustart'} //= 1023228000;
+
+    my $retries_left    = 24;    ## <-- configure [ retries-max ]
+    my $collision_delay = 0;
+    my $last_time       = 0;
+    my $unix_precision;
+    my $ntime_precision;
+
+    $data{'base'}{'retry-count'}{'ntime'} //= 0;
+
+    my ( $unix_time, $precision ) = ( undef, 0 );
+    if ( length($param) >= 9 ) {    # < unix time + inherited precision >
+        $unix_time      = $param;
+        $unix_precision = length( ${^CAPTURE}[0] // '' )
+            if $unix_time =~ m{\.(\d+)$};
+        $ntime_precision = $unix_precision - 2;
+        $ntime_precision = 0 if $ntime_precision < 0;
+
+    } else {
+        $ntime_precision = $param;
+        $ntime_precision = 8 if $ntime_precision > 8;
+        $unix_precision  = $ntime_precision + 2;
+        $unix_precision  = 11 if $unix_precision > 11;
+    }
+    my $zulum_len = $unix_precision - 1;
+    $collision_delay = join( '', qw|0.|, qw| 0 | x $zulum_len, qw| 7 | );
+
+RETRY_BASE_NTIME:
+    $last_time = $unix_time if defined $unix_time;
+    $unix_time = $code{'base.time'}->($unix_precision);
+
+    if ( $unix_time == $last_time ) {    ## same input \ collision ##
+        Time::HiRes::sleep($collision_delay);
+        goto RETRY_BASE_NTIME;
+    }
+
+    my $ntime = sprintf( qw| %.*f |,
+        "0$ntime_precision", ( $unix_time - $ntime_start ) * 4200 );
+
+    if (    $want_harmony == 1
+        and length($param) < 9
+        and $code{'base.assert.harmony'}->( $unix_time, 0 ) == 0
+        and $retries_left-- ) {
+
+        ++$data{'base'}{'retry-count'}{'ntime'}
+            and goto RETRY_BASE_NTIME;
+    }
+
+    warn '< ntime attempts exceeded >' if !$retries_left;
+
+    return $ntime;
+}
+
+##############################################################################
+
+sub p7_ntime__b32 {
+
+    my $param        = shift // 4;    # <-- precision or utime
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
+
+    my $retries_left = 5;             ## <-- configure [ retries-max ]
+    my $last_ntime   = 0;
+    my $ntime_precision;
+    my $ntime_value;
+
+    $data{'base'}{'retry-count'}{'ntime-B32'} //= 0;
+
+RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
+
+    $last_ntime = $ntime_value
+        if $want_harmony
+        and defined $ntime_value
+        and $ntime_value != $last_ntime;
+
+    ####
+    $ntime_value = $code{'base.ntime'}->( $param, $want_harmony );
+    ####
+
+    if ($want_harmony) {
+        $ntime_precision = 0;
+        $ntime_precision = length( ${^CAPTURE}[0] )
+            if $ntime_value =~ m|\.(\d+)$|;
+        my $zulum_len       = $ntime_precision + 1;
+        my $collision_delay = join( '', '0.', '0' x $zulum_len, '113' );
+        if ( $last_ntime == $ntime_value ) {    ## same input \ collision ##
             Time::HiRes::sleep($collision_delay);
-            goto RETRY_BASE_NTIME;
+            goto RETRY_BASE_NTIME_B32;
         }
+    }
 
-        my $ntime = sprintf( qw| %.*f |,
-            "0$ntime_precision", ( $unix_time - $ntime_start ) * 4200 );
+    my @nt = split( m|\.|, $ntime_value );
+    $nt[1] = '7' . $nt[1] if scalar @nt == 2;    # <-- 7 catches prefixed 0
 
-        if (    $want_harmony == 1
-            and length($param) < 9
-            and $code{'base.assert.harmony'}->( $unix_time, 0 ) == 0
-            and $retries_left-- ) {
+    my $encoded_ntime = Crypt::Misc::encode_b32r( pack( 'w*', @nt ) );
 
-            ++$data{'base'}{'retry-count'}{'ntime'}
-                and goto RETRY_BASE_NTIME;
-        }
+    ++$data{'base'}{'retry-count'}{'ntime-B32'}
+        and goto RETRY_BASE_NTIME_B32
+        if $want_harmony == 1
+        and length($param) < 9                   # <-- precision
+        and $code{'base.assert.harmony'}->($encoded_ntime) == 0
+        and $retries_left--;
 
-        say '< ntime attempts xceeded >' if !$retries_left;
-
-        return $ntime;
-    };
+    return $encoded_ntime;
+}
 
 ##############################################################################
 
-    $code{'base.ntime.b32'} = sub {
-        my $param        = shift // 4;    # <-- precision or utime
-        my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
-        my $retries_left = 5;             ## <-- configure [ retries-max ]
-        my $last_ntime   = 0;
-        my $ntime_precision;
-        my $ntime_value;
+sub p7_b32__ntime {
 
-        $data{'base'}{'retry-count'}{'ntime-B32'} //= 0;
+    my $network_time = shift;
 
-    RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
-
-        $last_ntime = $ntime_value
-            if $want_harmony
-            and defined $ntime_value
-            and $ntime_value != $last_ntime;
-
-        ####
-        $ntime_value = $code{'base.ntime'}->( $param, $want_harmony );
-        ####
-
-        if ($want_harmony) {
-            $ntime_precision = 0;
-            $ntime_precision = length( ${^CAPTURE}[0] )
-                if $ntime_value =~ m|\.(\d+)$|;
-            my $zulum_len       = $ntime_precision + 1;
-            my $collision_delay = join( '', '0.', '0' x $zulum_len, '113' );
-            if ( $last_ntime == $ntime_value ) {  ## same input \ collision ##
-                Time::HiRes::sleep($collision_delay);
-                goto RETRY_BASE_NTIME_B32;
-            }
-        }
-
-        my @nt = split( m|\.|, $ntime_value );
-        $nt[1] = '7' . $nt[1] if scalar @nt == 2;   # <-- 7 catches prefixed 0
-
-        my $encoded_ntime = Crypt::Misc::encode_b32r( pack( 'w*', @nt ) );
-
-        ++$data{'base'}{'retry-count'}{'ntime-B32'}
-            and goto RETRY_BASE_NTIME_B32
-            if $want_harmony == 1
-            and length($param) < 9                  # <-- precision
-            and $code{'base.assert.harmony'}->($encoded_ntime) == 0
-            and $retries_left--;
-
-        return $encoded_ntime;
+    my $ntime_dec;
+    warn 'network time format not valid <{C1}>' and return undef
+        if $network_time !~ m|^[A-Z2-7]{1,22}$|;    ## <-- inc. len. [LLL]
+    eval {
+        no warnings;
+        $ntime_dec
+            = unpack( qw| w |, Crypt::Misc::decode_b32r($network_time) );
     };
-
-##############################################################################
-
-    $code{'base.b32.ntime'} = sub {
-        my $network_time = shift;
-        my $ntime_dec;
-        warn 'network time format not valid <{C1}>' and return undef
-            if $network_time !~ m|^[A-Z2-7]{1,22}$|;    ## <-- inc. len. [LLL]
-        eval {
-            no warnings;
-            $ntime_dec
-                = unpack( qw| w |, Crypt::Misc::decode_b32r($network_time) );
-        };
-        if ( $EVAL_ERROR or !length( $ntime_dec // '' ) ) {
-            my $caller_str = [caller]->[1] . ':' . [caller]->[2];
-            $code{'log.debug'}->( 'network time decoding error'
-                    . " [\"$network_time\"] \\ $caller_str" );
-            return undef;
-        }
-        return $ntime_dec;
-    };
-
-##############################################################################
-
-    $code{'base.assert.harmony'} = sub {   ## overloaded by 'base' module., ##
-        my $input_string = shift // '';
-        my $check_elf    = shift // 1;
-        return 1 if !length($input_string);    ## is harmonic ##
-
-        my $visualize
-            = defined $data{'base'}{'harmony'}{'visualize'}
-            ? $data{'base'}{'harmony'}{'visualize'}
-            : {};
-
-        my $visualize_zulum      = $visualize->{'zulum'}      // 0;
-        my $visualize_harmony    = $visualize->{'harmony'}    // 0;
-        my $visualize_disharmony = $visualize->{'disharmony'} // 0;
-
-        my %a;
-        if (   $visualize_zulum
-            or $visualize_harmony
-            or $visualize_disharmony ) {
-            if ( not keys %a ) {
-
-                #  reset          "\c[[m"
-                my $reset       = "\e[0m";
-                my $nailara_bg  = "\e[48;2;9;5;42m";
-                my $blacklight  = "\e[38;2;68;39;172m";
-                my $nailara_fg  = "\e[38;2;38;46;153m";
-                my $error_color = "\e[38;2;197;141;7m";
-                my $neon_green  = "\e[38;2;71;195;6m";
-                %a = (
-                    'str'    => "\c[[1m",
-                    'bg'     => $nailara_bg,
-                    'bl'     => $blacklight,
-                    'reset'  => $reset,
-                    'ZL-B'   => $nailara_fg,
-                    'ZULUM'  => $blacklight,
-                    'Z-REST' => "\c[[2m" . $reset . $nailara_bg . $nailara_fg,
-                    'D-REST' => $reset . $nailara_bg . $neon_green,
-                    'NG'     => $neon_green . "\c[[1m",
-                    'UNKNOWN' => $neon_green . "\c[[5m",
-                    'color_y' => "\c[[6m" . $blacklight,
-                    'color_n' => $error_color . "\c[[1m",
-                    'clear'   => "\c[[H\c[[2J"
-                );
-            }
-        }
-
-        ## [ load modules first, if not present ] ##
-        map {
-            if ( not defined $data{'base'}{'perlmod'}{'loaded'}->{$ARG}
-                or $data{'base'}{'perlmod'}{'loaded'}->{$ARG} == 0 ) {
-
-                return 1
-                    if defined $data{'base'}{'perlmod'}{'loading-failed'}
-                    and
-                    exists $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG};
-
-                ( my $pm_name = "$ARG.pm" ) =~ s|::|/|g;
-
-                eval { require $pm_name };    ## load _before_ logging ., ##
-
-                if ($EVAL_ERROR) {
-                    $code{'log.error'}->(": loading not successful [ $ARG ]");
-                    ## give up assertions to not cause infinite loops ##
-                    $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG} = 1;
-                    return 1;
-                } else {
-                    $data{'base'}{'perlmod'}{'loaded'}->{$ARG} = 1;
-                    $code{'log.debug'}->(": loaded perl module '$ARG'.,");
-                }
-            }
-        } (qw| Digest::Elf Math::BigFloat |);
-        ##
-
-        Math::BigFloat->round_mode(qw| trunc |);
-
-        my $calc_str;
-        ## check as mumber ##
-        if ( $input_string =~ m|^\d+(\.\d+)?$| ) {
-            ( my $input_num = $input_string ) =~ s|\.||;
-
-            my $accuracy = 13;
-
-            ( $calc_str
-                    = Math::BigFloat->new($input_num)
-                    ->bdiv( 13, $accuracy + length($input_num) ) ) =~ s|\.||;
-
-            my $seperator_str = ' : ';
-
-            if ( index( $calc_str, qw| 230769 | ) >= 0 ) {    ## FALSE ##
-
-                my $min_len = $accuracy + 5;
-                my $num_len = length($input_num);
-                my $z_len   = abs( $min_len - $num_len );
-
-                if (    $visualize_harmony
-                    and $visualize_disharmony
-                    and $num_len < $min_len ) {
-
-                    $input_num .= '0' x $z_len;
-                }
-                ### ..340769.., [E] ##
-                $calc_str
-                    =~ s{(\d+?)((((((3)?0)?7)?6)?9)?230769([230769]+)*)(\d*)$}
-                {$a{'D-REST'}${1}$a{'NG'}${2}$a{'D-REST'}${9}  $a{'reset'}}
-                    and say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str "
-                    if $visualize_disharmony;
-
-                return 0;
-            } elsif ( $visualize_harmony
-                and index( $calc_str, qw| 846153 | ) >= 0 ) {
-                ### ..846153.., [T=5] ##
-                $calc_str
-                    =~ s{(\d+?)((((((4)?6)?1)?5)?3)?846153([846153]+)*)(\d*)$}
-                {$a{'ZULUM'}${1}$a{'ZL-B'}${2}$a{'Z-REST'}${9} $a{'reset'}};
-                say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
-
-            } elsif ( $visualize_zulum
-                and index( $calc_str, qw| 0000000 | ) >= 0 ) {
-                $calc_str =~ s{(\d+?)?(0000000*)$}
-                {$a{'ZULUM'}${1}$a{'ZL-B'}${2} $a{'reset'}};
-                say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
-
-            } elsif ( $visualize_harmony and $visualize_disharmony ) {
-                say "$a{bg}$a{bl}: $input_num$seperator_str$a{'UNKNOWN'}"
-                    . "$calc_str $a{'reset'}";
-            }
-        }
-
-        return 1 if $check_elf == 0;
-
-        ## check as string ##
-        my $elf_checksum = Digest::Elf::elf($input_string);  ## use AMOS7::..,
-        $calc_str = Math::BigFloat->new($elf_checksum)
-            ->bdiv( 13, 13 + length($elf_checksum) );
-        return 0 if index( $calc_str, qw| 230769 | ) >= 0;
-        ##
-        return 1; ## assertion complete : harmony detected ## [ no 230769.., ]
-    };
-
-##############################################################################
-
-    $code{'base.term.size'} = sub {
-
-        my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
-
-        return undef if not -t $handle;
-        state $size       = "\0" x 8;
-        state $TIOCGWINSZ = 21523;
-
-        ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
-        my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
-
-        return ( $size_aref->[1], $size_aref->[0] );
-    };
-
-##############################################################################
-
-    $code{'base.load_b32_encoder'} = sub {
-        if (    not defined &encode_b32r
-            and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
-            eval { use Crypt::Misc qw| encode_b32r | };
-            if ( $EVAL_ERROR or not defined &encode_b32r ) {
-                $data{'modules'}{'startup_error'}{'base32'} = 1;
-                return 0;    # module not found ##
-            } else {
-                return 1;    ## loading successful ##
-            }
-        } else {
-            return 1;        ## function already present ##
-        }
-    };
-
-    $code{'base.anum_log_time'} = sub {
-        my $pt_param     = shift // 5;   # <-- LLL: configure, precision\utime
-        my $want_harmony = shift;        # <-- skip not harmonic time stamps ?
-
-        if ( &{ $code{'base.load_b32_encoder'} } ) {
-            return $code{'base.ntime.b32'}->( $pt_param, $want_harmony );
-        } else {
-            return $code{'base.ntime'}->( $pt_param, $want_harmony );
-        }
-    };
-
-    $code{'base.get_start_lpw'} = sub {
-        my $zenka_name = shift // $data{'system'}{'zenka'}{'name'};
-        my $node_name  = $data{'system'}{'node'}{'name'};
-        my $min_lpw    = length join( qw| . |, $node_name, qw| cube-13 | );
-        my $start_lpw  = length( join( '.', $node_name, $zenka_name ) );
-        $start_lpw = $min_lpw if $start_lpw < $min_lpw;
-        return $start_lpw;
-    };
-
-    ### basic subroutine definitions ###
-
-    $code{'base.init_exec'} = sub {
-
-        $SIG{'INT'} = sub { print "\b\b" if fileno(STDOUT); exit };   ## ^C ##
-
-        ## choose harmonic PID on -NP switch ##
-        #
-        # ISSUES : returns to shell, not working with child zenki yet ##
-        #
-        my $change_pid = 0;
-        map { $change_pid = 1 if $ARG eq '-NP' } @ARGV;
-        &{ $code{'base.choose_true_pid'} } if $change_pid;
-        #
-        ##
-
-        ## load first perl modules ##
-        use utf8;
-        use File::Spec::Functions;
-        use FindBin qw| $RealBin $RealScript |;
-        use Cwd qw| abs_path |;
-        use Sys::Hostname;
-        use File::stat;
-
-        ## register modules .., ## [LLL]
-
-        use constant qw| τ |   => 6.28318530717958647692;
-        use constant qw| tau | => qw| τ |;
-
-        $SIG{'PIPE'} = qw| IGNORE |;
-        ## overriding warn subroutine ###
-        $SIG{'__WARN__'} = $code{'base.sig_warn'};
-
-        ## early variable initialization ##
-        my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
-        my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
-        $data{'system'}{'start'}{'true_exec'} = $actual_exec;
-        $data{'system'}{'start'}{'exec_name'}    # apparent exec [symlink]
-            = File::Spec->rel2abs( canonpath($PROGRAM_NAME) );
-        $data{'system'}{'root_path'}
-            = abs_path( catdir( $bin_path, updir() ) );
-        $data{'system'}{'perl_execname'} = $EXECUTABLE_NAME;
-        $data{'system'}{'perl_version'}  = $PERL_VERSION;
-        $data{'system'}{'perl_unicode'}  = ${^UNICODE};
-        my $root_path = $data{'system'}{'root_path'};
-        $data{'system'}{'code_path'} = catdir( $root_path, qw| base-code | );
-        $data{'system'}{'conf_path'}
-            = catdir( $root_path, qw| configuration | );
-        $data{'system'}{'lmod_path'}
-            = catdir( $root_path, qw| data lib-path pm | );
-        delete $data{'system'}{'lmod_path'}
-            if !-d $data{'system'}{'lmod_path'};
-        $data{'base'}{'httpc'}{'last_mlen'}  //= 80;
-        $data{'buffer'}{'zenka'}{'max_size'} //= 64 * 1024;   # 64K log-buffer
-
-        ## source code version ##
-        my $version_file
-            = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.src-ver| );
-
-        $data{'protocol-7'}{'src-ver'}
-            = $code{'base.read_from_version_file'}->($version_file);
-
-        ## source code release version ##
-        my $release_file
-            = catfile( $data{'system'}{'conf_path'}, qw|protocol-7.rel-ver| );
-
-        $data{'protocol-7'}{'rel-ver'}
-            = $code{'base.read_from_version_file'}->($release_file);
-
-        ## determine zenka name and subname ###
-        if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.| ) {
-            $data{'system'}{'zenka'}{'initialized'} = 0;
-            $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
-            $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
-        } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
-            my $zenka_name = $LAST_PAREN_MATCH;
-            $data{'system'}{'zenka'}{'subname'} = ${^CAPTURE}[0]
-                if $zenka_name =~ s|\[([^\]]+)\]$||;
-            $data{'system'}{'zenka'}{'name'} = $zenka_name;
-        }
-        if ( not defined $data{'system'}{'zenka'}{'name'}
-            or $data{'system'}{'zenka'}{'name'} eq '' ) {
-            $data{'system'}{'zenka'}{'name'} = qw| <init> |;
-        }
-
-        $data{'system'}{'node'}{'name'} = hostname() // qw| protocol-7 |;
-        $data{'system'}{'node'}{'name'} =~ s|\..+$||;
-
-      #   ( $data{'system'}{'node'}{'name'},
-      #    $data{'system'}{'zenka'}{'name'} ) = split ( m|\.|, $_[0] ); #[LLL]
-
-        ## early verbosity settings ###
-        $data{'system'}{'verbosity'}{'console'}       = 0;
-        $data{'system'}{'verbosity'}{'zenka_buffer'}  = 1;
-        $data{'system'}{'verbosity'}{'zenka_logfile'} = 0;
-
-        $data{'system'}{'ansi_color'} = 1;
-        $data{'system'}{'start'}{'showbanner'} = 1;
-
-        my $stdin_mode = 1;
-        ## process command line arguments ###
-        $data{'system'}{'console-mode'} //= 0;
-        foreach my $arg (@ARGV) {
-            $stdin_mode = 0 if $arg =~ m|^[^\-]|;
-            if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
-                $data{'system'}{'verbosity'}{'console'}
-                    = length( ${^CAPTURE}[0] );
-                my $vis       = ${^CAPTURE}[1] // '';
-                my $visualize = $data{'base'}{'harmony'}{'visualize'}
-                    //= { 'zulum' => 0, 'harmony' => 0, 'disharmony' => 0 };
-                $visualize->{'harmony'}    = 1 if $vis =~ m|h|;
-                $visualize->{'zulum'}      = 1 if $vis =~ m|z|;
-                $visualize->{'disharmony'} = 1 if $vis =~ m|d|;
-            }
-            if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 1 }
-            if ( $arg eq qw| -stdin | ) {
-                $data{'system'}{'startup_initcode'} = 1;
-                $data{'system'}{'console-mode'} = 0;   ## LLL: more conditions
-            }
-            if ( $arg eq qw| -console | ) {
-                $data{'system'}{'console-mode'} = 1;
-                $code{'log.error'}->('<< in console mode >>');
-            }
-            if ( $arg eq qw| -c | ) {
-                $data{'system'}{'ansi_color'}   = 1;
-                $data{'system'}{'force-colors'} = 1;
-            }
-            if ( $arg eq qw| -nc | ) {
-                $data{'system'}{'ansi_color'}   = 0;
-                $data{'system'}{'force-colors'} = 0;
-            }
-            if ( $arg eq qw| -nb | ) {
-                $data{'system'}{'start'}{'showbanner'} = 0;
-            }
-            if ( $arg =~ m|^-N(.+)$| ) {
-                $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
-            } elsif ($stdin_mode) {
-                $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
-            }
-            if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'p7' zenka
-                $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
-            }
-            if ( $arg eq qw| -use-http-src | ) {
-                $data{'system'}{'use_http_source'} = 1;
-            }
-            if ( $arg eq qw| -export-core-subs | ) {
-                $code{'dump_core_subs'}->();
-                exit(0);
-            }
-        }
-
-        ## setting log prefix width values \ defaults ##
-        $data{'system'}{'start'}{'log_prefix_width'}
-            = &{ $code{'base.get_start_lpw'} };
-        $data{'system'}{'zenka'}{'log_prefix_width'}
-            //= $data{'system'}{'start'}{'log_prefix_width'};
-
-        ### load zenka code from stdin ###
-        $data{'system'}{'path'}{'rel'}{'cur_zenka_cfg'} = qw| <STDIN> |
-            if $stdin_mode;
-
-        ## prepare zenka name column width and color mode pipe override ###
-        if ( not defined $code{'base.term.size'}->(*STDIN) ) {
-            $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
-        }
-        if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
-            $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
-        }
-        if ( not defined $code{'base.term.size'}->(*STDERR) ) {
-            $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
-        } else {
-            $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
-        }
-        ##
-        map {
-            if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
-                $data{'system'}{'term'}{'colors'}{$ARG}
-                    = $data{'system'}{'ansi_color'}
-                    = $data{'system'}{'force-colors'} // 0;
-            } else {
-                $data{'system'}{'term'}{'colors'}{$ARG}
-                    = $data{'system'}{'ansi_color'} // 1;
-            }
-        } qw| stdout stderr |;
-        $data{'system'}{'ansi_color'} //= 1;
-        ##
-
-        ## defining console ansi colors ###
-        if ( $data{'system'}{'ansi_color'} ) {
-            %ANSI = (
-                qw| B00 |      => "\e[48;2;0;0;17m",
-                qw| B01 |      => "\e[48;2;9;5;24m",
-                qw| B02 |      => "\e[48;2;9;5;42m",
-                'p7_fg_0000'   => "\e[38;2;68;39;172m",
-                'p7_fg_0001'   => "\e[38;2;38;46;153m",
-                'p7_fg_0002'   => "\e[38;2;197;141;7m",
-                'p7_fg_0003'   => "\e[38;2;71;185;6m",
-                'p7_fg_0004'   => "\e[38;2;6;71;195m",
-                'bold'         => "\e[1m",
-                'reset'        => "\e[0m",
-                'clear_screen' => "\e[H\c[[2J"
-            );
-        } else {
-            %ANSI = (
-                qw| B00 |      => '',
-                qw| B01 |      => '',
-                qw| B02 |      => '',
-                'p7_fg_0000'   => '',
-                'p7_fg_0001'   => '',
-                'p7_fg_0002'   => '',
-                'p7_fg_0003'   => '',
-                'p7_fg_0004'   => '',
-                'bold'         => '',
-                'reset'        => '',
-                'clear_screen' => "\c[[H\c[[2J"
-            );
-        }
-        ## prepare for stripping ansi from output ##
-        $data{'base'}{'ansi_re'} = join(
-            '|',
-            map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A } # \1?
-                keys %ANSI
-        );
-        ## global name variables ## set variable-watcher to update them [LLL]
-        $NODE_NAME     = $data{'system'}{'node'}{'name'};
-        $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
-        $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
-        ## initializing console output ##
-        print STDERR $ANSI{'p7_fg_0002'};
-
-        my $start_string = qw| \\ |;
-        ## nailara start-up banner ##
-        {
-            my $prefix = '';
-            ( my $x, my $y ) = $code{'base.term.size'}->();
-            my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
-            my $show_banner_mode = 0;
-            my $center_xy        = 0;
-            if ( @ARGV ~~ m{(^| )-show-banner( |$)} ) {
-                $show_banner_mode = 1;
-                $center_xy        = 1 if @ARGV ~~ m{(^| )-center( |$)};
-                ( $x, $y ) = @{^CAPTURE}
-                    if @ARGV ~~ m{(^| )-size=(\d+)x(\d+)( |$)};
-                if ($center_xy) {
-                    ## center-y ##
-                    $y_offset += $y > 7 ? int( ( $y - 8 ) / 2 ) : 0;
-                    print "\n" x $y_offset;
-                    ## center-x ##
-                    my $x_offset += $x > 74 ? int( ( $x - 78 ) / 2 ) : 0;
-                    $prefix = ' ' x $x_offset;
-                }
-            }
-            my $spaces = '';
-            if (   $data{'system'}{'verbosity'}{'console'}
-                && $data{'system'}{'start'}{'showbanner'}
-                or $show_banner_mode ) {
-                say $prefix, $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
-                    $start_string,
-                    , $ANSI{'B00'},
-                    ' ' x 77, $ANSI{'B02'} . $ANSI{'p7_fg_0000'}, qw| / |,
-                    $ANSI{'reset'};
-                ## centered-xy ## ..,
-                $code{'base.banner'}->($prefix);
-                print "\n" x $y_offset if $show_banner_mode and $y_offset;
-                exit(0)                if $show_banner_mode;
-            } else {
-                my $lpw = $data{'system'}{'zenka'}{'log_prefix_width'};
-                $spaces = ' ' x int( 68 - $lpw );
-            }
-            $code{'log.noerr'}->( qw| .\\7 | . $spaces );
-        }
-        ## initializing early zenka buffer capture ###
-        $data{'system'}{'start'}{'zenka-buffer'} = [];
-        my $s_version = $data{'protocol-7'}{'src-ver'};
-        my $tenki
-            = length($s_version) > ( length("zenka $ZENKA_NAME") )
-            ? sprintf ' %s,',
-            '.' x ( length($s_version) - length("zenka $ZENKA_NAME") - 1 )
-            : '';
-        map { push( @{ $data{'system'}{'start'}{'zenka-buffer'} }, $ARG ) } (
-            $code{'base.anum_log_time'}->()
-                . sprintf( ' 0 . startup zenka %s%s', $ZENKA_NAME, $tenki ),
-            $code{'base.anum_log_time'}->()
-                . sprintf( ' 0 . version %s', $s_version )
-        );
-    };
-
-    $code{'base.strip_ansi'} = sub {
-        my $scalar_ref = shift;
-        return if !$data{'system'}{'ansi_color'};
-        $$scalar_ref =~ s,$data{base}{ansi_re},,g;
-    };
-
-    $code{'base.banner'} = sub {
-        my $px = shift // '';
-
-        ##  protocol-7 sourcecode version  ##
-        my $version_str = sprintf 'protocol-7 srccode ver. : %s',
-            $data{'protocol-7'}{'src-ver'};
-
-        ## AMOS release version ##
-        my $release_str = sprintf 'release ver. : %s',
-            $data{'protocol-7'}{'rel-ver'};
-
-        open( my $banner_file_fh,
-            catfile( $data{'system'}{'conf_path'}, qw| .banner | ) )
-            or return;
-
-        local $RS = undef;    ## slurp mode ##
-        my $nailara_header = <$banner_file_fh>;
-
-        close($banner_file_fh);
-
-        my $bg_0 = $ANSI{'B02'};
-        my $bg_1 = $ANSI{'B00'};
-        my $fg   = $ANSI{'p7_fg_0000'};
-        my $rst  = $ANSI{'reset'};
-        map {
-            say $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1,
-                ' ',
-                $bg_0, $fg, ' ', $rst, "\r"
-            }
-            split( m|\n|, $nailara_header );
-        say $px, $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst,
-            "\n",
-            $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1,
-            '    ',
-            $bg_0, $fg, $release_str, $bg_1, ' ', $bg_0 . $fg, ' ', $rst,
-            "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
-            $rst,
-            "\r";
-    };
-
-    $code{'base.read_from_version_file'} = sub {
-        my $version_file    = shift;
-        my $version_content = qw| UNKNOWN |;
-        if (    defined $version_file
-            and -e $version_file
-            and open( my $ver_fh, qw|<|, $version_file ) ) {
-            while ( my $line = <$ver_fh> ) {
-                $line =~ s|#.+$||;
-                $line =~ s|\s||g;
-                next if not length $line;
-                $version_content = $line;
-                last;
-            }
-            close($ver_fh);
-        }
-        return $version_content;
-    };
-
-    $code{'base.caller.get_package_name'} = sub {
-        my $file = shift;
-        my $line = shift;
-        if ( not defined $file ) {
-            warn 'file param is not defined <{C1}>';
-            return undef;
-        } elsif ( not defined $line ) {
-            warn 'line param is not defined <{C1}>';
-            return undef;
-        }
-        my $caller_lvl = 0;
-        while ( my @caller_params = eval { caller( ++$caller_lvl ) }
-            and not length $EVAL_ERROR ) {
-            if ($caller_params[2] == $line
-                and (  $caller_params[1] eq $file
-                    or $caller_params[3] eq $file )
-            ) {
-                ## returning package, subroutine in list context ##
-                return ( $caller_params[0], $caller_params[3] ) if wantarray;
-                ## returning package name in scalar context ##
-                return $caller_params[0];
-            }
-        }
-        return undef;    ##[ no match ]##
-    };
-
-    $code{'base.format_error'} = sub {
-        my $err_msg = shift // qw| :undef: |;
-        my $c_lvl   = shift // 1;
-        my ( $caller_str, $file, $line );
-        $err_msg =~ s|\n$||;
-
-        while ( $err_msg =~ s| at (\S+) line (\d+).*$|| ) {
-            ( $file, $line ) = @{^CAPTURE};
-        }
-        while ( $err_msg =~ s, ?\[([^\[]+):(\d+)\](( )|$),$3, ) {
-            ( $file, $line ) = @{^CAPTURE};
-        }
-
-        $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
-        $err_msg =~ s|"\s|' |g;
-        $err_msg =~ s|\s"| '|g;
-        $err_msg =~ s|\s+BEGIN failed.+$||sg;
-        $err_msg =~ s|(\S+(*nlb::)):(*pla: )|$LAST_PAREN_MATCH :|g;
-
-        $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
-
-        my @package;
-        if ( defined $file ) {
-            if (    defined $data{'code'}{$file}
-                and defined $data{'code'}{$file}{'moved_to'} ) {
-                ## sub renamed ? ##
-                $file = $data{'code'}{$file}{'moved_to'};
-                ## check where the old caller string comes from ##  [LLL]
-            } else {
-                $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
-            }
-            @package
-                = $code{'base.caller.get_package_name'}->( $file, $line );
-            $caller_str = sprintf '[%s:%d]', $file, $line;
-            $err_msg .= sprintf( ' %s', $caller_str ) if $c_lvl >= 0;
-        }
-        $err_msg =~ s,use of ,,g;
-        $err_msg =~ s,no success on ,,g;
-        $err_msg =~ s,(can't|unable to),cannot,g;
-        $err_msg =~ s|^warning : something's wrong$|:undef:|g;
-        $err_msg =~ s|^uninitialized value in warn$|:undef:|g;
-        $err_msg =~ s|uninitialized value|undef value|g;
-        $err_msg =~ s|argument in sprintf|sprintf argument|g;
-        $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
-        $err_msg =~ s|cannot use (an )?||g;
-        $err_msg =~ s|(*plb: as )a ||g;
-
-        ## check previously seen subroutine names ##
-        if (index( $err_msg, 'undefined value as subroutine reference', 0 )
-            >= 0
-            and defined $data{'base'}{'subroutines'}{'referenced'}
-            and defined $file
-            and defined $line ) {
-            my $sub_list_href = $data{'base'}{'subroutines'}{'referenced'};
-            foreach my $subname ( keys $sub_list_href->%* ) {
-                my $matched_href = $sub_list_href->{$subname};
-                if ( defined $matched_href->{$line}->{$file} ) {
-                    $err_msg = sprintf    ## using an 'educated' guess here ##
-                        'protocol-7 subroutine %s not defined',  ## <{NC}>? ##
-                        $subname;
-                    ## $err_msg .=
-                    ## sprintf( ' %s', $caller_str ) if $c_lvl != -1; ## ? ##
-                }
-            }
-        }
-        if (wantarray) {
-            my $force_caller = 0;
-            if ( $c_lvl < -1 ) {
-                ++$c_lvl;
-                $force_caller = 5;    ## true ##
-            }
-            if ( $c_lvl != -1 or $force_caller ) {
-                my @caller_params = $code{'base.caller'}->( abs($c_lvl) );
-                ( $file, $line, @package ) = @caller_params;
-                $caller_str = sprintf '[%s:%d]', $file, $line;
-            }
-            return ( $err_msg, $caller_str, $file, $line, @package );
-        } else {
-            return $err_msg;    ## scalar context ##
-        }
-    };
-
-    $code{'base.caller'} = sub {
-        my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
-        $c_lvl++;                  ## <-- accounting for this subroutine ##
-        my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
-        if ( not defined $filename ) {
-            return sprintf( "[ caller level too high : %03d ]", $c_lvl );
-        } else {
-            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
-            return ( $filename, $line, $package, $subroutine ) if wantarray;
-            return "[$filename:$line]";
-        }
-    };
-
-    $code{'dump_core_subs'} = sub {
-        my %core_subs;
-        my $bin_path = $data{'system'}{'start'}{'exec_name'};
-        open( my $p7_fh, $bin_path ) or die "$bin_path : \l$OS_ERROR\n";
-        my %sub_src;
-        my $sub_name;
-        foreach my $src_line (<$p7_fh>) {
-            $sub_name = undef
-                if defined $sub_name and $src_line =~ m|^\s*};\s*(#.*)?\n$|;
-            if ( defined $sub_name ) {
-                $sub_src{$sub_name} //= [];
-                push( @{ $sub_src{$sub_name} }, $src_line );
-            }
-            my $code_re = qr|\s*\$code\{\'([^\']+)\'\}\s*|;
-            $sub_name = ${^CAPTURE}[0]
-                if $src_line =~ m|^$code_re=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
-        }
-        print "\n";
-        close($p7_fh);
-        foreach my $sub_name (
-            sort { length $a <=> length $b }
-            sort keys %sub_src
-        ) {
-            print "\n#  .::[ $sub_name ]:.\n#  ::\n";
-            foreach my $sub_line ( @{ $sub_src{$sub_name} } ) {
-                print $sub_line;
-            }
-            print "\n#  .\n#  ::.\n";
-
-        }
-        exit;
-    };
-
-    # [LLL] callback registry [ for skipping purging ]
-    $code{'base.purge_code'} = sub {
-        my $code_name   = shift;
-        my $purge_count = 0;
-        my @zenka_commands;
-        map {
-            if (    $ARG !~ m{\.(callback|handler)\.}
-                and not exists $data{'base'}{'core_subs'}{$ARG}
-                and $ARG ne qw|  base.log       |
-                and $ARG ne qw|  base.logs      |
-                and $ARG ne qw|  base.sort      |
-                and $ARG ne qw|  base.gen_id    |
-                and $ARG ne qw|  base.caller    |
-                and $ARG ne qw|  base.s_read    |
-                and $ARG ne qw|  base.s_write   |
-                and $ARG ne qw|  base.sig_int   |
-                and $ARG ne qw|  base.cfg_bool          |
-                and $ARG ne qw|  base.sprint_t          |
-                and $ARG ne qw|  base.sig_warn          |
-                and $ARG ne qw|  base.route.add         |
-                and $ARG ne qw|  base.format_error      |
-                and $ARG ne qw|  base.context.list      |
-                and $ARG ne qw|  base.clean_unicode     |
-                and $ARG ne qw|  base.clean_up_caller   |
-                and $ARG ne qw|  base.buffer.add_line   |
-                and $ARG ne qw|  base.balanced-average  |
-                and $ARG ne qw|  base.list.element.add  |
-                and $ARG ne qw|  v7.handler.zenka_output             |
-                and $ARG ne qw|  base.utf8.decode_clean              |
-                and $ARG ne qw|  base.utf8.clean_not_valid           |
-                and $ARG ne qw|  base.log.send_buffer_line           |
-                and $ARG ne qw|  base.log.handler.log_reply          |
-                and $ARG ne qw|  base.read_from_version_file         |
-                and $ARG ne qw|  base.session.calc_cmd_stats         |
-                and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
-                ++$purge_count
-                    and $data{'code'}{$ARG}{'status'} = qw| purged |
-                    and
-                    eval { undef &{ delete $code{$ARG} } }; #<-- improve [LLL]
-
-                #  #[ debug ]##
-                #     and $code{$ARG} = eval "sub { print STDERR \"\n"
-                #                      ." MISSING '$ARG'\n\n\" }";
-
-                push( @zenka_commands, ${^CAPTURE}[0] )
-                    if $ARG =~ m|\.cmd\.(.+)$|;
-                --$purge_count if $EVAL_ERROR;
-            } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
-                ##  kept \ essential  ##
-                $data{'code'}{$ARG}{'status'} = qw| leftover |;
-            }
-            }
-            grep {m|^$code_name(\..+)?$|} keys %code;
-        map {
-            delete $data{'base'}{'cmd'}{$ARG};
-            delete $data{'base'}{'commands'}{'cmd'}{$ARG};
-        } @zenka_commands;
-        return $purge_count;
-    };
-
-    $code{'base.parser.ellipse_center'} = sub {
-        my $str_param = shift;
-        my $len_param = shift;
-        die 'expected string and maximum length [>=5] parameters'
-            if not defined $str_param
-            or not defined $len_param
-            or $len_param =~ m|^\d+$| and $len_param < 5;
-
-        my $by_reference = ref($str_param) eq qw| SCALAR | ? 1 : 0;
-        my $str_ref      = $by_reference ? $str_param          : \$str_param;
-        my $str_len      = length($$str_ref);
-        my $start_pos    = int( $len_param / 2 ) - 1;
-        my $chars_cut    = $str_len - $len_param + 3;
-
-        return 0          if $by_reference and $str_len <= $len_param;
-        return $str_param if $str_len <= $len_param;
-        return $str_len - $len_param if $by_reference;
-
-        substr( $$str_ref, $start_pos, $chars_cut, '.,.' );
-        return $$str_ref;
-    };
-    $code{'base.code.file_list'} = sub {
-        my $codedir_fh;
-        $data{'base'}{'modules'}{'load_errors'} //= 0;
-        if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
-            $data{'base'}{'modules'}{'load_errors'}++;
-            $code{'log.error'}->(
-                ': cannot open source code directory'
-                    . sprintf " '%s' [ %s ]",
-                $data{'system'}{'code_path'},
-                $code{'base.format_error'}->($OS_ERROR)
-            );
-            return undef;
-        }
-        my @subroutine_names = sort { length $a <=> length $b }
-            sort grep { !m|^\.| } readdir($codedir_fh);
-        closedir($codedir_fh);
-        return @subroutine_names;
-    };
-
-    $code{'base.code.sort_filter'} = sub {
-        my @filtered_subroutines;
-        my @subroutine_names = @ARG;
-        my %subroutines      = map { $ARG => 0 } @subroutine_names;
-        my $occurrence       = 0;
-
-        ## unique filter ##
-        my $subs_skipped = 0;
-        my %sub_is_present;
-        map {
-            if ( not exists $sub_is_present{$ARG} ) {
-                push( @filtered_subroutines, $ARG )
-                    and ++$sub_is_present{$ARG};
-            } else {
-                $subs_skipped++;
-            }
-        } @subroutine_names;
-
-        $code{'log.debug'}->(": :. skipped identical .: $subs_skipped ::")
-            if $subs_skipped;   ## increase level when case addressed ## [LLL]
-
-        ## .., ## [LLL] implement code dependency tree ..,
-
-        return @filtered_subroutines;
-    };
-
-    $code{'base.httpc.remote_file'} = sub {
-
-        $data{'base'}{'warned'}{'http_src_deactivated'} //= 0;
-        warn 'source loading over http has been temporarely deactivated'
-            if !$data{'base'}{'warned'}{'http_src_deactivated'}++;
-
-        return undef;    ## feature temporarely deactivated ##
-
-        return undef if !( $data{'system'}{'use_http_source'} // 1 );
-        my $http_retries = $data{'system'}{'http_src_retries'} // 4;
-        eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
-        $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
-        warn "<< 'HTTP::Tiny' pmod. not found"
-            . " [ yet in cubelist ] [ $EVAL_ERROR ] >>"
-            and return undef
-            if $EVAL_ERROR;
-        $data{'system'}{'http_reqs'}++;
-        my $file_name = shift // '';
-        my $base_urls = shift // ['https://nailara.network/sourcecode/'];
-        warn 'expected http file name' and return undef
-            if !length($file_name);
-        warn 'expected array ref to base urls' and return undef
-            if ref($base_urls) ne qw| ARRAY | or !@{$base_urls};
-        ####
-        $OUTPUT_AUTOFLUSH = 1;
-        foreach my $http_base_url ( @{$base_urls} ) {
-            my $abs_url = join( '/', $http_base_url, $file_name );
-            $abs_url =~ s|//$file_name$|/$file_name|;
-            my $h_res;
-            my $retries      = $data{'system'}{'http_retries_total'} //= 0;
-            my $retries_left = $http_retries;
-            while ( $retries_left-- ) {
-                my $r = $retries ? "[$retries\\$http_retries]" : '';
-                ( my $msg_url = $abs_url )
-                    =~ s|^(\w+)://|<$LAST_PAREN_MATCH> |;
-                my $len
-                    = length( $data{'system'}{'zenka'}{'name'} )
-                    + length( $data{'system'}{'host'}{'hostname'} // '' );
-                $len = 26 if $len < 27;
-
-                my $w_len
-                    = 95 - $len
-                    - (
-                          length( $data{'system'}{'node'}{'name'} )
-                        + length( $data{'system'}{'zenka'}{'name'} ) );
-
-                $code{'base.parser.ellipse_center'}->( \$msg_url, $w_len )
-                    if defined $msg_url;
-
-                $msg_url =~ s| | : |;
-                my $m_len    = length($msg_url);
-                my $last_len = $data{'base'}{'httpc'}{'last_mlen'};
-                $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 13;
-                my $s     = ' ' x $last_len;
-                my $m_str = "\r$s\r: $msg_url.,";
-                print "\r$m_str\r"
-                    if $data{'system'}{'verbosity'}{'console'} == 1;
-                $code{'log.debug'}->(":$r: $msg_url")
-                    if $retries_left != $retries;
-                my $h_obj = $data{'base'}{'httpc'}{'obj'}
-                    //= HTTP::Tiny->new( 'timeout' => 7 );
-                $h_res = $h_obj->get($abs_url);
-                my $h_code = $h_res->{'status'};
-
-                if ( not $h_res->{'success'} ) {
-                    my $r_str = $EVAL_ERROR ? " < $EVAL_ERROR >" : '';
-                    goto skiplog_httpmsg;
-                    $code{'log.debug'}->(
-                        sprintf(
-                            ":[ %d ] %s : [ %s ]%s",
-                            $h_code, $abs_url, $h_res->{'reason'}, $r_str
-                        )
-                    );
-                skiplog_httpmsg:
-                    if ( $h_code == 404 or $h_code eq 599 ) {
-                        $retries_left = 0;
-                        $code{'log.noerr'}->( ":: aborting retries ["
-                                . " after first $h_code code ] ::" );
-                        return undef;
-                    } else {    ## client side rate limiting ## [???]
-                        my $randomized_delay = 0.13 + rand(
-                            0.777 * ++$data{'system'}{'http_retries_total'} );
-                        $code{'base.sleep'}->($randomized_delay);
-                    }
-                    next;
-                }
-                if ( $h_code == 200 and length $h_res->{'content'} ) {
-                    return $h_res->{'content'};
-                } else {
-                    warn "<< failed to acquire http file '$file_name' >>";
-                    return undef;
-                }
-            }
-        }
-        $OUTPUT_AUTOFLUSH = 0;
-    };
-
-    $code{'base.chk_nlr_path'} = sub {    ## LLL: reduce calls \ exposure .,
-        my $chk_path = shift // '';
-        my $d_aref   = shift // [qw| ext/ / |];
-        my $base_dir = shift // $data{'system'}{'root_path'} // '';
-        die 'no base_dir defined'        if not length $base_dir;
-        die 'chk_path argument expected' if not length $chk_path;
-        die 'expected array ref as second argument'
-            if ref($d_aref) ne qw| ARRAY |;
-
-        if ( $data{'system'}{'use_http_source'} ) {
-            return $chk_path
-                if
-                exists $data{'base'}{'httpc'}{'remote_source'}->{$chk_path};
-            ## else | not exists ###
-            warn "<< remote source file not found : $chk_path >> <{C1}>";
-            return undef;
-        }
-        my $f_path;
-        foreach my $chk_parent ( $d_aref->@* ) {
-            $f_path
-                = canonpath catfile( catfile( $base_dir, $chk_parent ),
-                $chk_path );
-            ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
-            return $path_str if defined $f_path and -r $f_path;
-        }
-        $data{'modules'}{'warned'}{$f_path} //= {}; # <-- clean-up later..,LLL
-        my $reason
-            = ( -l $f_path and !-r readlink $f_path ) ? 'readable' : 'found';
-        warn "<< source not $reason : '$chk_path' >> <{C1}>"
-            if not $data{'modules'}{'warned'}{$f_path}++;
+    if ( $EVAL_ERROR or !length( $ntime_dec // '' ) ) {
+        my $caller_str = [caller]->[1] . ':' . [caller]->[2];
+        $code{'log.debug'}->( 'network time decoding error'
+                . " [\"$network_time\"] \\ $caller_str" );
         return undef;
-    };
+    }
+    return $ntime_dec;
+}
 
-    $code{'base.source_path_valid'} = sub {
-        my $src_file_rel = shift // '';
-        warn 'no file name supplied' if !length($src_file_rel);
-        my $src_remote = $data{'base'}{'httpc'}{'remote_source'} // {};
-        ## ignored ##
-        return 0
-            if !length($src_file_rel)
-            or $src_file_rel =~ m,~$|\.orig$|\.LOG$,;
-        ## remote ##
-        return 1
-            if $data{'system'}{'use_http_source'}
-            and exists $src_remote->{$src_file_rel};
-        ## local ##
-        my $src_abs_path = abs_path(
-            catfile( $data{'system'}{'root_path'}, $src_file_rel ) );
-        return 1
-            if defined $src_abs_path
-            and ( -f $src_abs_path
-            or -l $src_abs_path and -f readlink($src_abs_path) );
-        warn "<< no match : $src_abs_path >> <{C1}>";
-        return 0;    # <-- no match.
-    };
+##############################################################################
 
-    $code{'base.referenced_subroutines.add'} = sub {
-        my $code_name       = shift;
-        my $sub_source_sref = shift;
+sub p7_choose_true_pid {
 
-        state $sub_name_re = qr|\w\d\-\.|;
+    local $SIG{'CHLD'} = qw| IGNORE |;
 
-        if ( not defined $code_name ) {
-            warn 'expected subroutine source name <{C1}>';
-            return undef;
-        } elsif ( ref $sub_source_sref ne qw| SCALAR | ) {
-            warn 'expected subroutine source reference <{C1}>';
-            return undef;
+    $data{'system'}{'start'}{'fork-count'} //= 0;
+    local $data{'system'}{'verbosity'}{'console'}      = 1;
+    local $data{'system'}{'verbosity'}{'zenka_buffer'} = 1;
+    ## choose as TRUE asserted PID by forking ##
+    my $fork_start_time = sprintf( "%.5f", &{ $code{'base.time'} } );
+    local $data{'system'}{'start'}{'zenka_buffer'} = 1;
+    while ( not $code{'base.assert.harmony'}->($PID) ) {
+        $data{'system'}{'start'}{'fork-count'}++;
+        my $new_pid = fork();
+        last    if not defined $new_pid;    ## cannot fork ##
+        exit(0) if $new_pid != 0;
+    }
+    $data{'system'}{'start-up'}{'fork-duration'}
+        = $data{'system'}{'start'}{'fork-count'}
+        ? sprintf( qw| %.5f |, $code{'base.time'}->() - $fork_start_time )
+        : 0;
+}
+
+##############################################################################
+
+sub p7_chk_nlr_path {    ## LLL: reduce calls \ exposure .,
+
+    my $chk_path = shift // '';
+    my $d_aref   = shift // [qw| ext/ / |];
+
+    my $base_dir = shift // $data{'system'}{'root_path'} // '';
+    die 'no base_dir defined'        if not length $base_dir;
+    die 'chk_path argument expected' if not length $chk_path;
+    die 'expected array ref as second argument'
+        if ref($d_aref) ne qw| ARRAY |;
+
+    if ( $data{'system'}{'use_http_source'} ) {
+        return $chk_path
+            if exists $data{'base'}{'httpc'}{'remote_source'}->{$chk_path};
+        ## else | not exists ###
+        warn "<< remote source file not found : $chk_path >> <{C1}>";
+        return undef;
+    }
+    my $f_path;
+    foreach my $chk_parent ( $d_aref->@* ) {
+        $f_path
+            = canonpath catfile( catfile( $base_dir, $chk_parent ),
+            $chk_path );
+        ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
+        return $path_str if defined $f_path and -r $f_path;
+    }
+    $data{'modules'}{'warned'}{$f_path} //= {};    # <-- clean-up later..,LLL
+    my $reason
+        = ( -l $f_path and !-r readlink $f_path ) ? 'readable' : 'found';
+    warn "<< source not $reason : '$chk_path' >> <{C1}>"
+        if not $data{'modules'}{'warned'}{$f_path}++;
+    return undef;
+}
+
+##############################################################################
+
+sub p7_source_path_valid {
+
+    my $src_file_rel = shift // '';
+
+    warn 'no file name supplied' if !length($src_file_rel);
+    my $src_remote = $data{'base'}{'httpc'}{'remote_source'} // {};
+    ## ignored ##
+    return 0
+        if !length($src_file_rel)
+        or $src_file_rel =~ m,~$|\.orig$|\.LOG$,;
+    ## remote ##
+    return 1
+        if $data{'system'}{'use_http_source'}
+        and exists $src_remote->{$src_file_rel};
+    ## local ##
+    my $src_abs_path
+        = abs_path( catfile( $data{'system'}{'root_path'}, $src_file_rel ) );
+    return 1
+        if defined $src_abs_path
+        and ( -f $src_abs_path
+        or -l $src_abs_path and -f readlink($src_abs_path) );
+    warn "<< no match : $src_abs_path >> <{C1}>";
+    return 0;    # <-- no match.
+}
+
+##############################################################################
+
+sub p7_referenced_subroutines__add {
+
+    my $code_name       = shift;
+    my $sub_source_sref = shift;
+
+    state $sub_name_re = qr|\w\d\-\.|;
+
+    if ( not defined $code_name ) {
+        warn 'expected subroutine source name <{C1}>';
+        return undef;
+    } elsif ( ref $sub_source_sref ne qw| SCALAR | ) {
+        warn 'expected subroutine source reference <{C1}>';
+        return undef;
+    }
+
+    my $sub_sourcecode = $sub_source_sref->$*;
+    $sub_sourcecode =~ s|#[^\n]+$||mg;    ## <-- improve ##  [LLL]
+
+    my @source_lines = split "\n", $sub_sourcecode;
+
+    $data{'base'}{'subroutines'}{'referenced'} //= {};
+    my $src_linenum = 0;
+    foreach my $source_line (@source_lines) {
+        $src_linenum++;
+        while ( $source_line =~ s|\$code\{'([$sub_name_re]+)'}|| ) {
+            my $subroutine = $LAST_PAREN_MATCH;
+            ## track where it was found ##
+            $data{'base'}{'subroutines'}{'referenced'}->{$subroutine}
+                ->{$src_linenum}->{$code_name}++;
         }
+    }
+}
 
-        my $sub_sourcecode = $sub_source_sref->$*;
-        $sub_sourcecode =~ s|#[^\n]+$||mg;    ## <-- improve ##  [LLL]
+##############################################################################
 
-        my @source_lines = split "\n", $sub_sourcecode;
+sub p7_referenced_subroutines__clear_found {
 
-        $data{'base'}{'subroutines'}{'referenced'} //= {};
-        my $src_linenum = 0;
-        foreach my $source_line (@source_lines) {
-            $src_linenum++;
-            while ( $source_line =~ s|\$code\{'([$sub_name_re]+)'}|| ) {
-                my $subroutine = $LAST_PAREN_MATCH;
-                ## track where it was found ##
-                $data{'base'}{'subroutines'}{'referenced'}->{$subroutine}
-                    ->{$src_linenum}->{$code_name}++;
-            }
+    state $clean_found = 1;    ## for later ##
+
+    return -1 if not $clean_found;    ## keep them ##
+
+    my $removed = 0;
+    return $removed
+        if ref $data{'base'}{'subroutines'}{'referenced'} ne qw| HASH |
+        or not keys $data{'base'}{'subroutines'}{'referenced'}->%*;
+    map {
+
+        ++$removed    ## remove all that are found to be loaded ##
+            and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
+            if defined $code{$ARG}
+
+    } uniq $code{'base.sort'}
+        ->( $data{'base'}{'subroutines'}{'referenced'} );
+
+    return $removed;
+}
+
+##############################################################################
+
+sub p7__dump_core_subs {
+
+    my %core_subs;
+    my $bin_path = $data{'system'}{'start'}{'exec_name'};
+    open( my $p7_fh, $bin_path ) or die "$bin_path : \l$OS_ERROR\n";
+    my %sub_src;
+    my $sub_name;
+    foreach my $src_line (<$p7_fh>) {
+        $sub_name = undef
+            if defined $sub_name and $src_line =~ m|^\s*};\s*(#.*)?\n$|;
+        if ( defined $sub_name ) {
+            $sub_src{$sub_name} //= [];
+            push( @{ $sub_src{$sub_name} }, $src_line );
         }
-    };
+        my $code_re = qr|\s*\$code\{\'([^\']+)\'\}\s*|;
+        $sub_name = ${^CAPTURE}[0]
+            if $src_line =~ m|^$code_re=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
+    }
+    print "\n";
+    close($p7_fh);
+    foreach my $sub_name (
+        sort { length $a <=> length $b }
+        sort keys %sub_src
+    ) {
+        print "\n#  .::[ $sub_name ]:.\n#  ::\n";
+        foreach my $sub_line ( @{ $sub_src{$sub_name} } ) {
+            print $sub_line;
+        }
+        print "\n#  .\n#  ::.\n";
 
-    $code{'base.referenced_subroutines.clear_found'} = sub {
+    }
+    exit;
+}
 
-        state $clean_found = 1;    ## for later ##
+##############################################################################
 
-        return -1 if not $clean_found;    ## keep them ##
+sub p7_load_code {
 
-        my $removed = 0;
-        return $removed
-            if ref $data{'base'}{'subroutines'}{'referenced'} ne qw| HASH |
-            or not keys $data{'base'}{'subroutines'}{'referenced'}->%*;
-        map {
+    my ( $file, $code_name );
 
-            ++$removed    ## remove all that are found to be loaded ##
-                and delete $data{'base'}{'subroutines'}{'referenced'}->{$ARG}
-                if defined $code{$ARG}
+    my $base = 0;    ## loading 'base' first ##
+    map { $base = 1 if $ARG eq qw| base | } @ARG;
+    my @module_names = sort { length $a <=> length $b } reverse sort
+        grep { !m|^base$| } uniq @ARG;
+    unshift( @module_names, qw| base | ) if $base;
 
-        } uniq $code{'base.sort'}
-            ->( $data{'base'}{'subroutines'}{'referenced'} );
-        return $removed;
-    };
+    $data{'callbacks'}{'end_code'} //= [];
 
-    $code{'base.load_code'} = sub {
-        my ( $file, $code_name );
+    map { $code{'plugins.status'}->{$ARG}->{'load_errors'} = 0 }
+        grep {m|^plugin\.|} @module_names;
 
-        my $base = 0;    ## loading 'base' first ##
-        map { $base = 1 if $ARG eq qw| base | } @ARG;
-        my @module_names = sort { length $a <=> length $b } reverse sort
-            grep { !m|^base$| } uniq @ARG;
-        unshift( @module_names, qw| base | ) if $base;
+    ## http source ### ..,/.v7/file-list
+    my $base_url_aref = $data{'system'}{'http_src_base_urls'};
+    my @http_src_base_urls
+        = ref($base_url_aref) eq qw| ARRAY |
+        ? @{$base_url_aref}
+        : qw|
+        http://nailara.network/sourcecode
+        http://src.v7.ax/nailara/
+        |;
 
-        $data{'callbacks'}{'end_code'} //= [];
+    my $src_from_http = (
+        ( $data{'system'}{'use_http_source'} // 0 )
+            or !-r $data{'system'}{'code_path'}
+            and not( $data{'system'}{'no_http_source'} // 0 )
+    ) ? 1 : 0;
 
-        map { $code{'plugins.status'}->{$ARG}->{'load_errors'} = 0 }
-            grep {m|^plugin\.|} @module_names;
+    $code{'log.error'}->( '< not readable > ' . $data{'system'}{'code_path'} )
+        if $src_from_http
+        and !-r $data{'system'}{'code_path'}
+        and not( $data{'system'}{'use_http_source'} // 0 );
 
-        ## http source ### ..,/.v7/file-list
-        my $base_url_aref = $data{'system'}{'http_src_base_urls'};
-        my @http_src_base_urls
-            = ref($base_url_aref) eq qw| ARRAY |
-            ? @{$base_url_aref}
-            : qw|
-            http://nailara.network/sourcecode
-            http://src.v7.ax/nailara/
-            |;
+    $data{'system'}{'use_http_source'} = $src_from_http;
 
-        my $src_from_http = (
-            ( $data{'system'}{'use_http_source'} // 0 )
-                or !-r $data{'system'}{'code_path'}
-                and not( $data{'system'}{'no_http_source'} // 0 )
-        ) ? 1 : 0;
+    my $c_ref            = $data{'base'}{'source'}{'code_files'} // [];
+    my @subroutine_names = @{$c_ref};
 
-        $code{'log.error'}
-            ->( '< not readable > ' . $data{'system'}{'code_path'} )
-            if $src_from_http
-            and !-r $data{'system'}{'code_path'}
-            and not( $data{'system'}{'use_http_source'} // 0 );
-
-        $data{'system'}{'use_http_source'} = $src_from_http;
-
-        my $c_ref            = $data{'base'}{'source'}{'code_files'} // [];
-        my @subroutine_names = @{$c_ref};
-
-        if ($src_from_http) {
-            $code{'log.error'}->('<<< network source loading enabled >>>')
-                if !@subroutine_names;
-            ##### remote source code access ###
-            my $method = ${^CAPTURE}[0]
-                if $http_src_base_urls[0] =~ m|^(\w+):|;
-            $code{'log.debug'}
-                ->(": reading source file list over $method ..,");
-            my $remote_data_str
-                = $code{'base.httpc.remote_file'}
-                ->( qw| .v7/file-list/base |, \@http_src_base_urls );
-            if ( defined $remote_data_str ) {
-                my $read_len = length($remote_data_str);
-                @subroutine_names = split( m|\n|, $remote_data_str );
-                $data{'base'}{'httpc'}{'remote_source'} = {};
-                map {
-                    $data{'base'}{'httpc'}{'remote_source'}
-                        ->{"base-code/$ARG"}
-                        = 1
-                } @subroutine_names;
-                $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
-            } else {
-                $code{'log.error'}
-                    ->(': no success reading remote source file list .,');
-                $code{'log.noerr'}->(': :');
-                $code{'log.error'}->(': :. terminating startup sequence..,');
-                $code{'log.noerr'}->(':....,');
-                if ( defined $code{'base.exit'} ) {
-                    $code{'base.exit'}->(1);
-                } else {
-                    exit(1);
-                }
-            }
-            ####
+    if ($src_from_http) {
+        $code{'log.error'}->('<<< network source loading enabled >>>')
+            if !@subroutine_names;
+        ##### remote source code access ###
+        my $method = ${^CAPTURE}[0]
+            if $http_src_base_urls[0] =~ m|^(\w+):|;
+        $code{'log.debug'}->(": reading source file list over $method ..,");
+        my $remote_data_str
+            = $code{'base.httpc.remote_file'}
+            ->( qw| .v7/file-list/base |, \@http_src_base_urls );
+        if ( defined $remote_data_str ) {
+            my $read_len = length($remote_data_str);
+            @subroutine_names = split( m|\n|, $remote_data_str );
+            $data{'base'}{'httpc'}{'remote_source'} = {};
+            map {
+                $data{'base'}{'httpc'}{'remote_source'}->{"base-code/$ARG"}
+                    = 1
+            } @subroutine_names;
+            $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
         } else {
-            $code{'log.debug'}->(': reading source list from disk.,');
-            @subroutine_names = $code{'base.code.file_list'}->();
-            my $file_cnt = scalar @subroutine_names;
-            $code{'log.debug'}->(": :. $file_cnt files. [base-code]");
+            $code{'log.error'}
+                ->(': no success reading remote source file list .,');
+            $code{'log.noerr'}->(': :');
+            $code{'log.error'}->(': :. terminating startup sequence..,');
+            $code{'log.noerr'}->(':....,');
+            if ( defined $code{'base.exit'} ) {
+                $code{'base.exit'}->(1);
+            } else {
+                exit(1);
+            }
         }
-        $OUTPUT_AUTOFLUSH = 1;
+        ####
+    } else {
+        $code{'log.debug'}->(': reading source list from disk.,');
+        @subroutine_names = $code{'base.code.file_list'}->();
+        my $file_cnt = scalar @subroutine_names;
+        $code{'log.debug'}->(": :. $file_cnt files. [base-code]");
+    }
+    $OUTPUT_AUTOFLUSH = 1;
 
-        my %module_code_map;
-        my @compile_order = ();
+    my %module_code_map;
+    my @compile_order = ();
 
-        while ( $code_name = shift @module_names ) {
+    while ( $code_name = shift @module_names ) {
 
-            my $src_str = $code_name =~ m|^(.+/)?plugin.| ? '' : ' p7-source';
-            $code{'log.noerr'}->(". loading$src_str : $code_name");
+        my $src_str = $code_name =~ m|^(.+/)?plugin.| ? '' : ' p7-source';
+        $code{'log.noerr'}->(". loading$src_str : $code_name");
 
-            $data{'base'}{'p7_mod'}{'errors'}->{$code_name} = 0;
-            $data{'base'}{'p7_mod'}{'loaded'}->{$code_name} = 0;
+        $data{'base'}{'p7_mod'}{'errors'}->{$code_name} = 0;
+        $data{'base'}{'p7_mod'}{'loaded'}->{$code_name} = 0;
 
-            if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
-                my $s = $purge_count == 1 ? '' : 's';
-                $code{'log.debug'}->(": $purge_count sub$s undefined");
-            }
+        if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
+            my $s = $purge_count == 1 ? '' : 's';
+            $code{'log.debug'}->(": $purge_count sub$s undefined");
+        }
 
-            my $code_count      = 0;
-            my $last_code_count = 0;
-            if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
-                my $internal_name
-                    = delete $data{'base'}{'modules'}{'internal_name'};
-                delete $data{'base'}{'modules'}{'moved_to'}{$internal_name}
-                    if exists $data{'base'}{'modules'}{'moved_to'};
-            }
+        my $code_count      = 0;
+        my $last_code_count = 0;
+        if ( exists $data{'base'}{'modules'}{'internal_name'} ) {
+            my $internal_name
+                = delete $data{'base'}{'modules'}{'internal_name'};
+            delete $data{'base'}{'modules'}{'moved_to'}{$internal_name}
+                if exists $data{'base'}{'modules'}{'moved_to'};
+        }
 
-            foreach my $file_name (@subroutine_names) {
-                next if not defined $file_name or not length $file_name;
-                ## todo : reconcile with code_path ##
-                my $src_abs_path;
-                my $src_rel
-                    = $code{'base.chk_nlr_path'}->("base-code/$file_name");
+        foreach my $file_name (@subroutine_names) {
+            next if not defined $file_name or not length $file_name;
+            ## todo : reconcile with code_path ##
+            my $src_abs_path;
+            my $src_rel
+                = $code{'base.chk_nlr_path'}->("base-code/$file_name");
 
-                $src_rel = "base-code/$file_name"
-                    if not defined $src_rel;    # <-- warn.
+            $src_rel = "base-code/$file_name"
+                if not defined $src_rel;    # <-- warn.
 
-                $src_abs_path
-                    = abs_path(
-                    catfile( $data{'system'}{'root_path'}, $src_rel ) )
-                    if defined $src_rel;
+            $src_abs_path
+                = abs_path(
+                catfile( $data{'system'}{'root_path'}, $src_rel ) )
+                if defined $src_rel;
 
-                if (    $src_rel =~ m|^(.*/)?$code_name(\..+)?$|
-                    and $code{'base.source_path_valid'}->($src_rel) ) {
-                    $code_count++;
-                    local $RS = undef;
-                    if ( $src_from_http
-                        or !-r $src_abs_path
-                        and !( $data{'system'}{'no_http_source'} // 0 ) ) {
-                        ## read base-code from network [ more methods coming ]
+            if (    $src_rel =~ m|^(.*/)?$code_name(\..+)?$|
+                and $code{'base.source_path_valid'}->($src_rel) ) {
+                $code_count++;
+                local $RS = undef;
+                if ( $src_from_http
+                    or !-r $src_abs_path
+                    and !( $data{'system'}{'no_http_source'} // 0 ) ) {
+                    ## read base-code from network [ more methods coming ]
 
-                        # $code{'log.debug'}->(":[http]: $src_rel .,");
-
-                        $data{'code'}{$file_name}{'source'}
-                            = $code{'base.httpc.remote_file'}
-                            ->( $src_rel, \@http_src_base_urls );
-                        ####
-                    } else {
-                        ## loading code from disk [ including ext directory ]
-                        $code{'log.debug'}->(":[disk]: $src_rel .,");
-                        open( my $src_fh, qw| < |, $src_abs_path )
-                            or die ":$src_abs_path : \l$OS_ERROR";
-                        $data{'code'}{$file_name}{'source'} = <$src_fh>;
-                        close($src_fh);
-                    }
-
-                    # <[sub_name]>->(  -->  $code{'sub_name'}->(
-                    my $orig_len
-                        = length $data{'code'}{$file_name}{'source'};
+                    # $code{'log.debug'}->(":[http]: $src_rel .,");
 
                     $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
+                        = $code{'base.httpc.remote_file'}
+                        ->( $src_rel, \@http_src_base_urls );
+                    ####
+                } else {
+                    ## loading code from disk [ including ext directory ]
+                    $code{'log.debug'}->(":[disk]: $src_rel .,");
+                    open( my $src_fh, qw| < |, $src_abs_path )
+                        or die ":$src_abs_path : \l$OS_ERROR";
+                    $data{'code'}{$file_name}{'source'} = <$src_fh>;
+                    close($src_fh);
+                }
+
+                # <[sub_name]>->(  -->  $code{'sub_name'}->(
+                my $orig_len
+                    = length $data{'code'}{$file_name}{'source'};
+
+                $data{'code'}{$file_name}{'source'}
+                    =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
                             |\$code{'$LAST_PAREN_MATCH'}->(|sgxo;
 
-                  # < ! > the parser currently does not respect quoted strings
-                  #       escape like \<[sub.name]> <-- this to avoid a match.
-                  #
-                  # note: a generic quoted string match might be :  ##########
-                  # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
+                # < ! > the parser currently does not respect quoted strings
+                #       escape like \<[sub.name]> <-- this to avoid a match.
+                #
+                # note: a generic quoted string match might be :  ##########
+                # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
 
-                    # <[sub_name]>  -->  $code{'sub_name'}->()
-                    $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
+                # <[sub_name]>  -->  $code{'sub_name'}->()
+                $data{'code'}{$file_name}{'source'}
+                    =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
                             |\$code{'$LAST_PAREN_MATCH'}->()|gxo;
 
-                    ## needs to skip comments + better key syntax check ##
+                ## needs to skip comments + better key syntax check ##
 
-                    # <foo.bar>  -->  $data{'foo'}{'bar'}
-                    # (requires at least 1 . in the data key to match)
-                    $data{'code'}{$file_name}{'source'}
-                        =~ s|(?<!\\)<([\w\-:]+\.(\w[\w\-\.:]+)+)(?<!\\)>
+                # <foo.bar>  -->  $data{'foo'}{'bar'}
+                # (requires at least 1 . in the data key to match)
+                $data{'code'}{$file_name}{'source'}
+                    =~ s|(?<!\\)<([\w\-:]+\.(\w[\w\-\.:]+)+)(?<!\\)>
                             | my $k = "\$data{'$1'}"; $k =~ s,\.,'}{',g;
                                  $k |gexo;
-                    $RS = "\n";
-                    if (length( $data{'code'}{$file_name}{'source'} )
-                        > $orig_len
-                        and $data{'system'}{'verbosity'}{'console'} > 3 ) {
-                        $code{'log.debug'}->( "\n\n .: $file_name :.\n\n"
-                                . $data{'code'}{$file_name}{'source'} );
-                        $data{'plugins'}{'status'}{$code_name}
-                            {'load_errors'}++
-                            if not length($src_str);    # <-- is plugin..
-                    }
-
-                    ## track protocol-7 subroutines ##
-
-                    $code{'base.referenced_subroutines.add'}->( $file_name,
-                        \$data{'code'}{$file_name}{'source'} );
-
-                    push( @compile_order, $file_name );
-
-                    # register for error \ success tracking #
-                    $module_code_map{$file_name} = $code_name;
-
-                } elsif ( $file_name =~ m|\.orig$| ) {
-                    $code{'log.error'}->(
-                        sprintf( '[ not valid \\ remove., ] %s', $file_name )
-                    );
+                $RS = "\n";
+                if (length( $data{'code'}{$file_name}{'source'} ) > $orig_len
+                    and $data{'system'}{'verbosity'}{'console'} > 3 ) {
+                    $code{'log.debug'}->( "\n\n .: $file_name :.\n\n"
+                            . $data{'code'}{$file_name}{'source'} );
+                    $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
+                        if not length($src_str);    # <-- is plugin..
                 }
-            }
 
-            if (    $data{'system'}{'verbosity'}{'console'} == 1
-                and $data{'system'}{'use_http_source'}
-                and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
-                my $last_mlen = delete $data{'base'}{'httpc'}{'last_mlen'};
-                $last_mlen += 92;
-                $last_mlen = 79 if $last_mlen > 79;
-                my $space_str = ' ' x $last_mlen;
-                $OUTPUT_AUTOFLUSH = 1;
-                print "\r$space_str\r";
-                $OUTPUT_AUTOFLUSH = 0;
+                ## track protocol-7 subroutines ##
+
+                $code{'base.referenced_subroutines.add'}
+                    ->( $file_name, \$data{'code'}{$file_name}{'source'} );
+
+                push( @compile_order, $file_name );
+
+                # register for error \ success tracking #
+                $module_code_map{$file_name} = $code_name;
+
+            } elsif ( $file_name =~ m|\.orig$| ) {
+                $code{'log.error'}->(
+                    sprintf( '[ not valid \\ remove., ] %s', $file_name ) );
             }
-            if ( !$code_count ) {
-                $code{'log.error'}->( ': no success loading base-code'
-                        . " '$code_name' \t[ not found ]" );
-                $data{'base'}{'modules'}{'load_errors'}++;
-            } elsif ( $code_count > $last_code_count ) {
-                $data{'system'}{'subs_loaded'}{$code_name}
-                    = $code_count - $last_code_count;
-            }
-            $last_code_count = $code_count;
         }
-        my $mod_count = scalar @compile_order;
-        return if !$mod_count and !@module_names;
-        next   if !$mod_count;
-        my $src_bytes_total = 0;
-        $code{'log.debug'}->(': compiling ..,');
-        my ( $ok_count, $err_count, $warn_count, $warn_count_total )
-            = ( 0, 0, 0, 0 );
 
-        my %disabled_commands;
-        map { $disabled_commands{$ARG} = 1 } @{ $data{'disabled_commands'} }
-            if exists $data{'disabled_commands'}
-            and ref( $data{'disabled_commands'} ) eq 'ARRAY';
+        if (    $data{'system'}{'verbosity'}{'console'} == 1
+            and $data{'system'}{'use_http_source'}
+            and exists $data{'base'}{'httpc'}{'last_mlen'} ) {
+            my $last_mlen = delete $data{'base'}{'httpc'}{'last_mlen'};
+            $last_mlen += 92;
+            $last_mlen = 79 if $last_mlen > 79;
+            my $space_str = ' ' x $last_mlen;
+            $OUTPUT_AUTOFLUSH = 1;
+            print "\r$space_str\r";
+            $OUTPUT_AUTOFLUSH = 0;
+        }
+        if ( !$code_count ) {
+            $code{'log.error'}->( ': no success loading base-code'
+                    . " '$code_name' \t[ not found ]" );
+            $data{'base'}{'modules'}{'load_errors'}++;
+        } elsif ( $code_count > $last_code_count ) {
+            $data{'system'}{'subs_loaded'}{$code_name}
+                = $code_count - $last_code_count;
+        }
+        $last_code_count = $code_count;
+    }
+    my $mod_count = scalar @compile_order;
+    return if !$mod_count and !@module_names;
+    next   if !$mod_count;
+    my $src_bytes_total = 0;
+    $code{'log.debug'}->(': compiling ..,');
+    my ( $ok_count, $err_count, $warn_count, $warn_count_total )
+        = ( 0, 0, 0, 0 );
 
-        ## sort [ and filter ] in code occurence order ###
-        @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
-        ##
+    my %disabled_commands;
+    map { $disabled_commands{$ARG} = 1 } @{ $data{'disabled_commands'} }
+        if exists $data{'disabled_commands'}
+        and ref( $data{'disabled_commands'} ) eq 'ARRAY';
 
-        foreach my $sub_name (@compile_order) {
-            my $loading_error = 0;
-            my $module_name   = $module_code_map{$sub_name};
-            my $source_len    = length $data{'code'}{$sub_name}{'source'};
-            $source_len //= 0;
+    ## sort [ and filter ] in code occurence order ###
+    @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
+    ##
 
-            ## recompile twice case, now filtered ##
-            $code{'log.error'}->(":. << empty subroutine [ $sub_name ] >>")
-                and $loading_error = 1
-                if !$source_len;
+    foreach my $sub_name (@compile_order) {
+        my $loading_error = 0;
+        my $module_name   = $module_code_map{$sub_name};
+        my $source_len    = length $data{'code'}{$sub_name}{'source'};
+        $source_len //= 0;
 
-            $data{'base'}{'p7_mod'}{'sbytes'}->{$module_name} = $source_len;
+        ## recompile twice case, now filtered ##
+        $code{'log.error'}->(":. << empty subroutine [ $sub_name ] >>")
+            and $loading_error = 1
+            if !$source_len;
 
-            local $SIG{'__WARN__'} = qw| IGNORE |;
-            local $SIG{'__DIE__'}  = qw| IGNORE |;
+        $data{'base'}{'p7_mod'}{'sbytes'}->{$module_name} = $source_len;
 
-            my $sub_code     = undef;
-            my $sub_conflict = 0;
+        local $SIG{'__WARN__'} = qw| IGNORE |;
+        local $SIG{'__DIE__'}  = qw| IGNORE |;
 
-            if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
-                my $cmd_type = ${^CAPTURE}[0];
-                my $cmd_name = ${^CAPTURE}[1];
+        my $sub_code     = undef;
+        my $sub_conflict = 0;
 
-                next
-                    if $cmd_type eq qw| cmd |
-                    and exists $disabled_commands{$cmd_name};
+        if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
+            my $cmd_type = ${^CAPTURE}[0];
+            my $cmd_name = ${^CAPTURE}[1];
 
-                if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
-                    my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
-                    if (not exists $data{'base'}{'overwritten'}{$cmd_type}
-                        {$cmd_name} ) {
-                        if ( $sub_name ne $old_sub ) {
-                            $code{'log.debug'}->(":: $sub_name :. $old_sub");
-                        } else {
-                            $code{'log.debug'}
-                                ->("<< replacing sub $sub_name >>");
-                        }
-                        $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
-                            = {
-                            qw| old | => $old_sub,
-                            qw| new | => $sub_name
-                            };
+            next
+                if $cmd_type eq qw| cmd |
+                and exists $disabled_commands{$cmd_name};
+
+            if ( exists $data{'base'}{$cmd_type}{$cmd_name} ) {
+                my $old_sub = $data{'base'}{$cmd_type}{$cmd_name};
+                if (not
+                    exists $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
+                ) {
+                    if ( $sub_name ne $old_sub ) {
+                        $code{'log.debug'}->(":: $sub_name :. $old_sub");
                     } else {
-                        push(
-                            @{  $data{'base'}{'overwritten'}
-                                    {$cmd_type}{$cmd_name}{'conflicts'}
-                            },
-                            $sub_name
-                        );
-                        $data{'base'}{'modules'}{'load_errors'}++;
-                        $code{'log.error'}->("<<< conflict : $sub_name >>>");
-                        $sub_conflict = 1;
+                        $code{'log.debug'}->("<< replacing sub $sub_name >>");
                     }
+                    $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name} = {
+                        qw| old | => $old_sub,
+                        qw| new | => $sub_name
+                    };
+                } else {
+                    push(
+                        @{  $data{'base'}{'overwritten'}
+                                {$cmd_type}{$cmd_name}{'conflicts'}
+                        },
+                        $sub_name
+                    );
+                    $data{'base'}{'modules'}{'load_errors'}++;
+                    $code{'log.error'}->("<<< conflict : $sub_name >>>");
+                    $sub_conflict = 1;
                 }
+            }
 
-                $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
-                    if !$sub_conflict;
-                my $stat_start_cref
-                    = defined $code{'stats.sub_start'}
-                    ? $code{'stats.sub_start'}->($sub_name)
-                    : sub { };
-                my $stat_end_cref
-                    = defined $code{'stats.sub_end'}
-                    ? $code{'stats.sub_end'}->($sub_name)
-                    : sub { };
+            $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
+                if !$sub_conflict;
+            my $stat_start_cref
+                = defined $code{'stats.sub_start'}
+                ? $code{'stats.sub_start'}->($sub_name)
+                : sub { };
+            my $stat_end_cref
+                = defined $code{'stats.sub_end'}
+                ? $code{'stats.sub_end'}->($sub_name)
+                : sub { };
 
-                if ( $cmd_type eq qw| cmd | ) { ## not for console commands ##
+            if ( $cmd_type eq qw| cmd | ) {    ## not for console commands ##
 
-                    ## command type routine code header ##
-                    my $code_header = <<~ "EOC";
+                ## command type routine code header ##
+                my $code_header = <<~ "EOC";
 
                     ##                                 ##
                     ##  compiled-in .cmd. code header  ##
@@ -1674,8 +1197,8 @@ sub prepare_subs {
 
                     EOC
 
-                    ##  command type routine code footer  ##
-                    my $code_footer = <<~ 'EOC';
+                ##  command type routine code footer  ##
+                my $code_footer = <<~ 'EOC';
 
                     ##                               ##
                     ## compiled-in .cmd. code-footer ##
@@ -1699,746 +1222,1413 @@ sub prepare_subs {
                     return $reply;
                     EOC
 
-                    $data{'code'}{$sub_name}{'source'} = join( '',
-                        $code_header, $data{'code'}{$sub_name}{'source'},
-                        ,             $code_footer );
-                }
+                $data{'code'}{$sub_name}{'source'} = join( '',
+                    $code_header, $data{'code'}{$sub_name}{'source'},
+                    ,             $code_footer );
             }
+        }
 
-            if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
-                $sub_code = <<~ "EOC";
+        if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
+            $sub_code = <<~ "EOC";
                 sub {
                 # line 1 "$sub_name"
                 \$code{'base.debug_sub'}->( qw| $sub_name |, \@ARG );
                 $data{'code'}{$sub_name}{'source'}}
                 EOC
-            } else {
-                $sub_code = <<~ "EOC";
+        } else {
+            $sub_code = <<~ "EOC";
                 sub {
                 # line 1 "$sub_name"
                 $data{'code'}{$sub_name}{'source'}}
                 EOC
-            }
+        }
 
-            ##                      ###
-            ## compiling subroutine ###
-            ##                      ###
+        ##                      ###
+        ## compiling subroutine ###
+        ##                      ###
 
-            $src_bytes_total += $source_len;
+        $src_bytes_total += $source_len;
 
-            $code{'base.stderr_redir'}->( \my $s_comp_stderr );
+        $code{'base.stderr_redir'}->( \my $s_comp_stderr );
 
-            my $compilation_success
-                = ( $code{$sub_name} = eval($sub_code)
-                    and ref( $code{$sub_name} ) eq qw| CODE | )
-                ? 1
-                : 0;
+        my $compilation_success
+            = ( $code{$sub_name} = eval($sub_code)
+                and ref( $code{$sub_name} ) eq qw| CODE | )
+            ? 1
+            : 0;
 
-            my $err_str = $EVAL_ERROR;
-            state $t_wrap //=
-                ( defined &wrap )
-                ? sub { return wrap( '', ': ..  ', $ARG ) }
-                : sub { return $ARG };
-            $err_str =~ s| at $sub_name line (\d+)[\.,]
+        my $err_str = $EVAL_ERROR;
+        state $t_wrap //=
+            ( defined &wrap )
+            ? sub { return wrap( '', ': ..  ', $ARG ) }
+            : sub { return $ARG };
+        $err_str =~ s| at $sub_name line (\d+)[\.,]
                          | [ line $LAST_PAREN_MATCH ]\n|sx
-                if defined $err_str;
-            $warn_count_total += $warn_count
-                = scalar $s_comp_stderr =~ s| at $sub_name line (\d+)[\.,]
+            if defined $err_str;
+        $warn_count_total += $warn_count
+            = scalar $s_comp_stderr =~ s| at $sub_name line (\d+)[\.,]
                     | [ line $LAST_PAREN_MATCH ]\n|sgx
 
-                if defined $s_comp_stderr and $s_comp_stderr;
-            ( my $lpw )
-                = ( $data{'system'}{'start'}{'log_prefix_width'}
-                    // $code{'base.get_start_lpw'}->() || 12 );
-            my $width = 76 - $lpw;
-            local $Text::Wrap::columns   = $width;
-            local $Text::Wrap::separator = "\n";
-            delete $data{'code'}{$sub_name}{'warnings'};  ## clear previous ##
-            my @compile_errors = (
-                '>',
-                ".:[ $sub_name ]:.",
-                ':',
-                (   map  { s|Can.t|cannot|g; s|"|'|g; ": :  \l$ARG" }
-                    grep { !m|^BEGIN | } split( m|\n+|, $err_str )
-                ),
-                '='
-                )
-                if length( $err_str // '' )
-                or defined $s_comp_stderr;
-            push(
-                @compile_errors,
-                '>',
-                '  :: warning ::',
-                '  :',
-                (   map {
-                        push(
-                            @{  $data{'code'}{$sub_name}{'warnings'} //= []
-                            },
-                            "\l$ARG"
-                        );
-                        "  :: \l$ARG"
-                    } split( m|\n+|, $s_comp_stderr )
-                ),
-                '..,'
-            ) if defined $s_comp_stderr;
+            if defined $s_comp_stderr and $s_comp_stderr;
+        ( my $lpw )
+            = ( $data{'system'}{'start'}{'log_prefix_width'}
+                // $code{'base.get_start_lpw'}->() || 12 );
+        my $width = 76 - $lpw;
+        local $Text::Wrap::columns   = $width;
+        local $Text::Wrap::separator = "\n";
+        delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
+        my @compile_errors = (
+            '>',
+            ".:[ $sub_name ]:.",
+            ':',
+            (   map  { s|Can.t|cannot|g; s|"|'|g; ": :  \l$ARG" }
+                grep { !m|^BEGIN | } split( m|\n+|, $err_str )
+            ),
+            '='
+            )
+            if length( $err_str // '' )
+            or defined $s_comp_stderr;
+        push(
+            @compile_errors,
+            '>',
+            '  :: warning ::',
+            '  :',
+            (   map {
+                    push(
+                        @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
+                        "\l$ARG"
+                    );
+                    "  :: \l$ARG"
+                } split( m|\n+|, $s_comp_stderr )
+            ),
+            '..,'
+        ) if defined $s_comp_stderr;
 
-            $code{'base.stderr_restore'}->();
+        $code{'base.stderr_restore'}->();
 
-            $compilation_success = 0 if $source_len == 0;
+        $compilation_success = 0 if $source_len == 0;
 
-            if ($compilation_success) {
+        if ($compilation_success) {
 
-                $data{'base'}{'p7_mod'}{'loaded'}->{$module_name} = 1;
+            $data{'base'}{'p7_mod'}{'loaded'}->{$module_name} = 1;
 
-                delete $data{'code'}{$sub_name}{'source'};
-                $data{'code'}{$sub_name}{'status'}
-                    = $warn_count ? qw| warned | : qw| no-error |;
-                $ok_count++;
-                if (    $sub_name !~ m{\.(cmd|console)\.}
-                    and $sub_name =~ m|\.end_code$| ) {
-                    ## needs module namespace for defined callback order ##
-                    push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
-                }
-            } else {
-
-                $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
-
-                $code{$sub_name} = sub {
-                    my $caller_str = $code{'base.caller'}->(1);
-                    undef $code{$sub_name}    ##  removing  ##
-                        if $sub_name =~ m{^base.(log|buffer)};
-                    if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) { ## proto.,
-                        my $lmsg = ": called broken routine : '$sub_name'";
-                        $code{'log.error'}->($lmsg);
-                        $code{'log.error'}->(":. $caller_str");
-                        push(
-                            @{ $data{'system'}{'start'}{'zenka-buffer'} },
-                            join( ' ',
-                                $code{'base.anum_log_time'}->(), 0,
-                                join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
-                        ) if $sub_name eq qw| base.log |;
-                        return undef;
-                    } else {
-                        $code{'log.error'}
-                            ->(": broken command called : '$sub_name'");
-                        $code{'log.error'}->(":. $caller_str");
-                        return {
-                            'mode' => qw| false |,
-                            'data' => "command '$sub_name' is broken.,"
-                                . " details in startup log.,"
-                        };
-                    }
-                };
-                delete $data{'code'}{$sub_name}{'source'};
-                $data{'base'}{'modules'}{'load_errors'}++;
-                $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
-                my @wrapped_error
-                    = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
-                $code{'log.error'}->(@wrapped_error);
-                map {
-                    $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
-                } @wrapped_error if defined $code{'base.buffer.add_line'};
-
-                $err_str =~ s|\n| |sg;
-                $err_str =~ tr| ||s;
-                $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
-                undef $s_comp_stderr;
-                undef $err_str;
-                $warn_count = 0;
-                $err_count++;
+            delete $data{'code'}{$sub_name}{'source'};
+            $data{'code'}{$sub_name}{'status'}
+                = $warn_count ? qw| warned | : qw| no-error |;
+            $ok_count++;
+            if (    $sub_name !~ m{\.(cmd|console)\.}
+                and $sub_name =~ m|\.end_code$| ) {
+                ## needs module namespace for defined callback order ##
+                push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
             }
-            if ( $compilation_success and $warn_count ) {
-                $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
-                my @wrapped_error
-                    = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
-                $code{'log.error'}->(@wrapped_error);
-                map {
-                    $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
-                } @wrapped_error if defined $code{'base.buffer.add_line'};
-                $warn_count = 0;
-            }
+        } else {
 
-            if ( $sub_name =~ m{\.(cmd|console|ext-cmd)\.(.+)$} )
-            {    # command desciptions #
-                my $section = ${^CAPTURE}[0];
-                my $command = ${^CAPTURE}[1];
-                if ( $data{'code'}{$sub_name}{'status'} eq qw| no-error | ) {
-                    if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
-                        $data{'base'}{'commands'}{$section}{$command}{'param'}
-                            = ${^CAPTURE}[0];
-                    }
-                    if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
-                        $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                            = ${^CAPTURE}[0];
-                    } else {
-                        $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                            = qq|<<[ 'descr' header key not defined ]>>|;
-                    }
+            $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
 
-                # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
+            $code{$sub_name} = sub {
+                my $caller_str = $code{'base.caller'}->(1);
+                undef $code{$sub_name}    ##  removing  ##
+                    if $sub_name =~ m{^base.(log|buffer)};
+                if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) {    ## proto.,
+                    my $lmsg = ": called broken routine : '$sub_name'";
+                    $code{'log.error'}->($lmsg);
+                    $code{'log.error'}->(":. $caller_str");
+                    push(
+                        @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                        join( ' ',
+                            $code{'base.anum_log_time'}->(), 0,
+                            join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
+                    ) if $sub_name eq qw| base.log |;
+                    return undef;
                 } else {
                     $code{'log.error'}
-                        ->( ':', "::[ broken zenka command '${2}' ]", ':' );
-                    $code{'log.error'}->(@compile_errors)
-                        if not $data{'base'}{'modules'}{'load_errors'}++;
+                        ->(": broken command called : '$sub_name'");
+                    $code{'log.error'}->(":. $caller_str");
+                    return {
+                        'mode' => qw| false |,
+                        'data' => "command '$sub_name' is broken.,"
+                            . " details in startup log.,"
+                    };
+                }
+            };
+            delete $data{'code'}{$sub_name}{'source'};
+            $data{'base'}{'modules'}{'load_errors'}++;
+            $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
+            my @wrapped_error
+                = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+            $code{'log.error'}->(@wrapped_error);
+            map { $code{'base.buffer.add_line'}->( 'compile-errors', $ARG ) }
+                @wrapped_error
+                if defined $code{'base.buffer.add_line'};
+
+            $err_str =~ s|\n| |sg;
+            $err_str =~ tr| ||s;
+            $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
+            undef $s_comp_stderr;
+            undef $err_str;
+            $warn_count = 0;
+            $err_count++;
+        }
+        if ( $compilation_success and $warn_count ) {
+            $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
+            my @wrapped_error
+                = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
+            $code{'log.error'}->(@wrapped_error);
+            map { $code{'base.buffer.add_line'}->( 'compile-errors', $ARG ) }
+                @wrapped_error
+                if defined $code{'base.buffer.add_line'};
+            $warn_count = 0;
+        }
+
+        if ( $sub_name =~ m{\.(cmd|console|ext-cmd)\.(.+)$} )
+        {    # command desciptions #
+            my $section = ${^CAPTURE}[0];
+            my $command = ${^CAPTURE}[1];
+            if ( $data{'code'}{$sub_name}{'status'} eq qw| no-error | ) {
+                if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
+                    $data{'base'}{'commands'}{$section}{$command}{'param'}
+                        = ${^CAPTURE}[0];
+                }
+                if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                        = '<<< command did not compile properly >>>';
+                        = ${^CAPTURE}[0];
+                } else {
+                    $data{'base'}{'commands'}{$section}{$command}{'descr'}
+                        = qq|<<[ 'descr' header key not defined ]>>|;
                 }
+
+                # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
+            } else {
+                $code{'log.error'}
+                    ->( ':', "::[ broken zenka command '${2}' ]", ':' );
+                $code{'log.error'}->(@compile_errors)
+                    if not $data{'base'}{'modules'}{'load_errors'}++;
+                $data{'base'}{'commands'}{$section}{$command}{'descr'}
+                    = '<<< command did not compile properly >>>';
             }
         }
-        delete $data{'callbacks'}{'end_code'}
-            if !@{ $data{'callbacks'}{'end_code'} };
-        map {
-            $data{'code'}{$ARG}{'status'} = qw| undefined |
-                if not defined $code{$ARG}
-            }
-            keys %{ $data{'code'} };
-        my $p     = '..: ';
-        my $s     = $ok_count != 1         ? 's' : '';
-        my $w     = $warn_count_total == 1 ? ''  : 's';
-        my $w_msg = !$warn_count_total ? '' : ", $warn_count_total warning$w";
-
-        ## remove found subroutines from list ##
-        $code{'base.referenced_subroutines.clear_found'}->();
-
-        if ($err_count) {
-            $code{'log.error'}->( $p
-                    . "success on $ok_count sub$s,"
-                    . " $err_count broken$w_msg., `:|" );
-        } elsif ($warn_count_total) {
-            $code{'log.error'}
-                ->( $p . "success on $ok_count sub$s$w_msg :|" );
-        } else {
-            $src_bytes_total = sprintf( qw| %.2f |, $src_bytes_total / 1024 );
-            $src_bytes_total =~ s|\.?0+$||;
-            $code{'log.noerr'}->(
-                sprintf(
-                    $p . "%d sub%s., %dK src., no errors., =)",
-                    $ok_count, $s, $src_bytes_total
-                )
-            );
+    }
+    delete $data{'callbacks'}{'end_code'}
+        if !@{ $data{'callbacks'}{'end_code'} };
+    map {
+        $data{'code'}{$ARG}{'status'} = qw| undefined |
+            if not defined $code{$ARG}
         }
+        keys %{ $data{'code'} };
+    my $p     = '..: ';
+    my $s     = $ok_count != 1         ? 's' : '';
+    my $w     = $warn_count_total == 1 ? ''  : 's';
+    my $w_msg = !$warn_count_total     ? '' : ", $warn_count_total warning$w";
 
-        return ( $ok_count, $err_count );
-    };
+    ## remove found subroutines from list ##
+    $code{'base.referenced_subroutines.clear_found'}->();
 
-    $code{'base.stderr_redir'} = sub {
-        my $redir_ref = shift // \my $redir_var;
-        open( $data{'base'}{'stderr_fh'}, '>&', STDERR )
-            or printf "\n<< cannot clone STDERR [ %s ] >>\n\n",
+    if ($err_count) {
+        $code{'log.error'}->( $p
+                . "success on $ok_count sub$s,"
+                . " $err_count broken$w_msg., `:|" );
+    } elsif ($warn_count_total) {
+        $code{'log.error'}->( $p . "success on $ok_count sub$s$w_msg :|" );
+    } else {
+        $src_bytes_total = sprintf( qw| %.2f |, $src_bytes_total / 1024 );
+        $src_bytes_total =~ s|\.?0+$||;
+        $code{'log.noerr'}->(
+            sprintf(
+                $p . "%d sub%s., %dK src., no errors., =)",
+                $ok_count, $s, $src_bytes_total
+            )
+        );
+    }
+
+    return ( $ok_count, $err_count );
+}
+
+##############################################################################
+
+sub p7_stderr_redir {
+
+    my $redir_ref = shift // \my $redir_var;
+
+    open( $data{'base'}{'stderr_fh'}, qw| >& |, STDERR )
+        or printf "\n<< cannot clone STDERR [ %s ] >>\n\n",
+        $code{'base.format_error'}->($OS_ERROR);
+
+    close(STDERR);
+    open( STDERR, qw| > |, $redir_ref )
+        or say sprintf '< stderr_redir > %s',
+        $code{'base.format_error'}->($OS_ERROR);
+
+    return $redir_ref;
+}
+
+##############################################################################
+
+sub p7_stderr_restore {
+
+    my $restore_fh = delete $data{'base'}{'stderr_fh'};
+
+    close(STDERR);
+    if ( defined $restore_fh ) {
+        open( STDERR, qw| >& |, $restore_fh )
+            or printf "\n<< cannot restore STDERR"
+            . " to $restore_fh [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
-        close(STDERR);
-        open( STDERR, qw| > |, $redir_ref )
-            or say sprintf '< stderr_redir > %s',
+    } else {
+        open( STDERR, qw| > |, File::Spec->devnull() )
+            or printf "\n<< cannot restore STDERR"
+            . " to '/dev/null' [ %s ] >>\n\n",
             $code{'base.format_error'}->($OS_ERROR);
-        return $redir_ref;
-    };
+    }
+}
 
-    $code{'base.stderr_restore'} = sub {
-        my $restore_fh = delete $data{'base'}{'stderr_fh'};
-        close(STDERR);
-        if ( defined $restore_fh ) {
-            open( STDERR, qw| >& |, $restore_fh )
-                or printf "\n<< cannot restore STDERR"
-                . " to $restore_fh [ %s ] >>\n\n",
-                $code{'base.format_error'}->($OS_ERROR);
-        } else {
-            open( STDERR, qw| > |, File::Spec->devnull() )
-                or printf "\n<< cannot restore STDERR"
-                . " to '/dev/null' [ %s ] >>\n\n",
-                $code{'base.format_error'}->($OS_ERROR);
-        }
-    };
+##############################################################################
 
-    $code{'base.collect_sub_stats'} = sub {    ## [ LLL ] .. implement ., ###
-        my $sub_name = shift;
-    };
+sub p7_collect_sub_stats {    ## [ LLL ] .. implement ., ###
+    my $sub_name = shift;
+}
 
-    $code{'base.debug_sub'} = sub {
-        return if $data{'system'}{'verbosity'}{'console'} < 2;
-        my $sub_name = shift(@ARG);
-        ## $code{'base.collect_sub_stats'}->($sub_name); #<--replace touch_dir
-        my $quoted_chars = qr{[\ ;:,\.'\\]|^$};
-        my @_p           = @ARG;
+##############################################################################
 
-      # log all used subroutines if $sub_touch_dir exist and is owned by root.
-        my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
-            // qw| /var/tmp/protocol-7_debug.sub_log |;
-        if ( -d $sub_touch_dir
-            and File::stat::stat($sub_touch_dir)->uid == 0 ) {
-            my $zenka_name = $data{'system'}{'zenka'}{'name'};
-            my $actual_dir = "$sub_touch_dir/$zenka_name";
-            if ( !-d $actual_dir ) {
-                my ( $dir_uid, $dir_gid );
-                my $dir_mode = 0777;  ##  fallback mode ., non-critical.., ###
-                if ( defined $data{'system'}{'privs'}{'user'} ) {
-                    ( undef, undef, $dir_uid, $dir_gid )
-                        = getpwnam( $data{'system'}{'privs'}{'user'} );
-                    ## regular mode ###
-                    $dir_mode = 0770;
-                }
-                mkdir( $actual_dir, 0700 ) or warn "$actual_dir : $!";
-                chown( $dir_uid, $dir_gid, $actual_dir ) if defined $dir_gid;
-                chmod( $dir_mode, $actual_dir ) or warn "$actual_dir : $!";
+sub p7_debug_sub {
+
+    return if $data{'system'}{'verbosity'}{'console'} < 2;
+
+    my $sub_name = shift @ARG;
+
+    ## $code{'base.collect_sub_stats'}->($sub_name); #<--replace touch_dir
+    my $quoted_chars = qr{[\ ;:,\.'\\]|^$};
+    my @_p           = @ARG;
+
+    # log all used subroutines if $sub_touch_dir exist and is owned by root.
+    my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
+        // qw| /var/tmp/protocol-7_debug.sub_log |;
+    if ( -d $sub_touch_dir
+        and File::stat::stat($sub_touch_dir)->uid == 0 ) {
+        my $zenka_name = $data{'system'}{'zenka'}{'name'};
+        my $actual_dir = "$sub_touch_dir/$zenka_name";
+        if ( !-d $actual_dir ) {
+            my ( $dir_uid, $dir_gid );
+            my $dir_mode = 0777;    ##  fallback mode ., non-critical.., ###
+            if ( defined $data{'system'}{'privs'}{'user'} ) {
+                ( undef, undef, $dir_uid, $dir_gid )
+                    = getpwnam( $data{'system'}{'privs'}{'user'} );
+                ## regular mode ###
+                $dir_mode = 0770;
             }
-            my $sub_path = join( qw| / |, $actual_dir, $sub_name );
-            open( my $_fh, qw| > |, $sub_path ) if !-f $sub_path;
-            if ( fileno($_fh) ) {
-                say {$_fh} $code{'base.ntime'}->(3);
-                close($_fh);
-            }
+            mkdir( $actual_dir, 0700 ) or warn "$actual_dir : $!";
+            chown( $dir_uid, $dir_gid, $actual_dir ) if defined $dir_gid;
+            chmod( $dir_mode, $actual_dir ) or warn "$actual_dir : $!";
         }
-
-      # hiding plain text passwords in debug output [not including conf files]
-        $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
-        $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
-        $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
-        $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
-            if $sub_name eq qw| base.net.send_to_socket |;
-
-        map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
-        my @params = map {
-            defined $ARG
-                ? ( $ARG =~ $quoted_chars ? "'$ARG'" : $ARG )
-                : ''
-        } @_p;
-
-        my $param_list = join( ', ', @params );
-
-        $param_list =~ s|\n|\\n|g;
-        $param_list =~ s|\e|\\e|g;
-        $param_list =~ s|\0|\\0|g;
-
-        ## replacing perl objects ##
-        eval { use Crypt::Misc qw| encode_b32r | }
-            if not defined &{'encode_base32'};
-        if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc(${^CAPTURE}[0])|ge ) {
-            $param_list =~ s|::|.|g;
-            $param_list =~ s|event\.event|event|g;
+        my $sub_path = join( qw| / |, $actual_dir, $sub_name );
+        open( my $_fh, qw| > |, $sub_path ) if !-f $sub_path;
+        if ( fileno($_fh) ) {
+            say {$_fh} $code{'base.ntime'}->(3);
+            close($_fh);
         }
-        $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}
+    }
+
+    # hiding plain text passwords in debug output [not including conf files]
+    $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
+    $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
+    $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
+    $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
+        if $sub_name eq qw| base.net.send_to_socket |;
+
+    map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
+    my @params = map {
+        defined $ARG
+            ? ( $ARG =~ $quoted_chars ? "'$ARG'" : $ARG )
+            : ''
+    } @_p;
+
+    my $param_list = join( ', ', @params );
+
+    $param_list =~ s|\n|\\n|g;
+    $param_list =~ s|\e|\\e|g;
+    $param_list =~ s|\0|\\0|g;
+
+    ## replacing perl objects ##
+    eval { use Crypt::Misc qw| encode_b32r | }
+        if not defined &{'encode_base32'};
+    if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc(${^CAPTURE}[0])|ge ) {
+        $param_list =~ s|::|.|g;
+        $param_list =~ s|event\.event|event|g;
+    }
+    $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}
                         {' : '.lc($LAST_PAREN_MATCH)}ige;
-        $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}
+    $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}
                         {lc($LAST_PAREN_MATCH)}ge;
-        $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
+    $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
              substr( encode_b32r(pack("V*",
               Digest::Elf::elf(${^CAPTURE}[0]))) , 2,3 )
              .'0'. substr(
               Digest::Elf::elf(pack("H*",${^CAPTURE}[0])), -3, 3 )
              )
         }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
-        ## [ LLL ] ids need to become resolvable + debug command ..,
-        say sprintf(
-            "$ANSI{p7_fg_0000}. %s$ANSI{p7_fg_0001} : $ANSI{p7_fg_0004}%s"
-                . " [ $ANSI{p7_fg_0003}%s$ANSI{p7_fg_0000} ]"
-                . $ANSI{'reset'},
-            $data{'system'}{'zenka'}{'name'},
-            $sub_name, $param_list
-            )
-            if $sub_name ne qw| base.log |
-            and ( $sub_name ne qw| base.buffer.add_line |
-            or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
-            and $sub_name ne qw| base.dump_data |;
-    };
-
-    $code{'base.log_hook'} = sub {
-        ## flush early zenka log buffer ###
-        if (    defined $data{'system'}{'start'}{'zenka-buffer'}
-            and @{ $data{'system'}{'start'}{'zenka-buffer'} }
-            and defined $code{'base.buffer.add_line'} ) {
-            my $buffer = $data{'system'}{'start'}{'zenka-buffer'};
-            while ( my $log_line = shift( @{$buffer} ) ) {
-                my $log_level
-                    = $log_line =~ m|^\S+ (\-?\d+) | ? $LAST_PAREN_MATCH : 0;
-                $code{'base.buffer.add_line'}
-                    ->( 'zenka', $log_line, $log_level )
-                    if $log_level
-                    <= $data{'system'}{'verbosity'}{'zenka_buffer'}
-                    or $log_level
-                    <= $data{'system'}{'verbosity'}{'zenka_logfile'};
-            }
-            delete $data{'system'}{'start'}{'zenka-buffer'};
-        }
-        ##
-        return 0
-            if
-            not $data{'system'}{'use_http_source'}  # <-- check if required .,
-            or not defined $data{'base'}{'httpc'}{'last_mlen'}
-            or not $data{'system'}{'verbosity'}{'console'};
-        if ( my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
-            local $OUTPUT_AUTOFLUSH = 1;
-            my $spaces = ' ' x $last_len;
-            print "\r$spaces\r" and return $last_len;
-        }
-        return 0;
-    };
-
-    $code{'log.name_template'} = sub {
-        my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
-        if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
-            return sprintf(
-                '%s%s.%s %s.%-*s %s.%s',
-                $ANSI{'B02'},
-                $ANSI{'p7_fg_0000'},
-                $ANSI{'B00'} . $ANSI{'bold'},
-                $data{'system'}{'node'}{'name'},
-                $lpw,
-                $data{'system'}{'zenka'}{'name'},
-                $ANSI{'reset'} . $ANSI{'B02'} . $ANSI{'p7_fg_0000'},
-                $ANSI{'B00'} . $ANSI{'bold'}
-            );
-        } else {               ## regular log line output [ not .\7 line ] ##
-            return sprintf(
-                '%s%s. %s.%-*s .%s',
-                $ANSI{'B02'},                     $ANSI{'p7_fg_0000'},
-                $data{'system'}{'node'}{'name'},  $lpw,
-                $data{'system'}{'zenka'}{'name'}, $ANSI{'B00'}
-            );
-        }
-    };
-    $code{'log.format_name'} = sub {
-        my $hl = shift // 0;    ## highlight name and line [ bold \ ansi ] ##
-        my $last_lpw = $data{'log'}{'lpw'}{'last'} // 0;
-        my $lpw
-            = $data{'system'}{'zenka'}{'log_prefix_width'}
-            - length( $data{'system'}{'node'}{'name'} )
-            - 1;
-
-        if ($last_lpw) {
-            my $lpw_delta = $lpw - $last_lpw;
-            if ( $lpw_delta > 0 ) {    ## adjust in steps ##
-                $lpw = ++$last_lpw;
-            } elsif ( $lpw_delta != 0 ) {
-                $lpw = --$last_lpw;
-            }
-        }
-
-        $data{'log'}{'lpw'}{'last'} = $lpw;
-        return $code{'log.name_template'}->( $lpw, $hl );
-    };
-
-    $code{'log.noerr'} = sub {
-        my $s_len;
-        $s_len = $code{'base.log_hook'}->()
-            if defined $code{'base.log_hook'};
-        $s_len //= 1;    # <-- << ! >>
-        my $spaces = ' ' x $s_len;
-        while ( my $lmsg = shift @ARG ) {
-            if ( defined $code{'base.log'}
-                and $code{'base.log'} ne $code{'log.noerr'} ) {
-                $code{'base.log'}->( 1, $lmsg );
-            } else {
-                if (defined $code{'base.log'}    ##  routine was purged  ##
-                    and $code{'base.log'} eq $code{'log.noerr'}
-                    ) {    ## setting emergenncy log levels ##
-                    $data{'system'}{'verbosity'}{'console'} //= 1;
-                    $data{'system'}{'verbosity'}{'console'} = 1
-                        if $data{'system'}{'verbosity'}{'console'} < 1;
-                    $data{'system'}{'verbosity'}{'zenka_buffer'} //= 1;
-                    $data{'system'}{'verbosity'}{'zenka_buffer'} = 1
-                        if $data{'system'}{'verbosity'}{'zenka_buffer'} < 1;
-                }
-                my $llvl = 1;
-                if ( $lmsg =~ m|\-?\d+$| and @ARG ) {
-                    $llvl = $lmsg;
-                    $lmsg = shift @ARG;
-                }
-                my $color = $llvl < 1 ? qw| p7_fg_0002 | : qw| p7_fg_0004 |;
-                my $hl    = index( $lmsg, '.\\7', 0 ) == 0 ? 1 : 0;
-                if (    $data{'system'}{'verbosity'}{'console'}
-                    and $llvl <= $data{'system'}{'verbosity'}{'console'} ) {
-                    say $code{'log.format_name'}->($hl), ' ',
-                        $ANSI{$color}, $lmsg, $ANSI{'reset'},
-                        $spaces;
-                }
-                ## early start-up buffer ##
-                push(
-                    @{ $data{'system'}{'start'}{'zenka-buffer'} },
-                    join(
-                        ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg
-                    )
-                    )
-                    if $llvl <= $data{'system'}{'verbosity'}{'zenka_buffer'};
-            }
-        }
-    };
-
-    $code{'log.error'} = sub {
-        my $error_color
-            = $data{'system'}{'term'}{'colors'}{'stderr'}
-            ? $ANSI{'bold'}
-            : '';
-        $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-        if ( defined $code{'base.log'} ) {
-            map {
-                $code{'base.log'}->( 0, $ARG )
-                    if defined $code{'base.log'}    ##  still defined ?  ##
-            } @ARG;
-        } else {
-            map {
-                if ( defined $ARG ) {
-                    my $n_n = $data{'system'}{'node'}{'name'}  // '';
-                    my $a_n = $data{'system'}{'zenka'}{'name'} // '';
-                    my $s_len
-                        = defined $code{'base.log_hook'}
-                        ? $code{'base.log_hook'}->()
-                        : 0;
-                    my $spaces = ' ' x $s_len;
-                    say &{ $code{'log.format_name'} }, ' ',
-                        $ANSI{'p7_fg_0002'}, $ARG,
-                        $spaces;
-
-                } else {
-                    warn '<< error message not defined >> <{C1}>';
-                }
-            } @ARG;
-            map {    ## early start-up buffer ##
-                push(
-                    @{ $data{'system'}{'start'}{'zenka-buffer'} },
-                    join( ' ', $code{'base.anum_log_time'}->(), 0, $ARG )
-                )
-            } @ARG;
-        }
-    };
-
-    $code{'log.debug'} = sub {
-        $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-        if ( defined $code{'base.log'} ) {
-            map { $code{'base.log'}->( 2, $ARG ) } @ARG;
-        } else {
-            if ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
-                my $s_len;
-                $s_len = $code{'base.log_hook'}->()
-                    if defined $code{'base.log_hook'};
-                $s_len //= 0;
-                my $spaces = ' ' x $s_len;
-                map {
-                    say &{ $code{'log.format_name'} }, $ANSI{'p7_fg_0001'},
-                        $ARG, $ANSI{'reset'},
-                        $spaces
-                } @ARG;
-            }
-            map {    ## early start-up buffer ##
-                push(
-                    @{ $data{'system'}{'start'}{'zenka-buffer'} },
-                    join( ' ', $code{'base.anum_log_time'}->(), 2, $ARG )
-                )
-            } @ARG if $data{'system'}{'verbosity'}{'zenka_buffer'} > 1;
-        }
-    };
-
-    $code{'dev.null'} = $code{'base.undef'} = sub { return undef };
-
-    $code{'base.sig_warn'} = sub {
-        my $s_len;
-        state $deep_recusrsion   //= 0;
-        state $recent_warn_cnt   //= 0;
-        state $last_warning_time //= $code{'base.time'}->(10);
-        $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-        $s_len //= 0;
-        my $spaces = ' ' x $s_len;
-        if (@ARG) {
-            my $c_lvl = 0;
-            chomp( my @err = @ARG );
-            map {
-                $ARG //= qw| :undef: |;
-                $ARG =~ s|([^[:print:]])
-                           | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
-                $ARG = $code{'base.format_error'}->( $ARG, -1 );
-            } @err;
-            push( @err, $spaces ) if length $spaces;
-            {
-                if ( @err ~~ m|deep recursion | ) {
-                    no warnings qw| recursion |;  # no follow-ups
-                    $deep_recusrsion++;           # remove offending routine #
-                    foreach my $c_lvl ( 1 .. 5 ) {
-                        next
-                            if $code{'base.caller'}->($c_lvl)
-                            !~ m{\[(base\.(log.*|buffer.add_line)):\d+\]};
-                        say ' < undefining > ', ${^CAPTURE}[0];
-                        undef $code{ ${^CAPTURE}[0] };
-                    }
-                    my $msg = join( ' ',
-                        ': FATAL ERROR :',
-                        @err, $code{'base.caller'}->(3) );
-                    $code{'log.error'}->($msg);
-                    if ( $deep_recusrsion >= 5 ) {
-                        $code{'log.error'}->(': terminating program .,');
-                        exit('000113');
-                    }
-                }
-            }
-            my @caller = caller;
-            my ( $package, $filename, $line, $subroutine ) = @caller;
-
-            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
-
-            if ( defined $data{'sig_warn_blacklist'} ) { # <-- use array [LLL]
-                return
-                    if defined $data{'sig_warn_blacklist'}{'package'}
-                    and $package eq $data{'sig_warn_blacklist'}{'package'}
-                    or defined $data{'sig_warn_blacklist'}{'pattern'}
-                    and join( ' ', @err )
-                    =~ $data{'sig_warn_blacklist'}{'pattern'};
-            }    ## human readable way to stacktrace [eval] callers ? [LLL]
-            map {
-                $ARG =~ s| at $filename line $line[\.,].*$||;
-                $ARG =~ s{, <GEN\d+>.*|GEN\d+$}{}g;
-                $ARG =~ s|no success on eval ('\$code\{\S+)
-                         |<< $LAST_PAREN_MATCH >>|x;
-                $c_lvl = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
-                    if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||;
-                ## no caller string : level = 0 ##
-            } @err;
-            if ($c_lvl) {    # <-- log parent caller instead ('<{C[level]}>')
-                @caller = $c_lvl > -1 ? caller($c_lvl) : caller(1);
-                ( $package, $filename, $line, $subroutine ) = @caller;
-            }
-
-            # special exception for zenka code evaluation [ base.init ]
-            my $abs_filename = abs_path($filename);
-            my $abs_ex_name
-                = abs_path( $data{'system'}{'start'}{'exec_name'} );
-            if (    defined $SUB_NAME
-                and defined $abs_ex_name
-                and defined $abs_filename
-                and $abs_filename eq $abs_ex_name
-                and $SUB_NAME eq qw| base.init | ) {
-                my $l = 0;
-                $filename = $data{'base'}{'eval_error'}{'name'}
-                    //= [ caller($l) ]->[1];
-                $line = $data{'base'}{'eval_error'}{'line'}
-                    //= [ caller($l) ]->[2];
-            }
-
-            $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
-
-            my $caller_str = "[$filename:$line]";
-            map {s| *\Q$caller_str\E$||g} @err;  # redundant caller clean-up #
-
-            $caller_str
-                = sprintf( "[ caller level too high : %03d ]", $c_lvl )
-                if not length( join( '', $filename, $line ) );
-
-            my $log_warning = 1;
-            ## alternative handlers registered for filename:line ? ##
-            my $match_param = "$filename:$line";    # <-- expand .., [LLL]
-            if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
-                my $cb_name
-                    = $data{'base'}{'warn-match-handler'}{$match_param};
-                ( my $msg_str = join( ' ', @err ) ) =~ s{^\s+|\s+$}{}g;
-
-                $log_warning
-                    = $code{$cb_name}->( $msg_str, $match_param, @caller )
-                    if defined $code{$cb_name};
-            }
-            ##
-            if ($log_warning) {
-
-                ##  parent caller exception for sprintf template warnings  ##
-                ##
-                if (    $caller_str =~ m{base.logt|base.sprint_t}
-                    and $err[0] =~ m| argument in sprintf| ) {
-                    $err[0] =~ s| argument in sprintf$| sprint_t parameter|;
-                    $caller_str = $code{'base.caller'}->(1);
-                    $caller_str = $code{'base.caller'}->(2)
-                        if $caller_str =~ m|logt|;    ##  parent caller  ##
-                }
-                ##
-
-                ##  seperate caller string to allow line wrapping  ##
-                my $log_msg = join( ' ', qq|: warn :|, @err );
-                if ( $log_msg =~ s| (\[[^:]+:\d+\])$|| ) {
-                    $caller_str = $LAST_PAREN_MATCH;
-                    $c_lvl      = 1;
-                }
-                if ( $c_lvl > -1 ) {
-                    my $max_len
-                        = 67 - length $data{'system'}{'zenka'}{'name'};
-                    if ( length($log_msg) + length($caller_str) > $max_len ) {
-                        $code{'log.error'}->($log_msg);
-                        $code{'log.error'}->(":.    .: $caller_str");
-                    } else {
-                        $code{'log.error'}
-                            ->( join( ' ', $log_msg, $caller_str ) );
-                    }
-                } else {
-                    $code{'log.error'}->($log_msg);
-                }
-            }
-        }
-        my $time = $code{'base.time'}->(10);
-        if ( sprintf( qw| %0.7f |, $time - $last_warning_time <= 0.04707 ) ) {
-
-            $code{'base.delay_warning'}    ##  slowing down with errors  ##
-                ->( $time, $last_warning_time, $recent_warn_cnt )
-                if $recent_warn_cnt++;
-
-            $last_warning_time = $time;
-        } else {
-            $recent_warn_cnt = 0;
-            undef $last_warning_time;
-        }
-        return 5;    ## true ##
-    };
-
-    $code{'base.delay_warning'} = sub {
-        my ( $time, $last_warning_time, $recent_warn_cnt ) = @ARG;
-        my $delay_factor = sprintf( qw| %.07f |, $recent_warn_cnt / 13 );
-        $delay_factor = 1 if $delay_factor > 1;
-        my $log_delay = sprintf( qw| %.07f |,
-            0.00007 - (
-                $delay_factor * ( ( $time - $last_warning_time ) / 1300 ) ) );
-        $log_delay = qw| 0 |       if $log_delay < 0;
-        $log_delay = qw| 0.00007 | if $log_delay > 0.00007;
-        $code{'base.sleep'}->($log_delay);
-    };
-
-    $code{'base.clean_up_caller'} = sub {
-        my $filename_sref = shift;
-        my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
-        $filename_sref = \"$filename_sref" if not $was_ref;
-        ## shorten for .pm mods ##
-        $$filename_sref =~ s{^/usr/share/perl5/}{,../};
-        $$filename_sref =~ s{^.+/protocol-7/data/}{,../};
-        $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
-        return $$filename_sref if not $was_ref;
-    };
-
-    $code{'base.handler.end_code'} = sub {
-        goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
-        my $callback_name;
-        foreach $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } )
-        {
-            if ( exists $code{$callback_name} ) {
-                $code{'base.logs'}->(
-                    2, "calling end_code callback '%s'..,",
-                    $callback_name
-                );
-                $code{$callback_name}->();
-            } else {
-                $code{'base.logs'}->(
-                    0,
-                    "<<  referenced end_code callback "
-                        . "'%s' does not exist >>",
-                    $callback_name
-                );
-            }
-        }
-    RESET_STDERR:
-        eval { print STDERR $ANSI{'reset'} }   ## [LLL] check 'output' mode ##
-            if defined $ANSI{'reset'} and fileno(STDERR);
-    };
-    map {
-        $data{'base'}{'core_subs'}{$ARG} = $code{$ARG};
-        $data{'code'}{$ARG}{'status'} = qw| core-sub |
-    } keys %code;
+    ## [ LLL ] ids need to become resolvable + debug command ..,
+    say sprintf(
+        "$ANSI{p7_fg_0000}. %s$ANSI{p7_fg_0001} : $ANSI{p7_fg_0004}%s"
+            . " [ $ANSI{p7_fg_0003}%s$ANSI{p7_fg_0000} ]"
+            . $ANSI{'reset'},
+        $data{'system'}{'zenka'}{'name'},
+        $sub_name, $param_list
+        )
+        if $sub_name ne qw| base.log |
+        and ( $sub_name ne qw| base.buffer.add_line |
+        or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
+        and $sub_name ne qw| base.dump_data |;
 }
 
-END { $code{'base.handler.end_code'}->() }
+##############################################################################
 
-#,,..,...,..,,,,,,.,,,.,.,...,...,..,,.,.,,,,,..,,...,...,,,.,.,,,.,.,,,.,...,
-#D7XB3247SDLCEWDEH7XHRPYPCZMHBJDEVUUVS6KVWJEEJL2T7CUWSRQA77HRLMAXJAJTXK5DRWVQ6
-#\\\|U4D6XHVGAWV547P6K26PI2CU63MSHJQ5DDHYM27KYPQIIU5BS76 \ / AMOS7 \ YOURUM ::
-#\[7]VQXAC354JK45MHYLSVUBG4IH3K4TCHYPFZNM4D2W44URXC4GN6CQ 7  DATA SIGNATURE ::
+sub p7_log_hook {
+
+    ## flush early zenka log buffer ###
+    if (    defined $data{'system'}{'start'}{'zenka-buffer'}
+        and @{ $data{'system'}{'start'}{'zenka-buffer'} }
+        and defined $code{'base.buffer.add_line'} ) {
+        my $buffer = $data{'system'}{'start'}{'zenka-buffer'};
+        while ( my $log_line = shift( @{$buffer} ) ) {
+            my $log_level
+                = $log_line =~ m|^\S+ (\-?\d+) | ? $LAST_PAREN_MATCH : 0;
+            $code{'base.buffer.add_line'}->( 'zenka', $log_line, $log_level )
+                if $log_level <= $data{'system'}{'verbosity'}{'zenka_buffer'}
+                or $log_level
+                <= $data{'system'}{'verbosity'}{'zenka_logfile'};
+        }
+        delete $data{'system'}{'start'}{'zenka-buffer'};
+    }
+    ##
+    return 0
+        if not $data{'system'}{'use_http_source'}   # <-- check if required .,
+        or not defined $data{'base'}{'httpc'}{'last_mlen'}
+        or not $data{'system'}{'verbosity'}{'console'};
+    if ( my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
+        local $OUTPUT_AUTOFLUSH = 1;
+        my $spaces = ' ' x $last_len;
+        print "\r$spaces\r" and return $last_len;
+    }
+    return 0;
+}
+
+##############################################################################
+
+sub p7_assert__harmony {    ## overloaded by 'base' module., ##
+
+    my $input_string = shift // '';
+    my $check_elf    = shift // 1;
+
+    return 1 if !length($input_string);    ## is harmonic ##
+
+    my $visualize
+        = defined $data{'base'}{'harmony'}{'visualize'}
+        ? $data{'base'}{'harmony'}{'visualize'}
+        : {};
+
+    my $visualize_zulum      = $visualize->{'zulum'}      // 0;
+    my $visualize_harmony    = $visualize->{'harmony'}    // 0;
+    my $visualize_disharmony = $visualize->{'disharmony'} // 0;
+
+    my %a;
+    if (   $visualize_zulum
+        or $visualize_harmony
+        or $visualize_disharmony ) {
+        if ( not keys %a ) {
+
+            #  reset          "\c[[m"
+            my $reset       = "\e[0m";
+            my $nailara_bg  = "\e[48;2;9;5;42m";
+            my $blacklight  = "\e[38;2;68;39;172m";
+            my $nailara_fg  = "\e[38;2;38;46;153m";
+            my $error_color = "\e[38;2;197;141;7m";
+            my $neon_green  = "\e[38;2;71;195;6m";
+            %a = (
+                'str'     => "\c[[1m",
+                'bg'      => $nailara_bg,
+                'bl'      => $blacklight,
+                'reset'   => $reset,
+                'ZL-B'    => $nailara_fg,
+                'ZULUM'   => $blacklight,
+                'Z-REST'  => "\c[[2m" . $reset . $nailara_bg . $nailara_fg,
+                'D-REST'  => $reset . $nailara_bg . $neon_green,
+                'NG'      => $neon_green . "\c[[1m",
+                'UNKNOWN' => $neon_green . "\c[[5m",
+                'color_y' => "\c[[6m" . $blacklight,
+                'color_n' => $error_color . "\c[[1m",
+                'clear'   => "\c[[H\c[[2J"
+            );
+        }
+    }
+
+    ## [ load modules first, if not present ] ##
+    map {
+        if ( not defined $data{'base'}{'perlmod'}{'loaded'}->{$ARG}
+            or $data{'base'}{'perlmod'}{'loaded'}->{$ARG} == 0 ) {
+
+            return 1
+                if defined $data{'base'}{'perlmod'}{'loading-failed'}
+                and exists $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG};
+
+            ( my $pm_name = "$ARG.pm" ) =~ s|::|/|g;
+
+            eval { require $pm_name };    ## load _before_ logging ., ##
+
+            if ($EVAL_ERROR) {
+                $code{'log.error'}->(": loading not successful [ $ARG ]");
+                ## give up assertions to not cause infinite loops ##
+                $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG} = 1;
+                return 1;
+            } else {
+                $data{'base'}{'perlmod'}{'loaded'}->{$ARG} = 1;
+                $code{'log.debug'}->(": loaded perl module '$ARG'.,");
+            }
+        }
+    } (qw| Digest::Elf Math::BigFloat |);
+    ##
+
+    Math::BigFloat->round_mode(qw| trunc |);
+
+    my $calc_str;
+    ## check as mumber ##
+    if ( $input_string =~ m|^\d+(\.\d+)?$| ) {
+        ( my $input_num = $input_string ) =~ s|\.||;
+
+        my $accuracy = 13;
+
+        ( $calc_str
+                = Math::BigFloat->new($input_num)
+                ->bdiv( 13, $accuracy + length($input_num) ) ) =~ s|\.||;
+
+        my $seperator_str = ' : ';
+
+        if ( index( $calc_str, qw| 230769 | ) >= 0 ) {    ## FALSE ##
+
+            my $min_len = $accuracy + 5;
+            my $num_len = length($input_num);
+            my $z_len   = abs( $min_len - $num_len );
+
+            if (    $visualize_harmony
+                and $visualize_disharmony
+                and $num_len < $min_len ) {
+
+                $input_num .= '0' x $z_len;
+            }
+            ### ..340769.., [E] ##
+            $calc_str
+                =~ s{(\d+?)((((((3)?0)?7)?6)?9)?230769([230769]+)*)(\d*)$}
+                {$a{'D-REST'}${1}$a{'NG'}${2}$a{'D-REST'}${9}  $a{'reset'}}
+                and say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str "
+                if $visualize_disharmony;
+
+            return 0;
+        } elsif ( $visualize_harmony
+            and index( $calc_str, qw| 846153 | ) >= 0 ) {
+            ### ..846153.., [T=5] ##
+            $calc_str
+                =~ s{(\d+?)((((((4)?6)?1)?5)?3)?846153([846153]+)*)(\d*)$}
+                {$a{'ZULUM'}${1}$a{'ZL-B'}${2}$a{'Z-REST'}${9} $a{'reset'}};
+            say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
+
+        } elsif ( $visualize_zulum
+            and index( $calc_str, qw| 0000000 | ) >= 0 ) {
+            $calc_str =~ s{(\d+?)?(0000000*)$}
+                {$a{'ZULUM'}${1}$a{'ZL-B'}${2} $a{'reset'}};
+            say "$a{bg}$a{bl}: $input_num$seperator_str$calc_str";
+
+        } elsif ( $visualize_harmony and $visualize_disharmony ) {
+            say "$a{bg}$a{bl}: $input_num$seperator_str$a{'UNKNOWN'}"
+                . "$calc_str $a{'reset'}";
+        }
+    }
+
+    return 1 if $check_elf == 0;
+
+    ## check as string ##
+    my $elf_checksum = Digest::Elf::elf($input_string);    ## use AMOS7::..,
+    $calc_str = Math::BigFloat->new($elf_checksum)
+        ->bdiv( 13, 13 + length($elf_checksum) );
+    return 0 if index( $calc_str, qw| 230769 | ) >= 0;
+    ##
+    return 1;    ## assertion complete : harmony detected ## [ no 230769.., ]
+}
+
+##############################################################################
+
+sub p7_load_b32_encoder {
+
+    if (    not defined &encode_b32r
+        and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
+        eval { use Crypt::Misc qw| encode_b32r | };
+        if ( $EVAL_ERROR or not defined &encode_b32r ) {
+            $data{'modules'}{'startup_error'}{'base32'} = 1;
+            return 0;    # module not found ##
+        } else {
+            return 1;    ## loading successful ##
+        }
+    } else {
+        return 1;        ## function already present ##
+    }
+}
+
+##############################################################################
+
+sub p7_anum_log_time {
+
+    my $pt_param     = shift // 5;    # <-- LLL: configure, precision\utime
+    my $want_harmony = shift;         # <-- skip not harmonic time stamps ?
+
+    if ( &{ $code{'base.load_b32_encoder'} } ) {
+        return $code{'base.ntime.b32'}->( $pt_param, $want_harmony );
+    } else {
+        return $code{'base.ntime'}->( $pt_param, $want_harmony );
+    }
+}
+
+##############################################################################
+
+sub p7_get_start_lpw {
+
+    my $zenka_name = shift // $data{'system'}{'zenka'}{'name'};
+    my $node_name  = $data{'system'}{'node'}{'name'};
+    my $min_lpw    = length join( qw| . |, $node_name, qw| cube-13 | );
+    my $start_lpw  = length( join( '.', $node_name, $zenka_name ) );
+    $start_lpw = $min_lpw if $start_lpw < $min_lpw;
+    return $start_lpw;
+}
+
+##############################################################################
+
+sub p7_strip_ansi {
+    my $scalar_ref = shift;
+    return if !$data{'system'}{'ansi_color'};
+    $$scalar_ref =~ s,$data{base}{ansi_re},,g;
+}
+
+##############################################################################
+
+sub p7_banner {
+
+    my $px = shift // '';
+
+    ##  protocol-7 sourcecode version  ##
+    my $version_str = sprintf 'protocol-7 srccode ver. : %s',
+        $data{'protocol-7'}{'src-ver'};
+
+    ## AMOS release version ##
+    my $release_str = sprintf 'release ver. : %s',
+        $data{'protocol-7'}{'rel-ver'};
+
+    open( my $banner_file_fh,
+        catfile( $data{'system'}{'conf_path'}, qw| .banner | ) )
+        or return;
+
+    local $RS = undef;    ## slurp mode ##
+    my $nailara_header = <$banner_file_fh>;
+
+    close($banner_file_fh);
+
+    my $bg_0 = $ANSI{'B02'};
+    my $bg_1 = $ANSI{'B00'};
+    my $fg   = $ANSI{'p7_fg_0000'};
+    my $rst  = $ANSI{'reset'};
+    map {
+        say $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1,
+            ' ',
+            $bg_0, $fg, ' ', $rst, "\r"
+        }
+        split( m|\n|, $nailara_header );
+    say $px, $bg_0, $fg, ' ', $bg_1, ' ' x 77, $bg_0 . $fg, ' ', $rst,
+        "\n",
+        $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $version_str, $bg_1,
+        '    ',
+        $bg_0, $fg, $release_str, $bg_1, ' ', $bg_0 . $fg, ' ', $rst,
+        "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
+        $rst,
+        "\r";
+}
+
+##############################################################################
+
+sub p7_read_from_version_file {
+
+    my $version_file    = shift;
+    my $version_content = qw| UNKNOWN |;
+    if (    defined $version_file
+        and -e $version_file
+        and open( my $ver_fh, qw|<|, $version_file ) ) {
+        while ( my $line = <$ver_fh> ) {
+            $line =~ s|#.+$||;
+            $line =~ s|\s||g;
+            next if not length $line;
+            $version_content = $line;
+            last;
+        }
+        close($ver_fh);
+    }
+    return $version_content;
+}
+
+##############################################################################
+
+sub p7_caller__get_package_name {
+
+    my $file = shift;
+    my $line = shift;
+    if ( not defined $file ) {
+        warn 'file param is not defined <{C1}>';
+        return undef;
+    } elsif ( not defined $line ) {
+        warn 'line param is not defined <{C1}>';
+        return undef;
+    }
+    my $caller_lvl = 0;
+    while ( my @caller_params = eval { caller( ++$caller_lvl ) }
+        and not length $EVAL_ERROR ) {
+        if ($caller_params[2] == $line
+            and (  $caller_params[1] eq $file
+                or $caller_params[3] eq $file )
+        ) {
+            ## returning package, subroutine in list context ##
+            return ( $caller_params[0], $caller_params[3] ) if wantarray;
+            ## returning package name in scalar context ##
+            return $caller_params[0];
+        }
+    }
+    return undef;    ##[ no match ]##
+}
+
+##############################################################################
+
+sub p7_format_error {
+
+    my $err_msg = shift // qw| :undef: |;
+    my $c_lvl   = shift // 1;
+    my ( $caller_str, $file, $line );
+    $err_msg =~ s|\n$||;
+
+    while ( $err_msg =~ s| at (\S+) line (\d+).*$|| ) {
+        ( $file, $line ) = @{^CAPTURE};
+    }
+    while ( $err_msg =~ s, ?\[([^\[]+):(\d+)\](( )|$),$3, ) {
+        ( $file, $line ) = @{^CAPTURE};
+    }
+
+    $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
+    $err_msg =~ s|"\s|' |g;
+    $err_msg =~ s|\s"| '|g;
+    $err_msg =~ s|\s+BEGIN failed.+$||sg;
+    $err_msg =~ s|(\S+(*nlb::)):(*pla: )|$LAST_PAREN_MATCH :|g;
+
+    $err_msg = lcfirst($err_msg) if $err_msg =~ m|^[A-Z][^A-Z]|;
+
+    my @package;
+    if ( defined $file ) {
+        if (    defined $data{'code'}{$file}
+            and defined $data{'code'}{$file}{'moved_to'} ) {
+            ## sub renamed ? ##
+            $file = $data{'code'}{$file}{'moved_to'};
+            ## check where the old caller string comes from ##  [LLL]
+        } else {
+            $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
+        }
+        @package    = $code{'base.caller.get_package_name'}->( $file, $line );
+        $caller_str = sprintf '[%s:%d]', $file, $line;
+        $err_msg .= sprintf( ' %s', $caller_str ) if $c_lvl >= 0;
+    }
+    $err_msg =~ s,use of ,,g;
+    $err_msg =~ s,no success on ,,g;
+    $err_msg =~ s,(can't|unable to),cannot,g;
+    $err_msg =~ s|^warning : something's wrong$|:undef:|g;
+    $err_msg =~ s|^uninitialized value in warn$|:undef:|g;
+    $err_msg =~ s|uninitialized value|undef value|g;
+    $err_msg =~ s|argument in sprintf|sprintf argument|g;
+    $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
+    $err_msg =~ s|cannot use (an )?||g;
+    $err_msg =~ s|(*plb: as )a ||g;
+
+    ## check previously seen subroutine names ##
+    if ( index( $err_msg, 'undefined value as subroutine reference', 0 ) >= 0
+        and defined $data{'base'}{'subroutines'}{'referenced'}
+        and defined $file
+        and defined $line ) {
+        my $sub_list_href = $data{'base'}{'subroutines'}{'referenced'};
+        foreach my $subname ( keys $sub_list_href->%* ) {
+            my $matched_href = $sub_list_href->{$subname};
+            if ( defined $matched_href->{$line}->{$file} ) {
+                $err_msg = sprintf    ## using an 'educated' guess here ##
+                    'protocol-7 subroutine %s not defined',    ## <{NC}>? ##
+                    $subname;
+                ## $err_msg .=
+                ## sprintf( ' %s', $caller_str ) if $c_lvl != -1; ## ? ##
+            }
+        }
+    }
+    if (wantarray) {
+        my $force_caller = 0;
+        if ( $c_lvl < -1 ) {
+            ++$c_lvl;
+            $force_caller = 5;    ## true ##
+        }
+        if ( $c_lvl != -1 or $force_caller ) {
+            my @caller_params = $code{'base.caller'}->( abs($c_lvl) );
+            ( $file, $line, @package ) = @caller_params;
+            $caller_str = sprintf '[%s:%d]', $file, $line;
+        }
+        return ( $err_msg, $caller_str, $file, $line, @package );
+    } else {
+        return $err_msg;    ## scalar context ##
+    }
+}
+
+##############################################################################
+
+sub p7_caller {
+
+    my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
+    $c_lvl++;                  ## <-- accounting for this subroutine ##
+    my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
+    if ( not defined $filename ) {
+        return sprintf( "[ caller level too high : %03d ]", $c_lvl );
+    } else {
+        $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+        return ( $filename, $line, $package, $subroutine ) if wantarray;
+        return "[$filename:$line]";
+    }
+}
+
+##############################################################################
+
+# [LLL] callback registry [ for skipping purging ]
+sub p7_purge_code {
+
+    my $code_name   = shift;
+    my $purge_count = 0;
+    my @zenka_commands;
+    map {
+        if (    $ARG !~ m{\.(callback|handler)\.}
+            and not exists $data{'base'}{'core_subs'}{$ARG}
+            and $ARG ne qw|  base.log       |
+            and $ARG ne qw|  base.logs      |
+            and $ARG ne qw|  base.sort      |
+            and $ARG ne qw|  base.time      |
+            and $ARG ne qw|  base.sleep     |
+            and $ARG ne qw|  base.gen_id    |
+            and $ARG ne qw|  base.caller    |
+            and $ARG ne qw|  base.s_read    |
+            and $ARG ne qw|  base.s_write   |
+            and $ARG ne qw|  base.sig_int   |
+            and $ARG ne qw|  base.cfg_bool          |
+            and $ARG ne qw|  base.sprint_t          |
+            and $ARG ne qw|  base.sig_warn          |
+            and $ARG ne qw|  base.route.add         |
+            and $ARG ne qw|  base.format_error      |
+            and $ARG ne qw|  base.context.list      |
+            and $ARG ne qw|  base.clean_unicode     |
+            and $ARG ne qw|  base.clean_up_caller   |
+            and $ARG ne qw|  base.buffer.add_line   |
+            and $ARG ne qw|  base.balanced-average  |
+            and $ARG ne qw|  base.list.element.add  |
+            and $ARG ne qw|  v7.handler.zenka_output             |
+            and $ARG ne qw|  base.utf8.decode_clean              |
+            and $ARG ne qw|  base.utf8.clean_not_valid           |
+            and $ARG ne qw|  base.log.send_buffer_line           |
+            and $ARG ne qw|  base.log.handler.log_reply          |
+            and $ARG ne qw|  base.read_from_version_file         |
+            and $ARG ne qw|  base.session.calc_cmd_stats         |
+            and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
+            ++$purge_count
+                and $data{'code'}{$ARG}{'status'} = qw| purged |
+                and eval { undef &{ delete $code{$ARG} } }; #<-- improve [LLL]
+
+            #  #[ debug ]##
+            #     and $code{$ARG} = eval "sub { print STDERR \"\n"
+            #                      ." MISSING '$ARG'\n\n\" }";
+
+            push( @zenka_commands, ${^CAPTURE}[0] )
+                if $ARG =~ m|\.cmd\.(.+)$|;
+            --$purge_count if $EVAL_ERROR;
+        } elsif ( not exists $data{'base'}{'core_subs'}{$ARG} ) {
+            ##  kept \ essential  ##
+            $data{'code'}{$ARG}{'status'} = qw| leftover |;
+        }
+        }
+        grep {m|^$code_name(\..+)?$|} keys %code;
+    map {
+        delete $data{'base'}{'cmd'}{$ARG};
+        delete $data{'base'}{'commands'}{'cmd'}{$ARG};
+    } @zenka_commands;
+    return $purge_count;
+}
+
+##############################################################################
+
+sub p7_parser__ellipse_center {
+
+    my $str_param = shift;
+    my $len_param = shift;
+    die 'expected string and maximum length [>=5] parameters'
+        if not defined $str_param
+        or not defined $len_param
+        or $len_param =~ m|^\d+$| and $len_param < 5;
+
+    my $by_reference = ref($str_param) eq qw| SCALAR | ? 1 : 0;
+    my $str_ref      = $by_reference ? $str_param          : \$str_param;
+    my $str_len      = length($$str_ref);
+    my $start_pos    = int( $len_param / 2 ) - 1;
+    my $chars_cut    = $str_len - $len_param + 3;
+
+    return 0                     if $by_reference and $str_len <= $len_param;
+    return $str_param            if $str_len <= $len_param;
+    return $str_len - $len_param if $by_reference;
+
+    substr( $$str_ref, $start_pos, $chars_cut, '.,.' );
+    return $$str_ref;
+}
+
+##############################################################################
+
+sub p7_code__file_list {
+
+    my $codedir_fh;
+    $data{'base'}{'modules'}{'load_errors'} //= 0;
+    if ( !opendir( $codedir_fh, $data{'system'}{'code_path'} ) ) {
+        $data{'base'}{'modules'}{'load_errors'}++;
+        $code{'log.error'}->(
+            ': cannot open source code directory' . sprintf " '%s' [ %s ]",
+            $data{'system'}{'code_path'},
+            $code{'base.format_error'}->($OS_ERROR)
+        );
+        return undef;
+    }
+    my @subroutine_names = sort { length $a <=> length $b }
+        sort grep { !m|^\.| } readdir($codedir_fh);
+    closedir($codedir_fh);
+    return @subroutine_names;
+}
+
+##############################################################################
+
+sub p7_code__sort_filter {
+
+    my @filtered_subroutines;
+    my @subroutine_names = @ARG;
+    my %subroutines      = map { $ARG => 0 } @subroutine_names;
+    my $occurrence       = 0;
+
+    ## unique filter ##
+    my $subs_skipped = 0;
+    my %sub_is_present;
+    map {
+        if ( not exists $sub_is_present{$ARG} ) {
+            push( @filtered_subroutines, $ARG )
+                and ++$sub_is_present{$ARG};
+        } else {
+            $subs_skipped++;
+        }
+    } @subroutine_names;
+
+    $code{'log.debug'}->(": :. skipped identical .: $subs_skipped ::")
+        if $subs_skipped;    ## increase level when case addressed ## [LLL]
+
+    ## .., ## [LLL] implement code dependency tree ..,
+
+    return @filtered_subroutines;
+}
+
+##############################################################################
+
+sub p7_httpc__remote_file {
+
+    $data{'base'}{'warned'}{'http_src_deactivated'} //= 0;
+    warn 'source loading over http has been temporarely deactivated'
+        if !$data{'base'}{'warned'}{'http_src_deactivated'}++;
+
+    return undef;    ## feature temporarely deactivated ##
+
+    return undef if !( $data{'system'}{'use_http_source'} // 1 );
+    my $http_retries = $data{'system'}{'http_src_retries'} // 4;
+    eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
+    $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
+    warn "<< 'HTTP::Tiny' pmod. not found"
+        . " [ yet in cubelist ] [ $EVAL_ERROR ] >>"
+        and return undef
+        if $EVAL_ERROR;
+    $data{'system'}{'http_reqs'}++;
+    my $file_name = shift // '';
+    my $base_urls = shift // ['https://nailara.network/sourcecode/'];
+    warn 'expected http file name' and return undef
+        if !length($file_name);
+    warn 'expected array ref to base urls' and return undef
+        if ref($base_urls) ne qw| ARRAY | or !@{$base_urls};
+    ####
+    $OUTPUT_AUTOFLUSH = 1;
+    foreach my $http_base_url ( @{$base_urls} ) {
+        my $abs_url = join( '/', $http_base_url, $file_name );
+        $abs_url =~ s|//$file_name$|/$file_name|;
+        my $h_res;
+        my $retries      = $data{'system'}{'http_retries_total'} //= 0;
+        my $retries_left = $http_retries;
+        while ( $retries_left-- ) {
+            my $r = $retries ? "[$retries\\$http_retries]" : '';
+            ( my $msg_url = $abs_url ) =~ s|^(\w+)://|<$LAST_PAREN_MATCH> |;
+            my $len
+                = length( $data{'system'}{'zenka'}{'name'} )
+                + length( $data{'system'}{'host'}{'hostname'} // '' );
+            $len = 26 if $len < 27;
+
+            my $w_len
+                = 95 - $len
+                - (
+                      length( $data{'system'}{'node'}{'name'} )
+                    + length( $data{'system'}{'zenka'}{'name'} ) );
+
+            $code{'base.parser.ellipse_center'}->( \$msg_url, $w_len )
+                if defined $msg_url;
+
+            $msg_url =~ s| | : |;
+            my $m_len    = length($msg_url);
+            my $last_len = $data{'base'}{'httpc'}{'last_mlen'};
+            $data{'base'}{'httpc'}{'last_mlen'} = length($msg_url) + 13;
+            my $s     = ' ' x $last_len;
+            my $m_str = "\r$s\r: $msg_url.,";
+            print "\r$m_str\r"
+                if $data{'system'}{'verbosity'}{'console'} == 1;
+            $code{'log.debug'}->(":$r: $msg_url")
+                if $retries_left != $retries;
+            my $h_obj = $data{'base'}{'httpc'}{'obj'}
+                //= HTTP::Tiny->new( 'timeout' => 7 );
+            $h_res = $h_obj->get($abs_url);
+            my $h_code = $h_res->{'status'};
+
+            if ( not $h_res->{'success'} ) {
+                my $r_str = $EVAL_ERROR ? " < $EVAL_ERROR >" : '';
+                goto skiplog_httpmsg;
+                $code{'log.debug'}->(
+                    sprintf(
+                        ":[ %d ] %s : [ %s ]%s",
+                        $h_code, $abs_url, $h_res->{'reason'}, $r_str
+                    )
+                );
+            skiplog_httpmsg:
+                if ( $h_code == 404 or $h_code eq 599 ) {
+                    $retries_left = 0;
+                    $code{'log.noerr'}->( ":: aborting retries ["
+                            . " after first $h_code code ] ::" );
+                    return undef;
+                } else {    ## client side rate limiting ## [???]
+                    my $randomized_delay = 0.13 + rand(
+                        0.777 * ++$data{'system'}{'http_retries_total'} );
+                    $code{'base.sleep'}->($randomized_delay);
+                }
+                next;
+            }
+            if ( $h_code == 200 and length $h_res->{'content'} ) {
+                return $h_res->{'content'};
+            } else {
+                warn "<< failed to acquire http file '$file_name' >>";
+                return undef;
+            }
+        }
+    }
+    $OUTPUT_AUTOFLUSH = 0;
+}
+
+##############################################################################
+
+sub p7_undef { return undef }
+
+##############################################################################
+
+sub p7__dev__null { return $code{'base.undef'}->() }
+
+##############################################################################
+
+sub p7_sig_warn {
+
+    my $s_len;
+    state $deep_recusrsion   //= 0;
+    state $recent_warn_cnt   //= 0;
+    state $last_warning_time //= $code{'base.time'}->(10);
+    $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
+    $s_len //= 0;
+    my $spaces = ' ' x $s_len;
+    if (@ARG) {
+        my $c_lvl = 0;
+        chomp( my @err = @ARG );
+        map {
+            $ARG //= qw| :undef: |;
+            $ARG =~ s|([^[:print:]])
+                           | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
+            $ARG = $code{'base.format_error'}->( $ARG, -1 );
+        } @err;
+        push( @err, $spaces ) if length $spaces;
+        {
+            if ( @err ~~ m|deep recursion | ) {
+                no warnings qw| recursion |;    # no follow-ups
+                $deep_recusrsion++;             # remove offending routine #
+                foreach my $c_lvl ( 1 .. 5 ) {
+                    next
+                        if $code{'base.caller'}->($c_lvl)
+                        !~ m{\[(base\.(log.*|buffer.add_line)):\d+\]};
+                    say ' < undefining > ', ${^CAPTURE}[0];
+                    undef $code{ ${^CAPTURE}[0] };
+                }
+                my $msg = join( ' ',
+                    ': FATAL ERROR :',
+                    @err, $code{'base.caller'}->(3) );
+                $code{'log.error'}->($msg);
+                if ( $deep_recusrsion >= 5 ) {
+                    $code{'log.error'}->(': terminating program .,');
+                    exit('000113');
+                }
+            }
+        }
+        my @caller = caller;
+        my ( $package, $filename, $line, $subroutine ) = @caller;
+
+        $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+
+        if ( defined $data{'sig_warn_blacklist'} ) {    # <-- use array [LLL]
+            return
+                if defined $data{'sig_warn_blacklist'}{'package'}
+                and $package eq $data{'sig_warn_blacklist'}{'package'}
+                or defined $data{'sig_warn_blacklist'}{'pattern'}
+                and join( ' ', @err )
+                =~ $data{'sig_warn_blacklist'}{'pattern'};
+        }    ## human readable way to stacktrace [eval] callers ? [LLL]
+        map {
+            $ARG =~ s| at $filename line $line[\.,].*$||;
+            $ARG =~ s{, <GEN\d+>.*|GEN\d+$}{}g;
+            $ARG =~ s|no success on eval ('\$code\{\S+)
+                         |<< $LAST_PAREN_MATCH >>|x;
+            $c_lvl = defined ${^CAPTURE}[0] ? -1 : ${^CAPTURE}[1] || 1
+                if $ARG =~ s| *<\{(N)?C(\d{1,3})?\}>$||;
+            ## no caller string : level = 0 ##
+        } @err;
+        if ($c_lvl) {    # <-- log parent caller instead ('<{C[level]}>')
+            @caller = $c_lvl > -1 ? caller($c_lvl) : caller(1);
+            ( $package, $filename, $line, $subroutine ) = @caller;
+        }
+
+        # special exception for zenka code evaluation [ base.init ]
+        my $abs_filename = abs_path($filename);
+        my $abs_ex_name
+            = abs_path( $data{'system'}{'start'}{'exec_name'} );
+        if (    defined $SUB_NAME
+            and defined $abs_ex_name
+            and defined $abs_filename
+            and $abs_filename eq $abs_ex_name
+            and $SUB_NAME eq qw| base.init | ) {
+            my $l = 0;
+            $filename = $data{'base'}{'eval_error'}{'name'}
+                //= [ caller($l) ]->[1];
+            $line = $data{'base'}{'eval_error'}{'line'}
+                //= [ caller($l) ]->[2];
+        }
+
+        $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
+
+        my $caller_str = "[$filename:$line]";
+        map {s| *\Q$caller_str\E$||g} @err;    # redundant caller clean-up #
+
+        $caller_str = sprintf( "[ caller level too high : %03d ]", $c_lvl )
+            if not length( join( '', $filename, $line ) );
+
+        my $log_warning = 1;
+        ## alternative handlers registered for filename:line ? ##
+        my $match_param = "$filename:$line";    # <-- expand .., [LLL]
+        if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
+            my $cb_name
+                = $data{'base'}{'warn-match-handler'}{$match_param};
+            ( my $msg_str = join( ' ', @err ) ) =~ s{^\s+|\s+$}{}g;
+
+            $log_warning
+                = $code{$cb_name}->( $msg_str, $match_param, @caller )
+                if defined $code{$cb_name};
+        }
+        ##
+        if ($log_warning) {
+
+            ##  parent caller exception for sprintf template warnings  ##
+            ##
+            if (    $caller_str =~ m{base.logt|base.sprint_t}
+                and $err[0] =~ m| argument in sprintf| ) {
+                $err[0] =~ s| argument in sprintf$| sprint_t parameter|;
+                $caller_str = $code{'base.caller'}->(1);
+                $caller_str = $code{'base.caller'}->(2)
+                    if $caller_str =~ m|logt|;    ##  parent caller  ##
+            }
+            ##
+
+            ##  seperate caller string to allow line wrapping  ##
+            my $log_msg = join( ' ', qq|: warn :|, @err );
+            if ( $log_msg =~ s| (\[[^:]+:\d+\])$|| ) {
+                $caller_str = $LAST_PAREN_MATCH;
+                $c_lvl      = 1;
+            }
+            if ( $c_lvl > -1 ) {
+                my $max_len
+                    = 67 - length $data{'system'}{'zenka'}{'name'};
+                if ( length($log_msg) + length($caller_str) > $max_len ) {
+                    $code{'log.error'}->($log_msg);
+                    $code{'log.error'}->(":.    .: $caller_str");
+                } else {
+                    $code{'log.error'}
+                        ->( join( ' ', $log_msg, $caller_str ) );
+                }
+            } else {
+                $code{'log.error'}->($log_msg);
+            }
+        }
+    }
+    my $time = $code{'base.time'}->(10);
+    if ( sprintf( qw| %0.7f |, $time - $last_warning_time <= 0.04707 ) ) {
+
+        $code{'base.delay_warning'}    ##  slowing down with errors  ##
+            ->( $time, $last_warning_time, $recent_warn_cnt )
+            if $recent_warn_cnt++;
+
+        $last_warning_time = $time;
+    } else {
+        $recent_warn_cnt = 0;
+        undef $last_warning_time;
+    }
+    return 5;    ## true ##
+}
+
+##############################################################################
+
+sub p7_delay_warning {
+
+    my ( $time, $last_warning_time, $recent_warn_cnt ) = @ARG;
+    my $delay_factor = sprintf( qw| %.07f |, $recent_warn_cnt / 13 );
+    $delay_factor = 1 if $delay_factor > 1;
+    my $log_delay = sprintf( qw| %.07f |,
+        0.00007
+            - ( $delay_factor * ( ( $time - $last_warning_time ) / 1300 ) ) );
+    $log_delay = qw| 0 |       if $log_delay < 0;
+    $log_delay = qw| 0.00007 | if $log_delay > 0.00007;
+    $code{'base.sleep'}->($log_delay);
+}
+
+##############################################################################
+
+sub p7_clean_up_caller {
+
+    my $filename_sref = shift;
+    my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
+    $filename_sref = \"$filename_sref" if not $was_ref;
+    ## shorten for .pm mods ##
+    $$filename_sref =~ s{^/usr/share/perl5/}{,../};
+    $$filename_sref =~ s{^.+/protocol-7/data/}{,../};
+    $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
+    return $$filename_sref if not $was_ref;
+}
+
+##############################################################################
+
+sub p7__log__name_template {
+
+    my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
+    if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
+        return sprintf(
+            '%s%s.%s %s.%-*s %s.%s',
+            $ANSI{'B02'},
+            $ANSI{'p7_fg_0000'},
+            $ANSI{'B00'} . $ANSI{'bold'},
+            $data{'system'}{'node'}{'name'},
+            $lpw,
+            $data{'system'}{'zenka'}{'name'},
+            $ANSI{'reset'} . $ANSI{'B02'} . $ANSI{'p7_fg_0000'},
+            $ANSI{'B00'} . $ANSI{'bold'}
+        );
+    } else {               ## regular log line output [ not .\7 line ] ##
+        return sprintf(
+            '%s%s. %s.%-*s .%s',
+            $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
+            $data{'system'}{'node'}{'name'},
+            $lpw, $data{'system'}{'zenka'}{'name'},
+            $ANSI{'B00'}
+        );
+    }
+}
+
+##############################################################################
+
+sub p7__log__format_name {
+
+    my $hl       = shift // 0;   ## highlight name and line [ bold \ ansi ] ##
+    my $last_lpw = $data{'log'}{'lpw'}{'last'} // 0;
+    my $lpw
+        = $data{'system'}{'zenka'}{'log_prefix_width'}
+        - length( $data{'system'}{'node'}{'name'} )
+        - 1;
+
+    if ($last_lpw) {
+        my $lpw_delta = $lpw - $last_lpw;
+        if ( $lpw_delta > 0 ) {    ## adjust in steps ##
+            $lpw = ++$last_lpw;
+        } elsif ( $lpw_delta != 0 ) {
+            $lpw = --$last_lpw;
+        }
+    }
+
+    $data{'log'}{'lpw'}{'last'} = $lpw;
+    return $code{'log.name_template'}->( $lpw, $hl );
+}
+
+##############################################################################
+
+sub p7__log__noerr {
+
+    my $s_len;
+    $s_len = $code{'base.log_hook'}->()
+        if defined $code{'base.log_hook'};
+    $s_len //= 1;    # <-- << ! >>
+    my $spaces = ' ' x $s_len;
+    while ( my $lmsg = shift @ARG ) {
+        if ( defined $code{'base.log'}
+            and $code{'base.log'} ne $code{'log.noerr'} ) {
+            $code{'base.log'}->( 1, $lmsg );
+        } else {
+            if (defined $code{'base.log'}    ##  routine was purged  ##
+                and $code{'base.log'} eq $code{'log.noerr'}
+                ) {    ## setting emergenncy log levels ##
+                $data{'system'}{'verbosity'}{'console'} //= 1;
+                $data{'system'}{'verbosity'}{'console'} = 1
+                    if $data{'system'}{'verbosity'}{'console'} < 1;
+                $data{'system'}{'verbosity'}{'zenka_buffer'} //= 1;
+                $data{'system'}{'verbosity'}{'zenka_buffer'} = 1
+                    if $data{'system'}{'verbosity'}{'zenka_buffer'} < 1;
+            }
+            my $llvl = 1;
+            if ( $lmsg =~ m|\-?\d+$| and @ARG ) {
+                $llvl = $lmsg;
+                $lmsg = shift @ARG;
+            }
+            my $color = $llvl < 1 ? qw| p7_fg_0002 |       : qw| p7_fg_0004 |;
+            my $hl    = index( $lmsg, '.\\7', 0 ) == 0 ? 1 : 0;
+            if (    $data{'system'}{'verbosity'}{'console'}
+                and $llvl <= $data{'system'}{'verbosity'}{'console'} ) {
+                say $code{'log.format_name'}->($hl), ' ',
+                    $ANSI{$color}, $lmsg, $ANSI{'reset'},
+                    $spaces;
+            }
+            ## early start-up buffer ##
+            push(
+                @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                join( ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg )
+            ) if $llvl <= $data{'system'}{'verbosity'}{'zenka_buffer'};
+        }
+    }
+}
+
+##############################################################################
+
+sub p7__log__error {
+
+    my $error_color
+        = $data{'system'}{'term'}{'colors'}{'stderr'}
+        ? $ANSI{'bold'}
+        : '';
+    $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
+    if ( defined $code{'base.log'} ) {
+        map {
+            $code{'base.log'}->( 0, $ARG )
+                if defined $code{'base.log'}    ##  still defined ?  ##
+        } @ARG;
+    } else {
+        map {
+            if ( defined $ARG ) {
+                my $n_n = $data{'system'}{'node'}{'name'}  // '';
+                my $a_n = $data{'system'}{'zenka'}{'name'} // '';
+                my $s_len
+                    = defined $code{'base.log_hook'}
+                    ? $code{'base.log_hook'}->()
+                    : 0;
+                my $spaces = ' ' x $s_len;
+                say &{ $code{'log.format_name'} }, ' ',
+                    $ANSI{'p7_fg_0002'}, $ARG,
+                    $spaces;
+
+            } else {
+                warn '<< error message not defined >> <{C1}>';
+            }
+        } @ARG;
+        map {    ## early start-up buffer ##
+            push(
+                @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                join( ' ', $code{'base.anum_log_time'}->(), 0, $ARG )
+            )
+        } @ARG;
+    }
+}
+
+##############################################################################
+
+sub p7__log__debug {
+
+    $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
+    if ( defined $code{'base.log'} ) {
+        map { $code{'base.log'}->( 2, $ARG ) } @ARG;
+    } else {
+        if ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
+            my $s_len;
+            $s_len = $code{'base.log_hook'}->()
+                if defined $code{'base.log_hook'};
+            $s_len //= 0;
+            my $spaces = ' ' x $s_len;
+            map {
+                say &{ $code{'log.format_name'} }, $ANSI{'p7_fg_0001'},
+                    $ARG, $ANSI{'reset'},
+                    $spaces
+            } @ARG;
+        }
+        map {    ## early start-up buffer ##
+            push(
+                @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                join( ' ', $code{'base.anum_log_time'}->(), 2, $ARG )
+            )
+        } @ARG if $data{'system'}{'verbosity'}{'zenka_buffer'} > 1;
+    }
+}
+
+##############################################################################
+
+sub p7_handler__end_code {
+
+    goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
+
+    my $callback_name;
+    foreach $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } ) {
+        if ( exists $code{$callback_name} ) {
+            $code{'base.logs'}
+                ->( 2, "calling end_code callback '%s'..,", $callback_name );
+            $code{$callback_name}->();
+        } else {
+            $code{'base.logs'}->(
+                0,
+                "<<  referenced end_code callback "
+                    . "'%s' does not exist >>",
+                $callback_name
+            );
+        }
+    }
+
+RESET_STDERR:
+    eval { print STDERR $ANSI{'reset'} }    ## [LLL] check 'output' mode ##
+        if defined $ANSI{'reset'} and fileno(STDERR);
+}
+
+##############################################################################
+
+END {
+    defined $code{'base.handler.end_code'}
+        && $code{'base.handler.end_code'}->();
+}
+
+#,,..,.,.,...,.,,,...,,.,,,..,.,,,.,.,.,.,.,,,..,,...,...,.,.,,,.,...,.,.,,,,,
+#X6T4WMBN6U2UIAFCLJGCL3VAI7FNAUVLO4ON2HAOSY46VCWT2YFVBIGOS2DEBDYRGBYYTNMOHSHOY
+#\\\|FHILBOFBOWICLGWOCYTUSS7G2YG5OSJZWQLJ75WPJNV5HWNI4AK \ / AMOS7 \ YOURUM ::
+#\[7]NGHBL4FJQPF67DDUEDPBCIACHACBMFFNXUIVM4XZQ3UAD33SEACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
