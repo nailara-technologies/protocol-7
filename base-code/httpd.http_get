@@ -2,15 +2,14 @@
 
 # name = httpd.http_get
 
-my $id      = shift;
-my $session = $data{'session'}->{$id};
+my $id            = shift;
+my $session       = $data{'session'}->{$id};
+my $allow_overlap = <httpd.cfg.allow_range_overlap> // 0;
 
 my $http_host = <[httpd.determine_host]>->($id);
 
-my $allow_overlap = <httpd.cfg.allow_range_overlap> // 0;
-
-return <[httpd.send_error_page]>->( $id, 400 ) if not defined $http_host;
-######                            [ bad req. ]
+return <[httpd.send_error_page]>->( $id, $http_host )
+    if $http_host =~ m|^\d{3}$|;    ##  numerical HTTP error code  ##
 
 $session->{'http_host'} = $http_host;
 
@@ -20,7 +19,7 @@ my $headers     = $request->{'headers'};
 my $req_host    = $request->{'host'};
 my $http_uri    = $request->{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
-    if exists <httpd.cfg.hostnames>->{$http_host};
+    if defined <httpd.cfg.hostnames>->{$http_host};
 
 if (    $link_target =~ /^\d{3}$/
     and -l <httpd.site_dir> . '/' . $http_host
@@ -247,8 +246,8 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path
     or !-f $file_path;
 
-#,,.,,...,..,,...,..,,,,,,..,,..,,...,...,..,,..,,...,...,,.,,..,,...,,,.,.,,,
-#NNKQ7IUHY6EB3YLGG2KC3YG245M4GGNVMFTRU4444BNKGWBUXO7ZX7JMMDP3D3RQLOQROJTRHCR6E
-#\\\|M4PZVGKQQ6QT5SGY44R3B6ZZFZ3AU4UAYUR3CSAV6VY6WLRVHYH \ / AMOS7 \ YOURUM ::
-#\[7]CQA5ATJAS2EJG7XPJKBG3D2VXZSODOHW7MYQ5KEWHPS6YNMMCCDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,.,,,,,,.,.,,,.,..,,,.,,..,,..,,...,..,,.,,,...,,,,,.,,,,,,,
+#UHPQJP7Z2CMJ52UEUHKNDT4SDIBS3ZVAOIYU3D3TZIEEQTQIXLS6PIHKODBGBBYLXGRHQEIX3KNUE
+#\\\|NBYACGP6ZXUCTR4CHYSRKHXQJHD3AHULG74JSVG2USVYDXPDKHG \ / AMOS7 \ YOURUM ::
+#\[7]NGUDLE5XLNQB2NMWHIP65GJ2ZPEYQVHG5H72HICAHHOYJC7G2GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

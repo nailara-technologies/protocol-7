@@ -9,9 +9,13 @@ my $param_index = 0;
 map {
     if ( not defined $ARG ) {
         my $call_lvl = 0;
-        $call_lvl++ if [ <[base.caller]>->(1) ]->[0] eq qw| base.s_warn |;
+        my $subname  = qw| base.logs |;
+        if ( [ <[base.caller]>->(1) ]->[0] eq qw| base.s_warn | ) {
+            $subname = qw| base.s_warn |;
+            $call_lvl++;
+        }
         my $warn_string = sprintf '%s parameter %d not defined %s',
-            $call_lvl == 1 ? qw| base.logs | : qw| base.s_warn |,
+            $subname,
             $param_index, scalar <[base.caller]>->($call_lvl);
         <[base.log]>->( 0, $warn_string );
         return undef;
@@ -37,8 +41,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#,,.,,,..,.,.,,,.,..,,..,,,,.,,.,,.,.,,.,,,,,,..,,...,...,.,,,..,,,.,,.,.,.,,,
-#67YJPJ5IYJW5GCCEQRWWYV6XB3VZG5UOGEX45KTIO75VU4Q5ASA6FESAUW2TD7EZVSE7G7G6DTZJG
-#\\\|23OGWKJBX3ZGZMRWQQTHKDBM4JIO5JWWSSZPVHPKSJV4MBPU2OS \ / AMOS7 \ YOURUM ::
-#\[7]Q7KHJOCPI3LAKSRT7BOY4MPFKOBXEAACI3FA32JFKL25OOPG3OCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,,,,.,,,,,,,,..,,.,,..,,,..,..,,...,...,.,,,,..,.,,,,..,...,
+#KCSI5DIJWOYTJNLMHGYYUTZCDH5BEB7YZRVJSE3FAQXSRDEEZPCJ4CZTEPQKCI2S2YCJY46V7B25C
+#\\\|6MPI7OB3I2DHYPQDISQGKASGZ424IEHYPK6F7YT7QRDHRGWUNR3 \ / AMOS7 \ YOURUM ::
+#\[7]633RI4ZD336ZYNRF44DI472IMDGJXG3SD4ZEHZW4HML54MAAJKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,22 +3,22 @@
 # note : return 2 to close connection
 
 my $id      = $_[0]->w->data;
-my $session = $data{'session'}{$id};
+my $session = $data{'session'}->{$id};
 
 my $max_uri_len = 1 + ( <httpd.cfg.max_uri_length>     || 1024 * 7 );
 my $max_req_len = 1 + ( <httpd.cfg.max_request_length> || 1024 * 13 );
 
 if ( $session->{'buffer'}{'input'} =~ m,^[^\r\n]{$max_uri_len}, ) {
-    $max_uri_len--;
-    <[base.log]>->(
-        0, "[$id] maximum URI length [ $max_uri_len bytes ] exceeded.,"
+    <[base.logs]>->(
+        0,   '[%d] maximum URI length [ %d bytes ] exceeded.,',
+        $id, $max_uri_len - 1
     );
     <[httpd.send_error_page]>->( $id, 414 );
     return 2;    # Request-URI Too Long
 } elsif ( length( $session->{'buffer'}{'input'} ) >= $max_req_len ) {
-    $max_req_len--;
     <[base.log]>->(
-        0, "[$id] maximum Request length [ $max_req_len bytes ] exceeded."
+        0,   '[%d] maximum Request length [ %d bytes ] exceeded.',
+        $id, $max_req_len - 1
     );           # Request Entity Too Large
     <[httpd.send_error_page]>->( $id, 413 );
     return 2;    # LLL: fix false positives..,
@@ -51,35 +51,66 @@ my $h_req = HTTP::Request->parse( $session->{'http'}->{'request'}->{'data'} );
 
 $h_req->decode;
 
-<[base.log]>->(
-    2,
-    sprintf(
-        " < %s > %s", $request->{'client'}->{'addr'}, $h_req->uri // ''
-    )
-);
-
 my $r_key;
-if    ( not defined $h_req->method ) { $r_key = 'METHOD' }
+if    ( not defined $h_req->method ) { $r_key = qw| METHOD | }
 elsif ( not defined $h_req->uri
     and $h_req->method =~ m,^(GET|HEAD|POST|PUT|DELETE|OPTIONS)$, ) {
-    $r_key = 'URI';
+    $r_key = qw| URI |;
 }
 if ( defined $r_key ) {
-    <[base.log]>->( 0, "[$id] malfomed request [ $r_key not defined ]" );
-    <[httpd.send_error_page]>->( $id, 400 );
-    return 2;    # Bad Request
+    <[base.logs]>->(
+        0,   '[%d] malformed request [ %s not defined ]',
+        $id, $r_key
+    );
+    <[httpd.send_error_page]>->( $id, 400 );    ## Bad Request ##
+    return 2;
 }
 
-$request->{'method'} = $h_req->method;
-$request->{'host'}   = lc( $h_req->header('host') )
+if ( defined $h_req->protocol and length( $h_req->protocol ) != 8
+    or $h_req->protocol !~ m|HTTP/1.[01]| ) {
+    my $err_reason_str = 'protocol version not supported';
+    if ( index( uc( $h_req->protocol ), qw| HTTP/ | ) == 0 ) {
+        ##  HTTP Version not supported  ##
+        <[httpd.send_error_page]>->( $id, 505 );
+    } else {
+        ## Not Implemented ##
+        $err_reason_str = 'unknown protocol requested';
+        <[httpd.send_error_page]>->( $id, 501, $err_reason_str );
+    }
+    <[base.logs]>->(
+        0,   "[%d] %s [REQ:'%s']",
+        $id, $err_reason_str, $h_req->protocol
+    );
+    return 2;
+}
+
+$request->{'method'}   = $h_req->method;
+$request->{'protocol'} = $h_req->protocol;
+$request->{'host'}     = lc $h_req->header('host')
     if defined $h_req->header('host');
 
 ( $request->{'uri'} = $h_req->uri // '' )
     =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
+
+if ( index( $h_req->uri, qw| %0 |, 0 ) >= 0
+    or $request->{'uri'} !~ m|^[[:print:]\\]+$| ) {  ##  backslash allowed  ##
+    undef $request->{'uri'};
+    my $err_reason_str = 'non printable characters in URI';
+    <[base.logs]>                                    ## Bad Request ##
+        ->( 0, "[%d] request 'malformed' [ %s ]", $id, $err_reason_str );
+    <[httpd.send_error_page]>->( $id, 400, $err_reason_str );
+    return 2;
+}
+
+<[base.logs]>->(
+    2, ' < %s > %s', $request->{'client'}->{'addr'},
+    $request->{'uri'}
+);
+
 $session->{'http'}->{'close'}      = 1;
 $session->{'response'}->{'params'} = {};
 
-map { $request->{'headers'}->{ lc($ARG) } = $h_req->header($ARG) // '' }
+map { $request->{'headers'}->{ lc $ARG } = $h_req->header($ARG) // '' }
     $h_req->header_field_names;
 
 ( $session->{'meta'}->{'request_path'} = $request->{'uri'} ) =~ s|[#\?].*$||;
@@ -95,31 +126,32 @@ $session->{'http'}->{'close'} = 0
     if defined $request->{'headers'}->{'connection'}
     and lc( $request->{'headers'}->{'connection'} ) eq qw| keep-alive |;
 
-if ( exists <http.handler>->{ lc( $request->{'method'} ) } ) {
-    my $handler_name = <http.handler>->{ lc( $request->{'method'} ) };
+if ( defined <http.handler>->{ lc $request->{'method'} } ) {
+    my $handler_name = <http.handler>->{ lc $request->{'method'} };
     if ( exists $code{$handler_name} ) {
         return $code{$handler_name}->($id);
     } else {
-        <[base.log]>->(
-            0,
-            "[$id] http [$request->{method}] "
-                . "handler defined + callback missing"
+        <[base.logs]>->(
+            0,   '[%d] http [%s] handler defined + callback missing',
+            $id, $request->{method}
         );
-        <[httpd.send_error_page]>->( $id, 500 );
-        return 2;    # Internal Server Error
+        <[httpd.send_error_page]>->( $id, 500 ); ##  Internal Server Error  ##
+        return 2;
     }
 
 } else {
-    <[base.log]>
-        ->( 0, "[$id] http handler not defined [$request->{method}]" );
+    <[base.logs]>->(
+        0,   '[%d] http handler not defined [%s]',
+        $id, $request->{method}
+    );
     <[httpd.send_error_page]>->( $id, 405 );
     return 2;    # Method Not Allowed
 }
 
 return 2;        ## <-- disconnecting client ##
 
-#,,..,.,.,,,,,.,.,,..,,..,,..,,..,,..,.,.,.,.,..,,...,...,,.,,.,,,,..,.,,,.,.,
-#MR2WRFTEISGA4UFRT4NA6BROJFC6MP3IFVJ3PUG62KZOM6MMCLKVZ62PESGN2UBXOH4PHAKXFNX5Y
-#\\\|MM7XJK5ESQUX2AWFIWJPS2TBBGLUIMKQ4SSWYR74GAJAHUSGD63 \ / AMOS7 \ YOURUM ::
-#\[7]KMACJLQDIR3ZF33IZF6J7DBM7BNH324EE6RZY6G5XNBDGUTNT6CY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,,,,,,,,,..,.,,,,,.,..,,,.,,..,,...,...,..,,,,,,.,.,..,,,.,,
+#VMKVFYOU5SGTHZVI3WUHX34P372WPKYW5GPS3RR5ZKQYXQGOR6SAAQZAEJKWOR3Y3SCFYOAQQZVZU
+#\\\|IHOAEONAK3GCAFSQZX2BHI7YI5IA24PA4SUAGBJXAS4OYHU55JN \ / AMOS7 \ YOURUM ::
+#\[7]FRYJZ2ZAZ426WE2YCZPFJ2RNHKI67VZWOUIJILEGTVA2EFJ7BOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

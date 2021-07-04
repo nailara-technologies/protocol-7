@@ -13,9 +13,9 @@ my $headers   = $request->{'headers'};
 my $req_host  = $session->{'http'}{'request'}{'host'};
 my $http_host = <[httpd.determine_host]>->($id);
 
-if ( not defined $http_host ) {    ##   'Bad Request'
+if ( $http_host =~ m|^\d{3}$| ) {    ##  numerical HTTP error code  ##
     map { delete $response->{'params'}->{$ARG} } qw | Allow |; # <-- expand .,
-    return <[httpd.send_error_page]>->( $id, 400 );
+    return <[httpd.send_error_page]>->( $id, $http_host );
 }
 
 my $http_uri    = $session->{'http'}{'request'}{'uri'};
@@ -155,8 +155,8 @@ if ( defined $http_host and defined $link_target ) {
 return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
-#,,..,..,,,,,,,,.,.,.,,.,,,.,,.,.,.,,,,,.,..,,..,,...,...,..,,,,,,,,.,.,,,,..,
-#ZV3SEKZF6HFAES7G5IRFXHRYATJ3ZS5BJQK77HWV425DNQE6NDQ5XRIXWUGV52BQHXCQYWIGG33HS
-#\\\|EXCY5KRQU6PYTWCDDWQYNETUYW7DRY4IT7VXTRKSJGBENTU4ZZ5 \ / AMOS7 \ YOURUM ::
-#\[7]NOF5EQRTE4REEZTSPLP7GSJFUCXD7NT2RZNKBGIPLQHWUFKKZ6BI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,,,,..,.,,,.,.,,..,,,,,,..,.,.,..,,...,...,..,,,..,...,...,.,.,
+#SQASC53FIXK6GWMPWQ2FOH7GMT2DNSPL6V4UBCJ4TSYZVOQ42J56JCGDSLJVXVJGZE6HC3A5CGGOU
+#\\\|PHUJGD3NR6YFXD7PKEMY65NGNGJCYTD5HIQU3HYQS7X4CZLRW4V \ / AMOS7 \ YOURUM ::
+#\[7]QBYGJPXVM2NC3Z6APIE3ANTH5MBSY4RRN332EBYDJYH3WMJSVGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
