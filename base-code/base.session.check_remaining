@@ -6,11 +6,24 @@
 my $exit_count    = shift // 0;
 my $session_count = 0;
 
-$session_count = scalar keys %{ $data{'session'} } if exists $data{'session'};
+$session_count = scalar keys $data{'session'}->%* if defined $data{'session'};
 if ($session_count) {
-    <[base.log]>->( 2, "$session_count sessions remaining.," );
+    my $single_server_session = 0;
+    if ( $session_count == 1 ) {
+        ( my $session_id ) = keys $data{'session'}->%*;
+        $single_server_session = 5
+            if $data{'session'}{$session_id}{'mode'} eq qw| server |;
+    }
+    if ($single_server_session) {
+        <[base.log]>->( 2, 'one active server session ..,' );
+    } else {
+        <[base.logs]>->(
+            2,              '%s session%s remaining.,',
+            $session_count, <[base.cnt_s]>->($session_count)
+        );
+    }
 } else {
-    <[base.log]>->( 2, "no remaining sessions.," );
+    <[base.log]>->( 2, 'no sessions remaining..,' );
 }
 
 if (    ( $session_count + $exit_count ) == 0
@@ -32,10 +45,10 @@ if (    ( $session_count + $exit_count ) == 0
 <[v7.teardown]>
     if !$session_count
     and <system.zenka.name> eq qw| v7 |
-    and <[zenka.cmd.get-instance-ids]>->('cube')->{'mode'} eq 'false';
+    and <[zenka.cmd.get-instance-ids]>->('cube')->{'mode'} eq qw| false |;
 
-#,,,,,.,.,,,.,.,.,..,,.,.,...,,,.,,,,,..,,,..,..,,...,..,,.,.,..,,,,,,,,.,,.,,
-#DK34GMGPEL2C3W5XMWQHIWEOP35C7MEJCWL7JQ53V6MK4HFJ6AHDQJGJK4Y4KRNPGSCDMHTIW6FRO
-#\\\|YM7PNAQFJF3AOHLCRL2JQCXVXRWX3O7LGY3VXCCMUWPWYVRW5O6 \ / AMOS7 \ YOURUM ::
-#\[7]USFOLEZWN54TCXQF233PXKUYJ3VYU5L5OHKI2LVVT3AKZWFCVKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,.,,,,.,,...,.,.,.,,,...,..,,..,,...,...,.,.,,.,,,.,,...,..,,
+#NJSAV2BBK7PEAQDDESXQ6ZGUXYHTX7CBAPBMJ7PA3USANBLQY3RLKBQND25MFL3V5DFXCY5P63O2M
+#\\\|2DNRJW23X6O7OM4CVWJC5GBQVTQWDSTSM3LYCPW4VNLCBWJI45U \ / AMOS7 \ YOURUM ::
+#\[7]HDCI2ON7D7D7JR4LS45OG64Z2SVCWAJQAQJCYK6ZTYRCUFQ5EEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
