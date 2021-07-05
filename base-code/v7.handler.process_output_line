@@ -51,7 +51,7 @@ while (
 
     ##  highlight non-standard output [ debug lines ]  ##
     if (    index( $zenka_output_line, "\e", 0 ) == -1
-        and index( $zenka_output_line, '\.', 0 ) == -1 ) {
+        and index( $zenka_output_line, qw| . |, 0 ) == -1 ) {
         $zenka_output_line = sprintf( '%s%s. : <%s>  %s%s %s %s',
             $ANSI{'p7_fg_0001'}, $ANSI{'B02'},
             $zenka_name,         $ANSI{'p7_fg_0002'}, $ANSI{'bold'},
@@ -101,8 +101,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,.,,.,,,.,.,,,,,,,,,..,,..,,,.,,..,,.,.,,.,,..,,...,.,.,.,,,.,,,.,,,.,.,,,,,
-#XZYZE75TXK3EZ4QJ2U2HFXGIMFHCH6UDJHXZXWOPOSSNHRYQJT6KANXUALO7PNG2IMO3DB3VKZWT2
-#\\\|TUD3EZNEAEQ7ACGKFR2TQ3POLPMMP4ME6DWKXT2XK6BUYQCHZXN \ / AMOS7 \ YOURUM ::
-#\[7]SAEWUCD5ZP2CZJLAZCP7NAQH4YSVXH3G2FT776YST2B2WCFXAABA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,.,,..,,.,,,,..,.,,,.,.,.,,,..,,...,...,,.,,..,,.,,,,..,,,.,
+#B5YMW2EKGNBWYPYURK4NMIMEOW53ACI5V7NLCNBGRAP2VRCKESZKU5X76UILKO2UGMDOVTWNLIJZK
+#\\\|Q7Y3T4OWB35FD32UWHQRF5YWTBQJ7V5HIZDHAWIN65FXYCTDZXL \ / AMOS7 \ YOURUM ::
+#\[7]I5TSD3X3KDSQ2EK2GP2SYYLOCRPPXWFXO4GDNGNFD2ISQWS25KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,32 +6,7 @@
 
 my $list_name = $call->{'args'};
 
-my $list_nam_chars = qr|\w\d\-\_\.\+|;
-
-if (    defined $list_name
-    and $list_name =~ m|^[$list_nam_chars]+$|
-    and defined $data{'list'}{$list_name} ) {
-
-    my $list = $data{'list'}->{$list_name};
-
-    $list->{'mask'} //= sprintf( qw| <key>:%s |, $list->{'key'} );
-
-    return {
-        qw| mode | => qw| size |,
-        qw| data | => <[base.parser.list]>->(
-            {   qw| var      | => $$list{'var'},
-                qw| key      | => $$list{'key'},
-                qw| sub_key  | => $$list{'sub_key'},
-                qw| sort_key | => $$list{'sort_key'},
-                qw| defaults | => $$list{'defaults'},
-                qw| filters  | => $$list{'filters'},
-                qw| align    | => $$list{'align'},
-                qw| mask     | =>
-                    [ split( m|\s+|, $data{'list'}{$list_name}{'mask'} ) ]
-            }
-        )
-    };
-} elsif ( not defined $list_name ) {
+if ( not defined $list_name ) {    ## list overview [ no name specified ] ##
     return {
         qw| mode | => qw| size |,
         qw| data | => <[base.parser.list]>->(
@@ -42,14 +17,40 @@ if (    defined $list_name
             }
         )
     };
-} elsif ( defined $list_name and $list_name =~ m|([^$list_nam_chars]+)| ) {
-    $$reply{'data'} = "characters in list name ['${^CAPTURE}[0]'] not valid";
-} else {
-    $$reply{'data'} = sprintf("no such list [ see 'list' command ]");
 }
 
-#,,..,...,,.,,,..,...,,,.,,,,,,,,,...,,,.,..,,..,,...,..,,..,,...,,,,,...,,.,,
-#Y3E3LSFZJUEQ4UMJNPLXRLPK7W4OMQC7CYKCB2GWNIWBLDOGOIT6NRFCLIJVGYFTQ67UT5U3E6YIG
-#\\\|PWXKQXMY3XHHNE22LLJ7ER4H3SYTHY4VOS65Z22RZ2TTLJWZKQ2 \ / AMOS7 \ YOURUM ::
-#\[7]GIPJEUUW3WMNZLPMAXAKT46IYMS6ETX7PTOJI2YGGUXTNQUVGICA 7  DATA SIGNATURE ::
+my $list_nam_chars = qw| \w\d\- |; ## valid characters ## [ expand as needed ]
+
+if ( $list_name =~ m|^[$list_nam_chars]+$|
+    and defined $data{'list'}->{$list_name} ) {
+
+    my $list = $data{'list'}->{$list_name};
+
+    $list->{'mask'} //= sprintf qw| <key>:%s |, $list->{'key'};
+
+    return {
+        qw| mode | => qw| size |,
+        qw| data | => <[base.parser.list]>->(
+            {   qw| var      | => $list->{'var'},
+                qw| key      | => $list->{'key'},
+                qw| sub_key  | => $list->{'sub_key'},
+                qw| sort_key | => $list->{'sort_key'},
+                qw| defaults | => $list->{'defaults'},
+                qw| filters  | => $list->{'filters'},
+                qw| align    | => $list->{'align'},
+                qw| mask     | => [ split( m| +|, $list->{'mask'} ) ]
+            }
+        )
+    };
+} elsif ( $list_name =~ m|([^$list_nam_chars])| ) {
+    $reply->{'data'} = sprintf 'not valid character in list name [ %s ]',
+        $LAST_PAREN_MATCH;
+} else {
+    $reply->{'data'} = "no such list [ see 'list' command ]";
+}
+
+#,,..,,,.,,..,.,,,.,,,,,,,,..,.,.,,..,,,,,.,.,..,,...,...,...,,..,..,,,.,,,,.,
+#YFAQQ3O72JS4PH6JTO5QZY2KDNS74FPSRNMLAD3HP7FGIVLFAKRXHAZT6LNYWY6AXYUU2JQGEO734
+#\\\|B7H6MBH636BITE7X627GCN2CMWJYN5AUMQT2BT45USFFN77BSSR \ / AMOS7 \ YOURUM ::
+#\[7]JT6IDB2HXGVDFUV4LEKEPXBY6VXPVKJRXLKJO5GAVRYEAA7JPUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
