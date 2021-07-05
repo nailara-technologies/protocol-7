@@ -21,15 +21,22 @@ if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
 
 <[base.process-into-background]> if <system.background_mode>;
 
-my $success = 1;
-if ( <system.startup_initcode> and <startup.init_code>->@* ) {
+my $success = 5;                ## true ##
+if (    <system.start-up.stdin.read-init-code>
+    and <zenka.start-up.init_code>->@* ) {
+
     $success = <[base.execute_zenka_code]>
-        ->( <[base.parser.config]>->(<startup.init_code>) );
-    delete <startup.init_code>;  # clean up., [could contain auth key strings]
-    delete $data{'startup'} if not keys %{ $data{'startup'} };
+        ->( <[base.parser.config]>->(<zenka.start-up.init_code>) );
+
+    ## cleaning up., [could contain auth key strings] ##
+    undef <zenka.start-up.init_code>->@*;
+    delete <zenka.start-up.init_code>;
+    <[base.clean_hashref]>->( $data{'zenka'} );
+    delete $data{'zenka'} if not keys $data{'zenka'}->%*;
+
 }
 
-if ( !$success or $EVAL_ERROR ) {
+if ( not $success or length $EVAL_ERROR ) {
     <[base.log]>->( 0, 'warning : start-up init code contained errors.,' );
     undef $EVAL_ERROR;
 }
@@ -58,8 +65,8 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
 
 $SUB_NAME = undef;
 
-#,,,,,...,,,.,...,.,.,,,,,,.,,,,,,.,,,,,.,..,,..,,...,...,,.,,,..,...,...,,..,
-#AE6XWATYJMRHLWJKGC5KUI3SB2VXLXNDL4DOMUKOJOWIMSSVRSJXGUKC2N75TYD4ML62S7OJNCY4A
-#\\\|WI5ZX6MOVP7MPGJHPYPY4GENEOPUP3M5EYUU7274TLMCTSPCYHQ \ / AMOS7 \ YOURUM ::
-#\[7]4M77YCUUD67DBY7DKO7LYRS4RVBPNXKHR6DXUAOAHZJWTS762MDA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,..,,,..,.,.,,..,.,.,,,.,,,,,..,,...,...,...,,..,...,,..,,..,
+#MZPVGBRZPW4HE6DYPKDNGWQKEKKQNJGMKKONEYMRB5D233ZBA2XVEZO7KO5MNZGK7UGPBY3LG4ESK
+#\\\|R4MPVHT6QCUF7HXLWJGYHOK75LXYA4WLHKBG76WEHXFB3VX4WC5 \ / AMOS7 \ YOURUM ::
+#\[7]NCPXCCF7PU4YIJ6OASWH3RST6HZU4S3DXM7M7NUFQ3XW627MR4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

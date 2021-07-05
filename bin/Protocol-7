@@ -1,4 +1,4 @@
-#!/usr/bin/env -S perl -C31
+#!/usr/bin/perl
 
 use utf8;
 use strict;
@@ -25,7 +25,12 @@ use experimental qw| smartmatch |;
 our $PROTOCOL_SEVEN = 5;
 ##
 
+##  setting input \ output streams and file open to UTF-8 default  ##
+use open qw| :encoding(UTF-8) |;    ##  affecting all open calls  ##
+map { binmode( $ARG, qw| :encoding(UTF-8) | ) } ( *STDIN, *STDOUT, *STDERR );
+
 p7_import_main_subroutines();   ##  importing p7_<subname> into %code hash  ##
+p7_load_inline_subroutines();   ## load subroutine code from DATA block ##
 
 p7_init_exec();                 ##  main variable initialization  ##
 
@@ -48,35 +53,101 @@ if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
 ( $zenkaname, @ARGV ) = ( split( m| +|, $zenkaname ), @ARGV )
     if defined $zenkaname and index( $zenkaname, ' ' ) != -1;
 
+$SIG{'INT'} = $code{'base.sig_int'} if defined $code{'base.sig_int'};
+
 ##  remove known parameters from <system.args>  ##
 $data{'system'}{'args'} = join( ' ', @ARGV ) // '';
 $data{'system'}{'args'} =~ s,(^| +)\-[v]+h?z?d?( +|$), ,g;
 $data{'system'}{'args'} =~ s,(^\s+|\s+$),,g;
 
-if ( defined $zenkaname and $zenkaname ne '' ) {
-    if ( $data{'system'}{'startup_initcode'} ) {
-        $data{'startup'}{'init_code'} = [];
+if ( defined $zenkaname and length $zenkaname ) {
+
+    if ( $data{'system'}{'start-up'}{'stdin'}{'read-init-code'} ) {
+        $data{'zenka'}{'start-up'}{'init_code'} = [];
         $code{'log.noerr'}->('< awaiting init-code on stdin');
-        while (<STDIN>) {
-            push( @{ $data{'startup'}{'init_code'} }, $ARG );
-        }
-        my $lines = @{ $data{'startup'}{'init_code'} };
-        my $s     = $lines != 1 ? 's' : '';
-        $code{'log.noerr'}->("> read $lines line$s of init-code");
+
+        my $lines
+            = scalar( $data{'zenka'}{'start-up'}{'init_code'}->@* = <STDIN> );
+
+        $code{'base.logs'}->(
+            '> read %d line%s of init-code',
+            $lines, $code{'base.cnt_s'}->($lines)
+        );
     }
     my $node_name = $data{'system'}{'node'}{'name'};
 
-    $code{'base.init'}->( join( '.', $node_name, $zenkaname ) );
+    $code{'base.init'}->( sprintf qw| %s.%s |, $node_name, $zenkaname );
 
 } else {
-    if ( !@ARGV or not defined $data{'system'}{'zenka'}{'name'} ) {
+
+    ## need to skip DATA block here for zenka config reading ##
+
+    ## becomes obsolete with load_inline_subroutines ##
+    ##
+    ## if ( $PROGRAM_NAME eq qw| - | and tell(STDIN) ) {
+    ##     foreach my $errmsg (
+    ##         'skipping DATA block in STDIN-mode is not implemented',
+    ##         ':. need zenka name parameter to initialize ..,'
+    ##     ) {
+    ##         $code{'log.error'}->($errmsg);
+    ##     }
+    ##     $code{'base.exit'}->('0110');
+    ## }
+
+    if ( @ARGV == 0 or not defined $data{'system'}{'zenka'}{'name'} ) {
         $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
     }
+
     $RS           = "\n";
     $PROGRAM_NAME = sprintf qw| Protocol-7.%s |,
         $data{'system'}{'zenka'}{'name'};
 
+    ##  checking if already available [ for log level ]  ##
+    *STDIN{IO}->blocking(0);
+    my $first_line = <STDIN>;
+    *STDIN{IO}->blocking(1);
+
+    my $stdin_config_log_level;
+    if ( not defined $first_line ) {
+        my $reminder_log_level = $data{'system'}{'verbosity'}{'console'};
+
+        $SIG{'ALRM'} = sub {
+            alarm 0;
+            undef $SIG{'ALRM'};
+            $code{'base.log'}->(
+                $reminder_log_level,
+                '.. expecting zenka start description from < STDIN > .,'
+            );
+        };
+        my $warning_delay = $reminder_log_level ? 4 : 13;
+        $warning_delay          = 1 if $reminder_log_level > 1;
+        $stdin_config_log_level = 1;
+        alarm($warning_delay);
+
+    } else {    ##  with already present zenka description  ##
+        $stdin_config_log_level = 2;
+        $code{'base.log'}->(
+            $stdin_config_log_level,
+            ':. reading zenka start description from < STDIN >'
+        );
+    }
+
+READ_STDIN_CONFIGURATION:
     my @zenka_code = <STDIN>;
+    alarm 0;    ##  stopping timer for read reminder  ##
+    unshift @zenka_code, $first_line if defined $first_line;
+    undef $first_line;
+
+    my $zenka_lines = scalar @zenka_code;
+    if ($zenka_lines) {
+        $code{'base.logs'}->(
+            $stdin_config_log_level,
+            ':  :. zenka cfg reading completed. [ %d line%s ].,',
+            $zenka_lines, $zenka_lines == 1 ? '' : 's'
+        );
+    } else {
+        $code{'log.error'}->(':: STDIN closed and no configuration read..,');
+    }
 
     if ( $data{'system'}{'background_mode'} ) {
         $code{'base.process-into-background'}->();
@@ -156,6 +227,7 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
     ##  MODULES  ##
 
     use File::stat;
+    use IO::Handle;
     use Sys::Hostname;
     use Cwd qw| abs_path |;
     use Text::Wrap qw| wrap |;
@@ -177,6 +249,7 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
         FindBin
         File::stat
         Text::Wrap
+        IO::Handle
         Sys::Hostname
         List::MoreUtils
         File::Spec::Functions
@@ -275,9 +348,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
     ## overriding warn subroutine ###
     $SIG{'__WARN__'} = $code{'base.sig_warn'};
 
-    # somewhat reduntant with -C31 ... to be decided later [which to drop]..,
-    use open qw| :encoding(UTF-8) |;
-    map { binmode( $ARG, ':encoding(UTF-8)' ) } ( *STDIN, *STDOUT, *STDERR );
+    ## special case when Protocol-7 code given on <STDIN> ##
+    $PROGRAM_NAME = qw| Protocol-7 | if $PROGRAM_NAME eq qw| - |;
 
     ## early variable initialization ##
     my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
@@ -367,18 +439,18 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $visualize->{'disharmony'} = 5 if $vis =~ m|d|;    ## true ##
             }
         }
-        if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 1 }
+        if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 5 }
         if ( $arg eq qw| -stdin | ) {
-            $data{'system'}{'startup_initcode'} = 1;
-            $data{'system'}{'console-mode'}     = 0;   ## LLL: more conditions
+            $data{'system'}{'start-up'}{'stdin'}{'read-init-code'} = 5;
+            $data{'system'}{'console-mode'} = 0;    ## LLL: more conditions
         }
         if ( $arg eq qw| -console | ) {
-            $data{'system'}{'console-mode'} = 1;
+            $data{'system'}{'console-mode'} = 5;    ## true ##
             $code{'log.error'}->('<< in console mode >>');
         }
         if ( $arg eq qw| -c | ) {
-            $data{'system'}{'ansi_color'}   = 1;
-            $data{'system'}{'force-colors'} = 1;
+            $data{'system'}{'ansi_color'}   = 5;    ## true ##
+            $data{'system'}{'force-colors'} = 5;    ## true ##
         }
         if ( $arg eq qw| -nc | ) {
             $data{'system'}{'ansi_color'}   = 0;
@@ -396,7 +468,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
         }
         if ( $arg eq qw| -use-http-src | ) {
-            $data{'system'}{'use_http_source'} = 1;
+            $data{'system'}{'use_http_source'} = 5;    ## true ##
         }
         if ( $arg eq qw| -export-core-subs | ) {
             $code{'dump_core_subs'}->();
@@ -416,17 +488,17 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     ## prepare zenka name column width and color mode pipe override ###
     if ( not defined $code{'base.term.size'}->(*STDIN) ) {
-        $data{'system'}{'term'}{'piped'}{'stdin'} = 1;
+        $data{'system'}{'term'}{'piped'}{'stdin'} = 5;    ## true ##
     } else {
         $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
     }
     if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
-        $data{'system'}{'term'}{'piped'}{'stdout'} = 1;
+        $data{'system'}{'term'}{'piped'}{'stdout'} = 5;    ## true ##
     } else {
         $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
     }
     if ( not defined $code{'base.term.size'}->(*STDERR) ) {
-        $data{'system'}{'term'}{'piped'}{'stderr'} = 1;
+        $data{'system'}{'term'}{'piped'}{'stderr'} = 5;    ## true ##
     } else {
         $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
     }
@@ -438,10 +510,10 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 = $data{'system'}{'force-colors'} // 0;
         } else {
             $data{'system'}{'term'}{'colors'}{$ARG}
-                = $data{'system'}{'ansi_color'} // 1;
+                = $data{'system'}{'ansi_color'} // 5;    ## true ##
         }
     } qw| stdout stderr |;
-    $data{'system'}{'ansi_color'} //= 1;
+    $data{'system'}{'ansi_color'} //= 5;                 ## true ##
     ##
 
     ## defining console ansi colors ###
@@ -1811,19 +1883,19 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
 ##############################################################################
 
-sub p7_load_b32_encoder {
+sub p7_load_B32_routines {    ## need fallback to CryptX ##  [ LLL ]
 
-    if (    not defined &encode_b32r
+    if ( ( not defined &encode_b32r or not defined &decode_b32r )
         and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
-        eval { use Crypt::Misc qw| encode_b32r | };
+        eval { use Crypt::Misc qw| decode_b32r encode_b32r | };
         if ( $EVAL_ERROR or not defined &encode_b32r ) {
             $data{'modules'}{'startup_error'}{'base32'} = 1;
             return 0;    # module not found ##
         } else {
-            return 1;    ## loading successful ##
+            return 5;    ## loading successful ##
         }
     } else {
-        return 1;        ## function already present ##
+        return 5;        ## function already present ##
     }
 }
 
@@ -1834,7 +1906,7 @@ sub p7_anum_log_time {
     my $pt_param     = shift // 5;    # <-- LLL: configure, precision\utime
     my $want_harmony = shift;         # <-- skip not harmonic time stamps ?
 
-    if ( &{ $code{'base.load_b32_encoder'} } ) {
+    if ( defined $code{'base.load_B32_routines'} ) {
         return $code{'base.ntime.b32'}->( $pt_param, $want_harmony );
     } else {
         return $code{'base.ntime'}->( $pt_param, $want_harmony );
@@ -2061,9 +2133,18 @@ sub p7_purge_code {
     my $code_name   = shift;
     my $purge_count = 0;
     my @zenka_commands;
+
+    my $inline_subs;
+    $inline_subs = $data{'base.inline_subs'}->{'sub-name'}
+        if defined $data{'base.inline_subs'};
+    $inline_subs //= {};
+
     map {
-        if (    $ARG !~ m{\.(callback|handler)\.}
-            and not exists $data{'base'}{'core_subs'}{$ARG}
+        if ($ARG !~ m{\.(callback|handler)\.}
+
+            and not defined $inline_subs->{$ARG}
+            and not defined $data{'base'}{'core_subs'}{$ARG}
+
             and $ARG ne qw|  base.log       |
             and $ARG ne qw|  base.logs      |
             and $ARG ne qw|  base.sort      |
@@ -2092,7 +2173,8 @@ sub p7_purge_code {
             and $ARG ne qw|  base.log.handler.log_reply          |
             and $ARG ne qw|  base.read_from_version_file         |
             and $ARG ne qw|  base.session.calc_cmd_stats         |
-            and $ARG ne qw|  base.protocol-7.command.send.local  | ) {
+            and $ARG ne qw|  base.protocol-7.command.send.local  |
+        ) {
             ++$purge_count
                 and $data{'code'}{$ARG}{'status'} = qw| purged |
                 and eval { undef &{ delete $code{$ARG} } }; #<-- improve [LLL]
@@ -2385,7 +2467,7 @@ sub p7_sig_warn {
 
         $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
 
-        my $caller_str = "[$filename:$line]";
+        my $caller_str = sprintf qw| [%s:%d] |, $filename, $line;
         map {s| *\Q$caller_str\E$||g} @err;    # redundant caller clean-up #
 
         $caller_str = sprintf( "[ caller level too high : %03d ]", $c_lvl )
@@ -2472,14 +2554,23 @@ sub p7_delay_warning {
 
 sub p7_clean_up_caller {
 
-    my $filename_sref = shift;
-    my $was_ref       = length( ref($filename_sref) ) ? 1 : 0;
-    $filename_sref = \"$filename_sref" if not $was_ref;
+    my $filename_sref = $ARG[0];
+
+    my $was_scalar_ref = ref $filename_sref eq qw| SCALAR | ? 5 : 0;
+    $filename_sref = \$ARG[0] if not $was_scalar_ref;
+
+    if ( $filename_sref->$* eq qw| - | ) {    ## script came from stdin ? ##
+        $filename_sref->$*
+            = $PROTOCOL_SEVEN ? qw| Protocol-7 | : qw| <STDIN> |;
+    }
+
     ## shorten for .pm mods ##
-    $$filename_sref =~ s{^/usr/share/perl5/}{,../};
-    $$filename_sref =~ s{^.+/protocol-7/data/}{,../};
-    $$filename_sref =~ s{^.+/perl\-base/}{,./perl-base/};
-    return $$filename_sref if not $was_ref;
+    $filename_sref->$* =~ s{^/usr/share/perl5/}{,../};
+    $filename_sref->$* =~ s{^.+/protocol-7/data/}{,../};
+    $filename_sref->$* =~ s{^.+/perl\-base/}{,./perl-base/};
+
+    ## return value when input not sref ##
+    return $filename_sref->$* if not $was_scalar_ref;
 }
 
 ##############################################################################
@@ -2679,13 +2770,776 @@ RESET_STDERR:
 
 ##############################################################################
 
+sub p7_error_exit__inline_loading {
+
+    my $err_reason_str = shift // 'REASON NOT DEFINED';
+    my $line           = shift;
+    my $err_line_num   = shift
+        // $main::DATA_BLOCK_START + 1 + $INPUT_LINE_NUMBER;
+
+    my $script_start_name = $START_PROGRAM_NAME // $PROGRAM_NAME;
+    $script_start_name =~ s|^.*/||;
+
+    my $trunc_len = 27;
+    substr( $line, $trunc_len, length($line) - $trunc_len, '.,' )
+        if defined $line and length($line) > $trunc_len;
+
+    my @err_reason = (
+        ':: inline loading error ::',
+        sprintf(
+            ':: %s line %d ::%s',
+            $script_start_name, $err_line_num,
+            defined $line ? sprintf( " [ '%s' ]", $line ) : ''
+        ),
+        ':',
+        sprintf( ':  %s', $err_reason_str ),
+        ':',
+        ':. ending init.,'
+    );
+
+    if ( defined $code{'log.error'} ) {
+        map { $code{'log.error'}->($ARG) } ( ':', @err_reason );
+        exit('0110');
+    } else {
+        die join '', map { sprintf "$ARG\n" } ( ':', @err_reason, );
+    }
+}
+
+##############################################################################
+
+sub p7_uncompress_subroutine_str {
+
+    my $input_string_sref = shift;
+    my $compression_type  = shift;
+
+    my $output_data_str;
+    $compression_type    ## auto-detect type ##
+        //= $code{'base.detect_compression_format'}->($input_string_sref);
+
+    state $method = qw| anyuncompress |;    ##[ anyuncompress | pipe ]##
+
+    my $AnyUncompressError;
+    if ( $method eq qw| anyuncompress | and not defined &anyuncompress ) {
+        my $module_name = qw| IO::Uncompress::AnyUncompress |;
+        eval sprintf 'use %s qw| anyuncompress $AnyUncompressError |',
+            $module_name;
+        if ( length $EVAL_ERROR or not defined &anyuncompress ) {
+            my $err_str
+                = defined $code{'base.format_error'}
+                ? scalar $code{'base.format_error'}->( $EVAL_ERROR, -1 )
+                : lcfirst($EVAL_ERROR);
+            $err_str =~ s| at .+$||g;
+            $code{'base.error_exit.inline_loading'}->(
+                sprintf(
+                    'cannot load perl module %s [ %s ]',
+                    $module_name, $err_str
+                )
+            );
+        }
+    }
+    ## module loaded ##
+
+    my $success = 0;
+    ##  decompress with format auto-detection  ##
+
+    eval {
+        $success
+            = IO::Uncompress::AnyUncompress::anyuncompress(
+            $input_string_sref => \$output_data_str );
+    };
+
+    if (    $success
+        and not length $EVAL_ERROR
+        and defined $output_data_str
+        and length $input_string_sref->$* != length $output_data_str ) {
+
+        return \$output_data_str;    ##  decompression completed  ##
+
+    } else {
+        my $err_str = $AnyUncompressError // $EVAL_ERROR;
+        $err_str =~ s|^IO::Uncompress::AnyUncompress::anyuncompress ?||;
+        if ( defined $code{'base.format_error'} ) {
+            $err_str = $code{'base.format_error'}->( $err_str, -1 );
+        }
+        $err_str = 'unknown error reason' if not length $err_str;
+        $err_str =~ s|^: ||;
+        my @err_reason = (
+            '::[ decompression error ]::',
+            ':',
+            sprintf( ":  method '%s' not successful", $method ),
+            sprintf( ':  : %s : %s', $method, lcfirst($err_str) ),
+            ':',
+            ":. switching to 'pipe'-mode ..,"
+        );
+        my $caller_lvl = defined $code{'base.sig_warn'} ? ' <{NC}>' : "\n";
+        map { warn sprintf '%s%s', $ARG, $caller_lvl } @err_reason;
+
+        $method = qw| pipe |;    ##  trying next method  ##
+
+        $output_data_str = undef;
+    }
+
+    if ( $method eq qw| pipe | ) {    ##  using external program call  ##
+
+        state %uncompression_cmds = (
+            qw| xz |      => qw| /usr/bin/xzcat |,
+            qw| lzma |    => qw| /usr/bin/lzcat |,
+            qw| gzip |    => qw|  /usr/bin/zcat |,
+            qw| bzip2 |   => qw|     /bin/bzcat |,
+            qw| unknown | => qw|  /usr/bin/ucat |
+        );
+
+        if ( not defined $uncompression_cmds{$compression_type} ) {
+            $code{'base.error_exit.inline_loading'}->(
+                sprintf( "no command known for uncompression mode '%s'",
+                    $compression_type )
+            );
+        }
+        my $decomp_cmd = $uncompression_cmds{$compression_type};
+        if ( not -e $decomp_cmd or not -x $decomp_cmd ) {
+            $code{'base.error_exit.inline_loading'}
+                ->( sprintf( "no executable '%s' found", $decomp_cmd ) );
+        }
+        my $pipe_in_fh;
+        my $pipe_out_fh;
+
+        eval 'use IPC::Open3 qw| open3 |' if not defined &open3;
+        die sprintf ': cannot load IPC::Open3 : ' . lcfirst($EVAL_ERROR)
+            if length $EVAL_ERROR;
+
+        my $pid = open3( $pipe_in_fh, $pipe_out_fh, undef, qw| xzcat | )
+            or die sprintf ': xzcat : %s', lcfirst($OS_ERROR);
+
+        print {$pipe_in_fh} $input_string_sref->$*;
+        close($pipe_in_fh);
+        my $read_size        = 7 * 1024;
+        my $total_bytes_read = 0;
+        my $bytes_read;
+        while (
+            $bytes_read = sysread(
+                $pipe_out_fh, $output_data_str,
+                $read_size,   length( $output_data_str // '' )
+            )
+            and defined $bytes_read
+            and $bytes_read != -1
+        ) {
+            $total_bytes_read += $bytes_read if defined $bytes_read;
+        }
+
+        ## checking errors ##
+        my $err_reason_str;
+        my $tail_size = 57;
+        $err_reason_str = 'error while uncompressing subroutine in pipe-mode'
+            if $total_bytes_read == 0
+            or not defined $output_data_str
+            or not length $output_data_str
+            or length $output_data_str == length $input_string_sref->$*;
+        ( my $xcatname = $decomp_cmd ) =~ s|^.*/||g;
+        $err_reason_str
+            = sprintf( '%s : %s', $xcatname, lc $LAST_PAREN_MATCH )
+            if substr( $output_data_str, -$tail_size, $tail_size )
+            =~ m|($xcatname): \(stdin\): ([\w ]+)\n*$|;
+        $err_reason_str //= 'decompression output equals input'
+            if length $output_data_str == length $input_string_sref->$*
+            and $output_data_str eq $input_string_sref->$*;
+
+        $code{'base.error_exit.inline_loading'}
+            ->( $err_reason_str, $decomp_cmd )
+            if defined $err_reason_str;
+
+        return \$output_data_str;    ##  decompression completed  ##
+    }
+}
+
+##############################################################################
+
+sub p7_detect_compression_format {
+
+    my $input_string_sref = shift;
+
+    my $compression_type = qw| unknown |;
+
+    eval 'use IPC::Open3 qw| open3 |' if not defined &open3;
+    die sprintf ': cannot load IPC::Open3 : ' . lcfirst($EVAL_ERROR)
+        if length $EVAL_ERROR;
+
+    my $pipe_in_fh;
+    my $pipe_out_fh;
+    my $pid = open3( $pipe_in_fh, $pipe_out_fh, undef, qw| /usr/bin/file - | )
+        or $code{'base.error_exit.inline_loading'}
+        ->( sprintf ': /usr/bin/file : %s', lcfirst($OS_ERROR) );
+
+    print {$pipe_in_fh} $input_string_sref->$*;
+    close($pipe_in_fh);
+
+    my $output_data_str  = '';
+    my $read_size        = 7 * 1024;
+    my $total_bytes_read = 0;
+    my $bytes_read;
+    while (
+        $bytes_read = sysread(
+            $pipe_out_fh, $output_data_str,
+            $read_size,   length( $output_data_str // '' )
+        )
+        and defined $bytes_read
+        and $bytes_read != -1
+    ) {
+        $total_bytes_read += $bytes_read if defined $bytes_read;
+    }
+    if ($total_bytes_read) {
+        $compression_type = lc( ${^CAPTURE}[0] )
+            if $output_data_str =~ m|(\S+) compressed data$|;
+    }
+    return $compression_type;    ##  detected type or 'unknown'  ##
+}
+
+##############################################################################
+
+sub p7_load_inline_subroutines {
+
+    my $sub_append_mode = shift // qw| append |;    ## [ append | replace ] ##
+    my $data_block_filehandle = shift;    ## custom DATA fh provided ##
+
+    ## used for reporting write protect errors ##
+    my $prog_name = defined $data_block_filehandle ? 'SUB_FH' : $RealScript;
+
+    ## lock Protocol-7 file to not be modified while reading <DATA> ##
+    ## my $lock_during_read = 5;             ## true ##
+
+    my $lock_during_read = 0;
+
+    if ( not defined $data_block_filehandle and fileno(DATA) ) {
+        ## fh to script with offset ##
+        $data_block_filehandle = IO::Handle->new(); ## does not work for STDIN
+        $data_block_filehandle->fdopen( fileno(DATA), qw| r | );
+
+    } elsif ( not defined $data_block_filehandle ) {
+        $data_block_filehandle = *STDIN{IO};        ##  pipe mode  ##
+    }
+
+    ##  inline code loader and parser state  ##
+    ##
+    my $loader_state = $data{'base.inline_subs'} //= {
+        qw|   loading-iteration    | => -1,    ## start at 0 ##
+        qw|  initial-p7-code-refs  | => {},    ## backup in stdin mode ##
+    };
+
+    ## STDIN is not seekable ##
+    $loader_state->{'seekable-data-fh'} = seek( $data_block_filehandle, 0, 1 )
+        ? 5     ## true ##
+        : 0;    ##  false  ##
+
+    $loader_state->{'stdin-data-block-mode'}
+        = $data_block_filehandle == *STDIN{IO}
+        ? 5     ## true ##
+        : 0;    ##  false  ##
+
+    ##  write protect fh while reading from <DATA> block  ##
+    ##
+    my $data_fh_stat;
+    $loader_state->{'fh-write-protected'} = 0;
+    goto DO_NOT_WRITE_PROTECT_DATA_FH    ##  skip chmod if not able to  ##
+        if not $lock_during_read
+        or $loader_state->{'stdin-data-block-mode'}
+        or not $data_fh_stat = stat($data_block_filehandle)
+        or not $UID == 0 and not $data_fh_stat->cando( S_IWUSR(), 1 )  ## EUID
+        and $data_fh_stat->uid != $EUID;
+
+    ## backing up file mode ##
+    $loader_state->{'start-file-mode'} = sprintf '%#o',
+        $data_fh_stat->mode & 07777;
+    $loader_state->{'read-only-fh-mode'} = sprintf '%#o',
+        oct( $loader_state->{'start-file-mode'} ) & 0555;
+
+    goto DO_NOT_WRITE_PROTECT_DATA_FH ## nothing to do as already read-only ##
+        if $loader_state->{'start-file-mode'} eq
+        $loader_state->{'read-only-fh-mode'};
+
+    ## changing permissions to read only ##
+    if (chmod(
+            oct( $loader_state->{'read-only-fh-mode'} ),
+            $data_block_filehandle
+        )
+    ) {
+        $loader_state->{'fh-write-protected'} = 5;    ## true ##
+
+        $main::RESTORE_FH_ON_ERR    = $data_block_filehandle;
+        $main::RESTORE_PERMS_ON_ERR = $loader_state->{'start-file-mode'};
+
+        END {    ##  restore permissions in error case  ##
+            if ( defined $main::RESTORE_PERMS_ON_ERR
+                and $main::RESTORE_PERMS_ON_ERR ) {
+                chmod(
+                    oct($main::RESTORE_PERMS_ON_ERR),
+                    $main::RESTORE_FH_ON_ERR
+                    )
+                    or warn sprintf 'chmod Protocol-7 : %s',
+                    lcfirst $OS_ERROR;
+            }
+        }
+
+    } else {
+        warn sprintf 'chmod %s : %s', $prog_name, lcfirst $OS_ERROR;
+    }
+    ##
+DO_NOT_WRITE_PROTECT_DATA_FH:
+
+    $loader_state->{'data-block-start-pos-in-bytes'}
+        //= tell($data_block_filehandle);
+
+    $loader_state->{'data-input-start-line'}
+        = $data_block_filehandle->input_line_number;
+
+    if ( $loader_state->{'seekable-data-fh'} ) {
+
+        ##  finding DATA position ourselves [ might have changed ]  ##
+        seek( $data_block_filehandle, 0, 0 );    ## reset to script start ##
+        IO::Handle->input_record_separator(undef);
+
+        my $start_pattern = "\n__DATA__\n";
+        my $data_start_pos
+            = index( $data_block_filehandle->getline, $start_pattern, 0 );
+        $data_start_pos += length $start_pattern if $data_start_pos >= 0;
+
+        ##  whitespaces in __DATA__ line ?  ##
+        if ( $data_start_pos == -1 ) {
+            seek( $data_block_filehandle, 0, 0 );  ## reset to script start ##
+            if ( $data_block_filehandle->getline =~ m|(\n *__DATA__ *\n)| ) {
+                $data_start_pos = $+[0];           ## pattern match end pos ##
+            }
+        }
+        ## allow for external files without ? ## [LLL]
+        if ( $data_start_pos == -1 ) {
+            $code{'base.error_exit.inline_loading'}
+                ->('did not find a __DATA__ block marker');
+        } else {
+            $loader_state->{'data-block-start-pos-in-bytes'}
+                = $data_start_pos;
+            undef $data_start_pos;
+        }
+
+        ## resetting to DATA block start ##
+        seek( $data_block_filehandle,
+            $loader_state->{'data-block-start-pos-in-bytes'}, 0 );
+        IO::Handle->input_record_separator("\n");
+
+        $loader_state->{'total-data-lines'}
+            = scalar [ $data_block_filehandle->getlines ]->@*;
+
+        $loader_state->{'data-block-end-position-bytes'}
+            = tell($data_block_filehandle);
+
+        ####
+        seek( $data_block_filehandle, 0, 0 );    ## reset to script start ##
+        $loader_state->{'total-script-lines'}
+            = scalar [ $data_block_filehandle->getlines ]->@*;
+
+        $loader_state->{'data-block-start-line'}
+            = $loader_state->{'total-script-lines'}
+            - $loader_state->{'total-data-lines'};
+
+        ## globalizing for error handler ##
+        $main::DATA_BLOCK_START = --$loader_state->{'data-block-start-line'};
+
+        $loader_state->{'error-line-offset'}
+            = $loader_state->{'data-block-start-line'}
+            + $loader_state->{'data-input-start-line'};
+
+        ##  restore to data block start  ##
+        seek( $data_block_filehandle,
+            $loader_state->{'data-block-start-pos-in-bytes'}, 0 );
+
+        $INPUT_LINE_NUMBER = $loader_state->{'data-input-start-line'};
+
+    } else {    ## take DATA start position from CHECK block at script end ##
+        $loader_state->{'data-block-start-line'} = $main::DATA_BLOCK_START;
+    }
+
+    my $subroutine;
+    my $subsrc_linenum;
+    my $sub_source_line;
+    my $source_encoding;
+    my $prev_src_line;
+    my $loaded_routines = 0;
+    my $src_comp;    ## within BASE32 ##
+    $INPUT_LINE_NUMBER = 0;
+
+    $data_block_filehandle->clearerr;
+
+    while ( my $line = $data_block_filehandle->getline ) {
+        $code{'base.error_exit.inline_loading'}->(
+            sprintf 'DATA block read error [ line %d ]',
+            $INPUT_LINE_NUMBER
+        ) if not defined $line;
+        chomp($line);
+
+        my $end_of_subsrc = 0;
+        ##  skipping empty and comment lines  ##
+        next if not length $line or $line =~ m|^\s*[#\n]|;
+
+        if ( $line !~ m|^.:\[ ([\w\d\-\_\.]+) \]:.$| ) {
+            if ( not defined $subroutine ) {
+                $code{'base.error_exit.inline_loading'}
+                    ->( 'expected inline subroutine header', $line );
+            } else {    ## line of existing subroutine ##
+                next
+                    if not defined $sub_source_line
+                    and not defined $subsrc_linenum
+                    and $line eq ':';
+                $subsrc_linenum //= 0;
+
+                if (not defined $source_encoding       ## first BASE32 line ##
+                    and $line =~ m|^: [02-9A-Z]{76}|   ## 0 prefix padding
+                ) {
+                    substr( $line, 0, 2, '' );         ## remove prefix ##
+
+                    $source_encoding = qw| BASE32 |;
+                    if ( index( $line, qw| 7U3XU |, 0 ) == 0 ) {
+                        $src_comp = qw| xz |;
+                    } elsif ( index( $line, qw| D6FQQ |, 0 ) == 0 ) {
+                        $src_comp = qw| gzip |;
+                    } elsif (                          ## >:] ##
+                        index( $line, qw| EMRSAPR2LUQCGIYK |, 0 ) == 0
+                    ) {
+                        $src_comp = qw| none |;
+                    } else {
+                        $code{'base.error_exit.inline_loading'}
+                            ->( 'unknown compression or src header', $line );
+                    }
+                } elsif ( not defined $source_encoding
+                    and index( $line, ': ## >:] ##', 0 ) == 0 ) {
+                    substr( $line, 0, 2, '' );         ## remove prefix ##
+                    $source_encoding = qw| plain |;
+                } elsif ( not defined $source_encoding ) {
+                    $code{'base.error_exit.inline_loading'}
+                        ->( 'unknown encoding or src header', $line );
+                } elsif ( index( $line, qw| : |, 0 ) == -1 ) {
+                    $code{'base.error_exit.inline_loading'}
+                        ->( 'inline source format error', $line );
+                } elsif ( index( $line, qw| :. |, 0 ) == -1 ) {
+                    substr( $line, 0, 2, '' );         ## remove prefix ##
+                } else {
+                    ## correction of encoding ? ##
+                    if ( not length $prev_src_line ) {
+                        $source_encoding = qw| plain |;
+                    } elsif ( $source_encoding eq qw| plain | ) {
+                        $code{'base.error_exit.inline_loading'}->(
+                            'end of [ plain ] sub src format not valid',
+                            $prev_src_line
+                        );
+                    } elsif ( $prev_src_line
+                        !~ m|<([2-9A-Z]{52}):((\d+):)?((\d+):)?(\d+)>| ) {
+                        $code{'base.error_exit.inline_loading'}->(
+                            'not valid [BASE32] sub src checksum format',
+                            $prev_src_line
+                        );
+                    } else {
+                        $loader_state->{'sub-src-chksum'} = ${^CAPTURE}[0];
+                        $loader_state->{'sub-src-lines'}  = ${^CAPTURE}[2]
+                            if defined ${^CAPTURE}[2]
+                            and length ${^CAPTURE}[2];
+                        $loader_state->{'sub-src-word-count'} = ${^CAPTURE}[4]
+                            if defined ${^CAPTURE}[4]
+                            and length ${^CAPTURE}[4];
+                        $loader_state->{'sub-src-bytes'} = ${^CAPTURE}[5]
+                            if defined ${^CAPTURE}[5]
+                            and length ${^CAPTURE}[5];
+                    }
+
+                    $end_of_subsrc = 1;    ##  subroutine complete  ##
+                }
+
+                if ( defined $prev_src_line and not $end_of_subsrc ) {
+                    $subsrc_linenum++;
+
+                    ### appending to sub source string ###
+
+                    if ( $source_encoding ne qw| BASE32 | ) {
+
+                        $sub_source_line    ##  plain sourcecode  ##
+                            .= sprintf( "%s\n", $prev_src_line );
+
+                    } else {    ##  encoded \ compressed sourcecode  ##
+                        $sub_source_line .= $prev_src_line;
+                    }
+
+                    ###
+
+                } elsif ($end_of_subsrc) {
+                    if ( $source_encoding eq qw| BASE32 | ) {
+                        $sub_source_line =~ s|[01]||g;
+
+                        ## load module first if not done ##
+                        $code{'base.load_B32_routines'}->()
+                            if not defined &decode_b32r;
+
+                        my $srcstr_decoded
+                            = eval { decode_b32r($sub_source_line) };
+
+                        if ( not defined $srcstr_decoded
+                            or length $EVAL_ERROR ) {
+
+                            my $err_reason_str
+                                = defined &decode_b32r
+                                ? 'need Crypt::Misc module'
+                                : sprintf( 'inline-subroutine : %s',
+                                $subroutine );
+
+                            $code{'base.error_exit.inline_loading'}->(
+                                sprintf( 'BASE32 decoding error [ %s ]',
+                                    $err_reason_str ),
+                                $sub_source_line
+                            );
+                        }
+                        if ( $src_comp ne qw| none | ) {
+
+                            my $decomp_buffer_sref
+                                = $code{'base.uncompress_subroutine_str'}
+                                ->( \$srcstr_decoded, $src_comp );
+
+                            $code{'base.error_exit.inline_loading'}
+                                ->( 'decompression error', $subroutine )
+                                if not defined $decomp_buffer_sref->$*
+                                or not length $decomp_buffer_sref->$*;
+
+                            ### validate checksum ###
+                            $code{'base.error_exit.inline_loading'}->(
+                                'subroutine chksum not present', $subroutine
+                                )
+                                if not
+                                defined $loader_state->{'sub-src-chksum'};
+
+                            ##  decoded subroutine number of bytes  ##
+                            $code{'base.error_exit.inline_loading'}->(
+                                sprintf(
+                                    'decoded subroutine size mismatch '
+                                        . '[%d!=%d]',
+                                    length $decomp_buffer_sref->$*,
+                                    $loader_state->{'sub-src-bytes'}
+                                ),
+                                $subroutine
+                                )
+                                if length $decomp_buffer_sref->$*
+                                != $loader_state->{'sub-src-bytes'};
+
+                            ## subroutine word count ##
+                            my $word_count = scalar( split m|\s+|,
+                                $decomp_buffer_sref->$* );
+                            $code{'base.error_exit.inline_loading'}->(
+                                sprintf(
+                                    'subroutine word-count mismatch'
+                                        . ' [ %d != %d ]',
+                                    $word_count,
+                                    $loader_state->{'sub-src-word-count'}
+                                ),
+                                $subroutine
+                                )
+                                if
+                                defined $loader_state->{'sub-src-word-count'}
+                                and $word_count
+                                != $loader_state->{'sub-src-word-count'};
+
+                            ## subroutine line count ##
+                            my $line_count = scalar( split "\n",
+                                $decomp_buffer_sref->$* );
+                            $code{'base.error_exit.inline_loading'}->(
+                                sprintf(
+                                    'subroutine has wrong number of lines'
+                                        . ' [ %d != %d ]',
+                                    $line_count,
+                                    $loader_state->{'sub-src-lines'}
+                                ),
+                                $subroutine
+                                )
+                                if defined $loader_state->{'sub-src-lines'}
+                                and $line_count
+                                != $loader_state->{'sub-src-lines'};
+
+                            ##  BMW chksum  ##
+                            my $sub_bmw_chksum = eval {
+                                encode_b32r(
+                                    Digest::BMW::bmw_256(
+                                        $decomp_buffer_sref->$*
+                                    )
+                                );
+                            };
+                            $code{'base.error_exit.inline_loading'}
+                                ->( 'chksum calculation failed', $subroutine )
+                                if not defined $sub_bmw_chksum
+                                or not length $sub_bmw_chksum
+                                or length $EVAL_ERROR;
+
+                            $code{'base.error_exit.inline_loading'}->(
+                                'subroutine chksum mismatch', $subroutine
+                                )
+                                if $sub_bmw_chksum ne
+                                $loader_state->{'sub-src-chksum'};
+
+                            ##  verifified  ##
+                            $sub_source_line = $decomp_buffer_sref->$*;
+
+                        }
+                    }
+                    $EVAL_ERROR = '';
+
+                    ### compiling subroutine into %code reference ###
+
+                    my $sub_cref = eval sprintf "sub {\n%s\n}",
+                        $sub_source_line;
+
+                    if ( ref $sub_cref ne qw| CODE |
+                        or length $EVAL_ERROR ) {
+
+                        my $data_start_lnum
+                            = $loader_state->{'data-block-start-line'};
+
+                        my $s_lnum = 0;
+                        $s_lnum = $LAST_PAREN_MATCH
+                            if $EVAL_ERROR =~ m| at \(eval \d+\) line (\d+),|;
+
+                        chomp $sub_source_line;
+                        my @lines = $sub_source_line =~ m|(\n)|g;
+
+                        my $sub_end_line =    ##  exact end us sub code  ##
+                            $data_start_lnum + $INPUT_LINE_NUMBER - 1;
+                        ## error location from end ##
+                        my $line_offset = scalar @lines - $s_lnum;
+                        my $abs_err_pos = $sub_end_line - $line_offset;
+                        undef @lines;
+
+                        my $err_str
+                            = defined $code{'base.format_error'}
+                            ? scalar $code{'base.format_error'}
+                            ->( $EVAL_ERROR, -1 )
+                            : lcfirst($EVAL_ERROR);
+                        $err_str =~ s|"|'|g;
+                        $err_str =~ s|at \(eval \d+\) line \d, ||g;
+                        my $lnum;    ## another error line number ##
+                        $lnum = ${^CAPTURE}[0]
+                            if $err_str =~ s| \<DATA\> line (\d+)\.$||g;
+                        ## from <DATA> block ##
+                        $abs_err_pos = $data_start_lnum + $lnum
+                            if $data_start_lnum + $lnum
+                            < $abs_err_pos;    ##  adjusting backward  ##
+
+                        $code{'base.error_exit.inline_loading'}->(
+                            $err_str // 'subroutine was not compiled',
+                            sprintf( '%s : %d', $subroutine, $s_lnum ),
+                            $abs_err_pos
+                        );
+
+                    } else {
+
+                        ## registering with compilation time ##
+                        $data{'base.inline_subs'}->{'sub-name'}->{$subroutine}
+                            = { 'loaded' => $code{'base.time'}->(5) };
+
+                        ## collect them first ? ## [LLL]
+                        $code{$subroutine} = $sub_cref;
+                        $loaded_routines++;
+                    }
+                    ## resetting parameters ##
+                    $src_comp        = undef;
+                    $subroutine      = undef;
+                    $prev_src_line   = undef;
+                    $subsrc_linenum  = undef;
+                    $sub_source_line = undef;
+                    $source_encoding = undef;
+                }
+            }
+        } elsif ( not defined $subroutine ) {
+            $subroutine = $LAST_PAREN_MATCH;    ## start of new subroutine ##
+            $line       = '';                   ## forgetting header line ##
+        } else {
+            $code{'base.error_exit.inline_loading'}
+                ->( 'encountered not expected sub header str', $line );
+        }
+        $prev_src_line = $line if defined $subroutine;
+    }
+
+    if ( $loader_state->{'seekable-data-fh'} ) {
+        ##  restore to data block start  ##
+        seek( $data_block_filehandle,
+            $loader_state->{'data-block-start-pos-in-bytes'}, 0 );
+        $INPUT_LINE_NUMBER = $loader_state->{'data-input-start-line'};
+        $data_block_filehandle->clearerr;
+    }
+
+    ## restoring permissions from backuped mode ##
+    if ( $loader_state->{'fh-write-protected'} ) {
+        if (chmod(
+                oct( $loader_state->{'start-file-mode'} ),
+                $data_block_filehandle
+            )
+        ) {
+            undef $main::RESTORE_FH_ON_ERR;    ## cancel END block restore ##
+            undef $main::RESTORE_PERMS_ON_ERR;
+        } else {
+            warn sprintf 'chmod %s : %s', $prog_name, lcfirst $OS_ERROR;
+        }
+    }
+
+    $data{'base.inline_subs'}->{'loading-iteration'}++;
+
+    return $loaded_routines;
+}
+
+##############################################################################
+
 END {
     defined $code{'base.handler.end_code'}
         && $code{'base.handler.end_code'}->();
 }
 
-#,,.,,..,,,,.,,,,,...,,,.,..,,...,.,.,,.,,,.,,..,,...,..,,,,,,.,,,.,,,...,,,.,
-#5NX3LLDN6AB5MOTQC6HQFNRKQNUKUYA6LBAK2VLMARISLEOWE23SEX2HC6BNJY3OS3ZEGKUYM4X54
-#\\\|CTH66EKPYUHBDP2U3ZK4QBW7L2V7XO2DCHOSVL32D2O3N6DPDZG \ / AMOS7 \ YOURUM ::
-#\[7]TIERKJ6FMJZWMQVRU65JQ6TZ6AJNKIWPIXKXWVOYKFG2EQYCOYAI 7  DATA SIGNATURE ::
+## keep CHECK for error handling in STDIN mode ##
+##
+CHECK { $main::DATA_BLOCK_START = __LINE__ + 1 }
+__DATA__
+
+                   ##                                 ##
+                   ##  PROTOCOL 7 INLINE SUBROUTINES  ##
+                   ##                                 ##
+
+.:[ base.parser.pattern_split ]:.
+:
+: 7U3XUWC2AAAAJZWWWRDAEABBAELAAAAAOQX6LI7ABQPQHRK5AA6YFAAZDWMSBFWVEHLYALS3LYPP
+: TNCDSKUOVCA3RHVXWMEQCJFNV4Y3QIUCBPSLM3E4NLWUJB3DFZHWQYRFHXJHIFFWBPCQ5FEPNROV
+: 3KLH6AFBH47QJD45WD2BD3ETW3XT7AVK7UXJQHKHFGNR5T4T5UV5Y4NYEXVLFLMFD3JGS66NI5JR
+: SHJRYMZSQPTRVCN2CX3624WWM726HZKKIOH5DPL3T6U3FXE7H4ZI46Y7A7B5WGPXGPLAONZCUSN4
+: LQPPHXXQ3BKBTFGV52QQAHEDUUTTOONYZAFPOTEONEVGVS6TITNSPLYHG55C2EVM2KOCNVELSFD4
+: RLIDDDTWA2KTHNKV7VEPHK3WMEBXRDHY4HWHTNMMGVE5Y3WXRUSVWKCJTNEENXTJ3KBMWTSXUX5H
+: SYGIJQM6SGTAHOUPVJYUUVPXDWD3QQSNBKNAWZLUB7O3N4VNTZEMIXI6PRJ6M2FLGQD4IJ2ISRGW
+: CS5EK7DWJ6XE4BMWASOXSPXXMG5OLFFTZEZ7P2XCG5CLYY5XNQWYWLWGWUOOF3UFFSCXXBSWPSZI
+: 4ZTSJC542IBDGG5OTYTXWC3VPPGFMZLX63DBZ26RJNLTFPOJFA4FX6SAXJY27ZRJ6L6KJ2GTMMCD
+: DS2OXQ62E55SWQH6EPUI5MLIMQTB7TOCBUQBXHV3YISK55RPUZX34XO4725W6EH7YEND53BOFJSL
+: WITAREEHUXPE6FVTS5XD2REGYP5WQRCQXP4GIMYCLBKW6QKWPXITBN3YN2UUDW4KSIMPY3JRTH7Q
+: YVFOMLAFUSF5TJH2PQTHXWJ46BYEJQ5FPDNCFV3OTOOUTHZGQSMYJMCXWBJ374JZSTNMXKEQJFR2
+: JA5ED44SSU6VB7T2XLVGZ5M4KYGWFH7OM3BFQEL6PFVG7C3VIFLQJH7PRBVVATX5YUDUP4AWQ6CT
+: PZ7D4D2MEGQH6ODZZXW72UJEU7XQ5OBSTRJP7RK3UTKCFARPF7QQMJ7YQ4AM4HX253ET2HLVXNHQ
+: NYFGVXJ5HB7P4P24YHDDUVNE3Q44OEC3QS6J7L2HYNMNVACMIRIGSZREF57J6CJWMZXVWO3JKUGT
+: 2GRA5OT2Y6FKCVLYYDRFSJLONTKYUNPVHKZ7YEWLNF3GVO3UZ2H7GOGCAI62XFYIDMJAXYSJJA6D
+: 4QKJOAMQNU6HD2OVIOAHHJJ5AWDTKHGWPP43ZVTTSEVQ72ZSHGOBE77FXP7TQXGOGQ54XYUDDWQQ
+: DIMPZI5DVFVZ5GUDNQGQ7EJINWIAOGSTXDIIF7NMJRKJT745PYRE5G6ECIU4MNAR355ILQ6W4OAS
+: UH6DDITDK45TBWCGDISBSWX4UKA4MZ3MZUVZP4DJMSZAFVJZEYLEP45GFDARVWLJJWDLU7QC6I45
+: DFLZ7NEVZ4TC5R2BW3MUZGV2TI4KDOM3FUNTK4VIWO3O23ESOENPG5VX2NDI4SKZAB3T5QQNDGAK
+: SVPYCESPOQ5YMCBBVE5IFGZUMGHNYNGRYO3ZS6XD4ZAZDHGJBWGFGDM4I6PFMXM4YAY7LRI6SQAA
+: 0000000000AAAA4ZWC33DGVDCDOAAB4ED2AGAAAATSWM7TWHCGP6YCAAAAAAAELFNA0000000000
+:
+: <PXU4LI6PAGTEUFVZANWFGP3KACXZ3N6CMQO2IT5Z7FOMFYKBJCEQ:0069:000247:000003104>
+:.
+
+.:[ base.minimal.plain_test ]:.
+:
+: ## >:] ##
+:
+: $code{'base.log'}->( 0, 'worx =)' );
+:
+: return 0;
+:
+:.
+
+#,,,.,,,.,.,.,,.,,,.,,,,.,,,,,,,.,..,,,.,,...,..,,...,...,.,.,.,.,..,,.,.,,,.,
+#Z3VQOTKK2E6CHJMOG2UISYFCGIKP4IVKBIUXVGVETH2BPQNAFHNJYIKNXREZRDVVQHEM52GROYTKI
+#\\\|Q5XL3YCDFC7Q226BZD7M5OSH263IIA7STXCSPXCHQWGKWQQZ32J \ / AMOS7 \ YOURUM ::
+#\[7]33TEU6GIBW4NXT7YJFKNXSTRNKU22BKDLHUOG6SWS66TZS5RUUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
