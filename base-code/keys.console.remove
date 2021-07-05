@@ -4,7 +4,7 @@
 # param = <key-name>
 # descr = delete the C25519 key with the specified name
 
-my $key_name = $$call{'args'};
+my $key_name = shift;
 
 return print "\n  << expected <key-name> parameter >>\n\n"
     if not defined $key_name;
@@ -24,10 +24,11 @@ opendir( my $dir_fh, $key_dir )
     or return printf( ":\n: << %s : %s >>\n:\n",
     scalar <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
-    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'" );
+    or <[base.logs]>->( 0, "no C25519 keys found for user '%s'", $key_usr );
 closedir($dir_fh);
 
-return warn "no key files found [ $key_dir ]" if !@key_files;
+return <[base.s_warn]>->( "no key files found [ %s ]", $key_dir )
+    if not @key_files;
 
 my $match_re = qr|^(\Q$key_name\E\.$re_kfiles)$|;
 
@@ -35,9 +36,10 @@ my $key_found = 0;
 map {
     $key_found = 1 if $ARG =~ $match_re;
     my $k_path = "$key_dir/$ARG";
-    return print "\n << no write access to '$k_path' >>\n\n" if !-w $k_path;
+    return sprintf "\n << no write access to '%s' >>\n\n", $k_path
+        if not -w $k_path;
 } @key_files;
-return print "\n  << specified key '$key_name' not found >>\n\n"
+return sprintf "\n  << specified key '%s' not found >>\n\n", $key_name
     if not $key_found;
 
 my $del_count = 0;
@@ -51,21 +53,22 @@ print "\n::\n";
 my $len = 0;
 foreach my $file_name (@key_files) {
     next if $file_name !~ $match_re;
-    printf( " : purging '%s'\n", $file_name );
+    printf " : purging '%s'\n", $file_name;
     system( $shred_bin, '-fzu', $file_name )
-        if length($shred_bin)
+        if length $shred_bin
         and -x $shred_bin;
     return printf( ":\n: unlink failed : %s\n:\n",
         scalar <[base.format_error]>->( $OS_ERROR, -1 ) )
         unless unlink($file_name)
-        or !-f $file_name;
+        or not -f $file_name;
     $del_count++;
 }
-my $s = $del_count == 1 ? '' : 's';
-print " :\n :: [ removed $del_count key file$s ]\n\n";
 
-#,,..,,.,,,,.,.,.,,.,,,..,,,.,...,...,,,,,...,..,,...,...,,..,,,.,..,,,,.,,..,
-#PELANCP7445LWMU2GZNQ7DKWYZFEWNGQEI3EZX3QSL36BGCIKOCRIWZLBUPOO6J252IQQJVEGLMHS
-#\\\|IYWUJCSUOQSLKFLV4WYN7RJKPJL4ZRQDD2OQQJRMMCZ2PXSRNIG \ / AMOS7 \ YOURUM ::
-#\[7]2MOCZXKGSICYM5IMMTD5NOK2EYFV4SA5NZQJNQFX232DQCUJPMDY 7  DATA SIGNATURE ::
+printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
+    <[base.cnt_s]>->($del_count);
+
+#,,,,,,.,,.,,,...,,,,,...,.,,,.,,,..,,..,,,,,,..,,...,...,..,,,..,,.,,.,.,,,,,
+#PLNM4FJA2IJMPVS77JELYBBTKAX6VIY3QC36PYNCRVJ6UGDBNGFGGRVYO5ROHYW64Y6REFTXSSQAC
+#\\\|RCK6LQ4JXGSOJQ4YKWTSMH6SQJ273R5P4QQQSIGTJMW265ZK73X \ / AMOS7 \ YOURUM ::
+#\[7]WVXV4RI7ZEJYDFVT5MP4KCBPS4BPR6NRGAZU6C4MDH2LFUQUHCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
