@@ -5,9 +5,15 @@
 
 my @zenka_perl_code = @ARG;
 
-warn 'expected zenka config perl code to execute <{C1}>'
-    if not @zenka_perl_code
-    or not defined $zenka_perl_code[0];
+if (   not @zenka_perl_code
+    or not defined $zenka_perl_code[0] ) {
+    my $caller_lvl
+        = index( [<[base.caller]>]->[0], qw| Protocol-7 | ) == -1
+        ? qw| <{C1}> |
+        : qw| <{NC}> |;
+    warn 'expected zenka config perl code to run ' . $caller_lvl;
+    return undef;
+}
 
 my $stack_index = scalar(@main::ZENKA_RUN_CFG_STACK) - 1;
 my $cfg_ref     = $main::ZENKA_RUN_CFG_STACK[$stack_index] // {};
@@ -142,8 +148,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,.,,,,,,...,...,,..,,,.,..,,,.,,..,,,.,,,,.,..,,...,...,,.,,,.,,,,,,.,,,,,,,
-#XEEO6ZHEYLN47DTDX76TKHQGFVFLMNIZTASSJGWPHRPRRFC2YJ56NBLJOHVEACWXD6XJPNDZ4TJSE
-#\\\|37B346QIZDL725EJCFA4FZOAZPC7RDRJAVI3A65XSE3VSQDOSUH \ / AMOS7 \ YOURUM ::
-#\[7]6NSW56CGEGHCIBSQ43HNRLSYFBQEKSXKQPB5J4P5NXWIGXUELOAI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,.,,,,.,,...,..,,.,,,..,,.,.,..,,...,...,,,,,,..,.,.,,..,,,.,
+#4BOAYYEBQBNFOMYPPOJLHHQU63YCKESB5PEKCUOZWSW5EEVGQWKCIOE5KSKQI4QFGLBM4SOE5VUKI
+#\\\|LMN77YYZVZ5F6XJOQTRBCOPLCBEBPIKG6PIHL54ES6LJESQZSMJ \ / AMOS7 \ YOURUM ::
+#\[7]O3PUDDANSOC6FRTRQIZ6DN2XMTHPTE7P6A7PTMJNG7OJ5EL5RSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
