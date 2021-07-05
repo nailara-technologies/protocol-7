@@ -4,10 +4,10 @@
 # param = [name]
 # descr = create either a named or 'base' user key
 
-my $key_name = $$call{'args'} // 'base';
+my $key_name = shift // qw| base |;
 
-<[base.log]>->( 0, " << ! >> '$key_name' is not a valid key name << ! >>" )
-    and exit(1)
+<[base.logs]>->( 0, ' << %s is not a valid key name >>', $key_name )
+    and <[base.exit]>->('0110')
     if $key_name !~ <keys.regex.key_name>;
 
 print "\n::\n";
@@ -15,23 +15,28 @@ print "\n::\n";
 my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
 my $key_dir  = $key_vars->{'key_dir'};
 my $key_usr  = $key_vars->{'usr_name'};
-my $u_str    = $key_name =~ m|^$key_usr| ? ' files' : " for '$key_usr'";
-my $success  = 0;
-print " : << generating '$key_name' key$u_str >>\n";
+
+my $u_str
+    = index( $key_name, $key_usr, 0 ) == 0
+    ? ' files'
+    : sprintf( " for '%s'", $key_usr );
+
+my $success = 0;
+say sprintf " : << generating '%s' key%s >>", $key_name, $u_str;
 
 $success = 1
     if <[crypt.C25519.gen_keys]>->($key_name)
     and <[crypt.C25519.write_keys]>->($key_name);
 
 printf( " :\n :: [ created key '%s' in '%s' ]\n\n", $key_name, $key_dir )
-    and return 1
+    and return 5    ## true ##
     if $success;
 
 print " :\n :: [ no keys created ]\n\n";
-exit(1);
+<[base.exit]>->('0110');
 
-#,,.,,,..,..,,,..,,.,,.,.,...,,.,,.,,,,.,,,,.,..,,...,...,,..,.,,,,.,,,,.,,,,,
-#XB227AVDPVP5SA4VJYLPXULWFXPOIWGXUIAMDHJQMUQZSVVIIIGBQCE63UCLIZQXLYAOID5UDZ4JI
-#\\\|D47XALK2C6NOKG57D6TB3MCWYXDEDCTDTXCXU27RIJ6EVVN42HN \ / AMOS7 \ YOURUM ::
-#\[7]S6DQXXI2GGBU3LW33BMBPXQS4UYLMZHSJCW45TLVBETRURT44ABQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,.,.,...,,,,,,,,,,..,,..,,,,,..,,...,...,.,.,.,,,.,.,,,,,.,.,
+#ICLOFIJPJ3PSJ5T54Y4CDSIIRMTMD6XIX52N3LWC65NDM3EAWEBTTL6VOT2VFKUDHDJGIMPNQGWCG
+#\\\|Y7FYYYXYPPCN6JUEYJOA7ZQ5ZKPFEOAXPTRKCQKPZK65S7RYEQO \ / AMOS7 \ YOURUM ::
+#\[7]3KNJ7G77GS6QIH2MUWMR6VZ5UGNQSK4AUQQ5CJGIYWADLIGOBIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

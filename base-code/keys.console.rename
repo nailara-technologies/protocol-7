@@ -4,11 +4,11 @@
 # param = <from> <to>
 # descr = change a user key name [ 'list' cmd for names ]
 
-my $param_str = $$call{'args'} // '';
+my $param_str = shift // '';
 
 my $key_vars = <[crypt.C25519.key_vars]>;
 
-( my $ren_from, my $ren_to ) = split( / +/, $param_str );
+( my $ren_from, my $ren_to ) = split( m| +|, $param_str );
 
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
@@ -20,12 +20,13 @@ my $re_kfiles = <keys.regex.key_files>;
 opendir( my $dir_fh, $key_dir )
     or return print "\n [!] $key_dir : \l$OS_ERROR\n";
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
-    or <[base.log]>->( 0, "no C25519 keys found for user '$key_usr'!" );
+    or <[base.logs]>->( 0, "no C25519 keys found for user '%s'", $key_usr );
 closedir($dir_fh);
 
-return warn "no key files found [$key_dir]" if !@key_files;
+return <[base.s_warn]>->( 'no key files found [%s]', $key_dir )
+    if not @key_files;
 
-return print "\n  [!] expected <from> and <to> parameter [!]\n\n"
+return print "\n  << expected <from> and <to> parameters >>\n\n"
     if not defined $ren_from or not defined $ren_to;
 
 my $match_re = qr|^(\Q$ren_from\E\.$re_kfiles)$|;
@@ -35,14 +36,17 @@ my $space_len = abs( length($re_secret) - length($re_public) );
 map {
     $key_found = 1 if $ARG =~ $match_re;
     my $k_path = "$key_dir/$ARG";
-    return print "\n [!] no write access to '$k_path' [!]\n\n" if !-w $k_path;
+    return prints "\n << no write access to %s >>\n\n", $k_path
+        if not -w $k_path;
 } @key_files;
-return print "\n  [!] specified key \"$ren_from\" not found [!]\n\n"
+return printf "\n  << key with name '%s' not found >>\n\n", $ren_from
     if not $key_found;
 
 my $ren_count = 0;
 
-chdir($key_dir) or die "[!] chdir( $key_dir ) : \l$OS_ERROR";
+chdir($key_dir)
+    or die "<< cannot change to directory '%s' : %s >>\n", $key_dir,
+    scalar <[base.format_error]>->( $OS_ERROR, -1 );
 
 print "\n :\n";
 
@@ -51,15 +55,17 @@ foreach my $file_name (@key_files) {
     my $target_name = $file_name;
     next if $target_name !~ s|^$ren_from\.|$ren_to.|;
     printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
-    return print "\n rename failed : \l$OS_ERROR\n\n"
+    return printf "\n rename failed : %s\n\n",
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
         unless rename( $file_name, $target_name );
     $ren_count++;
 }
-my $s = $ren_count == 1 ? '' : 's';
-print " :\n :. [ renamed $ren_count file$s ]\n\n";
 
-#,,..,,,,,.,.,.,,,...,,..,.,,,..,,,,.,..,,.,.,..,,...,...,..,,,.,,...,,..,,.,,
-#VYFLG5MSU6TWAFG4A3ZFJT62WAHY4GFT7YNMNETZOTWR462QZISFUCCFCKM6SSLQUDQJVOJO6YQHM
-#\\\|PRLOSPTRAI7NLLWQZWNJZD4UVVCPGDHFR34DATNK2J6MOOSU6AG \ / AMOS7 \ YOURUM ::
-#\[7]6G43HRZWOK2WG7QZ63BGXHFFESQR3UVTFLJXLEK5FVAEIULLESBI 7  DATA SIGNATURE ::
+printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
+    <[base.cnt_s]>->($ren_count);
+
+#,,.,,...,.,.,,,,,.,,,,,.,,.,,...,,..,,,,,,.,,..,,...,..,,..,,,,,,,.,,.,.,..,,
+#K5ST3MHOSZOLO7FD7UJI5WYH7J4JOTQ3HK5TY6POEYWTK7UJXNKLECSXTY25XRCV6BN5OK2ZGWKHI
+#\\\|E6ERDWCL6AEITVA2Z5Z7FWRGN2GVXRBUYUENFGYOPEK2R4HNZON \ / AMOS7 \ YOURUM ::
+#\[7]MMQ72D7BCRVDCDHIXVTUI5A45NO2OTWYS5FJ36ZP5XCA2GXJHIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
