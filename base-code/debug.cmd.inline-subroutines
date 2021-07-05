@@ -1,0 +1,57 @@
+## >:] ##
+
+# name  = debug.cmd.inline-subroutines
+# param = [pattern]
+# descr = return list of inline subroutines
+
+my $pattern  = $call->{'args'};
+my $subs_ref = <base.inline_subs.sub-name>;
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "\n.: list of loaded inline-subroutines :.\n\n%s\n\n",
+        join(
+            '',
+            (   map { sprintf ": %s\n", $ARG } '',
+                <[base.reverse-sort]>->($subs_ref),
+                ''
+            )
+        )
+    )
+    }
+    if not defined $pattern;
+
+my $pattern_re;
+eval { $pattern_re = qr|$pattern| };
+
+if ($EVAL_ERROR) {
+    ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf "regular expression '%s' is not valid [ %s ]",
+        $pattern, $reason
+    };
+}
+
+my @sub_list = grep {m|$pattern|} <[base.sort]>->($subs_ref);
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "pattern '%s' matches no inline subs", $pattern )
+    }
+    if not @sub_list;
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "\n.: inline subroutines matching '%s' :.\n\n%s\n\n",
+        $pattern, join( '', map { sprintf ": %s\n", $ARG } '', @sub_list, '' )
+    )
+    }
+
+#,,,.,.,.,.,,,,..,...,,,,,..,,,,,,..,,,,.,..,,..,,...,...,,.,,.,.,.,.,.,,,,.,,
+#4UVWGIWO2CH4GP627C6PGM7PTWKK63TIHF32RZYIZNYAG7GWXQEAO2YASYLCCLROLLT3JQ4BYQSYW
+#\\\|VIUJ63XRVSSI62ALVOJV4XWYNRMQS54SLLAEVHPLQJL5X7ROYYV \ / AMOS7 \ YOURUM ::
+#\[7]O4JF2YSN4CAHNLKOOW3C36KTEH5BSMBC6TMGV2YQXWCE6HGONEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

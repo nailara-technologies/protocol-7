@@ -2135,7 +2135,7 @@ sub p7_purge_code {
     my @zenka_commands;
 
     my $inline_subs;
-    $inline_subs = $data{'base.inline_subs'}->{'sub-name'}
+    $inline_subs = $data{'base'}{'inline_subs'}{'sub-name'}
         if defined $data{'base.inline_subs'};
     $inline_subs //= {};
 
@@ -3431,7 +3431,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                     } else {
 
                         ## registering with compilation time ##
-                        $data{'base.inline_subs'}->{'sub-name'}->{$subroutine}
+                        $data{'base'}{'inline_subs'}{'sub-name'}{$subroutine}
                             = { 'loaded' => $code{'base.time'}->(5) };
 
                         ## collect them first ? ## [LLL]
@@ -3538,8 +3538,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,.,.,,.,,,.,,,,.,,,,,,,.,..,,,.,,...,..,,...,...,.,.,.,.,..,,.,.,,,.,
-#Z3VQOTKK2E6CHJMOG2UISYFCGIKP4IVKBIUXVGVETH2BPQNAFHNJYIKNXREZRDVVQHEM52GROYTKI
-#\\\|Q5XL3YCDFC7Q226BZD7M5OSH263IIA7STXCSPXCHQWGKWQQZ32J \ / AMOS7 \ YOURUM ::
-#\[7]33TEU6GIBW4NXT7YJFKNXSTRNKU22BKDLHUOG6SWS66TZS5RUUAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,.,.,.,,,,.,,..,,,.,,,..,,,,,..,,...,...,,..,..,,.,.,...,..,,
+#CEDAKPYGBNQSFJYTNHKKHVBQKUKJPVRZFPQRR3265VE6ILV5TV3KPWR3GWPAOQBMOZR4L3NEKITQM
+#\\\|6GR5ZP5WSNQVGEOBCUBQKE7XDTTS665SQAVQLWX5SVN2BRPERJ2 \ / AMOS7 \ YOURUM ::
+#\[7]BOWNWGBRQR73LZ6VDB27QL47GGTMWFKGBMGYF7VM2CSVX3JIIEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
