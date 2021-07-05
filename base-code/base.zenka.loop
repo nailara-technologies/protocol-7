@@ -16,8 +16,10 @@ if ( <zenka.init_return> == 0 ) {    ## init-done not called yet ##
     }
 }
 
-<[base.log]>->( 1, ':. ready to process connections..,' )
-    if <system.zenka.type> eq qw| cube |;
+if ( <system.zenka.type> eq qw| cube | ) {
+    <[base.session.check_remaining]>;    ## check if has server session ##
+    <[base.log]>->( 1, ':. ready to process connections..,' );
+}
 
 if ( defined $ev_loop_timeout ) {
 
@@ -30,8 +32,8 @@ if ( defined $ev_loop_timeout ) {
 
 return <zenka.init_return> = 5;
 
-#,,,.,.,.,,,.,.,,,,,.,.,.,,.,,...,,,,,.,.,..,,..,,...,...,,.,,...,...,,..,...,
-#GTGDXCZXNM6XHM5RQEEQXWH2ECIH4UKED6ZF3HIVIG5LNEBQZXEPH3ULN45IFGNUMOIETUPWHJDMA
-#\\\|TQ7W33XKD6B77FERR54TX32STAGJ54JTFYCOP2MUOWK5NLIOE2P \ / AMOS7 \ YOURUM ::
-#\[7]IUO2ZES7TBIXT5PZFXHZSAWBXDFMRLKKAXTQ2WF5N3Q5VQTUVIDA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,,,,,,.,,,,,,.,.,,..,,,.,.,.,..,,...,...,..,,.,,,,,.,.,.,,.,,
+#IHFPBGC4M52AI5AOI3XUG6F4M522WPJBAUQQZNAVO6NGWEKTXCVQY6IPXEVULAT2ZVSBOU4YWIJVI
+#\\\|REKESNH62CHE5BVDYWANRTEHJIV24HDBQ5M6UBMR4USGLHBJ7MX \ / AMOS7 \ YOURUM ::
+#\[7]RGJEVPVM3RNYNPNXOMZHITQHCCZXS33HAC4DN7WMRNJ2VLP4IYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
