@@ -1,0 +1,271 @@
+## >:] ##
+
+# name = tile-groups.init_code
+
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+<[base.perlmod.load]>->( 'FreezeThaw', qw| cmpStr | );
+
+<list.tile-groups> = {
+    'var'   => qw| data |,
+    'key'   => qw| tile-groups.setup.tile-groups |,
+    'mask'  => '<key>:name',
+    'align' => { 'name' => 'left' },
+    'descr' => 'tile groups configured'
+};
+
+## configuration path owner ##
+( undef, undef, my $uid, my $gid ) = getpwnam(<system.amos-zenka-user>);
+
+<tile-groups.cfg_directory>   //= qw| /etc/protocol-7/zenki/tile-groups |;
+<tile-groups.setup_file_name> //= qw| base |;  ##  <-- default config name  ##
+
+<tile-groups.chksum_file> //= sprintf qw| %s/%s |,
+    <tile-groups.cfg_directory>, qw| /set-up.chksum.bmw |;
+
+<tile-groups.startup.initializing>        //= 1;
+<tile-groups.transition_in_progress>      //= 0;
+<tile-groups.restore_tile-groups_enabled> //= 0;
+<tile-groups.restore_tile-groups_timeout> //= 300;    # seconds
+
+# monitoring tile activity [colors] [default disabled]
+<tile-groups.watch_tiles.poll_tile_color>  //= 0;
+<tile-groups.watch_tiles.inactive_timeout> //= 300;
+<tile-groups.watch_tiles.inactive_action>  //= 'warn';
+
+if ( !<tile-groups.watch_tiles.poll_tile_color>
+    and defined <tile-groups.timer.poll_tile_color> ) {
+    my $timers = <tile-groups.timer.poll_tile_color>;
+    <[base.log]>->(
+        0, 'stopping tile activity poll timers [ config changed ]'
+    );
+    map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
+        keys %{$timers};
+}
+
+delete <tile-groups.setup.ticker_zenka_type>
+    if defined <tile-groups.setup.ticker_zenka_type>
+    and <tile-groups.setup.ticker_zenka_type> !~ m,^gtk|sdl$,;
+<tile-groups.setup.ticker_zenka_type> //= qw| gtk |;
+
+if ( not -d <tile-groups.cfg_directory> ) {
+    my $cfg_dir = <tile-groups.cfg_directory>;
+    my $perms   = qw| 0750 |;
+    if ( !-d $cfg_dir ) {
+        <[base.logs]>->(
+            "creating config directory '%s'.. [%s]",
+            $cfg_dir, $perms
+        );
+        my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+            or die "user '"
+            . <system.amos-zenka-user>
+            . "' not in passwd file";
+        make_path( $cfg_dir,
+            { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
+            or die "make_path : \l$OS_ERROR";
+    } else {
+        my $old_perms = <[base.path_perms]>->($cfg_dir);
+        if ( $old_perms ne $perms ) {
+            <[base.logs]>->(
+                0, "<< fixing config dir permissions [ %s --> %s ] >>",
+                $old_perms, $perms
+            );
+            chmod( oct($perms), $cfg_dir )
+                or warn("chmod($cfg_dir) : \l$OS_ERROR");
+        }
+    }
+}
+
+goto skip_load if defined <tile-groups.setup.tile-groups>;
+
+## loading tile-group configuration ##
+
+my $config_name      = <tile-groups.setup_file_name>;
+my $cfg_root_path    = <system.conf_path>;
+my $config_filename  = "zenki/tile-groups/tile-group-setup.$config_name";
+my $config_file_path = <tile-groups.import_path>;   ## <-- can be undefined ##
+$config_file_path //= <system.conf_path>;
+$config_file_path .= "/$config_filename";
+
+die "<< tile-groups setup '$config_file_path' not found >>"
+    if !-f $config_file_path;
+
+<[base.logs]>
+    ->( "<< loading tile-group configuration '%s' >>", $config_name );
+
+<[file.put]>->(
+    <tile-groups.chksum_file>,
+    sprintf "%s\n",
+    <[chk-sum.bmw.filesum]>->( 224, $config_file_path )
+);
+
+chown( $uid, $gid, <tile-groups.chksum_file> )
+    or <[base.s_warn]>->(
+    'chown[%s] : %s',
+    scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    ) if $EUID == 0;
+
+{
+    local <system.conf_path> = "$cfg_root_path/zenki/" . <system.zenka.name>;
+    <tile-groups.setup> = <[base.load_section_conf]>->($config_filename);
+}
+
+<[base.log]>->( 0, '<< tile-groups loading not successful [ no data ] >>' )
+    if not keys <tile-groups.setup>->%*;
+
+<[base.log]>->(
+    0, '<< tile-groups loading not successful [ empty tile-groups ] >>'
+    )
+    if keys <tile-groups.setup>->%*
+    and defined <tile-groups.setup.tile-groups>
+    and not keys %{<tile-groups.setup.tile-groups>};
+
+# use Data::Dumper 'Dumper'; print Dumper(<tile-groups.setup>);
+
+skip_load: # <-- jumping here if tile-groups has already been imported as json
+
+my $current_cfg_path = <tile-groups.cfg_directory> . '/tile-group.current';
+my $default_cfg_path = <tile-groups.cfg_directory> . '/tile-group.default';
+my $restore_tile_group_name;
+
+if ( -f $default_cfg_path ) {
+    chomp( my $default_tile_group
+            = ${ <[file.slurp]>->($default_cfg_path) } );
+    if ( defined <tile-groups.fallback_tile_group>
+        and <tile-groups.fallback_tile_group> ne $default_tile_group ) {
+        <[base.log]>->( 0, '<< default tile group has changed >>' );
+        unlink($current_cfg_path)
+            or warn "unlink($current_cfg_path) : \l$OS_ERROR";
+
+    } else {
+        unlink($default_cfg_path)
+            or warn "unlink($default_cfg_path) : \l$OS_ERROR";
+    }
+}
+
+if ( <tile-groups.restore_tile-groups_enabled> and -f $current_cfg_path ) {
+    <[base.logs]>->( "loading '%s' file ..,", $current_cfg_path );
+    my $cfg_content = ${ <[file.slurp]>->($current_cfg_path) };
+    if ( $cfg_content =~ m|^(\d+(\.\d+)?) +([^\n]+)\n$|s ) {
+        ( my $t_stamp, my $tile_group_name ) = ( $1, $3 );
+        my $timeout_secs = <tile-groups.restore_tile-groups_timeout>;
+        my $delta_t      = sprintf( "%.4f", <[base.time]>->(4) - $t_stamp );
+        if ( $delta_t >= $timeout_secs ) {
+            <[base.logs]>->(
+                "stored tile group selection has timed out [%ss], ignoring.,",
+                $timeout_secs
+            );
+            unlink($current_cfg_path)
+                or warn("unlink($current_cfg_path) : \l$OS_ERROR");
+        } else {
+            <[base.logs]>->(
+                2, "processing '%s' config..,",
+                $current_cfg_path
+            );
+
+            if ( defined <tile-groups.fallback_tile_group>
+                and <tile-groups.fallback_tile_group> ne $tile_group_name ) {
+                <[base.logs]>->(
+                    0, "restoring previous tile group '%s'..,",
+                    $tile_group_name
+                );
+                $restore_tile_group_name = $tile_group_name;
+            }
+
+            my @overlays;
+            @overlays = split( m|\+|, $1 ) if $tile_group_name =~ s|\+(.+)$||;
+            if (@overlays) {
+                <[base.logs]>->(
+                    0,
+                    'restoring previous overlay%s : %s ..,',
+                    <[base.cnt_s]>->( scalar @overlays ),
+                    join( ', ', @overlays )
+                );
+                <tile-groups.restore.overlays> = \@overlays;
+            }
+        }
+    } else {
+        <[base.logs]>->(
+            0, ": << syntax error in '%s' configuration.., >>",
+            $current_cfg_path
+        );
+    }
+} elsif ( -f $current_cfg_path
+    and !<tile-groups.restore_tile-groups_enabled> ) {
+    <[base.log]>->( 1, '<< restoring of current tile group is disabled >>' );
+}
+
+<[base.log]>->( 0, 'no default tile group configured.,' )
+    if not exists <tile-groups.fallback_tile_group>
+    or not defined <tile-groups.fallback_tile_group>
+    or !length(<tile-groups.fallback_tile_group>);
+
+my $tile_group_name = $restore_tile_group_name
+    // <tile-groups.fallback_tile_group>;
+my $log_level   = 1;
+my $default_str = ' default ';
+if ( not defined <tile-groups.setup.tile-groups>->{$tile_group_name} ) {
+    my $cfg_name_str
+        = defined $config_name ? sprintf( " '%s'", $config_name ) : '';
+    <[base.logs]>->(
+        0,
+        "default tile group '%s' "
+            . "does not exist in tile group configuration%s.",
+        $tile_group_name,
+        $cfg_name_str
+    );
+    if ( -f $current_cfg_path ) {
+        <[base.logs]>->( 2, ": removing '%s' ..,", $current_cfg_path );
+        unlink($current_cfg_path)
+            or warn "unlink($current_cfg_path) : \l$OS_ERROR";
+    }
+    ($tile_group_name) = sort keys %{<tile-groups.setup.tile-groups>};
+    $default_str = ' _fallback_ ';
+    $log_level   = 0;
+}
+
+$default_str     //= ' default ';
+$tile_group_name //= <tile-groups.fallback_tile_group>;
+<tile-groups.current_tile_group> = $tile_group_name;
+
+<[base.logs]>->(
+    $log_level,   "selected%stile group '%s'",
+    $default_str, $tile_group_name
+);
+
+if ( defined <tile-groups.fallback_tile_group> ) {
+    ( my $fname = $default_cfg_path ) =~ s|^.*/||g;
+    <[base.logs]>->(
+        2,
+        "writing default setting '%s' to '%s'.,",
+        <tile-groups.fallback_tile_group>, $fname
+    );
+    <[file.put]>->(
+        $default_cfg_path, <tile-groups.fallback_tile_group>, "\n"
+    );
+    chown( $uid, $gid, $default_cfg_path )
+        or <[base.s_warn]>->(
+        'chown[%s] : %s',
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        ) if $EUID == 0;
+
+}
+
+map {
+    <base.watcher.signal>->{$ARG}->cancel
+        if defined <base.watcher.signal>->{$ARG};
+    my $uc_sig = uc($ARG);
+    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+    <base.watcher.signal>->{$ARG} = <[event.add_signal]>->(
+        {   'signal'  => $uc_sig,
+            'handler' => qw| tile-groups.handler.sig_term |
+        }
+    );
+} (qw|  int  term  quit  |);
+
+0;
+
+#,,..,.,,,.,.,.,.,,.,,...,,.,,,..,.,.,.,,,.,.,..,,...,...,,.,,.,.,...,..,,,,,,
+#THI2NWPE6FIUJRG7VNJDJY53JRRTBPW2BD2YL72USWMTITENTE7DOMHLNBJMPZLSMGA63S4G7OKXK
+#\\\|WOYVBYAGKRO6A7T4VTJAGXLEI6FI6KCCSFX5II2GMZST2NK5B4Q \ / AMOS7 \ YOURUM ::
+#\[7]XBSY6NKWYFJ6DHYSTKBZI6BTFDVVTC7NAYC677QSCVBWLZNOJKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,86 @@
+## >:] ##
+
+# name  = tile-groups.cmd.get-tile-color
+# param = <zenka-|tile_name>
+# descr = average region color for zenka \ tile name
+
+my $reply_id          = $$call{'reply_id'};
+my $get_color_command = 'cube.screenshot.get_region_color';
+
+return { 'mode' => 'false', 'data' => "expected valid tile or zenka name" }
+    if not defined $$call{'args'}
+    or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
+my ( $source_zenka, $zenka_name ) = ( $1, $3 );
+
+$source_zenka =~ s|^.+\.||g;
+$zenka_name = $source_zenka if not defined $zenka_name;
+
+if ( $zenka_name =~ /^\[([^\]]+)\]$/ ) {    # <-- only subname given
+    my $subname = $1;
+    my %zenka_names;
+    map { $zenka_names{$ARG} = 1 if $ARG =~ /\[$subname\]$/ }
+        keys %{<tile-groups.coordinates>};
+    my $err_msg;
+    if ( !keys(%zenka_names) ) {
+        $err_msg = "no zenka matches subname '$subname'";
+    } elsif ( keys(%zenka_names) > 1 ) {
+        $err_msg = 'multiple zenki are matching, zenka name required';
+    }
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+    ($zenka_name) = keys(%zenka_names);
+}
+
+if ( not exists <tile-groups.coordinates>->{$zenka_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = "no coordinates defined for zenka '$zenka_name'";
+    if ( $zenka_name !~ /[\[\]]+/ ) {
+        map {
+            if ( $ARG =~ /^([^\[]+)\[/ and $1 eq $zenka_name ) {
+                $last_match = $ARG;
+                $match++;
+            }
+        } keys %{<tile-groups.coordinates>};
+    }
+    $msg_str
+        = "multiple '$zenka_name' instances defined, zenka subname required!"
+        if $match > 1;
+    return {
+        'mode' => 'false',
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $zenka_name = $last_match;
+}
+
+my $coordinates_data = <tile-groups.coordinates>->{$zenka_name};
+
+my @coordinates;
+my @borders = ( 'left', 'top', 'right', 'bottom' );
+foreach my $border_name (@borders) {
+    return {
+        'mode' => 'false',
+        'data' => "coordinates for $border_name border are missing"
+        }
+        if not exists $coordinates_data->{$border_name};
+    push( @coordinates, $coordinates_data->{$border_name} );
+}
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $get_color_command,
+        'call_args' => { 'args' => join( ' ', @coordinates ) },
+        'reply'     => {
+            'params'  => $reply_id,
+            'handler' => 'tile-groups.handler.get-tile-color_reply'
+        }
+
+    }
+);
+
+return { 'mode' => 'deferred' }
+
+#,,,.,..,,,,.,.,.,,..,..,,..,,,.,,,.,,...,...,..,,...,...,,..,.,,,.,.,...,..,,
+#SJGMOTMDDCJHSQHPSMNM3OUUN7HVRZ6W6XTKVPNJ3XKOI3B5A52KLXXUUDON3UOSBFAUAOBA4VJ5C
+#\\\|W5GZP5VXZKDUOZG2BDFS2FBJEPTE3HYELIFZ5VI7B5HDYOJCKYA \ / AMOS7 \ YOURUM ::
+#\[7]5RUH3356A3UT57R5HDROFMEEH45PN77H6ZB6P3HWXEG5RZAHIQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

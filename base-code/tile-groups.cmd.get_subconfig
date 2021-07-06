@@ -1,0 +1,62 @@
+## >:] ##
+
+# name  = tile-groups.cmd.get_subconfig
+# param = <zenka[+tile]_name>
+# descr = return 'subconfig' for zenka or tile name
+
+return {
+    'mode' => qw| false |,
+    'data' => "expected syntax is 'zenka[subname]'"
+    }
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ m|^(\S+)( +(\S+))?$|;
+
+my ( $source_zenka, $zenka_name ) = ( ${^CAPTURE}[0], ${^CAPTURE}[2] );
+$source_zenka =~ s|^.+\.||g;
+$zenka_name = $source_zenka if not defined $zenka_name;
+
+if ( not exists <tile-groups.subconfig>->{$zenka_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = sprintf "no set-up for zenka '%s'", $zenka_name;
+    if ( $zenka_name !~ m|[\[\]]+| ) {
+        map {
+            if ( $ARG =~ m|^([^\[]+)\[| and ${^CAPTURE}[0] eq $zenka_name ) {
+                $last_match = $ARG;
+                $match++;
+            }
+        } keys <tile-groups.subconfig>->%*;
+    }
+    $msg_str
+        = sprintf( "multiple '%s' instances defined, zenka subname required.",
+        $zenka_name )
+        if $match > 1;
+    return {
+        'mode' => qw| false |,
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $zenka_name = $last_match;
+}
+
+( undef, my $maxlen )
+    = minmax map {length} keys <tile-groups.subconfig>->{$zenka_name}->%*;
+
+return {
+    'mode' => qw| size |,
+    'data' => join(
+        '',
+        map {
+            sprintf( "%-*s = %s\n",
+                $maxlen,
+                $ARG, <tile-groups.subconfig>->{$zenka_name}->{$ARG} )
+            }
+            sort keys <tile-groups.subconfig>->{$zenka_name}->%*
+    )
+    }
+
+#,,..,,,,,..,,,,,,...,,,.,.,,,,,,,,,.,.,.,.,.,..,,...,...,...,,,.,,..,,,,,,,.,
+#JLT2XESAGI66VQBQGZ5AYKDD7OIITCJV5BDQ5F2EJHOFNPBN7TMSTUR4YJDAAXW6ZQDJVXTTSKZKG
+#\\\|6K7E3HGWKVZFKI5IBERB4EZAYGNA6IZGGITZYUDJ5EZLMQP6Q6Q \ / AMOS7 \ YOURUM ::
+#\[7]54QFKGZOYAKNRXVCDIY55XQ72HVFJPR5DTKBQSPZH7QG27H2GSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

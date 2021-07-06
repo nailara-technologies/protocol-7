@@ -21,7 +21,7 @@ my $sn_log_str = length($sn_str) ? " for zenka$sn_str" : '';
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}composition.get_geometry$sn_str\n"
+    $cube_fh, "($cmd_id)${cmd_path}tile-groups.get_geometry$sn_str\n"
 );
 
 my $reply_string;
@@ -43,8 +43,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return <x11.geometry>;
 }
 
-# else [ no composition zenka present or no geometry for zenka configured ]
-my $err_msg = "unexpected reply from composition zenka ['$reply_string']";
+# else [ no tile-groups zenka present or no geometry for zenka configured ]
+my $err_msg = "unexpected reply from tile-groups zenka ['$reply_string']";
 
 $err_msg = sprintf( ': << geometry not defined%s >>', $sn_log_str )
     if $reply_string =~ m|FALSE no geometry|
@@ -81,8 +81,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,..,.,,,,..,,,.,.,.,,,.,,..,.,,,.,.,,..,,.,,..,,...,...,.,,,,.,,..,,,,,,,,,,
-#CS5IQZBYNLMSTD6PRJAMALVQQQMWIHCVUEGDKUENRQCVSFEYPJO7DXDNM4XIOJH5AWG53W6CYARN6
-#\\\|ALC65NGKAFKMFOM5OQQMRZ6D7AEO5F775MROQWLQM25TU7DXNMP \ / AMOS7 \ YOURUM ::
-#\[7]2QPV4HDGOSJ32UCGZBTDXHMZMAJMNW6F33UTANSY5NORCI6O2EAY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,.,.,,.,,,,,,.,.,,.,,,..,,,,,..,,...,...,.,.,...,..,,,,,,,..,
+#UWMUYRPORKANIRYDZ2DIRCBWSAYTRQNXQ4TKZBGWESC2ROFG2SNJ3VPGNKLMOXXCGA5IFSC6A6E5K
+#\\\|45IQJ7JZHWYFICKMR4A5MSDR54HGBZA47THW6RDIQNRL3NKZB4J \ / AMOS7 \ YOURUM ::
+#\[7]CNY5DOZYPPSMTJOPMXTBT6SUWBOPMWWHTYNCOTMOLVVR2OY4BWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

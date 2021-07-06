@@ -1,0 +1,23 @@
+## >:] ##
+
+# name = tile-groups.handler.sig_term
+
+return
+    if not defined <tile-groups.current_tile_group>
+    or !length(<tile-groups.current_tile_group>);
+
+my $file_name = 'tile-group.current';
+my $cfg_file  = join( '/', <tile-groups.cfg_directory>, $file_name );
+<[base.log]>->( 1, "storing current tile group in '$file_name' config.," );
+
+<[file.put]>->(
+    $cfg_file,
+    sprintf( "%.4f %s\n",
+        <[base.time]>->(4), <tile-groups.current_tile_group> )
+);
+
+#,,..,.,,,.,.,.,,,,,,,..,,...,...,..,,,,.,,..,..,,...,...,.,.,.,,,.,.,,,.,..,,
+#U3IGLN5YN6TNDTZBRQK33SK26TE2W7B2K4KWZOLP7GVZBVVUAL6TH4W5IAZIQQH3Y2PL4XSVVT7YQ
+#\\\|RNNR25C2YPYGAC2PNSK65GPOFWG4O3EUXQBA3VKXF2CDRCQMKJ7 \ / AMOS7 \ YOURUM ::
+#\[7]5HQ2LJE3772FCRMAII7NR2CD3JP5HLCHKF5KEQ35W37ZZNQTD6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
