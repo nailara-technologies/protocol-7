@@ -7,35 +7,35 @@ my $reply_str = '';
 
 my %hidden;
 
-map {    # SHOW/HIDE
-    $hidden{$ARG} = 1
+map {    # SHOW\HIDE
+    $hidden{$ARG} = 5    ## true ##
         if ( not defined <events.stack.playlist>->{$ARG}->{'action'}->{'type'}
         or <events.stack.playlist>->{$ARG}->{'action'}->{'type'} ne
-        'playlist_exclusive_entry' )
+        qw| playlist-exclusive-entry | )
         and <events.stack.playlist>->{$ARG}->{'visibility'} < 1;
     }
-    keys %{<events.stack.playlist>};
+    keys <events.stack.playlist>->%*;
 
 map {    # EXCLUSIVE
     my $action = <events.setup>->{$ARG}->{'action'};
     if (    defined $action
         and defined $action->{'type'}
-        and $action->{'type'} eq 'playlist_exclusive_entry' ) {
+        and $action->{'type'} eq qw| playlist-exclusive-entry | ) {
         my $b32id = $action->{'b32id'};
-        $hidden{$b32id} = 1
-            if not exists <events.stack.exclusive>->{$b32id}
+        $hidden{$b32id} = 5    ## true ##
+            if not defined <events.stack.exclusive>->{$b32id}
             and ( not defined <events.stack.playlist>->{$b32id}
             or <events.stack.playlist>->{$b32id}->{'visibility'} < 1 );
     }
     }
-    keys %{<events.setup>};
+    keys <events.setup>->%*;
 
-map { $reply_str .= "$ARG\n" } keys %hidden;
+map { $reply_str .= sprintf "%s\n", $ARG } keys %hidden;
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,,,...,,..,,..,,..,...,,,,,,,.,.,.,...,,,.,..,,...,.,.,..,,,,.,...,,,,,,.,,
-#2J5BT6HIMNG5FXGIXCN7R52HCNDDBEUZR2XB5K634ZKOHUXJJXVOMG273LTRTSFZ2BIV2RRMRLF5U
-#\\\|KRUVBGUZS2H6RKVGRRNFRZBDLJ2KEVXAO4ZJDB73DSUYTQT5AKP \ / AMOS7 \ YOURUM ::
-#\[7]TMNYV5JVNQIZCUHLWXNWSMKAW6JA5GXTT6EFQIMGSHCEXEC3MMBY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,,.,,,.,,.,,,,,.,,.,,,,,,...,..,,...,...,,.,,..,,.,,,.,.,...,
+#3KUBUC54GZPQYKZABRCYX3UHRK4CUGDR3FHG5H3A4I5IMMXIJPPCJSQ4OVLRMWWQOBOZNWYT3E6VS
+#\\\|VD4NTT5CEOVID32P7OGVM4P7NOWTGB7DHRQ6AVYNNZREMEDRRU5 \ / AMOS7 \ YOURUM ::
+#\[7]UGCPSDBJUO5HSAHKY33CELLCLJWLEZB4WPZJH6WQYS4RKWZWFEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

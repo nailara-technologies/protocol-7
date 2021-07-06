@@ -11,42 +11,44 @@ my $event_name  = $ev_data->{'name'};
 my $action      = $ev_data->{'action'};
 my $action_type = $action->{'type'};
 
-if ( not exists <events.enabled>->{$event_name}
-    or !<events.enabled>->{$event_name} ) {
-    <[base.log]>
-        ->( 2, "[IGNORED] event '$event_name' not enabled in set-up" );
+if (   not defined <events.enabled>->{$event_name}
+    or not <events.enabled>->{$event_name} ) {
+    <[base.logs]>->(
+        2, "[IGNORED] event '%s' not enabled in set-up", $event_name
+    );
     return;
 }
 
 if ( defined $ev_data->{'dep_id'}
     and !<[dependency.ok]>->( $ev_data->{'dep_id'}, $ev_id ) ) {
-    <[base.log]>->(
-        1, "[IGNORED] '$event_name' event [ unresolved dependencies ]"
+    <[base.logs]>->(
+        1, "[IGNORED] '%s' event [ unresolved dependencies ]", $event_name
     );
     return;
 } elsif ( defined $ev_data->{'dep_id'} ) {
-    <[base.log]>
-        ->( 2, "[RUN] dependencies resolved [ event '$event_name' ]" );
+    <[base.logs]>->(
+        2, "[RUN] dependencies resolved [ event '%s' ]", $event_name
+    );
 }
 
-<[base.log]>->( 1, "<$action_type> '$event_name' [" . uc($ev_type) . "]" );
+<[base.logs]>->( "<%s> '%s' [%s]", $action_type, $event_name, uc($ev_type) );
 
 die "'tile_group_name' parameter is missing from '$action_type' setup"
-    if $action_type =~ m|^tile-groups_|
-    and not defined $action->{'tile_group_name'};    ## <-- check \ test [LLL]
+    if index( $action_type, qw| tile-groups- | ) == 0
+    and not defined $action->{'tile-group-name'};    ## <-- check \ test [LLL]
 
 <events.stack.playlist>->{ $action->{'b32id'} }->{'action'}->{'type'}
     = $action_type
     if defined $action->{'b32id'};
 
-if ( $action_type eq 'zenka-present' ) {
+if ( $action_type eq qw| zenka-present | ) {
     my $command;
     my $zenka_name = $action->{'zenka-name'};
     die "parameter zenka_name not defined in event $ev_id setup"
         if not defined $zenka_name;
-    $command = 'start_once'    if $ev_type eq 'start';
-    $command = 'stop_implicit' if $ev_type eq 'end';
-    $command = 'start_once'    if $ev_type eq 'at';
+    $command = qw|  start_once   | if $ev_type eq qw| start |;
+    $command = qw| stop_implicit | if $ev_type eq qw|  end  |;
+    $command = qw|  start_once   | if $ev_type eq qw|   at  |;
     die "event $ev_id action command undefined" if not defined $command;
 
     <[base.protocol-7.command.send.local]>->(
@@ -54,7 +56,7 @@ if ( $action_type eq 'zenka-present' ) {
             'call_args' => { 'args' => $zenka_name }
         }
     );
-} elsif ( $action_type eq 'send-command' )
+} elsif ( $action_type eq qw| send-command | )
 {    #LLL: need param check during setup
     map {
         die "'$ARG' param is invalid for action type '$action_type'"
@@ -77,80 +79,85 @@ if ( $action_type eq 'zenka-present' ) {
             'call_args' => $args_ref
         }
     );
-} elsif ( $action_type eq 'playlist_show_entry' ) {    ### PLAYLIST EVENTS ###
-    my $b32id = $action->{'b32id'};                    # SHOW event
+
+### PLAYLIST EVENTS ###
+##
+} elsif ( $action_type eq qw| playlist-show-entry | ) {
+    my $b32id = $action->{'b32id'};    # SHOW event
     die "'b32id' parameter is missing from '$action_type' setup"
         if not defined $b32id;
     <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.playlist>->{$b32id}->{'visibility'} += $change;
 
-} elsif ( $action_type eq 'playlist_hide_entry' ) {    # HIDE event
+} elsif ( $action_type eq qw| playlist-hide-entry | ) {    # HIDE event
     my $b32id = $action->{'b32id'};
     die "'b32id' parameter is missing from '$action_type' setup"
         if not defined $b32id;
     <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.playlist>->{$b32id}->{'visibility'} -= $change;
 
-} elsif ( $action_type eq 'playlist_exclusive_entry' ) {    # EXCLUSIVE event
+} elsif ( $action_type eq qw| playlist-exclusive-entry | ) { # EXCLUSIVE event
     my $b32id = $action->{'b32id'};
     die "'b32id' parameter is missing from '$action_type' setup"
         if not defined $b32id;
     <events.stack.exclusive>->{$b32id} //= 0;
-    if ( $ev_type eq 'start' ) {
+    if ( $ev_type eq qw| start | ) {
         <events.stack.exclusive>->{$b32id}++;
-    } elsif ( $ev_type eq 'end' ) {
+    } elsif ( $ev_type eq qw| end | ) {
         <events.stack.exclusive>->{$b32id}--;
         delete <events.stack.exclusive>->{$b32id}
             if !<events.stack.exclusive>->{$b32id};
     }
 
-} elsif ( $action_type eq 'tile-groups_show' ) {  ### --- TILE-GROUPS SHOW ---
-    my $l_name = $action->{'tile_group_name'};
+### TILE-GROUP EVENTS ###
+##
+} elsif ( $action_type eq qw| tile-groups-show | ) {
+    my $l_name = $action->{'tile-group-name'};  ## --- TILE-GROUPS SHOW --- ##
     <events.stack.tile-groups.visibility>->{$l_name} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.tile-groups.visibility>->{$l_name} += $change;
 
-} elsif ( $action_type eq 'tile-groups_hide' ) {  ### --- TILE-GROUPS HIDE ---
-    my $l_name = $action->{'tile_group_name'};
+} elsif ( $action_type eq qw| tile-groups-hide | ) {
+    my $l_name = $action->{'tile-group-name'};  ## --- TILE-GROUPS HIDE --- ##
     <events.stack.tile-groups.visibility>->{$l_name} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.tile-groups.visibility>->{$l_name} -= $change;
-} elsif ( $action_type eq 'overlay_show' ) {    ### --- OVERLAY SHOW ---
-    my $l_name = $action->{'tile_group_name'};
+} elsif ( $action_type eq qw| overlay-show | ) {    ## -- OVERLAY SHOW -- ##
+    my $l_name = $action->{'tile-group-name'};
     <events.stack.overlay.visibility>->{$l_name} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.overlay.visibility>->{$l_name} += $change;
 
-} elsif ( $action_type eq 'overlay_hide' ) {    ### --- OVERLAY HIDE ---
-    my $l_name = $action->{'tile_group_name'};
+} elsif ( $action_type eq qw| overlay-hide | ) {    ## -- OVERLAY HIDE -- ##
+    my $l_name = $action->{'tile-group-name'};
     <events.stack.overlay.visibility>->{$l_name} //= 0;
-    my $change = $ev_type eq 'end' ? -1 : 1;
+    my $change = $ev_type eq qw| end | ? -1 : 1;
     <events.stack.overlay.visibility>->{$l_name} -= $change;
 }
 
 ## [ check \ rework ]
 
-# if ( $ev_type eq 'at' or $ev_type eq 'end' ) {
+# if ( $ev_type eq qw| at | or $ev_type eq qw| end | ) {
 #     delete <events.unix.timetable>->{$ev_id};
 #     <event.timer.recalc>->cancel if defined <event.timer.recalc>;
 #     <event.timer.recalc> = <[event.add_timer]>
-#         ->( { 'at' => time + 1, 'handler' => 'events.recalc' } );
+#         ->( { 'at' => time + 1, 'handler' => qw| events.recalc | } );
 # }
 
 <[base.protocol-7.command.send.local]>
-    ->( { 'command' => "cube.content.update" } )
-    if index( $action_type, 'playlist_' ) == 0;
+    ->( { 'command' => qw| cube.content.update | } )
+    if index( $action_type, qw| playlist- | ) == 0;
 
-<events.tile-groups.cfg_directory> //= '/etc/protocol-7/zenki/tile-groups';
+<events.tile-groups.cfg_directory> //= qw|/etc/protocol-7/zenki/tile-groups|;
 
-if ( $action_type =~ m|^tile-groups_| ) {
+if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
 
     delete <events.stack.tile-groups.visibility>
-        ->{ $action->{'tile_group_name'} }
+        ->{ $action->{'tile-group-name'} }
         if 0 == ( <events.stack.tile-groups.visibility>
-            ->{ $action->{'tile_group_name'} } // -1 );
+            ->{ $action->{'tile-group-name'} } // -1 );
 
     my @tile_groups_stack = sort {
         <events.stack.tile-groups.visibility>->{$a} <=>
@@ -172,7 +179,7 @@ if ( $action_type =~ m|^tile-groups_| ) {
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'cube.tile-groups.switch-tile-group',
+            {   'command'   => qw| cube.tile-groups.switch-tile-group |,
                 'call_args' => { 'args' => $current_tile_group }
             }
         );
@@ -180,29 +187,29 @@ if ( $action_type =~ m|^tile-groups_| ) {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
         <[base.protocol-7.command.send.local]>
-            ->( { 'command' => 'cube.tile-groups.reset-tile-group' } );
+            ->( { 'command' => qw| cube.tile-groups.reset-tile-group | } );
     }
 }
 
-if ( $action_type =~ m,^overlay_(show|hide)$, ) {
-    my $show_hide    = $1;
-    my $overlay_name = $action->{'tile_group_name'};
+if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
+    my $show_hide    = $LAST_PAREN_MATCH;
+    my $overlay_name = $action->{'tile-group-name'};
     my $command_str  = (
-               $show_hide eq 'show' and $ev_type eq 'end'
-            or $show_hide eq 'hide' and $ev_type eq 'start'
-    ) ? 'remove' : 'add';
+               $show_hide eq qw| show | and $ev_type eq qw| end |
+            or $show_hide eq qw| hide | and $ev_type eq qw| start |
+    ) ? qw| remove | : qw| add |;
 
-    if ( $command_str eq 'add'
+    if ( $command_str eq qw| add |
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'cube.tile-groups.add_overlay',
+            {   'command'   => qw| cube.tile-groups.add_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
         );
-    } elsif ( $command_str eq 'remove'
+    } elsif ( $command_str eq qw| remove |
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => 'cube.tile-groups.remove_overlay',
+            {   'command'   => qw| cube.tile-groups.remove_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
         );
@@ -211,8 +218,8 @@ if ( $action_type =~ m,^overlay_(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,,,,,,.,,,,,..,,.,,,..,,,,.,.,,,,,.,.,.,,..,..,,...,...,.,.,,,.,,,.,,..,..,,
-#KG4TD6KG7MKLDAB5SCBQLIOH7HA46UBXMCLPYWJQUMYDA56JT3G3BWCF4FFAHOHKQMKDBKQJRNFK2
-#\\\|I6DVSG62DOTUOZWMRA4B6DMEABNR56OUURCN5XN6ZISCXU7FLQQ \ / AMOS7 \ YOURUM ::
-#\[7]XDBPC3OU43SYCSAFZDDWP3LARZ4QQXIAAMWZKIGDXW7EUG2JV2AI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,.,,.,.,,.,,,.,,..,,,,,,..,,..,,...,...,.,,,,,.,,.,,,,.,...,
+#RQDFXDFAGXDX5QUEKAYTEFE6SNTZYFCFJPZ5IPNXEPNEYCDRCI54XGE3UTKCSCMVGCSWXTDGAACPI
+#\\\|XN4YZBRHPIBO73TBOMCMQLZEGL7BWPAG4BCEWX6JXBPQLTZPDL4 \ / AMOS7 \ YOURUM ::
+#\[7]AZUZL4ARQHNPF4UTDWQK4YUGVKWKVIX26EHC4JCQ3AGUP37KKACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
