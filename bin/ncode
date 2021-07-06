@@ -101,7 +101,10 @@ my %commands = (
     'description'    => \&cmd_description
 );
 
-if ( @params == 0 and $cmd ne qw| list-targets | ) {
+if (    @params == 0
+    and defined $cmd
+    and defined $commands{$cmd}
+    and $cmd ne qw| list-targets | ) {
     &cmd_description;
     exit;
 }
@@ -160,19 +163,34 @@ sub cmd_description {
 
         ( undef, my $max_len ) = minmax map {length} keys %commands;
 
-        foreach my $cmd ( sort( keys %commands ) ) {
-            my $description_txt = 'not defined';
+        foreach my $cmd ( sort keys %commands ) {
+            my $description_txt = 'no command description available';
+
+            my $not_implemented = 0;
 
             if ( ref $commands{$cmd} eq qw| CODE | ) {
-                $description_txt
-                    = $commands{$cmd}->(qw| description_txt params |);
+                eval {
+                    $description_txt
+                        = $commands{$cmd}->(qw| description_txt params |);
+                    $description_txt = '[ alias to command below ]'
+                        if length($cmd) <= 3 or $cmd eq qw| parse |;
+                };
 
-                $description_txt = '[ alias to command below ]'
-                    if length($cmd) <= 3 or $cmd eq 'parse';
-
+                if ( length $EVAL_ERROR
+                    and index( lc $EVAL_ERROR, 'undefined subroutine', 0 )
+                    == 0 ) {
+                    $not_implemented = 5;
+                } elsif ( length $EVAL_ERROR ) {
+                    $description_txt = sprintf '%s[ %s ]%s',
+                        $C{'0'}, 'error in cmd subroutine', $C{'R'};
+                }
             } else {
-                $description_txt = $C{'0'} . 'not yet implemented' . $C{'R'};
+                $not_implemented = 5;
             }
+
+            $description_txt = sprintf '%s[ %s ]%s',
+                $C{'0'}, 'command not implemented yet', $C{'R'}
+                if $not_implemented;
 
             my $line_len = $max_len + 2 - length $cmd;
 
@@ -949,7 +967,7 @@ sub create_backup {
     print ":: calculating backup checksums ::\n\n";
 
     # add checksums of modified source for target file checks during restore
-    if ( ref($modified_source) eq 'HASH' ) {
+    if ( ref($modified_source) eq qw| HASH | ) {
         $backup_metadata->{'original_bmw'}
             = create_checksums($backup_source);    # get checksum hashref
     }
@@ -957,7 +975,7 @@ sub create_backup {
     print ":: calculating modification checksums ::\n\n";
 
     # add checksums of modified source for target file checks during restore
-    if ( ref($modified_source) eq 'HASH' ) {
+    if ( ref($modified_source) eq qw| HASH | ) {
         $backup_metadata->{'modified_bmw'}
             = create_checksums($modified_source);    # get checksum hashref
     }
@@ -1076,9 +1094,8 @@ sub restore_backup {
     my $backup_file = shift;
 
     if ( !-f $backup_file ) {
-        die " :: backup file '$backup_file' does not exist ::\n";
+        die sprintf " :: backup file '%s' does not exist ::\n", $backup_file;
     }
-
 }
 
 # :: check_target_files :: performs target file checks before restoring backup
@@ -1180,7 +1197,7 @@ sub load_metadata {
         }
     }
 
-    if ( !keys(%meta_data) ) {
+    if ( not keys %meta_data ) {
         die " :: meta data file '$file_name' was empty ::\n";
     }
     return \%meta_data;
@@ -1198,9 +1215,9 @@ sub save_metadata {
         die ':: save_metadata() :: parameter error :: ';
     }
     check_path($file_name);
-    foreach my $first_key ( keys(%$meta_data) ) {
+    foreach my $first_key ( keys $meta_data->%* ) {
         my $file_key = $first_key;
-        if ( ref( $meta_data->{$first_key} ) eq 'HASH' ) {
+        if ( ref( $meta_data->{$first_key} ) eq qw| HASH | ) {
             foreach my $second_key ( keys( %{ $meta_data->{$first_key} } ) ) {
 
                 # swap key and value for bmw hashes
@@ -2345,8 +2362,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,,,.,,..,...,.,,,.,.,,,.,,,.,..,,..,,,.,,..,,...,.,.,..,,..,,..,,,,,,,,.,
-#6GZVOSVVQB5MTO7Z274KI6CSW3QQWNGQDQHA4LPXYEX3755H636GYUO5EBTZBBJTNXTJCSA45O6UI
-#\\\|UUPG57MTQFX75EZSMHLWXNMOIW6MRHHJLFXQXVOPIYRE4TIZ7JO \ / AMOS7 \ YOURUM ::
-#\[7]B57A6IRA4CLAUR4XI4KA73KY5LDL7YPFRS4CLEPRXX5BSIHK6UAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,,,,..,.,.,,..,,,.,,,.,,.,,,.,,..,,...,...,...,.,.,..,,,..,,,.,
+#HW4FBAK6DFBNPTICOXPFYDRDIYLU2ESKSOFAYGRJE6XBDAAIJCZII4TVDAYUBPEKSTWOY4GCZI4SG
+#\\\|6TXEV6QF4ZBRGYFMLAMXI3IK5S2A275DET2K2S3FZ6Z7OGKW7N7 \ / AMOS7 \ YOURUM ::
+#\[7]WAG2URAUISL7I25SO45VWTAJHGIHE5Z2T62SNIOSKRW4D3XLBMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
