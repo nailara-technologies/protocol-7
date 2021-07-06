@@ -3,21 +3,26 @@
 # name  = base.sourcecode.in-mem.sub-source
 # descr = returns scalar-ref to %code subroutine [deparsed] sourcecode
 
-my $code_name = shift;
+my $code_name = shift;    ## %code hash [ key ] subroutine name ##
 
 if ( not defined $code_name ) {
+    warn 'expected subroutine name param <{C1}>';
+    return undef;
 } elsif ( not defined $code{$code_name} ) {
-    warn 'sub-routine not found <{C1}>';
+    <[base.s_warn]>->( 'sub-routine %s not found <{C1}>', $code_name );
     return undef;
 }
 
-my $source_code = sprintf "%s\n",
+my $source_code = sprintf "%s\n",    ##  deparse subroutine from memory  ##
     B::Deparse->new(qw| -p -sC |)->coderef2text( $code{$code_name} );
 
-return \$source_code;
+## removing obsolete B::Deparse subroutine header ##
+<[base.strip_chksum_lines]>->( \$source_code, 21849019, ' ' x 4 );
 
-#,,..,,,.,...,,,,,.,,,.,.,...,,,,,..,,,.,,...,..,,...,...,.,.,,..,.,.,,,,,.,,,
-#ZVLO34HL326JPMWSJ4VIU6ZLQUKOBUW5O5QGGCDW3VYYSITZF6J2KSS2BUK76NH6BRAEADTRSDT2K
-#\\\|FP5ADBJCUA665J2PNQHIV3WZSHQS3DJKGXDHDGJRC3UIIPPIMNL \ / AMOS7 \ YOURUM ::
-#\[7]CZJCBLBV2Q73PEVX3W6KU7NFEQA2UOKC2SO3UAY44753H7HU2GDA 7  DATA SIGNATURE ::
+return \$source_code;                ## scalar ref to source code ##
+
+#,,,,,...,.,,,,..,,,,,..,,..,,.,.,,,.,,,.,,.,,..,,...,...,,..,.,,,...,.,,,.,.,
+#ODJ3TNS3XSS4M55427F3SL5CZSTQJKIL625DUKWGWKGIVGVU652OMLBVXZWXH2IMGOL4JEJHE4IRU
+#\\\|TGL6HOYJGXENDIU5DXRK2BCVTMFVHS5EDX6KE45AUIEKTIUWSQN \ / AMOS7 \ YOURUM ::
+#\[7]IR7VETLQPP67QK4TRNMXXEC6NBHS2G4WUZZAIOONXFYRQQYPPIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
