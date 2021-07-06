@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = tile-groups.gpu_alerts.enable_auto_speed
+# descr = send 'slow_down' command to web-browser zenki ([GPU/CPU] load reduction)
+
+my $zenki_present //= {};
+foreach my $zenka_name ( keys %{<tile-groups.subconfig>} ) {
+    next if $zenka_name !~ m{^(web-browser|universal|ticker-gtk)};
+    if ( not defined <tile-groups.subconfig>->{$zenka_name}->{'auto_speed'}
+        or !<tile-groups.subconfig>->{$zenka_name}->{'auto_speed'} ) {
+
+        next
+            if $zenka_name !~ m|ticker|
+            and <tile-groups.counter.gpu_alerts> < 2;
+
+        <[base.log]>->( 1, "activating auto_speed mode for '$zenka_name'" );
+        <tile-groups.subconfig>->{$zenka_name}->{'auto_speed'} = 1;
+
+        ( my $route = $zenka_name ) =~ s|\[.+$||;
+
+        $zenki_present->{$route} //= 1;
+    }
+}
+
+map {
+    <[base.protocol-7.command.send.local]>->(
+        { 'command' => "cube.$ARG.slow_down" } ) # making sure they got it ..,
+} sort keys %{$zenki_present};
+
+#,,.,,,.,,,..,..,,.,,,.,.,,..,,.,,..,,,.,,.,.,..,,...,...,.,.,.,.,.,,,,.,,...,
+#64YZE3EFR7C7BLHNS2XUSEQ327NJYEMPUKAVLVYPWB5CZOD23NSUQAJZLTDI5JSDP4YNXOE5NRBWO
+#\\\|ABGAOMF3FIJYJJSGWYSHPJBHIDRXA5XV4IGB4BKZJYERMAQV2VY \ / AMOS7 \ YOURUM ::
+#\[7]RU2CLHYJUFA4OW4SKDJYLZLRWL2ORUXZRUKRD3VHOKLHEAPJNSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

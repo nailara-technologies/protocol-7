@@ -1,0 +1,75 @@
+## >:] ##
+
+# name  = tile-groups.cmd.get_coordinates
+# param = [zenka_name]
+# descr = coordinates for current or specified zenka
+
+return { 'mode' => 'false', 'data' => 'no zenka name received' }
+    if not defined $$call{'args'}
+    or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
+
+my ( $source_zenka, $zenka_name ) = ( $1, $3 );
+$source_zenka =~ s|^.+\.||g;
+$zenka_name = $source_zenka if not defined $zenka_name;
+
+if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    # <-- only subname given
+    my $subname = $1;
+    my %zenka_names;
+    map { $zenka_names{$ARG} = 1 if $ARG =~ m|\[$subname\]$| }
+        keys %{<tile-groups.coordinates>};
+    my $err_msg;
+    if ( !keys(%zenka_names) ) {
+        $err_msg = "no zenka matches subname '$subname'";
+    } elsif ( keys(%zenka_names) > 1 ) {
+        $err_msg = 'multiple zenki are matching, zenka name required';
+    }
+    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+    ($zenka_name) = keys(%zenka_names);
+}
+
+if ( not exists <tile-groups.coordinates>->{$zenka_name} ) {
+    my $last_match;
+    my $match   = 0;
+    my $msg_str = "no coordinates defined for zenka '$zenka_name'";
+    if ( $zenka_name !~ m|[\[\]]+| ) {
+        map {
+            if ( $ARG =~ m|^([^\[]+)\[| and $1 eq $zenka_name ) {
+                $last_match = $ARG;
+                $match++;
+            }
+        } keys %{<tile-groups.coordinates>};
+    }
+    $msg_str
+        = "multiple '$zenka_name' instances defined, zenka subname required"
+        if $match > 1;
+    return {
+        'mode' => 'false',
+        'data' => $msg_str
+        }
+        if $match != 1;
+    $zenka_name = $last_match;
+}
+
+my $coordinates_data = <tile-groups.coordinates>->{$zenka_name};
+
+my @coordinates;
+my @borders = ( 'left', 'top', 'right', 'bottom' );
+foreach my $border_name (@borders) {
+    return {
+        'mode' => 'false',
+        'data' => "coordinates for $border_name border are missing"
+        }
+        if not exists $coordinates_data->{$border_name};
+    push( @coordinates, $coordinates_data->{$border_name} );
+}
+
+return {
+    'mode' => 'true',
+    'data' => join( ' ', @coordinates )
+    }
+
+#,,.,,,,.,,..,,.,,,,.,.,.,,..,...,.,,,,..,...,..,,...,...,.,,,,,,,,..,...,,.,,
+#6CU65N7ILLOKH452I2QKTBTFYHAFLIRM6CGPXGV2QTNCTINWH3GA34526DXMF3CAS35TAYFZ7QWNO
+#\\\|LCC7RHKT6Z4F4PE3HSXDVSV4BSGXTA2O2HBTNLVAR47Z5HASQAE \ / AMOS7 \ YOURUM ::
+#\[7]7KKZWN4OLOJOWFYXDNXJSV53JD45KDZCPMJ7SXVIXIWDZBKOMAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

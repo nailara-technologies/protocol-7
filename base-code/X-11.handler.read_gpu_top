@@ -42,7 +42,7 @@ while ( <X-11.gpu_top.output_buffer> =~ s|^([^\n]*)\n||s ) {
     if ( $output_line =~ m|^(\d+(\.\d+)?)\s+(\d+(\.\d+)?)\s+| ) {
         ( $time, $load ) = ( ${^CAPTURE}[0], ${^CAPTURE}[2] );
     } else {
-        <[base.ellipse_center]>->( \$output_line, 253 );
+        <[base.parser.ellipse_center]>->( \$output_line, 253 );
         <[base.logs]>->( 0, "[ERROR] < intel_gpu_top > %s", $output_line );
         $watcher->cancel if $watcher->is_active;
         delete <X-11.gpu_top.stats>;
@@ -139,8 +139,8 @@ if ( defined <X-11.gpu_top.write_to_disk.path> ) {
     rename( "$stats_file.NEW", $stats_file ) or die "rename : \l$OS_ERROR";
 }
 
-#,,,,,.,,,,.,,,.,,,,,,,,.,,.,,.,,,.,.,,.,,..,,..,,...,...,.,.,,..,,,,,,..,..,,
-#S2UWRE6ZOTJVAPPLJEHIEO6YXIDKQYFEUFPCSDQHIH4M67DSTMYWRTUM6TLXNDIH5HVAKCWIUQP6M
-#\\\|ERVM6YL234R4VIJAO23HQEM22M5TXC656RBHA7KLH3Z6FQFRIWC \ / AMOS7 \ YOURUM ::
-#\[7]3QTK6IZ2YHYOTXUAOFU4CID6J7OFWZ7QKP5QSNB2W5T6MUEIESBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,...,,,,,.,.,,..,.,,,.,,,..,,..,,...,...,...,,..,,.,,,.,,...,
+#CXOZ6N5JHRU27XHP3L6G6S3J2XYYTNBVXKYJTHGJI66EGPLNAVQ64GKPU36JVWP5QZ6V2DN7K55NC
+#\\\|DPYM5C3R2RE6XGKMUFNJM4U52MU6UYXMMZCFWWLTDEYZG4XCZNW \ / AMOS7 \ YOURUM ::
+#\[7]4FJIU5XECIQQ2JZXGFW7EVCPWQCTQHLD4XJD436J6WLHCKGAAECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

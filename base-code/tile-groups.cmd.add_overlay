@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = tile-groups.cmd.add_overlay
+# param = <tile_group_name[s]>
+# descr = overlay specified tile group on current
+
+my $overlay_str = $$call{'args'} // '';
+
+<tile-groups.transition_queue> //= [];
+<tile-groups.overlays.current> //= [];
+<tile-groups.overlays.previous> = [ @{<tile-groups.overlays.current>} ];
+
+return {
+    'mode' => 'false',
+    'data' =>
+        "current tile group is already '$overlay_str'., doing nothing..,"
+    }
+    if $overlay_str eq <tile-groups.current_tile_group>;
+
+my %new_overlays = map { $ARG => 1 } split m| +|, $overlay_str;
+my @new_overlays = sort keys %new_overlays;
+
+map {
+    return {
+        'mode' => 'false',
+        'data' => 'expected valid tile group name'
+        }
+        if not defined $ARG or !length($ARG);
+    return {
+        'mode' => 'false',
+        'data' => "tile group '$overlay_str' not found."
+        }
+        if not exists <tile-groups.setup.tile-groups>->{$ARG};
+
+    push( @{<tile-groups.overlays.current>}, $ARG );
+} @new_overlays;
+
+my $merged_name = <[tile-groups.merge_multiple]>->(@new_overlays);
+
+return <[tile-groups.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
+
+#,,..,.,,,,,,,,,,,,.,,,,,,,,.,,,,,,,.,.,,,..,,..,,...,...,..,,,,,,,,.,,.,,,.,,
+#7UHLTHWECME7LFDQCNKVB47SPLKX4XWBJ45TNRWEUFJWGCMPT32GXMZ2M363KGIUFOWY2YXPYSI3O
+#\\\|2UKUMNNNYIAYJFMXWBHEKFOCXBFIG5DWDB5OXGHO52PCSGKFRHA \ / AMOS7 \ YOURUM ::
+#\[7]2S2TRUYQKBQWKXW6V35DEB3JLLWWHBWPECWA6O4ZKW42PDZLOUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

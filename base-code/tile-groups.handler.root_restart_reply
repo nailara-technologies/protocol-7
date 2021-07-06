@@ -1,0 +1,26 @@
+## >:] ##
+
+# name = tile-groups.handler.root_restart_reply
+
+my $answer = shift;
+
+my $zenka_name_str = $answer->{'params'};
+
+if (    $answer->{'cmd'} ne 'TRUE'
+    and $answer->{'call_args'}->{'args'} =~ /no zenka/ ) {
+
+    <[base.log]>->(
+        0, "<< ! >> no '$zenka_name_str' zenka was running, starting now..."
+    );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.v7.start_once |,
+            'call_args' => { 'args' => $zenka_name_str }
+        }
+    );
+}
+
+#,,.,,,.,,,.,,,,.,,.,,,,,,,.,,,,.,,.,,.,,,...,..,,...,...,..,,,,.,,,.,..,,,.,,
+#V2RT54PVHW2RQED34GUNHJV6SC7HS6TZYH7SDHZFHPDVCFGJKIYCJT3EQIWDZUNPQQ7A4D764OXKI
+#\\\|YKODSXZAE4OX6KJ6SFN372FCF6TP2USUCU6HFISSZDC2E3S2TXX \ / AMOS7 \ YOURUM ::
+#\[7]MS6EAOKH42FXH53IOKMYXHGUEQ5XYF5V2P45D7WJ7GRMVRMQDCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

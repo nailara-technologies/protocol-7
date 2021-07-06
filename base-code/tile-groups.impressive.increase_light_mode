@@ -1,0 +1,27 @@
+## >:] ##
+
+# name  = tile-groups.impressive.increase_light_mode
+# descr = switch impressive into light_mode [1 and 2] ([GPU/CPU] load reduction)
+
+my @restart_zenki;
+
+foreach my $zenka_name ( keys %{<tile-groups.subconfig>} ) {
+    next if $zenka_name !~ /^impressive/;
+    my $lm = <tile-groups.subconfig>->{$zenka_name}->{'light_mode'} //= 0;
+    next if $lm >= 2;
+    $lm = ++<tile-groups.subconfig>->{$zenka_name}->{'light_mode'};
+    push( @restart_zenki, $zenka_name );
+    <[base.log]>->( 0, "switching $zenka_name into light_mode $lm!" );
+}
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.v7.restart",
+        'call_args' => { 'args' => join( ' ', @restart_zenki ) }
+    }
+) if @restart_zenki;
+
+#,,,,,,..,.,.,.,.,.,,,..,,,,,,,.,,...,,..,,,,,..,,...,...,,..,..,,.,,,...,.,.,
+#7BSUHNVCDVKYSOV5K65FBLVZXK2TSUBYQYGNN7ZYQCR7WEXEQMHU2ZVSBJTESI2VEWZCELTHIX4BE
+#\\\|35KJ4ESWQTXFSKHRTANG7AYGYVM422I2YN6TZC77RFQGPPYLEJB \ / AMOS7 \ YOURUM ::
+#\[7]RVPTLJLBWDOWIUI6XM22GEFPS2P4DCQSAPPVG2SKLMUGC3YBPOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

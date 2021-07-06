@@ -11,6 +11,8 @@ my $client_list
 my $wmname    = $X->atom( 'WM_NAME', 1 );
 my $type_utf8 = $X->InternAtom( 'UTF8_STRING', 1 );
 
+<X-11.WM>->update;                                ## make obsolete ## [ LLL ]
+
 my @window_ids;
 eval {
     my ( $value, $type, $format, $bytes_after )
@@ -25,8 +27,8 @@ if ($EVAL_ERROR) {
 
 return sort @window_ids;
 
-#,,..,,.,,,,,,.,,,..,,,.,,..,,,,.,,,.,,..,,,.,..,,...,.,.,,.,,.,,,,,.,.,.,,,,,
-#ZAKTQQIJ6JZBTBLNH3M65FBCNYOW5LOVN22PXOK4BWH7HDN5XKCK5QNOMT7MUFKAZFTJ5HYPKNG5A
-#\\\|KRIWHR2YGLCYPL4VBYSICVISQDFJLPH6FNKBW5OBDO6PULTJFU5 \ / AMOS7 \ YOURUM ::
-#\[7]6X4OT3PKAPFPWGNG5NYFZK3OP63H3XFXU4QBN3SV6LVQLQPZI2CY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,,..,,..,.,,,.,,,,,.,.,.,,.,,..,,...,...,..,,,,,,,,,,,,.,.,,,
+#G2LMTPMPV6V5S4SKXFSVS2VH5ZVDXS7BPUDMGJIZ5ZGXCHU6UBUAWQDEAURMWBZ3JNSVUG2DMUW62
+#\\\|U3O7VVUHF57N7XU4FDBHMY2MTDALNPJCSXA6SQ34HJXKP3F3E5A \ / AMOS7 \ YOURUM ::
+#\[7]GNIARDOMBN6RZZLVK4ETYUDW66YPGTDG7FV5TEFMVZQZ2I2QKODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

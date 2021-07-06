@@ -1,0 +1,270 @@
+## >:] ##
+
+# name = tile-groups.process-tile-group
+
+my $tile_group_name = shift;
+return <[base.log]>->(
+    0, 'process-tile-group: expected tile group name parameter'
+) if not length( $tile_group_name // '' );
+
+return <[base.log]>->( 0, "no tile group '$tile_group_name' in set up.," )
+    if not exists <tile-groups.setup.tile-groups>->{$tile_group_name};
+
+<[base.log]>->( 1, "processing tile group '$tile_group_name'.," );
+
+if ( defined <tile-groups.setup.ticker_zenka_type> ) {
+    my $ticker_type = <tile-groups.setup.ticker_zenka_type>;
+    foreach my $tile_groups ( keys %{<tile-groups.setup.tile-groups>} ) {
+        my $_tile_groups_data
+            = <tile-groups.setup.tile-groups>->{$tile_groups};
+
+        map {  # ticker-sdl probably won't work anymore until it was updated.,
+            if ( $ARG =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
+                my $tile_name = $2 // '';
+
+                my $new_name = "ticker-$ticker_type$tile_name";
+                $_tile_groups_data->{$new_name}
+                    = delete $_tile_groups_data->{$ARG}
+                    if $new_name ne $ARG;
+
+                $_tile_groups_data->{$new_name}->{'layer'}
+                    //= 100;    # <-- on top.
+            }
+
+            # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
+
+            $_tile_groups_data->{$ARG}->{'layer'} //= 1000
+                if $tile_groups =~ m|^overlay_|;
+
+        } keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} };
+    }
+}
+
+my @remove_zenki;
+my $previous_data;
+my $previous_tile_groups = <tile-groups.previous_tile_groups>;
+my $tile_groups_data = <tile-groups.setup.tile-groups>->{$tile_group_name};
+if ( defined $previous_tile_groups ) {
+    if ( $previous_tile_groups eq $tile_group_name ) {
+        <[base.log]>->(
+            0, "current and previous tile group identical, processing ended.,"
+        );
+        return 0;
+    }
+    $previous_data = <tile-groups.setup.tile-groups>->{$previous_tile_groups};
+    map {
+        push( @remove_zenki, $ARG )
+            if not exists $tile_groups_data->{$ARG}
+        }
+        keys( %{$previous_data} );
+}
+
+<tile-groups.transition.status> //= {};
+
+if (<tile-groups.startup.initializing>) {
+    my $kill_count = 0;
+    foreach my $tile_groups ( keys %{<tile-groups.setup.tile-groups>} ) {
+        my $_tile_groups_data
+            = <tile-groups.setup.tile-groups>->{$tile_groups};
+        ###
+        foreach my $stop_zenka (
+            keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} } ) {
+            <tile-groups.transition.status.zenki.stop>->{$stop_zenka}
+                = $previous_tile_groups // $tile_group_name;
+        }
+        ###
+        map {
+            my $stop_zenki
+                = exists $_tile_groups_data->{$ARG}->{'stop_zenki'}
+                ? join( ' ', $_tile_groups_data->{$ARG}->{'stop_zenki'},
+                $ARG )
+                : $ARG;
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => qw| cube.v7.stop_implicit |,
+                    'call_args' => { 'args' => $stop_zenki }
+                }
+            );
+            $kill_count++;
+        } keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} };
+    }
+} else {
+    map {
+        <tile-groups.transition.status.zenki.stop>->{$ARG}
+            = $previous_tile_groups // $tile_group_name;
+    } @remove_zenki;
+}
+
+<tile-groups.window_ids> //= {};
+<tile-groups.coordinates> = {};
+<tile-groups.subconfig>   = {};
+<tile-groups.layers>      = {};
+<tile-groups.tiles>       = {};
+
+foreach my $zenka_name ( keys %{$tile_groups_data} ) {
+
+    <tile-groups.coordinates>->{$zenka_name}
+        = <[tile-groups.calculate_coordinates]>
+        ->( $tile_groups_data->{$zenka_name} );
+
+    <tile-groups.layers>->{$zenka_name}
+        = $tile_groups_data->{$zenka_name}->{'layer'}
+        if defined $tile_groups_data->{$zenka_name}->{'layer'}
+        and $tile_groups_data->{$zenka_name}->{'layer'} =~ m|^\-?\d+$|;
+    <tile-groups.layers>->{$zenka_name} //= 0;
+
+    <tile-groups.subconfig>->{$zenka_name} = {};
+    ( my $name_plain = $zenka_name ) =~ s|\[.+$||;
+    if ( defined <tile-groups.mapped_subcfg>->{$name_plain} ) {
+        my @scfg_keys
+            = split( m| +|, <tile-groups.mapped_subcfg>->{$name_plain} );
+        foreach my $sc_key (@scfg_keys) {
+            <tile-groups.subconfig>->{$zenka_name}->{$sc_key}
+                = $tile_groups_data->{$zenka_name}->{$sc_key}
+                if defined $tile_groups_data->{$zenka_name}->{$sc_key};
+        }
+    }
+
+    next
+        if !<tile-groups.startup.initializing>
+        and defined $previous_tile_groups
+        and exists $previous_data->{$zenka_name}
+        and cmpStr( $previous_data->{$zenka_name},
+        $tile_groups_data->{$zenka_name} )
+        == 0;    # zenka setup identical [ not touching running zenka ]
+
+    <tile-groups.window_ids>->{$zenka_name} //= undef;
+    <tile-groups.transition.status.zenki.start>->{$zenka_name}
+        = $tile_group_name;
+}
+
+map {
+    my $tile_name = '';
+    my $name_copy = my $zenka_name = $ARG;
+    $tile_name = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
+    if ( length($tile_name) ) {
+        <tile-groups.tiles>->{$tile_name}->{'zenka'} = $zenka_name;
+        my %pos_match;
+        my $pos_hint_str     = '';
+        my $coords           = <tile-groups.coordinates>->{$name_copy};
+        my $border_tolerance = 2;
+        if (    $coords->{'left'} <= $border_tolerance
+            and $coords->{'top'} <= $border_tolerance
+            and $coords->{'right'} >= <x11.screen.width> - $border_tolerance
+            and $coords->{'bottom'}
+            >= <x11.screen.height> - $border_tolerance ) {
+            $pos_hint_str = 'fullscreen';
+        } else {
+            foreach my $border_name ( keys %{$coords} ) {
+                my $coord_val = $coords->{$border_name};
+                my $h_w       = sprintf( "%.0f", <x11.screen.width> / 2 );
+                my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
+                $pos_match{$border_name} = 1
+                    if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
+                    or ( $border_name eq 'left'  and $coord_val < $h_w * 0.8 )
+                    or ( $border_name eq 'right' and $coord_val > $h_w * 1.2 )
+                    or
+                    ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
+            }
+            if ( scalar keys(%pos_match) == 4 ) {
+                %pos_match = ( 'center' => 1 );
+            } elsif ( defined $pos_match{'top'}
+                and defined $pos_match{'bottom'} ) {
+                delete $pos_match{'top'};
+                delete $pos_match{'bottom'};
+            } elsif ( defined $pos_match{'left'}
+                and defined $pos_match{'right'} ) {
+                delete $pos_match{'left'};
+                delete $pos_match{'right'};
+            }
+            $pos_hint_str = join( '-', sort( keys(%pos_match) ) );
+        }
+        <tile-groups.tiles>->{$tile_name}->{'pos_hint'} = $pos_hint_str;
+    }
+} keys <tile-groups.setup.tile-groups>->{$tile_group_name}->%*;
+<list.tiles> = {
+    'var'      => qw| data |,
+    'key'      => qw| tile-groups.tiles |,
+    'mask'     => '<key>:tile_name zenka pos_hint',
+    'sort_key' => qw| pos_hint |,
+    'descr' => sprintf( 'configured tiles in group "%s"', $tile_group_name )
+};
+
+if ( defined <tile-groups.tiles_visible_file> ) {
+    ( my $parent_dir = <tile-groups.tiles_visible_file> ) =~ s|/([^/]*)$||;
+    my $file_name = $1;
+    if ( not length($parent_dir)
+        or -d $parent_dir ) {
+        <[base.log]>->(
+            1,
+            sprintf( ":. writing to '%s'.,",
+                <tile-groups.tiles_visible_file> )
+        );
+        <[file.put]>->(
+            <tile-groups.tiles_visible_file>,
+            join( ', ', sort keys %{<tile-groups.tiles>} ) . "\n"
+        );
+    } else {
+        <[base.log]>->( 0, "<< ! >> '$parent_dir' not found << ! >>" );
+        <[base.log]>->( 1, " : not creating '$file_name'" );
+    }
+}
+
+# [if enabled] monitor tile activity [by average color] restart zenka on timeout
+#
+if (<tile-groups.watch_tiles.poll_tile_color>) {
+
+    my $start_interval = <tile-groups.watch_tiles.poll_int_start>
+        //= 42;    # def.
+
+    <[base.log]>->( 1, "<< tile activity monitoring is enabled >>" );
+
+    if (<tile-groups.watch_tiles.comparison_mode>) {
+        <[base.log]>->(
+            1, " : fetching X-11 background color., [ bgcol-mode ]"
+        );
+        <[base.protocol-7.command.send.local]>->(
+            {   'command' => qw| cube.X-11.bg_color |,
+                'reply'   =>
+                    { 'handler' => qw| tile-groups.handler.bg_color_reply | }
+            }
+        );
+    }
+
+    <[base.log]>->( 1, " : setting up \\ updating tile activity watchers.," );
+    my $timers = <tile-groups.timer.poll_tile_color> //= {};
+    map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
+        keys %{$timers};
+
+    foreach my $tile_name ( keys %{<tile-groups.tiles>} ) {
+
+        my $interval_secs = sprintf( "%.2f",
+            $start_interval + rand( $start_interval * 0.1 ) );
+
+        $timers->{$tile_name} = <[event.add_timer]>->(
+            {   'after'    => $start_interval,
+                'interval' => $interval_secs,
+                'repeat'   => 1,
+                'handler'  => qw| tile-groups.callback.poll_tile_color |,
+                'data'     => {
+                    'tile_name'        => $tile_name,
+                    'current_interval' => $interval_secs
+                }
+            }
+        );
+    }
+}
+#
+###
+
+<tile-groups.startup.initializing> = 0;
+
+<[base.protocol-7.command.send.local]>
+    ->( { 'command' => 'cube.content.update' } );
+
+<[tile-groups.handler.transition]>;
+
+#,,,.,,,,,,..,...,..,,.,,,...,,,.,,,,,.,.,,.,,..,,...,.,.,..,,,,,,,,.,,,,,,..,
+#F33NF4JMCISEKS3DNAMQGBT3HIWPIOK64JFCEFGAMOBISHJPTZPN2BK4L3R7UEO3R7MKIHKU6JXDQ
+#\\\|ESM3GNNBBY64MHKTO42KHHCKXL6LINSZTVVV6KV66P57RZT6AEZ \ / AMOS7 \ YOURUM ::
+#\[7]MDVIZPQ2KH3M6YON2CPKBGBAG4BNR6R7OJ4WC4JRIDGKQQXXBGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## >:] ##
+
+# name  = tile-groups.cmd.show-tile-groups
+# descr = list available and active tile groups
+
+my $reply_str = '';
+
+map {
+    my $marker_l = $ARG eq <tile-groups.current_tile_group> ? '-->'  : '   ';
+    my $marker_r = $marker_l =~ m|\S|                       ? ' <--' : '';
+    $reply_str .= sprintf( " %s %s%s\n", $marker_l, $ARG, $marker_r )
+} <[base.sort]>->(<tile-groups.setup.tile-groups>);
+
+return { 'mode' => qw| size |, 'data' => $reply_str }
+
+#,,.,,,.,,.,.,...,.,,,.,.,,,.,,,,,,,,,...,,,.,..,,...,...,,..,.,.,..,,,,,,...,
+#CRXDEGW4GWL6UHTVUBCM2VDP43KGIOF7VZPZRQZ7HYYCGGEJ4SCRVVXOVUNXLC3XRJVVHLNEFJHRO
+#\\\|36SPZMRIW3SHJKNYIFLWCFHAWT7GMEBGIZQ6QVJYOOAWCK7QQMI \ / AMOS7 \ YOURUM ::
+#\[7]RHFOUNJ5JSBIZEH6LSZ76USMALOTYLENUSYBPDAHGDCX4VH4TUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
