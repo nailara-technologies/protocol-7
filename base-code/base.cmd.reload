@@ -23,11 +23,11 @@ my $keyword_match = 0;
 if ( $arg eq qw| config | or $arg eq qw| all | ) {
     $keyword_match = 5;      ## true ##
     delete <access.cmd.usr>;
-    <[base.log]>->( 1, "[$id] < reload config >" );
+    <[base.logs]>->( '[%d] < reload config >', $id );
     if (<[base.reload_config]>) {
-        $reply->{'data'} .= "$s_str reload config  [ success ]\n";
+        $reply->{'data'} .= sprintf "%s reload config  [ success ]\n", $s_str;
     } else {
-        $reply->{'data'} .= "$s_str reload config  [  error  ]\n";
+        $reply->{'data'} .= sprintf "%s reload config  [  error  ]\n", $s_str;
     }
     <[base.parser.access_conf]> if $arg eq qw| config |;
     $success = 5;            ## true ##
@@ -35,9 +35,9 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
 if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     my @reload_modules = <[base.clear_p7_mods]>;
-    my %mod            = map { $ARG => 1 } @reload_modules;
+    my %mod            = map { $ARG => 5 } @reload_modules;    ## true ##
 
-    $keyword_match = 5;      ## true ##
+    $keyword_match = 5;                                        ## true ##
     delete <base.commands>;
     delete <base.subroutines>;
     <base.modules.load_errors> = 0;
@@ -56,10 +56,10 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
         <[base.log]>->( 0, '<< debug module enabled in configuration >>' );
     }
 
-    map { delete $data{'base'}{$ARG} } (qw|  cmd  console  overwritten  |);
+    map { delete $data{'base'}->{$ARG} } (qw|  cmd  console  overwritten  |);
 
     my $error = <[base.load_modules]>->(@reload_modules);
-    if ( !$error and !<base.modules.load_errors> ) {
+    if ( not $error and not <base.modules.load_errors> ) {
         $reply->{'data'} .= "$s_str reload source  [ success ]\n";
         $success = 5;    ## true ##
     } else {
@@ -71,7 +71,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     my $old_version = <protocol-7.src-ver> // qw| UNKNOWN |;
 
     my $s_strrc_version_file
-        = catfile( $data{'system'}{'conf_path'}, 'protocol-7.src-ver' );
+        = catfile( $data{'system'}{'conf_path'}, qw| protocol-7.src-ver | );
     <protocol-7.src-ver>
         = <[base.read_from_version_file]>->($s_strrc_version_file);
 
@@ -95,10 +95,10 @@ if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     $keyword_match = 5;    ## true ##
     <[base.logs]>->( '[%d] < reload plugins >', $id );
     if (<[base.reload_plugins]>) {
-        $reply->{'data'} .= "$s_str plugin reload  [ success ]\n";
+        $reply->{'data'} .= sprintf "%s plugin reload  [ success ]\n", $s_str;
         $success = 5;      ## true ##
     } else {
-        $reply->{'data'} .= "$s_str plugin reload  [  error  ]\n";
+        $reply->{'data'} .= sprintf "%s plugin reload  [  error  ]\n", $s_str;
         $success = 0;      ## false ##
     }
 }
@@ -132,7 +132,10 @@ if ( not $keyword_match ) {
         0,   "[%d] unknown reload keyword '%s' called.,",
         $id, $arg
     );
-    return { 'mode' => qw|false|, 'data' => "unknown reload keyword '$arg'" };
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "unknown reload keyword '%s'", $arg )
+    };
 }
 
 if ($success) {
@@ -153,8 +156,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,,,,,.,.,.,,,,,,,,,,.,,,,.,.,,,..,,,.,,,..,..,,...,...,.,,,.,,,,,.,..,,,..,
-#YL5LDKT4BHPEODCVFZTUPMRMOMSYCXTBCKG5KCIU535GI42WLDI62EPHK36PQU54Z735232XTVATA
-#\\\|5GN7MNAX43G7VW2SXE7OBCBBKT5RLG3ZT5P3CZHFD64CQDBBHN5 \ / AMOS7 \ YOURUM ::
-#\[7]RGRKHVHVXRK3AVAPNFMVZGPC5RG3JAIDX2IMUNHMIV4JZA6M6IBQ 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,,..,.,.,.,,,..,,,,,,.,,,,,,,..,,...,...,..,,,,,,,.,,.,,,.,,,
+#ADLF2GWGMANDM6DU5OYIXSOAJPTAWHTTESL73WEY3L5IN7DHHOJE6XLYWSLPQ7BR36K67PZ2OQLDK
+#\\\|CVXOR3CFE7RBO3YEVRWTA5WKTINAVUINRDKSRRUDRBCEQ2IL4TO \ / AMOS7 \ YOURUM ::
+#\[7]WASYYVXZNSKOQCMZJ4AGIWU3LSLJAV4IA4Q6WOKGK44VV4RVKSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
