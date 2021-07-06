@@ -1,17 +1,16 @@
 ## >:] ##
 
 # name  = debug.cmd.elf-b32
-# descr = return VAX + base32 encoded elf hash value
+# descr = return VAX + base32 encoded ELF-7-13 hash value
 # param = [str]
 
-( my $b32_str
-        = encode_b32r( pack 'V', Digest::Elf::elf( $$call{'args'} // '' ) ) )
-    =~ s|A+$||;
+return {
+    'mode' => qw| true |,
+    'data' => <[chk-sum.elf.vax-BASE32]>->( $call->{'args'} // '' )
+    }
 
-return { 'mode' => 'true', 'data' => $b32_str }
-
-#,,,.,.,,,,.,,,,,,,..,.,.,...,,,,,...,,,,,..,,..,,...,...,..,,,,.,.,.,.,,,...,
-#S6U575PBY2YAZ3PHPFLIUMTD6PLZQE7CNIRZSYDIVR4QNNPWJZ4HJVS6UYXEU4332RHMWJWA76GBO
-#\\\|UBE4RAO3F6W5VTQFKCLCYJIY3GC5YXJJBP47D5ZADOIQIVQZEFU \ / AMOS7 \ YOURUM ::
-#\[7]NVUUAUTTADRWR3A2LACCYE6FSENN43SUWLKDVHYODRXLPSTT72AY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,,,,,.,...,,,.,..,,.,,,,,,,,..,..,,...,..,,...,,,.,...,,.,,,..,
+#ATYCZTFVN2LVRO5UGIAE2Q73YANO7III65ID5WLN2CYFPVO33UGG5PFGSDUFWTUTKWY5LAMIPQ7LU
+#\\\|V47SDA6SUZQH47WV37SECWEVPMH7J2HUHQB7EOX7T7CCG2HRUIA \ / AMOS7 \ YOURUM ::
+#\[7]BXBTCEY5AMDJ2FFNRGSILEXYKSAXQPMH4MKF4RDAAL3WMV5VHQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

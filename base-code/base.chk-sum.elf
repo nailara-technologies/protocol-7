@@ -7,6 +7,10 @@ warn 'first parameter is undefined <{C1}>' and return undef
     if not defined $ARG[0];
 warn 'content of scalar ref is undefined <{C1}>' and return undef
     if ref $ARG[0] eq qw| SCALAR | and not defined $ARG[0]->$*;
+<[base.s_warn]>->( 'reference type %s not supported <{C1}>', ref( $ARG[0] ) )
+    and return undef
+    if length ref $ARG[0]
+    and ref $ARG[0] ne qw| SCALAR |;
 
 return sprintf qw| %09d |, 0
     if @ARG == 0
@@ -19,8 +23,8 @@ return <[chk-sum.elf.inline]>->( join ' ', @ARG )
 ##  call by reference [ SCALAR ]  ##
 return <[chk-sum.elf.inline]>->(@ARG);
 
-#,,.,,...,,,,,,..,,.,,,,,,...,,..,.,,,,,,,.,,,..,,...,.,,,.,,,.,,,,.,,,..,.,,,
-#OCNSVQPUVBS2W5RBC4NKLAYHQRVUG34C7XGD7R5GYRLXBVZ5M7LDWLAQACFOGKJEUJEEPJ5LRBYN2
-#\\\|GNI7SHON4OKVUPYOCAFDGAKLO57SHIKIKL5OPOAFKQ46QMDYNFG \ / AMOS7 \ YOURUM ::
-#\[7]ZXYZT6SBI7LOAIOPBA27STZTETXRRFC4P3HI64UPGB3WI27TKADY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,,,,..,,,.,,...,.,,,...,,.,,..,,...,...,,..,,..,,..,.,,,..,,
+#VG2O4RY2NHVAMQ2VJZSFVAXBENFSSMKBZECHUKJUZRD2BEPIJNQHTVIXM3T7JC3VVXHI6BKSMOCW6
+#\\\|HV6GG22YQWFCO7APWNH6IQAF2X33Q5KN4JBHGEOXJLRM4JP6DEU \ / AMOS7 \ YOURUM ::
+#\[7]TAGFNYJTX36SUXAWPLTZLKALWWA2ILTOT4TTKIM4AMVIFPNMCCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
