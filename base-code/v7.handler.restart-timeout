@@ -9,7 +9,7 @@ my $instance    = <v7.zenka.instance>->{$instance_id};
 my $zenka_name  = $instance->{'zenka_name'};
 
 if (    defined $instance->{'status'}
-    and $instance->{'status'} eq 'restart'
+    and $instance->{'status'} eq qw| restart |
     and defined $instance->{'restart_id'}
     and $instance->{'restart_id'} eq $restart_id ) {
     <[base.log]>->(
@@ -25,8 +25,8 @@ delete $instance->{'timer'}->{'restart_timeout'}
     if !keys %{ $instance->{'timer'}->{'restart_timeout'} };
 delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
 
-#,,,,,,,.,..,,...,..,,,..,,.,,...,,..,,,,,,..,..,,...,...,.,,,.,.,..,,,,,,,,,,
-#GDNZVMGMY5ISBXS6OWOHDT7P7WVNXLLHR4BQHMQPKDSJ5LDAGGI5V5WJ6DK4CK55JPAAEVKENEIXS
-#\\\|ONCOQWZKTALAV472TGYB3P3XPIRXPFD4IGHS2SZAMFAOVIXIRJ3 \ / AMOS7 \ YOURUM ::
-#\[7]NDIYCEPAXX6HH4EQS4E3BF6GCKLM5ES6MDMP7LE62ITJWV7NJMBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,..,,.,.,,.,,...,,,,,,..,.,.,.,.,..,,...,...,,,.,,.,,...,..,,,,.,
+#RM3M23PZKEYJ6OAQGMPILQC7OXBUZI3V3AAJGZBYFOFHY7BVZYBEITCEIQADTV3CVEZCLJJKF3ILW
+#\\\|MBOVOKW4SRWRHQP5Y7YKICDGIZBAIZRLXYH5K4JJEWIDJFCMBAX \ / AMOS7 \ YOURUM ::
+#\[7]E2JHLXPDSTB7BIZFKV7L5AFTMZKXCI52UX4X572FSGXEAR7TEOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
