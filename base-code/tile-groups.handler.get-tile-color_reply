@@ -1,0 +1,28 @@
+## >:] ##
+
+# name = tile-groups.handler.get-tile-color_reply
+
+my $answer   = shift;
+my $reply_id = delete $answer->{'params'};
+
+return <[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'false',
+        'data' => "unexpected (FALSE) reply from screenshot zenka!"
+    }
+) if $answer->{'cmd'} ne 'TRUE';
+
+my $color_str = $answer->{'call_args'}->{'args'};
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'true',
+        'data' => $color_str
+    }
+);
+
+#,,.,,,.,,.,.,,,,,,,,,...,...,.,.,.,,,,,,,..,,..,,...,...,.,.,,..,..,,,,,,,..,
+#O222QKTAK2YF7EHC73FOKGO5VDJOVMJBBGAEPVJGWMAMPV6GS7ECALGZERKPFZS7CXO3MYWU7ENMG
+#\\\|FSFEDM4ZOXCVS5NQYSLWH323S7E2BYHHDVWROBEV7Q73APXUFWU \ / AMOS7 \ YOURUM ::
+#\[7]6BG2L5Y2KZULWX526TF4NYI4HKUVYTS6IDT7ROXZUGJGETSJG4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

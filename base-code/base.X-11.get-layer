@@ -3,9 +3,9 @@
 # name = base.X-11.get-layer
 
 return
-    if defined <x11.composition.layer>
-    and <x11.composition.layer> =~ m|^\d+$|;
-undef <x11.composition.layer> if defined <x11.composition.layer>;
+    if defined <x11.tile-groups.layer>
+    and <x11.tile-groups.layer> =~ m|^\d+$|;
+undef <x11.tile-groups.layer> if defined <x11.tile-groups.layer>;
 
 my ($local_sid) = keys( %{<user.cube.session>} );
 
@@ -22,7 +22,7 @@ my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)composition.get-layer $name_str\n"
+    $cube_fh, "($cmd_id)tile-groups.get-layer $name_str\n"
 );
 
 my $reply_string;
@@ -35,13 +35,13 @@ while ( !$matched_reply ) {
     }
 }
 
-<x11.composition.layer> = $1 if $reply_string =~ m{^\($cmd_id\)TRUE (\d+)\n$};
+<x11.tile-groups.layer> = $1 if $reply_string =~ m{^\($cmd_id\)TRUE (\d+)\n$};
 <[base.log]>->(
-    2, "composition layer for '$name_str' = " . <x11.composition.layer>
-) if defined <x11.composition.layer>;
+    2, "tile-groups layer for '$name_str' = " . <x11.tile-groups.layer>
+) if defined <x11.tile-groups.layer>;
 
-#,,..,,,,,,,.,.,.,...,.,.,.,.,,,,,,,.,,,.,.,,,..,,...,...,,.,,,,,,,..,,,.,.,.,
-#QMFBUJQE34M6ZNISHCEHDMUOYD3REZUGRJ7CH5BLHE34CDLQ3E7MFTEVM7A52PJRNX5NDI5CHJQGK
-#\\\|INT5A7LHTOQHK75CITT33JP3IKWKILPQVKDGGZZXPPS2J6ETUZR \ / AMOS7 \ YOURUM ::
-#\[7]V6FWM63IB23IDUGG72JRMODKXCQQW2N7VHNQP6JLOP62MHATEGBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,..,,,.,,..,,,,,,..,,.,.,..,,..,,...,..,,.,.,...,.,,,.,.,,..,
+#HKNWHWD7LYOGPD5MYETTFVV2E42RDBS4YYYYRADBDUZB7M6NXCPC72DFVM76IVFRCXMOXW7EYESLS
+#\\\|QSLWWIQWZX5AFDL5PWOUSN3KLTJNEVMJU2I5SXM2IXI3NWV2GPV \ / AMOS7 \ YOURUM ::
+#\[7]ZE35VZLBBGNUJEKRVIHCQPQZ6OX7TPCPU5KXJJOYBDKL637QJYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

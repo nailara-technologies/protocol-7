@@ -1,0 +1,49 @@
+## >:] ##
+
+# name = tile-groups.callback.poll_tile_color
+
+my $params = shift->w->data // {};
+
+my $tile_name        = $params->{'tile_name'};
+my $current_interval = $params->{'current_interval'};
+
+my $bg_color = <tile-groups.x11_bg_color> // '';
+
+<tile-groups.last_tile_color> //= {};
+<tile-groups.last_tile_color>->{$tile_name} //= $bg_color;
+
+my %zenka_names;
+map { $zenka_names{$ARG} = 1 if $ARG =~ /\[$tile_name\]$/ }
+    keys %{<tile-groups.coordinates>};
+( my $zenka_name ) = keys(%zenka_names);
+
+my $coordinates_data = <tile-groups.coordinates>->{$zenka_name};
+
+my @coordinates;
+my @borders = ( 'left', 'top', 'right', 'bottom' );
+foreach my $border_name (@borders) {
+    push( @coordinates, $coordinates_data->{$border_name} )
+        if defined $coordinates_data->{$border_name};
+}
+
+return warn "[!] unable to find coordinates for tile '$tile_name'"
+    if @coordinates != 4;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.screenshot.get_region_color',
+        'call_args' => { 'args' => join( ' ', @coordinates ) },
+        'reply'     => {
+            'handler' => 'tile-groups.handler.poll_tile_color_reply',
+            'params'  => {
+                'tile_name'        => $tile_name,
+                'current_interval' => $current_interval
+            }
+        }
+    }
+);
+
+#,,,,,,.,,.,,,,..,,.,,,,.,,..,.,.,,.,,...,,,.,..,,...,...,,.,,.,,,,..,,,.,.,.,
+#NRIRXCJMQYQOWQQWIQ3DOHJ3HR2U3KAIPHMC4Y6QVHCAG3ANXETWUHYACDD6GFWKUYDWG5KWBGYZS
+#\\\|ZZ75LA6RFNZXGUPLWQKELFOVTUT2S2FPR4GXVO4UEVQG6RCD5LW \ / AMOS7 \ YOURUM ::
+#\[7]RNSHPPI3YMQ37TT3BOOJKFK6RF6EVQZMBHENQJ2PYRA6NQCV2QAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+
+ .:[ X-11 desktop 'tile-groups' zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance * # <-- [LLL]
+
+## [ ./cfg/zenki/tile-groups/tile-group-setup.<name> ] ##
+tile-groups.setup_file_name     = example
+tile-groups.fallback_tile_group = web-browser
+
+tile-groups.chksum_file          =  /etc/protocol-7/zenki/tile-groups/set-up.chksum.bmw
+tile-groups.tiles_visible_file = '/etc/protocol-7/import/playlist.tiles_visible'
+tile-groups.restore_tile-groups_enabled  = 1   # select last used cfg on startup
+tile-groups.restore_tile-groups_timeout  = 242 # seconds
+
+tile-groups.watch_tiles.poll_tile_color  = 0     # [0|1]  monitor tile activity?
+tile-groups.watch_tiles.comparison_mode  = bgcol # [bgcol|last]
+tile-groups.watch_tiles.inactive_action  = restart # [warn|restart] timeout act.
+tile-groups.watch_tiles.check_playlist   = 1 # <-- skip restart on empty playlist
+tile-groups.watch_tiles.poll_int_start   = 33 # start delay < first 'interval' >
+tile-groups.watch_tiles.inactive_timeout = 127 # seconds
+
+tile-groups.startup.stop_zenki  = universal mpv web-browser start-anim \
+                                   ticker-gtk ticker-sdl impressive \
+                                   storchencam remote-cam rss-ticker
+
+tile-groups.startup.restart_zenki   = osd-logo # [LLL] rotate.,
+
+tile-groups.mapped_subcfg.web-browser= adblock noscript scroll_speed auto_speed
+tile-groups.mapped_subcfg.universal  = adblock noscript scroll_speed auto_speed
+tile-groups.mapped_subcfg.impressive = light_mode
+
+tile-groups.set-up.ticker_zenka_type = gtk # [gtk|sdl]
+
+modules.preload = tile-groups.set-up set-up.json
+[load_modules:<modules.preload>]
+[init_modules]
+
+[set-up.json.import_file:'tile-groups.set-up.json']
+[set-up.json.import_file:'tile-groups.tile-groups.json']
+
+modules.load = auth net protocol io.unix chk-sum.bmw tile-groups set-up.json
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.X-11.get_display]
+[base.X-11.get_screen_size]
+[base.X-11.get_orientation]
+[base.get_session_id]
+
+[tile-groups.stop_display_zenki]
+
+[tile-groups.process-tile-group:<tile-groups.fallback_tile_group>]
+
+[zenka.loop]
+
+#,,.,,,..,.,.,..,,.,,,,.,,,,,,,,.,.,.,,,.,,..,..,,...,...,,..,,,.,,,,,,.,,,,.,
+#T2XO7EQN4EMAQ7YAAPXMYN37J3MGQVHNTHS2E2PFLB6GTB4OCUUCQOKHDPNY3HJRJLNXKKDXZ5MYS
+#\\\|SO6BAJD5TPVWA6PBPPKUTHFPY4JJPBW6AOZLKSFHVBYYCNIP7YC \ / AMOS7 \ YOURUM ::
+#\[7]TK46LRQ3POTFC6ENR2G5UESM3GCTQVXOIZKJOSK763O5MVKH6ODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## >:] ##
+
+# name = tile-groups.callback.start_osd_logo
+# todo = fix start / stop / restart for master branch as well ..,
+
+my $display_logo = <tile-groups.display_logo> // 0;
+
+my $command_str
+    = $display_logo ? qw| cube.v7.start_once | : qw| cube.v7.stop_implicit |;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $command_str,
+        'call_args' => { 'args' => 'osd-logo' }
+    }
+);
+
+#,,.,,.,.,,,.,,..,..,,,,.,,.,,,..,...,...,,,.,..,,...,.,.,.,.,,,,,,,.,,..,,.,,
+#BRYCYVLJDFPJ2ZJBUHJUFR5FHZW2RPSH2J7OTUVLDW3WN5JXZ6WOJYAHTF7A2E2XOIMXK3FKUM2Z4
+#\\\|3VJWB33HMBV6WFYDJCDEDFFO2EXOQARYKTXGGGJRSY2WBIN6FYY \ / AMOS7 \ YOURUM ::
+#\[7]6SJMJGOOXMITD4MGN6DTM5Q5NJRMS545MLDLMT6KIWPJYZVLDKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

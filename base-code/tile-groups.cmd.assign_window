@@ -1,0 +1,100 @@
+## >:] ##
+
+# name  = tile-groups.cmd.assign_window
+# param = <id[,id]> [tilename]
+# descr = report x11 window id[s] for current zenka
+# todo  = SIGTERM handler to remove them + auto cleanup of window ids
+
+my ( $source_name, $wid_str, $tile_name ) = split( m| +|, $$call{'args'}, 3 );
+$source_name =~ s|^.+\.||g;
+my $err_msg;
+
+$err_msg = 'cube config error (source name parameter missing)'
+    if not defined $source_name;
+$err_msg = 'expected numerical window_id parameter'
+    if not defined $wid_str or $wid_str !~ m|^\d+(,\d+)*$|;
+if ( defined $err_msg ) {
+    my $source_str = defined $source_name ? "[$source_name]" : '';
+    <[base.log]>->( 0, "assign_window$source_str: $err_msg!" );
+    return {
+        'mode' => 'false',
+        'data' => $err_msg
+    };
+}
+
+my $zenka_name
+    = defined $tile_name ? "$source_name\[$tile_name]" : $source_name;
+
+if ( not defined $tile_name ) {
+    my $zenka_count = 0;
+    map {
+        if ( $ARG =~ m|^$source_name\[| ) {
+            $zenka_count++;
+            $zenka_name = $ARG;
+        }
+        }
+        keys %{<tile-groups.window_ids>};
+    if ( $zenka_count > 1 ) {
+        <[base.log]>->(
+            0,
+            "<assign_window> multiple '$source_name' zenki [ no tile name ]"
+        );
+        return {
+            'mode' => 'false',
+            'data' =>
+                'multiple zenki with that name (and no tile name provided)'
+        };
+    }
+}
+
+if (exists <tile-groups.window_ids>->{$zenka_name}
+
+    #    #    and not defined <tile-groups.window_ids>->{$zenka_name}
+) {
+
+    $wid_str = join( ',', sort { $a <=> $b } split( m|\D+|, $wid_str ) );
+    my $wid_lmsg = $wid_str;
+    $wid_str =~ s|,| |g;
+    <tile-groups.window_ids>->{$zenka_name}
+        = $wid_str;    # LLL: check if exists.
+    my $s = $wid_str =~ m| | ? 's' : '';
+    <[base.log]>->( 1, "assigned window id$s $wid_lmsg to '$zenka_name'" );
+
+###[ ALPHA SUPPORT ]###
+    my $tile_group_name = <tile-groups.current_tile_group>;
+    my $tile_groups_data
+        = <tile-groups.setup.tile-groups>->{$tile_group_name}->{$zenka_name};
+    if ( defined $tile_groups_data->{'alpha'} ) {
+        my $alpha_str
+            = sprintf( "%.2f", ( 100 - $tile_groups_data->{'alpha'} ) / 100 );
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "cube.X-11.fade_out",
+                'call_args' => { 'args' => "0.8:$alpha_str $wid_str" }
+            }
+        );
+
+        # warn( "alpha:0.8:$alpha_str $wid_str" );
+    }
+#####
+
+    <[tile-groups.sort_layers]>;
+
+    return {
+        'mode' => 'true',
+        'data' => 'assigned'
+    };
+
+} else {
+
+    # [LLL] refine message [ reason ]
+    return {
+        'mode' => 'false',
+        'data' => 'unable to assign!'
+    };
+}
+
+#,,,.,,,,,,,.,...,,..,...,,.,,,,,,,,,,..,,,..,..,,...,...,.,.,,,,,..,,.,,,..,,
+#BAYBTQDHSFN4Q3C6YQ3IDBB6B4WKSJCG5WCOPHPXHFIU3D3P5W3VZ6UIM4CNNXIFUMJQOUTF5LBN4
+#\\\|DIINYKRL4K327ROOIGA66MIZ743YPN6Z74BSMAT6G7RKNPCJIV3 \ / AMOS7 \ YOURUM ::
+#\[7]NNAMGT66KFCLC6LT3LOZUDGRL6VDZU7BUDVTMJ3FSTSX2VSKTCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

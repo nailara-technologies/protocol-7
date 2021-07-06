@@ -1,0 +1,77 @@
+## >:] ##
+
+# name = tile-groups.calculate_coordinates
+
+my $descr       = shift;
+my $screen      = <x11.screen>;
+my $screen_lcfg = <tile-groups.setup.screen>;
+
+die "'\<x11.screen>' not defined"
+    if not defined $data{'x11'} or not defined <x11.screen>;
+map { die "screen $ARG not defined" if not defined $screen->{$ARG} }
+    ( 'width', 'height', 'orientation' );
+
+### screen borders [underscan] ###
+
+my %screen_frame;
+my @border_names = qw|  left  top  right  bottom  |;
+map { $screen_frame{$ARG} = 0 } @border_names;
+
+# LLL: fix load_section_config hash key recursion and adapt config loading!
+
+if ( exists $screen_lcfg->{'underscan'}
+    and $screen_lcfg->{'underscan'} =~ m|^\d+$| ) {
+    map { $screen_frame{$ARG} = $screen_lcfg->{'underscan'} } @border_names;
+}
+
+foreach my $border (@border_names) {
+    $screen_frame{$border} = $screen_lcfg->{"underscan.$border"}
+        if exists $screen_lcfg->{"underscan.$border"}
+        and $screen_lcfg->{"underscan.$border"} =~ m|^\d+$|;
+}
+
+### window edge coordinate calculation ###
+my ( $screen_width, $screen_height )
+    = ( $screen->{'width'}, $screen->{'height'} );
+
+$screen_width  -= $screen_frame{'left'} + $screen_frame{'right'};
+$screen_height -= $screen_frame{'top'} + $screen_frame{'bottom'};
+
+my ( $width, $height ) = ( $screen_width, $screen_height );
+my ( $left, $top, $right, $bottom ) = ( 0, 0, $screen_width, $screen_height );
+
+if ( exists $descr->{'left'} ) {
+    $left = $descr->{'left'};
+    $left = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $left =~ m|^(\d+(\.\d+)?)\%$|;
+}
+if ( exists $descr->{'top'} ) {
+    $top = $descr->{'top'};
+    $top = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
+        if $top =~ m|^(\d+(\.\d+)?)\%$|;
+}
+if ( exists $descr->{'width'} ) {
+    $width = $descr->{'width'};
+    $width = sprintf( "%.0f", ( $screen_width / 100 ) * $1 )
+        if $width =~ m|^(\d+(\.\d+)?)\%$|;
+    $right = $left + $width;
+}
+if ( exists $descr->{'height'} ) {
+    my $height = $descr->{'height'};
+    $height = sprintf( "%.0f", ( $screen_height / 100 ) * $1 )
+        if $height =~ m|^(\d+(\.\d+)?)\%$|;
+    $bottom = $top + $height;
+}
+
+return {
+    'left'   => $left + $screen_frame{'left'},
+    'top'    => $top + $screen_frame{'top'},
+    'right'  => $right + $screen_frame{'left'},
+    'bottom' => $bottom + $screen_frame{'top'}
+};
+
+#,,..,..,,,..,,..,,.,,...,.,.,..,,,..,,,.,,,.,..,,...,...,.,,,,,.,,..,...,.,,,
+#6OOWI67CRSCIYH6MR7ZXBVP7CJWATLM7JULKBGT3E4GBFB22JDABPH2HD6T7QLODDKE2O3MQPFIA6
+#\\\|UH7WDXS4LY4ZJAKHTL6BTJYGCSN4QQMGAFDPQDRZPAWUXO5PELW \ / AMOS7 \ YOURUM ::
+#\[7]EBAUUPHXH3GXXZ7FUAZQK67LBNOENYRSKAJ2VOAAZRIIDMP3DSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

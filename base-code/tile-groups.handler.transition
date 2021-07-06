@@ -1,0 +1,289 @@
+## >:] ##
+
+# name = tile-groups.handler.transition
+
+my $cube_reply = shift // {};
+
+die "[!] no tile-groups transition data defined"
+    if not defined <tile-groups.transition.status>
+    or !keys %{<tile-groups.transition.status>};
+<tile-groups.transition.status>->{'start_time'} //= <[base.time]>->(4);
+
+my $fade_out_duration = 0.8;    # --> config
+
+### removing zenki not present in new tile-groups / present before zenka restart ###
+
+if ( not defined <tile-groups.transition.status.waiting.stop>
+    and defined <tile-groups.transition.status.zenki.stop> ) {
+    my @stop_zenki = keys %{<tile-groups.transition.status.zenki.stop>};
+    <tile-groups.transition.status.waiting.stop> = scalar @stop_zenki;
+    <tile-groups.transition.status.waiting.i_id> = 0;
+    <tile-groups.transition.status.zenki.fade_out> //= {};
+    my @stop_now_zenki;
+    foreach my $zenka (@stop_zenki) {
+        my $tile_group_name
+            = <tile-groups.transition.status.zenki.stop>->{$zenka};
+        my $tile_groups_data
+            = <tile-groups.setup.tile-groups>->{$tile_group_name}->{$zenka};
+        my $fade = 0;
+        if ( defined $tile_groups_data->{'fade'}
+            and $tile_groups_data->{'fade'} eq '1' ) {
+            <tile-groups.transition.status.zenki.fade_out>->{$zenka} = $fade
+                = 1;
+        }
+        if ( !$fade ) {    ## instance_id (no_fade) ##
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => "cube.v7.get-instance-ids",
+                    'call_args' => { 'args' => $zenka },
+                    'reply'     => {
+                        'handler' => 'tile-groups.handler.transition',
+                        'params'  => {
+                            'event_type' => 'instance_id',
+                            'zenka_name' => $zenka
+                        }
+                    }
+                }
+            );
+        } else {    ## window_id(s) (fade) ##
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => "cube.X-11.get_window_ids",
+                    'call_args' => { 'args' => $zenka },
+                    'reply'     => {
+                        'handler' => 'tile-groups.handler.transition',
+                        'params'  => {
+                            'event_type' => 'window_id',
+                            'zenka_name' => $zenka
+                        }
+                    }
+                }
+            );
+            <tile-groups.transition.status.waiting.fade_out>++;
+        }
+        <tile-groups.transition.status.waiting.i_id>++;
+    }
+}
+
+my $event_type
+    = defined $cube_reply->{'params'}->{'event_type'}
+    ? $cube_reply->{'params'}->{'event_type'}
+    : 'init';
+
+if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
+
+    # print STDERR Dumper($cube_reply);
+
+    <tile-groups.transition.status.waiting.i_id>--;
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if (    $cube_reply->{'cmd'} eq 'TRUE'
+        and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
+        my $instance_id = $cube_reply->{'call_args'}->{'args'};
+        ## notify_offline ##
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "cube.v7.notify_offline",
+                'call_args' => { 'args' => $instance_id },
+                'reply'     => {
+                    'handler' => 'tile-groups.handler.transition',
+                    'params'  => {
+                        'event_type'  => 'is_offline',
+                        'zenka_name'  => $zenka,
+                        'instance_id' => $instance_id
+                    }
+                }
+            }
+        );
+        if (not defined
+            <tile-groups.transition.status.zenki.fade_out>->{$zenka}
+            or <tile-groups.transition.status.zenki.fade_out>->{$zenka} ne
+            '1' ) {
+            <[base.protocol-7.command.send.local]>->(    ## stop (no fade) ##
+                {   'command'   => "cube.v7.stop_implicit",
+                    'call_args' => { 'args' => $instance_id }
+                }
+            );
+        } else {
+            my $window_ids = $cube_reply->{'params'}->{'window_ids'};
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => "cube.X-11.fade_out",
+                    'call_args' => {
+                        'args' => join( ' ', $fade_out_duration, $window_ids )
+                    },
+                    'reply' => {
+                        'handler' => 'tile-groups.handler.transition',
+                        'params'  => {
+                            'event_type'  => 'fade_out',
+                            'zenka_name'  => $zenka,
+                            'instance_id' => $instance_id
+                        }
+                    }
+                }
+            );
+
+        }
+    } else {    ## no such zenka online ##
+        if ( exists <tile-groups.transition.status.zenki.fade_out>->{$zenka} )
+        {
+            delete <tile-groups.transition.status.zenki.fade_out>->{$zenka};
+            <tile-groups.transition.status.waiting.fade_out>--;
+        }
+        delete <tile-groups.transition.status.zenki.stop>->{$zenka};
+        <tile-groups.transition.status.waiting.stop>--;
+    }
+} elsif ( $event_type eq 'window_id' ) {    ### window id(s) reply ###
+    my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
+    my $window_ids
+        = (     $cube_reply->{'cmd'} eq 'TRUE'
+            and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
+        ? $cube_reply->{'call_args'}->{'args'}
+        : 0;    # <-- 0 == failed, fade will be skipped!
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.v7.get-instance-ids",
+            'call_args' => { 'args' => $zenka },
+            'reply'     => {
+                'handler' => 'tile-groups.handler.transition',
+                'params'  => {
+                    'event_type' => 'instance_id',
+                    'zenka_name' => $zenka,
+                    'window_ids' => $window_ids
+                }
+            }
+        }
+    );
+} elsif ( $event_type eq 'fade_out' ) {
+    my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
+    my $instance_id = $cube_reply->{'params'}->{'instance_id'};
+    <[base.protocol-7.command.send.local]>->(    ## stop (fading complete) ##
+        {   'command'   => "cube.v7.stop_implicit",
+            'call_args' => { 'args' => $instance_id }
+        }
+    );
+} elsif (
+    $event_type eq 'is_offline'    ## zenka stopped or not running ##
+    and defined $cube_reply->{'params'}->{'zenka_name'}
+) {
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if ( exists <tile-groups.transition.status.zenki.fade_out>->{$zenka} ) {
+        delete <tile-groups.transition.status.zenki.fade_out>->{$zenka};
+        <tile-groups.transition.status.waiting.fade_out>--;
+    }
+    delete <tile-groups.transition.status.zenki.stop>->{$zenka};
+    <tile-groups.transition.status.waiting.stop>--;
+    ( my $zenka_stripped = $zenka ) =~ s/\[.+$//;
+    map {
+        if (exists <tile-groups.transition.status.zenki.concurrency>->{$ARG} )
+        {
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => "cube.v7.start",
+                    'call_args' => { 'args' => $ARG },
+                    'reply'     => {
+                        'handler' => 'tile-groups.handler.transition',
+                        'params'  => {
+                            'event_type' => 'start',
+                            'zenka_name' => $ARG
+                        }
+                    }
+                }
+            );
+        }
+    } ( $zenka, $zenka_stripped );
+
+} elsif ( $event_type eq 'is_online' ) {    # new zenka started successfully
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    delete <tile-groups.transition.status.zenki.start>->{$zenka};
+    <tile-groups.transition.status.waiting.start>--;
+} elsif ( $event_type eq 'start' ) {
+    my $zenka = $cube_reply->{'params'}->{'zenka_name'};
+    if ( $cube_reply->{'cmd'} eq 'FALSE' ) {
+        my $reason = $cube_reply->{'call_args'}->{'args'};
+        if ( $reason =~ /concurrency/ ) {
+            $zenka =~ s/\[.+$// if $reason !~ /subname/;
+            <tile-groups.transition.status.zenki.concurrency>->{$zenka} = 1;
+        } else {
+
+            # failed - log! retry?
+        }
+    } else {
+        ( my $job_id = $cube_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
+        ## notify_online ##
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "cube.v7.notify_online",
+                'call_args' => { 'args' => "job:$job_id" },
+                'reply'     => {
+                    'handler' => 'tile-groups.handler.transition',
+                    'params'  => {
+                        'event_type' => 'is_online',
+                        'zenka_name' => $zenka
+                    }
+                }
+            }
+        );
+    }
+}
+
+if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
+    and !<tile-groups.transition.status.waiting.i_id>
+    and defined <tile-groups.transition.status.zenki.start> ) {
+    my @start_zenki = keys %{<tile-groups.transition.status.zenki.start>};
+    <tile-groups.transition.status.waiting.start> = scalar @start_zenki;
+
+    foreach my $zenka (@start_zenki) {
+        ## start ##
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "cube.v7.start",
+                'call_args' => { 'args' => $zenka },
+                'reply'     => {
+                    'handler' => 'tile-groups.handler.transition',
+                    'params'  => {
+                        'event_type' => 'start',
+                        'zenka_name' => $zenka
+                    }
+                }
+            }
+        );
+    }
+
+}
+
+if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
+    my $still_waiting = 0;
+    map { $still_waiting += <tile-groups.transition.status.waiting>->{$ARG} }
+        keys %{<tile-groups.transition.status.waiting>};
+    if ( !$still_waiting ) {                                ## all done! ##
+        delete <tile-groups.transition.status.waiting>;
+        <tile-groups.transition_in_progress> = 0;
+        <[base.log]>->( 1, "transition complete." );
+
+        # cleaning up merged tile-groups [see overlays]
+        my $prev_tile_groups = <tile-groups.previous_tile_groups>;
+        delete <tile-groups.setup.tile-groups>->{$prev_tile_groups}
+            if defined $prev_tile_groups and $prev_tile_groups =~ /\+/;
+
+        if ( defined <tile-groups.transition_queue>
+            and @{<tile-groups.transition_queue>} ) {
+            my $trans_count = scalar @{<tile-groups.transition_queue>};
+            my $s           = $trans_count > 1 ? 's' : '';
+            <[base.log]>->( 1, "found $trans_count queued transition$s.." );
+            <[tile-groups.cmd.switch-tile-group]>
+                ->( { 'args' => shift @{<tile-groups.transition_queue>} } );
+        } elsif ( defined <tile-groups.restore.overlays>
+            and @{<tile-groups.restore.overlays>} ) {
+            my $count = scalar @{<tile-groups.restore.overlays>};
+            my $s     = $count > 1 ? 's' : '';
+            <[base.log]>->( 1, "restoring $count tile-groups overlay$s.." );
+            <[tile-groups.cmd.add_overlay]>->(
+                { 'args' => join( ' ', @{<tile-groups.restore.overlays>} ) }
+            );
+            delete <tile-groups.restore.overlays>;
+        }
+    }
+}
+
+#print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
+#     if $event_type eq 'fade_out';
+
+#,,.,,,,.,.,,,,,.,..,,..,,..,,..,,.,.,...,.,.,..,,...,...,...,...,,..,,..,..,,
+#QVWEFLBK7C3KYEVGQSEUKHAIWQMJZ5DGICNFXCSMUVGGVQN627BFBALNSVIW65X5S3UGFUJB4ZPLC
+#\\\|2IUBVIWD3AKKDEWGIBVBA5PMTLIZRPR24KTJMOBPAIF7HE2J4V4 \ / AMOS7 \ YOURUM ::
+#\[7]Z5HSJEME2XBIMKCSAAZWTT6KEMQQH2N2OHCYQHHPDPVHSFZVI2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

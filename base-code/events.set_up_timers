@@ -59,7 +59,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
             }
             )
             if ( $mode ne 'recalc'
-            or $action_type !~ m,^(composition|playlist)_, )
+            or $action_type !~ m,^(tile-groups|playlist)_, )
             or (
             !$all_in_past
             and (  $ARG ne 'start'
@@ -68,7 +68,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
             );
 
  #       if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
- #       or $mode ne 'recalc' and $action_type !~ m.^(composition|playlist)_,;
+ #       or $mode ne 'recalc' and $action_type !~ m.^(tile-groups|playlist)_,;
 
         if ( $action_type =~ m|^playlist_| ) {
             my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'}
@@ -82,8 +82,8 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     } @timer_types;
 }
 
-#,,.,,.,,,,..,.,.,,,.,.,.,..,,,.,,,.,,,.,,.,.,..,,...,...,...,,..,.,,,.,.,,,,,
-#KDSBIE37UWU2IBIYWZNBEKV5Y5SVED4TA7LE7OJDYLDGLP7JFRBETVBSGZXLRWFD2PNN25EYTBWI4
-#\\\|3UURT43SR4Q5SGBY3FYD5L43IBXE5GFORXUKAXHUZ7X47WSN72D \ / AMOS7 \ YOURUM ::
-#\[7]N5TOYXR2NUUPD7QQS2TTQBTCQD2FNB4OO24IBAJHZH7QYXYE6ABQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,.,,,,,.,,..,,..,,..,,,.,...,..,,...,...,...,...,.,.,...,,..,
+#24EC3MQ3A5NLUM2JQRDYMJWX7UABCLNS7K4ULJKJFXBK3U7MLSXGCZC55X7LKZSVLFH4TC5QNJULQ
+#\\\|DV7HEXPQXMWOXQVIS5SLCRGSNEM5GOXZZVRZR3STYZMJK5AS3OI \ / AMOS7 \ YOURUM ::
+#\[7]FAIFVAAQNVOGGAHAOTS5E5OEQMLGKSVYRFVUNEDGLI2OJBJAFKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

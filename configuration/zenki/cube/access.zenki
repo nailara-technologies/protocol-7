@@ -7,9 +7,9 @@
                                      ntime-dec netw-time src-ver rel-ver \
                                      X-11.get_display X-11.get_geometry \
                                      amos-chksum elf-chksum \
-                                     composition.get_geometry \
-                                     composition.assign_window \
-                                     composition.get_coordinates \
+                                     tile-groups.get_geometry \
+                                     tile-groups.assign_window \
+                                     tile-groups.get_coordinates \
                                      X-11.get_orientation \
                                      X-11.get_screen_size \
                                      X-11.get_stack_order \
@@ -31,7 +31,7 @@
 
              access.cmd.usr.X-11  =  v7.restart v7.start_once \
                                      v7.register_child \
-                                     composition.gpu_load_alert \
+                                     tile-groups.gpu_load_alert \
                                      X-11-pointer.blank-cursor \
                                      system.reload_gfx_module \
                                      system.report-X-11-error
@@ -68,7 +68,7 @@
                                      v7.notify_online v7.stop_implicit \
                                      X-11.keep_below X-11.hide_window \
                                      X-11.set_opacity \
-                                     composition.get_subconfig \
+                                     tile-groups.get_subconfig \
                                      X-11.lower_window \
                                      X-11.raise_window \
                                      X-11.set_geometry \
@@ -86,10 +86,10 @@
                                      *.get-config-names
 
            access.cmd.usr.events  =  content.update v7.start_once \
-                                     composition.add_overlay \
-                                     composition.remove_overlay \
-                                     composition.reset-tile-group \
-                                     composition.switch-tile-group \
+                                     tile-groups.add_overlay \
+                                     tile-groups.remove_overlay \
+                                     tile-groups.reset-tile-group \
+                                     tile-groups.switch-tile-group \
                                      v7.stop_implicit v7.restart
 
           access.cmd.usr.content  =  v7.restart weather.get-urls \
@@ -98,7 +98,7 @@
                                      events.get_playlist_hidden \
                                      events.get_playlist_exclusive
 
-      access.cmd.usr.composition  =  v7.start notify.warn v7.restart \
+      access.cmd.usr.tile-groups  =  v7.start notify.warn v7.restart \
                                      universal.slow_down content.update \
                                      v7.start_once X-11.bg_color \
                                      X-11.fade_out web-browser.slow_down \
@@ -116,7 +116,7 @@
       access.cmd.usr.web-browser  =  pdf2html.get_url X-11.bg_color \
                                      X-11.gpu_load image2html.get_url \
                                      content.set_flags \
-                                     composition.get_subconfig \
+                                     tile-groups.get_subconfig \
                                      X-11.raise_window X-11.lower_window \
                                      X-11.wait_visible \
                                      content.get_list_types \
@@ -148,7 +148,7 @@
                                      v7.notify_online v7.stop_implicit \
                                      v7.register_child X-11.set_opacity \
                                      X-11.raise_window X-11.wait_visible \
-                                     X-11.bg_color composition.get_subconfig
+                                     X-11.bg_color tile-groups.get_subconfig
 
        access.cmd.usr.start-anim  =  X-11.wait_visible X-11.bg_color \
                                      v7.report-temp-path
@@ -156,9 +156,9 @@
        access.cmd.usr.rss-ticker  =  content.get_list ticker-gtk.read_file \
                                      ticker-sdl.read_file
 
-       access.cmd.usr.ticker-gtk  =  composition.get-layer X-11.gpu_load \
+       access.cmd.usr.ticker-gtk  =  tile-groups.get-layer X-11.gpu_load \
                                      v7.notify_online X-11.bg_color \
-                                     composition.get_subconfig \
+                                     tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
        access.cmd.usr.ticker-sdl  =  v7.notify_online X-11.keep_above \
@@ -167,8 +167,8 @@
                                      X-11.wait_visible \
                                      rss-ticker.resend_update
 
-#,,.,,,,.,.,,,...,,..,,,.,,,.,...,..,,,.,,,,,,.,.,...,...,,.,,,.,,..,,,,,,.,,,
-#SVILDMKL5AVFPFFUAJMXIS3ICFIXFPWDWIABOOSPO5VKBEORQNGWDZF4KOVWJAEXYZ5BV4TGGXSGC
-#\\\|MQWNIPIODQ4EBJCBLUNUCMZL6FW5P3XE6RYJRPLX2AVQ5ZJTWCK \ / AMOS7 \ YOURUM ::
-#\[7]XMQGLUJS24MW5OLJO4XGOKDWKMEC4JS3IIHFQ6NLPYXBW6MPUADY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,,,,...,,,,,.,,,.,.,,,,,...,.,.,...,...,,,,,,,,,,,.,..,,,,.,
+#MKR5E7SBGPUPVY5OLYZ4J37NY7RQBSU2D3NFI2OK6QLTYCNZBLI6MRUMK2WOIKQ227NGQ523VKWFQ
+#\\\|H4INTC33IBN5HNUKECP5GHAAE2WT2CMGOBT7BFDZDB5Y3R4G4IA \ / AMOS7 \ YOURUM ::
+#\[7]LKNNNJGF3VYJUKHS5622AXTA6BVLJSO7ADPTWQKZDQZZR2K62GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

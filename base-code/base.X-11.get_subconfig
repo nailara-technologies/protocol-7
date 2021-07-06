@@ -12,12 +12,12 @@ my $zenka_name
 my $subname  = <system.zenka.subname>;
 my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
 
-<[base.log]>->( 1, "requesting $name_str composition tile subcfg" );
+<[base.log]>->( 1, "requesting $name_str tile-groups tile subcfg" );
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)composition.get_subconfig $name_str\n"
+    $cube_fh, "($cmd_id)tile-groups.get_subconfig $name_str\n"
 );
 
 my $reply_string;
@@ -37,7 +37,7 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     my $bytes_total = $bytes_to_go;
     if ( !$bytes_to_go ) {
         <[base.log]>->(
-            2, "composition subconfig for '$name_str' was empty [ 0 bytes ]"
+            2, "tile-groups subconfig for '$name_str' was empty [ 0 bytes ]"
         );
         return {};
     }
@@ -59,7 +59,7 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
 } elsif (
     $reply_string =~ m|^\($cmd_id\)FALSE no set-up for zenka '([^ ]+)'| ) {
     <[base.logs]>->(
-        ": << composition zenka has no set-up for '%s' >>",
+        ": << tile-groups zenka has no set-up for '%s' >>",
         ${^CAPTURE}[0]
     );
     return undef;
@@ -70,14 +70,14 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     <[base.logs]>->(
         0,
         "[ protocol mismatch ] not expected reply"
-            . " from composition zenka ['%s']",
+            . " from tile-groups zenka ['%s']",
         $reply_string
     );
     return undef;
 }
 
-#,,.,,,,,,,,.,..,,...,..,,...,...,,..,,..,,..,..,,...,...,,..,,,.,.,.,.,,,,..,
-#FCRCQKAE7MGQ4CVVU6TXFHMV7JWDLXXEUQXEFTR4XITV4XHCTNGHHAE25JSLBUVIIY3CQI5RXQ63Q
-#\\\|6CENWNMUDEYOUEGYM7NT3VGGDVOFFVYFRJCWSL7JTTW7RN2DLRD \ / AMOS7 \ YOURUM ::
-#\[7]UCGTA7VIDGU25SWLX354ZH5ADRD4TTV7KMUJXVHAF2H6ISW52OAQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,,,,,.,.,,,.,.,,,,.,,.,,,,,.,..,,...,...,..,,.,,,,,,,,.,,..,,
+#CUUM6MNY5XFQ5O2HCFVTLZPDRKZ6TFEBC72G7REDY7FVEIATM24WFMRMGMMPREHNHLKMZ3P7GJ5HY
+#\\\|2QUUCKROBPEEUBSJ52K4CUI66TKQQZILAT224OS5IUU4KKV3DME \ / AMOS7 \ YOURUM ::
+#\[7]6PWLTHRPZYUPJOFNPVFKKKW3XV5WLIEREZ65BICQJ3XJCEU3TMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

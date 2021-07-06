@@ -1,0 +1,27 @@
+## >:] ##
+
+# name  = tile-groups.stop_display_zenki
+# descr = quick fix to avoid remaining x11 zenki on tile-groups zenka restart
+
+if ( defined <tile-groups.startup.stop_zenki> ) {
+    <[base.log]>->( 1, "stopping display zenki (if present)" );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.v7.stop_implicit",
+            'call_args' => { 'args' => <tile-groups.startup.stop_zenki> }
+        }
+    );
+}
+if ( defined <tile-groups.startup.restart_zenki> ) {
+    <[base.log]>->( 1, "restarting display zenki (if present)" );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.v7.restart",
+            'call_args' => { 'args' => <tile-groups.startup.restart_zenki> }
+        }
+    );
+}
+
+#,,,.,,,.,.,,,..,,,.,,,,,,.,.,...,,,,,...,,,,,..,,...,...,.,,,,,.,,.,,,,.,..,,
+#JPH3PDXISPHYGM2YCLKZXPTNWPYIJJJZM7ANCWQLB67BVHBEQNGLWVZYDFFD5LMIRKBBO4FR6FG7G
+#\\\|RHOI3NSAS57Z3HRJIKEOMJ3V6HYOGLORGFBZDN6FYYQV7SBCBKW \ / AMOS7 \ YOURUM ::
+#\[7]KMUTUXOTFVPR245CZVFKYG3NP3WFEU5IIVMMUOXFCTR5HUZTFYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

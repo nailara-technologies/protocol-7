@@ -1,0 +1,41 @@
+## >:] ##
+
+# name = tile-groups.merge_multiple
+
+my @overlay_list = @ARG;
+
+if ( not defined <tile-groups.current_tile_group> ) {
+    warn "tile-groups.current_tile_group not defined, skipping merge..";
+    return undef;
+}
+
+( my $current_one = <tile-groups.current_tile_group> ) =~ s|\+.*$||;
+
+<tile-groups.overlays.current>->@*
+    = uniq grep { length $ARG and $ARG ne $current_one }
+    <tile-groups.overlays.current>->@*;
+
+my $merged_name
+    = join( qw| + |, $current_one, <tile-groups.overlays.current>->@* );
+
+<[base.logs]>->(
+    2, "creating merged [overlay] tile-groups '%s'", $merged_name
+);
+
+<tile-groups.setup.tile-groups>->{$merged_name}
+    = <tile-groups.setup.tile-groups>->{$current_one};
+
+map {
+    <tile-groups.setup.tile-groups>->{$merged_name} = merge(
+        <tile-groups.setup.tile-groups>->{$merged_name},
+        <tile-groups.setup.tile-groups>->{$ARG}
+    );
+} @overlay_list;
+
+return $merged_name;
+
+#,,.,,,..,,.,,...,,..,,.,,.,,,.,.,,..,,,.,..,,..,,...,...,.,.,,,,,.,,,.,.,,,,,
+#XA6MUZ37PMYM2XPU3CEPRL7DHGAJ2W7ALL6B73HVVSCFVDOFC7ST6LJKBB2YIE7TBP5ZFGUJ2NSUQ
+#\\\|JIDK2KRGREU4A5OT7U7MBSJT2VT2ZYCCZBF3CRATDDHPUUYVZOF \ / AMOS7 \ YOURUM ::
+#\[7]KMP3SW66A55K226R3AFSW6XNQDBETG3MXHJSDVOHXETSHRC3OOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
