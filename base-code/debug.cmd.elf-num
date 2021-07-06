@@ -1,16 +1,16 @@
 ## >:] ##
 
 # name  = debug.cmd.elf-num
-# descr = return [numerical] elf hash value
+# descr = return ELF-7-13 checksum value [numerical]
 # param = [str]
 
 return {
-    'mode' => 'true',
-    'data' => sprintf( "%09d", Digest::Elf::elf( $$call{'args'} // '' ) )
+    'mode' => qw| true |,
+    'data' => <[chk-sum.elf]>->( $call->{'args'} // '' )
     }
 
-#,,.,,,..,,..,..,,...,.,,,..,,...,..,,,,,,,.,,..,,...,...,..,,.,,,...,..,,,,.,
-#MMCKCG2NPB6DVUOLYO5QUZB4FKZBYHAAVF4CWZGO6CWT7ISJZWKXYAI7ZQTADBULFLZGNOUQOVIFQ
-#\\\|RZBU2N47PDCJ2I3KQKFIDUFBNHZJIJW7G5I62PHFTOFSMSDEXHX \ / AMOS7 \ YOURUM ::
-#\[7]2WAMEXJHVQ2ZRZ7E2SLZBY7OTSVESHI6EXFXRLO23NMKP3CHYKAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,,,.,,,.,.,,,.,..,,...,.,.,.,.,..,,...,..,,.,,,,,.,.,,,..,,...,
+#VZVGM6AWNNWB2WQSNYJXYCE34LLTGMUE7CKD3KXC47HLKVWFVYFO7DVJYHNFGKOPM6DZANWLXHLLO
+#\\\|FB5WIBAB5ZYEHCIXTWQSUTDGDKLTVRZMH7W6IWTBEKCG3OFMNBK \ / AMOS7 \ YOURUM ::
+#\[7]VYHUROJ6DQDOBBQY4IMN37IY5LJ2NH2A7JO56HFJWLRBER7JZ4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
