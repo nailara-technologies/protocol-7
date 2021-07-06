@@ -3,26 +3,30 @@
 # name = events.set_up_timers
 
 my $mode = shift // '';    # [recalc]
-die "invalid mode '$mode'" if length($mode) and $mode ne 'recalc';
+
+if ( length $mode and $mode ne qw| recalc | ) {
+    <[base.s_warn]>->( "mode parameter '%s' not valid", $mode );
+    return undef;
+}
 
 <events.timers>         //= {};
 <events.unix.timetable> //= {};
 
 map {
-    if ( exists <event.timers>->{$ARG} ) {
+    if ( defined <event.timers>->{$ARG} ) {
 
         # LLL: trigger 'end' handler ..,
         <event.timers>->{$ARG}->cancel if <event.timers>->{$ARG}->is_active;
         delete <event.timers>->{$ARG};
-        <[base.log]>->(
-            0, "cancelled timer for event $ARG [ no longer defined ]"
+        <[base.logs]>->(
+            0, "cancelled timer for event %s [ no longer defined ]", $ARG
         );
     }
-} keys %{<events.unix.timetable>};
+} keys <events.unix.timetable>->%*;
 
 my $current_time = <[base.time]>->(2);
 
-foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
+foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
     my $u_event = <events.unix.timetable>->{$ev_id};
 
     # print STDERR "[U] = " . Dumper($u_event);
@@ -31,16 +35,19 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     my $e_start
         = defined $u_event->{'at'} ? $u_event->{'at'} : $u_event->{'start'};
     if ( not defined $e_start ) {
-        warn "[$t_event->{name}] no start time defined, skipping event.,";
+        <[base.s_warn]>->(
+            '[%s] no start time defined, skipping event.,',
+            $t_event->{name}
+        );
         next;
     }
     my $event_in = sprintf( "%.1f", $e_start - $current_time );
 
     my @timer_types = defined $u_event->{'at'} ? ('at') : ( 'start', 'end' );
 
-    <[base.log]>->(
-        2,
-        "[timer setup] event $ev_id [..in $event_in seconds..] [ $e_start ]"
+    <[base.logs]>->(
+        2, "[timer setup] event %s [..in %s seconds..] [ %s ]",
+        $ev_id, $event_in, $e_start
     );
     <events.timers>->{$ev_id} = {};
     my $all_in_past = 1;
@@ -50,7 +57,7 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         my $action_type = <events.setup>->{$ev_id}->{'action'}->{'type'};
         <events.timers>->{$ev_id}->{$ARG} = <[event.add_timer]>->(
             {   'at'      => $u_event->{$ARG},
-                'handler' => 'events.handler.event_triggered',
+                'handler' => qw| events.handler.event_triggered |,
                 'data'    => {
                     'type' => $ARG,
                     'id'   => $ev_id,
@@ -58,22 +65,24 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
                 }
             }
             )
-            if ( $mode ne 'recalc'
-            or $action_type !~ m,^(tile-groups|playlist)_, )
+            if ( $mode ne qw| recalc |
+            or $action_type !~ m,^(tile\-groups|playlist)\-, )
             or (
             !$all_in_past
-            and (  $ARG ne 'start'
-                or $mode ne 'recalc'
+            and (  $ARG ne qw| start |
+                or $mode ne qw| recalc |
                 or $u_event->{$ARG} >= $current_time )
             );
 
- #       if $ARG ne 'start' and $u_event->{$ARG} >= $current_time
- #       or $mode ne 'recalc' and $action_type !~ m.^(tile-groups|playlist)_,;
+        ##  if $ARG ne qw| start |
+        ##    and $u_event->{$ARG} >= $current_time
+        ##    or $mode ne qw| recalc |
+        ##    and $action_type !~ m.^(tile-groups|playlist)_,;
 
-        if ( $action_type =~ m|^playlist_| ) {
+        if ( index( $action_type, qw| playlist- | ) == 0 ) {
             my $b32id = <events.setup>->{$ev_id}->{'action'}->{'b32id'}
                 //= '';
-            if ( !length($b32id) ) {
+            if ( not length $b32id ) {
                 warn "playlist entry 'b32id' not defined in event '$ev_id'";
             } else {
                 <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
@@ -82,8 +91,8 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
     } @timer_types;
 }
 
-#,,.,,,..,,,.,,.,,.,,,,,.,,..,,..,,..,,,.,...,..,,...,...,...,...,.,.,...,,..,
-#24EC3MQ3A5NLUM2JQRDYMJWX7UABCLNS7K4ULJKJFXBK3U7MLSXGCZC55X7LKZSVLFH4TC5QNJULQ
-#\\\|DV7HEXPQXMWOXQVIS5SLCRGSNEM5GOXZZVRZR3STYZMJK5AS3OI \ / AMOS7 \ YOURUM ::
-#\[7]FAIFVAAQNVOGGAHAOTS5E5OEQMLGKSVYRFVUNEDGLI2OJBJAFKAA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,.,,,,.,.,,,,..,,.,,,..,...,..,,...,..,,,,.,,,.,,..,.,,,...,
+#F6RMHJ24ZE22FJS2C6MQSDPCLS6MH63QIWMPHARTDVLU7JU5O5GYAVSHVM5DY3JFV45GTBX4RJO5E
+#\\\|A3TRVZL2OSBUHKVBJUIZ55NYKF43ABMFHQT6TRSSXHSBCGJRG3J \ / AMOS7 \ YOURUM ::
+#\[7]F64RKGVBAXNAD2AJ2LJJRZO6SKGPUOOO5F73LIZHRT5UA5575YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
