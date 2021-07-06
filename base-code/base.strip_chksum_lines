@@ -1,0 +1,79 @@
+## >:] ##
+
+# name  = base.strip_chksum_lines
+
+my $string_sref     = shift;   ## scalar reference to multiline input str ##
+my $elf_chksum      = shift;   ## aggregate checksum up to which to strip ##
+my $line_prefix_str = shift;   ## only strip lines matching optional prefix ##
+
+if ( ref $string_sref ne qw| SCALAR | ) {
+    warn 'expected scalar reference param <{C1}>';
+    return undef;
+} elsif ( not defined $elf_chksum or $elf_chksum !~ m|^\d{1,9}$| ) {
+    warn 'expected ELF-7 checksum parameter <{C1}>';
+    return undef;
+}
+
+my $str_length = length $string_sref->$*;
+
+return 0 if not $str_length;    ##  empty string, nothing to do  ##
+my $continuous_chksum  = 0;     ## elf start checksum ##
+my $next_line_position = 0;     ## start search at position 0 ##
+
+my %strip_offset_list;
+my $checksum_match_occurred = 0;
+while ( $next_line_position <= $str_length ) {
+    my $linestart_pos = $next_line_position;    ##  beginning of line  ##
+    $next_line_position = index( $string_sref->$*, "\n", $linestart_pos );
+    last if $next_line_position == -1;    ## no [further] linefeed found ##
+
+    my $current_line_str = substr( $string_sref->$*, $linestart_pos,
+        $next_line_position - $linestart_pos );    ## linefeed not included ##
+
+    $next_line_position++;    ## include ignored linefeed ##
+
+    ## keep not matching lines \ do not add to checksum ##
+    if ( defined $line_prefix_str
+        and my $pfx_len = length $line_prefix_str ) {    ## has prefix ##
+        next if index( $current_line_str, $line_prefix_str, 0 ) == -1;
+
+        $continuous_chksum       ## add line to continuous checksum ##
+            = <[chk-sum.elf]>->( ## replace with 'chk-sum.elf-true' ## [ LLL ]
+            substr(              ##  prefix not added to checksum  ##
+                $current_line_str, $pfx_len,
+                length($current_line_str) - $pfx_len
+            )
+            );
+
+    } else {    ## full line, no prefix string ##
+
+        $continuous_chksum    ## add line to continuous checksum ##
+            = <[chk-sum.elf]>->( $string_sref, $continuous_chksum );
+    }
+
+    ##  collect for stripping should match occur  ##
+    $strip_offset_list{$linestart_pos} = $next_line_position - $linestart_pos;
+
+    if ( $continuous_chksum == $elf_chksum ) {    ##  checksum matches  ##
+        $checksum_match_occurred = 5;             ## true ##
+        last;                                     ##  strip lines  ##
+    }
+}
+
+## return number of lines stripped [none] ##
+return 0 if not $checksum_match_occurred or not keys %strip_offset_list;
+
+foreach    ##  stripping backwards to not need to recalculate offsets  ##
+    my $strip_start_position ( sort { $b <=> $a } keys %strip_offset_list ) {
+
+    substr( $string_sref->$*, $strip_start_position,
+        $strip_offset_list{$strip_start_position}, '' );
+}
+
+return scalar keys %strip_offset_list;    ##  number of lines stripped  ##
+
+#,,.,,.,,,,..,,..,,,,,,..,,,.,,..,,..,.,.,...,.,.,...,...,...,,,.,,.,,,,,,.,,,
+#E4ROOUMEY3YEGIM4B5AH5BXTPIAFERWEM7HFOLER445LBCNFX77UYYTXLKKLGCQ6UK3SEBPNG24DI
+#\\\|YZYF2KDPGDZXBOPRO2VZ2QTED5YP4QV7MSFQXCURJDYRZCLQFI6 \ / AMOS7 \ YOURUM ::
+#\[7]6OWZDOEKKHZ7XQUZDIB7JSAYKO5ZTYJ7U7OOOYYSVUGYX4QYF2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
