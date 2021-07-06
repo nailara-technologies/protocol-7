@@ -20,46 +20,37 @@ modules.load                 =  auth net chk-sum.bmw protocol io.unix io.ip \
 plugins.load                 =  plugin.auth
 auth.supported_methods       =  zenka unix
 
-# setup.aliases.source_zenka    =
+# setup.aliases.source_zenka =
 
 net.auth.timeout = 13   ## protocol-7 ##
 
+## calculated network address \ port ##
+cube.local = <protocol-7.network.zulum>  ## cube-13 address ##
+
+##  which sockets to launch ##
+cube.set-up.use_ip_socket   = yes        ## requires above io.ip module ##
+cube.set-up.use_unix_socket = yes
 
 # load and initialize modules
 [load_modules:<modules.load>]
-[init_modules]
-
-## loading [auth.] plugins ##
-[load_plugins:<plugins.load>]
-
-## calculated network address \ port ##
-cube.zulum = <protocol-7.network.zulum>
-
-## local unix domain socket ##
-unix.owner = <system.amos-zenka-user>
-[file.make_path:'/var/run/.7/UNIX',0775,<unix.owner>]
-unix-13.s_name=[base.calc_unix_path:<cube.zulum.addr>,<cube.zulum.port>]
-unix-13.path='/var/run/.7/UNIX/<unix-13.s_name>'
-unix-13.sock=[base.open:'unix','input',<unix-13.path>,0777,<unix.owner>]
-
-## ip.tcp socket ##
-tcp_ip-13.sock=[base.open:'ip.tcp','input',<cube.zulum.addr>,<cube.zulum.port>]
-
-## bind protocol-7 to sockets ##
-[base.protocol.bind:<unix-13.sock>,'protocol-7']
-[base.protocol.bind:<tcp_ip-13.sock>,'protocol-7']
+[init_modules]                           ##  also launches above sockets  ##
 
 # drop root priviledges [ now 'online' ]
 [root.drop_privs:<system.amos-zenka-user>,<cube.local.port>]
 
-[base.net.connect:'unix']
+## loading [auth.] plugins ##
+[load_plugins:<plugins.load>]
+
+unix.path = [undef]    ##  disassociate next conn. from unix server socket  ##
+
+[base.net.connect:'unix'] ## connect to cube zenka ##
 [base.get_session_id]
 
 # run zenka
 [zenka.loop]
 
-#,,,.,...,,,.,.,,,,,.,,,,,..,,.,,,...,.,.,...,.,.,...,...,.,.,,.,,,,,,,.,,,.,,
-#P4NAZGEU3LE6V2NQ6U7DB56VMF5DMIW3L3ERGN2W5K7VP5CAOPQKPRNT3H2JIWEU34CDBXNP5CP5G
-#\\\|DHCWNSX3IXM2Z2RXDTPWOPPZ6EQ3HT5HEFMFZJFUHPOGDNKOPIG \ / AMOS7 \ YOURUM ::
-#\[7]BNYTVBEDUCPKKYW7JCGG4O3JE5TWDX42S4NNCE5EN5D7YYHWKWAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,.,,,...,...,..,,..,,...,..,,.,.,...,...,.,,,.,.,.,.,,,.,..,,
+#TVA633H4L4QGLCRLSW3QAMP7YRPHVRBBKOQWKUCMSJYEDVOYEAB4CTC5U5RWE7BCBCUCFP4TUW3OS
+#\\\|X2NBL7AKEDDFGUMGA2Y5RAAXQVRG2VGW46XQCGAC3TNC2MQB3CO \ / AMOS7 \ YOURUM ::
+#\[7]5K66BOLE6Z7VNQKNFWJEOMXQVRDTSKLK37WSZKO4SQN7HTP4JWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
