@@ -2,10 +2,10 @@
 
 # name  = cube.post_init
 
-##  only cube zenka [ so far ]  ####
-return 0 if <system.zenka.name> ne qw| cube |;
+##  cube and cube-13 zenki [ so far ]  ####
+return 0 if not defined <cube.local> and <system.zenka.name> ne qw| cube |;
 
-<cube.local> = <protocol-7.network.internal>;    ## address \ port set-up ##
+<cube.local> //= <protocol-7.network.internal>;    ## address \ port set-up ##
 
 if (    not <[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
     and not <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>) ) {
@@ -191,8 +191,8 @@ SKIP_IP_SOCKET:
 
 return $sucessful_init ? 0 : 1;    ##  returning 0 for success  ##
 
-#,,.,,,.,,,,.,.,,,...,,,.,..,,,,,,..,,,,,,,,.,.,.,...,...,...,,,,,...,,,.,,,,,
-#5OUP43ABWA5O3XAZ7I3XN5I7YMZFA4ACF6XNN5SOGM56MY6CH7WGM67IC63CCKNK43C26BB66R2LI
-#\\\|ZLLTJEPD7HIRHI636UGGQOANWBXAS7QF7U7GXL2QG4JZWTWFSIR \ / AMOS7 \ YOURUM ::
-#\[7]4M4LXTD3FBOCWCI7SA2UAQZJHV46VPA6GFPSSHJJLYDOU7U47ODA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,..,,..,...,,,.,,,,,,..,.,,,.,.,...,..,,,.,,,..,.,,,,.,,,..,
+#2I3XSNGQFT3QMTWUBMHIHPLMOHT5HLM2OP6R4HKZZ3N4LP2FIH3HQC6SMPVYB3SQKXK7B5PZXCP42
+#\\\|MOMSBIJLVWP6G2MGOY72MD6AVG3P3IKTZ3EYJUQVFCTVTUH6F5Q \ / AMOS7 \ YOURUM ::
+#\[7]27WDWY7QX4LASF2E4A52KFEJ2BBKNUN3VHKROS3Q3ASQBSRW6SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
