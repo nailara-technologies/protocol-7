@@ -3,10 +3,24 @@
 # name  = sourcecode.console.modules
 # descr = list protocol-7 source code modules
 
+my @param;
 my %C = %AMOS7::C;
 
-my $zenki_str = shift;
-my @zenki     = defined $zenki_str ? split( m| +|, $zenki_str ) : ();
+my @param = split( m| +|, shift ) if defined $ARG[0];
+
+my @truth_modes = qw| 2 4 7 8 |;
+my $incl_true   = 5;               ## AND \ OR [ TRUE : AND , FALSE : OR ] ##
+
+if ( defined $param[0] and $param[0] =~ m|^(\+?)\d+(,\d+)*$| )
+{    ##  elf truth mode  ##
+    $incl_true   = ${^CAPTURE}[0] eq qw| + | ? 5 : 0;
+    @truth_modes = split( ',', shift @param );
+    $truth_modes[0] =~ s|^\+||;
+}
+
+my $zenki_str = shift @param;    ## next param optional zenki names ##
+
+my @zenki = defined $zenki_str ? split( m| +|, $zenki_str ) : ();
 
 my @p7_module_names;
 
@@ -24,18 +38,30 @@ if (@zenki) {
 }
 
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
-map {
-    printf(
-        "%s%s: %s%s%s %s\n",
-        $C{'b'}, $C{'0'},
-        AMOS7::Assert::Truth::is_true($ARG) ? $C{'T'} . $C{'B'} : $C{'0'},
-        $ARG, $C{'0'}, $C{'R'}
-    )
-} @p7_module_names;
+
+foreach my $name (@p7_module_names) {
+    my $asserted_true = 0;    ##  false  ##
+    if ($incl_true) {         ## [ OR mode ] ##
+        foreach my $ELFmode (@truth_modes) {
+            $asserted_true = 5    ## true ##
+                if AMOS7::Assert::Truth::is_true( \$name, 0, 1, $ELFmode );
+        }
+    } else {    ##  exclusive [ AND mode ]  ##
+        $asserted_true = 5
+            if AMOS7::Assert::Truth::is_true( \$name, 0, 1, @truth_modes );
+    }
+    printf "%s%s: %s%s%s %s\n", $C{'b'}, $C{'0'},
+        $asserted_true
+        ? $C{'T'} . $C{'B'}
+        : $C{'0'},
+        $name, $C{'0'}, $C{'R'};
+
+}
+
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
-#,,.,,,..,,,,,,,,,.,.,,..,,.,,,,,,,,.,,,,,.,.,..,,...,...,,,,,...,,..,,,,,,.,,
-#B3UJN7IEKID46X2YZ7WLJSBWLVAPQ5WUIE3QBHEGSFHAEJMSL2DEK7NI4DQRFZXRTAAC574X4PFQM
-#\\\|Q2CH2DFMD5AZR6UK2B43GTFSSZCSPHCILHILPZCRZV2XX6L4PPB \ / AMOS7 \ YOURUM ::
-#\[7]GBUWMIEVYGHOXPHLVJ7U6IG3VHZXRCXPSBFFIUT4QYNPVZG3TADA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,..,,..,,...,,.,,,,,,,,,,,..,..,,...,...,..,,,.,,..,,,,,,,..,
+#QFOEAARVHD6MVEU35ICJRS7RJP4V7QXFBCT7CFB2FEZL5HJWIBJTX43IFNF4JLGUGVUSNSWGH7YKC
+#\\\|6BPFI5ZWO6B3Q3FQF5LWOP2Y22FSYUHZSAXIC5NEWGPDWB7RVE5 \ / AMOS7 \ YOURUM ::
+#\[7]JFS2M3OR6L6XU4JRMB44K37WENEOGX7R5PDJWSNDMRFJ2SXRSIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
