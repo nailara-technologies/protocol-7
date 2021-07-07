@@ -1,0 +1,109 @@
+## >:] ##
+
+# name  = v7.zenka.cmd.zenka-status
+# param = <zenka|instance>
+# descr = show [dependency] status of zenki\instances
+
+my $params = $call->{'args'} // '';
+return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
+    if not length $params;
+
+my $restart_mode;
+my @instance_ids;
+my $unknown_name;
+my $not_found   = 0;
+my $setup_found = 0;
+foreach my $param_str ( split m| +|, $params ) {
+    if ( $param_str =~ <regex.base.iid> ) {    ## <-- [ instance-id ]
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( "unknown zenka instance %d [ see 'list zenki' ]",
+                $param_str )
+            }
+            if not exists <v7.zenka.instance>->{$param_str};
+        push( @instance_ids, $param_str );
+    } elsif ( $param_str =~ m|^\d+| ) {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( 'length not valid [ instance id %d ]', $param_str )
+        };
+    } elsif (
+        $param_str =~ <regex.base.usr>            ##   zenka name   ##
+        or $param_str =~ <regex.base.usr_subn>    ##   [ subname ]  ##
+    ) {
+        my $zenka_subname;
+        my $re_sn = <regex.base.subname>;
+        $zenka_subname = $LAST_PAREN_MATCH if $param_str =~ s|\[($re_sn)\]$||;
+
+        my $zenka_id = <[zenka.get_id]>->($param_str);
+        if ( defined $zenka_id ) { $setup_found++ }
+        else { $not_found++; $unknown_name //= $param_str; next }
+
+        map {
+            push( @instance_ids, $ARG )
+                if <v7.zenka.instance>->{$ARG}->{'zenka_id'} == $zenka_id
+                and ( not defined $zenka_subname
+                or defined <v7.zenka.instance>->{$ARG}->{'subname'}
+                and $zenka_subname eq
+                <v7.zenka.instance>->{$ARG}->{'subname'} )
+
+        } <[v7.instance_ids]>;
+
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'zenka name or instance id expected'
+        };
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( 'no zenka %s found in set-up', $unknown_name )
+    }
+    if not $setup_found and $not_found;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'there is no matching zenka running'
+    }
+    if @instance_ids == 0;
+
+my $reply_string = ":\n";
+
+my $max_len = 0;
+my %zenka_names;
+foreach my $id (@instance_ids) {
+    my $zenka_id = <v7.zenka.instance>->{$id}->{'zenka_id'};
+    $zenka_names{$id} = <v7.zenka.setup>->{$zenka_id}->{'name'};
+    my $name_len = length $zenka_names{$id};
+    $max_len = $name_len if $name_len > $max_len;
+}
+
+foreach my $id (@instance_ids) {
+    my $zenka_status = <v7.zenka.instance>->{$id}->{'status'};
+
+    $reply_string .= sprintf( ': %s [ %*s ] : %-16s',
+        $id, $max_len, $zenka_names{$id},
+        sprintf( "status %7s", $zenka_status ) );
+
+    if ( $zenka_status eq qw| online | ) { $reply_string =~ s| *$|\n|s }
+    else {
+        my $zenka_dependencies    ## remove online ones ? ## [ LLL ]
+            = <[zenka.get_dependencies]>->( $zenka_names{$id} );
+        $reply_string .= sprintf " < depending on : %s >\n",
+            join( ', ', split ' ', $zenka_dependencies );
+    }
+}
+
+$reply_string .= ":\n";
+
+return { 'mode' => qw| size |, 'data' => $reply_string }
+
+#,,..,..,,..,,,,.,,..,,..,,.,,.,,,,.,,...,,,.,.,.,...,...,...,.,.,...,,.,,,,.,
+#N54CNKPLL5PD7SVNTZRIHCBUQIPNOIV4UOV6SCQFEB4GL3VKB5AINTQG7B3CYIC624UJGAQ4TSQGO
+#\\\|R4C3W4CORSVZYPE5RLOSSIXCQZ7DSVP52XYECKCFEEHZD64ZI4D \ / AMOS7 \ YOURUM ::
+#\[7]PDPVVP6JYZ4KMDQZA5SRN7SG5IFH3R7R55QOHBFG7GACH6NY7YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
