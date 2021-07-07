@@ -12,7 +12,7 @@ my $input        = \$$session{'buffer'}{'input'};
 my $output       = \$$session{'buffer'}{'output'};
 my $count_select = $$session{'counter'}{'auth'}{'select'} //= {};
 my ( $auth_method, $auth_code, $auth_name, $auth_handler_name );
-my $Blen = length($$input);
+my $Blen = length( $input->$* );
 
 my $protocol_messages   = <protocol.protocol-7.connect>;
 my $protocol_banner     = $protocol_messages->{'banner'};
@@ -21,7 +21,7 @@ my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
 my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
 my $auth_method_err     = $protocol_messages->{'auth_method_err'};
 
-if ( $session->{'last-bytes-read'} == 0 and length $$input ) {
+if ( $session->{'last-bytes-read'} == 0 and length $input->$* ) {
     return 2;    ## <-- disconnecting client ##
 } elsif ( $session->{'last-bytes-read'} == 0 ) {
     return 2;    ## <-- disconnecting client ##
@@ -42,7 +42,7 @@ if ( not defined $s_met ) {
         $msg .= " [session:$id]";
     }
     warn $msg;
-    $$output .= $auth_method_warning;
+    $output->$* .= $auth_method_warning;
     return 2;                                   ## <-- disconnecting client ##
 }
 
@@ -50,14 +50,15 @@ $auth_method = $session->{'auth'}->{'method'};
 
 $event->w->stop;    # <-- stopping event handler to modify buffer
 
-if ( $$input =~ s|^(auth\.)?close\n|| ) {
+if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
 
     <[base.log]>->( 1, "[$id] connection shutdown requested" );
 
-    $$output .= "TRUE connection closed\n";
+    $output->$* .= "TRUE connection closed\n";
     return 2;    ## <-- disconnecting ##
 
-} elsif ( $$input =~ s|^(auth\.)?select (?<method>\S+)\n|| ) {  ## auth method
+} elsif ( $input->$* =~ s|^(auth\.)?select (?<method>\S+)\n|| )
+{    ## auth method
 
     ## client template : <protocol.protocol-7.connect.select-method>
 
@@ -69,7 +70,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             0, "[$id] auth module not loaded, 'select' rejected."
         );
 
-        $$output .= $auth_method_warning;
+        $output->$* .= $auth_method_warning;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( $req_method !~ <regex.base.authmethod> ) {
@@ -77,14 +78,14 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
         <[base.log]>
             ->( 2, "[$id] :: requested auth method :: '$req_method'" );
 
-        $$output .= $auth_method_err;
+        $output->$* .= $auth_method_err;
         return 2;    ## <-- disconnecting client ##
 
     } else {
         if ( $count_select->{'calls'} >= $count_select->{'limit'} ) {
             <[base.log]>->( 0, "[$id] auth select count limit exceeded >:[" );
 
-            $$output .= $auth_method_err;
+            $output->$* .= $auth_method_err;
             return 2;    ## <-- disconnecting client ##
 
         } else {
@@ -95,24 +96,25 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             }
             if ( $count_select->{'errors'} > 2 ) {
 
-                $$output .= $auth_method_err;
+                $output->$* .= $auth_method_err;
                 return 2;    ## <-- disconnecting client ##
 
             }
             return 1;        ## continue protocol ##
         }
     }
-} elsif ( $$input =~ s|^(auth\.)?selected\n|| ) {   ## selected auth method ##
+} elsif ( $input->$* =~ s|^(auth\.)?selected\n|| )
+{    ## selected auth method ##
     $event->w->start;
     if ( defined $auth_method ) {
-        $$output .= "TRUE $auth_method\n";
+        $output->$* .= "TRUE $auth_method\n";
         return 1;
     } else {
-        $$output .= "FALSE not selected yet\n";
+        $output->$* .= "FALSE not selected yet\n";
         return 1;
     }
 
-} elsif ( $$input =~ s|^(auth\.)?list\n|| ) {    ## list auth methods ##
+} elsif ( $input->$* =~ s|^(auth\.)?list\n|| ) {    ## list auth methods ##
 
     $event->w->start;
 
@@ -121,21 +123,21 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
             0, "[%d] auth module not loaded, 'list' rejected.", $id
         );
 
-        $$output .= $auth_method_warning;
+        $output->$* .= $auth_method_warning;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 1 ) {
 
         <[base.logs]>->( 0, '[%d] 3rd auth list requested >:[', $id );
 
-        $$output .= $auth_method_err;
+        $output->$* .= $auth_method_err;
         return 2;    ## <-- disconnecting ##
 
     } elsif ( ( $count_select->{'list'} // 0 ) > 0 ) {
 
         <[base.logs]>->( 0, '[%d] repeated auth list requested.,', $id );
 
-        $$output .= "FALSE once should be enough..,\n";
+        $output->$* .= "FALSE once should be enough..,\n";
         $count_select->{'list'}++;
 
     } else {
@@ -145,7 +147,7 @@ if ( $$input =~ s|^(auth\.)?close\n|| ) {
         my $auth_list = <[auth.auth_list]>->($id);
         $auth_list = 'SIZE ' . length($auth_list) . "\n" . $auth_list;
         $count_select->{'list'}++;
-        $$output .= $auth_list;
+        $output->$* .= $auth_list;
 
     }
     return 1;    ## continue protocol ##
@@ -202,13 +204,13 @@ elsif ( defined $auth_method
 } elsif ( defined $auth_method ) {
 
     <[base.logs]>->( 0, "auth-plugin '%s' not defined", $auth_method );
-    $$output .= $auth_method_warning;
+    $output->$* .= $auth_method_warning;
     return 2;                   ## <-- disconnecting client ##
 
 } else {
-    if ( $Blen <= 13 and $$input =~ m|^\s+$|s ) {
-        $$output .= $auth_method_err;
-    } elsif ( length $$input ) {
+    if ( $Blen <= 13 and $input->$* =~ m|^\s+$|s ) {
+        $output->$* .= $auth_method_err;
+    } elsif ( length $input->$* ) {
         my $id_len = length $id;
         <[base.logs]>->(
             '[%s] : pre-auth protocol error : %04d B',
@@ -216,15 +218,15 @@ elsif ( defined $auth_method
         );
         <[base.logs]>->(    ## truncating content for msg ##
             2, ": %*s : :., [BUF:'%s']",
-            $id_len, '', <[base.parser.ellipse_center]>->( $$input, 17 )
+            $id_len, '', <[base.parser.ellipse_center]>->( $input->$*, 17 )
         );
-        $$output .= $protocol_error_msg;
+        $output->$* .= $protocol_error_msg;
     }
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,.,,..,,..,,..,,.,,.,,,,,.,,,.,,,,,,,.,..,,..,,...,...,...,,.,,,,.,,.,,,.,,
-#VBWII3G2Z5JDBSNFRMFMOBYJ67A6QNO342THQ7GRNY6NBUSH5UOKPQX52T4V34VPJ7JDSG7Q26DVU
-#\\\|H3B7I77SA3SWOCXOHEXT2NGUEN2A6PAR4TLLFNEW3KJIAIHQFR3 \ / AMOS7 \ YOURUM ::
-#\[7]ZXGVNVEUVV3NTONBI7FDFGJ3BYBPMPBDKAIRDPSXOTX65R7VEGDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,..,,.,,,,,,,,.,,,.,..,,.,,,..,,...,...,...,,..,,,,,..,,.,,,
+#KV3QUA23U4Q6AUW3EZQDGQUB24ONAX265O4EXIHWFPWDNUQJ46XMMOIG2QY7NL6WDAGFJXE4UO2JA
+#\\\|GTLMRGD3NIEE2HK6HNO2APJDEED2YCN5G3VLZFNWZYMCVZNE7JH \ / AMOS7 \ YOURUM ::
+#\[7]ZQVNSVJO66I6VTAP3AWD2V7DITHO6HWGU3R4RWCKHAUOPCHIPEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

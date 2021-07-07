@@ -27,12 +27,12 @@ my $cmd_id = 0;
 if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
         <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore-]bytes.," );
-        if ( length($$input) >= $ignore_bytes ) {
-            substr( $$input, 0, $ignore_bytes, '' );
+        if ( length( $input->$* ) >= $ignore_bytes ) {
+            substr( $input->$*, 0, $ignore_bytes, '' );
             delete $data{'session'}{'ignore_bytes'};
         } else {
-            $data{'session'}{'ignore_bytes'} -= length($$input);
-            truncate( $$input, 0 );
+            $data{'session'}{'ignore_bytes'} -= length( $input->$* );
+            truncate( $input->$*, 0 );
         }
     } else {
         delete $data{'session'}{'ignore_bytes'};
@@ -57,8 +57,8 @@ if ( exists <base.timer.ondemand_timeout> ) {
 
 ### cleaning up command line ###
 
-$$input =~ s|^\s+||;
-$$input =~ s|^([^\n]+?)[ \t]+\n|$1\n|;
+$input->$* =~ s|^\s+||;
+$input->$* =~ s|^([^\n]+?)[ \t]+\n|$1\n|;
 
 ##[ SET-UP \ VARIABLES ]######################################################
 
@@ -69,12 +69,12 @@ my $call_args    = {};
 ##[ CHECK SYNTAX \ CMD-ID ]###################################################
 
 # check cmd_id regex [ for numbers or valid length ]
-if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
-    and $$input !~ m|^\(($re->{cmd_id})\)| ) {
+if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
+    and $input->$* !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 // '';
-    $$input =~ s|^(\([^\)]*\)[^\n]+)\n||;
+    $input->$* =~ s|^(\([^\)]*\)[^\n]+)\n||;
     <[base.log]>->( 1, "[$id] invalid command id ['$cmd_id']" );
-    $$output .= "FALSE invalid command id syntax or length\n";
+    $output->$* .= "FALSE invalid command id syntax or length\n";
     return 0;    ## comand complete ##
 }
 
@@ -86,8 +86,8 @@ if (    $$input =~ m|^\(([^\)]*)\)[^\n]+\n|
 
 ## checking for multi-line commands ###
 
-if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
-{
+if ( $input->$*
+    =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o ) {
     ( my $multiline_cmd, $cmd ) = ( $1, $2 );
     if ( $multiline_cmd =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
 
@@ -126,7 +126,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
                         <[base.log]>->(
                             1, "[$id] invalid command parameter format"
                         );
-                        $$output
+                        $output->$*
                             .= $_cmd_id
                             . "FALSE [multi-line] command parameter"
                             . " syntax not valid\n";  ## <-- [re]define. [LLL]
@@ -152,7 +152,7 @@ if ( $$input =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o )
 
 ## incomplete multiple line command ##
 
-elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 
     $_[0]->w->start;
     return 1;    ## command not complete ###
@@ -162,8 +162,8 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 
 ## incomplete SIZE reply ## [LLL] switch to stream type transfer ..,
 
-elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *SIZE +(\d+)\n),o
-    and length($$input) < ( $3 + length($1) ) ) {
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(\d+)\n),o
+    and length( $input->$* ) < ( $3 + length($1) ) ) {
 
     $_[0]->w->start;
     return 1;    ## command not complete ###
@@ -173,8 +173,8 @@ elsif ( $$input =~ m,^((\($re->{cmd_id}\)|) *SIZE +(\d+)\n),o
 
 ### single command line ###
 
-elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
-{
+elsif (
+    $input->$* =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
 
     $_[0]->w->start;
 
@@ -197,12 +197,12 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o )
 
 ## protocol error ##
 
-elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
+elsif ( $input->$* =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
     my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
 
     <[base.logt]>->( qw| HTKSXIY |, $id, $cmd_string );  # protocol mismatch #
 
-    $$output .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+    $output->$* .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
 
     $_[0]->w->start;
     return 0;    ##  command processing was complete  ##
@@ -212,7 +212,7 @@ elsif ( $$input =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
 
 # empty command line
 
-elsif ( $$input =~ s|^$|| ) { $_[0]->w->start; return 0 }
+elsif ( $input->$* =~ s|^$|| ) { $_[0]->w->start; return 0 }
 
 ##[ RETURN \ COMMAND NOT COMPLETE ]###########################################
 
@@ -420,11 +420,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 if ( $$call_args{'args'} =~ m|^\d+$| ) {
                     my $msg_len = $$call_args{'args'};
 
-                    if ( length($$input) >= $msg_len ) {
+                    if ( length( $input->$* ) >= $msg_len ) {
 
                         ## cut out body data ##
 
-                        my $data_reply = substr( $$input, 0, $msg_len, '' );
+                        my $data_reply
+                            = substr( $input->$*, 0, $msg_len, '' );
 
                         ## check if reply handler is set ##
 
@@ -495,10 +496,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( $$call_args{'args'} =~ m|^\d+$| ) {
                     my $msg_len = $$call_args{'args'};
-                    if ( length($$input) >= $msg_len ) {
+                    if ( length( $input->$* ) >= $msg_len ) {
 
                         ## cut out body data ##
-                        my $data_reply = substr( $$input, 0, $msg_len, '' );
+                        my $data_reply
+                            = substr( $input->$*, 0, $msg_len, '' );
                     }
                 }
                 ####
@@ -506,7 +508,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 <[base.log]>->(
                     1, "[$id] called unimplemented answer type ['$cmd']"
                 );
-                $$output .= "[$cmd] answer type not implemented yet.\n";
+                $output->$* .= "[$cmd] answer type not implemented yet.\n";
                 return 0;    ##  command processing was complete  ##
             }
         }
@@ -528,8 +530,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if (    $cmd eq qw| SIZE |
             and $call_args->{'args'} =~ m|^\d+$|
             and my $ignore_bytes = $call_args->{'args'} ) {
-            if ( length($$input) >= $ignore_bytes ) {
-                substr( $$input, 0, $ignore_bytes, '' );
+            if ( length( $input->$* ) >= $ignore_bytes ) {
+                substr( $input->$*, 0, $ignore_bytes, '' );
                 <[base.log]>->(
                     $ignore_log_level,
                     "[$id] : dropped next $ignore_bytes bytes., [ SIZE body ]"
@@ -541,8 +543,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     $ignore_log_level,
                     "[$id] : to ignore next $ignore_bytes bytes., [ SIZE ]"
                 );
-                $data{'session'}{'ignore_bytes'} -= length($$input);
-                truncate( $$input, 0 );
+                $data{'session'}{'ignore_bytes'} -= length( $input->$* );
+                truncate( $input->$*, 0 );
             }
         }
         return 1;    ## command not complete ###
@@ -552,7 +554,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 } elsif ( $cmd eq uc($cmd) ) {
     <[base.log]>->( 1, "[$id] reply type '$cmd' not valid" );
-    $$output .= $_cmd_id . "FALSE protocol error [ reply type not valid ]\n";
+    $output->$*
+        .= $_cmd_id . "FALSE protocol error [ reply type not valid ]\n";
 
 ##[ PROCESSING \ LOCAL COMMAND ]##############################################
 
@@ -686,13 +689,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 if ( $$reply{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
                     $$reply{'data'} =~ s|\n|\\n|go;
 
-                    $$output .= <[base.sprint_t]>->(    #  single line  #
+                    $output->$* .= <[base.sprint_t]>->(    #  single line  #
                         qw| ZTLA6BI |, $_cmd_id, uc( $reply->{'mode'} ),
-                        $reply->{'data'}                ##  <-- message  ##
+                        $reply->{'data'}                   ##  <-- message  ##
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
-                    $$output .= <[base.sprint_t]>->(    ##  SIZE template  ##
+                    $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| DFSFKQA |, $_cmd_id, length( $reply->{'data'} ),
                         $reply->{'data'}
                     );
@@ -716,7 +719,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             <[base.logt]>->( qw| IPWI3HI |, $id, $cmd );
         }
 
-        $$output .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
+        $output->$* .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
 
         return 0;    ##  command processing was complete  ##
     }
@@ -731,7 +734,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
         <[base.logs]>->( "outgoing: nexthop: '%s' command: '%s'", $1, $2 );
 
-        $$output .= "FALSE not implemented yet.,\n";
+        $output->$* .= "FALSE not implemented yet.,\n";
         return 0;    ##  command processing was complete  ##
 
         if ( exists $data{'user'}{$1}{'session'}
@@ -861,7 +864,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ 'FALSE' REPLY : CLIENT NOT PRESENT ]######################################
 
         if ( !@send_sids ) {    ## FALSE client not present ##
-            $$output .= <[base.sprint_t]>->( qw| FZJASRY |, $_cmd_id );
+            $output->$* .= <[base.sprint_t]>->( qw| FZJASRY |, $_cmd_id );
 
             my $llvl = $target_name eq qw| p7-log | ? 2 : 1;
             <[base.logt]>->(    ##  offline  ##
@@ -888,7 +891,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             }
 
           # if 'zenka'-mode session and not initialized allowing replies only.
-            $$output .= <[base.sprint_t]>->( qw| GBAMFKI |, $_cmd_id );
+            $output->$* .= <[base.sprint_t]>->( qw| GBAMFKI |, $_cmd_id );
             <[base.logt]>->(    #  session not initialized  #
                 0, qw| J3OAOPQ |, $id, $command_str, $target_name, $target_sid
             );
@@ -1023,7 +1026,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if ( $targets_denied == @send_sids ) {
 
             ##  no perm. .., ##
-            $$output .= <[base.sprint_t]>->( qw| 3KWYQCI |, $_cmd_id );
+            $output->$* .= <[base.sprint_t]>->( qw| 3KWYQCI |, $_cmd_id );
             <[base.logt]>->( qw| XY6BQLA |, $id, $user, $target_name, $cmd );
 
             return 0;    ##  command processing was complete  ##
@@ -1037,7 +1040,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
     } else {    ## command syntax not valid ##
 
-        $$output .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+        $output->$* .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
 
         <[base.logt]>->( qw| HTKSXIY |, $id, $cmd );    # protocol mismatch #
 
@@ -1047,12 +1050,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
     ## command does not exist ##
-    $$output .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
+    $output->$* .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
     <[base.logt]>->( qw| OZZAS3I |, $id, $user, $cmd );
 
 } else {    ## insufficient access permissions ##
 
-    $$output .= <[base.sprint_t]>->( qw| 2QWSHTY |, $_cmd_id, $cmd );
+    $output->$* .= <[base.sprint_t]>->( qw| 2QWSHTY |, $_cmd_id, $cmd );
 
     <[base.logt]>->( 0, qw| CQL5VPA |, $id, $user, $cmd ); ##  no perm. .., ##
 
@@ -1063,8 +1066,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ##  command processing was complete  ##
 
-#,,,.,...,,..,,.,,...,...,...,.,,,,.,,.,,,,.,,..,,...,...,..,,,..,...,,,.,,,,,
-#3QSMEHG4PLGBSW7CY5QTCCUVO5TQFC4RSXBIBGRNGU7ZJ3VTJADFQNGSUV7F25YDCTOF73FLZDHIO
-#\\\|Z7YH4FQCRXTLEHHYOUP5UNKUGF3TN2FFLH3DGZXJ4KPP5D3MGR7 \ / AMOS7 \ YOURUM ::
-#\[7]3N7QZZVV6GVOBUPMO323VWU66HMDTB6K4YBRISEA746RFA2SFIDA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,..,,,,.,,,.,.,,,.,,,,,,,,..,..,,...,...,..,,...,,,,,...,.,.,
+#B6JRRMWT7USCN2APQUGIUQR3RA5R4TLLKUKL3GBGUAKX6GQLQZJU4NOGSX72SX6VCGH3CVG4NQ5GW
+#\\\|AFHTFGIUO6D3P6WR4BESLUOBQOIUIDQTFJHWCUIRD7VQGXR65LK \ / AMOS7 \ YOURUM ::
+#\[7]DLJUALMHBTYRKU5C5BUBC6OSAKPYY645B6JT75IUUFYBWTFTVOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

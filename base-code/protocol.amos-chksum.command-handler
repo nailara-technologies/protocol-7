@@ -29,16 +29,16 @@ if ( defined $amos_ref ) {
 
     if ( $amos_ref->{'bytes-to-read'} > 0 ) {    ##  more imput data  ##
 
-        return 1 if not length($$input);         ##  <-- not expected  ##
+        return 1 if not length( $input->$* );    ##  <-- not expected  ##
 
-        my $buffer_len = length($$input);
+        my $buffer_len = length( $input->$* );
 
         my $read_size
             = $amos_ref->{'bytes-to-read'} < $buffer_len
             ? $amos_ref->{'bytes-to-read'}
             : $buffer_len;
 
-        my $buffer_str = substr( $$input, 0, $read_size, '' );
+        my $buffer_str = substr( $input->$*, 0, $read_size, '' );
 
         $amos_ref->{'bytes-to-read'} -= $read_size;
 
@@ -65,7 +65,7 @@ if ( defined $amos_ref ) {
 if ( defined $amos_ref and $amos_ref->{'bytes-to-read'} <= 0 ) {
 
     ## calc amos-chksum ##
-    $$output .= sprintf(
+    $output->$* .= sprintf(
         "%s\n",
         AMOS7::CHKSUM::amos_chksum(
             {   'elf_checksum' => $amos_ref->{'elf_checksum'},
@@ -90,7 +90,9 @@ my $peer_fh = $session->{'handle'};
 $session->{'amos-chksum'}
     //= { 'modes' => $AMOS7::CHKSUM::algorithm_set_up::elf_truth_modes };
 
-return 1 if $$input =~ s|^\s*\r?\n+||s or $$input !~ s|^([^\n]+)\r?\n+||s;
+return 1
+    if $input->$* =~ s|^\s*\r?\n+||s
+    or $input->$* !~ s|^([^\n]+)\r?\n+||s;
 
 ## : <mode> [<mode[s]>] : ## <-- modes syntax example
 if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
@@ -117,7 +119,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
         return 2;   ## disconnect [ without tainted or missing result string ]
     }
 
-    $$output .= sprintf( "%s\n", $chksum_str );
+    $output->$* .= sprintf( "%s\n", $chksum_str );
     return 1;       ## needs idle watcher mode ##
 
 } elsif ( $LAST_PAREN_MATCH =~ m|^(\S+)( +(.+))?$| ) {  ## protocol command ##
@@ -125,7 +127,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
     my $params      = ${^CAPTURE}[2];
     my $cmd_handler = "protocol.amos-chksum.ext-cmd.$command";
     if ( not defined $code{$cmd_handler} ) {
-        $$output .= "no such command\n";
+        $output->$* .= "no such command\n";
         return 0;
     } else {
         my $return_href = eval { $code{$cmd_handler}->( $id, $params ) };
@@ -137,7 +139,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
             } else {
                 warn '[amos-ext-cmd:$command] expected hash reference';
             }
-            $$output .= "[ error in command handler ]\n";
+            $output->$* .= "[ error in command handler ]\n";
             return 0;
         }
 
@@ -158,14 +160,14 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
             $session->{'bytes-to-read'} = $return_data;
 
         } elsif ( $mode eq qw| data | ) {
-            $$output .= $return_data;
+            $output->$* .= $return_data;
         } else {
-            $$output .= sprintf( "%s\n", $return_data );
+            $output->$* .= sprintf( "%s\n", $return_data );
         }
         return $return_code;
     }
 } else {
-    $$output .= sprintf( "protocol hint : %s\n",
+    $output->$* .= sprintf( "protocol hint : %s\n",
         'content to checksum requires 2 space indentation' );
 
     return 0;
@@ -181,8 +183,8 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
 return 0;
 
-#,,,.,.,.,..,,,,,,..,,,..,,..,,..,,.,,...,,..,..,,...,..,,.,,,.,.,,,,,...,.,,,
-#IBG4FFLRZIH6AJVBKC5ZWH4J4FXNRKWWBEKBOSHCJLBXCAYVQNIQEBBGDLQPPY4PQSSMDKQO3JT5I
-#\\\|RXKFSIVF62MRTZHIFFSW6NZ544TXDXACBDDQFOFH6XTIXOMANHN \ / AMOS7 \ YOURUM ::
-#\[7]VXKVNWYCUQQWYYBKFOSMG7OEG4C3VJMBFDAASAXAP3IPBAG3BEDY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,,..,,..,,,.,,,,,...,,,.,,,,,..,,...,...,,..,..,,.,,,,,,,,,.,
+#LYBIWUEBSDPLEH4ODALCFOGSX45UD7R3VCXKLJESO7GJNMU5Y6DZIA262JDBKD5SW4X72RP3VIABI
+#\\\|I4KW4O6BBHW3SUKM7ZHTBA5RUYAJG3PVON4N5EAQWUZ5KLJMSRQ \ / AMOS7 \ YOURUM ::
+#\[7]OHKDGCDEJ7OPERDVGBLOD3S6OH3UF44TJDPGKNBOLUUBNOK2ZUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
