@@ -7,7 +7,7 @@
 my $X_obj = <X-11.obj>;
 my $param = shift->{'args'} // '';
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected <mode> parameter :'
         . ' <left|right|normal|inverted>[-x|-y]'
     }
@@ -24,7 +24,7 @@ $mode = 8 if $param eq 'right';
 if ( not defined $mode ) {
     my $err_msg = "invalid mode '$param$mirror'";
     <[base.log]>->( 0, "<< rotate-screen : $err_msg >>" );
-    return { 'mode' => 'false', 'data' => $err_msg };
+    return { 'mode' => qw| false |, 'data' => $err_msg };
 }
 
 if ( !<X-11.has_randr> ) {
@@ -32,7 +32,7 @@ if ( !<X-11.has_randr> ) {
         1, "<< skipping rotate ['$param'] request [ RANDR required ] >>"
     );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'cannot rotate screen [ RANDR required ]'
     };
 }
@@ -43,7 +43,7 @@ $mode += 32 if $mirror eq 'y';
 my %screen_info = ( <X-11.obj>->RRGetScreenInfo( <X-11.obj>->root ) );
 
 my $old_mode = $screen_info{'rotation'};
-return { 'mode' => 'false', 'data' => 'orientation not changed' }
+return { 'mode' => qw| false |, 'data' => 'orientation not changed' }
     if $mode eq $old_mode;
 $mirror = "-$mirror" if length($mirror);
 <[base.log]>->( 0, "<< rotating screen to '$param$mirror'-mode >>" );
@@ -57,7 +57,7 @@ eval {
 if ($EVAL_ERROR) {
     my $err_msg = 'unable to rotate screen';
     <[base.log]>->( 0, " :. $err_msg .," );
-    return { 'mode' => 'false', 'data' => $err_msg };
+    return { 'mode' => qw| false |, 'data' => $err_msg };
 }
 
 ## strip 'mirrored' string ##
@@ -74,10 +74,10 @@ $mode     -= 16 while $mode > 16;
     and $mode + $old_mode != 5
     and $mode + $old_mode != 10;
 
-return { 'mode' => 'true', 'data' => 'screen rotated' }
+return { 'mode' => qw| true |, 'data' => 'screen rotated' }
 
-#,,.,,...,.,.,,,.,,,.,,..,,,,,.,.,.,.,,..,,,.,..,,...,...,.,,,,.,,..,,..,,...,
-#TT74A47XUV66LPBIGZFAWFX4FS3BGNDC7CCRPZ3WK6A23AJE3G3EPXSIV7AELQECXGVYGFYBY2K32
-#\\\|B2YVTEAXLKK7NOT7SCYTJ5UFL676PGXXPVKMSSQRIXOBR77SGJ4 \ / AMOS7 \ YOURUM ::
-#\[7]QHSJIBBHNVE4CHA24F5GTCXBCS4QBHQDZCLO5SCTKIW5KEP2BOBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,..,,,.,,.,,,,.,.,,,...,,.,,..,,...,...,,.,,,.,,.,,,...,.,.,
+#5GUH6GFIVZVAX4F367KIV4YJXHD3TAUZU4VZDIGZ53IMPX5H34IYZ375HEHSNIZ2NMET35AGNEPBK
+#\\\|RZWZNXP6SAW5GPDAWASNVBIEK5ZPKJSJSJORWFPT6QBUFZ3TC5R \ / AMOS7 \ YOURUM ::
+#\[7]MT2YOMPAVJ5BVUQJWPAHJGZ7IYKX4YB5FORGI5ENCL6HVLNP5YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

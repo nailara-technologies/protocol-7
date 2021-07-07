@@ -11,7 +11,7 @@ $err_msg = 'no read permission on file' if -f $file_path and !-r $file_path;
 $err_msg = 'no such file path exists'   if !-f $file_path;
 
 <[base.log]>->( 0, "[$sid] $err_msg [ $file_path ]" )
-    and return { 'mode' => 'false', 'data' => $err_msg }
+    and return { 'mode' => qw| false |, 'data' => $err_msg }
     if defined $err_msg;
 
 <ticker-gtk.content.chksum> //= '';
@@ -19,7 +19,7 @@ my $content_chksum = <[chk-sum.bmw.filesum]>->( 224, $file_path );
 
 if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
     <[base.log]>->( 2, "content unchanged, update skipped.," );
-    return { 'mode' => 'true', 'data' => 'source content unchanged' };
+    return { 'mode' => qw| true |, 'data' => 'source content unchanged' };
 }
 
 <ticker-gtk.content.chksum> = $content_chksum;
@@ -42,10 +42,10 @@ if ( $content_chksum eq <ticker-gtk.content.chksum> ) {
 
 <[ticker-gtk.start_animation]> if !<ticker-gtk.animation_started>;
 
-return { 'mode' => 'true', 'data' => 'ticker display content updated' }
+return { 'mode' => qw| true |, 'data' => 'ticker display content updated' }
 
-#,,..,.,.,..,,,..,,,.,..,,.,.,..,,,.,,,..,,,.,..,,...,...,.,.,,,.,,,.,.,.,.,,,
-#TJX3NHOG6C7CZ4VF2R5BVJXJKQSXLQDMHZY5BSGOUYX2767HAPLECFDNCQOOVSWGMZMQPKLCZKD3E
-#\\\|GQAYODTYT6EZAGVGBD3CP7GWFHCHUAHGZNLVV3XUGIF6WHKJ65H \ / AMOS7 \ YOURUM ::
-#\[7]G2XXASN4B2VXMLWWPOQHKUVN24MVIFBRIOODVKAXEDOCWPGWFEBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,,.,,,,,...,,..,,.,,,.,,,,,,..,,...,..,,...,..,,.,.,.,,,...,
+#TCMDH5PGPP4J43CIA72TWB2CP7PLVWKJDGBGTBXKMZCCTGWV3GZSAQRZVBZ6I2N3YZFA3GKEZKNU4
+#\\\|X7HPIPTZ5IKYJDCPI34AQ4GNEK77BMXCGJBQLZBVD4PRAT64MQA \ / AMOS7 \ YOURUM ::
+#\[7]TZERPS54NI33BPMQIRJJM2RV6NIXSVNXEF6YJTET3TPEODFAQIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

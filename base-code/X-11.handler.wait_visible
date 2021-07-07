@@ -24,7 +24,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
         <[X-11.cancel_wait_visible_timers]>->($wait_req);
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'false',
+            {   'mode' => qw| false |,
                 'data' => 'window disappeared'
             }
         );
@@ -38,7 +38,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
 #      <[X-11.cancel_wait_visible_timers]>->($wait_req);
 #      <[base.callback.cmd_reply]>->(
 #          $reply_id,
-#          {   'mode' => 'false',
+#          {   'mode' => qw| false |,
 #              'data' => 'lost connection to x-server'
 #          }
 #      );
@@ -53,7 +53,7 @@ if ( length( $match_id // '' ) ) {
 
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'true',
+        {   'mode' => qw| true |,
             'data' => $match_id
         }
     );
@@ -63,8 +63,8 @@ if ( length( $match_id // '' ) ) {
     return 1;
 }
 
-#,,..,..,,,,.,,.,,..,,,,.,,.,,,,.,,..,..,,,,.,..,,...,...,...,,,.,.,,,,,.,,.,,
-#2MYW43IQHCB66QVO3Z3PKJU7IIFNQRXLVMVUMRFLAAKMBA4L6R3FXNQVQYZLS4WZOHT3OJXWK73ZC
-#\\\|4LYDW7VK5FNJ77NY42NLVQDTO64NDOZPPRZ6HNHYVZUQ2CLRJKD \ / AMOS7 \ YOURUM ::
-#\[7]KJDIZYLFOTIE7ZGGQJ6NITVGOI3WJ3LKHTVK77VN7JG7JIBQA4BA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,.,,,.,,,,,.,,,,,,.,,,.,,.,.,..,,...,..,,...,.,.,,,.,.,.,,,.,
+#MQ75UPQR7LW43ETK7W4LQJASVPK5Y3B6DSIDEYPJEI3NOBFV6DWKCF73BPVD6T33JXICQB7GDIR7W
+#\\\|FDJ36BV5NUUV5FMFMC4CU7OA3T7ZUQMMW4IXER6PPGBSYL4IWXB \ / AMOS7 \ YOURUM ::
+#\[7]L4D6CAVO7V4SJETSVAUPVVKUIWPRNN2TLP2UDDKWJUGX73ENYCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

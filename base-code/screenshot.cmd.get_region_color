@@ -5,7 +5,10 @@
 # descr = return average color for given region
 
 my $param_str = shift->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected valid region coordinates' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected valid region coordinates'
+    }
     if $param_str !~ /^(\d+ +){3}\d+$/;
 my @coords = ( split( / +/, $param_str ) );
 
@@ -19,17 +22,17 @@ my @RGB     = <[screenshot.pixel_color]>->( $img, 0, 0 );
 my $err_str = shift @RGB if @RGB == 1;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "unable to acquire region color [ $err_str ]"
     }
     if defined $err_str;
 
 pop(@RGB);    # removing alpha
 
-return { 'mode' => 'true', 'data' => sprintf( '#%02X%02X%02X', @RGB ) };
+return { 'mode' => qw| true |, 'data' => sprintf( '#%02X%02X%02X', @RGB ) };
 
-#,,..,,,.,.,,,,,.,,,.,..,,...,.,,,,,.,.,.,,,.,..,,...,...,,..,,..,,..,...,..,,
-#YDL5XQRGVKWDBECBAYY2JPCZTDYAD4TQ6Q2A2WVKKKHIYLTZG3PXHNPXF2DO2NF2JRKTTY3BEMWD2
-#\\\|5HT6VT2RQHBL2ZEYNEGUBJYMXXH6XID3E6BVZD25WJPVYQK7J7I \ / AMOS7 \ YOURUM ::
-#\[7]GIUVET56KBVGN4642HGN75BEVOQHHJD4RFJD3XUKFJ7DDVE3TGAY 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,,,,,...,,.,,,,.,.,.,,,.,,..,..,,...,...,.,.,.,.,..,,...,.,,,
+#M75Q5ASVVCF55J7D2EHF4C5VTAVJIQHZ3ZT4KAZBV7QQOB7SNIK76I3YM5SHFZGNGR3NUQR6H2LSI
+#\\\|7DZ4ZY3YFUAUPX3CNZCJ7R6IF2JOJE263KLZYUDIV7QTNEMC2EG \ / AMOS7 \ YOURUM ::
+#\[7]NGVEOITDE6OGI5JCJGOFHVNTRZ4GQQCPRFWDM2R3WZXOC6ABUMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

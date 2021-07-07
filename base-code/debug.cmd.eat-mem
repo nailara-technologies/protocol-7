@@ -7,7 +7,7 @@
 <debug.allow_eat_mem_cmd> //= 0;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'this command must be specificly enabled'
         . ' [ set debug.allow_eat_mem_cmd 1 ]'
     }
@@ -15,14 +15,14 @@ return {
 
 my $amount = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'ammount required' }
+return { 'mode' => qw| false |, 'data' => 'ammount required' }
     if not defined $amount;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'memory ammount format not understood'
     }
     if $amount !~ /^(\d+(\.\d+)?)([mg])?$/io;
-return { 'mode' => 'false', 'data' => 'nothing to allocate' } if !$amount;
+return { 'mode' => qw| false |, 'data' => 'nothing to allocate' } if !$amount;
 
 my $value = $1;
 my $unit  = lc($3);
@@ -34,12 +34,12 @@ $value = sprintf( '%.0f', $value );
 <debug.eaten_memory> .= '7' x $value;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "allocated $value bytes [ free-mem to return it ]"
     }
 
-#,,,.,.,,,,,.,,.,,...,,,,,..,,,,.,,.,,,.,,.,.,..,,...,...,.,,,,,.,,.,,.,.,.,,,
-#DDUXUM4NX76Y4GCGDILWBC5HLS6J7SR7PA5DGSUNYALACN3OI2JI32PVAKVBDMM43D7AYBLNLRGCY
-#\\\|3ERVHAFMLVYW3SVI63MYZHOFPEVGB3HMTLD6YFTU66I4V6SUGR5 \ / AMOS7 \ YOURUM ::
-#\[7]CNYCHLARRXYD3IN26FN3PQRA4QB6XI7RD2W3T4J6436IZ6FYUUBQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,..,,,..,..,,..,,,.,,..,,,..,..,,...,.,,,...,.,,,..,,,.,,,,,,
+#SWBI3STWCQRVZDJOHEGESJB4SCONQXWFAPWYRK5XO5NHL6F62T4IE6NFAPP5G7TD2JBJWXNTHP4AK
+#\\\|X6N4732CTMHOY7FI7OEFWPBNZJFANYNDMYGTL7EDFJKBV7JMMX3 \ / AMOS7 \ YOURUM ::
+#\[7]J7CXUFCB7KH7P62ZTGLSL6MLEJ2PPFOEGHFZCMUSXJWBMOQLY2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

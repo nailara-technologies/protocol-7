@@ -10,7 +10,7 @@ my $uname_re = <regex.base.usr_str>;
 if ( $cube_user =~ m|^$hostname.($uname_re)$| ) { $cube_user = $1 }
 else {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "only '$hostname' users can invoke this command."
     };
 }
@@ -35,10 +35,10 @@ if ( defined <system.timer.host_reboot> ) {
 
 <[base.log]>->( 0, $log_message );
 
-return { 'mode' => 'true', 'data' => $reply_message }
+return { 'mode' => qw| true |, 'data' => $reply_message }
 
-#,,,.,,.,,.,,,,.,,,..,...,...,,,.,..,,,.,,,.,,..,,...,...,.,,,,..,,,.,,,,,..,,
-#QLRVLOWMC4I3M5UTXPUEXFNYCGRONCNZYMKIEHY2473QABNAE4434H7AQ6WTMLVIET6TF6TIFC6V4
-#\\\|NPO3ELBHCULDISFLCKYXVFYALPU7SLWS4LADOXACT4IYYPT7XZJ \ / AMOS7 \ YOURUM ::
-#\[7]VYOA3Q6X5TNFQVR7GTFJBEQN6XQOAUJALLIFGUFPNJKPXAS32MAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,...,...,..,,,.,,,,.,...,...,..,,...,..,,.,.,...,,.,,.,,,,,,,
+#PSE2F2APZPDFWVI5WDKCKGE3C3U7O3QRMSX6OPUAOPNGJ73KVMPZPBXLCGDF3TEHNLMS7IUR57AQG
+#\\\|T5MO3NDFSCA32V5ARKXWJNTYUB2F22CPX3T7FHPJYSOVP67Z4GZ \ / AMOS7 \ YOURUM ::
+#\[7]JZXAEPNDS7SKN6NTMOB6AJHQ6FJBGBK22OXQJVVAQ4FJ4COLVUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

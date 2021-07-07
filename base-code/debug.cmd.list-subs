@@ -20,7 +20,7 @@ eval { $pattern_re = qr|$pattern| };
 if ($EVAL_ERROR) {
     ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "regular expression '$pattern' not valid [ \l$reason ]"
     };
 }
@@ -28,7 +28,7 @@ if ($EVAL_ERROR) {
 my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no loaded zenka-subroutine matches '$pattern'"
     }
     if !@sub_list;
@@ -39,8 +39,8 @@ return {
         . join( "\n", @sub_list ) . "\n\n"
     }
 
-#,,..,.,,,...,..,,,,.,..,,.,.,,,,,,,.,,,,,..,,..,,...,...,...,,.,,...,,.,,.,.,
-#Z3AQKA6ZYKTHDXIJ52QOGEZ6XGRKORX3TQ6WLKPDQQMEBX5P33M5LQHJCKNJ5X7V2LZWSYSDACJT4
-#\\\|J5VEGWTXPCGZ3SQNYKFGBKREEQNFMCTTJZAZ42BC3Z7C733AD3T \ / AMOS7 \ YOURUM ::
-#\[7]IKO7CP3SOAIPUTHK7FOQHVBG6M3RGTYZ75TF6VL4FBDTPEXOP4AI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,,.,..,,.,.,..,,..,,...,.,,,..,,...,...,.,.,.,,,...,,..,,,,,
+#D2BEJXPTWAXK4ORZZA5GHRF3LA5X4M4ZTCEGYBQFALMSSS54BICW7EGTIN5NCESKIHWD47POYPHLQ
+#\\\|K6UHPI6BGTB4G3AW7WUIYTTT2FTI7LRXKXICR2QH6OIX65QMION \ / AMOS7 \ YOURUM ::
+#\[7]FB7OC24A5U7ZAJVK24JOLQQCIPIIDIF3FGZPJ4JWHEEJWLKV3SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

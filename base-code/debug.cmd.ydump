@@ -9,7 +9,7 @@ my $keyword = $$call{'args'} // '';
 if ( length($keyword) and not eval {qr{$keyword}} ) {
     ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "expected a valid pattern .:[ $regex_err in regex ]::"
     };
 } elsif ( length($keyword) ) {
@@ -19,7 +19,7 @@ if ( length($keyword) and not eval {qr{$keyword}} ) {
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "failed to resolve key '$keyword'"
     }
     if !length( ref($d_ref) );
@@ -31,8 +31,8 @@ $reply = {
         . "\n#:Y::.\n"
 };
 
-#,,..,.,,,..,,...,,,.,..,,,,.,,..,,..,..,,..,,..,,...,..,,,,.,,..,,.,,.,,,.,,,
-#PICS6TNEFXCK2E3BOFU6TXMOCTRPVPOVJRGMTVLX5TOETZPXTZJTIZU27MQ2LTEO5YWXEJRHXBLJ2
-#\\\|SD2T5Y4S47IOSHMZI4W24IFLX5336JCL2F46N5FYRHYBEHABNRP \ / AMOS7 \ YOURUM ::
-#\[7]6KSVIQO7B2LEP2FAODFKKV3KPRS37VIVUQ5F6DXQW4OHU7ICNGDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,,.,,.,,...,,,.,...,...,,.,,..,,...,...,.,.,...,...,,,,,,.,,
+#Z335X5DZCWY7TOOAGBZXHWJIMXQTMDKGVOHGAQZJJ5XAN6XMBBOAI6IBHBTGAQ6TVGFZ6B4JT6EVO
+#\\\|CNQ76NHVNBQOZWFRCIVCQGWEXKHSHBCFCJG4SB5ZR4WA4ZQPR4T \ / AMOS7 \ YOURUM ::
+#\[7]3TTLEOBIWWZZW7GQLZUEOSBEIDXCT5FODTAR4W4G3WE7JFXHEUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,10 +5,10 @@
 
 my $new_subname = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'subname parameter expected' }
+return { 'mode' => qw| false |, 'data' => 'subname parameter expected' }
     if not defined $new_subname or !length($new_subname);
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'subnames identical - no changes'
     }
     if defined <system.zenka.subname>
@@ -20,10 +20,13 @@ return {
 
 <[mpv.cmd.reload_playlist]>;    # fetching entries for new subname / tile_name
 
-return { 'mode' => 'true', 'data' => 'subname changed, playlist reloaded' }
+return {
+    'mode' => qw| true |,
+    'data' => 'subname changed, playlist reloaded'
+    }
 
-#,,,,,..,,.,.,,,,,,.,,..,,,,.,..,,.,.,,.,,...,..,,...,...,,,,,.,,,,,.,,,.,,,.,
-#JZMO2M3VVKSAUB34YLLL7SV7FZAW3ZWHR257DQUBGNN2VOGD2NCNQFKWVCQMBXPMV5PSJ3S7SCSWI
-#\\\|WXXBTBFM3VZIR54DNO4TBTZ5TCQCIWD3YI7JWVVD5ILH5Q4RWHP \ / AMOS7 \ YOURUM ::
-#\[7]QZHN5RGNOM7WZQQASWTECPUD34HOTWNAPEEYJNNY72WZLB65AWDA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,...,..,,.,,,..,,.,,,.,.,.,.,..,,...,...,,,.,.,.,.,.,,.,,,,,,
+#FPHSFCAYKIN3GXVKSMEGOID2BHH7O6MT664KPRS2ULN3J7PWZGIYTBV2UPNAZN5E3FNRSHH5NO2MY
+#\\\|TRFXMWNPWG4VBIOFADWHAZX3IJQDB57HFGO5UPCWAKVOQYPB2TC \ / AMOS7 \ YOURUM ::
+#\[7]G2YK5INIFN3GVRNP5G7AFSSYA4LTUL2VL2HVQRBUNH3ZEOIJWWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

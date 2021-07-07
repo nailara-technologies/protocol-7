@@ -12,12 +12,12 @@ my $by_id  = <nodes.group.by-id> //= {};
 
 $regex_str //= "^$grp_name-";
 
-return { 'mode' => 'false', 'data' => 'group name required' }
+return { 'mode' => qw| false |, 'data' => 'group name required' }
     if not defined $grp_name;
-return { 'mode' => 'false', 'data' => 'group account already exists' }
+return { 'mode' => qw| false |, 'data' => 'group account already exists' }
     if exists $groups->{$grp_name};
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => sprintf( "regex already in use ['%s']", $gregex->{$regex_str} )
     }
     if exists $gregex->{$regex_str};
@@ -25,7 +25,7 @@ return {
 my $regex_qr;
 eval { $regex_qr = qr|^$regex_str| };
 
-return { 'mode' => 'false', 'data' => "regex invalid [ $EVAL_ERROR ]" }
+return { 'mode' => qw| false |, 'data' => "regex invalid [ $EVAL_ERROR ]" }
     if $EVAL_ERROR and $EVAL_ERROR =~ s| at .+$||;
 
 my $grp_id = <[base.list.element.add]>->(
@@ -37,20 +37,23 @@ my $grp_id = <[base.list.element.add]>->(
     }
 );
 
-return { 'mode' => 'false', 'data' => "no success adding group user `>:|" }
+return {
+    'mode' => qw| false |,
+    'data' => "no success adding group user `>:|"
+    }
     if not defined $grp_id;
 
 $groups->{$grp_name}  = $grp_id;
 $gregex->{$regex_str} = $grp_name;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "'$grp_name' group added, matches m'$regex_str'"
         . " [ grp-id : $grp_id ]"
     }
 
-#,,,.,.,.,,..,.,.,,..,,,,,..,,,.,,,,,,.,,,...,..,,...,...,.,,,...,,,.,.,,,,..,
-#64LWGR4WV4IFQ6XZUNMAQJNLO6GSOKYKBHWBYZ5GUC52EUVSVXCILGPQEDQCK2ATYUU3CIKQ3WQ7Y
-#\\\|44JW4E7UIMQPEL4WNYFPBKXAKZHTDCDO4QSZHXW4PWBDEF5OFDF \ / AMOS7 \ YOURUM ::
-#\[7]HVEU4OUQ6U5FGNHW5NOPRPTSYGT2GYPH3TQ6NJ4S7QX6T2FNDUDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,.,.,..,,,,,,,.,,.,,,,.,,,,,,..,,...,.,.,.,.,..,,,..,.,,,.,,,
+#CHF37DY5B6XKEL6MTLWEWUKOJI7AZW7Z427HLEYFQUIWFZV5DMKKRABYOBUQOZAOI42NDUIHSU2HG
+#\\\|RLWAYX2PSIKZBMBTZIVZ7SAYJ6BPMB4W7FUD4BJATHKPY3MLUVQ \ / AMOS7 \ YOURUM ::
+#\[7]SKTW6WPBYWQW4B4SGTK72FA5A2OPZY7N62ZRDLBL7A7N6IQPRCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

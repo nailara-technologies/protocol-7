@@ -7,20 +7,20 @@
 my $event_id = $$call{'args'} // '';
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'numerical <event_id> parameter expected!'
     }
     if $event_id !~ /^\d+$/;
 
-return { 'mode' => 'false', 'data' => 'no such event configured' }
+return { 'mode' => qw| false |, 'data' => 'no such event configured' }
     if not exists <events.timers>->{$event_id}->{'at'};
 
 <events.timers>->{$event_id}->{'at'}->now;
 
-return { 'mode' => 'true', 'data' => 'event timer triggered' }
+return { 'mode' => qw| true |, 'data' => 'event timer triggered' }
 
-#,,..,,.,,,..,.,,,,,,,,..,,.,,.,.,...,...,,,,,..,,...,...,,..,...,,,.,,..,,,,,
-#HEXQT4OYZO4X5C5SCST4TKGC7P2OZ343RB37TQKPJNRJ7L2BLACPBXEDKYLICQOZP3CR4QW6O4VNC
-#\\\|VC5SDQGTCQC32OXHF6FHCTCNH4GBX57LL6Y7PGBYSOXX5ZPJVVE \ / AMOS7 \ YOURUM ::
-#\[7]LZCO7P2XKAOWJSJ3Z3N7HRCOXY4UN73TFWP4I3RZSUJLCW543OCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,.,.,,,.,...,.,,,,,.,.,,,,..,.,,,..,,...,...,.,.,.,.,,,,,.,,,,,,,
+#ZAMCECMKDRH4CKVVIXCPBORBNHVQ7XEMCVCZG2GJM4AJI5NEVUTWNFMPGROGIH7CVAIM672FKX53S
+#\\\|QX7TJCPQ5MZJIOE7QUKF6IF2DEVUUSXR57AEAS267DOERKPOUDM \ / AMOS7 \ YOURUM ::
+#\[7]D5A6OTTBCPYL62RJAEM4LPPU52PSJXICFGPBOODVQYRSWGDV2IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

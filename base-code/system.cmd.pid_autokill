@@ -11,13 +11,13 @@ my $hostname    = <system.host.hostname>;
 $log_usr =~ s|^$hostname.||;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'you need to supply a process id'
     }
     if !length($process_id);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'found no such process'
     }
     if not exists <process.table.top>->{$process_id};
@@ -31,12 +31,12 @@ $log_message //= "terminating process [PID:$process_id] (requested)";
 <[system.process.autokill]>->( $process_id, $log_message );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "terminating pid $process_id .., [ if present ]"
     }
 
-#,,,,,.,,,,,,,,,,,,,,,,.,,...,.,,,...,,,,,.,.,..,,...,..,,.,.,.,,,...,,.,,...,
-#YEZMB6ELIGNMGKOQBCINC6A5WFDAWDLMAYIZGKDJ6D7IY4WS4IMH4LLH5BNSQZLQP5NQQLCPCCCVK
-#\\\|P4E3T4X75IEXS4CAGCTA7MHJTO3MVJ6HJX7NCEMV4C33CXN7NWN \ / AMOS7 \ YOURUM ::
-#\[7]MJCITKHIHTKILAPDYEOOQ5NDZPOW7SV4RQNUGQBBL4NI3DFWU4CY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,.,.,,..,,.,,,..,...,..,,,.,,..,,...,...,,,,,.,,,,..,,.,,..,,
+#NI5XD7FRXC3DGT7GMUAF4N2DGEXYHNX74LP55FJCRJKDB25IQB2CDJEOSQ7YBMXV4QELQ5CYFJKIK
+#\\\|LL4TL2EVNTHMLQW6RDPZFMSTAVLOUGDDBC2SELASXCBEQGUIAUZ \ / AMOS7 \ YOURUM ::
+#\[7]C2DA7PEEYGBGXCNP62EF67DJANY36IAHASM35XF2AAKMXHMQ6GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

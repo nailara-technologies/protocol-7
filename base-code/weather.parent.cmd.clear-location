@@ -7,12 +7,12 @@ my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "cache directory '$cache_dir' not found."
     }
     if !-d $cache_dir;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'location parameter was not configured'
     }
     if !-f $city_file;
@@ -20,12 +20,12 @@ return {
 unlink($city_file) or warn("error during unlink($city_file): $1");
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => 'erased location parameter from disk cache'
     }
 
-#,,,.,..,,,.,,,,.,.,,,.,.,.,.,,..,..,,.,,,...,..,,...,..,,,,.,.,,,..,,,,,,.,.,
-#D2F4Z3VNCF47PL2WWG6SZVVC5PYTUH6KOYUOETFG4RJ2ZIOFVAGGPCEHMWDBSOK4XTWWJTVB65YGW
-#\\\|CJRT2RNMXSHGEGV4FXX7SXXZCJ7TLRANL63CWSLJJLK2XM4KTKR \ / AMOS7 \ YOURUM ::
-#\[7]XRNKSAE2MQYCGLAJAOQ77YZRFDBGNK7T7FJ2O6XGCDIDODCG6SDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,.,,,,,.,..,,.,.,,,.,..,,,,,,..,,...,...,..,,.,,,...,.,.,...,
+#7CLGDQMO2LYH3OYSEWADXW2VQRTFD5XW5NL4MEB2MDNRBJFL5AAGXJZBHV2XUHZSTESE2TXD6KGAM
+#\\\|JK4H3FFDAQ6ZDXOQDVH3W7IRUC34VAZ5I4VRKIPZDNIGT5K65IR \ / AMOS7 \ YOURUM ::
+#\[7]BLTUUGWIBNLZIK5K7DF3IZGCJ7XJI67U5UQDKJGS72WOEA5KIUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

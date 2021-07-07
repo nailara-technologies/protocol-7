@@ -7,33 +7,33 @@
 my $del_keystr = $$call{'args'};
 my $cid        = $$call{'session_id'};
 
-return { 'mode' => 'false', 'data' => 'no key specified' }
+return { 'mode' => qw| false |, 'data' => 'no key specified' }
     if not defined $del_keystr or !length($del_keystr);
 
 my @result = <[base.validate.data_key_syntax]>->($del_keystr);
-return { 'mode' => 'false', 'data' => $result[1] } if not $result[0];
+return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
 
 my $del_keystr_ref = <[base.resolve_key]>->($del_keystr);
 if ( not defined $del_keystr_ref ) {
     <[base.logs]>->( 0, "[%d] del: no such key ['%s']", $cid, $del_keystr );
-    return { 'mode' => 'false', 'data' => 'no such key' };
+    return { 'mode' => qw| false |, 'data' => 'no such key' };
 }
 
 <[base.del_key]>->($del_keystr);
 
 if ( not defined <[base.resolve_key]>->($del_keystr) ) {
     <[base.logs]>->( "[%d] del: key '%s' deleted", $cid, $del_keystr );
-    return { 'mode' => 'true', 'data' => qw| deleted | };
+    return { 'mode' => qw| true |, 'data' => qw| deleted | };
 } else {
     <[base.logs]>->(
         0,    "[%s] del key : could not delete data key '%s'",
         $cid, $del_keystr
     );
-    return { 'mode' => 'false', 'data' => 'not successful' };
+    return { 'mode' => qw| false |, 'data' => 'not successful' };
 }
 
-#,,,.,..,,...,...,...,...,,,,,.,.,..,,,,,,.,.,..,,...,...,,.,,,.,,,..,,.,,,,,,
-#TZNYPM4MPZYF42LNH6YWFIB34V4R3ONMFOLZNQO3C5RRZ4BP3E4OBFRUUJ57D3RC2B75XZZSR3W5E
-#\\\|EYLIOGBRGEUMJ75ZLZ22ISUDMV32HWYFJCRKKGLRHPHOKCFQZII \ / AMOS7 \ YOURUM ::
-#\[7]ML7Y5DTYHOJBDTVNAN4BG747HWP7IYWF6VAIDKPXXNPP37IQMQAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,,.,,,.,,,,.,...,,,.,,.,,,,,,..,,...,..,,...,,..,...,,,.,,.,,
+#VDIWGEDSUU46SBGDX67PQRKYZQYZVGQIW6KRUJQMO3Z42ZR4MFD7F3H7A4DUKU45WUMK5N4GWVGIG
+#\\\|JZ36AVDZFWYQXXRTCKPFMGHXU2WK62PH6P2TYPAI3F7L2QBJSHM \ / AMOS7 \ YOURUM ::
+#\[7]2XTCKSNFTFQH6PAR3L2MZXU2ZNBTIEO7JJ5M3R6IL3NJSBR7CADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

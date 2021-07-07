@@ -8,45 +8,45 @@ my $param = $$call{'args'};
 
 if ( not defined $param ) {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => <[base.parser.timestamp]>->('time')
     };
 } elsif ( $param eq 'date' ) {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => <[base.parser.timestamp]>->('date')
     };
 } elsif ( $param eq 'zone' ) {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => <[base.timezone]>
     };
 } elsif ( $param eq 'unix' ) {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => time()
     };
 } elsif ( $param =~ /^unix\.(\d+)$/ ) {    # LLL: consider access control?
     my $float = $1;
     my $limit = 22;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "current float precision limit is $limit"
         }
         if $float > $limit;
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => <[base.time]>->($float)
     };
 } else {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "invalid parameter '$param'.. [date|unix[.<n>]]"
     };
 }
 
-#,,,.,,..,.,,,,,,,,.,,.,,,,..,..,,,,.,,,.,,,,,..,,...,...,,.,,.,,,,.,,..,,.,.,
-#3RAGH3WPCKBLUSFQPLZNKQLISQSRXJ3BGY5XUUP3JBTZFRT42QMIHEURRAJBAJHF4LYJIVY333QOI
-#\\\|OESVQSZDGQET6SAILQ2H3G7AAADADWUD4YL4LP6PMUQMNOLQXJW \ / AMOS7 \ YOURUM ::
-#\[7]XZ4C5GXCYO2NDIORFSZEVU5RKGRDP74KFXUK2D565SJET7FQUEBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,,,,,,,,,,,,,,,.,.,.,..,,,,.,..,,...,...,..,,,,,,.,.,..,,.,,,
+#VENC4SB3XLLKTPWKSEWKYGLLFWNERYFO32M64KPKZOWZMUEZRHBUR6M67AHCSFYDHLLYWKY53MLMO
+#\\\|ELDJPJSKDC2UJQ57UXJOI5MSTFTH4TOQVUYFCFXKGJUB2JYLGTM \ / AMOS7 \ YOURUM ::
+#\[7]SH4JMEF6AGIAWOQ6JWAM6SA4LHS6MA4DVVEUKAXT5KYJEVRTI4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

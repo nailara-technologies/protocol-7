@@ -7,7 +7,10 @@
 my $s_id  = $call->{'session_id'};
 my $entry = $call->{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'expected content entry parameter' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected content entry parameter'
+    }
     if not length($entry);
 
 if (    $entry !~ m|^(\w+)://|
@@ -15,7 +18,7 @@ if (    $entry !~ m|^(\w+)://|
     and ( !-e $entry or !-r $entry ) ) {
     my $reason_str = !-r $entry ? "denied access" : "not found";
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "cannot add entry [ $reason_str ]"
     };
 }
@@ -31,10 +34,10 @@ push( @{ <content.file_list> //= [] }, $entry );
     }
 );
 
-return { 'mode' => 'true', 'data' => 'appending entry' }
+return { 'mode' => qw| true |, 'data' => 'appending entry' }
 
-#,,.,,,,.,,,,,,,.,...,.,,,,.,,..,,,,,,,,.,,,,,..,,...,...,..,,.,.,,,,,,,,,.,.,
-#O4Q4JTPUA7ABZA3DCLM4L2OZ6SDG75POO3F3MQQJOYMY6JE6YOFLGBVKLW5I2ZAT5XTCLG3AEGVJI
-#\\\|Y5OBWWQ7XMAVOE5NXBDCMA4PADLVUUHDAUKUMD7LNULG2BUG64U \ / AMOS7 \ YOURUM ::
-#\[7]E6RYDO7UKCUE4CSWE3TBQMVKHU6GDSABLDUJ2B5LFT7J77X6QMCA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,,.,..,,,,,,...,...,,.,,,,,,..,,...,...,.,.,,..,,,,,,.,,.,,,
+#5YIX3C7KJVTU3QX2DZMA4K5IJTB5RY4M7EFIQWHDOJCMNYYRPXALHOO437OAVSCVTA7LWWR3BNJHW
+#\\\|WF2J2M77DVRKXTEUHIJGKX7CCDYJ23IEZ7WR2T67SK4TLDIYVQ3 \ / AMOS7 \ YOURUM ::
+#\[7]NF7YTDRH4H2AL5UTMMMZVXPMN446UJG34ODXHMSMUR4OHK5Z6WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

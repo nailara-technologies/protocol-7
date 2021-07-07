@@ -7,18 +7,21 @@
 my $device_id = $$call{'args'} // '';
 <power.cfg.devices> //= {};
 
-return { 'mode' => 'false', 'data' => 'expected device id' }
+return { 'mode' => qw| false |, 'data' => 'expected device id' }
     if !length($device_id);
-return { 'mode' => 'false', 'data' => "device '$device_id' does not exist" }
+return {
+    'mode' => qw| false |,
+    'data' => "device '$device_id' does not exist"
+    }
     if not exists <power.cfg.devices>->{$device_id};
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => <power.cfg.devices>->{$device_id}->{'ip'}
 };
 
-#,,,.,.,.,,.,,,,,,,.,,,,,,..,,...,,,.,,..,,,.,..,,...,..,,.,,,,..,,,,,,,,,,,.,
-#FS4O3XHWPSXDQGMUBOXC53U47MNXRQVS7FIEMJP4D6NCJXLEOJSTNU5VAN772MTUW22OPDRN237GC
-#\\\|3LVDD5NGCRMFY5TA432BC4LJIP2VW5D3ARCQOURGKQGGT3HYI4H \ / AMOS7 \ YOURUM ::
-#\[7]H6RWI54C3DRT3TCPSC65QBQ4AH6W5IX5IKD5VSVZ7ASYPUQ6WGDI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,,,,..,,..,,.,,,,,,,,.,,,,,,,.,..,,...,...,,,.,,.,,,,.,,,.,...,
+#L3AV6CKNTERPDCZGGMOYLNCCHI3GFPVW6U76UN6QSEB5WN3ENPBAMGPSRRQ2IUGTKQL6W3SOZEVKS
+#\\\|7GHVT2BTQOTKD5XJ6BCBVGU3SBAFH6ZK27ZNT5ILEUY7H4OKOAE \ / AMOS7 \ YOURUM ::
+#\[7]54OBB663CPWGUHAMXP25LAOOCHVL6FXGHUB63G5CTZ6NR2S252AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

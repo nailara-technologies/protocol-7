@@ -3,11 +3,11 @@
 # name  = events.cmd.show-enabled
 # descr = list events enabled in set-up
 
-return { 'mode' => 'false', 'data' => 'no events configured' }
+return { 'mode' => qw| false |, 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
     or !keys %{<events.unix.timetable>};
 
-return { 'mode' => 'false', 'data' => 'no events are enabled' }
+return { 'mode' => qw| false |, 'data' => 'no events are enabled' }
     if not defined <events.enabled>
     or !keys %{<events.enabled>};
 
@@ -18,8 +18,8 @@ return {
     'data' => join( '', map {": enabled : $ARG\n"} @enabled_events )
     }
 
-#,,..,..,,..,,.,,,,,,,,.,,,,,,,,,,.,.,...,,,,,..,,...,..,,.,.,,,,,,..,,,,,.,.,
-#BARQWETAZMPEI2PFSFNONCGSRSK4HL5EW2CPHDIVZMLKF4KLTEFJRP5ZL4LFOA6Z4HKVOQ6Y73JES
-#\\\|SQSJMVKQWRKCE6KMHR3GJSSTPF2ZRQSNNRTS3DFHA7BVK4AYMWI \ / AMOS7 \ YOURUM ::
-#\[7]FFQJ5AB22U2K7FGUJAWUIHLQEZJVDJRG2Z3R37EN6ILIMOWYRODY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,..,,.,.,.,,,.,.,,..,,..,.,,,..,,...,.,,,...,,,,,,.,,.,.,,,.,
+#HH7MHDAQDXPZHJW3IXDJON44RXLBVQ5OJL56GCOYE4JOVSUXBTOJLIWWZAXVDTWZ7YRJOF52L5BN6
+#\\\|T35EUNMQA2AMOWFN4UE5OEZQEFQIG732L2KNASQXYTINV63QUVK \ / AMOS7 \ YOURUM ::
+#\[7]TFOF3Y7YYEO5RHK5KRVU33MQKVBG323QBFWGQKLTF7P5RFQSFGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

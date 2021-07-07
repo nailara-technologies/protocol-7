@@ -10,7 +10,7 @@ my $property = delete <mpv.request.property>->{$reply_id} // 'unknown';
 if ( length($cmd_reply_str) ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'true',
+        {   'mode' => qw| true |,
             'data' => $cmd_reply_str
         }
     );
@@ -18,14 +18,14 @@ if ( length($cmd_reply_str) ) {
     <[base.log]>->( 2, "<< empty reply from mpv pipe >> [prop:'$property']" );
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => "undefined"
         }
     );
 }
 
-#,,,.,..,,,.,,,..,,,,,,..,.,,,...,,,,,,,,,,,.,..,,...,...,,..,.,.,,,,,,.,,,..,
-#6SB62DEDILJ7NFHNZTZZUD726KGTIILA2LOFS26VS2HULY5YLQUTAW26CQLGDT7INQRZKCVNJ4AWK
-#\\\|P6YD4C6BACVF2ZVQ56WNZJBLVEQ62K6IIRBBJSXDFMM5AS6HT27 \ / AMOS7 \ YOURUM ::
-#\[7]3IZLNJWXVMHBJQYNI3XAWJGJDBWZBGH6DIN75DEOWR53WIB3AUAI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,...,.,,,,..,..,,.,.,.,,,,,,,..,,...,...,...,,,,,,.,,,.,,.,,,
+#DZXB2BWWA3OAX52RJWXHKDZCD4L7FFYNQYPOVKR2IDBWI2SY6NU2X4JXZBGX4CVLAUO5FABRDMCHU
+#\\\|XKGJN2TFRFV4TS4HDJAOMHQEHD74DVLKMJEKY6US6UBCE4FZCUP \ / AMOS7 \ YOURUM ::
+#\[7]QHFXSRYUIYQVL4RM7UF4NLKPNJAO6S7VNFLQ6WUBJJFNR4RHAEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

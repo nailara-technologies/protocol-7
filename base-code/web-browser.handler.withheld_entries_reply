@@ -4,7 +4,9 @@
 
 my $reply = shift;
 
-return if $reply->{'cmd'} ne 'TRUE' or $reply->{'call_args'}->{'args'} == 0;
+return
+    if $reply->{'cmd'} ne qw| TRUE |
+    or $reply->{'call_args'}->{'args'} == 0;
 
 <[base.log]>->(
     1, "got withheld playlist entries, presenting loading icon.."
@@ -12,8 +14,8 @@ return if $reply->{'cmd'} ne 'TRUE' or $reply->{'call_args'}->{'args'} == 0;
 
 <[web-browser.fg_view_insert]>->(<web-browser.load_icon_page>);
 
-#,,.,,...,...,.,,,,,,,,..,...,.,.,...,.,.,..,,..,,...,...,,,.,,..,,,,,.,,,.,,,
-#JJYAROJ5E2FN62TXZ2DJ2KSBZFBMUVDPWQAPEF4DR7NKFF7GFSS4IYR2MZUT3CKTIWWESWRQWQFHG
-#\\\|SMUOVKENW4T376GSOVRNH5IDOKYR2WT3RKMCZI2VX56JDAYD6NK \ / AMOS7 \ YOURUM ::
-#\[7]JNY2GNKXZRP7VIESYJPF5B7CLPC6PP56AKUGOEOIUPIDSZY47SAQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,,,,,.,,,,.,...,,,.,...,.,,,..,,...,.,.,.,,,.,,,,..,..,,..,,
+#DDCU7TIVIZJEHPK2MZCJWLYL3ED2TRXAWJOV7YUTLWK6H4SIZJAY32DHQMPN6D5B3MSXO5VG5CS62
+#\\\|NH55HOUE6N34ROYXLPAMVVSXI3RPUQ7VSWG7XIHCJ5FC57KGZE6 \ / AMOS7 \ YOURUM ::
+#\[7]GFGABCEUKPH2HMGR63GEQ3BLFRKEBBXUJSD6W2BZLKH5PHA3FGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

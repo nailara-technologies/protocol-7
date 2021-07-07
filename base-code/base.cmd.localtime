@@ -16,7 +16,7 @@ eval { $ntime_decoded = decode_b32r($unix_time) }
 
 if ( defined $ntime_decoded ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'decoded value is not valid [ expected compressed integer ]'
         }
         if not <[base.comp-int.is_valid]>->($ntime_decoded);
@@ -33,7 +33,7 @@ $unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
     and ( not defined $unix_time or $EVAL_ERROR );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'submitted parameter string is not valid'
     }
     if $EVAL_ERROR
@@ -46,7 +46,7 @@ $unix_time = <[base.n2u_time]>->($unix_time)
 my $subseconds = $unix_time =~ s|(\.\d+)$|| ? $1 : undef;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'queried value is out of range'
     }
     if $unix_time > 67767976233316804;
@@ -59,18 +59,18 @@ $ltime_str
 $ltime_str .= " [ +0${subseconds} ]" if defined $subseconds;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'unix_time value is too high'
     }
     if not defined $ltime_str or !length($ltime_str);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => $ltime_str
     }
 
-#,,.,,.,,,,..,,.,,...,.,.,,,.,...,...,,..,,,.,..,,...,...,,.,,..,,..,,,,,,.,,,
-#HGDJMFLCXA74I53PJNZZHUQGF375TFO4PZDM2IFC6HP6REAWQGFCXQ7PRKDZXWI3IM4CCSZWAYML6
-#\\\|DDLWIJKQOPT4CY5XAFOHTZJ64SFYOAFK23MBZ3EM3XPYP3LQIZU \ / AMOS7 \ YOURUM ::
-#\[7]5SCFMWFMGBQH6WV7ZDONX7KJRRD336WD4VO5K6EELA5PVGF3DKCY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,...,.,.,.,.,,,.,,,.,...,,,.,..,,...,...,,..,,,.,,,.,...,,..,
+#R7ZRH2W5QE7Z45II23FOF77DOIKIYNX2FVIRT6QFXAESFGZEOQN6DQLGEQNKRXZ6XSIBTQTDSJPNW
+#\\\|FWKQC7GU4H5CMONN3YLHQFWCHH2VZ3CENSL5NSDBZMV6RWXP7CW \ / AMOS7 \ YOURUM ::
+#\[7]6KMUKAZ6DM2OJ7FZ7Y226T5KARXMV6CNPKERXIFXBTUP7M7SLQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

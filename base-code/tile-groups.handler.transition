@@ -74,7 +74,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
 
     <tile-groups.transition.status.waiting.i_id>--;
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
-    if (    $cube_reply->{'cmd'} eq 'TRUE'
+    if (    $cube_reply->{'cmd'} eq qw| TRUE |
         and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
         my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
@@ -132,7 +132,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
     my $window_ids
-        = (     $cube_reply->{'cmd'} eq 'TRUE'
+        = (     $cube_reply->{'cmd'} eq qw| TRUE |
             and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ )
         ? $cube_reply->{'call_args'}->{'args'}
         : 0;    # <-- 0 == failed, fade will be skipped!
@@ -194,7 +194,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     <tile-groups.transition.status.waiting.start>--;
 } elsif ( $event_type eq 'start' ) {
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
-    if ( $cube_reply->{'cmd'} eq 'FALSE' ) {
+    if ( $cube_reply->{'cmd'} eq qw| FALSE | ) {
         my $reason = $cube_reply->{'call_args'}->{'args'};
         if ( $reason =~ /concurrency/ ) {
             $zenka =~ s/\[.+$// if $reason !~ /subname/;
@@ -282,8 +282,8 @@ if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,.,,,,.,.,,,,,.,..,,..,,..,,..,,.,.,...,.,.,..,,...,...,...,...,,..,,..,..,,
-#QVWEFLBK7C3KYEVGQSEUKHAIWQMJZ5DGICNFXCSMUVGGVQN627BFBALNSVIW65X5S3UGFUJB4ZPLC
-#\\\|2IUBVIWD3AKKDEWGIBVBA5PMTLIZRPR24KTJMOBPAIF7HE2J4V4 \ / AMOS7 \ YOURUM ::
-#\[7]Z5HSJEME2XBIMKCSAAZWTT6KEMQQH2N2OHCYQHHPDPVHSFZVI2DY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,...,.,,,,,,,.,,,...,,.,,,,,,..,,...,...,.,,,.,,,,,,,.,.,,,.,
+#EKOW3FVP4NNSX3424KI3FPNNBNJPRNRSKNBVBQ22IYBT5I562AMYNN76SYULOZBHRI7C6SUVSASUI
+#\\\|LQIDBRTDFJBJOJRJ6GW5VVVNME7KQUP3JYCQ3ZPWP4AEYZCT3GC \ / AMOS7 \ YOURUM ::
+#\[7]QS3JZVEDQ5IYTJI7E6WTOK56KR2IFH2IMSF2TDGCSI3Y3VFMJKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

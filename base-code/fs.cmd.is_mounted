@@ -6,21 +6,21 @@
 
 ( my $mount_point_str = $$call{'args'} // '' ) =~ s|/$||g;
 
-return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if !length($mount_point_str);
 
 my $status = <[fs.is_mounted]>->($mount_point_str);
 
 if ( $status == 1 ) {
-    return { 'mode' => 'true', 'data' => 'is mounted' };
+    return { 'mode' => qw| true |, 'data' => 'is mounted' };
 } elsif ( $status == 0 ) {
-    return { 'mode' => 'false', 'data' => 'is not mounted' };
+    return { 'mode' => qw| false |, 'data' => 'is not mounted' };
 } elsif ( $status == -1 ) {
-    return { 'mode' => 'false', 'data' => 'mount-point does not exist' };
+    return { 'mode' => qw| false |, 'data' => 'mount-point does not exist' };
 }
 
-#,,,.,,,,,,,,,,..,.,,,.,,,...,.,,,.,.,.,,,,,,,..,,...,...,.,,,.,,,,.,,...,.,,,
-#HYYZGMDDQGMPQZCM5CFAFBWC2EYVBF4OPWCJWRXZIAKPGKESUNTX5TNYYQAZQKMZ6GAYOBVBIXJ3E
-#\\\|CCMXBWXQVR5X3PBLEKKF4PTT5DAQ7WG6QCAD5RYLQ64GDXHFT67 \ / AMOS7 \ YOURUM ::
-#\[7]QUDGNNDYQ4HLGOT63EE6DC3SQJRU2WUMUWHAPQSFVOSA2Y2WY4CQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,,,,,,..,,,,,.,.,,.,,,..,,,,,..,,...,...,.,.,,.,,,,,,..,,..,,
+#ETFXN3ARY5V5REF6NLCQQFZ6QLCQHYRMUZF6AQPBOJWMYTEDPD3FEH6FZAA7PQY6KPW5UJMEZ3ZZC
+#\\\|YPJM3ATORKHLKD5TYPE46X55Y6OUV3AGTFNTUYDN3II5ZTF6WWK \ / AMOS7 \ YOURUM ::
+#\[7]GLFJTNIV3YNJB3G3BTF7SQCT6BNTINN3TTNCA4RGQA36VNKB76CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

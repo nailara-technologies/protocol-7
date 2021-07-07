@@ -10,13 +10,13 @@ my ( $set_keystring, $value_content )
 
 $value_content =~ s|^'(.*)'$|$LAST_PAREN_MATCH|;   ##  quoted value syntax  ##
 
-return { 'mode' => 'false', 'data' => 'expected key param' }
+return { 'mode' => qw| false |, 'data' => 'expected key param' }
     if not defined $set_keystring or not length $set_keystring;
 
 my @result = <[base.validate.data_key_syntax]>->($set_keystring);
-return { 'mode' => 'false', 'data' => $result[1] } if not $result[0];
+return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
 
-return { 'mode' => 'false', 'data' => 'no value supplied' }
+return { 'mode' => qw| false |, 'data' => 'no value supplied' }
     if not defined $value_content;
 
 my $setkey_init       = 0;
@@ -38,32 +38,34 @@ if ( defined $set_keystring_ref and $set_keystring_ref ne '' ) {
             "[%d] set key : initialized [ %s = '%s']",
             $cid, $set_keystring, $value_content
         );
-        $reply = { 'mode' => 'true', 'data' => qw| set | };
+        $reply = { 'mode' => qw| true |, 'data' => qw| set | };
     } elsif ( $$set_keystring_ref eq $value_content ) {
         <[base.logs]>->(
             "[%d] set key : no change : values identical [ %s = '%s']",
             $cid, $set_keystring, $value_content
         );
-        $reply
-            = { 'mode' => 'false', 'data' => 'no change : values identical' };
+        $reply = {
+            'mode' => qw| false |,
+            'data' => 'no change : values identical'
+        };
     } else {
         $$set_keystring_ref = $value_content;
         <[base.logs]>->(
             "[%d] set key : data value updated [ %s = '%s']",
             $cid, $set_keystring, $value_content
         );
-        $reply = { 'mode' => 'true', 'data' => qw| updated | };
+        $reply = { 'mode' => qw| true |, 'data' => qw| updated | };
     }
 } else {
     <[base.logs]>->(
         0,    "[%d] set key : cannot assign value [ %s = '%s']",
         $cid, $set_keystring, $value_content
     );
-    $reply = { 'mode' => 'false', 'data' => 'not able to assign value' };
+    $reply = { 'mode' => qw| false |, 'data' => 'not able to assign value' };
 }
 
-#,,..,,.,,...,...,,,,,.,.,.,.,..,,.,.,..,,...,..,,...,...,...,..,,.,,,.,,,,,.,
-#KLCFRCFTUDPWYAHS6D4KJVURVBQIRZ5TBUI6UCBD73ZYN5D354YOLOL2BI65FDVYXR3CPI6TBA3TQ
-#\\\|4BUC5PQKZI2LUMSQEXIXGLZB7JJZTHKFIZGJYEBHOLINFJD6NRA \ / AMOS7 \ YOURUM ::
-#\[7]WZYNUS4KQUNMJRQ3EMUWRBARRA3B35NVJC5FJKSCTOBZE5DEXYCQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,,,,,,.,.,,,..,,...,,,.,,,.,..,,...,..,,,..,.,,,...,,.,,,,,,
+#5KBEBV5JQZ5APPEYIW4LTLGNKP6I6XHXTM6CNDFEC2OBPVCOFFBOVZK5M24SSUGTAWAAYPHZWT4CU
+#\\\|ZB7IMTQK3KHMTTMCMIOHHBMBS2ULIVSS27T2T6CYVYVXS6K3GC2 \ / AMOS7 \ YOURUM ::
+#\[7]UL34TJOTRUNUOC7ENGAJSF3XMJ3KL4M7BUAMLROMSQJPTOQJRSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

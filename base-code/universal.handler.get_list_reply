@@ -9,7 +9,7 @@ my $reply = shift;
 <universal.playlist.error_logged> //= {};
 <universal.cfg.fade_on_switch>    //= 0;
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.log]>->( 0, ": unable to fetch playlist.," );
     <[universal.stop_start-anim]> if <universal.start-anim_running>;
     return;
@@ -191,8 +191,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,.,,..,,.,,...,..,,...,.,.,,,,,...,.,.,,..,..,,...,...,.,.,..,,...,,..,,,,,
-#H2UNQRS3K5CC4KPEMRGTFK6OSASK7GHWZVDLSGD5HHZURQN4RFDMQFAFPQG4HMKPMUTEH42WVZFFE
-#\\\|YBE27F2GCDJZJSW6DRVS3PWC5B3BXX4ER7UHTYL2SVMX4IFO3FU \ / AMOS7 \ YOURUM ::
-#\[7]FHKZQVDVVGN4VYH3VUZMIPYTU7TDD7UM4EMSOQXJVTSPVHCFB6DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,.,.,,,,,,,.,,,,,,..,,.,,.,,,..,,...,...,,.,,..,,.,,,.,.,...,
+#NFXO2736MH6SHO7TI65MI6F564WDOZ3E22C3PSEDMU65OKMCHJYKSIGVQ2RXXZSD65FTUKQHUK7WI
+#\\\|TLYLKNGMDGHREA4XCDRWNORB22VRDB5EGKJOK446OKN7PTJRYPR \ / AMOS7 \ YOURUM ::
+#\[7]SQMS3WSSFDBIKR42S42ZPRFTJJOF4ZGPXJVCDNMOS5YHT6CXL2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

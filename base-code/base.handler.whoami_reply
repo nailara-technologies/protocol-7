@@ -7,7 +7,7 @@ my $reply = shift;
 <base.callback_hooks.async_online> //= [];
 delete <base.in_progess.get_session_id>;
 
-if ( $reply->{'cmd'} ne 'TRUE' ) {
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "<< whoami command reply not expected [$reason] >>" );
     return undef;
@@ -33,8 +33,8 @@ if ( $reply_str =~ m|^(\w[\w\-\d]*) (\d+)$| ) {
     return undef;
 }
 
-#,,,,,,.,,,.,,.,,,,.,,,..,.,,,.,.,,,.,.,,,,.,,..,,...,...,..,,,,,,,..,.,,,,..,
-#5SK5B7R3QX3WQXHAOBYUHYCKAXLD2VTZHFW5LNT4LA7BEAEOFZMTI66ZLTDYKBSZEBYO6VBY4M2EE
-#\\\|JKTRVUFEHZ6M5VMXARGH5LTDME7HYH3LJ2VM727GUVYZNSE6RXZ \ / AMOS7 \ YOURUM ::
-#\[7]RJW2DV3SWMHWET3U7IM7JZGCEMOIXS5L5GM354FIJ25FLFVUHQDA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,,,,.,,,,..,,..,...,,..,..,,..,,...,...,.,.,.,,,.,,,...,,,,,
+#G3274K4WNHBLJOTXMIC7WMJGSAKTMZDWEHIXHNMMDBQQQAQG6V4AD4STBFGNF6VNGXFMKKWFD4QSQ
+#\\\|AMIYW4JSCSC6NAFQEKFUPIVSOGUCYHM7HV4D3OWECAGN2UQJRU4 \ / AMOS7 \ YOURUM ::
+#\[7]LZRMS2SCFCOGD3QFYG2U5OO5RDGL5DC6K4LV2E5IMWXIGTGVHMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

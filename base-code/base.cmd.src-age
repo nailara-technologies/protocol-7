@@ -14,7 +14,7 @@ my $current_ntime = <[base.ntime]>;
 if ( ( not exists <system.zenka.type> or <system.zenka.type> ne qw| cube | )
     and length($param_str) ) {  # <-- no second param for non-cube type zenki.
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "ask a 'cube'-type zenka for custom values"
     };
 } elsif ( $param_str =~ m|^($B32_re+)\-\d+\.\d+$| )
@@ -22,18 +22,18 @@ if ( ( not exists <system.zenka.type> or <system.zenka.type> ne qw| cube | )
     $network_time = $LAST_PAREN_MATCH;
 } elsif ( length($param_str) ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "version syntax not valid [ check 'src-ver' ]"
     };
 } elsif ( <protocol-7.src-ver> =~ m|^($B32_re+)\-\d+\.\d+$| ) {
     $network_time = $LAST_PAREN_MATCH;
 }
-return { 'mode' => 'false', 'data' => 'have no version time-stamp' }
+return { 'mode' => qw| false |, 'data' => 'have no version time-stamp' }
     if not defined $network_time;
 
 my $src_ntime = <[base.b32.ntime]>->($network_time);
 
-return { 'mode' => 'false', 'data' => 'decoding not successful' }
+return { 'mode' => qw| false |, 'data' => 'decoding not successful' }
     if not defined $src_ntime
     or $src_ntime < 2455747200000;    # <-- network-time begin
 
@@ -42,12 +42,12 @@ my $src_unix = <[base.n2u_time]>->($src_ntime);
 ( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
 ( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
 
-return { 'mode' => 'true', 'data' => $date_stamp } if $date_mode;
+return { 'mode' => qw| true |, 'data' => $date_stamp } if $date_mode;
 
-return { 'mode' => 'true', 'data' => $duration_str }
+return { 'mode' => qw| true |, 'data' => $duration_str }
 
-#,,..,,,,,,..,,.,,,..,.,.,,.,,.,,,...,.,.,.,,,..,,...,...,..,,...,.,,,.,.,,.,,
-#4WDWQZCA6S66JFNTM5I7XTMVZBJSMYMCYCWAYUBYWOPMEFBIB7DIMROTMAEEP2CHK4EQCUOJOF5XG
-#\\\|EA4YFKLKDGWSVICCZEFHNQAZ3YTFUMRL2T2DIPMHYBIU6WQIN7O \ / AMOS7 \ YOURUM ::
-#\[7]ZPVC62EVZE47SA2UFJVENL3THCUQ6HNDWRBMVXM7IQZHIZZZKADA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,,,,.,,,,..,,,,,,,,,.,,,,.,,.,.,..,,...,.,,,.,.,,,.,.,,,,,,,,..,
+#NJ62A35VP433JPMGSW5B4MGEWG63E6Q3DDBHBM43ELGH5TFL3RWENLR6NNZXIHJN2CX4U4HUVJFUI
+#\\\|KFZCDMWTWROES6SY55FDLO2YU2BVYNS6IG5ACV3NEKN3MNS3SUY \ / AMOS7 \ YOURUM ::
+#\[7]XO2FIBFZZRQLFPLAWEB2OSSQV7HR3M64M66HM3YXNNPH6R2NNSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,10 @@
 
 my $offset = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'invalid alignment value! [-1..1]' }
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid alignment value! [-1..1]'
+    }
     if $offset !~ /^\-?\d+(\.\d+)?$/
     or $offset < -1
     or $offset > 1;
@@ -23,8 +26,8 @@ if ( $offset == 0 ) {
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,,,,..,...,.,.,.,.,.,.,,,,,...,,,,,,..,..,,...,...,...,..,,..,,,,,,,.,,
-#7DCHI2RFIIRIYWN32MEC4KDNMDUFPLOJI76DPYC44K76I27J3RQOMWRI3AN5NMWAGYMAGCVM5XSS2
-#\\\|X32QSEXAYN447TJVZRCPHY4DKWYRR5AEY3R3WJKHDVVO2KZK54G \ / AMOS7 \ YOURUM ::
-#\[7]XAUFAPHAKHEB64ZV245QXXNGAHHA2EIKVQCPBSWTGRAVFNXPCYDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,,..,,..,...,,,,,..,,.,,,,..,..,,...,...,...,..,,.,.,.,,,,,,,
+#OMJH4YHJZPURXHP7XDZIH7HUJUEZS6HJHBTKK7PR4JCYFMHDYPCHBCY4MEOKDYDEICXSYYEO6YY2C
+#\\\|62B53OLBOTGODTGFC7QLJEP5YIZMKZKPASAFMLPPKSSC53AJHG7 \ / AMOS7 \ YOURUM ::
+#\[7]LWGNSU7RK743JHGDWBP23E2YCG72HCYZT7NNUPR5I4NWVDGFJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

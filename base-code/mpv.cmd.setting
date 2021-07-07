@@ -10,10 +10,13 @@ my $settings_map = <mpv.map.settings> // {};
 
 my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => "expected <key> [value] parameter" }
+return {
+    'mode' => qw| false |,
+    'data' => "expected <key> [value] parameter"
+    }
     if not defined $setting_key or !length($setting_key);
 
-return { 'mode' => 'false', 'data' => "unknown setting '$setting_key'" }
+return { 'mode' => qw| false |, 'data' => "unknown setting '$setting_key'" }
     if not defined( my $map_entry = $settings_map->{$setting_key} );
 
 my $mpv_property = $map_entry->{'key'} // $setting_key;
@@ -35,7 +38,7 @@ if ( !@target_values ) {
 my $val_str = join( ' ', @target_values );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "not implemented yet!"
     }
     if not defined $mpv_property;
@@ -50,13 +53,13 @@ if ( defined $map_entry->{'int'} ) {
         my $opt_str
             = @options ? " or " . join( ', ', map {"'$ARG'"} @options ) : '';
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => 'expected integer value' . $opt_str
             }
             if @target_values > 1
             or $val_str !~ /^-?\d+$/;
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'int'} } ) . '] )'
             }
@@ -76,11 +79,11 @@ if ( defined $map_entry->{'int'} ) {
             = @options
             ? " or " . join( ', ', map { "'$ARG'", @options } )
             : '';
-        return { 'mode' => 'false', 'data' => 'expected float value' }
+        return { 'mode' => qw| false |, 'data' => 'expected float value' }
             if @target_values > 1
             or $val_str !~ /^-?\d+(\.\d+)?$/;
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "out of range ( \"$setting_key\" ["
                 . join( ',', sort @{ $map_entry->{'float'} } ) . '] )'
             }
@@ -100,8 +103,8 @@ my $value_str = join( ' ', @target_values );
 
 return { 'mode' => 'deferred' };
 
-#,,..,...,,,.,,..,.,.,,..,.,.,...,.,.,.,,,...,..,,...,...,.,.,...,,,.,...,,,,,
-#KKZ3TJKUSF73MYT7AT6KHT4U7E4HJO4K4LWOGSUC3BMSWZ272J7CB7AUUMYZRSHCIWUPR2Q5N435K
-#\\\|S6QFX2PXYZIBBNXL3BI4WGIGBIGTYSHHE4T45GUR7G3S6DHHJGH \ / AMOS7 \ YOURUM ::
-#\[7]2YW2PHE5AHLSAEGEPZ4VN7CNYJNILIVVS6VTUYQZD5L2P5TBEGAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,,,,,,.,,,.,,...,,.,,.,.,,,.,..,,...,...,..,,..,,..,,,..,,..,
+#BMLMR277AXSQFB3T3ATCWNQ7WSHB4NXLF6DSRW6EALLCWIATMSBIJG7AV4IZOHWG7MHR7SBL6UWFQ
+#\\\|XHRTT3VUPUMDWKJKF3FKKSIUUD2GQ5WABP4HGRKQOXR3W3NNSP2 \ / AMOS7 \ YOURUM ::
+#\[7]LUNCZTKTKVOTLTLYTVKE24WHT72YA33HDXV4ZWHUOAGAQA3TZKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

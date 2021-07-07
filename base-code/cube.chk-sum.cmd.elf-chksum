@@ -4,13 +4,19 @@
 # param = <input-sring>
 # descr = return elf checksum for given input string
 
-return { 'mode' => 'false', 'data' => 'expected input string to checksum' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected input string to checksum'
+    }
     if not defined $call->{'args'};
 
-return { 'mode' => 'true', 'data' => <[chk-sum.elf]>->( $call->{'args'} ) };
+return {
+    'mode' => qw| true |,
+    'data' => <[chk-sum.elf]>->( $call->{'args'} )
+};
 
-#,,..,,,,,.,.,,,,,.,,,.,.,...,..,,...,.,,,,.,,..,,...,...,...,,,.,,..,.,.,,,.,
-#KFICUGV3OGUTFUZCSVIWLKXPSRRZFRZJ7YUEMTDRV7HXNSVFIDXHXSDKLJI2R6I5DWN7NNFSUYOEU
-#\\\|TVQJBCENLOW2QBUSA2DMHZ7VUV2QT2V62WTGR2OBITTBLS2FLFU \ / AMOS7 \ YOURUM ::
-#\[7]TO3QHEOBQVNTENTQRLC5WDQWTSO5IHEAHJCMK3QMLWI7QZAXCQCQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,,,.,..,,,..,.,.,..,,,,,,,,.,..,,...,...,.,.,.,,,...,.,,,..,,
+#UF4ON5NB5BLTSAI5SC77N7PFATAXJVROJ2GS2UM2AMGRT3IYS5ILKFCQWYBMLKKSTRTY5WL4ZNFSI
+#\\\|L5YV6BCCQ4TW2FNELFSFG54UOOPU6CQBHH6AXWIGJGQ5BVPLYO7 \ / AMOS7 \ YOURUM ::
+#\[7]5PHJJ4XX7XLJWWK3XI2S7VRIFUVR6YGFFFDYCZAYHC3A6LTM3SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

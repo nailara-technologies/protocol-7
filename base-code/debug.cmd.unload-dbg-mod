@@ -7,7 +7,7 @@ my $id = $$call{'session_id'};
 
 <base.debug.keep_on_reload> = 0;
 
-return { 'mode' => 'false', 'data' => 'debug module not loaded' }
+return { 'mode' => qw| false |, 'data' => 'debug module not loaded' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
 ## [LLL] create interface
@@ -25,15 +25,15 @@ if ( delete $mod{'debug'} ) {
 
 <[base.purge_code]>->('debug') and delete <base.p7_mod.loaded.debug>;
 
-return { 'mode' => 'true', 'data' => 'debug commands removed =)' }
+return { 'mode' => qw| true |, 'data' => 'debug commands removed =)' }
     if ref( $code{'debug.dump'} ) ne 'CODE';
 
 <[base.log]>->( 0, '<< removing debug module not successful >>' );
 
-return { 'mode' => 'false', 'data' => 'cannot remove debug module `:|' }
+return { 'mode' => qw| false |, 'data' => 'cannot remove debug module `:|' }
 
-#,,.,,.,.,..,,.,,,...,,,.,...,,,,,..,,,..,..,,..,,...,...,.,,,,.,,,.,,..,,,..,
-#4PAHSEDPZWYA25AYU5TZUSQKZJRWOPQ7HONLBLELXLE3VMG4GUYUXTQ7IMMZLUESLL7WEJMQ53FFO
-#\\\|72REHIVVXSLKBE7FBZXEZXTROENFKYOMEMK4P5MVPGRWWCS7E6I \ / AMOS7 \ YOURUM ::
-#\[7]ZRJVKX7DVC67P6ISZI33MDS5RZSOBSSOFQARN5C363IPLGRHBGCY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,.,.,,,,,.,,,...,,,,,.,,,.,,,..,,...,...,.,.,.,.,,.,,,.,,,.,,
+#J7HDPJKQJ5TO3PA22UOGVTGFAM43V4TIMOAELZ5ZZDPOLHTW7HPCRKS7UAHCBVQ53THF3SUHITF5K
+#\\\|B4F4NITXUV2E3YMNZOZCSQGID6VAG5NJ2AIVL52W2BQEYPZD4O5 \ / AMOS7 \ YOURUM ::
+#\[7]CDZUORWSYGP5M5MRRSYSM5E52Z2REFVVFUTG37MU7HYC2BMNVODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

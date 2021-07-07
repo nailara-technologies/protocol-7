@@ -7,7 +7,7 @@
 my $cur_pair = uc( $$call{'args'} // '' );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "expected <market_pair|pattern|'all'>"
     }
     if !length($cur_pair);
@@ -17,7 +17,7 @@ my $ticker_data = <plnx.api.pub>->api_public('returnTicker');
 my $top = $cur_pair =~ s|^TOP-(\d+)$|| ? $1 : keys( %{$ticker_data} );
 $cur_pair = 'ALL' if defined $top and $top != keys( %{$ticker_data} );
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'top-0 is not valid'
     }
     if $cur_pair eq 'ALL' and !$top;
@@ -47,7 +47,7 @@ foreach my $cur_key (
     $match_count++;
     delete <plnx.ticker_current>->{$cur_key};
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'currency pair is frozen'
         }
         if <plnx.ticker_current>->{$cur_key}->{'isFrozen'};
@@ -69,7 +69,7 @@ foreach my $cur_key (
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "currency pair not recognized "
         . "[ use 'all' or a pattern to search ]"
     }
@@ -77,8 +77,8 @@ return {
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,,,,.,,,,.,...,..,,,,.,...,...,,..,,,.,,,.,..,,...,...,...,..,,,,,,,.,,,,,,
-#HY3FR3X46ZKC7OP42GSZKZ6NBNV2PH6D4Y2LTVWFYPNXXESWFETEAICUVS354PAKYFP56VJ7H7ZUI
-#\\\|SNAOALISE6ITDNDYQZ4O46JEN3XXFVOGXDR5P6X72AXJ5KAX5NW \ / AMOS7 \ YOURUM ::
-#\[7]O34M23D4VXXJ5JKHC6EGOUTVQJHPCF4UINUUOH42NK4QRSPPZCCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,..,..,,...,.,,,,,.,,,.,,,.,,..,..,,...,...,...,.,,,,,.,,,.,,,,,
+#6KVVRN6BCIXAJEWGMJ76GTOBIML5SSB3KMUAIMNJ4SXL375CTN3CANCN7ETRW4SUOIS2XAI6E3NRA
+#\\\|KSOGIDRPDDUPH7Y2H7QFG6XFDCGOJIX5U3WAD5QTBHJWSNMNFUQ \ / AMOS7 \ YOURUM ::
+#\[7]OHSC56XLUYJPEBAS2NVCAHHT6VPSTIKYLGDPCUE7QDSB47RNPQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

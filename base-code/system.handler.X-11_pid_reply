@@ -4,14 +4,14 @@
 
 my $reply = shift;
 
-if (   $reply->{'cmd'} ne 'TRUE'
+if (   $reply->{'cmd'} ne qw| TRUE |
     or $reply->{'call_args'}->{'args'} !~ m|^\d+$| ) {
     my $reason = 'unable to obtain Xorg PID';
     $reason = "X-11 zenka is not in 'xorg' mode"
         if $reply->{'call_args'}->{'args'} =~ m|not xorg|;
     <[base.callback.cmd_reply]>->(
         <system.gfx_reload.reply_id>,
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => "$reason, aborted."
         }
     );
@@ -37,8 +37,8 @@ if (   $reply->{'cmd'} ne 'TRUE'
     );
 }
 
-#,,,,,...,.,,,...,.,,,.,,,,,.,,,,,...,..,,,.,,..,,...,...,..,,,.,,,,.,,,,,..,,
-#54T4BIHSP3IMLWIBU677LQRWFCHTWTP62NB5I34LR72C54MVMT4A52TGTH6NQX3PJJLRO3M7KQBZO
-#\\\|47SW25TEYQVY5BO4SVJTMMOJV5YCLB7UEAR7GEEXJQH5MCOQAXX \ / AMOS7 \ YOURUM ::
-#\[7]GWVZQLM5UHBZU7TUWLJ4PPKP7U6Z6FYGZPC6ATOGSWWMGRKSO4AQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,..,,,,,,,..,,,,,,..,,,,,,..,..,,...,...,,..,..,,,..,,,.,,,.,
+#5YIRDZ32UZCM7LJHK5XIW67Z2QIDBRGLWJMI3OGOCYTFBWMQAMVJ6N2JAPISEHX2CLRYD3HPWFZ66
+#\\\|RYD63IGXK2LVKOPMREUOAABJKRWJAFCXPOHS6BY3HEQWR5U5BLG \ / AMOS7 \ YOURUM ::
+#\[7]P3VSYVUHEUEOCM3BEYO7ADD42DHXIA3JOZIESXPLTHEPESSBJCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

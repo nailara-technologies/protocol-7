@@ -18,7 +18,7 @@ my $zoom_file      = "$cache_dir/weather.zoom";
 my $tile_zoom_file = "$cache_dir/weather.tile_zoom";
 <[weather.base.check_dirs]>;
 
-if ( $reply->{'cmd'} eq 'TRUE' ) {
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
     my ( $x1, $y1, $x2, $y2 ) = split( / /, $reply->{'call_args'}->{'args'} );
     my $tile_width   = $x2 - $x1;
     my $tile_height  = $y2 - $y1;
@@ -76,7 +76,7 @@ $station_id = undef if $city_changed;
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'false',
+    {   'mode' => qw| false |,
         'data' => 'no city or station id configured or provided'
     }
     )
@@ -110,8 +110,8 @@ if ( defined $station_id ) {
     return { 'mode' => 'deferred' };
 }
 
-#,,,.,,,,,,,.,..,,.,,,...,.,,,,,.,,.,,,,,,.,,,..,,...,...,...,,.,,...,.,,,.,.,
-#5JKN3AKT6AMTUVEFNXEFOFQ4QLDRXPBUIU5V7X6MTKFPUJL6APSAPYGW74V67HOMZF65ZJBJOZQIE
-#\\\|NTZJJYI3BBZ34IOGASBJ4E2DVQTZPSVWLV6P6P6X4TCQWYAP6VH \ / AMOS7 \ YOURUM ::
-#\[7]HPVXEL5XYVSSEFAJSZMXABDRMMPS56IO6Z54MJN5NZOJKDW7SMAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,,..,..,,.,.,...,,..,,..,.,,,..,,...,..,,...,,,.,,,,,,,.,,.,,
+#OEWJISM2YARU3OHNPNOS2UHN52FJRFTO2B6QBBMH754O232QJK4UXV5WLZWWJ6PKHLM2YOUQDPB6U
+#\\\|DKVNYTU7OCKGOEUB5SBXBCSG7ZR7RLCSSKF4UI7CH2LNZIYC3E6 \ / AMOS7 \ YOURUM ::
+#\[7]QF552QO7GYUQ3KNRDWWBAOBHKMMP5XOXPENU5FD5RXXHDDTJJADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # descr = return outside air humidity in percent
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
     if not defined <weather.station_id>;
@@ -13,10 +13,10 @@ my $stid     = <weather.station_id>;
 my $humidity = <weather.data>->{$stid}->{'current'}->{'humidity'} // 'n/a';
 $humidity .= "%" if $humidity =~ /^\d+(\.\d+)?$/;
 
-return { 'mode' => 'true', 'data' => $humidity }
+return { 'mode' => qw| true |, 'data' => $humidity }
 
-#,,..,,,,,,,,,,,,,,,,,,,,,,,.,..,,,,.,.,,,,,,,..,,...,...,,,.,..,,,,.,,,.,,,.,
-#MXQRBNMGWWRW4E2A5BWALIHBOPOASPGCN5JF24QATQDLRIVYHDO2LPHWS5LELFNFEWDHP2WZ6Z2WW
-#\\\|KJRF2GQO47A5MEG3LAY453H757X3BPW5ISL3Y6RGMOKMI6FC7BW \ / AMOS7 \ YOURUM ::
-#\[7]LKLCBAKDZSFT75RABXYGP4LDB5Y42YGWLXDGM6IPY5KPYUQEFUCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,...,,,.,,,.,..,,.,.,,,.,.,,,..,,...,...,..,,.,.,,,,,..,,,..,
+#Q7U6ZM5LMSTKCSZSSHBQKSYQ25TKQRAPOK64T5A6PDPGWPQSI2NXXG6YUIDWUXPMHALYI2UXZ54AY
+#\\\|5GHR7BPTXVZKA3G2AIUJZIUUHMPOX6OFCTDROBOTYN6B34CGKPL \ / AMOS7 \ YOURUM ::
+#\[7]SSXRE4YHKT7JMXJBNFNBBQ3IUPYNIZEIU3NDPHS2BHATCYOVWGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,20 +4,26 @@
 # descr  = compile a filter chain
 # params = <name> [chain_list]
 
-return { 'mode' => 'false', 'data' => 'chain <name> expected' }
+return { 'mode' => qw| false |, 'data' => 'chain <name> expected' }
     if not defined $$call{'args'};
 
 if ( my $filter_id
     = <[filter.compile_chain]>->( split( / +/, $$call{'args'} ) ) ) {
 
-    return { 'mode' => 'true', 'data' => "chain compiled: id=$filter_id" };
+    return {
+        'mode' => qw| true |,
+        'data' => "chain compiled: id=$filter_id"
+    };
 
 } else {
-    return { 'mode' => 'false', 'data' => 'unable to compile filter chain' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'unable to compile filter chain'
+    };
 }
 
-#,,,,,..,,,.,,,,.,.,.,..,,.,,,,.,,,.,,,.,,,.,,..,,...,...,...,...,..,,,,,,..,,
-#KPNIVVQ6CEWQQ6X6DKZKIZ3XMZWILMYREUEDS3OC4JOXTY5MMULYHWRKLVFCTIJOMJEF7YBQBQHHC
-#\\\|CQJ3CNTAXBL5CRBENRPFPGXFITJM5XY5IW5EKZS3IRSCX5X4CQP \ / AMOS7 \ YOURUM ::
-#\[7]EAC6MSCDHY7YNN6543EY2NR4FT6VVMTBMRVNKPSF2C5S7MAOAOBI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,.,.,.,.,,,,,,,.,.,.,,..,,..,..,,...,...,.,,,,.,,,.,,,,,,..,,
+#GMDMDGAIGNHIWIENSNJHD7JASBFU4CIK732VKZHKM4EJLI4LCV7QRBUDUPNOVYOIVOY6I3ENGPY4Y
+#\\\|4BO5GEA3IVZ2QGN7QIMLSOHKOV4M5ZRTPUPN63WOCURF2ZGOHOK \ / AMOS7 \ YOURUM ::
+#\[7]HPQPVOTEKRBK4732VXX45ER6ZU4HUF5XFIDWX2ITGJ6CU7NSDMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

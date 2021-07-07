@@ -4,7 +4,7 @@
 # descr = return local weather short description text
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
     if not defined <weather.station_id>;
@@ -12,10 +12,10 @@ return {
 my $stid  = <weather.station_id>;
 my $descr = <weather.data>->{$stid}->{'current'}->{'descr'} // 'n/a';
 
-return { 'mode' => 'true', 'data' => $descr }
+return { 'mode' => qw| true |, 'data' => $descr }
 
-#,,,,,...,,.,,,.,,..,,,.,,.,,,.,.,,,,,...,.,,,..,,...,...,,.,,.,,,,,.,.,,,,.,,
-#6JQZCSEAFON5BPF5TDTFJMF5OHB2FGCDMOINSNCFBZLJ57VYLK5M7DIOK2A6ZKN5NDVUZE4U3X26Q
-#\\\|AA3RWBYT7SO7CRG3D6DLQWVP33MW7ZZWYZY4WHJ4P3UH2W2BI6Q \ / AMOS7 \ YOURUM ::
-#\[7]ZDZMJPO5WFDHATAESUY7Y7NXCFENMLKUVKS5W4VHMOTTVSRS7YBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,,..,,,,,...,,..,,..,,.,,,,.,..,,...,..,,,..,,.,,..,,...,.,,,
+#MU6NOQO33VJ3EKYFMCCK2ZH2MXSX65IIB7Y36CPKAVWBZPN4GJD5Q3GW4FE6Z67AOVPPDHXSZAM3M
+#\\\|GGMRMOJEXCUWLGMRILU2UYHAA5TQZPRTZYFH7EYW4RWPQVMZS6N \ / AMOS7 \ YOURUM ::
+#\[7]XQ3AN6FYUE3ONOHHP26ADHY7QRULOWZOMSAO2U5GFLYLRO7RJ2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

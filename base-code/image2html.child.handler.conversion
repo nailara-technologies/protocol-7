@@ -46,7 +46,7 @@ if ( $image_location =~ m|^https?://| ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
-                {   'mode' => 'false',
+                {   'mode' => qw| false |,
                     'data' => "download of '$image_url' failed!"
                 }
             );
@@ -224,7 +224,7 @@ close($touch_fh);
 while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'true',
+        {   'mode' => qw| true |,
             'data' => "conversion complete"
         }
     );
@@ -237,15 +237,15 @@ error:
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => $error_msg
         }
     );
     delete <image2html.conversions>->{$current_key};
 }
 
-#,,.,,...,,,.,.,,,.,.,..,,,..,,..,,,,,,..,...,..,,...,...,,.,,.,,,.,,,,,.,,..,
-#XNRYJUKR3U3M5PSCERISOWKCGZIRQZA5ZTC2RZCV5KNPIWDDO7AU6RJUHY6HUDNPZXU5D2VUHLKAM
-#\\\|MCFTF63NIBOL54VFPNWKI3DCFZRKCBJSBQDW4VKOKAVYHSCTBMJ \ / AMOS7 \ YOURUM ::
-#\[7]D22JA34RD576W54MMZDOH3NF37IOD7ZMU47WV5DHXGBCSTSSH2DQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,.,,,,.,,.,.,,..,,..,,.,,...,..,,...,..,,,.,,.,,,,.,,,,,,.,.,
+#LDMHJFUYNWLZZ3RLCKOM2O7WUUI6A5EJAKPKBZFW2CRBWTMVITVIYZTHLJFSSHSVR36XUAKNCBOEU
+#\\\|JMZKS2ZUAPTIGXHPQCQVHPSGOFSKW5MJDVHCKVGTNMMUGLWI3PJ \ / AMOS7 \ YOURUM ::
+#\[7]EAO43J6PQRCA4MR5KRCML4ZDWFHETQPPHRG7EE3OQUX6DK64IGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

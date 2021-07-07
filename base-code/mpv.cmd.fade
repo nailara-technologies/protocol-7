@@ -8,7 +8,7 @@ my $id = $$call{'session_id'};
 
 my ( $volume, $speed ) = split( / +/, $$call{'args'} // '', 2 );
 
-return { 'mode' => 'false', 'data' => 'expected numerical percent value' }
+return { 'mode' => qw| false |, 'data' => 'expected numerical percent value' }
     if !length($volume)
     or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
 
@@ -19,13 +19,13 @@ $volume = 0 if $volume < 0;
 
 $speed //= <mpv.audio.fade_speed> //= 0.013;
 
-return { 'mode' => 'false', 'data' => 'fade-speed is a float number [0..100]' }
+return { 'mode' => qw| false |, 'data' => 'fade-speed is a float number [0..100]' }
     if $speed !~ /^\d+(\.\d+)?$/
     or sprintf( '%.5f', $speed ) <= 0
     or $speed > 100;    # min. 0.00001, max. 100
 
 ( my $vol_str = sprintf( '%.2f', $volume ) ) =~ s|\.?0+$||;
-return { 'mode' => 'true', 'data' => "audio volume already at $vol_str%" }
+return { 'mode' => qw| true |, 'data' => "audio volume already at $vol_str%" }
     if sprintf( '%.2f', <mpv.current.volume> ) == $vol_str;
 
 my $id_str = defined $id ? "[$id] " : '';
@@ -46,7 +46,7 @@ delete <mpv.time.fade_volume>;
     and <mpv.timer.audio_fade>->is_active;
 <[base.callback.cmd_reply]>->(
     shift( @{<mpv.audio_fade.reply_ids>} ),
-    {   'mode' => 'true',
+    {   'mode' => qw| true |,
         'data' => "volume fade cancelled (overridden)"
     }
     )
@@ -72,8 +72,8 @@ $interval_delay = $min_delay if $interval_delay < $min_delay;
 
 return { 'mode' => 'deferred' }
 
-#,,,,,.,.,,..,...,,..,,,.,,,,,...,,,.,.,.,,,.,..,,...,...,...,...,,,,,,,,,,..,
-#67AZTSEJFIL44BAIUVOY2Y6NVEH3AZROOIWA2ZG6DPSFH7ZHIYIPMTZDSQLGRN7HC46S7HKMNDSDY
-#\\\|BVQJ3PY6X5RE7VLTIVOOCN5JLNJOODXT2LNXTX67AGPN6MKKI24 \ / AMOS7 \ YOURUM ::
-#\[7]OGM6XSJCPQADU7CH3XZCCXPEF5JDCBQDWTB36HS3XC4LKOD23SCA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,,.,,,.,..,,,,.,.,.,,.,,,,,,..,,...,.,,,...,.,.,.,,,..,,,.,,
+#JM3XPFMPCAHBPCU4TDQAZQNFXHEYS5ALPOVE7JX5WRGG33IZ37KTVUVN5NLB6KUEXY233UTJV247U
+#\\\|6O4GQK64THO7V6BJSD5E2WY4RESDOLTZFAVD2MQ72WLJUCXQFSK \ / AMOS7 \ YOURUM ::
+#\[7]SKTJXGVCVL6JSM5RUVZONIDWUHO4567H3QGQU5NWZJOLZF4JGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,16 +5,16 @@
 
 <power.cfg.devices> //= {};
 
-return { 'mode' => 'false', 'data' => 'no devices configured' }
+return { 'mode' => qw| false |, 'data' => 'no devices configured' }
     if !keys( %{<power.cfg.devices>} );
 
 map { <[power.cmd.set_states]>->( { 'args' => "$ARG 0 0 0 0" } ) }
     sort { $a <=> $b } keys %{<power.cfg.devices>};
 
-return { 'mode' => 'true', 'data' => 'all power sockets switched OFF' };
+return { 'mode' => qw| true |, 'data' => 'all power sockets switched OFF' };
 
-#,,.,,.,,,.,,,.,,,.,.,,,,,.,,,.,.,.,,,,..,,,,,..,,...,...,..,,,,.,...,,,.,,..,
-#DBJYYZGRLTMTBA7JZAU3RI64FBDNC36TUZRQ2ECFTTMNDYEJNZJO3LZRZL2YQNTNDAP3YRIHEEXZE
-#\\\|PMMWFXEFPOM6E4CSUTTOLUCBCAII5UQCSUDQ2ZR7P6U4GOYVWNR \ / AMOS7 \ YOURUM ::
-#\[7]OXUO2J2WEFDBH4HOS56557BOIQY22OEXRFCVUG6SSQFU5BWWKSBA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,...,,.,,,,,,,,.,,..,..,,..,,...,..,,...,...,.,,,.,.,.,.,.,,,,.,,
+#AUE2JGKB2IPVXYVM3AB6MSY7FRPFZF24CKZMAZ4PEFIXE3PCTV53FILCPRO4QXG5LETCIZYIF6AOW
+#\\\|2G2EPOFNZKENTA4OVZMLKBI3TXCWUW42YGYASODATLH4ICOJD6C \ / AMOS7 \ YOURUM ::
+#\[7]DPFGHYGPUXMDTCQPZ4TFBC6NOVYPLY2TTBX4WDZJ4NLNO3XYTCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

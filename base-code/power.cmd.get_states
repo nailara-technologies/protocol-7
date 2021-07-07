@@ -7,12 +7,12 @@
 <power.cfg.devices> //= {};
 my $device_id = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'numerical device id expected' }
+return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
@@ -49,10 +49,10 @@ if ( $dev->{poller}->can_write(0.1) ) {
     $dev->{sock}->close();
 }
 
-return { 'mode' => 'TRUE', 'data' => join( ' ', @states ) }
+return { 'mode' => qw| TRUE |, 'data' => join( ' ', @states ) }
 
-#,,..,.,,,.,,,...,,..,,,,,.,,,...,,,,,.,.,.,,,..,,...,...,.,.,,,,,,.,,.,.,,,.,
-#L2EUNSVEERIA2LUFDGS3QXQQDUE6SG5W64NJV63KV6LCI2DO5JFWLAAXYAYJRG6RWPVNRFQ4OS5VW
-#\\\|YS7OM52CKJ5NC6W4TFF5FD4HIZIW3LKWF7MXPOTSNCHUOM3XF26 \ / AMOS7 \ YOURUM ::
-#\[7]3BLIWBGY2M4NBZOIM4MZJVIC7Q27IDXGV72J3JMT533TPZ2ZLYCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,.,,,..,,..,...,..,,..,,,.,,..,,...,...,..,,...,,..,..,,.,,,
+#RM6E2YQGCKEOJS52C5EWGXBQWVR2OXISBXEYCYNS2IQCWZJQKERVY5M6FPRPC5XSAO5VK5JZGFNCW
+#\\\|HC7XX56B6W27BH2BWP3IFGHTMPWLAKBCB2YKDP6OQQQIJX3ZVPL \ / AMOS7 \ YOURUM ::
+#\[7]I2FNUOZRKEPFE47SSCODZU3X2WLRUHZ4AIT7FWAP37UBXCSSUOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

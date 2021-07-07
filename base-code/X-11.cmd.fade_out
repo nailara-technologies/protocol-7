@@ -10,15 +10,15 @@ my ( $duration, @window_ids ) = split( / +/, $$call{'args'} );
 ( $duration, my $fade_limit ) = split( /:/, $duration );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'fade out duration in seconds expected'
     }
     if not defined $duration or $duration !~ /^\d+(\.\d+)?$/;
-return { 'mode' => 'false', 'data' => 'window <id(s)> required' }
+return { 'mode' => qw| false |, 'data' => 'window <id(s)> required' }
     if !@window_ids;
 map {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'invalid window id syntax [ not numerical ]'
         }
         if $ARG !~ /^\d+$/
@@ -35,7 +35,7 @@ my %all_windows = map { $ARG->id => 1 } @{ $xtops->sorted };
 map { delete $fade_windows{$ARG} if not exists $all_windows{$ARG} }
     keys %fade_windows;
 
-return { 'mode' => 'false', 'data' => 'no such window[s]' }
+return { 'mode' => qw| false |, 'data' => 'no such window[s]' }
     if !keys(%fade_windows);
 
 map {
@@ -44,7 +44,7 @@ map {
     }
     keys %fade_windows;
 
-return { 'mode' => 'true', 'data' => 'fade out complete' }
+return { 'mode' => qw| true |, 'data' => 'fade out complete' }
     if !keys %fade_windows;
 
 <X-11.fade_out> //= {};
@@ -68,8 +68,8 @@ my $fade_interval = sprintf( '%.4f', 1 / $fade_fps );
 
 return { 'mode' => 'deferred' };
 
-#,,.,,...,..,,.,.,.,,,..,,,.,,,,.,,..,,.,,,.,,..,,...,...,,,.,,,,,,,.,.,.,.,,,
-#UW4KIZ3DMKST7G23AHAF7QBZ4KDEQJGTP46CUDE2GJCY72NXOZTB4ELT22WGRIIPJQI5WIDF2QQCS
-#\\\|PKDNUOTBTRQUZSHCVA5ICL6VCD2OQQ4SXV6MHIMOSKDUW3UKC5G \ / AMOS7 \ YOURUM ::
-#\[7]4KSDWXL5SGBIOVZWMG5J3BA5SNG2WFEHYVH5ZGX4ENTMIZFGF2DA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,...,...,...,.,,,,.,,,..,.,,,..,,...,...,.,.,..,,..,,,,.,.,,,
+#3V7I4E6X7XMAZEDJCR4CMMB7AOIHMBVBRSBIAOMFNGFUAA3EHUHURB2NBOZARMDDCOBX3YPEESDSM
+#\\\|ZPF7WPLP3N2DB3S3IMDBD2WY4NFWCKCBVGOKTJ37QRQ5JM5U4I5 \ / AMOS7 \ YOURUM ::
+#\[7]JK5M3FSRYHYPINX4XZ5ZRITUSWQRGKQ2SDYWM3NRC33BCNYDPYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

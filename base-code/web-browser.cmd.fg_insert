@@ -4,22 +4,22 @@
 # descr = insert page on foreground view
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'web-browser zenka shutdown in progress'
     }
     if defined <web-browser.shutdown> and <web-browser.shutdown>;
 
 my $load_uri = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'uri parameter required!' }
+return { 'mode' => qw| false |, 'data' => 'uri parameter required!' }
     if not defined $load_uri or !length($load_uri);
 
 <[web-browser.fg_view_insert]>->($load_uri);
 
-return { 'mode' => 'true', 'data' => 'loading to front view!' };
+return { 'mode' => qw| true |, 'data' => 'loading to front view!' };
 
-#,,..,.,.,..,,,..,,.,,.,,,..,,..,,.,.,.,,,.,.,..,,...,...,,,,,...,.,.,.,.,,,.,
-#KX3STTD6FNV5AQFOJCIT5AHTCOVCJI42WPPH7H24DPLH6J66O7DLPHUTQOGZ3X2ASP454H7RSSJL2
-#\\\|SUAZQL6VNTKVVYST442LPAFPKNBF5MEH3QFZSWF2Z4MLKH45FZU \ / AMOS7 \ YOURUM ::
-#\[7]UPUKTM567GJZ47W4IWUIXADVSUKXQ4GQYM32SAZAP6GFSXD5IGAI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,.,,,,.,.,,,,.,,,,.,,.,,.,,,..,,...,...,,,,,,,.,.,.,,.,,,.,,
+#AH2554GAROYEXIFGDGNCORE6GS5QUSJ7PCH3DCHOKB7TFJ75RRO27RFM6QT23764OHRD6SURWOKF6
+#\\\|UZDFBLT5GQ63IEPICPLHZ3IE5AZPT6XVTUFGKNPNLUJAC7HNB3W \ / AMOS7 \ YOURUM ::
+#\[7]LZFFGH4UOQEEDN5N6GTB7HBJGJZ3TQGRAZI7XXFVBYQQI65NDKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

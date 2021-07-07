@@ -8,7 +8,7 @@ my $clear_zenki = $$call{'args'} // '';
 
 <v7.zenka.manually_stopped> //= {};
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no zenki have 'manually stopped' status"
     }
     if !keys( %{<v7.zenka.manually_stopped>} );
@@ -21,7 +21,7 @@ if ( !length($clear_zenki) ) {
 } else {
     map {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' =>
                 "no 'manually stopped' status exits for '$ARG', aborted!"
             }
@@ -35,12 +35,12 @@ if ( !length($clear_zenki) ) {
 my $s = $cleared_count > 1 ? 's' : '';
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "'manually stopped' status cleared ( $cleared_count zenka$s )"
     }
 
-#,,.,,,.,,,,.,,,,,,,.,,.,,,,.,.,,,,..,,,,,..,,..,,...,...,...,,.,,,.,,.,.,,,,,
-#2N42PIHPJD5P4BC4OEFH5HRXCSJLMIGPEZSCPVMXT2MNDJZVEP6V7TVB7JDHV5ZIFPXJLQ5B6KBX6
-#\\\|H7G4RPQ5APPBQO4MIW67SNARTN3D4WMDSPXZY5Q7VSHIJBWVVGX \ / AMOS7 \ YOURUM ::
-#\[7]LPJJOSZNIWX3YAVGDOQTCUQ2HCTT6EEGKPRWZPOTM6G3BR2CAKAQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,,..,,..,.,,,...,,..,..,,..,,..,,...,..,,.,.,,,.,,..,.,.,.,,,
+#SSQQHTAK4NDLEUNKO53YRAUCZ3NBSYPV7PCAPYEXUWSM4IYNFJJIRVS2AKJYUZQATDZPKKQVO4WB2
+#\\\|DG4GTPBDBLUPZLGSZKCXSWVELQ3YCRYPH2GIP7ZRYXGC3OAJ3HZ \ / AMOS7 \ YOURUM ::
+#\[7]IB3HNSJDN6YGHQGBZEC6FR6CIHZBSCHM2HCQL3TVHIU5CXDQ4ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

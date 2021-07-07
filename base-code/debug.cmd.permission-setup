@@ -14,7 +14,7 @@ if ( defined $EVAL_ERROR ) {
     $EVAL_ERROR =~ s|;| \\\\ |g;
 }
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "input pattern regex error [ $EVAL_ERROR ] escape the pattern ?"
     }
     if $EVAL_ERROR or not defined $param_re;
@@ -60,13 +60,16 @@ foreach my $user (
     $reply_str .= $next_usr;
 }
 
-return { 'mode' => 'false', 'data' => "no match for '$param_str' pattern" }
+return {
+    'mode' => qw| false |,
+    'data' => "no match for '$param_str' pattern"
+    }
     if !$match_count;
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,.,...,.,,,,,,,,..,,,.,,,.,.,,,.,.,.,.,,.,,..,,...,...,,.,,..,,..,,,,.,.,.,
-#5RBD7Z5UMREJHFMRGJ3V5MIG722AC5XMML7ZF4OJOIRS3OAPH3NHPSLRPD5EHOMGCHYGEFSLFA2KQ
-#\\\|V2PB23AEFPX5GN6C6MWM6VKF5V43Y6XYRW2QOKB3JP7H7YMXR4J \ / AMOS7 \ YOURUM ::
-#\[7]6ZQH4467V5I2CXEQYI5Z2EVEWUDKXXY7ITW5V6I3K6MN6SSS6AAI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,..,,,.,,,..,,,.,..,,...,,..,..,,...,...,...,,.,,..,,,..,,,.,
+#CT7BCP7VGBOVG35AQ55AAFVFDBCAYEXS5HNVBWCZKVP4JNCQZLHPMDO6FJRX3QFHAPFAL5P47T4NY
+#\\\|ITU63DET5A4EBS5U4DCRILCFUEVF26WCJZBCMJ4HUEXRFIV42ZQ \ / AMOS7 \ YOURUM ::
+#\[7]XHSNFDNQ2XWCCN65BLJDPSEADULCHHNYDBEG2B5LPPDN4X3SX4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

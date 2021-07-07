@@ -4,12 +4,13 @@
 # param = <file> [info_keys]
 # descr = return information about audio or video files
 
-return { 'mode' => 'false', 'data' => 'expected path to content file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to content file' }
     if !length( $$call{'args'} );
 
 my ( $file_path, @info_keys ) = split( m| +|, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => 'file not found' } if !-f $file_path;
+return { 'mode' => qw| false |, 'data' => 'file not found' }
+    if !-f $file_path;
 
 my $file_info = new Mediainfo( 'filename' => $file_path );
 
@@ -20,7 +21,7 @@ my $key_max_len = max map {length} @info_keys;
 my $m_reply;
 foreach my $i_key (@info_keys) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "mediainfo property key not found ['$i_key']"
         }
         if not exists $file_info->{$i_key};
@@ -32,8 +33,8 @@ foreach my $i_key (@info_keys) {
 
 return { 'mode' => qw| size |, 'data' => $m_reply };
 
-#,,.,,,..,,,,,...,,.,,,,,,.,,,.,.,.,,,,,,,..,,..,,...,...,..,,...,.,,,...,.,,,
-#C3KBGWH3PIH6MYJVPSL2XWSYDJGFG5CTKDL3NC67GCDB2QIYWM37GPZLCAXCIOKH5I6PKSCCV2CYK
-#\\\|LBSMIVI6ZYRWZHO7WP6FEDBN6IJDFNYSSURBFRNQ3BXO4ZBXQYN \ / AMOS7 \ YOURUM ::
-#\[7]ITKGWXOVKJPWEBTUVYMHVHK3MOHWUKPFCJ7R66RVA5445MQNRUAA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,..,,.,,,..,..,,.,,,.,,,,,,,...,..,,...,...,.,,,.,,,...,.,.,.,.,
+#3A2YK33ZR4NIEYH6HZQNXZSDNJ5ESTJCJ6KJ6WV26CWYQQW7F62YCOFIDJRHNR25QNRSUFZTM3SK2
+#\\\|LLBSQO5ZHWREINLG3A6YIBGGGX5SVFRH7QZAP5OP4UVMWQHXWYQ \ / AMOS7 \ YOURUM ::
+#\[7]EPDPNYZA6EE6Z5TITQNKYDIU47JED4OEL5MRFT7PTDFH7DCY3UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

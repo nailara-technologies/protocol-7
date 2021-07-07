@@ -6,9 +6,9 @@
 
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -22,15 +22,15 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
 X11::Protocol::WM::iconify( <X-11.obj>, $window_id );
 
-return { 'mode' => 'true', 'data' => 'window iconified' };
+return { 'mode' => qw| true |, 'data' => 'window iconified' };
 
-#,,..,,..,...,,.,,...,.,.,,.,,..,,.,.,,..,,,,,..,,...,...,...,,,,,,..,..,,,.,,
-#QSWCYFHUTGO7BJAJNO2C4M4OYE6MSSUUYZ3EONJO3RLEMHSPESIHWW6AH3GIFTLTTONAOZFROBC5Y
-#\\\|AWJ3NKZKTNRSNUQJKOKXX7EOCBATS5AKSHCUB6LBB65PGJ6HWXH \ / AMOS7 \ YOURUM ::
-#\[7]RBBB2Q72DLJTQDKDONZCZKQOYZRYWEOEN7JLT4SZXIF73SEZSGBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,,,,.,,,,.,,.,,,..,,,.,,,,,,..,,...,...,...,..,,...,.,.,.,,,
+#QS5Z4NOSLZBWXKZSD7RWNAJBK7JKV7OUN57HLODSFUMUFOM2TIA4FI3YWCHWUHGAYPVJXDL47ZAJU
+#\\\|ENPWLRJAJGFSZUVXNGXXJXNFIGWS5VWIDIENH4WCNPG355WYRRL \ / AMOS7 \ YOURUM ::
+#\[7]EFQEDJD32ZG72ONEZCKG6AIFFMYNT4MWX5EYJHP3NSY2EM4QRWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
