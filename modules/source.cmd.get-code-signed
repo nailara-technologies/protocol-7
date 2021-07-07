@@ -6,7 +6,7 @@
 my $code_name      = $$call{'args'};    ## [ LLL ] implement multiple ?
 my $skip_unchanged = $call->{'skip-valid'} // 0;
 
-##  expect >:] headers in ./base-code/..,  ##
+##  expect >:] headers in ./modules/..,  ##
 my $expect_valid_code_header = 0;       ## temporarely disabled ##
 
 my $code_dir = <source.code_path>;
@@ -35,7 +35,7 @@ return {
     'data' => "requested code file has no '>:]' header"
     }
     if $expect_valid_code_header
-    and $src_path =~ m|/base-code/|
+    and $src_path =~ m|/modules/|
     and substr( $src_str, 0, 5 ) ne "## >:] ##\n";
 
 my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
@@ -127,8 +127,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,.,,.,,,,,,.,,,,.,,,.,,..,,.,.,,.,,,.,,,.,,..,,...,...,,..,.,.,.,.,..,,,.,,
-#YNPFVF7ZS7LHRR656BI33AB23O4GJX3JZIBNJN62TX2PWHUAVATY6FDIZWNURCLPP57NVBZ7EKZGW
-#\\\|MJLWVSZ4EHFX2ULV5BJBWQAARTXX7F3Z3WBMEGZHQX5YQS3B3PJ \ / AMOS7 \ YOURUM ::
-#\[7]V3WFHS22SZ2MROMNDLDSWSPUGXQAGMQCEMACXBVO7FPOKQS7R4CA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,,,.,,,.,..,,,.,,,,.,..,,.,,,..,,...,...,,.,,,.,,,,,,,..,,.,,
+#BYSU6EYZMDOYFYD33SHIATLYBHZQPSVALVTQY5EGW7PP3AJNQF3EZUGXQESKSMJEWIW5YZZSNW5A2
+#\\\|Q7Z3WHYHQPTSTHVMQDDKBXRE5KOTCPU2KYDP4G26RKSXSVFOFPV \ / AMOS7 \ YOURUM ::
+#\[7]6IWDPUG4VCHBTCOFWNLKI3SY4HKNV4H4ESEKUTVESK4DSCQKIQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

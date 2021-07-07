@@ -1,7 +1,7 @@
 ## >:] ##
 
 # name  = sourcecode.console.undo-checksum-symlinks
-# descr = undo checksum based symlinks in ./base-code dir
+# descr = undo checksum based symlinks in ./modules dir
 
 my $err_count = 0;
 my $max_links = 7;
@@ -19,7 +19,7 @@ map {
     my $source_path = catfile( $work_tree, $ARG );
     die "source path $source_path does not exist" if !-d $source_path;
     push( @copy_sources, $ARG );
-} qw| bin cfg base-code |;
+} qw| bin cfg modules |;
 
 <[base.log]>->( 1, ": scanning for broken symlinks ..," );
 
@@ -207,8 +207,8 @@ if ( !$err_count or $apply_force ) {
     <[base.log]>->( 1, ':' );
 }
 
-#,,..,.,,,.,.,,,.,.,,,,,.,,,.,,,.,,.,,.,,,..,,..,,...,...,.,,,,,.,..,,,.,,...,
-#6HH263Z3RVQ4TVRSDAJ3RDXQD5LHZUMT3YEVJY72ODSL2ZIXZFWJYPNQG43KDVHC4CCNGUCQZY6CA
-#\\\|XABNZ6K6YQCGF55BZTI2VT3XUK5EWCTXB4JRLDZ26DWDDFZG3VM \ / AMOS7 \ YOURUM ::
-#\[7]BBXGYVIKHJQJIP47VB3PN3V2I6SHDMUTAXRJE2RMKN7ORKOUMWDY 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,.,.,,.,,,,,,,..,,.,,.,,,,.,,..,,...,...,...,,,,,,..,,.,,,,.,
+#J7ZITBVNPN67UEZYTPNYC5CAUVNI6HRVSGI7ZPZCQONILQIC5BJF5XHBTHW2XQSMDWUXSCE3QTBK4
+#\\\|VICL6GEBECNUWF6BX3OIOOCPSRMPNG7YE2XEGDASYZCI553DLME \ / AMOS7 \ YOURUM ::
+#\[7]PLN2FHON6XCVNUY6N3W6F6NEUVBRW33FCM346RSRBMAPNZWNF6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

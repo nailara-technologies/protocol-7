@@ -17,9 +17,9 @@ my $log_level = 2;                ## verbose reporting to log buffer ##
 <[base.log]>->( $log_level, 'cleaning up referenced subroutine hash ..,' );
 
 map {
-    ++$removed    ## remove all found present in base-code/  ##
+    ++$removed                    ## remove all found present in modules/  ##
         and delete <base.subroutines.referenced>->{$ARG}
-        if defined <[base.chk_nlr_path]>->( sprintf qw| base-code/%s |, $ARG )
+        if defined <[base.chk_nlr_path]>->( sprintf qw| modules/%s |, $ARG )
 
 } uniq <[base.sort]>->(<base.subroutines.referenced>);
 
@@ -94,7 +94,7 @@ foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
                     if $source_filename
                     =~ s|^$swap_params[1]\.|$swap_params[0]\.|
                     and defined <[base.chk_nlr_path]>->(    ## file exists ##
-                    sprintf qw| base-code/%s |,
+                    sprintf qw| modules/%s |,
                     $source_filename
                     );
 
@@ -187,8 +187,8 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,,.,,.,,,,,,,.,,,,,,.,,,,.,,.,.,,,,,,..,.,,,.,.,...,...,..,,...,.,.,,.,,,.,,
-#7BXF2QBPEOGF5S2CX3266RQ4O6DW2ZGEVDTE5SV23SSYVFXA3PWTAIUVADYRSBSBMJKFAFUJXHJ44
-#\\\|U6EB3WRJBJWQR2XI7SEVVJRNJLNBIUYIOZ77RT5AV4CM2IPTWON \ / AMOS7 \ YOURUM ::
-#\[7]6F4UJP43KYQPFHIC2HF2KTXAXFJUW2ZPNAL6KSJI4C3YKQ3JMYDQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,.,...,..,,,.,,.,.,..,,..,,.,.,.,.,...,...,,,,,,,.,,..,,,.,,,,,
+#Y4QC7BYT5AAWJFIESX2ATSXPJLBBHVAB4BIEDO7TNFPQMSHPYN3RI6HSVBJNZJDX23BRWDACDNBVS
+#\\\|NS2ALHOCRRAGWZMHLFY2NGBO2AQYAT6UMUVBKTWUQ4KNXP34AS2 \ / AMOS7 \ YOURUM ::
+#\[7]F4YJKJ7YPKWSR2V3DVCAHYFGWCVOPBM5UBJGD6SZTNZ45QTLNUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
