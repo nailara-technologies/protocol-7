@@ -11,24 +11,24 @@ my $who_bin_path  = <[file.which]>->('who');
 my $wall_bin_path = <[file.which]>->('wall');
 
 return {
-    mode   => 'false',
+    mode   => qw| false |,
     'data' => "numerical 'seconds' parameter expected"
     }
     if !length( $warn_seconds // '' )
     or $warn_seconds !~ m|^\d+$|;
-return { mode => 'false', 'data' => "'reason' parameter expected" }
+return { mode => qw| false |, 'data' => "'reason' parameter expected" }
     if !length( $reboot_reason // '' );
 return {
-    mode   => 'false',
+    mode   => qw| false |,
     'data' => "'reason' parameter too long [ max. 32 characters ]"
     }
     if length( $reboot_reason // '' ) > 32;
 return {
-    mode   => 'false',
+    mode   => qw| false |,
     'data' => "invalid character '$1' in 'reason' parameter"
     }
     if $reboot_reason =~ m|([^\s\d\w\-\+\'\"\.,_])|;
-return { mode => 'false', 'data' => "'wall' binary not found" }
+return { mode => qw| false |, 'data' => "'wall' binary not found" }
     if !length($wall_bin_path);
 
 <[base.log]>->( 1, ":.. sending 'wall' message [ host reboot warning ]" );
@@ -40,12 +40,15 @@ if (system( $wall_bin_path,
 ) {
     my $err_msg = lcfirst($OS_ERROR);
     warn "$err_msg [ $wall_bin_path ]";
-    return { mode => 'false', 'data' => "'wall' command error : $err_msg" };
+    return {
+        mode   => qw| false |,
+        'data' => "'wall' command error : $err_msg"
+    };
 }
-return { mode => 'true', 'data' => 'message sent to all terminals.' };
+return { mode => qw| true |, 'data' => 'message sent to all terminals.' };
 
-#,,,,,,,.,..,,...,,..,...,,.,,.,,,,..,,..,.,.,..,,...,...,,.,,,,.,.,,,...,,,,,
-#MK2ENBI6XRNSYWDULIMZFYARKKMY54BZE4AGB2XRKABQ6XOHMAV3LZSRYCJK6KDNE53H7SAJU7KZ2
-#\\\|CQLH5ZBKUU6LHMLELB4KUQP6BGP754LNIBBGGE6AEMHQGIEMXHJ \ / AMOS7 \ YOURUM ::
-#\[7]L4J3DFZLYC23LTNKJE35GZUIHGNV267EOXJRL5UBYAE25YDCNWAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,.,..,,,,.,,..,.,.,..,,..,,,,.,..,,...,...,..,,,,.,,,,,,..,.,,,
+#4LRCQ4TBPOZMSNDUNLNVLV4IZ2PLUQ6LUJTIZATU67QR26Y5M4GXST5XW73M62AUP5KE3EF2CVJCY
+#\\\|PEKU6O3T7EESEJF2E3DY5OVER3OW6MAIAM5JWYVHZIAJ2Y7A6AK \ / AMOS7 \ YOURUM ::
+#\[7]OSL7EQ7VIYQ5X3TXJS77EWMEXFFHKZOYTCTMBGFHTBKD7XROUAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

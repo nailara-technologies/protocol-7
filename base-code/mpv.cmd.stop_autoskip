@@ -5,17 +5,17 @@
 
 my $skip_interval = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'no active autoskip timer' }
+return { 'mode' => qw| false |, 'data' => 'no active autoskip timer' }
     if not exists <mpv.timer.autoskip>;
 
 <mpv.timer.autoskip>->cancel if <mpv.timer.autoskip>->is_active;
 
 delete <mpv.timer.autoskip>;
 
-return { 'mode' => 'true', 'data' => 'autoskip timer deactivated!' };
+return { 'mode' => qw| true |, 'data' => 'autoskip timer deactivated!' };
 
-#,,,.,..,,.,.,,..,,.,,,,.,,,.,.,.,,..,.,.,,,,,..,,...,...,.,.,...,,,.,,.,,,,.,
-#37KUFBRXTM46QPT3TS6THXJKNIUQMROKL7FIBQKZPOLEE3LHOQFKRJSUFCMABMJBLXS3FVMYQPUS2
-#\\\|RONMLX7EUY5FCYXZVH7N7EF5FE6B3BI57FX5SLYLCKL3OKJJBL6 \ / AMOS7 \ YOURUM ::
-#\[7]2BLTKS234MEMYY4YYIPJXLOJWSJE3AAVVLCRYF2DQY4RYAPTD6AY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,.,...,,..,,.,,,,,,,.,,.,,,,,.,..,,...,...,...,..,,,,.,,,.,,,,,
+#ZOJQRHVAJZKB2HKWRX274AXY4EJ26H76MNMOKVNHBTOAH7HJ54LI25OOHWKB34QRJA5KKQKBKYRT4
+#\\\|ZJHHAQZKUDM2SI3YDVT36SR6NN6NAYTSHWI6ZJ4QWTMDVV3ZKZK \ / AMOS7 \ YOURUM ::
+#\[7]YAB7HL3EYAQBF6PGPDPQITFEHKUJ6HKZKDRSZQJMNMTHFELEZ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

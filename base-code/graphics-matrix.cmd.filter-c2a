@@ -7,11 +7,11 @@
 my $params = shift // {};
 my ( $color_str, $input_file ) = split( m| +|, $params->{'args'}, 2 );
 
-return { 'mode' => 'false', 'data' => 'expected alpha color parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected alpha color parameter' }
     if not defined $color_str or !length($color_str);
-return { 'mode' => 'false', 'data' => 'expected path to image file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to image file' }
     if not defined $input_file or !-f $input_file;
-return { 'mode' => 'false', 'data' => 'input file not found' }
+return { 'mode' => qw| false |, 'data' => 'input file not found' }
     if !-f $input_file;
 
 ##  check for collisions  ##  [ LLL ]
@@ -20,7 +20,7 @@ my $image_chksum = substr( $bmw_chksum, 0, 13 );
 
 my $image  = Graphics::Magick->new;
 my $status = $image->Read($input_file);
-return { 'mode' => 'false', 'data' => $status } if $status;
+return { 'mode' => qw| false |, 'data' => $status } if $status;
 
 $image->Trim() if $color_str eq qw| auto |;
 
@@ -36,7 +36,7 @@ unlink($output_file) if -f $output_file and -z $output_file;
 
 <[base.log]>->( 1, "output file: $output_file" );
 
-return { 'mode' => 'true', 'data' => $output_file } if -f $output_file;
+return { 'mode' => qw| true |, 'data' => $output_file } if -f $output_file;
 
 my ( $img_w, $img_h ) = $image->get(qw|  width  height  |);
 
@@ -45,12 +45,12 @@ my ( $img_w, $img_h ) = $image->get(qw|  width  height  |);
 
 $image->Write($output_file);
 
-return { 'mode' => 'false', 'data' => $status } if $status;
+return { 'mode' => qw| false |, 'data' => $status } if $status;
 
-return { 'mode' => 'true', 'data' => $output_file }
+return { 'mode' => qw| true |, 'data' => $output_file }
 
-#,,,,,..,,.,,,,,,,..,,..,,,,,,..,,...,.,,,,,,,..,,...,..,,.,,,...,,..,,.,,,,.,
-#5Y5GWX724V5PL6ILIK6CR27E3TAFGTNUALU2FW6ELYSCJ2LZMES75NBBLHRCTHFUANGTLHOJYB5HG
-#\\\|W3CV67SPUVP5M5XTYGQHNUYFTJ3XT5KOTRQN7X4BSE4FADDTRQV \ / AMOS7 \ YOURUM ::
-#\[7]GBESM47AWVN5LE5ZYSKLOF7T2GI2KIUNKYWSDGOOEXJEUH2LIODA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,.,.,,,.,,.,,...,.,.,,,.,.,.,..,,...,...,..,,..,,,..,,.,,,.,,
+#CKCZFBRP3P63E7QYDNX6OJ7AWNTYQDURKJNNNLZ6MPE6GV2XMXQ5MC3YGHS2V3YCKNELMKRWWKP6Q
+#\\\|TV6VU7LMIJFDKCZIR7KJFHXPAYKJKPR7JBFXSSTR5JSIRANEM7S \ / AMOS7 \ YOURUM ::
+#\[7]TG4EWAETLJOZFZQPR63J4ZXWTEYXPNMVRMEP45DRPZQ4Z3ZGSWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

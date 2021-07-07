@@ -167,7 +167,7 @@ elsif ( defined $auth_method
         and $auth_name =~ <regex.base.usr> ) {
         my $fh = $data{'session'}{$id}{'handle'};
         $$session{'encryption'} = $data{'handle'}{$fh}{'encryption'}
-            // 'none';
+            // qw| none |;
         $$session{'user'}          = $auth_name;
         $$session{'mode'}          = qw| client |;
         $$session{'auth_time'}     = <[base.time]>->(5);
@@ -225,8 +225,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,.,,,,,,..,,,,.,,..,,.,,,,,,,,.,,,.,..,,.,,,..,,...,...,...,,..,,,,,..,,.,,,
-#KV3QUA23U4Q6AUW3EZQDGQUB24ONAX265O4EXIHWFPWDNUQJ46XMMOIG2QY7NL6WDAGFJXE4UO2JA
-#\\\|GTLMRGD3NIEE2HK6HNO2APJDEED2YCN5G3VLZFNWZYMCVZNE7JH \ / AMOS7 \ YOURUM ::
-#\[7]ZQVNSVJO66I6VTAP3AWD2V7DITHO6HWGU3R4RWCKHAUOPCHIPEAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,.,.,,.,,,,.,.,,,.,,,,.,,,..,..,,...,..,,,.,,,,.,.,,,,,,,..,,
+#D4OSU3FHGZBXQT7W7GBATHZGDBJX662LUG5Z3TJGDTIQ2KWLBXZB3GPUPJX7SXQTDO6Z7K5TSCPIS
+#\\\|KS4XWLHYYJIWUYZDFELK6BFZLQJMSTECCD7NYIJ5KV6NFO4AJZN \ / AMOS7 \ YOURUM ::
+#\[7]3I4IHRHEY25HLLH3FAXOZQDETUJDOJWV22VBU7QCIICTGLAV2ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

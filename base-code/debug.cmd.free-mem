@@ -3,19 +3,19 @@
 # name  = debug.cmd.free-mem
 # descr = allocated bytes to zenka memory pool
 
-return { 'mode' => 'false', 'data' => 'none was allocated' }
+return { 'mode' => qw| false |, 'data' => 'none was allocated' }
     if not defined <debug.eaten_memory> or !length(<debug.eaten_memory>);
 
 my $bytes_returned = length(<debug.eaten_memory>);
 undef <debug.eaten_memory>;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "returned $bytes_returned to zenka memory pool"
 };
 
-#,,.,,.,,,,.,,.,,,.,,,..,,,,.,,,,,..,,,,,,.,.,..,,...,...,,..,,,,,...,,.,,,.,,
-#KHSQZXNC2B6G3V3Z4TYO5DYV6C2OWPLSLV7LVWWZQOSJKJ4Y4LR7VF3U2EWKNKVVN2LNY7OBFKKOO
-#\\\|4TSLMAK7ZKTL4GA7H6RRMTBEMOJCVRSUBTXRIVXGMRPOK2J4FIO \ / AMOS7 \ YOURUM ::
-#\[7]GREM4RM367DHOBIKTQSW2KFVGMYXQ33RF6CFKH2EG2JHCHZFZGDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,,,,,.,.,.,.,.,,,,.,,.,,,...,..,,...,...,...,,.,,.,.,,.,,.,,,
+#5JZLFVUJBN6XHRQ4DA3I6G5VCW3CQYUUGTMWSRURWH356E66SIHF7P5ZJEVJY3ELOZUIWEYAPE634
+#\\\|V45UT6CPNH4CKBEA5I5WFYKJUILTAUI2HKG2KBQWJ2URUQBGD23 \ / AMOS7 \ YOURUM ::
+#\[7]MWV6OGUK5HEYTBEVF722JHZSEKCN6XOHMUOKA24CF5HHIR4DWICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

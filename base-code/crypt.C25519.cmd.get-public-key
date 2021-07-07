@@ -5,22 +5,22 @@
 
 my $key_name = <crypt.C25519.key_vars.key_name>;
 
-return { 'mode' => 'false', 'data' => 'C25519 key name is not defined' }
+return { 'mode' => qw| false |, 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "C25519 key '$key_name' is not loaded"
     }
     if not defined $KEYS{'C25519'}{$key_name}{'public'};
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => sprintf( '[%s] %s',
         $key_name, encode_b32r( $KEYS{'C25519'}{$key_name}{'public'} ) )
 };
 
-#,,..,,..,,.,,...,...,.,,,,,,,...,,..,,,.,,,.,..,,...,...,,.,,.,.,...,,,,,,..,
-#EYGRBQMUMXFRLWRRJOAELPZPT5UWCVZC2QEGKAFIWXVFSUNNLZRWOD36GQHIJIVXFQVPQ6T3HLAZK
-#\\\|7DHAVB4LEODRCLUKLT3MPKC2XO5556ZXGWV7LLDED2GGU7SUBXF \ / AMOS7 \ YOURUM ::
-#\[7]5MWVXHZN7ODQ7BUQCGWQGZ776XLGQLS7VVBNW6QWDKQWO3Y3WOBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,.,,,.,,,,..,...,.,,,.,.,...,..,,...,..,,,..,...,,,,,,..,.,.,
+#S7BA75NW3L3HHMCF3C2Y2NECX5DH7BFJBO7A74IWNS5VT3EVCRUPVIQIOM7NIP2ZPC6GULNPPUGUO
+#\\\|NWGDGUBKGI36277QPN5RQNA5GVAYLFKIPPROJUVROKSUHRGQZJ7 \ / AMOS7 \ YOURUM ::
+#\[7]ZDXLXJTIJ3N7HPJSKPTLW2KZINXU6BICGZYWZZVHYNZEJKXEKEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,14 +10,14 @@ my %cache_models
     ( 'web-browser', 'document-viewer', 'document-browser' );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => sprintf( 'use one of : %s',
         join( ', ', map {"'$ARG'"} sort keys(%cache_models) ) )
     }
     unless exists $cache_models{$selected_model};
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => sprintf("web cache model already '$selected_model'(!)")
     }
     if $web_context->get_cache_model() eq $selected_model;
@@ -30,12 +30,12 @@ return {
 $web_context->set_cache_model($selected_model);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => sprintf("web cache model set to '$selected_model'")
 };
 
-#,,,,,,,.,,.,,,.,,...,,,.,.,,,,..,,,,,,..,...,..,,...,...,...,.,.,..,,,.,,,..,
-#ZVRG4EKPNF2X45AZSGD7BQHBNUBWKO423MICMHXZFZILRDIRKT2PJU7JWHC635NIZN4FM7WMXBKL6
-#\\\|KAUGK3RLRN4ZXEN4WLCTHL4S2ABZ6LKTEJSVWUJTLSUBDXK5V6T \ / AMOS7 \ YOURUM ::
-#\[7]BIV5TLV2NR5LOFT3E66NSHPF3BINY2YVYZ2XTR6JZX75SZ45SIDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,.,.,,.,,..,,..,,,,.,,,.,.,.,..,,...,...,,..,,,.,,,.,,,.,...,
+#63Z2YC6VVIRASMZAQBYZPON6YJVJVQ3DV6MBRYCBLOCCXDH56HUMZWNJNRS4O3H2GWL6QPRR57NBC
+#\\\|D3LNM7UZCTZORTH2JIDZLEVJWVVZEC2D5UG65X24GIOM2DY5BCT \ / AMOS7 \ YOURUM ::
+#\[7]3XPUHDHQ52FXUVSWAWNRWGSY7ZXLWO3HFQO2NLJ6JFXZXLSQH2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

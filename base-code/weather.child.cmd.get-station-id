@@ -12,7 +12,10 @@ my $use_first_match = <weather.cfg.first-location-match> //= 0;
 my $language_code   = <weather.cfg.language> // <system.language>;
 my $country_code = uc($language_code);   # <-- LLL: coincidental only, geoloc?
 
-return { 'mode' => 'false', 'data' => 'expected location name parameter' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected location name parameter'
+    }
     if not defined $location_name or !length($location_name);
 
 my $query_str = "find?q=$location_name";
@@ -24,10 +27,13 @@ $query_str .= ",$country_code" if $retry_with_country_code;
 
 my $json_response = <[weather.child.query_api]>->($query_str);
 
-return { 'mode' => 'false', 'data' => 'weather API query failed' }
+return { 'mode' => qw| false |, 'data' => 'weather API query failed' }
     if not defined $json_response;
 
-return { 'mode' => 'false', 'data' => 'found no station for given location' }
+return {
+    'mode' => qw| false |,
+    'data' => 'found no station for given location'
+    }
     if !$json_response->{'count'};
 
 my $country = $1 if $location_name =~ s|\,(\w+)$||;
@@ -84,16 +90,16 @@ if ( not defined $station_id ) {
     <[base.log]>->( 0, "returned locations --> $lpath" ) if !$EVAL_ERROR;
 }
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "cannot match the $result_count returned stations to requested"
         . " location"
     }
     if not defined $station_id;
 
-return { 'mode' => 'true', 'data' => $station_id }
+return { 'mode' => qw| true |, 'data' => $station_id }
 
-#,,..,.,.,.,.,,.,,,.,,...,..,,,..,,,,,.,,,.,,,..,,...,...,..,,,,,,,,.,..,,,.,,
-#BJGX2VSCSYL2K4JJA6PE2AE4RQFX7R2AK6DDZDARKLPLBSQDQRT4QKODVQWWGKO34HRTCXMJRHUBK
-#\\\|AI663MSVAX2IIDJ3AKGXV6XRUI3WWKUHNGLFPPOX6TILZTU4RUQ \ / AMOS7 \ YOURUM ::
-#\[7]D5WB56EJRSLAIFQU2TJOS6D7CEWMYOW2FL5HQ5T2YW7O4H5BR4CQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,..,,,..,,.,,,,.,.,,,..,,..,,...,..,,...,...,.,.,...,,.,,.,,,...,
+#2JLQM7G3U6ID7P2L5LJ2LT75R6HRQZLYVNIAMDRPY37BRDBLGVQZXLV3LVYKMEZITK7HE3RZ4YVYM
+#\\\|N6TVDLCI3XKQDW3KGIBJSQO5G5V365ODJX3FYJXUK7A5HMCCEVN \ / AMOS7 \ YOURUM ::
+#\[7]NFCYJZKCHSBM4YIS32DAL5MVSJ63UDE33BST5UXXM5HPPW5OE2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

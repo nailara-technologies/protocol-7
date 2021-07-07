@@ -21,7 +21,8 @@ warn "result string not as expected [$js_result], cannot scroll."
 
 if ( <window.scroll.pos> >= <window.scroll.max> ) {
     return <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'true', 'data' => 'already at end of page' }
+        $reply_id,
+        { 'mode' => qw| true |, 'data' => 'already at end of page' }
     ) if defined $reply_id;
 
     <[base.log]>->( 2, ": skipping auto-scroll [ end of page ]" );
@@ -44,8 +45,8 @@ if ( <window.scroll.pos> >= <window.scroll.max> ) {
 $window->queue_draw();
 <window.scrolling> = 1;
 
-#,,..,,..,.,,,.,.,...,...,,..,...,,..,,,,,.,,,..,,...,...,...,,.,,.,.,..,,,..,
-#OVCKQ7CONI5URQ3FVADKTITJ2A476DCO4GOL3VXDQY63TYSDPW5RP2HCPGQ5Y3DOGFQ7CEIXY5HSI
-#\\\|C4D3JCM46HXO3Y7KVM4WZUOF2VSAUFIRTBCZG7WFSKIQFTYPNO6 \ / AMOS7 \ YOURUM ::
-#\[7]KDOGX3G5A7EM24WJYEUWKLE52NBRBE7ACNMGYWSS7RAREHROPSDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,.,...,,.,,,..,,..,.,,,,..,,.,,..,,...,...,,.,,...,,,.,...,,,.,
+#ESDVXPQKBCYMUXFWFUUNW435PP22Y2PU2Y5Z3V7F2JYSFGATRIXR4VNSJCAI5JJW7RMIHZUAQOGXA
+#\\\|ATFRXFARHHBE3CQCRCTYK3BTWLA3A3FPNT6FY5MFA3CTQZUBF5Q \ / AMOS7 \ YOURUM ::
+#\[7]SP73ITN5BHGVKJOL44ITYHDXIP5RS6F5PYTYWQM5AFBTSP5GVMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

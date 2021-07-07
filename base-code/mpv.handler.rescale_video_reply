@@ -7,7 +7,7 @@ my $chk_hash = $reply->{'params'}->{'chk_hash'};
 
 delete <mpv.converting>->{$chk_hash};
 
-if ( $reply->{'cmd'} ne 'TRUE' ) {
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
     <mpv.rescale_failed> //= {};
     <mpv.rescale_failed>->{$chk_hash} = 1;
     <[mpv.callback.reenc_finished]>;    # removing 'reencoding' message..,
@@ -45,8 +45,8 @@ if (    <system.zenka.mode> eq 'universal-child'
 
 <[mpv.callback.reenc_finished]>;
 
-#,,..,.,.,,,,,...,,.,,...,,,.,..,,,.,,.,.,.,.,..,,...,.,.,.,,,.,.,..,,.,,,..,,
-#65UINDQ2QWAV23U54ZA2OZXNDERYS5SXJXZEOSA3OJG5VWTTV3342UZWQEKINIHIKFOF4GZMJV5EY
-#\\\|HZINXPH62X7JAYFOVCTST57BVEEON2NX2TQFT45QPUCL5OO3BUT \ / AMOS7 \ YOURUM ::
-#\[7]CSAEACMJPIW4S2EBRUMEQO5XLDR2WKW6B2D42WE5JGH4J3F2EEDA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,...,.,,,,,.,,..,.,,,.,,,,.,,..,,...,...,.,,,,.,,,,.,,..,..,,
+#5AK52L35FSVINWLDABP4ZIQXQDHKNZTERI72HIBNZJ27DWXUU66VMBBW6CU5CXSYBOGKEWPMMPOX4
+#\\\|USTHKBVGSE4I4I44QB3WJI72G4SYYXRHLRBKUTORBCYPD5PBWPM \ / AMOS7 \ YOURUM ::
+#\[7]4YZZUEZ7PN5TNDUDIC2KHJ7656NKJ27GUP2RN4F5LA2TVOEXXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

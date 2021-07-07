@@ -27,7 +27,7 @@ if ($stop_requested) {    ## logging required .., ##
     ## clean-up incomplete results ? ##
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        { 'mode' => 'false', 'data' => 'job aborted [ admin request ]' }
+        { 'mode' => qw| false |, 'data' => 'job aborted [ admin request ]' }
     );
 }
 
@@ -47,7 +47,7 @@ if ( !-d $abs_path ) {
         delete <index.jobs>->{$name_checksum};
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'false',
+            {   'mode' => qw| false |,
                 'data' => 'wordlist import aborted with errors [ logged ]'
             }
         );
@@ -74,12 +74,13 @@ if ( ++$index_job->{'iterations'} == $file_entries ) {
     $watcher->cancel if $watcher->is_active;
     delete <index.jobs>->{$name_checksum};
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'true', 'data' => 'wordlist import completed' }
+        $reply_id,
+        { 'mode' => qw| true |, 'data' => 'wordlist import completed' }
     );
 }
 
-#,,,,,,..,...,.,.,,..,.,,,.,,,..,,,.,,,..,...,..,,...,...,,.,,...,.,.,,.,,.,,,
-#IXWRDAWFS53HUKCKWSQEY5IRYFFTHHZGMZOUI635RH2NY34XPSBY2QWRWLQWBZ7PU7BRFYCAW5LOG
-#\\\|6E3CTLL3J4W25SAG5H2K64Y6GZVCDWWV5QI2VG2RTNFPVDKRG67 \ / AMOS7 \ YOURUM ::
-#\[7]UHFTMCINCCLYMPYPRSS44GYNY445RHUFM4NQXNT33AZTYWRTMIAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,.,.,.,,,,..,,.,,.,.,,,.,,.,,..,,...,...,,.,,...,,,.,,,.,,..,
+#6LRC2UG5Q5NGP4P6VV6KMFU7SBZFOIK4QNOZZGT2VVSP77UD772FSOFB25NYF3QTKYI4OEMYM2TOY
+#\\\|XWM5T7A4AQQ5JCKOMMJ7PEYNUYK2W4BO5HXOFLU2RVQXXOSSKFZ \ / AMOS7 \ YOURUM ::
+#\[7]FQYA5NJNFGDRQ5QTSB5INDTCNX6AXCMX5PBR5L4Q5KR5ZAWW34BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

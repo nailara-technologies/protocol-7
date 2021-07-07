@@ -7,7 +7,7 @@ my $reply = shift;
 
 <mpv.playlist_sha1> //= '';
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason_str = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, ": unable to fetch playlist., ['$reason_str']" );
     return;
@@ -103,8 +103,8 @@ if ( <system.zenka.mode> eq 'universal-child' ) {
         @update_files;
 }
 
-#,,,,,,,,,...,..,,.,.,,,.,,..,..,,,,,,.,,,,,.,..,,...,...,...,,.,,,,.,,.,,,,.,
-#BYI3LC2YEWHTHNUOQWN5IHDMZSJBMBY2W4I3SWUPBL6VANKA4CFXIFMPVN7VBKOQ2AEP3CF3IA364
-#\\\|XN2PRPC3NRJ2XVVS2O6GY5WO2E2MDZSSEAK3JZO5LP23BW4YKYS \ / AMOS7 \ YOURUM ::
-#\[7]T3W735JELGWVVFDJVIRH5642WHECLNKMB6YQTXFCRJQYZP5LP2DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,,..,.,,,,.,,...,,,.,...,,,,,..,,...,.,.,,..,,.,,,..,,.,,,,,,
+#BCHGE5OER5RBBGYEQPKODZUI357O325XDVMXZYRGKKVV3HCJMVBDMGEAUJMDMBF3QFH2WFZYDOGJG
+#\\\|2OQWKUHHV2Q3KJ3POZ56ALG5AOA4LCBOPNFBMWU525R2P4COGVZ \ / AMOS7 \ YOURUM ::
+#\[7]TYKJH6IN5E4BJURU3T7TCCSGQS63Z4C74POTGAVZ34BPQH5SAWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

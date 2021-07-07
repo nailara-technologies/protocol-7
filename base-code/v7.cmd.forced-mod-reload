@@ -7,15 +7,18 @@
 
 my $module_name = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'expected valid <module> parameter' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected valid <module> parameter'
+    }
     if !length($module_name)
     or length($module_name) > 42
     or $module_name !~ m|^[\w\s_]+$|;
 
-return { 'mode' => 'false', 'data' => "'rmmod' binary not found" }
+return { 'mode' => qw| false |, 'data' => "'rmmod' binary not found" }
     if not defined <v7.rmmod_bin>;
 my $rmmod_bin = <v7.rmmod_bin>;
-return { 'mode' => 'false', 'data' => "'modprobe' binary not found" }
+return { 'mode' => qw| false |, 'data' => "'modprobe' binary not found" }
     if not defined <v7.modprobe_bin>;
 my $modprobe_bin = <v7.modprobe_bin>;
 
@@ -48,7 +51,7 @@ if ( !length($modprobe_output) ) {
 
 chomp( my $rmmod_output = qx($rmmod_bin -f $module_name 2>&1) );
 if ( length($rmmod_output) ) {
-    $reply_mode = 'false';
+    $reply_mode = qw| false |;
     $rmmod_output =~ s{(^.*rmmod: (FATAL: )?(Module )?|\.$)}{}g;
     $reply_data = "unable to unload module ['$rmmod_output']";
     goto do_reply;
@@ -56,7 +59,7 @@ if ( length($rmmod_output) ) {
 
 chomp( $modprobe_output = qx($modprobe_bin --first-time $module_name 2>&1) );
 if ( length($modprobe_output) ) {
-    $reply_mode = 'false';
+    $reply_mode = qw| false |;
     $modprobe_output =~ s{(^modprobe: FATAL: (Module )?|\.$)}{}g;
     $reply_data = "unable to load module ['$modprobe_output']";
     goto do_reply;
@@ -68,8 +71,8 @@ map { $ARG->start } @restart_timers;
 
 return { 'mode' => $reply_mode, 'data' => $reply_data }
 
-#,,.,,.,.,,,,,.,,,..,,..,,.,,,,..,,..,.,.,...,..,,...,...,,..,..,,..,,,..,,,.,
-#KOIL6DWCGCHMX6SGYOQQGYTCHZPGB4HLLAMFFNG7DEJMHW2XY2KIR5K53G54VD4OJ6YZBRPGZL6LI
-#\\\|FOP52JIW2ZUOAVYQLXYHGHVZCLTXKAHZU3FEPLNI2ABNXDGKWRZ \ / AMOS7 \ YOURUM ::
-#\[7]PRZCQBYRG6DX552REAECA3PIPY2I7MV22U4SWZGD6KZH6YHQLKCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,.,.,...,.,.,,.,,...,.,,,,,,,..,,...,...,.,.,.,.,,..,,,.,,,.,
+#ZRF5UZU3UKEUWREQPROVVAN5CPNYB3OSN3HK5BHD4GZGTGGXMNMQMJQT672LUP3O3DP5XWLTCDD7W
+#\\\|YYXPYNIA46DGVRWETZFC6M4OFTQVZRKQZP4S7R5BPEPFP5JG5HU \ / AMOS7 \ YOURUM ::
+#\[7]ZBE6LVCL3QGKHARLKXO3BKQYA4DVVKLFQYYQSKUBXKJHV6CI2UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

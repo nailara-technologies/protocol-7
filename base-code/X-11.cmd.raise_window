@@ -7,12 +7,12 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 $X->MapWindow($window_id);
@@ -20,10 +20,10 @@ $X->ConfigureWindow( $window_id, stack_mode => 'Above' );
 
 <[X-11.get_window_ids]>;    ## <-- update to visualize action ##
 
-return { 'mode' => 'true', 'data' => 'raised to top' };
+return { 'mode' => qw| true |, 'data' => 'raised to top' };
 
-#,,..,..,,,,.,,,,,..,,.,.,...,.,,,..,,,.,,...,..,,...,...,,.,,,,,,,.,,...,...,
-#C4E4L43HBED7SXB73VUXE3VF6GWE2PA5L252PGQF5BYKIWWGRAM7H3VPU3MNYZWASK2W2TJAMXYK4
-#\\\|QIYFOV54A5UNZHO3YPWVPLQV6SQADB4QNE5PJ37BYZN24YKTTDV \ / AMOS7 \ YOURUM ::
-#\[7]L3Y2OQVJBWNBSFYOVBPWOFHFIGYGKLAX4N4SFDA7F5E2JBNF3YBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,,.,,,.,,,.,,,.,,.,.,,..,,.,,..,,...,...,,,.,,.,,,..,..,,,,,,
+#4VZNBC4JGTDJICGYWHY4XZUJXEHIGQHFJ6MYOTWO4QE3DUFHJAGVVHW7GFDF7ADQLP2CI2OO7T7L4
+#\\\|R3OKIZPVEEAZLKJFL46ZIVKI32D2UA4H47ZPGU4GCJQ36UBHEO2 \ / AMOS7 \ YOURUM ::
+#\[7]HWTGPG55MGM6FWU4BJ5VKXXWQF5O7YEDQLQHY6BJT6LO7L75BWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

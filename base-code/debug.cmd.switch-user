@@ -10,14 +10,14 @@ my $new_usr = $params->{'args'};
 my $id      = $params->{'session_id'};
 my $old_usr = $data{'session'}{$id}{'user'};
 
-return { 'mode' => 'false', 'data' => "you are '$new_usr' already!" }
+return { 'mode' => qw| false |, 'data' => "you are '$new_usr' already!" }
     if $new_usr eq $old_usr;
 
 if ( not defined $new_usr or !length($new_usr) ) {
     $$reply{'data'} = 'no username specified';
 } elsif ( $new_usr =~ <regex.base.usr> ) {
 
-    return { 'mode' => 'false', 'data' => "no user '$new_usr' found!" }
+    return { 'mode' => qw| false |, 'data' => "no user '$new_usr' found!" }
         if not defined <auth.setup.usr>->{$new_usr};
 
     <[base.log]>->(
@@ -39,16 +39,16 @@ if ( not defined $new_usr or !length($new_usr) ) {
     }
 
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "switched session to user '$new_usr'"
     };
 
 } else {
-    return { 'mode' => 'false', 'data' => 'invalid user name syntax' };
+    return { 'mode' => qw| false |, 'data' => 'invalid user name syntax' };
 }
 
-#,,.,,,,,,,,,,..,,,..,,,.,,,.,,..,.,,,,..,,,.,..,,...,...,..,,...,..,,..,,.,.,
-#BJRAQAAV3NZJ2TH5UHW2MA4KHTAC6QGTFWRLIK2ZOGT2YGL4BYMNOQOPA4Z7LS7MQZHSDNBPYNAZW
-#\\\|UC4MCIAOT5IRL4BQIXIRXPTMRMS2HPPQ72FIVIUPLKEUBFJYIC7 \ / AMOS7 \ YOURUM ::
-#\[7]LNND3KJSCDOOI2GSZMU3OOAMAWRMWQUDJAY34V6JM2VVICVEAQDQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,.,,,,.,,,,,,..,,,.,,...,,.,,,,,,..,,...,...,.,,,.,,,,..,,.,,,,.,
+#DMFCVCF5K6NSUDTYE2DFFLCALI7K7S2OCW56DIUN4W3BHRYUPYTOT7HXJYIKCBEWBJBWATPT5Y3G4
+#\\\|MFWTXCNIQUG5TSPWOGUXFDQAEVVODKQSO3WDGVBMZYY4A3FHAUS \ / AMOS7 \ YOURUM ::
+#\[7]MNKQOANC3PNN5OKH37WY7ZXR4D4QPFRBFQGEWJIXNXIYIWGMROBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

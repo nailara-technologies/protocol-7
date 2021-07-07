@@ -4,7 +4,7 @@
 # param = [zenka_name]
 # descr = window geometry for named or current zenka
 
-return { 'mode' => 'false', 'data' => 'no zenka name received' }
+return { 'mode' => qw| false |, 'data' => 'no zenka name received' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ m|^(\S+)( +(\S+))?$|;
 
@@ -23,7 +23,7 @@ if ( $zenka_name =~ m|^\[([^\]]+)\]$| ) {    #  <--  only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <tile-groups.coordinates>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required."
         if $match > 1;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $msg_str
         }
         if $match != 1;
@@ -56,7 +56,7 @@ my @coordinates;
 my @borders = ( 'left', 'top', 'right', 'bottom' );
 foreach my $border_name (@borders) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "coordinates for $border_name border are missing"
         }
         if not exists $coordinates_data->{$border_name};
@@ -64,12 +64,12 @@ foreach my $border_name (@borders) {
 }
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => <[base.X-11.coordinates_to_geometry]>->(@coordinates)
     }
 
-#,,.,,.,,,..,,.,,,,..,.,.,.,.,.,.,,.,,.,,,.,.,..,,...,...,,.,,,.,,.,.,...,,.,,
-#GGEYJUWX2ZCQQLMSSIHSRHNYDZTJWXRH6TVFS3H5IWK3C5HP3PX6NENPDPUAR2B7EVQXN42GSJPMS
-#\\\|IBCN6DQE32XBJ4PFB4UV3SEPALDGDFTGSTNKUQUFNOPUQSNB7DJ \ / AMOS7 \ YOURUM ::
-#\[7]ANKPGN2O3NVQMMRHZYJCO7DI4OXK4JXF2MGAFLXP747XB3SDMWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,,,,.,.,,..,..,,,,.,.,,,.,,,..,,...,...,,.,,.,,,,.,,,..,.,.,
+#MDDYGV4RAVCA6NV5LZ4UI6EVCTUG2AHIDFKEHZHIR7PNL2AMZFB27DPB743QMQ3TRWLYYDI2MUNW2
+#\\\|XORYQ6AA7A2NFAAENWS3D3AOEREJ7NROYD6B5V2TBROMU6QVHLA \ / AMOS7 \ YOURUM ::
+#\[7]6P3GLKK4FWSZRI3SXBLSG4WKA4ZSEN4GZBIT4MOJP537Z7AH5ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

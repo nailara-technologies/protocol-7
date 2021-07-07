@@ -8,10 +8,13 @@ my $param     = $$call{'args'} // '';
 my $cache_dir = <weather.cache_dir>;
 my $city_file = "$cache_dir/city.current";
 
-return { 'mode' => 'false', 'data' => "cache dir '$cache_dir' not found!" }
+return {
+    'mode' => qw| false |,
+    'data' => "cache dir '$cache_dir' not found!"
+    }
     if !-d $cache_dir;
 
-return { 'mode' => 'false', 'data' => 'parameter not recognized' }
+return { 'mode' => qw| false |, 'data' => 'parameter not recognized' }
     if length($param)
     and $param !~ /^(html|data|stations)$/;
 
@@ -33,10 +36,13 @@ map { remove_tree( "$cache_dir/$ARG", { 'keep_root' => 1 } ) } @subdirs;
 
 # LLL: update weather data and files... ; clean up weather data in ram..,
 
-return { 'mode' => 'true', 'data' => "weather$which_str disk cache cleared" }
+return {
+    'mode' => qw| true |,
+    'data' => "weather$which_str disk cache cleared"
+    }
 
-#,,..,,,,,..,,,.,,,,.,.,,,.,,,,..,,.,,..,,,,.,..,,...,...,.,,,...,,,,,,,,,,..,
-#ZAQEWRQZACDXVIZHAVUQBNDJVK22NOMMBQRE3RBHWSRSFGHJHOCKCEJ55MRBUN7QWJJ65VZQ7NHMY
-#\\\|RIIWMAI4RSQYCVCXKUBZ4G66UIDR5AHPSZ7IN2DT6BCO2NWUULK \ / AMOS7 \ YOURUM ::
-#\[7]MAW2KYROQZOL734XECUEOFUWFUBO77A5QNDRQICR2GBA6IK7NABI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,,,,,,.,,.,,,,,.,,.,,,..,,..,..,,...,...,,..,.,,,,..,.,.,.,,,
+#ZQEE46QYSBK5A4FZ5DDUDEZ5HR3JWQOGDMHYZVO3AOFK7EOWXAXQP7RVEUXGAWPNBNL3WYXOG5PVA
+#\\\|AHZEZGL466FHPMFPP3V5A5J2NHL4NW4ERAOFK76EWPAO2XSRBUE \ / AMOS7 \ YOURUM ::
+#\[7]KNJUYO76PKEH5VK77TGYPB3BAHJW44RSTWZMEYFR7PURIKH2TYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

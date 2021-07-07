@@ -6,9 +6,9 @@
 
 my $instance_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'instance id must be numeric!' }
+return { 'mode' => qw| false |, 'data' => 'instance id must be numeric!' }
     if $instance_id !~ m|^\d+$|;
-return { 'mode' => 'false', 'data' => "instance not found!" }
+return { 'mode' => qw| false |, 'data' => "instance not found!" }
     if not exists <v7.zenka.instance>->{$instance_id};
 
 my $instance = <v7.zenka.instance>->{$instance_id};
@@ -26,12 +26,12 @@ my $es = $count > 1 ? 'es' : '';
 <[base.log]>->( 0, "instance $instance_id resumed [ $count process$es ]" );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "$count process$es paused (SIGCONT)"
 };
 
-#,,.,,,..,.,,,,,.,.,,,..,,.,.,.,.,,,,,.,.,,,,,..,,...,...,...,.,.,..,,...,,,.,
-#MIFLE32UMQOEEWMQWFN3FLB7K5LMXLXOPALDIHQAGHHFP3AHY5B3DE7JJOKYNZ3SE2QYOSMXHVMF6
-#\\\|BDFDJ2YS2RPIPFZ4TQMZ7FQ2NHJ6WDLS22NGO5ZRRR734MRVGG6 \ / AMOS7 \ YOURUM ::
-#\[7]OGT4B6NAVN5OSH6ACYLAEXTWRKI35QIAT5Y2VBOWEMIGS2QEMIBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,..,,.,.,.,.,,.,,..,,...,,,.,..,,...,...,..,,.,.,,..,.,,,...,
+#RHRTPV6E4CNANFL4DF2QYKBXQFSWGLFMX6SRGNKBYNRGSCEL5IVCBTRRT2ZLTGGN6X6YFZBUXNAPK
+#\\\|JK2K6DFMVDAB2Z5W23TA2T66BS7RFL2UIIBZR47B3KYCHPQTM3V \ / AMOS7 \ YOURUM ::
+#\[7]VM76TBHIHEZ3HSWOIVHL3VHXHFLEF64DVL2IWAQFWXEUZS5M2YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

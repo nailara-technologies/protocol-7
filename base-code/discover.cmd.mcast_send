@@ -4,7 +4,10 @@
 # descr = send (signed) message to mcast group
 
 my $ann_msg = shift->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'no announce message string given' }
+return {
+    'mode' => qw| false |,
+    'data' => 'no announce message string given'
+    }
     if not defined !length($ann_msg);
 
 my $key_name = <discover.crypt.key_name>;
@@ -33,14 +36,14 @@ $packet_str .= encode_b32r( <[crypt.C25519.sign_data]>->( \$packet_str ) );
 
 # print "---<sent>---\n$packet_str--</sent---\n";
 
-return { 'mode' => 'false', 'data' => "unable to send : \l$OS_ERROR" }
+return { 'mode' => qw| false |, 'data' => "unable to send : \l$OS_ERROR" }
     unless <discover.mcast.obj.sock>->mcast_send( $packet_str . "\n",
     join( ':', <discover.mcast.ip4_addr>, <discover.mcast.ip4_port> ) );
 
-return { 'mode' => 'true', 'data' => 'message sent' };
+return { 'mode' => qw| true |, 'data' => 'message sent' };
 
-#,,..,,..,.,.,...,.,.,,..,,,,,.,,,.,,,,,,,,.,,..,,...,...,..,,.,.,...,.,.,..,,
-#P3DYYFBC4GQOEA6HXXG3EMIF6DILVT4SSLSHX7TSTL2HAPZVIFRHI6JVWOWU2XTWV6USUVCLP6X74
-#\\\|D7FW6KDU33RE5DDVHPAS2BW2BMW45ZW4FNPC33GTAPSKW2COBNA \ / AMOS7 \ YOURUM ::
-#\[7]PVTAAFUVK7DTJPOQN7UYFWFP6HEJS3HLLOQCYMJ5XIVF3HSLKGAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,.,,,,.,,.,,,,.,,,,.,,,,,,,,,..,,...,...,,.,,,,,,...,,..,..,,
+#AMVMEK5QBCROZURKJXQWJV25JQTUCNREF2AHHJYRWLOWJ3IME2H3KK7DKLL2R5ITNUG36BUDOBXCW
+#\\\|X4EYGTVFYGOWIDKP22UP7WATT2C6CHXRETW7QUT3XX4PJHUZAQT \ / AMOS7 \ YOURUM ::
+#\[7]F324LGKWUUDHJBDX4QU3XAK6KSQWRF5P7ITB25NYXOP5VPS5PUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

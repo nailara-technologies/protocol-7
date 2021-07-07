@@ -10,7 +10,7 @@ my $pause_mode = delete <mpv.pause_cmd_mode>;
 if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => 'playback was already paused'
         }
     );
@@ -24,7 +24,7 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
 } elsif ( $pause_mode eq 'resume' and $pause_status eq 'no' ) {
     <[base.callback.cmd_reply]>->(
         shift @{<mpv.reply_ids>},
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => 'playback wasn\'t paused'
         }
     );
@@ -39,8 +39,8 @@ if ( $pause_mode eq 'pause' and $pause_status eq 'yes' ) {
     return { 'mode' => 'deferred' };
 }
 
-#,,.,,...,.,,,,.,,,..,.,.,...,,,.,,,.,...,,.,,..,,...,...,,..,,,.,,,.,.,,,...,
-#K6YYDKIUUZGWEFGGR7TAVJ4AGW3BSXLT5OZCWUK4AZVUX4KLEN27OC6YGFCYUTTCYLFFIG5WP7O3I
-#\\\|OINLB4QMOASG3XLX5AJHPQ6FUMHMP4GMBCDMDGMFBSV252NIAVU \ / AMOS7 \ YOURUM ::
-#\[7]WCWS63CU536L54NNR5BKGDB24CANWCTRP7RL7JQIOVP4MHHK4YAY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,,.,,,..,,,,,..,,,,.,,,,,,,.,..,,...,...,.,.,,,,,...,.,.,...,
+#XNEC4GCVA2EFE2HQQSRK6UDBRR7L4H3X6FURXTNPBGWDYZ774E7LLIS4BFWXKIPSB5ZQND33C7XIA
+#\\\|GP2WOYCFNSFMVQDZCZD2WV4RRLSTQHSIPOWT77XDEYWWIZRKVQN \ / AMOS7 \ YOURUM ::
+#\[7]5K2VFB3EC4XKB7B25AWGRF6D7ZD56AAAK253MBXSFRUAD7F53ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

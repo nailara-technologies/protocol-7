@@ -6,7 +6,7 @@ my $answer = shift;
 my $c_mode = <tile-groups.watch_tiles.comparison_mode> //= 'last';
 
 return warn 'unexpected [FALSE] reply from screenshot zenka'
-    if $answer->{'cmd'} ne 'TRUE';
+    if $answer->{'cmd'} ne qw| TRUE |;
 
 <tile-groups.last_tile_color> //= {};
 
@@ -123,8 +123,8 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
 
 <tile-groups.last_tile_color>->{$tile_name} = $tile_color;
 
-#,,.,,...,,.,,,.,,.,,,...,,,,,.,.,,.,,...,.,.,..,,...,...,.,.,,,,,,.,,,..,...,
-#OJGW4ITEQVNXQ6LLZHBJYD7D4ZUM65XAZP54FIKCWLB3TZ5DYDPSS3NFJEG77O6OTMOKCNWYZP3X4
-#\\\|P32YW6ZUAUN77HPZIC2HD3QMFY2B2KWZQGYKZSY4PNSMMWTNL4M \ / AMOS7 \ YOURUM ::
-#\[7]BS5FNTRN42BQOIUUEIMOQXFR4JLK33NRQHBRXBXTZ7TOKRICM2CQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,.,.,,,.,,..,,..,,..,,,.,..,,..,,...,...,,..,...,.,,,..,,,.,,
+#3WQEQ4D5L2QMDA6ZQ56L2UFTXVA24KOTHPFCMX65VMTBNERPD6FQ2QYXMBNFA5GNB2F4C7VZDGUYA
+#\\\|LNNSDIJVDM3I2NX4WMGJCNTIVKY3O64XNLHAR5SYJN3VTVEBXV2 \ / AMOS7 \ YOURUM ::
+#\[7]BTQGG2ZKPC6I6YQ5LTEPO473FJEZYBKKX7MEPBKPVZ6WWR3ODICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

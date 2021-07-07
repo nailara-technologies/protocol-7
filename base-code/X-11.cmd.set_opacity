@@ -6,16 +6,19 @@
 
 my ( $window_id, $opacity ) = split( m| +|, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
-return { 'mode' => 'false', 'data' => 'window <opacity> required' }
+return { 'mode' => qw| false |, 'data' => 'window <opacity> required' }
     if not defined $opacity;
-return { 'mode' => 'false', 'data' => 'invalid window <opacity> [0..100]' }
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid window <opacity> [0..100]'
+    }
     if $opacity !~ m|^\d+$| or $opacity > 100;
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "setting window $window_id opacity to $opacity%" );
@@ -27,10 +30,10 @@ my $result = <[X-11.set_window_opacity]>->( $window_id, $opacity / 100 );
     "error during set_opacity [ $opacity ] for window $window_id [ closed? ]"
 ) if not defined $result;
 
-return { 'mode' => 'true', 'data' => "set opacity to $opacity%" };
+return { 'mode' => qw| true |, 'data' => "set opacity to $opacity%" };
 
-#,,,,,.,.,,.,,.,.,..,,,..,,.,,.,,,,.,,.,.,.,,,..,,...,...,...,.,,,.,.,.,.,,..,
-#QVRUUA3E5FA2ELXDBGZUVFZ4RPJXW33VS2FIP3ALKMLKMWL6SVM56OHBV54ASD2N776SFVZB3R7NQ
-#\\\|EE54QEGCODZK5OZVJJSAHUXT3D6HDMPHUUBWEY6RPIJLLVYNJUH \ / AMOS7 \ YOURUM ::
-#\[7]ERIVLSSBQYZTMQG3PDWNBNJPQADGIZ7Y7V6W3ET4K42FJ2HAAGAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,,,,,,,.,.,,,.,,,.,.,,,.,,.,,..,,...,...,,..,...,,,.,.,.,,,.,
+#L5OABNI7OOYFAB5YKPI65DRLDNYQF6LVRF3RWYA54BXZYF7AZRSI4RRCSXT22RKI5CBL6VCBV62PQ
+#\\\|3UO5TSZWSO2TIZFT2J6LYBC63G7SEYIDGHP54BHUOYT6TVXN264 \ / AMOS7 \ YOURUM ::
+#\[7]FT44DVHX6GEB2QNUP3RWHKBUD67PITHHO5OBHKHUY5VQ5VSUNECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

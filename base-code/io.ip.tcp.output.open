@@ -13,7 +13,7 @@ if (my $sock = new IO::Socket::IP(
     <[base.log]>->( 1, "tcp connection to $_[0]:$_[1] established" );
     $data{'handle'}{$sock}{'link'}       = 'ip.tcp';
     $data{'handle'}{$sock}{'mode'}       = 'output';
-    $data{'handle'}{$sock}{'encryption'} = 'none';
+    $data{'handle'}{$sock}{'encryption'} = qw| none |;
     return $sock;
 } else {
     <[base.log]>->(
@@ -23,8 +23,8 @@ if (my $sock = new IO::Socket::IP(
     return undef;
 }
 
-#,,,.,...,.,.,,..,.,.,,,.,,,,,,.,,.,.,,,.,...,..,,...,...,.,.,,,.,,,,,.,.,..,,
-#5NW73OTONRL5P7CMUWF65GXCGXT447UFZWWNLFBRHV6UY52XEWW4AVIQY5VZBTBFD2AMAWMDM4JFW
-#\\\|Z6N42JHR353URF4HQLZNIKATPYVO3FNT6FASGJCHFSEQZHMHUIC \ / AMOS7 \ YOURUM ::
-#\[7]NJBABDV53MAKLVEGZCBHXMR5VHRV2RZVW236GTGNT3XMWFZNZUCQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,..,.,.,,,.,.,.,,.,,,..,,,,,,..,..,,...,...,...,...,..,,...,,..,
+#EH235O234DCARQQQXFM4MIEXBFXAKIOM5EYIFNAJ2KLL44QJD3NEFREUYZK533554FM7BG6LTFHN4
+#\\\|UK2QCPJSYMEX2B73RLHAWWJPUGPWXSC53ECTMF5BUJP6CVJZ5H2 \ / AMOS7 \ YOURUM ::
+#\[7]LGFW6Z7R3BQ4CV75W7ZXRRZ3IP5A4L6OMEN6GGXTZHEZEDWZ6KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

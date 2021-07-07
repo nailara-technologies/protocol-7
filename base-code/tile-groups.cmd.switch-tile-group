@@ -10,12 +10,12 @@ my $tile_group_name = $$call{'args'};
 <tile-groups.transition_queue> //= [];
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected tile group name'
     }
     if not defined $tile_group_name or !length($tile_group_name);
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "tile group '$tile_group_name' not found."
     }
     if not exists <tile-groups.setup.tile-groups>->{$tile_group_name};
@@ -23,13 +23,13 @@ return {
 if (<tile-groups.transition_in_progress>) {
     push( @{<tile-groups.transition_queue>}, $tile_group_name );
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => 'transition queued..,'
     };
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "tile group '$tile_group_name' is already active."
     }
     if $tile_group_name eq <tile-groups.current_tile_group>;
@@ -39,12 +39,12 @@ return {
 <[tile-groups.switch-tile-group]>->($tile_group_name);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "switching to tile group '$tile_group_name'"
 };
 
-#,,..,...,..,,,,.,,,,,.,,,.,.,,,,,...,.,.,,,.,..,,...,...,..,,,,,,,,.,..,,.,,,
-#2VF3WHUE4NUSUJMSK2UV3AVENXIG7I5YIFPKB4NDFUWW43FALPQTPRH5ZGPXYSWHGBIWIZJHQQL3E
-#\\\|ZQPN6CKEH2R2TXWX3BJIFEXJK3IXF3CYODF6V32G3PZZYAOHFZG \ / AMOS7 \ YOURUM ::
-#\[7]JIDEGKZ3I7FZ7LE3NG3EWNDAOAWOGVGQEGD46ZWCVCROQP7TAGCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,,,,,.,.,,..,,..,...,,..,.,.,..,,...,...,.,.,,,,,,,.,...,,,.,
+#CINQKNNCRNYGCPOVWJWR5R6U6BXFPGI5IE3MQZ5ZTGVNTTIYNLIGLVF3JRQULMHEMOG6ZKOJM5VHY
+#\\\|ZOH7TGTQH45BAMUC2ZG46H4XMWJ6RSOE4LBMNH5XQGO7LMH5SY2 \ / AMOS7 \ YOURUM ::
+#\[7]ZUIXG5P234DL6A7MZKMCVJHH6ZMKPC4JCP4BXJ63LEYY6SHVD6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

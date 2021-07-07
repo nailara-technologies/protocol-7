@@ -11,7 +11,7 @@ my $session = $data{'session'}{$sid};
 my $base_re = <regex.base.base_32>;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected [ RFC 4648 base32 encoded ] C25519 public key'
     }
     if not defined $key_str
@@ -23,7 +23,7 @@ $session->{'client_key'} = decode_b32r($key_str);
 if ( length( $session->{'client_key'} // '' ) != 32 ) {
     delete $session->{'client_key'};
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'decoding not successful [ BASE32 expected ]'
             . length( $session->{'client_key'} // '' )
     };
@@ -33,12 +33,12 @@ my $base_ntime  = <[base.ntime.b32]>->(3);
 my $key_sig_str = <[crypt.C25519.sign_data]>->( \"[$base_ntime|$key_str]" );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => '[' . join( '|', $base_ntime, encode_b32r($key_sig_str) ) . ']'
 };
 
-#,,.,,..,,,,.,,,.,,,.,,..,,..,...,.,.,..,,..,,..,,...,...,,.,,.,.,.,,,.,,,.,,,
-#73VXCWQ2STQQARLAOWKHBZ22OGF3RPW6H3CJGVDGTEV4EOFJVHJJJI32I3SMLPC2ZTXCXQ6POS442
-#\\\|DPLUXYY24OVYHJLAMCBHZHW2ODSK4BFDRX4XG3MM7XQZGHF6YRB \ / AMOS7 \ YOURUM ::
-#\[7]LREFOJVTANS3DT5QMZ7LBC6WIYXQDK4YI3QVWPU4Z4ZLFQPL6UCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,.,,,,,.,.,,,.,.,.,.,.,.,,,.,..,,...,...,...,,..,..,,..,,,,,,
+#W4KRXR4QTM43V6R25WTJ5EFNLZNLVGERE6MREHDQNKWNJDPMAGBKKUP7LZG6CR5OUE4424HXHLG6W
+#\\\|YC4JW7EIJWHGXPOU2OFNN5PRVDVFQYVRJMFWV6W3C5UWVD6ASEM \ / AMOS7 \ YOURUM ::
+#\[7]AH5REW2XKFUNAP3GZ5PMKSGODW2LY4MOQ2PUUYFYWNXSFR6HBGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

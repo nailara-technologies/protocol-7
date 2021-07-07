@@ -7,7 +7,7 @@
 my $playlist_mode = $$call{'args'} // '';
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "expected loop parameter 'playlist', 'file' or 'off'!"
     }
     if $playlist_mode !~ /^(playlist|file|off)$/;
@@ -26,14 +26,14 @@ map {
 
 $playlist_mode = 'current file' if $playlist_mode eq 'file';
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => $playlist_mode ne 'off'
     ? "will loop $playlist_mode"
     : 'looping is disabled'
 };
 
-#,,..,..,,...,,..,.,,,,,.,...,,.,,,,,,.,,,,.,,..,,...,...,..,,,,.,,.,,,..,,,.,
-#XTDTOHFASKYMTXESVBWLVANM27WHBJ5OUGE4UH4HAYGNXJAURZVY6X2HLV77HNUFKG7FXEL435A72
-#\\\|PWNE6IVFHKO5ERNLCGAQ7DQADETIIHY3EVYX6WQ4APMCS5U4Q67 \ / AMOS7 \ YOURUM ::
-#\[7]B4RHIYJRCVIMYTJVGZEPLHYAOWQ3XNQLQ4TWNWUA6P6IM4ZDUYDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,.,,,.,...,,.,,..,,.,.,,.,,,,.,..,,...,...,,.,,,.,,.,.,,,,,,,,,
+#TZDZRLVCINYHI2KMZKEB7WXTRA5EY2J5CZ772GEPFWEOSGEFXR2VJGY6NRY2EZA6W46XIJXYP4ENG
+#\\\|KMU7W67ZEN3J7WI66XNP5TAINNNBEO5TP35TD3VHWI56MFDVG45 \ / AMOS7 \ YOURUM ::
+#\[7]KQLTRPHWGHBR7NIGA2IC7FQBT23IM2YSGAPKCF2SY2QVR6UU5KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

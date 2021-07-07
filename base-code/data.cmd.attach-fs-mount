@@ -7,20 +7,20 @@
 ( my $mount_path, my $data_source ) = split( / /, $$call{'args'} // '', 2 );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected <mount-path> and <data-source> arguments'
     }
     if not defined $mount_path or not defined $data_source;
 
-return { 'mode' => 'false', 'data' => 'mount point does not exist' }
+return { 'mode' => qw| false |, 'data' => 'mount point does not exist' }
     if !-d $mount_path;
 
-return { 'mode' => 'false', 'data' => 'not implemented yet' };    # <<< ! >>>
+return { 'mode' => qw| false |, 'data' => 'not implemented yet' }; # <<< ! >>>
 
 return { 'mode' => 'deferred' }
 
-#,,,.,,..,,..,,,.,.,.,...,,.,,,,,,,,,,,.,,.,,,..,,...,...,.,.,,,.,,.,,..,,,..,
-#BAOOFZSTVG2FWWSPAF7MZA7S5EB5LRRXSP6Y3VX33UFHG6ANVJBOS3J27QTK6FIWV6DF3XOEDBNHQ
-#\\\|ESLMBSLD3BEC65PDCDWDHPXMZOKAV5VE5KXHYDQX32L4RS7TM5T \ / AMOS7 \ YOURUM ::
-#\[7]GJTDO7JONLV4FTYEKGL45VG452L6UIH4T4RTOHP4WBZCHX6NX2CA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,..,.,,,,..,,..,,,,,,,.,..,,..,,...,...,.,.,,..,.,,,.,.,..,,
+#JPLMWUMF5LVLBJNNUZH4TGXRN3AHOTYVSFY7R2HS3YMKFGNN5DA2EVBXYJL26KJMX6CPL4TNC3SSO
+#\\\|N63FTK72AR4SZS2RIZCHFANPVTORYF2K5IMAPNPCZGCSUFN5CXT \ / AMOS7 \ YOURUM ::
+#\[7]BSXR57Q3PFWETXRANTIZD7N5FSGKJLJNQBPVNV3QGMN4XKMDJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

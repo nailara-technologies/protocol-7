@@ -8,18 +8,21 @@ my $zenka_prefix
     = join( '.', ' :' . <system.node.name>, <system.zenka.name> );
 my $min_len = length($zenka_prefix) - 1;
 
-return { 'mode' => 'false', 'data' => "value too small [ min = $min_len ]" }
+return {
+    'mode' => qw| false |,
+    'data' => "value too small [ min = $min_len ]"
+    }
     if $new_width < $min_len;
 
-return { 'mode' => 'false', 'data' => "is already at $new_width" }
+return { 'mode' => qw| false |, 'data' => "is already at $new_width" }
     if $new_width == $min_len;
 
 <log.name_width> = $new_width;
 
-return { 'mode' => 'true', 'data' => "name-width = $new_width" }
+return { 'mode' => qw| true |, 'data' => "name-width = $new_width" }
 
-#,,..,,..,...,..,,,..,.,.,,,,,.,.,,,,,.,,,,.,,..,,...,..,,,..,,.,,...,,,,,.,.,
-#LJ6W3HLOWGARKZ27GJP6HLNZ5XPPZVGHDSWJYCAI2O33CMMBDOQBBJNEHOP4NQNYHMBHGWKPV5GY6
-#\\\|HN677PG5PLCCHVVIQDRH2H4CTMNN56SOXQMBUUUMYUZZXNSHEEH \ / AMOS7 \ YOURUM ::
-#\[7]POD2GHG5SSGHLBBNW45OHCGZTNPPKDMIGTBKY2EWM6PHJAKR5KDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,.,,,,.,,,,,,,..,.,.,,,,,,..,..,,...,...,...,,..,,,.,,,,,..,,
+#DYI2NG4LZRFS2OKCAJ2SAIZYE5NHR2UR4SDILY2W5NCXCTURPDR26DPX52K5CH72VOGP3PFC3ZZBI
+#\\\|EMNW6FKUS43PIGX3HY35GTU2ONYLIUYGFCI4X7BLOWAWPU3EKY6 \ / AMOS7 \ YOURUM ::
+#\[7]JZGBL5BPAF6CLBIQ2Q3UHXNSIGYIEWJ7MZQAYVJ72Q4NGTBNP4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

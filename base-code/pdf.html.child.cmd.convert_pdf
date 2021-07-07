@@ -6,19 +6,19 @@
 
 my ( $pdf_path, $target_width ) = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => 'expected path to pdf file!' }
+return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if not defined $pdf_path or !length($pdf_path);
-return { 'mode' => 'false', 'data' => 'file does not exist!' }
+return { 'mode' => qw| false |, 'data' => 'file does not exist!' }
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 if ( !<[pdf.html.base.valid_pdf]>->($pdf_path) ) {
     my $err_msg = "'$pdf_path' is not a valid PDF format file!";
     <[base.log]>->( 0, $err_msg );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $err_msg
     };
 }
-return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
+return { 'mode' => qw| false |, 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
 
@@ -33,9 +33,15 @@ if ( not defined $target_width ) {
 my $html_path = <[pdf.html.base.get_html_path]>->( $pdf_path, $target_width );
 my $stub_file = "$html_path/pdf.html";
 
-return { 'mode' => 'false', 'data' => 'expected html dir does not exist!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected html dir does not exist!'
+    }
     if !-d $html_path;
-return { 'mode' => 'false', 'data' => 'pdf.html stub file does not exist!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'pdf.html stub file does not exist!'
+    }
     if !-f $stub_file;
 
 ( my $html_dir_name = $html_path ) =~ s|^.*/||g;
@@ -66,8 +72,8 @@ my $conversion_setup = {
 
 return { 'mode' => 'deferred' };
 
-#,,.,,..,,.,,,,..,.,.,.,,,,.,,..,,.,,,,,,,.,.,..,,...,.,.,...,..,,..,,.,,,...,
-#CGQKGPFLKRTAMLZBTXK33NGOWX5K7RBN7QCR6JG5WL7OM6X55SOLUBQDXOMXZ4KMAEZ5V35TM55AO
-#\\\|LT7YQTQHAHLGX2QBOCCFIQBTBQO6UJB5QA2KTWWG4S7BFCGCTQI \ / AMOS7 \ YOURUM ::
-#\[7]7NYLGBA25SENSTU7F3JBBVCFFDIERVY23HVZIOA6YJN6BFLX3IDA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,,,.,.,,,..,,,.,,.,.,...,.,.,..,,...,...,,,,,,..,..,,.,.,,,,,
+#6JA26LFDDQRZUOCL3JSOW67MO5VTFUSEC32673B5FCGS2NEPI4ZGJBRZ74AG4L2NP6HIFQVM6VPGE
+#\\\|O6P4L5XGORV3JBP77MCIRAYIU6NQCT4ADYJH7LNKYENCSHKLCOB \ / AMOS7 \ YOURUM ::
+#\[7]32OHCY6B4H4DZBOUYQFMIVUOMGBKYNEXG3T3BRRBSW4DEHMPYSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

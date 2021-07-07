@@ -8,16 +8,16 @@ my $parameter = $$call{'args'}
     // 3;    #  <--  precision or given unix time value
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' =>
         'precision\time parameter not valid [ integer or float expected ]'
     }
     if $parameter !~ m|^\d+(\.\d+)?$|;
 
-return { 'mode' => 'true', 'data' => <[base.ntime.b32]>->($parameter) };
+return { 'mode' => qw| true |, 'data' => <[base.ntime.b32]>->($parameter) };
 
-#,,,.,,.,,.,,,...,,,,,,,.,...,...,.,,,..,,,,,,..,,...,...,,,.,,..,,,.,,,.,..,,
-#5ARR53XYM3NJ72OH7CKDESNHVIR2HBBK4O4P6RYM3ZKIJPEV7LZBOJ4OE4VQZ4ZQQ4EGFPQT7GPVY
-#\\\|DNN4F5GEMRFANESYXZ73LC25JF5WJ4LJXUAU5EXVVP4JVVH6P2L \ / AMOS7 \ YOURUM ::
-#\[7]6DGOOXD6O3IRLIITMYMQTI4RDJP2VMZTMZSLJB4BLK2LITTI2CAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,...,.,,,..,,,..,,,.,.,.,,.,,..,,...,...,...,...,,.,,,,.,...,
+#2XC5UJLKAABNY6CHGC4D7QQPTPTFL264ITWLFN27YAXHMCJUKTF4MPHYJVY4NN5ER7IFSY4YTM57Q
+#\\\|NBZCID53ER2F27EKXYFFSBNPZCW36RYKSDEYF4LGJQC5K2FJXIZ \ / AMOS7 \ YOURUM ::
+#\[7]MN7DYAQSOZHXPMKYAFHUTTXGH53L5C52P7XMCVBLV2F4HNWQZ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

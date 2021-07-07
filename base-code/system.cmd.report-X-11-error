@@ -10,7 +10,7 @@ my $hostname      = <system.host.hostname>;
 my $admin_user    = <system.admin-user>;
 my $allowed_users = qr{$hostname.(v7|X-11|$admin_user)};
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "only 'X-11' and 'v7' zenka can invoke this command."
     }
     if $cube_user !~ $allowed_users;
@@ -31,10 +31,10 @@ $reply_message
     ? 'host system reboot imminent'
     : 'X-11 error logged [ not rebooting ]';
 
-return { 'mode' => 'true', 'data' => $reply_message }
+return { 'mode' => qw| true |, 'data' => $reply_message }
 
-#,,.,,..,,,..,..,,...,,..,,,.,..,,,..,..,,,.,,..,,...,...,..,,,..,...,.,.,,.,,
-#KENG4EXF3WAUXMRW7N3IJDA4YVWBLTYKE6MVT73DBF2RIKICNTQU2HGQ3JE5MBNADEBIQMOK6I4E6
-#\\\|NL3UYANCQNUEQOOCSYIXDHZR7DWOEKKPURXG6VR5Y3NLUAYZYHB \ / AMOS7 \ YOURUM ::
-#\[7]AFZWO6QULV4LIFLGGUVJC5M5ERCY7ZNMHXUZQGQJHND4UK5SFUCY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,,,,,,,.,,.,,,,,,,..,,.,,.,,,..,,...,.,.,,,,,,,.,...,.,,,..,,
+#GP5RJCPQUK4EQHARIB4MYQRG7PRS522KEY3P5OUBEBEUD4S7DHCBADSLA2T76GACIUQB3KGBEH5QE
+#\\\|VJL6SW6PT66Z5VWIEWMD3FGSAWFOTX3YIBU46RWAUUPB6KDAB47 \ / AMOS7 \ YOURUM ::
+#\[7]ZLX2W44XQMX5UUEJ7UAEYMQ6FIKOWB4UYNQVGGL4JUMRQX4PU2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

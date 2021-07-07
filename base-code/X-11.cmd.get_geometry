@@ -6,9 +6,9 @@
 
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -22,13 +22,13 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
-return { 'mode' => 'true', 'data' => join( ' ', $window->geometry ) };
+return { 'mode' => qw| true |, 'data' => join( ' ', $window->geometry ) };
 
-#,,..,.,,,,.,,,,.,,.,,...,...,,.,,.,.,.,.,...,..,,...,...,,,,,,,,,..,,,.,,,.,,
-#TN3NXHV6ESZ6ZZINFTUEXOTMPIGXIW4E33RB62BPHOTI45XCXKN4AMWISS7INWQTOEPYSQSH44OZE
-#\\\|TGW5FO2CAEUHHERFVL6ZNKTNETBKJ4CWLEKCHAQYAIHJQYL2R2M \ / AMOS7 \ YOURUM ::
-#\[7]JZNJSHN3DRC46YNRGOKI4S4HCXW27MPGK2B5XNDN45POJGRYPWDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,.,,,,.,,.,,,,.,,.,.,,,.,,.,,..,,...,...,..,,,..,,.,,...,.,,,
+#THQB2O7DW6Y6DRXZHSYMAADICASYWKR7HPFTBRYFGWTKAD754SDPM5MTO2VLZ6PFYAXZN374NALQ6
+#\\\|DN2P54JZ6TMXI5ICZQQRG5SSDDO46Q7WAV56RTZREWNG2QE6JBD \ / AMOS7 \ YOURUM ::
+#\[7]EHRPB75PUE5WZCOGELIS6376EF45IYWZF36RAASBV6MJVCSCDQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

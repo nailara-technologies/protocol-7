@@ -5,19 +5,19 @@
 # descr = zenka startup local, unix time or 'uptime'
 my $mode = $$call{'args'} // '';
 $mode = 'rel' if $mode eq 'relative';
-return { 'mode' => 'false', 'data' => 'invalid output mode' }
+return { 'mode' => qw| false |, 'data' => 'invalid output mode' }
     if $mode !~ m,^(|unix|rel)$,;
-return { 'mode' => 'false', 'data' => 'not available' }
+return { 'mode' => qw| false |, 'data' => 'not available' }
     if not exists <system.process_start.time>;
 
 ( my $startup_time = <system.process_start.time> ) =~ s|\.\d+$||;    # unix
 $startup_time = <[base.parser.timestamp]>->($startup_time) if !length($mode);
 $startup_time = <[base.parser.duration]>->($startup_time)  if $mode eq 'rel';
 
-return { 'mode' => 'true', 'data' => $startup_time }
+return { 'mode' => qw| true |, 'data' => $startup_time }
 
-#,,..,..,,,,.,..,,,,,,,,,,.,.,...,...,,,.,,.,,..,,...,...,,..,...,,..,,..,..,,
-#PVYRMOX7A5UIYZL2UWZZL2W2OTX2ARGJBYW4TGC6ZGKAMYFGJELI5GNWB2J5S4V4QFL73JFGDDVN6
-#\\\|4YUAXOHRH2DJVKHDM5T4VI4ECKKLA55AYRG7GXXNE6BU2GSXJ4C \ / AMOS7 \ YOURUM ::
-#\[7]BTXYVCTQAPHFUEVBSPELCG2D2QQLKTDT4BUJ57CLSBEGLY4LJAAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,...,,.,,.,.,,..,..,,.,,,,.,,..,,...,...,.,.,,..,,,,,.,.,,.,,
+#AE6FFJVDDXA5F63IN7AFS7WBBZERMUHIAV6MX2RG2BOVKMIKCTWJE2EVT6CKO7JJDOPGKM3VBDNYA
+#\\\|7QZLNXSVXFTGD5S2HQ66Y4Z4RA7APYXALGOBWPCPDFX3HMPURW2 \ / AMOS7 \ YOURUM ::
+#\[7]RRKY7YT7H3RPCRSKE4HVIOYPMD46X6RYIVYIWU45WB2GXQAUFMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

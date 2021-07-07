@@ -4,10 +4,16 @@
 # param = [coords]
 # descr = grab screen or region and return path
 
-return { 'mode' => 'false', 'data' => "not implemented yet" };   # <-- << ! >>
+return {
+    'mode' => qw| false |,
+    'data' => "not implemented yet"
+};    # <-- << ! >>
 
 my $param_str = shift->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected screen region coordinates' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected screen region coordinates'
+    }
     if $param_str !~ /^(\d+ +){3}\d+$/;
 my @coords = ( split( / +/, $param_str ) );
 
@@ -15,13 +21,13 @@ my $image   = <[screenshot.grab_region]>->(@coords);
 my $err_str = $image if ref($image) ne 'Imager';
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "unable to acquire screenshot [ $err_str ]"
     }
     if defined $err_str;
 
-#,,,,,,,.,...,,..,.,.,,.,,..,,...,..,,.,,,.,,,..,,...,.,.,.,.,.,,,,,.,,.,,.,.,
-#CI5G3HWT3HRVW5F74E5ZEL4V7SVQ2IFWS32OEZ26ZIUEVOVWL32EYIEDWZ7ZVQMGXI76TRGHF6I76
-#\\\|BR4AJAQBGJ4B7O2HW6NOUTQLJH5S2MLTJSNDR7UO3TRERAZVQAG \ / AMOS7 \ YOURUM ::
-#\[7]5XUZCWNQN24DFTHSBLR4EPZVMTWDSGTEOXXZXT6ZNEN2QQ77JQCI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,..,,,.,..,,,..,,,.,,,,,,,.,..,,...,..,,..,,,..,,,,,,,,,.,.,
+#EC3APXMGHV2YS33BH6ZC3KKBKSQOAFTHKYTQGYTT6ULVBDXOMD72JBTZZ7PMAFYVP4EOUXRVOTHZE
+#\\\|PR5PZV5I46HMVAC72H22XKLGND4KTIISMEAUEKF7YKYRCCPFARH \ / AMOS7 \ YOURUM ::
+#\[7]D3F2LULKT2AWYNRO4X3VDGCQRQIVRBVFGTMLXYGMOCWCVFCIW4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

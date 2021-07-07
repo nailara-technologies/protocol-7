@@ -9,7 +9,7 @@ my $usr_sid    = $_[0]->{'session_id'};
 my $source_usr = $data{'session'}{$usr_sid}{'user'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'invalid parameter syntax for user \ zenka \ sid ..,'
     }
     if $param  !~ <regex.base.usr>
@@ -37,7 +37,7 @@ if ( $param =~ $regex->{sid} and exists $data{'session'}{$param} ) {   # <sid>
         }
         keys %{ $data{'session'} };
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'multiple parameters are not supported yet'
         }
         if $found > 1;
@@ -48,7 +48,7 @@ if ( $param =~ $regex->{sid} and exists $data{'session'}{$param} ) {   # <sid>
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => $param =~ m|^\d+$|
     ? "there is no active session $param"
     : "client named '$target_usr' not present"
@@ -68,13 +68,13 @@ my $bp_str = $data{'session'}{$usr_sid}{'base_path'};
 <[base.log]>->( 1, "[$usr_sid] <-- session base_path --> \"$bp_str\"" );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "base_path = '$bp_str', 'unselect' or '../' to reset,"
         . " '..<cmd>' for parent"
 };
 
-#,,,.,,,,,...,,.,,,,,,,,,,,,,,.,.,...,,,,,...,..,,...,...,.,,,..,,..,,.,,,.,.,
-#CALLLE4RKQHSRJ7LL5RCQU2FTX6YMEMVJBJALXQMMO64I65HTSQ2MSD752ZUGA72TRC3BI7XETRIO
-#\\\|NU7QW6GTZOUJCGKS7EQGCVJVZ5AX3VYW3UAZVI3ECN4CARBOEVO \ / AMOS7 \ YOURUM ::
-#\[7]N6NJDIXVYRB2MHVUNUDA3C3GER57MHUOOVE52YKPVQ4UYYLBKMCY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,,,,...,.,.,,.,,...,,.,,...,..,,...,...,,.,,,,.,,,.,..,,,,.,
+#MHPMHILW2TA3KA2TLRI7CWTAICO7YYNF4QBWPQGY4R7V254EG23EVI3SA4BB4F5ZOZNGQVSY6WNBM
+#\\\|LBCLCZRUV7ZRNNXKEVGGN4EA6FDYEWASPLZRNCAYPFHZHQCOOMV \ / AMOS7 \ YOURUM ::
+#\[7]IIFCFVFIKHWRZWDYPK2E5QMETY352DZ5BXFA2WOVREPDDXFTHMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

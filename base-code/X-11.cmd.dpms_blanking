@@ -4,7 +4,7 @@
 # param = [timeout]
 # descr = enable screen blanking using DPMS
 
-return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => qw| false |, 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my $param = shift;
@@ -14,7 +14,7 @@ if ( defined $param->{'args'} and $param->{'args'} =~ /^(\d+)$/ and $1 > 0 ) {
     $t_sec = $1;
 } elsif ( defined $param->{'args'} ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "parameter invalid (optional timeout in seconds)"
     };
 }
@@ -28,12 +28,12 @@ my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 <[base.log]>->( 1, "manually enabled DPMS blanking (${t_sec}s)" );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "automatic display poweroff enabled [timeout=${t_sec}s]"
 };
 
-#,,,,,.,,,,,.,,,,,,,.,,,.,...,,,,,.,,,.,,,,,.,..,,...,...,.,.,,,.,,..,...,,,,,
-#RRNHB6OREBCR3U53V4DLBK5KE36X2GBSXIROQY7PMWCIJ3TBJKIXBGR5TTNZPRNKQ2NRKGUCH6U3C
-#\\\|ATZG3EOO2GJT2GDLGZDUEP6FLBLHOMILXPE4Y67ITZUHMPCBNCA \ / AMOS7 \ YOURUM ::
-#\[7]BBSRY6AZOG6CTOKYYQRJU66AS5HTIFDZZRE5HTZKJVTC3O5ZYQDA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,.,.,,,.,,,.,,,,,..,,...,,..,..,,...,..,,,..,..,,,,.,,..,...,
+#35TOYRTRBDWKYMCHKNYU63GARTBT57YNQ4Z5U5WZFO3OWW3R27XZ7YAIVRF33XITGXGBI54U4SPA4
+#\\\|6Y4AJDX34IO3EHZQAXS2WOYQU5PDCAFV4Q5NDVZWAZ4HERDDWPF \ / AMOS7 \ YOURUM ::
+#\[7]LYTY4ZB3D6NCCISQPMSXFPHKHNJ6FKIJQAKDSI3UIPOOMZRXL4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

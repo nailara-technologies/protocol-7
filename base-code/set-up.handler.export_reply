@@ -21,7 +21,7 @@ if (    $reply->{'cmd'} eq qw| FALSE |
         ? 'cube zenka refused reply'
         : "zenka '$zenka_name' not online [ or refusing reply ]";
 } elsif ( $reply->{'cmd'} eq qw| SIZE | ) {
-    $mode      = 'true';
+    $mode      = qw| true |;
     $reply_str = "config written to export directory ('$export_file')";
     undef $EVAL_ERROR;
     eval { <[file.put]>->( $export_path, $reply->{'data'} ) };
@@ -42,8 +42,8 @@ if (    $reply->{'cmd'} eq qw| FALSE |
     $reply_id, { qw| mode | => $mode, qw| data | => $reply_str }
 );
 
-#,,..,.,,,,..,.,.,,,.,..,,,,.,...,.,.,.,.,,,,,..,,...,...,..,,,,,,,..,,..,,..,
-#PASPFMZK7PRCM5LMNVLQ24FLIKLOFD7BRV7EJ6VHK7ZVSEBNI3NAUHK4BRWIPZVKNQTIYA3ZL5JKK
-#\\\|K2NE7SJFOU7V4HNV2J6MOPAPSPGBZZOBQGY4MRQFP5ESJHIONXH \ / AMOS7 \ YOURUM ::
-#\[7]4VQHHHBO5OAFWU4VVDRFEMRO36D5ESYGQ7M7D4YBVT5WBNQ5EAAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,...,.,,,,.,,,,.,,..,,.,,,..,..,,...,...,,..,.,,,.,.,..,,,..,
+#ZND7W2VMHE4HUXYR7XXI2OQ5PQVPNFZEQR6SLK2RF52T4LIHDRGR5CRTOZEFHXKZ2HEDN5GKYM2Q6
+#\\\|LAH6HRNYXZGCPLM7TDVYFRP7HBFJHMGNEKKFFIZGGXYEML3HHOZ \ / AMOS7 \ YOURUM ::
+#\[7]NJ3MUTK7GBRMSGVS7NST3LOSGL2Q76KGXTBP6KNOPBPKJQ6HDSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

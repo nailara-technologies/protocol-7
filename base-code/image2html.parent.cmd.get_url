@@ -7,19 +7,22 @@
 my ( $image_location, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => 'expected path to image file!' }
+return { 'mode' => qw| false |, 'data' => 'expected path to image file!' }
     if not defined $image_location or !length($image_location);
-return { 'mode' => 'false', 'data' => 'file does not exist!' }
+return { 'mode' => qw| false |, 'data' => 'file does not exist!' }
     if $image_location =~ m|^(file://)?(/.+)$| and !-f $2;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "image2html UID can't read image file"
     }
     if $image_location =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
+return { 'mode' => qw| false |, 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'false', 'data' => 'invalid target height parameter!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid target height parameter!'
+    }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -29,7 +32,7 @@ if ( not defined $target_width ) {
         <[base.log]>->( 2, "downloading '$image_location' first..." );
         $image_location
             = <[image2html.base.download_file]>->($image_location);
-        return { 'mode' => 'false', 'data' => 'download error' }
+        return { 'mode' => qw| false |, 'data' => 'download error' }
             if not defined $image_location;
     }
     ($target_width) = <[image2html.base.get_image_size]>->($image_location);
@@ -90,10 +93,10 @@ if ( !-d $html_path ) {
 
 <[file.write_timestamp]>->("$html_path/.last_used");
 
-return { 'mode' => 'true', 'data' => "file://$html_path/image.html" }
+return { 'mode' => qw| true |, 'data' => "file://$html_path/image.html" }
 
-#,,.,,...,.,.,,,,,..,,.,.,...,.,.,...,,..,..,,..,,...,..,,..,,.,.,,..,,.,,,..,
-#O7CHQZ6LXGTPZKD2GH6QKKKJMIIHJTIJ45GHW5YPVE4PPZFJ3NKMH7OOEHCPZ7WFG6OL5PMB7SMKS
-#\\\|ZEBIRIOHWO7PA5UW2HTK35K3MA7GWN2MNIAO3LHYQJNDKILE4MP \ / AMOS7 \ YOURUM ::
-#\[7]2R2PK4LV2MP4JLKIRANKMPMUOZMHUQZUWN4MESWDBGWL7NHU5YAA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,..,,,,,,,..,,,.,,..,..,,,,,,..,,...,...,,,.,,.,,,,,,.,,,,,.,
+#DUKNJZMNLL7FOZN3BISYXBYNHH4NUKVKF5JNHHMZS3VMBFO6IDFPCSQV7MENCV6PTHRUXNLXC6YCI
+#\\\|ZOQZJMHORK7Z2IPVLIUEV2IGQXMFDHBAPNVOALYN6LLKKJMBD7T \ / AMOS7 \ YOURUM ::
+#\[7]BOQIQRYMLPWCYMGTEUD3QQ54O6NP4UKJXVFJKH6NAR2DC4HFJUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

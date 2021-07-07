@@ -3,16 +3,16 @@
 # name  = impressive.cmd.pause
 # descr = send STOP signal to impressive process
 
-return { 'mode' => 'false', 'data' => 'was already paused' }
+return { 'mode' => qw| false |, 'data' => 'was already paused' }
     if <impressive.process_paused>;
 
 kill( 'STOP', <impressive.pid> );
 <impressive.process_paused> = 1;
 
-return { 'mode' => 'true', 'data' => 'paused' }
+return { 'mode' => qw| true |, 'data' => 'paused' }
 
-#,,,.,.,.,...,...,,,,,,,.,,,,,,,.,.,,,.,.,,.,,..,,...,...,.,,,..,,...,,,,,.,.,
-#2FPORDFMZDW6UYGJ2KW5EQNOTFFSEMQLHEQLCKJUQ7RAUXTLMYIPA2N3VPBQHOBILNA25K2FTEKBU
-#\\\|BVLEUFWRVWRK2CLTOZBS4EZ7FCOO3OQPNHNNXWBQLUOLHNSWKU6 \ / AMOS7 \ YOURUM ::
-#\[7]6BJWX7FAJO2ZTBV2EYCBCLR46Y4KR26RZYJZNCQWPYNWOEKNMEBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,.,.,.,.,.,,,,,...,,,,,..,,..,,...,.,.,,..,,..,,.,,...,.,.,
+#UYDVS62L3DMDI3LF6IBVA4OUYOVJBO42G74QQO2TGPOOL6MIUOAGTQCUKO3SBEMGXEAHYGD7CAPMO
+#\\\|EC2GM47IEOJYGRIFAF7FPPFHIPPXR7ZUP3PNSWGK3UOSFUSHNKO \ / AMOS7 \ YOURUM ::
+#\[7]Q4BAIFLRAU7LYYA62OV5QVYLEFMKV7SJ5OCCHJ6TYEV7MAG3SQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

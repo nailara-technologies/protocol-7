@@ -7,14 +7,17 @@
 my $skip_interval = $$call{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'autoskip timer already active ('
         . <mpv.timer.autoskip>->interval
         . ' sec interval)'
     }
     if exists <mpv.timer.autoskip>;
 
-return { 'mode' => 'false', 'data' => 'expected interval in seconds (>=1)' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected interval in seconds (>=1)'
+    }
     if $skip_interval !~ /^\-?\d+(\.\d+)?$/ or $skip_interval < 1;
 
 <[mpv.cmd.loop]>->( { 'args' => 'playlist' } );
@@ -28,12 +31,12 @@ return { 'mode' => 'false', 'data' => 'expected interval in seconds (>=1)' }
 );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "timer started [$skip_interval seconds interval]"
 };
 
-#,,,,,,..,,.,,.,.,...,,,,,,..,,,,,...,...,..,,..,,...,...,...,.,.,,..,,,.,,,.,
-#XJ3BMA7BTYQGI5DPWMYM6LEQVYCAX4OHE34MW55IWXSROIQP4NNEW6RODQDMCMBVOH3HVNOYW2RBI
-#\\\|DZTKXMMG2HAX2CZGAKO2DIHYGWEJ4PNIYK3L7WII6FZHLEHXRXG \ / AMOS7 \ YOURUM ::
-#\[7]U7XYB36AS774MGK4NPGQTBMBR55LHVV4B4BEIMNIDNAHXUWPJGDI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,.,,,,,..,,..,,.,.,..,,.,.,.,.,..,,...,...,.,,,.,.,..,,,..,,.,,
+#U2YXUFVT45B7SYK7CDKPLM3LPJMJMDISKAFQHXWD6OIU75MHSTUSEMAC3DATYZT4PZCDUHUSRP4P4
+#\\\|HUNYV4VINUM33YUHQAPCLS5ZSXOU3MKVALQWXUQKSUS6XZUNLRT \ / AMOS7 \ YOURUM ::
+#\[7]VSWOHM3O577HO72VYBXCTJ2PM7RIWBDK53XYE4E5BB7TDHT4BGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

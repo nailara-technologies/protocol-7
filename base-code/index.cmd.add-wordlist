@@ -1,7 +1,7 @@
 ## >:] ##
 
 # name  = index.cmd.add-wordlist
-# param = <wordlist> <language>
+# param = <wordlist> <lang.>
 # descr = include a wordlist from file into index
 
 ( my $wordlist_path, my $language_code ) = split( m| +|, $$call{'args'}, 2 );
@@ -10,20 +10,20 @@
 
 my $index_data_path = <index.path.index-files>;
 
-return { 'mode' => 'false', 'data' => 'no write access to data path' }
+return { 'mode' => qw| false |, 'data' => 'no write access to data path' }
     if not -w <index.path.index-files>;
-return { 'mode' => 'false', 'data' => 'expected wordlist path' }
+return { 'mode' => qw| false |, 'data' => 'expected wordlist path' }
     if not defined $wordlist_path;
-return { 'mode' => 'false', 'data' => 'expected language code' }
+return { 'mode' => qw| false |, 'data' => 'expected language code' }
     if not defined $language_code;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'language code not valid [ 3 letter ]'
     }
     if $language_code !~ m|^[A-Z]{3}$|;    ## match locale list ## [LLL]
-return { 'mode' => 'false', 'data' => 'wordlist not found' }
+return { 'mode' => qw| false |, 'data' => 'wordlist not found' }
     if not -f $wordlist_path;
-return { 'mode' => 'false', 'data' => 'wordlist not readable' }
+return { 'mode' => qw| false |, 'data' => 'wordlist not readable' }
     if not -r $wordlist_path;
 
 <index.jobs> // {};
@@ -33,19 +33,19 @@ return { 'mode' => 'false', 'data' => 'wordlist not readable' }
 my $name_checksum = <[chk-sum.elf.inline]>->($wordlist_path);
 
 ## use base.gen-id , create seperate checksum look-up .., ##
-return { 'mode' => 'false', 'data' => 'indexing job already exists' }
+return { 'mode' => qw| false |, 'data' => 'indexing job already exists' }
     if exists <index.jobs>->{$name_checksum};
 
 my $wordlist_fh = <[file.open]>->($wordlist_path);
 
-return { 'mode' => 'false', 'data' => 'cannot open wordlist file' }
+return { 'mode' => qw| false |, 'data' => 'cannot open wordlist file' }
     if not defined $wordlist_fh;
 
 <[base.log]>->( 1, ": opening wordlist file in array mode ..," );
 
 my $wordlist_aref = <[file.tie_array]>->($wordlist_fh);    ## <-- ..,
 
-return { 'mode' => 'false', 'data' => 'cannot open wordlist' }
+return { 'mode' => qw| false |, 'data' => 'cannot open wordlist' }
     if not defined $wordlist_fh;
 
 <index.jobs>->{$name_checksum} = {};
@@ -75,8 +75,8 @@ my $index_job = {
 
 return { 'mode' => 'deferred' };
 
-#,,.,,...,..,,..,,,.,,.,,,,,.,,,.,,.,,.,,,,,,,..,,...,...,,,.,,,,,...,...,...,
-#MWBFG3NUUWL774MLDD427HE2NFWPLKPDFUKWMS4QBL6NI3RDVRUIIOXR4QRW7GJBJ7SXQITLMRGBE
-#\\\|3E7YEBRCFADNLISY7SK2VDQ3QUA3PJPJJHNI3G5Q4XTXWCYMGFH \ / AMOS7 \ YOURUM ::
-#\[7]ADA65REZN447PYEKJEPPUHEP36LBBPSUGD4KQJR4RRHYGLJTLECY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,.,.,.,.,,..,,..,,,.,..,,,,.,..,,...,...,..,,..,,.,,,,.,,,,.,
+#6PEJPPZVD6IMTXM3J7AO6EDEDL2CN5UCA3B7MK7SRVH4JLAQY6A7NN676VH65IVUPC5RV3LVZADLM
+#\\\|K7WPBK4GWPIVWK4ECPGTPL6G4W3FQHQ4CHYU5LZC7IPENVQCOUA \ / AMOS7 \ YOURUM ::
+#\[7]FF6FJ27WQYODAMB2JRKWRHGC3DOU6D3SNBCN7CCQU7XJLMYRB4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

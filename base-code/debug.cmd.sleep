@@ -12,7 +12,7 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
 } else {
     my $woke = '';
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'floating point precision not available [!Time::HiRes]'
         }
         if !$hi_res and length($1);
@@ -53,11 +53,11 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     <[base.log]>->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
     $s = !$fp && $slept_str == 1 ? '' : 's';
     $reply
-        = { 'mode' => 'true', 'data' => "slept $slept_str second$s" . $woke };
+        = { 'mode' => qw| true |, 'data' => "slept $slept_str second$s" . $woke };
 }
 
-#,,,.,,,.,...,,.,,.,.,..,,,.,,,,.,.,.,,,,,,.,,..,,...,...,,..,,,,,.,.,..,,,.,,
-#W3NZTNWTZGACMHDIVOA45V2J6GMFSDCD7CC3GUY6GJLWTJ4M6KVARQG6MQY6DWYGAAG23NZUGZF3G
-#\\\|UVUYZAGTEZC5PLCHFA3IO6O4FNGP7VO2TWL5NGAOGQEIVYYHZFX \ / AMOS7 \ YOURUM ::
-#\[7]D7I5IHABEUIYAJPRXFTZCIIT43PR4ELAJHPQMMIDVRPXZLUL7QAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,..,,.,.,...,,,,,,..,,,,,,,,,..,,...,...,.,.,..,,.,.,,..,.,,,
+#IJR5EBGYOBSUGMEB4A2SMZTFOOQXWWORGPXB5457WHIDXG5A275JCQDIQUJMT6W2BWHUOKAHT3VDY
+#\\\|JLTWN2ZPAHNHMBQJ6Q6OSBK57HZALYTWSGGAXTRQ4Z4WI5PJYPE \ / AMOS7 \ YOURUM ::
+#\[7]FCM2EPNBB2EBJB5BSM5M2XOH4JQWIWKML7WPZF2Y6Z3EYF56SCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

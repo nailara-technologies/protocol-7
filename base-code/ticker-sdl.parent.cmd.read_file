@@ -8,24 +8,30 @@ my $file_path = $$call{'args'};
 <ticker-sdl.request_pending.read_file> //= 0;
 
 if ( not defined $file_path or !length($file_path) ) {
-    return { 'mode' => 'false', 'data' => 'expected valid file path!' };
+    return { 'mode' => qw| false |, 'data' => 'expected valid file path!' };
 } elsif ( -d $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is a directory!" );
-    return { 'mode' => 'false', 'data' => 'specified path is a directory!' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'specified path is a directory!'
+    };
 } elsif ( !-e $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' not found!" );
-    return { 'mode' => 'false', 'data' => 'file not found!' };
+    return { 'mode' => qw| false |, 'data' => 'file not found!' };
 } elsif ( !-R $file_path ) {
     <[base.log]>->(
         0, "read_file: file '$file_path' not readable! (permissions?)"
     );
-    return { 'mode' => 'false', 'data' => 'file access permission denied!' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'file access permission denied!'
+    };
 } elsif ( !<ticker-sdl.allow_non_regular_files> and !-f $file_path ) {
     <[base.log]>->( 0, "read_file: '$file_path' is not a regular file!" );
-    return { 'mode' => 'false', 'data' => 'not a regular file!' };
+    return { 'mode' => qw| false |, 'data' => 'not a regular file!' };
 } elsif ( -z $file_path ) {
     <[base.log]>->( 0, "read_file: file '$file_path' is empty!" );
-    return { 'mode' => 'false', 'data' => 'file is empty!' };
+    return { 'mode' => qw| false |, 'data' => 'file is empty!' };
 }
 
 if ( !<ticker-sdl.request_pending.read_file> ) {
@@ -40,13 +46,13 @@ if ( !<ticker-sdl.request_pending.read_file> ) {
         }
     );
     <ticker-sdl.request_pending.read_file> = 1;
-    return { 'mode' => 'true', 'data' => 'ticker update queued!' };
+    return { 'mode' => qw| true |, 'data' => 'ticker update queued!' };
 } else {
-    return { 'mode' => 'false', 'data' => 'request already pending..' };
+    return { 'mode' => qw| false |, 'data' => 'request already pending..' };
 }
 
-#,,.,,..,,...,,,.,...,..,,,..,.,.,...,,,.,...,..,,...,...,.,,,,.,,.,.,,,,,,,.,
-#VDTZXKBEAXR3ZN3WTFYFEHXQ5E3LBR64AC3N6PNOVZU6E2KNVC5LZIWDH7VM5PQSRW2RZPAX3U7KM
-#\\\|LYOYG6XVITIEFUIGHK7Z7AIWIKDQI6I7UAZHDFZNK264QLD62HZ \ / AMOS7 \ YOURUM ::
-#\[7]QFH4Q7S2AFZ2AVA7HSLQBIWA3KNDD6U6HP4TABPRRFVMVYRYVICI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,,..,,,.,...,,,.,,..,.,.,,.,,..,,...,...,.,.,,.,,.,.,,.,,.,,,
+#VLDZUHPGFG6ZKQIFMUKE5NMTCIW2RPDGBG27NRAOMGJTOVLPQD2AFYLTI3FNNPBADHXKX7OZNYSVU
+#\\\|W4PVXBVZUCXYNIOSUBQN7M7TGYQ43SIN3OMYECKDIJCVQFGGAHC \ / AMOS7 \ YOURUM ::
+#\[7]Q54LQZZDHGVXBEZL3W426GG3OMPL7NYN5IVGEJ3RU2LRQSLZHIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

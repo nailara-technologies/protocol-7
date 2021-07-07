@@ -3,7 +3,7 @@
 # name  = web-browser.cmd.resume
 # descr = 'unpause' slideshow
 
-return { 'mode' => 'false', 'data' => 'slideshow was not paused' }
+return { 'mode' => qw| false |, 'data' => 'slideshow was not paused' }
     if !<web-browser.slideshow.paused>;
 
 <web-browser.slideshow.paused> = 0;
@@ -12,7 +12,7 @@ my @url_list = @{<web-browser.url.list>};
 
 if ( !@url_list ) {
     <web-browser.slideshow.running> = 0;
-    return { 'mode' => 'false', 'data' => 'url list is empty' };
+    return { 'mode' => qw| false |, 'data' => 'url list is empty' };
 }
 <web-browser.slideshow.url_index> = 0
     if <web-browser.slideshow.url_index> >= @url_list;
@@ -30,10 +30,10 @@ while ( $looped < 2
 <web-browser.slideshow.status> = 'load';
 <[web-browser.handler.slideshow]>;
 
-return { 'mode' => 'true', 'data' => 'resumed slideshow' }
+return { 'mode' => qw| true |, 'data' => 'resumed slideshow' }
 
-#,,,,,...,...,.,,,.,.,,.,,...,...,,.,,,.,,.,,,..,,...,...,,,,,,..,.,.,...,...,
-#SAJ42L34N7SZ6AMZUKH7VDFLUI2HISWH3VCKUOKFF3NYCJBJUBEZBW43ND5N454355MER523I7LUA
-#\\\|KJWKYQO67BSXEY4W6LHSSNQH6FXHDCU6J3LONPRKMRENSJM7Y2G \ / AMOS7 \ YOURUM ::
-#\[7]65T64CGNJIPVZNZFXCLVEE5F5H3O5JETQHS4NSLV5D4S644TEEBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,,.,,.,.,,.,,,,,,...,.,.,,,,,..,,...,...,,,,,.,,,.,.,..,,,.,,
+#FPJV3323637T3B7XGEYNL4T6I3YGLJVPF73JYDPUVFLFJC33NXWSUH3Y36OJR33SRNG3LQW6ODSSK
+#\\\|E5FKH2Z52YO4YQSTZJU4MRMQEIEAKHWIULTAYSW7WDBTS7KJ54S \ / AMOS7 \ YOURUM ::
+#\[7]SC2V2IJBO7KBZUZRSDNIHOVI6K6OQ7XS7QGBRFNP2453QZ5WLACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,21 +6,21 @@
 
 my $pdf_path = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'expected path to pdf file!' }
+return { 'mode' => qw| false |, 'data' => 'expected path to pdf file!' }
     if !length($pdf_path);
-return { 'mode' => 'false', 'data' => 'file does not exist!' }
+return { 'mode' => qw| false |, 'data' => 'file does not exist!' }
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 
-return { 'mode' => 'true', 'data' => 'is valid! =)' }
+return { 'mode' => qw| true |, 'data' => 'is valid! =)' }
     if <[pdf.html.base.valid_pdf]>->($pdf_path);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "unable to recognize '$pdf_path' as PDF format!"
     }
 
-#,,..,,.,,,.,,.,,,,,,,.,,,,,,,...,,.,,...,...,..,,...,...,..,,,,.,,,,,..,,.,,,
-#HKFTH5WU7QUIF3DARATPVYL5Q642TG3TE6N23W5IPWJK35O2OPDLC3TSP2F7VQSABOZGCZGHOXNVS
-#\\\|7JNZKRAWJARPIRTNIQGWO2X3BDFWAK6VSRYRKODDGFKBVMLOHB6 \ / AMOS7 \ YOURUM ::
-#\[7]TGMGC26Q5N3LMRGMIMRNYJXO7USIIZ5DMB6FGMXAYNH2VGZZQ2CI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,...,,,.,,,.,.,,,...,...,...,..,,...,...,,..,,..,.,.,,.,,,..,
+#J7MMLZDNKMWAUGAH5XPYIZ2PPPYSXUR5D7QLHT3YJ6CO4GMC2DIZYENKIGAEKNTFUV4PYWSXC4OBK
+#\\\|MSBSOQGEDWHEGLHXMF4EX7FT74P6FV6OVWFPDBVC5DJIIV3N66K \ / AMOS7 \ YOURUM ::
+#\[7]SDA4ESWTZFPTTKT32IB6WR2IIQUKCPDFLOJADZLSM3LNU5KQMYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
