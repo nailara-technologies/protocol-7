@@ -10,7 +10,7 @@ my $re    = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
+if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
     my $auth_user = $LAST_PAREN_MATCH;
 
@@ -20,7 +20,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
             0,   "[%d] [ auth unix ] access denied to user '%s' %s",
             $id, $auth_user, '[ not a unix link ]'
         );
-        $$output .= ">:[\n";
+        $output->$* .= ">:[\n";
         return 2;
     }
 
@@ -31,7 +31,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     my $client_uname = getpwuid($client_uid);
 
     if ( not defined $client_uname ) {
-        $$output .= ">:[\n";
+        $output->$* .= ">:[\n";
         <[base.logs]>->(
             0, '[%s] peer UID is undefined, unix auth aborted..,', $id
         );
@@ -69,7 +69,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
     }
 
     if ($authorize_unix_session) {
-        $$output .= "AUTH_TRUE =)\n";
+        $output->$* .= "AUTH_TRUE =)\n";
         my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
 
         <[base.logs]>->(    ## reports unix user seperated if different ##
@@ -84,7 +84,7 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
         return ( 0, $auth_user );    ## register as authorized ##
         #######
     } else {    ##  no match for unix-user \ auth-user pair  ##
-        $$output .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR >:[\n";
         my $s_usr
             = $client_uname ne $auth_user
             ? sprintf( ' [uname=%s]', $client_uname )
@@ -95,8 +95,8 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
         );
         return 2;
     }
-} elsif ( $$input =~ m|\n| ) {
-    $$output .= ">:[\n";
+} elsif ( $input->$* =~ m|\n| ) {
+    $output->$* .= ">:[\n";
     <[base.logs]>->(
         0, "[%d] authentication protocol mismatch [ unix ] `:|", $id
     );
@@ -106,8 +106,8 @@ if ( $$input =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,,,,,.,,.,.,..,,..,,,.,,,,,,..,,.,,,.,,,..,,..,,...,..,,.,,,,..,..,,,,.,..,,
-#PD4YUSQLWPS3AA7G77JOIFOPGX7NAUTVLZDRMOO65TNF6WB7I67IUOKAL7I3BJ3NJKFFCR6RYN7AK
-#\\\|A2OXHE43SKVYX2XEH7LTZWE7TXK3LP6L2QXVOTS2M4TC6WHNMKO \ / AMOS7 \ YOURUM ::
-#\[7]XFTFMDNPM72XIBN5RPFMD7OIWZ5DJBZIS5EPFMMUDM77YGC6PQCA 7  DATA SIGNATURE ::
+#,,,,,...,...,,,,,.,,,.,,,.,.,,..,.,,,,..,...,..,,...,...,,.,,,,.,.,.,,..,,,.,
+#Z2DXZU62QSL5YL4CFL5V5MPZNX344DTQ2MWWV6A5O2FQRUKQKOQU5GSO4SL27A4HWXFGOLTKCMLXO
+#\\\|JYRMUMVR7EDJ7YBCCL2L5HFKZCVI3VAICUZJFY5A5APGSCRWJRT \ / AMOS7 \ YOURUM ::
+#\[7]VWGJMJY3VRYVGBOSGFYHRCH5Z5QDYNWQXK5FF7WLOJF2S4HC6KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

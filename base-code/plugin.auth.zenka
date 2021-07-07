@@ -29,17 +29,17 @@ if (   <[plugin.auth.zenka.no-keys-defined]>
             : 'disabled link type'
         );
         my $keyless_user
-            = $$input =~ m{^($re->{usr_str}|$re->{usr_subn_str}) }
+            = $input->$* =~ m{^($re->{usr_str}|$re->{usr_subn_str}) }
             ? $LAST_PAREN_MATCH
             : undef;
         <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
             if defined $keyless_user;
-        $$output .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR >:[\n";
     }
     return 2;
 }
 
-if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
+if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
     my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
 
@@ -53,7 +53,7 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             }
 
             delete $KEYS{'auth'}{'zenka'}{$user};
-            $$output .= "AUTH_TRUE =)\n";
+            $output->$* .= "AUTH_TRUE =)\n";
 
             ## <[net.update.client_conf]>->($id);
 
@@ -65,26 +65,26 @@ if ( $$input =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             <[base.log]>->(
                 0, "[$id] '$auth_name' [zenka] access denied [ key ]"
             );
-            $$output .= "AUTH_ERROR >:[\n";
+            $output->$* .= "AUTH_ERROR >:[\n";
             return 1;
         }
     } else {
         <[base.log]>->(
             0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
         );
-        $$output .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR >:[\n";
         return 1;
     }
 } else {
     <[base.log]>->(
         0, "[$id] authentication protocol mismatch [ zenka ] `:|"
     );
-    $$output .= ">:[\n";
+    $output->$* .= ">:[\n";
     return 1;
 }
 
-#,,,,,,,,,,.,,,..,,.,,,..,...,,,.,,,.,.,,,,,.,..,,...,...,...,,,.,..,,,,.,...,
-#VJCNPOJ3XRCQTFAV7KGOWKX74BERBDWB2VDGEZB23ZZQZ5567JUZDNC4FVQWPIQJY6JBS7C4D2AVS
-#\\\|VSMF2RIIU5272RLPCDTNL3SPA56VNBCPII374FBCFLJPVDIYTRK \ / AMOS7 \ YOURUM ::
-#\[7]JNUC2KYBDVS7AC6PNHT7VWB4SJ2KYRSCTLMVFWYWSPKPZJOPA4CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,...,,..,..,,.,.,..,,,.,,...,..,,...,...,,.,,..,,...,,,.,,,.,
+#7DYTI24QZFTF43GCWQNPW7GV47FKDHAF7FUBON4WITYQ2C4XH4SWUFYNUTXA4S22FHURXM4777DJC
+#\\\|KUPRKWJMO2N7JRQ6CS7UCQ2FWKIT2M5FBIP6I3LT3HFETWQ6LHZ \ / AMOS7 \ YOURUM ::
+#\[7]G2V6IPQ2BEUHA4VUWSAVAWLGL4PVXOXQ5WOXMHYQKY243FMHC6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,19 +10,19 @@ my $re = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
+if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
     if ( <[auth.pwd.success]>->( $1, $2 ) ) {
-        $$output .= "AUTH_TRUE =)\n";
+        $output->$* .= "AUTH_TRUE =)\n";
         <[base.log]>->( 1, "[$id] user session authorized to '$1'" );
         return ( 0, $1 );
     } else {
-        $$output .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR >:[\n";
         <[base.log]>->( 0, "[$id] [ auth pwd ] access denied to user '$1'" );
         return 2;
     }
-} elsif ( $$input =~ m|\n| ) {
-    $$output .= ">:[\n";
+} elsif ( $input->$* =~ m|\n| ) {
+    $output->$* .= ">:[\n";
     <[base.log]>->( 0, "[$id] authentication protocol mismatch [ pwd ] >:[" );
 } else {
     return 1;
@@ -30,8 +30,8 @@ if ( $$input =~ s|^auth ($re->{usr_str}) (\S+)\n|| ) {
 
 return 2;
 
-#,,..,..,,.,,,.,,,,..,.,.,,,,,.,.,.,,,,,,,,..,..,,...,..,,...,.,,,,,.,,.,,.,.,
-#D7PBEYOBX537O43RNGF4Z3YLSNPIIPEOEEHAJHZBC4OJ57ON47ORD32KJOHQWIEDOKJDPKAFKIJNG
-#\\\|ZQ3AND7WUUOWPAXOCRT6HRXZ3CTHRKVAIBK4HYA34PTOQPHZOJV \ / AMOS7 \ YOURUM ::
-#\[7]3SS3GKWVP2BZWC2USJYIFD2ACLYCGHHZKEG5EQQ6QTYQ46ZVYECY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,...,,,,,,,,,,..,,,,,...,,,.,..,,...,.,.,,..,..,,.,,,.,,,,,.,
+#MNUUXLHB3LKVIPBAXFQZON6ZCAB6MF7NSRYHVGA3RSXMEBPVT7LCUUVN3QOZQH7IYWTUFZ7KQTER2
+#\\\|Y2DFZ2ZLMCZZPI4ONJ5XI2NIPZGPLFHU3GAOQIQT5IUKZNZU3DC \ / AMOS7 \ YOURUM ::
+#\[7]XEGONPWF7HFGRV35YXIXQKLI5LSNXI2K3PC5O37RORMSDTOY74AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

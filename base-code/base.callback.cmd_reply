@@ -63,11 +63,12 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
 
 if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $$reply{'data'} =~ s|\n|\\n|go;
-    $$output .= sprintf "%s%s %s\n",
+    $output->$* .= sprintf "%s%s %s\n",
         $_cmd_id, uc( $$reply{'mode'} ), $$reply{'data'};
 } elsif ( uc( $$reply{'mode'} ) eq qw| SIZE | ) {
     my $len = length( $$reply{'data'} );
-    $$output .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $$reply{'data'} );
+    $output->$*
+        .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $$reply{'data'} );
 } elsif ( uc( $$reply{'mode'} ) eq qw| TERM | ) {
     <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
 }
@@ -76,8 +77,8 @@ if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,..,,,,,,,.,.,,,.,,,.,.,.,.,...,..,,.,,,,.,,..,,...,...,...,..,,,,.,,.,,...,
-#LRUNXHJ2EDZHWWJ32BLRNU7U7HPWF7PS6EVGGZQCYG6MZJATBJN46MRWRRFBAQXT5VWGXZV2KOGQI
-#\\\|MARXZZVLMFDDORK2QCCLAKITSR4YWMQWTMB4IFJACEWNY7CVV32 \ / AMOS7 \ YOURUM ::
-#\[7]D5BNHACN7MSLVGJ73KYYPMQV3VNGQ4KT55X6PXIZIQCHMHV25YCA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,,.,...,,.,,,,,,.,.,.,,,.,,,..,,...,...,,.,,..,,,,,,..,,..,,
+#YL6KOQVWRMOQGBFRXBR7NL2XYRZJCA6DWK5HWQM37EDKZ2NOTNWOZNIQL7JY7UCP7QYRGZVXXRI4O
+#\\\|4RLVIS5P44NL36YBMGJCMJKW6VU5OWIRWY3R5VJUFKFWDKMO3XV \ / AMOS7 \ YOURUM ::
+#\[7]BKBQVTFXQTUUTAD3V345KSIJVFE2GJHS3H7IEO3JRNC2H2UME4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

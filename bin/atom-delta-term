@@ -289,7 +289,7 @@ sub match_zulum {
 
 sub decode_char {
     my $input = $_[0];
-    return '' if !length($$input);
+    return '' if !length( $input->$* );
     my $pos_x;
     my $pos_y;
     my $bg_color = '';
@@ -300,10 +300,10 @@ GET_CHARACTER:
 
     ## foreground color ##
 
-    my $col_num_0 = substr( $$input, 0, 3 );
-    my $col_num_1 = substr( $$input, 0, 3 );
-    my $col_num_2 = substr( $$input, 0, 3 );
-    my $col_num_3 = substr( $$input, 0, 3 );
+    my $col_num_0 = substr( $input->$*, 0, 3 );
+    my $col_num_1 = substr( $input->$*, 0, 3 );
+    my $col_num_2 = substr( $input->$*, 0, 3 );
+    my $col_num_3 = substr( $input->$*, 0, 3 );
 
     if ( $char_width == 3 ) {
         $fg_color .= color(
@@ -312,7 +312,7 @@ GET_CHARACTER:
                 int( 255 * ( 0.001 * $col_num_1 ) * ( 0.001 * $col_num_3 ) ),
                 int( 255 * ( 0.001 * $col_num_2 ) * ( 0.001 * $col_num_3 ) ) )
             )
-            if $$input =~ m|^(\d{$char_width})
+            if $input->$* =~ m|^(\d{$char_width})
                        (\d{$char_width})
                        (\d{$char_width})
                        (\d{$char_width})|x;
@@ -322,13 +322,13 @@ GET_CHARACTER:
 
             $fg_color .= color(
                 sprintf( 'r%dg%db%d',
-                    int( 0.2562 * substr( $$input, 0, 3, '' ) ),
-                    int( 0.2562 * substr( $$input, 0, 3, '' ) ),
-                    int( 0.2562 * substr( $$input, 0, 3, '' ) ) )
+                    int( 0.2562 * substr( $input->$*, 0, 3, '' ) ),
+                    int( 0.2562 * substr( $input->$*, 0, 3, '' ) ),
+                    int( 0.2562 * substr( $input->$*, 0, 3, '' ) ) )
             );
         };
 
-        #            if $$input =~ m|^(\d{$char_width})
+        #            if $input->$* =~ m|^(\d{$char_width})
         #                       (\d{$char_width})
         #                       (\d{$char_width})
         #                       (\d{$char_width})|x;
@@ -339,7 +339,7 @@ GET_CHARACTER:
         #                int( $2 * 0.00390625 * $4 ),
         #                int( $3 * 0.00390625 * $4 ) )
         #            )
-        #            if $$input =~ m|^(\d{$char_width})
+        #            if $input->$* =~ m|^(\d{$char_width})
         #                       (\d{$char_width})
         #                       (\d{$char_width})
         #                       (\d{$char_width})|x;
@@ -348,16 +348,16 @@ GET_CHARACTER:
     $bg_color
         .= color(
         sprintf( 'on_r%dg%db%d', 0, 0, int( 113 * ( 0.001 * $1 ) ) ) )
-        if $$input =~ m|^\d{6}(\d{3})|;
+        if $input->$* =~ m|^\d{6}(\d{3})|;
 
-    return '' if !length($$input);
-    $pos_x = substr( $$input, 0, 3, '' );
-    return '' if !length($$input);
-    $pos_y = substr( $$input, 0, 3, '' );
+    return '' if !length( $input->$* );
+    $pos_x = substr( $input->$*, 0, 3, '' );
+    return '' if !length( $input->$* );
+    $pos_y = substr( $input->$*, 0, 3, '' );
 
     #    ( $pos_x, $pos_y ) = ( $1, $2 )
-    #        if $$input =~ s|^(\d{$char_width})(\d{$char_width})||;
-    #        if $$input =~ m|^(\d{$char_width})(\d{$char_width})|;
+    #        if $input->$* =~ s|^(\d{$char_width})(\d{$char_width})||;
+    #        if $input->$* =~ m|^(\d{$char_width})(\d{$char_width})|;
     $pos_x //= 0;
     $pos_y //= 0;
 
@@ -373,7 +373,7 @@ GET_CHARACTER:
         $pos_y-- if $pos_y == $y and $pos_x == $x;
     }
 
-    my $char_num = substr( $$input, 0, $char_width );
+    my $char_num = substr( $input->$*, 0, $char_width );
 
     return '' if !length($char_num);
 
@@ -381,14 +381,14 @@ GET_CHARACTER:
 
     #   eval { print ZULUM $character };
 
-    my $input_len = length($$input) // 0;
+    my $input_len = length( $input->$* ) // 0;
     if ($input_len
         and (  not defined $character
             or $char_num < 32
             or $char_num > 255
             or $EVAL_ERROR )
     ) {
-        substr( $$input, 0, $char_width, '' )
+        substr( $input->$*, 0, $char_width, '' )
             if $char_width == 2 and $char_num < 32;
         $char_width-- if $char_width > 2;
         goto GET_CHARACTER;
@@ -399,7 +399,7 @@ GET_CHARACTER:
     $LAST_BG     = $bg_color;
     $LAST_FG_COL = $fg_color;
 
-    substr( $$input, 0, $char_width, '' );
+    substr( $input->$*, 0, $char_width, '' );
 
     return
         join( '', "\e[${pos_y};${pos_x}H", $bg_color, $fg_color, $character );
@@ -692,8 +692,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,,,.,,,,,.,,,,,,,.,,,.,,,,,,,,,,,,,..,,,,.,..,,...,...,...,,.,,..,,.,,,,..,
-#FDHKXR6TMDWC4VKTTX63ZOFYQVM2NCMJEZDINTSRVXPFXATDDTMJRYIYAQEUXWK5NKHFE5YJ2ERSY
-#\\\|TUXWTNZ6CFB42CKI5LQS6EEISDTV3GRSLQM5LZNNKQWLJOSK5JZ \ / AMOS7 \ YOURUM ::
-#\[7]6ZJHMU3ZSVUGVVL2RFBER62EAN6MYYGM5JHTWOYBS5WRXABJWQBY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,..,,,,,.,,,,,,,,,.,..,,,.,,..,,...,..,,,.,,...,,,.,,.,,..,,
+#UMSJLHO5A7VRKFKL465CIIQDVT7DZS3VNXOYZBRLP3ZTF2M5V3K4GMLENUPRRIGQYRXYXWDQ7VO4G
+#\\\|IR34LW26V75RBPIFCUFKALR352HV4JYRZSMHYWWYPR5FLYUVIW6 \ / AMOS7 \ YOURUM ::
+#\[7]B2XNIVAPWZPI4WSZYNNDPOAZ5DQPRWKD5DYDCX4QVPCTW2YE5EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
