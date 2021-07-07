@@ -1,0 +1,49 @@
+## >:] ##
+
+# name  = sourcecode.console.update-sub-list
+# descr = update list of official protocol-7 subroutines
+
+my $subfile_header_str = sprintf "## >:] ##\n\n# name  = %s\n\n",
+    my $sub_list_filename = qw| base.list.subroutines |;
+
+<[file.all_files]>->( <source.path.modules>, my $subroutine_files //= [] );
+
+my $subroutine_count = scalar $subroutine_files->@*;
+
+if ( $subroutine_count == 0 ) {
+    <[base.logs]>->(
+        0, "no files found in '%s' directory, aborting update ..,"
+    );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+<[base.log]>->( 1, 'updating protocol-7 subroutine list ..,' );
+<[base.logs]>->( ": target '%s' :.", $sub_list_filename );
+
+my $sub_file_fh = <[file.open]>->(
+    sprintf( qw| %s/%s |, <source.path.modules>, $sub_list_filename ),
+    qw| :raw > |
+);
+
+<[base.exit]>->(qw| 0110 |) if not fileno($sub_file_fh);
+
+say {$sub_file_fh} sprintf "%sreturn [ qw[\n", $subfile_header_str;
+
+foreach my $file ( <[base.sort]>->($subroutine_files) ) {
+    $file =~ s|^.*/||;
+    say {$sub_file_fh} sprintf qw| %s%s |, ' ' x 8, $file;
+    <[base.logs]>->( 2, ': :. %s', $file );
+}
+
+say {$sub_file_fh} sprintf "\n    ]\n];\n";
+close($sub_file_fh);
+
+<[base.logs]>->( ': : wrote %05d entries..,', $subroutine_count );
+
+return 0;
+
+#,,..,.,,,...,,.,,,.,,...,.,,,,..,,.,,..,,..,,..,,...,..,,.,.,.,,,,.,,,,,,,,,,
+#UH5DJ6LIOVF2UU2D47YA454M2NTXZUFXOU2JEQYEM3WAHUVVHSJO5J43UCKB6BE3GBYWIBN3HXRU2
+#\\\|Y43JSFHDGJPUOV2TC5AGV6GQJD6QC7K4XFNMI3OHHQBWB6IBTJV \ / AMOS7 \ YOURUM ::
+#\[7]FI3TWCFWJUXJMKP7AUXKJX6BN2T3KKIGRDZBRT42RJASVY652SAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
