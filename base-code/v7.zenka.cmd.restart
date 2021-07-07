@@ -4,7 +4,7 @@
 # param = <zenka-name|instance>
 # descr = restart one or more zenka instances
 
-my $params = $$call{'args'} // '';
+my $params = $call->{'args'} // '';
 return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
     if not length $params;
 
@@ -22,13 +22,19 @@ foreach my $param_str ( split m| +|, $params ) {
             }
             if not exists <v7.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );
+    } elsif ( $param_str =~ m|^\d+| ) {
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( 'length not valid [ instance id %d ]', $param_str )
+        };
     } elsif (
         $param_str =~ <regex.base.usr>            ##   zenka name   ##
         or $param_str =~ <regex.base.usr_subn>    ##   [ subname ]  ##
     ) {
         my $zenka_subname;
         my $re_sn = <regex.base.subname>;
-        $zenka_subname = ${^CAPTURE}[0] if $param_str =~ s|\[($re_sn)\]$||;
+        $zenka_subname = $LAST_PAREN_MATCH if $param_str =~ s|\[($re_sn)\]$||;
 
         my $zenka_id = <[zenka.get_id]>->($param_str);
         if ( defined $zenka_id ) { $setup_found++ }
@@ -93,7 +99,7 @@ return {
     'mode' => qw| false |,
     'data' => sprintf( 'no zenka %s found in set-up', $unknown_name )
     }
-    if !$setup_found and $not_found;
+    if not $setup_found and $not_found;
 
 if ($count) {
     return { 'mode' => qw| true |, 'data' => $msg_str };
@@ -104,8 +110,8 @@ if ($count) {
     };
 }
 
-#,,.,,.,.,,,.,,.,,..,,...,,.,,,,.,,,,,.,.,.,.,..,,...,...,,,,,,..,...,,.,,,..,
-#MUGOPCUCRKTK3EB46HKAGH53OVPHYH2BH6PNY7JZMNWWI4HFVSDAVFCNGXLGLIVDNLBODAXRDMNQU
-#\\\|E7TALONVEXSZFRK3DPOZVBC7IODEZLJ2GKR7C34OIS5MDVQTG7E \ / AMOS7 \ YOURUM ::
-#\[7]SUODPYSGNN6JQZZSYRN2GSLOODZY7GTKKHKIEMGAPET3HJMPMAAY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,..,,.,.,...,...,,.,,..,,.,,,..,,...,...,...,,..,,,,,.,,,..,,
+#IYCBHI2KG4SHH2OORGK5ZESJ54Z5V46PBKRNZDIYD2XGD2S4IXJEM2G3FPCL46O6UVWZKDBPX3TDG
+#\\\|ZI4USBBQ6SPFV57YKJ45Q7DZJKTKFDXN3M32ARZ4XHIBGSRR7SG \ / AMOS7 \ YOURUM ::
+#\[7]MQMIR7N5UHI4NQ65M5OF6MA55HYSU762YOQFKY7AX77LXRUQ3QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
