@@ -2,6 +2,7 @@
 
 # name  = base.cmd.show-access
 # param = [user]
+# descr = display command access set-up
 
 my $user = $call->{'args'};
 
@@ -51,7 +52,7 @@ if ( defined $user ) {
             $user, join( ', ', @mapped_users ) )
             : '';
     }
-    if ( $user ne '*' and defined <access.cmd.usr>->{'*'} ) {
+    if ( $user ne qw| * | and defined <access.cmd.usr>->{'*'} ) {
         $reply_str .= sprintf ".\n:  %*s  :  %s%s\n", $max_len, "'*'",
             <[base.wrap_text]>->(
             $w_prefix,
@@ -62,6 +63,8 @@ if ( defined $user ) {
         $reply_str .= ".\n:\n";
     }
     foreach my $map_user (@mapped_users) {
+
+        next if not length <access.cmd.usr>->{$map_user};  ##  none set up  ##
 
         $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $map_user,
             <[base.wrap_text]>->(
@@ -74,6 +77,7 @@ if ( defined $user ) {
             $map_names->{$map_user};
     }
     if ( defined <access.cmd.usr>->{$user} ) {
+
         $reply_str .= sprintf( ":  %*s  :\n", $max_len, '' ) if @mapped_users;
         $reply_str .= sprintf ":  %*s  :  %s%s\n", $max_len, $user,
             <[base.wrap_text]>->(
@@ -90,7 +94,7 @@ if ( defined $user ) {
 
     return { 'mode' => qw| size |, 'data' => $reply_str };
 
-} elsif ( keys( %{<access.cmd.usr>} ) ) {
+} elsif ( keys <access.cmd.usr>->%* ) {
     ( undef, my $max_len ) = minmax map {length} keys( <access.cmd.usr>->%* );
     my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = ":\n";
@@ -113,8 +117,8 @@ if ( defined $user ) {
     };
 }
 
-#,,..,,,.,,,,,.,,,,.,,,..,,.,,..,,.,,,,,.,..,,..,,...,...,.,.,,,.,.,.,,,,,.,.,
-#66JXP56JLVJTJHVQYDS74HUREHGXZGL4S2SNAHB5TCYMVSOIEN5W4UVFD2HHPKL5A75O2BZSEDLI6
-#\\\|RFMVO4UD77CT45E4VSJMLPVVZDHEFAZK4POTJ43JQKSY7PQMJCO \ / AMOS7 \ YOURUM ::
-#\[7]6R2GTNRJNYOVDZELSSTA6QLPIW3QJQKSK2TPOXPHS65T7EJMJQDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,...,.,.,.,.,,..,,,.,.,.,..,,..,,...,...,...,...,,,,,,.,,...,
+#4BN6IFGU5YONFPES52REVUZFCT4LAPFHOM75N5O4GGZGMK2NRQ4MDRW6LJDELIPTCYFKF5IHKGZQK
+#\\\|SCEWYCRKJ3VLRT433SSQWK36D5K57O5FM5BWEOJBYZ3FSWDAAE6 \ / AMOS7 \ YOURUM ::
+#\[7]QN5CUOTPD3DOVILNUCDICUVP7AY66Q5P75TFQLF452EQ7WIOYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
