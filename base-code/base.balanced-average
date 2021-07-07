@@ -17,80 +17,91 @@ my $outlier_rel = 0.07; ##  proportion when result outlier to stored value  ##
 
 return warn 'expected <value_ref> [ scalar ref ] parameter <{C1}>'
     if ref $value_ref ne qw| SCALAR | and ref $value_ref ne qw| REF |;
-warn 'expected at least one numerical parameter <{C1}>' if !@values;
-warn "<value_ref>s content is not numerical ['$$value_ref'] <{C1}>"
-    if defined $$value_ref and $$value_ref !~ m|^-?\d+(\.\d+)?$|;
+warn 'expected at least one numerical parameter <{C1}>' if @values == 0;
+<[base.s_warn]>->(
+    "<value_ref>s content is not numerical ['%s'] <{C1}>",
+    $value_ref->$*
+) if defined $value_ref->$* and $value_ref->$* !~ m|^-?\d+(\.\d+)?$|;
 
 my $total_average;
 my $base_value_average;
 
 if ( @values == 1 ) {    ##  single input value  ##
+
     ($base_value_average) = @values;
+
 } else {    ##  multiple values : filtered for outliers to their average  ##
 
-##  determine potential  ##
+    ##  determine potential  ##
     my ( $low_value, $high_val ) = minmax @values;
-    my $middle_value = sprintf( "%.${internal_precision}f",
-        $low_value + ( ( $high_val - $low_value ) / 2 ) );
+    my $middle_value = sprintf qw| %.*f |,
+        $internal_precision,
+        $low_value + ( ( $high_val - $low_value ) / 2 );
 
-##  unfiltered total average  ##
+    ##  unfiltered total average  ##
     eval {
-        $total_average = sprintf( "%.${internal_precision}f",
-            ( reduce_0 { $a + $b } @values ) / scalar @values );
+        $total_average = sprintf qw| %.*f |,
+            $internal_precision,
+            ( reduce_0 { $a + $b } @values ) / scalar @values;
     };
 
-    return warn sprintf 'balanced-average : %s <{C1}>',
-        <[base.format_error]>->( $EVAL_ERROR, -1 )
-        if $EVAL_ERROR or not defined $total_average;
+    return <[base.s_warn]>->(
+        'balanced-average : %s <{C1}>',
+        scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+    ) if length $EVAL_ERROR or not defined $total_average;
 
-##  calculating distance with removed value potential  ##
+    ##  calculating distance with removed value potential  ##
     my $average_floored = $total_average - $low_value;
-    my $floored_07      = sprintf "%.${internal_precision}f",
+    my $floored_07      = sprintf qw| %.*f |,
+        $internal_precision,
         $average_floored * $base_mass;
 
     my @base_values    ##  filter outliers to base mass  ##
         = grep { abs( $total_average - $ARG ) <= $floored_07 } @values;
 
-    @base_values = @values if !@base_values;    ##  take all  ##
+    @base_values = @values if not @base_values;    ##  take all  ##
 
-##  calculating average excluding outliers to base_mass  ##
-    $base_value_average = sprintf( "%.${internal_precision}f",
-        ( reduce_0 { $a + $b } @base_values ) / scalar @base_values );
+    ##  calculating average excluding outliers to base_mass  ##
+    $base_value_average = sprintf qw| %.*f |,
+        $internal_precision,
+        ( reduce_0 { $a + $b } @base_values ) / scalar @base_values;
 
 }
 
-$$value_ref //= $base_value_average;    ##  initializing [ with current ]  ##
+$value_ref->$* //= $base_value_average;  ##  initializing [ with current ]  ##
 
-return $base_value_average if $$value_ref == $base_value_average; ##  skip  ##
+return $base_value_average
+    if $value_ref->$* == $base_value_average;    ##  skip  ##
 
 ## adjusting for minimal differences ##
-if (abs( $$value_ref - $base_value_average )
-    <= sprintf( "%.${result_precision}f",
-        1 / sprintf( '1%d', '0' x $result_precision ) )
+if (abs( $value_ref->$* - $base_value_average ) <= sprintf( qw| %.*f |,
+        $result_precision, 1 / sprintf( qw| 1%d |, '0' x $result_precision ) )
 ) {
-    $$value_ref = sprintf( "%.${result_precision}f", $base_value_average );
-    $$value_ref =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitize zulum  ##
+    $value_ref->$*
+        = sprintf( qw| %.*f |, $result_precision, $base_value_average );
+    $value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitize zulum  ##
     return $base_value_average;
 }
 
 ##  calculated average : outlier to stored value : increase change_rel  ####
 $change_rel = ( 1 - $outlier_rel )
-    if sprintf( "%.${internal_precision}f",
-    abs( $$value_ref - $base_value_average ) )
-    > sprintf( "%.${internal_precision}f", $$value_ref * $base_mass );
+    if sprintf( qw| %.*f |,
+    $internal_precision, abs( $value_ref->$* - $base_value_average ) )
+    > sprintf qw| %.*f |, $internal_precision, $value_ref->$* * $base_mass;
 ###  otherwise no updates when started with outlier value  ###
 
-$$value_ref = sprintf(    ##  storing result value  ##
-    "%.${result_precision}f",
-    ( $$value_ref * $change_rel )    ##  old value proportion  ##
-        + ( $base_value_average * ( 1 - $change_rel ) ) ## new average part ##
-);
-$$value_ref =~ s,(\.0+|(*nlb:\.)0+)$,,g;    ##  sanitizing zulum  ##
+$value_ref->$* = sprintf                ##  storing result value  ##
+    qw| %.*f |, $result_precision,
+    ( $value_ref->$* * $change_rel )    ##  old value proportion  ##
+    + (
+    $base_value_average * ( 1 - $change_rel )    ## new average part ##
+    );
+$value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;      ##  sanitizing zulum  ##
 
 return $base_value_average;   ##  returning filtered average of input data  ##
 
-#,,,,,.,,,..,,.,,,,,,,,..,,,.,..,,,..,,,.,.,.,..,,...,...,...,..,,,,,,,..,.,.,
-#AEXC2RKCV2M2CWLX5IVNEJPZ7ZATF3WDLHUHG3JQ7LA5BL4QVNBAMSERURBCJXHUJAM2FJK6PDDF6
-#\\\|XENQMKZHUNZJ2EIB2CKE7SODF2UILJP56CNK5VF6HB76GSBD2B3 \ / AMOS7 \ YOURUM ::
-#\[7]2ZT52KYVN2OR3DQQCJHCPJ7O4VMM7OJX37L3JJASLT7QK5PKKYCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,...,,,,,.,,,...,...,,..,,,.,,,,,..,,...,...,,.,,.,.,..,,,..,,,,,
+#J4MSTOZIAPZDJ53PHGHR4N7QOYRHYBER7CCN2XE7ZTVBSUPJ6QQDZIXTX5OIYRY57UTATI7DHX2C2
+#\\\|NM3VQPVX4IHMNO5UD4MYLXO7JTU4UE3HUY3BPMVGHVOUSUTKF23 \ / AMOS7 \ YOURUM ::
+#\[7]TAHEYZ2A63YQPKM7DEDGWYCYIG3W233IQAB5UMDLO25FYQI7MICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
