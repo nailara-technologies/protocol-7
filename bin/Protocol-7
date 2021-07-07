@@ -363,7 +363,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'perl_version'}  = $PERL_VERSION;
     $data{'system'}{'perl_unicode'}  = ${^UNICODE};
     my $root_path = $data{'system'}{'root_path'};
-    $data{'system'}{'code_path'} = catdir( $root_path, qw| base-code | );
+    $data{'system'}{'code_path'} = catdir( $root_path, qw| modules | );
     $data{'system'}{'conf_path'}
         = catdir( $root_path, qw| configuration | );
     $data{'system'}{'lmod_path'}
@@ -1006,7 +1006,7 @@ sub p7_load_code {
             @subroutine_names = split( m|\n|, $remote_data_str );
             $data{'base'}{'httpc'}{'remote_source'} = {};
             map {
-                $data{'base'}{'httpc'}{'remote_source'}->{"base-code/$ARG"}
+                $data{'base'}{'httpc'}{'remote_source'}->{"modules/$ARG"}
                     = 1
             } @subroutine_names;
             $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
@@ -1027,7 +1027,7 @@ sub p7_load_code {
         $code{'log.debug'}->(': reading source list from disk.,');
         @subroutine_names = $code{'base.code.file_list'}->();
         my $file_cnt = scalar @subroutine_names;
-        $code{'log.debug'}->(": :. $file_cnt files. [base-code]");
+        $code{'log.debug'}->(": :. $file_cnt files. [modules]");
     }
     $OUTPUT_AUTOFLUSH = 1;
 
@@ -1060,10 +1060,9 @@ sub p7_load_code {
             next if not defined $file_name or not length $file_name;
             ## todo : reconcile with code_path ##
             my $src_abs_path;
-            my $src_rel
-                = $code{'base.chk_nlr_path'}->("base-code/$file_name");
+            my $src_rel = $code{'base.chk_nlr_path'}->("modules/$file_name");
 
-            $src_rel = "base-code/$file_name"
+            $src_rel = "modules/$file_name"
                 if not defined $src_rel;    # <-- warn.
 
             $src_abs_path
@@ -1078,7 +1077,7 @@ sub p7_load_code {
                 if ( $src_from_http
                     or !-r $src_abs_path
                     and !( $data{'system'}{'no_http_source'} // 0 ) ) {
-                    ## read base-code from network [ more methods coming ]
+                    ## read modules from network [ more methods coming ]
 
                     # $code{'log.debug'}->(":[http]: $src_rel .,");
 
@@ -1159,7 +1158,7 @@ sub p7_load_code {
             $OUTPUT_AUTOFLUSH = 0;
         }
         if ( !$code_count ) {
-            $code{'log.error'}->( ': no success loading base-code'
+            $code{'log.error'}->( ': no success loading modules'
                     . " '$code_name' \t[ not found ]" );
             $data{'base'}{'modules'}{'load_errors'}++;
         } elsif ( $code_count > $last_code_count ) {
@@ -3546,8 +3545,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,.,,,,.,,,,.,.,,,,..,,,.,...,.,.,.,.,..,,...,...,...,,..,...,,,,,.,.,
-#WS2PGPSL2IWJYB3W4SZXV5EHG3QX5FAKRRUBDQGFTJZOF4OYTTZMBOI3IT6NJDRZ6I5E3QGIQDSZS
-#\\\|624JQZCI3UNC7IO442LR3HGKO4J4TJYBZYZMH7RGDDCFB7NXT22 \ / AMOS7 \ YOURUM ::
-#\[7]PMH2XGFL7EGH3PR6OPAX3MIIY3G4UVYJOAXDHWCRLNDXSZXO6KBI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,.,,,.,,,,,,,.,...,,,.,..,,.,.,..,,...,...,,.,,...,,..,,..,...,
+#ASOXWNSLJXNMDOYWMEBQ4PX7YJQSTLH7N4V322KV3ZETHHUMJV3IS7DXZVQZ7LDYV6EPJ5D525JZM
+#\\\|GTSVBREBPEWFV2I2CQBIW3TVLFCNX37QKJKKG4IM2KBDZAVZD2X \ / AMOS7 \ YOURUM ::
+#\[7]MU344P7BJB6BVVFP55KFH6IIWKTMQZ6EAGDIRYKBIE4QBIVVCGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

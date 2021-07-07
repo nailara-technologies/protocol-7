@@ -7,8 +7,8 @@ use Cwd 'abs_path';
 use FindBin '$RealBin';
 use File::Which 'which';
 
-my $code_parent = 'base-code';
 my $code_name   = shift @ARGV;
+my $code_parent = qw| modules |;
 die "\n << code file name expected, rel. $code_parent path >>\n\n"
     if !defined $code_name or $code_name =~ m|^/|;
 
@@ -33,8 +33,8 @@ close($src_fh);
 
 if ( my $sct_path = which 'sct' ) { exec( $sct_path, $code_path ) }
 
-#,...,...,..,,.,.,...,.,,,.,,,,,,,,..,...,,..,,.,,.,.,.,.,..,,,,.,...,,..,...,
-#QWGFUDZFFJH53JRJGX4TFKBZUQLE2QOL6A35AVPCRHE5P3FAZIK5YRBYMEJMXS377BQXC3MGTVIJC
-#\\\|D4QMMWLFGCDSLE7GCLIQED32UCGZO6RG6C4OSKMZ2BXZKUNTO5L \ / AMOS7 \ YOURUM ::
-#\[7]H5SBKK22YW3XUK5SJBVUFUZYTDDPRHJ7CBTTNCAAGIO55GA3TMBA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,.,.,.,,,,.,,,,,,,,.,,..,..,,.,.,...,...,.,.,.,.,.,,,,,,,..,,
+#H3O2IQQKUX3F3UN2UCO3YI35C5B4YAKGWRT4CYMK6CGG3IQF27SS2GDM7CNGN2UYYRFSPH5IOE2RC
+#\\\|KNIUDZKHQQMNIEJS75WI4EMWE243KXU6ZGZAJNYUAAJREZ6S3RA \ / AMOS7 \ YOURUM ::
+#\[7]I3W2QCB735OFNE74BHTKD3MHT7CSSG3UM7GTNWXWX6LJCJKTLSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
