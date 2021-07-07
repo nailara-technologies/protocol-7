@@ -1,23 +1,26 @@
 ## >:] ##
 
 # name  = index.cmd.stop-job
+# descr = stop running indexing task by id
 
-my $job_id = $$call{'args'};
+my $job_id = $call->{'args'};
 
-return { 'mode' => 'false', 'data' => 'no such job' }
+return { 'mode' => qw| false |, 'data' => 'no such job running' }
     if not exists <index.jobs>->{$job_id};
 
 my $index_job = <index.jobs>->{$job_id};     ## callback data href
 my $reply_id  = $index_job->{'reply_id'};    ## protocol-7 reply id
 my $job_type  = $index_job->{'job-type'};    ## 'wordlist-import'
 
-## inject stop request .., ##
+## injecting stop request .., ##
+$index_job->{'stop-requested'} = 5;          ## true ##
 
-$index_job->{'stop-requested'} = 1;
+##  require deferred reply to $reply_id  ##  [ LLL ]
 
-## requires deferred reply to $reply_id ##
-
-return { 'mode' => 'true', 'data' => "stopping $job_type job ..," };
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'stopping %s job ..,', $job_type )
+};
 
 #,,,,,..,,.,.,.,,,.,,,...,,,.,,,,,..,,,.,,...,..,,...,...,,,,,,,.,,..,,.,,,.,,
 #42V34BJZSXHBZMXM3L4IRAU5BB652UKFDXXERDHEUHXRQ5BUP5ABNZ4WJ2WHAK5ZSKG53OMPAHE4I
