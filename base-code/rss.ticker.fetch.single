@@ -94,7 +94,7 @@ if ( $response->code == 200 ) {
     }
 
     my $file_stat = File::stat::stat($output_file);
-    my $file_age  = sprintf( "%.2f", ( time() - $file_stat->ctime ) / 3600 );
+    my $file_age  = sprintf( '%.2f', ( time() - $file_stat->ctime ) / 3600 );
     if ( $file_age >= <rss.ticker.cache_timeout> ) {
         <[base.log]>
             ->( 0, "local feed data has expired [ $file_age hours ]" );
@@ -110,8 +110,8 @@ if ( $response->code == 200 ) {
     return -1;
 }
 
-#,,.,,.,.,,.,,..,,.,,,.,,,,,.,...,..,,,.,,.,,,..,,...,...,...,..,,.,.,...,,.,,
-#D3RYMWQNQ3GJNPL6UKYEZLHH2D75PEFT3RVV3B7DOQNLIF3PIMRYQFONIELFYEPZS2TPZTLRBI4G2
-#\\\|4TZ22ZB7C3R4SGYVDOKIBSKT6Q2537HM6HXV4VGMAPLBENL4IID \ / AMOS7 \ YOURUM ::
-#\[7]BXJCKZ3LHZTRWHSU4K6J4UF7YRET5ITB2A6OEXQUW7F5JHZYBSAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,...,...,,,.,..,,...,,,,,,,.,..,,...,..,,...,,..,..,,..,,..,,
+#FL3GT4ERC4UMPIV3LHEM3LHEXCQYHZKX6VN7BAAHBYASYDRG54Y7623XDVBP463IZG63AI2HQAI32
+#\\\|XWNVJPNTTTUME6LRFFFW4L3QUJLLN7DCK5ZRHETXUAZSALEO2WG \ / AMOS7 \ YOURUM ::
+#\[7]MO26JYOA3EF4GZXN2HMMJ7LRNW2GJSYPI6IACLAERFEQHFNXXQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

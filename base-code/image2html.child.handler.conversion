@@ -130,7 +130,7 @@ my $target_width  = $conversion->{'width'};
 my $target_height = $conversion->{'height'};
 my $image_ratio   = $image_width / $image_height;
 $target_height
-    = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
+    = sprintf( '%.0f', ( $image_height / $image_width ) * $target_width )
     if not defined $target_height;
 my $target_ratio = $target_width / $target_height;
 my $orientation  = $image_ratio < 1 ? 'portrait' : 'landscape';
@@ -142,17 +142,17 @@ my $scale_height;
 if ( $orientation eq 'landscape' and $fit_height ) {
     $scale_height = $target_height;
     $scale_width
-        = sprintf( "%.0f", ( $image_width / $image_height ) * $scale_height );
+        = sprintf( '%.0f', ( $image_width / $image_height ) * $scale_height );
 } elsif ( $orientation eq 'landscape' and $crop_to_fit
     or $orientation eq 'portrait' and $fit_width ) {
     if ( $image_ratio > $target_ratio ) {
         $scale_height = $target_height;
-        $scale_width  = sprintf( "%.0f",
+        $scale_width  = sprintf( '%.0f',
             ( $image_width / $image_height ) * $target_height );
     } elsif ( $image_ratio < $target_ratio )
     {    # LLL: check _quadratic_ images!
         $scale_width  = $target_width;
-        $scale_height = sprintf( "%.0f",
+        $scale_height = sprintf( '%.0f',
             ( $image_height / $image_width ) * $target_width );
         $prevent_crop = 1 if $orientation eq 'portrait' and $fit_width;
     }
@@ -161,14 +161,14 @@ if ( $orientation eq 'landscape' and $fit_height ) {
 } elsif ( $orientation eq 'portrait' and !$fit_width ) {
     $scale_height = $target_height;    # scale to fit 'portrait' images
     $scale_width
-        = sprintf( "%.0f",
+        = sprintf( '%.0f',
         ( $image_width / $image_height ) * $target_height );
     $prevent_crop = 1;
 }
 
 $scale_width = $target_width if not defined $scale_width;
 $scale_height
-    = sprintf( "%.0f", ( $image_height / $image_width ) * $target_width )
+    = sprintf( '%.0f', ( $image_height / $image_width ) * $target_width )
     if not defined $scale_height;
 
 <[base.log]>->( 2, "scaling image to ${scale_width}x$scale_height.." );
@@ -183,8 +183,8 @@ my ( $x_offset, $y_offset );
 my $crop_image = 0;
 if ( $scale_width > $target_width or $scale_height > $target_height ) {
     ( $x_offset, $y_offset ) = (
-        sprintf( "%.0f", ( $scale_width - $target_width ) / 2 ),
-        sprintf( "%.0f", ( $scale_height - $target_height ) / 2 )
+        sprintf( '%.0f', ( $scale_width - $target_width ) / 2 ),
+        sprintf( '%.0f', ( $scale_height - $target_height ) / 2 )
     );
     $crop_image = 1 if !$prevent_crop;
 }
@@ -244,8 +244,8 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     delete <image2html.conversions>->{$current_key};
 }
 
-#,,..,,,.,,,.,,..,...,.,,,...,..,,,,,,.,.,,.,,..,,...,...,,.,,,..,,,.,,.,,,.,,
-#CI3TGN66WXAL4V5D4VPQR4V5PHV435A3NMFAQXVYFMQMIT4CET5UEQIDKPUALVJBPYWCZS7V6CNHW
-#\\\|BZGOFFMXI5JTPTGIT2X4BZMCIQ5DQKGC27SEONCT3RMS5ZGVTEG \ / AMOS7 \ YOURUM ::
-#\[7]2LCZPQFVYI4A5LJJIRW6FJR3EIVQ7KEWDRX4B2AMDIBN3PLUTUBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,.,.,..,,,..,,..,,,,,,..,...,..,,...,...,,.,,.,,,.,,,,,.,,..,
+#XNRYJUKR3U3M5PSCERISOWKCGZIRQZA5ZTC2RZCV5KNPIWDDO7AU6RJUHY6HUDNPZXU5D2VUHLKAM
+#\\\|MCFTF63NIBOL54VFPNWKI3DCFZRKCBJSBQDW4VKOKAVYHSCTBMJ \ / AMOS7 \ YOURUM ::
+#\[7]D22JA34RD576W54MMZDOH3NF37IOD7ZMU47WV5DHXGBCSTSSH2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

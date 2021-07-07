@@ -26,9 +26,9 @@ if ( defined <web-browser.redraw_fps.slowdown_target>
         ) / 100
     );
     <web-browser.redraw_fps.slowdown>
-        = sprintf( "%.3f", <web-browser.redraw_fps.slowdown> + $adjust );
+        = sprintf( '%.3f', <web-browser.redraw_fps.slowdown> + $adjust );
     $sl_diff = abs(
-        sprintf( "%.3f",
+        sprintf( '%.3f',
                   <web-browser.redraw_fps.slowdown_target>
                 - <web-browser.redraw_fps.slowdown> )
     );
@@ -137,10 +137,10 @@ scroll_finished:
             and <web-browser.autoscroll.delay>
             > <web-browser.autoscroll.cfg_delay> ) {
             <web-browser.autoscroll.delay>
-                = sprintf( "%.6f",
+                = sprintf( '%.6f',
                 <web-browser.autoscroll.delay> - 0.000001 );
             <web-browser.autoscroll.fps>
-                = sprintf( "%.2f", 1 / <web-browser.autoscroll.delay> );
+                = sprintf( '%.2f', 1 / <web-browser.autoscroll.delay> );
         }
 
         delete <web-browser.time.last_scroll>;
@@ -156,14 +156,14 @@ scroll_finished:
 
 <web-browser.time.last_scroll> //= <[base.time]>->(6);
 my $delta_t   = <[base.time]>->(6) - <web-browser.time.last_scroll>;
-my $wait_time = sprintf( "%.6f", <web-browser.autoscroll.delay> - $delta_t );
+my $wait_time = sprintf( '%.6f', <web-browser.autoscroll.delay> - $delta_t );
 if ( $wait_time <= 0 ) {
     <web-browser.autoscroll.too_fast>++;
     if ( <web-browser.autoscroll.too_fast> >= 3 ) {
         <web-browser.autoscroll.delay>
-            = sprintf( "%.6f", <web-browser.autoscroll.delay> + 0.000001 );
+            = sprintf( '%.6f', <web-browser.autoscroll.delay> + 0.000001 );
         $wait_time
-            = sprintf( "%.6f", <web-browser.autoscroll.delay> - $delta_t );
+            = sprintf( '%.6f', <web-browser.autoscroll.delay> - $delta_t );
         <web-browser.autoscroll.too_fast>--;
         delete <web-browser.autoscroll.too_fast>
             if <web-browser.autoscroll.too_fast> <= 0;
@@ -174,7 +174,7 @@ if ( $wait_time <= 0 ) {
                 <web-browser.autoscroll.delay> * 100 )
         );
         <web-browser.autoscroll.fps>
-            = sprintf( "%.2f", 1 / <web-browser.autoscroll.delay> );
+            = sprintf( '%.2f', 1 / <web-browser.autoscroll.delay> );
         <web-browser.autoscroll.brake_count>++;
     }
 } else {
@@ -186,8 +186,8 @@ if ( $wait_time <= 0 ) {
 
 return 0;
 
-#,,..,.,,,,.,,,,.,.,.,,,.,,,.,,..,.,,,.,,,..,,..,,...,..,,,,.,,,.,...,,,,,,.,,
-#WOILSVTM5MZ6K5OTRC7MBVALH6FGF6D64QNEAJO6AJIVNC44FD6MXB4YDCVDFX56NYYD6YR5475WO
-#\\\|MB34MWFHZNJF5GVYZF5VEUOBYWKI27YUCDOVEHORHLYY6YOLWEI \ / AMOS7 \ YOURUM ::
-#\[7]QSV2SAUIC2RQNYJPQ5ONICAEQBOTJGEQK3P4IY3B7AECBWSCPSDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,,.,.,,,,.,,...,..,,...,.,,,,,,,..,,...,..,,.,.,.,,,.,.,.,.,,.,,
+#AXPRNQ2L4TYRTMZ7443PLHKECGDSWN6FXMXTP465FWBY34LKVJOQIQ5BJN3M4QF5IEY36ULPSKICE
+#\\\|TG737A4RGHGGX72JC5SQBSZQY6VF67DBGLCTXMLXEPNHU6MAY4K \ / AMOS7 \ YOURUM ::
+#\[7]VQBIATLYWDAXATCNHPHK6VFY734XYDRENC7ZQNFQCMO3CULFT6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

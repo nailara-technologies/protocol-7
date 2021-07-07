@@ -21,18 +21,18 @@ my $last_hex   = '';
 my $rgb_high   = [ sort { $b <=> $a } @t_rgb ]->[0];
 my $time_start = <[base.time]>->(4);
 my $fade_factor
-    = 0.0005 + ( 0.0125 * sprintf( "%0.4f", ( 1 / 255 ) * $rgb_high ) );
+    = 0.0005 + ( 0.0125 * sprintf( '%0.4f', ( 1 / 255 ) * $rgb_high ) );
 
 while ( $fade_val < 1 ) {
     my $fade_inc
         = $fade_factor
-        - sprintf( "%.6f",
+        - sprintf( '%.6f',
         $fade_factor * ( <[base.time]>->(4) - $time_start ) );
     $fade_inc = 0.0005 if $fade_inc <= 0;
     $fade_inc = 0.042  if $fade_inc > 0.042;
     $fade_val += $fade_inc;
     $fade_val = 1 if $fade_val > 1;
-    my $c_hex = sprintf( "#%02x%02x%02x",
+    my $c_hex = sprintf( '#%02x%02x%02x',
         $t_rgb[0] * $fade_val,
         $t_rgb[1] * $fade_val,
         $t_rgb[2] * $fade_val );
@@ -52,8 +52,8 @@ while ( $fade_val < 1 ) {
 
 <[base.log]>->( 2, ": <fading> complete" );
 
-#,,,.,..,,.,.,,.,,..,,,.,,...,,,,,,,.,.,.,,,.,..,,...,..,,..,,,..,,,,,,,,,,,.,
-#FMRZ2XDOYG6H3YY56LTXS74ZWPN4G4MOI4AZQHNI4P6IX2GXPZLB345IKCERR7I3DLP6J62NAVTSU
-#\\\|WRDBKZ7J5NEDGDUEZC66T4UKEW6ZSEGOICOGSQHRQ3PRR7H6NAK \ / AMOS7 \ YOURUM ::
-#\[7]PFAR6HR2RANOMQP6PEW5L2IDGWUOWHM2UWI6U3II5FZA6OOK62DI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,,.,,..,,.,.,,,,,.,.,...,,,,,..,,...,...,,.,,..,,,,.,,.,,,,.,
+#HQY77VQENC2QP5W65KLMWIOIE6BDYSIZSI5VJ6JK22VQTQ4OSG7HPFHZK5FPI43ZGT6OOIBIYQCG4
+#\\\|S42AUVOAQ6ZZ47JAMUOOABIUBC75MQ7KQVJCWBVLPR2JI2BF42I \ / AMOS7 \ YOURUM ::
+#\[7]2SHR42V5HB36FNLEVQOUMUNHG2HSXTMO2KPFTAUZERNZG3ODPACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

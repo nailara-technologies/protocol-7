@@ -21,7 +21,7 @@ if ( <start-anim.fade_mode> eq 'in'
     and ( !<start-anim.composited> or !<start-anim.do_fade_in> ) ) {
     $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
     $window->set_size_request( <start-anim.width>, <start-anim.height> );
-    my $min_delay = sprintf( "%.4f",
+    my $min_delay = sprintf( '%.4f',
         <start-anim.min_startup_delay>
             - ( <[base.time]>->(4) - <start-anim.min_startup_time> ) );
     $min_delay = 0 if $min_delay < 0;
@@ -42,7 +42,7 @@ if ( <start-anim.fade_mode> eq 'out' ) {    ## fade out ##
     <start-anim.fade_out.start_time> //= <[base.time]>->(4);
     my $delta_t = <[base.time]>->(4) - <start-anim.fade_out.start_time>;
 
-    my $opacity = sprintf( "%.4f", 1 - $delta_t );
+    my $opacity = sprintf( '%.4f', 1 - $delta_t );
     $opacity = 0 if $opacity < 0;
 
     if ( $opacity > 0 ) {
@@ -63,14 +63,14 @@ if ( <start-anim.fade_mode> eq 'out' ) {    ## fade out ##
         $window->set_size_request( <start-anim.width>, <start-anim.height> );
     }
 
-    my $opacity = sprintf( "%.6f", $delta_t / 0.8 );
+    my $opacity = sprintf( '%.6f', $delta_t / 0.8 );
     $opacity = 1 if $opacity > 1;
 
     $window->set_opacity($opacity);
 
     if ( $opacity >= 1 ) {
         delete <start-anim.fade_in.start_time>;
-        my $min_delay = sprintf( "%.4f",
+        my $min_delay = sprintf( '%.4f',
             <start-anim.min_startup_delay>
                 - ( <[base.time]>->(4) - <start-anim.min_startup_time> ) );
         $min_delay = 0 if $min_delay < 0;
@@ -88,8 +88,8 @@ if ( <start-anim.fade_mode> eq 'out' ) {    ## fade out ##
     exit(0);
 }
 
-#,,,,,.,.,,,,,,,,,.,.,.,,,,.,,,.,,..,,,,.,,.,,..,,...,...,.,.,.,,,,,.,..,,...,
-#4GN5IL7NWLPNHSZE7CRNOBISCFEZYZITZITFGSGZZA23XHU7AMPPQYAH3MTDWYXEAUZNF6MMTOAZS
-#\\\|IBU2TM6H4FU4XA23R5MAXNPNN3OEVRGP6K4HBLDRU2QA3OURFTX \ / AMOS7 \ YOURUM ::
-#\[7]I5N3GLICZHPJCBDVIVH4TAJ5EXEHUKQBVIX367VVCXQNAHGFRABY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,,.,,,,,,,..,...,,.,,,..,,..,..,,...,...,,,.,...,,,.,.,.,,.,,
+#DSJYELEBC5LLDXFDFMAYEZO4DUDDPZDBJBZXFBIHWNYZVMVKFXNUD4HC2N6CD2MJXUSKWXGJMQY44
+#\\\|ME2QLYC5ZY34REVZLLD3SELOA4CPEZ2Y3Q62IDFU5UXBZRUAPPM \ / AMOS7 \ YOURUM ::
+#\[7]I2VVOEA5DPCSSKFFJQ6NHKR2SV4PHBDVUVKV2ZOX6EE6QCW25SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ if ( not defined <mpv.time.fade_volume> ) {
     <mpv.volume.fade_factor> = 0;
 }
 
-my $delta_t = sprintf( "%.3f", <[base.time]>->(3) - <mpv.time.fade_volume> );
+my $delta_t = sprintf( '%.3f', <[base.time]>->(3) - <mpv.time.fade_volume> );
 
 # adjusting fade speed based on volume difference
 $delta_t *= ( 1 - ( ( abs(<mpv.audio_fade.delta_vol>) * 0.2347 ) / 100 ) );
@@ -22,13 +22,13 @@ $delta_t *= ( 1 - ( ( abs(<mpv.audio_fade.delta_vol>) * 0.2347 ) / 100 ) );
 <mpv.volume.fade_factor> = 1 if <mpv.volume.fade_factor> > 1;
 <mpv.audio_fade.last_set> //= '';
 
-my $new_volume = sprintf( "%.3f",
+my $new_volume = sprintf( '%.3f',
           <mpv.audio_fade.start_vol>
         + <mpv.audio_fade.delta_vol> * <mpv.volume.fade_factor> );
 
 if ( $new_volume ne <mpv.audio_fade.last_set> ) {
     <[base.log]>->(
-        2, sprintf( "< FADE > volume == %.3f", $new_volume ) . '%'
+        2, sprintf( '< FADE > volume == %.3f', $new_volume ) . '%'
     );
     <[mpv.send_command]>->( 'set_property', 'volume', $new_volume );
     <mpv.audio_fade.last_set> = $new_volume;
@@ -36,7 +36,7 @@ if ( $new_volume ne <mpv.audio_fade.last_set> ) {
 
 if ( <mpv.volume.fade_factor> == 1 ) {
     delete <mpv.time.fade_volume>;
-    my $vol_str = sprintf( "%.2f", $target_volume );
+    my $vol_str = sprintf( '%.2f', $target_volume );
     $vol_str =~ s/(\.[^0])0$/$1/g;
     $vol_str =~ s/\.00$//g;
     map {
@@ -52,8 +52,8 @@ if ( <mpv.volume.fade_factor> == 1 ) {
     $event->cancel;
 }
 
-#,,,,,,,,,.,.,,.,,,..,.,,,...,..,,,,.,,..,,.,,..,,...,...,..,,.,,,.,,,.,,,.,.,
-#KX7XB52HROZNJVNZSFYDYVCWMAOU7UZVZ5UVP4NF4DV5ALG7BMD7J57WYRK2H2R7LZHL2K6AJF2KU
-#\\\|EHKVMSGI7LJLDVWB7ZS5233MKGPADLHEEOIYW3EI6HEF6FRACVO \ / AMOS7 \ YOURUM ::
-#\[7]ZJMZPEOAE5C7EMNQPIOT47SVH3EMLWDCCRF6AUZDFF6DVI7JZ6DQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,,,.,,,,,.,,,..,,,.,,.,,,,,.,..,,...,...,...,,..,,,.,,,,,..,,
+#ONPMUX5NBPRUDWPRB7OELL72ZPFB6LF3WWPJ7OAW3637E6HIY66HEOMIN33LLVQRXD6V7B3BIMIPY
+#\\\|WSQVHMT53OL4YECJ3UU2SL2QP3VULMKWVA7Y4B5PWBBJRMKASUZ \ / AMOS7 \ YOURUM ::
+#\[7]SNBLGWNHHAUSKCB7WJMJICQBGXG7IIBZW7YJ3E7IG67FXIIONYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

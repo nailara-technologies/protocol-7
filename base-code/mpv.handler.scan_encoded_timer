@@ -31,7 +31,7 @@ foreach my $check_file (
     next if $file_size < 11 or $file_size > 17;
     chomp( my $tstamp = ${ <[file.slurp]>->($check_file) } );
     next if $tstamp !~ /^\d+$/;
-    my $age_days = sprintf( "%.2f", ( ( time - $tstamp ) / 86400 ) );
+    my $age_days = sprintf( '%.2f', ( ( time - $tstamp ) / 86400 ) );
     if ( $age_days >= $max_days ) {
 
         if ( defined <mpv.file_map.rescaled.source>->{$check_file} ) {
@@ -54,8 +54,8 @@ foreach my $check_file (
 
 <[mpv.callback.check_parent_dirs]>->(<mpv.rescale_path>);
 
-#,,.,,.,.,,..,,..,.,,,...,,..,..,,,,.,,..,,,,,..,,...,...,..,,.,,,...,..,,.,.,
-#7WG3N5UWAVRZCGWYZNATUOB2YQGVBAIIT7ALLZVTUOHPTQ7MAXJQAAWVFKESZXAZYDKN7NXLSK5AC
-#\\\|QBXM24ITNWJ3SLEQS7CVYHEBTXJMWHBE62REPGF3ANLVSN6YFM7 \ / AMOS7 \ YOURUM ::
-#\[7]MK2GDUBNP2ULANRMWRJKNTT6ES5KICBFJA22HIDYOBXPQUTY5MAY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,...,.,.,.,,,..,,.,,,,,.,,..,..,,...,...,.,,,.,,,,,.,.,,,..,,
+#MTBVPIUNDNXA6NPNP4JJTJD4QLPZE65JTMQ4JPEPTF64NPU7CDSN4F4D5ADH3WMWR6G3TLTMX7XUM
+#\\\|2YN4IZLHVUUT65F26DPWW4CGPNAA7DGRLJDDBTHTSHXIQZXW7RV \ / AMOS7 \ YOURUM ::
+#\[7]ODP3ZL5GIWDDCYD6P7N7VAIDLTF6I22QNSYSWPG56V7TFWFR6MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

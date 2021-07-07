@@ -32,7 +32,7 @@ if ( $type eq 'hours' ) {
         my $timestamp = $element->{'dt'};
         my $km_h      = $element->{'wind'}->{'speed'} * 3600 / 1000;
         $km_h
-            = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+            = $km_h < 1 ? sprintf( '%.1f', $km_h ) : sprintf( '%.0f', $km_h );
 
         my $beaufort = <[weather.parent.wind.calculate_beaufort]>
             ->( $element->{'wind'}->{'speed'} );
@@ -72,7 +72,7 @@ if ( $type eq 'hours' ) {
 
         my $km_h = $element->{'speed'} * 3600 / 1000;
         $km_h
-            = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+            = $km_h < 1 ? sprintf( '%.1f', $km_h ) : sprintf( '%.0f', $km_h );
 
         my $beaufort
             = <[weather.parent.wind.calculate_beaufort]>
@@ -105,7 +105,7 @@ if ( $type eq 'hours' ) {
     my $timestamp = $element->{'dt'};
 
     my $km_h = $element->{'speed'} * 3600 / 1000;
-    $km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+    $km_h = $km_h < 1 ? sprintf( '%.1f', $km_h ) : sprintf( '%.0f', $km_h );
 
     my $beaufort
         = <[weather.parent.wind.calculate_beaufort]>->( $element->{'speed'} );
@@ -138,8 +138,8 @@ if ( $type eq 'hours' ) {
 <[base.log]>->( 2, "writing html pages.. [ got new 'forecast' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
-#,,..,...,,..,,,.,,..,.,.,,..,..,,.,.,,..,..,,..,,...,...,,,.,,,.,,..,...,..,,
-#6X34FJ42QX5BJ47XYRGMMXDCPS36IHMGGUNIQG4ECFETJOSW5BI23NDIUI5CU446X23TAPMEN7EEI
-#\\\|BGHO4WQFVS245UHOZ3ABTY37DMTJZ6TZT5ZM4ID6XHIMADWEHPH \ / AMOS7 \ YOURUM ::
-#\[7]N6S3IPUQ52UPFW4EB3WQTEPRUWA25EDG2KYSF5JL5E432O54RQDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,..,,.,,,,.,,.,.,.,,,,..,,,,,..,,...,...,...,,,.,,..,,,,,.,.,
+#KIQI3IJTEUSUBMYEZMTHLEQVDZES5U6OPFGNVF5A55CLOA2LAACT32RC5DSBXIJ5O7ENE2J2A467W
+#\\\|D2K7TUW6W5YBMK4RDHXVLV5MQ77KU3PGUN2ZVKCEOCZT2TXP3JA \ / AMOS7 \ YOURUM ::
+#\[7]EZMW65TSCVA5GI4ZJ7JU6UPE4YSI6KQHKWWELYXMGOWARHCLNSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

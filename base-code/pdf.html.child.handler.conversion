@@ -60,7 +60,7 @@ $err_status = 'page_height not defined'  if not defined $page_height;
 goto error if defined $err_status;
 
 my $target_height
-    = sprintf( "%.0f", ( $page_height / $page_width ) * $target_width );
+    = sprintf( '%.0f', ( $page_height / $page_width ) * $target_width );
 
 <[base.log]>
     ->( 2, "target page #$index size ${target_width}x$target_height" );
@@ -88,7 +88,7 @@ $err_status = $image->Resize(
 );
 goto error if "$err_status";
 
-my $img_index = sprintf( "%0" . length($page_count) . "d",
+my $img_index = sprintf( '%0' . length($page_count) . "d",
     $conversion->{'current_page'} );
 my $image_name  = "page.$img_index.png";
 my $output_file = $conversion->{'html_path'} . '/' . $image_name;
@@ -106,7 +106,7 @@ if ( $image->Get('signature') ne $skip_hash ) {
 }
 
 my $percent
-    = sprintf( "%.1f",
+    = sprintf( '%.1f',
     ( 100 / $page_count ) * $conversion->{'current_page'} );
 <[pdf.html.base.write_stub_page]>->( $conversion->{'html_path'}, $percent );
 
@@ -157,8 +157,8 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 <[pdf.html.base.write_error_page]>->( $conversion->{'html_path'} );
 return;
 
-#,,,,,.,,,,..,.,,,,.,,.,.,,.,,,..,..,,,.,,.,.,..,,...,...,..,,.,,,..,,,,.,..,,
-#6TYRWU6EDDZRCZGQ6R4I4XSQ7NVYBGCMRFV4FG4HTKBG63MAW2W6PJ2JWRE44HJXLY5WHC3LOPQVO
-#\\\|I2SC3KXR4BQN6QPFKWLYBYZATV4XRZOHOVBGP3BUBI773LD2KLL \ / AMOS7 \ YOURUM ::
-#\[7]MXWBAV3SJLWCBCHIT7QXYQUUTLVH75YEHJLLVL2HQNF6FGTEXEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,,,,,.,,..,.,,,.,,,.,,,,..,..,,...,...,,..,.,.,,..,,..,,,,,
+#GG3GFPBUXWQ7I6DNNC7VG5S4B6AVATFNK7K7RPOUXWKSRTT4IJYFAQI7USD3LC2SGOKMFEM7RIQ5Y
+#\\\|36USURFQEOETSX52L2JSZTXOD3RJGAPXQTJ5FUN65W57DKR5TP7 \ / AMOS7 \ YOURUM ::
+#\[7]LDNTAIXRQICD5HQDVNHJC5GMCQZ7ODRMVQTDFBSAIOMW5CJWESCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

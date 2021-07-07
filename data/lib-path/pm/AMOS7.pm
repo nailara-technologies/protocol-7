@@ -133,7 +133,7 @@ sub caller_str {
     $c_lvl++;                  ## <-- accounting for this subroutine ##
     my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
     if ( not defined $filename ) {
-        return sprintf( "[ caller level too high : %03d ]", $c_lvl );
+        return sprintf( '[ caller level too high : %03d ]', $c_lvl );
     } else {
         clean_up_caller( \$filename );    ## shorten ##
         return "[$filename:$line]";
@@ -172,8 +172,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,.,,,.,,,.,,.,,,,,,,.,.,.,.,,,.,,..,...,.,,,..,,...,...,.,,,,.,,..,,.,,,,.,,
-#ADVORCMIOUQOEEQJT5BDHOZJ7P5LYIP7NAN3S7FOGFXBRZEATWPHJ35AUUNGUHEQRZWT7PG5427DK
-#\\\|VFCRDBGORZXYZNVZWT26XNICD4G6VM3FXROGAUN5V2EPSXHXZAO \ / AMOS7 \ YOURUM ::
-#\[7]6EO4IZI2V7RTMOP4QED6N22ETGFBWEKWVBLYRZNCZ5XCU75T4EDA 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,,.,,,,,,,..,,,,,...,,..,,,,,..,,...,...,..,,,.,,.,,,...,.,,,
+#TJXWO5SH3KEG2JVIWGLCGZXUQYOR4PN7W6PMH5FERK6POIEHY2DCKIIWS47PZM6QLXJ45LK23747A
+#\\\|UO5TYQI426N5DR47PYBY6HQARAURZQNPA3AX223BFPBCRT47GDA \ / AMOS7 \ YOURUM ::
+#\[7]OCMLI5JVY74GEECZLZO5GKRANAVSVEKDMYMYUS3IAZAXZCCOGWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

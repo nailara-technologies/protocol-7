@@ -776,7 +776,7 @@ sub p7_choose_true_pid {
     local $data{'system'}{'verbosity'}{'console'}      = 1;
     local $data{'system'}{'verbosity'}{'zenka_buffer'} = 1;
     ## choose as TRUE asserted PID by forking ##
-    my $fork_start_time = sprintf( "%.5f", &{ $code{'base.time'} } );
+    my $fork_start_time = sprintf( '%.5f', &{ $code{'base.time'} } );
     local $data{'system'}{'start'}{'zenka_buffer'} = 1;
     while ( not $code{'base.assert.harmony'}->($PID) ) {
         $data{'system'}{'start'}{'fork-count'}++;
@@ -1647,7 +1647,7 @@ sub p7_debug_sub {
                         {' : '.lc($LAST_PAREN_MATCH)}ige;
     $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}
                         {lc($LAST_PAREN_MATCH)}ge;
-    $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( " :: %s ::",
+    $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( ' :: %s ::',
              substr( encode_b32r(pack("V*",
               Digest::Elf::elf(${^CAPTURE}[0]))) , 2,3 )
              .'0'. substr(
@@ -2127,7 +2127,7 @@ sub p7_caller {
     $c_lvl++;                  ## <-- accounting for this subroutine ##
     my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
     if ( not defined $filename ) {
-        return sprintf( "[ caller level too high : %03d ]", $c_lvl );
+        return sprintf( '[ caller level too high : %03d ]', $c_lvl );
     } else {
         $code{'base.clean_up_caller'}->( \$filename );    ## shorten ##
         return ( $filename, $line, $package, $subroutine ) if wantarray;
@@ -2480,7 +2480,7 @@ sub p7_sig_warn {
         my $caller_str = sprintf qw| [%s:%d] |, $filename, $line;
         map {s| *\Q$caller_str\E$||g} @err;    # redundant caller clean-up #
 
-        $caller_str = sprintf( "[ caller level too high : %03d ]", $c_lvl )
+        $caller_str = sprintf( '[ caller level too high : %03d ]', $c_lvl )
             if not length( join( '', $filename, $line ) );
 
         my $log_warning = 1;
@@ -3548,8 +3548,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,.,,..,..,,...,.,,,,,.,..,,,.,,,,,,.,,,..,,...,...,...,,,,,..,,,..,,,.,
-#3H7QTOL6N7IAEBHFEEDPFO2T4SQT77V3VWCFNC7K4LPWRE32Z2WWHDRVSVCP4J4NFAF3JS4R4N5FG
-#\\\|M626TRP7FNH53ZBNWTV746AANT2XEBJUFGP4R5G2RYKX2ABMT7I \ / AMOS7 \ YOURUM ::
-#\[7]O7H44WNOB7NI6NRU4GR2SW4ZO6R662FBIW24MVYBBYL752GRS4DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,,..,,,.,.,,,.,.,,..,,..,.,,,..,,...,..,,,,,,,,,,,.,,.,,,.,.,
+#7JZXADSLI6PVEP5ENLGATGRWGJV4RIIYJQN5QORYSKX2K52CXIMTRDS5DHYMTRWWC66YMS33FXTHU
+#\\\|AKC2X6OPZ3NI3QFLNJ6RG37NHS2NZIQHQRCXHU5AERTEI6VX73X \ / AMOS7 \ YOURUM ::
+#\[7]FJFLNUN3HYVAU5RRIZ3ZAO3RUW6GWXCRJNB2QX4AHSAF4DQOR6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

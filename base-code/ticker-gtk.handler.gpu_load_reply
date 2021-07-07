@@ -15,7 +15,7 @@ my $lower_tolerance = 4.2;
 return if $params->{'cmd'} ne 'TRUE';
 my $load_percent = $params->{'call_args'}->{'args'};
 
-my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
+my $percent_exceeded = sprintf( '%.2f', $load_percent - $limit );
 
 <ticker-gtk.slowdown.percent_target> //=
       $percent_exceeded > 0
@@ -28,7 +28,7 @@ my $target_percent = <ticker-gtk.slowdown.percent_target>;
 my $old_target     = $target_percent;
 
 $target_percent
-    = sprintf( "%.2f", $target_percent + $percent_exceeded * $accel_factor );
+    = sprintf( '%.2f', $target_percent + $percent_exceeded * $accel_factor );
 
 $target_percent = 100 if $target_percent > 100;
 $target_percent = 0   if $target_percent < 0;
@@ -44,10 +44,10 @@ my $skip = (
 
 # debug section
 $target_percent = <ticker-gtk.slowdown.percent_target>;
-my $delta_t   = sprintf( "%.2f", $target_percent - $old_target );
+my $delta_t   = sprintf( '%.2f', $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
 $delta_str    = '' if $delta_t == 0;
-$load_percent = sprintf( "%.2f", $load_percent );
+$load_percent = sprintf( '%.2f', $load_percent );
 <ticker-gtk.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(
     <ticker-gtk.debug.loglevel.autospeed>,
@@ -55,8 +55,8 @@ $load_percent = sprintf( "%.2f", $load_percent );
         . " >- [ SLW ${target_percent}% ]$delta_str"
 );
 
-#,,,,,,..,...,,..,,.,,,.,,,,.,,..,,,,,.,,,,,.,..,,...,...,.,,,,..,,,,,,,,,.,,,
-#GUCK43TRZ23OEKKB5YSDISRA5JFTZ7GTVEV652G53BZZUPAZEWA3O4JIU56JJC44YC2F6SH7VD5F2
-#\\\|XH3JFSKORLRV2VK4G5ZEZTUBKWLXJONJDBNHB7YBMAAHN4US6LE \ / AMOS7 \ YOURUM ::
-#\[7]V42FVHYLIIL6KGTVYLTJ4MCZIQD2X2NFW4OQAF7M5H3I2KISHSAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,...,,.,,,..,,.,,,,.,..,,..,,..,,...,..,,.,,,.,.,...,,,.,,,.,
+#LJNB6MMNOWE3RZLALI3C4UZWNJKWPPU6C2DAOHJ4Q3JOXOIYI2RXMVNJ7FYFFV4655HYDEMG65FM2
+#\\\|A3YFJA3MPVUXE3CPKQYS4D4424YV5DY7IGFWVOI6WT4ZNHHJNT7 \ / AMOS7 \ YOURUM ::
+#\[7]7UI2NXW5LSM4CN5FH4HHT22UFOQ56ZB5UGMJAXSGOAY7NTUVMABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

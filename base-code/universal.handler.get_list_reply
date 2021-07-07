@@ -50,7 +50,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             if defined <universal.timer.playlist_retry>
             and <universal.timer.playlist_retry>->is_active;
         my $retry_secs
-            = sprintf( "%.2f", ( 1 + $max_retries - $retries_left ) * 0.42 );
+            = sprintf( '%.2f', ( 1 + $max_retries - $retries_left ) * 0.42 );
         <[base.log]>->( 1, ": retrying update in ${retry_secs} seconds.," );
         <universal.timer.playlist_retry> = <[event.add_timer]>->(
             {   'after'   => $retry_secs,
@@ -191,8 +191,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,,,,.,,..,,.,,,..,,,,.,..,,,.,,,,,,,..,.,.,..,,...,...,.,.,,,.,,.,,,.,,,..,
-#LBJY742VTJGMIUSHWE26NK4FVP6W7GDXYOLB56TNITEGWRT2CT7RMNHIAX7A24WQHR52KHDYBQJTG
-#\\\|MHN3IPY2XJ5UNZ7L2DBYXBHASZH7ULIORPAYBQDMPYQHUFVPNHD \ / AMOS7 \ YOURUM ::
-#\[7]KMKOTU7B3ALS5VC7TK5EPK3KUBT3S2OSJAQIB2B33NESKKGDECBY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,..,,...,.,.,,,,,...,.,.,,..,..,,...,...,.,.,..,,...,,..,,,,,
+#H2UNQRS3K5CC4KPEMRGTFK6OSASK7GHWZVDLSGD5HHZURQN4RFDMQFAFPQG4HMKPMUTEH42WVZFFE
+#\\\|YBE27F2GCDJZJSW6DRVS3PWC5B3BXX4ER7UHTYL2SVMX4IFO3FU \ / AMOS7 \ YOURUM ::
+#\[7]FHKZQVDVVGN4VYH3VUZMIPYTU7TDD7UM4EMSOQXJVTSPVHCFB6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

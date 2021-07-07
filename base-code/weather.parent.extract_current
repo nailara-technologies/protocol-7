@@ -19,7 +19,7 @@ if ( $weather_data->{'name'} =~ m|^$cfg_city|i ) {
     <weather.data>->{$station_id}->{'city'} = $weather_data->{'name'};
 } else {
     <weather.data>->{$station_id}->{'region'}
-        = sprintf( "( %s )", $weather_data->{'name'} );
+        = sprintf( '( %s )', $weather_data->{'name'} );
 }
 
 <weather.data>->{$station_id}->{'country'}
@@ -38,7 +38,7 @@ if ( $weather_data->{'name'} =~ m|^$cfg_city|i ) {
 ) ? 'night' : 'day';
 
 my $km_h = $weather_data->{'wind'}->{'speed'} * 3600 / 1000;
-$km_h = $km_h < 1 ? sprintf( "%.1f", $km_h ) : sprintf( "%.0f", $km_h );
+$km_h = $km_h < 1 ? sprintf( '%.1f', $km_h ) : sprintf( '%.0f', $km_h );
 
 my $beaufort = <[weather.parent.wind.calculate_beaufort]>
     ->( $weather_data->{'wind'}->{'speed'} );
@@ -68,8 +68,8 @@ foreach my $key ( 'clouds', 'humidity' ) {
 <[base.log]>->( 2, "writing html pages.. [ got new 'current' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
-#,,,,,..,,,.,,,..,,,,,,..,...,.,.,,,.,,.,,...,..,,...,...,.,,,,,,,...,,..,,..,
-#VUEVTM6Q5MQQ63UXAA422O4DBRD7SJSTCVFNVOJZXUBLM72MKLS46DSSHLCGETEPQWZNBKEET4SAA
-#\\\|FNVQN2CFZRJQPZNTWVP2GTZMWAIU4GQM6NILPKSE3R2HGHHMJH6 \ / AMOS7 \ YOURUM ::
-#\[7]C2HD4AXK7CVPYH7LHEW36DV776PIDAJTS3ZQBZEVV4KXPZRFKQCY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,.,,,.,.,,,.,.,,,,,,,.,.,,,.,..,,...,...,,,.,.,.,...,.,,,..,,
+#XBMGHTNHEWLSUZKKRETF4CGEQXJ6R54QWWEF6S5AWATOE6QGSDBOMZCAO3RNR3BWVITYGBLBZYIXG
+#\\\|V4PSSL3JEXOIJRSF5H32Q5BUQE4UJYJJHM6KVDFNQIM3JMTO5LX \ / AMOS7 \ YOURUM ::
+#\[7]HU47TL7HVF2FAZETSGOCCREGIWBLACNMMXXY43PIBMJBIZNBXUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

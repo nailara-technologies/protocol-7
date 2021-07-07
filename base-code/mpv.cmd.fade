@@ -13,7 +13,7 @@ return { 'mode' => 'false', 'data' => 'expected numerical percent value' }
     or $volume !~ /^[\-\+]?\d+(\.\d+)?\%?$/;
 
 $volume =~ s|\%$||;
-$volume = <mpv.current.volume> + sprintf( "%.3f", $volume )
+$volume = <mpv.current.volume> + sprintf( '%.3f', $volume )
     if $volume =~ /^[\-\+]/;
 $volume = 0 if $volume < 0;
 
@@ -21,12 +21,12 @@ $speed //= <mpv.audio.fade_speed> //= 0.013;
 
 return { 'mode' => 'false', 'data' => 'fade-speed is a float number [0..100]' }
     if $speed !~ /^\d+(\.\d+)?$/
-    or sprintf( "%.5f", $speed ) <= 0
+    or sprintf( '%.5f', $speed ) <= 0
     or $speed > 100;    # min. 0.00001, max. 100
 
-( my $vol_str = sprintf( "%.2f", $volume ) ) =~ s|\.?0+$||;
+( my $vol_str = sprintf( '%.2f', $volume ) ) =~ s|\.?0+$||;
 return { 'mode' => 'true', 'data' => "audio volume already at $vol_str%" }
-    if sprintf( "%.2f", <mpv.current.volume> ) == $vol_str;
+    if sprintf( '%.2f', <mpv.current.volume> ) == $vol_str;
 
 my $id_str = defined $id ? "[$id] " : '';
 
@@ -55,9 +55,9 @@ delete <mpv.time.fade_volume>;
 
 <mpv.audio_fade.start_vol> = <mpv.current.volume>;
 <mpv.audio_fade.delta_vol>
-    = sprintf( "%.5f", $volume - <mpv.current.volume> );
+    = sprintf( '%.5f', $volume - <mpv.current.volume> );
 
-my $interval_delay = sprintf( "%.4f",
+my $interval_delay = sprintf( '%.4f',
     ( 1 / $speed ) * 0.42 * ( abs(<mpv.audio_fade.delta_vol>) / 100 ) );
 
 $interval_delay = $min_delay if $interval_delay < $min_delay;
@@ -72,8 +72,8 @@ $interval_delay = $min_delay if $interval_delay < $min_delay;
 
 return { 'mode' => 'deferred' }
 
-#,,..,,.,,.,.,,..,,..,.,,,...,.,,,,..,,,.,,..,..,,...,...,..,,.,,,,,.,,,,,...,
-#2PC4MNLGM7KQ2AZWFSHDKCYE5FHHCWZBWZ3I44M4CPRGVLVEDMCX3TVJQNYSPG542L4MZ26PK6RHK
-#\\\|2ZYWCXQK6DPVJ4S73PPSIJQK3DZTV6JRJUJVXPP5LOXFEKWZBSX \ / AMOS7 \ YOURUM ::
-#\[7]ZKONS7DONKKIBEAUB7XWYCTQ7HUG65GCYMFXQEAC5KIQZILWIECY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,..,,,.,,,,,...,,,.,.,.,,,.,..,,...,...,...,...,,,,,,,,,,..,
+#67AZTSEJFIL44BAIUVOY2Y6NVEH3AZROOIWA2ZG6DPSFH7ZHIYIPMTZDSQLGRN7HC46S7HKMNDSDY
+#\\\|BVQJ3PY6X5RE7VLTIVOOCN5JLNJOODXT2LNXTX67AGPN6MKKI24 \ / AMOS7 \ YOURUM ::
+#\[7]OGM6XSJCPQADU7CH3XZCCXPEF5JDCBQDWTB36HS3XC4LKOD23SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

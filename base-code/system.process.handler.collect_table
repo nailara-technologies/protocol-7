@@ -10,12 +10,12 @@
 
 my $mem_statistics = <system.statistics>->get->memstats;
 <system.mem.used_percent> = my $mem_used_pct
-    = sprintf( "%.2f", 100 - $mem_statistics->{'realfreeper'} );
+    = sprintf( '%.2f', 100 - $mem_statistics->{'realfreeper'} );
 
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
-    ( my $cpu = sprintf( "%.2f", $p->pctcpu ) ) =~ s/^ +//;
-    ( my $mem = sprintf( "%.2f", $p->pctmem ) ) =~ s/^ +//;
+    ( my $cpu = sprintf( '%.2f', $p->pctcpu ) ) =~ s/^ +//;
+    ( my $mem = sprintf( '%.2f', $p->pctmem ) ) =~ s/^ +//;
     $cpu = 0 if $cpu !~ /^\d+(\.\d+)?$/;
     $cpu =~ s/^(\d+\.\d+)0+$/$1/;
     $mem =~ s/^(\d+\.\d+)0+$/$1/;
@@ -168,8 +168,8 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,,.,,,.,,,,,,.,,,,,,.,,,...,,,.,,..,.,.,,,.,..,,...,...,,.,,,..,..,,...,..,,
-#AROQW6YJALBYKQWEIBQ7KL3SZ32QPDX6OWZZOYP32NWGSNFSFNCJNXNLBVZOPP76LXGKLDDNCNFH4
-#\\\|FKAAU34QVM4LF3LSGL5VE7GUW7FDOQUBELC2IQYKBCBKLJDGTGU \ / AMOS7 \ YOURUM ::
-#\[7]34XHMZFE5IHLYDDDRRBCBAUBD6EIX53X7YQVF6I5RF5LX2QXCGAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,,,,,,,,,..,,.,,,..,,.,,,,.,..,,...,...,,..,...,,.,,..,,,..,
+#BE6OQ5OBDCGZS6BFAKTQ4OLHYBNS5JD72OSTXFV7YIIBDKE64SN7EF3AH3GI22SZ3X7TUMU2S5P6E
+#\\\|FPYNE62BBS6L32GPEEERNS4FG7GGFBWOJNEOOWSDQN2XPLUSAXR \ / AMOS7 \ YOURUM ::
+#\[7]CWQXMKOJEKUJLXR3FPHZ3FKQIXCIFM7QZWX6CHMKNWDLAR6YEYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

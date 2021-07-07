@@ -38,14 +38,14 @@ $heartbeat_ref->{'retry_timeout'} //= 2.1;    ## decreased timeout ##
 # set up new status timer..,
 $instance->{'timer'}->{'heartbeat-status'} = <[event.add_timer]>->(
     {   'after'    => $status_timer_delay,
-        'interval' => $status_timer_interval + sprintf( "%.3f", rand(1.2) ),
+        'interval' => $status_timer_interval + sprintf( '%.3f', rand(1.2) ),
         'handler'  => qw| v7.handler.heartbeat_timer |,
         'data'     => $instance_id
     }
 );
 
-#,,.,,,,,,,,,,,,,,,..,,,.,,.,,,..,,,,,,,,,..,,..,,...,...,,,,,,.,,,,,,,..,,,,,
-#YQCBARZXLVWGIAA5CAYHEU4O7R73DTUVUZD5W5RI767SAXDZUREWXZTEJRBU5SSLVTM6HJXYUWD6C
-#\\\|2SFAFQHTFVWCLEQUZNKCZH46VFPJX6CFV7DZTVVU32SSWN2IJN3 \ / AMOS7 \ YOURUM ::
-#\[7]GFZ6ZTYKDY34IJXGM7TMJBRFBHQ6ADRVBZD7X45AVOZEAUQSZCDI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,.,.,,,,,..,,,.,,,,.,.,,,.,,,..,,...,...,...,,,.,,..,...,,,,,
+#W4V3QGBF75NXDJ5MTDW25MUR2CIYC5DL6IT2RXOU3OFKTOXVGYFFDIJ7HAJYCAKJV3IVITEOK647S
+#\\\|7R2BYQTDBIAUB7RYR6WZHB4OEYUKXET4436R7T6PEOHOR3QPN67 \ / AMOS7 \ YOURUM ::
+#\[7]3H4ZS25UNDMORUC3SLTKLT46GRLOZXASVK2PEHNNYM2WWUHBJGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
