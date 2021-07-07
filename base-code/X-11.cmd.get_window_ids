@@ -6,7 +6,10 @@
 
 my $title_pattern = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'expected title [sub]string argument' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected title [sub]string argument'
+    }
     if not defined $title_pattern or !length($title_pattern);
 
 my $xtops = <X-11.WM>;
@@ -19,16 +22,16 @@ for my $win ( @{ $xtops->sorted } ) {
         or index( $win->title,    $title_pattern ) != -1;
 }
 
-return { 'mode' => 'false', 'data' => 'no matching window captions!' }
+return { 'mode' => qw| false |, 'data' => 'no matching window captions!' }
     if !@window_ids;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => join( ' ', @window_ids )
 };
 
-#,,,,,,,,,,,.,,..,,,,,..,,,,.,..,,,,.,,,.,.,,,..,,...,...,,,,,,,.,,,.,,..,,..,
-#KUFOSEDDSOYUFURMFMSLNTDN4KL73GXFNFLDQV6VKMUVXNYY2VTFX22IUYJJOURKEO5EXCLNQGWSC
-#\\\|TWXVYZX4D4E5WW7FRTKUHU3GJPTOKCFIMJI5A4CFJ6JSCQMSANO \ / AMOS7 \ YOURUM ::
-#\[7]RJ6OJX7XMQ7KE4DMEXOPZVMU7GDNGJO4OIEYUWFK24PMUQKAMIAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,.,.,...,,,,,,,.,.,,,.,,,,,.,..,,...,...,..,,..,,..,,,,.,,.,,
+#BI64M6H4KF4NW5JXDY4R7OMKLAQ6PZLTUMB4IXLMRZTA34BE2FCUGDIWHRUKXXZUUGCUL5GJCI2JC
+#\\\|7C2BBRQRA4WSY62SJW5OO6KJ7T7ZEYHPLHSAHG4WBPAK3Q2MBW2 \ / AMOS7 \ YOURUM ::
+#\[7]7TLGE6VDRJJX4FCS3MW65F56MDVWELDVXOBWZZJLWVXZCU6BF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

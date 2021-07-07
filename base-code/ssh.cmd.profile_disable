@@ -6,13 +6,13 @@
 my $profile_name = $$call{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "there is no ssh profile '$profile_name' defined"
     }
     if not exists <ssh.cfg.profiles>->{$profile_name};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "ssh profile '$profile_name' is already disabled"
     }
     if <ssh.status.profiles>->{$profile_name} eq 'disabled';
@@ -20,12 +20,12 @@ return {
 <[ssh.disable_profile]>->($profile_name);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "ssh profile '$profile_name' disabled"
 };
 
-#,,,.,,,,,...,.,,,,.,,,.,,,,,,.,,,.,,,,,,,...,..,,...,...,.,.,,,,,,,,,.,,,,,,,
-#4FXFTPJNQT63CNYLYULXMN2LVTZG47FLC7Y6ISDJ6QSSTKFKCGNKQIIZLZU37U6G7YGRPXSUX527O
-#\\\|227ITIBU7MXA2Y2KWFDACWQLKL2GQW4UJOED7Q5G5IZ3YLSFDOR \ / AMOS7 \ YOURUM ::
-#\[7]DHSNPHXA3GSMI5B7CBDPSQGCSO5VHNJUOM7NQIP55A2BJKRHBYAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,..,,,.,...,..,,,,.,...,,,.,..,,...,...,...,,,,,.,,,,.,,.,,,
+#PQ3TVRP7XKMUY5KEG27QDUO2UODZDR4FFTUZZXQGEZV3LDRCCN4E5KHNJM54RIJXSK4NSMOXC7RSY
+#\\\|FTNFE7663FPEVK7YI6BEK6KJSMDRX2ZLVHW5OU6O4GRGLA2POO6 \ / AMOS7 \ YOURUM ::
+#\[7]CTTU35XE3KEFXLBLR3N5B3WUE7KJNTT2REELL7DG2B4DXK4BKUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ my $reload_reply = <[content.cmd.reload_file]>;
 my $update_cmd   = <update.notify_command> // 'playlist_update';
 
 return $reload_reply
-    if $reload_reply->{'mode'} eq 'false'
+    if $reload_reply->{'mode'} eq qw| false |
     or not defined <update.notify_zenki>;
 
 my $count = <[content.update.send_notifications]>->($update_cmd);
@@ -15,10 +15,10 @@ my $count = <[content.update.send_notifications]>->($update_cmd);
 my $s          = $count == 1 ? ''                          : 's';
 my $notify_str = $count      ? ", $count zenka$s notified" : '';
 
-return { 'mode' => 'true', 'data' => 'playlist updated' . $notify_str }
+return { 'mode' => qw| true |, 'data' => 'playlist updated' . $notify_str }
 
-#,,..,,..,..,,,,,,,..,..,,,.,,,,.,,,.,,.,,.,,,..,,...,...,..,,,,.,,,,,.,,,,.,,
-#GNMRQ3SPDYVPMERHS5U5RJNNIOWITR2GVXFDR47L2NSENABKF4NDQHXEHE42UONJERNSHNWZQUSNG
-#\\\|6DY6NKSL7FMZZY6ULWMDQU4LJLF7Z5BEF2ZVSR46XUKUCIXOFPU \ / AMOS7 \ YOURUM ::
-#\[7]HRSZZAZVYSUG3Z2KEA54AD5XUQBUFY4PF76EQQL63ACVSPBQZYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,,.,,..,,...,,,.,.,,,.,.,,.,,..,,...,...,...,.,.,.,,,..,,,,,,
+#5EV4YSYMSMHH4E7VW6ABZKCXQCTXMJ7QGBY7CMQ6FFNTVKDGHUYAVSL2SEC4353LRRKXGBBH3EWFQ
+#\\\|LVYXLHUJSFF2ZEXMWGMSEAFNJ64XHW6SVZCTZJ4TNLAPSXFT7I3 \ / AMOS7 \ YOURUM ::
+#\[7]ARYRUXRVW4BWJD2XQTZUZHJYPZLLYANDOKMSF3OBLVVLM5AA3MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,10 @@
 my $reply_id          = $$call{'reply_id'};
 my $get_color_command = 'cube.screenshot.get_region_color';
 
-return { 'mode' => 'false', 'data' => "expected valid tile or zenka name" }
+return {
+    'mode' => qw| false |,
+    'data' => "expected valid tile or zenka name"
+    }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 my ( $source_zenka, $zenka_name ) = ( $1, $3 );
@@ -26,7 +29,7 @@ if ( $zenka_name =~ /^\[([^\]]+)\]$/ ) {    # <-- only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -46,7 +49,7 @@ if ( not exists <tile-groups.coordinates>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required!"
         if $match > 1;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $msg_str
         }
         if $match != 1;
@@ -59,7 +62,7 @@ my @coordinates;
 my @borders = ( 'left', 'top', 'right', 'bottom' );
 foreach my $border_name (@borders) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "coordinates for $border_name border are missing"
         }
         if not exists $coordinates_data->{$border_name};
@@ -79,8 +82,8 @@ foreach my $border_name (@borders) {
 
 return { 'mode' => 'deferred' }
 
-#,,,.,..,,,,.,.,.,,..,..,,..,,,.,,,.,,...,...,..,,...,...,,..,.,,,.,.,...,..,,
-#SJGMOTMDDCJHSQHPSMNM3OUUN7HVRZ6W6XTKVPNJ3XKOI3B5A52KLXXUUDON3UOSBFAUAOBA4VJ5C
-#\\\|W5GZP5VXZKDUOZG2BDFS2FBJEPTE3HYELIFZ5VI7B5HDYOJCKYA \ / AMOS7 \ YOURUM ::
-#\[7]5RUH3356A3UT57R5HDROFMEEH45PN77H6ZB6P3HWXEG5RZAHIQBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,..,,,,,,..,,,,.,,.,,.,.,,,.,..,,...,...,..,,...,,..,,.,,,,.,
+#7UQTQQVU5PLEGVHFHFEYUWJVTRR4TKO3Y3SV6BTYNBPDQ3OSMJMNPM4FEWHDSNMCMQFQG72XA4LX4
+#\\\|TQKA3TINJOAS6RA5SR3TE5OPF5PE465JQEE5DVHC46XV4ADC6JU \ / AMOS7 \ YOURUM ::
+#\[7]EAC6DVGLCLSY2BC5SKOPEDFV6V27C33NK3PV6PBQU3ZY5RFJ32DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

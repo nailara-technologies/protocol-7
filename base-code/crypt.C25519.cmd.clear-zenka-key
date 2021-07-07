@@ -7,10 +7,10 @@ my $key_name   = <crypt.C25519.key_vars.key_name>;
 my $s_key_name = <system.zenka.name>;
 my $id         = $$call{'session_id'};
 
-return { 'mode' => 'false', 'data' => 'C25519 key name is not defined' }
+return { 'mode' => qw| false |, 'data' => 'C25519 key name is not defined' }
     if not defined $key_name;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "C25519 key '$key_name' is not loaded"
     }
     if not defined $KEYS{'C25519'}{$key_name}{'public'};
@@ -55,10 +55,13 @@ if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
 
 delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
 
-return { 'mode' => 'true', 'data' => "deleted '$key_name' key from memory" }
+return {
+    'mode' => qw| true |,
+    'data' => "deleted '$key_name' key from memory"
+    }
 
-#,,,,,.,.,,.,,,,.,,.,,.,,,...,,.,,,,,,.,,,.,,,..,,...,...,.,.,..,,.,.,.,,,..,,
-#55S5C4UYRVAPJ2QAZS4R474OQNURGA3NV74K4WLBUPY45ZSNRPJNXLVR7KWGBINEJ6EMVZPUU2EFC
-#\\\|OB4RDW6C5ZS3BYJJLJGO6EVQABSZQ2OOK5RF2SEWSSHFPA2KB3U \ / AMOS7 \ YOURUM ::
-#\[7]MZI57YVKZ6ASOG44B6O3GG6KY32SZ5S6RXZCKBJ5INVQZETIWOAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,..,,,.,,,.,,,.,,,,,...,.,,,.,.,..,,...,...,,..,...,,,.,,,.,,.,,
+#66MHK4NY3HYGH2ISVRL6BE3H4MNTQEG5HJPGG2B34VENJW4VCLR6CD4F4ZWOKP6PV2QDR5SAJNVCO
+#\\\|RL2CEXHX7R26FWL7NOWBQ6UJHEZMDCVMALTZDAA3M4M2DUER7JF \ / AMOS7 \ YOURUM ::
+#\[7]ZPKIVBRKTJVTSI3YCU3KIGDJMAUOVBEBIIKILW6TN77CNWH4TKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

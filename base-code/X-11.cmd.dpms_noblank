@@ -3,7 +3,7 @@
 # name  = X-11.cmd.dpms_noblank
 # descr = deactivate screen blanking
 
-return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => qw| false |, 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
@@ -16,10 +16,10 @@ my ( $power_level, $dpms_enabled ) = <X-11.obj>->DPMSInfo();
 
 <[base.log]>->( 1, "manually deactivated DPMS blanking (T=0s)" );
 
-return { 'mode' => 'true', 'data' => "display blanking disabled" };
+return { 'mode' => qw| true |, 'data' => "display blanking disabled" };
 
-#,,.,,,,.,...,,,.,,..,,,,,,.,,.,.,...,..,,,.,,..,,...,...,...,,..,,,,,...,,,.,
-#WOBHKTCOCSQTQPH47KGAIEHHZD372C3MAAEDU2Y2LZWIZZ2OFGAXZAC6HJG2ML4TYF3N23Y6VELKO
-#\\\|NDG74KPZF2OJYEBSXC6CA5NUXDXRKHBVCJTCYYV4QNDO3GHQZD7 \ / AMOS7 \ YOURUM ::
-#\[7]ZRO5PIRVG7DVNMTXJSCBWMULE4G5IWIO3AEGJKKBIIAL4J3VN2BY 7  DATA SIGNATURE ::
+#,,,,,...,...,,..,.,.,...,.,,,,..,...,.,,,.,,,..,,...,...,,.,,,..,,.,,...,.,,,
+#RZQ66BZVTHAFFY3PJ4E3I5IEM7T677H5OSK3NRL52MTNEBNHMHG7KKUTVW7UJ7EJSOENXPOCYYR6W
+#\\\|7MKZFNXL5ZD4A35OYT7RM2QCZBS2G25TPPRH2D4P4WDCWKYCDO7 \ / AMOS7 \ YOURUM ::
+#\[7]4RC5ZOQPR2K3JHKAWAU7VI6YHNNNWWQQTA7IQUMCBBQOSTXPVKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

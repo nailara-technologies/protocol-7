@@ -6,7 +6,7 @@
 my $station_id = <weather.station_id>;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no city selected (undefined station id)'
     }
     if not defined $station_id;
@@ -16,10 +16,10 @@ my $temp = <weather.data>->{$station_id}->{'current'}->{'temp'} // 'n/a';
 $temp .= Encode::encode( 'UTF-8', "\N{DEGREE SIGN}C" )
     if $temp =~ /^-?\d+(\.\d+)?$/;
 
-return { 'mode' => 'true', 'data' => $temp }
+return { 'mode' => qw| true |, 'data' => $temp }
 
-#,,,.,.,,,,,.,.,,,.,,,,,.,,,.,.,.,...,...,...,..,,...,.,.,,.,,,..,.,.,,..,..,,
-#J7SDAUCWSPYOCRUTYAHQLZTLIIS6GNG7K3JLAGTHXPGOQ75MIJKFWFUUXIEQEAGTT5ANSA22QAGJA
-#\\\|T2GY73Q3U2KVTBWUMMQJSEARMJNVE2SPT6X2SXZYU256HN2CB5C \ / AMOS7 \ YOURUM ::
-#\[7]TQARACGWY2HXKWNKHXCGNZLLKTVHCKL4CIGFFAMFOTQQ3ZP4SCAQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,.,.,.,,,,.,,..,,...,.,.,,,,,..,,...,...,..,,.,.,,..,,,.,...,
+#Y3OWCI2QT7ZGXMFGDXZVMGNMXKSVHLCSEJPWLNTNXJVI6T2YJKXCSVAYKJ4YTXTIKAYRSI4DEYTAW
+#\\\|5VRDGL5C6NSIIPSVF6OLTIYF4JCZKKTXMQHU67AMSWLMF2OHX2O \ / AMOS7 \ YOURUM ::
+#\[7]KBZRBRYKT75D74IKHLKXU3XPBBWZHF73W6DBCJ5CAEIHARTHH2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

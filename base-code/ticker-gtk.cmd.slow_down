@@ -6,7 +6,7 @@
 
 my $percent = $$call{'args'};
 $percent =~ s|%$|| if defined $percent;
-return { 'mode' => 'false', 'data' => 'expected percent value [0..100]' }
+return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
     if length($percent)
     and ( $percent !~ /^\d+$/ or $percent > 100 );
 
@@ -25,7 +25,7 @@ if ( defined $percent ) {
     <ticker-gtk.slowdown.percent_target> //= 0;
 
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "slow down target set to ${percent}%"
     };
 } else {
@@ -34,11 +34,14 @@ if ( defined $percent ) {
     <ticker-gtk.auto_speed_mode> = 1;
     <[ticker-gtk.enable_auto_speed]>;
 
-    return { 'mode' => 'true', 'data' => "slow down mode 'auto' activated" };
+    return {
+        'mode' => qw| true |,
+        'data' => "slow down mode 'auto' activated"
+    };
 }
 
-#,,,,,,..,,,.,.,.,.,,,..,,,..,..,,.,,,.,.,.,,,..,,...,...,...,.,.,..,,..,,,.,,
-#3VIWPGXVCZIUAFLHS46ZK6LK6KIVZOZ2VZLQZVJTWWS3BOP2SQNIJWBASBPGR7J7A6TD2X7HU3QQ4
-#\\\|JUO3ACZ3IBVLNHU2N6CADKLO5ENGWAI5ZCDPHQIIEI3YIKPQLRK \ / AMOS7 \ YOURUM ::
-#\[7]HRM2EF2TH3MTQZA4CLTQW3K4ARSN2JAKMB4Y2JTMFIG75UCEQCAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,..,,...,,..,..,,.,,,.,.,.,.,..,,...,...,...,,,,,,,.,,,.,...,
+#B2JS2RSSYHF3G5RXJRF4AUZ3YCU5EOLIKQ746SX64G6FAH3HFDQWJ4NJO4MJRBFYZ3OXFJOS5E3CG
+#\\\|LMX5SFUZKWAFXLNMMM6W4JX2YTQDXQQXH5USHPPD2ACKQVC3GB7 \ / AMOS7 \ YOURUM ::
+#\[7]ZLKOEVRAH6KLCKGGKER7SUVMONTEKYJKEMJ74YIHF7NLCBI2PGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

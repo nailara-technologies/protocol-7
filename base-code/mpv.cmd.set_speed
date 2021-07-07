@@ -6,15 +6,18 @@
 
 my $speed = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'expected speed factor (float value)' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected speed factor (float value)'
+    }
     if !length($speed)
     or $speed !~ /^\d+(\.\d+)?%?$/;
 
 my $speed_val = sprintf( '%0.2f', $speed );
 
-return { 'mode' => 'false', 'data' => 'minimum value 0.01' }
+return { 'mode' => qw| false |, 'data' => 'minimum value 0.01' }
     if $speed_val < 0.01;
-return { 'mode' => 'false', 'data' => 'maximum speed value is 100' }
+return { 'mode' => qw| false |, 'data' => 'maximum speed value is 100' }
     if $speed_val > 100;
 
 push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
@@ -26,8 +29,8 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
 return { 'mode' => 'deferred' };
 
-#,,..,,..,,,,,,,,,,..,.,.,,,,,.,,,..,,,,,,.,,,..,,...,...,...,..,,,,,,...,.,.,
-#PVDVC6PQTS6WSYO7P7TNNT4ASTQSVARRE364YH2LAE7S3DHPK3CIVOFCYI75CWA3KYTCMDI7HGN72
-#\\\|3EUIF445SKA734ICXP4VXVMGHDNK3F7WD4TCU3X7IITXPK32S6S \ / AMOS7 \ YOURUM ::
-#\[7]5AUT7EPDS7C2H7QXZZZAHHTE2FRRH45LHN5XL6OP7BVFGV5SXSAA 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,.,.,,,,,,,.,...,,..,..,,,,.,..,,...,...,.,.,.,,,...,,,.,,..,
+#KWSVBLIAKY4MOE4FYOBGNJL5L4SM6QHLNHPVRXH5YYESDNFPVEZQXQ5E7FL4TG55FSLZL2DRMR5BA
+#\\\|CMETLD6OAEN7KIGKRKGYFGXITDBCFUHTFHQFQD2WC6SIZCLCKN2 \ / AMOS7 \ YOURUM ::
+#\[7]KLIMNQO4QDCT6TWYPUPRH42WXVSSGC3DQGXHVAKQRZE4ASBEHCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

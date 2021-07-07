@@ -5,20 +5,24 @@
 # descr = clear url flags for given playlist url
 
 my $url = $$call{'args'};
-return { 'mode' => 'false', 'data' => 'URL expected!' }
+return { 'mode' => qw| false |, 'data' => 'URL expected!' }
     if not defined $url
     or $url !~ m|^https?://|;
 
 my $match = 0;
 map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
-return { 'mode' => 'false', 'data' => 'no such url in playlist!' } if !$match;
+return { 'mode' => qw| false |, 'data' => 'no such url in playlist!' }
+    if !$match;
 
 my $clear_count;
 map { $clear_count++ if delete <content.url_flags>->{$ARG}->{$url} }
     keys %{<content.url_flags>};
 
-return { 'mode' => 'false', 'data' => 'no flags were set for given url!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'no flags were set for given url!'
+    }
     if !$clear_count;
 
 <[content.update.send_notifications]>;
@@ -27,10 +31,10 @@ my $s = $clear_count > 1 ? 's' : '';
 
 <[base.log]>->( 0, "url flag$s cleared for '$url'" );
 
-return { 'mode' => 'true', 'data' => "url flag$s cleared" };
+return { 'mode' => qw| true |, 'data' => "url flag$s cleared" };
 
-#,,,.,,,.,,,,,,,.,,..,,..,,,,,,..,,,.,,,.,.,,,..,,...,...,.,.,,.,,,.,,.,.,.,.,
-#UG232HXJQ42BNIEMFOHVH3FQZIFQ2RRUWEKH56PD6PLRZQQ5Q3R4CWTSBXARFPAPOQSEMWNMQZ3LC
-#\\\|3QYNQ3IE4ZHAF3F6CMC4VTO53E36FJDZU4ZQXMLM4GHCKHU3TOE \ / AMOS7 \ YOURUM ::
-#\[7]S2KI2EART4HL4TYMAIN4PPWIKWSULX6ZNXQGQDQWPIBA6DUIEKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,,,.,,,,,...,,,.,.,,,.,,,..,,..,,...,...,.,.,.,.,.,.,,..,..,,
+#ZJXID7IWWB4JSHXMZKWTBYONH2B5XD7BG6GJJOB3KS4TZVM3LYSDNTK6P6IG2DBZPRYIF3AWCUOIO
+#\\\|YHR24UBY54ITO6VR4UKHCJ3STHWAI66K7MN367ZQP2AWJJ4PJBV \ / AMOS7 \ YOURUM ::
+#\[7]A5BT5RIMQRCNJPQZZLOIEXDSHFKOKKMLUDIMT2DJWSGBLBNRN2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

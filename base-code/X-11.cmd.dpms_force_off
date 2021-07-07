@@ -3,7 +3,7 @@
 # name  = X-11.cmd.dpms_force_off
 # descr = power off the screen using DPMS
 
-return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => qw| false |, 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 <X-11.obj>->DPMSEnable();
@@ -15,10 +15,13 @@ return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
 
 <[base.log]>->( 1, "display manually forced OFF, DPMS is enabled" );
 
-return { 'mode' => 'true', 'data' => 'display forced OFF, DPMS is enabled' };
+return {
+    'mode' => qw| true |,
+    'data' => 'display forced OFF, DPMS is enabled'
+};
 
-#,,..,,.,,,,.,,..,,.,,...,..,,,.,,..,,,,.,,,.,..,,...,...,.,.,.,,,.,.,,..,...,
-#MCMFJ2MI2HJVL2KT5FYVUNFAY5LJ2TMO3TFEZ3NX2M2HRT75H6YWXAPEZYON3DKBOOCYQMVOTLZFC
-#\\\|CYUQVLFXJFE5NJKQ3PJLXAN4L455XPW3M2EPWTJLDPK2B4NGPCR \ / AMOS7 \ YOURUM ::
-#\[7]LPMNJ6JPNOTCYZDTOKQDHOUS3KOWQKOTO5IRLZRDFBLJS7ZJ44BY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,..,,,.,,.,.,,,.,.,.,.,,,..,,..,,...,...,...,,,,,...,.,.,.,,,
+#FJQIFFOGTZ67J7LTSMIFHBK2EPGHRTY3S7JKWKFMHIV5BLJDXMVNABNQTPCYMBXX6GWVA5ZHI4EIK
+#\\\|MEAVET4QV3SVU4W7LMM7VZ3QQWAEL44HFYKNPAV7O6U7ZEGFIUD \ / AMOS7 \ YOURUM ::
+#\[7]TKH74FJJKNPQMQ2IEAKEG5FPO7OOS4YXFR6OUCAVAEEGGJXVE2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

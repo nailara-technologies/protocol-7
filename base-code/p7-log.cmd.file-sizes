@@ -8,7 +8,10 @@ my $name_pattern = $$call{'args'};
 
 my $system_name = <system.host.hostname>;
 my $reply_str   = sprintf( "..%11s\n", '..' );
-return { 'mode' => 'false', 'data' => 'protocol-7 log directory not found' }
+return {
+    'mode' => qw| false |,
+    'data' => 'protocol-7 log directory not found'
+    }
     if !-d <log.protocol_7.path>;
 
 $name_pattern = qr{.*/$system_name\..*\Q$name_pattern\E.*\.log$}
@@ -63,8 +66,8 @@ $reply_str .= sprintf( "=\\ %-6s /=  <----$x\n\n",
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,,,.,,,..,,.,.,,,,,,,.,..,,,,.,..,,.,.,,,.,..,,...,...,...,.,.,..,,,..,..,,
-#RE4S6JTJLOBV6WS2ENDY2YIL6JQK5XXJGI2S44CWT5VEDVQSIO4THE7N4AO4N66Y5AIGCYPEIFDZG
-#\\\|KF4S27OESO6OPOBMBZJJQCUE7M6AWMDYAIDGYM3OOT6QJYQTEVD \ / AMOS7 \ YOURUM ::
-#\[7]FLSQBSESZZ7CQYDOPVGINEQAXRWJDO6LYQSM56M2NR7VD4Q72MBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,..,,..,.,,,.,.,...,.,,,,.,,..,,...,...,..,,..,,,,,,...,,.,,
+#I3YVJTF6LBTLNIIS5OLTPIRQ4GAVK2M2ISQ777X6JCLFXW6DE4UXIQIJXBZJOWPJF66J74OZ73QSK
+#\\\|VSRAJYNV3DJ275Y7KK3YSUBZS3SYCBVUILT3SRBSBCSEPACPAPZ \ / AMOS7 \ YOURUM ::
+#\[7]6QINED3Q2NDPYQPHGCPIRMVOKBIFG3XYCLM45FQW4CPZDK5IJYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,10 +9,10 @@ my $cmd_rep_str
 my $log_msg_str = $response->{'params'}->{'log_message'};
 
 return warn "received instance id is not numerical"
-    if $response->{'cmd'} eq 'TRUE'
+    if $response->{'cmd'} eq qw| TRUE |
     and $cmd_rep_str !~ m|^\d+$|;
 
-if ( $response->{'cmd'} eq 'TRUE' ) {    # restart by 'v7' zenka
+if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7' zenka
     my $instance_id = $cmd_rep_str;
     <[base.log]>->( 0, " : asking 'v7' to restart instance $instance_id" );
 
@@ -30,8 +30,8 @@ if ( $response->{'cmd'} eq 'TRUE' ) {    # restart by 'v7' zenka
     return warn "aborted autokill for pid $process_id [no v7 zenka access?]";
 }
 
-#,,,,,..,,,.,,.,,,.,.,,..,..,,,.,,,,,,,,,,.,.,..,,...,...,,,.,,,.,,.,,,,.,.,.,
-#NZN2KYOXGNLABKO742W5T4HMBVWNJZGEGDWITOSGCZSVLAIK24JHI2YOQOR5YRLT5FL5ZMOA5LORA
-#\\\|YH5TGWO4HGJGN2DRXJAZVNQLWJM6OIULUOKBMDRNAHGOAZRIL52 \ / AMOS7 \ YOURUM ::
-#\[7]QH6TNIMLNKEDNOZVOVP37PTN4HZFFQNAMUSJVZKEVMC6HR35C2DA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,...,,..,...,,,.,,..,,,,,.,,,..,,...,...,,,.,.,,,..,,,,.,.,,,
+#LKFZJBJXH2MKB7GJKYTK6Q4NMKCM2KJOBIE7XYVZFTQLXJQNADUG23P3LWRBMG2YEAVFNAUUV75YM
+#\\\|UHDKI4R76U73CNWZRZYS4OPJYPK2MBSKTYCMB6K7YOOFRA5MZSE \ / AMOS7 \ YOURUM ::
+#\[7]3S33C2OLC5UZWZSNBQDC5CYRDQETUWTS5TJRJJSLFGDNWWFUWSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

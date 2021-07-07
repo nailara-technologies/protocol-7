@@ -60,7 +60,7 @@ if (    $load_status eq 'finished'
         2, "[$load_uri] loaded in $load_time seconds. [$actual_uri]"
     );
 
-    <web-browser.fade.reply_mode> = 'true';
+    <web-browser.fade.reply_mode> = qw| true |;
     <web-browser.fade.reply_msg>  = 'finished loading';
 
     my $swap_delay
@@ -119,19 +119,19 @@ if (    $load_status eq 'finished'
 
     <web-browser.slideshow.temp_delay> = <web-browser.slideshow.err_delay>;
 
-    <web-browser.fade.reply_mode> = 'false';
+    <web-browser.fade.reply_mode> = qw| false |;
     <web-browser.fade.reply_msg>  = 'loading failed';
 
     #<[base.callback.cmd_reply]>->(
     #    $reply_id,
-    #    { 'mode' => 'false', 'data' => "failed to load" . $reason_txt }
+    #    { 'mode' => qw| false |, 'data' => "failed to load" . $reason_txt }
     #);
 
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
-#,,,,,,,.,,..,,,,,,..,,.,,.,,,,,.,...,,,,,..,,..,,...,..,,..,,,,.,,,,,..,,,..,
-#RVNSIXPXNDM2EDOL6QNWJXCM7LAT52WSAJDZOIX5LVVR5D6SWWH5GD2S432PJEZFDRSM47WNADPZ6
-#\\\|P55FA6MNL74GXNR4IL6D4OJ6ONF6GG3KQJXYPE6HBB2ZEEXMG6B \ / AMOS7 \ YOURUM ::
-#\[7]ODP6Q3PTERCGVDXCU46MJ5MWCMXTO6AVAYTA56JCSSRTHP6ZLKAY 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,.,,.,,..,,,,,,..,,..,,,.,,,,.,..,,...,...,..,,.,,,,,.,,.,,...,
+#YOUJ2NMURSP4WLLQBT3FOBQSM54XLSFLR5SGOZORTM2UT44I7NE6JYL5UCX27PCEVHOM4W5U2XDQM
+#\\\|D66J47AKMVBZHIPQVRSHZOHASMIKOGEPBIFV5DMNHZTNGXE7HGE \ / AMOS7 \ YOURUM ::
+#\[7]5H3CIERJM5LCWV6XX6LXFGBQGXTCRNP2QTQ55LLEWNC3LG7FVCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

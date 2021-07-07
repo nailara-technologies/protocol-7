@@ -8,7 +8,7 @@ my $log_sid = $$call{'session_id'};
 my @params  = split( / +/, $$call{'args'} );
 my %coords  = ( 'x' => shift @params, 'y' => shift @params );
 map {
-    return { 'mode' => 'false', 'data' => "expected $ARG parameter" }
+    return { 'mode' => qw| false |, 'data' => "expected $ARG parameter" }
         if not defined $coords{$ARG}
         or $coords{$ARG} !~ /^\d+$/
 } ( 'x', 'y' );
@@ -23,7 +23,7 @@ my %screen_geom = <X-11.obj>->GetGeometry( <X-11.obj>->root );
 my ( $width, $height ) = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "mouse position must be within screen dimensions!"
         . " [${width}x$height]"
     }
@@ -33,10 +33,10 @@ return {
 <[X-11.move_pointer]>->( $coords{'x'}, $coords{'y'} );
 <X-11.obj>->QueryPointer( <X-11.obj>->root );
 
-return { 'mode' => 'true', 'data' => "mouse position set" }
+return { 'mode' => qw| true |, 'data' => "mouse position set" }
 
-#,,,.,,..,,,,,...,,,.,...,,,,,,,,,,..,..,,,,,,..,,...,...,.,.,,,.,.,.,,,.,,,,,
-#CWT752DDTXLEEHVDWYTFR6YE66S4MC5GWATZ2R45TDEYTNF2IB5Q4EHIJMUNXBAWKV7OH44BKKD5U
-#\\\|V72NXQ3KCYSC2EJRL7RQVRPLYAREKCL6HJDKCKSBYOPOUPG4H6H \ / AMOS7 \ YOURUM ::
-#\[7]NU6V36RXKSHC6BFRLTIR2UK2OMVG3XIOBQ377VGUNM3XKI2PBMDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,.,.,,,,,.,...,,..,...,.,,,...,..,,...,...,.,.,.,.,,,,,,.,,,..,
+#6OU6JTCPCHBGDQADVF6ROJ75NHCNRHI7TL42ILUUJ6GBOIHS4NOGZDC4OWQKI6CBFND6LAM42B7UU
+#\\\|VM24RF4FNLBU7YUKAPALQVBIXSQRWMBZBLL3POHKWEUZOZKKF67 \ / AMOS7 \ YOURUM ::
+#\[7]IWMI4QMQYPYACIIVGC3CIECGVWNONQDI2LNF5KMXZREWE4QRIABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

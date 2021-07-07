@@ -6,14 +6,14 @@
 
 my ( $dev_id, @states ) = split( / +/, shift->{'args'} );
 
-return { 'mode' => 'false', 'data' => 'expected device id' }
+return { 'mode' => qw| false |, 'data' => 'expected device id' }
     if not defined $dev_id or !length($dev_id);
-return { 'mode' => 'false', 'data' => "no such device ($dev_id)" }
+return { 'mode' => qw| false |, 'data' => "no such device ($dev_id)" }
     if not exists <power-x11.devices>->{$dev_id};
-return { 'mode' => 'false', 'data' => 'expected 4 socket states' }
+return { 'mode' => qw| false |, 'data' => 'expected 4 socket states' }
     if @states != 4;
 map {
-    return { 'mode' => 'false', 'data' => "state '$ARG' is not valid" }
+    return { 'mode' => qw| false |, 'data' => "state '$ARG' is not valid" }
         if $ARG !~ /^(0|1)$/
 } @states;
 
@@ -32,12 +32,12 @@ while ( Gtk3::events_pending() ) {
 }
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => $changed . ' states changed'
     }
 
-#,,,,,,..,.,,,,..,,.,,...,,,.,.,.,.,.,,,.,.,,,..,,...,...,..,,..,,,.,,,,.,..,,
-#H6TW76CMPFGW25BFEKU7UM4LRFBBEXPGHMDMFXB25R5UFBUC46AOEI6YMXBCDKELR2EKQGOXKZMHA
-#\\\|RXVTGGIIBPVU6VJ7I65MUACLSTNSFW3C54MBRARWNTUTMTF4XS2 \ / AMOS7 \ YOURUM ::
-#\[7]W773ZTXN77JQLUSQLDXPSZ6PJTE365YMZD244NV7XAS4GO55PIBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,...,.,,,..,,.,.,,.,,.,,,.,,,..,,...,...,,..,..,,,.,,...,,..,
+#DDK2HTFMRTFEIJ75I2CFU3ZU6NTFICSJQBWG7TVIG7CB5G65FLZIVHCDIJHPQNEDFRNZSC2SD7KCI
+#\\\|ZPYJJYBPTLF63JPJFQ6WSDDIM4T6CE7GTKTOVXWA4EV7KC2AQYF \ / AMOS7 \ YOURUM ::
+#\[7]VLDLD2RYVAOBJFLSOGWUFZ3JT26SQ2PKFXXYWEG3TM6MIOBDQ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

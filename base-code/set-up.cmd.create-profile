@@ -5,9 +5,9 @@
 # descr = export a config profile from import dir
 
 my $profile_name = $$call{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected config name parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected config name parameter' }
     if !length($profile_name);
-return { 'mode' => 'false', 'data' => 'invalid profile name!' }
+return { 'mode' => qw| false |, 'data' => 'invalid profile name!' }
     if $profile_name !~ /^[\w\-_\.]+$/;
 
 <[set-up.chk_profile_dir]>;
@@ -21,7 +21,7 @@ my $dir_fh;
 if ( !opendir( $dir_fh, $import_dir ) ) {
     my $err_msg = "unable to open config import directory [ \l$OS_ERROR ]";
     <[base.log]>->( 0, $err_msg );
-    return { 'mode' => 'false', 'data' => $err_msg };
+    return { 'mode' => qw| false |, 'data' => $err_msg };
 }
 my @import_files = grep {/\.json$/} readdir($dir_fh);
 closedir($dir_fh);
@@ -38,7 +38,7 @@ foreach my $file_name (@import_files) {
     if ( defined $err_msg and length($err_msg) ) {
         $err_msg = "reading json import file '$file_name' failed: $err_msg";
         <[base.log]>->( 0, $err_msg );
-        return { 'mode' => 'false', 'data' => $err_msg };
+        return { 'mode' => qw| false |, 'data' => $err_msg };
     }
     $import_data->{$file_name}
         = merge( $import_data->{$file_name}, $file_data );
@@ -54,7 +54,7 @@ my $out_fh;
 if ( !open( $out_fh, ">$profile_file" ) ) {
     my $err_msg = "unable to open/create output file [$profile_file]";
     <[base.log]>->( 0, $err_msg );
-    return { 'mode' => 'false', 'data' => $err_msg };
+    return { 'mode' => qw| false |, 'data' => $err_msg };
 }
 
 my $export_data = <json.parser>->encode($import_data);
@@ -71,12 +71,12 @@ my $bytes = length($profile_raw);
 close($out_fh);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "profile_file '$profile_json' written ($bytes bytes)"
 };
 
-#,,..,..,,.,.,.,,,.,.,,,,,..,,,,,,,.,,,.,,.,,,..,,...,...,.,,,,..,.,,,...,..,,
-#OULYCJXR4HBWBHPVE5CVVXURDKW5SGQ2ESOLZMEYMT4KRDRWXUWCLIAVO3JI4HVKFMBF73HS2HXSQ
-#\\\|DZVFD4GAFHCEG7Z5FTEYFVZLJWLIMLTBV3MXNDVHSGYCF3TR4OY \ / AMOS7 \ YOURUM ::
-#\[7]UMP3PBBIX2LPAPPFA6BTOOZBRBAUBLHSS3AW3UVDICMYBQEMBSDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,,,,,,.,,..,,...,,,,,,,,,,..,..,,...,...,.,.,...,,..,,,.,.,,,
+#BKSJ2KFHF5JYGQ7JIHQJGE6C5L4QFTZXCA63L56VBWVWOVDVE5EXAQ3ZRCGPEHXVFDNEA2MVTJQOK
+#\\\|UZEBEV7NNG74P4AP2M52CYSFUY6SYOMZBPFK5RCHF3MW42DWANV \ / AMOS7 \ YOURUM ::
+#\[7]LOPD5JMMUER2P6T5NMCPWUKJFAAQOZTVYZIFX3ZW6FUWYCOZHIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,21 +4,21 @@
 # descr = return authorization protocol name + data
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no authorization data has been set up.'
     }
     if !length( <X-11.obj>->{'authorization_protocol_name'} )
     or !length( <X-11.obj>->{'authorization_protocol_data'} );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => join( ' = ',
         <X-11.obj>->{'authorization_protocol_name'},
         unpack( "H*", <X-11.obj>->{'authorization_protocol_data'} ) )
 };
 
-#,,.,,,..,,.,,,.,,,.,,...,,,,,.,,,,,.,...,,,,,..,,...,...,...,,,.,,,.,,,,,.,.,
-#MYQUDFDNXLAEJWE6G4O3AZVT4E66OHYK6AJZLRAE4TCJB26CGHDWSMPF6BUGLXMLHUK7LNLTM3AKE
-#\\\|3UEDSM75KCCQFOS4ZT4LZOZO63SZIPTU52WGNUPGHCRVYVDRKD7 \ / AMOS7 \ YOURUM ::
-#\[7]VUARUXRRIA7E23AJCEPTV2JZD6OR3BUH6BF3U6PB3WGY5PZTDUAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,..,,..,,,..,..,,,,.,.,.,,..,..,,...,...,.,,,...,...,...,.,,,
+#2OTVPSPSYN7FMQWNRIVN2P4SMH5CN563JRKLO7KKEEGLEXBI3STX4OCI3IFKYSPJNOZBYCDRWGF2I
+#\\\|NTE2NRJRTEY5AEKUC4CML2UXXFXCBMCOHJLJQ4QWUNZ5CHGLOK4 \ / AMOS7 \ YOURUM ::
+#\[7]LFB5CWRMMITIFZKLKGRQS4YN4FN5NDDEKKK77QPTSTNWZA76EWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
 } elsif ( $$call{'args'} =~ <regex.base.usr> ) {
     my $user = $$call{'args'};
 
-    return { 'mode' => 'false', 'data' => 'seen no such client' }
+    return { 'mode' => qw| false |, 'data' => 'seen no such client' }
         if not exists $data{'user'}{$user}
         or (not exists $data{'user'}{$user}{'last_seen'}
         and not exists $data{'user'}{$user}{'session'} );
@@ -24,13 +24,13 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     if ( not exists $data{'user'}{$user}{'last_seen'}
         and exists $data{'user'}{$user}{'session'} ) {
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => 'present since '
                 . <[base.parser.timestamp]>->( $mode, $utime )
         };
     } else {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => 'last seen '
                 . <[base.parser.timestamp]>->( $mode, $utime )
         };
@@ -40,8 +40,8 @@ if ( not defined $$call{'args'} or !length( $$call{'args'} ) ) {
     $$reply{'data'} = 'invalid username';
 }
 
-#,,,,,,.,,.,,,,,.,.,.,.,,,,,,,.,,,...,.,.,...,..,,...,...,.,.,...,..,,,.,,.,.,
-#X6WRNCFFODZIKXCUU4V36DJBFVI75XTR3UVPYRBGKIFKM5Y5DQ4O3DWR37N7YRB6MADTNFDS7LDIO
-#\\\|T6LZDUQSDG5HDFTKPA6SH2XV3VYRNMIJDOX2NO3AIDLGF5PCIPF \ / AMOS7 \ YOURUM ::
-#\[7]EKBSDA3DH74DLJLQZRY2LVRF2DDIC7QLSJ62A5T2A7ZLL6LG24BY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,,..,,.,,,,,,,,,,..,,,,,,,,,,..,,...,.,.,,..,.,,,,,,,...,,,,,
+#K45PF64SH3OQZR2RPH4NJZIRC23USX7M4W32QPQPPAJNIAMK27NTINUHV3J6WUZRXLS66EWDTPW2M
+#\\\|HGQBWLZHPMKGKROK7S7Q7MOJGI44YECQGLOFPIDG3MTOHEEMUNU \ / AMOS7 \ YOURUM ::
+#\[7]QUD3WYVAQFFX2DZRROBJBCT75FHNDJETVIPK7IBAAL2IEBDGSQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

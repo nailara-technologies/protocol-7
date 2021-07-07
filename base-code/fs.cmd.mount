@@ -5,7 +5,7 @@
 # descr = mount the specified device or filesystem
 
 my ( $mount_point, $device ) = reverse split( m| +|, $$call{'args'}, 2 );
-return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 
@@ -14,18 +14,18 @@ my $bin_mount = qw| /bin/mount |;    ## auto-detect ##
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'specified mount-point does not exist'
     }
     if not defined $device and $status == -1 or !-d $mount_point;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'specified device does not exist'
     }
     if defined $device and !-e $device;
 
-return { 'mode' => 'false', 'data' => 'already mounted' } if $status == 1;
+return { 'mode' => qw| false |, 'data' => 'already mounted' } if $status == 1;
 
 if ( not defined $device ) {
     <[base.log]>->( 1, "mounting '$mount_point'.," );
@@ -33,7 +33,7 @@ if ( not defined $device ) {
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": mounting was not successful ['$mount_point']" );
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => 'mounting was not successful'
         };
     }
@@ -43,16 +43,16 @@ if ( not defined $device ) {
         or !<[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": unable to mount $device to $mount_point" );
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "unable to mount $device to $mount_point"
         };
     }
 }
 
-return { 'mode' => 'true', 'data' => 'successfully mounted' };
+return { 'mode' => qw| true |, 'data' => 'successfully mounted' };
 
-#,,,,,,..,,.,,..,,,,.,,,,,...,.,,,,..,.,,,,,,,..,,...,...,,..,,,.,...,,..,.,.,
-#BSULHPUCLHHMETLDPSAR6JMPGJW4JQOLTEHDJ2OFL6ESAGWVUFTPOHAG5PHVDQHUX2CX6HNJ5ZZI4
-#\\\|6LTK2JPVUX3YHYWI774SJ2CEMBKAAJVVWK6AGWILAXIYIGIHG2N \ / AMOS7 \ YOURUM ::
-#\[7]S64GZAJURFTSKKZMCSYK2A4N4YYZDTYODLXBWSCU7LLK5CPSUCAY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,.,.,,.,,..,,,..,.,.,.,.,.,,,..,,...,...,,,,,.,,,.,.,,,.,,,.,
+#B2AJS4TLLQ6FYQZQJUQOKJLAZFSXI3K3IHN3DJD3XFL6FCEG3EALLBLAQMWBNVMIATIGUL3ZBABSM
+#\\\|KHB2KE52SG2ZGQQ7KCOJXIOY7KUJT2BJBM5ANWF676CBVGVJFC7 \ / AMOS7 \ YOURUM ::
+#\[7]TAWWRHTYKELY5F2E2AO7H37JNDT3WBISYNO3YVRC25TJWNYLQGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

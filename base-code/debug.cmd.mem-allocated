@@ -6,19 +6,19 @@
 my $bytes;
 $bytes = length(<debug.eaten_memory>) if defined <debug.eaten_memory>;
 
-return { 'mode' => 'false', 'data' => 'none was allocated' }
+return { 'mode' => qw| false |, 'data' => 'none was allocated' }
     if not defined <debug.eaten_memory> or !length(<debug.eaten_memory>);
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => sprintf(
         "bytes held in memory allocation : %d [%s]",
         $bytes, <[base.parser.size_str]>->($bytes)
     )
 };
 
-#,,,.,...,..,,.,,,,,.,..,,.,.,..,,,,.,..,,,..,..,,...,...,...,...,.,,,..,,...,
-#EY45XCYS7CSXR24ZIYCGY36QSEOVZ3SDCIDDZD7IQGNLOW2ASKVWYUG7GZNRD4T6GXT67RBQASUDY
-#\\\|ELZDSOBWITBWIYZQJUV5J2OLR6MX75BJMOSTGQFSWGY7AQB3IHI \ / AMOS7 \ YOURUM ::
-#\[7]RT6CEV3JG42PDZPBTGWK47YDSSSGYBY3DJE5CPK2EDVK7SVKJKDI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,,,,,..,,,,,,..,,,,,.,,,,,.,..,,...,.,.,.,.,,..,...,...,.,,,
+#PZ2USZ5OP7UBSGW43DX3LGTBG2QVVFNBR6B3VUHDF25NCAHJNCJTBDLGDC2ET5IPXSE3IQDIMFIZ6
+#\\\|BYPDY7UOMWDVBIGBVSRJVO32BP7XC4LELTYYZEAOFPHHPTP6DRQ \ / AMOS7 \ YOURUM ::
+#\[7]S453HVIPG46HBBPIFYIKKI3WBREIOTNBOBNFNHJ5BKAMRVMJHYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

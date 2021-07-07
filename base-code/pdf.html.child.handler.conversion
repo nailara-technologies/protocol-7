@@ -22,7 +22,7 @@ if ( $pdf_location =~ m|^https?://| ) {
         foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
             <[base.callback.cmd_reply]>->(
                 $reply_id,
-                {   'mode' => 'false',
+                {   'mode' => qw| false |,
                     'data' => "could not download '$pdf_location'!"
                 }
             );
@@ -129,7 +129,7 @@ if ( $conversion->{'current_page'} == $page_count ) {
     while ( my $reply_id = shift @{ $conversion->{'reply_ids'} } ) {
         <[base.callback.cmd_reply]>->(
             $reply_id,
-            {   'mode' => 'true',
+            {   'mode' => qw| true |,
                 'data' => "conversion complete"
             }
         );
@@ -147,7 +147,7 @@ my $err_msg = "error during conversion of PDF page #$index [$err_status`]";
 foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
-        {   'mode' => 'false',
+        {   'mode' => qw| false |,
             'data' => $err_msg
         }
     );
@@ -157,8 +157,8 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
 <[pdf.html.base.write_error_page]>->( $conversion->{'html_path'} );
 return;
 
-#,,,.,,.,,,,.,,,.,,,,,,,.,,..,.,,,.,,,.,,,,..,..,,...,...,,..,.,.,,..,,..,,,,,
-#GG3GFPBUXWQ7I6DNNC7VG5S4B6AVATFNK7K7RPOUXWKSRTT4IJYFAQI7USD3LC2SGOKMFEM7RIQ5Y
-#\\\|36USURFQEOETSX52L2JSZTXOD3RJGAPXQTJ5FUN65W57DKR5TP7 \ / AMOS7 \ YOURUM ::
-#\[7]LDNTAIXRQICD5HQDVNHJC5GMCQZ7ODRMVQTDFBSAIOMW5CJWESCI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,.,,,.,,,.,..,,.,.,.,.,.,.,,,,,..,,...,...,...,..,,,,,,,..,..,,
+#FMRAOJUC4GNGXUC2INNSYV5MS5T6QZJGTHUQOVDXFOP3NUUUSKO2DCAJBBW27LSYOIHP6BFLQ3PR6
+#\\\|LZ4HGM3LPUV5IWB5E76337U3A35MFYVY5DCCTBYTKF5ISFLBWZM \ / AMOS7 \ YOURUM ::
+#\[7]SJZA7M63EIKRPMABGQ7DSTJ72KFPYBGWNDAXH5VJKNONDFDWHKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

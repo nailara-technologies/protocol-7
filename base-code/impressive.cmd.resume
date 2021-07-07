@@ -3,16 +3,16 @@
 # name  = impressive.cmd.resume
 # descr = send CONT signal to impressive process
 
-return { 'mode' => 'false', 'data' => 'was not paused' }
+return { 'mode' => qw| false |, 'data' => 'was not paused' }
     if !<impressive.process_paused>;
 
 kill( 'CONT', <impressive.pid> );
 <impressive.process_paused> = 0;
 
-return { 'mode' => 'true', 'data' => 'resumed' }
+return { 'mode' => qw| true |, 'data' => 'resumed' }
 
-#,,,.,...,.,.,.,,,,,.,,,.,.,,,,,.,,,,,,,,,,.,,..,,...,...,..,,.,,,.,.,.,.,..,,
-#BNITK4IOIDMPDZVU777JZX5LA7EP6FITNGKOEQKWSFKSD2WITPB3BPCZVNJQJZRWAGKI7XEMZPYWM
-#\\\|5VKG5GQAVU3KMGQP6NOXP27YEV57Y5MTPPCNNI4IMTTBI55RDFF \ / AMOS7 \ YOURUM ::
-#\[7]YOSF5BKNJ3SAP5FRWM23EGE7EJQ6IFD3EHLW5NI3WWZXFMMX3WDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,,.,,,,.,,.,,.,.,.,.,...,,,,,..,,...,...,...,,..,,.,,.,.,,.,,
+#7SUUC2HGG7DWSFQBNOV4KAHLLJ5ITVOMJ5MZJ542HF24VLOYHZJPRGVYR4PLTZINX4OLONDXUPL3O
+#\\\|CEPZFCSXH7HQWHND7GAF2RDIOIOLSAN477XBFS3Q4SHCD2NQI5V \ / AMOS7 \ YOURUM ::
+#\[7]SLTIW3D2SWUAOBJR7AULW5ACGV5FAKEAEYZETXHHHRWWV2DH5QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

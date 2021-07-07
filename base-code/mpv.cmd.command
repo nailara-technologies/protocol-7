@@ -7,10 +7,10 @@
 my $cmd_str
     = $$call{'args'};    # LLL: implement parameter quoting instead of '!'
 
-return { 'mode' => 'false', 'data' => 'expected mpv command' }
+return { 'mode' => qw| false |, 'data' => 'expected mpv command' }
     if not defined $cmd_str or !length($cmd_str);
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'requested command matches blacklist!'
     }
     if $cmd_str =~ m,^\!?(run|hook|subprocess),;
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s/^\!// ) {
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,,,,..,,...,...,,,,,...,...,,.,,,.,,..,,..,,...,..,,.,,,,..,,..,,,,,...,
-#CNORE2P7B3XJB3X3NXKYTIB22USM2RVR47GJO2EHCKZFNYUWBFQS2TLD4EBY3T4VPQQWP2R7UMDQW
-#\\\|5MYBM3IMT2RVQMGS6DF2L67OS66TROOWKOKYHGD6JVJQRDERAUC \ / AMOS7 \ YOURUM ::
-#\[7]NRASTRPIQGI2KOEU3JYS6UREXNP4USPIMSVYG5XZYG2MEXDDBKCY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,...,,.,,,,,,,,,,,,,,.,,,...,..,,...,...,,..,,..,...,...,.,.,
+#YUXHVMW2Z3TTMXK6VPWBHMUS52UGHL5SCCWVQJCCAWCINR6H7YNE5ATOLNKBULEJG5MABTTLY7RWI
+#\\\|UYE6QVBAWGUREQQJZ64UO64U5F2AYTUTIGHGWPEKNKJ6YYUS7CR \ / AMOS7 \ YOURUM ::
+#\[7]6Z4C6OUJEXPPBJADXSKFEJBV35GGYBKDBE5JPLXGZXYD3GZ5YOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

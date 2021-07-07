@@ -6,7 +6,7 @@
 
 my $percent = $$call{'args'};
 $percent =~ s|%$|| if defined $percent;
-return { 'mode' => 'false', 'data' => 'expected percent value [0..100]' }
+return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
     if defined $percent and ( $percent !~ /^\d+$/ or $percent > 100 );
 
 if ( defined $percent ) {
@@ -16,18 +16,21 @@ if ( defined $percent ) {
     }
     <web-browser.redraw_fps.slowdown_target> = $percent;
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "slow down target set to ${percent}%"
     };
 } else {
 
     <[web-browser.enable_auto_speed]>;
 
-    return { 'mode' => 'true', 'data' => "slow down mode 'auto' activated" };
+    return {
+        'mode' => qw| true |,
+        'data' => "slow down mode 'auto' activated"
+    };
 }
 
-#,,..,.,.,,.,,,..,.,.,,..,,,,,..,,,,,,,.,,..,,..,,...,...,...,,,.,..,,,,.,,,,,
-#ZQNI22WFU2X4K6JYGR2SKSRWHX4ZXQZFKNM2HX73GJSJJONGQAO2GVX7SC5TLTOKYKFKV7VXWWCLQ
-#\\\|7RQNXGUL6TSCBXZMGOEVHH6SCTLBR5ZTECMWWTBG2USCB6LONDL \ / AMOS7 \ YOURUM ::
-#\[7]B5CQUSGE4ZQLSADWPO3K3BB75YPJN72TPLSZGGNC73ENEJ2QXUDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,,..,,,,,,,,,.,.,...,..,,,,.,..,,...,..,,..,,..,,,,,,,.,,,..,
+#5J6APASXRSOEM5QA3NK5E2EZ5QCWBDETJMX7COIV5APRCFDPCVMU4ANSFBOCKGVNSFPE227Z5MBWI
+#\\\|HVMELK5M4DNF43G2OTD6BU6WTI2EMD4XVWWM7NOEIX3TAXTWDSW \ / AMOS7 \ YOURUM ::
+#\[7]WSX345CXI5GFCHLB7SUUPVALWHUHLFN4JJFOHSRRYSV5CVMD3WDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

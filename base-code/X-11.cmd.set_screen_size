@@ -9,7 +9,7 @@ my $X = <X-11.obj>;
 my ( $width, $height ) = split( m|\D+|, shift->{'args'} );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'screen size expected [<width>x<height>]'
     }
     if not defined $width
@@ -30,7 +30,7 @@ my ( $current_width, $current_height )
     = ( $screen_geom{'width'}, $screen_geom{'height'} );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'requested size identical to current one'
     }
     if $width == $current_width and $height == $current_height;
@@ -40,7 +40,7 @@ if ( !<X-11.has_randr> ) {
         1, "<< skipping change request [ $width x $height ] no RANDR >>"
     );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'unable to set screen size [ out of range ]'
     };
 }
@@ -60,7 +60,7 @@ if ($EVAL_ERROR) {
     my $err_msg = 'unable to set screen size [ out of range ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $err_msg
     };
 }
@@ -77,7 +77,7 @@ if (   $screen_geom{'width'} != $current_width
         }
     );
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' =>
             "screen size is now $screen_geom{width}x$screen_geom{height}"
     };
@@ -85,13 +85,13 @@ if (   $screen_geom{'width'} != $current_width
     my $err_msg = 'unable to set screen size [ remained unchanged ]';
     <[base.log]>->( 0, " :. $err_msg" );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $err_msg
     };
 }
 
-#,,,,,,..,,,.,,.,,,,.,,,.,..,,...,,.,,,..,.,,,..,,...,..,,..,,.,.,.,.,...,,,.,
-#AYI2QFUOD3MQCC3BZLPSY6Z2AKL6IY5EFBUZL6TX5JZ3RPO53ALFAMZ6MKJVPOTBNRXF4ADZPMJO6
-#\\\|T7U46STXWOD2N2WXJ3EYLRDWJINKLCQPEV52N7PY6E6AI7CMWQG \ / AMOS7 \ YOURUM ::
-#\[7]6W7VG5AT2XJG4IMTEO3SNHWP7MEJ2NQSHUFRSQICS7BUBH37NEAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,..,,,..,,..,,..,,,,,..,,,,.,..,,...,...,.,,,,,,,,,,,,.,,...,
+#4R23N5DLGMS5VTG2AGAHKPPYVIRCKYGWZGMPCYIR7QTMQSHTHYBFWGMGSO5VQU53QIRRKYPNC672U
+#\\\|WYEIW4C7D6FU2T2OHLPZSER2OPFAN6QNGPRBTCY5BG7MDXDMVKV \ / AMOS7 \ YOURUM ::
+#\[7]4UJMSAJSMOP64EWDNK2ENDRII5MFBP735Q6GTLJ63HJLHM6FY4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

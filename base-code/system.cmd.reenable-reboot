@@ -10,7 +10,7 @@ my $uname_re = <regex.base.usr_str>;
 if ( $cube_user =~ m|^$hostname.($uname_re)$| ) { $cube_user = $1 }
 else {
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "only '$hostname' users can invoke this command."
     };
 }
@@ -23,10 +23,10 @@ my $log_message   = "$reply_message [ by '$cube_user' ]";
 
 <[base.log]>->( 0, $log_message );
 
-return { 'mode' => 'true', 'data' => $reply_message };
+return { 'mode' => qw| true |, 'data' => $reply_message };
 
-#,,,,,,.,,,,,,.,,,,..,..,,.,,,...,,.,,,,,,..,,..,,...,...,,..,,..,.,,,.,.,.,,,
-#SANI6ZRNL5B5MTRUG4QFXKRHOT7UU5E47FUKDQW2JLQTVF2NWGQZ54NWFQQ5GNI7DL3MMAYR2X6PG
-#\\\|HYJTGNLYGMBSWWENGBRU5JFTHJXRQZJCKDZTO7E3JOJDMOIBYF5 \ / AMOS7 \ YOURUM ::
-#\[7]77RVZG5YCSFLHDVY7ZH4FPBVTIVBK56PMYUGZDI74GT77HT2MWCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,,,.,.,,,...,,,,,.,.,..,,..,,..,,...,...,,..,...,...,,.,,,.,,
+#52NSLSWJONXQAPUEMECTUQMUWLPAJRZYZV3MKJHGPMO6QOEXAEPABQHP27XWVKOC5CWN54SOLNOBM
+#\\\|5X2WWC7E5MBUXRKJMJBFDUWXXRUJGUWGZC7UA6VHMFEF6SGUYCQ \ / AMOS7 \ YOURUM ::
+#\[7]IPF3FTQPIDZJG5A2KW4TJTAWLIYOSFK3ECKWHEMMCTCNX6VZU4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

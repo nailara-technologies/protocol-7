@@ -5,16 +5,16 @@
 # descr = install config profile to import directory
 
 my $profile_name = $$call{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected config name parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected config name parameter' }
     if !length($profile_name);
-return { 'mode' => 'false', 'data' => 'invalid profile name!' }
+return { 'mode' => qw| false |, 'data' => 'invalid profile name!' }
     if $profile_name !~ /^[\w\-_\.]+$/;
 
 my $import_dir   = <set-up.json.import_dir>;
 my $profile_dir  = <set-up.profile_dir>;
 my $profile_file = "$profile_dir/$profile_name.json";
 
-return { 'mode' => 'false', 'data' => 'specified profile not found.' }
+return { 'mode' => qw| false |, 'data' => 'specified profile not found.' }
     if !-f $profile_file;
 
 <[base.log]>->( 1, "installing configuration profile '$profile_name'.," );
@@ -41,15 +41,15 @@ foreach my $file_name (@config_files) {
 }
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "$file_count config files installed to import dir"
     }
     if $file_count;
 
-return { 'mode' => 'false', 'data' => 'no set-up files installed!' }
+return { 'mode' => qw| false |, 'data' => 'no set-up files installed!' }
 
-#,,,,,,..,,.,,,,.,,,,,..,,.,.,.,,,,,.,,..,,..,..,,...,...,..,,,..,.,,,..,,,,,,
-#5F5OWSDHJDGZSNKSD55AKCLLH54PXMDLO3QPV4DQOOLHNDQFI3JRMCDWHMZO7F7VRPD4OXWSLHAQE
-#\\\|2MTY62WCSS3JRPCSCT5XEBGV667ENNHHOTCK32FDLMLRKBZVS45 \ / AMOS7 \ YOURUM ::
-#\[7]YPPELDZHKYZBQS2JHR42H7NLKQU3LOQX3VUQA3AQKSXTZGJKQIAY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,..,,,.,...,..,,.,.,..,,,..,..,,...,...,.,.,,.,,...,.,,,..,,
+#AWAVAXL6WV7O2I6GGN7VYY3URLUDM3SA55WUF72HE457UIZSVAKVTQOJMNQWKOTHTASSJKFBKLKEM
+#\\\|SZQWVZF4NPRGVCA3HEBZPZ4PVKV5W3N3CY6M7SKMJOKTRFY7MCR \ / AMOS7 \ YOURUM ::
+#\[7]JLH4OFIAOSYQRTWTERC3FJUHLVLM3I4IA6J4JY6V2MJQJFQTW4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

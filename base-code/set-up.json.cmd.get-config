@@ -10,14 +10,14 @@ my $config_type   = $$call{'args'} || 'set-up';
 my $zenka_name    = <system.zenka.name>;
 my $rules_subname = "$zenka_name.set-up.export_rules";
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no export rules defined for zenka '$zenka_name'"
     }
     if not exists $code{$rules_subname};
 my $export_rules = $code{$rules_subname}->();
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "config type '$config_type' not defined in export rules"
     }
     if not exists $export_rules->{'keys'}->{$config_type};
@@ -25,7 +25,7 @@ return {
 my @export_keys = @{ $export_rules->{'keys'}->{$config_type}->{'export'} };
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "type '$config_type' export key list is empty"
     }
     if !@export_keys;
@@ -66,7 +66,7 @@ $EVAL_ERROR = undef;
 my $err_msg;
 eval '$json_data = $data{json}{parser}->encode($data_copy)';
 ( $err_msg = $EVAL_ERROR ) =~ s|at \(.+\n$|| if defined $EVAL_ERROR;
-return { 'mode' => 'false', 'data' => $err_msg }
+return { 'mode' => qw| false |, 'data' => $err_msg }
     if defined $err_msg and length($err_msg);
 
 return {
@@ -74,8 +74,8 @@ return {
     'data' => $json_data
 };
 
-#,,,,,,.,,...,,..,.,,,.,.,.,,,..,,,.,,.,.,.,.,..,,...,...,,.,,.,,,..,,,,.,,.,,
-#IBHXOC6OA6MMJERV6KKKHPRJ4QHVZMAW3R34YLNWSHFIGOLZAMJILJCEH6TXPYROJS6SHGWIRCY6M
-#\\\|3EZ77F225ZMBLF7FPJRYB7M2LCDAXNATXDWLNSE7IRWUDYQ3SZT \ / AMOS7 \ YOURUM ::
-#\[7]HQ3PPU7W2MMCP2DKR6X4WAZIWAFG5OHBPISKQN5HJ3NAFCJ5Q4BI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,...,,,,,.,,,..,,,,,,,..,,..,..,,...,...,.,,,...,,,.,.,,,,,.,
+#ZQOHET6ZFIBW7QKYABLELPDHCGDAPVMVJ6TMZMETQZ5T4WPLOUWU6ENPF5VAS7HUPIROQVVG5IBJU
+#\\\|IPKWVC2POEGVV4BJ5CUTICIZKEKG3TH6I6CJ57HTV7FC5FQPNNP \ / AMOS7 \ YOURUM ::
+#\[7]SKJR7QJWL7T6NA5RQG6RWBJGF4HXVROJOEL2LNM3BRNRK7VJ5ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

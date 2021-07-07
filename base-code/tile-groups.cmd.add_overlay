@@ -11,7 +11,7 @@ my $overlay_str = $$call{'args'} // '';
 <tile-groups.overlays.previous> = [ @{<tile-groups.overlays.current>} ];
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' =>
         "current tile group is already '$overlay_str'., doing nothing..,"
     }
@@ -22,12 +22,12 @@ my @new_overlays = sort keys %new_overlays;
 
 map {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'expected valid tile group name'
         }
         if not defined $ARG or !length($ARG);
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "tile group '$overlay_str' not found."
         }
         if not exists <tile-groups.setup.tile-groups>->{$ARG};
@@ -39,8 +39,8 @@ my $merged_name = <[tile-groups.merge_multiple]>->(@new_overlays);
 
 return <[tile-groups.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
 
-#,,..,.,,,,,,,,,,,,.,,,,,,,,.,,,,,,,.,.,,,..,,..,,...,...,..,,,,,,,,.,,.,,,.,,
-#7UHLTHWECME7LFDQCNKVB47SPLKX4XWBJ45TNRWEUFJWGCMPT32GXMZ2M363KGIUFOWY2YXPYSI3O
-#\\\|2UKUMNNNYIAYJFMXWBHEKFOCXBFIG5DWDB5OXGHO52PCSGKFRHA \ / AMOS7 \ YOURUM ::
-#\[7]2S2TRUYQKBQWKXW6V35DEB3JLLWWHBWPECWA6O4ZKW42PDZLOUBY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,..,,..,,.,,,,..,.,,,,.,,.,.,..,,...,...,,,.,...,,.,,...,...,
+#QATV2RJ2NKRU6GJ6HPTGSXQ24Z5OMHFJOPE4CUUGUC2VPH7R4GVURK3KKWINVQJNHIOV7VD2JGDYO
+#\\\|TZQ5LFNI3CZYS2DD5QMRDI2HOHK3XZCQLSXDAV43MGDSYKDVKHO \ / AMOS7 \ YOURUM ::
+#\[7]KSXWIS2VCRSV4MSEYAIPY452VMYFENZ6TMF4XRPWOKDJVCYC5EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

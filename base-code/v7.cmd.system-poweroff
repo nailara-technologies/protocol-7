@@ -7,10 +7,13 @@
 my $param = $$call{'args'} // '';
 my $poweroff_enabled = <v7.system-poweroff.enabled> //= 1;
 
-return { 'mode' => 'false', 'data' => "not found : '/proc/sysrq-trigger'" }
+return {
+    'mode' => qw| false |,
+    'data' => "not found : '/proc/sysrq-trigger'"
+    }
     if !-e '/proc/sysrq-trigger';
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'specifically disabled [ v7.system-poweroff.enabled = 0 ]'
     }
     if not $poweroff_enabled;
@@ -29,10 +32,10 @@ system('/bin/sync') if $param ne 'nosync';
     }
 );
 
-return { 'mode' => 'true', 'data' => '<< powering off host system >>' }
+return { 'mode' => qw| true |, 'data' => '<< powering off host system >>' }
 
-#,,..,.,.,,..,,..,.,.,,,,,.,,,.,,,.,,,.,,,...,..,,...,...,,,,,...,,,,,...,...,
-#E7OZWIVCNFEDNOKC2XIECDOSFSOAARWFCRARF4V3VS5YXBBQZV7OI2WHKHNO6MTVSSGAKOO3OFKAM
-#\\\|PGW6KVBSVYE4542EPTIZ3ML7HBG4R6FHUASGVTHOU3H6RTRWXZX \ / AMOS7 \ YOURUM ::
-#\[7]ZQOXJMMC3SUU2GHOOPD67ZLMHZKQRT5UCKMZ2PJPE4JFMUBFGABI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,.,,,,,.,...,.,,,..,,,,,,,.,,..,,...,...,,,.,,.,,.,,,.,.,...,
+#HHJZ6B5UIQ2EHUDOSZ4Q4DXJOFANEBNPRZTPHCEOR2GHUM5SBBHVHC4SFX36CQOX4BC5ETB67SJWO
+#\\\|FTH2FXKKOXOGL7HHLISZ4JFDRJNVWO6M7D6EURBKXLONPMYCTZ4 \ / AMOS7 \ YOURUM ::
+#\[7]4PZYL4QISG3PEKPWHZAPO4MDBKUIJZM7YNYTBVNWY2STNBAOICAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

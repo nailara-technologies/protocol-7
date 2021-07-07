@@ -15,25 +15,28 @@ if ( not defined $target_path and $box_size !~ /^\d+x\d+$/ ) {
     undef $box_size;
 }
 
-return { 'mode' => 'false', 'data' => 'expected path to video file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'false', 'data' => 'expected new video size' }
+return { 'mode' => qw| false |, 'data' => 'expected new video size' }
     if not defined $new_size;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'syntax error in video size parameter'
     }
     if $new_size !~ /^\d+(x\d+)?$/;
-return { 'mode' => 'false', 'data' => 'syntax error in box size parameter' }
+return {
+    'mode' => qw| false |,
+    'data' => 'syntax error in box size parameter'
+    }
     if defined $box_size and $box_size !~ /^\d+x\d+$/;
-return { 'mode' => 'false', 'data' => 'target_path does not exist' }
+return { 'mode' => qw| false |, 'data' => 'target_path does not exist' }
     if defined $target_path and !-d $target_path;
-return { 'mode' => 'false', 'data' => 'video file not found!' }
+return { 'mode' => qw| false |, 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my ( $w, $h ) = ( $1, $3 ) if $new_size =~ /^(\d+)(x(\d+))?$/;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'invalid size parameters for libx264 codec'
     }
     if $w % 16
@@ -123,7 +126,7 @@ if ( !-f $output_file ) {
                 . join( ' ', @ffmpeg_params ) . ")"
         );
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "ffmpeg unable to execute [$err_str]"
         };
     } else {
@@ -135,10 +138,10 @@ unlink($error_log_file) if -f $error_log_file;
 
 <[base.log]>->( 1, ": done. [ success ]" );
 
-return { 'mode' => 'true', 'data' => $output_file }
+return { 'mode' => qw| true |, 'data' => $output_file }
 
-#,,.,,,..,,.,,,.,,...,,,.,.,.,..,,,,.,,,,,,..,..,,...,...,.,.,.,,,,,.,.,,,,.,,
-#OF2DAXTKE7WPPYL22KWIGNYQD2QNO6YDPYB3F6UEZU7ASBGY2JYAMDIYNTI2BXTOWFEE7JQ7DUKVW
-#\\\|A4FPHL45IHLABLG6OJFGBFPIBMLW3OS3CYIO6QYD5LEQANLREJL \ / AMOS7 \ YOURUM ::
-#\[7]PKBX74FCVPO2SOJJRSOBI53RIHEEYECAQNXFJS2A5UHSQIWKKWBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,,,,,.,,,,,,.,,,...,.,,,...,..,,...,...,..,,..,,.,,,,,.,..,,
+#R42A2Z7UAFOYAYUOO4HLBA4DCHZHUB5HHAMX7EHYOSPS4WHASIZFS4LOEOQT53CPV75HNHOUJA2XI
+#\\\|TN7LXPZI7WPCWQCAZS7DEQRCGWASJH3E3MQNRPUYIQH2D7AWVWQ \ / AMOS7 \ YOURUM ::
+#\[7]XMQM52HYKCLHYFSIQPV5HQ64SXBLRIWGHTCDDQQGQH4BK7I642CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

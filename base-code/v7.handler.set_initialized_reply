@@ -5,7 +5,7 @@
 my $reply      = shift;
 my $session_id = $reply->{'sid'};
 
-if ( $reply->{'cmd'} eq 'TRUE' ) {
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
     $data{'session'}{$session_id}{'initialized'} = 1;
     <[base.log]>->( 1, "bidirectional cube connection initialized. =)" );
     <[base.log]>->( 2, ":. local cube session id is : $session_id ...:" );
@@ -16,8 +16,8 @@ if ( $reply->{'cmd'} eq 'TRUE' ) {
     <[base.log]>->( 2, ":. ['$session_id'] cube-reply '$err_reason' .," );
 }
 
-#,,,,,,,,,..,,..,,,,.,.,,,,.,,,,,,,..,,,.,,.,,..,,...,...,...,,.,,,,,,,,.,..,,
-#ZVNHMPODK2RICXTSNKPVL5MH7R26GOE2DS7MKIMF2XTKFMEP5DZOSXGEDWZIYSWFD7ZM7ZNSCYUH2
-#\\\|5NLEF32RXJ4FVJJC5TM7JJRSM4ZB6PZETJ64E454GEA2IHIB725 \ / AMOS7 \ YOURUM ::
-#\[7]I7WPLT72KKBE4XUMGFXUCJTD5TDAICU7HO3LA44RE4RPZFCMQYDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,..,,,.,,...,,,,,..,,,..,.,.,..,,...,...,.,,,.,,,.,,,,..,.,.,
+#YFFE52IB2TP3OFZDCESJL6P4HXUZZNCRHETOKDKHDSRWE6JPZUEYXUB6E7BLF6HWOPAKXZRYGTNIA
+#\\\|ZD2R2OEPLJF3UXG5DCWUFNU6RY52SVUEPBNZZJF675XBJIFC6V3 \ / AMOS7 \ YOURUM ::
+#\[7]P7OTESS5KS5OCL653J6HY4IUVFI4RMIW3MJ75FJGIY5FXMS5WIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

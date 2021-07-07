@@ -3,7 +3,7 @@
 # name  = events.cmd.show-active
 # descr = return list of currently active events
 
-return { 'mode' => 'false', 'data' => 'no events configured' }
+return { 'mode' => qw| false |, 'data' => 'no events configured' }
     if not defined <events.unix.timetable>
     or !keys %{<events.unix.timetable>};
 
@@ -19,15 +19,16 @@ foreach my $ev_id ( keys %{<events.unix.timetable>} ) {
         and $current_time > <events.unix.timetable>->{$ev_id}->{'start'};
 }
 
-return { 'mode' => 'false', 'data' => 'no events active' } if !@events_active;
+return { 'mode' => qw| false |, 'data' => 'no events active' }
+    if !@events_active;
 
 return {
     'mode' => qw| size |,
     'data' => join( '', map {"$ARG\n"} @events_active )
     }
 
-#,,,.,,..,.,.,.,.,,.,,..,,.,,,,..,,..,...,,,,,..,,...,...,...,,..,,.,,,,.,,.,,
-#H32T3KYYOCWZ4JKIKEI2MNEDS7LCSUTVMLSTPT5JUE3JMXUKDTQSKNF5LVABS2T43JMEAOQBI37WQ
-#\\\|DT77NRD6OXY3DHZLDV5O56D5TU2F66PG5DAGVQTZ4GEQ76NKCJG \ / AMOS7 \ YOURUM ::
-#\[7]LVUYIRJHHYHI7WBBORAQQGODXTTLQBBZI2WLE4TYWZKG76S63WAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,,.,,.,,,.,,,,..,.,.,...,.,.,..,,...,...,,..,,.,,..,,..,,,..,
+#QEEO4ZERRZ67ND6CV4K4RH4HSEWSYDYAIPRESKHKTADWMIHVZMIY22STS4GIDX5J5QM37HLHOAHAQ
+#\\\|SH2JZM7JMERK4PQ6OQMX42QL7DBFFPBMQ625BFGLNG6KN5SLL6U \ / AMOS7 \ YOURUM ::
+#\[7]KDBTT6F466QHTX5QMXHSWJ2D34ZBWSWGB6BDWC3WDSQ76MTJ3UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

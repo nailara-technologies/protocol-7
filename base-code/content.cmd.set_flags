@@ -5,13 +5,13 @@
 # descr = set url flags for given playlist url
 
 my ( $flag_str, $url ) = split( / +/, shift->{'args'}, 2 );
-return { 'mode' => 'false', 'data' => 'flag name expected!' }
+return { 'mode' => qw| false |, 'data' => 'flag name expected!' }
     if not defined $flag_str or !length($flag_str);
 $flag_str =~ s|,,|,|g;
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "invalid url flag name '$flag_name'"
             . " .. comma seperated .. < "
             . join( ' | ', sort keys( %{<content.url_flags>} ) ) . ' >'
@@ -21,7 +21,7 @@ map {
 map {
     my ( $flag_name, $flag_param ) = split( /=/, $ARG );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "URL expected for '$flag_name' flag!"
         }
         if not defined $url
@@ -31,11 +31,12 @@ map {
 my $match = 0;
 map { $match++ if $ARG eq $url; } @{<content.file_list>};
 
-return { 'mode' => 'false', 'data' => 'no match in playlist!' } if !$match;
+return { 'mode' => qw| false |, 'data' => 'no match in playlist!' }
+    if !$match;
 
 my $un = <content.file_types>->{$url} =~ /:/ ? '(un)' : '';
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "not allowed for ${un}determined content type!"
     }
     if <content.http.check_content_types>
@@ -47,12 +48,12 @@ return {
 map {
     if ( $ARG !~ /^delay=\d+(\.\d+)?$/ and $ARG =~ /^([^=]+)=/ ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "no parameter expected for flag '$1'!"
         };
     } elsif ( $ARG =~ /^delay/ and $ARG !~ /^delay=\d+(\.\d+)?$/ ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "expected time in seconds parameter for 'delay' flag!"
         };
     }
@@ -72,10 +73,10 @@ map {
 
 my $msgstr = $flag_str !~ /,/ ? 'flag has been set!' : 'flags have been set!';
 
-return { 'mode' => 'true', 'data' => $msgstr };
+return { 'mode' => qw| true |, 'data' => $msgstr };
 
-#,,..,...,,..,..,,,.,,,.,,.,.,,..,,..,...,.,,,..,,...,..,,,,.,.,.,,.,,...,.,.,
-#ALPFD3BZKXRTC4VYB625ETHWSP2QXAMUUXHEP6B6TGDX3RSIJO75YMZTAQQPCITU7RX2XRJUXEV74
-#\\\|RTERDRXAU2NA6IYJWF7SDLQUWITCVJGD5ZIWIIVO4DHGRAQYXSY \ / AMOS7 \ YOURUM ::
-#\[7]OUTVCKPU6OQJPPT7TTN2V2IZCCXFHYQDQD25ZJSQLSK7BDIDYCAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,.,.,,,.,.,.,,,,,,,.,,,,,...,..,,...,..,,.,.,.,,,,,,,,.,,,,.,
+#2RZRJPAGVQEJJ5BCDSOZIO6ALF7RSXPC6Y6FVB3TY5GLPTJKOUXTURDCW5FODC7MGZNIR5L5H6DB2
+#\\\|5NB4UFZGCN7P4YAB3ECYBAYOZVSMUZTVYSOXNYAOQ3FEKULJHZP \ / AMOS7 \ YOURUM ::
+#\[7]7MFR7DBTRPADVTLTEGG3WSENULLJMJ46XVRUDFQSPYBG3MREISDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

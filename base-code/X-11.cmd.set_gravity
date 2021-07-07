@@ -7,14 +7,14 @@
 my ( $id, $gravity ) = split( / +/, $$call{'args'}, 2 );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'required x11 window id and <gravity>'
     }
     if not defined $id or not defined $gravity;
-return { 'mode' => 'false', 'data' => 'invalid <id> syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' =>
         "invalid gravity keyword, valid are: left, right, top and bottom"
     }
@@ -31,7 +31,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
 my ( $w, $h, $x, $y ) = $window->geometry;
@@ -50,10 +50,10 @@ if ( $gravity eq 'top' ) {
 $window->move("${w}x${h}$nx$ny");
 <[X-11.update_X11_WM]>;
 
-return { 'mode' => 'true', 'data' => "gravity set to '$gravity'" };
+return { 'mode' => qw| true |, 'data' => "gravity set to '$gravity'" };
 
-#,,..,,.,,,,,,..,,...,,..,.,.,,,,,,.,,,..,,.,,..,,...,..,,,,,,,,.,...,,.,,,.,,
-#NBM5CAQH7T27IIGTLZYWEUMIBPF5JKSEYX7CEATITYY574RVAMJV65LXHAGPIYUGKILFGXJDWQ6AI
-#\\\|KZHUBEKF2SUHAWV5KQJJRUYPLMMDAPWENRO3TZMJRQSFVYRVB7P \ / AMOS7 \ YOURUM ::
-#\[7]JFM2O64BVQLTE5W75RVMP4FN6UJ2OJXEXE46XR3XOSDNRUXI6CAI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,,,,,,,,.,.,...,..,,,.,,..,,..,,...,...,...,.,,,,..,...,..,,
+#3CFOURUWDDBJJXPM2GOJLYP7RWP6WB34BVTRDSA7KXM32MHWPSWSDFINYTIT7I6WMMHHNT7WVGC4G
+#\\\|M3NQZAFFX3QLWVHZMWYUFBE5LYVBNPFJVGPRWG5GWUCA4PEHUWV \ / AMOS7 \ YOURUM ::
+#\[7]D5WPYOF52AIDEWLTRZIAWNUG2WHU2ZXW3GF4ZQWYQEP6X2LYPWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,10 +8,10 @@ my $param  = $_[0];
 my $id     = $$param{'session_id'};
 my $buffer = $$param{'args'};
 
-return { 'mode' => 'false', 'data' => 'buffer name required' }
+return { 'mode' => qw| false |, 'data' => 'buffer name required' }
     if not defined $buffer;
 
-return { 'mode' => 'false', 'data' => 'no such buffer' }
+return { 'mode' => qw| false |, 'data' => 'no such buffer' }
     if not defined $data{'buffer'}{$buffer};
 
 return {
@@ -19,8 +19,8 @@ return {
     'data' => join( '', map {"$ARG\n"} @{ $data{'buffer'}{$buffer}{'data'} } )
 };
 
-#,,..,,..,.,,,,.,,..,,...,,,.,..,,..,,,..,.,,,..,,...,...,.,,,.,,,.,,,..,,.,,,
-#PPKYTYU2JISRYIHNBPZ53DD3CCWPAQHHOXJ2HE6DDHBCKHNOBHJY46XSUCN3G6BRWF4PBCBEEH3AK
-#\\\|F3TPQQXRPKGADWXDY23IEW3PCRREYKN6IVO3I3PZ6ELDN2EYTR4 \ / AMOS7 \ YOURUM ::
-#\[7]BHLXLE253YPK4RJOMOALLWPS7C3WYMQYLHKXJF5WU7O4ADRH3IAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,.,,,..,,.,.,,,,,,..,...,,,.,..,,...,...,...,,,,,.,.,,,,,.,.,
+#YLNMIDYQL6J66DRJMWVPFUJCO4FHZCPT3I5F6IKCNNOX2BP2MAAWT63QK726JHQRXOO6N7WIUOK5A
+#\\\|4DGAK4MN32Z6ZFJDJECSGJFM4H6BHB32EHEQVGEZPHYDY3PCJAJ \ / AMOS7 \ YOURUM ::
+#\[7]CHKYLLWT3CVNJ7JEJJYY3QBZFFP2AMGOTMUXG6LXO4IMULDPPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 # descr = verify root instance id through log feedback
 
 my $random_string = $$call{'args'} // '';
-return { 'mode' => 'false', 'data' => 'no random string supplied' }
+return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
     if !length($random_string);
 
 <[base.log]>->( 1, "instance verification [KEY:$random_string]" );
@@ -20,10 +20,10 @@ map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } ) }
     if defined <system.timer>->{'send_reports'}
     and <system.timer>->{'send_reports'}->is_active;
 
-return { 'mode' => 'true', 'data' => 'verification code logged' };
+return { 'mode' => qw| true |, 'data' => 'verification code logged' };
 
-#,,.,,,.,,.,.,,.,,,,.,,.,,...,.,.,,..,..,,,..,..,,...,...,,..,...,,..,...,,,,,
-#AHYMHKIDFWXKC5NYC42WEX7XAX4W7S7OBVFGPNBUTRZPPI7POFERM7V6HUMUQJSCZ5UR2A7AT57AK
-#\\\|KKQSCOS7INY4OZ4EBIOIAFM6TJBPYFZ2TZ6CGVS6BZMGS6ST6WS \ / AMOS7 \ YOURUM ::
-#\[7]IJWSQOS4MC4TXN7S47QA235K3VUVS6ZH7GXA6QQAALENONQQO4DY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,.,,,.,,,...,,,.,,..,,.,,,,,,..,,...,...,..,,,..,,,.,,..,.,.,
+#5ZQNPTEKGU3YKLMR6MXKANU4NGTKHTGKBID2UMMLPGYIHZN7HMVSKHCMEQS4WU5LU4I7XCPGTOEKO
+#\\\|ISOUALF2XYK4YGWAT2AC5EQDXIKBTMYYDLSOZNCNWS6MEDQVEPN \ / AMOS7 \ YOURUM ::
+#\[7]RQSQL7YEOGLVLH4DUJTINDYVTL6GTK3ETHB4EYTZ47NVR3YDOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

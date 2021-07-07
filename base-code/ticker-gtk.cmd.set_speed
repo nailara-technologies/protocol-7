@@ -9,22 +9,25 @@ if (   !length($new_speed)
     or $new_speed !~ /^\d+(\.\d+)?$/
     or $new_speed < 5
     or $new_speed > 42 ) {
-    return { 'mode' => 'false', 'data' => 'scroll speed expected [5..42]' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'scroll speed expected [5..42]'
+    };
 } elsif ( $new_speed == <ticker-gtk.speed> ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'scroll speed is already at ' . <ticker-gtk.speed>
     };
 } else {
     <ticker-gtk.speed> = $new_speed;
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => sprintf( 'scroll speed now %.1f', $new_speed )
     };
 }
 
-#,,,,,..,,.,.,.,.,,.,,,,.,,,.,,,,,,.,,,..,,.,,..,,...,...,...,,.,,...,..,,,,.,
-#QXINH2GCNENEQOP3DQV2LQCKYQXO3TE7UHKFEIXWDFBJ4CS3DEN3S6LSUEBTPKTDTDGY4DU3ML6IE
-#\\\|HUHXHHY3Z57TNPZ4I2MMLO6VIYOKBPIR4URN2DJXGRDHSR6B3YB \ / AMOS7 \ YOURUM ::
-#\[7]AJCB4AWNCM7VKFJTMHR4JBBXQNIYURUXYDYMGX3OAJCLZUGSPCDA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,..,,,.,,,..,,.,,..,,..,,.,.,..,,...,...,..,,..,,...,.,.,..,,
+#7ZL4CU24BT36VIGUM52YFBMW542GDYD5S73OZVCMFRSPSP7ITTXGXEAAKNG73H34V6IYIUOGOLHSS
+#\\\|UHTHKJIN6COU2R4ASVRHJSN6NYGASIV6J2DYK4N3MEN7TDTT5HE \ / AMOS7 \ YOURUM ::
+#\[7]ZTZH7DRW2EPAJSBIVIDFFYTQDRM6FDB4SDTGDXCUAS6YHVDRRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

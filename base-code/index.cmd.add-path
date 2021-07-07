@@ -2,22 +2,29 @@
 
 # name  = index.cmd.add-path
 # param = <scan-path>
-# descr = add a new path to monitoring list
+# descr = add a new path to monitoring list [implt.]
 
 my $path_str = $$call{'args'}      // '';
 my $path_abs = abs_path($path_str) // '';
 
-return { 'mode' => 'false', 'data' => "path not readable [ '$path_str' ]" }
+return {
+    'mode' => qw| false |,
+    'data' => "path not readable [ '$path_str' ]"
+    }
     if !length($path_abs)
     or !-r $path_abs;
 
 # ..,
 
-return { 'mode' => 'false', 'data' => '.not implemented yet.,' };    # << ! >>
-return { 'mode' => 'true',  'data' => "adding new path $path_str" };
+return {
+    'mode' => qw| false |,
+    'data' => 'command not implemented yet ..,'
+};
 
-#,,,,,.,,,...,..,,.,,,,.,,.,,,,,,,,.,,,..,,..,..,,...,...,.,.,.,,,.,,,.,.,..,,
-#DVOSUSJJPWWY2BWVXX5JOLPNY774W7LROJJ6QWDQJ4KMLJHOXRGZYN7VOMKMGMETWDUGG3EEUWVKY
-#\\\|WNNQY6BMMEMVPXRQRBVRRO55CGHKXUVGJOIIPRGSTONSSFH3VNN \ / AMOS7 \ YOURUM ::
-#\[7]DG6JECQ3PTHIGE6M4Z2KYVRPJQ4I2FRLEC5LTTVKFXOHALYM4OAY 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => "adding new path $path_str" };
+
+#,,,,,,..,,,,,..,,,.,,,..,..,,,.,,,..,..,,.,,,..,,...,...,...,,,,,,,,,.,,,...,
+#EC3WTCDXN2K7OYXICSB5C2LDLBVGTA74VZOTHIP3DVVTWHNUER2GW3QQBOWJLCVYDLA7MK5DUB65S
+#\\\|DDVJTDAHIZOVAKGWINYSEUZR326AA2WSREZHRDBKE2A62P73AHO \ / AMOS7 \ YOURUM ::
+#\[7]SNYQV2Q3Z7YRGJO5WTU5AYQKZU2X2WJC3Q24UJUTZ25ZIOFMKKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

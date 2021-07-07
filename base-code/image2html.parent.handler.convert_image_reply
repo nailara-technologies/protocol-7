@@ -9,7 +9,7 @@ my $image_path = $reply->{'params'}->{'image_path'};
 my $html_path  = $reply->{'params'}->{'html_path'};
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$image_path' failed [$reason]" );
     my $errors;
@@ -27,8 +27,8 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
 
 delete <image2html.converting>->{$html_dir};
 
-#,,,.,.,,,,..,,.,,,.,,.,,,,..,.,,,,..,...,..,,..,,...,...,,,,,,,,,..,,.,,,...,
-#EVWJEN7PRGAJBSCW45QAKWSPFKPDWWAI6EAKU4KPZSOL7VT4ENP5FJ4L5GVVERO3WBXDNVNPRO4AY
-#\\\|DJKGC2EZ36KF72AXSCOMLN76DBOGIED32YI3ZUDITXAEKIEYHKG \ / AMOS7 \ YOURUM ::
-#\[7]UNJIWH5SK53JAK43WOQRT3JQA3YQVEANZSTEFEJP6UTOH6Q2L4BY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,.,,..,,,.,,,,,,..,,,.,.,,,...,..,,...,...,..,,,,,,.,.,,..,.,.,
+#Y6XJ7JVG2RA5AVMKWJNW7QNDN2C56227UCAHFBURA2WSAO2PCYOMDH6OMHRPZMJWVKMYC476JAEE2
+#\\\|EIFZVG3RYHRWHJUL3BBYHQENJTYXEA3JWXRVKJER7RL4KXZZW7W \ / AMOS7 \ YOURUM ::
+#\[7]N56CM43O2X7BE6CBGYVO7OJDIGJW3PMALD2NWGBHXRB3ZSYZP6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

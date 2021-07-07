@@ -4,7 +4,7 @@
 # param = <zenka-name>
 # descr = purge specified zenka from dependency chains
 
-return { 'mode' => 'false', 'data' => 'expected valid zenka name' }
+return { 'mode' => qw| false |, 'data' => 'expected valid zenka name' }
     if !length( $$call{'args'} )
     or not my $zenka_id = <[zenka.get_id]>->( $$call{'args'} );
 
@@ -20,17 +20,17 @@ foreach my $dep_obj ( <[dependency.get_reverse]>->($object_id) ) {
 # LLL: add full p7-log / restore feature?
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no zenka seems to depend on '$zenka_name' (already dropped?)"
     }
     if !$del_count;
 
 my $ies = $del_count > 1 ? 'ies' : 'y';
 
-return { 'mode' => 'true', 'data' => "dropped $del_count dependenc$ies" };
+return { 'mode' => qw| true |, 'data' => "dropped $del_count dependenc$ies" };
 
-#,,,,,,,.,..,,...,,.,,,..,...,..,,,..,,..,,..,..,,...,...,..,,,.,,,,.,...,,,,,
-#AQ4QOYVE6HBUFG3ZXZC5H32B6GCOZAGOD23TCEXSSBN5LMZI3DVUY2M34UFA54RKX276RR6UJPPEO
-#\\\|YSFCXF24HGEHYNEK3JXE6AG4PMNC7ZJ36LO3BTPJHADOYEEMOAJ \ / AMOS7 \ YOURUM ::
-#\[7]CFA7GTUFNTSCWUMX3TAAMAFKS25SEO4Y3UE5WQ52ZMAQ6BARDCBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,..,,,.,.,.,..,,,..,,.,,,,,,...,..,,...,...,.,.,,..,.,.,.,,,..,,
+#CBDMH56Z4JILOIHLRPESOOONVWICMWDU7MEMGMVZE64BRKBLUWLK4TTO2FLBTT4FZC7I7W52SGWXK
+#\\\|RO7Q4V4UT6Y64DNSYGBJ6XWX3M7ZEQFR64DSQ7EBRTRD7T3SHJY \ / AMOS7 \ YOURUM ::
+#\[7]EFJJRRR7STLTPUDJW3E5ZPEKUNCBPDUFEWYK2SKYJWQUXIJHZAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

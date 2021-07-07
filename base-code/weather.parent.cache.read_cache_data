@@ -8,12 +8,12 @@ my $cache_dir  = <weather.cache_dir> . '/data';
 my $max_age    = <weather.cache_timeout> * 3600;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "type parameter required [current|hours|days]"
     }
     if not defined $type or !length($type);
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "invalid type parameter [current|hours|days]"
     }
     if $type !~ m{^(current|hours|days)$};
@@ -69,8 +69,8 @@ if ( $data_age >= $max_age ) {
     return $cached_data;
 }
 
-#,,..,,..,.,.,.,,,,..,..,,,..,,.,,.,,,.,,,,..,..,,...,.,.,...,...,..,,,,.,..,,
-#5HIAICFGPTA2MU3IIP54YAAHEYTYXQJIIBG62QN3EWZQ4VVUJ3IVZQC2NVASNHN6OTUTZO3CAYOLM
-#\\\|WT3DX2OOXLELZVKO74CVNC77TZ6LFDHOZPNUR3NLJ3E4NV6GIR3 \ / AMOS7 \ YOURUM ::
-#\[7]IZHAOCFOGUHMRQOW5DQZ6P3O6SIUBLI3COZ2LKI5STRT443WEYDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,.,.,,.,,..,,,,.,,,.,,,,,...,..,,...,...,.,.,.,,,,..,..,,,..,
+#WGZXZBU4DY2VFUXFFHTGEP2DXOJZJIJ5QLDQYSNMQHMWSMSYBVPZZINV4GRAZEFWK72R3VVNKMZMC
+#\\\|WI5VPBDRQCOYAO4D7W7RFPOCJDKR7W6WCSWGNROTEFPYES3TDA7 \ / AMOS7 \ YOURUM ::
+#\[7]IJ63AU5EAUK7EPA2FQDDD26AXWD7HGTHZCNVCD7O2SFTBULMOGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,11 +5,11 @@
 # descr = mount the specified device / filesystem
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'specified mount-point does not exist'
     }
     if !-d $mount_point;
@@ -17,7 +17,7 @@ return {
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no filesystem mounted on $mount_point"
     }
     if $status != 1;
@@ -30,16 +30,16 @@ if ( system( '/bin/umount', $mount_point ) != 0 ) {
     if ( system( '/bin/umount', '-f', '-l', $mount_point ) != 0
         or <[fs.is_mounted]>->($mount_point) ) {
         <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
-        return { 'mode' => 'false', 'data' => 'unmount failed!' };
+        return { 'mode' => qw| false |, 'data' => 'unmount failed!' };
     } else {
         <[base.log]>->( 1, ": : forced unmount was successful" );
     }
 }
 
-return { 'mode' => 'true', 'data' => $msg };
+return { 'mode' => qw| true |, 'data' => $msg };
 
-#,,,.,.,,,,..,,,.,...,..,,,.,,...,..,,.,,,,.,,..,,...,...,...,.,.,,,.,.,,,,.,,
-#GZ5V6JEH5673OLP5ULVWR7GYOBDPK3SA6C26EUJ54GXJDHTZXPQKS5V7AFSRJBLUOPVO2NG7P33PM
-#\\\|QZXHL64FE76RLJMNN5Q5LNO2CIWHQOHBNYR5CPXA2WUWOTTYYZL \ / AMOS7 \ YOURUM ::
-#\[7]XRR6CVUNOBGUJ4NJCLU2GPC7U4DYZVLFMKFB647OLGNFTDGH7EBA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,,,,.,.,...,.,.,,,,,..,,..,,..,,...,...,..,,..,,,..,...,,,,,
+#VSQPURW3MO554N3I7UADYNCYK75P64XI4DWYWRVHVIRPSM54SYC4WN6QTKJVM2QPWYDZIU6WP6DSU
+#\\\|G4J27MIIAALPRNG4FOP5RNENEXP3HURTWE34ZCBG2DBF2G4SKDL \ / AMOS7 \ YOURUM ::
+#\[7]WAREJRRAOHSACDHWWEEYTWJ77ETCCOEAIOWO2DL7Z454IYJTQCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 my $content_type;
 my $url = shift->{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'url parameter expected' }
+return { 'mode' => qw| false |, 'data' => 'url parameter expected' }
     if !length($url);
 
 my $uagent = <download.obj.ua>;
@@ -16,7 +16,7 @@ $uagent->protocols_allowed( [ 'http', 'https' ] );
 $uagent->agent("Mozilla/5.0");
 $uagent->cookie_jar( {} );
 
-return { 'mode' => 'false', 'data' => 'url parameter expected' }
+return { 'mode' => qw| false |, 'data' => 'url parameter expected' }
     if not defined $url
     or !length($url)
     or $url !~ m|^http[s]?://|;
@@ -38,13 +38,13 @@ if ( $response->is_success ) {
     $content_type //= 'unknown';
 } else {
     my $err_reason = $response->status_line;
-    return { 'mode' => 'false', 'data' => $err_reason };
+    return { 'mode' => qw| false |, 'data' => $err_reason };
 }
-my $mode = $content_type eq 'unknown' ? 'false' : 'true';
+my $mode = $content_type eq 'unknown' ? qw| false | : qw| true |;
 return { 'mode' => $mode, 'data' => $content_type };
 
-#,,,.,,,.,.,,,,.,,.,.,,,,,,..,,,.,.,.,..,,,..,..,,...,...,..,,,,,,,..,.,,,.,.,
-#GUNA6CG24T7GBVWFTUYAXIH2HE5HA3NKHC4S2V72WPU2TOR6WPR3CNC3PV2OSPQ3KKKVUJSKOMHSA
-#\\\|QCOB6KYP5KJOUZRGUZQKGBFEFWSPVVBUYUI4FLDEPHZBCQTOACI \ / AMOS7 \ YOURUM ::
-#\[7]5R6RT3HQJ7ASLLR2STVTVUD6PSJ7Y5VOI27A3F7K4P6NJVYNN6CA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,.,.,,,,,,,.,..,,..,,..,,,.,,..,,...,...,.,.,,,,,,..,,,,,..,,
+#NEPMIX7343KUSJF2GLHSWS2SMVEYL4PZSA5INXR4GUISCL7JFG2QMOYSFBNZFFZFRBH537YP7GNZE
+#\\\|WJBH5SNP67B3WTRONPGRBUFJFKURW37DSKNMXGA4O2STVW7VZVY \ / AMOS7 \ YOURUM ::
+#\[7]JHXE35GR2GHF7SE4JVLUY6CNX222G3OEE2WSUTXI6PV6HTVJBYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

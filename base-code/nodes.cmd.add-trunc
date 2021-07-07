@@ -8,7 +8,7 @@
 my @params = split( m| +|, $$call{'args'} // '' );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected <name> <addr> and <pkey> parameters'
     }
     if @params != 3;
@@ -33,7 +33,7 @@ $err_msg = 'specified IP address is not valid'
 $err_msg = 'expect base32 encoded [C25519] public key'
     if length($pkey) !~ 52 or $pkey !~ m|^[A-Z0-9]+$|;
 
-return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
 
 $addr = ip_transform($addr);    # ..expanding..,
 
@@ -50,18 +50,18 @@ my $node_id = <[base.list.element.add]>->(
 );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "failed to add node [ details in log ]"
     }
     if not defined $node_id;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "node '$name' added"
 };
 
-#,,,.,..,,,,.,,.,,.,.,,..,..,,,,,,...,,.,,.,.,..,,...,..,,,,,,,,.,,,,,,.,,,,,,
-#TVNP5V5VCBE4MJTNYZ6TA27GL65QSURV4H7C3VVXPQPSACQK4OVSOYICZK4RHKAGF4PQRD4Z5AHLO
-#\\\|365WFGJOLLOHUBAWATIXEXZJMKELROGBJJSDQ3N5IYF3YY3TROL \ / AMOS7 \ YOURUM ::
-#\[7]N2HK6K7YDU2MWAMV7MRGZR2KYT7SCDEXRFM7I7DAA55UVXB42GBY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,,..,.,.,.,.,..,,.,.,.,.,.,,,..,,...,.,.,.,.,,,,,.,.,...,.,,,
+#EC6KQTR5RM7OKZDEGFIIRK3WREF3M2B5ELLD3UQJGXM7HNUMZPYBTD5ZOJK4UMP62JNH3IXFI3SVW
+#\\\|7P5MAA5LFVY7K44WDFLR5I7TH2SA24TV6VIFIR4WTJ4EX3V5YTP \ / AMOS7 \ YOURUM ::
+#\[7]7W7LWXQ5OYFH6DTHY6R5XYS4TPK4GJGJDKHCCSWXCTLDNLQDQWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

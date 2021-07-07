@@ -7,12 +7,12 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "unhiding window $window_id" );
@@ -23,12 +23,12 @@ eval {
     }
 };
 
-return { 'mode' => 'false', 'data' => "unable to remove 'hidden' state" }
+return { 'mode' => qw| false |, 'data' => "unable to remove 'hidden' state" }
     if $EVAL_ERROR;
-return { 'mode' => 'true', 'data' => "removed 'hidden' window state" };
+return { 'mode' => qw| true |, 'data' => "removed 'hidden' window state" };
 
-#,,.,,,,,,.,.,,..,.,.,,..,,,,,..,,.,.,.,,,.,,,..,,...,..,,...,..,,.,,,.,.,...,
-#IGS7GYWCMUZFN6Z4EA6I6ZPTQST3MLZDHQ7GIELXMSKDPC6VEL6G3NQLURR7DSI5JKIT2ESPUAG6M
-#\\\|QOZ7Z2CO7XR6HOYQ545Q7DPOL6PWQSRWEG46BQTXHRYLSCCDV3E \ / AMOS7 \ YOURUM ::
-#\[7]72KGMSECTLJY4MWI4JRDXMZAOJM5ND5XXR72Y6JWEIAPFJKHDSAI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,..,,..,,.,.,.,.,.,,,,..,,,,,..,,...,...,..,,,,,,,..,,.,,,.,,
+#JWDJJCUOQSR4TC46IAPE7XDB7XHW2GRDWTMHSWKY25EYKAH65CMME5YENYHYTIUHNGX7IZ64NG2BS
+#\\\|ZJAKCNSHMB6O26WC65WTK4C6WHT6Y3QJPXDINDPJIT2JPCZHVLF \ / AMOS7 \ YOURUM ::
+#\[7]MTVV7LKV6XYKHMGSKFC2SZYDBZ5CMMXAKQKW3SOQHZM62VTIOWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

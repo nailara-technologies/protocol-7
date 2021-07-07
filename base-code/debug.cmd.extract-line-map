@@ -10,7 +10,7 @@ state $last_warned = '';
 
 my $std_msg = 'file not found or insufficient read permissions';
 $std_msg = 'expected file path for line map' if not defined $file_name;
-return { 'mode' => 'false', 'data' => $std_msg }
+return { 'mode' => qw| false |, 'data' => $std_msg }
     if not defined $file_name or !-f $file_name;
 
 if ( !-r $file_name ) {
@@ -20,7 +20,7 @@ if ( !-r $file_name ) {
         "[$usr_sid] <extract_line_map> no read permission [ $file_name ]"
     );
     $last_warned = $file_name;
-    return { 'mode' => 'false', 'data' => $std_msg };
+    return { 'mode' => qw| false |, 'data' => $std_msg };
 }
 
 my $response = "\n# .: $file_name :.\n\n# [line-num] [offset]\n\n";
@@ -33,8 +33,8 @@ map {
 
 return { 'mode' => qw| size |, 'data' => $response . "\n" };
 
-#,,..,,.,,.,,,,,.,,,.,,,.,,,,,,,,,.,,,..,,.,.,..,,...,...,.,.,,,.,...,,,.,,.,,
-#YHRDJSSIRWVPS6ZIHAIJ5D6HI64KGKJ54M3W5I255CXJTUAHAZDATM4F43F3CBWHXVW3BHCNFDWA2
-#\\\|RVO2CZ2VYTEYVWRDUSU2VSXNOR5JSY5JBQCDFQTK4C3JBXDBBQA \ / AMOS7 \ YOURUM ::
-#\[7]TRIBF4Q4EDME3P6UCWL2F27RLHSNCCHWR5TNN5VZDO2AMOWHTUDA 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,...,.,,,,..,...,,..,.,,,...,..,,...,...,,.,,...,...,...,...,
+#3JWHGSU3EDKCN6MYINBLJVY5JYHMVWRHUXZSY6KY74GLZMW3XUNF5KVEZDQ3JLZRGQDNLF2P4CQZK
+#\\\|I4NX5VDDWLXHIMHYOVNDRGA3WKUVQKWJHSFTNKUCHHHQ74HYCDN \ / AMOS7 \ YOURUM ::
+#\[7]D2ESGM5GSTQTLP7C2Y3AYGMFDSJPZZG77GD5SIM5DPPJ5WWH3GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

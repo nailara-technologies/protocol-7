@@ -41,7 +41,7 @@ if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
 
 if ( not defined $reply or ref($reply) ne 'HASH' ) {
     $reply          = {};
-    $$reply{'mode'} = 'false';
+    $$reply{'mode'} = qw| false |;
     $$reply{'data'} = 'error during command invocation [ details logged ]';
     <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
 
@@ -54,7 +54,7 @@ if ( not defined $reply or ref($reply) ne 'HASH' ) {
             . '-reply attempted '
             . <[base.caller]>
     );
-    $$reply{'mode'} = 'false';
+    $$reply{'mode'} = qw| false |;
     $$reply{'data'}
         = 'error during command invocation [ details are logged ]';
 }
@@ -77,8 +77,8 @@ if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,.,..,,,.,,.,.,,,.,...,,.,,,,,,.,.,.,,,.,,,..,,...,...,,.,,..,,,,,,..,,..,,
-#YL6KOQVWRMOQGBFRXBR7NL2XYRZJCA6DWK5HWQM37EDKZ2NOTNWOZNIQL7JY7UCP7QYRGZVXXRI4O
-#\\\|4RLVIS5P44NL36YBMGJCMJKW6VU5OWIRWY3R5VJUFKFWDKMO3XV \ / AMOS7 \ YOURUM ::
-#\[7]BKBQVTFXQTUUTAD3V345KSIJVFE2GJHS3H7IEO3JRNC2H2UME4CQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,,,,,,..,.,.,..,,.,,,..,,.,,,..,,...,..,,,,.,.,,,,,,,...,,..,
+#NVCTAFFS5LEUJ264NXMZCFMRWMGKZLGBLJBUHLKETS5URAZLMKE6UCC6NCJIHGGJMALNT4RRYYD44
+#\\\|RXZUVJ3UFA3LDC7INT6ZCW6HKN4EUY6GJ4ZDXGTRZYPHJEIP3J3 \ / AMOS7 \ YOURUM ::
+#\[7]EELND2FVR6C64LUBM5DP2CN52SJXC5IJBTJTLRYUOFIAOP4ACMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

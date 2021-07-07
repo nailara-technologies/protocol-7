@@ -8,14 +8,14 @@ my $usr_sid = $$call{'session_id'};
 my $llvl    = $$call{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'you need to supply an integer value [0..,5]'
     }
     if !length( $llvl // '' )
     or $llvl !~ /^\d+$/;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => sprintf( "already at '%s'", $llvl // '' )
     }
     if $llvl == <system.verbosity.console>;
@@ -27,10 +27,10 @@ my $user = $data{'session'}{$usr_sid}{'user'};
 
 <[base.log]>->( 0, "changed verbosity : '$llvl' [ requested by '$user' ]" );
 
-return { 'mode' => 'true', 'data' => "verbosity = $llvl" }
+return { 'mode' => qw| true |, 'data' => "verbosity = $llvl" }
 
-#,,,,,,,.,..,,.,.,,,,,...,.,.,.,,,,..,,,,,...,..,,...,..,,...,,.,,,,.,.,,,,,.,
-#W2WG3PUMMURJVN7IPGCPNVQ6MQG6YEJK7IVWTLSR5DPR5FK5E5DLXFPDJKIHESXNK7CXWQZLZ7WWG
-#\\\|R3ZRR7FSCWOQTYW5VTKIZXA46GKD4RGBLEJ6PJX6CJ4TPMC2F4X \ / AMOS7 \ YOURUM ::
-#\[7]GR6C7M2DVTLN52ODJXH4B26VLG3HMBQMYRJDDBCJZLKBKMGXKOAA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,...,,..,..,,,,,,,.,,,.,,.,,,..,,...,...,...,,.,,..,,.,.,.,,,
+#UVSZEHOWRM5BG4ISEBRJDYZC2OCZ6S7PLBHK77TPIKVGXUUZTRT2HHTCEW4BNIRQ2JHDYX2KSFAAS
+#\\\|YX2YRAQJJVFGPVEAN7OMKOMDVJ7YCE6CIZRROTCHVI7J4XSJ5NT \ / AMOS7 \ YOURUM ::
+#\[7]4Z2U52K4FPFWA2PLEBD6IUSAR24HS2JJCKWWD74VI63O7TNLUCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

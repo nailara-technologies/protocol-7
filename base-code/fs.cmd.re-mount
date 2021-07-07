@@ -5,7 +5,7 @@
 # descr = forced re-mounting of specified mount-point
 
 my $mount_point = $$call{'args'};
-return { 'mode' => 'false', 'data' => 'expected mount-point parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected mount-point parameter' }
     if not defined $mount_point;
 $mount_point =~ s|/+$|| if length($mount_point) > 1;
 
@@ -14,7 +14,7 @@ $mount_point =~ s|/+$|| if length($mount_point) > 1;
 my $status = <[fs.is_mounted]>->($mount_point);
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'specified mount-point does not exist'
     }
     if $status == -1;
@@ -33,7 +33,7 @@ if ( $status == 1 ) {
             or <[fs.is_mounted]>->($mount_point) ) {
             <[base.log]>->( 0, ": forced unmount of '$mount_point' failed!" );
             return {
-                'mode' => 'false',
+                'mode' => qw| false |,
                 'data' => "unable to unmount $mount_point"
             };
         }
@@ -44,13 +44,16 @@ if ( $status == 1 ) {
 if ( system( '/bin/mount', $mount_point ) != 0
     or !<[fs.is_mounted]>->($mount_point) ) {
     <[base.log]>->( 0, ": mounting of '$mount_point' failed!" );
-    return { 'mode' => 'false', 'data' => "unable to mount '$mount_point'" };
+    return {
+        'mode' => qw| false |,
+        'data' => "unable to mount '$mount_point'"
+    };
 }
 
-return { 'mode' => 'true', 'data' => $success_msg };
+return { 'mode' => qw| true |, 'data' => $success_msg };
 
-#,,..,,.,,...,.,.,.,,,.,,,,.,,.,.,,,,,,,.,,.,,..,,...,..,,,,.,...,,..,.,,,,.,,
-#JLADD2PYQWEZTFWW6A5AOL3HNU3YQTVYPQ5PD7WSOHLT3VOIHER454EENKFPHRXN5QFPZJWULOYUO
-#\\\|BNQWDE3OTOSSYL2RXU5MGCJFDOIJACNGOKP5MIKR2ARRAGMFHBY \ / AMOS7 \ YOURUM ::
-#\[7]2OEHNU5DXIIWJEOGLP7NLZ3NI7OKH7PITDDJDUH6BGXOZHJ7GEBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,.,,...,...,,,,,.,,,,.,,.,.,..,,...,..,,...,...,,..,.,,,,..,
+#HMZSP2QSAFNGMOIX3LXWXIYWXRNJIIXL7RLFZY6GKCWAMR6FZ4BCWAGOKSP5W672S2EEIMVLKJRM2
+#\\\|MUMD2CBHD73CQMAG76LRV4GWWHAH5VQWAUJBY37V74534KLXKYK \ / AMOS7 \ YOURUM ::
+#\[7]G3I3PGQWKAPF3DSG5XCJTEJ7UUHP6JNJH2ZWPIC23GQBFA37NABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

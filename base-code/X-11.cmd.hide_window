@@ -7,12 +7,12 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ m|^\d+$|;
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not <[X-11.window_id_found]>->($window_id);
 
 <[base.log]>->( 2, "hiding window $window_id" );
@@ -23,12 +23,12 @@ eval {
     }
 };
 
-return { 'mode' => 'true', 'data' => "unable to set 'hidden' state" }
+return { 'mode' => qw| true |, 'data' => "unable to set 'hidden' state" }
     if $EVAL_ERROR;
-return { 'mode' => 'true', 'data' => "set window state 'hidden'" };
+return { 'mode' => qw| true |, 'data' => "set window state 'hidden'" };
 
-#,,,,,,,.,,,.,,..,,,,,,,.,...,...,,,.,,,.,.,.,..,,...,...,.,.,.,,,..,,.,.,,,.,
-#TPN7HU3UEKDV5XZIXEVFNMAQHDOMDMPH7PEUHMYV4JCVE5J4Z2IKZGQQ2ITNPKBOAMM4HBVHCMPZK
-#\\\|H7S5T2CXYDQLWJRDHZRBKFXWN2VQL6W4BRYGSJBZEW7SCXN3WBK \ / AMOS7 \ YOURUM ::
-#\[7]LTGOT2IPBLDDJL25MTYJSDWBGT7CQBVIXIXKK2TS5G5YMVMTAUDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,.,,,,,,,.,.,.,.,,.,,,,,,.,.,..,,...,...,.,.,,,.,,.,,,,,,,,,,
+#654NE27CMRMIZLLTFXRSILG2AB5JFHDXRGFAWKHXVGIBEUHC776CKUXIQ34EDDBZPX4N6GFQ474E2
+#\\\|CQHE5LPYBEDYMJCOVWNNO6APFMQFFE2D5MUOVPW757F3CDMYLG7 \ / AMOS7 \ YOURUM ::
+#\[7]JXENCDXCWM4MCFGWFKKI5BNLP3QAZM7XVTNVKLIPASJR53BZT2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

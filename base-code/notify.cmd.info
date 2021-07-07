@@ -7,7 +7,7 @@
 my $txt_param = $$call{'args'} // '';
 my $id        = $$call{'session_id'};
 
-return { 'mode' => 'false', 'data' => 'no message text submitted' }
+return { 'mode' => qw| false |, 'data' => 'no message text submitted' }
     if !length($txt_param);
 
 if ( !utf8::is_utf8($txt_param) or !utf8::valid($txt_param) ) {
@@ -55,15 +55,15 @@ if ( defined $title or @matches ) {
             <notify.path.info_icon>,   @msg
         )
     ) {
-        return { 'mode' => 'true', 'data' => 'info message sent' };
+        return { 'mode' => qw| true |, 'data' => 'info message sent' };
     } elsif ( $CHILD_ERROR == -1 ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "cannot run process [ \l$OS_ERROR ]"
         };
     } else {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => sprintf(
                 "notify-send exited with code %d%s",
                 ( $CHILD_ERROR >> 8 ),
@@ -73,11 +73,11 @@ if ( defined $title or @matches ) {
         };
     }
 } else {
-    return { 'mode' => 'false', 'data' => 'no message text submitted' };
+    return { 'mode' => qw| false |, 'data' => 'no message text submitted' };
 }
 
-#,,..,.,.,.,.,,.,,,.,,.,.,..,,...,..,,,.,,...,..,,...,...,..,,..,,,,.,,..,.,.,
-#XGH6P2KLKJOZ4LJWJPXEFF7EWCBA23P5JJIPVHFSJQ64O6UHJ5TNW7Q4NST7U54FCDPNWGUTD7LNI
-#\\\|ISZYS4PHTAFG6VAI2TSRRBIORIVRXPHYQHQT3DTOIC3CHPOFM5Y \ / AMOS7 \ YOURUM ::
-#\[7]72QQQD5VWYCIUGT4OYWYT5NDR7MDVK2KMA6JWPXTSDISY5XKMSCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,.,,.,.,...,.,.,...,...,,,,,..,,...,...,...,,..,,..,,,,,,,,,
+#4RXKGC5IIOYUFQURQI4QVSPR2QBL6OSVJW7FKZG54PSXIWLAWBBXLA2VBLA3USF43PJWALH3ZNGFQ
+#\\\|HF67UQWRMRBESGOHSRGP4QKZN2RYO4TZG473EG2Z3I6SPYB5H6E \ / AMOS7 \ YOURUM ::
+#\[7]X6R5WRRIDGMRKQMZDSMMEUS2QUG2MLR66YH2DU5PL2S6BTFA4WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

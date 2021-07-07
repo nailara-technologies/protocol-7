@@ -7,13 +7,13 @@
 my ( $id, $geometry ) = split( / +/, $$call{'args'}, 2 );
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'required x11 window id and <geometry>'
     }
     if not defined $id or not defined $geometry;
-return { 'mode' => 'false', 'data' => 'invalid <id> syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid <id> syntax' }
     if $id !~ /^\d+$/;
-return { 'mode' => 'false', 'data' => 'invalid <geometry> syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid <geometry> syntax' }
     if $geometry !~ /^(\d+)x(\d+)([+-]-?\d+)([+-]-?\d+)$/;
 
 my $xtops = <X-11.WM>;
@@ -27,16 +27,16 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
 $window->move($geometry);
 <[X-11.update_X11_WM]>;
 
-return { 'mode' => 'true', 'data' => 'window updated' };
+return { 'mode' => qw| true |, 'data' => 'window updated' };
 
-#,,.,,,.,,.,,,,..,..,,,..,,..,.,,,..,,,..,,,.,..,,...,..,,...,,,,,,..,,,,,,.,,
-#GFHGKZS4MORPKFOHYZO3NC36FFX5WQLLWVHKJX63WEQYZEMKODPBI2EN2ZSJD4HRZTMCYTQ6ICP6Y
-#\\\|6AL632COFJVGK274ZRKFFEYMF2PBOXJSOH4H25V2FEHR6DHNF7B \ / AMOS7 \ YOURUM ::
-#\[7]SK3YVYOZO2ZPPATO77LWWEV57QKRFZ5ETI6S7Q7H7YK47K4MKSAI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,,.,,,.,.,.,...,,,,,.,.,...,..,,...,...,.,,,,..,,..,,.,,.,,,
+#UAVIYCU2NZCDIA3YSQTNJTDAPMZ66GOPRQKUOUCGSGMTJ2CFTHQGK6FEXOIPRN54P5HEU4X4HIPW4
+#\\\|NR7IMVEGOIT4EMA442H7GIMPB4BSC5KFY6L7U3OA6HDOOMPIIHY \ / AMOS7 \ YOURUM ::
+#\[7]ZGO6LKTS4NU474WQ5WLFKJ75S2HRI3RNFSJB2GI4TJALPJGQDQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

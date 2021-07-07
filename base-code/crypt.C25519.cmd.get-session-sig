@@ -6,18 +6,18 @@
 my $key_name = <system.zenka.name>;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no session key '$key_name' available"
     }
     if not defined $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'};
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'}
 };
 
-#,,.,,.,.,..,,...,,..,.,.,,.,,,,,,..,,,,.,.,,,..,,...,...,..,,.,.,,,,,,,.,.,.,
-#FPVYT7USZ33TWM6AAZUJIKSNGFMKP4GEQNJREQQOXANXHVFFDZQ5HIAYI6PAHXT3HWKNHRVCNIUSE
-#\\\|LYOEWKCUNVKP2ZDUWO27RXSXSCVZA74I75RMVN3HJJ3H2YXQS6R \ / AMOS7 \ YOURUM ::
-#\[7]LM6WCQTMAIPR6KTBYEW4NVNQ7YSNSVHYO2QAHP2QD6VUOBLAOOCA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,,,,,...,..,,,,.,,.,,,,.,,,,,..,,...,...,...,,..,,,.,.,.,,.,,
+#4HJK3QCNCBYDWQBUP66J76NXAWVN67FBPJ4UJP4MMVINAXPCDJ4ALVT2VAES5YJVUGN2BVLZ5ZGQK
+#\\\|MXCMQLXTP2S5UYTBECGDMUQRNCBCGIAA4YGMGRCHJCQ7F7IXFX2 \ / AMOS7 \ YOURUM ::
+#\[7]FYV3XJQ5BSY7DWOTUW5S7R57HSCFC6WZYKUNFXEMDTO54OZMRIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

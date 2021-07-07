@@ -7,22 +7,22 @@ my $reply_id = delete $answer->{'params'};
 
 return <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'false',
+    {   'mode' => qw| false |,
         'data' => "unexpected (FALSE) reply from screenshot zenka!"
     }
-) if $answer->{'cmd'} ne 'TRUE';
+) if $answer->{'cmd'} ne qw| TRUE |;
 
 my $color_str = $answer->{'call_args'}->{'args'};
 
 <[base.callback.cmd_reply]>->(
     $reply_id,
-    {   'mode' => 'true',
+    {   'mode' => qw| true |,
         'data' => $color_str
     }
 );
 
-#,,.,,,.,,.,.,,,,,,,,,...,...,.,.,.,,,,,,,..,,..,,...,...,.,.,,..,..,,,,,,,..,
-#O222QKTAK2YF7EHC73FOKGO5VDJOVMJBBGAEPVJGWMAMPV6GS7ECALGZERKPFZS7CXO3MYWU7ENMG
-#\\\|FSFEDM4ZOXCVS5NQYSLWH323S7E2BYHHDVWROBEV7Q73APXUFWU \ / AMOS7 \ YOURUM ::
-#\[7]6BG2L5Y2KZULWX526TF4NYI4HKUVYTS6IDT7ROXZUGJGETSJG4BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,,,,..,.,.,..,,.,.,,,.,,.,,..,,...,...,.,.,.,,,..,,.,.,,,.,
+#OU27MMSBG7U6MDNBT7BQM7RV2JYTC56RR4623E55YS2JKXPEZYAXRR3HBVQYSBS5V34CV3TYN5MWC
+#\\\|YE5DTNYUIG75YKOTV6L4XSUH57OY2N22OLMC4WFC6JHD5REVKQG \ / AMOS7 \ YOURUM ::
+#\[7]J6UQEB3EH3UO3GI3BMBZ6FJYMWAYEXPGQJPAAUVIJEIIAVXA6CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

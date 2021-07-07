@@ -8,7 +8,7 @@ my $usr_sid = $$call{'session_id'};
 my $usr_str = $$call{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'you need to supply a string to return'
     }
     if !length( $usr_str // '' );
@@ -18,10 +18,10 @@ $data{'session'}{$usr_sid}{'echo_str'}
 
 <[base.log]>->( 1, "echo string : '$usr_str'" );
 
-return { 'mode' => 'true', 'data' => $usr_str }
+return { 'mode' => qw| true |, 'data' => $usr_str }
 
-#,,,.,...,,,,,.,,,...,.,.,..,,,,,,...,,,.,,,,,..,,...,...,...,..,,.,.,.,.,...,
-#CJQWHE4DJTWLGYQW3IGZSFIMYXT6GF2QBGYBM64JNIK2RLZXG5Z5EZWUC27PVXG3J3AMGZWN4YBWM
-#\\\|LB5NIM6GSXDSB23LI7ZRFUYGHVODTTIPLO7HOGNTUDJXCVWOWJU \ / AMOS7 \ YOURUM ::
-#\[7]2MXEVLSXPD2TTFSXNEJTJVHF73HWSTHEKUF4OM5AX46OMO4QHYAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,...,,,.,,.,,,,,,,..,,,,,,..,..,,...,.,.,,,,,.,.,,..,,.,,,,.,
+#SMKV3HUROPZWQAZ5L5WO7N72ILIJKZHCBJ7AUUKVCUN2HZ6ASWTUTZ4KZQVDPZU2XKSOQI2ROEMMS
+#\\\|O72B3T4LADTXE6T5F7NPPEU4CLRYNAHF57FDXZ3R4WCAZIUW4V6 \ / AMOS7 \ YOURUM ::
+#\[7]5OIJMTLPC4BNTPGG2VDJHXJ7WJFXOMW7XEBBTMPSVK27ZSKP64AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

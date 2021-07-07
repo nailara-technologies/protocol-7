@@ -7,7 +7,7 @@
 my $search_pattern = $$call{'args'} // '';
 my @matching_zenki;
 
-return { 'mode' => 'false', 'data' => 'expected search pattern' }
+return { 'mode' => qw| false |, 'data' => 'expected search pattern' }
     if !length($search_pattern);
 
 foreach my $zenka_name ( keys %{<v7.zenki.available>} ) {
@@ -18,7 +18,7 @@ foreach my $zenka_name ( keys %{<v7.zenki.available>} ) {
 }
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no matches ( see \'v7.list available\' for a complete list )'
     }
     if !@matching_zenki;
@@ -35,8 +35,8 @@ foreach my $zenka_name ( sort @matching_zenki ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,.,,,.,,,.,,.,,.,,,.,.,..,,,..,,.,,,,.,,.,,..,,...,...,..,,...,,.,,...,...,
-#FK5PVGF73MAR3Q6SX2PTPVXUDKF5NISMIXIM7HBZVVBRH37V4BVTOHEBELJC735RKXSDIV474UO2A
-#\\\|T5ZL2KPLOGKDTSJE2WLUFOJHVPHOWI37OMP5QB6DPHSWNBOCOWX \ / AMOS7 \ YOURUM ::
-#\[7]LYGYHXNEMQHQOFO7JPOY5XIFC6UFFDQ2SSUX2JSYSLIPTAZVXQAQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,,,,,.,.,,..,.,,,.,,,,..,,,.,..,,...,...,,..,.,,,...,...,...,
+#675HKOL4QBN72EIEVDUAOLQBGSOMJK22Y6JFL6YZYIN554BG7RS3WDADOB23DVQFZTGXDCYJ6A4JK
+#\\\|FC2ENL7QAQ2WEDFN426MCM4N74SSVOYIPZQZ5KAYIIRR44IW742 \ / AMOS7 \ YOURUM ::
+#\[7]HQT6ZIIDNK5AB2P2KJG2VMUJPCDYKKWZXTNKFRGHMR6V4SGK4UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,9 +6,12 @@
 my $code_name = $$call{'args'};
 my $src_path  = catfile( <source.code_path>, $code_name );
 
-return { 'mode' => 'false', 'data' => 'requested code name is not valid' }
+return {
+    'mode' => qw| false |,
+    'data' => 'requested code name is not valid'
+    }
     if !<[source.valid_src_name]>->($code_name);
-return { 'mode' => 'false', 'data' => 'code file not found' }
+return { 'mode' => qw| false |, 'data' => 'code file not found' }
     if !-f $src_path;
 
 <[file.slurp]>->( $src_path, \my $src_str );
@@ -22,8 +25,8 @@ return {
 
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,,,..,,.,.,..,,,..,,,,,,..,.,,,,,,,,.,,..,,..,,...,...,,..,.,,,,,,,,..,,,,,
-#T6DM3ORFZ22NOPZYKAVNVBJQ7BRECAMOLWZ6IF7MUMCSDOVMISNJEEVEZL5YLLMZ2BJTOMN3CT5PW
-#\\\|LJGR3SIV7KSNFLOTGT7KYF7BCJ6AICDIV5SQF3X7NVP2I45MTLT \ / AMOS7 \ YOURUM ::
-#\[7]UPYWVBW3GXZZ7AF3X5EE2GY2BAHQ3EMQEJGWI4DFUQYYJBNGMQCI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,.,..,,.,.,,,,,...,,.,,..,,,,.,..,,...,...,..,,.,.,,.,,...,,,,,
+#ITKP6V5JFMDHUU56MM5TLJM6J2ENGOHKT3SULYY6INAY7PB55VQXESCCPQXKUM5FA7F6FW4XINGYS
+#\\\|7L2L5WZMCKVVBQBXNTSG7XTWYBNGQS7VX5HYLU43H6V7CWIBZSZ \ / AMOS7 \ YOURUM ::
+#\[7]4YYBUZPTULZ7SWJBG5ZYD23GHTEF7KKB5WO4JHHJKV4F2CR7O6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

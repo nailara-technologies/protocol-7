@@ -4,7 +4,7 @@
 # param = <zenka[tile]> [ratio]
 # descr = return matching Y % to fit ratio [16:9]
 
-return { 'mode' => 'false', 'data' => "expected valid zenka name" }
+return { 'mode' => qw| false |, 'data' => "expected valid zenka name" }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\d+:\d+))?$/;
 
@@ -12,7 +12,7 @@ my ( $zenka_name, $ratio_str ) = ( $1, $3 // '16:9' );    # <-- default ratio!
 
 my $coords_reply = <[tile-groups.cmd.get_coordinates]>->($zenka_name);
 
-return $coords_reply if $coords_reply->{'mode'} ne 'true';
+return $coords_reply if $coords_reply->{'mode'} ne qw| true |;
 
 my @coords = split( / /, $coords_reply->{'data'} );
 
@@ -35,12 +35,12 @@ my $old_percent = sprintf( '%.02f', $height * 100 / $y_total );
 my $new_percent = sprintf( '%.02f', $new_height * 100 / $y_total );
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => "[$ratio_str] Y = $old_percent% --> $new_percent%"
     }
 
-#,,,.,,,,,.,,,,,.,.,,,...,...,..,,.,,,,..,,.,,..,,...,...,.,.,,,.,.,.,.,,,,,,,
-#5KHUZ5CVDJVC3ZYOEXBRJDJL2PF547YSMCG73XJ36Q5YWFGKZMAOWXPCBS44SJHDBOONSYYB3V26G
-#\\\|FCM3KBAGGSPIEI4M3XDAGS2JZ2YIKT4XLFU4NBUYTBCPGYBUVPY \ / AMOS7 \ YOURUM ::
-#\[7]JA4MYDF2NWJLBWETC6OEAC65ZRIFKCBDG5JXCACK32JBB4OYH4CY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,.,.,,,.,.,.,,,,,,,,,.,,,...,..,,...,...,,..,,,,,,,,,,..,,,.,
+#VPERD3Z6DKCUMY2TAQEOA222BEMSPDPHZ63YHKQOOPDQI5I6IYEAFRBFKBSTRLDD4ZFYPNSQWX4OS
+#\\\|IYXWFIAJS3UKE3WUO34SJRBL453NN3XHDI4EQMGIVOINIIVPE23 \ / AMOS7 \ YOURUM ::
+#\[7]AYDQZSRDKX6CJHISJXKYWQVW2P2GGV2KPG4IW7D7HN32ABKTQ2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

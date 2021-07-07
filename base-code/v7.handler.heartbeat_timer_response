@@ -19,7 +19,7 @@ $instance->{'timer'}->{'heartbeat-timeout'}->cancel
     if defined $instance->{'timer'}->{'heartbeat-timeout'}
     and !$instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
 
-if (    $response->{'cmd'} eq 'TRUE'
+if (    $response->{'cmd'} eq qw| TRUE |
     and $response->{'call_args'}->{'args'} eq 'beating' ) {    # success again
     delete $instance->{'heartbeat'}->{'errors'};
     <[base.log]>->(
@@ -60,8 +60,8 @@ if (    $response->{'cmd'} eq 'TRUE'
     );
 }
 
-#,,.,,..,,.,.,,,.,,..,..,,.,.,,,.,,..,,..,..,,..,,...,..,,..,,,,.,,,.,,..,...,
-#P77FAVWBBYJAOH56VZIKWZP55SWMWHSMFJONQDGCCUR2RPHZD3XOMP2G6DKMPOU6N64MDBBM462I4
-#\\\|LSOX6W6QH756YKRCBDBNNFAKIKJDHWDPN4P5QUQSSSII36WASKP \ / AMOS7 \ YOURUM ::
-#\[7]QKC2UYYBUVRBZLAZWQMBD2CVDV2VGJUAH26GWA76CPIFVYIOF6CA 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,.,,.,,.,.,...,,..,.,.,.,.,..,,...,.,.,.,,,...,.,.,.,.,,,.,
+#N2QWLH7USJH6VUKVDZVLD6PGKWCTANKFHAPUGCVWE4B3CA6QRRFWZUFCRGS4W3ME55A2UGE7ZLRVY
+#\\\|PKCYGFSD4J7OJ6XBEIBKPFECKIVGYA6ABMNDEEXCA5NKXRBNVWZ \ / AMOS7 \ YOURUM ::
+#\[7]BVMV3LF753HBESJ4A24CJKJKFL6ORRJDXXVYUCEB57ELREIFFGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

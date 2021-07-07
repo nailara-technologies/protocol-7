@@ -11,13 +11,13 @@ my $overlay_str = $$call{'args'} // '';
 <tile-groups.overlays.previous> = [ @{<tile-groups.overlays.current>} ];
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no tile group overlay is active'
     }
     if !@{<tile-groups.overlays.current>};
 map {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "tile group '$overlay_str' is not active"
         }
         if <tile-groups.current_tile_group> !~ m|$ARG|;
@@ -28,12 +28,12 @@ my @del_overlays = sort keys %del_overlays;
 
 map {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => 'expected tile group name'
         }
         if not defined $ARG or !length($ARG);
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "tile group \"$overlay_str\" not found"
         }
         if not exists <tile-groups.setup.tile-groups>->{$ARG};
@@ -51,7 +51,7 @@ map { delete $active{$ARG} if exists $active{$ARG} } @del_overlays;
 @{<tile-groups.overlays.current>} = sort keys %active;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "no match for tile group '$overlay_str'"
     }
     if scalar @{<tile-groups.overlays.current>} == $prev_count;
@@ -73,8 +73,8 @@ map {
 
 return <[tile-groups.cmd.switch-tile-group]>->( { 'args' => $merged_name } );
 
-#,,,,,...,.,.,,.,,,,.,,..,,,,,,,,,..,,..,,,,,,..,,...,...,.,,,,,.,...,,,,,,,,,
-#PUIHT76X2V5PIUIVHJJ2GOXH2UZZH6Z736HGJ5JZIME5XM7SLUVXZNMAKXUYEXXQEBSO6XU5PDHRC
-#\\\|NPXT4FT6YAXSNJDJRDWTDHYUTMSUP5DTFBDIME2DSL3HGVKZVNS \ / AMOS7 \ YOURUM ::
-#\[7]TS3U4JTH6UC5SAI6VZ3DSDE4QU4T36DKKQ2WLFDLAFMI5D4KGYBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,..,,,,,,,,,.,,,..,,,..,,,.,..,,...,...,...,..,,...,...,,.,,
+#O4WH3VHNOQTNUKGKNHGXNU7C3YOFNFI5N6PMFJ4ZZ7DUUTXFDG5WSH7VHHXFMD7T6VJXQT3UOJ5CC
+#\\\|TQMLBCAUPDSUOVX56YZATUAXLJ3ZT6ZMYBVMLKZ4SU3WJ3HXQO5 \ / AMOS7 \ YOURUM ::
+#\[7]45YURTGCLOZQG74NAJO6TF32MYQFUZ4YLHDMDBKJCMPOO4NGTYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

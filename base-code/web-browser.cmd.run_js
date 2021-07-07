@@ -11,12 +11,15 @@ my $settings  = $view->get_settings();
 my $js_string = $$call{'args'} // '';
 
 return {
-    'mode' => 'FALSE',
+    'mode' => qw| FALSE |,
     'data' => 'javascript execution is disabled'
     }
     if !$settings->get_enable_javascript();
 
-return { 'mode' => 'false', 'data' => 'expected javascript command string' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected javascript command string'
+    }
     if !length($js_string);
 
 <[base.log]>->( 2, "[$view_uri] running javascript : '$js_string'" );
@@ -42,7 +45,8 @@ $view->run_javascript(
         ( my $ex_str = $EVAL_ERROR ) =~ s| at /usr/.+\n$||;
         $ex_str =~ s|^[^ ]+ ||;
 
-        my $re_mode = $ex_str =~ /^[^:]*Error[^:]*:/ ? 'false' : 'true';
+        my $re_mode
+            = $ex_str =~ /^[^:]*Error[^:]*:/ ? qw| false | : qw| true |;
         $re_mode = 'data' if $ex_str =~ /\n/;
         $ex_str = '<< ! >> "throw" already being prepended internally << ! >>'
             if $ex_str eq "SyntaxError: Unexpected keyword 'throw'";
@@ -50,7 +54,7 @@ $view->run_javascript(
         <[base.log]>->(
             0,              sprintf '<!JSerr!> [%s] %s',
             $self->get_uri, $ex_str
-        ) if $re_mode eq 'false';    # <-- has JS error..,
+        ) if $re_mode eq qw| false |;    # <-- has JS error..,
 
         <[base.callback.cmd_reply]>->(
             $rep_id,
@@ -65,8 +69,8 @@ $view->run_javascript(
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,.,...,..,,,,.,..,,.,.,,,,,...,,..,,,.,..,,...,...,.,,,,,,,.,,,,,,,,..,
-#QCO56W7LRQXUF2NMUVWKTS333R3XJ4DGS7XISXFRVBLFHJGUL7BMWJN72ALNEERURPR37QRRCD6KA
-#\\\|63TMMQ3LBPMS4OX3L6VEKCXHFWZX5QUWV3XGYNKRPOFXYXGOFLT \ / AMOS7 \ YOURUM ::
-#\[7]2T46Q5MXGUIQZ52GTLKBIMRUD445BXDBQ6WZY6CXIQGUCI7VHABY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,,.,,.,.,,,.,..,,.,.,...,.,,,..,,...,...,.,,,.,.,.,.,,,.,..,,
+#ROWHQVOW3YSNBVPKU3DPURSLFPTJFQUQAQXBY3STMQF4R6LM4AM7CNGTB6LLVQOHJINCEHNR5YOY6
+#\\\|NBCWGXNSRQ6Q4TRWSJFQXUVHAO4P4MX6OUTFVUYW44PVVBXMSRY \ / AMOS7 \ YOURUM ::
+#\[7]PBUPN7Z7UYSF5OISMAD3WVSLHRLKPG7EHDKNREG6Z7RJ5CUXYUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

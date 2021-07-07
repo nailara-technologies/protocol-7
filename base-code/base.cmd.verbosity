@@ -7,7 +7,7 @@
 my $verbosity_type = $$call{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'incorrect verbosity type parameter [buffer|logfile|console]'
     }
     if defined $verbosity_type and $verbosity_type !~ m,buffer|file|console,;
@@ -19,10 +19,13 @@ if ( defined $verbosity_type ) {
     $verbosity_type =~ s{^(file)$}{log$1};
     $verbosity_type =~ s{^(buffer|logfile)$}{zenka_$1};
 
-    return { 'mode' => 'false', 'data' => 'type not valid' }
+    return { 'mode' => qw| false |, 'data' => 'type not valid' }
         if not exists $verbosities->{$verbosity_type};
 
-    return { 'mode' => 'true', 'data' => $verbosities->{$verbosity_type} };
+    return {
+        'mode' => qw| true |,
+        'data' => $verbosities->{$verbosity_type}
+    };
 }
 
 my $v_report;
@@ -34,8 +37,8 @@ foreach my $key ( reverse sort keys %{$verbosities} ) {
 
 return { 'mode' => qw| size |, 'data' => ":\n$v_report:\n" };
 
-#,,..,,.,,,,.,.,.,.,,,,,.,...,,.,,.,,,...,,,,,..,,...,...,..,,..,,.,.,,,.,,,,,
-#XOXT3CKI3YOLCZYHL5ARJMDJ2RIQ3Q54D7CFOO5NYWC53QVC53HPBIMT5REWYQKBTOMZYOCMXDO36
-#\\\|U5W5GTAZI2K5JPIKNZXYBPQMBKCIS37F4F3FOQC7PZF7M4SJ2GQ \ / AMOS7 \ YOURUM ::
-#\[7]L2EA5Y25BSJDSUVI5NQBWTORIIAB3Q3WPFESBBKQT74KSEYRMOBA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,,,...,.,,,,,,,,.,,,..,.,,,..,,...,...,..,,,..,.,.,.,,,.,.,
+#GYZCUL7K4LPIVLPWIGLNFIMJDNYGWXWYSICVBOUE4IAU32GW6MPFZDFLOWAGDRS2MTZFFSHY3JEA6
+#\\\|WDJVKMO6BU6FJYDFOBRAUBWCTHOE5BNN5IBFXD6I5LS4NZR3DBS \ / AMOS7 \ YOURUM ::
+#\[7]WR5AK7DPXFMV72G5IVQNNO5L34XUSNY7R3FCUREYXVVQJZLS5KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

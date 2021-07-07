@@ -7,9 +7,9 @@
 my $X         = <X-11.obj>;
 my $window_id = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'x11 window id required' }
+return { 'mode' => qw| false |, 'data' => 'x11 window id required' }
     if not defined $window_id;
-return { 'mode' => 'false', 'data' => 'invalid x11 window id syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid x11 window id syntax' }
     if $window_id !~ /^\d+$/;
 
 my $xtops = <X-11.WM>;
@@ -23,7 +23,7 @@ for my $w ( @{ $xtops->sorted } ) {
     }
 }
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window;
 
 eval {
@@ -34,12 +34,15 @@ eval {
             "BELOW" );
     }
 };
-return { 'mode' => 'false', 'data' => "unable to set window state 'below'" }
+return {
+    'mode' => qw| false |,
+    'data' => "unable to set window state 'below'"
+    }
     if $EVAL_ERROR;
-return { 'mode' => 'true', 'data' => "set window state 'below'" };
+return { 'mode' => qw| true |, 'data' => "set window state 'below'" };
 
-#,,,.,..,,,,.,.,.,,,,,,.,,,..,..,,,.,,,,.,,,,,..,,...,..,,.,.,...,,,.,,..,.,,,
-#5DZBLSIDSCTRDFJVN76MS3QYX2S4IX6XHF4JA6UG3PWYS7NTPXCQVMN4DWP5KLGPN67PFJZZENDBG
-#\\\|U6TUEHWBFFVLTNYDLBVSPYPGQKGYQ7DE3Q532IRO5PBE7X2332P \ / AMOS7 \ YOURUM ::
-#\[7]UQ62NVEKRRR5Y3JZCPPUF3ZORODEOKU63SDGYUTIHUU7I3MXGEAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,..,.,.,.,,,,,,,,,.,...,.,,,..,,...,...,,..,...,..,,...,,,,,
+#D563GGTADEMZAWD7BCTIAGDT6P5DOUWYLXXSRCLVIPWVTSWTAF5G7BZAO4NHUXKTEHK3ZUUPZ7GFM
+#\\\|PNLPJADBVS7LZTCIILNSQR7PLJUE3HSWVB6IJD3GJGZCKXRAFWW \ / AMOS7 \ YOURUM ::
+#\[7]YKBGZZMRI74XTES2MSWXMNCTT5PSPEG6CZ5BV72DINIVWS3HUOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

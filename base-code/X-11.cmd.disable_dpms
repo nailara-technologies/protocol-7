@@ -3,7 +3,7 @@
 # name  = X-11.cmd.disable_dpms
 # descr = disable display power saving modes
 
-return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
+return { 'mode' => qw| false |, 'data' => 'X-11 has no DPMS support' }
     if !<X-11.has_dpms>;
 
 <X-11.obj>->DPMSSetTimeouts( 0, 0, 0 );
@@ -13,10 +13,10 @@ return { 'mode' => 'false', 'data' => 'X-11 has no DPMS support' }
 
 <[base.log]>->( 1, "DPMS manually disabled" );
 
-return { 'mode' => 'true', 'data' => 'DPMS now disabled' };
+return { 'mode' => qw| true |, 'data' => 'DPMS now disabled' };
 
-#,,..,,..,.,,,,.,,,.,,..,,,.,,..,,,.,,,..,,,,,..,,...,...,..,,.,,,,..,...,,,.,
-#4R4PIN4EHXELQOSHUK5R55IFDLPWE2WYDVZDYBYCFKJ4IR5VLSICZE7WMXAPRPJ57OSBAM3PWBQC6
-#\\\|PYUF5FDW5GYOBUXHE73B2UTFVT5AGZPUP6ZRBAK5WOQYWXD2NWQ \ / AMOS7 \ YOURUM ::
-#\[7]RXLAELOQHD4TGDDJNHZQELUJKJQ4DQ33PAMSH6ZCRMLWCK756ABY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,,,,,,,,,,,.,,,.,...,,..,...,..,,...,..,,...,,.,,,,.,...,..,,
+#A4SUUOPDSPMFESLEJZEXIXLM2YYFZZWANSHPGG5RMERVK63EXWKNFBKSLFVUFHB7YDQQS4XXDQ3FK
+#\\\|C5KYM6Y22Z552FLHCSVR6VHP3EB5AQZENS5BX7PEAEXXAIZTGG6 \ / AMOS7 \ YOURUM ::
+#\[7]5VH4JABPYHAMQ2JLMPWUQVTSIMZKYBDSQSQ4NJ6U3GOB7X2ZHWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

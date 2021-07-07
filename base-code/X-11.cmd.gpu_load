@@ -4,7 +4,7 @@
 # param = [interval_secs]
 # descr = return current gpu load statistics
 
-return { 'mode' => 'false', 'data' => 'no statistics available' }
+return { 'mode' => qw| false |, 'data' => 'no statistics available' }
     if not defined <X-11.gpu_top.stats.load_average>
     or not defined <X-11.gpu_top.stats.secs>;
 
@@ -12,7 +12,7 @@ if ( defined $$call{'args'} ) {
     my $ivl  = $$call{'args'};
     my %secs = map { $ARG => 1 } @{<X-11.gpu_top.stats.secs>};
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "no statistics for interval \"$ivl\" collected .. [ "
             . join( ', ', @{<X-11.gpu_top.stats.secs>} ) . " ]"
         }
@@ -24,13 +24,13 @@ if ( defined $$call{'args'} ) {
         $s .= ' ..' if $retry_in >= 5;
         $s .= '.'   if $retry_in >= 15;
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "please retry in $retry_in second$s"
         };
     }
 
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => <X-11.gpu_top.stats.load_average>->{$ivl}
     };
 }
@@ -49,10 +49,10 @@ map {
 } @{<X-11.gpu_top.stats.secs>};
 $stats_str =~ s| +$||;
 
-return { 'mode' => 'true', 'data' => $stats_str }
+return { 'mode' => qw| true |, 'data' => $stats_str }
 
-#,,,.,.,.,,,,,,,,,..,,..,,.,.,..,,.,,,,,.,.,,,..,,...,...,..,,,,.,,,.,,..,...,
-#K4JJIMM4NJFYCVKBBEMWD7W2C4IH2VS76GV7YH33HPXV33LSY22TSULS6R2QGKU3QCENYB67SKLD6
-#\\\|PGNZDCZ4JQIBGGM6GC45FCXWA3SQEPTLZCPOKRATQNSQOTNCXN2 \ / AMOS7 \ YOURUM ::
-#\[7]7BDEQQ3FF3ICAGSIZTPXQ7GMJGOKHQVUYBHZYW6TLZTATA7N74AQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,.,,,,,.,.,.,,.,,,.,,,.,,.,.,..,,...,...,...,...,,..,.,,,..,,
+#LFMRM5KYSNIAQEK7ATGU5AMCSBN4YU22UXL4Z7JBZVINEU4NJZV2NTMCBSJXGNOYXEAN4WS7J7JDE
+#\\\|ZFWPMOFCTHAGMYAEJ4C4FHTP3NEIYBGULHBHRPJSKEUQMM2PU6I \ / AMOS7 \ YOURUM ::
+#\[7]KH5UY3NBKKVEQJV2PKNDHG6RANUSIQJ2UN2EDKEOIRAVHU6F52AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

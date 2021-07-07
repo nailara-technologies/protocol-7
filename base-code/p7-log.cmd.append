@@ -18,7 +18,7 @@ if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
     <[base.log]>->(
         2, "rejected duplicate '$buffer_name' entry from '$node_zenka'.,"
     );
-    return { 'mode' => 'false', 'data' => 'duplicate entry, dropped.' };
+    return { 'mode' => qw| false |, 'data' => 'duplicate entry, dropped.' };
 } else {
     $node_checksums->{$buffer_name} = $entry_checksum;
 }
@@ -56,7 +56,7 @@ if ( defined $err_msg ) {
         <[base.parser.ellipse_center]>->( \$show_line, 74 );
         my $s = ' ' x 76;
         printf( " /$s\\ \n > %74s < \n \\$s/ \n", $show_line );
-        return { 'mode' => 'false', 'data' => $err_msg };
+        return { 'mode' => qw| false |, 'data' => $err_msg };
     }
 }
 
@@ -111,14 +111,14 @@ my $msg_len = length($write_line);
 ( my $success, $err_msg ) = <[p7-log.add_line]>->( $log_file, \$write_line );
 
 # success
-return { 'mode' => 'true', 'data' => "wrote $msg_len bytes" } if $success;
+return { 'mode' => qw| true |, 'data' => "wrote $msg_len bytes" } if $success;
 
 # error case
 <[base.log]>->( 0, $err_msg );
-return { 'mode' => 'false', 'data' => $err_msg };
+return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,.,,,,,,.,,,.,.,..,,.,.,,,,,,..,.,,,,..,,.,,..,,...,...,..,,.,,,.,.,,,.,,..,
-#MFBWVNQPGXULODGTTJBHXV3MXSBP6VZRT4UQ3J57Z3TL4CHZO2EQNW64ENEO77KAQMV744FIIWRDC
-#\\\|CEAIA3FTVVXH75NUZUU7HTLJ6HVYUFQI5N4MM4EDZ7CVUZ56JM5 \ / AMOS7 \ YOURUM ::
-#\[7]54WAAOL7XX42P23XFQ73QO5A3GJ7KVWP267G3EYUDWHD74RMQSCA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,,,,,.,,.,.,,,.,,..,,,.,,,,,..,,...,...,,,.,.,,,,.,,.,,,..,,
+#HPIK4VQ6THGTLU46GEQR5B7CYLYRB34G6SNBAG56UYFOFI3G7IMVFM57WG4K46GOECIUJ7ABQOIOW
+#\\\|N3FGVPE3PV7VF3EE75VKF4JQZSGSKZUSEH5OOIP4HUO7EPRYINR \ / AMOS7 \ YOURUM ::
+#\[7]TIM7DX4EOF4KJYN4WQICZBSLDGTDEIP264T3M5LTZP6KOW55UQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

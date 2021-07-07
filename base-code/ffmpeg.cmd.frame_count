@@ -7,9 +7,9 @@
 my $video_path     = shift->{'args'};
 my $allow_slow_cmd = <ffmpeg.cfg.allow_slow_count> //= 1;
 
-return { 'mode' => 'false', 'data' => 'expected path to video file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'false', 'data' => 'video file not found!' }
+return { 'mode' => qw| false |, 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my $frame_count = <[ffmpeg.frame_count]>->($video_path);
@@ -23,13 +23,13 @@ if ( not defined $frame_count and $allow_slow_cmd ) {
     );
 }
 
-return { 'mode' => 'false', 'data' => 'unable to extract frame count!' }
+return { 'mode' => qw| false |, 'data' => 'unable to extract frame count!' }
     if not defined $frame_count;
 
-return { 'mode' => 'true', 'data' => $frame_count }
+return { 'mode' => qw| true |, 'data' => $frame_count }
 
-#,,..,,.,,.,.,,,.,,..,..,,,,,,.,,,.,,,..,,..,,..,,...,...,.,.,...,,..,...,..,,
-#HKOYSP57HMEE2BTAE4CV3BISUA425DOCRQDHOVBNOUM23PVRBWULFXD54M5F3FWQ34N5Z5ZCFSLUC
-#\\\|PQHOJ7VIWDOHGFPIMGZ2O6MARUGK5Y4BMI5LXKKN4VO3QXQIBEW \ / AMOS7 \ YOURUM ::
-#\[7]UKN2GLXUNY3ATCOFUBWLJHFHH4XZOMHXI47JRBTOKWVLR2OLJABI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,.,,,,,.,.,,,,..,.,.,..,,,,,,..,,...,...,..,,,,.,,..,,,.,...,
+#W5VLP6HDYBZHHJQ56K4BNL5GWE32MFELUMAFNQMONORV6SRDLX77ECH73NUVCYW5LWPZU3JOHUOSU
+#\\\|7RTMM352NGVMIEA3CYDDBLYX77HXK2BD3SB2V5SAJRZZVAGVX7K \ / AMOS7 \ YOURUM ::
+#\[7]Y5S3QYCAPTDYYKFJVZJIWQ4W3RLQ7CWGBOGBP3LEC3M7F67PF4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

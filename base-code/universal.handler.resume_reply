@@ -11,7 +11,7 @@ if ( exists <universal.timer.switch_timeout> ) {
     delete <universal.timer.switch_timeout>;
 }
 
-if ( $reply->{'cmd'} ne 'TRUE' ) {
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->(
         0, "resume command failed [zenka '$zenka_name'] ($reason)"
@@ -23,8 +23,8 @@ if ( $reply->{'cmd'} ne 'TRUE' ) {
     <universal.child>->{$zenka_name}->{'paused'} = 0;
 }
 
-#,,.,,,.,,...,.,.,,,.,.,.,.,.,.,.,,.,,,..,,,,,..,,...,...,...,...,,,,,..,,.,.,
-#OW4TFSWBE2MNE2AW3P6DHWM7AEX22ONTAEK6C7UTNWICA5VQDC2WHY7WU6YOE5RL25EIHQWJTPFKG
-#\\\|5D2XC47IEEXVWLPU2MPDXAVH4GJNFS4TW5NOCSSVO5HBZP6MIAE \ / AMOS7 \ YOURUM ::
-#\[7]TKA5BD6CELFHVMKQCXFVXEDPEYE6G2RCUKJSJXN6OK7TYRF3RWBY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,.,,,,..,...,,,,,,,.,,,.,..,,..,,...,...,.,,,.,,,,.,,,.,,,.,,
+#EPSOMF2CPAZHJ4WEK7BJ7GRA7STOKER545WGTFRVZLBH6DPUVOPCIX2H3KZGR62KLBBF5SEOBTPTY
+#\\\|QKII6S2LRW2OOHUDR7T7LGXRBF3PUGCCHPKU6R4RSBGHI6LVHZH \ / AMOS7 \ YOURUM ::
+#\[7]DAL4RCUTIDTU3YT7QILQSYKVGGV4CLQ7KRRFEHET22CPUM43FOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

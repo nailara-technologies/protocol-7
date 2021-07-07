@@ -7,12 +7,12 @@
 <power.cfg.devices> //= {};
 my $device_id = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'numerical device id expected' }
+return { 'mode' => qw| false |, 'data' => 'numerical device id expected' }
     if !length($device_id)
     or $device_id !~ /\d+/;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "device '$device_id' does not exist"
     }
     if not exists <power.cfg.devices>->{$device_id};
@@ -21,10 +21,10 @@ delete <power.cfg.devices>->{$device_id};
 
 <[power.save_config]>;
 
-return { 'mode' => 'true', 'data' => "device $device_id removed" }
+return { 'mode' => qw| true |, 'data' => "device $device_id removed" }
 
-#,,.,,,.,,,..,.,.,,,.,,,.,.,,,,,.,..,,...,...,..,,...,...,.,.,,.,,.,,,..,,...,
-#AAH6FIPTXK4DHKOFFIQNSQKSBTP34GC2K6SU2GALVWIIUIVJA3CVW2Q3GCGNM3OXCO6MKRS3JTVWC
-#\\\|QWJAK4LF6K434PTYQOGU4BLDWSNNPGSHSIEB5POWJXSVDC2TYGM \ / AMOS7 \ YOURUM ::
-#\[7]EJSHVPA7H3CZLMQGWLXU4KLTQWIREUYFN4GJNTLAZDRVOB6IPSBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,...,...,..,,,,.,.,.,..,,..,,..,,...,...,..,,...,..,,,.,,.,,,
+#IOYP6WNKZMCS4B6LCXESVNWJIQ5OBY2ORHWSDY63AQ5BXFG5KF4Q22TQHCVX7664ONT2U6JZPXU3S
+#\\\|M54ZWLGO5FW5CNZZFYR5BMHCWHCML4RPDTY6AZKC4WNXTGC5HY4 \ / AMOS7 \ YOURUM ::
+#\[7]AAIYKNZWTS4ZQFE4QJS2ZPYE5ATFZKTYVNNXHRGWGC27EK57WABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

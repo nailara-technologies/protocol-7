@@ -6,18 +6,18 @@
 
 my $window_id = $$call{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'expected numerical window id' }
+return { 'mode' => qw| false |, 'data' => 'expected numerical window id' }
     if $window_id !~ m|^\d{1,13}$|;
 
 my $window_title = <[X-11.get_window_title]>->($window_id);
 
-return { 'mode' => 'false', 'data' => 'no such window' }
+return { 'mode' => qw| false |, 'data' => 'no such window' }
     if not defined $window_title;
 
-return { 'mode' => 'true', 'data' => "'$window_title'" }
+return { 'mode' => qw| true |, 'data' => "'$window_title'" }
 
-#,,,,,.,,,,.,,...,,,,,,.,,,..,,..,,.,,.,,,,..,..,,...,...,.,.,.,,,,,.,,,,,,,,,
-#LKU4WHJJ3YML2Y57HS3V7QX47EJRWR3J32Q7BWDB6KAHX3INONV5EHQ57XMGRO5NVK7OHITRTDQQM
-#\\\|D7TT2DPKGDXR7JYA5G53GLKKYTJ5QZ7MHIRN74MLSNGB37XQLIY \ / AMOS7 \ YOURUM ::
-#\[7]5QCAFRVJ3ZS73XT7FJZ4AB7YTHOWHDZDX2ZA2LXUSK5XTC36AIDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,..,,...,,.,,...,,..,...,...,..,,...,...,.,.,,.,,.,,,,,,,.,.,
+#4WSK5SWVDQPDIXT5J4P4OZDYF2GL67NDNMUL2XWLLUKE26HKZW6UQTM6WPC5DW2RTCB2AL3T5BDTG
+#\\\|5UIRRKTD3WQASQAGZB6GWMMMQAKTXMG7JG6I3EU4FZWN4EX6TL6 \ / AMOS7 \ YOURUM ::
+#\[7]RJHLRW6YTDZUYI3VK6YBBOXBKCFZKVSZMYSIRQCTS4YMOG4HQWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

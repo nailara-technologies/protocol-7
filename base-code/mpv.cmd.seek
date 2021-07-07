@@ -7,12 +7,12 @@
 my $seek_mode  = 'absolute';
 my $seek_value = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'expected seek value' }
+return { 'mode' => qw| false |, 'data' => 'expected seek value' }
     if not defined $seek_value or !length($seek_value);
-return { 'mode' => 'false', 'data' => 'invalid seek value' }
+return { 'mode' => qw| false |, 'data' => 'invalid seek value' }
     if $seek_value !~ /^[\-\+]?\d+(\.\d{1,5})?%?$/;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'percentage value not allowed in relative mode'
     }
     if $seek_value =~ /^[\-\+]\d+(\.\d+)?%$/;
@@ -23,7 +23,7 @@ $seek_mode = 'relative'
 $seek_mode = 'absolute-percent' if $seek_value =~ s|%$||;
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'valid percentages are between 0 and 100'
     }
     if $seek_mode eq 'absolute-percent' and $seek_value > 100;
@@ -35,8 +35,8 @@ push( @{<mpv.reply_ids>}, $$call{'reply_id'} );
 
 return { 'mode' => 'deferred' }
 
-#,,,,,,,.,..,,,.,,..,,,,.,,,.,.,.,.,.,.,.,.,,,..,,...,.,.,...,..,,,,,,.,.,,,.,
-#TOZVXP22V25JW4JWV2YYSU2MJTCVXWWPUW2363LH7T6OF3Q23KPVSTL3X2KF7AJ7TKMYU3KSI4HM4
-#\\\|OAXMAYZ65WMUAVOF5V5UGKDY4TY6IRP7DRLBW2JDVLTZS4ENDDC \ / AMOS7 \ YOURUM ::
-#\[7]7Y6WMQXTBGU2N3FI26MLHUSR3HUUHF4LACZDOI42ED6IAQ3CJUBI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,.,,,.,.,,.,,,..,,,.,,,.,.,.,..,,...,...,.,,,,..,,..,,..,.,,,
+#RK5KADGAFLLMZRSQEDNKGG7UTOBLGWMKH3IJPTVEBAER3RJ35DRNJ6ZDHGN7MGNXIZTHVRYZZYPLO
+#\\\|YXXHGLKMCEUO3BH66E7KHVW3VZSZT6B2X753QZLQM63IAHKHCSK \ / AMOS7 \ YOURUM ::
+#\[7]RFQOXJ6DVLSKBLG5S3GI2PIEOP3NPENMQRGPHJNP3OW5ZTXTWWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

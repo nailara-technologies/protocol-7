@@ -8,12 +8,12 @@ my $max_fail = 5;
 
 return 0 if !@deb_list;
 
-local $ENV{'APT_LISTCHANGES_FRONTEND'} = 'none';
-local $ENV{'UCF_FORCE_CONFFOLD'}       = 'true';
-local $ENV{'UCF_FORCE_CONFMISS'}       = 'true';
-local $ENV{'DEBCONF_PRIORITY'}         = 'critical';
-local $ENV{'PAGER'}                    = '/bin/true';
-local $ENV{'LANG'}                     = 'en_US.UTF-8';
+local $ENV{'APT_LISTCHANGES_FRONTEND'} = qw| none |;
+local $ENV{'UCF_FORCE_CONFFOLD'}       = qw| true |;
+local $ENV{'UCF_FORCE_CONFMISS'}       = qw| true |;
+local $ENV{'DEBCONF_PRIORITY'}         = qw| critical |;
+local $ENV{'PAGER'}                    = qw| /bin/true |;
+local $ENV{'LANG'}                     = qw| en_US.UTF-8 |;
 
 my $ok = 0;
 my $wait;
@@ -45,8 +45,8 @@ while ( !$ok and $max_fail-- ) {
 }
 return $errors;
 
-#,,..,,.,,...,,.,,..,,...,,.,,,,,,..,,.,.,...,..,,...,.,.,.,,,...,,,,,,,.,,,,,
-#FS32CRDF66CIECA5EPFYCS7AZB54EKWPGU47JEZKCS7UO37AS3K7YKONSH3SKZRDTG6OQA3TR2JAG
-#\\\|73RQ47HRVIEYTZYZUEM5FF73PDWWWKDIEGW7U62YH4S3INDWTZ6 \ / AMOS7 \ YOURUM ::
-#\[7]XRO367JYWVGYKGPXRKCOSTOIZZBP2IDBXNCMKU3O4FXYKP24WYAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,.,.,,,,,,,,,,,,,.,.,,,...,..,,...,...,.,.,.,.,,,.,..,,,..,
+#7HEF5QCFXXGKOWLGIA5E2WBS5QSQRMKQ74JZHSHZFPT2ZMCLP4DEOG3IPUOZWAJTJXZDMQE6BXZFS
+#\\\|O5X36H7PVC6NNTSU35WDPLMT4SLH3D6WH7AA7XD5R26VVEATFDX \ / AMOS7 \ YOURUM ::
+#\[7]2E55GTO627SYNGEL47M7GVMM7NG6FVI7I3FOI53QEM5UUO3Z6GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

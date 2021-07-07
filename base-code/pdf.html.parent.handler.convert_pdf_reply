@@ -9,7 +9,7 @@ my $pdf_path  = $reply->{'params'}->{'pdf_path'};
 my $html_path = $reply->{'params'}->{'html_path'};
 ( my $html_dir = $html_path ) =~ s|^.*/||;
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
     <[base.log]>->( 0, "conversion of '$pdf_path' failed [$reason]" );
     my $errors;
@@ -26,8 +26,8 @@ if ( $reply->{'cmd'} eq 'FALSE' ) {
 
 delete <pdf.html.converting>->{$html_dir};
 
-#,,,,,,,.,..,,..,,...,.,.,,,,,,,,,,.,,.,.,.,,,..,,...,...,...,..,,...,.,,,,,.,
-#APVGHVUPVFRJVKJDCW7R4WPFX7CQ6C4CBFQYEDAO7P2M7JF3M2AAMQCOCN7WY4JBO7H2YYYRIQOV6
-#\\\|FV7AV6EF4SZIPPJKPAORIICIOXGFBN34FUFC5XPRYATTY7ZYTI2 \ / AMOS7 \ YOURUM ::
-#\[7]2FPVM6UU4BN7SJDBSMSDZIQ4MJ2JJP3X6A6KWSDAWQF6JWMVWGCQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,.,.,.,.,.,..,,,,.,,,.,,,.,..,,..,,...,..,,,,.,,..,.,,,,,,,,.,,
+#A26KZDCA2ZE4JRLPHZFFUI3JYSS6QPWMYKMXT3WDMIWVMRTSGUFDI3VGIV3EWTK7OMDM5MEA6BKFU
+#\\\|DCO74544JF225VU6RSYTLH24AUJAGEJMCIESEDJ5L7DK6YHIHHT \ / AMOS7 \ YOURUM ::
+#\[7]CA7T7E7PISHKC6UXQZROBKF7JY7YGH2TGVMWSUXQMGPJ72AOFMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

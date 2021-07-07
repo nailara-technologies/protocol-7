@@ -7,19 +7,22 @@
 my ( $image_path, $target_width, $target_height )
     = split( / +/, $$call{'args'} );
 
-return { 'mode' => 'false', 'data' => 'expected path to image file!' }
+return { 'mode' => qw| false |, 'data' => 'expected path to image file!' }
     if not defined $image_path or !length($image_path);
-return { 'mode' => 'false', 'data' => 'file does not exist!' }
+return { 'mode' => qw| false |, 'data' => 'file does not exist!' }
     if $image_path =~ m|^(file://)?(/.+)$| and !-f $2;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => "image2html UID can't read image file"
     }
     if $image_path =~ m|^(file://)?(/.+)$| and !-r $2;
-return { 'mode' => 'false', 'data' => 'invalid target width parameter!' }
+return { 'mode' => qw| false |, 'data' => 'invalid target width parameter!' }
     if defined $target_width and $target_width !~ /^\d+$/
     or defined $target_width and !$target_width;
-return { 'mode' => 'false', 'data' => 'invalid target height parameter!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid target height parameter!'
+    }
     if defined $target_height and $target_height !~ /^\d+$/
     or defined $target_height and !$target_height;
 
@@ -35,10 +38,13 @@ my $html_path = <[image2html.base.get_html_path]>->(
 );
 my $stub_file = "$html_path/image.html";
 
-return { 'mode' => 'false', 'data' => 'expected html dir does not exist!' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected html dir does not exist!'
+    }
     if !-d $html_path;
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'image2html stub file does not exist!'
     }
     if !-f $stub_file;
@@ -73,8 +79,8 @@ my $conversion_setup = {
 
 return { 'mode' => 'deferred' };
 
-#,,..,.,.,,,.,.,,,...,,,,,,,.,.,.,,.,,,.,,..,,..,,...,...,,,.,.,,,,,,,...,..,,
-#DK5SZX4RHJKNFZLCPP6IXOWQBJ7BMLLAQ5TC3HTNCNZPJZ6PAJ32L2IS5CIBF2CWUYSD6W6SQTGAS
-#\\\|IBCDFME67V7RJNYUBAKJ4SXKGCBIRRXRQA22O7FHEUAAZ3YUPBN \ / AMOS7 \ YOURUM ::
-#\[7]HTWV7LVMMIXHSDE3OOBW5PTGNA5EJUBUEJI43ZHGA7S4CPKTUYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,...,,..,.,,,,,.,,,.,,,,,.,.,..,,...,...,.,,,...,.,.,,,,,,,,,
+#IGZCLJYJNL4TOS7ITQSFCL5BJVVDMFM343ERHTJO5DPVW6PQBJ55EVWDWUJVM4L4756Q2BZO6Q6Y6
+#\\\|V3SSYN7I5AXTV4ZW36V3Q2OGFX7XSIPKZYXXSZ5QPDTFBO2WQMZ \ / AMOS7 \ YOURUM ::
+#\[7]MR5XRZIYWAJIRD42ZIQ6EUH74AHHSYHDLY7SAJPBD6KFSFVBYUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

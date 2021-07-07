@@ -21,7 +21,7 @@ my $current_data;
 
 my $interval_seconds = <weather.update_interval.current> * 60;
 
-if ( $reply->{'cmd'} eq 'FALSE' ) {
+if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $err_reason = $reply->{'call_args'}->{'args'};
     if ( $err_reason eq 'query failed [ unknown location ]' ) { # rate limit.?
         $log_level++;
@@ -123,8 +123,8 @@ if ( time + $update_interval > $midnight ) {
     }
 );
 
-#,,,.,...,,,,,,,.,.,.,,..,,,,,,,,,,,.,.,.,.,.,..,,...,...,..,,..,,,,.,,,.,,..,
-#VLHDS2MOI3PNNR7RJOUNHC7NMN7TCC4W4M47BDK5OUNMK4ZWCCT3U7EO6YA26WXDIAI2J4SX6CUAQ
-#\\\|DEGCZO72GLZY76TWK6O4LKFZN3NWP7QIRJ3WVT3FULXFXE5EABM \ / AMOS7 \ YOURUM ::
-#\[7]MBRF26DKQYGGIE72WCJZ3FJUC4HJTBYWLRPISIZCB4UW2Y65GODY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,..,,,,,,.,,.,,,,,,,..,,.,,,...,..,,...,...,..,,.,.,,..,,..,,,,,
+#6QZANDW3TDNXGMGU76TNPVVGGTHVFJQ7QNTYW7SYNVWOUXBK7XYY7JAP4XNVSAYPZEZA73GKJEIPW
+#\\\|6ETZCRXYA7WTT2F6FRVOVT4U3LP57PIJZLTGP3BBWH2EE4NVKZQ \ / AMOS7 \ YOURUM ::
+#\[7]CPX2VMJX7XYW2EBM6SREUTLJ2NNO3PJK5GN3X3U7TAKUGVLA2WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

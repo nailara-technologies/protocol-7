@@ -4,16 +4,16 @@
 # param = <zenka> [type]
 # descr = export zenka config to disk (.json file)
 
-return { 'mode' => 'false', 'data' => 'expected zenka name parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected zenka name parameter' }
     if not defined <set-up.json.export_allowed>
     or !<set-up.json.export_allowed>;
 
 my ( $zenka_name, $config_type ) = split( / +/, $$call{'args'}, 2 );
-return { 'mode' => 'false', 'data' => 'expected zenka name parameter' }
+return { 'mode' => qw| false |, 'data' => 'expected zenka name parameter' }
     if not defined $zenka_name;
 $config_type //= 'set-up';    # default
 
-return { 'mode' => 'false', 'data' => 'invalid zenka name syntax' }
+return { 'mode' => qw| false |, 'data' => 'invalid zenka name syntax' }
     if $zenka_name !~ <regex.base.usr>;
 
 <[set-up.chk_profile_dir]>;
@@ -21,7 +21,7 @@ return { 'mode' => 'false', 'data' => 'invalid zenka name syntax' }
 my $type_args = {};
 $type_args = { 'args' => $config_type } if defined $config_type;
 
-return { 'mode' => 'false', 'data' => 'invalid config type syntax!' }
+return { 'mode' => qw| false |, 'data' => 'invalid config type syntax!' }
     if $config_type !~ /^\w+$/;
 
 my $cmd_path = "cube.$zenka_name.get-config";
@@ -43,8 +43,8 @@ $cmd_path = "cube.get-config" if $zenka_name eq qw| cube |;
 
 return { 'mode' => 'deferred' };
 
-#,,..,,,,,...,.,,,.,,,,,,,,.,,.,,,,,.,.,.,.,,,..,,...,...,.,.,.,.,,..,.,,,.,,,
-#GX6LERPIRI6QMY7VN57EN47UWMFS5GKCQVPSTA7B2QXDO3W6FX2ECPDIPQGFQNMEZSAI3SFJU5IJ4
-#\\\|DB6NLQNL54UCCC242GWGVGCRZMNA342XR3X7LCR7LWIGYFWVKY3 \ / AMOS7 \ YOURUM ::
-#\[7]G2F3ISQ73LTQTCARVWS6WKG7WOY3IQZGQEJIRRQRWYU4LXD2KSCI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,,,,,.,,.,,.,,,,..,.,.,..,,..,,...,...,..,,..,,..,,,,.,,..,
+#7D4KLDT5XTUVRJ5XY5HP6W67PJ7ARPCLZ4RM27QRK7NR27BEMSIKK4UH6534QVMMQTLO6TQQGZQ2S
+#\\\|GDIOEHAHPSZCQQ5625VJ2RRAQP5XWFGXZUZ3SVSX37H4JOED6WX \ / AMOS7 \ YOURUM ::
+#\[7]DCRWJD6SWHI4CSXVMZH26XP3ZTICJEPULPYXQMCWJI35XFWCUWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

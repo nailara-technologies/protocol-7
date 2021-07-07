@@ -6,11 +6,11 @@ my $reply = shift;
 
 my $module_name = <system.gfx_reload.module_name>;
 
-my $reply_mode = 'true';
+my $reply_mode = qw| true |;
 my $reply_data = "kernel module '$module_name' reloaded ... X-11 restarted";
 
-if ( $reply->{'cmd'} ne 'TRUE' ) {
-    $reply_mode = 'false';
+if ( $reply->{'cmd'} ne qw| TRUE | ) {
+    $reply_mode = qw| false |;
     $reply_data = "module '$module_name' reloaded, X-11 restart failed ["
         . $reply->{'call_args'}->{'args'} . "]";
 }
@@ -24,8 +24,8 @@ if ( $reply->{'cmd'} ne 'TRUE' ) {
 
 delete <system.gfx_reload>;
 
-#,,..,,..,..,,,,,,.,,,,.,,,..,.,,,,,.,...,.,.,..,,...,...,,..,,,,,,..,,.,,...,
-#2YSAPCBY7JJGTZ4RORACMKZRY6SRRYVR6LRSMBOAFWUGXH5J2SO4GNU2WBAPV4TJB5TUYAOVYBTV2
-#\\\|HGMPY3W4NXE5Z3ASGLLCQIAQOIPTRA4SMBDUPXDXGVNFKNMPPNS \ / AMOS7 \ YOURUM ::
-#\[7]EE7JBEEJIUR6ZZBUAFFIQYUQ4MWDNPHGAOKBW67GJ2HG5CZ4E2BY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,...,.,,,...,.,,,,,.,,..,,,.,..,,...,...,...,,,,,.,.,,,.,..,,
+#S2SJWJIKOTRUE6P6HPHRYV5IYFUCUKM6VID7S2XDOTPI2YU6C6N3IAW3AL3C6LE4R4PFYNZ3FLXME
+#\\\|LDGKI2IK7QY3FL72C6XU56Q2BEPS4TYQUTWQMJUU7BCHLDKGNRL \ / AMOS7 \ YOURUM ::
+#\[7]HZUQJREVNNJGGP4EPURYRPWVHQQB2DFMJGHLYJMANDMDZQJCXMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

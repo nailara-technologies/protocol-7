@@ -6,7 +6,10 @@
 
 my $params = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'instance id[s] or name[s] expected' }
+return {
+    'mode' => qw| false |,
+    'data' => 'instance id[s] or name[s] expected'
+    }
     if not defined $params or $params !~ m{\d+|\w+};
 
 my $user_re        = <regex.base>->{'usr'};
@@ -17,7 +20,7 @@ my @instance_ids;
 foreach my $param_str ( split( m| +|, $params ) ) {
     if ( $param_str =~ m|^\d+$| ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "instance $param_str not found"
                 . " [ use 'v7.list' to see IDs ]"
             }
@@ -25,13 +28,13 @@ foreach my $param_str ( split( m| +|, $params ) ) {
         push( @instance_ids, $param_str );    ## numerical instance id ##
     } else {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "zenka name '$param_str' not valid [syntax]"
             }
             if $param_str !~ $user_re and $param_str !~ $user_substr_re;
         my @results = <[v7.zenka-instances.get-ids]>->($param_str);
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "no instance matches for zenka '$param_str'"
             }
             if not @results;
@@ -57,7 +60,7 @@ foreach my $instance_id (@instance_ids) {
 }
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => sprintf(
         'sent SIGTRAP [ loads dbg mod ] to %d instance process%s [%s]',
         $total_count,
@@ -70,12 +73,12 @@ return {
 ## else ##  [ kill command returned no matches ]
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'no success sending a signal to any process'
 };
 
-#,,,,,..,,,.,,.,,,..,,,..,.,,,,,,,..,,..,,.,,,..,,...,...,...,.,.,,,,,,..,..,,
-#6BWQEL2BBOTGP2A4FKND2OB2MBVDPR6RYIDE4GCS4WIEOW7B6G2JZWRQ3KTQVC5KDGOJ2N7C2QYRY
-#\\\|5CHETESM42MML4WG7TZMR4V37HFVXZ3RYR2SJBCNUBXAFOT5EDM \ / AMOS7 \ YOURUM ::
-#\[7]JVWJU6YLY4UT3WPX6CGQHZRS2A4AMWYJLGGJPX4JHNVMB3JXRYCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,.,.,..,,,,.,..,,,,,,..,,.,,,..,,...,...,,..,,,,,.,,,.,,,..,,
+#3WYDFV2DB6XW6J3UG62FVEVPJLVF65EVVILJSP5BQFQJJXD26EZVDCEAC7UXQUQO4JJ4F2L2QO5PG
+#\\\|OVOVC7HYGOMNZBJBZKT6CQYQK36XFJCDTBIZFRILXIH6GO22THW \ / AMOS7 \ YOURUM ::
+#\[7]2AGPN332L257KGM6RFMMAAE2XXEBQTMTAK45JZQ6M27DIGDFR2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

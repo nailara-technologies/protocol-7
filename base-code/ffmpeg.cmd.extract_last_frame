@@ -6,9 +6,9 @@
 
 my $video_path = shift->{'args'};
 
-return { 'mode' => 'false', 'data' => 'expected path to video file' }
+return { 'mode' => qw| false |, 'data' => 'expected path to video file' }
     if not defined $video_path;
-return { 'mode' => 'false', 'data' => 'video file not found!' }
+return { 'mode' => qw| false |, 'data' => 'video file not found!' }
     if !-f $video_path;
 
 my $frame_count = <[ffmpeg.frame_count]>->($video_path);
@@ -23,13 +23,13 @@ while ( $frame_count > 0
     $frame_path = <[ffmpeg.extract_frame]>->( --$frame_count, $video_path );
 }
 
-return { 'mode' => 'false', 'data' => 'unable to extract video frame!' }
+return { 'mode' => qw| false |, 'data' => 'unable to extract video frame!' }
     if not defined $frame_path;
 
-return { 'mode' => 'true', 'data' => $frame_path }
+return { 'mode' => qw| true |, 'data' => $frame_path }
 
-#,,..,...,,.,,,.,,,..,..,,,,,,..,,,,,,,..,.,.,..,,...,..,,.,,,.,.,.,,,.,.,,,.,
-#4REKM3CFGGNEHIIVIQFFZGFHMJDRVETKBDG7UOQHW45JC3NIYZI67JQ4WDU74MA4UP534K7POX5UE
-#\\\|J4B4BQL4ZGNTSVMRY3IV4NK56RW33DIKDU4S27ZC73N64XCWUAE \ / AMOS7 \ YOURUM ::
-#\[7]7U3IE3ICY7SSFI66DKLQS5UWAU4DYLZURCY6A37X4VQQ5RGSJUAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,.,.,,,,,.,.,,..,.,.,..,,..,,..,,...,...,.,.,..,,,,,,...,,..,
+#XH5X7R5A5FZBHUGYPMTJ4JHFZ7ACYLWTYAKDG2NLBTRNLJXIC5OLE45PCJBA2O64MWRO3G3ON34NU
+#\\\|VNGE3SSNY3HMZUKF7ORBRMFZCKU362I3W2JXWSYTV2LTA7PWM57 \ / AMOS7 \ YOURUM ::
+#\[7]RT2PR6MGML6MCYI5G4X5K3ZOWJLLDIGLRRAZAE6C5C5QNUNKYCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@
 # param = <tile|zenka>
 # descr = return configured layer for tile or zenka
 
-return { 'mode' => 'false', 'data' => 'expected zenka name' }
+return { 'mode' => qw| false |, 'data' => 'expected zenka name' }
     if not defined $$call{'args'}
     or $$call{'args'} !~ /^(\S+)( +(\S+))?$/;
 
@@ -23,7 +23,7 @@ if ( $zenka_name =~ /^\[([^\]]+)\]$/ ) {    # <-- only subname given
     } elsif ( keys(%zenka_names) > 1 ) {
         $err_msg = 'multiple zenki are matching, zenka name required';
     }
-    return { 'mode' => 'false', 'data' => $err_msg } if defined $err_msg;
+    return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
     ($zenka_name) = keys(%zenka_names);
 }
 
@@ -43,7 +43,7 @@ if ( not exists <tile-groups.layers>->{$zenka_name} ) {
         = "multiple '$zenka_name' instances defined, zenka subname required!"
         if $match > 1;
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => $msg_str
         }
         if $match != 1;
@@ -51,12 +51,12 @@ if ( not exists <tile-groups.layers>->{$zenka_name} ) {
 }
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => <tile-groups.layers>->{$zenka_name}
     }
 
-#,,,.,.,,,,,.,...,.,,,.,.,,,.,,,,,..,,,.,,,,.,..,,...,...,...,,..,,,.,,.,,..,,
-#BG7YFRAJ65KJNODGSENNEJHSPTJXJSTR4ZKCWWQORXLQ76ZGZMEO24C37GIFKWDNR6MZV57VTFLAC
-#\\\|JAPG65MWBW7NSU6YSOAIPKWNSDKXSKMZBWFKOQM44Q27PMVMHQC \ / AMOS7 \ YOURUM ::
-#\[7]I346MOT7MAXYY22MFVYHY4EANNCWWBH6VZXBT4XPEEFM3CCBDIDI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,,,,..,,...,.,,,.,,,,,,,,..,..,,..,,...,...,.,,,...,,.,,,..,.,.,
+#SQ7HNDTVDE5MMCNSC3XFVAMQFDK5ILTKP7ONLYV6YVSHMU6FKYDVOYBBKP25BZKA4GGEFFQFYARHY
+#\\\|2I6HVZUG6JQPMGB356XWMIDGCGL26RMNBIC5JBDVGUBJUV6J73D \ / AMOS7 \ YOURUM ::
+#\[7]FANXOVLZZOLFRFOXJ6XRIMNSRSFKBST4C3EINUGFXCESRG7HRGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

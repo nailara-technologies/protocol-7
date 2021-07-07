@@ -52,7 +52,8 @@ if ( delete <window.scroll.stop> ) {
     my $pos_percent
         = int( ( <window.scroll.pos> * 100 ) / <window.scroll.max> );
     <[base.callback.cmd_reply]>->(
-        $reply_id, { 'mode' => 'true', 'data' => "stopped [$pos_percent%]" }
+        $reply_id,
+        { 'mode' => qw| true |, 'data' => "stopped [$pos_percent%]" }
     ) if defined $reply_id;
     delete <window.scroll.stop_reply_id>;
     delete <web-browser.time.last_scroll>;
@@ -107,7 +108,7 @@ if ( delete <window.scroll.stop> ) {
     <window.scrolling>                 = 0;
     <web-browser.time.scroll_complete> = <[base.time]>->(3);
     <[base.callback.cmd_reply]>->(    # LLL: .cmd. only!
-        $reply_id, { 'mode' => 'true', 'data' => 'end of page reached' }
+        $reply_id, { 'mode' => qw| true |, 'data' => 'end of page reached' }
     ) if defined $reply_id;
 
 scroll_finished:
@@ -186,8 +187,8 @@ if ( $wait_time <= 0 ) {
 
 return 0;
 
-#,,..,,,,,,,,,,,.,.,,,,.,,...,..,,...,.,,,,,,,..,,...,..,,.,.,.,,,.,.,.,.,,.,,
-#AXPRNQ2L4TYRTMZ7443PLHKECGDSWN6FXMXTP465FWBY34LKVJOQIQ5BJN3M4QF5IEY36ULPSKICE
-#\\\|TG737A4RGHGGX72JC5SQBSZQY6VF67DBGLCTXMLXEPNHU6MAY4K \ / AMOS7 \ YOURUM ::
-#\[7]VQBIATLYWDAXATCNHPHK6VFY734XYDRENC7ZQNFQCMO3CULFT6BQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,.,,,.,,,,,.,,,.,,..,.,,,.,.,..,,...,...,.,,,..,,,..,.,.,,.,,
+#4L6YCGLTJZ5HFJ3VMJYEGE4QU5H73IQ2CYQFTKQ6UK6ZBLU5LYRWXSPJNCBTEOSZ4ADCD3UAXZ3LO
+#\\\|CJTC6S4IEZYUY2N7S6PP3OHBB2ZKJL6W2UOJ2JLZZOWF5XXKUEB \ / AMOS7 \ YOURUM ::
+#\[7]C4JTEIS2752YJCVMOYTROSYMWTIR6L2CCYEABOLZKJ4XWRH472DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

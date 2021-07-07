@@ -5,7 +5,10 @@
 # descr = show [dependency] status of zenki\instances
 
 my $params = $call->{'args'} // '';
-return { 'mode' => 'false', 'data' => 'expected zenka name or instance id' }
+return {
+    'mode' => qw| false |,
+    'data' => 'expected zenka name or instance id'
+    }
     if not length $params;
 
 my $restart_mode;
@@ -102,8 +105,8 @@ $reply_string .= ":\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_string }
 
-#,,,,,..,,...,,,,,,,,,.,,,,,.,,..,.,,,...,..,,.,.,...,...,,.,,,,.,...,,..,.,.,
-#3CSAFYTVEPSUUBVAG6Z5PJSNMWD3HVD43FWFM5R355A2PW57SI46NIDXSNSENXMPIFKKURWBQQPCQ
-#\\\|JPX7ON5YF4OONW7QVX5SAG2ZT5HLYFM2ND5SU5AVD6V5UQ6N6ZE \ / AMOS7 \ YOURUM ::
-#\[7]XLN7W5GAY5M243SYVHY6H65DFNYJMLUDWKU32E2S5XQY6QUHIOBQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,,..,.,.,,,.,..,,...,...,,,,,.,.,...,..,,,..,..,,.,,,..,,,..,
+#CVLRBJQ242GSPYB7KX6DYEDDKQGOTUOWASSSZCDZFMTLAYDW5KGDC3T7NQGC647MT2HC26H3IRXQO
+#\\\|GMSQMIRC4MJCPR62LEXAJHJV6R5JTO4WIQIC4RSUBXFTJVIET2X \ / AMOS7 \ YOURUM ::
+#\[7]33E3FLWIKQKDKCCHZ5ZEJ3UTXAI3RCS7PM4AD7QR6UYMQ364NMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

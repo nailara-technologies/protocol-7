@@ -6,7 +6,7 @@
 my $sid   = $_[0]->{'session_id'};
 my $param = $_[0]->{'args'} // '';
 
-return { 'mode' => 'false', 'data' => 'no base path defined' }
+return { 'mode' => qw| false |, 'data' => 'no base path defined' }
     if not defined $data{'session'}{$sid}{'base_path'};
 
 if (    $data{'session'}{$sid}{'base_path'} =~ m|\.|
@@ -15,15 +15,18 @@ if (    $data{'session'}{$sid}{'base_path'} =~ m|\.|
     <[base.log]>->(
         0, "[$sid] base_path = '" . $data{'session'}{$sid}{'base_path'} . "'"
     );
-    return { 'mode' => 'true', 'data' => "unselected '$1'" };
+    return { 'mode' => qw| true |, 'data' => "unselected '$1'" };
 } else {
     delete $data{'session'}{$sid}{'base_path'};
     <[base.log]>->( 1, "[$sid] <-- session base_path --> \"\"" );
-    return { 'mode' => 'true', 'data' => 'base path reset to local peer' };
+    return {
+        'mode' => qw| true |,
+        'data' => 'base path reset to local peer'
+    };
 }
 
-#,,.,,,,,,...,,,,,,.,,..,,,.,,,.,,,,,,.,,,...,..,,...,..,,.,.,.,,,.,.,...,,..,
-#AKX7K3PZJLCZ67YSOEJK6VWRWQUCF2LOYTEOJPDL7VOO4SVR55P7234MVJCFFHKMENG4ZFDT546NU
-#\\\|HWHKYSSYESV5FI5U5XJILLCHGLTTYK3GIVHVWWXTRRCYUX6MNYZ \ / AMOS7 \ YOURUM ::
-#\[7]AOJ6H6WSEQAHVIA5ILCNYZ5SLAAKGPKDMZTJTBA2OYF67GGPSCCI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,,.,,,.,...,...,...,,..,,.,,..,,...,...,...,,..,..,,...,,..,
+#EVMG6KFNOYHGJRVHHRT7BG4JIH2576YC27O7PJY22FU7JJHRLNHDQRITYYXCHE7EOWLMBSUPQGHFK
+#\\\|G5VJDE2QHNXTR7BMPJFDMMU6EGCYR3NPXBUDEKBPCP3PGSEEZYR \ / AMOS7 \ YOURUM ::
+#\[7]HNRTZC7J6B652JXUCZAAHBSGVQVBYJ575ABVYGHF4ZGV2B6MMSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

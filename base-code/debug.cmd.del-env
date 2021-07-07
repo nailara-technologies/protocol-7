@@ -6,17 +6,17 @@
 
 my $key = $$call{'args'};
 
-return { 'mode' => 'false', 'data' => 'key name required' }
+return { 'mode' => qw| false |, 'data' => 'key name required' }
     if not defined $key;
-return { 'mode' => 'false', 'data' => 'no such key' }
+return { 'mode' => qw| false |, 'data' => 'no such key' }
     if not exists $ENV{$key};
 
 delete $ENV{$key};
 
-return { 'mode' => 'true', 'data' => 'deleted' };
+return { 'mode' => qw| true |, 'data' => 'deleted' };
 
-#,,..,.,.,,,,,.,.,..,,,,.,...,,,.,,.,,...,,.,,..,,...,...,,.,,,,.,,..,,..,...,
-#LWWB253MJ7X3OOYCHAX6C2EKB3E7UFEKPHYTQQ37JMYP2HLUBIAX5AJZJISOZ4KZ4EUZ4MS2C3HQ6
-#\\\|NMEMOBLGYONQWZRPH6ZKUALNOCRI64MB3CQGDYZ6F3SLB44D4KQ \ / AMOS7 \ YOURUM ::
-#\[7]2KBR3PCEM7GDMAB5MVFC6DADVUOOEFARXHGPR6FDBSGQ4SVY2QDY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,..,,..,...,,,.,...,.,,,.,.,...,..,,...,...,..,,...,,,.,,,.,,,.,
+#F4HXXIJHTHEJXNE3OUUC633ATB3KCZS7VRHCKJSUJFRHV3A6LDMJOXVULVU2EIIVAMX523B2XWQGC
+#\\\|5WPERB5BQK34KZJOARY3F734UMGPCSF7W3G7IQ6P2DQUQLOV6VI \ / AMOS7 \ YOURUM ::
+#\[7]VI7BIJZFRUDWDJ55QI25FDU2E7YCPNNVZG275O57R2L4N5YDFMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
