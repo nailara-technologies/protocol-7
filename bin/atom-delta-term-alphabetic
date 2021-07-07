@@ -288,7 +288,7 @@ sub match_zulum {
 
 sub decode_char {
     my $input = $_[0];
-    return '' if !length($$input);
+    return '' if !length( $input->$* );
     my $pos_x;
     my $pos_y;
     my $bg_color = '';
@@ -304,7 +304,7 @@ GET_CHARACTER:
             int( 255 * ( 0.001 * $2 ) * ( 0.001 * $4 ) ),
             int( 255 * ( 0.001 * $3 ) * ( 0.001 * $4 ) ) )
         )
-        if $$input =~ m|^(\d{$char_width})
+        if $input->$* =~ m|^(\d{$char_width})
                        (\d{$char_width})
                        (\d{$char_width})
                        (\d{$char_width})|x;
@@ -313,10 +313,10 @@ GET_CHARACTER:
     $bg_color
         .= color(
         sprintf( 'on_r%dg%db%d', 0, 0, int( 113 * ( 0.001 * $1 ) ) ) )
-        if $$input =~ m|^\d{6}(\d{3})|;
+        if $input->$* =~ m|^\d{6}(\d{3})|;
 
     ( $pos_x, $pos_y ) = ( $1, $2 )
-        if $$input =~ m|^(\d{$char_width})(\d{$char_width})|;
+        if $input->$* =~ m|^(\d{$char_width})(\d{$char_width})|;
     $pos_x //= 0;
     $pos_y //= 0;
 
@@ -330,7 +330,7 @@ GET_CHARACTER:
     }
     $pos_y-- if $pos_y == $y and $pos_x == $x;
 
-    my $char_num = substr( $$input, 0, $char_width );
+    my $char_num = substr( $input->$*, 0, $char_width );
 
     return '' if !length($char_num);
 
@@ -338,14 +338,14 @@ GET_CHARACTER:
 
     #   eval { print ZULUM $character };
 
-    my $input_len = length($$input) // 0;
+    my $input_len = length( $input->$* ) // 0;
     if ($input_len
         and (  not defined $character
             or $char_num < 32
             or $char_num > 255
             or $EVAL_ERROR )
     ) {
-        substr( $$input, 0, $char_width, '' )
+        substr( $input->$*, 0, $char_width, '' )
             if $char_width == 2 and $char_num < 32;
         $char_width-- if $char_width > 2;
         goto GET_CHARACTER;
@@ -356,7 +356,7 @@ GET_CHARACTER:
     $LAST_BG     = $bg_color;
     $LAST_FG_COL = $fg_color;
 
-    substr( $$input, 0, $char_width, '' );
+    substr( $input->$*, 0, $char_width, '' );
 
     return
         join( '', "\e[${pos_y};${pos_x}H", $bg_color, $fg_color, $character );
@@ -649,8 +649,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,,,,.,,,.,,,..,,.,,,.,,,,.,..,,...,..,,,,,,..,,...,..,,...,,,,,,..,.,.,,..,
-#FBL7NQAQ5OAZREWV24TC3Q5CIWJY4NJTDCK3ZECYDXXLCQLVRM7EBOQTCDPQVRWO2MQZ7JXBPLSAG
-#\\\|GP5LGMQXIA3CZOCNQIRVPSRTXVCHDDWWOPAFNCPKH6RL22VW3XX \ / AMOS7 \ YOURUM ::
-#\[7]MFZ7RYBUTIY7MS36BVQVCGCENNSLNBVLKANAXNZ5E3LVPIVCWUBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,.,,..,,,.,,,,,...,,,,,.,,,..,,...,...,...,.,.,,.,,..,,,,.,
+#CDVFTDU7TOKH4UKQDO4G7WZYFGVBQ5L6JOP2GPVSP6NGYQJZU5ZYWWVWBWUWEOSLKUKH4PYDU62R4
+#\\\|T7J4NBBI7K6R4A3JB3GZZUTWPP6ANMV65WMPPRFZP4A6HZHNPIN \ / AMOS7 \ YOURUM ::
+#\[7]ZQ7WD2JGD7IMDB5LWRKZJDPZREQ5BTYWS2QWC4IS4Z4DGMBECSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

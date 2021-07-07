@@ -13,28 +13,28 @@ my $auth_versn = '0000000';    ### <-- AUTH VERSION ####
 my $auth_state = $data{'session'}{$id}{'c25519'} //= {};
 my $key_name   = <system.zenka.name>;
 
-if ( $$input =~ s|^get-version\n|| )
+if ( $input->$* =~ s|^get-version\n|| )
 {    ##  return authentication protocol version  ##
-    $$output .= sprintf( "TRUE %s\n", $auth_versn );
+    $output->$* .= sprintf( "TRUE %s\n", $auth_versn );
     return 1;    ## <-- keep connected ##
 }
-if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
+if ( $input->$* =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     my $cmd_type = $1;
     my $rep_type = $2 // $3;
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
     if (not defined $KEYS{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
     {
-        $$output .= "FALSE not available `:|\n";
+        $output->$* .= "FALSE not available `:|\n";
         return 2;    # <-- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
-        $$output .= sprintf( "TRUE %s\n",
+        $output->$* .= sprintf( "TRUE %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'key-reply'} );
     } elsif ( $cmd_type eq 'key-sig' ) {   ## returns session key signature ##
-        $$output .= sprintf( "TRUE %s\n",
+        $output->$* .= sprintf( "TRUE %s\n",
             $KEYS{'C25519'}{'session'}{$key_name}{'sig-reply'} );
     } elsif ( $cmd_type eq 'key-ver' ) {  ## return key and version chk-sum ##
-        $$output .= sprintf(
+        $output->$* .= sprintf(
             "TRUE %s\n",
             <[chk-sum.bmw.L13_str]>->(
                 sprintf( "%s.[%d]",
@@ -45,7 +45,7 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     }
     return 1;                             # <-- keeping connection state
 
-} elsif ( $$input =~ s|^set-key ($re->{usr_str}) (\S+)( (\S+))?\n|| ) {
+} elsif ( $input->$* =~ s|^set-key ($re->{usr_str}) (\S+)( (\S+))?\n|| ) {
     $auth_state->{'peer_name'}          = $1;
     $auth_state->{'peer_pubkey'}        = $2;
     $auth_state->{'peer_net_signature'} = $3;    # optional in 'anon-usr' case
@@ -55,18 +55,16 @@ if ( $$input =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
 
     return 1;                                    ## <-- keep connected ##
 
-} elsif ( $$input =~ m|\n| ) {
-    $$output .= ">:[\n";
-    <[base.log]>->(
-        0, "[$id] authentication protocol mismatch [ twofish ]"
-    );
+} elsif ( $input->$* =~ m|\n| ) {
+    $output->$* .= ">:[\n";
+    <[base.log]>->( 0, "[$id] authentication protocol mismatch [ twofish ]" );
     return 2;                                    # <-- terminate
 } else {
     return 1;                                    ## <-- keep connected ##
 }
 
-#,,.,,..,,,.,,.,,,,,.,..,,,,.,...,..,,,,.,.,.,..,,...,..,,.,.,.,,,,,,,..,,.,,,
-#4D6UXQK3RXBMSDGMZNOVEFHSRCPXHXHAQWURB77FCQX34PYK2PPWC5K35GHD6GOUR36P2EBGNJHGA
-#\\\|5Q7HE5355KW74BXYT2MYF7LQ5NZP4DL5WU7B6UKG473JLI5AEHM \ / AMOS7 \ YOURUM ::
-#\[7]53NEDXJPPAKCXAC6JQ4UPUGMPDTNBPBVP2UO7N2M5AJNQCWQEWAA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,.,.,,,,,,,.,,..,,,.,,,.,..,,..,,...,...,...,.,.,,.,,,,,,,.,,
+#QTGPVBKYIDCG7N2KT67RSZKFUS24QDATL3P7Q7LNKKDBNXX37YZ7FIIGRWVWR64ZK57ELSIHNAR3K
+#\\\|EVFQPCPL2BIZ2Z2DGTO2TGJGGZSJZVJ5QC23FEK4IL5IM6T6K6D \ / AMOS7 \ YOURUM ::
+#\[7]7AT4PGI4X3ZIF4I3XKC64RYGQV7ZFYFJM35SG7TTU64ZE5XC2KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
