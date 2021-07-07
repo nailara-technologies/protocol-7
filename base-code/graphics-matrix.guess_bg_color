@@ -29,8 +29,8 @@ for my $y ( 0 .. $img_h - 1 ) {
 
         my @hex_cols
             = $img_depth > 8
-            ? map { sprintf( "%x", sprintf( "%.0f", $ARG * 257 ) ) } @RGBA
-            : map { unpack( "H*", chr( sprintf( "%.0f", $ARG ) ) ) } @RGBA;
+            ? map { sprintf( '%x', sprintf( '%.0f', $ARG * 257 ) ) } @RGBA
+            : map { unpack( "H*", chr( sprintf( '%.0f', $ARG ) ) ) } @RGBA;
 
         $border_colors{ join( '', @hex_cols[ 0 .. 2 ] ) }++;
     }
@@ -43,8 +43,8 @@ my $top_color = $col_stats{$top_count};
 
 return '#' . uc($top_color);
 
-#,,.,,,..,..,,...,..,,,..,...,.,,,..,,...,.,.,..,,...,..,,,..,.,.,.,.,...,..,,
-#32JYDYQDW6PGKGBWYB5FCCIASFTZUFC2AK4AR33CHI6ARGZIPKNMTJW24SLZDERLY3MFQRDVGRPP2
-#\\\|2OOTJKGWVPIYQTGUQITFBULZKLTNV3FDMTKXS4N2H7KSDH4JPSE \ / AMOS7 \ YOURUM ::
-#\[7]TMMG3QG2QXZOXVKYZS3ZUMUY7JJCAEOY2YRBZ2WN6J2PXIQXVQAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,.,,,.,.,.,.,,.,,.,.,.,,,,..,..,,...,...,.,.,,,,,...,,.,,,,,,
+#ALLVEADVPUZU6H5Z34MCMSHL5HP5OXLYDEK3CAQ6V3OARFHFHSV3KVNMQOWAXD22PSNIDJ2RC2QMO
+#\\\|DEZ3MC46WEWU6WHV4FDJQZ25JE5E2SR26CUGB4FYDVZZULSVE2G \ / AMOS7 \ YOURUM ::
+#\[7]NHYMQW2JI5IBCVDPPSX5KCC7ULFOWXFNMNOP5IMOGUQ7MHZ6RWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

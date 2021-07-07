@@ -20,7 +20,7 @@ if ( defined $mode{'f'} and ( -f $mode{'f'} or $mode{'f'} eq '-' ) ) {
             if ( $mode{'q'} ) {
                 say encode_output( elf_val($ARG) );
             } else {
-                say sprintf( ": %s : %s",
+                say sprintf( ': %s : %s',
                     encode_output( elf_val($ARG) ), $ARG );
             }
         }
@@ -57,12 +57,12 @@ sub encode_output {    ## decimal [ base encoding ]
 #     my $checksum = shift;
 #     return substr( encode_b32r($checksum), 0, $bytes ) if not $numerical;
 #     return join( '',
-#         map { sprintf "%03d", $ARG }
+#         map { sprintf '%03d', $ARG }
 #             unpack( 'C*', substr( $checksum, 0, $bytes ) ) );
 # }
 
-#,,,.,...,.,,,,..,,.,,.,,,.,.,.,,,..,,..,,.,,,..,,...,...,...,.,.,.,.,,.,,..,,
-#5MSKQ7HZG2TOHCSMLO7S44CHH6RZAJVBLRUQWIY3FKKEKUDKFKE5AAUAC4VL3FFIFVSW4QEROEFRW
-#\\\|CZMC23M5DD44PGKJ5CB5H3CBW6A34W2FYH6D6SW7XDIHIHRVAB2 \ / AMOS7 \ YOURUM ::
-#\[7]6RMO6PLTOH423O2LMWTS4AAOGRJ23HDVPHSVRHYLLMMCINB5XCCY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,..,,..,,,,,,,,,.,.,.,.,,.,,..,,...,...,.,.,.,,,.,.,,,.,,,.,
+#3MDW7A3SLZC4VDUZJTUCLSN4PKAL3GMUNL5RQPLOYP72CB5PSNAIOKLVOT4USLLZIBSARUAV5VVFY
+#\\\|B5UCBF5CDVKBYIQ6EOJ3BHMHJFIEZGKUHM4O47HHBHG7OQB4VUM \ / AMOS7 \ YOURUM ::
+#\[7]33HUA2MI7AVSR3L4W7F7FZFQCZMV37UEUGZIDGUPC6FWHWIRFCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

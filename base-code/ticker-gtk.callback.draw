@@ -36,7 +36,7 @@ if ( not defined <ticker-gtk.speed> ) {
     <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 7; # internal default
     <[base.log]>->(
         1,
-        sprintf( "ticker scroll speed undefined [using default : %s]",
+        sprintf( 'ticker scroll speed undefined [using default : %s]',
             <ticker-gtk.speed> )
     );
 } else {
@@ -45,7 +45,7 @@ if ( not defined <ticker-gtk.speed> ) {
     <ticker-gtk.speed> = 42 if <ticker-gtk.speed> > 42;
     <[base.log]>->(
         1,
-        sprintf( "initializing with ticker scroll speed = %s",
+        sprintf( 'initializing with ticker scroll speed = %s',
             <ticker-gtk.speed> )
     ) if !<ticker-gtk.speed_logged>++;
 }
@@ -114,7 +114,7 @@ my $content_substr
 
 my $x_skipped = $content_substr->[0] // 0;
 
-my $x_offset = sprintf( "%.0f",
+my $x_offset = sprintf( '%.0f',
     <ticker-gtk.draw.x_pos> + $x_skipped - <ticker-gtk.draw.skipped_offset> );
 
 if ($draw_shadow) {
@@ -183,9 +183,9 @@ if ( !<ticker-gtk.paused> ) {
                 ) / 842
             );
             <ticker-gtk.slowdown.percent>
-                = sprintf( "%.4f", <ticker-gtk.slowdown.percent> + $adjust );
+                = sprintf( '%.4f', <ticker-gtk.slowdown.percent> + $adjust );
             $sl_diff = abs(
-                sprintf( "%.4f",
+                sprintf( '%.4f',
                           <ticker-gtk.slowdown.percent_target>
                         - <ticker-gtk.slowdown.percent> )
             );
@@ -238,13 +238,13 @@ if (<ticker-gtk.animation_started>) {
     }
 }
 
-<ticker-gtk.draw.fps>  = sprintf( "%.2f", 1 / $delta_t );
+<ticker-gtk.draw.fps>  = sprintf( '%.2f', 1 / $delta_t );
 <ticker-gtk.last_time> = <[base.time]>->(8);
 
 return 1;
 
-#,,.,,...,,..,.,.,,.,,.,,,..,,,..,.,.,,,,,...,..,,...,...,..,,.,,,,,,,,,,,,..,
-#5JM2X4VSOWENOUFSRR5PKERTHUMSRJXYFT2LSV7UNKK7KX6CYG3KZL4QJ2FAAHN7HIYG7NVTD6C2M
-#\\\|A2EJCZMYXHZ6JMM2O7RDINELPKKOYWREQBS6IMWFDMQHT3GCB72 \ / AMOS7 \ YOURUM ::
-#\[7]YJ6YH2BVBAXXW2EKKWKBT2DOU5HK6T55IR463ZN5TCUADN5ZL6DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,.,,...,..,,,,,,...,.,.,..,,,,,,..,,...,...,,..,,..,,,.,,,,,,,,,
+#2FTO7XPFALVDP65G7SYHXDY5RRTDVFA3JHI3TVXQZHWWBT3XZFBWKJZZX56JAYZBCKUOC7QV5EHBI
+#\\\|QTXEYPYPONYBGO4FQDXNQKYBEDDDFO5LJ2GAYLWKTVLDH2MQ2RP \ / AMOS7 \ YOURUM ::
+#\[7]5PQPD4VLY56OLZ5K3U2M2QLY66VJPLQQV64CCA6OMPQSKGPSWSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

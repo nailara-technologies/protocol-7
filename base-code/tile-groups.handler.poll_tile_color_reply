@@ -49,7 +49,7 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
             )
         );
 
-        my $zenka_name_str = sprintf( "%s[%s]", $zenka_name, $tile_name );
+        my $zenka_name_str = sprintf( '%s[%s]', $zenka_name, $tile_name );
 
         if ( $inactive_action eq qw| restart | and $check_playlist ) {
 
@@ -87,7 +87,7 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
             = $last_interval - ( $last_interval * ( 0.42 - rand(0.13) ) );
         $new_interval = 1.42 if $new_interval < 1.42;
         <[tile-groups.tile_activity.change_poll_timer]>->(
-            $tile_name, sprintf( "%.2f", $new_interval )
+            $tile_name, sprintf( '%.2f', $new_interval )
         ) if $new_interval ne $last_interval;
         my $log_msg_str
             = $c_mode eq 'bgcol'
@@ -114,7 +114,7 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
     }
     <[tile-groups.tile_activity.change_poll_timer]>->(
         $tile_name,
-        sprintf( "%.2f", $start_interval + rand( $start_interval * 0.1 ) )
+        sprintf( '%.2f', $start_interval + rand( $start_interval * 0.1 ) )
     ) if $last_interval < $start_interval;
 
     <tile-groups.tile_last_changed>->{$tile_name}    = <[base.time]>->(1);
@@ -123,8 +123,8 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
 
 <tile-groups.last_tile_color>->{$tile_name} = $tile_color;
 
-#,,.,,.,,,,.,,.,.,,.,,,..,.,,,,,.,,,.,,..,,,,,..,,...,..,,...,,.,,.,,,,..,..,,
-#6U2LAGE56SGNGAHVTQXAT62ZULS7HIEX6KVSPQEI5YYERNSEQXWLDZRAFKV5VIAZRWQH4BZ6LBE2Y
-#\\\|QWJJTJ6XDH4IO7NR2KUMVWVNAZ37D2ZQIQZNUSBCQZDTG4UIWMF \ / AMOS7 \ YOURUM ::
-#\[7]467RMUUTXWSSUF7FT6ETVDHF26GYE4VBYKFVVT2QTIVF3PJ6BSDQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,.,,,...,,,,,.,.,,.,,...,.,.,..,,...,...,.,.,,,,,,.,,,..,...,
+#OJGW4ITEQVNXQ6LLZHBJYD7D4ZUM65XAZP54FIKCWLB3TZ5DYDPSS3NFJEG77O6OTMOKCNWYZP3X4
+#\\\|P32YW6ZUAUN77HPZIC2HD3QMFY2B2KWZQGYKZSY4PNSMMWTNL4M \ / AMOS7 \ YOURUM ::
+#\[7]BS5FNTRN42BQOIUUEIMOQXFR4JLK33NRQHBRXBXTZ7TOKRICM2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

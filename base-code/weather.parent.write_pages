@@ -35,7 +35,7 @@ if ( not defined $current_ref or not exists $current_ref->{'temp'} ) {
     return;
 }
 
-my $current_temp = sprintf( "%.1f", $current_ref->{'temp'} );
+my $current_temp = sprintf( '%.1f', $current_ref->{'temp'} );
 
 my %sun;
 foreach my $mode ( 'rise', 'set' ) {
@@ -102,7 +102,7 @@ foreach my $page_name (@page_list) {
         and ref($today_ref) eq 'HASH'
         and exists $today_ref->{'temp'} ) {
         %temps
-            = map { $ARG => sprintf( "%.1f", $today_ref->{'temp'}->{$ARG} ) }
+            = map { $ARG => sprintf( '%.1f', $today_ref->{'temp'}->{$ARG} ) }
             ( 'morn', 'day', 'eve', 'night' );
 
         my $icon_num = $1 if $current_ref->{'icon'} =~ m{^(\d+)};
@@ -180,7 +180,7 @@ foreach my $page_name (@page_list) {
             my $ts          = $timestamps[$index];
             my $hr_data_ref = $data_ref->{'forecast'}->{'hours'}->{$ts};
 
-            my $hours_temp = sprintf( "%.1f", $hr_data_ref->{'temp'} );
+            my $hours_temp = sprintf( '%.1f', $hr_data_ref->{'temp'} );
             $part_template =~ s|\[TIME\]|$hr_data_ref->{time}|g;
             $part_template =~ s|\[DESCR\]|$hr_data_ref->{descr}|g;
             $part_template =~ s|\[TEMP\]|$hours_temp|g;
@@ -265,7 +265,7 @@ foreach my $page_name (@page_list) {
             my $day_data_ref = $data_ref->{'forecast'}->{'days'}->{$ts};
 
             my $day_temp
-                = sprintf( "%.1f", $day_data_ref->{'temp'}->{'day'} );
+                = sprintf( '%.1f', $day_data_ref->{'temp'}->{'day'} );
             $part_template =~ s|\[DAY\]|$day_data_ref->{day}|g;
             $part_template =~ s|\[DESCR\]|$day_data_ref->{descr}|g;
             $part_template =~ s|\[TEMP\]|$day_temp|g;
@@ -304,8 +304,8 @@ foreach my $page_name (@page_list) {
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
-#,,..,,,,,.,,,,,.,,,.,,,,,..,,...,.,,,,..,,,.,..,,...,..,,,,,,.,.,.,.,,..,,,,,
-#GKJUPBHZOFXVI7DGTPVIH7NOIF5FQG7E34ZLYTD7QR4PELMNSKHIOJKW6AVI63IKO43CWG5UTO6BU
-#\\\|S7AMPN4X66FYBL62GBJB4FIH7OI2HLWFOZ7ZEVEENU7DBAZU4PT \ / AMOS7 \ YOURUM ::
-#\[7]VVZGB444NJ5D3NKDBWORIXVOYXHEAVISBBSYGUY3GL5PYTZD32BQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,...,.,.,..,,.,.,,,.,,,.,,..,..,,...,...,..,,..,,,,.,,,,,...,
+#FMNBCWDNZGC2OTKBGJ6JP3N4YABIRR7FTGQRSDRNPPJCCRHRAJFZX34CHKIY3H4S4O7P23RUAQBEU
+#\\\|EV5SQY5GRFDQYHA4CVUBIV5I4V3N7TAQGLDVPHNYEJQUUDEA35J \ / AMOS7 \ YOURUM ::
+#\[7]AVBOCOZEK2TQPUDDGEB7BD4GMRW4E5PMBKC2IGOCXQLEU7AG5WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

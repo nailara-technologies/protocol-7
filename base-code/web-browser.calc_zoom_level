@@ -8,7 +8,7 @@ my ($local_sid) = keys( %{<user.cube.session>} );
 if ( not defined <web-browser.auto_zoom> or !<web-browser.auto_zoom> ) {
     <[base.log]>->(
         1,
-        sprintf( "auto zoom is disabled.. using default value [%.2f]",
+        sprintf( 'auto zoom is disabled.. using default value [%.2f]',
             <web-browser.zoom_level> )
     );
     return;
@@ -39,7 +39,7 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
         = <x11.screen_width> > <x11.screen_height>
         ? <x11.screen_width>
         : <x11.screen_height>;
-    <web-browser.zoom_level> = sprintf( "%.3f",
+    <web-browser.zoom_level> = sprintf( '%.3f',
         ( <web-browser.zoom_level> / $base_width ) * $calc_width );
     my $m_str = '';
     if ( defined <web-browser.min_zoom> ) {
@@ -57,8 +57,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,,,,,.,,..,,,,.,,..,..,,..,,,,,,,.,,,,,,,,,,..,,...,...,..,,,,.,..,,.,,,...,
-#TBOSYMO63YUT4FCXHIVD5SHVCBHIM23TCE5KYI6SVWNWVKP5RHCYXSZNCTB42CY463VO3TRAJMJD4
-#\\\|4C7IRFJKEEMBM63I7HASINJS53YUGSBSJGIPVOQT3DQ77SL33Q7 \ / AMOS7 \ YOURUM ::
-#\[7]DDO5R7YXMKLZGCAUWHEBP3JGI3NDJZ7SLWLPNDMRNO23QMKY3OCQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,...,,..,.,.,,,,,,,,,,..,,,.,..,,...,...,.,,,...,.,,,..,,.,.,
+#QO7MNNVVPO6OOD4FR6TIP3FSAGKMQ4ZS7OL5ITCYZH2BMRB6MSJILYHQFILZV5GAZALQ2IU64GRB4
+#\\\|WMLQKQE3RRJZ5SW3QOEY5RW5LPWKHSFND5WVUHCKFDQ5GZD6FVO \ / AMOS7 \ YOURUM ::
+#\[7]CE2GNNGE3FECCJXWYPCIS2JYIKZACPSRUZ3NOJEJWUOXC6ZHD4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

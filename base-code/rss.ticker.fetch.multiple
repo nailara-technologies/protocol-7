@@ -103,7 +103,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
     if ( $failed{$rss_url} ) {
         my $file_stat = File::stat::stat($url_data_file);
-        my $file_age = sprintf( "%.2f", ( time - $file_stat->ctime ) / 3600 );
+        my $file_age = sprintf( '%.2f', ( time - $file_stat->ctime ) / 3600 );
         if ( $file_age >= <rss.ticker.cache_timeout> ) {
             <[base.log]>->(
                 0,
@@ -182,8 +182,8 @@ move( $output_file . '.NEW', $output_file )
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return 1;
 
-#,,..,,,,,,,.,..,,,,.,...,.,.,,..,,,.,,.,,.,,,..,,...,...,,..,...,,,.,..,,,,.,
-#LQQFCCFQAHNDN7A2X3VRKOIVOJDWPNPR2BJ25VVWJWOYG7AELJA6VJPSMOL54QELP3K6VAKAUVWDU
-#\\\|B25O6YVUSRXQE2UYDFV7EZRP4ETXNIZ2YYYVMUARVXEQXS24JZW \ / AMOS7 \ YOURUM ::
-#\[7]FYDRWS6ZIKYKDTOOS2SA5DT3WLSM6G4LXWCAZ2B3XAK6YRV2VUBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,.,.,.,.,..,,,,.,..,,,..,..,,..,,...,...,.,.,.,,,..,,,,,,.,.,
+#VHN3TVA4NMCRHU7JJNLTCUKXSL4BTFSWU4LRIZVIU5D2IWBQRXUPO5PLSM2HIRJ6Y2B7WZP4MBPOO
+#\\\|QT3LERXJGMC6EI7VHOZEKHV63JWZM2EH5JFHF6TFFV7ZNFG2CFT \ / AMOS7 \ YOURUM ::
+#\[7]O5ZBJE4RWHBMPTKMFCCVQFXFUHTU5RVZOBC2THTAL74SRRJFIMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

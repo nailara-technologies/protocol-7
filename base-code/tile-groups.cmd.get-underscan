@@ -6,14 +6,14 @@
 my @values;
 map {
     push( @values,
-        sprintf( "%s:%s", $1, <tile-groups.setup.screen>->{$ARG} ) )
+        sprintf( '%s:%s', $1, <tile-groups.setup.screen>->{$ARG} ) )
         if $ARG =~ /^underscan\.(\w+)/
 } reverse sort { $a cmp $b } keys %{<tile-groups.setup.screen>};
 
 return { 'mode' => 'true', 'data' => join( ' ', @values ) }
 
-#,,.,,,..,,..,.,,,.,,,,,.,,..,.,.,...,.,,,,,,,..,,...,...,.,,,,,.,..,,,,,,,.,,
-#LWIGR5NFCTYY47NRLRNKF7ZTB5DJNCALEWQPYGSFUMN3DJ664NXT246HXV6MQDDDRSFUH2TFRARK6
-#\\\|GU2V74LKMDEZ4K7LDMYI7QGUAKZH4M7JB6QIG4NA22SNDICAZ2M \ / AMOS7 \ YOURUM ::
-#\[7]MARKNE52KFRN7Z2J5QUFLGGGLL6GKF7IT3DVN3YQDSDX6RCSPKCY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,...,,,.,.,.,,,,,,..,.,.,...,..,,...,...,...,...,..,,.,,,.,,,
+#324YQCO5DHSL6BNURG2LRHTIOV4DBOMHM5LCQJTNBEFV25S3ZF3UISYVIUC525XZYYHQAMB6SUN7I
+#\\\|KL2I3BCH5LPWL7W42OQBE3O7466L2WSEO52YA627RMDQ6IFQEWT \ / AMOS7 \ YOURUM ::
+#\[7]SPWPALJEZGQNSFHDARYBB53LYWWOHOIJP2PNIOFCXCOVHJCLXSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

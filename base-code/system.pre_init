@@ -54,11 +54,11 @@ foreach my $chk_path ( <[base.reverse-sort]>->($paths_and_modes) ) {
         $changes_made++;
     }
 
-    my $cur_mode = sprintf "%04o", $dir_stat->mode & 07777;
-    if ( $cur_mode != sprintf "%04o", $dir_mode ) {
+    my $cur_mode = sprintf '%04o', $dir_stat->mode & 07777;
+    if ( $cur_mode != sprintf '%04o', $dir_mode ) {
         <[base.log]>->(
             $log_level,
-            sprintf( ": %s : change  mode [ %04o ]", $chk_path, $dir_mode )
+            sprintf( ': %s : change  mode [ %04o ]', $chk_path, $dir_mode )
         );
         my $was = 'was';
         chmod( $dir_mode, $chk_path )
@@ -73,8 +73,8 @@ foreach my $chk_path ( <[base.reverse-sort]>->($paths_and_modes) ) {
 
 0;
 
-#,,..,...,,..,,,.,.,,,.,,,.,,,,,,,,,.,.,,,..,,..,,...,...,...,,.,,.,.,..,,..,,
-#AZOTAFGASHV5HKWZDKMR3SKHPIDWIV7ZC57AKYW753FORQB7J7VFHVS4JPIYT2V3VBUJTROA6EESI
-#\\\|2AVNQRYXZJO56MFVGKTF36PZIELR3QP6GVSOWLETW337HN3RLXF \ / AMOS7 \ YOURUM ::
-#\[7]WYT5GQCF3ZP4BTOINYJZKRSPQK4KMB7XXPTGIBFX2MJJ6QKBLSAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,...,,..,,,.,,..,,,,,..,,,,,,..,,...,...,.,,,..,,,,,,,,,,...,
+#O5A242GQ32SBQOOO5LPKLHT4GVC5NN322NKNES4RVY7OA3TOAYSPVPOROVDSTQJ6QYU2LUGMZESTE
+#\\\|WGU34ZW3VRH7NUNNGJ7EJNDRFRYQCNF2OHLX42TWZWKOTOMJNH7 \ / AMOS7 \ YOURUM ::
+#\[7]WJA6XH2KAYBTZVOU5XY25ZMAKAZ6FDMQC5OMOHTMC3PAPQQLMYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

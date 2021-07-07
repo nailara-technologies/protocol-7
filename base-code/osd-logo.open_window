@@ -68,9 +68,9 @@ my $img_h = $pbuf->get_height();
 
 die "unable to determine image size" if !$img_w or !$img_h;
 
-my $scale_x = sprintf( "%.0f",
+my $scale_x = sprintf( '%.0f',
     $img_w * ( ( $scr_h / $img_h ) * ( $height_percent / 100 ) ) );
-my $scale_y = sprintf( "%.0f", $scr_h * ( $height_percent / 100 ) );
+my $scale_y = sprintf( '%.0f', $scr_h * ( $height_percent / 100 ) );
 
 my $pos_y = 0;                    # top-right
 my $pos_x = $scr_w - $scale_x;    # top-right
@@ -81,16 +81,16 @@ $pos_y = 0                 if $position =~ /^top-/;
 if ( defined <osd-logo.cfg>->{'offset.x'} ) {
     my $x_offset_percent = delete <osd-logo.cfg>->{'offset.x'};
     <osd-logo.offset.x>
-        = sprintf( "%.0f", $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
+        = sprintf( '%.0f', $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
 }
 if ( defined <osd-logo.cfg>->{'offset.y'} ) {
     my $y_offset_percent = delete <osd-logo.cfg>->{'offset.y'};
     <osd-logo.offset.y>
-        = sprintf( "%.0f", ( $scr_h * ( $y_offset_percent / 100 ) ) );
+        = sprintf( '%.0f', ( $scr_h * ( $y_offset_percent / 100 ) ) );
 }
 
 <osd-logo.offset.y> //= $scale_y;
-<osd-logo.offset.x> //= sprintf( "%.0f", $scr_w * ( $height_percent / 100 ) )
+<osd-logo.offset.x> //= sprintf( '%.0f', $scr_w * ( $height_percent / 100 ) )
     * ( $scr_h / $scr_w );
 
 my $x_offset = <osd-logo.offset.x>;
@@ -116,7 +116,7 @@ $window->show_all;
     'draw' => sub {
         my $window      = shift;
         my $old_opavity = $window->get_opacity;
-        my $new_opacity = sprintf( "%.8f",
+        my $new_opacity = sprintf( '%.8f',
                   ( time - <osd-logo.fade_start> ) * 2.1
                 - ( 0.365 * ( time - <osd-logo.fade_start> ) ) );
         my $ret = 1;
@@ -141,8 +141,8 @@ $window->show_all;
 Gtk3->main;
 <[base.exit]>->(1);    # <-- terminate [ X11 session gone., ]
 
-#,,,,,,,.,,,,,...,.,,,,.,,,,.,...,..,,.,.,,,,,..,,...,...,,,.,.,,,,..,,,,,.,.,
-#KCGY6K5HOJ7KWH2UQPTZGNBQBVNYHTGFBCZGGHXXGW3NPBNJAWXS2JPD5O662EAW2MBB2TBKM4Z52
-#\\\|TUBQA3BTK6RCUCUMXMCUMHHKUETZCQJWK6EEZYTJMSEDOFQFOGZ \ / AMOS7 \ YOURUM ::
-#\[7]AP2C4JWQ32BZMZWABMJV65ALSN56VWVHCK2LZZ2CUNJCCHE2UQDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,,,..,,,.,,,..,..,,.,,,...,,,,,..,,...,...,...,..,,..,,..,,.,,,
+#ICIN67GVXUBTT77ONBW65NHFEUZEH76DEWXYG56SZ6CCTGRZDQLHDEBPMMKFPDODXUGHPGKTX7OVM
+#\\\|N7DTIJSDJOP2AQ2Z5I6TGPBXDRDZTK7ERGFV25NWUWKYPRH6T5T \ / AMOS7 \ YOURUM ::
+#\[7]KEJI4EITK76WCO5EZ5HROYT53C6MESUBVFOG2WL65FLOMBYJG4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,20 +15,20 @@ $time = <[base.n2u_time]>->($time)
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
 
-$year = sprintf( "%02d", $year + 1900 );
-$mon  = sprintf( "%02d", $mon + 1 );
-$mday = sprintf( "%02d", $mday );
+$year = sprintf( '%02d', $year + 1900 );
+$mon  = sprintf( '%02d', $mon + 1 );
+$mday = sprintf( '%02d', $mday );
 
 push( @result, "$year-$mon-$mday" )
     if $mode eq 'time-stamp' or $mode eq 'date';
 
-push( @result, sprintf( "%02d:%02d:%02d", $hour, $min, $sec ) )
+push( @result, sprintf( '%02d:%02d:%02d', $hour, $min, $sec ) )
     if $mode eq 'time-stamp' or $mode eq 'time';
 
 return join( ' ', @result );
 
-#,,,.,...,...,,,.,,,.,,,.,.,,,,..,,..,,.,,.,,,..,,...,...,...,..,,,..,,..,,.,,
-#ZFKRCXSQ4EJ7SZBFWCBD6JEZQ7NZSYKS5ARB722WSJG64NZKA5W2YSWFOXN5IE3WRYA77HJWHYNPI
-#\\\|ARR6CNXF3LQSGGON357ONOGQI455NLGFCMVFFHJ4RT2SKFTB55R \ / AMOS7 \ YOURUM ::
-#\[7]TGCJREEGBKBW3WTHZ3YWME6DXL3DSKKEBRVQABM3IZILVANLAWCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,..,,,,.,,.,,..,,,..,,..,,,.,..,,...,...,..,,,,.,.,.,,.,,,,.,
+#IGC2Q6J6ROLJBZ64M4OOPPT6RGHI4JSVPMJ3ASDY3HMT5NGJJAW5DFD5BQMKCV5GWSSTEIZTREZPA
+#\\\|SANV4V7X5W2CWC4TQHXZU5SVRIECSXZQHOXHMKL2LMLJATKI7BR \ / AMOS7 \ YOURUM ::
+#\[7]5CFTY3A56OJVA7CPZG2T76SJI62XEI3WLISTWDYXBVDBQ3S2H6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

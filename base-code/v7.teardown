@@ -48,7 +48,7 @@ foreach my $pid (
     my @children = @{ <[v7.sub-process.get_children]>->($pid) };
     if ( kill( 15, $pid ) ) {
         <[base.log]>->(
-            1, sprintf( ": <TERM> PID %-7s  <-= %11s", $pid, "$zenka_name" )
+            1, sprintf( ': <TERM> PID %-7s  <-= %11s', $pid, "$zenka_name" )
         );
     } else {
         delete <v7.child>->{$pid};
@@ -124,8 +124,8 @@ map { <[base.log]>->( 1, ": <KILL> orphan process $ARG" ); kill( 9, $ARG ) }
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,,.,..,,...,.,.,.,.,,..,,..,.,.,,,,,,,,,,.,,..,,...,...,...,,,.,.,.,,,,,.,,,
-#LEUTYYKETEWYRW2V53QCRTYO2DDC6QZAACOOVYBVXZ5MTRV7RRTVEQGGVHB3RB76N7DETB7EDSF6Y
-#\\\|IFTEFH2XWGEOOVABBJOKNVUDWR5XPKVQTAQHQ2FEJM5PXG4DPHX \ / AMOS7 \ YOURUM ::
-#\[7]SA67DDJQWPDPLXXY4DBPTKB4I6C5DOLXZ4V264XZI54XOD2XFKDY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,.,...,,..,,,,,...,,,,,,.,,,,,,..,,...,...,...,.,,,.,,,.,.,..,,
+#A72S5POLNDIDF2TQPCA6SDIINVPTJMKZABBRFQY3YVB36GYLUTODVZTSE5PV2UT5Z2SUKVAKHQ4XG
+#\\\|HK7SJ65RCL4JHV24A5VATEJXUJT43JNJHYQ5PAWWJ3XRU2YMU2F \ / AMOS7 \ YOURUM ::
+#\[7]TRZFVDQMEINK7Y2SDA3P6Z2SWSZYGNJV4XRFN2F2JHHGACEECQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

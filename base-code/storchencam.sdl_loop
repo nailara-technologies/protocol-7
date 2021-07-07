@@ -92,8 +92,8 @@ my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
 
 my $zoom_2 = ( $screen->w / 1035 );
 
-$i_x_offset = sprintf( "%.0f", $i_x_offset * $zoom_2 );
-$i_y_offset = sprintf( "%.0f", $i_y_offset * $zoom_2 );
+$i_x_offset = sprintf( '%.0f', $i_x_offset * $zoom_2 );
+$i_y_offset = sprintf( '%.0f', $i_y_offset * $zoom_2 );
 
 SDL::Mouse::show_cursor( SDL_DISABLE() );
 
@@ -115,7 +115,7 @@ SDL::Video::blit_surface(
 my $scaled = SDL::GFX::Rotozoom::surface( $image, 0, $zoom_cvr * $zoom_2,
     SMOOTHING_ON() );
 
-my $s_y_offset = sprintf( "%.0f",
+my $s_y_offset = sprintf( '%.0f',
     ( ( $screen->h - ( $scaled->h - abs($i_y_offset) ) ) / 2 ) );
 
 my $err_pos_y = $s_y_offset + $scaled->h - 26;
@@ -368,8 +368,8 @@ sub mask_scan {
     }
 }
 
-#,,.,,.,.,,.,,,.,,.,,,,,,,,..,,,.,.,.,.,,,,..,..,,...,...,,,.,...,.,,,.,,,,,.,
-#7YDG3HS7FPQTQYSYWC345AY7MPW6QN3FRPWC33JC32KTEJZJO56ZAZ4A24Y3WJBJ36OSIRTZU52O4
-#\\\|S2ODFUFIL7NAARL7F6HTC7TGJWBXVRNGQH7CN63GEB24WS5QNT5 \ / AMOS7 \ YOURUM ::
-#\[7]C5UJJOARG5BQHEJMOC2XXCRKRZSYGVIQKJ5F4DPRAD6J262HLOAA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,.,,,.,,,..,,,,,,.,,...,..,,..,,...,..,,,..,,,,,,,.,..,,,.,,
+#5XKI55NB4TIGJDNSXJVPG5VCFU3ONM4PLDJJWPBEZHBPB5HJ3CBFE56CZXX3BTIUXC7CJGVSPDEEM
+#\\\|H3GCBLZHZGZZZWLWKJIU7ETQERTA6NTRJX24YCAWYHSIDXS2FSA \ / AMOS7 \ YOURUM ::
+#\[7]OSRFPGJLY4FRXVSUCQ7AJWZN7QIM4LWKKI7WWZWLV57BG2GMCQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -127,7 +127,7 @@ my $SIG_QUIT = 0;
 process_arguments();
 
 my $speed_div   = $state->{'set-up'}->{'speed-div'};
-my $frame_delay = sprintf( "%.5f", 1 / ( $freq / $speed_div ) );
+my $frame_delay = sprintf( '%.5f', 1 / ( $freq / $speed_div ) );
 
 $| = 1;
 
@@ -157,7 +157,7 @@ RESEED:
 $state->{'count'}->{'zulum'}++;
 
 ( $state->{'seed'}->{'num'}
-        = sprintf( "%.13f", ( time * 4200 ) / 13 / 13 / 13 ) ) =~ s|\.||;
+        = sprintf( '%.13f', ( time * 4200 ) / 13 / 13 / 13 ) ) =~ s|\.||;
 
 if ( not defined $start_seed or $state->{'count'}->{'zulum'} == 1 ) {
     $state->{'seed'}->{'prng'} //= $state->{'seed'}->{'zulum'}
@@ -445,7 +445,7 @@ sub process_arguments {
             shift(@ARGV);
             $state->{'seed'}->{'zulum'} = join( ' ', @ARGV );
             $state->{'seed'}->{'zulum'} = join '',
-                map { sprintf "%03d", $ARG } unpack 'U*',
+                map { sprintf '%03d', $ARG } unpack 'U*',
                 $state->{'seed'}->{'zulum'}
                 if $state->{'seed'}->{'zulum'} !~ m|^\d+(\.\d+)?$|;
             @ARGV = ();
@@ -692,8 +692,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,,,.,,,..,,,.,,,..,,,,,.,,,,,,,,,.,..,,,.,,..,,...,..,,,.,,...,,,.,,.,,..,,
-#UMSJLHO5A7VRKFKL465CIIQDVT7DZS3VNXOYZBRLP3ZTF2M5V3K4GMLENUPRRIGQYRXYXWDQ7VO4G
-#\\\|IR34LW26V75RBPIFCUFKALR352HV4JYRZSMHYWWYPR5FLYUVIW6 \ / AMOS7 \ YOURUM ::
-#\[7]B2XNIVAPWZPI4WSZYNNDPOAZ5DQPRWKD5DYDCX4QVPCTW2YE5EAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,,,,,,..,,..,.,,,,,.,..,,,,.,..,,...,..,,...,,,,,,,,,,..,,,,,
+#ISD6RZ2SM3IWUUQ7YEBE6BOODLH62ZMJWWVN7FQ6GU7O3JQQ7XFZBL7TAR5NC3HQQ7COFF4EGDB5W
+#\\\|H2APWA4O6KBA6AXU5P2ZYTTU3SI5UZV3FZXQNH3IWR4AGTBDXWP \ / AMOS7 \ YOURUM ::
+#\[7]32UUFZIY3TATJ5CYCUUEPGD7QODNUSCUXSSZF7PAYOCRJMQJTGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

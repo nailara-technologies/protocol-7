@@ -234,7 +234,7 @@ my ($reset,   $bg_new,  $bg_old,  $chr_cml, $chr_cmr, $chr_ctx, $chr_eli,
 
 if ($list_colors) {
     my @clr
-        = map { sprintf "%s%-18s%s", $clr{$_}, $_, $reset } sort keys %clr;
+        = map { sprintf '%s%-18s%s', $clr{$_}, $_, $reset } sort keys %clr;
     while (@clr) {
         say join "  " => map { $_ // "" } splice @clr, 0, 4;
     }
@@ -602,7 +602,7 @@ sub subdiff {
     }
     if ($opt_v) {
         $opt_U && $opt_v > 2
-            and $_ .= sprintf " (U+%06X)", charnames::vianame($_)
+            and $_ .= sprintf ' (U+%06X)', charnames::vianame($_)
             for @h1, @h2;
         @h1
             and push @{ $d[0] }, sprintf " -- ${clr_dbg}verbose$reset : %s\n",
@@ -1324,8 +1324,8 @@ the same terms as The Artistic License 2.0.
 
 =cut
 
-#,,,,,...,,.,,..,,.,,,,,,,,.,,.,.,.,.,..,,,.,,..,,...,...,..,,.,,,,,,,,,,,..,,
-#Y7436TVVDX5BTMMCNYX2C3DMXECWGDR3AJKEDF7VR5HRG74CVLR2L5GBMTJ75MYCJX3O2SIF6QYVY
-#\\\|3CTLQBTS656QSV6RRSXBFVVTOV53YBANA7PQQRZ26OJD2Z2WYKD \ / AMOS7 \ YOURUM ::
-#\[7]PXSC67EUN3FMDVPZJEG4ZQCGIR2LTV5RZ5WBE6ZCEAHCL5R4GICQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,..,.,.,,,.,,.,,,.,,,.,,..,,..,,...,..,,..,,..,,..,,,,,,,.,,
+#WPLX2YIR2KNXFWBW5YW344U3KNI6YBJRED7B62DXSTKKDZNFVLHJZSTGUH3TZ5DQ5T3Z4NMVRFFN6
+#\\\|PSUL54LBRNV2KRAPB5M2QSJGCLVPC6HRA6UBWBZD73MBWDZXORP \ / AMOS7 \ YOURUM ::
+#\[7]AUK4XNVWN7ZBEYXN37ZQ3S6RRLBAYJAF2IAV4YJX62ZQOEYIDEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,15 +8,15 @@ my $reply_id   = shift @{<mpv.reply_ids>};
 return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => 'false', 'data' => 'undefined' }
 ) if defined $reply_id and $fp_val_str !~ /\d$/;
-$fp_val_str = sprintf( "%.2f", $fp_val_str );
+$fp_val_str = sprintf( '%.2f', $fp_val_str );
 $fp_val_str =~ s/\.?0+$//g;
 
 <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => 'true', 'data' => $fp_val_str }
 );
 
-#,,,.,,..,.,.,,,.,,,.,,,,,,,.,,..,..,,,,.,,.,,..,,...,...,,,.,,,,,.,,,,..,..,,
-#EV6TTPF7IVY4VWL7FTE2Y7ZXD7Z6IWBFQCZ6UFURRW2C6D2KTUVY6YJ6WTJSV44SEDEJGDYLQYS3K
-#\\\|VIE2ZPQ2TXN4XAWPVSI6BZ4SNYXQZGAGLJCYQRITPR4E6TIFQDQ \ / AMOS7 \ YOURUM ::
-#\[7]XFI6PUFPQFCVMWE3XHHV2GHRZ5Y2KLWW2FW3Q7LRQHXOVFTHMSAY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,,,,.,,,,.,,..,,,,,...,..,,..,,..,,...,...,,.,,.,,,.,.,.,.,...,
+#DPQCTIDCSFTF2CQY2WUJSGVVUXZVRXPTTOQ7ITJEXTCL4CY32G3HOAEDTMCAOQ4IUWV7I7OMMTZO6
+#\\\|VU6FQUXHRK7RNOPF56S3T572P6BL36J67M6HC777NKTDABEUDIF \ / AMOS7 \ YOURUM ::
+#\[7]2HWZ3X6FMHESQ5O5GXK5GDHOVK6FMDVO4LS6UK2LL3NQ32NPYGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

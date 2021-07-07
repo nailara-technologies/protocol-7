@@ -5,10 +5,10 @@
 
 my ( $widget, $context, $ref_status ) = @_;
 
-my $max_delay = sprintf( "%.6f", 1 / 6 );
+my $max_delay = sprintf( '%.6f', 1 / 6 );
 <web-browser.redraw_fps.slowdown>--
     if <web-browser.redraw_fps.slowdown> == 100;    # / by0
-my $slowdown_delay = sprintf( "%.6f",
+my $slowdown_delay = sprintf( '%.6f',
     1 / ( ( 100 - <web-browser.redraw_fps.slowdown> ) * 60 ) );
 
 <web-browser.swap.update_delay>      //= 1 / 60;               # initial FPS
@@ -20,7 +20,7 @@ if (<web-browser.status.fade_view>) {
 
     <[web-browser.handler.fade_in_view]>;
 
-    my $wait_delay = sprintf( "%.6f",
+    my $wait_delay = sprintf( '%.6f',
         $slowdown_delay
             + <web-browser.swap.update_delay>
             - ( <[base.time]>->(6) - <web-browser.swap.update_start_time> ) );
@@ -33,11 +33,11 @@ if (<web-browser.status.fade_view>) {
     } elsif ( <web-browser.swap.update_delay> < 1 / 30 )
     {    # ... slowing down ..,
         <web-browser.swap.update_delay>
-            = sprintf( "%.6f",
+            = sprintf( '%.6f',
             <web-browser.swap.update_delay> + $xccel_steps );
         <web-browser.swap.brake_count>++;
         <web-browser.swap.fps>
-            = sprintf( "%.2f", 1 / <web-browser.swap.update_delay> );
+            = sprintf( '%.2f', 1 / <web-browser.swap.update_delay> );
     }
     <web-browser.swap.update_start_time> = <[base.time]>->(6);
 
@@ -49,7 +49,7 @@ if (<web-browser.status.fade_view>) {
     # (slowly) speeding up again ..,
     if (   !<web-browser.swap.brake_count>
         and <web-browser.swap.update_delay> >= 1 / 60 ) {
-        <web-browser.swap.update_delay> = sprintf( "%.6f",
+        <web-browser.swap.update_delay> = sprintf( '%.6f',
             <web-browser.swap.update_delay> - ( $xccel_steps / 10 ) );
     }
     delete <web-browser.swap.brake_count>;
@@ -73,14 +73,14 @@ if (<web-browser.status.fade_view>) {
 
 }
 
-<web-browser.swap.fps> = sprintf( "%.2f",
+<web-browser.swap.fps> = sprintf( '%.2f',
     1 / ( <web-browser.swap.update_delay> + $slowdown_delay ) );
 <web-browser.swap.fps> = 6 if <web-browser.swap.fps> < 6;
 
 $widget->queue_draw;
 
-#,,.,,,,,,,..,,,.,,.,,.,.,...,,..,,,,,,,.,..,,..,,...,...,..,,.,.,,.,,,..,.,,,
-#BK3T6HZRTNL2XVGX3ZTMHOQ5UWCYXXCCIZG2FPMNP7PFRJV5C3IFYKRK6CXBVADHHW4MKL6IGCMOE
-#\\\|NKYJMCMLSFTX2ZG2SERLUC4KFYQZCFDX3OQWHV34TSTTAQDZMAH \ / AMOS7 \ YOURUM ::
-#\[7]G3MEUBSEIOUPGEYCZMI2U736AO5IC32EKWMSKV52WFXXA5I2WEDY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,,,.,,,,,,,,,.,.,.,.,,,,,.,,,..,,...,...,..,,.,.,,.,,,..,,,,,
+#M4I4G7G6TQNVWVRSWVCSXGPUJS7DP6LH2TPUJZY6UF3PUPFOALQQ43J7YUD22GPJJWO2VZ2XNGCUO
+#\\\|4UVSHXAS7IMC7XZISWWT5LRGGHFRHRR63SZJBWVWU2NUKMIAHHY \ / AMOS7 \ YOURUM ::
+#\[7]VNKI57IEJZLFS2VQCXW7VYOWS3SJRU6N533446NP2IHHVL2J4UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

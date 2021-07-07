@@ -22,7 +22,7 @@ if ( $reply->{'cmd'} eq 'TRUE' ) {
     my ( $x1, $y1, $x2, $y2 ) = split( / /, $reply->{'call_args'}->{'args'} );
     my $tile_width   = $x2 - $x1;
     my $tile_height  = $y2 - $y1;
-    my $aspect_ratio = sprintf( "%.3f", $tile_width / $tile_height );
+    my $aspect_ratio = sprintf( '%.3f', $tile_width / $tile_height );
 
     if (<weather.tile.adjust>) {
         <weather.tile.count> = 3 if $aspect_ratio > 5.3;
@@ -32,9 +32,9 @@ if ( $reply->{'cmd'} eq 'TRUE' ) {
 
     my $tile_count = <weather.tile.count>;
 
-    my $zoom_x = sprintf( "%.7f",
+    my $zoom_x = sprintf( '%.7f',
         $tile_width / <weather.template_width>->{$tile_count} );
-    my $zoom_y = sprintf( "%.7f", $tile_height / <weather.template_height> );
+    my $zoom_y = sprintf( '%.7f', $tile_height / <weather.template_height> );
 
     ($tile_zoom) = sort ( $zoom_x, $zoom_y );
 
@@ -110,8 +110,8 @@ if ( defined $station_id ) {
     return { 'mode' => 'deferred' };
 }
 
-#,,.,,..,,,.,,..,,,,.,.,.,,..,...,,,.,,,,,,,,,..,,...,...,..,,,,.,.,.,.,,,...,
-#QA4CHU7MB7L35OJDQIKV6STBXQUSCU2NICZ5SG3BNA2RLDNKVHZWKTJFQQM33FVZHR2RGRGZNPVKC
-#\\\|JZMHQWZGPSV2BVP4KYZXBZCYNDMMGTTQT56HYPANOKRY4Y2WTY5 \ / AMOS7 \ YOURUM ::
-#\[7]3HSADTRKOIX3DZSSOVAHJUMNKJTNOFRDTDNLHDKZEEVHDW6MMQAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,.,,,...,.,,,,,.,,.,,,,,,.,,,..,,...,...,...,,.,,...,.,,,.,.,
+#5JKN3AKT6AMTUVEFNXEFOFQ4QLDRXPBUIU5V7X6MTKFPUJL6APSAPYGW74V67HOMZF65ZJBJOZQIE
+#\\\|NTZJJYI3BBZ34IOGASBJ4E2DVQTZPSVWLV6P6P6X4TCQWYAP6VH \ / AMOS7 \ YOURUM ::
+#\[7]HPVXEL5XYVSSEFAJSZMXABDRMMPS56IO6Z54MJN5NZOJKDW7SMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

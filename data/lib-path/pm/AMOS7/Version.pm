@@ -23,7 +23,7 @@ return 1;  ###################################################################
 
 sub calc_version {
     ( my $ntime_dec = shift ) =~ s|\D+||;
-    my $c_version = sprintf( "%.3f", ( $ntime_dec / 7**14 ) - 3.6 ); #[magic]#
+    my $c_version = sprintf( '%.3f', ( $ntime_dec / 7**14 ) - 3.6 ); #[magic]#
 
     $c_version =~ s|\d{2}$|\.$MATCH|;
     $c_version =~ s|0$||;
@@ -41,8 +41,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     return $ntime;
 }
 
-#,,,,,,,,,...,,..,...,.,,,,..,,.,,,.,,,,.,.,.,..,,...,...,,..,..,,.,,,,,,,,.,,
-#X3KODGCN4WSOAIL37YIAI6S5QEY3NE7YFDSXDJ5WPOI3247FFLWK33ZN4DIZYOYSMALTDX53UFG5Q
-#\\\|XWXU6M4QAI5VIECNCE2SV2G5MVKXZZVKHU4FKF7RKW6WLO7G2R2 \ / AMOS7 \ YOURUM ::
-#\[7]SBTBU7LHI72RER67OJ44DDZVIYCL325JZ2EX4PW35Q7WRBSQKCCA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,,..,,,.,,.,,.,,,.,,,,.,,.,,,..,,...,...,,.,,,,,,,.,,.,,,,,.,
+#7YQUF7DTRK6CIYUZEZSTYLC4QYM7JXL3XJDW3SO2RGNER7ZX7S4BUA5B5HOPAMBVRYQIBV2OGHCIE
+#\\\|YJWJYHZLEY22JNPMTJMP5B3AG3TFWEAO4GA2EZRED5PWNFD6NM5 \ / AMOS7 \ YOURUM ::
+#\[7]T3G4PWQTDD3EVRWWUXJRR6JMGUPRESLZQIUYBRYIE6QDDEU5CUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

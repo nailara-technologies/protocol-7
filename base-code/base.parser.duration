@@ -7,7 +7,7 @@ my @result;
 my $start_time = shift;
 
 return 'n/a' if not defined $start_time or $start_time !~ /^\d+(\.\d+)?$/;
-my $secs = Time::Seconds->new( time() - sprintf( "%d", $start_time ) );
+my $secs = Time::Seconds->new( time() - sprintf( '%d', $start_time ) );
 
 my %result = (
     'years'   => 0,
@@ -18,20 +18,20 @@ my %result = (
 );
 
 if ( $secs >= ONE_YEAR ) {
-    $result{'years'} = sprintf( "%d", $secs->years );
+    $result{'years'} = sprintf( '%d', $secs->years );
     my $d_rest = $secs->days - $secs->years * 365.24225;
     $secs -= $d_rest * ONE_DAY;
 }
 if ( $secs >= ONE_DAY ) {
-    $result{'days'} = sprintf( "%d", $secs->days );
+    $result{'days'} = sprintf( '%d', $secs->days );
     $secs -= $result{'days'} * ONE_DAY;
 }
 if ( $secs >= ONE_HOUR ) {
-    $result{'hours'} = sprintf( "%d", $secs->hours );
+    $result{'hours'} = sprintf( '%d', $secs->hours );
     $secs -= $result{'hours'} * ONE_HOUR;
 }
 if ( $secs >= ONE_MINUTE ) {
-    $result{'minutes'} = sprintf( "%d", $secs->minutes );
+    $result{'minutes'} = sprintf( '%d', $secs->minutes );
     $secs -= $result{'minutes'} * ONE_MINUTE;
 }
 $result{'seconds'} = $secs->seconds if $secs;
@@ -40,11 +40,11 @@ if ( $result{'years'} and !$result{'days'} ) {
     my $s = $result{'years'} > 1 ? 's' : '';
     push( @result, sprintf( "%d year$s", $result{'years'} ) );
 } elsif ( $result{'years'} ) {
-    push( @result, sprintf( "%dy", $result{'years'} ) );
+    push( @result, sprintf( '%dy', $result{'years'} ) );
 }
 
 if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
-    push( @result, sprintf( "%dd", $result{'yday'} ) );
+    push( @result, sprintf( '%dd', $result{'yday'} ) );
 } elsif ( $result{'days'} ) {
     my $s = $result{'days'} > 1 ? 's' : '';
     push( @result, sprintf( "%d day$s", $result{'days'} ) );
@@ -54,11 +54,11 @@ if ( $result{'hours'} and !$result{'minutes'} and !$result{'seconds'} ) {
     my $s = $result{'hours'} > 1 ? 's' : '';
     push( @result, sprintf( "%d hour$s", $result{'hours'} ) );
 } elsif ( $result{'hours'} ) {
-    push( @result, sprintf( "%02dh", $result{'hours'} ) );
+    push( @result, sprintf( '%02dh', $result{'hours'} ) );
 }
 
 if ( $result{'minutes'} and !$result{'seconds'} ) {
-    push( @result, sprintf( "%d min", $result{'minutes'} ) );
+    push( @result, sprintf( '%d min', $result{'minutes'} ) );
 } elsif ( $result{'minutes'} ) {
     if ( $result{'hours'} ) {
         push( @result,
@@ -78,8 +78,8 @@ $result_str =~ s| days? (\d+)h |d $1 | if length($result_str) >= 10;
 $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 return $result_str;
 
-#,,,.,.,.,,,.,,,,,,,,,,,,,..,,,,.,,..,.,,,..,,..,,...,...,.,.,,.,,,..,,,,,.,,,
-#735BGMVOLZVXZ43MAJZ6QZQENYYLJYZ7J3MWP4PDHDIRGAHAXDM5CBD4GV7K5GXN32CHMREV5FGEA
-#\\\|JNTQHLGS5UUUK4UMUMIYHZNPY6GKBEMTE2KIPSJMDI52IV7R64Z \ / AMOS7 \ YOURUM ::
-#\[7]U3TBJBZWEILCPPVR5OINCE4CJUJYUYE4CPDGMQDC7L76ELACJMCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,..,,.,,..,,,,,,.,.,.,.,,,.,,,.,..,,...,...,...,,,,,..,,,.,,,,,,
+#NAAGZM4Z4RISMHNYO35DRWCELSBT4X5YNEKY4GK6DZMU6WGVGYRP2F2FVOYUJSSPHMCYNHU4SAXCI
+#\\\|H3Q4GV2D2KSC6MSMYKJXUPJS64OA2BEQ7PRC7HZKWLK74OEME3J \ / AMOS7 \ YOURUM ::
+#\[7]PQVMSBP3YKQXPZNRZEEM3MOBQUFNDTLZ3HRASVTFQVEFKYP7LUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

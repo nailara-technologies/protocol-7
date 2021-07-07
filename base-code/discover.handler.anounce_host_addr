@@ -10,7 +10,7 @@ my $hostname = <system.host.hostname>;
 my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list');  # [LLL] Net::Interface
 
 <discover.announce_interval.current> //= 0.23;
-<discover.announce_interval.maximum> = sprintf( "%.2f", 40 + rand(4) );
+<discover.announce_interval.maximum> = sprintf( '%.2f', 40 + rand(4) );
 <discover.announce_interval.ifactor> = 1.13;
 
 <discover.announce_interval.logged> //= 0;
@@ -68,11 +68,11 @@ foreach my $id (
     }
     sort {
         int(join( '',
-                map { sprintf "%03d", $ARG } split '.',
+                map { sprintf '%03d', $ARG } split '.',
                 $ifconfig{$a}{'ip'} )
         ) <=> int(
             join( '',
-                map { sprintf "%03d", $ARG } split '.',
+                map { sprintf '%03d', $ARG } split '.',
                 $ifconfig{$b}{'ip'} )
         )
     }
@@ -102,15 +102,15 @@ my $payload_len = length($payload_str);
     }
 );
 
-<discover.announce_interval.current> = sprintf( "%.2f",
+<discover.announce_interval.current> = sprintf( '%.2f',
     <discover.announce_interval.current> *
         <discover.announce_interval.ifactor> );
 <discover.announce_interval.current> = <discover.announce_interval.maximum>
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,,,,.,,,,,,.,,,,.,,...,,..,,..,.,,,,.,,,.,,..,,...,..,,...,.,,,.,,,.,,,..,,
-#BXEO7OHAAVVD6KWDCMX4W64Z5BCS6FPTFUQHH3TKNDVSR64JWIDQ6WXT4OTER3RRAMRVZMYTMINHG
-#\\\|R272EQPDADABQ7E4XMXWIW5IIQGXFJVU2NIXTND4R7LRWSAOQ5J \ / AMOS7 \ YOURUM ::
-#\[7]HTB4NYV3FETSYMBYKDK34UPJSWLCTGVZ2YOKTCRFE7U3PU3G5MBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,,.,,,.,,.,.,...,.,.,.,,,,,.,..,,...,..,,...,,,.,...,.,.,.,.,
+#E4HFBLYPPLQBFOLGTR2GTFDWAREY2VA63GOF7HGA4XU3XTSEV4BLOXVQDOBL4QXZJGEKDM6R7X4KM
+#\\\|A4WK6XCBG255CSODOGUYRTQF3EPCXPLEJHUQN655UFBWRNABHWL \ / AMOS7 \ YOURUM ::
+#\[7]EAWPKKMXWVKWVMLIGQYPJGUYQYIOUDWRTAICQPS7W2RZSW4AMIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
