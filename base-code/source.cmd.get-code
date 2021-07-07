@@ -12,15 +12,18 @@ return { 'mode' => 'false', 'data' => 'code file not found' }
     if !-f $src_path;
 
 <[file.slurp]>->( $src_path, \my $src_str );
-return { 'mode' => 'false', 'data' => 'failed to read code file' }
+return { 'mode' => qw| false |, 'data' => 'failed to read code file' }
     if not defined $src_path;
-return { 'mode' => 'false', 'data' => 'requested code file is not valid' }
-    if substr( $src_str, 0, 7 ) ne "## >:] ##\n";
+return {
+    'mode' => qw| false |,
+    'data' => 'requested code file is not valid'
+    }
+    if substr( $src_str, 0, 10 ) ne "## >:] ##\n";
 
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,.,,,,.,,,.,..,,,..,,,,,...,.,,,,..,,,,,...,..,,...,...,,.,,,,,,.,,,,..,...,
-#PRM5S5ODQ5MXVUGEOCZUYVYC56SHENFLYXH3NNAV7RIIT4GAN74K42RDQRHALSGNJILQEBZ4LQBK2
-#\\\|B37FIENMN3N3RLUSB4MQ3POHQB2NCIH2SGGNWD4OSWFBAJJUUMS \ / AMOS7 \ YOURUM ::
-#\[7]C2CWVGM3VFI6XVAQXQPTWPJHUG223LOKI3AZDZDX3A64H5EHBICI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,..,,,,,,..,.,,,,,,,,.,,..,,..,,...,...,,..,.,,,,,,,,..,,,,,
+#T6DM3ORFZ22NOPZYKAVNVBJQ7BRECAMOLWZ6IF7MUMCSDOVMISNJEEVEZL5YLLMZ2BJTOMN3CT5PW
+#\\\|LJGR3SIV7KSNFLOTGT7KYF7BCJ6AICDIV5SQF3X7NVP2I45MTLT \ / AMOS7 \ YOURUM ::
+#\[7]UPYWVBW3GXZZ7AF3X5EE2GY2BAHQ3EMQEJGWI4DFUQYYJBNGMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

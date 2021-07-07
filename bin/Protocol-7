@@ -1471,15 +1471,25 @@ sub p7_load_code {
                 if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = ${^CAPTURE}[0];
-                } else {
+                } else {    ##  command short description missing  ##
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                        = qq|<<[ 'descr' header key not defined ]>>|;
+                        = qq|<< cmd description missing [param='descr'] >>|;
+                    my $cmd_warn_string
+                        = sprintf ':: %s :: missing command description',
+                        $command;
+                    $data{'buffer'}{'compile-errors'}{'max_size'}
+                        //= 42 * 1024;
+                    $code{'base.buffer.add_line'}
+                        ->( qw| compile-errors |, $cmd_warn_string );
+                    map { $code{'log.error'}->($ARG) }
+                        ( ':', $cmd_warn_string, ':' );
+                    $warn_count_total++;
                 }
 
                 # } elsif ( $data{'code'}{$sub_name}{'status'} ne 'warned' ) {
             } else {
                 $code{'log.error'}
-                    ->( ':', "::[ broken zenka command '${2}' ]", ':' );
+                    ->( ':', "::[ broken zenka command '$2' ]", ':' );
                 $code{'log.error'}->(@compile_errors)
                     if not $data{'base'}{'modules'}{'load_errors'}++;
                 $data{'base'}{'commands'}{$section}{$command}{'descr'}
@@ -1488,7 +1498,7 @@ sub p7_load_code {
         }
     }
     delete $data{'callbacks'}{'end_code'}
-        if !@{ $data{'callbacks'}{'end_code'} };
+        if not $data{'callbacks'}{'end_code'}->@*;
     map {
         $data{'code'}{$ARG}{'status'} = qw| undefined |
             if not defined $code{$ARG}
@@ -3538,8 +3548,8 @@ __DATA__
 :
 :.
 
-#,,,,,...,,..,.,,,...,.,.,,..,.,.,,..,,,,,,,.,..,,...,...,.,,,,.,,,,.,,.,,,.,,
-#YYMJDIW47JZ3AFQEZOAJ7R4MPZOZDFNGFIX7DDJW7DZ455UHWMNZ56ZIPDQIYQONCL3OV5U4QDC5O
-#\\\|HQWJHE365O66FFBBCJPRRPEX47EYF2BAWXEGBW3TWZVXNFNCWLE \ / AMOS7 \ YOURUM ::
-#\[7]4MKZREFI26YEOELK6XHHESFETCUM6PYWL6HKXBQG3QH7WYMCI4CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,...,.,,,,,.,..,,,.,,,,,,.,,,..,,...,...,...,,,,,..,,,..,,,.,
+#3H7QTOL6N7IAEBHFEEDPFO2T4SQT77V3VWCFNC7K4LPWRE32Z2WWHDRVSVCP4J4NFAF3JS4R4N5FG
+#\\\|M626TRP7FNH53ZBNWTV746AANT2XEBJUFGP4R5G2RYKX2ABMT7I \ / AMOS7 \ YOURUM ::
+#\[7]O7H44WNOB7NI6NRU4GR2SW4ZO6R662FBIW24MVYBBYL752GRS4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
