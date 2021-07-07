@@ -21,7 +21,7 @@ my $time_start = <[base.time]>->(3);
 
 for my $y ( 0 .. $img_h - 1 ) {
 
-    # my $perc = sprintf "%.0f", 100 / $img_h * $y;
+    # my $perc = sprintf '%.0f', 100 / $img_h * $y;
     # print STDERR "[ $perc% ]\n";
 
     for my $x ( 0 .. $img_w - 1 ) {
@@ -33,18 +33,18 @@ for my $y ( 0 .. $img_h - 1 ) {
         <[graphics-matrix.filter.alpha]>->( \@RGBA, \@alRGB );
         my @hex_cols
             = $img_depth > 8
-            ? map { sprintf( "%x", sprintf( "%.0f", $ARG * 257 ) ) } @RGBA
-            : map { unpack( "H*", chr( sprintf( "%.0f", $ARG ) ) ) } @RGBA;
+            ? map { sprintf( '%x', sprintf( '%.0f', $ARG * 257 ) ) } @RGBA
+            : map { unpack( "H*", chr( sprintf( '%.0f', $ARG ) ) ) } @RGBA;
 
         $image->Set( "pixel[$x,$y]", '#' . join( '', @hex_cols ) );
     }
 }
 
-my $delta_t = sprintf( "%.1f", <[base.time]>->(3) - $time_start );
+my $delta_t = sprintf( '%.1f', <[base.time]>->(3) - $time_start );
 <[base.log]>->( 1, "filter applied in $delta_t seconds. [${img_w}x$img_h]" );
 
-#,,,,,,..,,..,,..,...,,,.,,,,,,,,,,..,.,.,..,,..,,...,...,.,,,.,,,.,.,,,.,,,.,
-#KE7X4GQ26KIQ3SJMFJ2PQ3P2JY4F7C3STOQ67NCKLQW7WELM2DJVEMUKU65BFBDYBAB3KIVI4XNES
-#\\\|O7H4GCUXE2K4USUIA4TQNF4HPLWJOYI6NBOUANBSVKB2DCZ7LGX \ / AMOS7 \ YOURUM ::
-#\[7]PH5BPQY3GPB5OMTHJR37RY6C5JI3TG6SHJXP4ZOLJE3NETRZ4IDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,.,,,.,.,,..,,,.,,,.,...,,.,,..,,..,,...,...,.,.,...,,,,,,,.,,.,,
+#32XH7SIQQ7MP5LUCLPINKDXH6RWBJ5XB2W2NXUV6D3VVOHXN3TASEXFWRZCZQGVRW24PIKFRWTENI
+#\\\|OPYIYZ3H5UKTFPOPD2PPRAVTL4BH5U7XR3VH3E2GVVENI6CVMYY \ / AMOS7 \ YOURUM ::
+#\[7]F4Y7M4DAXSFBIT6SKLCWBNEJ6ENIKCCR25MB6T52TSQCSTHGDWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

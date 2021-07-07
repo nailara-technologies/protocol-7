@@ -683,7 +683,7 @@ sub cmd_search {
                             . $C{'B01'}
                             . $C{'T'} . ': '
                             . $C{'0'}
-                            . sprintf( "%03d", $line_num )
+                            . sprintf( '%03d', $line_num )
                             . ansi('dark')
                             . $C{'T'} . ' :'
                             . ansi('reset') . ' '
@@ -1078,7 +1078,7 @@ sub pack_backup {
                 . $permissions
                 . $C{'R'} . '   '
                 . $C{'g'}
-                . sprintf( "% 10s", $size ) . ' '
+                . sprintf( '% 10s', $size ) . ' '
                 . $C{'R'} . ': '
                 . $filename
                 . $C{'R'} . "\n";
@@ -1350,7 +1350,7 @@ sub save_source {
                 . 'save file'
                 . $C{'R'} . ' :'
                 . $C{'T'}
-                . sprintf( "% 6d", $bytes_written )
+                . sprintf( '% 6d', $bytes_written )
                 . ' bytes'
                 . $C{'R'} . ' : '
                 . $C{'B01'}
@@ -1758,7 +1758,7 @@ sub show_perl_sub {
                                     $formatted_source
                                         .= ': '
                                         . $C{'T'}
-                                        . sprintf( "%03d", $sub_line_num )
+                                        . sprintf( '%03d', $sub_line_num )
                                         . $C{'R'} . ' : '
                                         . $sub_line . "\n";
                                     $sub_line_num++;
@@ -1843,7 +1843,7 @@ sub move_perl_subs {
             $destination_sub_name = $sub_destination;
         }
 
-        my $sub_name_txt = sprintf( "%-*s", $max_len, $sub_name );
+        my $sub_name_txt = sprintf( '%-*s', $max_len, $sub_name );
         $sub_name_txt =~ s/(\w+\s+)$/$C{'B'}.$1.$C{'R'}/e;
 
         my $dest_sub_txt = $destination_sub_name;
@@ -2107,15 +2107,14 @@ sub pattern_invalid {
         return 1;    # pattern type invalid
     }
     if ( $_tmp_pattern =~ m,(\$\w+), ) {
-        my $var_name = $1;
-        print " : error in regular expression : "
-            . "$pattern_type pattern contains "
-            . "an illegal variable [ $var_name ].\n";
+        my $var_name = $LAST_PAREN_MATCH;
+        print " : error in regular expression : %s pattern contains "
+            . "an illegal variable [ %s ].\n", $pattern_type, $var_name;
         return 1;
     }
     if ( $_tmp_pattern =~ m,\$, ) {
-        print " : error in regular expression : "
-            . "$pattern_type pattern contains unescaped '$' characters.\n";
+        printf " : error in regular expression : %s pattern contains"
+            . " unescaped '\$' characters.\n", $pattern_type;
         return 1;
     }
 
@@ -2362,8 +2361,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,.,,,..,,,,,,,..,.,.,,..,,,.,,,.,,.,,,.,,..,,...,...,...,.,.,..,,,..,,,.,
-#HW4FBAK6DFBNPTICOXPFYDRDIYLU2ESKSOFAYGRJE6XBDAAIJCZII4TVDAYUBPEKSTWOY4GCZI4SG
-#\\\|6TXEV6QF4ZBRGYFMLAMXI3IK5S2A275DET2K2S3FZ6Z7OGKW7N7 \ / AMOS7 \ YOURUM ::
-#\[7]WAG2URAUISL7I25SO45VWTAJHGIHE5Z2T62SNIOSKRW4D3XLBMBQ 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,...,..,,,,,,,,.,..,,...,.,.,..,,...,...,...,,.,,,,.,,.,,.,.,
+#4QRHQ4PJNFVP2VQMXDFLYBZNFDQBCSI2EB5QQJPCUABVLQ4EFHG7KOXSIXPFU33ZCINQEUKVTZAD4
+#\\\|V7LUVQOMAPXDKU33JORESKBJWOHQY63N662AMFX5K2I6GZ2Y4OY \ / AMOS7 \ YOURUM ::
+#\[7]ZCKATKEE5MRVLRLFYU6GWH7EJSMC2RF5YJ43C2YSDJI3F6ZGWCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my $header_text = 'protocol 7 console';
 
 if (<system.ansi_color>) {
     my $quote_str = "$ANSI{'p7_fg_0000'}'$ANSI{'p7_fg_0001'}";
-    my $host_str  = sprintf( "%s%s%s protocol 7 console",
+    my $host_str  = sprintf( '%s%s%s protocol 7 console',
         $quote_str, <system.host.hostname>, $quote_str );
     printf( STDERR "%s\n %s.:[%s %s %s]:.%s\n\n",
         $ANSI{'clear_screen'},                $ANSI{'p7_fg_0004'},
@@ -16,14 +16,14 @@ if (<system.ansi_color>) {
         $ANSI{'reset'} . $ANSI{'p7_fg_0004'}, $ANSI{'reset'}
     );
 } else {
-    my $host_str = sprintf( "%s %s", <system.host.hostname>, $header_text );
+    my $host_str = sprintf( '%s %s', <system.host.hostname>, $header_text );
     printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
     $clear_reply = "wrote hostname marker only [ active '-nc' option ]";
 }
 return { 'mode' => 'true', 'data' => $clear_reply };
 
-#,,,.,,,,,,..,.,,,.,,,,..,..,,,,.,..,,,..,,,,,..,,...,...,.,.,.,,,,..,,,.,,,,,
-#DLZHK4R45C6KOY77SZBGSLJYQWCQTUMFHPE2WZ5HQTHBSCTAJC7246OZGP4CACO2YLILWFBPB54IQ
-#\\\|MTJS6TFGUHFRRVKSLM7W7CIJOKFKGQYS4MEBPTCMQQLULMQ6GST \ / AMOS7 \ YOURUM ::
-#\[7]CQ5BJZZI6RESGGOKOVYMC7ECO5IE65WN3F2ST6YT3U7FRKWNLGDI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,,,,,.,.,.,...,,,.,.,,,,..,..,,...,...,...,.,.,..,,,..,,.,,
+#BIOFGBFB55K7HUP5D637ZFRG562JH4SGWA2KX5DCSGFLK5SLCNKNT4VV7IDCBU4FUMKJPXS6US2R2
+#\\\|64PVU27NZAKECENCYQS2AZCF6HTWULG7PQSZEW5TNIZJTF2C57L \ / AMOS7 \ YOURUM ::
+#\[7]ZDJRTKXA2IUHBFABAJQ6UDRADOAKAXUFLIJIQJAXGFACMZLT3ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

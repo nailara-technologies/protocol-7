@@ -17,7 +17,7 @@ my $status_code = defined $response ? $response->get_status_code : 0;
 my $is_loading = $view->get_property('is-loading');
 
 my $percentage
-    = sprintf( "%.03f", $view->get_estimated_load_progress() * 100 );
+    = sprintf( '%.03f', $view->get_estimated_load_progress() * 100 );
 
 my $title = $view->get_title // '';
 
@@ -54,7 +54,7 @@ if (    $load_status eq 'finished'
     and ( $status_code =~ m|^(20)?0$| or $status_code == 304 ) ) {
 
     <web-browser.time.load_finished> = <[base.time]>->(3);
-    my $load_time = sprintf( "%.3f",
+    my $load_time = sprintf( '%.3f',
         <web-browser.time.load_finished> - <web-browser.time.load_start> );
     <[base.log]>->(
         2, "[$load_uri] loaded in $load_time seconds. [$actual_uri]"
@@ -130,8 +130,8 @@ if (    $load_status eq 'finished'
     Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 }
 
-#,,,.,,,,,.,,,.,.,,..,,,.,..,,...,...,,.,,,.,,..,,...,...,.,,,,,,,..,,.,,,.,,,
-#SUK234KNSWFIZ2KMZ52PKZSJ4H5FTEUIA2T7TDUWLFMVALYAT6ZM27NMBY3SFKDR2XFLGRHPMLV5Q
-#\\\|V7IEE6UVVAQ7I4XPJ6NFYIKO63BLN66XX4SIJP2Q5ICQNQ5PB4H \ / AMOS7 \ YOURUM ::
-#\[7]XRRW44R2JPYDSUBSTXKY6EZRY2EU5GGGYUXB6YFOTOZ6WGNIYGAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,,,,..,,.,,.,,,,,.,...,,,,,..,,..,,...,..,,..,,,,.,,,,,..,,,..,
+#RVNSIXPXNDM2EDOL6QNWJXCM7LAT52WSAJDZOIX5LVVR5D6SWWH5GD2S432PJEZFDRSM47WNADPZ6
+#\\\|P55FA6MNL74GXNR4IL6D4OJ6ONF6GG3KQJXYPE6HBB2ZEEXMG6B \ / AMOS7 \ YOURUM ::
+#\[7]ODP6Q3PTERCGVDXCU46MJ5MWCMXTO6AVAYTA56JCSSRTHP6ZLKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

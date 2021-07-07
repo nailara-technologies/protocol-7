@@ -156,8 +156,8 @@ map {
         } else {
             foreach my $border_name ( keys %{$coords} ) {
                 my $coord_val = $coords->{$border_name};
-                my $h_w       = sprintf( "%.0f", <x11.screen.width> / 2 );
-                my $h_h       = sprintf( "%.0f", <x11.screen.height> / 2 );
+                my $h_w       = sprintf( '%.0f', <x11.screen.width> / 2 );
+                my $h_h       = sprintf( '%.0f', <x11.screen.height> / 2 );
                 $pos_match{$border_name} = 1
                     if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
                     or ( $border_name eq 'left'  and $coord_val < $h_w * 0.8 )
@@ -237,7 +237,7 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
 
     foreach my $tile_name ( keys %{<tile-groups.tiles>} ) {
 
-        my $interval_secs = sprintf( "%.2f",
+        my $interval_secs = sprintf( '%.2f',
             $start_interval + rand( $start_interval * 0.1 ) );
 
         $timers->{$tile_name} = <[event.add_timer]>->(
@@ -263,8 +263,8 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
 
 <[tile-groups.handler.transition]>;
 
-#,,,.,,,,,,..,...,..,,.,,,...,,,.,,,,,.,.,,.,,..,,...,.,.,..,,,,,,,,.,,,,,,..,
-#F33NF4JMCISEKS3DNAMQGBT3HIWPIOK64JFCEFGAMOBISHJPTZPN2BK4L3R7UEO3R7MKIHKU6JXDQ
-#\\\|ESM3GNNBBY64MHKTO42KHHCKXL6LINSZTVVV6KV66P57RZT6AEZ \ / AMOS7 \ YOURUM ::
-#\[7]MDVIZPQ2KH3M6YON2CPKBGBAG4BNR6R7OJ4WC4JRIDGKQQXXBGDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,.,.,,.,,.,,,.,.,.,,,.,,,.,,,..,,...,...,,..,.,.,,.,,...,...,
+#W5BD73TM6O5GTNZVT4IB4LS6BWZDPOB72VWIE6D2CX3W6SURIMDY3R7L74NYWJMF65TGFYR7RIEJG
+#\\\|UGS6PA645OR52WJNEUVT3VJXDTQLIE3AO7YPO4OWLLW7DDKJ5RK \ / AMOS7 \ YOURUM ::
+#\[7]MDW2PZLMN254DSTUYNBBKOIXRPHIJKMCGH3SAD2F63SRJOSY22CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

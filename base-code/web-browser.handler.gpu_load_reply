@@ -17,7 +17,7 @@ my $lower_tolerance = 4.2;
 return if $params->{'cmd'} ne 'TRUE';
 my $load_percent = $params->{'call_args'}->{'args'};
 
-my $percent_exceeded = sprintf( "%.2f", $load_percent - $limit );
+my $percent_exceeded = sprintf( '%.2f', $load_percent - $limit );
 
 <web-browser.redraw_fps.slowdown_target> //=
       $percent_exceeded > 0
@@ -31,7 +31,7 @@ my $target_percent = <web-browser.redraw_fps.slowdown_target>;
 my $old_target     = $target_percent;
 
 $target_percent
-    = sprintf( "%.2f", $target_percent + $percent_exceeded * $accel_factor );
+    = sprintf( '%.2f', $target_percent + $percent_exceeded * $accel_factor );
 
 $target_percent = 100 if $target_percent > 100;
 $target_percent = 0   if $target_percent < 0;
@@ -47,10 +47,10 @@ my $skip = (
 
 # debug section
 $target_percent = <web-browser.redraw_fps.slowdown_target>;
-my $delta_t   = sprintf( "%.2f", $target_percent - $old_target );
+my $delta_t   = sprintf( '%.2f', $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
 $delta_str    = '' if $delta_t == 0;
-$load_percent = sprintf( "%.2f", $load_percent );
+$load_percent = sprintf( '%.2f', $load_percent );
 <web-browser.debug.loglevel.autospeed> //= 2;
 <[base.log]>->(
     <web-browser.debug.loglevel.autospeed>,
@@ -58,8 +58,8 @@ $load_percent = sprintf( "%.2f", $load_percent );
         . " >- [ SLW ${target_percent}% ]$delta_str"
 );
 
-#,,,.,,.,,.,,,.,.,...,,,.,,,.,,.,,...,,,,,,..,..,,...,...,..,,,,.,,,.,.,.,,.,,
-#EMHPHKZNQDCUPXRJGMGAU77NRPRHBSXDCA6PYWYE5PJDVUCXPCKPN6SX5QKOCNBNTFZ5WN2SBJ5DW
-#\\\|NN5JBDPQ6VEUKKHRHIJJX6B6LGYF7RPJTJOADUROQACIS6M4AI7 \ / AMOS7 \ YOURUM ::
-#\[7]MZ6O7YTYXMOCERASZFVHWC4GB5VMQWBLRYAQNKRFHSU4ZZ2DEOBI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,,.,,,.,,,.,,...,..,,,..,..,,..,,...,...,,..,..,,,,,,.,.,.,,,
+#I3D2P7ECZQNKY7HCX2EQ62JY5I6VDOPZ7R2HVLQ4P6BBM46YOMZ7WR4LKHMEML54WXIGRC5PRI35M
+#\\\|NDZX55G4JHSPXHKKDMCHUELU5IHQZ5CIBDNRSP6SMKR37BDBOX6 \ / AMOS7 \ YOURUM ::
+#\[7]QLTCCVOGX65NVQHFRWUIR56AUI5M3HJDWCD6ZHUYGFLPNANS2OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
