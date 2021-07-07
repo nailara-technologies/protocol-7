@@ -1,19 +1,19 @@
 ## >:] ##
 
 # name  = index.cmd.gen-path
-# desc  = calculate \ return index path for input param
+# descr = generate index chksum path for input param
 # param = <input-string>
 
 my $input_string = $call->{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'expected string for path tree calculation'
     }
     if not defined $input_string;
 
 return {
-    'mode' => 'true',
+    'mode' => qw| true |,
     'data' => <[index.gen_path]>->($input_string)
     }
 
