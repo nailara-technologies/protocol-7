@@ -12,7 +12,7 @@ my $client_sock_fd = $data{'session'}{$id}{'handle'};
 my @available_auth_methods
     = <[base.reverse-sort]>->( split( "\n", <[auth.auth_list]>->($id) ) );
 
-if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
+if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
 
     if ( $method eq qw| zenka | and <[plugin.auth.zenka.no-keys-defined]> ) {
         <[base.net.send_to_socket]>->(
@@ -47,8 +47,8 @@ if ( ( @available_auth_methods ~~ m|\Q$method\E| ) ? 1 : 0 ) {
     return 0;
 }
 
-#,,..,,,.,...,,,,,.,,,..,,,,,,...,,..,..,,...,..,,...,...,,,.,.,.,,,,,...,.,,,
-#D4WT2RT2OBRRXIVJBRS4KWWCT6C3V2ZPHRVKAHPQVCKPXVLMTFSZKM5P5ZNC4V7GZVRJTES6AHO5U
-#\\\|5DVWBFJ6ZQWJ43OLBFTA5CLQNU3IYRMGB547IYOAXANHCAEB4Z6 \ / AMOS7 \ YOURUM ::
-#\[7]KPC2ZKOFFS4GJKJA55O4G6SR4QIVGVQRJMFASYCFH5ILM24ZD4AA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,.,.,,,.,,.,,,..,,,.,,..,.,,,..,,...,...,.,.,,..,..,,.,.,,.,,
+#SD52JWW7ML3G7ZHD54E2POKMRAKYMAH7L54VNH3SAXDFMOWMTZ5AFTPWT5N3K56UTNJLN6UXN4XJY
+#\\\|57TP7O76YQN2XMDXNX5Q3SODTBOZPNEKSYHDPKNCRIGGT3K4U6M \ / AMOS7 \ YOURUM ::
+#\[7]HU2VEZN5ERMADHKXEW247USW67WOGLFW3GLUVMZWT5XGCZ2DSGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
