@@ -39,7 +39,7 @@ my $fatal_exit
     : 0;
 
 $log_msg = sprintf( "%scall to unknown subroutine while executing '%s'",
-    $ANSI{'p7_fg_0002'}, ${^CAPTURE}[0] )
+    $colors{'p7_fg_0002'}, ${^CAPTURE}[0] )
     if $log_msg
     =~ m|\$code\{'([^\']*)'\}.+ use string \(""\) as a subroutine|;
 
@@ -52,20 +52,21 @@ $c_l = 3 if $log_level == 0;
 $c_l = 4 if $log_level == 1;
 $c_l = 1 if $log_level == 2;
 $c_l = 0 if $log_level > 2;
-my $c_fg  = $ANSI{ sprintf qw| p7_fg_000%s |, $c_l };
-my $col_b = $log_level == 0 ? $ANSI{'B02'} : $ANSI{'B01'};
+my $c_fg  = $colors{ sprintf qw| p7_fg_000%s |, $c_l };
+my $col_b = $log_level == 0 ? $colors{'B02'} : $colors{'B01'};
 ##
 if ( $log_level > 0 ) {
     $log_str = sprintf '%s %s%s%s%s',
-        $zenka_prefix, $col_b, $c_fg, $log_msg, $ANSI{'reset'};
+        $zenka_prefix, $col_b, $c_fg, $log_msg, $colors{'reset'};
 } else {
-    $log_str = sprintf '%s %s%s%s%s%s', $zenka_prefix, $ANSI{'bold'}, $col_b,
-        $c_fg, $log_msg, $ANSI{'reset'};
+    $log_str = sprintf '%s %s%s%s%s%s', $zenka_prefix, $colors{'bold'},
+        $col_b,
+        $c_fg, $log_msg, $colors{'reset'};
 }
 
 if ($fatal_exit) {    ## improve detection ## [LLL]
     say STDERR sprintf( "%s%s%s\n<< EMERGENCY SHUTDOWN >> %s",
-        $log_str, $zenka_prefix, $ANSI{'p7_fg_0002'},
+        $log_str, $zenka_prefix, $colors{'p7_fg_0002'},
         '[ anticipated deep recursion in log system ]' );
     exit 2;
 }
@@ -100,8 +101,8 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return 1;
 
-#,,,,,,,.,.,,,,.,,,.,,,..,,.,,..,,..,,,,,,,,,,..,,...,...,,,.,.,.,...,.,,,,..,
-#3NLHFRLUIXVBI4XGCS7RANTCCJETEFS37PXGPQGM5A6XOFONEVT56JQWLCIEFXI5E5W5VYO5BYXSK
-#\\\|UEO4IPTBGXTQ2G3J5T3XA4RA2S6QI7KVTPEWB74LNHJXZQRKDQ5 \ / AMOS7 \ YOURUM ::
-#\[7]VMQQJGPKVSA7GJXK62T7TCSYGVL6DYZ2J7VZKFMNFHHSR5MGCWAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,,,,.,,,.,,,,,.,.,,,..,,..,,..,,...,...,.,.,,,,,,,,,.,.,,,.,
+#554UQPHYO2Z5GUQRHJZROCD2XF6AAY7YFZNEY4DLNIXZRKFIP6GGPVKQL6EWMZMUZNNEHMF4677LI
+#\\\|3KQ6VJXYE6KA7IYMTOS7BEOEKG5TMGS2BET3YF3S7AP6IEV6YU5 \ / AMOS7 \ YOURUM ::
+#\[7]MTC2N7MTNAKT4JQLFWJ5KQ6GEHPS3UUURIMXZN7LYZB5TWAJU6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

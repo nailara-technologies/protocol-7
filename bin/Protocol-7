@@ -10,7 +10,7 @@ use warnings;
 our %code;
 our %data;
 our %KEYS;
-our %ANSI;
+our %colors;
 our $SUB_NAME;
 our $NODE_NAME;
 our $ZENKA_NAME;
@@ -518,7 +518,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     ## defining console ansi colors ###
     if ( $data{'system'}{'ansi_color'} ) {
-        %ANSI = (
+        %colors = (
             qw| B00 |      => "\e[48;2;0;0;17m",
             qw| B01 |      => "\e[48;2;9;5;24m",
             qw| B02 |      => "\e[48;2;9;5;42m",
@@ -532,7 +532,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             'clear_screen' => "\e[H\c[[2J"
         );
     } else {
-        %ANSI = (
+        %colors = (
             qw| B00 |      => '',
             qw| B01 |      => '',
             qw| B02 |      => '',
@@ -549,15 +549,15 @@ sub p7_init_exec {    ##  main variable initialization  ##
     ## prepare for stripping ansi from output ##
     $data{'base'}{'ansi_re'} = join(
         '|',
-        map { ( my $A = $ANSI{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }    # \1?
-            keys %ANSI
+        map { ( my $A = $colors{$ARG} ) =~ s|^\e(.+)$|\\e\Q$1\E|; $A }   # \1?
+            keys %colors
     );
     ## global name variables ## set variable-watcher to update them [LLL]
     $NODE_NAME     = $data{'system'}{'node'}{'name'};
     $ZENKA_NAME    = $data{'system'}{'zenka'}{'name'};
     $ZENKA_SUBNAME = $data{'system'}{'zenka'}{'subname'};
     ## initializing console output ##
-    print STDERR $ANSI{'p7_fg_0002'};
+    print STDERR $colors{'p7_fg_0002'};
 
     my $start_string = qw| \\ |;
     ## nailara start-up banner ##
@@ -585,11 +585,11 @@ sub p7_init_exec {    ##  main variable initialization  ##
         if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'}
             or $show_banner_mode ) {
-            say $prefix, $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
+            say $prefix, $colors{'B02'}, $colors{'p7_fg_0000'},
                 $start_string,
-                , $ANSI{'B00'},
-                ' ' x 77, $ANSI{'B02'} . $ANSI{'p7_fg_0000'}, qw| / |,
-                $ANSI{'reset'};
+                , $colors{'B00'},
+                ' ' x 77, $colors{'B02'} . $colors{'p7_fg_0000'}, qw| / |,
+                $colors{'reset'};
             ## centered-xy ## ..,
             $code{'base.banner'}->($prefix);
             print "\n" x $y_offset if $show_banner_mode and $y_offset;
@@ -1655,9 +1655,9 @@ sub p7_debug_sub {
         }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
     ## [ LLL ] ids need to become resolvable + debug command ..,
     say sprintf(
-        "$ANSI{p7_fg_0000}. %s$ANSI{p7_fg_0001} : $ANSI{p7_fg_0004}%s"
-            . " [ $ANSI{p7_fg_0003}%s$ANSI{p7_fg_0000} ]"
-            . $ANSI{'reset'},
+        "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s"
+            . " [ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
+            . $colors{'reset'},
         $data{'system'}{'zenka'}{'name'},
         $sub_name, $param_list
         )
@@ -1965,10 +1965,10 @@ sub p7_banner {
 
     close($banner_file_fh);
 
-    my $bg_0 = $ANSI{'B02'};
-    my $bg_1 = $ANSI{'B00'};
-    my $fg   = $ANSI{'p7_fg_0000'};
-    my $rst  = $ANSI{'reset'};
+    my $bg_0 = $colors{'B02'};
+    my $bg_1 = $colors{'B00'};
+    my $fg   = $colors{'p7_fg_0000'};
+    my $rst  = $colors{'reset'};
     map {
         say $px, $bg_0, $fg, ' ', $bg_1, ' ', $bg_0, $fg, $ARG, $bg_1,
             ' ',
@@ -2590,22 +2590,22 @@ sub p7__log__name_template {
     if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
         return sprintf(
             '%s%s.%s %s.%-*s %s.%s',
-            $ANSI{'B02'},
-            $ANSI{'p7_fg_0000'},
-            $ANSI{'B00'} . $ANSI{'bold'},
+            $colors{'B02'},
+            $colors{'p7_fg_0000'},
+            $colors{'B00'} . $colors{'bold'},
             $data{'system'}{'node'}{'name'},
             $lpw,
             $data{'system'}{'zenka'}{'name'},
-            $ANSI{'reset'} . $ANSI{'B02'} . $ANSI{'p7_fg_0000'},
-            $ANSI{'B00'} . $ANSI{'bold'}
+            $colors{'reset'} . $colors{'B02'} . $colors{'p7_fg_0000'},
+            $colors{'B00'} . $colors{'bold'}
         );
     } else {               ## regular log line output [ not .\7 line ] ##
         return sprintf(
             '%s%s. %s.%-*s .%s',
-            $ANSI{'B02'}, $ANSI{'p7_fg_0000'},
+            $colors{'B02'}, $colors{'p7_fg_0000'},
             $data{'system'}{'node'}{'name'},
             $lpw, $data{'system'}{'zenka'}{'name'},
-            $ANSI{'B00'}
+            $colors{'B00'}
         );
     }
 }
@@ -2668,7 +2668,7 @@ sub p7__log__noerr {
             if (    $data{'system'}{'verbosity'}{'console'}
                 and $llvl <= $data{'system'}{'verbosity'}{'console'} ) {
                 say $code{'log.format_name'}->($hl), ' ',
-                    $ANSI{$color}, $lmsg, $ANSI{'reset'},
+                    $colors{$color}, $lmsg, $colors{'reset'},
                     $spaces;
             }
             ## early start-up buffer ##
@@ -2686,7 +2686,7 @@ sub p7__log__error {
 
     my $error_color
         = $data{'system'}{'term'}{'colors'}{'stderr'}
-        ? $ANSI{'bold'}
+        ? $colors{'bold'}
         : '';
     $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
     if ( defined $code{'base.log'} ) {
@@ -2705,7 +2705,7 @@ sub p7__log__error {
                     : 0;
                 my $spaces = ' ' x $s_len;
                 say &{ $code{'log.format_name'} }, ' ',
-                    $ANSI{'p7_fg_0002'}, $ARG,
+                    $colors{'p7_fg_0002'}, $ARG,
                     $spaces;
 
             } else {
@@ -2736,8 +2736,8 @@ sub p7__log__debug {
             $s_len //= 0;
             my $spaces = ' ' x $s_len;
             map {
-                say &{ $code{'log.format_name'} }, $ANSI{'p7_fg_0001'},
-                    $ARG, $ANSI{'reset'},
+                say &{ $code{'log.format_name'} }, $colors{'p7_fg_0001'},
+                    $ARG, $colors{'reset'},
                     $spaces
             } @ARG;
         }
@@ -2773,8 +2773,8 @@ sub p7_handler__end_code {
     }
 
 RESET_STDERR:
-    eval { print STDERR $ANSI{'reset'} }    ## [LLL] check 'output' mode ##
-        if defined $ANSI{'reset'} and fileno(STDERR);
+    eval { print STDERR $colors{'reset'} }    ## [LLL] check 'output' mode ##
+        if defined $colors{'reset'} and fileno(STDERR);
 }
 
 ##############################################################################
@@ -3545,8 +3545,8 @@ __DATA__
 :
 :.
 
-#,,..,,,,,,..,.,.,,,.,,,,,,,.,...,,,.,..,,.,.,..,,...,...,,.,,...,,..,,..,...,
-#ASOXWNSLJXNMDOYWMEBQ4PX7YJQSTLH7N4V322KV3ZETHHUMJV3IS7DXZVQZ7LDYV6EPJ5D525JZM
-#\\\|GTSVBREBPEWFV2I2CQBIW3TVLFCNX37QKJKKG4IM2KBDZAVZD2X \ / AMOS7 \ YOURUM ::
-#\[7]MU344P7BJB6BVVFP55KFH6IIWKTMQZ6EAGDIRYKBIE4QBIVVCGDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,,..,,..,.,.,,,.,.,.,..,,.,,,..,,...,...,,.,,.,,,...,.,.,...,
+#T45HZGXKZFX36F3OHOTMMHW5AFSZ5VGOCME3JUWQMHUDPODPUEMIV63JXTVODFN4PVF5XLLNKXK6U
+#\\\|WTAZYKEO4SKAGIZK7DHTJPEIECUTBXFQ247SDJID6OTRVU76YWG \ / AMOS7 \ YOURUM ::
+#\[7]BHLSFFHQJZHVP3LQ2W5ATSKAAPQKWADDHVZEKARZJ63H4G5STIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
