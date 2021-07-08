@@ -7,15 +7,15 @@ my $key_name = $key_vars->{'key_name'};
 
 <[base.log]>->( 2, "generating '$key_name' C25519 key pair..," );
 
-$KEYS{'C25519'} //= {};
+$keys{'C25519'} //= {};
 
 warn "a C25519 key with name '$key_name' is already loaded [ skipped ]"
     and return 0
-    if exists $KEYS{'C25519'}{$key_name};
+    if exists $keys{'C25519'}{$key_name};
 
 my ( $public_key, $secret_key ) = Crypt::Ed25519::generate_keypair();
 
-$KEYS{'C25519'}{$key_name} = {
+$keys{'C25519'}{$key_name} = {
     'name'   => $key_name,
     'public' => $public_key,
     'secret' => $secret_key
@@ -23,8 +23,8 @@ $KEYS{'C25519'}{$key_name} = {
 
 return 1;
 
-#,,,,,,.,,.,,,,,,,,.,,.,.,,.,,,.,,.,,,,.,,,..,..,,...,...,...,...,.,.,.,,,.,.,
-#A52JCPRGUJLJ2ADM34LZ5YGBELTB6OGNBL722WAXQLP7ADG7TOEQCCHJ43YD3MSUIBLR7DSYI7U3Y
-#\\\|XKNWU45HUIEPZ6YADCR4YX5W67SO44NY7WLEWGE53P6XPQYVXWW \ / AMOS7 \ YOURUM ::
-#\[7]7TEUDZHXBLDSYF5FQAWLXOW4CHPMKAXHE2MYLRMKBIWYCMP6DSDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,.,,,,,.,,.,,.,,,,,.,.,,,..,,,,,,..,,...,..,,...,.,.,,,.,.,,,,,.,
+#HVBOSDXUMYRAT3C4CMUUPAPA3EP36GYQW5LTUOYTKVOJJJEEZIS2XWOKN32OGORI6JXUVRX6XNREK
+#\\\|Y5BO5X3Q3R6MI7JQQMMKQ5QCDTKJFQZOARCQEGOWFP7RGQ7SAZB \ / AMOS7 \ YOURUM ::
+#\[7]YBOEA3IJ7YP7Q7CGXKB3DYKZA3PYINPJYF3KQQDWULSDYKKWIMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,15 +16,15 @@ if ( not defined <discover.announce_msg_header> ) {
 
     <discover.announce_msg_header>
         = "[:<|ANNOUNCE|"
-        . encode_b32r( $KEYS{'C25519'}{$key_name}{'public'} ) . "\n";
+        . encode_b32r( $keys{'C25519'}{$key_name}{'public'} ) . "\n";
 
     map {
         <discover.announce_msg_header>
             .= join( ':', $ARG,
-            $KEYS{'C25519'}{$key_name}{'root'}{$ARG}{'sig'} )
+            $keys{'C25519'}{$key_name}{'root'}{$ARG}{'sig'} )
             . "\n"
         }
-        keys %{ $KEYS{'C25519'}{$key_name}{'root'} };
+        keys %{ $keys{'C25519'}{$key_name}{'root'} };
 }
 
 $ann_msg =~ s/\n*$/\n/;
@@ -42,8 +42,8 @@ return { 'mode' => qw| false |, 'data' => "unable to send : \l$OS_ERROR" }
 
 return { 'mode' => qw| true |, 'data' => 'message sent' };
 
-#,,,,,...,,.,,,.,,.,,,,.,,.,,,,.,,,,.,,,,,,,,,..,,...,...,,.,,,,,,...,,..,..,,
-#AMVMEK5QBCROZURKJXQWJV25JQTUCNREF2AHHJYRWLOWJ3IME2H3KK7DKLL2R5ITNUG36BUDOBXCW
-#\\\|X4EYGTVFYGOWIDKP22UP7WATT2C6CHXRETW7QUT3XX4PJHUZAQT \ / AMOS7 \ YOURUM ::
-#\[7]F324LGKWUUDHJBDX4QU3XAK6KSQWRF5P7ITB25NYXOP5VPS5PUDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,...,...,.,.,...,,,,,,,.,,,,,..,,...,...,.,.,,..,,,.,,.,,,,,,
+#RT6GHMTLEXLHFYJUC4AVOO4YKJTZFPRYPS5H75K35KFLGAVZ7IFVDVPH6O34CJ44AELKIF6M33WNE
+#\\\|IAXLROOEBWOHFSES4LC7RVVQQHJPAOC56TMPTRSRR35NACP6RZR \ / AMOS7 \ YOURUM ::
+#\[7]HWWQ3DDOBEML3KJDWWO5GOVVOSC3HPSOTXXQTVMGLGASVNTELCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
