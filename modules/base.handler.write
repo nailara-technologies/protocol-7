@@ -8,7 +8,7 @@ my $event;
 
 if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
     $id = shift;    ##  direct call with session id  ##
-} else {
+} else {    ## was Event watcher ##
     $event = shift;
     $id    = $event->w->data;
 }
@@ -78,8 +78,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,,,,,,.,,.,,,..,...,,,.,,.,,,,.,.,.,..,,...,..,,...,...,,.,,.,,,,,,,..,,.,.,
-#VMNDFNJ2Z3AS7QNFWRO3Y7N56K4HKGX5JOGBYQBR3HGQ7NCELTDOYHCP7QTG5CMAVNBK7IY3CQYEK
-#\\\|OEHRWRBA3EXRBOHIYRJJK3V2UYI56CSHI7XVW3YHAFMAZ775WJU \ / AMOS7 \ YOURUM ::
-#\[7]FQICWOW72OWNEPUN72MSHGD5FC36X2B7OA4H57WG5DQMWZ4F3OAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,.,.,...,..,,...,.,,,,.,,.,.,..,,...,...,..,,,.,,,.,,,,.,,..,
+#SHW5ONGMB3AIBVO2KHSPMG3QFFHLYCT2UPPBIQTHAXSADOYIKQCTWVSNDPBQG2T3XTAAK2WYB64ZO
+#\\\|GVJJ4JMHCSNQ3UKSNBHZWJEPZMMGJTSJ37IS2BJKJSSOE2MSNQ5 \ / AMOS7 \ YOURUM ::
+#\[7]7YZHPNUBMYJC3BJJAFCGX6BLSRRV44EBXP5IJX2OMXMDLS5XIKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
