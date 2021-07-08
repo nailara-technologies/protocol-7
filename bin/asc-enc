@@ -12,8 +12,6 @@ use Time::HiRes qw| sleep |;
 use Unicode::MapUTF8 qw| to_utf8 utf8_charset_alias utf8_supported_charset |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 
-no warnings 'experimental';
-
 my $base_size  = qw|  0  |;
 my $base_table = qw|  17 |;    ## 855;
 
@@ -229,7 +227,8 @@ while ( $option{'S'} and length( $char_buffer // '' ) < $screen_chars
         ## hightlight ##
         $char = $neon_green . $char . $blacklight
             if $option{'h'}
-            and ( exists $highlight->{$c_num} or @highlight_chars ~~ $char );
+            and ( exists $highlight->{$c_num}
+            or map { index( $ARG, $char, 0 ) >= 0 } @highlight_chars );
         ##
 
         my $del = $delay;
@@ -315,8 +314,8 @@ sub display_charset {
     return 1;
 }
 
-#,,,.,...,,,.,...,,,,,,.,,,,.,,.,,,..,..,,,,,,..,,...,...,.,.,.,.,,,,,,.,,,,.,
-#3INIRZHWPSN2G7PM73FVIZMRQ5RP5FTMFSZA6BIHSOS3OBSFB5OEOUS4KGUZA362O3JI7DUF4KPZU
-#\\\|YANSKNWZKPZIHKD4ADTI7IVBUABRQWVWWACBQACCKIF6B55TC7R \ / AMOS7 \ YOURUM ::
-#\[7]Y5L236Q3FM27IEEKIKN74Y7MSRHL4WO2NXUKIOUO7XZH5BPDEKAQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,,,,,.,.,.,,,..,,.,,,,,,,,.,,..,,...,..,,...,.,,,,,,,..,,,,,,
+#437JZ54CISIHWVJJKCJWD6UIFOTMNNZNQ3G25V6UM4BUBFLLQOOAHXAW3AMYJ4TGNE3RIJZWMJ64I
+#\\\|S7ATFFLGLHJ6IZVVY6H6IQ7MVKJNSC27JT3OKJZDNMLL6D7RLA2 \ / AMOS7 \ YOURUM ::
+#\[7]SMY5ILKRQU63V35LQ7HD73BVK6O6PUGPRBPBYO5WWLXTXP7J4WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = base.list_matches
+
+if ( @ARG != 2 ) {
+    warn 'expected list and match pattern params <{C1}>';
+    return undef;
+}
+
+my $list_a_ref  = shift;
+my $pattern_str = shift;
+
+if ( ref $list_a_ref ne qw| ARRAY | ) {
+    warn 'expected array reference parameter <{C1}>';
+    return undef;
+}
+
+my $exact_match = 0;
+my $match_regex_pattern
+    = index( ref $pattern_str, qw| Regexp |, 0 ) == -1 ? 0 : 5;    ## true ##
+$exact_match = 5
+    if not $match_regex_pattern
+    and defined $pattern_str
+    and $pattern_str =~ s|(*nlb:\\)\$$||;
+
+my $count = 0;    ##  counting matches  ##
+foreach my $check_element ( $list_a_ref->@* ) {
+    if ( not defined $pattern_str ) {
+        $count++ if not defined $check_element;   ##  match undef elements  ##
+    } elsif ( defined $check_element and $match_regex_pattern ) {
+        $count++ if $check_element =~ $pattern_str;    ## pattern is regex ##
+    } elsif ( defined $check_element ) {
+        next
+            if $exact_match
+            and length($check_element) != length($pattern_str);
+        $count++ if index( $check_element, $pattern_str, 0 ) >= 0;
+    }
+}
+
+return $count;    ## return number of elements matched ##
+
+#,,,.,..,,...,..,,..,,.,.,.,,,,.,,,,.,...,,,.,..,,...,..,,..,,...,,.,,,..,,,,,
+#4IM7VEY44OAGDXKV7C6APKTC7KXT3HOLEPIYDJLY7IASLNFZDQ7GUYYFWFGHUCKCRVG2UTDP467EW
+#\\\|I6MMUXJPO6NCNA7LJ4NF5PDCDZHZGI22FFOFYQ3H7UHIEX2ZFKN \ / AMOS7 \ YOURUM ::
+#\[7]PMUYOON7O5I7L4DXG2HSQ6ACT2J6YR2BDAR7D5VFWSVMVNLZM4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

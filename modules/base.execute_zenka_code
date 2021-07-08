@@ -11,7 +11,9 @@ if (   not @zenka_perl_code
         = index( [<[base.caller]>]->[0], qw| Protocol-7 | ) == -1
         ? qw| <{C1}> |
         : qw| <{NC}> |;
-    warn 'expected zenka config perl code to run ' . $caller_lvl;
+    <[base.s_warn]>->(
+        'expected zenka config perl code to run %s', $caller_lvl
+    );
     return undef;
 }
 
@@ -40,13 +42,14 @@ undef $main::RUN_ZENKA_CFG_WARNING_STRING;
 ## storing last return value ##
 <zenka_cfg.ret_val> = undef;
 
-use experimental qw| smartmatch |;
-
 my $use_aliases = 1;    ## <-- resolve config command aliases ? ##
 my $noerr       = 5;
 $main::RUN_ZENKA_CFG_LINE = 0;
-my $event_loop_name    = qr,(event.loop|(base.)?zenka.loop),;
-my $event_loop_present = @zenka_perl_code ~~ m|\$code\{'$event_loop_name'}|;
+
+my $event_loop_name_re = qr,\$code{'(event.loop|(base.)?zenka.loop)'},;
+my $event_loop_present
+    = <[base.list_matches]>->( \@zenka_perl_code, $event_loop_name_re );
+
 foreach my $code_line (@zenka_perl_code) {
     $main::RUN_ZENKA_CFG_LINE++;
     my $error_exit = 0;
@@ -59,7 +62,7 @@ foreach my $code_line (@zenka_perl_code) {
         if <base.zenka_cfg.warnings> eq qw| report |
         or $event_loop_present
         ## use regular base.sig_warn handler in main event loop ##
-        and $code_line !~ m|\$code\{'$event_loop_name'}|;
+        and $code_line !~ $event_loop_name_re;
 
     ## silencing all warnings ##
     local $SIG{'__WARN__'} = sub { }
@@ -67,7 +70,7 @@ foreach my $code_line (@zenka_perl_code) {
 
     ## restoring global sig_warn handler ##
     local $SIG{'__WARN__'} = $code{'base.sig_warn'}
-        if $code_line =~ m|\$code\{'$event_loop_name'}|;
+        if $code_line =~ $event_loop_name_re;
 
     ## checking \ resolving command routine aliases ## [ cfg_cmd.<name> ]
     #
@@ -148,8 +151,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,.,,,,.,..,,.,,,.,,,,.,,...,..,,.,,,..,,.,.,..,,...,...,,,,,,..,.,.,,..,,,.,
-#4BOAYYEBQBNFOMYPPOJLHHQU63YCKESB5PEKCUOZWSW5EEVGQWKCIOE5KSKQI4QFGLBM4SOE5VUKI
-#\\\|LMN77YYZVZ5F6XJOQTRBCOPLCBEBPIKG6PIHL54ES6LJESQZSMJ \ / AMOS7 \ YOURUM ::
-#\[7]O3PUDDANSOC6FRTRQIZ6DN2XMTHPTE7P6A7PTMJNG7OJ5EL5RSAA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,,..,,,.,,,.,,,,,,,.,,,,,..,,..,,...,...,.,.,...,,,,,,..,,.,,
+#G3YUYW37RT74I6KISL77O2RYVWMKO5LNDIQEPQAQXBTRH3UNV7GN6M5IYUI7RAAZUML3MXL5HWECM
+#\\\|NVIMT27EQ7YUIY4PJ7P63NP3TVPAARH5IEBCBKFISNZEJWBAMPG \ / AMOS7 \ YOURUM ::
+#\[7]FCDJO6RBPJURUE64COBCUHPPRUR575NBWJ6QJ536F6Q5IYQPXACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
