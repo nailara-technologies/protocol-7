@@ -14,8 +14,6 @@ our %colors;
 our %p7_subroutines;
 p7_load_time_hires();
 p7_load_perl_modules();
-## silence experimental warning ##
-use experimental qw| smartmatch |;
 
 # is protocol 7 code? #
 our $PROTOCOL_SEVEN = 5;
@@ -559,11 +557,11 @@ sub p7_init_exec {    ##  main variable initialization  ##
         my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
         my $show_banner_mode = 0;
         my $center_xy        = 0;
-        if ( @ARGV ~~ m{(^| )-show-banner( |$)} ) {
+        if ( map {m,(^| )-show-banner( |$),} @ARGV ) {
             $show_banner_mode = 1;
-            $center_xy        = 1 if @ARGV ~~ m{(^| )-center( |$)};
+            $center_xy        = 1 if map {m,(^| )-center( |$),} @ARGV;
             ( $x, $y ) = @{^CAPTURE}
-                if @ARGV ~~ m{(^| )-size=(\d+)x(\d+)( |$)};
+                if map {m,(^| )-size=(\d+)x(\d+)( |$),} @ARGV;
             if ($center_xy) {
                 ## center-y ##
                 $y_offset += $y > 7 ? int( ( $y - 8 ) / 2 ) : 0;
@@ -2410,7 +2408,7 @@ sub p7_sig_warn {
         } @err;
         push( @err, $spaces ) if length $spaces;
         {
-            if ( @err ~~ m|deep recursion | ) {
+            if ( map {m|deep recursion |} @err ) {
                 no warnings qw| recursion |;    # no follow-ups
                 $deep_recusrsion++;             # remove offending routine #
                 foreach my $c_lvl ( 1 .. 5 ) {
@@ -3544,8 +3542,8 @@ __DATA__
 :
 :.
 
-#,,..,..,,,.,,,,,,...,,,.,..,,.,,,,,.,,,.,.,,,..,,...,...,.,,,,,,,.,.,..,,,..,
-#MZAY7AD3NJBUYPROM3RRW4I2NC2W5SVHEPDZJB7DTUSFWAEPW72ELG7TBTIKU6P25YS4E5O2ONVIA
-#\\\|HXOCNRPRMDQLB7QMU765FSRBC3JXVRCZZ5UKD3YQDDZ2OZTVMZ6 \ / AMOS7 \ YOURUM ::
-#\[7]OBALGGGUZ7SDXIN2W4VS3OB7EH5HOHKFPVEJPKU6GCR443VISADI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,.,,,,,,...,.,,,.,.,..,,,,,,.,,,..,,...,...,,.,,...,,..,,,.,.,.,
+#APITFJ4TOHO7B576HBODOQB7DFZYI4YPFWERYSFSHJ2OUTYV3K2EDWQ3U6WJ5PJK4TZ7RBGORSMF4
+#\\\|32IY7H5OIERJZCHJFOKNH7WZ6CEIDRHKVPD7SCFQ2CD2732LGA2 \ / AMOS7 \ YOURUM ::
+#\[7]FXLUKKTBDJOUZDCTWM2UTQVQSX6CS5NWMYQO5VC4K33LJBQMR6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
