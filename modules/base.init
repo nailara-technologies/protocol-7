@@ -10,7 +10,7 @@ if ( $ARG[0] =~ m|~$| ) {
     <[base.exit]>->(4);
 }
 
-$SUB_NAME = qw| base.init |;    ##  <--  used for warnings  ###
+<system.sub_name> = qw| base.init |;    ##  <--  used for warnings  ###
 
 $PROGRAM_NAME = $ARG[0];
 
@@ -21,7 +21,7 @@ if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
 
 <[base.process-into-background]> if <system.background_mode>;
 
-my $success = 5;                ## true ##
+my $success = 5;                        ## true ##
 if (    <system.start-up.stdin.read-init-code>
     and <zenka.start-up.init_code>->@* ) {
 
@@ -46,7 +46,7 @@ my $zenka_cfg_path = <[base.get_path.zenka_cfg]>->(<system.zenka.name>);
 if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
     my $zenka_name = <system.zenka.name>;
     local <system.zenka.name> = qw|error|; # <-- changed zenka name to 'error'
-    $SUB_NAME = undef;
+    <system.sub_name> = undef;
     <[base.logs]>->( 0, "<< no such zenka found ['%s'] >>", $zenka_name );
     return undef;
 }
@@ -63,10 +63,10 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
     <system.zenka.name>
     );
 
-$SUB_NAME = undef;
+<system.sub_name> = undef;
 
-#,,.,,...,,.,,...,..,,,..,.,.,,..,.,.,,,.,,,,,..,,...,...,...,,..,...,,..,,..,
-#MZPVGBRZPW4HE6DYPKDNGWQKEKKQNJGMKKONEYMRB5D233ZBA2XVEZO7KO5MNZGK7UGPBY3LG4ESK
-#\\\|R4MPVHT6QCUF7HXLWJGYHOK75LXYA4WLHKBG76WEHXFB3VX4WC5 \ / AMOS7 \ YOURUM ::
-#\[7]NCPXCCF7PU4YIJ6OASWH3RST6HZU4S3DXM7M7NUFQ3XW627MR4CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,,,,,...,,.,,..,,.,.,.,,,.,.,..,,...,...,..,,.,,,.,,,...,.,,,
+#EMX2FVEOASFRYQ4VT7D7OXBNP5DW32JJXCZGIRUHE3JSC6HRM4YUXABJMT22275HUZEAILLKC4ZMU
+#\\\|VCYFLNQ34ZP54SU3TWVFK6K6WB5IHIVGWKXAGVLMUH3XXITA3F7 \ / AMOS7 \ YOURUM ::
+#\[7]HVN5E5Q7AVDG542TVCE65R67GQSZSAA7RNAPC6G5TCGLWCY7VCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
