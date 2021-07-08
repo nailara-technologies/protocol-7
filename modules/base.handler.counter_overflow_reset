@@ -1,0 +1,42 @@
+## >:] ##
+
+# name  = base.handler.counter_overflow_reset
+# descr = reset value when specified bit is set [ value range : <n>-1 bit ]
+
+my $event = shift;
+
+if ( ref $event->w ne qw| Event::var | ) {
+    warn 'expected event watcher of type var';
+    return undef;
+}
+
+my $value_ref    = $event->w->var;
+my $overflow_bit = $event->w->data;
+
+if ( ref $value_ref ne qw| SCALAR | ) {
+    warn 'event var param does not contain scalar ref';
+    return undef;
+} elsif ( not defined $overflow_bit
+    or $overflow_bit !~ m|^\d{1,2}$|
+    or $overflow_bit < 1
+    or $overflow_bit > 64 ) {
+    warn 'event data expected to contain numerical overflow bit [1..64]';
+    return undef;
+}
+
+##  reset at overflow limit  ##
+#
+if (index( sprintf( qw| %0*b |, $overflow_bit, $value_ref->$* ), 1, 0 ) == 0 )
+{
+    $event->w->stop;     ##  pause for modification  ##
+    $value_ref->$* = 0;
+    $event->w->start;    ##  restarting watcher  ##
+}
+#
+##
+
+#,,,.,.,.,,.,,..,,,..,,.,,.,.,.,,,.,.,.,.,.,,,..,,...,...,...,,,,,.,.,,..,,.,,
+#EEZX2PFDRRTTLHBCLU2XRNRPRIKZZITNXP3FFHKIWT5D3Z2V4FOHHPAAHOHTP6IIR4WXR7IRCNWC6
+#\\\|JXU5ILCO4SX5TMXOLA5YERWT5NJ4WJGQRQQA4JS6TSUEHZZUDDK \ / AMOS7 \ YOURUM ::
+#\[7]IODMXPQ6CZ4MIHAQQWRWFCWQYCD5J24KTPSUV7FB7M6CXO3TKGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
