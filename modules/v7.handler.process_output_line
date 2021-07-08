@@ -52,15 +52,18 @@ while (
     ##  highlight non-standard output [ debug lines ]  ##
     if (    index( $zenka_output_line, "\e", 0 ) == -1
         and index( $zenka_output_line, qw| . |, 0 ) == -1 ) {
-        $zenka_output_line = sprintf( '%s%s. : <%s>  %s%s %s %s',
-            $ANSI{'p7_fg_0001'}, $ANSI{'B02'},
-            $zenka_name,         $ANSI{'p7_fg_0002'}, $ANSI{'bold'},
-            $zenka_output_line,  $ANSI{'reset'} );
+        $zenka_output_line = sprintf(
+            '%s%s. : <%s>  %s%s %s %s',
+            $colors{'p7_fg_0001'}, $colors{'B02'},
+            $zenka_name,           $colors{'p7_fg_0002'},
+            $colors{'bold'},       $zenka_output_line,
+            $colors{'reset'}
+        );
     }
 
     say $zenka_output_line    ##  display when verbose or log level 0  ##
         if <system.verbosity.console>
-        or $zenka_output_line =~ m|\Q $ANSI{bold}\E|;
+        or $zenka_output_line =~ m|\Q $colors{bold}\E|;
 
     ## remove colors before matching .., ##
     <[base.strip_ansi]>->( \$zenka_output_line );
@@ -101,8 +104,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,.,,...,.,,,.,.,,.,,..,,.,,,,..,.,,,.,.,.,,,..,,...,...,,.,,..,,.,,,,..,,,.,
-#B5YMW2EKGNBWYPYURK4NMIMEOW53ACI5V7NLCNBGRAP2VRCKESZKU5X76UILKO2UGMDOVTWNLIJZK
-#\\\|Q7Y3T4OWB35FD32UWHQRF5YWTBQJ7V5HIZDHAWIN65FXYCTDZXL \ / AMOS7 \ YOURUM ::
-#\[7]I5TSD3X3KDSQ2EK2GP2SYYLOCRPPXWFXO4GDNGNFD2ISQWS25KAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,.,.,,..,,.,,,,,,...,,,,,...,..,,...,.,,,.,,,,,.,,,,,.,,,..,,
+#JYT4EE7TBU4LUWFWJ2KNQ5UZENX2FNBWIUZGAA45BNULESJR2F4G5HDSY6523BD5JLNXXOJ77WLDO
+#\\\|5D7HIBH5NNUN4AWONPKEF5ZJNKYVFY4IGBD63QIO5TPB3XYGPFI \ / AMOS7 \ YOURUM ::
+#\[7]ZN3C6A5YAQXCF3BUF7HJIPNHYMTHMYRBPPKGEY4CBONLG7MD56AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
