@@ -14,7 +14,7 @@ our %colors;
 our $SUB_NAME;
 our $NODE_NAME;
 our $ZENKA_NAME;
-our %p7_main_subs;
+our %p7_subroutines;
 our $ZENKA_SUBNAME;
 p7_load_time_hires();
 p7_load_perl_modules();
@@ -182,7 +182,7 @@ sub p7_import_main_subroutines {    ##  making subroutines P7 available  ##
         $code_subname =~ s|__|\.|g;             ## special syntax ##
 
         ## copying into protocol-7 code hash ##
-        $code{$code_subname} = $p7_main_subs{$subname};
+        $code{$code_subname} = $p7_subroutines{$subname};
 
         $data{'p7_subroutine'}{$code_subname} = {    ## updating registry ##
             qw| installed | => $code{'base.time'}->(7),
@@ -214,8 +214,8 @@ sub p7_scan_main_subroutines {
         = grep { index( $ARG, $prefix_pattern, 0 ) == 0 }
         grep { defined &{ sprintf qw| main::%s |, $ARG } } @symbol_names;
     if ($update_p7_main_subs_hash) {
-        %p7_main_subs = map { $ARG => \&{ sprintf qw| main::%s |, $ARG } }
-            $result_aref->@*;    ## update %p7_main_subs subroutine table ##
+        %p7_subroutines = map { $ARG => \&{ sprintf qw| main::%s |, $ARG } }
+            $result_aref->@*;    ## update %p7_subroutines subroutine table ##
     }
     return $result_aref;         ##  return matching sub names  ##
 }
@@ -3545,8 +3545,8 @@ __DATA__
 :
 :.
 
-#,,..,,..,.,.,.,,,,,,,,..,..,,,.,,,.,,..,,,,,,..,,...,...,..,,,,.,,,,,.,,,.,.,
-#IZKJUKNL3EAH5SI5HCLKQSPJKV66YWI6LPRQL6QSU2VYJJBCJT2JVFL44WE4CIIOIIQKXRKRPYZU6
-#\\\|OF7H2RAYKJOPNYG7ZXW7J7MANX2MBPQVYGFGXQ4NE2GHW5Y3G7Q \ / AMOS7 \ YOURUM ::
-#\[7]34WCELBA2GNDPDRFNN3DLJ6BWKKXBLXBZT3K24PLO7UFNTUFQSAY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,.,.,.,,,.,,,...,,,,,,,,,,,,,..,,...,...,,..,.,,,.,,,.,.,,..,
+#PJ66O52NTG7WFIXLJ2K5ZI7EJ3ABLWROFC6PREE4NDDLK4YJ3A56ANMDBBV5OCXPWIX3JHJ3HNP6E
+#\\\|53BC3YKZDL6LBEBWSDGFJ227US3SW7MOIMJQCZA4DMBGFNBS6RH \ / AMOS7 \ YOURUM ::
+#\[7]YS34DZSZID272E6KMYTAMXJCKS2A4ZHWRJJBF3DLYWOEBNVGX2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
