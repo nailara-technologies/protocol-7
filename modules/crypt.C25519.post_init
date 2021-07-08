@@ -53,8 +53,8 @@ if (    index( $ZENKA_NAME, qw| source |, 0 ) == -1
     }
     <[crypt.C25519.sign_keys]>;
 
-} elsif ( not defined $KEYS{'C25519'}{$key_name}
-    or keys( $KEYS{'C25519'}{$key_name}->%* ) != 2 ) {
+} elsif ( not defined $keys{'C25519'}{$key_name}
+    or keys( $keys{'C25519'}{$key_name}->%* ) != 2 ) {
     <[crypt.C25519.load_keypair]>;
 }
 
@@ -63,7 +63,7 @@ while ( glob $key_basepath . '.{rkp,sig}.*' ) {
         my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
         <[base.logs]>->( ": : %s : '%s'", $type, $fname );
         $type = qw|public| if $type eq qw| rkp |;  ## <-- [ root-key-pub ] ###
-        chomp( $KEYS{'C25519'}{$key_name}{'root'}{$rkname}{$type}
+        chomp( $keys{'C25519'}{$key_name}{'root'}{$rkname}{$type}
                 = ${ <[file.slurp]>->($ARG) } );
     }
 }
@@ -73,15 +73,15 @@ if ( defined <system.zenka.type>
 {
     my $s_key_name = <system.zenka.name>;
     <[crypt.C25519.generate_session_keypair]>
-        if not defined $KEYS{'C25519'}{'session'}{$s_key_name};
+        if not defined $keys{'C25519'}{'session'}{$s_key_name};
 }
 
 <crypt.C25519.initialized>++;
 
 0;
 
-#,,..,,,.,.,.,,..,.,,,.,.,..,,,,,,.,.,,.,,.,.,..,,...,...,...,.,,,...,.,,,,,,,
-#UUMSB2DCIRVNJWMMY72V3NNDEQAXGVYRBXJTRTC2H4T7S4A6JAGFLEU4I2EAWI535NNDFCYIJL4JW
-#\\\|3A5LXLPH5SKCQFMA3JNWCXNOSYTUJKUGAFNTFLG7HSMIPVLRPL6 \ / AMOS7 \ YOURUM ::
-#\[7]Q7FGJGHHFGQ7UCS3Y7W6XTEIPHVL2SQ6MX2GPK55BG4HGZBDGUAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,.,,,,..,..,,,,,,,..,.,,,,,,,..,,...,...,.,,,,.,,.,.,,..,.,,,
+#EZKFW6UEY4GPFL4V3SDQ6H6HOI3DQY3CBCH67CZDWTQ2VQOJ7U72AGIJ6JQP6U5FSJEUL3KCFFEBE
+#\\\|6GUU2HGDWXERCUUAPHVY6G7HVAU3JWWZDJCFTGXBCFKRPLT2XBR \ / AMOS7 \ YOURUM ::
+#\[7]KA6GY4XES5JCDUPL4I3DEMYTE5BOS6CHN65P4OJEMJTVPPYKKCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

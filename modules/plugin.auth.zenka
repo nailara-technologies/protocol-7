@@ -43,16 +43,16 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     my ( $user, $key_hash ) = ( my $auth_name = $1, blake2b_384_b64($2) );
     my $subname = $user =~ s|\[($re->{subname})\]$|| ? $1 : '';
 
-    if ( defined $KEYS{'auth'}{'zenka'}->{$user} ) {
+    if ( defined $keys{'auth'}{'zenka'}->{$user} ) {
 
-        if ( $key_hash eq $KEYS{'auth'}{'zenka'}{$user} ) {
+        if ( $key_hash eq $keys{'auth'}{'zenka'}{$user} ) {
 
             if ( length($subname) ) {
                 $data{'session'}{$id}{'subname'} = $subname;
                 $data{'user'}{$user}{'subname'}{$subname}++;
             }
 
-            delete $KEYS{'auth'}{'zenka'}{$user};
+            delete $keys{'auth'}{'zenka'}{$user};
             $output->$* .= "AUTH_TRUE =)\n";
 
             ## <[net.update.client_conf]>->($id);
@@ -83,8 +83,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,,,,,,,,,,.,.,,,...,,..,..,,.,.,..,,,.,,...,..,,...,...,,.,,..,,...,,,.,,,.,
-#7DYTI24QZFTF43GCWQNPW7GV47FKDHAF7FUBON4WITYQ2C4XH4SWUFYNUTXA4S22FHURXM4777DJC
-#\\\|KUPRKWJMO2N7JRQ6CS7UCQ2FWKIT2M5FBIP6I3LT3HFETWQ6LHZ \ / AMOS7 \ YOURUM ::
-#\[7]G2V6IPQ2BEUHA4VUWSAVAWLGL4PVXOXQ5WOXMHYQKY243FMHC6DY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,...,,,.,.,,,...,,,.,,.,,,.,,..,,...,.,.,...,.,.,,,.,...,..,,
+#ZTHO732CODTVSLUDBTFVLSU2ALTFA75DNQTPDG4OAR2DPLLBEOI3OGHVQXUNEXJSTENETYFEIYWXE
+#\\\|IDHY25HFVFB56UETOVMRBYSEV7OJMIR6QB6J6ECN44EA32TFHZS \ / AMOS7 \ YOURUM ::
+#\[7]5CKMOZDSXYHK7DFHZGC2IUXNC6FQLF5KPCK3E4YSRBAYIQY7SSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

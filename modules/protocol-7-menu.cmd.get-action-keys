@@ -3,19 +3,19 @@
 # name  = protocol-7-menu.cmd.get-action-keys
 # descr = list of gfx action key and modifiers codes
 
-my $keys_href = <protocol-7-menu.action-keys.graphical> //= {};
+my $action_key_href = <protocol-7-menu.action-keys.graphical> //= {};
 
 return { 'mode' => qw| false |, 'data' => 'no keys configured' }
-    if not scalar keys %$keys_href;
+    if not scalar keys %$action_key_href;
 
 my @key_list;
 
-##  $keys_href->{$MOD_code}->{$key_code}  ##
+##  $action_key_href->{$MOD_code}->{$key_code}  ##
 
 return { 'mode' => qw| true |, 'data' => join( '', @key_list ) }
 
-#,,..,.,,,,.,,..,,,,,,.,,,,.,,.,,,.,.,,.,,.,,,..,,...,...,.,,,.,.,,..,..,,,.,,
-#5LVR3V3XJVIHATYCQGHVNPX4F2DZUMFO73C3DUBENYUR6OGHM6FG6IGFVES3MVBVHLTAMH32WMZKE
-#\\\|VGIFERKEG57VYTSP6JA3OM2ABBBCYGIGTUJLCOIVWKCF4OWWOD5 \ / AMOS7 \ YOURUM ::
-#\[7]YXBYAEUV2VRWI7CAVVCL2NXON5ASRSEFRJVYPQ6GJHGR2H73SACI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,.,,,,,.,,,,,,,,,...,...,,..,..,,...,...,..,,,,.,,.,,,,.,,,.,
+#WUM43L2O3ME7ISW5U733BIMQ4VGRJBSPKR2HUPNO5AAEFPI2I5MROXKD3SZZTETGSSQ5B44N3XAJG
+#\\\|OMX2LTQ7ORKGSN33VVU7NIO2TNIGIIDRAUJC6MK5MZK7BFEZDH7 \ / AMOS7 \ YOURUM ::
+#\[7]IJIZNPRJ2WIRS72SMSY3NJTRPKZF3DZ7GEJKJPVAI3ETKMYZRGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,13 +27,13 @@ chomp( my $peer_pub = substr( $packet_buffer, 0, 44, '' ) );
 my $keys_matched = 0;
 while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
     my ( $root_name, $root_sig ) = ( $1, $2 );
-    next if not defined $KEYS{'C25519'}{$key_name}{'root'}{$root_name};
+    next if not defined $keys{'C25519'}{$key_name}{'root'}{$root_name};
     return
         <[base.logs]>->( 2, ": '%s' root key signature [ERROR]", $root_name )
         if not Crypt::Ed25519::verify(
         sprintf( "%s\n", $peer_pub ),
         decode_b32r(
-            $KEYS{'C25519'}{$key_name}{'root'}{$root_name}{'public'}
+            $keys{'C25519'}{$key_name}{'root'}{$root_name}{'public'}
         ),
         decode_b32r($root_sig)
         );
@@ -55,8 +55,8 @@ return <[base.log]>->( 0, ": packet signature verification [ERROR]" )
 ## printf " \--< peer: %s >--\n<--payload-->\n<-/payload-->\n", $peer_pub,
 ##    $packet_buffer;
 
-#,,,.,,..,...,...,,.,,,,.,,..,,,,,,..,..,,..,,..,,...,...,.,.,,,,,,,.,,,,,,..,
-#UYDLHREPDL2A7TGWQXBDLSK72PIFULF7MFWBFKLJ6TG53D3M6GWPZWOADW66IFEJHUUHQMIADECWI
-#\\\|GFATXQRTXRAWOF26REJXPESRENEWX2BUILHNS65CGKDIJON24L6 \ / AMOS7 \ YOURUM ::
-#\[7]RJ4DQA6XHT7U4PI4WSDK4ROR6X6G27KSAPXPHTW24DKHYEXM7CCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,.,,,.,,,,,,,,.,,,..,..,,.,,,..,,...,...,..,,..,,,,,,..,,,.,,
+#YE7LORORAKEXAZ7ILTZMHVW34VWYSV2I6HAKNDPNOAP63BJF2BSAK3HJUOAD2ZUIIEZYC2HBAU43U
+#\\\|24D2JRHUTCFZHANNYMOIIO4QF3OMKLRZE7A4D56GLCHACGDIDXG \ / AMOS7 \ YOURUM ::
+#\[7]3QQYHNTJO2ZKFSH5KWDUXKZRJIAAJXZ5OIJ4AULBW5VE62TEQCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

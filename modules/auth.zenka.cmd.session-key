@@ -26,7 +26,7 @@ if ( <[base.is_defined_recursive]>->( sprintf( 'auth.setup.usr.%s', $zenka ) )
 
 if ($type_authorized) {    ##  has :zenka:  ##
 
-    $KEYS{'auth'}{'zenka'}->{$sn_zenka} = blake2b_384_b64($key);
+    $keys{'auth'}{'zenka'}->{$sn_zenka} = blake2b_384_b64($key);
 
     <[base.logs]>->( "[%d] received session key for '%s'", $id, $zenka );
     return { 'mode' => qw| true |, 'data' => 'key added' };
@@ -45,8 +45,8 @@ if ($type_authorized) {    ##  has :zenka:  ##
     };
 }
 
-#,,,.,,,,,..,,.,,,.,.,,,.,,.,,..,,,,,,.,.,,.,,..,,...,...,..,,,,.,,..,,,,,..,,
-#QKU6D3V77GJKK4GJROJ3XFBOINXSO32NQZTZBIJYQAUQBWKCEEQM2WPFZCSZY3FGUYFLF2VWGYVDI
-#\\\|D2MN4CI2IAORS7YTL3E7NQNZJK5M4KGH22TMIZJKLK5QMT6BOYR \ / AMOS7 \ YOURUM ::
-#\[7]LE3TBG2Z5NXXF7Z2KBDKCOHAHNIA7J6VFGQ7HCR7EFFT7NPT5OAY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,..,,,..,..,,,,,,,,.,,,.,.,,,,,.,..,,...,..,,,.,,,,.,..,,,..,,,,,
+#H7U7EO7K354JNHGNX2VRAOWHJQMQ44EB2D3JDV4NN3PWQMVGDLUXQKA323FVDLKNBHSRPYJ2ZWG3S
+#\\\|AASTQ2XZGD5UAAEFP6EIXEZ6BOPQIX74QO6IEBGCQVOCPGPJWU3 \ / AMOS7 \ YOURUM ::
+#\[7]NPMU5SU4RCJKFCODSYPYIRF57MG7ABIXGFW2STAW6HUQJPKOZGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,11 +13,11 @@ return {
     'mode' => qw| false |,
     'data' => "C25519 key '$key_name' is not loaded"
     }
-    if not defined $KEYS{'C25519'}{$key_name}{'public'};
+    if not defined $keys{'C25519'}{$key_name}{'public'};
 
 <[base.log]>->( 0, "[$id] flushing C25519 key '$key_name'., [ requested ]" );
 
-my $usr_key = $KEYS{'C25519'}{$key_name};
+my $usr_key = $keys{'C25519'}{$key_name};
 
 map {    ##  secret | public  ##
     <[base.erase_buffer_content]>->(
@@ -28,15 +28,15 @@ map {    ##  secret | public  ##
     delete $usr_key->{$ARG};
 } <[base.reverse-sort]>->($usr_key);
 undef $usr_key;
-delete $KEYS{'C25519'}{$key_name};
+delete $keys{'C25519'}{$key_name};
 
 ### deleting session key if present ###
-if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
+if ( defined $keys{'C25519'}{'session'}{$s_key_name} ) {
     <[base.log]>->(
         1, "[$id] :. erasing session key '$s_key_name'., [ from memory ]"
     );
 
-    my $s_key = $KEYS{'C25519'}{'session'}{$s_key_name};
+    my $s_key = $keys{'C25519'}{'session'}{$s_key_name};
 
     map {    ##  secret | public  ##
         <[base.erase_buffer_content]>->(
@@ -48,20 +48,20 @@ if ( defined $KEYS{'C25519'}{'session'}{$s_key_name} ) {
     } <[base.reverse-sort]>->($s_key);
     undef $s_key;
 
-    delete $KEYS{'C25519'}{'session'}{$s_key_name};
-    delete $KEYS{'C25519'}{'session'}
-        if !keys( %{ $KEYS{'C25519'}{'session'} } );
+    delete $keys{'C25519'}{'session'}{$s_key_name};
+    delete $keys{'C25519'}{'session'}
+        if !keys( %{ $keys{'C25519'}{'session'} } );
 }
 
-delete $KEYS{'C25519'} if !keys( %{ $KEYS{'C25519'} } );
+delete $keys{'C25519'} if !keys( %{ $keys{'C25519'} } );
 
 return {
     'mode' => qw| true |,
     'data' => "deleted '$key_name' key from memory"
     }
 
-#,,,.,,,,,,,,,,..,,,.,,,.,,,.,,,,,...,.,,,.,.,..,,...,...,,..,...,,,.,,,.,,.,,
-#66MHK4NY3HYGH2ISVRL6BE3H4MNTQEG5HJPGG2B34VENJW4VCLR6CD4F4ZWOKP6PV2QDR5SAJNVCO
-#\\\|RL2CEXHX7R26FWL7NOWBQ6UJHEZMDCVMALTZDAA3M4M2DUER7JF \ / AMOS7 \ YOURUM ::
-#\[7]ZPKIVBRKTJVTSI3YCU3KIGDJMAUOVBEBIIKILW6TN77CNWH4TKBA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,,..,...,,,.,...,.,,,...,,,,,..,,...,...,,,,,.,.,,.,,...,..,,
+#SW6PR3PEDW4CK2U7PHSR6R6ADHB4UF7JHZNZG6XNQYHQNNLIOVJAT2RHUEEEXHJ6VAY6IXTO542TY
+#\\\|LZ2OWO33KBPGNBPETVBDGIHYLCC3C3SJV47TSITDQU2LO3VA7T4 \ / AMOS7 \ YOURUM ::
+#\[7]XDCSKIDP2ERTQOUJGY3RN6BJGX3TYYRYSDYNRTGOI7TI2V3VJ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

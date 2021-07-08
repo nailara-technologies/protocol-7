@@ -28,7 +28,7 @@ foreach my $type (qw|  secret  public  |) {
     } else {
         chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
     }
-    my $key_str_b32 = encode_b32r( $KEYS{'C25519'}{$key_name}{$type} );
+    my $key_str_b32 = encode_b32r( $keys{'C25519'}{$key_name}{$type} );
     printf( {$key_fh} "%s\n", $key_str_b32 );
     close($key_fh);
     rename( "$tmp_fname", $file_name ) or die "\l$OS_ERROR [ $file_name ]";
@@ -38,8 +38,8 @@ foreach my $type (qw|  secret  public  |) {
 }
 return 1;
 
-#,,.,,...,,,,,..,,,..,.,,,..,,.,.,...,.,,,...,..,,...,...,,,.,,..,,..,.,.,,,,,
-#7A55ALTQ2JBUQAKUYEXAWQXQSPE73YTHOZ7Y3FH6EMESRWW7CEI66TFBGF75POUDHILQB2X4DONWI
-#\\\|542GAFFEL6DLSRPE5T3TCCDI6SQ4FBTARVNP7FVAWOTMCEBQJI6 \ / AMOS7 \ YOURUM ::
-#\[7]JUTCIISPIM4OHC7N7QOFODTQORJAQWB46PV43WZJR6V6UMDLGOAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,.,.,,,.,.,.,.,,,..,,,..,.,,,..,,...,..,,..,,..,,,,,,..,,,,.,
+#RMBEJ2YP3QL7KVBOKN26IXSCQHQQ3GXM26QFYQPUOYDTTP6ZAJUZOEBAGUZHCNDF7J4U7AWRVVPNA
+#\\\|UZOPRCI57VHDR36PYUWCHG5T7SVHX4XHBXMQCQA527BTGJEAJTZ \ / AMOS7 \ YOURUM ::
+#\[7]WGVUEAUFRON7PCUQ6BRUSQIVUN73DZLN7U5H45IH6KGA2AOZWCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
