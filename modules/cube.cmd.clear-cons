@@ -7,13 +7,13 @@ my $clear_reply = 'console cleared';
 my $header_text = 'protocol 7 console';
 
 if (<system.ansi_color>) {
-    my $quote_str = "$ANSI{'p7_fg_0000'}'$ANSI{'p7_fg_0001'}";
+    my $quote_str = "$colors{'p7_fg_0000'}'$colors{'p7_fg_0001'}";
     my $host_str  = sprintf( '%s%s%s protocol 7 console',
         $quote_str, <system.host.hostname>, $quote_str );
     printf( STDERR "%s\n %s.:[%s %s %s]:.%s\n\n",
-        $ANSI{'clear_screen'},                $ANSI{'p7_fg_0004'},
-        $ANSI{'B02'} . $ANSI{'p7_fg_0004'},   $host_str,
-        $ANSI{'reset'} . $ANSI{'p7_fg_0004'}, $ANSI{'reset'}
+        $colors{'clear_screen'},                  $colors{'p7_fg_0004'},
+        $colors{'B02'} . $colors{'p7_fg_0004'},   $host_str,
+        $colors{'reset'} . $colors{'p7_fg_0004'}, $colors{'reset'}
     );
 } else {
     my $host_str = sprintf( '%s %s', <system.host.hostname>, $header_text );
@@ -22,8 +22,8 @@ if (<system.ansi_color>) {
 }
 return { 'mode' => qw| true |, 'data' => $clear_reply };
 
-#,,..,,..,..,,..,,,..,,,,,.,.,..,,,,,,..,,.,,,..,,...,.,.,,,,,...,.,.,,,,,...,
-#23DPAP77D3UJPQVSABGXE6DMBAY6VD2LEEPR2N6UEESFB755VNMESH2WSSNZM72I2JGW6PRMWJL2A
-#\\\|54VT644OHEYURILS4ANKO47JZ7ZTVOGWJUZXHGBRQYJBMI624C3 \ / AMOS7 \ YOURUM ::
-#\[7]RRNOJNTCCDX6V5IOF3AK7W3XTF3E6OX5FIPOX4LIOD3NB7J54ABQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,.,,,,,.,..,,.,,,,,,,..,,..,,..,,...,...,...,,,,,,.,,.,,,...,
+#WR4GCGVPCPJIL5JJNQMTPUSKTUELMFQZOFXM2ZETSSJLUUGMV7CGPP5HTURXTD355IAOGSYJJGI5C
+#\\\|TEZUDJU4KIBWJ7P75ZDHJYMAKUVVVVVZ5EF6VNLURA7PTCORS6Q \ / AMOS7 \ YOURUM ::
+#\[7]NXF3B5FURSJLSHWPEUUKUEKKW3OG47H3WRCE6NR5FFCHBKSA3ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
