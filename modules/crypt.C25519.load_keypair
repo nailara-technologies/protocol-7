@@ -25,32 +25,32 @@ if ( -r $secret_key_file and -r $public_key_file ) {
     }
 
     ## decode [ base 32 ] ##
-    $KEYS{'C25519'}{$key_name}{'secret'} = decode_b32r($encoded_secret_key);
-    $KEYS{'C25519'}{$key_name}{'public'} = decode_b32r($encoded_public_key);
+    $keys{'C25519'}{$key_name}{'secret'} = decode_b32r($encoded_secret_key);
+    $keys{'C25519'}{$key_name}{'public'} = decode_b32r($encoded_public_key);
 
     map {
         <[base.log]>->( 0, "BASE32 decoding failed [ $ARG key ]" )
-            if not defined $KEYS{'C25519'}{$key_name}{$ARG}
+            if not defined $keys{'C25519'}{$key_name}{$ARG}
     } qw| secret public |;
 
-    if (   not defined $KEYS{'C25519'}{$key_name}{'public'}
-        or not defined $KEYS{'C25519'}{$key_name}{'secret'} ) {
+    if (   not defined $keys{'C25519'}{$key_name}{'public'}
+        or not defined $keys{'C25519'}{$key_name}{'secret'} ) {
         <[base.log]>->( 0, "failed to load key '$key_name'" );
         return 0;
     }
 
     return 1;
 } else {
-    delete $KEYS{'C25519'}{$key_name};
-    delete $KEYS{'C25519'} if !keys %{ $KEYS{'C25519'} };
+    delete $keys{'C25519'}{$key_name};
+    delete $keys{'C25519'} if !keys %{ $keys{'C25519'} };
     <[base.log]>->( 0, "'$key_name' key pair not found or unreadable..," );
     <[base.log]>->( 0, " ::[ expected in : '$key_dir' ]::" );
 
     return 0;
 }
 
-#,,,.,...,,..,,.,,,,,,,,.,...,..,,...,.,,,,,,,..,,...,.,.,...,,,.,.,.,.,,,..,,
-#RLVJEQ34W7NBARPCIK3QICQGDPAVFWAJTVWV3BIC45DUYCRT26I7TGMAMSF7UHZKC7WY45QHX5VH2
-#\\\|5O2QSJXPXQMOKNX6R4WAT7GFYIL2XEOSVQ3NXENJYFDS26QROTO \ / AMOS7 \ YOURUM ::
-#\[7]4CIA3IXJAZL2KQADJX4SF4WOLNI4MSEJXGBO6JY35I7XYAYTGEBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,,.,...,,.,,.,.,,..,,..,...,..,,...,...,...,,..,,,.,,,,,.,.,
+#BSLFXXUQVXDNJCUEH74VQ7RWHAA2Q5T7LXLXCSIWRFKOA7QRLQ3LHAJLUJS5T57C5ZMUIXMDD5M2A
+#\\\|RDR26RHEHY3SJTELWWROOSA7ZJWR4EYAFYCENTPOKBQIHN4CSKX \ / AMOS7 \ YOURUM ::
+#\[7]R3Z5KWK5HGSKQ437WCX5ECMJCGWH56PGVBDJJE6VLQW6P76TYEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

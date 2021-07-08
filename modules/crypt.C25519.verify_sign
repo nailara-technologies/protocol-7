@@ -13,18 +13,18 @@ warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
     "found no public key named '%s' [ cannot verify sig ]", $key_name
     )
     and return undef
-    if not exists $KEYS{'C25519'}{$key_name}
-    or ref $KEYS{'C25519'}{$key_name} ne qw| HASH |
-    or not defined $KEYS{'C25519'}{$key_name}{'public'};
+    if not exists $keys{'C25519'}{$key_name}
+    or ref $keys{'C25519'}{$key_name} ne qw| HASH |
+    or not defined $keys{'C25519'}{$key_name}{'public'};
 
 return Crypt::Ed25519::verify(
     $msg_ref->$*,
-    $KEYS{'C25519'}{$key_name}{'public'},
+    $keys{'C25519'}{$key_name}{'public'},
     decode_b32r( $signature_data_sref->$* )
 );
 
-#,,,.,.,,,,.,,...,,,.,,,.,.,.,,.,,,,,,.,.,...,..,,...,...,,,,,.,,,..,,,.,,,,.,
-#OSQORJYIYPL3NKPSDSUR4STQFKI7Z6TOTJPJSQERUO5XIDVZZ2M3MKPNY6WSLS47PEV46IAIXZ3RM
-#\\\|KRSARBLLVFZ5NFZLS3LY3FN4YXUYPISCJMWUFE5WHVA5UIXGR2W \ / AMOS7 \ YOURUM ::
-#\[7]MV27AKP7GMDJLZSH3CDMAQ76UG4XGO2AHLDGBQ7DQXFTPPP5P6DQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,,,.,...,,,,,,,.,,.,,,..,,,,,..,,...,...,.,,,,,,,.,,,.,,,..,,
+#JDN4ZUJJY5HEVJPTD56MRPZUPTTOT4J6WWDL6PMG2HLBCDANJRFVEFCLKIDUMWO7WMIQ4XJKKWY46
+#\\\|4MEGHMETJNOFM3YOL7FLV737V72GU7WI35T46EHHVX2QKBGHVZQ \ / AMOS7 \ YOURUM ::
+#\[7]M3YTZZBPALXRDSNR3FG2TWIBTOVHALVERZ26HHYC37PBYDXP5GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

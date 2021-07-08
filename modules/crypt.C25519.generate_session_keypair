@@ -6,7 +6,7 @@ my $key_name     = shift // <system.zenka.name>;
 my $key_name_str = $key_name eq <system.zenka.name> ? 'zenka' : "'$key_name'";
 
 ## regenerate? <-- log level 2 [ less noise on timer interval ]
-my $log_level = defined $KEYS{'C25519'}{'session'}{$key_name} ? 2 : 1;
+my $log_level = defined $keys{'C25519'}{'session'}{$key_name} ? 2 : 1;
 
 <[base.log]>->( $log_level, ":[ creating $key_name_str session keys ]" );
 
@@ -16,7 +16,7 @@ my $creation_ntime = <[base.ntime.b32]>->(3);
 my $key_sig
     = <[crypt.C25519.sign_data]>->( \"[$creation_ntime|$public_key]" );
 
-return $KEYS{'C25519'}{'session'}{$key_name} = {
+return $keys{'C25519'}{'session'}{$key_name} = {
     'name'      => $key_name,
     'public'    => $public_key,
     'secret'    => $secret_key,
@@ -27,8 +27,8 @@ return $KEYS{'C25519'}{'session'}{$key_name} = {
         sprintf( '[%s|%s]', $creation_ntime, encode_b32r($key_sig) )
 };
 
-#,,,.,,,,,,,,,.,.,,,.,...,,,.,.,.,.,.,,,.,,..,..,,...,...,..,,,,.,,..,,..,.,.,
-#ISQTCO3GRUQQ6MW7QJMBZDGMTEEAPVOWLEZ4EVFAN3ZZLO7YVRIUJ5BFCUQD7IJAG37YH3WIKHQLQ
-#\\\|KPLZR6DNTONGUILV3XWRRBCX2SGKRVJTNWUZENM3Y5WUHE2QMDO \ / AMOS7 \ YOURUM ::
-#\[7]ZV64NJL3R5HI4XRH3POXGODSMNN2OOC6ZNEXN4BH7PRN6I5AH6DI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,,,,,.,,,,,,...,.,.,,.,,,.,,..,,...,...,..,,...,,.,,...,.,,,
+#WPOJM6J7ZR24QRQX3ZI4FCCTHRCWOVWO45Z77FEEZKRKU6D3NSSNVR65R2X47PHG3C3DFUGFFKPJO
+#\\\|TAWJB2QPJGX6VPZR4AJ4AQSEAOVZ7V4GSYBVDJ4IDDGPAGJ5HHM \ / AMOS7 \ YOURUM ::
+#\[7]7DB2JG3LUQM43REDPDN4Z3UT2QUYZWJCJBV2ZCCEM2XDJ37RD2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
