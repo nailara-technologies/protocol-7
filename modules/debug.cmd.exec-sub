@@ -37,21 +37,26 @@ $err_msg = 'undefined subroutine output'
     or @sub_output == 1 and not defined $sub_output[0];
 return { 'mode' => qw| false |, 'data' => $err_msg } if defined $err_msg;
 
-map { $ARG //= 'UNDEF' } @sub_output if @sub_output > 1;
+map { $ARG //= qw| UNDEF | } @sub_output if @sub_output > 1;
 
-map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length( ref $ARG ) }
+map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length ref $ARG }
     @sub_output;
 
 my $rep_mode = qw| true |;
-if ( @sub_output == 1 ) {
-    $sub_output[0] =~ s|\n$|| if $sub_output[0] =~ m|\n| <= 1;
-    $rep_mode = 'data' if $sub_output[0] =~ m|\n|;
+
+foreach my $sub_output_str (@sub_output) {
+    $sub_output_str =~ s|\n$|| if $sub_output_str =~ m|\n| == 1;
+    $sub_output_str =~ s|^ {2,}\};\n| \}\n|sm;
+    $rep_mode = qw| size | if $sub_output_str =~ m|\n|;
 }
 
-return { 'mode' => $rep_mode, 'data' => join( ', ', @sub_output ) };
+return {
+    'mode' => $rep_mode,
+    'data' => join( $rep_mode eq qw| true | ? ', ' : "   ,\n", @sub_output )
+};
 
-#,,..,.,.,,..,,.,,.,.,,..,,,.,,..,,..,,..,,..,..,,...,..,,..,,..,,,.,,,,.,..,,
-#6ZPNZUPTHZVKAKQF65XXZJBAPNWYUIAMUZGAGUZYWSY25EDDQ7MSAIYDFTZ3F4T6DNTHOOIVYD3GA
-#\\\|DD3LH6QE23RBZ4DLCX56B36FYAZOSCJ45G7Z47ZLTAZM5FHTIPB \ / AMOS7 \ YOURUM ::
-#\[7]L6FTP3H4E5SUP7R3QWDEJHD7HT7MYLGZ6TDPEN6WRCVOHPKRV2AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,,,,,...,.,.,...,.,,,,.,,,,.,..,,...,...,,,.,,,,,,.,,.,.,...,
+#EKTCSACA3H73GYPYSWRZXPB5D75VIYRCVDA7TO35MQQXLV6NF4PPLERFSDVOHF7UYOIPWBWCKISUA
+#\\\|V5MVBBP27MQ66HJLSXLQPL64HXDRMQGZIXPV3XARNCPGTSPTITJ \ / AMOS7 \ YOURUM ::
+#\[7]GVMHIGRSYW6GDPNRQZYRBQNRZI4HJ2EWL2HJRIFSK3QAYSHQB2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

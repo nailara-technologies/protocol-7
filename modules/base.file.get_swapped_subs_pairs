@@ -1,0 +1,42 @@
+## >:] ##
+
+# name  = base.file.get_swapped_subs_pairs
+
+my %swap_subs;
+my $module_name = shift // qw| .+ |;
+my $source_dir = <system.code_path>;
+
+my @module_initcode_files
+    = grep {m,^(.+/)?$module_name(\..+)?\.((pre|post)_init|init_code)$,}
+    <[file.match_files]>->(
+    $source_dir,
+    map { sprintf qw| %s**.%s$ |, $module_name, $ARG }
+        qw| pre_init init_code post_init |
+    );
+
+foreach my $module_init_file_path (@module_initcode_files) {
+    <[file.slurp]>->( $module_init_file_path, \my @source_lines ) or next;
+    foreach my $line (@source_lines) {
+        next if index( $line, qw| base.swap_subs |, 0 ) == -1;
+        ##  translating protocol-7 code syntax  ##
+        $line =~ s|#.+$||g;
+        next if not length $line or $line !~ m|swap_subs|;
+        $line =~ s|<\[(base.swap_subs)\]>|\$code{'$1'}|g;
+        next if $line !~ m|\$code{'base.swap_subs'}->\(([^\)]+)\)|;
+        my @swap_params = <[base.eval.get_params]>->($LAST_PAREN_MATCH);
+        map { next if $ARG !~ m|^[\w\-_\d\.]+$| } @swap_params;
+
+        map { $swap_subs{ $swap_params[0] } = $swap_params[1] } @swap_params;
+    }
+}
+
+##  returning both swap directions [ in list context ]  ##
+return ( \%swap_subs, +{ reverse %swap_subs } ) if wantarray;
+
+return \%swap_subs;    ##  file to target direction  ##
+
+#,,.,,,.,,.,.,.,.,,,.,..,,.,,,,,,,,,.,...,,,.,..,,...,...,,,,,...,,,,,.,,,.,,,
+#U5QVUO3ND54LB6F4ARBMU7RMZXMA7MHIYTJ54VOCD3WFETH42XAILQ547E7COXRYIMX4K5GASLFMS
+#\\\|RDNW3I7MEUZS3STPS4OV6EP2X5J6BVUBXMJWIAGIDAGJ2Q2AYPR \ / AMOS7 \ YOURUM ::
+#\[7]EB2UUID5TUX326A6LN4HYKMX6F4KCGGDCLVMK3WGJ56KALWZ34AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

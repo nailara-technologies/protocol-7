@@ -590,6 +590,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 my $reply;
                 {
                     local $EVAL_ERROR = undef;
+
                     my $caller = <[base.caller]>->(-1)
                         and $reply
                         = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
@@ -603,8 +604,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         or ref($reply) ne qw| HASH | );
 
                     if ($EVAL_ERROR) {
-                        my $err_str
+
+                        ( my $err_str, my $extracted_callerstr )
                             = <[base.format_error]>->( $EVAL_ERROR, -1 );
+
+                        $caller = $extracted_callerstr
+                            if defined $extracted_callerstr
+                            and ( not defined $caller
+                            or $extracted_callerstr ne $caller );
+
                         $caller = defined $caller ? " $caller" : '';
                         my $log_error = 1;
                         ##  alternative handler for filename:line ?  ##
@@ -1066,8 +1074,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ##  command processing was complete  ##
 
-#,,..,.,,,.,.,...,..,,,,.,,,.,.,,,.,,,,,,,,..,..,,...,...,..,,...,,,,,...,.,.,
-#B6JRRMWT7USCN2APQUGIUQR3RA5R4TLLKUKL3GBGUAKX6GQLQZJU4NOGSX72SX6VCGH3CVG4NQ5GW
-#\\\|AFHTFGIUO6D3P6WR4BESLUOBQOIUIDQTFJHWCUIRD7VQGXR65LK \ / AMOS7 \ YOURUM ::
-#\[7]DLJUALMHBTYRKU5C5BUBC6OSAKPYY645B6JT75IUUFYBWTFTVOAA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,..,,.,,,,.,,,,,,.,,,..,,..,..,,...,...,,.,,..,,,,,,..,,.,.,
+#SYIZFCOUVVFCMSZB7ZXJJ34JD4PFNAXJX6RARYTVAY6L5EOUB5YZXROHU3KFUWMFD66R4IQRRKSJC
+#\\\|G4F75RNIRPUHM5I5ZPIURE2ZFNXE5U5QAWHBP2OXDJFXSO4NQS6 \ / AMOS7 \ YOURUM ::
+#\[7]6FK3DEXBXLLL2OGE6THG7HU3AFLO4VGXY2F6ZVH2OPIVBCRGW2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
