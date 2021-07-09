@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = base.warnings.from_bitmask
+# descr = return hashref with category keys for enabled warnings
+
+my $warning_bitmask = shift // '';  ## accepts ${^WARNING_BITS} style masks ##
+
+if ( not length $warning_bitmask ) {
+    warn 'expected warnings bitmask parameter <{C1}>';
+    return undef;
+} elsif ( length($warning_bitmask) > length( $warnings::Bits{'all'} ) ) {
+    warn 'supplied warnings bitmask exceeded registered bit size <{C1}>';
+    return undef;
+}
+
+state @categories;                  ##  caching sorted category names  ##
+@categories
+    = sort { length $a <=> length $b } reverse sort keys %warnings::Offset
+    if not @categories;
+
+my %categories_enabled = ( qw| fatal | => {}, qw| normal | => {} );
+
+foreach my $category (@categories) {
+    my $warnings_mode = qw| normal |;
+
+    ##  normal, then fatal bitmask offset  ##
+    foreach my $category_bitmask_offset ( $warnings::Offsets{$category},
+        $warnings::Offsets{$category} + 1 ) {
+
+        $categories_enabled{$warnings_mode}{$category}
+            = vec( $warning_bitmask, $category_bitmask_offset, 1 )
+            ? 5     ## true ##
+            : 0;    ##  false  ##
+
+        $warnings_mode = qw| fatal |;    ## 'fatal' mode for second bitmask ##
+    }
+}
+
+return \%categories_enabled;
+
+#,,,,,,,,,.,.,.,,,..,,.,.,..,,,..,,.,,,,.,,,,,..,,...,...,...,...,,.,,...,,,,,
+#IULE7CYNJ7QSJ3RX2Z46JNBNAXBUIHI4B6CK6K6XRXVLXS4ZM2XHXUT2JYG2YC6RNGW7WBQE7RZL4
+#\\\|DG4W63BUPW7424AY5YOVBJ7LSE6QUYO7PKZXZ75GLFK5KHVU6IQ \ / AMOS7 \ YOURUM ::
+#\[7]TK7NBS4JLGFFZ7EVZUNOMSOTM5UKKA6FX2FDGPN22SGAL5KCO6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
