@@ -48,69 +48,55 @@ if ( @remaining_files == 0 ) {
     );
 }
 
+<[base.log]>->(
+    $log_level, ': checking for swap_subs statements in module init files..,'
+);
+
+my @swap_params;
 my $source_dir = <system.code_path>;
+my %module_checked;
+
+$removed = 0;    ##  reset file counter  ##
 
 foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
     ( my $fname_rel = $file ) =~ s|^.*/||;
     my $module_name = $LAST_PAREN_MATCH if $fname_rel =~ m|^([^\.]+)\.|;
-    next                                if not defined $module_name;
+    next
+        if not defined $module_name
+        or defined $module_checked{$module_name};
 
-    <[base.log]>->(
-        $log_level,
-        ': checking for swap_subs statements in module init files..,'
-    );
+    $module_checked{$module_name} = 5;    ## true ##
 
-    my @module_initcode_files
-        = grep {m,^(.+/)?$module_name(\..+)?\.((pre|post)_init|init_code)$,}
-        <[file.match_files]>->(
-        $source_dir,
-        map { sprintf qw| %s**.%s$ |, $module_name, $ARG }
-            qw| pre_init init_code post_init |
-        );
+    ## collect replacement statements ##
+    my $swap_subs_href = <[file.get_swapped_subs_pairs]>->($module_name);
+    @swap_params = each $swap_subs_href->%*;
+    next if not @swap_params;
 
-    $removed = 0;    ##  reset file counter  ##
+    foreach my $remaining_file (@remaining_files) {
+        next
+            if
+            index( $remaining_file, sprintf( qw| %s. |, $swap_params[1] ), 0 )
+            == -1;
+        my $source_filename = $remaining_file;
 
-    foreach my $module_init_file_path (@module_initcode_files) {
-        <[file.slurp]>->( $module_init_file_path, \my @source_lines ) or next;
-        foreach my $line (@source_lines) {
-            next if index( $line, qw| base.swap_subs |, 0 ) == -1;
-            ##  translating protocol-7 code syntax  ##
-            $line =~ s|#.+$||g;
-            next if not length $line or $line !~ m|swap_subs|;
-            $line =~ s|<\[(base.swap_subs)\]>|\$code{'$1'}|g;
-            next if $line !~ m|\$code{'base.swap_subs'}->\(([^\)]+)\)|;
-            my @swap_params = <[base.eval.get_params]>->($LAST_PAREN_MATCH);
-            map { next if $ARG !~ m|^[\w\-_\d\.]+$| } @swap_params;
-
-            foreach my $remaining_file (@remaining_files) {
-                next
-                    if index( $remaining_file,
-                    sprintf( qw| %s. |, $swap_params[1] ), 0 ) == -1;
-                my $source_filename = $remaining_file;
-
-                ## full match, remove entry from list ##
-                delete <base.subroutines.referenced>->{$remaining_file}
-                    and ++$removed
-                    if $source_filename
-                    =~ s|^$swap_params[1]\.|$swap_params[0]\.|
-                    and defined <[base.chk_nlr_path]>->(    ## file exists ##
-                    sprintf qw| modules/%s |,
-                    $source_filename
-                    );
-
-            }
-
-        }
+        ## full match, remove entry from list ##
+        delete <base.subroutines.referenced>->{$remaining_file}
+            and ++$removed
+            if $source_filename =~ s|^$swap_params[1]\.|$swap_params[0]\.|
+            and defined <[base.chk_nlr_path]>->(    ## file exists ##
+            sprintf qw| modules/%s |,
+            $source_filename
+            );
     }
-    <[base.logs]>->(
-        $log_level,
-        ': : removed %s entr%s [ subroutine file%s found ] ..,',
-        $removed,
-        <[base.cnt_s]>->( $removed, qw| ies y | ),
-        <[base.cnt_s]>->($removed)
-    );
-
 }
+
+<[base.logs]>->(
+    $log_level,
+    ': : removed %s entr%s [ subroutine file%s found ] ..,',
+    $removed,
+    <[base.cnt_s]>->( $removed, qw| ies y | ),
+    <[base.cnt_s]>->($removed)
+);
 
 my @remaining_files = <[base.sort]>->(<base.subroutines.referenced>);
 
@@ -187,8 +173,8 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,..,.,.,...,.,.,...,..,,,.,,.,.,..,,..,,.,.,.,.,...,...,,,,,,,.,,..,,,.,,,,,
-#Y4QC7BYT5AAWJFIESX2ATSXPJLBBHVAB4BIEDO7TNFPQMSHPYN3RI6HSVBJNZJDX23BRWDACDNBVS
-#\\\|NS2ALHOCRRAGWZMHLFY2NGBO2AQYAT6UMUVBKTWUQ4KNXP34AS2 \ / AMOS7 \ YOURUM ::
-#\[7]F4YJKJ7YPKWSR2V3DVCAHYFGWCVOPBM5UBJGD6SZTNZ45QTLNUCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,..,,...,.,.,,,,,,,,,.,.,,.,,.,.,...,...,...,..,,..,,.,.,..,,
+#SQIAWXCEJ4HRTRODENOIVNXKQG4NAFFWTZ42RLYNKAR76ICOF25ZAIIGQ7P6JLDNRU3O5XDKTYDJC
+#\\\|PECC4DRNMFUC5T27ZI6J7C37NFU35XMPFMWGNVZQFUIYMKDIT2N \ / AMOS7 \ YOURUM ::
+#\[7]ZEDX5O4NGA22U7PAUFFTKY5W6XXECUUAMNBLQ4FB7UTPXS4I5QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
