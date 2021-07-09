@@ -6,15 +6,21 @@ my $string_sref     = shift;   ## scalar reference to multiline input str ##
 my $elf_chksum      = shift;   ## aggregate checksum up to which to strip ##
 my $line_prefix_str = shift;   ## only strip lines matching optional prefix ##
 
+## a - prefix to elf chksum implies to only include up to matched line ##
+## a + prefix to elf chksum implies to include next line after a match ##
+
+my $print_lines_to_console = 0;    ##  debug output with checksums  ##
+
 if ( ref $string_sref ne qw| SCALAR | ) {
     warn 'expected scalar reference param <{C1}>';
     return undef;
-} elsif ( not defined $elf_chksum or $elf_chksum !~ m|^\d{1,9}$| ) {
+} elsif ( not defined $elf_chksum or $elf_chksum !~ m|^[-+]?\d{1,9}$| ) {
     warn 'expected ELF-7 checksum parameter <{C1}>';
     return undef;
 }
 
 my $str_length = length $string_sref->$*;
+my $pfx_len    = length $line_prefix_str if defined $line_prefix_str;
 
 return 0 if not $str_length;    ##  empty string, nothing to do  ##
 my $continuous_chksum  = 0;     ## elf start checksum ##
@@ -33,8 +39,7 @@ while ( $next_line_position <= $str_length ) {
     $next_line_position++;    ## include ignored linefeed ##
 
     ## keep not matching lines \ do not add to checksum ##
-    if ( defined $line_prefix_str
-        and my $pfx_len = length $line_prefix_str ) {    ## has prefix ##
+    if ( defined $line_prefix_str ) {    ## has prefix ##
         next if index( $current_line_str, $line_prefix_str, 0 ) == -1;
 
         $continuous_chksum       ## add line to continuous checksum ##
@@ -54,26 +59,52 @@ while ( $next_line_position <= $str_length ) {
     ##  collect for stripping should match occur  ##
     $strip_offset_list{$linestart_pos} = $next_line_position - $linestart_pos;
 
-    if ( $continuous_chksum == $elf_chksum ) {    ##  checksum matches  ##
-        $checksum_match_occurred = 5;             ## true ##
-        last;                                     ##  strip lines  ##
+    ##  including next line [ '+' prefix ]  ##
+    ##
+    last if $checksum_match_occurred;
+
+    if ( $continuous_chksum == abs($elf_chksum) ) {   ##  checksum matches  ##
+        $checksum_match_occurred = 5;                 ## true ##
+
+        say '< has match > ', $continuous_chksum, ' : ', $current_line_str
+            if $print_lines_to_console;
+
+        delete $strip_offset_list{$linestart_pos}       ## removing current ##
+            if index( $elf_chksum, qw| - |, 0 ) == 0;   ## if not 'incl. next'
+
+        ##  strip lines  ##
+        if ( index( $elf_chksum, qw| + |, 0 ) == 0 ) { ##  + chksum prefix  ##
+            ##  including next line mode  ##
+        } else {
+            last;    ## 'up to' or 'incl. match' modes ##
+        }
+    } elsif ($print_lines_to_console) {
+        say ' < no match > ', $continuous_chksum, ' : ', $current_line_str;
     }
 }
 
 ## return number of lines stripped [none] ##
 return 0 if not $checksum_match_occurred or not keys %strip_offset_list;
 
-foreach    ##  stripping backwards to not need to recalculate offsets  ##
+my @lines;    ## collecting stripped lines to return ##
+
+foreach       ##  stripping backwards to not need to recalculate offsets  ##
     my $strip_start_position ( sort { $b <=> $a } keys %strip_offset_list ) {
 
-    substr( $string_sref->$*, $strip_start_position,
+    push @lines,
+        \substr( $string_sref->$*, $strip_start_position,
         $strip_offset_list{$strip_start_position}, '' );
+    chomp( $lines[$#lines]->$* );                   ##  remove linefeed  ##
+    substr( $lines[$#lines]->$*, 0, $pfx_len, '' )  ##  remove line prefix  ##
+        if defined $line_prefix_str;
 }
 
-return scalar keys %strip_offset_list;    ##  number of lines stripped  ##
+@lines = reverse @lines;    ##  correcting line order again  ##
 
-#,,.,,.,,,,..,,..,,,,,,..,,,.,,..,,..,.,.,...,.,.,...,...,...,,,.,,.,,,,,,.,,,
-#E4ROOUMEY3YEGIM4B5AH5BXTPIAFERWEM7HFOLER445LBCNFX77UYYTXLKKLGCQ6UK3SEBPNG24DI
-#\\\|YZYF2KDPGDZXBOPRO2VZ2QTED5YP4QV7MSFQXCURJDYRZCLQFI6 \ / AMOS7 \ YOURUM ::
-#\[7]6OWZDOEKKHZ7XQUZDIB7JSAYKO5ZTYJ7U7OOOYYSVUGYX4QYF2CA 7  DATA SIGNATURE ::
+return \@lines;    ##  return removed lines  ##  [ array ref to scalar refs ]
+
+#,,,.,,..,..,,,,.,.,,,.,,,,.,,,.,,..,,...,.,,,.,.,...,...,.,.,,.,,.,.,...,.,,,
+#F2BOOXACBU3E3IFIO5YG4ED7FPIAMHPVWSUZOH6ZLUGTEA5UPDB7QAYWIDPESCT7SXT27SKANKZ54
+#\\\|FPJDGFDJF2IKJWLE27TABTI2DAMZ2S7UA5FQNHWZDCRUX7SDYRV \ / AMOS7 \ YOURUM ::
+#\[7]EGCJIMDLN56ZDHTL3Z4MNZD5NAQ2ETU5E4ZWZA354QWPD2CCCWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

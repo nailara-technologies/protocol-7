@@ -46,7 +46,7 @@ my $rep_mode = qw| true |;
 
 foreach my $sub_output_str (@sub_output) {
     $sub_output_str =~ s|\n$|| if $sub_output_str =~ m|\n| == 1;
-    $sub_output_str =~ s|^ {2,}\};\n| \}\n|sm;
+    $sub_output_str =~ s|^ {2,}([\]}]);\n| $1\n|smg;
     $rep_mode = qw| size | if $sub_output_str =~ m|\n|;
 }
 
@@ -55,8 +55,8 @@ return {
     'data' => join( $rep_mode eq qw| true | ? ', ' : "   ,\n", @sub_output )
 };
 
-#,,,,,,,,,,,,,,..,,,,,...,.,.,...,.,,,,.,,,,.,..,,...,...,,,.,,,,,,.,,.,.,...,
-#EKTCSACA3H73GYPYSWRZXPB5D75VIYRCVDA7TO35MQQXLV6NF4PPLERFSDVOHF7UYOIPWBWCKISUA
-#\\\|V5MVBBP27MQ66HJLSXLQPL64HXDRMQGZIXPV3XARNCPGTSPTITJ \ / AMOS7 \ YOURUM ::
-#\[7]GVMHIGRSYW6GDPNRQZYRBQNRZI4HJ2EWL2HJRIFSK3QAYSHQB2CI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,,..,,..,..,,,.,,.,,,,,.,,,.,..,,...,...,,.,,...,.,,,,,,,,.,,
+#A5YWJOSRTAE2ZXHMPGA77MIUSFH2WON3X3S2HGNU4DGNXUPL7WWPXY52GBDJBJMNVYDVOTOGC4ZT2
+#\\\|GJAU3B6W7YBPWPGOOEG6ZEBFPPIAUZEVBTGGYPUH3SZJ4J3KMFS \ / AMOS7 \ YOURUM ::
+#\[7]LR2FLSOLRMIQJKPKY724CW7KGNQBI6GXQDQ45Y3PGSVWVNVUCGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
