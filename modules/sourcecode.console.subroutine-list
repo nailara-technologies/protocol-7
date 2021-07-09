@@ -1,7 +1,7 @@
 ## >:] ##
 
-# name  = sourcecode.console.modules
-# descr = list protocol-7 source code modules
+# name  = sourcecode.console.subroutine-list
+# descr = list registered protocol-7 subroutines
 
 my @param;
 my %C = %AMOS7::C;
@@ -22,24 +22,28 @@ my $zenki_str = shift @param;    ## next param optional zenki names ##
 
 my @zenki = defined $zenki_str ? split( m| +|, $zenki_str ) : ();
 
-my @p7_module_names;
+my @loaded_modules;
+my @all_subroutines = <[base.list.subroutines]>->@*;
 
 if (@zenki) {
     foreach my $zenka (@zenki) {
-        push @p7_module_names, <[sourcecode.extract_modules]>->($zenka);
+        push @loaded_modules, <[sourcecode.extract_modules]>->($zenka);
     }
-    @p7_module_names = uniq <[base.sort]>->( qw| base |, @p7_module_names );
-} else {
-    my $source_modules = <sourcecode.path.modules>;
-    @p7_module_names
-        = <[base.sort]>->(
-        uniq map { $LAST_PAREN_MATCH if $ARG =~ m|^$source_modules/([^\.]+)| }
-            <[file.all_files]>->($source_modules)->@* );
+    @loaded_modules = uniq <[base.sort]>->( qw|base|, @loaded_modules );
 }
 
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
-foreach my $name (@p7_module_names) {
+foreach my $name (@all_subroutines) {
+
+    my $match = @loaded_modules ? 0 : 5;
+    foreach my $module (@loaded_modules) {
+        $match = 5 and next    ## true ##
+            if index( $name, sprintf( qw| %s. |, $module ), 0 ) == 0
+            or $name eq $module;
+    }
+    next if not $match;
+
     my $asserted_true = 0;    ##  false  ##
     if ($incl_true) {         ## [ OR mode ] ##
         foreach my $ELFmode (@truth_modes) {
@@ -60,8 +64,8 @@ foreach my $name (@p7_module_names) {
 
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
-#,,,.,,,,,,,,,,..,..,,,.,,.,,,,,.,.,,,...,..,,..,,...,...,.,.,.,,,,,.,.,.,,.,,
-#2JKTTXUT2IVQR7Z7XRA4VTBFQBM455CYXKE4JLUYDEY7QHGEFNDMGUTFK5MF6DL7GAUWIKCSZYSPC
-#\\\|SRBPYIIRHXLPEQXN5LSV6WP3KTDONUEYEI7PCNZOYJD25IP4NUW \ / AMOS7 \ YOURUM ::
-#\[7]YOEJNFWS5QENSDXTPBVF4EBGLXA2DENMP6OHPU3OEQW5E4WA4OBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,.,.,...,.,.,.,,,...,.,,,,..,..,,...,...,.,.,.,,,,..,,.,,...,
+#DSB4GW3COP6LT52NINLYBCLK7OWIVWR4KVRM7BDSJUT6GSDOELVPO55QTC5FJ577257JUUA5KJ3FW
+#\\\|3YY7GXABVGVXSQPAIZMZE6BWHIK7FGZ3UMD5F44CNJPGDPS5XLZ \ / AMOS7 \ YOURUM ::
+#\[7]24FT4KZJVLPQRF5MSET4OMC7YCFKYQD5VOWITCZI5HOWKBOREUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
