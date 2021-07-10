@@ -2,37 +2,84 @@
 
 # name  = debug.cmd.ydump
 # param = [key_pattern]
-# descr = dump internal program state
+# descr = extracts of internal program state to yaml
 
-my $d_ref;
-my $keyword = $$call{'args'} // '';
-if ( length($keyword) and not eval {qr{$keyword}} ) {
-    ( my $regex_err = lc($EVAL_ERROR) ) =~ s| in regex.+\n$||;
-    return {
-        'mode' => qw| false |,
-        'data' => "expected a valid pattern .:[ $regex_err in regex ]::"
-    };
-} elsif ( length($keyword) ) {
-    $d_ref = ${ <[base.resolve_key]>->($keyword) };
+my $y_d_ref;
+my $keyword = $call->{'args'} // '';
+
+my @refs;
+my %keymap;
+if ( length $keyword ) {
+
+    if ( $keyword =~ s|^regex:|| ) {
+        ( my $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($keyword);
+        if ( not defined $pt_re or length ref $re_err and length $re_err->$* )
+        {
+            return {
+                'mode' => qw| false |,
+                'data' =>
+                    sprintf( 'expected a valid pattern .:[ %s in regex ]::',
+                    defined $re_err ? $re_err->$* : qw| error | )
+            };
+        } else {
+            ## regexp param ##
+            my %matches_flat;
+            foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
+                ##  correctly reversing '\' escapings  ##
+                ( my $esc_keystr    = $data_key_str ) =~ s|(*nlb:\\)\\|\\\\|g;
+                ( my $unescaped_key = $data_key_str ) =~ s|(*nlb:\\)\\||g;
+                $unescaped_key =~ s|\\\\|\\|g;
+
+                if ( $data_key_str =~ $pt_re ) {
+                    my $resolve_res = <[base.resolve_key]>->($unescaped_key);
+                    if ( defined $resolve_res ) {
+                        $matches_flat{$esc_keystr} = $$resolve_res;
+                    }
+                }
+            }
+            my $m_ref = unflatten( \%matches_flat );
+            $keymap{$m_ref} = sprintf "REX:'%s'", $keyword;
+            push( @refs, $m_ref );
+            return {
+                'mode' => qw| false |,
+                'data' => sprintf( "no match for regular expression '%s'",
+                    $keyword )
+                }
+                if not @refs;
+        }
+    } else {
+        my @result = <[base.validate.data_key_syntax]>->($keyword);
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( '.: key syntax :. %s .:', $result[1] )
+            }
+            if not $result[0];
+        my $resolve_res = <[base.resolve_key]>->($keyword);
+        @refs = ($resolve_res) if defined $resolve_res;
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( "failed to resolve key '%s'", $keyword )
+            }
+            if not @refs;
+        $keymap{$resolve_res} = sprintf "'%s'", $keyword;
+    }
 } else {
-    $d_ref = \%data;
+    @refs = ( \%data );
 }
 
-return {
-    'mode' => qw| false |,
-    'data' => "failed to resolve key '$keyword'"
-    }
-    if !length( ref($d_ref) );
+$reply->{'mode'} = qw| size |;
+$reply->{'data'} = '';
 
-$reply = {
-    'mode' => qw| size |,
-    'data' => "#:Y::['$keyword'].\n\n"
-        . YAML::XS::Dump($d_ref)
-        . "\n#:Y::.\n"
-};
+foreach my $href (@refs) {
+    next if not defined $keymap{$href};    ## unique filter ##
+    $reply->{'data'} .= "\n" if length $reply->{'data'};
+    $reply->{'data'} .= sprintf "#:Y::[%s].\n\n%s\n#:Y::.\n",
+        delete $keymap{$href},
+        YAML::XS::Dump($href);
+}
 
-#,,.,,,,.,,.,,,,,,,,.,,.,,...,,,.,...,...,,.,,..,,...,...,.,.,...,...,,,,,,.,,
-#Z335X5DZCWY7TOOAGBZXHWJIMXQTMDKGVOHGAQZJJ5XAN6XMBBOAI6IBHBTGAQ6TVGFZ6B4JT6EVO
-#\\\|CNQ76NHVNBQOZWFRCIVCQGWEXKHSHBCFCJG4SB5ZR4WA4ZQPR4T \ / AMOS7 \ YOURUM ::
-#\[7]3TTLEOBIWWZZW7GQLZUEOSBEIDXCT5FODTAR4W4G3WE7JFXHEUBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,..,,..,.,.,.,,,..,,...,.,,,..,,...,...,,..,,,.,...,,.,,,..,
+#LCNKPLGVWK46VEYUI2CXZQARQN53QPJ7FFUIYLTTA2XZM24DFP3ODFYFTW537HMRUXWV4ZHC325US
+#\\\|WAFJARFJFCXUYPW74HHCQ42MRV7MQVR6QAEHN6ETJOF273JD5B7 \ / AMOS7 \ YOURUM ::
+#\[7]GCE3CH3AKI4LMI4QVIHNXCVEVN5D7YIVUVRVN327R2SO75DJ6GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
