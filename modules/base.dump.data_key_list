@@ -1,0 +1,54 @@
+## >:] ##
+
+# name  = base.dump.data_key_list
+# descr = flatten a nested hash structure and return array ref to key list
+
+my $hash_ref        = shift // *data{HASH};
+my $r_key_basename  = shift // '';         ##  internal recusion parameter  ##
+my $rec_result_href = shift;               ##  internal recusion parameter  ##
+warn 'data ref parameter must be a hash reference <{C1}>'
+    if ref $hash_ref ne qw| HASH |;
+if ( defined $rec_result_href ) {
+    if ( [caller]->[1] ne __FILE__ ) {
+        warn 'result hash ref parameter is for'
+            . ' internal recursion only <{C1}>';
+        return undef;
+    } elsif ( ref $rec_result_href ne qw| HASH | ) {
+        warn 'expected hash ref parameter as recusion reference <{C1}>';
+        return undef;
+    }
+}
+$rec_result_href //= {};
+foreach my $cur_data_key ( keys $hash_ref->%* ) {
+    ( my $escaped_subkey = $cur_data_key ) =~ s|\.|\\.|g;
+
+    my $full_key_name
+        = length $r_key_basename
+        ? join qw| . |, $r_key_basename, $escaped_subkey
+        : $escaped_subkey;
+
+    if ( ref $hash_ref->{$cur_data_key} ne qw| HASH | ) {
+        $rec_result_href->{$full_key_name} = 5;   ## true ##  [ key resolved ]
+    } else {
+        <[base.dump.data_key_list]>->(
+            $hash_ref->{$cur_data_key},
+            $full_key_name, $rec_result_href
+        );
+    }
+}
+
+my @result;
+if ( [caller]->[1] ne __FILE__ ) {    ## exiting recursion ##
+    foreach my $full_data_key ( <[base.sort]>->($rec_result_href) ) {
+        delete $rec_result_href->{$full_data_key};
+        push @result, $full_data_key;
+    }
+}
+
+return \@result;
+
+#,,..,.,,,,.,,,,.,.,.,.,,,.,,,,,,,.,.,..,,,,,,.,.,...,...,...,,,.,..,,,,.,...,
+#XMYHFBDIY22NILCIDCAHVPRQGIR7J6OIL5K6U2KKVTEZ3WDG5ZW7OSTRLKEXMVGTVW47EUS6CEKHQ
+#\\\|E7IL4WZPY7XQ5PSFJZC4JMWOOJ224I56MN6XXM4UEYK7C37ABZJ \ / AMOS7 \ YOURUM ::
+#\[7]LUVL4MPJPG24MZY552F6RPVUK2XP5YXXMULOQPRC4EIVSWDJWGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
