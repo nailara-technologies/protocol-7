@@ -75,7 +75,7 @@ foreach my $sub_name ( keys %code ) {
 my $sub_list_ref = <[base.resolve_key]>->(qw| base.init_modules.sub_list |);
 if ( defined $sub_list_ref and ref($$sub_list_ref) eq qw| ARRAY | ) {
     my $del_index = 0;
-    foreach my $sub_name ( @{$$sub_list_ref} ) {
+    foreach my $sub_name ( $$sub_list_ref->@* ) {
         next if not defined $sub_name;
         if ( $sub_name =~ m,^$target_sub_prefix(\.|$), ) {
             delete $$sub_list_ref->[$del_index];
@@ -132,8 +132,8 @@ if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
     }
 }
 
-#,,..,.,.,.,.,,,,,,,.,,,,,,..,,,.,,,,,,.,,..,,..,,...,...,...,..,,,..,,.,,,,,,
-#US5CJ6NOK6FRGKWGCVUH2FTPB3P42S7DONUUKGLHOYJXSQTBNFAWLT6WPVKC2MM6GI4A2MRPXA6XE
-#\\\|YTQJRGVBNFOQQKZSXXQTM2QRCPU7SOSVPEZZ6A3FZ5ZWH7I4Y2U \ / AMOS7 \ YOURUM ::
-#\[7]R7WMASIPA2B2PWSSFPUG4GCM27REQHVP53N4UHV5ZMF7RSDTE2DI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,.,.,.,.,,,.,..,,,..,.,,,,,.,..,,...,...,..,,..,,.,.,.,,,...,
+#BTXULXG3NUOXE75XDUXFMNU5PIIJ3OGJXZDNEZOBEH2GIYHSHHBKSKXTCXMEPOYUYVKFTLYYF3G4G
+#\\\|JHTRVOWEZWH2X25FRTKUVXHX3Q7LL3A4Q74RPOQFRFTLA3IL5WE \ / AMOS7 \ YOURUM ::
+#\[7]4N7DP76IBUU6VNXTDYX5VANDDVS36DE7SXXNTLTU626HJ3DYGKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

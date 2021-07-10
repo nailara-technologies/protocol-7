@@ -13,21 +13,21 @@ warn 'second parameter not a hash reference <{C1}>'
 my @dtree = <[base.parser.data_hkey_tree]>->($key_str);
 
 while ( my $sub_key = shift @dtree ) {
-    if ( ref $hash_ref ne qw| HASH | or not defined ${$hash_ref}{$sub_key} ) {
+    if ( ref $hash_ref ne qw| HASH | or not defined $hash_ref->{$sub_key} ) {
         return undef;
     }
-    if ( @dtree and ref ${$hash_ref}{$sub_key} eq qw| HASH | ) {
-        $hash_ref = \%{ $$hash_ref{$sub_key} };
+    if ( @dtree and ref $hash_ref->{$sub_key} eq qw| HASH | ) {
+        $hash_ref = \%{ $hash_ref->{$sub_key} };
     } elsif ( scalar @dtree == 0 ) {
-        return \${$hash_ref}{$sub_key};
+        return \$hash_ref->{$sub_key};
     } else {
         return undef;
     }
 }
 return undef;    ## no such key ##
 
-#,,,.,,.,,.,,,..,,.,,,,,,,,..,,,.,.,.,,..,..,,..,,...,.,,,...,.,,,,..,.,.,,,,,
-#5374VADFDTADP523GR3RJ6NAHPBHYXDBROB2F6LRHXOLPSTOSEZBMIHXDMVQCCDUZUU5CNIXBC4AE
-#\\\|QX2JNPWIGURDOEBJNIPZQMDXQZ5JOQWBL5SDDTJ2LGU5UBGABAO \ / AMOS7 \ YOURUM ::
-#\[7]5SSFEC37ERESTUQ3WOT6PIEX666R2BXSTFL3FOSULTZBJXQLDUBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,.,,,.,...,,..,...,.,,,,,.,.,,,..,,...,...,,..,,..,...,...,,,.,
+#OKWLJM2HP2ZZ42EMNAATSPL424F7KNKHCLFQX5NUB4KCPF76FSYMAMV6AJVO7ZK6RJMSCZDGYDU3E
+#\\\|T2343TNBTLVGRM6I75FOT6PWZSKNDEYEVBCIPLPFJRHU3PGU2LZ \ / AMOS7 \ YOURUM ::
+#\[7]DIIID4IJPGFI43H2J2J432KQKRQVONNTC6LVDGIEXVE6GHFEKGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
