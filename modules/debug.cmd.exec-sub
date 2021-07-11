@@ -5,8 +5,19 @@
 # descr = run subroutine and return output
 
 my $support_params = <debug.exec-sub.allow-params> // 0;    ##  config  ##
+
 ( my $sub_name, my @params )
     = split( m| +|, $call->{'args'} );    ## quotes not supported ##
+
+my $timed      = 0;                       ##  create timing statistics  ##
+my $resolution = 7;
+
+if (    @params
+    and length $sub_name == 7
+    and index( $sub_name, qw| :timed: |, 0 ) == 0 ) {
+    $sub_name = shift @params;    ##  sub name is next one  ##
+    $timed    = 5;                ## true ##
+}
 
 return {
     'mode' => qw| false |,
@@ -22,7 +33,15 @@ return {
 return { 'mode' => qw| false |, 'data' => 'no such subroutine' }
     if not exists $code{$sub_name};
 
-my @sub_output = eval { $code{$sub_name}->(@params) };
+my $durationstr = '';
+my $time_start  = <[base.time]>->($resolution) if $timed;
+my @sub_output  = eval { $code{$sub_name}->(@params) };
+
+if ($timed) {
+    my $run_duration = <[base.time]>->($resolution) - $time_start;
+    $durationstr = sprintf "\n: duration : %.*f\n\n", $resolution,
+        $run_duration;
+}
 
 my $err_str;
 if ( length $EVAL_ERROR ) {
@@ -55,13 +74,20 @@ foreach my $sub_output_str (@sub_output) {
     $rep_mode = qw| size | if $sub_output_str =~ m|\n|;
 }
 
+$rep_mode = qw| size | if $timed;
+
 return {
     'mode' => $rep_mode,
-    'data' => join( $rep_mode eq qw| true | ? ', ' : "   ,\n", @sub_output )
+    'data' => $durationstr
+        . join(
+        scalar( $rep_mode eq qw| true | ? ', ' : "   ,\n" ),
+        @sub_output
+        )
+        . scalar( $timed ? "\n\n" : '' )
 };
 
-#,,.,,.,.,..,,,.,,,,.,.,,,.,,,,.,,,,.,..,,,.,,..,,...,...,..,,,.,,,,,,.,.,,,.,
-#WN733BKQGUX2E5R43WVT4E5BZIARICE5FWSCBRMVEIGLNMDXQSOOX7JME372RFF5IJU7AEDMQPP4O
-#\\\|E4O63ZVYVQ4BD3S3DIG2KTBON2S46IN6KI2PKRCRWAU6OW63CNT \ / AMOS7 \ YOURUM ::
-#\[7]3G63OOFBEWHJLOJUIYWGAMJJAGLCPSTXBQE3GCQQIFQSJNCYDSAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,..,,..,,.,,,,,,,,,,,...,.,,,..,,...,...,..,,.,.,...,,,,,,.,,
+#IKXVQDG43K724KOLL7NZDJEC76YPKFIZSJICGY2A5GTJWYN3J6KEBVERYDCGIGPILDLZUMLRKVDAA
+#\\\|AW4GCCMZYFZOPL7VHUHFMIS5VHUYFVGFDMV5QKSGESSVCRU6CKR \ / AMOS7 \ YOURUM ::
+#\[7]GFIT6IMSWPMDVGAENLWU45GVXAOPDETAFUSP6TABEEJS43TZ5MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
