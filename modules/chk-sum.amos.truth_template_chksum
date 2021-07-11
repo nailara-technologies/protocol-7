@@ -12,6 +12,15 @@ return
 
 my $template_string = shift;
 
+my @match_count = $template_string =~ m|(*nlb:\%)%s|sg;
+if ( @match_count != 1 ) {
+    <[base.s_warn]>->(
+        "sprintf template '%s' not valid [ expecting single %%s ] <{C1}>",
+        $template_string
+    );
+    return undef;
+}
+
 my $input_scalar_ref;
 if ( not length ref $ARG[0] ) {
 
@@ -42,8 +51,8 @@ if ( not length ref $ARG[0] ) {
 return AMOS7::CHKSUM::amos_template_chksum( $template_string,
     $input_scalar_ref, @ARG );
 
-#,,.,,.,,,,..,...,.,,,..,,,.,,..,,.,.,,,.,...,..,,...,...,.,.,,,,,.,,,...,,,.,
-#2QUVL643ZN67G63VMWIF6QEHAKCCCJPNGWDQKMBYRRZJ5NJQL6NDG3RUVLGSGM637GSMSXLNIEGKA
-#\\\|PRJNQ2QOQPHEGJQAEGVA2GY7NCDJJ3H6ACUK6NO3EJWXG2G376E \ / AMOS7 \ YOURUM ::
-#\[7]7JL75EKKAHLTPY7JAJYSHX22HEJ7YFTTIFN44UJNRZ3ALUD2OADY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,.,.,,,,,,,.,,,,,.,.,,..,,,.,..,,...,...,.,.,..,,,,,,..,,.,,,
+#BK5FSVXGS72LNDHQ5CBLPNV3ZKEIMLFNR3C34JCXPLPGCAJQUUIRKYMK6ZJSA2TQZMFOE2AW75NQM
+#\\\|IEIZISLXOYRNYK3YIPE6FFDP3EJDKCWR64A623DD3HUY2PRAZA5 \ / AMOS7 \ YOURUM ::
+#\[7]S7KY3SN7H3S4LUSLWYQ5NTNCXHUKAUBYOHTG4FPZ3U3LBKAEHEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
