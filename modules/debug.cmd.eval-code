@@ -1,0 +1,69 @@
+## >:] ##
+
+# name  = debug.cmd.eval-code
+# descr = directly eval perl code in a command context
+
+my $command_is_enabled = 0;    ##  default disabled for security reasons  ##
+
+my $id = $call->{'session_id'};
+
+if ( not $command_is_enabled ) {
+    <[base.logs]>->(
+        0, "[%d] call of disabled command 'eval-code' denied [removing]", $id
+    );
+    <[base.disable_command]>->(qw| eval-code |); ##  removed from cmd list  ##
+    return {
+        'mode' => qw| false |,
+        'data' => 'command disabled for security reasons [enable in code]'
+    };
+}
+
+my $perl_source_str = $call->{'args'} // '';
+
+<[base.logs]>->( "[%d] < eval-code > '%s'", $id, $perl_source_str );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected perl source to evaluate'
+    }
+    if not length $perl_source_str;
+
+my $eval_result;
+{ use warnings 'FATAL'; $eval_result = eval $perl_source_str };
+
+if ( length ref $eval_result ) {
+    ( my $d_data_str = Dumper($eval_result) ) =~ s|^.{8}| :  |mg;
+    $d_data_str =~ s|;$||s;
+    $eval_result = sprintf "\n .: %s :.\n\n%s\n :.\n\n", scalar $eval_result,
+        $d_data_str;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+    }
+    if length $EVAL_ERROR;
+
+return {
+    'mode' => qw| false |,
+    'data' => qw| undef |
+    }
+    if not defined $eval_result;
+
+if ( length $eval_result and index( $eval_result, "\n", 0 ) == -1 ) {
+    return {
+        'mode' => qw| true |,
+        'data' => $eval_result
+    };
+} else {
+    return {
+        'mode' => qw| size |,
+        'data' => $eval_result
+    };
+}
+
+#,,..,,,.,..,,.,.,,.,,,.,,,.,,..,,,..,...,,,,,..,,...,...,...,.,.,.,.,.,.,,,.,
+#LVEF2IHDNNXIT6EF652RCRGW4XSWEN4U3NDZSO2O5DCA4ZRM2II3CDSB5XXLOCYK46Q3FMZBOUHCK
+#\\\|E5Y37ZWU7ZUGF2IXML2YAMY7E7DMES2ACKMGMRXRH543U3PULVE \ / AMOS7 \ YOURUM ::
+#\[7]IU43QDHWLY2HG5J2QWUODRRHRIC7XJNKJYYESP54VSVT7TEZAEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
