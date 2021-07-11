@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = base.data-keys.get_checksum
+
+my $data_keyname = shift // '';
+my $href         = shift // *data{HASH};
+
+if ( length $data_keyname
+    and not [ <[base.validate.data_key_syntax]>->($data_keyname) ]->[0] ) {
+    <[base.s_warn]>->( "data key syntax is not valid ['%s']", $data_keyname );
+    return undef;
+} elsif ( ref $href ne qw| HASH | ) {
+    warn 'second parameter not a hash reference <{C1}>';
+    return undef;
+}
+
+my $key_ref;
+if    ( not length $data_keyname ) { $key_ref = $href }
+elsif ( not defined( $key_ref = <[base.resolve_key]>->($data_keyname) ) ) {
+    <[base.s_warn]>
+        ->( "key '%s' does not \\ no longer exist", $data_keyname );
+    return undef;
+}
+
+return <[base.parser.harmonized_reference]>->( $key_ref );
+
+#,,,,,.,,,,,.,,..,,..,,..,..,,,,.,..,,.,.,,,.,..,,...,...,,,.,..,,,.,,...,,..,
+#IA5BQX6MJG2BHFSDU4GZJPCNY2JDA5ZPE5QSJ3SSX5HKWDRSLUUK6TGD22FQ2E55ZXBWYZGI2GG3M
+#\\\|Y5CYKB4QSEWQLAMHKI2ZUJEOMAVTVWBX3SDXSUP4RD3ZBZ7X5NC \ / AMOS7 \ YOURUM ::
+#\[7]QJERFDS2SKNDONQH6TLJFHEPF5THSALDBVQCA3R4BV6BNKYTUEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
