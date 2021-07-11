@@ -11,6 +11,9 @@ my @refs;
 my %keymap;
 if ( length $keyword ) {
 
+    my $stripped_key_regex_match = 5;    ## true ##
+    $stripped_key_regex_match = 0 if $keyword =~ s|^regex-quoted:|regex:|;
+
     if ( $keyword =~ s|^regex:|| ) {
         ( my $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($keyword);
         if ( not defined $pt_re or length ref $re_err and length $re_err->$* )
@@ -25,21 +28,39 @@ if ( length $keyword ) {
             ## regexp param ##
             my %matches_flat;
             foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
-                ##  correctly reversing '\' escapings  ##
-                ( my $esc_keystr    = $data_key_str ) =~ s|(*nlb:\\)\\|\\\\|g;
-                ( my $unescaped_key = $data_key_str ) =~ s|(*nlb:\\)\\||g;
-                $unescaped_key =~ s|\\\\|\\|g;
 
-                if ( $data_key_str =~ $pt_re ) {
-                    my $resolve_res = <[base.resolve_key]>->($unescaped_key);
+                ##  correctly reversing '.' escapings  ##
+                ##
+                my $esc_keystr;
+                my $key_stripped = $data_key_str;
+                my $esc_keystr   = $data_key_str;
+                state $qu_re      = qr|(*nlb:\\)'|;
+                state $content_re = qr|(*nlb:\\)[^']+|;
+                while ( $key_stripped
+                    =~ m,(^|\.)$qu_re($content_re)$qu_re(\.|$), ) {
+                    my $quoted = ${^CAPTURE}[1];
+                    $key_stripped         =~ s|$quoted||;
+                    ( my $esk = $quoted ) =~ s|(*nlb:\\)\.|\\.|g;
+                    $esc_keystr           =~ s|'$quoted'|$esk|;
+                }
+
+                $key_stripped = $data_key_str    ## full key match ##
+                    if not $stripped_key_regex_match;
+
+                if ( $key_stripped =~ $pt_re ) {
+                    my $resolve_res = <[base.resolve_key]>->($data_key_str);
                     if ( defined $resolve_res ) {
                         $matches_flat{$esc_keystr} = $$resolve_res;
                     }
                 }
             }
-            my $m_ref = unflatten( \%matches_flat );
-            $keymap{$m_ref} = sprintf "REX:'%s'", $keyword;
-            push( @refs, $m_ref );
+
+            my $m_ref = keys %matches_flat ? unflatten( \%matches_flat ) : {};
+            if ( keys $m_ref->%* ) {
+                $keymap{$m_ref} = sprintf "REX%s:'%s'",
+                    $stripped_key_regex_match ? '' : qw| Q |, $keyword;
+                push( @refs, $m_ref );
+            }
             return {
                 'mode' => qw| false |,
                 'data' => sprintf( "no match for regular expression '%s'",
@@ -78,8 +99,8 @@ foreach my $href (@refs) {
         YAML::XS::Dump($href);
 }
 
-#,,.,,,,.,...,,.,,,..,,..,.,.,.,,,..,,...,.,,,..,,...,...,,..,,,.,...,,.,,,..,
-#LCNKPLGVWK46VEYUI2CXZQARQN53QPJ7FFUIYLTTA2XZM24DFP3ODFYFTW537HMRUXWV4ZHC325US
-#\\\|WAFJARFJFCXUYPW74HHCQ42MRV7MQVR6QAEHN6ETJOF273JD5B7 \ / AMOS7 \ YOURUM ::
-#\[7]GCE3CH3AKI4LMI4QVIHNXCVEVN5D7YIVUVRVN327R2SO75DJ6GAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,..,,.,,,.,,..,,,,.,.,,,,.,,..,,...,...,..,,,,,,..,,,..,,,.,
+#3MXNMTJIDTVXJLFN4TGHPZJQUQYDN2A5A4QGKDSAEA2SJK2ASEIBK7EO6Y2FGG2VQQQCC4S6XWHHO
+#\\\|3CCLBOWB3UH7W2SWPS3QOU5AJW7RINVUBBOMB4NICSZPNFG4DK4 \ / AMOS7 \ YOURUM ::
+#\[7]CVRHAMFIRO7VOQAHODB3A273TY4JX3HWYGKQ2ZM4VBIL4PP44AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
