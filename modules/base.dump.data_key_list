@@ -20,8 +20,16 @@ if ( defined $rec_result_href ) {
 }
 $rec_result_href //= {};
 foreach my $cur_data_key ( keys $hash_ref->%* ) {
-    $cur_data_key =~ s|\\|\\\\|g;    ## first escaping '\'s, then '.'s  ##
-    ( my $escaped_subkey = $cur_data_key ) =~ s|\.|\\.|g;
+
+    ## $cur_data_key =~ s|\\|\\\\|g;    ## first escaping '\'s, then '.'s  ##
+    ## ( my $escaped_subkey = $cur_data_key ) =~ s|\.|\\.|g;
+
+    my $escaped_subkey;
+    if ( index( $cur_data_key, qw| . |, 0 ) == -1 ) {    ## no '.' in key ##
+        $escaped_subkey = $cur_data_key;
+    } else {
+        $escaped_subkey = sprintf qw| '%s' |, $cur_data_key;
+    }
 
     my $full_key_name
         = length $r_key_basename
@@ -48,8 +56,8 @@ if ( [caller]->[1] ne __FILE__ ) {    ## exiting recursion ##
 
 return \@result;
 
-#,,.,,,.,,..,,..,,.,.,,,,,...,,..,,,,,,,,,.,,,.,.,...,..,,,.,,..,,.,.,,..,...,
-#L57ZCADOAG5RSBEZ6T7NUMSG5TINUSFFHGRLUTYYY3XWOG7AENKSSJASCQO2QGPOLOXXZLI6N4HS2
-#\\\|LO2EY7JTGGLVNRI63FMI7WSQ5XF5P3OVUOQXY63IAN2XUPVZRR5 \ / AMOS7 \ YOURUM ::
-#\[7]5BPCZHR5VY2DDNC2QWQRCHA4B5UMAH5KS7BJPXA5YJKGV7JGPOCI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,...,,,,,.,.,..,,...,,,.,..,,.,.,...,...,..,,,.,,,,,,,,,,,,.,
+#VB74M6O3H6XDXUIIMDNZ25YTIAZVYEMV3TOHBA65FC32EJXEUZHO4PXWU3MCW2X53NVHG3BBJK2UY
+#\\\|YTORZY7ZOMJ7YULGMC6VJWI7AWMANRA7IMXJD4SBZGZHMQKSRCB \ / AMOS7 \ YOURUM ::
+#\[7]FNDIDY2HZZ2FDSC2GZ5W5E7QUMJ3NJSTYGVEBWG4EEFI7CPOLICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
