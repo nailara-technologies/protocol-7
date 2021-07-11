@@ -7,19 +7,20 @@ my $cref_str = shift;
 my $nodename = <net.node_name>;    ## [ system.node.name | fqdn ]
 
 if ( not defined $cref_str
-    or $cref_str !~ m|^([A-Z]+)\((0x[0-9a-f]{12})\)$| ) {
+    or $cref_str !~ m|^([A-Z]+)\((0x[0-9a-f]{1,16})\)$| ) {
     warn 'expected ref addr string <{C1}>';
     return undef;
 }
 
 my $template = sprintf qw| %s:%%s:%s |, ${^CAPTURE}[0],
-    encode_b32r( pack qw| w |, Math::BigInt->from_hex(${^CAPTURE}[1]) );
+    encode_b32r( pack qw| w |,
+    <[base.convert.hex_to_int]>->( ${^CAPTURE}[1] ) );
 
 return sprintf $template,
     <[chk-sum.amos.truth_template_chksum]>->( $template, \$nodename );
 
-#,,,.,..,,,.,,..,,,..,.,.,,,,,..,,...,,.,,...,..,,...,.,,,,.,,...,,..,,..,.,,,
-#V45ZKBS3LNNY6SYOEZAIJE5S3GOY4262XMYO6ZBQ3LETN2HQJLJ27EC2SOZ74D7ZJN555FK7FN6TW
-#\\\|DHQVMPSSOJCS3V4XQHN76RQE5XOFXTWOYI2P3VM5G43NRQNBAT4 \ / AMOS7 \ YOURUM ::
-#\[7]A73Q5ZDBI45WIDOBK3KQD4OKDBSG2YJWEIPXOLV3KBSBCEYRKYAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,,.,,.,,,,.,,..,,..,,...,..,,..,,...,...,...,,.,,...,,.,,...,
+#U64L5QHFSZ3IKHPFRXGW5R3N5YHU6ILETDKGCWEGTBRJXSIUGVOEFDXT7HOGMIGV3LUBBGUXSET7S
+#\\\|4KSWZHPHAXSCB7E7GAD4M4ZYKNIMUCPL5SSZHNNXCHQFRVXBJYK \ / AMOS7 \ YOURUM ::
+#\[7]XLLJXN2JWNJICY5SJY7MFEJ6TTYAV5KLVZERR74DZLWJNLW2UYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
