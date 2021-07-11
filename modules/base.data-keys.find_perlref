@@ -1,0 +1,114 @@
+## >:] ##
+
+# name  = base.data-keys.find_perlref
+
+my $refaddr        = shift;
+my $href           = shift // *data{HASH};
+my $r_key_basename = shift // '';
+my $ref_type       = shift;    ##  internal recursion param  ##
+
+my $ref_types = qq,CODE|REF|HASH|SCALAR|ARRAY|GLOB,;
+
+##  recursive sub call  ##
+goto SKIP_PARAM_DECODING if [caller]->[1] eq __FILE__;
+
+if ( defined $ref_type and $ref_type !~ m{^($ref_types)$} ) {
+    <[base.s_warn]>->( "not a valid perl ref type ['%s']", $ref_type );
+    return undef;
+}
+
+## perl style ##
+$ref_type = ${^CAPTURE}[0] if $refaddr =~ s{^($ref_types)\(([^\)]+)\)$}{$2};
+
+if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
+
+    ## protocol-7 style encoded perl ref ##
+
+    ( $ref_type, my $B32_encoded_str ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+
+    my $B32_decoded_num = eval { decode_b32r($B32_encoded_str) };
+
+    if ( not defined $B32_decoded_num or length $EVAL_ERROR ) {
+        warn 'not a valid BASE32 encoded string [ decoding error ] <{C1}>';
+        return undef;
+    } elsif ( not <[base.comp-int.is_valid]>->($B32_decoded_num) ) {
+        warn 'decoded BASE32 value not in compressed integer format <{C1}>';
+        return undef;
+    }
+
+    my $decoded_addr = unpack qw| w |, $B32_decoded_num;
+
+    my $perlref_str = sprintf qw| %s(0x%x) |, $ref_type, $decoded_addr;
+
+    return undef    ## validate if same node ##
+        if $refaddr ne <[base.parser.harmonized_reference]>->($perlref_str);
+
+    ##  match, current node name  ##
+    $refaddr = sprintf qw| 0x%x |, $decoded_addr;
+
+} elsif ( $refaddr =~ m|^0x[0-9A-F]{1,13}$| ) {    ## uppercase hex ##
+
+    $refaddr = lc $refaddr;    ##  making lowercase for str match  ##
+
+} elsif ( $refaddr =~ m|^\d{1,17}$| ) {    ##  ref addr value as decimal  ##
+
+    $refaddr = sprintf qw| 0x%x |, $refaddr;
+
+}
+
+SKIP_PARAM_DECODING:                       ##  recursive case  ##
+
+if ( not defined $refaddr
+    or ( $refaddr !~ m|^0x[0-9a-f]{1,13}$| ) ) {
+    warn 'expected perl ref param string <{C1}>';
+    return undef;
+
+} elsif ( length $r_key_basename
+    and not [ <[base.validate.data_key_syntax]>->($r_key_basename) ]->[0] ) {
+    <[base.s_warn]>->(
+        "data key syntax is not valid ['%s']",
+        $r_key_basename
+    );
+    return undef;
+} elsif ( ref $href ne qw| HASH | ) {
+    warn 'second parameter not a hash reference <{C1}>';
+    return undef;
+}
+
+foreach my $cur_data_key ( keys $href->%* ) {
+
+    my $escaped_subkey;
+    if ( index( $cur_data_key, qw| . |, 0 ) == -1 ) {    ## no '.' in key ##
+        $escaped_subkey = $cur_data_key;
+    } else {
+        $escaped_subkey = sprintf qw| '%s' |, $cur_data_key;
+    }
+
+    my $full_key_name
+        = length $r_key_basename
+        ? join qw| . |, $r_key_basename, $escaped_subkey
+        : $escaped_subkey;
+
+    ##  specified type or any type  ##
+    my $match_type = $ref_type // $ref_types;
+
+    if ( length ref $href->{$cur_data_key}
+        and $href->{$cur_data_key} =~ m{^($ref_types)\($refaddr\)$} ) {
+
+        return $full_key_name;    ##  match \ return data key  ##
+
+    } elsif ( ref $href->{$cur_data_key} eq qw| HASH | ) {
+        <[base.data-keys.find_perlref]>->(    ##  hash recursion  ##
+            $refaddr, $href->{$cur_data_key},
+            $full_key_name
+        );
+    }
+}
+
+return undef;    ##  no match \ undef  ##
+
+#,,.,,,.,,.,,,.,.,,.,,,..,.,,,.,.,,..,.,.,.,.,.,.,...,...,,.,,,,,,,,,,..,,,..,
+#Y4N7WSNMW5D76JDDKGLQML5HMEHCGJ3H7DB77UKLAHQAPR3TXUOW46QGMZH32C2XEK4VD2HOSKRPA
+#\\\|X3G5K5P66EGL6YLNDYHHAJK6AGS5AQGNTL7ANZNRFZ2XI4DXNMR \ / AMOS7 \ YOURUM ::
+#\[7]J4DELFJU65J2H5XIDWDSCLXX7V3UF72UU6GL2JN3IQFZ2GWE34AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
