@@ -9,6 +9,7 @@ foreach my $key_name_str ( <[base.dump.data_key_list]>->@* ) {
 
     my $rhaddr;
     my $resolved_addr = <[base.resolve_hash]>->($key_name_str);
+    next if not defined $resolved_addr;    ##  key not found  ##
     next if index( ref $resolved_addr, qw| Regexp |, 0 ) >= 0;
 
     $rhaddr = $LAST_PAREN_MATCH if $resolved_addr =~ m|\(0x([0-9a-z]+)\)$|;
@@ -32,8 +33,8 @@ foreach my $char_pos ( sort { $a <=> $b } keys %pos_char_map ) {
 
 return $seen_addr_prefix;
 
-#,,,.,.,,,,,,,..,,,,.,.,.,.,.,,,,,,..,.,.,,,.,..,,...,...,...,...,,,.,,,,,..,,
-#F4T6NJYAUAIFJNXZ2RNAJZVHILGIDKMZV5C7FU3URIIZVGUZR2233YTZ33BM5OZR4VXZX5L7GIX2O
-#\\\|TGUC5EN4OGAYD4RAUR6PD4U76UJHUBRDCC76IWFPG5RW7YHPDTZ \ / AMOS7 \ YOURUM ::
-#\[7]MPO7GM62XTX3TBAOPSN7I5D2FQXC4O44AEU2KC4MQXHAV3GCTKCI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,,,,.,,,..,,,,,...,.,.,.,,,,,.,..,,...,...,.,.,.,.,.,.,.,,,.,,,
+#WB45F3ELBMUB5Y54X33YHKPCVKCJXQMBKJQIKWJ7CPJUMHXADGEZCBBKNLGU6SJS6FOFR2XXKLTUK
+#\\\|7535NEKDPRT34W3OJJNR44VN36NJLFMWPOW7SJKVBW64EJTQSV2 \ / AMOS7 \ YOURUM ::
+#\[7]SP3DKSU23FEJWTVTDAN2ANLUDK2BGUUJBUPTYDEEPA3CMEL56UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
