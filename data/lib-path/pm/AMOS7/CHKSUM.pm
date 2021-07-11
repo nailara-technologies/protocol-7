@@ -288,7 +288,7 @@ sub amos_template_chksum {
     my @match_count = $template =~ m|(*nlb:\%)%s|sg;
     if ( @match_count != 1 ) {
         warn_err( "sprintf template '%s' not valid [ expecting single %%s ]",
-            $template );
+            2, $template );
         return undef;
     } elsif ( @ARG == 0 ) {
         warn_err('expected input parameters');
@@ -302,8 +302,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,..,,.,,,..,..,,,..,,,.,..,,,..,,.,,,,.,..,,..,,...,...,.,.,,.,,,,,,.,,,.,,,
-#NH6RJ4AG5YY222ADQB7S636RCOKSFG6OIE53FPMB4YSKTSLG3LONZFM6WJLB6M7UTVN5JDLOAQEQY
-#\\\|GM3GBSE77FX36JE6NP5HL7A5WVD6KBVIT45QNS2UFDWAHV3UV2Q \ / AMOS7 \ YOURUM ::
-#\[7]H5ZWYRN5GSXBWZNDMIPVIFIZNEMXPC4P7CSHIAFGV47BPFCZGUAQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,..,,,.,,.,.,...,.,.,.,.,.,,,..,,...,...,..,,,.,,.,,,.,,,,.,,
+#PX4ZYEN5BAIXUZITEKG5HVK3A4ZMBMJ3NTS6IHYXXO7YMBWW3UE4RX44MGEJ4ZIFZSIVT7DIPQT5W
+#\\\|DERJSDY3T7PAWWNRF7Q5ZGNZZ4K2BFVZ3TM5W7JFRDHU6XLTFBK \ / AMOS7 \ YOURUM ::
+#\[7]RY2KDHCBZGIACYU5LANQNCDWP5WPJPLQPLLBLPFGQFP356BGJUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

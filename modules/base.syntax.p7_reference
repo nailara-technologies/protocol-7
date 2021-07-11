@@ -1,0 +1,60 @@
+## >:] ##
+
+# name  = base.syntax.p7_reference
+
+my $ref_addr_string = shift;
+my @check_node_list = @ARG;
+
+@check_node_list = (<system.node.name>) if @check_node_list == 0;
+
+my @ref_types = qw| P7REF CODE REF HASH SCALAR ARRAY GLOB |;
+
+if ( not defined $ref_addr_string
+    or $ref_addr_string !~ m|^([2-9A-Z]{7}):([2-9A-Z]{1,16})$| ) {
+    warn 'expected encoded protocol-7 reference str <{C1}>';
+    return undef;
+}
+my $node_AMOS7_chksum = ${^CAPTURE}[0];   ## includes node reftype and addr ##
+my $B32_encoded_str   = ${^CAPTURE}[1];   ## B32 encoded reference address ##
+
+my $B32_decoded_num = eval { decode_b32r($B32_encoded_str) };
+
+if ( not defined $B32_decoded_num or length $EVAL_ERROR ) {
+    warn 'not a valid BASE32 encoded string [ decoding error ] <{C1}>';
+    return undef;
+} elsif ( not <[base.comp-int.is_valid]>->($B32_decoded_num) ) {
+    warn 'decoded BASE32 value not in compressed integer format <{C1}>';
+    return undef;
+}
+
+my $decoded_addr   = unpack qw| w |, $B32_decoded_num;
+my $perl_ref_haddr = sprintf qw| 0x%x |, $decoded_addr; ## perl ref address ##
+
+foreach my $node_name_str (@check_node_list) {
+    foreach my $reftype (@ref_types) {
+        my $truth_template = sprintf( qw| %s:%s:%%s:%s |,
+            $reftype, $node_name_str, $B32_encoded_str );
+        my $chksum_input_str = sprintf( qw| %s:%s:%s |,
+            $reftype, $node_name_str, $B32_encoded_str );
+
+        my $ref_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+            $truth_template, \$chksum_input_str
+        );
+
+        # say sprintf '< %7s > %s', $reftype, $ref_chksum;
+
+        ##  is valid : returning type and matching node in list context  ##
+        return ( 5, $reftype, $node_name_str ) if wantarray;
+        return 5;    ## true ##
+    }
+}
+
+##  no match for type addr \ node list  ##
+return ( 0, undef, undef ) if wantarray;
+return 0;
+
+#,,.,,...,..,,,..,.,,,,,.,..,,.,,,,..,,.,,..,,.,.,...,...,..,,.,,,.,,,,,,,.,,,
+#H3HHSQD6MXMJDFA3JJM6VK6SMY7U7NQJBOAZ2J3EACXHFEMWVMDMPZPXE7LC2WSG5JV4WW6QP75MG
+#\\\|FGA2MTIVWGBPPJVQPUXT4YA6EBXSYG7YZIKELNTC25VPXR6ZEVA \ / AMOS7 \ YOURUM ::
+#\[7]MQMALDFCC42NY66FT3XHY7BWX4T5ITEALDX23OE36USPH76ZNIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
