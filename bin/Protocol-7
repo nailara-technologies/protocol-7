@@ -1154,9 +1154,11 @@ sub p7_load_code {
             print "\r$space_str\r";
             $OUTPUT_AUTOFLUSH = 0;
         }
-        if ( !$code_count ) {
-            $code{'log.error'}->( ': no success loading modules'
-                    . " '$code_name' \t[ not found ]" );
+        if ( $code_count == 0 ) {
+            $code{'log.error'}->(
+                sprintf( ": no success loading module [ %s ] \t[ not found ]",
+                    $code_name )
+            );
             $data{'base'}{'modules'}{'load_errors'}++;
         } elsif ( $code_count > $last_code_count ) {
             $data{'system'}{'subs_loaded'}{$code_name}
@@ -3542,8 +3544,8 @@ __DATA__
 :
 :.
 
-#,,,,,,..,.,.,.,.,,..,,..,..,,.,,,,.,,...,,,.,..,,...,...,...,,,.,.,.,.,,,,,,,
-#4O2V7L2R2QRK5JRZKXU7YNFKSE23D2YH7X7UIM3E4FQDQ5PNNZBESCQWOTVWUZJ4FTTDTZIZU4ASM
-#\\\|ODEN2423UABBHAZ2OVSFFBREMDKKA6FLM3MNCZTEL5Y46ZKNPFA \ / AMOS7 \ YOURUM ::
-#\[7]BFIFUINV5NTXHUR3PCTQ53SG7W7Y7V7WN7BIT4GATVSVPBB46MAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,...,..,,,,.,,,.,,.,,,,,,.,,,..,,...,..,,,,,,...,..,,..,,,,.,
+#WTIG26A65T64UVSWBQMSED4CFMK6HFQOHP6IQWANJPXBTFLZTLBLGGQJN7YQNC7QN27IKCEHGED3C
+#\\\|SWQU22JBOTB2FSR7N3E3RFTODKPVLTLN7MYF3XL7V7NIOJW375I \ / AMOS7 \ YOURUM ::
+#\[7]LU562BVPCC3KWVMKUDMFK7YBHHIH57X67JVIUQNM7KKGPTVFVIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

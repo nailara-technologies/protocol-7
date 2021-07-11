@@ -1,22 +1,40 @@
 ## >:] ##
 
 # name  = base.resolve_hash
-# descr = translates 'system.zenka.name' type key to \%data href and return it
+# descr = translate 'system.zenka.name' type key to \%data ref and return it
 
-my $key_ref = *data{HASH};
+my $key_ref      = *data{HASH};
+my $data_key_str = $ARG[0] // '';
 
-foreach my $sub_key ( split( '\.', $ARG[0] ) ) {
-    if ( ref $key_ref eq qw| HASH | ) {
-        $key_ref = \%{ $$key_ref{$sub_key} };
+my $quoted_key = 0;
+if ( index( $data_key_str, qw| ' |, 0 ) >= 0 ) {    ## quoted '.' syntax ##
+    $quoted_key = 5                                 ## true ##
+        if $data_key_str =~ s{(^|\.)(*nlb:\\)'(.+)(*nlb:\\)'(\.|$)}{
+                                my $k = $1; $k =~ s|\.|\0|g;
+                             }e;
+}
+
+foreach my $sub_key ( split( '\.', $data_key_str ) ) {
+    $data_key_str =~ s|\0|.|g if $quoted_key;
+    next                      if not exists $key_ref->{$sub_key};
+
+    if ( ref $key_ref->{$sub_key} eq qw| HASH | ) {
+        ## hashref, continue ##
+        $key_ref = \%{ $key_ref->{$sub_key} };
+
+    } elsif ( length ref $key_ref->{$sub_key} ) {
+        ## return reference if not hash ref ##
+        return $key_ref->{$sub_key};
+
     } else {
-        return undef;
+        return \$key_ref->{$sub_key};    ## return scalar ref if a value ##
     }
 }
 
 return $key_ref;
 
-#,,,,,..,,,,,,,,,,..,,,..,.,.,,,.,,.,,,,.,,.,,..,,...,...,,..,..,,...,..,,,..,
-#6N5LV2ACWP4YY4QNUM3UTDQUWZF5DLKCN3DUTPWBRTBRVFKQQKVWWYCLDPQM65FYNYLQDZAAB2V2E
-#\\\|XCOM2MK7EFROH52GMKQAO7K3OZFN2I34GSKV4XXV2RQ6MTDKYML \ / AMOS7 \ YOURUM ::
-#\[7]BDI5RNDEKTLGKKOH5GGDBAN45ISWV6OW5GJXJOY6R7SJZTAYV4DA 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,,,,,...,.,.,.,,,.,,,,,,,..,,..,,...,...,,..,,,,,.,.,,,.,,,.,
+#K5W44YGAA3MF2TXAFKMGTRKAYZVSSJP7G2UIJKVZHCZMHISNZC763YHWTH5GNZVSHXH32GNWI53AW
+#\\\|PGAAGQMGZE3ZA6ORADEHYB4ODSI4ZDCZVFFAV3L6N57THFTCE36 \ / AMOS7 \ YOURUM ::
+#\[7]RRA474IVBU4X4Z3K2NFG3UY46F4KWUEYQKC6EUNRY4YDHI53YGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
