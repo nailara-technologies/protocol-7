@@ -1,0 +1,27 @@
+## >:] ##
+
+# name  = base.convert.hex_to_int
+# descr = convert hexadecimal to integer without portability warning message
+
+my $hex_val_string = shift;
+
+if ( not defined $hex_val_string
+    or $hex_val_string !~ m|^(0x)?([0-9A-F]{1,16})$|i ) {
+    warn 'expected 64 bit hexadecimal input <{C1}>';
+    return undef;
+}
+
+my @hex = split '', $LAST_PAREN_MATCH;
+
+my $d_conv_val = 0;
+while ( scalar @hex ) {
+    $d_conv_val += hex( shift @hex ) * 16**scalar(@hex);
+}
+
+return sprintf qw| %u |, $d_conv_val;    ## unsigned decimal integer ##
+
+#,,..,,..,.,.,..,,,,,,,,,,,,.,.,.,,,,,..,,.,.,..,,...,...,.,,,..,,,.,,,..,,..,
+#R6BGXYDFIQU4LUBPWRGGN7RBOLEJQ75ARJVNQNSAIIGIYMJSDXC4PXMNQJS6RI5BZAP6KJBY5ED7C
+#\\\|J3RWCGSXMC4Z47NCTG5JBQJZFXK5Y4VJQ2C5BHWHRE42PCGGZXN \ / AMOS7 \ YOURUM ::
+#\[7]VCMZGKXKF6OO6Y2Q6OBKNNSTPR3GIA7RY2A2IVJ5PZMX7PE5YYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

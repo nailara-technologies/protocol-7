@@ -20,7 +20,7 @@ if ( defined $ref_type and $ref_type !~ m{^($ref_types)$} ) {
 ## perl style ##
 $ref_type = ${^CAPTURE}[0] if $refaddr =~ s{^($ref_types)\(([^\)]+)\)$}{$2};
 
-if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
+if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{16})$, ) {
 
     ## protocol-7 style encoded perl ref ##
 
@@ -46,11 +46,11 @@ if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
     ##  match, current node name  ##
     $refaddr = sprintf qw| 0x%x |, $decoded_addr;
 
-} elsif ( $refaddr =~ m|^0x[0-9A-F]{1,13}$| ) {    ## uppercase hex ##
+} elsif ( $refaddr =~ m|^0x[0-9A-F]{1,16}$| ) {    ## uppercase hex ##
 
     $refaddr = lc $refaddr;    ##  making lowercase for str match  ##
 
-} elsif ( $refaddr =~ m|^\d{1,17}$| ) {    ##  ref addr value as decimal  ##
+} elsif ( $refaddr =~ m|^\d{1,20}$| ) {    ##  ref addr value as decimal  ##
 
     $refaddr = sprintf qw| 0x%x |, $refaddr;
 
@@ -59,7 +59,7 @@ if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
 SKIP_PARAM_DECODING:                       ##  recursive case  ##
 
 if ( not defined $refaddr
-    or ( $refaddr !~ m|^0x[0-9a-f]{1,13}$| ) ) {
+    or ( $refaddr !~ m|^0x[0-9a-f]{1,16}$| ) ) {
     warn 'expected perl ref param string <{C1}>';
     return undef;
 
@@ -107,8 +107,8 @@ foreach my $cur_data_key ( keys $href->%* ) {
 
 return undef;    ##  no match \ undef  ##
 
-#,,.,,,.,,.,,,.,.,,.,,,..,.,,,.,.,,..,.,.,.,.,.,.,...,...,,.,,,,,,,,,,..,,,..,
-#Y4N7WSNMW5D76JDDKGLQML5HMEHCGJ3H7DB77UKLAHQAPR3TXUOW46QGMZH32C2XEK4VD2HOSKRPA
-#\\\|X3G5K5P66EGL6YLNDYHHAJK6AGS5AQGNTL7ANZNRFZ2XI4DXNMR \ / AMOS7 \ YOURUM ::
-#\[7]J4DELFJU65J2H5XIDWDSCLXX7V3UF72UU6GL2JN3IQFZ2GWE34AA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,.,.,..,,,,,,..,,,..,,.,,...,.,.,...,..,,..,,,,,,.,.,,.,,,,.,
+#PPPQ3BAZT5R7IXYZBNWKUJCCERUNPD3L5YRPEFDPSOBY7WLS2TGJG2OTHH3BPOOY3OTNFQDF3HLU2
+#\\\|4FLTRSQCDY2M3ZJ4V3H6TZL2JTRAP6KBB4FTA6ZNCGWXPWGC57S \ / AMOS7 \ YOURUM ::
+#\[7]6MOTRAPYXQV5WX4ACBM2TLC763XOPU2XGLUQZS7PI5MX6RNIQWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

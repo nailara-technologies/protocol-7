@@ -7,7 +7,7 @@ my $cref_str = shift;
 
 if ( not defined $cref_str
     or $cref_str
-    !~ m,^(CODE|HASH|SCALAR|ARRAY|GLOB):[2-9A-Z]{7}:([2-9A-Z]{12})$, ) {
+    !~ m,^(CODE|REF|HASH|SCALAR|ARRAY|GLOB):[2-9A-Z]{7}:([2-9A-Z]{16})$, ) {
     warn 'expected comp int encoded perl ref str <{C1}>';
     return undef;
 }
@@ -29,8 +29,8 @@ my $decoded_addr = unpack qw| w |, $B32_decoded_num;
 
 return sprintf qw| %s(0x%x) |, $perl_ref_type_str, $decoded_addr;
 
-#,,,.,.,,,,.,,,..,.,,,..,,,,.,,..,,..,,,,,..,,..,,...,..,,...,..,,...,,.,,...,
-#HHPJY2AKWMBKXX5LOXWEX3JZ6WA3DZHVHQCTKPDO2DN36SNERCD3WH5VZUR3DYBPO6HZZ3ZCFN3TS
-#\\\|VZONFRNYUSE264QPIN7W4JS5MO6HFM6BG56KH3OG77J4GH6MFH7 \ / AMOS7 \ YOURUM ::
-#\[7]5UWDSM5JJRB5T2MZWLCZN6HP6N7I7G7YJUXPH6RWB2TD3LRXKEAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,,,,,,,,,,,,..,,..,,,.,,.,,,..,..,,...,...,..,,..,,.,.,..,,.,.,
+#HJ2MRMUNGHQEZ2VCNHLUPOFJYFEJIZ5R5JQ4ZOF2ZQOGLERKK43MPQU3K5AOUN2C4JG3JTKJCLLLQ
+#\\\|ABHMZGX4CHBSKJ27MOOPURKKE77XZQ65SDWH3ZB3SDJZKUW227E \ / AMOS7 \ YOURUM ::
+#\[7]LDAIDUCZ7D5XXJMNABMY2SXS2RIAQPEUNB5CKHTKPVMJVZYL6WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
