@@ -28,6 +28,9 @@ foreach my $cur_data_key ( keys $hash_ref->%* ) {
     if ( index( $cur_data_key, qw| . |, 0 ) == -1 ) {    ## no '.' in key ##
         $escaped_subkey = $cur_data_key;
     } else {
+        $escaped_subkey = $cur_data_key;
+        $escaped_subkey =~ s|\\|\\\\|g;  ## first escaping '\'s, then '.'s  ##
+        $escaped_subkey =~ s|'|\\'|g;    ## escaping previous singlequotes ##
         $escaped_subkey = sprintf qw| '%s' |, $cur_data_key;
     }
 
@@ -56,8 +59,8 @@ if ( [caller]->[1] ne __FILE__ ) {    ## exiting recursion ##
 
 return \@result;
 
-#,,.,,...,.,.,.,.,...,,,,,.,.,..,,...,,,.,..,,.,.,...,...,..,,,.,,,,,,,,,,,,.,
-#VB74M6O3H6XDXUIIMDNZ25YTIAZVYEMV3TOHBA65FC32EJXEUZHO4PXWU3MCW2X53NVHG3BBJK2UY
-#\\\|YTORZY7ZOMJ7YULGMC6VJWI7AWMANRA7IMXJD4SBZGZHMQKSRCB \ / AMOS7 \ YOURUM ::
-#\[7]FNDIDY2HZZ2FDSC2GZ5W5E7QUMJ3NJSTYGVEBWG4EEFI7CPOLICI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,,,,,...,,,,,...,..,,,,,,,,,,.,.,...,...,,,.,.,,,...,..,,,..,
+#CVOOLEIBH6567GEDMP7J7HTTA7TARURGCSZD25W7TLIE6LZMYI4WIDAKWTHYKON4MSIYDX6RJU6TG
+#\\\|JU27KB5PRIZ5M6GPHFXYMDDPS6NXVAER5HFWXRKG7GIZ5G2CW5K \ / AMOS7 \ YOURUM ::
+#\[7]UA2FPU6ENLNXNH4JLO2OGNDPGANPQSQQB6P43EMEJJP24M3KQYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
