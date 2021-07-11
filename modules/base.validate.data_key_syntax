@@ -3,47 +3,53 @@
 # name  = base.validate.data_key_syntax
 # descr = validates data key parameters and provides error messages
 
-my $data_key    = shift // '';
-my $max_key_len = 255;
+my $data_keyname = shift // '';
+my $max_len      = 255;
+
+my $allowed_chars_regex = qr|([^A-Za-z0-9=\(\)-_\.:])|;
 
 return warn 'expected %data key string parameter <{C1}>'
     and return ( 0, 'no data key name supplied' )
-    if not length $data_key;
+    if not length $data_keyname;
 
-## reparse key string to allow quote syntax in match below ##
-
-## z.'y.x' ##
-$data_key =~ s,'(([^']|\.)+)', my $k=$1; $k=~s|\.|_|g; $k,ge;
-
-## z.<y-x> ## <-- [ at end of key ]##
-$data_key =~ s,(*plb:(^|\.))(<[^<\.>]+>)$, my $k=$1; $k=~s|\.|_|g; $k ,ge;
-
-if ( $data_key =~ m|\.+$| ) {
-    my $err_msg = sprintf( "not permitted ['%s'] at end of key", $MATCH );
-    return ( 0, $err_msg ) if wantarray;
-    return 0;
-} elsif ( $data_key =~ m|([^A-Za-z0-9=\(\)-_\.:])| ) {
-    my $position_str = $MATCH =~ m|[<>]|    ? ' position' : '';
-    my $in           = length $position_str ? 'at'        : 'in';
-    my $err_msg      = sprintf( 'character [%s] not valid %s data-key%s',
-        $MATCH, $in, $position_str );
+my $key_len = length $data_keyname;
+if ( $key_len > $max_len ) {
+    my $err_msg
+        = sprintf 'supplied data key too long [ limit %d and was %d ]',
+        $max_len, $key_len;
     return ( 0, $err_msg ) if wantarray;
     return 0;
 }
 
-my $key_len = length $data_key;
-if ( $key_len > $max_key_len ) {
-    my $err_msg
-        = sprintf 'supplied data key too long [ limit %d and was %d ]',
-        $max_key_len, $key_len;
+## reparse key string to allow quote syntax in match below ##
+
+if ( index( $data_keyname, qw| . |, 0 ) >= 0 ) {
+    ## z.'y.x' ##
+    $data_keyname =~ s,'(([^']|\.)+)', my $k=$1; $k=~s|\.|_|g; $k,ge;
+    ## z.<y-x> ## <-- [ at end of key ]##
+    $data_keyname
+        =~ s,(*plb:(^|\.))(<[^<\.>]+>)$, my $k=$1; $k=~s|\.|_|g; $k ,ge;
+}
+
+if ( $data_keyname =~ m|\.+$| ) {
+    ##  key syntax not valid  ##
+    my $err_msg = sprintf "not permitted ['%s'] at end of key", $MATCH;
+    return ( 0, $err_msg ) if wantarray;
+    return 0;
+} elsif ( $data_keyname =~ $allowed_chars_regex ) {
+    ##  key syntax not valid  ##
+    my $position_str = $MATCH =~ m|[<>]|    ? ' position' : '';
+    my $in           = length $position_str ? 'at'        : 'in';
+    my $err_msg      = sprintf( 'character [%s] not a valid %s data-key%s',
+        $MATCH, $in, $position_str );
     return ( 0, $err_msg ) if wantarray;
     return 0;
 }
 
 return 5;    ## is valid [true] ##
 
-#,,,,,.,.,,..,.,,,,,.,,.,,.,,,,,.,.,,,,,.,..,,..,,...,...,,,.,..,,,,.,,,,,.,,,
-#Q6UAUKQ4VP5BESBZIN4ZPKXYHFHXD5IY7Q3OPBBXRAHBYNCIT6U2ELUFALZJROHDBSGMXDR2VLLPU
-#\\\|A5Y7L5GXLQXZKQG5ZIB3K7R6WZ4A6OHL7JLJ6UC4J3I6WBBK2TU \ / AMOS7 \ YOURUM ::
-#\[7]FLUMXT4V4GCNNDAHQXAMF54UKUDQTBW2DFMVH342WORX7KU6O6CA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,,.,...,,..,...,,,,,..,,..,,..,,...,..,,,,,,,..,.,,,..,,,,.,
+#OYIN7GHG4ZNEHVCXVFCD7XIEOMAB4CH6JWXF7QVK2OZ6AOLSF3JDSRZEIL3KZUWDD2OHPE4HC3AZU
+#\\\|ANFLOK5LASH3TKB3ZHUJOOUYXKAMYYHH5VNLJWR5YHVCK7DU5P7 \ / AMOS7 \ YOURUM ::
+#\[7]X7PN6J3YLYNXB2QOHZHUQCACIJ5EZUS46FU7UGTOO7GBEWLKEEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
