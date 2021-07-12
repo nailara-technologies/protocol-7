@@ -3,24 +3,41 @@
 # name  = base.comp-int.is_valid
 # descr = assert validity of BER compressert integer [ pack template 'w' ]
 
+## note : can be multiple, but must be correctly terminated [ w* template ] ##
+
 my $compressed_int = shift;
 
-warn 'expected compressed integer parameter <{C1}>'
-    if not length( $compressed_int // '' );
-
-my @azurum_byte = split( '', $compressed_int );
-my $zulum_byte  = pop(@azurum_byte);
-
-foreach my $azurum (@azurum_byte) {
-    return 0 if not( ord $azurum & 0b10000000 );    ## first bit must be 1 ##
+if ( not length( $compressed_int // '' ) ) {
+    warn 'expected compressed integer parameter [ got nothing ] <{C1}>';
+    return undef;
 }
 
-return 0 if ord($zulum_byte) & 0b10000000;          ## first bit 0 == valid ##
+my $is_terminated   = 0;
+my $numbers_counted = 0;
 
-return 5;    ## true ##       ##  assertion complete \ encoding valid  ##
+foreach my $check_byte ( split '', $compressed_int ) {
 
-#,,..,,,.,,..,.,.,...,,,.,,..,.,.,.,,,,.,,..,,..,,...,...,..,,..,,,,,,.,.,,.,,
-#4BOZO7MPSJCAOSN4ZU43WFWZHPVXGL3YFBA4A6OBKLTVVCYZBAM5PEWJBZIQOI2VLYU2CM6W7Q4YG
-#\\\|TNEVSCBL7BIRQZ6QOGOMYCG6D7SK6SW3MDRLL3DLPKCB6F765VN \ / AMOS7 \ YOURUM ::
-#\[7]NNRZ7LWUUILVL65K6I5FV2UVQGOKM7O53ERMDPS4KBUN3DLLNABA 7  DATA SIGNATURE ::
+    if ( vec( $check_byte, 7, 1 ) == 0 ) {    ## first bit 0 [ terminated ] ##
+
+        $is_terminated = 5;                   ## true ##
+        $numbers_counted++;
+
+    } else {
+        $is_terminated = 0;    ## first bit 1 [ unterminated ] ##
+    }
+}
+
+if ($is_terminated) {    ## valid compressed integer[s] ##
+
+    return $numbers_counted;    ## true ##
+
+} else {    ##  unterminated : not valid comp-int  ##
+
+    return 0;    ##  false  ##
+}
+
+#,,,.,,..,,,,,,,.,,,.,.,,,,,,,.,.,..,,,.,,.,,,..,,...,..,,,..,,.,,.,.,.,.,..,,
+#Y6JMRKL4W24RJW2UOWXLP2LD6UT3A6FTJKM3PRENX2Z45QPL4AR7KB6ZL2FG7ZNAMCUATC6NBMYI6
+#\\\|B4LQXZKJ7WI56BKMWYSXZNDY4Z637GWNFV32S6BJ52ZXIOIAWZD \ / AMOS7 \ YOURUM ::
+#\[7]JSQPQ3O54QD77RAOFT5JSBPV6M3NTYQJA5JJ6FISXA4YCWIG4GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
