@@ -101,8 +101,8 @@ $data{'list'} //= {};
     'mask'    => '<key>:user connected_since session:sessions',
     'align'   => { 'session' => 'center' },
     'filters' => {
-        'session'         => 'base.parser.element_count',
-        'connected_since' => 'base.parser.timestamp'
+        'session'         => qw| base.parser.element_count |,
+        'connected_since' => qw| base.parser.timestamp |
     },
     'descr' => 'connected users'
 };
@@ -119,7 +119,7 @@ $data{'list'} //= {};
         'mode'       => 'center-2',
         'start_time' => 'right'
     },
-    'filters' => { 'start_time' => 'base.parser.duration' },
+    'filters' => { 'start_time' => qw| base.parser.duration | },
     'descr'   => 'registered / connected sessions'
 };
 <list.buffers> = {
@@ -132,8 +132,8 @@ $data{'list'} //= {};
         'max_size' => 'right-5'
     },
     'filters' => {
-        'data'     => 'base.parser.element_count',
-        'max_size' => 'base.parser.size_str'
+        'data'     => qw| base.parser.element_count |,
+        'max_size' => qw| base.parser.size_str |
     },
     'descr' => 'available log \ data buffers'
 };
@@ -158,8 +158,8 @@ if (    defined <system.zenka.type>
             'session' => 'center-1'
         },
         'filters' => {
-            'status'  => 'base.parser.ondemand_status',
-            'session' => 'base.parser.ondemand_session'
+            'status'  => qw| base.parser.ondemand_status |,
+            'session' => qw| base.parser.ondemand_session |
         },
         'descr' => 'virtual zenka list'
     };
@@ -203,13 +203,16 @@ map {
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
 
     ## initializing signal handlers ##     [ << potential SIGCHLD problems >> ]
-    <base.watcher.signal>->{$ARG} = <[event.add_signal]>
-        ->( { 'signal' => $uc_sig, 'handler' => 'base.sig_' . $ARG } );
+    <base.watcher.signal>->{$ARG} = <[event.add_signal]>->(
+        {   'signal'  => $uc_sig,
+            'handler' => sprintf( qw| base.sig_%s |, $ARG )
+        }
+    );
 } qw|  int  term  hup  chld  abrt  usr1  usr2  trap  |;
 
 ## initializing session list ###
 
-if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
+if ( ref( $data{'session'} ) ne qw| HASH | ) { $data{'session'} = {} }
 
 <[base.list.init]>->(
     {   qw| name |     => qw| sessions |,
@@ -217,6 +220,26 @@ if ( ref( $data{'session'} ) ne 'HASH' ) { $data{'session'} = {} }
         'max_elements' => <limits.client_sessions>
     }
 );
+
+## updating cache time based to change timestamp ##
+##
+<[base.logs]>->(
+    2,
+    ': setting prefix cache update interval to %d s..,',
+    <base.cfg.interval.prefix_cache_init> //= 422   ## 7 minutes, 2 seconds ##
+);
+<base.timer.prefix_cache> //= <[event.add_timer]>->(
+    {   'after'    => <base.cfg.interval.prefix_cache_init>,
+        'interval' => <base.cfg.interval.prefix_cache_init>,
+        'repeat'   => 1,
+        'handler'  => qw| base.cache.refaddr-prefix.init |
+    }
+);
+##
+
+##                          ##
+##  command access control  ##
+##                          ##
 
 <[base.parser.access_conf]>;
 
@@ -243,8 +266,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,..,,..,.,,,...,.,,,,..,.,.,.,.,,..,,..,.,.,..,,...,...,.,.,..,,,..,,.,,,,.,
-#KABVOONTTJIT75NLIVAGVB5BWN5777CPDAQCQYVNYDCLAPNGOFYRTMMECGL2MPUUTIN5JNV3G26PM
-#\\\|I2IDCARWRVBTJTB27GFWUCYDQJVA57EVS55IKNGVAOM6US2UYFW \ / AMOS7 \ YOURUM ::
-#\[7]4P3VREJYACFVI57WPZYOSFUPO54IYQU75PDHT4HDXCU2CURKKWBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,.,..,,,,.,,.,,.,,,,.,,,,.,...,..,,...,...,.,.,,,.,...,..,,,,.,
+#JOIIBQZD3SOHFIZ3XBOZQRV2OFYPVEZO46UK3OCYCHE2NCDKU3A2DPPI67HV6V62UPVYJLSCNJCBC
+#\\\|BFDBZOUF24JYBY243SX6IGZPPGRMN2JM74RARYAY4LJQZT24OUK \ / AMOS7 \ YOURUM ::
+#\[7]GMWGJMWJDE2ZGDQNK65UQS5RUNYFLL44WVCORPR2T3WTEZIZFADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

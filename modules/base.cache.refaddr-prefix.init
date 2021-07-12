@@ -1,0 +1,57 @@
+## >:] ##
+
+# name  = base.cache.refaddr-prefix.init
+
+my $cache_ref = <base.cache.perl.refaddr_prefix> //= {};
+
+my $max_history_count = 13;
+
+if ( not keys $cache_ref->%* ) {
+    <[base.log]>->( 2, ': polulating refaddr prefix cache.,' );
+} else {
+    <[base.log]>->( 2, ': updating refaddr prefix cache.,' );
+}
+
+my $prefix_cache_tstamp = <[base.ntime.b32]>->(5);
+
+##  reducing prefix length by one digit  ##
+( my $refaddr_prefix = <[base.p7refs.get_refaddr_prefix]> ) =~ s|.$||;
+
+$cache_ref->{$prefix_cache_tstamp} = {
+    qw| value_str |  => $refaddr_prefix,
+    qw| val_length | => length $refaddr_prefix
+};
+
+$cache_ref->{'history'} //= [];
+push $cache_ref->{'history'}->@*,    ##  move last value to cache history  ##
+    { $cache_ref->{'current'} =>
+        delete $cache_ref->{ $cache_ref->{'current'} } }
+    if defined $cache_ref->{'current'};
+
+while ( scalar $cache_ref->{'history'}->@* > $max_history_count ) {
+    my $removed_timestamp = shift $cache_ref->{'history'}->@*;
+    <[base.logs]>->(
+        2, ': :. removed entry %s from prefix cache history',
+        $removed_timestamp
+    );
+}
+
+$cache_ref->{'current'} = $prefix_cache_tstamp; ## record current timestamp ##
+
+<[base.logs]>->(
+    2,                    ':. added entry [ %s ] : %s',
+    $prefix_cache_tstamp, $refaddr_prefix
+);
+
+##  returning current value  ##
+
+return ( $refaddr_prefix, length($refaddr_prefix), $prefix_cache_tstamp )
+    if wantarray;
+
+return $refaddr_prefix;    ##  return only prefix string in scalar context  ##
+
+#,,,,,,,,,,,.,,..,.,.,.,,,...,,..,,,.,...,,..,..,,...,...,...,.,,,..,,,,,,,,,,
+#SWVARA7RKXTBNXADGJHS3OFK63MYYTX3TSFY4PKLG6Y6QXLTSJG2Z32XE4NJJD7LHG3PEG5WBIJTY
+#\\\|LXE6ZUZ7JHNPPLZZ52XMA372SPZDOOPDWVXBWDH5EHMXUYKTQUM \ / AMOS7 \ YOURUM ::
+#\[7]I4VT2AWHSITLS7ND7M5PS5RHM4KPM7YEOADA2IDFZHE77VG47OCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

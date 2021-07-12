@@ -20,6 +20,7 @@ my $file;
 my $line;
 ( $file, $line ) = ( ${^CAPTURE}[0] // '', ${^CAPTURE}[1] // '' )
     if $err_str =~ m| at (\S+) line (\d+).*\n$|;
+<[base.clean_up_caller]>->( \$file );
 
 $err_str = <[base.format_error]>->($err_str)
     if defined $code{'base.format_error'};
@@ -68,8 +69,8 @@ foreach my $akey (@attr_names) {
 
 say STDERR <[base.format_error]>->( $EVAL_ERROR, 1 ) if length $EVAL_ERROR;
 
-#,,,.,,..,.,.,,.,,.,,,,,,,.,,,,,,,.,.,..,,.,.,..,,...,...,...,...,,..,,..,,,.,
-#MKPVQHFISJ5FMYOXFPJ2H4Q62W33LFH4SKVY4BRZH2DBLSATOSMN6LLODD2KEGIHMACRCEG6XUPQU
-#\\\|6BL3XEHLG55Q7HEBVMGHANYQEVGYD7RA6CKOJFOKLEFXJFUWR6L \ / AMOS7 \ YOURUM ::
-#\[7]A75RFYJ2UT4NQQYND6VY3AVV6RW3AITDAJVBJAW2KK7MUXZP72DY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,.,,,.,,,.,,,.,,,.,,,,.,,,.,..,,...,...,...,...,,,.,.,.,...,
+#EUNUAORVLFFAMGF23MHU6OPDCKV2CDSNZDPOYZ65ABZP6NFMXNUAGTRSJ267GNVL2A4BDC2JUELDA
+#\\\|DCXMNC4JRUYIZRNTVOIS75QS737SBVZB3ILP637ZQUUQDVBMATX \ / AMOS7 \ YOURUM ::
+#\[7]P2VGZ2VMPEMANWI4CUPG7MFWOXKM2JZGXJEWF7JSD2KXVSGIPSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
