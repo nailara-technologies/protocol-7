@@ -4,7 +4,6 @@
 # desc  = convert ref. addr [hex] to harmonized compressed integer format
 
 my $cref_str = shift;
-my $nodename = <net.node_name>;    ## [ system.node.name | fqdn ]
 
 if ( not defined $cref_str
     or $cref_str !~ m|^([A-Z]+)\((0x[0-9a-f]{1,16})\)$| ) {
@@ -12,15 +11,36 @@ if ( not defined $cref_str
     return undef;
 }
 
-my $template = sprintf qw| %s:%%s:%s |, ${^CAPTURE}[0],
-    encode_b32r( pack qw| w |,
-    <[base.convert.hex_to_int]>->( ${^CAPTURE}[1] ) );
+my $reftype = ${^CAPTURE}[0];
+my $refaddr = ${^CAPTURE}[1];
 
-return sprintf $template,
-    <[chk-sum.amos.truth_template_chksum]>->( $template, \$nodename );
+my $remove_prefix = 5;    ##  strip refaddr prefix before encoding  ##
 
-#,,,,,.,,,.,,,,,,,,.,,.,,,,.,,..,,..,,...,..,,..,,...,...,...,,.,,...,,.,,...,
-#U64L5QHFSZ3IKHPFRXGW5R3N5YHU6ILETDKGCWEGTBRJXSIUGVOEFDXT7HOGMIGV3LUBBGUXSET7S
-#\\\|4KSWZHPHAXSCB7E7GAD4M4ZYKNIMUCPL5SSZHNNXCHQFRVXBJYK \ / AMOS7 \ YOURUM ::
-#\[7]XLLJXN2JWNJICY5SJY7MFEJ6TTYAV5KLVZERR74DZLWJNLW2UYBY 7  DATA SIGNATURE ::
+my $refaddr_prefix;
+my $raddr_prefix_length;
+my $refaddr_prefix_timestamp;
+
+if ($remove_prefix) {
+    if (not <[base.is_defined_recursive]>->(
+            qw| base.cache.perl.refaddr_prefix.current |)
+    ) {
+        warn 'refaddr prefix cache was empty, polulating ., <{C1}>';
+        <[base.cache.refaddr-prefix.init]>;
+    }
+    my $refaddr_cache_ref = <base.cache.perl.refaddr_prefix.current>;
+    $refaddr_prefix      = $refaddr_cache_ref->{'value_str'};
+    $raddr_prefix_length = $refaddr_cache_ref->{'val_length'};
+}
+
+if ( $remove_prefix and index( $refaddr, $refaddr_prefix, 2 ) == 2 )  ##:0x:##
+{    ##  match, strip prefix  ##
+    substr( $refaddr, 2, $raddr_prefix_length, '' );
+}
+
+return <[base.p7refs.gen_template_chksum]>->( $reftype, $refaddr );
+
+#,,..,...,.,.,,,,,,.,,,..,,.,,.,.,.,,,...,.,.,..,,...,...,,..,,.,,..,,,.,,...,
+#NPMB6YGCPYGKPCHBWWJI74ERMJV5QMRUE2XQKKBC3U75IVOICBLOUX4Y4D5LQ2DZ4CEUZECWRHGME
+#\\\|P36KVNYTOIAQJBFKT3H7ZIDPMER656IMDDTRNT5A7O4HYS5EBIW \ / AMOS7 \ YOURUM ::
+#\[7]GAIFJ2V3QRHLSMWOGRYVVZYDUHRIBBQGUPLTCNDPMD6FMZ7E3SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

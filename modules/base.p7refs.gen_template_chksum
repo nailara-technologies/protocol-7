@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = base.p7refs.gen_template_chksum
+
+my $reftype         = shift;
+my $B32_encoded_str = shift;
+my $node_name_str   = shift // <system.node.name>;
+
+my $ref_types = qw[ P7REF|CODE|REF|HASH|SCALAR|ARRAY|GLOB ];
+
+if ( not defined $reftype or $reftype !~ m|^($ref_types)$| ) {
+    warn 'expected valid protocol-7 reference type parameter <{C1}>';
+    return undef;
+} elsif ( not defined $B32_encoded_str
+    or $B32_encoded_str  !~ m|^[2-9A-Z]{1,16}$|
+    and $B32_encoded_str !~ m|^0x[0-9a-f]{1,16}$| ) {
+    warn 'expected encoded protocol-7 reference or hex value <{C1}>';
+    return undef;
+}
+
+if ( index( $B32_encoded_str, qw| 0x |, 0 ) == 0 ) {    ## not encoded yet ##
+    $B32_encoded_str
+        = encode_b32r( pack qw| w |,
+        <[base.convert.hex_to_int]>->($B32_encoded_str) );
+}
+
+my $truth_template = sprintf( qw| %s:%s:%%s:%s |,
+    $reftype, $node_name_str, $B32_encoded_str );
+
+my $chksum_input_str
+    = sprintf( qw| %s:%s:%s |, $reftype, $node_name_str, $B32_encoded_str );
+
+my $ref_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+    $truth_template, \$chksum_input_str
+);
+
+my $p7ref_encoded_str = sprintf qw| %s:%s |, $ref_chksum, $B32_encoded_str;
+
+return ( $p7ref_encoded_str, $ref_chksum ) if wantarray;
+return $p7ref_encoded_str;
+
+#,,..,,,.,,,.,.,,,..,,..,,,.,,.,.,...,...,.,.,.,.,...,...,.,,,..,,.,,,...,.,,,
+#5SPEXKWUAIQNB4ELN57TPVLJQFJ4MA5AS6MT4ZZUXETDGOPRRQNN6JFK4UROR3CT323GNFU6FAXZ6
+#\\\|XFSWCLZD6O2525RIT3WO42WHHF5CMF6TAWZJWBCRNCXR7QUQY5J \ / AMOS7 \ YOURUM ::
+#\[7]OGRSKQVOFUZO6E5WMFUPVFVOTRYAXO35NAM74JP62V2PQZPPYWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
