@@ -4,8 +4,8 @@
 
 my $event = shift;
 
-if ( ref $event->w ne qw| Event::io | ) {
-    warn "expected event watcher type 'io' for watcher_list.paused <{C1}>";
+if ( index( ref $event, qw| Event:: |, 0 ) != 0 ) {
+    warn "expected 'Event' [ref] type object for watcher_list.paused <{C1}>";
     return undef;
 } elsif ( $event->w->is_active ) {
     warn 'event [watcher] was active [ stopped it ] <{C1}>';
@@ -14,8 +14,8 @@ if ( ref $event->w ne qw| Event::io | ) {
 
 push <watcher_list.paused>->@*, $event;
 
-#,,.,,,,,,,.,,,,,,,,,,,.,,,..,.,,,,..,,,.,,..,.,.,...,...,.,.,,,.,.,,,,,.,...,
-#FHY6V5XZ53XN6SGFVXHCIDKO25V5CPAPSH2GQBB4TYM37WO5PO2SIP6VS63BXXYZ35LLMOI76AMXY
-#\\\|7UP3FRGKT6GXNMANAI4AAVOOIMOMSJIBLTFW5Z7TEN7V64Z3QDV \ / AMOS7 \ YOURUM ::
-#\[7]6H2FNFRHVK7TR4NPGCQXF4CSDCZTA3M4KFXBZMLAWICR355SQIAA 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,,,.,...,.,,,...,..,,.,,,,.,,.,.,...,...,..,,,..,,.,,,,.,.,,,
+#QSQNGW3GQHQY5AZT47GA5Z4S5QSTVBVJMBBLROHJNTMJWQBKCR4QUXML346ZKH4DOUFYUBFO2WESY
+#\\\|6TWKVNCZW2WDAIE5K655SXIECQU3D6364FHDT4PFRPWNWKFIRVN \ / AMOS7 \ YOURUM ::
+#\[7]5KQ6ZFCZSUS2T4XMVZZ4VDXH45IGKBGZ32A4REGL6OIH7BM4Q4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
