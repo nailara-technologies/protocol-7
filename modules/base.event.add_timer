@@ -22,10 +22,14 @@ if ( defined $params->{'handler'} ) {
             'callback handler [ %s ] not defined <{C1}>', $cb_name
         );
         return undef;
-    } else {
+    } else {    ## callback [ handler ] by name ##
 
-        $callback_cref = $code{$cb_name};   ## callback [ handler ] by name ##
+        ##  wrapper making sure the callback survives source code reload  ##
 
+        $callback_cref = sub { $code{$cb_name}->(@ARG) };
+
+        ##  callback gets updated,                   ##
+        ## be careful with outdated parameter lists  ##
     }
 } elsif ( defined $params->{'cb'} and ref $params->{'cb'} eq qw| CODE | ) {
 
@@ -72,8 +76,8 @@ eval {
 
 return $timer;
 
-#,,,,,,.,,..,,.,.,..,,,.,,.,.,..,,,..,.,,,,.,,..,,...,...,.,.,,..,,,,,.,.,.,.,
-#Y3AVGVDNZHJF2FLIGO6LGCHIKBKWPXJGEPRWSS3DCWRYCZWQVU6OGMEIG52U7JVSU3IBF45A3F3JK
-#\\\|IBEZ2DJDDHYS6VUZPLROMPNW5XQ2J6HFULSVYRDNJGFCDBDRLSZ \ / AMOS7 \ YOURUM ::
-#\[7]HCCK56YZTHEBDI4SD4NMQWIIVMZDAEC2OOKWFCLE6CNFEFLJYIDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,,,,,..,,,,,,,..,.,.,.,.,..,,..,,...,...,...,..,,,,.,,,.,..,,
+#5PFV6DBZMSO7ZVJIEWLUANMVA5Q4VJDKX3XTMGBEOELEZOOGQX6GSVS6CYFYIIZEKYSJSJKVIZ7IW
+#\\\|PBXKID2TWJ7UWOSTEWGN32M5KYDB4SOTQKTU3F4HSQZGZ5RX3SA \ / AMOS7 \ YOURUM ::
+#\[7]VARMTXGDAENYR2ZCHDBOHZPPD7FJSJJEMY6AZJWWZKKFR6L7WKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
