@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+
+####       ####
+##  num-rol  ##
+###        ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+$OUTPUT_AUTOFLUSH = 1;
+
+use AMOS7;
+use AMOS7::Assert::Truth;
+use Time::HiRes qw| sleep |;
+
+##[ MAIN FUNCTION ]###########################################################
+
+my @params;
+my $input_num;
+foreach my $arg (@ARGV) {
+    if ( index( $arg, qw| - |, 0 ) >= 0 ) {
+        push( @params, $arg );
+    } else {
+        $input_num .= $arg;
+    }
+}
+
+$input_num =~ s|\D+||g;
+
+error_exit('expecting numerical [ integer ] input string <{NC}>')
+    if not length $input_num;
+
+my $num_len = length $input_num;
+
+my @single_digits = split '', $input_num;
+
+for ( 0 .. $num_len - 1 ) {
+    my $shifted_num = join( '', @single_digits );
+    say sprintf "\n%s%s.: %s%0*u %s:.%s%s", $C{'b'}, $C{'0'},
+        AMOS7::Assert::Truth::true_int( $shifted_num )
+        ? $C{'T'}
+        : $C{'0'},
+        $num_len, $shifted_num,
+        $C{'0'}, $C{'R'}, $C{'0'};
+    sleep(0.7);
+    system( qw| asc-enc -q |, @params, $shifted_num ) && exit('0110');
+    push @single_digits, shift @single_digits;
+}
+say $C{'0'}, qw| . |,  $C{'R'};
+say $C{'0'}, qw| :. |, $C{'R'};
+
+#,,,.,.,.,,.,,..,,,..,.,,,.,.,.,.,.,,,.,,,,,,,.,.,...,...,,..,,.,,,..,,,,,,,.,
+#IANUX2IW42Z54OCXN6YDVUZIJJXL7F2GAVZZHRJZLOJSYWP4WY6UBUSJTJPJDAHP5BEALSC3K3ULQ
+#\\\|IME7467WDPZEDT5M2TU7RSOVDMV4RTA5NMTLZR7PMAIT7AAK65S \ / AMOS7 \ YOURUM ::
+#\[7]UUJXA56MJ5D7IR4TLWARTXS4P7JTG52ETMRIWUT7FXFS5FS6Y6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
