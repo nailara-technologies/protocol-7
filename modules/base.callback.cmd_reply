@@ -3,10 +3,10 @@
 # name  = base.callback.cmd_reply
 # descr = callback to asynchronous ['defered'] reply to local commands
 
-my ( $reply_id, $reply ) = @_;
+my ( $reply_id, $reply ) = @ARG;
 
-return
-    if defined $reply_id and $reply_id eq 'silent';   # silent [no reply] mode
+## 'silent' [no] reply mode ##
+return if defined $reply_id and $reply_id eq qw| silent |;
 
 die 'expected numerical reply_id <{C1}>'
     if @ARG != 2
@@ -15,12 +15,11 @@ die 'expected numerical reply_id <{C1}>'
 
 warn 'expected reply data hash reference <{C1}>'
     if not defined $reply
-    or ref($reply) ne 'HASH';
+    or ref $reply ne qw| HASH |;
 
-return
-    warn "no command meta data set up "
-    . "for id '$reply_id' [ zenka gone? ] <{C}>"
-    if not exists <base.cmd_reply>->{$reply_id};
+return <[base.s_warn]>->(
+    "no command meta data set up for id '%s' [ zenka gone? ] <{C}>", $reply_id
+) if not exists <base.cmd_reply>->{$reply_id};
 
 my $meta_data  = <base.cmd_reply>->{$reply_id};
 my $cmd        = $meta_data->{'cmd'};
@@ -30,55 +29,56 @@ my $session_id = $meta_data->{'session_id'};
 
 if ( not defined $data{'session'}{$session_id} ) {    ## session gone ., ##
     delete <base.cmd_reply>->{$reply_id};
-    <[base.log]>->( 2, "cmd_reply to $session_id skipped, gone.," );
+    <[base.log]>->( 2, 'cmd_reply to %d skipped, gone.,', $session_id );
     return;                                           ## nothing to do ., ##
 }
 
 my $_cmd_id = '';
-if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
+if ( $cmd_id > 0 ) { $_cmd_id = sprintf qw| (%d) |, $cmd_id }
 
 # reply data error check
 
-if ( not defined $reply or ref($reply) ne 'HASH' ) {
-    $reply          = {};
-    $$reply{'mode'} = qw| false |;
-    $$reply{'data'} = 'error during command invocation [ details logged ]';
-    <[base.log]>->( 0, "[$session_id] cmd ['$cmd'] err [ href expected ]" );
-
-} elsif ( not defined $$reply{'data'}
-    or $$reply{'mode'} ne qw| size | and !length( $$reply{'data'} ) ) {
-    <[base.log]>->(
-        0,
-        "[$session_id] empty "
-            . uc( $$reply{'mode'} )
-            . '-reply attempted '
-            . <[base.caller]>
+if ( not defined $reply or ref $reply ne qw| HASH | ) {
+    $reply           = {};
+    $reply->{'mode'} = qw| false |;
+    $reply->{'data'} = 'error during command invocation [ details logged ]';
+    <[base.logs]>->(
+        0,           "[%d] cmd ['%s'] err [ href expected ]",
+        $session_id, $cmd
     );
-    $$reply{'mode'} = qw| false |;
-    $$reply{'data'}
+
+} elsif ( not defined $reply->{'data'}
+    or $reply->{'mode'} ne qw| size | and not length $reply->{'data'} ) {
+    <[base.logs]>->(
+        0,           '[%d] empty %s-reply attempted %s',
+        $session_id, uc( $reply->{'mode'} ),
+        <[base.caller]>
+    );
+    $reply->{'mode'} = qw| false |;
+    $reply->{'data'}
         = 'error during command invocation [ details are logged ]';
 }
 
 # check answer mode
 
-if ( $$reply{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
-    $$reply{'data'} =~ s|\n|\\n|go;
+if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
+    $reply->{'data'} =~ s|\n|\\n|go;
     $output->$* .= sprintf "%s%s %s\n",
-        $_cmd_id, uc( $$reply{'mode'} ), $$reply{'data'};
-} elsif ( uc( $$reply{'mode'} ) eq qw| SIZE | ) {
-    my $len = length( $$reply{'data'} );
+        $_cmd_id, uc( $reply->{'mode'} ), $reply->{'data'};
+} elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
+    my $len = length( $reply->{'data'} );
     $output->$*
-        .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $$reply{'data'} );
-} elsif ( uc( $$reply{'mode'} ) eq qw| TERM | ) {
-    <[base.session.shutdown]>->( $session_id, $$reply{'data'} );
+        .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $reply->{'data'} );
+} elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
+    <[base.session.shutdown]>->( $session_id, $reply->{'data'} );
 }
 
 ## clean-up ##
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,.,,..,...,.,.,,,,,,..,.,.,..,,.,,,..,,.,,,..,,...,..,,,,.,.,,,,,,,...,,..,
-#NVCTAFFS5LEUJ264NXMZCFMRWMGKZLGBLJBUHLKETS5URAZLMKE6UCC6NCJIHGGJMALNT4RRYYD44
-#\\\|RXZUVJ3UFA3LDC7INT6ZCW6HKN4EUY6GJ4ZDXGTRZYPHJEIP3J3 \ / AMOS7 \ YOURUM ::
-#\[7]EELND2FVR6C64LUBM5DP2CN52SJXC5IJBTJTLRYUOFIAOP4ACMAA 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,.,.,,.,,,,.,..,,,..,,,,,..,,..,,...,...,,,,,...,,,,,..,,,,.,
+#GJALPOUG7YUZXIBT4T2F5IXPCZ24D3YWUF7XSXVNU6G5FUCR3QD43JMMBN2JD2GW37BO3HM3CR7KC
+#\\\|UHL4L4VZBGR7QB5YCGPH3ZCXNAZZE76OIMW7GL6C2F2IGEL3I6M \ / AMOS7 \ YOURUM ::
+#\[7]XJOZ73AQUWESO3XT2M3KB4EUUFF2B2ST5XU7XWDDTXE46QMM4IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

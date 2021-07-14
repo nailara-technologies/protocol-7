@@ -1,0 +1,64 @@
+## >:] ##
+
+# name  = base.format.multiline_command
+# descr = returning multiline syntax packet [ to append on buffer ]
+
+my $target_cmd_id = shift; ##  numerical cmd id  ##
+my $cmd           = shift; ## command without + ##
+my $call_args     = shift; ## multiline param hashref [keys:'param','data'] ##
+
+if ( not defined $target_cmd_id ) {
+    warn 'target command id parameter is not defined <{C1}>';
+    return undef;
+} elsif ( not length $target_cmd_id or $target_cmd_id =~ m|\D| ) {
+    warn 'target command id parameter is not numerical <{C1}>';
+    return undef;
+} elsif ( not defined $cmd ) {
+    warn 'command string parameter is not defined <{C1}>';
+    return undef;
+} elsif ( defined $call_args and ref $call_args ne qw| HASH | ) {
+    warn 'expected hash ref to multiline command parameters <{C1}>';
+    return undef;
+}
+
+my $header = '';
+
+## preparing parameter header ##
+if ( defined $call_args->{'param'} ) {    ##  has parameters  ##
+
+    ( undef, my $max_width )
+        = minmax map {length} keys $call_args->{'param'}->%*;
+
+    foreach my $key ( <[base.reverse-sort]>->( $call_args->{'param'} ) ) {
+        $header .= sprintf( " %*s : %s\n",
+            $max_width, $key, $call_args->{'param'}->{$key} );
+    }
+}
+
+my $target_cmdid_str = '';
+my $target_cmdid_str = sprintf( qw| (%d) |, $target_cmd_id )
+    if $target_cmd_id > 0;
+
+if ( defined $call_args->{'data'} ) {    ## has request body ##
+    my $last_data_pos = length( $call_args->{'data'} ) - 1;
+    if ( index( $call_args->{'data'}, "\n", $last_data_pos ) == -1 ) {
+        warn 'request body not linefeed terminated <{C1}>';
+        $call_args->{'data'} .= "\n";
+    }
+
+    ## param header seperated by linefeed from request body ##
+    return sprintf "%s%s+\n%s\n%s.\n",    ## data has linefeed ##
+        $target_cmdid_str, $cmd, $header, $call_args->{'data'};
+
+} else {    ## no request body present ##
+
+    ## packet [as above] terminated by a singe '.' in its last line ##
+    return sprintf "%s%s+\n%s\n.\n", $target_cmdid_str, $cmd, $header;
+
+}
+
+#,,,,,,..,.,.,,..,,,,,,,,,.,.,..,,,,,,,.,,.,,,..,,...,...,.,.,...,...,...,...,
+#W5WM3USDFYCSA4X2JLZA43PHCUZ6WMZRO6RYVPBGNJ5IONYKZGPSBG44FMKNEJCL6ZQBNXXHJK2GM
+#\\\|5A2V36PGZWCJTNZG3HJVEOK7SDQLDF4PMPFFXICILBVXBDEQ7LA \ / AMOS7 \ YOURUM ::
+#\[7]L2EICBYEFGJ5XIX6C7ZKCX2W3A54VAB64RADFHFSOXJMVW4S3ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

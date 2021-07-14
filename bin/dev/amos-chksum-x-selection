@@ -19,7 +19,7 @@ $chksum_str = ' < amos checksum error > ' if not length( $chksum_str // '' );
 
 foreach my $mode (qw| selection clipboard |) {   ## selection and clipboard ##
 
-    my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -i |;
+    my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -p -i |;
     my $pid       = open2( my $out_fh, my $xsel_in, qw| xsel |, @xsel_args );
 
     print {$xsel_in} $chksum_str;                # store amos checksum ##
@@ -33,8 +33,8 @@ foreach my $mode (qw| selection clipboard |) {   ## selection and clipboard ##
 
 exit(0000);
 
-#,,,.,,,.,.,,,,.,,..,,,.,,.,,,,..,,,,,,,.,.,.,..,,...,...,,,.,...,,.,,.,.,.,,,
-#QCVCDX3U5QMGEHTGMAS4YMOBUZQLL334GNTJ2RMXPDKGZ5WYMTCF6D5ZXJJ4GGJBFO3AB2Y765LXO
-#\\\|JBNZLB3KYMNHI6QKCNIXGFNNE3APANNKDJHXEQ5WAT4N2LY63SV \ / AMOS7 \ YOURUM ::
-#\[7]KUIPQ6A2O335CK6A6JFRJU4KLLKEEADNRIBVZGJQV4PJ6I652YCI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,...,,.,,...,.,.,...,,,.,,..,..,,...,...,,.,,,.,,..,,,..,.,.,
+#GDMGEDO56LCERPMC2LAY5R7KW5ZVTBN3CNA7VKOMQCTBEX6NVWRXBZURTWBXEXBR55SPSQF7UMU3M
+#\\\|EO7MDPUSEI2IFEVFIKV7UAUAEMBKKKXCSVIGN5TOEE6JECKD7C4 \ / AMOS7 \ YOURUM ::
+#\[7]IBOPLH3PYSMCC5STG7IPNZHONJXZHANGERPDOGOWMFUWC4AWJACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

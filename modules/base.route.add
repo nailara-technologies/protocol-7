@@ -2,24 +2,36 @@
 
 # name   = base.route.add
 
-if ( ref( $ARG[0] ) ne qw| HASH | ) {
+my $params = shift;
+
+if ( ref $params ne qw| HASH | ) {
     <[base.log]>->( 0, 'add_route: argument is no hash reference' );
     return undef;
 }
 
-my $id            = ${ $ARG[0] }{'source'}{'sid'};
-my $cmd_id        = ${ $ARG[0] }{'source'}{'cmd_id'};
-my $reply_handler = ${ $ARG[0] }{'reply'}{'handler'};
-my $reply_params  = ${ $ARG[0] }{'reply'}{'params'};
-my $target_sid    = ${ $ARG[0] }{'target'}{'sid'};
+my $id            = $params->{'source'}->{'sid'};
+my $cmd_id        = $params->{'source'}->{'cmd_id'} // 0;
+my $reply_handler = $params->{'reply'}->{'handler'};
+my $reply_params  = $params->{'reply'}->{'params'};
+my $target_sid    = $params->{'target'}->{'sid'};
+
+if ( not defined $target_sid ) {
+    warn 'target session id is required for setting up route <{C1}>';
+    return undef;
+}
+if ( defined $cmd_id and not length $cmd_id ) {
+    warn 'src cmd_id must be numerical or undef <{C1}>';
+    $cmd_id = 0;
+}
+
 
 return 0
-    if not exists $data{'session'}{$target_sid}
-    or not exists $data{'session'}{$id};
-$data{'session'}{$target_sid}{'route'} //= {};
+    if not exists $data{'session'}->{$target_sid}
+    or not exists $data{'session'}->{$id};
+$data{'session'}->{$target_sid}->{'route'} //= {};
 
 my $target_cmd_id = <[base.gen_id]>->(
-    $data{'session'}{$target_sid}{'route'},
+    $data{'session'}->{$target_sid}->{'route'},
     <limits.routes.per_client> //= 13747,
     undef, 0
 );
@@ -50,8 +62,8 @@ my $route_id = <[base.list.element.add]>->(
             'user'     => <base.session.uname.server>,
             'size'     => {
                 'buffer' => {
-                    'input'  => $data{'size'}{'buffer'}{'input'},
-                    'output' => $data{'size'}{'buffer'}{'output'}
+                    'input'  => $data{'size'}->{'buffer'}->{'input'},
+                    'output' => $data{'size'}->{'buffer'}->{'output'}
                 }
             }
         },
@@ -59,13 +71,14 @@ my $route_id = <[base.list.element.add]>->(
     }
 );
 
-$data{'session'}{$id}{'route'}{$cmd_id}
-    = $data{'session'}{$target_sid}{'route'}{$target_cmd_id} = $route_id;
+$data{'session'}->{$id}->{'route'}->{$cmd_id}
+    = $data{'session'}->{$target_sid}->{'route'}->{$target_cmd_id}
+    = $route_id;
 
-return $data{'route'}{$route_id};
+return $data{'route'}->{$route_id};
 
-#,,,,,..,,.,.,,.,,,..,.,,,.,,,,,,,,,,,,,,,,,,,..,,...,...,..,,.,,,,..,...,...,
-#ZN4V47EPPBZASH4CT54QF6P6UDM7V6TTPDR44JK25JQFGOVRYWNNR3LJTIOV5FVS6G6WKM4WWOLXO
-#\\\|5V2WRH63QNXRVB27MNTMDBSXKL7PLDUKGNPOP6L7Y53Y5FUMJDJ \ / AMOS7 \ YOURUM ::
-#\[7]M26UHKJG55UB66UK6AS6GIBJ6PCE63Z6KLIBBGJ4LPQEA67DMOBI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,.,,,.,.,,.,,,.,,,,,,,,.,,.,,..,,...,..,,..,,.,.,,..,.,.,,,,,
+#L5UML362X7KEUIOTYVUFA6QR7VPVC2QAA6QD4J63FHLCPWPPRATFRM7PZ5HJBLYCQL4EUBJ6OEJIC
+#\\\|UBWKGXP7IGTAGGVMUIP2LEAVZZ6IMAO6LG3RMLFECEJOKMC6GRV \ / AMOS7 \ YOURUM ::
+#\[7]ZR3W3GOE2DODFGZXJFIWWDS75EEJ5XHZWXSFFL3KP3LSVKZN26DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
