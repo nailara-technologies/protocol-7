@@ -17,36 +17,77 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
         $zenka_name, $reason
     );
     while ( my $element = shift <zenki.virtual>->{$v_id}->{'queue'}->@* ) {
-        my $cmd_id = $element->{'cmd_id'};
+        my $cmd_id = $element->{'src_cmd_id'};
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
-
+        ##  zenka start-up error  ##
         $data{'session'}{$src_id}{'buffer'}{'output'}
-            .= <[base.sprint_t]>->( qw| GLPLXJQ |, $cmd_id );
+            .= <[base.sprint_t]>->( qw| USMP72A |, $cmd_id );
     }
-} else {
+} elsif ( $reply->{'call_args'}->{'args'}
+    =~ m|^zenka '$zenka_name' is online \[(\d+)\]$| ) {
+    my $target_sid = $LAST_PAREN_MATCH;
+
     <[base.logs]>->( 'ondemand %s zenka has come online..,', $zenka_name );
 
     while ( my $element = shift <zenki.virtual>->{$v_id}->{'queue'}->@* ) {
+        ##  source is gone, abort sending  ##
+        last if not exists $data{'session'}{ $element->{'source_id'} };
+        ##  destination gone  ##
+        last if not exists $data{'session'}{$target_sid};    ##  unlikely  ##
+
+        ## set up reply route ##
+        my $route = <[base.route.add]>->(
+            {   'source' => {
+                    'sid'    => $element->{'source_id'},
+                    'cmd_id' => $element->{'src_cmd_id'}
+                },
+                'target' => { 'sid' => $target_sid }
+            }
+        );
+        my $target_cmd_id = $route->{'target'}->{'cmd_id'};    ## numerical ##
+
+        ### sending to arrived zenka ###
+
+        if ( not defined $element->{'multiline'} ) {   ##  single cmd line  ##
+
+            ##  preparing the stored command for arrived zenka  ##
+            my $output_str = sprintf qw| (%s)%s |, $target_cmd_id,
+                $element->{'cmd_str'};
+
+            ## append command arguments ##
+            $output_str .= sprintf( ' %s', $element->{'cmd_args'} )
+                if defined $element->{'cmd_args'};
+
+            $data{'session'}{$target_sid}{'buffer'}{'output'}
+                .= sprintf "%s\n", $output_str;
+
+        } else {    ## multiline command mode ##
+
+            $data{'session'}{$target_sid}{'buffer'}{'output'}
+                .= <[base.format.multiline_command]>->(
+                $target_cmd_id,    ## numerical ##
+                $element->{'cmd_str'}, delete $element->{'multiline'}
+                );
+
+        }
+    }
+} else {
+    <[base.s_warn]>->(
+        "unexpected notify_online reply syntax ['%s']",
+        $reply->{'call_args'}->{'args'}
+    );
+    while ( my $element = shift <zenki.virtual>->{$v_id}->{'queue'}->@* ) {
         my $src_id = $element->{'source_id'};
         next if not exists $data{'session'}{$src_id};    ##   <--  gone.   ###
-
-        ##  preparing the stored command for arrived zenka  ##
-        my $output_str = sprintf qw| %s%s |, $element->{'cmd_id'},
-            $element->{'cmd_str'};
-
-        ## append command arguments ##
-        $output_str .= sprintf( ' %s', $element->{'cmd_args'} )
-            if defined $element->{'cmd_args'};
-
-        # [LLL] add multiline command parameters ..,
-        $data{'session'}{$src_id}{'buffer'}{'input'}
-            .= sprintf( "%s\n", $output_str );
+        ##  reply processing error  ##
+        $data{'session'}{$src_id}{'buffer'}{'output'}
+            .= <[base.sprint_t]>->( qw| CKK43MQ |, $element->{'src_cmd_id'} );
     }
 }
 
-#,,,,,.,.,...,,,.,,.,,,..,.,.,,.,,,,,,...,,..,..,,...,...,,..,.,,,,..,..,,.,,,
-#OVDA6W2DABIRPPV6M4B6KSIHCCCSPNT3BPD77SY4NIUYJWHNJ2ADVCG5ZRNAJE3YLSKHEYQSWLCCQ
-#\\\|FDE6LY7DJVE3O5BLIPACNJMRYB7VF4AOBWYDHU3U2JS4OHEGCGN \ / AMOS7 \ YOURUM ::
-#\[7]ECSWHU46P7VMNASBVVUDEVUB2RMOBGLIOG5EVFRPL624QOJSIQDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,.,,,.,.,.,,.,,...,,.,,,.,,...,..,,...,...,.,,,,.,,...,,,.,.,,,
+#BFQJQOFSMHFZHB3GVFGGKHRKAGGQYR347GZ5E4DBHNOSLVTUJMSXLXMSV3ZPR4QNUOCAEBK3HIRCQ
+#\\\|H7CTJKLLXGTTGA3RCKKRBXJGDQU4ZPGFO4XVMZRFILJ44OMJ3FK \ / AMOS7 \ YOURUM ::
+#\[7]6DNTCMS7KECXXFRCDSPGOB4VKV2ICQNHCXP5KDBRFCEF2IVIB2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

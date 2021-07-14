@@ -8,7 +8,8 @@
 #                                                           [ needs rewrite. ]
 # [LLL] : reduce memory usage during compilation [ ..3MB for this subroutine ]
 
-my $id = $_[0]->w->data;
+my $event = shift;
+my $id    = $event->w->data;
 
 ##[ INIT \ VARIABLES ]##########################################################
 
@@ -26,13 +27,16 @@ my $cmd_id = 0;
 
 if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     if ( my $ignore_bytes = $data{'session'}{'ignore_bytes'} ) {
-        <[base.log]>->( 1, "[$id] dropping $ignore_bytes [ignore-]bytes.," );
+        <[base.log]>->(
+            '[%d] dropping %03d [ignore-]byte%s.,',
+            $id, $ignore_bytes, <[base.cnt_s]>->($ignore_bytes)
+        );
         if ( length( $input->$* ) >= $ignore_bytes ) {
             substr( $input->$*, 0, $ignore_bytes, '' );
             delete $data{'session'}{'ignore_bytes'};
         } else {
-            $data{'session'}{'ignore_bytes'} -= length( $input->$* );
-            truncate( $input->$*, 0 );
+            $data{'session'}{'ignore_bytes'} -= length $input->$*;
+            $input->$* = '';    ##  truncating buffer to ''  ##
         }
     } else {
         delete $data{'session'}{'ignore_bytes'};
@@ -41,24 +45,17 @@ if ( exists $data{'session'}{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
 
 ##[ STOP WATCHER TO MODIFY INPUT BUFFER ]#####################################
 
-# stop handler to modify buffer without calling the handler
-
-$_[0]->w->stop;
+##  stop the watcher to modify buffer without re-triggering  ##
+$event->w->stop;
 
 ##[ STOP TIMER \ ONDEMAND TIMEOUT ]###########################################
 
 # cancel ondemand timeout [ reinstalled in idle watcher ]
-if ( exists <base.timer.ondemand_timeout> ) {
-    <base.timer.ondemand_timeout>->cancel;
+if ( defined <base.timer.ondemand_timeout> ) {
+    <base.timer.ondemand_timeout>->cancel
+        if <base.timer.ondemand_timeout>->is_active;
     delete <base.timer.ondemand_timeout>;
 }
-
-##[ CLEAN-UP CMD LINE ]#######################################################
-
-### cleaning up command line ###
-
-$input->$* =~ s|^\s+||;
-$input->$* =~ s|^([^\n]+?)[ \t]+\n|$1\n|;
 
 ##[ SET-UP \ VARIABLES ]######################################################
 
@@ -73,9 +70,10 @@ if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
     and $input->$* !~ m|^\(($re->{cmd_id})\)| ) {
     my $cmd_id = $1 // '';
     $input->$* =~ s|^(\([^\)]*\)[^\n]+)\n||;
-    <[base.log]>->( 1, "[$id] invalid command id ['$cmd_id']" );
+    <[base.logs]>->( "[%d] command id syntax not valid [%s]", $id, $cmd_id );
     $output->$* .= "FALSE invalid command id syntax or length\n";
-    return 0;    ## comand complete ##
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 0;            ## comand complete ##
 }
 
 ##  calculate and store average command line length  ##
@@ -87,65 +85,86 @@ if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
 ## checking for multi-line commands ###
 
 if ( $input->$*
-    =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+\n([^\n]*\n)*\.\n),,o ) {
-    ( my $multiline_cmd, $cmd ) = ( $1, $2 );
-    if ( $multiline_cmd =~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
+    =~ s,^(((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n([^\n]*\n)*\.\n),,o ) {
 
-        # cube zenka 'select' command [ base path prefix handling ]
-        $cmd = join( '.', $data{'session'}{$id}{'base_path'}, $cmd )
-            if defined $data{'session'}{$id}{'base_path'};
+    ( my $multiline_cmd, $cmd ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
 
-        ## read argument header ##
-
-        my $_cmd_id = '';
-        $cmd_id = $1 if length($1);
-        $cmd_id = '' if $cmd_id =~ m|^\(0+\)$|;
-
-        my $header = 1;
-
-        while ( $multiline_cmd =~ s|^([^\n]*)\n|| ) {
-
-            my $arg = $1 // '';
-
-            if ( $arg ne '.' ) {
-
-                ## '.\n' as 'end of parameters' terminator ##
-
-                if ( $header and $arg ne '' ) {
-
-                    if ( $arg =~ m|^([\w\.]+)[ \t]*[=:][ \t]*(.*)$| ) {
-                        my ( $key, $val ) = ( $1, $2 );
-
-                        $$call_args{'param'}{$key} = $val;
-
-                    }
-
-                    ### protocol error ###
-
-                    else {
-                        <[base.log]>->(
-                            1, "[$id] invalid command parameter format"
-                        );
-                        $output->$*
-                            .= $_cmd_id
-                            . "FALSE [multi-line] command parameter"
-                            . " syntax not valid\n";  ## <-- [re]define. [LLL]
-
-                        $_[0]->w->start;
-                        return 0;    ##  command processing was complete  ##
-                    }
-                } elsif ( $header == 1 ) {
-                    $header = 0;
-                } else {
-                    $$call_args{'data'} .= $arg . "\n";
-                }
-
-            } else {
-                last;
-            }
-        }
-        $command_mode = 2;
+    if ( $multiline_cmd !~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o ) {
+        warn 'multiline cmd regex error';    ##  never happening  ##
+        return 2;    ##  undefined state \ terminates connection  ##
     }
+
+    # cube zenka 'select' command [ base path prefix handling ]
+    $cmd = sprintf qw| %s.%s |, $data{'session'}{$id}{'base_path'}, $cmd
+        if defined $data{'session'}{$id}{'base_path'};
+
+    ## read argument header ##
+
+    my $cmd_id = '';
+    $cmd_id = ${^CAPTURE}[0] if length ${^CAPTURE}[0];
+    $cmd_id = ''             if $cmd_id =~ m|^\(0+\)$|;
+
+    my $is_header = 5;    ## true ##
+
+    while ( length $multiline_cmd ) {
+        my $line_feed_pos = index( $multiline_cmd, "\n", 0 );
+        if ( $line_feed_pos == -1 ) {
+            warn 'unterminated multiline packet';
+            $line_feed_pos = length $multiline_cmd;
+        }
+
+        my $mcmd_line = substr( $multiline_cmd, 0, $line_feed_pos, '' );
+        substr( $multiline_cmd, 0, 1, '' ) if length $multiline_cmd;  ## lf ##
+
+        ##  '.' in single line terminates a packet  ##
+        last if $mcmd_line eq qw| . |;
+
+        ##  empty line ending header  ##
+        if ( $is_header and $mcmd_line =~ m|^[ \t]*$| ) {
+            $is_header = 0;
+            next;
+        }
+
+        if ( not $is_header ) {    ## body data ##
+            $call_args->{'data'} .= sprintf "%s\n", $mcmd_line;
+            next;
+        }
+
+        ## still header processing ##
+
+        ## < key > : < value > ##
+        my $param_seperator = qw| [=:] |;    ##  '=' | ':'  ##
+
+        if ( $mcmd_line !~ m|$param_seperator| ) {    ### protocol error ###
+            <[base.logs]>->(    ## <-- back to log level 1 << ! >>
+                2,
+                "[%d] command parameter format syntax not valid",
+                $id
+            );
+            <[base.logs]>->(    ## <-- back to log level 1 << ! >>
+                2,
+                "[%d] :. parameter line : '%s' .:",
+                $id, $mcmd_line
+            );
+            $output->$* = sprintf
+                "%sFALSE error in [multi-line] command param syntax\n",
+                $cmd_id;
+
+            $event->w->start;    ##  restarting input buffer processing  ##
+            return 0;            ## comand complete ##
+        }
+
+        ## clean linefeed pre|postix ##
+        $mcmd_line =~ s{^[ \t]+|[ \t]+$}{}g;
+
+        ( my $key, my $val )
+            = split( m|[ \t]*$param_seperator[ \t]*|, $mcmd_line, 2 );
+
+        ##  save header parameters for ondemand zenka  ##
+        $call_args->{'param'}->{$key} = $val;
+    }
+
+    $command_mode = 2;
 }
 
 ##[ RETURN \ INCOMPLETE MULTI-LINE ]##########################################
@@ -154,31 +173,38 @@ if ( $input->$*
 
 elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 
-    $_[0]->w->start;
-    return 1;    ## command not complete ###
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
 }
 
 ##[ RETURN \ INCOMPLETE 'SIZE' REPLY ]########################################
 
 ## incomplete SIZE reply ## [LLL] switch to stream type transfer ..,
 
-elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(\d+)\n),o
-    and length( $input->$* ) < ( $3 + length($1) ) ) {
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
+    and length( $input->$* ) - length( ${^CAPTURE}[0] ) < 0 + ${^CAPTURE}[2] )
+{
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
+}
 
-    $_[0]->w->start;
-    return 1;    ## command not complete ###
+##[ CLEAN-UP CMD LINE ]#######################################################
+
+elsif ( $input->$* =~ s|^[ \t\n]+||sg ) {
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
 }
 
 ##[ SINGLE LINE CMD ]#########################################################
 
 ### single command line ###
 
-elsif (
-    $input->$* =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)\n,,o ) {
+elsif ( $input->$*
+    =~ s,^((\($re->{cmd_id}\)|) *$re->{cmdrp}\/?)( +(.+)|)[ \t]*\n,,o ) {
 
-    $_[0]->w->start;
+    $event->w->start;    ##  restarting input buffer processing  ##
 
-    ( $cmd, $$call_args{'args'} ) = ( $1, $4 );
+    ( $cmd, $call_args->{'args'} ) = ( ${^CAPTURE}[0], ${^CAPTURE}[3] );
 
     # cube zenka 'select' command [ base path prefix handling ]
     $cmd = qw| unselect | if $cmd eq qw| ../ |;    ## 'unselect'-alias '../'
@@ -198,40 +224,46 @@ elsif (
 ## protocol error ##
 
 elsif ( $input->$* =~ s,^((\($re->{cmd_id}\)|) *[^\n]+)\n,,o ) {
-    my ( $_cmd_id, $cmd_string ) = ( $2, $1 );
+    my ( $cmd_id_str, $cmd_string ) = ( ${^CAPTURE}[1], ${^CAPTURE}[0] );
 
-    <[base.logt]>->( qw| HTKSXIY |, $id, $cmd_string );  # protocol mismatch #
+    <[base.logt]>->( qw| AXLDCOY |, $id, $cmd_string );  # protocol mismatch #
 
-    $output->$* .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+    $output->$* .= <[base.sprint_t]>->( qw| YYOPDKA |, $cmd_id_str );
 
-    $_[0]->w->start;
-    return 0;    ##  command processing was complete  ##
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 0;            ## comand complete ##
 }
 
 ##[ RETURN \ EMPTY COMMAND LINE ]#############################################
 
 # empty command line
 
-elsif ( $input->$* =~ s|^$|| ) { $_[0]->w->start; return 0 }
+elsif ( not length $input->$* ) {
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 0;            ## command complete ##
+}
 
 ##[ RETURN \ COMMAND NOT COMPLETE ]###########################################
 
 # incomplete command line
 
-else { $_[0]->w->start; return 1 }    ## command not complete ###
+else {
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
+}
 
 # not going to modify buffer again
 
-$_[0]->w->start;
+$event->w->start;        ##  restarting input buffer processing  ##
 
 ##[ PROCESS COMMAND \ EXTRACT ID ]############################################
 
 # extract command id
 
-if ( $cmd =~ s|^\(($re->{cmd_id})\) *||o ) { $cmd_id = $1 }
+if ( $cmd =~ s|^\(($re->{cmd_id})\) *||o ) { $cmd_id = ${^CAPTURE}[0] }
 
-$$call_args{'command_id'} = $cmd_id;
-$$call_args{'session_id'} = $id;
+$call_args->{'command_id'} = $cmd_id;
+$call_args->{'session_id'} = $id;
 
 ##[ REROUTE ]#################################################################
 
@@ -276,32 +308,34 @@ $alias_to = $data{'user'}{$user}{'alias'}{$cmd}
     if exists $data{'user'}{$user}{'alias'}
     and exists $data{'user'}{$user}{'alias'}{$cmd};
 my $cmd_orig  = $cmd;
-my $args_orig = $$call_args{'args'};
+my $args_orig = $call_args->{'args'};
 
 ##[ PROCESS \ ALIASES ]#######################################################
 
-if ( defined $alias_to and length($alias_to) ) {
-    $$call_args{'cmd'}{'unalias'} = $cmd;
+if ( defined $alias_to and length $alias_to ) {
+    $call_args->{'cmd'}{'unalias'} = $cmd;
     $cmd = $alias_to;
+
     my $args_map = {
-        'SOURCE_AGENT' => <system.node.name> . '.' . $user,
-        'SOURCE_SID'   => $id
+        qw|  SOURCE_SID  | => $id,
+        qw| SOURCE_ZENKA | => sprintf( qw|%s.%s|, <system.node.name>, $user ),
     };
-    map { $cmd =~ s|$ARG|$args_map->{$ARG}|g } keys %{$args_map};
+    map { $cmd =~ s|$ARG|$args_map->{$ARG}|g } keys $args_map->%*;
 
     if ( $cmd =~ s|^([^ ]+) +([^\n]+)$|$1| ) {
-        if ( defined $$call_args{'args'} ) {
-            $$call_args{'args'} = join( ' ', $2, $$call_args{'args'} );
+        if ( defined $call_args->{'args'} ) {
+            $call_args->{'args'} = sprintf '%s %s',
+                ${^CAPTURE}[1], $call_args->{'args'};
         } else {
-            $$call_args{'args'} = ${^CAPTURE}[1];
+            $call_args->{'args'} = ${^CAPTURE}[1];
         }
     }
 }
 
 ##[ PREPARE REPLY \ HAS REPLY ID ]############################################
 
-my $_cmd_id = '';
-if ( $cmd_id > 0 ) { $_cmd_id = '(' . $cmd_id . ')' }
+my $cmd_id_str = '';
+if ( $cmd_id > 0 ) { $cmd_id_str = sprintf qw| (%d) |, $cmd_id }
 
 ##[ COMMAND REPLIES ]#########################################################
 
@@ -311,12 +345,12 @@ my $valid_answer = 0;
 my ( $_m1, $_m2 );
 my $cmd_usr_str
     = $cmd;    # used for access checking [ relevant with <sid>.<cmd> ]
-$cmd_usr_str = $data{'session'}{$_m1}{'user'} . $_m2
+$cmd_usr_str = sprintf qw| %s%s |, $data{'session'}{$_m1}{'user'}, $_m2
     if $cmd =~ m|^($re->{sid_str})(\..+)$|
     and $_m1 = ${^CAPTURE}[0]
     and $_m2 = ${^CAPTURE}[1]
     and exists $data{'session'}{$_m1}
-    and $data{'session'}{$_m1}{'user'} =~ $re->{usr};
+    and $data{'session'}{$_m1}{'user'} =~ $re->{'usr'};
 
 ##[ COMMAND REPLY \ MATCH TYPE ]##############################################
 
@@ -326,60 +360,54 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         and defined $data{'session'}{$id}{'route'}{$cmd_id} ) {
 
         my $route = $data{'route'}{ $data{'session'}{$id}{'route'}{$cmd_id} };
-        if ( exists $$route{'target'}{'sid'}
-            and $$route{'target'}{'sid'} == $id ) {
+        if ( exists $route->{'target'}->{'sid'}
+            and $route->{'target'}->{'sid'} == $id ) {
 
             my $s_cmd_id = '';
-            if ( $$route{'source'}{'cmd_id'} > 0 ) {
-                $s_cmd_id = '(' . $$route{'source'}{'cmd_id'} . ')';
+            if ( $route->{'source'}->{'cmd_id'} > 0 ) {
+                $s_cmd_id = sprintf qw| (%d) |, $$route{'source'}{'cmd_id'};
             }
 
-            if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) {
+            if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) { ## GET ## [ LLL ]
 
                 # check if reply handler is set
 
-                if ( defined $$route{'reply'}{'handler'}
-                    and $$route{'reply'}{'handler'} ne '' ) {
-                    if (    defined $code{ $$route{'reply'}{'handler'} }
-                        and defined &{ $code{ $$route{'reply'}{'handler'} } }
-                    ) {
+                if ( defined $route->{'reply'}->{'handler'} ) {
+                    if ( defined $code{ $route->{'reply'}->{'handler'} } ) {
 
-                        # call reply handler
-
-                        &{ $code{ $$route{'reply'}{'handler'} } }(
+                        ##  calling reply handler  ##
+                        $code{ $route->{'reply'}{'handler'} }->(
                             {   'sid'       => $id,
                                 'cmd'       => $cmd,
                                 'call_args' => $call_args,
-                                'params'    => $$route{'reply'}{'params'}
+                                'params'    => $route->{'reply'}{'params'}
                             }
                         );
-
                     } else {
-                        <[base.log]>->(
-                            0,
-                            "[$id] called undefined reply handler ["
-                                . $$route{'reply'}{'handler'} . "]"
+                        <[base.logs]>->(
+                            0,   "[%d] called undefined reply handler [%s]",
+                            $id, $route->{'reply'}{'handler'}
                         );
                     }
+
                 } elsif (
                     defined $data{'session'}{ $$route{'source'}{'sid'} } ) {
                     my $source_sid = $$route{'source'}{'sid'};
                     ## calling reply handler if a filter hook was applied., ##
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
-                            'args' => \$$call_args{'args'},
+                            'args' => \$call_args->{'args'},
                             'data' => $route->{'hook_data'}->{'data'}
                         }
                         )
                         if defined $route->{'hook_data'}
                         and $cmd =~ $route->{'hook_data'}->{'mode'};
 
-                    # route reply
-                    $$call_args{'args'} //= qw| UNDEFINED |;
+                    ##  routing reply packet  ##
+                    $call_args->{'args'} //= qw| UNDEFINED |;
                     $data{'session'}{$source_sid}{'buffer'}{'output'}
-                        .= $s_cmd_id
-                        . $cmd . ' '
-                        . $$call_args{'args'} . "\n";
+                        .= sprintf "%s%s %s\n", $s_cmd_id,
+                        $cmd, $call_args->{'args'};
 
                 } else {    # should never come here [ SID gone. ]
                     <[base.log]>->(
@@ -387,7 +415,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         sprintf(
                             '[%s] unknown session, reply dropped., [ %d B ]',
                             $$route{'source'}{'sid'},
-                            length("$s_cmd_id$cmd $$call_args{args}\n")
+                            length("$s_cmd_id$cmd $call_args->{args}\n")
                         )
                     );
                 }
@@ -398,18 +426,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $src_cmd_id = $$route{'source'}{'cmd_id'};
                     delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
                     delete $data{'route'}
-                        { $data{'session'}{$id}{'route'}{$cmd_id} }
+                        ->{ $data{'session'}{$id}{'route'}{$cmd_id} }
                         if defined $data{'session'}{$id}{'route'}{$cmd_id};
                     delete $data{'session'}{$src_sid}{'route'}
-                        if !keys %{ $data{'session'}{$src_sid}{'route'} };
+                        if not keys $data{'session'}{$src_sid}{'route'}->%*;
                     delete $data{'session'}{$id}{'route'}{$cmd_id};
                     delete $data{'session'}{$id}{'route'}
-                        if !keys %{ $data{'session'}{$id}{'route'} };
+                        if not keys $data{'session'}{$id}{'route'}->%*;
                 } else {
 
                     # insert WAIT limit here
 
-                    $$route{'counter'}{'wait'}++;
+                    $route->{'counter'}{'wait'}++;
                 }
 
                 $valid_answer = 1;
@@ -417,10 +445,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS REPLY : 'SIZE' ]##################################################
 
             } elsif ( $cmd eq qw| SIZE | ) {
-                if ( $$call_args{'args'} =~ m|^\d+$| ) {
-                    my $msg_len = $$call_args{'args'};
+                if ( $call_args->{'args'} =~ m|^0*(\d+?)$| ) {
+                    my $msg_len = 0 + $LAST_PAREN_MATCH;
+                    $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
-                    if ( length( $input->$* ) >= $msg_len ) {
+                    my $buffer_length = length $input->$*;
+                    if ( $buffer_length >= $msg_len ) {
 
                         ## cut out body data ##
 
@@ -429,36 +459,33 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                         ## check if reply handler is set ##
 
-                        if ( defined $$route{'reply'}{'handler'}
-                            and $$route{'reply'}{'handler'} ne '' ) {
-                            if ( defined $code{ $$route{'reply'}{'handler'} }
-                                and defined
-                                &{ $code{ $$route{'reply'}{'handler'} } } ) {
-
-                                ## calling reply handler ##
-
-                                &{ $code{ $$route{'reply'}{'handler'} } }(
+                        if ( defined $route->{'reply'}->{'handler'} ) {
+                            if (defined $code{ $$route{'reply'}{'handler'} } )
+                            {
+                                ##  calling reply handler  ##
+                                $code{ $route->{'reply'}->{'handler'} }->(
                                     {   'sid'       => $id,
                                         'cmd'       => $cmd,
                                         'call_args' => $call_args,
                                         'params'    =>
-                                            $$route{'reply'}{'params'},
+                                            $route->{'reply'}->{'params'},
                                         'data' => $data_reply
                                     }
                                 );
 
                             } else {
-                                <[base.log]>->(
+                                <[base.logs]>->(
                                     0,
-                                    "[$id] called undefined reply handler ['"
-                                        . $$route{'reply'}{'handler'} . "']"
+                                    "[%d] not defined reply handler ['%s']",
+                                    $id,
+                                    $route->{'reply'}->{'handler'}
                                 );
                             }
                         } else {    ## sending SIZE reply to target ##
                             $data{'session'}{ $$route{'source'}{'sid'} }
                                 {'buffer'}{'output'} .= <[base.sprint_t]>->(
-                                qw| DFSFKQA |,       $s_cmd_id,
-                                $$call_args{'args'}, $data_reply
+                                qw| X3QVAWA |,                   $s_cmd_id,
+                                sprintf( qw| %04d |, $msg_len ), $data_reply
                                 );
                         }
 
@@ -466,22 +493,27 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         my $src_sid    = $$route{'source'}{'sid'};
                         my $src_cmd_id = $$route{'source'}{'cmd_id'};
                         delete $data{'session'}{$src_sid}{'route'}
-                            {$src_cmd_id};
+                            ->{$src_cmd_id};
                         delete $data{'route'}
-                            { $data{'session'}{$id}{'route'}{$cmd_id} }
+                            ->{ $data{'session'}{$id}{'route'}{$cmd_id} }
                             if
                             defined $data{'session'}{$id}{'route'}{$cmd_id};
                         delete $data{'session'}{$src_sid}{'route'}
-                            if !keys %{ $data{'session'}{$src_sid}{'route'} };
+                            if !keys $data{'session'}{$src_sid}{'route'}->%*;
                         delete $data{'session'}{$id}{'route'}{$cmd_id};
                         delete $data{'session'}{$id}{'route'}
-                            if !keys %{ $data{'session'}{$id}{'route'} };
+                            if not keys $data{'session'}{$id}{'route'}->%*;
 
                         $valid_answer = 1;
                     } else {    # should never reach this point
-                        <[base.logt]>->(
-                            qw| QQ4HHXI |, $id, $msg_len, $$call_args{'args'}
+                        <[base.logt]>->(    ##  buffer missing data  ##
+                            qw| KGLJ5RY |, $id, $buffer_length, $msg_len
                         );
+                        $input->$* = '';    ##  truncating buffer  ##
+                        $data{'session'}->{ $route->{'source'}->{'sid'} }
+                            ->{'buffer'}->{'output'}
+                            .= <[base.sprint_t]>
+                            ->( qw| ZMXCSIA |, $s_cmd_id );
                     }
                 }
 
@@ -489,13 +521,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
             } elsif ( $cmd eq qw| STRM | ) {
                 ####
-                if ( $$call_args{'args'} =~ m|^open( (\d+))?$| ) {
-                    my $open_size = $2 || 0;
+                if ( $call_args->{'args'} =~ m|^open( (\d+))?$| ) {
+                    my $open_size = ${^CAPTURE}[1] || 0;
 
                     warn "[ STRM REPLY ] open size : $open_size";
 
-                } elsif ( $$call_args{'args'} =~ m|^\d+$| ) {
-                    my $msg_len = $$call_args{'args'};
+                } elsif ( $call_args->{'args'} =~ m|^\d+$| ) {
+                    my $msg_len = $call_args->{'args'};
                     if ( length( $input->$* ) >= $msg_len ) {
 
                         ## cut out body data ##
@@ -505,11 +537,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 }
                 ####
             } else {
-                <[base.log]>->(
-                    1, "[$id] called unimplemented answer type ['$cmd']"
+                <[base.logs]>->(
+                    "[%d] called unimplemented answer type ['%s']",
+                    $id, $cmd
                 );
-                $output->$* .= "[$cmd] answer type not implemented yet.\n";
-                return 0;    ##  command processing was complete  ##
+                $output->$*
+                    .= sprintf "[%s] answer type not implemented yet.\n",
+                    $cmd;
+                return 0;    ## comand complete ##
             }
         }
 
@@ -522,9 +557,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             and <net.silent_ignore>->{$user} == 1
             or exists $data{'session'}{$id}{'silent_ignore'}
             and $data{'session'}{$id}{'silent_ignore'} == 1;
-        <[base.log]>->(
+        <[base.logs]>->(
             $ignore_log_level,
-            "[$id] $cmd-reply to unknown route id, ignored."
+            "[%d] %s-reply to unknown route id [%d], ignored.",
+            $id, $cmd, $cmd_id
         );
 
         if (    $cmd eq qw| SIZE |
@@ -532,30 +568,37 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             and my $ignore_bytes = $call_args->{'args'} ) {
             if ( length( $input->$* ) >= $ignore_bytes ) {
                 substr( $input->$*, 0, $ignore_bytes, '' );
-                <[base.log]>->(
+                <[base.logs]>->(
                     $ignore_log_level,
-                    "[$id] : dropped next $ignore_bytes bytes., [ SIZE body ]"
+                    "[%d] : dropped next %03d byte%s., [ SIZE body ]",
+                    $id,
+                    $ignore_bytes,
+                    <[base.cnt_s]>->($ignore_bytes)
                 );
-                return 0;    ##  command processing was complete  ###
+                return 0;    ## comand complete ###
 
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[$id] : to ignore next $ignore_bytes bytes., [ SIZE ]"
+                    "[%d] : to ignore next %03d byte%s., [ SIZE ]",
+                    $id,
+                    $ignore_bytes,
+                    <[base.cnt_s]>->($ignore_bytes)
                 );
                 $data{'session'}{'ignore_bytes'} -= length( $input->$* );
-                truncate( $input->$*, 0 );
+                $input->$* = '';    ##  truncating buffer to ''  ##
             }
         }
-        return 1;    ## command not complete ###
+        return 1;                   ## command not complete ###
     }
 
 ##[ PROCESS REPLY \ UNKNOWN TYPE ]############################################
 
-} elsif ( $cmd eq uc($cmd) ) {
-    <[base.log]>->( 1, "[$id] reply type '$cmd' not valid" );
+} elsif ( $cmd eq uc $cmd ) {
+    <[base.logs]>->( "[%d] reply type '%s' not valid", $id, $cmd );
     $output->$*
-        .= $_cmd_id . "FALSE protocol error [ reply type not valid ]\n";
+        .= sprintf "%sFALSE protocol error [ reply type not valid ]\n",
+        $cmd_id_str;
 
 ##[ PROCESSING \ LOCAL COMMAND ]##############################################
 
@@ -589,8 +632,6 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 ## calling command handler ##
                 my $reply;
                 {
-                    local $EVAL_ERROR = undef;
-
                     my $caller = <[base.caller]>->(-1)
                         and $reply
                         = eval { $code{ <base.cmd>->{$cmd} }->($call_args) };
@@ -631,8 +672,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 $id, $err_str, $caller
                             );
                             my $params = $call_args->{'args'} // '';
-                            my $msg    = "[$id]  \\\\\\ <$cmd>";
-                            $msg .= " [ '$params' ]" if length($params);
+                            my $msg = sprintf "[%d]  \\\\\\ <%s>", $id, $cmd;
+                            $msg .= sprintf " [ '%s' ]", $params
+                                if length $params;
                             <[base.log]>->( 0, $msg );
                         }
                     }
@@ -640,14 +682,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ LOCAL CMD \ DEFERRED ]####################################################
 
-                if ( ref($reply) eq 'HASH' and $$reply{'mode'} eq 'deferred' )
-                {    ### deferred reply., ###
-                    <[base.logs]>->(
+                if ( ref $reply eq qw| HASH |
+                    and $reply->{'mode'} eq qw| deferred | ) {
+                    <[base.logs]>->(    ### deferred reply., ###
                         2, 'setting up reply for id %d', $reply_id
                     );
 
                     # [LLL] set up reply timeout .,
-                    return 0;    ##  command processing was complete  ##
+                    $event->w
+                        ->start;    ##  restarting input buffer processing  ##
+                    return 0;       ## comand complete ##
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
@@ -661,10 +705,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 ## reply error check ##
 
-                if ( ref($reply) ne qw| HASH | ) {    # <-- catches undef
-                    $reply          = {};
-                    $$reply{'mode'} = qw| false |;
-                    $$reply{'data'} = 'error during command invocation'
+                if ( ref $reply ne qw| HASH | ) {    # <-- catches undef
+                    $reply           = {};
+                    $reply->{'mode'} = qw| false |;
+                    $reply->{'data'} = 'error during command invocation'
                         . ' [ details are logged ]';
                     <[base.logs]>->(
                         0,   "[%d] cmd ['%s'] <-- [ hashref expected ]",
@@ -694,23 +738,25 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL CMD \ CHECKING ANSWER MODE ]########################################
 
                 ## check answer mode ##
-                if ( $$reply{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
-                    $$reply{'data'} =~ s|\n|\\n|go;
+                if ( $reply->{'mode'} =~ m,^(TRUE|FALSE|WAIT)$,io ) {
+                    $reply->{'data'} =~ s|\n|\\n|go;
 
                     $output->$* .= <[base.sprint_t]>->(    #  single line  #
-                        qw| ZTLA6BI |, $_cmd_id, uc( $reply->{'mode'} ),
+                        qw| J4UEBUA |, $cmd_id_str, uc( $reply->{'mode'} ),
                         $reply->{'data'}                   ##  <-- message  ##
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
-                        qw| DFSFKQA |, $_cmd_id, length( $reply->{'data'} ),
+                        qw| X3QVAWA |, $cmd_id_str,
+                        length( $reply->{'data'} ),
                         $reply->{'data'}
                     );
+
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
                     <[base.session.shutdown]>->( $id, $reply->{'data'} );
                 }
-                return 0;    ##  command processing was complete  ##
+                return 0;    ## comand complete ##
 
 ##[ LOCAL COMMAND \ HANDLER NOT DEFINED ######################################
 
@@ -724,12 +770,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
         } else {    ## command does not exist ##
-            <[base.logt]>->( qw| IPWI3HI |, $id, $cmd );
+            <[base.logt]>->( qw| HQBG73I |, $id, $cmd );
         }
 
-        $output->$* .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
+        $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
 
-        return 0;    ##  command processing was complete  ##
+        return 0;    ## comand complete ##
     }
 
 ##[ PARENT BRANCH \ EXTERNAL CORE ]###########################################
@@ -743,14 +789,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         <[base.logs]>->( "outgoing: nexthop: '%s' command: '%s'", $1, $2 );
 
         $output->$* .= "FALSE not implemented yet.,\n";
-        return 0;    ##  command processing was complete  ##
+        return 0;    ## comand complete ##
 
         if ( exists $data{'user'}{$1}{'session'}
             and $data{'user'}{$1}{'mode'} eq qw| link | ) {
 
        #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
-        return 0;    ##  command processing was complete  ##
+        return 0;    ## comand complete ##
     }
 
 ##[ ABSOLUTE PATH ROUTING ]#####################################################
@@ -758,9 +804,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
     ## absolute address notation ##
 
     elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
-    {    # LLL: regex invalid: <only host>
+    {    ##  regex not valid : < only host >  [LLL]
         my $network_name = ${^CAPTURE}[0];
-        my $node_name    = ${^CAPTURE}[0];
+        my $node_name    = ${^CAPTURE}[1];
 
         # ^ not yet implemented [ route discovery feature.., ]
 
@@ -780,7 +826,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
         my @send_sids;
 
-        if ( $target_name =~ $re->{sid} ) {    ## <session_id>.<command> mode
+        if ( $target_name =~ $re->{'sid'} ) {   ## <session_id>.<command> mode
             my $target_sid = $target_name;
             if ( exists $data{'session'}{$target_sid}
                 and $data{'session'}{$target_sid}{'mode'} eq qw| client | ) {
@@ -791,7 +837,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             and ( not defined $target_subname
                 or defined $data{'user'}{$target_name}{'subname'}
                 {$target_subname} )
-            ) {                                ## [ online \ present ]
+            ) {                                 ## [ online \ present ]
             foreach my $target_sid (
                 keys( %{ $data{'user'}{$target_name}{'session'} } ) ) {
                 next if $data{'session'}{$target_sid}{'mode'} ne qw| client |;
@@ -803,7 +849,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     or $data{'session'}{$target_sid}{'subname'} ne
                     $target_subname );
 
-                push( @send_sids, $target_sid );
+                push @send_sids, $target_sid;
             }
 
 ##[ ONDEMAND ZENKI ]##########################################################
@@ -813,42 +859,60 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         {    # ondemand
             my $target_user    = qw| v7 |;
             my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
-            if ( defined $target_command
-                and $target_command =~ m|^([^\.]+)\.[^\.]+$| ) {
-                $target_user = $1;
+            if (defined $target_command    ##  use cmd regex  ##  [ LLL ]
+                and $target_command =~ m|^([^\.]+)\.[^\.]+$|
+            ) {
+                $target_user = ${^CAPTURE}[0];
             } elsif ( defined $target_command ) {
                 undef $target_user;
             }
-
-            # [LLL] ..deal with multi-line commands.., [ command_mode 2 ]
 
             if ( not defined $target_user
                 or exists $data{'user'}{$target_user}{'session'} ) {
                 $target_command //= qw| v7.start_once |;
 
-                # ..,
+                my @cmd_param;
+                if ( $command_mode == 1 ) {   ##  single command line mode  ##
+
+                    @cmd_param = ( 'cmd_args' => $args_orig );
+
+                } elsif ( $command_mode == 2 ) {    ##  multiline cmd mode  ##
+
+                    @cmd_param = (
+                        'multiline' => {
+                            'param' => delete $call_args->{'param'},
+                            'data'  => delete $call_args->{'data'}
+                        }
+                    );
+
+                } else {
+                    <[base.logs]>->(    ## FALSE reply to source .., [LLL] ##
+                        0, '[ondemand zenki] unknown command mode %d',
+                        $command_mode
+                    );
+                }
 
                 push(
-                    @{ <zenki.virtual>->{$v_id}->{'queue'} },
+                    <zenki.virtual>->{$v_id}->{'queue'}->@*,
                     {   'source_id'   => $id,
-                        'cmd_id'      => $_cmd_id,
+                        'src_cmd_id'  => $cmd_id,
                         'cmd_subname' => $target_subname,
                         'cmd_str'     => $command_str,
-                        'cmd_args'    => $args_orig
+                        @cmd_param
                     }
                 );
 
                 if ( not exists <zenki.virtual>->{$v_id}->{'starting'} ) {
-                    <zenki.virtual>->{$v_id}->{'starting'} = 1;
+                    <zenki.virtual>->{$v_id}->{'starting'} = 5;    ## true ##
 
                     my $start_name = <zenki.virtual>->{$v_id}->{'name'};
 
                   # [LLL] subname behaviour needs refinement \ configuration.,
-                    $start_name .= "[$target_subname]"
+                    $start_name .= sprintf qw| [%s] |, $target_subname
                         if defined $target_subname;
 
-                    <[base.log]>->(
-                        1, "ondemand zenka '$start_name' requested ..,"
+                    <[base.logs]>->(
+                        "ondemand zenka '%s' requested ..,", $start_name
                     );
                     <[base.protocol-7.command.send.local]>->(
                         {   'command'   => $target_command,
@@ -861,25 +925,23 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
                     );
                 }
-                return 0;    ##  command processing was complete  ##
-            } else {
-                <[base.logs]>->(
-                    ": target user '%s' not found", $target_user
-                );
+                return 0;    ## comand complete ##
+            } else {    ## needs FALSE reply to source ## [ LLL ]
+                <[base.logs]>->( ": '%s' zenka not found", $target_user );
             }
         }
 
 ##[ 'FALSE' REPLY : CLIENT NOT PRESENT ]######################################
 
         if ( !@send_sids ) {    ## FALSE client not present ##
-            $output->$* .= <[base.sprint_t]>->( qw| FZJASRY |, $_cmd_id );
+            $output->$* .= <[base.sprint_t]>->( qw| IRW7V6A |, $cmd_id_str );
 
             my $llvl = $target_name eq qw| p7-log | ? 2 : 1;
             <[base.logt]>->(    ##  offline  ##
-                $llvl, qw| ADMN6PY |, $id, $target_name, $command_str
+                $llvl, qw| HMNXQRY |, $id, $target_name, $command_str
             );
 
-            return 0;           ##  command processing was complete  ###
+            return 0;           ## comand complete ###
         }
 
 ##[ CHECK INITIALIZED ]#######################################################
@@ -899,9 +961,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             }
 
           # if 'zenka'-mode session and not initialized allowing replies only.
-            $output->$* .= <[base.sprint_t]>->( qw| GBAMFKI |, $_cmd_id );
+            $output->$* .= <[base.sprint_t]>->( qw| TK67HWQ |, $cmd_id_str );
             <[base.logt]>->(    #  session not initialized  #
-                0, qw| J3OAOPQ |, $id, $command_str, $target_name, $target_sid
+                0, qw| AI4ULPQ |, $id, $command_str, $target_name, $target_sid
             );
         }
 
@@ -917,7 +979,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             {   'sid'      => $id,
                 'target'   => $target_name,
                 'command'  => $cmd,
-                'args_ref' => \$$call_args{'args'}
+                'args_ref' => \$call_args->{'args'}
             }
         );
 
@@ -945,10 +1007,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     'target' => { 'sid' => $target_sid }
                 }
             );
+            ## numerical ##
+            my $target_cmd_id = $route->{'target'}->{'cmd_id'};
 
             $route->{'hook_data'} = $cmd_hook_data if defined $cmd_hook_data;
-
-            my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
 ##[ CMD LOGGING ]#############################################################
 
@@ -972,28 +1034,27 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOGGING \ DEBUG MODE ]####################################################
 
             if ( <system.verbosity.console> >= 3
-                and defined $$call_args{'args'}
+                and defined $call_args->{'args'}
                 or <system.verbosity.zenka_buffer> >= 3
-                and defined $$call_args{'args'} ) {
-                ( my $args_str = $$call_args{'args'} ) =~ s|"|\"|g;
+                and defined $call_args->{'args'} ) {
+                ( my $args_str = $call_args->{'args'} ) =~ s|"|\"|g;
                 <[base.logs]>->( 3, "[%d] : args ['%s']", $id, $args_str );
             }
 
-            $target_cmd_id =~ s|^($re->{cmd_id})$|($1)|;
+            my $target_cmdid_str = '';
+            $target_cmdid_str = sprintf qw| (%d) |, $target_cmd_id
+                if $target_cmd_id > 0;
 
 ##[ PROCESS \ SINGLE LINE CMD ]###############################################
 
             if ( $command_mode == 1 ) {    ## single line command mode ##
 
-                my $args = '';
-
-                local $$call_args{'args'} = ''
-                    if not defined $$call_args{'args'};
+                my $cmd_output = sprintf qw| %s%s |, $target_cmdid_str, $cmd;
+                $cmd_output .= sprintf ' %s', $call_args->{'args'}
+                    if defined $call_args->{'args'};
 
                 $data{'session'}{$target_sid}{'buffer'}{'output'}
-                    .= $target_cmd_id
-                    . $cmd . ' '
-                    . $call_args->{'args'} . "\n";
+                    .= sprintf "%s\n", $cmd_output;
 
                 # [LLL] set up timeout handler
 
@@ -1001,31 +1062,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
             } elsif ( $command_mode == 2 ) {    ## multi line command mode ##
 
-                my $header = '';
-
-                ## preparing parameter header ##
-                if ( defined $$call_args{'param'}
-                    and ref( $$call_args{'param'} ) eq qw| HASH | ) {
-                    my ( $key, $val );
-
-                    while ( ( $key, $val )
-                        = each( %{ $$call_args{'param'} } ) ) {
-                        $header .= $key . '=' . $val . "\n";
-                    }
-                }
-
-                if ( exists $$call_args{'data'}
-                    and defined $$call_args{'data'} ) {
-                    $data{'session'}{$target_sid}{'buffer'}{'output'}
-                        .= $target_cmd_id
-                        . $cmd . "+\n"
-                        . $header . "\n"
-                        . $$call_args{'data'} . ".\n";
-                } else {    # no request body present
-                    $data{'session'}{$target_sid}{'buffer'}{'output'}
-                        .= $target_cmd_id . $cmd . "+\n" . $header . ".\n";
-                }
+                $data{'session'}{$target_sid}{'buffer'}{'output'}
+                    .= <[base.format.multiline_command]>->(
+                    $target_cmd_id, $cmd, $call_args
+                    );
             }
+
         }
 
 ##[ PROCESS \ NOTHING SENT ]##################################################
@@ -1034,48 +1076,48 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if ( $targets_denied == @send_sids ) {
 
             ##  no perm. .., ##
-            $output->$* .= <[base.sprint_t]>->( qw| 3KWYQCI |, $_cmd_id );
-            <[base.logt]>->( qw| XY6BQLA |, $id, $user, $target_name, $cmd );
+            $output->$* .= <[base.sprint_t]>->( qw| 3BR4NRI |, $cmd_id_str );
+            <[base.logt]>->( qw| 74PTQ6Q |, $id, $user, $target_name, $cmd );
 
-            return 0;    ##  command processing was complete  ##
+            return 0;    ## comand complete ##
         }
 
         ## at least one target was valid ##
 
-        return 0;        ##  command processing was complete  ##
+        return 0;        ## comand complete ##
 
 ##[ PROCESS \ NOT VALID SYNTAX ]##############################################
 
     } else {    ## command syntax not valid ##
 
-        $output->$* .= <[base.sprint_t]>->( qw| PQKWOXQ |, $_cmd_id );
+        $output->$* .= <[base.sprint_t]>->( qw| YYOPDKA |, $cmd_id_str );
 
-        <[base.logt]>->( qw| HTKSXIY |, $id, $cmd );    # protocol mismatch #
+        <[base.logt]>->( qw| AXLDCOY |, $id, $cmd );    # protocol mismatch #
 
-        return 0;    ##  command processing was complete  ##
+        return 0;                                       ## comand complete ##
     }
 
 ##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
     ## command does not exist ##
-    $output->$* .= <[base.sprint_t]>->( qw| GLPLXJQ |, $_cmd_id );
-    <[base.logt]>->( qw| OZZAS3I |, $id, $user, $cmd );
+    $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+    <[base.logt]>->( qw| V4DWTWA |, $id, $user, $cmd );
 
 } else {    ## insufficient access permissions ##
 
-    $output->$* .= <[base.sprint_t]>->( qw| 2QWSHTY |, $_cmd_id, $cmd );
+    $output->$* .= <[base.sprint_t]>->( qw| AUJWOPY |, $cmd_id_str, $cmd );
 
-    <[base.logt]>->( 0, qw| CQL5VPA |, $id, $user, $cmd ); ##  no perm. .., ##
+    <[base.logt]>->( 0, qw| VSY5TBA |, $id, $user, $cmd ); ##  no perm. .., ##
 
-    return 0;    ##  command processing was complete  ##
+    return 0;    ## comand complete ##
 }
 
 ##[ RETURN : PROCESSING COMPLETE ]############################################
 
-return 0;        ##  command processing was complete  ##
+return 0;        ## comand complete ##
 
-#,,,.,..,,,..,.,,,,..,,.,,,,.,,,,,,.,,,..,,..,..,,...,...,,.,,..,,,,,,..,,.,.,
-#SYIZFCOUVVFCMSZB7ZXJJ34JD4PFNAXJX6RARYTVAY6L5EOUB5YZXROHU3KFUWMFD66R4IQRRKSJC
-#\\\|G4F75RNIRPUHM5I5ZPIURE2ZFNXE5U5QAWHBP2OXDJFXSO4NQS6 \ / AMOS7 \ YOURUM ::
-#\[7]6FK3DEXBXLLL2OGE6THG7HU3AFLO4VGXY2F6ZVH2OPIVBCRGW2DQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,...,.,,,,,.,,.,,.,.,.,.,.,,,..,,...,...,...,,.,,...,,..,.,.,
+#HXPYKWOQQOQHEN2D6BAAN6FTQNFVSARKSLRDLBCDP4WYJCZIRSGJUZY7SG2L6U2T5NQZJONC4DEAY
+#\\\|RJCKPZJIVHA5RPYTTXOU7MOOGTG62QOBWSQCXUZR5JYOE7HZGHI \ / AMOS7 \ YOURUM ::
+#\[7]JQLZ2JCXSAMQSXP4GHBFHGR7HC5MUJBYZAQFIOG47G5D3SAHMGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

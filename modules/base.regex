@@ -10,6 +10,7 @@ my $sn_str_re  = qr|[$anum\-\+\.:_]{1,17}|;
 my $cmd_re     = qr|[a-z][$anum\-_]{1,22}|;
 my $rep_id_re  = qr|(\(\d{1,9}\))|;
 my $cmd_str_re = qr|[$anum_lc][$anum_lc\-_\.]{0,}|;
+my $cmd_rp_str = qr|[0-9a-zA-Z\-_\[\]\.]{1,}|;
 
 # my $cmd_path_re = qr{(($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?};
 # my $reply_re    = qr|[A-Z]{3,4}( .+)?|;    # TRUE, FALSE, SIZE, STRM, ..,
@@ -26,18 +27,18 @@ return {
     'system-usr' => qr|^[a-zA-Z][$anum-\_]{0,31}$|, # unix system username
     'subname'    => $sn_str_re,                     # '[<subname>]'-string
     'usr_subn'   => qr|^$sn_str_re\[$sn_str_re\]$|, # user + subnme [exact]
-    'usr_subn_str' => qr|$sn_str_re\[$sn_str_re\]|, # user + subbane [string]
+    'usr_subn_str' => qr|$sn_str_re\[$sn_str_re\]|,  # user + subbane [string]
     'cmd'     => qr|^[a-z][$anum\-_]{1,22}$|,  # nailara command string syntax
     'cmd_str' => $cmd_re,                      # nailara command string syntax
-    'cmdp'  => qr|[a-z][0-9a-zA-Z\-_\.]{1,}|,  # cmd path [cmd including '.'s]
-    'cmdrp' => qr|[0-9a-zA-Z\-_\[\]\.]{1,}|,   # cmd path including [UC] reply
+    'cmdp'    => qr|[0-9a-z]$cmd_rp_str|,      # cmd path [ cmd incl. '.' ]
+    'cmdrp'   => $cmd_rp_str,                  # cmd path including [UC] reply
 
 ## 'cmdp'    => $cmd_path_re,                  # cmd path [cmd including '.'s]
 ## 'cmdrp'   => qr{($cmd_path_re|$reply_re)}o, # cmd path including [UC] reply
 };
 
-#,,,,,,.,,,..,,,,,..,,,,.,.,,,,,,,,,.,.,,,,.,,..,,...,...,...,.,,,...,,,,,,,,,
-#OL5MCW5MEF4D4J7IWYHEYTSPMQTGPJULYOZISITGGPGWENZAHKEXKHOOUHAOHRMA7PJLIWXQJ2IGK
-#\\\|ISPLIUMS5MNFXGUDF344C32MAYZXPLA7D3QFZDGP7BDFO3HVT73 \ / AMOS7 \ YOURUM ::
-#\[7]4BX3PHBIFTROISFUZUWM6RJFANBJOMVDWDW7DAPGFYAFZENQKSAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,.,,,.,.,.,,,..,,.,.,..,,,..,..,,...,...,,..,..,,,,,,,,.,,..,
+#LKP4K6IHE3V732YNCNF3D5DZT2ETZC3PPETS7AK7AXJHP72BYIC3H3NOMBEZGJEA2WNSJLMBDPCNE
+#\\\|VIRQJ62TRQVLZFNWWHKOWQKLOBNI22UFAOGGB2IDZ6G5NMPP6NV \ / AMOS7 \ YOURUM ::
+#\[7]LAGNZZEHKFWS5UQTLANK7RTGK7OR3M3TC4TQITVCVYM53YVFDEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

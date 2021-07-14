@@ -4,11 +4,11 @@
 # param = <rnd_str>
 # descr = verify root instance id through log feedback
 
-my $random_string = $$call{'args'} // '';
+my $random_string = $call->{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'no random string supplied' }
-    if !length($random_string);
+    if not length $random_string;
 
-<[base.log]>->( 1, "instance verification [KEY:$random_string]" );
+<[base.logs]>->( 'instance verification [KEY:%s]', $random_string );
 
 <[base.disable_command]>->('verify-instance');    # used only once by v7 zenka
 
@@ -22,8 +22,8 @@ map { <[event.add_timer]>->( { 'after' => 0, 'handler' => $ARG } ) }
 
 return { 'mode' => qw| true |, 'data' => 'verification code logged' };
 
-#,,,,,.,.,..,,.,.,.,,,.,,,...,,,.,,..,,.,,,,,,..,,...,...,..,,,..,,,.,,..,.,.,
-#5ZQNPTEKGU3YKLMR6MXKANU4NGTKHTGKBID2UMMLPGYIHZN7HMVSKHCMEQS4WU5LU4I7XCPGTOEKO
-#\\\|ISOUALF2XYK4YGWAT2AC5EQDXIKBTMYYDLSOZNCNWS6MEDQVEPN \ / AMOS7 \ YOURUM ::
-#\[7]RQSQL7YEOGLVLH4DUJTINDYVTL6GTK3ETHB4EYTZ47NVR3YDOEBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,,,...,.,,,.,.,...,,.,,,,,,,,.,..,,...,..,,...,.,.,,,.,.,,,,..,
+#6TOI7QYBKLFLDE76YLWCSYCHSSJS3RS6O23JZGHCRJPXM4DEM6KOR5RAVLDJHWW6DGXONLLANBPMS
+#\\\|DGTV4NJGV3WIEBZ4QUEB4CSNH6BK5NIKJEXO3F2U4HD6HF7OXBD \ / AMOS7 \ YOURUM ::
+#\[7]Q3MPL7HZRUNLOSBV274I2TQMTHN4XJ5UM2SQFUGSENT6UMS2BIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
