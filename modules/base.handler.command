@@ -609,8 +609,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
     if ( $cmd =~ $re->{'cmd'} ) {
 
         if ( defined $data{'base'}{'cmd'}{$cmd} ) {
-            if (    defined $code{ $data{'base'}{'cmd'}{$cmd} }
-                and defined &{ $code{ $data{'base'}{'cmd'}{$cmd} } } ) {
+            if ( defined $code{ $data{'base'}{'cmd'}{$cmd} } ) {
 
 ##[ LOCAL COMMAND \ PREPARING DEFERRED ]######################################
 
@@ -643,6 +642,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         if not length $EVAL_ERROR
                         and ( not defined $reply
                         or ref($reply) ne qw| HASH | );
+
+                    $EVAL_ERROR = "expected 'mode' and 'data' reply keys"
+                        if not length $EVAL_ERROR
+                        and ( not defined $reply->{'mode'}
+                        or $reply->{'mode'} ne qw| deferred |
+                        and not exists $reply->{'data'} );
 
                     if ($EVAL_ERROR) {
 
@@ -677,21 +682,25 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 if length $params;
                             <[base.log]>->( 0, $msg );
                         }
+
+                        $reply->{'mode'} = qw| false |;
+                        $reply->{'data'} = 'error during command invocation'
+                            . ' [ details are logged ]';
                     }
                 }
 
 ##[ LOCAL CMD \ DEFERRED ]####################################################
 
-                if ( ref $reply eq qw| HASH |
-                    and $reply->{'mode'} eq qw| deferred | ) {
+                if ( $reply->{'mode'} eq qw| deferred | ) {
                     <[base.logs]>->(    ### deferred reply., ###
                         2, 'setting up reply for id %d', $reply_id
                     );
 
                     # [LLL] set up reply timeout .,
-                    $event->w
-                        ->start;    ##  restarting input buffer processing  ##
-                    return 0;       ## comand complete ##
+
+                    ##  restarting input buffer processing  ##
+                    $event->w->start;
+                    return 0;    ## comand complete ##
                 }
                 delete <base.cmd_reply>->{$reply_id};
 
@@ -1116,8 +1125,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,..,,.,,,,.,,.,,...,.,,,,,.,,.,,.,.,.,.,.,,,..,,...,...,...,,.,,...,,..,.,.,
-#HXPYKWOQQOQHEN2D6BAAN6FTQNFVSARKSLRDLBCDP4WYJCZIRSGJUZY7SG2L6U2T5NQZJONC4DEAY
-#\\\|RJCKPZJIVHA5RPYTTXOU7MOOGTG62QOBWSQCXUZR5JYOE7HZGHI \ / AMOS7 \ YOURUM ::
-#\[7]JQLZ2JCXSAMQSXP4GHBFHGR7HC5MUJBYZAQFIOG47G5D3SAHMGDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,.,.,.,,,.,,,,,,,.,,,,.,,..,,..,,...,..,,,,.,..,,,,,,,,.,,..,
+#APCURSW4GTPTIYPDZKZQGL6FRSIEQUD4HASZMUMT6T2RRBNSSK27SAUFF3SI5ZQYUNZGS2QEEGTYU
+#\\\|CXIDOY2TH5F2HS4PJX5SMGD4NCCNWOVZREVTUGFGNM4OFRPPXWV \ / AMOS7 \ YOURUM ::
+#\[7]7UUYOTNESM2JGFV3MSXEV3GWYRIXLIXBNYK7TB6F6WCZH4JHDIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

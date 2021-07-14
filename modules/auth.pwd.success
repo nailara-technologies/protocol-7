@@ -2,18 +2,47 @@
 
 # name  = auth.pwd.success
 
-return 0 if $_[0] eq "" or $_[1] eq "";
+my $uname_str    = shift;
+my $password_str = shift;
 
-my $key_ref = <[base.resolve_key]>->( 'auth.setup.usr.' . $_[0] );
-if ( ref($key_ref) eq 'SCALAR'
-    and ${$key_ref} eq <[chk-sum.sha.1]>->( $_[1] ) ) {
-    return 1;
-} else {
-    return 0;
+if ( not defined $uname_str ) {
+    warn 'user param not defined <{C1}>';
+    return undef;
+} elsif ( not defined $password_str ) {
+    warn 'passwd string param not defined <{C1}>';
+    return undef;
+} elsif ( not <[base.is_defined_recursive]>->(qw| auth.setup.usr |) ) {
+    warn 'no user set-up found';
+    return undef;
 }
 
-#,,,.,,.,,,,.,,,.,,,,,,.,,,,.,,..,.,,,.,.,...,..,,...,...,.,.,..,,,,,,,..,.,,,
-#5OTOHN4KI4D6VNADFMTP4UXE6VOWCDIZNNGSI2F5TNH273LV6U23QV4CBJXCJRI6XAJNWOQU23UPS
-#\\\|7QH3VA7MEX2OFNC2WOXB6X5J6TAU2FOLWG6UVYXVZFY37MWOGXX \ / AMOS7 \ YOURUM ::
-#\[7]AVGZB4JFKLHDTNCOWZ4QL54FIOQXT6PRRTYBPNUQC3TNSJ542QDY 7  DATA SIGNATURE ::
+return 0 if not length $uname_str;    ## not authorized \ username required ##
+
+my $key_href
+    = <[base.resolve_key]>->( sprintf qw| auth.setup.usr.%s |, $uname_str );
+
+##  no such user entry in set-up \ no access  ##
+return 0 if not defined $key_href;
+
+if ( length $key_href->{'r-type'} or not defined $key_href->{'r-data'} ) {
+    <[base.s_warn]>->(
+        'error in user set-up : entry for %s not valid', $uname_str
+    );
+    return 0    ##  entry type not valid \ access denied  ##
+}
+
+if ( $key_href->{'r-data'} eq uc <[chk-sum.sha.1]>->($password_str) ) {
+
+    ##[  authorized .., ]##
+    ##
+    return 5;    ## true ##
+
+} else {
+    return 0;    ##  false  ##
+}
+
+#,,,.,...,.,.,,.,,,,.,,,.,.,.,,..,.,,,,.,,..,,..,,...,...,.,.,,.,,..,,.,.,,,.,
+#3YTJ5P27ED3XSLK3TC6U5GM2R5UAAHODF6H6FCO2O4P5SBQFEJY7TRC5YIGF4WVE2ORO7YQYCLVAG
+#\\\|SSLNNBENFNOCCJRQKP6Z4CJOPY7RWR3ZG57VXARJN2J3UYQVFQB \ / AMOS7 \ YOURUM ::
+#\[7]TDR4XAEEICMHGSMEGAV4FITDT5VW77BXZBUMIIZBCTVT5EFLM4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

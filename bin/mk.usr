@@ -1,79 +1,113 @@
 #!/usr/bin/perl
 
-use FindBin;
-use Crypt::Digest::SHA1 qw( sha1_hex );    ## <-- to be replaced..,
-use Term::ReadPassword;
+use v5.24;
+use strict;
+use English;
+use warnings;
 
-$aname = $ARGV[0] // 'cube';
+use FindBin;
+use Sys::Hostname;
+use Term::ReadPassword;
+use Crypt::Digest::SHA1 qw( sha1_hex );    ## <-- to be replaced.., [ LLL ]
+
+my %DATA;
+my $user;
+my $pass;
+my $re_pass;
+my $node;
+my $zenka = shift // qw| cube |;
+if ( $zenka =~ s|^([^\.]+)\.|| ) {
+    $node = $LAST_PAREN_MATCH;
+} else {
+    $node = hostname;
+}
 
 $DATA{'conf'}{'root'} = $FindBin::Bin;
 $DATA{'conf'}{'root'} =~ s|/bin$||;
 $DATA{'conf'}{'file'}
-    = $DATA{'conf'}{'root'} . "/configuration/zenki/$aname/auth.users";
+    = $DATA{'conf'}{'root'} . "/configuration/zenki/$zenka/auth.users";
 
-print "\n ::[ nailara.cube user generator ]\n ::\n";
+printf "\n ::[ %s.%s user generator ]\n ::\n", $node, $zenka;
 
 print " :: enter username :. ";
-chop( $user = <STDIN> );
-$user =~ s/\t|\s//g;
-while ( $pass ne $re_pass or $pass eq "" ) {
-    $pass    = sha1_hex( read_password(" :: enter password :. ") );
-    $re_pass = sha1_hex( read_password(" :: once again...  :. ") );
+chomp( $user = <STDIN> );
+$user =~ s,\t|\s,,g;
+while (not length( $pass // '' )
+    or not length( $re_pass // '' )
+    or $pass ne $re_pass ) {
+    $pass    = uc sha1_hex( read_password(" :: enter password :. ") );
+    $re_pass = uc sha1_hex( read_password(" :: once again..,  :. ") );
     if ( $pass ne $re_pass ) {
         print " ::\n :::[ passwords do not match ]\n\n";
     }
 }
 
-if ( $pass eq "da39a3ee5e6b4b0d3255bfef95601890afd80709" ) {
-    die " ::\n ::. ... aborted. (empty password)\n\n";
+if ( $pass eq qw| DA39A3EE5E6B4B0D3255BFEF95601890AFD80709 | ) {
+    die " ::\n ::. .., aborted. [ empty password ]\n\n";
 }
 
-$new_file = 0;
+my $new_file = 0;
 
 if ( !-f $DATA{'conf'}{'file'} ) {
-    $new_file = 1;
+    $new_file = 5;    ## true ##
     open( NEW, ">$DATA{'conf'}{'file'}" )
         or die " ::\n :::[ cannot create user config file ]\n\n";
     print NEW "\n  .: nailara user config :.\n\n";
     close(NEW);
 }
 
-$user_exists = 0;
-
+my @user_config;
+my $user_exists = 0;
 open( CONF, $DATA{'conf'}{'file'} )
     or die " ::\n :::[ cannot open user config file ]\n\n";
 foreach my $line (<CONF>) {
-    if ( $line =~ /^auth.setup.usr.([^=]+)=([^=]+)$/ ) {
-        my $user = $1;
-        $user =~ s/\s+|\t+//g;
-        my $pwd = $2;
-        $pwd =~ s/\s+|\t+//g;
+    if ( $line =~ m|^auth.setup.usr.(\S+)[ \t]*=[ \t]*(\S+)$| ) {
 
-        if ( $user eq $user and $user_exists == 0 ) {
-            $user_exists = 1;
-            push( @user_config, "auth.setup.usr.$user\t = $pass\n" );
-        } elsif ( $user ne $user ) {
-            push( @user_config, $line );
+        my $found_user = ${^CAPTURE}[0];
+        $user =~ s,\s+|\t+,,g;
+        my $found_pwd = ${^CAPTURE}[1];
+        $found_pwd =~ s,\s+|\t+,,g;
+
+        if (    not $user_exists
+            and defined $found_user
+            and $found_user eq $user ) {
+            $user_exists = 5;    ## true ##
+            push( @user_config,
+                sprintf( "auth.setup.usr.%s  =  %s\n", $user, $pass ) );
+        } else {
+            push( @user_config, $line );   ##  keep unchanged [ not ours ]  ##
         }
     } else {
-        push( @user_config, $line );
+        push( @user_config, $line );       ##  keep unchanged [ not ours ]  ##
     }
 }
 close(CONF);
 
-if ( !$user_exists ) {
-    push( @user_config, "auth.setup.usr.$user\t = $pass\n" );
+my @WRITE;
+my $found_signature = 0;    ## avoiding apend after signature footer ##
+
+if ( not $user_exists ) {
+    my $next_line;
+    while ( $next_line = shift @user_config ) {
+        if ( $next_line =~ m|^#[\.\,]{77}$| ) { $found_signature = 5; last }
+        push @WRITE, $next_line;
+    }
+    ##  appending new entry  ##
+    push @WRITE, sprintf( "auth.setup.usr.%s  =  %s\n", $user, $pass );
+    push @WRITE, "\n", $next_line, @user_config;
+} else {
+    @WRITE = @user_config;  ##  user entry is already present [ replaced ]  ##
 }
 
-open( CONF, ">$DATA{conf}{file}" )
+open( CONF, qw| > |, $DATA{'conf'}{'file'} )
     or die " ::\n :::[ cannot write user config file ]\n\n";
-print CONF @user_config;
+print CONF @WRITE;
 close(CONF);
 
 print " ::\n :\n\n";
 
-#,,.,,,,.,...,.,,,.,,,,,.,...,.,,,,,.,,..,..,,..,,...,...,,..,,,.,,..,,.,,.,.,
-#UOKAH2BZXMOIOYL34JIDEGPA7PREHWLMTYMCT23PJFBQ5EZO757HMB5IACHJXTWFSXABEOG2GSZ3S
-#\\\|5AR243COWFR5SX5C4PT7DTRUMIGAAYTIJG6PPCKYY4PZMOESEYQ \ / AMOS7 \ YOURUM ::
-#\[7]BSVSQF2FRHNT7ANKUUYWLRNMY6LUVYPG4WQMHUH6X5OCBBEYSMDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,,..,,..,.,,,...,.,.,.,,,.,,,..,,...,...,.,.,...,.,.,,,,,...,
+#FPJYC72OMA7XRIPUOTKB6BDKJSHOEAYDTLOA7RR55277BRYVXFEHFQC3M2EV7I36YJTD2GGO3X66Q
+#\\\|MWFRKXNMO4D2FROMOP6BLY27APT5MJOAUXG3A5GVT32ISWKJXXG \ / AMOS7 \ YOURUM ::
+#\[7]W5MVB6CNF4AC63CKWMZSUAEMOKO2M33WYAF6MEF4SW7FBQJ35OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,8 +7,8 @@
 <v7.zenka.notify_online> //= {};
 
 my $zenka_subname;
-my $query_param = $$call{'args'};
-my $reply_id    = $$call{'reply_id'};
+my $query_param = $call->{'args'};
+my $reply_id    = $call->{'reply_id'};
 
 return {
     'mode' => qw| false |,
@@ -87,18 +87,18 @@ foreach my $id (@instances) {    # zenka name [ +subname ]
             'data' => "external program '$query_copy'"
                 . " already running., [PID=$prog_pid]"
             }
-            if <v7.zenka.instance>->{$id}->{'status'} eq 'extbin';
+            if <v7.zenka.instance>->{$id}->{'status'} eq qw| extbin |;
     }
 }
 
 <[base.logs]>->( 2, "startup notification request ['%s']", $query_copy );
 
-push( @{ <v7.zenka.notify_online>->{$query_copy} }, $reply_id );
+push <v7.zenka.notify_online>->{$query_copy}->@*, $reply_id;
 
 return { 'mode' => qw| deferred | }
 
-#,,.,,,..,...,.,.,.,,,.,,,.,.,,,,,,.,,,,,,,,,,..,,...,.,.,,..,..,,,,,,.,.,.,,,
-#CYJCVS45XKF4BRGBOMQNRAXOXAEP6LDCXQGO66DMVY6ACKS4QPNXN3J5G76ZFBI36UDKNLGOBKBJA
-#\\\|CMWIPNSCFGTGVLFRHWXVQCPFSFTN2WKRALI6TD3IKJPZ5MPRLF5 \ / AMOS7 \ YOURUM ::
-#\[7]4P2B6BG6HCDBCJJNEJPURRRNUH66SW5ZXRZLDHUMBKPPZTAJAECQ 7  DATA SIGNATURE ::
+#,,,.,...,...,..,,,..,...,...,..,,,.,,,..,.,,,..,,...,..,,,.,,,,.,...,,..,,..,
+#QEG2E4WHQOREGUOABXW7TLPR7BLLP7XWR3YAYUPMSRG4JM464O2BNCIDTW4DWBGMTYZ6VUW52TWQI
+#\\\|WGPWL35JIXEWCVLFR2BZA4UERNCLOVIIXBOHZODXBY4X4S5HAHF \ / AMOS7 \ YOURUM ::
+#\[7]TIQA6VP5W2Z6K5M5BEUDYVHKI66SHBF47Z3ILFMRFV35F6LNHWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

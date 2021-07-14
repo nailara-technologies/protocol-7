@@ -1,6 +1,7 @@
 ## >:] ##
 
 # name  = base.del_key
+# descr = delete a key from %data hash [ or supplied hash ref ]
 
 my $params = shift // {};
 
@@ -14,32 +15,43 @@ if ( ref $params eq qw| HASH | ) {    ##  parameter hashref syntax  ##
     $d_key_string = $params->{'del_key'}  if defined $params->{'del_key'};
     $silent       = $params->{'silent'}   if defined $params->{'silent'};
 
-} elsif ( length $params ) {    ## %data key as string syntax ##
+} elsif ( length $params ) {    ##  key as string [ parameter syntax ]  ##
     $d_key_string = $params;
+    $data_ref     = shift if @ARG;    ##  hashref supplied  ##
 }
 
-return warn 'no key specified <{C1}>'
-    if not defined $d_key_string or not length $d_key_string;
-
-my @dtree = <[base.parser.data_hkey_tree]>->($d_key_string);
-
-return if not @dtree;           ## syntax not valid ##
-my $last_key = pop @dtree;
-
-my $parent_href = <[base.resolve_key_parent]>->($d_key_string);
-
-if ( defined $parent_href and ref $parent_href eq qw| HASH | ) {
-
-    <[base.logs]>->( ": del_key : deleting key '%s'", $d_key_string );
-    return delete $parent_href->{$last_key};
-
-} else {
-    warn sprintf( 'no such key [%s] <{C1}>', $d_key_string );
-    return 0;
+if ( ref $data_ref ne qw| HASH | ) {
+    warn 'not a hash reference [param] <{C1}>';
+    return undef;
 }
 
-#,,,,,,..,..,,,,,,...,,,.,,.,,.,,,..,,...,..,,..,,...,...,...,..,,.,.,,,.,..,,
-#RRJ6HKPPAGWRPFAHV4ID2ICU6EDFZNGM57PXIZGOVXISOYWKRTW3JLO3PLWD2GSDHJ7XOUCLRPM3K
-#\\\|3WCW4GL5A5WQCOXOPC35G6UIR3557ZYO6VCHYQADUSL7P3YLWKZ \ / AMOS7 \ YOURUM ::
-#\[7]MUJQ5YI5VC3APFDCNFDADDC2JVDF6LJXRTUKE2QVR6I3Z5356ICA 7  DATA SIGNATURE ::
+if ( not defined $d_key_string or not length $d_key_string ) {
+    return warn 'no key specified <{C1}>';
+    return undef;
+} elsif ( not <[base.validate.data_key_syntax]>->($d_key_string) ) {
+    <[base.s_warn]>->(
+        "%%data key [%s] syntax not valid <{C1}>",
+        $d_key_string
+    );
+    return undef;
+}
+
+my $key_href = <[base.resolve_key]>->( $d_key_string, $data_ref );
+
+if ( not defined $key_href ) {
+    <[base.s_warn]>->( "hash key not found ['%s'] <{C1}>", $d_key_string );
+    return undef;
+}
+
+my $parent_href = $key_href->{'key-href'};
+my $last_key    = $key_href->{'last-key'};
+
+<[base.logs]>->( ": del_key : deleting key '%s'", $d_key_string );
+
+return delete $parent_href->{$last_key};    ##  returning deleted  ##
+
+#,,.,,,,.,.,.,,,,,,,,,...,,,.,..,,,,,,,..,..,,..,,...,...,,..,.,,,...,.,.,,,,,
+#6MNXSOBMGIO5IFFTZCXY45TF5F7JD5FFBZQATOC3DYKMKPYHAKDDRZSOCB2TVOOL4ABIZ7TVWGYGW
+#\\\|LC24SDUBMXCKUWSXE2O6Z2LJVE33J2OKUU3THZIFRCHNTY6IQMF \ / AMOS7 \ YOURUM ::
+#\[7]3WJQLER3LFBHYBRL7X552H2XW2UWESQ2Y4KD7VDS6YEZRNTG72DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
