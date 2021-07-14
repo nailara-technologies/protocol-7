@@ -14,18 +14,29 @@ if ( length $data_keyname
     return undef;
 }
 
-my $key_ref;
-if    ( not length $data_keyname ) { $key_ref = $href }
-elsif ( not defined( $key_ref = <[base.resolve_key]>->($data_keyname) ) ) {
+my $key_href;
+
+if    ( not length $data_keyname ) { $key_href = $href }
+elsif ( not defined( $key_href = <[base.resolve_key]>->($data_keyname) ) ) {
     <[base.s_warn]>
         ->( "key '%s' does not \\ no longer exist", $data_keyname );
     return undef;
 }
 
-return <[base.parser.harmonized_reference]>->( $key_ref );
+if ( not length $key_href->{'r-type'} ) {    ##  SCALAR reference [ data ]  ##
+    my $parent_href = $key_href->{'key-href'};
+    my $entry_key   = $key_href->{'last-key'};
+    my $data_s_ref  = \$parent_href->{$entry_key};
 
-#,,,,,.,,,,,.,,..,,..,,..,..,,,,.,..,,.,.,,,.,..,,...,...,,,.,..,,,.,,...,,..,
-#IA5BQX6MJG2BHFSDU4GZJPCNY2JDA5ZPE5QSJ3SSX5HKWDRSLUUK6TGD22FQ2E55ZXBWYZGI2GG3M
-#\\\|Y5CYKB4QSEWQLAMHKI2ZUJEOMAVTVWBX3SDXSUP4RD3ZBZ7X5NC \ / AMOS7 \ YOURUM ::
-#\[7]QJERFDS2SKNDONQH6TLJFHEPF5THSALDBVQCA3R4BV6BNKYTUEDI 7  DATA SIGNATURE ::
+    ##  using scalar ref  ##
+    return <[base.parser.harmonized_reference]>->($data_s_ref);
+
+} else {    ##  is a reference itself  ##
+    return <[base.parser.harmonized_reference]>->( $key_href->{'r-data'} );
+}
+
+#,,,,,.,,,..,,.,,,...,...,..,,,,.,..,,...,...,..,,...,...,...,,,.,,,,,,.,,...,
+#XDETVAWIIY4HTXF5HZIV5PY55YIZQ3FF7PAXJHGRRD7XKQNFTOCJJAC2VKIDX2GUSXKNLFQG5SYT6
+#\\\|SJUMXZZFHR254JA24PNCBKNT3STNTMVBKSVQBWXLWWD4WHLGXEG \ / AMOS7 \ YOURUM ::
+#\[7]PGKXTX3UPDL5AECUM7TR674SH3LVXX32UJANKRYFNTSKYGWL6GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

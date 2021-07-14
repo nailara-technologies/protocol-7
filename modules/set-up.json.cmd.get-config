@@ -6,23 +6,23 @@
 
 my $json_data;
 my $data_copy     = {};
-my $config_type   = $$call{'args'} || 'set-up';
 my $zenka_name    = <system.zenka.name>;
-my $rules_subname = "$zenka_name.set-up.export_rules";
+my $config_type   = $call->{'args'} // qw| set-up |;
+my $rules_subname = sprintf qw| %s.set-up.export_rules |, $zenka_name;
 return {
     'mode' => qw| false |,
     'data' => "no export rules defined for zenka '$zenka_name'"
     }
-    if not exists $code{$rules_subname};
+    if not defined $code{$rules_subname};
 my $export_rules = $code{$rules_subname}->();
 
 return {
     'mode' => qw| false |,
     'data' => "config type '$config_type' not defined in export rules"
     }
-    if not exists $export_rules->{'keys'}->{$config_type};
+    if not defined $export_rules->{'keys'}->{$config_type};
 
-my @export_keys = @{ $export_rules->{'keys'}->{$config_type}->{'export'} };
+my @export_keys = $export_rules->{'keys'}->{$config_type}->{'export'}->@*;
 
 return {
     'mode' => qw| false |,
@@ -31,51 +31,54 @@ return {
     if !@export_keys;
 
 my @exclude_list = ();
-@exclude_list = @{ $export_rules->{'keys'}->{$config_type}->{'exclude'} }
-    if exists $export_rules->{'keys'}->{$config_type}->{'exclude'};
+@exclude_list = $export_rules->{'keys'}->{$config_type}->{'exclude'}->@*
+    if defined $export_rules->{'keys'}->{$config_type}->{'exclude'};
 
 foreach my $exp_key (@export_keys) {
     my $parent_ref = $data_copy;
-    my @rest_keys  = split /\./, $exp_key;
+    my @rest_keys  = split '\.', $exp_key;
     while ( my $k = shift @rest_keys ) {
         if (@rest_keys) {
             $parent_ref->{$k} //= {};
             $parent_ref = $parent_ref->{$k};
         } else {
             my $exp_resolved = <[base.resolve_key]>->($exp_key);
-            $parent_ref->{$k} = ${ clone($exp_resolved) }
-                if defined $exp_resolved;
+            if ( defined $exp_resolved and length $exp_resolved->{'r-type'} )
+            {
+                $parent_ref->{$k} = clone( $exp_resolved->{'r-data'} );
+            }
         }
     }
 }
 
 foreach my $exclude_key (@exclude_list) {
-    if ( $exclude_key !~ s/^\*\.// ) {
+    if ( index( $exclude_key, qw| *. |, 0 ) == -1 ) {
         <[base.del_key]>
             ->( { 'data_ref' => $data_copy, 'del_key' => $exclude_key } );
+
     } else {
         map {
             <[base.del_key]>
                 ->( { 'data_ref' => $data_copy, 'del_key' => $ARG } )
-                if $ARG =~ /(?<!\\)\.$exclude_key$/
-        } keys %{ flatten($data_copy) };
+                if $ARG =~ m|(?<!\\)\.$exclude_key$|
+
+        } keys flatten($data_copy)->%*;
     }
 }
 
+my $err_msg = '';
 $EVAL_ERROR = undef;
-my $err_msg;
-eval '$json_data = $data{json}{parser}->encode($data_copy)';
-( $err_msg = $EVAL_ERROR ) =~ s|at \(.+\n$|| if defined $EVAL_ERROR;
-return { 'mode' => qw| false |, 'data' => $err_msg }
-    if defined $err_msg and length($err_msg);
 
-return {
-    'mode' => qw| size |,
-    'data' => $json_data
-};
+$json_data = eval { <json.parser>->encode($data_copy) };
 
-#,,..,,.,,.,,,...,...,,,,,.,,,..,,,,,,,..,,..,..,,...,...,.,,,...,,,.,.,,,,,.,
-#ZQOHET6ZFIBW7QKYABLELPDHCGDAPVMVJ6TMZMETQZ5T4WPLOUWU6ENPF5VAS7HUPIROQVVG5IBJU
-#\\\|IPKWVC2POEGVV4BJ5CUTICIZKEKG3TH6I6CJ57HTV7FC5FQPNNP \ / AMOS7 \ YOURUM ::
-#\[7]SKJR7QJWL7T6NA5RQG6RWBJGF4HXVROJOEL2LNM3BRNRK7VJ5ECY 7  DATA SIGNATURE ::
+$err_msg = <[base.format_error]>->( $EVAL_ERROR, -1 ) if length $EVAL_ERROR;
+
+return { 'mode' => qw| false |, 'data' => $err_msg } if length $err_msg;
+
+return { 'mode' => qw| size |, 'data' => $json_data };
+
+#,,.,,,..,..,,,,,,...,..,,...,...,...,,,.,...,..,,...,...,...,.,,,,..,...,,,.,
+#35PNQTBKUNLSFWAVN365QF6QIIOLONO35KGQFD6I5NROSBFBK2KJ22DCNEL7FPLSIVERBKKP7FWYC
+#\\\|RUGPDGE6X3T76NXEL6MHRXWXVGI2DGTCQJN6W7UJS6JEHBQBUC5 \ / AMOS7 \ YOURUM ::
+#\[7]NRGSNKLATQQ6AE3PA6A3TSMJ7MZBB7JHKV6VY3FZEWR44OODBCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

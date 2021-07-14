@@ -19,27 +19,30 @@ return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
 return { 'mode' => qw| false |, 'data' => 'no value supplied' }
     if not defined $value_content;
 
-my $setkey_init       = 0;
-my $cid               = $$call{'session_id'};
+my $setkey_init = 0;
+my $cid         = $$call{'session_id'};
+
 my $set_keystring_ref = <[base.resolve_key]>->($set_keystring);
 
-if ( not defined $set_keystring_ref
-    or ref($set_keystring_ref) ne qw| SCALAR | ) {
-
-    $setkey_init = <[base.set_key]>->( $set_keystring, $value_content );
-
+if ( not defined $set_keystring_ref or length $set_keystring_ref->{'r-type'} )
+{    ##  overriding if other ref type was present  ##
+    $setkey_init       = <[base.set_key]>->( $set_keystring, $value_content );
     $set_keystring_ref = <[base.resolve_key]>->($set_keystring);
 }
 
-if ( defined $set_keystring_ref and $set_keystring_ref ne '' ) {
+if ( defined $set_keystring_ref and length $set_keystring_ref ) {
     if ($setkey_init) {
-        $$set_keystring_ref = $value_content;
+
+        $set_keystring_ref->{'r-data'} = $value_content; ##  set new value  ##
+
         <[base.logs]>->(
             "[%d] set key : initialized [ %s = '%s']",
             $cid, $set_keystring, $value_content
         );
         $reply = { 'mode' => qw| true |, 'data' => qw| set | };
-    } elsif ( $$set_keystring_ref eq $value_content ) {
+
+    } elsif ( $set_keystring_ref->{'r-data'} eq $value_content ) {
+
         <[base.logs]>->(
             "[%d] set key : no change : values identical [ %s = '%s']",
             $cid, $set_keystring, $value_content
@@ -48,8 +51,9 @@ if ( defined $set_keystring_ref and $set_keystring_ref ne '' ) {
             'mode' => qw| false |,
             'data' => 'no change : values identical'
         };
+
     } else {
-        $$set_keystring_ref = $value_content;
+        $set_keystring_ref->{'r-data'} = $value_content;  ##  change value  ##
         <[base.logs]>->(
             "[%d] set key : data value updated [ %s = '%s']",
             $cid, $set_keystring, $value_content
@@ -64,8 +68,8 @@ if ( defined $set_keystring_ref and $set_keystring_ref ne '' ) {
     $reply = { 'mode' => qw| false |, 'data' => 'not able to assign value' };
 }
 
-#,,.,,...,.,,,,.,,,,,,,,.,.,,,..,,...,,,.,,,.,..,,...,..,,,..,.,,,...,,.,,,,,,
-#5KBEBV5JQZ5APPEYIW4LTLGNKP6I6XHXTM6CNDFEC2OBPVCOFFBOVZK5M24SSUGTAWAAYPHZWT4CU
-#\\\|ZB7IMTQK3KHMTTMCMIOHHBMBS2ULIVSS27T2T6CYVYVXS6K3GC2 \ / AMOS7 \ YOURUM ::
-#\[7]UL34TJOTRUNUOC7ENGAJSF3XMJ3KL4M7BUAMLROMSQJPTOQJRSAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,.,.,,,,,.,...,,.,,,..,,,,,..,,...,...,...,...,..,,...,.,.,
+#VOKV5WMSOPCEQRE3DZBBPQ5SSEPNNBHLKIMPUC4OL36TOO3W4BVFB4C2DTOEBOJDLBT7OGENZCFMA
+#\\\|AW334OSYQYNTO4O7SRD4O2SNGCXEHFTZI2VVMAUSHDQEP6EZX6S \ / AMOS7 \ YOURUM ::
+#\[7]5LXPG27EENN3GQFWJFTZ5XCNQLS67IVB654XVSDSFL4EMDLVIIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

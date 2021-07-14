@@ -1,6 +1,7 @@
 ## >:] ##
 
 # name = base.extract_values
+# todo = clean up implementation [ LLL ]
 
 my $entries        = 0;
 my $conf_key       = shift;         ## <-- swap parameters  [LLL]
@@ -17,11 +18,11 @@ if ( not defined $conf_key ) {
 
 ##  use 'base.validate.data_key_syntax'  ##  [LLL]
 
-if ( defined $conf_key and $conf_key !~ m|[{}]| ) {
+if ( defined $conf_key and length $conf_key and $conf_key !~ m|[{}]| ) {
     $conf_key =~ s|'||g;
     $conf_key =~ s|\.|'}{'|g;
     $conf_key = sprintf qw| {'%s'} |, $conf_key;
-} else {
+} elsif ( defined $conf_key and length $conf_key ) {
     <[base.s_warn]>->(
         'not allowed characters in config key [{}] [ %s ] <{C1}>', $conf_key
     );
@@ -48,11 +49,20 @@ foreach my $conf_line ( $file_ref->@* ) {
         $value =~ s|'||g;
         if ($resolve_values) {
             while ( $value =~ m{<([^>]+)>} ) {
-                my $key      = ${^CAPTURE}[0];
-                my $resolved = <[base.resolve_key]>->($key);
-                $resolved = ref $resolved eq qw| SCALAR | ? $$resolved : '';
-                $resolved //= '';
-                $value =~ s|<$key>|$resolved|g;
+                my $key                   = ${^CAPTURE}[0];
+                my $resolved_config_value = '';
+
+                my $resolved_value_ref = <[base.resolve_key]>->($key);
+                if ( defined $resolved_value_ref ) {
+
+                    ## implement encoded p7-reference results ##  [ LLL ]
+
+                    $resolved_config_value = $resolved_value_ref->{'r-data'}
+                        if not length $resolved_value_ref->{'r-type'}
+                        and defined $resolved_value_ref->{'r-data'};
+                }
+                ##  also implement [UNDEF] zenka code  ## [ LLL ]
+                $value =~ s|<$key>|$resolved_config_value|g;
             }
         }
 
@@ -87,8 +97,8 @@ foreach my $conf_line ( $file_ref->@* ) {
 }
 return $entries;
 
-#,,,.,,,.,...,.,,,..,,...,..,,,..,,..,...,.,,,..,,...,..,,,.,,.,.,,,,,,.,,...,
-#2O7HN3PLHMADZYAHSRUJNOAOPGU5BBUDK2JUXU6XEP5OY36XB4P35TA3G3MDHZW6TGIGNWVRGZOTA
-#\\\|KBTOUPUCEOYJAEWA6XX73I36VKTA66OWVHDGRYNKEQVLQWNGOWN \ / AMOS7 \ YOURUM ::
-#\[7]3NUGM4RK2DL5SLFTZWGF2RWSIDWLSEDJK5BWPZGEAX6D57JCX2AY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,..,,,..,.,.,,.,,.,,,,,,,,,.,...,..,,...,...,,..,.,.,..,,...,,,.,
+#MAHSH3WCWQ5IDM2PYOHXELQUB52UZFNV5BO7HETSJQDROCR2WYJWBHKA2TGRJ7XHYJNYZQFKDOVKA
+#\\\|2SNHGRJQNH622DN7RX4W3SHSGGLMEM5IJACN4Q2R6Z4H4AVMMBO \ / AMOS7 \ YOURUM ::
+#\[7]T7343TTBVTTV3KYBEWZ5DK73BRMJFFYYATGPNTB6XTQF5JGJLKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

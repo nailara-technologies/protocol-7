@@ -9,98 +9,111 @@ my $keyword = $call->{'args'} // '';
 
 my @refs;
 my %keymap;
-if ( length $keyword ) {
 
-    my $stripped_key_regex_match = 5;    ## true ##
-    $stripped_key_regex_match = 0 if $keyword =~ s|^regex-quoted:|regex:|;
+if ( not length $keyword ) {    ##  no keyword suppled  [ dump %data ]  ##
+    $reply->{'mode'} = qw| size |;
+    $reply->{'data'} = "\n#:Y::[''].\n\n";
+    $reply->{'data'} .= YAML::XS::Dump( \%data );
+    $reply->{'data'} .= "\n#:Y::.\n";
+    return $reply;
+}
 
-    if ( $keyword =~ s|^regex:|| ) {
-        ( my $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($keyword);
-        if ( not defined $pt_re or length ref $re_err and length $re_err->$* )
-        {
-            return {
-                'mode' => qw| false |,
-                'data' =>
-                    sprintf( 'expected a valid pattern .:[ %s in regex ]::',
-                    defined $re_err ? $re_err->$* : qw| error | )
-            };
-        } else {
-            ## regexp param ##
-            my %matches_flat;
-            foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
+my $stripped_key_regex_match = 5;    ## true ##
+$stripped_key_regex_match = 0 if $keyword =~ s|^regex-quoted:|regex:|;
 
-                ##  correctly reversing '.' escapings  ##
-                ##
-                my $esc_keystr;
-                my $key_stripped = $data_key_str;
-                my $esc_keystr   = $data_key_str;
-                state $qu_re      = qr|(*nlb:\\)'|;
-                state $content_re = qr|(*nlb:\\)[^']+|;
-                while ( $key_stripped
-                    =~ m,(^|\.)$qu_re($content_re)$qu_re(\.|$), ) {
-                    my $quoted = ${^CAPTURE}[1];
-                    $key_stripped         =~ s|$quoted||;
-                    ( my $esk = $quoted ) =~ s|(*nlb:\\)\.|\\.|g;
-                    $esc_keystr           =~ s|'$quoted'|$esk|;
-                }
+if ( $keyword =~ s|^regex:|| ) {
 
-                $key_stripped = $data_key_str    ## full key match ##
-                    if not $stripped_key_regex_match;
-
-                if ( $key_stripped =~ $pt_re ) {
-                    my $resolve_res = <[base.resolve_key]>->($data_key_str);
-                    if ( defined $resolve_res ) {
-                        $matches_flat{$esc_keystr} = $$resolve_res;
-                    }
-                }
-            }
-
-            my $m_ref = keys %matches_flat ? unflatten( \%matches_flat ) : {};
-            if ( keys $m_ref->%* ) {
-                $keymap{$m_ref} = sprintf "REX%s:'%s'",
-                    $stripped_key_regex_match ? '' : qw| Q |, $keyword;
-                push( @refs, $m_ref );
-            }
-            return {
-                'mode' => qw| false |,
-                'data' => sprintf( "no match for regular expression '%s'",
-                    $keyword )
-                }
-                if not @refs;
-        }
+    ( my $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($keyword);
+    if ( not defined $pt_re or length ref $re_err and length $re_err->$* ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'expected a valid pattern .:[ %s in regex ]::',
+                defined $re_err ? $re_err->$* : qw| error | )
+        };
     } else {
-        my @result = <[base.validate.data_key_syntax]>->($keyword);
-        return {
-            'mode' => qw| false |,
-            'data' => sprintf( '.: key syntax :. %s .:', $result[1] )
+        ## regexp param ##
+        my %matches_flat;
+
+        foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
+
+            ##  correctly reversing '.' escapings  ##
+            ##
+            my $esc_keystr;
+            my $key_stripped = $data_key_str;
+            my $esc_keystr   = $data_key_str;
+            state $qu_re      = qr|(*nlb:\\)'|;
+            state $content_re = qr|(*nlb:\\)[^']+|;
+            while (
+                $key_stripped =~ m,(^|\.)$qu_re($content_re)$qu_re(\.|$), ) {
+                my $quoted = ${^CAPTURE}[1];
+                $key_stripped         =~ s|$quoted||;
+                ( my $esk = $quoted ) =~ s|(*nlb:\\)\.|\\.|g;
+                $esc_keystr           =~ s|'$quoted'|$esk|;
             }
-            if not $result[0];
-        my $resolve_res = <[base.resolve_key]>->($keyword);
-        @refs = ($resolve_res) if defined $resolve_res;
+
+            $key_stripped = $data_key_str    ## full key match ##
+                if not $stripped_key_regex_match;
+
+            if ( $key_stripped =~ $pt_re ) {
+
+                my $resolve_res = <[base.resolve_key]>->($data_key_str);
+
+                if ( defined $resolve_res ) {
+                    $matches_flat{$esc_keystr} = $resolve_res->{'r-data'};
+                }
+            }
+        }
+
+        my $m_ref = keys %matches_flat ? unflatten( \%matches_flat ) : {};
+        if ( keys $m_ref->%* ) {
+            $keymap{$m_ref} = sprintf "REX%s:'%s'",
+                $stripped_key_regex_match ? '' : qw| Q |, $keyword;
+            push( @refs, $m_ref );
+        }
         return {
             'mode' => qw| false |,
-            'data' => sprintf( "failed to resolve key '%s'", $keyword )
+            'data' =>
+                sprintf( "no match for regular expression '%s'", $keyword )
             }
             if not @refs;
-        $keymap{$resolve_res} = sprintf "'%s'", $keyword;
     }
 } else {
-    @refs = ( \%data );
+    my @result = <[base.validate.data_key_syntax]>->($keyword);
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( '.: key syntax :. %s .:', $result[1] )
+        }
+        if not $result[0];
+
+    my $resolve_res = <[base.resolve_key]>->($keyword);
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "failed to resolve key '%s'", $keyword )
+        }
+        if not defined $resolve_res;
+
+    @refs = ($resolve_res);
+
+    $keymap{$resolve_res} = sprintf "'%s'", $keyword;
 }
 
 $reply->{'mode'} = qw| size |;
 $reply->{'data'} = '';
 
 foreach my $href (@refs) {
-    next if not defined $keymap{$href};    ## unique filter ##
+    next if not defined $keymap{$href};    ##  uniqueness filter  ##
+
     $reply->{'data'} .= "\n" if length $reply->{'data'};
-    $reply->{'data'} .= sprintf "#:Y::[%s].\n\n%s\n#:Y::.\n",
+
+    $reply->{'data'} .= sprintf "\n#:Y::[%s].\n\n%s\n#:Y::.\n",
         delete $keymap{$href},
-        YAML::XS::Dump($href);
+        YAML::XS::Dump( $href->{'r-data'} );
+
 }
 
-#,,.,,..,,.,.,...,,..,,.,,,.,,..,,,,.,.,,,,.,,..,,...,...,..,,,,,,..,,,..,,,.,
-#3MXNMTJIDTVXJLFN4TGHPZJQUQYDN2A5A4QGKDSAEA2SJK2ASEIBK7EO6Y2FGG2VQQQCC4S6XWHHO
-#\\\|3CCLBOWB3UH7W2SWPS3QOU5AJW7RINVUBBOMB4NICSZPNFG4DK4 \ / AMOS7 \ YOURUM ::
-#\[7]CVRHAMFIRO7VOQAHODB3A273TY4JX3HWYGKQ2ZM4VBIL4PP44AAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,.,,,.,,,.,,,,.,,,,,,,.,...,.,,,..,,...,...,...,,..,,,,,..,,.,,,
+#JWJWIZA3BV5T2QHNR2REYOYXQJJKVWM2Z7OVGW5WMJQXJ6IJX7UPXLXFBFKBI65LX6JNR3YZYXUDW
+#\\\|LNMY4ZADLQJJ2RHKUNRETDXF62QQJNS7SQPZOLHFCRYG5YRXHPX \ / AMOS7 \ YOURUM ::
+#\[7]RV7JFDASKESTTC3YB4Q455SIMM4PNHMRLQCUGKMCVC6HXOQZXOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
