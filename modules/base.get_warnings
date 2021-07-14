@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = base.get_warnings
+
+my $fatal = shift;
+$fatal = lc $fatal if defined $fatal;
+
+warn 'valid [optional] parameter value is fatal <{C1}>'
+    if defined $fatal and index( $fatal, qw| fatal |, 0 ) != 0;
+
+if (wantarray) {
+    if ( not defined $fatal and warnings::enabled_at_level( qw| all |, 0 ) ) {
+        return qw| all |;
+    } elsif ( warnings::fatal_enabled_at_level( qw| all |, 0 ) ) {
+        return qw| all |;
+    }
+}
+
+state @categories;
+
+@categories
+    = sort { length $a <=> length $b } reverse sort keys %warnings::Offsets
+    if not @categories;
+
+my %enabled;
+my @enabled;
+foreach my $category (@categories) {    ##  5 == true  ##
+    if ( defined $fatal ) {
+        $enabled{$category}
+            = warnings::fatal_enabled_at_level( $category, 0 ) ? 5 : 0;
+    } else {
+        $enabled{$category}
+            = warnings::enabled_at_level( $category, 0 ) ? 5 : 0;
+    }
+    push @enabled, $category if $enabled{$category};
+}
+
+return @enabled if wantarray;
+return \%enabled;
+
+#,,.,,,..,.,,,,..,..,,...,...,.,.,.,,,,,,,,..,..,,...,...,.,,,.,,,,,,,.,.,.,.,
+#4RKCMKBTOCZAVIJWY5UQVNLYLXX6ZNOY7WHRTKO6FEIOPXYQDTROAW77J6HXCJ36SUZBTRFZQ6WCI
+#\\\|72WGM5FGZUGGOIP5SVIRQL2RWZRYZPMOY57FJAOORXLAYTN4ZVS \ / AMOS7 \ YOURUM ::
+#\[7]GTYRZHHTY7FF6IO636FGJJRPLQJ7SNTBEUSYEYTRC6YJR5REWUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
