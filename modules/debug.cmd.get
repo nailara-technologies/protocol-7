@@ -6,7 +6,7 @@
 # note  = todo: implement access control filter and root namespace
 
 my ( $cid, $requested_key ) = ( $ARG[0]->{'session_id'}, $ARG[0]->{'args'} );
-my $key_ref;
+my $key_href;
 my ( $key_is_valid, $errmsg )
     = <[base.validate.data_key_syntax]>->($requested_key);
 if ( not $key_is_valid ) {
@@ -14,40 +14,43 @@ if ( not $key_is_valid ) {
     return { 'mode' => qw| false |, 'data' => $errmsg };
 }
 
-if ( defined( $key_ref = <[base.resolve_key]>->($requested_key) ) ) {
+if ( defined( $key_href = <[base.resolve_key]>->($requested_key) ) ) {
 
-    if ( ref $key_ref eq qw| SCALAR | ) {    ## returning value ##
+    if ( not length $key_href->{'r-type'} ) {    ## returning value ##
+
+        return { 'mode' => qw| false |, 'data' => 'value is undef' }
+            if not defined $key_href->{'r-data'};
 
         ##  single line value  ##
-        return { 'mode' => qw| true |, 'data' => $key_ref->$* }
-            if length $key_ref->$* and index( $key_ref->$*, "\n", 0 ) == -1;
+        return { 'mode' => qw| true |, 'data' => $key_href->{'r-data'} }
+            if length $key_href->{'r-data'}
+            and index( $key_href->{'r-data'}, "\n", 0 ) == -1;
 
         ##  empty string \ containing endline[s]  ##
-        return { 'mode' => qw| size |, 'data' => $key_ref->$* };
+        return { 'mode' => qw| size |, 'data' => $key_href->{'r-data'} };
 
+    } elsif ( $key_href->{'r-type'} eq qw| HASH | ) {
+
+        return {    ##  returning key list as size reply if hashref  ##
+            'mode' => qw| size |,
+            'data' => join( '',
+                map { sprintf "%s\n", $ARG }
+                    <[base.sort]>->( $key_href->{'r-data'} ) )
+        };
+
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( '%s references not implemented',
+                lc $key_href->{'r-type'} )
+        };
     }
-    $key_ref = $$key_ref    ## consider modifying base.resolve_key ##  [LLL]
-        if ref $key_ref eq qw| REF | and ref $$key_ref eq qw| HASH |;
-
-    return {    ##  returning key list as size reply if hashref  ##
-        'mode' => qw| size |,
-        'data' => join(
-            '', map { sprintf "%s\n", $ARG } <[base.sort]>->($key_ref)
-        )
-        }
-        if ref $key_ref eq qw| HASH |;
-
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            sprintf( '%s references not implemented', lc( ref $key_ref ) )
-    };
 }
 
 return { 'mode' => qw| false |, 'data' => 'requested key not found' };
 
-#,,..,..,,,..,,,.,...,,,.,.,.,,..,.,.,,,.,...,..,,...,...,...,.,,,.,,,.,.,.,.,
-#I6HACWTBMSWHEETDKHIJKMUMBYYJU6Q744GA466INKRRV4O74FAMJC53I7YQOPDSSISQBCPPR7OY4
-#\\\|D55RAHGHAJT43JBGHTE22PE6BG7FNETP2YPYYYPHAFKQURTQLYB \ / AMOS7 \ YOURUM ::
-#\[7]62A6VBQQMO6YORK2EOOKJJCYZHYBC5VUNDKZ6C2DNJLYKCTZVYDI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,,,.,,,.,.,,,..,,..,,,..,.,,,..,,...,...,..,,..,,,.,,,,.,,,,,
+#F6EL4BTSETJBRLY2YVQUTVGJJTEU32XG357V5D4B7MRGYSZQ2GK6DI5554VVFCN56ZYBQ4P3UQ67S
+#\\\|SPZDW3KOXPFP2CZYDYZVR7VSI43CFPQNH25K55OS7UGHYHZND4Q \ / AMOS7 \ YOURUM ::
+#\[7]OL3WC3ALEDGF32GSQQ227PL73OW33GB5NNBA35GB2KZUEPDQC6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

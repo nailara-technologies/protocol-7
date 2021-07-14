@@ -5,29 +5,45 @@
 
 my $key_str  = shift // '';
 my $hash_ref = shift // *data{HASH};
-warn 'expected valid key string parameter <{C1}>' if not length $key_str;
-warn 'second parameter not a hash reference <{C1}>'
-    if ref $hash_ref ne qw| HASH |;
+if ( not length $key_str ) {
+    warn 'expected valid key string parameter <{C1}>';
+    return undef;
+} elsif ( ref $hash_ref ne qw| HASH | ) {
+    warn 'second parameter not a hash reference <{C1}>';
+    return undef;
+}
 
 ## note : syntax is allowing keys containing '.'s by single quoting them ##
 my @dtree = <[base.parser.data_hkey_tree]>->($key_str);
 
 while ( my $sub_key = shift @dtree ) {
-    if ( ref $hash_ref ne qw| HASH | or not defined $hash_ref->{$sub_key} ) {
-        return undef;
-    }
-    if ( @dtree and ref $hash_ref->{$sub_key} eq qw| HASH | ) {
-        $hash_ref = \%{ $hash_ref->{$sub_key} };
-    } elsif ( scalar @dtree == 0 ) {
-        return \$hash_ref->{$sub_key};
-    } else {
-        return undef;
+
+    ##  value or other ref type present  ##
+    return undef if ref $hash_ref ne qw| HASH |;
+
+    return undef if not exists $hash_ref->{$sub_key};    ## no such key ##
+
+    my $reftype = ref $hash_ref->{$sub_key};
+
+    if (@dtree) {    ##  reftype == HASH  ##
+
+        $hash_ref = $hash_ref->{$sub_key};    ##  collect reference type  ##
+
+    } elsif ( scalar @dtree == 0 ) {   ##  last key element \ returning it  ##
+
+        return {
+            qw|  r-type  | => $reftype,
+            qw|  r-data  | => $hash_ref->{$sub_key},
+            qw| key-href | => $hash_ref,
+            qw| last-key | => $sub_key
+        };
+
     }
 }
 return undef;    ## no such key ##
 
-#,,,.,,..,,,.,.,.,,,.,...,,..,...,.,,,,,.,.,,,..,,...,...,,..,,..,...,...,,,.,
-#OKWLJM2HP2ZZ42EMNAATSPL424F7KNKHCLFQX5NUB4KCPF76FSYMAMV6AJVO7ZK6RJMSCZDGYDU3E
-#\\\|T2343TNBTLVGRM6I75FOT6PWZSKNDEYEVBCIPLPFJRHU3PGU2LZ \ / AMOS7 \ YOURUM ::
-#\[7]DIIID4IJPGFI43H2J2J432KQKRQVONNTC6LVDGIEXVE6GHFEKGCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,,.,,,..,,..,..,,.,,,.,,,.,.,..,,...,...,.,,,,..,,.,,..,,,,.,
+#767VZLM45ABR22CUAA6GY6NU2WFPUI4EL5K46XAIEI5QYGKF6F6WH6VVKDJHE3IKXQWWJVR52XTHO
+#\\\|ERC2HYOI4D4WBVMFQXG7V7N7LFIFUOMNBT6JHIQLSBMDV6YXTNA \ / AMOS7 \ YOURUM ::
+#\[7]BOU3BFWGEYMBXTNLF5WC4XW4UY2W3YTSMNVEEW2FKRUIIVR3NCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

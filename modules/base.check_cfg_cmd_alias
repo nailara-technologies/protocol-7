@@ -12,10 +12,16 @@ if ( not length( $cmd_name // '' ) or index( $cmd_name, qw| . |, 1 ) == -1 ) {
 
 my $replacement_command_name;
 ##  checking alias prefix str  ##
-my $data_key_name            = sprintf qw| cfg_cmd.%s |, $cmd_name;
-my $new_cmd_name_sref        = <[base.resolve_key]>->($data_key_name);
-my $replacement_command_name = $new_cmd_name_sref->$*
-    if ref $new_cmd_name_sref eq qw| SCALAR |;
+my $data_key_name = sprintf qw| cfg_cmd.%s |, $cmd_name;
+
+my $new_cmd_name_href = <[base.resolve_key]>->($data_key_name);
+
+##  no match \ keep cmd  ##
+##
+return $cmd_name if not defined $new_cmd_name_href;
+
+my $replacement_command_name = $new_cmd_name_href->{'r-data'}
+    if not length $new_cmd_name_href->{'r-type'};    ##  is not a HASH ref  ##
 
 if (    defined $replacement_command_name
     and index( $replacement_command_name, qw| . |, 1 ) > -1
@@ -27,8 +33,8 @@ if (    defined $replacement_command_name
     return $cmd_name;                   ##  returning unresolved  ##
 }
 
-#,,,,,,.,,.,.,,,.,,.,,,..,,.,,,.,,.,,,,,,,...,..,,...,...,,.,,.,,,..,,,.,,,.,,
-#JLRVGPTJU4SEXSJGZ43R3ETAREFPNHPVYB55OREKBVU6YPEBL4GVSA5Q4Y2NAC2Z2DZYF7N4G6O64
-#\\\|I6SNHKSYTAKEMTWQBL2UANC5JYTGQ37WVSUZNKQ3T6B3RLCNFLR \ / AMOS7 \ YOURUM ::
-#\[7]I6QZIEQAJGUAWFLS4EU3RZLM67QFDMOOKGWDXCUADHQACIU2TIDY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,,,,,.,...,.,.,,,,,,.,,..,,.,,,..,,...,...,..,,,..,.,,,.,.,.,.,
+#EY2OKQ6QF6PU7KDBGBXFSSRS7SQCOZN2BLDT2PENUVH7MW62EMRN6LSIUDUEXZNWVYFXBSZH5OEMC
+#\\\|D5ESWF76MLCQYGCHCXJHMBASWJYMXPFNTEIFASP75HIUIQNT44J \ / AMOS7 \ YOURUM ::
+#\[7]7XDL7LG4ZDJVJQSMMXWYCETILA3KDJK7Y3IU73HEWSPSNV3XG6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
