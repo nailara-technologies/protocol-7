@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = base.diff.hash_keys
+# descr = return true \ false diff of hash keys
+
+my $diff_href     = {};
+my $hash_state_00 = shift // {};    ##  assumed are equal set of keys  ##
+my $hash_state_01 = shift // {};
+
+if ( ref $hash_state_00 ne qw| HASH | ) {
+    warn 'first parameter is no hash ref <{C1}>';
+    return undef;
+} elsif ( ref $hash_state_01 ne qw| HASH | ) {
+    warn 'second parameter is no hash ref <{C1}>';
+    return undef;
+}
+
+my @h_keys_0 = <[base.sort]>->($hash_state_00);
+my @h_keys_4 = <[base.sort]>->($hash_state_01);
+
+if ( @h_keys_0 != @h_keys_4
+    or join( "\0", @h_keys_0 ) ne join( "\0", @h_keys_4 ) ) {
+    warn 'hash keys differ <{C1}>';
+    return undef;
+}
+
+foreach my $hkey (@h_keys_0) {
+    if ( $hash_state_00->{$hkey} != $hash_state_01->{$hkey} ) {
+        $diff_href->{$hkey} = $hash_state_01->{$hkey};
+    }
+}
+
+return $diff_href;    ## return hashref to result ##
+
+#,,..,.,.,.,,,..,,..,,...,,,.,,..,.,.,,.,,,,.,..,,...,...,...,...,,,,,,,,,,,,,
+#7AEO4QY6UI5LQHHIMW7LWOVWIRQYNHNM2KPHFFHTI6JYCOCLX6IGZWF6GNR7NRSG6BZPM5AEEHFBE
+#\\\|2CQ5V32SQ4TDOUWTPM46XO474BIJHU7W2C5WV64KZJDSONDSJD6 \ / AMOS7 \ YOURUM ::
+#\[7]4CKYNVKZPJGKTT563VIQRSF4AQBKQK47CWXJEZFVSNUSZPDXGMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
