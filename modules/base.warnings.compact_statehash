@@ -1,0 +1,50 @@
+## >:] ##
+
+# name  = base.warnings.compact_statehash
+
+my $state_href   = shift;
+my $remove_state = shift;    ##  remove values  [ 0 | 5 ]  ##
+
+if ( ref $state_href ne qw| HASH | ) {
+    warn 'expected hashref with warning state <{C1}>';
+    return undef;
+}
+
+## if all enabled, skip rest ##
+
+return { qw| all | => 5 } if $state_href->{'all'};
+
+##  remove all not enabled ones  ##
+
+my $sub_categories_present = 0;
+foreach my $key ( keys $state_href->%* ) {
+    $sub_categories_present = 5 if index( $key, qw| :: |, 0 ) > 0;
+
+    next if not defined $remove_state;
+
+    delete $state_href->{$key} if $state_href->{$key} == $remove_state;
+}
+
+return $state_href if not $sub_categories_present;
+
+##  compacting warnings subcategories  ##
+
+my $main_category;
+foreach my $category ( sort keys $state_href->%* ) {
+    if ( index( $category, qw| :: |, 0 ) == -1 ) {
+        $main_category = $category;
+        next;
+    } else {   ##  remove subcategories for which main category is enabled  ##
+        delete $state_href->{$category}
+            if index( $category, sprintf( qw| %s:: |, $main_category ), 0 )
+            == 0;
+    }
+}
+
+return $state_href;    ##  return compacted warning state hash  ##
+
+#,,,,,.,.,.,.,...,.,.,.,.,,,,,,,,,.,.,,.,,..,,.,.,...,...,..,,.,.,,..,..,,.,.,
+#IURH3NWGXJ5KSNFJX45Q7PEMPRFHHCZOCZC27D5FX4U2NPV4DUDGEAGQS2DTRLP74IAPVR5JPVPXQ
+#\\\|BXD4LZ6BU3O33MOOWICYZHXPTUCODG5BBZQM2Y3ELEA6DMGY3UJ \ / AMOS7 \ YOURUM ::
+#\[7]AH3BEKBQGHW2YDFKCYAA2I6NWMBA4ZIUKPJQL77V3F3GH7C2SUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
