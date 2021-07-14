@@ -1,0 +1,75 @@
+## >:] ##
+
+# name  = base.warnings.compact_diff_from_bits
+
+my $warnings_check_bits = shift;
+
+if ( not defined $warnings_check_bits ) {
+    warn 'expected warnings check bits input <{C1}>';
+    return undef;
+}
+
+my $comparison_NONE_enabled     = $warnings::NONE;
+my $comparison_bits_ALL_enabled = warnings::bits('all');
+
+## extract warnings state from check bits ##
+##
+my $input_warnings_state
+    = <[base.warnings.from_bitmask]>->($warnings_check_bits)->{'normal'};
+
+my $state_diff = {};
+
+## seen from 'none' ##
+##
+my $warnings_state_NONE_enabled
+    = <[base.warnings.from_bitmask]>->($comparison_NONE_enabled)->{'normal'};
+
+$state_diff->{'from_NONE'} = <[base.diff.hash_keys]>->(
+    $warnings_state_NONE_enabled, $input_warnings_state
+);
+
+## seen from 'all' ##
+##
+my $warnings_state_ALL_enabled
+    = <[base.warnings.from_bitmask]>
+    ->($comparison_bits_ALL_enabled)->{'normal'};
+
+$state_diff->{'from_ALL'} = <[base.diff.hash_keys]>->(
+    $warnings_state_ALL_enabled, $input_warnings_state
+);
+
+##  comparing sizes and choosing diff perspective  ##
+
+my $statediff_size = {};
+
+$statediff_size->{'from_ALL'}  = scalar keys $state_diff->{'from_ALL'}->%*;
+$statediff_size->{'from_NONE'} = scalar keys $state_diff->{'from_NONE'}->%*;
+
+my $chosen_result_ref;
+
+if ( $statediff_size->{'from_NONE'} == 0 ) {
+    $chosen_result_ref = $state_diff->{'from_ALL'};
+} elsif ( $statediff_size->{'from_ALL'} == 0 ) {
+    $chosen_result_ref = $state_diff->{'from_NONE'};
+} elsif ( $statediff_size->{'from_NONE'} < $statediff_size->{'from_ALL'} ) {
+    $chosen_result_ref = $state_diff->{'from_NONE'};
+} else {
+    $chosen_result_ref = $state_diff->{'from_ALL'};
+}
+
+## compacting, selecting best result ##
+
+my $result_copy = clone($chosen_result_ref);
+my $zeroed      = <[base.warnings.compact_statehash]>->( $result_copy, 0 );
+
+if ( scalar( keys $zeroed->%* ) == 0 ) {    ##  no [zeroed] results left  ##
+    return <[base.warnings.compact_statehash]>->($chosen_result_ref);
+} else {
+    return $zeroed;    ##  zeroed results left, using it  ##
+}
+
+#,,.,,,.,,,,,,,..,.,.,,,,,...,..,,,,,,,,,,..,,..,,...,..,,.,,,,,,,..,,.,.,,.,,
+#4HS6GEIRAJXT66EKM45IBD3FCHK3KXZVODYRB33P7A3N2FM2K72YLMT7BA7IK4YXIYNXB57JWQM76
+#\\\|AD2RYYUA2YL6NXZAGIC4OGY73BMRRSJOHXR4UC52LVQUGIFXA2F \ / AMOS7 \ YOURUM ::
+#\[7]CVZESYAZJS26HYHWF6YSGESFLQKWUA4USKKA3WCHBYIIX3TTM6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
