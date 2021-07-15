@@ -9,67 +9,103 @@ if ( not defined $warnings_check_bits ) {
     return undef;
 }
 
+my $type_chosen_href            = {};
 my $comparison_NONE_enabled     = $warnings::NONE;
 my $comparison_bits_ALL_enabled = warnings::bits('all');
 
 ## extract warnings state from check bits ##
 ##
 my $input_warnings_state
-    = <[base.warnings.from_bitmask]>->($warnings_check_bits)->{'normal'};
-
-my $state_diff = {};
-
-## seen from 'none' ##
-##
-my $warnings_state_NONE_enabled
-    = <[base.warnings.from_bitmask]>->($comparison_NONE_enabled)->{'normal'};
-
-$state_diff->{'from_NONE'} = <[base.diff.hash_keys]>->(
-    $warnings_state_NONE_enabled, $input_warnings_state
-);
+    = <[base.warnings.from_bitmask]>->($warnings_check_bits);
 
 ## seen from 'all' ##
 ##
 my $warnings_state_ALL_enabled
-    = <[base.warnings.from_bitmask]>
-    ->($comparison_bits_ALL_enabled)->{'normal'};
+    = <[base.warnings.from_bitmask]>->($comparison_bits_ALL_enabled);
 
-$state_diff->{'from_ALL'} = <[base.diff.hash_keys]>->(
-    $warnings_state_ALL_enabled, $input_warnings_state
-);
+## seen from 'none' ##
+##
+my $warnings_state_NONE_enabled
+    = <[base.warnings.from_bitmask]>->($comparison_NONE_enabled);
 
-##  comparing sizes and choosing diff perspective  ##
+foreach my $type (qw| fatal normal |) {
 
-my $statediff_size = {};
+    my $type_str = $type eq qw| fatal | ? uc($type) : '';
 
-$statediff_size->{'from_ALL'}  = scalar keys $state_diff->{'from_ALL'}->%*;
-$statediff_size->{'from_NONE'} = scalar keys $state_diff->{'from_NONE'}->%*;
+    my $state_diff = {};
 
-my $chosen_result_ref;
+    $state_diff->{'from_NONE'} = <[base.diff.hash_keys]>->(
+        $warnings_state_NONE_enabled->{$type},
+        $input_warnings_state->{$type}
+    );
 
-if ( $statediff_size->{'from_NONE'} == 0 ) {
-    $chosen_result_ref = $state_diff->{'from_ALL'};
-} elsif ( $statediff_size->{'from_ALL'} == 0 ) {
-    $chosen_result_ref = $state_diff->{'from_NONE'};
-} elsif ( $statediff_size->{'from_NONE'} < $statediff_size->{'from_ALL'} ) {
-    $chosen_result_ref = $state_diff->{'from_NONE'};
-} else {
-    $chosen_result_ref = $state_diff->{'from_ALL'};
-}
+    $state_diff->{'from_ALL'} = <[base.diff.hash_keys]>->(
+        $warnings_state_ALL_enabled->{$type},
+        $input_warnings_state->{$type}
+    );
+
+    ### here still correct ###
+    ##
+    ## say '< from none > --> ', Dumper( $state_diff->{'from_ALL'} );
+    ## say ' < from all > --> ',Dumper( $state_diff->{'from_NONE'} );
+
+    ##  comparing sizes and choosing diff perspective  ##
+
+    my $statediff_size = {};
+
+    $statediff_size->{'from_ALL'} = scalar keys $state_diff->{'from_ALL'}->%*;
+    $statediff_size->{'from_NONE'}
+        = scalar keys $state_diff->{'from_NONE'}->%*;
+
+    my $chosen_result_ref;
+
+    if ( $statediff_size->{'from_NONE'} == 0 ) {
+        $chosen_result_ref = $state_diff->{'from_ALL'};
+    } elsif ( $statediff_size->{'from_ALL'} == 0 ) {
+        $chosen_result_ref = $state_diff->{'from_NONE'};
+    } elsif ( $statediff_size->{'from_NONE'} < $statediff_size->{'from_ALL'} )
+    {
+        $chosen_result_ref = $state_diff->{'from_NONE'};
+    } else {
+        $chosen_result_ref = $state_diff->{'from_ALL'};
+    }
 
 ## compacting, selecting best result ##
 
-my $result_copy = clone($chosen_result_ref);
-my $zeroed      = <[base.warnings.compact_statehash]>->( $result_copy, 0 );
+    my $result_copy = clone($chosen_result_ref);
+    my $zeroed = <[base.warnings.compact_statehash]>->( $result_copy, 0 );
 
-if ( scalar( keys $zeroed->%* ) == 0 ) {    ##  no [zeroed] results left  ##
-    return <[base.warnings.compact_statehash]>->($chosen_result_ref);
-} else {
-    return $zeroed;    ##  zeroed results left, using it  ##
+    if ( scalar( keys $zeroed->%* ) == 0 ) {  ##  no [zeroed] results left  ##
+        $type_chosen_href->{$type}
+            = <[base.warnings.compact_statehash]>->($chosen_result_ref);
+    } else {    ##  zeroed results left, using it  ##
+        $type_chosen_href->{$type} = $zeroed;
+    }
 }
 
-#,,.,,,.,,,,,,,..,.,.,,,,,...,..,,,,,,,,,,..,,..,,...,..,,.,,,,,,,..,,.,.,,.,,
-#4HS6GEIRAJXT66EKM45IBD3FCHK3KXZVODYRB33P7A3N2FM2K72YLMT7BA7IK4YXIYNXB57JWQM76
-#\\\|AD2RYYUA2YL6NXZAGIC4OGY73BMRRSJOHXR4UC52LVQUGIFXA2F \ / AMOS7 \ YOURUM ::
-#\[7]CVZESYAZJS26HYHWF6YSGESFLQKWUA4USKKA3WCHBYIIX3TTM6DI 7  DATA SIGNATURE ::
+## commapsing reduntant normal categories when fatal are enabled ##
+##
+if ( defined $type_chosen_href->{'fatal'}->{'all'} ) {
+    map { delete $type_chosen_href->{'normal'}->{$ARG} }
+        keys $type_chosen_href->{'normal'}->%*;
+} else {
+    foreach my $category ( keys $type_chosen_href->{'fatal'}->%* ) {
+        delete $type_chosen_href->{'normal'}->{$category}
+            if defined $type_chosen_href->{'fatal'}->{$category}
+            and defined $type_chosen_href->{'normal'}->{$category}
+            and $type_chosen_href->{'fatal'}->{$category}
+            == $type_chosen_href->{'normal'}->{$category};
+    }
+}
+
+## missing enabled all when disabled some ..,
+#
+# say Dumper($type_chosen_href);
+
+return $type_chosen_href;
+
+#,,,.,,,,,,,,,,,,,...,,.,,.,,,.,.,.,,,...,,,,,..,,...,...,,..,,..,,..,,.,,,.,,
+#YT6ERYGXZDANR4RKO2WVW5LUFVNPE7WV7ZUAW64GARQBI773EHMRW7YEENHBK3MU3MXXC5URPMWOY
+#\\\|DCZJPQ3UTUADBFMSAVD4POMH66GQJ4SW5GK3CLDK34KOJJBUK4F \ / AMOS7 \ YOURUM ::
+#\[7]6ASC2AWH4KZWBCTLDES2E4J7RJWWGR5PBZE3JBA6SVGUXWA2GYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

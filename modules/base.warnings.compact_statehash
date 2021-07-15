@@ -31,6 +31,7 @@ return $state_href if not $sub_categories_present;
 
 my $main_category;
 foreach my $category ( sort keys $state_href->%* ) {
+    $main_category //= $category;
     if ( index( $category, qw| :: |, 0 ) == -1 ) {
         $main_category = $category;
         next;
@@ -43,8 +44,8 @@ foreach my $category ( sort keys $state_href->%* ) {
 
 return $state_href;    ##  return compacted warning state hash  ##
 
-#,,,,,.,.,.,.,...,.,.,.,.,,,,,,,,,.,.,,.,,..,,.,.,...,...,..,,.,.,,..,..,,.,.,
-#IURH3NWGXJ5KSNFJX45Q7PEMPRFHHCZOCZC27D5FX4U2NPV4DUDGEAGQS2DTRLP74IAPVR5JPVPXQ
-#\\\|BXD4LZ6BU3O33MOOWICYZHXPTUCODG5BBZQM2Y3ELEA6DMGY3UJ \ / AMOS7 \ YOURUM ::
-#\[7]AH3BEKBQGHW2YDFKCYAA2I6NWMBA4ZIUKPJQL77V3F3GH7C2SUAI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,.,,..,,,..,,,,,.,,,.,.,,..,.,.,...,...,,,.,...,,..,,,.,...,
+#KZWPSJKQ6ZXWNEGSBVPGH3PRZQR4UMRD6D5UVK26FI25LYJFNF4VKFTZRWOGOTGKUS3SMGKLC4IQM
+#\\\|WKGV5VHKYYLYK2S753NZ7DIXCN3HZDQUMYR3OMZGTE4WHFUF7E2 \ / AMOS7 \ YOURUM ::
+#\[7]23CBK5QLEF6BLIHXZVAZJBMMZLWRACSQAQNV4FU3MQ3ODENNCUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
