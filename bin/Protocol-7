@@ -2053,6 +2053,7 @@ sub p7_format_error {
     $err_msg =~ s,",',g;   ##  replacing all double quotes [ with single ]  ##
     $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
     $err_msg =~ s|\s+BEGIN failed.+$||sg;
+    $err_msg =~ s|(*plb: in \@INC).+$||sg;
     $err_msg =~ s|(\S+(*nlb::)):(*pla: )|$LAST_PAREN_MATCH :|g;
 
     $err_msg = lcfirst $err_msg if $err_msg =~ m|^[A-Z][^A-Z]|;
@@ -2071,6 +2072,11 @@ sub p7_format_error {
         $caller_str = sprintf '[%s:%d]', $file, $line;
         $err_msg .= sprintf( ' %s', $caller_str ) if $c_lvl >= 0;
     }
+    if ( index( $err_msg, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
+        if ( index( $err_msg, "[ '", 0 ) >= 0 and $err_msg !~ m|' ]'?$| ) {
+            $err_msg =~ s| at .+line.+$|' \]|g;       ##  amending "' ]"  ##
+        }
+    }
     $err_msg =~ s,use of ,,g;
     $err_msg =~ s,no success on ,,g;
     $err_msg =~ s,(can't|unable to),cannot,g;
@@ -2080,6 +2086,7 @@ sub p7_format_error {
     $err_msg =~ s|argument in sprintf|sprintf argument|g;
     $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
     $err_msg =~ s| at \(eval \d+\) line \d+[\.,]||g;
+    $err_msg =~ s|, <STDIN> line \d+.+$||g;
     $err_msg =~ s|cannot use (an )?||g;
     $err_msg =~ s|(*plb: as )a ||g;
 
@@ -3545,8 +3552,8 @@ __DATA__
 :
 :.
 
-#,,,,,,..,..,,.,,,,,,,,,,,.,,,,..,,.,,.,.,.,.,..,,...,..,,,..,,,.,.,.,,..,,.,,
-#QG2IDPTM5HVQIQSCG34RWW6SDBYLPZKHOCVN5FQM7VFZXTTJGWDZHPL3SEUBDU7ORGSPWNNE5Q3UO
-#\\\|A7T4BILQFLBKA4YAQN4FSYR52CDLSFHGGVMLSSAUZNP4YVSJO77 \ / AMOS7 \ YOURUM ::
-#\[7]76LH54VDT5MJOXOJBLYFBGJHEQQSKLYH6JGMNA2CMXTYFIH6JYCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,.,,,..,...,...,,..,..,,...,,,.,..,,...,...,...,,.,,.,,,.,,,,..,
+#TDYDJ7W6UPY6RKGQA576URWLZQXPMHBNH4NJJD44YISLIOA52JWBWGNQDFOMTFM3OVH3UZRATEFBQ
+#\\\|TDJENWGQCB74VWP2VQ7I7D63DKHGSDZCVAVAAIAOUQRJCPP3PNT \ / AMOS7 \ YOURUM ::
+#\[7]6ZRBJCYA7LPESNTCAQKCZBELZYJUAMALKQPQCZREWO6IVH4GPUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

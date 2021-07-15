@@ -5,16 +5,11 @@
 
 <zenka.init_return> //= 0;    ## init-done status code ##
 
-use Safe;
-use Module::Load;
-use Time::Seconds;
-
-map { <base.perlmod.loaded>->{$ARG} = 1 }
-    qw| Safe Module::Load Time::Seconds |;
-
+<[base.perlmod.autoload]>->('Safe');
 <[base.perlmod.autoload]>->('Event');
 <[base.perlmod.autoload]>->('IO::AIO');
 <[base.perlmod.load]>->('Math::BigInt');
+<[base.perlmod.autoload]>->('Time::Seconds');
 
 <[base.perlmod.load]>->( 'Clone',         qw| clone | );
 <[base.perlmod.load]>->( 'Hash::Flatten', qw| flatten unflatten | );
@@ -28,15 +23,16 @@ map { <base.perlmod.loaded>->{$ARG} = 1 }
 
 ##[ AMOS MODULE ]#############################################################
 
-<[base.perlmod.load]>->( 'AMOS7::Assert::Truth', qw | is_true | );
+<[base.perlmod.autoload]>->('AMOS7::Assert::Truth');   ##  exports is_true  ##
 
 ##############################################################################
 
-use Scalar::Util qw <
-    blessed dualvar isdual readonly refaddr reftype tainted
-    weaken isweak isvstring looks_like_number set_prototype
->;
-<base.perlmod.loaded>->{'Scalar::Util'} = 1;
+<[base.perlmod.load]>->(
+    'Scalar::Util', qw <
+        blessed dualvar isdual readonly refaddr reftype tainted
+        weaken isweak isvstring looks_like_number set_prototype
+    >
+);
 
 ## installing cryptographically safe fork version ##
 ##
@@ -268,8 +264,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,..,...,,,,,.,,,...,,..,,,,,,,,,...,,,.,,.,,..,,...,...,...,,.,,.,,,.,.,,..,
-#HYALJ4Q5SLV4O34MZRIQ7WVSLRNORG3OYHUTA6FQVMQMMRFIOOF2T6CPTZ4BFQGJTFHTGXNIWKUOU
-#\\\|AIJ3R6GGQCCAVFP7NX4XMONWEFX5BGQWVI6TF2LHQR5B4IYWUAU \ / AMOS7 \ YOURUM ::
-#\[7]4CAUYNR7YEPIBNYHXVHO7ZPG6DDGQ4BT7PXXARVGTDBZ2DYH5QCY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,,..,,.,,,.,,,..,..,,.,.,..,,..,,...,..,,,,,,,.,,.,.,,,.,,,,,
+#LZ5PQ7RMPZXUGWXKX6KCYV6UUX24C4RPF7Q45E6ULIAQ4DXUAPPGCQV4NFYCV4ZHWZMJR5QIF4RQK
+#\\\|CL67FTP6IVRX5XRU6SVS5L724PUAMUTVS6A44Z26BY3H6MECUOE \ / AMOS7 \ YOURUM ::
+#\[7]5AEVPZKM5TI7KFA2UJUNPFYP5633VXHZSHYIRLD5EMKQKENEN6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
