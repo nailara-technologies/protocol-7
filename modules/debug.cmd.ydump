@@ -5,12 +5,12 @@
 # descr = extracts of internal program state to yaml
 
 my $y_d_ref;
-my $keyword = $call->{'args'} // '';
+my $keyword_string = $call->{'args'} // '';
 
-my @refs;
-my %keymap;
+my $keymap      = {};
+my $result_aref = [];
 
-if ( not length $keyword ) {    ##  no keyword suppled  [ dump %data ]  ##
+if ( not length $keyword_string ) { ##  no keyword suppled  [ dump %data ]  ##
     $reply->{'mode'} = qw| size |;
     $reply->{'data'} = "\n#:Y::[''].\n\n";
     $reply->{'data'} .= YAML::XS::Dump( \%data );
@@ -18,102 +18,76 @@ if ( not length $keyword ) {    ##  no keyword suppled  [ dump %data ]  ##
     return $reply;
 }
 
-my $stripped_key_regex_match = 5;    ## true ##
-$stripped_key_regex_match = 0 if $keyword =~ s|^regex-quoted:|regex:|;
+if ( $keyword_string =~ m|^regex(\-quoted)?:| ) {
 
-if ( $keyword =~ s|^regex:|| ) {
+    my $stripped_key_regex_match = 5;    ## true ##
+    $stripped_key_regex_match = 0
+        if index( $keyword_string, qw| regex-quoted: |, 0 ) == 0;
 
-    ( my $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($keyword);
-    if ( not defined $pt_re or length ref $re_err and length $re_err->$* ) {
+    ##  acquiring extracted and [re]combined result reference  ##
+    ##
+    my $results_hash_ref
+        = { 'r-data' => <[base.resolve_data_key.regex]>->($keyword_string) };
+
+    if ( not keys $results_hash_ref->%* ) {    ## no matches ##
         return {
             'mode' => qw| false |,
-            'data' => sprintf( 'expected a valid pattern .:[ %s in regex ]::',
-                defined $re_err ? $re_err->$* : qw| error | )
+            'data' => sprintf( "no match for regular expression '%s'",
+                $keyword_string )
         };
-    } else {
-        ## regexp param ##
-        my %matches_flat;
-
-        foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
-
-            ##  correctly reversing '.' escapings  ##
-            ##
-            my $esc_keystr;
-            my $key_stripped = $data_key_str;
-            my $esc_keystr   = $data_key_str;
-            state $qu_re      = qr|(*nlb:\\)'|;
-            state $content_re = qr|(*nlb:\\)[^']+|;
-            while (
-                $key_stripped =~ m,(^|\.)$qu_re($content_re)$qu_re(\.|$), ) {
-                my $quoted = ${^CAPTURE}[1];
-                $key_stripped         =~ s|$quoted||;
-                ( my $esk = $quoted ) =~ s|(*nlb:\\)\.|\\.|g;
-                $esc_keystr           =~ s|'$quoted'|$esk|;
-            }
-
-            $key_stripped = $data_key_str    ## full key match ##
-                if not $stripped_key_regex_match;
-
-            if ( $key_stripped =~ $pt_re ) {
-
-                my $resolve_res = <[base.resolve_key]>->($data_key_str);
-
-                if ( defined $resolve_res ) {
-                    $matches_flat{$esc_keystr} = $resolve_res->{'r-data'};
-                }
-            }
-        }
-
-        my $m_ref = keys %matches_flat ? unflatten( \%matches_flat ) : {};
-        if ( keys $m_ref->%* ) {
-            $keymap{$m_ref} = sprintf "REX%s:'%s'",
-                $stripped_key_regex_match ? '' : qw| Q |, $keyword;
-            push( @refs, $m_ref );
-        }
-        return {
-            'mode' => qw| false |,
-            'data' =>
-                sprintf( "no match for regular expression '%s'", $keyword )
-            }
-            if not @refs;
     }
+
+    ##  registering search term to result ref  ##
+    ##
+    $keymap->{$results_hash_ref} = sprintf "REX%s:'%s'",
+        $stripped_key_regex_match ? '' : qw| Q |, $keyword_string;
+    push( $result_aref->@*, $results_hash_ref );
+
 } else {
-    my @result = <[base.validate.data_key_syntax]>->($keyword);
+
+    ## validating hash key syntax ##
+    ##
+    my @key_res = <[base.validate.data_key_syntax]>->($keyword_string);
     return {
         'mode' => qw| false |,
-        'data' => sprintf( '.: key syntax :. %s .:', $result[1] )
+        'data' => sprintf( '.: key syntax :. %s .:', $key_res[1] )
         }
-        if not $result[0];
+        if not $key_res[0];
 
-    my $resolve_res = <[base.resolve_key]>->($keyword);
+    ##  acquiring resolved result reference  ##
+    ##
+    my $resolve_res = <[base.resolve_key]>->($keyword_string);   ## hashref ##
 
     return {
-        'mode' => qw| false |,
-        'data' => sprintf( "failed to resolve key '%s'", $keyword )
+        'mode' => qw| false |,    ## no matches ##
+        'data' => sprintf( "failed to resolve key '%s'", $keyword_string )
         }
         if not defined $resolve_res;
 
-    @refs = ($resolve_res);
+    $result_aref = [$resolve_res];    ## store result ##
 
-    $keymap{$resolve_res} = sprintf "'%s'", $keyword;
+    ##  registering search term to result ref  ##
+    ##
+    $keymap->{$resolve_res} = sprintf "'%s'", $keyword_string;
+
 }
 
+## reparing reply message ##
 $reply->{'mode'} = qw| size |;
 $reply->{'data'} = '';
 
-foreach my $href (@refs) {
-    next if not defined $keymap{$href};    ##  uniqueness filter  ##
+foreach my $href ( $result_aref->@* ) {
+    next if not defined $keymap->{$href};    ##  uniqueness filter  ##
 
     $reply->{'data'} .= "\n" if length $reply->{'data'};
-
-    $reply->{'data'} .= sprintf "\n#:Y::[%s].\n\n%s\n#:Y::.\n",
-        delete $keymap{$href},
+    $reply->{'data'} .= sprintf "\n#:Y::[%s].\n\n%s\n#:Y::.\n\n",
+        delete $keymap->{$href},
         YAML::XS::Dump( $href->{'r-data'} );
 
 }
 
-#,,.,,.,.,..,,,.,,,.,,,.,,,,.,,,,,,,.,...,.,,,..,,...,...,...,,..,,,,,..,,.,,,
-#JWJWIZA3BV5T2QHNR2REYOYXQJJKVWM2Z7OVGW5WMJQXJ6IJX7UPXLXFBFKBI65LX6JNR3YZYXUDW
-#\\\|LNMY4ZADLQJJ2RHKUNRETDXF62QQJNS7SQPZOLHFCRYG5YRXHPX \ / AMOS7 \ YOURUM ::
-#\[7]RV7JFDASKESTTC3YB4Q455SIMM4PNHMRLQCUGKMCVC6HXOQZXOCA 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,,..,,,,,.,,,,,.,,.,,.,,,,,,,..,,...,...,.,.,..,,..,,,,,,.,.,
+#TV3YYDQXBJF2QHEJAHWG7PPJPU5YF7BTUD7GX6PZDDOD6JLEFPA5PF3OMAALBMWL53CPLRSCHHDLK
+#\\\|2LZTNKEACWHYYPEADSAHAVKLVHWIKDDIYZG3UQE7YQA6RAYTGR3 \ / AMOS7 \ YOURUM ::
+#\[7]3NHE7WZBQU55V3FVHBVUGXIHAMFDOGB2RG5I32JNS7ORGGDZQKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
