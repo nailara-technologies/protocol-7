@@ -1,0 +1,51 @@
+## >:] ##
+
+# name  = base.warnings.compact_diff_to_pragma
+
+my $warnings_check_bits = shift;
+
+if ( not defined $warnings_check_bits ) {
+    warn 'expected warnings check bits input <{C1}>';
+    return undef;
+}
+
+my $min_diff    ##  minimized state diff  ##
+    = <[base.warnings.compact_diff_from_bits]>->($warnings_check_bits);
+
+my $src_line;
+my @use_warnings;
+my @disable_warnings;
+
+foreach my $type (qw| normal fatal |) {
+
+    foreach my $key ( <[base.sort]>->( $min_diff->{$type} ) ) {
+        if ( $min_diff->{$type}->{$key} ) {
+            if ( $type eq qw| normal | ) {
+                push @use_warnings, sprintf( 'qw| %s |', $key );
+            } else {
+                push @use_warnings, sprintf( 'FATAL => qw| %s |', $key );
+            }
+        } else {
+            if ( $type eq qw| normal | ) {
+                push @disable_warnings, sprintf( 'qw| %s |', $key );
+            } else {
+                push @disable_warnings, sprintf( 'FATAL => qw| %s |', $key );
+            }
+        }
+    }
+}
+
+if (@disable_warnings) {
+    $src_line = sprintf 'no warnings %s;', join( ', ', @disable_warnings );
+    return $src_line;
+}
+if (@use_warnings) {
+    $src_line = sprintf 'use warnings %s;', join( ', ', @use_warnings );
+    return $src_line;
+}
+
+#,,..,,..,.,.,..,,,,.,.,.,,.,,.,.,...,.,.,,,.,.,.,...,...,.,.,..,,,.,,...,.,,,
+#KBNJ4IFFYD2BUHHUUQGGGBQP3L2FA3RWW4IIIFFEPWDWIF7LDLJY7ZUWP3DV5A7BXMWJNR35A4BCI
+#\\\|FRJB4HQVIEOTXJE5KNOJKIBCJJFDUVNXQ5VZT3LV6CF7RYILNWO \ / AMOS7 \ YOURUM ::
+#\[7]2IYY4XLU4EW6BIKRC3MQYEBX3E5ZKIXNLITBA23RFG24GNQ7UGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
