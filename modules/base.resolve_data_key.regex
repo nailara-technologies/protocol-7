@@ -1,0 +1,79 @@
+## >:] ##
+
+# name  = base.resolve_data_key.regex
+
+my $regexp_str = shift // '';
+my $hash_ref   = shift // *data{HASH};
+warn 'expected valid key string parameter <{C1}>' if not length $regexp_str;
+warn 'second parameter not a hash reference <{C1}>'
+    if ref $hash_ref ne qw| HASH |;
+
+my $pt_re;
+
+my $stripped_key_regex_match = 5;    ## true ##
+$stripped_key_regex_match = 0 if $regexp_str =~ s|^regex-quoted:|regex:|g;
+
+if ( $regexp_str =~ s|^regex:|| ) {
+
+    ( $pt_re, my $re_err ) = <[base.eval.comp_regex]>->($regexp_str);
+    ##  checking regexp validity  ##
+    if ( not defined $pt_re or length ref $re_err and length $re_err->$* ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'expected a valid pattern .:[ %s in regex ]::',
+                defined $re_err ? $re_err->$* : qw| error | )
+        };
+    }
+##  compiled regexp  ##
+} elsif ( index( ref $regexp_str, qw| Regexp |, 0 ) >= 0 ) {
+    $pt_re = $regexp_str;
+
+} else {    ##  not the expected format  ##
+    warn 'regexp pattern format mismatch <{C1}>';
+    <[base.log]>->( 2, ":. compiled regex or 'regex[-quoted]' prefix" );
+    return undef;
+}
+
+## regexp param ##
+my %matches_flat;
+
+foreach my $data_key_str ( <[base.dump.data_key_list]>->@* ) {
+
+    ##  correctly reversing '.' escapings  ##
+    ##
+    my $esc_keystr;
+    my $key_stripped = $data_key_str;
+    my $esc_keystr   = $data_key_str;
+    state $qu_re      = qr|(*nlb:\\)'|;
+    state $content_re = qr|(*nlb:\\)[^']+|;
+    while ( $key_stripped =~ m,(^|\.)$qu_re($content_re)$qu_re(\.|$), ) {
+        my $quoted = ${^CAPTURE}[1];
+        $key_stripped         =~ s|$quoted||;
+        ( my $esk = $quoted ) =~ s|(*nlb:\\)\.|\\.|g;
+        $esc_keystr           =~ s|'$quoted'|$esk|;
+    }
+
+    $key_stripped = $data_key_str    ## full key match ##
+        if not $stripped_key_regex_match;
+
+    if ( $key_stripped =~ $pt_re ) {
+
+        my $resolve_res = <[base.resolve_key]>->($data_key_str);
+
+        if ( defined $resolve_res ) {
+            $matches_flat{$esc_keystr} = $resolve_res->{'r-data'};
+        }
+    }
+}
+
+## return hashref to [re]combined result ##
+##
+return unflatten( \%matches_flat ) if keys %matches_flat;
+
+return {};    ## no matches ##
+
+#,,,.,,,.,.,,,,.,,.,.,,,,,.,,,.,.,,,,,,..,,,.,..,,...,..,,,..,.,,,,..,.,,,,.,,
+#J5IPIHBFG4KAORNSWJNMK5A7IBLVWTOKUPADY7OMK4JUWLLSNSR3BLEIQ3PMPPOZ6XRT673AQY4SW
+#\\\|F23XOK3TNUOJFLCWAHARB2C2S2JG3XZVJ7UREPMMQRWTW7AXZC5 \ / AMOS7 \ YOURUM ::
+#\[7]MPMLXCMTO7GJLZ2RZGJD4JE5QARO3QUE7L34N6YIPGB5QZ42V4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
