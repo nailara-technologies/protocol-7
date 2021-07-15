@@ -5,6 +5,21 @@
 
 my $code_name = shift;    ## %code hash [ key ] subroutine name ##
 
+##  translate warning bits states perl warning pragma lines  ##
+##
+my $parse_warnings     = 5;    ## true ##
+my $parse_global_vars  = 5;    ## true ##
+my $strip_header_lines = 5;    ## true ##
+
+my $header_strip_chksum = qw| 21849019 |;
+my $prefix_spaces =
+
+    my @global_hashes = qw|  code  data  colors  keys  |;
+
+## NOTE <<< collapses some cases wrong, check result for nothing missing >>>
+
+my @deparser_options = qw| -sC |;    ##  B::Deparse settings  ##
+
 if ( not defined $code_name ) {
     warn 'expected subroutine name param <{C1}>';
     return undef;
@@ -13,16 +28,69 @@ if ( not defined $code_name ) {
     return undef;
 }
 
-my $source_code = sprintf "%s\n",    ##  deparse subroutine from memory  ##
-    B::Deparse->new(qw| -p -sC |)->coderef2text( $code{$code_name} );
+##  initializing source deparser object  ##
+##
+my $parse = B::Deparse->new(@deparser_options);
+my $source_code;
 
-## removing obsolete B::Deparse subroutine header ##
-<[base.strip_chksum_lines]>->( \$source_code, 21849019, ' ' x 4 );
+## sample current warning state ##
+##
+## my $warn_state_href = <[base.get_warnings]>;   ## <-- not used yet., ##
+#
+## my $bits = warnings::bits(<[base.get_warnings]>);
+## say '< bits > ', $bits;
 
-return \$source_code;                ## scalar ref to source code ##
+my $global_hash_reg = join( qw. | ., @global_hashes );
 
-#,,,,,...,.,,,,..,,,,,..,,..,,.,.,,,.,,,.,,.,,..,,...,...,,..,.,,,...,.,,,.,.,
-#ODJ3TNS3XSS4M55427F3SL5CZSTQJKIL625DUKWGWKGIVGVU652OMLBVXZWXH2IMGOL4JEJHE4IRU
-#\\\|TGL6HOYJGXENDIU5DXRK2BCVTMFVHS5EDX6KE45AUIEKTIUWSQN \ / AMOS7 \ YOURUM ::
-#\[7]IR7VETLQPP67QK4TRNMXXEC6NBHS2G4WUZZAIOONXFYRQQYPPIBI 7  DATA SIGNATURE ::
+my $bits_re = qr|^ *BEGIN \{\$\{\^WARNING_BITS\} = ("[^"]+")\}$|;
+
+##  deparse subroutine from memory  ##
+if ($parse_warnings) {
+
+    my $coderef = $code{$code_name};
+
+    my $parsed_src;
+    $source_code = sprintf "%s\n", $parse->coderef2text($coderef);
+
+    foreach my $src_line ( split "\n", $source_code ) {
+        if ( $src_line =~ $bits_re ) {
+
+            my $bits     = eval $LAST_PAREN_MATCH;
+            my $prag_src = <[base.warnings.compact_diff_to_pragma]>->($bits);
+            $src_line =~ s|^([ \t]+).+$|$1$prag_src|;
+
+            $parsed_src .= $src_line . "\n";
+        } else {
+            $parsed_src .= $src_line . "\n";
+        }
+    }
+
+    $source_code = $parsed_src;    ##  overwriting with result  ##
+
+} else {
+
+    $source_code = sprintf "%s\n", $parse->coderef2text( $code{$code_name} );
+
+}
+
+## add code parsers here ##
+##
+if ($parse_global_vars) {
+    $source_code =~ s,([\$%])main::(*pla:($global_hash_reg)),$1,g;
+}
+
+# removing obsolete B::Deparse subroutine header ##
+if ($strip_header_lines) {
+    my $prefix_spc = $prefix_spaces ? ' ' x $prefix_spaces : undef;
+    <[base.strip_chksum_lines]>->(
+        \$source_code, $header_strip_chksum, $prefix_spc
+    );
+}
+
+return \$source_code;    ## scalar ref to source code ##
+
+#,,..,.,,,,,,,,,.,,,,,..,,...,,,,,.,.,,,,,,,,,..,,...,...,..,,,.,,.,,,.,.,.,.,
+#YNOUQATZNIPAMBVBLIAMX4IV5YALALN7YDQHZWA2RWYBBFUUWWBXDZ2MLRZ4HLWG2B4IJNQBEUTJE
+#\\\|6MSF5BPZX25LDTSKJZQP37275AZV6JJHOU77QT62VXJDC4OGE4V \ / AMOS7 \ YOURUM ::
+#\[7]ZBKMGDFEKUPEWLUTO6CMHVOW5JSRAJ7Y4G6RZXTV4KW6577V4QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
