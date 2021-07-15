@@ -1,19 +1,38 @@
 ## >:] ##
 
 # name = base.perlmod.load
+# descr = use [Module::Load::]load to load perl modules [ see 'autoload' ]
 
-my ( $module_name, @export ) = @_;
+my ( $module_name, @export ) = @ARG;
+
+if ( not defined &Module::Load::load and [caller]->[1] ne __FILE__ ) {
+    eval { require Module::Load };
+    if ( length $EVAL_ERROR ) {
+        warn <[base.format_error]>->($EVAL_ERROR);
+        eval <<~ 'EOT';
+            sub Module::Load::load (*;@) {  eval join ' ', qw| use |, @ARG  }
+        EOT
+    }
+    <[base.perlmod.autoload]>->(qw| Module::Load |);
+}
+
 <base.perlmod.auto_install> //= 0;
 
-<[base.log]>->( 2, ": loading perl module '$module_name'.," );
+if ( defined <base.perlmod.loaded>->{$module_name}
+    and <base.perlmod.loaded>->{$module_name} ) {
+    <[base.logs]>->( 2, ": skipping already present '%s'..,", $module_name );
+    return 5;    ## true ##
+}
+
+<[base.logs]>->( 2, ": loading perl module '%s'.,", $module_name );
 
 <[base.register_pm_deps]>->($module_name);
 
-# success #
-<base.perlmod.loaded>->{$module_name} = 1;
+eval { Module::Load::load( $module_name, @export ) };
 
-eval { load( $module_name, @export ) };
-return 1 if not $EVAL_ERROR;
+if ( not length $EVAL_ERROR ) {    # success #
+    return <base.perlmod.loaded>->{$module_name} = 5;    ## true ##
+}
 
 my $reason = <[base.format_error]>->($EVAL_ERROR);
 
@@ -21,39 +40,40 @@ my $reason = <[base.format_error]>->($EVAL_ERROR);
 <base.perlmod.loaded>->{$module_name} = 0;
 
 if ( $reason !~ m|^\S+ locate | ) {
-    <[base.log]>->(
-        0, "<< error while loading perl module '$module_name' >>"
+    <[base.logs]>->(
+        0, "<< error while loading perl module '%s' >>", $module_name
     );
     die "$reason\n";
 }
 
 if ( !<base.perlmod.auto_install> ) {
-    <[base.log]>->(
-        0, "<< error while loading perl module '$module_name' >>"
+    <[base.logs]>->(
+        0, "<< error while loading perl module '%s' >>", $module_name
     );
-    <[base.log]>->( 2, "  : [ '$reason' ]" );
+    <[base.logs]>->( 2, "  : [ '%s' ]", $reason );
     <[base.log]>->(
         2, "  :. << module auto_install is not enabled, doing nothing >>"
     );
-    return 0;
+    return 0;    ##  no success with loading module  ##
 }
 
-<[base.log]>->(
-    2, ": << error while loading '$module_name' [ auto_install enabled ] >>"
+<[base.logs]>->(
+    2, ": << error while loading '%s' [ auto_install enabled ] >>",
+    $module_name
 );
-<[base.log]>->( 2, ":. [ '$reason' ]" );
+<[base.logs]>->( 2, ":. [ '%s' ]", $reason );
 
-# auto install #
+## auto-install ##
 <[base.perlmod.install]>->($module_name);
 
-eval { load( $module_name, @export ) };
+eval { Module::Load::load( $module_name, @export ) };
 die "<< not able to automatically install perl module '$module_name' >>\n"
-    if $EVAL_ERROR;
+    if length $EVAL_ERROR;
 
-return 1;
+return 5;    ## true ##  [ module loaded ]
 
-#,,,,,,,.,...,.,,,..,,...,.,,,...,,,.,.,,,,..,..,,...,...,...,...,.,,,,..,.,,,
-#B7XQTP546V7LJAGH4IGL7JLC6PD25I3FIUMRHJVIBLCXFZSYJNCE4Q3UIHNCPMN3MPSZBPGKZXY6K
-#\\\|WUWU5MJLL73YAVZQJRCP53OXWQLQU4KLIFFQCESMECKDXVQGVW3 \ / AMOS7 \ YOURUM ::
-#\[7]IT4UCUTRPAVZSS7GR2JW5HXLK7NZY62T5CLE76P76GE555H4MKCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,.,,,..,,..,.,,,,,.,.,,,,..,..,,...,...,,,,,..,,..,,.,,,,,.,
+#NLC5ANEJAM7OWHOOLOQRGZMKJ3KW6VFXPGVWAUCWL4VFIQTD4TLGGMWXOEFIV7XIXRHWE7XMVY4FS
+#\\\|LU4TFY2SBO5P5FP2D5BXW7HEVL37CTWUI4YMXWP2HVIK5VECXQI \ / AMOS7 \ YOURUM ::
+#\[7]NTPN6O455B7SHHSDBPBNZRVOVW2M5JCAZPDKCLASCZPKRXQFGEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
