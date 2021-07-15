@@ -26,13 +26,15 @@ if ( $err_str =~ s| ?<\{(N)?C(\d+)?}>||g ) {
         if defined ${^CAPTURE}[1] and ${^CAPTURE}[1] =~ m|\d|;
 }
 
-if ( index( $err_str, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
-    if ( index( $err_str, "[ '", 0 ) >= 0 and $err_str !~ m|' ]'?$| ) {
-        $err_str =~ s| at .+line.+$|' \]|g;       ##  amending "' ]"  ##
-    } else {
-        $err_str =~ s| at .+line.+$||g;
-    }
-}
+### [ moved to base.format_error ] ####
+##
+## if ( index( $err_str, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
+##     if ( index( $err_str, "[ '", 0 ) >= 0 and $err_str !~ m|' ]'?$| ) {
+##         $err_str =~ s| at .+line.+$|' \]|g;       ##  amending "' ]"  ##
+##     }
+## }
+
+$err_str = <[base.format_error]>->($err_str);    ## calling early now.., ##
 
 if ( not defined $cfg_ref->{'name'} ) {
     <[base.logs]>->( 0, '[ %s zenka runtime-error ]', <system.zenka.name> );
@@ -83,8 +85,8 @@ if ( defined $sourcecode_line and <[base.cfg_bool]>->($show_src_line) ) {
 
 <[base.exit]>->(qw| 0110 |) if <base.zenka_cfg.warnings> eq qw| fatal |;
 
-#,,..,,..,...,,,,,,..,..,,..,,.,.,.,,,,,,,.,,,..,,...,...,...,...,,,.,,,,,,..,
-#KEMXOM356YKA6TEFJTSAMZI3PQKEBZ7DKQQQVKCB2B5LAPQTHSV7FLR7RRVMQKDVDOHXL4HHNP2I2
-#\\\|W6HCKJWTLQWNOGUVYIC2Z4VJLSZMKQKZNNMFREEDAYMPLN4TVOF \ / AMOS7 \ YOURUM ::
-#\[7]ZFHE4ZKI542WXYHMUXH3JHSM5LQL7SYFRNLKQNS7K3INZWWJZAAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,.,.,,,.,.,,,...,..,,...,...,..,,...,...,,.,,.,.,.,.,,..,..,,
+#HX363TYSB4EAU5UEVDSWPNB5ODZYECZEZFBY4TK3P4UHDCE3VWZYAX3X26AZTLT46576JCCITD5PI
+#\\\|XHBVRO47GX4A6GYKKINRMBT6HBG4M42W74SYCOOIKW4XPHICJLT \ / AMOS7 \ YOURUM ::
+#\[7]TPS3TQTIZ7FZ2A7FPWZ4FPUNDOMZ4KFTOTLJNX6SLCC55RRZGACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
