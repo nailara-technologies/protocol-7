@@ -3,20 +3,20 @@
 # name  = base.file.path.chksum.BMW-L13
 
 my $path_str     = shift // '';
-my $base_pathstr = shift;
+my $basepath_str = shift;
 
 if ( not length $path_str ) {
     warn 'expected path input param <{C1}>';
     return undef;
 }
 
-substr( $path_str, 0, length $base_pathstr, '' )
-    if defined $base_pathstr and index( $path_str, $base_pathstr, 0 ) == 0;
+substr( $path_str, 0, length $basepath_str, '' )
+    if defined $basepath_str and index( $path_str, $basepath_str, 0 ) == 0;
 
 return <[chk-sum.bmw.L13-str]>->($path_str);
 
-#,,..,,,.,,.,,,,,,...,.,,,..,,...,.,.,,.,,,,,,.,.,...,...,,,,,.,,,.,,,...,,.,,
-#QSMW732WM3CQKYZYFE2SWVYE4WOS3FXXIV6TPVRPCILYTP6UI2WKHXSSSGV66HVYIPKNOW6PQWWRU
-#\\\|CFIQKKDA7UCHCKWEK3FRUR3SHWOGAKK276A6X647NLICSJSJS2L \ / AMOS7 \ YOURUM ::
-#\[7]AQUELQIDQ7RJCGBVDQXK6SGPQFB7WCNPDRDRBJ3VFK3TG7P7PYBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,.,.,.,,,...,,,.,,,,,..,,...,.,.,...,.,.,,..,.,.,,.,,,.,,,..,
+#F4KZCPED7ILRLH5V3MUCUM4LX6ULK4HH5HXRHHGS2PJQGDXXT2EI4XTISVLA45CFRNEELLEY547BQ
+#\\\|3PRR2CRRTSRWVG5HVC7IPY4KPRRCD3KZEJFBHT66767G456YRNI \ / AMOS7 \ YOURUM ::
+#\[7]DSMTP4N5FPO2Q2SQVGOYWLDHZ4YBXIU6NP7V3NMRWUHZJUFBDOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

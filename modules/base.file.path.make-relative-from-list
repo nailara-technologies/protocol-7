@@ -1,0 +1,51 @@
+## >:] ##
+
+# name  = base.file.path.make-relative-from-list
+
+my $path_str      = shift // '';    ##  full path to shorten  ##
+my $basepath_aref = shift // [];    ##  base path list [ ARRAY reference ]  ##
+
+if ( not length $path_str ) {
+    warn 'expected path input param <{C1}>';
+    return undef;
+} elsif ( index( $path_str, qw| / |, 0 ) != 0 ) {
+    warn 'input path expected to be absolute path <{C1}>';
+    return undef;
+} elsif ( ref $basepath_aref ne qw| ARRAY | or $basepath_aref->@* == 0 ) {
+    warn 'expected ARRAY ref param with base path elements <{C1}>';
+    return undef;
+}
+
+if ( index( $path_str, qw| // |, 0 ) >= 0 ) {
+    $path_str =~ s|//|/|g;
+}
+
+## longest path match, if multiple ##
+
+foreach my $basepath_str ( <[base.reverse-sort]>->( $basepath_aref->@* ) ) {
+    if ( index( $basepath_str, qw| // |, 0 ) >= 0 ) {
+        $basepath_str =~ s|//|/|g;
+    }
+    if ( index( $basepath_str, qw| / |, 0 ) != 0 ) {
+        <[base.s_warn]>->(
+            'path %s is not an absolute path <{C1}>',
+            $basepath_str
+        );
+        return undef;
+    } elsif (
+        index( $basepath_str, qw| / |, length($basepath_str) - 1 ) == -1 ) {
+        $basepath_str .= qw| / |;
+    }
+    if ( index( $path_str, $basepath_str, 0 ) == 0 ) {
+        substr( $path_str, 0, length $basepath_str, '' );
+        return $path_str;    ##  match, returning result  ##
+    }
+}
+
+return undef;                ##  undef, no match in base path list  ##
+
+#,,.,,...,,,,,,.,,.,.,..,,.,,,.,,,..,,,,,,.,.,..,,...,...,.,,,,.,,.,.,..,,.,,,
+#MT4GQTB4H3FICKC5L4XEALNLDZ6NBZFPNMRVEB2OUYCOI4FBJQ2DCKZOQ76SK2WNRQG36DEOHIKH6
+#\\\|O3LQ3E7U67NRRQVY3QOQXLYMOTU5MIU2EACUKW5ANB6N2XGRSDU \ / AMOS7 \ YOURUM ::
+#\[7]GWPPSBLUSRGCDYEIQBE3OYF2UFPTNCSRIFE46AVEB2WOJN46DCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
