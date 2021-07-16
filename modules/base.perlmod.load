@@ -18,10 +18,12 @@ if ( not defined &Module::Load::load and [caller]->[1] ne __FILE__ ) {
 
 <base.perlmod.auto_install> //= 0;
 
-if ( defined <base.perlmod.loaded>->{$module_name}
-    and <base.perlmod.loaded>->{$module_name} ) {
+if (not @export    ##  create [ exports ] registry  ##  [ LLL ]
+    and defined <base.perlmod.loaded>->{$module_name}
+    and <base.perlmod.loaded>->{$module_name}
+) {
     <[base.logs]>->( 2, ": skipping already present '%s'..,", $module_name );
-    return 5;    ## true ##
+    return 5;      ## true ##
 }
 
 <[base.logs]>->( 2, ": loading perl module '%s'.,", $module_name );
@@ -72,8 +74,8 @@ die "<< not able to automatically install perl module '$module_name' >>\n"
 
 return 5;    ## true ##  [ module loaded ]
 
-#,,..,.,.,.,.,.,,,,.,,,..,,..,.,,,,,.,.,,,,..,..,,...,...,,,,,..,,..,,.,,,,,.,
-#NLC5ANEJAM7OWHOOLOQRGZMKJ3KW6VFXPGVWAUCWL4VFIQTD4TLGGMWXOEFIV7XIXRHWE7XMVY4FS
-#\\\|LU4TFY2SBO5P5FP2D5BXW7HEVL37CTWUI4YMXWP2HVIK5VECXQI \ / AMOS7 \ YOURUM ::
-#\[7]NTPN6O455B7SHHSDBPBNZRVOVW2M5JCAZPDKCLASCZPKRXQFGEBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,,.,,,.,,,.,,..,,,,.,,..,.,,,..,,...,...,...,...,,,,,.,,,,..,
+#3E5VBD6T7HYTJ2K5SW5VBFKIYFJXBYNJ3KBUTMS5FMAKUBZN3PC4W7NHNUNJSQJMQNDCRRXOJ26BO
+#\\\|UI2UFY5RLFMEL74TQTT3PGD5IKORZQJMAMFN6IZSOJFDR2QEBCH \ / AMOS7 \ YOURUM ::
+#\[7]V5663F2C5WKUTNY4EA4WHWNXUKKZ7DOHFWJPSUIPDDB55GM7PSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
