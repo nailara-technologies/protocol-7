@@ -3,19 +3,23 @@
 # name  = base.cmd.reload
 # param = [keyword]
 # descr = reload or reinit config and source code
-my @keywords = qw|  config  source  plugins  init  all  |;
+my @keywords = qw|  config  perl-mods  source  plugins  init  all  |;
 
 my $arg = $call->{'args'} // qw| all |; ## [LLL] enable multiple keyword param
 my $id  = $call->{'session_id'};
 
+##  implicit reload keyword alias  ##
+##
+$arg = qw| perl-mods | if $arg eq qw| p-mods |;   ## reloading perl modules ##
+
 my ( $success, $output ) = ( 0, '' );
 
 <base.debug.keep_on_reload>      //= 0; # <-- dbg. module persistence override
-<base.reload.success.clean-code> //= 1; # <-- delete $data{'code'} [ success ]
+<base.reload.success.clean-code> //= 5; # <-- delete $data{'code'} [ success ]
 
 my $s_str = ' ' x 5;
-$reply->{'data'} = ":\n\n\n::\n\n";     # <-- header
-my $reply_footer  = "\n::\n\n\n:\n";    # <-- footer
+$reply->{'data'} = ":\n\n::\n";         # <-- header
+my $reply_footer  = "::\n\n:\n";        # <-- footer
 my $keyword_match = 0;
 
 <system.reload.mode> = $arg; ## <-- <system.reload> deleted after completition
@@ -31,6 +35,18 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
     }
     <[base.parser.access_conf]> if $arg eq qw| config |;
     $success = 5;            ## true ##
+}
+if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
+    $keyword_match = 5;      ## true ##
+    <[base.logs]>->( '[%d] < reload perl-mods >', $id );
+    eval { Module::Refresh->refresh };
+    if ( not length $EVAL_ERROR ) {
+        $success = 5;        ## true ##
+        $reply->{'data'} .= sprintf "%s reload p-mods  [ success ]\n", $s_str;
+    } else {
+        $reply->{'data'} .= sprintf "%s reload p-mods  [  error  ]\n", $s_str;
+        $success = 0;        ## false ##
+    }
 }
 if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
@@ -156,8 +172,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,.,...,...,..,,,..,.,.,.,,,..,,,,,,.,,,,,,,..,,...,...,..,,,,,,,.,,.,,,.,,,
-#ADLF2GWGMANDM6DU5OYIXSOAJPTAWHTTESL73WEY3L5IN7DHHOJE6XLYWSLPQ7BR36K67PZ2OQLDK
-#\\\|CVXOR3CFE7RBO3YEVRWTA5WKTINAVUINRDKSRRUDRBCEQ2IL4TO \ / AMOS7 \ YOURUM ::
-#\[7]WASYYVXZNSKOQCMZJ4AGIWU3LSLJAV4IA4Q6WOKGK44VV4RVKSCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,,,,,.,,,,.,,...,...,,.,,,,.,..,,...,...,...,..,,..,,.,.,,.,,
+#KHM6WIR4BJULHFYWP6IEPKYKYMAW6DXZA4QLOSG3SZ3IRWQLHWN4DMUDEUE4MPKK7BRIL6Q6FK3JS
+#\\\|KNDWRSTMDC4PD7EMSODS2XYHNQN57Q7V3SABSA6JQCKL5XKVXX6 \ / AMOS7 \ YOURUM ::
+#\[7]JPPJ7X5FBXE6KI2IPI5WGQT7UMIQPJPBFJYWGYYMU6UJFGTFLIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

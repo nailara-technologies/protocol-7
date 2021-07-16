@@ -1,0 +1,47 @@
+## >:] ##
+
+# name  = base.chk-sum.bmw.L13-str
+# descr = returns 13 character BASE32 string [ XORed BMW chk-sum segments ]
+
+if ( not @ARG or grep { not defined } @ARG ) {
+    warn 'expected defined input param[s] <{C1}>';
+    return undef;
+}
+
+## start entropy ##
+state $start_seed_num;
+$start_seed_num //= AMOS7::BitConv::bit_string_to_num( '10000000' x 8 );
+my $bits_num = $start_seed_num;
+
+foreach my $segment_num ( unpack qw| Q8 |, Digest::BMW::bmw_512(@ARG) ) {
+
+    while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+        $segment_num = sprintf qw| %u |, $segment_num / 13;
+    }
+
+    $bits_num ^= $segment_num;    ## stringwise XOR ##
+
+    while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+        $bits_num <<= 1;          ## make true ##
+    }
+
+}
+
+my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+while (not AMOS7::Assert::Truth::is_true( $result_str_B32, 0, 1 )
+    or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+    $bits_num = sprintf qw| %u |, $bits_num / 13;
+    $bits_num <<= 5;
+    $bits_num = 13 if $bits_num == 0;    ##  make sure to exit true if 0  ##
+    ##  again until true  ##
+    $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+}
+
+return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
+
+#,,..,.,.,,,,,...,.,,,,,.,,,.,.,.,.,.,,,,,,.,,..,,...,...,,..,.,.,.,,,,,,,.,.,
+#EOU3H5T2ZG7CIVJJYKJSJ7TK77B6U2BZ6ZL7GEWBQAJ2F3YVO6I2BULUEUEGMEWPQIYR73XLP2UUE
+#\\\|XQIJPP3EFVNMDQ5L2KU4XAD55FHWR6C3NDDHJY34TQW5LEPL3ZV \ / AMOS7 \ YOURUM ::
+#\[7]ZMLRI3OFYIRFYXDMJTGS5KKX6OSFBCRJF7YMBWPVSFCVZPEZHYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

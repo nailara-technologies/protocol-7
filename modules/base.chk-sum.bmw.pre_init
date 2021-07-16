@@ -1,0 +1,20 @@
+## >:] ##
+
+# name  = base.chk-sum.bmw.pre_init
+# descr = blue midnight wish chksum algorithm module init code
+
+<[base.perlmod.load]>->('Digest::BMW');
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
+
+<[base.swap_subs]>->(qw|  base.chk-sum.bmw  chk-sum.bmw  |);
+
+## note: only using cloned copies of context via <[chk-sum.bmw.ctx.<n>]> ##
+map { <chk-sum.bmw>->{$ARG} //= undef } ( 224, 256, 384, 512 );
+
+0;
+
+#,,,,,.,,,.,,,.,,,,,,,,..,.,.,.,.,,,,,,,,,...,..,,...,...,..,,..,,..,,.,,,.,.,
+#44IVW3LSIAGDE7POCSTLS5BZCRRLFEDTALE4D34VYCWKWU44BUWECKHSXEP66GOW7H4VGFZBFXSF4
+#\\\|NDTZ3M5U4EL27WYD6K3ZL5M2UC6QQVROC6KGRYDX3B4EOWPHZIV \ / AMOS7 \ YOURUM ::
+#\[7]G7BBFHUIUWUS5XM7MQHJJLRGIFXS5UOPHVP6Q3EHV3SJBC4BUUCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
