@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = base.file.path.chksum.AMOS
+
+my $path_str     = shift // '';
+my $base_pathstr = shift;
+
+if ( not length $path_str ) {
+    warn 'expected path input param <{C1}>';
+    return undef;
+}
+
+substr( $path_str, 0, length $base_pathstr, '' )
+    if defined $base_pathstr and index( $path_str, $base_pathstr, 0 ) == 0;
+
+return scalar <[chk-sum.amos]>->( \$path_str );
+
+#,,,,,.,,,,,.,,,,,.,.,,,.,.,,,,.,,,.,,...,...,.,.,...,...,.,.,...,...,..,,.,.,
+#F5L67SIYVLLJWXJIZJSE5L7Q3Y4YV4IRCOMKHGJZEQTYR633WYM7TC6JXOVT5FBF24RXPI6WT24LM
+#\\\|CO5WM2YZ63FWCTCZ2CDOPBDDKDQRKPN4EEUUCVRWMZCREWH6PNW \ / AMOS7 \ YOURUM ::
+#\[7]UUHN2EIM7ALWZ6GL2DRBFX4HQ57E4P5FA4JR7D7JTAJDM45OO6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
