@@ -1,0 +1,44 @@
+## >:] ##
+
+# name  = base.file.path.create-chksum-link
+
+my $chksum_dir  = shift;
+my $path_string = shift;
+my $chksum_str  = shift;
+
+if ( not defined $chksum_dir or not -d $chksum_dir ) {
+    warn 'expected existing checksum directory path <{C1}>';
+    return undef;
+} elsif ( not -w $chksum_dir ) {
+    <[base.s_warn]>->(
+        'directory path %s is not writable to zenka <{C1}>', $chksum_dir
+    );
+    return undef;
+} elsif ( not length( $path_string // '' ) ) {
+    warn 'expected path str parameter <{C1}>';
+    return undef;
+} elsif ( not length( $chksum_str // '' ) ) {
+    warn 'expected chksum str parameter <{C1}>';
+    return undef;
+} elsif ( $chksum_str !~ m|^[2-7A-Z]+$| ) {
+    warn 'checksum is expected to be in BASE32 encoding <{C1}>';
+    return undef;
+}
+
+my $abs_chksum_path = abs_path( catdir( $chksum_dir, $chksum_str ) );
+
+if ( not symlink( $path_string, $abs_chksum_path ) ) {
+    <[base.s_warn]>->(
+        '[ %s ] %s', $abs_chksum_path,
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return undef;
+} else {
+    return 5;    ## true ##   [ success ]   ##
+}
+
+#,,..,.,,,,.,,,..,,,,,.,.,.,,,,..,,,.,,..,,,,,.,.,...,...,.,,,,,,,.,,,.,.,...,
+#TJUYOA64AX2Q5C4ANCM5MAQRUI47PTSF4Z7JMP4KAGX2PKJE6VPT2HUV2X75X3GNMTZMCAAPWJM6Q
+#\\\|XCRXXS62HF6NCXF2763GHSIMZE6ZDLFVFWWRL3EWNMGNPQBV6KJ \ / AMOS7 \ YOURUM ::
+#\[7]R7E5WI5XNRGI63DYTRQ67VX3GZ6UTYCIGQR5B6BJ5TCCHU7ETKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
