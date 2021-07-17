@@ -5,16 +5,15 @@
 ( my $wait_title_str = <web-browser.window.title_str> )
     =~ s|([\[\]\.])|\\$1|g;
 unless ( <[base.X-11.wait_for_window]>->( '^' . $wait_title_str ) ) {
-    <[base.log]>
-        ->( 0, "[!] window unable to open, aborting zenka startup.." );
-    exit(2);
+    <[base.log]>->( 0, '<< window cannot open, aborting zenka start-up. >>' );
+    <[base.exit]>->( ':. ending process [ window timed out ].,', 2, 2 );
 }
 
 <[base.X-11.assign_window]>;
 <[base.async.get_session_id]>;
 
-#,,,.,..,,...,.,.,,,,,,,.,,,,,.,,,,,.,,,,,..,,..,,...,...,..,,,.,,.,,,,,,,.,.,
-#AD3BKSINXKVTHQNVEYJZJZCOCHYBKYI3CBN3TW4W6EX2YSP22QSXUZCBWN42ZUDPWQHQAU5OREXTY
-#\\\|BSOGEEIIEKE6EJGJNAC6VASBHKVRZMPKCDR26EKLHDHVZBG7G4X \ / AMOS7 \ YOURUM ::
-#\[7]LXQATIDYZA3JFTJCKI7I7CRAGRLXO5ELIGK4V2JTDCU2TIOW3OAA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,,.,..,,..,,,..,.,.,...,,,.,..,,...,...,...,.,.,.,.,,,,,,,,,
+#UACLJUU5GZRH2RCPDZIFYCJG7RN3RTL7XG773ZGTLUX2CSXYYV2CK6FTPEN5QDJWDUXBBDQKMDBZC
+#\\\|NKXXC3ME7EBUKGCC6QHEG6IBQWOF2HHBBT2ZJ6YZLRSERCQKEYE \ / AMOS7 \ YOURUM ::
+#\[7]UASPAUXAZKRAX6AC2QJMZIPTRNGW6WVZJMFSUXXARXHHIWJB2WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
