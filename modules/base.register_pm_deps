@@ -2,7 +2,7 @@
 
 # name = base.register_pm_deps
 
-my %pmods          = map { $ARG => 1 } grep { !m,^AMOS(::.+|$)$, } @ARG;
+my %pmods          = map { $ARG => 5 } grep { !m,^AMOS(::.+|$)$, } @ARG;
 my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
 my $start_cfg_name = qw| start |;
@@ -14,18 +14,20 @@ my @not_registered;
 
 if ( $mod_dir
     =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/pm-dep| ) {
-    <[base.check_dependency_dirs]>
-        if !-d $mod_dir;    ## <-- find more elegant option., [LLL]
+
+    <[base.check_dependency_dirs]> if not -d $mod_dir;
+
     if (    -d $mod_dir
         and -r $mod_dir ) {
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
-            next if -e "$mod_dir/$mod_name";
+            next if -e catdir( $mod_dir, $mod_name );
             eval 'use Module::CoreList'
                 if not defined &Module::CoreList::is_core;
             next if $EVAL_ERROR or Module::CoreList::is_core($mod_name);
             if ( -w $mod_dir ) {
                 my $fh;
-                open( $fh, '>', "$mod_dir/$mod_name" ) and close($fh);
+                open( $fh, qw| > |, catdir( $mod_dir, $mod_name ) )
+                    and close($fh);
             } else {
                 push( @not_registered, $mod_name );
             }
@@ -37,14 +39,14 @@ if ( $mod_dir
         and not $access_warned++ ) {
         my $root_path = <system.root_path>;
         ( my $mod_dir_rel = $mod_dir ) =~ s|^$root_path/?||g;
-        <[base.log]>->( 0, "<< no write access to '$mod_dir_rel' >>" );
-        map { <[base.log]>->( 0, ": not registered : '$ARG'" ) }
+        <[base.logs]>->( 0, '<< no write access to %s >>', $mod_dir_rel );
+        map { <[base.logs]>->( 0, ': not registered :. %s .:', $ARG ) }
             @not_registered;
     }
 }
 
-#,,,.,.,.,,,,,..,,.,,,,,,,..,,..,,,..,,,.,.,,,..,,...,...,.,.,.,.,...,.,.,,,.,
-#NSURH2PM4MUHXZONBBM54WABML6AJ3UW5TDCSRGXH7WKGKKYG2ALSP27V64T74RFOV63NDQ2Q2ROA
-#\\\|JOQ5YD632TTH5N5BGM4FAGOW2QCRHHKCBAKKNSGYL7TNZWGZATJ \ / AMOS7 \ YOURUM ::
-#\[7]BWEVVPWE3E3F2BUJIPXROA3V5MIDDFY2AIPLBINZKPOL2EXMTAAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,...,,,.,,..,,..,,,,,...,...,..,,...,..,,,..,...,...,..,,,.,,
+#7JGTI4DG6ATSULVGV7AT2DQP6JXIYOHP4ZVRCTH4EGH263DEUIXNXRHGF3QB7AL4JVUVOBZTIWYMS
+#\\\|RZ23YDP7BLYHWTKUFX5MXWV2ZTAMSPPOIR3I2TUSDVQ7T6THL6R \ / AMOS7 \ YOURUM ::
+#\[7]UG5ICANKKW43CDKI4MFIK6KGWCWHWHZH4CXCJ27UBAN7PA3EWKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
