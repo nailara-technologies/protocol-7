@@ -60,13 +60,19 @@ my $title      = $view->get_title // '';
 #     }
 # }
 
-my $err_msg = "failed to load uri '$error_uri' [$reason_txt]";
+my $err_msg
+    = sprintf( "cannot load page '%s' [ %s ]", $error_uri, lc $reason_txt );
+
 <web-browser.last_err_msg> //= '';
-my $loglevel = <web-browser.last_log_level> //= 0;
+
+my $initial_loglevel = <web-browser.slideshow.running> ? 0 : 2; ##[ silent ]##
+
+my $loglevel = <web-browser.last_log_level> //= 0;    ## slideshow mode ##
+
 if ( $err_msg eq <web-browser.last_err_msg> ) {
     $loglevel++ if <web-browser.last_log_level> < 2;
 } else {
-    $loglevel = 0;
+    $loglevel = $initial_loglevel;
 }
 
 $loglevel = 2 if $reason_txt eq 'Load request cancelled';
@@ -88,8 +94,8 @@ $err_msg .= ' <...>' if $loglevel > 0;
 
 Glib::Idle->add( $code{'web-browser.callback.load_fail_page'} );
 
-#,,..,...,,.,,,.,,,..,...,,,.,.,,,.,,,,,,,,.,,..,,...,...,..,,...,,..,.,.,.,.,
-#FVCOKKG2BB6RYDUR6N4B3DD5MGX5YVSWPRS353ESDZ6RSDEUXS62OX2BGV6NLZO4YXI6PVDWMROTW
-#\\\|K62NG4HTCATUCVETKW57DYO7Z6HL74OIVISPOUM4H4ASIWUYXNC \ / AMOS7 \ YOURUM ::
-#\[7]3KWSNOEH67IPPALHMIKFK7ABAQT6PPHFMGFF3SKIJABO7WLAWCAA 7  DATA SIGNATURE ::
+#,,.,,...,...,...,,,.,...,,..,,,,,.,.,,..,,.,,..,,...,.,.,...,,,,,,,.,,,.,,,,,
+#NHS42LMFUNCXUWMONICURGQWTE5C64DT4M5YAMOUW4AV33MYHZT4XV6BOFLX4LZD5UJRTBXZLPXPS
+#\\\|RIQRBNVVDKGKNDTSDS2FDS5PAZX23ODUGBHCC6NUW23YZY44SR2 \ / AMOS7 \ YOURUM ::
+#\[7]CLZJX7P67FMWU4MNU6ZE6NR6PJKE44MP6RR34IJ32GSWEJG6BKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
