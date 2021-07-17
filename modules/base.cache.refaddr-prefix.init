@@ -13,7 +13,11 @@ if ( not keys $cache_ref->%* ) {
 $cache_ref->{'history'} //= [];
 
 ##  reducing prefix length by one digit  ##
-( my $refaddr_prefix = <[base.p7refs.get_refaddr_prefix]> ) =~ s|(*pla:.).$||;
+my $refaddr_prefix = <[base.p7refs.get_refaddr_prefix]>;
+
+return if not defined $refaddr_prefix;
+
+$refaddr_prefix =~ s|(*pla:.).$||;
 
 if ( defined $cache_ref->{'current'}
     and $refaddr_prefix eq $cache_ref->{'current'}->{'value_str'} ) {
@@ -56,8 +60,8 @@ return ( $refaddr_prefix, length($refaddr_prefix) ) if wantarray;
 
 return $refaddr_prefix;    ##  return only prefix string in scalar context  ##
 
-#,,..,.,,,..,,,.,,,,,,..,,,,.,,,,,,,,,,,.,...,..,,...,...,...,,..,,,.,.,,,...,
-#45SX5XDUZIEYFXNQCQJ3IMC2RDPVI3CTMKWBQEPBJEXVHCQIXYFQYWMIW7YQMD6GNGW3TKRVOG6NC
-#\\\|7ED4DT5Z33JKPXJMUIMJARDSVYRJ5PAPVZ4ULT56B72QDL3IIBJ \ / AMOS7 \ YOURUM ::
-#\[7]XPFVBLQWGGQNX6AQBD5HZCYD2XYRFZH7EJUMFKOT4ZY5S2YBXAAY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,.,.,.,.,.,.,..,,,,.,.,.,,,.,..,,...,...,..,,...,,.,,,..,,,.,
+#W67IREAMORKS57KQ5XLO5OS42MJOOX6L5B6YT3QLCZQ2RFWETH3DVQKBJMUT34ZWY6QFK46HY3D24
+#\\\|DJL2N7B6AKSKX4WHL2J7Y5363KWNHSE45WDKR3LE6CL7JKZKM6O \ / AMOS7 \ YOURUM ::
+#\[7]6DUQIKZ7XJ767BVRFVLRF43KZDS2T636ZGU2TBDLMY6SNNHIPKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
