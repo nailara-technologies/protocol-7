@@ -5,11 +5,14 @@
 
 my @result;
 my $start_time = shift;
+my $precision  = shift;    ## optional [ overrides input param precision ] ##
 
 return qw|n/a| if not defined $start_time or $start_time !~ m|^\d+(\.\d+)?$|;
-my $precision = length( $LAST_PAREN_MATCH // '' );
-my $secs      = Time::Seconds->new( <[base.time]>->($precision)
-        - sprintf( qw| %.*f |, $precision, $start_time ) );
+$precision //= length( $LAST_PAREN_MATCH // '' );
+my $secs = Time::Seconds->new(
+    sprintf( qw| %.*f |,
+        $precision, <[base.time]>->($precision) - $start_time )
+);
 
 my %result = (
     qw| days    | => 0,
@@ -38,14 +41,14 @@ if ( $secs >= ONE_DAY() ) {
 }
 $result{'seconds'} = $secs->seconds if $secs;
 
-if ( $result{'years'} and !$result{'days'} ) {
+if ( $result{'years'} and not $result{'days'} ) {
     push(
         @result,
         sprintf( qw| %d year%s |,
             $result{'years'}, <[base.cnt_s]>->( $result{'years'} ) )
     );
 } elsif ( $result{'years'} ) {
-    push( @result, sprintf( '%dy', $result{'years'} ) );
+    push( @result, sprintf( qw| %dy |, $result{'years'} ) );
 }
 
 if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
@@ -75,24 +78,24 @@ if ( $result{'minutes'} and !$result{'seconds'} ) {
 } elsif ( $result{'minutes'} ) {
     if ( $result{'hours'} ) {
         push @result,
-            sprintf( "%02d'%02d\"", $result{'minutes'}, $result{'seconds'} );
+            sprintf( qw|%02d'%02d"|, $result{'minutes'}, $result{'seconds'} );
     } else {
         push @result,
-            sprintf( "%d'%02d\"", $result{'minutes'}, $result{'seconds'} );
+            sprintf( qw| %d'%02d" |, $result{'minutes'}, $result{'seconds'} );
     }
 }
 
-push @result, "$result{seconds}s"
+push @result, sprintf( '%ss', $result{seconds} )
     if $result{'seconds'} and not $result{'minutes'} or not @result;
 
-my $result_str = join( ' ', @result );
+my $result_str = join ' ', @result;
 $result_str =~ s| days? (\d+)h |d $1 | if length($result_str) >= 10;
 $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,,,,,.,,,.,,,..,.,.,,,,,,,,,,.,,...,,,,,,,,,..,,...,...,...,.,.,.,,,,.,,..,,
-#6IDANZYCSQFUYEGHO6GPUGWNAWIQNOLAJCDEHYAYW7ARQWT2CINKDTQ7ILFR24IFXMSB4EHESX6ZK
-#\\\|WHVTCWMWCJVKBURBK3JBPF3KCHRMXN2TKRF3IMBHFIPTBYOFZLA \ / AMOS7 \ YOURUM ::
-#\[7]LKAWXD5KCGDEK53I7F3LWCKADSXLZG2HLLOAFPX5FVNBRNKCBOAA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,..,,,,,,.,,,,..,,..,,..,,,.,..,,...,...,,,.,..,,,..,..,,,..,
+#2AHZM5YMAL4YOMW4K5LYEUGJMALAR542RNZ6PW4N7H44J5SHCTGSQUPWX5YCJYQ4YFCC2O4UJP5NM
+#\\\|ATU5VHG7M2PBICMG5JCQXFSDTEOSKV27ROQMCZQVZIA5MDOWQFR \ / AMOS7 \ YOURUM ::
+#\[7]CLX55N7FEFAPGBH4I7WJ3ORF4CDNGHQZIMKPPVLTBV7DGELSWMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
