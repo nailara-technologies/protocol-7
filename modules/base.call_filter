@@ -2,18 +2,31 @@
 
 # name = base.call_filter
 
-my ( $filters, $key, $val ) = ( shift, shift, shift );
+my ( $filters, $key, $val, $params ) = ( shift, shift, shift, shift );
 
-return $code{ $filters->{$key} }->($val)
-    if defined $filters
+if (    defined $filters
     and exists $filters->{$key}
-    and exists $code{ $filters->{$key} };
+    and defined $code{ $filters->{$key} } ) {
+
+    my $filter_param;    ## optional filter parameter ##
+    my $filter_par_name = sprintf qw| %s_param |, $key;
+    $filter_param = $filters->{$filter_par_name}
+        if defined $filters->{$filter_par_name};
+
+    if ( defined $filter_param ) {   ##  optional param configured in list  ##
+
+        return $code{ $filters->{$key} }->( $val, $filter_param );
+
+    } else {
+        return $code{ $filters->{$key} }->($val);    ## no param defined ##
+    }
+}
 
 # unfiltered
 return $val;
 
-#,,,,,..,,...,,.,,.,,,...,,..,,,,,.,,,,..,,..,..,,...,...,,,.,..,,...,.,.,,.,,
-#LXXHEL7HMCLWMVIEOVVIZX3A73DBVF7I4MAVLG5PZ5GISMRHNFOWQDJK3XDIOI7LHZJ6PEAXLEVZM
-#\\\|J5BZMYEVDUKWEJKYPHGOYAU4KKU5EGCXVBS7XGLPHMCS2NA6V5N \ / AMOS7 \ YOURUM ::
-#\[7]VPRKCMOUGCHTWLUBDWOY7QALROL2QCUSHDFLBHYFL7UAXJOVVADA 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,.,,,...,...,,,.,.,,,.,,,,,.,..,,...,...,.,.,,,,,,.,,,..,.,.,
+#A24F3QQH7CZCADWOGPA6IM2F6UY2PGKE7AVCP4Z7I337L4VYV7AUXRTS46DM24VAMYG3V3BETBIHO
+#\\\|K6LJGGGTUUVHBCN5UFTECKOCXJZ4KJI5TDBPLVLP3NZHIRQD3SK \ / AMOS7 \ YOURUM ::
+#\[7]RA3TQRN6W4YDSUWQVIZCOB5EBVDI3LONUEVXTDQQPJJLX2RTJ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
