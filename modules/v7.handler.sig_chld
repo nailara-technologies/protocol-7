@@ -5,19 +5,41 @@
 
 <[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
 
+if ( @ARG and not length ref $ARG[0] ) {
+    ( my $received_pid, my $received_exit_code ) = @ARG;
+    if ( $received_pid =~ m|^\-?\d+$| ) {
+        <base.process.waitpid_collected>->{$received_pid}
+            = $received_exit_code;
+    }
+}
+
+my @waitpid_pid;    ## collection from base.exists.sub-process ##
+my $collected_child_pids = <base.process.waitpid_collected> //= {};
+@waitpid_pid = <[base.reverse-sort]>->($collected_child_pids)
+    if keys $collected_child_pids->%*;
+
+my $end_pid;
 local ( $OS_ERROR, $CHILD_ERROR );
-while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
+while ( @waitpid_pid
+    or ( $end_pid = waitpid( 0, WNOHANG() ) ) > 0 ) {
+
+    my $child_error_val;
+    if ( not defined $collected_child_pids->{$end_pid} ) {
+        $child_error_val = $CHILD_ERROR;
+    } else {
+        $child_error_val = delete $collected_child_pids->{$end_pid};
+    }
 
     my ( $instance, $zenka_name, $instance_id, $zenka_subname );
 
-    if ( my $child = <v7.child>->{$pid} ) {
+    if ( my $child = <v7.child>->{$end_pid} ) {
         $instance_id   = $child->{'instance_id'};
         $instance      = <v7.zenka.instance>->{$instance_id};
         $zenka_name    = $instance->{'zenka_name'};
         $zenka_subname = $instance->{'subname'};
     }
 
-    $instance_id //= delete <v7.process.instance_cache>->{$pid};
+    $instance_id //= delete <v7.process.instance_cache>->{$end_pid};
     <[base.clean_hashref]>->(<v7.process.instance_cache>);
 
     $instance = <v7.zenka.instance>->{$instance_id}
@@ -26,41 +48,48 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         and defined <v7.zenka.instance>->{$instance_id};
 
     # determine exit status
-    my $log_level    = 2;
-    my $exit_val     = $CHILD_ERROR >> 8;
-    my $exit_sig     = $CHILD_ERROR & 127;
+    my $log_level = 2;
+    my $exit_val
+        = $child_error_val != -1 ? $child_error_val >> 8 : $child_error_val;
+    my $exit_sig     = $child_error_val != -1 ? $child_error_val & 127 : 0;
     my $exit_sig_str = $exit_sig ? sprintf( ', signal %s', $exit_sig ) : '';
     $log_level = 0
         if $exit_sig_str =~ s|(signal 11)$|$1 :: segmentation fault ::|;
-    my $e_core_dump = $CHILD_ERROR & 128 ? ' and a core dump' : '';
+    my $had_coredump
+        = ( $child_error_val != -1 and $child_error_val & 128 ) ? 5 : 0;
+    my $e_core_dump = $had_coredump ? ' and a core dump' : '';
     $log_level = 1 if $exit_val or $exit_sig == 9;
-    $log_level = 0 if $CHILD_ERROR & 128;
+    $log_level = 0 if $had_coredump;
     my $zenka_str
         = defined $zenka_name
         ? sprintf( '< %s >', $zenka_name )
         : qw| child |;
     <[base.logs]>->(
         $log_level, '%s [PID:%d] shut down with exit code %s%s%s',
-        $zenka_str, $pid, $exit_val, $exit_sig_str, $e_core_dump
+        $zenka_str, $end_pid, $exit_val, $exit_sig_str, $e_core_dump
     );
 
     <[v7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 
-    <[v7.terminate_process]>->($pid);    # <-- cleaning up children  .., [LLL]
+    <[v7.terminate_process]>->($end_pid);
+
+    # <-- cleaning up children  .., [LLL]
 
     if (    defined $instance_id
         and $instance_id =~ <regex.base.iid>
         and defined $instance
-        and my $child = <v7.child>->{$pid} ) {
+        and my $child = <v7.child>->{$end_pid} ) {
         <[base.logs]>->( 2, ': was instance %d', $instance_id );
 
-        delete <v7.child>->{$pid};
-        delete $instance->{'restart_pids'}->{$pid}
+        delete <v7.child>->{$end_pid};
+        delete $instance->{'restart_pids'}->{$end_pid}
             if exists $instance->{'restart_pids'};
 
-        my $old_status = $instance->{'status'} // qw| undefined |;
+        my $current_pid = $instance->{'process'}->{'id'};
 
-        <[base.logs]>->( 2, ": had status : '%s'", $old_status );
+        my $current_status = $instance->{'status'} // qw| undefined |;
+
+        <[base.logs]>->( 2, ": had status : '%s'", $current_status );
 
         ## record web-browser segfaults [ for crash mitigation ] ##
         if ( $exit_sig == 11 and $zenka_name eq qw| web-browser | ) {
@@ -72,7 +101,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             my $file_name = join( '',
                 qw| /var/run/.7/web-browser.crash_pid |, $subname_b32 );
 
-            <[file.put]>->( $file_name, sprintf( "%d\n", $pid ) )
+            <[file.put]>->( $file_name, sprintf( "%d\n", $end_pid ) )
                 or warn join( qq| : |,
                 $file_name, scalar <[base.format_error]>->($OS_ERROR) );
             chmod( 0644, $file_name )
@@ -85,21 +114,22 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
         }
 
         my $next_status
-            = $old_status =~ m,error|online|starting,
+            = $current_status =~ m,error|online|starting,
             ? qw|  error  |
             : qw| offline |;
 
-        $next_status = qw| restart | if $old_status eq qw| restart |;
+        $next_status = qw| restart | if $current_status eq qw| restart |;
 
-        if ( $old_status eq qw| online | and defined <v7.ondemand_zenki> ) {
+        if ( $current_status eq qw| online | and defined <v7.ondemand_zenki> )
+        {
             map { $next_status = qw| offline | if $ARG eq $zenka_name }
-                @{<v7.ondemand_zenki>};
+                <v7.ondemand_zenki>->@*;
         }
 
         if ( <[v7.instance_pid_count]>->($instance_id) ) {
 
             <[zenka.change_status]>->( $instance_id, qw| delayed | )
-                if $old_status eq qw| restart |;
+                if $current_status eq qw| restart |;
 
             $instance->{'pid_check_timer'} = <[event.add_timer]>->(
                 {   'after'    => 0.07,
@@ -113,7 +143,7 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
             );
         } else {
             <[zenka.change_status]>->( $instance_id, $next_status )
-                if $old_status ne $next_status;
+                if $current_status ne $next_status;
 
             <[v7.init_restart_timer]>->($instance_id)
                 if $next_status !~ m,offline|shutdown,;
@@ -123,8 +153,8 @@ while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
     }
 }
 
-#,,.,,.,.,,.,,.,.,,,.,.,,,,.,,.,,,.,.,,..,.,,,..,,...,...,..,,.,.,,,.,.,.,,..,
-#HWTEM77VLPFZH73MTFQYSXX5SBZJJFV5TE2XX3E6274GFF2PCORKPTRRNZQ34A7ZR5EZ2F7SONBAK
-#\\\|G4MGO56HXWQIRBHGIFHCEIR6QAAE5GPJVJMZ7QPMRXPT4BAH2DU \ / AMOS7 \ YOURUM ::
-#\[7]MEKRVPFBLIM3G4LEEAGMWZYS7BP5AVB3LEBZGSS5B35M2NVOPOAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,...,,.,,...,,..,.,.,,.,,...,..,,...,...,.,.,,,,,,,.,,..,,,,,
+#M5JZOORZOH5GLSHNYSHAKZ3W6E5L6FJUX4OVQPAZMSDPW4W2Q72IGA332RWDKQY4ZSKLWSDCY3EHE
+#\\\|OKWG4GWLZRMJS66APO4E7AXZQY4OGIBUY3TK2EL4YIDEFXDOU4M \ / AMOS7 \ YOURUM ::
+#\[7]Q6GCOHRLSQHCJQIIXQKPNT2V75NFCHAK2Q67ZCWTLTWVKPQ7NUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

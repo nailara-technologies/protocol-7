@@ -10,12 +10,12 @@ my $reply_id      = $wait_req->{'reply_id'};
 my $title_pattern = $wait_req->{'pattern'};
 
 if ( not defined $title_pattern ) {
-    warn "[$id] title pattern not defined";
+    <[base.s_warn]>->( '[%d] title pattern not defined', $id );
     <[X-11.cancel_wait_visible_timers]>->($wait_req);
     return;
 }
 
-$watcher->interval( sprintf( '%.4f', $watcher->interval() * 1.07 ) );
+$watcher->interval( sprintf( qw| %.4f |, $watcher->interval() * 1.07 ) );
 
 my $match_id;
 foreach my $window_id (<[X-11.get_window_ids]>) {
@@ -63,8 +63,8 @@ if ( length( $match_id // '' ) ) {
     return 1;
 }
 
-#,,..,...,.,.,,,.,.,,,.,,,,,.,,,,,,.,,,.,,.,.,..,,...,..,,...,.,.,,,.,.,.,,,.,
-#MQ75UPQR7LW43ETK7W4LQJASVPK5Y3B6DSIDEYPJEI3NOBFV6DWKCF73BPVD6T33JXICQB7GDIR7W
-#\\\|FDJ36BV5NUUV5FMFMC4CU7OA3T7ZUQMMW4IXER6PPGBSYL4IWXB \ / AMOS7 \ YOURUM ::
-#\[7]L4D6CAVO7V4SJETSVAUPVVKUIWPRNN2TLP2UDDKWJUGX73ENYCBY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,,,,.,.,,,.,.,,,.,,,...,.,.,..,,...,...,...,...,,..,,.,,,,.,
+#5HHVLMH7W52RLHVA4FHBS7PPCKWBFUDN2JSYDXPMCL3MFG25JAD7PW4SXAPXNXMSH5B746YTXEYTM
+#\\\|NTQZXL3WXALV56OGYKVYFCPQANBOVMN53JBAVXUU7EIP7533HFI \ / AMOS7 \ YOURUM ::
+#\[7]JTMJB2FYZLEVLZP2Y3UEYRAP7YJZX2AE7LGUGMPOY4PN4AAB2QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

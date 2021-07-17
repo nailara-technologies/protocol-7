@@ -10,9 +10,9 @@ my $fallback_delay = 0.7;    ## <-- when 'restart_delay' not defined ##
 
 if ( not defined $instance ) {
     ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
-    <[base.log]>->(
-        2,
-        "< init_restart_timer > instance $instance_id gone ? [$caller_str]"
+    <[base.logs]>->(
+        2,            "< init_restart_timer > instance %d gone ? [%s]",
+        $instance_id, $caller_str
     );
     return undef;
 }
@@ -41,8 +41,8 @@ $instance->{'timer'}->{'restart'} = <[event.add_timer]>->(
     }
 );
 
-#,,,.,...,,.,,..,,,.,,.,.,..,,.,,,...,.,,,,,,,..,,...,...,,.,,..,,...,.,.,.,.,
-#GTEANK3Q4LCRTAYK3IUEL5Z66AS6L4CKQIBDGGH7OUWZ3HFN5SCGG5ULCOBMIIE63GYJ4FM53TYOE
-#\\\|D27ORM4ADQG7RUJ24QFQ4FZSIUILVOZMQWF6QH6PIIGBVOZ4DO6 \ / AMOS7 \ YOURUM ::
-#\[7]VIUISMO3KOBGKX3Y4L4PEDTS5Q24BGHSBWZLLB6UI6XLRO43EAAY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,.,,,,.,,,,,,..,,...,..,,,,.,..,,...,..,,...,,.,,,..,...,.,,,
+#IUJFX6MV5RNDDWVBQ4EQII2ZA265LKKP5BUBQQYKUVLIF5WKEJPD5GZAFIFNQZU2HRFPTVJCKY6EY
+#\\\|JOVVCJTIL2LXRPDLBMEUA75J62UG4463XNJI3HEEVVAZNN5DRA6 \ / AMOS7 \ YOURUM ::
+#\[7]KKUI3OAC66WB562C7HS56HADAF2R7IK2MWRN2TKMS3AGQDKX7ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

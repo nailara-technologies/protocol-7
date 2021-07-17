@@ -20,7 +20,7 @@ return <[base.logs]>->(
     if not exists <v7.zenka.instance>
     or not exists <v7.zenka.instance>->{$instance_id};
 
-my $globals  = <v7.start_setup.globals> || {};
+my $globals  = <v7.start_setup.globals> // {};
 my $instance = <v7.zenka.instance>->{$instance_id};
 
 my $old_status   = $instance->{'status'} // $status;
@@ -426,8 +426,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,,,,,,.,,...,.,.,,,,,,..,,,,,.,,,,,.,,.,,..,,...,...,..,,..,,.,,,,,,,,..,
-#QSAV47Y3VHVRDENGMLFSNWJ3WAWIL66JX53IEL23IBNBRI3UMMBMZVQT5KFEIXSGKH6CUSDVHMM4Y
-#\\\|XEJB2XMBLCXU5KDFGV6O4TVAFVMGKTDOAWSF52DUGLQBMTFQTUX \ / AMOS7 \ YOURUM ::
-#\[7]NDESBU4QDBJPUXRDFC7BQVFU575GUS34PSNOMQUZIAKYIT5TO4AY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,,,,,...,..,,,..,,..,...,,..,..,,...,..,,..,,,.,,..,,.,,,.,.,
+#KGIZFHPSZKWLCGJMCRBRKMW5HWWGQHI2MHSIWOYJVHDMUUNZLYTBENNHG37B7XXRCRVW62MUTSWCW
+#\\\|ZWI66PUEQDD4YR3TTF4PU2PFYRKJRCHCJYBCN3ILY3VSZC34MAN \ / AMOS7 \ YOURUM ::
+#\[7]JTCHTNH4DGFYGDVSJKMHU2IKEXBJJA34KTXRT2HM3X3YVZEO2GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

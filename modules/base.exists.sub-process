@@ -9,10 +9,22 @@ my $check_pid = shift // '';
     if $check_pid !~ m|^\d+$|
     or abs($check_pid) < 2;
 
-return waitpid( $check_pid, WNOHANG() ) == -1 ? 0 : 5;
+my $return_code = 0;    ##  setting up for no matches  ##
 
-#,,..,.,,,,.,,...,,..,.,.,,..,,..,,..,.,,,,,,,..,,...,...,,.,,,,,,,..,,,.,...,
-#NPDIOR7344IQFERTV43LAQYZZ63VW5DNZEW3XDFG7LD6M2RPXAVETYADOXE65FCQXLUJW4X5UCCP2
-#\\\|JY6HYZOGG2HZGNWY6UMYK5B4LP7IH4AEUMMRCPXFU3QEYTA4PAQ \ / AMOS7 \ YOURUM ::
-#\[7]4Q4J4DQKNF3ELEO2PBLTEZYZZKWKT4AJXJBNNATDTILQNSGN4IBI 7  DATA SIGNATURE ::
+##  first collecting all [other] pids  ##
+while ( my $end_pid = waitpid( 0, WNOHANG() ) > 0 ) {
+    ## this is to not mess up CHILD_ERROR for SIGCHLD handler ##
+    <base.process.waitpid_collected>->{$end_pid} = $CHILD_ERROR;
+}
+
+my $wait_pid = waitpid( $check_pid, WNOHANG() );
+
+$return_code = 5 if $wait_pid == 0;    ##  true,  exists  ##
+
+return $return_code;
+
+#,,,.,,..,,.,,,,.,.,.,..,,,,,,,..,,.,,,..,.,.,..,,...,...,.,,,,..,...,..,,.,,,
+#MBZFUSFEHNNVX3PDSG52M47ZLVJN6BUJ5V6FBPPY2KKJT2JOBEMA4DVK5BZ76H7G2BQCKYEHA4QHU
+#\\\|ZRSPQZXFT7EVEWGBJOCOYR3X4QVDEGWWIRMAKZRI2LPBVUCWHDO \ / AMOS7 \ YOURUM ::
+#\[7]VNHJZ42E3TJ6AKJIOE66LXH7LXYOJ2YVPTDI6TW7DU7URH3PI2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
