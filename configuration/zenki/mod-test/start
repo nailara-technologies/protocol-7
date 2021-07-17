@@ -1,0 +1,36 @@
+
+.:[ module test zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer cur-pid \
+                      buffer-erase buffer-erase-level \
+                      start-test stop exec-sub eval-code
+
+modules.load = auth net protocol io.unix io.ip mod-test chk-sum.jha ## debug
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+# [base.net.connect:'ip']
+[base.net.connect:'unix']
+
+system.verbosity.console = 1
+
+[base.get_session_id]
+
+# [mod-test.check_name_collisions]
+
+# [mod-test.perlmoda.reload_test]
+
+[zenka.loop]
+
+#,,,.,,..,.,,,,.,,,.,,.,.,,,,,,.,,..,,,..,...,..,,...,...,...,,..,,,.,,,.,.,,,
+#3JENXUFLPIGPNWFLLTZBM2H7BTRT5AMPQ2ZA7V3IMAABVUXO3GZQQR3GMRAQEFAQ6YTKEUMWUWKAW
+#\\\|TZ5EBESSNRSTW4FM3G2F25DBEI333BPBX7XOECVUKSOFIT4K4ET \ / AMOS7 \ YOURUM ::
+#\[7]D7YESESJCKDOQDCMB7P4MZWODNPGDRDKNLT4G2R6KNNRRIUJF2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

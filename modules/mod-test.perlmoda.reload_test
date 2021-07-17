@@ -1,0 +1,111 @@
+## >:] ##
+
+# name  = mod-test.perlmoda.reload_test
+
+my $mod = <base.modules.refresh>;
+
+my %refresh;
+
+my @collected;
+
+my $completed_dir = qw| /var/run/.7/module-reload-test-completed |;
+my $blacklist_dir = qw| /var/run/.7/module-reload-blacklist |;
+foreach my $directory ( $blacklist_dir, $completed_dir ) {
+    if ( not -d $directory ) {
+        <[base.logs]>->( ': creating directory %s ..,', $directory );
+        <[file.make_path]>->($directory);
+    }
+}
+
+my $file_template_blacklisted = sprintf qw| %s/%%s |, $blacklist_dir;
+my $file_template_completed   = sprintf qw| %s/%%s |, $completed_dir;
+
+## return 'continue ..,';
+
+my $test_count = 28;
+
+my $subs = {
+
+    qw| update_start | => sub {
+        my $filename = shift;
+        <[file.write_timestamp]>->(
+            sprintf $file_template_blacklisted, $filename
+        );
+    },
+    qw| update_end | => sub {
+        my $filename = shift;
+        <[file.write_timestamp]>->(
+            sprintf $file_template_completed, $filename
+        );
+        unlink( sprintf $file_template_blacklisted, $filename )
+            or warn scalar <[base.format_error]>->( $OS_ERROR, -1 );
+    },
+    qw| is_completed | => sub {
+        my $filename = shift;
+        return 5 if -e sprintf $file_template_completed, $filename;
+        return 0;
+    },
+    qw| is_blacklisted | => sub {
+        my $filename = shift;
+        return 5 if -e sprintf $file_template_blacklisted, $filename;
+        return 0;
+    }
+
+};
+
+my $collect_coderef = sub {
+    push @collected, scalar <[base.format_error]>->( $ARG[0] )
+        if defined $ARG[0]
+        and $ARG[0] !~ m,(^| )subroutine \S+ redefined ,i;
+};
+
+my @all_files = <[base.sort]>->( \%INC );
+
+local $SIG{__WARN__} = $collect_coderef;
+
+my @reload_blacklist = qw[
+
+    Event.pm
+
+];
+
+my %skip = map { $ARG => 5 } @reload_blacklist;
+
+foreach my $module_file (@all_files) {
+    ( my $mod_short = $module_file ) =~ s|^.+/||;
+    next
+        if $subs->{'is_completed'}->($mod_short)
+        or $subs->{'is_blacklisted'}->($mod_short);
+
+    say '< starting test of mod > ', $mod_short;
+
+    $subs->{'update_start'}->($mod_short);
+
+    say sprintf ':   < starting > testing perl module %s ..,', $mod_short;
+
+    foreach my $iteration ( 1 .. $test_count ) {
+        say sprintf ':. iteration .: %03d', $test_count - $iteration;
+        for ( 1 .. 7 ) {
+            <[base.sleep]>->(0.1);
+            <[event.once]>;    ## waiting ##
+        }
+
+        $mod->unload_module($module_file);
+        $refresh{$module_file} = $mod->refresh_module($module_file);
+
+        <[event.once]>;
+    }
+
+    say sprintf '< completed > removing %s from blacklist ..,', $mod_short;
+    next if $subs->{'update_end'}->($mod_short);
+}
+
+<[base.log]>->( 0, ': done.' );
+
+return \@collected;
+
+#,,..,,,.,..,,...,..,,,,.,,.,,...,,.,,..,,,,.,..,,...,...,...,.,.,,,,,,.,,,,.,
+#SXKLXI4JIAAMITAOYTXPRRWOD57Q54ZFPKQWAWJDWTXWBJNEBYVHI3TMJ5AZLGEEK4JKATTTLSXQY
+#\\\|TWLOLSGQLODVJNJLT2WD2J2ETGPSPOWNBVKP7DQTG75QBSFXGOP \ / AMOS7 \ YOURUM ::
+#\[7]QJLOGBEZU2P6UG3FE64S4KXEDXTJ4MSGO7A6ZDEL6SAWJBLSXECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
