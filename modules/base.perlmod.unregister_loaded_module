@@ -1,0 +1,27 @@
+## >:] ##
+
+# name  = base.perlmod.unregister_loaded_module
+
+my $module_name    = shift // '';
+my $mod_was_loaded = 0;
+
+if ( not length $module_name ) {
+    warn 'expected module name parameter <{C1}>';
+    return undef;
+}
+
+$mod_was_loaded = 5
+    if defined <base.perlmod.loaded>->{$module_name}
+    and <base.perlmod.loaded>->{$module_name};
+
+delete <base.perlmod.loaded>->{$module_name}
+    if defined <base.perlmod.loaded>->{$module_name};
+
+return 5 if $mod_was_loaded;    ##  true for status changed  ##
+return 0;                       ##  false if nothing changed  ##
+
+#,,,.,..,,..,,.,.,,.,,.,.,.,,,.,,,,.,,.,,,..,,..,,...,...,...,,.,,,.,,,,.,,,,,
+#JOWQHDD6Q756GLDTGFJUKYPXACLKCYCN2F7PYPJDP4YE27ZPAZPT7KQCFGUYSVJVABPJMY3TCD5VY
+#\\\|EE5GOCJLCWFAU7QLUK7KSV6MRUT64HCTLANUQD5QQ5YSGMKMMG2 \ / AMOS7 \ YOURUM ::
+#\[7]ND3UO7EIWPQEFXJ35NAYE5ORCQA743PHVCJIVYWJNPNL5IPDQSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
