@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = base.chk-sum.elf.regular-elf
+# descr = 32-bit elf hash algorithm [ unmodified ], no bug fixes
+# note  = stops hashing at \x00 and has overflow for characters above 127
+
+foreach my $arg (@ARG) {
+    warn 'ascii character 0 in input [ checksum ends prematurely ] <{C1}>'
+        if index( $arg, chr(0), 0 ) >= 0;
+}
+
+my $elf_sum = Digest::Elf::elf( join( '', @ARG ) );
+
+warn 'checksum overflow [ ascii > 127 input ] <{C1}>' if length $elf_sum > 9;
+
+return $elf_sum;
+
+#,,,.,,..,..,,.,,,,..,..,,.,.,..,,.,,,,.,,.,,,..,,...,...,...,.,.,,.,,,,,,..,,
+#MQ3DHLT2YIAK55E2TUAAIQKG5HFSSNM4DDBVFZI3EMJIOFIFOUOKCBKMCEUCK5LJZK4C27DB4GDCW
+#\\\|LNTIMYUSEJLA5L6SYIFSSCX3N3A7E6GBW5B2WRHYQHMWLV3ONAW \ / AMOS7 \ YOURUM ::
+#\[7]ZFLHDZL4TOACUVITAJMVVJBVWOLBWBW72KCSGRHGEWG3P6LJWQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
