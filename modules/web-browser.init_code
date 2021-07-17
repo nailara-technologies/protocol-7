@@ -2,7 +2,7 @@
 
 # name = web-browser.init_code
 
-<system.zenka.mode> //= 'stand-alone';
+<system.zenka.mode> //= qw| stand-alone |;
 
 <[base.perlmod.autoload]>->('Gtk3');
 <[base.perlmod.autoload]>->('Glib');
@@ -11,23 +11,27 @@
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
-eval { <[base.perlmod.autoload]>->('Glib::Event') }; # may fail, not mandatory #
+my $opt_mod_name = qw| Glib::Event |;
 
-my $l = $EVAL_ERROR ? 0 : 1;
-<[base.log]>->( $l, ":.. will run without 'Glib::Event', less efficient ..," )
-    if not defined <base.perlmod.loaded>->{'Glib::Event'}
-    or <base.perlmod.loaded>->{'Glib::Event'} == 0;
+eval { <[base.perlmod.autoload]>->($opt_mod_name) };   ## may fail,optional ##
+
+my $log_level = length $EVAL_ERROR ? 0 : 1;
+
+<[base.logs]>->(
+    $log_level, ":.. will run without '%s', at performance cost ..,",
+    $opt_mod_name
+) if not <[base.perlmod.loaded]>->($opt_mod_name);
 
 $ENV{'NO_AT_BRIDGE'} = 1;
-$ENV{'GTK_DEBUG'}    = 'no';
-$ENV{'GDK_DEBUG'}    = 'no';
+$ENV{'GTK_DEBUG'}    = qw| no |;
+$ENV{'GDK_DEBUG'}    = qw| no |;
 
-<web-browser.title_prefix> = 'amos-desktop';
+<web-browser.title_prefix> = qw| amos-desktop |;
 
 <web-browser.path> = {
-    'icon-file' => join( '',
-        <system.root_path>,
-        qw| /data/gfx/icons/protocol-7/nailara.64x64.png | )
+    qw| icon-file | => catfile(
+        <system.root_path>, qw| data/gfx/icons/protocol-7/nailara.64x64.png |
+    )
 };
 
 ## setting <web-browser.window.title_str> ##
@@ -71,7 +75,7 @@ $ENV{'GDK_DEBUG'}    = 'no';
 
 <[web-browser.calc_scroll_speed]>
     if not defined <web-browser.subcfg>
-    or ref(<web-browser.subcfg>) eq 'HASH'
+    or ref(<web-browser.subcfg>) eq qw| HASH |
     and not defined <web-browser.subcfg.scroll_speed>;
 
 $ENV{'GTK_OVERLAY_SCROLLING'}
@@ -87,7 +91,7 @@ $ENV{'GTK_OVERLAY_SCROLLING'}
     = <[file.slurp]>->(<web-browser.loading_page>);
 
 # [ workaround to suppress weird\untraceable Event.pm warnings on load timeout ]
-<sig_warn_blacklist.package> = 'Carp';
+<sig_warn_blacklist.package> = qw| Carp |;
 <sig_warn_blacklist.pattern>
     = qr{Source ID \d+ was not found when attempting to remove it
         |GLib-LOG \*\*: posix_start avoided}x;
@@ -97,16 +101,16 @@ if (<web-browser.open_gtk_inspector>) {
     <[base.log]>->(
         0, "<<< 'Gtk Inspector' enabled.., >>>  [ open_gtk_inspector=1 ]"
     );
-    $ENV{'GTK_DEBUG'} = 'interactive';
+    $ENV{'GTK_DEBUG'} = qw| interactive |;
 }
 
 package Browser::ScrolledWindow;
 
-use Glib::Object::Subclass 'Gtk3::ScrolledWindow';
+use Glib::Object::Subclass qw| Gtk3::ScrolledWindow |;
 
 sub INIT_INSTANCE {
     my $self = shift;
-    $self->set_policy( 'never', 'never' );
+    $self->set_policy(qw|  never  never  |);
 }
 
 package Browser::WebView;
@@ -119,24 +123,34 @@ package Browser::WebView;
 Glib::Object::Introspection->setup(
     qw| basename WebKit2 version 4.0 package Gtk3::WebKit2 |);
 
-use Glib::Object::Subclass 'Gtk3::WebKit2::WebView',
+use Glib::Object::Subclass qw| Gtk3::WebKit2::WebView |,
     properties => [
     Glib::ParamSpec->boolean(
-        'self-scrolling', 'undefined',
-        'undefined',      0,
+        qw|  self-scrolling  undefined  undefined  |, 0,
         [qw| readable writable |]
     ),
     ];
 
 sub INIT_INSTANCE {
     my $self = shift;
-    $self->set_property( 'self-scrolling', 0 );
+    $self->set_property( qw| self-scrolling |, 0 );
 }
+
+$code{'base.handler.end_code'} = sub {
+    <[base.log]>->( 1, ': closing window ..,' );
+    <[event.once]>;
+    <web-browser.gtk_obj.window>->close;
+    Gtk3->main_iteration_do;
+    <[base.log]>->( 2, ': gtk3 shutdown ..,' );
+    <[event.once]>;
+    eval { Gtk->main_quit() };
+    <[base.exit]>->( ':. [ shutdown complete ].', 2, qw| 00000 | );
+};
 
 0;
 
-#,,,.,.,,,,..,.,,,,.,,..,,..,,,.,,,..,.,.,.,.,..,,...,..,,,,,,,..,..,,..,,..,,
-#OLASLHRLPJAWCHO6W6RFEMQPYRXLLWEO4BJUGBFIAJ22RDYQQ6AM4A2PGQ74UWBVS4CKXIHIYZAEY
-#\\\|AO5265JWZEUZ33TTIOAR7PC4TP4RX5JPKNHI7LULMIDCICN2A7L \ / AMOS7 \ YOURUM ::
-#\[7]E5D4EG6AQMQMLO76A67V73T67BWJAIGIF6ONETP57LJMHRM4HABI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,..,,...,,..,,,.,...,,.,,,,.,,,.,..,,...,...,,,,,...,.,,,,,,,.,.,
+#G43JZDZI2GCJ6SINHLOO2KJKMXBOEP6HPXHWROSANCAZ5S2QY4IKMN2WDBF2PJWOSAMYDVOORQGNK
+#\\\|Y53FTWBW4L3PAVQAYYA2J3LHS5IGM3RTUSAU2KRH2M4SVFGV62H \ / AMOS7 \ YOURUM ::
+#\[7]35DAT24C45WYIARZEAKTITVMU5PK3VEQ3FWDZOQEEJHIRGOSMICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

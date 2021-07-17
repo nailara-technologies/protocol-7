@@ -2,11 +2,12 @@
 
 # name = web-browser.main_loop
 
-if ( defined <base.perlmod.loaded>->{'Glib::Event'}
-    and <base.perlmod.loaded>->{'Glib::Event'} == 1 ) {
-    <[base.log]>->( 1, "entering main loop..," );
-    Gtk3->main;
-    CORE::exit(0);
+if ( <[base.perlmod.loaded]>->('Glib::Event') ) {
+    <[base.log]>->( 1, 'entering gtk main loop..,' );
+
+    Gtk3->main;    ##  entering gtk main loop  ##
+
+    <[base.exit]>->( 'left gtk main loop ..,', 2, qw| 00000 | );
 } else {
 
     map { <[base.log]>->( 1, $ARG ) } (
@@ -14,27 +15,22 @@ if ( defined <base.perlmod.loaded>->{'Glib::Event'}
         ":  << 'Glib::Event' module is not available, >>",
         ':  <<  :. entering alternative main loop .., >>', ':'
     );
-    <web-browser.main-loop.wakeup-interval> = 0.24;
-    Event->idle(  ## <-- also create 'base.event.add_idle' routine ##  [LLL]
-        cb => sub {
-            $SIG{'ALRM'}
-                = sub { };    ## <-- will wake up from waiting gtk loop ##
-            my $wakeup_interval = <web-browser.main-loop.wakeup-interval>
-                //= 0.24;
-            Time::HiRes::alarm($wakeup_interval) if !<window.scrolling>;
-            Gtk3->main_iteration_do();
-            alarm 0;          ## <-- returned, disabling alarm signal ##
 
-            return 1;
-        },
-        repeat => 1
-    );
-    <[zenka.loop]>;
-    <[base.exit]>;
+    ##  1 / 1000 secs  ##
+    ##
+    my $interval = <web-browser.main-loop.wakeup-interval> //= 240;
+    ## adding polling timer to listen to network events ##
+    Glib::Timeout->add( $interval, sub { <[event.once]>; return 1 } );
+
+    <[base.log]>->( 1, 'entering gtk main loop.., [ with event timer ]' );
+
+    Gtk3->main;    ##  entering gtk main loop  ##
+
+    <[base.exit]>->( 'left gtk main loop ..,', 2, qw| 00000 | );
 }
 
-#,,,.,,,,,,,,,,,.,...,,.,,...,,..,.,.,,,.,,,.,..,,...,..,,...,.,.,.,,,,..,,..,
-#JRTS4QDLUHXAENRU32OLJ37ZLL6YAE5VDLHVNPG5DYEDAYNNDYB5AUV3PX7RBQJYBOQNCZGDMBHYO
-#\\\|6NJDVKM6AYJTUPIE365DJ4RUWY2JZI67VHUGOR2EW3HYEKABFEY \ / AMOS7 \ YOURUM ::
-#\[7]2BFNI5AU6XNKQRDKBOMIZWOJGYVFTBAQ7MEL6GAU45OBI2CHWAAQ 7  DATA SIGNATURE ::
+#,,..,..,,...,.,.,.,,,,,,,...,.,,,,,,,,.,,,,.,..,,...,...,.,,,,..,..,,.,.,,..,
+#3RMTDF5FPQOD2XU6CICS2OPD6XTVOJA6AZNXPD74VBRZYQVSU6RXRMJTM7GKHXSLI72FCEDQBREWC
+#\\\|VGFVU3MSAIZ27UZDFTS7HGSI3VWQPDUCPLNK53BN7BQT5ROPL6T \ / AMOS7 \ YOURUM ::
+#\[7]UZDTGFVRURIQU4KDTOWAWRAEJOQEIJKM5WPL2FXFS4QNRGR2OWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,10 +2,15 @@
 
 # name  = web-browser.open_window
 
+### testing .., ###
+
+<system.verbosity.console> = 2;
+
+
 $ENV{'DISPLAY'} = <x11.display>;
 
 my ( $size_x, $size_y, $pos_x, $pos_y )
-    = ( $1, $2, sprintf( '%.0f', $4 ), sprintf( '%.0f', $5 ) )
+    = ( $1, $2, sprintf( qw| %.0f |, $4 ), sprintf( qw| %.0f |, $5 ) )
     if defined <web-browser.geometry>
     and <web-browser.geometry> =~ m|^(\d+)x(\d+)(([\-\+]\d+)([\-\+]\d+))?$|;
 
@@ -14,7 +19,7 @@ my ( $size_x, $size_y, $pos_x, $pos_y )
 
 Gtk3->init;
 
-<[base.log]>->( 1, "window initializaion .," );
+<[base.log]>->( 1, 'window initializaion .,' );
 
 my $window = Gtk3::Window->new('toplevel');
 
@@ -54,10 +59,10 @@ $web_context->set_process_model($proc_model);
 if (<web-browser.cfg.no_memory_cache>) {
 
     $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_VIEWER');
-    <[base.log]>->( 1, ": deactivating in-memory cache.," );
+    <[base.log]>->( 1, ': deactivating in-memory cache.,' );
 } else {
 
-    <[base.log]>->( 1, ": moderate caching enabled.," );
+    <[base.log]>->( 1, ': moderate caching enabled.,' );
     $web_context->set_cache_model('WEBKIT_CACHE_MODEL_DOCUMENT_BROWSER');
 
     # LLL: deal with cache size \ auto-clear..,
@@ -67,8 +72,10 @@ if (<web-browser.cfg.no_memory_cache>) {
 
 <web-browser.gtk_obj.web_context> = $web_context;
 
-map { <[web-browser.init_view]>->($ARG) }
-    ( 1, 2 );    # will use initialized web context
+# will use initialized web context
+foreach my $view (qw|  1  2  |) {
+    <[web-browser.init_view]>->($view);
+}
 
 <web-browser.gtk_obj.overlay>
     ->reorder_overlay( <web-browser.gtk_obj.scrolled_window>->{2}, 0 );
@@ -80,7 +87,7 @@ $window->signal_connect( 'size_allocate',
 
 $window->add($overlay);
 
-if ( <system.zenka.mode> eq 'universal-child' ) {
+if ( <system.zenka.mode> eq qw| universal-child | ) {
     <[base.log]>->(
         1,
         "<<< setting slideshow.autostart = 1 [ 'universal-child' mode ] >>>"
@@ -133,10 +140,10 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     return if <web-browser.shutting_down>;
     <web-browser.shutting_down> = 1;
 
-    my $url_file = '/var/tmp/.protocol-7.web-browser.' . $PID;
+    my $url_file = sprintf qw| /var/tmp/.protocol-7.web-browser.%s |, $PID;
     unlink($url_file) if -f $url_file;    # clean shutdown
 
-    map { <web-browser.timer>->{$ARG}->cancel } keys %{<web-browser.timer>};
+    map { <web-browser.timer>->{$ARG}->cancel } keys <web-browser.timer>->%*;
 
     <[base.log]>->( 1, '<<< SIGTERM >>> terminating .,' );
 
@@ -173,8 +180,8 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     }
 };
 
-#,,,.,,,,,,,,,,,.,,.,,,..,..,,,..,,..,..,,...,..,,...,...,,,,,,..,,.,,,.,,,..,
-#JE5IRQHMCZ37HIRGB45YV2J53FTOTSRB32WQSP6ZNMQOTMDT72Q6WVR4AGWXL5I3VCVBEKFE652J4
-#\\\|FCXZJVMW7FKQYU3IUM4KN45FKXVMQ2NZRHUM5NCRBC3DNVRGPRZ \ / AMOS7 \ YOURUM ::
-#\[7]WMSO2MGAK42LSUDVLZ5YKMGQC34NLWCSK2NNF6WZXCQM7Q6HAIBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,.,,.,,,.,,,.,,,.,,,,.,,.,.,,,.,..,,...,...,,,.,.,.,,..,,..,...,
+#WSN7FGBD6D43VVRJDP45H7CQ74KM6EKWKH44G7FQNUMUSC5FPTJHVLRAM3TJYLQS64JXS5TCBCMS4
+#\\\|EHMNMAV7H3VXP6NEREIXTBTTDKWJU5UXPPZT73ANOGAQCSDPXZV \ / AMOS7 \ YOURUM ::
+#\[7]COJJZG7EJPT2TMSUXE3UQGQJFIX2QGO5H5PDNX6WSVYULQDLCODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
