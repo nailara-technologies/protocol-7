@@ -4,6 +4,7 @@
 # descr = wrapper function for zenka status change handler
 
 my ( $instance_id, $new_status ) = @ARG;
+
 return warn 'no instance id specified <{C1}>'   if not defined $instance_id;
 return warn 'no status string submitted <{C1}>' if not defined $new_status;
 return warn 'no such instance defined <{C1}>'
@@ -20,7 +21,7 @@ map {    ## validity check ##
 my $zenka_name = <v7.zenka.instance>->{$instance_id}->{'zenka_name'};
 
 <v7.online-zenki> //= {};
-my $online_count = scalar keys %{<v7.online-zenki>};
+my $online_count = scalar keys <v7.online-zenki>->%*;
 if ( $new_status eq qw| online | ) {
     <v7.online-zenki>->{$zenka_name}++;
 } elsif ( $new_status ne qw| starting |
@@ -28,13 +29,13 @@ if ( $new_status eq qw| online | ) {
     delete <v7.online-zenki>->{$zenka_name}
         if --<v7.online-zenki>->{$zenka_name} == 0;
 }
-<[v7.calc_prefix_lengths]>->( keys %{<v7.online-zenki>} )
-    if $online_count != scalar keys %{<v7.online-zenki>};
+<[v7.calc_prefix_lengths]>->( keys <v7.online-zenki>->%* )
+    if $online_count != scalar keys <v7.online-zenki>->%*;
 
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
-#,,.,,...,,,,,.,.,..,,...,.,.,,.,,.,.,,,,,..,,..,,...,...,,..,,,.,.,,,..,,..,,
-#CJQKBJDNHI4POPN3UAZBNK6AFREIUWRIA6CLHR4V6O6HYLEYI44DA4GYJZAEG346B5GAOCIPW7OWI
-#\\\|JYER322VHHD4UCF54MOGWR6VOPHZI6YT4QM7MZ6ILPNU2AKBXX2 \ / AMOS7 \ YOURUM ::
-#\[7]ZZJZFYM6PWL3JJAYCEXO7UFJV4J7N6ACO5YYZ666VZ2Q7V5USICI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,...,,..,,.,,.,.,,..,...,..,,..,,...,...,...,,..,,.,,,..,,,.,
+#I22SLFW3CY4FNB62QGYQWXISX33X5YHYYXZ6EIF5SQUEVO2KXE3JCWHQFNIBURSWBWIRA76E7S5IM
+#\\\|OTZQS2CDWLFGPEVVMSV74X2WLBUFEHPSJ2ZKMC3ZDWNUANN7FMG \ / AMOS7 \ YOURUM ::
+#\[7]YZ3VC6JUP6VA27CTWUYH37SGSRXVP2QQY64IE7XNQPTCAIF2G2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
