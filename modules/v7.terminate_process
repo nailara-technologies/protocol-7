@@ -5,12 +5,24 @@
 my $instance_id;
 my $kill_pid = shift;
 
-return if exists <v7.terminating.pid>->{$kill_pid};
+if ( not defined $kill_pid or $kill_pid !~ m|^\d+$| ) {
+    warn 'expected numerical process id to terminate <{C1}>';
+    return undef;
+} elsif ( $kill_pid <= 2 ) {
+    <[base.s_warn]>->(
+        'received not valid process id [ %03d ] to terminate', $kill_pid
+    );
+    return undef;
+}
+
+return if exists <v7.terminating.pid>->{$kill_pid};    ## ,..in progress.., ##
 
 $instance_id = <v7.child>->{$kill_pid}->{'instance_id'}
-    if exists <v7.child>->{$kill_pid};
+    if defined <v7.child>->{$kill_pid};
 
-my @children = @{ <[v7.sub-process.get_children]>->($kill_pid) };
+my $children_ref = <[v7.sub-process.get_children]>->($kill_pid);
+
+my @children = defined $children_ref ? $children_ref->@* : ();
 
 map {
     <v7.child>->{$ARG}->{'instance_id'} = $instance_id
@@ -43,8 +55,8 @@ map { <v7.terminating.pid>->{$ARG} = <[base.time]>->(3) } @kill_list;
     }
 ) if @kill_list;
 
-#,,,,,,,.,,..,.,.,...,,,.,.,.,,,,,,.,,,.,,,,.,..,,...,...,..,,...,,,,,,..,.,.,
-#JOJPTSFQP52EL2PKDVKGRX5MX4J4GS7HV3BG5WUFZNWAJSTLKEA77DYLTL23HDB5DMGNL45CXWX2G
-#\\\|C3DGTBFL33HFMDD2V65O7P2WCELYTX7IIBT2LQ7ES36JQZ7O6M6 \ / AMOS7 \ YOURUM ::
-#\[7]T2MYZO6MN4O5KGO5R7ZT67XWHDNMQD4EFZHNXTTG7HBIHHMUIMAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,,,.,,.,,.,.,..,,.,.,...,...,..,,...,...,...,...,...,...,.,.,
+#ILC4OORJ4B2WA3BRNTQN45TVRRMNW6FBKDSCH55VKOHWQO62CSRMRBW4QNNB6TYMMTMVLWJY2OE3M
+#\\\|MDLRE6UXW5BF7PV5KLKOCUXJHTTGIWSJWHADK7JXBWAI2ZKL5DV \ / AMOS7 \ YOURUM ::
+#\[7]TD4IEP3K4ETYZLMO5DGARD4SOBCXQ6HBQVHJIC22LVB2CHWGR4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
