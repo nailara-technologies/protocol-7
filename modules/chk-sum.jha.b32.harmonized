@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = chk-sum.jha.b32.harmonized
+# descr = returns harmonized BASE32 encoded jhash value
+
+my $num_sum = Digest::JHash::jhash( join '', @ARG );
+
+my $recalc = 0;
+my $sum_encoded;
+
+RECALC_CSUM:
+
+while ( $recalc or not AMOS7::Assert::Truth::true_int($num_sum) ) {
+    $recalc = 0;
+    my $template = sprintf qw| %%s:%s |, $num_sum;
+    ##  make it a true value with entropy from previous checksum  ##
+    $num_sum = Digest::JHash::jhash( sprintf( $template, join( '', @ARG ) ) );
+}
+
+$sum_encoded = Crypt::Misc::encode_b32r( pack( qw| N |, $num_sum ) );
+
+$recalc = 1 and goto RECALC_CSUM    ##  also harmonize encoded string  ##
+    if not AMOS7::Assert::Truth::is_true( $sum_encoded, 0, 1 );
+
+return $sum_encoded;                ## true ##
+
+#,,..,,..,,,,,,,,,.,,,.,.,,,,,,.,,,,,,.,.,.,,,..,,...,...,...,...,,,.,,.,,..,,
+#62H7OLWD5NQCV4UITMHZLA6TRUFOLJLACPFQ2AQYCCWCPY6F3RLWPF4Q7JBOMLP3HULSYDT2GR2GW
+#\\\|QRWXFRFVHYPOG2RWSWYWA3M3E7YUV6HEPXMIQFFL2III5YXZERM \ / AMOS7 \ YOURUM ::
+#\[7]FVKO4V3DK76X5WSNRTMVEL6ZRHNB2M5GDVQUOZV5E5344NPHFWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
