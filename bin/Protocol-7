@@ -333,7 +333,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     # ISSUES : returns to shell, not working with child zenki yet ##
     #
     my $change_pid = 0;
-    map { $change_pid = 1 if $ARG eq '-NP' } @ARGV;
+    map { $change_pid = 5 if $ARG eq qw| -NP | } @ARGV;
     &{ $code{'base.choose_true_pid'} } if $change_pid;
     #
     ##
@@ -2069,7 +2069,7 @@ sub p7_format_error {
             $code{'base.clean_up_caller'}->( \$file );    ## shorten ##
         }
         @package    = $code{'base.caller.get_package_name'}->( $file, $line );
-        $caller_str = sprintf '[%s:%d]', $file, $line;
+        $caller_str = sprintf qw| [%s:%d] |, $file, $line;
         $err_msg .= sprintf( ' %s', $caller_str ) if $c_lvl >= 0;
     }
     if ( index( $err_msg, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
@@ -2086,7 +2086,7 @@ sub p7_format_error {
     $err_msg =~ s|argument in sprintf|sprintf argument|g;
     $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
     $err_msg =~ s| at \(eval \d+\) line \d+[\.,]||g;
-    $err_msg =~ s|, <STDIN> line \d+.+$||g;
+    $err_msg =~ s{, <(STDIN|GEN\d+)> line \d+.+$}{}g;
     $err_msg =~ s|cannot use (an )?||g;
     $err_msg =~ s|(*plb: as )a ||g;
 
@@ -3552,8 +3552,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,.,..,,,.,,,..,...,...,,..,..,,...,,,.,..,,...,...,...,,.,,.,,,.,,,,..,
-#TDYDJ7W6UPY6RKGQA576URWLZQXPMHBNH4NJJD44YISLIOA52JWBWGNQDFOMTFM3OVH3UZRATEFBQ
-#\\\|TDJENWGQCB74VWP2VQ7I7D63DKHGSDZCVAVAAIAOUQRJCPP3PNT \ / AMOS7 \ YOURUM ::
-#\[7]6ZRBJCYA7LPESNTCAQKCZBELZYJUAMALKQPQCZREWO6IVH4GPUCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,.,,...,,.,,,..,.,,,...,...,..,,...,...,.,,,..,,...,,.,,..,,
+#OO6SOLWH5V4PBX4DDEYIXKMULTVOH2PZUONGEWDCWLARTECZSFU2WZ77CCYWR7PZBFZWNW53C4JQU
+#\\\|YRFLOSMNOGKEEY5CMX5UCWYUFT6R3HSVCZDTYT645GPF5XXOLEP \ / AMOS7 \ YOURUM ::
+#\[7]VWAALB3UMH2ESYSRAKX62PDUKNN2GNI2QC6INDE7Q6PSZJ2B4YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
