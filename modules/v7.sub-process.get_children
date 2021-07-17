@@ -3,6 +3,7 @@
 # name = v7.sub-process.get_children
 
 my $chk_pid = shift;
+
 if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
     ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
     return warn sprintf '[%s] expected parent process id <{C1}>', $caller_str;
@@ -15,7 +16,7 @@ my $proc_table = <v7.process.pt>
 
 my %ppids;
 my %start_times;
-foreach my $proc ( reverse @{ $proc_table->table } ) {
+foreach my $proc ( reverse $proc_table->table->@* ) {
     next
         if not defined $proc->{'pid'}
         or not defined <v7.child>->{ $proc->{'pid'} }
@@ -67,8 +68,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,..,,,,,,.,,,..,,..,...,..,,...,..,,,,.,.,.,..,,...,...,,.,,,,,,,.,,.,,,.,,,
-#LQVUCZO4RB2BYCXMRSZUSHNK3N5GAGCDMQUF3A24LUZU2FXJM5LLX3OS3CN2Z36LKA4VO557WLJLO
-#\\\|SJDIT72KBYLF4JEVBGM6E7EPDDSGIPCUSKSKGZQHXMJ7XSPVJR7 \ / AMOS7 \ YOURUM ::
-#\[7]NUX5XMSQBMDHZBSQVEVG5VNXJQXRTPWNTS4VO3DIASVUL4OLDGBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,..,,,.,,...,.,,,.,,,...,,..,..,,...,...,..,,...,.,,,,,,,,,.,
+#MUCS3BVST2XE6P3JGSORILVNIW6KN4ROQFAHW3XVM5S6Y4NGAFBQGPBIDWUXS66RKFOEW6LBOLSSK
+#\\\|QWHJDKB2ZOQ3DLIGIANVFCWC7IYHTBYZDSRZFV3PUXVOGLPH3UY \ / AMOS7 \ YOURUM ::
+#\[7]Y6K2OKLZ5LHA2G5P5QYSB7JDANU6G3EJNDN26XHQYP7DRGT2FEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

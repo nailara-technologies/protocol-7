@@ -4,16 +4,17 @@
 
 my $pid = shift;
 
-return -1 if !<[base.exists.sub-process]>->($pid);
+return -1 if not <[base.exists.sub-process]>->($pid);
 
 my $proc_table = <v7.process.pt>
     //= new Proc::ProcessTable( 'enable_ttys' => 0 );
 
-foreach my $process ( @{ $proc_table->table } ) {
+foreach my $process ( $proc_table->table->@* ) {
     if ( $process->pid == $pid ) {
+
         return ( $process->uid, $process->gid ) if wantarray;
-        warn "< passing scalar >";
-        return $process->uid;
+
+        return $process->uid;    ##  scalar context  ##
     }
 }
 
@@ -21,8 +22,8 @@ warn "process $pid not found in table";
 
 return -1;
 
-#,,,.,,..,.,.,..,,.,.,.,.,,,.,...,,,,,.,,,..,,..,,...,...,,..,.,,,...,.,,,...,
-#VHOAIOETHE2WWXZWNVTWQNFSB5JWU4V2EVXMW23ZFZIVWVEGCJTOVVQJHNP2SJAJ6VPNJQ3JU3ZHC
-#\\\|5J5QXOWSMFEWH67LYS6WDU2TSRTHDSIUPL3ZBQ7V6XWOPRY7AJN \ / AMOS7 \ YOURUM ::
-#\[7]EEJPXXNVAP2Z4IOWDGQZYHUGMC6FE3MKD5DUACQXLKKUIATJCQAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,.,,,.,,,,.,.,,,,,.,...,,.,,,,.,..,,...,...,,,.,.,,,..,,,..,,,,,
+#CQ42A272BNCGXDKHOXVPYCTFYV5B2ZBQREAIUPFQ6ICJSJJUYSCAGVAK32H7DHMXLQWRKEUCGPTDM
+#\\\|YRIFLDXKFXDWIFA3YFYFZ75VIWCLTNYFXFYUGUREJCQ6HLZLA2L \ / AMOS7 \ YOURUM ::
+#\[7]6Z2GBKKWDD2JZUPGFPAZA5CIF5FRWHXLTSAQVGZ7H4EE4KHIRMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

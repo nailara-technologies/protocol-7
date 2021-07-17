@@ -4,25 +4,26 @@
 
 my $wid_str = shift // <x11.id>;
 my $route   = shift;
-die "window id not defined"               if not defined $wid_str;
-die "invalid window id string '$wid_str'" if $wid_str !~ /^\d+(,\d+)*$/;
+die 'window id not defined'               if not defined $wid_str;
+die "invalid window id string '$wid_str'" if $wid_str !~ m|^\d+(,\d+)*$|;
 my $tile_name = <system.zenka.subname>;
 my $tile_str  = defined $tile_name ? " for '$tile_name'" : '';
-my $s         = $wid_str =~ /,/    ? 's'                 : '';
+my $s         = $wid_str =~ m|,|   ? 's'                 : '';
 my $log_msg   = "reporting window id$s $wid_str$tile_str..";
 my @args      = $wid_str;
 push( @args, $tile_name ) if defined $tile_name;
-$route .= '.'             if defined $route;
+$route .= qw| . |         if defined $route;
 $route //= '';
 <[base.log]>->( 1, $log_msg );
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => $route . "cube.tile-groups.assign_window",
+    {   'command' =>
+            sprintf( qw| %scube.tile-groups.assign_window |, $route ),
         'call_args' => { 'args' => join( ' ', @args ) }
     }
 );
 
-#,,,,,...,.,,,,.,,,..,,.,,,..,,,.,.,.,,..,.,.,..,,...,...,..,,.,.,.,,,..,,,,,,
-#CDTOZV46MTLE73VUWQLXV2KEESSP4KPHXCSQZFPBTPT4U7Q6JNI2QH2FDFX7MHYPWPTTRHWYDSW6U
-#\\\|VAZRBQFR6MWOXQ7EZFI3V2C2W4HGQY5JPVOQ3GKPPKOO4D2ITVR \ / AMOS7 \ YOURUM ::
-#\[7]RVN3HSUJQE6IZ7WK3LTMVPLJFPOOEG2UFCPGKLHCZOVCAL6TWEDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,..,,,,,..,,..,,.,.,.,.,.,.,..,,...,..,,..,,.,.,...,.,,,,,.,
+#BBD477DRDSAZAQJKA2AGK4N4UN3LDCPBV6ENALHXHBZEQYDNLRNHEMZI4HP7SPXRDHHCAWMW6TI5G
+#\\\|VH5PVZJDTDDWFUYAYBMIYPR767M6PWJP5WML6WL3IJRFBMUMSL6 \ / AMOS7 \ YOURUM ::
+#\[7]KOF2LW5TWUILDMYRYOBISIQWUA6ZHAMXDRX2ITC3BO52BZP5A6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

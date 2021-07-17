@@ -46,7 +46,7 @@ if ( $zenka_param =~ <regex.base.iid> ) {
 my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
 return {
     'mode' => qw| false |,
-    'data' => "start setup contains no zenka named '$zenka_name'"
+    'data' => sprintf( "zenka %s not found in start set-up ..,", $zenka_name )
     }
     if not defined $zenka_config;
 
@@ -58,7 +58,8 @@ return {
 
 return {
     'mode' => qw| true |,
-    'data' => "zenka '$zenka_name' already running [ 'start-once' mode ]"
+    'data' => sprintf( "zenka '%s' already running [ 'start-once' mode ]",
+        $zenka_name )
     }
     if $once
     and ( defined $zenka_subname
@@ -67,7 +68,9 @@ return {
 
 return {
     'mode' => qw| false |,
-    'data' => "reached configured maximum concurrency for zenka '$zenka_name'"
+    'data' =>
+        sprintf( "reached configured maximum concurrency for zenka '%s'",
+        $zenka_name )
     }
     if exists $zenka_config->{'max_concurrency'}
     and <[v7.start_count]>->($zenka_name)
@@ -89,7 +92,7 @@ if ( defined $zenka_subname
 
 return {
     'mode' => qw| false |,
-    'data' => "zenka '$zenka_name' has 'manually stopped' status"
+    'data' => sprintf( "zenka '%s' was 'manually stopped'", $zenka_name )
     }
     if $start_mode eq qw| implicit |
     and exists <v7.zenka.manually_stopped>->{$zenka_name};
@@ -161,15 +164,18 @@ my $sn_str = defined $zenka_subname ? sprintf( '[%s]', $zenka_subname ) : '';
 my $job_id = <[jobqueue.add_job]>->(
     {   'object_id'       => $obj_id,
         'job_callback'    => qw| zenka.start |,
-        'callback_params' => sprintf( '%s%s', $zenka_name, $sn_str ),
+        'callback_params' => sprintf( qw| %s%s |, $zenka_name, $sn_str ),
         'target_queue'    => $target_queue
     }
 );
 
-return { 'mode' => qw| true |, 'data' => "job queued [ID=$job_id]" }
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "job queued [ID=%d]", $job_id )
+    }
 
-#,,..,,,.,...,,.,,..,,..,,.,.,,,.,,,,,,.,,,,.,..,,...,...,...,...,,,,,.,,,...,
-#DJET6RNU4S3PMJZJMHGKPWTXZCU4QY2MVYS7SVYC5SOV3AVEOYXPIKHXVB3UKSSLVVBJJMZ6XZ7BC
-#\\\|65I5PG27Q4Y2YGAUECSEGDWGFW7GT7SGJ4V3NO6BSZ6OATMKDTD \ / AMOS7 \ YOURUM ::
-#\[7]FDU44ZQFGYX36WPUR77HI4RLCQ2DEIWPPYNUQ5SDX6SKWPFYXGCQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,..,,.,,,.,,,,.,.,,,.,.,..,,.,.,..,,...,..,,,..,,..,..,,,.,,.,,,
+#7WCMGYTGAERDNE3WJ6TCFHNIFCBQQWWTHH7ENLCGJRPCNWDJ5JMFM3K3KTGVB4SEL3ZYXYVCYK2VK
+#\\\|FS5RFOJUEYJELYLK5PS3JS6MECRDMWKR32D45BGVXSA7OPWWCB6 \ / AMOS7 \ YOURUM ::
+#\[7]P5CZBZR7QNXINIINZWWN6VEDN4QIIUQBV4BPRIMVWTEC3YHG3ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

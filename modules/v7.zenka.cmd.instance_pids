@@ -16,7 +16,7 @@ if ( not defined $instance_id ) {
     my %pids;
     my $reply_list = '';
     foreach my $i_id (<[v7.instance_ids]>) {
-        my $parent_pid = <v7.zenka.instance>->{$i_id}->{'process'}{'id'};
+        my $parent_pid = <v7.zenka.instance>->{$i_id}->{'process'}->{'id'};
         map { $pids{$ARG} = 1 } (
             $parent_pid, @{ <[v7.sub-process.get_children]>->($parent_pid) }
         );
@@ -36,7 +36,8 @@ if ( not defined $instance_id ) {
         if not defined <v7.zenka.instance>->{$instance_id};
 
     my $parent_pid
-        = <v7.zenka.instance>->{$instance_id}->{'process'}{'id'};
+        = <v7.zenka.instance>->{$instance_id}->{'process'}->{'id'};
+
     return {
         'mode' => qw| true |,
         'data' => join( ' ',
@@ -44,8 +45,8 @@ if ( not defined $instance_id ) {
     };
 }
 
-#,,.,,.,.,,,.,..,,,..,,..,,,,,.,.,,,.,,..,,..,..,,...,...,...,.,,,,.,,.,.,.,.,
-#7JRHNJUFGMFTRTVI644NMKCCZACMJYWUBDCIH7HW4XYFMPDCHXTROI3JRLIECVN73V3VT3F7LPX3W
-#\\\|YQRNRHM5XI3QFUGUJ56U23SGWCE47Z2JK4Q6JM33XNF6VXIP6FY \ / AMOS7 \ YOURUM ::
-#\[7]5MMLSBUCXEX763BGFPX3BAP5GQYQKAVKXB2LM5RO7EGEN6VHKEDY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,.,.,,..,,.,,,,.,..,,.,.,.,,,..,,...,,..,...,,..,,..,.,.,,.,,
+#VJLFJERO3NBAS4YEQKQTEQDTIWGJP66EEJIQDQMOEJZTMLIEWOTDYA3LIMD3HPXHTSQM3NT4V5EXO
+#\\\|3X5WIQ47HMRX2TG3NIBUSYU5SJFMJUPK7EINDXCREH5GEYAKNBA \ / AMOS7 \ YOURUM ::
+#\[7]2IGAK5GGR3ZRE7NJHSLXZJHYXAWRFWRCXTITDZEJD6TYQBG2FGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

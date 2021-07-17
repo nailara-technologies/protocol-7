@@ -3,20 +3,45 @@
 # name  = base.event.add_signal
 # descr = assigns new signal handler and cancels old one if it existed
 
-my $signal  = $_[0]->{'signal'};
-my $handler = $_[0]->{'handler'};
+my $signal  = $ARG[0]->{'signal'};
+my $handler = $ARG[0]->{'handler'};
 
-die "nonexistent callback '$handler' configured"
-    if not defined $code{$handler};
+my $callback;
 
+if ( defined $handler and defined $code{$handler} ) {
+    $callback = sub { $code{$handler}->() };
+} elsif ( not defined $handler and defined $ARG[0]->{'cb'} ) {
+    $callback = $ARG[0]->{'cb'};
+} elsif ( defined $handler ) {
+    <[base.s_warn]>->( "nonexistent callback '%s' configured", $handler );
+    return undef;
+} elsif ( not defined $handler and not defined $ARG[0]->{'cb'} ) {
+    warn 'no handler \ callback for signal event defined <{C1}>';
+    return undef;
+}
 <watcher.signal> //= {};
 
 <watcher.signal>->{$signal}->cancel if exists <watcher.signal>->{$signal};
 
+if ( defined $SIG{$signal} ) {
+    <[base.logs]>->( 2, 'unregistering $SIG{%s} ..,', $signal );
+    undef $SIG{$signal};
+}
+if ( defined $handler ) {
+    <[base.logs]>->(
+        2,        'setting up handler %s for signal %s .,',
+        $handler, $signal
+    );
+} else {
+    <[base.logs]>->(
+        2, 'setting up signal %s handler with custom cb .,', $signal
+    );
+}
+
 eval {
     <watcher.signal>->{$signal} = Event->signal(
         'signal' => $signal,
-        'cb'     => sub { &{ $code{$handler} } },
+        'cb'     => $callback,
         'desc'   => "signal handler [$signal]",
         'prio'   => 0
     );
@@ -31,8 +56,8 @@ if ($EVAL_ERROR) {
 
 return <watcher.signal>->{$signal};
 
-#,,..,,.,,..,,,.,,,.,,,,.,.,,,..,,,,,,,..,,..,..,,...,...,...,.,,,.,,,.,,,,..,
-#CJF56N73BQ43DO5IYTTHM5TVIKPELJXYC3V6BJMNN6X7S22DZGO6BOQEQ6B7UA27EID5M6HDKSRI2
-#\\\|LAQLMVNUGAM4LGX52UADB6ZSAVVPCVWMXFXPXOEKPMAODSNW4XP \ / AMOS7 \ YOURUM ::
-#\[7]EASSGJ77XV7VXXXGMIRLCQMYZ2KDEV64K73QQWEE66AOM3MECEBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,..,,.,.,..,,,,.,,..,.,,,,,.,,,.,..,,...,...,,,.,,,,,.,,,.,,,,.,,
+#WCD67TE7FRT2QE4YLBEL3MER7QJFACT72HABOVX6N6BHLRUUNBUKTYHKCEYBB2FEFGIR5GNVBGD3Y
+#\\\|HPXWHQHPVQ66O2CQAUWMO5RFD6RUNCRG5NRPBQMVKBJVNE6N5PQ \ / AMOS7 \ YOURUM ::
+#\[7]U2WFJH7SGXAUBONM6KOU7PBK475TT6CZW6LR6XGUTOWRTP5U7KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

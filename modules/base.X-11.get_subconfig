@@ -2,12 +2,12 @@
 
 # name = base.X-11.get_subconfig
 
-my ($local_sid) = keys( %{<user.cube.session>} );
+my ($local_sid) = keys <user.cube.session>->%*;
 
 my $zenka_name
     = ( defined <system.zenka.mode>
-        and <system.zenka.mode> eq 'universal-child' )
-    ? 'universal'
+        and <system.zenka.mode> eq qw| universal-child | )
+    ? qw| universal |
     : <system.zenka.name>;
 my $subname  = <system.zenka.subname>;
 my $name_str = defined $subname ? "$zenka_name\[$subname]" : $zenka_name;
@@ -68,7 +68,7 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 } else {
     <[base.logs]>->(
-        0,
+        1,
         "[ protocol mismatch ] not expected reply"
             . " from tile-groups zenka ['%s']",
         $reply_string
@@ -76,8 +76,8 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 }
 
-#,,..,...,,,,,,,.,,,,,.,.,,,.,.,,,,.,,.,,,,,.,..,,...,...,..,,.,,,,,,,,.,,..,,
-#CUUM6MNY5XFQ5O2HCFVTLZPDRKZ6TFEBC72G7REDY7FVEIATM24WFMRMGMMPREHNHLKMZ3P7GJ5HY
-#\\\|2QUUCKROBPEEUBSJ52K4CUI66TKQQZILAT224OS5IUU4KKV3DME \ / AMOS7 \ YOURUM ::
-#\[7]6PWLTHRPZYUPJOFNPVFKKKW3XV5WLIEREZ65BICQJ3XJCEU3TMDY 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,...,,,,,,,.,,.,,.,,,,.,,,,.,..,,...,...,,,.,,.,,.,,,.,.,.,.,
+#76PBCBYHFUBRQI5ZYRVLKX33XYQKW3EJTWROBEDC7SQEQA36Y6XDKFABDFNBTVCEFQLB7V4W4BGE6
+#\\\|XCMC2BDYS6MSI2VEF6PGKJ6NJIPVPZ2MTKEFGU2FRIHIWP44PIS \ / AMOS7 \ YOURUM ::
+#\[7]A3X3O5IJLH7X3RJN4UT23YHJIR2EM2VYXSKHR2KYIEFDZDKDDMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

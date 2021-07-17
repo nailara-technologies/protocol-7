@@ -10,7 +10,7 @@ my $job_id      = $instance->{'job_id'};
 my $parent_pid  = $instance->{'process'}->{'id'};
 my @children
     = defined $parent_pid
-    ? @{ <[v7.sub-process.get_children]>->($parent_pid) }
+    ? <[v7.sub-process.get_children]>->($parent_pid)->@*
     : ();
 
 <[base.log]>->( 1, "restarting instance $instance_id ['$zenka_name'].," );
@@ -36,11 +36,15 @@ $instance->{'restart_pids'} = {};
 map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
     if defined $parent_pid;
 
+$instance->{'sig_chld_ignore_pid'}->{$parent_pid} = 5;    ## set to ignore ##
+
 my $dependencies_ok
     = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
     ? <[dependency.ok]>
     ->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
     : 1;
+
+$restart_timeout = 24;
 
 $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
     = <[event.add_timer]>->(
@@ -53,11 +57,11 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
     }
     ) if $dependencies_ok;
 
-<[zenka.change_status]>->( $instance_id, 'restart' );
+<[zenka.change_status]>->( $instance_id, qw| restart | );
 <[v7.terminate_process]>->($parent_pid) if defined $parent_pid;
 
-#,,,.,.,,,,,.,.,,,,..,,..,.,.,,..,...,,..,,,.,..,,...,...,.,,,...,,..,...,,..,
-#3VSGCEBGGZHQI5EJPGEIDTHLNVMXXWA6EK3HS6GLOXMIA6MYH3XKYLIKS2CSQ5T3NZM45OOYJUC2Q
-#\\\|NSRQMELQ7FHMQWYTTUSPOGIXYQUGFLHST3GJAAW7DLYXIQRVXI6 \ / AMOS7 \ YOURUM ::
-#\[7]E5AR2PC44F3LK5ZHDWSDWGZJYNICG2PSPLKCF4PT6QEKPBJQ5GBA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,...,,..,...,,,.,,,,,..,,...,..,,...,...,.,.,...,..,,,,.,,..,
+#MOKRA75R2O6VBMA35AAYAGHU2MEMUY7WQJDB7QPN6KMFQKQRABCPQHJAM6CQ3JTV2OBKFKBDXWBBC
+#\\\|VSCXMP5YOXWXKQ663KWVHO3POATGKMXW2QI5MCLH7VCLXVS7W2M \ / AMOS7 \ YOURUM ::
+#\[7]PJ2IPSDFTS4IYLVUQT7BGZ22AYXOFTEJJCQXK2LQUANRBNWT42DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

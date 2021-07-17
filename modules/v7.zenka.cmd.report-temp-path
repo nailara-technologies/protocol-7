@@ -61,16 +61,25 @@ if ( not defined $err_reason ) {
 
     <v7.process.instance_cache>->{$p_pid} = $zenka_instance;
 
-    my @children = @{ <[v7.sub-process.get_children]>->($p_pid) };
+    my @children = <[v7.sub-process.get_children]>->($p_pid)->@*;
     my @i_pids   = @children ? ( $p_pid, @children ) : ($p_pid);
-    map {
 
-        ( my $p_uid, my $p_gid ) = <[v7.sub-process.get_uid]>->($ARG);
+    foreach my $inst_PID (@i_pids) {
 
-        push( @{ $has_uid{$p_uid} }, $ARG );
-        push( @{ $has_gid{$p_gid} }, $ARG ) if defined $p_gid
-    } @i_pids;
-    $err_reason = 'could not map instance to user id' if not keys %has_uid;
+        ( my $p_uid, my $p_gid ) = <[v7.sub-process.get_uid]>->($inst_PID);
+
+        if ( $p_uid == -1 and $inst_PID == $p_pid ) {
+            $err_reason
+                = sprintf( 'zenka %s seems gone [ no uid match for pid %d ]',
+                $zenka, $inst_PID );
+            last;
+        } else {
+            push( $has_uid{$p_uid}->@*, $inst_PID );
+            push( $has_gid{$p_gid}->@*, $inst_PID ) if defined $p_gid;
+        }
+    }
+
+    $err_reason //= 'could not map instance to user id' if not keys %has_uid;
 }
 
 my $uid_match = 0;    # LLL: also check gids.,
@@ -80,13 +89,16 @@ if ( not defined $err_reason ) {
     my $stat_uid = $stat_ref->uid;
     my $stat_gid = $stat_ref->gid;
     my %match_pid;
+
     push( @match_type, qw| user | )
         if exists $has_uid{$stat_uid}
         and $stat_ref->cando( S_IWUSR(), $stat_uid );    ## <-- user can write
+
     push( @match_type, qw| group | )
         if defined $stat_gid
         and exists $has_gid{$stat_gid}
         and $stat_ref->cando( S_IWGRP(), $stat_gid ); # <-- group write access
+
     if (@match_type) {
         $instance->{'stat_uid'} = $stat_uid;
         $instance->{'stat_gid'} = $stat_gid;
@@ -95,19 +107,23 @@ if ( not defined $err_reason ) {
             "<report-temp-path> %s write access for '%s'",
             join( ' and ', @match_type ), $zenka
         );
-    } else {
-        $err_reason = sprintf "path ownsership of '%s' does not match"
-            . " process owner[s]", $tmppath;
+    } else {    ##  no owner match in @match_type  ##
+        $err_reason
+            = sprintf 'path owner of %s does not match process '
+            . '[ path pid : %d gid : %d \ process uid : %s gid : %s ]',
+            $tmppath, $stat_uid, $stat_gid,
+            join( ', ', sort keys %has_uid ),
+            join( ', ', sort keys %has_gid );
     }
 }
 <[base.logs]>->(
-    0, "<<%s>> [%d] <report-temp-path> %s",
+    0, "< %s > [sid:%d] report-temp-path : %s",
     $zenka, $zenka_sid, $err_reason
 ) if defined $err_reason;
 
 return { 'mode' => qw|false|, 'data' => $err_reason } if defined $err_reason;
 
-push( <v7.zenka.instance>->{$zenka_instance}->{'temp-path'}->@*, $tmppath );
+push <v7.zenka.instance>->{$zenka_instance}->{'temp-path'}->@*, $tmppath;
 
 my $str_len = 52 - length(<system.node.name>);
 
@@ -117,8 +133,8 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 ##  reporting success  ##
 return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $tmppath };
 
-#,,.,,.,,,.,,,,,,,.,.,...,,.,,,.,,,,,,...,,..,..,,...,.,.,..,,...,,,,,.,.,,,,,
-#LS7MUI5VKCTWNWQLTFHZSTXZJX42G7RAJ6H6KR75FLBSRIETYRM5QTOARKLOQ5B7RM6O2IRZEY3DQ
-#\\\|AYRYSQUDUFDJUP7ZY5Q6KK5UC52DRFE7S3WUZ6WBYGMWFP66KJF \ / AMOS7 \ YOURUM ::
-#\[7]SCW6P3CBOHIF6NJWISSFA4DR4BL3PGS44FJJY52GB276YSYRV2AA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,..,..,,.,,,,.,,,,,,,..,.,.,..,,...,...,,..,,.,,..,,,.,,,..,
+#GUDRE3D5I4TVZ6KOW725EO66UACJ4CACBSWFD4NA4QKYEXMIR2YTFYA67WJYFHHU4ZXEMOIHRHXPY
+#\\\|UKFCUGAHOEVRA4TIRMBDKB7MPK7DLLGTAUFTPDAVHNFUUMO5RNH \ / AMOS7 \ YOURUM ::
+#\[7]4RQTKQELD7UTNTMQTXURHRDKCGEK7WXTIRXKT43ERE5QHUU5L2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

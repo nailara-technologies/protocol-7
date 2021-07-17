@@ -5,23 +5,23 @@
 # descr = wait until matching window is visible
 # todo  = combine poll timer for all requested windows
 
-my ( $timeout, $title_pattern ) = split( m| +|, $$call{'args'}, 2 );
+my ( $timeout, $title_pattern ) = split( m| +|, $call->{'args'} // '', 2 );
 
 return {
     'mode' => qw| false |,
     'data' => 'expected numerical timeout argument'
     }
-    if not defined $timeout or $timeout !~ m|^\d+(\.\d+)?$|;
+    if $timeout !~ m|^\d+(\.\d+)?$|;
 return {
     'mode' => qw| false |,
     'data' => 'expected title [sub]string argument'
     }
-    if not defined $title_pattern or !length($title_pattern);
+    if not defined $title_pattern or not length $title_pattern;
 
 $title_pattern =~ s{^['"]|\\|["']$}{}g;    ## <-- removing quotes and \-es ##
 
-my $start_match = $title_pattern =~ s|^(\^)||g ? $1 : '';
-my $end_match   = $title_pattern =~ s|(\$)$||g ? $1 : '';
+my $start_match = $title_pattern =~ s|^(\^)||g ? ${^CAPTURE}[0] : '';
+my $end_match   = $title_pattern =~ s|(\$)$||g ? ${^CAPTURE}[0] : '';
 
 $title_pattern = qr|$start_match\Q$title_pattern\E$end_match|;
 
@@ -40,10 +40,10 @@ my $req_id = <[base.gen_id]>->( <X-11.waiting> //= {} );
 
 my @timers = (
     'poll' => <[event.add_timer]>->(
-        {   'after'    => sprintf( '%.4f', rand(0.07) ),
+        {   'after'    => sprintf( qw| %.4f |, rand(0.07) ),
             'prio'     => 4,
-            'interval' => sprintf( '%.4f', rand(0.13) ),
-            'handler'  => 'X-11.handler.wait_visible',
+            'interval' => sprintf( qw| %.4f |, rand(0.13) ),
+            'handler'  => qw| X-11.handler.wait_visible |,
             'data'     => $req_id
         }
     )
@@ -54,7 +54,7 @@ push(
             {   'after'   => $timeout,
                 'repeat'  => 0,
                 'prio'    => 2,
-                'handler' => 'X-11.handler.wait_visible_timeout',
+                'handler' => qw| X-11.handler.wait_visible_timeout |,
                 'data'    => $req_id
             }
         )
@@ -67,10 +67,10 @@ push(
     'timer'    => {@timers}
 };
 
-return { 'mode' => 'deferred' }
+return { 'mode' => qw| deferred | }
 
-#,,,,,,,,,,..,,.,,.,.,,..,..,,,..,.,,,.,.,...,..,,...,..,,,..,,..,,,,,.,,,.,.,
-#GHQYVMV6HIVQQFPX6XVFZDTYILQOY5FSBSZ5CJ2O2QIUCDPBKQYYOHXL4RXS47G2KZGQWTVJEH2CM
-#\\\|TG5SFO3PQ5VFNPNODZBK6VSCZDLOVQXNB4WXHE2YXY6F2UX7UM3 \ / AMOS7 \ YOURUM ::
-#\[7]HEPCEIITFH2HG5W2RXXHYHAOZ53I274DHFX24ZUUJVQFDUA44YAY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,,.,..,,.,,,.,,,...,,,.,.,,,..,,...,...,...,.,,,,..,,..,..,,
+#NUYZ6HK7WJSZAL45YJIB7AQDXMRAPXKOJH6BPMVAOGCRI6CS46AYEZBDZERL2O2PYVVC57OHGROKO
+#\\\|R3DZC73NBDJFBYAGD2CPYSC65GBXLRCKFCCQDGKAQSMSI6KJFBP \ / AMOS7 \ YOURUM ::
+#\[7]UOHIXDYYEU5RNQS3AFEF4XEAKL2VQFXUNNKO73UAYRJEKV5QSEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

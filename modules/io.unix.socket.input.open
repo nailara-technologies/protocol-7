@@ -35,10 +35,10 @@ rename( $tmp_spath, $socket_path )
     or die "io.unix.socket.input.open: rename: \l$OS_ERROR";
 
 ##  unlink child removes path in io.unix.socket.end_code  ##
-push( @{<unix.socket_paths>}, $socket_path );
+push( <unix.socket_paths>->@*, $socket_path );
 
 push(
-    @{<system.init_reports>},
+    <system.init_reports>->@*,
     {   'target_command' => qw| v7.report-temp-path |,
         'param'          => $socket_path,
         'handler'        => qw| io.unix.socket.handler.report-tmp-path |,
@@ -46,11 +46,22 @@ push(
     }
 );
 
+<[base.logs]>->(
+    2,            ': %s : filemode change to %#o',
+    $socket_path, $socket_umask
+);
+
 chmod( $socket_umask, $socket_path )
     or die "io.unix.socket.input.open: chmod: \l$OS_ERROR";
 
 if ( defined $socket_owner ) {
     my ( undef, undef, $uid, $gid ) = getpwnam($socket_owner);
+
+    <[base.logs]>->(
+        2,            ": %s : changing owner to '%s'",
+        $socket_path, $socket_owner
+    );
+
     chown( $uid, $gid, $socket_path )
         or die "io.unix.socket.input.open: chown[$socket_owner]: \l$OS_ERROR";
 }
@@ -73,8 +84,8 @@ $data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
-#,,,,,,,,,,,,,.,.,...,,,,,,,,,.,.,...,,..,,,,,..,,...,...,.,.,...,,,.,..,,,..,
-#3YQLSKZB7FUE4RESS66A44YBIKIKLOPUHFDXECRDQCJEAGAD3I3IGKGYJERUAGSEMNZKVGDXUVY6Q
-#\\\|HIMFNYROPTDLJANLJ57CVBTEXRKF4L3NJEBEE3KUWUEE3V7KYS7 \ / AMOS7 \ YOURUM ::
-#\[7]UHXTP34CQGNTYZAVOX7D4U53V4TF52FHY6KIZ73WCVJ7WXQYXEAA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,,.,,,..,,,.,,.,,..,,,.,,,,.,..,,...,...,...,..,,,,.,,,,,,,.,
+#26Y52AF5HAY5GTWZMZQ2F4HOQEL2WONZECQU6XOCTBRNM2SOJ7KS37LOFJ43CESNSVQCD27SJVYZK
+#\\\|AG4FUIIVV57T74IBP2JD7TBC3RQFSNMNVIJKM76HRQ5NETIV7TW \ / AMOS7 \ YOURUM ::
+#\[7]YH642PC6IIO42UWW5UIZKLYKNN7CLRCMNTMB53VVMIWT7SMLOYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
