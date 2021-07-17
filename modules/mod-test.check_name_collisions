@@ -1,0 +1,103 @@
+## >:] ##
+
+# name  = mod-test.check_name_collisions
+# descr = read ncpan style cpan module list and checks for name collisions
+
+my $input_file = shift // qw| /tmp/cpan_modules.asc |;
+
+my $log_collisions = 0;
+
+if ( not -f $input_file or not -r $input_file ) {
+    <[base.s_warn]>->(
+        'input file %s not found [ or not readable ] <{C1}>', $input_file
+    );
+    return undef;
+}
+
+my $modlist_fh = <[file.open]>->($input_file);
+if ( not defined $modlist_fh ) {
+    <[base.s_warn]>->(
+        'cannot open input file %s [ %s ] <{C1}>',
+        $input_file, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+    return undef;
+}
+
+<[base.log]>->( 1, 'testing for module name checksum collisions..,' );
+<[base.logs]>->( 2, ':. [ input file %s ]', $input_file );
+
+my $time_start = <[base.time]>->(5);
+
+my %modname_sums;
+
+my $entries           = 0;
+my $skip_lines        = 9;
+my $collision_counter = 0;
+while ( my $line = readline($modlist_fh) ) {
+    next if $skip_lines and $skip_lines--;
+    chomp($line);
+    $line =~ s| .+$||;    ##  isolate perl module name  ##
+
+    ##  my $module_chksum = <[chk-sum.amos]>->( \$line );
+    ##  my $module_chksum = <[chk-sum.jha.b32]>->($line);
+    ##  my $module_chksum = <[chk-sum.jha.b32.harmonized]>->($line);
+    # my $module_chksum = <[chk-sum.elf.inline]>->( \$line, 2 );
+
+    my $module_chksum = <[chk-sum.elf.regular-elf]>->( $line );
+
+    #my $module_chksum = <[chk-sum.jha]>->($line);
+    #my $module_chksum = <[chk-sum.jha.b32]>->($line);
+
+    ## my $module_chksum = Digest::JHash::jhash($line);
+
+    ## my $module_chksum = Digest::Elf::elf(join '', $line);
+
+    ## my $module_chksum = Digest::BMW::bmw_224( \$line );
+
+    ## my $module_chksum = <[chk-sum.bmw.L13-str]>->($line);
+
+    if ( exists $modname_sums{$module_chksum} ) {
+        ++$collision_counter;
+        <[base.log]>->(
+            2,
+            sprintf '< collision > %24s <--> %s',
+            $modname_sums{$module_chksum}, $line
+        ) if $log_collisions;
+    }
+    if ($log_collisions) {
+        $modname_sums{$module_chksum} = $line;
+    } else {
+        $modname_sums{$module_chksum}++;
+    }
+
+    <[event.once]> if ++$entries % 113 == 0;
+}
+
+my $test_time_stop = <[base.time]>->(5);
+
+<[base.logs]>->(
+    $collision_counter ? 0 : 1,
+    'done, collisions : %d',
+    $collision_counter
+);
+
+<[base.logs]>->(
+    ':. checked %d entries in %.1f seconds..,',
+    $entries, $test_time_stop - $time_start
+);
+
+<[base.logs]>->(
+    2,
+    ':  :. %.1f checksums per second.',
+    $entries / ( $test_time_stop - $time_start )
+);
+
+return ( $collision_counter, $entries ) if wantarray;
+
+return $collision_counter;
+
+#,,,,,.,.,,,,,.,.,.,.,,,,,..,,.,,,..,,.,,,...,.,.,...,..,,...,.,,,.,.,,,.,,,,,
+#BQX3XDJDQMBEOBL425VZOJZZKON35ZVKRW4TVBQO3FDC7ECNVHAQG3NUACTP63ZRQWMHL3DCH2C26
+#\\\|CPAJBKCEK7HA523H35H3OWEGOZKQPYIDCNF7NAOH4TTIPQDXUH3 \ / AMOS7 \ YOURUM ::
+#\[7]JJR3IMIWJ6QJPVYWQSRXVV6XPMHNUUW5FJD4ZJJ7F5EAGQ7EJEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
