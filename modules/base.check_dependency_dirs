@@ -7,10 +7,12 @@ my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
 my $start_cfg_name = qw| start |;
 
-my ( undef, undef, $uid, $gid ) = getpwnam($user)
-    or return <[base.logs]>->(
-    2, "<< check_dependency_dirs :user '%s' not in passwd file >>", $user
-    );
+my $subdir_perms = 0775;    ##  zenki group needs write access  ##
+
+my ( undef, undef, $user_uid, $gid ) = getpwnam($user)
+    or <[base.logs]>->(
+    0, "<< check_dependency_dirs : unix user '%s' not found >>", $user
+    ) and return undef;
 
 my @sub_dirs = qw|
     os-dep
@@ -34,39 +36,63 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     foreach my $sub_dir (@sub_dirs) {
         my $dir_path = sprintf qw| %s/%s |, $dep_dir, $sub_dir;
         ## create ##
-        if ( !-d $dir_path ) {
+        if ( not -d $dir_path ) {
             mkdir($dir_path)
                 or <[base.s_warn]>->(
                 'mkdir[%s] : %s',
-                $dir_path, <[base.format_error]>->($OS_ERROR)
+                $dir_path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
                 );
         }
         next if not -d $dir_path;
 
+        ( my $relpath = $dir_path ) =~ s|^.*/||;
+
         my $dir_stat = File::stat::stat($dir_path);
 
         ## chmod ##
-        chmod( 0775, $dir_path ) if $dir_stat->mode != 0755;
-        if ( $dir_stat->uid != $src_stat->uid or $dir_stat->gid != $gid ) {
-            ## chown ##
-            chown( $src_stat->uid, $gid, $dir_path )
-                or <[base.s_warn]>->(
-                'chown[ %s ] : %s',
-                $dir_path, <[base.format_error]>->($OS_ERROR)
+        if ( $dir_stat->mode != $subdir_perms ) {
+            <[base.logs]>->(
+                2, "correcting permissions on subdir '%s'..,", $relpath
+            );
+            chmod( $subdir_perms, $dir_path )
+                or <[base.logs]>->(
+                2,        ":. : '%s' : chmod : %s .:",
+                $relpath, scalar <[base.format_error]>->( $OS_ERROR, -1 )
                 );
         }
-        ## placeholder ##
+
+        if (   $EUID == 0 and $dir_stat->uid != $src_stat->uid
+            or $dir_stat->gid != $gid ) {
+
+            <[base.logs]>->(
+                2, "correcting ownership on subdir '%s'..,", $relpath
+            );
+
+            ## chown ##
+            chown( $src_stat->uid, $gid, $dir_path )
+                or <[base.logs]>->(
+                2,        ":. : cannot chown %s : %s .:",
+                $relpath, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                );
+        }
         my $placeholder_path = sprintf qw| %s/.placeholder |, $dir_path;
+        ( $relpath = $placeholder_path ) =~ s|^.+/(*pla:zenki/)||;
+
+        ## placeholder ##
         if ( not -e $placeholder_path ) {
             open( my $fh, qw| > |, $placeholder_path ) or next;   ## use mknod
             close($fh);
         }
-        chown($placeholder_path);
+        chown( $src_stat->uid, $gid, $placeholder_path )
+            or <[base.logs]>->(
+            0,        ":. : cannot chown %s : %s .:",
+            $relpath, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+            );
     }
 }
 
-#,,,.,,,.,.,.,.,,,...,.,,,...,...,..,,.,.,,.,,..,,...,...,..,,.,,,,..,,,,,.,,,
-#7IXYWYBVDZDVA4NJ7Q6CNQCPCPB3BZ2NVWM4XP6NEW2UVSTUZSZ6ZHCAA7IXXFHDQ575RDFAYQY2Q
-#\\\|GEQETD7YJPPX2TFWWAWDOHVKXGRY5MLBTFV6LF226CE5BDFLHPK \ / AMOS7 \ YOURUM ::
-#\[7]L3CACVLZXJ2HWF4BGAEBZCCRSY3FMPVVBJSB6TMTOWGZMAF4REAA 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,,.,,..,,,.,,,..,,..,,.,,...,..,,...,..,,,..,.,,,.,,,,..,,,,,
+#TMW4XIXSHXUK7KMSJECCJRDK6NTXSJ7ARARXCG2CT33GHGSM6GKI2HSWEN3HXPHVC3TS5FIOITLOO
+#\\\|4PRBG2E4JN2L7OVQ2A4TBZC3J46YSTTCNQ3SVTFEKLH7XEIPPDN \ / AMOS7 \ YOURUM ::
+#\[7]TVAEAAFSV554TO5RZQ7EYSE5IMP4ALBNGJAR2XJRH3FY2SKWLEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
