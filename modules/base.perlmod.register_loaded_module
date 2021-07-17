@@ -1,0 +1,26 @@
+## >:] ##
+
+# name  = base.perlmod.register_loaded_module
+
+my $module_name        = shift // '';
+my $was_already_loaded = 0;
+
+if ( not length $module_name ) {
+    warn 'expected module name parameter <{C1}>';
+    return undef;
+}
+
+$was_already_loaded = 5
+    if defined <base.perlmod.loaded>->{$module_name}
+    and <base.perlmod.loaded>->{$module_name};
+
+<base.perlmod.loaded>->{$module_name} = 5;    ## true ##
+
+return 0 if $was_already_loaded;              ##  false if nothing changed  ##
+return 5;                                     ##  true for status changed  ##
+
+#,,,,,,,.,...,...,,..,,,,,,..,,,,,,,,,..,,..,,..,,...,...,...,,,,,,,.,,..,.,,,
+#Y2O5I45NUYCPJLQQBK4AWSQGOMNZUTICQS5KFFOHHNNULSVF2KMLE67VLAOMEPUAMXUKYCWMEHBKU
+#\\\|RSNUOHSQHQKOOWGGTNMZOFDUOGG5SLYVCD2C5PQN3ZMTCVMVSLA \ / AMOS7 \ YOURUM ::
+#\[7]GHLOIORLCR6QKOSQHDOA5ER5BU3P23T4W7T4UQKRNXVURX5SBICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
