@@ -5,10 +5,19 @@
 my %pmods          = map { $ARG => 5 } grep { !m,^AMOS(::.+|$)$, } @ARG;
 my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
+my $zenka          = <system.zenka.name>;
 my $start_cfg_name = qw| start |;
 state $access_warned = 0;
 
+my $file_perm = 0664;    ##  zenka group gets write access  ##
+my $owner     = <system.amos-zenka-user> // qw|  protocol-7  |;
+
 my $mod_dir = <[base.get_path.zenka_cfg]>;
+
+my ( undef, undef, $owner_uid, $gid ) = getpwnam($owner)
+    or <[base.logs]>->(
+    0, "<< register_pm_deps : unix user '%s' not in passwd >>", $owner
+    ) and return undef;
 
 my @not_registered;
 
@@ -16,6 +25,8 @@ if ( $mod_dir
     =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/pm-dep| ) {
 
     <[base.check_dependency_dirs]> if not -d $mod_dir;
+
+    my $src_stat = File::stat::stat($mod_dir);
 
     if (    -d $mod_dir
         and -r $mod_dir ) {
@@ -25,11 +36,30 @@ if ( $mod_dir
                 if not defined &Module::CoreList::is_core;
             next if $EVAL_ERROR or Module::CoreList::is_core($mod_name);
             if ( -w $mod_dir ) {
+                my $path_abs = catfile( $mod_dir, $mod_name );
+                ( my $relpath = $path_abs ) =~ s|^.*/||;
                 my $fh;
-                open( $fh, qw| > |, catdir( $mod_dir, $mod_name ) )
+                open( $fh, qw| > |, $path_abs )
                     and close($fh);
+
+                ## chmod ##
+                chmod( $file_perm, $path_abs )
+                    or <[base.logs]>->(
+                    2,        ":. : '%s' : chmod : %s .:",
+                    $relpath, <[base.str.os_err]>
+                    );
+
+                ## chown ##
+                if ( $EUID == 0 ) {
+                    chown( $src_stat->uid, $gid, $path_abs )
+                        or <[base.logs]>->(
+                        2,        ":. : cannot chown %s : %s .:",
+                        $relpath, <[base.str.os_err]>
+                        );
+                }
+
             } else {
-                push( @not_registered, $mod_name );
+                push @not_registered, $mod_name;
             }
         }
 
@@ -45,8 +75,8 @@ if ( $mod_dir
     }
 }
 
-#,,.,,,.,,,,,,,,,,...,,,.,,..,,..,,,,,...,...,..,,...,..,,,..,...,...,..,,,.,,
-#7JGTI4DG6ATSULVGV7AT2DQP6JXIYOHP4ZVRCTH4EGH263DEUIXNXRHGF3QB7AL4JVUVOBZTIWYMS
-#\\\|RZ23YDP7BLYHWTKUFX5MXWV2ZTAMSPPOIR3I2TUSDVQ7T6THL6R \ / AMOS7 \ YOURUM ::
-#\[7]UG5ICANKKW43CDKI4MFIK6KGWCWHWHZH4CXCJ27UBAN7PA3EWKAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,..,,..,,..,,,.,,..,.,,,,..,..,,..,,...,...,...,.,.,.,,,,,.,.,.,
+#2UQYROJB6L2RECIBHDIWLU3PV6RUKPQSW6OA4MZTM4POJEBFIYWTP47E7BKAZ4CI36O3YUC6SF4TM
+#\\\|63QLXZRY4IMZRIN6645BHJY6C6RSWM6KMWR5F2U3OEZJKEFYPW5 \ / AMOS7 \ YOURUM ::
+#\[7]35WU4EIQKHYGRGKCK43FYI2IYMA5YVA243PEOB4LELKTSBR4QGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
