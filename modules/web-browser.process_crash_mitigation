@@ -14,21 +14,29 @@ my $flag_map = {
 };
 
 my $subname_b32
-    = ( defined <system.zenka.subname> and length(<system.zenka.subname>) )
-    ? '.' . encode_b32r(<system.zenka.subname>)
+    = ( defined <system.zenka.subname> and length <system.zenka.subname> )
+    ? sprintf qw| .%s |, encode_b32r(<system.zenka.subname>)
     : '';
-my $file_name = "/var/run/.7/web-browser.crash_pid$subname_b32";
-return if !-f $file_name;
-chomp( my $crash_pid = ${ <[file.slurp]>->($file_name) } );
+my $file_name = sprintf qw| /var/run/.7/web-browser.crash_pid%s |,
+    $subname_b32;
+return if not -f $file_name;
+
+chomp( my $crash_pid = <[file.slurp]>->($file_name)->$* );
 unlink($file_name) or warn("$file_name : \l$OS_ERROR");
-return if $crash_pid !~ /^\d+$/;
+return if $crash_pid !~ m|^\d+$|;
+
 $file_name = "/var/tmp/.protocol-7.web-browser.$crash_pid";
 return if !-f $file_name;
-my $file_content = ${ <[file.slurp]>->($file_name) };
-unlink($file_name) or warn("$file_name : \l$OS_ERROR");
 
-my $crash_url = $1 if $file_content =~ s|^current_url : ([^\n]+)\n||;
-my $url_flags = $1 if $file_content =~ s|^url_flags   : ([^\n]*)\n||;
+my $file_content = <[file.slurp]>->($file_name)->$*;
+unlink($file_name)
+    or <[base.s_warn]>->( '%s : %s', $file_name, <[base.str.os_err]> );
+
+my $crash_url = ${^CAPTURE}[0]
+    if $file_content =~ s|^current_url : ([^\n]+)\n||;
+
+my $url_flags = ${^CAPTURE}[0]
+    if $file_content =~ s|^url_flags   : ([^\n]*)\n||;
 
 return
        if length($file_content)
@@ -40,10 +48,11 @@ $url_flags =~ s| ||g;
 $url_flags = ''
     if length($url_flags)
     and not exists $flag_map->{$url_flags}
-    and $url_flags ne 'blkext,nojs';  # weird / unrecognized flag combination!
+    and $url_flags ne 'blkext,nojs';  # weird \ unrecognized flag combination!
 
-<[base.log]>->(
-    0, "processing crash mitigation for previous instance [PID $crash_pid]"
+<[base.logs]>->(
+    0, "processing crash mitigation for previous browser instance [ PID %d ]",
+    $crash_pid
 );
 
 if ( not exists $flag_map->{$url_flags} ) {
@@ -56,17 +65,21 @@ if ( not exists $flag_map->{$url_flags} ) {
 
 my $next_flags = $flag_map->{$url_flags};
 
-my $s = $next_flags =~ /,/ ? 's' : '';
-<[base.log]>->( 1, ": setting flag$s '$next_flags' for '$crash_url'.." );
+<[base.logs]>->(
+    1,
+    ": setting flag%s '%s' for '%s'.,",
+    <[base.cnt_s]>->( index( $next_flags, ',', 0 ) >= 0 ),
+    $next_flags, $crash_url
+);
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "cube.content.set_flags",
+    {   'command'   => qw| cube.content.set_flags |,
         'call_args' => { 'args' => join( ' ', $next_flags, $crash_url ) }
     }
 );
 
-#,,.,,...,,,.,,,,,..,,..,,...,.,.,,.,,,,.,,..,..,,...,.,.,,.,,,,.,,,,,,,.,,,.,
-#OJTV4UFBAPMEF4TQCF7CVDGT7I5XAXHTFD36D6FQ35S2SP3U4JPZ4NNWJV67HGVD5MZ3NUZXQC5HG
-#\\\|CQKAEFMTF6PYYLNCQNGN74R7PYIBFJFA7VBFBFMO6MFJ74X5PLS \ / AMOS7 \ YOURUM ::
-#\[7]A4JA62XQZ44NCW4MBCTSSZXWVLWX6G4UIWORL5WTBPX2UCDL26AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,.,.,,,,,,..,,,,,,..,.,,,,..,..,,...,...,,,,,,,,,,,,,,..,.,.,
+#6IZVQMT4ZE6QU7V6NS7ONSEYRJ5G2QXHZHV75RSM6XVHGMLL3RCTCVX57OEOYAWXADUSZ342YKINM
+#\\\|S44PJPN7FYBLMO5QEYMRQDSFFM5MEOFKEAN7OV2GWN7HREFTHZ6 \ / AMOS7 \ YOURUM ::
+#\[7]VZ2TZBGFH2PXBX3ESO3QUOAXKJAPC5JWRMAGBPJ76Y7ROBVVOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

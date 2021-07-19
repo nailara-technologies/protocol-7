@@ -18,14 +18,16 @@ map {    ## validity check ##
     }
 } qw| status zenka_name |;
 
+<v7.online-zenki> //= {};
+
 my $zenka_name = <v7.zenka.instance>->{$instance_id}->{'zenka_name'};
 
-<v7.online-zenki> //= {};
 my $online_count = scalar keys <v7.online-zenki>->%*;
+
 if ( $new_status eq qw| online | ) {
     <v7.online-zenki>->{$zenka_name}++;
 } elsif ( $new_status ne qw| starting |
-    and exists <v7.online-zenki>->{$zenka_name} ) {
+    and defined <v7.online-zenki>->{$zenka_name} ) {
     delete <v7.online-zenki>->{$zenka_name}
         if --<v7.online-zenki>->{$zenka_name} == 0;
 }
@@ -34,8 +36,8 @@ if ( $new_status eq qw| online | ) {
 
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
-#,,,.,,,.,.,,,,.,,...,,..,,.,,.,.,,..,...,..,,..,,...,...,...,,..,,.,,,..,,,.,
-#I22SLFW3CY4FNB62QGYQWXISX33X5YHYYXZ6EIF5SQUEVO2KXE3JCWHQFNIBURSWBWIRA76E7S5IM
-#\\\|OTZQS2CDWLFGPEVVMSV74X2WLBUFEHPSJ2ZKMC3ZDWNUANN7FMG \ / AMOS7 \ YOURUM ::
-#\[7]YZ3VC6JUP6VA27CTWUYH37SGSRXVP2QQY64IE7XNQPTCAIF2G2BY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,...,...,,,,,.,.,,.,,,..,,,,,..,,...,...,,..,,,,,,..,.,,,.,.,
+#EHK6WI5BZHOMOJSJLVBI2FA2RPV7DZCPNABLUOURHHHTJ7UNO2ZBH2KGY6A2WSPN3K2EEKZ2ICQ4U
+#\\\|YE4AYWX7XI4KNYQJH5JVSRV6F4UAIBVNTIJXSTTAYE5Q7MNTG3T \ / AMOS7 \ YOURUM ::
+#\[7]7LPC3IMZKCWFXIDD54KZS3TSWAMAND5H5WXLAUABFPULCN3X36BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

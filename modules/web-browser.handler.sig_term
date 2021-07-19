@@ -1,0 +1,60 @@
+## >:] ##
+
+# name  = web-browser.handler.sig_term
+
+<web-browser.shutting_down> //= 0;
+return if <web-browser.shutting_down>;    ## already in progress ##
+
+<web-browser.shutting_down> = 5;          ## true ##
+
+my $url_file = sprintf qw| /var/tmp/.protocol-7.web-browser.%s |, $PID;
+unlink($url_file) if -f $url_file;        # clean shutdown
+
+if ( defined <web-browser.timer> ) {    ##  cancel timers  ##
+    foreach my $cancel_timer ( keys <web-browser.timer>->%* ) {
+        <web-browser.timer>->{$cancel_timer}->cancel
+            if <web-browser.timer>->{$cancel_timer}->is_active;
+    }
+}
+
+<[base.log]>->( 1, '<< SIGTERM >> shutting down .,' );
+
+<web-browser.slideshow.no_switch> = 5;    ## true ##
+<web-browser.slideshow.paused>    = 5;    ## true ##
+
+<[web-browser.disable_javascript]>;
+
+delete <web-browser.quit_fade.start_time>;
+<web-browser.signal_id> //= {};
+{
+    local $SIG{'__WARN__'} = sub { };
+    map {
+        <web-browser.gtk_obj.window>->signal_handler_disconnect(
+            delete <web-browser.signal_id>->{$ARG} )
+        }
+        keys <web-browser.signal_id>->%*;
+}
+
+if ( not <web-browser.cfg.use_transparency> ) {
+
+    Gtk3->main_quit();
+    exit(0);
+
+} else {
+    Glib::Timeout->add(
+        300,
+        sub {
+            <web-browser.gtk_obj.window>->signal_connect(
+                draw => $code{'web-browser.handler.quit_fade_out'} );
+            <web-browser.gtk_obj.window>->queue_draw;
+            return 0;
+        }
+    );
+    return 0;
+}
+
+#,,,.,...,.,.,,..,...,,,,,,,.,.,,,...,...,,..,..,,...,...,,,,,,,,,,,,,.,.,.,,,
+#5EJP4HVUUAE4XHGJHJHCMALRQ5NCE4REIZIGL7TD7YEUP7VZ53223DHP72N32ZJNMFTWNOKD2AUE4
+#\\\|2VRRE5MBGAUAZ3B22PIV6U3OOJETAIUEQCR627D5O7WNKV5UHYG \ / AMOS7 \ YOURUM ::
+#\[7]OQVW77PJTIBN6VJLS3RMGA2CUTIN65PCF7ARJ2O5KT4CBUDIJSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
