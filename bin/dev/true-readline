@@ -59,6 +59,12 @@ if ( @ARGV > 1 and $ARGV[0] eq qw| -tem | and shift @ARGV ) {
     }
 }
 
+my $force_use_readline = 0;
+
+if ( @ARGV and $ARGV[$#ARGV] eq qw|-r| and pop @ARGV ) {
+    $force_use_readline = 5;    ## true ##
+}
+
 my $txt_line = '';
 
 if (@ARGV) {
@@ -67,6 +73,8 @@ if (@ARGV) {
     my $selection_text = qx| xsel -o |;
     $txt_line = $selection_text if length length $selection_text;
 }
+
+$txt_line =~ s|\n||sg;
 
 $term->add_history($txt_line) if length $txt_line;
 
@@ -98,23 +106,24 @@ if ( $min_len <= $str_length <= $max_len ) {
     } else {
         $is_true_string = is_true( \$txt_line );
     }
-    goto IS_TRUE if $is_true_string;
+    goto IS_TRUE if $is_true_string and not $force_use_readline;
 }
 
-my $last_line = '';
+my $last_line;
 my $msg_delay = 0.7;
 
 my $prompt = ' :. ';
 
 clear();
 
-while ( not $is_true_string ) {
-
+while ( $force_use_readline or not $is_true_string ) {
+    $force_use_readline = 0;    ##  done  ##
     override_signals();
     printf "%s\e[%dH", blacklight_line(), $y_pos;
     my $line = $term->readline( $prompt, $last_line // $txt_line );
 
-    $term->add_history($line) if $line ne $last_line;
+    $term->add_history($line)
+        if not defined $last_line or $line ne $last_line;
 
     $full_str = defined $template ? sprintf( $template, $line ) : $line;
 
@@ -238,8 +247,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,.,,..,,.,,,.,,,..,,..,,.,,...,.,.,.,,,.,.,..,,...,...,...,..,,,.,,.,,,.,,,
-#2FB4TZ7RILLBGSRKNHT2TKP5SWN2DV4DQGASFGIBRSHRHM7U46ITAUQ56WQQBGRRQKV4VYAS7AJCU
-#\\\|ULJBGKXMSAN7V63KLVOR5BINYJZ7BDDQMDMXV4LNHQBXXHKIG2Q \ / AMOS7 \ YOURUM ::
-#\[7]OHLZAM5QLEOFLOSGIBPUXC2TUVUMUGR7YMZ4VE4WRUS4TAC62CCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,...,.,.,,,,,,..,,..,.,.,..,,..,,...,...,.,,,,.,,,.,,.,.,.,,,
+#KC6IUYSJ5AZ5VWSBE4ZM2XFW6B65K73FD7DSWDP37K7XVOVHECLSFBMQDMECKX6CP7GAJAZY4CZWO
+#\\\|JSW6NIIFMXD4FD3XPOF5VD3A2O5JO55S6JZZWX76R3OOSI4Y7GJ \ / AMOS7 \ YOURUM ::
+#\[7]2LPFXADBCDHSPHP6MGQTTKQF2H5HFUD7WVEEXPLJDM2RK542IMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
