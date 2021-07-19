@@ -6,7 +6,8 @@ my $chk_pid = shift;
 
 if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
     ( my $caller_str = [ (caller) ]->[1] ) =~ s|^.+\.||g;
-    return warn sprintf '[%s] expected parent process id <{C1}>', $caller_str;
+    warn sprintf '[%s] expected parent process id <{C1}>', $caller_str;
+    return undef;
 }
 
 ### old method ### [ heavy, non-portable, to be removed.. ]
@@ -68,8 +69,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,..,..,,.,,,,,,,..,,,.,,...,.,,,.,,,...,,..,..,,...,...,..,,...,.,,,,,,,,,.,
-#MUCS3BVST2XE6P3JGSORILVNIW6KN4ROQFAHW3XVM5S6Y4NGAFBQGPBIDWUXS66RKFOEW6LBOLSSK
-#\\\|QWHJDKB2ZOQ3DLIGIANVFCWC7IYHTBYZDSRZFV3PUXVOGLPH3UY \ / AMOS7 \ YOURUM ::
-#\[7]Y6K2OKLZ5LHA2G5P5QYSB7JDANU6G3EJNDN26XHQYP7DRGT2FEBI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,..,,.,,..,,,..,.,,,,..,,,.,..,,...,..,,...,,,.,,,,,.,,,,,.,
+#YNCAL67EJHUF5KGNCAGVDQII5UMJQQ4NLB6RH2VO62X4M4A2PLIEC7WC4KYWGYQRT3MJMWXDVM2A6
+#\\\|I62JL5H36Q33HBZZXZTZXNBYVKVLIMPCI27KXU6TTKMGDPL4RJA \ / AMOS7 \ YOURUM ::
+#\[7]TSJEJQPYP3UARVBUUUXCEW6F7RC4OZJVLVPFBDHDKMZYUD4FAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
