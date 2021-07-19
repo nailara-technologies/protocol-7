@@ -197,24 +197,14 @@ if (    defined <system.zenka.type>
     <[base.hide_list]>->(qw| users |);
 }
 
-map {
-    <base.watcher.signal>->{$ARG}->cancel
-        if defined <base.watcher.signal>->{$ARG};
-    my $uc_sig = uc($ARG);
-    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
-
-    ## initializing signal handlers ##     [ << potential SIGCHLD problems >> ]
-    <base.watcher.signal>->{$ARG} = <[event.add_signal]>->(
-        {   'signal'  => $uc_sig,
-            'handler' => sprintf( qw| base.sig_%s |, $ARG )
-        }
-    );
-} qw|  int  term  hup  NUM37  NUM55  NUM41  chld  NUM53  |;
+##  registering signal handlers [ incl. ignored ]  ##
+##
+<[base.init_zenka.install_signal_handlers]>;
 
 ## initializing session list ###
-
+##
 if ( ref( $data{'session'} ) ne qw| HASH | ) { $data{'session'} = {} }
-
+##
 <[base.list.init]>->(
     {   qw| name |     => qw| sessions |,
         'key_ref'      => \$data{'session'},
@@ -267,8 +257,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,,,,...,...,,.,,...,.,.,..,,..,,,,.,,..,..,,..,,...,...,.,.,,.,,,.,,.,,,...,
-#DWN7AWQFXNOTUENQPKZFR5GTFSXASB2MHOKWWCU7ROZGOCWKV74FXUHSDM2K2ROUAZACB43UA7HJ4
-#\\\|GZEBA2NTWKRQ2KJMOWNUAOH7G3YCJ3SNFKTAYNQFCWJL5KM7AIV \ / AMOS7 \ YOURUM ::
-#\[7]UPQTUG73T24WDTYLET64MKPFI3LGRACFE44JH2227R3J74WQRYDQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,,,.,,,.,...,,,.,,,.,...,,,.,..,,...,...,...,.,,,...,,,.,.,.,
+#4CYAKX5OTLULPOMHALVQ4CMVIY6GJFRR4YKHAMFOEHHO73HP23JCC3ZSS72DE4ERHU4Z6U6AYPWDQ
+#\\\|B3KBB2NGLNX45UG3443QQAZLZTUKQ7IXMR5OIKSMIWM2KOUG4E6 \ / AMOS7 \ YOURUM ::
+#\[7]TCHLQITXMUMHA52VCO3QMAAVN3HBXFEBZLXDTS7WNGBKD6PKEUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

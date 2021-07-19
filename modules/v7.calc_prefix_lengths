@@ -38,8 +38,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
                     {   'after'  => $timer_delay += $timer_inc,
                         'repeat' => 0,
                         'prio'   => 7,
-                        'cb'     => sub { kill qw| SIGUSR1 |, @zenki_pid },
-                        'desc'   => 'SIGUSR1 send-timer'
+                        'cb'     => sub { kill 41, @zenki_pid },
+                        'desc' => 'SIGNUM41 send-timer [ decrease lp-width ]'
                     }
                 );
 
@@ -58,8 +58,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
                     {   'after'  => $timer_delay += $timer_inc,
                         'repeat' => 0,
                         'prio'   => 7,
-                        'cb'     => sub { kill qw| SIGUSR2 |, @zenki_pid },
-                        'desc'   => 'SIGUSR2 send-timer'
+                        'cb'     => sub { kill 55, @zenki_pid },
+                        'desc' => 'SIGNUM55 send-timer [ increase lp width ]'
 
                     }
                 );
@@ -74,8 +74,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
 map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys $apw_href->%* );
 
-#,,.,,...,,,.,.,,,.,,,.,,,...,..,,,,.,,,,,..,,..,,...,...,,..,,..,,.,,,..,,..,
-#SKVJZWHOJ2GTEJQLX4Q7GMVBYYFK7X5RVLHLSA74HDGZ3NI4YKKVVVCC5MW5KLP5IUEGGDHV6Q5XE
-#\\\|2ZRKI3LD6IHIMFLDS6MD4V6ONEPLXSRJODR7FWPWL6327MZSJ6G \ / AMOS7 \ YOURUM ::
-#\[7]3PMU7JMFRGPCTKFUNOOTEGFNQJQ2XY6UQHXHHKH3LCKQFZ752MCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,,,,,...,,,,,.,,,...,..,,...,..,,...,...,...,,..,,,.,.,.,,.,,
+#XA5W2E6GSHM2SN6M6J7HIPZVTIBDHNANMVY35DAWNG7JGWDB3OCACRZHDPDNDEL56G4A7MYVJ5YCK
+#\\\|OGFKCEU3YUWOQQZ2D2F523H22NCB6LBI7GM7VR6ZP5KP4WYW5ST \ / AMOS7 \ YOURUM ::
+#\[7]IRL2B4A26PSD3GABVHQZGD4UTRMECJYKAUUCGS5A6C5POKRN5YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
