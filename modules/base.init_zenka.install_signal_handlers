@@ -1,0 +1,65 @@
+## >:] ##
+
+# name  = base.init_zenka.install_signal_handlers
+
+my @registered_signals = qw| int term hup NUM37 NUM55 NUM41 chld NUM53 |;
+
+## [ setting logging signal handler for all others ]
+##
+my %ignored_sig   = map { uc $ARG => 5 } keys %SIG;
+my %silent_signal = map { uc $ARG => 5 } qw| CLD |;
+foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
+    $signal_name =~ s|^SIG|| if index( $signal_name, qw| SIG |, 0 ) == 0;
+    delete $ignored_sig{ uc($signal_name) };
+}
+
+foreach
+    my $signal_name ( @registered_signals, <[base.sort]>->( \%ignored_sig ) )
+{
+    <base.watcher.signal>->{$signal_name}->cancel
+        if defined <base.watcher.signal>->{$signal_name};
+    my $uc_sig = uc($signal_name);
+    delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
+
+    my $signal_handler_name = sprintf( qw| base.sig_%s |, $signal_name );
+
+    ##  install default handler for %ignored_sig keys  ##
+    if ( exists $ignored_sig{$uc_sig}
+        or not defined $code{$signal_handler_name} ) {
+
+        my $signal_name_str
+            = $signal_name =~ m|^\d+$|
+            ? sprintf( qw| SIGNUM%d |, $signal_name )
+            : sprintf( qw| SIG%s |,    $uc_sig );
+
+        if ( not exists $silent_signal{$uc_sig} ) { ## logged [ignored] sig ##
+
+            $code{$signal_handler_name} = sub {
+                <system.ignored_signals>->{$signal_name_str}++;
+
+                <[base.logs]>->(
+                    0, ':: received ignored signal [ %s ]', $uc_sig
+                );
+            }
+        } else {    ##  silent signal [ignored]  ##
+
+            $code{$signal_handler_name} = sub {
+                <system.ignored_signals>->{$signal_name_str}++;
+            }
+        }
+    }
+
+    ##  register signal handlers  ##
+    ##
+    <base.watcher.signal>->{$signal_name} = <[event.add_signal]>->(
+        {   'signal'  => $uc_sig,
+            'handler' => $signal_handler_name
+        }
+    );
+}
+
+#,,,,,.,.,,,.,,.,,...,.,.,.,.,,.,,..,,,.,,,,.,.,.,...,...,.,,,,,.,,.,,,,.,...,
+#RNP4QTHFMSLY45ESEAHMEPIMSUQNOLWG2AOREDZZERQL5NPQ7THBRS4JNHETWZEFCB2GPO2643PT6
+#\\\|VHJKYX7UNKWKJWHUJCRZIAON5MCUEURHHK6E6SKVNFACWHU5KZU \ / AMOS7 \ YOURUM ::
+#\[7]B2LNUHD4LJWOYAR4C3FUXNS6XOZZGVJXMTJEZMB2QPAENIFV6GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
