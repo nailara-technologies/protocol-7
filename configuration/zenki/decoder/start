@@ -1,0 +1,32 @@
+
+.:[ 'decoder' terminal stream zenka ]:.
+
+
+[load_config_file:'shared-params']
+
+modules.load           = auth net protocol io.unix decoder.zenka      ## debug
+
+access.cmd.usr.cube-13 = heart commands stream-add stream-remove stream-attach
+
+access.cmd.usr.cube    = verify-instance commands heart reload subname \
+                         list show-buffer buffer-erase buffer-erase-level \
+                         list-deps cur-pid src-ver rel-ver src-age \
+                         ask-question save-state load-state * ## <-- debug
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[base.net.connect:'unix','13','127.0.0.1','cube-13']
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,.,.,,.,,,.,,,.,,.,.,...,...,,..,,.,,,..,.,.,...,...,..,,,,,,.,.,.,,,.,,,
+#G2ZQC3NPCUY5XF2SZFINX6NP5PU77FXMKTXET2SK7BQNB6Y6LA3QRJNWMX2RV4XYFYBIQZIAWRUC2
+#\\\|L6QCVY46CSR6TWXNXUCBYZKBLHZEASNRLHAUNHEINJKH2B2AQLH \ / AMOS7 \ YOURUM ::
+#\[7]2ISLHFEYARD2CYEZVNYYAA33LI2DBL33EKMN5LV7SZFWWBMUVIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
