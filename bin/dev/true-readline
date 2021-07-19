@@ -59,13 +59,18 @@ if ( @ARGV > 1 and $ARGV[0] eq qw| -tem | and shift @ARGV ) {
     }
 }
 
+my $txt_line = '';
+
 if (@ARGV) {
-    $term->add_history( join ' ', @ARGV );
+    $txt_line = join ' ', @ARGV;
 } else {
     my $selection_text = qx| xsel -o |;
-    $term->add_history($selection_text) if length $selection_text;
+    $txt_line = $selection_text if length length $selection_text;
 }
-$| = 1;
+
+$term->add_history($txt_line) if length $txt_line;
+
+$OUTPUT_AUTOFLUSH = 1;
 
 ( my $x, my $y ) = term_size();
 my $y_pos = $y > 2 ? 2 : 1;
@@ -77,10 +82,25 @@ my $clear_down = "\e[0J";
 
 map { $SIG{$ARG} = \&exit } qw| INT TERM HUP |;
 
-my $txt_line = '';
+my $is_true_string = 0;    ##  false  ##
 
-my $min_len   = 1;
-my $max_len   = 80;
+my $min_len = 1;
+my $max_len = 80;
+
+my $full_str
+    = defined $template ? sprintf( $template, $txt_line ) : $txt_line;
+my $str_length = length $full_str;
+
+if ( $min_len <= $str_length <= $max_len ) {
+    if ( defined $template ) {
+        $is_true_string = is_true_with_template( $template, \$txt_line )
+            if length $txt_line;
+    } else {
+        $is_true_string = is_true( \$txt_line );
+    }
+    goto IS_TRUE if $is_true_string;
+}
+
 my $last_line = '';
 my $msg_delay = 0.7;
 
@@ -88,14 +108,17 @@ my $prompt = ' :. ';
 
 clear();
 
-while ( not length $txt_line ) {
+while ( not $is_true_string ) {
 
     override_signals();
     printf "%s\e[%dH", blacklight_line(), $y_pos;
-    my $line = $term->readline($prompt);
+    my $line = $term->readline( $prompt, $last_line // $txt_line );
 
     $term->add_history($line) if $line ne $last_line;
-    my $line_length = length($line);
+
+    $full_str = defined $template ? sprintf( $template, $line ) : $line;
+
+    my $line_length = length $full_str;
     if ( $line_length < $min_len or $line_length > $max_len ) {
         clear();
         if ($line_length) {
@@ -107,18 +130,19 @@ while ( not length $txt_line ) {
             clear();
         }
     } else {
-        my $is_true_string = 0;    ##  false  ##
+        $is_true_string = 0;    ##  false  ##
 
         if ( defined $template ) {
 
-            $is_true_string = is_true_with_template( $template, \$line );
+            $is_true_string = is_true_with_template( $template, \$line )
+                if length $line;
 
         } else {
 
             $is_true_string = is_true( \$line );
         }
 
-        if ( not $is_true_string ) {
+        if ( length $line and not $is_true_string ) {
             clear();
             print blacklight_line()
                 . "\r :.   .:[  message not true  ]:."
@@ -133,12 +157,14 @@ while ( not length $txt_line ) {
 }
 print $reset and clear();
 
+IS_TRUE:
+
 ## store true text version in selection and clipboard ##
 ##
 foreach my $mode (qw| selection clipboard |) {
     my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -i |;
     my $pid       = open2( my $out_fh, my $xsel_in, qw| xsel |, @xsel_args );
-    print {$xsel_in} $txt_line;
+    print {$xsel_in} $full_str;
     close($xsel_in);
     my $err_str = readline($out_fh);
     close($out_fh);
@@ -149,7 +175,7 @@ foreach my $mode (qw| selection clipboard |) {
 
 ##  display result on terminal  ##
 ##
-say sprintf "$C{0}:$C{R}\n$C{0}: $C{b}$C{T} %s $C{R}\n$C{0}:$C{R}", $txt_line;
+say sprintf "$C{0}:$C{R}\n$C{0}: $C{b}$C{T} %s $C{R}\n$C{0}:$C{R}", $full_str;
 ##
 
 exit(0);
@@ -212,8 +238,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,.,,.,,,.,,.,.,.,.,,.,,,.,,,..,.,,,,.,,,..,..,,...,...,..,,,..,,,,,,,,,.,,,
-#6UOIKXPNKE2MSYTFOBMXPHHMUMXT7PYKUJCUC7IBTDLSJLRBI3RY6QRUCZLOHOSLD5BETGE2XNMJS
-#\\\|PYLLAWVGIH4OB4I2Z4IU4FKYGMCSJOTCEEVE6QCQNMYGA5YURQP \ / AMOS7 \ YOURUM ::
-#\[7]NWN3EXSHHGQ2LBB5BL2GNM5FQ7HBKO2SAR3ZM367YMIOY7WJ5YCY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,..,,..,,.,,...,.,.,.,,,.,.,..,,...,...,...,..,,,.,,.,,,.,,,
+#2FB4TZ7RILLBGSRKNHT2TKP5SWN2DV4DQGASFGIBRSHRHM7U46ITAUQ56WQQBGRRQKV4VYAS7AJCU
+#\\\|ULJBGKXMSAN7V63KLVOR5BINYJZ7BDDQMDMXV4LNHQBXXHKIG2Q \ / AMOS7 \ YOURUM ::
+#\[7]OHLZAM5QLEOFLOSGIBPUXC2TUVUMUGR7YMZ4VE4WRUS4TAC62CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
