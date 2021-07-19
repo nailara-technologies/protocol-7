@@ -93,6 +93,7 @@ sub is_true {
             return ( 0, $elf_mode );    ## report mode level of objection ##
         }
     }
+
     ## success : TRUE .: ##
     return 5 if not wantarray;
     return ( 5, @assertion_modes );
@@ -238,8 +239,8 @@ sub is_template_syntax_valid {
 
 return 1;  ###################################################################
 
-#,,.,,,,,,...,.,.,..,,..,,.,.,.,,,,..,..,,,,.,..,,...,...,..,,,,.,,..,,.,,.,.,
-#4KQBWMVOEENRWTHTDQVT2MCBU4DPXKJMWBFPRM2PMMY5BGV4F7PVNWKFHP7Z3R7OTHKARUAW7E6JK
-#\\\|URWJHY732YWZDCVD75AFK5VVWV5HPNLCW5TIKJ25C7G45OOTLBC \ / AMOS7 \ YOURUM ::
-#\[7]4LPEQCJ4M7DWCV7EQ4NJOSISHN6ROTQWN5B7AUDEHADGWCUIIKCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,,..,,.,,,,.,,..,.,.,,,,,.,,,..,,...,...,,..,,,,,,.,,,..,,.,,
+#DCBTTHMKGEDZD3MRARS4E5JAHHOLE6E26I2WVQD75RCY6SKJFYSYHUHSYT2A32CJI5K7OKAN7ZFYE
+#\\\|IDKAETKD766UCURPM7PU66ZDD4XQQHEWSCM6XJPTSZX6BCGA4BD \ / AMOS7 \ YOURUM ::
+#\[7]YFBQEAYC5MU4TOBO2AORPJJT6LDRDCBCN55C2Z6322YG3SJE2ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
