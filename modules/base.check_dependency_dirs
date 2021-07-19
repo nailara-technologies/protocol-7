@@ -57,7 +57,7 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
             chmod( $subdir_perms, $dir_path )
                 or <[base.logs]>->(
                 2,        ":. : '%s' : chmod : %s .:",
-                $relpath, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                $relpath, <[base.str.os_err]>
                 );
         }
 
@@ -72,7 +72,7 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
             chown( $src_stat->uid, $gid, $dir_path )
                 or <[base.logs]>->(
                 2,        ":. : cannot chown %s : %s .:",
-                $relpath, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                $relpath, <[base.str.os_err]>
                 );
         }
         my $placeholder_path = sprintf qw| %s/.placeholder |, $dir_path;
@@ -91,8 +91,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,..,,,,,...,...,,.,,..,,,.,,,..,,..,,.,,...,..,,...,..,,,..,.,,,.,,,,..,,,,,
-#TMW4XIXSHXUK7KMSJECCJRDK6NTXSJ7ARARXCG2CT33GHGSM6GKI2HSWEN3HXPHVC3TS5FIOITLOO
-#\\\|4PRBG2E4JN2L7OVQ2A4TBZC3J46YSTTCNQ3SVTFEKLH7XEIPPDN \ / AMOS7 \ YOURUM ::
-#\[7]TVAEAAFSV554TO5RZQ7EYSE5IMP4ALBNGJAR2XJRH3FY2SKWLEDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,,,,..,..,,...,,.,,,..,,,.,..,,..,,...,...,...,..,,,,.,,.,,...,
+#DJW4BUO5VX2EMD7OT4JKXCXL6S2ZQFKOU736SCUMYHS3MMSIOTVJLBEJIETEAQCO4SHFHCMFYUKZW
+#\\\|QB2B6XGQ4MWO457S3QYQ4GU7LU7X5UTGCTYW4RONJPOEOHV2GXU \ / AMOS7 \ YOURUM ::
+#\[7]A4GRIY2D24ZVB7E36HBV7ZCRASAPV32IT5UKQBI55UA3RHVVIACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
