@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = base.sig_NUM55
+# descr = increase log prefix width using a signal [ NUM55 ]
+
+my $event = shift;
+
+my $signal_count = 1;
+$signal_count = $event->w->hints    ##  combined events  ##
+    if defined $event and ref $event eq qw| Event::signal |;
+
+my $start_lpw = <system.start.log_prefix_width>;
+my $cur_lpw   = <system.zenka.log_prefix_width>;
+my $max_lpw   = 27;                                ## <-- auto-calc
+
+my $max_lpw_msg = ':: SIG NUM55 :: maximum zenka log prefix width reached';
+
+if ( $cur_lpw < $max_lpw ) {
+    <[base.log]>->( 2, ':: SIG NUM55 :. increasing zenka log prefix width' );
+
+    $cur_lpw += $signal_count;    ## increase ##
+
+    if ( $cur_lpw > $max_lpw ) {
+        $cur_lpw = $max_lpw;      ## limiting [ combined signals case ] ##
+
+        <[base.log]>->( 2, $max_lpw_msg );
+    }
+} else {
+    <[base.log]>->( 2, $max_lpw_msg );
+    return;
+}
+
+<system.zenka.log_prefix_width> = $cur_lpw;
+
+#,,,,,,,.,,..,,..,,.,,...,.,,,.,.,,.,,.,.,,,.,..,,...,...,...,..,,,.,,,.,,..,,
+#D2XALGBJV6SRLUIR5G7U75S6GPTR73PDWNT5LUNQP6QDGOAUWUDXUEDBJ7UVWL2ZPQWTKRI5C3ZQO
+#\\\|K3UFATUHNZ5LKSBC5GWID2EXYI5H7L7PAJINTCVG5ZOKPA5DD34 \ / AMOS7 \ YOURUM ::
+#\[7]IYCOLSNDRGHHCKK7AZ46LONK6HBHSDRWHLDD3QY3SZ3JB6UOTUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
