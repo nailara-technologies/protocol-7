@@ -34,7 +34,8 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;
-use AMOS7::Assert::Truth qw| is_true |;
+use AMOS7::Assert::Truth    ##  validation code  ##
+    qw| is_true is_true_with_template is_template_syntax_valid |;
 
 ##############################################################################
 
@@ -43,9 +44,20 @@ $term->ornaments('mh,md');    # ,me;
 $term->enableUTF8();
 $term->MinLine(undef);
 
-no warnings 'once';
+no warnings qw| once |;
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
-use warnings 'once';
+use warnings qw| once |;
+
+my $template;
+
+##[ truth template parameter ]
+##
+if ( @ARGV > 1 and $ARGV[0] eq qw| -tem | and shift @ARGV ) {
+    $template = shift @ARGV;
+    if ( not is_template_syntax_valid( $template, 5 ) ) {
+        error_exit( 'template syntax is not valid [ %s ] <{NC}>', $template );
+    }
+}
 
 if (@ARGV) {
     $term->add_history( join ' ', @ARGV );
@@ -76,7 +88,7 @@ my $prompt = ' :. ';
 
 clear();
 
-while ( not length($txt_line) ) {
+while ( not length $txt_line ) {
 
     override_signals();
     printf "%s\e[%dH", blacklight_line(), $y_pos;
@@ -95,10 +107,21 @@ while ( not length($txt_line) ) {
             clear();
         }
     } else {
-        if ( not is_true($line) ) {
+        my $is_true_string = 0;    ##  false  ##
+
+        if ( defined $template ) {
+
+            $is_true_string = is_true_with_template( $template, \$line );
+
+        } else {
+
+            $is_true_string = is_true( \$line );
+        }
+
+        if ( not $is_true_string ) {
             clear();
             print blacklight_line()
-                . "\r :.   .:[ message not in harmony ]:."
+                . "\r :.   .:[  message not true  ]:."
                 . "\r :. ";
             sleep $msg_delay;
             clear();
@@ -189,8 +212,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,.,.,.,,,.,,.,,..,,..,,...,,..,,,,,,,.,,,.,..,,...,...,,,.,...,..,,.,.,.,,,
-#6DOIIHEOHPG5WNUV7QZIOEVL3FLXSY57OU2FQK6NNIJ5D5DCPMFAJV6S32DERCJNLI6KZCHYPZHL4
-#\\\|KCC4UVFKSZI4MKREN3K3JPG4SCR45CEHMZ3EWFASOFXCXBXNPGQ \ / AMOS7 \ YOURUM ::
-#\[7]EAHUMQP26T6EXO4AJNEKQAQTR7IVAIJERSTP2NSEW5XYGBKOEOAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,.,.,,.,,,.,,,..,.,,,,.,,,..,..,,...,...,..,,,..,,,,,,,,,.,,,
+#6UOIKXPNKE2MSYTFOBMXPHHMUMXT7PYKUJCUC7IBTDLSJLRBI3RY6QRUCZLOHOSLD5BETGE2XNMJS
+#\\\|PYLLAWVGIH4OB4I2Z4IU4FKYGMCSJOTCEEVE6QCQNMYGA5YURQP \ / AMOS7 \ YOURUM ::
+#\[7]NWN3EXSHHGQ2LBB5BL2GNM5FQ7HBKO2SAR3ZM367YMIOY7WJ5YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

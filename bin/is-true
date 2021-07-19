@@ -20,27 +20,37 @@ my $force_numerical = 0;
 my $no_num_chk      = 0;
 my $only_FALSE      = 0;
 my $only_TRUE       = 0;
+my $template;
 
 ## special parameters [ used by harmony-osd ] ##
-if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift(@ARGV) ) {
+if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift @ARGV ) {
     $silent = 1;
     if ( defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq qw| -n | ) {
         $force_numerical = 1;
     }
     goto SKIP_PARAMS;
 }
+
+## template parameter
+##
+$template = shift @ARGV
+    if @ARGV > 1
+    and $ARGV[0] eq qw| -tem |
+    and shift @ARGV;
+
 ## regular invocation ##
-$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift(@ARGV);
-$plain  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift(@ARGV);
-$force_numerical = 1 if @ARGV > 0 and $ARGV[0] eq qw| -num | and shift(@ARGV);
-$no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift(@ARGV);
-$only_FALSE = 1 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift(@ARGV);
-$only_TRUE  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift(@ARGV);
+##
+$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift @ARGV;
+$plain  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift @ARGV;
+$force_numerical = 1 if @ARGV > 0 and $ARGV[0] eq qw| -num | and shift @ARGV;
+$no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift @ARGV;
+$only_FALSE = 1 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift @ARGV;
+$only_TRUE  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift @ARGV;
 
 if ( @ARGV > 1 and $ARGV[0] =~ m|(-elf)?-modes?| ) {
     die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
         if $ARGV[1] !~ m|^\d{1,2}(,\d{1,2})*$|;
-    shift(@ARGV) and @modes = split( ',', shift(@ARGV) );
+    shift @ARGV and @modes = split( ',', shift @ARGV );
 }
 
 SKIP_PARAMS:
@@ -67,7 +77,9 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;    ## colors ##
-use AMOS7::Assert::Truth;
+
+use AMOS7::Assert::Truth    ##  validation code  ##
+    qw| is_true is_true_with_template is_template_syntax_valid |;
 
 ##[ INPUT PROCESSING OPTIONS ]################################################
 
@@ -101,9 +113,26 @@ exit($success_code);
 ##############################################################################
 
 sub check_input {
+
     my $check_str = shift // '';
-    my ( $true, @r_modes )
-        = is_true( $check_str, $numerical, $check_elf, @modes );
+
+    my ( $true, @r_modes );
+
+    if ( not defined $template ) {
+
+        ( $true, @r_modes )
+            = is_true( \$check_str, $numerical, $check_elf, @modes );
+
+    } elsif ( not is_template_syntax_valid( $template, 5 ) ) {
+        error_exit( 'template syntax is not valid [ %s ] <{NC}>', $template );
+    } else {
+
+        ( $true, @r_modes )
+            = is_true_with_template( $template, \$check_str, $numerical,
+            $check_elf, @modes );
+
+    }
+
     my $mode_str = @r_modes ? sprintf( ' : %s', join( ' ', @r_modes ) ) : '';
 
     if ( $true and not $only_FALSE ) {
@@ -125,8 +154,8 @@ sub check_input {
     }
 }
 
-#,,,,,..,,...,.,.,,.,,,..,..,,,..,,.,,.,.,..,,..,,...,..,,,,,,.,,,.,,,,,.,...,
-#GL3K42FI72NU6WD475IEU44DO6I6L25ODEBXSCSQDTJHI4OJDOXASDI24LYDFV566QOBWQTCGTEIQ
-#\\\|YCAX4MLFT3HS3EWM3NVI66XQOCLR4WS3IEGR6LZ6JRSUYVRPG3N \ / AMOS7 \ YOURUM ::
-#\[7]PN7ZRR3BJQ5IOKEPHK6JWMMZPHBQBEVOEUUQBYOK7APNV2VELECQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,.,,,,,,,,..,,..,,,.,,.,,.,.,..,,...,...,...,...,,..,.,.,,,,,
+#WSYXY5LDBTCS4FONZK6R3E3CKNC6NDJ6X2JHUAH6B6JGWZNGMF36HB23UZUL64CB5NHY7CAMNTLZM
+#\\\|HDK7EUJVEXI7I6QYB7Y2RAAGFL77B5RZ2L35GSCYVGPOSZEQKDR \ / AMOS7 \ YOURUM ::
+#\[7]EXJ4WENP77W2R77LNZLPCNHI6YH3DPQYBKZADMBA2BDVPQALZ4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

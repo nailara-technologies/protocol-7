@@ -29,7 +29,7 @@ if ( $keyword_string =~ m|^regex(\-quoted)?:| ) {
     my $results_hash_ref
         = { 'r-data' => <[base.resolve_data_key.regex]>->($keyword_string) };
 
-    if ( not keys $results_hash_ref->%* ) {    ## no matches ##
+    if ( not keys $results_hash_ref->{'r-data'}->%* ) {    ## no matches ##
         return {
             'mode' => qw| false |,
             'data' => sprintf( "no match for regular expression '%s'",
@@ -60,7 +60,7 @@ if ( $keyword_string =~ m|^regex(\-quoted)?:| ) {
 
     return {
         'mode' => qw| false |,    ## no matches ##
-        'data' => sprintf( "failed to resolve key '%s'", $keyword_string )
+        'data' => sprintf( "no match for data key '%s'", $keyword_string )
         }
         if not defined $resolve_res;
 
@@ -86,8 +86,8 @@ foreach my $href ( $result_aref->@* ) {
 
 }
 
-#,,,.,..,,...,.,.,,..,,,,,.,,,,,.,,.,,.,,,,,,,..,,...,...,.,.,..,,..,,,,,,.,.,
-#TV3YYDQXBJF2QHEJAHWG7PPJPU5YF7BTUD7GX6PZDDOD6JLEFPA5PF3OMAALBMWL53CPLRSCHHDLK
-#\\\|2LZTNKEACWHYYPEADSAHAVKLVHWIKDDIYZG3UQE7YQA6RAYTGR3 \ / AMOS7 \ YOURUM ::
-#\[7]3NHE7WZBQU55V3FVHBVUGXIHAMFDOGB2RG5I32JNS7ORGGDZQKCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,,.,,,,.,..,,,..,..,,,,.,,,.,..,,...,..,,,..,..,,..,,,,,,,,.,
+#UGDRIYMNDPZHPVFK27CUWO57VJCKNJWD4BR6PTQ6J4Y3ZAZDCJXFSSC3LI67CR5VLUGUIL4ALRTJQ
+#\\\|ZEQLPNOPEY3OB6YU6M3BYO5MDN775ZDRZARKQEBFAJIDCJ2E3VW \ / AMOS7 \ YOURUM ::
+#\[7]QT5WUTNOWSVPV3ICVUOBGOC2X26XHMROGOJ6OWLW2DQQG54ISIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
