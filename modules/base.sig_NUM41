@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = base.sig_NUM41
+# descr = decrease log-prefix-width triggered by [ NUM41 ] signal
+
+my $event = shift;
+
+my $signal_count = 1;
+$signal_count = $event->w->hints    ##  combined events  ##
+    if defined $event and ref $event eq qw| Event::signal |;
+
+my $start_lpw = <system.start.log_prefix_width>;
+my $cur_lpw   = <system.zenka.log_prefix_width>;
+my $max_lpw   = 27;                                ## <-- auto-calc
+
+my $min_lpw_mesg = ':: SIG NUM55 :: zenka prefix width reached';
+
+if ( $cur_lpw > $start_lpw ) {
+    <[base.log]>->( 2, '.: SIG NUM41 :: decreasing zenka log prefix width' );
+
+    $cur_lpw -= $signal_count;    ##  descrease  ##
+
+    if ( $cur_lpw < $start_lpw ) {
+        $cur_lpw = $start_lpw;    ## limiting [ combined signals case ] ##
+
+        <[base.log]>->( 2, $min_lpw_mesg );
+    }
+} else {
+    <[base.log]>->( 2, $min_lpw_mesg );
+    return;
+}
+
+<system.zenka.log_prefix_width> = $cur_lpw;
+
+#,,.,,.,.,,..,.,.,.,.,,,.,..,,..,,.,.,,.,,,..,..,,...,...,..,,.,.,,.,,...,,..,
+#4HZQ6ECV3NLD5GGW2P74WRQE4TEIXM2OBSNHJA5G7EHSFHUSIMABKCPNY7TUVEQKGATEKVYJMZFVU
+#\\\|5RRA3R7QPE4YQYCNNGJ64GXIXCTCS3BZU4VAHTK5CAR6HM5HCRI \ / AMOS7 \ YOURUM ::
+#\[7]JVJG3GVGBWKG52VA4YT2QAWNUNTV2BFK6HEVMVYFCOC2BMK2SIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
