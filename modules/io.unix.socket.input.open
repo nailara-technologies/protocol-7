@@ -31,6 +31,15 @@ my $unix_sock = IO::Socket::UNIX->new(
     Listen => SOMAXCONN(),
 ) || die "io.unix.socket.input.open: socket: \l$OS_ERROR";
 
+if ( -S $socket_path ) {
+    if (<system.verbosity.console>) {
+        map { <[base.log]>->( 1, $ARG ) } ':',
+            ': unix path exists. overwriting.,', ':';
+    } else {
+        <[base.log]>->( 0, ': unix socket path exists. overwriting..,' );
+    }
+}
+
 rename( $tmp_spath, $socket_path )
     or die "io.unix.socket.input.open: rename: \l$OS_ERROR";
 
@@ -84,8 +93,8 @@ $data{'handle'}{$unix_sock}{'mode'} = qw| input |;
 
 return $unix_sock;
 
-#,,..,..,,.,.,,.,,,.,,,..,,,.,,.,,..,,,.,,,,.,..,,...,...,...,..,,,,.,,,,,,,.,
-#26Y52AF5HAY5GTWZMZQ2F4HOQEL2WONZECQU6XOCTBRNM2SOJ7KS37LOFJ43CESNSVQCD27SJVYZK
-#\\\|AG4FUIIVV57T74IBP2JD7TBC3RQFSNMNVIJKM76HRQ5NETIV7TW \ / AMOS7 \ YOURUM ::
-#\[7]YH642PC6IIO42UWW5UIZKLYKNN7CLRCMNTMB53VVMIWT7SMLOYAA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,..,,.,.,,,,,.,.,.,.,,.,,,,,,..,,...,...,...,.,,,...,...,,..,
+#C3RFGQLHJYY723IKRJ5FTV2AIWZ6XO6VDGLMJPBARGTEQYUONMCWABEKI42JWTBZWKU5KLZIQXXMU
+#\\\|W2CW25BK7WKZLRR2UCNQ4YN3JO2VIGWNODT7LQ6TSHTLR4PWMON \ / AMOS7 \ YOURUM ::
+#\[7]KI7PJMF7DXD3HJYVSK4JEGXJIYIV4BL6EX6TVSS4LDGVHO3LOUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
