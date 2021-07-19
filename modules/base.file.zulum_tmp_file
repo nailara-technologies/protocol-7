@@ -1,0 +1,55 @@
+## >:] ##
+
+# name  = base.file.zulum_tmp_file
+
+my $temp_file_dir = shift;
+
+if ( not defined $code{'chk-sum.bmw.template_L13'} ) {
+    warn 'chk-sum.bmw module not loaded or not initialized <{C1}>';
+    return undef;
+} elsif ( not defined $temp_file_dir or not length $temp_file_dir ) {
+    warn 'expected target directory path <{C1}>';
+    return undef;
+} elsif ( not -d $temp_file_dir ) {
+    <[base.s_warn]>
+        ->( "dir path '%s' does not exist <{C1}>", $temp_file_dir );
+    return undef;
+} elsif ( not -w $temp_file_dir ) {
+    <[base.s_warn]>->( "dir path '%s' not writable <{C1}>", $temp_file_dir );
+    return undef;
+}
+
+RECALC_FILENAME:
+
+my $fname_templ  = qw| .zulum.%s |;
+my $tmp_filename = sprintf $fname_templ,
+    <[chk-sum.bmw.template_L13]>->(
+    $fname_templ,   sprintf qw| %s:%s |,
+    $temp_file_dir, <[base.time]>->(13)
+    );
+my $tmp_path_abs = catfile( $temp_file_dir, $tmp_filename );
+
+goto RECALC_FILENAME if -e $tmp_path_abs;
+
+my $tmp_file_fh = <[file.open]>->( $tmp_path_abs, qw| :raw < 5 0400 | );
+
+##  warned in file.open  ##
+return undef if not -z $tmp_path_abs or not defined $tmp_file_fh;
+
+if ( not unlink($tmp_path_abs) ) {    ##  make file be gone before using  ##
+    <[base.s_warn]>->(
+        "cannot remove tmp path '%s' [ %s ] <{C1}>",
+        $tmp_path_abs, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+say '< return fh > ', $tmp_file_fh;
+
+return $tmp_file_fh;    ##  still open filehandle to gone empty file  ##
+
+#,,..,,,,,.,,,..,,.,.,.,.,..,,,,.,.,.,...,.,,,.,.,...,...,..,,,..,..,,.,,,,,,,
+#C3FRTZVPLHDXNVNZNKWGAX5F7AXUIVJKJHD3BNPLKZ5CBFJQVJ7MKFSHD4KXHNYZDCZ2P5CJKJWZ6
+#\\\|TGIIEHP3HKHHZ52BYRUUUR7YFKGPVCAZBFZG2KVUOG5GAXPE3BE \ / AMOS7 \ YOURUM ::
+#\[7]UQG5DDIW3RDUJNGP42CQRTJLJLCY6PR4CRBNYH6ARQAZUVMUEQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

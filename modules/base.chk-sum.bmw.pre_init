@@ -6,6 +6,10 @@
 <[base.perlmod.load]>->('Digest::BMW');
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
+<[base.perlmod.load]>->(
+    'AMOS7::Assert::Truth', qw| is_true is_true_with_template |
+);
+
 <[base.swap_subs]>->(qw|  base.chk-sum.bmw  chk-sum.bmw  |);
 
 ## note: only using cloned copies of context via <[chk-sum.bmw.ctx.<n>]> ##
@@ -13,8 +17,8 @@ map { <chk-sum.bmw>->{$ARG} //= undef } ( 224, 256, 384, 512 );
 
 0;
 
-#,,,,,.,,,.,,,.,,,,,,,,..,.,.,.,.,,,,,,,,,...,..,,...,...,..,,..,,..,,.,,,.,.,
-#44IVW3LSIAGDE7POCSTLS5BZCRRLFEDTALE4D34VYCWKWU44BUWECKHSXEP66GOW7H4VGFZBFXSF4
-#\\\|NDTZ3M5U4EL27WYD6K3ZL5M2UC6QQVROC6KGRYDX3B4EOWPHZIV \ / AMOS7 \ YOURUM ::
-#\[7]G7BBFHUIUWUS5XM7MQHJJLRGIFXS5UOPHVP6Q3EHV3SJBC4BUUCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,.,.,,,,,.,.,,..,,..,.,.,...,..,,...,...,,,,,,.,,,,,,,..,,,,,
+#647PME6YLMEUVHBFNP7DSVQ3SJCUR3YNPKWVS2A7ABCBGLXQE56T5ANKLYQ4DW5LEEI52HFPYSLSA
+#\\\|IS2WC2TIUCGYG2I5NDJSC7QZL7WUAG5KW2OQJAKBNICW6GIXD7Y \ / AMOS7 \ YOURUM ::
+#\[7]K7BIL7IHQJSNENG72JDY6RQDNRGEG4TXZ4VZNHM4EUCX7VE7RQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

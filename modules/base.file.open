@@ -1,43 +1,65 @@
 ## >:] ##
 
 # name  = base.file.open
-# args  = <filename>[[, <encoding>], <mode>]
+# args  = <file_path>[, <encoding>][, <mode>][, <create>[, perm]]
 # descr = returns file handle of to be opened file
 
-my $filename = abs_path( shift // '' );
-my @encoding = ( shift // '' );    # optional encoding type ( i.e. ':raw' )
-my $mode     = shift // '<';
+my $requested_file_path = abs_path( shift // '' );
+my @encoding = ( shift // '' );    # optional encoding type [ i.e. ':raw' ]
+my $mode     = shift // qw| < |;
+my $create   = shift // 0;
+my $perm     = shift // 0664;
 
-if ( !length($filename) ) {
+#    sysopen FILEHANDLE,FILENAME,MODE,PERMS
+
+if ( not length $requested_file_path ) {
     <[base.log]>->(
         0, '< file.open > expected <filename> argument ' . <[base.caller]>
     );
     return undef;
-} elsif ( !-f $filename ) {
-    <[base.log]>->(
-        0,
-        join( ' ', "< file.open > '$filename' not found.", <[base.caller]> )
+}
+
+if ( $create and not -f $requested_file_path ) {    ##  create file  ##
+    my $fh;
+    $perm = oct($perm) if index( $perm, qw| 0 |, 0 ) == 0;
+    if ( not sysopen( $fh, $requested_file_path, O_CREAT(), $perm ) ) {
+        <[base.s_warn]>->(
+            "cannot create file '%s' [ %s ]",
+            $requested_file_path, <[base.str.os_err]>
+        );
+        return undef;
+    } elsif ( not close($fh) ) {
+        <[base.s_warn]>->(
+            "error at close() call on '%s' [ %s ]",
+            $requested_file_path, <[base.str.os_err]>
+        );
+        return undef;
+    }
+}
+
+if ( $mode eq qw| < | and not -f $requested_file_path ) {
+    <[base.logs]>->(
+        0, "< file.open > file '%s' not found %s",
+        $requested_file_path, <[base.str.os_err]>, <[base.caller]>
     );
     return undef;
 }
 
-my $file_fh;
-if (   not open( $file_fh, join( ' ', $mode, @encoding ), $filename )
-    or not fileno $file_fh ) {
-    my $err_str = <[base.format_error]>->($OS_ERROR);
-    <[base.log]>->(
-        0,
-        join( ' ',
-            "< file.open > unable to open '$filename' [ $err_str ]",
-            <[base.caller]> )
+my $req_file_fh;
+if (not
+    open( $req_file_fh, join( ' ', $mode, @encoding ), $requested_file_path )
+    or not fileno $req_file_fh ) {
+    <[base.logs]>->(
+        0, "< file.open > cannot to open file '%s' [ %s ] %s",
+        $requested_file_path, <[base.str.os_err]>, <[base.caller]>
     );
     return undef;
 }
 
-return $file_fh;
+return $req_file_fh;
 
-#,,,.,,.,,...,,,,,...,...,,.,,,,,,,..,,,.,...,..,,...,...,,..,,,,,.,,,,,,,,.,,
-#YCPY5GHH3UZSBGV66XIROWTO3LIYEDLZIIYKTUWYA4W6CILSCMT4BXZ5Z7BPNQY3XWEGDX4JXPXU4
-#\\\|TCDC6RQELT2DE2N3AKJW6QUOIIZQNATV575YTEPKRZUBHSRNLLJ \ / AMOS7 \ YOURUM ::
-#\[7]OMX24355JWERF3A7Y5I34FOQARHMEQSVTDXJURQM3BXDG2JRNCDQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,,,.,.,.,,,.,,.,,,,,,.,,,..,,..,,...,...,.,,,,..,,,.,,..,...,
+#IJNRGYS7OWGSUDYR6CJGSYG2SWGGRKSBXBVJF4EUO2SZOD2OFGB4CMMPRYXEDGVSUGTYDC5GRY4H4
+#\\\|LYMZQMN37R47Y763D2MSFHWFYMJ766QJ532WXE7NEOPZD5W2ZDJ \ / AMOS7 \ YOURUM ::
+#\[7]46OJRJFLYJPG2CYCSCFK6KHMUNRLPALKVMKAEHF4JUWDHD4J6ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

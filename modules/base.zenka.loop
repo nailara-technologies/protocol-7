@@ -21,6 +21,13 @@ if ( <system.zenka.type> eq qw| cube | ) {
     <[base.log]>->( 1, ':. ready to process connections..,' );
 }
 
+##  output prompt line in background mode and still open STDOUT  ##
+print "\n :. "
+    if <system.zenka.name> eq qw| cube |    ### use log idle timer ### [ LLL ]
+    and
+    <[base.is_defined_recursive]>->(qw| system.background.redirect_output |)
+    and not <system.background.redirect_output>;
+
 if ( defined $ev_loop_timeout ) {
 
     ## loop for exactly <timeout> seconds ##
@@ -32,8 +39,8 @@ if ( defined $ev_loop_timeout ) {
 
 return <zenka.init_return> = 5;
 
-#,,.,,..,,..,,.,.,,,,,,.,,,,,,.,.,,..,,,.,.,.,..,,...,...,..,,.,,,,,.,.,.,,.,,
-#IHFPBGC4M52AI5AOI3XUG6F4M522WPJBAUQQZNAVO6NGWEKTXCVQY6IPXEVULAT2ZVSBOU4YWIJVI
-#\\\|REKESNH62CHE5BVDYWANRTEHJIV24HDBQ5M6UBMR4USGLHBJ7MX \ / AMOS7 \ YOURUM ::
-#\[7]RGJEVPVM3RNYNPNXOMZHITQHCCZXS33HAC4DN7WMRNJ2VLP4IYDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,,,,,,,.,,,,.,,.,.,,,.,,.,,...,..,,...,...,,.,,.,.,,..,,,,,,,,,
+#DRWHEE4MCNNLCB66LEPM76BVDRJ6YXKPTSHLPGIPUBHK2UW5YRBNNLQCLNZSI6SJCCPMD72BONZWS
+#\\\|DJI6AZXEEBPGDB3VHPSKUYKQJP5GXLXIVXAQGFN6JK3AN26MDLX \ / AMOS7 \ YOURUM ::
+#\[7]BGIXJXOATOECMWPNV2NVHSUR5NGHAMACMFXDTPXV6WUVV4NUBMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

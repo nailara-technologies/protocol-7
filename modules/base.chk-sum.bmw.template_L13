@@ -1,0 +1,58 @@
+## >:] ##
+
+# name  = base.chk-sum.bmw.template_L13
+# param = <truth_template>, <string>[, <string>..,]
+# descr = returns 13 character BASE32 string [ XORed BMW chk-sum segments ]
+
+if (not @ARG or not defined $ARG[0] or not    ##  silent chk  ##
+    AMOS7::Assert::Truth::is_template_syntax_valid( $ARG[0], 5 )
+) {
+    <[base.s_warn]>
+        ->( 'template syntax is not valid [ %s ] <{NC}>', $ARG[0] );
+    return undef;
+}
+
+my $template = shift;
+
+if ( not @ARG or grep { not defined } @ARG ) {
+    warn 'expected defined input param[s] <{C1}>';
+    return undef;
+}
+
+## start entropy ##
+state $start_seed_num;
+$start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
+my $bits_num = $start_seed_num;
+
+foreach my $segment_num ( unpack qw| Q8 |, Digest::BMW::bmw_512(@ARG) ) {
+
+    while ( not AMOS7::Assert::Truth::true_int($segment_num) ) {
+        $segment_num = sprintf qw| %u |, $segment_num / 13;
+    }
+
+    $bits_num ^= $segment_num;    ## stringwise XOR ##
+
+    while ( not AMOS7::Assert::Truth::true_int($bits_num) ) {
+        $bits_num <<= 1;          ## make true ##
+    }
+
+}
+
+my $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+
+while (not is_true_with_template( $template, $result_str_B32, 0, 1 )
+    or not AMOS7::Assert::Truth::true_int($bits_num) ) {
+    $bits_num = sprintf qw| %u |, $bits_num / 13;
+    $bits_num <<= 5;
+    $bits_num = 13 if $bits_num == 0;    ##  make sure to exit true if 0  ##
+    ##  again until true  ##
+    $result_str_B32 = encode_b32r( pack qw| Q |, $bits_num );
+}
+
+return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
+
+#,,,.,,.,,...,.,,,...,,.,,...,..,,,..,...,...,..,,...,...,..,,..,,.,,,,,.,...,
+#HBSOS4OSDDEANBHOTDXDXNZ6HCT3S3AGYF7SFUI5G6HUCXP7IHXMIET27OH3AT6RHQQKIE5XOR7BY
+#\\\|77H6VHXIR2PSC7XVIHYTRHUAGLFWFOAHTIKBQABWDXDWGYGHQHP \ / AMOS7 \ YOURUM ::
+#\[7]6O2CPFQYCQZINQBN33R45IID7BWJILZ6G72WDSD4F2HJPLFNNCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

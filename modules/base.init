@@ -1,7 +1,19 @@
 ## >:] ##
 
 # name  = base.init
-# descr = initialize [execute] zenka
+# descr = initialize zenka and run start-up code
+
+<system.zenka.init_passed> //= 0;    ##  false  ##
+
+if (<system.zenka.init_passed>) {
+    <[base.s_warn]>->(
+        '%s zenka already initialized, skipping %s call <{C1}>',
+        <system.zenka.name>, __FILE__
+    );
+    return undef;
+} else {
+    <system.zenka.init_passed> = 5;    ## true ##
+}
 
 if ( $ARG[0] =~ m|~$| ) {
     <[base.log]>->(
@@ -19,9 +31,20 @@ if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
         = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
 }
 
-<[base.process-into-background]> if <system.background_mode>;
+if (<system.background_mode>) {
+    my $status = 0;    ##  false  ##
 
-my $success = 5;                        ## true ##
+    eval { $status = <[base.process-into-background]> };
+
+    <[base.exit]>->(
+        ':: exit :: cannot background zenka process ::',
+        0, qw| 0110 |
+    ) if length $EVAL_ERROR or not $status;
+}
+
+## <[base.process-into-background]> if <system.background_mode>;
+
+my $success = 5;    ## true ##
 if (    <system.start-up.stdin.read-init-code>
     and <zenka.start-up.init_code>->@* ) {
 
@@ -33,7 +56,6 @@ if (    <system.start-up.stdin.read-init-code>
     delete <zenka.start-up.init_code>;
     <[base.clean_hashref]>->( $data{'zenka'} );
     delete $data{'zenka'} if not keys $data{'zenka'}->%*;
-
 }
 
 if ( not $success or length $EVAL_ERROR ) {
@@ -63,10 +85,10 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
     <system.zenka.name>
     );
 
-<system.sub_name> = undef;
+<system.sub_name> = undef;    ##  zenka code has ended  ##
 
-#,,,,,..,,,..,...,,,,,...,,.,,..,,.,.,.,,,.,.,..,,...,...,..,,.,,,.,,,...,.,,,
-#EMX2FVEOASFRYQ4VT7D7OXBNP5DW32JJXCZGIRUHE3JSC6HRM4YUXABJMT22275HUZEAILLKC4ZMU
-#\\\|VCYFLNQ34ZP54SU3TWVFK6K6WB5IHIVGWKXAGVLMUH3XXITA3F7 \ / AMOS7 \ YOURUM ::
-#\[7]HVN5E5Q7AVDG542TVCE65R67GQSZSAA7RNAPC6G5TCGLWCY7VCCI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,..,,.,,,,..,...,,,.,,..,..,,..,,...,..,,...,...,,,.,...,,,,,
+#7OPUGD6EZSYXX77WA43M7OLXTY4Z7A7WH3WQLOMZLZT5ABCKVGVSKIIDPIHJO5WJCFG2XZ4BTC3Z2
+#\\\|5G6RWVEC66K7MOMWCYI6UOW25IFJ3HNSFAHQ4C3Z5N2AVS7POCX \ / AMOS7 \ YOURUM ::
+#\[7]T6HI4YZ42YW745JOHILDXUSFRJRFKF324RJAGMAR4PHA37RDBKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

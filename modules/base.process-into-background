@@ -4,30 +4,146 @@
 
 <[base.log]>->( 1, 'backgrounding current process ..,' );
 
+my $redir_output = <system.background.redirect_output> //= 5;    ## true ##
+
+my %autoflush_map = ( qw| STDOUT | => $OUTPUT_AUTOFLUSH );
+
+<[base.log]>->( 2, ': flushing filehandles .,' );
+
+$OUTPUT_AUTOFLUSH = 1;
+
+if ( defined $data{'handle'} ) {    ##  flush existing filehandles  ##
+    foreach my $flush_fh ( keys $data{'handle'}->%* ) {
+        eval {
+            $autoflush_map{$flush_fh} = $flush_fh->autoflush();
+            $flush_fh->autoflush(1) if not $autoflush_map{$flush_fh};
+        };
+    }
+}
+
+<[base.log]>->( 2, ': changing current work directory to / ..,' );
+
 chdir qw| / | or die "cannot chdir to / : \l$OS_ERROR";
-open STDIN, '/dev/null'
-    or die "cannot open /dev/null for reading : \l$OS_ERROR";
-open STDOUT, '>/dev/null'
-    or die "cannot open /dev/null for writing : \l$OS_ERROR";
+
 defined( my $pid = fork ) or die "cannot fork : \l$OS_ERROR";
-exit if $pid;
-POSIX::setsid() or die "setsid() not successful : \l$OS_ERROR";
-open STDERR, qw| >&STDOUT | or die "cannot dup stdout : \l$OS_ERROR";
 
-## making base.s_read() and base.s_write() work after fork ., ##
-IO::AIO::reinit();
+## end parent process ##
+if ($pid) {
 
-# if($pid=fork){exit($pid)}
-# else
-# {
-#     close(STDIN);
-#    close(STDOUT);
-#    close(STDERR);
-#
-# }
+    delete <callbacks.end_code>;    ##  skip clean-up tasks in parent  ##
 
-#,,..,...,,,,,.,,,.,.,,,.,,,.,,..,...,,,,,,,.,..,,...,...,...,...,.,,,,,.,,,.,
-#7K443WXICYJIAWPKGNRKPSIMD6PAKWZ3JMSIT4KA26RRLQTMYWP5L6SMXQ7IWSQIH3UDZPCUHYAHY
-#\\\|2YKRHECP2QIKVHZ7EFAFPT4JGQNDK7EUYIL3KWWR3YSOPAVJWKL \ / AMOS7 \ YOURUM ::
-#\[7]QIKHLH4WQNMOYHYDDGD2IIYECM4J4RAQMRO32B6LFX2SWNMHKAAY 7  DATA SIGNATURE ::
+    <[base.exit]>->(
+        sprintf( ':. stopping old parent [backgrounding] .: [ PID : %d ]',
+            $PID ),
+        2,             ##[ log level ]##
+        qw| 00000 |    ## exit code ##
+    );
+    CORE::exit(0);     ## making sure it is gone. ##
+} else {
+
+    ## making base.s_read() and base.s_write() work after fork ., ##
+
+    if ( defined &IO::AIO::reinit ) {
+        <[base.log]>->( 1, ': reinitializing IO::AIO module' );
+        eval { IO::AIO::reinit() };
+        <[base.s_warn]>->(
+            ': IO::AIO::reinit : %s',
+            scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+        ) if length $EVAL_ERROR;
+    }
+
+    POSIX::setsid()    ##  making new parent the process group leader  ##
+        or <[base.s_warn]>->(
+        'setsid call failed [ %s ]',
+        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        );
+
+    <[base.logs]>->( 1, ':. new parent process id : %d', $PID );
+}
+
+my $devnull = eval { File::Spec->devnull } // qw| /dev/null |;
+
+if ($redir_output) {
+    <[base.log]>->( 1, ':::. closing STDOUT and STDERR .:::' ) and say '';
+} else {
+
+    print "\n .: ";
+    <[base.sleep]>->(0.13);    ## waits for shell prompt ##
+    say '';
+    say '';
+
+}
+
+if ($redir_output) {
+
+    open STDOUT, qw| > |, $devnull
+        or die "cannot open $devnull for writing : \l$OS_ERROR";
+
+    open STDERR, qw| > |,
+        $devnull
+        or <[base.s_warn]>->(
+        'STDERR redirect error : %s [ %s ]',
+        $devnull, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        );
+
+}
+
+if ( not open STDIN, qw| < |, $devnull ) {
+
+    <[base.s_warn]>->(
+        'reopen STDIN : %s [ %s ]',
+        $devnull, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    );
+
+    ##  reopening from already removed readonly file  ##
+    <[base.log]>->( 1, ': reopening STDIN from tmp file ..,' );
+
+    my $temp_directory = qw| /var/run/.7 |;
+    $temp_directory = qw| /tmp |    ## fallback to /tmp ##
+        if not -d $temp_directory or not -w $temp_directory;
+
+    if ( not defined $code{'file.zulum_tmp_file'} ) {
+        <[base.init_modules]>->(qw| base.file base.chk-sum.bmw |);
+    }
+
+    my $tmp_ro_fh = eval { <[file.zulum_tmp_file]>->($temp_directory) };
+
+    warn <[base.str.eval_error]> if length $EVAL_ERROR;
+
+    eval { open( STDIN, qw| <& |, $tmp_ro_fh ) }
+        or <[base.exit]>->(
+        sprintf( ':: exit :: cannot reopen STDIN :: [ %s ]',
+            <[base.str.eval_error]> ),
+        0,
+        qw| 0110 |
+        );
+}
+
+<[base.log]>->( 2, ':::. STDIN CLOSED .:::' );
+
+if ($redir_output) {
+
+    open( STDERR, qw| > |, $devnull )
+        or <[base.s_warn]>->(
+        'STDERR redirect error : %s [ %s ]',
+        $devnull, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        );
+}
+
+##  restoring autoflush status values  ##
+
+$OUTPUT_AUTOFLUSH = $autoflush_map{'STDOUT'};
+
+if ( defined $data{'handle'} ) {
+    foreach my $flush_fh ( keys $data{'handle'}->%* ) {
+        eval { $flush_fh->autoflush(0) if not $autoflush_map{$flush_fh} };
+    }
+}
+
+return 5;    ## true ##
+
+#,,..,,,.,,,,,,,.,,,.,..,,.,,,,,,,.,.,...,...,.,.,...,...,...,.,,,,.,,,.,,.,,,
+#BAL7VV5ZKUOZEXWWT5QDZVOYUHOQEJVXY6IGGVR3IG26F7KZJKH75J4BDKRFPODY7VOZZWLV3LDVI
+#\\\|QFF6VRJYMPPUI22BJDLDAOJJU77J7L7ZIFS7UD3MC7ITL3EHIRJ \ / AMOS7 \ YOURUM ::
+#\[7]PYQBCYUXERGX3IAQHXYC2NKNWPFG7NDJW7NEP6LK424UE6TR2UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
