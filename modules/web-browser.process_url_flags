@@ -15,7 +15,7 @@ my $loglevel = <web-browser.url_flag_loglevel>;
 return;  # NEEDS SIGNAL / SETTINGS FIXING AFTER WEBKIT2 PORT, some impossible!
 
 map { <web-browser.url_active>->{$ARG} //= 0 }
-    ( 'adblock', 'blkext', 'nojs', 'nojs_scroll' );
+    qw|  adblock  blkext  nojs  nojs_scroll  |;
 
 # fixing competing flags set-up
 <web-browser.url_active>->{'nojs_scroll'} = 0
@@ -69,12 +69,12 @@ if ( defined <web-browser.signal_id.request_starting>->{$view} ) {
 if ( exists $flags->{'nojs'} and <web-browser.cfg.javascript_enabled> ) {
 
     if ( <web-browser.slideshow.no_scroll>
-        or !<web-browser.slideshow.autostart>
-        and !<web-browser.slideshow.running> ) {
+        or not <web-browser.slideshow.autostart>
+        and not <web-browser.slideshow.running> ) {
         my $settings = $view->get_settings;
         $settings->set_enable_javascript(0);
         $view->set_settings($settings);
-        <web-browser.url_active.nojs> = 1;
+        <web-browser.url_active.nojs> = 5;    ## true ##
         <[base.log]>->( $loglevel, ": JS disabled. [ nojs flag '$uri' ]" );
 
     } else
@@ -87,9 +87,9 @@ if ( exists $flags->{'nojs'} and <web-browser.cfg.javascript_enabled> ) {
 
 ## ADBLOCK ##
 
-if ( exists $flags->{'adblock'} and !<web-browser.init_proxy> ) {
-    <[web-browser.proxy_setup]>->( 'auto', 2 );
-    <web-browser.url_active.adblock> = 1;
+if ( exists $flags->{'adblock'} and not <web-browser.init_proxy> ) {
+    <[web-browser.proxy_setup]>->( qw| auto |, 2 );
+    <web-browser.url_active.adblock> = 5;    ## true ##
     <[base.log]>->( $loglevel, ": adblock enabled. [ adblock flag '$uri' ]" );
 }
 
@@ -103,8 +103,8 @@ if ( exists $flags->{'blkext'} ) {
         ->( $loglevel, ": blocking external. [ blkext flag '$uri' ]" );
 }
 
-#,,..,..,,,,,,,.,,.,.,.,.,,.,,,,.,,,,,...,,..,..,,...,...,...,..,,,,.,,.,,.,.,
-#YYCL55WWPQOQDEPXZJUOZ42RG233B3QOCQP4RMHKEBN7JHT5WS4GSYEU5UVQWKVQLLPB5NHD2G4RS
-#\\\|NWNJVAPUJKG7S2B22Y24EXQVNLLWN42QANEOZPZKRP34LTS62CB \ / AMOS7 \ YOURUM ::
-#\[7]J54XVLTTDELU2WH6BOZKXO7VQXLHYQBA6O66CA55V2HN456JS6AI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,..,,,,.,..,,..,,,,.,.,.,,,.,..,,...,.,.,...,...,,,.,.,.,,,,,
+#N7Z3XQAD5HMZG7AOOG2MB5VBJB4TP55GPQF2YF5DAWQ7Y267TLF54X2AVJBAQLOI6GTNOSOOANBEO
+#\\\|P4ONG6UZX7EYSBFS2AYTRBSXGOSGCT3UPUY25FANK4I5LQTJFNK \ / AMOS7 \ YOURUM ::
+#\[7]TB67C5CPYXOJHKDFLHSQITAUHX7X3WJ43R4KHMJPUJ7SCH56UYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

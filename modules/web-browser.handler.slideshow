@@ -3,21 +3,23 @@
 # name = web-browser.handler.slideshow
 
 <web-browser.slideshow.url_index> //= 0;
-<web-browser.slideshow.status>    //= 'load';
-my @url_list = @{<web-browser.url.list>};
+<web-browser.slideshow.status>    //= qw| load |;
+my @url_list = <web-browser.url.list>->@*;
 
 <web-browser.slideshow.url_index> = 0
     if <web-browser.slideshow.url_index> >= @url_list;
 
-<web-browser.timer.slideshow>->cancel if exists <web-browser.timer.slideshow>;
+<web-browser.timer.slideshow>->cancel
+    if defined <web-browser.timer.slideshow>
+    and <web-browser.timer.slideshow>->is_active;
 
-if ( not exists <web-browser.url.list> or !@url_list ) {
+if ( not defined <web-browser.url.list> or @url_list == 0 ) {
     <web-browser.slideshow.running> = 0;
     <[base.log]>->( 1, "slideshow stopped [ url list empty ]" );
     return;
 }
 
-if ( <web-browser.slideshow.status> eq 'load' ) {
+if ( <web-browser.slideshow.status> eq qw| load | ) {
 
     my $load_url = $url_list[<web-browser.slideshow.url_index>];
 
@@ -29,7 +31,7 @@ if ( <web-browser.slideshow.status> eq 'load' ) {
         );
         <web-browser.timer.slideshow> = <[event.add_timer]>->(
             {   'after'   => 0.13,
-                'handler' => 'web-browser.handler.slideshow'
+                'handler' => qw| web-browser.handler.slideshow |
             }
         );
     } elsif ( $load_url =~ m|^file://(/.+)$|
@@ -43,16 +45,16 @@ if ( <web-browser.slideshow.status> eq 'load' ) {
         );
         <web-browser.timer.slideshow> = <[event.add_timer]>->(
             {   'after'   => 0.42,
-                'handler' => 'web-browser.handler.slideshow'
+                'handler' => qw| web-browser.handler.slideshow |
             }
         );
 
     } else {
-        if (    <system.zenka.mode> eq 'universal-child'
-            and !<web-browser.slideshow.paused>
-            and
-            ( $load_url eq '[PAUSE]' or !<web-browser.slideshow.iteration> ) )
-        {
+        if (    <system.zenka.mode> eq qw| universal-child |
+            and not <web-browser.slideshow.paused>
+            and ( $load_url eq qw| [PAUSE] |
+                or not <web-browser.slideshow.iteration> )
+        ) {
             return if <web-browser.slideshow.paused>;
 
             <web-browser.slideshow.iteration>++;
@@ -77,11 +79,11 @@ if ( <web-browser.slideshow.status> eq 'load' ) {
             <web-browser.slideshow.url_index>++;
         }
     }
-} elsif ( <web-browser.slideshow.status> eq 'load_finished'
+} elsif ( <web-browser.slideshow.status> eq qw| load_finished |
     and <window.scrolling> ) {
-    <web-browser.slideshow.status> = 'scrolling';
-} elsif ( <web-browser.slideshow.status> eq 'load_finished'
-    or <web-browser.slideshow.status> eq 'scroll_finished' ) {
+    <web-browser.slideshow.status> = qw| scrolling |;
+} elsif ( <web-browser.slideshow.status> eq qw| load_finished |
+    or <web-browser.slideshow.status> eq qw| scroll_finished | ) {
     my $min_delay
         = exists <web-browser.slideshow.temp_delay>
         ? delete <web-browser.slideshow.temp_delay>
@@ -93,22 +95,22 @@ if ( <web-browser.slideshow.status> eq 'load' ) {
         if <web-browser.slideshow.status> eq 'scroll_finished';
     $delay = 0 if $delay < 0;
 
-    if (    <system.zenka.mode> eq 'universal-child'
-        and <web-browser.slideshow.status> eq 'scroll_finished' ) {
+    if (    <system.zenka.mode> eq qw| universal-child |
+        and <web-browser.slideshow.status> eq qw| scroll_finished | ) {
         my $next_index
             = <web-browser.slideshow.url_index> >= @url_list
             ? 0
             : <web-browser.slideshow.url_index>;
         $delay = <web-browser.slideshow.swap_delay>
             if $delay < <web-browser.slideshow.swap_delay>
-            and $url_list[$next_index] eq '[PAUSE]';
+            and $url_list[$next_index] eq qw| [PAUSE] |;
     }
 
-    if ( !<web-browser.slideshow.no_switch> ) {
-        <web-browser.slideshow.status> = 'load';
+    if ( not <web-browser.slideshow.no_switch> ) {
+        <web-browser.slideshow.status> = qw| load |;
         <web-browser.timer.slideshow>  = <[event.add_timer]>->(
             {   'after'   => $delay,
-                'handler' => 'web-browser.handler.slideshow'
+                'handler' => qw| web-browser.handler.slideshow |
             }
         );
     } else {
@@ -117,8 +119,8 @@ if ( <web-browser.slideshow.status> eq 'load' ) {
     }
 }
 
-#,,,.,.,.,,,,,,..,.,.,,.,,,,.,,..,,..,,..,...,..,,...,...,...,,,.,.,.,,.,,.,.,
-#KDQSGNPC57AKZ55VN6CDHVDLHZFX2ECHCQSXUHW6AT6QBFLSAL53USEY33BN2O4VOMBOZPWJW2B2E
-#\\\|OKADZQWS2FCXSGLXMRE65YVHOV3B7O6BDBCGKCXMM2CXPM254OP \ / AMOS7 \ YOURUM ::
-#\[7]WG3FNOAYCX4Y7NKAEPKTCX6SSLPKKRCSEPX4WZY6UCQXZDJMX4AA 7  DATA SIGNATURE ::
+#,,..,,..,...,...,,,.,.,,,...,.,.,,.,,..,,.,,,..,,...,..,,.,,,...,,..,,.,,.,.,
+#R7WEDYIJ2DNRI6ERQ3V6IZOMZUIZZ5HN4ILZPE3RNDGFFYJELUYTGKRFE67XRJ25LALJATKSHGJ7M
+#\\\|RBIR2YYNLEHSSUE2UBPFSE67HTC5WH45VV7DOTXHPNHI2MHQCAJ \ / AMOS7 \ YOURUM ::
+#\[7]CVGKHUSBAM44OZK6BACQ3RC4LWQUXVUQAOEMHPWA653UGQSXE6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
