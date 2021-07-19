@@ -16,8 +16,6 @@ foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
 foreach
     my $signal_name ( @registered_signals, <[base.sort]>->( \%ignored_sig ) )
 {
-    <base.watcher.signal>->{$signal_name}->cancel
-        if defined <base.watcher.signal>->{$signal_name};
     my $uc_sig = uc($signal_name);
     delete $SIG{$uc_sig} if defined $SIG{$uc_sig};
 
@@ -51,15 +49,15 @@ foreach
 
     ##  register signal handlers  ##
     ##
-    <base.watcher.signal>->{$signal_name} = <[event.add_signal]>->(
+    <[event.add_signal]>->(
         {   'signal'  => $uc_sig,
             'handler' => $signal_handler_name
         }
     );
 }
 
-#,,,,,.,.,,,.,,.,,...,.,.,.,.,,.,,..,,,.,,,,.,.,.,...,...,.,,,,,.,,.,,,,.,...,
-#RNP4QTHFMSLY45ESEAHMEPIMSUQNOLWG2AOREDZZERQL5NPQ7THBRS4JNHETWZEFCB2GPO2643PT6
-#\\\|VHJKYX7UNKWKJWHUJCRZIAON5MCUEURHHK6E6SKVNFACWHU5KZU \ / AMOS7 \ YOURUM ::
-#\[7]B2LNUHD4LJWOYAR4C3FUXNS6XOZZGVJXMTJEZMB2QPAENIFV6GDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,...,,,.,...,,.,,.,,,,.,,,,.,.,.,...,...,,..,,..,,,,,,,,,..,,
+#JRGRKSCHKXGF2GZ6ILW53BWP4GJXFKLHE73Q6PWCEZU5CMXPBWCWVRIAVYQ34TEIT5Y6AJSR7UQ5W
+#\\\|YF5HNMVUT5S65OUSFZBB4CIPS4SQ7ZKB32SVWMCRNIHOIWPVI6T \ / AMOS7 \ YOURUM ::
+#\[7]J5YUG7WHRBQFSDKFR3MICOPMZWGHEK6KGD5ZIWBNGEJRPQ4CQIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,11 +2,6 @@
 
 # name  = web-browser.open_window
 
-### testing .., ###
-
-<system.verbosity.console> = 2;
-
-
 $ENV{'DISPLAY'} = <x11.display>;
 
 my ( $size_x, $size_y, $pos_x, $pos_y )
@@ -36,8 +31,10 @@ $window->signal_connect( destroy => sub { Gtk3->main_quit() } );
 
 # my $atom_id = Gtk3::Gdk->atom_intern_static_string('WM_CLASS'); # <-- set
 
-$window->move( $pos_x, $pos_y );
-$window->set_default_size( $size_x, $size_y );
+$window->move( $pos_x, $pos_y ) if defined $pos_x and defined $pos_y;
+
+$window->set_default_size( $size_x, $size_y )
+    if defined $size_x and defined $size_y;
 
 my $overlay = Gtk3::Overlay->new();
 <web-browser.gtk_obj.overlay> = $overlay;
@@ -92,12 +89,12 @@ if ( <system.zenka.mode> eq qw| universal-child | ) {
         1,
         "<<< setting slideshow.autostart = 1 [ 'universal-child' mode ] >>>"
     ) if !( <web-browser.slideshow.autostart> //= 0 );
-    <web-browser.slideshow.autostart>
-        = 1;    ## <-- auto-enable slideshow mode ##
+    ## <-- auto-enable slideshow mode ##
+    <web-browser.slideshow.autostart> = 5;    ## true ##
     $window->iconify();
 } else {
     $window->iconify()
-        ;       ## [LLL] create exception? wait for bg-color being set.,
+        ;    ## [LLL] create exception? wait for bg-color being set.,
 
     ## raise window when ready ##  .. background color properly set .,  ##
     <web-browser.start-up.raise_delay> //= 0.13747;
@@ -130,58 +127,19 @@ Glib::Idle->add(
     }
 );
 
-map { <base.watcher.signal>->{$ARG}->cancel }
-    grep ( !m|hup|, keys %{<base.watcher.signal>} );
+##  register signal handlers  ##
+##
+foreach my $signal_name (qw|  INT  TERM  |) {
 
-undef %SIG;
-$SIG{'INT'} = $SIG{'TERM'} = sub {
-    undef %SIG;
-    <web-browser.shutting_down> //= 0;
-    return if <web-browser.shutting_down>;
-    <web-browser.shutting_down> = 1;
+    <base.watcher.signal>->{$signal_name} = <[event.add_signal]>->(
+        {   'signal'  => $signal_name,
+            'handler' => qw| web-browser.handler.sig_term |
+        }
+    );
+}
 
-    my $url_file = sprintf qw| /var/tmp/.protocol-7.web-browser.%s |, $PID;
-    unlink($url_file) if -f $url_file;    # clean shutdown
-
-    map { <web-browser.timer>->{$ARG}->cancel } keys <web-browser.timer>->%*;
-
-    <[base.log]>->( 1, '<<< SIGTERM >>> terminating .,' );
-
-    <web-browser.slideshow.no_switch> = 1;
-    <web-browser.slideshow.paused>    = 1;
-
-    <[web-browser.disable_javascript]>;
-
-    delete <web-browser.quit_fade.start_time>;
-    <web-browser.signal_id> //= {};
-    {
-        local $SIG{'__WARN__'} = sub { };
-        map {
-            <web-browser.gtk_obj.window>->signal_handler_disconnect(
-                delete <web-browser.signal_id>->{$ARG} )
-            }
-            keys %{<web-browser.signal_id>};
-    }
-
-    if ( !<web-browser.cfg.use_transparency> ) {
-        Gtk3->main_quit();
-        exit(0);
-    } else {
-        Glib::Timeout->add(
-            300,
-            sub {
-                <web-browser.gtk_obj.window>->signal_connect(
-                    draw => $code{'web-browser.handler.quit_fade_out'} );
-                <web-browser.gtk_obj.window>->queue_draw;
-                return 0;
-            }
-        );
-        return 0;
-    }
-};
-
-#,,.,,...,,,.,,.,,.,,,.,,,.,,,.,,,,.,,.,.,,,.,..,,...,...,,,.,.,.,,..,,..,...,
-#WSN7FGBD6D43VVRJDP45H7CQ74KM6EKWKH44G7FQNUMUSC5FPTJHVLRAM3TJYLQS64JXS5TCBCMS4
-#\\\|EHMNMAV7H3VXP6NEREIXTBTTDKWJU5UXPPZT73ANOGAQCSDPXZV \ / AMOS7 \ YOURUM ::
-#\[7]COJJZG7EJPT2TMSUXE3UQGQJFIX2QGO5H5PDNX6WSVYULQDLCODI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,..,,.,.,...,...,.,.,,,,,...,..,,...,...,.,,,.,,,...,.,.,,..,
+#D2UZVDBGB63XLZV5MIPRZVVTX5IPRJ4GQWAPHY3LHFSDPDUABRGC5KAX5T647UBL4DOSYM7TVVCUM
+#\\\|JLWZ7OPM5T2UTMQ7IARES7YNX2VB7773LEMJFDGTO25FOEOAJ4G \ / AMOS7 \ YOURUM ::
+#\[7]T6IXC64CS7E6AB2S2OEXMFTAMK22F2IHNGJ66OICKO7IXQQ2QOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

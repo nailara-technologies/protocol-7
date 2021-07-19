@@ -3,7 +3,7 @@
 # name  = v7.handler.sig_chld
 # descr = clean up after terminated child process IDs
 
-<[base.log]>->( 2, 'SIGCHLD received., collecting children..,' );
+<[base.log]>->( 2, 'SIGCHLD received., collecting child PIDs ..,' );
 
 if ( @ARG and not length ref $ARG[0] ) {
     ( my $received_pid, my $received_exit_code ) = @ARG;
@@ -15,17 +15,37 @@ if ( @ARG and not length ref $ARG[0] ) {
 
 my @waitpid_pid;    ## collection from base.exists.sub-process ##
 my $collected_child_pids = <base.process.waitpid_collected> //= {};
+
 @waitpid_pid = <[base.reverse-sort]>->($collected_child_pids)
     if keys $collected_child_pids->%*;
 
-my $end_pid;
-local ( $OS_ERROR, $CHILD_ERROR );
-while ( @waitpid_pid
-    or ( $end_pid = waitpid( 0, WNOHANG() ) ) > 0 ) {
+##[ checking collection validity ]##
+##
+foreach my $collected_PID ( grep { abs($ARG) > 1 } @waitpid_pid ) {
+    <[base.s_warn]>->(
+        '< base.process.waitpid_collected > not valid PID %04d.',
+        $collected_PID
+    );
+}
+
+##[ collecting new arrivals ]#
+##
+push @waitpid_pid, grep { abs($ARG) > 1 } waitpid( 0, WNOHANG() );
+
+local ( $OS_ERROR, ${^CHILD_ERROR_NATIVE} );
+while ( my $end_pid = shift @waitpid_pid ) {
+
+    if ( $end_pid < 2 ) {
+        <[base.s_warn]>->(
+            'pid error [ not valid : %04d ], doing nothing ..,', $end_pid
+        );
+        delete $collected_child_pids->{$end_pid};  ##  clean-up if present  ##
+        return undef;
+    }
 
     my $child_error_val;
     if ( not defined $collected_child_pids->{$end_pid} ) {
-        $child_error_val = $CHILD_ERROR;
+        $child_error_val = ${^CHILD_ERROR_NATIVE};
     } else {
         $child_error_val = delete $collected_child_pids->{$end_pid};
     }
@@ -65,7 +85,7 @@ while ( @waitpid_pid
         ? sprintf( '< %s >', $zenka_name )
         : qw| child |;
     <[base.logs]>->(
-        $log_level, '%s [PID:%d] shut down with exit code %s%s%s',
+        $log_level, '%s [PID:%d] shut down [ with exit code %04d%s%s ]',
         $zenka_str, $end_pid, $exit_val, $exit_sig_str, $e_core_dump
     );
 
@@ -95,7 +115,7 @@ while ( @waitpid_pid
         if ( $exit_sig == 11 and $zenka_name eq qw| web-browser | ) {
             my $web_browser_uname = <system.AMOS-user>;
             my $subname_b32
-                = ( defined $zenka_subname and length($zenka_subname) )
+                = ( defined $zenka_subname and length $zenka_subname )
                 ? join( '', qw| . |, encode_b32r($zenka_subname) )
                 : '';
             my $file_name = join( '',
@@ -153,8 +173,8 @@ while ( @waitpid_pid
     }
 }
 
-#,,.,,,.,,,,,,,,,,...,,.,,...,,..,.,.,,.,,...,..,,...,...,.,.,,,,,,,.,,..,,,,,
-#M5JZOORZOH5GLSHNYSHAKZ3W6E5L6FJUX4OVQPAZMSDPW4W2Q72IGA332RWDKQY4ZSKLWSDCY3EHE
-#\\\|OKWG4GWLZRMJS66APO4E7AXZQY4OGIBUY3TK2EL4YIDEFXDOU4M \ / AMOS7 \ YOURUM ::
-#\[7]Q6GCOHRLSQHCJQIIXQKPNT2V75NFCHAK2Q67ZCWTLTWVKPQ7NUDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,.,.,.,,,...,,,.,,,.,,,.,.,,,..,,...,..,,,,.,.,.,,.,,.,,,.,.,
+#5SRFW2HCV5VPDZ3ST3OMZEEVXJNUX4HXDWGOJ3KZRJKV5XCIPJTE653FNHENJNQFJILYZ53NWRWF2
+#\\\|4B743XAPF2BMRYXN4RI53I3447UOKBCFSPKSLQ6A2G6QOOLIIP2 \ / AMOS7 \ YOURUM ::
+#\[7]BRCM7JLSKSQ6BJ5HXCK42XVL7U3GIH63SYCRIAH2N3HDXSBQVKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
