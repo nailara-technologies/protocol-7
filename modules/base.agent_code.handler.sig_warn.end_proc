@@ -36,6 +36,8 @@ if ( $err_str =~ s| ?<\{(N)?C(\d+)?}>||g ) {
 
 $err_str = <[base.format_error]>->($err_str);    ## calling early now.., ##
 
+<[base.log]>->( 1, qw| : | );
+
 if ( not defined $cfg_ref->{'name'} ) {
     <[base.logs]>->( 0, '[ %s zenka runtime-error ]', <system.zenka.name> );
 } else {
@@ -45,7 +47,7 @@ if ( not defined $cfg_ref->{'name'} ) {
         : '';
 ## requires statement to line number map ##
     <[base.logs]>->(
-        0,                  'runtime-error : %s%s',
+        0,                  ': runtime-error : %s%s',
         $cfg_ref->{'name'}, $num_string
     );
 }
@@ -57,6 +59,8 @@ $call_lvl = undef
     and ( $no_caller
     or index( [ <[base.caller]>->($call_lvl) ]->[0], qw| eval |, 0 ) == 0 );
 $call_lvl //= -1;
+
+# $err_str .= sprintf ' %s', scalar <[base.caller]>->(3);
 
 <[base.logs]>->(
     0, ": '%s'", scalar <[base.format_error]>->( $err_str, $call_lvl )
@@ -71,9 +75,11 @@ if ( defined $sourcecode_line and <[base.cfg_bool]>->($show_src_line) ) {
         }
     }
 
+    <[base.log]>->( 1, qw| : | );
+
     ## extract into subroutine ??? ##
     if ( index( $err_str, $sourcecode_line, 0 ) == -1 ) {
-        my $prefix_string = sprintf( '%s  %s%s',
+        my $prefix_string = sprintf( '%s : %s%s',
             <[log.format_name]>, $colors{'p7_fg_0002'}, $colors{'B01'} );
         say $prefix_string,
             <[base.wrap_text]>->( $prefix_string, 70, $sourcecode_line ),
@@ -81,12 +87,20 @@ if ( defined $sourcecode_line and <[base.cfg_bool]>->($show_src_line) ) {
     }
 }
 
+<[base.log]>->( 1, qw| : | );
+<[base.logs]>->(
+    1,
+    "::[code]::[ %s : %d ]",
+    [ <[base.caller]>->(3) ]->@[ 0, 1 ]
+);
+<[base.log]>->( 1, qw| : | );
+
 <base.agent_code.state.error_exit> = 5;    ## true ##
 
 <[base.exit]>->(qw| 0110 |) if <base.zenka_cfg.warnings> eq qw| fatal |;
 
-#,,,.,.,.,,..,.,,,.,.,,,.,.,,,...,..,,...,...,..,,...,...,,.,,.,.,.,.,,..,..,,
-#HX363TYSB4EAU5UEVDSWPNB5ODZYECZEZFBY4TK3P4UHDCE3VWZYAX3X26AZTLT46576JCCITD5PI
-#\\\|XHBVRO47GX4A6GYKKINRMBT6HBG4M42W74SYCOOIKW4XPHICJLT \ / AMOS7 \ YOURUM ::
-#\[7]TPS3TQTIZ7FZ2A7FPWZ4FPUNDOMZ4KFTOTLJNX6SLCC55RRZGACA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,...,,.,,,.,,...,.,.,,..,.,,,..,,...,...,.,.,,,,,..,,..,,..,,
+#2J3QY62ISF5EWFFSQ5HCVVEICPI2UT4FJPTZ2SQ5VBIMWL6QWGEWMQYGK5BJQZ2GTWL7PYRXWZDCC
+#\\\|G2Z6WBJT4SPZJCQ4OHAUMNYOZOXIYMMKY5NJIUYJ4CBHZJC2E5M \ / AMOS7 \ YOURUM ::
+#\[7]DB5HFVKJZLB5VLFT3DM3VCWNIHIIMHK5Q7X6NHAQKTQYVILU46CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

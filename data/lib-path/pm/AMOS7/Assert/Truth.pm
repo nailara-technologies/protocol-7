@@ -9,9 +9,11 @@ use base qw| Exporter |;
 ##  ASSERT HARMONIC TRUTH BASED ON DIVISION BY 13 CALCULATION RESULT ##
 ###                                                                 ###
 
-#######################
 @EXPORT = qw| is_true |;      ##  <--  main function  ##
-#######################
+
+##  is_true with sprintf template  ##
+##
+@EXPORT_OK = qw| is_true_with_template is_template_syntax_valid |;
 
 use v5.24;
 use strict;
@@ -63,8 +65,8 @@ sub is_true {
     return warn_err('no checks enabled')
         if not $check_as_num and not $check_as_elf;
 
-    $data_ref = join( ' ', @{$data_ref} ) if ref($data_ref) eq qw| ARRAY |;
-    $data_ref = \"$data_ref"              if ref($data_ref) ne qw| SCALAR |;
+    $data_ref = join( ' ', $data_ref->@* ) if ref $data_ref eq qw| ARRAY |;
+    $data_ref = \"$data_ref"               if ref $data_ref ne qw| SCALAR |;
 
     return warn_err('undefined input <{C2}>') if not defined $$data_ref;
 
@@ -73,12 +75,12 @@ sub is_true {
     return 0    ## check as mumber when numerical ##
         if $check_as_num == 1
         and AMOS7::Assert::is_number($$data_ref)
-        and calc_true( scalar($$data_ref) ) <= 0;
+        and calc_true( scalar( $data_ref->$* ) ) <= 0;
 
     return 0    ## when numerical with no 0 prefix ##
         if $check_as_num == 2
-        and AMOS7::Assert::numerical_no_0_prefix($$data_ref)
-        and calc_true( scalar($$data_ref) ) <= 0;
+        and AMOS7::Assert::numerical_no_0_prefix( $data_ref->$* )
+        and calc_true( scalar $data_ref->$* ) <= 0;
 
     return 5 if not $check_as_elf;    ## numerical only, skip elf check ##
 
@@ -180,6 +182,58 @@ sub calc_true {
 
     ### TRUE ### 0000000 | 1 ####
     return 5;
+}
+
+sub is_true_with_template {
+    if ( @ARG < 1 ) {
+        warn_err('expected at least template string and input params');
+        return undef;
+    }
+    my $template = shift;
+
+    if ( not is_template_syntax_valid($template) ) {
+        warn_err('template syntax is not valid');
+        return undef;
+    }
+
+    foreach my $check_ref ( [ undef, @ARG ], [ $template, @ARG ] ) {
+        ( my $template, my @check_args ) = $check_ref->@*;
+        if ( not defined $template ) {
+
+            my $is_true = is_true(@check_args);
+
+            return 0 if not defined $is_true or not $is_true;
+
+        } else {
+            my $data_ref = shift @check_args;
+
+            $data_ref = join( ' ', $data_ref->@* )
+                if ref $data_ref eq qw| ARRAY |;
+
+            $data_ref = \"$data_ref" if ref $data_ref ne qw| SCALAR |;
+
+            unshift @check_args, \sprintf $template, $data_ref->$*;
+
+            return 0 if not is_true(@check_args);
+        }
+    }
+
+    return 5;    ## true ##
+}
+
+sub is_template_syntax_valid {
+    my $template = shift // '';
+    my $silence  = shift // 0;    ## no syntax warning ##
+
+    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
+    if ( @match_count != 1 ) {
+        warn_err( "sprintf template '%s' not valid [ expecting single %%s ]",
+            2, $template )
+            if not $silence;
+        return 0;    ##  false  ##
+    }
+
+    return 5;        ## true ##
 }
 
 return 1;  ###################################################################

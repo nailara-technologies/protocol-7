@@ -143,8 +143,14 @@ READ_STDIN_CONFIGURATION:
         $code{'log.error'}->(':: STDIN closed and no configuration read..,');
     }
 
-    if ( $data{'system'}{'background_mode'} ) {
-        $code{'base.process-into-background'}->();
+    if ( $data{'system'}{'background_mode'} ) {    ## backgrounding parent ##
+        use warnings qw| FATAL |;
+
+        #        eval '$code{base.process-into-background}->()';
+        $code{'base.exit'}->(
+            ':: exit :: cannot background zenka process ::',
+            0, qw| 0110 |
+        ) if length $EVAL_ERROR;
     }
 
     if (@zenka_code) {
@@ -222,13 +228,17 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
 
     use File::stat;
     use IO::Handle;
+    use IO::Scalar;
     use Sys::Hostname;
     use Cwd qw| abs_path |;
     use Text::Wrap qw| wrap |;
     use File::Spec::Functions;
     use List::MoreUtils qw| :all |;
-    use Fcntl qw| :seek :mode :flock |;  ##  incl : S_IWUSR, S_IWGRP, S_ISFIFO
     use FindBin qw| $RealBin $RealScript |;
+
+    ##  includes : S_IWUSR, S_IWGRP, S_ISFIFO  ##
+    use Fcntl qw| :seek :mode :DEFAULT :flock |;
+
 
     ## MATHEMATICAL CONSTANTS ##
 
@@ -244,6 +254,7 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
         File::stat
         Text::Wrap
         IO::Handle
+        IO::Scalar;
         Sys::Hostname
         List::MoreUtils
         File::Spec::Functions
@@ -433,18 +444,23 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $visualize->{'disharmony'} = 5 if $vis =~ m|d|;    ## true ##
             }
         }
-        if ( $arg eq qw| -B | ) { $data{'system'}{'background_mode'} = 5 }
+
+        if ( $arg =~ qw| -B(K?) | ) {    ##  -BK == keep output open  ##
+            $data{'system'}{'background'}{'redirect_output'} = 0
+                if length $LAST_PAREN_MATCH;
+            $data{'system'}{'background_mode'} = 5;    ## true ##
+        }
         if ( $arg eq qw| -stdin | ) {
             $data{'system'}{'start-up'}{'stdin'}{'read-init-code'} = 5;
-            $data{'system'}{'console-mode'} = 0;    ## LLL: more conditions
+            $data{'system'}{'console-mode'} = 0;       ## LLL: more conditions
         }
         if ( $arg eq qw| -console | ) {
-            $data{'system'}{'console-mode'} = 5;    ## true ##
+            $data{'system'}{'console-mode'} = 5;       ## true ##
             $code{'log.error'}->('<< in console mode >>');
         }
         if ( $arg eq qw| -c | ) {
-            $data{'system'}{'ansi_color'}   = 5;    ## true ##
-            $data{'system'}{'force-colors'} = 5;    ## true ##
+            $data{'system'}{'ansi_color'}   = 5;       ## true ##
+            $data{'system'}{'force-colors'} = 5;       ## true ##
         }
         if ( $arg eq qw| -nc | ) {
             $data{'system'}{'ansi_color'}   = 0;
@@ -1396,7 +1412,7 @@ sub p7_load_code {
             if (    $sub_name !~ m{\.(cmd|console)\.}
                 and $sub_name =~ m|\.end_code$| ) {
                 ## needs module namespace for defined callback order ##
-                push( @{ $data{'callbacks'}{'end_code'} }, $sub_name );
+                push( $data{'callbacks'}{'end_code'}->@*, $sub_name );
             }
         } else {
 
@@ -1416,6 +1432,8 @@ sub p7_load_code {
                             $code{'base.anum_log_time'}->(), 0,
                             join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
                     ) if $sub_name eq qw| base.log |;
+                    ## raising silent exception ##
+                    warn sprintf ':silent: %s <{C1}>', $lmsg;
                     return undef;
                 } else {
                     $code{'log.error'}
@@ -2400,21 +2418,36 @@ sub p7__dev__null { }
 sub p7_sig_warn {
 
     my $s_len;
+    my $log_warning = 5;    ## true ##
     state $deep_recusrsion   //= 0;
     state $recent_warn_cnt   //= 0;
     state $last_warning_time //= $code{'base.time'}->(10);
+
     $s_len = $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
     $s_len //= 0;
     my $spaces = ' ' x $s_len;
     if (@ARG) {
         my $c_lvl = 0;
         chomp( my @err = @ARG );
-        map {
-            $ARG //= qw| :undef: |;
-            $ARG =~ s|([^[:print:]])
+
+        foreach my $warn_line (@err) {
+
+            $warn_line //= qw| :undef: |;
+
+            $warn_line =~ s|([^[:print:]])
                            | sprintf("[%03d]",ord($LAST_PAREN_MATCH)) |aegx;
-            $ARG = $code{'base.format_error'}->( $ARG, -1 );
-        } @err;
+        }
+
+        if ( index( $err[0], qw| :silent: |, 0 ) == 0 ) {
+            $err[0] =~ s|^:silent:\s?||;
+            ## silent warning mode [ to raise exceptions ] ##
+            $log_warning = 0;    ##  silencing console output  ##
+        }
+
+        foreach my $warn_line (@err) {
+            $warn_line = $code{'base.format_error'}->( $warn_line, -1 );
+        }
+
         push( @err, $spaces ) if length $spaces;
         {
             if ( map {m|deep recursion |} @err ) {
@@ -2488,7 +2521,6 @@ sub p7_sig_warn {
         $caller_str = sprintf( '[ caller level too high : %03d ]', $c_lvl )
             if not length( join( '', $filename, $line ) );
 
-        my $log_warning = 1;
         ## alternative handlers registered for filename:line ? ##
         my $match_param = "$filename:$line";    # <-- expand .., [LLL]
         if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
@@ -3552,8 +3584,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,.,.,,,,..,,.,,...,,.,,,..,.,,,...,...,..,,...,...,.,,,..,,...,,.,,..,,
-#OO6SOLWH5V4PBX4DDEYIXKMULTVOH2PZUONGEWDCWLARTECZSFU2WZ77CCYWR7PZBFZWNW53C4JQU
-#\\\|YRFLOSMNOGKEEY5CMX5UCWYUFT6R3HSVCZDTYT645GPF5XXOLEP \ / AMOS7 \ YOURUM ::
-#\[7]VWAALB3UMH2ESYSRAKX62PDUKNN2GNI2QC6INDE7Q6PSZJ2B4YAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,.,,,..,,,..,,,.,,..,..,,...,..,,...,...,...,,.,,.,,,,.,,...,
+#KF4QRY63SMKEFWJFOVZ4S67GWG6CGOT5FLKYESTB66T55WN2M757EQ4WO6PBCRXBTTOVMBX4S7NKY
+#\\\|J2IUTHQ5VBMFRFAWOWA3W73RDIAGDXZSL2GW3TEZNUK5RCXUWLN \ / AMOS7 \ YOURUM ::
+#\[7]CRGETFNJDOJ7B7STF6MHX2Y25GB552V4GSGUFOT2ILTEPTZ2KAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
