@@ -2,9 +2,13 @@
 
 # name  = base.cube-zenka.output_prompt
 
+return if <system.zenka.name> ne qw| cube |;
+
 ##  output prompt line in background mode and still open STDOUT  ##
-print "\n :. "
-    if <system.zenka.name> eq qw| cube |    ### use log idle timer ### [ LLL ]
+##
+print "\n :. "    ### use log idle timer ### [ LLL ]
+
+    if <base.cube-zenka.output_prompt> = 0
 
     and defined <system.authentication-type>
     and <system.authentication-type> eq qw| zenka |
@@ -15,8 +19,8 @@ print "\n :. "
     <[base.is_defined_recursive]>->(qw| system.background.redirect_output |)
     and not <system.background.redirect_output>;
 
-#,,,,,.,.,...,...,,..,,,,,,,.,,,,,.,,,,,.,...,..,,...,...,.,,,.,,,...,...,..,,
-#NAPY5O3TSSOJONOJOKEFMYA5GEK6LPUFICZPHKBQ72YQKPBRO42RQ23PCHW7Z2DP4OHID75XOOT7S
-#\\\|4SSUV4OANA6ZM3IVSNLTP4EDTCLZ6QEWKZVQ7HX32AP6VU4UWGT \ / AMOS7 \ YOURUM ::
-#\[7]H2ZUMVZP2U7LR7L653S3DPOBRQ7JFZYP3ABTAZNQ7UGRG7EHA6BQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,,,,,,,.,.,.,.,.,.,.,,,.,,,.,..,,...,...,,..,.,.,.,.,,,.,.,,,
+#26FWGLHRYHEE6NJEH3O5XMOV7UK7TGVIL2Y3OP5MYYYZUZC5IXP52IUMKEFGJJO263WOKR7ECIJO2
+#\\\|YUPGTEI5JZP3C6VJU7I4VITQRLUSVKFWDADQH2VVF75FDFCMI3I \ / AMOS7 \ YOURUM ::
+#\[7]ESBCNFPY2J2EICCNTICZWJXFD4RWUQOC25H5GZYET3A4IX7J7MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
