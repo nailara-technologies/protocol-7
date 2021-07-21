@@ -1,0 +1,28 @@
+## >:] ##
+
+# name  = base.prng.reseed
+# descr = [re]seed the CORE::[s]rand and Crypt::PRNG::Fortuna prngs
+
+## [ initializing fortuna ] ##
+##
+my $start_seed    = shift // 142857;    ##[ 5 : 7 ]##
+my $iterations    = shift // 57;
+my $harmonic_seed = qw| FALSE |;
+
+( my $srand_seed = $PID + $code{'base.ntime'}->(13) ) =~ s|\.||;
+srand($srand_seed);
+
+while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
+    ( $harmonic_seed = join( '', <[base.ntime]>->(13), rand($start_seed) ) )
+        =~ s|\.||;
+    ( $harmonic_seed /= 13 ) =~ s,(\.|e.+$),,g;
+    <[base.sleep]>->(0.0013) if $iterations < 37;
+}
+
+return <base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
+
+#,,..,,..,,..,.,.,,..,..,,...,,,.,,,,,.,,,.,.,..,,...,...,...,,,,,,,,,,,,,,..,
+#PN4XCKIKGN6ELWJACU43JN6AOWXLK3XYTE5VHGBPGE4BU2UIBHN36MTYWCJF2ECRYLWAOM5BW7MKQ
+#\\\|XIFCRZEDOTH4MSJP7MRIDHTTHLSI632AROVLSAD36TLGYNQSXHE \ / AMOS7 \ YOURUM ::
+#\[7]C6BYVCHZEERTYLREYHN3ECPYKCBC6T4SPOYVBW2IXJ4UMJ7PESCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

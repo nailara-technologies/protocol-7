@@ -21,7 +21,8 @@ map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     { 'signal' => 'CHLD', 'handler' => qw| base.handler.sig_chld.shutdown | }
 );
 
-<weather.child.pid> = fork;
+<weather.child.pid> = <[base.fork]>;
+
 if ( !<weather.child.pid> ) {    ## child ##
 
     <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
@@ -106,8 +107,8 @@ if ( !<weather.child.pid> ) {    ## child ##
 
 }
 
-#,,..,,,,,,.,,,,.,.,.,.,.,.,.,..,,.,,,,,.,..,,..,,...,...,.,.,,,,,,..,,,.,,..,
-#HVC4XRN4EKVEDMSXXVUVKXBI5TSIHCHTSQR4Y6H3ZQ6COTYQTJRRHZT24NSGJRGJ7EJ4LW2LJQPV2
-#\\\|AZZFD6SUGXWT7E7RAXC75QC3RYZZTFWH24TJKDVP6LYCNBV4ZNF \ / AMOS7 \ YOURUM ::
-#\[7]RRJ23GKWY2KWPT6BZXHFIVSNHZXVAI2WXFP5FJJL6R2CQKZ4C6BY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,,.,,...,,,.,...,...,.,,,..,,..,,...,..,,.,,,,,,,.,,,,..,,,.,
+#IXNM7XYN4WME4GE4VKGNNG4YEAQJUF4X4EVZ5V2KIEAVYTE5FNNHJO2WVQ4OTM4DXLQ5ZSPPV6Q3E
+#\\\|6VFD4QMKLGB5XSZHNJRIKPZ6XJOSQUX66LEWML522BPKVFR76KJ \ / AMOS7 \ YOURUM ::
+#\[7]67644H3EFWB27N4VJ67LJSP66G3NPRJZVFGIGTSK7KXGMPEE3CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
