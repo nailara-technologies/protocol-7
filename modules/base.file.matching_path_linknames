@@ -1,0 +1,66 @@
+## >:] ##
+
+# name  = base.file.matching_path_linknames
+# descr = generates symbolic link paths for creating target path references
+
+my $temp_file_dir    = shift // '';    ##  target dir for link creation  ##
+my $link_target_path = shift // '';    ##  symlink target  ##
+
+##  returns matches for current protocol-7 installation path  ##
+##
+state $inst_path_chksum //= <[chk-sum.bmw.L13-str]>->(<system.root_path>);
+
+##  return undef when link directory not present  ##
+##
+if ( not -d $temp_file_dir ) {
+    <[base.s_warn]>->(
+        "specified directory not found ['%s'] <{C1}>",
+        $temp_file_dir
+    );
+    return undef;
+}
+
+##  checksum input string sprintf template  ##
+##
+my $input_str_template = sprintf qw| %s:%%d%%s |, $inst_path_chksum;
+
+my @link_path;
+
+##  symlink path \ name sprintf templates  ##
+##
+my $fname_templ = sprintf qw| %s/%%s |, $temp_file_dir;
+
+my $links_href = <[file.all_links]>->($temp_file_dir);
+
+foreach my $link_path_abs ( <[base.sort]>->($links_href) ) {
+    next
+        if length $link_target_path    ## check if target matches ##
+        and $links_href->{$link_path_abs} ne $link_target_path;
+
+    ##                                                           ##
+    ##  verify checksum to check if registered by current zenka  ##
+    ##                                                           ##
+
+    next if not $link_path_abs =~ m|/0(\d+)0[^/]+$|;
+    my $file_iteration_counter = 0 + $LAST_PAREN_MATCH;
+
+    my $calculated_abspath = <[file.gen_path_linkname]>->(
+        $temp_file_dir,
+        $links_href->{$link_path_abs},
+        $file_iteration_counter - 1, 5    ##  existing link paths  ##
+    );
+
+    next                                  ##  does differ  ##
+        if not defined
+        or $calculated_abspath ne $link_path_abs;
+
+    push @link_path, $link_path_abs;      ##  is a valid match  ##
+}
+
+return @link_path;    ##  returning matching symlink paths for target  ##
+
+#,,..,...,...,,..,.,.,,.,,,,.,...,,,,,.,.,,.,,..,,...,...,.,.,.,,,,,,,,.,,,.,,
+#QIJITF7YQV4DX7OS475JGB3MFT7IYYQKZYQMF44JXGHJ3Z2V23ORFWM74S3XSDJTJXLGDW2E6OGZS
+#\\\|UTQXEKGV7ZL2RAB5OHWS67WDBDPA7VQPUC4I3QLMMMP3EI6IWL6 \ / AMOS7 \ YOURUM ::
+#\[7]JMCIKWFYUDGRBLQT4OD3WPT3P32RRK6T7OS6IVDEOXLV7R22TOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
