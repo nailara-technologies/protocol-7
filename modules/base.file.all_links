@@ -2,45 +2,73 @@
 
 # name = base.file.all_links
 
-my ( $path, $result_href ) = @_;
-my $old_path;
+my ( $path_parameter, $result_href, $silence ) = @ARG;
+
+$silence //= 0;    ##  report directory errors by default  ##
+
 my $recursive         = 0;
 my $recursion_entered = 0;
+my $old_path;
 if ( not defined $result_href ) {
     $result_href = {};
-} elsif ( $result_href eq 'recursive' ) {
+} elsif ( ref $result_href eq qw| HASH | ) {
+    $recursion_entered = 5;    ## true ##
+} elsif ( $result_href eq qw| silent-recursive | ) {
     $result_href = {};
-    $recursive   = 1;
+    $silence     = 5;          ## true ##
+    $recursive   = 5;          ## true ##
+} elsif ( $result_href eq qw| recursive | ) {
+    $result_href = {};
+    $recursive   = 1;          ## true ##
 } else {
-    $recursion_entered = 1;
+    <[base.s_warn]>->( 'parameter %s not expected <{C1}>', $result_href );
+    return undef;
 }
 
-if ( -d $path ) {
-    my $dir_fh;
-    $path =~ s/\/+$//;
-    if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "cannot open directory '$path' [ \l$OS_ERROR ]" );
-        return undef;
-    }
-    foreach my $entry ( sort( readdir($dir_fh) ) ) {
-        next if $entry =~ /^\.{1,2}$/;
-        my $file_path = "$path/$entry";
-        next if -f $file_path and !-l $file_path;
+if ( not -d $path_parameter and not $recursion_entered ) {
+    <[base.s_warn]>->(
+        "specified directory not found ['%s'] <{C1}>",
+        $path_parameter
+    );
+    return undef;
+}
 
-        if ( -l $file_path ) {
-            my $link_val = readlink($file_path);
-            $result_href->{$file_path} = $link_val;
-        } elsif ( $recursive and -d $file_path ) {
-            my $result = <[file.all_links]>->( $file_path, $result_href );
-            $result_href->{$file_path} = $result if -l $file_path;
-        }
+my $dir_fh;
+$path_parameter =~ s|/+$||;
+if ( not opendir( $dir_fh, $path_parameter ) ) {
+    if ( not $silence or not $recursion_entered ) {
+        my $call_lvl = $recursion_entered ? 1 : 0;
+        <[base.logs]>->(    ##  always reporting on first directory  ##
+            0, "%s cannot open directory '%s' [ %s ]",
+            scalar <[base.caller]>->($call_lvl), $path_parameter,
+            <[base.str.os_err]>
+        );
+    }
+    return undef;
+}
+foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
+    next if $entry =~ m|^\.{1,2}$|;
+    my $file_path = catfile( $path_parameter, $entry );
+    next if not -d $file_path and not -l $file_path;
+
+    if ( -l $file_path ) {    ##  is symlink  ##
+
+        my $link_val = readlink($file_path);
+        $result_href->{$file_path} = $link_val;
+
+    } elsif ( $recursive and -d $file_path ) {    ##  is directory  ##
+
+        my $result
+            = <[file.all_links]>->( $file_path, $result_href, $silence );
+
+        $result_href->{$file_path} = $result if -l $file_path;
     }
 }
 
-return $result_href if !$recursion_entered;
+return $result_href if not $recursion_entered;
 
-#,,,,,,,,,..,,.,.,,.,,..,,..,,..,,,.,,.,,,.,.,..,,...,...,,..,,,.,...,..,,..,,
-#XEO5XCHQVERNDS5PFKRRXSNWDSGG3DDLWJ65DHQ76W2HV5WIBYOPIRVRYIBA7WKECXSUKW3K3CTQO
-#\\\|TKWKBMIUIQ6YZO2ED4N5N3GGJXLK46NJT5YD346OOEGEUVATBBB \ / AMOS7 \ YOURUM ::
-#\[7]CQGKVZK72R6WN5PHQZEVX6ZME6LUBU4UBE3JWLD5BEU2TQSRCABQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,.,,,.,,..,,..,...,,,.,,..,,..,..,,...,.,.,..,,.,.,.,,,...,,.,,
+#IEZUGXQPZZFR3D6K7YZEHG6KIW74FP5B3XB4JIT3ULAFF2B3JBWHAKHSNLBJCVGBF7MMZQKJUNPFG
+#\\\|FBXZ7I7CKDA6UJKB5G255NJPXIIH5VBGTHEGZC6QLVNLZQAAA2A \ / AMOS7 \ YOURUM ::
+#\[7]7XTB57NFGDT5WCRC5KJMP63WU43FTV34RBC6WMVRQZVLPZMK2YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
