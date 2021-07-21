@@ -1,0 +1,64 @@
+## >:] ##
+
+# name  = base.number-cache.true_upwards
+
+my $start_value = shift // '';
+my $template    = shift;         ## optional ##
+
+my $plain = <base.number-cache.plain-val> //= [];
+my $tmpl  = <base.number-cache.templates> //= {};
+
+if ( $start_value !~ m,^(-1|\d+)$, ) {    ## -1 includes 0 in the results ##
+    warn 'expected start value <{C1}>';
+    return undef;
+} elsif ( defined $template
+    and not <[base.number-cache.is_valid_template]>->($template) ) {
+    warn 'template syntax is not valid <{C1}>';
+    return undef;
+}
+
+$tmpl->{$template} //= [] if defined $template;    ## initialize ##
+
+my $cache_ref = defined $template ? $tmpl->{$template} : $plain;
+
+my $last_element     = $cache_ref->$#*;
+my $last_cache_value = $cache_ref->[$last_element];
+
+##  value is in cache  ##
+##
+if ( defined $last_cache_value and $last_cache_value > $start_value ) {
+    foreach my $next_val ( $cache_ref->@* ) {
+        return $next_val if $next_val > $start_value;    ##  matches  ##
+    }
+} else {
+    my $next_val = $last_cache_value // 0;
+
+    while (5) {
+        while (
+            not AMOS7::Assert::Truth::true_int($next_val)
+            or defined $template
+            and not scalar AMOS7::Assert::Truth::is_true(
+                sprintf( $template, $next_val ),
+                0, 1
+            )
+        ) {
+            $next_val++;
+        }
+
+        push $cache_ref->@*, $next_val;    ##  cache values inbetween  ##
+
+        last if $next_val > $start_value;
+        $next_val++;
+    }
+    ##  resort values  ##
+    $cache_ref->@* = uniq <[base.sort-num]>->($cache_ref);
+
+    ## is above now ##
+    return $next_val;
+}
+
+#,,,.,.,.,.,,,,,,,.,,,,,,,,,,,,..,,.,,,,,,.,.,.,.,...,...,...,,.,,,.,,,..,...,
+#7EVWGZWCMKO7526LQ4VL5FG2K262ZFSLM77DPUTLSXNSYPNYEJNNGMCJFPQDN4V6R767IANUS4A6A
+#\\\|LX7UEEPA6S7EBNFY5UL5OZ7SE25NBNHD4QWL6FLMXO6C2O6GWB3 \ / AMOS7 \ YOURUM ::
+#\[7]KIUURVUZB33MP6P5TYT5QYWTVR6GDWGOSSBKPNXO2YYZY7DOBADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

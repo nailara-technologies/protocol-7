@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = base.number-cache.get-content
+
+my $template = shift;    ## optional ##
+
+<base.number-cache.plain-val> //= [];
+<base.number-cache.templates> //= {};
+
+if ( defined $template
+    and not <[base.number-cache.is_valid_template]>->($template) ) {
+    warn 'template syntax is not valid <{C1}>';
+    return undef;
+} elsif ( defined $template
+    and not defined <base.number-cache.templates>->{$template} ) {
+    return undef;    ##  no such template values  ##
+}
+
+##  plain list also contains each 'template filtered' value  ##
+##
+return <base.number-cache.plain-val>->@* if not defined $template;
+
+##  the specific template content is a subset of 'plain' list  ##
+##
+return <base.number-cache.templates>->{$template}->@*;
+
+#,,..,..,,.,.,..,,.,,,..,,.,.,,.,,.,,,,..,,..,..,,...,...,...,,.,,,,,,,,,,.,,,
+#OGAHZBABXO6TEF7JD2VB6H3ZOWK7J4E2PE4VF6664AQAAUHNFXG42QKV2O3A67KWYON5BJ3QOGQSC
+#\\\|K7O2KT3EVBDL5KLLZ6JY2C7CV4TFCOYQNR5E5CDQGA6EXEQ6IKN \ / AMOS7 \ YOURUM ::
+#\[7]RMTXEHCSK32Q2TOS6DTEEHQ5NGEMZYJOSHMECXIRM2SUW3HLV6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

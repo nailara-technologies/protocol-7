@@ -1,0 +1,24 @@
+## >:] ##
+
+# name  = base.number-cache.is_valid_template
+
+my $template = shift // '';
+
+##  redundant assertion  ##
+##
+return 0 if not length $template or $template eq qw| %d |;
+
+##  required single %\d*d  ##
+##
+my @match_count = $template =~ m|(*nlb:\%)%\d*d|sg;
+if ( @match_count != 1 ) {
+    return 0;    ##  false  ##
+}
+
+return 5;        ## true ##
+
+#,,.,,,.,,..,,..,,,..,,.,,,,.,,,.,,.,,..,,...,..,,...,...,..,,.,.,,..,.,,,...,
+#O5EEP3C5ZAYM26KF6QNBTXMPWPZHMC2S7HJ2CYL7N6F43FNXI2PO65QEVMH3HOJBRCD35APBY7WOA
+#\\\|5PPL7YKDS52ECTL3KZDLSTSCUFSS3NXZAJ643SRCTKPKON5TF7R \ / AMOS7 \ YOURUM ::
+#\[7]ZBGN2I3TH6JWADV5QESEYVZAS4OMJBAKWNYBGU6VI7WYQ3BPPSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
