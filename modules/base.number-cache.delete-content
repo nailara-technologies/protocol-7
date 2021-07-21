@@ -1,0 +1,70 @@
+## >:] ##
+
+# name  = base.number-cache.delete-content
+
+my $template = shift;    ## optional ##
+
+<base.number-cache.plain-val> //= [];
+<base.number-cache.templates> //= {};
+
+my $entries_deleted = 0;
+
+if (    defined $template
+    and $template ne qw| plain |
+    and not <[base.number-cache.is_valid_template]>->($template) ) {
+    warn 'template syntax is not valid <{C1}>';
+    return undef;
+} elsif ( defined $template
+    and $template ne qw| plain |
+    and not defined <base.number-cache.plain-val>->{$template} ) {
+    return undef;    ##  template is not registered  ##
+}
+
+##  assigning empty lists to delete content  ##
+
+##  only plain values  ##
+##
+
+if ( defined $template and $template eq qw| plain | ) {
+    $entries_deleted = <base.number-cache.plain-val>->$#*;
+    return 0 if $entries_deleted == -1;    ##  no entries  ##
+    <base.number-cache.plain-val>->@* = ();
+    return $entries_deleted;
+}
+
+##  delete all caches [ no keyword param ]  ##
+##
+elsif ( not defined $template ) {
+    foreach my $template ( keys <base.number-cache.templates>->%* ) {
+        if ( <base.number-cache.templates>->{$template}->$#* != -1 ) {
+            $entries_deleted
+                += <base.number-cache.templates>->{$template}->$#*;
+            undef <base.number-cache.templates>->{$template}->@*;
+        }
+        delete <base.number-cache.templates>->{$template};
+    }
+    ##  no entries  ##
+    return $entries_deleted if <base.number-cache.plain-val>->$#* == -1;
+
+    $entries_deleted += <base.number-cache.plain-val>->$#*;
+    <base.number-cache.plain-val>->@* = ();
+
+    ## all cleared ##
+    return $entries_deleted;
+}
+
+##  keywords other than 'plain' [ erase template cache ]  ##
+##
+$entries_deleted = <base.number-cache.templates>->{$template}->$#*;
+if ( $entries_deleted == -1 ) { $entries_deleted = 0 }
+else {
+    undef <base.number-cache.templates>->{$template}->@*;    ##  template  ##
+}
+delete <base.number-cache.templates>->{$template};
+return $entries_deleted;
+
+#,,,.,..,,...,..,,.,,,,.,,,.,,...,,,,,...,,,.,..,,...,...,.,,,...,,,.,.,.,,..,
+#QLHZEARHDKBQQW5BSY67QH3ZVJ6ADIATCABWW5IMPE5PDC7T2PFDQGI3SJ4WV3YSLS3X2V62MYCDI
+#\\\|6CCRZIIDHR5NX7RKXG375KA464BXZDRW4NIU7ZJEBR7CEVE37BQ \ / AMOS7 \ YOURUM ::
+#\[7]FNVH3CNVYNGVUP52PFG7UFFD5ZQBQKJSUNAM6VIJSIIPFGFLKWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
