@@ -3,17 +3,14 @@
 # name  = base.path_perms
 # descr = return file permisions for specified path as octal [string]
 
-my $chk_path = shift;
+my $chkpath_abs = <[base.path.resolved_abs]>->( shift, 1 );
 
-return warn 'path param expected <{C1}>'
-    if not defined $chk_path or not length $chk_path;
-return <[base.s_warn]>->( "path not found [ '%s' ] <{C1}>", $chk_path )
-    if !-e $chk_path;
+return undef if not defined $chkpath_abs;
 
-return sprintf '%#o', File::stat::stat($chk_path)->mode & 07777;
+return sprintf '%#o', File::stat::stat($chkpath_abs)->mode & 07777;
 
-#,,,,,,..,.,.,,.,,.,.,,,,,...,,.,,,,.,.,.,,,.,..,,...,...,..,,..,,...,..,,,..,
-#5DKDF3RICTSVODO2VMN5MSBL6B3NEFFRDSY6S6H75WGV6TF4HKITL7KUTOFPFUQMKV3G5MSTSRR72
-#\\\|S5Z7QVK7RYDP2TRK7YY35OJZPRKIS4TO4A3QVJ2OHPCQ2ZE6ONW \ / AMOS7 \ YOURUM ::
-#\[7]JLR4REMXGIWIWWANODPVLPMAQXIQLMIOLMIOMYPADLOM7T7IXQCY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,,,,,,.,,,.,..,,.,,,.,,,.,.,..,,...,...,,.,,,,.,,,.,...,.,.,
+#VNCNSD2ZQXTGTPFXWTOTTYXORSXLT2IPDQ57PRQ3TJSNLG75GBVUBYOVXU2ZFWA3ZWMMOJTEUFTZK
+#\\\|4CHIQFEQ4JA25LZVRIN3CQGT423TYMHVDFAICD7SFXQO6NFPXYG \ / AMOS7 \ YOURUM ::
+#\[7]WN7ORFDYTU3DK7CNYVUUDH6NEJ44MRLSUY35LH33VL6T33CEASCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
