@@ -9,16 +9,22 @@ my $zenka_name = shift // qw| v7 |;
 warn 'need session key parameter' and return undef
     if not defined $key_str or not length $key_str;
 
+<cube.is_v7_child> = 5;    ##  TRUE  ##
+
+##  keep log output open if running as v7 zenka child  ##
+##
+<system.background.redirect_output> = 0;    ##  do not close STDOUT  ##
+
 ## temporary solution ##  [ LLL ]
 ##
-<[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', 'blake2b_384_b64' )
+<[base.perlmod.load]>->( 'Crypt::Digest::BLAKE2b_384', qw|blake2b_384_b64| )
     if not defined <base.modules.initialized.base.init_code>;
 
 <[base.log]>->( 1, "setting up session key for 'v7' zenka" );
 $keys{'auth'}{'zenka'}{$zenka_name} = blake2b_384_b64($key_str);
 
-#,,..,.,.,.,,,,,.,.,.,...,..,,,,,,.,,,..,,,.,,..,,...,...,...,,,,,..,,.,,,,.,,
-#RW2DDEKG32OMJH27TUH3YPHTQML5KJN7OUS55NT5IG5LKQO4FSHWTG3UAYKX3KBRKYHV7JWSGW4SU
-#\\\|YDGFC3JCBPYPAM2CM43GFQE3JQCUFNIPOFLXQCPV4HADPVSSWRG \ / AMOS7 \ YOURUM ::
-#\[7]PSL2WPWSTBO4LWKNLJCHUBNTGJ73FQSH2ZBNVYILUM5JWFKMAABA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,.,,,,,,,..,,...,..,,...,.,.,..,,...,..,,.,,,,,,,.,,,..,,,..,
+#V3NHXPFCJMAOX73PMDNCWLPJ4CDUZKULC2D4CUFBBNUIJ3PI7KWBXXQG65USPZCITVYCPHDHKPC7O
+#\\\|IKVQ37HRAZOLG4MOXF4F5SWJTB33VUFIT2XLHSMO2SIXGNCRUXN \ / AMOS7 \ YOURUM ::
+#\[7]J4QO6QW5ZKGPR23J5STC4KGGGV6J2QOFGQSSCFJ4TCARKX7U6UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
