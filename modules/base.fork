@@ -2,17 +2,18 @@
 
 # name = base.fork
 
+##[  CORE::GLOBAL::fork already overloaded with base.fork  ]##
+##
 my $pid = CORE::fork;
 
-if ( !$pid ) {    # making rand() fork-safe..,
-    ( my $seed = $PID + $code{'base.ntime'}->(13) ) =~ s|\.||;
-    srand($seed);
+if ( $pid == 0 ) {
+    <[base.prng.reseed]>;    ##  make the prng fork-safe  ##
 }
 
 return $pid;
 
-#,,,.,,..,,..,.,,,,..,...,.,,,...,...,,,.,..,,..,,...,...,..,,,.,,,.,,.,,,.,.,
-#GD3ECKP3HKZDV2LNMUJVKPJYCM3MFMD3HMVYT6YRLA76MBBEVBAI7OYJI5LH3TZ5DM2AWFUCIHKAK
-#\\\|D7GVT44M4QCKGCVS2N2QVJOP7K5XFNZ3PKLN6BES4A3NUW2L55U \ / AMOS7 \ YOURUM ::
-#\[7]T2HGCE6HXPHLLTPEGRCGTJAOXXZTKMYVSJ5IV4JADKHTSJHAFSCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,...,,,.,,..,,..,,.,,,,.,,,.,..,,...,..,,...,,,,,..,,..,,.,,,
+#3PQZU274MQIRL3I7A3IC6N3SWFUJZ35G24V3YCVPKMAG4WWJA4ATAOOKQ2EHDQLJ354XUDQB42ECS
+#\\\|BLR3HSVZJ4PKGCOCJJHGV4OEJYEC5HDHW74HGFROLWS2K4CX3BY \ / AMOS7 \ YOURUM ::
+#\[7]LX6YIYBS3MXF474KBDGZLAGUDALDV5ZMMEQNSXMZDYJSYGU5DCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
