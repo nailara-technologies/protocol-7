@@ -125,7 +125,11 @@ return { 'mode' => qw|false|, 'data' => $err_reason } if defined $err_reason;
 
 push <v7.zenka.instance>->{$zenka_instance}->{'temp-path'}->@*, $tmppath;
 
-my $str_len = 52 - length(<system.node.name>);
+## register global [ for zenka shutdown case ]
+##
+<[v7.tmp-paths.global.register]>->($tmppath);
+
+my $str_len = 52 - length <system.node.name>;
 
 my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 <[base.logs]>->( '[%s] <pth> %s', $zenka_instance, $tmppath_str );
@@ -133,8 +137,8 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 ##  reporting success  ##
 return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $tmppath };
 
-#,,..,,..,.,.,...,,..,..,,.,,,,.,,,,,,,..,.,.,..,,...,...,,..,,.,,..,,,.,,,..,
-#GUDRE3D5I4TVZ6KOW725EO66UACJ4CACBSWFD4NA4QKYEXMIR2YTFYA67WJYFHHU4ZXEMOIHRHXPY
-#\\\|UKFCUGAHOEVRA4TIRMBDKB7MPK7DLLGTAUFTPDAVHNFUUMO5RNH \ / AMOS7 \ YOURUM ::
-#\[7]4RQTKQELD7UTNTMQTXURHRDKCGEK7WXTIRXKT43ERE5QHUU5L2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,,,.,.,,,...,,,.,.,.,..,,.,.,..,,...,...,,,.,,..,,,.,..,,,,.,
+#5VANBUILRY7RZFD7ARIWGKDDPXZQ2EL65ALM54XCTKXP4LCBKJOX35AOMHB6Q5M6XNCTMISBVCHFE
+#\\\|UFKIAAG4ILKPZIHUHV5SB7ZFUUPM2WKIDHJQA3YYM6N2VEBDMIB \ / AMOS7 \ YOURUM ::
+#\[7]ZVDP5B2N6SSG3VXXXIYKM7CWA4QKYPVFKLBBQZ46ARIQUXW6C4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

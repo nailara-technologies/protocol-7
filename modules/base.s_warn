@@ -5,6 +5,16 @@
 
 return warn 'warn message [ not defined ] <{C1}>' if not defined $ARG[0];
 return warn 'sprintf parameter expected <{C1}>'   if @ARG < 2;
+my $param_cnt = 0;
+foreach my $chk_param (@ARG) {
+    if ( not defined $chk_param ) {
+        <[base.s_warn]>->(
+            'base.s_warn parameter %d not defined <{C1}>', $param_cnt
+        );
+        $ARG[$param_cnt] //= qw| [UNDEF] |;
+    }
+    $param_cnt++;
+}
 
 my $template = shift @ARG;
 
@@ -27,8 +37,8 @@ if ( length $EVAL_ERROR ) {
 
 return 5;    ## true ##
 
-#,,,.,,..,..,,,,.,...,.,.,.,.,...,,,,,.,.,,.,,..,,...,...,,..,.,,,..,,.,,,,,.,
-#A7HIAXJ4UT6VB3JZDYRFUWE4VFGTK7YCSOV64WNBWJMGUDOVF5EU5NVNT2CDJ4MEYJGJR5NP6U6LY
-#\\\|ZCT25TMJNJDMB6EJQL4U2D6MHMH3VAUFGH2NWXKQRAVHWH6ACV5 \ / AMOS7 \ YOURUM ::
-#\[7]IB37SZ3BQTT7CICFOYF2ILYX7PTVQ6G6XOBUHJCTTQLRUAW772DY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,..,,..,,,,,,,.,,,,,...,..,,..,,...,...,,..,,..,.,,,,..,.,.,
+#AIAZBFZIZVK4TBVMIIEJKDJ2CGYTHJP7GYZIHFWMBEP2V2IJCAY2UBQNXZ7SPAVCZTMX4WP4UDBNA
+#\\\|XGRKADRZAQFFQPP7PLCWSZUXVT46DJJDXRYRVCLY7RJJ4TVURHD \ / AMOS7 \ YOURUM ::
+#\[7]I2U5ZJ5I6LK767JNIE72RPU7MIRZMNSOH43NGWIQPJWES6JQMCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

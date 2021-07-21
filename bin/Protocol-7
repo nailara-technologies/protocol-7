@@ -2061,6 +2061,8 @@ sub p7_format_error {
     my ( $caller_str, $file, $line );
     $err_msg =~ s|\n$||;
 
+    $err_msg =~ s{, <(STDIN|GEN\d+)> line \d+.+$}{}g;
+
     while ( $err_msg =~ s| at (\S+) line (\d+)[\.,]*$|| ) {
         ( $file, $line ) = @{^CAPTURE};
     }
@@ -2104,7 +2106,6 @@ sub p7_format_error {
     $err_msg =~ s|argument in sprintf|sprintf argument|g;
     $err_msg =~ s| in use at \(eval \d+\) line \d+.||g;
     $err_msg =~ s| at \(eval \d+\) line \d+[\.,]||g;
-    $err_msg =~ s{, <(STDIN|GEN\d+)> line \d+.+$}{}g;
     $err_msg =~ s|cannot use (an )?||g;
     $err_msg =~ s|(*plb: as )a ||g;
 
@@ -3584,8 +3585,8 @@ __DATA__
 :
 :.
 
-#,,.,,.,,,...,...,.,,,..,,,..,,,.,,..,..,,...,..,,...,...,...,,.,,.,,,,.,,...,
-#KF4QRY63SMKEFWJFOVZ4S67GWG6CGOT5FLKYESTB66T55WN2M757EQ4WO6PBCRXBTTOVMBX4S7NKY
-#\\\|J2IUTHQ5VBMFRFAWOWA3W73RDIAGDXZSL2GW3TEZNUK5RCXUWLN \ / AMOS7 \ YOURUM ::
-#\[7]CRGETFNJDOJ7B7STF6MHX2Y25GB552V4GSGUFOT2ILTEPTZ2KAAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,..,.,,,.,,,,..,,..,,.,,..,,..,,...,...,..,,,,,,,.,,,.,,.,,,
+#UMEMYEMBSBNIZPSDT6PV32VMI77FUQ47UVVP2UESZENTTXNRMJSTDRKJ5US73PAAT53DCNVYPGMAQ
+#\\\|QTQW42KZU6VTKTQUP4MAZRHN7BAYXECI6A6WHY54DGZPHPKEBMA \ / AMOS7 \ YOURUM ::
+#\[7]GYL4VFZT4MHO72KM5FOFNIQR4Z2MGNKEDUAAZGMSXRRHBPIPFUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

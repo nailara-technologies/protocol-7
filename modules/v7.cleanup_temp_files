@@ -2,20 +2,26 @@
 
 # name  = v7.cleanup_temp_files
 
+##  clean temp path from last zenka session  ##
+##
+<[v7.tmp-paths.global.clean-up]> if -d <v7.dirpath.tmp_paths>;
+##
+
 ## web-browser crash mitigation files ##
+##
 my $count = my @web_browser_files
     = <[file.match_files]>->(qw|  /var/tmp/  web-browser.**  |);
 if ($count) {
-    my $s = $count > 1 ? 's' : '';
-    <[base.log]>->(
-        1, "removing $count left over web-browser zenka temp file$s..,"
+    <[base.logs]>->(
+        'removing %d left over web-browser zenka temp file%s..,',
+        $count, <[base.cnt_s]>->($count)
     );
-    unlink(@web_browser_files) or warn lcfirst($OS_ERROR);
+    unlink(@web_browser_files) or warn <[base.str.os_err]>;
 }
 ##
 
-#,,..,,,.,,..,..,,..,,,.,,,,,,...,,,.,..,,.,.,..,,...,...,,..,,.,,..,,..,,..,,
-#O4WVQSQESI4UOOCGI3UERQJBCKOJZN2WQ7JYLEELYUV3UMDZAROGCPT6V56GOO4MHNVPGIKU37QCK
-#\\\|X63J4OV5AKNRVER7LOAPGTFMONOUPE54RXPG6WAXL4ME3QCR4TV \ / AMOS7 \ YOURUM ::
-#\[7]VPRTWCV73MPEOF76GMAHHXCFE6YMHV77LYOOABOHHPPUWBWL4UAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,,,,.,,,,.,,..,,,,,,,.,,,..,..,,...,...,.,,,,..,...,...,.,.,
+#W4EVV3NR53OO7A7KSPNAOI5ASDWR6UVKM7URBCBIL6LWY3EPTFO7WBNMFEP4KTHUW7LCZNTBTCDRO
+#\\\|CJAWSWG7A3BDEQVCF6Z7YI7QP4URGMHCOYCWESQYOLN7JZHBL4J \ / AMOS7 \ YOURUM ::
+#\[7]P3XWNIDMOUWGF6YLBQV6VXJ2TNDASJLOJ2P7PFZKIBCHMEHPZCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

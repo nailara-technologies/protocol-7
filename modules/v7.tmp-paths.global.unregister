@@ -1,0 +1,83 @@
+## >:] ##
+
+# name  = v7.tmp-paths.global.unregister
+
+<v7.tmp_paths>         //= {};
+<v7.dirpath.tmp_paths> //= qw| /var/run/.7/v7/tmp_paths |;
+
+my $unlink_tmp_path = shift // '';    ##  link target path to unregister  ##
+
+if (@ARG) {
+    warn 'expecting no additional parameter <{C1}>';
+    return undef;
+}
+
+( my $temp_file_dir = <v7.dirpath.tmp_paths> ) =~ s|/+$||;
+
+if ( not length $unlink_tmp_path ) {
+    warn 'tmp path parameter expected <{C1}>';
+    return undef;
+}
+
+my $debug_loglevel = 2;    ##  report log level for debugging  ##
+
+my $number_files_cleaned = 0;
+
+##  check if unlink path is still registered in memory  ##
+##
+if ( defined <v7.tmp_paths>->{$unlink_tmp_path} ) {
+    my $symlink_path_abs = <v7.tmp_paths>->{$unlink_tmp_path};
+    if ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        delete <v7.tmp_paths>->{$unlink_tmp_path};
+        return $number_files_cleaned;    ##  symlink was not present  ##
+    } else {
+        <[base.logs]>->(
+            $debug_loglevel,   'unregistering : %s : %s',
+            $symlink_path_abs, $unlink_tmp_path
+        );
+        if ( not unlink($symlink_path_abs) ) {
+            <[base.s_warn]>->(
+                'error removing temp-path symlink [ %s ] : %s',
+                $symlink_path_abs, <[base.str.os_err]>
+            );
+        } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+            $number_files_cleaned++;
+        }
+    }
+}
+
+foreach my $symlink_path_abs (
+    <[file.matching_path_linknames]>->( $temp_file_dir, $unlink_tmp_path ) ) {
+
+    <[base.logs]>->(
+        $debug_loglevel,   'unregistering : %s : %s',
+        $symlink_path_abs, $unlink_tmp_path
+    );
+    if ( not unlink($symlink_path_abs) ) {
+        <[base.s_warn]>->(
+            'error removing temp-path symlink [ %s ] : %s',
+            $symlink_path_abs, <[base.str.os_err]>
+        );
+    } elsif ( not -l $symlink_path_abs and not -e $symlink_path_abs ) {
+        $number_files_cleaned++;
+    }
+}
+
+if ($number_files_cleaned) { ##  success , cleaning up in-memory reference  ##
+    if (<[base.is_defined_recursive]>->(
+            sprintf qw| v7.tmp_paths.%s |,
+            $unlink_tmp_path
+        )
+    ) {
+        delete <v7.tmp_paths>->{$unlink_tmp_path};
+        delete <v7.tmp_paths> if not keys <v7.tmp_paths>->%*;
+    }
+}
+
+return $number_files_cleaned;
+
+#,,,.,.,,,.,,,,.,,,,,,,,.,...,,.,,.,,,,..,...,..,,...,...,.,,,,.,,,,.,,,,,,,,,
+#W4UKPSV32KFWR2OVC6W5OEOD7QSVA2QZDCZZMJCEV4SBUNMXSAM2TXKX2CBOZVWPS2WXWFHENTKX2
+#\\\|I34OJQI5HX5DHO43YK6YQX4WPGOF6HHBENNSYGJC4A5M3224PGE \ / AMOS7 \ YOURUM ::
+#\[7]7TYHOB2V2ZFPSK3CLPMWBF52ORYMTUER3AY64EOYLLF7HBQYA2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -105,10 +105,10 @@ while ( keys %children_left ) {
             }
             delete $children_left{$pid};
             if (@children) {
-                my $es = scalar @children == 1 ? ' -- :' : 'es :';
-                <[base.log]>->(
-                    1,
-                    ": <KILL> `-- sub-process$es " . join( ', ', @children )
+                <[base.logs]>->(
+                    ': <KILL> `-- sub-process%s %s',
+                    <[base.cnt_s]>->( @children == 1, ' -- :', 'es :' ),
+                    join( ', ', @children )
                 );
                 kill( 9, @children );
                 map { delete $children_left{$pid}; } @children;
@@ -118,14 +118,18 @@ while ( keys %children_left ) {
     <[base.sleep]>->(0.042);
 }
 
-map { <[base.log]>->( 1, ": <KILL> orphan process $ARG" ); kill( 9, $ARG ) }
-    <[v7.sub-process.orphan_pids]>;
+map {
+    <[base.logs]>->( 1, ': <KILL> orphan process %s', $ARG );
+    kill( 9, $ARG )
+} <[v7.sub-process.orphan_pids]>;
+
+<[v7.tmp-paths.global.clean-up]>->(2);    ##  silent clean up  ##
 
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,,.,,..,..,,.,.,...,,..,,,,,...,,,,,,.,,,,,,..,,...,...,...,.,,,.,,,.,.,..,,
-#A72S5POLNDIDF2TQPCA6SDIINVPTJMKZABBRFQY3YVB36GYLUTODVZTSE5PV2UT5Z2SUKVAKHQ4XG
-#\\\|HK7SJ65RCL4JHV24A5VATEJXUJT43JNJHYQ5PAWWJ3XRU2YMU2F \ / AMOS7 \ YOURUM ::
-#\[7]TRZFVDQMEINK7Y2SDA3P6Z2SWSZYGNJV4XRFN2F2JHHGACEECQDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,,,.,.,,,,..,,..,,.,,.,,,,,,,..,,...,...,.,.,,.,,.,.,...,.,,,
+#ZY5WX73XWTCOSI6EBKPQWRG6ATH6O3FAZMKIQTQV67YQQELOVXKLZWRN2QO73DEI3JV3ZQXCDTOQ6
+#\\\|EESWI6LHM66LHIB7DB4VTXUU5CHZ6A54HMUI5LRKFIIR6WKSFMH \ / AMOS7 \ YOURUM ::
+#\[7]AH76IDHEDDIG3XYDAG2H5XQP4BOO2FYQEJ2X33MTSNY4XR6LTYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

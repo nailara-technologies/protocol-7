@@ -15,7 +15,7 @@ return <[base.logs]>->(
     2, 'no temp-paths to clean up for instance %d ..,', $instance_id
     )
     if not defined $instance->{'temp-path'}
-    or not @{ $instance->{'temp-path'} };
+    or not $instance->{'temp-path'}->@*;
 
 <[base.perlmod.autoload]>->( 'File::Path', qw| remove_tree | )
     if not defined &remove_tree;
@@ -28,12 +28,12 @@ return <[base.logs]>->(
 my $stat_uid = delete $instance->{'stat_uid'};
 my $stat_gid = delete $instance->{'stat_gid'};
 
-while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
+while ( my $clean_path = shift $instance->{'temp-path'}->@* ) {
     if ( length($clean_path) > 1 and -e $clean_path ) {
         my $stat_ref = File::stat::stat($clean_path);
         if (   $stat_ref->cando( S_IWUSR(), $stat_uid )
             or $stat_ref->cando( S_IWGRP(), $stat_gid ) ) {
-            my $len      = 52 - length(<system.node.name>);
+            my $len      = 52 - length <system.node.name>;
             my $type_str = -d $clean_path ? 'dir.' : 'path';
             my $pth_str
                 = <[base.parser.ellipse_center]>->( $clean_path, $len );
@@ -45,14 +45,19 @@ while ( my $clean_path = shift @{ $instance->{'temp-path'} } ) {
                 '<remove_path> %s [ %s ]',
                 $clean_path, <[base.str.eval_error]>
             ) if length $EVAL_ERROR;
+
+            ## unregister global [ from zenka shutdown ]
+            ##
+            <[v7.tmp-paths.global.unregister]>->($clean_path)
+                if not -e $clean_path;
         }
     }
 }
 
 delete $instance->{'temp-path'};
 
-#,,.,,.,.,.,,,.,,,,,.,,.,,..,,.,,,..,,,.,,..,,..,,...,...,.,,,,..,,.,,...,,..,
-#LOBOB6JGEJKECBZKLFAWSXEHRMGNNPVVXV76ME4427ZGHKRE4GTF7SVPBY2UKRKJK5Q5PQJ42X6UC
-#\\\|OBGITYGMJDUNTV2PKBHFB2T5E2DZG5QRZKTRBQGBEDZSKMVSEBK \ / AMOS7 \ YOURUM ::
-#\[7]CYXXADH54AFH2ZRXF364S7LHR4CXBUDKPSEDFXQOWWS6QAGYEUBI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,.,,,,,.,,..,,,.,,,.,.,,,...,..,,...,..,,.,.,.,,,,,.,,,.,.,.,
+#XKI3X3WZTRI3M7II3NXACAKIEADXRKXXMJWXN7D5BHTGJJOUHYIBO47DGNMEPRX2OFIPS6LQX6LDK
+#\\\|KR2PG5X5BGULAE5DQYEIDY5IAR7ABJMO6DJAO3EJEAG43JRTHBR \ / AMOS7 \ YOURUM ::
+#\[7]T4DHPR7TANW5V2K67U4DPRN3GISRHPQV5O6BIVFWSXTBDK4XOKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,17 +7,29 @@ my $temp_file_dir          = shift // ''; ##  target dir for link creation  ##
 my $link_target_path       = shift // ''; ##  symlink target  ##
 my $file_iteration_counter = shift // 0;  ##  collision counter  ##
 my $existing_symlink       = shift // 0;  ##  true will not skip existing  ##
+my $target_must_exist      = shift // 0;  ##  check target path existing  ##
 
 ##  including protocol-7 install path into checksum entropy  ##
 ##
 state $inst_path_chksum //= <[chk-sum.bmw.L13-str]>->(<system.root_path>);
 
-##  returning undef when target path not present  ##
-##
-return undef
-    if not -d $temp_file_dir
-    or $file_iteration_counter !~ m|^\d+$|
-    or not -e $link_target_path and not -l $link_target_path;
+if ( not -d $temp_file_dir ) {    ##  registry path does not exist  ##
+    warn 'link directory does not exist <{C1}>';
+    return undef;
+} elsif ( $file_iteration_counter !~ m|^\d+$| )
+{    ##  counter value not valid  ##
+    warn 'iteration counter not a positive integer <{C1}>';
+    return undef;
+} elsif (
+    $target_must_exist    ##  check target path existing  ##
+    and not -e $link_target_path and -l $link_target_path
+) {
+    <[base.s_warn]>->(
+        ': missing link target path :. %s <{C1}>',
+        $link_target_path
+    );
+    return undef;
+}
 
 ##  checksum input string sprintf template  ##
 ##
@@ -60,8 +72,8 @@ my $symlink_abs = sprintf $fname_templ, $tmp_path_symlink_name;
 
 return $symlink_abs;    ##  returning symlink path for given target path  ##
 
-#,,,.,.,.,,.,,,,.,,,,,,..,.,,,.,,,...,,.,,,..,..,,...,...,,,.,,,,,...,,.,,...,
-#VONVN7XDSPQGREFMSZRMG7JLLW5L66ISKY2TCABOUONQEYFNJCBGOV5HBJJG47DJOZ7Z67KPZUAMI
-#\\\|BTMG5CFEMW3SOWRMKQM67YQWYDY6Z4B5N7DZV3QI7ZGXFQQHW63 \ / AMOS7 \ YOURUM ::
-#\[7]PZWXJ3IFXLSB774EQUWESJUCQPZWLVATZDSXHJHIBZGJ2NCR2CDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,..,,.,,,,,.,,..,,,.,,,.,,..,..,,...,...,..,,..,,.,,,...,,,.,
+#IVNYAPKBG3KD4HRPLWFNTJZU7EAPVQXPFLQR4FZNUFJKZWZSCJ567MLS7CM6I6VAIEPCRNN6PQOAA
+#\\\|KRSJB6XFPNXUP7JEER4IPN72JYHXJULVSPTG4SPNVBPGSPOVIIC \ / AMOS7 \ YOURUM ::
+#\[7]HB6HBABH4ZMMIEVNRHKSYMQHXU5BX2WEO2DD2ECFZFKZNMHY5IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
