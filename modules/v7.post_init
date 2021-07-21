@@ -5,6 +5,12 @@
 
 my $module_reinitialization = shift;
 
+my $tmp_dir_owner = <system.amos-zenka-user>;
+<v7.dirpath.tmp_paths> //= qw| /var/run/.7/v7/tmp_paths |;
+
+<[file.make_path]>->( <v7.dirpath.tmp_paths>, 0775, <unix.owner> )
+    if not -d $tmp_dir_owner;
+
 <[v7.cleanup_temp_files]> if not $module_reinitialization;
 
 if ( ref <v7.start_setup.zenki.startup.start_order> ne qw| ARRAY |
@@ -72,8 +78,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,,,,..,,,,,,..,,,,,,...,,,,,,..,,..,.,,,.,,,..,,...,...,...,,,.,,.,,..,,,.,,
-#LHJ2DMN7JM5RPVTHJT736IA3F7VVUPSTHXNLET53PIKK4Z2BEUQBXFNGCAS5PQBY6RTCLYE2JC64Q
-#\\\|Z4E2IOSCENLYGKTPXQ2BUIRJIBLOGLEKZTHG6KRDXP7FKGDBQ6B \ / AMOS7 \ YOURUM ::
-#\[7]EKAOEVW6ADVXMSPGZWTU6DX3V4DSP5YB2545JUPXM4HXPI2HIYBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,...,..,,,.,,,,.,,,,,.,,,..,,..,,...,..,,...,..,,,..,,,.,,,.,
+#CHRLNDCBTUIPIAUFRHQLW24WDTI6QQYZEVXEBKH3TGYQ3FPLOSR3TED7NCEPQZXK67MKSNQ3PYJT6
+#\\\|6MXJB6PDCIK5L4ZSSQ3PRRVGUED75T23RXXTSSRGVVL7P5W2TNW \ / AMOS7 \ YOURUM ::
+#\[7]6PIEPJZ254XMOYZKUCLXVCB5XWQ7BKC46QJB6LIZLKCMZDN2Q4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

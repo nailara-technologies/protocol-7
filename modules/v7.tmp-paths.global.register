@@ -1,0 +1,86 @@
+## >:] ##
+
+# name  = v7.tmp-paths.global.register
+
+<v7.tmp_paths>         //= {};
+<v7.dirpath.tmp_paths> //= qw| /var/run/.7/v7/tmp_paths |;
+
+my $unlink_tmp_path = shift // '';
+( my $temp_file_dir = <v7.dirpath.tmp_paths> ) =~ s|/+$||;
+
+if ( not -d $temp_file_dir ) {
+    <[base.s_warn]>->(
+        'symlink storage directory path [ %s ] not found <{C1}>',
+        $temp_file_dir
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not -w $temp_file_dir ) {
+    <[base.s_warn]>->(
+        'symlink storage directory path [ %s ] not writable <{C1}>',
+        $temp_file_dir
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not length $unlink_tmp_path ) {
+    warn 'tmp path parameter expected <{C1}>';
+    return undef;    ##  returning undef on error  ##
+} elsif ( index( $unlink_tmp_path, qw| / |, 0 ) != 0 ) {
+    <[base.s_warn]>->(
+        'relative path [ %s ] not accepted <{C1}>',
+        $unlink_tmp_path
+    );
+    return undef;    ##  returning undef on error  ##
+} elsif ( not -e $unlink_tmp_path and not -l $unlink_tmp_path ) {
+    <[base.s_warn]>->( 'tmp path %s not found <{C1}>', $unlink_tmp_path );
+    return undef;    ##  returning undef on error  ##
+}
+
+my $tmp_path_abs
+    = -l $unlink_tmp_path
+    ? <[base.path.clean_symlink]>->($unlink_tmp_path)
+    : abs_path($unlink_tmp_path);
+
+if ( not length $tmp_path_abs ) {
+    <[base.s_warn]>->(
+        'cannot resolve abs path [ %s ] <{C1}>',
+        $unlink_tmp_path
+    );
+    return undef;    ##  returning undef on error  ##
+}
+
+##  checking if registered already and skipping if  ##
+##
+my @match_link
+    = <[file.matching_path_linknames]>->( $temp_file_dir, $tmp_path_abs );
+if ( scalar @match_link and defined $match_link[0] ) {
+    foreach my $link_abs_path (@match_link) {
+        <[base.s_warn]>->(
+            'already registered tmp-path [ %s ] as %s <{C1}>',
+            $tmp_path_abs, $link_abs_path
+        );
+    }
+    return undef;
+}
+
+my $symlink_abs    ##  generate a symlink path for on-disk registry  ##
+    = <[file.gen_path_linkname]>->( $temp_file_dir, $tmp_path_abs );
+
+##  create reference for run-time clean-up  ##
+<v7.tmp_paths>->{$tmp_path_abs} = $symlink_abs;
+
+##  also create the symbolic link in the target directory  ##
+##
+if ( not symlink( $tmp_path_abs, $symlink_abs ) ) {
+    <[base.s_warn]>->(
+        "error creating symlink in %s : [ %s ] <{C1}>",
+        $temp_file_dir, <[base.str.os_err]>
+    );
+    return undef;    ##  returning undef on error  ##
+} else {
+    return $symlink_abs;    ##  returning absolute path of created symlink  ##
+}
+
+#,,,.,,..,..,,.,.,,.,,,,.,,,.,,.,,.,,,.,,,...,.,.,...,...,,..,,.,,.,,,,,,,,..,
+#SWUYY3KRLXB6KT62NEZVFF52D2IIBMEFCP673PLMCX3A44KX2DMFWJF7RVACIBFXE3L4URVK3MXC4
+#\\\|4AW75SLDEEF6XDWBKZ4TDIGHQRZ2LMLWHVFUEPRWDI3BJ3ZPLRP \ / AMOS7 \ YOURUM ::
+#\[7]Z6WBNLYNAKYK4ZR2W7T2V2YTSC2NHI4JNULZZ4GYV6I37HFB74DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
