@@ -4,22 +4,14 @@
 
 <[base.perlmod.load]>->('Crypt::PRNG::Fortuna');
 
-## [ initializing fortuna ] ##
-my $iterations    = 44;
-my $harmonic_seed = '[_not_yet_]';
-while ( $iterations-- and <[base.assert.harmony]>->($harmonic_seed) == 0 ) {
-    ( $harmonic_seed = join( '', <[base.ntime]>->(5), rand(13747) ) )
-        =~ s|\.||;
-    ( $harmonic_seed /= 13 ) =~ s,(\.|e.+$),,g;
-    <[base.sleep]>->(0.0013) if $iterations < 37;
-}
-
-<base.prng.fortuna> = Crypt::PRNG::Fortuna->new($harmonic_seed);
+##  Crypt::PRNG::Fortuna object is in <base.prng.fortuna>  ##
+##
+<[base.prng.reseed]>;
 
 0;
 
-#,,,,,..,,,..,.,.,,.,,,,,,...,,.,,.,.,...,,,.,..,,...,...,...,,.,,,,.,...,,.,,
-#7DWBVTWUCCXPSIGQ3GC57M7VH6NP3UZJLCC3XK4HHT6FOA7KVBEIVMDJ5N6RY2T5AHPBBACUIMYSM
-#\\\|75KMJ76F2HDMJHKIWS3JPJBG2Y73536IBCNGMEJQCV5FUQCVU7M \ / AMOS7 \ YOURUM ::
-#\[7]TFVP7KJLV3L2N7Z4CHJMXB7T6NQ2YVB2SWBOQRRELKEKVP4A3SDQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,..,,.,.,,..,,.,,,,.,,.,,..,,..,,...,...,...,...,...,,,,,.,.,
+#FJZHV3TEDXIXS2FWPDRY5V3ESKT6BFJQHNFXNPCZLLKGXSIUFLMXLC2ZATNRLHORP45KELB6DRMQU
+#\\\|CVFKEZ5R2ZXDLHG64CQQSEVZJW5WD22H7ZYSEAWBZIM2QDZR5VV \ / AMOS7 \ YOURUM ::
+#\[7]QKUAZLT3XFB4YVINJ7TKL4B6HAN67G3BZ7JH4TOLFOOPN6IMN4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
