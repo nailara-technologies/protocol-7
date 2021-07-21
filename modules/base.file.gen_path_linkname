@@ -1,0 +1,67 @@
+## >:] ##
+
+# name  = base.file.gen_path_linkname
+# descr = generates symbolic link paths for creating target path references
+
+my $temp_file_dir          = shift // ''; ##  target dir for link creation  ##
+my $link_target_path       = shift // ''; ##  symlink target  ##
+my $file_iteration_counter = shift // 0;  ##  collision counter  ##
+my $existing_symlink       = shift // 0;  ##  true will not skip existing  ##
+
+##  including protocol-7 install path into checksum entropy  ##
+##
+state $inst_path_chksum //= <[chk-sum.bmw.L13-str]>->(<system.root_path>);
+
+##  returning undef when target path not present  ##
+##
+return undef
+    if not -d $temp_file_dir
+    or $file_iteration_counter !~ m|^\d+$|
+    or not -e $link_target_path and not -l $link_target_path;
+
+##  checksum input string sprintf template  ##
+##
+my $input_str_template = sprintf qw| %s:%%d%%s |, $inst_path_chksum;
+
+RECALC_FILENAME:
+
+## get next harmonic value for numerical template ##
+##
+$file_iteration_counter = -1 if $file_iteration_counter == 0;
+$file_iteration_counter = <[base.number-cache.true_upwards]>->(
+    $file_iteration_counter, qw| 0%03d0 |
+);
+
+##  symlink path \ name sprintf templates  ##
+##
+my $fname_templ = sprintf qw| %s/%%s |,    $temp_file_dir;
+my $link_templ  = sprintf qw| 0%03d0%%s |, $file_iteration_counter;
+
+##  prepare input string for path chksum calculation  ##
+##
+my $chksum_input_str = sprintf $input_str_template, $file_iteration_counter,
+    $link_target_path;
+
+##  calculate path chksum for link name  ##
+##
+my $tmp_path_symlink_name = sprintf $link_templ,
+    <[chk-sum.bmw.template_L13]>->( $link_templ, $chksum_input_str );
+
+##  combining absolute path for symlink  ##
+##
+my $symlink_abs = sprintf $fname_templ, $tmp_path_symlink_name;
+
+##  regenerate if result already exists or is not true \ harmonic  ##
+##
+++$file_iteration_counter    and goto RECALC_FILENAME
+    if not $existing_symlink and -l $symlink_abs
+    or not $existing_symlink and -e $symlink_abs
+    or not AMOS7::Assert::Truth::is_true( $symlink_abs, 0, 1 );
+
+return $symlink_abs;    ##  returning symlink path for given target path  ##
+
+#,,,.,.,.,,.,,,,.,,,,,,..,.,,,.,,,...,,.,,,..,..,,...,...,,,.,,,,,...,,.,,...,
+#VONVN7XDSPQGREFMSZRMG7JLLW5L66ISKY2TCABOUONQEYFNJCBGOV5HBJJG47DJOZ7Z67KPZUAMI
+#\\\|BTMG5CFEMW3SOWRMKQM67YQWYDY6Z4B5N7DZV3QI7ZGXFQQHW63 \ / AMOS7 \ YOURUM ::
+#\[7]PZWXJ3IFXLSB774EQUWESJUCQPZWLVATZDSXHJHIBZGJ2NCR2CDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
