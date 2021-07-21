@@ -1,0 +1,151 @@
+## >:] ##
+
+# name  = v7.tmp-paths.global.clean-up
+
+<v7.tmp_paths>         //= {};
+<v7.dirpath.tmp_paths> //= qw| /var/run/.7/v7/tmp_paths |;
+( my $temp_file_dir = <v7.dirpath.tmp_paths> ) =~ s|/+$||;
+
+return undef if not -d $temp_file_dir;
+
+my $log_level = shift // 1;    ##  regular clean-up messages  ##
+
+if ( $log_level !~ m|^\d+$| ) {
+    <[base.s_warn]>->(
+        'log level parameter not numerical [%s] <{C1}>', $log_level
+    );
+    $log_level = 0;
+}
+
+##  one so far  ##
+##
+my @whitelisted_users = (<system.amos-zenka-user>);
+
+my %perm_ids = ( qw| uids | => [], qw| gids | => [] );
+
+foreach my $user (@whitelisted_users) {
+    if ( not defined $user ) {
+        warn 'owner whitelist user undef';
+        return undef;
+    }
+
+    ( my $usr_uid, my $gid ) = [ getpwnam($user) ]->@[ 2, 3 ];
+
+    if ( not defined $usr_uid ) {
+        <[base.s_warn]>->( 'no uid for unix user %s', $user );
+        return undef;
+    } elsif ( not defined $gid ) {
+        <[base.s_warn]>->( 'unix user %s has no group id', $user );
+        return undef;
+    }
+
+    $perm_ids{'uids'}->@* = uniq( $perm_ids{'uids'}->@*, $usr_uid );
+    $perm_ids{'gids'}->@* = uniq( $perm_ids{'gids'}->@*, $gid );
+
+}
+
+my $number_files_cleaned = 0;
+
+my @unlink_path_symlink = <[file.matching_path_linknames]>->($temp_file_dir);
+
+if ( scalar @unlink_path_symlink ) {
+    <[base.logs]>->(
+        $log_level,
+        '.:[ left-over tmp-path%s clean-up ]:.',
+        <[base.cnt_s]>->( scalar @unlink_path_symlink )
+    );
+    <[base.log]>->( $log_level, qw| : | );
+} else {
+    $log_level++ if $log_level == 0;
+    <[base.log]>->( $log_level, ': no temp files to clean up ..,' );
+    return $number_files_cleaned;    ##[ 000 ]##
+}
+
+foreach my $remove_path_link (@unlink_path_symlink) {
+
+    my $remove_path = readlink($remove_path_link);
+
+    ## check if v7 zenka responsible [ by installation path ] ##
+    ##
+    if ( not -e $remove_path and not -l $remove_path ) {
+
+        ##  remove symlink from disk , path already gone  ##
+        ##
+        <[v7.tmp-paths.global.unregister]>->($remove_path);
+
+        next;    ##  skipping path , is gone  ##
+    }
+
+    my $f_stat = File::stat::stat($remove_path);
+    if ( not defined $f_stat ) {
+        <[base.s_warn]>->(
+            'stat on unlink target [ %s ] : %s',
+            $remove_path, <[base.str.os_err]>
+        );
+        next;    ##  skipping path  ##
+    }
+
+    ##  check access permission against user whitelisted  ##
+    ##
+    my $path_unlink_allowed = 0;    ##  false  ##
+    foreach my $user_uid ( $perm_ids{'uids'}->@* ) {
+        if ( $f_stat->cando( S_IWUSR(), $user_uid ) ) {    ##  UID  ##
+            $path_unlink_allowed = 5;
+            next;
+        }
+    }
+    if ( not $path_unlink_allowed ) {
+        foreach my $gid ( $perm_ids{'gids'}->@* ) {
+            if ( $f_stat->cando( S_IWGRP(), $gid ) ) {    ##  GROUP  ##
+                $path_unlink_allowed = 5;
+                next;
+            }
+        }
+    }
+
+    if ( not $path_unlink_allowed ) {
+        <[base.s_warn]>->(
+            'no whitelist permission [ unlink : %s ]', $remove_path
+        );
+        next;    ##  skip unlink path and symlink  ##
+    } else {
+        <[base.logs]>->( $log_level, ': [ %s ]', $remove_path );
+        my $errstr_ref;
+        File::Path::remove_tree( $remove_path, { error => \$errstr_ref } );
+        for my $item_err ( $errstr_ref->@* ) {
+            my ( $file, $e_msg ) = $item_err->%*;
+            if ( not length $file ) {
+                <[base.s_warn]>->(
+                    ': error on path clean-up : [ %s ] : %s',
+                    $remove_path, $e_msg
+                );
+            } else {
+                <[base.s_warn]>->(
+                    ': error on path clean-up : [ %s ] : %s',
+                    $file, $e_msg
+                );
+            }
+        }
+        ##  skip symlink removal [ errors ]  ##
+        if ( $errstr_ref->@* or -e $remove_path or -l $remove_path ) {
+            <[base.logs]>->(
+                2, 'keeping path registry link : %s .,',
+                $remove_path_link
+            );
+            next;
+        } else {
+            $number_files_cleaned++;    ##  path is gone now  ##
+        }
+        <[v7.tmp-paths.global.unregister]>->($remove_path);
+    }
+}
+
+<[base.log]>->( $log_level, qw| :. | ) if scalar @unlink_path_symlink;
+
+return $number_files_cleaned;
+
+#,,,,,,,,,.,,,,,,,.,,,..,,..,,,,,,,.,,,,.,.,.,..,,...,...,.,.,..,,.,,,,,.,,..,
+#LVVRUKWBATT744TUKY4QJSOJX27VZXNX6RI2YDEDEY6WGTXZ2DB43HUVGY3UZANDI5ON2JG7FGQPQ
+#\\\|B2ZTMQOACATRJVMIURKHXJLJFOLQP7S3Y7R34HCNJLWRPHC4HUG \ / AMOS7 \ YOURUM ::
+#\[7]HVGMZZWJAQOU5GTX2SKJR5W3TYJS7QOI7LSOIGP4VG6AGRLQASCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

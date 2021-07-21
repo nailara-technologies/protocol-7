@@ -6,6 +6,13 @@
 my $temp_file_dir    = shift // '';    ##  target dir for link creation  ##
 my $link_target_path = shift // '';    ##  symlink target  ##
 
+my $check_log_level = 2;               ##  report log level for debugging  ##
+
+if ( not length $temp_file_dir ) {
+    warn 'expected registry path parameter <{C1}>';
+    return undef;
+}
+
 ##  returns matches for current protocol-7 installation path  ##
 ##
 state $inst_path_chksum //= <[chk-sum.bmw.L13-str]>->(<system.root_path>);
@@ -32,10 +39,43 @@ my $fname_templ = sprintf qw| %s/%%s |, $temp_file_dir;
 
 my $links_href = <[file.all_links]>->($temp_file_dir);
 
+my $prev_target_path = $link_target_path;
+
+$link_target_path = abs_path($link_target_path)
+    if length $link_target_path and not -l $link_target_path;
+
+<[base.logs]>->(
+    $check_log_level,  ':: :. resolved target path %s as %s .: ',
+    $prev_target_path, $link_target_path
+) if $prev_target_path ne $link_target_path;
+
+undef $prev_target_path;
+
 foreach my $link_path_abs ( <[base.sort]>->($links_href) ) {
-    next
-        if length $link_target_path    ## check if target matches ##
-        and $links_href->{$link_path_abs} ne $link_target_path;
+    ( my $rel_link_path = $link_path_abs ) =~ s|^.*/||;
+    <[base.logs]>->(
+        $check_log_level, ': checking temp path link : %s',
+        $rel_link_path
+    );
+    <[base.logs]>->(
+        $check_log_level, ':. %s', $links_href->{$link_path_abs}
+    );
+    if (length $link_target_path
+        ## check if target matches ##
+        and $links_href->{$link_path_abs} ne $link_target_path
+        and abs_path( $links_href->{$link_path_abs} ) ne $link_target_path
+    ) {
+        <[base.logs]>->(
+            $check_log_level, ':: %s :: no match ::',
+            $link_target_path
+        );
+        next;    ##  skip link and target path \ no match  ##
+    } else {
+        <[base.logs]>->(
+            $check_log_level, ':. %s .: match =) ::',
+            $link_target_path
+        );
+    }
 
     ##                                                           ##
     ##  verify checksum to check if registered by current zenka  ##
@@ -50,17 +90,21 @@ foreach my $link_path_abs ( <[base.sort]>->($links_href) ) {
         $file_iteration_counter - 1, 5    ##  existing link paths  ##
     );
 
-    next                                  ##  does differ  ##
-        if not defined
+    <[base.log]>->(
+        $check_log_level, '::[ no result from gen_path_linkname ] :|'
+    ) if not defined $calculated_abspath;
+
+    next    ##  does differ  ##
+        if not defined $calculated_abspath
         or $calculated_abspath ne $link_path_abs;
 
-    push @link_path, $link_path_abs;      ##  is a valid match  ##
+    push @link_path, $link_path_abs;    ##  is a valid match  ##
 }
 
 return @link_path;    ##  returning matching symlink paths for target  ##
 
-#,,..,...,...,,..,.,.,,.,,,,.,...,,,,,.,.,,.,,..,,...,...,.,.,.,,,,,,,,.,,,.,,
-#QIJITF7YQV4DX7OS475JGB3MFT7IYYQKZYQMF44JXGHJ3Z2V23ORFWM74S3XSDJTJXLGDW2E6OGZS
-#\\\|UTQXEKGV7ZL2RAB5OHWS67WDBDPA7VQPUC4I3QLMMMP3EI6IWL6 \ / AMOS7 \ YOURUM ::
-#\[7]JMCIKWFYUDGRBLQT4OD3WPT3P32RRK6T7OS6IVDEOXLV7R22TOBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,.,.,,.,,,,,,,.,,,,.,,..,,,,,..,,...,...,...,.,,,.,.,...,,,,,
+#UBDKNIFNPHCMEGJMGJQQVCDNUS76WELFZJ4RGRWIMRWLQJRBBGITO3ETNVHKOFFNAU7YEFF6IZCGK
+#\\\|EYWCHDUKNTKCPCJPHWW26USZGO2FI6HXXPL6JTPYZLBSDYJHK5Y \ / AMOS7 \ YOURUM ::
+#\[7]QYG2NT2D4RYER7K72YMTZHRNJ5GGLKSWT35QQUOQO52FECCITCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
