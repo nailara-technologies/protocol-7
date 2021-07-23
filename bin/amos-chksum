@@ -62,6 +62,7 @@ my $option_list = << 'EOL';
     -options ..  amos-chksum command line option list
 
     -L  .......  substring parameters [<pos>,]<length>
+    -t  .......  template validation timeout [ seconds ]
     -T  .......  sprintf template[s] for truth verification
 
     -VCS  .....  show AMOS checksum algorithm version and exit
@@ -81,7 +82,7 @@ my $data_str;
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( qw| vSe:nsqo:L:V:T: |, \my %option );
+getopts( qw| vt:e:Snsqo:L:V:T: |, \my %option );
 
 if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
     list_options();
@@ -124,7 +125,10 @@ if ( defined $option{'T'} ) {
         and not $option{'s'}
         and not @ARGV ) {
         error_exit("expected template string after -T option <{NC}>");
+    }
 
+    if ( defined $option{'t'} and $option{'t'} =~ m|^(\d+(\.\d{1,2})?)| ) {
+        $AMOS7::CHKSUM::templ_valid_timeout = ${^CAPTURE}[0];
     }
 }
 
@@ -375,9 +379,16 @@ if ( $option{'v'} ) {
 
                     sprintf(
                         '%s %*s  :  %s%s%s%s',
-                        $C{T}, $left_column_with, 'truth template',
-                        $C{b},                              $C{T},
-                        sprintf( $ARG, $checksum_encoded ), $C{R}
+                        $C{T},
+                        $left_column_with,
+                        'truth template',
+                        $C{b},
+                        $C{T},
+                        length ref $ARG
+                        ? sprintf( 'regexp : %s',
+                            AMOS7::TEMPLATE::regex_src_string($ARG) )
+                        : sprintf( $ARG, $checksum_encoded ),
+                        $C{R}
                         ),
 
                 } $truth_templates->@*
@@ -424,6 +435,7 @@ if ( $option{'v'} ) {
         '',
         $C{R}
     );
+
 } elsif ( $option{'n'} ) {
 
     ##  numerical AMOS7-chksum value  ##
@@ -469,8 +481,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,,,,.,,..,,,,.,,..,...,.,,,..,,,,.,,,.,,..,..,,...,...,..,,.,.,,,,,,,,,,..,
-#3W3BY3XVG2NPBG3QOXGFRAW7T4ELEAF5F6U3PNQQIOH6ZAXKIHUHBOT77W2KSK72HLXRWVZ6QNSMK
-#\\\|Z7FE66F6ORNMVP2TSD4NYQHS2IR36U2QGP3FAYIL272FWISELQ7 \ / AMOS7 \ YOURUM ::
-#\[7]K2KVO37CVP445ZOB2IISYVESTHR5IISE4PH5PN4ZOX2DYOR5UYAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,,,,,..,,.,.,.,,,...,..,,,,.,..,,...,...,.,,,.,,,,.,,.,.,,.,,
+#Y6BZGFOMDC3MOGMEFXENHX5V6KOQZGR4HFXF6VNWAOYH7NGSEXPCH3GM57FCOZDTTNUGHCG3VF44M
+#\\\|V4IADCJSI6TR3QGFJWHC72JETDQQJVDVJ7WLPU34QT3HY7X3IR7 \ / AMOS7 \ YOURUM ::
+#\[7]K2GQMPLUACFSZGXIJJH65VNDDGQHMONCIU6RYO2QZEUSGYQGRIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
