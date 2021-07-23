@@ -10,29 +10,13 @@ return
     if not @ARG == 2
     or not defined $ARG[0];
 
-my $template_string = shift;
+my $template_param = shift;
 
-my $truth_template_aref;
-if ( not length ref $template_string ) {
-    $truth_template_aref
-        = AMOS7::CHKSUM::split_truth_templates($template_string);
-} elsif ( ref $template_string eq qw| ARRAY | ) {
-    $truth_template_aref = $template_string;
-} else {
-    <[base.s_warn]>->(
-        'not supported ref type for truth template [ %s ]',
-        ref $template_string
-    );
+( my $template_valid, my $template_errstr )
+    = AMOS7::TEMPLATE::is_valid_template($template_param);
+if ( not $template_valid ) {
+    <[base.s_warn]>->( '%s <{C1}>', $template_errstr );
     return undef;
-}
-
-foreach my $template ( $truth_template_aref->@* ) {
-    ( my $template_valid, my $template_errstr )
-        = AMOS7::CHKSUM::is_valid_template($template);
-    if ( not $template_valid ) {
-        <[base.s_warn]>->( '%s <{C1}>', $template_errstr );
-        return undef;
-    }
 }
 
 my $input_scalar_ref;
@@ -50,8 +34,7 @@ if ( not length ref $ARG[0] ) {
 
 } elsif ( ref $ARG[0] eq qw| HASH | ) {    ## read AMOS7::CHKSUM for params ##
 
-    return AMOS7::CHKSUM::amos_template_chksum( $truth_template_aref,
-        $ARG[0] );
+    return AMOS7::CHKSUM::amos_template_chksum( $template_param, $ARG[0] );
 
 } else {
     <[base.s_warn]>->(
@@ -64,11 +47,11 @@ if ( not length ref $ARG[0] ) {
 ##[ CHECKSUM CALCULATION ]####################################################
 
 ## passing by reference ##
-return AMOS7::CHKSUM::amos_template_chksum( $truth_template_aref,
+return AMOS7::CHKSUM::amos_template_chksum( $template_param,
     $input_scalar_ref, @ARG );
 
-#,,..,,.,,...,.,.,...,.,.,...,,,.,,,,,.,,,,.,,..,,...,.,,,.,.,.,.,...,...,.,.,
-#2N5WPI7KVDE46JFLRYVVU67V7XFMRG2VCBJRGI4QAAW5Q77NOKD3FZQ5QU6VT5IJ2WQBVWQYMPFUY
-#\\\|W5HGZGHLU4JSVQX7H2S2OZX4XYDRB673VGXZMEVXHTOZUI55CZA \ / AMOS7 \ YOURUM ::
-#\[7]EIXTCGTVGVS6FLG3C2I4FU6F3L62QWIRUURYITYSXDTG2R2Q3ADQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,.,.,,,.,,,,,...,,,,,..,,,,.,..,,...,..,,..,,,.,,.,.,,..,,..,
+#4QX44PVXDFYGMFURGBFS4FABYLQLJPUVA3RZV4FAFD2QPJR5RKHMNGEFXOJPYKLL6I4FDSOY6YOIA
+#\\\|2ILP6R6OXBB57HXASLEIMYFS5J2HUOEZQNK7PXON7T7MEBHCUZJ \ / AMOS7 \ YOURUM ::
+#\[7]THE5IJZIV3F3M65G7C5J76VCQOMU36WCR7IFPI63NZYR3F2RNCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
