@@ -6,6 +6,7 @@ use strict;
 use English;
 use warnings;
 
+use Safe;
 use Encode;
 use Time::HiRes;
 
@@ -25,6 +26,7 @@ use AMOS7::Assert::Truth;    ## is_true ##
 
 ##[ SET-UP \ INIT ]###########################################################
 
+our $regex_str       //= {};
 our $truth_templates //= [];
 our $templ_valid_timeout  = 3;    ##  overall truth template time limit  ##
 our $split_template_regex = qr{(*nlb:\\)[,\|]};
@@ -45,9 +47,17 @@ sub template_is_true {
     my $TRUE = 5;    ## true ##
 
     foreach my $template ( $truth_templates->@* ) {
-        $TRUE = 0
-            if not is_true( sprintf( $template, $checksum_encoded ),
-            0, 1, @elf_modes );
+
+        if ( rindex( ref $template, qw| Regex | ) != -1 ) {
+
+            $TRUE = 0 if $checksum_encoded !~ $template;    ## regex ##
+
+        } else {
+
+            $TRUE = 0
+                if not is_true( sprintf( $template, $checksum_encoded ),
+                0, 1, @elf_modes );
+        }
 
         last if not $TRUE;    ##  false  ##
     }
@@ -57,6 +67,7 @@ sub template_is_true {
 
 sub reset_truth_templates {
     $AMOS7::TEMPLATE::truth_templates = [];
+    $AMOS7::TEMPLATE::regex_str       = {};
 }
 
 sub assign_truth_templates {
@@ -84,6 +95,36 @@ sub assign_truth_templates {
 
 }
 
+sub regex_src_string {
+    my $regex_source_string;
+    my $compiled_regex = shift;
+
+    if ( defined $AMOS7::TEMPLATE::regex_str->{$compiled_regex} ) {
+        $regex_source_string = $AMOS7::TEMPLATE::regex_str->{$compiled_regex};
+
+    } else {    ##  when templates are reset already  ##
+
+        ( $regex_source_string = $compiled_regex ) =~ s{^\(\?\^:|\)$}{}g;
+    }
+    return $regex_source_string;
+}
+
+sub compile_regex {
+    my $regex_str = shift // '';
+    return error_exit('expected regex string') if not length $regex_str;
+
+    my $parse = new Safe;
+    $parse->permit_only(qw| :base_core :base_orig |);
+    my $perlcode_qr_str = sprintf 'qr\'%s\'', $regex_str;
+    my $result          = $parse->reval( $perlcode_qr_str, 1 );
+
+    if ( rindex( ref $result, qw| Regexp | ) == -1 or length $EVAL_ERROR ) {
+        return error_exit('error in regular expression');
+    }
+
+    return $result;    ##  return compiled regex  ##
+}
+
 sub template_count {
     $truth_templates //= [];
     return scalar $truth_templates->@*;
@@ -100,6 +141,23 @@ sub split_truth_templates {
 
     foreach my $template ( $truth_templates->@* ) {
         $template =~ s.\\([,\|]).$1.g;
+
+        if ( index( $template, qw|regex:|, 0 ) == 0 ) {
+            substr( $template, 0, 6, '' );
+
+            $template =~ s|regex\\:|regex:|g;    ##  restoring escaped  ##
+
+            my $_re = $template;
+
+            ##  replacing template with compiled regex  ##
+            ##
+            $template = compile_regex($_re);
+
+            ## storing source ##
+            ##
+            $AMOS7::TEMPLATE::regex_str->{$template} = $_re;
+        }
+
     }
 
     return $truth_templates;
@@ -140,9 +198,14 @@ sub is_valid_template {
             $template_valid  = 0;                        ##  false  ##
             $template_errstr = 'template not defined';
         } elsif ($template_valid) {
+
+            ##  compiled regular expression template  ##
+            next if rindex( ref $template, qw| Regexp | ) != -1;
+
+            ##  sprintf template [ contains %s ]  ##
             my @match_count = $template =~ m|(*nlb:\%)%s|sg;
             if ( @match_count != 1 ) {
-                $template_valid = 0;                     ##  false  ##
+                $template_valid = 0;    ##  false  ##
                 $template_errstr
                     = sprintf "sprintf template '%s' not valid"
                     . " [ expecting single %%s ]",
@@ -162,8 +225,8 @@ sub is_valid_template {
 
 return 5;  ###################################################################
 
-#,,,.,,,,,.,.,.,.,,,.,..,,,.,,.,.,..,,...,,,.,..,,...,..,,...,,..,,,,,.,.,..,,
-#J7EBTS2YNFDMR3OMPGDW2QEJHGVLCVRCIACMCV5KTZZYHMD7765PRO7R2VFFJUKSEFVYHPPHIV4SS
-#\\\|2FNPKIFGAJYVEZYGZHUXVXCOASTKGPMSPUDZVFRC3RFQZ6PWYG2 \ / AMOS7 \ YOURUM ::
-#\[7]4LIB57JHBMLZGPVK46RLHXWM36D6AXZPLVJY5EQCIA7DBPCWIGDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,.,,,,..,.,.,..,,,,.,,..,,..,..,,...,...,.,.,..,,..,,..,,...,
+#77TF2JIPJSUOCD7GNYMJ3HC2UEYATSYPLW5ZLMN6TZM2PCFCWIKO4KYOKDVS5SW42B2NSC63JLZPK
+#\\\|O3SKU7IHTBZHC3EHS3DKLWKHLBX7DEI5D2EEJ26SIAYYXOXOO34 \ / AMOS7 \ YOURUM ::
+#\[7]3HFZTXZ323BUNZLWXEFXOZJO5PAKA7NGB2T74HPXMXVR7GEGMEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
