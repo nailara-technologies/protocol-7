@@ -61,11 +61,16 @@ sub TERM_SIZE {
 sub error_exit {
     my $err_str = shift // '';
 
+    if ( $err_str !~ m| <\{N?C\d*\}>$| ) {
+        if ( not defined $main::PROTOCOL_SEVEN ) {
+            $err_str .= ' <{NC}>';
+        } else {
+            $err_str .= ' <{C1}>';
+        }
+    }
+
     ## caller level [ + 1 ] ##
     $err_str =~ s|(*plb: <\{C)(\d+)(*pla:}>$)|1+$1|e;
-
-    $err_str .= ' <{NC}>'
-        if not defined $main::PROTOCOL_SEVEN and $err_str !~ m| <\{C\d+\}>$|;
 
     if (@ARG) {
         ## sprintf template ##
@@ -228,8 +233,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,..,,..,,,,,..,,,,.,.,.,.,.,.,.,.,,,,.,,.,.,..,,...,...,.,,,,,.,.,,,..,,,,.,
-#MU7MQK6ULK74C6AFVGPWCKEO5RQYUEKHVWPRVN7KZW7WLMHAZYFT63WG3TUBVHD4HJDKFP3VLZH74
-#\\\|JBPCK2UCDL2IACLU6KOZUAAF3ZW7U42HNZOGNWKNJ63Y3AJJSMH \ / AMOS7 \ YOURUM ::
-#\[7]OFUVRR26JWK3XPW7CHB7GVU2FIHBQ3CZCETARIGOMTJN6BV5QSDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,.,,.,.,..,,,,,,,,,,.,.,.,.,,.,,..,,...,...,,,,,.,.,.,.,.,,,,,,,
+#G3DKTYIZC7GISPA7E4A35X2TDALLHS4WCPUWTVDYKVWIPUTO22BVUNJTLY4SBO37DBA3EQI6RNYYG
+#\\\|MFTKRDIX2EEER46UM6ROEFVZH6BSYJKQCUL2AUB2H4ZJWFX46VE \ / AMOS7 \ YOURUM ::
+#\[7]UNE2AWBWWNJZHZ7FGP7LGUFDQHCLNQLJ2I7FBDGA47YZNZFL6YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
