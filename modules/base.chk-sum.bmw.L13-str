@@ -10,7 +10,7 @@ if ( not @ARG or grep { not defined } @ARG ) {
 
 ## start entropy ##
 state $start_seed_num;
-$start_seed_num //= AMOS7::BitConv::bit_string_to_num( '10000000' x 8 );
+$start_seed_num //= unpack qw| Q |, pack qw| B64 |, '10000000' x 8;
 my $bits_num = $start_seed_num;
 
 foreach my $segment_num ( unpack qw| Q8 |, Digest::BMW::bmw_512(@ARG) ) {
@@ -40,8 +40,8 @@ while (not AMOS7::Assert::Truth::is_true( $result_str_B32, 0, 1 )
 
 return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
 
-#,,..,.,.,,,,,...,.,,,,,.,,,.,.,.,.,.,,,,,,.,,..,,...,...,,..,.,.,.,,,,,,,.,.,
-#EOU3H5T2ZG7CIVJJYKJSJ7TK77B6U2BZ6ZL7GEWBQAJ2F3YVO6I2BULUEUEGMEWPQIYR73XLP2UUE
-#\\\|XQIJPP3EFVNMDQ5L2KU4XAD55FHWR6C3NDDHJY34TQW5LEPL3ZV \ / AMOS7 \ YOURUM ::
-#\[7]ZMLRI3OFYIRFYXDMJTGS5KKX6OSFBCRJF7YMBWPVSFCVZPEZHYAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,..,,..,,,,.,,,,,,.,,.,,,,..,..,,...,...,...,..,,,.,,.,,,.,.,
+#S72H2PWPBE73U2MTGSRUM7ODA4AJ52UYIYFT43P27DC56S6I37GYMYENSU56ESJYAXLFILLGVDDRW
+#\\\|MZAT4ETJRO47LUXBJ2FVTSRDUVBLVSL4KRAY2Y5N2CGJ7DHP45I \ / AMOS7 \ YOURUM ::
+#\[7]EEUTCMKKFDVNDUTCWLSDHTYBEY6S2LXRTTJNFHNLD774MGJWR2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
