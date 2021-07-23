@@ -7,8 +7,9 @@ use English;
 use warnings;
 
 use Encode;
-use Crypt::Misc;
+use Time::HiRes;
 use Digest::BMW;
+use Crypt::Misc;
 
 use Exporter;
 use base qw| Exporter |;
@@ -58,6 +59,7 @@ our $truth_template;
 our $sstr_start = 0;
 our $str_length = 7;
 
+our $templ_valid_timeout  = 3;    ##  overall truth template time limit  ##
 our $split_template_regex = qr{(*nlb:\\)[,\|]};
 
 ##[ CHECKSUM CALCULATION ]####################################################
@@ -102,6 +104,7 @@ sub amos_chksum {
     }
 
     my $truth_templates;
+    my $truth_templates_count = 0;
     if ( defined $truth_template ) {
         if ( not length ref $truth_template ) {
             $truth_templates = split_truth_templates($truth_template);
@@ -120,7 +123,7 @@ sub amos_chksum {
                 return undef;
             }
         }
-
+        $truth_templates_count = scalar $truth_templates->@*;
     }
 
     if (    not defined $input_elf_chksum
@@ -146,7 +149,7 @@ sub amos_chksum {
     }
 
     @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
-        = sort ( @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} } );
+        = sort ( @ARG ? @ARG : $algorithm_set_up{'elf_truth_modes'}->@* );
 
     map {
         return error_exit( 'not a valid elf mode [ %s ] <{C3}>', $ARG )
@@ -214,11 +217,25 @@ sub amos_chksum {
     $num_amos_csum ^= AMOS7::BitConv::bit_string_to_num($bmw_b_L);
     ###
 
+    my $time_start;
+    $time_start = sprintf qw| %.1f |, Time::HiRes::time
+        if $truth_templates_count;
+
     my $resaturation_offset = 0;
 
 INVERT_TRUTH_STATE:
 
     if ($bmw_mod_step) {    ##  modifying to requested truth state  ##
+
+        if ( $truth_templates_count
+            and sprintf( qw| %.1f |, Time::HiRes::time ) - $time_start
+            > $templ_valid_timeout ) {
+            my $caller_level_str
+                = defined $main::PROTOCOL_SEVEN ? qw| <{C3}> | : qw| <{NC}> |;
+            error_exit( 'truth template validation timeout exceeded '
+                    . $caller_level_str );
+            return undef;
+        }
 
         my $cur_mod_bits = reverse split '', substr( $bmw_mod_bits, 0, 32 );
 
@@ -257,7 +274,7 @@ INVERT_TRUTH_STATE:
         or $algorithm_set_up{'chksum_B32'}     ##  encoded result string  ##
         and not is_true( $checksum_encoded, 0, 1, @elf_modes )
 
-        or defined $truth_templates and scalar $truth_templates->@*
+        or $truth_templates_count
         and not templatestrue( $checksum_encoded, @elf_modes )
 
     ) {
@@ -427,8 +444,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,.,,...,.,,,,.,,...,,..,,,.,,,,,,,,,..,,,.,,..,,...,...,...,.,.,,,,,,..,.,.,
-#SIJ75L7L5HDGKGZY2IFE34F7DEN7AS5HPK2RW2RHBRY7ONNT2G34JPWICNJZ4YZNJGU5E3FCTL6KW
-#\\\|QF7Y5DGGXOLJ24VWR7TNXJFFCHQ775EEDNTDERG2ORG7ZMSGXXW \ / AMOS7 \ YOURUM ::
-#\[7]VIV2WBW3OXAATI5SWTOBRMPD4CO4Z6ZRK7TFGTBEEM46VGUYHEDA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,,,.,.,.,,,...,,.,,.,,,...,..,,...,...,,..,.,.,.,.,.,.,...,
+#5UGS4SOR5LKZ5Q6TCKEWUHMJZRF5U4JPAMZEL2KJI5NFSU67YRVDIRTS3MIJW4FPK3SGLXPHICO44
+#\\\|ESKJ4STVPY36NV2DW2O7ZH3FVKBGP43IGLDCPKZ3UACXUNPG7CI \ / AMOS7 \ YOURUM ::
+#\[7]ZJOARKJWHLSD5PYGRUITT6BWS3AVQOISFMVWI65ADMVOFDUZPYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
