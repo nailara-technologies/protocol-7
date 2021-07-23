@@ -58,6 +58,8 @@ our $truth_template;
 our $sstr_start = 0;
 our $str_length = 7;
 
+our $split_template_regex = qr{(*nlb:\\)[,\|]};
+
 ##[ CHECKSUM CALCULATION ]####################################################
 
 sub amos_chksum {
@@ -87,7 +89,7 @@ sub amos_chksum {
         $input_BMW_checksum = $data_ref->{'BMW_checksum'}
             if defined $data_ref->{'BMW_checksum'};
 
-        @elf_modes = @{ $data_ref->{'elf-modes'} }
+        @elf_modes = $data_ref->{'elf-modes'}->@*
             if defined $data_ref->{'elf-modes'}
             and ref( $data_ref->{'elf-modes'} ) eq qw| ARRAY |;
 
@@ -95,20 +97,30 @@ sub amos_chksum {
             if defined $data_ref->{'sprintf-test-template'};
 
     } elsif ( $data_ref_type ne qw| SCALAR | ) {
-        error_exit( sprintf "unexpected reference type '%s' supplied",
+        return error_exit( sprintf "unexpected reference type '%s' supplied",
             $data_ref_type );
     }
 
+    my $truth_templates;
     if ( defined $truth_template ) {
-        my @match_count = $truth_template =~ m|(*nlb:\%)%s|sg;
-        if ( @match_count != 1 ) {
-            warn_err(
-                "sprintf template '%s' not valid [ expecting single %%s ]",
-                $truth_template );
-
-            $truth_template = undef;
-            return undef;
+        if ( not length ref $truth_template ) {
+            $truth_templates = split_truth_templates($truth_template);
+        } elsif ( ref $truth_template eq qw| ARRAY | ) {
+            $truth_templates = $truth_template;
+        } else {
+            return error_exit(
+                'not supported reference type %s at truth template param',
+                ref $truth_template );
         }
+        foreach my $template ( $truth_templates->@* ) {
+            ( my $t_valid, my $template_errstr )
+                = is_valid_template($template);
+            if ( not $t_valid ) {
+                warn_err($template_errstr);
+                return undef;
+            }
+        }
+
     }
 
     if (    not defined $input_elf_chksum
@@ -117,7 +129,7 @@ sub amos_chksum {
 
         if ( not defined $data_ref->$* ) {
             my $caller_lvl
-                = index( caller_str(), qw| AMOS7/CHKSUM.pm | ) == -1 ? 1 : 2;
+                = index( caller_str(), qw| AMOS7/CHKSUM.pm | ) == -1 ? 1 : 3;
 
             warn_err( 'input not defined', $caller_lvl );
             return undef;
@@ -137,7 +149,7 @@ sub amos_chksum {
         = sort ( @ARG ? @ARG : @{ $algorithm_set_up{'elf_truth_modes'} } );
 
     map {
-        error_exit("not a valid elf mode [ $ARG ]")
+        return error_exit( 'not a valid elf mode [ %s ] <{C3}>', $ARG )
             if $ARG !~ m|^\d{1,3}$|
     } @elf_modes;
 
@@ -228,9 +240,8 @@ INVERT_TRUTH_STATE:
     ## ENCODED + VALUE AND STRING HARMONY ##
 
     ##  substring  ##
-    if ( defined $truth_template
-        and ( $str_length != 7 or $sstr_start != 0 ) ) {
-        error_exit('substring template out of range [ 1..7 ] <{C3}>')
+    if ( $str_length != 7 or $sstr_start != 0 ) {
+        return error_exit('substring values are out of range [ 1..7 ] <{C2}>')
             if $str_length < 1
             or $str_length + $sstr_start > 7;
         $checksum_encoded    ##  truncating as specified in template case  ##
@@ -246,9 +257,8 @@ INVERT_TRUTH_STATE:
         or $algorithm_set_up{'chksum_B32'}     ##  encoded result string  ##
         and not is_true( $checksum_encoded, 0, 1, @elf_modes )
 
-        or defined $truth_template
-        and not is_true( sprintf( $truth_template, $checksum_encoded ),
-            0, 1, @elf_modes )
+        or defined $truth_templates and scalar $truth_templates->@*
+        and not templatestrue( $checksum_encoded, @elf_modes )
 
     ) {
 
@@ -282,28 +292,143 @@ INVERT_TRUTH_STATE:
     return $checksum_encoded;    ##  VAX AND BASE32 ENCODED  ##
 }
 
-sub amos_template_chksum {
-    my $template = shift // '';
+sub templatestrue {
+    my $checksum_encoded = shift @ARG;
+    my @elf_modes        = @ARG;
+    return error_exit('expected defined encoded chksum parameter <{C1}>')
+        if not defined $checksum_encoded;
+    return error_exit('expected elf truth mode parameter list <{C1}>')
+        if not @elf_modes;
 
-    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
-    if ( @match_count != 1 ) {
-        warn_err( "sprintf template '%s' not valid [ expecting single %%s ]",
-            2, $template );
+    my $TRUE = 5;                ## true ##
+
+    foreach my $template ( $truth_template->@* ) {
+        $TRUE = 0
+            if not is_true( sprintf( $template, $checksum_encoded ),
+            0, 1, @elf_modes );
+
+        last if not $TRUE;    ##  false  ##
+    }
+
+    return $TRUE;
+}
+
+sub split_truth_templates {
+
+    my $template        = shift;
+    my $truth_templates = [];
+
+    return error_exit('template not defined') if not defined $template;
+
+    $truth_templates = [ split $split_template_regex, $template ];
+
+    foreach my $template ( $truth_templates->@* ) {
+        $template =~ s.\\([,\|]).$1.g;
+    }
+
+    return $truth_templates;
+}
+
+sub is_valid_template {
+
+    my $template        = shift;
+    my $truth_templates = [];
+
+    my $template_errstr;
+    my $template_valid = 5;    ## true ##
+
+    if ( not length ref $template ) {    ##  single template param  ##
+        push $truth_templates->@*, $template if not length ref $template;
+
+    } elsif ( ref $template eq qw| ARRAY | ) {
+        $truth_templates = $template;    ##  template ARRAY reference  ##
+
+    } else {
+        $template_valid = 0;             ##  false  ##
+        $template_errstr
+            = sprintf 'template has unsuppored reference type %s',
+            ref $template;
+    }
+    if ( not $template_valid ) {
+        return ( $template_valid, $template_errstr ) if wantarray;
+        return $template_valid;          ##  false  ##
+    }
+
+    foreach my $template ( $truth_templates->@* ) {
+        if ( not defined $template ) {
+            $template_valid  = 0;                        ##  false  ##
+            $template_errstr = 'template not defined';
+        } elsif ($template_valid) {
+            my @match_count = $template =~ m|(*nlb:\%)%s|sg;
+            if ( @match_count != 1 ) {
+                $template_valid = 0;                     ##  false  ##
+                $template_errstr
+                    = sprintf "sprintf template '%s' not valid"
+                    . " [ expecting single %%s ]",
+                    $template;
+            }
+        }
+        if ( not $template_valid ) {
+            return ( $template_valid, $template_errstr ) if wantarray;
+            return $template_valid;    ##  false  ##
+        }
+    }
+
+    ##  no errors encountered  ##
+    return ( $template_valid, undef ) if wantarray;
+    return $template_valid;    ## true ##
+}
+
+sub amos_template_chksum {
+
+    if ( not defined $ARG[0] ) {
+        warn_err( 'template not defined', 2 );
         return undef;
-    } elsif ( @ARG == 0 ) {
+    }
+
+    ##  template ARRAY reference  ##
+    ##
+    my $truth_templates;
+
+    if ( not length ref $ARG[0] ) {
+        $truth_templates = split_truth_templates(shift);
+    } elsif ( ref $ARG[0] eq qw| ARRAY | ) {
+        $truth_templates = shift;
+    } else {
+        warn_err( 'not supported ref type for truth template [ %s ]',
+            ref $ARG[0] );
+        return undef;
+    }
+
+    foreach my $template ( $truth_templates->@* ) {
+
+        ( my $template_valid, my $template_errstr )
+            = is_valid_template($template);
+
+        if ( not $template_valid ) {
+            warn_err(
+                sprintf( '%s [ %%s ]',
+                    $template_errstr // 'truth template not valid' ),
+                2,
+                $template
+            );
+            return undef;
+        }
+    }
+    if ( @ARG == 0 ) {
         warn_err('expected input parameters');
         return undef;
     }
 
-    $truth_template = $template;    ## reset after amos_chksum() call ##
+    $truth_template = $truth_templates;   ## reset after amos_chksum() call ##
 
     return scalar amos_chksum(@ARG);
 }
 
 return 5;  ###################################################################
 
-#,,,.,...,.,.,.,,,..,,,.,,.,.,...,.,.,.,.,.,,,..,,...,...,..,,,.,,.,,,.,,,,.,,
-#PX4ZYEN5BAIXUZITEKG5HVK3A4ZMBMJ3NTS6IHYXXO7YMBWW3UE4RX44MGEJ4ZIFZSIVT7DIPQT5W
-#\\\|DERJSDY3T7PAWWNRF7Q5ZGNZZ4K2BFVZ3TM5W7JFRDHU6XLTFBK \ / AMOS7 \ YOURUM ::
-#\[7]RY2KDHCBZGIACYU5LANQNCDWP5WPJPLQPLLBLPFGQFP356BGJUDQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,...,,..,,,.,,,,,,,,,..,,,.,,..,,...,...,...,.,.,,,,,,..,.,.,
+#SIJ75L7L5HDGKGZY2IFE34F7DEN7AS5HPK2RW2RHBRY7ONNT2G34JPWICNJZ4YZNJGU5E3FCTL6KW
+#\\\|QF7Y5DGGXOLJ24VWR7TNXJFFCHQ775EEDNTDERG2ORG7ZMSGXXW \ / AMOS7 \ YOURUM ::
+#\[7]VIV2WBW3OXAATI5SWTOBRMPD4CO4Z6ZRK7TFGTBEEM46VGUYHEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

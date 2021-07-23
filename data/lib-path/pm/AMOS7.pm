@@ -61,14 +61,38 @@ sub TERM_SIZE {
 sub error_exit {
     my $err_str = shift // '';
 
-    chomp( $err_str = sprintf $err_str, @ARG ) if @ARG; ## sprintf template ##
+    ## caller level [ + 1 ] ##
+    $err_str =~ s|(*plb: <\{C)(\d+)(*pla:}>$)|1+$1|e;
+
+    $err_str .= ' <{NC}>'
+        if not defined $main::PROTOCOL_SEVEN and $err_str !~ m| <\{C\d+\}>$|;
+
+    if (@ARG) {
+        ## sprintf template ##
+        use warnings qw| FATAL |;
+        $err_str = eval { sprintf $err_str, @ARG };
+
+        if ( index( lcfirst $EVAL_ERROR, 'argument in sprintf', 0 ) >= 0 ) {
+            $err_str
+                = index( lcfirst($EVAL_ERROR), qw| missing |, 0 ) == 0
+                ? 'missing error_exit argument <{C2}>'
+                : 'redundant error_exit argument <{C2}>';
+
+        } elsif ( length $EVAL_ERROR ) {
+            $err_str =~ s| at \S+. line \d+.+$| <{C1}>|;
+        }
+        $err_str //= 'error_exit sprintf error <{C1}>';
+        chomp($err_str);
+    }
 
     $err_str =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
     $err_str =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
+    $err_str =~ s|%|%%|g;    ##  reversed again in warn_err  ##
 
     warn_err($err_str);
 
-    exit(113) if not defined $main::PROTOCOL_SEVEN;
+    exit(qw| 0110 |) if not defined $main::PROTOCOL_SEVEN;
+    return undef;            ##  protocol-7 mode  ##
 }
 
 sub warn_err {
@@ -78,13 +102,35 @@ sub warn_err {
     say STDERR ': warn_err : caller level as second argument expected'
         if defined $c_lvl and $c_lvl !~ m|^\-?\d+$|;
 
-    chomp( $err_str = sprintf $err_str, @ARG ) if @ARG; ## sprintf template ##
+    ##  warn_err \ sprintf template processing  ##
+    ##
+    if ( @ARG or $err_str =~ m,(*nlb:%)%[sd\d\.], ) {
+
+        use warnings qw| FATAL |;    ##  catching sprintf warnings  ##
+        $err_str = eval { sprintf $err_str, @ARG };
+
+        if ( index( lcfirst $EVAL_ERROR, 'argument in sprintf', 0 ) >= 0 ) {
+            $err_str
+                = index( lcfirst($EVAL_ERROR), qw| missing |, 0 ) == 0
+                ? sprintf( 'missing warn_err argument <{C%d}>',   $c_lvl )
+                : sprintf( 'redundant warn_err argument <{C%d}>', $c_lvl );
+
+        } elsif ( length $EVAL_ERROR ) {
+            $err_str =~ s| at \S+. line \d+.+$| <{C1}>|;
+        }
+        $err_str //= 'warn_err sprintf error <{C1}>';
+        chomp($err_str);
+    } else {
+        $err_str =~ s|%%|%|g;
+    }
+
+    $c_lvl++ if scalar( [ caller(1) ]->[3] // '' ) eq qw| AMOS7::error_exit |;
 
     my $no_caller = 0;
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
     $no_caller = 1                 if $err_str =~ s| <\{NC\}>$||;
 
-    if ( defined $main::PROTOCOL_SEVEN ) {              ##  zenka  ##
+    if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
         if ($no_caller) {
             warn sprintf '%s <{NC}>', $err_str;
         } else {
@@ -131,9 +177,19 @@ sub format_error {
 sub caller_str {
     my $c_lvl = shift // 0;    ## 0 means caller parent [ from here ] ##
     $c_lvl++;                  ## <-- accounting for this subroutine ##
+    my $adj = 1;
+
+    ##  adjusting reported caller level on errors  ##
+    my $caller_subroutine = [ caller(1) ]->[3] // '';
+    $adj++ if $caller_subroutine eq qw| AMOS7::warn_err |;
+    if ( defined caller(2) ) {
+        $caller_subroutine = [ caller(2) ]->[3] // '';
+        $adj++ if $caller_subroutine eq qw| AMOS7::error_exit |;
+    }
+
     my ( $package, $filename, $line, $subroutine ) = caller($c_lvl);
     if ( not defined $filename ) {
-        return sprintf( '[ caller level too high : %03d ]', $c_lvl );
+        return sprintf( '[ caller level too high : %03d ]', $c_lvl - $adj );
     } else {
         clean_up_caller( \$filename );    ## shorten ##
         return "[$filename:$line]";
@@ -172,8 +228,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,..,..,,,..,..,,,.,,,,,,,..,,,,,...,,..,,,,,..,,...,...,..,,,.,,.,,,...,.,,,
-#TJXWO5SH3KEG2JVIWGLCGZXUQYOR4PN7W6PMH5FERK6POIEHY2DCKIIWS47PZM6QLXJ45LK23747A
-#\\\|UO5TYQI426N5DR47PYBY6HQARAURZQNPA3AX223BFPBCRT47GDA \ / AMOS7 \ YOURUM ::
-#\[7]OCMLI5JVY74GEECZLZO5GKRANAVSVEKDMYMYUS3IAZAXZCCOGWBI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,,,.,.,.,.,.,.,.,.,,,,.,,.,.,..,,...,...,.,,,,,.,.,,,..,,,,.,
+#MU7MQK6ULK74C6AFVGPWCKEO5RQYUEKHVWPRVN7KZW7WLMHAZYFT63WG3TUBVHD4HJDKFP3VLZH74
+#\\\|JBPCK2UCDL2IACLU6KOZUAAF3ZW7U42HNZOGNWKNJ63Y3AJJSMH \ / AMOS7 \ YOURUM ::
+#\[7]OFUVRR26JWK3XPW7CHB7GVU2FIHBQ3CZCETARIGOMTJN6BV5QSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

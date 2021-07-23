@@ -41,7 +41,11 @@ use AMOS7::INLINE::src::AMOS_13_ELF;  ## implement other versions too ## [LLL]
 my $chksum_elf_mode = $AMOS7::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ##7
 my $elf_shift_bits = $AMOS7::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
 
-my @modes = @{ $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'} };    ## 7
+my @modes = $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'}->@*;     ## 7
+
+my $split_template_regex = $AMOS7::CHKSUM::split_template_regex;
+
+our $truth_templates = [];
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
@@ -58,11 +62,12 @@ my $option_list = << 'EOL';
 
     -options ..  amos-chksum command line option list
 
-    -T  .......  sprintf template for truth verification
+    -L  .......  substring parameters [<pos>,]<length>
+    -T  .......  sprintf template[s] for truth verification
 
-    -VA   .....  show AMOS checksum algorithm version and exit
-    -VL   .....  calculate inline elf output checksum and exit
-    -VLS  .....  calculate inline elf sourcecode version and exit
+    -VCS  .....  show AMOS checksum algorithm version and exit
+    -VL7  .....  calculate inline elf output checksum and exit
+    -VS   .....  calculate inline elf sourcecode version and exit
 
     -elf-mode[s]=<elf-mode[s]>  .....  comma seperated elf modes list
 
@@ -77,7 +82,7 @@ my $data_str;
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( qw| vSnsqo:e:V:T: |, \my %option );
+getopts( qw| vSe:nsqo:L:V:T: |, \my %option );
 
 if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
     list_options();
@@ -103,21 +108,46 @@ if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
     }
 }
 
-##  substring template parameters for -T option  ##
+## truth template parameter ##
+##
+if ( defined $option{'T'} ) {
+
+    $truth_templates = AMOS7::CHKSUM::split_truth_templates( $option{'T'} );
+
+    if (   $truth_templates->@* == 0
+        or $option{'T'} !~ m|%s| and not defined $data_str
+        and not $option{'S'}
+        and not $option{'s'}
+        and not @ARGV ) {
+        error_exit("expected template string after -T option <{NC}>");
+
+    }
+    foreach my $template ( $truth_templates->@* ) {
+        ( my $template_valid, my $template_errstr )
+            = AMOS7::CHKSUM::is_valid_template($template);
+        error_exit( sprintf( '%s <{NC}>', $template_errstr ) )
+            if not $template_valid;
+    }
+}
+
+##  substring initialization values [ -L ]  ##
 ##
 my $sstr_start = 0;
 my $str_length = 7;
 
-if ( defined $option{'T'} ) {
-    my $template        = $option{'T'};
-    my $substring_templ = ${^CAPTURE}[0]
-        if $template =~ s|(*plb:(*nlb:\%)%s)(*nlb:\\):((\d+,)?\d+)||sg;
-    if ( defined $substring_templ ) {
-        if ( index( $substring_templ, ',', 1 ) == 1 ) {
-            ( $sstr_start, $str_length ) = split( ',', $substring_templ );
-        } else {
-            $str_length = $substring_templ;
-        }
+##  substr parameters  ##
+##
+if ( defined $option{'L'} ) {
+    my $substr_param = $option{'L'};
+
+    error_exit( "substring param syntax not valid [ '%s' ] <{NC}>",
+        $substr_param )
+        if $substr_param !~ m|^(\d+,)?\d+$|;
+
+    if ( index( $substr_param, ',', 1 ) == 1 ) {
+        ( $sstr_start, $str_length ) = split( ',', $substr_param );
+    } else {
+        $str_length = $substr_param;
     }
 
     error_exit('substring template out of range [ 1..7 ] <{NC}>')
@@ -128,12 +158,6 @@ if ( defined $option{'T'} ) {
         $AMOS7::CHKSUM::sstr_start = $sstr_start;
         $AMOS7::CHKSUM::str_length = $str_length;
     }
-
-    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
-    error_exit(
-        "sprintf template '%s' not valid [ expecting single %%s ] <{NC}>",
-        $template )
-        if @match_count != 1;
 }
 
 ### move version calculation to AMOS7::CHKSUM module ### [LLL]
@@ -186,7 +210,7 @@ sub gen_version {
 
 ##[ DATA INPUT MODES ]########################################################
 
-error_exit('expected input string for AMOS-checksum calculation <{NC}>')
+error_exit('expected input string for AMOS-checksum [ -options ] <{NC}>')
     if not defined $data_str
     and not $option{'S'}
     and not $option{'s'}
@@ -235,25 +259,38 @@ if ( defined $option{'T'} ) {    ## using template for truth verification ##
 ##[ VERBOSE RESULT VALUES ]###################################################
 
 if ( $option{'v'} ) {
-    my $offset_str
-        = $AMOS7::CHKSUM::bmw_mod_step
-        ? " [ bmw-mod-step : ${AMOS7::CHKSUM::bmw_mod_step} ]"
-        : '';
 
-    my @mod_bits = @AMOS7::CHKSUM::mod_bits;
-    my @mod_bits_str
-        = @mod_bits
+    my $left_column_with = 15;
+
+    ##[  bmw-mod-bits  ]##
+    ##
+    my @mod_bits     = @AMOS7::CHKSUM::mod_bits;
+    my @mod_bits_str = @mod_bits
         ? (
         '',
-        '  bmw-mod-bits  :  ' . shift @mod_bits,
-        ( map { scalar( ' ' x 14 ) . '  :  ' . $ARG } @mod_bits ),
+        sprintf(
+            '%s %s%*s %s :  %s',
+            $C{T},          $C{0}, $left_column_with,
+            'BMW mod-bits', $C{T}, shift @mod_bits
+        ),
+        (   map {
+                sprintf '%s %*s  :  %s', $C{T}, $left_column_with, '', $ARG
+            } @mod_bits
+        ),
         '',
-        sprintf( "     AMOS-bits  : $C{b}$C{T} %032b $C{0}$C{R}",
-            $AMOS7::CHKSUM::num_amos_csum ),
+
+        ##[  AMOS7 bits  ]##
+        ##
+        sprintf(
+            '%s %*s  : %s%s %032b %s%s',
+            $C{T}, $left_column_with, 'AMOS7 bits', $C{b}, $C{T},
+            $AMOS7::CHKSUM::num_amos_csum, $C{0}, $C{R}
+        ),
         )
         : ();
 
-    my $len_delta         = 11 - length($AMOS7::CHKSUM::num_amos_csum);
+    my $len_delta = 11 - length($AMOS7::CHKSUM::num_amos_csum);
+
     my $num_amos_csum_str = sprintf( ":$C{T} %d $C{0}%s",
         $AMOS7::CHKSUM::num_amos_csum, ':' x $len_delta );
 
@@ -264,6 +301,8 @@ if ( $option{'v'} ) {
         : $C{g}
     );
 
+    ##[  input-string  ]##
+    ##
     my $header_string
         = ( $data_str =~ m|\n| )
         ? sprintf(
@@ -273,56 +312,136 @@ if ( $option{'v'} ) {
             $data_str ),
         TRUE_FALSE($data_str)
         )
-        : sprintf( "$C{0}    input data  : %s",
+        : sprintf( "%s %*s  : %s",
+        $C{T},
+        $left_column_with,
+        qw| input-string |,
         TRUE_FALSE($data_str)
-            . " $C{b}$COLOR{'input'} $data_str $C{R}$C{0} " );
+            . " $C{b}$COLOR{'input'} $data_str $C{R}$C{0} $C{R}" );
 
     map {say} (
         '',
         $header_string,
         '',
-        "$C{0}   reverse-elf  :  " . true_bits($AMOS7::CHKSUM::elf_bits),
-        "$C{0}    bmw-R-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_R),
-        "$C{0}    bmw-L-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_L),
-        "$C{0}    bmw-C-bits  :  " . true_bits($AMOS7::CHKSUM::bmw_b_C),
+
+        sprintf( '%s %*s  :  %s',
+            $C{T},         $left_column_with,
+            'reverse elf', true_bits($AMOS7::CHKSUM::elf_bits) ),
+
+        sprintf(
+            '%s %s%*s %s :  %s',
+            $C{T},     $C{0}, $left_column_with,
+            '[BMW] R', $C{T}, true_bits($AMOS7::CHKSUM::bmw_b_R)
+        ),
+        sprintf(
+            '%s %s%*s %s :  %s',
+            $C{T},     $C{0}, $left_column_with,
+            '[BMW] L', $C{T}, true_bits($AMOS7::CHKSUM::bmw_b_L)
+        ),
+        sprintf(
+            '%s %s%*s %s :  %s',
+            $C{T},     $C{0}, $left_column_with,
+            '[BMW] C', $C{T}, true_bits($AMOS7::CHKSUM::bmw_b_C)
+        ),
         '',
-        "$C{0}   chksum-bits  :  " . true_bits($AMOS7::CHKSUM::checksum_bits),
+        sprintf( '%s %*s  :  %s',
+            $C{T},          $left_column_with,
+            'input chksum', true_bits($AMOS7::CHKSUM::checksum_bits) ),
+
+        ##[  bmw-mod-bits  ]##
+        ##
         @mod_bits_str,
         '',
+
+        ##[ elf truth mode ]##
+        ##
         sprintf(
-            "%s  assert truth  :  $C{T}elf-modes$C{0} %s",
-            $C{0}, join( ' ', map {"$C{b}$C{T}$ARG$C{R}$C{0} "} sort @modes )
+            '%s %*s  :  %s%s%s %s%s',
+            $C{T},
+            $left_column_with,
+            qw| elf-truth-mode |,
+            $C{T},
+            @modes == 1 ? '' : qw| elf-modes |,
+            $C{0},
+            join( ' ', map {"$C{b}$C{T}$ARG$C{R}$C{0} "} sort @modes ),
+            $C{R}
+        ),
+
+        ##[  elf truth templates  ]##
+        ##
+        scalar $truth_templates->@* == 0 ? () : (
+            '',
+            (   map {
+
+                    sprintf(
+                        '%s %*s  :  %s%s%s%s',
+                        $C{T}, $left_column_with, 'truth template',
+                        $C{b},                              $C{T},
+                        sprintf( $ARG, $checksum_encoded ), $C{R}
+                        ),
+
+                } $truth_templates->@*
+            ),
+            ''
+        ),
+
+        ##[ elf overflow ]##
+        ##
+        sprintf(
+            '%s %s%*s%s  :  %s%s %s%s %s %s%s %s',
+            $C{T},           $C{0}, $left_column_with,
+            'elf overflow',  $C{T}, qw| bit-shift |,
+            $C{0},           $C{b}, $C{T},
+            $elf_shift_bits, $C{R}, $C{0},
+            $C{R}
         ),
         '',
+
+        ##  harmonization  ##
+        ##
         sprintf(
-            "%s  elf overflow  :  $C{T}bit-shift$C{0} %s",
-            $C{0}, "$C{b}$C{T} $elf_shift_bits $C{R}$C{0} "
+            '%s %*s  :  %s%s%s %s%s%s%s%s %s',
+            $C{T},                        $left_column_with,
+            qw| harmonization |,          $C{T},
+            'iteration count',            $C{0},
+            $C{b},                        $C{T},
+            $AMOS7::CHKSUM::bmw_mod_step, $C{R},
+            $C{0},                        $C{R},
         ),
         '',
+
+        ##[  VAX-encoded  ]##
+        ##
         sprintf(
-            "%s harmonization  :  $C{T}iteration count$C{0} %s%s%s",
-            $C{0},                        "$C{b}$C{T}",
-            $AMOS7::CHKSUM::bmw_mod_step, "$C{R}$C{0} "
+            '%s %*s  : %s %s%s%s%s%s%s %s %s',
+            $C{T},              $left_column_with,
+            qw| VAX-encoded |,  TRUE_FALSE($checksum_encoded),
+            $C{b},              $C{T},
+            $C{B},              $checksum_encoded,
+            $C{R},              $C{T},
+            $num_amos_csum_str, $C{R}
         ),
-        '',
-        join(
-            ' ', "$C{0}   VAX-encoded  : " . TRUE_FALSE($checksum_encoded)
-            )
-            . " $C{b}$C{T}$C{B}$checksum_encoded$C{R}"
-            . "$C{0} $num_amos_csum_str",
         '',
         $C{R}
     );
 } elsif ( $option{'n'} ) {
 
+    ##  numerical AMOS7-chksum value  ##
+    ##
     say $AMOS7::CHKSUM::num_amos_csum and exit if $option{'q'};
     say "$C{0}:\n:$C{b} $C{T}${AMOS7::CHKSUM::num_amos_csum}$C{0}"
         . " $C{R}\n$C{0}:$C{R}";
 
-} else {
+##  encoded AMOS7 chksum  ##
+##
+} elsif ( defined $checksum_encoded ) {
     say $checksum_encoded and exit if $option{'q'};
     say "$C{0}:\n:$C{b} $C{T}$checksum_encoded$C{0} $C{R}\n$C{0}:$C{R}";
+} else {
+    exit(qw| 0110 |);    ##  checksum calculation errors  ##
 }
+
+##[ LIST OPTIONS ]############################################################
 
 sub list_options {
     chomp( my $options_table_str = $option_list );
@@ -350,8 +469,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,.,,..,,,..,.,.,...,..,,...,,..,...,...,...,..,,...,...,...,..,,,,,,...,.,,,
-#2MYK5E3KTEVQDWZBYAUQAR3LEROULYGKM6VDEBJEWM5V5656O3MOQEO2ZAUJI2OM32BVLLWWER2B2
-#\\\|KKPKDNL4DX6PLSEEIUFAQMY3FTWLBFPP4YKDU2WY77TWOG5QXGH \ / AMOS7 \ YOURUM ::
-#\[7]O2WRXUZU6R7YHTSC2XWMXINTBNHAFAYEI7LOSMNM46HBGL3JGUCA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,,,,,.,.,,,,,...,,,,,..,,.,,,..,,...,..,,...,,..,,,.,,,.,...,
+#ZQQ6M2B5ENBU7N2MXV5J3JK2L73UFFHNJQ2IEETOQR7JR7WFDBPW3AEWMT6O6WWWCQRMUZCQDKBEW
+#\\\|PO7HD3SDEPSB52QDYC537WDGYBIMEK5QISLRZEP7EI6IBXNZE4V \ / AMOS7 \ YOURUM ::
+#\[7]TG5M7CMSH6F2YNVVSGVPTF7XJREYPJN2AEHNQ3WWUS4NZG4JW2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
