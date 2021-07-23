@@ -32,6 +32,7 @@ BEGIN {
 
 use AMOS7;
 use AMOS7::CHKSUM;
+use AMOS7::TEMPLATE;
 use AMOS7::CHKSUM::ELF;
 use AMOS7::Assert::Truth;
 
@@ -42,8 +43,6 @@ my $chksum_elf_mode = $AMOS7::CHKSUM::algorithm_set_up{'chksum_elf_mode'}; ##7
 my $elf_shift_bits = $AMOS7::CHKSUM::algorithm_set_up{'elf_shift_bits'}; ## 13
 
 my @modes = $AMOS7::CHKSUM::algorithm_set_up{'elf_truth_modes'}->@*;     ## 7
-
-my $split_template_regex = $AMOS7::CHKSUM::split_template_regex;
 
 our $truth_templates = [];
 
@@ -112,7 +111,12 @@ if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
 ##
 if ( defined $option{'T'} ) {
 
-    $truth_templates = AMOS7::CHKSUM::split_truth_templates( $option{'T'} );
+    ( my $template_valid, my $template_errstr )
+        = AMOS7::TEMPLATE::is_valid_template( $option{'T'} );
+    error_exit( sprintf( '%s <{NC}>', $template_errstr ) )
+        if not $template_valid;
+
+    $truth_templates = AMOS7::TEMPLATE::split_truth_templates( $option{'T'} );
 
     if (   $truth_templates->@* == 0
         or $option{'T'} !~ m|%s| and not defined $data_str
@@ -121,12 +125,6 @@ if ( defined $option{'T'} ) {
         and not @ARGV ) {
         error_exit("expected template string after -T option <{NC}>");
 
-    }
-    foreach my $template ( $truth_templates->@* ) {
-        ( my $template_valid, my $template_errstr )
-            = AMOS7::CHKSUM::is_valid_template($template);
-        error_exit( sprintf( '%s <{NC}>', $template_errstr ) )
-            if not $template_valid;
     }
 }
 
@@ -255,6 +253,8 @@ if ( defined $option{'T'} ) {    ## using template for truth verification ##
 } else {
     $checksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
 }
+
+error_exit('cannot calculate checksum') if not defined $checksum_encoded;
 
 ##[ VERBOSE RESULT VALUES ]###################################################
 
@@ -469,8 +469,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,..,.,.,,.,,...,,,,,.,.,,,,,...,,,,,..,,.,,,..,,...,..,,...,,..,,,.,,,.,...,
-#ZQQ6M2B5ENBU7N2MXV5J3JK2L73UFFHNJQ2IEETOQR7JR7WFDBPW3AEWMT6O6WWWCQRMUZCQDKBEW
-#\\\|PO7HD3SDEPSB52QDYC537WDGYBIMEK5QISLRZEP7EI6IBXNZE4V \ / AMOS7 \ YOURUM ::
-#\[7]TG5M7CMSH6F2YNVVSGVPTF7XJREYPJN2AEHNQ3WWUS4NZG4JW2AY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,..,...,.,,,..,,,,.,,,.,,..,..,,...,...,..,,.,.,,,,,,,,,,..,
+#3W3BY3XVG2NPBG3QOXGFRAW7T4ELEAF5F6U3PNQQIOH6ZAXKIHUHBOT77W2KSK72HLXRWVZ6QNSMK
+#\\\|Z7FE66F6ORNMVP2TSD4NYQHS2IR36U2QGP3FAYIL272FWISELQ7 \ / AMOS7 \ YOURUM ::
+#\[7]K2KVO37CVP445ZOB2IISYVESTHR5IISE4PH5PN4ZOX2DYOR5UYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
