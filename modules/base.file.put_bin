@@ -2,26 +2,50 @@
 
 # name = base.file.put_bin
 
-my $file_path = shift;
-my @content   = @_;
+my $write_file_path = shift // '';
+my @file_content    = @ARG;
 
-open( my $fh, '>', $file_path ) or die "$file_path : \l$OS_ERROR";
-binmode( $fh, ":raw" )          or warn "binmode() : \l$OS_ERROR";
-if ( @content > 1 ) {
-    print {$fh} @content;
-} elsif ( @content and ref( $content[0] ) eq 'ARRAY' ) {
-    print {$fh} @{ $content[0] };
-} elsif ( @content and ref( $content[0] ) eq 'SCALAR' ) {
-    print {$fh} ${ $content[0] };
-} elsif (@content) {
-    print {$fh} $content[0];
+my $fh;
+if ( not length $write_file_path ) {
+    warn 'expected filename <{C1}>';
+    return undef;
+} elsif ( not open( $fh, qw| > |, $write_file_path ) ) {
+    <[base.s_warn]>->(
+        "cannot open '%s' for writing [ %s ] <{C1}>",
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
 }
-close($fh);
 
-return 1;
+binmode( $fh, qw| :raw | )
+    or <[base.s_warn]>->(
+    'binmode : %s <{C1}>',
+    $write_file_path, <[base.str.os_err]>
+    );
 
-#,,,,,...,..,,...,,,,,.,,,,..,..,,,,,,,,,,...,..,,...,...,,..,,,.,.,.,..,,,,.,
-#5O7B3PS7NZEP6DXAXXQLTEINN3QT2LY23HYBGPOKIOGSGR4NKK6D5MIVPYGKY6VIVWXQOQFUN4DVE
-#\\\|R2FUJ5VMUKTAWZBBXMSES4HFGENCNVKA4IL4SGW2MIROYYVVRDO \ / AMOS7 \ YOURUM ::
-#\[7]VY7ABVMU3Z7EPWPVI7EKKSMMS77VA3T2RXV5XSLNYTTFLHFBAOCQ 7  DATA SIGNATURE ::
+if ( @file_content > 1 ) {
+    print {$fh} @file_content;
+} elsif ( @file_content and ref $file_content[0] eq qw| ARRAY | ) {
+    print {$fh} $file_content[0]->@*;
+} elsif ( @file_content and ref $file_content[0] eq qw| SCALAR | ) {
+    print {$fh} $file_content[0]->$*;
+} elsif ( @file_content and defined $file_content[0] ) {
+    print {$fh} $file_content[0];
+} else {
+    warn 'file content parameter is undefined <{C1}>';
+}
+
+if ( not close($fh) ) {
+    <[base.s_warn]>->(
+        'close [ %s ] : %s <{C1}>',
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+return 5;    ## true ##
+
+#,,,.,.,.,.,.,...,.,.,.,.,..,,,..,...,..,,,,,,..,,...,..,,..,,.,.,,.,,.,.,,,,,
+#L4RAIJRNEVJGV6C3EZGLDDF4EEJB4BGQ53Q576TAWBFCKZVD2WWNEVIONLG2SQBT2J2UBZY46YG4O
+#\\\|5PPKGF4XZ2LA4AWNGIOJJR4XXLWROMZCRCDWBNNVP37KU3A235I \ / AMOS7 \ YOURUM ::
+#\[7]ZPYUNU6ZAMSIEKBAYQ734F2GFE4WDBUIY5HI3ATM7545PWLPDICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
