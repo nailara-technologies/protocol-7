@@ -212,7 +212,7 @@ INVERT_TRUTH_STATE:
             my $caller_level_str
                 = defined $main::PROTOCOL_SEVEN ? qw| <{C3}> | : qw| <{NC}> |;
             error_exit(
-                'truth template validation timeout exceeded [%ds] '
+                'truth template validation timeout exceeded [%.2f] '
                     . $caller_level_str,
                 AMOS7::TEMPLATE::template_timeout()
             );
@@ -317,8 +317,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,.,,,,.,,,,,,.,,.,,,,,.,,,,,,,.,..,,..,,.,,,..,,...,...,.,.,.,,,,..,.,,,.,.,
-#Q5MWFOBN3KB7R4YRX7NPB75EDDW4I6TRZ2AEVSGU5X5Y4IVUCNZVHJXSLMAABC6F63MKU6RJEFLKC
-#\\\|ZWY6SH4SXLOJOWMGKLTYDGXVXPR6ZF6356GMFUUVBPGSQZKBTRF \ / AMOS7 \ YOURUM ::
-#\[7]CSGMCBDMSKFWNQY4RBPOXI7VD3AFF6STLYPNQARGYPCRMIPOBODA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,.,,,.,,,..,..,,...,,,.,,.,,..,,...,..,,.,.,,,,,,..,,..,,,,,
+#25W3MOV4HMUWS7S33AVCGCUAKAXYCYJERZGLCN5N6IXRDEDTFHGQ3LJDXFJ3NWUGLV6RKLFTNB3A6
+#\\\|LEYALSGAHCQ5FTRZ4ZSOHWQT5H5AZIGRMEANOI67WNL4JLGJLYR \ / AMOS7 \ YOURUM ::
+#\[7]ZFRDEG5HILYYOIPL7425T7EO5JU4SBTXW2K6UJ2XI37UIOOATEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
