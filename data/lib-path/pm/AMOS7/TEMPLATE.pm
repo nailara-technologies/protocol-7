@@ -94,6 +94,10 @@ sub template_timeout {
 
     return error_exit('expected timeout parameter in seconds')
         if $timeout !~ m|^\d+(\.\d+)?$|;
+    return error_exit('timeout 0 is not valid') if $timeout == 0;
+
+    $AMOS7::TEMPLATE::templ_valid_timeout = $timeout;
+    return 5;    ## true ##
 }
 
 sub set_ELF7_modes {
@@ -376,8 +380,8 @@ sub TEMPLATE_exclusive_type {
 
 return 5;  ###################################################################
 
-#,,.,,,,,,,,,,.,.,.,,,..,,,,,,,,,,.,.,.,.,,,,,..,,...,...,...,,,.,.,,,,.,,...,
-#AXYXRWN5OIKJK7OBU3BESIRHGQGLNAMO4Z37ZYAIKY4RXSVVCSZ4SUVQMFA7KAA7YPK6EPTYMFDVK
-#\\\|MOYNL5BTJ4I4FRY6QMVD7NBQ2T7DBQ5CTBWWIUPUSOZT4FEZTX6 \ / AMOS7 \ YOURUM ::
-#\[7]U2MZ544ICT2BKNYR2VQ7O23K5XTASIWR6HNKLNBDJOJBYWPQFODA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,,..,,,.,...,,..,,,,,.,,,...,..,,...,...,.,.,,.,,,.,,.,,,.,.,
+#XYSP3XWFKJN4KMQFUQVXSCJ7J5DKYTMXM7Q6AMVV5G2UO5SCIG6UD36Q3NMAKAOTKEKA5XHASTRI2
+#\\\|4RIJ5AQB2KEJ6YJ4O3KMWEFJ54B2EFSIQSSITO7UZ6EHGVDW74B \ / AMOS7 \ YOURUM ::
+#\[7]GOFKH7RWDK6XNBVKMTNDCONLNPNZ5QN6R5U3LT6VLRUHIQBKOSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

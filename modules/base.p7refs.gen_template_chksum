@@ -2,13 +2,27 @@
 
 # name  = base.p7refs.gen_template_chksum
 
-my $reftype         = shift;
-my $B32_encoded_str = shift;
-my $node_name_str   = shift // <system.node.name>;
+my $reftype            = shift;
+my $B32_encoded_str    = shift;
+my $node_name_str      = shift;
+my $reftypes_exclusion = shift // 0;     ##  false  ##
+my $checksum_timeout   = shift // 10;    ##  used with type exclusion mode  ##
 
-my $ref_types = qw[ P7REF|CODE|REF|HASH|SCALAR|ARRAY|GLOB ];
+my $checksum_timeout_upper_limit = 17;
 
-if ( not defined $reftype or $reftype !~ m|^($ref_types)$| ) {
+my @ref_types = qw[ P7REF CODE REF HASH SCALAR ARRAY GLOB ];
+
+my @ref_exclusion;
+my $ref_type_reg = join qw.|., @ref_types;
+
+if ( defined $checksum_timeout
+    and $checksum_timeout > $checksum_timeout_upper_limit ) {
+    <[base.s_warn]>->(
+        'requested timeout exceeded upper limit [%ds] <{C1}>',
+        $checksum_timeout_upper_limit
+    );
+    return undef;
+} elsif ( not defined $reftype or $reftype !~ m|^($ref_type_reg)$| ) {
     warn 'expected valid protocol-7 reference type parameter <{C1}>';
     return undef;
 } elsif ( not defined $B32_encoded_str
@@ -24,23 +38,83 @@ if ( index( $B32_encoded_str, qw| 0x |, 0 ) == 0 ) {    ## not encoded yet ##
         <[base.convert.hex_to_int]>->($B32_encoded_str) );
 }
 
-my $truth_template = sprintf( qw| %s:%s:%%s:%s |,
-    $reftype, $node_name_str, $B32_encoded_str );
+my @excl_templates = sprintf( qw| %%s:%%%%s:%s |, $B32_encoded_str );
 
-my $chksum_input_str
-    = sprintf( qw| %s:%s:%s |, $reftype, $node_name_str, $B32_encoded_str );
+my @truth_templates = sprintf( qw| %s:%%s:%s |, $reftype, $B32_encoded_str );
 
-my $ref_chksum = <[chk-sum.amos.truth_template_chksum]>->(
-    $truth_template, \$chksum_input_str
+return undef
+    if not
+    defined AMOS7::TEMPLATE::configure_exclusive_type_callback( [$reftype],
+    \@ref_types, \@excl_templates );
+
+my $ref_chksum;
+my $truth_temp_ref;
+my $chksum_input_str;
+
+if ( not $reftypes_exclusion ) {
+
+    ##  basic template [ for performance ]  ##
+    $truth_temp_ref = \@truth_templates;
+
+    if ( defined $node_name_str ) {    ##  node name and no type exclusion  ##
+
+        ##  including node name in input string  ##
+        $chksum_input_str = sprintf( qw| %s:%s:%s |,
+            $node_name_str, $reftype, $B32_encoded_str );
+
+    } else {
+
+        $chksum_input_str    ##  no node name [ for local use ]  ##
+            = sprintf( qw| %s:%s |, $reftype, $B32_encoded_str );
+    }
+
+} else {    ##  exclusion mode creates anonymized references for nodes  ##
+
+    $node_name_str //= <system.node.name>;
+
+    unshift @truth_templates, sprintf( qw| %s:%%s |, $node_name_str );
+    unshift @truth_templates, sprintf( qw| %%s:%s |, $B32_encoded_str );
+
+    $truth_temp_ref
+        = [ @truth_templates, \&AMOS7::TEMPLATE::CALLBACK_exclusive_type ];
+
+    ##  not including node name in chksum  ##
+    $chksum_input_str = sprintf( qw| %s:%s |, $reftype, $B32_encoded_str );
+}
+
+AMOS7::TEMPLATE::template_timeout($checksum_timeout) if $reftypes_exclusion;
+
+$ref_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+    $truth_temp_ref, \$chksum_input_str
 );
 
-my $p7ref_encoded_str = sprintf qw| %s:%s |, $ref_chksum, $B32_encoded_str;
+AMOS7::TEMPLATE::reset_temp_valid_timeout() if $reftypes_exclusion;
+
+if ( not defined $ref_chksum ) {
+    warn 'refaddr chksum calculation was not successful <{C1}>';
+    return undef;
+}
+
+my $p7ref_encoded_str;
+if ($reftypes_exclusion) {
+
+    ##  no type in ref str required with type exclusion  ##
+    $p7ref_encoded_str = sprintf qw| %s:%s |, $ref_chksum, $B32_encoded_str;
+
+} else {    ##[  <type>:<chksum>:<addr>  ]##
+
+    $p7ref_encoded_str
+        = sprintf( qw| %s:%s:%s |, $reftype, $ref_chksum, $B32_encoded_str );
+}
+
+##  returning result chksum \ ref str  ##
 
 return ( $p7ref_encoded_str, $ref_chksum ) if wantarray;
+
 return $p7ref_encoded_str;
 
-#,,..,,,.,,,.,.,,,..,,..,,,.,,.,.,...,...,.,.,.,.,...,...,.,,,..,,.,,,...,.,,,
-#5SPEXKWUAIQNB4ELN57TPVLJQFJ4MA5AS6MT4ZZUXETDGOPRRQNN6JFK4UROR3CT323GNFU6FAXZ6
-#\\\|XFSWCLZD6O2525RIT3WO42WHHF5CMF6TAWZJWBCRNCXR7QUQY5J \ / AMOS7 \ YOURUM ::
-#\[7]OGRSKQVOFUZO6E5WMFUPVFVOTRYAXO35NAM74JP62V2PQZPPYWCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,,..,,,,,,..,..,,,.,,.,,,,,,,.,.,...,...,..,,.,.,,.,,,..,,..,
+#K6VPYLLAQSWVFXKQQWSCAH3GYWQ5XMZUUGCOHK5TWY4GWIIUIEQSQJKLAHASZZDPYMTS43KM3GLTQ
+#\\\|LZ74PHPOQAWIJHZZEM2NWPUUSC3QJ5MKPUYOGB46ZUKMYMEJ2TF \ / AMOS7 \ YOURUM ::
+#\[7]6EXFII7FFPT6LKHWUYPOSYEAHF5GRMGDXQU6J4IIMAHASSXEZQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
