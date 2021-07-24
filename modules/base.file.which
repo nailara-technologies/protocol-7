@@ -3,12 +3,15 @@
 # name = base.file.which
 
 my $bin_name = shift // '';
-warn "expected bin_name parameter" if !length($bin_name);
+if ( not length $bin_name ) {
+    warn 'binary name param missing or undefined <{C1}>';
+    return undef;
+}
 
 return which($bin_name);
 
-#,,..,..,,,,,,,,.,,,.,...,.,,,,,.,...,,..,..,,..,,...,...,..,,.,,,,,.,,.,,,..,
-#73STEW4V2E2BKTF7MV2IHO63IOSS7Y55GDKF7G2QE5L7N5LUOON7NOTAE4IFUDDAHUIEXAKCZIW52
-#\\\|3TH7XS354IZ6YC3PIJRDW5KBBWIVXKA3B3PVAUJ33N46MJ634P7 \ / AMOS7 \ YOURUM ::
-#\[7]66QJMLZTVQCYM2PEZ3S7BJX7ZKFJKTXGCWNJVPWJ2YSWFJCCL6DQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,,..,,,.,.,,,,.,,.,.,.,.,...,..,,...,...,,..,.,.,...,.,.,...,
+#W5QXDHXNGHKDG77HYUDHZUI7ZDUIDQIPO2VAG4E4KU2ISG2MJP5ZG3IUQPEEGGV46TM3L5VIR6ZGQ
+#\\\|LXNGL6LUGME6JL5DGDXX6RI5J3VHTW3WBC7BVPDBXVGI6YF6I4H \ / AMOS7 \ YOURUM ::
+#\[7]OR53E77DYTFP52CD5MGO6P52NDLRZ73TFGB23JTVUP52223SY4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
