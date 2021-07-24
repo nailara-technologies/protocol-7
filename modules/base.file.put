@@ -2,25 +2,44 @@
 
 # name = base.file.put
 
-my $file_path = shift;
-my @content   = @_;
+my $write_file_path = shift // '';
+my @file_content    = @ARG;
 
-open( my $fh, '>', $file_path ) or die "$file_path : \l$OS_ERROR";
-if ( @content > 1 ) {
-    print {$fh} @content;
-} elsif ( @content and ref( $content[0] ) eq 'ARRAY' ) {
-    print {$fh} @{ $content[0] };
-} elsif ( @content and ref( $content[0] ) eq 'SCALAR' ) {
-    print {$fh} ${ $content[0] };
-} elsif (@content) {
-    print {$fh} $content[0];
+my $fh;
+if ( not length $write_file_path ) {
+    warn 'expected filename <{C1}>';
+    return undef;
+} elsif ( not open( $fh, qw| > |, $write_file_path ) ) {
+    <[base.s_warn]>->(
+        "cannot open '%s' for writing [ %s ] <{C1}>",
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
 }
-close($fh);
 
-return 1;
+if ( @file_content > 1 ) {
+    print {$fh} @file_content;
+} elsif ( @file_content and ref $file_content[0] eq qw| ARRAY | ) {
+    print {$fh} $file_content[0]->@*;
+} elsif ( @file_content and ref $file_content[0] eq qw| SCALAR | ) {
+    print {$fh} $file_content[0]->$*;
+} elsif ( @file_content and defined $file_content[0] ) {
+    print {$fh} $file_content[0];
+} else {
+    warn 'file content parameter is undefined <{C1}>';
+}
 
-#,,..,.,,,,..,..,,,,.,.,.,,,.,...,.,.,,,.,,..,..,,...,...,,..,.,.,...,.,.,,,.,
-#C6CVDDB6EBT4MAU334ZDJNYEJY3Q44QI6UNOZNTTLFKYOYH7I6P5TN6JHAAZ36OSLX6FY3POMLR7Y
-#\\\|RBDGK62ML2LJOCLJBM7NWZKNTQSZ3X4A4VOT3GXG5BFDNV4QKSH \ / AMOS7 \ YOURUM ::
-#\[7]GRIJKVQZAULQN45ZAAVRPXGVKZBX75GEXF3TFGHESS5BQLP2YAAY 7  DATA SIGNATURE ::
+if ( not close($fh) ) {
+    <[base.s_warn]>->(
+        'close [ %s ] : %s <{C1}>',
+        $write_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+return 5;    ## true ##
+
+#,,,.,...,,..,.,.,..,,..,,,.,,..,,.,,,.,,,.,,,..,,...,...,...,,,.,..,,.,.,.,.,
+#VDXK6QR2ROSZU35UP6AXIGJ4UFFIHBO6IR3QSVKFOWPYWEC4WZZN7VRNA634RP27JBVLENWYLUYS4
+#\\\|GDASHAKS5GHH5ACU352QMI62QWHGGB3ZSSD2SOSDOYCAAKECZK3 \ / AMOS7 \ YOURUM ::
+#\[7]RLUNIXUQCXPYELH2APVUNHMES5V45BLCBYILDUSDXKO3PBYKACDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
