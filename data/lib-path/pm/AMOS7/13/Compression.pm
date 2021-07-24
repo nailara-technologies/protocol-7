@@ -74,8 +74,8 @@ sub cache_check {
 
 return 1;  ###################################################################
 
-#,,.,,.,,,..,,,..,..,,.,,,,..,...,,,.,,,.,,.,,..,,...,...,.,.,,.,,.,.,,,.,...,
-#47LPJMVBWH3EDDMBFHUQO4EAWVYQP7TXOQDAAEB6WHB463FKXTQ3SMEUFGUGFCK4XUFCG4KWXET4Q
-#\\\|SC5RXHBZ56ZHEYHWOFKVHY3GM5MZ7AH3WVZHJBHIBT72CZOOC2B \ / AMOS7 \ YOURUM ::
-#\[7]M7IGI3YSKS4WTSVQNKMFGNWCOJSTXJ76JO75BHJJHNXE44HV4IBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,..,..,,,,.,.,.,...,,..,.,.,..,,...,...,,..,,.,,.,,,.,,,,.,,
+#D42CYSRCMAYB5SHK7SOHLF6H7JYWXYZEWVOMZBJCZ7TAQRDCOISXMQA2UTDYUWF6MS4VT6Y27F4N4
+#\\\|RDGIXUW2SKVSJROOFPMIB5VJMT2XGV5OE56Y66VNV3GEMFZQF42 \ / AMOS7 \ YOURUM ::
+#\[7]NWF25XU3ERPSS6HMGXGOLMVUVMF7A2KR4YULW53N2CNOLLWDRADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,10 +36,6 @@ if ( index( ref $result, qw| Regexp |, 0 ) == -1 or length $EVAL_ERROR ) {
     if ( length $EVAL_ERROR ) {
         $error_sref->$* = <[base.str.eval_error]>;
         $error_sref->$* =~ s| at \(eval \d+\) line 1.$||;
-        $error_sref->$*
-            = 'error in regular expression'    ## track down source ##
-            if index( $error_sref->$*, qw| Math::BigFloat |, 0 )
-            >= 0;                              ## [LLL]
     } else {
         $error_sref->$* = 'regex compilation not successful';
         $result = undef;
@@ -62,8 +58,8 @@ if ( defined $error_sref->$* ) {
     return $result;    ##  no errors occured  ##
 }
 
-#,,,,,.,,,.,.,.,.,.,.,,,.,.,,,,.,,.,,,,,.,..,,..,,...,...,...,...,,.,,.,,,,..,
-#Y444W34RWMFGOICPLQV4MFLKNVOSJUK5OX2YLAA7IEBG5BJPRXD4JGS7BM2NVXTBAFZIYTFROWF7Q
-#\\\|GJ5WGYQRU7RKKQ532RVRHN4FL7BMXXNMUYG6SJRP5UDAF4PGFXR \ / AMOS7 \ YOURUM ::
-#\[7]52R6YKXNCHRCYKDNVYC56DABK7F4GJIFSSB4YA5WYHMN5KL4BCBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,..,.,.,,,,,,,,,...,,.,,,,.,..,,...,...,..,,.,,,.,.,,.,,.,.,
+#5GUWK3SVTPVFB4FW726TFVUQCTAU2PJDOK5ZLMKWHSG7WK5MR4NCI66CXGBK5WDWA7BQVTJHZMVKM
+#\\\|ODJSBXOL32JT276KZMV7KJIZ4XEJQOB3KJCR46VTU6OWWV5X6U4 \ / AMOS7 \ YOURUM ::
+#\[7]TV42QGLJCZ6J7DX633ST5FJAOCLZM26S2YXJHIGOTIMSXANR6UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,31 +4,37 @@
 # args = [result_array_ref,] <search_path>, <file_name_pattern(s)>
 
 my $result_aref;
-$result_aref = shift(@ARG) if ref( $ARG[0] ) eq 'ARRAY';    # [ append mode ]
+$result_aref = shift(@ARG) if ref( $ARG[0] ) eq qw| ARRAY |; # [ append mode ]
 
 my $search_path = shift @ARG;
 
 my $recursion
-    = ( @ARG and $ARG[0] eq 'recursive' and shift @ARG )
-    ? 'recursive'
+    = ( @ARG and $ARG[0] eq qw| recursive | and shift @ARG )
+    ? qw| recursive |
     : undef;
 
 my @wildcard_filenames = @ARG;
 
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
-if ( not defined $search_path or !length($search_path) ) {
-    <[base.log]>->( 0, 'file.match_files: missing expected path argument' );
+if ( not defined $search_path or not length $search_path ) {
+    warn 'path param missing or undefined <{C1}>';
     return undef;
 }
-$search_path = abs_path($search_path);
-if ( !-d $search_path ) {
-    <[base.log]>->( 0, "file.match_files: no such directory '$search_path'" );
+
+my $path_abs = abs_path($search_path);
+
+if ( not defined $path_abs or not -d $search_path ) {
+    <[base.s_warn]>->(
+        "non existant path ['%s'] <{C1}>", $search_path
+    );
     return undef;
-} elsif ( !@wildcard_filenames ) {
-    <[base.log]>->( 0, 'file.match_files: no filenames\\patterns provided' );
+} elsif ( @wildcard_filenames == 0 ) {
+    warn 'expected filenames \\ patterns <{C1}>';
     return undef;
 }
+
+$search_path = $path_abs;
 
 my $results = [];
 $results = $result_aref if defined $result_aref;    ##  [ append mode ]
@@ -36,23 +42,32 @@ my @file_table = map {
     my $key = $ARG // '';
     $key =~ s|\.|\\.|g;
     $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
-    qr|$key$|
+
+    ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
+
+    if ( not defined $reg_ex or length $EVAL_ERROR ) {
+        <[base.s_warn]>->( '[ %s ] %s <{C1}>', $key, $regex_err_str );
+        return undef;
+    }
+    $reg_ex;
+
 } @wildcard_filenames;
 
-foreach my $file ( @{ <[file.all_files]>->( $search_path, $recursion ) } ) {
+foreach my $file ( <[file.all_files]>->( $search_path, $recursion )->@* ) {
     foreach my $pattern (@file_table) {
         if ( $file =~ $pattern ) {
-            push( @{$results}, $file );
+            push $results->@*, $file;
             next;
         }
     }
 }
 
-return scalar @{$results} if defined $result_aref;    # [ append mode ]
-return @{$results};
+return scalar $results->@* if defined $result_aref;    # [ append mode ]
 
-#,,.,,,,,,,.,,,,.,..,,,,,,,,,,..,,,,,,.,.,.,,,..,,...,...,..,,...,.,,,.,,,.,,,
-#DRSC32ZPFQBQMNJANBK7MTMXTZHXDEN7ZCXNLUOIN4EO5OSEKUFHDEUYP2HCGLCNZNERNUKLVEOYE
-#\\\|ZETD4LDA2GTWXW7AAZDSXPVCA5XTVLYZJRF5Y36CGYXH5RCXDKL \ / AMOS7 \ YOURUM ::
-#\[7]CMNXC3F527JSYSQRKOX5C6SHCHDI4L5SE7WN2EWTAIQQ4JJDR2DQ 7  DATA SIGNATURE ::
+return $results->@*;
+
+#,,..,,..,.,.,.,,,...,.,.,,,.,,,,,,,,,.,,,,,,,..,,...,...,...,,,.,..,,,,.,.,.,
+#4SRLS7BVCNAAFZVROWTB7Y5O6KQO32R65V6EBDIIGLD3ZPKJWUH6BXFZ2XQIXF6I7BKV3HPZUIVII
+#\\\|BKPTA5GS2OQCORVCHXYREQKYA5LNYFM6AJXCMTL3IW6EMK2ATMJ \ / AMOS7 \ YOURUM ::
+#\[7]LBWP6XQH2NOOK37VA4TQQ2GOZJ5SVKNUGMMRCXX3J72O3OYELACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

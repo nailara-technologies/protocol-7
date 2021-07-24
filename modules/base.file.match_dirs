@@ -13,20 +13,24 @@ my $recursion
     ? qw| recursive |
     : undef;
 
-my @wildcard_filenames = @ARG;
+my @wildcard_dir_patterns = @ARG;
 
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
-if ( not defined $search_path or !length($search_path) ) {
-    <[base.log]>->( 0, 'file.match_dirs: missing expected path argument' );
+if ( not defined $search_path or not length $search_path ) {
+    warn 'path param missing or undefined <{C1}>';
     return undef;
 }
-$search_path = abs_path($search_path);
-if ( !-d $search_path ) {
-    <[base.log]>->( 0, "file.match_dirs: no such directory '$search_path'" );
+
+my $path_abs = abs_path($search_path);
+
+if ( not defined $path_abs or not -d $search_path ) {
+    <[base.s_warn]>->(
+        "non existant path ['%s'] <{C1}>", $search_path
+    );
     return undef;
-} elsif ( !@wildcard_filenames ) {
-    <[base.log]>->( 0, 'file.match_dirs: no dir names \\ patterns provided' );
+} elsif ( @wildcard_dir_patterns == 0 ) {
+    warn 'expected directory names \\ patterns <{C1}>';
     return undef;
 }
 
@@ -37,30 +41,33 @@ my @file_table = map {
 
     $key =~ s|[\.\\\[\]\(\)\-\+\?]|\\$MATCH|g;
     $key =~ s{(\*{2}|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
-    $key .= '\$';
+    $key .= qw| $ |;
 
-    <[base.eval.comp_regex]>->($key);
+    ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
 
-    if ( length $EVAL_ERROR ) {
-        <[base.s_warn]>->(
-            ' regex error [ %s ] <{C1}>',
-            $key, <[base.str.eval_error]>
-        );
+    if ( not defined $reg_ex or length $EVAL_ERROR ) {
+        <[base.s_warn]>->( '[ %s ] %s <{C1}>', $key, $regex_err_str );
         return undef;
     }
-} @wildcard_filenames;
+    $reg_ex;
 
-foreach my $dir ( @{ <[file.all_dirs]>->( $search_path, $recursion ) } ) {
+} @wildcard_dir_patterns;
+
+foreach my $dir ( <[file.all_dirs]>->( $search_path, $recursion )->@* ) {
     foreach my $patterm_re (@file_table) {
-        push( @{$results}, $dir ) if $dir =~ $patterm_re;
+        if ( $dir =~ $patterm_re ) {
+            push $results->@*, $dir;
+            next;
+        }
     }
 }
 
-return scalar @{$results} if defined $result_aref;    # [ append mode ]
-return @{$results};
+return scalar $results->@* if defined $result_aref;    # [ append mode ]
 
-#,,.,,,,.,,.,,,,.,.,.,,,,,..,,,..,.,.,.,.,...,..,,...,...,,..,,..,...,,.,,.,,,
-#P7IWPSZQJNWQK3GYALZJ5GLEXTBCCIBDO3P3YMOWORAOPKEVCX2NJIA5PNC3IJQDM6GWPJGI2JBIY
-#\\\|O62OXJYPQXH2CRDHDRPWZET7ROTI7GTBWMCKRKVQJRDH43QZSQJ \ / AMOS7 \ YOURUM ::
-#\[7]DGEGJGXZFS6VX2IKAOZRSERNVEX2EE3MGNWAAZCTWAN6OKVOD4CI 7  DATA SIGNATURE ::
+return $results->@*;
+
+#,,,.,..,,,,.,,..,,..,,..,.,.,,,,,.,,,..,,,..,..,,...,...,..,,,,.,,.,,,..,,..,
+#U5RFEMTFPRVXGCQ6663R7F734TLWLY7SMZFNUVF7DXJCIO5TRSET2W772NLLMUI6CMXXWXVJLBIGI
+#\\\|HWFWRDSBGRFWXQ6QNNTND5FKGH4I6BVNAV72VCOV3LI5TLRVJBH \ / AMOS7 \ YOURUM ::
+#\[7]L4O7XOYCCQ7GPQWKCTNYYCIWYW4XC62TVLAXXP6JMNI4K2GU6CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
