@@ -59,8 +59,6 @@ our $checksum_bits;
 our $sstr_start = 0;
 our $str_length = 7;
 
-our $templ_valid_timeout = 3;    ##  overall truth template time limit  ##
-
 ##[ CHECKSUM CALCULATION ]####################################################
 
 sub amos_chksum {
@@ -210,11 +208,14 @@ INVERT_TRUTH_STATE:
 
         if ( AMOS7::TEMPLATE::template_count()
             and sprintf( qw| %.1f |, Time::HiRes::time ) - $time_start
-            > $templ_valid_timeout ) {
+            > AMOS7::TEMPLATE::template_timeout() ) {
             my $caller_level_str
                 = defined $main::PROTOCOL_SEVEN ? qw| <{C3}> | : qw| <{NC}> |;
-            error_exit( 'truth template validation timeout exceeded '
-                    . $caller_level_str );
+            error_exit(
+                'truth template validation timeout exceeded [%ds] '
+                    . $caller_level_str,
+                AMOS7::TEMPLATE::template_timeout()
+            );
             return undef;
         }
 
@@ -316,8 +317,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,,.,.,.,,,,,.,.,,.,,,..,,..,,.,,,..,,,.,...,..,,...,...,.,,,,.,,.,.,,,.,.,,,
-#2H6FWYL5XPYMUEMYWMPAEFOS3UEEKWVJSTR24EEXJZ2SEXKE3YHZDILKHKIAWJIFRX7NWLF4XWAPS
-#\\\|BRGRSBWSWUXOXWRZN7DWWLURZCKN7QSQVU5T4KNYMYO7QEY22VH \ / AMOS7 \ YOURUM ::
-#\[7]O7EZTPZPSW4N4YXZAZPX7UBPZ6EKKNTGQY5JSZGNYDWNIJFWTCAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,.,,,,,.,,,,,,,.,..,,..,,.,,,..,,...,...,.,.,.,,,,..,.,,,.,.,
+#Q5MWFOBN3KB7R4YRX7NPB75EDDW4I6TRZ2AEVSGU5X5Y4IVUCNZVHJXSLMAABC6F63MKU6RJEFLKC
+#\\\|ZWY6SH4SXLOJOWMGKLTYDGXVXPR6ZF6356GMFUUVBPGSQZKBTRF \ / AMOS7 \ YOURUM ::
+#\[7]CSGMCBDMSKFWNQY4RBPOXI7VD3AFF6STLYPNQARGYPCRMIPOBODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
