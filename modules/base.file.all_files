@@ -13,39 +13,45 @@ my $old_path;
 my $recursive         = 0;
 my $recursion_entered = 0;
 $resolved //= 0;    # <-- resolve symlinks
-$resolved = 1 if $resolved eq 'resolved';
+$resolved = 5 if $resolved eq qw| resolved |;
 
 if ( not defined $result_aref ) {
     $result_aref = [];
-} elsif ( $result_aref eq 'recursive' ) {
+} elsif ( $result_aref eq qw| recursive | ) {
     $result_aref = [];
-    $recursive   = 1;
+    $recursive   = 5;    ## true ##
 } else {
-    $recursion_entered = 1;
+    $recursion_entered = 5;    ## true ##
 }
 
-if ( -d $path ) {
+if ( not -d $path ) {
+    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $path );
+    return undef;
+} else {
     my $dir_fh;
     $path =~ s|/+$||;
-    if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "cannot open directory '$path' [ \l$OS_ERROR ]" );
+    if ( not opendir( $dir_fh, $path ) ) {
+        <[base.s_warn]>->(
+            "directory path '%s' [ %s ] <{C1}>",
+            $path, <[base.str.os_err]>
+        );
         return undef;
     }
-    foreach my $entry ( sort( readdir($dir_fh) ) ) {
+    foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
         next if $entry =~ m|^\.{1,2}$|;
-        my $file_path = "$path/$entry";
+        my $path_abs = catfile( $path, $entry );
         my $result_path
-            = $resolved ? abs_path($file_path) : canonpath($file_path);
-        push( @{$result_aref}, $result_path ) if -f $file_path;
+            = $resolved ? abs_path($path_abs) : canonpath($path_abs);
+        push $result_aref->@*, $result_path if -f $path_abs;
         <[file.all_files]>->( $result_path, $result_aref, $resolved )
-            if -d $file_path and $recursive;
+            if -d $path_abs and $recursive;
     }
 }
 
-return $result_aref if !$recursion_entered;
+return $result_aref if not $recursion_entered;
 
-#,,,.,.,,,,..,...,,..,,,,,...,,,.,,.,,,,.,,,.,..,,...,...,.,,,,,,,,,,,...,.,.,
-#OA3BKKR3JCCIUHMM5BRHQHWCXIKZD635LQAZNEQ2OF6IWSTT4ZJKXDCNS4LTICUTUOVGCT2FESNL2
-#\\\|LS4AWZIOCVESIATVGOWMQ4QI3ITPDQH2OQ2FECYR5T5GXCTRCYJ \ / AMOS7 \ YOURUM ::
-#\[7]FWZ7XL2FO7O7OSJML62QXK4TFWK5Z626DA4DNJE3PIRSDYJGHGBA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,,..,...,,,.,,.,,,.,,,..,..,,..,,...,...,.,,,,..,...,.,,,..,,
+#JL7GR63VQFM2XM7OERYZLIFPI7L2QL7CKEC3YNNO5TXITNF3AU5SNJX4PRA3WNUUVILI5O7Z3UDCC
+#\\\|LHQIYC2J4Q3IGKTAEXED5F243WH3XHQO7GBDSFKDYRYUF4BS6LY \ / AMOS7 \ YOURUM ::
+#\[7]KZTFBFPEDAFJY2BOR5WIJ7I55643547YWN33IILS2W7ORQR7BKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

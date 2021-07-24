@@ -2,40 +2,57 @@
 
 # name = base.file.all_dirs
 
-my ( $path, $result_aref ) = @_;
-die 'expected <path> parameter' if not defined $path;
+my ( $path, $result_aref ) = @ARG;
+
+if ( not defined $path or not length $path ) {
+    warn 'path param missing or undefined <{C1}>';
+    return undef;
+}
+
 my $old_path;
 my $recursive         = 0;
 my $recursion_entered = 0;
+
 if ( not defined $result_aref ) {
     $result_aref = [];
-} elsif ( $result_aref eq 'recursive' ) {
+} elsif ( $result_aref eq qw| recursive | ) {
     $result_aref = [];
-    $recursive   = 1;
+    $recursive   = 5;    ## true ##
 } else {
-    $recursion_entered = 1;
+    $recursion_entered = 5;    ## true ##
 }
 
-if ( -d $path ) {
+if ( not -d $path ) {
+    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $path );
+    return undef;
+} else {
     my $dir_fh;
     $path =~ s|/+$||;
-    if ( !opendir( $dir_fh, $path ) ) {
-        <[base.log]>->( 0, "cannot open directory '$path' [ \l$OS_ERROR ]" );
+    if ( not opendir( $dir_fh, $path ) ) {
+        <[base.s_warn]>->(
+            "directory path '%s' [ %s ] <{C1}>",
+            $path, <[base.str.os_err]>
+        );
         return undef;
     }
-    foreach my $entry ( sort( readdir($dir_fh) ) ) {
+
+    foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
         next if $entry =~ m|^\.{1,2}$|;
-        push( @{$result_aref}, abs_path("$path/$entry") )
-            if -d "$path/$entry";
-        <[file.all_dirs]>->( abs_path("$path/$entry"), $result_aref )
-            if -d "$path/$entry" and $recursive;
+        my $path_abs = catfile( $path, $entry );
+
+        next if not -d $path_abs;
+
+        push $result_aref->@*, $path_abs;
+
+        <[file.all_dirs]>->( abs_path($path_abs), $result_aref )
+            if $recursive;
     }
 }
 
-return $result_aref if !$recursion_entered;
+return $result_aref if not $recursion_entered;
 
-#,,.,,.,.,,,,,,..,.,,,..,,,,.,,..,,,.,,.,,,,,,..,,...,..,,..,,,,.,,,.,,..,.,,,
-#DR5WIRKDQBNE2XODPD5YFVJJRNY36A24OJ5GHBF3IBOVU2RKXYT4O3DACUQNMD54DDOKBTBWQZWFU
-#\\\|WPRPTIJHUOEBZHYIR2Q6E4YRNRDCYMKLYH2IBL76E5RESF6XXJN \ / AMOS7 \ YOURUM ::
-#\[7]P52BGVZMLP345GTUOOTNZ7F5QNUPVN54V44KYAJRQA3TJBZP7WAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,..,,..,,,,.,,,.,,,.,,.,,,..,..,,..,,...,...,..,,,..,..,,..,,,,,,
+#BXHSSEHQKZG7OWQJ7HSMFPSFU36WKHEXPSVIDDTKJZ32DZF6PUQQ4Z4LO3N7QURQJHHNHJ33BQFXA
+#\\\|II7OABLJ6XRS7PKOKNI37DPXQAZIBGYSNDAPHAQO2EEMOEVB6ES \ / AMOS7 \ YOURUM ::
+#\[7]4ENQXFEVW24DUL7JSHVUGHFKQI3F5JLFYNYJAGRGOGCXQ55TXUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
