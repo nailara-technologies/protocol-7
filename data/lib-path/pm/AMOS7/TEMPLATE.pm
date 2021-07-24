@@ -28,9 +28,12 @@ use AMOS7::Assert::Truth;    ## is_true ##
 
 our $regex_str //= {};
 our $ELF_7_modes = [];
-our $truth_templates //= [];
-our $templ_valid_timeout  = 3;    ##  overall truth template time limit  ##
+our $truth_templates     //= [];
+our $default_timeout     //= 3;    ##  overall truth template time limit  ##
+our $templ_valid_timeout //= $default_timeout;
 our $split_template_regex = qr{(*nlb:\\)[,\|]};
+
+our $callback_setup //= {};
 
 ##[ TEMPLATE VALIDATION CODE ]###########################################
 
@@ -73,9 +76,24 @@ sub template_is_true {
 }
 
 sub reset_truth_templates {
-    $AMOS7::TEMPLATE::ELF_7_modes     = [];
     $AMOS7::TEMPLATE::regex_str       = {};
+    $AMOS7::TEMPLATE::ELF_7_modes     = [];
     $AMOS7::TEMPLATE::truth_templates = [];
+
+    ##  reset timeout here too ? [ amos chksum errors ]  ##   [ LLL ]
+}
+
+sub reset_temp_valid_timeout {
+    return $AMOS7::TEMPLATE::templ_valid_timeout = $default_timeout;
+}
+
+sub template_timeout {
+    my $timeout = shift;
+
+    return $AMOS7::TEMPLATE::templ_valid_timeout if not defined $timeout;
+
+    return error_exit('expected timeout parameter in seconds')
+        if $timeout !~ m|^\d+(\.\d+)?$|;
 }
 
 sub set_ELF7_modes {
@@ -254,10 +272,112 @@ sub is_valid_template {
     return $template_valid;    ## true ##
 }
 
+##[ TEMPLATE VALIDATION CALLBACKS ]###########################################
+
+sub reset_all_callbacks {
+    $AMOS7::TEMPLATE::callback_setup = {};  ##  erasing all values [reset]  ##
+}
+
+sub configure_exclusive_type_callback {    ##  example template %%s:%s  ##
+    my $selected_types_list_ref = shift;
+    my $type_list_aref          = shift;
+    my $sprintf_templates_aref  = shift;
+
+    ##  validate template logic  ##   [ LLL ]
+
+    return error_exit('expected selected types list array ref')
+        if ref $selected_types_list_ref ne qw| ARRAY |;
+    return error_exit('expected type list array reference')
+        if ref $type_list_aref ne qw| ARRAY |;
+    return error_exit('expected sprintf templates array ref param')
+        if ref $sprintf_templates_aref ne qw| ARRAY |;
+    return error_exit('type list contains no elements')
+        if not scalar $type_list_aref->@*;
+    return error_exit('template list contains no elements')
+        if not scalar $sprintf_templates_aref->@*;
+
+    foreach my $template ( $sprintf_templates_aref->@* ) {
+        foreach my $match_type (qw| %%s %s |) {
+            my @match_count = $template =~ m|(*nlb:\%)$match_type|sg;
+            if ( @match_count != 1 ) {
+                my $err_reason_str
+                    = @match_count == 0 ? qw| missing | : qw| redundant |;
+                warn_err( "sprintf template '%s' not valid [ %s '%s' ]",
+                    4, $template, $err_reason_str, $match_type );
+                return undef;    ##  aborting template set-up  ##
+            }
+        }
+    }
+
+    my %types_selected = map { $ARG => 5 } $selected_types_list_ref->@*;
+    my @excl_types_list    ##  remove selected types from list  ##
+        = grep { not exists $types_selected{$ARG} } $type_list_aref->@*;
+
+    $AMOS7::TEMPLATE::callback_setup->{'exclusive-type'} = {
+        qw|  excl-type-list   |       => \@excl_types_list,
+        qw| sprintf-truth-templates | => $sprintf_templates_aref,
+    };  ##  truth templates are inverted, returning false if they are true  ##
+
+    return $AMOS7::TEMPLATE::callback_setup->{'exclusive-type'};
+}
+
+sub CALLBACK_exclusive_type { ##  calling excl. types callback with params  ##
+    my $cb_params = $AMOS7::TEMPLATE::callback_setup->{'exclusive-type'};
+    my $check_string_param = shift;
+
+    my $check_string_param_sref
+        = ref $check_string_param eq qw| SCALAR |
+        ? $check_string_param
+        : \$check_string_param;
+
+    return TEMPLATE_exclusive_type(
+        $cb_params->{'excl-type-list'},
+        $cb_params->{'sprintf-truth-templates'},
+        $check_string_param_sref
+    );
+}
+
+sub TEMPLATE_exclusive_type {
+    my $excl_list_ref          = shift;
+    my $sprintf_templates_aref = shift;
+    my $check_string_param     = shift;
+
+    my $TRUE = 5;    ## true ##
+
+    return error_exit('expected exculsion type list array reference')
+        if ref $excl_list_ref ne qw| ARRAY |;
+    return error_exit('expected sprintf templates array ref param')
+        if ref $sprintf_templates_aref ne qw| ARRAY |;
+    return error_exit('expected check string scalar ref param')
+        if ref $check_string_param ne qw| SCALAR |;
+
+    use warnings qw| FATAL |;    ## catch sprintf errors ##
+
+    foreach my $template ( $sprintf_templates_aref->@* ) {
+        foreach my $type ( $excl_list_ref->@* ) {
+            my $template_filled = eval { sprintf $template, $type };
+
+            return error_exit( format_sprintf( $EVAL_ERROR, 4 ) )
+                if not defined $template_filled or length $EVAL_ERROR;
+
+            my $valid_str
+                = eval { sprintf $template_filled, $check_string_param->$* };
+
+            return error_exit( format_sprintf( $EVAL_ERROR, 4 ) )
+                if not defined $valid_str or length $EVAL_ERROR;
+
+            $TRUE = 0 if AMOS7::Assert::Truth::is_true( $valid_str, 0, 1 );
+
+            return $TRUE if not $TRUE;    ##  false  ##
+        }
+    }
+    return $TRUE;                         ##  true  ##
+}
+
 return 5;  ###################################################################
 
-#,,,,,,,,,.,.,...,,..,.,,,,,,,,..,,,,,,.,,..,,..,,...,...,..,,,,.,,..,,.,,...,
-#R2CGNC2EQEDENP2AKGQKUD46UJHSBRY55YNNICCK3QXDZ6I3COXELTOTREGPSMYU7RQSYRSVFGVI6
-#\\\|QMUHDS7URWRBZSCTEAI4ZYFHUAW65LM4BM44YQZLHL3QQCEFNQA \ / AMOS7 \ YOURUM ::
-#\[7]NNXYOQVQ5ECW2HEFLXK2SSTZKAUUGPGDT4OFP4HEAYVIJFPSZMBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,.,.,,,..,,,,,,,,,,.,.,.,.,,,,,..,,...,...,...,,,.,.,,,,.,,...,
+#AXYXRWN5OIKJK7OBU3BESIRHGQGLNAMO4Z37ZYAIKY4RXSVVCSZ4SUVQMFA7KAA7YPK6EPTYMFDVK
+#\\\|MOYNL5BTJ4I4FRY6QMVD7NBQ2T7DBQ5CTBWWIUPUSOZT4FEZTX6 \ / AMOS7 \ YOURUM ::
+#\[7]U2MZ544ICT2BKNYR2VQ7O23K5XTASIWR6HNKLNBDJOJBYWPQFODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
