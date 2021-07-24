@@ -17,7 +17,7 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 @EXPORT = qw[
 
-    TERM_SIZE %C error_exit warn_err caller_str format_error
+    TERM_SIZE %C error_exit warn_err caller_str format_error format_sprintf
 
 ];
 
@@ -150,6 +150,32 @@ sub warn_err {
     return undef;
 }
 
+sub format_sprintf {
+    my $err_str = format_error(shift) // 'sprintf template error[s]';
+
+    my $c_lvl = shift // 1;
+
+    if ( index( $err_str, 'conversion in sprintf', 0 ) >= 0 ) {
+        $err_str
+            = sprintf(
+            'sprintf template error [ conversion not valid ] <{C%d}>',
+            $c_lvl );
+    } elsif ( index( $err_str, 'numeric in sprintf', 0 ) >= 0 ) {
+        $err_str
+            = sprintf(
+            'sprintf template error [ argument not numeric ] <{C%d}>',
+            $c_lvl );
+    } elsif ( index( lcfirst $err_str, 'argument in sprintf', 0 ) >= 0 ) {
+        $err_str
+            = index( lcfirst($err_str), qw| missing |, 0 ) == 0
+            ? sprintf( 'sprintf template error [ missing argument ] <{C%d}>',
+            $c_lvl )
+            : sprintf( 'template error [ redundant argument ] <{C%d}>',
+            $c_lvl );
+    }
+    return $err_str;
+}
+
 sub format_error {
     my $err_str = shift // qw| :undef: |;
     my $c_lvl   = shift // 1;
@@ -233,8 +259,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,..,.,,,,..,,.,,.,.,..,,,,,,,,,,.,.,.,.,,.,,..,,...,...,,,,,.,.,.,.,.,,,,,,,
-#G3DKTYIZC7GISPA7E4A35X2TDALLHS4WCPUWTVDYKVWIPUTO22BVUNJTLY4SBO37DBA3EQI6RNYYG
-#\\\|MFTKRDIX2EEER46UM6ROEFVZH6BSYJKQCUL2AUB2H4ZJWFX46VE \ / AMOS7 \ YOURUM ::
-#\[7]UNE2AWBWWNJZHZ7FGP7LGUFDQHCLNQLJ2I7FBDGA47YZNZFL6YDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,...,,,.,,.,,,,,,,..,,..,.,.,..,,...,...,...,...,,,.,.,.,,.,,
+#N4DNTQ65B4J7GN7X3MNYXQZBPVBRWVRKUNCZPBPYZ2LOEUEEDEHJB7QBXZ7NEJT4IW5YL3CE5M3YG
+#\\\|TPHZXS633Q3GEAFAK57CRO2EVRYC7XPFVS2YUDQLBZ7SVT7TLVR \ / AMOS7 \ YOURUM ::
+#\[7]QUTHOSRQHUQXDIA7CGDJE2NYFRBVIV5IYEBSZXQ5LS2TJWL5GADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
