@@ -3,69 +3,115 @@
 # name = base.file.match_files
 # args = [result_array_ref,] <search_path>, <file_name_pattern(s)>
 
-my $result_aref;
-$result_aref = shift(@ARG) if ref( $ARG[0] ) eq qw| ARRAY |; # [ append mode ]
-
-my $search_path = shift @ARG;
-
-my $recursion
-    = ( @ARG and $ARG[0] eq qw| recursive | and shift @ARG )
-    ? qw| recursive |
-    : undef;
-
-my @wildcard_filenames = @ARG;
-
 # supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
 
-if ( not defined $search_path or not length $search_path ) {
-    warn 'path param missing or undefined <{C1}>';
-    return undef;
+my $result_aref;
+$result_aref = shift(@ARG) if ref $ARG[0] eq qw| ARRAY |;    # [ append mode ]
+
+my $search_abs_path = shift @ARG;
+
+my $recursive_scan    ## 'recursive' parameter ##
+    = (     @ARG
+        and defined $ARG[0]
+        and $ARG[0] eq qw| recursive |
+        and shift @ARG )
+    ##  true ##
+    ? 5
+    ##  false  ##
+    : 0;
+
+##  false  ##
+my $recursion_entered = 0;
+
+if ( not defined $result_aref ) {
+    $result_aref = [];
+} else {
+    ## true ##
+    $recursion_entered = 5;
 }
-
-my $path_abs = abs_path($search_path);
-
-if ( not defined $path_abs or not -d $search_path ) {
-    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $search_path );
-    return undef;
-} elsif ( @wildcard_filenames == 0 ) {
-    warn 'expected filenames \\ patterns <{C1}>';
-    return undef;
-}
-
-$search_path = $path_abs;
-
 my $results = [];
 $results = $result_aref if defined $result_aref;    ##  [ append mode ]
-my @file_table = map {
-    my $key = $ARG // '';
-    $key =~ s|\.|\\.|g;
-    $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
 
-    ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
+##  precompiled regular expression patterns  ##
+##
+my $regex_aref = shift @ARG
+    if ref $ARG[0] eq qw| ARRAY |
+    and rindex( ref $ARG[0]->[0], qw| Regexp | ) != -1;
 
-    if ( not defined $reg_ex or length $EVAL_ERROR ) {
-        <[base.s_warn]>->( '[ %s ] %s <{C1}>', $key, $regex_err_str );
+if ( not defined $regex_aref ) {
+    my @wildcard_filenames = @ARG;
+
+    if ( @wildcard_filenames == 0 ) {
+        warn 'expected filenames \\ patterns <{C1}>';
         return undef;
     }
-    $reg_ex;
 
-} @wildcard_filenames;
+    my @file_table = map {
+        my $key = $ARG // '';
+        $key =~ s|\.|\\.|g;
+        $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
 
-foreach my $file ( <[file.all_files]>->( $search_path, $recursion )->@* ) {
-    foreach my $pattern (@file_table) {
-        if ( $file =~ $pattern ) {
-            push $results->@*, $file;
-            next;
+        ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
+
+        if ( not defined $reg_ex or length $EVAL_ERROR ) {
+            <[base.s_warn]>->( '[ %s ] %s <{C1}>', $key, $regex_err_str->$* );
+            return undef;
         }
+        $reg_ex;
+
+    } @wildcard_filenames;
+
+    $regex_aref = \@file_table;
+
+}
+
+my $dir_fh;
+$search_abs_path =~ s|/+$||;    ##  remove trailing '/'-es ##
+
+if ( not opendir( $dir_fh, $search_abs_path ) ) {
+    <[base.s_warn]>->(
+        "directory path '%s' [ %s ] <{C1}>",
+        $search_abs_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
+    next if $entry =~ m|^\.{1,2}$|;
+    my $path_abs = catfile( $search_abs_path, $entry );
+
+    foreach my $pattern ( $regex_aref->@* ) {
+
+        ##  matching for any 'files' only  ##
+        if ( -f $path_abs and $path_abs =~ $pattern ) {
+
+            push $results->@*, $path_abs;
+            last;
+        }
+    }
+
+    ##  skip not readable  ##
+    next if not $recursive_scan or not -d $path_abs or not -r $path_abs;
+
+    <[file.match_files]>->(
+        $result_aref, $path_abs, qw| recursive |, $regex_aref
+    );
+}
+
+if ( not $recursion_entered ) {
+    undef $regex_aref->@*;
+    undef $regex_aref;    ##  reset regular expression patterns  ##
+    if ( not $recursion_entered ) {
+
+        return $result_aref->@* if wantarray;    ## array in list context ##
+
+        ##  returning ARRAY reference in scalar context  ##
+        return $result_aref if not $recursion_entered;
     }
 }
 
-return scalar $results->@* if defined $result_aref;    # [ append mode ]
-
-return $results->@*;
-
-#,,..,...,...,,,.,.,.,,..,.,.,.,,,,..,.,,,,,,,..,,...,...,.,,,,..,...,..,,,..,
-#W65GCIEITPT2XUB7GTVKFJE5C3BNUCZCP2VFE3RXOKTKF7OGOZXSBTRBRZMDSJJ6IBKDIHI6HI7YU
-#\\\|SEIMN7KULC2OJSMTCXKYKNCO3QLYUE6LP7O5QER333G2CV7ZUCH \ / AMOS7 \ YOURUM ::
-#\[7]UICZVD7FYUS2CMQB5ADW6PY3T3DD5MLAN3EXONMMD5SLPOL4FEAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,,.,..,,,,.,,.,,.,.,..,,,..,..,,...,...,..,,...,..,,,.,,.,,,
+#QRHPATMKMCI6FJJ4ULAVRAHOVS446PR3CQ2I6EHLEKXWORAEEAZB75ZIFS7XCC6SRAPAF7WDUUO4A
+#\\\|6E7I7XNAKMUVSIPH3EA5V7OE5W2ORZ6HMXSJTGXOBYKBUEKJRNT \ / AMOS7 \ YOURUM ::
+#\[7]H3NZGEDENMNNENC5YMIYUHGSQR3D7XVHQMYIBCQL6N2RDA5UOEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
