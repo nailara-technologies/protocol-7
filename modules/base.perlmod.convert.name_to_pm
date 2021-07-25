@@ -1,0 +1,12 @@
+## >:] ##
+
+# name  = base.perlmod.convert.name_to_pm
+
+my $module_name = shift;
+
+return undef if not defined $module_name;
+
+$module_name =~ s|::|/|g;
+$module_name .= qw| .pm | if rindex( $module_name, qw| .pm | ) == -1;
+
+return $module_name
