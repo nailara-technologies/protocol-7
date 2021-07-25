@@ -40,14 +40,17 @@ if ( not -d $conf_path ) {
 
 foreach my $path_abs ( $perlmods_found_aref->@* ) { $path_abs =~ s|^.+/|| }
 
+$perlmods_found_aref->@*    ##  exclude .placeholder  ##
+    = uniq grep { index( $ARG, qw| . |, 0 ) != 0 } $perlmods_found_aref->@*;
+
 if (wantarray) {    ##  perlmod list  ##
-    return ( uniq <[base.sort]>->($perlmods_found_aref) );
+    return <[base.sort]>->($perlmods_found_aref);
 } else {
-    return [ uniq <[base.sort]>->($perlmods_found_aref) ];   ##  ARRAY ref  ##
+    return [ <[base.sort]>->($perlmods_found_aref) ];    ##  ARRAY ref  ##
 }
 
-#,,.,,..,,,..,.,.,,.,,..,,,.,,.,.,,,,,,,,,,,.,.,.,...,...,.,.,...,...,.,.,,..,
-#C6P34P46767YH2OINSAWMHCJOFLO5PKB6Z4QQYFNLK6SN65B5YASYCZPDS2DHZGYVO6GPLI2JG3MQ
-#\\\|EECFLJLTVZMWN6PR7SSLSRDSKM7RTISZ3QCTDYCAWFZOWK6CXON \ / AMOS7 \ YOURUM ::
-#\[7]OHBR3TRP7K4VL6IEZZU6VAGLJCY3VZLFXWEA4WZ5XUNGXGB6RUCA 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,,,.,..,,.,,,...,...,...,,.,,.,.,...,...,.,.,..,,,,.,...,.,.,
+#RLQKJCX4TVPQZ7AY2PKED6NIEUOCSTABUCPVYZ4IRZCBRPZCZEFVGSZWFUKGDJLE3XB7TCZ2IRW5S
+#\\\|Y2OPAL4ZOEIVBGH4RO7OT2T4L5YLFB5DEPIXN4OF24XUMXU7WJX \ / AMOS7 \ YOURUM ::
+#\[7]AAR5ADEI2NZ6XPBQWCOYB2MPUYTEKGAFXMKW62LKY3HCCKEJPOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

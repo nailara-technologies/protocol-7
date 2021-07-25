@@ -1,0 +1,65 @@
+## >:] ##
+
+# name  = mod-test.post_init
+
+<mod-test.list.blacklisted_modules> //= <base.perlmod.reload_blacklist> // [];
+<mod-test.list.registered_modules> = <[base.perlmod.all_registered]>;
+
+<[base.logs]>->(
+    1, '.: loading all registered perl modules for reload test :.'
+);
+
+#my %module_blacklisted
+#    = map { $ARG => 5 } <mod-test.list.blacklisted_modules>->@*;
+
+my %module_blacklisted    ##  initializing with already blacklisted ones  ##
+    = map {
+    $ARG =~ s|::|/|g;
+    $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
+    $ARG => 5
+    } <mod-test.list.blacklisted_modules>->@*;
+
+my @load_failed;
+<[base.log]>->( 2, ':' );
+{
+    ##  catching load errors and warnings  ##
+    ##
+    use warnings qw| FATAL |;
+    local $SIG{__WARN__} = sub { die @ARG };
+
+    foreach my $perl_module ( <mod-test.list.registered_modules>->@* ) {
+        <[base.logs]>->( 2, ':. %s', $perl_module );
+
+        eval { Module::Load::load($perl_module) };
+
+        $module_blacklisted{$perl_module} = 5 if length $EVAL_ERROR;
+    }
+}
+<[base.log]>->( 2, ':' );
+<[base.log]>->( 2, ':.,' );
+
+<[base.logs]>->(
+    ':: could not load %d modules, adding to blacklist.,',
+    scalar @load_failed
+);
+
+<mod-test.list.blacklisted_modules> = [
+    <[base.sort]>->(
+        map {
+            $ARG =~ s|::|/|g;
+            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
+            $ARG
+        } <[base.sort]>->( \%module_blacklisted )
+    )
+];
+
+say '< blacklisted > ', join ' ',
+    $code{'base.sort'}->(<mod-test.list.blacklisted_modules>);
+
+0;
+
+#,,,,,,,.,,,,,,..,,,.,,,.,.,.,...,,,,,,,.,..,,..,,...,...,.,,,.,,,,,.,...,.,,,
+#DYT6IHRE42LODCCUR3P3XSHYQNS3A5PGNUV467TSH32UCSQOK4FAJPUCGLRJMRMD4UZ7IHISYTLVC
+#\\\|3UA356TS426DAU5PLD2RTXDCZTMFRPQ2JZICBRJZV5LTJOTJT7A \ / AMOS7 \ YOURUM ::
+#\[7]EDHGW7RHAS7MY6UAY3UBCBMVBKTPQWS7QW3EETG5K2K5ZTEYNMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

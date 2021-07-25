@@ -335,7 +335,7 @@ return [ qw[
         mpv.cmd.get_volume
         mpv.cmd.current-vo
         mpv.cmd.current-ao
-        mod-test.init_code
+        mod-test.post_init
         jobqueue.init_code
         jobqueue.find_jobs
         index.cmd.stop-job
@@ -617,6 +617,7 @@ return [ qw[
         base.list.element.del
         base.list.element.add
         base.handler.debug_io
+        base.file.match_links
         base.file.match_files
         base.file.count_lines
         base.file.clean-paths
@@ -1116,6 +1117,7 @@ return [ qw[
         pdf.html.base.get_html_path
         pdf.html.base.download_file
         mpv.callback.reenc_finished
+        mod-test.blacklist_perlcode
         jobqueue.check_dependencies
         io.unix.socket.output.close
         image2html.parent.init_code
@@ -1132,6 +1134,7 @@ return [ qw[
         base.session.calc_cmd_stats
         base.root.check_system_user
         base.resolve_data_key.regex
+        base.perlmod.all_registered
         base.parser.ondemand_status
         base.log.next_buffer_tstamp
         base.log.handler.send_timer
@@ -1261,6 +1264,7 @@ return [ qw[
         base.handler.cmd_filter_hooks
         base.format.multiline_command
         base.file.timestamped_delta_s
+        base.file.recursive.pathnames
         base.file.path.chksum.BMW-L13
         base.event.handler.exceptions
         base.cube-zenka.output_prompt
@@ -1487,12 +1491,14 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.bytes
         protocol-7-menu.cmd.gfx-action-key
         pdf.html.child.check_cache_timeout
+        mod-test.write_out_blacklist_pcode
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         content.handler.weather_urls_reply
         base.protocol-7.command.send.local
+        base.file.recursive.matching_paths
         USR.AMOS7-admin.sourcecode-pub-key
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
@@ -1528,6 +1534,7 @@ return [ qw[
         file-matrix.unix.handler.amos-chksum
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
+        base.perlmod.manual_reload_blacklist
         base.parser.decode_harmonized_refstr
         weather.parent.cache.write_station_id
         v7.handler.heartbeat_response_timeout
@@ -1590,8 +1597,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,,.,,,.,,,,.,,,,,.,,,..,,..,,.,.,,,,,.,.,...,...,..,,.,.,,,,,,,,,,..,
-#PFQZM5U6H7QIVJQVWJHZCXW2ELGN3DGPH6546CKYBB27Q7ECAZFJLVQWSGGJBL4IHHX7WWK7UONS6
-#\\\|BYC6GUPMHOSPZRS2LNUSWKP262KXNAESEZKL26CTEYIJLACSBL5 \ / AMOS7 \ YOURUM ::
-#\[7]HVKRHNFK7G53O5MAU6MMABW4JPPEAFPDHVNWZ3QWVG4SDE4MBMAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,,.,.,.,..,,,,.,.,.,..,,..,,.,.,...,...,..,,.,,,,,.,.,.,..,,
+#GD474ZZN4F2O35COIIESLYZ7C77LY4FZ7R67NYL2TQWAW4RGBYDBJHQKPHL54PXR2NKHVG7KRFNHQ
+#\\\|5WEHEO6JQHM3S3JA4MUGMPHYBLDJEGVZIWOBQSJWGGJXLKPXS7N \ / AMOS7 \ YOURUM ::
+#\[7]WISKCVA3SY7QYEWE4KJHEWBSGVAXCS2JTPR3SHFTACKKDJ22MIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
