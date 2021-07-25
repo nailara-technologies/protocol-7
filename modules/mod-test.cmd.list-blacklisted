@@ -1,14 +1,53 @@
 ## >:] ##
 
 # name  = mod-test.cmd.list-blacklisted
+# param = [pattern]
 # descr = return [reload] blacklisted perl module list
 
-my $mod_name_pattern = shift;
+my $mod_name_pattern = $call->{'args'};
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+my $link_target_dir = <mod-test.path.mod-reg-dir>->{'blacklisted'};
 
-#,,.,,,.,,,,,,.,.,,,,,,,.,...,,..,,,.,,.,,,,,,..,,...,...,...,.,.,..,,,.,,...,
-#2JUV4NDSUH7F5PGAWBK435FDUZRP5RMUEHZ4423PWD336NCLI3CX74THCL67PPBSVXIXGKJRUW3PO
-#\\\|7IHXQYF5V4KFGQW4UM4IHTGGHO2PNNBCK5EB6PWWDSBBWJNY7U7 \ / AMOS7 \ YOURUM ::
-#\[7]UVDH2DMFXZLNKFGU4MMD3WQM3M2DXIVHBVC6ZMCCHOBIL47XEMCQ 7  DATA SIGNATURE ::
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        -e $link_target_dir
+        ? 'directory not readable [%s]'
+        : 'directory not present [ %s ]',
+        $link_target_dir
+    )
+    }
+    if not -e $link_target_dir or not -r $link_target_dir;
+
+my @blacklist_pm_rel;
+
+my $link_path_hash = <[file.all_links]>->($link_target_dir);
+
+foreach my $link_path_abs ( keys $link_path_hash->%* ) {
+    next
+        if defined $mod_name_pattern
+        and index( $link_path_hash->{$link_path_abs}, $mod_name_pattern, 0 )
+        == -1;
+
+    push @blacklist_pm_rel, $link_path_hash->{$link_path_abs};
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => defined $mod_name_pattern
+    ? 'no matches to pattern'
+    : 'no entries',
+    }
+    if @blacklist_pm_rel == 0;
+
+return {
+    'mode' => qw| size |,
+    'data' => join '',
+    map {"$ARG\n"} <[base.sort]>->( \@blacklist_pm_rel )
+    }
+
+#,,,,,..,,,.,,..,,,.,,..,,.,,,,,,,,,.,,..,,,.,..,,...,...,.,.,,,.,...,,,.,..,,
+#K2SDVOPOTSBXBO6TRYVR7PWGVV7Y5UQLEXQCPLK4MODEPTWLF2NDJP2UGNDFZPNTXMO4CZMKZJ3HG
+#\\\|SOH6Q6V7AXCXDCVTEIECXRVVKKAWBN227ZFUQ7WGY5NF3ZKBOBW \ / AMOS7 \ YOURUM ::
+#\[7]JDYPSB6LIMHSFZKG4OVWNKXXEU4NI24H74QJN76JWEEFH3D2D6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
