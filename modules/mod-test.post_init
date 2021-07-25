@@ -5,9 +5,7 @@
 <mod-test.list.blacklisted_modules> //= <base.perlmod.reload_blacklist> // [];
 <mod-test.list.registered_modules> = <[base.perlmod.all_registered]>;
 
-<[base.logs]>->(
-    1, '.: loading all registered perl modules for reload test :.'
-);
+<[base.logs]>->( 1, '.: loading all registered perl modules :' );
 
 #my %module_blacklisted
 #    = map { $ARG => 5 } <mod-test.list.blacklisted_modules>->@*;
@@ -20,6 +18,7 @@ my %module_blacklisted    ##  initializing with already blacklisted ones  ##
     } <mod-test.list.blacklisted_modules>->@*;
 
 my @load_failed;
+my $load_success = 0;
 <[base.log]>->( 2, ':' );
 {
     ##  catching load errors and warnings  ##
@@ -32,16 +31,32 @@ my @load_failed;
 
         eval { Module::Load::load($perl_module) };
 
-        $module_blacklisted{$perl_module} = 5 if length $EVAL_ERROR;
+        if ( not length $EVAL_ERROR ) {
+            $load_success++;
+        } else {
+            $module_blacklisted{$perl_module} = 5;
+        }
     }
 }
+
 <[base.log]>->( 2, ':' );
 <[base.log]>->( 2, ':.,' );
 
-<[base.logs]>->(
-    ':: could not load %d modules, adding to blacklist.,',
-    scalar @load_failed
-);
+if ( scalar @load_failed ) {
+    <[base.logs]>->(
+        ':: could not load %d modules, adding to blacklist.,',
+        scalar @load_failed
+    );
+} else {
+    <[base.logs]>->(
+        ':. successfully loaded all %d modules ::',
+        $load_success
+    );
+    <[base.logs]>->(
+        ':  :. %d were already blacklisted .:',
+        scalar keys %module_blacklisted
+    );
+}
 
 <mod-test.list.blacklisted_modules> = [
     <[base.sort]>->(
@@ -53,13 +68,10 @@ my @load_failed;
     )
 ];
 
-say '< blacklisted > ', join ' ',
-    $code{'base.sort'}->(<mod-test.list.blacklisted_modules>);
-
 0;
 
-#,,,,,,,.,,,,,,..,,,.,,,.,.,.,...,,,,,,,.,..,,..,,...,...,.,,,.,,,,,.,...,.,,,
-#DYT6IHRE42LODCCUR3P3XSHYQNS3A5PGNUV467TSH32UCSQOK4FAJPUCGLRJMRMD4UZ7IHISYTLVC
-#\\\|3UA356TS426DAU5PLD2RTXDCZTMFRPQ2JZICBRJZV5LTJOTJT7A \ / AMOS7 \ YOURUM ::
-#\[7]EDHGW7RHAS7MY6UAY3UBCBMVBKTPQWS7QW3EETG5K2K5ZTEYNMDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,.,..,,..,,.,,,.,.,.,,,,.,,..,,...,..,,.,,,.,,,.,.,,..,..,,
+#LRVGZDCQMLA47QFQA7MFW76QRPVOFNA2T237PCKAGLAYBSPVRUDVQEJWESV5RGIC3RBLK3YMQRKYO
+#\\\|MH2SHGC6AQ7PBSX2PR43OONUINR6DBAIEKXZDBHQVYETIQTRK5Y \ / AMOS7 \ YOURUM ::
+#\[7]6GEPTLAUKFCBIAIIJCTHW5HZBQYZVJGC6BKLK74QG5LBQC63SQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
