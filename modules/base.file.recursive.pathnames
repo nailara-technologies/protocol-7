@@ -1,0 +1,55 @@
+## >:] ##
+
+# name = base.file.recursive.pathnames
+# args = [result_array_ref,] <search_path>, <dir_name_pattern(s)>
+
+my ( $path, $result_aref ) = @ARG;
+
+if ( not defined $path or not length $path ) {
+    warn 'path param missing or undefined <{C1}>';
+    return undef;
+}
+
+my $old_path;
+my $recursion_entered = 0;
+
+if ( not defined $result_aref ) {
+    $result_aref = [];
+} else {
+    $recursion_entered = 5;    ## true ##
+}
+
+if ( not -d $path ) {
+    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $path );
+    return undef;
+} else {
+    my $dir_fh;
+    $path =~ s|/+$||;
+    if ( not opendir( $dir_fh, $path ) ) {
+        <[base.s_warn]>->(
+            "directory path '%s' [ %s ] <{C1}>",
+            $path, <[base.str.os_err]>
+        );
+        return undef;
+    }
+
+    foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
+        next if $entry =~ m|^\.{1,2}$|;
+        my $path_abs = catfile( $path, $entry );
+
+        push $result_aref->@*, $path_abs;    ##  collect all filetypes  ##
+
+        ##  skip not readable  ##
+        next if not -d $path_abs or not -r $path_abs;
+
+        <[file.all_dirs]>->( abs_path($path_abs), $result_aref );
+    }
+}
+
+return $result_aref if not $recursion_entered;
+
+#,,.,,.,.,...,.,,,...,...,,,.,.,,,.,,,,,.,,.,,..,,...,...,,..,.,.,,,,,,,,,..,,
+#22SLDWSZZZELM2TGGENYVU65VQO2I6QAXPFJDYNFY5D7H5H2PL7JFK4PPFLZMNUPQLSVDKVSVI2FW
+#\\\|PQOUWWOK27TGLILH2O7PUSTF7VUWSBD5FCUQOQXEZKOTZSKLHCV \ / AMOS7 \ YOURUM ::
+#\[7]HKSIU7OTZL5VYBYTRHR4E2HM77ETDJ672UOFG4VP7P7UOJ2TXICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
