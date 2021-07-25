@@ -1,0 +1,114 @@
+## >:] ##
+
+# name = base.file.recursive.matching_paths
+# args = [result_array_ref,] <search_path>, <dir_name_pattern(s)>
+
+# supported wildcard patterns are: '*' ([^\.]*) and '**' (.*)
+
+my $result_aref;
+$result_aref = shift(@ARG) if ref $ARG[0] eq qw| ARRAY |;    # [ append mode ]
+
+my $search_abs_path = shift @ARG;
+
+if ( not defined $search_abs_path or not length $search_abs_path ) {
+    warn 'path param missing or undefined <{C1}>';
+    return undef;
+}
+
+##  false  ##
+my $recursion_entered = 0;
+
+if ( not defined $result_aref ) {
+    $result_aref = [];
+} else {
+    ## true ##
+    $recursion_entered = 5;
+}
+my $results = [];
+$results = $result_aref if defined $result_aref;    ##  [ append mode ]
+
+##  precompiled regular expression patterns  ##
+##
+my $regex_aref = shift @ARG
+    if ref $ARG[0] eq qw| ARRAY |
+    and rindex( ref $ARG[0]->[0], qw| Regexp | ) != -1;
+
+if ( not defined $search_abs_path or not length $search_abs_path ) {
+    warn 'path param missing or undefined <{C1}>';
+    return undef;
+} elsif ( not defined $search_abs_path or not -d $search_abs_path ) {
+    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $search_abs_path );
+    return undef;
+}
+
+if ( not defined $regex_aref ) {
+    my @wildcard_filenames = @ARG;
+
+    if ( @wildcard_filenames == 0 ) {
+        warn 'expected filenames \\ patterns <{C1}>';
+        return undef;
+    }
+
+    my @file_table = map {
+        my $key = $ARG // '';
+        $key =~ s|\.|\\.|g;
+        $key =~ s{(\*\*|\*)}{ $LAST_PAREN_MATCH eq '*' ? '[^\.]*' : '.*' }ge;
+
+        ( my $reg_ex, my $regex_err_str ) = <[base.eval.comp_regex]>->($key);
+
+        if ( not defined $reg_ex or length $EVAL_ERROR ) {
+            <[base.s_warn]>->( '[ %s ] %s <{C1}>', $key, $regex_err_str->$* );
+            return undef;
+        }
+        $reg_ex;
+
+    } @wildcard_filenames;
+
+    $regex_aref = \@file_table;
+
+}
+
+my $dir_fh;
+$search_abs_path =~ s|/+$||;    ##  remove trailing '/'-es ##
+
+if ( not opendir( $dir_fh, $search_abs_path ) ) {
+    <[base.s_warn]>->(
+        "directory path '%s' [ %s ] <{C1}>",
+        $search_abs_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+foreach my $entry ( <[base.sort]>->( readdir($dir_fh) ) ) {
+    next if $entry =~ m|^\.{1,2}$|;
+    my $path_abs = catfile( $search_abs_path, $entry );
+
+    foreach my $pattern ( $regex_aref->@* ) {
+
+        ##  any [matching] file types  ##
+        if ( $path_abs =~ $pattern ) {
+
+            push $results->@*, $path_abs;
+            last;
+        }
+    }
+
+    ##  skip not readable  ##
+    next if not -d $path_abs or not -r $path_abs;
+
+    <[file.recursive.matching_paths]>->(
+        $result_aref, $path_abs, $regex_aref
+    );
+}
+
+if ( not $recursion_entered ) {
+    undef $regex_aref->@*;
+    undef $regex_aref;    ##  reset regular expression patterns  ##
+    return $result_aref if not $recursion_entered;
+}
+
+#,,,.,,,.,...,.,.,.,.,.,,,,..,.,,,.,.,,..,,,.,..,,...,...,..,,.,.,,..,..,,,.,,
+#BN7GN7JXTEJIUEVKCP2O5I4TBNDHWCM6EXMXVRSM3J54DH6IARUIJFCYSX6INVCRV3LTBBOWPMQEO
+#\\\|XUJCGSHXAZDGF74W4IKKPSGPKB3NFMQPNYKQQOB242OEIBNH76W \ / AMOS7 \ YOURUM ::
+#\[7]7H3LUAFVDFCF5XTRPEGQ5WTEAHPX6RXP24AYYDTAVQBW3TCV7WBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
