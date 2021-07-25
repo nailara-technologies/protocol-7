@@ -1,0 +1,43 @@
+## >:] ##
+
+# name  = mod-test.callback.reload-test.add-link
+
+my $register_type = shift // '';
+my $module_file   = shift // '';
+
+if ( not defined <mod-test.path.mod-reg-dir>->{$register_type} ) {
+    <[base.s_warn]>->('no such registry type [ %s ] <{C1}>');
+    return undef;
+}
+
+my $link_reg_dir = <mod-test.path.mod-reg-dir>->{$register_type};
+
+if ( not length $module_file ) {
+    warn 'expected module filename [ .pm rel path ] <{C1}>';
+    return undef;
+} elsif ( not -d $link_reg_dir ) {
+    <[base.logs]>->( 'target directory %s not found <{C1}>', $link_reg_dir );
+    return undef;
+} elsif ( not -w $link_reg_dir ) {
+    <[base.logs]>->(
+        'no write perms on target directory %s <{C1}>',
+        $link_reg_dir
+    );
+    return undef;
+}
+
+my $mod_path_chksum    ##  use only the checksum component  ##
+    = [ <[file.gen_path_linkname]>->( $link_reg_dir, $module_file, 0, 5 ) ]
+    ->[1];
+
+<[base.logs]>->( 2, 'registering [ %s ] %s', $mod_path_chksum, $module_file );
+
+return <[file.path.create-chksum-link]>->(    ##  creating the symlink  ##
+    $link_reg_dir, $module_file, $mod_path_chksum
+);
+
+#,,,.,,,,,,,.,..,,..,,,..,,..,,,.,..,,...,,..,..,,...,...,..,,..,,..,,...,,,.,
+#65DY74AYLUYLUFCMGFVHJ6GFOQ5FNMYEWCOPUIXOFYTIWOYI5OA2SESEPJ3VBUV5DJ72T5LPKCS2G
+#\\\|GUZFX2VQIDKTAOH66GAHN3FSVDBCUJARRUPILTGSBKVVVRYNQMW \ / AMOS7 \ YOURUM ::
+#\[7]PF6RMZ7NGI3PCKKLBPTKSAMVW24664OJHTGDWO2LQCZB4KG7W6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

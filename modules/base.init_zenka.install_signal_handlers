@@ -7,7 +7,7 @@ my @registered_signals = qw| int term hup NUM37 NUM55 NUM41 chld NUM53 |;
 ## [ setting logging signal handler for all others ]
 ##
 my %ignored_sig   = map { uc $ARG => 5 } keys %SIG;
-my %silent_signal = map { uc $ARG => 5 } qw| CLD |;
+my %silent_signal = map { uc $ARG => 5 } qw| CLD WINCH |;
 foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
     $signal_name =~ s|^SIG|| if index( $signal_name, qw| SIG |, 0 ) == 0;
     delete $ignored_sig{ uc($signal_name) };
@@ -28,7 +28,7 @@ foreach
         my $signal_name_str
             = $signal_name =~ m|^\d+$|
             ? sprintf( qw| SIGNUM%d |, $signal_name )
-            : sprintf( qw| SIG%s |,    $uc_sig );
+            : sprintf( qw|   SIG%s  |, $uc_sig );
 
         if ( not exists $silent_signal{$uc_sig} ) { ## logged [ignored] sig ##
 
@@ -56,8 +56,8 @@ foreach
     );
 }
 
-#,,,.,,,.,,,,,.,.,...,,,.,...,,.,,.,,,,.,,,,.,.,.,...,...,,..,,..,,,,,,,,,..,,
-#JRGRKSCHKXGF2GZ6ILW53BWP4GJXFKLHE73Q6PWCEZU5CMXPBWCWVRIAVYQ34TEIT5Y6AJSR7UQ5W
-#\\\|YF5HNMVUT5S65OUSFZBB4CIPS4SQ7ZKB32SVWMCRNIHOIWPVI6T \ / AMOS7 \ YOURUM ::
-#\[7]J5YUG7WHRBQFSDKFR3MICOPMZWGHEK6KGD5ZIWBNGEJRPQ4CQIAA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,.,.,,,,,..,,,,.,.,,,,,,,...,.,.,...,...,..,,,,,,,,.,,,,,..,,
+#46U2NQMIK6FVKNVG7V5ETMX3COPNNFMAAJS5S545I3WLAMPFX3H2XTECJULOY5QWZZ537Q6FNPQ2G
+#\\\|WICSJOFEBYC6M25UO62OEDW4TJ7TE5VNTD3BH674MMAHDOUZHAB \ / AMOS7 \ YOURUM ::
+#\[7]34C3XTBIGOIJJRWXIDA3QPT67CJ54TBEL4LNE4VB6BAHMTGTSKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

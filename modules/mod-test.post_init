@@ -6,6 +6,7 @@
 <mod-test.list.registered_modules> = <[base.perlmod.all_registered]>;
 
 my @test_directory;
+<mod-test.path.mod-reg-dir> //= {};
 <mod-test.path.output_dir>    ##  zenka work directory  ##
     //= sprintf( qw| /var/run/.7/%s |, <system.zenka.name> );
 
@@ -14,7 +15,7 @@ foreach my $dir_type (qw| started complete blacklisted |) {
     my $dir_path_absolute = sprintf qw| %s/reload-test-%s |,
         <mod-test.path.output_dir>, $dir_type;
     push @test_directory, $dir_path_absolute;
-    <mod-test.path>->{$dir_type} = $dir_path_absolute;
+    <mod-test.path.mod-reg-dir>->{$dir_type} = $dir_path_absolute;
 }
 
 ##  creating expected test [sub-]directories  ##
@@ -77,8 +78,8 @@ if ( scalar @load_failed ) {  ##  register unloadable modules in blacklist  ##
 
 0;
 
-#,,.,,,.,,,,.,,,,,..,,,,,,,,.,,,.,.,,,.,.,..,,..,,...,...,,,,,,..,,,.,,.,,,.,,
-#YK56MYK2UJM435XKYXXJKRWLJNOKRVI56AFZFC5A7JZPF7KYZSLIEZ43II3UUALXP3UZ6K7ZGTVAC
-#\\\|QDJPQ2Q5DT724PTXOF3FUE3TY2JFUZTXB3TWD2WDABX3ZW3OON3 \ / AMOS7 \ YOURUM ::
-#\[7]L7GX3J6ODOOUKOP6Y42BYL5XDNC37Y35EZH6QOE3NSEEMELOKQDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,,.,,,,.,,,,,...,,..,...,..,,..,,...,...,.,.,,.,,...,.,,,,.,,
+#DKJM6LHJMVNZPX4UJXZJEUROW4BY6EOHWZKSG4P53VMREOEOEJELOW3NQ2TOI5PXKWLYISHKWKKBM
+#\\\|5BYKOVDOC7OYXD4QR2LVVXMGABVJCUSJADYZUXUQ4QIJUYTU2QP \ / AMOS7 \ YOURUM ::
+#\[7]GOJVLCDKECIJ2GCRUMEVZUAM7552B2GLTGWZL2TOO7MWT6LOTKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

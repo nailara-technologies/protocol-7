@@ -4,107 +4,121 @@
 
 my $mod = <base.modules.refresh>;
 
+my @modtest_list = @ARG;
+
+my $test_count                 = 5;    ##  iterations per module  ##
+my $test_run_console_verbosity = 1;
+
 my %refresh;
-
-##  initializing with already blacklisted ones  ##
-
+my @warnings_collected;    ##  initializing with already blacklisted ones  ##
 my %module_blacklisted = <[mod-test.update_blacklist_aref]>;
 
-my @collected;
-
-my $started_dir   = <mod-test.path>->{'started'};
-my $completed_dir = <mod-test.path>->{'complete'};
-my $blacklist_dir = <mod-test.path>->{'blacklisted'};
-
-my $file_template_blacklisted = sprintf qw| %s/%%s |, $blacklist_dir;
-my $file_template_completed   = sprintf qw| %s/%%s |, $completed_dir;
-
-## return 'continue ..,';
-
-my $test_count = 28;
-
-my $subs = {
-
-    qw| update_start | => sub {
-        my $filename = shift;
-        <[file.write_timestamp]>->(
-            sprintf $file_template_blacklisted, $filename
-        );
-    },
-    qw| update_end | => sub {
-        my $filename = shift;
-        <[file.write_timestamp]>->(
-            sprintf $file_template_completed, $filename
-        );
-        unlink( sprintf $file_template_blacklisted, $filename )
-            or warn <[base.str.os_err]>;
-    },
-    qw| is_completed | => sub {
-        my $filename = shift;
-        return 5 if -e sprintf $file_template_completed, $filename;
-        return 0;
-    },
-    qw| is_blacklisted | => sub {
-        my $filename = shift;
-        return 5 if -e sprintf $file_template_blacklisted, $filename;
-        return 0;
-    }
-
-};
+my $callbacks              ## | started complete blacklisted | ##
+    = {
+    qw|   check    | => $code{'mod-test.callback.reload-test.is_registered'},
+    qw|  register  | => $code{'mod-test.callback.reload-test.add-link'},
+    qw| unregister | => $code{'mod-test.callback.reload-test.remove-link'},
+    };
 
 my $collect_coderef = sub {
-    push @collected, scalar <[base.format_error]>->( $ARG[0] )
+    push @warnings_collected, scalar <[base.format_error]>->( $ARG[0] )
         if defined $ARG[0]
         and $ARG[0] !~ m,(^| )subroutine \S+ redefined ,i;
 };
 
-my @all_files = <[base.sort]>->( \%INC );
-
 local $SIG{__WARN__} = $collect_coderef;
 
-my @reload_blacklist = qw[
+my %skip = <[mod-test.update_blacklist_aref]>;
 
-    Event.pm
+<[base.log]>->( 1, '.:[ starting module reload test ]:.' );
 
-];
+my $console_verbosity_backup;
+if ( $test_run_console_verbosity > <system.verbosity.console> ) {
+    $console_verbosity_backup = <system.verbosity.console>;
+    <system.verbosity.console> = $test_run_console_verbosity;
+}
 
-my %skip = map { $ARG => 5 } @reload_blacklist;
+@modtest_list = <[base.reverse-sort]>->( keys %INC )
+    if scalar @modtest_list == 0;
 
-foreach my $module_file (@all_files) {
-    ( my $mod_short = $module_file ) =~ s|^.+/||;
-    next
-        if $subs->{'is_completed'}->($mod_short)
-        or $subs->{'is_blacklisted'}->($mod_short);
+my @sorted_paths = <[base.reverse-sort]>->(
+    uniq map {
+        <[base.perlmod.strip_INC_path]>
+            ->( $INC{$ARG} !~ m|$ARG| ? $ARG : $INC{$ARG} )
+        } @modtest_list
 
-    say '< starting test of mod > ', $mod_short;
+);
 
-    $subs->{'update_start'}->($mod_short);
+return 0 if @sorted_paths == 0;
 
-    say sprintf ':   < starting > testing perl module %s ..,', $mod_short;
+foreach my $module_pm_path_rel (@sorted_paths) {
+
+    <[event.once]>;    ##  network events [ answer heartbeat ]  ##
+
+    if ( $callbacks->{'check'}->( qw| blacklisted |, $module_pm_path_rel ) ) {
+        <[base.logs]>->(
+            ':: skipping : %s : blacklisted ::',
+            $module_pm_path_rel
+        );
+        next;
+
+    } elsif ( $callbacks->{'check'}->( qw| complete |, $module_pm_path_rel ) )
+    {
+        <[base.logs]>->(
+            2, ':: skipping : %s : completed ::',
+            $module_pm_path_rel
+        );
+        next;
+    }
+
+    <[base.logs]>->( 1, ':: starting test  %s  ::', $module_pm_path_rel );
+
+    $callbacks->{'register'}->( qw| blacklisted |, $module_pm_path_rel );
 
     foreach my $iteration ( 1 .. $test_count ) {
-        say sprintf ':. iteration .: %03d', $test_count - $iteration;
+        <[base.logs]>
+            ->( 2, ':. iteration .: %03d', $test_count - $iteration );
         for ( 1 .. 7 ) {
-            <[base.sleep]>->(0.1);
-            <[event.once]>;    ## waiting ##
+            <[event.once]>;    ##  network events [ answer heartbeat ]  ##
         }
 
-        $mod->unload_module($module_file);
-        $refresh{$module_file} = $mod->refresh_module($module_file);
+        $mod->unload_module($module_pm_path_rel);
+        $refresh{$module_pm_path_rel}
+            = $mod->refresh_module($module_pm_path_rel);
+
+        <[base.sleep]>->(0.07);
 
         <[event.once]>;
     }
 
-    say sprintf '< completed > removing %s from blacklist ..,', $mod_short;
-    next if $subs->{'update_end'}->($mod_short);
+    <[base.log]>->( 2, ':, iterations completed.' );
+    <[base.logs]>->(
+        2, ':  :. removing %s from blacklist',
+        $module_pm_path_rel
+    );
+
+    if ( not $callbacks->{'register'}->( qw| complete |, $module_pm_path_rel )
+        or not $callbacks->{'unregister'}
+        ->( qw| blacklisted |, $module_pm_path_rel ) ) {
+        <[base.log]>->( 0, 'unregister not successful, restarting ..,' );
+        <[base.exit]>->(qw| 0110 |);
+    }
+
+    <[mod-test.update_blacklist_aref]>;
 }
 
-<[base.log]>->( 0, ': done.' );
+## restore previous console verbosity ##
+<system.verbosity.console> = $console_verbosity_backup
+    if defined $console_verbosity_backup;
 
-return \@collected;
+<[base.log]>->( 1, ': done.' );
 
-#,,.,,,,.,,,.,,..,.,,,.,,,..,,,,.,...,,,,,..,,..,,...,...,.,.,,..,...,,,.,..,,
-#C6CPOBV27VUCRTLJGZRZZYTK55A6W3BKRCCNTZ7Y7S57XUTTEZPXT5SUL46R3IVU3MDORUJZGGXDI
-#\\\|PJPZEMVBLXUWBNJ7GFW2FNJ7JGWZSVQBJGVHO4FQPL7PHKKZQRP \ / AMOS7 \ YOURUM ::
-#\[7]KMGOWLIMF22YDPB7TNOKQ4EUMN437YAJKYKQ4CFNDNB5DURAJECY 7  DATA SIGNATURE ::
+return 5;    ## true \ success ##
+
+## return  \@warnings_collected;
+
+#,,,.,..,,..,,.,,,...,.,.,,,,,.,,,..,,,.,,,.,,..,,...,...,,..,.,.,,,,,,,.,,..,
+#RO2RL5IW34HWDXH554KK3PWST4TXFCNE5CUXBJBU6R6BOL6UH42T6HUXCLANP3FUECBIQ6AI4BO4E
+#\\\|ABR5EMI27LYDTTULWHP4ODDRVJVI4KCIIB3QGTSZZRTXVYXPOY5 \ / AMOS7 \ YOURUM ::
+#\[7]2KQ7XH6GJSCHJ77I2YCIVJ3Y54YFQQ6BN3ALMFLG5DV56O5EWYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

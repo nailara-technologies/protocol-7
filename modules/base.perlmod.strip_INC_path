@@ -14,6 +14,7 @@ if ( not length $module_path_abs
 my $match = 0;
 foreach my $inc_path ( <[base.reverse-sort]>->( \@INC ) ) {
     $inc_path .= qw| / |;
+
     if ( index( $module_path_abs, $inc_path, 0 ) == 0 ) {
         substr( $module_path_abs, 0, length($inc_path), '' );
         $match = 5;    ## true ##
@@ -25,8 +26,8 @@ return $module_path_abs if $match;    ##  return truncated path  ##
 
 return undef;                         ##  undef \ no match  ##
 
-#,,.,,,.,,,,.,...,.,.,,.,,...,,,,,,..,,.,,.,.,..,,...,...,...,,.,,,,,,.,,,.,.,
-#3XOLKOMPMZRA2LC2RSC2DXLFTGHUDCEZY3J3GJDCHVKZBETQRHT2O3A3QONX46KC57ZJA2KAZWORI
-#\\\|YORA3IVHZXSEJFLX6XJPPIRYIFY3TDQOLDGUARQB3NF4RUB56M5 \ / AMOS7 \ YOURUM ::
-#\[7]HO6FTYP5WWELZUDYNSN3TSZOD5FUPZPAFGFXTY2UAV5K26XQG6BQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,.,,,.,,,,.,,,,.,,,.,..,,,,.,..,,...,..,,,.,,.,,,.,,,..,,,,.,
+#JLN6V5MA4VAZZ2DLVV4QWYOMASGBDJM6WFEOJHN2W7U4AGP56YN77SUWGRQF7YYBD6WKKYOOVTSFK
+#\\\|XWX3H6VUNHBY5RANWGEJKMPAEBYPM7TKRSURL2OSMBMCFSFTBNW \ / AMOS7 \ YOURUM ::
+#\[7]BG2AMJHW45IRE6CHGMIIYOGD6YIG3CVNTWZXD4MI4YAHJ6W3SSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
