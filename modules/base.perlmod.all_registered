@@ -1,0 +1,53 @@
+## >:] ##
+
+# name  = base.perlmod.all_registered
+# descr = return all in pm-dep directories registered perl module names
+
+my $zenka_name = shift;
+
+my $conf_path = <system.conf_path>;
+
+my $zenka_cfg_path;
+my $perlmods_found_aref = [];
+
+if ( not -d $conf_path ) {
+    <[base.s_warn]>->( 'configuration path not found [ %s ]', $conf_path );
+    return undef;
+} elsif ( defined $zenka_name and $zenka_name =~ <regex.base.usr> ) {
+    $zenka_cfg_path = sprintf qw| %s/zenki/%s |, $conf_path, $zenka_name;
+    if ( not -d $zenka_cfg_path ) {
+        <[base.s_warn]>->( 'no such zenka [ %s ]', $zenka_name );
+        return undef;
+    }
+    $zenka_cfg_path = sprintf qw| %s/pm-dep |, $zenka_cfg_path;
+    if ( not -d $zenka_cfg_path ) {
+        <[base.s_warn]>->(
+            'no modules registered yet for zenka %s', $zenka_name
+        );
+        return undef;
+    }
+    ##  specified zenka only  ##
+    $perlmods_found_aref = <[file.all_files]>->($zenka_cfg_path);
+
+} elsif ( defined $zenka_name ) {
+    <[base.s_warn]>->( 'not a valid zenka name [ %s ]', $zenka_name );
+    return undef;
+} else {
+    $zenka_cfg_path = sprintf qw| %s/zenki |, $conf_path;    ##  all zenki  ##
+    $perlmods_found_aref
+        = <[file.match_files]>->( $zenka_cfg_path, qw|  recursive pm-dep  | );
+}
+
+foreach my $path_abs ( $perlmods_found_aref->@* ) { $path_abs =~ s|^.+/|| }
+
+if (wantarray) {    ##  perlmod list  ##
+    return ( uniq <[base.sort]>->($perlmods_found_aref) );
+} else {
+    return [ uniq <[base.sort]>->($perlmods_found_aref) ];   ##  ARRAY ref  ##
+}
+
+#,,.,,..,,,..,.,.,,.,,..,,,.,,.,.,,,,,,,,,,,.,.,.,...,...,.,.,...,...,.,.,,..,
+#C6P34P46767YH2OINSAWMHCJOFLO5PKB6Z4QQYFNLK6SN65B5YASYCZPDS2DHZGYVO6GPLI2JG3MQ
+#\\\|EECFLJLTVZMWN6PR7SSLSRDSKM7RTISZ3QCTDYCAWFZOWK6CXON \ / AMOS7 \ YOURUM ::
+#\[7]OHBR3TRP7K4VL6IEZZU6VAGLJCY3VZLFXWEA4WZ5XUNGXGB6RUCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
