@@ -5,6 +5,26 @@
 <mod-test.list.blacklisted_modules> //= <base.perlmod.reload_blacklist> // [];
 <mod-test.list.registered_modules> = <[base.perlmod.all_registered]>;
 
+my @test_directory;
+<mod-test.path.output_dir>    ##  zenka work directory  ##
+    //= sprintf( qw| /var/run/.7/%s |, <system.zenka.name> );
+
+## initializing reload test result path structure ##
+foreach my $dir_type (qw| started complete blacklisted |) {
+    my $dir_path_absolute = sprintf qw| %s/reload-test-%s |,
+        <mod-test.path.output_dir>, $dir_type;
+    push @test_directory, $dir_path_absolute;
+    <mod-test.path>->{$dir_type} = $dir_path_absolute;
+}
+
+##  creating expected test [sub-]directories  ##
+foreach my $directory ( <mod-test.path.output_dir>, @test_directory ) {
+    if ( not -d $directory ) {
+        <[base.logs]>->( ': create : %s', $directory );
+        <[file.make_path]>->( $directory, 0755, <system.amos-zenka-user> );
+    }
+}
+
 <[base.logs]>->( 1, '.: loading all registered perl modules :' );
 
 ##  initializing with already blacklisted ones  ##
@@ -12,12 +32,13 @@ my %module_blacklisted = <[mod-test.update_blacklist_aref]>;
 
 my @load_failed;
 my $load_success = 0;
-<[base.log]>->( 2, ':' );
 {
     ##  catching load errors and warnings  ##
     ##
     use warnings qw| FATAL |;
     local $SIG{__WARN__} = sub { die @ARG };
+
+    <[base.log]>->( 2, ':' );
 
     foreach my $perl_module ( <mod-test.list.registered_modules>->@* ) {
         <[base.logs]>->( 2, ':. %s', $perl_module );
@@ -30,17 +51,16 @@ my $load_success = 0;
             $module_blacklisted{$perl_module} = 5;
         }
     }
+    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, ':.,' );
 }
 
-<[base.log]>->( 2, ':' );
-<[base.log]>->( 2, ':.,' );
-
-if ( scalar @load_failed ) {
+if ( scalar @load_failed ) {  ##  register unloadable modules in blacklist  ##
     <[base.logs]>->(
         ':: could not load %d modules, adding to blacklist.,',
         scalar @load_failed
     );
-} else {
+} else {    ##  no loading errors or warnings  ##
     <[base.logs]>->(
         ':. successfully loaded all %d modules ::',
         $load_success
@@ -51,12 +71,14 @@ if ( scalar @load_failed ) {
     );
 }
 
+##  converting module names to .pm style [ as found in %INC ]  ##
+##
 <[mod-test.update_blacklist_aref]>->( \%module_blacklisted );
 
 0;
 
-#,,.,,,,.,,.,,,,,,,,.,,..,,..,,..,.,.,...,,.,,..,,...,..,,.,,,,.,,,,,,,,,,.,,,
-#A46M2C5PPW6VAZPN2GUSPXMLB2GYFZUGHXZGIX4J7B7FT7AXCSEKMK3WWOWAM5DD27PEYRJDY6GSY
-#\\\|L4JMGVXNIAOD6F44RP55GU5N3NQUM7JTNRTMJKZPKCSL2AJ5WGP \ / AMOS7 \ YOURUM ::
-#\[7]KMZ5MA33BBXOCHJPVXSOQICGMGHXKZLJ3FMOA3W4CNA5RGMMXQDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,..,,,,,,,,.,,,.,.,,,.,.,..,,..,,...,...,,,,,,..,,,.,,.,,,.,,
+#YK56MYK2UJM435XKYXXJKRWLJNOKRVI56AFZFC5A7JZPF7KYZSLIEZ43II3UUALXP3UZ6K7ZGTVAC
+#\\\|QDJPQ2Q5DT724PTXOF3FUE3TY2JFUZTXB3TWD2WDABX3ZW3OON3 \ / AMOS7 \ YOURUM ::
+#\[7]L7GX3J6ODOOUKOP6Y42BYL5XDNC37Y35EZH6QOE3NSEEMELOKQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

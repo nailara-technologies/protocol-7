@@ -4,15 +4,6 @@
 
 <system.bin_path.cpanm> = <[base.required_bin_path]>->('cpanm');
 
-<mod-test.path.output_dir> //= qw| /var/run/.7/mod-test |;
-
-foreach my $directory (<mod-test.path.output_dir>) {
-    if ( not -d $directory ) {
-        <[base.logs]>->( ': creating directory %s ..,', $directory );
-        <[file.make_path]>->( $directory, 0755, <system.amos-zenka-user> );
-    }
-}
-
 ##  exclude these modules from reloading using base.reload command  ##
 ##
 <base.perlmod.reload_blacklist> = <[base.perlmod.manual_reload_blacklist]>;
@@ -20,8 +11,8 @@ foreach my $directory (<mod-test.path.output_dir>) {
 
 0;
 
-#,,..,...,,,,,,,.,..,,,,.,.,.,,..,.,.,..,,,,.,..,,...,..,,.,.,,,.,.,,,...,.,.,
-#3I4ZOEI6DE75MA7L22EJIEASRVYS6G4TW2J3TK7WLCGDC3M24MROWY65DUCU47OIAJ3MZY4QILIUK
-#\\\|M6KDB3AOLA3MWZYBX2AMBSRTJVNKLZQRYXYNLXB3T2HWPM5BHPH \ / AMOS7 \ YOURUM ::
-#\[7]4E7NBTXT4BII2OKH5RUXBS4ANKH5KYNVTEO5S4AUPMWSHTVXAYBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,...,,,,,.,.,...,,,.,...,,..,,,.,..,,...,...,...,..,,,,,,,..,,.,,
+#RQVJSXI4QEQYJZP6IP7BD75QSYGRQS6JCGCHQ4CW7CSF77LMYYZ5HPN7YOQ3RVCLOEZQSLBFRGYK2
+#\\\|2SBUV3I2KEHKTSZCLGM7GELJP4R66WG4Z7VJJPOCA4CWOK7DVV2 \ / AMOS7 \ YOURUM ::
+#\[7]CI6XUCOCRLBWJUDHJAC332FE3LRLRLOETFCAN7535YFDMS3FPCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
