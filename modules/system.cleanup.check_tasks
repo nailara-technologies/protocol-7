@@ -15,7 +15,7 @@ my $cleanup_path    = <system.path.cleanup_files>;
 my $ntime_current   = <[base.ntime]>;
 my $current_version = <protocol-7.src-ver>;
 ( my $version_ntime = $current_version ) =~ s|\-\d+\.\d+$||;
-my $ver_ntime_dec = <[base.b32.ntime]>->($version_ntime);
+my $ver_ntime_val = <[base.ntime_BASE32_to_numerical]>->($version_ntime);
 my $links_href    = <[file.all_links]>->( $cleanup_path, 'recursive' );
 my $task_count    = 0;
 my $items_removed = 0;
@@ -32,12 +32,12 @@ foreach my $link_path ( keys %{$links_href} ) {
     if ( $link_name =~ m|at\-version/($B32_re+\-\d+\.\d+)$| ) { # 'at-version'
         $task_count++;
         ( my $task_version = $LAST_PAREN_MATCH ) =~ s|\-\d+\.\d+$||;
-        my $task_ntime = <[base.b32.ntime]>->($task_version);
-        $remove_match = 1 if $ver_ntime_dec >= $task_ntime;
+        my $task_ntime = <[base.ntime_BASE32_to_numerical]>->($task_version);
+        $remove_match = 1 if $ver_ntime_val >= $task_ntime;
     } elsif ( $link_name =~ m|at\-version/.+$| ) {
         <[base.log]>->( 0, "mismatching format '$link_name' [ ignored ]" );
     } elsif ( $link_name =~ m|after\-ntime/($B32_re+)$| ) {    # 'after-ntime'
-        my $task_ntime = <[base.b32.ntime]>->($LAST_PAREN_MATCH);
+        my $task_ntime = <[base.ntime_BASE32_to_numerical]>->($LAST_PAREN_MATCH);
         $remove_match = 1 if $ntime_current >= $task_ntime;
     }
 
@@ -70,8 +70,8 @@ if ($task_count) {
     <[base.log]>->( 2, ": no tasks found.," );
 }
 
-#,,..,,.,,...,,,.,...,,,,,,..,...,..,,...,,,,,..,,...,...,...,..,,...,...,,,.,
-#RAXKIS54JSLX7YC5KYYJMPGDAVKW3UHHQ5YWNFGVHNNTE6Y5PDB2HLSWK4IRLC4X4AN4QKF3X3DDC
-#\\\|3MNVKVKY754VAUJ2UJQIJSRMRSENXAFYDNOSWKXXH2PGT6VU7VB \ / AMOS7 \ YOURUM ::
-#\[7]36LIOLPFQUBGXBGE7FSSPFWEO3ZSVMOTG5XTQN2HDW44RGW662CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,,,.,,..,...,,,,,.,,,...,..,,..,,...,...,,,,,,,,,,..,,,,,..,,
+#TFWAILVYH2OA7EFWQ6RV2LXCHFWJETUKXTZ3KIWXQBA4PPA3Z5OZSL6KWUKGK6OPDAMVT7DAPR7BK
+#\\\|BUR4AS6PWG4AHITUZNDVIBJGMYNPJDDNRP352CL74JUKPWSXAI3 \ / AMOS7 \ YOURUM ::
+#\[7]R7YYFZA4S4WKFM73NCXFYQNOVEIRTSEAW47HJNB5EXVU7XCP5CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

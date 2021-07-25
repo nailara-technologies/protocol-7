@@ -22,8 +22,8 @@ printf( ":\n: our \$VERSION = qw| AMOS-MODULE-%s |;\n:\n", $VERSION );
 return 1;  ###################################################################
 
 sub calc_version {
-    ( my $ntime_dec = shift ) =~ s|\D+||;
-    my $c_version = sprintf( '%.3f', ( $ntime_dec / 7**14 ) - 3.6 ); #[magic]#
+    ( my $ntime_val = shift ) =~ s|\D+||;
+    my $c_version = sprintf( '%.3f', ( $ntime_val / 7**14 ) - 3.6 ); #[magic]#
 
     $c_version =~ s|\d{2}$|\.$MATCH|;
     $c_version =~ s|0$||;
@@ -41,8 +41,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     return $ntime;
 }
 
-#,,,.,.,.,.,,,.,,,,..,,,.,,.,,.,,,.,,,,.,,.,,,..,,...,...,,.,,,,,,,.,,.,,,,,.,
-#7YQUF7DTRK6CIYUZEZSTYLC4QYM7JXL3XJDW3SO2RGNER7ZX7S4BUA5B5HOPAMBVRYQIBV2OGHCIE
-#\\\|YJWJYHZLEY22JNPMTJMP5B3AG3TFWEAO4GA2EZRED5PWNFD6NM5 \ / AMOS7 \ YOURUM ::
-#\[7]T3G4PWQTDD3EVRWWUXJRR6JMGUPRESLZQIUYBRYIE6QDDEU5CUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,..,,,,,,,,,..,,,,,,,.,,,,,,..,,...,..,,.,,,,..,,..,.,.,.,.,
+#BWF35KZDDRAIDHFJ3AKVFHZJLNWTFWZOOEXYENP5RUA76KFA7AEPD62J37BPSZWXGAATPFGFT3W6K
+#\\\|CGYEF5QVDPPOP6YHFJKU4KAAGBJK7XS2TLXKDBTLVMBVQDIG5NU \ / AMOS7 \ YOURUM ::
+#\[7]ITPV25HXQ66BNIBAS3L2ML3NCN6VJJLMS3VAPCSLVOKNZNMEECBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

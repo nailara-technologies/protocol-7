@@ -14,7 +14,7 @@ $log_level = 0 if $log_level !~ m|^\d+$|;
 <system.verbosity.zenka_buffer>  //= 1;
 <system.verbosity.zenka_logfile> //= 0;
 
-return 1
+return 5    ## true ##
     if $log_level > <system.verbosity.console>
     and $log_level > <system.verbosity.zenka_buffer>
     and $log_level > <system.verbosity.zenka_logfile>;
@@ -24,8 +24,12 @@ $log_buffer = qw| zenka | if not length $log_buffer;
 my $log_str;
 $log_msg = 'UNDEFINED LOG MESSAGE' if not length $log_msg;
 
-my $h_override = <base.ntime-harmony> // 1;  ## reducing calculation load., ##
+my $h_override = <base.ntime-harmony> // 5;  ## reducing calculation load., ##
 my $want_harmony = $log_level < 3 ? $h_override : 0;
+my $want_harmony    ##  skip harmonizing if not to disk  ##
+    = ( $log_level < 2 and <system.verbosity.zenka_logfile> < 2 )
+    ? $h_override
+    : 0;
 
 $log_msg =~ s|\r|\\r|g;
 $log_msg =~ s|\n|\\n|g;
@@ -101,8 +105,8 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return 1;
 
-#,,.,,,,.,.,.,..,,,,,,.,,,.,,,,,.,.,,,..,,..,,..,,...,...,.,.,,,,,,,,,.,.,,,.,
-#554UQPHYO2Z5GUQRHJZROCD2XF6AAY7YFZNEY4DLNIXZRKFIP6GGPVKQL6EWMZMUZNNEHMF4677LI
-#\\\|3KQ6VJXYE6KA7IYMTOS7BEOEKG5TMGS2BET3YF3S7AP6IEV6YU5 \ / AMOS7 \ YOURUM ::
-#\[7]MTC2N7MTNAKT4JQLFWJ5KQ6GEHPS3UUURIMXZN7LYZB5TWAJU6AI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,..,..,,.,.,,,,,,.,,,,.,.,,,..,,...,...,...,,,.,,.,,,..,.,.,
+#TISGBGDWDM6VVXW3LLVSINFMHY7Q2XREUVXOOJNV6EKIEBZQEKBU437FSOO3K2PMJXTHBF7FJD5YO
+#\\\|4SJ4KDSEQDE2KT6QJJYHZYPQPNR4A4V72ZBF5RROKNHYUHFVB34 \ / AMOS7 \ YOURUM ::
+#\[7]AZBAAD7YLWLBGBBME5KWGZFQK4SHU7EHCPWS5GCDO77OU3AEZGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
