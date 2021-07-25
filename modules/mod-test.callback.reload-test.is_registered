@@ -1,0 +1,38 @@
+## >:] ##
+
+# name  = mod-test.callback.reload-test.is_registered
+
+my $register_type = shift // '';
+my $module_file   = shift // '';
+
+if ( not defined <mod-test.path.mod-reg-dir>->{$register_type} ) {
+    <[base.s_warn]>->('no such registry type [ %s ] <{C1}>');
+    return undef;
+}
+
+my $link_reg_dir = <mod-test.path.mod-reg-dir>->{$register_type};
+
+if ( not length $module_file ) {
+    warn 'expected module filename [ .pm rel path ] <{C1}>';
+    return undef;
+} elsif ( not -d $link_reg_dir ) {
+    <[base.logs]>->( 'target directory %s not found <{C1}>', $link_reg_dir );
+    return undef;
+} elsif ( not -w $link_reg_dir ) {
+    <[base.logs]>->(
+        'no write perms on target directory %s <{C1}>',
+        $link_reg_dir
+    );
+    return undef;
+}
+
+my $link_abs_path
+    = <[file.gen_path_linkname]>->( $link_reg_dir, $module_file, 0, 5 );
+
+return -l $link_abs_path ? 5 : 0;    ##  true when is registered  ##
+
+#,,,,,...,,.,,,.,,,..,.,.,,.,,...,..,,.,.,,,.,..,,...,...,,,.,,.,,,,,,.,,,...,
+#T7BJ36APFBVIOIIGXWVPS5I4JLOHO74ZCWMFHGWDVYVASZJXQKRYDJN6DCKGAYJREYHTYXZQH7NN6
+#\\\|EE6CAPESRN7ZVV5IRLKHJY6KEP4WS2T4YC2WPTB4HE7HZB7MQXD \ / AMOS7 \ YOURUM ::
+#\[7]YYJWV4IWQ5MMX6VOPDWQDUQWREIKQP4OFZ6RX5NOMHIG65IQFECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

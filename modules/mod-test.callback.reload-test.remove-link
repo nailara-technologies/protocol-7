@@ -1,0 +1,40 @@
+## >:] ##
+
+# name  = mod-test.callback.reload-test.remove-link
+
+my $register_type = shift // '';
+my $module_file   = shift // '';
+
+if ( not defined <mod-test.path.mod-reg-dir>->{$register_type} ) {
+    <[base.s_warn]>->('no such registry type [ %s ] <{C1}>');
+    return undef;
+}
+
+my $link_reg_dir = <mod-test.path.mod-reg-dir>->{$register_type};
+
+if ( not length $module_file ) {
+    warn 'expected module filename [ .pm rel path ] <{C1}>';
+    return undef;
+} elsif ( not -d $link_reg_dir ) {
+    <[base.logs]>->( 'target directory %s not found <{C1}>', $link_reg_dir );
+    return undef;
+} elsif ( not -w $link_reg_dir ) {
+    <[base.logs]>->(
+        'no write perms on target directory %s <{C1}>',
+        $link_reg_dir
+    );
+    return undef;
+}
+
+my $link_abs_path
+    = <[file.gen_path_linkname]>->( $link_reg_dir, $module_file, 0, 5 );
+
+return unlink($link_abs_path) if -l $link_abs_path;
+
+return undef;    ##  not found \ writable  ##
+
+#,,..,,,.,...,,..,,,,,.,,,..,,,,.,...,..,,.,,,..,,...,...,,,.,,,,,,,,,..,,.,.,
+#BVCFKGMRYUHBLADTMW2T4ONRHKB4NX445GKP7OG6YXQPM5W7GOLVG5TOQMGALLT2DGGUFYJFOVHTO
+#\\\|QRU2QOWXPFPAWXIZZD265G74QHWZ4NG4F66YJA7DDNU74CXRP7V \ / AMOS7 \ YOURUM ::
+#\[7]6SMWLJVOTFYY3A6HY6F2CXFPBOO2WVJLRU2X65V4SCSEO4YFECCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
