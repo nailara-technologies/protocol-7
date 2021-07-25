@@ -8,10 +8,12 @@ my $precision    = shift // 3;
 
 my $network_time_start = 2455747200000;
 <base.ntime_ustart> //= 1023228000;
-die 'expected valid protocol-7 network time'
-    if not defined $network_time
+if (   not defined $network_time
     or $network_time !~ m|^\d{13,}(\.\d+)?|
-    or $network_time < $network_time_start;
+    or $network_time < $network_time_start ) {
+    warn 'expected valid protocol-7 network time <{C1}>';
+    return undef;
+}
 
 $precision = 13 if defined $precision and $precision > 13;
 
@@ -31,8 +33,8 @@ $unix_reply =~ s|0{3,}$||;
 
 return $unix_reply;
 
-#,,,,,.,.,,,,,.,.,...,..,,.,,,,.,,..,,,.,,,.,,..,,...,..,,..,,,,,,,.,,,,,,,,.,
-#NMA5KLB6GINL2SLU6676ADO2TTCFIOGEHTTSOW23MG2KPUBZNFNZEHMYWNCG4MLH3UGNXJLV4SZNK
-#\\\|YA3TCKSSSEXXRQXXA34AZXMYK26KWRMKNOHQL2ZHEDRSFE72YHG \ / AMOS7 \ YOURUM ::
-#\[7]TM5KL72ONARHKUCQXXRSLJGUNSTRXUKOUX6P52F444TGZKTLC2AI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,...,..,,.,,,,,,,,..,..,,,..,..,,...,...,...,,.,,,,.,,,,,.,.,
+#COYLPZU5QBVX3HILM6PDSABJK4EZU5HUDYGOTDENKXWYFUH7XFYPGGNTZ5XS4EIHJJ4BS4S6F6FSK
+#\\\|MSTXHLRAPZJ6B5ZHLBJ57YZJXRI2S3NXB3BB2UXENGYSHUBYX3O \ / AMOS7 \ YOURUM ::
+#\[7]FZYCONOJ6AVOELA7I6UTUKDY5NNAMD7LPIMZOUQPHAYXL4BGBUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

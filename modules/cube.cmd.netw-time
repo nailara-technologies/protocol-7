@@ -2,22 +2,20 @@
 
 # name  = cube.cmd.netw-time
 # param = [unix|precision]
-# descr = protocol-7 network time, BASE-32 encoded
+# descr = protocol 7 network time [ BASE32 encoded ]
 
-my $parameter = $$call{'args'}
-    // 3;    #  <--  precision or given unix time value
+my $parameter = $call->{'args'} // 3;    #  <--  precision or unix time value
 
 return {
     'mode' => qw| false |,
-    'data' =>
-        'precision\time parameter not valid [ integer or float expected ]'
+    'data' => 'precision\time parameter not valid [ integer \ float ]'
     }
     if $parameter !~ m|^\d+(\.\d+)?$|;
 
 return { 'mode' => qw| true |, 'data' => <[base.ntime.b32]>->($parameter) };
 
-#,,,,,,,,,.,.,.,,,...,.,,,..,,,..,,,.,.,.,,.,,..,,...,...,...,...,,.,,,,.,...,
-#2XC5UJLKAABNY6CHGC4D7QQPTPTFL264ITWLFN27YAXHMCJUKTF4MPHYJVY4NN5ER7IFSY4YTM57Q
-#\\\|NBZCID53ER2F27EKXYFFSBNPZCW36RYKSDEYF4LGJQC5K2FJXIZ \ / AMOS7 \ YOURUM ::
-#\[7]MN7DYAQSOZHXPMKYAFHUTTXGH53L5C52P7XMCVBLV2F4HNWQZ6BY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,,..,,..,...,,,,,,,,,,.,,,,.,..,,...,...,,.,,.,,,.,,,,,,,,,.,
+#JQFGKTHFXPKOSGAJFXB4I5LDV4GPPQJIDRDP2YE42WR5NBX2EWZZ75VYL7D5A23E3P3QILU2A7A7G
+#\\\|L3QRQYQVX6IUOI7XCVGHYCGRYZY5ZSB3TFEHLBKMY5IFFFBOSEO \ / AMOS7 \ YOURUM ::
+#\[7]H66OP2VBX5MTSBWLIH5AWPJQGLK7EIJCHDWELXNALASAX2IWWIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

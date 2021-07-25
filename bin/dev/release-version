@@ -78,7 +78,7 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
 
         ( my $ntime_B32, my $commit ) = split( m|\-|, $src_ver_str, 2 );
 
-        my $ntime = ntime_dec($ntime_B32);
+        my $ntime = ntime_val($ntime_B32);
 
         $current_r_vers = sprintf( qw| AMOS7-%s |, $current_r_vers )
             if index( $current_r_vers, qw| AMOS7 |, 0 ) == -1; ## v<z>.<y>.<x>
@@ -128,24 +128,24 @@ my $rel_ve_file = c_file( c_dir( $root_path, qw| configuration | ),
     }
 }
 
-sub ntime_dec {
+sub ntime_val {
     my $network_time = shift;
 
     die "${no}:\n:: network time format in src-ver file is not valid ::\n:\n"
         if $network_time !~ m|^[A-Z2-7]{1,22}$|;
 
-    my $ntime_dec;
-    eval { $ntime_dec = unpack( qw| w |, decode_b32r($network_time) ) };
+    my $ntime_val
+        = eval { join '.', unpack( qw| w* |, decode_b32r($network_time) ) };
 
     die "${no}:\n:: protocol-7 network time decoding not successful ::\n:\n"
         if $EVAL_ERROR
-        or not length( $ntime_dec // '' );
+        or not length( $ntime_val // '' );
 
-    return $ntime_dec;
+    return $ntime_val;
 }
 
-#,,,.,,..,,,,,.,,,.,.,.,,,...,.,.,.,,,,.,,,..,..,,...,...,,..,,.,,,,.,..,,..,,
-#7KKMDVEUYPUL22DB7V23F23EOBB3CWICLFFRWMNQLA5QQ5U2VDMNBZDMCLPNPRYVR6DNNPQZOVZUA
-#\\\|G33OA3UVUBF7GNOHFFEGIQVVQY624WD73VKINPTF2QZLTJY5T6P \ / AMOS7 \ YOURUM ::
-#\[7]Z4TDAGMZ7J4HTAA5WVBZKYVA4H7HQKRBVNDYI4AQM5MFR6A5WQBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,.,,,...,...,...,.,.,,.,,..,,..,,...,...,..,,.,,,.,,,,,,,.,,,
+#YLCAPPHF27DOX3HPQES6SBAJILRAXNOPIMAEG36XKY6MN7ZVPIQU3G4I6HO2JCMV7YCIAKWGOQQAW
+#\\\|PNSJUJ4BKH5MCLA65ZVZMQBHM7WW5LS765VINSSEOJAOF65XQND \ / AMOS7 \ YOURUM ::
+#\[7]6CU3QL2YL7ITEL4UD5KHVBQFVO77LUYLK2T4O2D5IL4COEQKR2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

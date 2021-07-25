@@ -12,25 +12,19 @@ return {
     }
     if $param !~ m|^$B32_re{1,22}$|;
 
-my $ntime_ber = eval { decode_b32r($param) };
+my $ntime_value = <[base.ntime_BASE32_to_numerical]>->($param);
 
 return {
     'mode' => qw| false |,
     'data' => 'BASE32 decoding error [ timestamp not valid ]'
     }
-    if $EVAL_ERROR
-    or not length( $ntime_ber // '' );
+    if not defined $ntime_value
+    or $ntime_value !~ m|^\d{13,17}(\.\d{1,17})?$|;
 
-return {
-    'mode' => qw| false |,
-    'data' => 'decoded number is not valid [ expected compressed integer ]'
-    }
-    if not <[base.comp-int.is_valid]>->($ntime_ber);
+return { 'mode' => qw| true |, 'data' => $ntime_value };
 
-return { 'mode' => qw| true |, 'data' => unpack( 'w', $ntime_ber ) };
-
-#,,,,,,,.,,,.,.,,,..,,.,,,,,,,,.,,,.,,,.,,.,,,..,,...,...,.,.,.,.,.,,,,.,,,.,,
-#CWQEFOTIWJFG4C5T2PS2U5YUELZ4PTLI344J3NDGYSJ3HL52B6AIJCXN5VXTWL6F6AHGP3ECIXC76
-#\\\|Q3ZFMLN7TVITVHQNDYMI3J3TLRELXIVMSQU6BIWJOP5PZDVBYJU \ / AMOS7 \ YOURUM ::
-#\[7]3XUAABKDHF7SYJXLC6IIVUVB7HMADLDUZQAOZUOSUEPWOT4TXWAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,.,.,.,,,...,,,.,.,,,.,.,.,.,..,,...,...,...,,.,,,,.,.,,,,..,
+#U7LQT7H62DZMDJPLOK7MW7NW6MEKPOQDBI7DPQ3GNO2B4MWZA2UXZD2GPF65YNP562DDB75DGZ3LU
+#\\\|TEMBNZNLIWZJQ5OAFGKZOXZEWY655QT57VXUBIKRJBT6OLLJNFP \ / AMOS7 \ YOURUM ::
+#\[7]UC43F3L6WX2LNULO5GA7ZGMEAP3YOGLUIJWZ3NWRVHA6TJP5OACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

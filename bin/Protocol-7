@@ -239,7 +239,6 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
     ##  includes : S_IWUSR, S_IWGRP, S_ISFIFO  ##
     use Fcntl qw| :seek :mode :DEFAULT :flock |;
 
-
     ## MATHEMATICAL CONSTANTS ##
 
     use constant qw| τ |   => 6.28318530717958647692;
@@ -526,6 +525,9 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'ansi_color'} //= 5;                 ## true ##
     ##
 
+    $data{'base'}{'timestamp-count'}      //= {};
+    $data{'base'}{'retry-limits-reached'} //= {};
+
     ## defining console ansi colors ###
     if ( $data{'system'}{'ansi_color'} ) {
         %colors = (
@@ -650,56 +652,84 @@ sub p7_term__size {
 sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
 
     my $param        = shift // 0;
-    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 5;
     my $ntime_start  = $data{'base'}{'ntime_ustart'} //= 1023228000;
 
     my $retries_left    = 24;    ## <-- configure [ retries-max ]
     my $collision_delay = 0;
     my $last_time       = 0;
-    my $unix_precision;
+    my $unix_precision  = 3;
+    my $was_unix_input  = 0;
     my $ntime_precision;
 
     $data{'base'}{'retry-count'}{'ntime'} //= 0;
+    ##  count for statistics  ##
+    $data{'base'}{'timestamp-count'}{'ntime_numerical'} //= 0;
+    if ( length $data{'base'}{'timestamp-count'}{'ntime_numerical'}++ > 17 ) {
+        $data{'base'}{'timestamp-count'}{'ntime_numerical'}  = 1;
+        $data{'base'}{'retry-limits-reached'}{'ntime_value'} = 0;
+    }
 
     my ( $unix_time, $precision ) = ( undef, 0 );
     if ( length($param) >= 9 ) {    # < unix time + inherited precision >
+
         $unix_time      = $param;
-        $unix_precision = length( ${^CAPTURE}[0] // '' )
+        $was_unix_input = 5;        ## true ##
+
+        $unix_precision = length $LAST_PAREN_MATCH
             if $unix_time =~ m{\.(\d+)$};
         $ntime_precision = $unix_precision - 2;
         $ntime_precision = 0 if $ntime_precision < 0;
 
     } else {
+
         $ntime_precision = $param;
+
         $ntime_precision = 8 if $ntime_precision > 8;
         $unix_precision  = $ntime_precision + 2;
         $unix_precision  = 11 if $unix_precision > 11;
     }
-    my $zulum_len = $unix_precision - 1;
-    $collision_delay = join( '', qw|0.|, qw| 0 | x $zulum_len, qw| 7 | );
+
+    $collision_delay = sprintf qw| %.*f |, $unix_precision,
+        7 * ( 1 / 10**$unix_precision );
 
 RETRY_BASE_NTIME:
-    $last_time = $unix_time if defined $unix_time;
-    $unix_time = $code{'base.time'}->($unix_precision);
+    if ( not $was_unix_input ) {    ##  retry until time value is true  ##
 
-    if ( $unix_time == $last_time ) {    ## same input \ collision ##
-        Time::HiRes::sleep($collision_delay);
-        goto RETRY_BASE_NTIME;
+        $last_time = $unix_time if defined $unix_time;
+        $unix_time = $code{'base.time'}->($unix_precision);
+
+        ## same input \ collision ##
+        if ( $want_harmony and $unix_time == $last_time ) {
+            Time::HiRes::sleep($collision_delay);
+            goto RETRY_BASE_NTIME;
+        }
     }
 
-    my $ntime = sprintf( qw| %.*f |,
-        "0$ntime_precision", ( $unix_time - $ntime_start ) * 4200 );
+    my $ntime = sprintf qw| %.*f |, $ntime_precision // 0,
+        ( $unix_time - $ntime_start ) * 4200;
 
-    if (    $want_harmony == 1
-        and length($param) < 9
-        and $code{'base.assert.harmony'}->( $unix_time, 0 ) == 0
-        and $retries_left-- ) {
+    if (    $want_harmony
+        and $unix_precision > 0
+
+        and not $code{'base.assert.harmony'}->( $unix_time, 0 )
+        and $retries_left--
+    ) {
+
+        if ( $was_unix_input and $unix_precision ) { ##  randomizing value  ##
+
+            $unix_time = sprintf qw| %.*f |, $unix_precision,
+                $unix_time + 1 / 10**$unix_precision;
+        }
 
         ++$data{'base'}{'retry-count'}{'ntime'}
             and goto RETRY_BASE_NTIME;
     }
 
-    warn '< ntime attempts exceeded >' if !$retries_left;
+    if ( $retries_left <= 0 ) {    ##  count limit reached  ##
+        $data{'base'}{'retry-limits-reached'}{'ntime_value'} //= 0;
+        $data{'base'}{'retry-limits-reached'}{'ntime_value'}++;
+    }
 
     return $ntime;
 }
@@ -709,19 +739,35 @@ RETRY_BASE_NTIME:
 sub p7_ntime__b32 {
 
     my $param        = shift // 4;    # <-- precision or utime
-    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 1;
-
-    my $retries_left = 5;             ## <-- configure [ retries-max ]
-    my $last_ntime   = 0;
-    my $ntime_precision;
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 5;
     my $ntime_value;
+    my $last_ntime      = 0;
+    my $ntime_precision = 0;
+    my $was_unix_input  = 0;
+
+    ##  keeping low to visualize disharmony in system events  ##
+    ##
+    my $retries_left = 9;    ## <-- is exceeding occassionally  ##
 
     $data{'base'}{'retry-count'}{'ntime-B32'} //= 0;
+    ##  count for statistics  ##
+    $data{'base'}{'timestamp-count'}{'ntime_base32'} //= 0;
+    if ( length $data{'base'}{'timestamp-count'}{'ntime_base32'}++ > 17 ) {
+        $data{'base'}{'timestamp-count'}{'ntime_base32'}   = 1;
+        $data{'base'}{'retry-limits-reached'}{'ntime-B32'} = 0;
+    }
 
-RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
+    ##  updated below  ##
+    my $zulum_len       = $ntime_precision + 1;
+    my $collision_delay = 0;
+
+    $was_unix_input = 5 if length $param >= 3;    ## true ##
+
+RETRY_BASE_NTIME_B32:                             ##  harmonizing values  ##
 
     $last_ntime = $ntime_value
         if $want_harmony
+        and not $was_unix_input
         and defined $ntime_value
         and $ntime_value != $last_ntime;
 
@@ -730,53 +776,98 @@ RETRY_BASE_NTIME_B32:                 ## only choose harmonic values ##
     ####
 
     if ($want_harmony) {
-        $ntime_precision = 0;
-        $ntime_precision = length( ${^CAPTURE}[0] )
+
+        $ntime_precision ||= length $LAST_PAREN_MATCH
             if $ntime_value =~ m|\.(\d+)$|;
-        my $zulum_len       = $ntime_precision + 1;
-        my $collision_delay = join( '', '0.', '0' x $zulum_len, '113' );
-        if ( $last_ntime == $ntime_value ) {    ## same input \ collision ##
+
+        my $unix_precision = $ntime_precision + 2;
+
+        my $zulum_len ||= $ntime_precision + 1;
+        my $collision_delay ||= 0 + sprintf qw| 0.%s113 |, '0' x $zulum_len;
+
+        if ($was_unix_input) {    ##  randomizing value  ##
+
+            if ( $unix_precision > 0 ) {
+                $param = sprintf qw| %.*f |, $unix_precision,
+                    $param + 1 / 10**$unix_precision;
+            }
+
+        } elsif ( $last_ntime == $ntime_value ) { ## same input \ collision ##
             Time::HiRes::sleep($collision_delay);
             goto RETRY_BASE_NTIME_B32;
         }
     }
 
-    my @nt = split( m|\.|, $ntime_value );
-    $nt[1] = '7' . $nt[1] if scalar @nt == 2;    # <-- 7 catches prefixed 0
-
-    my $encoded_ntime = Crypt::Misc::encode_b32r( pack( 'w*', @nt ) );
+    my $encoded_ntime = $code{'base.encode_ntime_to_B32'}->($ntime_value);
 
     ++$data{'base'}{'retry-count'}{'ntime-B32'}
         and goto RETRY_BASE_NTIME_B32
-        if $want_harmony == 1
-        and length($param) < 9                   # <-- precision
+        if $want_harmony
+        and length($param) < 9    # <-- precision
         and $code{'base.assert.harmony'}->($encoded_ntime) == 0
-        and $retries_left--;
+        and $retries_left-- > 0;
+
+    if ( $retries_left <= 0 ) {    ##  count limit reached  ##
+        $data{'base'}{'retry-limits-reached'}{'ntime_b32'} //= 0;
+        $data{'base'}{'retry-limits-reached'}{'ntime_b32'}++;
+    }
+
+    return $encoded_ntime;
+}
+
+sub p7_encode_ntime_to_B32 {
+
+    my $ntime_value = shift // '';
+
+    if ( $ntime_value !~ m|^\d{13,17}(\.\d{1,17})?$| ) {
+        warn 'expecting numerical ntime parameter <{C1}>';
+        return undef;
+    }
+    my @ntme = split( qw| \. |, $ntime_value );
+
+    ##  7 catches 0 prefix  ##
+    $ntme[1] = sprintf qw| 7%s |, $ntme[1] if scalar @ntme == 2;
+    my $encoded_ntime = Crypt::Misc::encode_b32r( pack( qw| w* |, @ntme ) );
 
     return $encoded_ntime;
 }
 
 ##############################################################################
 
-sub p7_b32__ntime {
+sub p7_ntime_BASE32_to_numerical {
 
-    my $network_time = shift;
+    my $tstamp = shift;
 
-    my $ntime_dec;
-    warn 'network time format not valid <{C1}>' and return undef
-        if $network_time !~ m|^[A-Z2-7]{1,22}$|;    ## <-- inc. len. [LLL]
-    eval {
-        no warnings;
-        $ntime_dec
-            = unpack( qw| w |, Crypt::Misc::decode_b32r($network_time) );
-    };
-    if ( $EVAL_ERROR or !length( $ntime_dec // '' ) ) {
-        my $caller_str = [caller]->[1] . ':' . [caller]->[2];
-        $code{'log.debug'}->( 'network time decoding error'
-                . " [\"$network_time\"] \\ $caller_str" );
+    state $b32_re //= qr|^[A-Z2-7]+$|;
+
+    if ( not defined $tstamp or $tstamp !~ $b32_re ) {
+        warn 'encoded network time not valid [ BASE32 ] <{C1}>';
         return undef;
     }
-    return $ntime_dec;
+
+    my $ntime_value = eval { Crypt::Misc::decode_b32r($tstamp) };
+
+    if ( not defined $ntime_value or length $EVAL_ERROR ) {
+        warn 'network time not valid [ '
+            . 'BASE32 decoding not successful ] <{C1}>';
+        return undef;
+    }
+
+    eval {
+        ## contains network time with arbitary precision
+        my @nt_val = unpack( qw| w* |, $ntime_value );
+        $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
+        $ntime_value = join( qw| . |, @nt_val );
+    };
+
+    if ( not defined $ntime_value
+        or $ntime_value !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
+        warn 'protocol 7 network-time decoding was not successful <{C1}>';
+        return undef;
+    }
+
+    return $ntime_value;   ##  returning numerical protocol 7 network time  ##
+
 }
 
 ##############################################################################
@@ -1427,7 +1518,7 @@ sub p7_load_code {
                     $code{'log.error'}->($lmsg);
                     $code{'log.error'}->(":. $caller_str");
                     push(
-                        @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                        $data{'system'}{'start'}{'zenka-buffer'}->@*,
                         join( ' ',
                             $code{'base.anum_log_time'}->(), 0,
                             join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
@@ -3585,8 +3676,8 @@ __DATA__
 :
 :.
 
-#,,,,,..,,,,.,...,,..,.,,,.,,,,..,,..,,.,,..,,..,,...,...,..,,,,,,,.,,,.,,.,,,
-#UMEMYEMBSBNIZPSDT6PV32VMI77FUQ47UVVP2UESZENTTXNRMJSTDRKJ5US73PAAT53DCNVYPGMAQ
-#\\\|QTQW42KZU6VTKTQUP4MAZRHN7BAYXECI6A6WHY54DGZPHPKEBMA \ / AMOS7 \ YOURUM ::
-#\[7]GYL4VFZT4MHO72KM5FOFNIQR4Z2MGNKEDUAAZGMSXRRHBPIPFUDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,,,,,,.,,,.,,.,,,.,,,,.,,,,,..,,...,...,..,,.,,,,,.,...,,.,,
+#VQG4SV46AKQ36ZRSVGB6QRPNQHAXGAHEMR4IC5ZJEABF5RTDP6NTTHB5QN6OALT63ASLBAC74QHEG
+#\\\|S34UWSTED6W23AX3KAKYXFW3HYAFSIUGVMDMGYXPI4JRNZRNYUA \ / AMOS7 \ YOURUM ::
+#\[7]MWJIFVIIP6MYI32BATZIBYPCS7WMY7NEZBAHVMB6MZG2MJCP66CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

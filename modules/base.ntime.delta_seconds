@@ -17,29 +17,43 @@ warn 'end time value is not valid <{C1}>'
     and $ntime_end !~ $time_regex;
 
 if ( $ntime_start !~ m|^\d+(\.\d+)?$| ) {
-    eval { $ntime_start = unpack( 'w', decode_b32r($ntime_start) ) };
-    warn "BASE32 decoding error ['$ntime_start']" and return undef
-        if $OS_ERROR;
+    my $decoded = <[base.ntime_BASE32_to_numerical]>->($ntime_start);
+    if ( not defined $decoded ) {
+        <[base.s_warn]>->(
+            'network time [ BASE32 ] decoding error [ %s ] <{C1}>',
+            $ntime_start
+        );
+        return undef;
+    } else {
+        $ntime_start = $decoded;
+    }
 }
 
 my $precision = 0;
 if ( defined $ntime_end ) { ## end time given ##
     if ( $ntime_end !~ m|^\d+(\.\d+)?$| ) {
-        eval { $ntime_end = unpack( 'w', decode_b32r($ntime_end) ) };
-        warn "BASE32 decoding error ['$ntime_end']" and return undef
-            if $OS_ERROR;
+        my $decoded = <[base.ntime_BASE32_to_numerical]>->($ntime_end);
+        if ( not defined $decoded ) {
+            <[base.s_warn]>->(
+                'network time [ BASE32 ] decoding error [ %s ] <{C1}>',
+                $ntime_end
+            );
+            return undef;
+        } else {
+            $ntime_end = $decoded;
+        }
     }
 } else { ## end time is current time ##
-    my $precision = defined $1 ? length($1) : 0;
+    my $precision = defined $LAST_PAREN_MATCH ? length($LAST_PAREN_MATCH) : 0;
     $ntime_end = <[base.ntime]>->($precision);
 }
 my $delta_secs = ( $ntime_end - $ntime_start ) / 4200;
 
 $precision += 3;
-return sprintf( '%.' . $precision . 'f', $delta_secs );
+return sprintf( qw| %.*f |, $precision, $delta_secs );
 
-#,,.,,...,,..,,.,,,,.,...,.,.,,,,,.,.,..,,.,,,..,,...,...,..,,,,.,.,.,.,,,.,.,
-#Q7CUQHHCCEZUH44AY7CAOSJ4AMM7IUQMVEWIRWYUOVWXMUZY7P2RBO3YTN52XXVNCS6HVIRQG7CXY
-#\\\|ZYUDQNO25CP4QJRINP3EPTCUGYTKV4ZXIHGYF4RVXHWIWAS6LVD \ / AMOS7 \ YOURUM ::
-#\[7]UNYLJFQSO46KVJLWRPWIDBKCLWQQLI3DJGY7XNROZJG3Y4CFREAY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,,.,,,..,,..,...,.,,,..,,...,..,,...,...,,..,.,,,...,,..,,..,
+#6EW6SJYTBCBYHPS3EIFVPAFCS24BVFZRXZYGRN7WF3AJOKBMK452BU7C2K2EGDZHEQFWRUPT2BNHS
+#\\\|UMNQQKZPQ2VZ2JFENRZSTZ42YBS4SVDAGBSMJM5G737IQY5TCHZ \ / AMOS7 \ YOURUM ::
+#\[7]CJBLQD2NF7GJHRQ2DK6BETCQHZIA7S6I7MF3ZCYNOD3QLMKOHCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

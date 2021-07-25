@@ -3,8 +3,9 @@
 # name  = base.cmd.localtime
 # param = [unix|ntime[-b32]]
 # descr = return local date string [ host timezone ]
+# todo  = clean up ambiguous variable names, split \ extract functionality
 
-my $unix_time = $$call{'args'} // time();
+my $unix_time = $call->{'args'} // time();
 
 my $ntime_decoded;
 my $utime_copy = $unix_time;
@@ -22,7 +23,7 @@ if ( $unix_time =~ m|[A-Z]| and length($unix_time) >= 10 ) {
 if ( defined $ntime_decoded ) {
     return {
         'mode' => qw| false |,
-        'data' => 'decoded value is not valid [ expected compressed integer ]'
+        'data' => 'decoded value not valid [ expected compressed integer ]'
         }
         if not <[base.comp-int.is_valid]>->($ntime_decoded);
 
@@ -33,7 +34,7 @@ if ( defined $ntime_decoded ) {
 }
 
 $unix_time = $utime_copy    # <<[?]>> deal with false positives <<[?]>>
-    if $$call{'args'} =~ m|[A-Z]|
+    if $call->{'args'} =~ m|[A-Z]|
     and ( not defined $unix_time or $EVAL_ERROR );
 
 return {
@@ -74,8 +75,8 @@ return {
     'data' => $ltime_str
     }
 
-#,,,.,,.,,...,,.,,,.,,.,.,,,.,...,..,,...,.,.,..,,...,...,,,.,,,,,...,,..,.,.,
-#ZWQOAGO5PMJ5LIRWRRQPD7KXCIA3GHKCB6VAIOL6ANEFXAS2HWPOXOKQVXHWNVNA6CIGCDQYVUBWM
-#\\\|4AA2KBULKKGNR3LXVYP3QOCNQMNH7JLPL5T5KSSO2DWCT2OCCWA \ / AMOS7 \ YOURUM ::
-#\[7]BIWYQGVB6NOLXKAUU2RYEGUIJH4XB7SEZSFW7ON6OI7MV4IDAQAA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,...,,..,,..,..,,,,.,.,,,..,,..,,...,...,..,,.,,,,,,,..,,,,.,
+#HHD4A63B3VGSKH47M4OZMQYL3EZDMJRKBY73WVOJTZONVOHVMQGQJGWZIGZEVS4JYQ5N5XCQYGIIM
+#\\\|RZBVQB7S2LMXRTJBS4K5QRLL2ZTZIWI4U3G25PVBCYWG6LKZ3TA \ / AMOS7 \ YOURUM ::
+#\[7]Z7AGK3KUQP7PIACJA5V5QA335W74QE3AW6GZZSESYWGTVD46OSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
