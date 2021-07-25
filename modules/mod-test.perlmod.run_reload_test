@@ -6,15 +6,9 @@ my $mod = <base.modules.refresh>;
 
 my %refresh;
 
-my %module_blacklisted    ##  initializing with already blacklisted ones  ##
-    = map {
-    $ARG =~ s|::|/|g;
-    $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
-    $ARG => 5
-    } <mod-test.list.blacklisted_modules>->@*;
+##  initializing with already blacklisted ones  ##
 
-say '< blacklisted > ', join ' ',
-    $code{'base.sort'}->( \%module_blacklisted );
+my %module_blacklisted = <[mod-test.update_blacklist_aref]>;
 
 my @collected;
 
@@ -114,8 +108,8 @@ foreach my $module_file (@all_files) {
 
 return \@collected;
 
-#,,.,,,..,...,,,.,.,,,,.,,,,,,,,,,,,,,..,,.,.,..,,...,...,,..,,.,,,..,,..,.,,,
-#XKPXKUVEAURW4YHVOFHSS6BY5QPCD7LUUGLIVEQ3EFPW2RJSXIPCO5R3QE5N27JGIWEZJIUSNRP4M
-#\\\|NVFCATJOD2VX7HWKPBXMLFNVHULTDB4JYMJHFIMGIZAXQU5HSKJ \ / AMOS7 \ YOURUM ::
-#\[7]V6DRQ6KEMIJAH4WI66WWJEGTW5C2Z6SQWLQFSLXRWF7ANKN2MWDY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,.,,,.,,,,,,,,.,,,,.,.,.,.,.,..,,...,...,..,,,.,,..,,,,.,,..,
+#X4GHNOID4AB5VLYKECH4U7PSAORKZI3LP4CFRDESNYV2X6EODQG2K332ZMJG4CGHBJRO4MRI5G654
+#\\\|3KB4PZLEA3TOKEPFCYRQMB6PZL5KKHGMWQX45RHQQ3T234ZNIT6 \ / AMOS7 \ YOURUM ::
+#\[7]JJIA5POCLC6323UAXYM3KZATN2JFY64OLHBRNYJRJU7ES3T2JWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
