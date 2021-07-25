@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = base.ntime.B32_2_unix
+
+my $tstamp = shift;
+my $b32_re = <regex.base.base_32>;
+
+if ( not defined $tstamp or $tstamp !~ m|^$b32_re?$| ) {
+    warn 'encoded network time not valid [ BASE32 ] <{C1}>';
+    return undef;
+}
+
+my $ntime_value = <[base.ntime_BASE32_to_numerical]>->($tstamp);
+
+if ( not defined $ntime_value
+    or $ntime_value !~ m|^\d{13,17}(\.\d{1,17})?$| ) {
+    warn 'BASE32 decoding error [ timestamp not valid ] <{C1}>';
+    return undef;
+}
+
+my $time_unix = <[base.n2u_time]>->($ntime_value);
+
+if ( not defined $time_unix or $time_unix !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
+    warn 'protocol 7 network-time decoding was not successful <{C1}>';
+    return undef;
+}
+
+return $time_unix;
+
+#,,,.,,,,,...,..,,,,,,..,,,,,,,.,,,,,,,,.,.,,,..,,...,...,,.,,,..,,.,,,,,,,..,
+#BLKKEZQZBDDEVWZH634Z347VW36GZSHILXEHUGASDVFSMF4QHQFRL6I5CPAN2EHHVS63IUIJVUTDG
+#\\\|7UXBZ4NFMD3HIWQLOA5YSOWSS26W7ASOFVF2BK5BW6VTD2D3Z2F \ / AMOS7 \ YOURUM ::
+#\[7]7DKGOYGZY7SBEJCY5QJUPL5DKN2HG7AWGG6LFPQGOFUFGTDYRGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

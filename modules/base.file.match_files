@@ -25,9 +25,7 @@ if ( not defined $search_path or not length $search_path ) {
 my $path_abs = abs_path($search_path);
 
 if ( not defined $path_abs or not -d $search_path ) {
-    <[base.s_warn]>->(
-        "non existant path ['%s'] <{C1}>", $search_path
-    );
+    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $search_path );
     return undef;
 } elsif ( @wildcard_filenames == 0 ) {
     warn 'expected filenames \\ patterns <{C1}>';
@@ -66,8 +64,8 @@ return scalar $results->@* if defined $result_aref;    # [ append mode ]
 
 return $results->@*;
 
-#,,..,,..,.,.,.,,,...,.,.,,,.,,,,,,,,,.,,,,,,,..,,...,...,...,,,.,..,,,,.,.,.,
-#4SRLS7BVCNAAFZVROWTB7Y5O6KQO32R65V6EBDIIGLD3ZPKJWUH6BXFZ2XQIXF6I7BKV3HPZUIVII
-#\\\|BKPTA5GS2OQCORVCHXYREQKYA5LNYFM6AJXCMTL3IW6EMK2ATMJ \ / AMOS7 \ YOURUM ::
-#\[7]LBWP6XQH2NOOK37VA4TQQ2GOZJ5SVKNUGMMRCXX3J72O3OYELACQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,.,.,,..,.,.,.,,,,..,.,,,,,,,..,,...,...,.,,,,..,...,..,,,..,
+#W65GCIEITPT2XUB7GTVKFJE5C3BNUCZCP2VFE3RXOKTKF7OGOZXSBTRBRZMDSJJ6IBKDIHI6HI7YU
+#\\\|SEIMN7KULC2OJSMTCXKYKNCO3QLYUE6LP7O5QER333G2CV7ZUCH \ / AMOS7 \ YOURUM ::
+#\[7]UICZVD7FYUS2CMQB5ADW6PY3T3DD5MLAN3EXONMMD5SLPOL4FEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

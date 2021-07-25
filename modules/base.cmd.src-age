@@ -31,7 +31,7 @@ if ( ( not exists <system.zenka.type> or <system.zenka.type> ne qw| cube | )
 return { 'mode' => qw| false |, 'data' => 'have no version time-stamp' }
     if not defined $network_time;
 
-my $src_ntime = <[base.b32.ntime]>->($network_time);
+my $src_ntime = <[base.ntime_BASE32_to_numerical]>->($network_time);
 
 return { 'mode' => qw| false |, 'data' => 'decoding not successful' }
     if not defined $src_ntime
@@ -46,8 +46,8 @@ return { 'mode' => qw| true |, 'data' => $date_stamp } if $date_mode;
 
 return { 'mode' => qw| true |, 'data' => $duration_str }
 
-#,,,,,...,,,,,,,,,.,,,,..,,,,,,,,,.,,,,.,,.,.,..,,...,.,,,.,.,,,.,.,,,,,,,,..,
-#NJ62A35VP433JPMGSW5B4MGEWG63E6Q3DDBHBM43ELGH5TFL3RWENLR6NNZXIHJN2CX4U4HUVJFUI
-#\\\|KFZCDMWTWROES6SY55FDLO2YU2BVYNS6IG5ACV3NEKN3MNS3SUY \ / AMOS7 \ YOURUM ::
-#\[7]XO2FIBFZZRQLFPLAWEB2OSSQV7HR3M64M66HM3YXNNPH6R2NNSCA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,.,.,,,,,,..,,,.,...,,,,,,.,,..,,...,...,...,..,,...,.,.,.,,,
+#AWZ3EYPF5GIBINIGOZK3KDF36PAHVTJACRIZNQHP47RUBAWHLX67P4TVEU2XMDQBGETKDDDMQQKHO
+#\\\|TMX7LXFHXUASIT6UMITHUUBGAZQBSXCYI6IA2RKMATDPH76ERX4 \ / AMOS7 \ YOURUM ::
+#\[7]NC6G5NKFA6JNAUO7KL6BUEL6V7DCSBCBSBBXE4FDTSQJDGMEF6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
