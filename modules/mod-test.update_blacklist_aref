@@ -9,13 +9,10 @@ my $add_modules = shift;
 
 <mod-test.list.blacklisted_modules> = [
     <[base.sort]>->(
-        uniq map {
-            $ARG =~ s|::|/|g;
-            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
-            $ARG
-        } <[base.sort]>->(
+        uniq map { <[base.perlmod.convert.name_to_pm]>->($ARG) }
+            <[base.sort]>->(
             <mod-test.list.blacklisted_modules>, $add_modules
-        )
+            )
     )
 ];
 
