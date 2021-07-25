@@ -1,12 +1,58 @@
 ## >:] ##
 
 # name  = mod-test.cmd.clear-success-list
+# param = [pattern]
 # descr = erase successful reload list from disk
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+my $mod_name_pattern = $call->{'args'};
 
-#,,..,,..,.,,,,,,,...,..,,,,,,..,,.,.,,,.,.,.,..,,...,...,.,,,,..,.,.,.,,,,..,
-#QOP4TPHAKRAJJRY53N6QMAGTABXISPX53LZXJ6SIPMRQ2K57VRCOKXAQC5D2GIHH6HBHWVHWLXTPO
-#\\\|OX65XJUHBUVM2MD2KKO6DS5EMVBIK7QSISRFLRMIR54IHQADAIS \ / AMOS7 \ YOURUM ::
-#\[7]3X7QN6JVQH5L2SWNFTVEPBKCPHDMYWCYOOEHTLSJJYXQIJWJP6CY 7  DATA SIGNATURE ::
+my $link_target_dir = <mod-test.path.mod-reg-dir>->{'complete'};
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        -e $link_target_dir
+        ? 'directory not readable [%s]'
+        : 'directory not present [ %s ]',
+        $link_target_dir
+    )
+    }
+    if not -e $link_target_dir or not -r $link_target_dir;
+
+my $link_path_hash = <[file.all_links]>->($link_target_dir);
+
+my $removed_links_count = 0;
+
+foreach my $link_path_abs ( keys $link_path_hash->%* ) {
+    next
+        if defined $mod_name_pattern
+        and index( $link_path_hash->{$link_path_abs}, $mod_name_pattern, 0 )
+        == -1;
+
+    eval { unlink($link_path_abs) };
+
+    $removed_links_count++ if not -l $link_path_abs;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => defined $mod_name_pattern
+    ? 'no matches for name pattern'
+    : 'no entries',
+    }
+    if $removed_links_count == 0;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'removed %d list entr%s',
+        $removed_links_count,
+        <[base.cnt_s]>->( $removed_links_count, qw|  ies  y  | )
+    )
+    }
+
+#,,..,,,,,.,.,,.,,.,,,,,.,...,.,.,,,,,,.,,,,.,..,,...,...,...,...,,,,,,..,..,,
+#5UL25U2FTK26C5VR54PR4DPYOM3HXEFIQ5VZVZNRO6ZM4QVEW4VGHB5YAXR43CXKZ6X4NJV7I356E
+#\\\|2RW5KQXERWFIKWWR6S27Y2FGTID4YHJ4XWKEJVGGBOBDKAV7347 \ / AMOS7 \ YOURUM ::
+#\[7]6VRRQ7WH54NNXE4IC6JY3VB6BGNKFVKVGINP3ANZQBO2VGSJGUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
