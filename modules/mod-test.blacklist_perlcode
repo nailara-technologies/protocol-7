@@ -1,0 +1,54 @@
+## >:] ##
+
+# name  = mod-test.blacklist_perlcode
+
+<mod-test.list.blacklisted_modules> //= [];
+
+<mod-test.list.blacklisted_modules> = [
+    <[base.sort]>->(
+        uniq map {
+            $ARG =~ s|::|/|g;
+            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
+            $ARG
+        } <[base.sort]>->(<mod-test.list.blacklisted_modules>)
+    )
+];
+
+my $header_str = << 'EOC';
+## >:] ##
+
+# name  = base.perlmod.manual_reload_blacklist
+# descr = modules not to be reloaded using 'reload p-mods' zenka command
+
+\<base.perlmod.reload_blacklist> = [ qw[
+EOC
+my $code_footer_string = << 'EOC';
+
+    ]
+];
+
+return \<base.perlmod.reload_blacklist>;
+
+EOC
+
+my $code_file_name = $LAST_PAREN_MATCH
+    if $header_str =~ m|^# name *= *(\S+)$|m;
+
+map { s|\\<|<|g } ( $header_str, $code_footer_string );
+
+return {
+    $code_file_name => join(
+        "\n",
+        $header_str,
+        (   map { sprintf qw| %s%s |, scalar( ' ' x 8 ), $ARG }
+                <mod-test.list.blacklisted_modules>->@*
+        ),
+        $code_footer_string
+    )
+};
+
+#,,,,,,,,,,,.,.,.,.,,,.,.,,,.,..,,,..,,..,.,.,.,.,...,...,,..,,..,..,,...,...,
+#B72RPCL6USFP43F4PWDANZUZWJMFX54YMLVMZNDTQ5B47XSI3C6VUPZNKPOFFZJZYBSNBN6PVEZYG
+#\\\|7VWQRW4V3OQHJXS26NQNONZD73ZDGNJJS7D74TDK4XYQSFSJAJU \ / AMOS7 \ YOURUM ::
+#\[7]XZPIIM2P6C6JXAECMFPBNX5RDDLM7UMNITAEGED7GNWHQIFM5WBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
