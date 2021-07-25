@@ -2,17 +2,7 @@
 
 # name  = mod-test.blacklist_perlcode
 
-<mod-test.list.blacklisted_modules> //= [];
-
-<mod-test.list.blacklisted_modules> = [
-    <[base.sort]>->(
-        uniq map {
-            $ARG =~ s|::|/|g;
-            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
-            $ARG
-        } <[base.sort]>->(<mod-test.list.blacklisted_modules>)
-    )
-];
+<[mod-test.update_blacklist_aref]>;
 
 my $header_str = << 'EOC';
 ## >:] ##
@@ -34,7 +24,7 @@ EOC
 my $code_file_name = $LAST_PAREN_MATCH
     if $header_str =~ m|^# name *= *(\S+)$|m;
 
-map { s|\\<|<|g } ( $header_str, $code_footer_string );
+map {s|\\<|<|g} ( $header_str, $code_footer_string );
 
 return {
     $code_file_name => join(
@@ -47,8 +37,8 @@ return {
     )
 };
 
-#,,,,,,,,,,,.,.,.,.,,,.,.,,,.,..,,,..,,..,.,.,.,.,...,...,,..,,..,..,,...,...,
-#B72RPCL6USFP43F4PWDANZUZWJMFX54YMLVMZNDTQ5B47XSI3C6VUPZNKPOFFZJZYBSNBN6PVEZYG
-#\\\|7VWQRW4V3OQHJXS26NQNONZD73ZDGNJJS7D74TDK4XYQSFSJAJU \ / AMOS7 \ YOURUM ::
-#\[7]XZPIIM2P6C6JXAECMFPBNX5RDDLM7UMNITAEGED7GNWHQIFM5WBA 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,..,,,,.,,,,,,,.,,.,,,..,.,,,.,.,...,...,...,,,,,,.,,,,,,,,.,
+#GI737FIX6LL264UBD2OIEDZOGFHS7CRZY7VGMJIUQO2UTFY2FRETJXPXHKUPVYNJAMYJYV6WYJEZ6
+#\\\|GQROHA3AEOR4LYVFVXYIVZTM7MI36GU2OLAVJAGM5VZDQEMYDHQ \ / AMOS7 \ YOURUM ::
+#\[7]4ONOWQ67RKIX7C5TLPWK7MEGZJUZ2M5SR3Q7LSIQR5VP3CRK3UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

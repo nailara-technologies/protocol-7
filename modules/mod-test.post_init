@@ -7,15 +7,8 @@
 
 <[base.logs]>->( 1, '.: loading all registered perl modules :' );
 
-#my %module_blacklisted
-#    = map { $ARG => 5 } <mod-test.list.blacklisted_modules>->@*;
-
-my %module_blacklisted    ##  initializing with already blacklisted ones  ##
-    = map {
-    $ARG =~ s|::|/|g;
-    $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
-    $ARG => 5
-    } <mod-test.list.blacklisted_modules>->@*;
+##  initializing with already blacklisted ones  ##
+my %module_blacklisted = <[mod-test.update_blacklist_aref]>;
 
 my @load_failed;
 my $load_success = 0;
@@ -58,20 +51,12 @@ if ( scalar @load_failed ) {
     );
 }
 
-<mod-test.list.blacklisted_modules> = [
-    <[base.sort]>->(
-        map {
-            $ARG =~ s|::|/|g;
-            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
-            $ARG
-        } <[base.sort]>->( \%module_blacklisted )
-    )
-];
+<[mod-test.update_blacklist_aref]>->( \%module_blacklisted );
 
 0;
 
-#,,.,,,,,,.,,,,,,,,,.,..,,..,,.,,,.,.,.,,,,.,,..,,...,..,,.,,,.,,,.,.,,..,..,,
-#LRVGZDCQMLA47QFQA7MFW76QRPVOFNA2T237PCKAGLAYBSPVRUDVQEJWESV5RGIC3RBLK3YMQRKYO
-#\\\|MH2SHGC6AQ7PBSX2PR43OONUINR6DBAIEKXZDBHQVYETIQTRK5Y \ / AMOS7 \ YOURUM ::
-#\[7]6GEPTLAUKFCBIAIIJCTHW5HZBQYZVJGC6BKLK74QG5LBQC63SQDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,,.,,..,,..,,..,.,.,...,,.,,..,,...,..,,.,,,,.,,,,,,,,,,.,,,
+#A46M2C5PPW6VAZPN2GUSPXMLB2GYFZUGHXZGIX4J7B7FT7AXCSEKMK3WWOWAM5DD27PEYRJDY6GSY
+#\\\|L4JMGVXNIAOD6F44RP55GU5N3NQUM7JTNRTMJKZPKCSL2AJ5WGP \ / AMOS7 \ YOURUM ::
+#\[7]KMZ5MA33BBXOCHJPVXSOQICGMGHXKZLJ3FMOA3W4CNA5RGMMXQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

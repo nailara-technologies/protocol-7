@@ -42,7 +42,8 @@ if ( $code_file_path =~ m,(\.\.|/), ) {
 
 my $file_path_abs = catfile( $zenka_output_directory, $code_file_path );
 
-<[base.logs]>->( 'writing blacklist code file to %s', $file_path_abs );
+<[base.log]>->( 1, ':: writing blacklist code file.' );
+<[base.logs]>->( 2, ':. %s', $file_path_abs );
 
 if ( <[file.put]>->( $file_path_abs, \$blacklist_href->{$code_file_path} ) ) {
 
@@ -55,7 +56,7 @@ if ( <[file.put]>->( $file_path_abs, \$blacklist_href->{$code_file_path} ) ) {
     }
 
     <[base.logs]>->(
-        ':. success, wrote %03d bytes.',
+        ':  :. success, wrote %03d bytes.',
         length $blacklist_href->{$code_file_path}
     );
 
@@ -68,8 +69,8 @@ if ( <[file.put]>->( $file_path_abs, \$blacklist_href->{$code_file_path} ) ) {
     return undef;
 }
 
-#,,..,,.,,.,.,...,,..,,.,,,.,,,,,,,..,,,,,.,.,.,.,...,...,...,...,,,.,,,.,.,,,
-#3VN62DOBZ4F5IPJG2UIQZQIHZ3KYNAILY5CQIZ4XYPEOB432CXM3IJYERY4WQ3LDJ45OOUXXNYQ62
-#\\\|JYMWFP6C3J42ICCUSC42DSER3QPFC34QKPOVUC3CWEGZFFN4FUC \ / AMOS7 \ YOURUM ::
-#\[7]5OPIBFZUWGBWWJ26X5MKJ5XPM5TMBB7XOXONVUIYSRUDG7Q7CUAY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,.,,,,.,,,,,,..,,..,,.,.,,.,,.,.,...,.,.,,.,,.,.,.,.,,..,.,.,
+#Q7N3PJLI57ZJK4OYX6NJCGVCNEFUZZIDAW43R5T26F2VDIVHSAGQRUIJQUROAIWKN32PRX6NE2YWM
+#\\\|QVSOMVTDB7Z6U4KQRTU4LWQWT2I6OR5K3YVRQL5XXF6MD6WN5FE \ / AMOS7 \ YOURUM ::
+#\[7]2ZNT2TNIB5WJ5BCUVPOSRKKI7IPX2VPZDUNCBDGKQWK5K4RJKWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
