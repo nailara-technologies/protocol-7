@@ -2,14 +2,25 @@
 
 # name = base.file.write_timestamp
 
-my $timestamp_file = shift;
+my $timestamp_file_path = shift;
+my $t_opt_par           = shift // 3;    #  <--  precision or unix time value
 
-open( my $ts_fh, ">$timestamp_file" ) or die "$timestamp_file : \l$OS_ERROR";
-print {$ts_fh} time() . "\n";
-close($ts_fh);
+if ( $t_opt_par !~ m|^\d+(\.\d+)?$| ) {
+    warn 'precision\time parameter not valid [ integer \ float ] <{C1}>';
+    return undef;
+}
 
-#,,,,,.,,,,,,,.,,,,.,,...,,,.,,,,,..,,..,,,.,,..,,...,...,...,.,.,.,,,...,,.,,
-#6SS2ARWZIIOOX2YG46ZLKBJSIXNFIXBOK52PRWB6NXCNFEAXASSUCP5GENWLSCGRQTE5USYRD3S2E
-#\\\|SAY36GRYVTF34WV43TCIFOQAGKQ7WJF5CVPQ7WAPYXDURLDT5ED \ / AMOS7 \ YOURUM ::
-#\[7]ZDMWOBOL3CQGUVYNO7IDZL6T7P5DSY3JPEZQBSWUKPTHUQA4FYDA 7  DATA SIGNATURE ::
+my $tstamp = <[base.ntime.b32]>->($t_opt_par);
+
+if ( not <[file.put]>->( $timestamp_file_path, sprintf "%s\n", $tstamp ) ) {
+    warn 'cannot create timestamp file <{C1}>';
+    return undef;
+}
+
+return $tstamp;    ##  return written timestamp  ##
+
+#,,,,,...,,..,...,.,,,,,.,.,,,,..,..,,.,.,...,..,,...,...,,.,,,..,.,.,,,,,,.,,
+#IIRXQJMRE5TA3U7ONWN54DU26Y64YDZJ5BIS6MS6XPZP45X24RBT74FB6VOCXCZGVJ4OSJW27XFDO
+#\\\|FHS525YFNI5DH3EOC3CV7RLTKKGYHOBNHWO3FBE67RQBLWT3ZJA \ / AMOS7 \ YOURUM ::
+#\[7]WTM7HVSGU73RYDPQLB4O5BXT7HL5ZECDH3ZMU62KKGJ7LVL7LEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

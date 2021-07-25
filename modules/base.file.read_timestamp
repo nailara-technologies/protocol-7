@@ -2,21 +2,57 @@
 
 # name = base.file.read_timestamp
 
-my $timestamp_file = shift;
+my $tstamp_file = shift // '';
 
-open( my $ts_fh, "<$timestamp_file" ) or die "$timestamp_file : \l$OS_ERROR";
-chomp( my $timestamp = <$ts_fh> );
-close($ts_fh);
-
-if ( not defined $timestamp or $timestamp !~ /^\d+$/ ) {
-    <[base.log]>->( 0, "time-stamp file '$timestamp_file' is corrupted!" );
+if ( not length $tstamp_file ) {
+    warn 'path param missing or undefined <{C1}>';
     return undef;
 }
 
-return $timestamp;
+my $time_unix;
 
-#,,,.,,,.,.,,,,..,...,..,,...,..,,.,.,..,,.,,,..,,...,..,,.,,,,,,,,.,,.,.,,,,,
-#2Q7V4RWFFOQGU37J7OZYZKH2ZWTQ7YPH7UWHS6GLTNSEKKGV3F4EB2P4Y32NV72IBQLE7DDWLL6NS
-#\\\|E5POYPMGJUFEU6OJ3SEEUQR3QPDBYPSAGY6TQM7HYDPT5ZEGOAL \ / AMOS7 \ YOURUM ::
-#\[7]LK45WALQGW4RH7XPCRLRAVJP5D6WTTI2BYBRI4556OSD372S7SCI 7  DATA SIGNATURE ::
+<[file.slurp]>->( $tstamp_file, \my $tstamp );
+
+my $b32_re = <regex.base.base_32>;
+
+if ( not defined $tstamp ) {
+    <[base.s_warn]>->(
+        "cannot open timestamp file '%s' [ %s ]",
+        $tstamp_file, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+chomp($tstamp);
+
+if (    $tstamp =~ m|[A-Z]|
+    and $tstamp =~ m|^$b32_re?$|
+    and length($tstamp) >= 10 ) {    ##  protocol 7 network time format  ##
+
+    $time_unix = <[base.ntime.B32_2_unix]>->($tstamp);
+
+    if ( not defined $time_unix ) {
+        <[base.s_warn]>->(
+            "timestamp file '%s' content is not a valid format <{C1}>",
+            $tstamp_file
+        );
+        return undef;
+    }
+
+} elsif ( $tstamp !~ m|^\d{1,17}(\.\d{1,20})?$| ) {
+    <[base.logs]>->(
+        0, "time-stamp file '%s' contains no recognized timestamp",
+        $tstamp_file
+    );
+    return undef;
+} else {
+    $time_unix = $tstamp;
+}
+
+return $time_unix;    ##  return [ decoded ] unix-time value  ##
+
+#,,.,,.,.,.,.,,.,,,.,,...,..,,...,,,.,,,.,..,,..,,...,...,.,.,...,,,,,,.,,,,,,
+#VN4Z5HUZQKSRDH4VERQ57SHBAZU4CT2SUDHM3UIB54RB3V5W7VLRZFT2EOLIBPVTUQHNBHTQCTZXQ
+#\\\|CO5EJGO644RWHA23FG5MGM4TYO22SKWMUMB6RAJ6S652RRN277R \ / AMOS7 \ YOURUM ::
+#\[7]UBJ4VO72B4ENJBEGONQZ6URBN3D67BMUIJJQHYLFPKW33OVRLUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
