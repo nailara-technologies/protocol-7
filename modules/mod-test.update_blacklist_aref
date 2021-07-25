@@ -1,0 +1,35 @@
+## >:] ##
+
+# name  = mod-test.update_blacklist_aref
+# descr = converting perl module names to .pm relative path component format
+
+my $add_modules = shift;
+
+<mod-test.list.blacklisted_modules> //= [];
+
+<mod-test.list.blacklisted_modules> = [
+    <[base.sort]>->(
+        uniq map {
+            $ARG =~ s|::|/|g;
+            $ARG .= qw| .pm | if rindex( $ARG, qw| .pm | ) == -1;
+            $ARG
+        } <[base.sort]>->(
+            <mod-test.list.blacklisted_modules>, $add_modules
+        )
+    )
+];
+
+if (wantarray) {    ##  initializing hashes [ list context ]  ##
+
+    return map { $ARG => 5 } <mod-test.list.blacklisted_modules>->@*;
+
+} else {    ##  returning ARRAY reference in scalar context  ##
+
+    return <mod-test.list.blacklisted_modules>;
+}
+
+#,,,,,.,.,.,,,.,.,...,,.,,,,.,,,,,,,.,,,,,,.,,..,,...,..,,,,,,..,,,,,,,,.,...,
+#DYX6ESP3L5QEZ4RZNXL5QO6X4GBWOQAGAV3R7YC4NVA72LJDM6ZUDMNATBLTFDVRV3MVS2R7SHLA4
+#\\\|UEAFG56VIOUQ4CQVS4TS2Q4ZMZZDLUTYKLHGL6ZTJRQFX3J63EZ \ / AMOS7 \ YOURUM ::
+#\[7]H4RKMN2QA5KUMKFKXPZI7F5OX4AEB6UOSJ64BTF36GYIU2MF2UAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
