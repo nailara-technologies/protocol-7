@@ -12,14 +12,9 @@ my %module_blacklisted = <[mod-test.update_blacklist_aref]>;
 
 my @collected;
 
-my $completed_dir = qw| /var/run/.7/module-reload-test-completed |;
-my $blacklist_dir = qw| /var/run/.7/module-reload-blacklist |;
-foreach my $directory ( $blacklist_dir, $completed_dir ) {
-    if ( not -d $directory ) {
-        <[base.logs]>->( ': creating directory %s ..,', $directory );
-        <[file.make_path]>->($directory);
-    }
-}
+my $started_dir   = <mod-test.path>->{'started'};
+my $completed_dir = <mod-test.path>->{'complete'};
+my $blacklist_dir = <mod-test.path>->{'blacklisted'};
 
 my $file_template_blacklisted = sprintf qw| %s/%%s |, $blacklist_dir;
 my $file_template_completed   = sprintf qw| %s/%%s |, $completed_dir;
@@ -108,8 +103,8 @@ foreach my $module_file (@all_files) {
 
 return \@collected;
 
-#,,..,,..,,..,,,.,.,,,.,,,,,,,,.,,,,.,.,.,.,.,..,,...,...,..,,,.,,..,,,,.,,..,
-#X4GHNOID4AB5VLYKECH4U7PSAORKZI3LP4CFRDESNYV2X6EODQG2K332ZMJG4CGHBJRO4MRI5G654
-#\\\|3KB4PZLEA3TOKEPFCYRQMB6PZL5KKHGMWQX45RHQQ3T234ZNIT6 \ / AMOS7 \ YOURUM ::
-#\[7]JJIA5POCLC6323UAXYM3KZATN2JFY64OLHBRNYJRJU7ES3T2JWDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,..,.,,,.,,,..,,,,.,...,,,,,..,,..,,...,...,.,.,,..,...,,,.,..,,
+#C6CPOBV27VUCRTLJGZRZZYTK55A6W3BKRCCNTZ7Y7S57XUTTEZPXT5SUL46R3IVU3MDORUJZGGXDI
+#\\\|PJPZEMVBLXUWBNJ7GFW2FNJ7JGWZSVQBJGVHO4FQPL7PHKKZQRP \ / AMOS7 \ YOURUM ::
+#\[7]KMGOWLIMF22YDPB7TNOKQ4EUMN437YAJKYKQ4CFNDNB5DURAJECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
