@@ -4,8 +4,11 @@
 
 my $file_name = shift;
 my $ext_param = shift // '';
-warn 'expected file name parameter <{C1}>' and return undef
-    if not defined $file_name;
+
+if ( not defined $file_name ) {
+    warn 'expected file name parameter <{C1}>';
+    return undef;
+}
 
 my $unlink_file = $ext_param eq 'unlink' ? 1 : 0;
 
@@ -51,8 +54,8 @@ if ($unlink_file) {
 
 return ( $network_time, $value );
 
-#,,..,.,.,..,,,.,,,..,,..,...,.,.,.,.,,..,.,.,..,,...,...,.,,,,..,,,,,,.,,...,
-#UR44VN3AJB52N2XAI3BAJ4KI2JSK2WR3GVKTBEHM24CC4K4YBZNJ5T6QFAMSNZ4FWV5KSRM76NRFK
-#\\\|C5YT33G4JNYC3ZYBYWINHAY2H4R6ASMP2ZVQYRAEPTAHIGYPSDX \ / AMOS7 \ YOURUM ::
-#\[7]4W3HWX6NOZOPGTIFNE44B3SVX2L5IFDWGCK37REDAC7ESXZC5EDI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,...,,.,,,..,,,.,..,,,,.,,.,,..,,...,...,.,.,.,.,.,,,...,,,.,
+#RUC4WZZ7I2VZBA3EKBTFPI65DL7H42BEWNVIC3UGTYY7M7EZTNGLQHESI3V66HOTABHH5GL3CN2HO
+#\\\|IGTMPZT7EVHYW56MVQ3SAVV7NQAXLGA2HY6BBGT35Z2SEV2NRVX \ / AMOS7 \ YOURUM ::
+#\[7]MTH6ZCBTQRRQRVT3MZBLJN7UFTDD2T2MGZE2SGRI4E3A5FUMSABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
