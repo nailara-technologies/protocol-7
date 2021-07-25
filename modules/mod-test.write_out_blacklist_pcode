@@ -1,0 +1,75 @@
+## >:] ##
+
+# name  = mod-test.write_out_blacklist_pcode
+
+my $blacklist_href = <[mod-test.blacklist_perlcode]>;
+
+my $zenka_output_directory = <mod-test.path.output_dir> // '';
+$zenka_output_directory =~ s|/+$||;
+
+if ( ref $blacklist_href ne qw| HASH | or keys $blacklist_href->%* != 1 ) {
+    warn 'blacklist_perlcode did not output a valid hashref <{C1}>';
+    return undef;
+} elsif ( not length $zenka_output_directory ) {
+    <[base.s_warn]>->(
+        'zenka work directory %s not defined <{C1}>',
+        qw| mod-test.path.output_dir |
+    );
+    return undef;
+} elsif ( not -d $zenka_output_directory ) {
+    <[base.s_warn]>->(
+        'zenka work directory %s not found <{C1}>',
+        $zenka_output_directory
+    );
+    return undef;
+} elsif ( not -w $zenka_output_directory ) {
+    <[base.s_warn]>->(
+        'no write permissions to zenka work directory %s <{C1}>',
+        $zenka_output_directory
+    );
+    return undef;
+}
+
+( my $code_file_path ) = keys $blacklist_href->%*;
+
+if ( $code_file_path =~ m,(\.\.|/), ) {
+    <[base.s_warn]>->(
+        'blacklist code filename is not relative [ %s ] <{C1}>',
+        $code_file_path
+    );
+    return undef;
+}
+
+my $file_path_abs = catfile( $zenka_output_directory, $code_file_path );
+
+<[base.logs]>->( 'writing blacklist code file to %s', $file_path_abs );
+
+if ( <[file.put]>->( $file_path_abs, \$blacklist_href->{$code_file_path} ) ) {
+
+    if ( not chmod( 0644, $file_path_abs ) ) {
+        <[base.logs]>->(
+            'cannot chmod [ 0644, %s ] : [ %s ] <{C1}>',
+            $file_path_abs, <[base.str.os_err]>
+        );
+        return undef;
+    }
+
+    <[base.logs]>->(
+        ':. success, wrote %03d bytes.',
+        length $blacklist_href->{$code_file_path}
+    );
+
+    return $file_path_abs;    ##  success \ return absolute code file path  ##
+} else {
+    <[base.s_warn]>->(
+        'error while writing code file %s [ %s ] <{C1}>',
+        $code_file_path, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+#,,..,,.,,.,.,...,,..,,.,,,.,,,,,,,..,,,,,.,.,.,.,...,...,...,...,,,.,,,.,.,,,
+#3VN62DOBZ4F5IPJG2UIQZQIHZ3KYNAILY5CQIZ4XYPEOB432CXM3IJYERY4WQ3LDJ45OOUXXNYQ62
+#\\\|JYMWFP6C3J42ICCUSC42DSER3QPFC34QKPOVUC3CWEGZFFN4FUC \ / AMOS7 \ YOURUM ::
+#\[7]5OPIBFZUWGBWWJ26X5MKJ5XPM5TMBB7XOXONVUIYSRUDG7Q7CUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
