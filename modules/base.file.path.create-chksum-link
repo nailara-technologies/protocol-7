@@ -20,12 +20,12 @@ if ( not defined $chksum_dir or not -d $chksum_dir ) {
 } elsif ( not length( $chksum_str // '' ) ) {
     warn 'expected chksum str parameter <{C1}>';
     return undef;
-} elsif ( $chksum_str !~ m|^[2-7A-Z]+$| ) {
+} elsif ( $chksum_str !~ m|^(0\d+0)?[2-7A-Z]+$| ) {  ## allow ^0\d+0 prefix ##
     warn 'checksum is expected to be in BASE32 encoding <{C1}>';
     return undef;
 }
 
-my $abs_chksum_path = abs_path( catdir( $chksum_dir, $chksum_str ) );
+my $abs_chksum_path = abs_path( catfile( $chksum_dir, $chksum_str ) );
 
 if ( not symlink( $path_string, $abs_chksum_path ) ) {
     <[base.s_warn]>->( '[ %s ] %s', $abs_chksum_path, <[base.str.os_err]> );
@@ -34,8 +34,8 @@ if ( not symlink( $path_string, $abs_chksum_path ) ) {
     return 5;    ## true ##   [ success ]   ##
 }
 
-#,,.,,..,,...,,.,,,,,,.,,,,,,,,,.,..,,.,.,.,,,.,.,...,...,,.,,,..,,.,,...,.,,,
-#GJHJOIKC4JOXAA3KY7IT7E5F6FULL4GEWUM3WXS5WMZ6IDFOGA7XPUEAIIAM4DUPYBPSNFT5DUU3U
-#\\\|GWRFBKY7WZTR2WFU6OKKCOCIAPLKJR4IRDFLVVX35RMBBDUOVSV \ / AMOS7 \ YOURUM ::
-#\[7]BKM4T5PKHG6S4I24NS4BDAQT744F57YM4JUSZDP2WC47E7PBJQDY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,.,,,.,,,,,.,,.,,,..,.,.,,,,,.,.,...,.,,,.,,,,,,,,,,,,,.,,,.,
+#ZHBLQGGTFWDQSGICC63SMNZJMQACT3LHZDPCTBA6NLBX2EZZ2KHAKFWOWLPB6TAXRINRJU5EJFYTK
+#\\\|WBAKMNOBDDRPX5D5GWTTZDVRQGYKIJCASUQC5ERSTN7QDCKVVXA \ / AMOS7 \ YOURUM ::
+#\[7]JHGSU4Z35FHVBRHBNB5MKQVNGYYIU27IMWVSC5YGKI3XQ77VUMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

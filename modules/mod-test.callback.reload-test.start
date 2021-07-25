@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = mod-test.callback.reload-test.start
+
+my $module_file = shift // '';
+my $started_dir = <mod-test.path>->{'started'};
+
+if ( not length $module_file ) {
+    warn 'expected module filename [ .pm rel path ] <{C1}>';
+    return undef;
+} elsif ( not -d $started_dir ) {
+    <[base.logs]>->( 'target directory %s not found <{C1}>', $started_dir );
+    return undef;
+} elsif ( not -w $started_dir ) {
+    <[base.logs]>->(
+        'no write perms on target directory %s <{C1}>', $started_dir
+    );
+    return undef;
+}
+
+my $mod_path_chksum    ##  use only the checksum component  ##
+    = [ <[file.gen_path_linkname]>->( $started_dir, $module_file ) ]->[1];
+
+<[base.logs]>->( 2, 'registering [ %s ] %s', $mod_path_chksum, $module_file );
+
+return <[file.path.create-chksum-link]>->(    ##  creating the symlink  ##
+    $started_dir, $module_file, $mod_path_chksum
+);
+
+#,,.,,,.,,,..,.,,,..,,,.,,.,,,.,,,...,,,.,..,,..,,...,.,.,.,.,,,.,,,,,,..,,,.,
+#DEGLSF5H6LZ76RRUCSDRX7AYVSD3MZ3YJ4PGSLHBVQVM634EN7RILHPRWTJQOP4A44NBQSE46AVHY
+#\\\|7VCOXPZUBHXD72VPV3X6AVUPOJA5F7HIKWB6DBKZSXDS2BD7ONY \ / AMOS7 \ YOURUM ::
+#\[7]SXORD43SERJOK4O6SIAA5AM4OQFMAIUUW3JRHURROFLLDU2JBSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

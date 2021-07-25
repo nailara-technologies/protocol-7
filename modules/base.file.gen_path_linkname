@@ -70,10 +70,14 @@ my $symlink_abs = sprintf $fname_templ, $tmp_path_symlink_name;
     or not $existing_symlink and -e $symlink_abs
     or not AMOS7::Assert::Truth::is_true( $symlink_abs, 0, 1 );
 
+##  also return plain link name in list context  ##
+##
+return ( $symlink_abs, $tmp_path_symlink_name ) if wantarray;
+
 return $symlink_abs;    ##  returning symlink path for given target path  ##
 
-#,,,,,,.,,,,,,..,,..,,.,,,,,.,,..,,,.,,,.,,..,..,,...,...,..,,..,,.,,,...,,,.,
-#IVNYAPKBG3KD4HRPLWFNTJZU7EAPVQXPFLQR4FZNUFJKZWZSCJ567MLS7CM6I6VAIEPCRNN6PQOAA
-#\\\|KRSJB6XFPNXUP7JEER4IPN72JYHXJULVSPTG4SPNVBPGSPOVIIC \ / AMOS7 \ YOURUM ::
-#\[7]HB6HBABH4ZMMIEVNRHKSYMQHXU5BX2WEO2DD2ECFZFKZNMHY5IBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,,,,..,,...,...,..,,,..,...,..,,...,...,..,,..,,..,,...,,,,,
+#RS7A6HPB6RTO76KQOR6GDQ3WG6GMGM7BZIVXC32AXBTFYQRFSGNVEKNMVXIGXVUUNOUSCFISGV5FI
+#\\\|3TWILSX4IS5O4WLRQBPYBS5GIQHWC24S5DGO36YHMNNEPRCFOVQ \ / AMOS7 \ YOURUM ::
+#\[7]X7YRD2J7MIBYZFSA26IB3LAYASNUCXFD62LJFRCDL7OIUWS4HACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
