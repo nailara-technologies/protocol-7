@@ -1,12 +1,12 @@
 ## >:] ##
 
-# name  = mod-test.cmd.list-blacklisted
+# name  = mod-test.cmd.list-successes
 # param = [pattern]
-# descr = return [reload] blacklisted perl module list
+# descr = return list of successful perlmod reloads
 
 my $mod_name_pattern = $call->{'args'};
 
-my $link_target_dir = <mod-test.path.mod-reg-dir>->{'blacklisted'};
+my $link_target_dir = <mod-test.path.mod-reg-dir>->{'complete'};
 
 return {
     'mode' => qw| false |,
@@ -19,9 +19,9 @@ return {
     }
     if not -e $link_target_dir or not -r $link_target_dir;
 
-my @blacklist_pm_rel;
-
 my $link_path_hash = <[file.all_links]>->($link_target_dir);
+
+my @success_list_pm;
 
 foreach my $link_path_abs ( keys $link_path_hash->%* ) {
     next
@@ -29,7 +29,7 @@ foreach my $link_path_abs ( keys $link_path_hash->%* ) {
         and index( $link_path_hash->{$link_path_abs}, $mod_name_pattern, 0 )
         == -1;
 
-    push @blacklist_pm_rel, $link_path_hash->{$link_path_abs};
+    push @success_list_pm, $link_path_hash->{$link_path_abs};
 }
 
 return {
@@ -38,16 +38,16 @@ return {
     ? 'no matches for name pattern'
     : 'no entries',
     }
-    if @blacklist_pm_rel == 0;
+    if @success_list_pm == 0;
 
 return {
     'mode' => qw| size |,
     'data' => join '',
-    map {"$ARG\n"} <[base.sort]>->( \@blacklist_pm_rel )
+    map {"$ARG\n"} <[base.reverse-sort]>->( \@success_list_pm )
     }
 
-#,,,,,,..,,.,,.,.,,..,.,,,...,..,,,.,,,..,..,,..,,...,...,...,,,,,,,,,,..,,.,,
-#X6OC7FDZMGK7SEP6L43GMJNNMABXN24Y46EJ7Q3E6447O3KPBLTI4CPXYRCIV3PSROQKGUNSWYHOQ
-#\\\|QBY6YTMHXEP3Z3EIFM4HX2UZ57YMIMHZP6GVQDUCA6CP2IPA7P4 \ / AMOS7 \ YOURUM ::
-#\[7]TCQ2QX7U25A2BTRC64YEZDTFRQO6VVDG6ZFYZLM3IKTOU737TWAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,.,,,,..,.,.,,..,...,.,.,.,.,..,,...,...,,.,,...,,.,,.,.,...,
+#JQYUBLFYTYMSPEBOFVIXG2NRJTIEN3NRFQNAZZBOFDCI523CKNIB476DF67R7K3WJE3LUTIMSLMVM
+#\\\|PBC4TWJLRKMOFFMSOOWX7H4577RFDA3PXZRAQYFPONTNCF65C4Y \ / AMOS7 \ YOURUM ::
+#\[7]22YKC6NO7G3GKTE3XOT6GUBGRKVJM3TSCFBEZQ6PTZOHHYLJYCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
