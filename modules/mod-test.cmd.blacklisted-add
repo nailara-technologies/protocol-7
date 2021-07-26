@@ -3,14 +3,28 @@
 # name  = mod-test.cmd.blacklisted-add
 # descr = add a perl module to reload blacklist
 
-my $module_name = shift;
+my $module_name = $call->{'args'};
 
-## <[mod-test.callback.reload-test.add-link]>;
+return { 'mode' => qw| false |, 'data' => 'expected module name parameter' }
+    if not defined $module_name;
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+$module_name = <[base.perlmod.convert.name_to_pm]>->($module_name);
 
-#,,.,,.,,,..,,,,,,,,.,.,,,.,.,...,,.,,.,,,.,,,..,,...,...,..,,,..,.,,,..,,,..,
-#BIP2AT64H3RVHIOYDGLW5QGWNRK6RDFYDV4PMZG6CNWF2DJGZYTHNWDDFBIR5XMTBVJC7P3I6VWXQ
-#\\\|W4WDHPDPKHCVSBK72XWLKRLMYCR5IM55T2R4KJJZY26J4D5EVQC \ / AMOS7 \ YOURUM ::
-#\[7]W3AFGAIH5BBAYFGR2VJAVQKFRJPTXJVDAJOB4OE5VTH2SWS42KBQ 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => 'entry already present' }
+    if <[mod-test.callback.reload-test.is_registered]>->(
+    qw| blacklisted |, $module_name
+    );
+
+<[mod-test.callback.reload-test.add-link]>->(
+    qw| blacklisted |, $module_name
+);
+
+<[mod-test.update_blacklist_aref]>->($module_name);
+
+return { 'mode' => qw| true |, 'data' => 'added entry' }
+
+#,,..,,.,,,,.,,,,,..,,,.,,,..,.,,,,..,,,.,.,.,..,,...,...,..,,,.,,,..,,.,,,,.,
+#FA4XQUIS2VAG5RJ5RHZKAW4S7JLLBIFFECX4LK6R6O4GZWHIBPKGHGEKONSBAFVXRORKJQA43ESVO
+#\\\|GCLEFMCOHPAD42NX3QJZJURY22BNBBWJ7IFXOB4NH67YUCNKACB \ / AMOS7 \ YOURUM ::
+#\[7]QP6MIIYD44NOSQFATJKLU56BLLSE3I3IO76ZPU55Z5YLEW3SB6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
