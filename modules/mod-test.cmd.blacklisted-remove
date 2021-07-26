@@ -3,14 +3,29 @@
 # name  = mod-test.cmd.blacklisted-remove
 # descr = remove perl module from the reload blacklist
 
-my $module_name = shift;
+my $module_name = $call->{'args'};
 
-## <[mod-test.callback.reload-test.remove-link]>;
+return { 'mode' => qw| false |, 'data' => 'expected module name parameter' }
+    if not defined $module_name;
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+$module_name = <[base.perlmod.convert.name_to_pm]>->($module_name);
 
-#,,,.,,,.,.,.,...,...,.,,,...,...,.,,,,.,,.,,,..,,...,...,...,...,.,.,...,,.,,
-#ANJUJWMNYHGZL5X5GSIETV6YUYXVI2DIQCW2QM22VHW5YGSNVGY22OQFWQAAZWVFSSCLS4IGOWLPI
-#\\\|WRK3FOUMHRITIWCQTA26V4WV5WJ224LIAG6YWTTNXGNJNCSV6LZ \ / AMOS7 \ YOURUM ::
-#\[7]HBWXH3MBWVARLNKGV2KKKX6MH5TH4HWTA5Z2L6HLL3O3K5H2OKDY 7  DATA SIGNATURE ::
+return { 'mode' => qw| false |, 'data' => 'no such entry present' }
+    if not <[mod-test.callback.reload-test.is_registered]>->(
+    qw| blacklisted |, $module_name
+    );
+
+##  from blacklist on disk  ##
+<[mod-test.callback.reload-test.remove-link]>->(
+    qw| blacklisted |, $module_name
+);
+
+<[mod-test.mem_blacklist.remove_mod]>->($module_name);    ##  from memory  ##
+
+return { 'mode' => qw| true |, 'data' => 'module removed from list' }
+
+#,,,.,,,.,,,,,..,,.,.,...,.,,,...,...,.,.,...,..,,...,...,...,.,,,.,.,.,.,,,,,
+#GRTBFQO2S4KRO33YJWVLTQRVPMXEMXRVW54KTW4GVH7IIXS65ZW5ZLSKQBJVMX2RGYT34GQG735EM
+#\\\|MV76JXBRVGAHC2X5OBFKBXGWCKLOHP3R6A7W5ESJTFKJH4SRVBI \ / AMOS7 \ YOURUM ::
+#\[7]47ICMFGXYXVOXORJS6APQPBENWOUUKNGBBOQ2GQAX7L2FWYNDGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

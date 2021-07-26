@@ -26,6 +26,17 @@ if ( not length $module_file ) {
     return undef;
 }
 
+if (<[mod-test.callback.reload-test.is_registered]>->(
+        $register_type, $module_file
+    )
+) {
+    <[base.s_warn]>->(
+        'entry exists already in %s [ %s ] <{C1}>',
+        $register_type, $module_file
+    );
+    return 0;
+}
+
 my $mod_path_chksum    ##  use only the checksum component  ##
     = [ <[file.gen_path_linkname]>->( $link_reg_dir, $module_file, 0, 5 ) ]
     ->[1];
@@ -36,8 +47,8 @@ return <[file.path.create-chksum-link]>->(    ##  creating the symlink  ##
     $link_reg_dir, $module_file, $mod_path_chksum
 );
 
-#,,,.,,,,,,,.,..,,..,,,..,,..,,,.,..,,...,,..,..,,...,...,..,,..,,..,,...,,,.,
-#65DY74AYLUYLUFCMGFVHJ6GFOQ5FNMYEWCOPUIXOFYTIWOYI5OA2SESEPJ3VBUV5DJ72T5LPKCS2G
-#\\\|GUZFX2VQIDKTAOH66GAHN3FSVDBCUJARRUPILTGSBKVVVRYNQMW \ / AMOS7 \ YOURUM ::
-#\[7]PF6RMZ7NGI3PCKKLBPTKSAMVW24664OJHTGDWO2LQCZB4KG7W6CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,.,.,,.,,.,,,,,.,,..,.,,,,,,,,..,..,,...,...,..,,,,,,..,,,,,,,..,
+#O2GTGEET2BL2PZ53DSOVROF2EQFJ3OSBSCUDMZEEQM3NXTTMPSEOEDZ67O6B2PYOGKYWSDL6GNR3K
+#\\\|QSY2GGWICXSETTFJOS6446HCFZMFPRDVRFN2FJCUNFOQOG4RNE4 \ / AMOS7 \ YOURUM ::
+#\[7]2HBKTX4I35CXUJURPQVOPQB35HYPC7M7WNX6RQ6ICMOEZK53EGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
