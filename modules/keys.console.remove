@@ -21,8 +21,8 @@ my $key_usr = $key_vars->{'usr_name'};
 my $shred_bin = <keys.bin_path.shred>;
 
 opendir( my $dir_fh, $key_dir )
-    or return printf( ":\n: << %s : %s >>\n:\n",
-    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
+    or return
+    printf( ":\n: << %s : %s >>\n:\n", <[base.str.os_err]>, $key_dir );
 my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
     or <[base.logs]>->( 0, "no C25519 keys found for user '%s'", $key_usr );
 closedir($dir_fh);
@@ -45,8 +45,8 @@ return sprintf "\n  << specified key '%s' not found >>\n\n", $key_name
 my $del_count = 0;
 
 chdir($key_dir)
-    or die sprintf( "<< %s : chdir [ %s ] >>\n",
-    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $key_dir );
+    or die
+    sprintf( "<< %s : chdir [ %s ] >>\n", <[base.str.os_err]>, $key_dir );
 
 print "\n::\n";
 
@@ -57,8 +57,7 @@ foreach my $file_name (@key_files) {
     system( $shred_bin, '-fzu', $file_name )
         if length $shred_bin
         and -x $shred_bin;
-    return printf( ":\n: unlink failed : %s\n:\n",
-        scalar <[base.format_error]>->( $OS_ERROR, -1 ) )
+    return printf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
         unless unlink($file_name)
         or not -f $file_name;
     $del_count++;
@@ -67,8 +66,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,,,,.,,.,,,...,,,,,...,.,,,.,,,..,,..,,,,,,..,,...,...,..,,,..,,.,,.,.,,,,,
-#PLNM4FJA2IJMPVS77JELYBBTKAX6VIY3QC36PYNCRVJ6UGDBNGFGGRVYO5ROHYW64Y6REFTXSSQAC
-#\\\|RCK6LQ4JXGSOJQ4YKWTSMH6SQJ273R5P4QQQSIGTJMW265ZK73X \ / AMOS7 \ YOURUM ::
-#\[7]WVXV4RI7ZEJYDFVT5MP4KCBPS4BPR6NRGAZU6C4MDH2LFUQUHCBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,,,.,,,,..,.,,,.,.,,.,,..,,,.,,..,,...,...,...,..,,,,,,...,,,,,
+#6HNVRKMCTJZNCFASMN5XFHF7TDK2PPUNN6XIAI6VIYHE6CLUYFL7NHZNYKL5ZPXWJSRLBHAF7IDNS
+#\\\|QLRD6UUTMBYF57IH65FSTX77I7KCA3TPMMZF5HHZVTHNFPXIIDJ \ / AMOS7 \ YOURUM ::
+#\[7]ELBTZADBCARNYL2UNUQU5SW32V3GWE23Y4GDS4LBGKU7DVBIK6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

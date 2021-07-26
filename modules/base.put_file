@@ -10,7 +10,7 @@ my $file_name = shift;
 if ( not open( my $file_fh, qw| > |, $file_name ) ) {
     <[base.logs]>->(
         0,          "cannot open file '%s' for writing [ %s ]",
-        $file_name, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $file_name, <[base.str.os_err]>
     );
     return undef;
 } else {
@@ -49,8 +49,8 @@ if ( not open( my $file_fh, qw| > |, $file_name ) ) {
     return $bytes_written;
 }
 
-#,,,.,...,,.,,,,,,,,,,,,.,,,,,,,.,.,,,,,,,...,..,,...,...,...,.,.,,.,,,,.,,,.,
-#VDW65IA265J3STE2DKD25NCYBCI2D3XPILHO7S3YHXXECQCYHXAXYKRMP7MQSJUO4M23VHVL4QZYO
-#\\\|QLCAWUV5IZMCVJVJ7ZPLZH4IPFKI2YKJKLVV55YQG3ADPIWNSSJ \ / AMOS7 \ YOURUM ::
-#\[7]BC66CYAAXM5BLY6LFYFVTXJRTZF5OVNFHYSXNJYDPOGXOCW3AQBY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,,..,,..,..,,,,.,,,.,..,,...,..,,...,..,,...,,.,,,,.,.,,,,..,
+#MWPNQUNHDAZB7HUAHFDEPQQVU7UMKSHVJIKCVJNWWQZ3IANJ46YVZ2DOYC5LOCKK2AU66VCACKPCA
+#\\\|PG3G2IGVID7KCFKSWOZC2PZZQPBE7FCKYN55TDDPLQZBKQKYCV3 \ / AMOS7 \ YOURUM ::
+#\[7]UM3FY6EB25QCLY4SZYQ6VSXUEZ3VU2XPS3ANXGDUF3GMXLMNOGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ my $modlist_fh = <[file.open]>->($input_file);
 if ( not defined $modlist_fh ) {
     <[base.s_warn]>->(
         'cannot open input file %s [ %s ] <{C1}>',
-        $input_file, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $input_file, <[base.str.os_err]>
     );
     return undef;
 }
@@ -43,7 +43,7 @@ while ( my $line = readline($modlist_fh) ) {
     ##  my $module_chksum = <[chk-sum.jha.b32.harmonized]>->($line);
     # my $module_chksum = <[chk-sum.elf.inline]>->( \$line, 2 );
 
-    my $module_chksum = <[chk-sum.elf.regular-elf]>->( $line );
+    my $module_chksum = <[chk-sum.elf.regular-elf]>->($line);
 
     #my $module_chksum = <[chk-sum.jha]>->($line);
     #my $module_chksum = <[chk-sum.jha.b32]>->($line);
@@ -96,8 +96,8 @@ return ( $collision_counter, $entries ) if wantarray;
 
 return $collision_counter;
 
-#,,,,,.,.,,,,,.,.,.,.,,,,,..,,.,,,..,,.,,,...,.,.,...,..,,...,.,,,.,.,,,.,,,,,
-#BQX3XDJDQMBEOBL425VZOJZZKON35ZVKRW4TVBQO3FDC7ECNVHAQG3NUACTP63ZRQWMHL3DCH2C26
-#\\\|CPAJBKCEK7HA523H35H3OWEGOZKQPYIDCNF7NAOH4TTIPQDXUH3 \ / AMOS7 \ YOURUM ::
-#\[7]JJR3IMIWJ6QJPVYWQSRXVV6XPMHNUUW5FJD4ZJJ7F5EAGQ7EJEBA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,,,,,,..,..,,..,,,,.,,,,,,..,.,.,...,...,..,,,.,,,,.,..,,,..,
+#XTYNGJFSRZU6RDOOQO5POBHQBP7PEEQF4YMNLMX6OMWLJY6EVAUT7EAHOR4SEQA43ZN5EMRRF76KM
+#\\\|3HP7W4S6N2OVOTLJ4S4XKJXVJXEHHRI6FHPS3JZS3ZHQDK5IOIW \ / AMOS7 \ YOURUM ::
+#\[7]4UFLRL3YQAQ63CFYF2AWXANGC6ORFZDLATGNYNPBZZWDGSZIMSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
