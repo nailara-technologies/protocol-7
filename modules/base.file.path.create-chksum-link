@@ -25,10 +25,18 @@ if ( not defined $chksum_dir or not -d $chksum_dir ) {
     return undef;
 }
 
-my $abs_chksum_path = abs_path( catfile( $chksum_dir, $chksum_str ) );
+my $abs_chksum_path = catfile( $chksum_dir, $chksum_str );
+
+if ( -l $abs_chksum_path or -e $abs_chksum_path ) {
+    <[base.s_warn]>->( 'entry existed already [ %s ] <{C1}>', $chksum_str );
+    return 0;
+}
 
 if ( not symlink( $path_string, $abs_chksum_path ) ) {
-    <[base.s_warn]>->( '[ %s ] %s', $abs_chksum_path, <[base.str.os_err]> );
+    <[base.s_warn]>->(
+        '[ %s ] %s <{C1}>',
+        $abs_chksum_path, <[base.str.os_err]>
+    );
     return undef;
 } else {
     return 5;    ## true ##   [ success ]   ##
