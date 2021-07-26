@@ -46,7 +46,7 @@ my $ren_count = 0;
 
 chdir($key_dir)
     or die "<< cannot change to directory '%s' : %s >>\n", $key_dir,
-    scalar <[base.format_error]>->( $OS_ERROR, -1 );
+    <[base.str.os_err]>;
 
 print "\n :\n";
 
@@ -55,8 +55,7 @@ foreach my $file_name (@key_files) {
     my $target_name = $file_name;
     next if $target_name !~ s|^$ren_from\.|$ren_to.|;
     printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
-    return printf "\n rename failed : %s\n\n",
-        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    return printf "\n rename failed : %s\n\n", <[base.str.os_err]>
         unless rename( $file_name, $target_name );
     $ren_count++;
 }
@@ -64,8 +63,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,.,,...,.,.,,,,,.,,,,,.,,.,,...,,..,,,,,,.,,..,,...,..,,..,,,,,,,.,,.,.,..,,
-#K5ST3MHOSZOLO7FD7UJI5WYH7J4JOTQ3HK5TY6POEYWTK7UJXNKLECSXTY25XRCV6BN5OK2ZGWKHI
-#\\\|E6ERDWCL6AEITVA2Z5Z7FWRGN2GVXRBUYUENFGYOPEK2R4HNZON \ / AMOS7 \ YOURUM ::
-#\[7]MMQ72D7BCRVDCDHIXVTUI5A45NO2OTWYS5FJ36ZP5XCA2GXJHIBY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,.,.,.,,,,.,,..,,,.,,,,,,,,.,..,,...,...,..,,,.,,...,..,,,.,,
+#WHO3MNSY4XPEYAPCLOX4ZFTAKZATMAD65PQ5BZIMOE7U3XHTCM6G5NTWWIF7UCFJJMWA5A726UVCE
+#\\\|WLC7JZFYI44NK74MFP7LHBR7562BLISSXVAHXCXJPXUINP3RROT \ / AMOS7 \ YOURUM ::
+#\[7]L7HYIIZGP5UPCPU7VQLCFUSGGMTYOCWGKYY2YFGU6RS22NCSIYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

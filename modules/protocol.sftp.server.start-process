@@ -33,7 +33,7 @@ my $pid = eval { open2( $sftp_output, $sftp_in, $server_bin_path ) };
 if ( not defined $pid or length $EVAL_ERROR ) {
     <[base.logs]>->(
         0,   "[%d] cannot start server process [ %s ]",
-        $id, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $id, <[base.str.os_err]>
     );
     return 0;    ##  not successful  ##
 }
@@ -66,8 +66,8 @@ $session->{'sftp'}->{'server'} = {
 
 return $pid;    ##  server process successfully started  ##
 
-#,,,,,,,.,...,.,.,,,.,,,.,,,.,..,,,,,,...,...,.,.,...,...,,,,,,.,,,,,,,.,,,,,,
-#KXAQCZOZYL5AOSXHIRR63AP4BWDP3NQIBR3UWCLOTH3PPJ3HBHKJYLGKPB44XWKI7H3U42FIBVLX4
-#\\\|SOM2M57G4YWRHCQV3GZ7KU2UTSLG7NHMYMMB6RYFBXR6J7UTGCB \ / AMOS7 \ YOURUM ::
-#\[7]TEOCKH6PQXAN3ELMWSL6VT4IP3GDEXSEQGCZHFWTDQLSNUYOBGDI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,.,,,...,,..,...,.,,,,..,.,,,.,.,...,...,,..,.,,,.,.,,,.,,,.,
+#ZGUBAWFXL4MRDNIGQEJWMLFVFTMI3YAJEQ2VNAJIIA7NPPBQVKOB4FT2CTLFLNE6UYPWBOP4RVZ7K
+#\\\|IAAXSFSGCDVBBBQAATMMYSPZR7O7S4BEA6KBESD5IWZKX7X5OT2 \ / AMOS7 \ YOURUM ::
+#\[7]FYQLSJV7XHAZZG2HGAHGKAGRISWDXEMJ7A2EJEMULBNJZZXDA4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

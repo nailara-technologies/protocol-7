@@ -18,9 +18,8 @@ my $return_socket = IO::Socket::UNIX->new(
     qw| Peer | => $socket_file
     )
     or <[base.logs]>->(
-    0,
-    'io.unix.socket.output.open : %s [ %s ]',
-    scalar <[base.format_error]>->( $OS_ERROR, -1 ), $socket_file
+    0,                   'io.unix.socket.output.open : %s [ %s ]',
+    <[base.str.os_err]>, $socket_file
     );
 
 if (    defined $return_socket
@@ -36,14 +35,14 @@ if (    defined $return_socket
     <[base.logs]>->(
         0, '<< cannot connect to unix socket [ %s ] : %s >>',
         $socket_file,
-        scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        <[base.str.os_err]>
 
     );
     return 0;
 }
 
-#,,.,,,,.,,..,...,,.,,,.,,..,,,,.,..,,...,.,,,..,,...,..,,.,.,,..,,..,,..,,..,
-#CTS3Y3WGCQBZKORPYMGFZC5HRWEPZUEUI4STLLMEQU33S2IEN2KLVXRSCMYAZELR7RDQOJNZFYGD6
-#\\\|JN6QJRXGAM75RRWPUVCTNGVTKEGHJ2CTGZH3K3575SGCRI7XJEV \ / AMOS7 \ YOURUM ::
-#\[7]4NGPAUEKMEJGD5HAJAOAJH3NI4DUKY32ESMA5NTEGMS4JYXTWABY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,,.,,...,,,,,,.,,.,.,,,,,..,,..,,...,..,,,.,,,..,...,,,.,,,.,
+#EFA5YNO4TAW53N6GPWZPKU7VBXWQGMISX4FPHN5WXYYDY5QPRNNDUFBJX4LF7PPNICEYKZEUV63T6
+#\\\|VS5K3JAOG2RZADPVK6CGISRQ5NFCT5SQOLMIQOK3CRP4MVGNBBK \ / AMOS7 \ YOURUM ::
+#\[7]MLWLBDOQM2SLOXOTHF3KF3ZJ5Y47ZZCYJJW4IISTEA7ILGFKSYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
