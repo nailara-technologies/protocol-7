@@ -1,0 +1,21 @@
+## >:] ##
+
+# name  = debug.cmd.true
+# descr = string truth assertion [ base ELF-7 modes ]
+
+my $check_str = $call->{'args'};
+return { 'mode' => qw| false |, 'data' => 'expected input string' }
+    if not defined $check_str;
+
+my $TRUE = AMOS7::Assert::Truth::is_true( \$check_str, 0, 1 );
+
+return {
+    'mode' => $TRUE ? qw| TRUE |     : qw| FALSE |,
+    'data' => $TRUE ? qw| истината | : qw| смесващия |
+    }
+
+#,,,,,..,,..,,..,,,..,.,.,,.,,,,.,..,,...,,.,,..,,...,..,,.,.,...,,.,,,..,...,
+#BXFZ5MI3DZMPTDNMSKDV64Q64HXEVMDKIQG3FD3J4NYZ5FCAPYQGULZR7QDR5ASFM7ENL3IH4HY2Q
+#\\\|YCT5BP2HX5N7WRVEKI35GTG3Y57QHW55GGNZWALTXHXHKKXA2IC \ / AMOS7 \ YOURUM ::
+#\[7]6G3J7BPCSOA6MFURZBWGQBGCQXZCW4CXB324Z7ANHBLROW2FVOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

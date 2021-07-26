@@ -26,7 +26,8 @@ use AMOS7::Assert::Truth;    ## is_true ##
 
 ##[ SET-UP \ INIT ]###########################################################
 
-our $regex_str       //= {};
+our $regex_str //= {};
+our $ELF_7_modes = [];
 our $truth_templates //= [];
 our $templ_valid_timeout  = 3;    ##  overall truth template time limit  ##
 our $split_template_regex = qr{(*nlb:\\)[,\|]};
@@ -47,27 +48,43 @@ sub template_is_true {
     my $TRUE = 5;    ## true ##
 
     foreach my $template ( $truth_templates->@* ) {
+        my $ref_type = ref $template;
 
-        if ( rindex( ref $template, qw| Regex | ) != -1 ) {
+        if ( length $ref_type == 4
+            and index( $ref_type, qw| CODE |, 0 ) == 0 ) {    ## CODE ref ##
 
-            $TRUE = 0 if $checksum_encoded !~ $template;    ## regex ##
+            $TRUE = 0 if not $template->( $checksum_encoded, @ARG );
+
+        } elsif ( rindex( $ref_type, qw| Regex | ) != -1 ) {    ## regex ##
+
+            $TRUE = 0 if $checksum_encoded !~ $template;
 
         } else {
 
             $TRUE = 0
                 if not is_true( sprintf( $template, $checksum_encoded ),
-                0, 1, @elf_modes );
+                0, 1, $AMOS7::TEMPLATE::ELF_7_modes->@* );
         }
 
-        last if not $TRUE;    ##  false  ##
+        last if not $TRUE;                                      ##  false  ##
     }
 
     return $TRUE;
 }
 
 sub reset_truth_templates {
-    $AMOS7::TEMPLATE::truth_templates = [];
+    $AMOS7::TEMPLATE::ELF_7_modes     = [];
     $AMOS7::TEMPLATE::regex_str       = {};
+    $AMOS7::TEMPLATE::truth_templates = [];
+}
+
+sub set_ELF7_modes {
+    my @elf_modes = @ARG;
+    foreach my $ELFmode (@elf_modes) {
+        return error_exit( 'elf mode [%s] not valid', $ELFmode )
+            if $ELFmode !~ m|^1?\d+$|;
+    }
+    $AMOS7::TEMPLATE::ELF_7_modes = \@elf_modes;
 }
 
 sub assign_truth_templates {
@@ -90,8 +107,16 @@ sub assign_truth_templates {
         return undef;
     }
 
-    $AMOS7::TEMPLATE::truth_templates
-        = split_truth_templates($template_param);
+    if ( ref $template_param eq qw| ARRAY | ) {
+        $AMOS7::TEMPLATE::truth_templates = $template_param;
+
+    } elsif ( length ref $template_param ) {
+        $AMOS7::TEMPLATE::truth_templates = [$template_param];
+
+    } else {
+        $AMOS7::TEMPLATE::truth_templates
+            = split_truth_templates($template_param);
+    }
 
 }
 
@@ -178,6 +203,9 @@ sub is_valid_template {
     } elsif ( not length ref $template ) {    ##  single template param  ##
         $truth_templates = split_truth_templates($template);
 
+    } elsif ( ref $template eq qw| CODE | ) {
+        $truth_templates = [$template];       ##  single CODE reference  ##
+
     } elsif ( ref $template eq qw| ARRAY | ) {
         $truth_templates = $template;         ##  template ARRAY reference  ##
 
@@ -198,6 +226,9 @@ sub is_valid_template {
             $template_valid  = 0;                        ##  false  ##
             $template_errstr = 'template not defined';
         } elsif ($template_valid) {
+
+            ##  CODE ref template  ##
+            next if ref $template eq qw| CODE |;
 
             ##  compiled regular expression template  ##
             next if rindex( ref $template, qw| Regexp | ) != -1;
@@ -225,8 +256,8 @@ sub is_valid_template {
 
 return 5;  ###################################################################
 
-#,,,,,,,,,...,...,.,,,,..,.,.,..,,,,.,,..,,..,..,,...,...,.,.,..,,..,,..,,...,
-#77TF2JIPJSUOCD7GNYMJ3HC2UEYATSYPLW5ZLMN6TZM2PCFCWIKO4KYOKDVS5SW42B2NSC63JLZPK
-#\\\|O3SKU7IHTBZHC3EHS3DKLWKHLBX7DEI5D2EEJ26SIAYYXOXOO34 \ / AMOS7 \ YOURUM ::
-#\[7]3HFZTXZ323BUNZLWXEFXOZJO5PAKA7NGB2T74HPXMXVR7GEGMEDA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,..,.,,,,,,,,..,,,,,,.,,..,,..,,...,...,..,,,,.,,..,,.,,...,
+#R2CGNC2EQEDENP2AKGQKUD46UJHSBRY55YNNICCK3QXDZ6I3COXELTOTREGPSMYU7RQSYRSVFGVI6
+#\\\|QMUHDS7URWRBZSCTEAI4ZYFHUAW65LM4BM44YQZLHL3QQCEFNQA \ / AMOS7 \ YOURUM ::
+#\[7]NNXYOQVQ5ECW2HEFLXK2SSTZKAUUGPGDT4OFP4HEAYVIJFPSZMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
