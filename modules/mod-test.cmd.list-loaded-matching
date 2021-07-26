@@ -1,0 +1,35 @@
+## >:] ##
+
+# name  = mod-test.cmd.list-loaded-matching
+# param = <name_pattern>
+# descr = return matching loaded perl modules [ %INC ]
+
+my $name_pattern = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'expected name pattern' }
+    if not defined $name_pattern and $name_pattern ne qw| ^ |;
+
+$name_pattern =~ s|::|/|g;
+
+my @loaded_mods = <[base.sort]>->( \%INC );
+
+if ( $name_pattern =~ s|^\^|| ) {
+    @loaded_mods = grep { index( $ARG, $name_pattern, 0 ) == 0 } @loaded_mods;
+} else {
+    @loaded_mods = grep { index( $ARG, $name_pattern, 0 ) >= 0 } @loaded_mods;
+}
+
+return { 'mode' => qw| false |, 'data' => 'none match pattern' }
+    if @loaded_mods == 0;
+
+return {
+    'mode' => qw| size |,
+    'data' => join '',
+    map {"$ARG\n"} @loaded_mods
+    }
+
+#,,..,.,.,..,,.,.,,,.,.,.,,.,,,..,,,.,,..,...,..,,...,...,..,,.,,,.,.,,..,,..,
+#CTPAUOHT5B7XU7QIDDUS6XJLJFKTQJD6QKZLT7CV7NWJNP23HL3V3PG47CREGABWGLHATRDAZWRD2
+#\\\|TR6MQOVPRGQXWM7PKGLYNDBIPCEDJWKSIZMDDP2OKQBHAS374KU \ / AMOS7 \ YOURUM ::
+#\[7]IUXLYJFAPZRINEHXPHJ5CNDNQ3HT6EF4QSIVA3VCMMG2TEODRWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
