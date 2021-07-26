@@ -98,6 +98,10 @@ sub amos_chksum {
             $data_ref->{'sprintf-test-template'} )
             if defined $data_ref->{'sprintf-test-template'};
 
+        if ( AMOS7::TEMPLATE::template_count() > 0 ) {
+            AMOS7::TEMPLATE::set_ELF7_modes(@elf_modes);
+        }
+
     } elsif ( $data_ref_type ne qw| SCALAR | ) {
         return error_exit( sprintf "unexpected reference type '%s' supplied",
             $data_ref_type );
@@ -252,10 +256,14 @@ INVERT_TRUTH_STATE:
         and not is_true( $checksum_encoded, 0, 1, @elf_modes )
 
         or AMOS7::TEMPLATE::template_count() > 0
-        and
-        not AMOS7::TEMPLATE::template_is_true( $checksum_encoded, @elf_modes )
+        and not AMOS7::TEMPLATE::template_is_true(
+            $checksum_encoded,
+            $num_amos_csum,
+            ## optional data parameters ##
+            [ $bmw_mod_step, $elf_csum, \$bmw_512b, $data_ref ]
+        )
 
-    ) {
+        ) {    ##  if not all true, modify  ##
 
         ++$bmw_mod_step and substr( $bmw_mod_bits, 0, 1, '' );
 
@@ -273,7 +281,11 @@ INVERT_TRUTH_STATE:
         }
         goto INVERT_TRUTH_STATE;                ##  <--  modify checksum   ##
     }
-    AMOS7::TEMPLATE::reset_truth_templates();    ##  reset truth template  ##
+
+    ##  all criteria true, checksum valid  ##
+
+    AMOS7::TEMPLATE::reset_truth_templates()    ##  reset truth template  ##
+        if AMOS7::TEMPLATE::template_count();
 
     if ( $str_length < 7 ) {   ##  resetting substring template parameters  ##
         $sstr_start = 0;
@@ -304,8 +316,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,,.,,,,,,,,,,,.,,..,...,,.,,..,,..,,,,.,,.,,..,,...,...,,,,,.,,,...,,.,,..,,
-#SB42DBJOXW4UVAW5UFUYWOG6YCNPHSPPPLHQHA2PP772BS2UFPFJBYV2NLAVFM6ZRZSRBLYVZGM4U
-#\\\|XNWBERQQ3Q4PO444R7LS4ESAZENWBVFPGCE3ZVIZQLEJIU5QWD2 \ / AMOS7 \ YOURUM ::
-#\[7]OO7AGEK2MRU6MMH4JGQY4HXZYQEO2GAPOPNUZL2K73BF2HO2XABI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,,.,,,..,,..,,.,,,..,,,.,...,..,,...,...,.,,,,.,,.,.,,,.,.,,,
+#2H6FWYL5XPYMUEMYWMPAEFOS3UEEKWVJSTR24EEXJZ2SEXKE3YHZDILKHKIAWJIFRX7NWLF4XWAPS
+#\\\|BRGRSBWSWUXOXWRZN7DWWLURZCKN7QSQVU5T4KNYMYO7QEY22VH \ / AMOS7 \ YOURUM ::
+#\[7]O7EZTPZPSW4N4YXZAZPX7UBPZ6EKKNTGQY5JSZGNYDWNIJFWTCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
