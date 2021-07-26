@@ -22,15 +22,13 @@ if ( <system.zenka.type> eq qw| cube | ) {
 }
 
 ##  output prompt line in background mode and still open STDOUT  ##
-print "\n :. "
-    if <system.zenka.name> eq qw| cube |    ### use log idle timer ### [ LLL ]
-    and
-    <[base.is_defined_recursive]>->(qw| system.background.redirect_output |)
-    and not <system.background.redirect_output>;
+##
+<[base.cube-zenka.output_prompt]> if <system.zenka.name> eq qw| cube |;
 
 if ( defined $ev_loop_timeout ) {
 
     ## loop for exactly <timeout> seconds ##
+    ##
     <[event.loop]>->($ev_loop_timeout);
 
 } else {
@@ -39,8 +37,8 @@ if ( defined $ev_loop_timeout ) {
 
 return <zenka.init_return> = 5;
 
-#,,,,,,.,,,.,,,,,,,,,,.,,,,.,,.,.,,,.,,.,,...,..,,...,...,,.,,.,.,,..,,,,,,,,,
-#DRWHEE4MCNNLCB66LEPM76BVDRJ6YXKPTSHLPGIPUBHK2UW5YRBNNLQCLNZSI6SJCCPMD72BONZWS
-#\\\|DJI6AZXEEBPGDB3VHPSKUYKQJP5GXLXIVXAQGFN6JK3AN26MDLX \ / AMOS7 \ YOURUM ::
-#\[7]BGIXJXOATOECMWPNV2NVHSUR5NGHAMACMFXDTPXV6WUVV4NUBMBI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,.,,,.,,,..,,..,,,,.,,..,..,,..,,...,...,.,,,,..,.,,,,,.,,,,,
+#BKKJOSGWOQRKQ3BOPLQI345LDRTOSWKMYX7XNYD7UQYXPVVYLGWPDZEI4HFTUIMWQKRX6VSVCINSI
+#\\\|6Z5MMS4AOYNKEMCBBZBOBJUUE4FTYXW6QV65HAN7AAIKBUE4MIX \ / AMOS7 \ YOURUM ::
+#\[7]TMNO3JOQJH7QG7TX2L3FY4YZSIYTU22URFWA3EPFO4UC5HGEHYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

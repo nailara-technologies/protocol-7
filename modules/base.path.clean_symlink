@@ -1,0 +1,43 @@
+## >:] ##
+
+# name  = base.path.clean_symlink
+# descr = clean up path while keeping last symlink component unresolved
+
+my $clean_path = shift // '';
+
+if ( not length $clean_path or not -l $clean_path ) {
+    warn 'expected existing symlink path <{C1}>';
+    return undef;
+}
+
+my $link_path_abs = File::Spec->canonpath($clean_path);
+
+##  clean up weird link path structures  ##
+if ( $link_path_abs =~ m|/[^/]+/| ) {
+    my $slash_re_pos = rindex( $link_path_abs, qw| / | );
+    if ( $slash_re_pos >= 0 ) {
+        catfile(    ##  resolve only the link prefixing path component  ##
+            abs_path( substr( $link_path_abs, 0, $slash_re_pos ) ),
+            substr(
+                $link_path_abs,
+                $slash_re_pos + 1,
+                length($link_path_abs) - $slash_re_pos
+            )
+        );
+    }
+}
+
+if ( not -l $link_path_abs ) {    ##[ link path valid? ]##
+    <[base.s_warn]>->(
+        'cannot resolve abs link path [ %s ] <{C1}>', $clean_path
+    );
+    return undef;
+} else {
+    return $link_path_abs;        ## return cleaned symlink path ##
+}
+
+#,,,,,,..,.,.,...,,,.,,.,,,,.,,,,,..,,.,.,,,.,..,,...,..,,,..,..,,...,.,.,.,,,
+#JCQXJ3HBB674F32NDK2XCINBWTLE5PPEWDDV4ORHNJTBAOZ5W4XZZI3SKJFPEO4OO2D4EDQWYOP6U
+#\\\|57M4ZKOVPKMTAB5SNCSYQKTAFAB7O5C4F6654VNZJE5ZDEPLXA7 \ / AMOS7 \ YOURUM ::
+#\[7]QB46YY464H7QVCGXQ4DLFCRQC55YEF5HFXDHS2E536FOSYR5XWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
