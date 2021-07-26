@@ -29,7 +29,7 @@ my $tmp_filename = sprintf $fname_templ,
     );
 my $tmp_path_abs = catfile( $temp_file_dir, $tmp_filename );
 
-goto RECALC_FILENAME if -e $tmp_path_abs;
+goto RECALC_FILENAME if -l $tmp_path_abs or -e $tmp_path_abs;
 
 my $tmp_file_fh = <[file.open]>->( $tmp_path_abs, qw| :raw < 5 0400 | );
 
@@ -44,12 +44,10 @@ if ( not unlink($tmp_path_abs) ) {    ##  make file be gone before using  ##
     return undef;
 }
 
-say '< return fh > ', $tmp_file_fh;
-
 return $tmp_file_fh;    ##  still open filehandle to gone empty file  ##
 
-#,,..,,,,,.,,,..,,.,.,.,.,..,,,,.,.,.,...,.,,,.,.,...,...,..,,,..,..,,.,,,,,,,
-#C3FRTZVPLHDXNVNZNKWGAX5F7AXUIVJKJHD3BNPLKZ5CBFJQVJ7MKFSHD4KXHNYZDCZ2P5CJKJWZ6
-#\\\|TGIIEHP3HKHHZ52BYRUUUR7YFKGPVCAZBFZG2KVUOG5GAXPE3BE \ / AMOS7 \ YOURUM ::
-#\[7]UQG5DDIW3RDUJNGP42CQRTJLJLCY6PR4CRBNYH6ARQAZUVMUEQDY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,..,,,,,,..,,,..,..,,.,.,,.,,.,.,...,...,,,,,,,.,.,.,.,.,.,,,
+#TPUFGEA6U5WCTHJMPZ6ZS4HEAXS5DKQTZHZBCECKB4SYDAJVIK25YLYFCDEU3Q2ZEQYZZ6KYOY45O
+#\\\|USEYIUTI2OX6J3RLSOWYWSA3FDY6SSV7E2UJHXFXHTQGGPSSOU4 \ / AMOS7 \ YOURUM ::
+#\[7]IW3P3SHSFYNIPEQW6KAHFAEDNH6SXZXPZBMG7UJZ3D5Z4I4BO6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

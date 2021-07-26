@@ -1,0 +1,38 @@
+## >:] ##
+
+# name  = base.path.resolved_abs
+
+my $chk_path     = shift;
+my $caller_level = shift || 0;
+if ( $caller_level !~ m|^\d+$| ) {
+    warn 'caller level not valid <{C1}>';
+}
+my $caller_level_str = sprintf ' <{C%d}>', $caller_level + 1;
+
+if ( not defined $chk_path or not length $chk_path ) {
+    warn 'path param expected' . $caller_level_str;
+    return undef;
+}
+
+my $chkpath_abs = abs_path($chk_path);
+
+## broken links and circular references ##
+##
+if ( -l $chk_path and not length $chkpath_abs ) {
+    <[base.s_warn]>
+        ->( "symlink err [ '%s' ]" . $caller_level_str, $chk_path );
+    return undef;
+} elsif ( not length $chkpath_abs ) {
+    <[base.s_warn]>->(
+        "path not found [ '%s' ]" . $caller_level_str, $chk_path
+    );
+    return undef;
+}
+
+return $chkpath_abs;
+
+#,,.,,,..,,.,,.,.,,,,,,,.,.,,,,..,.,,,,,.,,..,..,,...,...,..,,.,,,..,,,,.,.,,,
+#XT7DVDGTN5YGKP45JHIX54QQYCSBUI64INNVADFFQNRVVZPFHYMSBJSOFWRXHTQSPS2R37AO37D7U
+#\\\|TFUEXACC6UDARM665C567RWKAIX4AJUKGOFW5HMGYCPLXQO76BX \ / AMOS7 \ YOURUM ::
+#\[7]4B5THSZMC7A2FHPWJTAWYZ43XX5N3QO44Q4IR4SE3BFQVSGDHKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

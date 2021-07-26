@@ -5,6 +5,7 @@
 my $cache_ref = <base.cache.perl.refaddr_prefix> //= {};
 
 my $max_history_count = 13;
+state $log_level_curr = 2;
 
 if ( not keys $cache_ref->%* ) {
     <[base.log]>->( 2, ': polulating refaddr prefix cache.,' );
@@ -25,7 +26,10 @@ if ( defined $cache_ref->{'current'}
     ##  no update, is current  ##
     ## returning current values ##
 
-    <[base.log]>->( 2, ': updating refaddr prefix value is current.,' );
+    <[base.log]>->(
+        $log_level_curr++, ': updating refaddr prefix value is current.,'
+    );
+    $log_level_curr = 3 if $log_level_curr > 3;
 
     return ( $refaddr_prefix, length($refaddr_prefix) ) if wantarray;
     ##  return only prefix string in scalar context  ##
@@ -33,6 +37,7 @@ if ( defined $cache_ref->{'current'}
 
 } elsif ( defined $cache_ref->{'current'} ) {
     <[base.log]>->( 2, ': updating refaddr prefix cache.,' );
+    $log_level_curr = 2;
 
     ##  move last value to cache history  ##
     push $cache_ref->{'history'}->@*, $cache_ref->{'current'}->{'value_str'};
@@ -60,8 +65,8 @@ return ( $refaddr_prefix, length($refaddr_prefix) ) if wantarray;
 
 return $refaddr_prefix;    ##  return only prefix string in scalar context  ##
 
-#,,,,,..,,,..,,,,,.,.,.,.,.,.,..,,,,.,.,.,,,.,..,,...,...,..,,...,,.,,,..,,,.,
-#W67IREAMORKS57KQ5XLO5OS42MJOOX6L5B6YT3QLCZQ2RFWETH3DVQKBJMUT34ZWY6QFK46HY3D24
-#\\\|DJL2N7B6AKSKX4WHL2J7Y5363KWNHSE45WDKR3LE6CL7JKZKM6O \ / AMOS7 \ YOURUM ::
-#\[7]6DUQIKZ7XJ767BVRFVLRF43KZDS2T636ZGU2TBDLMY6SNNHIPKAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,.,,,..,,.,.,,..,,,,,.,,,.,,,..,,...,...,...,,.,,.,,,,.,,,,.,
+#RAN6OKXO3ZLTHHF5NA5Q2TD5TUD3LIG5CUAL7VOL4BEMGAEAF22YPFWT5FNGYFTWQT2ZPPT73UF52
+#\\\|CHZRGP4GEGYQLD3C33LCQN75TDNHRNNY3E5CIT2YPZDUNTHIOEK \ / AMOS7 \ YOURUM ::
+#\[7]CZRYR7I5MHGWDBHFGHV36SOWI5ZHLRTAUQNIQTEUQMTG5JLUAKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
