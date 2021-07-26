@@ -11,7 +11,9 @@ my $old_gid = <base.file.chown-all.change_from.gid>;
 my $new_uid = <base.file.chown-all.change_to.uid>;
 my $new_gid = <base.file.chown-all.change_to.gid>;
 
-return if $path_name =~ qr{^/(proc|sys|dev)/} or !-e $path_name;
+return
+    if $path_name =~ qr{^/(proc|sys|dev)/}
+    or ( not -e $path_name and not -l $path_name );
 
 eval {
     my $path_stat = File::stat::stat($path_name);
@@ -26,17 +28,17 @@ eval {
 };
 
 my $err_str;
-( $err_str = lc($EVAL_ERROR) ) =~ s| at .+$|| if $EVAL_ERROR;
-warn $err_str                                 if defined $err_str;
+$err_str = <[base.str.eval_error]> if length $EVAL_ERROR;
+warn $err_str                      if defined $err_str;
 
 if ($add_changed) {
     if ( not chown( $new_uid, $new_gid, $path_name ) ) {
         <base.file.chown-all.errors.chown.total>++;
         my $warned_paths = <base.file.chown-all.warnings>;
         my $ch_err_str;
-        ( $ch_err_str = lcfirst($OS_ERROR) ) =~ s| at .+$|| if $OS_ERROR;
+        $ch_err_str = <[base.str.os_err]> if length $OS_ERROR;
         if ( defined $ch_err_str ) {
-            <[base.log]>->( 1, "[ $ch_err_str ] $path_name" );
+            <[base.logs]>->( '[ %s ] %s', $ch_err_str, $ch_err_str );
             $ch_err_str =~ s| +|_|g;
             $warned_paths->{'chown'}->{$ch_err_str}->{$path_name} = 1;
         }
@@ -45,8 +47,8 @@ if ($add_changed) {
 
 <base.file.state.change_count> += $add_changed;
 
-#,,,.,..,,.,.,.,,,,..,,.,,,.,,,,.,...,,,.,..,,..,,...,...,.,.,.,,,,.,,,,.,,,,,
-#6CL6IBCWO2J4UU4PTTIGQPSWF56WUPBTSCCR7UB56U4RPLPS3WA4O4AGIUKA2ZSV4S7KR5H3UKRFS
-#\\\|SI6ANIHQUCX3YUCEWASCLS3WZAMQVFOCPPIMSRD6C5QGDY7ZVB7 \ / AMOS7 \ YOURUM ::
-#\[7]KBV4CL2FAWOEQHIDTNZ2L3C6SX362ADKMBGELJNWDPH7FBF2QSDY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,.,.,,..,.,,,,.,,,,,,,,.,.,,,..,,...,..,,..,,...,.,.,,,,,,.,,
+#JMKQKHW7ULAJ54OHBMSAI3OYOHMUVDYO6RSYEL5GGSBVYKWHQLO6F5JY24QWHOLOUL66UA373CX76
+#\\\|UOB35YQXKEGFPAISTJ5LDLQ5PA22GWN4CDZGEAPNVRGZ25Q6I72 \ / AMOS7 \ YOURUM ::
+#\[7]IQCIAQE2SB76L5QPU3TSPSMOMABBPCCJJA4SX2L3TBKWOWMICGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
