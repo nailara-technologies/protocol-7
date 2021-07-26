@@ -16,10 +16,7 @@ my $file_fh;
 <[base.logs]>->( 2, "[PDF] '%s' .,", $file_path );
 
 if ( !open( $file_fh, $file_path ) ) {
-    <[base.s_warn]>->(
-        ': file %s : %s',
-        $file_path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
-    );
+    <[base.s_warn]>->( ': file %s : %s', $file_path, <[base.str.os_err]> );
     return 0;
 }
 
@@ -63,8 +60,8 @@ if ($file_ok) {
     return 0;
 }
 
-#,,.,,.,.,.,,,.,,,...,,.,,,..,..,,.,,,...,.,.,..,,...,...,,,.,..,,,,,,..,,,,.,
-#7CQEBYLROBDRD5RZZZYB3QORXBNV2PPKLHTBJ6ZLSMSMB2JV5O4RRN2WW5UVPSMGN3D3PRZYFNYEE
-#\\\|YM4JWIKTH3I2D5QHBJKMCV64TNZK6DCJFK4BZQXJ5NHWYSQB2ZL \ / AMOS7 \ YOURUM ::
-#\[7]5R2E5ORBZMRDK6MKS2CKJZV6DMKJD2O3EUEYPUJARTGUJ2DDUIBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,.,,,,..,,.,,,,.,,,.,...,,..,..,,...,...,,.,,.,.,.,,,,,,,.,,,
+#WY6N276JCMYHI3OK3MBXQKWHECM6ZGA7PMWRZALDWU25BT73C5CFVMRNCEVI72H4RAQK7AD63ZWDG
+#\\\|T4SOODUCFX435RGUU4EIJL4GG7JYBX7WC3YFLBQSXJNLZ4B3RMZ \ / AMOS7 \ YOURUM ::
+#\[7]REDEV7R5M6B3KAZ4PQPA7CXBVK2HDCVQ2EPR5VXXOAPZZTICCWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

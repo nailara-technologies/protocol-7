@@ -85,7 +85,7 @@ if ( -d $path ) {
         if ( not chmod( $param_mode, $path ) ) {
             <[base.s_warn]>->(
                 'chmod[ %s ] : %s <{C1}>',
-                $path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                $path, <[base.str.os_err]>
             );
             return undef;
         }
@@ -106,8 +106,7 @@ if ( -d $path ) {
             if ( not chown( $uid, $gid, $path ) ) {
                 <[base.s_warn]>->(
                     'chown [%d:%d] %s : [ %s ] <{C1}>',
-                    $uid, $gid, $path,
-                    scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                    $uid, $gid, $path, <[base.str.os_err]>
                 );
                 return undef;
             }
@@ -132,7 +131,7 @@ if ( defined $param_owner or defined $owner_group ) {
 $previous_umask = umask($mkdir_umask)
     or return <[base.s_warn]>->(
     "umask[ %s ] : [ %s ] mkdir aborted .., <{C1}>",
-    $mkdir_umask, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+    $mkdir_umask, <[base.str.os_err]>
     );
 
 my $current_mode;
@@ -148,7 +147,7 @@ foreach my $_dir ( split qw| / |, $path ) {
     mkdir( $current_path, $current_mode )
         or <[base.s_warn]>->(
         'mkdir[ %s ] : [ %s ] <{C1}>',
-        $current_path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $current_path, <[base.str.os_err]>
         );
 
     $current_mode = oct $current_mode if $current_mode =~ m|^0|;
@@ -160,10 +159,7 @@ foreach my $_dir ( split qw| / |, $path ) {
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
         unlink($path)
-            or <[base.s_warn]>->(
-            'unlink[ %s ] : ',
-            scalar <[base.format_error]>->( $OS_ERROR, -1 )
-            );
+            or <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
         return undef;
     }
 
@@ -171,15 +167,12 @@ foreach my $_dir ( split qw| / |, $path ) {
         if ( not chown( $uid, $gid, $current_path ) ) {
             <[base.s_warn]>->(
                 'chown [%d:%d] %s : [ %s ] <{C1}>',
-                $uid, $gid, $current_path,
-                scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                $uid, $gid, $current_path, <[base.str.os_err]>
             );
             <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
             unlink($path)
-                or <[base.s_warn]>->(
-                'unlink[ %s ] : ',
-                scalar <[base.format_error]>->( $OS_ERROR, -1 )
-                );
+                or
+                <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
             return undef;
         }
     }
@@ -189,8 +182,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,,,...,,,.,.,,,,..,,.,,,..,,..,.,,,.,,,,,,,..,,...,...,.,,,.,.,,,,,..,,,,,,
-#WZMPL2PKPM6ZFDX37MSOR5TTW2ZDLBKR6N62UMOJXPCBRM7H7D65Q74BOJNCIOGU6W5BNWADJHMU2
-#\\\|JILEBZ6CDBVXUITLB6F5GRM36VTD4XNMNV5X4GNGLQSLDJP5IR3 \ / AMOS7 \ YOURUM ::
-#\[7]PPKISYFFZKJGFZRMOGFD3RFPIC26XXIHWIUO2VNTQW24AUEEE4CA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,,.,,..,,.,,...,.,.,,,.,,,,,..,,...,...,,..,...,,,.,.,.,,..,
+#PU6QCLUQAS65QKVNC3UES52FTLHONEIPXLTK7C3MXPUYXM2AX4B3BFYIKGMFSM4UOHQDWMRVQI2HY
+#\\\|UDUT2M26W7DNZUI3AW7ZFZTUCCQV37ZUVZN6DYHI4HDXO6Q37ZV \ / AMOS7 \ YOURUM ::
+#\[7]QXMOY6HHBZHCGPHP5OZYVY6QDW72AMQPVAH2XTV4I67DKNFQTWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

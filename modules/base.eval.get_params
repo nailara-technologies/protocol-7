@@ -32,18 +32,15 @@ if ($print_debug_to_console) {
         ( map { defined $ARG ? sprintf "'%s'", $ARG : qw| UNDEF | } @result )
         ),
         "\n";
-    <[base.logs]>->(
-        0,
-        '< eval error > %s',
-        scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
-    ) if length $EVAL_ERROR;
+    <[base.logs]>->( 0, '< eval error > %s', <[base.str.eval_error]> )
+        if length $EVAL_ERROR;
 }
 
 return undef if length $EVAL_ERROR;
 return @result;    ## undef on eval errors ##
 
-#,,,,,...,...,.,,,..,,.,,,...,.,.,...,,,.,,,.,..,,...,...,,,,,,..,.,,,..,,...,
-#2FDBATTF7XUZNCUY5QIQG5AI4MN3IZKMMI7C5WNQWLG4V3ESCW3FQ6DH5TWZTNYZ5LOVCSGCUGNIS
-#\\\|JXMJNDQHGVDVIUTKRUQJ7RXJCEZA4KCKF25SBAUVFS5O2HBIQIN \ / AMOS7 \ YOURUM ::
-#\[7]EUBA2PUH4VL5VXGRQP4EIZ7Y5ZNJ6UOQWQGZLZL5Z3XFHJXYIQDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,,,,,.,.,.,,.,,.,,,,.,,,..,.,.,..,,...,...,.,.,.,,,.,.,,..,...,
+#RVXSHQU3CJPMTKV354HSOB2NZLDBC32KUY55AHY2TOEIBKQKXGDFYDF2DQUUNFETIWXGJXVEIIXAY
+#\\\|44RMTXDF3QEZB2K4R6XZLWFW5CJLXRLL6QBICXMEEI4YLNWXMWI \ / AMOS7 \ YOURUM ::
+#\[7]75AOKUTFFN4RKSCIE2KCOMVIDJDMYHXDDYGDQWNRSAZGNQ3MNKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

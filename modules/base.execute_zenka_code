@@ -5,6 +5,8 @@
 
 my @zenka_perl_code = @ARG;
 
+<base.zenka.exec_code.subs_found> //= [];
+
 if (   not @zenka_perl_code
     or not defined $zenka_perl_code[0] ) {
     my $caller_lvl
@@ -17,10 +19,12 @@ if (   not @zenka_perl_code
     return undef;
 }
 
+my %subs_found = map { $ARG => 5 } <base.zenka.exec_code.subs_found>->@*;
+
 my $stack_index = scalar(@main::ZENKA_RUN_CFG_STACK) - 1;
 my $cfg_ref     = $main::ZENKA_RUN_CFG_STACK[$stack_index] // {};
 
-my $line_count = scalar scalar @zenka_perl_code;
+my $line_count = scalar @zenka_perl_code;
 <[base.logs]>->(
     2,           ': executing zenka code., [ %03d %5s ]',
     $line_count, <[base.cnt_s]>->( $line_count, qw|  lines  line  | )
@@ -78,14 +82,26 @@ foreach my $code_line (@zenka_perl_code) {
             <[base.check_cfg_cmd_alias]>->($1)|ge;
     ###
 
+    ##[ collect encountered protocol-7 subroutine names ]##
+    ##
+    if ( $code_line =~ m|(*plb:\$code\{')([^']+)(*pla:'\})| ) {
+        $subs_found{$LAST_PAREN_MATCH} = 5;    ## true ##
+        ## add now as may not exit eval ##
+        <base.zenka.exec_code.subs_found>->@*
+            = <[base.sort]>->( \%subs_found );
+
+        ###  add ondemand code loading hook here  ### [LLL]
+    }
+
     ##  evaluate zenka-code \ config line  ##
     <zenka_cfg.ret_val> = eval($code_line);
 
     $noerr = 0 if defined $main::RUN_ZENKA_CFG_WARNING_STRING;
 
     if ($error_exit) {    ## todo : adapt parser from below ##
-        return warn 'stopped processing <{C1}>';
-        return $noerr = 0;
+        warn 'stopped processing <{C1}>';
+        $noerr = 0;
+        last;             ## exit loop ##
     }
 
     if ( length $EVAL_ERROR ) {
@@ -151,8 +167,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,..,..,,,,,,...,,..,,,.,,,.,,,,,,,.,,,,,..,,..,,...,...,.,.,...,,,,,,..,,.,,
-#G3YUYW37RT74I6KISL77O2RYVWMKO5LNDIQEPQAQXBTRH3UNV7GN6M5IYUI7RAAZUML3MXL5HWECM
-#\\\|NVIMT27EQ7YUIY4PJ7P63NP3TVPAARH5IEBCBKFISNZEJWBAMPG \ / AMOS7 \ YOURUM ::
-#\[7]FCDJO6RBPJURUE64COBCUHPPRUR575NBWJ6QJ536F6Q5IYQPXACI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,,,,,,,,.,,,,.,,,,.,,,,,.,.,..,,...,..,,.,.,...,..,,,..,...,
+#JVRIQZKNCH75LIC6F2L7IOGZXIFW67T76PVSG62VSGXRCCM5P7OH72GRBFGGM5QQGE2NTSNWMOWA2
+#\\\|LQLWF4HR64KC574JRBDP7KPSBF4AEYHKZYOENMH6OASFEWEBUBE \ / AMOS7 \ YOURUM ::
+#\[7]QAIUVYGSGHA6RIRPPXS7Z6RRFESPELLT3OAYGICDK6CZ2Q2DWMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

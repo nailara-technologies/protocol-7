@@ -99,10 +99,8 @@ die "<< tile-groups setup '$config_file_path' not found >>"
 );
 
 chown( $uid, $gid, <tile-groups.chksum_file> )
-    or <[base.s_warn]>->(
-    'chown[%s] : %s',
-    scalar <[base.format_error]>->( $OS_ERROR, -1 )
-    ) if $EUID == 0;
+    or <[base.s_warn]>->( 'chown[%s] : %s', <[base.str.os_err]> )
+    if $EUID == 0;
 
 {
     local <system.conf_path> = "$cfg_root_path/zenki/" . <system.zenka.name>;
@@ -243,10 +241,8 @@ if ( defined <tile-groups.fallback_tile_group> ) {
         $default_cfg_path, <tile-groups.fallback_tile_group>, "\n"
     );
     chown( $uid, $gid, $default_cfg_path )
-        or <[base.s_warn]>->(
-        'chown[%s] : %s',
-        scalar <[base.format_error]>->( $OS_ERROR, -1 )
-        ) if $EUID == 0;
+        or <[base.s_warn]>->( 'chown[%s] : %s', <[base.str.os_err]> )
+        if $EUID == 0;
 
 }
 
@@ -264,8 +260,8 @@ map {
 
 0;
 
-#,,,.,,,.,,..,..,,.,.,,..,.,.,..,,,..,,.,,.,,,..,,...,...,,..,,.,,,.,,..,,..,,
-#LT24E2GUA3BBYUWVP6D2HJBOZBEC7NRSROQFR6C5EDTQ4IJ55RNC5NNF6MIENO4NWWSKIULV2335K
-#\\\|QAQHCAXXZYKDGDHFNYZJOFDX23BXUT2NKTAWUXXWM6Q5LR2CXMR \ / AMOS7 \ YOURUM ::
-#\[7]2N2O5YNYNFNS3EVS5IFMNEUFKCY2MRYE3YZ5CVIR5F5I7MS2OUDY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,,.,,..,,,.,,...,,..,,,.,.,.,..,,...,...,,.,,,,,,,,,,.,.,,.,,
+#6WWBB543ZASPXDA5CGH6YLVA5566H5WRQHBOSVAAWMOVFBNF32KEWIV5ZPWMH7GXJVA73M4UGDPGG
+#\\\|QNLB6A6YBVSD5ALZ5P5JW3HAUV4IBUKDKMDOXAMA6HSKQRMRSAV \ / AMOS7 \ YOURUM ::
+#\[7]TD7PMJYCRQH57MXK6SETLQ3WOB32PFUSXVCCYC3ABRNEO552JQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

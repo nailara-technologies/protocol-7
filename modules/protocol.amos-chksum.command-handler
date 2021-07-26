@@ -110,9 +110,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
     if ( $EVAL_ERROR or not length( $chksum_str // '' ) ) {
         if ($EVAL_ERROR) {
-            warn join( ' ',
-                '[chk-sum.amos]',
-                scalar <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+            warn join( ' ', '[chk-sum.amos]', <[base.str.eval_error]> );
         } else {
             warn '[chk-sum.amos] no result returned';
         }
@@ -134,8 +132,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
         if ( $EVAL_ERROR or ref( $return_href // '' ) ne 'HASH' ) {
             if ($EVAL_ERROR) {
                 warn join( ' ',
-                    "[amos-ext-cmd:$command]",
-                    scalar <[base.format_error]>->( $EVAL_ERROR, -1 ) );
+                    "[amos-ext-cmd:$command]", <[base.str.eval_error]> );
             } else {
                 warn '[amos-ext-cmd:$command] expected hash reference';
             }
@@ -183,8 +180,8 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
 return 0;
 
-#,,.,,..,,,,.,,.,,,..,,..,,,.,,,,,...,,,.,,,,,..,,...,...,,..,..,,.,,,,,,,,,.,
-#LYBIWUEBSDPLEH4ODALCFOGSX45UD7R3VCXKLJESO7GJNMU5Y6DZIA262JDBKD5SW4X72RP3VIABI
-#\\\|I4KW4O6BBHW3SUKM7ZHTBA5RUYAJG3PVON4N5EAQWUZ5KLJMSRQ \ / AMOS7 \ YOURUM ::
-#\[7]OHKDGCDEJ7OPERDVGBLOD3S6OH3UF44TJDPGKNBOLUUBNOK2ZUBY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,.,,.,,,..,..,,.,.,...,..,,..,,...,...,.,.,,,,,,,.,,.,,.,,,
+#CAZGYCVUBCCXLPKS43I5KDV32HD4GL7JJXT2CPW3LBGONGY6LK7SRJEI3SJS6X6AUEGVZGVF7HV2O
+#\\\|YZNUY57BU3LFEGWISK7ARHMPFRRKO2IZGIUQEZNQP6HOKL5UQNL \ / AMOS7 \ YOURUM ::
+#\[7]FLTMIJNIH6UA2TLLSTORHLVBTLBHIIVW7WMLO4FIFIPJRLXHGICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

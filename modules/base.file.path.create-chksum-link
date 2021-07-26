@@ -28,17 +28,14 @@ if ( not defined $chksum_dir or not -d $chksum_dir ) {
 my $abs_chksum_path = abs_path( catdir( $chksum_dir, $chksum_str ) );
 
 if ( not symlink( $path_string, $abs_chksum_path ) ) {
-    <[base.s_warn]>->(
-        '[ %s ] %s', $abs_chksum_path,
-        scalar <[base.format_error]>->( $OS_ERROR, -1 )
-    );
+    <[base.s_warn]>->( '[ %s ] %s', $abs_chksum_path, <[base.str.os_err]> );
     return undef;
 } else {
     return 5;    ## true ##   [ success ]   ##
 }
 
-#,,..,.,,,,.,,,..,,,,,.,.,.,,,,..,,,.,,..,,,,,.,.,...,...,.,,,,,,,.,,,.,.,...,
-#TJUYOA64AX2Q5C4ANCM5MAQRUI47PTSF4Z7JMP4KAGX2PKJE6VPT2HUV2X75X3GNMTZMCAAPWJM6Q
-#\\\|XCRXXS62HF6NCXF2763GHSIMZE6ZDLFVFWWRL3EWNMGNPQBV6KJ \ / AMOS7 \ YOURUM ::
-#\[7]R7E5WI5XNRGI63DYTRQ67VX3GZ6UTYCIGQR5B6BJ5TCCHU7ETKCQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,,,,,.,,,,,,,,,.,..,,.,.,.,,,.,.,...,...,,.,,,..,,.,,...,.,,,
+#GJHJOIKC4JOXAA3KY7IT7E5F6FULL4GEWUM3WXS5WMZ6IDFOGA7XPUEAIIAM4DUPYBPSNFT5DUU3U
+#\\\|GWRFBKY7WZTR2WFU6OKKCOCIAPLKJR4IRDFLVVX35RMBBDUOVSV \ / AMOS7 \ YOURUM ::
+#\[7]BKM4T5PKHG6S4I24NS4BDAQT744F57YM4JUSZDP2WC47E7PBJQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

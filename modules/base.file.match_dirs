@@ -44,7 +44,7 @@ my @file_table = map {
     if ( length $EVAL_ERROR ) {
         <[base.s_warn]>->(
             ' regex error [ %s ] <{C1}>',
-            $key, scalar <[base.format_error]>->( $EVAL_ERROR, -1 )
+            $key, <[base.str.eval_error]>
         );
         return undef;
     }
@@ -59,8 +59,8 @@ foreach my $dir ( @{ <[file.all_dirs]>->( $search_path, $recursion ) } ) {
 return scalar @{$results} if defined $result_aref;    # [ append mode ]
 return @{$results};
 
-#,,,.,...,..,,,,.,,.,,.,.,,,.,.,,,,,,,..,,,.,,..,,...,...,.,.,..,,.,,,,.,,,.,,
-#QF2DZCDELGZ7MHABUP6HKR7G4Y7A4LTUTREKMZW5TQZOIJ4ESGKQ2UMJRGDCAOZD2FMDMPUR2AFZC
-#\\\|XZQDQADO5OJCIM2OSTWZT5UHT5GHOQNLGKGYP25HXJOKKDAH6UZ \ / AMOS7 \ YOURUM ::
-#\[7]JC37DEANKJ6SNSXA72WG34CF2TVR46IJACVHTEC7XPNLVXBXNSCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,.,.,,,,,..,,,..,.,.,.,.,...,..,,...,...,,..,,..,...,,.,,.,,,
+#P7IWPSZQJNWQK3GYALZJ5GLEXTBCCIBDO3P3YMOWORAOPKEVCX2NJIA5PNC3IJQDM6GWPJGI2JBIY
+#\\\|O62OXJYPQXH2CRDHDRPWZET7ROTI7GTBWMCKRKVQJRDH43QZSQJ \ / AMOS7 \ YOURUM ::
+#\[7]DGEGJGXZFS6VX2IKAOZRSERNVEX2EE3MGNWAAZCTWAN6OKVOD4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

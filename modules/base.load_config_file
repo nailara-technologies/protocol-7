@@ -52,7 +52,7 @@ my $status = <[base.execute_zenka_code]>->(
                 $cfg_name =~ s|^.+/||g;
                 <[logs]>->(
                     0,         "cannot load '%s'-config [ %s ]",
-                    $cfg_name, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+                    $cfg_name, <[base.str.os_err]>
                 );
                 <base.modules.cfg_level>--;
                 return undef;
@@ -65,8 +65,8 @@ my $status = <[base.execute_zenka_code]>->(
 return 1 if <base.parser.config.errors>;
 return $status;
 
-#,,.,,...,,,.,...,.,,,...,,,,,,..,,,.,.,.,,,.,..,,...,...,.,.,.,.,..,,,.,,.,.,
-#45EERP7CTSFLOK7WGYASCDEI7NGF756TEZBIRG24JIOIMOYLBTNGJAMXAD63BWCHLWLARVQELY2VG
-#\\\|BQOZKYPXIQSHWNB4KIXVVJVXLGN7LT6DCTARSCGZILRXHBFK4LB \ / AMOS7 \ YOURUM ::
-#\[7]CVT4ZKUREYYPFFKHJMCYJ2BSLPHUGVK4GK27KKYBLD5AFFXWI6BI 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,..,.,,,...,,,.,,,.,,.,,,.,,..,,...,..,,.,.,...,,..,,..,.,,,
+#2AUE5GA4HLEXATX57DFXEGFW7SMGL36TSADECHVA2GVH6SAZXABOOPDWSTZXG2EIEH434QJCADLBI
+#\\\|VZ3MCO3QDGZFIOI23FP5KIF3SSG74YF5RNLUW7GQJEVYFAW5J5P \ / AMOS7 \ YOURUM ::
+#\[7]7D62GH7WSFFNVBPUWTAZCXIK6NIZUCS25WYTZOQHILVF44REBWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

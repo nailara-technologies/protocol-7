@@ -56,7 +56,7 @@ my $dir_fh;
 if ( not opendir( $dir_fh, $path ) ) {
     <[base.s_warn]>->(
         "error opening directory ['%s'] : %s <{C1}>",
-        $path, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $path, <[base.str.os_err]>
     );
     $result_aref = [];    ##  resetting, use 'ign-perm-errs' to keep.., ##
     return undef;
@@ -84,8 +84,8 @@ foreach my $entry ( <[base.sort]>->( readdir $dir_fh ) ) {
 
 return $result_aref if not $recursion_entered;
 
-#,,,.,.,,,.,.,.,.,,..,...,,..,.,.,,,,,,,.,..,,..,,...,...,,..,.,.,,,,,...,,,.,
-#VPMH5MDK5MLJXSIH2CQNOF2WIRWULTJ7ZDG2YQFBRITGMO7BJVW6REL7V5GFRY5ZCAJPGS3V7OUBY
-#\\\|QYXMM2M5CZY52VOW65J2KM33IIUSNV6T64G3X6YIHXW4TY6BHV2 \ / AMOS7 \ YOURUM ::
-#\[7]6PHQPZ4TQIFH4JSEH35ON3NTQTZGXUP2VUBLFHZZEHTFRR5AQAAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,..,,..,,..,,.,.,...,,,,,,.,,..,,...,...,..,,.,.,,,,,...,.,,,
+#PYSXIVGSQZ7KBYIBMRCGT2PDLDXVS74KFBL4ULWV46GOQATVMBFPY4D7JNUD55V3K3WDS6ZQJUPZK
+#\\\|AMHLBE2O7PTYBIAVTZGVD7GK7C4BNPUYIRI5C5L2WP6TQDY4D3D \ / AMOS7 \ YOURUM ::
+#\[7]4GNNKKWRHV24YU4K6EBVERG55N7CJWGM4WZXAESZVPCE7ZTAAEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

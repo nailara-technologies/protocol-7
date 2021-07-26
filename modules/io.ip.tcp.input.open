@@ -29,7 +29,7 @@ my $lsock = new IO::Socket::IP(
 if ( not defined $lsock or !-S $lsock ) {
     <[base.logs]>->(
         0, "cannot allocate %s:%d [ %s ]",
-        $l_addr, $l_port, scalar <[base.format_error]>->( $OS_ERROR, -1 )
+        $l_addr, $l_port, <[base.str.os_err]>
     );
     return undef;
 } else {
@@ -37,11 +37,7 @@ if ( not defined $lsock or !-S $lsock ) {
     my $status = $lsock->listen();
 
     if ( $status == -1 ) {
-        <[base.logs]>->(
-            0,
-            'tcp.server: listen : %s',
-            scalar <[base.format_error]>->( $OS_ERROR, -1 )
-        );
+        <[base.logs]>->( 0, 'tcp.server: listen : %s', <[base.str.os_err]> );
         return undef;
     } else {
         <[base.logs]>->( 'TCP server launched [%s:%d]', $l_addr, $l_port );
@@ -62,8 +58,8 @@ if ( not defined $lsock or !-S $lsock ) {
     return $lsock;
 }
 
-#,,,.,,.,,,..,,..,.,,,..,,,,,,,,.,,,.,.,,,,.,,..,,...,...,...,,,,,.,.,,.,,,.,,
-#CH4NVE73KX5LDSL3SIYPGOIXCVT5NB4NVZR2YGRJ77SBHEO3ZKTY4ENPM5PK7L3AHDCGWUTAYFMAW
-#\\\|6TE6H6KMVOASGLKHADGIOGCYHOVRVDV5QONRAC2D4ET2SQTIUYO \ / AMOS7 \ YOURUM ::
-#\[7]XIN52IUURDDBAVL5USZVERYOTVUBKEJ3EVPE3UCMJZWE3F7EDYBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,,..,,.,,..,,...,...,,..,.,,,..,,...,..,,,.,,..,,.,,,,,,,,,.,
+#2UDW4RSY2GNJZGHIWCIFEI2JWK6MXVO6YCYNAMRF7IDES5BNNAGAV5LTHFRHCZUNAXY2FLWOC3CJQ
+#\\\|MFTDPFJR2PPK64OGLPU7QDL63WKNEKSS5XVSE3B4CZQEQBBB7ZL \ / AMOS7 \ YOURUM ::
+#\[7]JZ3CXE7L3YZKRIZ2KTURK3IRWDGJ7Z4UB4XIKPRKSMRM7DLIDOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
