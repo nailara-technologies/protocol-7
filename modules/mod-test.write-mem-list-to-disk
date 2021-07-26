@@ -1,0 +1,36 @@
+## >:] ##
+
+# name  = mod-test.write-mem-list-to-disk
+
+my @modules = <[mod-test.update_blacklist_aref]>->@*;
+
+@modules = grep {    ##  filter out registered names  ##
+    not <[mod-test.callback.reload-test.is_registered]>->(
+        qw| blacklisted |, $ARG
+    )
+} @modules;
+
+my $entry_count = scalar @modules;
+
+if ( $entry_count == 0 ) {
+    <[base.log]>->( 1, 'blacklist on disk has all entries ..,' );
+    return $entry_count;    ##  0  \  no entries added  ##
+}
+
+<[base.logs]>->(
+    'populating blacklist on disk with %03d entries..,', $entry_count
+);
+
+foreach my $module_name (@modules) {
+    <[mod-test.callback.reload-test.add-link]>->(
+        qw| blacklisted |, $module_name
+    );
+}
+
+return $entry_count;    ##  return number of added entries  ##
+
+#,,.,,.,.,,.,,...,...,,,.,..,,,.,,,..,,.,,,,.,..,,...,...,..,,.,,,.,.,,..,,..,
+#XIUMQZQBZ4ZTZVK6WI4KX5ROGGVTKZEEZ7TOVQVXE7ADNBFZ2A4ZOIPPIIKJMIIDGLUCIUZDO7DLW
+#\\\|JJNBJ75Z6LGEKRMO3WC3JNH6EAEKZ254JEMULKJYWCPDSYOOFGJ \ / AMOS7 \ YOURUM ::
+#\[7]L3ZD7IL2J6GGJEFIPXOO6Q2JVAXRXFP6GI6XDLIAY55HNAEWFCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

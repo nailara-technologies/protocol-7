@@ -1,12 +1,60 @@
 ## >:] ##
 
 # name  = mod-test.cmd.erase-blacklist
+# param = [pattern]
 # descr = clear entire reload blacklist [ disk + mem ]
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+my $mod_name_pattern = $call->{'args'};
 
-#,,.,,,..,,,.,,,.,.,.,...,...,..,,,,,,.,.,,.,,..,,...,...,..,,,,,,,,.,...,,.,,
-#JWCPFGVYQEYDQHCELJ5EH6HLIMCH4XK7F7XR3UAESIZMPIR6FIYJ226GKVMZHQGR7KKRDMWPKCFUI
-#\\\|6WLTCQV2UF4GOY6HKNBAYR5MB7LNO5MT25THB3QDO6NLSJ7NFMU \ / AMOS7 \ YOURUM ::
-#\[7]HJVZBLOBYFGCNX2F6CD42UC5B3IWXPLOFSEQIWQURV6EDP7NVGAQ 7  DATA SIGNATURE ::
+my $link_target_dir = <mod-test.path.mod-reg-dir>->{'blacklisted'};
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        -e $link_target_dir
+        ? 'directory not readable [%s]'
+        : 'directory not present [ %s ]',
+        $link_target_dir
+    )
+    }
+    if not -e $link_target_dir or not -r $link_target_dir;
+
+my $link_path_hash = <[file.all_links]>->($link_target_dir);
+
+my $removed_links_count = 0;
+
+foreach my $link_path_abs ( keys $link_path_hash->%* ) {
+    my $module_name = $link_path_hash->{$link_path_abs};
+    next
+        if defined $mod_name_pattern
+        and index( $module_name, $mod_name_pattern, 0 ) == -1;
+
+    <[mod-test.mem_blacklist.remove_mod]>->($module_name); ##  from memory  ##
+
+    eval { unlink($link_path_abs) };    ##  from blacklist on disk  ##
+
+    $removed_links_count++ if not -l $link_path_abs;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => defined $mod_name_pattern
+    ? 'no matches for name pattern'
+    : 'no entries',
+    }
+    if $removed_links_count == 0;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'removed %d list entr%s',
+        $removed_links_count,
+        <[base.cnt_s]>->( $removed_links_count, qw|  ies  y  | )
+    )
+    }
+
+#,,..,...,..,,,.,,.,.,,..,,,.,,,,,...,.,.,,.,,..,,...,..,,..,,...,..,,,.,,,.,,
+#GCFZUDZ52EVKB42YXDLIBMPWBM45ZY5TNDU66C53K4DO6RML52MJ5HXPH4L6UX3MBEEWSH5RB3MTO
+#\\\|3HHL7E3X2OHDBIZPHM2YIFSOFB2ELVFS3OJGJDFDXVZEDT6GOUJ \ / AMOS7 \ YOURUM ::
+#\[7]Y3XCBPVDC6QBSBFUM2DS7DBI5H7BDHUSN7W5YRTGRVHOOUIRA2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
