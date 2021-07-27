@@ -11,7 +11,7 @@ return { 'mode' => qw| false |, 'data' => 'expected name pattern' }
 
 $name_pattern =~ s|::|/|g;
 
-my @loaded_mods = <[base.sort]>->( \%INC );
+my @loaded_mods = <[base.perlmod.get_loaded_INC_names]>;
 
 if ( $name_pattern =~ s|^\^|| ) {
     @loaded_mods = grep { index( $ARG, $name_pattern, 0 ) == 0 } @loaded_mods;
@@ -28,8 +28,8 @@ return {
     map {"$ARG\n"} @loaded_mods
     }
 
-#,,..,..,,...,,,.,...,,..,,.,,..,,..,,,,.,,.,,..,,...,...,.,.,,.,,,..,,..,.,,,
-#CJGJQ66TOJ5PRIEHYA2XBPCZVFKMS7GH2C76UWCUS2XUIHQFIWILVBCAJEDOGOOO6SQD7D4VVDTSK
-#\\\|JQ2ZLAY7K3OFCHVMLN3CQNOLU2X63USR5A5KDEVL2253MY3BFQB \ / AMOS7 \ YOURUM ::
-#\[7]GH7XGQISFU2QRGNT2YAZBXTAGDLPPO6RKJAE5RO6LBUG6F6L6OBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,..,.,.,,,,,,,.,.,.,...,,,.,..,,...,...,...,,,,,,.,,,.,,.,,,
+#DKGCBUSIPNRXZAVZTPI2QFWASVWB4NB75R255RH76YFX36PRCVRHU6XI54ILQQ4P2XUEKNW565LAK
+#\\\|KXUFG7LNUU5XIDGYDLU55JHFQYWERNXA4PSIC746ZV3F4T55QIC \ / AMOS7 \ YOURUM ::
+#\[7]FU6V6ORIKGBXRZWIJ5DD5I5CHSH36EY75DW6XGZ6VAEJTQGEMSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

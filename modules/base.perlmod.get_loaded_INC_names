@@ -1,0 +1,17 @@
+## >:] ##
+
+# name  = base.perlmod.get_loaded_INC_names
+
+my @loaded_mods = map {
+    ( defined $INC{$ARG} and index( $INC{$ARG}, qw| / |, 0 ) == 0 )
+        ? <[base.perlmod.strip_INC_path]>->( $INC{$ARG} )
+        : $ARG
+} <[base.sort]>->( \%INC );
+
+return @loaded_mods;
+
+#,,,,,,,.,..,,...,,,.,.,.,,,,,,,,,.,,,..,,..,,..,,...,..,,,.,,.,,,,,,,...,..,,
+#4U2QSMZWNFPVQMNY3MHNBL6UAESCYHKKBYBXXXXV5WZ3PIGX6SERSWBQTZMJTWW2CI7Y2R6EUQH2W
+#\\\|IOVOLHPZZ6QNLCY33UBMRATMBWVQST5VBUNN4SZQ5RZAT2A35OD \ / AMOS7 \ YOURUM ::
+#\[7]3GEOFHEQ5GX7WRWHY6IXS73RUYFU37GSQ7GH6JYVGOETTGVZMYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
