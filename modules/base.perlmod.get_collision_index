@@ -1,0 +1,24 @@
+## >:] ##
+
+# name  = base.perlmod.get_collision_index
+
+<base.perlmod.reload_blacklist> // [];
+
+return 0 if <base.perlmod.reload_blacklist>->$#* == -1;    ##  no elements  ##
+
+##  first element is encoded collision index [ counter ] ##
+my $first_element = <base.perlmod.reload_blacklist>->[0];
+
+if ( index( $first_element, qw| V7 |, 0 ) != 0 ) {
+    warn 'first reload blacklist element is not'
+        . ' an encoded collision index <{C1}>';
+    return undef;
+} else {
+    return <[base.perlmods.blacklist_collision_index]>->($first_element);
+}
+
+#,,.,,,.,,,,.,,.,,...,,..,.,,,,,,,...,,,.,,..,..,,...,...,,,.,.,,,,,,,,.,,.,,,
+#JU5JTCUCHPJGRKZCLW74PSA6TUO37SYOABE2SWJLEGULNHFG5L3BGBUHKDBUMCGU4SPGCHGTMT5G6
+#\\\|MH7X3GBRWN35O5KZ5NKKE42OLIUBXY2JWTDHBQXMY6N63ZNIFYP \ / AMOS7 \ YOURUM ::
+#\[7]IQVZIUGZY3FXSVCKZJ2DJWMG2LC6OA7QOZPLPVS4VAJ3XBPDAYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
