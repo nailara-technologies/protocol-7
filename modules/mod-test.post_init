@@ -51,12 +51,15 @@ my $load_success = 0;
         if ( not length $EVAL_ERROR ) {
             $load_success++;
         } else {
+            push @load_failed, $perl_module;
             $module_blacklisted{$perl_module} = 5;
         }
     }
     <[base.log]>->( 2, ':' );
     <[base.log]>->( 2, ':.,' );
 }
+
+@load_failed = uniq @load_failed;
 
 if ( scalar @load_failed ) {  ##  register unloadable modules in blacklist  ##
     <[base.logs]>->(
@@ -74,14 +77,16 @@ if ( scalar @load_failed ) {  ##  register unloadable modules in blacklist  ##
     );
 }
 
+$module_blacklisted{'Module::Refresh'} = 5;    ##  required enty  ##
+
 ##  converting module names to .pm style [ as found in %INC ]  ##
 ##
-<[mod-test.update_blacklist_aref]>->( \%module_blacklisted );
+<[mod-test.update_blacklist_aref]>->( [ keys %module_blacklisted ] );
 
 0;
 
-#,,.,,.,,,..,,.,.,.,,,,.,,,,.,...,..,,,.,,..,,..,,...,...,...,..,,.,.,.,,,,..,
-#E6SCUO2OXFYULLW2NSDDT4TVDRSO6DUSNON3BQPKRYEXYEQUTXXFBLNGRSNQZEJFDDX3MABFB5MGE
-#\\\|PGZ3Q62GM3TKA7YCNRPCA2W2JD65OBZMF532HD3OB7P6WV7MFRV \ / AMOS7 \ YOURUM ::
-#\[7]P77GQBEXFHQFSGKKUUWRRFJZXYR7OSLGLWVKVW5AXVTGBURO6ODI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,.,,,,,.,,.,,...,,,.,,,.,,,,,..,,...,...,,.,,...,..,,.,,,,,,,
+#NXAEPLKUPMYYHIJARMKTVADGHYCH24LX3RPVQ2W4G4B6PJTDAJVZWGMBQIBCGRT3LHJ2TKCZZDEUM
+#\\\|RQ5MYT2MAZGKO55MUWXZ4SY6TPVMZWG565EVBRXGXQ6OH34J4WC \ / AMOS7 \ YOURUM ::
+#\[7]7PR5O3N4BJ2AUXMC4NRQVHANYAXK7CEDXCB564J7R43GZ7WIZCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

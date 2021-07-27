@@ -51,13 +51,16 @@ foreach my $module_file (
 
 if ( $error_count == 0 ) {
     <[base.logs]>->(
-        ': done. [ %d modules reloaded with no errors ]',
-        $count_reloaded
+        ': done. [ %d modules reloaded, %d skipped ]',
+        $count_reloaded, $skipped_count
     );
 } else {
     <[base.logs]>->(
-        ': reloading done [ %d modules reloaded, %s error%s ]',
-        $count_reloaded, $error_count, <[base.cnt_s]>->($error_count)
+        ': reloaded [ %d modules reloaded, %d skipped, %d error%s ]',
+        $count_reloaded,
+        $skipped_count,
+        $error_count,
+        <[base.cnt_s]>->($error_count)
     );
 }
 
@@ -69,8 +72,8 @@ if (wantarray) {    ##  returning reload details in list context  ##
     return 5;       ##  true \ no errors  ##
 }
 
-#,,..,.,,,,,.,,..,...,...,,,.,.,,,.,.,...,.,.,..,,...,...,...,.,.,,.,,,..,...,
-#5QDK4NPL6XIQNLDWVSFYGSNAF5D4J32WYELQN3AJM4VZYNGFQ7ZSE5OUDLLXOI22MLIOQIQ7OPZRY
-#\\\|QK4RYZFQRUYPJBATGN27GCCPZQRDVVDZRMWJJYGPCTBBVU7FQAY \ / AMOS7 \ YOURUM ::
-#\[7]JCVMGFU3IUL5VEVLUJRZMFGH33RMNSKHNUC63JKX77LEARS62SCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,.,,,,..,,,.,.,.,,.,,,,,,...,..,,...,...,..,,.,,,.,.,,..,,..,
+#GBJU6Z3TOHPZRFWUTL7XT37OQQX33D7PLGBYUIADJE2VGV6TRWDOPQNFGCRMBKEHEYNQBNEFGBD3E
+#\\\|XKRRUIO54UR4QO2LFKJB6PWZDWNMPI4QKGDCVHD4O5SL6BNFNQF \ / AMOS7 \ YOURUM ::
+#\[7]ELELC6XN4EJKUKB3RTWWXB5VGO6A5ZS666JKQRBLOLBPX6CTOODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
