@@ -1,6 +1,6 @@
 ## >:] ##
 
-# name  = base.modules.update.refresh
+# name  = base.perlmods.reload.refresh
 
 <base.perlmod.reload_blacklist> = <[base.perlmod.manual_reload_blacklist]>;
 if ( ref <base.perlmod.reload_blacklist> ne qw| ARRAY | ) {
@@ -8,7 +8,7 @@ if ( ref <base.perlmod.reload_blacklist> ne qw| ARRAY | ) {
     return undef;
 }
 
-my $mod = <base.modules.refresh>;
+my $mod = <base.perlmods.refresh>;
 
 my %refresh;
 my @collected;
@@ -29,7 +29,7 @@ local $SIG{__WARN__} = $collect_coderef;
 foreach my $module_file (
     <[base.reverse-sort]>->(<[base.perlmod.get_loaded_INC_names]>) ) {
 
-    if ( <[base.modules.update.reload_blacklisted]>->($module_file) ) {
+    if ( <[base.perlmods.reload.reload_blacklisted]>->($module_file) ) {
         ##  skipping blacklisted  ##
         $skipped_count++;
         next;
@@ -69,8 +69,8 @@ if (wantarray) {    ##  returning reload details in list context  ##
     return 5;       ##  true \ no errors  ##
 }
 
-#,,,,,,,.,.,.,,.,,...,.,,,,,.,,.,,.,,,..,,..,,..,,...,..,,.,,,.,,,,.,,..,,,,,,
-#TI4YOR5BSJBCEO6ZCZCWHWAW5AAUZCODB345FCTK56NMCGJN4GBROEKR6AQZ6C2XS5BTE6CHFFU5I
-#\\\|UHCWYP6LSSNXIL5RAZ2FOUNIEYOHJQ546VNMELWYZWB2OMIXUEW \ / AMOS7 \ YOURUM ::
-#\[7]NS3ZTWDBXYXROVVELYI5N3AMTXG6LAXDRDPX5VWMXLLMPQCTTUDI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,...,...,,,.,.,,,.,.,...,.,.,..,,...,...,...,.,.,,.,,,..,...,
+#5QDK4NPL6XIQNLDWVSFYGSNAF5D4J32WYELQN3AJM4VZYNGFQ7ZSE5OUDLLXOI22MLIOQIQ7OPZRY
+#\\\|QK4RYZFQRUYPJBATGN27GCCPZQRDVVDZRMWJJYGPCTBBVU7FQAY \ / AMOS7 \ YOURUM ::
+#\[7]JCVMGFU3IUL5VEVLUJRZMFGH33RMNSKHNUC63JKX77LEARS62SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

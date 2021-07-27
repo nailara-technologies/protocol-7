@@ -711,7 +711,6 @@ return [ qw[
         base.register_bin_deps
         base.perlmod.init_code
         base.path.resolved_abs
-        base.modules.init_code
         base.locales.load_file
         base.locales.init_code
         base.load_section_conf
@@ -808,6 +807,7 @@ return [ qw[
         base.strip_chksum_lines
         base.start.unlink_child
         base.session.init_state
+        base.perlmods.init_code
         base.path.clean_symlink
         base.parser.human.fsize
         base.parser.access_conf
@@ -1139,7 +1139,6 @@ return [ qw[
         base.perlmod.strip_INC_path
         base.perlmod.all_registered
         base.parser.ondemand_status
-        base.modules.update.refresh
         base.log.next_buffer_tstamp
         base.log.handler.send_timer
         base.handler.warn_nak_reply
@@ -1206,6 +1205,7 @@ return [ qw[
         base.session.check_remaining
         base.run_if_not.load_perlmod
         base.process-into-background
+        base.perlmods.reload.refresh
         base.parser.ondemand_session
         base.handler.heart_ack_reply
         base.file.callback.chown-all
@@ -1343,7 +1343,6 @@ return [ qw[
         base.root.convert-user.nailara
         base.p7refs.get_refaddr_prefix
         base.number-cache.true_upwards
-        base.modules.update.disk_times
         base.handler.sig_chld.shutdown
         base.comp-int.decode_to_buffer
         base.chk-sum.amos.calc_version
@@ -1387,6 +1386,7 @@ return [ qw[
         compton.callback.not_composited
         base.zenki.set_ondemand_timeout
         base.warnings.compact_statehash
+        base.perlmods.reload.disk_times
         base.perlmod.convert.name_to_pm
         base.p7refs.gen_template_chksum
         base.number-cache.get-templates
@@ -1554,7 +1554,6 @@ return [ qw[
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
         base.parser.decode_harmonized_refstr
-        base.modules.update.chksum_blacklist
         base.file.file_chksums_are_identical
         weather.parent.cache.write_station_id
         v7.handler.heartbeat_response_timeout
@@ -1565,6 +1564,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
         crypt.C25519.generate_session_keypair
+        base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
@@ -1577,12 +1577,12 @@ return [ qw[
         mod-test.callback.reload-test.add-link
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
-        base.modules.update.reload_blacklisted
         base.file.path.make-relative-from-list
         weather.parent.handler.station_id_reply
         ticker-sdl.parent.handler.cmd_read_file
         sourcecode.console.verify-p7-signatures
         mpv.handler.event.property-change.width
+        base.perlmods.reload.reload_blacklisted
         base.init_zenka.install_signal_handlers
         base.chk-sum.amos.truth_template_chksum
         weather.parent.handler.coordinates_reply
@@ -1621,8 +1621,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,...,...,.,,,...,...,,..,,..,..,,,,,,.,.,.,.,...,...,.,,,.,,,,.,,..,,,.,,
-#RXQZAQ2NLD2LBCZVPRAGTYISESRLB2WZZBR3FGD3LN26BKBLYWDXFU7LPYCD2ZTG5XCNSM6WBK5JS
-#\\\|N4F3GPK6T5UFMOXSSFWKCTZWV3BWW6XZW56U6HPLQOSCOPLJGS7 \ / AMOS7 \ YOURUM ::
-#\[7]EXIU3EGUSR6YQYN74WMYU7IPWP6YCI6BU5SVAEHLKMQ6CX3L5QDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,,.,.,,,.,,,,,.,,.,,,.,,,..,.,.,...,...,.,.,.,.,,..,,,,,.,,,
+#KXETQVQRW4KNWKYTUGSLEQCDC4F7Q43QMNLSXWIVDM2UB57Z6KI2WNFD5OW22ZCY3KOQMBTVVQNW4
+#\\\|HOLCUDMAIXE7VXWHFKIHP3RHANIDFTGVH3YC7QLX3CUX7AZFNCV \ / AMOS7 \ YOURUM ::
+#\[7]GVNSMJ32D5HXMTM3CKQITQUNDX2BT5CETRM33TFBSV35LL27KWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
