@@ -2,8 +2,10 @@
 
 # name  = mod-test.post_init
 
+<[base.perlmod.load]>->('File::Copy');
+
 <mod-test.list.blacklisted_modules> = <base.perlmod.reload_blacklist> // [];
-<mod-test.list.registered_modules> = <[base.perlmod.all_registered]>;
+<mod-test.list.registered_modules>  = <[base.perlmod.all_registered]>;
 
 my @test_directory;
 <mod-test.path.mod-reg-dir> //= {};
@@ -78,8 +80,8 @@ if ( scalar @load_failed ) {  ##  register unloadable modules in blacklist  ##
 
 0;
 
-#,,,,,...,,,,,.,.,.,,,.,,,..,,...,..,,,.,,,.,,..,,...,...,...,..,,.,.,...,...,
-#IUNSR3X5NTAF5WW7MHEU6VCMWDEZI7JMAHPIZAFBU4ENWZ3BFOS7O4NJ5ESDUNX7MARH2FX7UF2PW
-#\\\|UIB2DHWQCP6PLEEN274Y2SLFO3UMND4XHOJFZCCOBOMLKWPMNL2 \ / AMOS7 \ YOURUM ::
-#\[7]GBV2BNIJJAZGGG4OAGMBRV5QA3TJEEOK6Y42SDNFDVIED2XVNOAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,.,,,,.,,,,.,...,..,,,.,,..,,..,,...,...,...,..,,.,.,.,,,,..,
+#E6SCUO2OXFYULLW2NSDDT4TVDRSO6DUSNON3BQPKRYEXYEQUTXXFBLNGRSNQZEJFDDX3MABFB5MGE
+#\\\|PGZ3Q62GM3TKA7YCNRPCA2W2JD65OBZMF532HD3OB7P6WV7MFRV \ / AMOS7 \ YOURUM ::
+#\[7]P77GQBEXFHQFSGKKUUWRRFJZXYR7OSLGLWVKVW5AXVTGBURO6ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
