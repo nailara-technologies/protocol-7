@@ -3,7 +3,7 @@
 # name  = mod-test.scan_INC_chksum_collisions
 # descr = read @INC paths and check for name \ checksum collisions
 
-my $log_collisions    = 0;
+my $log_collisions    = 1;
 my $chksums_to_stdout = 0;
 
 <[base.log]>->( 1, 'testing for module name checksum collisions..,' );
@@ -17,7 +17,7 @@ my $collision_counter = 0;
 foreach my $module_name (
     <[base.reverse-sort]>->( scalar <[base.perlmods.INC_path_pms]> ) ) {
 
-    my $module_chksum = <[chk-sum.amos]>->($module_name);
+    my $module_chksum = <[base.perlmod.name_chksum]>->($module_name);
 
     if ( exists $modname_sums{$module_chksum} ) {
         ++$collision_counter;
@@ -69,8 +69,8 @@ return ( $collision_counter, $entries, \%modname_sums ) if wantarray;
 
 return $collision_counter;
 
-#,,.,,,.,,,.,,,.,,,.,,,,,,..,,.,.,,.,,,.,,,,.,.,.,...,...,,.,,.,,,,.,,,,.,,,.,
-#Q6WCKA3LBBKLRUZSCIOQQ3HURHAWGFZRK3OUYNQOKNK3UO54TY6ZDUPOZSOMI76F4OTGKNKD633IG
-#\\\|3BIVUUS76Q7GWTJXMLDFLHZI6BBAL7SV2T74Q5VXPE4FO7ELBZP \ / AMOS7 \ YOURUM ::
-#\[7]RBCIQVLB3LVIJBUXKPK746RMNEH4ZFC3CZQ7DGDAKCDALMRLWCAY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,,,.,,,.,,.,,.,.,,,.,..,,,,,,.,.,...,..,,.,.,,..,.,.,..,,...,
+#7OIWLSDXAV336TGIYUKEP7R6HQ4PSKX2WQZL5W5FPZNATWLLLDRQYSL2MLLXGJWA7TINRW7JDSSWS
+#\\\|W6WZBQYTJOD2CU77A2ETFXZALXZTWB27P6JE2AS7ECEIZY3VO72 \ / AMOS7 \ YOURUM ::
+#\[7]NVQXYMUYQDTDRBGQ23LNAMCUVRGHWOBWGIWGTUPX6IP2OO4AISBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,15 +9,15 @@ foreach my $module_name ( <base.perlmod.reload_blacklist>->@* ) {
         if length($module_name) == 7
         and index( $module_name, qw| .pm |, 0 ) == -1;
 
-    $module_name = <[chk-sum.amos]>->( \$module_name );
+    $module_name = <[base.perlmod.name_chksum]>->( \$module_name );
 }
 
 return <base.perlmod.reload_blacklist>->@* if wantarray;
 
 return <base.perlmod.reload_blacklist>
 
-#,,,.,...,,,.,,..,,.,,,.,,,.,,..,,.,.,,,,,,..,..,,...,...,,..,.,.,,.,,,..,..,,
-#7DWZGWG4CHTD3OR2C2DBGXQOMIBTGHYL7HTXCODDYLMVDB63LOPZZRIKAGIKX5CZ5CEZZZJDKMXAW
-#\\\|FR5VU2GINQGQY2ZVFIXN7OKYYLQR4MKVSOI6QLELPMIBJTU4AFC \ / AMOS7 \ YOURUM ::
-#\[7]PF2XTQY42SV4QFAJ7EZHVNJGNFAPFSMADHS6HYPAB4JJRFQAR4CI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,,..,,..,.,,,,.,,...,,,.,...,..,,...,...,,..,,,.,,..,..,,..,,
+#HORJ3IGKZOO5JUUFTJR2XBKLAAGBUBULNR6OIWS6N4DF6HO544YRUUD6CZ42EDJIEWSM6FDJTRMTS
+#\\\|LEPZ2R6OJ3RYENMOANUVJHR4O7DQ2M5PCX6NLRKQW5MBGOCN4CN \ / AMOS7 \ YOURUM ::
+#\[7]SOTYPR4SYQ7PZQEGUEO7MPWJAU65RNS7EUCR7EKJMKJS2E544OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
