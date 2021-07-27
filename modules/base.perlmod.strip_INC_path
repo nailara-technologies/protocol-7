@@ -8,6 +8,7 @@ my $module_path_abs = shift // '';    ##  found in %INC values  ##
 if ( not length $module_path_abs
     or index( $module_path_abs, qw| / |, 0 ) != 0 ) {
     warn 'expected absolute perl module path <{C1}>';
+    <[base.logs]>->( 1, ':. [  %s  ]', $module_path_abs );
     return undef;
 }
 
@@ -26,8 +27,8 @@ return $module_path_abs if $match;    ##  return truncated path  ##
 
 return undef;                         ##  undef \ no match  ##
 
-#,,..,...,.,,,,,.,.,,,.,,,,.,,,,.,,,.,..,,,,.,..,,...,..,,,.,,.,,,.,,,..,,,,.,
-#JLN6V5MA4VAZZ2DLVV4QWYOMASGBDJM6WFEOJHN2W7U4AGP56YN77SUWGRQF7YYBD6WKKYOOVTSFK
-#\\\|XWX3H6VUNHBY5RANWGEJKMPAEBYPM7TKRSURL2OSMBMCFSFTBNW \ / AMOS7 \ YOURUM ::
-#\[7]BG2AMJHW45IRE6CHGMIIYOGD6YIG3CVNTWZXD4MI4YAHJ6W3SSDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,,,.,.,,,.,,.,,..,,,,,,.,,,..,,..,,...,.,.,...,,..,...,,,,,.,,,
+#QR6LPLDLQ43A7LXYIM2XMHGMFPF75GMZ7FDWXWNQNZLE5JNHUPWN57MFPZBEB6U4YIONQ3YESWJHY
+#\\\|53B6O5VDPC2XKE6A76MK2DYEQQ6L3YEKHTKV5AOWHWPQX2ZIPZV \ / AMOS7 \ YOURUM ::
+#\[7]6CYYFKWZ4O57WQAWLIGVXIQ347ZHFXWI3MYCQV5B47XZBHIXPCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

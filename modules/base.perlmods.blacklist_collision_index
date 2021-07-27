@@ -1,0 +1,38 @@
+## >:] ##
+
+# name  = base.perlmods.blacklist_collision_index
+
+my $param_str = shift // '';
+
+my $b32_re = <regex.base.base_32>;
+
+if ( not length $param_str ) {
+    warn 'expected checksum collision index parameter <{C1}>';
+    return undef;
+} elsif ( $param_str =~ m|^\d{1,8}$| ) {
+    my $enc_numerical = 99999999 - $param_str;
+    return Crypt::Misc::encode_b32r( pack qw| w |, $enc_numerical );
+} elsif ( $param_str =~ m|$b32_re{7}| ) {
+    my $decoded = Crypt::Misc::decode_b32r($param_str);
+    if ( not defined $decoded ) {
+        warn 'input param not valid [ BASE32 ] <{C1}>';
+        return undef;
+    } else {
+        my $numerical_decoded = eval { unpack qw| w |, $decoded };
+        if ( not defined $decoded ) {
+            warn 'input param encoding not valid [ comp integer ] <{C1}>';
+            return undef;
+        } else {
+            return 99999999 - $numerical_decoded;
+        }
+    }
+} else {
+    warn 'input param not valid [ not recognized format ] <{C1}>';
+    return undef;
+}
+
+#,,,.,,,.,,,,,...,..,,,,,,,,,,...,...,,.,,,,,,..,,...,...,,,.,.,.,.,,,..,,,.,,
+#RXRU2DIQP3SSBMWA7VAFXACCSK7Z64G5VJPRPJMMHJWU4EILHGQJXBTSTEAZFYQPTPUEZZITCOPCQ
+#\\\|AIO4NMS2AUYH6J3S5CVU5MVWYSW4AJ4KZBV3P6HJLWVIRDSKQBD \ / AMOS7 \ YOURUM ::
+#\[7]AMQQLTVLYLDGRPY5354B24AMFMSDLTCOGCLLQLYJ2C6PI65FCKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
