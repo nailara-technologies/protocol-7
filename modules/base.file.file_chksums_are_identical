@@ -1,0 +1,75 @@
+## >:] ##
+
+# name  = base.file.file_chksums_are_identical
+
+my $file_000 = shift // '';
+my $file_001 = shift // '';
+
+if (   not length $file_000
+    or not length $file_001
+    or not -f $file_000
+    or not -f $file_001
+    or index( $file_000, qw| / |, 0 ) != 0
+    or index( $file_001, qw| / |, 0 ) != 0 ) {
+    warn 'expected two [absolute] file paths to compare <{C1}>';
+    return undef;
+} elsif ( $file_000 eq $file_001 ) {
+    warn 'specified file paths are identical <{C1}>';
+    return undef;
+} elsif ( not -r $file_000 ) {
+    <[base.s_warn]>->( 'file not readable [ %s ] <{C1}>', $file_000 );
+    return undef;
+} elsif ( not -r $file_001 ) {
+    <[base.s_warn]>->( 'file not readable [ %s ] <{C1}>', $file_001 );
+    return undef;
+}
+
+return 5 if -z $file_000 and -z $file_001;    ##  true \ both files empty  ##
+
+my $fstat_0000 = File::stat::stat($file_000);
+my $fstat_0001 = File::stat::stat($file_001);
+
+if ( not defined $fstat_0000 ) {
+    <[base.s_warn]>->(
+        'stat error on file %s [ %s ] <{C1}>',
+        $file_000, <[base.str.os_err]>
+    );
+    return undef;
+} elsif ( not defined $fstat_0001 ) {
+    <[base.s_warn]>->(
+        'stat error on file %s [ %s ] <{C1}>',
+        $file_001, <[base.str.os_err]>
+    );
+    return undef;
+}
+
+return 0 if $fstat_0000->size != $fstat_0000->size;    ##  size differs  ##
+
+my $file_chksum_0000 = eval { <[chk-sum.bmw.filesum]>->( 384, $file_000 ) };
+my $file_chksum_0001 = eval { <[chk-sum.bmw.filesum]>->( 384, $file_001 ) };
+
+if ( not defined $file_chksum_0000 or not length $file_chksum_0000 ) {
+    <[base.s_warn]>->(
+        'cannot create checksum [ file %s ] : %s <{C1}>',
+        $file_000, <[base.str.eval_error]>
+    );
+} elsif ( not defined $file_chksum_0001 or not length $file_chksum_0001 ) {
+    <[base.s_warn]>->(
+        'cannot create checksum [ file %s ] : %s <{C1}>',
+        $file_001, <[base.str.eval_error]>
+    );
+}
+
+if ( $file_chksum_0000 eq $file_chksum_0001 ) {    ##  files are identical  ##
+    ## true ##
+    return 5;
+} else {
+    ##  false  ##
+    return 0;
+}
+
+#,,,,,...,.,.,...,,..,,,.,,.,,..,,,,.,.,,,.,.,.,.,...,...,...,..,,,..,,,,,,,.,
+#DJ6AW2HHXENWMN74X5NNT3PFACLYHL75CAJVXHQCF4DDACQMT7JRZFZ3MWL2M2HQRZBLPZCDCRG26
+#\\\|67XEM2JTFEWRFBZBAR4JTA73YOAKW5SUU44GBJJ2ZZKOUL7SCDJ \ / AMOS7 \ YOURUM ::
+#\[7]MS67YIOKEDZUGQK7EJT4DXWHX5WKJITEIDSTVZVCPONMKP456EBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
