@@ -1,0 +1,76 @@
+## >:] ##
+
+# name  = base.modules.update.refresh
+
+<base.perlmod.reload_blacklist> = <[base.perlmod.manual_reload_blacklist]>;
+if ( ref <base.perlmod.reload_blacklist> ne qw| ARRAY | ) {
+    warn 'no reload blacklist configured, aborting perl-mod reload. <{C1}>';
+    return undef;
+}
+
+my $mod = <base.modules.refresh>;
+
+my %refresh;
+my @collected;
+
+my $collect_coderef = sub {
+    push @collected, scalar <[base.format_error]>->( $ARG[0] )
+        if defined $ARG[0]
+        and ( $ARG[0] !~ m,(^| )subroutine \S+ redefined ,i
+        or index( $ARG[0], 'deleting ', 0 ) != 0 );
+};
+
+my $error_count    = 0;
+my $skipped_count  = 0;
+my $count_reloaded = 0;
+
+local $SIG{__WARN__} = $collect_coderef;
+
+foreach my $module_file (
+    <[base.reverse-sort]>->(<[base.perlmod.get_loaded_INC_names]>) ) {
+
+    if ( <[base.modules.update.reload_blacklisted]>->($module_file) ) {
+        ##  skipping blacklisted  ##
+        $skipped_count++;
+        next;
+    }
+    <[base.logs]>->( 1, ': reloading perl module %s .,', $module_file );
+
+    eval { $refresh{$module_file} = $mod->refresh_module($module_file) };
+
+    if ( length $EVAL_ERROR ) {
+        $error_count++;
+        <[base.s_warn]>->(
+            ':. error while reloading %s [ %s ]', $module_file
+        );
+    } else {
+        $count_reloaded++;
+    }
+    <[event.once]> if $count_reloaded % 13 == 0;    ##  heartbeat  ##
+}
+
+if ( $error_count == 0 ) {
+    <[base.logs]>->(
+        ': done. [ %d modules reloaded with no errors ]',
+        $count_reloaded
+    );
+} else {
+    <[base.logs]>->(
+        ': reloading done [ %d modules reloaded, %s error%s ]',
+        $count_reloaded, $error_count, <[base.cnt_s]>->($error_count)
+    );
+}
+
+if (wantarray) {    ##  returning reload details in list context  ##
+    return ( $count_reloaded, $error_count, $skipped_count, \@collected );
+} elsif ($error_count) {
+    return 0;       ##  false \ had errors  ##
+} else {
+    return 5;       ##  true \ no errors  ##
+}
+
+#,,,,,,,.,.,.,,.,,...,.,,,,,.,,.,,.,,,..,,..,,..,,...,..,,.,,,.,,,,.,,..,,,,,,
+#TI4YOR5BSJBCEO6ZCZCWHWAW5AAUZCODB345FCTK56NMCGJN4GBROEKR6AQZ6C2XS5BTE6CHFFU5I
+#\\\|UHCWYP6LSSNXIL5RAZ2FOUNIEYOHJQ546VNMELWYZWB2OMIXUEW \ / AMOS7 \ YOURUM ::
+#\[7]NS3ZTWDBXYXROVVELYI5N3AMTXG6LAXDRDPX5VWMXLLMPQCTTUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
