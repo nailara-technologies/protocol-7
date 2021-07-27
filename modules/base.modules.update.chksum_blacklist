@@ -1,0 +1,23 @@
+## >:] ##
+
+# name  = base.modules.update.chksum_blacklist
+
+<base.perlmod.reload_blacklist> //= [];
+
+foreach my $module_name ( <base.perlmod.reload_blacklist>->@* ) {
+    next
+        if length($module_name) == 7
+        and index( $module_name, qw| .pm |, 0 ) == -1;
+
+    $module_name = <[chk-sum.amos]>->( \$module_name );
+}
+
+return <base.perlmod.reload_blacklist>->@* if wantarray;
+
+return <base.perlmod.reload_blacklist>
+
+#,,,.,,.,,...,,..,..,,.,,,..,,,.,,,.,,.,,,,..,..,,...,..,,,..,,,,,...,..,,.,.,
+#H2A7J4N4GNCWCGGYAYRCM2L5M64F3YXURJLGRCQJLI74NNEQTECUJERVM6BSROT2NE5AWXF6TZ5VW
+#\\\|IXMAHQMHDOD4MGPFPQMMCLIRWDOHT2P5QRCY3Q3WQLGXG4VUNLP \ / AMOS7 \ YOURUM ::
+#\[7]Q3V3UIOGXZTY6MTASULV3CGAEQZ4V54F7MWP5RJEDACTARYXY2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
