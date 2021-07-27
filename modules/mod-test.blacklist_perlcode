@@ -26,19 +26,23 @@ my $code_file_name = $LAST_PAREN_MATCH
 
 map {s|\\<|<|g} ( $header_str, $code_footer_string );
 
-return {
+my @mod_name_checksums
+    = <[base.sort]>->( map { scalar <[chk-sum.amos]>->( \$ARG ) }
+        <mod-test.list.blacklisted_modules>->@* );
+
+return {    ##  actual blacklist file contains amos chksums, not names  ##
     $code_file_name => join(
         "\n",
         $header_str,
         (   map { sprintf qw| %s%s |, scalar( ' ' x 8 ), $ARG }
-                <mod-test.list.blacklisted_modules>->@*
+                @mod_name_checksums
         ),
         $code_footer_string
     )
 };
 
-#,,,,,...,,..,..,,..,,,,.,,,,,,,.,,.,,,..,.,,,.,.,...,...,...,,,,,,.,,,,,,,,.,
-#GI737FIX6LL264UBD2OIEDZOGFHS7CRZY7VGMJIUQO2UTFY2FRETJXPXHKUPVYNJAMYJYV6WYJEZ6
-#\\\|GQROHA3AEOR4LYVFVXYIVZTM7MI36GU2OLAVJAGM5VZDQEMYDHQ \ / AMOS7 \ YOURUM ::
-#\[7]4ONOWQ67RKIX7C5TLPWK7MEGZJUZ2M5SR3Q7LSIQR5VP3CRK3UAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,,,,,,,,,.,.,.,.,.,,.,,...,.,.,...,.,.,..,,,,.,...,,,,,.,.,
+#QN43UHMPN7KYM5XR2L3V5XRJ4K5EETNE2JTIT5QDT7XEWODLGISLB6LOD3RTJXDWTDU6FZKVCOU2O
+#\\\|ZHCEYIU55H3WERI45LFLKS6ZZRET3MQRU6ZLNHFYCOCWZWS3RKF \ / AMOS7 \ YOURUM ::
+#\[7]TBPTFK4YSXKHS7TKWDCYYGNI647S6KDHL4JNFUQROSPVLVN3DSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
