@@ -216,31 +216,35 @@ sub is_valid_template {
     my $truth_templates = [];
 
     my $template_errstr;
-    my $template_valid = 5;    ## true ##
+    my $template_valid = 5;               ## true ##
+    my $ref_type       = ref $template;
 
     if ( not defined $template ) {
         $template_valid  = 0;                        ##  false  ##
         $template_errstr = 'template not defined';
 
-    } elsif ( not length ref $template ) {    ##  single template param  ##
+    } elsif ( not length $ref_type ) {    ##  single template param  ##
         $truth_templates = split_truth_templates($template);
 
-    } elsif ( ref $template eq qw| CODE | ) {
-        $truth_templates = [$template];       ##  single CODE reference  ##
+    } elsif ( $ref_type eq qw| CODE | ) {
+        $truth_templates = [$template];    ##  single CODE reference  ##
 
-    } elsif ( ref $template eq qw| ARRAY | ) {
-        $truth_templates = $template;         ##  template ARRAY reference  ##
+    } elsif ( $ref_type eq qw| ARRAY | ) {
+        $truth_templates = $template;      ##  template ARRAY reference  ##
+
+    } elsif ( rindex( $ref_type, qw| Regexp | ) != -1 ) {
+        $truth_templates = [$template];    ##  regex param [ single ]  ##
 
     } else {
-        $template_valid = 0;                  ##  false  ##
+        $template_valid = 0;               ##  false  ##
         $template_errstr
             = sprintf 'template has unsuppored reference type %s',
-            ref $template;
+            $ref_type;
     }
 
     if ( not $template_valid ) {
         return ( $template_valid, $template_errstr ) if wantarray;
-        return $template_valid;               ##  false  ##
+        return $template_valid;            ##  false  ##
     }
 
     foreach my $template ( $truth_templates->@* ) {
@@ -248,12 +252,13 @@ sub is_valid_template {
             $template_valid  = 0;                        ##  false  ##
             $template_errstr = 'template not defined';
         } elsif ($template_valid) {
+            my $ref_type = ref $template;
 
             ##  CODE ref template  ##
-            next if ref $template eq qw| CODE |;
+            next if $ref_type eq qw| CODE |;
 
             ##  compiled regular expression template  ##
-            next if rindex( ref $template, qw| Regexp | ) != -1;
+            next if rindex( $ref_type, qw| Regexp | ) != -1;
 
             ##  sprintf template [ contains %s ]  ##
             my @match_count = $template =~ m|(*nlb:\%)%s|sg;
@@ -380,8 +385,8 @@ sub TEMPLATE_exclusive_type {
 
 return 5;  ###################################################################
 
-#,,..,.,.,,..,,,,,,..,,,.,...,,..,,,,,.,,,...,..,,...,...,.,.,,.,,,.,,.,,,.,.,
-#XYSP3XWFKJN4KMQFUQVXSCJ7J5DKYTMXM7Q6AMVV5G2UO5SCIG6UD36Q3NMAKAOTKEKA5XHASTRI2
-#\\\|4RIJ5AQB2KEJ6YJ4O3KMWEFJ54B2EFSIQSSITO7UZ6EHGVDW74B \ / AMOS7 \ YOURUM ::
-#\[7]GOFKH7RWDK6XNBVKMTNDCONLNPNZ5QN6R5U3LT6VLRUHIQBKOSCA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,..,,.,,,.,.,,.,,,,.,.,.,.,,,..,,...,...,,.,,,,,,,.,,,,.,,,.,
+#4VPPWAW6J7AWU34AVSXJGZL5IXJ5NBUCFQ72DTYFBVNKIHL7FMP7ZLKJQRNP6DC75Y2NP4CUGOXNG
+#\\\|ZPV76ILIXM4RJESUVFNCUMIVSPXRA5JKVXQGLUPCWZ6XXIG62VE \ / AMOS7 \ YOURUM ::
+#\[7]HEW7NFUEU7QKL666U76YP243PN62AXCFWMUWEMHTUDB47PWDT2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

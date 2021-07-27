@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = base.perlmod.name_chksum
+
+my $module_name = shift // '';
+
+my $name_chksum_index      = <base.perlmod.modname_chksum_index> //= 0;
+my $modname_template       = sprintf qw| %06d:%%s |, $name_chksum_index;
+my $chksum_exclus_template = qr|^(*nla:V7)|;    ##  exclude index format  ##
+
+if ( not length $module_name ) {
+    warn 'expected module filename [ .pm rel path ] <{C1}>';
+    return undef;
+}
+
+if ( $module_name !~ m,\.(pm|pl)$, ) {    ##  not .pm format yet  ##
+    <[base.perlmod.convert.name_to_pm]>->($ARG);
+}
+if ( index( $module_name, qw| / |, 0 ) == 0 ) {    ##  had absolute path  ##
+    $module_name = <[base.perlmod.strip_INC_path]>->($module_name);
+}
+
+return scalar <[chk-sum.amos.truth_template_chksum]>->(
+    $chksum_exclus_template, sprintf $modname_template, $module_name
+);
+
+#,,,.,..,,...,,..,,.,,.,.,.,,,...,,,.,,..,.,.,..,,...,...,,,.,.,,,,,,,.,,,.,.,
+#4LHFS6ALNAUY6MGVSQIH7PQXRAEZFK7EN2UN7F7OO52ZMWRE4ESL2BSGF3RVD6ZHW5TISGITMGZFA
+#\\\|YHISBMIVGLGSW6PAZJFTDJTRJHRTSKIZIUDNRCCTYYOVSRQI3IM \ / AMOS7 \ YOURUM ::
+#\[7]VVLXNC4FWLFACRXYHBMST6OB3XS5TYUWRVM3CWX42LSHDTLB7SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
