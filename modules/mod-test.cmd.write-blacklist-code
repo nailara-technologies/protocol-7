@@ -1,9 +1,120 @@
 ## >:] ##
 
 # name  = mod-test.cmd.write-blacklist-code
+# param = [inplace]
 # descr = write blacklist subroutine, return path
 
-my $code_path = <[mod-test.write_out_blacklist_pcode]>;
+my $write_in_p7_dir = defined $call->{'args'}
+    and $call->{'args'} eq qw|  inplace | ? 5 : 0;
+
+my $code_path;    ##  final absolute path  ##
+
+if ( not $write_in_p7_dir ) {    ##  write to zenka work dir  ##
+    $code_path = <[mod-test.write_out_blacklist_pcode]>;
+
+} else {
+    ##  write directly over loaded source code file path [ when allowed ]  ##
+
+    my $code_file_name = [ keys <[mod-test.blacklist_perlcode]>->%* ]->[0];
+
+    if ( $code_file_name =~ m,(\.\.|/), ) {
+        <[base.s_warn]>->(
+            'blacklist code filename is not relative [ %s ] <{C1}>',
+            $code_file_name
+        );
+        return undef;
+    }
+
+    my $p7_file_path = catfile( <system.code_path>, $code_file_name );
+
+    if ( not -d <system.code_path> ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'cannot find [ modules ] directory'
+        };
+    } elsif ( not -r <system.code_path> ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no read permissions [ modules ] directory'
+        };
+    } elsif ( -e $p7_file_path and not -w $p7_file_path ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'cannot overwrite code file [ no permissions ]'
+        };
+    } elsif ( not -e $p7_file_path and not -w <system.code_path> ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'cannot write to modules directory [ permissions ]'
+        };
+    } elsif ( -e $p7_file_path and not -r $p7_file_path ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'cannot read present code file [ no permissions ]'
+        };
+    }
+    my $zenka_output_directory = <mod-test.path.output_dir> // '';
+    $zenka_output_directory =~ s|/+$||;
+    my $backup_path;
+    while ( not defined $backup_path or -e $backup_path or -l $backup_path ) {
+        my $current_network_time = <[base.ntime.b32]>;
+        $backup_path = sprintf qw| %s/%s.backup.%s |,
+            $zenka_output_directory, $code_file_name, $current_network_time;
+    }
+    if (   not File::Copy::syscopy( $p7_file_path, $backup_path )
+        or not -f $backup_path ) {
+        <[base.s_warn]>->(
+            'cannot create blacklist code file'
+                . ' backup to zenka work dir [ %s ]',
+            <[base.str.os_err]>
+        );
+        <[base.logs]>->( ':. intended target path : %s .,', $backup_path );
+
+        return {
+            'mode' => qw| false |,
+            'data' => 'cannot create backup file [ write aborted ]'
+        };
+    }
+
+    $code_path = <[mod-test.write_out_blacklist_pcode]>;
+
+    if ( -e $p7_file_path ) {    ##  code file exists, overwriting  ##
+        if (<[file.file_chksums_are_identical]>->(
+                $code_path, $p7_file_path
+            )
+            ) {                  ##  aborting, no changes to file  ##
+            unlink($code_path)
+                or <[base.s_warn]>->(
+                'unlink %s : %s',
+                $code_path, <[base.str.os_err]>
+                );
+            return {
+                'mode' => qw| false |,
+                'data' => 'blacklist code file is current [ write aborted ]'
+            };
+        }
+
+        <[base.logs]>->( 1, "created backup file '%s'",      $backup_path );
+        <[base.logs]>->( 1, ':. replacing code file %s ..,', $p7_file_path );
+
+    } else {    ##  does not exist yet, creating  ##
+        <[base.logs]>->( 1, ': creating code file %s ..,', $p7_file_path );
+    }
+
+    ##  moving file from zenka work dir over file in source code directory  ##
+
+    if ( defined $code_path and -f $code_path and -r $code_path ) {
+        if ( not File::Copy::move( $code_path, $p7_file_path ) ) {
+            <[base.s_warn]>->(
+                'cannot move to blacklist code file [ %s ]',
+                <[base.str.os_err]>
+            );
+            undef $code_path;    ##  reports error  ##
+        } else {
+            $code_path = $p7_file_path;    ##  return overwritten path  ##
+        }
+    }
+}
 
 if ( not defined $code_path ) {
     return {
@@ -17,8 +128,8 @@ if ( not defined $code_path ) {
     };
 }
 
-#,,,.,,.,,...,,,,,.,,,.,.,,,.,,.,,,,,,,,.,...,..,,...,...,..,,...,,,,,.,.,.,,,
-#6PITNZVGY2UXAAMKIM62UXM63XYUCJPZMJJBFKIRDRTYK7324PFKX37QOCDZIZFWAHXBSG2UA2MUW
-#\\\|E3G3FMNFMR7QBCON7OR4KJLEIHPCKYKDGUGN4VW6KCYKCTLQE4S \ / AMOS7 \ YOURUM ::
-#\[7]XLKKBBAECHQYGN5QEWPL4NYSTSRF62UIINNN4IUBIO3WVYGFAQBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,.,,,,..,...,,,.,..,,,,,,..,,..,,...,..,,,,,,,,.,,.,,,,.,,..,
+#NXXH2EWIM225NKBFFI3WWYL5CXZJ7A5TVX3IULRQY6OXADCZ5KITVUUYEPKVWNKHY6ZSGIZIYVHJW
+#\\\|VA3YJMSFGFHLQEDMYEL3UH4AKEY4EFPDKJOA2X544ED6SOIIXTW \ / AMOS7 \ YOURUM ::
+#\[7]OHVDI2RQRAG5WRIBX37XN2OIOMFQSCLW4SS55KW4EXHTE4KNJUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
