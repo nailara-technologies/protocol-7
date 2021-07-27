@@ -3,15 +3,20 @@
 # name  = base.perlmod.get_loaded_INC_names
 
 my @loaded_mods = map {
-    ( defined $INC{$ARG} and index( $INC{$ARG}, qw| / |, 0 ) == 0 )
-        ? <[base.perlmod.strip_INC_path]>->( $INC{$ARG} )
-        : $ARG
-} <[base.sort]>->( \%INC );
+    ( not defined $INC{$ARG} or $INC{$ARG} !~ m|$ARG$| )
+        ? $ARG
+        : $INC{$ARG}
+} keys %INC;
 
-return @loaded_mods;
+foreach my $module (@loaded_mods) {
+    next if index( $module, qw| / |, 0 ) != 0;
+    $module = <[base.perlmod.strip_INC_path]>->($module);
+}
 
-#,,,,,,,.,..,,...,,,.,.,.,,,,,,,,,.,,,..,,..,,..,,...,..,,,.,,.,,,,,,,...,..,,
-#4U2QSMZWNFPVQMNY3MHNBL6UAESCYHKKBYBXXXXV5WZ3PIGX6SERSWBQTZMJTWW2CI7Y2R6EUQH2W
-#\\\|IOVOLHPZZ6QNLCY33UBMRATMBWVQST5VBUNN4SZQ5RZAT2A35OD \ / AMOS7 \ YOURUM ::
-#\[7]3GEOFHEQ5GX7WRWHY6IXS73RUYFU37GSQ7GH6JYVGOETTGVZMYDA 7  DATA SIGNATURE ::
+return <[base.sort]>->(@loaded_mods);
+
+#,,..,,,.,,.,,,,.,,.,,,,.,.,,,.,.,,.,,,,.,.,,,..,,...,...,.,.,..,,.,.,.,,,.,,,
+#HHU2PKDBVQQEMEZIEELV2OVEQ7M7YJUQYV3ATYNCYZCBRIVVBY2ARBSXS7ATJJTTDJYB6RHRBRZFG
+#\\\|5PSQCNQYYEQ7QGOYXVOIVHP6N6CGTYNHF5DLK6VZLVUC73OGL65 \ / AMOS7 \ YOURUM ::
+#\[7]PCOSYWGWZIDIGAJ2MVPOE232SWYPMXA35642AGTYTOVNUOOFAQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,13 +41,8 @@ if ( $test_run_console_verbosity > <system.verbosity.console> ) {
 @modtest_list = <[base.reverse-sort]>->( keys %INC )
     if scalar @modtest_list == 0;
 
-my @sorted_paths = <[base.reverse-sort]>->(
-    uniq map {
-        <[base.perlmod.strip_INC_path]>
-            ->( $INC{$ARG} !~ m|$ARG| ? $ARG : $INC{$ARG} )
-        } @modtest_list
-
-);
+my @sorted_paths
+    = <[base.reverse-sort]>->(<[base.perlmod.get_loaded_INC_names]>);
 
 return 0 if @sorted_paths == 0;
 
@@ -60,6 +55,7 @@ foreach my $module_pm_path_rel (@sorted_paths) {
             ':: skipping : %s : blacklisted ::',
             $module_pm_path_rel
         );
+        <[mod-test.update_blacklist_aref]>->($module_pm_path_rel);
         next;
 
     } elsif ( $callbacks->{'check'}->( qw| complete |, $module_pm_path_rel ) )
@@ -117,8 +113,8 @@ return 5;    ## true \ success ##
 
 ## return  \@warnings_collected;
 
-#,,,.,..,,..,,.,,,...,.,.,,,,,.,,,..,,,.,,,.,,..,,...,...,,..,.,.,,,,,,,.,,..,
-#RO2RL5IW34HWDXH554KK3PWST4TXFCNE5CUXBJBU6R6BOL6UH42T6HUXCLANP3FUECBIQ6AI4BO4E
-#\\\|ABR5EMI27LYDTTULWHP4ODDRVJVI4KCIIB3QGTSZZRTXVYXPOY5 \ / AMOS7 \ YOURUM ::
-#\[7]2KQ7XH6GJSCHJ77I2YCIVJ3Y54YFQQ6BN3ALMFLG5DV56O5EWYBA 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,,..,..,,.,,,,.,,,.,,,,.,,.,,..,,...,...,.,,,...,..,,..,,,,.,
+#OP56NBIYOWLCYBF73ESJZTI2JWZL5GJ5NDFTQVZU5LWYBFQVULH46URVXMQUDVHVNZS4R7CMRA4IS
+#\\\|3MGHZDAEZLWOHFRW7EKBHFQFZIXNBZ7WADVMNLZGRIKMNVOQG7W \ / AMOS7 \ YOURUM ::
+#\[7]EM3WYHAJNPOR6I4SF4QNKFG3UQ2RQU3RHAMYR7NV2IFVIAJXVEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
