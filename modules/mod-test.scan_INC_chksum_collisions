@@ -1,0 +1,76 @@
+## >:] ##
+
+# name  = mod-test.scan_INC_chksum_collisions
+# descr = read @INC paths and check for name \ checksum collisions
+
+my $log_collisions    = 0;
+my $chksums_to_stdout = 0;
+
+<[base.log]>->( 1, 'testing for module name checksum collisions..,' );
+
+my $time_start = <[base.time]>->(5);
+
+my %modname_sums;
+
+my $entries           = 0;
+my $collision_counter = 0;
+foreach my $module_name (
+    <[base.reverse-sort]>->( scalar <[base.perlmods.INC_path_pms]> ) ) {
+
+    my $module_chksum = <[chk-sum.amos]>->($module_name);
+
+    if ( exists $modname_sums{$module_chksum} ) {
+        ++$collision_counter;
+        if ($log_collisions) {
+            my $last_element = $modname_sums{$module_chksum}->$#*;
+            <[base.logs]>->(
+                1,
+                '< collision > %24s <--> %s',
+                $modname_sums{$module_chksum}->[$last_element], $module_name
+            );
+            push $modname_sums{$module_chksum}->@*, $module_name;
+            <[base.logs]>
+                ->( 1, ':. collided chksum : %s .:', $module_chksum );
+        }
+    } elsif ($chksums_to_stdout) {
+        say '< chksum > ', $module_chksum, ' ', $module_name;
+    }
+    $modname_sums{$module_chksum} //= [];
+    push $modname_sums{$module_chksum}->@*, $module_name;
+
+    <[event.once]> if ++$entries % 113 == 0;
+}
+
+my $test_time_stop = <[base.time]>->(5);
+
+<[base.logs]>->(
+    $collision_counter ? 1 : 2,
+    'done, collisions : %d',
+    $collision_counter
+);
+
+<[base.logs]>->(
+    ':. checked %d entries in %.1f seconds..,',
+    $entries, $test_time_stop - $time_start
+);
+
+<[base.logs]>->(
+    2,
+    ':  :. %.1f checksums per second.',
+    $entries / ( $test_time_stop - $time_start )
+);
+
+foreach my $module_chksum ( keys %modname_sums ) {
+    delete $modname_sums{$module_chksum}    ##  remove 1 element chksums  ##
+        if $modname_sums{$module_chksum}->$#* == 0;
+}
+
+return ( $collision_counter, $entries, \%modname_sums ) if wantarray;
+
+return $collision_counter;
+
+#,,.,,,.,,,.,,,.,,,.,,,,,,..,,.,.,,.,,,.,,,,.,.,.,...,...,,.,,.,,,,.,,,,.,,,.,
+#Q6WCKA3LBBKLRUZSCIOQQ3HURHAWGFZRK3OUYNQOKNK3UO54TY6ZDUPOZSOMI76F4OTGKNKD633IG
+#\\\|3BIVUUS76Q7GWTJXMLDFLHZI6BBAL7SV2T74Q5VXPE4FO7ELBZP \ / AMOS7 \ YOURUM ::
+#\[7]RBCIQVLB3LVIJBUXKPK746RMNEH4ZFC3CZQ7DGDAKCDALMRLWCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
