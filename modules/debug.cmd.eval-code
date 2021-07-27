@@ -84,20 +84,28 @@ if ( length $eval_result and index( $eval_result, "\n", 0 ) == -1 ) {
         };
     }
 } elsif ( not $timed ) {
+
+    ##  amend linefeed[s]  ##
+    $eval_result .= "\n\n" if length $eval_result and $eval_result !~ m|\n$|;
+
     return {
         'mode' => qw| size |,
         'data' => $eval_result
     };
 } else {
+
+    ##  amend linefeed[s]  ##
+    $eval_result .= "\n\n" if length $eval_result and $eval_result !~ m|\n$|;
+
     my $durationstr = sprintf( "\n.: duration : %s :.\n\n", $run_duration );
     return {
         'mode' => qw| size |,
-        'data' => join( '', $durationstr, $eval_result, "\n" )
+        'data' => join( '', $durationstr, $eval_result )
     };
 }
 
-#,,,.,,,,,.,.,,,.,,.,,.,,,..,,,,.,,,,,,.,,,,.,..,,...,...,.,,,,..,.,.,,,,,,,,,
-#AOXHTWSPRH7C2ZMLI2YABISQEWJJ4YB5Y32TZHJ47MPORBRPS7IWBFDB5S5VUEV3YOT2SP4C3CGJY
-#\\\|OBPW7TPPXO2PYXI7DL2T5VNG3LXK7BJPBLY2IALFXAJ4VZT3Q3S \ / AMOS7 \ YOURUM ::
-#\[7]RQDBH2G7YEV7Q3NMSSDZGNYFNYAC3OCXP73QU67BZ2C7LP4QFQDY 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,,.,,.,,,,..,.,,,,.,,,.,,,,,,..,,...,.,.,,,.,...,,.,,,,.,.,.,
+#ROQN7NB4D3RZKGDZPX4RJKMRYOSUVOPWKMST33C5TARF7ALZS46PMV4GOJMUKB3IOOPVSS3WTM3E6
+#\\\|BG52WPNXTDFR2O4VZJ4XKO3KVZRYO3TDO7XEJ6TGJH7N755FPHD \ / AMOS7 \ YOURUM ::
+#\[7]FRYJJTZ6HKAKTBOY3Q7HKVPA2VC4X5LNC222UPXHJ7WZAGNZOYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

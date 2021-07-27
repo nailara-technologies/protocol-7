@@ -69,12 +69,19 @@ map { ( $ARG = Dumper($ARG) . "\n" ) =~ s|^\$VAR1 =|| if length ref $ARG }
 my $rep_mode = qw| true |;
 
 foreach my $sub_output_str (@sub_output) {
-    $sub_output_str =~ s|\n$|| if $sub_output_str =~ m|\n| == 1;
+    $sub_output_str =~ s|\n$|| if $sub_output_str =~ m|\n|s == 1;
     $sub_output_str =~ s|^ {2,}([\]}]);\n| $1\n|smg;
     $rep_mode = qw| size | if $sub_output_str =~ m|\n|;
 }
 
-$rep_mode = qw| size | if $timed or not length join '', @sub_output;
+my $out_size = length join '', @sub_output;
+
+$rep_mode = qw| size | if $timed or not $out_size;
+
+$sub_output[$#sub_output] .= "\n"
+    if $rep_mode eq qw| size |
+    and $out_size
+    and $sub_output[$#sub_output] !~ m|\n$|;
 
 return {
     'mode' => $rep_mode,
@@ -86,8 +93,8 @@ return {
         . scalar( $timed ? "\n\n" : '' )
 };
 
-#,,..,..,,,..,.,,,...,,..,.,,,,,,,,,.,.,.,...,..,,...,..,,..,,,,,,,.,,,..,,,,,
-#GJZDIP65KCWXK5DFCNZBRHAKKQGWGHBAY3VF2LS3OHMT23TQGEUQELWS6UUVWNF2PE5XSNFOKYXB6
-#\\\|Y3KLIWTYY7W66KOUPM7QZ7STBC7HGBKLQCT62IYYYMG2IFQBWBA \ / AMOS7 \ YOURUM ::
-#\[7]VZN5JN7AMYZBYIWGIVNKEAUL5SBMOR2XCQHXMGM7MYYCCNXKHWDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,.,,,,,,,,,.,..,,,.,,,..,.,,,..,,...,...,.,.,,,,,..,,.,,,,.,,
+#RIJRDXJOR2ZMUUXGV7A5LKBQB2D74LG6RO654BUFV3J2JLSFGU5Q6HUFD2OXFBTWTOA63TPLTARWI
+#\\\|HZJVPWOBT4LQPKXW3PKTPTA7P5XJ4AOUBEPMFY4KB4BOBUKEUX4 \ / AMOS7 \ YOURUM ::
+#\[7]HSPHX4ZUMOULYISJY7QLSMGFMFDAAOS2LGYATGI2IIGERQQV66AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
