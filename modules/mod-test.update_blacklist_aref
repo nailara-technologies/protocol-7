@@ -3,33 +3,61 @@
 # name  = mod-test.update_blacklist_aref
 # descr = removing duplicates from module reload blacklist array reference
 
-my $add_modules = shift;
+my $add_modules       = shift;
+my $name_chksum_index = <base.perlmod.modname_chksum_index> //= 0;
 
 $add_modules = [$add_modules]
     if defined $add_modules and not length ref $add_modules;
 
+my $b32_re  = <regex.base.base_32>;
+my $reftype = ref $add_modules;
+
+if ( length $reftype and $reftype ne qw| ARRAY | ) {
+    <[base.s_warn]>->( 'unsupported reference type %s', ref $add_modules );
+    return undef;
+}
+
 <mod-test.list.blacklisted_modules> //= [];
 
-<mod-test.list.blacklisted_modules> = [
-    <[base.sort]>->(
-        uniq map { <[base.perlmod.convert.name_to_pm]>->($ARG) }
-            <[base.sort]>->(
-            <mod-test.list.blacklisted_modules>, $add_modules
-            )
-    )
-];
+my @mod_name_chksums
+    = uniq grep { index( $ARG, qw| V7 |, 0 ) != 0 } <[base.sort]>->(
+    <mod-test.list.blacklisted_modules>,
+    map {
+        ( $ARG =~ m|[/\.]| or $ARG !~ m|^$b32_re{7}$| )
+            ? <[base.perlmod.name_chksum]>->($ARG)
+            : $ARG
+    } $add_modules->@*
+    );
+
+my $chksum_index_BASE32
+    = <[base.perlmods.blacklist_collision_index]>->($name_chksum_index);
+
+my $previous_count = scalar <mod-test.list.blacklisted_modules>->@*;
+
+<mod-test.list.blacklisted_modules>
+    = [ $chksum_index_BASE32, @mod_name_chksums ];
+
+my $delta_count
+    = scalar <mod-test.list.blacklisted_modules>->@* - $previous_count;
+
+<[base.logs]>->(
+    1, 'imported %d entries into zenka mod reload blacklist..,', $delta_count
+) if $delta_count;
+
+##  updating zenka reload blacklist ARRAY ref  ##
+<base.perlmod.reload_blacklist> = <mod-test.list.blacklisted_modules>;
 
 if (wantarray) {    ##  initializing hashes [ list context ]  ##
 
-    return map { $ARG => 5 } <mod-test.list.blacklisted_modules>->@*;
+    return map { $ARG => 5 } @mod_name_chksums;
 
 } else {    ##  returning ARRAY reference in scalar context  ##
 
     return <mod-test.list.blacklisted_modules>;
 }
 
-#,,,,,..,,,,.,,,,,,,.,,,.,,.,,,,.,...,.,,,,..,..,,...,...,.,,,,,,,.,,,.,,,.,.,
-#AHRV5ZMV5XVSS5DYG27UR2TNXLTHUUR4BHTGPNNKTKRCG7ZVYYU2QJ4ZYHWV54MY7VJBFFWHKALDW
-#\\\|7UYHJZLK7SDQUU7GJM322UGABLBFEEQSI56I7D5L5BJ66YFPQ2I \ / AMOS7 \ YOURUM ::
-#\[7]GT4NWRD47MKP43TL5PT5Z5DPSETRRFP6E27CDXO5AZ5TBT6HP4CA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,...,...,,..,,,.,.,,,...,,,.,..,,...,...,..,,,,.,,,.,,..,.,.,
+#Z6HP5ZKZLZ2LY7FYTNDHQ77HYSIDBKPKDLVOJJGVCVELUMRJ75VJLV6KPMHJZDMOVMFZZAHOMU2UG
+#\\\|UIOLSK2JO4Q5T2LTUGEIB45FSBMRS5JLQOLK36DDT5HS2446B6Q \ / AMOS7 \ YOURUM ::
+#\[7]P7KRRVJU7YFM5GPO3TS7USRI6GCIQ6FNOP3C7RIA3QHQWHG5GYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
