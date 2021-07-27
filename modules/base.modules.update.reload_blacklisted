@@ -13,16 +13,14 @@ $module_name = <[base.perlmod.convert.name_to_pm]>->($module_name);
 $module_name = <[base.perlmod.strip_INC_path]>
     if index( $module_name, qw| / |, 0 ) == 0;
 
-<[base.modules.update.chksum_blacklist]>;    ## remove later ##  [ LLL ]
-
 my %mod_blacklist = map { $ARG => 5 } <base.perlmod.reload_blacklist>->@*;
 
 my $module_name_chksum = <[chk-sum.amos]>->( \$module_name );
 
 return exists $mod_blacklist{$module_name_chksum} ? 5 : 0;    ## true if so ##
 
-#,,,,,.,,,..,,,.,,,,,,,.,,,,.,..,,.,,,.,,,,.,,..,,...,...,.,,,.,.,..,,..,,.,.,
-#JE2M3RWRJ622VC5YGQLZRYON3KWKBEOSFFE6AHLS47646AVVF5SYPIJKCYMFKFIAFLAB3MPPRADYM
-#\\\|MKMYP2BR3XOLDBSOYAD7CSAFXEE4LTD2ZDD7H7HJHVTTUQHJXKW \ / AMOS7 \ YOURUM ::
-#\[7]DFCTSXPJCGFDF676YYU4YRVTVUVMBRIFO4RUR6ZEL5T3FTSAI4CI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,..,,,,,,,,,,..,,.,,,..,,,,,,..,,...,.,.,,,.,,,.,.,.,...,,,,,
+#RR7KMW7WFFHHPA2XG3V4YGIPAXU6K3A4WFDPXPL3DJRDINFGD7IP5P5MQZBGGENQDRQQK2QHQVWRW
+#\\\|SYFONGAZ4GN6RLH3O2WP4DF7A4CIP2VTHI24XAS46TCEYYSZE5Y \ / AMOS7 \ YOURUM ::
+#\[7]TS42WBFBISM45IPPF7SVUJ5UHO42B5RNVQLFDCZPCN4GAKWGM6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
