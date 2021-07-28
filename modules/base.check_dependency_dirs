@@ -50,7 +50,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
         my $dir_stat = File::stat::stat($dir_path);
 
         ## chmod ##
-        if ( $dir_stat->mode != $subdir_perms ) {
+        if (sprintf( qw| %#o |, $subdir_perms & 07777 ) ne
+            sprintf( qw| %#o |, $dir_stat->mode & 07777 ) ) {
             <[base.logs]>->(
                 2, "correcting permissions on subdir '%s'..,", $relpath
             );
@@ -91,8 +92,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,,.,,..,,,,,,.,,,.,,,,,,,..,,,,,,,.,,,.,.,,,..,,...,..,,.,.,.,.,,,,,,.,,.,.,
-#XKLYGBJLTNE7G6AM3T6RTAHCOWJ2AM2LU5A72Z6JVYTXZBJAKJP75WHKXTODELVPANYGDDAX653IE
-#\\\|4BNPATCGGWFFMDIIPYYOTBXGDITOZ27YHMXCV5XWGJBDAYPHBSZ \ / AMOS7 \ YOURUM ::
-#\[7]MFTNQKQ2OXELC7NOZ7TEDZ3GJ2PTN4LHHKR7S7V2UCD7G454G4CI 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,,.,,,.,,,,.,,,,,,,.,,,,,..,,..,,...,...,...,.,,,..,,,,.,,..,
+#7HOP4Z3JPJJ72MB2YVTQDU2IQ2KIJAO6C7IELU7VSUC57CSRGAGDQSAHBSRJVDFMK5K6GVLQFOMMC
+#\\\|3ITTUO5LOW4LLOTWOTQT5UXGXK3QMSWUHMSZFNOKTJBKJBIWULK \ / AMOS7 \ YOURUM ::
+#\[7]CWNAVIIIGOPM3VFDK3Y7FPH4LKXO4NMA2DJTDHF5RFRPRJUQXGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
