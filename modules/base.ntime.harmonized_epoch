@@ -1,0 +1,37 @@
+## >:] ##
+
+# name  = base.ntime.harmonized_epoch
+# descr = encoded network epoch value [ in harmonized syntax ]
+
+my $epoch_num = shift;
+
+if ( defined $epoch_num and index( $epoch_num, qw| . |, 0 ) != -1 ) {
+    warn 'epoch parameter must be integer value [ for encoding ] <{C1}>';
+    return undef;
+} elsif ( defined $epoch_num
+    and $epoch_num =~ m|^\d+$|
+    and $epoch_num > 385279 ) {
+    warn 'epoch parameter out of range [ <= 385279 ] <{C1}>';
+    return undef;
+}
+
+my $epoch_harmoized;
+my $epoch_encoded = <[base.ntime.epoch_timestamp]>->($epoch_num);
+
+for my $interval ( 0 .. 12 ) {
+
+    my $bits = join '', reverse split( '', sprintf( qw| %04B |, $interval ) );
+    $bits =~ s|1|;|g;
+    $bits =~ s|0|:|g;
+
+    $epoch_harmoized = sprintf qw| %s%s |, $epoch_encoded, $bits;
+    last if AMOS7::Assert::Truth::is_true( $epoch_harmoized, 0, 1 );
+}
+
+return sprintf qw| <%s> |, $epoch_harmoized;
+
+#,,,,,.,.,,,,,.,,,.,.,.,.,..,,,..,,..,...,..,,..,,...,...,.,,,...,..,,...,,..,
+#RD6CQIDXNMSXZA6UKXSNJIRFAZE6HKWR3BQY6D2LPMRT2UWQMZCGHMVHOQWW3FXBTLDSEOOPI2WZ2
+#\\\|CBFAI5AG3CJQWVSUMJQ25Z6QKBUWVPSAPG7Z235PORR2Y4MXQ3O \ / AMOS7 \ YOURUM ::
+#\[7]3PYRZO2HE4SOSTR7F6Q72SWZWPEL2T4VVNPFUIOM2SXLGBLQGSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

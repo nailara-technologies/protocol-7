@@ -1,0 +1,55 @@
+## >:] ##
+
+# name  = base.cmd.epoch-num
+# param = [prev|curr.|next] [n]
+# descr = return current [\requested] V7 epoch time
+
+( my $req_param, my $e_count_param ) = split m| +|, $call->{'args'};
+
+if ( defined $req_param and $req_param !~ m,^(prev|current|next)$, ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'param must be of either prev , current or next'
+    };
+} elsif ( defined $e_count_param and $e_count_param !~ m|^\d+$| ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'count param must be positive integer value'
+    };
+} elsif ( defined $e_count_param and $e_count_param > 512 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'count param exceeds limit of 512'
+    };
+} elsif ( $req_param eq qw| current | and defined $e_count_param ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no count parameter expected with 'current'"
+    };
+} elsif ( defined $e_count_param ) {
+    return {
+        'mode' => qw| size |,
+        'data' => join '',
+        map { sprintf "%s\n", $ARG }
+            <[base.ntime.epoch_dec]>->( $req_param, $e_count_param )
+    };
+} elsif ( defined $req_param ) {
+    return {
+        'mode' => qw| true |,
+        'data' => <[base.ntime.epoch_dec]>->($req_param)
+    };
+}
+
+my $epoch_num = <[base.ntime.epoch_dec]>;
+
+while ( not AMOS7::Assert::Truth::is_true( $epoch_num, 1, 0 ) ) {
+    $epoch_num = sprintf qw| %.13f |, $epoch_num + 0.0000000000001;
+}
+
+return { 'mode' => qw| true |, 'data' => $epoch_num };    ##   harmonized  ##
+
+#,,,.,...,..,,,,.,..,,..,,..,,,..,,,,,,.,,..,,.,.,...,...,.,.,,.,,...,...,.,,,
+#AC4WYXR6XJJNBVDGQB4KERQUTCRU2UXBEX3YZMNVVCPF5TIFBXLNLQA74Q6XR7AY7XZK2JXMZAAAI
+#\\\|RZZQKAI3XOWUDX7FSUWEBI4A6MFIEFWXMK7SHK7R6GOVI7323NX \ / AMOS7 \ YOURUM ::
+#\[7]KS75DRZYOSOUQCYPTAKOD5GAHIRT3SXZTYDAQV3IYTCOLI4A6GDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

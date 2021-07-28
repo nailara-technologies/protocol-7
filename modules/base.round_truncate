@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = base.round_truncate
+# descr = truncate round to specified precision [ omitting zero remainders ]
+
+my $value  = shift // '';
+my $digits = shift // '';
+
+if ( $value !~ m|^\d+(?:\.\d+)?$| ) {
+    warn 'expected floating point value input <{}>';
+    return undef;
+} elsif ( $digits !~ m|^\d+$| ) {
+    warn 'expected numerical digits parameter <{C1}>';
+    return undef;
+}
+
+my $p_pos  = index( $value, qw| . | );
+my $v_len  = length $value;
+my $fp_len = $v_len - $p_pos;
+
+return $value if $p_pos == -1 or $digits >= $fp_len;
+
+my $cut_len = $digits == 0 ? $p_pos : $p_pos + 1 + $digits;
+
+return substr( $value, 0, $cut_len );
+
+#,,.,,.,,,,..,.,.,.,,,..,,..,,,.,,.,,,.,,,.,,,..,,...,..,,,..,,,,,,,.,,.,,.,.,
+#TZ7GQNQKFC76HNGM2PGPNIPGOEDK6NIJFIH4NUCRDTZHZ4YI2EVHMLPRTEK3LIQY6EENLJBSA6OJY
+#\\\|WAUOOKK2SI5KIE5IXDFXPTZYNKG3AUXRRC65CJVEXKG2OWXGAZ3 \ / AMOS7 \ YOURUM ::
+#\[7]B62X6NCAEXUDYKUSDWZK7A5VQKFWXB6TD66I4QNLQE3JL5JNSQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

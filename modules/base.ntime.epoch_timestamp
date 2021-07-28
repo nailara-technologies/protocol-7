@@ -1,0 +1,66 @@
+## >:] ##
+
+# name  = base.ntime.epoch_timestamp
+# descr = encoded network epoch value [ integer precision ]
+
+my $current_epoch = shift // int(<[base.ntime.epoch_dec]>);
+state $b32_re //= <regex.base.base_32>;
+
+if ( not length $current_epoch ) {
+    warn 'expected epoch [ num or encoded ] parameter <{C1}>';
+    return undef;
+} elsif ( index( $current_epoch, qw| . |, 0 ) != -1 ) {
+    warn 'epoch parameter must be integer value [ for encoding ] <{C1}>';
+    return undef;
+} elsif ( $current_epoch =~ m|^\d+$| and $current_epoch > 385279 ) {
+    warn 'epoch parameter out of range [ <= 385279 ] <{C1}>';
+    return undef;
+
+##  harmonized value  ##
+} elsif ( $current_epoch =~ m|^<(V7$b32_re{5})[;:]{4}>$| ) {
+    $current_epoch = $LAST_PAREN_MATCH;
+}
+
+if ( $current_epoch =~ m|^\d{1,8}$| ) {
+
+    my $enc_numerical = 99999999 - $current_epoch;
+
+    return Crypt::Misc::encode_b32r( pack qw| w |, $enc_numerical );
+
+} elsif ( $current_epoch =~ m|^V7$b32_re{5}$| ) {
+
+    ##  RANGE : V7 ..
+    ##  99614720 .. 99999999  ==  0 .. 385279  ##
+    ##
+    if ( index( $current_epoch, qw| V7 |, 0 ) != 0 ) {
+        warn 'not a valid encoded V7 network time epoch <{C1}>';
+        return undef;
+    }
+
+    my $decoded = Crypt::Misc::decode_b32r($current_epoch);
+
+    if ( not defined $decoded ) {
+        warn 'input epoch encoding not valid [ BASE32 ] <{C1}>';
+        return undef;
+    } else {
+
+        my $numerical_decoded = eval { unpack qw| w |, $decoded };
+
+        if ( not defined $numerical_decoded ) {
+            warn 'input epoch encoding not valid [ comp integer ] <{C1}>';
+            return undef;
+        } else {
+
+            return sprintf qw| %07d |, 99999999 - $numerical_decoded;
+        }
+    }
+} else {
+    warn 'input epoch string not valid [ format not recognized ] <{C1}>';
+    return undef;
+}
+
+#,,,,,..,,,,.,.,,,..,,.,.,...,,..,,..,,..,,..,..,,...,..,,..,,...,.,.,.,.,..,,
+#TMIERQVY5RBQCBB763QEPMDA2GHYHHHJ5BJTHYX5B6ULCLAMMFXTUOCMDSV7TP26RYHV4ZV62ZEL6
+#\\\|4TN3VKDKU4SSESY6NF6TCDY7A54E7UWWTDT4YJAN6P3JAG3TMFN \ / AMOS7 \ YOURUM ::
+#\[7]UJWICEVO3EAKBIZ57DUXFPBGLVXSGX4H6H3QMG7XAJQRP5WTXOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## >:] ##
+
+# name  = base.cmd.epoch_v7
+# param = [epocn-num]
+# descr = encoded V7 epoch timestamp [current or req.]
+
+my $epoch_num = $call->{'args'};
+
+if ( defined $epoch_num and $epoch_num !~ m|^\d+$| ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'epoch parameter must be integer value [ for encoding ]'
+    };
+} elsif ( defined $epoch_num and $epoch_num > 385279 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'epoch parameter out of range [ <= 385279 ]'
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => <[base.ntime.harmonized_epoch]>->($epoch_num)
+};
+
+#,,.,,,..,,.,,.,.,,,.,,,,,,.,,,,.,,.,,,,.,.,,,..,,...,...,...,.,.,..,,.,,,,,.,
+#NBAVY2KOAILNAMU7U5XDHAHH7N5NZBSHWTYH4SOAL5ZELUJFJ35NL4ML6OGVA4SC5BOX3HNLLQMCY
+#\\\|RVWYZB5JCMEAW6HNJADMUZOGRKJUHAWJOSVUHMQFBX3NNMA5HFH \ / AMOS7 \ YOURUM ::
+#\[7]MQYDEV364WH27N3FOBGTTSDLDSBGQUG4KS7QJ2GAEQ5AKWUE3KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
