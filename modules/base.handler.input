@@ -54,7 +54,7 @@ if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
         if $ret_code !~ m|^\d+$|;
     ##
 
-    $session->{'complete'} = $ret_code == 1 ? 0 : 1;
+    $session->{'complete'} = $ret_code == 1 ? 0 : 5;    ## true ##
 
     ## return code 2 ## terminate session and close connection ##
     if (   $ret_code == 2
@@ -122,19 +122,21 @@ if (    $len < <size.buffer.input>
     }
 }
 
+##  would block SIZE reply  ##
+##
 if ( $session->{'read-mode'} eq qw| linewise | ) {
 
 ##  buffer contains complete line ?  ##
     $session->{'watcher'}->{'input_buffer'}->now
-        if $len
+        if $len > 0
         and $len != $start_len
         and not $session->{'shutdown'}
         and not $session->{'flush_shutdown'}
-        and index( $session->{'buffer'}->{'input'}, "\n" ) >= 0;
+        and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,..,,..,,..,,,,,..,,..,,,,.,,,.,,.,,.,,,...,..,,...,...,,,.,,..,.,.,,.,,,.,,
-#FDBDDWTSGCZP6MIERDN7ECKY42TVM3CDSJFXURJJWGHIDY4YNL4X54FIMUYLVMLMEJ7LWI3N7YJH2
-#\\\|RK6LXUSDCQ4HV5UB5GJGKSFQTV5QQ76H5AANJBDXYZYG4W6EDQC \ / AMOS7 \ YOURUM ::
-#\[7]TU3EB3YKTLTWLJINSUTVCFPBB7AOH4FHA435ZQCQPWEDVWS3AGAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,,.,,,.,,.,,,,,,,..,,.,,,,..,..,,...,..,,,,.,,..,.,.,..,,...,
+#MAMSOK6PKIVFACP23XNCYM47PMRNE6VWWZMVQJYADJGCYUPKGK3H55XMDIHLVDXPPDASWCBIN6XPS
+#\\\|RVHK3XLICDEZ22C7M4QSL4GLOX2ZS466CLMRWFJFXWS4PVQXHTE \ / AMOS7 \ YOURUM ::
+#\[7]FDNT4VROAMSNBIKM5JTPBXIPMTCIGTBD4VEP466MCQLCNYHYNEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

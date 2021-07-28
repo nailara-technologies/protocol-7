@@ -8,7 +8,7 @@
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
-<net.silent_ignore.cube>      //= 1;
+<net.silent_ignore.cube>      //= 5;    ## true ##
 <power.cfg.heartbeat_timeout> //= 1;    # seconds
 
 <power.cfg.devices> //= {};
@@ -23,11 +23,11 @@ if ( !-d $config_dir ) {
         or die "make_path : \l$OS_ERROR";
 }
 
-<[power.load_config]> if -f join( '/', $config_dir, <power.config_file> );
+<[power.load_config]> if -f catfile( $config_dir, <power.config_file> );
 
 <power.net_mac> //= Net::Libdnet::Arp->new;
 
-<power.pattern.gembird_mac> //= qr/^88:b6:27:/;
+<power.pattern.gembird_mac> //= qr|^88:b6:27:|;
 
 # LLL: add status timer for each device
 
@@ -48,8 +48,8 @@ if ( !-d $config_dir ) {
 
 0;
 
-#,,.,,..,,,,,,..,,..,,.,.,,,.,,,,,,.,,..,,.,,,..,,...,..,,..,,..,,..,,..,,,..,
-#EU5KL2SNTEYHKZCC7CLBE3GNVKXDRZUOLC2QRGV3NFGAXCX72JTVWQ5OMYB5F7D42PRVKCQ3CY6EG
-#\\\|MQRTJODUBBC3VAZJEURHF7JWUPBR2GV7A63UGGFYPDC54A5K6BD \ / AMOS7 \ YOURUM ::
-#\[7]QH7XROY3SHUR2GXWVJIN6OORTV5MBBQYPPGSIH6UJZGUURZPNKBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,,,.,.,,,...,,,.,,,.,,..,..,,..,,...,...,...,,,.,,.,,.,,,,.,,
+#C6R67JQEJDDLVAXH47GVPRC72TSUCXQ5MODVB67VSBFRC5BX6F7UDWR2YEGBPTL22VRFHAVBSYJIW
+#\\\|WDCK4YG2GYKHSL2QTJJKOTR2KY7GFFRQCBXCHJF5UHP4VMF2VJP \ / AMOS7 \ YOURUM ::
+#\[7]GBLJGSDYQMRKHANSNOWPYKIVLWVSBSCNJDPONECETFUEDKJAUMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
