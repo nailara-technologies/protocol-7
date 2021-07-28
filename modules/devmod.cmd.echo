@@ -1,0 +1,27 @@
+## >:] ##
+
+# name  = devmod.cmd.echo
+# descr = return the given parameter string
+# param = <usr_str>
+
+my $usr_sid = $$call{'session_id'};
+my $usr_str = $$call{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'you need to supply a string to return'
+    }
+    if !length( $usr_str // '' );
+
+$data{'session'}{$usr_sid}{'echo_str'}
+    = $usr_str;    # stored for devmod output
+
+<[base.log]>->( 1, "echo string : '$usr_str'" );
+
+return { 'mode' => qw| true |, 'data' => $usr_str }
+
+#,,..,..,,.,,,,..,..,,.,.,,..,...,...,.,,,,,,,..,,...,...,...,.,.,.,.,,..,.,,,
+#LWDXK32TN3MLJ6FK6LCNCILPICHTGBFRGQX5GZXUMLHSTVYWK6EH3FNWJWQBLW7A5HVQQMC74EWY2
+#\\\|6X3C6NYSBZ2LF5SQSGTPSOGPSHYR5EQILSNUWWKFY6NQDBIWHL7 \ / AMOS7 \ YOURUM ::
+#\[7]KEEFWMZCHQUSIWS4HOJFAILU2TMGITE7AILWMKDWEZT4WTANSSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

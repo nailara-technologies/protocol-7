@@ -19,7 +19,7 @@ if ( not length $unlink_tmp_path ) {
     return undef;
 }
 
-my $debug_loglevel = 2;    ##  report log level for debugging  ##
+my $devmod_loglevel = 2;    ##  report log level for devmod  ##
 
 my $number_files_cleaned = 0;
 
@@ -32,7 +32,7 @@ if ( defined <v7.tmp_paths>->{$unlink_tmp_path} ) {
         return $number_files_cleaned;    ##  symlink was not present  ##
     } else {
         <[base.logs]>->(
-            $debug_loglevel,   'unregistering : %s : %s',
+            $devmod_loglevel,  'unregistering : %s : %s',
             $symlink_path_abs, $unlink_tmp_path
         );
         if ( not unlink($symlink_path_abs) ) {
@@ -50,7 +50,7 @@ foreach my $symlink_path_abs (
     <[file.matching_path_linknames]>->( $temp_file_dir, $unlink_tmp_path ) ) {
 
     <[base.logs]>->(
-        $debug_loglevel,   'unregistering : %s : %s',
+        $devmod_loglevel,  'unregistering : %s : %s',
         $symlink_path_abs, $unlink_tmp_path
     );
     if ( not unlink($symlink_path_abs) ) {
@@ -76,8 +76,8 @@ if ($number_files_cleaned) { ##  success , cleaning up in-memory reference  ##
 
 return $number_files_cleaned;
 
-#,,,.,.,,,.,,,,.,,,,,,,,.,...,,.,,.,,,,..,...,..,,...,...,.,,,,.,,,,.,,,,,,,,,
-#W4UKPSV32KFWR2OVC6W5OEOD7QSVA2QZDCZZMJCEV4SBUNMXSAM2TXKX2CBOZVWPS2WXWFHENTKX2
-#\\\|I34OJQI5HX5DHO43YK6YQX4WPGOF6HHBENNSYGJC4A5M3224PGE \ / AMOS7 \ YOURUM ::
-#\[7]7TYHOB2V2ZFPSK3CLPMWBF52ORYMTUER3AY64EOYLLF7HBQYA2DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,,,.,.,.,,.,,,.,,.,,,,..,,..,..,,...,...,..,,...,,..,.,,,..,,
+#TYJCJRWPIRR4ANAD47C4NKFS5ANCHWWV7L5XC7ETDXA4E2TE47B5PYUCS6VPGLZUANNCMNFNIYLUE
+#\\\|A7RIW4FSUZKGR6KS6YDA7M4MAR6AEHCAIJVOQXF4UNZOTQIZQ6B \ / AMOS7 \ YOURUM ::
+#\[7]OSRL4QAPEFJ4427PB33YCYBKEI6UXDBFGY4DUYX7P6Q6TV3ZU2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

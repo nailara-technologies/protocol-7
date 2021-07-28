@@ -42,21 +42,21 @@ my $skip = (
 <ticker-gtk.slowdown.percent_target> = $target_percent
     if !$skip;    # SET new val.
 
-# debug section
+# devmod section
 $target_percent = <ticker-gtk.slowdown.percent_target>;
 my $delta_t   = sprintf( '%.2f', $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
 $delta_str    = '' if $delta_t == 0;
 $load_percent = sprintf( '%.2f', $load_percent );
-<ticker-gtk.debug.loglevel.autospeed> //= 2;
+<ticker-gtk.devmod.loglevel.autospeed> //= 2;
 <[base.log]>->(
-    <ticker-gtk.debug.loglevel.autospeed>,
+    <ticker-gtk.devmod.loglevel.autospeed>,
     "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
         . " >- [ SLW ${target_percent}% ]$delta_str"
 );
 
-#,,,,,...,.,.,,,.,,..,,..,,,,,,.,,,,.,,,,,,,,,..,,...,...,...,.,,,.,,,.,,,.,.,
-#VZ2RXTD2TW2MKFYIR2JUJUHXBMICSK5B3SSWCNT2EXEDQ2PRJVYDGKCFS7JGW5I7RZ3ZUQVCK7VZA
-#\\\|5CBZRGGD4AB5GL7RIPUIVRRSWRXFC7DCXP45G44FXUT57LE54CE \ / AMOS7 \ YOURUM ::
-#\[7]HH4VAI7YMYAF2CONODV4XTPWPBTBPNLLSL5LD4M6OVTWAVYWPADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,,,,,,,.,..,,,..,...,.,.,,,,,..,,...,..,,...,,,,,,,.,,.,,.,.,
+#IR5GFTDZG43KNHCSBOVXGREZK5AF7BB26GBYHOGNMI5ICUE7HNB6TBVLKWWXGFOXFMSH5HSW5DFLS
+#\\\|GTUAU6SS4TOMO4WVWZ7B7D3BBKGR4LGPHPKP7YCHZSTPIB7ACN3 \ / AMOS7 \ YOURUM ::
+#\[7]W6Z7BN7DEOZYOFXBGPM2H6PKANUOQ362Z42VI6R5TGNQNYK4LQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

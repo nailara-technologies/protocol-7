@@ -23,7 +23,7 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 ##
 our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-MGF4O4Y |;    ##  amos-chksum -VS  ##
 
-our $debug_output_to_console = 0;
+our $devmod_output_to_console = 0;
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -60,7 +60,7 @@ sub compile_inline_elf_to {
         Inline->bind(
             qw| C |           => $elf_code,
             qw| directory |   => $inline_directory,
-            qw| BUILD_NOISY | => $debug_output_to_console
+            qw| BUILD_NOISY | => $devmod_output_to_console
         );
         use warnings;    # <-- 'redefine' ?
     };
@@ -209,8 +209,8 @@ sub return_elf_c_sourcecode {
 
 return 1;  ###################################################################
 
-#,,,.,..,,,,,,,..,,.,,,.,,,..,,,.,..,,...,...,..,,...,...,.,.,,,.,,,,,,.,,,,,,
-#HIM5DBLMGQSDDEXAMXYXHNKINK72IMO7RICWLA2TI6HUEWUFGF4QUAD24PW7TSJGH7SGEVK6OX35O
-#\\\|OYCBP3DYWLWD4QA4YASM7QXMTMSUIHQIZ3IOS5AAPO6JGMCUPJS \ / AMOS7 \ YOURUM ::
-#\[7]LSK5AQYZ5FUN776GEJMSKD7CK7HKNQP3PY7A4YYLX2WZQNPHBKCQ 7  DATA SIGNATURE ::
+#,,..,,..,...,..,,..,,..,,,..,,.,,.,.,..,,..,,..,,...,...,..,,.,,,.,.,,,,,,,,,
+#EYD2N3WBUQTPNIEIAF45UVAMT64GAR7TYLPSNAUC65K45E6EKNT75PGXHAESKPO7JATVHSSH4OT4O
+#\\\|3DBWJ6VTCULXXL66YKQ7WQKXV77YDDW7CL22QMW4SFV3JB6S7IW \ / AMOS7 \ YOURUM ::
+#\[7]JRKYS7OQF7XV6CZF7TWYUTAPDTZBOMSBWWTTDQDDOX63UKBV5OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

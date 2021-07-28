@@ -14,7 +14,7 @@ $arg = qw| perl-mods | if $arg eq qw| p-mods |;   ## reloading perl modules ##
 
 my ( $success, $output ) = ( 0, '' );
 
-<base.debug.keep_on_reload>      //= 0; # <-- dbg. module persistence override
+<base.devmod.keep_on_reload>     //= 0; # <-- dbg. module persistence override
 <base.reload.success.clean-code> //= 5; # <-- delete $data{'code'} [ success ]
 
 my $s_str = ' ' x 5;
@@ -61,15 +61,15 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     <[base.logs]>->( '[%d] < reload source code >', $id );
 
-    if ( not <base.debug.keep_on_reload> and not exists $mod{'debug'} ) {
-        <[base.log]>->( 0, '[reload] .. removing debug module [mem] .,' )
-            if ref( $code{'debug.dump'} ) eq qw| CODE |;
-        <[base.purge_code]>->('debug');    # [LLL] create unload mechanism
-    } elsif (<base.debug.keep_on_reload>) {
-        <[base.log]>->( 0, '<< keeping debug module enabled >>' );
-        $mod{'debug'} = 1;
+    if ( not <base.devmod.keep_on_reload> and not exists $mod{'devmod'} ) {
+        <[base.log]>->( 0, '[reload] .. removing devmod module [mem] .,' )
+            if ref( $code{'devmod.dump'} ) eq qw| CODE |;
+        <[base.purge_code]>->('devmod');    # [LLL] create unload mechanism
+    } elsif (<base.devmod.keep_on_reload>) {
+        <[base.log]>->( 0, '<< keeping devmod module enabled >>' );
+        $mod{'devmod'} = 1;
     } else {
-        <[base.log]>->( 0, '<< debug module enabled in configuration >>' );
+        <[base.log]>->( 0, '<< devmod module enabled in configuration >>' );
     }
 
     map { delete $data{'base'}->{$ARG} } (qw|  cmd  console  overwritten  |);
@@ -172,8 +172,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,..,.,,,.,,,,,.,,,,,.,,,,.,,...,...,,.,,,,.,..,,...,...,...,..,,..,,.,.,,.,,
-#KHM6WIR4BJULHFYWP6IEPKYKYMAW6DXZA4QLOSG3SZ3IRWQLHWN4DMUDEUE4MPKK7BRIL6Q6FK3JS
-#\\\|KNDWRSTMDC4PD7EMSODS2XYHNQN57Q7V3SABSA6JQCKL5XKVXX6 \ / AMOS7 \ YOURUM ::
-#\[7]JPPJ7X5FBXE6KI2IPI5WGQT7UMIQPJPBFJYWGYYMU6UJFGTFLIDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,,,.,.,,,,,,,,.,,,,,,,.,,,.,,..,,...,...,,.,,..,,,,.,.,.,...,
+#FSN4UYSOZN6QMUNCF5GRKNFKO6JRJQE474B6X4DNJT3CV2UGKDWJTS2Z7S4GJSUYPHVGEN34JNBN4
+#\\\|P6DR4YTDRLKIPEZQUQ5IRQRTNJ5GKH7F57VTA7BKVR53WCMABUW \ / AMOS7 \ YOURUM ::
+#\[7]XYU2OP2ZUP6EK5PFOEPLYIAPK4YYSBVGC6C7EOTMVQR2MFEOHUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

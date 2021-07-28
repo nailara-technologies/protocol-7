@@ -1,0 +1,54 @@
+## >:] ##
+
+# name  = devmod.cmd.switch-user
+# param = <user>
+# descr = switch session to a different user
+
+my $params = shift;
+
+my $new_usr = $params->{'args'};
+my $id      = $params->{'session_id'};
+my $old_usr = $data{'session'}{$id}{'user'};
+
+return { 'mode' => qw| false |, 'data' => "you are '$new_usr' already!" }
+    if $new_usr eq $old_usr;
+
+if ( not defined $new_usr or !length($new_usr) ) {
+    $$reply{'data'} = 'no username specified';
+} elsif ( $new_usr =~ <regex.base.usr> ) {
+
+    return { 'mode' => qw| false |, 'data' => "no user '$new_usr' found!" }
+        if not defined <auth.setup.usr>->{$new_usr};
+
+    <[base.log]>->(
+        0,
+        "[$id] << ! >> switching session from user '$old_usr' to '$new_usr' << ! >>"
+    );
+
+    $data{'session'}{$id}{'user'} = $new_usr;
+
+    $data{'user'}{$new_usr}{'connected_since'} = <[base.time]>->(5);
+
+    $data{'user'}{$new_usr}{'session'}{$id}
+        = delete $data{'user'}{$old_usr}{'session'}{$id};
+
+    if ( !keys( %{ $data{'user'}{$old_usr}{'session'} } ) ) {
+        delete $data{'user'}{$old_usr}{'connected_since'};
+        $data{'user'}{$old_usr}{'last_seen'} = time();
+        delete $data{'user'}{$old_usr}{'session'};
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => "switched session to user '$new_usr'"
+    };
+
+} else {
+    return { 'mode' => qw| false |, 'data' => 'invalid user name syntax' };
+}
+
+#,,,,,,,,,,,.,.,.,,.,,,..,,.,,,..,,..,,,,,,..,..,,...,..,,,..,..,,,,.,,,,,,,,,
+#2YJ5ASD5MAY6K2LLDRFELWW237QVF66TVE2YDQXQW4KIPU2LU3HRSVYTHHMYQSWVCLTC2JCN7KWHE
+#\\\|I5I6CF567JYLJWODC63IY62XIQEIQVGEWGNUTPEQZFUNWBODMU2 \ / AMOS7 \ YOURUM ::
+#\[7]3KJXGZLPS4YBYSPXICDWCOSGO3QYGRV5TK7FS6ZOZHORMCYF26AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

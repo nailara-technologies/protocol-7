@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = devmod.cmd.deparse-code
+# param = <sub-name>
+# descr = returns deparsed $code-reference subroutine
+
+my $code_name = $$call{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'expected sub-routine name' }
+    if not defined $code_name;
+return { 'mode' => qw| false |, 'data' => 'sub-routine not found' }
+    if not defined $code{$code_name};
+
+my $sub_source_sref = <[base.sourcecode.in-mem.sub-source]>->($code_name);
+
+return { 'mode' => qw| size |, 'data' => $sub_source_sref->$* }
+
+#,,,,,.,.,..,,..,,..,,.,,,,..,,,,,,..,...,,,,,..,,...,...,,..,,,.,..,,.,,,,,,,
+#FIMYPSZ6WFYDZK6TNEMJJXF6MBRYDPY4RUBUTRBL6W4HAKSFSFBNCJXSQIT57RWI3YU3LETSJHHRW
+#\\\|7DNQE3QDAQEJ7NNBQWPXNGETFWOUPKK2MRBBE24I5I4OXSBTK3K \ / AMOS7 \ YOURUM ::
+#\[7]AHHEWBN7OEGKZZ4OPGC6ZZFIEKUDDPG2WGTNGGYSCSDLJDOAY6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

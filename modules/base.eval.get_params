@@ -4,7 +4,7 @@
 # descr = safely evaluate subroutine parameters
 
 ## print perl code result to stdout ##
-my $print_debug_to_console = 0;
+my $devmod_output_to_console = 0;
 
 my @params = @ARG;
 
@@ -26,7 +26,7 @@ my @result = map { $parse->reval($ARG) } @params;
 #
 ##
 
-if ($print_debug_to_console) {
+if ($devmod_output_to_console) {
     say "\n", '< eval result > ',
         join( ', ',
         ( map { defined $ARG ? sprintf "'%s'", $ARG : qw| UNDEF | } @result )
@@ -39,8 +39,8 @@ if ($print_debug_to_console) {
 return undef if length $EVAL_ERROR;
 return @result;    ## undef on eval errors ##
 
-#,,,.,..,,,..,,,,,,,.,.,.,,.,,.,,,,.,,,..,.,.,..,,...,...,.,.,.,,,.,.,,..,...,
-#RVXSHQU3CJPMTKV354HSOB2NZLDBC32KUY55AHY2TOEIBKQKXGDFYDF2DQUUNFETIWXGJXVEIIXAY
-#\\\|44RMTXDF3QEZB2K4R6XZLWFW5CJLXRLL6QBICXMEEI4YLNWXMWI \ / AMOS7 \ YOURUM ::
-#\[7]75AOKUTFFN4RKSCIE2KCOMVIDJDMYHXDDYGDQWNRSAZGNQ3MNKBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,,,.,,,,,.,,,,..,,,.,,..,.,.,..,,...,...,...,,,,,...,,.,,...,
+#CFKEUFSZXELDRGUWVWLW3UXMPAJU7JZ2BJ57WU7V4V3LTNPPD63ZJICDVILJUD6BQKOQDC7EPJABM
+#\\\|IX2WZZDMX6IQFPTWW52T2WTATLQ7N4Z7IC5O5C5KAU2XZPEACWZ \ / AMOS7 \ YOURUM ::
+#\[7]I7TE3USPZPKMFIMKKS3VIZHQA55YAWNY22FXICNXAFURY67LTCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

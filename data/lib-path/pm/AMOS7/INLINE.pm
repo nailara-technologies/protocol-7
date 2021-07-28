@@ -21,7 +21,7 @@ use Crypt::Misc qw| encode_b32r |;
 
 use AMOS7;                        ## error handling ##
 
-our $debug_output_to_console = 0; ##  display build warnings  ##
+our $devmod_output_to_console = 0; ##  display build warnings  ##
 
 ## known inline sourcecode modules ##
 use AMOS7::INLINE::src::BitConv;
@@ -191,7 +191,7 @@ sub compile_inline_source {
                 qw|  C  |         => $cleaned_source,
                 qw| name |        => $compilation_target,
                 qw|  directory  | => $custom_inline_dir,
-                qw| BUILD_NOISY | => $debug_output_to_console
+                qw| BUILD_NOISY | => $devmod_output_to_console
             );
         };
         ## keep compilation errors ##
@@ -333,8 +333,8 @@ sub encoded_bmw_chksum {
 
 return 1;  ###################################################################
 
-#,,.,,.,.,,..,,..,,..,,.,,.,.,,.,,.,.,,.,,,.,,..,,...,...,...,..,,,.,,...,.,.,
-#QFYSLSYL74NVPIA3E2W664ZTJL2ZXYWR6JOW3FUQG765BFFTG6JI2EXBCSJQPL62J4PVKQ6LM626G
-#\\\|S7SPNBTTKHAUJ2V6MHNMVVOKMALX4MO2IMOEMTU64SCTCTG4I3U \ / AMOS7 \ YOURUM ::
-#\[7]RVQHRKURHQQTHZF4TILH52FXHRSX7ARSGD2ZTWF7ESJ4VAQAKMCI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,...,..,,..,,.,.,...,.,.,.,.,..,,...,...,.,.,...,..,,.,.,...,
+#VKI3FVEPENWSWWRNZF7D4SIMEH2BOWK24MV527T554IDZ3LQGKS5XKJAOXXZIFB2LDVR5NWS5XPOU
+#\\\|QD7BORSPJKH3LQGVXMDA4G5LZGYWJBV5R2BZ2MZAZ4I4DB6I5QU \ / AMOS7 \ YOURUM ::
+#\[7]CVFRRI7MHQ6HTAMQ4VXUFY6YUUV5APKVX2DQY2VVBRJJTEW4PECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

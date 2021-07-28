@@ -1,0 +1,17 @@
+## >:] ##
+
+# name  = devmod.cmd.dump-env
+# descr = dump zenka's %ENV content
+
+return {
+    'mode' => qw| size |,
+    'data' => join( '',
+        map { my $val = $ENV{$ARG}; $val =~ s|\n|\\n|g; "$ARG = $val\n" }
+            keys %ENV )
+};
+
+#,,,.,,.,,...,,..,.,.,,,,,,,,,,.,,,.,,,,.,.,,,..,,...,...,,.,,...,...,,.,,,.,,
+#Y5WLKTRPDFBVK5NLX5WBN4AXX3FABZRIF6XGUAM76Q5DKC4HAXXTUH5DPSR5YDVQQLWGSP3EG76ZY
+#\\\|E22CSIQ6VCXSIJDUVDXJZGZK36IRXIBI6CCE6M5QQQQ6OJTBM5U \ / AMOS7 \ YOURUM ::
+#\[7]5UMH3H2Q76NH6NB2ACEADI2UNR7XZQVIQOL5IHHELFD2VFB5LSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

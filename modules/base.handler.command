@@ -1041,15 +1041,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     )
                     if ( $target_name ne qw| p7-log |
                     or $cmd ne qw| append |
-                    or not <debug.skip_log_msg> )
+                    or not <devmod.skip_log_msg> )
                     and ( $cmd ne qw| p7-log.append |
-                    or not <debug.skip_log_msg> )
+                    or not <devmod.skip_log_msg> )
                     and ( $user ne qw| v7 |
                     or $cmd ne qw| heart |
-                    or not <debug.skip_v7_heartbeat> );
+                    or not <devmod.skip_v7_heartbeat> );
             }
 
-##[ LOGGING \ DEBUG MODE ]####################################################
+##[ LOGGING \ DEVMOD MODE ]####################################################
 
             if ( <system.verbosity.console> >= 3
                 and defined $call_args->{'args'}
@@ -1134,8 +1134,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,,,,,,,,,.,.,...,,..,.,,,.,,,,..,..,,,.,,..,,...,...,,,.,,,.,,,,,..,,,..,
-#R6NYLWL4CFLCELBHMPMJUDO3ROTZGDW5DTWZK2VVPWM3UJZ53GU2SKTUJT7MJAPAOYXWCWJ2HPQ6O
-#\\\|O3RW26ULNWZVDCH3LRK434FVIJQWVXSBFHEU5FPY67XZNAUZ45S \ / AMOS7 \ YOURUM ::
-#\[7]PSESNRIVXNJACGTM4TMAKZLQOPG2SFBCJ3UZGIYKAFHZW66V3ADY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,..,,,,,,..,,,,.,.,.,.,,,..,,..,,...,..,,,.,,,.,,.,.,...,,,.,
+#GVTZIS6H4726F357UHJEJGSCWXNAWS4CQ6CRVR3JXMZWSYLTBHOYBRLPQTVONJFK4U2CNRHZ3MCOW
+#\\\|QTSI3TRZODTE4UNDXJJOL4VD47MIPHYKC3DJYWGHQCANIWIXCYA \ / AMOS7 \ YOURUM ::
+#\[7]O3YEBOS43X5G5FNP6YK3FSGQNNZOUDZXTLLOS4XVAU3PQEMZXOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

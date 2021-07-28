@@ -1,0 +1,17 @@
+## >:] ##
+
+# name = base.handler.devmod_io
+
+my $ev = shift;
+my $fh = $ev->w->fd;
+
+if ( my $bytes = <[base.s_read]>->( $fh, \my $buffer, 4096 ) ) {
+    <[base.logs]>->( 0, '<IO> %s', $buffer );
+    $ev->w->again if $bytes == 4096;
+}
+
+#,,,.,...,,,.,.,,,...,,,,,,,.,.,.,..,,.,.,,,.,..,,...,...,.,,,...,,.,,...,...,
+#DVJRGTLM35XBGIEX7ISA5JIUU46ESSBJ6VUTQYTYUONMIVFNZEPVLF3R2T3KXCDEIUSZGJJHWBXC6
+#\\\|NPXSPV6RFAPF4OXH5M4T4RF4P35I7LHKPMLGF5B4EU37WLVCH2U \ / AMOS7 \ YOURUM ::
+#\[7]AP7LJKC3UDMR2JGLSHIQNN6JVLIEEEPJQJX7IVN5ZDRQXSFC66DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

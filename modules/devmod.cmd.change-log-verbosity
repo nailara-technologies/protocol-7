@@ -1,0 +1,36 @@
+## >:] ##
+
+# name  = devmod.cmd.change-log-verbosity
+# descr = changes current [devmod] log level
+# param = <[0..,5]>
+
+my $usr_sid = $$call{'session_id'};
+my $llvl    = $$call{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => 'you need to supply an integer value [0..,5]'
+    }
+    if !length( $llvl // '' )
+    or $llvl !~ /^\d+$/;
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "already at '%s'", $llvl // '' )
+    }
+    if $llvl == <system.verbosity.console>;
+
+<system.verbosity.console>      = $llvl;
+<system.verbosity.zenka_buffer> = $llvl;
+
+my $user = $data{'session'}{$usr_sid}{'user'};
+
+<[base.log]>->( 0, "changed verbosity : '$llvl' [ requested by '$user' ]" );
+
+return { 'mode' => qw| true |, 'data' => "verbosity = $llvl" }
+
+#,,.,,...,,,,,,.,,..,,,,,,.,.,,,,,.,.,,..,.,,,..,,...,...,...,.,.,...,,,,,...,
+#3NQ2APYBQBWDG7GEVJC33QRW2XVKHQZMF5KNK56DFNYDHARYAKIBPNIRWQHTIE3QX2OAM6EYL323M
+#\\\|R4PQT2WXEYQOUOXA77WPYQNZ4W2YRIF3OUV4Y7THKQ2JCIO5OFP \ / AMOS7 \ YOURUM ::
+#\[7]MRKBXLB3MSAA234WWJFY2QRD6CWPAJ5U5PRZ3K62KNIZONV5FUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,13 +75,13 @@ foreach my $conf_line ( $file_ref->@* ) {
 
         my $cmd = sprintf qw| %s='%s' |, $conf_hash, $value;
 
-        <[base.log]>->( 1, $cmd )   ##  debug output of prepared perl code  ##
+        <[base.log]>->( 1, $cmd )  ##  devmod output of prepared perl code  ##
             if defined <system.verbosity.console>
             and <system.verbosity.console> > 2;
 
         ##  replace eval with base.set_key where applicable  ##
 
-        eval $cmd;                  ##  use 'Safe' module eval ?  ##  [LLL]
+        eval $cmd;                 ##  use 'Safe' module eval ?  ##  [LLL]
 
         if ( length $EVAL_ERROR ) {
             <base.parser.config.errors>++;
@@ -97,8 +97,8 @@ foreach my $conf_line ( $file_ref->@* ) {
 }
 return $entries;
 
-#,,.,,,,,,.,,,..,,,,,,,,.,,..,..,,..,,,..,,.,,..,,...,...,,.,,.,.,,..,.,,,,,.,
-#KGQAU6JYCJRAAF5R25S7GXFXJLKRFPHPY2CAAARJPOVJZGVXBPI4JOIBLZAJCM7LHLYLYSCMFVTVW
-#\\\|RGYNIVPTLYYUYUDCZV75VCZYXOS5TDKMAZGRURABHIORAJSNEYV \ / AMOS7 \ YOURUM ::
-#\[7]LWL436DOLAMXYVRVJYHZZ4LZSAZBOAWWXDXH7GC4FFW64KCJEGCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,..,,.,.,,,,,,,.,..,,..,,,..,..,,...,...,,,.,,,,,...,,.,,,.,,
+#PNAX4RGUNFV2PB73PPMU365ZRDHD6MJAHKHVMKHVDU3P6QHCNMN6QKAGPD6A3WMRRX27VMYE6PRUE
+#\\\|E3OZM6LB4WXSX4J2MHIYROXFQ4YSCKU3ATNGRS4MMJ2OUISY56L \ / AMOS7 \ YOURUM ::
+#\[7]UIGJJWM7EI2RJCKSTF5LPSFYG7CBMRBO24QFNANMU6EH3IY5BSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
