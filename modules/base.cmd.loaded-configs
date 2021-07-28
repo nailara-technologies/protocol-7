@@ -1,0 +1,72 @@
+## >:] ##
+
+# name  = base.cmd.loaded-configs
+# descr = list loaded configuration files + description
+
+my $cfg_ref = {
+    qw| strt-conf | => <system.descr.config.start_cfg> // {},
+    qw| exec-conf | => <system.descr.config.exec_cfg>  // {},
+};
+
+my $max_name_length = {
+    qw| strt-conf | =>
+        [ minmax map {length} keys $cfg_ref->{'strt-conf'}->%* ]->[1],
+    qw| exec-conf | =>
+        [ minmax map {length} keys $cfg_ref->{'exec-conf'}->%* ]->[1],
+};
+
+$reply->{'mode'} = qw| size |;
+$reply->{'data'} = '';
+
+my $total_maxlen
+    = [ minmax map { $max_name_length->{$ARG} } keys $max_name_length->%* ]
+    ->[1];
+
+my $wrap_len = 78 - $total_maxlen;
+
+foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
+
+    my $key_path_map = {};
+
+    my @shortened_key = <[base.sort]>->(
+        map {
+            my $name = $ARG;
+            $ARG =~ s|^zenki/||;
+            $key_path_map->{$ARG} = $name;
+            $ARG
+        } keys $cfg_ref->{$cfg_type}->%*
+    );
+
+    my $max_len = [ minmax map {length} @shortened_key ]->[1];
+
+    if ( $total_maxlen - $max_len > 2 ) {
+        $max_len += sprintf qw| %.0f |, ( $total_maxlen - $max_len ) * 0.6;
+    }
+
+    my $w_prefix = ':' . ' ' x ( $max_len + 7 );
+
+    my $entry_count = keys $cfg_ref->{$cfg_type}->%*;
+
+    $reply->{'data'} .= ".\n";
+
+    foreach my $name (@shortened_key) {
+
+        my $config_path = $key_path_map->{$name};
+
+        $reply->{'data'} .= sprintf ": %*s :  %s\n", $max_len, $name,
+            <[base.wrap_text]>->(
+            $w_prefix, $wrap_len, $cfg_ref->{$cfg_type}->{$config_path}
+            );
+
+        $reply->{'data'} .= ":\n" if --$entry_count > 0;
+    }
+    $reply->{'data'} .= ".\n";
+}
+
+## return { 'mode' => qw| size |, 'data' => Dumper($max_name_length) };
+
+#,,..,.,,,,.,,,,.,...,,,.,,..,..,,,.,,,,.,,,,,..,,...,...,,,.,.,.,.,,,.,.,,,.,
+#ZNGQEA5L5RY3PWUN2EJVK3WWX55KEGW2HCWJLLSHP66RGZQJ7MPW2JBCP7PVZWCAZMQWQHHQVHZPS
+#\\\|4W4ZQ2WXMCWY4WWZDHQ3GTRPMIFUL6OEFAQFPEOMU4UYLXTL7W4 \ / AMOS7 \ YOURUM ::
+#\[7]2FBYY35BSEMATMHF62PMIZ4VKXZISDL3IWV6VQINITYVEMU4KCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
