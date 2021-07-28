@@ -4,7 +4,11 @@
 # param = [prev|curr.|next] [n]
 # descr = return current [\requested] V7 epoch time
 
-( my $req_param, my $e_count_param ) = split m| +|, $call->{'args'};
+my ( $req_param, $e_count_param );
+
+if ( defined $call->{'args'} ) {
+    ( $req_param, $e_count_param ) = split m| +|, $call->{'args'};
+}
 
 if ( defined $req_param and $req_param !~ m,^(prev|current|next)$, ) {
     return {
@@ -21,7 +25,9 @@ if ( defined $req_param and $req_param !~ m,^(prev|current|next)$, ) {
         'mode' => qw| false |,
         'data' => 'count param exceeds limit of 512'
     };
-} elsif ( $req_param eq qw| current | and defined $e_count_param ) {
+} elsif ( defined $req_param
+    and $req_param eq qw| current |
+    and defined $e_count_param ) {
     return {
         'mode' => qw| false |,
         'data' => "no count parameter expected with 'current'"
@@ -48,8 +54,8 @@ while ( not AMOS7::Assert::Truth::is_true( $epoch_num, 1, 0 ) ) {
 
 return { 'mode' => qw| true |, 'data' => $epoch_num };    ##   harmonized  ##
 
-#,,,.,...,..,,,,.,..,,..,,..,,,..,,,,,,.,,..,,.,.,...,...,.,.,,.,,...,...,.,,,
-#AC4WYXR6XJJNBVDGQB4KERQUTCRU2UXBEX3YZMNVVCPF5TIFBXLNLQA74Q6XR7AY7XZK2JXMZAAAI
-#\\\|RZZQKAI3XOWUDX7FSUWEBI4A6MFIEFWXMK7SHK7R6GOVI7323NX \ / AMOS7 \ YOURUM ::
-#\[7]KS75DRZYOSOUQCYPTAKOD5GAHIRT3SXZTYDAQV3IYTCOLI4A6GDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,.,,,,,,,,,,,..,,.,,,,.,,,,.,.,.,...,...,..,,,,,,,..,..,,,.,,
+#YCRGHA6M6ZJNMDH5HNCSRGIFJ4VQJP5E47GYMXU2WBQF6BGECV7KIVCHREABQAHWMFPF32AYDDJLE
+#\\\|XGRTXEDCGYP3PYWJM7JTJVRPRFAPPZTZIVEG5XAP6HW5C4SKS6X \ / AMOS7 \ YOURUM ::
+#\[7]IQYZEQ5UVWRCEFMRA3H2ENN4HNHKBMCQZKRKCU3HSNAEQ6YZZ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
