@@ -1,0 +1,33 @@
+## >:] ##
+
+# name    = base.devmod.dump.param_hash
+# args    = hashref(call args)
+# descr   = print human readable formatted content of call argument hash to stdout
+# comment = recursion depth is only 2!
+
+if ( not %{ $_[0] } ) {
+    print "\ndevmod: first argument is no hash reference!\n\n";
+} else {
+    print "\ndevmod:\n";
+    foreach my $key ( keys( %{ $_[0] } ) ) {
+
+        if ( ref( $_[0]{$key} ) eq 'HASH' ) {
+            foreach my $subkey ( keys( %{ $_[0]{$key} } ) ) {
+                print "\t$key.$subkey = '"
+                    . ${ $_[0]{$key} }{$subkey} . "'\n";
+            }
+        } else {
+            my $val = ${ $_[0] }{$key};
+            $val =~ s/\n/\\n/g;
+            $val =~ s/\'/\\\'/g;
+            print "\t$key = '$val'\n";
+        }
+    }
+    print "\n";
+}
+
+#,,,,,...,,.,,,.,,...,,,,,.,,,,..,,..,.,,,,.,,..,,...,.,.,...,...,.,.,.,,,,,,,
+#ZJCC3NXXN5M33CEO5VUX6AKLD3KDQAJ4NAKJBVAXW6YOX55POPZC3QXWPGMG2RO66YE2LOMWHMKP6
+#\\\|K7XLZ6I7C2BPXBYT6FAMVJKTDXXJKWEOYO2ZA6HIBYWK4YAFTNB \ / AMOS7 \ YOURUM ::
+#\[7]IF3GU7WZKIKH3U3YADLABR4JPT74ZNXAPJATIZYQZ5NMIUNZKUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

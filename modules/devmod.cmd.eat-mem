@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = devmod.cmd.eat-mem
+# param = <ammount>
+# descr = allocate given amount of memory with '7's
+
+<devmod.allow_eat_mem_cmd> //= 0;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'this command must be specificly enabled'
+        . ' [ set devmod.allow_eat_mem_cmd 1 ]'
+    }
+    if !<devmod.allow_eat_mem_cmd>;
+
+my $amount = $$call{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'ammount required' }
+    if not defined $amount;
+return {
+    'mode' => qw| false |,
+    'data' => 'memory ammount format not understood'
+    }
+    if $amount !~ /^(\d+(\.\d+)?)([mg])?$/io;
+return { 'mode' => qw| false |, 'data' => 'nothing to allocate' } if !$amount;
+
+my $value = $1;
+my $unit  = lc($3);
+
+$value *= 1024**2 if $unit eq 'm';
+$value *= 1024**3 if $unit eq 'g';
+$value = sprintf( '%.0f', $value );
+
+<devmod.eaten_memory> .= '7' x $value;
+
+return {
+    'mode' => qw| true |,
+    'data' => "allocated $value bytes [ free-mem to return it ]"
+    }
+
+#,,.,,,,.,...,.,.,..,,,,,,.,,,,..,.,,,,,,,.,.,..,,...,...,.,.,,.,,..,,..,,,..,
+#G25JVJIOBFFEKZBXEZQLIJ7ODJVLP2X3X6HF25MSLPXM46UTZCRMZKG4TCKBPIG52FULCUPFJO6KK
+#\\\|PYU2G55TTAXVVAJOEO3QPXD4V5OUX4R3PRE74373I3ARH5UKEEK \ / AMOS7 \ YOURUM ::
+#\[7]AHZWTMM3FVAHWWGMLEOCBD4NLLX2RRGBIUSEKXNP4TU3NYUXNQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

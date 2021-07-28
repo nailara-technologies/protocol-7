@@ -1,0 +1,40 @@
+## >:] ##
+
+# name  = devmod.cmd.extract-line-map
+# descr = returns a linenum-map for specified file
+# param = <file-path>
+
+my $usr_sid   = $$call{'session_id'};
+my $file_name = $$call{'args'};
+state $last_warned = '';
+
+my $std_msg = 'file not found or insufficient read permissions';
+$std_msg = 'expected file path for line map' if not defined $file_name;
+return { 'mode' => qw| false |, 'data' => $std_msg }
+    if not defined $file_name or !-f $file_name;
+
+if ( !-r $file_name ) {
+    my $lvl = $last_warned ne $file_name ? 0 : 2;
+    <[base.log]>->(
+        $lvl,
+        "[$usr_sid] <extract_line_map> no read permission [ $file_name ]"
+    );
+    $last_warned = $file_name;
+    return { 'mode' => qw| false |, 'data' => $std_msg };
+}
+
+my $response = "\n# .: $file_name :.\n\n# [line-num] [offset]\n\n";
+my $line_map = <[file.line_map]>->($file_name);
+map {
+    my $element = $line_map->{$ARG};
+    $response .= sprintf( " : %s :. %s\n", $ARG, $line_map->{$ARG} )
+    }
+    sort { $a <=> $b } keys %{$line_map};
+
+return { 'mode' => qw| size |, 'data' => $response . "\n" };
+
+#,,,.,,,,,.,.,,,.,,..,,,,,..,,.,.,,..,..,,,..,..,,...,...,.,.,...,,..,.,.,,,,,
+#FQ3UHGYIS3R43VKKFX54VDUIBSQTJZGVLHZJG25RKRGU2VGIMM24L3UWQFSUNJAU625SIVTAP7QEA
+#\\\|YHSEJ5CR5TNZBQSOJUOSUY56QIG52DPGZOV4RCOTQJEF2XSCBHG \ / AMOS7 \ YOURUM ::
+#\[7]XCDK6IMEQEZN6VTMOY2NYJYROHNHSYHVUD4AIT2YYGLNS6WTF2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

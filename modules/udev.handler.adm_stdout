@@ -8,7 +8,7 @@ my $read_fh = $event->fd;
 my $process = $event->data;
 my $pid     = $process->{'pid'};
 
-my $debug_verbosity = <udev.debug-stdout.show-events> // 0;
+my $devmod_verbosity = <udev.devmod-stdout.show-events> // 0;
 
 <udev.rules> = {} if not defined <udev.rules> or ref(<udev.rules>) ne 'HASH';
 my $patterns = <udev.rules.patterns>;
@@ -40,7 +40,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     map { $adm_event->{$1} = $2 if $ARG =~ m|^([A-Z_]+)=(.+)$| }
         split( "\n", $event_str );
 
-    if ( $debug_verbosity and keys %{$adm_event} ) {
+    if ( $devmod_verbosity and keys %{$adm_event} ) {
         say "\n", '├';
         map { printf " %24s = %s\n", $ARG, $adm_event->{$ARG} }
             <[base.reverse-sort]>->($adm_event);
@@ -55,7 +55,7 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
 
             map {
 
-                if ( $debug_verbosity and keys %{$adm_event} ) {
+                if ( $devmod_verbosity and keys %{$adm_event} ) {
                     if ( exists $adm_event->{$ARG} ) {
                         say "  < $ARG > $adm_event->{$ARG} == $p->{$ARG} ";
                     } else {
@@ -119,8 +119,8 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     }
 }
 
-#,,.,,...,,.,,...,..,,.,,,,.,,.,.,..,,.,,,.,,,..,,...,...,...,...,..,,,,,,.,,,
-#3KA6ZXSZKBHG36OXAFDY7NLRWSNVU7PZVWI3MAEYD6KXFCXYKJIXYI6CJOAFRCCB3X2FRDFXV33TM
-#\\\|MPBNA5AA3CJOALEPXOTD4BOAV4YZX4JVHKOT7CZPSUU3CH2PRDX \ / AMOS7 \ YOURUM ::
-#\[7]SKQCWNQVJLY5VHGQ3C4WAIB4CQ5TAO4XOMWDSLKWIIFRD75JLAAQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,..,,.,,,,,.,...,,,.,..,,.,,,..,,...,...,..,,,..,,..,,,.,..,,
+#2G6MMR7OBBXG5N5YFTIHWCOXFGTLA4PL7ZDAGQ54KEMOVRN65J5RXCIXKIEWDX7ZEI7KO6BVKFWBK
+#\\\|YEPH27K472MYWQQWZYDHBIHXK2ATYHN6OP26YDVBSTRGRWQRFRE \ / AMOS7 \ YOURUM ::
+#\[7]ZZ2GDFHEME7LYASTWE67RPTGZNDL43UJILR5G6QE6CUJOURO6ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

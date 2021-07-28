@@ -16,7 +16,6 @@ return [ qw[
         base.exit
         ssl.server
         ssl.client
-        debug.dump
         base.regex
         base.cnt_s
         base.close
@@ -24,6 +23,7 @@ return [ qw[
         v7.call_cmd
         mpv.cmd.pos
         filter.init
+        devmod.dump
         chk-sum.jha
         base.s_warn
         base.s_read
@@ -64,9 +64,6 @@ return [ qw[
         mpv.cmd.pause
         fs.is_mounted
         events.recalc
-        debug.cmd.set
-        debug.cmd.get
-        debug.cmd.del
         dbus.run_dbus
         chk-sum.sha.1
         base.timezone
@@ -98,10 +95,9 @@ return [ qw[
         index.gen_path
         httpd.http_get
         fs.cmd.unmount
-        debug.pre_init
-        debug.cmd.true
-        debug.cmd.echo
-        debug.cmd.dump
+        devmod.cmd.set
+        devmod.cmd.get
+        devmod.cmd.del
         dbus.init_code
         data.init_code
         cube.post_init
@@ -160,11 +156,10 @@ return [ qw[
         httpd.http_head
         fs.cmd.re-mount
         files.init_code
-        debug.post_init
-        debug.init_code
-        debug.cmd.ydump
-        debug.cmd.sleep
-        debug.cmd.since
+        devmod.pre_init
+        devmod.cmd.true
+        devmod.cmd.echo
+        devmod.cmd.dump
         cube.cmd.select
         crypt.init_code
         compton.startup
@@ -213,6 +208,11 @@ return [ qw[
         filter.del_chain
         ffmpeg.init_code
         events.init_code
+        devmod.post_init
+        devmod.init_code
+        devmod.cmd.ydump
+        devmod.cmd.sleep
+        devmod.cmd.since
         dbus.cmd.get-pid
         chk-sum.md5.b64u
         chk-sum.jha.b64u
@@ -268,11 +268,6 @@ return [ qw[
         fs.cmd.is_mounted
         filter.del_filter
         filter.add_filter
-        debug.cmd.elf-num
-        debug.cmd.elf-b32
-        debug.cmd.eat-mem
-        debug.cmd.del-env
-        debug.cmd.b32-elf
         cube.cmd.unselect
         cube.cmd.basepath
         content.load_file
@@ -349,11 +344,11 @@ return [ qw[
         ffmpeg.frame_count
         download.init_code
         discover.init_code
-        debug.console-dump
-        debug.cmd.true-int
-        debug.cmd.free-mem
-        debug.cmd.exec-sub
-        debug.cmd.dump-env
+        devmod.cmd.elf-num
+        devmod.cmd.elf-b32
+        devmod.cmd.eat-mem
+        devmod.cmd.del-env
+        devmod.cmd.b32-elf
         cube.cmd.unix-path
         cube.cmd.netw-time
         cube.cmd.b32-ntime
@@ -423,9 +418,11 @@ return [ qw[
         httpd.send_raw_html
         httpd.scan_site_dir
         httpd.download_init
-        debug.cmd.list-subs
-        debug.cmd.eval-code
-        debug.cmd.core-subs
+        devmod.console-dump
+        devmod.cmd.true-int
+        devmod.cmd.free-mem
+        devmod.cmd.exec-sub
+        devmod.cmd.dump-env
         data.cmd.mount-cube
         cube.cmd.clear-cons
         crypt.cbc.init_code
@@ -503,7 +500,9 @@ return [ qw[
         files.cmd.test_files
         ffmpeg.extract_frame
         events.set_up_timers
-        debug.handler.dumper
+        devmod.cmd.list-subs
+        devmod.cmd.eval-code
+        devmod.cmd.core-subs
         data.cmd.detach-cube
         content.cmd.get_list
         content.check_queued
@@ -595,7 +594,7 @@ return [ qw[
         file-matrix.post_init
         file-matrix.init_code
         download.cmd.get_file
-        debug.cmd.switch-user
+        devmod.handler.dumper
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
         crypt.C25519.key_vars
@@ -619,7 +618,6 @@ return [ qw[
         base.list.subroutines
         base.list.element.del
         base.list.element.add
-        base.handler.debug_io
         base.file.match_links
         base.file.match_files
         base.file.count_lines
@@ -700,7 +698,7 @@ return [ qw[
         ffmpeg.cmd.frame_count
         events.cmd.show-active
         events.calc_unix_table
-        debug.cmd.deparse-code
+        devmod.cmd.switch-user
         crypt.C25519.sign_keys
         crypt.C25519.sign_data
         crypt.C25519.post_init
@@ -718,6 +716,7 @@ return [ qw[
         base.locales.init_code
         base.load_section_conf
         base.load_section_code
+        base.handler.devmod_io
         base.get_max_verbosity
         base.file.get-non-dirs
         base.file.broken_links
@@ -796,9 +795,8 @@ return [ qw[
         ffmpeg.frame_count_slow
         events.cmd.show-enabled
         discover.cmd.mcast_send
+        devmod.cmd.deparse-code
         decoder.zenka.init_code
-        debug.cmd.mem-allocated
-        debug.cmd.current-umask
         dbus.cmd.socket_address
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
@@ -892,7 +890,9 @@ return [ qw[
         events.cmd.trigger_event
         event.anyevent.init_code
         discover.mcast.init_code
-        debug.cmd.unload-dbg-mod
+        devmod.cmd.unload-devmod
+        devmod.cmd.mem-allocated
+        devmod.cmd.current-umask
         data.cmd.attach-fs-mount
         cube.set-up.import_rules
         cube.set-up.export_rules
@@ -938,7 +938,6 @@ return [ qw[
         v7.zenka.cmd.zenka-status
         v7.zenka.cmd.subname-sids
         v7.zenka.cmd.pid-instance
-        v7.zenka.cmd.debug-enable
         v7.zenka.cmd.clear-manual
         v7.handler.start-time-out
         v7.enable_heartbeat_timer
@@ -1017,6 +1016,7 @@ return [ qw[
         v7.zenka.cmd.stop_implicit
         v7.zenka.cmd.notify_online
         v7.zenka.cmd.instance_pids
+        v7.zenka.cmd.devmod-enable
         v7.zenka-instances.get-ids
         v7.sub-process.orphan_pids
         v7.parser.dependency_chain
@@ -1052,8 +1052,6 @@ return [ qw[
         io.unix.socket.input.close
         image2html.child.init_code
         events.set-up.import_rules
-        debug.cmd.permission-setup
-        debug.cmd.extract-line-map
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
@@ -1073,7 +1071,6 @@ return [ qw[
         base.event.io_idle_restart
         base.dependency.del_object
         base.dependency.add_object
-        base.debug.dump.param_hash
         base.crypt.flush_passwords
         base.chk-sum.elf.init_code
         base.check_dependency_dirs
@@ -1133,7 +1130,8 @@ return [ qw[
         httpd.update_download_count
         file-matrix.map-dirs.fs.del
         file-matrix.map-dirs.fs.add
-        debug.cmd.keep-debug-loaded
+        devmod.cmd.permission-setup
+        devmod.cmd.extract-line-map
         dbus.handler.process_output
         cube.chk-sum.cmd.elf-chksum
         content.set-up.import_rules
@@ -1152,6 +1150,7 @@ return [ qw[
         base.handler.warn_nak_reply
         base.file.write_timestamped
         base.file.gen_path_linkname
+        base.devmod.dump.param_hash
         base.dependency.get_reverse
         base.dependency.get_missing
         base.debian.install_package
@@ -1208,7 +1207,6 @@ return [ qw[
         graphics-matrix.filter.alpha
         download.set-up.import_rules
         download.set-up.export_rules
-        debug.cmd.inline-subroutines
         content.cmd.entries_withheld
         base.session.check_remaining
         base.run_if_not.load_perlmod
@@ -1268,7 +1266,8 @@ return [ qw[
         file-matrix.map-dirs.tree.del
         file-matrix.map-dirs.tree.add
         ffmpeg.cmd.extract_last_frame
-        debug.cmd.decode-harmonic-ref
+        devmod.cmd.keep-devmod-loaded
+        devmod.cmd.inline-subroutines
         content.cmd.get_playlist_path
         base.validate.data_key_syntax
         base.parser.human.fsize_fixed
@@ -1343,7 +1342,7 @@ return [ qw[
         events.handler.event_triggered
         events.cmd.get_playlist_hidden
         events.callback.object.weekday
-        debug.cmd.change-log-verbosity
+        devmod.cmd.decode-harmonic-ref
         content.handler.mimetype_reply
         base.zenki.ondemand_registered
         base.session.send_init_reports
@@ -1387,6 +1386,7 @@ return [ qw[
         file-matrix.sftp.unix.sock_path
         file-matrix.map-dirs.check-dirs
         events.cmd.get_overlays_visible
+        devmod.cmd.change-log-verbosity
         crypt.C25519.cmd.set-client-key
         crypt.C25519.cmd.get-public-key
         content.callback.check_mimetype
@@ -1631,8 +1631,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,,.,,,,,,.,,,...,,..,.,.,...,,.,,...,.,.,...,...,..,,..,,,,.,,..,,.,,
-#QBYYHF2EJLF7HGX35SAVRD7VQ5ME7FIM7426DLN2FOCLDW5XN6QL3NQKSOL4RUOUY6EIPO67JTR6Q
-#\\\|H4ZI2Y2IMMOWLOUNRNNENIUMVRI3PJSIB5BNMBGJHPWEA2EOXQ4 \ / AMOS7 \ YOURUM ::
-#\[7]WEK4BFY2WMQ45XIBISPEC3TVD7X3EQRKSHQT75YFMOMUGEUGXUCQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,.,,,..,,.,,,,.,,...,,..,,.,,.,.,...,...,.,,,,.,,,,.,.,,,.,,,
+#FWMWWNWCLUKZEPAA77EARLSCDJLBFI2M3TXTHBCHP272BT3CI56I5KZ6RAICAXTEFJHQ5KODQTL5W
+#\\\|L7OP52S6I62UCFSLF7MJDBJ76RXIT3NFCJVKKCVIP64AGW3FISN \ / AMOS7 \ YOURUM ::
+#\[7]DQUBETYTSPHCODZDLUDIGJBTNDBYNAL5HQD47WLXMZ2TIDNJD4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

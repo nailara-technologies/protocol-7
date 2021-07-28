@@ -62,7 +62,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         $src_name .= '[' . <system.zenka.subname> . ']'
             if exists <system.zenka.subname>;
 
-      # [LLL]  implement [debug] watch and filter patterns for command logging
+     # [LLL]  implement [devmod] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.zenka_buffer> >= 2 ) {
             <[base.log]>->(
@@ -71,14 +71,14 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
                 if ( $src_name ne qw| cube |
                 or $target_name ne qw| p7-log |
                 or $cmd ne qw| append |
-                or !<debug.skip_log_msg> )
+                or !<devmod.skip_log_msg> )
                 and ( $target_name ne qw| cube |
                 or $cmd ne qw| p7-log.append |
-                or !<debug.skip_log_msg> )
+                or !<devmod.skip_log_msg> )
                 and ( $src_name ne qw| v7 |
                 or
                 ( $cmd ne qw|heart| and substr( $cmd, -5, 5 ) ne qw|.heart| )
-                or !<debug.skip_v7_heartbeat> );
+                or !<devmod.skip_v7_heartbeat> );
         }
 
         $target_cmd_id =~ s|^(\d+)$|($1)|;
@@ -127,8 +127,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,.,,.,.,.,.,,,,,,.,,,,.,...,,.,,,.,,.,,,,,,,..,,...,..,,...,.,.,,,.,,,.,.,.,
-#6N2RV47RZSWC6VRTYTK3FMJS7RPLVCPVDI2DBE2VFAACOWK2VIC22S3RIFKL3S2YAN44T6JFXP4LQ
-#\\\|F6CDOSQ4KNLXPML3AZUBJAYOFPWI2XR7T5WF2VJMAVEOWQM35TT \ / AMOS7 \ YOURUM ::
-#\[7]EZV7F2ZLONLVBSARD2GVC67GHFYB7HORWTYWP3Z74ABZZZUFR4BI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,,..,..,,,,,,..,,,,,,.,,,.,.,..,,...,...,,,.,,..,.,.,.,.,...,
+#3KFQUK67J4QX4AAAD3R4DRKCV7VYLOXLBZOFS7SX5GGPP7LRFFAESORHIQJXSDDEO2KJKFH7VCD3U
+#\\\|VVLUP7IIR5TLY7GIBN76JZQUY5RXCRJ64O526CQDEQJEYGXWGMO \ / AMOS7 \ YOURUM ::
+#\[7]M3H5ZZNU3OFUT7XQJSF4YG6FTGDFQDUWC2ZWLYYMHQVJZBAAMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

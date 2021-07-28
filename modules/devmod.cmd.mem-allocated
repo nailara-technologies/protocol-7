@@ -1,0 +1,24 @@
+## >:] ##
+
+# name  = devmod.cmd.mem-allocated
+# descr = show number of allocated bytes by eat-mem
+
+my $bytes;
+$bytes = length(<devmod.eaten_memory>) if defined <devmod.eaten_memory>;
+
+return { 'mode' => qw| false |, 'data' => 'none was allocated' }
+    if not defined <devmod.eaten_memory> or !length(<devmod.eaten_memory>);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "bytes held in memory allocation : %d [%s]",
+        $bytes, <[base.parser.size_str]>->($bytes)
+    )
+};
+
+#,,.,,,,,,.,,,,,,,,..,,,.,..,,.,.,...,.,,,.,,,..,,...,...,...,...,,,,,,..,,.,,
+#CULTKLNIIBMZ55VTZYKPHO5WNLKJUVT3LNDLAQTQSJGW7EFKXU5ZULLP2VC4SBAWJG4KVRJCLCVBI
+#\\\|JMHHXDDOBHMRKHSAT6XIARVYQ267LNBJRTCSSSOEIGIKB32NL7W \ / AMOS7 \ YOURUM ::
+#\[7]B2YH2ZEGBRZJ557AN2Z7L6ETEXEIRJFHZSF2XMA65PNM4LB3OUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

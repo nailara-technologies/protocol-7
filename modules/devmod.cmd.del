@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = devmod.cmd.del
+# param = <key>
+# descr = delete a key \ value from the 'data' hash
+
+my $del_keystr = $$call{'args'};
+my $cid        = $$call{'session_id'};
+
+return { 'mode' => qw| false |, 'data' => 'no key specified' }
+    if not defined $del_keystr or !length($del_keystr);
+
+my @result = <[base.validate.data_key_syntax]>->($del_keystr);
+return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
+
+my $del_keystr_ref = <[base.resolve_key]>->($del_keystr);
+if ( not defined $del_keystr_ref ) {
+    <[base.logs]>->( 0, "[%d] del: no such key ['%s']", $cid, $del_keystr );
+    return { 'mode' => qw| false |, 'data' => 'no such key' };
+}
+
+<[base.del_key]>->($del_keystr);
+
+if ( not defined <[base.resolve_key]>->($del_keystr) ) {
+    <[base.logs]>->( "[%d] del: key '%s' deleted", $cid, $del_keystr );
+    return { 'mode' => qw| true |, 'data' => qw| deleted | };
+} else {
+    <[base.logs]>->(
+        0,    "[%s] del key : could not delete data key '%s'",
+        $cid, $del_keystr
+    );
+    return { 'mode' => qw| false |, 'data' => 'not successful' };
+}
+
+#,,,.,..,,,,,,,.,,,.,,,,.,..,,.,,,...,,.,,.,,,..,,...,...,...,..,,...,.,.,..,,
+#3FK6QNXZUOTXQT4NZE2ATJ5T4L52433ABAGK6CEGGRH4FDVUZ7A6PFWHHCIH5QMGKJK54KCA5QVSK
+#\\\|SRKVQPFDSSSAMS32PNR4DTRNEZKZ7TUVCST4E6JURUDO6M7X5AM \ / AMOS7 \ YOURUM ::
+#\[7]V55Q3MOZ2MCPB76B7FWCYENMUCNGBUIN6U4ZESXVLPPMN25VZKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

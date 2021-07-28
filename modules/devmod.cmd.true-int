@@ -1,0 +1,21 @@
+## >:] ##
+
+# name  = devmod.cmd.true-int
+# descr = numerical truth assertion [ division by 13 ]
+
+my $chk_numerical = $call->{'args'};
+return { 'mode' => qw| false |, 'data' => 'expected numerical argument' }
+    if not defined $chk_numerical or $chk_numerical !~ m|^\d+$|;
+
+my $TRUE = AMOS7::Assert::Truth::true_int($chk_numerical);
+
+return {
+    'mode' => $TRUE ? qw| TRUE |     : qw| FALSE |,
+    'data' => $TRUE ? qw| истината | : qw| смесващия |
+    }
+
+#,,,.,,.,,,,,,,..,...,...,,.,,.,,,..,,..,,,.,,..,,...,..,,...,.,,,,.,,.,.,..,,
+#2NX7TD76TH6UY6HY2JSE6YGM7FHDK5DJHJTTQMLTLSZQUFEDUUZXXBCU6JEWZ5WLNTZ5BRITNUJAK
+#\\\|LAEINFMVIW4OOK6JJHNT3N66OS753DZR2EMVEOQQJ4VQSGN27O4 \ / AMOS7 \ YOURUM ::
+#\[7]TX7X4FKQ3OTFHUNONJF3IYYXCHKEX3XDAQOAUWX6QCV34ERCDSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

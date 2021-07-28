@@ -1,0 +1,103 @@
+## >:] ##
+
+# name  = devmod.cmd.set
+# param = <key> <value>
+# descr = set value in internal 'data' hash
+# todo  = improve \ expand error handling
+
+my ( $set_keystring, $value_content )
+    = split( m| |, $call->{'args'} // '', 2 );
+
+##  removing single quotes from value  ##
+##
+$value_content =~ s|^'(.*)'$|$LAST_PAREN_MATCH|;   ##  quoted value syntax  ##
+
+return { 'mode' => qw| false |, 'data' => 'expected key param' }
+    if not defined $set_keystring or not length $set_keystring;
+
+##  validating data key syntax first  ##
+##
+my @result = <[base.validate.data_key_syntax]>->($set_keystring);
+return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
+
+##  complain if no value supplied  ##
+##
+return { 'mode' => qw| false |, 'data' => 'no value supplied' }
+    if not defined $value_content;
+
+my $setkey_init = 0;
+my $cid         = $$call{'session_id'};
+
+## get reference to data structure if exists ##
+##
+my $set_keystring_ref = <[base.resolve_key]>->($set_keystring);
+
+if ( not defined $set_keystring_ref or length $set_keystring_ref->{'r-type'} )
+{    ##  overriding if other ref type was present  ##
+    $setkey_init       = <[base.set_key]>->( $set_keystring, $value_content );
+    $set_keystring_ref = <[base.resolve_key]>->($set_keystring);
+}
+
+if ( defined $set_keystring_ref and length $set_keystring_ref ) {
+
+    if ($setkey_init) {    ##  new value or overriding reference  ##
+
+        <[base.logs]>->(
+            "[%d] set key : initialized [ %s = '%s']",
+            $cid, $set_keystring, $value_content
+        );
+        $reply = { 'mode' => qw| true |, 'data' => qw| set | };
+
+    }
+    ##  equal  ##
+    elsif ( $set_keystring_ref->{'r-data'} eq $value_content ) {
+
+        <[base.logs]>->(
+            "[%d] set key : no change : values identical [ %s = '%s']",
+            $cid, $set_keystring, $value_content
+        );
+        $reply = {
+            'mode' => qw| false |,
+            'data' => 'no change : values identical'
+        };
+
+    } else {    ##  change value  ##
+
+        <[base.set_key]>->( $set_keystring, $value_content );
+
+        if ( <[base.set_key]>->( $set_keystring, $value_content ) ) {
+
+            <[base.logs]>->(
+                "[%d] set key : data value updated [ %s = '%s']",
+                $cid, $set_keystring, $set_keystring_ref->{'r-data'}
+            );
+            $reply = { 'mode' => qw| true |, 'data' => qw| updated | };
+
+        } else {    ##  value not changed  ##
+
+            <[base.logs]>->(
+                0,
+                "[%d] set key : error updating"
+                    . " data value [ %s : '%s' != '%s' ]",
+                $cid,
+                $set_keystring,
+                $set_keystring_ref->{'r-data'},
+                $value_content
+            );
+            $reply = { 'mode' => qw| false |, 'data' => 'error on update' };
+        }
+    }
+} else {    ##  error initializing \ overriding  ##
+
+    <[base.logs]>->(
+        0,    "[%d] set key : cannot assign value [ %s = '%s']",
+        $cid, $set_keystring, $value_content
+    );
+    $reply = { 'mode' => qw| false |, 'data' => 'not able to assign value' };
+}
+
+#,,.,,...,,,,,,,.,.,,,...,,,,,,,,,,.,,.,,,,,,,..,,...,...,,,.,,..,.,.,,.,,..,,
+#DPJFAM443SNNRX3FGGQOZHWHVJVS2ZS7C2DQDUDRHJXOLH7HP2UUX4J72F42STWCPETARVG3UHTUS
+#\\\|VROOAOHHGDIHIKKZ4ZWJZQLWJWVFUPUBN4YKKM4W4W7JHHOACTB \ / AMOS7 \ YOURUM ::
+#\[7]4FBRC5ORQ23G2LUHQEJUCO57KA5V5KRUGBGQMCZSHKSN7KWXDMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

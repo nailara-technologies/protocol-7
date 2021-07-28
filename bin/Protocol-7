@@ -1102,7 +1102,7 @@ sub p7_load_code {
         ##### remote source code access ###
         my $method = ${^CAPTURE}[0]
             if $http_src_base_urls[0] =~ m|^(\w+):|;
-        $code{'log.debug'}->(": reading source file list over $method ..,");
+        $code{'log.devmod'}->(": reading source file list over $method ..,");
         my $remote_data_str
             = $code{'base.httpc.remote_file'}
             ->( qw| .v7/file-list/base |, \@http_src_base_urls );
@@ -1129,10 +1129,10 @@ sub p7_load_code {
         }
         ####
     } else {
-        $code{'log.debug'}->(': reading source list from disk.,');
+        $code{'log.devmod'}->(': reading source list from disk.,');
         @subroutine_names = $code{'base.code.file_list'}->();
         my $file_cnt = scalar @subroutine_names;
-        $code{'log.debug'}->(": :. $file_cnt files. [modules]");
+        $code{'log.devmod'}->(": :. $file_cnt files. [modules]");
     }
     $OUTPUT_AUTOFLUSH = 1;
 
@@ -1149,7 +1149,7 @@ sub p7_load_code {
 
         if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
             my $s = $purge_count == 1 ? '' : 's';
-            $code{'log.debug'}->(": $purge_count sub$s undefined");
+            $code{'log.devmod'}->(": $purge_count sub$s undefined");
         }
 
         my $code_count      = 0;
@@ -1184,7 +1184,7 @@ sub p7_load_code {
                     and !( $data{'system'}{'no_http_source'} // 0 ) ) {
                     ## read modules from network [ more methods coming ]
 
-                    # $code{'log.debug'}->(":[http]: $src_rel .,");
+                    # $code{'log.devmod'}->(":[http]: $src_rel .,");
 
                     $data{'code'}{$file_name}{'source'}
                         = $code{'base.httpc.remote_file'}
@@ -1192,7 +1192,7 @@ sub p7_load_code {
                     ####
                 } else {
                     ## loading code from disk [ including ext directory ]
-                    $code{'log.debug'}->(":[disk]: $src_rel .,");
+                    $code{'log.devmod'}->(":[disk]: $src_rel .,");
                     open( my $src_fh, qw| < |, $src_abs_path )
                         or die ":$src_abs_path : \l$OS_ERROR";
                     $data{'code'}{$file_name}{'source'} = <$src_fh>;
@@ -1229,7 +1229,7 @@ sub p7_load_code {
                 $RS = "\n";
                 if (length( $data{'code'}{$file_name}{'source'} ) > $orig_len
                     and $data{'system'}{'verbosity'}{'console'} > 3 ) {
-                    $code{'log.debug'}->( "\n\n .: $file_name :.\n\n"
+                    $code{'log.devmod'}->( "\n\n .: $file_name :.\n\n"
                             . $data{'code'}{$file_name}{'source'} );
                     $data{'plugins'}{'status'}{$code_name}{'load_errors'}++
                         if not length($src_str);    # <-- is plugin..
@@ -1275,32 +1275,31 @@ sub p7_load_code {
         $last_code_count = $code_count;
     }
     my $mod_count = scalar @compile_order;
-    return if !$mod_count and !@module_names;
-    next   if !$mod_count;
+    return if $mod_count == 0 and @module_names == 0;
+    next   if $mod_count == 0;
     my $src_bytes_total = 0;
-    $code{'log.debug'}->(': compiling ..,');
+    $code{'log.devmod'}->(': compiling ..,');
     my ( $ok_count, $err_count, $warn_count, $warn_count_total )
         = ( 0, 0, 0, 0 );
 
     my %disabled_commands;
     map { $disabled_commands{$ARG} = 1 } @{ $data{'disabled_commands'} }
         if exists $data{'disabled_commands'}
-        and ref( $data{'disabled_commands'} ) eq 'ARRAY';
+        and ref( $data{'disabled_commands'} ) eq qw| ARRAY |;
 
     ## sort [ and filter ] in code occurence order ###
     @compile_order = $code{'base.code.sort_filter'}->(@compile_order);
     ##
 
     foreach my $sub_name (@compile_order) {
-        my $loading_error = 0;
-        my $module_name   = $module_code_map{$sub_name};
-        my $source_len    = length $data{'code'}{$sub_name}{'source'};
+        my $module_name = $module_code_map{$sub_name};
+        my $source_len  = length $data{'code'}{$sub_name}{'source'};
         $source_len //= 0;
 
         ## recompile twice case, now filtered ##
-        $code{'log.error'}->(":. << empty subroutine [ $sub_name ] >>")
-            and $loading_error = 1
-            if !$source_len;
+        $code{'log.error'}
+            ->( sprintf( ':. << empty subroutine [ %s ] >>', $sub_name ) )
+            if $source_len == 0;
 
         $data{'base'}{'p7_mod'}{'sbytes'}->{$module_name} = $source_len;
 
@@ -1324,29 +1323,29 @@ sub p7_load_code {
                     exists $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name}
                 ) {
                     if ( $sub_name ne $old_sub ) {
-                        $code{'log.debug'}->(":: $sub_name :. $old_sub");
+                        $code{'log.devmod'}->(
+                            sprintf( ':: %s :. %s', $sub_name, $old_sub ) );
                     } else {
-                        $code{'log.debug'}->("<< replacing sub $sub_name >>");
+                        $code{'log.devmod'}->(
+                            sprintf( '<< replacing sub %s >>', $sub_name ) );
                     }
                     $data{'base'}{'overwritten'}{$cmd_type}{$cmd_name} = {
                         qw| old | => $old_sub,
                         qw| new | => $sub_name
                     };
                 } else {
-                    push(
-                        @{  $data{'base'}{'overwritten'}
-                                {$cmd_type}{$cmd_name}{'conflicts'}
-                        },
-                        $sub_name
-                    );
+                    push $data{'base'}{'overwritten'}
+                        {$cmd_type}{$cmd_name}{'conflicts'}->@*,
+                        $sub_name;
                     $data{'base'}{'modules'}{'load_errors'}++;
-                    $code{'log.error'}->("<<< conflict : $sub_name >>>");
-                    $sub_conflict = 1;
+                    $code{'log.error'}
+                        ->( sprintf( '<<< conflict : %s >>>', $sub_name ) );
+                    $sub_conflict = 5;    ## true ##
                 }
             }
 
             $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
-                if !$sub_conflict;
+                if not $sub_conflict;
             my $stat_start_cref
                 = defined $code{'stats.sub_start'}
                 ? $code{'stats.sub_start'}->($sub_name)
@@ -1417,7 +1416,7 @@ sub p7_load_code {
             $sub_code = <<~ "EOC";
                 sub {
                 # line 1 "$sub_name"
-                \$code{'base.debug_sub'}->( qw| $sub_name |, \@ARG );
+                \$code{'base.devmod_sub'}->( qw| $sub_name |, \@ARG );
                 $data{'code'}{$sub_name}{'source'}}
                 EOC
         } else {
@@ -1686,7 +1685,7 @@ sub p7_collect_sub_stats {    ## [ LLL ] .. implement ., ###
 
 ##############################################################################
 
-sub p7_debug_sub {
+sub p7_devmod_sub {
 
     return if $data{'system'}{'verbosity'}{'console'} < 2;
 
@@ -1698,7 +1697,7 @@ sub p7_debug_sub {
 
     # log all used subroutines if $sub_touch_dir exist and is owned by root.
     my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
-        // qw| /var/tmp/protocol-7_debug.sub_log |;
+        // qw| /var/tmp/protocol-7_devmod.sub_log |;
     if ( -d $sub_touch_dir
         and File::stat::stat($sub_touch_dir)->uid == 0 ) {
         my $zenka_name = $data{'system'}{'zenka'}{'name'};
@@ -1724,7 +1723,7 @@ sub p7_debug_sub {
         }
     }
 
-    # hiding plain text passwords in debug output [not including conf files]
+    # hiding plain text passwords in devmod output [not including conf files]
     $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
     $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
     $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
@@ -1762,7 +1761,7 @@ sub p7_debug_sub {
               Digest::Elf::elf(pack("H*",${^CAPTURE}[0])), -3, 3 )
              )
         }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
-    ## [ LLL ] ids need to become resolvable + debug command ..,
+    ## [ LLL ] ids need to become resolvable + devmod command ..,
     say sprintf(
         "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s"
             . " [ $colors{p7_fg_0003}%s$colors{p7_fg_0000} ]"
@@ -1883,7 +1882,7 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
                 return 1;
             } else {
                 $data{'base'}{'perlmod'}{'loaded'}->{$ARG} = 1;
-                $code{'log.debug'}->(": loaded perl module '$ARG'.,");
+                $code{'log.devmod'}->(": loaded perl module '$ARG'.,");
             }
         }
     } (qw| Digest::Elf Math::BigFloat |);
@@ -2305,7 +2304,7 @@ sub p7_purge_code {
                 and $data{'code'}{$ARG}{'status'} = qw| purged |
                 and eval { undef &{ delete $code{$ARG} } }; #<-- improve [LLL]
 
-            #  #[ debug ]##
+            #  #[ devmod ]##
             #     and $code{$ARG} = eval "sub { print STDERR \"\n"
             #                      ." MISSING '$ARG'\n\n\" }";
 
@@ -2392,7 +2391,7 @@ sub p7_code__sort_filter {
         }
     } @subroutine_names;
 
-    $code{'log.debug'}->(": :. skipped identical .: $subs_skipped ::")
+    $code{'log.devmod'}->(": :. skipped identical .: $subs_skipped ::")
         if $subs_skipped;    ## increase level when case addressed ## [LLL]
 
     ## .., ## [LLL] implement code dependency tree ..,
@@ -2458,7 +2457,7 @@ sub p7_httpc__remote_file {
             my $m_str = "\r$s\r: $msg_url.,";
             print "\r$m_str\r"
                 if $data{'system'}{'verbosity'}{'console'} == 1;
-            $code{'log.debug'}->(":$r: $msg_url")
+            $code{'log.devmod'}->(":$r: $msg_url")
                 if $retries_left != $retries;
             my $h_obj = $data{'base'}{'httpc'}{'obj'}
                 //= HTTP::Tiny->new( 'timeout' => 7 );
@@ -2468,7 +2467,7 @@ sub p7_httpc__remote_file {
             if ( not $h_res->{'success'} ) {
                 my $r_str = $EVAL_ERROR ? " < $EVAL_ERROR >" : '';
                 goto skiplog_httpmsg;
-                $code{'log.debug'}->(
+                $code{'log.devmod'}->(
                     sprintf(
                         ":[ %d ] %s : [ %s ]%s",
                         $h_code, $abs_url, $h_res->{'reason'}, $r_str
@@ -2855,7 +2854,7 @@ sub p7__log__error {
 
 ##############################################################################
 
-sub p7__log__debug {
+sub p7__log__devmod {
 
     $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
     if ( defined $code{'base.log'} ) {
@@ -3677,8 +3676,8 @@ __DATA__
 :
 :.
 
-#,,,,,,..,,..,,,,,,,,,...,,.,,,,.,...,..,,...,..,,...,.,,,,,.,...,,,,,.,,,.,,,
-#ON25TM3OCUCY6G4PKJXB6IPCMF7VMU6JS37YZP4VOYCT7FR5ORQMZIY7XOI5TH4Y2XG4TE6TJCQFM
-#\\\|DN3TYROXT4SGLO7RJ5ZD7RPOGWMASBZMF2UCTK6BUUMAGSTAYFI \ / AMOS7 \ YOURUM ::
-#\[7]MNNLZVRYMJ4B655MSOV7QREJNYX4LHEQWIFFOXFKOT4HWLJRIYDI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,,,.,...,,.,,.,,,.,,,.,.,.,.,..,,...,...,..,,.,.,,..,.,.,.,,,
+#C3RNTNGDAVHPN3PYUGTC3UTZETF2M6UF4VW7KYX7XJENYOASHRUYTT5FLMXLJMPVEKLH5ZLLWI3GC
+#\\\|UN4LFKBDWDJCIGG3EHLNWTZUAA7CJR4JJOEEYQBHCOFAEHIX474 \ / AMOS7 \ YOURUM ::
+#\[7]CG3FST5INI2NDMY4UBNVEJQQDUDJV34FSABGBC7J7C7LXXQ5ZOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

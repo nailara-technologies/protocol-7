@@ -1,0 +1,33 @@
+## >:] ##
+
+# name  = devmod.cmd.dump
+# param = [key_pattern]
+# descr = internal program state from 'data'
+
+my $keyword = $call->{'args'} // '';
+
+<base.dump_data.encode_perl_refs> = 0 if $keyword =~ s| ?:not\-encode:$||;
+
+my ( $regex_compiled_result, $regex_err )    ##  validate regex syntax  ##
+    = <[base.eval.comp_regex]>->($keyword);
+
+if ( not defined $regex_compiled_result ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( '%s in regex [ invalid pattern ]', $regex_err )
+    };
+}
+
+$reply = {
+    'mode' => qw| size |,
+    'data' => <[base.dump_data]>->( undef, undef, $keyword )
+};
+
+##  reset to default setting  ##
+<base.dump_data.encode_perl_refs> = 5;    ## true ##
+
+#,,,,,..,,...,,,.,..,,.,.,,..,.,.,.,,,,..,..,,..,,...,...,,.,,,..,...,.,,,,,,,
+#QTDSFOPTWNYA5CMTLNKAFXMKEVARCC6FDZLFOCFXEC44E4JQWFEABPSKIJVO7KW6KM7CQYVYFORSA
+#\\\|MGS5GBUGNIHSA5ZW3NJW5A6ROBWN6VVDYTAT5HXHEEVT6QAFFLI \ / AMOS7 \ YOURUM ::
+#\[7]WMTND34WLC5XIGW5LJ5Y3WGNRDKRWL3YWGGAY252V7IZNDIUBMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

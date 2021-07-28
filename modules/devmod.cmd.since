@@ -1,0 +1,23 @@
+## >:] ##
+
+# name  = devmod.cmd.since
+# param = [unix|rel[ative]]
+# descr = zenka startup local, unix time or 'uptime'
+my $mode = $$call{'args'} // '';
+$mode = 'rel' if $mode eq 'relative';
+return { 'mode' => qw| false |, 'data' => 'invalid output mode' }
+    if $mode !~ m,^(|unix|rel)$,;
+return { 'mode' => qw| false |, 'data' => 'not available' }
+    if not exists <system.process_start.time>;
+
+( my $startup_time = <system.process_start.time> ) =~ s|\.\d+$||;    # unix
+$startup_time = <[base.parser.timestamp]>->($startup_time) if !length($mode);
+$startup_time = <[base.parser.duration]>->($startup_time)  if $mode eq 'rel';
+
+return { 'mode' => qw| true |, 'data' => $startup_time }
+
+#,,.,,,..,,,.,,..,,,,,...,,,.,,,.,.,.,,..,.,.,..,,...,...,...,...,,,.,,,,,,,,,
+#2RDHQFZSFWBQDHMOA7YDLVRAMSG522UP7HYSVI67GPIASBNH5MMGFM46RTV77LAL3C5TRERSWXXIY
+#\\\|DRM6ZO43KU7CM3FEKDIXLHPRPJU3Y6JQBOOSUMV3JM7NFKGCNRB \ / AMOS7 \ YOURUM ::
+#\[7]Q3OX6H5FBWUN35IR44OWKULOWEFE4MYY5ZDTJPHJVQ6HPGPL2ODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

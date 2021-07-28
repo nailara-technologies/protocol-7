@@ -101,22 +101,22 @@ if ( !-x <v7.rmmod_bin> ) {
 
 map { <[v7.init_start_setup]>->($ARG) } @{ clone(<v7.cfg_data.start_setup>) };
 
-if (    exists <system.subs_loaded.debug>
-    and <system.subs_loaded.debug> > 1
+if (    exists <system.subs_loaded.devmod>
+    and <system.subs_loaded.devmod> > 1
     and <system.verbosity.console> > 4 ) {
 
     <[base.perlmod.autoload]>->(qw| Data::Dumper |);
     $Data::Dumper::Sortkeys = 1;
 
-    ( my $debug_str = Dumper(<v7.start_setup.globals>) ) =~ s'^.{7}';$,  'mg;
-    say "\n < v7.start_setup.globals >\n\n$debug_str";
+    ( my $devmod_str = Dumper(<v7.start_setup.globals>) ) =~ s'^.{7}';$,  'mg;
+    say "\n < v7.start_setup.globals >\n\n$devmod_str";
 }
 
 <[event.add_signal]>
     ->( { 'signal' => qw| CHLD |, 'handler' => qw| v7.handler.sig_chld | } );
 
 <[v7.load_zenka_output_patterns]>;
-<[v7.init_zenka_output_patterns]>;    # ->(1); ## <-- debug to stdout  ##
+<[v7.init_zenka_output_patterns]>;    # ->(1); ## <-- devmod to stdout  ##
 
 delete <list.users>;
 
@@ -209,8 +209,8 @@ delete <list.users>;
 
 return 0;
 
-#,,..,...,,,.,..,,,.,,...,.,,,.,,,.,,,.,,,...,..,,...,...,,..,...,...,,.,,,..,
-#UKUFUGDTX4MIO6C5UVPYCXXXZHA26ZDGUHTFV63UBHETPBETRGG24YR3NZXVO5VB4ML7IOLJDYPMG
-#\\\|WKOYR5W7CAAIFNRF3A7U2JV6PTNVTECH2LEMEMLPIWCOGHCTPJM \ / AMOS7 \ YOURUM ::
-#\[7]NARD7Q5677TPU5L6KTMFHLCJ7BV4WZLJJGEZRKOUM2FWLCSSFWDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,..,,..,,..,,.,,,,,,,.,,,.,.,..,,...,...,,.,,,,,,,,,,..,,...,
+#EFYUWPPQ3JQF5IYTAR3NA5LHAEJVX4XPNJPCSTQ6YZEBICCWRFQXHF4JMULJJV76GPHS5QLOZCOIS
+#\\\|MZZOEGYKLGGONDFRECES4O4XNNLNCCRBL7Q75JLNWJPKQQ7NVW4 \ / AMOS7 \ YOURUM ::
+#\[7]3MUCL3TTFC6H4URKGLUFAVPKXJDIDO6CMNBBHNWAVTTEU2KJVYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

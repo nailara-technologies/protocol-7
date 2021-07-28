@@ -51,7 +51,7 @@ return
     or !$log_warning
     or <system.verbosity.console> < 2 and <system.verbosity.zenka_buffer> < 2;
 
-## detailed event parameters [ debug log levels ]
+## detailed event parameters [ devmod log levels ]
 ##
 my @attr_names = <[base.sort]>->( $watcher->attributes );
 my $lvl        = 2;
@@ -62,15 +62,15 @@ map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
 foreach my $akey (@attr_names) {
     my $val = $watcher->$akey // '<undef>';
-    next if $akey eq qw| debug | and !length($val);
+    next if $akey eq qw| devmod | and !length($val);
     <[base.log-delayed]>
         ->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
 }
 
 say STDERR <[base.format_error]>->( $EVAL_ERROR, 1 ) if length $EVAL_ERROR;
 
-#,,.,,.,.,,,,,.,,,,.,,,.,,,.,,,.,,,.,,,,.,,,.,..,,...,...,...,...,,,.,.,.,...,
-#EUNUAORVLFFAMGF23MHU6OPDCKV2CDSNZDPOYZ65ABZP6NFMXNUAGTRSJ267GNVL2A4BDC2JUELDA
-#\\\|DCXMNC4JRUYIZRNTVOIS75QS737SBVZB3ILP637ZQUUQDVBMATX \ / AMOS7 \ YOURUM ::
-#\[7]P2VGZ2VMPEMANWI4CUPG7MFWOXKM2JZGXJEWF7JSD2KXVSGIPSDI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,,,.,.,,,,,,.,,...,,..,.,.,..,,..,,...,...,.,.,,,.,,,,,..,,,,.,
+#WG6NSW2B2MP7BWRMHGQSMWRSISMQUHEOJUGTWMB4CTOQWFJJC2H22A4BWA437X3OVSGGEIVZZYCO4
+#\\\|72XJ76F7IOUGDZU37DTESEOQZEBLBOCTCDQO3BBBFBX4TJ2MLPV \ / AMOS7 \ YOURUM ::
+#\[7]D4653TAYBJNPR53EGKVMZNEXIZJW5WXLGF7RJHVNA43CSOV2UUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

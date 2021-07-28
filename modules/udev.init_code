@@ -19,10 +19,11 @@ die "'unbuffer' command not found [ install 'expect' package ]\n"
     if not defined <udev.path.unbuffer>;
 
 if ( defined <system.zenka.subname>
-    and <system.zenka.subname> eq qw| debug | ) {
-    <udev.debug-stdout.show-events> = 1;
-    <[base.log]>
-        ->( 0, "event logging to STDOUT enabled [ 'debug' subname ]" );
+    and <system.zenka.subname> eq qw| devmod | ) {
+    <udev.devmod-stdout.show-events> = 1;
+    <[base.log]>->(
+        0, "event logging to STDOUT enabled [ 'devmod' subname ]"
+    );
 }
 
 <[event.add_signal]>->(
@@ -33,8 +34,8 @@ if ( defined <system.zenka.subname>
 
 0;
 
-#,,,,,,,,,...,,.,,,..,.,.,,..,..,,.,.,.,.,,..,..,,...,...,...,...,,,,,,.,,.,,,
-#5MWKWBJI75NDE3T6ATD5BGCFOJAO6W2X2VAGZQBIHFTO75R7CFK5U5Y6FPQTVRFFQRVNX7C7CFABM
-#\\\|BOAUPXSWKSLC6KYUA2YFFS2N7ZA3VDCTFMD5LLB4R3MWSNOQAGW \ / AMOS7 \ YOURUM ::
-#\[7]6TK6F7P2VFFK75HWTPMWWV4RN3HULLSZLP5G3ZYJQAADGBLFAIDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,..,...,,,.,...,,..,,,,,..,,..,,...,...,.,.,,,,,,,.,..,,..,,
+#IUCFTII3UIIUQWMKCPWN2B5LTWNFMXEMUM7P42NMYG5ZMYZ2SEZS2H5F2HHS2XTVPHO46GTUCWWUS
+#\\\|ZXAOPOKXXXA5MC6UMBUHTPM2DZC7T5UF4WXPCCV4TKFYR5EQEF3 \ / AMOS7 \ YOURUM ::
+#\[7]H2OYM6QFLTOYUP5BH4OFOLYE6NNVVZCSTRTL43GFGQ6GAE6QDSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

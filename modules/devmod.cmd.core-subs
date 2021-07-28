@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = devmod.cmd.core-subs
+# param = [pattern]
+# descr = matching list of core-subroutines
+
+my $pattern = $$call{'args'};
+my $coderef = <base.core_subs>;
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n### list of loaded core-subroutines ###\n\n"
+        . join( "\n", <[base.reverse-sort]>->($coderef) ) . "\n\n"
+    }
+    if not defined $pattern;
+
+my $pattern_re;
+eval { $pattern_re = qr|$pattern| };
+
+if ($EVAL_ERROR) {
+    ( my $reason = $EVAL_ERROR ) =~ s| at .+\n$||;
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid regular expression '$pattern' [ $reason ]"
+    };
+}
+
+my @sub_list = grep {m|$pattern|} <[base.sort]>->($coderef);
+
+return {
+    'mode' => qw| false |,
+    'data' => "no loaded subroutines match '$pattern'"
+    }
+    if !@sub_list;
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n# .: core-subroutines matching '$pattern' :.\n\n"
+        . join( "\n", @sub_list ) . "\n\n"
+    }
+
+#,,.,,.,.,,..,,,,,.,.,...,,,,,.,.,,.,,.,,,,..,..,,...,...,..,,,..,...,...,.,,,
+#RXY3CNC76XLI7HZVODM5VX3TBULYBMZRAHJXBBC3MGN6NYAOJBWHBXOHHZMXDL74I2OFYIV5A73HQ
+#\\\|STKUB2PPNSCPYFRQUDME5R4ISH7I2YAFGG54FVEB6EUBZSOFNO2 \ / AMOS7 \ YOURUM ::
+#\[7]SBG32GITJBAHMDOEPXGW7RFDWHYJH6EDERWMQTVKQD6B2CR5K4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
