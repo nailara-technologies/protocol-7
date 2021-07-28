@@ -3,21 +3,25 @@
 # name  = base.event.add_signal
 # descr = assigns new signal handler and cancels old one if it existed
 
-my $signal  = $ARG[0]->{'signal'};
-my $handler = $ARG[0]->{'handler'};
+my $params    = shift;
+my $log_level = shift // 2;
+
+my $signal  = $params->{'signal'};
+my $handler = $params->{'handler'};
 
 my $callback;
 
 if ( defined $handler and defined $code{$handler} ) {
 
+    ##  wrapped for reloading source code  ##
     $callback = sub { $code{$handler}->() };
 
-} elsif ( not defined $handler and defined $ARG[0]->{'cb'} ) {
-    $callback = $ARG[0]->{'cb'};
+} elsif ( not defined $handler and defined $params->{'cb'} ) {
+    $callback = $params->{'cb'};
 } elsif ( defined $handler ) {
     <[base.s_warn]>->( "nonexistent callback '%s' configured", $handler );
     return undef;
-} elsif ( not defined $handler and not defined $ARG[0]->{'cb'} ) {
+} elsif ( not defined $handler and not defined $params->{'cb'} ) {
     warn 'no handler \ callback for signal event defined <{C1}>';
     return undef;
 }
@@ -26,17 +30,17 @@ if ( defined $handler and defined $code{$handler} ) {
 <watcher.signal>->{$signal}->cancel if exists <watcher.signal>->{$signal};
 
 if ( defined $SIG{$signal} ) {
-    <[base.logs]>->( 2, 'unregistering $SIG{%s} ..,', $signal );
+    <[base.logs]>->( $log_level, 'unregistering $SIG{%s} ..,', $signal );
     undef $SIG{$signal};
 }
 if ( defined $handler ) {
     <[base.logs]>->(
-        2,        'setting up handler %s for signal %s .,',
-        $handler, $signal
+        $log_level, 'setting up handler %s for signal %s .,',
+        $handler,   $signal
     );
 } else {
     <[base.logs]>->(
-        2, 'setting up signal %s handler with custom cb .,', $signal
+        $log_level, 'setting up signal %s handler with custom cb .,', $signal
     );
 }
 
@@ -44,22 +48,21 @@ eval {
     <watcher.signal>->{$signal} = Event->signal(
         'signal' => $signal,
         'cb'     => $callback,
-        'desc'   => "signal handler [$signal]",
+        'desc'   => sprintf( 'signal handler [%s]', $signal ),
         'prio'   => 0
     );
 };
 
-if ($EVAL_ERROR) {
+if ( length $EVAL_ERROR ) {
     delete <watcher.signal>->{$signal};
-    ( my $reason = "$EVAL_ERROR" ) =~ s| at .+$|<{C}>|;
-    warn $reason;
+    <[base.s_warn]>->( '%s <{C1}>', <[base.str.eval_error]> );
     return undef;
 }
 
 return <watcher.signal>->{$signal};
 
-#,,,.,,..,..,,..,,...,,,.,,,,,...,,,.,.,,,.,,,..,,...,...,...,.,,,,,,,..,,,,,,
-#QUXKMXKHSYDSPPS6QZVT6NMJYOMSPRW4DWSQKJLZLUOMQEVF3JDQ6YCDJUUP3RUSTVNJ3XOQINCY2
-#\\\|K7PJNPIVF6EPJWDS7UX7XWRG456PB3DJMYZA2CRXYCKBHYAHHGE \ / AMOS7 \ YOURUM ::
-#\[7]G2ET4GT7ZGJ4VQGGUDHA3NCRSF6FYDMM6EBL2FKK4ZOJZ45NQUCA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,...,.,,,,.,,,,,,.,.,,,,,,..,,,,,..,,...,...,...,...,,,,,...,.,,,
+#JHWE7F3KLT67CHYJD7SJWRCC5PFRBIC53BAB4KHV2C2YYF26XD24IMQYCUQQNICHPAJ527X2IKRDY
+#\\\|LP6HLWZGPENVIJEPHBPMRGXGGIJVH3OJU3MUCAJKSOVL2WTG7GW \ / AMOS7 \ YOURUM ::
+#\[7]X47UWTWBZUPNYEJQSUCPRFFHCY74UARA33PWIKZ6XVZ3CZCLZGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
