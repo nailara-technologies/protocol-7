@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = devmod.cmd.del-env
+# param = <key>
+# descr = delete value from ENV hash
+
+my $key = $$call{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'key name required' }
+    if not defined $key;
+return { 'mode' => qw| false |, 'data' => 'no such key' }
+    if not exists $ENV{$key};
+
+delete $ENV{$key};
+
+return { 'mode' => qw| true |, 'data' => 'deleted' };
+
+#,,..,.,.,,..,..,,.,,,,,.,..,,...,..,,...,,.,,..,,...,...,,,,,,,,,,,.,...,,,.,
+#OYDLIHNI3DGBNLUPWHHPU72DCBL2UMODU6T67POQRAVE6PPM7UMQPGJYPXBYIXY5IO4OWJTBFNS34
+#\\\|Q67XNJD4LEUZPNMEYJAT3SF3DY5NNA5SWXN5HJH6ZBAGEUS5C7G \ / AMOS7 \ YOURUM ::
+#\[7]XNG4QPOLDVOUDIRUUBX3C5MROAHIDQ3MHMYAU5AVP7NB7X4WZ4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

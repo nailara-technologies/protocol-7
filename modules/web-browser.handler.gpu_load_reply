@@ -45,21 +45,21 @@ my $skip = (
 <web-browser.redraw_fps.slowdown_target> = $target_percent
     if !$skip;    # SET new val.
 
-# debug section
+# devmod section
 $target_percent = <web-browser.redraw_fps.slowdown_target>;
 my $delta_t   = sprintf( '%.2f', $target_percent - $old_target );
 my $delta_str = $delta_t > 0 ? " +$delta_t" : " $delta_t";
 $delta_str    = '' if $delta_t == 0;
 $load_percent = sprintf( '%.2f', $load_percent );
-<web-browser.debug.loglevel.autospeed> //= 2;
+<web-browser.devmod.loglevel.autospeed> //= 2;
 <[base.log]>->(
-    <web-browser.debug.loglevel.autospeed>,
+    <web-browser.devmod.loglevel.autospeed>,
     "<autospeed> GPU ${load_percent}% -< $percent_exceeded"
         . " >- [ SLW ${target_percent}% ]$delta_str"
 );
 
-#,,,,,.,.,,,,,.,,,.,.,.,,,,.,,..,,.,.,,..,.,.,..,,...,...,,,.,.,,,,.,,,,,,,,,,
-#ONNZMXADBYPCGDRMJPFHISQJ2PPBQYE2CJQFBHDVBZCTFBL7WC4OEFGMMYKJGB24SOWABVKD5L7GO
-#\\\|7LCZXNBWXCEKYDYRBRPCE5MAHGSHSFJMVMQBTQBUWB5VM5BY5LO \ / AMOS7 \ YOURUM ::
-#\[7]KKS6IEB3HLX2PIKUF37BDZTCOXXONHGDPZVKDMF5A3WZY72WSSDY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,.,,,,,,,,,,...,...,.,,,..,,..,,..,,...,..,,.,.,.,,,..,,...,..,,
+#2K7T2Z2IS6XU3SQPWLG5RH6BT25AWZT2QV34OWLUFXTUIYKER3SYMIER6MQIQBOECBPRF3AKSESOY
+#\\\|RTDZG5OZ357MQBBYCKF3JMEOFPFJZAU3C4VH4QUUIH5XTIM7EKB \ / AMOS7 \ YOURUM ::
+#\[7]AEZ5RWC2SCZVTOFNSDQAE7NDDAJPEHKNXYD5RVI3Y4BC5QCDUQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

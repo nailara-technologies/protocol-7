@@ -1,0 +1,20 @@
+## >:] ##
+
+# name  = devmod.pre_init
+# descr = loads Data::Dumper for devmod purposes
+
+<[base.log]>->( 0, '<< devmod module enabled in configuration >>' )
+    if not exists <system.reload>;  ## <-- logged seperately in reload command
+
+<[base.perlmod.autoload]>->( 'Data::Dumper', qw| Dumper | );
+$Data::Dumper::Sortkeys = 1;
+
+utf8::encode( <devmod.unicode>->{'HoTeYum-AsURum'} = '호테윰 앗우룸' );
+
+0;
+
+#,,,,,,.,,..,,..,,..,,,.,,,.,,,,,,,,.,.,,,,.,,..,,...,...,.,.,,,,,,,,,..,,,,,,
+#MVEK7FZ4NUUEXWQ56WAS4R7P5EVZV4HABM5ZZ2RKIU6SSXFTCGBN53RQZH6WTDZEZYIHG53K2ZZ3U
+#\\\|5ZMN3Y4I4NM4HRF3FA7Q2UYZ2OUO6FYBL37OWCJYKAY2PKNNYO7 \ / AMOS7 \ YOURUM ::
+#\[7]WMTRYDQP7OI3KV7FNSLZ3COJGGIYMW3JCNXX4ADHTB5I2G2EAGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

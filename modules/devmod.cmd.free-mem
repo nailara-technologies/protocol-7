@@ -1,0 +1,21 @@
+## >:] ##
+
+# name  = devmod.cmd.free-mem
+# descr = allocated bytes to zenka memory pool
+
+return { 'mode' => qw| false |, 'data' => 'none was allocated' }
+    if not defined <devmod.eaten_memory> or !length(<devmod.eaten_memory>);
+
+my $bytes_returned = length(<devmod.eaten_memory>);
+undef <devmod.eaten_memory>;
+
+return {
+    'mode' => qw| true |,
+    'data' => "returned $bytes_returned to zenka memory pool"
+};
+
+#,,..,.,,,.,.,.,,,,,.,..,,,..,...,.,,,,.,,,,,,..,,...,...,,.,,..,,.,.,..,,.,,,
+#OHZH5MBEW33MYQXF3KON4GRKGXSNM42HJ6DHOE6AF6ML2RYM6QNOM53S7D6XIX6XNCNL32VSYQ5UE
+#\\\|DHAFVABTP5GP5PXR4M2K62LBXLBUWRG6SKRDPGGF6OEU372CWUM \ / AMOS7 \ YOURUM ::
+#\[7]BR65NSNZTFGO6LU3JX6M357AQWUWEUVUZI4AKD7EOE4HEFUMNYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

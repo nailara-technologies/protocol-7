@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = devmod.cmd.unload-devmod
+# descr = undefine loaded devmod-subroutines
+
+my $id = $$call{'session_id'};
+
+<base.devmod.keep_on_reload> = 0;
+
+return { 'mode' => qw| false |, 'data' => 'devmod module not loaded' }
+    if ref( $code{'devmod.dump'} ) ne 'CODE';
+
+## [LLL] create interface
+my %mod = map { $ARG => 1 } split( m| +|, <modules.load> );
+if ( delete $mod{'devmod'} ) {
+    <[base.log]>->( 1, '<< [persistently] disabled devmod module >>' );
+
+    ## account for deprecated configuration style ##
+    <modules.load> = join( ' ', <[base.sort]>->( \%mod ) )
+        if defined <modules.load>
+        and <modules.load> =~ m|(*nlb:\S)devmod(*nla:\S)|;
+}
+
+<[base.log]>->( 0, "[$id] unloading devmod source code ..," );
+
+<[base.purge_code]>->('devmod') and delete <base.p7_mod.loaded.devmod>;
+
+return { 'mode' => qw| true |, 'data' => 'devmod commands removed =)' }
+    if ref( $code{'devmod.dump'} ) ne 'CODE';
+
+<[base.log]>->( 0, '<< removing devmod module not successful >>' );
+
+return { 'mode' => qw| false |, 'data' => 'cannot remove devmod module `:|' }
+
+#,,..,,,.,,,,,,,,,.,.,.,,,,..,..,,,,.,..,,.,.,..,,...,..,,,.,,.,.,,.,,,,,,..,,
+#I3NFYBTXDNSRKUSQ63BPQERXWZC3Z4NCKN4HYNN4VWGKE5QPRIE5QTHEU5XXZTSCYAV3BO7VF3FRU
+#\\\|ACJYKZLWAT45FRBMVPMVWR2K3JKBODJPF63T4UJBLP2TV7AHRTZ \ / AMOS7 \ YOURUM ::
+#\[7]N6JVNA6MEQH65IHYLJV6Y7NJE55XXPVQMMZBMTDSGESETSGMF4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

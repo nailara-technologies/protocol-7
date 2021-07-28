@@ -1,0 +1,31 @@
+## >:] ##
+
+# name  = devmod.cmd.b32-elf
+# descr = decode base32 + VAX encoded elf value
+# param = <b32>
+
+my $b32_str = $$call{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected base32 encoded elf value'
+    }
+    if $b32_str !~ /^[0-9A-Z]+$/;
+
+my $elf_bin = Crypt::Misc::decode_b32r($b32_str);
+
+return { 'mode' => qw| false |, 'data' => 'expected base32 encoding' }
+    if not defined $elf_bin;
+
+my $elf_int = unpack( 'V', $elf_bin );
+
+return { 'mode' => qw| false |, 'data' => 'not an encoded number' }
+    if $elf_int !~ /^\d+$/;
+
+return { 'mode' => qw| true |, 'data' => $elf_int }
+
+#,,..,..,,..,,.,,,..,,,,.,...,,,.,..,,.,,,,,.,..,,...,...,,..,,.,,,,.,,,,,,..,
+#MT2AX5GD4OULXPTR273FYTFPPZ6QT4JX4MHDP76DKCRXGXXRVJAHDJ62W3E4XPXWZYFPG67XFEVNC
+#\\\|LHKJG6IDKXSX6J7E5R4IBTRAV34ZPQHDTQNKEKUQ7PPHD6XZCF5 \ / AMOS7 \ YOURUM ::
+#\[7]PW53DR3YICKVYCRM5ZP6CSDYPRRPZHEZ36G5QSZGCP3UBO7FICAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

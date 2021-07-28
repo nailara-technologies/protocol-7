@@ -61,25 +61,25 @@ if ( @{$added_all_ref} ) {
 
 map { <[base.clean_hashref]>->( $zenka_config->{$ARG} ) } @all_zenki;
 
-if (    exists <system.subs_loaded.debug>
-    and <system.subs_loaded.debug> > 1
+if (    exists <system.subs_loaded.devmod>
+    and <system.subs_loaded.devmod> > 1
     and <system.verbosity.console> > 4 ) {
-    ( my $debug_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
-    print "\n < v7.start_setup.zenki.config >\n\n$debug_str\n";
+    ( my $devmod_str = Dumper($zenka_config) ) =~ s{^.{7}|;$}{  }mg;
+    print "\n < v7.start_setup.zenki.config >\n\n$devmod_str\n";
 }
 
 map { <[v7.autostart_zenki]>->($ARG) if !<[v7.start_count]>->($ARG) }
     $added_start_ref->@*;
 
 print Dumper( $data{'jobqueue'} )
-    if exists <system.subs_loaded.debug>
-    and <system.subs_loaded.debug> > 1
+    if exists <system.subs_loaded.devmod>
+    and <system.subs_loaded.devmod> > 1
     and <system.verbosity.console> > 4;
 
 0;
 
-#,,.,,.,,,,.,,,.,,...,..,,,.,,,,.,,,,,.,,,..,,..,,...,..,,...,..,,,..,,,.,,,.,
-#CHRLNDCBTUIPIAUFRHQLW24WDTI6QQYZEVXEBKH3TGYQ3FPLOSR3TED7NCEPQZXK67MKSNQ3PYJT6
-#\\\|6MXJB6PDCIK5L4ZSSQ3PRRVGUED75T23RXXTSSRGVVL7P5W2TNW \ / AMOS7 \ YOURUM ::
-#\[7]6PIEPJZ254XMOYZKUCLXVCB5XWQ7BKC46QJB6LIZLKCMZDN2Q4DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,,..,...,.,,,.,.,.,,,,..,,.,,..,,...,...,...,,,,,,,,,,..,,,.,
+#NGTDHDV7EMLDNAUOKB4IUTANOVFCYCNZ3DAMXB6F76Q6UVD253Q4NO2Z7JUD364ORCSFI5YCA64PM
+#\\\|WR2UD6RMZNDOLKTFZMZ5JTXIOGRHNU7ED3VWTC562IAKVG6LPDG \ / AMOS7 \ YOURUM ::
+#\[7]RBFLPEWQI5DEPCOYH7H5KO2JOSRBAIOKNCZZXKVGHKGS54AA3OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
