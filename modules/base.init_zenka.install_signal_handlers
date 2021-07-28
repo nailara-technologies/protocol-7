@@ -10,7 +10,7 @@ my %ignored_sig   = map { uc $ARG => 5 } keys %SIG;
 my %silent_signal = map { uc $ARG => 5 } qw| CLD WINCH |;
 foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
     $signal_name =~ s|^SIG|| if index( $signal_name, qw| SIG |, 0 ) == 0;
-    delete $ignored_sig{ uc($signal_name) };
+    delete $ignored_sig{ uc $signal_name };
 }
 
 foreach
@@ -52,12 +52,13 @@ foreach
     <[event.add_signal]>->(
         {   'signal'  => $uc_sig,
             'handler' => $signal_handler_name
-        }
+        },
+        3    ## <-- log level 3 ##
     );
 }
 
-#,,,,,..,,..,,.,,,.,.,,,,,..,,,,.,.,,,,,,,...,.,.,...,...,..,,,,,,,,.,,,,,..,,
-#46U2NQMIK6FVKNVG7V5ETMX3COPNNFMAAJS5S545I3WLAMPFX3H2XTECJULOY5QWZZ537Q6FNPQ2G
-#\\\|WICSJOFEBYC6M25UO62OEDW4TJ7TE5VNTD3BH674MMAHDOUZHAB \ / AMOS7 \ YOURUM ::
-#\[7]34C3XTBIGOIJJRWXIDA3QPT67CJ54TBEL4LNE4VB6BAHMTGTSKBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,.,.,,,,,,,.,,,.,,..,,.,,,.,,.,.,...,...,...,.,,,,.,,,..,.,.,
+#LIRZAYSBDB54OAJBV6EXS6OQXTV7FXLANN4QF42VFZR6V44VHYBIEVMV6NZ3HUXHTKCCOKJGBZXR2
+#\\\|4GWNC7SHLVNU2DVRNMAVCD42O23I22KCAUZXPGW26ANAJZOAEAE \ / AMOS7 \ YOURUM ::
+#\[7]6ZDC6A34AF6URTBXOXDGTBHJJROZPRB6STQCRPTD5SWWVBANDQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
