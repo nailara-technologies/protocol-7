@@ -3,32 +3,39 @@
 # name = tile-groups.process-tile-group
 
 my $tile_group_name = shift;
+
 return <[base.log]>->(
-    0, 'process-tile-group: expected tile group name parameter'
+    0, 'process-tile-group : no tile group name parameter defined'
 ) if not length( $tile_group_name // '' );
 
-return <[base.log]>->( 0, "no tile group '$tile_group_name' in set up.," )
-    if not exists <tile-groups.setup.tile-groups>->{$tile_group_name};
+return
+    <[base.logs]>->( 0, "no tile group '%s' in set up.,", $tile_group_name )
+    if not defined <tile-groups.setup.tile-groups>->{$tile_group_name};
 
-<[base.log]>->( 1, "processing tile group '$tile_group_name'.," );
+<[base.logs]>->( 1, "processing tile group '%s'.,", $tile_group_name );
 
 if ( defined <tile-groups.setup.ticker_zenka_type> ) {
     my $ticker_type = <tile-groups.setup.ticker_zenka_type>;
-    foreach my $tile_groups ( keys %{<tile-groups.setup.tile-groups>} ) {
+    foreach
+        my $tile_groups ( <[base.sort]>->(<tile-groups.setup.tile-groups>) ) {
+
         my $_tile_groups_data
             = <tile-groups.setup.tile-groups>->{$tile_groups};
 
         map {  # ticker-sdl probably won't work anymore until it was updated.,
             if ( $ARG =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
-                my $tile_name = $2 // '';
 
-                my $new_name = "ticker-$ticker_type$tile_name";
+                my $tile_name = ${^CAPTURE}[1] // '';
+
+                my $new_name = sprintf qw| ticker-%s%s |, $ticker_type,
+                    $tile_name;
+
                 $_tile_groups_data->{$new_name}
                     = delete $_tile_groups_data->{$ARG}
                     if $new_name ne $ARG;
 
-                $_tile_groups_data->{$new_name}->{'layer'}
-                    //= 100;    # <-- on top.
+                ## on top. ##
+                $_tile_groups_data->{$new_name}->{'layer'} //= 100;
             }
 
             # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
@@ -36,7 +43,7 @@ if ( defined <tile-groups.setup.ticker_zenka_type> ) {
             $_tile_groups_data->{$ARG}->{'layer'} //= 1000
                 if $tile_groups =~ m|^overlay_|;
 
-        } keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} };
+        } keys <tile-groups.setup.tile-groups>->{$tile_groups}->%*;
     }
 }
 
@@ -47,35 +54,36 @@ my $tile_groups_data = <tile-groups.setup.tile-groups>->{$tile_group_name};
 if ( defined $previous_tile_groups ) {
     if ( $previous_tile_groups eq $tile_group_name ) {
         <[base.log]>->(
-            0, "current and previous tile group identical, processing ended.,"
+            0, 'current and previous tile group identical, processing ended.,'
         );
         return 0;
     }
     $previous_data = <tile-groups.setup.tile-groups>->{$previous_tile_groups};
-    map {
-        push( @remove_zenki, $ARG )
-            if not exists $tile_groups_data->{$ARG}
-        }
-        keys( %{$previous_data} );
+    map { push @remove_zenki, $ARG if not exists $tile_groups_data->{$ARG} }
+        <[base.reverse-sort]>->($previous_data);
 }
 
 <tile-groups.transition.status> //= {};
 
 if (<tile-groups.startup.initializing>) {
-    my $kill_count = 0;
-    foreach my $tile_groups ( keys %{<tile-groups.setup.tile-groups>} ) {
+    my $zenka_stop_cnt = 0;
+    foreach
+        my $tile_groups ( <[base.sort]>->(<tile-groups.setup.tile-groups>) ) {
         my $_tile_groups_data
             = <tile-groups.setup.tile-groups>->{$tile_groups};
         ###
         foreach my $stop_zenka (
-            keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} } ) {
+            <[base.reverse-sort]>->(
+                <tile-groups.setup.tile-groups>->{$tile_groups}
+            )
+        ) {
             <tile-groups.transition.status.zenki.stop>->{$stop_zenka}
                 = $previous_tile_groups // $tile_group_name;
         }
         ###
         map {
             my $stop_zenki
-                = exists $_tile_groups_data->{$ARG}->{'stop_zenki'}
+                = defined $_tile_groups_data->{$ARG}->{'stop_zenki'}
                 ? join( ' ', $_tile_groups_data->{$ARG}->{'stop_zenki'},
                 $ARG )
                 : $ARG;
@@ -84,8 +92,9 @@ if (<tile-groups.startup.initializing>) {
                     'call_args' => { 'args' => $stop_zenki }
                 }
             );
-            $kill_count++;
-        } keys %{ <tile-groups.setup.tile-groups>->{$tile_groups} };
+            $zenka_stop_cnt++;
+            } <[base.reverse-sort]>
+            ->( <tile-groups.setup.tile-groups>->{$tile_groups} );
     }
 } else {
     map {
@@ -100,7 +109,7 @@ if (<tile-groups.startup.initializing>) {
 <tile-groups.layers>      = {};
 <tile-groups.tiles>       = {};
 
-foreach my $zenka_name ( keys %{$tile_groups_data} ) {
+foreach my $zenka_name ( <[base.sort]>->($tile_groups_data) ) {
 
     <tile-groups.coordinates>->{$zenka_name}
         = <[tile-groups.calculate_coordinates]>
@@ -124,13 +133,12 @@ foreach my $zenka_name ( keys %{$tile_groups_data} ) {
         }
     }
 
-    next
-        if !<tile-groups.startup.initializing>
+    next    ## zenka set-up identical [ not touching running zenka ] ##
+        if not <tile-groups.startup.initializing>
         and defined $previous_tile_groups
-        and exists $previous_data->{$zenka_name}
+        and defined $previous_data->{$zenka_name}
         and cmpStr( $previous_data->{$zenka_name},
-        $tile_groups_data->{$zenka_name} )
-        == 0;    # zenka setup identical [ not touching running zenka ]
+        $tile_groups_data->{$zenka_name} ) == 0;
 
     <tile-groups.window_ids>->{$zenka_name} //= undef;
     <tile-groups.transition.status.zenki.start>->{$zenka_name}
@@ -141,7 +149,7 @@ map {
     my $tile_name = '';
     my $name_copy = my $zenka_name = $ARG;
     $tile_name = $1 if $zenka_name =~ s|\[([^\]]+)\]$||;
-    if ( length($tile_name) ) {
+    if ( length $tile_name ) {
         <tile-groups.tiles>->{$tile_name}->{'zenka'} = $zenka_name;
         my %pos_match;
         my $pos_hint_str     = '';
@@ -152,35 +160,40 @@ map {
             and $coords->{'right'} >= <x11.screen.width> - $border_tolerance
             and $coords->{'bottom'}
             >= <x11.screen.height> - $border_tolerance ) {
-            $pos_hint_str = 'fullscreen';
+            $pos_hint_str = qw| fullscreen |;
         } else {
-            foreach my $border_name ( keys %{$coords} ) {
+            foreach my $border_name ( keys $coords->%* ) {
                 my $coord_val = $coords->{$border_name};
-                my $h_w       = sprintf( '%.0f', <x11.screen.width> / 2 );
-                my $h_h       = sprintf( '%.0f', <x11.screen.height> / 2 );
-                $pos_match{$border_name} = 1
+                my $h_w       = sprintf qw| %.0f |, <x11.screen.width> / 2;
+                my $h_h       = sprintf qw| %.0f |, <x11.screen.height> / 2;
+                $pos_match{$border_name} = 5    ## true ##
                     if ( $border_name eq 'top' and $coord_val < $h_h * 0.8 )
                     or ( $border_name eq 'left'  and $coord_val < $h_w * 0.8 )
                     or ( $border_name eq 'right' and $coord_val > $h_w * 1.2 )
                     or
                     ( $border_name eq 'bottom' and $coord_val > $h_h * 1.2 );
             }
-            if ( scalar keys(%pos_match) == 4 ) {
-                %pos_match = ( 'center' => 1 );
-            } elsif ( defined $pos_match{'top'}
-                and defined $pos_match{'bottom'} ) {
+            if ( scalar keys %pos_match == 4 ) {
+
+                %pos_match = ( qw| center | => 5 );    ## true ##
+
+            } elsif ( exists $pos_match{'top'}
+                and exists $pos_match{'bottom'} ) {
+
                 delete $pos_match{'top'};
                 delete $pos_match{'bottom'};
-            } elsif ( defined $pos_match{'left'}
-                and defined $pos_match{'right'} ) {
+
+            } elsif ( exists $pos_match{'left'}
+                and exists $pos_match{'right'} ) {
+
                 delete $pos_match{'left'};
                 delete $pos_match{'right'};
             }
-            $pos_hint_str = join( '-', sort( keys(%pos_match) ) );
+            $pos_hint_str = join( qw| - |, <[base.sort]>->( \%pos_match ) );
         }
         <tile-groups.tiles>->{$tile_name}->{'pos_hint'} = $pos_hint_str;
     }
-} keys <tile-groups.setup.tile-groups>->{$tile_group_name}->%*;
+} <[base.sort]>->( <tile-groups.setup.tile-groups>->{$tile_group_name} );
 <list.tiles> = {
     'var'      => qw| data |,
     'key'      => qw| tile-groups.tiles |,
@@ -191,36 +204,35 @@ map {
 
 if ( defined <tile-groups.tiles_visible_file> ) {
     ( my $parent_dir = <tile-groups.tiles_visible_file> ) =~ s|/([^/]*)$||;
-    my $file_name = $1;
-    if ( not length($parent_dir)
-        or -d $parent_dir ) {
-        <[base.log]>->(
-            1,
-            sprintf( ":. writing to '%s'.,",
-                <tile-groups.tiles_visible_file> )
+    my $file_name = $LAST_PAREN_MATCH;
+    if ( not length $parent_dir or -d $parent_dir ) {
+        <[base.logs]>->(
+            ":. writing to '%s'.,",
+            <tile-groups.tiles_visible_file>
         );
         <[file.put]>->(
             <tile-groups.tiles_visible_file>,
-            join( ', ', sort keys %{<tile-groups.tiles>} ) . "\n"
+            join( ', ', <[base.sort]>->(<tile-groups.tiles>) ) . "\n"
         );
     } else {
-        <[base.log]>->( 0, "<< ! >> '$parent_dir' not found << ! >>" );
-        <[base.log]>->( 1, " : not creating '$file_name'" );
+        <[base.logs]>->( 0, "<< ! >> '%s' not found << ! >>", $parent_dir );
+        <[base.logs]>->( " : not creating '%s'", $file_name );
     }
 }
 
-# [if enabled] monitor tile activity [by average color] restart zenka on timeout
-#
+## [if enabled] monitor tile activity          ##
+## [by average color] restart zenka on timeout ##
+##
 if (<tile-groups.watch_tiles.poll_tile_color>) {
 
-    my $start_interval = <tile-groups.watch_tiles.poll_int_start>
-        //= 42;    # def.
+    ##  default  ##
+    my $start_interval = <tile-groups.watch_tiles.poll_int_start> //= 42;
 
-    <[base.log]>->( 1, "<< tile activity monitoring is enabled >>" );
+    <[base.log]>->( 1, '<< tile activity monitoring is enabled >>' );
 
     if (<tile-groups.watch_tiles.comparison_mode>) {
         <[base.log]>->(
-            1, " : fetching X-11 background color., [ bgcol-mode ]"
+            1, ' : fetching X-11 background color., [ bgcol-mode ]'
         );
         <[base.protocol-7.command.send.local]>->(
             {   'command' => qw| cube.X-11.bg_color |,
@@ -230,15 +242,16 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
         );
     }
 
-    <[base.log]>->( 1, " : setting up \\ updating tile activity watchers.," );
+    <[base.log]>->( 1, ' : setting up \\ updating tile activity watchers.,' );
     my $timers = <tile-groups.timer.poll_tile_color> //= {};
-    map { $timers->{$ARG}->cancel if $timers->{$ARG}->is_active }
-        keys %{$timers};
+    foreach my $poll_timer ( keys $timers->%* ) {
+        $timers->{$poll_timer}->cancel if $timers->{$poll_timer}->is_active;
+    }
 
-    foreach my $tile_name ( keys %{<tile-groups.tiles>} ) {
+    foreach my $tile_name ( <[base.sort]>->(<tile-groups.tiles>) ) {
 
-        my $interval_secs = sprintf( '%.2f',
-            $start_interval + rand( $start_interval * 0.1 ) );
+        my $interval_secs = sprintf( qw| %.2f |,
+            $start_interval + rand( $start_interval * 0.13 ) );
 
         $timers->{$tile_name} = <[event.add_timer]>->(
             {   'after'    => $start_interval,
@@ -256,15 +269,15 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
 #
 ###
 
-<tile-groups.startup.initializing> = 0;
+<tile-groups.startup.initializing> = 0;    ##  false  ##
 
 <[base.protocol-7.command.send.local]>
-    ->( { 'command' => 'cube.content.update' } );
+    ->( { 'command' => qw| cube.content.update | } );
 
 <[tile-groups.handler.transition]>;
 
-#,,,.,...,,,.,...,.,.,,.,,.,,,.,.,.,,,.,,,.,,,..,,...,...,,..,.,.,,.,,...,...,
-#W5BD73TM6O5GTNZVT4IB4LS6BWZDPOB72VWIE6D2CX3W6SURIMDY3R7L74NYWJMF65TGFYR7RIEJG
-#\\\|UGS6PA645OR52WJNEUVT3VJXDTQLIE3AO7YPO4OWLLW7DDKJ5RK \ / AMOS7 \ YOURUM ::
-#\[7]MDW2PZLMN254DSTUYNBBKOIXRPHIJKMCGH3SAD2F63SRJOSY22CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,.,,.,,,,,,,,.,,..,,.,,.,.,,.,,..,,...,..,,.,,,,..,..,,.,.,.,,,
+#B3IXQPHD3WIX4I6D4MW3DW22FW5FDTU634WADMZCOHDEYJKJ4B2ZYU7XMJEUMX7C4JIP6AZAGT4DK
+#\\\|WZCBGOGI5D2DYGFPPC2EAHCF64G3NX23SBQ3RMBW35MLR3HUG6J \ / AMOS7 \ YOURUM ::
+#\[7]J6CVOFIEYBYRXITQEY7J5VLWXNM6YA5WKGA5RBTZ2AUV6Y7NM6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -192,18 +192,24 @@ if ( <tile-groups.restore_tile-groups_enabled> and -f $current_cfg_path ) {
     <[base.log]>->( 1, '<< restoring of current tile group is disabled >>' );
 }
 
-<[base.log]>->( 0, 'no default tile group configured.,' )
-    if not exists <tile-groups.fallback_tile_group>
-    or not defined <tile-groups.fallback_tile_group>
-    or !length(<tile-groups.fallback_tile_group>);
-
 my $tile_group_name = $restore_tile_group_name
     // <tile-groups.fallback_tile_group>;
-my $log_level   = 1;
+
+my $log_level = defined $tile_group_name ? 0 : 1;
+
+<[base.log]>->( $log_level, 'no default tile-group name configured..,' )
+    if not defined <tile-groups.fallback_tile_group>
+    or not length <tile-groups.fallback_tile_group>;
+
+$log_level = 1;
 my $default_str = ' default ';
-if ( not defined <tile-groups.setup.tile-groups>->{$tile_group_name} ) {
+
+if ( defined $tile_group_name
+    and not defined <tile-groups.setup.tile-groups>->{$tile_group_name} ) {
+
     my $cfg_name_str
         = defined $config_name ? sprintf( " '%s'", $config_name ) : '';
+
     <[base.logs]>->(
         0,
         "default tile group '%s' "
@@ -219,6 +225,13 @@ if ( not defined <tile-groups.setup.tile-groups>->{$tile_group_name} ) {
     ($tile_group_name) = sort keys %{<tile-groups.setup.tile-groups>};
     $default_str = ' _fallback_ ';
     $log_level   = 0;
+
+} elsif ( not defined $tile_group_name ) {
+
+    <[base.log]>->(
+        1, ': no tile-group config name defined in zenka set-up .,'
+    );
+
 }
 
 $default_str     //= ' default ';
@@ -228,7 +241,7 @@ $tile_group_name //= <tile-groups.fallback_tile_group>;
 <[base.logs]>->(
     $log_level,   "selected%stile group '%s'",
     $default_str, $tile_group_name
-);
+) if defined $tile_group_name;
 
 if ( defined <tile-groups.fallback_tile_group> ) {
     ( my $fname = $default_cfg_path ) =~ s|^.*/||g;
@@ -260,8 +273,8 @@ map {
 
 0;
 
-#,,.,,.,.,...,,.,,,.,,..,,,.,,...,,..,,,.,.,.,..,,...,...,,.,,,,,,,,,,.,.,,.,,
-#6WWBB543ZASPXDA5CGH6YLVA5566H5WRQHBOSVAAWMOVFBNF32KEWIV5ZPWMH7GXJVA73M4UGDPGG
-#\\\|QNLB6A6YBVSD5ALZ5P5JW3HAUV4IBUKDKMDOXAMA6HSKQRMRSAV \ / AMOS7 \ YOURUM ::
-#\[7]TD7PMJYCRQH57MXK6SETLQ3WOB32PFUSXVCCYC3ABRNEO552JQCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,,,..,,.,.,,.,,,,,,,,,,...,,,,,..,,...,..,,,.,,.,,,,,,,,,.,,,.,
+#BRC4X7NHPIJHY2X7XDPGB33SA3RTV3MQ6ANKGIB76H5VYIG44PTS7A3WMILI2B4IICMVCVETCWVEG
+#\\\|QBSQVS752YPY3RWZLRRYEW57LX2243QOQX5SDK76JY4NJ2DNFSI \ / AMOS7 \ YOURUM ::
+#\[7]V4PIXNRQN7LMYO3ACEO3GWCIKQNLP5HOIJEJYZDYK3BCUD2OROCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
