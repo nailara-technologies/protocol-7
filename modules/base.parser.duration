@@ -1,18 +1,16 @@
 ## >:] ##
 
 # name  = base.parser.duration
-# descr = returns duration since given unix time in days hours mins and seconds
+# descr = return duration since given unix time [ days hours mins + seconds ]
 
 my @result;
 my $start_time = shift;
 my $precision  = shift;    ## optional [ overrides input param precision ] ##
 
 return qw|n/a| if not defined $start_time or $start_time !~ m|^\d+(\.\d+)?$|;
-$precision //= length( $LAST_PAREN_MATCH // '' );
-my $secs = Time::Seconds->new(
-    sprintf( qw| %.*f |,
-        $precision, <[base.time]>->($precision) - $start_time )
-);
+$precision //= defined $LAST_PAREN_MATCH ? length $LAST_PAREN_MATCH : 2;
+my $secs = Time::Seconds->new( sprintf qw| %.*f |,
+    $precision, <[base.time]>->($precision) - $start_time );
 
 my %result = (
     qw| days    | => 0,
@@ -22,80 +20,72 @@ my %result = (
     qw| minutes | => 0,
 );
 
-if ( $secs >= ONE_DAY() ) {
+if ( $secs >= ONE_YEAR() ) {
     $result{'years'} = sprintf qw| %d |, $secs->years;
-    my $d_rest = $secs->days - $secs->years * 365.24225;
-    $secs -= $d_rest * ONE_DAY();
+    my $d_rest = $secs->days - $secs->years * 365;    ## no 'leap' years ##
+    $secs -= $d_rest * ONE_YEAR();
 }
 if ( $secs >= ONE_DAY() ) {
     $result{'days'} = sprintf qw| %d |, $secs->days;
     $secs -= $result{'days'} * ONE_DAY();
 }
-if ( $secs >= ONE_DAY() ) {
+if ( $secs >= ONE_HOUR() ) {
     $result{'hours'} = sprintf qw| %d |, $secs->hours;
-    $secs -= $result{'hours'} * ONE_DAY();
+    $secs -= $result{'hours'} * ONE_HOUR();
 }
-if ( $secs >= ONE_DAY() ) {
+if ( $secs >= ONE_MINUTE() ) {
     $result{'minutes'} = sprintf qw| %d |, $secs->minutes;
-    $secs -= $result{'minutes'} * ONE_DAY();
+    $secs -= $result{'minutes'} * ONE_MINUTE();
 }
 $result{'seconds'} = $secs->seconds if $secs;
 
 if ( $result{'years'} and not $result{'days'} ) {
-    push(
-        @result,
-        sprintf( qw| %d year%s |,
-            $result{'years'}, <[base.cnt_s]>->( $result{'years'} ) )
-    );
+    push @result, sprintf '%d year%s', $result{'years'},
+        <[base.cnt_s]>->( $result{'years'} );
 } elsif ( $result{'years'} ) {
-    push( @result, sprintf( qw| %dy |, $result{'years'} ) );
+    push @result, sprintf( qw| %dy |, $result{'years'} );
 }
 
 if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
-    push( @result, sprintf( qw| %dd |, $result{'yday'} ) );
+    push @result, sprintf qw| %dd |, $result{'yday'};
 
 } elsif ( $result{'days'} ) {
-    push(
-        @result,
-        sprintf( qw| %d day%s |,
-            $result{'days'}, <[base.cnt_s]>->( $result{'days'} ) )
-    );
+    push @result, sprintf '%d day%s', $result{'days'},
+        <[base.cnt_s]>->( $result{'days'} );
 }
 
-if ( $result{'hours'} and !$result{'minutes'} and !$result{'seconds'} ) {
-    push
-        @result,
-        sprintf( qw| %d hour%s |,
-        $result{'hours'}, <[base.cnt_s]>->( $result{'hours'} ) );
+if ( $result{'hours'} and $result{'minutes'} == $result{'seconds'} == 0 ) {
+    push @result, sprintf '%d hour%s', $result{'hours'},
+        <[base.cnt_s]>->( $result{'hours'} );
 
 } elsif ( $result{'hours'} ) {
-    push @result, sprintf( qw| %02dh |, $result{'hours'} );
+    push @result, sprintf qw| %02dh |, $result{'hours'};
 }
 
-if ( $result{'minutes'} and !$result{'seconds'} ) {
-    push @result, sprintf( '%d min', $result{'minutes'} );
+if ( $result{'minutes'} and $result{'seconds'} == 0 ) {
+    push @result, sprintf '%d min', $result{'minutes'};
 
 } elsif ( $result{'minutes'} ) {
     if ( $result{'hours'} ) {
-        push @result,
-            sprintf( qw|%02d'%02d"|, $result{'minutes'}, $result{'seconds'} );
+        push @result, sprintf qw| %02d'%02d" |, $result{'minutes'},
+            $result{'seconds'};
     } else {
-        push @result,
-            sprintf( qw| %d'%02d" |, $result{'minutes'}, $result{'seconds'} );
+        push @result, sprintf qw| %d'%02d" |, $result{'minutes'},
+            $result{'seconds'};
     }
 }
 
-push @result, sprintf( '%ss', $result{seconds} )
+push @result, sprintf qw| %ss |, $result{seconds}
     if $result{'seconds'} and not $result{'minutes'} or not @result;
 
 my $result_str = join ' ', @result;
-$result_str =~ s| days? (\d+)h |d $1 | if length($result_str) >= 10;
+$result_str =~ s| days? (\d+)h |d $1 | if length $result_str >= 10;
 $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,,,,,,.,..,,,,.,..,,,,,,.,,,,..,,..,,..,,,.,..,,...,...,,,.,..,,,..,..,,,..,
-#2AHZM5YMAL4YOMW4K5LYEUGJMALAR542RNZ6PW4N7H44J5SHCTGSQUPWX5YCJYQ4YFCC2O4UJP5NM
-#\\\|ATU5VHG7M2PBICMG5JCQXFSDTEOSKV27ROQMCZQVZIA5MDOWQFR \ / AMOS7 \ YOURUM ::
-#\[7]CLX55N7FEFAPGBH4I7WJ3ORF4CDNGHQZIMKPPVLTBV7DGELSWMBI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,.,,.,,,.,,.,.,.,,,,,.,..,,..,,..,,...,..,,...,..,,,..,,.,,...,
+#SIQF7L6YGJCHQQPGCLUGED7MZ63OBYZ7NK64ASDFUXL5QH3AEHZTZUZAYOGCCHR7KZUVKOE7FXMW4
+#\\\|TZY3YE4LBSAD7PMDKW7IK6BXJMRDFA5Z2GDEMTMIVHQFOVONFAP \ / AMOS7 \ YOURUM ::
+#\[7]3CJYLMGBPMINDBLFDDTYG6N2QXSOSCU3YEKCIJKJETGSLYH2QQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

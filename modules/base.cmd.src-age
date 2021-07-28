@@ -7,7 +7,7 @@
 my $network_time;
 
 my $param_str     = shift->{'args'} // '';
-my $date_mode     = $param_str =~ s|^date *|| ? 1 : 0;
+my $date_mode     = $param_str =~ s|^date *|| ? 5 : 0;
 my $B32_re        = <regex.base.base_32>;
 my $current_ntime = <[base.ntime]>;
 
@@ -40,14 +40,15 @@ return { 'mode' => qw| false |, 'data' => 'decoding not successful' }
 my $src_unix = <[base.n2u_time]>->($src_ntime);
 
 ( my $date_stamp   = <[base.parser.timestamp]>->($src_unix) ) =~ s|:\d\d$||;
-( my $duration_str = <[base.parser.duration]>->($src_unix) )  =~ s|^0s$|0m|;
+( my $duration_str = <[base.parser.duration]>->( $src_unix, 2 ) )
+    =~ s|^0s$|0m|;
 
 return { 'mode' => qw| true |, 'data' => $date_stamp } if $date_mode;
 
 return { 'mode' => qw| true |, 'data' => $duration_str }
 
-#,,,,,...,,,.,..,,.,.,,,,,,..,,,.,...,,,,,,.,,..,,...,...,...,..,,...,.,.,.,,,
-#AWZ3EYPF5GIBINIGOZK3KDF36PAHVTJACRIZNQHP47RUBAWHLX67P4TVEU2XMDQBGETKDDDMQQKHO
-#\\\|TMX7LXFHXUASIT6UMITHUUBGAZQBSXCYI6IA2RKMATDPH76ERX4 \ / AMOS7 \ YOURUM ::
-#\[7]NC6G5NKFA6JNAUO7KL6BUEL6V7DCSBCBSBBXE4FDTSQJDGMEF6CY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,.,,.,.,,.,,,,.,.,.,,.,,...,,,,,..,,...,...,...,..,,,.,,,,,,...,
+#FDU4NK3ELTYJEIUC6GZXEFXU3Z3O6D435H7GBFXBSPWIWFWMJWJ2L6BEUPG6XSMAMBXUH6YCQTXBK
+#\\\|LJFY44MSCGSU5UFYUIZQPVDWFQIBBKFOEP7PWKRVFLLTKVFMLT5 \ / AMOS7 \ YOURUM ::
+#\[7]POBXSO4EDE5VJNRTJY3Q2NFS6OGK2T3KWDG6XI6M6K2EQ4HA6GBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
