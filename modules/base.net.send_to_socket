@@ -18,18 +18,25 @@ if ( not defined $send_fh ) {
 }
 
 if ( fileno $send_fh ) {
-    my $cid     = $data{'handle'}{$send_fh}{'cid'};
-    my $session = $data{'session'}->{$cid};
+
+    my $cid = ( defined $data{'handle'}->{$send_fh}
+            and defined $data{'handle'}->{$send_fh}->{'cid'} )
+        ##  has client session entry  ##
+        ? $data{'handle'}->{$send_fh}->{'cid'}
+        ##  fh without session  ##
+        : undef;
 
     my $size_written = -1;
-    if (    defined $data{'handle'}{$send_fh}
-        and defined $cid
+    if (    defined $data{'handle'}->{$send_fh}
+        and defined $cid    ## has session ##
         and <[base.is_defined_recursive]>->(
             sprintf qw| session.%d.output.handler |, $cid
         )
     ) {
-        if ( defined $code{ $session->{'output'}{'handler'} } ) {
-            my $output_handler_cb = $session->{'output'}{'handler'};
+        my $output_handler_cb
+            = $data{'session'}->{$cid}->{'output'}->{'handler'};
+
+        if ( defined $code{$output_handler_cb} ) {
 
             ##  check if write was complete [ blocking ]  ##  [ LLL ]
             ###
@@ -41,7 +48,7 @@ if ( fileno $send_fh ) {
             <[base.logs]>->(
                 0, "[%s] output handler '%s' is not defined", $send_fh
             );
-            $session->{'output'}{'handler'} = undef;
+            $data{'session'}->{$cid}->{'output'}->{'handler'} = undef;
             <[base.session.shutdown]>->( $cid, 'filter chain error' );
             return 2;
         }
@@ -53,24 +60,29 @@ if ( fileno $send_fh ) {
     }
 
     if ( $size_written > 0 ) {
-        $session->{'bytes'}{'in'} += $size_written
-            if defined $cid;
-        $data{'handle'}{$send_fh}{'bytes'}{'in'} += $size_written;
+
+        if ( defined $cid ) {
+            $data{'session'}->{$cid}->{'bytes'}->{'in'} += $size_written;
+        }
+        $data{'handle'}->{$send_fh}->{'bytes'}->{'in'} += $size_written;
 
     } elsif ( $size_written == 0 ) {    ## nothing written \ fh buffer full ##
         <[base.s_warn]>->(
             '[%s] remote not ready to write to, please make write async !!!',
             scalar( $cid // $send_fh )
         );
-        $session->{'flush_shutdown'} = 1;
-        eval { $send_fh->close() };     ##  forcing an exception  ##
+
+        $data{'session'}->{$cid}->{'flush_shutdown'} = 5 if defined $cid;
+
+        eval { $send_fh->close() };    ##  forcing an exception  ##
         return 2;
+
     } else {    ##  write error \ recipient fh gone. ##
         <[base.s_warn]>->(
             'write error in base.net.send_to_socket on %s <{C1}>', $send_fh
         );
         if ( defined $cid ) {
-            $session->{'shutdown'} = 1;
+            $data{'session'}->{$cid}->{'shutdown'} = 5;    ## true ##
         } else {
             eval { $send_fh->close() }    ##  forcing an exception  ##
         }
