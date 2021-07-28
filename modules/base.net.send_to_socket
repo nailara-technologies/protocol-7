@@ -18,7 +18,8 @@ if ( not defined $send_fh ) {
 }
 
 if ( fileno $send_fh ) {
-    my $cid = $data{'handle'}{$send_fh}{'cid'};
+    my $cid     = $data{'handle'}{$send_fh}{'cid'};
+    my $session = $data{'session'}->{$cid};
 
     my $size_written = -1;
     if (    defined $data{'handle'}{$send_fh}
@@ -27,26 +28,32 @@ if ( fileno $send_fh ) {
             sprintf qw| session.%d.output.handler |, $cid
         )
     ) {
-        if ( defined $code{ $data{'session'}{$cid}{'output'}{'handler'} } ) {
+        if ( defined $code{ $session->{'output'}{'handler'} } ) {
+            my $output_handler_cb = $session->{'output'}{'handler'};
+
+            ##  check if write was complete [ blocking ]  ##  [ LLL ]
+            ###
             $size_written = <[base.s_write]>->(
-                $send_fh,
-                $code{ $data{'session'}{$cid}{'output'}{'handler'} }
-                    ->( $payload_sref->$* )
+                $send_fh, $code{$output_handler_cb}->( $payload_sref->$* )
             );
+
         } else {
             <[base.logs]>->(
                 0, "[%s] output handler '%s' is not defined", $send_fh
             );
-            $data{'session'}{$cid}{'output'}{'handler'} = undef;
+            $session->{'output'}{'handler'} = undef;
             <[base.session.shutdown]>->( $cid, 'filter chain error' );
             return 2;
         }
     } else {    ##  write directly  ##
+
+        ##  check if write was complete [ blocking ]  ##  [ LLL ]
+        ###
         $size_written = <[base.s_write]>->( $send_fh, $payload_sref );
     }
 
     if ( $size_written > 0 ) {
-        $data{'session'}{$cid}{'bytes'}{'in'} += $size_written
+        $session->{'bytes'}{'in'} += $size_written
             if defined $cid;
         $data{'handle'}{$send_fh}{'bytes'}{'in'} += $size_written;
 
@@ -55,7 +62,7 @@ if ( fileno $send_fh ) {
             '[%s] remote not ready to write to, please make write async !!!',
             scalar( $cid // $send_fh )
         );
-        $data{'session'}{$cid}{'flush_shutdown'} = 1;
+        $session->{'flush_shutdown'} = 1;
         eval { $send_fh->close() };     ##  forcing an exception  ##
         return 2;
     } else {    ##  write error \ recipient fh gone. ##
@@ -63,7 +70,7 @@ if ( fileno $send_fh ) {
             'write error in base.net.send_to_socket on %s <{C1}>', $send_fh
         );
         if ( defined $cid ) {
-            $data{'session'}{$cid}{'shutdown'} = 1;
+            $session->{'shutdown'} = 1;
         } else {
             eval { $send_fh->close() }    ##  forcing an exception  ##
         }
@@ -75,8 +82,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,.,,,,,,.,.,.,,,,,,,,..,,.,,,,.,,,,,,,,,..,,..,,...,...,..,,..,,,..,.,.,...,
-#LTWEM2GI3GRDUP5JYXJD2V5LQVZDW3ZXBPHVNK62MHRVM7PXQLU6RJGFF3543YVL46KOK5ASOXXU2
-#\\\|HQYUJAOCHS7K5CVGR62RKJTEMM724CGFYDVTWA3WQ2BNOMT5RJW \ / AMOS7 \ YOURUM ::
-#\[7]B34BQJUBAMUWT3HJFYKIVJQCXWKFC6LYZAIQFZFPVE6NZBCZQODQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,..,,,.,.,.,.,.,,,,,,..,,..,,..,..,,...,..,,..,,,,.,.,.,..,,,.,,
+#R7TW3HSCTF3V43MQA72T3SNAGQMQSFPPWFO2V2CIHQ2TYNOGZB6KSIBXPXO2SDTPEGXHUO3ANMFPO
+#\\\|WGY5HHWWBCDMKZIFJI32CJRXEWGQP3IINWXBTV7LV6SUAJ4FRNW \ / AMOS7 \ YOURUM ::
+#\[7]RFFSFHYJEDUOBCQ7UCIK6SYMA5SOGJ3ZKDCYEU3KBUK4ENZTGKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
