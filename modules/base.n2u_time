@@ -4,13 +4,12 @@
 # descr = converts [ numerical ] nailara network time to unix time-stamps
 
 my $network_time = shift;
-my $precision    = shift // 3;
+my $precision    = shift;
 
-my $network_time_start = 2455747200000;
 <base.ntime_ustart> //= 1023228000;
-if (   not defined $network_time
-    or $network_time !~ m|^\d{13,}(\.\d+)?|
-    or $network_time < $network_time_start ) {
+
+if ( not defined $network_time
+    or $network_time !~ m|^\d+(\.\d+)?| ) {
     warn 'expected valid protocol-7 network time <{C1}>';
     return undef;
 }
@@ -19,22 +18,30 @@ $precision = 13 if defined $precision and $precision > 13;
 
 my $unix_float
     = sprintf( qw| %.14f |, ( $network_time / 4200 ) + <base.ntime_ustart> );
+
+##  samitizing precision  ##
 $unix_float =~ s|\.0+$||;
-if ( not defined $precision ) {
-    $precision = length($1) if $unix_float =~ m|\.(\d+)0*$|;
-    $precision = 7          if $precision > 7;
+
+if ( not defined $precision and $unix_float =~ m|\.(\d+)0*$| ) {
+    ##  inheriting precision from input when not specified  ##
+    $precision = length $LAST_PAREN_MATCH;
+    $precision = 17 if $precision > 17;
 }
 $precision //= 0;
-$unix_float = int($unix_float) if !$precision;
+$unix_float = int $unix_float if $precision == 0;
 
-my $unix_reply = <[base.fp_round_z]>->( $unix_float, $precision );
+my $unix_reply = <[base.round_truncate]>->( $unix_float, $precision );
 
-$unix_reply =~ s|0{3,}$||;
+##  samitizing precision  ##
+if ( index( $unix_reply, qw| . |, 0 ) >= 0 ) {
+    $unix_reply =~ s|\.?0{3,}$||;
+    $unix_reply =~ s|0{3,}\d$||;
+}
 
-return $unix_reply;
+return $unix_reply;    ##  return [precision] cleaned unix time value  ##
 
-#,,,.,...,,..,.,.,...,..,,.,,,,,,,,..,..,,,..,..,,...,...,...,,.,,,,.,,,,,.,.,
-#COYLPZU5QBVX3HILM6PDSABJK4EZU5HUDYGOTDENKXWYFUH7XFYPGGNTZ5XS4EIHJJ4BS4S6F6FSK
-#\\\|MSTXHLRAPZJ6B5ZHLBJ57YZJXRI2S3NXB3BB2UXENGYSHUBYX3O \ / AMOS7 \ YOURUM ::
-#\[7]FZYCONOJ6AVOELA7I6UTUKDY5NNAMD7LPIMZOUQPHAYXL4BGBUCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,..,,.,,..,,,,,,.,.,...,,.,,,,,,..,,...,...,...,,.,,.,,,...,..,,
+#LAYJKAJZRNTFYREUHVZHZF355PWGI4EAFZEKRC2HE2MKG7SJST24UBRHOCSA4NKT2PKA3HSGCOHUE
+#\\\|D4YGFGBIMHN7XXWR7K4DWZQYKNYEBI7UV6V4RCNJMXMTC56LKVC \ / AMOS7 \ YOURUM ::
+#\[7]GKET7CR7CJQQUYYIOKA5PGL2ARSKY63ITUVNPQTJXKGSBU5FQUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

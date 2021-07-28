@@ -1,0 +1,94 @@
+## >:] ##
+
+# name  = base.ntime.epoch_to_ntime
+
+my $current_epoch = shift;    ##  epoch 0 == network time start \ overflow  ##
+my $result_prec = shift // 17;  ## <-- optional [arbitary] result precision ##
+
+##  V7 network has 13 month year  ## [ 365 / 13 ]
+## state $epoch_days_Y13_month //= 28.0769230769230769230;
+
+## 4200 * 86400 * $epoch_days_Y13_month ##
+state $epoch_multi //= 10188553846.1538461538461;
+
+## 4200 * 86400 * 365 ##
+## state $ntime_secs_per_year //= 132451200000;
+
+## $ntime_secs_per_year * 355 ##
+state $epoch_overflow_ntm = 3925446025846153.8461538461538;
+## state $zulum_switch_distance //= 3616936615384.6153846153846;
+
+## ..355 years ##
+state $zulum_switch_threshold_ntime //= 3921829089230769;
+
+##  0 until threshold, then 1 .., ##
+my $zulum_offset_base = $epoch_overflow_ntm * sprintf qw| %u |,
+    <[base.ntime]> / $zulum_switch_threshold_ntime;
+
+## starts with network time start [ switches to overflow at -355 years to ] ##
+##
+return $zulum_offset_base
+    if length $current_epoch == 1
+    and index( $current_epoch, qw| 0 |, 0 ) == 0;
+
+state $b32_re //= <regex.base.base_32>;
+
+<base.ntime_ustart> //= 1023228000;
+
+if ( not length $current_epoch ) {
+    warn 'expected epoch [ num or encoded ] parameter <{C1}>';
+    return undef;
+} elsif ( $current_epoch =~ m|^\d+(\.\d+)?$|
+    and $current_epoch > 385279 ) {
+    warn 'epoch parameter out of range [ <= 385279 ] <{C1}>';
+    return undef;
+} elsif ( $current_epoch !~ m|^\d{1,6}(\.\d{1,13})?$| ) {
+
+    if (   $current_epoch =~ m|^(V7($b32_re){5})$|
+        or $current_epoch =~ m|^<(V7($b32_re){5})[;:]{4}>$| ) {
+
+        $current_epoch = <[base.ntime.epoch_timestamp]>->( ${^CAPTURE}[0] );
+
+        if ( not defined $current_epoch ) {
+            warn 'epoch time format not valid '
+                . '[ decoding not successful ] <{C1}>';
+            return undef;
+        }
+
+    } elsif ( $current_epoch =~ m|^$b32_re+$| ) {
+        warn 'input epoch string not valid '
+            . '[ format not recognized ] <{C1}>';
+        return undef;
+    }
+}
+
+my $ntime_val;
+if ( $result_prec <= 5 ) {    ##  regular precision  ##
+
+    $ntime_val = sprintf qw| %.*f |, $result_prec,
+        $zulum_offset_base + ( $current_epoch * $epoch_multi );
+
+} else {    ##  high precision [ Math::Bigfloat ]  ##
+    my $input_len = length($current_epoch);
+
+    <[base.perlmod.load]>->(qw| Math::BigFloat |)
+        if not <[base.perlmod.loaded]>->('Math::BigFloat');
+
+    Math::BigFloat->round_mode(qw| trunc |);
+    Math::BigFloat->accuracy( $result_prec + $input_len );
+
+    $ntime_val
+        = Math::BigFloat->new($current_epoch)
+        ->bmuladd( $epoch_multi, $zulum_offset_base,
+        $result_prec + $input_len )->bstr();
+}
+
+$ntime_val =~ s|\.?0+$||;    ##  sanitizing output precision  ##
+
+return $ntime_val;           ##  return V7 network time value  ##
+
+#,,,,,,..,,,,,.,.,.,,,,,.,.,,,..,,...,.,.,,.,,.,.,...,...,.,.,,..,.,.,,..,..,,
+#ZSZ2LQFQWR4K6PORQC35CQVFE5AK6XC26IF26HKDXFBVGDXN5D3GAGX4DCYUQZZCFIPK45INHBSEG
+#\\\|3A4OOYIQ7BVST3TI7T53YN2PBJM5UL2PF5LWYTCXZQMAJKUDMMG \ / AMOS7 \ YOURUM ::
+#\[7]BURFIILJHJZQXX2TKUCP44XBSCSQ5EBNAZ4IUCLPXCBQFTVLG2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

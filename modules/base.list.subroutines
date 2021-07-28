@@ -178,7 +178,6 @@ return [ qw[
         base.prng.bytes
         base.path_perms
         base.has_access
-        base.fp_round_z
         base.file.which
         base.file.slurp
         base.event.once
@@ -299,6 +298,7 @@ return [ qw[
         base.context.list
         base.cmd.term-all
         base.cmd.last-sid
+        base.cmd.epoch_v7
         base.cmd.cpu-time
         base.cmd.commands
         base.chk-sum.amos
@@ -379,6 +379,7 @@ return [ qw[
         base.cmd.verbosity
         base.cmd.ntime-dec
         base.cmd.localtime
+        base.cmd.epoch-num
         base.clear_p7_mods
         base.clean_unicode
         base.clean_hashref
@@ -431,6 +432,7 @@ return [ qw[
         configure.init_code
         btrx.cmd.currencies
         base.str.eval_error
+        base.round_truncate
         base.root.init_code
         base.reload_plugins
         base.prng.init_code
@@ -518,6 +520,7 @@ return [ qw[
         base.parser.duration
         base.parse_ncfg_code
         base.on_load_perlmod
+        base.ntime.epoch_dec
         base.handler.connect
         base.handler.command
         base.file.match_dirs
@@ -900,6 +903,7 @@ return [ qw[
         base.templates.init_code
         base.syntax.p7_reference
         base.session.check.close
+        base.perlmod.name_chksum
         base.parser.command_list
         base.ntime.delta_seconds
         base.import_config.plain
@@ -979,6 +983,7 @@ return [ qw[
         base.register_p7_mod_load
         base.parser.pattern_split
         base.parser.element_count
+        base.ntime.epoch_to_ntime
         base.log.send_buffer_line
         base.log.auto_decay_check
         base.is_defined_recursive
@@ -1056,8 +1061,10 @@ return [ qw[
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
+        base.perlmods.INC_path_pms
         base.parser.xclient-errors
         base.parser.data_hkey_tree
+        base.ntime.epoch_timestamp
         base.max-len.val-hash-keys
         base.log.handler.log_reply
         base.handler.session_error
@@ -1139,6 +1146,7 @@ return [ qw[
         base.perlmod.strip_INC_path
         base.perlmod.all_registered
         base.parser.ondemand_status
+        base.ntime.harmonized_epoch
         base.log.next_buffer_tstamp
         base.log.handler.send_timer
         base.handler.warn_nak_reply
@@ -1323,7 +1331,6 @@ return [ qw[
         mpv.handler.reenc_notify_reply
         mpv.callback.check_parent_dirs
         mod-test.update_blacklist_aref
-        mod-test.check_name_collisions
         melt.handler.frame_count_reply
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
@@ -1431,6 +1438,7 @@ return [ qw[
         content.handler.get_hidden_reply
         compton.callback.already_running
         base.sourcecode.in-mem.checksums
+        base.perlmod.get_collision_index
         base.parser.harmonized_reference
         base.number-cache.delete-content
         base.net.send_to_all_initialized
@@ -1526,6 +1534,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.select
         protocol-7-menu.cmd.get-action-keys
         osd-logo.handler.colortoalpha_reply
+        mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
@@ -1622,8 +1631,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,,,,,.,..,,...,.,,,..,,,,,,,,,,,,,,...,.,.,...,...,..,,,..,.,.,,.,,,,,,
-#4SOOH7NM6NCYYSLHWTLU2AVTCPLA6G53WTOXTEY7F4KUZLJ7NKODUARPS47FUYDRQAFDILOJSBLQK
-#\\\|J5DIQV27LM3EVBMM65JH5HHKLQ2PYJBW2LYF3QBQT5UZLNPWZMN \ / AMOS7 \ YOURUM ::
-#\[7]Y7DL572RJC4YT5M4UQ4GSSZK6DIIQXOERUO2RSMMLXO7BIXZ4ADI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,.,,,...,,..,.,.,...,,.,,...,.,.,...,...,..,,..,,,,.,,..,,.,,
+#QBYYHF2EJLF7HGX35SAVRD7VQ5ME7FIM7426DLN2FOCLDW5XN6QL3NQKSOL4RUOUY6EIPO67JTR6Q
+#\\\|H4ZI2Y2IMMOWLOUNRNNENIUMVRI3PJSIB5BNMBGJHPWEA2EOXQ4 \ / AMOS7 \ YOURUM ::
+#\[7]WEK4BFY2WMQ45XIBISPEC3TVD7X3EQRKSHQT75YFMOMUGEUGXUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,71 @@
+## >:] ##
+
+# name  = base.ntime.epoch_dec
+# descr = numerical network epoch value
+
+my $req_param     = shift;
+my $e_count_param = shift;
+
+if ( defined $req_param and $req_param !~ m,^(prev|current|next)$, ) {
+    warn 'param must be of either prev , current or next <{C1}>';
+    return undef;
+} elsif ( defined $e_count_param and $e_count_param !~ m|^\d+$| ) {
+    warn 'count param must be positive integer value <{C1}>';
+    return undef;
+} elsif ( defined $e_count_param and $e_count_param > 512 ) {
+    warn 'count param exceeds limit of 512 <{C1}>';
+    return undef;
+}
+
+state $epoch_days_per_year //= 365 / 13;  ##  V7 network has 13 month year  ##
+state $epoch_divisor       //= 4200 * 86400 * $epoch_days_per_year;
+state $epochs_total        //= 385280;
+
+my $current_epoch = <[base.ntime]> / $epoch_divisor;
+my $epoch_fp_rem  = $current_epoch - int $current_epoch;
+
+## overflow reset ##
+$current_epoch %= $epochs_total;
+
+return sprintf qw| %.13f |, $current_epoch + $epoch_fp_rem
+    if not defined $req_param;
+
+if ( $req_param eq qw| current | ) {
+    if ( defined $e_count_param ) {
+        warn "no count parameter expected with 'current' <{C1}>";
+        return undef;
+    }
+    return sprintf qw| %u |, $current_epoch;
+} elsif ( $req_param eq qw| prev | ) {
+    if ( not defined $e_count_param ) {
+        return sprintf qw| %u |,
+            $current_epoch > 0 ? $current_epoch - 1 : $epochs_total - 1;
+    } else {
+        my @epoch_return;
+        for ( 1 .. $e_count_param ) {
+            $current_epoch--;
+            $current_epoch = $epochs_total - 1 if $current_epoch < 0;
+            push( @epoch_return, $current_epoch );
+        }
+        return @epoch_return;
+    }
+} elsif ( $req_param eq qw| next | ) {
+    if ( not defined $e_count_param ) {
+        return sprintf qw| %u |,
+            ( $current_epoch + 1 < $epochs_total ) ? $current_epoch + 1 : 0;
+    } else {
+        my @epoch_return;
+        for ( 1 .. $e_count_param ) {
+            $current_epoch++;
+            $current_epoch = 0 if $current_epoch == $epochs_total;
+            push( @epoch_return, $current_epoch );
+        }
+        return @epoch_return;
+    }
+}
+
+#,,..,...,.,.,..,,.,.,,..,.,.,.,.,..,,,,,,,,.,..,,...,...,...,,,.,..,,,.,,,..,
+#OHJGPUGD5CCTIFR352CNSK3GLSWGVZBPNMHN6FCBH6LWEDBNHLCO4YBFPJTW56FXYW2AFGVZOX3GM
+#\\\|HHGOCN5PQ4UZWPA52XTQ4HWMMRHWGEIZDHLS5IDPLCSJUSMVLWX \ / AMOS7 \ YOURUM ::
+#\[7]QQNLRUQKTMCGNLXU775OH4X7EB3U7XTWKVIITBNHSSYMP6R3H2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

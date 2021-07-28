@@ -11,43 +11,35 @@ if ( not length $param_str ) {
     return undef;
 } elsif ( $param_str =~ m|^\d{1,8}$| ) {
 
-    my $enc_numerical = 99999999 - $param_str;
+    if ( $param_str > 385279 ) {
+        warn 'collision index parameter out of range [ <= 385279 ] <{C1}>';
+        return undef;
+    }
 
-    return Crypt::Misc::encode_b32r( pack qw| w |, $enc_numerical );
+    return <[base.ntime.epoch_timestamp]>->($param_str);
 
 } elsif ( $param_str =~ m|$b32_re{7}| ) {
 
-    ##  range ends with V7 [ 99221759 == 778240 ] ##
+    ##  RANGE : V7 ..
+    ##  99614720 .. 99999999  ==  0 .. 385279  ##
     ##
-    if ( index( $param_str, qw| V7 |, 0 ) != 0 ) {
-        warn 'submitted string is not a valid encoded collision index <{C1}>';
-        return undef;
-    }
-
-    my $decoded = Crypt::Misc::decode_b32r($param_str);
+    my $decoded = <[base.ntime.epoch_timestamp]>->($param_str);
 
     if ( not defined $decoded ) {
-        warn 'input param not valid [ BASE32 ] <{C1}>';
+        warn 'input parameter encoding not valid'
+            . ' [ V7 network epoch format ] <{C1}>';
         return undef;
     } else {
-
-        my $numerical_decoded = eval { unpack qw| w |, $decoded };
-
-        if ( not defined $decoded ) {
-            warn 'input param encoding not valid [ comp integer ] <{C1}>';
-            return undef;
-        } else {
-
-            return 99999999 - $numerical_decoded;
-        }
+        return $decoded;
     }
+
 } else {
     warn 'input param not valid [ not recognized format ] <{C1}>';
     return undef;
 }
 
-#,,,,,,,.,..,,.,,,..,,,..,,..,..,,.,.,,.,,..,,..,,...,...,...,,..,.,.,,.,,,,.,
-#ZHNA7BQDVHZ7X6OP5TLC6NGK3ZO4OZWH52EASNTDYRKBNJB2XGQKIHG5SQDKP6VVMKAM742DQSZ2S
-#\\\|EBHE4FU2ABOKYRYGHOBDXSXP7FVBJ2OILNQCON7KNOXEAJUHEEV \ / AMOS7 \ YOURUM ::
-#\[7]VFWHVWGKCDIVECNR5MUTY3QQJQP2FMTRBLC5DFRLH5PVTZLJKECY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,.,,..,,,.,.,,,,..,,,.,,..,,..,..,,...,...,,.,,..,,.,,,..,,.,,,
+#V4HO54CES7K4QUNOXU45GEO7WUOH2CKCYPEWJBFEJQXN3ACIBJ3IAN27SA4W7DK36FD7OYZ33YVSY
+#\\\|LK52ARYM7S72XUDZ3C5MPL4SANHILMXMP6BP3TQAX33BGJ4J63A \ / AMOS7 \ YOURUM ::
+#\[7]SENJNZ67MFLV2BGSS7NFEL45CEMH3LRHAEB4FR7JXK6KGIWFCOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
