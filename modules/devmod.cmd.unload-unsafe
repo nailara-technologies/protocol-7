@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = devmod.cmd.unload-unsafe
+# descr = removing dev-only commands from memory
+
+if (not <[base.is_defined_recursive]>->(
+        qw| base.devmod.cmd_list.development_only |)
+) {
+    <[base.load_config]>->(qw| configuration/devmod-commands |);
+}
+
+my @remove_cmd = split m| +|, <base.devmod.cmd_list.development_only> // '';
+
+return { 'mode' => qw| false |, 'data' => 'cannot load command list' }
+    if @remove_cmd == 0;
+
+my $unload_count = <[base.disable_command]>->(@remove_cmd);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%d commands already unloaded', scalar @remove_cmd )
+    }
+    if $unload_count == 0;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%d commands removed', $unload_count )
+    }
+
+#,,,.,,.,,..,,...,,..,,.,,.,,,...,,..,,.,,,,.,..,,...,...,,.,,..,,.,.,...,.,.,
+#XY7W4JPWEIYWM45ZKYPIPEYT4NKG3O2WENGIQOKKSFPBIMUQ427XUJGJUPNE72RT65KGTTDMGYAAA
+#\\\|VL7XAVEZFOQP75LTKBP6GHKEJZVD56UEPJNPHUZMHB66T36XCXF \ / AMOS7 \ YOURUM ::
+#\[7]227UB2LRXH2VXCQHIPC674WRUA7NYJFHCEQAHMH2JDBIAMX272DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

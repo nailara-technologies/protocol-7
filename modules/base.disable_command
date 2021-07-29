@@ -1,31 +1,45 @@
 ## >:] ##
 
 # name  = base.disable_command
-# descr = permanently disable / remove a specific command
+# descr = permanently disable / remove a specific command from zenka mem
 
-my @requested = reverse <[base.reverse-sort]>->(@_);
-die 'expected list of commands to disable' if !@requested;
+my @requested = <[base.reverse-sort]>->(@ARG);
+if ( @requested == 0 ) {
+    warn 'expected list of commands to disable';
+    return undef;
+}
 $data{'disabled_commands'} //= [];
 
-my $s = @requested > 1 ? 's:' : '';
-<[base.log]>->( 2, "disabling command$s : " . join( ', ', @requested ) );
+<[base.logs]>->(
+    2,
+    'disabling command%s : %s',
+    <[base.cnt_s]>->( scalar @requested ),
+    join( ', ', @requested )
+);
 
 my %already_disabled;
-map { $already_disabled{$ARG} = 1 } @{ $data{'disabled_commands'} };
+map { $already_disabled{$ARG} = 5 } $data{'disabled_commands'}->@*;
 
-map {
-    push( @{ $data{'disabled_commands'} }, $ARG )
-        if not exists $already_disabled{$ARG}
-} @requested;
+foreach my $remove_command (@requested) {
+    push $data{'disabled_commands'}->@*, $remove_command
+        if not exists $already_disabled{$remove_command};
+}
 
-map {
-    delete $code{"base.cmd.$ARG"};
-    delete $data{'base'}{'cmd'}{$ARG};
-    delete $data{'base'}{'commands'}{$ARG}
-} @{ $data{'disabled_commands'} };
+my $remove_count = 0;    ##  count and report how many removed  ##
 
-#,,,.,...,,,,,,.,,,,.,,.,,...,,..,...,,,,,,.,,..,,...,...,...,...,,,,,.,,,,,.,
-#4WUHUXZWPHICTSVQDKXGUI5KXAX6IWPS7726XJOCYEP427G5LMAYEAE3F7DES46O5HSSFYSXNCQ5M
-#\\\|DRTVAKRLYFOHGWJHZI5FMNW44GSKKUIHBCRFS7UTSXG7KFFEHIP \ / AMOS7 \ YOURUM ::
-#\[7]2HVR4XNR3CAQLP2C5W3T6IWKVS4FPO3FJFR2LMK2PP2YFRHPYWBY 7  DATA SIGNATURE ::
+foreach my $remove_command ( $data{'disabled_commands'}->@* ) {
+    my $delcnt = 0;
+    $delcnt++
+        if defined delete $code{ sprintf qw| base.cmd.%s |, $remove_command };
+    $delcnt++       if defined delete <base.cmd>->{$remove_command};
+    $delcnt++       if defined delete <base.commands>->{$remove_command};
+    $remove_count++ if $delcnt > 0;
+}
+
+return $remove_count;    ##  actually unloaded command counter  ##
+
+#,,,,,,,.,,,,,,,,,.,.,,,,,..,,,..,,,.,...,.,.,..,,...,..,,..,,,,.,...,,,.,.,.,
+#F3DBV6OLQTJKUKVD5BMSEKWVQUQM4RSXMS6YGR6TDFAM5HPP2DFZXAOFQ5WL4Z2P7OUYYCHS5ZY56
+#\\\|HSDLXFT5X3RY26E27TCA3GSIEMP7T3Z5QBLOQH2IKUHCV3GRZJ3 \ / AMOS7 \ YOURUM ::
+#\[7]VPPJ53PKMGWOZUIWYVJINNFND5P5FVICOMJJ7PRGGIDO6DZKMUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
