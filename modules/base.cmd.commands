@@ -9,7 +9,7 @@ my $user    = $data{'session'}{$id}{'user'};
 my $keyword = $call->{'args'};
 
 my @commands;
-my @dbg_cmds;
+my @devmod_commands;
 
 my $zenka_name = <system.zenka.name>;
 
@@ -36,8 +36,8 @@ foreach my $cmd ( <[base.reverse-sort]>->(<base.cmd>) ) {
 
     $max_len = length($cmd) if length $cmd > $max_len;
     my $is_devmod_command = <base.commands.is_devmod>->{$cmd} //= 0;
-    if   ($is_devmod_command) { push @dbg_cmds, $cmd }
-    else                      { push @commands, $cmd }
+    if   ($is_devmod_command) { push @devmod_commands, $cmd }
+    else                      { push @commands,        $cmd }
 }
 
 return {
@@ -46,7 +46,7 @@ return {
     }
     if defined $keyword
     and @commands == 0
-    and @dbg_cmds == 0;
+    and @devmod_commands == 0;
 
 ##[ format and return the command list ]##
 
@@ -57,22 +57,25 @@ $reply->{'data'} = @commands == 0 ? '' : sprintf( "\n%78s\n\n",
     = <[base.parser.command_list]>->( \@commands, qw| cmd |, );
 $reply->{'data'} .= $$h_str;
 
-if (@dbg_cmds) {
+if (@devmod_commands) {
     $reply->{'data'} .= sprintf(
         "\n %77s\n\n",
         sprintf( '%-43s',
             sprintf( ".: devmod commands in '%s' :.", $zenka_name ) )
     );
-    ( $h_str, undef )
-        = ( <[base.parser.command_list]>->( \@dbg_cmds, 'cmd', $h_len - 2 ) );
+    ( $h_str, undef ) = (
+        <[base.parser.command_list]>->(
+            \@devmod_commands, 'cmd', $h_len - 2
+        )
+    );
     $reply->{'data'} .= $$h_str;
 }
 
 $reply->{'data'} .= "\n";
 $reply->{'mode'} = qw| size |;
 
-#,,,,,..,,.,,,,.,,,,,,..,,...,,..,...,...,..,,..,,...,...,,,,,,.,,,,,,...,.,.,
-#QS2RZ3T33J3MJHVBSLAC6DOI2IZXLTECLULPX4IBHARBHINZMHCXD3RBYHOCUV56WBPQZ4UZRVILU
-#\\\|GXHWR3JUR3U7R6XG2FT33QY62OXUXA7E5T7DJD4WEHV476GET2F \ / AMOS7 \ YOURUM ::
-#\[7]2MDVLP4PGH7BU2GHTMYS3I3RBQLZH5T2RMB5QNBSKOGKN7W2L4CI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,...,.,.,.,.,...,.,,,,.,,,..,..,,...,...,,,.,.,,,,.,,,,,,,.,,
+#DJA6UWVVEB54IFCBYBOPDMO45JDQTXAH7AEOWDB65AZQGPC7ZG5VJIKRFWNGGTCTVWQQLEJ27XUPC
+#\\\|TISAFIPG2FAG5OWBH54SPQ3PLVOIVULLU4X5ODLQM4XISTWFE7I \ / AMOS7 \ YOURUM ::
+#\[7]TNBR5DGHWFZXWC64F7F23TXJ5JCYK7FPF73RO23BGQM5TRDZL6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
