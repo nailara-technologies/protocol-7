@@ -19,12 +19,43 @@ use Time::HiRes qw| time sleep |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 use Module::Load qw| load autoload load_remote autoload_remote |;
 
-*reload_mod = *Module::Refresh::refresh_module;
+our $hist_file = $ENV{PERLREPL_HISTFILE}
+    || File::Spec->catfile( File::HomeDir->my_home, qw| .perlreplhist | );
+
+sub h_file_path { return $hist_file }
+
+sub edith { system qw| /usr/bin/joe -syntax perl |, $hist_file }
+
+sub eraseh {
+    truncate( $hist_file, 0 ) if $hist_file =~ m|\.perlreplhist$|;
+    return sprintf 'zulum history [ %s ]', $hist_file;
+}
+
+our $mod_refresh = Module::Refresh->new();
+$mod_refresh->update_cache();
+
+sub reload_config {
+    eval { $main::repl->load_rcfile($main::rc_file); };
+    return 'configuration reloaded' if not length $EVAL_ERROR;
+    $EVAL_ERROR =~ s| at .+||;
+    $EVAL_ERROR;
+}
+
+sub module_reload {
+    my @param = @ARG;
+    foreach my $module_name (@param) {
+        $module_name =~ s|::|/|g;
+        $module_name .= qw| .pm | if rindex( $module_name, qw| .pm | ) == -1;
+    }
+    $mod_refresh->refresh_module(@param);
+}
+
+load_plugin(qw| ReadLineHistory Colors |);
 
 say "\n:\n: speak perl ? >:]\n:\n";
 
-#,,..,,.,,.,,,,,.,..,,.,.,,.,,...,..,,,..,,,.,.,.,...,...,..,,,..,,.,,..,,.,.,
-#PGRCKONRIDCCKPY5NZO7AQX6JPT7EWLWGWB4VX7UCQFYIELZSKLA6TEADU2Y3GSJSLXYRKH4GPQCI
-#\\\|62NRZKNIHBTNPOGYRH3HFMS6NO2JARXKSTMH2FPAMKCGWM4C7PB \ / AMOS7 \ YOURUM ::
-#\[7]4K4A4YX6MX2ZEWLREYSNQKTN3NDAPPIYLVZOSMNOSBLBGZUNHIBY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,,.,,.,.,,,.,...,.,,,,.,,.,.,.,.,...,...,...,..,,.,,,.,.,..,,
+#VGO6XHBE2EADDZZH5JRMSVMQTOUTLXHBGIAXPWKWC4DF3ORX7JWGRX23ZAC32ZAD4I3IAC3QEF6TM
+#\\\|CZJNAE4WY5CX2R6FR6YLQ2QANOKVFBUEMTH74ZOXBNH3XACF2EC \ / AMOS7 \ YOURUM ::
+#\[7]MH7SLKTR7PHTQHDBXUDISXFXB7HZXLAJBQF2QHJNK7FA7HLLPMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
