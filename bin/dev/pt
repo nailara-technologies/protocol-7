@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+
+use v5.28;
+
+####                               ####
+##    pt  [ perl terminal script ]   ##
+###                                ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use v5.28;
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir       = File::Spec->updir;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    my $root_path    = abs_path( r2_abs( c_dir( $RealBin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if not -d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+my $up_dir = File::Spec->updir;    ##  protocol 7 parent dir  ##
+our $root_path = abs_path( r2_abs( c_dir( $RealBin, ($up_dir) x 2 ) ) );
+
+#########################################################################
+##                                                                     ##
+#                                                                       #
+
+use Devel::REPL::Script;
+
+my $rc_file = sprintf qw| %s/bin/dev/conf/pt-repl.pc |, $root_path;
+
+my $repl = Devel::REPL::Script->new( qw| rcfile | => $rc_file );
+
+$repl->run;
+
+#                                                                       #
+##                                                                     ##
+#########################################################################
+
+#,,.,,..,,..,,,..,,..,,..,..,,.,,,,,.,.,.,.,.,..,,...,...,...,.,,,.,,,,..,.,,,
+#INXOXZXZU56IS7QM2Z7I2WZRQ2BSZ2WW7V3DYAPHINHW6AVH4JIHB6TQOCMZFQH42KAKK2TSYFEPO
+#\\\|IO7543QG5PDMYU7G5GSD2TLKGXPYMAPLRKGSAH2YAS6M6CYPCZN \ / AMOS7 \ YOURUM ::
+#\[7]RKPDJOYHBAZHX3AKQN24GHF5QCRJIMI4I45OSUVSYC6ESWD5RYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
