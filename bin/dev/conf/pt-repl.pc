@@ -4,7 +4,6 @@
 # descr = Devel::REPL rc [perl] init script
 
 use v5.32.0;
-
 use English;
 
 use Math::BigInt;
@@ -19,8 +18,36 @@ use Time::HiRes qw| time sleep |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 use Module::Load qw| load autoload load_remote autoload_remote |;
 
+$main::starting //= 5;    ## true ##
+
 our $hist_file = $ENV{PERLREPL_HISTFILE}
     || File::Spec->catfile( File::HomeDir->my_home, qw| .perlreplhist | );
+
+our @commands = qw[
+    clear
+    edith
+    eraseh
+    commands
+    h_file_path
+    reload_config
+    module_reload
+    greetinx_earthlings
+];
+
+BEGIN {    ##  clearing subroutine name space for reload_config command  ##
+    foreach my $sub_name (@commands) {
+        undef &{$sub_name} if $sub_name ne qw| reload_config |;
+    }
+}
+
+sub commands {
+    return join '', "..\n",
+        (
+        map { sprintf " :  %s\n", $ARG } '',
+        ( sort { length $a <=> length $b } reverse sort @commands ), ''
+        ),
+        " :,\n";
+}
 
 sub h_file_path { return $hist_file }
 
@@ -34,9 +61,13 @@ sub eraseh {
 our $mod_refresh = Module::Refresh->new();
 $mod_refresh->update_cache();
 
+sub clear { return "\e[H\e[2J\e[3J\n" }
+
+sub greetinx_earthlings { return "\n:\n: speak perl ? >:]\n:\n" }
+
 sub reload_config {
     eval { $main::repl->load_rcfile($main::rc_file); };
-    return 'configuration reloaded' if not length $EVAL_ERROR;
+    return clear() . "  configuration reloaded\n" if not length $EVAL_ERROR;
     $EVAL_ERROR =~ s| at .+||;
     $EVAL_ERROR;
 }
@@ -47,15 +78,19 @@ sub module_reload {
         $module_name =~ s|::|/|g;
         $module_name .= qw| .pm | if rindex( $module_name, qw| .pm | ) == -1;
     }
-    $mod_refresh->refresh_module(@param);
+    eval { $mod_refresh->refresh_module(@param) };
+    return '   module reloaded' if not length $EVAL_ERROR;
+    $EVAL_ERROR =~ s| at .+||;
+    $EVAL_ERROR;
 }
 
 load_plugin(qw| ReadLineHistory Colors |);
 
-say "\n:\n: speak perl ? >:]\n:\n";
+say greetinx_earthlings() if $main::starting;
+$main::starting = 0;
 
-#,,,,,...,,.,,,,,,,.,,.,.,,,.,...,.,,,,.,,.,.,.,.,...,...,...,..,,.,,,.,.,..,,
-#VGO6XHBE2EADDZZH5JRMSVMQTOUTLXHBGIAXPWKWC4DF3ORX7JWGRX23ZAC32ZAD4I3IAC3QEF6TM
-#\\\|CZJNAE4WY5CX2R6FR6YLQ2QANOKVFBUEMTH74ZOXBNH3XACF2EC \ / AMOS7 \ YOURUM ::
-#\[7]MH7SLKTR7PHTQHDBXUDISXFXB7HZXLAJBQF2QHJNK7FA7HLLPMBY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,...,,.,,,,,,...,,.,,,.,,..,,.,.,...,...,..,,,.,,,,,,,,.,,..,
+#NDIDBCE5KGT273CHADH5BOC4LAWA6UNIBZHDWXEMCU7PQ5EHQHGT33GB64AKERZX7OT3SZUDU5Z5G
+#\\\|LSQJGZQ3AD5MXUN3E4PDEQO2N4KLQRZL6Q7FEQM65S5L2GQLYB6 \ / AMOS7 \ YOURUM ::
+#\[7]RTGZL2J7YYOCGCR3MCWIINDMGBOVGR3ESP3YUBCU2LVGZQAUAQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
