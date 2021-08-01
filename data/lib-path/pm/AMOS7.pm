@@ -17,7 +17,7 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 @EXPORT = qw[
 
-    TERM_SIZE %C error_exit warn_err caller_str format_error format_sprintf
+    %C error_exit warn_err caller_str format_error format_sprintf
 
 ];
 
@@ -40,21 +40,6 @@ our %C = (
     qw|  B  | => "\e[1m",
     qw|  R  | => "\e[0m",
 );
-
-##[ TERMINAL [ TTY ] ]########################################################
-
-sub TERM_SIZE {
-    my $handle = shift // *STDIN;        ## use *STDOUT for pipe detection ##
-
-    return undef if not -t $handle;
-    state $size       = "\0" x 8;
-    state $TIOCGWINSZ = 21523;
-
-    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
-    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
-
-    return ( $size_aref->[1], $size_aref->[0] );
-}
 
 ##[ ERROR HANDLING ]##########################################################
 
@@ -259,8 +244,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,,.,,,.,,,,,...,...,,,.,,.,,,,,,,..,,..,.,.,..,,...,...,...,...,,,.,.,.,,.,,
-#N4DNTQ65B4J7GN7X3MNYXQZBPVBRWVRKUNCZPBPYZ2LOEUEEDEHJB7QBXZ7NEJT4IW5YL3CE5M3YG
-#\\\|TPHZXS633Q3GEAFAK57CRO2EVRYC7XPFVS2YUDQLBZ7SVT7TLVR \ / AMOS7 \ YOURUM ::
-#\[7]QUTHOSRQHUQXDIA7CGDJE2NYFRBVIV5IYEBSZXQ5LS2TJWL5GADI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,,,...,.,.,,.,,,.,,..,,,.,,...,..,,...,..,,.,,,,.,,,,,,,,.,..,,
+#ISENJN5SXTZRJ7P4UWWBJ3CWEBBJQCJ3YO6UVGSQF35AB3X4CKO3PEDWTXTON35YQMI5PE4XI7V4M
+#\\\|DUDLC3BFV5BCSQ655WSLJFPAKC5SGKKIPRUBFXT7H265EN5RFO4 \ / AMOS7 \ YOURUM ::
+#\[7]S2B2LNZDWERX7FK7E4RWL3DD4BWKGX7PFXIPZAGPWLYOTZRUXUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
