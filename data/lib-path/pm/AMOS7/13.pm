@@ -1,16 +1,23 @@
 
 package AMOS7::13; ###########################################################
 
-use v5.24;
+use v5.32;
 use strict;
 use English;
 use warnings;
 
 use AMOS7;
 use AMOS7::Assert;
-use AMOS7::Assert::Truth;
+use AMOS7::Assert::Truth qw| is_true |;
 
-use Time::HiRes qw| time |;
+use AMOS7::INLINE;
+
+## AMOS7::BitConv ##
+compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
+
+use Crypt::Misc qw| encode_b32r |;
+
+use Time::HiRes qw| time sleep |;
 
 use vars qw| $VERSION @EXPORT |;
 
@@ -19,10 +26,10 @@ use base qw| Exporter |;
 
 @EXPORT = qw[
 
+    gen_entropy_values
+
     divide_13
     harmonize_13
-
-    gen_seed_val
 
     bin_032
     bin_056
@@ -36,11 +43,13 @@ use base qw| Exporter |;
 
 ##[ INITIALIZATIONS ]#########################################################
 
-my $verbose = 1;
+my $verbose = 0;
 
-my $min_seed_data_len = 13;
-my $iterations_1001   = 4200;
-my $iterations_0000   = 4200;
+## my $min_seed_data_len = 13;
+my $min_seed_data_len = 4;
+
+my $genseed_iterations_0 = 9216;
+my $genseed_iterations_1 = 9216;
 
 my $result_tmpl = {
     qw| TRUE | => " $C{b}$C{T}:$C{0}"
@@ -64,196 +73,311 @@ sub divide_13 {    ## for short numbers only ## use Math::Bigint later too ##
     return 0 if $num == 0;
 
     my $num_len = zulum_prefix_length($num);
-    return sprintf( qw| %09d |, $num / 13 ) if $num_len == 0;
 
-    my $factor = join( '', qw| 10 |, qw| 0 | x $num_len );
-
-    return sprintf( qw| %09d |, $factor * $num / 13 );
-}
-
-##[ DATA HARMONIZATION ]######################################################
-
-sub harmonize_13 {
-    my $value_num  = shift;
-    my $show_TRUE  = shift // 0;
-    my $show_FALSE = shift // 0;
-    return error_exit('expected numerical input value')
-        if not is_number($value_num);
-
-    my $bin_str = bin_032($value_num);
-    my $rev_bin = reverse_bin_032($value_num);
-
-    my $iterations = 0;
-    my $all_true   = 0;
-
-    ## recalculate until all values are true ##
-    while ( not $all_true and ++$iterations ) {
-
-        $value_num = divide_13($value_num);
-        $bin_str   = bin_032($value_num);
-        $rev_bin   = reverse_bin_032($value_num);
-
-        my @truth_states = (
-            scalar is_true( $value_num, 1, 0 ),
-            scalar is_true( $bin_str,   0, 1 ),
-            scalar is_true( $rev_bin,   0, 1 )
-        );
-
-        $all_true = 1;
-        map { $all_true = 0 if $ARG == 0 } @truth_states;
-        $iterations++;
-
-        visualize_bin_032( $iterations, $value_num, @truth_states )
-            if $show_TRUE and $all_true
-            or not $all_true and $show_FALSE;
-    }
-
-    return ( $value_num, $iterations ) if wantarray;
-    return $value_num;
+    return sprintf( qw| %09d |, $num / 13 ) if $num_len < 2;
+    return sprintf( qw| %09d |, ( $num << 5 ) / 13 );
 }
 
 ##[ INIT ENTROPY ]############################################################
 
-sub gen_seed_val {
-
+sub gen_entropy_values {
+    my $requested_value_count;
     my $seed_data_sref = shift;
-    return error_exit('expected scalar reference to seed data')
-        if not defined $seed_data_sref
-        or ref $seed_data_sref ne qw| SCALAR |;
-    return error_exit(
-        sprintf( 'seed data must be at least %d characters long',
-            $min_seed_data_len )
-    ) if length($$seed_data_sref) < $min_seed_data_len;
+    if ( defined $ARG[0] and $ARG[0] =~ m|^\d+$| ) {    ## optional ##
+        $requested_value_count = shift;
+        if ( $requested_value_count == 0 ) {
+            warn_err('value count of 0 is not valid <{C1}>');
+            return undef;
+        }
+    }
+    my $output_reference = shift;
+    my $filter_coderef   = shift;
 
     my @seed_blocks;
+    my @entropy_data;
+    my $file_output     = 0;
+    my $req_b32_encoded = 0;
 
-    my $first_part = join( '',
-        map { sprintf '%03d', ord($ARG) }
-            split( '', substr( $$seed_data_sref, 0, 3 ) ) );
+    if ( ref $seed_data_sref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref to seed data <{C1}>');
+        return undef;
+    } elsif ( ref $seed_data_sref eq qw| SCALAR |
+        and length( $seed_data_sref->$* ) < $min_seed_data_len ) {
+        warn_err( 'seed data must be at least %d characters long <{NC}>',
+            1, $min_seed_data_len );
+        return -1;
+    } elsif ( defined $seed_data_sref ) {
+        ( my $test_characters = $seed_data_sref->$* ) =~ s|\s+||g;
+        if ( length($test_characters) < 5 ) {
+            warn_err('seed data needs 5 non-whitespace characters <{NC}>');
+            return -2;
+        }
+    }
+    if (   ref $output_reference eq qw| IO::File |
+        or ref $output_reference eq qw| IO::Handle | ) {
+        if ( not length fileno($output_reference) ) {
+            warn_err('second parameter not [open] filehandle <{C1}>');
+            return undef;
+        } elsif ( ref $filter_coderef ne qw| CODE | ) {
+            warn_err('filehandle also requires a CODE ref parameter <{C1}>');
+            return undef;
+        } else {
 
-    ## say $C{0} . ':.';
+            $file_output = $req_b32_encoded = 5;    ## true ##
 
-    while ( length $$seed_data_sref ) {
-        my $pkey_block = substr( $$seed_data_sref, 0, 3, '' );
-        my $p_num      = join( '',
-            map { sprintf '%03d', ord($ARG) } split( '', $pkey_block ) );
+        }
+    } elsif ( defined $output_reference
+        and ref $output_reference eq qw| ARRAY |
+        and defined $filter_coderef ) {
+        warn_err( 'filter parameter not expected '
+                . 'with output reference type ARRAY <{C1}>' );
+        return undef;
+    } elsif ( defined $output_reference
+        and ref $output_reference eq qw| SCALAR | ) {
 
-        my $blklen = length($p_num);
-        $p_num .= substr( $first_part, 0, 9 - $blklen ) if $blklen < 9;
+        $req_b32_encoded = 5;    ## true ##
 
-        ## make passphrase seed harmonic  ##
-        push( @seed_blocks, scalar harmonize_13($p_num) );
+    } elsif ( defined $output_reference
+        and ref $output_reference ne qw| ARRAY |
+        and ref $output_reference ne qw| SCALAR | ) {
+        warn_err( "output ref type '%s' not valid <{C1}>",
+            1, ref $output_reference );
+        return undef;
     }
 
-    ## say $C{0} . '.:';
+    my $bit_size = 49;
 
-    ## say $C{'T'} . $C{'B'}, map {"$ARG\n"} @seed_blocks;
-    say map {"$ARG\n"} @seed_blocks;
+    my $seed_bits = get_seed_bits($seed_data_sref);
+    my $bits_len  = length $seed_bits;
 
-    exit;
+    my $result = offset_comp_int( \$seed_bits, -$bit_size );
 
-    my $result;
-    my $first_val = divide_13( $seed_blocks[0] );
+    my $seed_bit_offs = 0;
 
-    $result = $first_val;
-
-    my $index = 0;
-
-    my $t_start = sprintf( '%.5f', time ) if $verbose;
+    my $t_start = sprintf( qw| %.5f |, Time::HiRes::time ) if $verbose;
 
     my $iteration = 1;
 
-    for ( 1 .. $iterations_1001 ) {    ## seeding with passphrase xor merge ##
+    for ( 1 .. $requested_value_count || $genseed_iterations_0 ) {
 
-        my $result_str = num_to_str($first_val);
+        ( my $cur_block_val, my $block_bits )
+            = offset_comp_int( \$seed_bits, $bit_size - ++$seed_bit_offs );
 
-        my $cur_block_val = $seed_blocks[$index];
+        $seed_bit_offs %= -$bits_len;
 
-        say $C{0}
-            . '< BLOCK > '
-            . join( ' ', bin_032($cur_block_val), $cur_block_val )
-            . $C{R}
-            if 1;
+        my $apply_at = 1 + abs(
+            AMOS7::BitConv::bit_string_to_num(
+                substr( $block_bits->$*, 0, 4 )
+            ) - 1
+        );
 
-        my $xord_str = sprintf( '%09d', $result ^ $cur_block_val );
-        my $xord_num = $xord_str;
+        my $recalc = 0;
 
-        ## my $xord_num = join( '', map {ord} split '', $xord_str );
-
-        ## my $xord_num = divide_13( join( '', map {ord} split '', $xord_str ) );
-
-        ## LLL
-        #        my $cut_iterations = 0;
-        #        my $over_len       = length($xord_num) - 9;
-        #        if ($over_len) {
-        #            my $left_over = substr( $xord_num, 0, $over_len, '' );
-        #        }
-
-        say $C{0}
-            . '< x-ord > '
-            . join( ' ', bin_032($xord_num), sprintf '%9s', $xord_num )
-            . $C{R}
-            if 1;
-
-    RECALC_0000:
+        if ( $recalc or $ARG % $apply_at == 0 ) {
+            my $bits_0 = sprintf qw| %032B |, $result;
+            my $bits_1 = substr( $block_bits->$*, 0, 32 );
+            my $nand_bits;
+            foreach my $pos ( 0 .. 31 ) {
+                $nand_bits .= nor(
+                    substr( $bits_0, $pos, 1 ),
+                    substr( $bits_1, $pos, 1 )
+                );
+            }
+            $result += AMOS7::BitConv::bit_string_to_num($nand_bits);
+        }
 
         $result = divide_13($result);
 
-        goto RECALC_0000 if not is_true($result);
+        while ( not is_true( \$result, 2, 1 ) ) {
+            $result = divide_13($result);
+        }
 
-        ## visualize_bin_032( $iteration, $result ) if $verbose;
+        push @seed_blocks, $result;
+
+        say $C{'0'}, '< SEED > ', $C{'T'}, $result, $C{'R'} if $verbose;
 
         ++$iteration;
-
-        $index = 0 if not defined $seed_blocks[ ++$index ];
     }
 
-    for ( 1 .. $iterations_0000 ) {    ## seeding without passphrase xor ##
+    for ( 1 .. $requested_value_count || $genseed_iterations_1 ) {
+
+        ##  apply collected seed numbers  ##
+        ##
+        $result += shift @seed_blocks;
 
     RECALC_0110:
 
         $result = divide_13($result);
 
-        goto RECALC_0110 if not is_true($result);
+        goto RECALC_0110 if not is_true( $result, 2, 1 );
+
+        my $encoded_result;
+
+        if ($req_b32_encoded) {
+
+            my $vax_bin = pack qw| V |, $result;
+            goto RECALC_0110 if not is_true( $vax_bin, 0, 1 );
+
+            $encoded_result = encode_b32r($vax_bin);
+            goto RECALC_0110 if not is_true( $encoded_result, 0, 1 );
+
+            say $C{'0'}, '< RSB32 > ', $C{'T'}, $encoded_result if $verbose;
+        }
+        ## result data output ##
+        ##
+        if ($req_b32_encoded) {
+            push @entropy_data, $encoded_result;
+        } else {
+            push @entropy_data, $result;
+        }
 
         ++$iteration;
-
-        ## visualize_bin_032( $iteration, $result ) if $verbose;
-
     }
 
-    ## visualize_bin_032( $iteration, $result ) if not $verbose;
+    while ( defined $output_reference
+        and my $output_value = pop @entropy_data ) {  ##  in reverse order  ##
+
+        if ($file_output) {    ##  file encryption done in code reference  ##
+            print {$output_reference} $filter_coderef->($output_value);
+
+        } elsif ( ref $output_reference eq qw| ARRAY | ) {
+            push $output_reference->@*, $output_value;
+        } elsif ( ref $output_reference eq qw| SCALAR | ) {
+            if ( defined $filter_coderef ) {
+                $output_reference->$* .= $filter_coderef->($output_value);
+            } else {
+                $output_reference->$* .= $output_value;
+            }
+        }
+    }
 
     ## time ellapsed ##
     printf "$C{0} $C{b}::::::::$C{R}$C{0} $C{b}%s s$C{R}\n\n",
-        sprintf( '%.5f', time - $t_start )
+        sprintf( qw| %.5f |, Time::HiRes::time - $t_start )
         if $verbose;
 
-    return $result;
+    if ($file_output) { return 0 if not close($output_reference) }
+
+    if ( not defined $output_reference ) {
+
+        ##  values in list context [ last value first ]  ##
+        ##
+        return reverse @entropy_data if wantarray;
+
+        return $result;    ## only last value in scalar context ##
+
+    } else {    ##  otherwise report success only  ##
+        return 5;    ## true ##
+    }
 }
 
 ##[ BINARY OPERATIONS ]#######################################################
 
+sub offset_comp_int {
+
+    my $bits_ref  = shift;
+    my $first_pos = shift // 0;
+    my $bit_size  = 49;
+
+    if ( ref $bits_ref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref param to bitstring <{C1}>');
+        return undef;
+    } elsif ( not defined $bits_ref->$* or $bits_ref->$* !~ m|^[01]{49,}$| ) {
+        warn_err('expected [ >= 49 bit ] bitstring <{C1}>');
+        return undef;
+    } elsif ( not defined $first_pos or $first_pos !~ m|^-?\d+$| ) {
+        warn_err('second param expected to be a bit offset <{C1}>');
+        return undef;
+    }
+
+    my $bits_len = length $bits_ref->$*;
+
+    if ( $bits_len < $bit_size ) {
+        $bits_ref = \scalar( $bits_ref->$* x 3 );
+    }
+
+    ##  correct offset overflow  ##
+    if ( $first_pos < 0 ) {
+        $first_pos %= -$bits_len;
+        $first_pos += $bits_len;
+    } else {
+        $first_pos %= $bits_len;
+    }
+
+    my $offset_bits = substr $bits_ref->$*, $first_pos, $bit_size;
+
+    $offset_bits .= substr $bits_ref->$*, 0, $bit_size - length($offset_bits)
+        if length($offset_bits) < $bit_size;
+
+    say sprintf '< bits [ %03d ]> %s', $first_pos, $offset_bits if $verbose;
+
+    my $comp_int = bits_to_comp_int($offset_bits) / 13 / 13 / 13 / 13 / 13;
+
+    return ( $comp_int, \$offset_bits ) if wantarray;
+    return $comp_int;
+
+}
+
+sub get_seed_bits {
+    my $bits;
+    my $seed_data_sref = shift;
+    if ( ref $seed_data_sref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref to seed data <{C1}>');
+        return undef;
+    }
+    my $min_bit_len = 49;
+
+    my $first_part = join '',
+        unpack qw| C* |, substr $seed_data_sref->$*, 0, 3;
+
+    for (
+        my $bitoffs = 0;
+        $bitoffs <= length( $seed_data_sref->$* );
+        $bitoffs += 3
+    ) {
+
+        my $keyblock = substr $seed_data_sref->$*, $bitoffs, 3;
+        my $asc_num  = join '', unpack( qw| C* |, $keyblock );
+        my $asc_len  = length $asc_num;
+
+        $asc_num .= substr $first_part, 0, 9 - $asc_len if $asc_len < 9;
+        $bits .= sprintf qw| %B |, divide_13($asc_num);
+    }
+
+    $bits =~ s|0+$||;
+    $bits = join '', map { $ARG == 1 ? qw| 0 | : qw| 1 | } split '', $bits;
+
+    while ( length($bits) < $min_bit_len ) {
+        $bits .= substr( $bits, 0, $min_bit_len - length $bits );
+    }
+
+    return $bits;
+}
+
+sub nand { $ARG[0] & $ARG[1] ? 0 : 1 }
+
+sub nor { $ARG[0] || $ARG[1] ? 0 : 1 }
+
 sub bin_032 {
-    my $digits_032 = shift // 0;
+    my $numerical_32 = shift // 0;
 
     return warn sprintf( 'expected 32 bit number, got %d digits %s',
-        length($digits_032), caller_str(1) )
-        if not is_number($digits_032)
-        or $digits_032 > 4294967295;
+        length($numerical_32), caller_str(1) )
+        if not is_number($numerical_32)
+        or $numerical_32 > 4294967295;
 
-    sprintf qw| %032B |, $digits_032;
+    sprintf qw| %032B |, $numerical_32;
 }
 
 sub reverse_bin_032 {
-    my $digits_032 = shift // 0;
+    my $numerical_32 = shift // 0;
 
     return warn sprintf( 'expected 32 bit number, got %d digits %s',
-        length($digits_032), caller_str(1) )
-        if not is_number($digits_032)
-        or $digits_032 > 4294967295;
+        length($numerical_32), caller_str(1) )
+        if not is_number($numerical_32)
+        or $numerical_32 > 4294967295;
 
-    join( '', reverse( split '', sprintf( qw| %032B |, $digits_032 ) ) );
+    join( '', reverse( split '', sprintf( qw| %032B |, $numerical_32 ) ) );
 }
 
 sub bin_056 {
@@ -301,7 +425,7 @@ sub bin_to_comp_int {
         length($$buffer_ref), caller_str(0) )
         if length($$buffer_ref) != 7;
 
-    my $bits_56 = shift // unpack qw| B* |, $$buffer_ref;
+    my $bits_56 = shift // unpack qw| B* |, $buffer_ref->$*;
 
     my $result_buffer;
 
@@ -312,6 +436,29 @@ sub bin_to_comp_int {
         } else {
             $result_buffer .= pack qw| B8 |,
                 qw| 0 | . substr( $bits_56, $ARG * 7, 7 );
+        }
+    }
+
+    return unpack( qw| w |, $result_buffer );
+}
+
+sub bits_to_comp_int {    ##  takes array with 49 bit and returns comp int  ##
+
+    my $bits = shift // '';
+
+    if ( length($bits) < 7 or length($bits) % 7 != 0 ) {
+        warn_err 'requires bitstring [ > 7 and % 7 == 0 ] <{C1}>';
+        return undef;
+    }
+
+    my $result_buffer;
+    for ( 1 .. 7 ) {
+        if ( $ARG < 7 ) {
+            $result_buffer .= pack qw| B8 |, sprintf qw| 1%s |,
+                substr( $bits, $ARG * 7, 7 );
+        } else {
+            $result_buffer .= pack qw| B8 |, sprintf qw| 0%s |,
+                substr( $bits, $ARG * 7, 7 );
         }
     }
 
@@ -339,19 +486,19 @@ sub padded_num {
 ##[ STRING CONVERSIONS ]######################################################
 
 sub num_to_str {
-    my $digits_032 = shift;
+    my $numerical_32 = shift;
+    return '' if not length( $numerical_32 // '' );
+    return warn_err('expected 9 digit decimal value <{C1}>')
+        if not is_number($numerical_32)
+        or length($numerical_32) > 9;
 
-    return '' if not length( $digits_032 // '' );
-    return warn 'expected 9 digit decimal value'
-        if not is_number($digits_032)
-        or length($digits_032) > 9;
-
-    return join( '',
-        map {chr} substr( $ARG[0], 0, 1 ),
-        substr( $ARG[0], 1, 2 ),
-        substr( $ARG[0], 3, 2 ),
-        substr( $ARG[0], 5, 2 ),
-        substr( $ARG[0], 7, 2 ) );
+    return $numerical_32, '| : ',
+        pack qw| c* |,
+        substr( $numerical_32, 0, 1 ),
+        substr( $numerical_32, 1, 2 ),
+        substr( $numerical_32, 3, 2 ),
+        substr( $numerical_32, 5, 2 ),
+        substr( $numerical_32, 7, 2 );
 }
 
 ##[ VERBOSE MODE ]############################################################
@@ -381,8 +528,8 @@ sub visualize_bin_032 {
 
 return 1;  ###################################################################
 
-#,,,,,.,.,,..,.,.,,,.,,..,,..,,,,,...,,.,,...,..,,...,..,,.,.,.,,,,.,,..,,..,,
-#XY4KMPGWC76UOR3BEYQ7IWXQALR5TPTVOIWB3J6Z3WCUNOWLJE43JDI4ZZCYGXRUQ46YQOJU224RY
-#\\\|PX36FOGFTEIJ5OZ5PU2EUYZEVDRBP3WCPPLAVHUAXCIXHAP5ZQD \ / AMOS7 \ YOURUM ::
-#\[7]K4TX75TT7C756IH7Y27WDCPBIWGSLR3LO36WYYNCK4DBOITLOABY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,...,..,,,,,,,,.,...,,.,,...,..,,...,...,,.,,,,,,,,.,,,,,.,,,
+#D2PGRPGKV76QRNZ6JZE7BF4YJQUGVWFWHGTMBXCP6KAECINQTDCQHR72NAYJ5K35JLSHJWB62HQKE
+#\\\|Y2KD4DBCVZI7SU7LZGU4X322IE7LQYRKZ5XVJZSVYB7PO7K4TVO \ / AMOS7 \ YOURUM ::
+#\[7]5M35EWSYDYXQBP5VTF5MGP6UDC6QXUEJ7MKMIFDXNDX7VJKZ7WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
