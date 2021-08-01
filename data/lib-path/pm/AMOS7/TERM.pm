@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
+my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT_OK = qw| read_password_line |;
 
@@ -229,8 +229,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,,.,,,,,,.,,...,..,,.,.,,,,,,.,,,.,,.,.,...,..,,...,...,...,,,.,.,.,...,,.,,
-#6BZOL47RK4333AONFZCES24VSDACZEXTEBREE3C5SUB2Q244CD5CHM3IXIVQVHC7SEMGLBINE3VQQ
-#\\\|KDKMOX6YY2SS3OTVEEQEQ3O35BDPSQKN2SRKBHA72WJXIFJXY3Z \ / AMOS7 \ YOURUM ::
-#\[7]CNC2AS4UEOJD5PJKYYLN5EVUV7A35SL77E3ZDP7GSN76VXW6FEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,..,...,.,,,.,.,.,,,,,.,..,,..,,...,...,...,.,.,.,,,,,.,...,
+#JCT6GS4RZXBMLAWUORWRKJQXQ6Q3RS6JZGJVYAGBBXVAZNPTW66UCEL6I2BAIMEHTRTZSPQANKRU6
+#\\\|VSE3YPXKYPBJHGYE3VYUC2YMSHYJGXH5HTW4RJUUHF76O6Y4JHT \ / AMOS7 \ YOURUM ::
+#\[7]22RCCINM5BYFXGFODKS3NH76SIMX7HHHK7KDL2BCR5YXJ2A2QIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
