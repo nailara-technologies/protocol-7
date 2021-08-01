@@ -31,15 +31,15 @@ sub numerical_no_0_prefix {
 sub zulum_prefix_length {
     return 0 if not defined $ARG[0];
     my $num_len
-        = sprintf( '%09.0f', $ARG[0] ) =~ m|^(0+)|
+        = sprintf( qw| %09.0f |, $ARG[0] ) =~ m|^(0+)|
         ? length($LAST_PAREN_MATCH)
         : 0;
 }
 
 return 1;  ###################################################################
 
-#,,,,,..,,,,,,.,.,..,,,.,,,,,,.,.,,.,,..,,...,..,,...,...,.,,,,.,,.,,,.,.,..,,
-#WL43OYTO7BVO3WLBTMRMOJZJCHPZJWM6ELVHA275QP7QQQ2Y3OMXIOGS22QSNM4725YQ7VMOFT6V2
-#\\\|5K4MHYI2NV6CAE5XUHXLA6IOQTGYSJU3O3HKBVDVR2WMSRMR4CX \ / AMOS7 \ YOURUM ::
-#\[7]FW5DBZVDWYGUMHNLT7LUTEHHVVWZVLLR5WAFJ2ZC4EZWSMAKZKBI 7  DATA SIGNATURE ::
+#,,..,,.,,...,...,,.,,..,,,,,,.,,,..,,,.,,.,,,..,,...,...,,,.,,,,,,.,,..,,.,.,
+#ATTO7623MPQXG5GKE4PE32AIG4HLPGWY2A3BKZDTR3V2UEZFADXKBE5YC5RGSO5VIMTIXMP4D6QRU
+#\\\|JOEV2YPKTDT7OPSNLYM52MGGIFPDOXY4V55EVJ52GMBC3IBEUCF \ / AMOS7 \ YOURUM ::
+#\[7]PMAFFJYUGVD2UIHCWB66AVYNYDHBVZB72TKEPWRK4GQXPTMQ4UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
