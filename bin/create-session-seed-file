@@ -1,0 +1,154 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Time::HiRes;
+
+####                        ####
+##  create-session-seed-file  ##
+###                         ####
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    my $up_dir         = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+use AMOS7::13;
+use AMOS7::TERM;
+use AMOS7::FILE;
+use AMOS7::Twofish qw| key_init encrypt |;
+
+my $entropy_files_dir
+    = sprintf( qw| %s/.n/enc-entropy |, AMOS7::FILE::get_homepath() );
+
+my $usrname_re = qr|^[0-9A-Za-z][0-9A-Za-z\-_]{0,16}$|;
+
+AMOS7::FILE::create_dir_path( $entropy_files_dir, qw|  0700  :parent:  | );
+
+error_exit( 'need entropy directory to continue [ %s ]', $entropy_files_dir )
+    if not -d $entropy_files_dir;
+
+#########################################################################
+##                                                                     ##
+#                                                                       #
+
+my $passphrase_mode   = 0;
+my $session_user_name = join( ' ', @ARGV ) // '';
+
+if ( $session_user_name =~ s|\s*\-P\s*|| ) {
+    $passphrase_mode = 5;    ## true ##
+}
+
+error_exit('expected session username parameter')
+    if not length $session_user_name;
+
+error_exit( 'username [ %s ] contains not valid characters',
+    $session_user_name )
+    if $session_user_name !~ $usrname_re;
+
+my $session_entropy_path
+    = sprintf( qw| %s/%s |, $entropy_files_dir, $session_user_name );
+
+if ( -e $session_entropy_path and -z $session_entropy_path ) {
+    if ( not unlink($session_entropy_path) ) {
+        error_exit(
+            sprintf "cannot remove empty session entropy file '%s' [ %s ]",
+            $session_entropy_path, lcfirst($OS_ERROR) );
+    }
+} elsif ( -e $session_entropy_path ) {
+    error_exit( sprintf "session entropy file '%s' exists",
+        $session_entropy_path );
+}
+
+RENTER_PASSWD:
+my $enc_pwd = AMOS7::TERM::read_password('encryption password');
+
+if ( not defined $enc_pwd or length $enc_pwd < 13 ) {
+    warn_err('encryption password needs to be at least 13 characters <{NC}>');
+    Time::HiRes::sleep(1.7);
+    goto RENTER_PASSWD;
+}
+
+my $enc_key = AMOS7::13::key_32( \$enc_pwd );
+
+error_exit('key entropy derrivation was not successful')
+    if length( $enc_key // '' ) != 32;
+
+my $status = key_init( $enc_key, qw| encryption |, $session_user_name );
+if ( not defined $status or not $status ) {
+    error_exit('cannot initialize file encryption module');
+}
+
+RE_READ:
+my $input_entropy_data;
+
+$input_entropy_data = AMOS7::TERM::read_password('seed entropy passphrase')
+    if $passphrase_mode;
+
+## prepare encryption wrapper ##
+##
+my $enc_sub = sub { encrypt( $session_user_name, \$ARG[0] ) };
+
+print sprintf( "%s:%s\n", $C{'0'}, $C{'R'} ) x 3;
+
+my $result_scalar;
+my $entropy_FH;
+my $file_mode = 0600;
+if ( not open( $entropy_FH, qw| > |, $session_entropy_path ) ) {
+    error_exit( 'cannot create file : %s [ %s ]',
+        lcfirst($OS_ERROR), $session_entropy_path );
+
+} elsif ( not chmod( $file_mode, $entropy_FH ) ) {
+    error_exit( 'cannot change filemode [ %#o ] %s [ %s ]',
+        $file_mode, lcfirst($OS_ERROR), $session_entropy_path );
+}
+
+say sprintf "%s::%s%s generating session entropy data %s%s..,%s\n", $C{'0'},
+    $C{'T'}, $C{'b'}, $C{'R'}, $C{'0'}, $C{'R'};
+
+my $result;
+if ($passphrase_mode) {
+    $result
+        = AMOS7::13::gen_entropy_values( \$input_entropy_data, $entropy_FH,
+        $enc_sub );
+} else {
+    $result = AMOS7::13::gen_entropy_values( undef, $entropy_FH, $enc_sub );
+}
+
+if ( defined $result and $result < 0 ) {
+    undef $input_entropy_data;
+    Time::HiRes::sleep(1.2);
+    goto RE_READ if $passphrase_mode;
+    error_exit('cannot create entropy data');
+}
+
+say sprintf "%s::%s%s done. [ %s ] %s\n", $C{'0'}, $C{'T'}, $C{'b'},
+    $session_entropy_path, $C{'R'};
+
+#                                                                       #
+##                                                                     ##
+#########################################################################
+
+#,,,,,,.,,,,,,..,,,..,,,.,,..,,..,.,,,,.,,.,.,..,,...,...,.,,,.,.,.,,,,..,.,.,
+#2YYH2H3VVOZUKSGANVQ4XAPPJDYUQJBKCPI77HMNNX5CJGRAJYNYHTTNKE3IHX45YRAYMGYS6XXLC
+#\\\|4BILEQILQEOO6Z5ZN7K36GL7HIVODTCX3LJRQOXSRKLN3M6XSG3 \ / AMOS7 \ YOURUM ::
+#\[7]LCK3VNNU7RTXZTN7OLKXNCEW6RWK7YWWWCP3UI4BXH2BRTFBPUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

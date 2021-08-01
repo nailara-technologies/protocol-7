@@ -37,8 +37,8 @@ sub key_init {
     my $o_name    = shift;
 
     if ( length( $crypt_key // '' ) != $key_length ) {
-        warn_err( 'expected twofish key [ length %03d octets ] <{C1}>',
-            $key_length );
+        warn_err( 'expected twofish key [ length %03d octets ]',
+            1, $key_length );
         return undef;
     } elsif ( not length( $o_type // '' ) ) {
         warn_err('expected twofish object type <{C1}>');
@@ -162,8 +162,8 @@ sub decrypt {
 
 return 5;  ###################################################################
 
-#,,,,,.,.,,..,.,.,..,,...,.,.,..,,...,...,,,,,..,,...,...,.,,,,,.,.,,,,,.,,.,,
-#JPA4I7ZNL7XNOAQQN2HGLI4DZTXQ75B5OQ76XCF5J2JHMCFK6ET7BLKUB7GGCAEK3VUKFRSM3HME6
-#\\\|ZC6VWB4SINXVRXT5VI7LGLT5SNQ3BIEST3DI5JY56FOQF3SM7HN \ / AMOS7 \ YOURUM ::
-#\[7]56GB5BYBWSBOZT25VJJ3BJOBU7CZJAVP6UHAGFDFD5WJFUUMJUBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,.,.,.,,.,,..,,,,.,.,.,.,,,..,,..,,...,...,.,.,...,,..,..,,.,,,
+#I3Q3G4LYZ4X6WXDF7AZVTJD5CSKS2POHRSF6N6CWCOOZWSBQDXA33FRWOH3Q3CWOCN7EJJRE54JHC
+#\\\|CX7ZZXVMYCV2IRV3QLZON66XOPDWV4GYQILVLB45HW6D535IHXO \ / AMOS7 \ YOURUM ::
+#\[7]ZCWHBDBAHMJXG2RJ3XYVLTFGBE7YW3WAYWYNT6CU4BLEKUYT6ICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

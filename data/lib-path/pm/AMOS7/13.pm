@@ -1,7 +1,7 @@
 
 package AMOS7::13; ###########################################################
 
-use v5.32;
+use v5.28;
 use strict;
 use English;
 use warnings;
@@ -16,6 +16,7 @@ use AMOS7::INLINE;
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 use Crypt::Misc qw| encode_b32r |;
+use Crypt::PRNG::Fortuna qw| irand |;
 
 use Time::HiRes qw| time sleep |;
 
@@ -24,12 +25,13 @@ use vars qw| $VERSION @EXPORT |;
 use Exporter;
 use base qw| Exporter |;
 
+##  subroutines need clean-up [ remove or extract obsolete ] ##  [ LLL ]
+##
 @EXPORT = qw[
 
-    gen_entropy_values
-
+    key_32
     divide_13
-    harmonize_13
+    gen_entropy_values
 
     bin_032
     bin_056
@@ -45,8 +47,7 @@ use base qw| Exporter |;
 
 my $verbose = 0;
 
-## my $min_seed_data_len = 13;
-my $min_seed_data_len = 4;
+my $min_seed_data_len = 13;
 
 my $genseed_iterations_0 = 9216;
 my $genseed_iterations_1 = 9216;
@@ -97,8 +98,13 @@ sub gen_entropy_values {
     my @entropy_data;
     my $file_output     = 0;
     my $req_b32_encoded = 0;
+    my $fortuna_mode    = 0;
 
-    if ( ref $seed_data_sref ne qw| SCALAR | ) {
+    if ( not defined $seed_data_sref ) {    ##  random value data mode  ##
+
+        $fortuna_mode = 5;                  ## true ##
+
+    } elsif ( ref $seed_data_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref to seed data <{C1}>');
         return undef;
     } elsif ( ref $seed_data_sref eq qw| SCALAR |
@@ -113,8 +119,7 @@ sub gen_entropy_values {
             return -2;
         }
     }
-    if (   ref $output_reference eq qw| IO::File |
-        or ref $output_reference eq qw| IO::Handle | ) {
+    if ( $output_reference =~ m,(IO::(File|Handle)|GLOB), ) {
         if ( not length fileno($output_reference) ) {
             warn_err('second parameter not [open] filehandle <{C1}>');
             return undef;
@@ -145,58 +150,79 @@ sub gen_entropy_values {
         return undef;
     }
 
-    my $bit_size = 49;
-
-    my $seed_bits = get_seed_bits($seed_data_sref);
-    my $bits_len  = length $seed_bits;
-
-    my $result = offset_comp_int( \$seed_bits, -$bit_size );
-
-    my $seed_bit_offs = 0;
-
+    my $result;
     my $t_start = sprintf( qw| %.5f |, Time::HiRes::time ) if $verbose;
 
-    my $iteration = 1;
+    if ($fortuna_mode) {
 
-    for ( 1 .. $requested_value_count || $genseed_iterations_0 ) {
+        for ( 1 .. $requested_value_count || $genseed_iterations_0 ) {
 
-        ( my $cur_block_val, my $block_bits )
-            = offset_comp_int( \$seed_bits, $bit_size - ++$seed_bit_offs );
-
-        $seed_bit_offs %= -$bits_len;
-
-        my $apply_at = 1 + abs(
-            AMOS7::BitConv::bit_string_to_num(
-                substr( $block_bits->$*, 0, 4 )
-            ) - 1
-        );
-
-        my $recalc = 0;
-
-        if ( $recalc or $ARG % $apply_at == 0 ) {
-            my $bits_0 = sprintf qw| %032B |, $result;
-            my $bits_1 = substr( $block_bits->$*, 0, 32 );
-            my $nand_bits;
-            foreach my $pos ( 0 .. 31 ) {
-                $nand_bits .= nor(
-                    substr( $bits_0, $pos, 1 ),
-                    substr( $bits_1, $pos, 1 )
-                );
+            my $rnd_val;
+            while ( not defined $rnd_val or not is_true( $rnd_val, 2, 1 ) ) {
+                $rnd_val = sprintf qw| %.10u |, irand();
             }
-            $result += AMOS7::BitConv::bit_string_to_num($nand_bits);
+
+            if ($verbose) {
+                say $C{'0'}, '< prng.fortuna > ', $C{'T'}, $rnd_val, $C{'R'};
+            }
+
+            push @seed_blocks, $rnd_val;
         }
 
-        $result = divide_13($result);
+    } else {    ##  maximize password \ passphrase entropy  ##
 
-        while ( not is_true( \$result, 2, 1 ) ) {
+        my $bit_size  = 49;
+        my $seed_bits = get_seed_bits($seed_data_sref);
+        my $bits_len  = length $seed_bits;
+
+        $result = offset_comp_int( \$seed_bits, -$bit_size );
+
+        my $seed_bit_offs = 0;
+
+        for ( 1 .. $requested_value_count || $genseed_iterations_0 ) {
+
+            ( my $cur_block_val, my $block_bits )
+                = offset_comp_int( \$seed_bits,
+                $bit_size - ++$seed_bit_offs );
+
+            $seed_bit_offs %= -$bits_len;
+
+            my $apply_at = 1 + abs(
+                AMOS7::BitConv::bit_string_to_num(
+                    substr( $block_bits->$*, 0, 4 )
+                ) - 1
+            );
+
+            my $recalc = 0;
+
+            if ( $recalc or $ARG % $apply_at == 0 ) {
+                my $bits_0 = sprintf qw| %032B |, $result;
+                my $bits_1 = substr( $block_bits->$*, 0, 32 );
+                my $nand_bits;
+                foreach my $pos ( 0 .. 31 ) {
+                    $nand_bits .= nor(
+                        substr( $bits_0, $pos, 1 ),
+                        substr( $bits_1, $pos, 1 )
+                    );
+                }
+                $result += AMOS7::BitConv::bit_string_to_num($nand_bits);
+            }
+
             $result = divide_13($result);
+
+            while ( not is_true( \$result, 2, 1 ) ) {
+                $result = divide_13($result);
+            }
+
+            push @seed_blocks, $result;
         }
+    }
 
-        push @seed_blocks, $result;
-
-        say $C{'0'}, '< SEED > ', $C{'T'}, $result, $C{'R'} if $verbose;
-
-        ++$iteration;
+    if ($verbose) {
+        foreach my $numval ( reverse @seed_blocks ) {
+            say $C{'0'}, '< SEED > ', $C{'T'}, $numval, $C{'R'};
+        }
+        say '';
     }
 
     for ( 1 .. $requested_value_count || $genseed_iterations_1 ) {
@@ -230,24 +256,69 @@ sub gen_entropy_values {
         } else {
             push @entropy_data, $result;
         }
-
-        ++$iteration;
     }
 
-    while ( defined $output_reference
-        and my $output_value = pop @entropy_data ) {  ##  in reverse order  ##
+    while ( defined $output_reference and @entropy_data > 0 ) {
 
-        if ($file_output) {    ##  file encryption done in code reference  ##
-            print {$output_reference} $filter_coderef->($output_value);
+        ##  output values in reverse order  ##
 
-        } elsif ( ref $output_reference eq qw| ARRAY | ) {
-            push $output_reference->@*, $output_value;
-        } elsif ( ref $output_reference eq qw| SCALAR | ) {
-            if ( defined $filter_coderef ) {
-                $output_reference->$* .= $filter_coderef->($output_value);
-            } else {
-                $output_reference->$* .= $output_value;
+        if ($file_output    ##  output encryption expected  ##
+            or ref $output_reference eq qw| SCALAR |
+            and defined $filter_coderef
+        ) {
+            my $output_value = '';
+
+            for ( 0 .. 15 ) {
+                $output_value .= pop @entropy_data;    ## multiple of 16 B ##
             }
+
+            my $value_length = length $output_value;
+            if ( $value_length % 16 != 0 ) {
+                if ( @entropy_data > 0 ) {
+                    warn_err( 'value length of %03d is not valid',
+                        0, $value_length );
+                    truncate( $output_reference, 0 );    ## erasing content ##
+                    return error_exit('aborting write.');
+                } else {    ##  output data padded with asc 127 characters  ##
+                    my $remainder_len = 16 - $value_length % 16;
+                    $output_value .= chr(127) x $remainder_len;
+                }
+            }
+
+            ##  file encryption done in code reference  ##
+
+            my $cipher_string = $filter_coderef->($output_value);
+
+            $cipher_string = $cipher_string->$*   ##  expected ref to data  ##
+                if ref $cipher_string eq qw| SCALAR |;
+
+            ##  WRITE TO ENCRYPTED FILE [ DATA ASC 127 PADDED ]  ##
+            ##
+            if ($file_output) {
+
+                if ( not length( $cipher_string // '' ) ) {
+                    truncate( $output_reference, 0 );    ## erasing content ##
+                    close($output_reference);
+                    return error_exit('encryption error [ writing aborted ]');
+                }
+                print {$output_reference}
+                    $cipher_string;    ##  write to handle  ##
+
+            } else {
+                $output_reference->$* .= $cipher_string;  ## to scalar ref. ##
+            }
+
+        } elsif ( ref $output_reference eq qw| ARRAY | ) {   ## num. values ##
+
+            ##  all values at once  ##
+            push $output_reference->@*, @entropy_data;
+            undef @entropy_data;    ##  reset array  ##
+
+        } elsif ( ref $output_reference eq qw| SCALAR | ) {
+
+            my $output_value = pop @entropy_data;    ## one per iteration ##
+
+            $output_reference->$* .= $output_value;  ##[  unencrypted  ]##
         }
     }
 
@@ -269,6 +340,58 @@ sub gen_entropy_values {
     } else {    ##  otherwise report success only  ##
         return 5;    ## true ##
     }
+}
+
+##[ KEY DERRIVATION ]#########################################################
+
+sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
+
+    my $enc_key;
+    my $pass_sref = shift;    ##  scalar ref to password or phrase  ##
+
+    if ( ref $pass_sref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref param to passphrase <{C1}>');
+        return undef;
+    } elsif ( not defined $pass_sref->$*
+        or length( $pass_sref->$* ) < $min_seed_data_len ) {
+        warn_err( 'expected password length is at least %d characters',
+            1, length( $pass_sref->$* ) );
+        return undef;
+    }
+
+    my @quad_int;
+    my @pwd_entropy_val;
+
+    my $key_status    ##  113 [ 32 bit ] numbers from password entropy  ##
+        = AMOS7::13::gen_entropy_values( $pass_sref, 113, \@pwd_entropy_val );
+
+    if (   not defined $key_status
+        or not $key_status
+        or @pwd_entropy_val == 0 ) {
+        warn_err('cannot generate encryption key');
+        return undef;
+    }
+
+    @pwd_entropy_val = sort @pwd_entropy_val;    ##  numerical sort  ##
+
+    for ( 0 .. 3 ) {    ##  4 64 bit values required  ##
+        my $qint = 0;
+        while ( @pwd_entropy_val and length $qint < 20 ) {
+            $qint .= join '', reverse split '',
+                ##  sum of lowest and highest  ##
+                shift(@pwd_entropy_val) + pop(@pwd_entropy_val);
+        }
+        $qint =~ s|^0||;    ##  removing 0 prefix  ##
+
+        push @quad_int, substr $qint, 0, 19;    ##  19 digits for Q int  ##
+    }
+
+    if ( @quad_int != 4 ) {
+        warn_err('quad entropy underrun');
+        return undef;
+    }
+
+    return pack qw| Q* |, @quad_int;    ##  binary encryption key  ##
 }
 
 ##[ BINARY OPERATIONS ]#######################################################
@@ -309,7 +432,7 @@ sub offset_comp_int {
     $offset_bits .= substr $bits_ref->$*, 0, $bit_size - length($offset_bits)
         if length($offset_bits) < $bit_size;
 
-    say sprintf '< bits [ %03d ]> %s', $first_pos, $offset_bits if $verbose;
+    say sprintf '< bits [ %06d ]> %s', $first_pos, $offset_bits if $verbose;
 
     my $comp_int = bits_to_comp_int($offset_bits) / 13 / 13 / 13 / 13 / 13;
 
@@ -320,12 +443,12 @@ sub offset_comp_int {
 
 sub get_seed_bits {
     my $bits;
+    my $min_bit_len    = 49;
     my $seed_data_sref = shift;
     if ( ref $seed_data_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref to seed data <{C1}>');
         return undef;
     }
-    my $min_bit_len = 49;
 
     my $first_part = join '',
         unpack qw| C* |, substr $seed_data_sref->$*, 0, 3;
@@ -528,8 +651,8 @@ sub visualize_bin_032 {
 
 return 1;  ###################################################################
 
-#,,.,,,,,,,..,..,,...,..,,,,,,,,.,...,,.,,...,..,,...,...,,.,,,,,,,,.,,,,,.,,,
-#D2PGRPGKV76QRNZ6JZE7BF4YJQUGVWFWHGTMBXCP6KAECINQTDCQHR72NAYJ5K35JLSHJWB62HQKE
-#\\\|Y2KD4DBCVZI7SU7LZGU4X322IE7LQYRKZ5XVJZSVYB7PO7K4TVO \ / AMOS7 \ YOURUM ::
-#\[7]5M35EWSYDYXQBP5VTF5MGP6UDC6QXUEJ7MKMIFDXNDX7VJKZ7WCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,.,,,..,,,,,,,.,,.,,,.,,,,,,,..,,...,...,...,.,,,.,.,..,,,,.,
+#OEXOGXU4BAFIFGVAM6K7ZRLJ62METHP32SWFMT2KAQDPGVD6IUDO44GAQ72Q377UC7IHN57XB5RV6
+#\\\|EBXCH3TMHFFRZP6KIBDI5HELURISVUHMRFUHR4BLYI3KI4PRFNS \ / AMOS7 \ YOURUM ::
+#\[7]YNITVQJ5VHZQWDG6J57BZT2VIHSDUUZQPPW7Z625FLR5EY6K5IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
