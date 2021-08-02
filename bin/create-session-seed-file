@@ -79,7 +79,8 @@ if ( -e $session_entropy_path and -z $session_entropy_path ) {
 }
 
 RENTER_PASSWD:
-my $enc_pwd = AMOS7::TERM::read_password('encryption password');
+my $enc_pwd = AMOS7::TERM::read_password( 'encryption password',
+    'seed file encryption' );
 
 if ( not defined $enc_pwd or length $enc_pwd < 13 ) {
     warn_err('encryption password needs to be at least 13 characters <{NC}>');
@@ -147,8 +148,8 @@ say sprintf "%s::%s%s done. [ %s ] %s\n", $C{'0'}, $C{'T'}, $C{'b'},
 ##                                                                     ##
 #########################################################################
 
-#,,,,,,.,,,,,,..,,,..,,,.,,..,,..,.,,,,.,,.,.,..,,...,...,.,,,.,.,.,,,,..,.,.,
-#2YYH2H3VVOZUKSGANVQ4XAPPJDYUQJBKCPI77HMNNX5CJGRAJYNYHTTNKE3IHX45YRAYMGYS6XXLC
-#\\\|4BILEQILQEOO6Z5ZN7K36GL7HIVODTCX3LJRQOXSRKLN3M6XSG3 \ / AMOS7 \ YOURUM ::
-#\[7]LCK3VNNU7RTXZTN7OLKXNCEW6RWK7YWWWCP3UI4BXH2BRTFBPUAA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,.,,,.,,,,,,.,.,...,.,,,...,..,,...,...,...,,.,,.,,,,,.,,,,,
+#VS53J4ZTZ6DGPUINDCAVHCI3D6QZAF7SR4VN3G34JDKC4XKEJKCN2BJZXYMREFRCZD2UNB3WPGPMQ
+#\\\|WZJITUET2MJWABHPIB6OJQI57TMLNO4MXMLAKMTSYY6RLBMANXB \ / AMOS7 \ YOURUM ::
+#\[7]JXPBZ7D36E24HBLVWBSYZEIXVW64LJYL6C4JJNMVMQQ4X7WV4AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
