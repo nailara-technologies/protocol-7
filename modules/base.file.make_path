@@ -140,7 +140,7 @@ foreach my $_dir ( split qw| / |, $path ) {
     next if not length $_dir;
 
     $current_path .= sprintf qw| /%s |, $_dir;
-    $current_mode //= shift @{$modes};
+    $current_mode //= shift $modes->@*;
 
     next if -d $current_path;    ## <-- exists \ continue ., ##
 
@@ -158,8 +158,9 @@ foreach my $_dir ( split qw| / |, $path ) {
             $param_mode, <[base.format_error]>->($OS_ERROR)
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
-        unlink($path)
-            or <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
+        if ( not unlink($path) ) {
+            <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
+        }
         return undef;
     }
 
@@ -169,10 +170,10 @@ foreach my $_dir ( split qw| / |, $path ) {
                 'chown [%d:%d] %s : [ %s ] <{C1}>',
                 $uid, $gid, $current_path, <[base.str.os_err]>
             );
-            <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
-            unlink($path)
-                or
+            <[base.logs]>->( 0, 'removing %s [ chown failed ]', $path );
+            if ( not unlink($path) ) {
                 <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
+            }
             return undef;
         }
     }
@@ -182,8 +183,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,,,.,,,,..,,,,,,,.,,..,,.,,...,.,.,,,.,,,,,..,,...,...,,..,...,,,.,.,.,,..,
-#PU6QCLUQAS65QKVNC3UES52FTLHONEIPXLTK7C3MXPUYXM2AX4B3BFYIKGMFSM4UOHQDWMRVQI2HY
-#\\\|UDUT2M26W7DNZUI3AW7ZFZTUCCQV37ZUVZN6DYHI4HDXO6Q37ZV \ / AMOS7 \ YOURUM ::
-#\[7]QXMOY6HHBZHCGPHP5OZYVY6QDW72AMQPVAH2XTV4I67DKNFQTWAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,.,...,...,,.,,,.,,.,.,.,.,,.,,..,,...,..,,...,,,,,,.,,,,.,...,
+#BGKCEMFUTS6I4JHRDLYFJOGBAOEVERVDICEALPMFE4GO4QXDQJH5FY5PDV64BPR4GDGRWIZPGY45O
+#\\\|IYVUUWDJYL3UDW24J67D7VM4IRXR4KGTJ3ZOIYFSBS4GOETE2XX \ / AMOS7 \ YOURUM ::
+#\[7]SGB6OMNLZ3VJZY7GL77RHXFLPPJ6DWIINCEJXHMRHWDVHYG6WECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
