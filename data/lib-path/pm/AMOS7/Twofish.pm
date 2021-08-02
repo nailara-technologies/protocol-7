@@ -8,6 +8,7 @@ use English;
 use warnings;
 
 use AMOS7;
+
 use Crypt::Twofish2;
 
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
@@ -20,6 +21,9 @@ use base qw| Exporter |;
 @EXPORT_OK = qw| key_init object_table delete_table_entry encrypt decrypt |;
 
 my $VERSION = qw| AMOS7::Twofish-VERSION.2EXJJ7Q |;
+
+error_exit("perl module 'Crypt::Twofish2' not loaded")
+    if not defined &Crypt::Twofish2::MODE_CBC;
 
 ##[ INIT ]####################################################################
 
@@ -48,10 +52,10 @@ sub key_init {
         return undef;
     } elsif ( $o_type eq qw| encryption | ) {
         $encryption_table{$o_name}    ##  encryption table  ##
-            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC );
+            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC() );
     } else {
         $decryption_table{$o_name}    ##  decryption table  ##
-            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC );
+            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC() );
     }
     ## true ##
     return 5;
@@ -162,8 +166,8 @@ sub decrypt {
 
 return 5;  ###################################################################
 
-#,,..,.,,,,,.,.,.,.,.,,.,,..,,,,.,.,.,.,,,..,,..,,...,...,.,.,...,,..,..,,.,,,
-#I3Q3G4LYZ4X6WXDF7AZVTJD5CSKS2POHRSF6N6CWCOOZWSBQDXA33FRWOH3Q3CWOCN7EJJRE54JHC
-#\\\|CX7ZZXVMYCV2IRV3QLZON66XOPDWV4GYQILVLB45HW6D535IHXO \ / AMOS7 \ YOURUM ::
-#\[7]ZCWHBDBAHMJXG2RJ3XYVLTFGBE7YW3WAYWYNT6CU4BLEKUYT6ICY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,..,,..,,,,,,..,,,,.,,,.,.,.,..,,...,...,...,..,,,..,,..,,,.,
+#R26M4Y3DAFLT6QNSZG3FCPVRBKZNTITE6C3NHMRLOTL53S44HQ6Y2R7OLLGYXWY32NCX63KXJNULO
+#\\\|K7QKYT4ELTC7OWGNZZXBG5VCSIHP7CNV4PLDGMUO6M3GUG7GALJ \ / AMOS7 \ YOURUM ::
+#\[7]TIINRT2C7X72EJKP3H2PZ2E3HR6M6C4FFMMM63ZD4SPJCVFTCKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
