@@ -2,29 +2,50 @@
 
 # name = base.get_homedir
 
-my $user = shift // $ENV{'HOME'} // $ENV{'LOGDIR'} // '';
+my $user    = shift // '';    ##  optional username param  ##
+my $homedir = '';             ## supports :env-user: and :env-homedir: ##
+
+if ( $user eq qw| :env-homedir: | ) {    ##  read from %ENV if present  ##
+    $user    = '';
+    $homedir = $ENV{'HOME'} // $ENV{'LOGDIR'} // '';
+}
+
+if ( not length $user and length $homedir and -d $homedir ) {
+    <[base.logs]>->( 2, "[get_homedir] '%s' --> '%s'", $user, $homedir );
+    return $homedir;
+}
+
+if ( $user eq qw| :env-user: | ) {    ##  read from %ENV if present  ##
+
+    $user = $ENV{'USER'} // $ENV{'LOGNAME'} // '';
+}
 
 if ( $user eq '' ) {
-    $user = getpwuid($EUID);    # current user[id]
+
+    $user = getpwuid($EUID);    ## current user[id] ##
+
 } elsif ( $user =~ m|^\d+$| ) {
-    $user = getpwuid($user);    # given by uid
+
+    $user = getpwuid($user);    ##[  by uid  ]##
+
 }    # else provided as name .,
 
 my @pwnam   = getpwnam($user);
 my $homedir = $pwnam[7];
 
 if ( @pwnam == 0 ) {
-    <[base.log]>->( 0, "<< no such user : '$user' >>" );
+    <[base.logs]>->( 0, "<< no such user : '%s' >>", $user );
 } elsif ( length($homedir) ) {
-    <[base.log]>->( 2, "[get_homedir] '$user' --> '$homedir'" );
+    <[base.logs]>->( 2, "[get_homedir] '%s' --> '%s'", $user, $homedir );
 } else {
-    <[base.log]>->( 1, "<< empty home-dir for user '$user' >>" );
+    <[base.logs]>
+        ->( 0, "<< empty home directory path : user '%s' >>", $user );
 }
 
 return $homedir;
 
-#,,,.,,.,,..,,.,,,..,,.,,,,,,,..,,,..,,..,,,.,..,,...,...,,,,,.,.,,,.,...,..,,
-#XHV47WPN2UV35ZEED6EKHZQ6DYS3MEGHO65JPRDD7HG7Q6ZHAO6462P5Q2DI5ZB5YLZQUE7QB6PKG
-#\\\|BNSN77OSXYDYI25W3KMPFUOG4ESSAZI3ONV5SX6EBOH3EPMFVOX \ / AMOS7 \ YOURUM ::
-#\[7]L5BKTLULNPOPRC4GV7GQ7M26YWFXU4NUYVQVDUKUHPC5I6SO2KDQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,,,,,.,,,,.,,.,,,,,.,,..,.,.,..,,...,...,...,,,,,...,.,.,,,,,
+#JEMVR7ZENUROL277K3WGW6P2GYEIQJLXR2CWJ6NMSK37AEI6DROQQR2MYOBXSHPTZQAVOHOYBGMGO
+#\\\|JMBEC7MD7VBFSFQ3TZET2JQM7FNFLGPPHOLRKBXPGLS6FMA665B \ / AMOS7 \ YOURUM ::
+#\[7]NZ5JQ4MDKV4KGV524SH2QN7SRMBSKVRXOL3C4DH43UUHMB32NKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
