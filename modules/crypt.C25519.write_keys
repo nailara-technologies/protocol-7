@@ -3,7 +3,9 @@
 # name = crypt.C25519.write_keys
 
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
+my $key_password = shift;                          ##  optional  ##
 
+my $key_checksum;
 my $uid          = $key_vars->{'uid'};
 my $gid          = $key_vars->{'gid'};
 my $key_usr      = $key_vars->{'usr_name'};
@@ -15,31 +17,86 @@ foreach my $type (qw|  public  secret  |) {
     my $file_name = join( qw| . |, $key_basepath, $type );
     next if not -f $file_name;
     $file_name =~ s|^.*\/||;
-    <[base.log]>->( 0, "<< ! >> key file '$file_name' exists .," );
-    <[base.log]>->( 0, "   :..  not overwriting .," );
+
+    say sprintf "%s :", $AMOS7::C{'0'}
+        if <system.zenka.name> eq qw| keys |
+        and not <system.verbosity.console>;
+
+    <[base.logs]>->( 0, 'key %s exists.', $file_name );
+    <[base.log]>->( 0, ':.. cannot not overwrite it.' );
     return 0;
 }
 foreach my $type (qw|  secret  public  |) {
-    my $file_name = join( '.', $key_basepath, $type );
-    my $tmp_fname = join( '.', $file_name,    $PID, <[base.ntime.b32]> );
-    open( my $key_fh, '>', "$tmp_fname" ) or die "\l$OS_ERROR [ $tmp_fname ]";
-    if ( $type eq 'public' ) {
+    my $file_name = join( qw| . |, $key_basepath, $type );
+    my $tmp_fname = join( qw| . |, $file_name,    $PID, <[base.ntime.b32]> );
+    open( my $key_fh, qw|>|, $tmp_fname ) or die "\l$OS_ERROR [ $tmp_fname ]";
+    if ( $type eq qw| public | ) {
         chmod( 0640, $tmp_fname ) or die "< chmod 0640 > \l$OS_ERROR";
     } else {
         chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
     }
-    my $key_str_b32 = encode_b32r( $keys{'C25519'}{$key_name}{$type} );
-    printf( {$key_fh} "%s\n", $key_str_b32 );
-    close($key_fh);
+
+    my $key_bin_str = $keys{'C25519'}{$key_name}{$type};
+
+    $key_checksum = <[chk-sum.amos]>->($key_bin_str);
+
+    ##[  encrypting key before write  ]##
+    ##
+    if ( $type eq qw| secret | and defined $key_password ) {
+
+        my $enc_key = AMOS7::13::key_32( \$key_password );
+
+        if ( not defined $enc_key or not length $enc_key ) {
+            warn 'error during file enc key derivation <{C1}>';
+            return undef;
+        }
+        my $status
+            = AMOS7::Twofish::key_init( $enc_key, qw| encryption C25519 | );
+
+        if ( not defined $status or not $status ) {
+            warn 'error during file encryption key initialization <{C1}>';
+            return undef;
+        }
+        my $enc_C25519_sref
+            = AMOS7::Twofish::encrypt( qw| C25519 |, \$key_bin_str );
+
+        if (   not defined $enc_C25519_sref
+            or ref $enc_C25519_sref ne qw| SCALAR |
+            or not length $enc_C25519_sref->$* ) {
+            warn 'key encryption error <{C1}>';
+            return undef;
+        }
+
+        my $key_str_b32 = encode_b32r( $enc_C25519_sref->$* );
+        if ( not defined $key_str_b32 or not length $key_str_b32 ) {
+            warn 'error during C25519 key encoding [BASE32] <{C1}>';
+            return undef;
+        }
+
+        print {$key_fh} $key_str_b32;    ##[ no linefeed ]##
+
+    } else {
+        my $key_str_b32 = encode_b32r($key_bin_str);
+        if ( not defined $key_str_b32 or not length $key_str_b32 ) {
+            warn 'error during C25519 key encoding [BASE32] <{C1}>';
+            return undef;
+        }
+
+        ##  unencrypted has linefeed  ##
+        ##
+        printf {$key_fh} "%s\n", $key_str_b32;
+    }
+
+    close($key_fh)                     or die "\l$OS_ERROR [ $file_name ]";
     rename( "$tmp_fname", $file_name ) or die "\l$OS_ERROR [ $file_name ]";
     chown( $uid, $gid, $file_name )    or warn "\l$OS_ERROR [ $file_name ]";
 
-    <[base.log]>->( 1, ": $file_name" );
+    <[base.logs]>->( ": %s", $file_name );
 }
-return 1;
+return $key_checksum;
 
-#,,..,.,,,,,,,..,,.,.,,,.,.,.,.,,,..,,,..,.,,,..,,...,..,,..,,..,,,,,,..,,,,.,
-#RMBEJ2YP3QL7KVBOKN26IXSCQHQQ3GXM26QFYQPUOYDTTP6ZAJUZOEBAGUZHCNDF7J4U7AWRVVPNA
-#\\\|UZOPRCI57VHDR36PYUWCHG5T7SVHX4XHBXMQCQA527BTGJEAJTZ \ / AMOS7 \ YOURUM ::
-#\[7]WGVUEAUFRON7PCUQ6BRUSQIVUN73DZLN7U5H45IH6KGA2AOZWCBI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,.,,,,,.,.,.,,,,,.,,,,,,,,..,..,,...,..,,,.,,...,,.,,,,.,.,.,
+#4CP2F63HZDJJQGCQLZ7YBK7U2Z35BR6ZTW44GHWQZLXZQK6LQWOCUZI4F7H4WPN5JJLNSNOTTTCPO
+#\\\|24B457NGJ5GFSQFM5M6JF64UZ63SCRQUJ3KUWBZZGV3LJYY2UEN \ / AMOS7 \ YOURUM ::
+#\[7]UK4HAENQMA7O44CR5W5EMNMEHJYFMVZMHP2G53IS6PYGVM7OGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

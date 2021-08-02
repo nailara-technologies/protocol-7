@@ -24,6 +24,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT = qw| terminal_size read_password |;
 
+our $pwd_min_len      //= 13;
 our $pwd_read_aborted //= 0;
 
 ##[ TERMINAL [ TTY ] ]########################################################
@@ -50,18 +51,25 @@ sub read_password {
     my $term_title        = shift // '';
 
     $OUTPUT_AUTOFLUSH = 1;
-    my $clear_console = "\e[H\e[2J\e[3J";
+    my $clear_console
+        = ( defined $main::PROTOCOL_SEVEN
+            and $main::data{'system'}{'verbosity'}{'console'} )
+        ? ''    ##  do not clear screen with -v option  ##
+        : "\e[H\e[2J\e[3J";
 
     ( my $password_0, my $password_1 );
 
-    while ( not defined $password_0 or $password_0 ne $password_1 ) {
+    while (not defined $password_0
+        or not defined $password_1
+        or not $password_0 ne $password_1 ) {
 
         print $clear_console;
         ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
-        my $colon_line = qw| : | x abs( $term_width - 30 );
+        my $colon_line
+            = qw| : | x abs( $term_width - length($term_title) - 11 );
 
         if ( length $term_title ) {
-            printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\r",
+            printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\n",
                 $clear_console,
                 $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
                 $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
@@ -73,25 +81,59 @@ sub read_password {
         if ( not defined $password_0 ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
 
+        } elsif (
+            $password_0 ne qw| 1 |    ##  checking min pwd length  ##
+            and length($password_0) < $pwd_min_len
+        ) {
+            undef $password_0;
+            if ( defined $main::PROTOCOL_SEVEN ) {
+                printf "%s:\n", $C{'0'};
+                $main::code{'base.logs'}
+                    ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
+            } else {
+                warn_err( ' <<  pasword min len is %d  >> <{NC}>',
+                    -1, $pwd_min_len );
+            }
+            sleep 1.2;
+
         } elsif ( $password_0 ne qw| 1 | ) {
+
             $password_1 = read_password_line(
                 sprintf( 're-enter %s', $password_type_msg ) );
 
             if (    defined $password_0
                 and defined $password_1
                 and $password_0 ne $password_1 ) {
-                warn_err(' <<  paswords differ  >> <{NC}>')
-                    if $password_0 ne $password_1;
-                sleep 0.7;
+                if ( $password_0 ne $password_1 ) {
+                    undef $password_0;
+                    undef $password_1;
+                    if ( defined $main::PROTOCOL_SEVEN ) {
+                        printf "%s:\n", $C{'0'};
+                        $main::code{'base.log'}
+                            ->( 0, '<<  paswords differ  >>' );
+                    } else {
+                        warn_err(' <<  paswords differ  >> <{NC}>');
+                    }
+                }
+                sleep 1.2;
             }
-            if ( $password_1 eq qw| 1 | ) {
+            if ( defined $password_1 and $password_1 eq qw| 1 | ) {
+                undef $password_0;
+                undef $password_1;
                 say $C{'R'};
-                error_exit(' [ password read aborted ]');
+                if ( defined $main::PROTOCOL_SEVEN ) {
+                    printf "%s:\n", $C{'0'};
+                    $main::code{'base.log'}
+                        ->( 0, '[ password read aborted ]' );
+                    printf "%s:\n", $C{'0'};
+                } else {
+                    error_exit(' [ password read aborted ]');
+                }
                 return undef;
             }
         }
     }
-
+    printf "%s:\n", $C{'0'} for ( 0 .. 1 );
     return $password_0;
 }
 
@@ -130,9 +172,9 @@ sub read_password_line {
         if ( $code == 10 and length $read_pwd ) {    ##  read complete  ##
             ReadMode 0;
             say $C{'R'};
-            return $read_pwd;    ##  check minimum length  ##  [ LLL ]
+            return $read_pwd;
 
-        } elsif ( $code == 127 ) {    ##  backspace  ##
+        } elsif ( $code == 127 ) {                   ##  backspace  ##
             my $pwd_len = length($read_pwd);
             if ($pwd_len) {
                 substr( $read_pwd, $pwd_len - 1, 1, qw| * | );
@@ -177,12 +219,16 @@ sub read_password_line {
             }
         }
         say $C{'R'};
-        error_exit(' [ password input timeout ]');
         if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
+            printf "%s:\n", $C{'0'};
+            $main::code{'base.log'}->( 0, '[ password input timeout ]' );
+            printf "%s:\n", $C{'0'};
             for ( 0 .. 6 ) {
                 Time::HiRes::sleep(0.1);
                 Event::loop(0.007);
             }
+        } else {
+            error_exit(' [ password input timeout ]');
         }
         return undef;
     } elsif ( not length( $key // '' ) ) {
@@ -193,7 +239,14 @@ sub read_password_line {
             }
         }
         say $C{'R'};
-        error_exit(' [ password read aborted ]');
+
+        if ( defined $main::PROTOCOL_SEVEN ) {
+            printf "%s:\n", $C{'0'};
+            $main::code{'base.log'}->( 0, '[ password read aborted ]' );
+            printf "%s:\n", $C{'0'};
+        } else {
+            error_exit(' [ password read aborted ]');
+        }
 
         return undef;
     }
@@ -243,8 +296,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,.,,..,,,,,,.,.,,,,,..,,.,,,.,.,.,.,.,.,.,.,..,,...,...,..,,,,,,,..,,..,,..,
-#IXWHREARHTKH5FQRS26BPBC24CPQJI2I522Y4BRDTBBB3Q4IVVCTJBH7DY32HX2NZ3CW2USCIS3ZQ
-#\\\|GUY3HTZVLT6TZZ7LXXABJEIVFHKJ2DF4P53E2GNPETG22IUG2RY \ / AMOS7 \ YOURUM ::
-#\[7]NDIZH4RPD5GINQMGRNIHDDUCR4OZT2CQFR6X3VO4OY5MSUEH5WBY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,..,.,,,,,,,.,,,,,,,,,.,,,.,..,,...,...,...,,.,,.,.,,..,,,,,
+#L3IVKY5QNR7AFG7NKYGYGHXRB23WMWMFV4ZKTH5XSNJVVVQU42GSV2ONRRMJNSNYAYB32EBVWYKI2
+#\\\|ODIEIFQE6EF4DDHWSB33GGFGPAX363MS6ECUKPTVTFJZVIX7K3V \ / AMOS7 \ YOURUM ::
+#\[7]7UWXQKY7KNF3JMOTMVYNYUH53PXVVL4YMCA2BXRJ6YEZXMLEOWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

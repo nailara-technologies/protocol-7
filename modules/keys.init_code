@@ -3,10 +3,14 @@
 # name = keys.init_code
 # todo = add native fallback method for empty environment case .,
 
+<[base.perlmod.load]>->('AMOS7::13');
+<[base.perlmod.load]>->('AMOS7::TERM');
+<[base.perlmod.load]>->('AMOS7::Twofish');
+
 ## C25519 key path owner can be overridden with USER environment variable.., ##
 <system.amos-zenka-user> = $ENV{'USER'} // getpwuid($EUID) // $ENV{'LOGNAME'};
 
-my $C25519_id = 'C25519.B32';
+my $C25519_id = qw| C25519.B32 |;
 my @key_types = qw| secret public |;
 ( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
 my $re_keyfiles = sprintf( '%s.(%s)', $key_re_tmpl, join( '|', @key_types ) );
@@ -24,8 +28,8 @@ map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
 
 0;
 
-#,,..,.,,,,,,,...,..,,.,,,.,,,...,,,.,.,.,...,..,,...,...,..,,,..,..,,..,,,,.,
-#WMFMDV47CNAWXWKHCSWFMHHZEKJWTCYTGECQZ3WHD3IGT6HTUFMKC2XX7CN7B3HXKXJBE5J4Q55V6
-#\\\|G6F72VUHJFZZLWHNPM3ABAGDUMHTFBGOSTCPQXPZ766OONKVOEF \ / AMOS7 \ YOURUM ::
-#\[7]TJ5EIBRUEUUAKWGYN7GK33EK7GWUISPV2GO3C27VKINIJTNQHSAY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,..,,,,,,.,,,,,,..,,,..,,.,,..,,...,...,,,.,.,,,,.,,..,,...,
+#LH5G2CLNPV5BMNGFEVKUQYO5VIIAO4UNWAJFPE42NLANANDDRSJGUWCKTHNWFA7ZD56C4WXEWJSKY
+#\\\|LCJLAOUZJYSCWDTDPG4DWKVCI3Y3G56GPQHAT37W4EDQW2GNAWU \ / AMOS7 \ YOURUM ::
+#\[7]WMIHKBQD7AQY7YXPTOWTX3U2YOTIOY2NMU74LROG52YFKP4PAADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

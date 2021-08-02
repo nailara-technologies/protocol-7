@@ -1,10 +1,34 @@
 ## >:] ##
 
 # name  = keys.console.create
-# param = [name]
+# param = [-U] [name]
 # descr = create either a named or 'base' user key
 
+my $unencrypted = 0;    ##  false  ##
+
 my $key_name = shift // qw| base |;
+
+$unencrypted = 5 if $key_name =~ s|\s*\-U\s*||g;
+
+my $key_password;
+if ( not $unencrypted ) {
+    if ( not defined &Crypt::Twofish2::MODE_CBC ) {
+        <[base.log]>->(
+            0, ":, missing 'Crypt::Twofish2' module, aborted ..,"
+        );
+        <[base.exit]>->(qw| 0110 |);
+    }
+    $key_password
+        = AMOS7::TERM::read_password( 'C25119 key encryption passphrase',
+        sprintf( "create C25519 key '%s'", $key_name ) );
+
+    if ( not defined $key_password or length $key_password <= 1 ) {
+        <[base.log]>->( 0, 'cannot create unencrypted key without -U' );
+        say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
+            if not <system.verbosity.console>;
+        <[base.exit]>->(qw| 0110 |);
+    }
+}
 
 <[base.logs]>->( 0, ' << %s is not a valid key name >>', $key_name )
     and <[base.exit]>->('0110')
@@ -24,19 +48,23 @@ my $u_str
 my $success = 0;
 say sprintf " : << generating '%s' key%s >>", $key_name, $u_str;
 
-$success = 1
-    if <[crypt.C25519.gen_keys]>->($key_name)
-    and <[crypt.C25519.write_keys]>->($key_name);
+my $key_chksum;
 
-printf( " :\n :: [ created key '%s' in '%s' ]\n\n", $key_name, $key_dir )
-    and return 5    ## true ##
+if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
+    $key_chksum = <[crypt.C25519.write_keys]>->( $key_name, $key_password );
+    $success    = 5 if length $key_chksum == 7;    ## true ##
+}
+
+printf( " :\n :: [ created key '%s' [ %s ] in '%s' ]\n\n",
+    $key_name, $key_chksum, $key_dir )
+    and return 5                                   ## true ##
     if $success;
 
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,.,,,..,,,.,...,.,.,...,,,,,,,,,,..,,..,,,,,..,,...,...,.,.,.,,,.,.,,,,,.,.,
-#ICLOFIJPJ3PSJ5T54Y4CDSIIRMTMD6XIX52N3LWC65NDM3EAWEBTTL6VOT2VFKUDHDJGIMPNQGWCG
-#\\\|Y7FYYYXYPPCN6JUEYJOA7ZQ5ZKPFEOAXPTRKCQKPZK65S7RYEQO \ / AMOS7 \ YOURUM ::
-#\[7]3KNJ7G77GS6QIH2MUWMR6VZ5UGNQSK4AUQQ5CJGIYWADLIGOBIAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,.,.,,..,,,,,.,,,,..,.,.,,,,,..,,...,...,..,,.,,,.,.,,..,,,.,
+#TEGM3GSUKVMR2VDWV7DIA2QCBAVUAV22GLO4HT6TIAK6XRJ5MFRNZB4MYYXS33DAYT7UBFWYXAUYO
+#\\\|XKHTDF7DG7FCUQ3AEM2VRMLZ642LS3OHO4WVGAZJH2MM2RGQEBQ \ / AMOS7 \ YOURUM ::
+#\[7]FOUL24AIL4NKF3KIG77RX3KNDA72YI2GKYUZMFIO2E6FTER7BIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
