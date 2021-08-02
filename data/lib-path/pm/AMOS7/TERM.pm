@@ -47,6 +47,7 @@ sub terminal_size {
 sub read_password {
 
     my $password_type_msg = shift // qw| password |;
+    my $term_title        = shift // '';
 
     $OUTPUT_AUTOFLUSH = 1;
     my $clear_console = "\e[H\e[2J\e[3J";
@@ -59,14 +60,20 @@ sub read_password {
         ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
         my $colon_line = qw| : | x abs( $term_width - 30 );
 
-        printf "%s\n\n%s.:::.[%s%s seed file encryption %s%s].:%s\r%s",
-            $clear_console,
-            $C{'0'}, $C{'T'}, $C{'B'}, $C{'R'}, $C{'0'}, $colon_line, $C{'R'};
+        if ( length $term_title ) {
+            printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\r",
+                $clear_console,
+                $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
+                $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
+        }
 
         $password_0
             = read_password_line( sprintf( 'enter %s', $password_type_msg ) );
 
-        if ( $password_0 ne qw| 1 | ) {
+        if ( not defined $password_0 ) {
+            return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
+
+        } elsif ( $password_0 ne qw| 1 | ) {
             $password_1 = read_password_line(
                 sprintf( 're-enter %s', $password_type_msg ) );
 
@@ -80,16 +87,12 @@ sub read_password {
             if ( $password_1 eq qw| 1 | ) {
                 say $C{'R'};
                 error_exit(' [ password read aborted ]');
+                return undef;
             }
         }
     }
 
-    ## say ':';
-    ## say ':: password was : ', $password_0;
-    ## say '';
-
     return $password_0;
-
 }
 
 sub read_password_line {
@@ -100,10 +103,7 @@ sub read_password_line {
 
     $OUTPUT_AUTOFLUSH = 1;
 
-    my $prefix = $message_prompt =~ m|re.?enter| ? '' : "\n:\n";
-
-    printf "%s%s%s:\n%s: %s%s %s %s%s :. %s",, $C{'0'}, $prefix, $C{'0'},
-        $C{'0'}, $C{'T'}, $C{'B'},
+    printf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'}, $C{'0'}, $C{'T'}, $C{'B'},
         $message_prompt,
         $C{'R'}, $C{'0'}, $C{'T'};
 
@@ -163,7 +163,6 @@ sub read_password_line {
                 sprintf( qw| %u |,
                 1.3 * length( $read_pwd // '' ) + rand(7) );
         }
-
     }
 
     ReadMode 0;
@@ -179,6 +178,12 @@ sub read_password_line {
         }
         say $C{'R'};
         error_exit(' [ password input timeout ]');
+        if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
+            for ( 0 .. 6 ) {
+                Time::HiRes::sleep(0.1);
+                Event::loop(0.007);
+            }
+        }
         return undef;
     } elsif ( not length( $key // '' ) ) {
         while (@rnd_count) {
@@ -189,6 +194,7 @@ sub read_password_line {
         }
         say $C{'R'};
         error_exit(' [ password read aborted ]');
+
         return undef;
     }
 
@@ -198,17 +204,25 @@ sub read_password_line {
 
 sub read_single_key_press {
 
-    my $read_mode = shift;
+    my $read_timeout = shift;
 
     my $key;
-    if ( $read_mode == 0 ) {
+    if ( $read_timeout == 0 ) {
         while ( not defined $key ) {
             $key = ReadKey(0.07);
             Event::loop(0.07);
         }
     } else {
-        $key = ReadKey($read_mode);
-        Event::loop(0.007);
+        my @wait_secs;
+        my $timeout_remain = ( ( $read_timeout * 100 ) % 7 ) / 100;
+        my $count          = $read_timeout / 0.07;
+        @wait_secs = ( (0.07) x $count, $timeout_remain );
+
+        foreach my $delay (@wait_secs) {
+            $key = ReadKey($delay);
+            last if defined $key;
+            Event::loop(0.007);
+        }
         $key //= chr(255);
     }
 
@@ -229,8 +243,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,,.,,.,,,,.,.,,,,..,...,.,,,.,.,.,,,,,.,..,,..,,...,...,...,.,.,.,,,,,.,...,
-#JCT6GS4RZXBMLAWUORWRKJQXQ6Q3RS6JZGJVYAGBBXVAZNPTW66UCEL6I2BAIMEHTRTZSPQANKRU6
-#\\\|VSE3YPXKYPBJHGYE3VYUC2YMSHYJGXH5HTW4RJUUHF76O6Y4JHT \ / AMOS7 \ YOURUM ::
-#\[7]22RCCINM5BYFXGFODKS3NH76SIMX7HHHK7KDL2BCR5YXJ2A2QIBA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,,,,,..,,.,,,.,.,.,.,.,.,.,.,..,,...,...,..,,,,,,,..,,..,,..,
+#IXWHREARHTKH5FQRS26BPBC24CPQJI2I522Y4BRDTBBB3Q4IVVCTJBH7DY32HX2NZ3CW2USCIS3ZQ
+#\\\|GUY3HTZVLT6TZZ7LXXABJEIVFHKJ2DF4P53E2GNPETG22IUG2RY \ / AMOS7 \ YOURUM ::
+#\[7]NDIZH4RPD5GINQMGRNIHDDUCR4OZT2CQFR6X3VO4OY5MSUEH5WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
