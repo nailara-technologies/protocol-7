@@ -1,0 +1,51 @@
+## >:] ##
+
+# name  = base.path.create-amos-chksum
+
+my $path_abs        = shift // '';
+my $seperator_str   = shift // qw| / |;
+my $path_str_length = length $path_abs;
+my $had_trailing    = 0;
+
+$had_trailing = 5 if $path_abs =~ m|$seperator_str$|;
+
+$path_abs = File::Spec->canonpath($path_abs) if $seperator_str eq qw| / |;
+
+if ( $path_str_length == 0 ) {
+    warn 'expected absolute path param <{C1}>';
+    return undef;
+} elsif ( not length $seperator_str ) {
+    warn 'seperator cannot be empty <{C1}>';
+    return undef;
+}
+
+my $seperator_last_pos = rindex( $path_abs, $seperator_str );
+
+if ($seperator_last_pos == -1                 ##[  filename only  ]##
+    or index( $path_abs, qw| / |, 0 ) != 0    ##[  relative path  ]##
+) {
+
+    return <[chk-sum.amos]>->($path_abs);     ##  checksum directly  ##
+
+##  directory path  ##
+} elsif ( $seperator_str eq qw| / | and -d $path_abs or $had_trailing ) {
+
+    return <[chk-sum.amos]>->($path_abs);     ##  dir path chksum  ##
+
+} else {
+
+    ##  an absolute path with file component  ##
+    ##
+    my $file_component   = substr $path_abs, $seperator_last_pos + 1;
+    my $chksum_input_str = join( chr(0), $path_abs, $file_component );
+
+    ##  with additional file component  ##  [ joined by \0 ]  ##
+    ##
+    return <[chk-sum.amos]>->($chksum_input_str);
+}
+
+#,,,.,,.,,...,,..,...,,,.,..,,...,...,.,,,,.,,.,.,...,...,..,,...,.,.,..,,,..,
+#IF4UE6FODM6PVXDBSKHZ5JRJX5QOBYLY3AGK4DWY6CEM7RSABK5B3L5WJRYL3V6RDOCB3STXYFVLK
+#\\\|XQFPNCXCZSMYRTVNZHZQKBKA4ZZ5S7EUBGT3GSIQ3TALK63RE5T \ / AMOS7 \ YOURUM ::
+#\[7]4L6U7CMPKCX432K5HUY3PELP4DWFZUISA5A5TWGW4GVJFEMHVEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
