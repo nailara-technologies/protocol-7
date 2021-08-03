@@ -15,7 +15,7 @@ return <crypt.C25519.key_vars>
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
 my $key_usr = <crypt.C25519.key_usr> // <system.amos-zenka-user> // $cur_usr;
 
-$key_usr = $cur_usr if $cur_usr ne 'root' and $cur_usr ne $ENV{'USER'};
+$key_usr = $cur_usr if $cur_usr ne qw| root | and $cur_usr ne $ENV{'USER'};
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
@@ -23,25 +23,34 @@ if ( defined $key_name ) {
     <crypt.C25519.base_key_name> = $key_name;
 } else {
     $key_name //= <crypt.C25519.base_key_name>
-        // join( '.', $key_usr, 'base' );
+        // join( qw| . |, $key_usr, qw| base | );
 }
+
 my $home_dir = <crypt.C25519.key_usr_home>
     //= <[base.get_homedir]>->($key_usr);
+
 <[base.log]>->( 2, 'no home directory, C25519 initialization aborted .,' )
-    and return { 'usr_name' => $key_usr }
+    and return { qw| usr_name | => $key_usr }
     if not defined $home_dir;
-my $key_dir = <crypt.C25519.key_dir> //= "$home_dir/.n/user-keys";
+
+my $key_dir = <crypt.C25519.key_dir>
+    //= sprintf( qw| %s/.n/user-keys |, $home_dir );
 
 my $key_file_ext;
 my $key_filename;
-my $C25519_keyid = 'C25519.B32';
-my $key_basepath = "$key_dir/$key_name.";
+my $C25519_keyid = qw| C25519.B32 |;
+my $key_basepath = sprintf qw| %s/%s.%s |, $key_dir, $key_name, $C25519_keyid;
 
-map { $key_file_ext->{$ARG} = "$C25519_keyid.$ARG" } qw| secret public |;
-map { $key_filename->{$ARG} = $key_basepath . $key_file_ext->{$ARG} }
-    keys %{$key_file_ext};
+foreach my $type (qw|  private  public  |) {
 
-$key_basepath .= $C25519_keyid;
+    my $key_extension = $type eq qw| private | ? qw| secret | : qw| public |;
+
+    $key_file_ext->{$type} = sprintf qw| %s.%s |, $C25519_keyid,
+        $key_extension;
+
+    $key_filename->{$type} = sprintf qw| %s.%s |, $key_basepath,
+        $key_extension;
+}
 
 return <crypt.C25519.key_vars> = {
     'uid'          => $uid,
@@ -55,8 +64,8 @@ return <crypt.C25519.key_vars> = {
     'key_filename' => $key_filename
 };
 
-#,,,,,,.,,,,,,...,,.,,..,,.,,,...,..,,..,,.,,,..,,...,...,.,,,.,,,.,.,,,.,.,.,
-#JKKNX4TRA66FIWU6AWOSWQ2BNPNO2MJEL47I4RNAUQ6M6PIPMZ5O4OPY6PLIUEWGSYJCNYKU5U7KE
-#\\\|4FI2PMVAZBC4QHCECWUEBSURKBKYRTHEX44LR2IRZ244KW3VI4Y \ / AMOS7 \ YOURUM ::
-#\[7]JPYMHRIJBDCNVYUIOXXBULHW4L3JCKYU7PMB7XMB3RXCJGP54SCQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,,,,,,..,..,,,..,,..,.,,,.,,,..,,...,.,.,,.,,...,.,,,...,.,,,
+#2QBAFDCWRTKBLPX2K2CJI6PHXHZWLXPP4LLWHFEKVT5IYCYPHHVAKCQO3BC7QWGHUHIO7FK7MBES4
+#\\\|MLE6ZTOXAQRL3TZUTRYQ6NBENFVP7VXRXPUO2VNXQDFO3J6NN3N \ / AMOS7 \ YOURUM ::
+#\[7]ULPV4HLYXRHCCA3PEGO4BA3BUNG2VKJSBXXAOZ6PX3NFNZ7QC4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

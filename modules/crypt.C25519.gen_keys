@@ -5,26 +5,47 @@
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 my $key_name = $key_vars->{'key_name'};
 
-<[base.log]>->( 2, "generating '$key_name' C25519 key pair..," );
+<[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $key_name );
 
 $keys{'C25519'} //= {};
 
-warn "a C25519 key with name '$key_name' is already loaded [ skipped ]"
-    and return 0
-    if exists $keys{'C25519'}{$key_name};
+if ( exists $keys{'C25519'}{$key_name} ) {
+    <[base.s_warn]>->(
+        "a C25519 key with name '%s' is already loaded [ skipped ]", $key_name
+    );
+    return 0;
+}
 
-my ( $public_key, $secret_key ) = Crypt::Ed25519::generate_keypair();
+my $TRUE = 0;    ##  false  ##
+my ( $public_key, $private_key );
+
+my $secret_key;
+
+##  create from random input [ Crypt::PRNG::Fortuna ]  ##
+##
+while ( not $TRUE ) {
+    <[event.once]>->(0.007);
+    $secret_key = <[base.prng.bytes]>->(32);
+    $public_key = Crypt::Ed25519::eddsa_public_key($secret_key);
+
+    $TRUE = 5    ## true ##
+        if AMOS7::Assert::Truth::is_true( \$public_key, 0, 1 )
+        and AMOS7::Assert::Truth::is_true( \encode_b32r($public_key), 0, 1 );
+}
+
+( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
 
 $keys{'C25519'}{$key_name} = {
-    'name'   => $key_name,
-    'public' => $public_key,
-    'secret' => $secret_key
+    'name'       => $key_name,
+    'public'     => $public_key,
+    'private'    => $private_key,    ##[  C25519 private key  ]##
+    'secret_key' => $secret_key      ##  source entropy  ##
 };
 
-return 1;
+return ( $keys{'C25519'}{$key_name}, $key_name );    ##[ success ]##
 
-#,,..,,,,,.,,,.,,,,,.,,.,,.,,,,,.,.,,,..,,,,,,..,,...,..,,...,.,.,,,.,.,,,,,.,
-#HVBOSDXUMYRAT3C4CMUUPAPA3EP36GYQW5LTUOYTKVOJJJEEZIS2XWOKN32OGORI6JXUVRX6XNREK
-#\\\|Y5BO5X3Q3R6MI7JQQMMKQ5QCDTKJFQZOARCQEGOWFP7RGQ7SAZB \ / AMOS7 \ YOURUM ::
-#\[7]YBOEA3IJ7YP7Q7CGXKB3DYKZA3PYINPJYF3KQQDWULSDYKKWIMCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,.,,,.,.,..,,,,.,,,.,...,.,,,..,,...,...,,,.,...,,,,,..,,,,,,
+#QCQ3RZHCMR6MMPONVCEX46Y3VQLY7ITUSPSBY6Y4VRW2EVVZU5ZUM3C2JN6OJHJBRHNKPGQAAVKJY
+#\\\|Z4VH53H3OO227BNN3T72HPMNWD4EPXKOUEAU3CIJFZOVZBTMY2C \ / AMOS7 \ YOURUM ::
+#\[7]764O6AWBOK44NZLDIYULBZL2KQPBI76PODMLPFTRQVLVS7AD7QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

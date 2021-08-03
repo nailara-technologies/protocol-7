@@ -18,16 +18,16 @@ warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
 
 <[base.s_warn]>->(
     "there is no C25519 private key with name '%s' loaded", $key_name
-) if not defined $keys{'C25519'}{$key_name}{'secret'};
+) if not defined $keys{'C25519'}{$key_name}{'private'};
 
 return Crypt::Ed25519::sign(
     $msg_ref->$*,
     $keys{'C25519'}{$key_name}{'public'},
-    $keys{'C25519'}{$key_name}{'secret'}
+    $keys{'C25519'}{$key_name}{'private'}
 );
 
-#,,.,,...,.,.,.,.,,,.,,,.,...,,..,,,,,..,,,,.,..,,...,...,..,,...,,..,,,.,,,.,
-#PHXGGLCJHLWCQQRTAE33K5KFDUI3YUD55WWXVAXDEYXNHC6GSS2KAMF2H6LGLECYNMFTJTO7JZNRY
-#\\\|RP4FRQIL5P6FNOMHFKZ7WASBTCRI6UO6GUYEREKCA25CB7ETEKA \ / AMOS7 \ YOURUM ::
-#\[7]I2CRPIJU5YRXITWBYYDOO3CK3623Z54277T2IUUYW2UM3RYOA4DA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,..,.,.,,..,.,.,.,.,...,.,,,,,,,..,,...,...,,.,,,,,,.,.,...,.,,,
+#ZNZPHX6Q7ROAZ4SWCE2WBC4BW6ZIL5GTGTSYE5RH6E6ESWCIJBZERC3XFGJOIYM4D4UEDDMLKK7VK
+#\\\|KESWWIXXHSSD7LDG462P6BVBKZPMO77CVKJ7VSU6EVV5GWRULA6 \ / AMOS7 \ YOURUM ::
+#\[7]JSV63JFCC3DGMQPCTHIV263PENMEGTGBYCBUJSCCCDMEL2WUGODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

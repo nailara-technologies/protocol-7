@@ -14,7 +14,7 @@ my $key_bin = $keys{'C25519'}{$key_name};
 
 if ( defined <crypt.C25519.root_key_url> ) {
     my $root_key_name;
-    my %root_key = ( 'secret' => '', 'public' => '' );
+    my %root_key = ( 'private' => '', 'public' => '' );
 
     ## DOWNLOAD IF URL ## ( todo : implement local file case )
     if ( <crypt.C25519.root_key_url>
@@ -26,12 +26,12 @@ if ( defined <crypt.C25519.root_key_url> ) {
         require LWP::UserAgent;    # use download zenka later, needs blocking
         my $ua = LWP::UserAgent->new();
 
-        foreach my $type ( 'secret', 'public' ) {
+        foreach my $type ( 'private', 'public' ) {
             <crypt.C25519.download_type> = $type;
             <[base.log]>->( 1, ": downloading '$root_key_url{$type}'.." );
             my $response = $ua->get( $root_key_url{$type} );
             if ( not $response->is_success ) {
-                map { delete $root_key{$ARG} } ( 'secret', 'public' );
+                map { delete $root_key{$ARG} } ( 'private', 'public' );
                 my $reason = $response->status_line;
                 <[base.log]>->(
                     0, "[!] download [ $root_key_url{$type} ] $reason [!]"
@@ -49,7 +49,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 
         my $rkst = length($root_key_name) ? " '$root_key_name'" : '';
 
-        my $rk_priv_len = length( $root_key{'secret'} );
+        my $rk_priv_len = length( $root_key{'private'} );
         if ( length( $root_key{'public'} ) != 43 or $rk_priv_len != 86 ) {
             <[base.log]>->(
                 0,
@@ -70,7 +70,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
                 Crypt::Ed25519::sign(
                     $key_bin->{'public'} . "\n",
                     decode_b32r( $root_key{'public'} ),
-                    decode_b32r( $root_key{'secret'} )
+                    decode_b32r( $root_key{'private'} )
                     )
                     . "\n"
             )
@@ -88,9 +88,9 @@ if ( defined <crypt.C25519.root_key_url> ) {
             return -1;
         }
     skip_sign:
-        substr( $root_key{'secret'}, 0, $rk_priv_len,
+        substr( $root_key{'private'}, 0, $rk_priv_len,
             <[base.prng.characters]>->($rk_priv_len) );
-        map { undef $root_key{$ARG} } ( 'secret', 'public' );
+        map { undef $root_key{$ARG} } ( 'private', 'public' );
     } else {
         <[base.log]>
             ->( 1, ": unrecognized root key url, skipped signing..," );
@@ -101,8 +101,8 @@ if ( defined <crypt.C25519.root_key_url> ) {
     return 0;
 }
 
-#,,,,,..,,.,.,..,,,,.,...,,..,..,,,..,,,,,...,..,,...,..,,,.,,...,,..,.,,,.,.,
-#ETHTKTV3NJAJ7ZLKZ4XDL6NHU66VLS7QXYP7HOSPPSCH4D5ZTNPX6XMCKLLT2CGR4KH2WGZDSTLAI
-#\\\|BLAQT4UB77LEKK7E7W2RPQQSWE6HRVXBVC25ALAO7SQCWRH33UE \ / AMOS7 \ YOURUM ::
-#\[7]JYDNVGY3X4EJ6X3K7DCR5B6Q47B6K6YL6REZS76NRXXD3CD7Q4CQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,...,,.,,,,.,,,.,,..,,,.,,..,..,,...,..,,..,,,,.,..,,.,.,,,.,
+#3CXTZGDOXEXTHBLXYJMKESVNLEBOQ7WPPGH4ZRCFOWYQNXRHCBRKAMBRQOUVIE2PS5RXGYEFF4F7S
+#\\\|STOI52VOZDILMX3GMOQHWM4Y5BUT7WB5IRI4QIB5J4LGXNT3ETY \ / AMOS7 \ YOURUM ::
+#\[7]U3RP6Z34SUCL6LZ4M6YIFV76KHFRF2A26AJHTFHXV77GSTKO6MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

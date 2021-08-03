@@ -24,7 +24,8 @@ if ( not $unencrypted ) {
         <[base.exit]>->(qw| 0110 |);
     }
     $key_password
-        = AMOS7::TERM::read_password( 'C25119 key encryption passphrase',
+        = AMOS7::TERM::read_password_repeated(
+        'C25119 key encryption passphrase',
         sprintf( "create C25519 key '%s'", $key_name ) );
 
     if ( not defined $key_password or length $key_password <= 1 ) {
@@ -68,8 +69,8 @@ printf( " :\n :: [ created key '%s' [ %s ] in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,.,,,,,...,,,.,..,,.,.,..,,.,,,.,,,...,,,,,..,,...,...,,,,,,,,,.,.,..,,...,
-#I23GGVWVZH4SCUWAMM556GPQT5FJQKNJYLLCDYYXZPIPTOEL7SDL3JKOCDYPOR6HYOVN7FNOLEKCC
-#\\\|F6ZKSBFJF5DKK5QL77SYMI5GYSDM5B6BCOKL4NAFHDYFEEH56GO \ / AMOS7 \ YOURUM ::
-#\[7]M34NSO5KR45DR74UELROLI4EZHQ534WDMGV36XG7OET3BRJDMKCI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,...,,,.,..,,,..,,.,,.,.,..,,..,,...,...,...,.,,,...,..,,,,,,
+#2THTC5QZPL2VLOUYWXS4LCWFVFMX3MK467VZTOVJB2M5FHUP565ANOR6IPK2I4J2AWNUED43DY3CS
+#\\\|MDU5TZQC2FI2IXISDXORYRPAM35RAPRQ6LC4D2DOJTI52NHZA6P \ / AMOS7 \ YOURUM ::
+#\[7]27EWIPFKAKFVBE6OWFCEI7F5GAXIX43YJDDAKF5DGOBBUCRUXOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
