@@ -79,7 +79,7 @@ if ( -e $session_entropy_path and -z $session_entropy_path ) {
 }
 
 RENTER_PASSWD:
-my $enc_pwd = AMOS7::TERM::read_password( 'encryption password',
+my $enc_pwd = AMOS7::TERM::read_password_repeated( 'encryption password',
     'seed file encryption' );
 
 if ( not defined $enc_pwd or length $enc_pwd < 13 ) {
@@ -99,16 +99,16 @@ if ( not defined $status or not $status ) {
 }
 
 RE_READ:
-my $input_entropy_data;
 
-$input_entropy_data = AMOS7::TERM::read_password('seed entropy passphrase')
-    if $passphrase_mode;
+my $input_entropy_data;
+if ($passphrase_mode) {
+    $input_entropy_data
+        = AMOS7::TERM::read_password_repeated('seed entropy passphrase');
+}
 
 ## prepare encryption wrapper ##
 ##
 my $enc_sub = sub { encrypt( $session_user_name, \$ARG[0] ) };
-
-print sprintf( "%s:%s\n", $C{'0'}, $C{'R'} ) x 3;
 
 my $result_scalar;
 my $entropy_FH;
@@ -148,8 +148,8 @@ say sprintf "%s::%s%s done. [ %s ] %s\n", $C{'0'}, $C{'T'}, $C{'b'},
 ##                                                                     ##
 #########################################################################
 
-#,,..,..,,.,,,,,.,,.,,,.,,,,,,.,.,...,.,,,...,..,,...,...,...,,.,,.,,,,,.,,,,,
-#VS53J4ZTZ6DGPUINDCAVHCI3D6QZAF7SR4VN3G34JDKC4XKEJKCN2BJZXYMREFRCZD2UNB3WPGPMQ
-#\\\|WZJITUET2MJWABHPIB6OJQI57TMLNO4MXMLAKMTSYY6RLBMANXB \ / AMOS7 \ YOURUM ::
-#\[7]JXPBZ7D36E24HBLVWBSYZEIXVW64LJYL6C4JJNMVMQQ4X7WV4AAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,.,,,...,,,,,.,.,.,.,,.,,,,.,..,,...,...,...,,.,,..,,,..,,..,
+#GVV5BLTO4VVQYAN65BOKOQIEGMPFJ7JK233NQJTZ5XQRZQQ57CEIOROBJUSH3KPKWG3KEGARK2XTO
+#\\\|IWGB76T3GMYBNZPO7THAYE24XBR4FNP7DJIZLKRRSMILEEUJ7E4 \ / AMOS7 \ YOURUM ::
+#\[7]WJDXWB6QOCZKOMCETHH23CWCRT3RTZT3IY2BXIOJM7LZCDQYRGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

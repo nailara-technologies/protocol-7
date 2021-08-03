@@ -20,9 +20,9 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
-@EXPORT_OK = qw| read_password_line |;
+@EXPORT_OK = qw| terminal_title |;
 
-@EXPORT = qw| terminal_size read_password |;
+@EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
 our $pwd_min_len      //= 13;
 our $pwd_read_aborted //= 0;
@@ -45,17 +45,12 @@ sub terminal_size {
 
 ##[ USER-INTERACTION ]########################################################
 
-sub read_password {
+sub read_password_repeated {
 
     my $password_type_msg = shift // qw| password |;
     my $term_title        = shift // '';
 
     $OUTPUT_AUTOFLUSH = 1;
-    my $clear_console
-        = ( defined $main::PROTOCOL_SEVEN
-            and $main::data{'system'}{'verbosity'}{'console'} )
-        ? ''    ##  do not clear screen with -v option  ##
-        : "\e[H\e[2J\e[3J";
 
     ( my $password_0, my $password_1 );
 
@@ -63,26 +58,17 @@ sub read_password {
         or not defined $password_1
         or $password_0 ne $password_1 ) {
 
-        print $clear_console;
-        ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
-        my $colon_line
-            = qw| : | x abs( $term_width - length($term_title) - 11 );
+        terminal_title($term_title) if length $term_title;
 
-        if ( length $term_title ) {
-            printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\n",
-                $clear_console,
-                $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
-                $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
-        }
+        ( $password_0, my $password_status )
+            = read_password_single(
+            sprintf( 'enter %s', $password_type_msg ) );
 
-        $password_0
-            = read_password_line( sprintf( 'enter %s', $password_type_msg ) );
-
-        if ( not defined $password_0 ) {
+        if ( not defined $password_0 and $password_status == 0 ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
 
         } elsif (
-            $password_0 ne qw| 1 |    ##  checking min pwd length  ##
+            $password_status == 1    ##  checking min pwd length  ##
             and length($password_0) < $pwd_min_len
         ) {
             undef $password_0;
@@ -96,9 +82,10 @@ sub read_password {
             }
             sleep 1.2;
 
-        } elsif ( defined $password_0 and $password_0 ne qw| 1 | ) {
+        } elsif ( $password_status != 1 ) {
 
-            $password_1 = read_password_line(
+            ( $password_1, my $password_status )
+                = read_password_single(
                 sprintf( 're-enter %s', $password_type_msg ) );
 
             if (    defined $password_0
@@ -117,7 +104,8 @@ sub read_password {
                 }
                 sleep 1.2;
             }
-            if ( defined $password_1 and $password_1 eq qw| 1 | ) {
+
+            if ( $password_status > 0 ) {
                 undef $password_0;
                 undef $password_1;
                 say $C{'R'};
@@ -138,13 +126,19 @@ sub read_password {
     return $password_0;
 }
 
-sub read_password_line {
-    my $message_prompt   = shift // 'enter password';
+sub read_password_single {
+
+    my $message_prompt = shift // 'enter password';
+    my $term_title     = shift // '';
+
     my $sig_int          = $SIG{'INT'};
+    my $password_status  = 0;
     my $pwd_read_aborted = 0;
     my $autoflush        = $OUTPUT_AUTOFLUSH;
 
     $OUTPUT_AUTOFLUSH = 1;
+
+    terminal_title($term_title) if length $term_title;
 
     printf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'}, $C{'0'}, $C{'T'}, $C{'B'},
         $message_prompt,
@@ -173,6 +167,8 @@ sub read_password_line {
         if ( $code == 10 and length $read_pwd ) {    ##  read complete  ##
             ReadMode 0;
             say $C{'R'};
+
+            return ( $read_pwd, $password_status ) if wantarray;
             return $read_pwd;
 
         } elsif ( $code == 127 ) {                   ##  backspace  ##
@@ -190,27 +186,32 @@ sub read_password_line {
         } elsif ( defined $key
             and $code != 10
             and $code != 255
-            and $code != 27 ) {
+            and $code != 27 ) {    ## adding one key to the password ##
 
             $read_pwd .= $key;
 
             my $rnd_keys = sprintf qw| %u |, 1.2 + rand(1);
-            for ( 1 .. $rnd_keys ) {
+            for ( 1 .. $rnd_keys ) {    ## masking length ##
                 print qw| * |;
                 sleep( rand(0.13) );
             }
             push @rnd_count, $rnd_keys;
 
-        } else {
-            $read_pwd = qw| * | x    ##  erasing password from memory  ##
+        } else {    ##[  read abort  ]##
+            $read_pwd = '*' x    ##  erasing password from memory  ##
                 sprintf( qw| %u |,
                 1.3 * length( $read_pwd // '' ) + rand(7) );
+            $read_pwd        = '';
+            $password_status = 2;
         }
     }
 
     ReadMode 0;
 
-    if ( $code == 255 ) {
+    if ( $code == 255 ) {    ##[  input timeout  ]##
+
+        $password_status = 1;
+
         my $rewind_delay = 0.777;
         while (@rnd_count) {
             for ( 1 .. pop @rnd_count ) {
@@ -231,7 +232,10 @@ sub read_password_line {
         } else {
             error_exit(' [ password input timeout ]');
         }
+
+        return ( undef, $password_status ) if wantarray;
         return undef;
+
     } elsif ( not length( $key // '' ) ) {
         while (@rnd_count) {
             for ( 1 .. pop @rnd_count ) {
@@ -248,12 +252,35 @@ sub read_password_line {
         } else {
             error_exit(' [ password read aborted ]');
         }
-
+        return ( undef, $password_status ) if wantarray;
         return undef;
     }
 
     $SIG{'INT'} = $sig_int;
     $OUTPUT_AUTOFLUSH = $autoflush;
+}
+
+sub terminal_title {
+    my $term_title = shift // '';
+    return 0 if not length $term_title;
+
+    $OUTPUT_AUTOFLUSH = 1;
+
+    my $clear_console
+        = ( defined $main::PROTOCOL_SEVEN
+            and $main::data{'system'}{'verbosity'}{'console'} )
+        ? ''    ##  do not clear screen with -v option  ##
+        : "\e[H\e[2J\e[3J";
+
+    ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
+    my $colon_line = qw| : | x abs( $term_width - length($term_title) - 11 );
+
+    printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\n",
+        $clear_console,
+        $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
+        $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
+
+    return 5;    ## true ##
 }
 
 sub read_single_key_press {
@@ -297,8 +324,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,.,,,..,.,.,,.,,...,..,,...,,.,,,,,,.,,,,..,..,,...,...,...,...,,,,,.,.,,,,,
-#REMS6CRVA6O7GAEETAJA4BIXNNWVL7E5M6HRVCQOFATYT3LWQRJ6S4S2Q5P2D5EHJ4LO7U7ZSGN4E
-#\\\|OWZAFAWMILNAFFQS6WDKDMUDFXORXOPROCEDK4CN7JSSJ77BBDW \ / AMOS7 \ YOURUM ::
-#\[7]56FHY25B7XHC6MRIVUKWJ664GQ74MHZUNYCRTAHLY2EW7UGOV4CY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,,..,..,,,,,,,..,,,,,.,,,,,.,..,,...,...,,.,,,,.,..,,,,,,,.,,
+#LMH7VQ6OTWSH7VQTLI3WPGYLT225BN2OSDKSE6UPUUIGPMEERCWF3LGXSG6G2GUDH5R5U3ZIQKBSK
+#\\\|ZSLGCVAPITTOXDA2UUZ7IGAYZSO5TIFTVIXN4TCW273XGDRXO6L \ / AMOS7 \ YOURUM ::
+#\[7]J7TA2V2EEJ3I7DI4XVP5W662CLDG2PDCA7XP5DDCMGXMBNEUYWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
