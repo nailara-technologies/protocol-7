@@ -1,20 +1,22 @@
 ## >:] ##
 
 # name  = keys.console.path
-# descr = return current user's C25519 key directory path
-# note  = protocol-7 keys path | grep -v ':$' | sed 's/.*: *//'
+# descr = return the current user C25519 key file dirpath
+# note  = Protocol-7 keys path | grep -v ':$' | sed 's|.*: *||'
 
 my $key_vars = <[crypt.C25519.key_vars]>;
 
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
-<[base.log]>->( 1, "returning $key_usr\'s key path ['$key_dir']" );
+<[base.logs]>
+    ->( "returning key path for user %s ['%s']", $key_usr, $key_dir );
 
-printf ":\n: nailara key path [$key_usr] : %s\n:\n", $key_dir;
+printf ":\n: protocol-7 C25519 key directory [%s] : %s\n:\n", $key_usr,
+    $key_dir;
 
-#,,..,,.,,..,,,,.,,.,,.,,,,,,,..,,...,,,,,..,,..,,...,..,,.,,,...,...,,,,,...,
-#4BLC2NZ6Q4HYR47JF66PDGQS546XAIYONVKEPVSGGGC6UF6ZOUYYWEXD5GQSLS34JEV3TY5KHJKUQ
-#\\\|4Q5TVYQIGZNKVYXPQIUKHTBURNLUWCOFUP4BJDBE34CXNVRQ5VB \ / AMOS7 \ YOURUM ::
-#\[7]SQV4U7RMJLSMUO3FK26A2UR43IZ4WUAQP7HC3B7NLITWLR4KQKBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,.,,,,,,,.,,,,.,,..,.,,,,,.,..,,...,...,...,...,,..,,,,,,.,,
+#AFPWEHW3ATZMI3CCYEW4ODB2ON4XX64FVPIPGFLRHZ5S7FCRVQG74BNZIR3SL7UDCFJPMTRMS5ZFE
+#\\\|SSUGXPJTQF6SKNBJ3I2AVQR2M6VT2LU7QNCLS2ODKVRUCBUFSIH \ / AMOS7 \ YOURUM ::
+#\[7]3D3V7GIET2RAT2GPXZLYJWC7WDZI53YO6CJK5SWH7JNEQLWTGAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
