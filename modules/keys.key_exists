@@ -1,0 +1,28 @@
+## >:] ##
+
+# name  = keys.key_exists
+
+my $key_name = shift;
+
+if ( not defined $key_name ) {
+    warn 'expected key name parameter <{C1}>';
+    return undef;
+}
+
+my $key_vars  = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir   = $key_vars->{'key_dir'};
+my $re_kfiles = <keys.regex.key_files>;
+my $match_re  = qr|^(\Q$key_name\E\.$re_kfiles)$|;
+
+my @keys_found = grep {m|$match_re|}    ##  match for key name  ##
+    grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
+
+return 5 if scalar @keys_found;         ##  true \ key found  ##
+
+return 0;                               ##  key with that name not present  ##
+
+#,,..,...,,,.,...,,,,,.,.,,,.,,,.,,..,,,,,.,,,..,,...,...,,.,,,,.,,,,,...,.,,,
+#FKJLZBPIB3ROPJFGUJTSHE7SWD4ITVLFBPJNXEDRCVEEJ22YEUBTQOMANYBBCARCLZLBS73HXD3PA
+#\\\|AM4K4ZS5AXPOMIKNPZ4C4JIN7XJTTAD7XBFPGYBXVTDPZEHNJVW \ / AMOS7 \ YOURUM ::
+#\[7]AJ63MMO7LCFNTMSLZFPJ6ICRYEF5GLJPRHAS4ZXVNBCYNQZYQCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

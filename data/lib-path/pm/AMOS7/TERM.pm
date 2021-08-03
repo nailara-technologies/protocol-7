@@ -61,7 +61,7 @@ sub read_password {
 
     while (not defined $password_0
         or not defined $password_1
-        or not $password_0 ne $password_1 ) {
+        or $password_0 ne $password_1 ) {
 
         print $clear_console;
         ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
@@ -96,7 +96,7 @@ sub read_password {
             }
             sleep 1.2;
 
-        } elsif ( $password_0 ne qw| 1 | ) {
+        } elsif ( defined $password_0 and $password_0 ne qw| 1 | ) {
 
             $password_1 = read_password_line(
                 sprintf( 're-enter %s', $password_type_msg ) );
@@ -134,6 +134,7 @@ sub read_password {
         }
     }
     printf "%s:\n", $C{'0'} for ( 0 .. 1 );
+
     return $password_0;
 }
 
@@ -296,8 +297,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,,,,,,,,..,,.,,,,..,.,,,,,,,.,,,,,,,,,.,,,.,..,,...,...,...,,.,,.,.,,..,,,,,
-#L3IVKY5QNR7AFG7NKYGYGHXRB23WMWMFV4ZKTH5XSNJVVVQU42GSV2ONRRMJNSNYAYB32EBVWYKI2
-#\\\|ODIEIFQE6EF4DDHWSB33GGFGPAX363MS6ECUKPTVTFJZVIX7K3V \ / AMOS7 \ YOURUM ::
-#\[7]7UWXQKY7KNF3JMOTMVYNYUH53PXVVL4YMCA2BXRJ6YEZXMLEOWAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,...,..,,...,,.,,,,,,.,,,,..,..,,...,...,...,...,,,,,.,.,,,,,
+#REMS6CRVA6O7GAEETAJA4BIXNNWVL7E5M6HRVCQOFATYT3LWQRJ6S4S2Q5P2D5EHJ4LO7U7ZSGN4E
+#\\\|OWZAFAWMILNAFFQS6WDKDMUDFXORXOPROCEDK4CN7JSSJ77BBDW \ / AMOS7 \ YOURUM ::
+#\[7]56FHY25B7XHC6MRIVUKWJ664GQ74MHZUNYCRTAHLY2EW7UGOV4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,17 +39,21 @@ if ( ref( $ARG[0] // '' ) eq qw| HASH | and exists $ARG[0]->{'cmd'} ) {
 
 $exit_code //= 0;
 $log_level //= 1;
-$exit_msg  //= sprintf( '.. exit [ %d ] called .,', $exit_code );
+$exit_msg  //= sprintf( '.. exit [ %s ] called .,', $exit_code );
 
 <[base.log]>->( $log_level, $exit_msg );
 
+##  resetting terminal input  ##
+eval 'ReadMode(0)' if defined &main::ReadMode;
+
+##  resetting terminal output  ##
 print STDOUT $colors{'reset'};
 print STDERR $colors{'reset'};
 
 CORE::exit($exit_code);
 
-#,,..,..,,,.,,...,,,.,...,,,.,..,,,.,,,,.,,..,..,,...,...,,..,,.,,,,.,.,,,..,,
-#BXV37JOFM2VRXBS2EUPTUTY3HVYRWQ7RQTDXCNQMLRR4CNO3VYSCFYGHDISF3Z53NLTDUFOVIBHJ2
-#\\\|CVURQ4K5QLNEHXDMNPAUBI3ZLHEK2IXHQM7NQKB3TRKBUVRSILY \ / AMOS7 \ YOURUM ::
-#\[7]K66WH5N6SXCQ7W2TDTXFY5WXVMBGRDR5BDHEMZHOYNTDPGTCWQAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,,..,...,..,,.,.,..,,..,,,..,..,,...,...,,,.,,,.,,,,,,,,,,,,,
+#UVR2O7KAXSWNG4PUQEOETU5CUF7YKQCP237R4BKGC5WV2PQRB2ANMKIVMVUDCG2I63DO5B4VJZR4W
+#\\\|L4T77SBRD5XJ6EJGWHTGLQ5SZKOTOUJYS3QXNXJJS53USA5EOF5 \ / AMOS7 \ YOURUM ::
+#\[7]VGQWV5RKVWFVVHQWUTMIERLJRAJF7NRL4YAC2CCIIZPB53WQEMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
