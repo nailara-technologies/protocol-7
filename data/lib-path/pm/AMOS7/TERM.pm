@@ -73,7 +73,6 @@ sub read_password_repeated {
         ) {
             undef $password_0;
             if ( defined $main::PROTOCOL_SEVEN ) {
-                printf "%s:\n", $C{'0'};
                 $main::code{'base.logs'}
                     ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
             } else {
@@ -95,7 +94,6 @@ sub read_password_repeated {
                     undef $password_0;
                     undef $password_1;
                     if ( defined $main::PROTOCOL_SEVEN ) {
-                        printf "%s:\n", $C{'0'};
                         $main::code{'base.log'}
                             ->( 0, '<<  paswords differ  >>' );
                     } else {
@@ -166,8 +164,7 @@ sub read_password_single {
 
         if ( $code == 10 and length $read_pwd ) {    ##  read complete  ##
             ReadMode 0;
-            say $C{'R'};
-
+            say sprintf "\n%s:%s", $C{'0'}, $C{'R'};
             return ( $read_pwd, $password_status ) if wantarray;
             return $read_pwd;
 
@@ -324,8 +321,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,.,,,,.,,..,.,,,,..,..,,,,,,,..,,,,,.,,,,,.,..,,...,...,,.,,,,.,..,,,,,,,.,,
-#LMH7VQ6OTWSH7VQTLI3WPGYLT225BN2OSDKSE6UPUUIGPMEERCWF3LGXSG6G2GUDH5R5U3ZIQKBSK
-#\\\|ZSLGCVAPITTOXDA2UUZ7IGAYZSO5TIFTVIXN4TCW273XGDRXO6L \ / AMOS7 \ YOURUM ::
-#\[7]J7TA2V2EEJ3I7DI4XVP5W662CLDG2PDCA7XP5DDCMGXMBNEUYWBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,.,.,,..,,,,,...,,..,,.,,.,,,..,,...,...,,.,,..,,.,.,...,..,,
+#QK2VJOM7OYDVPGK2DFXL423OYV5RBZ6UJ6MP5MAV6DEJ2CC55TPDVFHK5MJKQZU2WWHG6Y3ISZI2U
+#\\\|IAOMCQQIGTKYF6YQVVNPN2WXN7UEVHN2B46C4WKPI36YBN2LH56 \ / AMOS7 \ YOURUM ::
+#\[7]LA7WDI6BJE6DKZLMMDG3HZECOSBJP5RPQFAKUVMCPR5J4WNUD4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

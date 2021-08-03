@@ -10,7 +10,7 @@ my $log_level = defined $keys{'C25519'}{'session'}{$key_name} ? 2 : 1;
 
 <[base.log]>->( $log_level, ":[ creating $key_name_str session keys ]" );
 
-my ( $public_key, $secret_key ) = Crypt::Ed25519::generate_keypair();
+my ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair();
 
 my $creation_ntime = <[base.ntime.b32]>->(3);
 my $key_sig
@@ -19,7 +19,7 @@ my $key_sig
 return $keys{'C25519'}{'session'}{$key_name} = {
     'name'      => $key_name,
     'public'    => $public_key,
-    'secret'    => $secret_key,
+    'private'   => $private_key,
     'created'   => $creation_ntime,
     'signature' => $key_sig,
     'key-reply' => encode_b32r($public_key),
@@ -27,8 +27,8 @@ return $keys{'C25519'}{'session'}{$key_name} = {
         sprintf( '[%s|%s]', $creation_ntime, encode_b32r($key_sig) )
 };
 
-#,,.,,,,,,.,,,,,.,,,,,,.,,,,,,...,.,.,,.,,,.,,..,,...,...,..,,...,,.,,...,.,,,
-#WPOJM6J7ZR24QRQX3ZI4FCCTHRCWOVWO45Z77FEEZKRKU6D3NSSNVR65R2X47PHG3C3DFUGFFKPJO
-#\\\|TAWJB2QPJGX6VPZR4AJ4AQSEAOVZ7V4GSYBVDJ4IDDGPAGJ5HHM \ / AMOS7 \ YOURUM ::
-#\[7]7DB2JG3LUQM43REDPDN4Z3UT2QUYZWJCJBV2ZCCEM2XDJ37RD2CQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,.,.,,,.,...,.,,,.,,,...,..,,.,,,..,,...,...,...,,,.,..,,.,,,.,.,
+#2REK2VPONVCFSF3WU7AH74UQWX3UYWBMNYOSYICUSZWDKAXIHTBGCZPJMYX3JOOKQP7GOTHI3ZTG2
+#\\\|BNFWFLYA3VUC3GZDCIF7HNZTW2EIUOBFZNLSSSDYQXU57HB6GP4 \ / AMOS7 \ YOURUM ::
+#\[7]LLFCZXEYJSJDUOKG234NUGT2OUP6VB4ACRQ37IQBJJ7HWETCDGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
