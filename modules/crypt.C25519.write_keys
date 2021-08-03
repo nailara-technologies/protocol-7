@@ -13,8 +13,8 @@ my $usr_hdir     = $key_vars->{'usr_home'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_basepath = $key_vars->{'key_basepath'};
 
-foreach my $type (qw|  public  secret  |) {
-    my $file_name = join( qw| . |, $key_basepath, $type );
+foreach my $keyfile_extension (qw|  public  secret  |) {
+    my $file_name = join( qw| . |, $key_basepath, $keyfile_extension );
     next if not -f $file_name;
     $file_name =~ s|^.*\/||;
 
@@ -26,8 +26,12 @@ foreach my $type (qw|  public  secret  |) {
     <[base.log]>->( 0, ':.. cannot not overwrite it.' );
     return 0;
 }
-foreach my $type (qw|  secret  public  |) {
-    my $file_name = join( qw| . |, $key_basepath, $type );
+foreach my $type (qw|  private  public  |) {
+
+    my $keyfile_extension
+        = $type eq qw| private | ? qw| secret | : qw| public |;
+
+    my $file_name = join( qw| . |, $key_basepath, $keyfile_extension );
     my $tmp_fname = join( qw| . |, $file_name,    $PID, <[base.ntime.b32]> );
     open( my $key_fh, qw|>|, $tmp_fname ) or die "\l$OS_ERROR [ $tmp_fname ]";
     if ( $type eq qw| public | ) {
@@ -42,7 +46,7 @@ foreach my $type (qw|  secret  public  |) {
 
     ##[  encrypting key before write  ]##
     ##
-    if ( $type eq qw| secret | and defined $key_password ) {
+    if ( $type eq qw|  private  | and defined $key_password ) {
 
         my $enc_key = AMOS7::13::key_32( \$key_password );
 
@@ -95,8 +99,8 @@ foreach my $type (qw|  secret  public  |) {
 }
 return $key_checksum;
 
-#,,..,,,,,.,.,,.,,.,,,,,.,.,.,,,,,.,,,,,,,,..,..,,...,..,,,.,,...,,.,,,,.,.,.,
-#4CP2F63HZDJJQGCQLZ7YBK7U2Z35BR6ZTW44GHWQZLXZQK6LQWOCUZI4F7H4WPN5JJLNSNOTTTCPO
-#\\\|24B457NGJ5GFSQFM5M6JF64UZ63SCRQUJ3KUWBZZGV3LJYY2UEN \ / AMOS7 \ YOURUM ::
-#\[7]UK4HAENQMA7O44CR5W5EMNMEHJYFMVZMHP2G53IS6PYGVM7OGWBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,,,,,,,,.,,,..,,..,,,..,...,..,,...,...,,..,...,,,,,,,,,,,.,
+#5TFC6M2IJSMOA5XFXPTCEVMUN2HU2DUWYMGHEEKT6BXEKXYD3ALCWYHPUKEZAR4J3MWKTB3ZKXUXU
+#\\\|YNNKL2TN5SFF7QAMAV5XT4PT5QG5ZUMJ4Q3DSODA2O4EA6PEFCT \ / AMOS7 \ YOURUM ::
+#\[7]YL5RWHDJBMIDQ5FYUJO23UJMLSUL35UOTXVLYUWG43YJWKLFCGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

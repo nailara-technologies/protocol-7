@@ -4,53 +4,145 @@
 
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 
+my $key_password = shift;                          ## optional ##
+
 my $key_dir      = $key_vars->{'key_dir'};
 my $key_usr      = $key_vars->{'usr_name'};
 my $key_name     = $key_vars->{'key_name'};
 my $key_filename = $key_vars->{'key_filename'};
 
-my $secret_key_file = $key_filename->{'secret'};
-my $public_key_file = $key_filename->{'public'};
+my $private_key_file = $key_filename->{'private'};
+my $public_key_file  = $key_filename->{'public'};
 
-if ( -r $secret_key_file and -r $public_key_file ) {
+if ( -r $private_key_file and -r $public_key_file ) {
+
     my $u_str = $key_name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
-    <[base.log]>->( 1, ":. C25519-key .:. '$key_name'$u_str" );
+    <[base.logs]>->( 1, ":. C25519-key .:. '%s'%s", $key_name, $u_str );
 
-    chomp( my $encoded_secret_key = ${ <[file.slurp]>->($secret_key_file) } );
-    chomp( my $encoded_public_key = ${ <[file.slurp]>->($public_key_file) } );
+    my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
+    my $encoded_public_key  = <[file.slurp]>->($public_key_file)->$*  // '';
 
-    if ( !length($encoded_secret_key) or !length($encoded_public_key) ) {
-        <[base.log]>->( 0, "unable to load '$key_name' key data .," );
+    if ( not length $encoded_private_key or not length $encoded_public_key ) {
+        <[base.logs]>->( 0, "cannot load '%s' key data ..,", $key_name );
         return 0;
+    } else {
+        chomp($encoded_public_key);
+    }
+
+    my $key_encrypted = 0;    ##  false  ##
+
+    ## checking for linefeed [ encrypted if absent ] ##
+    ##
+    if ( rindex( $encoded_private_key, "\n" ) == -1 ) {
+        $key_encrypted = 5;    ## true ##
+    } else {
+        chomp($encoded_private_key);
     }
 
     ## decode [ base 32 ] ##
-    $keys{'C25519'}{$key_name}{'secret'} = decode_b32r($encoded_secret_key);
-    $keys{'C25519'}{$key_name}{'public'} = decode_b32r($encoded_public_key);
+    $keys{'C25519'}{$key_name}{'private'} = decode_b32r($encoded_private_key);
+    $keys{'C25519'}{$key_name}{'public'}  = decode_b32r($encoded_public_key);
 
-    map {
-        <[base.log]>->( 0, "BASE32 decoding failed [ $ARG key ]" )
-            if not defined $keys{'C25519'}{$key_name}{$ARG}
-    } qw| secret public |;
-
-    if (   not defined $keys{'C25519'}{$key_name}{'public'}
-        or not defined $keys{'C25519'}{$key_name}{'secret'} ) {
-        <[base.log]>->( 0, "failed to load key '$key_name'" );
-        return 0;
+    foreach my $type (qw|  private  public  |) {
+        <[base.logs]>->( 0, "BASE32 decoding failed [ %s key ]", $type )
+            if not defined $keys{'C25519'}{$key_name}{$type};
     }
 
-    return 1;
+    if (   not defined $keys{'C25519'}{$key_name}{'public'}
+        or not defined $keys{'C25519'}{$key_name}{'private'} ) {
+        <[base.log]>->( 0, "cannot load key '%s'..,", $key_name );
+        return 0;    ##  false  ##
+    }
+
+    ##  decrypt private key [ when password provided ]  ##
+    ##
+    if ($key_encrypted) {
+    RE_READ_PWD:
+        if ( not defined $key_password ) {
+            say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
+            $key_password = AMOS7::TERM::read_password_single(
+                sprintf( "'%s' key decryption password", $key_name ) );
+        }
+        if ( defined $key_password and length $key_password < 13 ) {
+            say sprintf "%s:", $AMOS7::C{'0'};
+            <[base.log]>->( 0, 'password is too short, retry or abort..,' );
+            say sprintf "%s:", $AMOS7::C{'0'};
+            undef $key_password;
+            for ( 1 .. 7 ) {
+                <[base.sleep]>->(0.1);
+                <[event.once]>->(0.007);
+            }
+            goto RE_READ_PWD;
+        } elsif ( not defined $key_password ) {
+            undef $keys{'C25519'}{$key_name}{'private'};
+            delete $keys{'C25519'}{$key_name}{'private'};
+            <[base.log]>->( 0, 'cannot decrypt private key .,' );
+            <[base.log]>->( 1, ':' );
+            <[base.logs]>->( ": public key loaded ['%s']", $key_name );
+            <[base.log]>->( 1, ':' );
+            return 0;
+        } else {
+            say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
+        }
+
+        my $enc_key = AMOS7::13::key_32( \$key_password );
+
+        <[base.logs]>->( ": decrypting private key ., [ %s ]", $key_name );
+
+        if ( not defined $enc_key or not length $enc_key ) {
+            warn 'error during file enc key derivation <{C1}>';
+            return undef;
+        }
+        my $status
+            = AMOS7::Twofish::key_init( $enc_key, qw| decryption C25519 | );
+
+        if ( not defined $status or not $status ) {
+            warn 'error during initializing of '
+                . 'key file decryption key <{C1}>';
+            return undef;
+        }
+        my $decrypted_C25519_sref
+            = AMOS7::Twofish::decrypt( qw| C25519 |,
+            \$keys{'C25519'}{$key_name}{'private'} );
+
+        if (   not defined $decrypted_C25519_sref
+            or ref $decrypted_C25519_sref ne qw| SCALAR |
+            or not length $decrypted_C25519_sref->$* ) {
+            warn 'key decryption error <{C1}>';
+            return undef;
+        } elsif (
+            not AMOS7::Assert::Truth::is_true( $decrypted_C25519_sref->$*, 0,
+                1 ) ) {
+            undef $keys{'C25519'}{$key_name}{'private'};
+            delete $keys{'C25519'}{$key_name}{'private'};
+            <[base.log]>->( 1, ':' );
+            <[base.log]>->( 0, ': password is not correct ..,' );
+            <[base.log]>->( 1, ':' );
+            <[base.logs]>->( ": public key loaded ['%s']", $key_name );
+            <[base.log]>->( 1, ':' );
+            return 0;
+        }
+        $keys{'C25519'}{$key_name}{'private'} = $decrypted_C25519_sref->$*;
+        my $key_checksum = <[chk-sum.amos]>->( $decrypted_C25519_sref->$* );
+        <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
+
+    }
+
+    return 5;    ## true ##
+
 } else {
     delete $keys{'C25519'}{$key_name};
-    delete $keys{'C25519'} if !keys %{ $keys{'C25519'} };
-    <[base.log]>->( 0, "'$key_name' key pair not found or unreadable..," );
-    <[base.log]>->( 0, " ::[ expected in : '$key_dir' ]::" );
+    delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
+    <[base.logs]>->(
+        0, "'%s' key pair not found or not readable ..,", $key_name
+    );
+    <[base.logs]>->( 0, " ::[ expected in : '%s' ]::", $key_dir );
 
-    return 0;
+    return 0;    ##  false  ##
 }
 
-#,,,.,.,.,,,.,,,,,,,.,...,,.,,.,.,,..,,..,...,..,,...,...,...,,..,,,.,,,,,.,.,
-#BSLFXXUQVXDNJCUEH74VQ7RWHAA2Q5T7LXLXCSIWRFKOA7QRLQ3LHAJLUJS5T57C5ZMUIXMDD5M2A
-#\\\|RDR26RHEHY3SJTELWWROOSA7ZJWR4EYAFYCENTPOKBQIHN4CSKX \ / AMOS7 \ YOURUM ::
-#\[7]R3Z5KWK5HGSKQ437WCX5ECMJCGWH56PGVBDJJE6VLQW6P76TYEAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,,,.,,,,,,,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,.,..,,,..,,..,...,
+#IERPCNH47NNN62RTCEF2WR2Q6DZ6TYXTKGBUDIU7BSXYBYVTZ2YWBMR2LXEGDPK2ON4CZD3N3P2XW
+#\\\|KCKPM2JSW5HGDFMXPUXD4ELPCAJGCHY7IGMW5AXRAD4PFYOBSKM \ / AMOS7 \ YOURUM ::
+#\[7]4NFFAXXYGUZHRWJXX6EO5H2ERPIVAPQQ7QGRRWHDJE5QJGQK5UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

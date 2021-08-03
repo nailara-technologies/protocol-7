@@ -105,7 +105,7 @@ sub warn_err {
                 ? sprintf( 'missing warn_err argument <{C%d}>',   $c_lvl )
                 : sprintf( 'redundant warn_err argument <{C%d}>', $c_lvl );
 
-        } elsif ( length $EVAL_ERROR ) {
+        } elsif ( length $EVAL_ERROR and defined $err_str ) {
             $err_str =~ s| at \S+. line \d+.+$| <{C1}>|;
         }
         $err_str //= 'warn_err sprintf error <{C1}>';
@@ -244,8 +244,8 @@ sub p7_root_dir {
 
 return 5;  ###################################################################
 
-#,,,.,.,,,..,,.,,,...,.,.,,.,,,.,,..,,,.,,...,..,,...,..,,.,,,,.,,,,,,,,.,..,,
-#ISENJN5SXTZRJ7P4UWWBJ3CWEBBJQCJ3YO6UVGSQF35AB3X4CKO3PEDWTXTON35YQMI5PE4XI7V4M
-#\\\|DUDLC3BFV5BCSQ655WSLJFPAKC5SGKKIPRUBFXT7H265EN5RFO4 \ / AMOS7 \ YOURUM ::
-#\[7]S2B2LNZDWERX7FK7E4RWL3DD4BWKGX7PFXIPZAGPWLYOTZRUXUBA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,..,,,,,,..,.,.,,.,,,,,,.,.,..,,..,,...,...,.,,,,,.,.,,,,,.,...,
+#FQ3FBC2RDTIU3VZI37MTRCATZJD6O6DQFGRIP5YD63PXSKFSUQC6XR24XT3XPGU5QQX4NPTJPYKN6
+#\\\|7UWBYXY5P4K2REKBQA6Q5G3JBNUHY24HSQUCKONM6MSUY6ZD2XN \ / AMOS7 \ YOURUM ::
+#\[7]KO3UHOSGR34C2KOB7MJQ75PYRGKIQB2577HOACN243ZRFAYJUUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
