@@ -8,6 +8,11 @@ my $unencrypted = 0;    ##  false  ##
 
 my $key_name = shift // qw| base |;
 
+if ( length $key_name and <[keys.key_exists]>->($key_name) ) {
+    <[base.logs]>->( 0, "key named '%s' already exists", $key_name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
 $unencrypted = 5 if $key_name =~ s|\s*\-U\s*||g;
 
 my $key_password;
@@ -63,8 +68,8 @@ printf( " :\n :: [ created key '%s' [ %s ] in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,.,,.,,,..,.,.,.,.,,..,,,,,.,,,,..,.,.,,,,,..,,...,...,..,,.,,,.,.,,..,,,.,
-#TEGM3GSUKVMR2VDWV7DIA2QCBAVUAV22GLO4HT6TIAK6XRJ5MFRNZB4MYYXS33DAYT7UBFWYXAUYO
-#\\\|XKHTDF7DG7FCUQ3AEM2VRMLZ642LS3OHO4WVGAZJH2MM2RGQEBQ \ / AMOS7 \ YOURUM ::
-#\[7]FOUL24AIL4NKF3KIG77RX3KNDA72YI2GKYUZMFIO2E6FTER7BIDA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,..,,.,.,..,,.,,,.,,,...,,,,,..,,...,...,,,,,,,,,.,.,..,,...,
+#I23GGVWVZH4SCUWAMM556GPQT5FJQKNJYLLCDYYXZPIPTOEL7SDL3JKOCDYPOR6HYOVN7FNOLEKCC
+#\\\|F6ZKSBFJF5DKK5QL77SYMI5GYSDM5B6BCOKL4NAFHDYFEEH56GO \ / AMOS7 \ YOURUM ::
+#\[7]M34NSO5KR45DR74UELROLI4EZHQ534WDMGV36XG7OET3BRJDMKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
