@@ -1,0 +1,88 @@
+## >:] ##
+
+# name  = crypt.C25519.compare_keypair
+
+my $pub_key         = shift // '';
+my $private_key     = shift // '';
+my $mismatch_silent = shift // 0;    ##  false  ##
+
+<[base.log]>->( 2, ': verifying key pair match ..,' );
+
+my $pub_key_length  = length($pub_key);
+my $priv_key_length = length($private_key);
+
+if ( $pub_key_length == 0 ) {
+    warn 'expected public key param <{C1}>';
+    return undef;
+} elsif ( $priv_key_length == 0 ) {
+    warn 'expected priv key param <{C1}>';
+    return undef;
+} elsif ( $pub_key_length != 32 ) {
+    <[base.s_warn]>->(
+        'public key length is not valid [ %d != 32 ] <{C1}>',
+        $pub_key_length
+    );
+    return undef;
+} elsif ( $priv_key_length != 64 ) {
+    <[base.s_warn]>->(
+        'priv key length is not valid [ %d != 64 ] <{C1}>',
+        $priv_key_length
+    );
+    return undef;
+}
+
+my $tstamp     = <[base.ntime.b32]>->(13);
+my $random_msg = <[base.prng.bytes]>->(255);
+
+my $check_input_string = sprintf qw| :%s:%s |, $tstamp, $random_msg;
+
+my $chk_signature;
+eval {
+    use warnings qw| FATAL |;
+    $chk_signature
+        = Crypt::Ed25519::sign( $check_input_string, $pub_key, $private_key );
+};
+
+if ( not defined $chk_signature or length $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        'signing test message was not successful [ %s ]',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+my $signature_valid = 0;    ##  false  ##
+
+eval {
+    use warnings qw| FATAL |;
+    $signature_valid
+        = Crypt::Ed25519::verify( $check_input_string, $pub_key,
+        $chk_signature );
+};
+
+if ( not defined $signature_valid or length $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        'error during signature verification [ %s ]',
+        <[base.str.eval_error]>
+    );
+    return undef;
+
+} elsif ( not $signature_valid ) {
+
+    my $log_level = $mismatch_silent ? 1 : 0;
+
+    <[base.log]>->( $log_level, ': key pairs do not match ..,' );
+
+    return 0;    ##  false  ##
+
+} else {
+    <[base.log]>->( 2, ':. key pairs match =)' );
+
+    return 5;    ## true ##
+}
+
+#,,,.,...,...,,.,,,..,,,.,..,,.,.,.,.,..,,,,,,.,.,...,...,...,,,.,,..,,.,,,.,,
+#2273KHXUP6LY4OEPHSCHKRGBYCZJ5J3UMRKSS3BHUZGGJZC64OUK2R2MOK3TI64K5WYW2ZFEE5VPK
+#\\\|ATVCHFRWP6TBB33GZQN2HSCKM7XTSDEKC7JSAJUDQSYOLBNXAFU \ / AMOS7 \ YOURUM ::
+#\[7]KVLE7EW46GNHNUPZE6CAQGPASUYGK43EAFG2BFRQHRHUTFUKKECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
