@@ -1,8 +1,8 @@
 ## >:] ##
 
 # name  = keys.console.list
-# descr = list C25519 key files/names for current user
-# note  = protocol-7 keys list | grep ' : .*: ' | sed 's/.* : //'
+# descr = list C25519 key names \ files for current user
+# note  = Protocol-7 keys list | grep ' : .*:' | sed 's|.* : ||'
 
 my $key_vars = <[crypt.C25519.key_vars]>;
 
@@ -15,7 +15,8 @@ my $key_re_public = <keys.regex.key_file.public>;
 opendir( my $dir_fh, $key_dir ) or die "$key_dir : \l$OS_ERROR";
 my @key_files
     = grep {m{$key_re_secret|$key_re_public}} reverse sort readdir($dir_fh)
-    or <[base.log]>->( 0, "unix user '$key_usr' has no C25519 key files" );
+    or
+    <[base.logs]>->( 0, "unix user '%s' has no C25519 key files", $key_usr );
 closedir($dir_fh);
 
 return if !@key_files;    # <-- no keys, skipping further output!
@@ -24,22 +25,23 @@ my %key_names;
 my $max_nlen = 0;
 
 map {
-    $key_names{$ARG} = "'$1'" if $ARG =~ m{$key_re_secret};
-    my $spaces = ' ' x length($1);
-    $key_names{$ARG} = " $spaces " if $ARG =~ m{$key_re_public};
-    my $l = length( $key_names{$ARG} );
+    $key_names{$ARG} = sprintf qw| '%s' |, $LAST_PAREN_MATCH
+        if $ARG =~ m{$key_re_secret};
+    my $spaces = ' ' x length $LAST_PAREN_MATCH;
+    $key_names{$ARG} = sprintf ' %s ', $spaces if $ARG =~ m{$key_re_public};
+    my $l = length $key_names{$ARG};
     $max_nlen = $l if $l > $max_nlen
 } @key_files;
 
-<[base.log]>->( 1, "listing key files ['$key_dir']" );
+<[base.logs]>->( "listing key files ['%s']", $key_dir );
 
-print "\n :: keys for user $key_usr :.\n :\n",
-    ( map { sprintf( " : %${max_nlen}s : %s\n", $key_names{$ARG}, $ARG ) }
+say sprintf( "\n :: keys for user %s :.\n :\n", $key_usr ),
+    ( map { sprintf( " : %*s : %s\n", $max_nlen, $key_names{$ARG}, $ARG ) }
         @key_files ),
-    "::\n\n";
+    "::\n";
 
-#,,..,,,.,.,.,,,,,..,,,,.,,,,,.,.,,.,,,,,,..,,..,,...,..,,...,,,.,...,,.,,.,.,
-#6TE4PJR6ZDZTEI2YLZT4OFIFRZAL7LL7UD7NMMQZ24XVSSOUWEY576JX2AZA2PLX5L3NLKZWH52OI
-#\\\|YZZW4LHMGVZ3FQJFBRYATY5ZLIQFPB333MPI6PDT4JQ5THO5YL6 \ / AMOS7 \ YOURUM ::
-#\[7]26OJBAQ43U6HX3O3LYNTHR5J2FN3EPOMYWFEY5B7ATP3WL3W5EBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,,,,,,.,,...,,..,,.,,..,,..,,..,,...,.,.,.,,,..,,..,,,.,,.,.,
+#MRS4MM45QMNTWSZRL2QN4IHE4KFBR2C6PSW5ZBDSB37W3CCRUHD56FBPG67LLOATE6RR7EWEGVURO
+#\\\|KJUCNC53JTNOMWYCEBC5IA2RFJFSMTWDWDIISNVZ6Y7K6L6OE5Y \ / AMOS7 \ YOURUM ::
+#\[7]RVLMKVGR23Q2J6DTABDIEI2DASOIYT6M4CD4S2SPJ5VE76FPMMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
