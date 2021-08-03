@@ -71,24 +71,30 @@ foreach my $type (qw|  private  public  |) {
             return undef;
         }
 
-        my $key_str_b32 = encode_b32r( $enc_C25519_sref->$* );
+        my $key_str_b32    ##  marking as encrypted key  ##
+            = encode_b32r( sprintf qw| .:%s |, $enc_C25519_sref->$* );
         if ( not defined $key_str_b32 or not length $key_str_b32 ) {
             warn 'error during C25519 key encoding [BASE32] <{C1}>';
             return undef;
         }
 
-        print {$key_fh} $key_str_b32;    ##[ no linefeed ]##
-
-    } else {
-        my $key_str_b32 = encode_b32r($key_bin_str);
-        if ( not defined $key_str_b32 or not length $key_str_b32 ) {
-            warn 'error during C25519 key encoding [BASE32] <{C1}>';
-            return undef;
-        }
-
-        ##  unencrypted has linefeed  ##
+        ##  encrypted key has '.:' prefix [ binary ]  ##
         ##
-        printf {$key_fh} "%s\n", $key_str_b32;
+        print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
+
+    } elsif ( $type eq qw|  private  | ) {
+        my $key_str_b32 = encode_b32r( sprintf qw| U:%s |, $key_bin_str );
+        if ( not defined $key_str_b32 or not length $key_str_b32 ) {
+            warn 'error during C25519 key encoding [BASE32] <{C1}>';
+            return undef;
+        }
+
+        ##  unencrypted key has 'U:' prefix [ binary ]  ##
+        ##
+        print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
+
+    } else {    ##[ public key has a linefeed  ]##
+        print {$key_fh} sprintf "%s\n", encode_b32r($key_bin_str);
     }
 
     close($key_fh)                     or die "\l$OS_ERROR [ $file_name ]";
@@ -99,8 +105,8 @@ foreach my $type (qw|  private  public  |) {
 }
 return $key_checksum;
 
-#,,,,,,..,.,.,...,,,,,,,,,.,,,..,,..,,,..,...,..,,...,...,,..,...,,,,,,,,,,,.,
-#5TFC6M2IJSMOA5XFXPTCEVMUN2HU2DUWYMGHEEKT6BXEKXYD3ALCWYHPUKEZAR4J3MWKTB3ZKXUXU
-#\\\|YNNKL2TN5SFF7QAMAV5XT4PT5QG5ZUMJ4Q3DSODA2O4EA6PEFCT \ / AMOS7 \ YOURUM ::
-#\[7]YL5RWHDJBMIDQ5FYUJO23UJMLSUL35UOTXVLYUWG43YJWKLFCGBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,.,.,,,,,.,..,,,..,,,,,,,.,..,,...,..,,.,.,.,.,,..,.,,,...,
+#4GF7SIXWRRKBWWZ5TX2K77SX7TN3DSYT3HOLOJWF77UXDPYO7VJGHPIHJ5BRR7AVIBIRB5GDN2XKE
+#\\\|RBLHXAL5UDAC5SHR6OHHTVCEXBYXLAKNAE462MXBNLW23STKDCH \ / AMOS7 \ YOURUM ::
+#\[7]VOSMZG57RWKV2TVHQGCRJNCY4EWVFARKVRFJW2L5YHFEPB7WMCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

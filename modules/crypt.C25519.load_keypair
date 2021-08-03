@@ -27,21 +27,41 @@ if ( -r $private_key_file and -r $public_key_file ) {
         return 0;
     } else {
         chomp($encoded_public_key);
+        chomp($encoded_private_key);
     }
 
     my $key_encrypted = 0;    ##  false  ##
 
-    ## checking for linefeed [ encrypted if absent ] ##
-    ##
-    if ( rindex( $encoded_private_key, "\n" ) == -1 ) {
-        $key_encrypted = 5;    ## true ##
-    } else {
-        chomp($encoded_private_key);
-    }
-
     ## decode [ base 32 ] ##
     $keys{'C25519'}{$key_name}{'private'} = decode_b32r($encoded_private_key);
     $keys{'C25519'}{$key_name}{'public'}  = decode_b32r($encoded_public_key);
+
+    ## checking for encryption [ '.:' prefix encrypted or 'U:' for plain ] ##
+    ##
+    if (length($encoded_private_key) == 106    ##[  has no linefeed  ]##
+        and index( $encoded_private_key,                  qw| FY5 |, 0 ) == 0
+        and index( $keys{'C25519'}{$key_name}{'private'}, qw| .: |,  0 ) == 0
+    ) {
+        $key_encrypted = 5;                    ## true ##
+        substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
+
+    } elsif ( length($encoded_private_key) == 106
+        and index( $encoded_private_key,                  qw| KU5 |, 0 ) == 0
+        and index( $keys{'C25519'}{$key_name}{'private'}, qw| U: |, 0 ) == 0 )
+    {
+        $key_encrypted = 0;                    ## false ##
+        substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
+
+    } elsif ( length($encoded_private_key) == 103 ) { ##[  old key format  ]##
+        $key_encrypted = 0;                           ## false ##
+
+    } else {    ##[  not a valid key format  ]##
+        undef $keys{'C25519'}{$key_name}{'private'};
+        delete $keys{'C25519'}{$key_name}{'private'};    ##  renove  ##
+        <[base.logs]>->(
+            0, "private key format not recognized ['%s']", $key_name
+        );
+    }
 
     foreach my $type (qw|  private  public  |) {
         <[base.logs]>->( 0, "BASE32 decoding failed [ %s key ]", $type )
@@ -50,7 +70,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
 
     if (   not defined $keys{'C25519'}{$key_name}{'public'}
         or not defined $keys{'C25519'}{$key_name}{'private'} ) {
-        <[base.log]>->( 0, "cannot load key '%s'..,", $key_name );
+        <[base.logs]>->( 0, "cannot load key '%s'..,", $key_name );
         return 0;    ##  false  ##
     }
 
@@ -141,8 +161,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return 0;    ##  false  ##
 }
 
-#,,,,,,..,,,,,.,,,.,,,,,,,,,,,.,,,.,,,.,,,,,.,..,,...,...,.,.,..,,,..,,..,...,
-#IERPCNH47NNN62RTCEF2WR2Q6DZ6TYXTKGBUDIU7BSXYBYVTZ2YWBMR2LXEGDPK2ON4CZD3N3P2XW
-#\\\|KCKPM2JSW5HGDFMXPUXD4ELPCAJGCHY7IGMW5AXRAD4PFYOBSKM \ / AMOS7 \ YOURUM ::
-#\[7]4NFFAXXYGUZHRWJXX6EO5H2ERPIVAPQQ7QGRRWHDJE5QJGQK5UBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,..,,,,.,.,,,,.,,..,,.,.,...,..,,...,...,,..,,.,,,,,,,,,,,.,,
+#ET5EWEOPB3YXQZWXW4MBEW6S4ABK5KOBGQ62MPA4NX2ME4WX63OACM2TJO4VY6N5W6WQRUL57PG76
+#\\\|YBHDTW7JY66JBYR3HQL2BZZQE2ROSLLM7C6QPSFBQ7DV3P2NJRH \ / AMOS7 \ YOURUM ::
+#\[7]W6VIWNARUGF4BNQYR24GKYXXJHKRT7S4O5NCNNFYFPMCH63C4GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
