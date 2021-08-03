@@ -131,8 +131,11 @@ if ( -r $private_key_file and -r $public_key_file ) {
             warn 'key decryption error <{C1}>';
             return undef;
         } elsif (
-            not AMOS7::Assert::Truth::is_true( $decrypted_C25519_sref->$*, 0,
-                1 ) ) {
+            not <[crypt.C25519.compare_keypair]>->(
+                $keys{'C25519'}{$key_name}{'public'},
+                $decrypted_C25519_sref->$*, 5    ##[ silent ]##
+            ) // 0
+        ) {
             undef $keys{'C25519'}{$key_name}{'private'};
             delete $keys{'C25519'}{$key_name}{'private'};
             <[base.log]>->( 1, ':' );
@@ -146,9 +149,30 @@ if ( -r $private_key_file and -r $public_key_file ) {
         my $key_checksum = <[chk-sum.amos]>->( $decrypted_C25519_sref->$* );
         <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
 
+    } elsif ( defined $keys{'C25519'}{$key_name}{'private'} ) {
+        ##[  verifying [ unencrypted ] key pair match  ]##
+
+        if (not <[crypt.C25519.compare_keypair]>->(
+                $keys{'C25519'}{$key_name}{'public'},
+                $keys{'C25519'}{$key_name}{'private'}
+            ) // 0
+        ) {
+            foreach my $type (qw| private public |) {
+                undef $keys{'C25519'}{$key_name}{$type};
+                delete $keys{'C25519'}{$key_name}{$type};
+            }
+            delete $keys{'C25519'}{$key_name};
+            <[base.log]>->( 1, ':' );
+            <[base.log]>->( 0, ': private and public keys do not match .,' );
+            <[base.log]>->( 1, ':' );
+            <[base.logs]>->( ": none of the keys loaded for %s", $key_name );
+            <[base.log]>->( 1, ':' );
+
+            return 0;    ##  false  ##
+        }
     }
 
-    return 5;    ## true ##
+    return 5;            ## true ##
 
 } else {
     delete $keys{'C25519'}{$key_name};
@@ -158,11 +182,11 @@ if ( -r $private_key_file and -r $public_key_file ) {
     );
     <[base.logs]>->( 0, " ::[ expected in : '%s' ]::", $key_dir );
 
-    return 0;    ##  false  ##
+    return 0;            ##  false  ##
 }
 
-#,,.,,,.,,.,.,.,,,..,,,,.,.,,,,.,,..,,.,.,...,..,,...,...,,..,,.,,,,,,,,,,,.,,
-#ET5EWEOPB3YXQZWXW4MBEW6S4ABK5KOBGQ62MPA4NX2ME4WX63OACM2TJO4VY6N5W6WQRUL57PG76
-#\\\|YBHDTW7JY66JBYR3HQL2BZZQE2ROSLLM7C6QPSFBQ7DV3P2NJRH \ / AMOS7 \ YOURUM ::
-#\[7]W6VIWNARUGF4BNQYR24GKYXXJHKRT7S4O5NCNNFYFPMCH63C4GAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,.,,,.,.,.,.,,,,,...,,,.,.,.,..,,...,...,.,.,,,.,..,,.,.,.,,,
+#6YWAIS4RR3RUL5734OPEEWU35UTB2IQ6OPUJT6PPVABEQ5U7LSG72LFMBWGFU2SYSCP3WMGNH555W
+#\\\|4MZ7TJ3R4VXCLTMIGL5BE6SQGBWJHMIGF4H3KDOC56JYQTERALM \ / AMOS7 \ YOURUM ::
+#\[7]YWYPC7Y4VHSYC6UNE2DOGZ7URRT3GEANIPMHZX6PHKFJUWUT2SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
