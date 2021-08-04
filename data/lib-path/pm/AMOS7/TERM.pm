@@ -49,6 +49,8 @@ sub read_password_repeated {
 
     my $password_type_msg = shift // qw| password |;
     my $term_title        = shift // '';
+    my $output_lines      = shift // 1;
+    $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
     $OUTPUT_AUTOFLUSH = 1;
 
@@ -124,6 +126,8 @@ sub read_password_repeated {
         }
     }
 
+    print sprintf( "%s:\n", $C{'0'} ) x $output_lines;
+
     return $password_0;
 }
 
@@ -131,6 +135,8 @@ sub read_password_single {
 
     my $message_prompt = shift // 'enter password';
     my $term_title     = shift // '';
+    my $output_lines   = shift // 0;
+    $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
     my $sig_int          = $SIG{'INT'};
     my $password_status  = 0;
@@ -169,9 +175,12 @@ sub read_password_single {
             ReadMode 0;
             say sprintf "\n%s:%s", $C{'0'}, $C{'R'};
             return ( $read_pwd, $password_status ) if wantarray;
-            return $read_pwd;
 
-        } elsif ( $code == 127 ) {                   ##  backspace  ##
+            print sprintf( "%s:\n", $C{'0'} ) x $output_lines;
+
+            return $read_pwd;    ## return entered password ##
+
+        } elsif ( $code == 127 ) {    ##  backspace  ##
             my $pwd_len = length($read_pwd);
             if ($pwd_len) {
                 substr( $read_pwd, $pwd_len - 1, 1, qw| * | );
@@ -325,8 +334,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,,.,...,...,,.,,,,,,.,.,..,,,.,,.,.,.,,,,,.,..,,...,...,..,,.,.,,.,,,,,,.,,,
-#NF7NJTN2NCBFKXAJLFAVOPFQ7T6PHWDBOCFPSR6MJ3SPXCCVTNQ5THQJ5DN2IWVDWEBRMOGTLDPZS
-#\\\|DE65V7OLHU5HTAGZZHFV2SLIMVGQIZQEK6ZDVB44UBAV2RLADFP \ / AMOS7 \ YOURUM ::
-#\[7]TACOQRO4SMDTKFM2OW6SBODU7OFG6E6WK7TOH6DHIVZ26ITUT2CQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,.,,,,.,,,.,,.,.,,.,,..,,,,,,..,,...,...,.,.,.,,,.,,,...,..,,
+#LSCXY4BO46HNVM7HKOIZLACK5NT5K6LVE4AIXLC3PHZY4LQV6BLOURAGDAW6MWBVEPLCAMRSDKGLM
+#\\\|5HAKJNAEONY763CR3PIKOHOPAWNZT7MHLHKOXF2FEDV6BRDF34S \ / AMOS7 \ YOURUM ::
+#\[7]6CLW533KN6MJ2QCW4TJFPSG4MTHHBJETOCCYAVPAPXRGPMJGOYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
