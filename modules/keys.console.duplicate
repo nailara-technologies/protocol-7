@@ -1,0 +1,86 @@
+## >:] ##
+
+# name  = keys.console.duplicate
+# param = <key> <new-name>
+# descr = copy [clone] a key to specified name
+
+( my $src_key, my $target_name ) = split( m|\s+|, shift // '', 2 );
+
+return print "\n  << expected source and target key name parameters >>\n\n"
+    if not defined $src_key or not defined $target_name;
+return print "\n  <<  target key name contains not valid characters  >>\n\n"
+    if $target_name !~ m|^[\w\.\-\_]+$|;
+return print "\n  <<  specified keys identical  >>\n\n"
+    if $src_key eq $target_name;
+return printf "\n  <<  source key '%s' not found  >>\n\n", $src_key
+    if not <[keys.key_exists]>->($src_key);
+return printf( "\n  <<  destination key '%s' already exists  >>\n\n",
+    $target_name )
+    if <[keys.key_exists]>->($target_name);
+
+my $key_dir = <[crypt.C25519.key_vars]>->($src_key)->{'key_dir'};
+
+if ( not -w $key_dir ) {
+    <[base.logs]>->( 0, ': have no write access : %s', $key_dir );
+    <[base.exit]>->( qw| 0110 |, ':,  no files copied.  ,:', 0 );
+}
+
+my $src_filenames = <[crypt.C25519.key_vars]>->($src_key)->{'key_filename'};
+my $dst_fnames = <[crypt.C25519.key_vars]>->($target_name)->{'key_filename'};
+
+foreach my $type (qw|  private  public  |) {
+    next if not -e $src_filenames->{$type};
+    if ( not -r $src_filenames->{$type} ) {
+        <[base.logs]>->(
+            0,
+            ': have no read access : %s',
+            $src_filenames->{$type}
+        );
+        <[base.exit]>->( qw| 0110 |, ':,  no files copied  ,:', 0 );
+    }
+}
+
+my $copy_count = 0;
+my $l_lvl      = 1;
+
+foreach my $type (qw|  private  public  |) {
+    next if not -e $src_filenames->{$type};
+
+    my $srcfile  = $src_filenames->{$type};
+    my $destfile = $dst_fnames->{$type};
+
+    <[base.logs]>->( $l_lvl + 1, ':' );
+    <[base.logs]>->( $l_lvl, ':' );
+    <[base.logs]>->( $l_lvl, ': copying : SRC : %s', $srcfile );
+    <[base.logs]>->( $l_lvl, ':' );
+    <[base.logs]>->( $l_lvl, ': copying : DST : %s', $destfile );
+    <[base.logs]>->( $l_lvl, ':' );
+    <[base.logs]>->( $l_lvl + 1, ':' );
+
+    if ( not cp( $srcfile, $destfile ) ) {
+        <[base.logs]>->(
+            0, ': %s : while copying : %s --> %s',
+            <[base.str.os_err]>, $srcfile, $destfile
+        );
+        <[base.exit]>->( qw| 0110 |, ':. copying aborted ..,', 0 );
+    } else {
+        $copy_count++;
+    }
+}
+
+if ( $copy_count == 0 or not <[keys.key_exists]>->($target_name) ) {
+    <[base.exit]>->(
+        qw| 0110 |, '<<  no files were copied with success  >>', 0
+    );
+}
+
+say sprintf( "\n  ::  successfully copied %d file%s  ::\n",
+    $copy_count, <[base.cnt_s]>->($copy_count) );
+
+<[base.exit]>;
+
+#,,,.,.,.,.,.,.,,,,.,,..,,..,,...,,,,,,,.,.,,,..,,...,..,,,.,,,.,,...,,..,.,,,
+#SOZVLITTQLERQGJV2WPVBFDDBKX66PDHNZHYSV3Z35GQ2YFED3TB3IQKNOUQX3HETYMQYUC2U673K
+#\\\|WU5YJNPTRLWG52AHKBQFPNK5UJVWEKBLAB2QSFCS5KIDNY73EJB \ / AMOS7 \ YOURUM ::
+#\[7]IIALEH3R6XAL6QVQF7P2DPB3UX6TYBTNU6SFUXRVBHNGNYPS3ODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
