@@ -3,9 +3,146 @@
 # name  = keys.console.enc-key
 # param = <key>
 # descr = encrypt a key file with a passphrase
+my $key_name = shift;
 
-#,,.,,,,.,...,..,,..,,,,,,...,..,,,,.,.,,,.,.,.,.,...,...,,..,.,.,.,.,..,,,..,
-#UX7FR5XU2JS7LUS3ALP3EWB6VP4MUNVQFF4PL66JFWCSQZCPFQJEJTXINPDZYLTMEZLXLPXXWUKD2
-#\\\|72TFXGAJX66PBW5VD5JX62JLG3HZRHCAMOPEX5D5O6LL2OOLFZ4 \ / AMOS7 \ YOURUM ::
-#\[7]WQ5RYJ76MZQR4L6IW4Y7GCFO6FZZN5DO3XICSOIRUBGWMD446ABI 7  DATA SIGNATURE ::
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $key_name;
+
+my $key_status = <[keys.key.is-encrypted]>->($key_name);
+
+if ( $key_status < 0 ) {
+    my $err_reason_str;
+    if ( $key_status == -1 ) {
+        $err_reason_str = sprintf "only public key named '%s' found",
+            $key_name;
+    } elsif ( $key_status == -2 ) {
+        $err_reason_str = sprintf 'no key named %s exists', $key_name;
+    } elsif ( $key_status == -3 ) {
+        $err_reason_str = 'error reading private keyfile';
+    } elsif ( $key_status == -4 ) {
+        $err_reason_str = 'not a valid key format';
+    } else {
+        $err_reason_str = 'undefined error';
+    }
+    return printf "\n  << %s >>\n\n", $err_reason_str;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_status > 0 ) {
+    return printf "\n  :: private key ['%s'] already encrypted ::\n\n",
+        $key_name;
+}
+
+my $key_filenames = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
+
+foreach my $type (qw|  private  public  |) {
+    if ( not -w $key_filenames->{$type} ) {
+        <[base.logs]>->(
+            0,
+            'no write permissions : %s',
+            $key_filenames->{$type}
+        );
+        goto ABORT_KEY_ENCRYPT;
+    }
+}
+
+my $load_success = <[crypt.C25519.load_keypair]>->($key_name);
+
+if ( not defined $load_success ) {
+    warn 'cannot load key files <{NC}>';
+    goto ABORT_KEY_ENCRYPT;
+} elsif ( not $load_success ) {
+    goto ABORT_KEY_ENCRYPT;
+}
+
+my $enc_pwd = AMOS7::TERM::read_password_repeated( 'key encryption password',
+    'encrypt private keyfile' );
+
+goto ABORT_KEY_ENCRYPT
+    if not defined $enc_pwd
+    or length $enc_pwd < $AMOS7::TERM::pwd_min_len;
+
+my $backup_file_names;
+ANOTHER_FILE_TIMESTAMP:
+my $tstamp = <[base.ntime.b32]>->( 5, 5 ) // '';
+<[base.exit]>->( qw| 0110 |, 'cannot aqcuire timestamp' )
+    if not length $tstamp;
+foreach my $type (qw|  private  public  |) {
+    if (   not defined $key_filenames->{$type}
+        or not -f $key_filenames->{$type} ) {
+        <[base.s_warn]>->(
+            'error while acquiring %s key filename <{C1}>', $type
+        );
+        goto ABORT_KEY_ENCRYPT;
+    }
+    $backup_file_names->{$type} = sprintf qw| %s.renaming.%s |,
+        $key_filenames->{$type}, $tstamp;
+    goto ANOTHER_FILE_TIMESTAMP if -e $backup_file_names->{$type};
+}
+
+foreach my $type (qw|  private  public  |) {
+
+    if ( not rename( $key_filenames->{$type}, $backup_file_names->{$type} ) )
+    {
+        <[base.logs]>->(
+            0,
+            'cannot create key backup file %s --> %s [ %s ]',
+            $key_filenames->{$type},
+            $backup_file_names->{$type},
+            <[base.str.os_err]>
+        );
+        if ( $type eq qw| public | ) {    ##  restore first file  ##
+            rename(
+                $backup_file_names->{'private'},
+                $key_filenames->{'private'}
+                )
+                or <[base.s_warn]>->(
+                '%s [ while restore of %s ]',
+                $key_filenames->{'private'}
+                );
+        }
+    }
+}
+
+( my $keywrite_status, my $key_checksum )
+    = <[crypt.C25519.write_keys]>->( $key_name, $enc_pwd );
+
+if ( defined $keywrite_status and $keywrite_status == 5 ) {
+    <[base.log]>->( 1, 'write was successful, removing backup files..,' );
+
+    foreach my $type (qw|  private  public  |) {
+        if ( not unlink( $backup_file_names->{$type} ) ) {
+            <[base.s_warn]>->(
+                '%s : while unlinking key file backup : %s',
+                <[base.str.os_err]>, $backup_file_names->{$type}
+            );
+        }
+    }
+
+    printf( "::[  successfully encrypted key %s %s  ]::\n\n",
+        $key_name, $key_checksum );
+
+    <[base.exit]>->(qw| 00000 |);
+} else {
+    <[base.log]>
+        ->( 0, 'write was not successful, restoring backup files..,' );
+    foreach my $type (qw|  private  public  |) {
+        if (not
+            rename( $backup_file_names->{$type}, $key_filenames->{$type} ) ) {
+            <[base.logs]>->(
+                0,
+                'cannot move back key backup file : %s --> %s [ %s ]',
+                $backup_file_names->{$type},
+                $key_filenames->{$type},
+                <[base.str.os_err]>
+            );
+        }
+    }
+}
+
+ABORT_KEY_ENCRYPT:
+<[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
+
+#,,,.,..,,...,.,,,,,.,,..,,.,,,..,.,,,.,.,,,,,.,.,...,...,..,,.,,,,..,.,.,..,,
+#ABK55ADUJD73VQX25BDA4IHYVU6TNOE6MVSRI2JGDTAVKDDV2FASO4VGBRYBXCGV4XVJ7B5LPVLPY
+#\\\|WJOJZ3JIPKNKUCUWHYQDUTR2NQD52SBEEPCBFRVVUGM3ZFCGTDW \ / AMOS7 \ YOURUM ::
+#\[7]PSTMXGV47EU3RA4QJAOJY6WY23RAK5R7AZVHQTVAGCSPRVVQ5MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
