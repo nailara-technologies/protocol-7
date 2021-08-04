@@ -64,13 +64,17 @@ sub read_password_repeated {
             = read_password_single(
             sprintf( 'enter %s', $password_type_msg ) );
 
-        if ( not defined $password_0 and $password_status == 0 ) {
+        if (not defined $password_0
+            and (  $password_status == 0
+                or $password_status == 1 )
+        ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
 
         } elsif (
-            $password_status == 1    ##  checking min pwd length  ##
+            $password_status == 0    ##  checking min pwd length  ##
             and length($password_0) < $pwd_min_len
         ) {
+
             undef $password_0;
             if ( defined $main::PROTOCOL_SEVEN ) {
                 $main::code{'base.logs'}
@@ -110,7 +114,7 @@ sub read_password_repeated {
                 if ( defined $main::PROTOCOL_SEVEN ) {
                     printf "%s:\n", $C{'0'};
                     $main::code{'base.log'}
-                        ->( 0, '[ password read aborted ]' );
+                        ->( 0, ' [ password read aborted ]' );
                     printf "%s:\n", $C{'0'};
                 } else {
                     error_exit(' [ password read aborted ]');
@@ -119,7 +123,6 @@ sub read_password_repeated {
             }
         }
     }
-    printf "%s:\n", $C{'0'} for ( 0 .. 1 );
 
     return $password_0;
 }
@@ -186,6 +189,7 @@ sub read_password_single {
             and $code != 27 ) {    ## adding one key to the password ##
 
             $read_pwd .= $key;
+            $password_status = 0;    ##  resetting pwd status  ##
 
             my $rnd_keys = sprintf qw| %u |, 1.2 + rand(1);
             for ( 1 .. $rnd_keys ) {    ## masking length ##
@@ -244,7 +248,7 @@ sub read_password_single {
 
         if ( defined $main::PROTOCOL_SEVEN ) {
             printf "%s:\n", $C{'0'};
-            $main::code{'base.log'}->( 0, '[ password read aborted ]' );
+            $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
             printf "%s:\n", $C{'0'};
         } else {
             error_exit(' [ password read aborted ]');
@@ -321,8 +325,8 @@ sub read_single_key_press {
 
 return 5;  ###################################################################
 
-#,,.,,,.,,,,.,.,,,.,.,,..,,,,,...,,..,,.,,.,,,..,,...,...,,.,,..,,.,.,...,..,,
-#QK2VJOM7OYDVPGK2DFXL423OYV5RBZ6UJ6MP5MAV6DEJ2CC55TPDVFHK5MJKQZU2WWHG6Y3ISZI2U
-#\\\|IAOMCQQIGTKYF6YQVVNPN2WXN7UEVHN2B46C4WKPI36YBN2LH56 \ / AMOS7 \ YOURUM ::
-#\[7]LA7WDI6BJE6DKZLMMDG3HZECOSBJP5RPQFAKUVMCPR5J4WNUD4CY 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,.,.,..,,,.,,.,.,.,,,,,.,..,,...,...,..,,.,.,,.,,,,,,.,,,
+#NF7NJTN2NCBFKXAJLFAVOPFQ7T6PHWDBOCFPSR6MJ3SPXCCVTNQ5THQJ5DN2IWVDWEBRMOGTLDPZS
+#\\\|DE65V7OLHU5HTAGZZHFV2SLIMVGQIZQEK6ZDVB44UBAV2RLADFP \ / AMOS7 \ YOURUM ::
+#\[7]TACOQRO4SMDTKFM2OW6SBODU7OFG6E6WK7TOH6DHIVZ26ITUT2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

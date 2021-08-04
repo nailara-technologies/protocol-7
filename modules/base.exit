@@ -34,11 +34,13 @@ if ( ref( $ARG[0] // '' ) eq qw| HASH | and exists $ARG[0]->{'cmd'} ) {
 } else {    ## regular procedural mode ##
 
     $exit_code = shift @ARG if @ARG and $ARG[0] =~ m|^\d+$|;
-    ( $exit_msg, $log_level ) = @ARG;
+    $exit_msg  = shift @ARG if @ARG;
+    $log_level = shift @ARG if @ARG and $ARG[0] =~ m|^\d$|;
+
 }
 
 $exit_code //= 0;
-$log_level //= 1;
+$log_level //= $exit_code == 0 ? 2 : 1;
 $exit_msg  //= sprintf( '.. exit [ %s ] called .,', $exit_code );
 
 <[base.log]>->( $log_level, $exit_msg );
@@ -52,8 +54,8 @@ print STDERR $colors{'reset'};
 
 CORE::exit($exit_code);
 
-#,,,.,,,.,,.,,,,,,,..,...,..,,.,.,..,,..,,,..,..,,...,...,,,.,,,.,,,,,,,,,,,,,
-#UVR2O7KAXSWNG4PUQEOETU5CUF7YKQCP237R4BKGC5WV2PQRB2ANMKIVMVUDCG2I63DO5B4VJZR4W
-#\\\|L4T77SBRD5XJ6EJGWHTGLQ5SZKOTOUJYS3QXNXJJS53USA5EOF5 \ / AMOS7 \ YOURUM ::
-#\[7]VGQWV5RKVWFVVHQWUTMIERLJRAJF7NRL4YAC2CCIIZPB53WQEMDI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,,,,,.,,,..,,,,,...,,..,..,,..,,...,...,..,,,..,,..,.,.,.,,,
+#JOW2MNQ3UKEHDRXWVHGG476WO7F4HPEDSRUMRVNLHQF72LOWECRVJNUU2W6DDCX2VZOMBOVIS4STI
+#\\\|V6BXJWOUYR4M53RZJAXUM26ZLLJF2OU2JBKPLMYOHO3POHSWVXS \ / AMOS7 \ YOURUM ::
+#\[7]DHSZTKBG75YVLGO53UYUILWDIFW34D5N5735UAD4ZJ43S2Z6KGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

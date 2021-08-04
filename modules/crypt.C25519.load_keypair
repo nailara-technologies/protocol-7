@@ -4,7 +4,8 @@
 
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 
-my $key_password = shift;                          ## optional ##
+my $key_password       = shift;                    ## optional ##
+my $pwd_retry_on_error = shift // 0;               ##  false  ##
 
 my $key_dir      = $key_vars->{'key_dir'};
 my $key_usr      = $key_vars->{'usr_name'};
@@ -83,17 +84,20 @@ if ( -r $private_key_file and -r $public_key_file ) {
             $key_password = AMOS7::TERM::read_password_single(
                 sprintf( "'%s' key decryption password", $key_name ) );
         }
-        if ( defined $key_password and length $key_password < 13 ) {
-            say sprintf "%s:", $AMOS7::C{'0'};
-            <[base.log]>->( 0, 'password is too short, retry or abort..,' );
-            say sprintf "%s:", $AMOS7::C{'0'};
-            undef $key_password;
-            for ( 1 .. 7 ) {
-                <[base.sleep]>->(0.1);
-                <[event.once]>->(0.007);
-            }
-            goto RE_READ_PWD;
-        } elsif ( not defined $key_password ) {
+
+      if ( defined $key_password and length $key_password < 13 ) {
+          say sprintf "%s:", $AMOS7::C{'0'};
+          <[base.log]>->( 0, 'password is too short, retry or abort..,' );
+
+          ## say sprintf "%s:", $AMOS7::C{'0'};
+
+          undef $key_password;
+          for ( 1 .. 7 ) {
+              <[base.sleep]>->(0.1);
+              <[event.once]>->(0.007);
+          }
+          goto RE_READ_PWD;
+      } elsif ( not defined $key_password ) {
             undef $keys{'C25519'}{$key_name}{'private'};
             delete $keys{'C25519'}{$key_name}{'private'};
             <[base.log]>->( 0, 'cannot decrypt private key .,' );
@@ -136,11 +140,17 @@ if ( -r $private_key_file and -r $public_key_file ) {
                 $decrypted_C25519_sref->$*, 5    ##[ silent ]##
             ) // 0
         ) {
-            undef $keys{'C25519'}{$key_name}{'private'};
-            delete $keys{'C25519'}{$key_name}{'private'};
             <[base.log]>->( 1, ':' );
             <[base.log]>->( 0, ': password is not correct ..,' );
             <[base.log]>->( 1, ':' );
+
+            undef $key_password;
+
+            goto RE_READ_PWD if $pwd_retry_on_error;
+
+            undef $keys{'C25519'}{$key_name}{'private'};
+            delete $keys{'C25519'}{$key_name}{'private'};
+
             <[base.logs]>->( ": public key loaded ['%s']", $key_name );
             <[base.log]>->( 1, ':' );
             return 0;
@@ -185,8 +195,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return 0;            ##  false  ##
 }
 
-#,,.,,...,,.,,.,.,.,,,.,.,.,.,,,,,...,,,.,.,.,..,,...,...,.,.,,,.,..,,.,.,.,,,
-#6YWAIS4RR3RUL5734OPEEWU35UTB2IQ6OPUJT6PPVABEQ5U7LSG72LFMBWGFU2SYSCP3WMGNH555W
-#\\\|4MZ7TJ3R4VXCLTMIGL5BE6SQGBWJHMIGF4H3KDOC56JYQTERALM \ / AMOS7 \ YOURUM ::
-#\[7]YWYPC7Y4VHSYC6UNE2DOGZ7URRT3GEANIPMHZX6PHKFJUWUT2SCQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,,.,.,,,,..,,,.,...,,..,.,,,..,,...,...,...,,,.,,,.,,..,,,,,
+#ZRKNVXWU3YQECFWAKIXZQJZJ4SBMQ5Q5QVSZEKSC5OL6SGFRGRROPSG7CY6YUHJIIIAMLPLRZGX42
+#\\\|NEP2ADGBSXHANNC7N6GRPHYZFUDY2E3HFFDDBEGRAIX6P54QTY3 \ / AMOS7 \ YOURUM ::
+#\[7]H27C66D6MLQTMAVH3AL6GK6GNWE6CBG6ER7QKOY2JQBMK3DSVGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
