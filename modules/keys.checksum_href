@@ -1,0 +1,74 @@
+## >:] ##
+
+# name  = keys.checksum_href
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_dir  = $key_vars->{'key_dir'};
+
+my $key_re_secret = <keys.regex.key_file.secret>;
+my $key_re_public = <keys.regex.key_file.public>;
+
+my $re_kfiles = <keys.regex.key_files>;
+
+my @k_files = grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@*;
+
+my %key_chksums;
+my %single_chksums;
+
+my @chksumkeys;
+my $last_kname = '';
+foreach my $file (@k_files) {
+    ( my $filepath_rel = $file )         =~ s|^.+/||;
+    ( my $key_name     = $filepath_rel ) =~ s|\.$re_kfiles||;
+    @chksumkeys = () if $key_name ne $last_kname;    ##  resetting  ##
+
+    my $key_encryption_status = <[keys.key.is-encrypted]>->($file);
+
+    if ( $key_encryption_status == -3 ) {
+        $key_chksums{$key_name} = qw| no-r.perms |;
+    } elsif ( $key_encryption_status == 5 ) {
+        $key_chksums{$key_name} = qw| <::encrypted::> |;
+    } else {
+        my $keystr_encoded = <[file.slurp]>->($file);
+        if ( ref $keystr_encoded ne qw| SCALAR |
+            or not length $keystr_encoded->$* ) {
+            $key_chksums{$key_name} = qw| r.err |;
+        } else {
+            chomp( $keystr_encoded = $keystr_encoded->$* );
+            my $key_len = length $keystr_encoded;
+            if ( $key_len > 52 ) {    ##  is priv. key  ##
+                my $key_bin = decode_b32r($keystr_encoded);
+                if ( not defined $key_bin ) {
+                    $key_chksums{$key_name} = qw| dec.err |;
+                } else {
+                    substr( $key_bin, 0, 2, '' ) if $key_len == 106;
+                    push @chksumkeys, $key_bin;
+                    $single_chksums{$key_name}
+                        = <[crypt.C25519.key_checksums]>->(@chksumkeys);
+                }
+            } else {                  ##  is a public key  ##
+                my $key_bin = decode_b32r($keystr_encoded);
+                if ( not defined $key_bin ) {
+                    $key_chksums{$key_name} = qw| dec.err |;
+                } else {
+                    push @chksumkeys, $key_bin;
+                    $single_chksums{$key_name} = $key_chksums{$key_name}
+                        //= <[crypt.C25519.key_checksums]>->(@chksumkeys);
+                }
+            }
+        }
+        $last_kname = $key_name;
+    }
+}
+
+foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
+    $key_chksums{$key_name} //= $single_chksums{$key_name};
+}
+
+return \%key_chksums;
+
+#,,,.,,..,..,,...,.,,,.,.,,..,.,.,,,.,.,.,,.,,..,,...,...,.,,,..,,...,,..,..,,
+#AAJF4PFIYFZXGQAAE3P4BB35UVM2AEBMFOXIPWG5KGXVJU5OMJRK4TNGBIXAAUIY5JBL2FUZ5TWAC
+#\\\|44NF6QXKBMHSU45LURCKELLR7NQW6OKV5HGM6CHQRD4YUFVSJ3O \ / AMOS7 \ YOURUM ::
+#\[7]7EBNO7KDDLJHCKLN4IYR4UMKK3HZH4DBJRWSDH4PFCB3GW24EGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
