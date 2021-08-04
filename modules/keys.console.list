@@ -1,47 +1,93 @@
 ## >:] ##
 
 # name  = keys.console.list
+# param = [nochecksums]
 # descr = list C25519 key names \ files for current user
 # note  = Protocol-7 keys list | grep ' : .*:' | sed 's|.* : ||'
 
+my $param = shift;
+
+my $display_checksums = 5;    ## true ##
+
+$display_checksums = 0 if defined $param and $param eq qw| nochecksums |;
+
+my %C        = %AMOS7::C;
 my $key_vars = <[crypt.C25519.key_vars]>;
 
 my $key_dir = $key_vars->{'key_dir'};
 my $key_usr = $key_vars->{'usr_name'};
 
+my $re_kfiles     = <keys.regex.key_files>;
 my $key_re_secret = <keys.regex.key_file.secret>;
 my $key_re_public = <keys.regex.key_file.public>;
 
-opendir( my $dir_fh, $key_dir ) or die "$key_dir : \l$OS_ERROR";
-my @key_files
-    = grep {m{$key_re_secret|$key_re_public}} reverse sort readdir($dir_fh)
-    or
-    <[base.logs]>->( 0, "unix user '%s' has no C25519 key files", $key_usr );
-closedir($dir_fh);
+my @k_files
+    = grep {s|^.+/||} grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@*;
 
-return if !@key_files;    # <-- no keys, skipping further output!
+return if not @k_files;    # <-- no keys, skipping further output!
 
+my %key_chksums;
+if ($display_checksums) {    ## calculating key checksums ##
+
+    my $calculating_message = 'calculating C25519 key checksums ..,';
+    <[base.log]>->( 1, $calculating_message );
+    if ( not <system.verbosity.console> ) {
+        $OUTPUT_AUTOFLUSH = 1;
+        printf ": %s%s\r", $C{0}, $calculating_message;
+    }
+    %key_chksums = ( <[keys.checksum_href]>->%* );
+}
+
+my $key_name;
 my %key_names;
 my $max_nlen = 0;
+foreach my $file (@k_files) {
 
-map {
-    $key_names{$ARG} = sprintf qw| '%s' |, $LAST_PAREN_MATCH
-        if $ARG =~ m{$key_re_secret};
-    my $spaces = ' ' x length $LAST_PAREN_MATCH;
-    $key_names{$ARG} = sprintf ' %s ', $spaces if $ARG =~ m{$key_re_public};
-    my $l = length $key_names{$ARG};
-    $max_nlen = $l if $l > $max_nlen
-} @key_files;
+    if ( $file =~ m{$key_re_secret} ) {
+        $key_name         = $LAST_PAREN_MATCH;
+        $key_names{$file} = sprintf qw| '%s' |, $key_name;
+    }
+    my $length = length $key_name;
+
+    if ( not $display_checksums ) {
+        my $spaces = ' ' x length $key_name;
+        $key_names{$file} = sprintf ' %s ', $spaces
+            if $file =~ m{$key_re_public};
+
+    } else {
+        $key_names{$file}
+            = sprintf( ' %*s ', $length, $key_chksums{$key_name} )
+            if $file =~ m{$key_re_public};
+    }
+
+    my $l = length $key_names{$file};
+    $max_nlen = $l if $l > $max_nlen;
+
+    $max_nlen = length $key_chksums{$key_name}
+        if $display_checksums and length $key_chksums{$key_name} > $max_nlen;
+}
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
-say sprintf( "\n :: keys for user %s :.\n :\n", $key_usr ),
+my $key_list_string = join '',
+    sprintf( "%40s\n :: keys for user %s :.\n :\n", '', $key_usr ),
     ( map { sprintf( " : %*s : %s\n", $max_nlen, $key_names{$ARG}, $ARG ) }
-        @key_files ),
+        @k_files ),
     "::\n";
 
-#,,,.,,,.,,,,,...,,,,,,.,,...,,..,,.,,..,,..,,..,,...,.,.,.,,,..,,..,,,.,,.,.,
-#MRS4MM45QMNTWSZRL2QN4IHE4KFBR2C6PSW5ZBDSB37W3CCRUHD56FBPG67LLOATE6RR7EWEGVURO
-#\\\|KJUCNC53JTNOMWYCEBC5IA2RFJFSMTWDWDIISNVZ6Y7K6L6OE5Y \ / AMOS7 \ YOURUM ::
-#\[7]RVLMKVGR23Q2J6DTABDIEI2DASOIYT6M4CD4S2SPJ5VE76FPMMAQ 7  DATA SIGNATURE ::
+## colorizing ##
+##
+if ( <system.ansi_color> or <system.force_colors> ) {
+    $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
+    $key_list_string =~ s|('.+')|$C{B}$1$C{R}$C{T}|mg;
+    $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
+    $key_list_string =~ s,(<:.+:>|encrypted),$C{0}$C{b}$1$C{R}$C{T},mg;
+}
+
+say $key_list_string;
+
+#,,,,,..,,.,,,,.,,...,,,.,,,,,,.,,..,,..,,,.,,..,,...,...,...,,,.,...,,.,,.,,,
+#NMDN3NW7PMR4Z7Q4LKKGTATVPDTZEMQDFL5FIOJMOBSJL647XIQMLQFKPNW2NSWCAQTZXWRDFMOWI
+#\\\|O3KQOOOAFJSAXR5KAUH75WXI6MBGK3ERSGA43RF5Q3K6C45ETP5 \ / AMOS7 \ YOURUM ::
+#\[7]LKOIX5VQ62UYLWJ5GJZ37Y27YZOQVVIC6K5ZTUXQZQN526HEZECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
