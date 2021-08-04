@@ -2,16 +2,16 @@
 
 # name  = base.file.slurp
 # args  = <filename>[, <target_reference> (SCALAR|ARRAY)][, <encoding>]
-# descr = loads a file into memory and return a reference to it
+# descr = loads a file into memory and returns a reference to it
 
-my $filename   = shift;
-my $target_ref = shift;              # optional scalar or array reference
-my @encoding   = ( shift // '' );    # optional encoding type [ i.e. ':raw' ]
+my $open_file_name = shift;
+my $target_ref     = shift;           # optional scalar or array reference
+my @encoding       = ( shift // '' ); # optional encoding type [ i.e. ':raw' ]
 
-warn 'expected filename parameter <{C1}>' if not defined $filename;
-$filename = abs_path($filename)           if -e $filename;
+warn 'expecting file_name parameter <{C1}>' if not defined $open_file_name;
+$open_file_name = abs_path($open_file_name) if -e $open_file_name;
 
-if ( defined $target_ref and !length( ref($target_ref) ) ) {
+if ( defined $target_ref and not length ref $target_ref ) {
     @encoding = ($target_ref);
     undef $target_ref;
 }
@@ -20,36 +20,45 @@ if ( not defined $target_ref ) {
     my $buffer = '';
     $target_ref = \$buffer;
 }
-if ( !-f $filename ) {
-    <[base.log]>->( 0, "< file.slurp > '$filename' not found .," );
+if ( not -f $open_file_name ) {
+    <[base.logs]>->( 0, ": file not found : %s", $open_file_name );
     return undef;
 }
 my $file_fh;
-if ( !open( $file_fh, join( ' ', '<', @encoding ), $filename ) ) {
-    <[base.log]>->(
-        0, "< file.slurp > unable to open '$filename' [ \l$OS_ERROR ]"
+if ( not open( $file_fh, join( ' ', qw| < |, @encoding ), $open_file_name ) )
+{
+    <[base.logs]>->(
+        0,                   "<< %s : reading file : '%s' >>",
+        <[base.str.os_err]>, $open_file_name
     );
     return undef;
 }
-my $ref_type = ref($target_ref);
-if ( $ref_type eq 'SCALAR' ) {
+my $ref_type = ref $target_ref;
+if ( $ref_type eq qw| SCALAR | ) {
     local $RS = undef;
-    $$target_ref = <$file_fh>;
+    $target_ref->$* = <$file_fh>;
 
-} elsif ( $ref_type eq 'ARRAY' ) {
+} elsif ( $ref_type eq qw| ARRAY | ) {
 
-    push( @$target_ref, <$file_fh> );
-    chomp(@$target_ref);
+    push $target_ref->@*, <$file_fh>;
+    chomp $target_ref->@*;
 
 } else {
-    warn "< file.slurp > unsupported reference type '$ref_type'. <{C1}>";
+    <[base.s_warn]>->( "not supported reference type %s <{C1}>", $ref_type );
     return undef;
 }
 
-return $target_ref;
+if ( not close($file_fh) ) {    ##[  only warning about it  ]##
+    <[base.logs]>->(
+        0,                   "<< %s : closing file : %s >>",
+        <[base.str.os_err]>, $open_file_name
+    );
+}
 
-#,,,,,,,.,,,,,,,.,.,.,...,...,.,.,,,.,,..,..,,..,,...,...,...,..,,,,,,...,,..,
-#E32VPVNGCF7VS5WTH4O56YT6YWKROHWPULSKJWNNOLI6RVGPWUCKGDAMXT5FGM4XP5NK5JDY74REI
-#\\\|SBORLNDTJ5EAU7B5N6R24OKHOA4CQDF6TLP2RC4THVRPJAXURBQ \ / AMOS7 \ YOURUM ::
-#\[7]W5CPD3FH7PKTGUIB7SKR2V62I3RYVJMAYOHVRK2QNAH3VKI6XSCY 7  DATA SIGNATURE ::
+return $target_ref;             ##  scalar or array reference  ##
+
+#,,.,,,.,,..,,,,.,.,,,,,,,,,.,,,.,.,,,,.,,,,,,..,,...,..,,,..,,.,,,,,,.,.,.,,,
+#ANCVJH35ODI6MCN73IIMWGI56TFIVZGFZJZPS4IHH6BL7324O4HGCT6ZK2QT5CJVMKFFUBFMAFX4G
+#\\\|5Z5GF33PMSR6YGBZNBE42C4JYOLLGL3IQ4NUMRG7NP5WYHBGNPG \ / AMOS7 \ YOURUM ::
+#\[7]YGR4TIQJAU2BIGSY47F3B2DJS7N5AOQ66AL6ROFMDWG7OIAV62DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

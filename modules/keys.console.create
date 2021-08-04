@@ -54,23 +54,25 @@ my $u_str
 my $success = 0;
 say sprintf " : << generating '%s' key%s >>", $key_name, $u_str;
 
-my $key_chksum;
-
-if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
-    $key_chksum = <[crypt.C25519.write_keys]>->( $key_name, $key_password );
-    $success    = 5 if length $key_chksum == 7;    ## true ##
+if ( not <[crypt.C25519.gen_keys]>->($key_name) ) {
+    <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
 }
 
-printf( " :\n :: [ created key '%s' [ %s ] in '%s' ]\n\n",
-    $key_name, $key_chksum, $key_dir )
-    and return 5                                   ## true ##
+( my $keywrite_status, my @key_chk_sums )
+    = <[crypt.C25519.write_keys]>->( $key_name, $key_password );
+
+$success = 5 if defined $keywrite_status and $keywrite_status == 5; ## true ##
+
+printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
+    $key_name, join( qw| : |, @key_chk_sums ), $key_dir )
+    and return 5                                                    ## true ##
     if $success;
 
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,,,,,.,.,,,.,.,,,.,,.,,...,..,,,..,...,,..,..,,...,...,.,,,..,,...,,..,.,.,
-#53NBOVTGG4J6YGVBOLQZUGJSRTDAYNXYACJ3MXC4ZZO3THKI37GEKZRPUNCG63VTUEDMSGQ2XJM62
-#\\\|7ITX7ERF3EM6LNV7LUAKEY46IWXEBEDXT6KEFIAZZKDTPJDVPKV \ / AMOS7 \ YOURUM ::
-#\[7]IQIWIZZZPUZUTSP3TQ723BLFUEOUP6VBV4NGGWFWL26HL2V6HYBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,..,.,,,,,.,,,.,,.,,,,,,,,,,..,,...,...,...,,,,,...,,,,,..,,
+#YEANJLJQF322Z3YCFYYYNYW64MTIOQRYSXJIH6DKTMOQHONHUONLLTRHKC3FFZBO3IY55776L4YVW
+#\\\|UHLFH2P3QXKPWMPWKAJS2CYQ7EKE7GVWAPCR3HF5BPT7XKZCU33 \ / AMOS7 \ YOURUM ::
+#\[7]4JHQXEPIMWIL4NWNPAGNLJDLM4XB44WH4FIBLH3UMNOD3OUTO2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

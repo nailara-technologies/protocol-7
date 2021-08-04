@@ -5,7 +5,6 @@
 my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
 my $key_password = shift;                          ##  optional  ##
 
-my $key_checksum;
 my $uid          = $key_vars->{'uid'};
 my $gid          = $key_vars->{'gid'};
 my $key_usr      = $key_vars->{'usr_name'};
@@ -26,6 +25,9 @@ foreach my $keyfile_extension (qw|  public  secret  |) {
     <[base.log]>->( 0, ':.. cannot not overwrite it.' );
     return 0;
 }
+
+my @keys_binary;
+my $keywrite_status = 5;    ## true ##
 foreach my $type (qw|  private  public  |) {
 
     my $keyfile_extension
@@ -42,7 +44,7 @@ foreach my $type (qw|  private  public  |) {
 
     my $key_bin_str = $keys{'C25519'}{$key_name}{$type};
 
-    $key_checksum = <[chk-sum.amos]>->($key_bin_str);
+    push @keys_binary, $key_bin_str if wantarray;  ##  for checksums below  ##
 
     ##[  encrypting key before write  ]##
     ##
@@ -97,16 +99,26 @@ foreach my $type (qw|  private  public  |) {
         print {$key_fh} sprintf "%s\n", encode_b32r($key_bin_str);
     }
 
-    close($key_fh)                     or die "\l$OS_ERROR [ $file_name ]";
-    rename( "$tmp_fname", $file_name ) or die "\l$OS_ERROR [ $file_name ]";
-    chown( $uid, $gid, $file_name )    or warn "\l$OS_ERROR [ $file_name ]";
+    close($key_fh)                   or die "\l$OS_ERROR [ $file_name ]";
+    rename( $tmp_fname, $file_name ) or die "\l$OS_ERROR [ $file_name ]";
+    chown( $uid, $gid, $file_name )  or warn "\l$OS_ERROR [ $file_name ]";
+
+    $keywrite_status = 0 if not -f $file_name;    ##  false  ##
 
     <[base.logs]>->( ": %s", $file_name );
 }
-return $key_checksum;
 
-#,,.,,,..,,,,,,..,,,.,.,,,,,.,..,,,..,,,,,,,.,..,,...,..,,.,.,.,.,,..,.,,,...,
-#4GF7SIXWRRKBWWZ5TX2K77SX7TN3DSYT3HOLOJWF77UXDPYO7VJGHPIHJ5BRR7AVIBIRB5GDN2XKE
-#\\\|RBLHXAL5UDAC5SHR6OHHTVCEXBYXLAKNAE462MXBNLW23STKDCH \ / AMOS7 \ YOURUM ::
-#\[7]VOSMZG57RWKV2TVHQGCRJNCY4EWVFARKVRFJW2L5YHFEPB7WMCBA 7  DATA SIGNATURE ::
+if (wantarray) {    ##  return key[s] checksum in list context  ##
+
+    my $key_checksum = <[crypt.C25519.key_checksums]>->(@keys_binary);
+    return ( $keywrite_status, $key_checksum );
+
+} else {
+    return $keywrite_status;
+}
+
+#,,,.,..,,,..,,..,,,,,.,,,.,,,,,.,,,.,.,.,.,,,..,,...,...,,.,,,..,.,,,.,.,,,,,
+#OOEQ4NAQWJBUZV3DPARVOVPUWOUWIA5ZFJ7VNQ5SZGX7QMHVLK3K534OBENQOMMJ7OS2TPTTAJA2G
+#\\\|HU6HS5TLJ22VTJDF6CPTW7AP7CPU2NU5BQB5L42FYNTZXDHVVD5 \ / AMOS7 \ YOURUM ::
+#\[7]JVRXABED5Z7TMXTHIZES2KGI2DUE6CMCA3RX3MJTGWEDA4A4M2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

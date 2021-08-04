@@ -1,0 +1,47 @@
+## >:] ##
+
+# name  = crypt.C25519.key_checksums
+# descr = returns harmonized checksums that are true combined and seperate
+
+my @key_strings_binary = @ARG;
+
+if ( @key_strings_binary == 0 ) {
+    warn 'expected binary key string parameter[s] <{C1}>';
+    return undef;
+} elsif ( @key_strings_binary > 2 ) {
+    warn 'unexpected parameter[s] <{C1}>';
+    return undef;
+}
+
+my $checksum_template         = qw| <:%s:> |;
+my $priv_key_truth_template   = qw| <:%s:>,:%s: |;
+my $pubkey_str_truth_template = qw| <:%s:%%s:>,<:%%s:>,:%%s: |;
+
+my @checksums;
+
+if ( @key_strings_binary == 1 ) {
+    my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        $priv_key_truth_template, \$key_strings_binary[0]
+    );
+    push @checksums, $privkey_amos_chksum;
+} else {
+    my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        $priv_key_truth_template, $key_strings_binary[0]
+    );
+    my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        sprintf( $pubkey_str_truth_template, $privkey_amos_chksum ),
+        $key_strings_binary[1]
+    );
+    push @checksums, $privkey_amos_chksum, $pubkey_chksum;
+}
+
+my $combined_key_amos
+    = sprintf( $checksum_template, join( qw| : |, @checksums ) );
+
+return $combined_key_amos;
+
+#,,,.,,.,,,,,,...,,,,,.,.,...,,,,,.,,,,.,,,..,..,,...,...,...,...,,,,,,,,,,,.,
+#47XYZY5UUEQI7TRUXUTS2NELQJUGBKXURZZWLOTM4REYAE5DDKU32JFQRMDDFOYMV6L4DWGRINXXO
+#\\\|THD3J3BWXALHZSQN47NT6PXB4QFMKAS2H6UTMQANSK3E7CPNZ2C \ / AMOS7 \ YOURUM ::
+#\[7]3BZZSYCQQYVKORZ2MF3UL7CCIEGVH3WM4DUAVVVEO3PJEB7TQCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
