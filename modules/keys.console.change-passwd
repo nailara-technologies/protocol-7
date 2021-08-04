@@ -53,7 +53,8 @@ goto ABORT_PWD_CHANGE if not defined $old_key_passwd;
 RE_NEW_PASSWD:
 
 my $enc_pwd
-    = AMOS7::TERM::read_password_repeated('new key encryption password');
+    = AMOS7::TERM::read_password_repeated( 'new key encryption password',
+    undef, 0 );
 
 if ( length( $enc_pwd // '' ) and $enc_pwd eq $old_key_passwd ) {
     <[base.log]>->( 0, 'old and new passwords were identical..,' );
@@ -158,8 +159,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_PWD_CHANGE:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,..,,..,,,,,.,.,..,,,.,,..,,..,,.,,,.,.,,,,,.,.,...,...,...,...,,..,,.,,.,,,
-#IK66HSIAOD63Z5PDTK4X74FYXPVQED2GU457Z6LCAQUI4CDQO3FQI7P2UQ2Q6BCK2UIZPN5H5BL7W
-#\\\|OVQUJLS5RMA52PY6OE6OZXAROQZNZKJZ5PDC7R46JKVE6DV7GNK \ / AMOS7 \ YOURUM ::
-#\[7]W5EAUMOQDO33PG3MDVXMFR3L6OFJBR5CN7ZI6P2OPUAGP2FHF2AQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,...,,,,,,.,,,.,,,..,.,,,,.,,.,.,...,...,.,.,,..,...,.,.,.,.,
+#6A2N3OC7X5VVAL2HNBXUGVG35OMXMP3BXMAWUXPDHXFQ273XYZHL276QFHRBI3HT2GTBHSBHGVCXC
+#\\\|7JCCD7Q7QURIARGID5SH2XKBOKSEDQCR3EWTKY5XBBXMCYLZ4EK \ / AMOS7 \ YOURUM ::
+#\[7]75SVNVFJQIKAA7JAHWL26HVDLNIEITQLKPHOVQ6UFYTSY4IKIADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
