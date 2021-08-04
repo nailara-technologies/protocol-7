@@ -15,6 +15,10 @@ use Crypt::Misc qw| decode_b32r |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
+###           ###
+##  vc_commit  ##
+###           ###
+
 ##[ LOCAL PM LIB PATH ]#######################################################
 BEGIN {
     use English;
@@ -39,19 +43,6 @@ use AMOS7::Assert::Truth qw| is_true |;
 
 ##############################################################################
 
-my $ver_seed = 54;
-my $release_version;
-
-my $mode = ( @ARGV and $ARGV[0] eq qw| -m | ) ? qw| msg_str | : qw| rel_ver |;
-if ( @ARGV and $ARGV[0] eq qw| -s | ) { $mode = qw| set_tag |; shift @ARGV }
-
-if (    $mode eq qw| set_tag |
-    and @ARGV
-    and $ARGV[0] =~ m|^(AMOS-)?v?(\d+\.\d+\.\d+)$| ) {
-    $release_version = sprintf( 'AMOS-v%s', $LAST_PAREN_MATCH )
-        and shift @ARGV;    ## <-- setting custom rel. version ##
-}
-
 my $term = new Term::ReadLine('[ version control commit terminal ]');
 $term->ornaments('mh,md');    # ,me;
 $term->enableUTF8();
@@ -61,7 +52,20 @@ no warnings 'once';
 $readline::rl_completion_function = "main::rl_filename_list_lcl";
 use warnings 'once';
 
-$| = 1;
+my $txt_line = '';
+
+if (@ARGV > 0 ) {
+    $txt_line = join ' ', @ARGV;
+} else {
+    my $selection_text = qx| xsel -o |;
+    $txt_line = $selection_text if length length $selection_text;
+}
+
+$txt_line =~ s|\n||sg;
+
+$term->add_history($txt_line) if length $txt_line;
+
+$OUTPUT_AUTOFLUSH = 1;
 
 ( my $x, my $y ) = term_size();
 my $y_pos = $y > 2 ? 2 : 1;
@@ -77,7 +81,7 @@ my $msg_text = '';
 
 my $min_len   = 13;
 my $max_len   = 76;
-my $last_line = '';
+my $last_line = $txt_line // '';
 my $msg_delay = 0.7;
 
 my $prompt = ' :. ';
@@ -88,7 +92,7 @@ while ( not length($msg_text) ) {
 
     override_signals();
     printf "%s\e[%dH", blacklight_line('g'), $y_pos;
-    my $line = $term->readline($prompt);
+    my $line = $term->readline( $prompt, $last_line );
 
     $term->add_history($line) if $line ne $last_line;
     my $line_length = length($line);
@@ -182,8 +186,8 @@ sub readline_signals {
     exit_term();
 }
 
-#,,,,,,,.,.,.,.,,,,,,,..,,...,..,,...,...,...,..,,...,..,,.,.,,,.,...,..,,,,,,
-#R5FQI4UVNY4FVODAJGHXEWW2AWFOAJALPVHJSINFS74PZK3LEG6FJSQUJZG25FQM3XC4QTF2ZROTI
-#\\\|AHWE2XKXFHJOM7P57G6UT6ZCKIW35TTKDQD4XOKEUQXC7BPJX6I \ / AMOS7 \ YOURUM ::
-#\[7]MR5NB2L3CNUJZXKPV6YXUUZPA2RD6Z6ZMYEBWBWBFHJFFO6VI4BQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,,.,,.,.,..,,,..,,,.,,,,,,..,..,,...,...,...,...,.,.,.,.,,,.,
+#XHYA2FWPQE247ZZDYZURSCRENXGS7RSPVT7D5XR2XWMEFRGPYYVKE3IOPVC2FDOL3OSWFQ4PBHYUS
+#\\\|KAF4MFG4RFHLKHQ3ETG2LBHKHYW5VI636TFUTS6SYH6NQLG5MCD \ / AMOS7 \ YOURUM ::
+#\[7]ZBAGKMICLL6IVZESBO6ZY3UOZPXB6OJADDQOXB3TSCMQVDCMPECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
