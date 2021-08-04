@@ -4,8 +4,139 @@
 # param = <key>
 # descr = convert a key file to unencrypted
 
-#,,,.,,,.,,.,,.,,,,.,,,.,,,,,,,.,,.,.,.,,,,..,.,.,...,...,,..,...,...,..,,...,
-#7E6LKOML644GVABE7KW25C5UDW2GBRYT5TU6YYKMVMTOTHNHTIXZYN6UACB5TJZ7GOJRNSECMIY4S
-#\\\|35DMUVH4TDTCG7XNTLDMQC47KEOJ3EVR4I5ZA6HYCGQ2LEBBL3C \ / AMOS7 \ YOURUM ::
-#\[7]5X4LI2BUIVXUUEFTN23S7SJSBUDQ2QJUN6VHUH5Q5TURHV6FEUDY 7  DATA SIGNATURE ::
+my $key_name = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $key_name;
+
+my $key_status = <[keys.key.is-encrypted]>->($key_name);
+
+if ( $key_status < 0 ) {
+    my $err_reason_str;
+    if ( $key_status == -1 ) {
+        $err_reason_str = sprintf "only public key named '%s' found",
+            $key_name;
+    } elsif ( $key_status == -2 ) {
+        $err_reason_str = sprintf 'no key named %s exists', $key_name;
+    } elsif ( $key_status == -3 ) {
+        $err_reason_str = 'error reading private keyfile';
+    } elsif ( $key_status == -4 ) {
+        $err_reason_str = 'not a valid key format';
+    } else {
+        $err_reason_str = 'undefined error';
+    }
+    return printf "\n  << %s >>\n\n", $err_reason_str;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_status == 0 ) {
+    return printf "\n  ::  '%s' private key is already unencrypted  ::\n\n",
+        $key_name;
+}
+
+my $key_filenames = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
+
+foreach my $type (qw|  private  public  |) {
+    if ( not -w $key_filenames->{$type} ) {
+        <[base.logs]>->(
+            0,
+            'no write permissions : %s',
+            $key_filenames->{$type}
+        );
+        goto ABORT_KEY_DECRYPT;
+    }
+}
+
+my $load_success = <[crypt.C25519.load_keypair]>->( $key_name, undef, 5 );
+
+if ( not defined $load_success ) {
+    warn 'cannot load key files <{NC}>';
+    goto ABORT_KEY_DECRYPT;
+} elsif ( not $load_success ) {
+    goto ABORT_KEY_DECRYPT;
+}
+
+my $backup_file_names;
+ANOTHER_FILE_TIMESTAMP:
+my $tstamp = <[base.ntime.b32]>->( 5, 5 ) // '';
+<[base.exit]>->( qw| 0110 |, 'cannot aqcuire timestamp' )
+    if not length $tstamp;
+foreach my $type (qw|  private  public  |) {
+    if (   not defined $key_filenames->{$type}
+        or not -f $key_filenames->{$type} ) {
+        <[base.s_warn]>->(
+            'error while acquiring %s key filename <{C1}>', $type
+        );
+        goto ABORT_KEY_DECRYPT;
+    }
+    $backup_file_names->{$type} = sprintf qw| %s.renaming.%s |,
+        $key_filenames->{$type}, $tstamp;
+    goto ANOTHER_FILE_TIMESTAMP if -e $backup_file_names->{$type};
+}
+
+foreach my $type (qw|  private  public  |) {
+
+    if ( not rename( $key_filenames->{$type}, $backup_file_names->{$type} ) )
+    {
+        <[base.logs]>->(
+            0,
+            'cannot create key backup file %s --> %s [ %s ]',
+            $key_filenames->{$type},
+            $backup_file_names->{$type},
+            <[base.str.os_err]>
+        );
+        if ( $type eq qw| public | ) {    ##  restore first file  ##
+            rename(
+                $backup_file_names->{'private'},
+                $key_filenames->{'private'}
+                )
+                or <[base.s_warn]>->(
+                '%s [ while restore of %s ]',
+                $key_filenames->{'private'}
+                );
+        }
+    }
+}
+
+( my $keywrite_status, my $key_checksum )
+    = <[crypt.C25519.write_keys]>->($key_name);
+
+if ( defined $keywrite_status and $keywrite_status == 5 ) {
+    <[base.log]>->( 1, 'write was successful, removing backup files..,' );
+
+    foreach my $type (qw|  private  public  |) {
+        if ( not unlink( $backup_file_names->{$type} ) ) {
+            <[base.s_warn]>->(
+                '%s : while unlinking key file backup : %s',
+                <[base.str.os_err]>, $backup_file_names->{$type}
+            );
+        }
+    }
+
+    printf( "::[  success : private key %s %s now unencrypted  ]::\n\n",
+        $key_name, $key_checksum );
+
+    <[base.exit]>->(qw| 00000 |);
+} else {
+    <[base.log]>
+        ->( 0, 'write was not successful, restoring backup files..,' );
+    foreach my $type (qw|  private  public  |) {
+        if (not
+            rename( $backup_file_names->{$type}, $key_filenames->{$type} ) ) {
+            <[base.logs]>->(
+                0,
+                'cannot move back key backup file : %s --> %s [ %s ]',
+                $backup_file_names->{$type},
+                $key_filenames->{$type},
+                <[base.str.os_err]>
+            );
+        }
+    }
+}
+
+ABORT_KEY_DECRYPT:
+<[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
+
+#,,.,,,..,,,,,,.,,,..,,..,...,.,.,.,.,.,.,,..,.,.,...,..,,,,.,.,,,..,,..,,,,.,
+#SB3ILUO7IAG7I2BNPMMUUVDPNQQXEUXPRE4QCJJQZP4H3YYNM43F64APJBTU32P6RDMJPEWUKSHKQ
+#\\\|FW4M2OMUI3OFNCOZMGFUGUF6WHRP3526VSKVVT52LINPW3L6WC7 \ / AMOS7 \ YOURUM ::
+#\[7]7ZSOOEJGHGEPVCJ5DERCAXPZ4JN5WO4ZM7R56YCTGU4ULJVMVCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
