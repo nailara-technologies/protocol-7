@@ -7,6 +7,8 @@
 <[base.perlmod.load]>->('AMOS7::TERM');
 <[base.perlmod.load]>->('AMOS7::Twofish');
 
+<[base.perlmod.load]>->( 'File::Copy', qw| cp | );
+
 ## C25519 key path owner can be overridden with USER environment variable.., ##
 <system.amos-zenka-user> = $ENV{'USER'} // getpwuid($EUID) // $ENV{'LOGNAME'};
 
@@ -28,8 +30,8 @@ map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
 
 0;
 
-#,,..,,,.,,..,.,.,,..,,,,,,.,,,,,,..,,,..,,.,,..,,...,...,,,.,.,,,,.,,..,,...,
-#LH5G2CLNPV5BMNGFEVKUQYO5VIIAO4UNWAJFPE42NLANANDDRSJGUWCKTHNWFA7ZD56C4WXEWJSKY
-#\\\|LCJLAOUZJYSCWDTDPG4DWKVCI3Y3G56GPQHAT37W4EDQW2GNAWU \ / AMOS7 \ YOURUM ::
-#\[7]WMIHKBQD7AQY7YXPTOWTX3U2YOTIOY2NMU74LROG52YFKP4PAADY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,..,,,..,,.,,,,,,..,,,..,,..,..,,...,...,,..,,.,,..,,,,,,.,,,
+#WZZLICZIJ5X3F35ARQ37VHI6RCENHIMSCGV4OD5R3YKXP6VZS3PR45HQOG2TBJYHXQZXCODERSUBO
+#\\\|GNQRUHK5V5FCETVEEV7DCM3UCZ5CZX5WIILK7A3YMRHKTLW6YFH \ / AMOS7 \ YOURUM ::
+#\[7]SGE5UDK3TYANVFHK43S26YYD67OFENBGAHS7V2Z6UBW6DURTOMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,7 +39,8 @@ map {
     return sprintf "\n << no write access to '%s' >>\n\n", $k_path
         if not -w $k_path;
 } @key_files;
-return sprintf "\n  << specified key '%s' not found >>\n\n", $key_name
+
+return printf "\n  << specified key '%s' not found >>\n\n", $key_name
     if not $key_found;
 
 my $del_count = 0;
@@ -66,8 +67,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,,,,,,,,.,,...,,,.,...,,.,,,,,,,,.,,,,,,..,..,,...,..,,...,,.,,..,,,,.,...,
-#CK5RH7CJFY7VDP3F3WF5D5JHVIFDH2B6Z5Z5FQHV2NLC7Z47EQJK3MMXNHNH546BIMBXD2STTWEYA
-#\\\|7CMH6HGFIRMIZA4WJOMYJHTNLCMV5NCBPG2UJ6RCTJ7NGYQV6XU \ / AMOS7 \ YOURUM ::
-#\[7]RHCEXKJC4XAZADL6YOF5PHAKV26U3BN6W3DWUUQIVKJPXDSP2UDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,,.,,,,,,.,,,,,.,.,,,,,,,..,,..,,...,...,,,,,..,,.,.,,..,..,,
+#BORLWCQNPSH7YOP7ICWRAQ5W3WLB7DYAUVTSMH7GJT2YCTR6SMRNUNCXAHKFR534VMGOKN6XGNHLC
+#\\\|NY7RG6XGMTBRL2RYHXNUOU7NMDFKI5P24YKHK3VNTFE74U4QHIM \ / AMOS7 \ YOURUM ::
+#\[7]US7D75MLV5T55CKTM7T7JUQHIYJKGXEPEJ6VNSBLTNALPU4SSMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
