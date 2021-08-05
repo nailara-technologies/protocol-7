@@ -1,0 +1,60 @@
+## >:] ##
+
+# name  = keys.console.encrypted-checksum
+# param = <k>
+# descr = calculate and display chksum of encrypted key
+
+my $key_name_param = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $key_name_param;
+
+my $key_status = <[keys.key.is-encrypted]>->($key_name_param);
+
+if ( $key_status < 0 ) {
+    my $err_reason_str;
+    if ( $key_status == -1 ) {
+        $err_reason_str = sprintf "only public key named '%s' found",
+            $key_name_param;
+    } elsif ( $key_status == -2 ) {
+        $err_reason_str = sprintf 'no key named %s exists', $key_name_param;
+    } elsif ( $key_status == -3 ) {
+        $err_reason_str = 'error reading private keyfile';
+    } elsif ( $key_status == -4 ) {
+        $err_reason_str = 'not a valid key format';
+    } else {
+        $err_reason_str = 'undefined error';
+    }
+    return printf "\n  << %s >>\n\n", $err_reason_str;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_status == 0 ) {
+    return printf "\n  ::  '%s' key is not encrypted  ::\n\n",
+        $key_name_param;
+}
+
+my $load_success
+    = <[crypt.C25519.load_keypair]>->( $key_name_param, undef, 5 );
+
+return print "\n  << no keys loaded >>\n\n" if not $load_success;
+
+my %keys_bin = $keys{'C25519'}{$key_name_param}->%{qw| private public |};
+
+my $chksum_str = sprintf "\n  ::  '%s' :  %s  ::\n", $key_name_param,
+    <[crypt.C25519.key_checksums]>->( values %keys_bin );
+
+## colorizing ##
+##
+if ( <system.ansi_color> or <system.force_colors> ) {
+    my %C = %AMOS7::C;
+    $chksum_str =~ s|^(.+)$|$C{T}$1$C{R}|mg;
+    $chksum_str =~ s|('.+')|$C{B}$C{b}$1$C{R}$C{T}|mg;
+    $chksum_str =~ s|(<:.+:>)|$C{b}$C{o}$1$C{R}$C{T}|sg;
+}
+
+return say $chksum_str;
+
+#,,,,,.,,,.,,,...,,.,,.,,,..,,,,,,,.,,.,,,..,,.,.,...,...,,,,,.,,,,.,,,,,,..,,
+#ERW4L44MVRFSWZUSLLE3JVXIAPW47ORVDCYXVNRHVXWZAZYWCB7TAEXDU4ZG3IGQXRBBP4XPG4VW6
+#\\\|UECBFL676NKESP3LG7QWMCGPCNR2IGNLG54NZPNPNRIF4NPRFLH \ / AMOS7 \ YOURUM ::
+#\[7]3FRCK2OQ6H4TESPUHLWJOASONPVSWWMVBPUNLPLGQMDG4ITEI2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
