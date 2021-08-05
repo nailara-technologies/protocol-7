@@ -2,6 +2,8 @@
 
 # name  = keys.checksum_href
 
+my $key_name_param = shift;
+
 my $key_vars = <[crypt.C25519.key_vars]>;
 my $key_dir  = $key_vars->{'key_dir'};
 
@@ -12,8 +14,13 @@ my $re_kfiles = <keys.regex.key_files>;
 
 my @k_files = grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@*;
 
+@k_files = grep {m{/$key_name_param\.$re_kfiles}} @k_files
+    if defined $key_name_param;
+
 my %key_chksums;
 my %single_chksums;
+
+return \%key_chksums if @k_files == 0;    ##  no [matching] keys  ##
 
 my @chksumkeys;
 my $last_kname = '';
@@ -67,8 +74,8 @@ foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
 
 return \%key_chksums;
 
-#,,,.,,..,..,,...,.,,,.,.,,..,.,.,,,.,.,.,,.,,..,,...,...,.,,,..,,...,,..,..,,
-#AAJF4PFIYFZXGQAAE3P4BB35UVM2AEBMFOXIPWG5KGXVJU5OMJRK4TNGBIXAAUIY5JBL2FUZ5TWAC
-#\\\|44NF6QXKBMHSU45LURCKELLR7NQW6OKV5HGM6CHQRD4YUFVSJ3O \ / AMOS7 \ YOURUM ::
-#\[7]7EBNO7KDDLJHCKLN4IYR4UMKK3HZH4DBJRWSDH4PFCB3GW24EGBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,.,,,,.,,.,,,..,,.,.,.,.,,.,,..,,...,...,,.,,...,,..,...,..,,
+#DBMEIAWQL3EFPYTYXORGAQHD25MATLPHNYAEFVOWWMV2ZB72KCQHUAQ6RQCI3Y54VGXAGI35PA5IW
+#\\\|JHUG2ARBC55LSDYWLOK6WFHJ4AKMW2DPFUXSWADY3D62ZJ3CZRX \ / AMOS7 \ YOURUM ::
+#\[7]K5ZDVMB2V3DET2E6BLNTZMJZJ2OCEUBITOUFWIF6IUJFRB5VAOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

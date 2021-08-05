@@ -11,8 +11,8 @@ my @lines = split( "\n", $$t_ref );
 
 ( undef, my $maxlen )
     = minmax map {length} ( @lines, sprintf( ' %s ', $title_str ) );
-my $len_2     = $maxlen + 5;                # include third parameter length ?
-my $title_bar = '  ,' . '.' x $len_2 . ',';
+my $len_2     = $maxlen + 3;                # include third parameter length ?
+my $title_bar = ' ,' . '.' x $len_2 . ',';
 
 if ( length($title_str) ) {
     substr(
@@ -26,14 +26,14 @@ if ( length($title_str) ) {
 return join( "\n",
     '',
     $title_bar,
-    '  :' . ' ' x $len_2 . ':',
-    ( map { sprintf '  :   %-*s  :', $maxlen, $ARG } sort @lines ),
-    '  :' . ' ' x $len_2 . ':',
-    '  :' . '.' x $len_2 . ":\n",
+    ' :' . ' ' x $len_2 . ':',
+    ( map { sprintf ' : %-*s  :', $maxlen, $ARG } sort @lines ),
+    ' :' . ' ' x $len_2 . ':',
+    ' :' . '.' x $len_2 . ":\n",
     '' );
 
-#,,,.,,,,,,,.,...,,,,,,..,,.,,,..,.,,,..,,.,,,..,,...,...,..,,.,,,..,,,.,,,.,,
-#G6TPFRFHCWAIAIK2DZYE4Q5CWTVNHNNRHQRLCHNZNWDIMK4PJM3LALF6FPL4TVM4U36NJI642BYZ2
-#\\\|23FSQLWPVTAUUVVUDUSXAFC33AW7E3GIDZTHON3KRYAAJZBFRSR \ / AMOS7 \ YOURUM ::
-#\[7]U4KKA3GR5OUHXBLUZQZLNGA3UJUD5CQOKLFE5QSX3PUGBHVTKOAQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,...,,,.,,.,,.,,,...,..,,...,..,,...,...,...,,,,,,,,,,..,,,,,
+#O7M5XSNZA3CHV4HYS4ANEX73VCMPY7MHOQJHZCT3HERO2PSR47JNFJHV2IAAL2DWFWGB4RTWMJWUS
+#\\\|Q6JZEPEUCR36FKB7XZE57NQ45X263RDPDKZ7RPCX7XREIBIC5SF \ / AMOS7 \ YOURUM ::
+#\[7]BRPMHV2M4EP6HYLEK6FSQIHL7PQWT54DEIBPDLDOVI4GXH6O6MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
