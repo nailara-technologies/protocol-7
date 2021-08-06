@@ -27,6 +27,7 @@ use List::MoreUtils qw| uniq |;
 use AMOS7;
 use AMOS7::Assert;
 use AMOS7::INLINE;
+use AMOS7::TEMPLATE;
 
 our %true  = init_table(qw| true |);
 our %false = init_table(qw| false |);
@@ -197,7 +198,13 @@ sub is_true_with_template {
         return undef;
     }
 
-    foreach my $check_ref ( [ undef, @ARG ], [ $template, @ARG ] ) {
+    my @templates_and_params;
+    foreach
+        my $tmpl ( AMOS7::TEMPLATE::split_truth_templates($template)->@* ) {
+        push @templates_and_params, [ $tmpl, @ARG ];
+    }
+
+    foreach my $check_ref ( [ undef, @ARG ], @templates_and_params ) {
         ( my $template, my @check_args ) = $check_ref->@*;
         if ( not defined $template ) {
 
@@ -226,10 +233,11 @@ sub is_template_syntax_valid {
     my $template = shift // '';
     my $silence  = shift // 0;    ## no syntax warning ##
 
-    my @match_count = $template =~ m|(*nlb:\%)%s|sg;
-    if ( @match_count != 1 ) {
-        warn_err( "sprintf template '%s' not valid [ expecting single %%s ]",
-            2, $template )
+    ( my $template_valid, my $template_errstr )
+        = AMOS7::TEMPLATE::is_valid_template($template);
+
+    if ( not $template_valid ) {
+        warn_err( sprintf( '%s <{C2}>', $template_errstr ) )
             if not $silence;
         return 0;    ##  false  ##
     }
@@ -237,10 +245,10 @@ sub is_template_syntax_valid {
     return 5;        ## true ##
 }
 
-return 1;  ###################################################################
+return 5;  ###################################################################
 
-#,,,.,.,,,,,,,..,,,..,,.,,,,.,,..,.,.,,,,,.,,,..,,...,...,,..,,,,,,.,,,..,,.,,
-#DCBTTHMKGEDZD3MRARS4E5JAHHOLE6E26I2WVQD75RCY6SKJFYSYHUHSYT2A32CJI5K7OKAN7ZFYE
-#\\\|IDKAETKD766UCURPM7PU66ZDD4XQQHEWSCM6XJPTSZX6BCGA4BD \ / AMOS7 \ YOURUM ::
-#\[7]YFBQEAYC5MU4TOBO2AORPJJT6LDRDCBCN55C2Z6322YG3SJE2ABQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,.,,,,,.,.,.,.,,,.,...,,.,,,..,..,,...,...,.,,,.,.,.,.,.,,,,.,,
+#WJCD26PKBGE6MR5WHG5BYFOVOHFPPFHVIEVU7YRFVGVMJMWTB7TIWK5OM5ABDXIEVAEL5NAKFBNPO
+#\\\|QH4FJTQ666G6OMHWLR2RVOXOGZAJUQLKGSEPLSZZJRFPWGCSBN4 \ / AMOS7 \ YOURUM ::
+#\[7]C47IKVJCS4MGKG5BZRCYCZ66RQ2SSKL535PYBC2HDV3JDL5WYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

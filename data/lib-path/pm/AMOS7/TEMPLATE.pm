@@ -9,12 +9,13 @@ use warnings;
 use Safe;
 use Encode;
 use Time::HiRes;
+use Module::Load qw| autoload |;
 
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT $VERSION |;
 
-@EXPORT = qw| is_true is_valid_tempate $VERSION |;
+@EXPORT = qw| template_is_true is_valid_tempate $VERSION |;
 
 our $VERSION = qw| AMOS7::TEMPLATE-VERSION.VY7PD5Q |;
 
@@ -22,7 +23,9 @@ our $VERSION = qw| AMOS7::TEMPLATE-VERSION.VY7PD5Q |;
 
 use AMOS7;    ##  error handler  ##
 
-use AMOS7::Assert::Truth;    ## is_true ##
+autoload AMOS7::Assert::Truth    ## is_true ##
+    if not defined &AMOS7::Assert::Truth::is_true
+    and [ caller(0) ]->[0] ne qw| AMOS7::Assert::Truth |;
 
 ##[ SET-UP \ INIT ]###########################################################
 
@@ -65,7 +68,8 @@ sub template_is_true {
         } else {
 
             $TRUE = 0
-                if not is_true( sprintf( $template, $checksum_encoded ),
+                if not AMOS7::Assert::Truth::is_true(
+                sprintf( $template, $checksum_encoded ),
                 0, 1, $AMOS7::TEMPLATE::ELF_7_modes->@* );
         }
 
@@ -385,8 +389,8 @@ sub TEMPLATE_exclusive_type {
 
 return 5;  ###################################################################
 
-#,,..,..,,,.,,.,.,..,,.,,,.,.,,.,,,,.,.,.,.,,,..,,...,...,,.,,,,,,,.,,,,.,,,.,
-#4VPPWAW6J7AWU34AVSXJGZL5IXJ5NBUCFQ72DTYFBVNKIHL7FMP7ZLKJQRNP6DC75Y2NP4CUGOXNG
-#\\\|ZPV76ILIXM4RJESUVFNCUMIVSPXRA5JKVXQGLUPCWZ6XXIG62VE \ / AMOS7 \ YOURUM ::
-#\[7]HEW7NFUEU7QKL666U76YP243PN62AXCFWMUWEMHTUDB47PWDT2AI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,,.,,..,.,,,.,.,..,,,..,..,,..,,...,..,,,,.,..,,.,,,,..,..,,
+#IOFIF6NV7RVGVXRU7RYDPXKFZA7BT55OFE673ZHYMGH5CXL5NMU6XWANUIWHDQRKJNEYZR6GV4DGI
+#\\\|GKPACR3JQT2ZIVZPEXF7XLEGYHLZCKS5HOWPZ44YMED262XKJZ2 \ / AMOS7 \ YOURUM ::
+#\[7]OQLF2VOBOLPQUMT7M4FEFX2XE7DD4VBMB2VUWQJ34U4JAQVCGWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
