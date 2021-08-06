@@ -1,0 +1,300 @@
+## >:] ##
+
+# name  = base.chk-sum.from_substr
+
+my $input_ref       = shift;         ##  scalar reference or file handle  ##
+my $start_offset    = shift // 0;    ##  checksum input data start offset  ##
+my $total_data_size = shift;         ##  checksum data length  ##
+
+##  array refs [ <chksum_name>, [chksum_param[s]] ],
+##
+my $chksum_parameters = shift // [];
+
+my $read_size = shift // 64512;      ## 63 KB read size ##
+
+state %known_checksums;
+%known_checksums = map { $ARG => 5 } qw| AMOS7 ELF-7 BMW BMW-bin BMW-L13 JH |
+    if not keys %known_checksums;
+
+my @checksums;                       ##  result values  ##
+my $file_mode = 0;                   ##  false  ##
+my @chksum_objects;                  ##  for list context return  ##
+
+if ( $chksum_parameters->@* ) {
+    foreach my $chksum_aref ( $chksum_parameters->@* ) {
+        if ( ref $chksum_aref ne qw| ARRAY | ) {
+            warn 'expected ARRAY reference with chksum name \ params <{C1}>';
+            return undef;
+        }
+        my $type = $chksum_aref->[0] // qw| [UNDEF] |;
+        if ( not exists $known_checksums{$type} ) {
+            <[base.s_warn]>->(
+                'unknown chksum type %s requested <{C1}>', $type
+            );
+            return undef;
+        } elsif ( $type =~ m|^BMW| ) {
+            my $param_missing = (
+                $chksum_aref->@* == 3
+                    and ref $chksum_aref->[1] eq qw| CODE |   ##  template  ##
+                    and $chksum_aref->[2] =~ m{^(224|256|384|512)$}
+                    or $chksum_aref->@* == 2    ## regular size param ##
+                    and $chksum_aref->[1] =~ m{^(224|256|384|512)$}
+            ) ? 0 : 5;
+            if ($param_missing) {
+                warn 'expected BMW chksum size parameter'
+                    . ' [ 224, 256, 384, 512 ] <{C1}>';
+                return undef;
+            }
+        } elsif ( $type eq qw| JH |
+            and $total_data_size - $start_offset > $read_size )
+        {    ## req. multiple chksums ##
+            <[base.s_warn]>->(
+                '%s chksum currently limited to read size %05d <{C1}>',
+                $type, $read_size
+            );
+            return undef;
+        }
+    }
+} elsif ( $chksum_parameters->@* == 0 ) {
+    warn 'expected checksum [list] param <{C1}>';
+    return undef;
+}
+
+if ( $start_offset !~ m|^\d+$| ) {
+    warn 'start offset not unsigned numerical <{C1}>';
+    return undef;
+} elsif ( defined $total_data_size and $total_data_size !~ m|^\d+$| ) {
+    warn 'data length not numerical <{C1}>';
+    return undef;
+} elsif ( ref $input_ref ne qw| SCALAR | ) {    ## filehandle input mode ##
+    if ( not length ref $input_ref or not length fileno $input_ref ) {
+        warn 'expected scalar ref or open filehandle param <{C1}>';
+        return undef;
+    } else {
+        $file_mode = 5;    ##  true  ##
+    }
+} else {
+    if ( not defined $input_ref->$* ) {
+        warn 'scalar reference points to undefined data <{C1}>';
+        return undef;
+    }
+    my $input_string_size = length $input_ref->$*;
+    if ( not defined $total_data_size ) {
+        $total_data_size = $input_string_size - $start_offset;
+    }
+    if ( $start_offset > $input_string_size ) {
+        warn 'start offset larger than string size <{C1}>';
+        return undef;
+    } elsif ( $start_offset + $total_data_size > $input_string_size ) {
+        warn 'data length param exceeds input string size <{C1}>';
+        return undef;
+    }
+}
+
+if ($file_mode) {
+    my $fstat = File::stat::stat($input_ref);
+    if ( not defined $fstat ) {
+        warn 'cannot stat given filehandle <{C1}>';
+        return undef;
+    } elsif ( not $fstat->cando( S_IRUSR(), 5 ) ) {
+        warn 'given filehandle not opened for read access <{C1}>';
+        return undef;
+    } elsif ( $start_offset > $fstat->size ) {
+        warn 'start offset larger than the file size <{C1}>';
+        return undef;
+    } elsif ( $start_offset + $total_data_size > $fstat->size ) {
+        warn 'data length parameter exceeds file size <{C1}>';
+        return undef;
+    }
+}
+
+## checksum initialization ##
+foreach my $chksum_aref ( $chksum_parameters->@* ) {
+    ( my $type, my @param ) = $chksum_aref->@*;
+    my @checksum_parameters = @param;
+    shift @checksum_parameters    ## removing sprintf template ##
+        if ref $param[0] eq qw| CODE |;
+
+    if ( $type eq qw| AMOS7 | ) {    ##  BMW + ELF-7  ##
+        push @chksum_objects, [ <[chk-sum.bmw.ctx]>->(512), 0 ];
+
+    } elsif ( $type =~ m|^BMW(\-bin)?$| ) {
+        my $bmw_bits = $checksum_parameters[0];
+        push @chksum_objects, [ <[chk-sum.bmw.ctx]>->($bmw_bits) ];
+
+    } elsif ( $type eq qw| BMW-L13 | ) {
+        push @chksum_objects, [ <[chk-sum.bmw.ctx]>->(512) ];
+
+    } elsif ( $type eq qw| ELF-7 | ) {
+        push @chksum_objects, [0];    ##  ELF-7 start chksum  ##
+
+    } else {
+        push @chksum_objects, [undef];    ## no init required ##
+    }
+}
+
+my $first_line        = 5;                  ## true ##
+my $bytes_left        = $total_data_size;
+my $current_offset    = $start_offset;
+my $previous_offset   = $current_offset;
+my $input_data_offset = 0;
+while ( $bytes_left and $read_size ) {
+    $input_data_offset = $current_offset - $start_offset;
+    $read_size         = $bytes_left if $bytes_left < $read_size;
+    my $chksum_input;
+    if ( not $file_mode ) {    ##[ scalar ref input ]##
+        $chksum_input = substr( $input_ref->$*, $current_offset, $read_size );
+        $current_offset += length $chksum_input;
+        $bytes_left     -= length $chksum_input;
+    } else {                   ##[ file input ]##
+        seek( $input_ref, $current_offset, SEEK_SET() )
+            if tell($input_ref) != $current_offset;
+        my $r_b = read( $input_ref, $chksum_input, $read_size );
+        if ( not defined $r_b ) {
+            <[base.s_warn]>->(
+                'file read error at position %04d <{C1}>',
+                $current_offset
+            );
+            return undef;
+        } elsif ( $r_b == 0 ) {
+            <[base.s_warn]>->(
+                'unexpected end of file at byte offset %04d <{C1}>',
+                tell($input_ref)
+            );
+            return undef;
+        }
+        $current_offset += $r_b;
+        $bytes_left     -= $r_b;
+    }
+    if ( $current_offset > $previous_offset ) {
+        $previous_offset = $current_offset;    ##  expected advance  ##
+    } else {    ##  not expected  ##
+        <[base.s_warn]>->(
+            'byte offset did not advance from %04d <{C1}>',
+            $current_offset
+        );
+        return undef;
+    }
+
+    ## checksum calculation ##
+    ##
+    my $obj_idx = 0;
+    foreach my $chksum_aref ( $chksum_parameters->@* ) {
+        ( my $type, my @param ) = $chksum_aref->@*;
+        my $checksum_input_str;
+
+        $checksum_input_str = shift(@param)->(    ##[  code template  ]##
+            \$chksum_input, $input_data_offset, $total_data_size
+            )->$*                                 ## returns scalar ref ##
+            if ref $param[0] eq qw| CODE |;
+
+        $checksum_input_str //= $chksum_input;    ## regular input line ##
+
+        if ( $type eq qw| AMOS7 | ) {
+            my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+            $bmw_ctx->add($chksum_input);         ## update ##
+
+            my $start_sum = $chksum_objects[$obj_idx]->[1];    ## ELF-7 ##
+            my $ELFmode = $AMOS7::CHKSUM::algorithm_set_up{'chksum_elf_mode'};
+            my $elf_sum = <[chk-sum.elf.inline]>->(
+                \$checksum_input_str, $start_sum, $ELFmode
+            );
+            $chksum_objects[$obj_idx]->[1] = $elf_sum;         ## update ##
+
+        } elsif ( $type =~ m|^BMW| ) {
+
+            my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+            $bmw_ctx->add($checksum_input_str);                ## update ##
+
+        } elsif ( $type eq qw| ELF-7 | ) {
+            my $start_sum = $chksum_objects[$obj_idx]->[0];
+            my $elf_sum                                        ## ELF-7 ##
+                = <[chk-sum.elf.inline]>->(
+                \$checksum_input_str, $start_sum, @param
+                );
+            $chksum_objects[$obj_idx]->[0] = $elf_sum;         ## update ##
+
+        } elsif ( $type eq qw| JH | ) {    ##  is one-time call  ##
+            my $jhash_csum = sprintf qw| %010d |,
+                Digest::JHash::jhash($checksum_input_str);    ##  JHash  ##
+            $chksum_objects[$obj_idx]->[0] = $jhash_csum;     ##  store  ##
+        }
+        $obj_idx++;
+    }
+}
+
+my @enc_obj;
+my $obj_idx = 0;
+foreach my $chksum_aref ( $chksum_parameters->@* ) {
+    ( my $type, my @param ) = $chksum_aref->@*;
+    my @checksum_parameters = @param;
+    shift @checksum_parameters    ## removing sprintf template ##
+        if ref $param[0] eq qw| CODE |;
+
+    if ( $type eq qw| AMOS7 | ) {    ## BMW result ##
+        my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+        push @enc_obj, $bmw_ctx->clone if wantarray;
+        my $amos7_params = {
+            qw| BMW_checksum | => $bmw_ctx->digest,
+            qw| elf_checksum | => $chksum_objects[$obj_idx]->[1]
+        };
+        if ( @param == 1 and ref $param[0] eq qw| HASH | ) {
+            foreach my $key ( keys $param[0]->%* ) {
+                if ( $key =~ m,^(elf|BMW)_checksum$, ) {
+                    <[base.s_warn]>->( '%s amos param not expected', $key );
+                    return undef;
+                }
+                $amos7_params->{$key} = $param[0]->{$key};
+            }
+        } elsif (@checksum_parameters) {    ##  ELF modes specified  ##
+            foreach my $param_value (@checksum_parameters) {
+                if ( $param_value !~ m|^\d+$| ) {
+                    <[base.s_warn]>->(
+                        "amos elf truth mode expected [ not '%s']",
+                        $param_value
+                    );
+                    return undef;
+                }
+                $amos7_params->{'elf-modes'} //= [];
+                push $amos7_params->{'elf-modes'}->@*, $param_value;
+            }
+        }
+        ##  calculating AMOS7 chksum from ELF-7 and BMW sums  ##
+        ##
+        my $amos_chksum = AMOS7::CHKSUM::amos_chksum($amos7_params);
+        push @checksums, $amos_chksum;
+
+    } elsif ( $type eq qw| BMW | ) {    ## BMW result ##
+        my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+        push @enc_obj,   $bmw_ctx->clone if wantarray;
+        push @checksums, encode_b32r( $bmw_ctx->digest );
+
+    } elsif ( $type eq qw| BMW-bin | ) {    ##  BMW result [ unencoded ]  ##
+        my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+        push @enc_obj,   $bmw_ctx->clone if wantarray;
+        push @checksums, $bmw_ctx->digest;
+
+    } elsif ( $type eq qw| BMW-L13 | ) {    ## BMW-L13 result ##
+        my $bmw_ctx = $chksum_objects[$obj_idx]->[0];
+        push @enc_obj, $bmw_ctx->clone if wantarray;
+        push @checksums,
+            <[chk-sum.bmw.calculate_L13_sum]>->( $bmw_ctx->digest );
+
+    } elsif ( $type eq qw| ELF-7 | ) {      ##  elf result sum  ##
+        push @checksums, $chksum_objects[$obj_idx]->[0];
+
+    } elsif ( $type eq qw| JH | ) {         ##  jhash result sum  ##
+        push @checksums, $chksum_objects[$obj_idx]->[0];
+
+    }                                       ## .., ##
+    $obj_idx++;
+}
+
+return ( @checksums, \@enc_obj ) if wantarray;
+return \@checksums;    ##  no object in scalar context  ##
+
+#,,,.,,..,,,,,.,,,,.,,...,...,,.,,,.,,,..,,.,,..,,...,...,.,.,,,,,,..,,..,.,.,
+#6AEMCGYOEIUAKF5SWQKC4HNF763VTJDRTDJH4X6EF37QSCZJJKRUYMKYMRUFKFUMOS2EZFUZ2HDS2
+#\\\|65Z5T3D5EDBZOZSZP63TVRCLRDFICSM2RR4AG7K5LK67ZJHW5IG \ / AMOS7 \ YOURUM ::
+#\[7]GOSKYRMMRMXBZIBXYN3IO2263ON4H3QKNUCCQQDAO6NOELQDIQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
