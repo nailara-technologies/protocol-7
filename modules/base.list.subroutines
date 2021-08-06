@@ -24,7 +24,6 @@ return [ qw[
         mpv.cmd.pos
         filter.init
         devmod.dump
-        chk-sum.jha
         base.s_warn
         base.s_read
         base.gen_id
@@ -151,6 +150,7 @@ return [ qw[
         mpv.cmd.command
         mpv.cmd.align-y
         mpv.cmd.align-x
+        keys.key_exists
         index.init_code
         httpd.init_code
         httpd.http_head
@@ -164,9 +164,6 @@ return [ qw[
         crypt.init_code
         compton.startup
         chk-sum.md5.hex
-        chk-sum.jha.hex
-        chk-sum.jha.bin
-        chk-sum.jha.b32
         chk-sum.crc.b32
         base.zenka.loop
         base.str.os_err
@@ -215,7 +212,6 @@ return [ qw[
         devmod.cmd.since
         dbus.cmd.get-pid
         chk-sum.md5.b64u
-        chk-sum.jha.b64u
         base.resolve_key
         base.prng.reseed
         base.path_owners
@@ -235,6 +231,7 @@ return [ qw[
         base.cmd.rel-ver
         base.cmd.present
         base.cmd.cur-pid
+        base.chk-sum.jha
         base.chk-sum.elf
         base.change_prio
         base.call_filter
@@ -331,6 +328,7 @@ return [ qw[
         mpv.cmd.current-vo
         mpv.cmd.current-ao
         mod-test.post_init
+        keys.checksum_href
         jobqueue.init_code
         jobqueue.find_jobs
         index.cmd.stop-job
@@ -488,6 +486,8 @@ return [ qw[
         mpv.cmd.drop_buffers
         mpv.cmd.current-file
         mpv.callback.fade_in
+        keys.console.enc-key
+        keys.console.dec-key
         io.ip.tcp.input.open
         impressive.parse_bin
         impressive.init_code
@@ -530,6 +530,9 @@ return [ qw[
         base.cmd.show-buffer
         base.cmd.show-access
         base.cmd.amos-chksum
+        base.chk-sum.jha.hex
+        base.chk-sum.jha.bin
+        base.chk-sum.jha.b32
         base.chk-sum.bmw.ctx
         base.buffer.add_line
         base.auth.set_v7_key
@@ -580,6 +583,7 @@ return [ qw[
         mpv.cmd.show_playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
+        keys.key.is-encrypted
         jobqueue.get_next_job
         jobqueue.get_job_data
         io.ip.tcp.output.open
@@ -603,7 +607,6 @@ return [ qw[
         content.cmd.add-entry
         content.check_changes
         chk-sum.md5.init_code
-        chk-sum.jha.init_code
         chk-sum.crc.init_code
         base.start.prio_child
         base.session.shutdown
@@ -628,6 +631,7 @@ return [ qw[
         base.cmd.when-present
         base.cmd.dependencies
         base.cmd.buffer-erase
+        base.chk-sum.jha.b64u
         base.balanced-average
         base.X-11.set_gravity
         base.X-11.get_display
@@ -688,6 +692,7 @@ return [ qw[
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
+        keys.console.duplicate
         io.ip.tcp.output.close
         index.cmd.add-wordlist
         impressive.open_window
@@ -914,6 +919,7 @@ return [ qw[
         base.dependency.pre_init
         base.code_section_exists
         base.cmd.verify-instance
+        base.chk-sum.from_substr
         base.chk-sum.bmw.filesum
         base.chk-sum.bmw.L13-str
         base.check_cfg_cmd_alias
@@ -1050,14 +1056,15 @@ return [ qw[
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
+        keys.console.change-passwd
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
         events.set-up.import_rules
+        crypt.C25519.key_checksums
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
-        chk-sum.jha.b32.harmonized
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -1074,6 +1081,7 @@ return [ qw[
         base.dependency.del_object
         base.dependency.add_object
         base.crypt.flush_passwords
+        base.chk-sum.jha.init_code
         base.chk-sum.elf.init_code
         base.check_dependency_dirs
         auth.zenka.cmd.session-key
@@ -1209,6 +1217,7 @@ return [ qw[
         graphics-matrix.filter.alpha
         download.set-up.import_rules
         download.set-up.export_rules
+        crypt.C25519.compare_keypair
         content.cmd.entries_withheld
         base.session.check_remaining
         base.run_if_not.load_perlmod
@@ -1219,6 +1228,7 @@ return [ qw[
         base.handler.heart_ack_reply
         base.file.callback.chown-all
         base.chk-sum.elf.regular-elf
+        base.chk-sum.bmw.cmd.bmw-L13
         base.access.special-user-map
         base.X-11.set_window_opacity
         amos-term.term-params-update
@@ -1383,6 +1393,7 @@ return [ qw[
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
+        keys.console.encrypted-checksum
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         httpd.handler.download_transfer
@@ -1401,6 +1412,7 @@ return [ qw[
         base.p7refs.gen_template_chksum
         base.number-cache.get-templates
         base.inotify.install_io_watcher
+        base.chk-sum.jha.b32.harmonized
         X-11.cancel_wait_visible_timers
         X-11.callback.display_connected
         X-11-pointer.cmd.restore-cursor
@@ -1526,6 +1538,7 @@ return [ qw[
         content.handler.weather_urls_reply
         base.protocol-7.command.send.local
         base.file.recursive.matching_paths
+        base.chk-sum.bmw.calculate_L13_sum
         USR.AMOS7-admin.sourcecode-pub-key
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
@@ -1596,6 +1609,7 @@ return [ qw[
         mpv.handler.event.property-change.width
         base.perlmods.reload.reload_blacklisted
         base.perlmods.blacklist_collision_index
+        base.parser.chk-sum.embedded-code-style
         base.init_zenka.install_signal_handlers
         base.chk-sum.amos.truth_template_chksum
         weather.parent.handler.coordinates_reply
@@ -1634,8 +1648,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,,,.,.,...,.,,,.,.,..,,,,.,,,,,..,,,.,,.,.,...,...,,..,.,.,,,,,,,,,,,,,
-#DL5EPDRSHYORKIM5KALSE6GDJRH7B4WJBND7EKGTH4DD2KIJJB72W6NINAGJ74EZAD2CZPKDW3AO2
-#\\\|TJN243TNAQUYZ2KT6P4PX5ACJ65UFPIDDSNRS2RFJ4EWR2VCFHP \ / AMOS7 \ YOURUM ::
-#\[7]UWXRSHHU3HCOUKWUC4DC3NVUQHLENIV2OBEAU5TSIY7MCQSNIWAA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,,.,,..,,,.,.,.,,,,,..,,,,.,.,.,...,...,..,,..,,,..,,.,,,.,,
+#7FWZA57Z6UCMM24XDQG6SIAWIHGMU3F47U3CLZWZA3CTX4MH4DIJCAZEVG6GMZE56HVMBCUIYXHX2
+#\\\|XCMIGWO4R5UZA4XC47WJ5D47NK5OOF6CPF7Y4XGBBG5HDQ7I5Y6 \ / AMOS7 \ YOURUM ::
+#\[7]QVI2I2M36TKY3IJK2YATLH6DGMDFDHXJLXX7OFQGMHF4DJN63OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
