@@ -88,6 +88,17 @@ sub amos_chksum {
         $input_BMW_checksum = $data_ref->{'BMW_checksum'}
             if defined $data_ref->{'BMW_checksum'};
 
+        if ( defined $input_BMW_checksum
+            and length $input_BMW_checksum != 64 ) {
+            warn 'expected 64 byte [ binary ] BMW checksum <{C1}>';
+            if ( length $input_BMW_checksum == 103 ) {
+                $input_BMW_checksum    ##  implicitly decode BASE32  ##
+                    = Crypt::Misc::decode_b32r($input_BMW_checksum);
+            } else {
+                return undef;          ## unknown format [if any] ##
+            }
+        }
+
         @elf_modes = $data_ref->{'elf-modes'}->@*
             if defined $data_ref->{'elf-modes'}
             and ref( $data_ref->{'elf-modes'} ) eq qw| ARRAY |;
@@ -127,8 +138,10 @@ sub amos_chksum {
         undef @ARG;
     }
 
-    @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
-        = sort ( @ARG ? @ARG : $algorithm_set_up{'elf_truth_modes'}->@* );
+    if ( not @elf_modes ) {
+        @elf_modes    ## setting elf-modes ##  [ for truth assertion ]  ##
+            = sort ( @ARG ? @ARG : $algorithm_set_up{'elf_truth_modes'}->@* );
+    }
 
     map {
         return error_exit( 'not a valid elf mode [ %s ] <{C3}>', $ARG )
@@ -317,8 +330,8 @@ sub amos_template_chksum {
 
 return 5;  ###################################################################
 
-#,,.,,,..,.,.,.,.,,.,,,.,,,..,..,,...,,,.,,.,,..,,...,..,,.,.,,,,,,..,,..,,,,,
-#25W3MOV4HMUWS7S33AVCGCUAKAXYCYJERZGLCN5N6IXRDEDTFHGQ3LJDXFJ3NWUGLV6RKLFTNB3A6
-#\\\|LEYALSGAHCQ5FTRZ4ZSOHWQT5H5AZIGRMEANOI67WNL4JLGJLYR \ / AMOS7 \ YOURUM ::
-#\[7]ZFRDEG5HILYYOIPL7425T7EO5JU4SBTXW2K6UJ2XI37UIOOATEDY 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,.,,,,,,,,.,,,,,,,,,,,,,,,.,,..,,...,...,.,.,.,,,,,,,,,.,,,.,
+#VZK6RR74PIC4EVUOL3NNLYW25PG375JOD3QIKYL2DJSYCYKNBWPXTN4IVRJ2RMNBDR5MZN5LSBL3C
+#\\\|HYPJT5LP4EM4OASCMKSMSMQQUZJHWLEGRSSVTORBV6LHPAHGZBQ \ / AMOS7 \ YOURUM ::
+#\[7]QQXJPOUUBHDNMWMJJWVFBZMOPO2VNB4WDR6QO4SUCAFE47YRL4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
