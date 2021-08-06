@@ -14,8 +14,10 @@ my $FXI = 202;    ## program return code for asserted FALSE ##
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
-my $silent          = 0;
 my $plain           = 0;
+my $silent          = 0;
+my $stdin_mode      = 0;
+my $single_stdin    = 0;
 my $force_numerical = 0;
 my $no_num_chk      = 0;
 my $only_FALSE      = 0;
@@ -40,12 +42,16 @@ $template = shift @ARGV
 
 ## regular invocation ##
 ##
-$silent = 1 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift @ARGV;
-$plain  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift @ARGV;
-$force_numerical = 1 if @ARGV > 0 and $ARGV[0] eq qw| -num | and shift @ARGV;
-$no_num_chk = 1 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift @ARGV;
-$only_FALSE = 1 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift @ARGV;
-$only_TRUE  = 1 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift @ARGV;
+$silent = 5 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift @ARGV;
+$plain  = 5 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift @ARGV;
+$force_numerical = 5 if @ARGV > 0 and $ARGV[0] eq qw| -num | and shift @ARGV;
+$no_num_chk = 5 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift @ARGV;
+$only_FALSE = 5 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift @ARGV;
+$only_TRUE  = 5 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift @ARGV;
+
+if ( @ARGV and $ARGV[0] eq qw| -single-stdin | and shift @ARGV ) {
+    $stdin_mode = $single_stdin = 5;
+}
 
 if ( @ARGV > 1 and $ARGV[0] =~ m|(-elf)?-modes?| ) {
     die ":\n: mode parameter not valid [ <n>[,<n>..,] ]\n:\n"
@@ -88,7 +94,6 @@ my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
 
 ##[ DATA INPUT MODES ]########################################################
 
-my $stdin_mode = 0;
 my $single_line_input;
 
 if (@ARGV) {
@@ -103,9 +108,13 @@ exit( check_input($single_line_input) ) if not $stdin_mode;
 ## STDIN \ PIPE MODE ##
 my $success_code = 0;
 
-while (<STDIN>) {
-    chomp($ARG);
-    $success_code = $FXI if not check_input($ARG);
+if ($single_stdin) {
+    $success_code = $FXI if not check_input( join( '', <STDIN> ) );
+} else {
+    while (<STDIN>) {
+        chomp($ARG);
+        $success_code = $FXI if not check_input($ARG);
+    }
 }
 
 exit($success_code);
@@ -139,23 +148,43 @@ sub check_input {
         if ( $plain and not $silent ) {
             say $check_str;
         } elsif ( not $silent ) {
+            my $linefeed       = '';
+            my $trailing_space = ' ';
+            if ( index( $check_str, "\n", 0 ) != -1 ) {
+                $check_str =~ s|^([^\n]+)$|$C{T}$C{b}$1$C{R}|mg;
+                $linefeed       = $C{'R'} . "\n\n";
+                $trailing_space = "\n";
+            }
             say "$C{0}:\n$C{0}:: $C{B}$C{T}TRUE$C{R}$C{0}$mode_str :: "
-                . "$C{b}$C{T}$check_str$C{R}$C{0} .:\n$C{0}:$C{R}";
+                . $linefeed
+                . "$C{0}'$C{b}$C{T}$check_str$C{R}$C{0}'"
+                . $trailing_space
+                . "$C{T}.:$C{R}\n$C{0}:$C{R}";
         }
         return 0;
     } elsif ( not $true and not $only_TRUE ) {
         if ( $plain and not $silent ) {
             say $check_str;
         } elsif ( not $silent ) {
+            my $linefeed       = '';
+            my $trailing_space = ' ';
+            if ( index( $check_str, "\n", 0 ) != -1 ) {
+                $check_str =~ s|^([^\n]+)$|$C{0}$C{b}$1$C{R}|mg;
+                $linefeed       = $C{'R'} . "\n\n";
+                $trailing_space = "\n";
+            }
             say "$C{0}:\n$C{0}:: $C{B}$C{g}FALSE$C{R}$C{0}$mode_str : "
-                . "$C{b}'$C{g}$check_str$C{0}'$C{R}$C{0} :.\n$C{0}:$C{R}";
+                . $linefeed
+                . "$C{0}'$C{b}$C{g}$check_str$C{0}$C{R}'$C{0}"
+                . $trailing_space
+                . "$C{0}:.$C{R}\n$C{0}:$C{R}";
         }
         return $FXI;
     }
 }
 
-#,,,,,,,.,.,,,.,.,.,,,,,,,,..,,..,,,.,,.,,.,.,..,,...,...,...,...,,..,.,.,,,,,
-#WSYXY5LDBTCS4FONZK6R3E3CKNC6NDJ6X2JHUAH6B6JGWZNGMF36HB23UZUL64CB5NHY7CAMNTLZM
-#\\\|HDK7EUJVEXI7I6QYB7Y2RAAGFL77B5RZ2L35GSCYVGPOSZEQKDR \ / AMOS7 \ YOURUM ::
-#\[7]EXJ4WENP77W2R77LNZLPCNHI6YH3DPQYBKZADMBA2BDVPQALZ4CY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,.,,..,,.,,,..,,...,,.,,.,.,..,,...,...,.,.,,,,,,,.,,..,,,.,
+#6PJIJXTGCSFA36PAK3RUXO3UHK7GASGARNWBGL5XEF6DC5LKXUY7ZA5NJKIJL3L2LG7RK7YEGOA74
+#\\\|NJLT4SPBRUFEB3PN463TPEPSGVPYLYP63P5ICOYIJMFYZWNKWHL \ / AMOS7 \ YOURUM ::
+#\[7]K4MVNXONL4YSWUHYXQ5JLQKPPHAM4ZQ4ZDILGSNSETFYHNZLEEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
