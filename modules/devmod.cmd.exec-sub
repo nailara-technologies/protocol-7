@@ -6,10 +6,13 @@
 
 my $support_params = <devmod.exec-sub.allow-params> // 0;    ##  config  ##
 
-( my $sub_name, my @params )
-    = split( m| +|, $call->{'args'} );    ## quotes not supported ##
+( my $sub_name, my @params ) = split m| +|, $call->{'args'}, 2;
 
-my $timed      = 0;                       ##  create timing statistics  ##
+## single quoted means one parameter string ##
+##
+@params = split m| +|, $params[0] if $params[0] !~ s|^'(.*)'$|$1|;
+
+my $timed      = 0;    ##  create timing statistics  ##
 my $resolution = 7;
 
 if (    @params
@@ -93,8 +96,8 @@ return {
         . scalar( $timed ? "\n\n" : '' )
 };
 
-#,,..,.,,,...,,..,.,,,...,,..,..,,,.,,,..,.,.,..,,...,...,...,..,,.,,,.,,,.,.,
-#TFOKQLCDY7D7ZSCZNPTABY4KDIBJOYA6ZCOBENKMPAWF7HCTMFUHNCSUB66KXLRVLV3BWFIV6WTYY
-#\\\|SL3DZF6P4OKCMBA6PPXGAJLLZEAV55UBAML2MTPLSPJD2BS6PZ6 \ / AMOS7 \ YOURUM ::
-#\[7]EPT66N477U7BHH5YKU2AJHBQVELAJSCA3DY7IUUXS625KGA6J2BA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,.,...,...,,,,,,.,,..,,..,,..,,..,,...,...,..,,...,...,,.,,,,,,
+#HKETZ47ES6ADPLQUGWDLGZCSH4T6KT4W7K4YCMIG4FACC3RCTWVUVL6MQHMLXOPGFSCGPBPPYI62E
+#\\\|IIXODLDN67L3DVXZXHWTKBA3FPA24O4O2S25OY4XE5EYQLMF5WA \ / AMOS7 \ YOURUM ::
+#\[7]76W4TIMPMS24DN6WG77VN5ST3H3CTPPEGXYDRTHXAIDHAQR3LAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
