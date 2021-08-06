@@ -34,10 +34,12 @@ my $version_root  = $paths->{'version_root'};
 my $work_path_abs = abs_path($work_tree);
 
 my $error_exit = 0;
-my @all_dirs   = grep {defined} map {
+my @all_dirs   = grep {length} grep {defined} map {
 
-    my $rel_path      = catfile( getcwd(), $ARG );    ## relative path ? ##
-    my $absolute_path = abs_path($rel_path);
+    my $rel_path = catfile( getcwd(), $ARG );    ## relative path ? ##
+    $rel_path = File::Spec->canonpath($rel_path);
+
+    my $absolute_path = -e $rel_path ? abs_path($rel_path) : $rel_path;
     $absolute_path //= abs_path( catfile( $work_path_abs, $ARG ) );
 
     if ( defined $absolute_path and -f $absolute_path ) {    ##  is a file  ##
@@ -67,7 +69,8 @@ push(    ## enabling [non-recursive] wildcard matches ##
     map {
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
-        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        my $absolute_path = catfile( $work_tree, $base_path );
+        $absolute_path = abs_path($absolute_path) if -e $absolute_path;
         <[file.match_dirs]>->( $absolute_path, $pattern );
         }
         grep { !m|\*/| }
@@ -79,7 +82,9 @@ push(    ## glob based wildcard matches ##  [ ,../*/ ]
     map {
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
-        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        my $absolute_path = catfile( $work_tree, $base_path );
+        $absolute_path = abs_path($absolute_path) if -e $absolute_path;
+        $absolute_path;
         }
         grep {-d} map {glob}
         grep {m|\*.*/$|} $copy_sources->@*
@@ -90,7 +95,8 @@ push(    ## glob based wildcard matches ##  [ ,../*/* files ]
     map {
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
-        my $absolute_path = abs_path( catfile( $work_tree, $base_path ) );
+        my $absolute_path = catfile( $work_tree, $base_path );
+        $absolute_path = abs_path($absolute_path) if -e $absolute_path;
         }
         grep {-f} map {glob}
         grep {m|\*/.*\*$|} $copy_sources->@*
@@ -122,10 +128,29 @@ foreach my $pattern_str ( grep {m|^\!|} $copy_sources->@* ) {
     @source_paths = grep { !m|\Q$pattern_str\E| } @source_paths;
 }
 
-return uniq <[base.sort]>->(@source_paths);
+@source_paths = uniq <[base.sort]>->(@source_paths);
 
-#,,,,,...,,,.,...,,.,,..,,,,,,,.,,...,.,,,,..,..,,...,...,,.,,...,...,,.,,.,.,
-#BXL75QHQVOL74VG3LHBUOVTDWKLRL2P6OFWMI3D4HSEWOY5JVWJXS3LRPBWQSTM5K2JFSDFS7UZ6A
-#\\\|2AXWBWURCLWY7RMPOIU56H5S6J64KD66MWKLVZPW3QMCU7H2KS2 \ / AMOS7 \ YOURUM ::
-#\[7]LP2PGHOYQQYYB4ZVLVOOVRANLNGRZE5RICAUTG4AIYOTOE7XXWCQ 7  DATA SIGNATURE ::
+if ( scalar $copy_sources->@* > @source_paths ) {
+    my @report_paths;
+NXT_PATH:
+    foreach my $chk_path ( $copy_sources->@* ) {
+        next if -e $chk_path;
+        foreach my $src_path (@source_paths) {
+            ##  improve : could have false positives  ##  [ LLL ]
+            next NXT_PATH if rindex( $src_path, $chk_path ) != -1;
+        }
+        push @report_paths, $chk_path;
+    }
+    foreach my $err_path (@report_paths) {
+        <[base.logs]>->( 0, ': no matches : %s', $err_path );
+    }
+    <[base.exit]>->(qw| 0110 |);
+}
+
+return @source_paths;
+
+#,,,.,...,,,,,,,.,...,,,,,,,.,,..,,,,,,.,,,,,,..,,...,...,..,,,,,,,..,..,,,.,,
+#GDLDCFJGY2PB424RD4MGHGE4V5MHIWYPSBMQAPW7FUPNU6DRGFDNFLK6EDS3KYYUK47QUUYOFSXUA
+#\\\|BG3VN5VXXUSELS5OQKKPG7FYD7P2XHARJL4WX3PHWU2F5L4EZY2 \ / AMOS7 \ YOURUM ::
+#\[7]QHYN6Z6O37ECWUQ5UVFFXNIRI2QMSEGXNT52JHRFWFFDBPYO3GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

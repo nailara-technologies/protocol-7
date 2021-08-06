@@ -54,14 +54,14 @@ my $file_count = scalar @source_paths;
 foreach my $path_rel (@source_paths) {
 
     my $path_abs = catfile( $work_tree, $path_rel );
-    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, qw| : | );
 
     my $code_data_ref;
     eval {
         use warnings FATAL => qw| all |;    ##  catches all warnings  ##
         $code_data_ref
             = <[source.cmd.get-code-signed]>
-            ->( { 'args' => $path_rel, 'skip-valid' => 1 } );
+            ->( { 'args' => $path_rel, 'skip-valid' => 5 } );    ## true ##
     };
 
     <[base.s_warn]>->(
@@ -90,23 +90,23 @@ foreach my $path_rel (@source_paths) {
     if ( $code_data_ref->{'mode'} ne qw| size |
         or not length $code_data_ref->{'data'} ) {
         <[base.logs]>->(
-            0, ": not able to create signature [ %s ]", $path_rel
+            0, ': not able to create signature [ %s ]', $path_rel
         );
         next;
     }
 
-    <[base.log]>->( 1, ':.' );
-    <[base.log]>->( 1, ":::[ $path_rel ]:.<+>.::" );
-    <[base.log]>->( 1, ':' );
+    <[base.log]>->( 1, qw| :. | );
+    <[base.logs]>->( ':::[ %s ]:.<+>.::', $path_rel );
+    <[base.log]>->( 1, qw| : | );
 
     $file_count--;
-    <[file.put]>->( $path_abs, $code_data_ref->{'data'} );
+    <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} );
 }
 
-<[base.log]>->( 1, ': : success =)' ) if !$file_count;
+<[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,.,,..,.,.,,.,,,.,,,,.,,..,...,...,...,,,.,..,,...,...,...,,..,.,.,.,,,.,.,
-#4VMFDAODZGG5F2ZF6VXO4DHCO2KDAFO4UOMGSTHXPUFJS7TQUI3YMP73ZG4MOKDM6LMCY2W35CIZY
-#\\\|CYXSNHM3Q7RV3WH3RNRYN555M6P2Y4BMY6FRKSJ65YEEMKOBHUA \ / AMOS7 \ YOURUM ::
-#\[7]YRXQFGMO7DGAOS6BMW7D27JQGVNHFRKEXEXRDJEN3PJCFYLUQUCA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,,..,,,.,.,,,.,,,,,.,,,,,.,.,..,,...,...,,,,,,,,,,..,...,,,.,
+#FOUCZKMMJWEVC6GOW5DUQ25JD4T34JYWCBYC23SDDAJZQLTCWZZUR3QEUEMXJUECXXQSDURPFLHO6
+#\\\|CUPZBGVVWWJPUD5KANXGRKPKWMEI7R3BZ233S2O2PG3OPRHWKQZ \ / AMOS7 \ YOURUM ::
+#\[7]GWBSEIH2IXOZIUM33MGMLGFYAFYHPJPX3MHJS2KNNNZAS5EMRYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
