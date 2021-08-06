@@ -1,0 +1,13 @@
+## >:] ##
+
+# name  = base.chk-sum.jha.b32
+# descr = returns BASE32 encoded [network ordered] jhash value
+
+return Crypt::Misc::encode_b32r( pack qw| N |,
+    Digest::JHash::jhash( join '', @ARG ) )
+
+#,,.,,.,,,,,.,.,.,,,,,,,,,,.,,.,.,,,.,...,...,..,,...,...,,,.,,,.,.,,,,,.,.,,,
+#TY4QKJYRVUHO5TOWQBDH2QLTAPDDWA3LSHWVYQLDVNSGC24SID2AJGIHATHIBGDJQPCK4HX6RLECC
+#\\\|QYREGHDWP34L6SOPEPKO7UKOGXCZJ2WZ6O57R6L5CQTFKHOYKYF \ / AMOS7 \ YOURUM ::
+#\[7]XTNHQ2XC4EC5CKTV6CARGIXDOM7HROFQK4HONPWHPAMO3ITJ3MAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
