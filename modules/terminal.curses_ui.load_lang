@@ -1,0 +1,52 @@
+## >:] ##
+
+# name  = terminal.curses_ui.load_lang
+# descr = loads a modified Curses::UI language from a string instead of line
+
+my $lang_object    = shift;
+my $lang_name      = shift // qw| english |;
+my $code_file_name = sprintf qw| terminal.curses_ui.modified.%s |, $lang_name;
+
+if ( ref $lang_object ne qw| Curses::UI::Language | ) {
+    warn 'expected Curses::UI::Language object parameter <{C1}>';
+    return undef;
+} elsif ( not defined $code{$code_file_name} ) {
+    <[base.s_warn]>->(
+        'no such Curses::UI language mod. defined [ %s ]', $lang_name
+    );
+    return undef;
+}
+
+## parse language [ adapted from Curses::UI::Language ]
+##
+my $tag              = undef;
+my $block            = '';
+my $lang_line_number = 0;
+foreach my $line ( split "\n", $code{$code_file_name}->() ) {
+    $lang_line_number++;
+    next if index( $line, '#', 0 ) == 0;
+
+    if ( $line =~ m|^\s*\[\s*(.*)\s*\]\s*(.*)$| ) {
+        my $oldtag = $tag;
+        $tag = ${^CAPTURE}[0];
+        $lang_object->store( $oldtag, $block );
+        $block = ${^CAPTURE}[1];
+        $block = '' unless defined $block;
+    } elsif ( defined $tag ) {
+        $block .= "$line";
+    } elsif ( $line !~ m|^\s*$| ) {
+        <[base.s_warn]>->(
+            'mod.%s, line %d: found data outside tag block',
+            $lang_name, $lang_line_number
+        );
+    }
+    $lang_object->store( $tag, $block );
+}
+
+return 5;
+
+#,,,,,,.,,,,.,,..,,,.,..,,...,,..,.,.,.,,,,.,,..,,...,...,...,.,,,,.,,,..,.,,,
+#I4HWJEDYL7GBFWEE6QE4IJ6UXHNNIPZQ2NCC6ELFGFZQLYFD7RDXMPSIXDBA3ENSMW4ZVTPWLWX6G
+#\\\|4YCCHVEEI6WVH6WEIENCUXWBX4SDHIMUIT7LTZNDHZXVRJTYVMY \ / AMOS7 \ YOURUM ::
+#\[7]34FNNF7UEEEAZDIOCWUXX2AWPT4PLFBLIM6MAACWFLOYAV2T3ODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
