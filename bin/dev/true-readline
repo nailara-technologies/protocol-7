@@ -12,6 +12,7 @@ use IPC::Open2 qw| open2 |;
 use FindBin qw| $RealBin |;
 use Time::HiRes qw| sleep |;
 use SigAction::SetCallBack;
+use List::MoreUtils qw| minmax |;
 use Crypt::Misc qw| decode_b32r |;
 
 ###                 ###
@@ -99,9 +100,7 @@ my $is_true_string = 0;    ##  false  ##
 my $min_len = 1;
 my $max_len = 80;
 
-my $full_str
-    = defined $template ? sprintf( $template, $txt_line ) : $txt_line;
-my $str_length = length $full_str;
+my $str_length = str_len( $txt_line, $template );
 
 if ( $min_len <= $str_length <= $max_len ) {
     if ( defined $template ) {
@@ -129,9 +128,8 @@ while ( $force_use_readline or not $is_true_string ) {
     $term->add_history($line)
         if not defined $last_line or $line ne $last_line;
 
-    $full_str = defined $template ? sprintf( $template, $line ) : $line;
+    my $line_length = str_len( $line, $template );
 
-    my $line_length = length $full_str;
     if ( $line_length < $min_len or $line_length > $max_len ) {
         clear();
         if ($line_length) {
@@ -172,12 +170,22 @@ print $reset and clear();
 
 IS_TRUE:
 
+my @full_strings;
+
+@full_strings
+    = map { sprintf $ARG, $txt_line }
+    AMOS7::TEMPLATE::split_truth_templates($template)->@*
+    if defined $template;
+
 ## store true text version in selection and clipboard ##
 ##
 foreach my $mode (qw| selection clipboard |) {
     my @xsel_args = $mode eq qw| clipboard | ? qw| -b -i | : qw| -i |;
     my $pid       = open2( my $out_fh, my $xsel_in, qw| xsel |, @xsel_args );
-    print {$xsel_in} $full_str;
+
+    my $selection_str = @full_strings == 1 ? $full_strings[0] : $txt_line;
+
+    print {$xsel_in} $selection_str;
     close($xsel_in);
     my $err_str = readline($out_fh);
     close($out_fh);
@@ -188,10 +196,32 @@ foreach my $mode (qw| selection clipboard |) {
 
 ##  display result on terminal  ##
 ##
-say sprintf "$C{0}:$C{R}\n$C{0}: $C{b}$C{T} %s $C{R}\n$C{0}:$C{R}", $full_str;
+if ( @full_strings == 0 ) {
+    say sprintf "$C{0}:$C{R}\n$C{0}: $C{b}$C{T} %s $C{R}\n$C{0}:$C{R}",
+        $txt_line;
+} else {
+    say sprintf "$C{0}:$C{R}";
+    say sprintf "$C{0}:$C{R}";
+    foreach my $true_str (@full_strings) {
+        say sprintf "$C{0}: $C{b}$C{T} %s $C{R}", $true_str;
+        say sprintf "$C{0}:$C{R}";
+    }
+    say sprintf "$C{0}:$C{R}";
+}
 ##
 
 exit(0);
+
+sub str_len {
+    my $check_str = shift;
+    my $template  = shift;
+
+    return length $check_str if not defined $template;
+
+    return [ minmax map { length sprintf $ARG, $check_str }
+            AMOS7::TEMPLATE::split_truth_templates($template)->@* ]->[1];
+
+}
 
 sub term_size {
 
