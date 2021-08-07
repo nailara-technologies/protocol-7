@@ -2,13 +2,22 @@
 
 # name = crypt.C25519.verify_sign
 
-my $msg_ref             = shift // \'';
-my $signature_data_sref = shift // \'';
+my $msg_ref             = shift;
+my $signature_data_sref = shift;
+my $key_name_param      = shift;    ##  optional  ##
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
-my $key_name = $key_vars->{'key_name'};
+if ( ref $msg_ref ne qw| SCALAR | ) {
+    warn 'expected scalar ref to message-data <{C1}>';
+    return undef;
+} elsif ( ref $signature_data_sref ne qw| SCALAR | ) {
+    warn 'expected scalar ref to signature str <{C1}>';
+    return undef;
+}
 
-warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+
+my $key_name = $key_vars_ref->{'key_name'};
+
 <[base.s_warn]>->(
     "found no public key named '%s' [ cannot verify sig ]", $key_name
     )
@@ -23,8 +32,8 @@ return Crypt::Ed25519::verify(
     decode_b32r( $signature_data_sref->$* )
 );
 
-#,,..,...,,.,,.,.,,,.,...,,,,,,,.,,.,,,..,,,,,..,,...,...,.,,,,,,,.,,,.,,,..,,
-#JDN4ZUJJY5HEVJPTD56MRPZUPTTOT4J6WWDL6PMG2HLBCDANJRFVEFCLKIDUMWO7WMIQ4XJKKWY46
-#\\\|4MEGHMETJNOFM3YOL7FLV737V72GU7WI35T46EHHVX2QKBGHVZQ \ / AMOS7 \ YOURUM ::
-#\[7]M3YTZZBPALXRDSNR3FG2TWIBTOVHALVERZ26HHYC37PBYDXP5GBY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,..,,,..,,,,,..,,,..,...,,..,,..,..,,...,...,...,.,,,,,,,,.,,,.,,
+#W7NCDEHH7FA6CVOEIZZZY47YLVNAPLEHBYPWNS7OAWF2YU6FEQJS44ENZST4FUSD7U4JRSD4BHIF6
+#\\\|BKZQRW2ZTW4FN5BVGIUWDYICLUCPT4FQORUHJ24WRQHTZ555G4F \ / AMOS7 \ YOURUM ::
+#\[7]CXFXEANVIYPEKSEFQ57UCQQQIVQCSFJK7DTXYMJX64R2DUWNG4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

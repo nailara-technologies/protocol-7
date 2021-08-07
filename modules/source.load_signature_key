@@ -9,9 +9,9 @@ die 'signature key name expected' if not length $key_name;
 ##  enable in zenka config to auto-create key  ##
 <source.autocreate-sig-key> //= 0;
 
-my $key_vars     = <[crypt.C25519.key_vars]>->($key_name);
-my $key_dir      = $key_vars->{'key_dir'};
-my $key_basepath = $key_vars->{'key_basepath'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_basepath = $key_vars_ref->{'key_basepath'};
 
 my $action = qw| created |;
 $success = 1
@@ -30,8 +30,8 @@ if ( not $success and not <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
 
 return $success;
 
-#,,.,,.,,,,.,,...,,,.,,,.,.,,,,,.,,,.,,..,..,,..,,...,...,...,..,,,..,...,...,
-#KBZRRYNTR73OKH723TWJVFSCLTMWAAQOMVVIO7SZM7K4ERTTLFNQU63QQETBFGUSRVAXGE4SG4GBI
-#\\\|L4P5VLA4BLYPQQETXGHD6G2TKJQ62Y62A6FYC4QKBP3PPJAJ4PA \ / AMOS7 \ YOURUM ::
-#\[7]MLVZ7YYQWKK5ZSDR4R6D2WBCVA7AFDLKOQZVLIZ6ENXTEAEIIWAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,..,,,,,..,,..,,.,.,,,,,..,,..,,...,...,...,.,,,...,..,,,,,,
+#YYHLH2SAOG6JYQYGAWAOFBB2YVGAF5IQROMRCXPLS4M52EIZYTCGO33UA7AE6EQPRWM3JXGVM5ICI
+#\\\|QQ3EYI5RTOG6P3M3HWV7AA2XHO6EC3T7OI7WKGEWUA5MW3SYSGB \ / AMOS7 \ YOURUM ::
+#\[7]VXDSMAKCV6BM5L6FHCXBEDF4TBYJCKDFA6JQEDAEACLUWQTQIQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,12 +2,17 @@
 
 # name = crypt.C25519.sign_data
 
-my $msg_ref = shift // \'';
+my $msg_ref        = shift;
+my $key_name_param = shift;    ##  optional  ##
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
-my $key_name = $key_vars->{'key_name'};
+if ( ref $msg_ref ne qw| SCALAR | ) {
+    warn 'expected scalar ref to message-data <{C1}>';
+    return undef;
+}
 
-warn 'expected scalar ref to message-data <{C1}>' if ref $msg_ref ne 'SCALAR';
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+my $key_name     = $key_vars_ref->{'key_name'};
+
 <[base.s_warn]>->(
     "found no public key named '%s' [ cannot sign data ]", $key_name
     )
@@ -26,8 +31,8 @@ return Crypt::Ed25519::sign(
     $keys{'C25519'}{$key_name}{'private'}
 );
 
-#,,.,,,,.,...,,..,.,.,,..,.,.,.,.,...,.,,,,,,,..,,...,...,,.,,,,,,.,.,...,.,,,
-#ZNZPHX6Q7ROAZ4SWCE2WBC4BW6ZIL5GTGTSYE5RH6E6ESWCIJBZERC3XFGJOIYM4D4UEDDMLKK7VK
-#\\\|KESWWIXXHSSD7LDG462P6BVBKZPMO77CVKJ7VSU6EVV5GWRULA6 \ / AMOS7 \ YOURUM ::
-#\[7]JSV63JFCC3DGMQPCTHIV263PENMEGTGBYCBUJSCCCDMEL2WUGODQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,,..,,.,,,..,.,.,,,,,.,.,,.,,..,,...,...,,..,.,,,,..,,,,,,,,,
+#ISM2O22DHQDAQ6S6RVU5NYQB3OZDL2I35CRTLPV54DENVMRFY6UQUTJHGYGNB2F5Y7GFADAZVGNGY
+#\\\|DLM5ARGDGZD5WZZ6ELMOSIQLK6O6VMTLOQSKWWDG6ILFSD7VXUI \ / AMOS7 \ YOURUM ::
+#\[7]BS7RSCNSUEP2DJINOJOSR33CLPBCUJMVJJC7UMB7E76C3CT62WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
