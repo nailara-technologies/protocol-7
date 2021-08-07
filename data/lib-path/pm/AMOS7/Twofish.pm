@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::Twofish; ######################################################
 
@@ -6,6 +7,10 @@ use utf8;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
 
@@ -16,7 +21,7 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 use Exporter;
 use base qw| Exporter |;
 
-@EXPORT = qw[ ];    ##  none  ##
+@EXPORT = qw[ ];            ##  none  ##
 
 @EXPORT_OK = qw| key_init object_table delete_table_entry encrypt decrypt |;
 
@@ -58,7 +63,7 @@ sub key_init {
             = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC() );
     }
     ## true ##
-    return 5;
+    return TRUE;
 }
 
 ##[ LIST OBJECTS ]############################################################
@@ -107,7 +112,7 @@ sub delete_table_entry {
             delete $decryption_table{$o_name};
         }
     }
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 ##[ ENCRYPT ]#################################################################
@@ -164,10 +169,10 @@ sub decrypt {
     return \$decrypted_data;
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,,,.,,,,,,..,..,,..,,,,,,..,,,,.,,,.,.,.,..,,...,...,...,..,,,..,,..,,,.,
-#R26M4Y3DAFLT6QNSZG3FCPVRBKZNTITE6C3NHMRLOTL53S44HQ6Y2R7OLLGYXWY32NCX63KXJNULO
-#\\\|K7QKYT4ELTC7OWGNZZXBG5VCSIHP7CNV4PLDGMUO6M3GUG7GALJ \ / AMOS7 \ YOURUM ::
-#\[7]TIINRT2C7X72EJKP3H2PZ2E3HR6M6C4FFMMM63ZD4SPJCVFTCKCI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,.,,..,,,.,.,,,...,.,.,.,.,.,.,..,,...,...,.,.,..,,,,.,...,..,,
+#KQ6VI3NDD2QVROOPD56OD7PRVRGGIV2MFQSYS3DO2HU4TJJIQT2CHYFYLRHYSQXKBSVDQIC5MXPK2
+#\\\|WIEME33UGLAAVZFR7XAOFUUR5LGBRSK6M5NQUZSVEEND63DBHLU \ / AMOS7 \ YOURUM ::
+#\[7]CF6S7LJ6JTDVVRFPHPPH5BVVVV7LLFC7A3MVFGDZOL7KPNMNCABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

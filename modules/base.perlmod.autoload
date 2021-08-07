@@ -22,7 +22,7 @@ if ( not defined &Module::Load::autoload and [caller]->[1] ne __FILE__ ) {
 ##
 if ( not @export and <[base.perlmod.loaded]>->($module_name) ) {
     <[base.logs]>->( 2, ": skipping already present '%s'..,", $module_name );
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 <[base.logs]>->( 2, ": loading perl module '%s'.,", $module_name );
@@ -33,7 +33,7 @@ eval { Module::Load::autoload( $module_name, @export ) };
 
 if ( not length $EVAL_ERROR ) {    # success #
     <[base.perlmod.register_loaded_module]>->($module_name);
-    return 5;                      ## true ##
+    return TRUE;                   ## true ##
 }
 
 my $reason = <[base.format_error]>->($EVAL_ERROR);
@@ -76,15 +76,15 @@ if ( length $EVAL_ERROR ) {
         $module_name
     );
     <[base.perlmod.unregister_loaded_module]>->($module_name);
-    return 0;    ##  false  ##
+    return FALSE;    ##  false  ##
 } else {
-    return 5;    ## true ##
+    return TRUE;     ## true ##
 }
 
-return 5;        ## true ##  [ module loaded ]
+return TRUE;         ## true ##  [ module loaded ]
 
-#,,..,...,...,.,,,...,,,,,,,.,,,.,.,.,,..,,,,,..,,...,...,..,,,,,,,,,,,..,...,
-#ROPRNCEXAKNRHQBMZPKDGCVZ3QM5JDPSVJ5JREEKMNYILWEUWKEFULUWCEL2EGMWNJ6BQOE7AMVYI
-#\\\|LOQCUMXR3SXCFUZNSN36BZRIHOFMTOHGLWVOSLHCYIGKIUERMR7 \ / AMOS7 \ YOURUM ::
-#\[7]CE2CM56J6URRDGNR6JTHDXEFQPDKLW5MKZG5Z5UMMGI2Z4KRPIDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,,.,,.,,...,,..,...,...,.,.,..,,...,...,..,,,..,,,,,.,,,..,,
+#NYL3MKZOF4PTLI5XK2YGXXSZZV4OHGYTKT7SFILGHR5TRQGVDCSOCCXWTMLUEP2DY443W3Q3IUG6A
+#\\\|BJQETCHWPGOPUC2FTXDHFE2JITIRQM7MFFUXWQUIGZTFZG3FEBV \ / AMOS7 \ YOURUM ::
+#\[7]LIADXFOPHFBMQKS2YTXVCIE7RWTGWDE5AETI4Z4H4DCSYLCQUMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

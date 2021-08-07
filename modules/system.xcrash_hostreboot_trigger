@@ -6,9 +6,11 @@ my $crash_reboot = <system.X-11_crash.perform_host_reboot> //= 0;
 my $admin_delay  = <system.X-11_crash.reboot_admin_delay>  //= 13;
 my $reboot_delay = <system.X-11_crash.reboot_delay_secs>   //= 7;
 
-<system.X-11_crash.admin_reboot_abort> = 0;  # flush previous abort commands #
+# flush previous abort commands #
+<system.X-11_crash.admin_reboot_abort> = FALSE;
 
-return 0 if $crash_reboot !~ m,^(yes|1)$,; ## <-- no system reboot enabled ###
+##  system reboot not enabled  ##
+return FALSE if not <[base.cfg_bool]>->($crash_reboot);
 
 my $reboot_condition_error;
 if ( not defined <system.X-11_crash.reboot_condition>
@@ -17,34 +19,35 @@ if ( not defined <system.X-11_crash.reboot_condition>
         = "requires valid reboot condition setup : '[hostname-pattern:..,]'";
     warn <system.X-11_crash.reboot_condition>;
 } else {
-    my $host_regex;
-    my $host_regex_str = $1;
-    eval { $host_regex = qr{$host_regex_str} };
+    my $host_regex_str = $LAST_PAREN_MATCH;
+    my ( $host_regex, $re_err ) = <[base.eval.comp_regex]>->($host_regex_str);
+
     if ( not defined $host_regex ) {
-        $reboot_condition_error = $EVAL_ERROR if $EVAL_ERROR;
-        $reboot_condition_error //= 'regex error in reboot condition setup';
+        $reboot_condition_error = $re_err;
+        $reboot_condition_error //= 'regex error in reboot condition set-up';
     } elsif ( <system.host.hostname> !~ $host_regex ) {
         $reboot_condition_error
-            = "reboot condition hostname not matching, skipped..,";
+            = 'reboot condition hostname does not match, skipped ..,';
     }
 }
 
-<[base.log]>->( 0, "<<< $reboot_condition_error >>>" ) and return 0
-    if defined $reboot_condition_error;    ## <-- no system reboot.., ###
-
+if ( defined $reboot_condition_error ) {    ## <-- no system reboot.., ###
+    <[base.logs]>->( 0, '<<< %s >>>', $reboot_condition_error );
+    return FALSE;
+}
 my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
-<[base.log]>->( 0, "<<< HOST SYSTEM REBOOT IN $total_delay SECONDS >>>" );
+<[base.log]>->( 0, '<<< HOST SYSTEM REBOOT IN %s SECONDS >>>', $total_delay );
 
 <system.timer.host_reboot> = <[event.add_timer]>->(
     {   'after'   => $reboot_delay,
-        'handler' => 'system.callback.xcrash_reboot'
+        'handler' => qw| system.callback.xcrash_reboot |
     }
 );
 
-return 1;                                  ## <-- reboot is scheduled ###
+return TRUE;    ## <-- reboot is scheduled ###
 
-#,,..,.,,,.,,,,..,,,,,.,.,.,.,...,,,.,..,,.,.,..,,...,...,..,,.,,,,..,,,,,.,,,
-#RKDY2TZOBYKNTMDKCBXCDX5LKLY6FRWHMBLESEWB3OIFKUSFTPRGOZCHM45U54AGUH3AFHZ34WDC2
-#\\\|RDD2O4DTYGJFCVX4BAZ42DASPRLKVBPQN4MNNINUKZA54YWMCR7 \ / AMOS7 \ YOURUM ::
-#\[7]GRBU4QOGMXHDRQLUI26JITFNRYZCELPZCRSWW4AQTXJRRGMDUODQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,..,,,..,.,,,,,.,.,.,.,,,...,..,,...,...,,..,,,.,,,,,,..,,,,,
+#JASWR522Q465ACJL52BJ5IQCTG4MGOHXDJ2J6INVFBUUZOUQNUEIDKV3NKTIZCV5BCWJJTYZZI3QI
+#\\\|ASPHLESBCRFKAEZD7FJDEEA2M2N6PKPC7OFMSWVHXBQQSQZATGK \ / AMOS7 \ YOURUM ::
+#\[7]XACS4JSL3N4ZXOV6JGWYERNL4ASM352HLLPR3QDZ3YD6UPGXHCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
