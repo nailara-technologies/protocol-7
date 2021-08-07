@@ -104,12 +104,12 @@ my $footer_bmw          = $signature_footer_data->{'data-chksum'};
 
 ##  initialize elf start chksum values  ##
 my $elf_chksum = {
-    qw|   entire-payload     | => { map { $ARG => FALSE } @t_elf_modes },
-    qw| embedded-code-style  | => { map { $ARG => FALSE } @t_elf_modes }
+    qw|   entire-payload     | => { map { $ARG => 0 } @t_elf_modes },
+    qw| embedded-code-style  | => { map { $ARG => 0 } @t_elf_modes }
 };
 
-my $data_pos     = FALSE;
-my $read_length  = 2400;
+my $data_pos     = 0;
+my $read_length  = 4282;
 my $content_size = length $payload_sref->$*;
 
 ##  array refs [ <chksum_name>, [chksum_param[s]] ],
@@ -275,8 +275,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,..,,,.,..,,,,.,,,.,,,.,,,,,...,,..,,.,,.,.,..,,...,...,...,,.,,..,,,.,,,,.,
-#N7QUUIT3ZYV2UL2PIUZ7Q2ZDLKG53ZTIR7AHYAD222A4AOLPSXUPD7HKVAS4UVHJOPMKGPSUP645Y
-#\\\|7H7RZJE5DKFV7EEQQSDBDAQXCMNMDBR6O6DSMCJN6OWPOHKQO2M \ / AMOS7 \ YOURUM ::
-#\[7]J6XOFSILQ7ZGQIP457IWUR3JL5NB4OQFXU73U5UNEH6APXHEX2DA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,...,...,.,,,,,.,,,.,..,,,,.,..,,...,...,..,,,..,,.,,.,.,...,
+#7NUZ24UHWDD4LKB6EYQGGJCMOOMQTLWHB3U3NJE4N4QDK6GRKUPTDT7MB7TMG3M5BVERXUF7TC7XI
+#\\\|UJUVVVZYMNZFINFBK4HNKE4CMQL5VHXFHL455I72735X2LGM2FC \ / AMOS7 \ YOURUM ::
+#\[7]MKINSFKJN3EJYZKL3EMKEP7R65KAABKCBYHDHFO6SNSB6HVLW2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
