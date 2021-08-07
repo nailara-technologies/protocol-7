@@ -1,15 +1,20 @@
+## >:] ##
 
 package AMOS7; ###############################################################
-
-## use AMOS7::Version;    ## use to calculate new version ##
-
-our $VERSION = qw| AMOS-MODULE-0.1.16 |;
 
 use v5.24;
 use utf8;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+our $VERSION = qw| AMOS-MODULE-0.1.16 |;
+
+## use AMOS7::Version;    ## use to calculate new version ##
 
 use Exporter;
 use base qw| Exporter |;
@@ -116,9 +121,9 @@ sub warn_err {
 
     $c_lvl++ if scalar( [ caller(1) ]->[3] // '' ) eq qw| AMOS7::error_exit |;
 
-    my $no_caller = 0;
+    my $no_caller = FALSE;
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
-    $no_caller = 1                 if $err_str =~ s| <\{NC\}>$||;
+    $no_caller = TRUE              if $err_str =~ s| <\{NC\}>$||;
 
     if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
         if ($no_caller) {
@@ -242,10 +247,10 @@ sub p7_root_dir {
     return undef;    ##  other methods not implemented yet  ##
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,,..,,,.,,..,,,,,,..,.,.,,.,,,,,,.,.,..,,..,,...,...,.,,,,,.,.,,,,,.,...,
-#FQ3FBC2RDTIU3VZI37MTRCATZJD6O6DQFGRIP5YD63PXSKFSUQC6XR24XT3XPGU5QQX4NPTJPYKN6
-#\\\|7UWBYXY5P4K2REKBQA6Q5G3JBNUHY24HSQUCKONM6MSUY6ZD2XN \ / AMOS7 \ YOURUM ::
-#\[7]KO3UHOSGR34C2KOB7MJQ75PYRGKIQB2577HOACN243ZRFAYJUUAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,...,,,.,...,,..,...,,,.,.,.,..,,...,...,,..,...,...,..,,,,.,
+#WLFKPBPTK74P7BFQYTAFWRTCS56QUU5RFB5GT26QHSZDGDK2EYEZSBLWGEM3XCP2XM5PCYTN67I7W
+#\\\|H46IMSOEGYC5EE4OCPNVVH3DWQJA32XQ6YYIBHN2BVOLSRQBOE3 \ / AMOS7 \ YOURUM ::
+#\[7]3RJA7JP3DWQD2AT6E4XCV6T7VIOJP2CIXFCNGJF4YWXJDPVOOGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

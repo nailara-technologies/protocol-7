@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::Util;   #######################################################
 
@@ -7,6 +8,10 @@ use English;
 use warnings;
 use Term::ReadKey;
 use Time::HiRes qw| time sleep alarm |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use Event;
 
@@ -23,7 +28,7 @@ use base qw| Exporter |;
 
 ##[ INITIALIZATIONS ]#########################################################
 
-my $verbose = 1;
+my $verbose = TRUE;
 
 our $HOME  = "\e[0H";
 our $clear = "$HOME\e[2J\e[3J";
@@ -68,7 +73,7 @@ sub check_command {
     $command_buffer //= '';
     my $cmd_seq_str = cmd_to_sequence($command_buffer);
     my $seq_cmd     = $cmd_seq_str =~ m|:|
-        or $command_buffer =~ m|[^[:print:]]| ? 1 : 0;
+        or $command_buffer =~ m|[^[:print:]]| ? TRUE : FALSE;
 
     state $clear_timer;
     if ( defined $clear_timer ) {
@@ -81,7 +86,7 @@ sub check_command {
     my $wait_param = 0;
     foreach my $cr ( reverse sort keys %command_setup ) {
 
-        my $is_regex = index( $cr, '(?^u:', 0 ) == 0 ? 1 : 0;
+        my $is_regex = index( $cr, '(?^u:', 0 ) == 0 ? TRUE : FALSE;
 
         if (
             (   $seq_cmd and ( $is_regex and $cmd_seq_str =~ $cr
@@ -100,7 +105,7 @@ sub check_command {
                 if ref( $command_setup{$cr} ) eq qw| HASH |
                 and defined $command_setup{$cr}{'callback'}
                 and defined $command_setup{$cr}{'param'}
-                and $wait_param = 1
+                and $wait_param = TRUE
                 and $command_buffer =~ qr|^$cr +$command_setup{$cr}{param}|;
         }
 
@@ -113,7 +118,7 @@ sub check_command {
 
         ##  set command timeout  ##
         $clear_timer = Event->timer(
-            'repeat' => 0,
+            'repeat' => FALSE,
             'cb'     => \&clear_command_buffer,
             'after'  => $command_timeout,
             'desc'   => '[ clear timer ]'
@@ -180,7 +185,7 @@ sub read_single {
 
     ##  set command timeout  ##
     $check_timer = Event->timer(
-        'repeat' => 0,
+        'repeat' => FALSE,
         'cb'     => \&check_command,
         'after'  => $command_timeout / 7,
         'desc'   => '[ check timer ]'
@@ -196,10 +201,10 @@ sub visualize_command {
     return if not $verbose;
     return if cmd_to_sequence($command_buffer) ne $command_buffer;
     my $_pos = "\e[24H";
-    printf( "$_pos\e[3J$_pos%s\r    ", ' ' x 42 ) and return 1
+    printf( "$_pos\e[3J$_pos%s\r    ", ' ' x 42 ) and return TRUE
         if not length $command_buffer or $command_buffer eq ' ';
     printf "$C{R}$_pos $C{0} :. %s  ", $command_buffer;
-    return 1;
+    return TRUE;
 }
 
 sub process_key_press {
@@ -220,10 +225,10 @@ sub process_key_press {
     }
 }
 
-return 1;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,..,,,,.,.,.,.,.,,..,,,.,.,,,..,,,,.,...,..,,...,...,.,.,,,.,,.,,,,.,,.,,
-#4F5O7553YXIMSAPUK5LOAKQML5WTNO6OZ22U65J3XAR2WMQW6WOAUTDUH7IYDFIVASEDDCXFUDBVU
-#\\\|S2MF7F47RDPWQIQEIX3N62SBJZFBEXULZUUINDXL7WVBD3AHTK2 \ / AMOS7 \ YOURUM ::
-#\[7]S6LK6WFQZFJ7KUPHPWZG7ZLNBI4LA4BSP5D4V2MYYVAHRZ63CCBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,,,.,,.,,,,.,.,,,.,.,,.,,..,,..,,...,...,...,,,.,,.,,..,,,,,,
+#CGFQ47HMNG5GZC7XAYFB3KQCEIAOT3RRQ2OSEVE62ZPAY73PRJDKMTQPVBLMJB3I7UTJYUQP4SNIA
+#\\\|OEIWF7QH6XIH7PXAZYTEJE35KBHCMVUSLLGR7UUOPKQFJH2UWR7 \ / AMOS7 \ YOURUM ::
+#\[7]XXVGRETCZLILZ4CZOWCGHPL7IKQ6V34R7T263SIJWA7CGP6ODGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::CHKSUM; #######################################################
 
@@ -5,6 +6,10 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use Encode;
 use Time::HiRes;
@@ -38,11 +43,11 @@ compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 ## algorithm configuration ##
 %algorithm_set_up = (
     ## permanent switches ##
-    qw| return_modbits   | => 0,
-    qw| chksum_numerical | => 1,
-    qw| chksum_bits      | => 1,
-    qw| chksum_B32       | => 1,
-    qw| chksum_elf_mode  | => 7,    ##  <--  AMOS-13 CHKSUM elf mode [ 7 ]
+    qw| return_modbits   | => FALSE,
+    qw| chksum_numerical | => TRUE,
+    qw| chksum_bits      | => TRUE,
+    qw| chksum_B32       | => TRUE,
+    qw| chksum_elf_mode  | => 7,       ##  <--  AMOS-13 CHKSUM elf mode [ 7 ]
     qw| elf_shift_bits   | => $AMOS7::Assert::Truth::elf_shift_bits,    ## 13
     qw| elf_truth_modes  | => [@AMOS7::Assert::Truth::assertion_modes]  ## 4 7
 ) if not keys %algorithm_set_up;
@@ -328,10 +333,10 @@ sub amos_template_chksum {
     return scalar amos_chksum(@ARG);
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,,..,...,.,,,.,,,,,,,,.,,,,,,,,,,,,,,,.,,..,,...,...,.,.,.,,,,,,,,,.,,,.,
-#VZK6RR74PIC4EVUOL3NNLYW25PG375JOD3QIKYL2DJSYCYKNBWPXTN4IVRJ2RMNBDR5MZN5LSBL3C
-#\\\|HYPJT5LP4EM4OASCMKSMSMQQUZJHWLEGRSSVTORBV6LHPAHGZBQ \ / AMOS7 \ YOURUM ::
-#\[7]QQXJPOUUBHDNMWMJJWVFBZMOPO2VNB4WDR6QO4SUCAFE47YRL4DA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,..,,,,,,..,,,.,,.,,,,.,.,.,..,,...,...,.,.,..,,..,,...,.,.,
+#MQZH4SFGYGHUAU5VHC5YQOPP37ONVBPM2MH2SHR7TGDFKAZZRFXXUT5ZWTP5CNWQF5TWXH7UKKJ7W
+#\\\|UWHO64IPNDKEXGRBPIRHMUSQLHHPOQINOSR42G5I63VHTL3IG73 \ / AMOS7 \ YOURUM ::
+#\[7]UB4BZGC7F5IRLWHU2CBKDAY6ZAVYDOYO4W5PUSEK24EAR7WMHGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

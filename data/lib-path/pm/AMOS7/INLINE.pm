@@ -3,6 +3,10 @@ package AMOS7::INLINE; #######################################################
 
 use vars qw| @EXPORT $VERSION |;
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 use Exporter;
 use base qw| Exporter |;
 
@@ -21,7 +25,7 @@ use Crypt::Misc qw| encode_b32r |;
 
 use AMOS7;                        ## error handling ##
 
-our $devmod_output_to_console = 0; ##  display build warnings  ##
+our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
 ## known inline sourcecode modules ##
 use AMOS7::INLINE::src::BitConv;
@@ -48,7 +52,7 @@ die "'Inline::C' is not available [ installed ? ]" if length $EVAL_ERROR;
 
 $VERSION = qw| AMOS-INLINE-VER-MEMMQXQ |;
 
-return 5;    ## true ##
+return TRUE;    ## true ##
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
@@ -58,12 +62,12 @@ sub compile_inline_source {
         if defined $params and ref $params ne qw| HASH |;
 
     my $subroutine_name  = $params->{'subroutine-name'};
-    my $target_package   = $params->{'target-package'};         ## optional ##
-    my $inline_directory = $params->{'target-path'};            ## optional ##
-    my $re_compile       = $params->{'update-routine'} // 0;    ## optional ##
+    my $target_package   = $params->{'target-package'};       ## optional ##
+    my $inline_directory = $params->{'target-path'};          ## optional ##
+    my $re_compile = $params->{'update-routine'} // FALSE;    ## optional ##
 
-    my $uid = $params->{'uid'};                                 ## optional ##
-    my $gid = $params->{'gid'};                                 ## optional ##
+    my $uid = $params->{'uid'};                               ## optional ##
+    my $gid = $params->{'gid'};                               ## optional ##
 
     ## check if root or current user and reset if required ## [LLL]
 
@@ -331,10 +335,10 @@ sub encoded_bmw_chksum {
     return encode_b32r($src_chksum_bin);  ## required printable char prefix ##
 }
 
-return 1;  ###################################################################
+return TRUE ##################################################################
 
-#,,..,...,,,.,,,.,...,..,,..,,.,.,...,.,.,.,.,..,,...,...,.,.,...,..,,.,.,...,
-#VKI3FVEPENWSWWRNZF7D4SIMEH2BOWK24MV527T554IDZ3LQGKS5XKJAOXXZIFB2LDVR5NWS5XPOU
-#\\\|QD7BORSPJKH3LQGVXMDA4G5LZGYWJBV5R2BZ2MZAZ4I4DB6I5QU \ / AMOS7 \ YOURUM ::
-#\[7]CVFRRI7MHQ6HTAMQ4VXUFY6YUUV5APKVX2DQY2VVBRJJTEW4PECI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,,..,.,,,...,.,,,,..,,,.,.,,,..,,...,...,..,,.,,,,,,,.,.,.,.,
+#JU765MIRMRX65XCSFWL2VZXIUQGW5YIDFBLTWZZGP3BLHNUUHQPVQCSX736F43RHX2P5PWC5PBBIU
+#\\\|IM5X5YFD6PDCIX5NKXSFN3QZ45A6ULJNR3Z7RNFJ5CF6ZYPPBDR \ / AMOS7 \ YOURUM ::
+#\[7]NOKJVTTTU62EN6CSHFWYESKAFLDBQ2UDRNZ6DSYORCYS4D55GOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

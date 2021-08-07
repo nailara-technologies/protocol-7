@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::TEMPLATE;    #################################################
 
@@ -5,6 +6,10 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use Safe;
 use Encode;
@@ -51,7 +56,7 @@ sub template_is_true {
     return error_exit('expected elf truth mode parameter list <{C1}>')
         if not @elf_modes;
 
-    my $TRUE = 5;    ## true ##
+    my $TRUE = TRUE;    ## true ##
 
     foreach my $template ( $truth_templates->@* ) {
         my $ref_type = ref $template;
@@ -59,15 +64,15 @@ sub template_is_true {
         if ( length $ref_type == 4
             and index( $ref_type, qw| CODE |, 0 ) == 0 ) {    ## CODE ref ##
 
-            $TRUE = 0 if not $template->( $checksum_encoded, @ARG );
+            $TRUE = FALSE if not $template->( $checksum_encoded, @ARG );
 
         } elsif ( rindex( $ref_type, qw| Regex | ) != -1 ) {    ## regex ##
 
-            $TRUE = 0 if $checksum_encoded !~ $template;
+            $TRUE = FALSE if $checksum_encoded !~ $template;
 
         } else {
 
-            $TRUE = 0
+            $TRUE = FALSE
                 if not AMOS7::Assert::Truth::is_true(
                 sprintf( $template, $checksum_encoded ),
                 0, 1, $AMOS7::TEMPLATE::ELF_7_modes->@* );
@@ -101,7 +106,7 @@ sub template_timeout {
     return error_exit('timeout 0 is not valid') if $timeout == 0;
 
     $AMOS7::TEMPLATE::templ_valid_timeout = $timeout;
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 sub set_ELF7_modes {
@@ -220,11 +225,11 @@ sub is_valid_template {
     my $truth_templates = [];
 
     my $template_errstr;
-    my $template_valid = 5;               ## true ##
+    my $template_valid = TRUE;            ## true ##
     my $ref_type       = ref $template;
 
     if ( not defined $template ) {
-        $template_valid  = 0;                        ##  false  ##
+        $template_valid  = FALSE;                    ##  false  ##
         $template_errstr = 'template not defined';
 
     } elsif ( not length $ref_type ) {    ##  single template param  ##
@@ -240,7 +245,7 @@ sub is_valid_template {
         $truth_templates = [$template];    ##  regex param [ single ]  ##
 
     } else {
-        $template_valid = 0;               ##  false  ##
+        $template_valid = FALSE;           ##  false  ##
         $template_errstr
             = sprintf 'template has unsuppored reference type %s',
             $ref_type;
@@ -253,7 +258,7 @@ sub is_valid_template {
 
     foreach my $template ( $truth_templates->@* ) {
         if ( not defined $template ) {
-            $template_valid  = 0;                        ##  false  ##
+            $template_valid  = FALSE;                    ##  false  ##
             $template_errstr = 'template not defined';
         } elsif ($template_valid) {
             my $ref_type = ref $template;
@@ -322,7 +327,7 @@ sub configure_exclusive_type_callback {    ##  example template %%s:%s  ##
         }
     }
 
-    my %types_selected = map { $ARG => 5 } $selected_types_list_ref->@*;
+    my %types_selected = map { $ARG => TRUE } $selected_types_list_ref->@*;
     my @excl_types_list    ##  remove selected types from list  ##
         = grep { not exists $types_selected{$ARG} } $type_list_aref->@*;
 
@@ -355,7 +360,7 @@ sub TEMPLATE_exclusive_type {
     my $sprintf_templates_aref = shift;
     my $check_string_param     = shift;
 
-    my $TRUE = 5;    ## true ##
+    my $TRUE = TRUE;    ## true ##
 
     return error_exit('expected exculsion type list array reference')
         if ref $excl_list_ref ne qw| ARRAY |;
@@ -379,7 +384,8 @@ sub TEMPLATE_exclusive_type {
             return error_exit( format_sprintf( $EVAL_ERROR, 4 ) )
                 if not defined $valid_str or length $EVAL_ERROR;
 
-            $TRUE = 0 if AMOS7::Assert::Truth::is_true( $valid_str, 0, 1 );
+            $TRUE = FALSE
+                if AMOS7::Assert::Truth::is_true( $valid_str, 0, 1 );
 
             return $TRUE if not $TRUE;    ##  false  ##
         }
@@ -387,10 +393,10 @@ sub TEMPLATE_exclusive_type {
     return $TRUE;                         ##  true  ##
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,..,,.,.,..,,,,.,,..,.,,,.,.,..,,,..,..,,..,,...,..,,,,.,..,,.,,,,..,..,,
-#IOFIF6NV7RVGVXRU7RYDPXKFZA7BT55OFE673ZHYMGH5CXL5NMU6XWANUIWHDQRKJNEYZR6GV4DGI
-#\\\|GKPACR3JQT2ZIVZPEXF7XLEGYHLZCKS5HOWPZ44YMED262XKJZ2 \ / AMOS7 \ YOURUM ::
-#\[7]OQLF2VOBOLPQUMT7M4FEFX2XE7DD4VBMB2VUWQJ34U4JAQVCGWAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,.,,.,,..,,,.,,,,.,,.,,,.,,..,,...,..,,..,,,,.,,..,..,,,,,,
+#BK4MDHK77HRMPE5O5WRIAFAG6FXBYIUHSKOBI636KCIHTOW3AC3RNCGWNCZZOLSVKFYRUJ347RGBO
+#\\\|FCDT7MIODEDXTLFCC3WUZT2GKL4374ZRA2HAIWBUDPNRD5XCRI4 \ / AMOS7 \ YOURUM ::
+#\[7]X3YWO5UWQSNAXOE4CT6D7EQUWCQMBBQCXKXUWNDZXNXHDDOKE6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

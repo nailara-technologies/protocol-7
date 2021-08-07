@@ -15,18 +15,18 @@ return if not @dtree;                   ## syntax not valid ##
 my $last_key = pop @dtree;
 
 foreach my $subkey (@dtree) {    ## traverse hash keys ##
-    return 0 if not defined $next_ref->{$subkey};
+    return FALSE if not defined $next_ref->{$subkey};
     $next_ref = $next_ref->{$subkey};
 }
 
-return 5 if defined $next_ref->{$last_key};    ##  defined  ##
+return TRUE if defined $next_ref->{$last_key};    ##  defined [5] ##
 
-return 1 if exists $next_ref->{$last_key};     ## exists only ##
+return 1 if exists $next_ref->{$last_key};        ##  only exists [1] ##
 
-return 0;                                      ## href key not present ##
+return FALSE;                                     ##  key not present [0]  ##
 
-#,,.,,,.,,..,,,,,,..,,.,.,...,.,,,,.,,,..,..,,..,,...,...,.,,,...,,,,,,,.,...,
-#Q3IPXZVFZZ6QTOEKQQMIMABNKY7GJUCTBUOQRM6SIAYTXQSH7TSBNOMGUQ7TFN74EOGTBD4KC6NLO
-#\\\|FVNFIAUHMN62AQV3SUBJU2PKA2SMYALJFTLJ4DEGVPZX6RUC3RN \ / AMOS7 \ YOURUM ::
-#\[7]RR2VDMDD2MYAA75OMON7ESSK4LWV3MPVX7LPPOR42BH4OS5G2IDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,,..,.,,,,,.,,.,,.,.,,,.,..,,...,...,...,,,,,,,.,.,.,,,.,
+#ULDUVKAO76J7ULJVTWXA3EOTOUXQGBONO4PKTRPNTNKNV53HVDABMXNJVYMPWUMRFY4MJNJZ5BESG
+#\\\|O7FSX6UP3HP5PCHLMVIAJWRR7YQEWYFTGMZOUEWCMYX46WG7FKC \ / AMOS7 \ YOURUM ::
+#\[7]JERURUENN5L4CTQTFQHJFRAQAAL3BBVK6YWWKBWICQ7CIWSWHOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

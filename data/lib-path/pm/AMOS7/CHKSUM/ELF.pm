@@ -7,6 +7,10 @@ use strict;
 use English;
 use warnings;
 
+##[ global constants ]##
+use constant TRUE  => 5;      ##  TRUE.  ##
+use constant FALSE => 0;      ##  false  ##
+
 use Digest::Elf;    ##  temporary fallback  [ no longer same algorithm ]  ##
 
 use Exporter;
@@ -121,10 +125,10 @@ sub elf_chksum {
     return sprintf qw| %09d |, $elf_checksum;    ## AMOS-13 ELF-7 CHKSUM ##
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,.,,,,,,...,,,.,..,,,,.,,,.,,..,,,.,.,.,,,,,..,,...,...,.,.,,,.,,..,...,...,
-#ZIJFLTNSH4SC5HCEQGYZ2U4LIK3OCCRCOMH6C6SH7VUQIXZUANAXXS5HDKSIOF7O5FXABQT4XZDAU
-#\\\|WDVI4JGTVW5T5U7B5EKUMF35TWWZGAOGSCJ3ILX2AAKERDPXNEV \ / AMOS7 \ YOURUM ::
-#\[7]HDYLHFNFPMO5GDSS3PDDG73WZZEOQUQVCZOJYRND7KS4ZYME2EDA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,...,...,,..,..,,..,,,.,,.,,,,.,,..,,...,...,,,,,,,.,,.,,,,,,,..,
+#4LULZVUFKAOILNHCEPLGU7LUMWIUNARJ5JCMT2T5PH2ZE6FAH2Q2MWYU52Q7ESPVZZNI45LQRZU4U
+#\\\|KBTBBXU7QAHOMCO246PPMDHX6LT5GUD5764STJNB6Y4B3RYUFY2 \ / AMOS7 \ YOURUM ::
+#\[7]YOPQFFQILLZ4YRR3E2E5KL2UGREGAML5J5FJERHTEY52O275IWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
