@@ -48,6 +48,7 @@ map {
         if not -w catfile( $work_tree, $ARG )
 } @source_paths;
 
+my $true_count = 0;
 my $file_count = scalar @source_paths;
 
 <[base.logs]>->( '* updating %s source file signatures..,', $file_count );
@@ -61,7 +62,14 @@ foreach my $path_rel (@source_paths) {
         use warnings FATAL => qw| all |;    ##  catches all warnings  ##
         $code_data_ref
             = <[source.cmd.get-code-signed]>
-            ->( { 'args' => $path_rel, 'skip-valid' => 5 } );    ## true ##
+            ->( { 'args' => $path_rel, 'skip-valid' => TRUE } );    ## true ##
+
+        ##  displaying valid signature counter in verbose mode  ##
+        printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
+            $colors{'p7_fg_0003'},
+            $colors{'B01'}, ++$true_count, $colors{'reset'},
+            if <system.verbosity.console> == 1
+            and $code_data_ref->{'mode'} eq qw| true |;
     };
 
     <[base.s_warn]>->(
@@ -105,8 +113,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,,,,,,,...,.,,,,..,,,.,.,,,.,,,,,.,,,,,.,.,..,,...,...,,,,,,,,,,..,...,,,.,
-#FOUCZKMMJWEVC6GOW5DUQ25JD4T34JYWCBYC23SDDAJZQLTCWZZUR3QEUEMXJUECXXQSDURPFLHO6
-#\\\|CUPZBGVVWWJPUD5KANXGRKPKWMEI7R3BZ233S2O2PG3OPRHWKQZ \ / AMOS7 \ YOURUM ::
-#\[7]GWBSEIH2IXOZIUM33MGMLGFYAFYHPJPX3MHJS2KNNNZAS5EMRYAI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,.,,,,..,,,.,,..,,,,,,.,,,,.,..,,...,...,...,.,.,...,...,,,.,
+#6DHCIWL4QGRPB72EHIIMGE6YRCRVLUSXNWPJABN4UZPZIIF2SGIBPJ7SW7BE6MZ4T7YDELGFIFN42
+#\\\|VENFDGLEP6LWS7C63L4YQTEG6OCRL4YRBSE7SISU6ZWEUNWFNCG \ / AMOS7 \ YOURUM ::
+#\[7]GB2TDEE42NPB3DZYGTGQS3HFF4LTGZCFHJOZ277QT6QC3XLFF4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
