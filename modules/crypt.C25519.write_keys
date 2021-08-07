@@ -2,15 +2,17 @@
 
 # name = crypt.C25519.write_keys
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
-my $key_password = shift;                          ##  optional  ##
+my $key_name_param = shift;    ##  optional  ##
+my $key_password   = shift;    ##  optional  ##
 
-my $uid          = $key_vars->{'uid'};
-my $gid          = $key_vars->{'gid'};
-my $key_usr      = $key_vars->{'usr_name'};
-my $usr_hdir     = $key_vars->{'usr_home'};
-my $key_name     = $key_vars->{'key_name'};
-my $key_basepath = $key_vars->{'key_basepath'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+
+my $uid          = $key_vars_ref->{'uid'};
+my $gid          = $key_vars_ref->{'gid'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+my $usr_hdir     = $key_vars_ref->{'usr_home'};
+my $key_name     = $key_vars_ref->{'key_name'};
+my $key_basepath = $key_vars_ref->{'key_basepath'};
 
 foreach my $keyfile_extension (qw|  public  secret  |) {
     my $file_name = join( qw| . |, $key_basepath, $keyfile_extension );
@@ -117,8 +119,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;
 }
 
-#,,,.,..,,,..,,..,,,,,.,,,.,,,,,.,,,.,.,.,.,,,..,,...,...,,.,,,..,.,,,.,.,,,,,
-#OOEQ4NAQWJBUZV3DPARVOVPUWOUWIA5ZFJ7VNQ5SZGX7QMHVLK3K534OBENQOMMJ7OS2TPTTAJA2G
-#\\\|HU6HS5TLJ22VTJDF6CPTW7AP7CPU2NU5BQB5L42FYNTZXDHVVD5 \ / AMOS7 \ YOURUM ::
-#\[7]JVRXABED5Z7TMXTHIZES2KGI2DUE6CMCA3RX3MJTGWEDA4A4M2AA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,.,,,,,,.,.,..,,,,,,,,.,,,,,..,,...,...,..,,...,.,.,,.,,,.,,
+#JJQ4EEYTZTBT3O7M2OINIVFX4JA6NHVFL374G764N3UFNX3ABNUF72DHNV7KJKAFGV6VDEPPBB3VK
+#\\\|HC4TGWBKWPPMBHWW2EXAYZM37OM4U56DVY7V6U5N5UPYFPFNN4O \ / AMOS7 \ YOURUM ::
+#\[7]KME7CMJBX47N3CZJ42Z6KOBJUI3H2EQPCJMRD3JFAVQQUE6T4KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

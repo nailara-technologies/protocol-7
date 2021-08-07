@@ -11,11 +11,11 @@ my $display_checksums = 5;    ## true ##
 
 $display_checksums = 0 if defined $param and $param eq qw| nochecksums |;
 
-my %C        = %AMOS7::C;
-my $key_vars = <[crypt.C25519.key_vars]>;
+my %C            = %AMOS7::C;
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
-my $key_dir = $key_vars->{'key_dir'};
-my $key_usr = $key_vars->{'usr_name'};
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
 
 my $re_kfiles     = <keys.regex.key_files>;
 my $key_re_secret = <keys.regex.key_file.secret>;
@@ -86,8 +86,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,..,,,.,.,.,..,,,,,,,,.,...,,.,,...,,,.,.,,,..,,...,...,,..,.,.,,,.,,..,,..,
-#6SAEC3A35FADRHNAQBACUYBUBDN74HYMMRGEMFIPAG6UINLJ5KI6ZZYUHU6MWKMS6AWRFGLZXZ2L2
-#\\\|GFMEOBAVHRXF4YV2AC3RBNPFJLKIJP37FPMK45U3I6FPK5GWSKH \ / AMOS7 \ YOURUM ::
-#\[7]RHYS3BWN726KOGBTNMSEOEOBDBDEHGGSV6PI7Z3Y2T7GPPAHLKAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,,,.,..,,,..,,.,,,,.,.,.,,..,..,,...,...,.,.,.,,,.,,,.,,,..,,
+#XUUCNDB4E3UFNSJ7U33AUVH3T3JAJKMHN2EPQQ4VXJZAMGURNEKVYPIQA3FA45CFV76DF5XM7EWTY
+#\\\|HQOXGJA7OUPI3EQVO3UZNZQONDIFW7AGAMW7CSW563ZMXRVULAJ \ / AMOS7 \ YOURUM ::
+#\[7]6WZM3JEOHQRLY5RWSA5DDNSHQJ7PMD2GOZEC6TLNWVHMKJTWAMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

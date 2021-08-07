@@ -4,19 +4,19 @@
 # param = <key-name>
 # descr = delete the C25519 key with the specified name
 
-my $key_name = shift;
+my $key_name_param = shift;
 
 return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $key_name;
+    if not defined $key_name_param;
 
-my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
 
 my $re_secret = <keys.regex.key_file.secret>;
 my $re_public = <keys.regex.key_file.public>;
 my $re_kfiles = <keys.regex.key_files>;
 
-my $key_dir = $key_vars->{'key_dir'};
-my $key_usr = $key_vars->{'usr_name'};
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
@@ -30,7 +30,7 @@ closedir($dir_fh);
 return <[base.s_warn]>->( "no key files found [ %s ]", $key_dir )
     if not @key_files;
 
-my $match_re = qr|^(\Q$key_name\E\.$re_kfiles)$|;
+my $match_re = qr|^(\Q$key_name_param\E\.$re_kfiles)$|;
 
 my $key_found = 0;
 map {
@@ -40,7 +40,7 @@ map {
         if not -w $k_path;
 } @key_files;
 
-return printf "\n  << specified key '%s' not found >>\n\n", $key_name
+return printf "\n  << specified key '%s' not found >>\n\n", $key_name_param
     if not $key_found;
 
 my $del_count = 0;
@@ -67,8 +67,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,,,,,.,,,..,,,.,,.,,,,,,.,,,,,.,.,,,,,,,..,,..,,...,...,,,,,..,,.,.,,..,..,,
-#BORLWCQNPSH7YOP7ICWRAQ5W3WLB7DYAUVTSMH7GJT2YCTR6SMRNUNCXAHKFR534VMGOKN6XGNHLC
-#\\\|NY7RG6XGMTBRL2RYHXNUOU7NMDFKI5P24YKHK3VNTFE74U4QHIM \ / AMOS7 \ YOURUM ::
-#\[7]US7D75MLV5T55CKTM7T7JUQHIYJKGXEPEJ6VNSBLTNALPU4SSMCY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,..,,,,,,.,,,.,,..,,.,.,.,,,..,,...,...,.,,,,,.,..,,,.,,...,
+#4UB2LO4SPDURYMV6D3NLB5BDPSHJ3VGZ7YFNOY4T5JQOG3CMDWBVUO3VLIQJ4VXWXFF6UKGEMVSAA
+#\\\|DXHDU5ZIMUVMD5Q5MIGC4BP7XVJEXOS6HV2CQGQU46BOXX433PI \ / AMOS7 \ YOURUM ::
+#\[7]XCLUIZQLLUHOSROPGZHZOOE3G77CUAPM5IZZF7R3FCJRBFAMMWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

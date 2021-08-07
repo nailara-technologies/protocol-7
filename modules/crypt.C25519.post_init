@@ -9,16 +9,16 @@ if ( not <crypt.C25519.auto_load_keys> //= 5 ) {
     return 0;
 }
 
-my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
-my $uid          = $key_vars->{'uid'};
-my $gid          = $key_vars->{'gid'};
-my $key_dir      = $key_vars->{'key_dir'};
-my $key_name     = $key_vars->{'key_name'};
-my $home_dir     = $key_vars->{'usr_home'};
-my $key_usr      = $key_vars->{'usr_name'};
-my $key_basepath = $key_vars->{'key_basepath'};
-my $key_filename = $key_vars->{'key_filename'};
+my $uid          = $key_vars_ref->{'uid'};
+my $gid          = $key_vars_ref->{'gid'};
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_name     = $key_vars_ref->{'key_name'};
+my $home_dir     = $key_vars_ref->{'usr_home'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+my $key_basepath = $key_vars_ref->{'key_basepath'};
+my $key_filename = $key_vars_ref->{'key_filename'};
 
 if ( not defined $home_dir or !-r $home_dir ) {
     if ( not <base.parser.config.reloading> ) {
@@ -80,8 +80,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,.,...,,.,,.,.,,.,,,,,,.,.,,.,,.,,,..,,.,,,..,,...,...,...,.,,,,,.,.,,,,.,,
-#JI44S54X3VKLHVBYY73U3HB6CZCGU2J2JI3QJCVQ5LZTOOTST3QUDJ5D6SMHOLQPZ3WG6FYZ3MA6Y
-#\\\|QEEDU6HRHWMVGB72WWZYQQO5CNZRTBCRU5TROEN56DLGGTYGXEG \ / AMOS7 \ YOURUM ::
-#\[7]Y2POEMWXS6XFHAW2I5R5CWG3GRCL6KPU2XEHXN4CX2HCZUDB56CY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,.,,,,.,,,.,,..,...,.,,,.,.,..,,...,...,.,,,.,.,,..,,,,,,.,,
+#AUP7OU6VC44TCLXNHTWXTYY4NNMJIIN2RY3Y5DJZYCZ7FDGP2D5OIZJ27OAKNLRCA4VZ6ZFO5HNPW
+#\\\|CT6AR2QFDHBH5ETR7EUHI7AAZGB2ZWX6JMQJCIGRLQIN3WDMCS2 \ / AMOS7 \ YOURUM ::
+#\[7]4HIDZ63TC4OEEJ2AY4CPI26M3W2A7XZY62TCROU4E4IB4LRB6UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

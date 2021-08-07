@@ -2,15 +2,16 @@
 
 # name = crypt.C25519.load_keypair
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
+my $key_name_param     = shift;         ##  optional  ##
+my $key_password       = shift;         ## optional ##
+my $pwd_retry_on_error = shift // 0;    ##  false  ##
 
-my $key_password       = shift;                    ## optional ##
-my $pwd_retry_on_error = shift // 0;               ##  false  ##
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
 
-my $key_dir      = $key_vars->{'key_dir'};
-my $key_usr      = $key_vars->{'usr_name'};
-my $key_name     = $key_vars->{'key_name'};
-my $key_filename = $key_vars->{'key_filename'};
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+my $key_name     = $key_vars_ref->{'key_name'};
+my $key_filename = $key_vars_ref->{'key_filename'};
 
 my $private_key_file = $key_filename->{'private'};
 my $public_key_file  = $key_filename->{'public'};
@@ -181,7 +182,6 @@ if ( -r $private_key_file and -r $public_key_file ) {
             return FALSE;    ##  false  ##
         }
     }
-
     return TRUE;             ## true ##
 
 } else {
@@ -195,8 +195,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,.,,,,,,,.,,...,...,...,,.,,,.,,...,,.,,..,,..,,...,...,.,.,.,.,...,.,.,..,,
-#HNEH7FHDNT665C23G4F7OYFYVN6E2KOM3QT3XVA2JK4I4BDRTJOZTQ333EVSAFCVG7ALXDKVXRAOE
-#\\\|R2OJ42SINF76SZ4F2LSHC6PKUUFSVOX5I53FWVC7Q7JBT2A2W2E \ / AMOS7 \ YOURUM ::
-#\[7]IWQAAWRJEGEJZFTGRPBJRDY5OYIURAXDFZE26K55WTTCYA2E4SDI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,,,.,..,,...,.,,,,..,.,,,.,,,..,,...,...,..,,.,,,.,.,,,,,,,,,
+#6RBRSB4R5HQK7MMUEIHO7B7P5D7H22EQ7RE6XDLF75V52XWJHXHVG3ENABW7ZM3EYTPACWPTLWC24
+#\\\|N5ZKYYRH75VQRG7SO2EM67C6Z5Q6EELLBCSVJDMHZURVHAM5ZXK \ / AMOS7 \ YOURUM ::
+#\[7]RMH4ELLMN6DKGCJVDXVAROHGG4WK5O4DSEGTKERMB3TNM4ZCQ2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

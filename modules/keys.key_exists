@@ -9,10 +9,10 @@ if ( not defined $key_name ) {
     return undef;
 }
 
-my $key_vars  = <[crypt.C25519.key_vars]>->($key_name);
-my $key_dir   = $key_vars->{'key_dir'};
-my $re_kfiles = <keys.regex.key_files>;
-my $match_re  = qr|^(\Q$key_name\E\.$re_kfiles)$|;
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $re_kfiles    = <keys.regex.key_files>;
+my $match_re     = qr|^(\Q$key_name\E\.$re_kfiles)$|;
 
 my @keys_found = grep {m|$match_re|}    ##  match for key name  ##
     grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
@@ -21,8 +21,8 @@ return TRUE if scalar @keys_found;      ##  true \ key found  ##
 
 return 0;                               ##  key with that name not present  ##
 
-#,,,,,.,.,..,,,.,,,..,,.,,.,,,,,.,.,.,,,,,,,,,..,,...,...,...,,,,,,..,.,,,..,,
-#DSPJSP26ED2ATNUUCNZZ6DYF3QWJJ6OX5CXCBMAGOBDJPMUSYHKTXUS3RWGYKYIPQQVIQKZYSXY5Q
-#\\\|P7GCRHXH7PJFD5U2Z5KPH4F2ZX57SMZ34IJBGA3PUK44I245OX7 \ / AMOS7 \ YOURUM ::
-#\[7]DR5GL4662NNUKWOO4B5RSQXJVKFYMAVMWY4SLKPQMJIRFOJP5AAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,,,.,.,,,.,,,,.,,,,.,,..,,,.,..,,...,...,..,,..,,.,.,,,.,..,,
+#DAQH3YXWEARNOFPS4QAVCXNHLMKJVR5QQ2HGBMARJUYNKSWPNCSWHBZOUYPZMYYQ42AWTU7W64DCA
+#\\\|QX5RBJT7JZ4ZUZQUCOWYHZZRTPTCPO2ULBOVZFZAFIM7C56DS3H \ / AMOS7 \ YOURUM ::
+#\[7]IJ7DIFCRQNKXSRVX3FRDH5TV5JT67OE6V7ZEZCFLTL7XLWIJWIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,9 +42,9 @@ if ( not $unencrypted ) {
 
 print "\n::\n";
 
-my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
-my $key_dir  = $key_vars->{'key_dir'};
-my $key_usr  = $key_vars->{'usr_name'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
 
 my $u_str
     = index( $key_name, $key_usr, 0 ) == 0
@@ -71,8 +71,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,,,.,.,..,,,.,,..,,.,.,,,.,.,,,..,,,.,,,,.,..,,...,...,.,,,...,,,.,..,,.,,,
-#V33F6GSEEFHCEMBJ7ZISSTRML5G4UUR4IAINAS5BDKJKQRDMQU3ETPDTRNUA6GCUOUFKBPA42WSMS
-#\\\|LTPFUDZPN6C2RAZEGXW6SJUCCXL3U33UA2IULEPNJHAJWXZP2WJ \ / AMOS7 \ YOURUM ::
-#\[7]ARCIRG36AHM7PSCPRNP5POBIC4KLZMB5DJEJKXUELH55KBUV74DQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,..,..,,,,.,..,,.,.,,,,,,,.,..,,...,...,..,,...,,,,,.,,,,,,,
+#UH7F7P5VVC6F36BW5CYQPZ7YTN6F4A2DGE5MD4WD3MSBQW3RTIFS5AX4SYNGF7VCSJSCNED4BEZLE
+#\\\|7DQYIXTDIVU2YUTN6RBV3KYDGXQYDGICHR3ALYL7UEGWY3QHV5G \ / AMOS7 \ YOURUM ::
+#\[7]RJIUV6NKG6JEP5ROV7A3ENKAJMPV3XK3F5AYF6STWY7VAXEGCMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

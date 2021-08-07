@@ -2,24 +2,26 @@
 
 # name = crypt.C25519.sign_keys
 
-my $key_vars = <[crypt.C25519.key_vars]>->(shift); # <-- <key_name> [optional]
+my $key_name_param = shift;    ##  optional  ##
 
-my $uid          = $key_vars->{'uid'};
-my $gid          = $key_vars->{'gid'};
-my $key_usr      = $key_vars->{'usr_name'};
-my $key_name     = $key_vars->{'key_name'};
-my $key_basepath = $key_vars->{'key_basepath'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+
+my $uid          = $key_vars_ref->{'uid'};
+my $gid          = $key_vars_ref->{'gid'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+my $key_name     = $key_vars_ref->{'key_name'};
+my $key_basepath = $key_vars_ref->{'key_basepath'};
 
 my $key_bin = $keys{'C25519'}{$key_name};
 
 if ( defined <crypt.C25519.root_key_url> ) {
     my $root_key_name;
-    my %root_key = ( 'private' => '', 'public' => '' );
+    my %root_key = ( qw| private | => '', qw| public | => '' );
 
     ## DOWNLOAD IF URL ## ( todo : implement local file case )
     if ( <crypt.C25519.root_key_url>
         =~ m{^https?://.+/C25519\.B32\.(.+)\.(secret|public)$} ) {
-        $root_key_name = $1 // '';
+        $root_key_name = ${^CAPTURE}[0] // '';
         my %root_key_url = mep { $ARG => <crypt.C25519.root_key_url> . $ARG }
         qw| secret public |;
 
@@ -28,17 +30,19 @@ if ( defined <crypt.C25519.root_key_url> ) {
 
         foreach my $type ( 'private', 'public' ) {
             <crypt.C25519.download_type> = $type;
-            <[base.log]>->( 1, ": downloading '$root_key_url{$type}'.." );
+            <[base.logs]>->( ": downloading '%s' ..,", $root_key_url{$type} );
             my $response = $ua->get( $root_key_url{$type} );
             if ( not $response->is_success ) {
-                map { delete $root_key{$ARG} } ( 'private', 'public' );
+                map { delete $root_key{$ARG} } (qw|  private  public  |);
                 my $reason = $response->status_line;
-                <[base.log]>->(
-                    0, "[!] download [ $root_key_url{$type} ] $reason [!]"
+                <[base.logs]>->(
+                    0,                    "<< download [ %s ] %s >>",
+                    $root_key_url{$type}, $reason
                 );
                 <[base.log]>->(
                     0,
-                    "<< ! >> key signing aborted [ error during download ] << ! >>"
+                    '<< ! >> key signing aborted '
+                        . '[ error during download ] << ! >>'
                 );
                 return -2;
             } else {
@@ -47,7 +51,10 @@ if ( defined <crypt.C25519.root_key_url> ) {
         }
         ##
 
-        my $rkst = length($root_key_name) ? " '$root_key_name'" : '';
+        my $rkst
+            = length($root_key_name)
+            ? sprintf( " '%s'", $root_key_name )
+            : '';
 
         my $rk_priv_len = length( $root_key{'private'} );
         if ( length( $root_key{'public'} ) != 43 or $rk_priv_len != 86 ) {
@@ -76,13 +83,13 @@ if ( defined <crypt.C25519.root_key_url> ) {
             )
         );
         if ( -f $sig_file_path or -r $sig_file_path ) {
-            <[base.log]>->( 1, ": : $sig_file_path" );
-            ( my $root_pkey_path
-                    = join( '.', $key_basepath, 'rkp', $root_key_name ) )
-                =~ s|\.$||;
+            <[base.logs]>->( ': : %s', $sig_file_path );
+            (   my $root_pkey_path = join qw| . |,
+                $key_basepath, qw| rkp |, $root_key_name
+            ) =~ s|\.$||;
             <[file.put]>->( $root_pkey_path, $root_key{'public'} . "\n" );
-            <[base.log]>->( 1, ": : $root_pkey_path" );
-            return 1;
+            <[base.logs]>->( ": : %s", $root_pkey_path );
+            return TRUE;
         } else {
             <[base.log]>->( 0, "<< unable to sign public host key >>" );
             return -1;
@@ -90,19 +97,19 @@ if ( defined <crypt.C25519.root_key_url> ) {
     skip_sign:
         substr( $root_key{'private'}, 0, $rk_priv_len,
             <[base.prng.characters]>->($rk_priv_len) );
-        map { undef $root_key{$ARG} } ( 'private', 'public' );
+        map { undef $root_key{$ARG} } (qw|  private  public  |);
     } else {
         <[base.log]>
-            ->( 1, ": unrecognized root key url, skipped signing..," );
+            ->( 1, ': unrecognized root key url, skipped signing..,' );
         return -1;
     }
 } else {
-    <[base.log]>->( 1, ": no root key url defined, skipped key signing..," );
-    return 0;
+    <[base.log]>->( 1, ': no root key url defined, skipped key signing..,' );
+    return FALSE;
 }
 
-#,,..,..,,.,,,..,,...,,.,,,,.,,,.,,..,,,.,,..,..,,...,..,,..,,,,.,..,,.,.,,,.,
-#3CXTZGDOXEXTHBLXYJMKESVNLEBOQ7WPPGH4ZRCFOWYQNXRHCBRKAMBRQOUVIE2PS5RXGYEFF4F7S
-#\\\|STOI52VOZDILMX3GMOQHWM4Y5BUT7WB5IRI4QIB5J4LGXNT3ETY \ / AMOS7 \ YOURUM ::
-#\[7]U3RP6Z34SUCL6LZ4M6YIFV76KHFRF2A26AJHTFHXV77GSTKO6MAQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,.,.,,,.,,.,,..,,..,,..,,,..,..,,...,...,.,.,.,,,,..,,.,,.,.,
+#BLURAMXKRJFU7NFO4KNNVVSWZ23DWBJYNK7LMYNVJWY6HENXEHKH3MUBMPZPNT5RA4G4MQVROJ3F4
+#\\\|CKRZJHOSRR2WFEUMFWXOYTTLV7N44WIPDW7BA5IO4UPCS7BKGQ2 \ / AMOS7 \ YOURUM ::
+#\[7]KRV4CH2ANPHDPYSL75ALKVISIS7E6CMV7BBAAXDMXY7IAEZJBICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

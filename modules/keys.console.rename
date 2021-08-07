@@ -6,12 +6,12 @@
 
 my $param_str = shift // '';
 
-my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
 ( my $ren_from, my $ren_to ) = split( m| +|, $param_str );
 
-my $key_dir = $key_vars->{'key_dir'};
-my $key_usr = $key_vars->{'usr_name'};
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
 
 my $re_secret = <keys.regex.key_file.secret>;
 my $re_public = <keys.regex.key_file.public>;
@@ -63,8 +63,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,..,,.,,.,.,,,,,.,.,.,,,,.,,..,,,.,,,,,,,,.,..,,...,...,..,,,.,,...,..,,,.,,
-#WHO3MNSY4XPEYAPCLOX4ZFTAKZATMAD65PQ5BZIMOE7U3XHTCM6G5NTWWIF7UCFJJMWA5A726UVCE
-#\\\|WLC7JZFYI44NK74MFP7LHBR7562BLISSXVAHXCXJPXUINP3RROT \ / AMOS7 \ YOURUM ::
-#\[7]L7HYIIZGP5UPCPU7VQLCFUSGGMTYOCWGKYY2YFGU6RS22NCSIYBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,..,,,.,,,..,...,.,.,,.,,,,,,..,,...,...,,..,,.,,..,,,..,.,,,
+#5DBRSIAML7T3TOCP56IGOKOHO7SMRGS6RRBVCD6X4DLGOLLIZKUYJW7QQVLXN2KVFRD4NL6L4JNOY
+#\\\|GSUEBTS7MW3PI3JYZ4B3L7BV3XFVSI2ARLDP6UO3VMJ7LHYEFT3 \ / AMOS7 \ YOURUM ::
+#\[7]RBZAUPNXJXMXVCLG3L76VAXDN6ZDTW3EJW5MOTHJ2KCQNWJU3ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
