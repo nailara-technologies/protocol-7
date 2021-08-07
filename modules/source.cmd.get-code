@@ -3,18 +3,18 @@
 # name  = source.cmd.get-code
 # descr = return specified source code subroutine
 
-my $code_name = $$call{'args'};
+my $code_name = $call->{'args'};
 my $src_path  = catfile( <source.code_path>, $code_name );
 
 return {
     'mode' => qw| false |,
     'data' => 'requested code name is not valid'
     }
-    if !<[source.valid_src_name]>->($code_name);
+    if not <[source.valid_src_name]>->($code_name);
 return { 'mode' => qw| false |, 'data' => 'code file not found' }
-    if !-f $src_path;
+    if not -f $src_path;
 
-<[file.slurp]>->( $src_path, \my $src_str );
+<[file.slurp]>->( $src_path, \my $src_str, qw| :raw | );
 return { 'mode' => qw| false |, 'data' => 'failed to read code file' }
     if not defined $src_path;
 return {
@@ -25,8 +25,8 @@ return {
 
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,.,,..,.,.,.,.,..,,.,.,,,,,...,,.,,..,,,,.,..,,...,...,..,,.,.,,.,,...,,,,,
-#ITKP6V5JFMDHUU56MM5TLJM6J2ENGOHKT3SULYY6INAY7PB55VQXESCCPQXKUM5FA7F6FW4XINGYS
-#\\\|7L2L5WZMCKVVBQBXNTSG7XTWYBNGQS7VX5HYLU43H6V7CWIBZSZ \ / AMOS7 \ YOURUM ::
-#\[7]4YYBUZPTULZ7SWJBG5ZYD23GHTEF7KKB5WO4JHHJKV4F2CR7O6AQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,.,.,...,,,.,...,,.,,,,.,,,,,..,,...,..,,.,.,..,,...,,,,,,,,,
+#JVY367P4CFIWROPI5UOTOPGBG6Q6UM7G2LWMPJE5K2TX4CUNBTQNDRYXAQ7Z5GLFLX6GSXB4MKYBI
+#\\\|OPVU3RFNJNTEI7PXLID6O57NCCBETW4ZYWCRWJJLQTPW3MCCFGI \ / AMOS7 \ YOURUM ::
+#\[7]ZNPXEM2YFMABWYZUOHG7XABS553ZVMOVZH6T2GHZDP5DKFUDIOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
