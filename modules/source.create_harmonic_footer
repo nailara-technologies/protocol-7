@@ -5,39 +5,51 @@
 my $footer_data = shift;
 
 ## display devmod output for iteration run [ AMOS encoded ] ##
-my $verbose = 2;
+my $verbose = 2;    ## [ 0 | 1 | 2 ] ##
 
 my $ELFmode         = 7;   ###  ELF chksum mode for AMOS-chksum generation  ##
 my @t_elf_modes     = qw| 4 7 |;    ## elf modes for truth assertion ##
 my $footer_bit_size = <source.chksum_bitsize>; ## footer BMW bits [ 384 ] ##
 my $AMOS_bitsize    = 512;                     ## AMOS checksum BMW bitsize ##
 
+#########################################################################
+
 ## essential elf truth checks ##
 ##
-my $complete_elf_check       = 1;    ## check entire payload with footer ##
-my $check_encoded_BMW_chksum = 1;    ## validate BMW footer checksum ##
-my $check_partial_signature  = 1;    ##  check both signature lines each  ##
+my $complete_elf_check       = TRUE;   ## check entire payload with footer ##
+my $check_encoded_BMW_chksum = TRUE;   ## validate BMW footer checksum ##
+my $check_partial_signature  = TRUE;   ##  check both signature lines each  ##
 
 ##  full check as seperate placement  ##
 my @partial_sig_elf_modes = @t_elf_modes;
 
 ##  check single lines in footer without linefeed  ##
-my $check_single_footer_lines = 1;
-my @footer_line_check_modes   = @t_elf_modes;
+##
+my $check_single_footer_lines = TRUE;
+##
+my @footer_line_check_modes = @t_elf_modes;
 
 ## optional \ additional truth checks ##
 ##
-my $check_enbedded_file_syntax = 0;    ## check embedded code style syntax ##
+my $check_enbedded_file_syntax = FALSE; ## check embedded code style syntax ##
 my @embedded_elf_modes = @t_elf_modes;    ## full checks for embedded code ##
-
-my $check_full_signature = 0;    ## check combined signature string ##
+##
+my $check_full_signature = FALSE;    ## check combined signature string ##
 
 ## only for external signature files ##
-my $check_sig_file_templates = 0;  ## include external signature file names ##
-my $check_entire_footer      = 0;  ##  check signature footer as one block  ##
-my @full_sig_elf_modes = qw| 4 7 |;  ##  full check for external sig files  ##
+##
+## include external signature file names ##
+my $check_sig_file_templates = FALSE;
+##
+##  check signature footer as one block  ##
+my $check_entire_footer = FALSE;
 
-my $sig_file_template = qw| .%s., |; ## external signature file template ##
+##  full check for external sig files  ##
+my @full_sig_elf_modes = qw| 4 7 |;
+
+my $sig_file_template = qw| .%s., |;    ## external signature file template ##
+
+#########################################################################
 
 state %bit_size;
 $bit_size{$footer_bit_size} //= length pack qw| B* |, '1' x $footer_bit_size;
@@ -53,10 +65,6 @@ warn 'footer data missing reference to payload data <{C1}>' and return undef
 my $src_ref = $footer_data->{'data-reference'};
 warn 'payload undefined <{C1}>' and return undef if not defined $$src_ref;
 
-##  get Digest::BMW context  ##
-my $bmw_amos_ctx  = <[chk-sum.bmw.ctx]>->($AMOS_bitsize);
-my $bmw_start_ctx = <[chk-sum.bmw.ctx]>->($footer_bit_size);
-
 ##                             ##
 ## checksum payload data first ##
 ##                             ##
@@ -64,19 +72,72 @@ my $bmw_start_ctx = <[chk-sum.bmw.ctx]>->($footer_bit_size);
 ## creating elf start chksum of payload data ##
 my %start_chksum_elf;
 map { $start_chksum_elf{$ARG} = 0 } @t_elf_modes;
+##
 
-my @payloadlines = $$src_ref =~ m|([^\n]*\n)|g;    ##  update for MMAP  ##
+my $data_pos     = 0;                     ##  at start of file  ##
+my $read_length  = 4282;
+my $content_size = length $src_ref->$*;
 
-foreach my $line (@payloadlines) {
-##  calculate chksum linewise for larger files  ##
-    ## ELF [<mode>] ##
-    foreach my $ELFmode (@t_elf_modes) {
-        $start_chksum_elf{$ELFmode} = <[chk-sum.elf]>
-            ->( \$line, $start_chksum_elf{$ELFmode}, $ELFmode );
+##  array refs [ <chksum_name>, [chksum_param[s]] ],
+##
+my $chksum_parameters = shift // [];
+
+my @embedded_params;
+
+##  embedded code style syntax  ##
+##
+@embedded_params = map {    ##  [ embedded code style ] line prefix  ##
+    [ qw| ELF-7 |, $code{'base.parser.chk-sum.embedded-code-style'}, $ARG ]
+    } @t_elf_modes
+    if $check_enbedded_file_syntax;
+##
+
+my $chksum_parameters = [    ##  data checksum set-up  ##
+
+    ##  FOOTER ELF CHKSUM  ## [ 4 7 ]
+    ( map { [ qw| ELF-7 |, $ARG ] } @t_elf_modes ),
+
+    [qw | BMW 384 |],        ##  FOOTER BMW CHKSUM  ## [ 384 ]
+
+    [ qw| ELF-7 |, $ELFmode ],    ##  AMOS7 ELF CHKSUM  ## [ 7 ]
+    [qw | BMW-bin 512 |],         ##  AMOS7 BMW CHKSUM  ## [ 512 ]
+
+    @embedded_params              ##  embedded code style syntax  ##
+];
+##
+###
+
+my @chksum_results = <[base.chk-sum.from_substr]>->(
+    $src_ref, $data_pos, $content_size, $chksum_parameters, $read_length
+);
+
+##  removing BMW ctx objects  ##
+##
+my $BMW_objects_ref = pop @chksum_results;
+my $bmw_start_ctx   = shift $BMW_objects_ref->@*;    ##[ BMW 384 ]##
+my $bmw_amos_ctx    = shift $BMW_objects_ref->@*;    ##[  BMW 512  ]##
+
+##  FOOTER ELF CHKSUM  ## [ 4 7 ]
+##
+foreach my $ELFmode (@t_elf_modes) {
+    $start_chksum_elf{$ELFmode} = shift @chksum_results;
+}
+
+shift @chksum_results;    ##  strip footer BMW checksum  ##
+shift @chksum_results;    ##  stripping amos-ELF checksum  ##
+
+##  AMOS7 BMW CHKSUM  ## [ 512 ]
+my $amos_digest_bin = shift @chksum_results;
+
+## embedded code style syntax ##
+my %embedded_style_elfcsum;
+
+my $embedded_style_template = ': %s';    ## code line prefixed with ': ' ##
+
+if ($check_enbedded_file_syntax) {
+    foreach my $embedded_ELF_mode (@embedded_elf_modes) {
+        $embedded_style_elfcsum{$embedded_ELF_mode} = shift @chksum_results;
     }
-    ## BMW [ 512 bits ]
-    $bmw_amos_ctx->add($line);
-    $bmw_start_ctx->add($line);
 }
 
 ##  prepare payload endlines for signature-footer  ##
@@ -97,31 +158,16 @@ my $AMOS_chksum_enc = <[chk-sum.amos]>->(
 );
 my $AMOS_chksum_num = unpack qw| V* |, decode_b32r($AMOS_chksum_enc);
 
-## embedded code style syntax ##
-my %embedded_style_elfcsum;
-my $embedded_style_template = ': %s';    ## code line prefixed with ': ' ##
-if ($check_enbedded_file_syntax) {
-    foreach my $embedded_ELF_mode (@embedded_elf_modes) {
-        $embedded_style_elfcsum{$embedded_ELF_mode} = 0;
-        foreach my $line (@payloadlines) {
-            my $embedded_line = sprintf $embedded_style_template, $line;
-            ## update checksum val ##
-            $embedded_style_elfcsum{$embedded_ELF_mode} = <[chk-sum.elf]>->(
-                \$embedded_line, $start_chksum_elf{$embedded_ELF_mode},
-                $embedded_ELF_mode
-            );
-        }
-    }
-}
+my $length_checked = FALSE;
 
 ##  initializing assertion run  ##
 #
 my $calc_result_href;
-my $asserted_true   = 0;
+my $asserted_true   = FALSE;
 my $iterations_left = 07777777;    ## limit in octal ##
 #
 while ( not $asserted_true and $iterations_left ) {
-    $asserted_true = 5;    ##  start iteration truth with truth assumption  ##
+    $asserted_true = TRUE; ##  start iteration truth with truth assumption  ##
 
     ## allow for signal \ event handling ##
     <[base.sleep]>->(0.000007);    ##  load reduction  ##
@@ -140,13 +186,14 @@ while ( not $asserted_true and $iterations_left ) {
     );
 
     ##  checking first line already to skip BMW chksum when false  ##
+    ##
     if ($check_single_footer_lines) {
         chomp( my $visual_check_line = $first_header_line );
         if (not AMOS7::Assert::Truth::is_true(
                 \$visual_check_line, 0, 1, @footer_line_check_modes
             )
         ) {
-            $asserted_true = 0;
+            $asserted_true = FALSE;
             next;
         }
     }
@@ -160,7 +207,7 @@ while ( not $asserted_true and $iterations_left ) {
             0, 1, @footer_line_check_modes
         )
     ) {
-        $asserted_true = 0;
+        $asserted_true = FALSE;
         next;
     }
 
@@ -183,12 +230,13 @@ while ( not $asserted_true and $iterations_left ) {
     }
 
     ## include '#' character ##
+    ##
     my $footer_bmw_chksum_data = sprintf qw| %s# |, $first_header_line;
 
     $bmw_ctx->add($footer_bmw_chksum_data);
     my $encoded_footer_BMW = encode_b32r( $bmw_ctx->digest );
 
-    $asserted_true = 0    ##  asserting new BMW checksum for elf truth  ##
+    $asserted_true = FALSE    ##  asserting new BMW checksum for elf truth  ##
         if $check_encoded_BMW_chksum
         and (
         not AMOS7::Assert::Truth::is_true( \$encoded_footer_BMW, 0, 1,
@@ -200,7 +248,9 @@ while ( not $asserted_true and $iterations_left ) {
         );
     next if not $asserted_true;    ##  aborting iteration  ##
 
+    ##                                            ##
     ##  final step :: checksum and full template  ##
+    ##                                            ##
 
     my $sign_params = <[source.extract_sig_body]>->( $src_ref, qw| strip | );
 
@@ -214,7 +264,7 @@ while ( not $asserted_true and $iterations_left ) {
     if ($check_partial_signature) {
         ## signature substrings seperately ##
         foreach my $sig_part (qw| sig-part-0 sig-part-1 |) {
-            $asserted_true = 0
+            $asserted_true = FALSE
                 if not AMOS7::Assert::Truth::is_true(
                 \$calc_result_href->{$sig_part},
                 0, 1, @partial_sig_elf_modes );
@@ -224,6 +274,7 @@ while ( not $asserted_true and $iterations_left ) {
     }
 
     ## adding complete footer to current elf checksum ##
+    ##
     if ($complete_elf_check) {
 
         foreach my $ELFmode (@t_elf_modes) {
@@ -232,15 +283,15 @@ while ( not $asserted_true and $iterations_left ) {
                 $start_chksum_elf{$ELFmode}, $ELFmode
             );
 
-            $asserted_true = 0    ## validate entire file [ with footer ] ##
+            $asserted_true = FALSE  ## validate entire file [ with footer ] ##
                 if not AMOS7::Assert::Truth::true_int($elf_chksum);
 
-            ## last if not $asserted_true;
+            last if not $asserted_true;
         }
         next if not $asserted_true;    ##  aborting iteration  ##
     }
 
-    $asserted_true = 0
+    $asserted_true = FALSE
         if $check_full_signature    ##  check new signature for elf truth  ##
         and
         not AMOS7::Assert::Truth::is_true( \$calc_result_href->{'signature'},
@@ -251,7 +302,7 @@ while ( not $asserted_true and $iterations_left ) {
         my @lines = split "\n", $calc_result_href->{'signature-footer-str'};
         ##  first two and last line already asserted as true  ##
         foreach my $line ( $lines[2], $lines[3] ) {
-            $asserted_true = 0
+            $asserted_true = FALSE
                 if not AMOS7::Assert::Truth::is_true( \$line, 0, 1,
                 @footer_line_check_modes );
             last if not $asserted_true;    ## skip rest ##
@@ -259,7 +310,7 @@ while ( not $asserted_true and $iterations_left ) {
         next if not $asserted_true;        ##  aborting iteration  ##
     }
 
-    $asserted_true = 0                     ## check footer as single string ##
+    $asserted_true = FALSE                 ## check footer as single string ##
         if $check_entire_footer
         and not AMOS7::Assert::Truth::is_true(
         \$calc_result_href->{'signature-footer-str'},
@@ -267,6 +318,7 @@ while ( not $asserted_true and $iterations_left ) {
     next if not $asserted_true;            ##  aborting iteration  ##
 
     ## add footer to embedded style assertion ##
+    ##
     if ($check_enbedded_file_syntax) {
         my @lines
             = $calc_result_href->{'signature-footer-str'} =~ m|([^\n]*\n)|g;
@@ -278,7 +330,8 @@ while ( not $asserted_true and $iterations_left ) {
                     \$embedded_line, $embedded_result_elf, $e_mode
                 );
             }
-            $asserted_true = 0    ##  check current elf mode result chksum  ##
+            ##  check current elf mode result chksum  ##
+            $asserted_true = FALSE
                 if not AMOS7::Assert::Truth::true_int($embedded_result_elf);
             last if not $asserted_true;
         }
@@ -305,8 +358,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,..,...,,,.,.,.,,.,,.,,,...,,,,,,,,,,..,.,.,..,,...,...,...,...,.,.,,.,,,.,,
-#OLBYRXRLVNAVBBGESGCGK7OUXANTDVFSKQGYQZBJIOFS7SQUIG57Q6RB33YXC23DXHOFPU44GXDVY
-#\\\|LLPT3SSRBU7CDPFX2YCL4VDYDVH7UJX2ZHC2F3RQW7YAIQQA65I \ / AMOS7 \ YOURUM ::
-#\[7]MHWHL26W5HPPSNLGUOIOK77SCSR2IQHKOIMXPWB6SUBPF34NBYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,.,,,...,,,.,.,,,,,,,...,.,.,..,,...,...,..,,,,.,..,,,.,,,..,
+#SGI7H3GUVDDZ5VQ5GCPJF7MZUU5YARLHUBW6JKTIPGPRQXBTRG2UF5JISTKVHXZ5B36BJNMF2AY7I
+#\\\|OLS2D34XTMIXWSDPDBPMFZAUTQZITDA57KZ2IYQYZ5NECBJIF62 \ / AMOS7 \ YOURUM ::
+#\[7]6PZKLVNCHINCBVLJHVXHEWN4LUDIQSMFVOS7AMAZGFWITYH3XKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
