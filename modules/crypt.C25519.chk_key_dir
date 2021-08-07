@@ -2,11 +2,11 @@
 
 # name = crypt.C25519.chk_key_dir
 
-my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
-my $key_dir = $key_vars->{'key_dir'};
-my $uid     = $key_vars->{'uid'};
-my $gid     = $key_vars->{'gid'};
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $uid     = $key_vars_ref->{'uid'};
+my $gid     = $key_vars_ref->{'gid'};
 
 if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
     if ( !-d $key_dir ) {
@@ -29,8 +29,8 @@ if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
 
 return 1          # <-- success [ true ]
 
-#,,..,,.,,..,,,,,,..,,,..,,,.,.,,,.,,,,..,...,..,,...,..,,,,.,...,,,,,,,,,.,.,
-#AOT64JSMCYD7FKSVT3QMTIXURVTVAOPYLA6GXCJ2QJ4WBPTVVMUOYFI4WDITLGK2WIW4TYB6AS5SA
-#\\\|ZBOXNCEJU244SKDLMTDTHH2LUBVO33PGNOUQN5VZMFR6WAZ2KIF \ / AMOS7 \ YOURUM ::
-#\[7]J2FJT4WWE5XXR4AQQPVPGV5355MVVI75X4DUOGJTPXMQIU5QESBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,.,.,..,,...,.,,,.,.,,,.,,..,..,,...,...,...,,..,,..,,.,,.,.,
+#IWB7CPLTSVS6Y2BGINEBYWTQ6UMZYTT5H5UEVJT6YNKOWYDTT7TC6UGPZKXGX4XMO5DF6DU3XWRTI
+#\\\|F5SE25JJQS7UVWHBOWY5XHJOCBRRLGVYCJOFR2X4PQKLIXV3DMA \ / AMOS7 \ YOURUM ::
+#\[7]HDJ4N5S4KJW7TMNXQBCBIRBMPYHYNECCV4RE2CT6FJSZIQ2M6OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

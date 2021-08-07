@@ -4,8 +4,8 @@
 
 my $key_name_param = shift;
 
-my $key_vars = <[crypt.C25519.key_vars]>;
-my $key_dir  = $key_vars->{'key_dir'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $key_dir      = $key_vars_ref->{'key_dir'};
 
 my $key_re_secret = <keys.regex.key_file.secret>;
 my $key_re_public = <keys.regex.key_file.public>;
@@ -74,8 +74,8 @@ foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
 
 return \%key_chksums;
 
-#,,,.,.,,,..,,..,,.,,,,.,,.,,,..,,.,.,.,.,,.,,..,,...,...,,.,,...,,..,...,..,,
-#DBMEIAWQL3EFPYTYXORGAQHD25MATLPHNYAEFVOWWMV2ZB72KCQHUAQ6RQCI3Y54VGXAGI35PA5IW
-#\\\|JHUG2ARBC55LSDYWLOK6WFHJ4AKMW2DPFUXSWADY3D62ZJ3CZRX \ / AMOS7 \ YOURUM ::
-#\[7]K5ZDVMB2V3DET2E6BLNTZMJZJ2OCEUBITOUFWIF6IUJFRB5VAOBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,..,,,,,,,,.,...,,,,,,..,.,.,..,,...,...,...,,.,,,,.,,,,,.,.,
+#LTBMCG7OFXQR4XZQLGWIVNSCGIMBEPFHFZZRXMIRVN5FPJU2GTGEF7B6QJSGHVAGMKASSUB5OJPW2
+#\\\|2HVV6FJWUYXDCCIU5NBK3WKNLIH4U2WJAKHGHLBLIODW65BFMO5 \ / AMOS7 \ YOURUM ::
+#\[7]DBIAXSV7ZBT3RP27PNPWL7UDLZHDZMSRRMPYWQNDQOLLYEIFNUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

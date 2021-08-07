@@ -4,10 +4,10 @@
 # descr = return the current user C25519 key file dirpath
 # note  = Protocol-7 keys path | grep -v ':$' | sed 's|.*: *||'
 
-my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
-my $key_dir = $key_vars->{'key_dir'};
-my $key_usr = $key_vars->{'usr_name'};
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
 
 <[base.logs]>
     ->( "returning key path for user %s ['%s']", $key_usr, $key_dir );
@@ -15,8 +15,8 @@ my $key_usr = $key_vars->{'usr_name'};
 printf ":\n: protocol-7 C25519 key directory [%s] : %s\n:\n", $key_usr,
     $key_dir;
 
-#,,.,,.,.,.,.,,,,,,.,,,,,,,.,,,,.,,..,.,,,,,.,..,,...,...,...,...,,..,,,,,,.,,
-#AFPWEHW3ATZMI3CCYEW4ODB2ON4XX64FVPIPGFLRHZ5S7FCRVQG74BNZIR3SL7UDCFJPMTRMS5ZFE
-#\\\|SSUGXPJTQF6SKNBJ3I2AVQR2M6VT2LU7QNCLS2ODKVRUCBUFSIH \ / AMOS7 \ YOURUM ::
-#\[7]3D3V7GIET2RAT2GPXZLYJWC7WDZI53YO6CJK5SWH7JNEQLWTGAAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,..,,,,.,,,.,,..,,.,,.,.,...,,,.,..,,...,...,..,,.,,,...,,,,,.,.,
+#TB34XBCJGCZSKFQFPJIKY2IBYQJ2KNPEQ3EFDSJNCWPJM2QN6Z2UPU3VJG5UQ32FFFUUT724MDJPM
+#\\\|RCFTA3ZFZRUAPFJADPVYDKQ5GURW73KTETEBAJLTAMIGD3NSSHD \ / AMOS7 \ YOURUM ::
+#\[7]CT74WXKXWF3AJDNNDTXTZQEAWWGAT7KZZ7THGF7KFD5PDXU4WKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
