@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::TERM; #########################################################
 
@@ -6,6 +7,10 @@ use utf8;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
 
@@ -52,7 +57,7 @@ sub read_password_repeated {
     my $output_lines      = shift // 1;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
-    $OUTPUT_AUTOFLUSH = 1;
+    $OUTPUT_AUTOFLUSH = TRUE;
 
     ( my $password_0, my $password_1 );
 
@@ -143,7 +148,7 @@ sub read_password_single {
     my $pwd_read_aborted = 0;
     my $autoflush        = $OUTPUT_AUTOFLUSH;
 
-    $OUTPUT_AUTOFLUSH = 1;
+    $OUTPUT_AUTOFLUSH = TRUE;
 
     terminal_title($term_title) if length $term_title;
 
@@ -274,7 +279,7 @@ sub terminal_title {
     my $term_title = shift // '';
     return 0 if not length $term_title;
 
-    $OUTPUT_AUTOFLUSH = 1;
+    $OUTPUT_AUTOFLUSH = TRUE;
 
     my $clear_console
         = ( defined $main::PROTOCOL_SEVEN
@@ -290,7 +295,7 @@ sub terminal_title {
         $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
         $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
 
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 sub read_single_key_press {
@@ -332,10 +337,10 @@ sub read_single_key_press {
     return $key;
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,,,.,.,.,,,.,.,,,,.,,,.,,.,.,,.,,..,,,,,,..,,...,...,.,.,.,,,.,,,...,..,,
-#LSCXY4BO46HNVM7HKOIZLACK5NT5K6LVE4AIXLC3PHZY4LQV6BLOURAGDAW6MWBVEPLCAMRSDKGLM
-#\\\|5HAKJNAEONY763CR3PIKOHOPAWNZT7MHLHKOXF2FEDV6BRDF34S \ / AMOS7 \ YOURUM ::
-#\[7]6CLW533KN6MJ2QCW4TJFPSG4MTHHBJETOCCYAVPAPXRGPMJGOYAI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,...,..,,.,,,,.,,,.,,,,.,,.,,..,,...,...,..,,..,,.,,,,..,.,,,
+#6XRRIVBLDZWBGXCPLF2EA5PNW7BOTO7JD4NSTP7UATF2LK4L2SY6UZE46EXWESNMITSBIIEHFHZWG
+#\\\|B4CJDDPPKOG6FXZ5ONLGZFNC5EBHZ6YUCWYOJ527356L36DNC6Z \ / AMOS7 \ YOURUM ::
+#\[7]A5QSBZRVEE5GVRYV65QNNCTTJSRCUOPGXJFZBZHWTQUQBW3NXYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

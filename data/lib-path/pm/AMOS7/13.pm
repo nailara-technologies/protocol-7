@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::13; ###########################################################
 
@@ -5,6 +6,10 @@ use v5.28;
 use strict;
 use English;
 use warnings;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
 use AMOS7::Assert;
@@ -102,7 +107,7 @@ sub gen_entropy_values {
 
     if ( not defined $seed_data_sref ) {    ##  random value data mode  ##
 
-        $fortuna_mode = 5;                  ## true ##
+        $fortuna_mode = TRUE;               ## true ##
 
     } elsif ( ref $seed_data_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref to seed data <{C1}>');
@@ -140,7 +145,7 @@ sub gen_entropy_values {
     } elsif ( defined $output_reference
         and ref $output_reference eq qw| SCALAR | ) {
 
-        $req_b32_encoded = 5;    ## true ##
+        $req_b32_encoded = TRUE;    ## true ##
 
     } elsif ( defined $output_reference
         and ref $output_reference ne qw| ARRAY |
@@ -193,7 +198,7 @@ sub gen_entropy_values {
                 ) - 1
             );
 
-            my $recalc = 0;
+            my $recalc = FALSE;
 
             if ( $recalc or $ARG % $apply_at == 0 ) {
                 my $bits_0 = sprintf qw| %032B |, $result;
@@ -327,7 +332,7 @@ sub gen_entropy_values {
         sprintf( qw| %.5f |, Time::HiRes::time - $t_start )
         if $verbose;
 
-    if ($file_output) { return 0 if not close($output_reference) }
+    if ($file_output) { return FALSE if not close($output_reference) }
 
     if ( not defined $output_reference ) {
 
@@ -338,7 +343,7 @@ sub gen_entropy_values {
         return $result;    ## only last value in scalar context ##
 
     } else {    ##  otherwise report success only  ##
-        return 5;    ## true ##
+        return TRUE;    ## true ##
     }
 }
 
@@ -445,6 +450,7 @@ sub get_seed_bits {
     my $bits;
     my $min_bit_len    = 49;
     my $seed_data_sref = shift;
+
     if ( ref $seed_data_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref to seed data <{C1}>');
         return undef;
@@ -610,6 +616,7 @@ sub padded_num {
 
 sub num_to_str {
     my $numerical_32 = shift;
+
     return '' if not length( $numerical_32 // '' );
     return warn_err('expected 9 digit decimal value <{C1}>')
         if not is_number($numerical_32)
@@ -627,8 +634,8 @@ sub num_to_str {
 ##[ VERBOSE MODE ]############################################################
 
 sub visualize_bin_032 {
-    my $index     = shift(@ARG);
-    my $value_num = shift(@ARG);
+    my $index     = shift @ARG;
+    my $value_num = shift @ARG;
 
     my @truth_states = @ARG;
 
@@ -649,10 +656,10 @@ sub visualize_bin_032 {
     );
 }
 
-return 1;  ###################################################################
+return TRUE ##################################################################
 
-#,,.,,,.,,,,.,,,.,.,,,..,,,,,,,.,,.,,,.,,,,,,,..,,...,...,...,.,,,.,.,..,,,,.,
-#OEXOGXU4BAFIFGVAM6K7ZRLJ62METHP32SWFMT2KAQDPGVD6IUDO44GAQ72Q377UC7IHN57XB5RV6
-#\\\|EBXCH3TMHFFRZP6KIBDI5HELURISVUHMRFUHR4BLYI3KI4PRFNS \ / AMOS7 \ YOURUM ::
-#\[7]YNITVQJ5VHZQWDG6J57BZT2VIHSDUUZQPPW7Z625FLR5EY6K5IAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,,.,,,.,,,.,,,.,,,,,,,.,...,..,,...,...,..,,.,,,.,,,...,.,.,
+#CXNWLILTD3CJXBYPNBXOYYRJH47XKJQ2XYZZGG36RTTTELBXEE5ECVZUDWGNEWPFJYQTITJUZHFAM
+#\\\|3M7POL2Q4VMHJ6O4FV23P73CNQ6SZJJ6WO4AMPVVXTHAORI6V24 \ / AMOS7 \ YOURUM ::
+#\[7]H5LL4UIRJECKEC6MEFF53VNGSDNG2PE6JJP2VASOCQHX52SHG6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

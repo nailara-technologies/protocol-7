@@ -72,7 +72,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
     if (   not defined $keys{'C25519'}{$key_name}{'public'}
         or not defined $keys{'C25519'}{$key_name}{'private'} ) {
         <[base.logs]>->( 0, "cannot load key '%s'..,", $key_name );
-        return 0;    ##  false  ##
+        return FALSE;    ##  false  ##
     }
 
     ##  decrypt private key [ when password provided ]  ##
@@ -85,19 +85,19 @@ if ( -r $private_key_file and -r $public_key_file ) {
                 sprintf( "'%s' key decryption password", $key_name ) );
         }
 
-      if ( defined $key_password and length $key_password < 13 ) {
-          say sprintf "%s:", $AMOS7::C{'0'};
-          <[base.log]>->( 0, 'password is too short, retry or abort..,' );
+        if ( defined $key_password and length $key_password < 13 ) {
+            say sprintf "%s:", $AMOS7::C{'0'};
+            <[base.log]>->( 0, 'password is too short, retry or abort..,' );
 
-          ## say sprintf "%s:", $AMOS7::C{'0'};
+            ## say sprintf "%s:", $AMOS7::C{'0'};
 
-          undef $key_password;
-          for ( 1 .. 7 ) {
-              <[base.sleep]>->(0.1);
-              <[event.once]>->(0.007);
-          }
-          goto RE_READ_PWD;
-      } elsif ( not defined $key_password ) {
+            undef $key_password;
+            for ( 1 .. 7 ) {
+                <[base.sleep]>->(0.1);
+                <[event.once]>->(0.007);
+            }
+            goto RE_READ_PWD;
+        } elsif ( not defined $key_password ) {
             undef $keys{'C25519'}{$key_name}{'private'};
             delete $keys{'C25519'}{$key_name}{'private'};
             <[base.log]>->( 0, 'cannot decrypt private key .,' );
@@ -178,11 +178,11 @@ if ( -r $private_key_file and -r $public_key_file ) {
             <[base.logs]>->( ": none of the keys loaded for %s", $key_name );
             <[base.log]>->( 1, ':' );
 
-            return 0;    ##  false  ##
+            return FALSE;    ##  false  ##
         }
     }
 
-    return 5;            ## true ##
+    return TRUE;             ## true ##
 
 } else {
     delete $keys{'C25519'}{$key_name};
@@ -192,11 +192,11 @@ if ( -r $private_key_file and -r $public_key_file ) {
     );
     <[base.logs]>->( 0, " ::[ expected in : '%s' ]::", $key_dir );
 
-    return 0;            ##  false  ##
+    return FALSE;            ##  false  ##
 }
 
-#,,,,,...,.,.,...,,,.,.,,,,..,,,.,...,,..,.,,,..,,...,...,...,,,.,,,.,,..,,,,,
-#ZRKNVXWU3YQECFWAKIXZQJZJ4SBMQ5Q5QVSZEKSC5OL6SGFRGRROPSG7CY6YUHJIIIAMLPLRZGX42
-#\\\|NEP2ADGBSXHANNC7N6GRPHYZFUDY2E3HFFDDBEGRAIX6P54QTY3 \ / AMOS7 \ YOURUM ::
-#\[7]H27C66D6MLQTMAVH3AL6GK6GNWE6CBG6ER7QKOY2JQBMK3DSVGCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,...,...,,.,,,.,,...,,.,,..,,..,,...,...,.,.,.,.,...,.,.,..,,
+#HNEH7FHDNT665C23G4F7OYFYVN6E2KOM3QT3XVA2JK4I4BDRTJOZTQ333EVSAFCVG7ALXDKVXRAOE
+#\\\|R2OJ42SINF76SZ4F2LSHC6PKUUFSVOX5I53FWVC7Q7JBT2A2W2E \ / AMOS7 \ YOURUM ::
+#\[7]IWQAAWRJEGEJZFTGRPBJRDY5OYIURAXDFZE26K55WTTCYA2E4SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ $log_level = 0 if $log_level !~ m|^\d+$|;
 <system.verbosity.zenka_buffer>  //= 1;
 <system.verbosity.zenka_logfile> //= 0;
 
-return 5    ## true ##
+return TRUE    ## true ##
     if $log_level > <system.verbosity.console>
     and $log_level > <system.verbosity.zenka_buffer>
     and $log_level > <system.verbosity.zenka_logfile>;
@@ -24,12 +24,14 @@ $log_buffer = qw| zenka | if not length $log_buffer;
 my $log_str;
 $log_msg = 'UNDEFINED LOG MESSAGE' if not length $log_msg;
 
-my $h_override = <base.ntime-harmony> // 5;  ## reducing calculation load., ##
-my $want_harmony = $log_level < 3 ? $h_override : 0;
+## reducing calculation load., ##
+##
+my $h_override   = <base.ntime-harmony> // TRUE;
+my $want_harmony = $log_level < 3 ? $h_override : FALSE;
 my $want_harmony    ##  skip harmonizing if not to disk  ##
     = ( $log_level < 2 and <system.verbosity.zenka_logfile> < 2 )
     ? $h_override
-    : 0;
+    : FALSE;
 
 $log_msg =~ s|\r|\\r|g;
 $log_msg =~ s|\n|\\n|g;
@@ -39,8 +41,8 @@ $log_msg =~ s|\e|\\e|g;
 ## prevent deep recursions in error log system ###
 my $fatal_exit
     = ( $log_msg =~ m|deep recursion |i and $log_msg =~ m,log|buffer, )
-    ? 1
-    : 0;
+    ? TRUE
+    : FALSE;
 
 $log_msg = sprintf( "%scall to unknown subroutine while executing '%s'",
     $colors{'p7_fg_0002'}, ${^CAPTURE}[0] )
@@ -103,10 +105,10 @@ if ( fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 }
 ##
 
-return 1;
+return TRUE;
 
-#,,,.,,,.,...,.,.,,..,..,,.,.,,,,,,.,,,,.,.,,,..,,...,...,...,,,.,,.,,,..,.,.,
-#TISGBGDWDM6VVXW3LLVSINFMHY7Q2XREUVXOOJNV6EKIEBZQEKBU437FSOO3K2PMJXTHBF7FJD5YO
-#\\\|4SJ4KDSEQDE2KT6QJJYHZYPQPNR4A4V72ZBF5RROKNHYUHFVB34 \ / AMOS7 \ YOURUM ::
-#\[7]AZBAAD7YLWLBGBBME5KWGZFQK4SHU7EHCPWS5GCDO77OU3AEZGBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,.,.,.,.,.,,,,.,,.,,,.,.,,,,,..,,...,...,...,,,,,,,,,,,.,,.,,
+#42SARSCBSLQ5MLYIHZRO2NKKUKV522OZFS5743ANEH2VJNEIOMKMALTNXS2N6KSVDVHQBEMPX5UKM
+#\\\|BLV6NLITO3GHCC7I2RK5HAHFOUEFE7XGBEO5JHQD6QDVSG6H2KM \ / AMOS7 \ YOURUM ::
+#\[7]XJCJZY2R7CCGG3PI4G6PIBXZV4B5VFHVLFKNE5XQ7VM3HN5DRCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

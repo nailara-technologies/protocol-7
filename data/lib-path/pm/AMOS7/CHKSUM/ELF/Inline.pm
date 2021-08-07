@@ -1,5 +1,10 @@
+## >:] ##
 
 package AMOS7::CHKSUM::ELF::Inline; ##########################################
+
+##[ global constants ]##
+use constant TRUE  => 5;            ##  TRUE.  ##
+use constant FALSE => 0;            ##  false  ##
 
 use vars qw| @EXPORT |;
 
@@ -23,33 +28,37 @@ die "'Inline::C' is not available [ installed ? ]" if $EVAL_ERROR;
 ##
 our $VERSION = qw| AMOS-13-ELF-7-SRC-VER-MGF4O4Y |;    ##  amos-chksum -VS  ##
 
-our $devmod_output_to_console = 0;
+our $devmod_output_to_console = FALSE;
 
 ##[ COMPILATION TO TARGET PATH ]##############################################
 
 sub compile_inline_elf_to {
 
     my $inline_directory = shift // '';
+    my $uid              = shift;         ## optional ##
+    my $gid              = shift;         ## optional ##
 
-    die 'require at least a <path> parameter' if not length $inline_directory;
-    my $uid      = shift;           ## optional ##
-    my $gid      = shift;           ## optional ##
+    error_exit('require at least a <path> parameter')
+        if not length $inline_directory;
+
     my $elf_code = inl_elf_src();
 
     my @params = ( mode => 0755 );
-    push( @params, 'uid'   => $uid ) if defined $uid;
-    push( @params, 'group' => $gid ) if defined $gid;
+    push( @params, qw|  uid  | => $uid ) if defined $uid;
+    push( @params, qw| group | => $gid ) if defined $gid;
 
-    die "inline elf directory '$inline_directory' not readable [ repair .., ]"
+    error_exit( "inline elf directory '%s' not readable [ repair .., ]",
+        $inline_directory )
         if -d $inline_directory and !-r $inline_directory;
 
-    if ( !-d $inline_directory ) {
+    if ( not -d $inline_directory ) {
 
         make_path( $inline_directory, {@params} )
             or die ": \l$OS_ERROR : $inline_directory";
 
-        die "cannot create <inline_elf_directory> '$inline_directory'"
-            if !-d $inline_directory;
+        error_exit( "cannot create <inline_elf_directory> '%s'",
+            $inline_directory )
+            if not -d $inline_directory;
     }
 
     $inline_directory = abs_path($inline_directory);
@@ -70,9 +79,10 @@ sub compile_inline_elf_to {
 
     ## inherit parse_error [ $EVAL_ERROR ]
 
-    warn '<< conmilation not successful >> ' and return undef
-        if not defined &inline_elf;
-
+    if ( not defined &inline_elf ) {
+        warn_err('<< conmilation not successful >>');
+        return undef;
+    }
     return \&inline_elf;    ## returning code-ref to compiled routine ##
 
 }
@@ -207,10 +217,10 @@ sub return_elf_c_sourcecode {
     EOL
 }
 
-return 1;  ###################################################################
+return TRUE ##################################################################
 
-#,,..,,..,...,..,,..,,..,,,..,,.,,.,.,..,,..,,..,,...,...,..,,.,,,.,.,,,,,,,,,
-#EYD2N3WBUQTPNIEIAF45UVAMT64GAR7TYLPSNAUC65K45E6EKNT75PGXHAESKPO7JATVHSSH4OT4O
-#\\\|3DBWJ6VTCULXXL66YKQ7WQKXV77YDDW7CL22QMW4SFV3JB6S7IW \ / AMOS7 \ YOURUM ::
-#\[7]JRKYS7OQF7XV6CZF7TWYUTAPDTZBOMSBWWTTDQDDOX63UKBV5OAA 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,,.,,,,,.,,,...,.,.,,,.,,..,..,,...,..,,.,.,,..,,.,,.,.,.,.,
+#HEKCVKN4MBYYR5YC27BZWTMEBVT6CCEOTKWILRUBV3EGEMV7R4SER7YX3LVTW5YXUGORDITFYJ7BI
+#\\\|WCJK3XQKPV3DRGMPOIB4T3264QMRWDED7BVHWFF2RQFWZWSLFNR \ / AMOS7 \ YOURUM ::
+#\[7]NIABUOAHIINEKV6A6SUCBSLF4MKOQ2BEQUCGAHBV3SXZUYSYJQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

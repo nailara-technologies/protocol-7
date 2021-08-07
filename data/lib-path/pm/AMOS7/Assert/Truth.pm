@@ -1,18 +1,23 @@
+##  >:]  ##
 
 package AMOS7::Assert::Truth; ################################################
 
-use vars qw| $VERSION @EXPORT |;
+###                                                           ###
+##  ASSERT HARMONIC TRUTH BASED ON DIVISION BY 13 CALCULATION  ##
+#                                                               #
+
+##[ global constants ]##
+use constant TRUE  => 5;      ##  TRUE.  ##
+use constant FALSE => 0;      ##  false  ##
+
 use Exporter;
 use base qw| Exporter |;
-
-###                                                                 ###
-##  ASSERT HARMONIC TRUTH BASED ON DIVISION BY 13 CALCULATION RESULT ##
-###                                                                 ###
+use vars qw| $VERSION @EXPORT |;
 
 @EXPORT = qw| is_true |;      ##  <--  main function  ##
 
 ##  is_true with sprintf template  ##
-##
+###
 @EXPORT_OK = qw| is_true_with_template is_template_syntax_valid |;
 
 use v5.24;
@@ -73,31 +78,31 @@ sub is_true {
 
     my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
-    return 0    ## check as mumber when numerical ##
+    return FALSE    ## check as mumber when numerical ##
         if $check_as_num == 1
         and AMOS7::Assert::is_number($$data_ref)
         and calc_true( scalar( $data_ref->$* ) ) <= 0;
 
-    return 0    ## when numerical with no 0 prefix ##
+    return FALSE    ## when numerical with no 0 prefix ##
         if $check_as_num == 2
         and AMOS7::Assert::numerical_no_0_prefix( $data_ref->$* )
         and calc_true( scalar $data_ref->$* ) <= 0;
 
-    return 5 if not $check_as_elf;    ## numerical only, skip elf check ##
+    return TRUE if not $check_as_elf;    ## numerical only, skip elf check ##
 
     ## assert selected elf checksum modes ##
     ##
     foreach my $elf_mode (@assertion_modes) {
         if ( calc_true( elf_chksum( $data_ref, 0, $elf_mode, $shift_bits ) )
             <= 0 ) {
-            return 0 if not wantarray;
-            return ( 0, $elf_mode );    ## report mode level of objection ##
+            return FALSE if not wantarray;
+            return ( FALSE, $elf_mode );  ## report mode level of objection ##
         }
     }
 
     ## success : TRUE .: ##
-    return 5 if not wantarray;
-    return ( 5, @assertion_modes );
+    return TRUE if not wantarray;
+    return ( TRUE, @assertion_modes );
 
 }
 
@@ -141,7 +146,7 @@ sub calc_true {
     ## from AMOS7::INLINE ##
     #
     return AMOS7::Assert::Truth::true_int($check_num)
-        if index( $check_num, '.', 0 ) == -1
+        if index( $check_num, qw| . |, 0 ) == -1
         and $check_num <= 18446744073709551615    ## 64 bit ##
         and defined &AMOS7::Assert::Truth::true_int
         and \&AMOS7::Assert::Truth::true_int ne \&calc_true;
@@ -177,13 +182,13 @@ sub calc_true {
     substr( $calc_result, 0, length($calc_result) - 6, '' );
 
     ## FALSE ### 230769 ####
-    return 0 if exists $false{$calc_result};
+    return FALSE if exists $false{$calc_result};
 
     ### TRUE ### 384615 ####         ## implement visualization mode ##  [LLL]
-    return 5 if exists $true{$calc_result};
+    return TRUE if exists $true{$calc_result};
 
     ### TRUE ### 0000000 | 1 ####
-    return 5;
+    return TRUE;
 }
 
 sub is_true_with_template {
@@ -210,7 +215,7 @@ sub is_true_with_template {
 
             my $is_true = is_true(@check_args);
 
-            return 0 if not defined $is_true or not $is_true;
+            return FALSE if not defined $is_true or not $is_true;
 
         } else {
             my $data_ref = shift @check_args;
@@ -222,16 +227,16 @@ sub is_true_with_template {
 
             unshift @check_args, \sprintf $template, $data_ref->$*;
 
-            return 0 if not is_true(@check_args);
+            return FALSE if not is_true(@check_args);
         }
     }
 
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 sub is_template_syntax_valid {
     my $template = shift // '';
-    my $silence  = shift // 0;    ## no syntax warning ##
+    my $silence  = shift // FALSE;    ## no syntax warning ##
 
     ( my $template_valid, my $template_errstr )
         = AMOS7::TEMPLATE::is_valid_template($template);
@@ -239,16 +244,16 @@ sub is_template_syntax_valid {
     if ( not $template_valid ) {
         warn_err( sprintf( '%s <{C2}>', $template_errstr ) )
             if not $silence;
-        return 0;    ##  false  ##
+        return FALSE;    ##  false  ##
     }
 
-    return 5;        ## true ##
+    return TRUE;         ## true ##
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,.,,..,,.,,.,.,,,,,.,.,.,.,,,.,...,,.,,,..,..,,...,...,.,,,.,.,.,.,.,,,,.,,
-#WJCD26PKBGE6MR5WHG5BYFOVOHFPPFHVIEVU7YRFVGVMJMWTB7TIWK5OM5ABDXIEVAEL5NAKFBNPO
-#\\\|QH4FJTQ666G6OMHWLR2RVOXOGZAJUQLKGSEPLSZZJRFPWGCSBN4 \ / AMOS7 \ YOURUM ::
-#\[7]C47IKVJCS4MGKG5BZRCYCZ66RQ2SSKL535PYBC2HDV3JDL5WYYCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,,,,,..,,..,.,,,..,,,,,,.,.,..,,...,...,...,,..,..,,.,,,,,.,
+#ORUJ3VCUXE2GYCRKVHLLZPMV4AHGTJNYWQQI42X7WY5VLYHXHPMC2TH74HYESEOELRY5ZEZR7OH5Q
+#\\\|VH54IZ5GDVIMRP6VM3ARFQCFG6WRRLVMZGHZJOODIFKA2RZTNFH \ / AMOS7 \ YOURUM ::
+#\[7]VDAHWSNIONTVPMYUQKHQLZMCAUEGE34SGME3U3NBXAJIKJFOAQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

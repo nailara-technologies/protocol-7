@@ -11,8 +11,8 @@ map {    ## early exit without further validation ##
     if ( defined $signature_footer_data->{$ARG}
         and not $signature_footer_data->{$ARG} ) {
 
-        return ( 0, { $ARG => 0 } ) if wantarray;
-        return 0;
+        return ( FALSE, { $ARG => FALSE } ) if wantarray;
+        return FALSE;
     }
 } qw| was-present structure-was-valid |;
 
@@ -22,8 +22,8 @@ map {    ## verify presence of footer data parameters ##
             "footer data key '%s' is not present <{C1}>", $ARG
         ) if not exists $signature_footer_data->{$ARG};
 
-        return ( 0, { $ARG => 0 } ) if wantarray;
-        return 0;
+        return ( FALSE, { $ARG => FALSE } ) if wantarray;
+        return FALSE;
     }
     } qw| was-present structure-was-valid data-reference amos-payload-checksum
     amos-iterations-remaining endline-state-encoded checksum-type bmw-chksum
@@ -31,11 +31,11 @@ map {    ## verify presence of footer data parameters ##
 
 ##  return values  ## 5 == TRUE,  0 == FALSE ##
 ##
-my $verified_true = 5;    ## signature valid and essential checks succeeded ##
+my $verified_true = TRUE; ## signature valid and essential checks succeeded ##
 
 ##[ truth validation setting constants ]##
 ##
-use constant RQ => 5;     ##  TRUTH REQUIRED [ essential ]  ##
+use constant RQ => TRUE;  ##  TRUTH REQUIRED [ essential ]  ##
 use constant OP => 2;     ##  optional [ only report ]  ##
 
 ##  default enabled checks  ##
@@ -54,7 +54,7 @@ my $truth_check_settings = {
 };
 
 ##  returned as second [ in list context ]  ##
-my $truth_status_report = { qw| bmw-chksum-matches | => 0 };
+my $truth_status_report = { qw| bmw-chksum-matches | => FALSE };
 
 warn 'expecting scalar reference to payload <{C1}>' and return undef
     if ref $payload_sref ne qw| SCALAR |;
@@ -92,11 +92,11 @@ if ( not defined $signature_footer_data
 ## no valid signature footer was found ##
 ##
 if ( not $signature_footer_data->{'was-present'} ) {
-    return ( 0, { 'footer-was-present' => 0 } ) if wantarray;
-    return 0;
+    return ( FALSE, { 'footer-was-present' => FALSE } ) if wantarray;
+    return FALSE;
 } elsif ( not $signature_footer_data->{'structure-was-valid'} ) {
-    return ( 0, { 'footer-structure-was-valid' => 0 } ) if wantarray;
-    return 0;
+    return ( FALSE, { 'footer-structure-was-valid' => FALSE } ) if wantarray;
+    return FALSE;
 }
 
 my $found_footer_length = $signature_footer_data->{'footer-length-found'};
@@ -104,11 +104,11 @@ my $footer_bmw          = $signature_footer_data->{'data-chksum'};
 
 ##  initialize elf start chksum values  ##
 my $elf_chksum = {
-    qw|   entire-payload     | => { map { $ARG => 0 } @t_elf_modes },
-    qw| embedded-code-style  | => { map { $ARG => 0 } @t_elf_modes }
+    qw|   entire-payload     | => { map { $ARG => FALSE } @t_elf_modes },
+    qw| embedded-code-style  | => { map { $ARG => FALSE } @t_elf_modes }
 };
 
-my $data_pos     = 0;
+my $data_pos     = FALSE;
 my $read_length  = 2400;
 my $content_size = length $payload_sref->$*;
 
@@ -193,7 +193,7 @@ foreach my $type (qw| entire-payload embedded-code-style |) {
 
         foreach my $__elfmode (@t_elf_modes) {
             if ( not $truth_status_report->{$type}->{$__elfmode} ) {
-                $verified_true = 0;                     ##  overall status  ##
+                $verified_true = FALSE;                 ##  overall status  ##
                 last;
             }
         }
@@ -209,12 +209,12 @@ my $AMOS_B32 = AMOS7::CHKSUM::amos_chksum(   ##[  AMOS7-elf chksum mode 7  ]##
 );
 
 if ( $AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'} ) {
-    $truth_status_report->{'AMOS-chksum-matches'} = 5;    ## true ##
+    $truth_status_report->{'AMOS-chksum-matches'} = TRUE;    ## true ##
 } else {
-    $truth_status_report->{'AMOS-chksum-matches'} = 0;    ##  false  ##
-    $verified_true = 0;                                   ##  false  ##
+    $truth_status_report->{'AMOS-chksum-matches'} = FALSE;    ##  false  ##
+    $verified_true = FALSE;                                   ##  false  ##
     return ( $verified_true, $truth_status_report ) if wantarray;
-    return $verified_true;                                ## end assertion ##
+    return $verified_true;    ## end assertion ##
 }
 
 ## add start line + # to checksum ##
@@ -226,12 +226,12 @@ my $footer_bmw_bin = $bmw_start_ctx->digest;
 my $footer_bmw     = encode_b32r($footer_bmw_bin);
 
 if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
-    $truth_status_report->{'bmw-chksum-matches'} = 5;     ## true ##
+    $truth_status_report->{'bmw-chksum-matches'} = TRUE;    ## true ##
 } else {
-    $truth_status_report->{'bmw-chksum-matches'} = 0;     ##  false  ##
-    $verified_true = 0;                                   ##  false  ##
+    $truth_status_report->{'bmw-chksum-matches'} = FALSE;    ##  false  ##
+    $verified_true = FALSE;                                  ##  false  ##
     return ( $verified_true, $truth_status_report ) if wantarray;
-    return $verified_true;                                ## end assertion ##
+    return $verified_true;    ## end assertion ##
 }
 
 ##  checking signature validity  ##
@@ -240,12 +240,12 @@ my $signed_data_str = substr( $footer_as_string, 0, 163 );
 my $signature_str   = $signature_footer_data->{'signature'};
 
 if ( <[crypt.C25519.verify_sign]>->( \$signed_data_str, \$signature_str ) ) {
-    $truth_status_report->{'signature-is-valid'} = 5;     ## true ##
+    $truth_status_report->{'signature-is-valid'} = TRUE;    ## true ##
 } else {
-    $truth_status_report->{'signature-is-valid'} = 0;     ##  false  ##
-    $verified_true = 0;                                   ##  false  ##
+    $truth_status_report->{'signature-is-valid'} = FALSE;    ##  false  ##
+    $verified_true = FALSE;                                  ##  false  ##
     return ( $verified_true, $truth_status_report ) if wantarray;
-    return $verified_true;                                ## end assertion ##
+    return $verified_true;    ## end assertion ##
 }
 
 ## checking footer as block ##
@@ -257,12 +257,12 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
         $truth_status_report->{$type} = {
             map {
                 $ARG => AMOS7::Assert::Truth::true_int(
-                    $elf_chksum->{$type}->{$ARG} //= 0 )
+                    $elf_chksum->{$type}->{$ARG} //= FALSE )
             } @t_elf_modes
         };
 
         map {
-            $verified_true = 0    ##  overall status  ##
+            $verified_true = FALSE    ##  overall status  ##
                 if $verified_true
                 and not $truth_status_report->{$type}->{$ARG}
             } @t_elf_modes
@@ -275,8 +275,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,.,,,,.,..,,.,,,,.,,.,.,..,,,.,,...,.,.,..,,..,,...,...,,.,,.,,,..,,.,,,.,,,
-#G762EVPYEGG54UH2S2A5OJHC56BECLY7YKR4K4W6I7JV4R77JPYRNCEDBMIEM2CIWMW5VEOOXTMKG
-#\\\|GWUOHZDBNYASNB2P4Z35VHAD7CCAKCJEA2W4DV6IAPNREDIZ2MZ \ / AMOS7 \ YOURUM ::
-#\[7]YOYL523YX6VTDN3KH2YVWA4IAC6W45IH7BXVZMFX3O5PKEFKRICQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,.,,,.,,,.,,,,,...,,..,,.,,.,.,..,,...,...,...,,.,,..,,,.,,,,.,
+#N7QUUIT3ZYV2UL2PIUZ7Q2ZDLKG53ZTIR7AHYAD222A4AOLPSXUPD7HKVAS4UVHJOPMKGPSUP645Y
+#\\\|7H7RZJE5DKFV7EEQQSDBDAQXCMNMDBR6O6DSMCJN6OWPOHKQO2M \ / AMOS7 \ YOURUM ::
+#\[7]J6XOFSILQ7ZGQIP457IWUR3JL5NB4OQFXU73U5UNEH6APXHEX2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

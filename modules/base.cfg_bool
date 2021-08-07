@@ -1,19 +1,26 @@
 ## >:] ##
 
 # name  = base.cfg_bool
+# descr = interprets boolean configuration options and returns TRUE \ FALSE
 
-my $option_value = shift // '';
+my $option_value = shift // FALSE;
 
-# [ '' | 'n' | 'no' | '0' ] ##                                         <--[ 0 ]
-return 0 if !length($option_value) or $option_value =~ m{^(0|\-1|no?)$};
+##  '' | 'n' | 'no' | '0'  ##                                     <--[ 0 ]
+##
+return FALSE if not length $option_value or $option_value =~ m{^(0|\-1|no?)$};
 
-## [ 'y' | 'yes' | '1' | '5' ] ##                                      <--[ 1 ]
-return 1 if $option_value =~ m{^(y(es)?|1|5)$};    ##  5 == true  ##
+##  'y' | 'yes' | '1' | '5'  ##                                   <--[ 5 ]
+##
+return TRUE if $option_value =~ m{^(y(es)?|1|5)$};    ##  5 == true  ##
 
-warn "option '$option_value' not understood <{C1}>" and return undef;
+## otherwise ##
+##
+<[base.s_warn]>->( "option '%s' not understood <{C1}>", $option_value );
 
-#,,.,,,,.,.,.,.,.,.,,,.,,,..,,.,,,,..,,,.,,.,,..,,...,..,,,.,,..,,,,,,.,.,.,.,
-#4BHXVJCIQ6AD7ZXZTJBZLPN6GQOKGJWDUUJUHIGLQC3CT7B23J5BN5DZDPW4A7HZGWWEABICZTV5W
-#\\\|PPB4JP7DQSID3PQ7R6D7YTZTVKBNPJIFIRKZPV34VRG6IRCVTJX \ / AMOS7 \ YOURUM ::
-#\[7]ZQQS7IWITZCUKU73DAQFQ227BMHPB6OEP2QFHXS5IOQ4J7YMZGBQ 7  DATA SIGNATURE ::
+return undef;
+
+#,,.,,.,,,...,.,.,.,.,...,,,,,,,,,.,,,..,,..,,..,,...,...,...,..,,,,.,,,,,...,
+#FQ27TPOYAPO446OOUSQB3FUWUIBCEV6NFR3QWNIXLEKOO4QYITOOGKEOP4F3NZTPH3SL7BLETR4RS
+#\\\|DZWPA4KJVROUOUBZJC5NJNLZDPTVDFIW7CLVSW2OIJSZ3VK7AUX \ / AMOS7 \ YOURUM ::
+#\[7]I2UL2DBLUTJQN5IAUDWMFF2YHRCY4ZIV6X5XEDKWNQ672LCLNEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

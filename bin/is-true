@@ -12,23 +12,27 @@ my @modes;    ##  AMOS7::Assert::Truth elf truth modes  ##
 
 my $FXI = 202;    ## program return code for asserted FALSE ##
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 ##[ RUNTIME OPTIONS ]#########################################################
 
-my $plain           = 0;
-my $silent          = 0;
-my $stdin_mode      = 0;
-my $single_stdin    = 0;
-my $force_numerical = 0;
-my $no_num_chk      = 0;
-my $only_FALSE      = 0;
-my $only_TRUE       = 0;
+my $plain           = FALSE;
+my $silent          = FALSE;
+my $stdin_mode      = FALSE;
+my $single_stdin    = FALSE;
+my $force_numerical = FALSE;
+my $no_num_chk      = FALSE;
+my $only_FALSE      = FALSE;
+my $only_TRUE       = FALSE;
 my $template;
 
 ## special parameters [ used by harmony-osd ] ##
 if ( @ARGV > 1 and $ARGV[0] =~ m{-ext(-num)?} and shift @ARGV ) {
-    $silent = 1;
+    $silent = TRUE;
     if ( defined ${^CAPTURE}[0] and ${^CAPTURE}[0] eq qw| -n | ) {
-        $force_numerical = 1;
+        $force_numerical = TRUE;
     }
     goto SKIP_PARAMS;
 }
@@ -42,15 +46,18 @@ $template = shift @ARGV
 
 ## regular invocation ##
 ##
-$silent = 5 if @ARGV > 1 and $ARGV[0] eq qw| -silent |       and shift @ARGV;
-$plain  = 5 if @ARGV > 0 and $ARGV[0] eq qw| -plain |        and shift @ARGV;
-$force_numerical = 5 if @ARGV > 0 and $ARGV[0] eq qw| -num | and shift @ARGV;
-$no_num_chk = 5 if @ARGV > 1 and $ARGV[0] eq qw| -nonum |    and shift @ARGV;
-$only_FALSE = 5 if @ARGV > 0 and $ARGV[0] eq qw| -F |        and shift @ARGV;
-$only_TRUE  = 5 if @ARGV > 0 and $ARGV[0] eq qw| -T |        and shift @ARGV;
+$silent = TRUE if @ARGV > 1 and $ARGV[0] eq qw| -silent | and shift @ARGV;
+$plain  = TRUE if @ARGV > 0 and $ARGV[0] eq qw| -plain |  and shift @ARGV;
+$force_numerical = TRUE
+    if @ARGV > 0
+    and $ARGV[0] eq qw| -num |
+    and shift @ARGV;
+$no_num_chk = TRUE if @ARGV > 1 and $ARGV[0] eq qw| -nonum | and shift @ARGV;
+$only_FALSE = TRUE if @ARGV > 0 and $ARGV[0] eq qw| -F |     and shift @ARGV;
+$only_TRUE  = TRUE if @ARGV > 0 and $ARGV[0] eq qw| -T |     and shift @ARGV;
 
 if ( @ARGV and $ARGV[0] eq qw| -single-stdin | and shift @ARGV ) {
-    $stdin_mode = $single_stdin = 5;
+    $stdin_mode = $single_stdin = TRUE;
 }
 
 if ( @ARGV > 1 and $ARGV[0] =~ m|(-elf)?-modes?| ) {
@@ -89,8 +96,8 @@ use AMOS7::Assert::Truth    ##  validation code  ##
 
 ##[ INPUT PROCESSING OPTIONS ]################################################
 
-my $check_elf = $force_numerical ? 0 : 1;
-my $numerical = $no_num_chk ? 0 : $check_elf ? 2 : 1;
+my $check_elf = $force_numerical ? FALSE : TRUE;
+my $numerical = $no_num_chk ? FALSE : $check_elf ? 2 : 1;
 
 ##[ DATA INPUT MODES ]########################################################
 
@@ -99,7 +106,7 @@ my $single_line_input;
 if (@ARGV) {
     $single_line_input = join( ' ', @ARGV );
 } else {
-    $stdin_mode = 1;
+    $stdin_mode = TRUE;
 }
 
 ## COMMAND LINE INPUT ##
@@ -130,9 +137,10 @@ sub check_input {
     if ( not defined $template ) {
 
         ( $true, @r_modes )
-            = is_true( \$check_str, $numerical, $check_elf, @modes );
+            = AMOS7::Assert::Truth::is_true( \$check_str, $numerical,
+            $check_elf, @modes );
 
-    } elsif ( not is_template_syntax_valid( $template, 5 ) ) {
+    } elsif ( not is_template_syntax_valid( $template, TRUE ) ) {
         error_exit( 'template syntax is not valid [ %s ] <{NC}>', $template );
     } else {
 
@@ -161,7 +169,8 @@ sub check_input {
                 . $trailing_space
                 . "$C{T}.:$C{R}\n$C{0}:$C{R}";
         }
-        return 0;
+        return FALSE;
+
     } elsif ( not $true and not $only_TRUE ) {
         if ( $plain and not $silent ) {
             say $check_str;
@@ -183,8 +192,8 @@ sub check_input {
     }
 }
 
-#,,,,,.,,,.,.,,.,,,.,,..,,.,,,..,,...,,.,,.,.,..,,...,...,.,.,,,,,,,.,,..,,,.,
-#6PJIJXTGCSFA36PAK3RUXO3UHK7GASGARNWBGL5XEF6DC5LKXUY7ZA5NJKIJL3L2LG7RK7YEGOA74
-#\\\|NJLT4SPBRUFEB3PN463TPEPSGVPYLYP63P5ICOYIJMFYZWNKWHL \ / AMOS7 \ YOURUM ::
-#\[7]K4MVNXONL4YSWUHYXQ5JLQKPPHAM4ZQ4ZDILGSNSETFYHNZLEEAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,,,,..,.,.,.,.,.,,,,..,...,.,.,...,...,...,,,,,..,,,,.,.,,,
+#DA54WLM7V67WLXNK5LBE2QTJH3YCCRDUMS5AG3MCXYWB4UK4U7Y7VJZBZFWOZLYCQXFTSCJDWXNUO
+#\\\|57625WADECPJ5FNU26RMWTCTKQJBRRKIWIYBGSTZ4GBGTCK7M45 \ / AMOS7 \ YOURUM ::
+#\[7]IHRLQQTN7BTQQNSUH5ODSKH7I2DF5F35KJCL7LN46GWJMN2LBACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

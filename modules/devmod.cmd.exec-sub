@@ -4,22 +4,23 @@
 # param = <sub_name>
 # descr = run subroutine and return output
 
-my $support_params = <devmod.exec-sub.allow-params> // 0;    ##  config  ##
+my $support_params = <devmod.exec-sub.allow-params> // FALSE;   ##  config  ##
 
 ( my $sub_name, my @params ) = split m| +|, $call->{'args'}, 2;
 
 ## single quoted means one parameter string ##
 ##
-@params = split m| +|, $params[0] if $params[0] !~ s|^'(.*)'$|$1|;
+@params = split m| +|, $params[0]
+    if defined $params[0] and $params[0] !~ s|^'(.*)'$|$1|;
 
-my $timed      = 0;    ##  create timing statistics  ##
+my $timed      = FALSE;    ##  create timing statistics  ##
 my $resolution = 7;
 
 if (    @params
     and length $sub_name == 7
     and index( $sub_name, qw| :timed: |, 0 ) == 0 ) {
     $sub_name = shift @params;    ##  sub name is next one  ##
-    $timed    = 5;                ## true ##
+    $timed    = TRUE;             ## true ##
 }
 
 return {
@@ -96,8 +97,8 @@ return {
         . scalar( $timed ? "\n\n" : '' )
 };
 
-#,,,.,,,.,,,,,,,.,...,...,,,,,,.,,..,,..,,..,,..,,...,...,..,,...,...,,.,,,,,,
-#HKETZ47ES6ADPLQUGWDLGZCSH4T6KT4W7K4YCMIG4FACC3RCTWVUVL6MQHMLXOPGFSCGPBPPYI62E
-#\\\|IIXODLDN67L3DVXZXHWTKBA3FPA24O4O2S25OY4XE5EYQLMF5WA \ / AMOS7 \ YOURUM ::
-#\[7]76W4TIMPMS24DN6WG77VN5ST3H3CTPPEGXYDRTHXAIDHAQR3LAAY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,,,,,,,,,..,,.,,,,,.,.,.,,,,,..,,...,...,...,,.,,..,,...,.,,,
+#4VZ4UEQYQDHYPXAR3QLNA4MBHQOKDLDW73CZQO27BYAQS53VQ5IWMMTVZLYLUNTVOROJHN5HQNJDM
+#\\\|6RQ6M64PWSLARJJNI5A5BVKDSPTDUTSRGSIZTAPB2I5O4V5D6LD \ / AMOS7 \ YOURUM ::
+#\[7]YIZNM3IO4KYCDWVESJDBVSCFEO4AYYQU37VJQU2EYWT3LTYKCEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

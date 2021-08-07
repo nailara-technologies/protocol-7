@@ -2,20 +2,26 @@
 
 # name  = X-11.handler.protocol-warnings
 
-my ( $msg_str, $caller, @caller_details ) = @_;
+my ( $msg_str, $caller, @caller_details ) = @ARG;
 
-if ( $caller eq 'X11/Protocol.pm:75' )
+if ( $caller eq qw| X11/Protocol.pm:75 | )
 {    ## specific case ## REBOOT SYSTEM ? ##
-    use Data::Dumper 'Dumper';
     warn '< protocol-warning > <{C1}>';
-    <[file.put]>->( '/var/tmp/another.asc', Dumper( $data{'X-11'} ) );
-    return 0;    # <-- do not output using 'base.sig_warn'
+
+    ##  devmod output  ##
+    ##
+    ## <[base.perlmod.load]>->( 'Data::Dumper', qw| Dumper | );
+    ## <[file.put]>->( qw| /var/tmp/P7.X-11.asc |, Dumper( $data{'X-11'} ) );
+
+    return FALSE;    # <-- do not output using 'base.sig_warn'
+
 } else {    ## unknown ##
-    return 1    # <-- handle as regular warning
+
+    return TRUE    # <-- handle as regular warning
 }
 
-#,,..,,,,,...,...,,..,.,,,..,,...,..,,..,,,,,,..,,...,...,.,,,,.,,,.,,,,.,.,.,
-#27RQDKLWQHWZZGCKUJ627XSCFJCHRQYDK57NZJSWOKHJRZBHKUYTAHTGDWVN5O7ZODRWCQGTSEVNQ
-#\\\|NRMB7L4PDGTFLJD3V5ELWGSPA6HVXLW4476JPMYX37LRDIM3CN4 \ / AMOS7 \ YOURUM ::
-#\[7]RKJTKJM45M6YSDUYFVZMAZYVX6MJ4CDLQCA2QGL2GX5KBQ23GSBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,,.,,,..,,,.,,,.,.,.,,.,,,,.,..,,...,...,...,,..,...,.,,,.,.,
+#2G4KCVPMR2HUN562TWULSIW6AN3FC6EGJQUVLBTTGGV7KNOYY4P5F5FAUK4MPLYCYI7WVEAB225RM
+#\\\|NQTSV7UKUZ5X4HFXCGZPGWIAWSHYIFJRAK3CAG2I6PEXOOJFRLY \ / AMOS7 \ YOURUM ::
+#\[7]ZPKB7OFCD7F6ENW5PYFI6ZAK2A2EVLHFNPBE3UQIGOHO54CVJKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

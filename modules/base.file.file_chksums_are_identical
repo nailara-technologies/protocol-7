@@ -24,7 +24,7 @@ if (   not length $file_000
     return undef;
 }
 
-return 5 if -z $file_000 and -z $file_001;    ##  true \ both files empty  ##
+return TRUE if -z $file_000 and -z $file_001;  ##  true \ both files empty  ##
 
 my $fstat_0000 = File::stat::stat($file_000);
 my $fstat_0001 = File::stat::stat($file_001);
@@ -62,14 +62,14 @@ if ( not defined $file_chksum_0000 or not length $file_chksum_0000 ) {
 
 if ( $file_chksum_0000 eq $file_chksum_0001 ) {    ##  files are identical  ##
     ## true ##
-    return 5;
+    return TRUE;
 } else {
     ##  false  ##
     return 0;
 }
 
-#,,,,,...,.,.,...,,..,,,.,,.,,..,,,,.,.,,,.,.,.,.,...,...,...,..,,,..,,,,,,,.,
-#DJ6AW2HHXENWMN74X5NNT3PFACLYHL75CAJVXHQCF4DDACQMT7JRZFZ3MWL2M2HQRZBLPZCDCRG26
-#\\\|67XEM2JTFEWRFBZBAR4JTA73YOAKW5SUU44GBJJ2ZZKOUL7SCDJ \ / AMOS7 \ YOURUM ::
-#\[7]MS67YIOKEDZUGQK7EJT4DXWHX5WKJITEIDSTVZVCPONMKP456EBY 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,.,...,.,.,...,.,,,,,,,.,.,,,.,.,.,...,...,,,.,...,..,,...,...,
+#DUJWDSENK5ECH7ZLIJ6ELXSZZNOCN722QFB2ZL3UWNHYLB6QIRGL5QH2CCMI43MWGMNKHXI2Z37GM
+#\\\|GO246CYWCHWEYQVG7KFCP36CDJL7XAICEDKD4N4HTP7XILRWZIL \ / AMOS7 \ YOURUM ::
+#\[7]2B56M2DD2S2EJRH7U4F4XZ3ZOJVKSRZKYFFIP6XZQMYWZVOXH6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

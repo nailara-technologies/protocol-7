@@ -13,11 +13,16 @@ our %keys;
 our %colors;
 our @INDEXCUBE;
 our %p7_subroutines;
+
 p7_load_time_hires();
 p7_load_perl_modules();
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 # is protocol 7 code? #
-our $PROTOCOL_SEVEN = 5;
+our $PROTOCOL_SEVEN = TRUE;    ##  TRUE  ##
 ##
 
 ##  setting input \ output streams and file open to UTF-8 default  ##
@@ -204,12 +209,12 @@ sub p7_scan_main_subroutines {
     my $prefix_pattern = shift // qw| p7_ |;
     my $result_aref    = shift;
 
-    my $update_p7_main_subs_hash = 0;
+    my $update_p7_main_subs_hash = FALSE;
     if ( not defined $result_aref and $prefix_pattern eq qw| p7_ | ) {
-        $update_p7_main_subs_hash = 5;    ## true ##
+        $update_p7_main_subs_hash = TRUE;    ## true ##
     }
     $result_aref //= [];
-    my @symbol_names                      ## collect all symbol names ##
+    my @symbol_names                         ## collect all symbol names ##
         = sort { length $a <=> length $b } reverse sort keys %main::;
     $result_aref->@*    ## filter subroutine names [ maim:: and prefix ] ##
         = grep { index( $ARG, $prefix_pattern, 0 ) == 0 }
@@ -260,7 +265,7 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
         File::Spec::Functions
         ]
     ) {
-        $data{'base'}{'perlmod'}{'loaded'}->{$module} = 5;    ## true ##
+        $data{'base'}{'perlmod'}{'loaded'}->{$module} = TRUE;    ## true ##
     }
 }
 
@@ -343,8 +348,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
     #
     # ISSUES : returns to shell, not working with child zenki yet ##
     #
-    my $change_pid = 0;
-    map { $change_pid = 5 if $ARG eq qw| -NP | } @ARGV;
+    my $change_pid = FALSE;
+    map { $change_pid = TRUE if $ARG eq qw| -NP | } @ARGV;
     &{ $code{'base.choose_true_pid'} } if $change_pid;
     #
     ##
@@ -394,7 +399,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     ## determine zenka name and subname ###
     if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.| ) {
-        $data{'system'}{'zenka'}{'initialized'} = 0;
+        $data{'system'}{'zenka'}{'initialized'} = FALSE;
         $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
         $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
     } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
@@ -419,12 +424,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'verbosity'}{'zenka_buffer'}  = 1;
     $data{'system'}{'verbosity'}{'zenka_logfile'} = 0;
 
-    $data{'system'}{'ansi_color'} = 1;
-    $data{'system'}{'start'}{'showbanner'} = 1;
+    $data{'system'}{'ansi_color'} = TRUE;
+    $data{'system'}{'start'}{'showbanner'} = TRUE;
 
     my $stdin_mode = 1;
     ## process command line arguments ###
-    $data{'system'}{'console-mode'} //= 0;
+    $data{'system'}{'console-mode'} //= FALSE;
     foreach my $arg (@ARGV) {
         $stdin_mode = 0 if $arg =~ m|^[^\-]|;
         if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
@@ -432,42 +437,42 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 = length( ${^CAPTURE}[0] );
             my $vis       = ${^CAPTURE}[1] // '';
             my $visualize = $data{'base'}{'harmony'}{'visualize'} //= {
-                qw| enabled |    => 0,    ## overall ##
-                qw| zulum |      => 0,    ## show 0 ##
-                qw| harmony |    => 0,    ## 538461 ##
-                qw| disharmony | => 0     ## 076923 ##
+                qw| enabled |    => FALSE,    ## overall ##
+                qw| zulum |      => FALSE,    ## show 0 ##
+                qw| harmony |    => FALSE,    ## 538461 ##
+                qw| disharmony | => FALSE     ## 076923 ##
             };
-            $visualize->{'enabled'} = 5 if $vis =~ m|[hzd]|;    ## true ##
+            $visualize->{'enabled'} = TRUE if $vis =~ m|[hzd]|;    ## true ##
             if ( $visualize->{'enabled'} ) {
-                $visualize->{'harmony'}    = 5 if $vis =~ m|h|;    ## true ##
-                $visualize->{'zulum'}      = 5 if $vis =~ m|z|;    ## true ##
-                $visualize->{'disharmony'} = 5 if $vis =~ m|d|;    ## true ##
+                $visualize->{'harmony'}    = TRUE if $vis =~ m|h|;  ## true ##
+                $visualize->{'zulum'}      = TRUE if $vis =~ m|z|;  ## true ##
+                $visualize->{'disharmony'} = TRUE if $vis =~ m|d|;  ## true ##
             }
         }
 
         if ( $arg =~ qw| -B(K?) | ) {    ##  -BK == keep output open  ##
-            $data{'system'}{'background'}{'redirect_output'} = 0
+            $data{'system'}{'background'}{'redirect_output'} = FALSE
                 if length $LAST_PAREN_MATCH;
-            $data{'system'}{'background_mode'} = 5;    ## true ##
+            $data{'system'}{'background_mode'} = TRUE;    ## true ##
         }
         if ( $arg eq qw| -stdin | ) {
-            $data{'system'}{'start-up'}{'stdin'}{'read-init-code'} = 5;
-            $data{'system'}{'console-mode'} = 0;       ## LLL: more conditions
+            $data{'system'}{'start-up'}{'stdin'}{'read-init-code'} = TRUE;
+            $data{'system'}{'console-mode'} = FALSE;   ## LLL: more conditions
         }
         if ( $arg eq qw| -console | ) {
-            $data{'system'}{'console-mode'} = 5;       ## true ##
+            $data{'system'}{'console-mode'} = TRUE;    ## true ##
             $code{'log.error'}->('<< in console mode >>');
         }
         if ( $arg eq qw| -c | ) {
-            $data{'system'}{'ansi_color'}   = 5;       ## true ##
-            $data{'system'}{'force-colors'} = 5;       ## true ##
+            $data{'system'}{'ansi_color'}   = TRUE;    ## true ##
+            $data{'system'}{'force-colors'} = TRUE;    ## true ##
         }
         if ( $arg eq qw| -nc | ) {
-            $data{'system'}{'ansi_color'}   = 0;
-            $data{'system'}{'force-colors'} = 0;
+            $data{'system'}{'ansi_color'}   = FALSE;
+            $data{'system'}{'force-colors'} = FALSE;
         }
         if ( $arg eq qw| -nb | ) {
-            $data{'system'}{'start'}{'showbanner'} = 0;
+            $data{'system'}{'start'}{'showbanner'} = FALSE;
         }
         if ( $arg =~ m|^-N(.+)$| ) {
             $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
@@ -478,7 +483,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
         }
         if ( $arg eq qw| -use-http-src | ) {
-            $data{'system'}{'use_http_source'} = 5;    ## true ##
+            $data{'system'}{'use_http_source'} = FALSE;    ## true ##
         }
         if ( $arg eq qw| -export-core-subs | ) {
             $code{'dump_core_subs'}->();
@@ -498,32 +503,32 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     ## prepare zenka name column width and color mode pipe override ###
     if ( not defined $code{'base.term.size'}->(*STDIN) ) {
-        $data{'system'}{'term'}{'piped'}{'stdin'} = 5;    ## true ##
+        $data{'system'}{'term'}{'piped'}{'stdin'} = TRUE;    ## true ##
     } else {
-        $data{'system'}{'term'}{'piped'}{'stdin'} = 0;
+        $data{'system'}{'term'}{'piped'}{'stdin'} = FALSE;
     }
     if ( not defined $code{'base.term.size'}->(*STDOUT) ) {
-        $data{'system'}{'term'}{'piped'}{'stdout'} = 5;    ## true ##
+        $data{'system'}{'term'}{'piped'}{'stdout'} = TRUE;    ## true ##
     } else {
-        $data{'system'}{'term'}{'piped'}{'stdout'} = 0;
+        $data{'system'}{'term'}{'piped'}{'stdout'} = FALSE;
     }
     if ( not defined $code{'base.term.size'}->(*STDERR) ) {
-        $data{'system'}{'term'}{'piped'}{'stderr'} = 5;    ## true ##
+        $data{'system'}{'term'}{'piped'}{'stderr'} = TRUE;    ## true ##
     } else {
-        $data{'system'}{'term'}{'piped'}{'stderr'} = 0;
+        $data{'system'}{'term'}{'piped'}{'stderr'} = FALSE;
     }
     ##
     map {
         if ( $data{'system'}{'term'}{'piped'}{$ARG} ) {
             $data{'system'}{'term'}{'colors'}{$ARG}
                 = $data{'system'}{'ansi_color'}
-                = $data{'system'}{'force-colors'} // 0;
+                = $data{'system'}{'force-colors'} // FALSE;
         } else {
             $data{'system'}{'term'}{'colors'}{$ARG}
-                = $data{'system'}{'ansi_color'} // 5;    ## true ##
+                = $data{'system'}{'ansi_color'} // TRUE;    ## true ##
         }
     } qw| stdout stderr |;
-    $data{'system'}{'ansi_color'} //= 5;                 ## true ##
+    $data{'system'}{'ansi_color'} //= TRUE;                 ## true ##
     ##
 
     $data{'base'}{'timestamp-count'}      //= {};
@@ -574,7 +579,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
         my $prefix = '';
         ( my $x, my $y ) = $code{'base.term.size'}->();
         my ( $x_offset, $y_offset, $s_x, $s_y ) = ( 0, 0, 0, 0 );
-        my $show_banner_mode = 0;
+        my $show_banner_mode = FALSE;
         my $center_xy        = 0;
         if ( map {m,(^| )-show-banner( |$),} @ARGV ) {
             $show_banner_mode = 1;
@@ -653,7 +658,7 @@ sub p7_term__size {
 sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
 
     my $param        = shift // 0;
-    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 5;
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // TRUE;
     my $ntime_start  = $data{'base'}{'ntime_ustart'} //= 1023228000;
 
     my $retries_left    = 24;    ## <-- configure [ retries-max ]
@@ -675,7 +680,7 @@ sub p7_ntime {    # [ netw. time : secs from 2002-06-05 * 4200 ]
     if ( length($param) >= 9 ) {    # < unix time + inherited precision >
 
         $unix_time      = $param;
-        $was_unix_input = 5;        ## true ##
+        $was_unix_input = TRUE;     ## true ##
 
         $unix_precision = length $LAST_PAREN_MATCH
             if $unix_time =~ m{\.(\d+)$};
@@ -740,11 +745,11 @@ RETRY_BASE_NTIME:
 sub p7_ntime__b32 {
 
     my $param        = shift // 4;    # <-- precision or utime
-    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // 5;
+    my $want_harmony = shift // $data{'base'}{'ntime-harmony'} // TRUE;
     my $ntime_value;
     my $last_ntime      = 0;
     my $ntime_precision = 0;
-    my $was_unix_input  = 0;
+    my $was_unix_input  = FALSE;
 
     ##  keeping low to visualize disharmony in system events  ##
     ##
@@ -762,9 +767,9 @@ sub p7_ntime__b32 {
     my $zulum_len       = $ntime_precision + 1;
     my $collision_delay = 0;
 
-    $was_unix_input = 5 if length $param >= 3;    ## true ##
+    $was_unix_input = TRUE if length $param >= 3;    ## true ##
 
-RETRY_BASE_NTIME_B32:                             ##  harmonizing values  ##
+RETRY_BASE_NTIME_B32:    ##  harmonizing values  ##
 
     $last_ntime = $ntime_value
         if $want_harmony
@@ -940,22 +945,22 @@ sub p7_source_path_valid {
     warn 'no file name supplied' if !length($src_file_rel);
     my $src_remote = $data{'base'}{'httpc'}{'remote_source'} // {};
     ## ignored ##
-    return 0
-        if !length($src_file_rel)
+    return FALSE
+        if not length $src_file_rel
         or $src_file_rel =~ m,~$|\.orig$|\.LOG$,;
     ## remote ##
-    return 1
+    return TRUE
         if $data{'system'}{'use_http_source'}
         and exists $src_remote->{$src_file_rel};
     ## local ##
     my $src_abs_path
         = abs_path( catfile( $data{'system'}{'root_path'}, $src_file_rel ) );
-    return 1
+    return TRUE
         if defined $src_abs_path
         and ( -f $src_abs_path
         or -l $src_abs_path and -f readlink($src_abs_path) );
     warn "<< no match : $src_abs_path >> <{C1}>";
-    return 0;    # <-- no match.
+    return FALSE;    # <-- no match.
 }
 
 ##############################################################################
@@ -997,7 +1002,7 @@ sub p7_referenced_subroutines__add {
 
 sub p7_referenced_subroutines__clear_found {
 
-    state $clean_found = 1;    ## for later ##
+    state $clean_found = TRUE;    ## for later ##
 
     return -1 if not $clean_found;    ## keep them ##
 
@@ -1044,7 +1049,7 @@ sub p7__dump_core_subs {
         sort keys %sub_src
     ) {
         print "\n#  .::[ $sub_name ]:.\n#  ::\n";
-        foreach my $sub_line ( @{ $sub_src{$sub_name} } ) {
+        foreach my $sub_line ( $sub_src{$sub_name}->@* ) {
             print $sub_line;
         }
         print "\n#  .\n#  ::.\n";
@@ -1059,8 +1064,8 @@ sub p7_load_code {
 
     my ( $file, $code_name );
 
-    my $base = 0;    ## loading 'base' first ##
-    map { $base = 1 if $ARG eq qw| base | } @ARG;
+    my $base = FALSE;    ## loading 'base' first ##
+    map { $base = TRUE if $ARG eq qw| base | } @ARG;
     my @module_names = sort { length $a <=> length $b } reverse sort
         grep { !m|^base$| } uniq @ARG;
     unshift( @module_names, qw| base | ) if $base;
@@ -1081,15 +1086,15 @@ sub p7_load_code {
         |;
 
     my $src_from_http = (
-        ( $data{'system'}{'use_http_source'} // 0 )
+        ( $data{'system'}{'use_http_source'} // FALSE )
             or !-r $data{'system'}{'code_path'}
-            and not( $data{'system'}{'no_http_source'} // 0 )
-    ) ? 1 : 0;
+            and not( $data{'system'}{'no_http_source'} // FALSE )
+    ) ? TRUE : FALSE;
 
     $code{'log.error'}->( '< not readable > ' . $data{'system'}{'code_path'} )
         if $src_from_http
         and !-r $data{'system'}{'code_path'}
-        and not( $data{'system'}{'use_http_source'} // 0 );
+        and not( $data{'system'}{'use_http_source'} // FALSE );
 
     $data{'system'}{'use_http_source'} = $src_from_http;
 
@@ -1134,7 +1139,7 @@ sub p7_load_code {
         my $file_cnt = scalar @subroutine_names;
         $code{'log.devmod'}->(": :. $file_cnt files. [modules]");
     }
-    $OUTPUT_AUTOFLUSH = 1;
+    $OUTPUT_AUTOFLUSH = TRUE;
 
     my %module_code_map;
     my @compile_order = ();
@@ -1258,9 +1263,9 @@ sub p7_load_code {
             $last_mlen += 92;
             $last_mlen = 79 if $last_mlen > 79;
             my $space_str = ' ' x $last_mlen;
-            $OUTPUT_AUTOFLUSH = 1;
+            $OUTPUT_AUTOFLUSH = TRUE;
             print "\r$space_str\r";
-            $OUTPUT_AUTOFLUSH = 0;
+            $OUTPUT_AUTOFLUSH = FALSE;
         }
         if ( $code_count == 0 ) {
             $code{'log.error'}->(
@@ -1307,7 +1312,7 @@ sub p7_load_code {
         local $SIG{'__DIE__'}  = qw| IGNORE |;
 
         my $sub_code     = undef;
-        my $sub_conflict = 0;
+        my $sub_conflict = FALSE;
 
         if ( $sub_name =~ m{\.(cmd|console)\.(.+)$} ) {
             my $cmd_type = ${^CAPTURE}[0];
@@ -1340,7 +1345,7 @@ sub p7_load_code {
                     $data{'base'}{'modules'}{'load_errors'}++;
                     $code{'log.error'}
                         ->( sprintf( '<<< conflict : %s >>>', $sub_name ) );
-                    $sub_conflict = 5;    ## true ##
+                    $sub_conflict = TRUE;    ## true ##
                 }
             }
 
@@ -1438,8 +1443,8 @@ sub p7_load_code {
         my $compilation_success
             = ( $code{$sub_name} = eval($sub_code)
                 and ref( $code{$sub_name} ) eq qw| CODE | )
-            ? 1
-            : 0;
+            ? TRUE
+            : FALSE;
 
         my $err_str = $EVAL_ERROR;
         state $t_wrap //=
@@ -1490,7 +1495,7 @@ sub p7_load_code {
 
         $code{'base.stderr_restore'}->();
 
-        $compilation_success = 0 if $source_len == 0;
+        $compilation_success = FALSE if $source_len == 0;
 
         if ($compilation_success) {
 
@@ -1781,10 +1786,10 @@ sub p7_log_hook {
 
     ## flush early zenka log buffer ###
     if (    defined $data{'system'}{'start'}{'zenka-buffer'}
-        and @{ $data{'system'}{'start'}{'zenka-buffer'} }
+        and $data{'system'}{'start'}{'zenka-buffer'}->@*
         and defined $code{'base.buffer.add_line'} ) {
         my $buffer = $data{'system'}{'start'}{'zenka-buffer'};
-        while ( my $log_line = shift( @{$buffer} ) ) {
+        while ( my $log_line = shift $buffer->@* ) {
             my $log_level
                 = $log_line =~ m|^\S+ (\-?\d+) | ? $LAST_PAREN_MATCH : 0;
             $code{'base.buffer.add_line'}->( 'zenka', $log_line, $log_level )
@@ -1795,16 +1800,16 @@ sub p7_log_hook {
         delete $data{'system'}{'start'}{'zenka-buffer'};
     }
     ##
-    return 0
+    return FALSE
         if not $data{'system'}{'use_http_source'}   # <-- check if required .,
         or not defined $data{'base'}{'httpc'}{'last_mlen'}
         or not $data{'system'}{'verbosity'}{'console'};
     if ( my $last_len = delete $data{'base'}{'httpc'}{'last_mlen'} ) {
-        local $OUTPUT_AUTOFLUSH = 1;
+        local $OUTPUT_AUTOFLUSH = TRUE;
         my $spaces = ' ' x $last_len;
         print "\r$spaces\r" and return $last_len;
     }
-    return 0;
+    return FALSE;
 }
 
 ##############################################################################
@@ -1812,9 +1817,9 @@ sub p7_log_hook {
 sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
     my $input_string = shift // '';
-    my $check_elf    = shift // 5;    ## true ##
+    my $check_elf    = shift // TRUE;    ## true ##
 
-    return 5 if not length $input_string;    ##  '' is true  ##
+    return TRUE if not length $input_string;    ##  '' is true  ##
 
     my $visualize ## create seperate visualization routine in AMOS7::Assert ##
         = defined $data{'base'}{'harmony'}{'visualize'}
@@ -1827,9 +1832,9 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
         return AMOS7::Assert::Truth::is_true( \$input_string, 1, $check_elf );
     }
 
-    my $visualize_zulum      = $visualize->{'zulum'}      // 0;
-    my $visualize_harmony    = $visualize->{'harmony'}    // 0;
-    my $visualize_disharmony = $visualize->{'disharmony'} // 0;
+    my $visualize_zulum      = $visualize->{'zulum'}      // FALSE;
+    my $visualize_harmony    = $visualize->{'harmony'}    // FALSE;
+    my $visualize_disharmony = $visualize->{'disharmony'} // FALSE;
 
     state %a;
     if (   $visualize_zulum
@@ -1867,7 +1872,7 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
         if ( not defined $data{'base'}{'perlmod'}{'loaded'}->{$ARG}
             or $data{'base'}{'perlmod'}{'loaded'}->{$ARG} == 0 ) {
 
-            return 1
+            return TRUE
                 if defined $data{'base'}{'perlmod'}{'loading-failed'}
                 and exists $data{'base'}{'perlmod'}{'loading-failed'}->{$ARG};
 
@@ -1947,20 +1952,20 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
         }
     }
 
-    return 5 if not $check_elf;    ## true ##
+    return TRUE if not $check_elf;    ## true ##
 
     ##                                ##
     ##  checking for true elf chksum  ##
     ##                                ##
 
-    state $load_already_attempted = 0;
+    state $load_already_attempted = FALSE;
     if (    not defined &AMOS7::Assert::Truth::is_true
         and not $load_already_attempted ) {    ## try only once ##
         eval { use AMOS7::Assert::Truth };
-        $data{'base'}{'perlmod'}{'loaded'}->{'AMOS7::Assert::Truth'} = 5
+        $data{'base'}{'perlmod'}{'loaded'}->{'AMOS7::Assert::Truth'} = TRUE
             if not length $EVAL_ERROR
             and defined &AMOS7::Assert::Truth::is_true;
-        $load_already_attempted = 5;           ## true ##
+        $load_already_attempted = TRUE;        ## true ##
     }
 
     ## as string ##
@@ -1981,19 +1986,20 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
     if ( defined &AMOS7::Assert::Truth::true_int ) {
 
-        return 5 if AMOS7::Assert::Truth::true_int($elf_checksum);  ## true ##
+        return TRUE
+            if AMOS7::Assert::Truth::true_int($elf_checksum);    ## true ##
 
-        return 0;    ##  false  ##
+        return FALSE;                                            ##  false  ##
 
     } else {    ## use modulo 13 ## [LLL]
 
         $calc_str = Math::BigFloat->new($elf_checksum)
             ->bdiv( 13, 13 + length $elf_checksum );
 
-        return 0 if index( $calc_str, qw| 230769 | ) >= 0;    ##  false  ##
+        return FALSE if index( $calc_str, qw| 230769 | ) >= 0;   ##  false  ##
 
         ## assertion complete : harmony detected ## [ no 230769.., ]
-        return 5;
+        return TRUE;
     }
     ##
 }
@@ -2007,12 +2013,12 @@ sub p7_load_B32_routines {    ## need fallback to CryptX ##  [ LLL ]
         eval { use Crypt::Misc qw| decode_b32r encode_b32r | };
         if ( $EVAL_ERROR or not defined &encode_b32r ) {
             $data{'modules'}{'startup_error'}{'base32'} = 1;
-            return 0;    # module not found ##
+            return FALSE;    # module not found ##
         } else {
-            return 5;    ## loading successful ##
+            return TRUE;     ## loading successful ##
         }
     } else {
-        return 5;        ## function already present ##
+        return TRUE;         ## function already present ##
     }
 }
 
@@ -2218,10 +2224,10 @@ sub p7_format_error {
         }
     }
     if (wantarray) {
-        my $force_caller = 0;
+        my $force_caller = FALSE;
         if ( $c_lvl < -1 ) {
             ++$c_lvl;
-            $force_caller = 5;    ## true ##
+            $force_caller = TRUE;    ## true ##
         }
         if ( $c_lvl != -1 or $force_caller ) {
             my @caller_params = $code{'base.caller'}->( abs($c_lvl) );
@@ -2403,13 +2409,13 @@ sub p7_code__sort_filter {
 
 sub p7_httpc__remote_file {
 
-    $data{'base'}{'warned'}{'http_src_deactivated'} //= 0;
+    $data{'base'}{'warned'}{'http_src_deactivated'} //= FALSE;
     warn 'source loading over http has been temporarely deactivated'
         if !$data{'base'}{'warned'}{'http_src_deactivated'}++;
 
     return undef;    ## feature temporarely deactivated ##
 
-    return undef if !( $data{'system'}{'use_http_source'} // 1 );
+    return undef if !( $data{'system'}{'use_http_source'} // TRUE );
     my $http_retries = $data{'system'}{'http_src_retries'} // 4;
     eval { use HTTP::Tiny } if !$data{'system'}{'http_reqs'};
     $EVAL_ERROR =~ s| ?\(\@INC contains:.+\n?$|| if $EVAL_ERROR;
@@ -2425,7 +2431,7 @@ sub p7_httpc__remote_file {
     warn 'expected array ref to base urls' and return undef
         if ref($base_urls) ne qw| ARRAY | or !@{$base_urls};
     ####
-    $OUTPUT_AUTOFLUSH = 1;
+    $OUTPUT_AUTOFLUSH = TRUE;
     foreach my $http_base_url ( @{$base_urls} ) {
         my $abs_url = join( '/', $http_base_url, $file_name );
         $abs_url =~ s|//$file_name$|/$file_name|;
@@ -2494,7 +2500,7 @@ sub p7_httpc__remote_file {
             }
         }
     }
-    $OUTPUT_AUTOFLUSH = 0;
+    $OUTPUT_AUTOFLUSH = FALSE;
 }
 
 ##############################################################################
@@ -2510,7 +2516,7 @@ sub p7__dev__null { }
 sub p7_sig_warn {
 
     my $s_len;
-    my $log_warning = 5;    ## true ##
+    my $log_warning = TRUE;    ## true ##
     state $deep_recusrsion   //= 0;
     state $recent_warn_cnt   //= 0;
     state $last_warning_time //= $code{'base.time'}->(10);
@@ -2671,7 +2677,7 @@ sub p7_sig_warn {
         $recent_warn_cnt = 0;
         undef $last_warning_time;
     }
-    return 5;    ## true ##
+    return TRUE;    ## true ##
 }
 
 ##############################################################################
@@ -2718,7 +2724,7 @@ sub p7_clean_up_caller {
 sub p7__log__name_template {
 
     my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
-    if ( shift // 0 ) {    ## highlight name and line [ bold \ ansi ] ##
+    if ( shift // FALSE ) {    ## highlight name and line [ bold \ ansi ] ##
         return sprintf(
             '%s%s.%s %s.%-*s %s.%s',
             $colors{'B02'},
@@ -2730,7 +2736,7 @@ sub p7__log__name_template {
             $colors{'reset'} . $colors{'B02'} . $colors{'p7_fg_0000'},
             $colors{'B00'} . $colors{'bold'}
         );
-    } else {               ## regular log line output [ not .\7 line ] ##
+    } else {                   ## regular log line output [ not .\7 line ] ##
         return sprintf(
             '%s%s. %s.%-*s .%s',
             $colors{'B02'}, $colors{'p7_fg_0000'},
@@ -2745,7 +2751,7 @@ sub p7__log__name_template {
 
 sub p7__log__format_name {
 
-    my $hl       = shift // 0;   ## highlight name and line [ bold \ ansi ] ##
+    my $hl = shift // FALSE;    ## highlight name and line [ bold \ ansi ] ##
     my $last_lpw = $data{'log'}{'lpw'}{'last'} // 0;
     my $lpw
         = $data{'system'}{'zenka'}{'log_prefix_width'}
@@ -2804,7 +2810,7 @@ sub p7__log__noerr {
             }
             ## early start-up buffer ##
             push(
-                @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                $data{'system'}{'start'}{'zenka-buffer'}->@*,
                 join( ' ', $code{'base.anum_log_time'}->(), $llvl, $lmsg )
             ) if $llvl <= $data{'system'}{'verbosity'}{'zenka_buffer'};
         }
@@ -2979,7 +2985,7 @@ sub p7_uncompress_subroutine_str {
     }
     ## module loaded ##
 
-    my $success = 0;
+    my $success = FALSE;
     ##  decompress with format auto-detection  ##
 
     eval {
@@ -3144,9 +3150,9 @@ sub p7_load_inline_subroutines {
     my $prog_name = defined $data_block_filehandle ? 'SUB_FH' : $RealScript;
 
     ## lock Protocol-7 file to not be modified while reading <DATA> ##
-    ## my $lock_during_read = 5;             ## true ##
+    ## my $lock_during_read = TRUE             ## true ##
 
-    my $lock_during_read = 0;
+    my $lock_during_read = FALSE;
 
     if ( not defined $data_block_filehandle and fileno(DATA) ) {
         ## fh to script with offset ##
@@ -3166,18 +3172,18 @@ sub p7_load_inline_subroutines {
 
     ## STDIN is not seekable ##
     $loader_state->{'seekable-data-fh'} = seek( $data_block_filehandle, 0, 1 )
-        ? 5     ## true ##
-        : 0;    ##  false  ##
+        ? TRUE      ## true ##
+        : FALSE;    ##  false  ##
 
     $loader_state->{'stdin-data-block-mode'}
         = $data_block_filehandle == *STDIN{IO}
-        ? 5     ## true ##
-        : 0;    ##  false  ##
+        ? TRUE      ## true ##
+        : FALSE;    ##  false  ##
 
     ##  write protect fh while reading from <DATA> block  ##
     ##
     my $data_fh_stat;
-    $loader_state->{'fh-write-protected'} = 0;
+    $loader_state->{'fh-write-protected'} = FALSE;
     goto DO_NOT_WRITE_PROTECT_DATA_FH    ##  skip chmod if not able to  ##
         if not $lock_during_read
         or $loader_state->{'stdin-data-block-mode'}
@@ -3201,7 +3207,7 @@ sub p7_load_inline_subroutines {
             $data_block_filehandle
         )
     ) {
-        $loader_state->{'fh-write-protected'} = 5;    ## true ##
+        $loader_state->{'fh-write-protected'} = TRUE;    ## true ##
 
         $main::RESTORE_FH_ON_ERR    = $data_block_filehandle;
         $main::RESTORE_PERMS_ON_ERR = $loader_state->{'start-file-mode'};
@@ -3313,7 +3319,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
         ) if not defined $line;
         chomp($line);
 
-        my $end_of_subsrc = 0;
+        my $end_of_subsrc = FALSE;
         ##  skipping empty and comment lines  ##
         next if not length $line or $line =~ m|^\s*[#\n]|;
 
@@ -3386,7 +3392,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             and length ${^CAPTURE}[5];
                     }
 
-                    $end_of_subsrc = 1;    ##  subroutine complete  ##
+                    $end_of_subsrc = TRUE;    ##  subroutine complete  ##
                 }
 
                 if ( defined $prev_src_line and not $end_of_subsrc ) {
@@ -3676,8 +3682,8 @@ __DATA__
 :
 :.
 
-#,,..,,..,,,,,...,,,.,...,,.,,.,,,.,,,.,.,.,.,..,,...,...,..,,.,.,,..,.,.,.,,,
-#C3RNTNGDAVHPN3PYUGTC3UTZETF2M6UF4VW7KYX7XJENYOASHRUYTT5FLMXLJMPVEKLH5ZLLWI3GC
-#\\\|UN4LFKBDWDJCIGG3EHLNWTZUAA7CJR4JJOEEYQBHCOFAEHIX474 \ / AMOS7 \ YOURUM ::
-#\[7]CG3FST5INI2NDMY4UBNVEJQQDUDJV34FSABGBC7J7C7LXXQ5ZOBQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,,.,,.,,,.,,,,,.,,.,,,,.,,..,..,,...,..,,..,,..,,..,,.,,,..,,
+#G4S557NBMTINCPD6YDJYAINZNIGDU2RDFBBPMY2BAGRGAUVXNGYN5EGHAXDGCVE745EZTR2E24PDO
+#\\\|5RFDEEH6WEI3G7UQ37V5HPSGQ7VXZE6R3DR6VO6JHMUA2F6RQCL \ / AMOS7 \ YOURUM ::
+#\[7]G7KLVPFSWL34BD3VSCRSIFIW4IWQNLWYHX7VOPX2EUG6EDUNUCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

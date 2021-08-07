@@ -1,3 +1,4 @@
+## >:] ##
 
 package AMOS7::FILE;    ######################################################
 
@@ -9,6 +10,10 @@ use Exporter;
 ##[ abs_path ]##
 use Cwd;
 use File::stat;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
 
@@ -301,10 +306,10 @@ sub resolved_path_abs {
     return $chkpath_abs;
 }
 
-return 5;  ###################################################################
+return TRUE ##################################################################
 
-#,,,,,..,,,,.,.,,,.,,,.,.,,,,,,..,.,.,,.,,...,.,.,...,...,,..,.,,,,,.,,,,,,,.,
-#273VS3CHG5K6JX4SV2TOKOVHYQSTP2DKBC5TBJV66T2LTZSUBGKEYD7LTKZYGMMCDYOHKMXZM3LEO
-#\\\|ANFYITI7XACPCT2QJ5V2I2PVA2DFTHZZ7DVJNVO2WCNOCHZV6OS \ / AMOS7 \ YOURUM ::
-#\[7]NLRIF24OSQRKNYUT7NQCVKKPAKIOSCNV5MAGARWQUXFMZUP27CBY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,..,,.,,,.,.,,,,,...,...,.,,,.,.,.,.,...,...,...,,.,,..,,..,,..,,
+#Q323R4ZEG6HHLOSNSLDZFSSPDD4VUMZUUFED4NBUYZE5PCV3TPKVCK6QWUXGRT25AZQSKA622LMVG
+#\\\|BDKP3W5FV5WFUFVXBWTD2T2UFJKPRVSRO5EJL6WUFJ3SYMJRQSA \ / AMOS7 \ YOURUM ::
+#\[7]RBHKYBQVI62L4CWL3PVRIIYE5IQMTWRPDRHMJWGU4TJ2JJGQJQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

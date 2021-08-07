@@ -1,5 +1,8 @@
+## >:] ##
 
 ## include for calculating new version ##
+
+##  todo  :  rewrite using AMOS7::TEMPLATE functionality  ##
 
 package AMOS7::Version; ######################################################
 
@@ -9,6 +12,10 @@ BEGIN {
     use warnings;
 }
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 our $VERSION = calc_version( calc_ntime() );
 
 use Exporter;
@@ -17,9 +24,7 @@ use vars qw| $VERSION @EXPORT |;
 
 @EXPORT = qw| $VERSION |;
 
-printf( ":\n: our \$VERSION = qw| AMOS-MODULE-%s |;\n:\n", $VERSION );
-
-return 1;  ###################################################################
+printf ":\n: our \$VERSION = qw| AMOS-MODULE-%s |;\n:\n", $VERSION;
 
 sub calc_version {
     ( my $ntime_val = shift ) =~ s|\D+||;
@@ -41,8 +46,10 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
     return $ntime;
 }
 
-#,,,.,,.,,,,,,,,,,,..,,,,,,,,,..,,,,,,,.,,,,,,..,,...,..,,.,,,,..,,..,.,.,.,.,
-#BWF35KZDDRAIDHFJ3AKVFHZJLNWTFWZOOEXYENP5RUA76KFA7AEPD62J37BPSZWXGAATPFGFT3W6K
-#\\\|CGYEF5QVDPPOP6YHFJKU4KAAGBJK7XS2TLXKDBTLVMBVQDIG5NU \ / AMOS7 \ YOURUM ::
-#\[7]ITPV25HXQ66BNIBAS3L2ML3NCN6VJJLMS3VAPCSLVOKNZNMEECBI 7  DATA SIGNATURE ::
+return TRUE ##################################################################
+
+#,,,,,...,,.,,.,.,...,,,.,..,,..,,,..,,.,,,..,..,,...,...,,..,,.,,,,.,,,,,.,.,
+#O2S7NE5LM73NRIKPOSUSRQCBI45XWDWLSJOXDPA34DZC5O5NAB3FF5R3VWXVED3BMU7WFT225OJMG
+#\\\|RTFVNLNM5ZMFVCFRWPAELDY5JCQPKEWGTK47Y4R4M6RKRAOUYM3 \ / AMOS7 \ YOURUM ::
+#\[7]T73TSQ7AR5ET3GF5NSDSNCMCWKIJJGP63HXU2XJID2I354SHTQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
