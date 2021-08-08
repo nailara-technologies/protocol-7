@@ -13,18 +13,14 @@ my $key_vars_ref = <[crypt.C25519.key_vars]>;
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $key_usr = $key_vars_ref->{'usr_name'};
 
-my $re_secret = <keys.regex.key_file.secret>;
-my $re_public = <keys.regex.key_file.public>;
-my $re_kfiles = <keys.regex.key_files>;
+my $keys_re = <keys.regex>;
 
-opendir( my $dir_fh, $key_dir )
-    or return print "\n [!] $key_dir : \l$OS_ERROR\n";
-my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
-    or <[base.logs]>->( 0, "no C25519 keys found for user '%s'", $key_usr );
-closedir($dir_fh);
+my $re_kfiles      = $keys_re->{'key_files'};
+my $re_public      = $keys_re->{'key_file'}->{'public'};
+my $key_re_private = $keys_re->{'key_file'}->{'private'};
 
-return <[base.s_warn]>->( 'no key files found [%s]', $key_dir )
-    if not @key_files;
+## warns when absent ##
+my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
 return print "\n  << expected <from> and <to> parameters >>\n\n"
     if not defined $ren_from or not defined $ren_to;
@@ -32,13 +28,13 @@ return print "\n  << expected <from> and <to> parameters >>\n\n"
 my $match_re = qr|^(\Q$ren_from\E\.$re_kfiles)$|;
 
 my $key_found = 0;
-my $space_len = abs( length($re_secret) - length($re_public) );
+my $space_len = abs( length($key_re_private) - length($re_public) );
 map {
     $key_found = 1 if $ARG =~ $match_re;
     my $k_path = "$key_dir/$ARG";
     return prints "\n << no write access to %s >>\n\n", $k_path
         if not -w $k_path;
-} @key_files;
+} @k_files;
 return printf "\n  << key with name '%s' not found >>\n\n", $ren_from
     if not $key_found;
 
@@ -51,7 +47,7 @@ chdir($key_dir)
 print "\n :\n";
 
 my $len = 0;
-foreach my $file_name (@key_files) {
+foreach my $file_name (@k_files) {
     my $target_name = $file_name;
     next if $target_name !~ s|^$ren_from\.|$ren_to.|;
     printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
@@ -63,8 +59,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,.,,,,,,.,,,...,..,,,.,,,..,...,.,.,,.,,,,,,..,,...,...,,..,,.,,..,,,..,.,,,
-#5DBRSIAML7T3TOCP56IGOKOHO7SMRGS6RRBVCD6X4DLGOLLIZKUYJW7QQVLXN2KVFRD4NL6L4JNOY
-#\\\|GSUEBTS7MW3PI3JYZ4B3L7BV3XFVSI2ARLDP6UO3VMJ7LHYEFT3 \ / AMOS7 \ YOURUM ::
-#\[7]RBZAUPNXJXMXVCLG3L76VAXDN6ZDTW3EJW5MOTHJ2KCQNWJU3ODY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,.,,,,,...,,..,..,,.,,,.,.,,..,..,,...,..,,.,.,,.,,,.,,,,.,,..,
+#LMWKXZ6EEIYTCCFCXTHPDX5BSCNHBSFMU52Y7BMMQ7WQGLWLSMYTMJ6F3L5SQNBBFS55VX5RJF7RM
+#\\\|CV433LBGQCKG6VD3XOWJQJTMUAXIFJQY6MRTX4XVA5DGAFCU7E5 \ / AMOS7 \ YOURUM ::
+#\[7]6IPZUQ3OPTZUS5EHKHMFPMSU6CNG77NVZHZ25YNWKZOVDLZ76KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

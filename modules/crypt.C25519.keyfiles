@@ -1,0 +1,43 @@
+## >:] ##
+
+# name  = crypt.C25519.keyfiles
+# descr = return all keyfiles of current user
+
+# todo  = root keys must be included ..,
+
+my $type_param = shift;    ##  optional  ##
+
+if ( defined $type_param and $type_param !~ m{(encrypted|plain)} ) {
+    <[base.s_warn]>->(
+        'type %s not recognized [encrypted|plain]', $type_param
+    );
+    return undef;
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
+
+my $keys_re   = <crypt.C25519.regex>;
+my $re_kfiles = $keys_re->{'key_files'};
+
+my @k_files;
+
+foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
+    if ( not defined $type_param ) {
+        push @k_files, $file;
+    } elsif ( $type_param eq qw| encrypted | ) {
+        push @k_files, $file if <[crypt.C25519.encrypted_key]>->($file);
+    } elsif ( $type_param eq qw| plain | ) {
+        push @k_files, $file if not <[crypt.C25519.encrypted_key]>->($file);
+    }
+}
+
+return <[base.sort]>->(@k_files);
+
+#,,,,,,,,,..,,,,.,,..,..,,,.,,.,.,,..,..,,,,,,..,,...,...,,.,,,.,,.,.,,..,.,,,
+#W3X4LK3NCZEKJTYT3ZSZQUFTNGGNTXA7PCRFF26EWNPMGZDKLGSSHK47RPXYYLUPR72PUJR65GTT6
+#\\\|4QMRNAC5JS75J3NOHEXUBMQAKETFGMLBCUE5W7OLQ6QONHXPU2J \ / AMOS7 \ YOURUM ::
+#\[7]CBWJO2UFS5YVJRM5527RPQPHSQS76J5G5ELR56PWB5NZM53ZY2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

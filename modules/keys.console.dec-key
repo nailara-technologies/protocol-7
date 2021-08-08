@@ -9,7 +9,7 @@ my $key_name = shift;
 return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $key_name;
 
-my $key_status = <[keys.key.is-encrypted]>->($key_name);
+my $key_status = <[crypt.C25519.encrypted_key]>->($key_name);
 
 if ( $key_status < 0 ) {
     my $err_reason_str;
@@ -135,8 +135,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_DECRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,.,,,..,,,,,,.,,,..,,..,...,.,.,.,.,.,.,,..,.,.,...,..,,,,.,.,,,..,,..,,,,.,
-#SB3ILUO7IAG7I2BNPMMUUVDPNQQXEUXPRE4QCJJQZP4H3YYNM43F64APJBTU32P6RDMJPEWUKSHKQ
-#\\\|FW4M2OMUI3OFNCOZMGFUGUF6WHRP3526VSKVVT52LINPW3L6WC7 \ / AMOS7 \ YOURUM ::
-#\[7]7ZSOOEJGHGEPVCJ5DERCAXPZ4JN5WO4ZM7R56YCTGU4ULJVMVCDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,...,,.,,...,..,,.,.,...,,.,,,.,,.,.,...,...,,,,,,.,,,..,,.,,.,,,
+#CBYSTW7U5HBOKCU7RVXCUOYQDHSUKUQAWP6XZMVFKPQC56LXYJ6MCNJ4H4X2F5KWVCQDW7YE7J3PM
+#\\\|GVFAOIKMYMTH4WMOJR562L3LA2FMGFFPC6WREKCZVZRZISAVAX6 \ / AMOS7 \ YOURUM ::
+#\[7]5RLQVCKRFDUGSFSUCFHG3HHLMKP6TQDD5LI6SMGUEO7QXXU5RQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
