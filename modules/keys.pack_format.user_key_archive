@@ -1,0 +1,29 @@
+## >:] ##
+
+# name  = keys.pack_format.user_key_archive
+
+my $key_archive_str = "## >:] ##\n#.\n";
+return undef if not my @k_files = @ARG ? @ARG : <[crypt.C25519.keyfiles]>;
+
+foreach my $keyfile_abs_path (@k_files) {
+    ( my $file = $keyfile_abs_path ) =~ s|^.+/||;
+    my $keyfile_b32_ref = <[file.slurp]>->($keyfile_abs_path);
+    if ( ref $keyfile_b32_ref ne qw| SCALAR |
+        or not length $keyfile_b32_ref->$* ) {
+        <[base.s_warn]>->( 'cannot read key %s', $file );
+        return undef;
+    }
+    $keyfile_b32_ref->$* =~ s|\n|\\n|g;    ##  preserving linefeeds  ##
+
+    $key_archive_str .= sprintf "['%s']%s\n", $file, $keyfile_b32_ref->$*;
+}
+
+$key_archive_str .= "#.\n#.::\n";
+
+return \$key_archive_str;
+
+#,,,.,,..,..,,..,,...,,..,...,,..,,,,,...,...,..,,...,...,...,,,,,..,,,,.,...,
+#G6G6BVYFBK5BNL2F63G3NCUU6GC3TA2TAZZBZLXIUJX4PPXXUREDR6YAE6ENFMQLOGWNAQMZ6A2NC
+#\\\|WHF33PIILNOKLKNK5ZBP62ETSH5VFEDY3OTNEPYROTYSK4XKNIB \ / AMOS7 \ YOURUM ::
+#\[7]VVMRB2LH7NA5I7W3VCZRAX5JYDFCPXPU4IZWDGPMFDLBID5EEYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
