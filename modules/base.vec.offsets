@@ -1,0 +1,71 @@
+## >:] ##
+
+# name  = base.vec.offsets
+
+my $data_carrier_ref      = shift;
+my $payload_data_ref      = shift;
+my $entropy_bit_offset    = shift // 0;
+my $payloaddata_bitoffset = shift // 0;
+my $carrier_bit_steps     = shift // 1;
+my $splice_length         = shift;
+
+if ( ref $data_carrier_ref ne qw| SCALAR | ) {
+    warn 'expected scalar reference to data carrier <{C1}>';
+    return undef;
+} elsif ( ref $payload_data_ref ne qw| SCALAR | ) {
+    warn 'expected scalar reference to payload <{C1}>';
+    return undef;
+} elsif ( $entropy_bit_offset !~ m|^\d+$| ) {
+    warn 'carrier offset not numerical <{C1}>';
+    return undef;
+} elsif ( $payloaddata_bitoffset !~ m|^\d+$| ) {
+    warn 'payload data offset not a numerical value <{C1}>';
+    return undef;
+} elsif ( $carrier_bit_steps !~ m|^\d+$| ) {
+    warn 'bit steps param not numerical <{C1}>';
+    return undef;
+}
+my $carrier_data_bit_length = 8 * length $data_carrier_ref->$*;
+my $payloaddata_bitlen      = 8 * length $payload_data_ref->$*;
+if ( $carrier_data_bit_length - $entropy_bit_offset
+    < ( $payloaddata_bitlen / $carrier_bit_steps ) - $payloaddata_bitoffset )
+{
+    warn 'not enough bits left in carrier for payload <{C1}>';
+    return undef;
+}
+$splice_length //= $payloaddata_bitlen - $payloaddata_bitoffset;
+if ( $splice_length > $payloaddata_bitlen - $payloaddata_bitoffset ) {
+    warn 'not enough bits left in payload for splice length <{C1}>';
+    return undef;
+} elsif ( $splice_length <= 0 ) {
+    warn 'splice length is <= 0 <{C1}>';
+    return undef;
+}
+
+## splicing in data ##  [ ( 7 - pos % 8 ) + ( pos - pos % 8 ) ]  ##
+##
+my $payload_bits_spliced = 0;
+while ( $payload_bits_spliced < $splice_length ) {
+    vec($data_carrier_ref->$*,
+        ( 7 - $entropy_bit_offset % 8 )
+            + ( $entropy_bit_offset - $entropy_bit_offset % 8 ),
+        1
+        )
+        = vec(
+        $payload_data_ref->$*,
+        ( 7 - $payloaddata_bitoffset % 8 )
+            + ( $payloaddata_bitoffset - $payloaddata_bitoffset % 8 ),
+        1
+        );
+    $entropy_bit_offset += $carrier_bit_steps;
+    $payloaddata_bitoffset++;
+    $payload_bits_spliced++;
+}
+
+return $payload_bits_spliced;
+
+#,,,.,,,.,,..,.,.,.,,,.,.,.,.,.,,,..,,..,,...,..,,...,..,,.,,,,..,.,,,,.,,,..,
+#IIH7THL5GTVZHUJV3YAOAYIYFY3MN7FQYXQU6KK75TSKGLYG3GOM5KGYLCUTZKTLYHALRHXM5UKQS
+#\\\|PQ3TNC4NZAQEJWXX7QOLW2REPV5JQ7BCJFMUXBRALEMG7WRBXPU \ / AMOS7 \ YOURUM ::
+#\[7]MJPQZ4B4B3KERL47PNT5UOH6F2Y4V5VVMDJQ4Z354BVKY4YP6SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
