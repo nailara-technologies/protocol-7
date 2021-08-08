@@ -8,7 +8,7 @@ my ( $module_name, @export ) = @ARG;
 if ( not defined &Module::Load::load and [caller]->[1] ne __FILE__ ) {
     eval { require Module::Load };
     if ( length $EVAL_ERROR ) {
-        warn <[base.format_error]>->($EVAL_ERROR);
+        warn <[base.str.eval_error]>;
         eval <<~ 'EOT';
             sub Module::Load::load (*;@) {  eval join ' ', qw| use |, @ARG  }
         EOT
@@ -83,8 +83,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,,.,,,,,...,,.,,...,,,.,,..,,.,,.,,,.,.,...,..,,...,...,..,,,,,,.,.,,.,,,..,
-#XD2S6LRJ6P6AWAZ7QYKRSL3XTH7MNZ36P2O6YTAO34TUZTFCKTICAUOTHEJ76DS55SA42TVBEBNRO
-#\\\|GRIQJU4MU3JTUCYIFD63YHSV5O6CZLFLQANZCLESLLV7VZGN4SX \ / AMOS7 \ YOURUM ::
-#\[7]FKBIMR3D7HBFKRTCPDOTBASHIQHDS23BAG35ITCESWCN5JLX26AA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,.,,.,,,...,,.,,,,,,,,,,...,..,,...,...,,..,,.,,,,,,..,,,.,,
+#WO4JGAJQ67DEGHLQHT6USV7BYBJZP4G74XWMTDUXXHEF34F62TC6WOZ6MSX66TVSXY7GLZYFGWGQ6
+#\\\|QCSC46RUMW3PW6F6KQ2VIL3CY36VNHTOUPYBCDI2S65QUB6WBBR \ / AMOS7 \ YOURUM ::
+#\[7]O5DRFBBXKDRTUCW4RCCUQPD6FATXKBEWIX6Q4LY67TATG2PO72DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
