@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = base.parser.splice_in_data
+
+my $data_carrier_ref = shift;
+my $payload_data_ref = shift;
+
+my $carrier_data_bit_length = 8 * length $data_carrier_ref->$*;
+my $payloaddata_bitlen      = 8 * length $payload_data_ref->$*;
+
+my $offset_limit
+    = int( $carrier_data_bit_length * 0.7 - $payloaddata_bitlen * 2 );
+
+my $bit_offset = sprintf qw| %u |,    ## carrier start offset ##
+    <base.prng.fortuna>->double( 0 + $offset_limit );
+
+if (not <[base.vec.offsets]>->(
+        $data_carrier_ref, $payload_data_ref, $bit_offset, 0, 2
+    )
+) {
+    warn 'error during payload splicing <{C1}>';
+    return undef;
+}
+
+my $offset_comp_int_param = pack qw| w |, $bit_offset;
+my $comp_int_bitlength    = 8 * length $offset_comp_int_param;
+
+## place offset parameter at end of entropy block ##
+##
+my $entropy_bit_offset = $carrier_data_bit_length - $comp_int_bitlength;
+if (not <[base.vec.offsets]>->(
+        $data_carrier_ref, \$offset_comp_int_param, $entropy_bit_offset
+    )
+) {
+    warn 'error while splicing offset param <{C1}>';
+    return undef;
+}
+
+return $data_carrier_ref;    ##  contains spliced in payload now  ##
+
+#,,.,,,.,,,.,,...,,..,,,.,,,,,,..,..,,,..,,.,,..,,...,...,,,,,,,.,,,.,.,.,,,,,
+#CYNJCZLWVMPYGMC62TQCU6BCD4S34BZ4TUPVE7FZ2JOJOROKSTFBMW7KSAITVUJHZV55BUCMKN72W
+#\\\|66BMWC2MMBQNBICQBOPEKV7JTUO7XBGJW5JBRBSXJSJLRBAFMBS \ / AMOS7 \ YOURUM ::
+#\[7]2GWJRM4HQQFZ25VGFIUM7KROCP4P44K6OYGSESQY3HSIGEUX7IDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
