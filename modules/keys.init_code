@@ -12,26 +12,12 @@
 ## C25519 key path owner can be overridden with USER environment variable.., ##
 <system.amos-zenka-user> = $ENV{'USER'} // getpwuid($EUID) // $ENV{'LOGNAME'};
 
-my $C25519_id = qw| C25519.B32 |;
-my @key_types = qw| secret public |;
-( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
-my $re_keyfiles = sprintf( '%s.(%s)', $key_re_tmpl, join( '|', @key_types ) );
-my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
-<keys.regex> = {
-    'key_name' => qr|^$name_regex$|,
-    'key_file' => {
-        map { $ARG => qr|^($name_regex)\.$key_re_tmpl\.$ARG$| } @key_types
-    },
-    'key_files' => qr|$re_keyfiles|
-};
-map { <keys.file_suffix>->{$ARG} = ".$C25519_id.$ARG" } @key_types;
-
 <keys.bin_path.shred> = <[base.required_bin_path]>->('shred');
 
 0;
 
-#,,,.,,,.,...,..,,..,,,..,,.,,,,,,..,,,..,,..,..,,...,...,,..,,.,,..,,,,,,.,,,
-#WZZLICZIJ5X3F35ARQ37VHI6RCENHIMSCGV4OD5R3YKXP6VZS3PR45HQOG2TBJYHXQZXCODERSUBO
-#\\\|GNQRUHK5V5FCETVEEV7DCM3UCZ5CZX5WIILK7A3YMRHKTLW6YFH \ / AMOS7 \ YOURUM ::
-#\[7]SGE5UDK3TYANVFHK43S26YYD67OFENBGAHS7V2Z6UBW6DURTOMDY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,.,,,,.,,...,...,.,,,...,.,.,..,,...,...,,..,,.,,,,.,.,.,,,.,
+#HUJKRUK3GE6HLUTVG46DUZQAPTMBGW25OQETI6KWKLR2N5QNIIPDPY5NV5EAHDUXF7H5ESPT5HV74
+#\\\|QM2DUHRXMCXVPGUFQAUHVL5VQYTCWZADEEJ5SJVPAJUI5XFMMG4 \ / AMOS7 \ YOURUM ::
+#\[7]P2JXJGQ6JR2RO5KOEOZ6OPQLE5NT3XOH5VILOEVK75IDGU32LODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

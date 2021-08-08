@@ -7,10 +7,11 @@ my $key_name_param = shift;
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 my $key_dir      = $key_vars_ref->{'key_dir'};
 
-my $key_re_secret = <keys.regex.key_file.secret>;
-my $key_re_public = <keys.regex.key_file.public>;
+my $keys_re = <keys.regex>;
 
-my $re_kfiles = <keys.regex.key_files>;
+my $re_kfiles      = $keys_re->{'key_files'};
+my $key_re_public  = $keys_re->{'key_file'}->{'public'};
+my $key_re_private = $keys_re->{'key_file'}->{'private'};
 
 my @k_files = grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@*;
 
@@ -29,7 +30,7 @@ foreach my $file (@k_files) {
     ( my $key_name     = $filepath_rel ) =~ s|\.$re_kfiles||;
     @chksumkeys = () if $key_name ne $last_kname;    ##  resetting  ##
 
-    my $key_encryption_status = <[keys.key.is-encrypted]>->($file);
+    my $key_encryption_status = <[crypt.C25519.encrypted_key]>->($file);
 
     if ( $key_encryption_status == -3 ) {
         $key_chksums{$key_name} = qw| no-r.perms |;
@@ -74,8 +75,8 @@ foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
 
 return \%key_chksums;
 
-#,,..,,,.,,,,,.,.,..,,,,,,,,.,...,,,,,,..,.,.,..,,...,...,...,,.,,,,.,,,,,.,.,
-#LTBMCG7OFXQR4XZQLGWIVNSCGIMBEPFHFZZRXMIRVN5FPJU2GTGEF7B6QJSGHVAGMKASSUB5OJPW2
-#\\\|2HVV6FJWUYXDCCIU5NBK3WKNLIH4U2WJAKHGHLBLIODW65BFMO5 \ / AMOS7 \ YOURUM ::
-#\[7]DBIAXSV7ZBT3RP27PNPWL7UDLZHDZMSRRMPYWQNDQOLLYEIFNUCI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,.,,,,,.,.,,,,,,,,,,,,..,,.,,..,,...,...,...,..,,,,.,..,,..,,
+#XI5ELX357FIWGBA5AGYLCALI5YHQIEB5EUMOU3OMMY64N7L6X4TZYYVP3YIORZBF2KESVQSESINWS
+#\\\|QVMXWMAAVXKCLQQLD6GTGFPM376HZENN6DHGOYJVIHZOPFXPD7B \ / AMOS7 \ YOURUM ::
+#\[7]JBI2VKYEIYBU3X4H4DT52OCN4575A2QHSV75F66JBEI5JSYML4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
