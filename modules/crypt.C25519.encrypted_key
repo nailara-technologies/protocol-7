@@ -1,6 +1,6 @@
 ## >:] ##
 
-# name  = keys.key.is-encrypted
+# name  = crypt.C25519.encrypted_key
 
 my $key_name = shift // '';
 
@@ -9,7 +9,8 @@ if ( not length $key_name ) {
     return undef;
 }
 
-my $re_kfiles = <keys.regex.key_files>;
+my $keys_re   = <crypt.C25519.regex>;
+my $re_kfiles = $keys_re->{'key_files'};
 
 my $private_keyfile;
 
@@ -18,7 +19,7 @@ if ( index( $key_name, qw| / |, 0 ) == 0 and $key_name =~ $re_kfiles ) {
     return -2 if not -f $key_name;    ##  no key file with that name  ##
     return -3 if not -r $key_name;    ##  is not readable  ##
     ( my $filepath_rel = $key_name ) =~ s|^.+/||;
-    my $key_re_public = <keys.regex.key_file.public>;
+    my $key_re_public = $keys_re->{'key_file'}->{'public'};
 
     ##  public key [ never encrypted ]  ##
     return 0 if $filepath_rel =~ $key_re_public;
@@ -84,8 +85,8 @@ if ($encoded_keylen == 106    ##[  has no linefeed  ]##
 
 return $key_encrypted;                  ##  key encryption status  ##
 
-#,,..,.,.,.,,,..,,.,,,.,,,,,,,.,.,,.,,..,,.,.,..,,...,...,,,.,...,..,,...,.,.,
-#WUWCLS5LAWGCLTPAQUMRSE3V5GUEWEUQLIXJFFN674RXUSP46K5M5PYFYMOZVJGOW7BESG5XWJTZ6
-#\\\|3EF67YV4WRRDJBUTFZQVCKVZ5UFXTCMMYBAHGR7IOVTRJJOMGTD \ / AMOS7 \ YOURUM ::
-#\[7]NJVPBJPTZETF3JKVQHU7KOTXLTURDXVP6FVD2CC25DI3PJGD5QDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,,.,...,,,.,..,,...,,.,,,..,..,,...,...,...,.,,,.,,,.,.,,..,
+#IW7IJ5GGR6VNBXT4FASXVGT7SVMVUW4CBGJN5ZVLWRXOFYNBE5QE6IMF2AHDVYGKU24UK2FTSTXMO
+#\\\|ZAHJXBB4XHJJV6DDYGIO5NR26USFWGYQYW2WZ5BTISLSUOZ4XIZ \ / AMOS7 \ YOURUM ::
+#\[7]F7IC5AVAZFUSNQOOIFVZ3AZLKIQ62JLXZX44YUKIF3PQE62CEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

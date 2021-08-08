@@ -9,7 +9,7 @@ my $key_name_param = shift;
 return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $key_name_param;
 
-my $key_status = <[keys.key.is-encrypted]>->($key_name_param);
+my $key_status = <[crypt.C25519.encrypted_key]>->($key_name_param);
 
 if ( $key_status < 0 ) {
     my $err_reason_str;
@@ -53,8 +53,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,,,,.,,,.,,,...,,.,,.,,,..,,,,,,,.,,.,,,..,,.,.,...,...,,,,,.,,,,.,,,,,,..,,
-#ERW4L44MVRFSWZUSLLE3JVXIAPW47ORVDCYXVNRHVXWZAZYWCB7TAEXDU4ZG3IGQXRBBP4XPG4VW6
-#\\\|UECBFL676NKESP3LG7QWMCGPCNR2IGNLG54NZPNPNRIF4NPRFLH \ / AMOS7 \ YOURUM ::
-#\[7]3FRCK2OQ6H4TESPUHLWJOASONPVSWWMVBPUNLPLGQMDG4ITEI2AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,.,,,,.,,,..,,,,,,,.,.,,,.,,,.,.,...,...,,,.,..,,,.,,,,.,.,.,
+#SX4WVQ4MAQBXAPR6ZRVJUM4GOFJ3WZAVTVW6QZMBWSNQ6X4SCX73CWBK4CUSWKTQFUTDMWOZYPWQC
+#\\\|NH2QNLF5GXSU7RI2TADFR6I5CEWKXOL3RFJJWVEABDPKFGIUORG \ / AMOS7 \ YOURUM ::
+#\[7]GHXADCLNO3K5IGK7VN62PN4MBFHRMRQX7ZPARLGKUO5SDOKNKYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

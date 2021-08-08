@@ -17,14 +17,12 @@ my $key_vars_ref = <[crypt.C25519.key_vars]>;
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $key_usr = $key_vars_ref->{'usr_name'};
 
-my $re_kfiles     = <keys.regex.key_files>;
-my $key_re_secret = <keys.regex.key_file.secret>;
-my $key_re_public = <keys.regex.key_file.public>;
+my $keys_re        = <keys.regex>;
+my $key_re_public  = $keys_re->{'key_file'}->{'public'};
+my $key_re_private = $keys_re->{'key_file'}->{'private'};
 
-my @k_files
-    = grep {s|^.+/||} grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@*;
-
-return if not @k_files;    # <-- no keys, skipping further output!
+## warns when absent ##
+my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
 my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
@@ -43,7 +41,7 @@ my %key_names;
 my $max_nlen = 0;
 foreach my $file (@k_files) {
 
-    if ( $file =~ m{$key_re_secret} ) {
+    if ( $file =~ m{$key_re_private} ) {
         $key_name         = $LAST_PAREN_MATCH;
         $key_names{$file} = sprintf qw| '%s' |, $key_name;
     }
@@ -86,8 +84,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,..,.,,,.,,,,.,,,,.,..,,,..,,.,,,,.,.,.,,..,..,,...,...,.,.,.,,,.,,,.,,,..,,
-#XUUCNDB4E3UFNSJ7U33AUVH3T3JAJKMHN2EPQQ4VXJZAMGURNEKVYPIQA3FA45CFV76DF5XM7EWTY
-#\\\|HQOXGJA7OUPI3EQVO3UZNZQONDIFW7AGAMW7CSW563ZMXRVULAJ \ / AMOS7 \ YOURUM ::
-#\[7]6WZM3JEOHQRLY5RWSA5DDNSHQJ7PMD2GOZEC6TLNWVHMKJTWAMCI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,,..,,,,,,.,,.,.,,,.,.,,,,.,,..,,...,...,...,..,,.,,,...,.,.,
+#23ZMRBLYNZYU2KR6RBVRXEFDKDX7XP63F2YUZPIW77XO6OMOWFN6ROCJOOXBLMZQLCC27RTLAUIUC
+#\\\|L4OD6WFQPI6P376OV7D6FQZME32SM5DAVYZATVWXT3MUZ4VLK5C \ / AMOS7 \ YOURUM ::
+#\[7]E6MN3BDM3ZIONRFUH2VQGRDZN7E3JY4LVSF7BCUDEEZATA5ZCMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

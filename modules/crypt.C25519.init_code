@@ -12,10 +12,38 @@
 
 <crypt.C25519.key_usr> //= <system.amos-zenka-user>; #  <--  C25519 key owner.
 
+## regex ##
+##
+my $C25519_id = qw| C25519.B32 |;
+
+my @key_ext   = qw| secret  public |;
+my @key_types = qw| private public |;
+
+( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
+
+my $re_keyfiles = sprintf( '%s.(%s)', $key_re_tmpl, join( '|', @key_ext ) );
+
+my $name_regex = qr|[0-9a-zA-Z\._\-]+|;
+
+<crypt.C25519.regex> = {
+    qw| key_name | => qr|^$name_regex$|,
+    qw| key_file | => {
+        map {
+            my $type = $ARG;
+            my $xt   = $type;
+            $xt = qw| secret | if $xt eq qw| private |;
+
+            $type => qr|^($name_regex)\.$key_re_tmpl\.$xt$|
+
+        } @key_types
+    },
+    qw| key_files | => qr|$re_keyfiles|
+};
+
 0;
 
-#,,,.,,,.,,.,,.,.,.,,,...,,,,,..,,,,,,,.,,,..,..,,...,...,,.,,.,,,,.,,,,,,...,
-#DRLFCE7UWYMVDSNNAQOREWDXBK4ZUOL543R22OY4TUUW4MBT4JGC3U7WNAPJRGDWWWTIUKGKAJT42
-#\\\|JEHG7VYRZYVNMFWZURGWECRTIGO5ENNLTPUOCKBLH5WX3RKKQTT \ / AMOS7 \ YOURUM ::
-#\[7]RNMA4R7W6KQJM7HIR3TKYULOMBFDD7W67NHHKAD3BYWWSB74UCBQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,..,,.,.,.,,,,,,,..,,,,.,...,..,,...,...,...,,.,,.,.,.,,,...,
+#ITRMI2QAKADQ3XNWYAB3LVX4FGHCM2H3HYOSSXBPKNQTG5GFUEU5GCIZKFCMA4VBOVHYFED7IHINM
+#\\\|3YQZPKTBLDCXGKWF4IVB7BOB3UYADYEB3OBBRKKQAK47CYJ2F7E \ / AMOS7 \ YOURUM ::
+#\[7]7HIVSSMECMQINTAISAAQYO73QGDF3TX7QCMU4VRJURO6XFYPY6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

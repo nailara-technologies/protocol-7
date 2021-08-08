@@ -11,34 +11,29 @@ return print "\n  << expected <key_name> parameter >>\n\n"
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
 
-my $re_secret = <keys.regex.key_file.secret>;
-my $re_public = <keys.regex.key_file.public>;
-my $re_kfiles = <keys.regex.key_files>;
+my $keys_re = <keys.regex>;
+
+my $re_kfiles      = $keys_re->{'key_files'};
+my $re_public      = $keys_re->{'key_file'}->{'public'};
+my $key_re_private = $keys_re->{'key_file'}->{'private'};
 
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $key_usr = $key_vars_ref->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
-opendir( my $dir_fh, $key_dir )
-    or return
-    printf( ":\n: << %s : %s >>\n:\n", <[base.str.os_err]>, $key_dir );
-my @key_files = grep {m{$re_secret|$re_public}} reverse sort readdir($dir_fh)
-    or <[base.logs]>->( 0, "no C25519 keys found for user '%s'", $key_usr );
-closedir($dir_fh);
-
-return <[base.s_warn]>->( "no key files found [ %s ]", $key_dir )
-    if not @key_files;
+## warns when absent ##
+my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
 my $match_re = qr|^(\Q$key_name_param\E\.$re_kfiles)$|;
 
-my $key_found = 0;
+my $key_found = FALSE;
 map {
-    $key_found = 1 if $ARG =~ $match_re;
+    $key_found = TRUE if $ARG =~ $match_re;
     my $k_path = "$key_dir/$ARG";
     return sprintf "\n << no write access to '%s' >>\n\n", $k_path
         if not -w $k_path;
-} @key_files;
+} @k_files;
 
 return printf "\n  << specified key '%s' not found >>\n\n", $key_name_param
     if not $key_found;
@@ -52,7 +47,7 @@ chdir($key_dir)
 print "\n::\n";
 
 my $len = 0;
-foreach my $file_name (@key_files) {
+foreach my $file_name (@k_files) {
     next if $file_name !~ $match_re;
     printf " : purging '%s'\n", $file_name;
     system( $shred_bin, '-fzu', $file_name )
@@ -67,8 +62,8 @@ foreach my $file_name (@key_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,,,.,,.,,,,.,,..,,,,,,.,,,.,,..,,.,.,.,,,..,,...,...,.,,,,,.,..,,,.,,...,
-#4UB2LO4SPDURYMV6D3NLB5BDPSHJ3VGZ7YFNOY4T5JQOG3CMDWBVUO3VLIQJ4VXWXFF6UKGEMVSAA
-#\\\|DXHDU5ZIMUVMD5Q5MIGC4BP7XVJEXOS6HV2CQGQU46BOXX433PI \ / AMOS7 \ YOURUM ::
-#\[7]XCLUIZQLLUHOSROPGZHZOOE3G77CUAPM5IZZF7R3FCJRBFAMMWCA 7  DATA SIGNATURE ::
+#,,..,...,...,.,.,...,,,,,.,.,.,,,,.,,.,,,,..,..,,...,...,,..,,,,,,,,,,..,,,,,
+#RQAFYPFJZWCTPWYDATCFB6XDN3HIOTF36M2WTM2ZIIH73LNQKI4OS24MYLTLSNGQQHSCETXMGXVIU
+#\\\|7OQRBL5GO5RFPVT6SWKRFVR67U7GQZ2HCMWTXWGRGYEZF3L6ZE2 \ / AMOS7 \ YOURUM ::
+#\[7]ELHVJUX6TDTBOCNAVHTCHI3KONX65TLX3XVLJVXZL2AWDVM3JMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
