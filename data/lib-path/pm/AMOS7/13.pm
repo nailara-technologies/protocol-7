@@ -36,6 +36,7 @@ use base qw| Exporter |;
 
     key_32
     divide_13
+    gen_entropy_string
     gen_entropy_values
 
     bin_032
@@ -86,9 +87,54 @@ sub divide_13 {    ## for short numbers only ## use Math::Bigint later too ##
 
 ##[ INIT ENTROPY ]############################################################
 
+sub gen_entropy_string {
+    ##  use gen_entropy_values to create harmonic [bin] entropy string  ##
+    ##
+    my $entropy_block      = '';
+    my $entropy_block_size = shift // '';   ##  size parameter is required  ##
+
+    if ( $entropy_block_size !~ m|^\d+$| or $entropy_block_size == 0 ) {
+        warn 'expected entropy length parameter <{C1}>';
+        return undef;
+    }
+    ##  calc ammount of required numbers  ##
+    my $requested_value_count = sprintf qw| %u |, $entropy_block_size / 2.6;
+
+    ##  using filter subroutine to convert numbers to binary string  ##
+    my $result = AMOS7::13::gen_entropy_values( undef, $requested_value_count,
+        \$entropy_block, \&entropy_string_filter, TRUE, TRUE );
+
+    ## truncate overflow ##
+    substr( $entropy_block, $entropy_block_size,
+        length($entropy_block) - $entropy_block_size, '' )
+        if length $entropy_block > $entropy_block_size;
+
+    return \$entropy_block;
+}
+
+sub entropy_string_filter {  ##  numerical input string of arbitary length  ##
+    my $packed_str = '';
+
+    while ( length $ARG[0] ) {
+        my $next_chr = 0;
+        if ( length( $ARG[0] ) < 3 ) {
+            $next_chr = $ARG[0];
+            $ARG[0] = '';
+        } else {
+            $next_chr = substr( $ARG[0], 0, 2, '' );
+            $next_chr .= substr( $ARG[0], 0, 1, '' )    ## take another ##
+                if join( '', $next_chr, substr( $ARG[0], 0, 1 ) ) <= 255;
+        }
+        $packed_str .= chr($next_chr);
+    }
+    return $packed_str;
+}
+
 sub gen_entropy_values {
-    my $requested_value_count;
+
     my $seed_data_sref = shift;
+
+    my $requested_value_count;
     if ( defined $ARG[0] and $ARG[0] =~ m|^\d+$| ) {    ## optional ##
         $requested_value_count = shift;
         if ( $requested_value_count == 0 ) {
@@ -96,14 +142,17 @@ sub gen_entropy_values {
             return undef;
         }
     }
+
     my $output_reference = shift;
     my $filter_coderef   = shift;
+    my $not_encode       = shift // FALSE;
+    my $not_127_pad      = shift // FALSE;
 
     my @seed_blocks;
     my @entropy_data;
-    my $file_output     = 0;
-    my $req_b32_encoded = 0;
-    my $fortuna_mode    = 0;
+    my $file_output     = FALSE;
+    my $req_b32_encoded = FALSE;
+    my $fortuna_mode    = FALSE;
 
     if ( not defined $seed_data_sref ) {    ##  random value data mode  ##
 
@@ -123,33 +172,36 @@ sub gen_entropy_values {
             warn_err('seed data needs 5 non-whitespace characters <{NC}>');
             return -2;
         }
+    } elsif ( defined $filter_coderef and ref $filter_coderef ne qw| CODE | )
+    {
+        warn 'filter code ref param is not a CODE reference <{C1}>';
+        return undef;
     }
-    if ( $output_reference =~ m,(IO::(File|Handle)|GLOB), ) {
+    my $output_reftype = ref $output_reference;
+    if ( not length $output_reftype ) {
+        warn 'require output reference param <{C1}>';
+        return undef;
+    } elsif ( $output_reftype =~ m,(IO::(File|Handle)|GLOB), ) {
         if ( not length fileno($output_reference) ) {
             warn_err('second parameter not [open] filehandle <{C1}>');
             return undef;
         } elsif ( ref $filter_coderef ne qw| CODE | ) {
             warn_err('filehandle also requires a CODE ref parameter <{C1}>');
             return undef;
-        } else {
-
-            $file_output = $req_b32_encoded = 5;    ## true ##
-
+        } else {    ##  true  if not otherwise requested  ##
+            $file_output = $req_b32_encoded = $not_encode ? FALSE : TRUE;
         }
-    } elsif ( defined $output_reference
-        and ref $output_reference eq qw| ARRAY |
-        and defined $filter_coderef ) {
+    } elsif ( $output_reftype eq qw| ARRAY | and defined $filter_coderef ) {
         warn_err( 'filter parameter not expected '
                 . 'with output reference type ARRAY <{C1}>' );
         return undef;
     } elsif ( defined $output_reference
         and ref $output_reference eq qw| SCALAR | ) {
 
-        $req_b32_encoded = TRUE;    ## true ##
+        $req_b32_encoded = $not_encode ? FALSE : TRUE;    ## true ##
 
-    } elsif ( defined $output_reference
-        and ref $output_reference ne qw| ARRAY |
-        and ref $output_reference ne qw| SCALAR | ) {
+    } elsif ( $output_reftype ne qw| ARRAY |
+        and $output_reftype ne qw| SCALAR | ) {
         warn_err( "output ref type '%s' not valid <{C1}>",
             1, ref $output_reference );
         return undef;
@@ -274,6 +326,7 @@ sub gen_entropy_values {
             my $output_value = '';
 
             for ( 0 .. 15 ) {
+                last if @entropy_data == 0;   ##  uneven ammount requested  ##
                 $output_value .= pop @entropy_data;    ## multiple of 16 B ##
             }
 
@@ -284,9 +337,15 @@ sub gen_entropy_values {
                         0, $value_length );
                     truncate( $output_reference, 0 );    ## erasing content ##
                     return error_exit('aborting write.');
+
                 } else {    ##  output data padded with asc 127 characters  ##
-                    my $remainder_len = 16 - $value_length % 16;
-                    $output_value .= chr(127) x $remainder_len;
+
+                    ## if not ommission requested ##
+                    ##
+                    if ( $not_127_pad == FALSE ) {
+                        my $remainder_len = 16 - $value_length % 16;
+                        $output_value .= chr(127) x $remainder_len;
+                    }
                 }
             }
 
@@ -296,6 +355,9 @@ sub gen_entropy_values {
 
             $cipher_string = $cipher_string->$*   ##  expected ref to data  ##
                 if ref $cipher_string eq qw| SCALAR |;
+
+            return error_exit('filter code returned undefined value')
+                if not defined $cipher_string;
 
             ##  WRITE TO ENCRYPTED FILE [ DATA ASC 127 PADDED ]  ##
             ##
@@ -321,9 +383,8 @@ sub gen_entropy_values {
 
         } elsif ( ref $output_reference eq qw| SCALAR | ) {
 
-            my $output_value = pop @entropy_data;    ## one per iteration ##
-
-            $output_reference->$* .= $output_value;  ##[  unencrypted  ]##
+            ## one per iteration ##
+            $output_reference->$* .= pop @entropy_data;  ##[  unencrypted  ]##
         }
     }
 
@@ -658,8 +719,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,,,.,.,,,.,.,,,.,,,.,,,.,,,.,,,,,,,.,...,..,,...,...,..,,.,,,.,,,...,.,.,
-#CXNWLILTD3CJXBYPNBXOYYRJH47XKJQ2XYZZGG36RTTTELBXEE5ECVZUDWGNEWPFJYQTITJUZHFAM
-#\\\|3M7POL2Q4VMHJ6O4FV23P73CNQ6SZJJ6WO4AMPVVXTHAORI6V24 \ / AMOS7 \ YOURUM ::
-#\[7]H5LL4UIRJECKEC6MEFF53VNGSDNG2PE6JJP2VASOCQHX52SHG6DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,.,,,,.,,.,,,.,.,.,.,..,,,,,,..,,...,...,.,.,,,,,,..,.,,,.,.,
+#6KS2BIBD6TLDBXC5S3UIUVOBUOFW5VCSH2ZAWMETD7FKWHPEXC7LPS247IX76WPEAWRJR77TDIEOG
+#\\\|KASKMUIELR4GSHJO6W3PYGE5ZJFN52HDAUVMZJNWHICIOHWW3ZX \ / AMOS7 \ YOURUM ::
+#\[7]MZ654K6KAUTPAAF3QRWBKOUA6JJ4IOKDID4QBA6P3SCCN4VR4WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
