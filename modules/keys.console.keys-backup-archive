@@ -1,0 +1,46 @@
+## >:] ##
+
+# name  = keys.console.keys-backup-archive
+# descr = create an encrypted key archive file
+
+return if <[keys.get_keyfiles]> == 0;    ## warns when absent ##
+
+my $path = shift;
+
+$path = qw| / | if defined $path and ( not -d $path or not -r $path );
+my $file = <[keys.select_archive_path]>->($path);
+
+if ( not defined $file ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->( qw| 0110 |, ' :, no archive file selected', 0 );
+}
+( my $archive_name = $file ) =~ s|^.*/||;
+
+##  requesting archive encryption password  ##
+##
+my $pwd_title  = sprintf "archive '%s'", $archive_name;
+my $pwd_prompt = 'archive enc password';
+my $enc_pwd = AMOS7::TERM::read_password_repeated( $pwd_prompt, $pwd_title );
+
+if ( not defined $enc_pwd ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->(
+        qw| 0110 |, ' :, not writing archive without passphrase', 0
+    );
+}
+
+##  pack  \  encrypt  \  write archive to disk  ##
+##
+if ( not <[keys.write_key_archive_file]>->( $file, $enc_pwd ) ) {
+    <[base.exit]>->( qw| 0110 |, 'error while writing key archive file', 0 );
+}
+
+return printf( "::[  successfully wrote archive file %s  ]::\n\n", $file );
+
+#,,..,,,.,.,,,,,,,,,,,,,,,,,.,,..,,,.,,.,,.,.,.,.,...,...,...,,.,,..,,,,,,...,
+#4HDWY75SQ5G2PSMRTBLYUNHZ6DBS5H5S2WJQ5YGUP54BVOU52JVC2Z4XEEF2IQ5OLWYMXH7UOQXXE
+#\\\|CFPPJGQESS4O6WJD5RJEIHPMKZ7WRKAPDQBMJCL3XNXAHJDEW7Q \ / AMOS7 \ YOURUM ::
+#\[7]T7XHIJDE3MNVG6LMYISSYGMJI2BSE5PVUXMLN4UA3JXQYI5AZAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

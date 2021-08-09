@@ -1,0 +1,139 @@
+## >:] ##
+
+# name  = keys.select_archive_path
+# descr = select an archive file to save to
+
+my @preselect_path;
+
+if ( @ARG and defined $ARG[0] and -d $ARG[0] and -r $ARG[0] ) {
+    @preselect_path = ( qw| -path |, shift @ARG );
+}
+
+<[base.perlmod.load]>->('Curses::UI')
+    if not <[base.perlmod.loaded]>->('Curses::UI');
+
+$OUTPUT_AUTOFLUSH = TRUE;
+printf "%s%s", $colors{'B01'}, $colors{'clear_screen'};
+
+my %C = %AMOS7::C;
+
+my $CURSES_UI = Curses::UI->new(
+    -clear_on_exit => 5,    ## true ##
+    -color_support => 5,    ## true ##
+    -mouse_support => 5,    ## true ##
+    -compat        => 0,    ##  false  ##
+);
+
+<[terminal.curses_ui.load_lang]>->( $CURSES_UI->lang );
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $keys_user    = $key_vars_ref->{'usr_name'};
+
+my $start_filename = sprintf qw| %s.archive.p7_keys |, $keys_user;
+
+my $title_str = 'select archive filename to save to';
+
+my $mask = [
+    [ qw| . |,          'all files [*]' ],
+    [ qw| \.p7_keys$ |, '[ .p7_keys ] PROTOCOL 7 key archive' ],
+];
+
+my $win = $CURSES_UI->add( 'window', 'Window', );
+
+my $container = $win->add( 'mycontainer', 'Container' );
+
+my $dialog = $container->add(
+    'filename', 'Dialog::Filebrowser',
+    -title         => $title_str,
+    -file          => $start_filename,
+    -editfilename  => 5,                 ## true ##
+    -mask_selected => 1,
+    -mask          => $mask,
+    @preselect_path
+);
+
+##[  overriding button label details  ]##
+##
+my $buttons = $dialog->getobj('buttons')->{'-buttons'};
+
+$buttons->[0]->{'-label'}    = '[ select ]';
+$buttons->[0]->{'-shortcut'} = qw| S |;
+
+$buttons->[1]->{'-label'}    = '[ abort ]';
+$buttons->[1]->{'-shortcut'} = qw| A |;
+
+$dialog->getobj('dirbrowser')->{'-labels'}->{'..'} = '[,. parent dir. .,]';
+
+if ( not @preselect_path ) {
+    $dialog->getobj('dirbrowser')->focus;
+} else {
+    $dialog->getobj('buttons')->focus;
+}
+
+SELECT_FILE:
+
+$dialog->modalfocus;    ##  blocking until selection made  ##
+
+my $overwrite = FALSE;
+
+my $file = $dialog->get();
+
+if ( defined $file ) {
+    ( my $file_rel      = $file ) =~ s|^.*/||;
+    ( my $file_path_dir = $file ) =~ s|$file_rel$||;
+    $file_path_dir =~ s|(*plb:.)/$|| if length $file_path_dir;
+
+    if ( -d $file ) {
+        $CURSES_UI->error( sprintf "'%s' is a directory.,", $file_rel );
+        $dialog->getobj('filevalue')->focus;
+        goto SELECT_FILE;
+
+    } elsif ( -e $file and not -w $file ) {
+        $CURSES_UI->error( sprintf "no write permissions for '%s'.,",
+            $file_rel );
+        $dialog->getobj('filebrowser')->focus;
+        goto SELECT_FILE;
+
+    } elsif ( -e $file ) {
+
+        my $l     = $CURSES_UI->root->lang;
+        my $pre   = $l->get('file_overwrite_question_pre');
+        my $post  = $l->get('file_overwrite_question_post');
+        my $title = sprintf "replace archive file '%s'", $file_rel;
+
+        $overwrite = $CURSES_UI->dialog(
+            -title   => $title,
+            -buttons => [ 'yes', 'no' ],
+            -message => sprintf qw| %s%s%s |,
+            $pre, $file, $post,
+        );
+
+    } elsif ( -d $file_path_dir and not -w $file_path_dir ) {
+
+        $CURSES_UI->error( sprintf "no write permissions in '%s'.,",
+            $file_path_dir );
+        $dialog->getobj('dirbrowser')->focus;
+        goto SELECT_FILE;
+    } else {    ##  writing success message in selection window  ##
+        my $shortened_path = <[base.parser.ellipse_center]>->( $file, 50 );
+        say sprintf "\n%s[[%s%s %s %s%s]]%s", $C{'0'}, $C{'g'},
+            $C{'b'}, $shortened_path, $C{'R'}, $C{'0'}, $C{'R'};
+        <[base.sleep]>->(1.2);
+    }
+}
+
+$win->delete('filename');
+$CURSES_UI->leave_curses();    ##  resets terminal  ##
+$CURSES_UI->mainloopExit();
+
+goto SELECT_FILE if defined $file and -e $file and not $overwrite;
+
+say "%s%s\n\n", $colors{'reset'}, $colors{'clear_screen'};
+
+return $file;
+
+#,,,,,.,,,,.,,.,.,.,.,.,.,,,,,,.,,,,,,.,,,,.,,.,.,...,...,..,,...,,..,,,.,.,.,
+#4D6AZGRAZ47YDM5GTEJRJSHMY4H2FBPC5NN7TDJ6BEZLPLA6RX4CZF3SBSI4IWLT4AVR3STJHLCBO
+#\\\|IC7TPUJL3AZUP63Z25BYOQKVDWZ6T73YB2WW56IUSRBEDBM77BR \ / AMOS7 \ YOURUM ::
+#\[7]46K4V542EC2CV2GTDBF7Q6IYSMAOABH7ZTBTNYJVXYYOB6QBFECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
