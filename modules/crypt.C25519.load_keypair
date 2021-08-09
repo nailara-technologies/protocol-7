@@ -110,16 +110,17 @@ if ( -r $private_key_file and -r $public_key_file ) {
             say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
         }
 
-        my $enc_key = AMOS7::13::key_32( \$key_password );
+        my $dec_key_32 = AMOS7::13::key_32( \$key_password );
 
         <[base.logs]>->( ": decrypting private key ., [ %s ]", $key_name );
 
-        if ( not defined $enc_key or not length $enc_key ) {
-            warn 'error during file enc key derivation <{C1}>';
+        if ( not defined $dec_key_32 or not length $dec_key_32 ) {
+            warn 'error during file dec key derivation <{C1}>';
             return undef;
         }
         my $status
-            = AMOS7::Twofish::key_init( $enc_key, qw| decryption C25519 | );
+            = AMOS7::Twofish::key_init( $dec_key_32,
+            qw| decryption C25519 | );
 
         if ( not defined $status or not $status ) {
             warn 'error during initializing of '
@@ -195,8 +196,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,.,,...,,..,,,,,,,.,..,,...,.,,,,..,.,,,.,,,..,,...,...,..,,.,,,.,.,,,,,,,,,
-#6RBRSB4R5HQK7MMUEIHO7B7P5D7H22EQ7RE6XDLF75V52XWJHXHVG3ENABW7ZM3EYTPACWPTLWC24
-#\\\|N5ZKYYRH75VQRG7SO2EM67C6Z5Q6EELLBCSVJDMHZURVHAM5ZXK \ / AMOS7 \ YOURUM ::
-#\[7]RMH4ELLMN6DKGCJVDXVAROHGG4WK5O4DSEGTKERMB3TNM4ZCQ2BI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,,,,,,,,,.,,,..,,...,,,,,..,,..,,...,...,,,.,..,,.,,,..,,,,.,
+#H4JAMVRLDB3ALMIE5ZIM5KLWLZXVKERU3RFNCNQL2A54N4YP4UNWPW7JIE5ATX4CCGLZXM7H7LEXE
+#\\\|5UKSX5PKSBJVZTP7QY5D5XG6V4MVF6GMKZNGBTQ7GKWDPTCC2R4 \ / AMOS7 \ YOURUM ::
+#\[7]MF2Y7FPZ54Q6LLPXYBFFXPLZH6RQH5HZW4WGI6ZEMXJQVZNIR2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

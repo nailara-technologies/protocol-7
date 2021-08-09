@@ -8,7 +8,7 @@ use List::MoreUtils qw| minmax uniq |;
 use File::Which qw| which |;
 use Time::HiRes qw| sleep |;
 
-my $no_utf8 = 0;
+my $no_utf8 = 0;    ##  false  ##
 
 $no_utf8 = 5
     if @ARGV > 1
@@ -16,7 +16,7 @@ $no_utf8 = 5
     and $ARGV[0] eq qw| :noutf8: |
     and shift @ARGV;
 
-$OUTPUT_AUTOFLUSH = 1;
+$OUTPUT_AUTOFLUSH = 5;    ## true ##
 
 my @ptd_args = qw| -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup' |;
 
@@ -88,20 +88,28 @@ sub sort_files {
 sub is_perl_code {
     my $file = shift;
     return 0 if not -f $file or -z $file;
-    my $is_code = 0;
+    my $is_code = 0;    ##  false  ##
     open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     my $first_line = '';
     while (
         $first_line ne '## >:] ##'    ## <- protocol-7 source code header ##
         and $first_line =~ m{^\s*($|(use|my|our)\s.+;|#(*nla:!))}
     ) {
-        chomp( $first_line = <$fh> );
+        $first_line = readline($fh);
+        if ( not defined $first_line ) {
+            last;    ##  false  ##  [ possibly comments only ]
+        } else {
+            chomp($first_line);
+        }
     }
 
-    $is_code = 1
-        if $first_line eq '## >:] ##'
-        or $first_line =~ m|^#!.*perl|
-        or $first_line =~ m|^package .+;(\s*#.*)?$|;
+    if ( defined $first_line ) {
+        $is_code = 5    ## true ##
+            if $first_line eq '## >:] ##'
+            or $first_line =~ m|^#!.*perl|
+            or $first_line =~ m|^package .+;(\s*#.*)?$|;
+    }
+
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
 }
@@ -129,8 +137,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,.,,,.,,,.,,,,,.,,..,,,,,.,,,,..,,,,,,,.,..,,...,...,,..,...,,,,,..,,..,,
-#7RPLCW6FN7DXSWGICXY43QBIK5Z6KWMX3PIWXPAOYX42RPSEEM2POLKW7LKKW5ZNG7QVKGDSTV6TG
-#\\\|JHK4LAUHTSWGXKVIOWWKSHAKLUTZ4C573ICQ3YDIYENJLOT7C3S \ / AMOS7 \ YOURUM ::
-#\[7]BGRTDBBXLT7T3YFQV76FOFGLNAGSL4SI6Z63FOHYTC75AZ5VDGBA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,..,,..,,,,,,,,,,.,,,,,.,.,.,..,,...,..,,..,,,.,,..,,,..,,,.,
+#WVQKN4XXCLG5TW4KUQOW6FCKJ7FZXDBKU4FNY5TDH32PQYDA2ZKPUQEBZP5VXZZIFWJJXZIRDZGQK
+#\\\|WKDK6Y65LXAKVZNWFYSY3ECPTBFWZHEPGHEDVTVX3AF6QVFOHVI \ / AMOS7 \ YOURUM ::
+#\[7]4CUGLYXTATNCWBYHYNEAO2WDPEC5NSCJ6CEK4QSFXNBUITILNAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

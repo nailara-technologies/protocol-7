@@ -44,7 +44,15 @@ foreach my $file (@k_files) {
         } else {
             chomp( $keystr_encoded = $keystr_encoded->$* );
             my $key_len = length $keystr_encoded;
-            if ( $key_len > 52 ) {    ##  is priv. key  ##
+
+            if ( $key_len != 52 and $key_len != 103 and $key_len != 106 ) {
+                <[base.logs]>->(
+                    0, "length of key '%s' not valid [ %04d BYTES ]",
+                    $filepath_rel, $key_len
+                );
+                $single_chksums{$key_name}
+                    = $key_chksums{$key_name} = qw| size.error |;
+            } elsif ( $key_len > 52 ) {    ##  is priv. key  ##
                 my $key_bin = decode_b32r($keystr_encoded);
                 if ( not defined $key_bin ) {
                     $key_chksums{$key_name} = qw| dec.err |;
@@ -54,7 +62,7 @@ foreach my $file (@k_files) {
                     $single_chksums{$key_name}
                         = <[crypt.C25519.key_checksums]>->(@chksumkeys);
                 }
-            } else {                  ##  is a public key  ##
+            } else {                       ##  is a public key  ##
                 my $key_bin = decode_b32r($keystr_encoded);
                 if ( not defined $key_bin ) {
                     $key_chksums{$key_name} = qw| dec.err |;
@@ -75,8 +83,8 @@ foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
 
 return \%key_chksums;
 
-#,,,,,,..,..,,...,.,,,,,.,.,,,,,,,,,,,,..,,.,,..,,...,...,...,..,,,,.,..,,..,,
-#XI5ELX357FIWGBA5AGYLCALI5YHQIEB5EUMOU3OMMY64N7L6X4TZYYVP3YIORZBF2KESVQSESINWS
-#\\\|QVMXWMAAVXKCLQQLD6GTGFPM376HZENN6DHGOYJVIHZOPFXPD7B \ / AMOS7 \ YOURUM ::
-#\[7]JBI2VKYEIYBU3X4H4DT52OCN4575A2QHSV75F66JBEI5JSYML4DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,.,.,,.,,...,...,,..,.,,,..,,..,,...,...,.,,,...,..,,,..,,.,,
+#GZGPZV2DF3XF32R7NONM3AP353NLJA3UNLPWGTP6RFUMKNDHEPSXIGVHFJQ3DIDZXOKEXUSY4LLLI
+#\\\|I4MRYK267QG5KSTP36OQP4FQXGXQX4W7UGXUOC7Z44A4DEEHQJA \ / AMOS7 \ YOURUM ::
+#\[7]U4THGKZJ4U7TYVIV7NKDRVEMT4BXJDMIVXYZFH355NQAXJ4N4SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

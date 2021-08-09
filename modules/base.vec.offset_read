@@ -1,0 +1,53 @@
+## >:] ##
+
+# name  = base.vec.offset_read
+
+my $data_carrier_ref   = shift;
+my $carrier_bit_offset = shift // 0;
+my $carrier_bit_steps  = shift // 1;
+my $splice_length      = shift;
+
+if ( ref $data_carrier_ref ne qw| SCALAR | ) {
+    warn 'expected scalar reference to data carrier <{C1}>';
+    return undef;
+} elsif ( $carrier_bit_offset !~ m|^\d+$| ) {
+    warn 'carrier offset not numerical <{C1}>';
+    return undef;
+} elsif ( $carrier_bit_steps !~ m|^\d+$| ) {
+    warn 'bit steps param not numerical <{C1}>';
+    return undef;
+} elsif ( defined $splice_length and $splice_length !~ m|^\d+$| ) {
+    warn 'splice length is not numerical <{C1}>';
+    return undef;
+}
+my $carrier_data_bit_length = 8 * length $data_carrier_ref->$*;
+$splice_length //= $carrier_data_bit_length - $carrier_bit_offset;
+
+if ( $carrier_data_bit_length - $carrier_bit_offset < $splice_length ) {
+    warn 'not enough bits in carrier for requested payload length<{C1}>';
+    return undef;
+}
+
+my $bits;    ##  result bitsring  ##
+
+##  splicing out data  ## [ ( 7 - pos % 8 ) + ( pos - pos % 8 ) ] ##
+##
+my $payload_bits_spliced = 0;
+while ( $payload_bits_spliced < $splice_length ) {
+    $bits .= vec(
+        $data_carrier_ref->$*,
+        ( 7 - $carrier_bit_offset % 8 )
+            + ( $carrier_bit_offset - $carrier_bit_offset % 8 ),
+        1
+    );
+    $carrier_bit_offset += $carrier_bit_steps;
+    $payload_bits_spliced++;
+}
+
+return \$bits;
+
+#,,,,,.,.,,,,,.,.,,,.,,,,,,.,,.,.,..,,...,,.,,..,,...,...,.,.,.,.,..,,,..,,.,,
+#ZNYARQKIQDEA5TDHNA7CLXMLIU3ZG7M3USAOKDD572HL7JDN343LEP52I2JAKDXOQTFOH7DPKXQ3U
+#\\\|FR5M3UBSA4BDBDFX5JYVVUCJ2R3SPNAV6NKRF2WTPA6TA3CKTOE \ / AMOS7 \ YOURUM ::
+#\[7]52LDXESX7PPM74ELPJV7WUUDPSYV3NVQYAJ7M6CODGWILGW642AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## >:] ##
+
+# name  = keys.unpack_format.key_archive_payload
+
+my $archive_payload_ref = shift;
+if ( ref $archive_payload_ref ne qw| SCALAR | ) {
+    warn 'expected scalar ref to archive payload <{C1}>';
+    return undef;
+} elsif ( not length( $archive_payload_ref->$* // '' ) ) {
+    warn 'archive payload is empty or not defined <{C1}>';
+    return undef;
+}
+
+my $payload_data_body;
+my $header_str         = "## >:] ##\n#.\n";
+my $archive_footer_str = "\n#.\n#.::\n";
+
+if ( $archive_payload_ref->$*
+    !~ m|^\Q$header_str\E(.+)\Q$archive_footer_str\E$|s ) {
+    warn 'archive format not correct [ header \ footer ] <{C1}>';
+    return undef;
+} else {
+    $payload_data_body = $LAST_PAREN_MATCH;
+}
+
+my $key_ref;
+foreach my $key_line ( split "\n", $payload_data_body ) {
+    if ( $key_line !~ m|^\['([^']+)'\]([A-Z2-7]+(\\n)?)$| ) {
+        warn 'archive format not correct [ key line error ] <{C1}>';
+        return undef;
+    }
+    my $key_name    = ${^CAPTURE}[0];
+    my $encoded_key = ${^CAPTURE}[1];
+    $encoded_key =~ s|\\n$|\n|;    ## restoring linefeed ##
+
+    if ( exists $key_ref->{$key_name} ) {
+        warn 'key archive error [ duplicate key ] <{C1}>';
+        return undef;
+    }
+    $key_ref->{$key_name} = $encoded_key;   ##  storing extracted user key  ##
+}
+if ( not keys $key_ref->%* ) {
+    warn 'key archive error [ no keys extracted ] <{C1}>';
+    return undef;
+}
+
+return $key_ref;    ##  hash ref to keys  ##
+
+#,,,,,..,,.,,,,..,...,,.,,,,,,,,,,,,.,.,,,,..,..,,...,..,,,,,,..,,,.,,..,,,..,
+#FSB6PYP2NIJDLDZSSRSL6SWG5XM4J5XV3QMKILQJD2TSFQSIW63OFLMKHLRPN6ZDRNCVNYTNLJXXA
+#\\\|R3BCQRXJZ4CQRH7M745J3QZIKWBIVMU2EPUI4ZUJBFITM2A2BEX \ / AMOS7 \ YOURUM ::
+#\[7]U3I6V7NL4KS4JFAGA73VYIHS3ESCBXC4M63TCC57CBH6PRFPC6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## >:] ##
+
+# name  = base.parser.splice_out_data
+
+my $data_carrier_ref   = shift;
+my $carrier_bit_offset = shift;
+my $carrier_bit_steps  = shift // 1;
+my $splice_length      = shift;
+
+my $carrier_data_bit_length = 8 * length $data_carrier_ref->$*;
+
+my $bits_ref = <[base.vec.offset_read]>->(
+    $data_carrier_ref,  $carrier_bit_offset,
+    $carrier_bit_steps, $splice_length
+);
+
+if ( ref $bits_ref ne qw| SCALAR | or not length $bits_ref->$* ) {
+    warn 'error during payload extraction <{C1}>';
+    return undef;
+}
+
+my $payload_data = pack qw| B* |, $bits_ref->$*;
+
+return \$payload_data;
+
+#,,,,,..,,.,.,,,.,,,,,,,.,,.,,.,.,...,...,...,..,,...,...,.,.,,,.,.,,,.,.,.,.,
+#QFWRPZK2GZNZ5ZAGQOPVJ4SZVDBO63OPG57NIJQ6DPORES5IHBYRERIOX3Q45QVH4XXWH5S7DT5EC
+#\\\|LJPKRPU5C5VTKUOI7LTGFZCUKLBEP3FROUHMN53PFP6MSMGIRMX \ / AMOS7 \ YOURUM ::
+#\[7]XAR3K6VQ6T3EWQZMKOHAW2TQBI5YHAW4E6TJNMDVZAUS2Z25X4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
