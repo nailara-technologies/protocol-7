@@ -118,13 +118,15 @@ sub read_password_repeated {
                 undef $password_0;
                 undef $password_1;
                 say $C{'R'};
-                if ( defined $main::PROTOCOL_SEVEN ) {
-                    printf "%s:\n", $C{'0'};
-                    $main::code{'base.log'}
-                        ->( 0, ' [ password read aborted ]' );
-                    printf "%s:\n", $C{'0'};
-                } else {
-                    error_exit(' [ password read aborted ]');
+                if ( $password_status != 1 ) {
+                    if ( defined $main::PROTOCOL_SEVEN ) {
+                        printf "%s:\n", $C{'0'};
+                        $main::code{'base.log'}
+                            ->( 0, ' [ password read aborted ]' );
+                        printf "%s:\n", $C{'0'};
+                    } else {
+                        error_exit(' [ password read aborted ]');
+                    }
                 }
                 return undef;
             }
@@ -339,8 +341,8 @@ sub read_single_key_press {
 
 return TRUE ##################################################################
 
-#,,,.,.,.,.,,,,,,,...,..,,.,,,,.,,,.,,,,.,,.,,..,,...,...,..,,..,,.,,,,..,.,,,
-#6XRRIVBLDZWBGXCPLF2EA5PNW7BOTO7JD4NSTP7UATF2LK4L2SY6UZE46EXWESNMITSBIIEHFHZWG
-#\\\|B4CJDDPPKOG6FXZ5ONLGZFNC5EBHZ6YUCWYOJ527356L36DNC6Z \ / AMOS7 \ YOURUM ::
-#\[7]A5QSBZRVEE5GVRYV65QNNCTTJSRCUOPGXJFZBZHWTQUQBW3NXYBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,,.,,,,,.,,,,.,,.,,,...,.,.,..,,...,...,,,.,,,.,.,.,,,.,..,,
+#2JTQOMZNP6DT2LUK6ZJRQ5MIHT2PWNIAAEQDZOCHHMKLUFJFGFYGBBKOM5FYKYYW5E7YQ4UCBSFCY
+#\\\|DNIV6BCGGVP27TB7TPZEXOFSM76GV53K4PW5TLHEZEYEPNB4R55 \ / AMOS7 \ YOURUM ::
+#\[7]MK6ZXRJCDZ7LKP3E6CGBHQDGKIIE7DYXIZV7ZFIUPA7OWSAGXABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
