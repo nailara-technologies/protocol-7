@@ -1,0 +1,95 @@
+## >:] ##
+
+# name  = keys.console.decrypt-archive
+# param = [src]
+# descr = decrypt and import archived user keys
+
+my $src_path_abs = shift;
+
+if ( defined $src_path_abs ) {
+    my $archive_path_directory = last_existing_directory($src_path_abs);
+    if (   -d $src_path_abs and not -r $src_path_abs
+        or -d $archive_path_directory and not -r $archive_path_directory ) {
+        <[base.exit]>->(
+            qw| 0110 |, 'no read permissions for parent directory', 0
+        );
+    } elsif ( not -e $src_path_abs ) {
+        <[base.exit]>->(
+            qw| 0110 |, 'given archive file path does not exist', 0
+        );
+    } elsif ( -d $src_path_abs ) {
+        $src_path_abs
+            = <[keys.select_archive_path]>->( qw| :load: |, $src_path_abs );
+
+    } elsif ( -e $src_path_abs and not -r $src_path_abs ) {
+        <[base.exit]>->( qw| 0110 |, 'archive file not readable', 0 );
+    }
+} else {
+    $src_path_abs = <[keys.select_archive_path]>->(qw| :load: |);
+}
+if ( not defined $src_path_abs ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->( qw| 0110 |, ' :, no archive file selected', 0 );
+}
+( my $archive_name = $src_path_abs ) =~ s|^.*/||;
+
+##  requesting archive encryption password  ##
+##
+my $pwd_title  = sprintf "archive '%s'", $archive_name;
+my $pwd_prompt = 'archive dec password';
+
+my $decryption_pwd
+    = AMOS7::TERM::read_password_repeated( $pwd_prompt, $pwd_title );
+
+if ( not defined $decryption_pwd ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->( qw| 0110 |, ' :, key archive decryption aborted.,', 0 );
+}
+
+my $read_user_keys    ##  load hash ref with filenames and keys  ##
+    = <[keys.read_key_archive]>->( $src_path_abs, $decryption_pwd );
+
+<[base.exit]>->( qw| 0110 |, 'error during archive reading', 0 )
+    if ref $read_user_keys ne qw| HASH |
+    or not my $archive_key_count = keys $read_user_keys->%*;
+
+my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
+
+my @collision_keys;
+my @not_yet_present_keys;
+my $key_name_collisions = 0;
+my $identical_key_count = 0;
+foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
+    if ( not <[keys.key_exists]>->($extracted_filename) ) {
+        push @not_yet_present_keys, $extracted_filename;
+        next;
+    }
+    my $disk_key_ref    ##  compare contents directly  ##
+        = <[file.slurp]>->( catfile( $key_dir, $extracted_filename ) );
+    if ( ref $disk_key_ref ne qw| SCALAR | or not length $disk_key_ref->$* ) {
+        <[base.s_warn]>->("cannot read key file '%s' for comparison");
+        $key_name_collisions++;    ##  counting as name collision  ##
+    } else {
+        if ( $read_user_keys->{$extracted_filename} eq $disk_key_ref->$* ) {
+            $identical_key_count++;
+            <[base.logs]>
+                ->( ':. already on disk .: %s', $extracted_filename );
+        } else {
+            $key_name_collisions++;
+            push @collision_keys, $extracted_filename;
+        }
+    }
+}
+
+if ( $identical_key_count == $archive_key_count ) {
+    return printf ":\n: all %d archived keys present and identical =)\n:\n",
+        $archive_key_count;
+}
+
+#,,.,,.,.,.,,,..,,.,.,,..,,.,,.,,,..,,,..,.,,,..,,...,...,,,.,,..,,.,,,,.,...,
+#6AXYHH5EECKWBLSFUQJLAQHKLFU4DWWVFEAVK7Y4TQSPU3NU5IRAB3J3DJMHA2COCHBAYQ4VVPBAA
+#\\\|6RJ2BYHUOQUT6KRU5O7FAHS2A2JTUQRSE2X4NP6QCDYZULQPYD7 \ / AMOS7 \ YOURUM ::
+#\[7]UHLLCKP5PJ57CQXUQFXQPHDHFUGCONBZR4HBSLOLZPIPPBY2RSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
