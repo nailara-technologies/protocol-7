@@ -1,0 +1,29 @@
+## >:] ##
+
+# name  = crypt.C25519.get_keyname
+# descr = return key name of given key filename
+
+my $C25519_filename = shift // '';
+
+if ( not length $C25519_filename ) {
+    warn 'expected key filename parameter <{C1}>';
+    return undef;
+}
+
+foreach my $type ( keys <crypt.C25519.regex.key_file>->%* ) {
+    return $LAST_PAREN_MATCH
+        if $C25519_filename =~ <crypt.C25519.regex.key_file>->{$type};
+}
+
+<[base.s_warn]>->(
+    'key file %s does not match any defined type <{C1}>',
+    $C25519_filename
+);
+
+return undef;
+
+#,,..,..,,.,,,..,,,,.,,,.,,,,,,,.,.,.,,..,,,.,..,,...,...,,.,,,,.,,..,.,,,...,
+#JXTTE63YEO3UAXHOCZ5A453V6HBBHAWTTEOGYEALXJLLZKR5FKKXGQXAII7XZT72KIJ6FHLXOVU5Y
+#\\\|WD6Z6R5X4NNV5J2VFNT6FACSZSGDQKCYX3WOH5HQN6M2O4CUGFM \ / AMOS7 \ YOURUM ::
+#\[7]GGQ3FZUA5SLW2H2AV2AJXARLIR5HXVKL2I374AGTGQHWSBNLWEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

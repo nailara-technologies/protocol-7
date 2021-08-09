@@ -213,7 +213,6 @@ return [ qw[
         devmod.cmd.since
         dbus.cmd.get-pid
         chk-sum.md5.b64u
-        base.vec.offsets
         base.resolve_key
         base.prng.reseed
         base.path_owners
@@ -510,6 +509,7 @@ return [ qw[
         content.check_queued
         chk-sum.sha.pre_init
         chk-sum.sha.file_hex
+        base.vec.offset_read
         base.route.init_code
         base.root.drop_privs
         base.read_proc_times
@@ -587,6 +587,7 @@ return [ qw[
         mpv.cmd.show_playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
+        keys.read_key_archive
         jobqueue.get_next_job
         jobqueue.get_job_data
         io.ip.tcp.output.open
@@ -605,6 +606,7 @@ return [ qw[
         crypt.C25519.pre_init
         crypt.C25519.keyfiles
         crypt.C25519.key_vars
+        crypt.C25519.key_type
         crypt.C25519.gen_keys
         content.update_hidden
         content.cmd.set_flags
@@ -612,6 +614,7 @@ return [ qw[
         content.check_changes
         chk-sum.md5.init_code
         chk-sum.crc.init_code
+        base.vec.offset_write
         base.start.prio_child
         base.session.shutdown
         base.register_pm_deps
@@ -910,6 +913,7 @@ return [ qw[
         cube.set-up.export_rules
         cube.cmd.set-initialized
         crypt.C25519.verify_sign
+        crypt.C25519.get_keyname
         crypt.C25519.chk_key_dir
         base.time.year_utc_float
         base.templates.init_code
@@ -1161,6 +1165,7 @@ return [ qw[
         base.resolve_data_key.regex
         base.perlmod.strip_INC_path
         base.perlmod.all_registered
+        base.parser.splice_out_data
         base.parser.ondemand_status
         base.ntime.harmonized_epoch
         base.log.next_buffer_tstamp
@@ -1220,6 +1225,7 @@ return [ qw[
         mpv.callback.start_reenc_msg
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
+        keys.console.decrypt-archive
         io.unix.socket.input.connect
         impressive.autoinstall_check
         httpd.handler.template_reply
@@ -1365,6 +1371,7 @@ return [ qw[
         events.cmd.get_playlist_hidden
         events.callback.object.weekday
         devmod.cmd.decode-harmonic-ref
+        crypt.C25519.key_name_and_type
         content.handler.mimetype_reply
         base.zenki.ondemand_registered
         base.session.send_init_reports
@@ -1612,6 +1619,7 @@ return [ qw[
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
         mod-test.callback.reload-test.add-link
+        keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
         base.file.path.make-relative-from-list
@@ -1660,8 +1668,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,...,...,,,.,.,.,,.,,,,,,..,,,.,,,..,..,,.,.,...,...,..,,,..,.,,,.,,,.,,,
-#SKZO5NIJIC763QPOPGL343HWDC6R54CI4DOZVYLVYK4QSCZXVCIX3USKZOMFACY7T7HWJ3GUZQCVM
-#\\\|TM3S47IBJLJOQJU5DM2TQYX4DAMKJ5YD2I2CBJABERCPFM7NXOT \ / AMOS7 \ YOURUM ::
-#\[7]J7L3OM6LFZB5EDGYQ4VEPUGW4QG33XJZJSOAKSZT634EC2TB6KBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,.,,..,...,...,,..,..,,..,,,.,,.,.,...,...,.,.,..,,.,.,,,,,,..,
+#JHZWAVHBZDBVM4JO2YFMQX5GTIPSMN74I7DZ4T2VN6NTM6O6ZVWT7DCFTEAMKLZ56LOAMN5KUUKXY
+#\\\|4BRMCUDEGX7XRTTIUV6DRAZGCER32ZNUMFX7O4L2JBBEBPJJDV6 \ / AMOS7 \ YOURUM ::
+#\[7]DLCKO4ROWCS22U5LT77L4E4UY3VNDJU72AAX6XWOZUMRWGY2XUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

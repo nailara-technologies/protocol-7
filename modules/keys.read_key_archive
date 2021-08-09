@@ -1,0 +1,159 @@
+## >:] ##
+
+# name  = keys.read_key_archive
+
+my $src_path_abs   = shift // '';
+my $decryption_pwd = shift // '';
+
+my $block_size = <keys.size.archive_block>;    ##  13 K archive block size  ##
+
+if ( not length $src_path_abs ) {
+    warn 'expecting archive file path parameter <{C1}>';
+    return undef;
+} elsif ( not length $decryption_pwd ) {
+    warn 'decryption password parameter required <{C1}>';
+    return undef;
+} elsif ( -d $src_path_abs ) {
+    warn 'archive path is a directory <{C1}>';
+    return undef;
+} elsif ( -z $src_path_abs ) {
+    warn 'archive file is empty <{C1}>';
+    return undef;
+} elsif ( not -e $src_path_abs ) {
+    warn 'specified archive file not found <{C1}>';
+    return undef;
+} elsif ( not -r $src_path_abs ) {
+    warn 'archive file not readable <{C1}>';
+    return undef;
+}
+
+<[base.logs]>->( 'reading archive file data %s ..,', $src_path_abs );
+
+<[file.slurp]>->( $src_path_abs, \my $archive_encrypted_data, qw| :raw | );
+
+if ( not length( $archive_encrypted_data // '' ) ) {
+    warn 'cannot read key archive <{C1}>';
+    return undef;
+}
+
+<[base.log]>->( 1, ': decrypting archive content..,' );
+
+my $dec_key_32 = AMOS7::13::key_32( \$decryption_pwd );
+
+if ( not defined $dec_key_32 or not length $dec_key_32 ) {
+    warn 'error during file dec key derivation <{C1}>';
+    return undef;
+}
+my $status = AMOS7::Twofish::key_init( $dec_key_32, qw| decryption C25519 | );
+
+if ( not defined $status or not $status ) {
+    warn 'error during initializing of archive file decryption key <{C1}>';
+    return undef;
+}
+
+my $decrypted_C25519_sref
+    = AMOS7::Twofish::decrypt( qw| C25519 |, \$archive_encrypted_data );
+
+my $decrypted_size = length $decrypted_C25519_sref->$*;
+
+if (   not defined $decrypted_C25519_sref
+    or ref $decrypted_C25519_sref ne qw| SCALAR |
+    or $decrypted_size < $block_size
+    or $decrypted_size % $block_size != 0 ) {
+    warn 'archive file decryption error <{C1}>';
+    return undef;
+}
+
+<[base.log]>->( 1, ': extracting possible payload offsets .,' );
+
+my $offset_limit   = int( 8 * $decrypted_size * 0.7 );    ## - payload size ##
+my $offset_max_len = length pack qw| w |, $offset_limit;
+
+my @payload_bit_offsets;
+foreach my $byte_len ( 1 .. $offset_max_len ) {
+    my $possible_comp_int_bin = substr $decrypted_C25519_sref->$*, -$byte_len;
+    next if not <[base.comp-int.is_valid]>->($possible_comp_int_bin);
+    my $possible_offset_num = unpack qw| w |, $possible_comp_int_bin;
+    push @payload_bit_offsets, $possible_offset_num;
+}
+
+if ( @payload_bit_offsets == 0 ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->(
+        qw| 0110 |, ' :. found no payload offset [ correct password ? ]', 0
+    );
+}
+
+my $matching_offset;
+foreach my $offset (@payload_bit_offsets) {
+    my $payload_data_ref = <[base.parser.splice_out_data]>->(
+        $decrypted_C25519_sref, $offset, 2, 80
+    );
+    if ( ref $payload_data_ref ne qw| SCALAR | ) {
+        <[base.log]>->( 0, 'error during payload extraction' );
+        return undef;
+    }
+    $matching_offset = $offset if $payload_data_ref->$* eq "## >:] ##\n";
+}
+
+if ( not defined $matching_offset ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->(
+        qw| 0110 |, ' :. payload header not found [ password correct ? ]', 0
+    );
+}
+
+<[base.logs]>->( 1, ': found correct offset at %05d =)', $matching_offset );
+
+my $max_payload_bit_length = sprintf qw| %u |,
+    8 + ( 8 * $decrypted_size ) / 3;
+
+my $payload_data_ref = <[base.parser.splice_out_data]>->(
+    $decrypted_C25519_sref, $matching_offset, 2, $max_payload_bit_length
+);
+
+my $archive_end_pos = rindex $payload_data_ref->$*, qw| #.:: |;
+
+if ( $archive_end_pos == -1 ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->(
+        qw| 0110 |, ' :. payload end not found [ archive corrupted ? ]', 0
+    );
+} else {
+    $archive_end_pos += 5;
+}
+
+<[base.logs]>->( 1, ': found payload end at pos %04d =)', $archive_end_pos );
+
+my $payload_byte_length = length( $payload_data_ref->$* ) - $archive_end_pos;
+
+<[base.logs]>->(
+    2, ': : truncating payload data to %03d bytes .,',
+    $payload_byte_length
+);
+
+substr( $payload_data_ref->$*, $archive_end_pos, $payload_byte_length, '' );
+
+my $archive_key_ref
+    = <[keys.unpack_format.key_archive_payload]>->($payload_data_ref);
+
+my $key_count;
+if ( ref $archive_key_ref ne qw| HASH |
+    or not $key_count = keys $archive_key_ref->%* ) {
+    <[base.log]>->( 0, '..' );
+    <[base.log]>->( 0, ' :' );
+    <[base.exit]>->( qw| 0110 |, ' :. no keys could be extracted', 0 );
+}
+
+<[base.logs]>->( 1, ': found %d keys in archive =)', $key_count );
+
+return $archive_key_ref;
+
+#,,,,,,.,,,..,,.,,,,.,,,.,,,,,,,,,,,.,,..,,,,,..,,...,...,,,,,,.,,,,.,,,.,.,.,
+#QUTAHEVT4XQ4HRVPVOBIIRSMDWRTNIRXAK5BMBRPJS22RTP3TACRETOOBA33S77LY3Z3HMMCYJJNO
+#\\\|7SPRHRCWAM47ZXWGCN7ZGKA3APN5DBKFGYIHLKXAQDOVXN5PNPH \ / AMOS7 \ YOURUM ::
+#\[7]EFFWJZISQCFJQHXJL3NAB3ZRAD77O57CJKZ3475BMFPHP4PFQICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

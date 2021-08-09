@@ -33,36 +33,40 @@ if ($display_checksums) {    ## calculating key checksums ##
         $OUTPUT_AUTOFLUSH = TRUE;
         printf ": %s%s\r", $C{0}, $calculating_message;
     }
+
     %key_chksums = ( <[keys.checksum_href]>->%* );
+
+    foreach my $name ( <[base.sort]>->( \%key_chksums ) ) {
+        <[base.logs]>->( 0, "failed to acquire checksum for key '%s'", $name )
+            if not defined $key_chksums{$name};
+    }
 }
 
 my $key_name;
 my %key_names;
 my $max_nlen = 0;
 foreach my $file (@k_files) {
+    my $name = <[crypt.C25519.get_keyname]>->($file);
+    $key_names{$file} = sprintf qw| '%s' |, $name;
 
-    if ( $file =~ m{$key_re_private} ) {
-        $key_name         = $LAST_PAREN_MATCH;
-        $key_names{$file} = sprintf qw| '%s' |, $key_name;
-    }
-    my $length = length $key_name;
+    my $length = length $name;
 
     if ( not $display_checksums ) {
-        my $spaces = ' ' x length $key_name;
+        my $spaces = ' ' x length $name;
         $key_names{$file} = sprintf ' %s ', $spaces
             if $file =~ m{$key_re_public};
 
-    } else {
-        $key_names{$file}
-            = sprintf( ' %*s ', $length, $key_chksums{$key_name} )
+    } elsif ( defined $key_chksums{$name} ) {
+        $key_names{$file} = sprintf( ' %*s ', $length, $key_chksums{$name} )
             if $file =~ m{$key_re_public};
     }
 
     my $l = length $key_names{$file};
     $max_nlen = $l if $l > $max_nlen;
 
-    $max_nlen = length $key_chksums{$key_name}
-        if $display_checksums and length $key_chksums{$key_name} > $max_nlen;
+    $max_nlen = length $key_chksums{$name}
+        if $display_checksums
+        and length( $key_chksums{$name} // '' ) > $max_nlen;
 }
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
@@ -84,8 +88,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,.,,.,,..,,.,,,,..,,,,,,.,,.,.,,,.,.,,,,.,,..,,...,...,...,..,,.,,,...,.,.,
-#23ZMRBLYNZYU2KR6RBVRXEFDKDX7XP63F2YUZPIW77XO6OMOWFN6ROCJOOXBLMZQLCC27RTLAUIUC
-#\\\|L4OD6WFQPI6P376OV7D6FQZME32SM5DAVYZATVWXT3MUZ4VLK5C \ / AMOS7 \ YOURUM ::
-#\[7]E6MN3BDM3ZIONRFUH2VQGRDZN7E3JY4LVSF7BCUDEEZATA5ZCMDY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,.,...,.,,,..,,.,.,.,,,.,.,..,,..,,...,...,,..,.,.,,,.,,..,.,.,
+#NHEGZ7YIQ7VT6ZVFKFRJQY5UTKLJKVH63ZQCCUKLAETHBMAIIPTLX2UWW5GP62R4FC6WCTKYSQFVQ
+#\\\|AN3NX725YNZPHWBMWKGVNMOMNRCHQQDSHCFW5PNJQGA42IA3EUJ \ / AMOS7 \ YOURUM ::
+#\[7]IVFC5R2CIHOVGP3OE2CSX4XNN4KCHT2B6ZP32JXAFZF5XL5MMGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
