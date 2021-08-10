@@ -125,6 +125,8 @@ sub warn_err {
     $c_lvl     = $LAST_PAREN_MATCH if $err_str =~ s| <\{C(\d+)\}>$||;
     $no_caller = TRUE              if $err_str =~ s| <\{NC\}>$||;
 
+    $c_lvl++ if defined $main::PROTOCOL_SEVEN;
+
     if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
         if ($no_caller) {
             warn sprintf '%s <{NC}>', $err_str;
@@ -249,8 +251,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,,.,,,,,..,,.,.,...,,,.,...,,..,...,,,.,.,.,..,,...,...,,..,...,...,..,,,,.,
-#WLFKPBPTK74P7BFQYTAFWRTCS56QUU5RFB5GT26QHSZDGDK2EYEZSBLWGEM3XCP2XM5PCYTN67I7W
-#\\\|H46IMSOEGYC5EE4OCPNVVH3DWQJA32XQ6YYIBHN2BVOLSRQBOE3 \ / AMOS7 \ YOURUM ::
-#\[7]3RJA7JP3DWQD2AT6E4XCV6T7VIOJP2CIXFCNGJF4YWXJDPVOOGDA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,.,.,..,,,,.,.,,,.,.,...,.,,,..,,...,...,..,,..,,.,,,..,,,,,,
+#NYE32ICPWUF4CPNYAKNTU26DTZJ72IK2OQT4RNUH4BEUNACKOHY4QKVMVTVS3RF4GLVKM5OA3YF6A
+#\\\|OEA56LR6TQSYRGAO5SX5WYS65GNQXB4UV3IIFCF3XV4GEYZOBNW \ / AMOS7 \ YOURUM ::
+#\[7]YQLMVVQQKNRDMZK3GGI3OZR2VXLBXGVFNC5NYIXQNSG2W4YCEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

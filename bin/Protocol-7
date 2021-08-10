@@ -18,8 +18,9 @@ p7_load_time_hires();
 p7_load_perl_modules();
 
 ##[ global constants ]##
-use constant TRUE  => 5;    ##  TRUE.  ##
-use constant FALSE => 0;    ##  false  ##
+use constant TRUE    => 5;    ##  TRUE.  ##
+use constant FALSE   => 0;    ##  false  ##
+use constant UNKNOWN => 2;    ##  unknown  ##
 
 # is protocol 7 code? #
 our $PROTOCOL_SEVEN = TRUE;    ##  TRUE  ##
@@ -1079,11 +1080,12 @@ sub p7_load_code {
     my $base_url_aref = $data{'system'}{'http_src_base_urls'};
     my @http_src_base_urls
         = ref($base_url_aref) eq qw| ARRAY |
-        ? @{$base_url_aref}
-        : qw|
-        http://nailara.network/sourcecode
-        http://src.v7.ax/nailara/
-        |;
+        ? $base_url_aref->@*
+        : ();    ## gone. ##
+    ##  : qw|
+    ##  http://nailara.network/sourcecode
+    ##  http://src.v7.ax/nailara/
+    ##  |;
 
     my $src_from_http = (
         ( $data{'system'}{'use_http_source'} // FALSE )
@@ -1099,11 +1101,11 @@ sub p7_load_code {
     $data{'system'}{'use_http_source'} = $src_from_http;
 
     my $c_ref            = $data{'base'}{'source'}{'code_files'} // [];
-    my @subroutine_names = @{$c_ref};
+    my @subroutine_names = $c_ref->@*;
 
     if ($src_from_http) {
         $code{'log.error'}->('<<< network source loading enabled >>>')
-            if !@subroutine_names;
+            if @subroutine_names == 0;
         ##### remote source code access ###
         my $method = ${^CAPTURE}[0]
             if $http_src_base_urls[0] =~ m|^(\w+):|;
@@ -1127,9 +1129,9 @@ sub p7_load_code {
             $code{'log.error'}->(': :. terminating startup sequence..,');
             $code{'log.noerr'}->(':....,');
             if ( defined $code{'base.exit'} ) {
-                $code{'base.exit'}->(1);
+                $code{'base.exit'}->(qw| 0110 |);
             } else {
-                exit(1);
+                exit(2);
             }
         }
         ####
@@ -1172,8 +1174,7 @@ sub p7_load_code {
             my $src_abs_path;
             my $src_rel = $code{'base.chk_nlr_path'}->("modules/$file_name");
 
-            $src_rel = "modules/$file_name"
-                if not defined $src_rel;    # <-- warn.
+            $src_rel //= sprintf qw| modules/%s |, $file_name;    # <-- warn.
 
             $src_abs_path
                 = abs_path(
@@ -1264,7 +1265,7 @@ sub p7_load_code {
             $last_mlen = 79 if $last_mlen > 79;
             my $space_str = ' ' x $last_mlen;
             $OUTPUT_AUTOFLUSH = TRUE;
-            print "\r$space_str\r";
+            printf "\%s\r", $space_str;
             $OUTPUT_AUTOFLUSH = FALSE;
         }
         if ( $code_count == 0 ) {
@@ -1288,7 +1289,7 @@ sub p7_load_code {
         = ( 0, 0, 0, 0 );
 
     my %disabled_commands;
-    map { $disabled_commands{$ARG} = 1 } @{ $data{'disabled_commands'} }
+    map { $disabled_commands{$ARG} = TRUE } $data{'disabled_commands'}->@*
         if exists $data{'disabled_commands'}
         and ref( $data{'disabled_commands'} ) eq qw| ARRAY |;
 
@@ -1352,11 +1353,11 @@ sub p7_load_code {
             $data{'base'}{$cmd_type}{$cmd_name} = $sub_name
                 if not $sub_conflict;
             my $stat_start_cref
-                = defined $code{'stats.sub_start'}
+                = exists $code{'stats.sub_start'}
                 ? $code{'stats.sub_start'}->($sub_name)
                 : sub { };
             my $stat_end_cref
-                = defined $code{'stats.sub_end'}
+                = exists $code{'stats.sub_end'}
                 ? $code{'stats.sub_end'}->($sub_name)
                 : sub { };
 
@@ -1377,8 +1378,7 @@ sub p7_load_code {
                                     ' [ details logged ]' )
                                 };
                     \$code{'stats.sub_start'}->( \$sub_name )
-                        if defined \$code{'stats.sub_start'} and
-                            ref( \$code{'stats.sub_start'} ) eq qw| CODE |;
+                        if exists \$code{'stats.sub_start'};
 
                     if ( ref( \$ARG[0] ) eq qw| HASH | ) { \$call = \$ARG[0] }
                     else { \$call->{'args'} = \$ARG[0] }
@@ -1406,7 +1406,7 @@ sub p7_load_code {
 
                     ###  'sub_end' callback  ###
                     $code{'stats.sub_end'}->($sub_name)
-                        if ref( $code{'stats.sub_end'} ) eq qw| CODE |;
+                        if exists $code{'stats.sub_end'};
 
                     return $reply;
                     EOC
@@ -1440,11 +1440,16 @@ sub p7_load_code {
 
         $code{'base.stderr_redir'}->( \my $s_comp_stderr );
 
-        my $compilation_success
-            = ( $code{$sub_name} = eval($sub_code)
-                and ref( $code{$sub_name} ) eq qw| CODE | )
-            ? TRUE
-            : FALSE;
+        ## todo-list : compile to seperate hash, replace on full success ##
+
+        my $sub_cref            = eval($sub_code);    ##  compiling  ##
+        my $compilation_success = ref $sub_cref eq qw| CODE | ? TRUE : FALSE;
+        $compilation_success = FALSE if length $EVAL_ERROR;
+
+        if ($compilation_success) {    ##  init \ replacing subroutine  ##
+            eval { $code{$sub_name} = $sub_cref };
+            $compilation_success = FALSE if length $EVAL_ERROR;
+        }
 
         my $err_str = $EVAL_ERROR;
         state $t_wrap //=
@@ -1499,7 +1504,7 @@ sub p7_load_code {
 
         if ($compilation_success) {
 
-            $data{'base'}{'p7_mod'}{'loaded'}->{$module_name} = 1;
+            $data{'base'}{'p7_mod'}{'loaded'}->{$module_name} = TRUE;
 
             delete $data{'code'}{$sub_name}{'source'};
             $data{'code'}{$sub_name}{'status'}
@@ -3683,8 +3688,8 @@ __DATA__
 :
 :.
 
-#,,.,,,..,,.,,..,,,,.,.,.,,.,,,..,...,,.,,,..,..,,...,...,,.,,,,.,..,,.,,,.,.,
-#A37KCY7D2XM464OU7FL2TB6F2QBIZV5PVS23EZ4RAZDLC3WMRB7E2ZK3PGRKFQI5HOJZLVJJZHHA4
-#\\\|YIR5O36IF33H57RELHA2NTRPHSSJ6PC72ZHACT4JDQ7THZDNZOH \ / AMOS7 \ YOURUM ::
-#\[7]JD4SRRPE536NDID5JFJ76DKLBDIKNV34PCRVK2MCNS6NAHOP46DY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,...,.,.,..,,,,,,,..,,,.,,,,,..,,...,...,.,.,,,.,.,.,,,.,,,.,
+#7L55R5367BKCB24DVAN5B42W2NYJOX5VA3UIQR2NJPTGHLTOEE2KAPOFMX6NZIF4OCN3CIT5JQRXI
+#\\\|Q7RGOVMKF54KB33NIHL44HUVWUAN3SA3C3EMRXD2KY3QR7CA4ZM \ / AMOS7 \ YOURUM ::
+#\[7]TEIUUS7OUBV3QOFNPIB67HWXTOBG5332DEFVNNXDPZKILHTAPSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

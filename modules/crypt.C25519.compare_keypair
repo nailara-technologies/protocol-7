@@ -1,15 +1,15 @@
 ## >:] ##
 
 # name  = crypt.C25519.compare_keypair
+# descr = compare decoded [binary] keys using a test signature
 
-my $pub_key         = shift // '';
-my $private_key     = shift // '';
-my $mismatch_silent = shift // 0;    ##  false  ##
+( my $pub_key, my $private_key ) = <[base.sort]>->( shift, shift );
+my $mismatch_silent = shift // FALSE;    ##  false  ##
 
 <[base.log]>->( 2, ': verifying key pair match ..,' );
 
-my $pub_key_length  = length($pub_key);
-my $priv_key_length = length($private_key);
+my $pub_key_length  = length( $pub_key     // '' );
+my $priv_key_length = length( $private_key // '' );
 
 if ( $pub_key_length == 0 ) {
     warn 'expected public key param <{C1}>';
@@ -51,7 +51,7 @@ if ( not defined $chk_signature or length $EVAL_ERROR ) {
     return undef;
 }
 
-my $signature_valid = 0;    ##  false  ##
+my $signature_valid = FALSE;    ##  false  ##
 
 eval {
     use warnings qw| FATAL |;
@@ -81,8 +81,8 @@ if ( not defined $signature_valid or length $EVAL_ERROR ) {
     return TRUE;     ## true ##
 }
 
-#,,,.,...,.,,,...,,.,,..,,...,,,.,,,,,...,.,.,.,.,...,...,..,,..,,,,,,.,.,,,,,
-#B52EA3FEDILOWOIQGRB4MLLHJMXLZO3XQTRAHG6FS5KRCIJ4ZESZCB3QUMYBLKHZNQSCUUYACF4X4
-#\\\|7YMHSCTKI7WYO22SLAPKGCGDQGOMKQO7DSUNI7OYKI2TUQPGHXT \ / AMOS7 \ YOURUM ::
-#\[7]P3G34ESGQLZDYYTYH74ZIRHOASB5TCESSUQPPFGT46LC7KIVCSBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,,,,,...,..,,.,.,,.,,...,,,,,.,.,...,..,,..,,.,.,..,,,,.,...,
+#JXPWHLYN4IU7NR4GUYJQBANEMHEKZQWEKETSU26A34RZ4DOBBRUWSJ2QWFCUYUT62PK6F6U7B7FNO
+#\\\|VRNABI4TF43IO6Z66GIEOSVKJENEHXL6CRQEM4RD5RMEU6LLOAE \ / AMOS7 \ YOURUM ::
+#\[7]WNZTIZXTXFIMKPUZXUZQHWFB3JG5QUKWZW2OCPQJCOKDFGKNSUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,8 +2,9 @@
 
 # name = crypt.C25519.init_code
 
-<crypt.C25519.initialized> //= 0;
+<crypt.C25519.initialized> //= FALSE;
 
+<[base.perlmod.load]>->('AMOS7::Twofish');
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
 ##  C25519 and BASE-32 modules loaded in 'pre_init'  ##
@@ -21,11 +22,14 @@ my @key_types = qw| private public |;
 
 ( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
 
-my $re_keyfiles = sprintf( '%s.(%s)', $key_re_tmpl, join( '|', @key_ext ) );
+my $re_keyfiles = sprintf qw| %s.(%s) |, $key_re_tmpl, join( '|', @key_ext );
 
 my $name_regex = qr|[0-9a-zA-Z\._\-]+|;
 
-<crypt.C25519.regex> = {
+delete <crypt.C25519.regex>    ##  allow updates during reload  ##
+    if <[base.is_defined_recursive]>->(qw| crypt.C25519.regex |);
+
+const <crypt.C25519.regex> => {
     qw| key_name | => qr|^$name_regex$|,
     qw| key_file | => {
         map {
@@ -40,10 +44,80 @@ my $name_regex = qr|[0-9a-zA-Z\._\-]+|;
     qw| key_files | => qr|$re_keyfiles|
 };
 
+delete <crypt.C25519.keys.sizetype>    ##  allow updates during reload  ##
+    if <[base.is_defined_recursive]>->(qw| crypt.C25519.keys.sizetype |);
+
+const <crypt.C25519.keys.sizetype> => {
+    32 => {
+        qw| type |      => qw| public |,
+        qw| encoding |  => qw| bin |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => FALSE
+    },
+    64 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| bin |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => UNKNOWN    ##  requires public key test signing  ##
+    },
+    66 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| bin |,
+        qw| prefixed |  => TRUE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => UNKNOWN,         ##  requires prefix match  ##
+    },
+    52 => {
+        qw| type |      => qw| public |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => TRUE,
+        qw| encrypted | => FALSE
+    },
+    53 => {
+        qw| type |      => qw| public |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => TRUE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => FALSE
+    },
+    103 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => TRUE,
+        qw| encrypted | => UNKNOWN          ##  : probably : test required  ##
+    },
+    104 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => TRUE,
+        qw| encrypted | => FALSE
+    },
+    106 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => TRUE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => TRUE,
+        qw| encrypted | => UNKNOWN          ##  requires prefix match  ##
+    },
+};
+
 0;
 
-#,,..,...,,.,,,.,,..,,.,.,.,,,,,,,..,,,,.,...,..,,...,...,...,,.,,.,.,.,,,...,
-#ITRMI2QAKADQ3XNWYAB3LVX4FGHCM2H3HYOSSXBPKNQTG5GFUEU5GCIZKFCMA4VBOVHYFED7IHINM
-#\\\|3YQZPKTBLDCXGKWF4IVB7BOB3UYADYEB3OBBRKKQAK47CYJ2F7E \ / AMOS7 \ YOURUM ::
-#\[7]7HIVSSMECMQINTAISAAQYO73QGDF3TX7QCMU4VRJURO6XFYPY6DI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,...,,.,,.,.,.,.,,.,,,,.,.,,,..,,...,.,.,.,.,.,,,,,,,,,,,.,,,
+#UE33MKKKOB2JUEVHZUTOXXUWUROXGDSKX3VCJECSXUQSZYHJPSX5SWLD5H7SSAYF4NS2SAD7HLAOW
+#\\\|OHGFCKTPSLPBOYMT7O6VTRLS26FUBQ3R65GILRNAHUKH6E73LET \ / AMOS7 \ YOURUM ::
+#\[7]4HNQVGDYA5ACPYZ7AG6XQZJ3TS3DJRHGUBWMKKIW23G2BLNZLOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

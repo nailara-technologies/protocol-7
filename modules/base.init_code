@@ -17,6 +17,9 @@
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
 
+use Const::Fast;    ##  does not work with Module::Load::[auto]load  ##
+<[base.perlmod.register_loaded_module]>->('Const::Fast');
+
 <[base.perlmod.load]>->(
     'POSIX', qw| strftime uname getcwd setsid sys_wait_h |
 );
@@ -257,8 +260,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,,.,.,.,,.,,,..,..,,.,.,,,.,,,.,,,,,.,,,.,,,..,,...,..,,..,,...,,.,,,,,,..,,
-#O6OBGDQZUFFMCOTENH6T6FLBUP6SIQAMOA7D2M3EVTCUVFCLDEDZJBQIPOC4XKJI6KVBXX2NXSPPA
-#\\\|3MYZEOMAPJ7KOHKOLBCB552NQVCHWQAJAKBF7L7QK5ZSDSV46W2 \ / AMOS7 \ YOURUM ::
-#\[7]UEACI5BWDVG4COOMEU77U6224FB7NJCJULYBAW4UP2GFR2UIMKAI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,.,,,,..,..,,,.,,,..,,.,,...,..,,...,...,,.,,,..,..,,,,,,,,.,
+#TZG3R44HSXPPB4WM3BHXA4RJ7ICR43Y3ZEWJDZRMAN7PB57AV6MSY44XWELDLEPK72ZCOMHL2SJ6A
+#\\\|FUHAOGHQZS3VMNYQYHNABM4SCL4IL76GJCH2RBTTYNNYXR6WBVK \ / AMOS7 \ YOURUM ::
+#\[7]ZIJJRLDVDMPGO2MF5UWKNPDN5X5DNWZFYDRHDN5IHJ6Y3M4ZXECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
