@@ -3,11 +3,12 @@
 # name    = base.load_modules
 # descr   = load a given set of modules
 
-my @modules_to_load = split( m| +|, join( ' ', @_ ) );
+my @modules_to_load = split( m| +|, join( ' ', @ARG ) );
 
 if ( not scalar @modules_to_load ) {
-    <[base.log]>->( 0, 'base.load_modules: no p7 module names specified' );
-    return 1;
+    warn 'expected module name[s] <{C1}>';
+    return ( 0, 0 ) if wantarray;
+    return FALSE;
 }
 
 <[base.register_src_deps]>->(@modules_to_load);
@@ -15,14 +16,18 @@ if ( not scalar @modules_to_load ) {
 
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@modules_to_load);
 
-if ( not defined $subs_ok or !$subs_ok ) {
-    <[base.log]>->( 1, 'base.load_modules: no source was loaded .,' );
-    return 1;
+if ( not defined $subs_ok or $subs_ok == 0 ) {
+    <[base.log]>->( 0, '[base.load_modules] no routines were loaded ..,' );
 }
-return $subs_failed;
 
-#,,.,,,..,.,,,...,,.,,,..,,.,,...,.,,,,.,,,..,..,,...,..,,...,.,,,,..,,.,,...,
-#4IIU6IHFLBW5QIISZOHAFXSULECSNTTTNYIJFXLF3AYOWIX5KJM4IYCQVWGOAFSBHDHAJYDUQDVYK
-#\\\|AQKWXN3ZXXDA7FD4JYAGZ7NPBU7QU4QYFUXJ4SI4B7RLU6FZTGV \ / AMOS7 \ YOURUM ::
-#\[7]NAE342JLWAQDHOL5NXWD2HUCE3SKVTPXAJABPN5FKLN7IHADUKDQ 7  DATA SIGNATURE ::
+return ( $subs_ok, $subs_failed ) if wantarray;
+
+return TRUE if not $subs_failed and $subs_ok;
+
+return FALSE;
+
+#,,,.,...,,,.,,.,,,.,,..,,,.,,,..,...,,..,,..,..,,...,...,,..,...,.,.,,..,,,.,
+#EFKOL66HF4XD22LKOVWD3W53LBMKCKJ5IXDEDNTP6GNIGXMSEMWEQ64ARTZQSOFVECN6CGM24H3YS
+#\\\|FQK6UM2WJDPP534TN73IS4UOYTNDOJEKOEIQSM7QZ2B65RLSXDU \ / AMOS7 \ YOURUM ::
+#\[7]DEEBF6RFTIXOSFSKOCTRFQKRSAC2I2A3MY3VHIAPHLOBQQPO6KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

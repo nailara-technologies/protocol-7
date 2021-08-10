@@ -1,0 +1,91 @@
+## >:] ##
+
+# name  = crypt.C25519.decrypt_keystr
+
+my $key_str    = shift // '';
+my $dec_passwd = shift // '';
+my $public_key = shift;    ##  optional  ##
+
+if ( not length $key_str ) {
+    warn 'expected key str param <{C1}>';
+    return undef;
+} elsif ( length($key_str) != 64 ) {
+    <[base.s_warn]>->(
+        'private key must be decoded [ len %d != 64 octets ] <{C1}>',
+        length($key_str)
+    );
+    return undef;
+} elsif ( defined $public_key and length($public_key) != 32 ) {
+    <[base.s_warn]>->(
+        'public key needs to be decoded [ len %d != 32 octets ] <{C1}>',
+        length $key_str
+    );
+    return undef;
+} elsif ( not length $dec_passwd ) {
+    warn 'expected decryption password parameter <{C1}>';
+    return undef;
+}
+
+my $dec_key_32 = AMOS7::13::key_32( \$dec_passwd );
+
+<[base.log]>->( 1, ": decrypting private key .," );
+
+if ( not defined $dec_key_32 or not length $dec_key_32 ) {
+    warn 'error during file dec key derivation <{C1}>';
+    return undef;
+}
+my $status = AMOS7::Twofish::key_init( $dec_key_32, qw| decryption C25519 | );
+
+if ( not defined $status or not $status ) {
+    warn 'error during initializing of key str decryption key <{C1}>';
+    return undef;
+}
+
+my $decrypted_C25519_sref = AMOS7::Twofish::decrypt( qw|C25519|, \$key_str );
+
+AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
+
+if (   not defined $decrypted_C25519_sref
+    or ref $decrypted_C25519_sref ne qw| SCALAR |
+    or not length $decrypted_C25519_sref->$* ) {
+    warn 'key decryption error [ twofish::decrypt was undef ] <{C1}>';
+    return undef;
+}
+
+##  need to use compare_keypair to be certain password was correct  ##
+##
+##  [ or compare chksum if was known ]
+
+if (defined $public_key and not <[crypt.C25519.compare_keypair]>->(
+        $public_key,
+        $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
+    )
+) {
+    warn 'key decryption error [ key comparison ] <{C1}>';
+    return undef;
+}
+
+##  calculating key pair chksum [ when required ] ##
+##
+my $key_checksum;
+if ( wantarray or <system.verbosity.console> ) {
+
+    $key_checksum = <[crypt.C25519.key_checksums]>->(
+        $decrypted_C25519_sref->$*, $public_key    ##  <-- if available  ##
+    );
+
+    <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
+
+} else {    ## skip for performance ##  [ gaining about 395% ]
+    <[base.log]>->( 1, ': :. success.' );
+}
+
+return ( $decrypted_C25519_sref, $key_checksum ) if wantarray;
+
+return $decrypted_C25519_sref;
+
+#,,,,,,,,,.,,,,..,,,,,..,,,,.,..,,,.,,,,,,,,,,.,.,...,...,,.,,,.,,,,,,,,,,.,,,
+#A4LWDPEBT2IS3LYBL6QGOOFQW55CMA4GCWTLFACZVVCLOD5ZTOP5EM6AZJIOCJT6ISSYSLKKSH5SW
+#\\\|K5S36YILHG5UCVFQJSPKIPG7643PQ6Y4CFPYMMWVLSEHLMHG4SH \ / AMOS7 \ YOURUM ::
+#\[7]TAOOCUFMXRQWPGCVZLYNZYUELDE4W3P4ZEPJA56MQU5PY7VCFOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
