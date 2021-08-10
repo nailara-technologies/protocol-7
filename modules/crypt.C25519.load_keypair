@@ -26,13 +26,15 @@ if ( -r $private_key_file and -r $public_key_file ) {
 
     if ( not length $encoded_private_key or not length $encoded_public_key ) {
         <[base.logs]>->( 0, "cannot load '%s' key data ..,", $key_name );
-        return 0;
+        return FALSE;
     } else {
         chomp($encoded_public_key);
         chomp($encoded_private_key);
     }
 
-    my $key_encrypted = 0;    ##  false  ##
+    ## todo : use get_type_from_key_str here to remove redundancy ##
+
+    my $key_encrypted = FALSE;    ##  false  ##
 
     ## decode [ base 32 ] ##
     $keys{'C25519'}{$key_name}{'private'} = decode_b32r($encoded_private_key);
@@ -44,18 +46,18 @@ if ( -r $private_key_file and -r $public_key_file ) {
         and index( $encoded_private_key,                  qw| FY5 |, 0 ) == 0
         and index( $keys{'C25519'}{$key_name}{'private'}, qw| .: |,  0 ) == 0
     ) {
-        $key_encrypted = 5;                    ## true ##
+        $key_encrypted = TRUE;                 ## true ##
         substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
 
     } elsif ( length($encoded_private_key) == 106
         and index( $encoded_private_key,                  qw| KU5 |, 0 ) == 0
         and index( $keys{'C25519'}{$key_name}{'private'}, qw| U: |, 0 ) == 0 )
     {
-        $key_encrypted = 0;                    ## false ##
+        $key_encrypted = FALSE;                ## false ##
         substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
 
     } elsif ( length($encoded_private_key) == 103 ) { ##[  old key format  ]##
-        $key_encrypted = 0;                           ## false ##
+        $key_encrypted = FALSE;                       ## false ##
 
     } else {    ##[  not a valid key format  ]##
         undef $keys{'C25519'}{$key_name}{'private'};
@@ -131,6 +133,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
             = AMOS7::Twofish::decrypt( qw| C25519 |,
             \$keys{'C25519'}{$key_name}{'private'} );
 
+        AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
+
         if (   not defined $decrypted_C25519_sref
             or ref $decrypted_C25519_sref ne qw| SCALAR |
             or not length $decrypted_C25519_sref->$* ) {
@@ -139,8 +143,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
         } elsif (
             not <[crypt.C25519.compare_keypair]>->(
                 $keys{'C25519'}{$key_name}{'public'},
-                $decrypted_C25519_sref->$*, 5    ##[ silent ]##
-            ) // 0
+                $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
+            ) // FALSE
         ) {
             <[base.log]>->( 1, ':' );
             <[base.log]>->( 0, ': password is not correct ..,' );
@@ -155,10 +159,16 @@ if ( -r $private_key_file and -r $public_key_file ) {
 
             <[base.logs]>->( ": public key loaded ['%s']", $key_name );
             <[base.log]>->( 1, ':' );
-            return 0;
+            return FALSE;
         }
         $keys{'C25519'}{$key_name}{'private'} = $decrypted_C25519_sref->$*;
-        my $key_checksum = <[chk-sum.amos]>->( $decrypted_C25519_sref->$* );
+
+        ##  calculating key pair chksum  ##
+        ##
+        my $key_checksum = <[crypt.C25519.key_checksums]>->(
+            $decrypted_C25519_sref->$*,
+            $keys{'C25519'}{$key_name}{'public'}
+        );
         <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
 
     } elsif ( defined $keys{'C25519'}{$key_name}{'private'} ) {
@@ -167,7 +177,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
         if (not <[crypt.C25519.compare_keypair]>->(
                 $keys{'C25519'}{$key_name}{'public'},
                 $keys{'C25519'}{$key_name}{'private'}
-            ) // 0
+            ) // FALSE
         ) {
             foreach my $type (qw| private public |) {
                 undef $keys{'C25519'}{$key_name}{$type};
@@ -196,8 +206,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,,,,,,,,.,.,.,,,,,,,,,,,.,,,..,,...,,,,,..,,..,,...,...,,,.,..,,.,,,..,,,,.,
-#H4JAMVRLDB3ALMIE5ZIM5KLWLZXVKERU3RFNCNQL2A54N4YP4UNWPW7JIE5ATX4CCGLZXM7H7LEXE
-#\\\|5UKSX5PKSBJVZTP7QY5D5XG6V4MVF6GMKZNGBTQ7GKWDPTCC2R4 \ / AMOS7 \ YOURUM ::
-#\[7]MF2Y7FPZ54Q6LLPXYBFFXPLZH6RQH5HZW4WGI6ZEMXJQVZNIR2AY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,..,,.,,,,.,,.,.,,,,,.,.,,,.,..,,...,...,...,.,.,,.,,,.,,,..,
+#A56JMTKCCYVJGHDZ6QECEA6FILP3F43XN4PQQWVVUQLM24U5L7LLEJYBBRWTWSCQ7G732YE6TZYLM
+#\\\|HATBHT5DHSSDCDJRYXTIB3IN7KJXMMXKIR45ZVCBOYKFP7QUGSR \ / AMOS7 \ YOURUM ::
+#\[7]H4AXN3S6VVHSOTI2RA66F2IR4LC4JA6Q3CZZ3MLVF7QDGMYVN2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,296 @@
+## >:] ##
+
+# name  = crypt.C25519.load_from_string
+# descr = loading of keys and keypairs from string input
+# todo  = decode first to skip code redundancy
+
+my $name = shift;    ##  key name to load as  [ $keys{'C25519'} ]  ##
+
+my @encoded_C25119_keys = <[base.reverse-sort]>->( shift, shift );  ## keys ##
+
+my $key_password = shift;    ##  optional decryption password  ##
+
+my $a_key_existed = FALSE;
+if ( @encoded_C25119_keys == 0 ) {
+    warn 'expecting encoded C25119-key parameter[s] <{C1}>';
+    return undef;
+} elsif ( exists $keys{'C25519'}{$name} ) {
+    if ( @encoded_C25119_keys == 2 ) {
+        <[base.s_warn]>->(
+            "C25519 key pair named '%s' already loaded ..,", $name
+        );
+        return undef;
+    } else {
+        $a_key_existed = TRUE;    ##  do not remove on another load error  ##
+    }
+}
+
+##  key size to details table  ##
+my $size_type = <crypt.C25519.keys.sizetype>;
+
+my $key_count;
+my $key_types_count
+    = { map { $ARG => 0 } keys <crypt.C25519.regex.key_file>->%* };
+foreach my $key_str (@encoded_C25119_keys) {
+    my $key_len = length $key_str;
+    if ( not exists $size_type->{$key_len} ) {
+        <[base.s_warn]>->( 'key size %d is not valid <{C1}>', $key_len );
+        return undef;
+    } else {
+        my $type = <[crypt.C25519.get_type_from_key_str]>->($key_str);
+        if (    exists $keys{'C25519'}{$name}
+            and exists $keys{'C25519'}{$name}{$type} ) {
+            <[base.s_warn]>->(
+                "C25519 %s key '%s' is already loaded ..,",
+                $type, $name
+            );
+            return undef;
+        }
+    }
+}
+
+foreach my $key_str (@encoded_C25119_keys) {    ##  check type difference  ##
+    ( my $key_details ) = <[crypt.C25519.get_type_from_key_str]>->($key_str);
+    my $type = $key_details->{'type'};
+    $key_types_count->{$type}++;
+    if ( $key_types_count->{$type} > 1 ) {
+        <[base.s_warn]>->(
+            'submitted keys are of same type [ %s ] <{C1}>', $type
+        );
+        return undef;
+    }
+    $key_count++;
+}
+
+foreach my $key_str (@encoded_C25119_keys) { ##  loading private key first  ##
+    ( my $key_details ) = <[crypt.C25519.get_type_from_key_str]>->($key_str);
+    chomp($key_str) if $key_details->{'linefeed'};
+    my $type = $key_details->{'type'};
+
+    if ( $key_details->{'encrypted'} == TRUE and not defined $key_password ) {
+        warn 'encrypted key with no supplied'
+            . ' password [ third argument ] <{C1}>';
+        return undef;
+    }
+
+    if ( $key_details->{'encoding'} eq qw| bin | ) {
+
+        ###  strip prefix  ###
+        if ( $key_details->{'prefixed'} == TRUE ) {
+            substr( $key_str, 0, 2, '' );
+
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN
+            and defined $key_password ) {    ## test enc-status ##
+            $key_details->{'encrypted'} = TRUE;
+
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN
+            and @encoded_C25119_keys == 2 ) {    ##  using test signature  ##
+            my $pubkey_decoded;
+            if ( defined $encoded_C25119_keys[1] ) {
+                if ( length $encoded_C25119_keys[1] > 32 ) {
+                    $pubkey_decoded = decode_b32r( $encoded_C25119_keys[1] );
+                } else {                         ## decoded already ##
+                    $pubkey_decoded = $encoded_C25119_keys[1];
+                }
+            }
+            if (not <[crypt.C25519.compare_keypair]>->(
+                    $pubkey_decoded, $key_str, TRUE    ##[ silent ]##
+                )
+            ) {
+                if ( not defined $key_password ) {
+                    warn 'key comparison suggests encryption'
+                        . ' [ no password given ] <{C1}>';
+                    return undef;
+                }
+                $key_details->{'encrypted'} = TRUE;
+            } else {
+                $key_details->{'encrypted'} = FALSE;
+            }
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN ) {
+            <[base.log]>->(
+                1, ': assuming encryption status to be false ..,'
+            );
+            $key_details->{'encrypted'} = FALSE;
+        }
+        ##
+
+        if ( $key_details->{'encrypted'} == TRUE ) {  ##  key is encrypted  ##
+
+            ##  decrypting the decoded key  ##
+            ##
+            my $decrypted_keyref = <[crypt.C25519.decrypt_keystr]>->(
+                $key_str, $key_password, $encoded_C25119_keys[1]
+            );
+            if ( ref $decrypted_keyref ne qw| SCALAR | ) {
+                <[base.s_warn]>->(
+                    '%s key decryption failed.., <{C1}>', $type
+                );
+                return undef;
+            }
+
+            ##  success , use key  ##
+            <[base.logs]>->( "loading C25519 %s key '%s'.,", $type, $name );
+            $keys{'C25519'}{$name}{$type} = $decrypted_keyref->$*;
+
+        } else {
+
+            ## checking validity of key[pair] ##
+            if ( $type eq qw| private | and @encoded_C25119_keys == 2 ) {
+                if (not <[crypt.C25519.keystr_is_valid]>->(
+                        $key_str, $encoded_C25119_keys[1]
+                    )
+                ) {
+                    warn 'given private key not valid <{C1}>';
+                    return undef;
+                }
+            } elsif ( not <[crypt.C25519.keystr_is_valid]>->($key_str) ) {
+                <base.s_warn]>->( 'supplied %s key not valid <{C1}>', $type );
+                return undef;
+            }
+
+            <[base.logs]>->( "loading C25519 %s key '%s'.,", $type, $name );
+            $keys{'C25519'}{$name}{$type} = $key_str;
+
+        }
+    } elsif ( $key_details->{'encoding'} eq qw| b32 | ) {
+        my $decoded_str = decode_b32r($key_str);
+        if ( not defined $decoded_str ) {
+            <[base.s_warn]>->(
+                "C25519 %s key '%s' decoding error.,",
+                $type, $name
+            );
+            if ( not $a_key_existed and exists $keys{'C25519'}{$name} ) {
+                delete $keys{'C25519'}{$name};    ##  remove other one  ##
+            }
+            return undef;
+        }
+        ($key_details)    ##  fetch details again after decoding  ##
+            = <[crypt.C25519.get_type_from_key_str]>->($key_str);
+
+        if ( not defined $key_details ) {
+            <[base.s_warn]>->(
+                "decoded C25519 %s-key '%s' not recognized.,",
+                $type, $name
+            );
+            if ( not $a_key_existed and exists $keys{'C25519'}{$name} ) {
+                delete $keys{'C25519'}{$name};    ##  remove other one  ##
+            }
+            return undef;
+        }
+
+        ###  strip prefix  ###
+        if ( $key_details->{'prefixed'} == TRUE ) {
+            substr( $decoded_str, 0, 2, '' );
+            ##
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN
+            and defined $key_password ) {    ## test enc-status ##
+            $key_details->{'encrypted'} = TRUE;
+
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN
+            and @encoded_C25119_keys == 2 ) {    ##  using test signature  ##
+            my $pubkey_decoded;
+            if ( defined $encoded_C25119_keys[1] ) {
+                if ( length $encoded_C25119_keys[1] > 32 ) {
+                    $pubkey_decoded = decode_b32r( $encoded_C25119_keys[1] );
+                } else {                         ## decoded already ##
+                    $pubkey_decoded = $encoded_C25119_keys[1];
+                }
+            }
+            if (not <[crypt.C25519.compare_keypair]>->(
+                    $pubkey_decoded, $decoded_str, TRUE    ##[ silent ]##
+                )
+            ) {
+                if ( not defined $key_password ) {
+                    warn 'key comparison suggests encryption'
+                        . ' [ no password given ] <{C1}>';
+                    return undef;
+                }
+                $key_details->{'encrypted'} = TRUE;
+            } else {
+                $key_details->{'encrypted'} = FALSE;
+            }
+        } elsif ( $key_details->{'encrypted'} == UNKNOWN ) {
+            <[base.log]>->(
+                1, ': assuming encryption status to be false ..,'
+            );
+            $key_details->{'encrypted'} = FALSE;
+        }
+        ##
+
+        if ( $key_details->{'encrypted'} == FALSE ) {
+
+            <[base.logs]>->( "loading C25519 %s key '%s'.,", $type, $name );
+
+            ## checking validity of key[pair] ##
+            if ( $type eq qw| private | and @encoded_C25119_keys == 2 ) {
+                if (not <[crypt.C25519.keystr_is_valid]>->(
+                        $key_str, $encoded_C25119_keys[1]
+                    )
+                ) {
+                    warn 'given private key not valid <{C1}>';
+                    if ( not $a_key_existed
+                        and exists $keys{'C25519'}{$name} ) {
+                        delete $keys{'C25519'}{$name};
+                    }
+                    return undef;
+                }
+            } elsif ( not <[crypt.C25519.keystr_is_valid]>->($key_str) ) {
+                <base.s_warn]>->( 'supplied %s key not valid <{C1}>', $type );
+                if ( not $a_key_existed
+                    and exists $keys{'C25519'}{$name} ) {
+                    delete $keys{'C25519'}{$name};
+                }
+                return undef;
+            }
+
+            $keys{'C25519'}{$name}{$type} = $decoded_str;
+
+        } elsif ( $key_details->{'encrypted'} == TRUE ) {
+            ## previously unknown encryption ##
+
+            my $pubkey_decoded;
+            if ( defined $encoded_C25119_keys[1] ) {
+                if ( length $encoded_C25119_keys[1] > 32 ) {
+                    $pubkey_decoded = decode_b32r( $encoded_C25119_keys[1] );
+                } else {    ## decoded already ##
+                    $pubkey_decoded = $encoded_C25119_keys[1];
+                }
+            }
+            ##  decrypting the decoded key  ##
+            ##
+            my $decrypted_keyref = <[crypt.C25519.decrypt_keystr]>->(
+                $decoded_str, $key_password, $pubkey_decoded
+            );
+
+            if ( ref $decrypted_keyref ne qw| SCALAR | ) {
+                <[base.s_warn]>->(
+                    '%s key decryption failed.., <{C1}>', $type
+                );
+                return undef;
+            }
+
+            ##  success , use key  ##
+            $keys{'C25519'}{$name}{$type} = $decrypted_keyref->$*;
+
+        }
+    }
+}
+
+##  calculating key pair chksum  ##
+##
+my $key_checksum = <[crypt.C25519.key_checksums]>->(
+    $keys{'C25519'}{$name}{'private'},
+    $keys{'C25519'}{$name}{'public'}
+);
+<[base.logs]>->(
+    "successfully loaded C25519 key '%s' [ %s ]",
+    $name, $key_checksum
+);
+
+return $key_checksum;    ## success. return chksum ##
+
+#,,..,.,.,.,.,,.,,,..,.,.,..,,.,,,.,.,...,,,.,..,,...,...,...,,,.,.,.,...,,.,,
+#5H6RJIJKAZAUZDAMXJF6MKW2WAUUPJODJU7HRRSYIYN64RUI2NWDEPHDE56AAFY6XX5ZQ43MMKPRU
+#\\\|IIWHWCOWBWWS4MMQ6BSISRBSXQ5FZ3CG36Q6ZPRWKDKBBUY6W3C \ / AMOS7 \ YOURUM ::
+#\[7]N3FDV2GR4EG2FYWAQPWJYLRJZ6QFHL5QEWC6BYYTRUXZUPYK7CCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

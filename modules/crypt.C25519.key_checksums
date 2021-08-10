@@ -3,7 +3,7 @@
 # name  = crypt.C25519.key_checksums
 # descr = returns harmonized checksums that are true combined and seperate
 
-my @key_strings_binary = @ARG;
+my @key_strings_binary = <[base.reverse-sort]>->(@ARG);
 
 if ( @key_strings_binary == 0 ) {
     warn 'expected binary key string parameter[s] <{C1}>';
@@ -11,6 +11,16 @@ if ( @key_strings_binary == 0 ) {
 } elsif ( @key_strings_binary > 2 ) {
     warn 'unexpected parameter[s] <{C1}>';
     return undef;
+}
+
+foreach my $key_bin (@key_strings_binary) {
+    my $key_len = length $key_bin;
+    if ( $key_len != 32 and $key_len != 64 ) {
+        <[base.s_warn]>->(
+            'supplied key str len %d is not valid [32|64]', $key_len
+        );
+        return undef;
+    }
 }
 
 my $checksum_template         = qw| <:%s:> |;
@@ -40,8 +50,8 @@ my $combined_key_amos
 
 return $combined_key_amos;
 
-#,,,.,,.,,,,,,...,,,,,.,.,...,,,,,.,,,,.,,,..,..,,...,...,...,...,,,,,,,,,,,.,
-#47XYZY5UUEQI7TRUXUTS2NELQJUGBKXURZZWLOTM4REYAE5DDKU32JFQRMDDFOYMV6L4DWGRINXXO
-#\\\|THD3J3BWXALHZSQN47NT6PXB4QFMKAS2H6UTMQANSK3E7CPNZ2C \ / AMOS7 \ YOURUM ::
-#\[7]3BZZSYCQQYVKORZ2MF3UL7CCIEGVH3WM4DUAVVVEO3PJEB7TQCCI 7  DATA SIGNATURE ::
+#,,..,,,,,...,.,.,,,,,,..,,..,...,,..,,.,,...,..,,...,...,..,,..,,,,,,...,,..,
+#KBW4W7VANBYPSR4QTOUFSWSQ75CAIOLITIGDFEYNHQSYZPKQA6TX27WFUENYICVAJWQB5NAQSADX4
+#\\\|GQLHZVKP4OXMK4524S7GYZHCIIR3BDE76Y7YV3ITPSNX25WCKO4 \ / AMOS7 \ YOURUM ::
+#\[7]BYQCWWPI4MDVNFOZ47AC7D6PNUDK2WMQZ5AO3XRCPISKSXD3JMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+## >:] ##
+
+# name  = crypt.C25519.keystr_is_valid
+# descr = silent format evaluation fron get_type_from_key_str
+
+my $key_str    = shift // '';
+my $second_key = shift if defined $ARG[0] and length $ARG[0] >= 32;
+my $type       = shift;    ##  optional  ##
+
+if ( not length $key_str ) {
+    warn 'expected key str param <{C1}>';
+    return undef;
+} elsif ( defined $type
+    and not exists <crypt.C25519.regex.key_file>->{$type} ) {
+    <[base.s_warn]>->( 'key type param %s is not valid <{C1}>', $type );
+    return undef;
+}
+##  verifying key str size  ##
+my $keystr_length = length $key_str;
+if ( not exists <crypt.C25519.keys.sizetype>->{$keystr_length} ) {
+    return FALSE;
+}
+
+##  determining type by size look-up  ##
+my $key_details = <crypt.C25519.keys.sizetype>->{$keystr_length};
+
+##  verify type  ##
+return FALSE if defined $type and $type ne $key_details->{'type'};
+
+my $status = FALSE;    ##  set TRUE by hash ref return value in eval  ##
+eval {    ##  performing silent key format evaluation [ in list context ]  ##
+    local $SIG{'__WARN__'} = sub { };
+    ( my $success )  ##  passing though optional second key for validation  ##
+        = <[crypt.C25519.get_type_from_key_str]>->( $key_str, $second_key );
+    $status = TRUE if ref $success eq qw| HASH |;
+};
+
+return $status;
+
+#,,,.,.,,,,.,,,,.,,,.,,,,,,..,,..,...,.,.,.,.,..,,...,...,...,,.,,,.,,,.,,...,
+#Y22WT3FLOVTNAPQCG3W5B3ZLXNF3QP5OE2EW4UPHH5I23VMEGSGUWP4YOJLXYUN4UDHODPK3TKZUU
+#\\\|KTJUOU75ZA3JJBKANPTJOWX4RRFPITNIDEEY75IK6ETXEXX3BGD \ / AMOS7 \ YOURUM ::
+#\[7]2ED22CLVLUBAGH6KKW2AN4BOWGEI3SPFJQRBC3G6RZDV2BUUBKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

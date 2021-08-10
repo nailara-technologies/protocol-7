@@ -1,0 +1,127 @@
+## >:] ##
+
+# name  = crypt.C25519.get_type_from_key_str
+# descr = return type of given key filename
+
+my $C25519_keystr = shift // '';
+my $second_keystr = shift // '';
+if ( not length $C25519_keystr ) {
+    warn 'expected C25519 key string parameter <{C1}>';
+    return undef;
+}
+my $key_len   = length $C25519_keystr;
+my $size_type = <crypt.C25519.keys.sizetype>;
+##  size table has all known types  ##
+if ( not exists $size_type->{$key_len} ) {
+    warn 'key format type not known <{C1}>';
+    return undef;
+}
+
+##  determining type by size look-up  ##
+my $key_details = $size_type->{$key_len};
+
+##  create a copy for returning result data  ##
+##
+my $first_details = clone $key_details;
+
+##  returning type string only in scalar context  ##
+return $key_details->{'type'} if not wantarray;
+
+##  further checks required for encryption  ##
+##
+if ( $key_details->{'encrypted'} == UNKNOWN ) {
+
+    if ( $key_details->{'prefixed'} == TRUE ) {
+
+        my $key_decoded;
+        if ( $key_details->{'encoding'} eq qw| bin | ) {
+
+            if ( index( $C25519_keystr, qw| .: |, 0 ) == 0 ) {
+                $first_details->{'encrypted'} = TRUE;
+
+            } elsif ( index( $C25519_keystr, qw| U: |, 0 ) == 0 ) {
+                $first_details->{'encrypted'} = FALSE;
+
+            } else {
+                warn 'private key prefix not known <{C1}>';
+                return undef;
+            }
+
+        } elsif ( $key_details->{'encoding'} eq qw| b32 | ) {
+
+            if ( index( $C25519_keystr, qw| FY5 |, 0 ) == 0 ) {
+                $first_details->{'encrypted'} = TRUE;
+
+            } elsif ( index( $C25519_keystr, qw| KU5 |, 0 ) == 0 ) {
+                $first_details->{'encrypted'} = FALSE;
+
+            } else {
+                warn 'private key prefix not known <{C1}>';
+                return undef;
+            }
+        }
+
+    } elsif ( $key_details->{'prefixed'} == FALSE ) {
+
+        ## decoding private key [ for signature test ] ##
+        if ( $key_details->{'encoding'} eq qw| b32 | ) {
+            $C25519_keystr = decode_b32r($C25519_keystr) // '';
+            $key_len       = length $C25519_keystr;
+            if ( not exists $size_type->{$key_len} ) {
+                warn 'key format type not known [ decoded ] <{C1}>';
+                return undef;
+            }
+            $key_details = $size_type->{$key_len};    ##  when valid  ##
+            if ( $key_details->{'encrypted'} != UNKNOWN ) {
+                $first_details->{'encrypted'} = $key_details->{'encrypted'};
+                return $first_details;
+            }
+        }
+
+        my $second_key_len = length $second_keystr;
+
+        if (    $key_details->{'encoding'} eq qw| bin |
+            and $second_key_len != $key_len
+            and exists $size_type->{$second_key_len}    ##  when valid  ##
+            and my $sec_key_params = $size_type->{$second_key_len}
+        ) {
+            ## decoding public key [ for signature test ] ##
+            if ( $sec_key_params->{'encoding'} eq qw| b32 | ) {
+                $second_keystr  = decode_b32r($second_keystr) // '';
+                $second_key_len = length $second_keystr;
+                if ( not exists $size_type->{$second_key_len} ) {
+                    warn '[ decoded ] public key format'
+                        . ' type not known <{C1}>';
+                    return undef;
+                }
+                $sec_key_params = $size_type->{$key_len};
+            }
+            if ( $sec_key_params->{'encoding'} eq qw| bin | ) {
+                my $status = <[crypt.C25519.compare_keypair]>->(
+                    <[base.sort]>->( $C25519_keystr, $second_keystr ), TRUE
+                );
+                if ( defined $status ) {
+                    if ( $status == TRUE ) {   ## successful test signature ##
+
+                        $first_details->{'encrypted'} = FALSE;
+
+                    } elsif ( $status == FALSE ) {  ## if is keypair then enc.
+
+                        $first_details->{'encrypted'} = TRUE;
+                    }
+                }
+            }
+        } elsif ( not exists $size_type->{$key_len} ) {
+            warn 'key encoding format was not recognized <{C1}>';
+            return undef;
+        }
+    }
+}
+
+return $first_details;
+
+#,,..,,,.,,,.,,,.,,,,,,,.,.,,,.,,,.,,,,.,,.,.,..,,...,...,..,,,..,..,,,,.,,,,,
+#DR3HAIK66FNN7JQRN44Y6KEDSZLDYMIPXULV6EKFCYSDNKBHGEGU4WNDCFXQPCH4HINDM4BNYNJ2Y
+#\\\|POVGCV3R3TRZJ3TDBTNXBIGO3GVSN3WQP5XWNZTIYNAFA4HHH66 \ / AMOS7 \ YOURUM ::
+#\[7]WD2S2GRAOMUOHCJ7TQGDGJDMNWX6AANPEA7KKDDS67QKBTDGP4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

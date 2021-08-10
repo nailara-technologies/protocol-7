@@ -1,0 +1,47 @@
+## >:] ##
+
+# name  = keys.console.get-encoded-key
+# param = <name>
+# descr = show encoded key string opt.: [private|public]
+
+my $name = shift;
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+my $type;
+( $name, $type ) = split m| +|, $name if index( $name, ' ' ) != -1;
+
+return printf "\n  << key with name '%s' not found >>\n\n", $name
+    if not <[keys.key_exists]>->($name);
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+my $maxlen
+    = [ minmax map {length} keys $key_vars_ref->{'key_filename'}->%* ]->[1];
+
+if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
+    my $key_file_ref = <[file.slurp]>->($file);
+    chomp( $key_file_ref->$* );
+    return say $key_file_ref->$*;
+} elsif ( defined $type ) {
+    print "\n  <<  type parameter not understood  >>\n\n";
+    say '  [ key types ]';
+    say '  :';
+    foreach my $type ( <[base.sort]>->( $key_vars_ref->{'key_filename'} ) ) {
+        say sprintf "  :  %-*s  :", $maxlen, $type;
+    }
+    say '  :';
+} else {
+    foreach my $type ( <[base.sort]>->( $key_vars_ref->{'key_filename'} ) ) {
+        my $file         = $key_vars_ref->{'key_filename'}->{$type};
+        my $key_file_ref = <[file.slurp]>->($file);
+        chomp( $key_file_ref->$* );
+        say '';
+        say sprintf ':. %-*s .: %s ::', $maxlen, $type, $key_file_ref->$*;
+    }
+    say '';
+}
+
+#,,..,...,.,,,..,,.,,,,..,.,,,,.,,..,,.,.,...,..,,...,...,.,.,,,,,...,.,.,,,,,
+#2K4REVTDTAIRHFTXANHAH2YAFUT3TC47I46KLVZGGTBJBF62QRLPREDPQ4U4OQYTDGTQ37DFULNW4
+#\\\|VZVPXLBT272C7UWGIVE3U2O43MXXH73HBKZCK7KT72BK7OEFJX5 \ / AMOS7 \ YOURUM ::
+#\[7]SLG4TTZWCE2VALKTT5M64TKETOXRLPLXSVD5ZYE3ZP4GYMJXSKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
