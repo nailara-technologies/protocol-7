@@ -2,6 +2,8 @@
 
 # name  = keys.checksum_href
 
+## todo : use get_type_from_key_str here to remove redundancy ##
+
 my $key_name_param = shift;
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
@@ -25,6 +27,7 @@ return \%key_chksums if @k_files == 0;    ##  no [matching] keys  ##
 
 my @chksumkeys;
 my $last_kname = '';
+my %key_L13chksums;
 foreach my $file (@k_files) {
     ( my $filepath_rel = $file )         =~ s|^.+/||;
     ( my $key_name     = $filepath_rel ) =~ s|\.$re_kfiles||;
@@ -34,7 +37,7 @@ foreach my $file (@k_files) {
 
     if ( $key_encryption_status == -3 ) {
         $key_chksums{$key_name} = qw| no-r.perms |;
-    } elsif ( $key_encryption_status == 5 ) {
+    } elsif ( $key_encryption_status == TRUE ) {
         $key_chksums{$key_name} = qw| <::encrypted::> |;
     } else {
         my $keystr_encoded = <[file.slurp]>->($file);
@@ -43,16 +46,32 @@ foreach my $file (@k_files) {
             $key_chksums{$key_name} = qw| r.err |;
         } else {
             chomp( $keystr_encoded = $keystr_encoded->$* );
+
+            my $key_L13sum = <[chk-sum.bmw.L13-str]>->($keystr_encoded);
+            push $key_L13chksums{$key_name}->@*, $key_L13sum;
+
+            my $key_checksum    ##  retrieve from chksum cache  ##
+                = <[crypt.C25519.chksum_cache.retr]>->($key_L13sum);
+            if ( defined $key_checksum ) {    ##  cache hit  ##
+                if ( $key_checksum =~ m{(\w:\w|::)} ) {
+                    $key_chksums{$key_name} = $key_checksum;
+                } else {
+                    $single_chksums{$key_name} = $key_checksum;
+                }
+                next;
+            }
             my $key_len = length $keystr_encoded;
 
-            if ( $key_len != 52 and $key_len != 103 and $key_len != 106 ) {
+            if ( not exists <crypt.C25519.keys.sizetype>->{$key_len} ) {
                 <[base.logs]>->(
                     0, "length of key '%s' not valid [ %04d BYTES ]",
                     $filepath_rel, $key_len
                 );
                 $single_chksums{$key_name}
                     = $key_chksums{$key_name} = qw| size.error |;
+
             } elsif ( $key_len > 52 ) {    ##  is priv. key  ##
+
                 my $key_bin = decode_b32r($keystr_encoded);
                 if ( not defined $key_bin ) {
                     $key_chksums{$key_name} = qw| dec.err |;
@@ -63,6 +82,7 @@ foreach my $file (@k_files) {
                         = <[crypt.C25519.key_checksums]>->(@chksumkeys);
                 }
             } else {                       ##  is a public key  ##
+
                 my $key_bin = decode_b32r($keystr_encoded);
                 if ( not defined $key_bin ) {
                     $key_chksums{$key_name} = qw| dec.err |;
@@ -73,18 +93,25 @@ foreach my $file (@k_files) {
                 }
             }
         }
-        $last_kname = $key_name;
     }
+    $last_kname = $key_name;
 }
 
 foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
     $key_chksums{$key_name} //= $single_chksums{$key_name};
+
+    ##  add chksum to cache file  ##
+    foreach my $key_L13sum ( $key_L13chksums{$key_name}->@* ) {
+        <[crypt.C25519.chksum_cache.add]>->(
+            $key_L13sum, $key_chksums{$key_name}
+        );
+    }
 }
 
 return \%key_chksums;
 
-#,,.,,,,.,,.,,,..,.,.,,.,,...,...,,..,.,,,..,,..,,...,...,.,,,...,..,,,..,,.,,
-#GZGPZV2DF3XF32R7NONM3AP353NLJA3UNLPWGTP6RFUMKNDHEPSXIGVHFJQ3DIDZXOKEXUSY4LLLI
-#\\\|I4MRYK267QG5KSTP36OQP4FQXGXQX4W7UGXUOC7Z44A4DEEHQJA \ / AMOS7 \ YOURUM ::
-#\[7]U4THGKZJ4U7TYVIV7NKDRVEMT4BXJDMIVXYZFH355NQAXJ4N4SCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,,.,,,,,.,,,..,,...,.,.,.,,,..,,...,...,..,,..,,,,,,.,.,...,
+#2HYAHPDL35QTSNP6ZFCI27KA3UQUD4J77EBXSORQIFW47HPJQRUPQJMND7UANZBLDSRE64MMBORIS
+#\\\|WRWKVHIBCM4K323TYIRJSM4X2RIZJ3FE6VPYTLOTZPUZFUQZRBX \ / AMOS7 \ YOURUM ::
+#\[7]D6UDCTZNX2SCJGLMCGSCFM7TWCNQ23N3XVWRSDJ3WOAJK6A76AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

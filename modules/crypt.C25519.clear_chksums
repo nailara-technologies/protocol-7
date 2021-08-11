@@ -1,0 +1,35 @@
+## >:] ##
+
+# name  = crypt.C25519.clear_chksums
+
+my $cache_file_path_abs = <crypt.C25519.path.key_chksums_cache_file>;
+
+if ( not defined $cache_file_path_abs ) {
+    warn 'checksum cache path not defined <{C1}>';
+    return FALSE;
+}
+
+return TRUE if not -e $cache_file_path_abs;
+
+##  overwrite cache with random data then unlink  [ shred ] ##
+
+if ( -x qw| /usr/bin/shred | ) {    ##  using shred [ when available ]  ##
+    system( qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
+        $cache_file_path_abs );
+}
+
+if ( -e $cache_file_path_abs ) {
+    unlink($cache_file_path_abs)
+        or <[base.s_warn]>->(
+        ':[ unlink %s ]: %s',
+        $cache_file_path_abs, <[base.str.os_err]>
+        );
+}
+
+return -e $cache_file_path_abs ? FALSE : TRUE
+
+#,,,,,,..,,..,..,,.,,,.,,,,,,,,,,,.,.,.,.,,..,..,,...,...,,,,,...,.,.,,.,,...,
+#3GASPNLVIQC5MIU2647CSAGAD3SACEUUOGJT2NAPLA3QRFH6H6GVH3KLXFN2BCCUNJAJTTPZ4DK6K
+#\\\|OH22UBJHFOXFISPJPMQG7AXFVAHIGMAGQGUJA4ZR7BP4DBZ3DRP \ / AMOS7 \ YOURUM ::
+#\[7]AIK6OSI33PUOBTNKEMV6MC44SUF7SRLHJESC5FOZ3TLEII5G6ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
