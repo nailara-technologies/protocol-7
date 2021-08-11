@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = crypt.C25519.del_keys_hash_entry
+# descr = erase a C25519 key from memory [secure]
+
+my $name = shift // '';
+if ( not length $name ) {
+    warn 'expected C25519 key name param <{C1}>';
+    return undef;
+}
+if ( not exists $keys{'C25519'}->{$name} ) {
+    <[base.s_warn]>->( "there is no key named '%s' loaded", $name );
+    return undef;
+}
+<[base.logs]>->( "unloading C25519 key '%s'.,", $name );
+
+my $usr_key = $keys{'C25519'}->{$name};    ## [ private , public ] ##
+foreach my $type ( <[base.reverse-sort]>->($usr_key) ) {
+    <[base.erase_buffer_content]>
+        ->( \$usr_key->{$type}, int( rand(13) ) + 7 ); ##  <-- rnd padding  ##
+    $usr_key->{$type} = undef;
+    delete $usr_key->{$type};
+}
+
+undef $usr_key;
+delete $keys{'C25519'}->{$name};
+delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
+
+return TRUE    ##  success  ##
+    if not exists $keys{'C25519'}
+    or not exists $keys{'C25519'}->{$name};
+
+return FALSE;    ##  hash read-only?  ##
+
+#,,,,,,..,,,,,..,,.,.,,..,.,.,.,,,,..,,,,,,..,..,,...,...,...,...,,,.,,,,,.,,,
+#HHS5UBXMGHN2JII7AFYYVSWFMC4XT3IJD3IAT2TTBRITMHNBZCOTIVX3ZKHXTVKVD37HDPHKG7OP6
+#\\\|34KB24IXTURMBUMROPQPMLSW3WVQ7FHF5FXTIZMXDHHG7OQUZZ6 \ / AMOS7 \ YOURUM ::
+#\[7]IGA72YBWQSNGTLQQ7X3UIASEQPWOYY4ZXVIOWYLGZU3E6G5ZY2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
