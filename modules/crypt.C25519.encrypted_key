@@ -2,6 +2,8 @@
 
 # name  = crypt.C25519.encrypted_key
 
+## todo : use get_type_from_key_str here to remove redundancy ##
+
 my $key_name = shift // '';
 
 if ( not length $key_name ) {
@@ -22,7 +24,7 @@ if ( index( $key_name, qw| / |, 0 ) == 0 and $key_name =~ $re_kfiles ) {
     my $key_re_public = $keys_re->{'key_file'}->{'public'};
 
     ##  public key [ never encrypted ]  ##
-    return 0 if $filepath_rel =~ $key_re_public;
+    return FALSE if $filepath_rel =~ $key_re_public;
 
     $private_keyfile = $key_name;     ##  private key abs file path  ##
 
@@ -56,7 +58,7 @@ if (   not defined $key_file_ref
     chomp( $key_file_ref->$* );    ##  strip linefeed  ##
 }
 
-my $key_encrypted = 0;             ##  false  ##
+my $key_encrypted = FALSE;         ##  false  ##
 
 my $encoded_keylen  = length $key_file_ref->$*;
 my $decoded_privkey = decode_b32r( $key_file_ref->$* );
@@ -67,17 +69,17 @@ if ($encoded_keylen == 106    ##[  has no linefeed  ]##
     and index( $key_file_ref->$*, qw| FY5 |, 0 ) == 0
     and index( $decoded_privkey,  qw| .: |,  0 ) == 0
 ) {
-    $key_encrypted = 5;       ## true ##
+    $key_encrypted = TRUE;    ## true ##
 
 } elsif ( $encoded_keylen == 106
     and index( $key_file_ref->$*, qw| KU5 |, 0 ) == 0
     and index( $decoded_privkey,  qw| U: |,  0 ) == 0 ) {
 
-    $key_encrypted = 0;       ## false ##
+    $key_encrypted = FALSE;    ## false ##
 
 } elsif ( $encoded_keylen == 103 ) {    ##[  old key format  ]##
 
-    $key_encrypted = 0;                 ## false ##
+    $key_encrypted = FALSE;             ## false ##
 
 } else {
     return -4;                          ##[  not a valid key format  ]##
@@ -85,8 +87,8 @@ if ($encoded_keylen == 106    ##[  has no linefeed  ]##
 
 return $key_encrypted;                  ##  key encryption status  ##
 
-#,,,.,.,.,.,,,,..,,,.,...,,,.,..,,...,,.,,,..,..,,...,...,...,.,,,.,,,.,.,,..,
-#IW7IJ5GGR6VNBXT4FASXVGT7SVMVUW4CBGJN5ZVLWRXOFYNBE5QE6IMF2AHDVYGKU24UK2FTSTXMO
-#\\\|ZAHJXBB4XHJJV6DDYGIO5NR26USFWGYQYW2WZ5BTISLSUOZ4XIZ \ / AMOS7 \ YOURUM ::
-#\[7]F7IC5AVAZFUSNQOOIFVZ3AZLKIQ62JLXZX44YUKIF3PQE62CEKDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,...,...,,,.,,.,,..,,,,.,.,.,..,,...,...,,,.,,.,,.,,,.,.,...,
+#5BL5HPY6ULB3NN66WCQUFWMYNRSYQ7UVB5YGTX27B2EO5MU5437OWNDMEJUKWJODHBBYI34RSA5FM
+#\\\|YRSZPACUB6OBXSVL234LZFJEPVY35LXSMWJIFOUXR6XJKFBQNC7 \ / AMOS7 \ YOURUM ::
+#\[7]7CTBKKPHC6OWVCPT7KBU4ORFUENK7S73LFGRBKRYKDHQ373K3EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## >:] ##
+
+# name  = crypt.C25519.chksum_cache.retr
+# descr = return amos7 key chksum for requested bmw L13 sum from encoded key
+
+my $bmw_L13_sum_str = shift // '';
+if ( not length $bmw_L13_sum_str ) {
+    warn 'expected key string bmw L13 chksum param <{C1}>';
+    return undef;
+}
+my $chkum_cache_file = <crypt.C25519.path.key_chksums_cache_file>;
+
+##  no cache file \ no entries  ##
+return undef if not defined $chkum_cache_file or not -r $chkum_cache_file;
+
+my $cache_str_ref = <[file.slurp]>->($chkum_cache_file);
+return undef if ref $cache_str_ref ne qw| SCALAR |;
+chomp $cache_str_ref->$*;
+
+foreach my $line ( split "\n", $cache_str_ref->$* ) {
+    my ( $L13_sum_entry, $C25519_amos7_sum ) = split( qw| : |, $line, 2 );
+    next if not defined $C25519_amos7_sum;    ##  format error  ##
+
+    ##  : cache hit : returning matching checksum  ##
+    return $C25519_amos7_sum if $L13_sum_entry eq $bmw_L13_sum_str;
+}
+
+return undef;                                 ##  no matches  ##
+
+#,,,,,.,,,,,,,,,,,..,,..,,.,.,,..,.,,,.,,,,..,..,,...,...,...,,..,.,.,,..,,..,
+#7K43OIF5547BDIK3EDW2G7M3W2DNM6XM3ZOZD4SQUCNB3GSPSQH76VSRFGR2OUEVUKGJRLNVR6TH6
+#\\\|GMEIQ4W6ZABMSE3LDWES3PTDJJRVMQZKSVJ3X2DUVMF5NAPTXAT \ / AMOS7 \ YOURUM ::
+#\[7]5K7MYBLV7RXLLVH4ZWD6D7JDLPPRQOCQUM2A7NS2KEWNFXY6FMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

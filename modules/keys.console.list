@@ -7,9 +7,9 @@
 
 my $param = shift;
 
-my $display_checksums = 5;    ## true ##
+my $display_checksums = TRUE;    ## true ##
 
-$display_checksums = 0 if defined $param and $param eq qw| nochecksums |;
+$display_checksums = FALSE if defined $param and $param eq qw| nochecksums |;
 
 my %C            = %AMOS7::C;
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
@@ -26,15 +26,14 @@ my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
 my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
-
     my $calculating_message = 'calculating C25519 key checksums ..,';
     <[base.log]>->( 1, $calculating_message );
     if ( not <system.verbosity.console> ) {
         $OUTPUT_AUTOFLUSH = TRUE;
-        printf ": %s%s\r", $C{0}, $calculating_message;
+        printf "\n: %s%s\r", $C{0}, $calculating_message;
     }
 
-    %key_chksums = ( <[keys.checksum_href]>->%* );
+    %key_chksums = ( <[keys.checksum_href]>->%* ); ##  uses cache look-ups  ##
 
     foreach my $name ( <[base.sort]>->( \%key_chksums ) ) {
         <[base.logs]>->( 0, "failed to acquire checksum for key '%s'", $name )
@@ -71,8 +70,9 @@ foreach my $file (@k_files) {
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
+my $linefeed        = $display_checksums ? '' : "\n";
 my $key_list_string = join '',
-    sprintf( "%40s\n :: keys for user %s :.\n :\n", '', $key_usr ),
+    $linefeed, sprintf( "%40s\r :: keys for user %s :.\n :\n", '', $key_usr ),
     ( map { sprintf( " : %*s : %s\n", $max_nlen, $key_names{$ARG}, $ARG ) }
         @k_files ),
     "::\n";
@@ -88,8 +88,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,,,,..,,.,,.,.,...,.,,,..,,.,.,.,,,.,.,..,,..,,...,...,,..,.,.,,,.,,..,.,.,
-#NHEGZ7YIQ7VT6ZVFKFRJQY5UTKLJKVH63ZQCCUKLAETHBMAIIPTLX2UWW5GP62R4FC6WCTKYSQFVQ
-#\\\|AN3NX725YNZPHWBMWKGVNMOMNRCHQQDSHCFW5PNJQGA42IA3EUJ \ / AMOS7 \ YOURUM ::
-#\[7]IVFC5R2CIHOVGP3OE2CSX4XNN4KCHT2B6ZP32JXAFZF5XL5MMGDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,.,.,,.,,,,.,,,,,,,,,,.,,,,.,..,,...,...,..,,,..,,,.,,,,,.,.,
+#D6KSFHBMTBMNOS25UOIRNJEU2W4AOU2Q6OEDUKEFKHWR2KFLGP5Y6ZUJKAIZ4K74AN6GFGFZ2IVCU
+#\\\|L55CZEYUDP22IUROODCDQM2CSJLQSU7GMVL4H7ZZCAPLVPG7K2G \ / AMOS7 \ YOURUM ::
+#\[7]Y7ROHWPYXAEZHYKT6J5ZCTA442EOJVBQWSF2XBQERK4GCCGLB2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

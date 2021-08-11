@@ -25,11 +25,13 @@ foreach my $keyfile_extension (qw|  public  secret  |) {
 
     <[base.logs]>->( 0, 'key %s exists.', $file_name );
     <[base.log]>->( 0, ':.. cannot not overwrite it.' );
-    return 0;
+    return FALSE;
 }
 
 my @keys_binary;
-my $keywrite_status = 5;    ## true ##
+my $pubkey_L13_sum;
+my $priv_key_L13_sum;
+my $keywrite_status = TRUE;
 foreach my $type (qw|  private  public  |) {
 
     my $keyfile_extension
@@ -86,6 +88,8 @@ foreach my $type (qw|  private  public  |) {
         ##
         print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
 
+        ##  no cache chksum entries for encrypted key pairs  ##
+
     } elsif ( $type eq qw|  private  | ) {
         my $key_str_b32 = encode_b32r( sprintf qw| U:%s |, $key_bin_str );
         if ( not defined $key_str_b32 or not length $key_str_b32 ) {
@@ -97,15 +101,21 @@ foreach my $type (qw|  private  public  |) {
         ##
         print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
 
+        $priv_key_L13_sum = <[chk-sum.bmw.L13-str]>->($key_str_b32);
+
     } else {    ##[ public key has a linefeed  ]##
-        print {$key_fh} sprintf "%s\n", encode_b32r($key_bin_str);
+
+        my $key_str_b32 = encode_b32r($key_bin_str);
+        print {$key_fh} sprintf "%s\n", $key_str_b32;
+
+        $pubkey_L13_sum = <[chk-sum.bmw.L13-str]>->($key_str_b32);
     }
 
     close($key_fh)                   or die "\l$OS_ERROR [ $file_name ]";
     rename( $tmp_fname, $file_name ) or die "\l$OS_ERROR [ $file_name ]";
     chown( $uid, $gid, $file_name )  or warn "\l$OS_ERROR [ $file_name ]";
 
-    $keywrite_status = 0 if not -f $file_name;    ##  false  ##
+    $keywrite_status = FALSE if not -f $file_name;    ##  false  ##
 
     <[base.logs]>->( ": %s", $file_name );
 }
@@ -113,14 +123,33 @@ foreach my $type (qw|  private  public  |) {
 if (wantarray) {    ##  return key[s] checksum in list context  ##
 
     my $key_checksum = <[crypt.C25519.key_checksums]>->(@keys_binary);
+
+    if ( not defined $key_password ) {    ##  when not encrypted  ##
+
+        ##  adding chksum cache entries  ##
+        <[crypt.C25519.chksum_cache.add]>->(    ##  for private key  ##
+            $priv_key_L13_sum, $key_checksum
+        ) if defined $priv_key_L13_sum;
+
+        <[crypt.C25519.chksum_cache.add]>->( $pubkey_L13_sum, $key_checksum )
+            if defined $pubkey_L13_sum;         ##  for pub-key  ##
+
+        ##  adding binary key str chksum entry  ##
+        foreach my $key_str (@keys_binary) {
+            <[crypt.C25519.chksum_cache.add]>->(
+                <[chk-sum.bmw.str-b32.L13]>->($key_str),
+                $key_checksum
+            );
+        }
+    }
     return ( $keywrite_status, $key_checksum );
 
 } else {
     return $keywrite_status;
 }
 
-#,,.,,.,.,,.,,,..,,.,,,,,,.,.,..,,,,,,,,.,,,,,..,,...,...,..,,...,.,.,,.,,,.,,
-#JJQ4EEYTZTBT3O7M2OINIVFX4JA6NHVFL374G764N3UFNX3ABNUF72DHNV7KJKAFGV6VDEPPBB3VK
-#\\\|HC4TGWBKWPPMBHWW2EXAYZM37OM4U56DVY7V6U5N5UPYFPFNN4O \ / AMOS7 \ YOURUM ::
-#\[7]KME7CMJBX47N3CZJ42Z6KOBJUI3H2EQPCJMRD3JFAVQQUE6T4KDI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,.,.,,,.,.,,,...,,..,,.,,..,,..,,...,...,..,,,..,,,.,.,.,.,,,
+#IDRCFD2F2UH54ZEEV5YPEYZN6QKSVLIOXW33F74CBJRPOOW4JM37KMP55SCSA7AQRWO3JSZBVHSWE
+#\\\|RXBMM56UC2U3SVERUZI4QKKHEGLTK4SZSKIPZENY7ZU4P3E3HXU \ / AMOS7 \ YOURUM ::
+#\[7]R56R7BLOQQFD72T3XDZ3NF6FFIAFFLH7H5A5QBRIKKMXN2IMSEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

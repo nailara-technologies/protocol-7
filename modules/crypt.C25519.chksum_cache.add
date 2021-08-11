@@ -1,0 +1,47 @@
+## >:] ##
+
+# name  = crypt.C25519.chksum_cache.add
+
+my $key_L13_chksum = shift // '';    ##  L13 sum of base32 encoded key  ##
+my $chksum_str     = shift // '';    ##  cached AMOS7 key chksum  ##
+
+my $chkum_cache_file = <crypt.C25519.path.key_chksums_cache_file>;
+
+if ( not length $key_L13_chksum ) {
+    warn 'expected key string bmw L13 chksum param <{C1}>';
+    return undef;
+} elsif ( not length $chksum_str ) {
+    warn 'expected C25519 key [amos] chksum param <{C1}>';
+    return undef;
+}
+
+return FALSE                         ##  creates directory if missing  ##
+    if not defined $chkum_cache_file or <[crypt.C25519.chk_key_dir]> != TRUE;
+
+my $start_size = 0;
+$start_size = File::stat::stat($chkum_cache_file)->size
+    if -r $chkum_cache_file;
+
+##  entry exists already  ##
+return TRUE if defined <[crypt.C25519.chksum_cache.retr]>->($key_L13_chksum);
+
+my $cache_fh
+    = <[file.open]>->( $chkum_cache_file, qw| :raw >> |, TRUE, 0600 );
+
+return FALSE if not defined $cache_fh;
+
+say {$cache_fh} sprintf '%s:%s', $key_L13_chksum, $chksum_str;
+
+close($cache_fh)
+    or <[base.s_warn]>->(
+    ': close %s : %s',
+    $chkum_cache_file, <[base.str.os_err]>
+    );
+
+return File::stat::stat($chkum_cache_file)->size > $start_size ? TRUE : FALSE;
+
+#,,..,,,,,,,,,,..,.,,,,,.,,,,,,..,.,.,,.,,,..,.,.,...,...,,,.,.,,,,.,,.,.,,.,,
+#U4KGMD52LZW7XRIKGTQVSZIZJBWKCRICXBQVE2QMT44NKGRXSQAZDD7MLRRTU3P7ZNEUBY7UJ4KRC
+#\\\|A5MMMTLWSVXNA355Q6XYFFSXZRLFU45MYUFFXD5VOP4FPRCPKYB \ / AMOS7 \ YOURUM ::
+#\[7]WBFDRNVWMRGM4VNBG4JFN3MG47EURLJIBK3K6CQ2Y6YYQ6VITKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

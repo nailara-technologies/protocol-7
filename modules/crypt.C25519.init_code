@@ -9,9 +9,13 @@
 
 ##  C25519 and BASE-32 modules loaded in 'pre_init'  ##
 
-<crypt.C25519.autocreate-user-key> //= qw| no |;
+<crypt.C25519.autocreate-user-key> //= FALSE;
 
 <crypt.C25519.key_usr> //= <system.amos-zenka-user>; #  <--  C25519 key owner.
+
+<crypt.C25519.path.key_chksums_cache_file>
+    //= sprintf qw| %s/.key-chksums.cache |,
+    <[crypt.C25519.key_vars]>->{'key_dir'};
 
 ## regex ##
 ##
@@ -116,8 +120,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,..,,.,,.,.,..,,...,,.,,.,.,.,.,,.,,,,.,.,,,..,,...,.,.,.,.,.,,,,,,,,,,,.,,,
-#UE33MKKKOB2JUEVHZUTOXXUWUROXGDSKX3VCJECSXUQSZYHJPSX5SWLD5H7SSAYF4NS2SAD7HLAOW
-#\\\|OHGFCKTPSLPBOYMT7O6VTRLS26FUBQ3R65GILRNAHUKH6E73LET \ / AMOS7 \ YOURUM ::
-#\[7]4HNQVGDYA5ACPYZ7AG6XQZJ3TS3DJRHGUBWMKKIW23G2BLNZLOCI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,,.,,.,,,.,.,,,.,...,,,,,.,,,..,,...,..,,..,,,..,,,.,...,...,
+#CHNRUWF7SFTIUTW4LBLKTB4JZLEIJAN7ALCM3SEP64ETNTZUMAE37PRQ47NQDLJGCVUBLRSA7K52S
+#\\\|VQQZ7HVJHIX6FO3PO6JSPMBBWUWJB65GTKPTA546FBKFVFMM6ZJ \ / AMOS7 \ YOURUM ::
+#\[7]6G4FOJCHPWOSI4QYNBTELA7B3L7LGLFAGTIR332R6VQAG4KVM4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
