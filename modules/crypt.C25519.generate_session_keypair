@@ -2,33 +2,36 @@
 
 # name  = crypt.C25519.generate_session_keypair
 
-my $key_name     = shift // <system.zenka.name>;
-my $key_name_str = $key_name eq <system.zenka.name> ? 'zenka' : "'$key_name'";
+my $name = shift // <system.zenka.name>;
+
+my $session_keyname = sprintf qw| session:%s |, $name;
+
+my $name_str
+    = $name eq <system.zenka.name> ? qw| zenka | : sprintf qw| '%s' |, $name;
 
 ## regenerate? <-- log level 2 [ less noise on timer interval ]
-my $log_level = defined $keys{'C25519'}{'session'}{$key_name} ? 2 : 1;
+my $log_level = exists $keys{'C25519'}{$session_keyname} ? 2 : 1;
 
-<[base.log]>->( $log_level, ":[ creating $key_name_str session keys ]" );
+<[base.logs]>->( $log_level, ':[ creating %s session keys ]', $name_str );
 
 my ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair();
 
 my $creation_ntime = <[base.ntime.b32]>->(3);
-my $key_sig
-    = <[crypt.C25519.sign_data]>->( \"[$creation_ntime|$public_key]" );
+my $template       = sprintf '[%s|%%s]', $creation_ntime;
+my $key_sig = <[crypt.C25519.sign_data]>->( \sprintf $template, $public_key );
 
-return $keys{'C25519'}{'session'}{$key_name} = {
-    'name'      => $key_name,
+return $keys{'C25519'}{$session_keyname} = {
+    'name'      => $name,
     'public'    => $public_key,
     'private'   => $private_key,
     'created'   => $creation_ntime,
     'signature' => $key_sig,
     'key-reply' => encode_b32r($public_key),
-    'sig-reply' =>
-        sprintf( '[%s|%s]', $creation_ntime, encode_b32r($key_sig) )
+    'sig-reply' => sprintf( $template, encode_b32r($key_sig) )
 };
 
-#,,..,,..,..,,.,.,,,.,...,.,,,.,,,...,..,,.,,,..,,...,...,...,,,.,..,,.,,,.,.,
-#2REK2VPONVCFSF3WU7AH74UQWX3UYWBMNYOSYICUSZWDKAXIHTBGCZPJMYX3JOOKQP7GOTHI3ZTG2
-#\\\|BNFWFLYA3VUC3GZDCIF7HNZTW2EIUOBFZNLSSSDYQXU57HB6GP4 \ / AMOS7 \ YOURUM ::
-#\[7]LLFCZXEYJSJDUOKG234NUGT2OUP6VB4ACRQ37IQBJJ7HWETCDGCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,..,...,,..,,.,,..,,,,,,..,,..,,...,...,...,..,,,..,..,,,.,,
+#HULHXVDWZIPAQBXDLQCHHSEKUGTVSH6APPWVQOQCIQKX7P5XSGELIAN7ZXOPR63HBN2N47BU6EKKY
+#\\\|AEXPVXCUNG3FBGB7HCM4ZCUVYCFMVBOXGQONKICWVANGT6RLGJM \ / AMOS7 \ YOURUM ::
+#\[7]J6WRDL62Q2UMTT2VZ3FZWWAW7IQB6VAJI5XGRLPER4F2E2UEK4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

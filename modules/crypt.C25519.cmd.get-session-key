@@ -1,25 +1,24 @@
 ## >:] ##
 
 # name  = crypt.C25519.cmd.get-session-key
-# descr = return C25519 public session key in BASE32
+# descr = return public C25519 session-key [ BASE32 ]
 
-my $key_name = <system.zenka.name>;
+my $session_keyname = sprintf qw| session:%s |, <system.zenka.name>;
 
-return { 'mode' => qw| false |, 'data' => 'C25519 key name is not defined' }
-    if not defined $key_name;
 return {
     'mode' => qw| false |,
-    'data' => "no session key '$key_name' available"
+    'data' => sprintf( "session key '%s' not loaded", <system.zenka.name> )
     }
-    if not defined $keys{'C25519'}{'session'}{$key_name}{'key-reply'};
+    if not exists $keys{'C25519'}{$session_keyname}
+    or not exists $keys{'C25519'}{$session_keyname}{'key-reply'};
 
 return {
     'mode' => qw| true |,
-    'data' => $keys{'C25519'}{'session'}{$key_name}{'key-reply'}
+    'data' => $keys{'C25519'}{$session_keyname}{'key-reply'}
 };
 
-#,,,,,,.,,.,.,,,.,,.,,,..,,..,,,,,,..,..,,,,,,..,,...,...,..,,,,.,,,,,..,,...,
-#N6INVRHOEB2I6MFKX7MYHBQMI4DK4TPITKVJC3MPAJVQLVJHFW7POJROOIBGH3JEVVWXG5G5L4ZOY
-#\\\|H4ZIXEULDGKZYXQK5RJOM7OCGFUE65ZMEGOCSCUVP7CZCRW3I2X \ / AMOS7 \ YOURUM ::
-#\[7]5CCXYBGPVQHYSL6AU4UJDBYUUOBGXRUHEI6KCTVUN4YMNJJJJEBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,,,,,..,,,,.,,,,,.,,,,,.,,.,,..,,...,...,...,,,.,,.,,...,,..,
+#DL43ETKOWA7MYK2YHQZ3XXNENBKRB66RTQTNJDD2C63ZAKH2E3UESCN5ISXOI4TSFFKHGVXTY6MXE
+#\\\|SCJQP6NNIJ6XDUPBNMV5UZ2XCSJNMG5OMRO6ZWEU5G4G4UQ7WUY \ / AMOS7 \ YOURUM ::
+#\[7]4XNVTVOPAXLY3QLF3M6CQL3N5LKGB5TEHT4AVSOAEEUZBG2AKQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

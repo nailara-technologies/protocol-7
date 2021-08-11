@@ -1,23 +1,24 @@
 ## >:] ##
 
 # name  = crypt.C25519.cmd.get-session-sig
-# descr = return C25519 public session key signature
+# descr = return [C25519] public session key signature
 
-my $key_name = <system.zenka.name>;
+my $session_keyname = sprintf qw| session:%s |, <system.zenka.name>;
 
 return {
     'mode' => qw| false |,
-    'data' => "no session key '$key_name' available"
+    'data' => sprintf( "session key '%s' not loaded", <system.zenka.name> )
     }
-    if not defined $keys{'C25519'}{'session'}{$key_name}{'sig-reply'};
+    if not exists $keys{'C25519'}{$session_keyname}
+    or not exists $keys{'C25519'}{$session_keyname}{'sig-reply'};
 
 return {
     'mode' => qw| true |,
-    'data' => $keys{'C25519'}{'session'}{$key_name}{'sig-reply'}
+    'data' => $keys{'C25519'}{$session_keyname}{'sig-reply'}
 };
 
-#,,..,.,,,,,,,,..,..,,,..,..,,..,,,,.,..,,,..,..,,...,..,,,.,,,.,,..,,,..,,,.,
-#BAIEY5R3ITP3UO7QSMM5T3MFUNMDLEBGKHRJLEM4D4466HAO6H2F52UDEC4BSVNZ5WMJIWTGMXKIC
-#\\\|EBKBWY5KEFFEL4AZBB7Y5NE4JXFV4Q5NPF5XFTQ2FOUCXFQBL53 \ / AMOS7 \ YOURUM ::
-#\[7]PFHNTEW4QDCFKURBI3VTIPJDEXUYNCRRJS5ETSXD2M2ZIT6E7QDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,.,,,,.,,,,,..,,,,,,..,,.,.,.,.,..,,...,...,..,,,.,,.,.,...,,,,,
+#Y6ZULPHULU364JM7UNIHQCBLCKL2BGQTYXCHWECFGGRU24UFBBHPQ2WJ7ITI3A65ZYGB3QQKYQDTK
+#\\\|COWOTV3WOFVCD72LBG2I7EYABR7HYJJADS7NGZ4STLUJ2N5O6FT \ / AMOS7 \ YOURUM ::
+#\[7]E6MNUVX33M7N2TGEBZARCHH5VWXLL2MDX4SFNOTPSLB5PWHJHMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

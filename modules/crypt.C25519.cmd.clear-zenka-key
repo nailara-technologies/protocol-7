@@ -3,65 +3,50 @@
 # name  = crypt.C25519.cmd.clear-zenka-key
 # descr = erase C25519 zenka key from memory [secure]
 
-my $key_name   = <crypt.C25519.key_vars.key_name>;
-my $s_key_name = <system.zenka.name>;
-my $id         = $$call{'session_id'};
+my $name = <crypt.C25519.key_vars.key_name>;
+my $id   = $call->{'session_id'};
 
 return { 'mode' => qw| false |, 'data' => 'C25519 key name is not defined' }
-    if not defined $key_name;
+    if not defined $name;
 return {
     'mode' => qw| false |,
-    'data' => "C25519 key '$key_name' is not loaded"
+    'data' => sprintf( "C25519 key '%s' is not loaded", $name )
     }
-    if not defined $keys{'C25519'}{$key_name}{'public'};
+    if not exists $keys{'C25519'}->{$name};
 
-<[base.log]>->( 0, "[$id] flushing C25519 key '$key_name'., [ requested ]" );
+<[base.logs]>->(
+    0,   "[%d] flushing C25519 key '%s'., [ requested ]",
+    $id, $name
+);
 
-my $usr_key = $keys{'C25519'}{$key_name};
+my $success_0 = <[crypt.C25519.del_keys_hash_entry]>->($name);
+my $success_S = TRUE;
 
-map {    ##  secret | public  ##
-    <[base.erase_buffer_content]>->(
-        \$usr_key->{$ARG},
-        int( rand(13) ) + 7    ##  <-- additional bytes as padding  ##
+##  deleting session key if present  ##
+##
+my $session_keyname = sprintf qw| session:%s |, <system.zenka.name>;
+if ( exists $keys{'C25519'}->{$session_keyname} ) {
+    <[base.logs]>->(
+        "[%d] :, also erasing session key '%s'.., [ from memory ]",
+        $id, <system.zenka.name>
     );
-    $usr_key->{$ARG} = undef;
-    delete $usr_key->{$ARG};
-} <[base.reverse-sort]>->($usr_key);
-undef $usr_key;
-delete $keys{'C25519'}{$key_name};
-
-### deleting session key if present ###
-if ( defined $keys{'C25519'}{'session'}{$s_key_name} ) {
-    <[base.log]>->(
-        1, "[$id] :. erasing session key '$s_key_name'., [ from memory ]"
-    );
-
-    my $s_key = $keys{'C25519'}{'session'}{$s_key_name};
-
-    map {    ##  secret | public  ##
-        <[base.erase_buffer_content]>->(
-            \$s_key->{$ARG},
-            int( rand(13) ) + 7    ##  <-- additional bytes as padding  ##
-        );
-        $s_key->{$ARG} = undef;
-        delete $s_key->{$ARG};
-    } <[base.reverse-sort]>->($s_key);
-    undef $s_key;
-
-    delete $keys{'C25519'}{'session'}{$s_key_name};
-    delete $keys{'C25519'}{'session'}
-        if !keys( %{ $keys{'C25519'}{'session'} } );
+    $success_S = <[crypt.C25519.del_keys_hash_entry]>->($session_keyname);
 }
 
-delete $keys{'C25519'} if !keys( %{ $keys{'C25519'} } );
+if ( $success_0 and $success_S ) {
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf( "deleted '%s' key from memory", $name )
+    };
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'errors encountered while erasing session key'
+    };
+}
 
-return {
-    'mode' => qw| true |,
-    'data' => "deleted '$key_name' key from memory"
-    }
-
-#,,..,,..,,,,,...,,..,...,,,.,...,.,,,...,,,,,..,,...,...,,,,,.,.,,.,,...,..,,
-#SW6PR3PEDW4CK2U7PHSR6R6ADHB4UF7JHZNZG6XNQYHQNNLIOVJAT2RHUEEEXHJ6VAY6IXTO542TY
-#\\\|LZ2OWO33KBPGNBPETVBDGIHYLCC3C3SJV47TSITDQU2LO3VA7T4 \ / AMOS7 \ YOURUM ::
-#\[7]XDCSKIDP2ERTQOUJGY3RN6BJGX3TYYRYSDYNRTGOI7TI2V3VJ2CY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,.,,,.,,,,,,,.,,,.,.,..,,..,,..,,...,...,,,.,,,.,...,,,,,,,.,
+#ONXJ3TA5DYAANG73WTWZVM57DLV25AD57KGL36I27ZB2NSPRUH3KD4B3TXASG3EU2WEW3CW2AEAP6
+#\\\|MONYK5G6CZ7W2O6MQQTMZXNHSZSMWHHKWKD7DO36TAE5N46XMIV \ / AMOS7 \ YOURUM ::
+#\[7]FFKS5VMBRTAWVZEJPCFHNRRN4DZ7P32BGY5A2MWLI2BEJ5HYUWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,6 +10,15 @@ my $sid     = $params->{'session_id'};
 my $session = $data{'session'}{$sid};
 my $base_re = <regex.base.base_32>;
 
+my $session_keyname = sprintf qw| session:%s |, <system.zenka.name>;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'session key not loaded [ cannot sign key ]'
+    }
+    if not exists $keys{'C25519'}{$session_keyname}
+    or not exists $keys{'C25519'}{$session_keyname}{'sig-reply'};
+
 return {
     'mode' => qw| false |,
     'data' => 'expected [ RFC 4648 base32 encoded ] C25519 public key'
@@ -25,20 +34,21 @@ if ( length( $session->{'client_key'} // '' ) != 32 ) {
     return {
         'mode' => qw| false |,
         'data' => 'decoding not successful [ BASE32 expected ]'
-            . length( $session->{'client_key'} // '' )
     };
 }
 
-my $base_ntime  = <[base.ntime.b32]>->(3);
-my $key_sig_str = <[crypt.C25519.sign_data]>->( \"[$base_ntime|$key_str]" );
+my $creation_ntime = <[base.ntime.b32]>->(3);
+my $template       = sprintf '[%s|%%s]', $creation_ntime;
+
+my $key_sig = <[crypt.C25519.sign_data]>->( \sprintf $template, $key_str );
 
 return {
     'mode' => qw| true |,
-    'data' => '[' . join( '|', $base_ntime, encode_b32r($key_sig_str) ) . ']'
+    'data' => sprintf( $template, encode_b32r($key_sig) )
 };
 
-#,,,.,,..,,,,,..,,.,,,,,.,.,,,.,.,.,.,.,.,,,.,..,,...,...,...,,..,..,,..,,,,,,
-#W4KRXR4QTM43V6R25WTJ5EFNLZNLVGERE6MREHDQNKWNJDPMAGBKKUP7LZG6CR5OUE4424HXHLG6W
-#\\\|YC4JW7EIJWHGXPOU2OFNN5PRVDVFQYVRJMFWV6W3C5UWVD6ASEM \ / AMOS7 \ YOURUM ::
-#\[7]AH5REW2XKFUNAP3GZ5PMKSGODW2LY4MOQ2PUUYFYWNXSFR6HBGDQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,..,,.,,,,..,.,,,..,,,.,,,.,,..,,...,...,..,,,,.,,,.,..,,,..,
+#ME4FDIUBH77TH4ONLYIBDNXCTG5V2S2VJFHORD5HRCOHLCKNYVDYGTLZCWU4265D6YESYWGC65VIA
+#\\\|ADJ56L3BDOR55JH2JG4FHS3PVZ2BSLZVTZ4PX4B2MENVGND7CQV \ / AMOS7 \ YOURUM ::
+#\[7]KF2DJDZYHURIU4O6GLGR5GMN4ZZVUJ7S5BEKWL3RG7PZ5DEPGMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
