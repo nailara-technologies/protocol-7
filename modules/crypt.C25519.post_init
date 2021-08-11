@@ -3,7 +3,7 @@
 # name = crypt.C25519.post_init
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
-if ( not <crypt.C25519.auto_load_keys> //= 5 ) {
+if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
     <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
     <crypt.C25519.initialized>++;
     return 0;
@@ -20,7 +20,7 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
-if ( not defined $home_dir or !-r $home_dir ) {
+if ( not defined $home_dir or not -r $home_dir ) {
     if ( not <base.parser.config.reloading> ) {
         <[base.logs]>->(
             0, '<< no access to home directory >> [ %s ]', $key_usr
@@ -32,7 +32,8 @@ if ( not defined $home_dir or !-r $home_dir ) {
     return 0;    # state still valid
 }
 
-return -1 if not <[crypt.C25519.chk_key_dir]>;    # <-- creates if missing ..,
+##  creates directory if missing  ##
+return -1 if not <[crypt.C25519.chk_key_dir]> == TRUE;
 
 my $private_key_file = $key_filename->{'private'};
 my $public_key_file  = $key_filename->{'public'};
@@ -56,7 +57,7 @@ if (    index( <system.zenka.name>, qw| source |, 0 ) == -1
     <[crypt.C25519.load_keypair]>;
 }
 
-while ( glob $key_basepath . '.{rkp,sig}.*' ) {
+while ( glob $key_basepath . qw| .{rkp,sig}.* | ) {
     if (m{([^\/]+\.(rkp|sig)\.(.+))$}) {
         my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
         <[base.logs]>->( ": : %s : '%s'", $type, $fname );
@@ -78,8 +79,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,.,,..,,,,.,.,.,..,,..,,,..,,,,,.,,,,,,,.,,,..,,...,...,,..,...,,,.,,,.,,,,,
-#HCNS56HP6IEUSWOOPYWAZR3G77NRBY57AEP2M26DRG75PUOCN53U4OVSTB25HJ5NG6QZXNMWKPTGY
-#\\\|DHUU2TLA2O45BAEK6G6RC4AVCXA4MTJ6YT55PJEYDBZ5ZMZ2ZJH \ / AMOS7 \ YOURUM ::
-#\[7]SYN77NW7ADOZRMTIQZP7TUDA3CT2BP3CQVFPB5JKOIBYO7S556DA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,,,,,,,,,...,,,.,.,.,,.,,,,.,..,,...,..,,.,.,...,,,.,,,,,.,,,
+#6BE7ACIGNNJ3B4FGZL466PHIBYRL6Y7TRUSCB4APS4ZWS3YCSTN6AHZ67VZVOKCT5Z7XQ7WYKT2KS
+#\\\|4GAAAQZR4CHCNVKHRQCNPVSMXGIWNPMLTLX5SJLNLCGCHHXMJWW \ / AMOS7 \ YOURUM ::
+#\[7]GUHGCI3WUT3XO7NUXLQSVB3LG4CMK7TFTLGWWGYVYOHFUIU4SKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

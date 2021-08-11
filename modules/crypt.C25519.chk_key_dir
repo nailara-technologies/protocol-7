@@ -9,7 +9,7 @@ my $uid     = $key_vars_ref->{'uid'};
 my $gid     = $key_vars_ref->{'gid'};
 
 if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
-    if ( !-d $key_dir ) {
+    if ( not -d $key_dir ) {
         <[base.log]>->( 1, "creating key directory '$key_dir' .." );
         eval {
             make_path( $key_dir,
@@ -17,7 +17,7 @@ if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
         return -2        if !-d $key_dir;    # <-- return error state
-        return 1;                            # success [ dir exists now ]
+        return TRUE;                         # success [ dir exists now ]
     }
 } elsif ( !-r $key_dir or !-d $key_dir ) {
     my $perms     = -e $key_dir ? '' : ' [ permissions ]';
@@ -27,10 +27,10 @@ if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
     return -1;    # <-- error state
 }
 
-return 1          # <-- success [ true ]
+return TRUE       # <-- success [ true ]
 
-#,,.,,,,.,.,,,,,,,.,.,..,,...,.,,,.,.,,,.,,..,..,,...,...,...,,..,,..,,.,,.,.,
-#IWB7CPLTSVS6Y2BGINEBYWTQ6UMZYTT5H5UEVJT6YNKOWYDTT7TC6UGPZKXGX4XMO5DF6DU3XWRTI
-#\\\|F5SE25JJQS7UVWHBOWY5XHJOCBRRLGVYCJOFR2X4PQKLIXV3DMA \ / AMOS7 \ YOURUM ::
-#\[7]HDJ4N5S4KJW7TMNXQBCBIRBMPYHYNECCV4RE2CT6FJSZIQ2M6OCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,,..,,,,,,.,,.,,,.,.,..,,,.,,..,,...,...,.,,,..,,,,.,.,.,.,,,
+#ZQEGHY7BDRTBUNTEHIWIW7GCT37SQWC45DKB6XSFZXMSAIAUYT7T5LDKSY4NQIRLKIMKYK7HEV64U
+#\\\|NJYWGYV7EKWKNJFOORW3Z6WTLDIBPNTSA3WNOYDNTDGB7KI5R27 \ / AMOS7 \ YOURUM ::
+#\[7]XYGWO5F6I3NN53TIDEVTD7B5NT77MPILGVXQIDOKJX5IC7WEPCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
