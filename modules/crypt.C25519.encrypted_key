@@ -2,53 +2,66 @@
 
 # name  = crypt.C25519.encrypted_key
 
-## todo : use get_type_from_key_str here to remove redundancy ##
-
-my $key_name = shift // '';
+my $key_name = shift // '';    ##  key name \ absolute path to key file  ##
 
 if ( not length $key_name ) {
     warn 'expecting key_name parameter <{C1}>';
     return undef;
 }
 
-my $keys_re   = <crypt.C25519.regex>;
-my $re_kfiles = $keys_re->{'key_files'};
+my $re_kfiles = <crypt.C25519.regex>->{'key_files'};
 
+my $key_type;
+my $public_keyfile;
 my $private_keyfile;
 
 if ( index( $key_name, qw| / |, 0 ) == 0 and $key_name =~ $re_kfiles ) {
     ## absolute path to keyfile ##
-    return -2 if not -f $key_name;    ##  no key file with that name  ##
-    return -3 if not -r $key_name;    ##  is not readable  ##
-    ( my $filepath_rel = $key_name ) =~ s|^.+/||;
-    my $key_re_public = $keys_re->{'key_file'}->{'public'};
+    my $keyfile_abs_path = $key_name;
+
+    return -2 if not -f $keyfile_abs_path;  ##  no key file with that name  ##
+    return -3 if not -r $keyfile_abs_path;  ##  is not readable  ##
+
+    ( my $filepath_rel = $keyfile_abs_path ) =~ s|^.+/||;
+
+    ( $key_name, $key_type )
+        = <[crypt.C25519.key_name_and_type]>->($filepath_rel);
 
     ##  public key [ never encrypted ]  ##
-    return FALSE if $filepath_rel =~ $key_re_public;
+    ##
+    return FALSE if $key_type eq qw| public |;
 
-    $private_keyfile = $key_name;     ##  private key abs file path  ##
+    $private_keyfile = $keyfile_abs_path;    ##  private key abs file path  ##
+    $public_keyfile  = <[crypt.C25519.key_vars]>
+        ->($key_name)->{'key_filename'}->{'public'};
 
+    if ( not length $public_keyfile or not length $public_keyfile ) {
+        warn 'key_vars function returned undefined filename <{C1}>';
+        return undef;
+    }
 } else {
 
     my $key_filenames
         = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
 
-    $private_keyfile = $key_filenames->{'private'};
-    my $public_keyfile = $key_filenames->{'public'};
+    $private_keyfile = $key_filenames->{'private'} // '';
+    $public_keyfile  = $key_filenames->{'public'}  // '';
 
-    if ( defined $private_keyfile and not -f $private_keyfile ) {
-        if ( defined $public_keyfile and -f $public_keyfile ) {
+    if ( length $private_keyfile and not -f $private_keyfile ) {
+
+        if ( length $public_keyfile and -f $public_keyfile ) {
             return -1;    ##  only public key present  ##
         } else {
             return -2;    ##  no key with specified name  ##
         }
-    } elsif ( not defined $private_keyfile or not defined $public_keyfile ) {
+
+    } elsif ( not length $private_keyfile or not length $public_keyfile ) {
         warn 'key_vars function returned undefined filename <{C1}>';
         return undef;
     }
 }
 
-my $key_file_ref = <[file.slurp]>->($private_keyfile);
+my $key_file_ref = <[file.slurp]>->( $private_keyfile, undef, qw| :raw | );
 
 if (   not defined $key_file_ref
     or ref $key_file_ref ne qw| SCALAR |
@@ -58,37 +71,37 @@ if (   not defined $key_file_ref
     chomp( $key_file_ref->$* );    ##  strip linefeed  ##
 }
 
-my $key_encrypted = FALSE;         ##  false  ##
+( my $key_status )
+    = <[crypt.C25519.get_type_from_key_str]>->( $key_file_ref->$* );
 
-my $encoded_keylen  = length $key_file_ref->$*;
-my $decoded_privkey = decode_b32r( $key_file_ref->$* );
-
-## checking for encryption [ '.:' prefix encrypted or 'U:' for plain ] ##
-##
-if ($encoded_keylen == 106    ##[  has no linefeed  ]##
-    and index( $key_file_ref->$*, qw| FY5 |, 0 ) == 0
-    and index( $decoded_privkey,  qw| .: |,  0 ) == 0
-) {
-    $key_encrypted = TRUE;    ## true ##
-
-} elsif ( $encoded_keylen == 106
-    and index( $key_file_ref->$*, qw| KU5 |, 0 ) == 0
-    and index( $decoded_privkey,  qw| U: |,  0 ) == 0 ) {
-
-    $key_encrypted = FALSE;    ## false ##
-
-} elsif ( $encoded_keylen == 103 ) {    ##[  old key format  ]##
-
-    $key_encrypted = FALSE;             ## false ##
-
-} else {
-    return -4;                          ##[  not a valid key format  ]##
+if ( not defined $key_status ) {
+    <[base.logs]>->( 0, ': key format not valid : %s', $key_name );
+    return -4;                     ##[  not a valid key format  ]##
 }
 
-return $key_encrypted;                  ##  key encryption status  ##
+my $key_encrypted = $key_status->{'encrypted'};
 
-#,,,.,.,,,,,.,.,,,...,...,,,.,,.,,..,,,,.,.,.,..,,...,...,,,.,,.,,.,,,.,.,...,
-#5BL5HPY6ULB3NN66WCQUFWMYNRSYQ7UVB5YGTX27B2EO5MU5437OWNDMEJUKWJODHBBYI34RSA5FM
-#\\\|YRSZPACUB6OBXSVL234LZFJEPVY35LXSMWJIFOUXR6XJKFBQNC7 \ / AMOS7 \ YOURUM ::
-#\[7]7CTBKKPHC6OWVCPT7KBU4ORFUENK7S73LFGRBKRYKDHQ373K3EDA 7  DATA SIGNATURE ::
+if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
+    my $public_file_ref
+        = <[file.slurp]>->( $public_keyfile, undef, qw| :raw | );
+
+    ($key_status) = <[crypt.C25519.get_type_from_key_str]>->(
+        $key_file_ref->$*, $public_file_ref->$*
+    );
+
+    if ( not defined $key_status ) {
+        <[base.logs]>->(
+            0, '[ public ] key format not recognized : %s', $key_name
+        );
+        return -4;    ##[  not a valid key format  ]##
+    }
+
+}
+
+return $key_encrypted;    ##  key encryption status  ##
+
+#,,.,,..,,..,,,..,.,.,,..,,,.,,,,,,..,..,,..,,..,,...,...,.,,,,,,,...,..,,,,,,
+#AQZX5WWX5KBBT4B354A55GMDLW2MT2WJ7SYAHGW2FJOBADFM4FK4HTWQH4GQETYIV6AHNBIHYMAT4
+#\\\|S53J4QIIFVPJRBNYNGSINJNNAP3DQPTGSYVOWFQQMCWE4PMSXUS \ / AMOS7 \ YOURUM ::
+#\[7]ZOKK5B5YRXGATT7UUJZEFUDSGABD7O34YMBOPDYSHE5J43PQ26BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
