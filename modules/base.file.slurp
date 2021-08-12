@@ -4,11 +4,14 @@
 # args  = <filename>[, <target_reference> (SCALAR|ARRAY)][, <encoding>]
 # descr = loads a file into memory and returns a reference to it
 
-my $open_file_name = shift;
+my $open_file_name = shift // '';
 my $target_ref     = shift;           # optional scalar or array reference
 my @encoding       = ( shift // '' ); # optional encoding type [ i.e. ':raw' ]
 
-warn 'expecting file_name parameter <{C1}>' if not defined $open_file_name;
+if ( not length $open_file_name ) {
+    warn 'expecting file_name parameter <{C1}>';
+    return undef;
+}
 $open_file_name = abs_path($open_file_name) if -e $open_file_name;
 
 if ( defined $target_ref and not length ref $target_ref ) {
@@ -34,13 +37,29 @@ if ( not open( $file_fh, join( ' ', qw| < |, @encoding ), $open_file_name ) )
     return undef;
 }
 my $ref_type = ref $target_ref;
+use warnings qw| FATAL |;
 if ( $ref_type eq qw| SCALAR | ) {
-    local $RS = undef;
-    $target_ref->$* = <$file_fh>;
-
+    use warnings qw| FATAL |;
+    local $INPUT_RECORD_SEPARATOR = undef;
+    eval { $target_ref->$* = readline($file_fh) };
+    if ( length $EVAL_ERROR ) {
+        ## say '  < caller >  ', scalar <[base.caller]>;
+        <[base.s_warn]>->(
+            ': %s : %s', <[base.str.eval_error]>, $open_file_name
+        );
+        return undef;
+    }
 } elsif ( $ref_type eq qw| ARRAY | ) {
-
-    push $target_ref->@*, <$file_fh>;
+    use warnings qw| FATAL |;
+    local $INPUT_RECORD_SEPARATOR = undef;
+    eval { push $target_ref->@*, readline($file_fh) };
+    if ( length $EVAL_ERROR ) {
+        ## say '  < caller >  ', scalar <[base.caller]>;
+        <[base.s_warn]>->(
+            ': %s : %s', <[base.str.eval_error]>, $open_file_name
+        );
+        return undef;
+    }
     chomp $target_ref->@*;
 
 } else {
@@ -57,8 +76,8 @@ if ( not close($file_fh) ) {    ##[  only warning about it  ]##
 
 return $target_ref;             ##  scalar or array reference  ##
 
-#,,.,,,.,,..,,,,.,.,,,,,,,,,.,,,.,.,,,,.,,,,,,..,,...,..,,,..,,.,,,,,,.,.,.,,,
-#ANCVJH35ODI6MCN73IIMWGI56TFIVZGFZJZPS4IHH6BL7324O4HGCT6ZK2QT5CJVMKFFUBFMAFX4G
-#\\\|5Z5GF33PMSR6YGBZNBE42C4JYOLLGL3IQ4NUMRG7NP5WYHBGNPG \ / AMOS7 \ YOURUM ::
-#\[7]YGR4TIQJAU2BIGSY47F3B2DJS7N5AOQ66AL6ROFMDWG7OIAV62DY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,.,.,,,,,,..,,,,,.,.,,,.,,.,,..,,...,...,.,.,.,,,,..,,,,,...,
+#YQJ5PBYCZJ4PMZWRQXRXLNDQHI5ZMYXE7B7ONX6XUZ32YDWS2EXJP6AWLLXWIISDR4PMNQMBB34NM
+#\\\|2ZNOKPHRXPS3ICI7F65BPYV5FDOAZYXESBCPFAK4IZ626A56LK7 \ / AMOS7 \ YOURUM ::
+#\[7]XNOGQEYF2BZP7NNZ2ZWQNWKLNEF3YD2MI6CP3UKAQMLI4ZOKAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
