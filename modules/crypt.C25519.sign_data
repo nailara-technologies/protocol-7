@@ -18,7 +18,7 @@ my $key_name     = $key_vars_ref->{'key_name'};
     )
     if not exists $keys{'C25519'}{$key_name}
     or ref( $keys{'C25519'}{$key_name} ) ne qw| HASH |
-    or ( keys( %{ $keys{'C25519'}{$key_name} } ) < 2
+    or ( keys( $keys{'C25519'}{$key_name}->%* ) < 2
     and exists $keys{'C25519'}{$key_name}{'root'} );
 
 <[base.s_warn]>->(
@@ -31,8 +31,8 @@ return Crypt::Ed25519::sign(
     $keys{'C25519'}{$key_name}{'private'}
 );
 
-#,,.,,,..,..,,..,,,..,,.,,,..,.,.,,,,,.,.,,.,,..,,...,...,,..,.,,,,..,,,,,,,,,
-#ISM2O22DHQDAQ6S6RVU5NYQB3OZDL2I35CRTLPV54DENVMRFY6UQUTJHGYGNB2F5Y7GFADAZVGNGY
-#\\\|DLM5ARGDGZD5WZZ6ELMOSIQLK6O6VMTLOQSKWWDG6ILFSD7VXUI \ / AMOS7 \ YOURUM ::
-#\[7]BS7RSCNSUEP2DJINOJOSR33CLPBCUJMVJJC7UMB7E76C3CT62WBI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,..,,..,,..,,.,,,..,,,,,,,..,..,,...,...,.,,,,,.,,,,,,,.,..,,
+#RX5MB323DZQXYFO2PJ7ARFRYU6Q2WJRZYRPWJPA26YY3V4KPHV3GW7DQNHAH45XLTU7CUDMPMU3I4
+#\\\|Y6YXUKR4EDIKFDOQBU5RKQSVRPHU7DLDQIORBY5GBHKPDHFOHAF \ / AMOS7 \ YOURUM ::
+#\[7]C2EOV3IFIWTKUSZD54J54YLKYEISFZT7FWX32HJWXXOB74W5NCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
