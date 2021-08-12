@@ -2,8 +2,10 @@
 
 # name  = keys.write_key_archive_file
 
-my $target_path_abs = shift // '';
-my $enc_pwd         = shift // '';
+my $target_path_abs       = shift // '';
+my $enc_pwd               = shift // '';
+my $overwriting_requested = shift // FALSE;
+
 if ( not length $target_path_abs ) {
     warn 'expected target archive file path parameter <{C1}>';
     return undef;
@@ -16,7 +18,7 @@ if ( not length $target_path_abs ) {
         $target_path_abs
     );
     return undef;
-} elsif ( -e $target_path_abs ) {
+} elsif ( not $overwriting_requested and -e $target_path_abs ) {
     <[base.s_warn]>->(
         'target archive file already exists [ %s ] <{C1}>',
         $target_path_abs
@@ -80,12 +82,33 @@ if (   not defined $enc_C25519_sref
     return undef;
 }
 
+if ( $overwriting_requested and -e $target_path_abs ) {
+    <[base.logs]>->(
+        1, 'shredding existing archive file [ as requested ] ..,'
+    );
+    if ( -x qw| /usr/bin/shred | ) {
+        system( qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
+            $target_path_abs ) == 0
+            or <[base.logs]>->(
+            0,                   ': shred file : %s : %s',
+            <[base.str.os_err]>, $target_path_abs
+            );
+    }
+    if ( -e $target_path_abs ) {
+        unlink($target_path_abs)
+            or <[base.logs]>->(
+            0,                   ': unlink : %s : %s',
+            <[base.str.os_err]>, $target_path_abs
+            );
+    }
+}
+
 ##  write key archive file to disk  ##
 ##
 return <[file.put_bin]>->( $target_path_abs, $enc_C25519_sref->$* );
 
-#,,.,,..,,.,.,,,.,.,,,.,,,,,.,.,,,.,.,..,,..,,.,.,...,...,,,.,,.,,.,,,.,.,..,,
-#77XXDZYOGWLPYMRLU2KVBMSKV5OPLF2U3JD3Y77AEKBBKEOE5V36XNKEC3MTVEAZYLB2NTNVF24DU
-#\\\|KFSEUYXT44T4VSRRC53BRX6KT3Z5X7WMPT2XTEWCBSRDL74WLMZ \ / AMOS7 \ YOURUM ::
-#\[7]5PKSAJWK5ZKCCR2FJ5INPAGRBJ6RTC7L2YZPJXVRFZUGH2P7DUBA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,,,,,,,.,,,.,.,.,...,.,.,,,,,.,.,...,...,,,,,,.,,,..,...,,..,
+#6MPEI4WJFEDKGLH7I2AQWMSVAMFCVH72S2MXKXG2A6XEVW7YVUGTSX4L5RQXHJSJK2SBXODEIPSY4
+#\\\|SPCKUGPL67I5FDKWHBVUZ2SOPNV2QPXEMIPNVMRVAFVJXVMHL4W \ / AMOS7 \ YOURUM ::
+#\[7]X6QQSH5XL7ZOB33LBOTI67TTXHSTWUDMGR5ZH7O7OTJ6CHQ5TUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
