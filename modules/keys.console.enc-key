@@ -26,9 +26,16 @@ if ( $key_status < 0 ) {
     }
     return printf "\n  << %s >>\n\n", $err_reason_str;
     <[base.exit]>->(qw| 0110 |);
-} elsif ( $key_status > 0 ) {
+} elsif ( $key_status == TRUE ) {
     return printf "\n  :: private key ['%s'] already encrypted ::\n\n",
         $key_name;
+} elsif ( $key_status == UNKNOWN ) {
+    <[base.log]>->( 0, ' ::' );
+    <[base.log]>->(
+        0, ' :: warning :: current key encryption status is unknown'
+    );
+    <[base.log]>->( 0, ' ::' );
+    <[base.sleep]>->(4.2);
 }
 
 my $key_filenames = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
@@ -109,13 +116,25 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
 
     foreach my $type (qw|  private  public  |) {
-        if ( not unlink( $backup_file_names->{$type} ) ) {
+        if ( -x qw| /usr/bin/shred | ) {
+            system(
+                qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
+                $backup_file_names->{$type}
+                ) == 0
+                or <[base.logs]>->(
+                0,                   ': shred file : %s : %s',
+                <[base.str.os_err]>, $backup_file_names->{$type}
+                );
+        }
+        if ( -e $backup_file_names->{$type}
+            and not unlink( $backup_file_names->{$type} ) ) {
             <[base.s_warn]>->(
                 '%s : while unlinking key file backup : %s',
                 <[base.str.os_err]>, $backup_file_names->{$type}
             );
         }
     }
+    <[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
 
     printf( "::[  successfully encrypted key %s %s  ]::\n\n",
         $key_name, $key_checksum );
@@ -141,8 +160,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_ENCRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,,,.,.,.,,,,..,..,,,,,,...,,,,,,.,,..,,,,,,.,.,...,...,.,.,,,.,,,.,,..,,.,,
-#2RZXB2CCVKSIGBI7BSHGZOV4F56W76DUGW7ZLCTQ4T72H3RJFMTB63SGEB4UEE7MXALFE6SP4BZSU
-#\\\|WIG2YKLXWMRWKSCH46WCRPUVIUPYKQZJ6DHNIW7RQVNFW5XF5DC \ / AMOS7 \ YOURUM ::
-#\[7]PWR6JYJYRQL2RI3GNT6NI2XFIA7R23G5ZYY3KLRXI5M6W3DFEYDI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,,.,..,,.,.,..,,...,,,,,.,,,,,.,.,.,...,...,.,.,..,,..,,,.,,.,.,
+#VGN3536L47BJR34Z2LPRIYV5I6RLTKWZGN2INLS2L2DVU4KMAPX647NBOKXLFNNL3JJXUQ6P4VQZM
+#\\\|HPHCIVPYMYJRWZ2NEOIGGCUR67OZAUQ3H2PPZNAH5VVLSXYTG6I \ / AMOS7 \ YOURUM ::
+#\[7]HHVQVZR5TMNQAYKNLGGMWCFBPD72HPN4E7X4N765FFPCXBZQ2ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
