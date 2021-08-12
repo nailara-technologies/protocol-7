@@ -94,14 +94,15 @@ if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
             0, '[ public ] key format not recognized : %s', $key_name
         );
         return -4;    ##[  not a valid key format  ]##
+    } else {
+        $key_encrypted = $key_status->{'encrypted'}; ##  updating status  ##
     }
-
 }
 
 return $key_encrypted;    ##  key encryption status  ##
 
-#,,.,,..,,..,,,..,.,.,,..,,,.,,,,,,..,..,,..,,..,,...,...,.,,,,,,,...,..,,,,,,
-#AQZX5WWX5KBBT4B354A55GMDLW2MT2WJ7SYAHGW2FJOBADFM4FK4HTWQH4GQETYIV6AHNBIHYMAT4
-#\\\|S53J4QIIFVPJRBNYNGSINJNNAP3DQPTGSYVOWFQQMCWE4PMSXUS \ / AMOS7 \ YOURUM ::
-#\[7]ZOKK5B5YRXGATT7UUJZEFUDSGABD7O34YMBOPDYSHE5J43PQ26BY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,.,...,,,,,..,,,,.,.,.,,,,,..,,...,...,,,.,.,,,,,,,.,.,..,,
+#WXOBVV57SI3EOQZFX3JC3QWFHCYJ7UCUYRDBNGDESZPY62YITBBUJGWDPTZFLOBQZOJBB3V6DAMW6
+#\\\|TTRHTFLSNLDFBT7QSN5RSCM37TLTIZXYMEK3IALPACXGFVZUPXO \ / AMOS7 \ YOURUM ::
+#\[7]5Q6YVQLJUT5FOUHQTNYI63HHYDMVEK6PBGWNZ2F7W6TWQ7KIMKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

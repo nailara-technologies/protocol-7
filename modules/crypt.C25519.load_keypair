@@ -19,7 +19,7 @@ my $public_key_file  = $key_filename->{'public'};
 if ( -r $private_key_file and -r $public_key_file ) {
 
     my $u_str = $key_name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
-    <[base.logs]>->( 1, ":. C25519-key .:. '%s'%s", $key_name, $u_str );
+    <[base.logs]>->( ":. C25519-key .:. '%s'%s", $key_name, $u_str );
 
     my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
     my $encoded_public_key  = <[file.slurp]>->($public_key_file)->$*  // '';
@@ -83,6 +83,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     if ($key_encrypted) {
     RE_READ_PWD:
         if ( not defined $key_password ) {
+            <[base.perlmod.load]>->('AMOS7::TERM')
+                if not <[base.perlmod.loaded]>->('AMOS7::TERM');
             say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
             $key_password = AMOS7::TERM::read_password_single(
                 sprintf( "'%s' key decryption password", $key_name ) );
@@ -206,8 +208,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,,.,,,.,..,,..,,..,,.,,,,.,,.,.,,,,,.,.,,,.,..,,...,...,...,.,.,,.,,,.,,,..,
-#A56JMTKCCYVJGHDZ6QECEA6FILP3F43XN4PQQWVVUQLM24U5L7LLEJYBBRWTWSCQ7G732YE6TZYLM
-#\\\|HATBHT5DHSSDCDJRYXTIB3IN7KJXMMXKIR45ZVCBOYKFP7QUGSR \ / AMOS7 \ YOURUM ::
-#\[7]H4AXN3S6VVHSOTI2RA66F2IR4LC4JA6Q3CZZ3MLVF7QDGMYVN2DQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,...,,.,,,.,,,.,,.,,,,,,,.,,,..,,...,...,,,.,..,,.,,,,..,...,
+#ADBIJ6MFZB6TVBSG64EA24SDM7CKOUNZTGU5YHR6CDP5LTWJAA5BKKYRV6VO4H4QOS4XFCB65VAMG
+#\\\|3ZFNEP4KRWPU4QZAVIZJQS6IG4DSHPP6RNS7H7ZOA4OAKTVEEUJ \ / AMOS7 \ YOURUM ::
+#\[7]SMPZKW5NC5RD347U76HWVAL7IPQL2IFJPE374KWU5C2BQZQRQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
