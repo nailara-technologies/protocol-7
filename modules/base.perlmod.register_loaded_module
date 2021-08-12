@@ -3,24 +3,28 @@
 # name  = base.perlmod.register_loaded_module
 
 my $module_name        = shift // '';
-my $was_already_loaded = 0;
+my $was_already_loaded = FALSE;
 
 if ( not length $module_name ) {
     warn 'expected module name parameter <{C1}>';
     return undef;
 }
 
-$was_already_loaded = 5
+$was_already_loaded = TRUE
     if defined <base.perlmod.loaded>->{$module_name}
     and <base.perlmod.loaded>->{$module_name};
 
-<base.perlmod.loaded>->{$module_name} = 5;    ## true ##
+<base.perlmod.loaded>->{$module_name} = TRUE;    ## true ##
 
-return 0 if $was_already_loaded;              ##  false if nothing changed  ##
-return TRUE;                                  ##  true for status changed  ##
+return FALSE if $was_already_loaded;    ##  false if nothing changed  ##
 
-#,,,.,,,.,,,,,,,.,,,.,,..,,,.,...,,,,,,..,,..,..,,...,...,.,,,,,.,..,,..,,,,,,
-#5QA4MDEYSOEGTZWX667WTKAEFKBHX5KZXRPNNLWXVPJCXKNFMJTIT5IQXMSBU5EBD2CRW275GEQLS
-#\\\|AUPV6TGZJD4QZZZUUEU7JDZ2VJIALQYREAWA32BM6SZKIUEDABI \ / AMOS7 \ YOURUM ::
-#\[7]I2THZ66RUYHUETJ2Y5WFLMX5B36HPKIBJPIFIYJPDWYIANWHYMBI 7  DATA SIGNATURE ::
+##  make sure dependency is known  ##
+<[base.register_pm_deps]>->($module_name);
+
+return TRUE;                            ##  true for status changed  ##
+
+#,,..,,,.,.,,,.,,,.,.,,..,,,.,,,.,...,,.,,,,,,..,,...,...,...,.,,,..,,..,,..,,
+#YZUQDXQ4OWV7E6UY25VX36EBRH5VPHVK45EUJDRDMW3HFFR3ZQU6SYJG2HTILADZRAZMVTNBXFFSA
+#\\\|7DFJ3FX7UXEZBT4ZMXIRFSASR7SXVTO6YYWOGJND4E66QYKXN3I \ / AMOS7 \ YOURUM ::
+#\[7]LHQDSGEHI7OIKFCOBD6VIBRMK5KU3MVIQWKJEXM27T735WPEUAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
