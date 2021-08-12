@@ -1,0 +1,59 @@
+## >:] ##
+
+# name  = keys.console.list-upgradable
+# descr = [aged] key encoding format version list
+
+my @k_files     = <[base.reverse-sort]>->(<[keys.get_keyfiles]>) or return;
+my $maxlen      = [ minmax map {length} @k_files ]->[1];
+my $key_dir_len = 1 + length <[crypt.C25519.key_vars]>->{'key_dir'};
+$maxlen -= $key_dir_len;
+
+my $keyformat_list_str = '';
+foreach my $keyfile_abs_path (@k_files) {
+    ( my $filepath_rel = $keyfile_abs_path ) =~ s|^.*/||;
+    if ( -z $keyfile_abs_path ) {
+        say '';
+        <[base.logs]>->( 0, ': keyfile empty : %s', $filepath_rel );
+        say '';
+        next;
+    } elsif ( not -r $keyfile_abs_path ) {
+        <[base.logs]>
+            ->( 0, ': no read perms on key : %s', $keyfile_abs_path );
+        next;
+    }
+    my $key_len = File::stat::stat($keyfile_abs_path)->size;
+    if ( not exists <crypt.C25519.keys.sizetype>->{$key_len} ) {
+        say '';
+        <[base.logs]>->(
+            0,             "key length of '%s' not valid [ %04d BYTES ]",
+            $filepath_rel, $key_len
+        );
+        say '';
+        next;
+    }
+    my $key_status     = <crypt.C25519.keys.sizetype>->{$key_len};
+    my $format_version = sprintf qw| %.02f |, $key_len / 100;
+    $keyformat_list_str .=    ##  add to result list  ##
+        sprintf ":: %*s :: v.%03s :: %-14s ::\n", $maxlen,
+        $filepath_rel, $format_version,
+        $key_status->{'old-form'}
+        ? 'version upgradable'
+        : 'latest version key';
+}
+
+## colorize result list ##
+if ( <system.ansi_color> or <system.force_colors> ) {
+    my %C = %AMOS7::C;
+    $keyformat_list_str =~ s|::|$C{R}$C{0}::$C{b}$C{T}|mg;
+    $keyformat_list_str =~ s|\Q$C{T}\E(*pla: version upgradable)|$C{g}|mg;
+    $keyformat_list_str =~ s|::\Q$C{b}$C{T}\E$|::$C{R}|mg;
+    print "$C{0}:$C{R}\n", $keyformat_list_str, "$C{0}:$C{R}\n";
+} else {
+    print $keyformat_list_str;    ##[ monochrome version ]##
+}
+
+#,,,.,,.,,...,.,,,,,,,,.,,.,.,,.,,..,,,.,,,,.,..,,...,...,,..,.,,,.,.,...,,,,,
+#46GW7Z2EHX3DENEAMZEJROWXTNJVLOY4PPT6PIVHMEJ5LST44UFKKXRQEZUTPLP752YJW7SAVU2GK
+#\\\|NJ5LT5KUIHFJA5HVI7MBLQWE7OF5UB5G3KT2GEDWNV3BCSXE2KJ \ / AMOS7 \ YOURUM ::
+#\[7]P34KUCHUVRMRNEBOGWKKKEU5UOHF2QSWME7P7EB2CAETVCF76GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
