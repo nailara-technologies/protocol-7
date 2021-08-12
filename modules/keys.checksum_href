@@ -40,7 +40,7 @@ foreach my $file (@k_files) {
     } elsif ( $key_encryption_status == TRUE ) {
         $key_chksums{$key_name} = qw| <::encrypted::> |;
     } else {
-        my $keystr_encoded = <[file.slurp]>->($file);
+        my $keystr_encoded = <[file.slurp]>->( $file, undef, qw| :raw | );
         if ( ref $keystr_encoded ne qw| SCALAR |
             or not length $keystr_encoded->$* ) {
             $key_chksums{$key_name} = qw| r.err |;
@@ -110,8 +110,8 @@ foreach my $key_name ( <[base.sort]>->( \%key_chksums ) ) {
 
 return \%key_chksums;
 
-#,,,,,.,,,,,,,,.,,,,.,,,,,.,,,..,,...,.,.,.,,,..,,...,...,..,,..,,,,,,.,.,...,
-#2HYAHPDL35QTSNP6ZFCI27KA3UQUD4J77EBXSORQIFW47HPJQRUPQJMND7UANZBLDSRE64MMBORIS
-#\\\|WRWKVHIBCM4K323TYIRJSM4X2RIZJ3FE6VPYTLOTZPUZFUQZRBX \ / AMOS7 \ YOURUM ::
-#\[7]D6UDCTZNX2SCJGLMCGSCFM7TWCNQ23N3XVWRSDJ3WOAJK6A76AAA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,.,.,,..,...,.,,,,.,,.,,,..,,..,,...,..,,.,.,.,,,,..,,.,,,,,,
+#EVOOWRVAMMY2AYS6ZTK6YM4YGTFQ4RPEWRHG7CSN6HSWFINHLDOI4JWNEDKR6MX2LBI75CYDLSOXW
+#\\\|YOLIDUXNG2CCQ4WL4X2QZOHEPQLJ46OTR7ACXS2R7VS722KCML7 \ / AMOS7 \ YOURUM ::
+#\[7]M24DM27MBLYQAPRNQOYVCVZ5GLBEQGXANHCHB5EV62RWCBBYHGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,27 +7,28 @@ my $buffer_sref   = shift;       ##  reference to buffer \ scalar to erase  ##
 my $padding_bytes = shift // 0;  ##  add additional bytes to length  ##
 
 return warn 'expected scalar reference <{C1}>' ## SCALAR reference expected ##
-    if ref($buffer_sref) ne qw| SCALAR |
-    and ref($buffer_sref) ne qw| REF |;
+    if ref $buffer_sref ne qw| SCALAR |;
+
+return 0 if not defined $buffer_sref->$*;      ##  buffer was undefined  ##
 
 my $r_cnt    ##  correct length for UTF-8 content  ##
     = utf8::is_utf8($$buffer_sref)
     ? length( Encode::encode( qw| UTF-8 |, $$buffer_sref ) )
-    : length( $$buffer_sref // '' );
+    : length( $buffer_sref->$* // '' );
 
 $r_cnt += $padding_bytes;    ##  for masking length when erasing passwords  ##
 
 return 0 if $r_cnt == 0;     ##  return early \ already empty  ##
 
 ##  overwrite with entropy to erase \ protect content  ##
-substr( $$buffer_sref, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) );
+substr( $buffer_sref->$*, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) );
 
-truncate( $$buffer_sref, 0 );    ##  zulum length  ##
+$buffer_sref->$* = '';       ## truncate to zulum length ##
 
-return $r_cnt;                   ##  return length of overwritten content  ##
+return $r_cnt;               ##  return length of overwritten content  ##
 
-#,,,,,,,,,,,.,,.,,.,.,,..,..,,,,,,,.,,,,,,,..,..,,...,.,.,,,,,,,.,,.,,,,.,,.,,
-#2L3F7VNMMZAEKMMEUQTFOAGHMSON3GFJAVVP3J642WUVUBV2MQWKZ7QNYB5O7X5ACB4HJHXIUAC3U
-#\\\|MWTNQLMVK26NFVLNJH2BUQVCAKOABHW4DULODDDVBKTE23GKD3U \ / AMOS7 \ YOURUM ::
-#\[7]MOOFSQ6OX3BU7LT7X4UBJSVLGCI7YWG4DWRDWYGMDUW5JLB7CSBQ 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,...,,,.,,,.,.,.,,,,,.,.,.,.,..,,...,...,...,,..,,,,,.,,,,,,,
+#7OTSH3W3UDTRTCIFZFU777KF3E2FVZRKNHX33XMMTL7OS3LSQREAA3EB2RWKOM6PGDUQJMJH7AOYE
+#\\\|UJGZI3BV5DWFOCUMGK6DMNNOVGDUXHOZOAJ4WJCFXZAUKRSAH3R \ / AMOS7 \ YOURUM ::
+#\[7]CHJ44FWOQEXK3SW4JIP7TRLONJUXPPP5RTBX2FU6G3E72I7GR6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,15 +29,16 @@ foreach my $key_line ( split "\n", $payload_data_body ) {
         warn 'archive format not correct [ key line error ] <{C1}>';
         return undef;
     }
-    my $key_name    = ${^CAPTURE}[0];
-    my $encoded_key = ${^CAPTURE}[1];
-    $encoded_key =~ s|\\n$|\n|;    ## restoring linefeed ##
+    my $name        = ${^CAPTURE}[0];    ## C25119-key file name ##
+    my $encoded_key = ${^CAPTURE}[1];    ## base32 encoded key ##
+    $encoded_key =~ s|\\n$|\n|;          ## restoring linefeed ##
 
-    if ( exists $key_ref->{$key_name} ) {
+    if ( exists $key_ref->{$name} ) {
         warn 'key archive error [ duplicate key ] <{C1}>';
         return undef;
     }
-    $key_ref->{$key_name} = $encoded_key;   ##  storing extracted user key  ##
+
+    $key_ref->{$name} = $encoded_key;    ##  storing extracted user key  ##
 }
 if ( not keys $key_ref->%* ) {
     warn 'key archive error [ no keys extracted ] <{C1}>';
@@ -46,8 +47,8 @@ if ( not keys $key_ref->%* ) {
 
 return $key_ref;    ##  hash ref to keys  ##
 
-#,,,,,..,,.,,,,..,...,,.,,,,,,,,,,,,.,.,,,,..,..,,...,..,,,,,,..,,,.,,..,,,..,
-#FSB6PYP2NIJDLDZSSRSL6SWG5XM4J5XV3QMKILQJD2TSFQSIW63OFLMKHLRPN6ZDRNCVNYTNLJXXA
-#\\\|R3BCQRXJZ4CQRH7M745J3QZIKWBIVMU2EPUI4ZUJBFITM2A2BEX \ / AMOS7 \ YOURUM ::
-#\[7]U3I6V7NL4KS4JFAGA73VYIHS3ESCBXC4M63TCC57CBH6PRFPC6CA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,...,,..,.,,,..,,.,.,..,,,..,..,,...,...,,,,,,..,,.,,,..,,..,
+#W5W5QGHOOC3CF5WAGELRNHGN5SMVHGI5DDT37C34Z46N3QGRVZ44HTPOI5AW3ZM7454YV7X5NJCJ6
+#\\\|QYAXUSPPR4JFM6WE7PL7EYDJAK5F4Z5UQI5FPELJ22L7F6SL5H7 \ / AMOS7 \ YOURUM ::
+#\[7]KNXYDWGT3K2WU6JYA4NR7Y7NU6XXSASOYMTMZTF7BT6NQSN5O6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

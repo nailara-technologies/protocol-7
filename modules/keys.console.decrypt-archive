@@ -55,6 +55,30 @@ my $read_user_keys    ##  load hash ref with filenames and keys  ##
     if ref $read_user_keys ne qw| HASH |
     or not my $archive_key_count = keys $read_user_keys->%*;
 
+my $errors = FALSE;
+foreach my $file ( <[base.sort]>->($read_user_keys) ) {
+    my $file_size = length $read_user_keys->{$file};
+    if ( not $file_size ) {
+        $errors++;
+        <[base.logs]>->(
+            0, ": extracted key '%s' not defined \\ empty", $file
+        );
+    } elsif ( not exists <crypt.C25519.keys.sizetype>->{$file_size} ) {
+        $errors++;
+        <[base.logs]>->(
+            0,     ": extracted '%s' size [%d] not valid",
+            $file, $file_size
+        );
+    } elsif ( index( $file, qw| / | ) != -1 ) {
+        $errors++;
+        <[base.logs]>->(
+            0, ": extracted '%s' filename not valid [slashes]", $file
+        );
+    }
+}
+<[base.exit]>->( qw| 0110 |, ':. aborted file extraction due to errors', 0 )
+    if $errors;
+
 my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
 
 my @collision_keys;
@@ -67,10 +91,17 @@ foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
         next;
     }
     my $disk_key_ref    ##  compare contents directly  ##
-        = <[file.slurp]>->( catfile( $key_dir, $extracted_filename ) );
+        = <[file.slurp]>->(
+        catfile( $key_dir, $extracted_filename ),
+        undef, qw| :raw |
+        );
     if ( ref $disk_key_ref ne qw| SCALAR | or not length $disk_key_ref->$* ) {
-        <[base.s_warn]>->("cannot read key file '%s' for comparison");
+        <[base.logs]>->(
+            0, ":: cannot read key file '%s' for comparison",
+            $extracted_filename
+        );
         $key_name_collisions++;    ##  counting as name collision  ##
+        push @collision_keys, $extracted_filename;
     } else {
         if ( $read_user_keys->{$extracted_filename} eq $disk_key_ref->$* ) {
             $identical_key_count++;
@@ -84,12 +115,99 @@ foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
 }
 
 if ( $identical_key_count == $archive_key_count ) {
-    return printf ":\n: all %d archived keys present and identical =)\n:\n",
-        $archive_key_count;
+    my %C = %AMOS7::C;
+    return    ## nothing left to do here ##
+        say sprintf ":\n: %sall%s %d %s%sarchived keys "
+        . "are present and%s identical %s%s%s=)%s\n:",
+        $C{'T'}, $C{'b'}, $archive_key_count, $C{'R'}, $C{'T'}, $C{'b'},
+        $C{'R'}, $C{'T'}, $C{'B'},
+        $C{'R'};
+
+} elsif ( @not_yet_present_keys == $archive_key_count ) {
+    <[base.logs]>->(
+        '.: none of the %d key files are on disk yet .,',
+        $archive_key_count
+    );
+} elsif ($key_name_collisions) {
+    <[base.logs]>->(
+        0,
+        '.: %d key-file%s name collision%s on disk ..,',
+        $key_name_collisions,
+        <[base.cnt_s]>->( $key_name_collisions, 's have', ' has' ),
+        <[base.cnt_s]>->($key_name_collisions)
+    );
 }
 
-#,,.,,.,.,.,,,..,,.,.,,..,,.,,.,,,..,,,..,.,,,..,,...,...,,,.,,..,,.,,,,.,...,
-#6AXYHH5EECKWBLSFUQJLAQHKLFU4DWWVFEAVK7Y4TQSPU3NU5IRAB3J3DJMHA2COCHBAYQ4VVPBAA
-#\\\|6RJ2BYHUOQUT6KRU5O7FAHS2A2JTUQRSE2X4NP6QCDYZULQPYD7 \ / AMOS7 \ YOURUM ::
-#\[7]UHLLCKP5PJ57CQXUQFXQPHDHFUGCONBZR4HBSLOLZPIPPBY2RSBQ 7  DATA SIGNATURE ::
+my %key_files;    ##  making sure it is empty  ##
+
+my $write_success_count = 0;
+if (@not_yet_present_keys) {
+    <[base.log]>->( 1, 'extracting not present keyfiles ..,' );
+    foreach my $extracted_filename (@not_yet_present_keys) {
+        my ( $name, $type )    ##  extract name and type from filename  ##
+            = <[crypt.C25519.key_name_and_type]>->($extracted_filename);
+
+        my $encoded_keystr = $read_user_keys->{$extracted_filename};
+
+        ##  storing extracted key data  ##
+        $key_files{$extracted_filename} = $encoded_keystr;
+    }
+    ##  writing C25519 key-files to .n/user-keys dir  ##
+    foreach my $file ( <[base.sort]>->( \%key_files ) ) {
+        my $target_path = catfile( $key_dir, $file );
+        <[base.logs]>->( ':. writing file to disk .: %s', $file );
+        <[file.put_bin]>->( $target_path, $key_files{$file} )
+            or <[base.logs]>->(
+            0,                   ': write [ %s ] %s',
+            <[base.str.os_err]>, $target_path
+            );
+        $write_success_count++ if -f $target_path and not -z $target_path;
+    }
+}
+
+<system.verbosity.console>++ if not <system.verbosity.console>;
+
+my $ntime_stamp_suffix = sprintf qw| .archive.%s |, <[base.ntime.b32]>->(13);
+<[base.logs]>->( 2, ': selected timestamp %s', $ntime_stamp_suffix );
+if (@collision_keys) {
+    <[base.log]>->( 1, 'extracting colliding keys under different name..,' );
+    foreach my $extracted_filename (@collision_keys) {
+        my ( $name, $type )    ##  extract name and type from filename  ##
+            = <[crypt.C25519.key_name_and_type]>->($extracted_filename);
+
+        my $encoded_keystr = $read_user_keys->{$extracted_filename};
+
+        <[base.exit]>->(
+            qw| 0110 |,
+            '[ regex error : unexpected name pattern ] '
+                . $extracted_filename,
+            0
+            )
+            if $extracted_filename
+            !~ s|(*plb:^\Q$name\E)\.|$ntime_stamp_suffix.|;
+
+        ##  storing extracted key data  ##
+        $key_files{$extracted_filename} = $encoded_keystr;
+    }
+    ##  writing C25519 key-files to .n/user-keys dir  ##
+    foreach my $file ( <[base.sort]>->( \%key_files ) ) {
+        my $target_path = catfile( $key_dir, $file );
+        <[base.logs]>->( ':. writing file to disk .: %s', $file );
+        <[file.put_bin]>->( $target_path, $key_files{$file} )
+            or <[base.logs]>->(
+            0,                   ': write [ %s ] %s',
+            <[base.str.os_err]>, $target_path
+            );
+        $write_success_count++ if -f $target_path and not -z $target_path;
+    }
+}
+
+return say sprintf "\n  ::[  wrote %d archived key file%s to disk. =)  ]::\n",
+    $write_success_count, <[base.cnt_s]>->($write_success_count),
+    if $write_success_count;
+
+#,,..,.,,,,..,,,,,.,,,,.,,,..,,,,,...,.,.,..,,..,,...,...,.,.,.,,,,..,,..,,..,
+#ZIPTBIRPNZANFBDCDQIM53EF55G6NBT3V73HOFMHLWVC7SCG42INPUIEH4MKC3CNGWYXWNMAOFH5S
+#\\\|RN3XBO7BMW4PEWCAQD2YWJGUYLLTLKKMNUSB2OLJNF5HSILDP7F \ / AMOS7 \ YOURUM ::
+#\[7]WSKTXH7M677GJITRGEQX664TXDLO66H5KG46TJY65EYMZRCFTWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

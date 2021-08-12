@@ -4,7 +4,8 @@
 # descr = return type of given key filename
 
 my $C25519_keystr = shift // '';
-my $second_keystr = shift // '';
+my $second_keystr = shift // '';    ##  optional  ##
+
 if ( not length $C25519_keystr ) {
     warn 'expected C25519 key string parameter <{C1}>';
     return undef;
@@ -13,7 +14,10 @@ my $key_len   = length $C25519_keystr;
 my $size_type = <crypt.C25519.keys.sizetype>;
 ##  size table has all known types  ##
 if ( not exists $size_type->{$key_len} ) {
-    warn 'key format type not known <{C1}>';
+    <[base.s_warn]>->(
+        'key format type not recognized [ size : %d ] [%s] <{C1}>',
+        $key_len, substr( $C25519_keystr, 0, 5 )
+    );
     return undef;
 }
 
@@ -22,7 +26,8 @@ my $key_details = $size_type->{$key_len};
 
 ##  create a copy for returning result data  ##
 ##
-my $first_details = clone $key_details;
+my $first_details    ##  clone does not work  [ unblessed reference ]  ##
+    = { map { $ARG => $key_details->{$ARG} } keys $key_details->%* };
 
 ##  returning type string only in scalar context  ##
 return $key_details->{'type'} if not wantarray;
@@ -65,10 +70,18 @@ if ( $key_details->{'encrypted'} == UNKNOWN ) {
 
         ## decoding private key [ for signature test ] ##
         if ( $key_details->{'encoding'} eq qw| b32 | ) {
+            chomp($C25519_keystr) if $key_details->{'linefeed'};
             $C25519_keystr = decode_b32r($C25519_keystr) // '';
             $key_len       = length $C25519_keystr;
-            if ( not exists $size_type->{$key_len} ) {
-                warn 'key format type not known [ decoded ] <{C1}>';
+            if ( $key_len == 0 ) {
+                warn '[ base 32 ] private key decoding error <{C1}>';
+                return undef;
+            } elsif ( not exists $size_type->{$key_len} ) {
+                <[base.s_warn]>->(
+                    '[ decoded ] private key format'
+                        . ' type not known [ size : %d ] <{C1}>',
+                    $key_len
+                );
                 return undef;
             }
             $key_details = $size_type->{$key_len};    ##  when valid  ##
@@ -87,11 +100,18 @@ if ( $key_details->{'encrypted'} == UNKNOWN ) {
         ) {
             ## decoding public key [ for signature test ] ##
             if ( $sec_key_params->{'encoding'} eq qw| b32 | ) {
+                chomp($second_keystr) if $sec_key_params->{'linefeed'};
                 $second_keystr  = decode_b32r($second_keystr) // '';
                 $second_key_len = length $second_keystr;
-                if ( not exists $size_type->{$second_key_len} ) {
-                    warn '[ decoded ] public key format'
-                        . ' type not known <{C1}>';
+                if ( $second_key_len == 0 ) {
+                    warn '[ base 32 ] public key decoding error <{C1}>';
+                    return undef;
+                } elsif ( not exists $size_type->{$second_key_len} ) {
+                    <[base.s_warn]>->(
+                        '[ decoded ] public key format'
+                            . ' type not known [ size : %d ] <{C1}>',
+                        $second_key_len
+                    );
                     return undef;
                 }
                 $sec_key_params = $size_type->{$key_len};
@@ -100,7 +120,9 @@ if ( $key_details->{'encrypted'} == UNKNOWN ) {
                 my $status = <[crypt.C25519.compare_keypair]>->(
                     <[base.sort]>->( $C25519_keystr, $second_keystr ), TRUE
                 );
-                if ( defined $status ) {
+
+                if ( defined $status ) {    ##  update key status  ##
+
                     if ( $status == TRUE ) {   ## successful test signature ##
 
                         $first_details->{'encrypted'} = FALSE;
@@ -120,8 +142,8 @@ if ( $key_details->{'encrypted'} == UNKNOWN ) {
 
 return $first_details;
 
-#,,..,,,.,,,.,,,.,,,,,,,.,.,,,.,,,.,,,,.,,.,.,..,,...,...,..,,,..,..,,,,.,,,,,
-#DR3HAIK66FNN7JQRN44Y6KEDSZLDYMIPXULV6EKFCYSDNKBHGEGU4WNDCFXQPCH4HINDM4BNYNJ2Y
-#\\\|POVGCV3R3TRZJ3TDBTNXBIGO3GVSN3WQP5XWNZTIYNAFA4HHH66 \ / AMOS7 \ YOURUM ::
-#\[7]WD2S2GRAOMUOHCJ7TQGDGJDMNWX6AANPEA7KKDDS67QKBTDGP4BA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,,.,,,,.,,.,,,..,,..,.,,,.,,,..,,...,...,.,,,,..,.,,,,.,,,,,,
+#QWXV2LYUJQUGKK66YDBZ5VFKEOWYPPFGIZWNY44SCOCDNSHLSXGOQ25TDUIHHQQARFW24P25S4POE
+#\\\|HAC6NXQF6TBDOQN3HGXCDFCFN636MLUQXPNX7NDUZK3DPNEPIQ5 \ / AMOS7 \ YOURUM ::
+#\[7]B7P5U6DFEYB4AMJ6EEGUUFU5A7QPM2UTGYJLQA4VE4UTKLLJNACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

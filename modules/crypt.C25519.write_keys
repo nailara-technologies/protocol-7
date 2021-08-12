@@ -46,7 +46,15 @@ foreach my $type (qw|  private  public  |) {
         chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
     }
 
-    my $key_bin_str = $keys{'C25519'}{$key_name}{$type};
+    my $key_bin_str = $keys{'C25519'}->{$key_name}->{$type};
+
+    if ( not defined $key_bin_str or not length $key_bin_str ) {
+        <[base.s_warn]>->(
+            '%s key [ %s ] is not defined \ empty <{C1}>',
+            $type, $key_name
+        );
+        return undef;
+    }
 
     push @keys_binary, $key_bin_str if wantarray;  ##  for checksums below  ##
 
@@ -148,8 +156,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;
 }
 
-#,,..,.,,,.,,,..,,.,.,,,.,.,,,...,,..,,.,,..,,..,,...,...,..,,,..,,,.,.,.,.,,,
-#IDRCFD2F2UH54ZEEV5YPEYZN6QKSVLIOXW33F74CBJRPOOW4JM37KMP55SCSA7AQRWO3JSZBVHSWE
-#\\\|RXBMM56UC2U3SVERUZI4QKKHEGLTK4SZSKIPZENY7ZU4P3E3HXU \ / AMOS7 \ YOURUM ::
-#\[7]R56R7BLOQQFD72T3XDZ3NF6FFIAFFLH7H5A5QBRIKKMXN2IMSEDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,,,.,...,,.,,,..,...,,,,,,.,,..,,...,...,,,.,...,...,,,.,,,,,
+#KTHCRSQGIFILIZGDQFRSGIVH33SR27JSHLHP5QKN3MLJRVSTIBKUY6SM4KUXKHYUIHJ4SNY5H7HMY
+#\\\|NQ74V4FUJSCKNOCMGWFEOAUX2MVAEJEO7GEL65XXVWHSJ3VXBIR \ / AMOS7 \ YOURUM ::
+#\[7]GRYC4AD5DQ6JR4SK5PE5LBGUVFSWKFTPQSFMJOFO55KY44PFHMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
