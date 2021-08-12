@@ -19,16 +19,11 @@
 
 ## regex ##
 ##
-my $C25519_id = qw| C25519.B32 |;
-
 my @key_ext   = qw| secret  public |;
 my @key_types = qw| private public |;
 
-( my $key_re_tmpl = $C25519_id ) =~ s|\.|\.|g;
-
-my $re_keyfiles = sprintf qw| %s.(%s) |, $key_re_tmpl, join( '|', @key_ext );
-
-my $name_regex = qr|[0-9a-zA-Z\._\-]+|;
+my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
+my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
 
 delete <crypt.C25519.regex>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.regex |);
@@ -41,7 +36,7 @@ const <crypt.C25519.regex> => {
             my $xt   = $type;
             $xt = qw| secret | if $xt eq qw| private |;
 
-            $type => qr|^($name_regex)\.$key_re_tmpl\.$xt$|
+            $type => qr|^($name_regex)\.$xt$|
 
         } @key_types
     },
@@ -120,8 +115,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,,.,,,.,..,,,,.,,.,,,,,,..,,,,,,,..,.,,,...,..,,...,.,.,.,,,.,,,,.,,...,.,.,
-#A25LOSDXCBZ2RM6IB4IN4465SWIWMXN6CK6BIWA7TUPYF7P2NXAUMRMVM4D4KIFF2I2OAZM3JYHW2
-#\\\|PTXXAEL7J2GX2CQLFM3WKBVC2GXJNLNPGZ3U5XGM6W7G7J7PP6H \ / AMOS7 \ YOURUM ::
-#\[7]RG7CCYD6OK6AV4JMGOC2MHKJ3LTH4YCWTW6BHDQYTAX4Q5ZS6SCQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,.,,,,.,,...,,,.,,.,,,..,..,,..,,...,...,...,.,,,...,.,.,.,,,
+#MNAUUNUK46V22LNZSUDETNPTDHS5O75L7RZLI6I5YMWPR6JFRDGIABBGCVOCT6BX5USD4FKR6NODI
+#\\\|GGWVYIMXRQ2ZQ4WNVQJZCLT65COKO37CCRRZRXNIRVH4I6A3C5E \ / AMOS7 \ YOURUM ::
+#\[7]I5FWNKEEQY7G3DVMJ26IAQM4LVVPABTBKNH3OMAKMHLTBMAJIUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

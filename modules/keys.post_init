@@ -4,17 +4,15 @@
 
 <keys.regex> = <crypt.C25519.regex>;
 
-my $C25519_id = qw| C25519.B32 |;
-foreach my $type (qw|  secret  public  |) {    ##  private , public  ##
-    <keys.file_suffix>->{$type} = sprintf qw| .%s.%s |, $C25519_id, $type;
+foreach my $type (qw|  private  public  |) {    ##  private , public  ##
+    <keys.file_suffix>->{$type} = sprintf qw| .%s |,
+        $type eq qw| private | ? qw| secret | : $type;
 }
-##  clarification : type 'private', extension '.secret'  ##
-<keys.file_suffix>->{'private'} = <keys.file_suffix>->{'secret'};
 
 0;
 
-#,,,.,,..,.,.,,..,,..,..,,,,.,.,.,,..,.,.,,,,,..,,...,...,,.,,.,.,..,,..,,..,,
-#STKSHGCXQQQI4QXE6VPAC4MX43YIZBA556CH4Y64WLY7RTCLNGI5KTCMZFBIABUN3JIDGFEMBN2XS
-#\\\|W45E7KEHBJ5MB32WKBUFCXRIQSUJ6GVCNDZ5SXS6U6JU7DRWUIU \ / AMOS7 \ YOURUM ::
-#\[7]MTQ2GMXWOJY53KAWHZNMXTV76AYRETYSLRA4FYF65KSMQQZ4VWCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,...,,.,,.,,,..,,.,,,..,,,,,,..,,...,...,,.,,.,,,.,,,...,...,
+#UK56PY6LKOBH5XIQXX4TYV7UA7YIEHWVXU2RUA2MSSDEPRL76LPALFLBQ5ORXNCZECJ4RGKNYU2GG
+#\\\|HAFZUIYHFG6WD54PSVM6OSU7XYROIEQQSWEKGPTTXYBLNOHWKML \ / AMOS7 \ YOURUM ::
+#\[7]JCPX4PIK2EDT4RT3JMNPADCPBVRJDC7B3MYOJ5YC4NEN57JNWGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

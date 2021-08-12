@@ -159,9 +159,10 @@ if ( defined $file ) {
         my $title = sprintf "replace archive file '%s'", $file_rel;
 
         $overwrite = $CURSES_UI->dialog(
-            -title   => $title,
-            -buttons => [ 'yes', 'no' ],
-            -message => sprintf qw| %s%s%s |,
+            -title    => $title,
+            -buttons  => [ 'yes', 'no' ],
+            -selected => 1,                 ##[  'no, do not' is selected  ]##
+            -message  => sprintf qw| %s%s%s |,
             $pre, $file, $post,
         );
 
@@ -197,10 +198,11 @@ $CURSES_UI->mainloopExit();    ##  exit curses  ##
 
 print "%s%s", $colors{'reset'}, $colors{'clear_screen'};
 
-return $file;
+return ( $file, $overwrite ) if not $load_mode and wantarray;
+return $file;    ##  if save file and exists, overwrite is implied  ##
 
-#,,.,,...,,,,,...,,,,,,..,,,,,.,,,,,,,,..,...,.,.,...,...,..,,.,,,,.,,...,,..,
-#C6EOBO7H3C77OOUIITLFH4I6DVF4IS33FKWFQVYSZPOQPKKRSSSDXRUJAH7SW6TBH5KQZ4HZ7FGDC
-#\\\|72AGALCQLUWOUCUDYZPZAPXLUKXDEHHEBOKSNDUWXWNSX57AFFH \ / AMOS7 \ YOURUM ::
-#\[7]MBZAUAKNB447TILDAMMBLMHJXC3VVBDQ4AHWIU7KIWYN5OEOZMCY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,...,..,,..,,,.,,.,,,,.,,,.,,.,.,...,...,.,.,.,.,.,.,.,,,,..,
+#WJANDIHMXKZV33RZVQLYHKBRPJWN3SL2YF3CVC5GG4WKL6EQ5OMINLW2FPKAQ4GZHUHZ63AV2RKZU
+#\\\|ZJGOYLUGAZFGLJRBEBM5EDRPGW24YFZGKYL4K44X4HI4TY4YDBO \ / AMOS7 \ YOURUM ::
+#\[7]Y5GSGMSBQUE6JBDFIVVXLYSWVMNS43ARGCGRT34INDZPCRWWHSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
