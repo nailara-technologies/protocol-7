@@ -22,23 +22,23 @@ if ( $input->$* =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     my $cmd_type = $1;
     my $rep_type = $2 // $3;
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
-    if (not defined $keys{'C25519'}{'session'}{$key_name}{"$rep_type-reply"} )
+    if (not defined $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{"$rep_type-reply"} )
     {
         $output->$* .= "FALSE not available `:|\n";
         return 2;    # <-- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
         $output->$* .= sprintf( "TRUE %s\n",
-            $keys{'C25519'}{'session'}{$key_name}{'key-reply'} );
+            $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'key-reply'} );
     } elsif ( $cmd_type eq 'key-sig' ) {   ## returns session key signature ##
         $output->$* .= sprintf( "TRUE %s\n",
-            $keys{'C25519'}{'session'}{$key_name}{'sig-reply'} );
+            $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'sig-reply'} );
     } elsif ( $cmd_type eq 'key-ver' ) {  ## return key and version chk-sum ##
         $output->$* .= sprintf(
             "TRUE %s\n",
             <[chk-sum.bmw.L13-str]>->(
                 sprintf( '%s.[%d]',
-                    $keys{'C25519'}{'session'}{$key_name}{'sig-reply'},
+                    $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'sig-reply'},
                     $auth_versn )
             )
         );
@@ -63,8 +63,8 @@ if ( $input->$* =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     return 1;                                    ## <-- keep connected ##
 }
 
-#,,,,,.,.,..,,...,,..,...,..,,,.,,,,.,,,.,..,,..,,...,..,,...,,,,,.,,,,..,...,
-#KB6T543RGVD5R7PHN4AGCIOYHKT5XNNSEYYOXUWTA7C6NVLNPCGGRO4W7KSV3FP4L36LFGZM7H4RA
-#\\\|Q5WOLKG63AI6RVDVXSRA2UOIK2RDOFL7VUAFDMVVXOFJJNC2F4D \ / AMOS7 \ YOURUM ::
-#\[7]LM7KU46BUQNHZLCKTFRFDMUAFS2OVEPE53YIYNTHC4KYWSXPWGDA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,,..,...,...,,,,,.,,,...,,..,..,,...,...,,,.,.,,,.,.,,.,,,,,,
+#ENP65MDCX5KVN2ZPJ5ATEATFJ2ZWXOC2WDTZB376GLBFC2W3ZMXOQVWT5IXSKJYTZ2FXEJZLF46AQ
+#\\\|VSHSXNGQJGHKYULMY4NWKGPLUWMOX7LG6UBURPDOO7AHWF3TH3N \ / AMOS7 \ YOURUM ::
+#\[7]QJXWTNKBFNWIJB5TY2GQIM2BO6LP4BC74GSWBX2SNKFBJHZ7UWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
