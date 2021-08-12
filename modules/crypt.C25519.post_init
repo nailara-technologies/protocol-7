@@ -3,12 +3,6 @@
 # name = crypt.C25519.post_init
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
-if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
-    <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
-    <crypt.C25519.initialized>++;
-    return 0;
-}
-
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
 my $uid          = $key_vars_ref->{'uid'};
@@ -19,6 +13,16 @@ my $home_dir     = $key_vars_ref->{'usr_home'};
 my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
+
+##[  updating filename structure  ]##
+<[crypt.C25519.auto_convert_names]>->($key_dir)
+    if -d $key_dir and -r $key_dir;
+
+if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
+    <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
+    <crypt.C25519.initialized>++;
+    return 0;
+}
 
 if ( not defined $home_dir or not -r $home_dir ) {
     if ( not <base.parser.config.reloading> ) {
@@ -79,8 +83,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,,,,,,,,,,,,.,,,,,,,,,,...,,,.,.,.,,.,,,,.,..,,...,..,,.,.,...,,,.,,,,,.,,,
-#6BE7ACIGNNJ3B4FGZL466PHIBYRL6Y7TRUSCB4APS4ZWS3YCSTN6AHZ67VZVOKCT5Z7XQ7WYKT2KS
-#\\\|4GAAAQZR4CHCNVKHRQCNPVSMXGIWNPMLTLX5SJLNLCGCHHXMJWW \ / AMOS7 \ YOURUM ::
-#\[7]GUHGCI3WUT3XO7NUXLQSVB3LG4CMK7TFTLGWWGYVYOHFUIU4SKBY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,,,,,,.,.,,,,,,,..,,,,,,..,,..,,...,...,...,,.,,,.,,,..,.,.,
+#RQIZO4RASHEITORDNL6CSTDNPG53U3VVI5S6V7OKMTLKJYS5QSXZTMNI3UZVPPN76SLX2OCUGS3XQ
+#\\\|GE3VY7W2XYJG6TUSVCA3YCXBK6ENK335YWVMTBMKCPT4TEDDLQY \ / AMOS7 \ YOURUM ::
+#\[7]LPRT4C6O7NR5AWG4TFQ7OS66PY7UZ5JTYRPY476KLYAC225CWAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

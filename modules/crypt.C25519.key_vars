@@ -38,18 +38,16 @@ my $key_dir = <crypt.C25519.key_dir>
 
 my $key_file_ext;
 my $key_filename;
-my $C25519_keyid = qw| C25519.B32 |;
-my $key_basepath = sprintf qw| %s/%s.%s |, $key_dir, $key_name, $C25519_keyid;
+my $key_basepath = catfile( $key_dir, $key_name );
 
 foreach my $type (qw|  private  public  |) {
 
     my $key_extension = $type eq qw| private | ? qw| secret | : qw| public |;
 
-    $key_file_ext->{$type} = sprintf qw| %s.%s |, $C25519_keyid,
-        $key_extension;
+    $key_file_ext->{$type} = sprintf qw| %s |, $key_extension;
 
-    $key_filename->{$type} = sprintf qw| %s.%s |, $key_basepath,
-        $key_extension;
+    $key_filename->{$type}
+        = sprintf( qw| %s.%s |, $key_basepath, $key_extension );
 }
 
 return <crypt.C25519.key_vars> = {
@@ -64,8 +62,8 @@ return <crypt.C25519.key_vars> = {
     'key_filename' => $key_filename
 };
 
-#,,..,.,.,...,,,,,,,,,,..,..,,,..,,..,.,,,.,,,..,,...,.,.,,.,,...,.,,,...,.,,,
-#2QBAFDCWRTKBLPX2K2CJI6PHXHZWLXPP4LLWHFEKVT5IYCYPHHVAKCQO3BC7QWGHUHIO7FK7MBES4
-#\\\|MLE6ZTOXAQRL3TZUTRYQ6NBENFVP7VXRXPUO2VNXQDFO3J6NN3N \ / AMOS7 \ YOURUM ::
-#\[7]ULPV4HLYXRHCCA3PEGO4BA3BUNG2VKJSBXXAOZ6PX3NFNZ7QC4AI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,,.,,.,,,.,.,..,,,..,,,.,...,..,,...,...,,,.,,,.,,..,..,,..,,
+#Z7BVFFWMJUESW27ZX24QX455I4QS6GPT77NIXPMFHQ72HO3GZEW3RKXHRHOUZIZF3H645WAJTH2WW
+#\\\|YRPHM5DTYLSRZOEPHSK62KSH3JZDBNLWYFNAU553W5WLYQGNBDD \ / AMOS7 \ YOURUM ::
+#\[7]F5CJ42VCLW3ATC5GSJGXJRV5XUSD2N2MKQWV5IWB7N4RMO3EC4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
