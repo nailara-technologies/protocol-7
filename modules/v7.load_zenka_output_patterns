@@ -9,36 +9,47 @@ my $zenka_name
 
 my $base_file_name = qw| zenka-output.patterns |;    # <-- << ! >>
 
-my $pattern_file_txt = $pattern_file;
 <v7.patterns.zenka_output> //= {};
-$pattern_file_txt = " '$pattern_file_txt'" if length($pattern_file_txt);
-my $loading_message = ": loading zenka output patterns$pattern_file_txt";
-( my $pattern_filename = "$base_file_name.$pattern_file" ) =~ s|\.$||;
+
+my $pattern_file_txt = $pattern_file;
+$pattern_file_txt = sprintf " '%s'", $pattern_file_txt
+    if length $pattern_file_txt;
+
+my $loading_message
+    = sprintf( ': loading zenka output patterns%s', $pattern_file_txt );
+
+( my $pattern_filename = join qw| . |, $base_file_name, $pattern_file )
+    =~ s|\.$||;
 
 my $pattern_data;
 my $cfg_base_path = <system.conf_path>;
+
 {
-    local <system.conf_path>
-        = "$cfg_base_path/zenki/$zenka_name";    #  <-- <<!>>
-    if ( !-f join( qw| / |, <system.conf_path>, $pattern_filename ) ) {
-        <[base.log]>->(
-            0, "zenka pattern file '$pattern_filename' not found"
+    local <system.conf_path>    ## <-- << ! >>
+        = sprintf( qw| %s/zenki/%s |, $cfg_base_path, $zenka_name );
+
+    if ( not -f join qw| / |, <system.conf_path>, $pattern_filename ) {
+        <[base.logs]>->(
+            0, "zenka output-pattern file '%s' not found.",
+            $pattern_filename
         );
         return;
+
     } else {
         <[base.log]>->( 1, $loading_message );
     }
     $pattern_data = <[base.load_section_code]>
         ->($pattern_filename)->[0]->{'output patterns'};
 }
-die "unable to load pattern data"
+
+die "cannot load pattern data"
     if not defined $pattern_data
-    or ref($pattern_data) ne qw| ARRAY |;
+    or ref $pattern_data ne qw| ARRAY |;
 
 <v7.pattern_config> = $pattern_data;
 
-#,,.,,..,,,..,.,,,,.,,,.,,,,.,,..,.,,,,..,,,,,..,,...,...,.,.,,..,...,,,,,...,
-#QNQLDEJREYK4ISMBSNNHHQBGY53AYWOXNXPUSKDSFALM5CJL2DXA3ENYTTAD3NST3EZ7GH66PFK6A
-#\\\|4VT6H6US63EYJZ3ZR3LI4OUIX2OBVUFVKWKGEVRMMHFVOLTDH7M \ / AMOS7 \ YOURUM ::
-#\[7]64YM5YXVUZP53S5DAGK65ROZOABBSUMKEXI4BQHU5U7YXWEXXOCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,,..,...,..,,,,,,,.,,...,.,.,..,,...,..,,,..,,,,,,,.,.,.,,.,,
+#TG4QQT4Z4DTPFDLTB25OZWAKDKXYI4BXLVTFT6TZZNUR4O6DKABEOLOKXRHOIGC4QIJMPF7FRPO66
+#\\\|YOSGHHQOBCT5A2FTPICEY42JD47CPBE2NCVAB6ZAWXCU2MWZGQ2 \ / AMOS7 \ YOURUM ::
+#\[7]M7HSVMPRHIJXVIPG3QNSCGV2F4PUMFPFK4JS4ORX57CMX4A6ASBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

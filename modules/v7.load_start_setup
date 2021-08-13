@@ -4,33 +4,36 @@
 # descr = loads startup configuration for zenki into zenka setup [ single cfg ]
 
 my $config_to_load = shift;
+
 my $cfg_root_path  = <system.conf_path>;
 my $base_file_name = 'zenki/v7/start-set-up.';
 die 'load_start_setup: no start setup specified'
     if not defined $config_to_load;
 
-my $start_setup_pattern = join( ' ',
-    map { $base_file_name . $ARG } split( m|\s+|, $config_to_load ) );
+my $start_setup_pattern = join ' ',
+    map { $base_file_name . $ARG } split( m|\s+|, $config_to_load );
 
-return <[base.log]>->(
-    0, "<< zenki start config '$start_setup_pattern' not found >>"
-) if !-f "$cfg_root_path/$start_setup_pattern";
+return <[base.logs]>->(
+    0, "<< zenki start config '%s' not found >>",
+    $start_setup_pattern
+) if not -f catfile( $cfg_root_path, $start_setup_pattern );
 
-<[base.log]>->( 1, ": loading '$config_to_load' process start set-up" );
+<[base.logs]>->( ": loading '%s' process start set-up", $config_to_load );
 my $start_setup_data;
 {
-    local <system.conf_path> = "$cfg_root_path/zenki/v7";
+    local <system.conf_path> = sprintf qw| %s/zenki/v7 |, $cfg_root_path;
     $start_setup_data = <[base.load_section_code]>->($start_setup_pattern);
 }
 
-return <[base.log]>->(
-    0, "<< zenki start config '$start_setup_pattern' is empty >>"
-) if !@{$start_setup_data};
+return <[base.logs]>->(
+    0, "<< zenki start config '%s' contains no entries >>",
+    $start_setup_pattern
+) if $start_setup_data->@* == 0;
 
-push( @{<v7.cfg_data.start_setup>}, $start_setup_data );
+push <v7.cfg_data.start_setup>->@*, $start_setup_data;
 
-#,,,.,.,.,.,.,..,,.,,,,,,,.,.,,.,,,.,,,..,.,,,..,,...,...,...,,,.,.,,,,,,,,..,
-#OXVCLJTQONXFYWZAOIXWVJEHRXXXU7NT3ELFGLH3KWLDFWDES2RD3J2T4HLS6A34H5ZJPJSII3KJE
-#\\\|EHLBQREUHMFHPY3ENSCKJKNOQTWDJAAXU5DV5MGU7UJYMUX7MTO \ / AMOS7 \ YOURUM ::
-#\[7]3C4W7V4BMXLQRX3SK4X3GL4DDWRINHIPP42O56ZGF62MYJE5MWDI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,.,,,.,,,,,.,.,,,...,..,,.,.,..,,...,...,.,.,,.,,,,,,,,.,...,
+#XR5UQRHWRESFYGINRTLZLGXW4WBUXO2ABWSHE4GZH6O7PVYQRPT62YLQ5LUC3H63A6ES4CNA22NQC
+#\\\|N2JKNB3W6JWBVZFZNQ7BEZGGLQROVZ5W6QZWDWM2W574Y7YVYOY \ / AMOS7 \ YOURUM ::
+#\[7]355NDVXBQZ6T54NNPVNUQCH2Q2N5COL4ZWI7GYPH6ZRB4BL34QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
