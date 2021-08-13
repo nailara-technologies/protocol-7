@@ -95,14 +95,19 @@ if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
         );
         return -4;    ##[  not a valid key format  ]##
     } else {
-        $key_encrypted = $key_status->{'encrypted'}; ##  updating status  ##
+        $key_encrypted = $key_status->{'encrypted'};   ##  updating status  ##
     }
+} elsif ( $key_encrypted == UNKNOWN ) {    ##  private key only  ##
+    $key_name =~ s|^.*/||;
+    <[base.log]>
+        ->( 2, ': encryption status not knowable without public key' );
+    <[base.logs]>->( 2, ": :, private-key '%s'", $key_name );
 }
 
-return $key_encrypted;    ##  key encryption status  ##
+return $key_encrypted;                     ##  key encryption status  ##
 
-#,,,.,.,,,,.,,.,.,,,.,...,,,,,..,,,,.,.,.,,,,,..,,...,...,,,.,.,,,,,,,.,.,..,,
-#WXOBVV57SI3EOQZFX3JC3QWFHCYJ7UCUYRDBNGDESZPY62YITBBUJGWDPTZFLOBQZOJBB3V6DAMW6
-#\\\|TTRHTFLSNLDFBT7QSN5RSCM37TLTIZXYMEK3IALPACXGFVZUPXO \ / AMOS7 \ YOURUM ::
-#\[7]5Q6YVQLJUT5FOUHQTNYI63HHYDMVEK6PBGWNZ2F7W6TWQ7KIMKAA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,,.,,,,,,,.,,..,,,,.,,..,...,..,,...,...,,,.,..,,..,,..,,..,,
+#MC646EMEL27EMICP5SFG5TINIFVQVSNB3RZWPUXPEOCG3B4KU2AKFA7EIXHI5VR56FXSLN7IYR3SC
+#\\\|XDGY5DHKJIUYTJTCAWDYUL52K5OMVUK4LL55POBIKKZPNBDJXZF \ / AMOS7 \ YOURUM ::
+#\[7]HBXKTZKU6ZJ7WVZ3T2GNXMA5TVKPUNYBMATOXOXNWZKJNZM2DIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

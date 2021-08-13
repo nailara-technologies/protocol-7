@@ -86,7 +86,7 @@ foreach my $type (qw|  private  public  |) {
         }
 
         my $key_str_b32    ##  marking as encrypted key  ##
-            = encode_b32r( sprintf qw| .:%s |, $enc_C25519_sref->$* );
+            = encode_b32r sprintf qw| .:%s |, $enc_C25519_sref->$*;
         if ( not defined $key_str_b32 or not length $key_str_b32 ) {
             warn 'error during C25519 key encoding [BASE32] <{C1}>';
             return undef;
@@ -94,12 +94,14 @@ foreach my $type (qw|  private  public  |) {
 
         ##  encrypted key has '.:' prefix [ binary ]  ##
         ##
-        print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
+        print {$key_fh} sprintf "%s\n", $key_str_b32;
 
         ##  no cache chksum entries for encrypted key pairs  ##
 
     } elsif ( $type eq qw|  private  | ) {
-        my $key_str_b32 = encode_b32r( sprintf qw| U:%s |, $key_bin_str );
+
+        my $key_str_b32 = encode_b32r sprintf qw| U:%s |, $key_bin_str;
+
         if ( not defined $key_str_b32 or not length $key_str_b32 ) {
             warn 'error during C25519 key encoding [BASE32] <{C1}>';
             return undef;
@@ -107,13 +109,12 @@ foreach my $type (qw|  private  public  |) {
 
         ##  unencrypted key has 'U:' prefix [ binary ]  ##
         ##
-        print {$key_fh} $key_str_b32;    ##[  has no linefeed  ]##
+        print {$key_fh} sprintf "%s\n", $key_str_b32;
 
         $priv_key_L13_sum = <[chk-sum.bmw.L13-str]>->($key_str_b32);
 
-    } else {    ##[ public key has a linefeed  ]##
-
-        my $key_str_b32 = encode_b32r($key_bin_str);
+    } else {
+        my $key_str_b32 = encode_b32r $key_bin_str;
         print {$key_fh} sprintf "%s\n", $key_str_b32;
 
         $pubkey_L13_sum = <[chk-sum.bmw.L13-str]>->($key_str_b32);
@@ -156,8 +157,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;
 }
 
-#,,,.,,..,,,.,.,,,,,.,...,,.,,,..,...,,,,,,.,,..,,...,...,,,.,...,...,,,.,,,,,
-#KTHCRSQGIFILIZGDQFRSGIVH33SR27JSHLHP5QKN3MLJRVSTIBKUY6SM4KUXKHYUIHJ4SNY5H7HMY
-#\\\|NQ74V4FUJSCKNOCMGWFEOAUX2MVAEJEO7GEL65XXVWHSJ3VXBIR \ / AMOS7 \ YOURUM ::
-#\[7]GRYC4AD5DQ6JR4SK5PE5LBGUVFSWKFTPQSFMJOFO55KY44PFHMCY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,..,,,,.,.,.,.,,,,..,,.,,.,,,..,,...,..,,...,..,,,..,.,,,.,.,
+#5B7QTGQPL5U34WIREOLSMIDTXMJQOLITY224UPULOS66E4XR25UMCTXK7EOK23YLEQJS6GTAGWZBW
+#\\\|SGW2IGUP5CZQYZQ3CXLCTYCJDSVXE7PHV55HJBYEENAESMLGIHL \ / AMOS7 \ YOURUM ::
+#\[7]EEAWM2GFDKBJTWN6PLCMSDL6Q4KDPJD3L4M7MXQVJNNSSN4NHYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

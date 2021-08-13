@@ -46,6 +46,9 @@ delete <crypt.C25519.keys.sizetype>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.keys.sizetype |);
 
 const <crypt.C25519.keys.sizetype> => {
+
+    ##  binary [ not encoded ] public key  ##
+    ##
     32 => {
         qw| type |      => qw| public |,
         qw| encoding |  => qw| bin |,
@@ -54,6 +57,9 @@ const <crypt.C25519.keys.sizetype> => {
         qw| old-form |  => FALSE,
         qw| encrypted | => FALSE
     },
+
+    ##  binary private keys  ##
+    ##
     64 => {
         qw| type |      => qw| private |,
         qw| encoding |  => qw| bin |,
@@ -63,29 +69,16 @@ const <crypt.C25519.keys.sizetype> => {
         qw| encrypted | => UNKNOWN    ##  requires public key test signing  ##
     },
     66 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| bin |,
-        qw| prefixed |  => TRUE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => UNKNOWN,         ##  requires prefix match  ##
+        qw| type |     => qw| private |,
+        qw| encoding | => qw| bin |,
+        qw| prefixed | => TRUE,         ##  <-- remove prefix before using  ##
+        qw| linefeed | => FALSE,
+        qw| old-form | => FALSE,
+        qw| encrypted | => UNKNOWN,     ##  requires prefix match  ##
     },
-    52 => {
-        qw| type |      => qw| public |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => TRUE,
-        qw| encrypted | => FALSE
-    },
-    53 => {
-        qw| type |      => qw| public |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => TRUE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => FALSE
-    },
+
+    ##  encoded private keys  ##
+    ##
     103 => {
         qw| type |      => qw| private |,
         qw| encoding |  => qw| b32 |,
@@ -106,16 +99,43 @@ const <crypt.C25519.keys.sizetype> => {
         qw| type |      => qw| private |,
         qw| encoding |  => qw| b32 |,
         qw| prefixed |  => TRUE,
+        qw| old-form |  => TRUE,
         qw| linefeed |  => FALSE,
+        qw| encrypted | => UNKNOWN          ##  requires prefix match  ##
+    },
+    107 => {
+        qw| type |      => qw| private |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => TRUE,
+        qw| linefeed |  => TRUE,
         qw| old-form |  => FALSE,
         qw| encrypted | => UNKNOWN          ##  requires prefix match  ##
     },
+
+    ##  encoded public keys  ##
+    ##
+    52 => {
+        qw| type |      => qw| public |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => TRUE,
+        qw| encrypted | => FALSE
+    },
+    53 => {
+        qw| type |      => qw| public |,
+        qw| encoding |  => qw| b32 |,
+        qw| prefixed |  => FALSE,
+        qw| linefeed |  => TRUE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => FALSE
+    }
 };
 
 0;
 
-#,,,,,..,,.,,,,,,,,..,.,,,...,,..,.,.,.,.,...,..,,...,...,...,.,.,,,.,...,..,,
-#37YRC4L2H3OPR2VVH2YZMNTKPKHYEILCEGDUF6XMVPE7ML6IJSQSGFTSSG6HNO3PWDCJP3627V262
-#\\\|IZLF6BGYN77RT372ULPHD3ZY3PTARBSA5TTJIAWMUZZWFAVDU3M \ / AMOS7 \ YOURUM ::
-#\[7]IM3IC77TDGWU5DEM7SCFOWFDEOYMZFWYVYCSMKWGX36UXPBOJCBI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,,,.,..,,.,,,,..,.,,,,,.,,.,,..,,...,..,,,,,,.,,,,,.,...,.,,,
+#P3NVTP3YXYWO3FJPLRRKOO5S5OT727Y3HHZRSBY55WU3VGEXEEH4AHSZOLITDNTQILQG5TICGGQXA
+#\\\|E6ZJYA3JNKZZ6UGBPWOFWH5EWRMM7G6XXWS4NATENSMBKA2PXK7 \ / AMOS7 \ YOURUM ::
+#\[7]TKA7KQF4RPC2KOPBVCMO35H5FVRZGGIJC5YJI2X5DEVQEQ5UPSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

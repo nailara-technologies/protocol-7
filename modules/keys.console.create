@@ -1,10 +1,10 @@
 ## >:] ##
 
 # name  = keys.console.create
-# param = [-U] [name]
+# param = [-U] [key-name]
 # descr = create a named key [ or'base' user key ]
 
-my $unencrypted = 0;    ##  false  ##
+my $unencrypted = FALSE;    ##  false  ##
 
 my $key_name = shift // qw| base |;
 
@@ -13,7 +13,7 @@ if ( length $key_name and <[keys.key_exists]>->($key_name) ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-$unencrypted = 5 if $key_name =~ s|\s*\-U\s*||g;
+$unencrypted = TRUE if $key_name =~ s|\s*\-U\s*||g;
 
 my $key_password;
 if ( not $unencrypted ) {
@@ -51,7 +51,7 @@ my $u_str
     ? ' files'
     : sprintf( " for '%s'", $key_usr );
 
-my $success = 0;
+my $success = FALSE;
 say sprintf " : << generating '%s' key%s >>", $key_name, $u_str;
 
 if ( not <[crypt.C25519.gen_keys]>->($key_name) ) {
@@ -61,18 +61,19 @@ if ( not <[crypt.C25519.gen_keys]>->($key_name) ) {
 ( my $keywrite_status, my @key_chk_sums )
     = <[crypt.C25519.write_keys]>->( $key_name, $key_password );
 
-$success = 5 if defined $keywrite_status and $keywrite_status == 5; ## true ##
+$success = TRUE    ## true ##
+    if defined $keywrite_status and $keywrite_status == TRUE;
 
 printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
     $key_name, join( qw| : |, @key_chk_sums ), $key_dir )
-    and return TRUE                                                 ## true ##
+    and return TRUE    ## true ##
     if $success;
 
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,.,,..,,,,,,,,.,,..,..,,,,.,..,,.,.,,,,,,,.,..,,...,...,..,,...,,,,,.,,,,,,,
-#UH7F7P5VVC6F36BW5CYQPZ7YTN6F4A2DGE5MD4WD3MSBQW3RTIFS5AX4SYNGF7VCSJSCNED4BEZLE
-#\\\|7DQYIXTDIVU2YUTN6RBV3KYDGXQYDGICHR3ALYL7UEGWY3QHV5G \ / AMOS7 \ YOURUM ::
-#\[7]RJIUV6NKG6JEP5ROV7A3ENKAJMPV3XK3F5AYF6STWY7VAXEGCMBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,..,,,,,,,..,..,,,.,,,.,,...,..,,...,...,,..,,.,,.,.,,.,,...,
+#4VO5GO37X7PEH4SVKYGHOH5IV3A4SSE5S6ZMMI3265AGADLQWC4CCM2LY2LR4TVHSUULNQA52WTXO
+#\\\|F4JR7CNFJWMPM2ZE6AU5LZMZKQ5O2H7G5YJDTABU2HHWZEEEBLK \ / AMOS7 \ YOURUM ::
+#\[7]ZDTPYIO5R43C6DSVCVVIRXJ5RJP5IC65VGRP2WA3BN2773T4IGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
