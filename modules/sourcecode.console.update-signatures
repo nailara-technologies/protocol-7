@@ -5,6 +5,17 @@
 
 my $command_params = shift;
 
+my $signature_key_name = qw| nailara.source |;
+
+if ( not exists $keys{'C25519'}{$signature_key_name}
+    or keys( $keys{'C25519'}{$signature_key_name}->%* ) != 2 ) {
+    <[base.logs]>->(
+        0, "source signature key '%s' not loaded, aborting..,",
+        $signature_key_name
+    );
+    return undef;
+}
+
 my $source_version  = <protocol-7.src-ver>;
 my $release_version = <protocol-7.rel-ver>;
 
@@ -113,8 +124,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,..,.,,,,,,,.,,,.,,,,..,,,.,,..,,,,,,.,,,,.,..,,...,...,...,.,.,...,...,,,.,
-#6DHCIWL4QGRPB72EHIIMGE6YRCRVLUSXNWPJABN4UZPZIIF2SGIBPJ7SW7BE6MZ4T7YDELGFIFN42
-#\\\|VENFDGLEP6LWS7C63L4YQTEG6OCRL4YRBSE7SISU6ZWEUNWFNCG \ / AMOS7 \ YOURUM ::
-#\[7]GB2TDEE42NPB3DZYGTGQS3HFF4LTGZCFHJOZ277QT6QC3XLFF4DY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,.,.,.,.,..,,,.,,,,,,,..,.,,,..,,...,...,,.,,.,,,,,.,...,.,.,
+#55IEQJRRUU2QF4ARSOSVBEEYYIZLRJ7SW6LBUCW35TSWAFREAC37CWQGJKP2XJANLKXQW5R6SIKSO
+#\\\|WIKDTMGWZCTNQ4U7EERUYZAUB2EYEST2MIITQOZ3V3IZ5ZI2LTZ \ / AMOS7 \ YOURUM ::
+#\[7]Z3F7LYM3AR3J5MXDA2KR5RQ3QUINY2QETBOGTYCNDPZFZE3NYABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

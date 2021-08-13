@@ -1,7 +1,7 @@
 ## >:] ##
 
-# name  = keys.console.encrypted-checksum
-# param = <k>
+# name  = keys.console.enc-key-chksum
+# param = <name>
 # descr = calculate and display chksum of encrypted key
 
 my $key_name_param = shift;
@@ -27,13 +27,13 @@ if ( $key_status < 0 ) {
     }
     return printf "\n  << %s >>\n\n", $err_reason_str;
     <[base.exit]>->(qw| 0110 |);
-} elsif ( $key_status == 0 ) {
+} elsif ( $key_status == FALSE ) {
     return printf "\n  ::  '%s' key is not encrypted  ::\n\n",
         $key_name_param;
 }
 
 my $load_success
-    = <[crypt.C25519.load_keypair]>->( $key_name_param, undef, 5 );
+    = <[crypt.C25519.load_keypair]>->( $key_name_param, undef, TRUE );
 
 return print "\n  << no keys loaded >>\n\n" if not $load_success;
 
@@ -53,8 +53,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,,.,,,,,,,.,,..,.,,,,.,,,..,,,,,,,.,.,,,.,,,.,.,...,...,,,.,..,,,.,,,,.,.,.,
-#SX4WVQ4MAQBXAPR6ZRVJUM4GOFJ3WZAVTVW6QZMBWSNQ6X4SCX73CWBK4CUSWKTQFUTDMWOZYPWQC
-#\\\|NH2QNLF5GXSU7RI2TADFR6I5CEWKXOL3RFJJWVEABDPKFGIUORG \ / AMOS7 \ YOURUM ::
-#\[7]GHXADCLNO3K5IGK7VN62PN4MBFHRMRQX7ZPARLGKUO5SDOKNKYDY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,..,,...,..,,,..,,,.,.,,,,.,,.,.,...,.,.,..,,,,.,..,,.,,,...,
+#7TIRXWWBL5MTNSKOUSUVADYV4HVDPKNQSRUGR3SGU6H4MMT2Y4VNFULNSSOI7RXXNLHG4T6YOSWGS
+#\\\|4JLNMW7F4MCCCH5O6TJ6GI373XVGCWPMTUX3W5QE6JDVCLXKKCO \ / AMOS7 \ YOURUM ::
+#\[7]HRSTSXLKGAVL3WQZXKC7I6BBQ7FVBYZYOZRFN5UJCP36JVT4C6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
