@@ -54,7 +54,7 @@ sub create_dir_path {
         return undef;
     }
 
-    my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
+    my $mkdir_umask = 0777 &~ 0777;    ## <-- permissive setting.., ##
     my $previous_umask;
 
     ## optionally recursive mode array [ref] ## expand [owners] [LLL]
@@ -308,8 +308,8 @@ sub resolved_path_abs {
 
 return TRUE ##################################################################
 
-#,,.,,,,,,..,,..,,.,,,.,.,,,,,...,...,.,,,.,.,.,.,...,...,...,,.,,..,,..,,..,,
-#Q323R4ZEG6HHLOSNSLDZFSSPDD4VUMZUUFED4NBUYZE5PCV3TPKVCK6QWUXGRT25AZQSKA622LMVG
-#\\\|BDKP3W5FV5WFUFVXBWTD2T2UFJKPRVSRO5EJL6WUFJ3SYMJRQSA \ / AMOS7 \ YOURUM ::
-#\[7]RBHKYBQVI62L4CWL3PVRIIYE5IQMTWRPDRHMJWGU4TJ2JJGQJQCA 7  DATA SIGNATURE ::
+#,,.,,...,..,,,..,.,,,...,,.,,,.,,,..,,,,,...,.,.,...,...,.,,,...,.,.,,.,,.,.,
+#MFLJMPAAJLTOPYLWCT3YNEKEMAVFHD4V3WKY5QPDQ2I4ELTGT2XJCW5LCDC6KVTVUWDD3IZBWP3MS
+#\\\|Y6ZSH75E6CLWNWYEQF3UVOAPVT5BUZYNI75WP6HPYO2PA24UDIA \ / AMOS7 \ YOURUM ::
+#\[7]IVXV5LUOMF7QDKWHQE52UASSQFPQ37AGPTIFQQ4TPFEHQK775OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
