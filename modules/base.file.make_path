@@ -12,7 +12,7 @@ warn 'expected defined path <{C1}>' and return undef if not defined $path;
 return warn 'expected absolute path [ to create ] <{C1}>' and return undef
     if $path !~ m|^/[^/]+|;
 
-my $mkdir_umask = 0777;    ## <-- permissive setting.., ##
+my $mkdir_umask = 0777 &~ 0777;    ## <-- permissive setting.., ##
 my $previous_umask;
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
@@ -183,8 +183,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,.,,.,.,,.,,,,.,...,...,,.,,,.,,.,.,.,.,,.,,..,,...,..,,...,,,,,,.,,,,.,...,
-#BGKCEMFUTS6I4JHRDLYFJOGBAOEVERVDICEALPMFE4GO4QXDQJH5FY5PDV64BPR4GDGRWIZPGY45O
-#\\\|IYVUUWDJYL3UDW24J67D7VM4IRXR4KGTJ3ZOIYFSBS4GOETE2XX \ / AMOS7 \ YOURUM ::
-#\[7]SGB6OMNLZ3VJZY7GL77RHXFLPPJ6DWIINCEJXHMRHWDVHYG6WECQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,..,,,.,,.,,,,,,,.,.,.,.,...,..,,...,..,,,,,,,,,,.,,,,..,...,
+#PGITYXRW2DRGVGQSC72KZYMBW2WGMKZSHQSY2WZQT3AR3R4XKAPVHV6C35OOZAFHBMAGFOATWWT2G
+#\\\|KGMKFQ43UYIFKSNGXJJYA6FXXYK2MC6MU6QSU2DUEXCHRVZ3REV \ / AMOS7 \ YOURUM ::
+#\[7]YOIA2TUHDSABFJPTDOQXZTT7AYNXUGKN7E4AS3AE4DURNVW2XABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
