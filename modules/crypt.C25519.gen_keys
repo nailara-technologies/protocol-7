@@ -2,53 +2,85 @@
 
 # name = crypt.C25519.gen_keys
 
-my $key_name_param = shift;    ##  optional  ##
+my $secret_key;
+my $key_name_param      = shift;    ##  optional  ##
+my $key_seed_passphrase = shift;    ##  optional  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
-
-my $key_name = $key_vars_ref->{'key_name'};
-
-<[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $key_name );
+my $name         = $key_vars_ref->{'key_name'};
 
 $keys{'C25519'} //= {};
 
-if ( exists $keys{'C25519'}{$key_name} ) {
+if ( exists $keys{'C25519'}{$name} ) {
     <[base.s_warn]>->(
-        "a C25519 key with name '%s' is already loaded [ skipped ]", $key_name
+        "a C25519 key with name '%s' is already loaded [ skipped ]", $name
     );
-    return 0;
+    return FALSE;
 }
 
-my $TRUE = 0;    ##  false  ##
+<[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $name );
+
+$secret_key = AMOS7::13::key_32( \$key_seed_passphrase )
+    if defined $key_seed_passphrase;
+
+if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
+    warn 'error while derriving secret key from passphrase <{C1}>';
+    return undef;
+}
+
+##  or create from random input [ Crypt::PRNG::Fortuna ]  ##
+##
+$secret_key //= <[base.prng.bytes]>->(32); ##  when no passphrase supplied  ##
+
+my $TRUE = FALSE;                          ##  false  ##
 my ( $public_key, $private_key );
 
-my $secret_key;
-
-##  create from random input [ Crypt::PRNG::Fortuna ]  ##
-##
 while ( not $TRUE ) {
     <[event.once]>->(0.007);
-    $secret_key = <[base.prng.bytes]>->(32);
     $public_key = Crypt::Ed25519::eddsa_public_key($secret_key);
 
-    $TRUE = 5    ## true ##
-        if AMOS7::Assert::Truth::is_true( \$public_key, 0, 1 )
-        and AMOS7::Assert::Truth::is_true( \encode_b32r($public_key), 0, 1 );
+    $TRUE = TRUE    ## true ##
+        if AMOS7::Assert::Truth::is_true( \$public_key, FALSE, TRUE )
+        and AMOS7::Assert::Truth::is_true( \encode_b32r($public_key),
+        FALSE, TRUE );
+
+    $TRUE = FALSE    ##  additional requirements if seed entropy given  ##
+        if $TRUE
+        and defined $key_seed_passphrase
+        and (
+        not AMOS7::Assert::Truth::is_true( \$secret_key, FALSE, TRUE )
+        or not AMOS7::Assert::Truth::is_true(
+            \unpack( qw| B* |, $secret_key ),
+            FALSE, TRUE
+        )
+        );
+
+    if ( not $TRUE and not defined $key_seed_passphrase ) {
+
+        $secret_key = <[base.prng.bytes]>->(32);    ##  re-generate seed  ##
+
+    } elsif ( not $TRUE ) {
+
+        my $altered_key_entropy   ##  regen secret key based on user input  ##
+            = sprintf( qw| %s.:%s |, $key_seed_passphrase, $secret_key );
+
+        $secret_key = AMOS7::13::key_32( \$altered_key_entropy );
+    }
 }
 
 ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
 
-$keys{'C25519'}{$key_name} = {
-    'name'       => $key_name,
+$keys{'C25519'}{$name} = {
+    'name'       => $name,
     'public'     => $public_key,
     'private'    => $private_key,    ##[  C25519 private key  ]##
-    'secret_key' => $secret_key      ##  source entropy  ##
-};
+    'secret_key' => defined $key_seed_passphrase ? undef : $secret_key
+};    ##  source entropy only when not passphrase  ##
 
-return ( $keys{'C25519'}{$key_name}, $key_name );    ##[ success ]##
+return ( $keys{'C25519'}{$name}, $name );    ##[ success ]##
 
-#,,..,.,.,...,.,,,...,,,.,.,,,.,,,,..,..,,,,.,..,,...,..,,...,,,.,.,,,,,.,..,,
-#AV7QONAMYQKBK5RAJ6DFS4D6K3RYHAXO2YMEYTO7WB37GSVIPU2ARMPRMNVWMBNC6KFF6G7ETHU76
-#\\\|KO6E5NSZ6DKYLAOINC4COLH2OV6MVNZST55EBQD3XX6LTQBSSLE \ / AMOS7 \ YOURUM ::
-#\[7]WBZOIMNYNJMJVODDSDEWKM54F6NZBHFANPBGTE5A6AEQEZN3MOBY 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,,,,,.,.,...,,.,,,,.,.,,,.,.,..,,...,...,.,.,,,,,,.,,,,,,,,,,
+#GSGSGFJRCXVVMC5DFT7TXMXPKD6I5VFBT25YNQWOZB4NNIQQ447WFNCRMBAVREDLY6KRDYVFIYNGY
+#\\\|7EARL3FI4QYQ32VQ6SSXQ6HM6QL2QTCMY7GDAODKQNZK4PWOELY \ / AMOS7 \ YOURUM ::
+#\[7]SOLZLLI5TO73UYJXIEN7MHKHOGP54GRULWVUMVOQFK5UJJMQSECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
