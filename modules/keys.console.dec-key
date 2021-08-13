@@ -17,7 +17,7 @@ if ( $key_status < 0 ) {
         $err_reason_str = sprintf "only public key named '%s' found",
             $key_name;
     } elsif ( $key_status == -2 ) {
-        $err_reason_str = sprintf 'no key named %s exists', $key_name;
+        $err_reason_str = sprintf 'user-key %s not found', $key_name;
     } elsif ( $key_status == -3 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
@@ -45,7 +45,7 @@ foreach my $type (qw|  private  public  |) {
     }
 }
 
-my $load_success = <[crypt.C25519.load_keypair]>->( $key_name, undef, 5 );
+my $load_success = <[crypt.C25519.load_keypair]>->( $key_name, undef, TRUE );
 
 if ( not defined $load_success ) {
     warn 'cannot load key files <{NC}>';
@@ -56,8 +56,8 @@ if ( not defined $load_success ) {
 
 my $backup_file_names;
 ANOTHER_FILE_TIMESTAMP:
-my $tstamp = <[base.ntime.b32]>->( 5, 5 ) // '';
-<[base.exit]>->( qw| 0110 |, 'cannot aqcuire timestamp' )
+my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
+<[base.exit]>->( qw| 0110 |, 'cannot acquire timestamp' )
     if not length $tstamp;
 foreach my $type (qw|  private  public  |) {
     if (   not defined $key_filenames->{$type}
@@ -137,8 +137,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_DECRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,,,..,,,..,..,,.,,,,.,,.,.,,..,.,,,...,,.,,.,.,...,...,..,,..,,..,,..,,...,
-#F7MACPTOONAQCG6IM5Q2FTQRUMKL7K6H2AMQU6XBMIJUA474BD6ILJYTXNE2QMDD5P64NNUXK7GIQ
-#\\\|6RVKXDYQHZY6QNYVIYTVBTTCZVVLHPXWQHMAGT6H54UU3XRF5YL \ / AMOS7 \ YOURUM ::
-#\[7]XRTBPASGKNPU3ERK5UISCXHLJE65AR22WXID5ONQXICD3CJ66AAA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,,,,...,,,,,,,,,...,,,.,.,.,.,.,...,..,,...,.,,,,,.,,,.,,,,,
+#2F4NIS45QN7R4I3RII56UI54HUJFKTM6RJWMPKNL72HIFTXWFPF7Z7JYBBLQCAVEP6P6NFDVU3HXC
+#\\\|5KBP4HNBA763HMBZFECXTRFVVNWAPBXC6FQCFEOEZQQMBYRKI5E \ / AMOS7 \ YOURUM ::
+#\[7]PSY7BAZ5O4CCBGT2O2FGLVFO45YNDYCRPZRGFDXJWCPLHGPZ62AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

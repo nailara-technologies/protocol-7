@@ -46,6 +46,7 @@ my %key_names;
 my $max_nlen = 0;
 foreach my $file (@k_files) {
     my $name = <[crypt.C25519.get_keyname]>->($file);
+    $name //= qw| read.err |;
     $key_names{$file} = sprintf qw| '%s' |, $name;
 
     my $length = length $name;
@@ -88,8 +89,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,.,..,,,,,,,..,.,.,,.,,,,.,,,,,,,,,,.,,,,.,..,,...,...,..,,,..,,,.,,,,,.,.,
-#D6KSFHBMTBMNOS25UOIRNJEU2W4AOU2Q6OEDUKEFKHWR2KFLGP5Y6ZUJKAIZ4K74AN6GFGFZ2IVCU
-#\\\|L55CZEYUDP22IUROODCDQM2CSJLQSU7GMVL4H7ZZCAPLVPG7K2G \ / AMOS7 \ YOURUM ::
-#\[7]Y7ROHWPYXAEZHYKT6J5ZCTA442EOJVBQWSF2XBQERK4GCCGLB2DA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,,,,,,,.,...,,.,,...,,,,,,,,,..,,...,...,..,,..,,,,,,.,,,,..,
+#STGCLS23N3TEJP3OAI5575PW6SDQZBULPA6BUV3Z4XRTLJXUSWSHMN76BAIQ5LCN5U3RBQWD7AMFM
+#\\\|6XTKWPVBDGOADHRZXB6S67VYL6XHSJFFCXNEHTG5UQDF4OCPI7M \ / AMOS7 \ YOURUM ::
+#\[7]YQNMHAQHIGR2OQVRNIIISPKYWKWSBUIINSYHI3QUZF74XEOT74AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

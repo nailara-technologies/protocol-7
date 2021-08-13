@@ -1,0 +1,128 @@
+## >:] ##
+
+# name  = keys.console.downgrade-enc-status
+# param = n
+# descr = mark auto-upgraded private key as not encrypted
+
+my $name = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+
+return say sprintf "\n  << user-key %s not found >>\n", $name
+    if defined $name and not <[keys.key_exists]>->($name);
+
+my $key_encrypted = <[crypt.C25519.encrypted_key]>->($name);
+
+if ( $key_encrypted < 0 ) {
+    my $err_reason_str;
+    if ( $key_encrypted == -1 ) {
+        $err_reason_str = sprintf "only public key named '%s' found", $name;
+    } elsif ( $key_encrypted == -2 ) {
+        $err_reason_str = sprintf 'user-key %s not found', $name;
+    } elsif ( $key_encrypted == -3 ) {
+        $err_reason_str = 'error reading private keyfile';
+    } elsif ( $key_encrypted == -4 ) {
+        $err_reason_str = 'not a valid key format';
+    } else {
+        $err_reason_str = 'undefined error';
+    }
+    return printf "\n  << %s >>\n\n", $err_reason_str;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_encrypted == FALSE ) {
+    return say sprintf
+        "\n  :: private-key %s already marked as not encrypted  ::\n",
+        $name;
+}
+
+my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
+my $keyfile_abs   = $key_filenames->{'private'};
+my $key_file_ref  = <[file.slurp]>->($keyfile_abs) or return;
+( my $keyfile_rel = $keyfile_abs ) =~ s|^.*/||;
+
+<[base.log]>->( 1, ':' );
+<[base.logs]>->( 1, ": marking '%s' as not encrypted ..,", $keyfile_rel );
+<[base.log]>->( 1, ':' );
+
+chomp( $key_file_ref->$* );
+my $key_decoded = decode_b32r $key_file_ref->$*;
+my $key_len     = length( $key_decoded // '' );
+
+my $size_type = <crypt.C25519.keys.sizetype>;
+if ( $key_len == 0 ) {
+    warn '[ base 32 ] private key decoding error <{C1}>';
+    return undef;
+} elsif ( not exists $size_type->{$key_len} ) {
+    <[base.s_warn]>->(
+        '[ decoded ] private key format'
+            . ' type not known [ size : %d ] <{C1}>',
+        $key_len
+    );
+    return undef;
+}
+my $key_details = $size_type->{$key_len};    ##  when valid  ##
+
+##  stripping prefix  ##
+substr( $key_decoded, 0, 2, '' ) if $key_details->{'prefixed'} == TRUE;
+
+my $re_encoded_keystr = sprintf "%s\n",
+    encode_b32r( sprintf "U:%s", $key_decoded );
+
+if ( length($re_encoded_keystr) != 107 ) {
+    <[base.logs]>->(
+        0,
+        'base32 [re-]encoding error [size=%d]',
+        length($re_encoded_keystr)
+    );
+    return;
+}
+
+my $target_file = sprintf qw| %s.enc-downgrade |, $keyfile_abs;
+while ( -e $target_file ) {
+    my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
+    <[base.exit]>->( qw| 0110 |, 'cannot acquire timestamp' )
+        if not length $tstamp;
+    $target_file = sprintf qw| %s.enc-downgrade.%s |, $keyfile_abs, $tstamp;
+}
+
+if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
+    or -z $target_file
+    or File::stat::stat($target_file)->size != 107 ) {
+    my $err_reason_str
+        = length $OS_ERROR
+        ? <[base.str.os_err]>
+        : sprintf 'size %d not valid', File::stat::stat($target_file)->size;
+    <[base.logs]>->(
+        0,               ': keyfile write error : %s : %s',
+        $err_reason_str, $target_file
+    );
+    unlink($target_file) if -f $target_file;
+    return;
+} elsif ( -f $target_file and not -z $target_file ) {
+    if ( -x qw| /usr/bin/shred | ) {
+        system( qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
+            $keyfile_abs ) == 0
+            or <[base.logs]>->(
+            0,                   ': shred file : %s : %s',
+            <[base.str.os_err]>, $keyfile_abs
+            );
+    }
+    if ( not rename( $target_file, $keyfile_abs ) or not -f $keyfile_abs ) {
+        <[base.logs]>->(
+            0,            'cannot overwrite target key file %s [ %s ]',
+            $keyfile_abs, <[base.str.os_err]>
+        );
+        return;
+    }
+}
+
+<[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
+
+return printf "\n  ::[  private key %s now marked unencrypted  ]::\n\n",
+    $name;
+
+#,,,.,..,,.,,,..,,..,,...,,..,...,...,...,,,.,..,,...,...,...,,,.,,..,..,,,,,,
+#IHFYUMXK24LP5BVS5GAPUWKBYGC2L4ME7ISLQLXP73RZRZQLJ5OGYDWLOEKGKABO4ZPRCVL5S5JGA
+#\\\|FIYBPHD7TTNATMBFJQ7WQYZTDIO6TF2LBHT4QUBD4BW57VLCT3W \ / AMOS7 \ YOURUM ::
+#\[7]HG274KCIWM6HYBSF53IZV7LA6SCNM356ES3UO3YJIMW3OV55KUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
