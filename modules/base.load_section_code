@@ -8,38 +8,43 @@
 
 my $conf_path = <system.conf_path>;
 my $code_data = [];
-$code_data = shift(@ARGV) if ref( $ARGV[0] ) eq 'ARRAY';
-my @code_files = @_;    # all files' data will be appended to the $code_data.
-foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
+$code_data = shift @ARGV if ref $ARGV[0] eq qw| ARRAY |;
+my @code_files = @ARG;   # all files' data will be appended to the $code_data.
+my @match_filenames = <[file.match_files]>->( $conf_path, @code_files );
+if ( @match_filenames == 0 ) {
+    warn 'no cfg file names match <{C1}>';
+    return undef;
+}
+foreach my $filename (@match_filenames) {
     my @cfg_lines;
     <[file.slurp]>->( $filename, \@cfg_lines );
-    if ( !@cfg_lines ) {
-        <[log.error]>->("unable to load config file '$filename'");
+    if ( @cfg_lines == 0 ) {
+        <[base.logs]>->( 0, "cannot load config-file '%s'", $filename );
         return undef;
     }
     my $line_num = 0;
-    $filename =~ s/^.*\///g;
+    $filename =~ s|^.*/||g;
     my ( $section_ref, $sub_section_ref );
     my ( $section, $sub_section, $sub_sub_section, $data_ref );
     foreach my $line (@cfg_lines) {
         $line_num++;
-        $line =~ s/(#.*|[ \t]*)+$//g;
-        $line =~ s/^[ \t]+//;
+        $line =~ s,(#.*|[ \t]*)+$,,g;
+        $line =~ s|^[ \t]+||;
         next if $line eq '';
-        if ( $line =~ /^\.: *([^:]*\S) *:\.$/ ) {
-            $section = $1;
+        if ( $line =~ m|^\.: *([^:]*\S) *:\.$| ) {
+            $section = $LAST_PAREN_MATCH;
             ( $sub_section, $sub_section_ref, $sub_sub_section )
                 = ( undef, undef, undef );
             if ( !<[base.code_section_exists]>->( $section, $code_data ) ) {
                 $data_ref = [];
-                push( @$code_data, { $section => $data_ref } );
+                push @$code_data, { $section => $data_ref };
             } else {
                 $data_ref
                     = <[base.code_section_ref]>->( $code_data, $section );
             }
             $section_ref = $data_ref;
-        } elsif ( $line =~ /^- *(.+)$/ ) {
-            $sub_section     = $1;
+        } elsif ( $line =~ m|^- *(.+)$| ) {
+            $sub_section     = $LAST_PAREN_MATCH;
             $sub_sub_section = undef;
             die "no parent section defined for sub-section '$sub_section' "
                 . "(file '$filename' line $line_num)"
@@ -47,7 +52,7 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
             if ( !<[base.code_section_exists]>->( $sub_section, $data_ref ) )
             {
                 my $new_data_ref = [];
-                push( @$section_ref, { $sub_section => $new_data_ref } );
+                push @$section_ref, { $sub_section => $new_data_ref };
                 $data_ref = $new_data_ref;
             } else {
                 $data_ref = <[base.code_section_ref]>->(
@@ -55,21 +60,19 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
                 );
             }
             $sub_section_ref = $data_ref;
-        } elsif ( $line =~ /^: *([^:]*\S) *:$/ ) {
-            $sub_sub_section = $1;
+        } elsif ( $line =~ m|^: *([^:]*\S) *:$| ) {
+            $sub_sub_section = $LAST_PAREN_MATCH;
             die "parent section missing for sub-sub-section"
                 . " '$sub_sub_section' (file '$filename' line $line_num)"
                 if not defined $section;
             die "no parent sub-section defined for sub-sub-section"
                 . " '$sub_sub_section' (file '$filename' line $line_num)"
                 if not defined $sub_section;
-            if (!<[base.code_section_exists]>->(
-                    $sub_sub_section, $data_ref
-                )
+            if (not
+                <[base.code_section_exists]>->( $sub_sub_section, $data_ref )
             ) {
                 my $new_data_ref = [];
-                push( @$sub_section_ref,
-                    { $sub_sub_section => $new_data_ref } );
+                push @$sub_section_ref, { $sub_sub_section => $new_data_ref };
                 $data_ref = $new_data_ref;
             } else {
                 $data_ref = <[base.code_section_ref]>->(
@@ -77,14 +80,14 @@ foreach my $filename ( <[file.match_files]>->( $conf_path, @code_files ) ) {
                 );
             }
         } else {
-            push( @$data_ref, $line );
+            push @$data_ref, $line;
         }
     }
 }
 return $code_data;
 
-#,,,,,.,,,,.,,,..,,..,,..,,,,,..,,...,...,.,.,..,,...,...,,,.,,,,,...,,,.,..,,
-#DS4ESPKI6TIVS46CHGW6ITFYVSFD6X2OM37EQ5EXG3X5XXQACO4ADUXXEOFTG26XMDNINUG6IMHNA
-#\\\|6X6OEQZQLGZOJKV7ZARGBKYUNEDYE7N7INDF6NYVIWHT4FOHCWU \ / AMOS7 \ YOURUM ::
-#\[7]3GHYE6Y7WANA6GQISA6Q24NWW3JPWQ2YASLJQ4GR3J6Y35OLXUDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,,,,...,,,.,.,.,.,.,,..,,..,..,,...,.,.,.,,,,.,,,.,,.,,,..,,
+#IR6DW4BG2D6TWWAKG5ZGX32X7R35M5ADB2CX6K2MM6O4LIT4FCIJUQZOAJWEAFPMZZNV5PUCH5ZDO
+#\\\|ECZOYS7MHQQAOBPHMBEHDAWTYSPYMGP72EFZE6RDI3DWORZTAFB \ / AMOS7 \ YOURUM ::
+#\[7]YXKXXZKNGVS3DRZHIYYL7XG5ST2HXQO64OMFHF2HJ7U2PJW5JCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

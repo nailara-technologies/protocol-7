@@ -51,8 +51,7 @@ if ( $ref_type eq qw| SCALAR | ) {
     }
 } elsif ( $ref_type eq qw| ARRAY | ) {
     use warnings qw| FATAL |;
-    local $INPUT_RECORD_SEPARATOR = undef;
-    eval { push $target_ref->@*, readline($file_fh) };
+    eval { push $target_ref->@*, <$file_fh> };
     if ( length $EVAL_ERROR ) {
         ## say '  < caller >  ', scalar <[base.caller]>;
         <[base.s_warn]>->(
@@ -76,8 +75,8 @@ if ( not close($file_fh) ) {    ##[  only warning about it  ]##
 
 return $target_ref;             ##  scalar or array reference  ##
 
-#,,,,,...,..,,,,.,.,.,,,,,,..,,,,,.,.,,,.,,.,,..,,...,...,.,.,.,,,,..,,,,,...,
-#YQJ5PBYCZJ4PMZWRQXRXLNDQHI5ZMYXE7B7ONX6XUZ32YDWS2EXJP6AWLLXWIISDR4PMNQMBB34NM
-#\\\|2ZNOKPHRXPS3ICI7F65BPYV5FDOAZYXESBCPFAK4IZ626A56LK7 \ / AMOS7 \ YOURUM ::
-#\[7]XNOGQEYF2BZP7NNZ2ZWQNWKLNEF3YD2MI6CP3UKAQMLI4ZOKAUAQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,...,,,.,.,,,...,..,,...,.,.,..,,..,,...,..,,.,,,,,,,,..,,,,,.,,,
+#OXIWRZB3MXD6VPYR2KPEFEWV4EXV22ABH6HRHFHOEQHF4IHQJ4Z3WX5OYHGTBMXAA2MBEBQ3B6LM4
+#\\\|TUPNTJCSPH42ZOL3WZCPIKA525DFUSBG47JVJP3YQG4HWMXY7BI \ / AMOS7 \ YOURUM ::
+#\[7]EVD24Z4YDVM3XL7MUOOXFOZWLZAAQYEZDX3YS7GBEGOOCHODZUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
