@@ -8,7 +8,7 @@ my $param_str = shift // '';
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
-( my $ren_from, my $ren_to ) = split( m| +|, $param_str );
+( my $srckey, my $to_keyname ) = split m| +|, $param_str;
 
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $key_usr = $key_vars_ref->{'usr_name'};
@@ -23,9 +23,9 @@ my $key_re_private = $keys_re->{'key_file'}->{'private'};
 my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
 return print "\n  << expected <from> and <to> parameters >>\n\n"
-    if not defined $ren_from or not defined $ren_to;
+    if not defined $srckey or not defined $to_keyname;
 
-my $match_re = qr|^(\Q$ren_from\E\.$re_kfiles)$|;
+my $match_re = qr|^(\Q$srckey\E\.$re_kfiles)$|;
 
 my $key_found = 0;
 my $space_len = abs( length($key_re_private) - length($re_public) );
@@ -35,7 +35,7 @@ map {
     return prints "\n << no write access to %s >>\n\n", $k_path
         if not -w $k_path;
 } @k_files;
-return printf "\n  << key with name '%s' not found >>\n\n", $ren_from
+return printf "\n  << key with name '%s' not found >>\n\n", $srckey
     if not $key_found;
 
 my $ren_count = 0;
@@ -49,7 +49,7 @@ print "\n :\n";
 my $len = 0;
 foreach my $file_name (@k_files) {
     my $target_name = $file_name;
-    next if $target_name !~ s|^$ren_from\.|$ren_to.|;
+    next if $target_name !~ s|^$srckey\.|$to_keyname.|;
     printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
     return printf "\n rename failed : %s\n\n", <[base.str.os_err]>
         unless rename( $file_name, $target_name );
@@ -61,8 +61,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,.,,..,,..,,,,,,..,,..,,,.,,.,.,,,.,,,,,,.,,..,,...,...,...,,..,,.,,,.,,.,.,
-#ZSMOKA2U3E7NWL6LFPL2XDZWL3SZZTZZRGF2F2KRAPSNYZ7VZQAK73OZEXGFJ5XLEVR6L3LMLBVXO
-#\\\|XMVFAVL5R5XBHYAW7P2ZWNJA74TOHMS3QYZJU6QCUV5JTU267EO \ / AMOS7 \ YOURUM ::
-#\[7]6ZGYTBLVTCDSIERUHG2VXBIDZBQTGTWVA3QZQLE6VS64OVY6KEAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,.,..,,.,,,..,,,..,,.,,,..,..,,...,...,..,,.,.,,,.,.,.,.,.,
+#5HJOTXSID7M2OGQDXLDSMB32TM2LJWI7Z3UTHO7RGMYWF6YUEUY35GU22LZYSBD4JU2HXZ3NASRX6
+#\\\|LD3Z5PV6JOVGOBJNN5EUO5IH22QJQOFXAN6OOLBKAZM5H5VQ3JM \ / AMOS7 \ YOURUM ::
+#\[7]U7I4XNWYF6F4TF7HXXIO5Q6HHUCLG5MWNIUL5WCD532QYWGNL6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
