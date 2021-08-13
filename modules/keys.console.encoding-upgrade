@@ -1,0 +1,182 @@
+## >:] ##
+
+# name  = keys.console.encoding-upgrade
+# param = [key]
+# descr = upgrade user keys to latest encoding format
+
+my $name = shift;
+
+my @k_files = <[base.reverse-sort]>->(<[keys.get_keyfiles]>) or return;
+
+return say sprintf "\n  << no key named %s exists >>\n", $name
+    if defined $name and not <[keys.key_exists]>->($name);
+
+@k_files = grep { !m|\.upgraded\.| } @k_files;
+
+@k_files = grep {m|/\Q$name\E\.[^/]+$|} @k_files
+    if defined $name;
+
+my @upgradable_key_files;
+foreach my $keyfile_abs_path (@k_files) {
+    ( my $filepath_rel = $keyfile_abs_path ) =~ s|^.*/||;
+    if ( -z $keyfile_abs_path ) {
+        say '';
+        <[base.logs]>->( 0, ': keyfile empty : %s', $filepath_rel );
+        say '';
+        next;
+    } elsif ( not -r $keyfile_abs_path ) {
+        <[base.logs]>
+            ->( 0, ': no read perms on key : %s', $keyfile_abs_path );
+        next;
+    }
+    my $key_len = File::stat::stat($keyfile_abs_path)->size;
+    if ( not exists <crypt.C25519.keys.sizetype>->{$key_len} ) {
+        say '';
+        <[base.logs]>->(
+            0,             "key length of '%s' not valid [ %04d BYTES ]",
+            $filepath_rel, $key_len
+        );
+        say '';
+        next;
+    }
+    my $key_status = <crypt.C25519.keys.sizetype>->{$key_len};
+    if ( $key_status->{'old-form'} == FALSE ) {
+        <[base.logs]>->( ": already latest version : %s =)", $filepath_rel );
+    } else {
+        push @upgradable_key_files, $keyfile_abs_path;
+    }
+}
+
+if ( not @upgradable_key_files ) {
+    if ( defined $name ) {
+        return say sprintf "\n  << key %s is already latest version >>\n",
+            $name;
+    } else {
+        return say "\n  <<  no upgradable keys found  >>\n";
+    }
+}
+
+my $upgraded_count = 0;
+foreach my $keyfile_abs_path (@upgradable_key_files) {
+    ( my $filepath_rel = $keyfile_abs_path ) =~ s|^.*/||;
+    my $name       = <[crypt.C25519.get_keyname]>->($filepath_rel);
+    my $keystr_ref = <[file.slurp]>->($keyfile_abs_path);
+    next if ref $keystr_ref ne qw| SCALAR |;
+    my $key_len = length( $keystr_ref->$* );
+    if ( not exists <crypt.C25519.keys.sizetype>->{$key_len} ) {
+        <[base.logs]>->(
+            0,             "key file '%s' format not recognized [len=%d]",
+            $filepath_rel, $key_len
+        );
+        next;
+    }
+    my $key_status = <crypt.C25519.keys.sizetype>->{$key_len};
+    chomp( $keystr_ref->$* );
+
+    my $is_encrypted
+        = $key_status->{'encrypted'} == UNKNOWN
+        ? <[crypt.C25519.encrypted_key]>->($keyfile_abs_path)
+        : $key_status->{'encrypted'};
+
+    if ( $is_encrypted == UNKNOWN ) {
+        <[base.logs]>->(
+            0, ":: warning :: assuming encryption for '%s'",
+            $filepath_rel
+        );
+        <[base.log]>->( 0, " :         :: [ public key is missing ]" );
+        <[base.log]>->(
+            0, "            :, use 'downgrade-enc-status' to change status"
+        );
+        $is_encrypted = TRUE;
+    }
+    my $key_bin = decode_b32r( $keystr_ref->$* );
+    my $bin_len = length( $key_bin // '' );
+    if ( not exists <crypt.C25519.keys.sizetype>->{$bin_len} ) {
+        <[base.logs]>->(
+            0,             "key-file '%s' base32 decoding error [len:%d]",
+            $filepath_rel, length( $key_bin // '' )
+        );
+        next;
+    }
+
+    ## upgrading format ##
+    ##
+    if ( <crypt.C25519.keys.sizetype>->{$bin_len}->{'type'} eq qw| private |
+        and <crypt.C25519.keys.sizetype>->{$bin_len}->{'prefixed'} == FALSE )
+    {
+        $key_bin
+            = $is_encrypted
+            ? sprintf qw| .:%s |, $key_bin
+            : sprintf qw| U:%s |, $key_bin;
+    }
+
+    ## adding linefeed [ now for all key types ]
+    ##
+    my $encoded_keystr      = sprintf "%s\n", encode_b32r($key_bin);
+    my $encoded_content_len = length( $encoded_keystr // '' );
+
+    if ( not exists <crypt.C25519.keys.sizetype>->{$encoded_content_len} ) {
+        <[base.logs]>->(
+            0,             "key-file '%s' base32 encoding error [len:%d]",
+            $filepath_rel, $encoded_content_len
+        );
+        next;
+    } elsif (
+        <crypt.C25519.keys.sizetype>->{$encoded_content_len}->{'old-form'} ) {
+        <[base.logs]>->(
+            0,             "key-file '%s' upgrade error [len=%d]",
+            $filepath_rel, $encoded_content_len
+        );
+        next;
+    }
+
+    my $upgraded_filename = sprintf qw| %s.upgraded |, $keyfile_abs_path;
+    $upgraded_filename .= sprintf qw| .%s |, <[base.ntime.b32]>->(5)
+        if -e $upgraded_filename;
+
+    ##  writing upgraded key file  ##
+    ##
+    my $umask_copy = umask( 0777 & ~0600 );
+    <[file.put_bin]>->( $upgraded_filename, $encoded_keystr )
+        if not -e $upgraded_filename;
+    umask($umask_copy);
+
+    if ( not -f $upgraded_filename
+        or -f $upgraded_filename
+        and File::stat::stat($upgraded_filename)->size
+        != $encoded_content_len ) {
+        <[base.logs]>->(
+            0,
+            "key file '%s' write error [%s], skipped upgrade .,",
+            $upgraded_filename,
+            -f $upgraded_filename ? 'size not valid' : <[base.str.os_err]>
+        );
+        unlink($upgraded_filename) if -f $upgraded_filename;
+        next;
+    } elsif ( -f $upgraded_filename and -r $upgraded_filename ) {
+        if ( not rename( $upgraded_filename, $keyfile_abs_path ) ) {
+            <[base.logs]>->(
+                0, "key file '%s' rename error [%s], skipped upgrade .,",
+                $upgraded_filename, <[base.str.os_err]>
+            );
+            unlink($upgraded_filename) if -f $upgraded_filename;
+            next;
+        } else {
+            <[base.logs]>->(
+                1, ": upgraded key file '%s' : =)",
+                $filepath_rel
+            );
+            $upgraded_count++;
+        }
+    }
+}
+
+return say sprintf "\n  :: successfully upgraded %d key file%s ::\n",
+    $upgraded_count, <[base.cnt_s]>->($upgraded_count)
+    if $upgraded_count > 0;
+
+#,,.,,,..,,..,,,,,..,,,,.,..,,.,.,,,,,,..,...,..,,...,...,.,.,..,,,,,,.,,,.,,,
+#MAW4CPU6AAM7AXL52NNDSZFU7C3Z4OEU23TBBB2PYSM5XEHFHUXDCET2LQVI3MQXUSI6KWRXMVT3M
+#\\\|5M246VU6EPN544BKON4NIZORPQNHTFLTBESTA4FEHQUSF3RFTGI \ / AMOS7 \ YOURUM ::
+#\[7]RQPO43P65HXEYSPXHTQPXZRM5LYRPP752KEW2HTYER3FMRRR64BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
