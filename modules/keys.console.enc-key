@@ -16,7 +16,7 @@ if ( $key_status < 0 ) {
         $err_reason_str = sprintf "only public key named '%s' found",
             $key_name;
     } elsif ( $key_status == -2 ) {
-        $err_reason_str = sprintf 'no key named %s exists', $key_name;
+        $err_reason_str = sprintf 'user-key %s not found', $key_name;
     } elsif ( $key_status == -3 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
@@ -69,8 +69,8 @@ goto ABORT_KEY_ENCRYPT
 
 my $backup_file_names;
 ANOTHER_FILE_TIMESTAMP:
-my $tstamp = <[base.ntime.b32]>->( 5, 5 ) // '';
-<[base.exit]>->( qw| 0110 |, 'cannot aqcuire timestamp' )
+my $tstamp = <[base.ntime.b32]>->( 5, TRUE ) // '';
+<[base.exit]>->( qw| 0110 |, 'cannot acquire timestamp' )
     if not length $tstamp;
 foreach my $type (qw|  private  public  |) {
     if (   not defined $key_filenames->{$type}
@@ -160,8 +160,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_ENCRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,.,,,.,,..,,,..,.,,,.,,,,..,,.,,,..,..,,,.,,.,.,...,...,,,.,...,.,,,,.,,...,
-#AWVULYCSZ4VTXYHM5LXF36SNVA4HYSQ6OU2OZJEYIFLJLNUMKVPDWRLZMUBAJM6JYLEIMB2SCH4VK
-#\\\|EUEGGR7N6TTDIKE7YCVFAYD4QLAZ3OFEZWACZHRY7NUOZVBESFP \ / AMOS7 \ YOURUM ::
-#\[7]5PTTIE2D5KV2ZGSQN6AN37CWY7USWR2LJZ47OBNG6FPBQMECXIBA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,..,.,,,.,,,.,,,..,,..,,.,,,.,.,...,...,..,,,,,,,,.,.,.,...,
+#EX4CHA52RR424BX7EVBAPOQLGRK4POFBFH5LA5K7EUC4PHRSCNDJNWM3M3HBY5EY7QJUKITC4ASL4
+#\\\|7RK6K333Y46XMLKUJLU7HNK35KRV5SN6QGIH2IE4OFUU756YBYG \ / AMOS7 \ YOURUM ::
+#\[7]HPCY4MF3CGGNYTOOYD3BVADOB2HCD75A4WN2VXC3BVTNNUMQQQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
