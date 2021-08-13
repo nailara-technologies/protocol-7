@@ -1,0 +1,86 @@
+## >:] ##
+
+# name  = keys.console.gen-pwd-keyfile
+# param = <name>
+# descr = generate key files from passphrase entropy
+
+my $name = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+
+if ( <[keys.key_exists]>->($name) ) {
+    <[base.logs]>->( 0, "key named '%s' already exists", $name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+<[base.logs]>->( 0, ' << %s is not a valid key name >>', $name )
+    and <[base.exit]>->('0110')
+    if $name !~ <keys.regex.key_name>;
+
+if ( not defined &Crypt::Twofish2::MODE_CBC ) {
+    <[base.log]>->( 0, ":, missing 'Crypt::Twofish2' module, aborted ..," );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $key_password = AMOS7::TERM::read_password_repeated(
+    'C25119 key encryption passphrase',
+    sprintf( "create C25519 key '%s'", $name )
+);
+
+my $key_seed_entropy
+    = AMOS7::TERM::read_password_repeated('generation entropy passphrase');
+
+if ( not defined $key_password or length $key_password <= 1 ) {
+    <[base.log]>->( 0, 'cannot create encrypted key without password' );
+    say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
+        if not <system.verbosity.console>;
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not defined $key_seed_entropy or length $key_seed_entropy <= 1 ) {
+    <[base.log]>->(
+        0, 'cannot generate the key without seed entropy passphrase'
+    );
+    say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
+        if not <system.verbosity.console>;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+print "\n::\n";
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+
+my $u_str
+    = index( $name, $key_usr, 0 ) == 0
+    ? ' files'
+    : sprintf( " for '%s'", $key_usr );
+
+my $success = FALSE;
+say sprintf " : << generating '%s' key%s >>", $name, $u_str;
+
+##  generate keypair from user seed entropy  ##
+##
+if ( not <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy ) ) {
+    <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
+}
+
+( my $keywrite_status, my @key_chk_sums )
+    = <[crypt.C25519.write_keys]>->( $name, $key_password );
+
+$success = TRUE    ## true ##
+    if defined $keywrite_status and $keywrite_status == TRUE;
+
+printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
+    $name, join( qw| : |, @key_chk_sums ), $key_dir )
+    and return TRUE    ## true ##
+    if $success;
+
+print " :\n :: [ no keys created ]\n\n";
+<[base.exit]>->('0110');
+
+#,,,.,.,,,,,,,,..,...,..,,,..,...,.,.,,,.,,,,,..,,...,...,..,,.,.,,.,,...,...,
+#5Y2KR27UAQCE2MFBKLBB36TVSINHCN5B3OGBUIEBFCYPXSRJ6O3IA47PC7HW2P37OJVAML6I7PGSM
+#\\\|SJ3FMM2I7DIPM5DOFXBN4ZEDMOQW4R3W2WMFRISHTN3O7ZGT62O \ / AMOS7 \ YOURUM ::
+#\[7]YPJGFSHUIHQHW3MKRRFZROTLWXIERNVGPBQGGW5TCXHOK6I5ACBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
