@@ -4,71 +4,75 @@
 # param = <key> <dest>
 # descr = copy [clone] a key to specified name
 
-( my $src_key, my $target_name ) = split( m|\s+|, shift // '', 2 );
+( my $cp_from, my $cp_to ) = split m| +|, shift // '', 2;
 
-return print "\n  << expected source and target key name parameters >>\n\n"
-    if not defined $src_key or not defined $target_name;
+return print "\n  << expected <from> and <to> parameters >>\n\n"
+    if not defined $cp_from or not defined $cp_to;
 return print "\n  <<  target key name contains not valid characters  >>\n\n"
-    if $target_name !~ m|^[\w\.\-\_]+$|;
+    if $cp_to !~ m|^[\w\.\-\_]+$|;
 return print "\n  <<  specified keys identical  >>\n\n"
-    if $src_key eq $target_name;
-return printf "\n  <<  source key '%s' not found  >>\n\n", $src_key
-    if not <[keys.key_exists]>->($src_key);
-return printf( "\n  <<  destination key '%s' already exists  >>\n\n",
-    $target_name )
-    if <[keys.key_exists]>->($target_name);
+    if $cp_from eq $cp_to;
+return say sprintf "\n  << src key %s not found >>\n", $cp_from
+    if not <[keys.key_exists]>->($cp_from);
+return say sprintf "\n  << dst key name '%s' exists already >>\n", $cp_to
+    if <[keys.key_exists]>->($cp_to);
 
-my $key_dir = <[crypt.C25519.key_vars]>->($src_key)->{'key_dir'};
+my $key_vars_from_ref   = <[crypt.C25519.key_vars]>->($cp_from);
+my $key_vars_to_key_ref = <[crypt.C25519.key_vars]>->($cp_to);
 
-if ( not -w $key_dir ) {
-    <[base.logs]>->( 0, ': have no write access : %s', $key_dir );
-    <[base.exit]>->( qw| 0110 |, ':,  no files copied.  ,:', 0 );
-}
+<[base.exit]>->( qw| 0110 |, 'key dir not writable to', 0 )
+    if not -w $key_vars_to_key_ref->{'key_dir'};
 
-my $src_filenames = <[crypt.C25519.key_vars]>->($src_key)->{'key_filename'};
-my $dst_fnames = <[crypt.C25519.key_vars]>->($target_name)->{'key_filename'};
-
-foreach my $type (qw|  private  public  |) {
-    next if not -e $src_filenames->{$type};
-    if ( not -r $src_filenames->{$type} ) {
-        <[base.logs]>->(
-            0,
-            ': have no read access : %s',
-            $src_filenames->{$type}
-        );
+foreach my $type ( <[base.sort]>->( $key_vars_from_ref->{'key_filename'} ) ) {
+    my $src_file_abs = $key_vars_from_ref->{'key_filename'}->{$type};
+    my $dst_file_abs = $key_vars_to_key_ref->{'key_filename'}->{$type};
+    <[base.exit]>->(
+        qw| 0110 |, sprintf( 'not defined %s key filename', $type ), 0
+    ) if not defined $src_file_abs;
+    next if not -e $src_file_abs;
+    if ( not -r $src_file_abs ) {
+        <[base.logs]>->( 0, ': have no read access : %s', $src_file_abs );
         <[base.exit]>->( qw| 0110 |, ':,  no files copied  ,:', 0 );
     }
+    <[base.exit]>->(
+        qw| 0110 |, sprintf( 'destination %s exists', $dst_file_abs ), 0
+    ) if -e $dst_file_abs;
 }
 
-my $copy_count = 0;
-my $l_lvl      = 1;
-
-foreach my $type (qw|  private  public  |) {
-    next if not -e $src_filenames->{$type};
-
-    my $srcfile  = $src_filenames->{$type};
-    my $destfile = $dst_fnames->{$type};
-
-    <[base.logs]>->( $l_lvl + 1, ':' );
-    <[base.logs]>->( $l_lvl, ':' );
-    <[base.logs]>->( $l_lvl, ': copying : SRC : %s', $srcfile );
-    <[base.logs]>->( $l_lvl, ':' );
-    <[base.logs]>->( $l_lvl, ': copying : DST : %s', $destfile );
-    <[base.logs]>->( $l_lvl, ':' );
-    <[base.logs]>->( $l_lvl + 1, ':' );
-
-    if ( not cp( $srcfile, $destfile ) ) {
+my @dst_files_abs;
+<[base.log]>->( 1, ':' );
+foreach my $type ( <[base.sort]>->( $key_vars_from_ref->{'key_filename'} ) ) {
+    next if not -e $key_vars_from_ref->{'key_filename'}->{$type};
+    my $src_file_abs = $key_vars_from_ref->{'key_filename'}->{$type};
+    my $dst_file_abs = $key_vars_to_key_ref->{'key_filename'}->{$type};
+    ( my $srcfile_rel  = $src_file_abs ) =~ s|^.*/||;
+    ( my $dst_file_rel = $dst_file_abs ) =~ s|^.*/||;
+    <[base.logs]>->(
+        ": copying '%s' --> '%s' ..,",
+        $srcfile_rel, $dst_file_rel
+    );
+    push @dst_files_abs, $dst_file_abs;    ##  cp preserves file perms  ##
+    if (   not File::Copy::cp( $src_file_abs, $dst_file_abs )
+        or not -f $dst_file_abs
+        or File::stat::stat($src_file_abs)->size
+        != File::stat::stat($dst_file_abs)->size ) {
         <[base.logs]>->(
-            0, ': %s : while copying : %s --> %s',
-            <[base.str.os_err]>, $srcfile, $destfile
+            0,             ': file copy failed : %s [ %s ]',
+            $dst_file_abs, <[base.str.os_err]>
         );
-        <[base.exit]>->( qw| 0110 |, ':. copying aborted ..,', 0 );
-    } else {
-        $copy_count++;
+        ## removing destination on error ##
+        while ( my $unlink_dstfile = shift @dst_files_abs ) {
+            unlink($unlink_dstfile) if -f $unlink_dstfile;
+        }
+        last;
     }
 }
+<[base.log]>->( 1, ':' );
+<[base.log]>->( 1, ':,' );
 
-if ( $copy_count == 0 or not <[keys.key_exists]>->($target_name) ) {
+my $copy_count = scalar @dst_files_abs;
+
+if ( $copy_count == 0 or not <[keys.key_exists]>->($cp_to) ) {
     <[base.exit]>->(
         qw| 0110 |, '<<  no files were copied with success  >>', 0
     );
@@ -79,8 +83,8 @@ say sprintf( "\n  ::  successfully copied %d file%s  ::\n",
 
 <[base.exit]>;
 
-#,,..,..,,,,,,.,,,..,,...,,,,,...,,..,.,,,,,.,..,,...,...,.,.,,,,,,..,..,,,,.,
-#F4WCBZGIWG4NN7YOAACUMZDQHYXPKTL2UCN7POUMQXUWOENJ23KOJOW7KMMP4VYW35BPJSSTQRJYI
-#\\\|HKAWVOEFOBXE5MCUOETJZHOGMWLEXMD2ZFMB7FDA234BVTIP3B7 \ / AMOS7 \ YOURUM ::
-#\[7]FOSFIMJTLQIAJT4BRKT4NQX43YQGJZZFXXXZ5MV3SF53JH3G3YCY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,,,,,.,.,.,,,.,.,...,...,.,.,..,,...,...,.,.,.,.,.,.,.,,,,,,,
+#TAUZE4Q3RMBXZVN52KTJVKUW4NIJU73DIHCYQWM3R3QVOD3K3M4L3WIDFQHXUR5AU2PYQE2TPRNQU
+#\\\|BII3HCHEXDXQILZ3ZEAD6IJ37D6KZUPMSXQILPVCYPWISHHPRC5 \ / AMOS7 \ YOURUM ::
+#\[7]WMO23ZVIUOS6MUQJ2776IDQT3L7QFLXIAYT3AOHL6BWGH7PDC6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
