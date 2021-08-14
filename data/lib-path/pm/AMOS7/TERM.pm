@@ -15,7 +15,7 @@ use constant FALSE => 0;    ##  false  ##
 use AMOS7;
 
 use Event;
-use Term::ReadKey;
+use Module::Load;
 use Time::HiRes qw| sleep |;
 use Crypt::PRNG::Fortuna qw| rand |;
 
@@ -29,8 +29,12 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
-our $pwd_min_len      //= 13;
-our $pwd_read_aborted //= 0;
+our $term_read_key_support //= FALSE;
+our $pwd_min_len           //= 13;
+our $pwd_read_aborted      //= 0;
+
+autoload('Term::ReadKey');
+$term_read_key_support = TRUE if defined &Term::ReadKey::ReadMode;
 
 ##[ TERMINAL [ TTY ] ]########################################################
 
@@ -154,13 +158,41 @@ sub read_password_single {
 
     terminal_title($term_title) if length $term_title;
 
+    if ( not $term_read_key_support ) {    ##  temporary  ##  [LLL]
+        say sprintf "\n %s::%s%s%s %s %s%s::%s\n", $C{'0'}, $C{'b'}, $C{'B'},
+            $C{'o'},
+            'no readkey support [ no * echoes ]',
+            $C{'R'}, $C{'0'}, $C{'R'};
+    }
+
     printf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'}, $C{'0'}, $C{'T'}, $C{'B'},
         $message_prompt,
         $C{'R'}, $C{'0'}, $C{'T'};
 
-    ReadMode 4;
-
     my $read_pwd;
+
+    eval 'Term::ReadKey::ReadMode(4)' if $term_read_key_support;
+
+    if ( not $term_read_key_support ) {    ##  temporary  ##  [LLL]
+
+        autoload 'Term::ReadPassword';
+        $read_pwd = Term::ReadPassword::read_password( '', 13, TRUE );
+
+        if ( not length( $read_pwd // '' ) ) {
+
+            if ( defined $main::PROTOCOL_SEVEN ) {
+                printf "%s:\n", $C{'0'};
+                $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
+                printf "%s:\n", $C{'0'};
+            } else {
+                error_exit(' [ password read aborted ]');
+            }
+            return ( undef, $password_status ) if wantarray;
+            return undef;
+
+        }
+        return $read_pwd;
+    }
 
     my $key  = '';
     my $code = 0;
@@ -169,17 +201,30 @@ sub read_password_single {
         or $code ) {
         $code = 0;
         my $read_timeout = 13 + 0.7 * length( $read_pwd // '' );
-        $key  = read_single_key_press($read_timeout);
+
+        $key  = read_single_pwd_key($read_timeout);
         $code = ord($key) if defined $key;
 
-        $code = 0 if defined $read_pwd and $read_pwd =~ s|^\*+$||;
+        $code = 10 if $code == 13;    ##  linefeed \ carriage return  ##
 
-        $code = 10 if $code == 13;
+        last if $code == 0 or $code == 24;    ## [CANCEL] [ read timeout ] ##
 
-        last if $code == 0 or $code == 255 or $code == 27;
+        ## CTRL+U [NAK] [erase read] ##
+        ##
+        if ( $code == 21 and length $read_pwd ) {
+            ##  erase characters read so far  ##
+            my $rewind_delay = 0.007;
+            while (@rnd_count) {
+                for ( 1 .. pop @rnd_count ) {
+                    print "\b \b";
+                    sleep( $rewind_delay *= 1.042 );
+                    Event::loop(0.07);
+                }
+            }
+            $read_pwd = '';    ##  reset password entered  ##
 
-        if ( $code == 10 and length $read_pwd ) {    ##  read complete  ##
-            ReadMode 0;
+        } elsif ( $code == 10 and length $read_pwd ) {   ##  read complete  ##
+            eval 'Term::ReadKey::ReadMode(0)' if $term_read_key_support;
             say sprintf "\n%s:%s", $C{'0'}, $C{'R'};
             return ( $read_pwd, $password_status ) if wantarray;
 
@@ -187,8 +232,8 @@ sub read_password_single {
 
             return $read_pwd;    ## return entered password ##
 
-        } elsif ( $code == 127 ) {    ##  backspace  ##
-            my $pwd_len = length($read_pwd);
+        } elsif ( $code == 8 ) {    ##  backspace  ##
+            my $pwd_len = length $read_pwd;
             if ($pwd_len) {
                 substr( $read_pwd, $pwd_len - 1, 1, qw| * | );
                 substr( $read_pwd, $pwd_len - 1, 1, '' );
@@ -199,10 +244,8 @@ sub read_password_single {
                     }
                 }
             }
-        } elsif ( defined $key
-            and $code != 10
-            and $code != 255
-            and $code != 27 ) {    ## adding one key to the password ##
+            ## adding one key to the password ##
+        } elsif ( defined $key and $code != 10 and $code != 24 ) {
 
             $read_pwd .= $key;
             $password_status = 0;    ##  resetting pwd status  ##
@@ -223,9 +266,9 @@ sub read_password_single {
         }
     }
 
-    ReadMode 0;
+    eval 'Term::ReadKey::ReadMode(0)' if $term_read_key_support;
 
-    if ( $code == 255 ) {    ##[  input timeout  ]##
+    if ( $code == 24 ) {    ##[  input timeout  ]##
 
         $password_status = 1;
 
@@ -300,9 +343,38 @@ sub terminal_title {
     return TRUE;    ## true ##
 }
 
+sub read_single_pwd_key {
+
+    ( my $key, my $key_sequence ) = read_single_key_press(shift);
+
+    $key //= chr(24);    ##  undef is read timeout [ make 24 [CANCEL] ]  ##
+
+    my $code = ord $key;
+
+    ## [ DEL:backspace ]
+    ##
+    if ( $key_sequence eq qw| 27:91:51:126 | ) {    ##[  DEL sequence  ]##
+        $key = chr(8);                              ##  make backspace  ##
+
+    } elsif ( $code == 127 ) {    ## DEL [ or backspace ] ##
+        $key = chr(8);            ##  make backspace  ##
+    }
+
+    ## ctrl C \ escape ##
+    ##
+    $key = undef         ##  read aborted  ##
+        if $code == 3    ## CTRL-C ##
+        or $code == 4    ## CTRL-D ##
+        or $code == 27 and index( $key_sequence, qw| : | ) == -1;
+
+    return $key;         ##  return modified key for password reading  ##
+}
+
 sub read_single_key_press {
 
     my $read_timeout = shift;
+
+    my @keycode_sequence;
 
     my $key;
     if ( $read_timeout == 0 ) {
@@ -321,28 +393,40 @@ sub read_single_key_press {
             last if defined $key;
             Event::loop(0.007);
         }
-        $key //= chr(255);
     }
 
-    return '' if not defined $key;
+    if ( not defined $key ) {    ## [ read timeout ] ##
+        return ( undef, '' ) if wantarray;
+        return undef;
 
-    return $key if $key =~ m|[\r\n]|;
+    } elsif ( $key =~ m|[\r\n]| ) {    ##  [ Return \ Enter ]  ##
+        return ( $key, '' ) if wantarray;
+        return $key;
+    }
 
-    my $code = ord($key);
-
-    return undef if $code == 3 or $code == 27;
+    push @keycode_sequence, ord($key);
 
     while ( my $next_one = ReadKey(-1) ) {
+        push @keycode_sequence, ord($key);
         $key .= $next_one;
     }
 
+    my $key_sequence = join qw| : |, @keycode_sequence;
+
+    $key_sequence = '' if index( $key_sequence, qw| 27:91 |, 0 ) != 0;
+
+    return ( $key, $key_sequence ) if wantarray;
     return $key;
+}
+
+sub alternate_readkey {    ##  adapt code from Term::ReadPassword  ## [ LLL ]
+
 }
 
 return TRUE ##################################################################
 
-#,,.,,,,.,,..,.,.,,,.,,,,,.,,,,.,,.,,,...,.,.,..,,...,...,,,.,,,.,.,.,,,.,..,,
-#2JTQOMZNP6DT2LUK6ZJRQ5MIHT2PWNIAAEQDZOCHHMKLUFJFGFYGBBKOM5FYKYYW5E7YQ4UCBSFCY
-#\\\|DNIV6BCGGVP27TB7TPZEXOFSM76GV53K4PW5TLHEZEYEPNB4R55 \ / AMOS7 \ YOURUM ::
-#\[7]MK6ZXRJCDZ7LKP3E6CGBHQDGKIIE7DYXIZV7ZFIUPA7OWSAGXABQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,..,,,.,,,..,.,,,...,,..,,.,,..,,...,...,...,,,,,,,.,.,,,,.,,
+#VAE5QSLOWMINHJAWAHXVBNE7W6SECNLRURCSUONKVA4E2ZLHQQD6FOIWFSA356WIKQCRBD5UVGFQS
+#\\\|VP5B4HZB7YHBJKSNIR5DQGWXLDY4P4YDLNSDAJUERG44XDG6ZLM \ / AMOS7 \ YOURUM ::
+#\[7]7N4IKS77S5SLVXHMJHR3WUSUXEIUSP3YL55O32A6YX544K5RRYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
