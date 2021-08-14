@@ -20,8 +20,8 @@ if ( exists $keys{'C25519'}{$name} ) {
 
 <[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $name );
 
-$secret_key = AMOS7::13::key_32( \$key_seed_passphrase )
-    if defined $key_seed_passphrase;
+$secret_key = AMOS7::13::key_32( \$key_seed_passphrase, \$name )
+    if defined $key_seed_passphrase;    ##  using entropy of key name  ##
 
 if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
     warn 'error while derriving secret key from passphrase <{C1}>';
@@ -64,7 +64,7 @@ while ( not $TRUE ) {
         my $altered_key_entropy   ##  regen secret key based on user input  ##
             = sprintf( qw| %s.:%s |, $key_seed_passphrase, $secret_key );
 
-        $secret_key = AMOS7::13::key_32( \$altered_key_entropy );
+        $secret_key = AMOS7::13::key_32( \$altered_key_entropy, $name );
     }
 }
 
@@ -79,8 +79,8 @@ $keys{'C25519'}{$name} = {
 
 return ( $keys{'C25519'}{$name}, $name );    ##[ success ]##
 
-#,,..,,,,,...,...,,,,,.,.,...,,.,,,,.,.,,,.,.,..,,...,...,.,.,,,,,,.,,,,,,,,,,
-#GSGSGFJRCXVVMC5DFT7TXMXPKD6I5VFBT25YNQWOZB4NNIQQ447WFNCRMBAVREDLY6KRDYVFIYNGY
-#\\\|7EARL3FI4QYQ32VQ6SSXQ6HM6QL2QTCMY7GDAODKQNZK4PWOELY \ / AMOS7 \ YOURUM ::
-#\[7]SOLZLLI5TO73UYJXIEN7MHKHOGP54GRULWVUMVOQFK5UJJMQSECA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,,,.,,,.,.,,..,,..,,,.,..,,,..,..,,...,...,...,.,,,...,,,.,,.,,
+#CFPYWTLX2XMNWYC6IYYPVTFCCT626KE5XUWIL47CVGWR5IVEFMLU7DNVP44KICQLRCZBN4LWAZC2Y
+#\\\|TVI654K7GLIZIBSH4VGG4HZDSQFLXGGFC6Q2GIM3ABLQ4XGWVLG \ / AMOS7 \ YOURUM ::
+#\[7]4DJICW4XSOMSO57T7LIHTHRLCPPVBZHNU3IVWS22LK45ICG4GSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

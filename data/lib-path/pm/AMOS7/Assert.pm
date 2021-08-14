@@ -21,13 +21,16 @@ use vars qw| $VERSION @EXPORT |;
 ##[ is_number ASSERTIONS ]####################################################
 
 sub is_number {
-    return ( not defined $ARG[0] or $ARG[0] !~ m{^\d+(\.\d+)?$} )
+    return ( not defined $ARG[0] or $ARG[0] !~ m{^\d+(\.\d+)?(e\+\d+)?$} )
         ? FALSE
         : TRUE;
 }
 
 sub numerical_no_0_prefix {
-    return ( not defined $ARG[0] or $ARG[0] !~ m{^(0+|[1-9]\d*)(\.\d+)?$} )
+    return (
+        not defined $ARG[0]
+            or $ARG[0] !~ m{^(0+|[1-9]\d*)(\.\d+)?(e\+\d+)?$}
+        )
         ? FALSE
         : TRUE;
 }
@@ -42,8 +45,8 @@ sub zulum_prefix_length {
 
 return TRUE ##################################################################
 
-#,,,,,...,.,,,,,,,,,.,,.,,,,,,...,..,,...,.,,,..,,...,...,..,,,,.,,.,,,..,,..,
-#MMUR7DLIJSNSSHYXJWNW4SQEIH3EAMSZYG2Q5KUEQP7VTRHPK4UHQ2YLIN5QZ2TJBBRYR2TJHL4K4
-#\\\|LFQBLZTONS6PCRKGXCHZPJ5KHIG53QZTE64RXSFDTIJ4NMWRC6X \ / AMOS7 \ YOURUM ::
-#\[7]FAZAFGUUIPLRB7WZB55O6NRWGCEP3A3TUEQOOKFE7MLUK3YAO2CA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,,..,...,,.,,,.,,,.,,.,,,,.,,..,,...,...,..,,...,.,,,,.,,...,
+#4LMA6E2Q72U4SRBSOE7P7TQCFVUDKSDB4SQSQHS4MZVARANXNXIA3S2XUOEHXFHYXC4Z7FSJICNGA
+#\\\|ZQBGCXPN2UGIQAUC5I6KA37A3EWI2DDETJSXZNWMEVMLUKDKQPV \ / AMOS7 \ YOURUM ::
+#\[7]OL6KSDZQUZ6T3OHHC6PEIPMRG2EUIHEQIV7ITNP5CTVW23LFEEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
