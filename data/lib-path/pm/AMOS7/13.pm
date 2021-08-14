@@ -92,24 +92,170 @@ sub gen_entropy_string {
     ##
     my $entropy_block      = '';
     my $entropy_block_size = shift // '';   ##  size parameter is required  ##
+    my $seed_data_sref = shift;       ##  optional scalar ref to seed data  ##
+    my $add_iterations = shift // 0;  ##  optional round increase ##
 
     if ( $entropy_block_size !~ m|^\d+$| or $entropy_block_size == 0 ) {
-        warn 'expected entropy length parameter <{C1}>';
+        warn_err('expected entropy length parameter <{C1}>');
+        return undef;
+    } elsif ( defined $seed_data_sref
+        and ref $seed_data_sref ne qw| SCALAR | ) {
+        warn_err('seed param not a scalar reference <{C1}>');
+        return undef;
+    } elsif ( $add_iterations !~ m|^\d+$| ) {
+        warn_err( 'additional iterations parameter '
+                . 'needs to be positive integer <{C1}>' );
         return undef;
     }
     ##  calc ammount of required numbers  ##
     my $requested_value_count = sprintf qw| %u |, $entropy_block_size / 2.6;
 
+    $requested_value_count += $add_iterations if $add_iterations > 0;
+
     ##  using filter subroutine to convert numbers to binary string  ##
-    my $result = AMOS7::13::gen_entropy_values( undef, $requested_value_count,
-        \$entropy_block, \&entropy_string_filter, TRUE, TRUE );
+    AMOS7::13::gen_entropy_values( $seed_data_sref,
+        $requested_value_count, \$entropy_block, \&entropy_string_filter,
+        TRUE, TRUE );
 
     ## truncate overflow ##
-    substr( $entropy_block, $entropy_block_size,
-        length($entropy_block) - $entropy_block_size, '' )
-        if length $entropy_block > $entropy_block_size;
+    my $block_overflow_size = length($entropy_block) - $entropy_block_size;
+    if ( $block_overflow_size > 0 ) {
+        if ( $add_iterations == 0 ) {
+            ## regular mode [ truncates block end ] ##
+            substr $entropy_block, $entropy_block_size, $block_overflow_size,
+                '';
+        } else {    ##  additional iterations mode [ truncate from start ]  ##
+            substr $entropy_block, 0, $block_overflow_size, '';
+        }
+    }
 
-    return \$entropy_block;
+    return \$entropy_block;    ##  return entropy of requested size  ##
+}
+
+##  return ranged numerical float or integer value from input seed data  ##
+##
+sub seed_iteration_val {
+    my $seed_data_sref = shift;    ##  scalar ref to seed data  ##
+    my $range_start    = shift;    ## numerical value range start ##
+    my $range_limit    = shift;    ## numerical upper value range limit ##
+
+    if ( ref $seed_data_sref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref to seed data <{C1}>');
+        return undef;
+    } elsif ( not defined $seed_data_sref->$* ) {
+        warn_err('seed data is undef <{C1}>');
+        return undef;
+    } elsif ( not defined $range_start or $range_start !~ m|^\d+$| ) {
+        warn_err('expected numerical range start param <{C1}>');
+        return undef;
+    } elsif ( not defined $range_limit
+        or $range_limit !~ m|^\d+$|
+        or $range_limit == 0 ) {
+        warn_err('expected numerical range limit param <{C1}>');
+        return undef;
+    } elsif ( $range_start >= $range_limit ) {
+        warn_err('range start must be lower than range limit param <{C1}>');
+        return undef;
+    } elsif ( length $seed_data_sref->$* < $min_seed_data_len ) {
+        ## seed asc 127 padding ##
+        $seed_data_sref = \sprintf qw| %s%s |, $seed_data_sref->$*,
+            chr(127) x ( $min_seed_data_len - length $seed_data_sref->$* );
+    }
+
+    my $result_aref = [];   ##  numerical seed for actual iterations value  ##
+    if (not AMOS7::13::gen_entropy_values(
+            $seed_data_sref, 13, $result_aref, undef, TRUE, TRUE
+        )
+    ) {
+        warn_err('error while calculating seed iterations value <{C1}>');
+        return undef;
+    }
+    my $iteration_count = 0;
+    while ( my $result_number = shift $result_aref->@* ) {
+        $iteration_count += $result_number;
+        $iteration_count = divide_13($iteration_count);
+    }
+    while ( $iteration_count > 63 or $iteration_count < 13 ) {
+        $iteration_count += 13;
+        $iteration_count /= 13 if $iteration_count > 63;
+    }
+    $iteration_count = sprintf qw| %u |, $iteration_count;
+
+    ##  generate seed data for final result value  ##
+    ##
+    if (not AMOS7::13::gen_entropy_values(
+            $seed_data_sref, $iteration_count,
+            $result_aref,    undef,
+            TRUE,            TRUE
+        )
+    ) {
+        warn_err('error while calculating requested result value <{C1}>');
+        return undef;
+    } else {
+        undef $iteration_count;    ## done. ##
+    }
+
+    my $delta_count_threshold  = 13;    ##  range limit crossings  ##
+    my $ranged_int_result      = 0;     ##  initializing result value  ##
+    my $int_range_delta        = $range_limit - $range_start;
+    my $range_delta_count      = 0;
+    my $range_center_threshold = $range_start + $int_range_delta / 2;
+
+    while ($range_delta_count < $delta_count_threshold
+        or $ranged_int_result > $range_limit
+        or $ranged_int_result < $range_start ) {
+        foreach my $result_number ( $result_aref->@* ) {
+
+            $ranged_int_result += $result_number;    ##[  add entropy val  ]##
+            $ranged_int_result *= 1.42;    ##[  accelerate value increase  ]##
+
+            ## bring value back in range ##
+            if ( $ranged_int_result > $range_limit ) {
+                ( my $value_remainder = $ranged_int_result ) =~ s|\d+.|0.|;
+                $ranged_int_result %= $range_limit;
+                $ranged_int_result += $value_remainder;
+                $range_delta_count++;
+            }
+
+            ## truth assertion as harmonization \ additional entropy ##
+            ##
+            my $last_result_val = 0;
+            while (
+                $range_delta_count >= $delta_count_threshold
+                and (
+                    not AMOS7::Assert::Truth::true_int(
+                        sprintf( qw| %u |, $ranged_int_result )
+                    )
+                    or not AMOS7::Assert::Truth::calc_true($ranged_int_result)
+                )
+            ) {
+                if ( $ranged_int_result < $range_start ) {  ##[  addition  ]##
+                    $ranged_int_result += divide_13($ranged_int_result);
+                    ## bring value back in range ##
+                    ( my $value_remainder = $ranged_int_result )
+                        =~ s|\d+.|0.|;
+                    $ranged_int_result %= $range_limit;
+                    $ranged_int_result += $value_remainder;
+                    $range_delta_count++;
+
+                } elsif ( $ranged_int_result > $range_start ) {
+                    $ranged_int_result /= 13;    ##[  division by 13  ]##
+                }
+                last if $ranged_int_result == $last_result_val;
+                $last_result_val = $ranged_int_result;
+            }
+            last    ##  exit loop when value in range and min iterations  ##
+                if $range_delta_count > $delta_count_threshold
+                and $ranged_int_result <= $range_limit
+                and $ranged_int_result >= $range_start;
+        }
+    }
+
+    ##  return floating point result in list context  ##
+    return sprintf qw| %.13f |, $ranged_int_result if wantarray;
+
+    ##  return result value as integer  ##
+    return sprintf qw| %u |, $ranged_int_result;
 }
 
 sub entropy_string_filter {  ##  numerical input string of arbitary length  ##
@@ -413,7 +559,33 @@ sub gen_entropy_values {
 sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
 
     my $enc_key;
-    my $pass_sref = shift;    ##  scalar ref to password or phrase  ##
+    my $pass_sref    = shift;    ##  scalar ref to password or phrase  ##
+    my $keyname_seed = shift;    ##  optional name to influence iterations  ##
+    my $wants_true         = shift // TRUE;  ##  request harmonized values  ##
+    my $wants_true_B32_enc = shift // FALSE; ##  true BASE32 enc. values  ##
+
+    ##  when keyname seed is numerical, it will be used for increase ..,    ##
+    ##  when it is a scalar reference it will be calculated from its value  ##
+
+    my $seed_iteration_count;
+    if ( not defined $keyname_seed ) {
+        $seed_iteration_count = 113;   ## <-- increased by key_name entropy ##
+    } elsif ( ref $keyname_seed eq qw| SCALAR |
+        and defined $keyname_seed->$* ) {
+
+        $seed_iteration_count          ##  initializing with name entropy  ##
+            = AMOS7::13::seed_iteration_val( $keyname_seed, 113, 226 );
+
+    } elsif ( $keyname_seed =~ m|^\d+$| ) {    ##  adding to min value  ##
+        $seed_iteration_count = 113 + $keyname_seed;
+    } elsif ( ref $keyname_seed eq qw| SCALAR | ) {
+        warn_err('keyname seed reference pointing to undef value <{C1}>');
+        return undef;
+    } else {
+        warn_err( 'keyname seed must be numerical '
+                . '[iterations] or scalar ref <{C1}>' );
+        return undef;
+    }
 
     if ( ref $pass_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref param to passphrase <{C1}>');
@@ -428,8 +600,11 @@ sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
     my @quad_int;
     my @pwd_entropy_val;
 
-    my $key_status    ##  113 [ 32 bit ] numbers from password entropy  ##
-        = AMOS7::13::gen_entropy_values( $pass_sref, 113, \@pwd_entropy_val );
+RESEED_KEY_32:
+
+    my $key_status    ##  [>=]113 [ 32 bit ] numbers from password entropy  ##
+        = AMOS7::13::gen_entropy_values( $pass_sref, $seed_iteration_count,
+        \@pwd_entropy_val );
 
     if (   not defined $key_status
         or not $key_status
@@ -440,24 +615,46 @@ sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
 
     @pwd_entropy_val = sort @pwd_entropy_val;    ##  numerical sort  ##
 
+RECALCULATE_KEY_32:
+
     for ( 0 .. 3 ) {    ##  4 64 bit values required  ##
         my $qint = 0;
-        while ( @pwd_entropy_val and length $qint < 20 ) {
+        while ( @pwd_entropy_val > 2 and length $qint < 20 ) {
             $qint .= join '', reverse split '',
                 ##  sum of lowest and highest  ##
                 shift(@pwd_entropy_val) + pop(@pwd_entropy_val);
         }
         $qint =~ s|^0||;    ##  removing 0 prefix  ##
 
+        ##  entropy underrun [ ending iteration ]  ##
+        last if length($qint) < 19;
+
         push @quad_int, substr $qint, 0, 19;    ##  19 digits for Q int  ##
     }
 
+    ##  entropy  underrun  ##
+    ##
     if ( @quad_int != 4 ) {
-        warn_err('quad entropy underrun');
-        return undef;
+        @quad_int = ();    ##  resetting  ##
+        ##[  increasing iterations  ]##
+        $seed_iteration_count *= 2;
+        goto RESEED_KEY_32;    ## reseed ., ##
     }
 
-    return pack qw| Q* |, @quad_int;    ##  binary encryption key  ##
+    my $enc_bin = pack qw| Q* |, @quad_int;    ##  encode as 32 B binary  ##
+
+    if ($wants_true
+        and not AMOS7::Assert::Truth::is_true( $enc_bin, FALSE, TRUE )
+        or $wants_true_B32_enc and not AMOS7::Assert::Truth::is_true(
+            Crypt::Misc::encode_b32r($enc_bin),
+            FALSE, TRUE
+        )
+    ) {
+        @quad_int = ();    ##  resetting  ##
+        goto RECALCULATE_KEY_32;
+    }
+
+    return $enc_bin;       ##  binary encryption key  ##
 }
 
 ##[ BINARY OPERATIONS ]#######################################################
@@ -719,8 +916,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,,.,.,.,,,,,...,.,,,,.,,.,,,.,.,.,.,..,,,,,,..,,...,...,.,.,,,,,,..,.,,,.,.,
-#6KS2BIBD6TLDBXC5S3UIUVOBUOFW5VCSH2ZAWMETD7FKWHPEXC7LPS247IX76WPEAWRJR77TDIEOG
-#\\\|KASKMUIELR4GSHJO6W3PYGE5ZJFN52HDAUVMZJNWHICIOHWW3ZX \ / AMOS7 \ YOURUM ::
-#\[7]MZ654K6KAUTPAAF3QRWBKOUA6JJ4IOKDID4QBA6P3SCCN4VR4WBA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,..,,.,,,,.,,,.,,.,,,,..,,,.,..,,...,...,,..,...,...,,.,,...,
+#IDNJ4ZR53YGGETXT6LMZ7E2USE2M33KWDULCWCFRSJOEUULZLZB62Z2KFZH4GWMVBNVHGXCZEK6RW
+#\\\|OT7K2K4LAAMKWX3YK7WLQFP5K4YIHLFT5U5SHCI5FA45CWYLULF \ / AMOS7 \ YOURUM ::
+#\[7]UKNXTYDELU3LA43BTQ4G23IVWLERXUZPU3M6PAPFCQL24OKKW6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

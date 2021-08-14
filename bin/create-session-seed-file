@@ -28,6 +28,10 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;
@@ -50,11 +54,11 @@ error_exit( 'need entropy directory to continue [ %s ]', $entropy_files_dir )
 ##                                                                     ##
 #                                                                       #
 
-my $passphrase_mode   = 0;
+my $passphrase_mode   = FALSE;
 my $session_user_name = join( ' ', @ARGV ) // '';
 
 if ( $session_user_name =~ s|\s*\-P\s*|| ) {
-    $passphrase_mode = 5;    ## true ##
+    $passphrase_mode = TRUE;    ## true ##
 }
 
 error_exit('expected session username parameter')
@@ -88,7 +92,7 @@ if ( not defined $enc_pwd or length $enc_pwd < 13 ) {
     goto RENTER_PASSWD;
 }
 
-my $enc_key = AMOS7::13::key_32( \$enc_pwd );
+my $enc_key = AMOS7::13::key_32( \$enc_pwd, \$session_user_name );
 
 error_exit('key entropy derrivation was not successful')
     if length( $enc_key // '' ) != 32;
@@ -148,8 +152,8 @@ say sprintf "%s::%s%s done. [ %s ] %s\n", $C{'0'}, $C{'T'}, $C{'b'},
 ##                                                                     ##
 #########################################################################
 
-#,,,.,,,,,,,,,,,.,.,,,...,,,,,.,.,.,.,,.,,,,.,..,,...,...,...,,.,,..,,,..,,..,
-#GVV5BLTO4VVQYAN65BOKOQIEGMPFJ7JK233NQJTZ5XQRZQQ57CEIOROBJUSH3KPKWG3KEGARK2XTO
-#\\\|IWGB76T3GMYBNZPO7THAYE24XBR4FNP7DJIZLKRRSMILEEUJ7E4 \ / AMOS7 \ YOURUM ::
-#\[7]WJDXWB6QOCZKOMCETHH23CWCRT3RTZT3IY2BXIOJM7LZCDQYRGAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,...,.,,,,,,,,,.,,,,,,,.,,,.,..,,...,..,,,.,,.,,,..,,,..,...,
+#O53JZUVB7RL35W6B7YDKF3HVYSAXOGYV65NWVTXMDG3ENYGJLYFFEOPEFBKMV7L2HAKUJ4EPM4KWY
+#\\\|JQVRNO4DB66NNY6BY2JUXBIOTVPGGG62QGLXJ6CFPYKVOPYGFSX \ / AMOS7 \ YOURUM ::
+#\[7]JEQZ6VF7CGT2NKYU6NO2HFCMDFWUUJFAFJSKPLQCOR5CG6DZ7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
