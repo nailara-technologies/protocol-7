@@ -15,9 +15,9 @@ if ( @key_strings_binary == 0 ) {
 
 foreach my $key_bin (@key_strings_binary) {
     my $key_len = length $key_bin;
-    if ( $key_len != 32 and $key_len != 64 ) {
-        <[base.s_warn]>->(
-            'supplied key str len %d is not valid [32|64]', $key_len
+    if ( $key_len != 32 and $key_len != 64 and $key_len != 97 ) {
+        <[base.s_warn]>->(    ##  97 : virtual  ##
+            'supplied key str len %d is not valid [32|64|97]', $key_len
         );
         return undef;
     }
@@ -50,8 +50,8 @@ my $combined_key_amos
 
 return $combined_key_amos;
 
-#,,..,,,,,...,.,.,,,,,,..,,..,...,,..,,.,,...,..,,...,...,..,,..,,,,,,...,,..,
-#KBW4W7VANBYPSR4QTOUFSWSQ75CAIOLITIGDFEYNHQSYZPKQA6TX27WFUENYICVAJWQB5NAQSADX4
-#\\\|GQLHZVKP4OXMK4524S7GYZHCIIR3BDE76Y7YV3ITPSNX25WCKO4 \ / AMOS7 \ YOURUM ::
-#\[7]BYQCWWPI4MDVNFOZ47AC7D6PNUDK2WMQZ5AO3XRCPISKSXD3JMBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,..,,,,,,.,.,,,,,,..,,.,,,.,,..,,...,...,,.,,,,.,,.,,,,,,...,
+#3YYFSIU2IT37E2XJBYHEWLJBBGIIVO7YCXAYWA4LYTYWZIDWI6VTHOT3LOHBAJ274BKMXIT6GGEMO
+#\\\|I2WFMGHTULW6A6I2UWSBI3ZASUW6JLQBPJPD7LV3LAMPO2QNNC4 \ / AMOS7 \ YOURUM ::
+#\[7]JATL2H5D7ELFOB2WRE4UCSLIWXXFIGGKBBYBZVVYFUOHTNSE3CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

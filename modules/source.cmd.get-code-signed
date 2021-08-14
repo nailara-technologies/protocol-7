@@ -16,7 +16,7 @@ my $src_path = catfile( $code_dir, $code_name );
 
 return {
     'mode' => qw| false |,
-    'data' => 'requested code name is not valid'
+    'data' => sprintf( "requested code ['%s'] name is not valid", $code_name )
     }
     if not <[source.valid_src_name]>->($code_name);
 
@@ -155,8 +155,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,,,,...,.,,,...,...,,,.,...,.,,,,.,,.,,,,,.,..,,...,...,..,,.,.,,.,,,,.,,.,,
-#WGOTMY4NBJSE5VZDIGFUD4BGC7PNZZTYHMNCFMLLBM6ZNVHCBZ67RHADJ2666A7J7URU4NH6WYE24
-#\\\|55MHZSHQIGCPQNZKB5W4UYKXSJ6LV4T5DQZRMB3JDIR77PCD672 \ / AMOS7 \ YOURUM ::
-#\[7]K64HBZVSGXH3FBA575CTOXBLU35F623DAT5GKZRFAJHYXGJRQKAY 7  DATA SIGNATURE ::
+#,,..,.,.,...,..,,,,,,,..,.,.,...,,.,,..,,.,,,..,,...,...,,,.,,,,,,.,,,,,,,..,
+#CB3EHTKXHOVYU5ULKL3WJY5TVAEFB5H5ULJSMRZFTFVCKBKLFFGNLX7GN72RMCYDXLYTN5EHKOK4M
+#\\\|Q3SYJEUFV7AJ3QSFR7AJSL3LBARMEAHVBHVMK75EZDWBFPMMKJM \ / AMOS7 \ YOURUM ::
+#\[7]OU5VZTA4NLYPNYDIVAPAWPF6Y4W7M3D352NE5SPMAN3PDQQV2IBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

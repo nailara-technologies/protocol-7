@@ -18,8 +18,8 @@
 
 ## regex ##
 ##
-my @key_ext   = qw| secret  public |;
-my @key_types = qw| private public |;
+my @key_ext   = qw| \.secret  \.public  :seed-phrase  |;
+my @key_types = qw| private public |;                  # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
@@ -30,6 +30,7 @@ delete <crypt.C25519.regex>    ##  allow updates during reload  ##
 const <crypt.C25519.regex> => {
     qw| key_name | => qr|^$name_regex$|,
     qw| key_file | => {
+        qw| virtual | => qr|^($name_regex):seed\-phrase$|,
         map {
             my $type = $ARG;
             my $xt   = $type;
@@ -50,23 +51,27 @@ const <crypt.C25519.keys.sizetype> => {
     ##  binary [ not encoded ] public key  ##
     ##
     32 => {
-        qw| type |      => qw| public |,
-        qw| encoding |  => qw| bin |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => FALSE
+        qw| type |        => qw| public |,
+        qw| encoding |    => qw| bin |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
 
     ##  binary private keys  ##
     ##
     64 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| bin |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => UNKNOWN    ##  requires public key test signing  ##
+        qw| type |        => qw| private |,
+        qw| encoding |    => qw| bin |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => UNKNOWN, ##  requires public key test signing  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
     66 => {
         qw| type |     => qw| private |,
@@ -74,68 +79,95 @@ const <crypt.C25519.keys.sizetype> => {
         qw| prefixed | => TRUE,         ##  <-- remove prefix before using  ##
         qw| linefeed | => FALSE,
         qw| old-form | => FALSE,
-        qw| encrypted | => UNKNOWN,     ##  requires prefix match  ##
+        qw| encrypted |   => UNKNOWN,    ##  requires prefix match  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
 
     ##  encoded private keys  ##
     ##
     103 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => TRUE,
-        qw| encrypted | => UNKNOWN          ##  : probably : test required  ##
+        qw| type |        => qw| private |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => TRUE,
+        qw| encrypted |   => UNKNOWN,       ##  : probably : test required  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
     104 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => TRUE,
-        qw| encrypted | => FALSE
+        qw| type |        => qw| private |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => TRUE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
     106 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => TRUE,
-        qw| old-form |  => TRUE,
-        qw| linefeed |  => FALSE,
-        qw| encrypted | => UNKNOWN          ##  requires prefix match  ##
+        qw| type |        => qw| private |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => TRUE,
+        qw| old-form |    => TRUE,
+        qw| linefeed |    => FALSE,
+        qw| encrypted |   => UNKNOWN,         ##  requires prefix match  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
     107 => {
-        qw| type |      => qw| private |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => TRUE,
-        qw| linefeed |  => TRUE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => UNKNOWN          ##  requires prefix match  ##
+        qw| type |        => qw| private |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => TRUE,
+        qw| linefeed |    => TRUE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => UNKNOWN,         ##  requires prefix match  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
 
     ##  encoded public keys  ##
     ##
     52 => {
-        qw| type |      => qw| public |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => FALSE,
-        qw| old-form |  => TRUE,
-        qw| encrypted | => FALSE
+        qw| type |        => qw| public |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => TRUE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     },
     53 => {
-        qw| type |      => qw| public |,
-        qw| encoding |  => qw| b32 |,
-        qw| prefixed |  => FALSE,
-        qw| linefeed |  => TRUE,
-        qw| old-form |  => FALSE,
-        qw| encrypted | => FALSE
+        qw| type |        => qw| public |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => TRUE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
+    },
+
+    ##  virtual private keys [ stub-key file ]  ##
+    ##
+    97 => {
+        qw| type |        => qw| virtual |,
+        qw| encoding |    => qw| plain |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => TRUE,
+        qw| seed-phrase | => TRUE
     }
 };
 
 0;
 
-#,,..,,,.,,.,,.,,,,,.,..,,.,,,,..,.,,,,,.,,.,,..,,...,..,,,,,,.,,,,,.,...,.,,,
-#P3NVTP3YXYWO3FJPLRRKOO5S5OT727Y3HHZRSBY55WU3VGEXEEH4AHSZOLITDNTQILQG5TICGGQXA
-#\\\|E6ZJYA3JNKZZ6UGBPWOFWH5EWRMM7G6XXWS4NATENSMBKA2PXK7 \ / AMOS7 \ YOURUM ::
-#\[7]TKA7KQF4RPC2KOPBVCMO35H5FVRZGGIJC5YJI2X5DEVQEQ5UPSDI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,.,,,,.,,,..,,,.,,.,,,,,,,..,..,,...,...,...,,..,,..,,.,,.,.,
+#3PH7USN7VLLW4LBHPEAKKZVSBX4OSPWTOG42DAT7WQFBYVFUHRRCZZ2VE6SWJZVEDGOCPPHELD224
+#\\\|I7U66FPMW6WSWMDOVGZMTRK2OYAT2DICXQEJ5C64JSCZIOUNQVC \ / AMOS7 \ YOURUM ::
+#\[7]EKZOUUGHX5TCHSI6Y4TNIQVC6L6HNACPKQ242SUIBQILDAFF6CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

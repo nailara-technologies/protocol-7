@@ -23,17 +23,33 @@ if ( length($title_str) ) {
     );
 }
 
-return join( "\n",
-    '',
-    $title_bar,
-    ' :' . ' ' x $len_2 . ':',
-    ( map { sprintf ' : %-*s  :', $maxlen, $ARG } sort @lines ),
-    ' :' . ' ' x $len_2 . ':',
-    ' :' . '.' x $len_2 . ":\n",
-    '' );
+##[  todo : also adjust side padding ..,  ]##
+##
+my @term_size = grep {defined} ( AMOS7::TERM::terminal_size() );
+@term_size = ( 0, 25 ) if @term_size == 0;
+my $overflow_size = $term_size[1] - scalar @lines + 7;
 
-#,,,.,..,,...,,,,,...,,,.,,.,,.,,,...,..,,...,..,,...,...,...,,,,,,,,,,..,,,,,
-#O7M5XSNZA3CHV4HYS4ANEX73VCMPY7MHOQJHZCT3HERO2PSR47JNFJHV2IAAL2DWFWGB4RTWMJWUS
-#\\\|Q6JZEPEUCR36FKB7XZE57NQ45X263RDPDKZ7RPCX7XREIBIC5SF \ / AMOS7 \ YOURUM ::
-#\[7]BRPMHV2M4EP6HYLEK6FSQIHL7PQWT54DEIBPDLDOVI4GXH6O6MAY 7  DATA SIGNATURE ::
+my @line_feed_top    = ('');
+my @top_line         = ( ' :' . ' ' x $len_2 . ':' );
+my @bottom_line      = ( ' :' . ' ' x $len_2 . ':' );
+my @line_feed_bottom = ('');
+
+shift @bottom_line      if $overflow_size <= -1;
+shift @line_feed_top    if $overflow_size <= -2;
+shift @line_feed_bottom if $overflow_size <= -3;
+shift @top_line         if $overflow_size <= -4;
+
+return join "\n",
+    @line_feed_top,
+    $title_bar,
+    @top_line,
+    ( map { sprintf ' : %-*s  :', $maxlen, $ARG } sort @lines ),
+    @bottom_line,
+    ' :' . '.' x $len_2 . ":\n",
+    @line_feed_bottom;
+
+#,,.,,...,,,,,,..,.,.,,..,..,,,,,,.,.,...,,..,..,,...,...,,,,,...,.,,,,,,,...,
+#CAWDO6N3YBPC2S4Z4JQTNWS2AFLSRRIQGACYXIMRP7V65W7IXR4ASGOG3G33DLQDMOD6233LVMYN4
+#\\\|DWC3VJFAVGP6LI4KMLF4LK65SRUPPVTFW2M4BB2DDYXJZXTXK3H \ / AMOS7 \ YOURUM ::
+#\[7]II4MQ63RUC6MGAALGHAIHSCYISPM7WJQCJE2PYN6GXDZNISMICBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
