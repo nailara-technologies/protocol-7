@@ -25,7 +25,7 @@ my $shred_bin = <keys.bin_path.shred>;
 ## warns when absent ##
 my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
-my $match_re = qr|^(\Q$key_name_param\E\.$re_kfiles)$|;
+my $match_re = qr|^(\Q$key_name_param\E$re_kfiles)$|;
 
 my $key_found = FALSE;
 map {
@@ -64,8 +64,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,..,..,,,.,,,,.,...,,,,,,,,,...,..,,,,.,,,.,..,,...,...,.,,,...,.,.,,.,,.,.,
-#CYOESU3JLJSHUK66QG2P2PLUPCFPSORVQOAGOCP2ZL7X23NWUO3H62EH4ENWGZ5O5C7LKWBESXZWM
-#\\\|U4OVOUC55ZNZLAPFXFCGVKNNYUH2EGX4WXTILJ2NQSURK573UA4 \ / AMOS7 \ YOURUM ::
-#\[7]JKV3BMUU6YN746555HE4XNWLUDZDAQKKH6VWQX22MI377CZU5ABA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,...,.,.,,..,,,.,.,,,,,,,..,,..,,...,..,,,,,,.,.,,..,,.,,,,,,
+#QOGXGPOZIBS4RFM6IGB6JXFN7H4YGPQZ2JXLCJTRAEDLPQZVNMBLXKX5W2N73X4TXJEEMN3VCQE3O
+#\\\|ULYXMW6DBGTXR7OSZCXGF6CFBFDLDQKGK3OLJ2BLXU7SDDWXHVZ \ / AMOS7 \ YOURUM ::
+#\[7]JG22JIGJ3ENZV5J67L5SGF6OPZAQJ73RSKFDJXP7I4CNJQ6R6MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

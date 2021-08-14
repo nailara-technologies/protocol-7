@@ -13,9 +13,9 @@ $display_checksums = FALSE if defined $param and $param eq qw| nochecksums |;
 
 my %C            = %AMOS7::C;
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
-
-my $key_dir = $key_vars_ref->{'key_dir'};
-my $key_usr = $key_vars_ref->{'usr_name'};
+my $name_regex   = qr|[0-9a-zA-Z\._\-]+|;
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
 
 my $keys_re        = <keys.regex>;
 my $key_re_public  = $keys_re->{'key_file'}->{'public'};
@@ -30,7 +30,11 @@ if ($display_checksums) {    ## calculating key checksums ##
     <[base.log]>->( 1, $calculating_message );
     if ( not <system.verbosity.console> ) {
         $OUTPUT_AUTOFLUSH = TRUE;
-        printf "\n: %s%s\r", $C{0}, $calculating_message;
+        if ( <system.ansi_color> or <system.force_colors> ) {
+            printf "\n: %s%s\r", $C{0}, $calculating_message;
+        } else {
+            printf "\n: %s\r", $calculating_message;  ## todo : detect pipe ##
+        }
     }
 
     %key_chksums = ( <[keys.checksum_href]>->%* ); ##  uses cache look-ups  ##
@@ -41,10 +45,20 @@ if ($display_checksums) {    ## calculating key checksums ##
     }
 }
 
+my @display_kfiles;
+
+foreach my $file (@k_files) {
+    push @display_kfiles, $file;
+    if ( $file =~ m|([^/]+):seed-phrase$| ) { ## : todo :  add single keys  ##
+        push @display_kfiles,
+            sprintf( qw| :.virtual.::%s |, $LAST_PAREN_MATCH );
+    }
+}
+
 my $key_name;
 my %key_names;
 my $max_nlen = 0;
-foreach my $file (@k_files) {
+foreach my $file (@display_kfiles) {
     my $name = <[crypt.C25519.get_keyname]>->($file);
     $name //= qw| read.err |;
     $key_names{$file} = sprintf qw| '%s' |, $name;
@@ -58,7 +72,7 @@ foreach my $file (@k_files) {
 
     } elsif ( defined $key_chksums{$name} ) {
         $key_names{$file} = sprintf( ' %*s ', $length, $key_chksums{$name} )
-            if $file =~ m{$key_re_public};
+            if $file =~ m|::| or $file =~ m{$key_re_public};
     }
 
     my $l = length $key_names{$file};
@@ -75,7 +89,7 @@ my $linefeed        = $display_checksums ? '' : "\n";
 my $key_list_string = join '',
     $linefeed, sprintf( "%40s\r :: keys for user %s :.\n :\n", '', $key_usr ),
     ( map { sprintf( " : %*s : %s\n", $max_nlen, $key_names{$ARG}, $ARG ) }
-        @k_files ),
+        @display_kfiles ),
     "::\n";
 
 ## colorizing ##
@@ -85,12 +99,16 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s|('.+')|$C{B}$1$C{R}$C{T}|mg;
     $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
     $key_list_string =~ s,(<:.+:>|encrypted),$C{0}$C{b}$1$C{R}$C{T},mg;
+    $key_list_string
+        =~ s,($name_regex\Q:seed-phrase\E),$C{0}$colors{B01}$1$C{R}$C{T},mg;
+    $key_list_string
+        =~ s,(:.virtual.::),$C{0}$colors{B01}$1$C{R}$C{T}$C{B}$C{B02},mg;
 }
 
 return say $key_list_string;
 
-#,,,.,,..,.,,,...,,,,,,,.,...,,.,,...,,,,,,,,,..,,...,...,..,,..,,,,,,.,,,,..,
-#STGCLS23N3TEJP3OAI5575PW6SDQZBULPA6BUV3Z4XRTLJXUSWSHMN76BAIQ5LCN5U3RBQWD7AMFM
-#\\\|6XTKWPVBDGOADHRZXB6S67VYL6XHSJFFCXNEHTG5UQDF4OCPI7M \ / AMOS7 \ YOURUM ::
-#\[7]YQNMHAQHIGR2OQVRNIIISPKYWKWSBUIINSYHI3QUZF74XEOT74AA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,.,.,..,,,..,.,,,..,,.,,,,,,,..,,...,...,...,..,,,.,,,..,..,,
+#D464QK5U5YRRQHUAKHDLT2QO6O53XFZ5WRKDJIGJDCC4HPRLDS5CBDR5CZMUV4TBINB4LHVO5Q3T6
+#\\\|YXXDZFPRKFFBRNYICIG66FNEJ454UTLUYTMFRZQ2N4CQP5ZO6Q4 \ / AMOS7 \ YOURUM ::
+#\[7]2FJVB2L2GPQJBSMS4IS3FKVH67TJXUTCNEEZO6MUGQIK4UFTRGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

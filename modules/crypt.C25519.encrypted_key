@@ -27,6 +27,10 @@ if ( index( $key_name, qw| / |, 0 ) == 0 and $key_name =~ $re_kfiles ) {
     ( $key_name, $key_type )
         = <[crypt.C25519.key_name_and_type]>->($filepath_rel);
 
+    ##  virtual key [ never encrypted ]  ##
+    ##
+    return FALSE if $key_type eq qw| virtual |;
+
     ##  public key [ never encrypted ]  ##
     ##
     return FALSE if $key_type eq qw| public |;
@@ -106,8 +110,8 @@ if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
 
 return $key_encrypted;                     ##  key encryption status  ##
 
-#,,.,,..,,.,,,.,,,,.,,,,,,,.,,..,,,,.,,..,...,..,,...,...,,,.,..,,..,,..,,..,,
-#MC646EMEL27EMICP5SFG5TINIFVQVSNB3RZWPUXPEOCG3B4KU2AKFA7EIXHI5VR56FXSLN7IYR3SC
-#\\\|XDGY5DHKJIUYTJTCAWDYUL52K5OMVUK4LL55POBIKKZPNBDJXZF \ / AMOS7 \ YOURUM ::
-#\[7]HBXKTZKU6ZJ7WVZ3T2GNXMA5TVKPUNYBMATOXOXNWZKJNZM2DIDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,,,,,,.,.,.,..,,,,,,..,,,..,,.,,..,,...,...,..,,.,.,,,.,,,,,.,,,
+#ZAPW3NE4RLI6RCXTLS45KH7GP7MMRBPLBPSLN3A65WNOLJ22YU2R7FXBNB5EJ6YEW7IDA65IS3UMU
+#\\\|45462FL4R3PZMFXWCGKMXX65UCJWU3LU2GPZIL4KTDKPHNG77GQ \ / AMOS7 \ YOURUM ::
+#\[7]6IWLEYZFDDSHGXMKDOSOTYGFBO6LYGZZ72YL3J2HPZC2IBESSGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

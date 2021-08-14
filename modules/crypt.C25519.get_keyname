@@ -10,6 +10,11 @@ if ( not length $C25519_filename ) {
     return undef;
 }
 
+if ( $C25519_filename =~ m|^:\.virtual\.::(.+)$| )  ##[ description ]##
+{
+    return $LAST_PAREN_MATCH;
+}
+
 foreach my $type ( keys <crypt.C25519.regex.key_file>->%* ) {
     return $LAST_PAREN_MATCH
         if $C25519_filename =~ <crypt.C25519.regex.key_file>->{$type};
@@ -22,8 +27,8 @@ foreach my $type ( keys <crypt.C25519.regex.key_file>->%* ) {
 
 return undef;
 
-#,,..,..,,.,,,..,,,,.,,,.,,,,,,,.,.,.,,..,,,.,..,,...,...,,.,,,,.,,..,.,,,...,
-#JXTTE63YEO3UAXHOCZ5A453V6HBBHAWTTEOGYEALXJLLZKR5FKKXGQXAII7XZT72KIJ6FHLXOVU5Y
-#\\\|WD6Z6R5X4NNV5J2VFNT6FACSZSGDQKCYX3WOH5HQN6M2O4CUGFM \ / AMOS7 \ YOURUM ::
-#\[7]GGQ3FZUA5SLW2H2AV2AJXARLIR5HXVKL2I374AGTGQHWSBNLWEAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,,,,,..,,,..,...,...,.,,,,,.,..,,...,...,.,,,..,,...,,,,,.,.,
+#3ZW2FGDGQJMDT75A6LOTWZS7YCPH4AOLNXIOM6XEDTRBXCRFJSDQ6WVPMWLKWSDSQR73KARTOVXWY
+#\\\|2XPVXW75GC7EKK4C4QDWOE2J52ELULKNZC6E7VZGWHLPAP5GJBA \ / AMOS7 \ YOURUM ::
+#\[7]DQDRO4HDGCQBLPIREWFYLLCA56S34JVEAFC2WHYQUGFAOR2PE6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

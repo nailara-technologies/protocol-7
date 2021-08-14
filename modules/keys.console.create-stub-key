@@ -1,0 +1,58 @@
+## >:] ##
+
+# name  = keys.console.create-stub-key
+# param = <name>
+# descr = create virtual key for seed-phrase prompt
+
+my $name = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+
+return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
+    if <[keys.key_exists]>->($name);
+
+return print "\n  <<  key name contains not valid characters  >>\n\n"
+    if $name !~ m|^[\w\.\-\_]+$|;
+
+my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
+
+<[base.exit]>->(
+    qw| 0110 |,
+    sprintf( 'no write permissions on key directory [%s]', $key_dir ), 0
+) if not -w $key_dir;
+
+my $keyfile_abs_path = sprintf qw| %s/%s:seed-phrase |, $key_dir, $name;
+
+return printf "\n  <<  a stub key '%s' already exists  >>\n\n", $name
+    if -e $keyfile_abs_path;
+
+my $template = << 'EOT';
+##  >:]  ##
+
+timestamp : [:TIMESTAMP:]
+
+##  virtual C25519 stub-key for seed-phrase prompt  ##
+EOT
+
+my $tstamp = <[base.ntime.b32]>->(4);
+$template =~ s|\[:TIMESTAMP:\]|$tstamp|;
+
+if (   not <[file.put]>->( $keyfile_abs_path, $template )
+    or not -f $keyfile_abs_path
+    or -z $keyfile_abs_path ) {
+    my $err_reason_str = sprintf
+        ': error while writing : %s : %s',
+        <[base.str.os_err]>, $keyfile_abs_path;
+    <[base.exit]>->( qw| 0110 |, $err_reason_str, 0 );
+}
+
+return
+    printf "\n  <<  successfully created virtual key file for '%s'  >>\n\n",
+    $name;
+
+#,,.,,,,,,..,,,,,,,,,,.,,,,..,,..,,..,.,.,.,.,.,.,...,...,,,,,,,,,...,,..,..,,
+#5QTIUB7B4AFPS4KEF34F6JFNEFOVCVWK27F4JL44QN6K6CCYTKZ3VMSSPEB5N7RWEVTET5LGFIVJO
+#\\\|CA53SBXJISPXKCZQWBW5BXSRGBGASFKUU76UZLVOAW3OKG3C25U \ / AMOS7 \ YOURUM ::
+#\[7]U5BFDNJKBWXT5JXYWE77AGSRYUBOJQXP2QKZ6RDJ6XTB43QVAOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
