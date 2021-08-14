@@ -80,7 +80,7 @@ sub is_true {
 
     return FALSE    ## check as mumber when numerical ##
         if $check_as_num == 1
-        and AMOS7::Assert::is_number($$data_ref)
+        and AMOS7::Assert::is_number( $data_ref->$* )
         and calc_true( scalar( $data_ref->$* ) ) <= 0;
 
     return FALSE    ## when numerical with no 0 prefix ##
@@ -129,6 +129,8 @@ sub init_table {
     return @pairs;
 }
 
+##  asserts truth of arbitary len. numerical value [ division by 13 ]  ##
+##
 sub calc_true {
 
     my $check_num = shift;
@@ -252,8 +254,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,,.,.,.,,..,...,,,,,,..,,..,.,,,..,,,,,,.,.,..,,...,...,...,,..,..,,.,,,,,.,
-#ORUJ3VCUXE2GYCRKVHLLZPMV4AHGTJNYWQQI42X7WY5VLYHXHPMC2TH74HYESEOELRY5ZEZR7OH5Q
-#\\\|VH54IZ5GDVIMRP6VM3ARFQCFG6WRRLVMZGHZJOODIFKA2RZTNFH \ / AMOS7 \ YOURUM ::
-#\[7]VDAHWSNIONTVPMYUQKHQLZMCAUEGE34SGME3U3NBXAJIKJFOAQDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,..,,,.,,..,..,,..,,...,.,,,,..,..,,...,...,.,.,.,,,...,..,,..,,
+#6U4ZFKGRSIRSQLXSR5FCI2AHG5RSSTO2LZ7BIFXWNNZUSB3GJMOVNTTDOGIUMHYKR7SMVPXXLMTB4
+#\\\|MJTN7Q3DVQBTX3AFIT2USMZK5G6MVPYZV2Q6W6CDCZWU3DATARM \ / AMOS7 \ YOURUM ::
+#\[7]7SK6X2KFH72YXDF7PSKRRJZKINT2Z4N53FH7VJAEWE4J7WLASSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
