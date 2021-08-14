@@ -40,14 +40,22 @@ my $key_file_ext;
 my $key_filename;
 my $key_basepath = catfile( $key_dir, $key_name );
 
-foreach my $type (qw|  private  public  |) {
+foreach my $type (qw|  private  public  virtual  |) {
 
-    my $key_extension = $type eq qw| private | ? qw| secret | : qw| public |;
+    if ( $type eq qw| virtual | ) {
 
-    $key_file_ext->{$type} = sprintf qw| %s |, $key_extension;
+        $key_filename->{$type} = sprintf qw| %s:seed-phrase |, $key_basepath;
 
-    $key_filename->{$type}
-        = sprintf( qw| %s.%s |, $key_basepath, $key_extension );
+    } else {
+
+        my $key_extension
+            = $type eq qw| private | ? qw| secret | : qw| public |;
+
+        $key_file_ext->{$type} = sprintf qw| %s |, $key_extension;
+
+        $key_filename->{$type}
+            = sprintf( qw| %s.%s |, $key_basepath, $key_extension );
+    }
 }
 
 return <crypt.C25519.key_vars> = {
@@ -62,8 +70,8 @@ return <crypt.C25519.key_vars> = {
     'key_filename' => $key_filename
 };
 
-#,,,,,..,,.,.,,..,,.,,.,,,.,.,..,,,..,,,.,...,..,,...,...,,,.,,,.,,..,..,,..,,
-#Z7BVFFWMJUESW27ZX24QX455I4QS6GPT77NIXPMFHQ72HO3GZEW3RKXHRHOUZIZF3H645WAJTH2WW
-#\\\|YRPHM5DTYLSRZOEPHSK62KSH3JZDBNLWYFNAU553W5WLYQGNBDD \ / AMOS7 \ YOURUM ::
-#\[7]F5CJ42VCLW3ATC5GSJGXJRV5XUSD2N2MKQWV5IWB7N4RMO3EC4CY 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,...,,,,,.,.,,..,,,,,..,,..,,..,,...,...,..,,.,.,..,,.,.,.,.,
+#5PVNSJW5N2OQSVHNN5JLL3AXZEPIHZUEUTOIGWBN6KPVPNXYE6FU5DTFETQ4UTLEDKT5KO4PDUNAQ
+#\\\|X2AGQZ254OPJCQVF6VO44PCCTUYAAXMTXWINVMDPRHS6IY5YT64 \ / AMOS7 \ YOURUM ::
+#\[7]JAFBEB6HTXNG2E4MMJOJJEYFHOJ3XTDIKPAGFDMWKFZDCBC2USDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

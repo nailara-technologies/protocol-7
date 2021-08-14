@@ -25,7 +25,7 @@ my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 return print "\n  << expected <from> and <to> parameters >>\n\n"
     if not defined $srckey or not defined $to_keyname;
 
-my $match_re = qr|^(\Q$srckey\E\.$re_kfiles)$|;
+my $match_re = qr|^(\Q$srckey\E$re_kfiles)$|;
 
 my $key_found = 0;
 my $space_len = abs( length($key_re_private) - length($re_public) );
@@ -61,8 +61,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,..,,.,,,,,,,,,,,,.,..,,.,,,..,,,..,,.,,,..,..,,...,...,..,,.,.,,,.,.,.,.,.,
-#5HJOTXSID7M2OGQDXLDSMB32TM2LJWI7Z3UTHO7RGMYWF6YUEUY35GU22LZYSBD4JU2HXZ3NASRX6
-#\\\|LD3Z5PV6JOVGOBJNN5EUO5IH22QJQOFXAN6OOLBKAZM5H5VQ3JM \ / AMOS7 \ YOURUM ::
-#\[7]U7I4XNWYF6F4TF7HXXIO5Q6HHUCLG5MWNIUL5WCD532QYWGNL6AI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,..,,...,.,,,,..,...,,,,,,,,,..,,...,...,,..,,,.,..,,,,.,,,.,
+#HD66XURIZWEKFQHHGEDSVJAKEAU442S5RYBJXH6BY474JHEXVVOE4A6F4LITYX7H2UMSSUUNTVJ5Y
+#\\\|WJLVJD3QDACWMHTAOMTSRYXFT3OEFPB7T7TDEW3EZNTDMKX2LPJ \ / AMOS7 \ YOURUM ::
+#\[7]Y42TOZYEQC75ONZF67GN3LI3RBLU4YIV73HN3JTGXIUJROTD26DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
