@@ -627,7 +627,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             - length( sprintf 'zenka %s', $data{'system'}{'zenka'}{'name'} )
             - 1 )
         : '';
-    map { push( @{ $data{'system'}{'start'}{'zenka-buffer'} }, $ARG ) } (
+    map { push $data{'system'}{'start'}{'zenka-buffer'}->@*, $ARG } (
         $code{'base.anum_log_time'}->()
             . sprintf(
             ' 0 . startup zenka %s%s',
@@ -1798,8 +1798,11 @@ sub p7_log_hook {
 
             my $buffer_name = qw| zenka |;
 
-            $buffer_name = $LAST_PAREN_MATCH    ##[  alternative buffer  ]##
-                if $log_line =~ m|^:\[([\w\-_]+)\]: |;
+            ##[  alternative buffer  ]##
+            if ( $log_line =~ m|^:\[([\w\-_]+)\]: | ) {
+                $buffer_name = $LAST_PAREN_MATCH;
+                $data{'buffer'}{$buffer_name}{'max_size'} //= 64512;    ## 63K
+            }
 
             my $log_level
                 = $log_line =~ m|^\S+ (\-?\d+) | ? $LAST_PAREN_MATCH : 0;
@@ -3098,6 +3101,8 @@ sub p7_uncompress_subroutine_str {
         ) {
             $total_bytes_read += $bytes_read if defined $bytes_read;
         }
+        close($pipe_out_fh);
+        waitpid( 0, 0 );    ##  reap child process  ##
 
         ## checking errors ##
         my $err_reason_str;
@@ -3709,8 +3714,8 @@ __DATA__
 :
 :.
 
-#,,..,..,,,.,,...,..,,.,,,,,.,...,.,,,.,,,.,,,..,,...,...,.,.,,,,,,..,..,,,,.,
-#ZSUJCYGVIFHWCZR373WK5VZGOOJQWZCCECG2URNED273UYEICBDRW4WAZ4N3NCJ6CWKSFXTCVBMLI
-#\\\|PBTD6ZO54WXY6C62LO3WU2DYLKWC4NBA2ITZL2BJL2YELWEM6BE \ / AMOS7 \ YOURUM ::
-#\[7]LRNXJZMJXU2P4TIBBA5DEAE5UFY2IOQCEBVPGBHROI7OSVM6WSBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,,,,.,,,.,,,,.,,,,,,...,,..,,,.,..,,...,...,...,...,...,..,,,,,,
+#EG24FXVXX4WKWYMBB4IZ6KXCZLLDWBNDQEGVWYMOB5XDC73BBQBZERG6QDQTOXBXWHTDWZV2YVL4S
+#\\\|LP6OHN7H7D3UWHWLFMHHRYQLYZ2RQAFDL2BRQWCJYJFCBWDR77H \ / AMOS7 \ YOURUM ::
+#\[7]TTIPJF7TRESOBS53AXTX62R3HILUHXMXTKXH6JPRUSWH2PSSVMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
