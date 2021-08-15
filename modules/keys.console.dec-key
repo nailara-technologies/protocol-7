@@ -22,6 +22,8 @@ if ( $key_status < 0 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
         $err_reason_str = 'not a valid key format';
+    } elsif ( $key_status == -5 ) {
+        $err_reason_str = 'key is virtual [ seed-phrase generated ]';
     } else {
         $err_reason_str = 'undefined error';
     }
@@ -137,8 +139,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_DECRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,.,,,.,.,,,.,.,,,,,...,,,,,,,,,...,,,.,.,.,.,.,...,..,,...,.,,,,,.,,,.,,,,,
-#2F4NIS45QN7R4I3RII56UI54HUJFKTM6RJWMPKNL72HIFTXWFPF7Z7JYBBLQCAVEP6P6NFDVU3HXC
-#\\\|5KBP4HNBA763HMBZFECXTRFVVNWAPBXC6FQCFEOEZQQMBYRKI5E \ / AMOS7 \ YOURUM ::
-#\[7]PSY7BAZ5O4CCBGT2O2FGLVFO45YNDYCRPZRGFDXJWCPLHGPZ62AA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,...,,,,,.,.,,.,,..,,.,.,,,.,.,.,...,...,.,.,,.,,..,,,..,...,
+#2KC4534P7MPJ2CVDFBMUPTRCZ67VYFISPLRV3EGSYWUSESGU4FLRCCOPXD3552HS7BA4E26VG7EUA
+#\\\|ODRPAWIADHMROJX2MQTPS333OZIJE3GTJUOPEUXDKL4KU3DIAXZ \ / AMOS7 \ YOURUM ::
+#\[7]UBB3VPQRATXTTWB3JDJKYXQXXDXJGYGB2XGCXW5X7EET2XNCP2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
