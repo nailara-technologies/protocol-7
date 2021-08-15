@@ -2,9 +2,9 @@
 
 # name = crypt.C25519.load_keypair
 
-my $key_name_param     = shift;         ##  optional  ##
-my $key_password       = shift;         ## optional ##
-my $pwd_retry_on_error = shift // 0;    ##  false  ##
+my $key_name_param     = shift;             ##  optional  ##
+my $key_password       = shift;             ## optional ##
+my $pwd_retry_on_error = shift // FALSE;    ##  false  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
 
@@ -32,40 +32,9 @@ if ( -r $private_key_file and -r $public_key_file ) {
         chomp($encoded_private_key);
     }
 
-    ## todo : use get_type_from_key_str here to remove redundancy ##
-
-    my $key_encrypted = FALSE;    ##  false  ##
-
     ## decode [ base 32 ] ##
     $keys{'C25519'}{$key_name}{'private'} = decode_b32r($encoded_private_key);
     $keys{'C25519'}{$key_name}{'public'}  = decode_b32r($encoded_public_key);
-
-    ## checking for encryption [ '.:' prefix encrypted or 'U:' for plain ] ##
-    ##
-    if (length($encoded_private_key) == 106    ##[  has no linefeed  ]##
-        and index( $encoded_private_key,                  qw| FY5 |, 0 ) == 0
-        and index( $keys{'C25519'}{$key_name}{'private'}, qw| .: |,  0 ) == 0
-    ) {
-        $key_encrypted = TRUE;                 ## true ##
-        substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
-
-    } elsif ( length($encoded_private_key) == 106
-        and index( $encoded_private_key,                  qw| KU5 |, 0 ) == 0
-        and index( $keys{'C25519'}{$key_name}{'private'}, qw| U: |, 0 ) == 0 )
-    {
-        $key_encrypted = FALSE;                ## false ##
-        substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' );
-
-    } elsif ( length($encoded_private_key) == 103 ) { ##[  old key format  ]##
-        $key_encrypted = FALSE;                       ## false ##
-
-    } else {    ##[  not a valid key format  ]##
-        undef $keys{'C25519'}{$key_name}{'private'};
-        delete $keys{'C25519'}{$key_name}{'private'};    ##  renove  ##
-        <[base.logs]>->(
-            0, "private key format not recognized ['%s']", $key_name
-        );
-    }
 
     foreach my $type (qw|  private  public  |) {
         <[base.logs]>->( 0, "BASE32 decoding failed [ %s key ]", $type )
@@ -78,9 +47,22 @@ if ( -r $private_key_file and -r $public_key_file ) {
         return FALSE;    ##  false  ##
     }
 
+    ( my $key_status ) = <[crypt.C25519.get_type_from_key_str]>->(
+        $keys{'C25519'}{$key_name}{'private'},
+        $keys{'C25519'}{$key_name}{'public'}
+    );
+
+    if ( not defined $key_status ) {
+        <[base.logs]>->( 0, "cannot read key status of '%s' .,", $key_name );
+        return FALSE;    ##  false  ##
+    }
+
+    substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' )
+        if $key_status->{'prefixed'} == TRUE;
+
     ##  decrypt private key [ when password provided ]  ##
     ##
-    if ($key_encrypted) {
+    if ( $key_status->{'encrypted'} ) {
     RE_READ_PWD:
         if ( not defined $key_password ) {
             <[base.perlmod.load]>->('AMOS7::TERM')
@@ -208,8 +190,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,,.,,,,,.,,,,..,...,,.,,,.,,,.,,.,,,,,,,.,,,..,,...,...,,,.,..,,.,,,,..,...,
-#ADBIJ6MFZB6TVBSG64EA24SDM7CKOUNZTGU5YHR6CDP5LTWJAA5BKKYRV6VO4H4QOS4XFCB65VAMG
-#\\\|3ZFNEP4KRWPU4QZAVIZJQS6IG4DSHPP6RNS7H7ZOA4OAKTVEEUJ \ / AMOS7 \ YOURUM ::
-#\[7]SMPZKW5NC5RD347U76HWVAL7IPQL2IFJPE374KWU5C2BQZQRQ2AA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,..,,.,,,,,.,,..,.,.,...,,.,,..,,...,.,,,.,.,,,.,,.,,.,,,,.,,
+#TCDLCP65MGLEQUL2NZDJI5OXQQQJT7FPVOKSO7DPZA7TPIVTWFC4FOX6LQY2WEBEJMTWJMW33ULV6
+#\\\|HKHN7LSJPSX2VVNJ6ZCQ3IHZ3KJLUL5TFL4BXZHOM5FHTVTIM5H \ / AMOS7 \ YOURUM ::
+#\[7]OVBYWBVGAI5ZNWD5REOF7MZPXZQH6W7JLOSTVMRUZCIOTPBJIYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

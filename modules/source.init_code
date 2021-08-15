@@ -23,7 +23,9 @@ if ( <source.path.work_tree> ne <system.root_path> ) {
 <source.path.zenki>        //= sprintf qw| %s/configuration/zenki |,
     <source.path.work_tree>;
 
-my $sigkey_name = <source.C25519.signature_key_name> //= qw| nailara.source |;
+## loaded in post_init code ##
+##
+<source.C25519.signature_key_name> //= qw| nailara.source |;
 
 ###[  NOTES  ]### [ VAX ENCODABLE ]
 ##
@@ -79,14 +81,10 @@ my $sigkey_name = <source.C25519.signature_key_name> //= qw| nailara.source |;
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 EOT
 
-<[source.load_signature_key]>->($sigkey_name);
-
-# <[source.acquire_checksums]>;
-
 0;
 
-#,,,.,.,.,,..,,,.,...,..,,..,,..,,..,,,.,,.,,,..,,...,...,...,,,,,..,,.,,,.,,,
-#ANSB7ZFBFQUYQPIXSANB42WBHKFZBGLWCAHBYVZBS34C3C33ZLYBUIDQSNUE2JO6AE56QA4WJGY7W
-#\\\|HH3V337EJCW6UATKHXI4M5XS4DJBVA43DAX5ZYKMA7VXCMA4ZKB \ / AMOS7 \ YOURUM ::
-#\[7]BXX3WPWU5J2WAI3AJMWYE6XAJUVCYFB32PKXJNVTKM2ACAJYXECQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,...,,..,...,,..,,,.,,..,,..,..,,...,...,.,.,..,,,..,,,,,...,
+#Q2RFB4MGVKZ7FP42GBNXDXAIRHZD24SP6HOKEBWVHDNFL5UQRGOLTMTLP32KRPZE2MTZJK4RC2OWU
+#\\\|RUTTIFDVCGAIYMCNVC3RXVCMC24FNMIACBB3HOYRO5RYU74QWTC \ / AMOS7 \ YOURUM ::
+#\[7]X4QNNQCBN2R24NC6HXO7PLNI6EMOIOWIJCNJBRQPT77TH2UD44AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
