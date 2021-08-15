@@ -25,7 +25,7 @@ foreach my $key_bin (@key_strings_binary) {
 
 my $checksum_template         = qw| <:%s:> |;
 my $priv_key_truth_template   = qw| <:%s:>,:%s: |;
-my $pubkey_str_truth_template = qw| <:%s:%%s:>,<:%%s:>,:%%s: |;
+my $pubkey_str_truth_template = qw|<:%%s:>,:%%s:,<:%s:%%s:>,%s:%%s,:%s:%%s:|;
 
 my @checksums;
 
@@ -39,19 +39,17 @@ if ( @key_strings_binary == 1 ) {
         $priv_key_truth_template, $key_strings_binary[0]
     );
     my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
-        sprintf( $pubkey_str_truth_template, $privkey_amos_chksum ),
+        sprintf( $pubkey_str_truth_template, ($privkey_amos_chksum) x 3 ),
         $key_strings_binary[1]
     );
     push @checksums, $privkey_amos_chksum, $pubkey_chksum;
 }
 
-my $combined_key_amos
-    = sprintf( $checksum_template, join( qw| : |, @checksums ) );
+## combined key checksum ##
+return sprintf $checksum_template, join( qw| : |, @checksums );
 
-return $combined_key_amos;
-
-#,,.,,,,,,,,,,.,,,..,,,,,,.,.,,,,,,..,,.,,,.,,..,,...,...,,.,,,,.,,.,,,,,,...,
-#3YYFSIU2IT37E2XJBYHEWLJBBGIIVO7YCXAYWA4LYTYWZIDWI6VTHOT3LOHBAJ274BKMXIT6GGEMO
-#\\\|I2WFMGHTULW6A6I2UWSBI3ZASUW6JLQBPJPD7LV3LAMPO2QNNC4 \ / AMOS7 \ YOURUM ::
-#\[7]JATL2H5D7ELFOB2WRE4UCSLIWXXFIGGKBBYBZVVYFUOHTNSE3CCA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,,.,,,,.,.,,,..,,,,,,,..,,.,,..,,...,...,,,.,,..,,..,,.,,.,.,
+#KABTBI7KASYHMYB3UCDBICZ3A4SIWH5OQNAWN6FSXBRTWFO72WA7PQYNKBYHGRL6AOWTKX4N7ZBCY
+#\\\|VNZOZUG66Y4RWPWQRKOKXUYKOPNZWVCZ2H5T4PGAJ6LYNFW36I5 \ / AMOS7 \ YOURUM ::
+#\[7]QD2R3BI5WQ7B37JAUREQ36RQ6UE6QZXPAPDYGEET6ENFICEJWGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
