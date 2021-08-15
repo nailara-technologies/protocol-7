@@ -1,0 +1,83 @@
+## >:] ##
+
+# name  = keys.console.get-sp-pub-key
+# param = <name>
+# descr = create seed-phrase key to show its public key
+
+my $name = shift;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+
+if ( <[crypt.C25519.key_exists]>->($name) ) {
+    <[base.logs]>->( 0, "a key named '%s' exists on disk", $name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+<[base.logs]>->( 0, ' << %s is not a valid key name >>', $name )
+    and <[base.exit]>->('0110')
+    if $name !~ <keys.regex.key_name>;
+
+if ( not defined &Crypt::Twofish2::MODE_CBC ) {
+    <[base.log]>->( 0, ":, missing 'Crypt::Twofish2' module, aborted ..," );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $key_seed_entropy
+    = AMOS7::TERM::read_password_repeated('generation entropy passphrase');
+
+if ( not defined $key_seed_entropy or not length $key_seed_entropy ) {
+    <[base.log]>->(
+        0, 'cannot generate the key without seed entropy passphrase'
+    );
+    say sprintf "%s:%s\n:,", $AMOS7::C{'0'}, $AMOS7::C{'0'}
+        if not <system.verbosity.console>;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+print "\n::\n";
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+
+my $u_str
+    = index( $name, $key_usr, 0 ) == 0
+    ? ''
+    : sprintf( " for '%s'", $key_usr );
+
+say sprintf " : << public seed-phrase key '%s'%s >>", $name, $u_str;
+
+##  generate keypair from user seed entropy  ##
+##
+if ( not <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy ) ) {
+    <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
+}
+
+my $key_checksum = <[crypt.C25519.key_checksums]>
+    ->( map { $keys{'C25519'}->{$name}->{$ARG} } qw| private public | );
+
+my $key_display_str = sprintf( " :\n ::[ %s ]\n :\n ::[ %s ]\n :\n::\n",
+    $key_checksum,
+    Crypt::Misc::encode_b32r( $keys{'C25519'}->{$name}->{'public'} ) );
+
+## colorizing ##
+##
+if ( <system.ansi_color> or <system.force_colors> ) {
+    my %C = %AMOS7::C;
+    $key_display_str =~ s|^(.+)$|$C{0}$1$C{R}|mg;
+    $key_display_str =~ s|\[( \S+ )\]|[$C{T}$C{b}$1$C{R}$C{0}]|mg;
+}
+
+##  displaying public key to console  ##
+##
+say $key_display_str;
+
+##[ deleting keys from memory ]##
+<[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );    ##[ silent ]##
+
+#,,,,,,,,,..,,..,,,,.,,,.,.,,,,.,,.,,,,..,,..,..,,...,...,,,,,...,,.,,..,,.,,,
+#L7FJC5IYC3TGPNSYYG3K6NBJZX2AIJ52C2XPNTNFJ4U2LVHEJIO6RFEDRCNOSVWTTPKGTVB75FFFA
+#\\\|EZR4A6FLECIQFCVBJJNOA4V3F7FCWVTUNR7CNRL7JVHDHX37YL5 \ / AMOS7 \ YOURUM ::
+#\[7]CBHZ4EKUAOPU2EHQPSECSSBR4J3OMLHZONNC7RWFZUHUSYF2SWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
