@@ -3,15 +3,15 @@
 # name  = base.buffer.add_line
 # descr = write log messages to buffer and screen
 
-my $name        = shift;
-my $log_message = shift;    #  <--  <t-stmp>  <lvl>  <msg>
-my $log_cmd_level
-    = shift;    #  <--  [lvl]  <-- optional log level [ for log_cmd ]
+my $name          = shift;
+my $log_message   = shift;  # <-- <t-stmp>  <lvl>   <msg>
+my $log_cmd_level = shift;  # <-- [lvl] <-- optional log level [ for log_cmd ]
+
 my $min_b_size = 13747;
 
 $code{'base.log'} //= $code{'log.noerr'} // sub { say "<< $ARG[1] >>" };
 
-if ( !length( $name // '' ) ) {
+if ( not length( $name // '' ) ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
     warn 'expected buffer name <{C1}>';
     return -1;
@@ -20,7 +20,7 @@ if ( !length( $name // '' ) ) {
     return -1;
 }
 
-my $buffer_size = $data{'buffer'}{$name}{'max_size'};
+my $buffer_size = $data{'buffer'}->{$name}->{'max_size'};
 
 if ( defined $code{'base.utf8.clean_not_valid'} ) {
     <[base.utf8.clean_not_valid]>->( \$log_message, 3, 3 );  ## warn-lvl: 3 ##
@@ -30,21 +30,24 @@ $log_message =~ s{^\s+|\s+$}{};
 $log_message =~ s|\n|\\n|g;
 $log_message =~ s|\r|\\r|g;
 
-my $message_len = length($log_message);
+my $message_len = length $log_message;
 
-if ( not defined $buffer_size or $buffer_size < $min_b_size )
-{    # buffer size #
-    my $default_size  = 6557696;    # <-- 64K internal default
-    my $default_found = defined <default.max_size.log_buffers> ? 1 : 0;
+if ( not defined $buffer_size or $buffer_size < $min_b_size ) {
+
+    ## buffer size ##
+    ##
+    my $default_size = 64512;    ##  <-- 63K internal default  ##
+
+    my $default_found = defined <default.max_size.log_buffers> ? TRUE : FALSE;
     $default_size = <default.max_size.log_buffers> if $default_found;
-    my $min_size_error = 0;
+    my $min_size_error = FALSE;
     if ( defined $buffer_size and $buffer_size < $min_b_size ) {
         $default_size   = $min_b_size;
-        $min_size_error = 1;
+        $min_size_error = TRUE;
     }
     my $size_str = $default_size;
     if ( not $size_str =~ s|000000$|M| ) { $size_str =~ s|000$|K| }
-    $buffer_size = $data{'buffer'}{$name}{'max_size'} = $default_size;
+    $buffer_size = $data{'buffer'}->{$name}->{'max_size'} = $default_size;
     if ($min_size_error) {
         <[base.logs]>->(
             0, "<<< log buffer size too small, using %s for '%s' buffer >>>",
@@ -72,19 +75,25 @@ if ( $message_len > $buffer_size ) {
     );
     return 0;
 }
-$data{'buffer'}{$name}{'size'} //= 0;
 
-push( @{ $data{'buffer'}{$name}{'data'} }, $log_message );
-$data{'buffer'}{$name}{'size'} += $message_len + 1;    # <-- [\n]
+my $buffrs = $data{'buffer'} //= {};
 
-while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
-    my $deleted_bytes = length( $data{'buffer'}{$name}{'data'}->[0] );
-    undef $data{'buffer'}{$name}{'data'}->[0];
-    shift @{ $data{'buffer'}{$name}{'data'} };
-    $data{'buffer'}{$name}{'overrun'}{'count'}++;
-    $data{'buffer'}{$name}{'overrun'}{'lost_bytes'}
-        += $deleted_bytes + 1;    #[\n]
-    $data{'buffer'}{$name}{'size'} -= ( $deleted_bytes + 1 );
+$buffrs->{$name}->{'size'} //= 0;
+
+push $buffrs->{$name}->{'data'}->@*, $log_message;
+$buffrs->{$name}->{'size'} += $message_len + 1;    ## <--[\n]
+
+while ( $buffrs->{$name}->{'size'} + $message_len > $buffer_size ) {
+
+    my $deleted_bytes = length $buffrs->{$name}->{'data'}->[0];
+
+    undef $buffrs->{$name}->{'data'}->[0];
+    shift $buffrs->{$name}->{'data'}->@*;
+
+    $buffrs->{$name}{'overrun'}{'count'}++;
+    $buffrs->{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; ##<--[\n]
+
+    $buffrs->{$name}->{'size'} -= ( $deleted_bytes + 1 );
     if (    exists <log.file>->{$name}
         and exists <log.file>->{$name}->{'start_index'} ) {
         <log.file>->{$name}->{'start_index'}--
@@ -96,26 +105,27 @@ while ( $data{'buffer'}{$name}{'size'} + $message_len > $buffer_size ) {
 
 return if not <[base.cfg_bool]>->(<base.log.allow_buffer_send>);
 
-if (    defined $data{'buffer'}{$name}{'log_cmd'}
-    and length $data{'buffer'}{$name}{'log_cmd'}
+if (    defined $buffrs->{$name}->{'log_cmd'}
+    and length $buffrs->{$name}->{'log_cmd'}
     and (  $name ne qw| zenka |
         or not defined $log_cmd_level
         or not defined <system.verbosity.zenka_logfile>
         or $log_cmd_level <= <system.verbosity.zenka_logfile> )
 ) {
-    my $buffer_index = scalar( @{ $data{'buffer'}{$name}{'data'} } ) - 1;
+    my $buffer_index = scalar( $buffrs->{$name}->{'data'}->@* ) - 1;
 
     if ( defined $code{'base.log.send_buffer_line'} ) {
+
         <[base.log.send_buffer_line]>->( $name, $buffer_index )
             if not exists $data{'p7-log'}
             or not exists <log.file>
             or not exists <log.file>->{$name}
-            or <log.file>->{$name}->{'complete'} == 1;
+            or <log.file>->{$name}->{'complete'} == TRUE;
     }
 }
 
-#,,..,,,,,...,,,.,,..,..,,.,.,..,,...,.,.,..,,..,,...,...,,.,,,..,,..,,..,,..,
-#EUAS2N6AEZ5TLMHA74QE7CLW3R6LF4IYXR37RLMBGBI5EXUCS76KPJRVU6OQ2XFWNVKW3RKMOBVRK
-#\\\|NMVCSL57LM24XNVNKEHK7M6VRCXZAMGG5UEO3TS4WEBTRBJ5OHE \ / AMOS7 \ YOURUM ::
-#\[7]X2Z4C422AAS7NC2F7PERQZIIUM75FLPSNXLPH5BCAAI5JTZLCGAA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,..,...,,.,,,.,,,,.,,..,.,,,..,,...,..,,,..,.,,,,.,,,.,,.,,,
+#OLA2PJJ4UI4OP2QAJEVQ3ZFVI2W3SIMBTUTR7GQSOO56VRTX3RCQJ2MUXEFU7VLRXNPTHSH7FPAEE
+#\\\|DC3FQLBDJTAXVJ5HDFIYUVGJXGOHNF7EZMJR5QJPFUYVKW7HUIO \ / AMOS7 \ YOURUM ::
+#\[7]RDLDXEIIXFN3K5APMAZNPZ2J6WBEUJ24SHYFVR5AALKMRFZMWQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
