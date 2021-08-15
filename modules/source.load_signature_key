@@ -30,7 +30,8 @@ if ( $sign_key_exists
 } elsif ( not $sign_key_exists
     and <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
     if ( <[crypt.C25519.gen_keys]>->($sigkey_name) ) {
-        $success = TRUE if <[crypt.C25519.write_keys]>->($sigkey_name);
+        $success = TRUE
+            if <[crypt.C25519.write_keys]>->( $sigkey_name, undef, FALSE );
     }
 
     <[base.log]>->(
@@ -43,8 +44,8 @@ if ( $sign_key_exists
 
 return $success;
 
-#,,,.,,..,,,.,,.,,..,,,.,,.,.,,,.,,.,,,,,,,,,,..,,...,...,...,,..,...,,.,,,..,
-#EOFREGTPWUKJHM5CAG6FNIFHTEXTROCMMBMIDVE4INY3ZNQDNO4YEVCJOEGACA4PXCQ4FIBLQDXLU
-#\\\|SEFBETYPYXZXST5LXT74VI4C3T6MKJY3WAT7RDYD4VMXVQDVW4P \ / AMOS7 \ YOURUM ::
-#\[7]BHZ2KXM3N56RQVKSR7GKC5IVSGILT55D7W5A3E5YAEWI5GCMAQBY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,..,.,,,...,,,,,,,.,.,.,...,..,,...,...,,.,,,..,..,,,.,,,,.,
+#C4ORHFEIZF77KBBGGYW6AUTHUJGRKTYAANX2IUDSR2PMH65E7FJFKJG4DQMXSXWX7IVKQUU665RKC
+#\\\|CHUXPS2QTKKILWXNY2ZGB5DNR7VRXG6UCBD7NNFIAFC4PO466QC \ / AMOS7 \ YOURUM ::
+#\[7]FLS3I2VG2ANNNVKDLZGM7SXL5VWCDXBBMLWK6QKMONRHM46L6YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

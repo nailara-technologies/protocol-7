@@ -3,8 +3,10 @@
 # name  = base.erase_buffer_content
 # descr = secure erasure of buffer content, returns number of bytes erased
 
-my $buffer_sref   = shift;       ##  reference to buffer \ scalar to erase  ##
-my $padding_bytes = shift // 0;  ##  add additional bytes to length  ##
+my $buffer_sref   = shift;    ##  reference to buffer \ scalar to erase  ##
+my $padding_bytes = shift;    ##  add additional bytes to length  ##
+
+$padding_bytes //= int( rand(13) ) + 7;    ##  <-- rnd padding  ##
 
 return warn 'expected scalar reference <{C1}>' ## SCALAR reference expected ##
     if ref $buffer_sref ne qw| SCALAR |;
@@ -27,8 +29,8 @@ $buffer_sref->$* = '';       ## truncate to zulum length ##
 
 return $r_cnt;               ##  return length of overwritten content  ##
 
-#,,,,,..,,...,,.,,...,,,.,,,.,.,.,,,,,.,.,.,.,..,,...,...,...,,..,,,,,.,,,,,,,
-#7OTSH3W3UDTRTCIFZFU777KF3E2FVZRKNHX33XMMTL7OS3LSQREAA3EB2RWKOM6PGDUQJMJH7AOYE
-#\\\|UJGZI3BV5DWFOCUMGK6DMNNOVGDUXHOZOAJ4WJCFXZAUKRSAH3R \ / AMOS7 \ YOURUM ::
-#\[7]CHJ44FWOQEXK3SW4JIP7TRLONJUXPPP5RTBX2FU6G3E72I7GR6BI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,,.,,..,...,,..,,,.,,.,,..,,..,,...,...,.,.,..,,,,,,,..,...,
+#PFMSFACRVSOL2ZQLQISEDZQ2EMTGYHDUOH6BILNA6FYPWBUUFAV6GPFH5PIVOR3FYPHC5554MHD2M
+#\\\|HTKTGRTPRKVTDVOH52VAUFWKK55QTN7BG5GZ7GNPYTYDGJZSV4X \ / AMOS7 \ YOURUM ::
+#\[7]432QUGGDVTWCT3MTJG2AP7PRRCDHJNQ2R5J73I2F6KSKYY75SIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

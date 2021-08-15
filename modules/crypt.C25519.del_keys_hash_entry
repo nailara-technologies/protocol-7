@@ -20,8 +20,7 @@ if ( not exists $keys{'C25519'}->{$name} ) {
 
 my $usr_key = $keys{'C25519'}->{$name};    ## [ private , public ] ##
 foreach my $type ( <[base.reverse-sort]>->($usr_key) ) {
-    <[base.erase_buffer_content]>
-        ->( \$usr_key->{$type}, int( rand(13) ) + 7 ); ##  <-- rnd padding  ##
+    <[base.erase_buffer_content]>->( \$usr_key->{$type} );
     $usr_key->{$type} = undef;
     delete $usr_key->{$type};
 }
@@ -30,14 +29,14 @@ undef $usr_key;
 delete $keys{'C25519'}->{$name};
 delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
 
-return TRUE    ##  success  ##
+return TRUE                                ##  success  ##
     if not exists $keys{'C25519'}
     or not exists $keys{'C25519'}->{$name};
 
-return FALSE;    ##  hash read-only?  ##
+return FALSE;                              ##  hash read-only?  ##
 
-#,,.,,,..,,.,,,,.,.,.,,.,,...,,,,,..,,,.,,..,,..,,...,...,,..,.,.,,.,,..,,,,,,
-#254NSDMQTKEIQ4XWVKLYD75RMKUX2JB7SK5NUS6TEQA5LN2IDTDGS2PLQOJPCW6NEIMWLSHPMZTGO
-#\\\|NDXBOAFSCYOVGLN4JGPELR7QW27RX2DUK3OQRAB6F34AF3WSDRK \ / AMOS7 \ YOURUM ::
-#\[7]L6ZZSY6ZLP3PPIITEPWQHVBAUY664UWBF3POMXCAG3SFNY7MKMDY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,...,,,,,..,,..,,.,.,..,,..,,..,,...,...,,,,,..,,,,,,...,,..,
+#QJLVNDBS4EVKURLXCDSS6J4KVZROQAGIDTTTMDQMKVSBBRTZ4RO7MJPQUNJ2WEVQV2PM3O5DKJZYC
+#\\\|S7A5TXZSNMVEZ3DIDBDABVMMS5FPGDHRQ7MQQUF3G2QNUD3Y6JT \ / AMOS7 \ YOURUM ::
+#\[7]Q7XATOP66FRFANHOX3MMQC5XV5MTWP37KMVHXY5XJO4VC35NUKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
