@@ -83,8 +83,8 @@ $SIG{'CHLD'} = sub {
 my $cube_user;
 my $cube_pass;
 my $stored_cmd;
-my $term_loop = 0;
 my $lines_up  = 3;
+my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
 
@@ -119,7 +119,7 @@ my $cube_port = shift(@args) || $protocol_7_port;
 my $sckargcnt = scalar @args;
 my $usock_dir = qw| /var/run/.7/UNIX |;
 
-my $prompt = "\\ $hostname \\:[?]:, ";
+my $prompt = sprintf '\ %s \:[?]:, ', $hostname;
 
 my $connect = TRUE;
 my $WARNED  = FALSE;
@@ -155,7 +155,7 @@ while ($connect) {
             print "\e[1m\e[5m$C{0}\e-$C{R}\n";
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
-                sleep(0.1);
+                sleep(0.13);
                 close($shell_sock);
 
                 exit(2);    # aborting connection, failed to send.
@@ -269,7 +269,7 @@ sub shell_auth {
         error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,>:|, ) {
         print " :: authentication timeout ::\n";
-        return 0;
+        return FALSE;
     } else {
         error_exit(':: protocol mismatch >:[ <{NC}>');
     }
@@ -294,7 +294,7 @@ sub unix_auth {
         error_exit(':: authentication not successful :: <{NC}>');
     } elsif ( $answer =~ m,^>:|, ) {
         print " :: authentication timeout ::\n";
-        return 0;
+        return FALSE;
     } else {
         error_exit(':: protocol mismatch >:[ <{NC}>');
     }
@@ -306,7 +306,7 @@ sub s_write {
     my $write_str = shift;
     utf8::encode($write_str);
     IO::AIO::aio_write( $write_fh, undef, length($write_str),
-        $write_str, 0, sub { $b_written = $_[0] } );
+        $write_str, 0, sub { $b_written = $ARG[0] } );
     IO::AIO::flush();
     undef $b_written if $b_written < 0; # <-- emulates syswrite() behaviour .,
     return $b_written;
@@ -315,8 +315,8 @@ sub s_write {
 sub clear { print "\e[37m\e[H\e[2J" }
 
 sub shell_loop {
-    my $sock   = $_[0];
-    my $prompt = $_[1];
+    my $sock   = $ARG[0];
+    my $prompt = $ARG[1];
 
     if ( not $stdout_pid = fork() ) {
         $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = qw| IGNORE |;
@@ -335,14 +335,14 @@ sub shell_loop {
 
     $term->add_history('');
 
-    $connect = 0;
+    $connect = FALSE;
     my $last_line = '';
     while ( -S $sock
         and override_signals()
         and defined( my $line = $term->readline($prompt) ) ) {
-        $WARNED  = 0;
-        $connect = 1;
-        print "\e[37m";
+        $WARNED  = FALSE;
+        $connect = TRUE;
+        print $C{'T'};    ##  reset to 'true' color  ##
         if ( $line ne '' ) {
 
             $term->add_history($line) if $line ne $last_line;
@@ -350,7 +350,7 @@ sub shell_loop {
 
             if ( $line =~ m|^\. cd (.+)| ) {
                 my $cd_path = $LAST_PAREN_MATCH;
-                if ( !chdir($cd_path) ) {
+                if ( not chdir($cd_path) ) {
                     warn_err( 'cd [ %s ] %s <{NC}>',
                         -1, $cd_path, scalar format_error( $OS_ERROR, -1 ) );
                 }
@@ -368,14 +368,14 @@ sub shell_loop {
                 }
                 use warnings;
             } else {
-                if ( $line eq '[reset]' ) {
+                if ( $line eq qw| [reset] | ) {
                     system(qw| reset |);
                     $line = '';
                     say '';
                 }
                 if (    length($line)
                     and $line ne '[quit]'
-                    and !s_write( $sock, "$line\n" ) ) {
+                    and !s_write( $sock, sprintf( "%s\n", $line ) ) ) {
                     sleep(0.1);
                     $stored_cmd = $line;
                 }
@@ -408,13 +408,13 @@ sub shell_loop {
             last;
         }
     }
-    if ( !$connect ) {
+    if ( not $connect ) {
         if ( -S $shell_sock ) {
             s_write( $shell_sock, "\nexit ==\\ lost terminal \\==\n" );
             close($shell_sock);
         }
         kill( 9, $parent_pid );
-        exit(1);
+        exit(qw| 0110 |);
     }
 }
 
@@ -434,7 +434,7 @@ sub stdout_fork {
 
 sub rl_filename_list_lcl
 {    #<- currently not working since Term::ReadLine switch
-    my ( $text, $line, $pos ) = @_;
+    my ( $text, $line, $pos ) = @ARG;
 
     if ( !$pos or $line !~ m|^\. | ) {
         no warnings 'once';
@@ -443,7 +443,7 @@ sub rl_filename_list_lcl
         if ( !$WARNED and $line !~ m|^\. | ) {
             print "\n<< prefix '. ' can be used for local shell commands"
                 . ", check 'commands' for network >>\n";
-            $WARNED = 1;
+            $WARNED = TRUE;
         }
         return '';
     }
@@ -461,11 +461,25 @@ sub rl_filename_list_lcl
     return @files;
 }
 
+sub terminal_size {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
+
+    return ( $size_aref->[1], $size_aref->[0] );
+}
+
 sub override_signals {
     map { SigAction::SetCallBack->sig_registry( $ARG, \&readline_signals ) }
         qw| INT TERM HUP |;
 
-    return $term_loop = 1;
+    return $term_loop = TRUE;
 }
 
 sub restore_signals {
@@ -474,13 +488,21 @@ sub restore_signals {
 
 sub readline_signals {
     my $sig_name = shift;
+
+    my $line_width = [ terminal_size() ]->[1];
+    my $line_space = ' ' x abs( $line_width - length $prompt );
+    print sprintf "\r%s%s%s%s%s%s\r", $C{b}, $C{0}, $prompt, $C{R},
+        $line_space, $C{'R'};
+
     $term->free_line_state;
     $term->cleanup_after_signal;
     parent_exit();
 }
 
 sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
-    print $term_loop ? "\n$C{0}\e[5m.\n.\n.\n$C{R}\n" : "\n ::\n :\n\n";
+    print $term_loop
+        ? "\n$C{0}\e[5m.\n.\n.\n$C{R}\n"
+        : "\n ::\n :\n\n";
     if ( -S $shell_sock ) {
         $shell_sock->shutdown(2);
         $shell_sock->close();
@@ -490,8 +512,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,.,,...,,,.,..,,,,.,,,.,,..,.,.,.,.,...,,,,,..,,...,...,...,,.,,,,.,,,,,.,.,
-#3PNCFVFO3N4HQNM5IJ663KDPNKAX4JBP2VKEFJ2WMXVPMEZEAY5467SJPYG27RJLFF57TUPIKSUCK
-#\\\|DXMXYGW3FL3HYNEEUYKR2OW7UKONSNWKSNUKC3IZMFJ3LMQZLNF \ / AMOS7 \ YOURUM ::
-#\[7]HBA6YTBYG3VXD256TIQB2LD6IZNEUYDO7IMJHYII77RB35LCQWAA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,,..,...,,,,,.,,,,..,.,.,.,.,..,,...,...,...,...,..,,..,,...,
+#HAMNHOXOYJM65MXR2GVL5D5XAJ33KVJWEPM4TZDFCP2E4SAKIXWSPIHHDEZU5FUVCRZNBDBGVQOIU
+#\\\|N4U32MC2H2SINEYJ72FP6S4NQLYFP6BH5DIVLBCPRZ3JPXXHCID \ / AMOS7 \ YOURUM ::
+#\[7]HUH6E62EIVTXSOA6FBM4RQWF5I5MGCO5JJDSWB7BAZGLLWQFGOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
