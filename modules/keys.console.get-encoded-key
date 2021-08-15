@@ -14,12 +14,15 @@ return printf "\n  << key with name '%s' not found >>\n\n", $name
     if not <[crypt.C25519.key_exists]>->($name);
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+
 my $maxlen
-    = [ minmax map {length} keys $key_vars_ref->{'key_filename'}->%* ]->[1];
+    = [ minmax map {length}
+        grep { -e $key_vars_ref->{'key_filename'}->{$ARG} }
+        keys $key_vars_ref->{'key_filename'}->%* ]->[1];
 
 if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     my $key_file_ref = <[file.slurp]>->($file);
-    chomp( $key_file_ref->$* );
+    chomp $key_file_ref->$*;
     return say $key_file_ref->$*;
 } elsif ( defined $type ) {
     print "\n  <<  type parameter not understood  >>\n\n";
@@ -31,17 +34,18 @@ if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     say '  :';
 } else {
     foreach my $type ( <[base.sort]>->( $key_vars_ref->{'key_filename'} ) ) {
-        my $file         = $key_vars_ref->{'key_filename'}->{$type};
+        my $file = $key_vars_ref->{'key_filename'}->{$type};
+        next if not -e $file;    ## only existing types ##
         my $key_file_ref = <[file.slurp]>->($file);
-        chomp( $key_file_ref->$* );
+        chomp $key_file_ref->$*;
         say '';
         say sprintf ':. %-*s .: %s ::', $maxlen, $type, $key_file_ref->$*;
     }
     say '';
 }
 
-#,,,,,..,,,.,,.,.,,,,,,,.,.,,,..,,,.,,,.,,,,.,..,,...,..,,,..,,..,,..,,.,,.,.,
-#CYYAFWJLS7VXLVIXNSB2EWPRFSGETSNIFS2R26AISEQ6ZB4E5QYMFGJLVU7UXMUECCSPMUDBGUT2E
-#\\\|BLE3A6RS5NPK2SJJTSAWN3IPKPSPK6JEMWFPNSWYZBOCEGGLP6G \ / AMOS7 \ YOURUM ::
-#\[7]KGZCOJIGCNTLU4B34SDXHRV7FCA43GUQBARY56JIFNXL7TOEZODQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,.,,,,.,,,.,,,,.,,.,,.,.,,,.,..,,...,..,,.,.,,..,,.,,.,.,,.,,
+#K2MKXKUVPER6GBDGOS36BCBOICNP6UYNLG7E53HVEWM2UTFGAHHVUI7U6INDKAVYFEZESD5RY27CA
+#\\\|KCTYZFIN6U4KPYWEZZHXGCMX42H4I6JDQMD2DFVTICQSOBW2C2S \ / AMOS7 \ YOURUM ::
+#\[7]F34VPN7GAFE4NSAGSQQY6RHTBLUVT6OYWWRTG62LI5T62YOUFYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
