@@ -2,29 +2,35 @@
 
 # name  = source.load_signature_key
 
-my $key_name = shift // '';
-die 'signature key name expected' if not length $key_name;
+my $sigkey_name = shift // <source.C25519.signature_key_name>;
+
+##[ nailara.source ]##
+##
+if ( not length $sigkey_name ) {
+    warn 'signature key name is not defined <{C1}>';
+    return undef;
+}
 
 ##  enable in zenka config to auto-create key  ##
 <source.autocreate-sig-key> //= FALSE;
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($sigkey_name);
 my $key_dir      = $key_vars_ref->{'key_dir'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 
 my $success = FALSE;
 
-my $sign_key_exists = <[crypt.C25519.key_exists]>->($key_name);
+my $sign_key_exists = <[crypt.C25519.key_exists]>->($sigkey_name);
 
 if ( $sign_key_exists
-    and <[crypt.C25519.load_keypair]>->( $key_name, undef, TRUE ) ) {
+    and <[crypt.C25519.load_keypair]>->( $sigkey_name, undef, TRUE ) ) {
 
     $success = TRUE;    ##  key loaded  ##
 
 } elsif ( not $sign_key_exists
     and <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
-    if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
-        $success = TRUE if <[crypt.C25519.write_keys]>->($key_name);
+    if ( <[crypt.C25519.gen_keys]>->($sigkey_name) ) {
+        $success = TRUE if <[crypt.C25519.write_keys]>->($sigkey_name);
     }
 
     <[base.log]>->(
@@ -37,8 +43,8 @@ if ( $sign_key_exists
 
 return $success;
 
-#,,.,,.,,,,,.,,..,,.,,,,.,,..,,,,,..,,,,.,,,.,..,,...,.,.,,.,,,.,,.,.,,..,.,.,
-#FB3ERAZRWV7S3IFU2LXTCFYMZ4SGK7ULOZVZWJHXQTYRJRL3O7HUDOIG2JGJIRJNBHLML32MFE2UI
-#\\\|UQPNNE3IOR62BOUS667XEFIDWFOA2XPGIRZ3XVHOKOOKGZFZG64 \ / AMOS7 \ YOURUM ::
-#\[7]BCIWBHMP6C3ISZ4VCEUSPEV56V6NIZVAIZ4DC57OZBUM3RUFRUAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,..,,,.,,.,.,,,.,,.,,,,,,,,,,..,,...,...,...,,..,...,,.,,,..,
+#EOFREGTPWUKJHM5CAG6FNIFHTEXTROCMMBMIDVE4INY3ZNQDNO4YEVCJOEGACA4PXCQ4FIBLQDXLU
+#\\\|SEFBETYPYXZXST5LXT74VI4C3T6MKJY3WAT7RDYD4VMXVQDVW4P \ / AMOS7 \ YOURUM ::
+#\[7]BHZ2KXM3N56RQVKSR7GKC5IVSGILT55D7W5A3E5YAEWI5GCMAQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

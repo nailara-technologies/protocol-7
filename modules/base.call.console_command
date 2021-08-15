@@ -6,7 +6,7 @@
 
 ( my $console_cmd, my $console_params ) = split( m| +|, shift, 2 );
 
-<base.ntime-harmony> = 0;
+<base.ntime-harmony> = FALSE;
 
 $console_cmd //= qw| commands |;
 
@@ -24,10 +24,12 @@ if (   not defined $code{$command_handler}
     return;
 }
 
+<system.console.command> = $console_cmd;
+
 $code{$command_handler}->($console_params);
 
-#,,,,,.,.,.,,,,,.,..,,,,,,.,.,,,.,,,,,,.,,,..,..,,...,...,,.,,,..,...,..,,...,
-#53RUZXESCEJNYR3V4XAKTWR26RKX2DEUV5XLROA43DWLXB5WPSMJTIHR26Z3J6MWQMBSZ4YA7SK62
-#\\\|3K3CNBMUPTS64EPEXZPQ73Y3DVJ7IV2IV5DIGTJ7NDEGJWWELMV \ / AMOS7 \ YOURUM ::
-#\[7]XHVNEKXE4SXOMLNBTR3MGYO67L3CUV2E27ECEJ3R4ZLEULVT4AAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,,..,,,.,,,.,.,,,..,,,.,,,..,..,,...,..,,,.,,..,,,..,,,.,..,,
+#FDSTZJLPHORWEOCMYYJIBTYKOTMDAV6HQOCJMRSLSTBWLPIFGPMKKZNV4H7XECYWV5U5V554UG7DY
+#\\\|WMC6WGJG5Z5YGUKNUEOABJAXGUWY6BZSLHBTX3STONTTPRK5S4U \ / AMOS7 \ YOURUM ::
+#\[7]XUGI2Z5HSIYFWQOIY5YZ2HMNDHC3OQM6PZFLTXW7XWL5SX2NDYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

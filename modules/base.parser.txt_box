@@ -23,6 +23,9 @@ if ( length($title_str) ) {
     );
 }
 
+<[base.perlmod.load]>->('AMOS7::TERM')
+    if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+
 ##[  todo : also adjust side padding ..,  ]##
 ##
 my @term_size = grep {defined} ( AMOS7::TERM::terminal_size() );
@@ -48,8 +51,8 @@ return join "\n",
     ' :' . '.' x $len_2 . ":\n",
     @line_feed_bottom;
 
-#,,.,,...,,,,,,..,.,.,,..,..,,,,,,.,.,...,,..,..,,...,...,,,,,...,.,,,,,,,...,
-#CAWDO6N3YBPC2S4Z4JQTNWS2AFLSRRIQGACYXIMRP7V65W7IXR4ASGOG3G33DLQDMOD6233LVMYN4
-#\\\|DWC3VJFAVGP6LI4KMLF4LK65SRUPPVTFW2M4BB2DDYXJZXTXK3H \ / AMOS7 \ YOURUM ::
-#\[7]II4MQ63RUC6MGAALGHAIHSCYISPM7WJQCJE2PYN6GXDZNISMICBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,.,,..,,.,,,...,,,,,...,..,,.,,,..,,...,...,,..,..,,...,,.,,,.,,
+#RM36X2ZWLFRCKAWFMWGM6CIZHIPQEGSKBQZBYIY5OIZZXJOL64ATGVM3QDX54O6376XTHOBRZLL4S
+#\\\|E6DHPJTTV3TY7IM7XXLRFQR3UVH5RIKRQA6KJ5BHUXW47RZLWEV \ / AMOS7 \ YOURUM ::
+#\[7]QNLX2AKXR7JIDIAXGW67LUQ5DNU2BW62O2N5HQAUHKPDH4ZINCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
