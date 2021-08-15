@@ -1,9 +1,30 @@
-#!/bin/bash
+#!/usr/bin/perl
 
-git status | strip-ansi-colors | grep : | sed 's|^.* ||' | grep -v ':$' | sort
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Capture::Tiny qw| capture |;
 
-#,,,,,,..,,.,,,.,,,,,,..,,,..,..,,,,,,,..,,.,,..,,...,...,.,,,...,..,,,.,,..,,
-#M6FJI53GMZRK4EPJKT6JJIFC7ZXZ6NKVRJ6GSJUE3HWPCJX2Z3UGLNRNLF2RBBDVMWHKQMNIOPRIK
-#\\\|4Q3Y3GET3DUNBYZUHN2FOPUJGI77U62LU2E2ARKZXRAR3CFMX6Z \ / AMOS7 \ YOURUM ::
-#\[7]DRYZKQ2SXHJHK6G2TBVIBYSIK3NSGSF653UUCFM53EN4OH46OCAI 7  DATA SIGNATURE ::
+my ( $stdout, $stderr, $exit ) = capture {
+    system qw| git status |;
+};
+chomp $stdout;
+
+foreach my $line (
+    sort { length $a <=> length $b }
+    reverse sort split( "\n", $stdout )
+) {
+    $line =~ s|\e\[.*?[mJH]||g;    ##[ strip ansi colors ]##
+    next if index( $line, qw| : | ) == -1;
+    next if $line =~ m|:$|;        ##  show only 'modified:'  ##
+    $line =~ s|^.*[ \t]+||;
+
+    say $line;
+}
+
+#,,,.,,,,,,..,.,.,,..,,..,..,,,,,,,.,,...,.,,,..,,...,...,,.,,,,.,...,,,.,.,.,
+#UVDZ44TFYTGEZROFP53W2C5I74LOLUVK3U2MIAGA4I5VMISTLXYAGGWHCSSGOERHZN2XJDZPVKAAU
+#\\\|4AOSPU2JYGG3NLN5LLO4VGCLZS6UQDZJ3MJO6WP2F7UYWMWJVFX \ / AMOS7 \ YOURUM ::
+#\[7]RQVHUL5JGVJDAA7PHQ5RUATJWLT2ZVPZAHL7DFF3NVMSYEGGGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
