@@ -86,7 +86,7 @@ my @not_yet_present_keys;
 my $key_name_collisions = 0;
 my $identical_key_count = 0;
 foreach my $extracted_filename ( <[base.sort]>->($read_user_keys) ) {
-    if ( not <[keys.key_exists]>->($extracted_filename) ) {
+    if ( not <[crypt.C25519.key_exists]>->($extracted_filename) ) {
         push @not_yet_present_keys, $extracted_filename;
         next;
     }
@@ -206,8 +206,8 @@ return say sprintf "\n  ::[  wrote %d archived key file%s to disk. =)  ]::\n",
     $write_success_count, <[base.cnt_s]>->($write_success_count),
     if $write_success_count;
 
-#,,..,.,,,,..,,,,,.,,,,.,,,..,,,,,...,.,.,..,,..,,...,...,.,.,.,,,,..,,..,,..,
-#ZIPTBIRPNZANFBDCDQIM53EF55G6NBT3V73HOFMHLWVC7SCG42INPUIEH4MKC3CNGWYXWNMAOFH5S
-#\\\|RN3XBO7BMW4PEWCAQD2YWJGUYLLTLKKMNUSB2OLJNF5HSILDP7F \ / AMOS7 \ YOURUM ::
-#\[7]WSKTXH7M677GJITRGEQX664TXDLO66H5KG46TJY65EYMZRCFTWDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,,,,,,.,,,,,.,.,..,,.,.,,.,,..,,...,...,.,,,,,,,...,.,.,.,,,
+#BJN2R7EHRLE77LIGAH2ZKJXMIH4YGN656PJQE4U4F2L6DBAL5M74THEYUYIB4TEX6WGJ3S222YRTE
+#\\\|52FZACU6XSHKKIMSJM7NNLSAOL5TQAJDDXUWDFGV67IXII6RFDG \ / AMOS7 \ YOURUM ::
+#\[7]ATNUVADTT3T24YRDCCQQJSC4J3BWRZ4PVOSI5BUSRLMK6AJY6ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,9 +29,9 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
-our $term_read_key_support //= FALSE;
 our $pwd_min_len           //= 13;
-our $pwd_read_aborted      //= 0;
+our $pwd_read_aborted      //= FALSE;
+our $term_read_key_support //= FALSE;
 
 autoload('Term::ReadKey');
 $term_read_key_support = TRUE if defined &Term::ReadKey::ReadMode;
@@ -80,21 +80,6 @@ sub read_password_repeated {
                 or $password_status == 1 )
         ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
-
-        } elsif (
-            $password_status == 0    ##  checking min pwd length  ##
-            and length($password_0) < $pwd_min_len
-        ) {
-
-            undef $password_0;
-            if ( defined $main::PROTOCOL_SEVEN ) {
-                $main::code{'base.logs'}
-                    ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
-            } else {
-                warn_err( ' <<  pasword min len is %d  >> <{NC}>',
-                    -1, $pwd_min_len );
-            }
-            sleep 1.2;
 
         } elsif ( $password_status != 1 ) {
 
@@ -149,9 +134,8 @@ sub read_password_single {
     my $output_lines   = shift // 0;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
-    my $sig_int          = $SIG{'INT'};
     my $password_status  = 0;
-    my $pwd_read_aborted = 0;
+    my $pwd_read_aborted = FALSE;
     my $autoflush        = $OUTPUT_AUTOFLUSH;
 
     $OUTPUT_AUTOFLUSH = TRUE;
@@ -165,11 +149,13 @@ sub read_password_single {
             $C{'R'}, $C{'0'}, $C{'R'};
     }
 
+    my $read_pwd;
+
+REREAD_PASSWORD:
+
     printf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'}, $C{'0'}, $C{'T'}, $C{'B'},
         $message_prompt,
         $C{'R'}, $C{'0'}, $C{'T'};
-
-    my $read_pwd;
 
     eval 'Term::ReadKey::ReadMode(4)' if $term_read_key_support;
 
@@ -179,6 +165,8 @@ sub read_password_single {
         $read_pwd = Term::ReadPassword::read_password( '', 13, TRUE );
 
         if ( not length( $read_pwd // '' ) ) {
+
+            $OUTPUT_AUTOFLUSH = $autoflush;
 
             if ( defined $main::PROTOCOL_SEVEN ) {
                 printf "%s:\n", $C{'0'};
@@ -191,6 +179,8 @@ sub read_password_single {
             return undef;
 
         }
+        $OUTPUT_AUTOFLUSH = $autoflush;
+
         return $read_pwd;
     }
 
@@ -223,8 +213,28 @@ sub read_password_single {
             }
             $read_pwd = '';    ##  reset password entered  ##
 
+            ##  checking min pwd length  ##
+            ###
+        } elsif ( $code == 10
+            and length( $read_pwd // '' )
+            and length($read_pwd) < $pwd_min_len ) {
+            if ( defined $main::PROTOCOL_SEVEN ) {
+                printf "\n%s:\n", $C{'0'};
+                $main::code{'base.logs'}
+                    ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
+            } else {
+                warn_err( ' <<  pasword min len is %d  >> <{NC}>',
+                    -1, $pwd_min_len );
+            }
+            sleep 1.2;
+            $read_pwd = '';    ##  reset password entered  ##
+            goto REREAD_PASSWORD;
+
         } elsif ( $code == 10 and length $read_pwd ) {   ##  read complete  ##
             eval 'Term::ReadKey::ReadMode(0)' if $term_read_key_support;
+
+            $OUTPUT_AUTOFLUSH = $autoflush;
+
             say sprintf "\n%s:%s", $C{'0'}, $C{'R'};
             return ( $read_pwd, $password_status ) if wantarray;
 
@@ -293,6 +303,8 @@ sub read_password_single {
             error_exit(' [ password input timeout ]');
         }
 
+        $OUTPUT_AUTOFLUSH = $autoflush;
+
         return ( undef, $password_status ) if wantarray;
         return undef;
 
@@ -312,11 +324,12 @@ sub read_password_single {
         } else {
             error_exit(' [ password read aborted ]');
         }
+
+        $OUTPUT_AUTOFLUSH = $autoflush;
+
         return ( undef, $password_status ) if wantarray;
         return undef;
     }
-
-    $SIG{'INT'} = $sig_int;
     $OUTPUT_AUTOFLUSH = $autoflush;
 }
 
@@ -425,8 +438,8 @@ sub alternate_readkey {    ##  adapt code from Term::ReadPassword  ## [ LLL ]
 
 return TRUE ##################################################################
 
-#,,.,,...,.,,,,,,,..,,,.,,,..,.,,,...,,..,,.,,..,,...,...,...,,,,,,,.,.,,,,.,,
-#VAE5QSLOWMINHJAWAHXVBNE7W6SECNLRURCSUONKVA4E2ZLHQQD6FOIWFSA356WIKQCRBD5UVGFQS
-#\\\|VP5B4HZB7YHBJKSNIR5DQGWXLDY4P4YDLNSDAJUERG44XDG6ZLM \ / AMOS7 \ YOURUM ::
-#\[7]7N4IKS77S5SLVXHMJHR3WUSUXEIUSP3YL55O32A6YX544K5RRYCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,.,..,,,,,,...,,,,,,,.,,,,,...,..,,...,...,..,,,..,.,,,.,.,,..,
+#RV6AUGE3R33DTNIZU7HEDU2DSHETURJ5RTMBDYG3LCXRDZ2LUDPDAKEHEKELNZMVRXPDSYHPQJ3AM
+#\\\|NDTZUZXXFLAC5UJJWSV4U3X7ITGHO77DI5ONYKXKBJHUGQAD2GB \ / AMOS7 \ YOURUM ::
+#\[7]V3D33ESEK3VYM7SV7QGOKE5LLV7YXCNDCPI55SF5RJBYNGFITYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

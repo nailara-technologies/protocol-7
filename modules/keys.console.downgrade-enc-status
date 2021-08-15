@@ -10,7 +10,7 @@ return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $name;
 
 return say sprintf "\n  << user-key %s not found >>\n", $name
-    if defined $name and not <[keys.key_exists]>->($name);
+    if defined $name and not <[crypt.C25519.key_exists]>->($name);
 
 my $key_encrypted = <[crypt.C25519.encrypted_key]>->($name);
 
@@ -121,8 +121,8 @@ if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
 return printf "\n  ::[  private key %s now marked unencrypted  ]::\n\n",
     $name;
 
-#,,,.,..,,.,,,..,,..,,...,,..,...,...,...,,,.,..,,...,...,...,,,.,,..,..,,,,,,
-#IHFYUMXK24LP5BVS5GAPUWKBYGC2L4ME7ISLQLXP73RZRZQLJ5OGYDWLOEKGKABO4ZPRCVL5S5JGA
-#\\\|FIYBPHD7TTNATMBFJQ7WQYZTDIO6TF2LBHT4QUBD4BW57VLCT3W \ / AMOS7 \ YOURUM ::
-#\[7]HG274KCIWM6HYBSF53IZV7LA6SCNM356ES3UO3YJIMW3OV55KUAA 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,,..,.,.,...,.,.,,,,,..,,..,,..,,...,...,,.,,...,,,.,..,,..,,
+#ZH66GUM3A776YB5YXYVIYCYLYI76DAAVH4SFTAHEFQHHVYZYUGA4KQART6VH54BFJVKGD4VQ2BE3I
+#\\\|CCMAKWXHYKHHLBPPOBM4EDELCAREPGMMEDSCNOWQVHIBHQPHVCJ \ / AMOS7 \ YOURUM ::
+#\[7]LGJNB3T2XCAQQDIASKBHQ3PYZRIN5FSVMAOK6VOOWS4ER6GHOCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

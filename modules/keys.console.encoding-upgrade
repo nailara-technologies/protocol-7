@@ -9,7 +9,7 @@ my $name = shift;
 my @k_files = <[base.reverse-sort]>->(<[keys.get_keyfiles]>) or return;
 
 return say sprintf "\n  << user-key %s not found >>\n", $name
-    if defined $name and not <[keys.key_exists]>->($name);
+    if defined $name and not <[crypt.C25519.key_exists]>->($name);
 
 @k_files = grep { !m|\.upgraded\.| } @k_files;
 
@@ -175,8 +175,8 @@ return say sprintf "\n  :: successfully upgraded %d key file%s ::\n",
     $upgraded_count, <[base.cnt_s]>->($upgraded_count)
     if $upgraded_count > 0;
 
-#,,.,,,..,..,,.,,,.,.,,,.,,,.,.,,,,.,,,..,.,.,..,,...,...,..,,,..,,,.,.,.,,.,,
-#QQWKKAI44AVSSCCFG226I7R2VTZHZYEGGVISRLPGGN5G4EZPRIPKL2FO57BW7FACZ5QGGMAH2DQX6
-#\\\|FAQSCJK7ILEMNNZOC2USR23V7CI5XC6RYOACN3VLEL6V35VQWAX \ / AMOS7 \ YOURUM ::
-#\[7]RZ7VIZBOAURNBQYFRYU6YFG56RU2SW6AOFAALCBYQUG3FKTDHKCI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,.,.,,,.,.,,,,.,,,.,,.,.,..,,..,,...,.,.,,.,,.,,,,,,,...,.,,,
+#O35UJVCIDEHAZFUYT24IPT4EUPTQ7WHIYWMPROUGOVQZHNC7CZDCAO7R6A53KP7PLIYKLYGQAE5NM
+#\\\|T3FUSLSR3XUCLVPUEK3U7XCQ7L6CAKDNGUABVCPAYGN2IRPS3S4 \ / AMOS7 \ YOURUM ::
+#\[7]AWLVJHMROCWPX5AATROZJEJMLJPTPLJSJ2GTX4RC6EQZETKQGYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

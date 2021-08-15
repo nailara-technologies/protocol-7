@@ -2,36 +2,43 @@
 
 # name  = source.load_signature_key
 
-my $success  = 0;
 my $key_name = shift // '';
 die 'signature key name expected' if not length $key_name;
 
 ##  enable in zenka config to auto-create key  ##
-<source.autocreate-sig-key> //= 0;
+<source.autocreate-sig-key> //= FALSE;
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
 my $key_dir      = $key_vars_ref->{'key_dir'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 
-my $action = qw| created |;
-$success = 1
-    if <[crypt.C25519.load_keypair]>->($key_name) and $action = qw| loaded |
-    or (<[base.cfg_bool]>->(<source.autocreate-sig-key>)
-    and <[crypt.C25519.gen_keys]>->($key_name)
-    and <[crypt.C25519.write_keys]>->($key_name) );
+my $success = FALSE;
 
-## todo : [more] silently load public key for verification onlu ##
+my $sign_key_exists = <[crypt.C25519.key_exists]>->($key_name);
 
-if ( not $success and not <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
+if ( $sign_key_exists
+    and <[crypt.C25519.load_keypair]>->( $key_name, undef, TRUE ) ) {
+
+    $success = TRUE;    ##  key loaded  ##
+
+} elsif ( not $sign_key_exists
+    and <[base.cfg_bool]>->(<source.autocreate-sig-key>) ) {
+    if ( <[crypt.C25519.gen_keys]>->($key_name) ) {
+        $success = TRUE if <[crypt.C25519.write_keys]>->($key_name);
+    }
+
     <[base.log]>->(
         0, 'autocreate-sig-key not enabled, not creating signature key..,'
-    );
+    ) if not $success;
+
 }
+
+##  todo : [more] silently load public key for verification only  ##
 
 return $success;
 
-#,,,,,,..,.,.,...,,..,,,,,..,,..,,.,.,,,,,..,,..,,...,...,...,.,,,...,..,,,,,,
-#YYHLH2SAOG6JYQYGAWAOFBB2YVGAF5IQROMRCXPLS4M52EIZYTCGO33UA7AE6EQPRWM3JXGVM5ICI
-#\\\|QQ3EYI5RTOG6P3M3HWV7AA2XHO6EC3T7OI7WKGEWUA5MW3SYSGB \ / AMOS7 \ YOURUM ::
-#\[7]VXDSMAKCV6BM5L6FHCXBEDF4TBYJCKDFA6JQEDAEACLUWQTQIQDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,.,,,,.,,..,,,,,..,,,,.,,,.,..,,...,.,.,,.,,,.,,.,.,,..,.,.,
+#FB3ERAZRWV7S3IFU2LXTCFYMZ4SGK7ULOZVZWJHXQTYRJRL3O7HUDOIG2JGJIRJNBHLML32MFE2UI
+#\\\|UQPNNE3IOR62BOUS667XEFIDWFOA2XPGIRZ3XVHOKOOKGZFZG64 \ / AMOS7 \ YOURUM ::
+#\[7]BCIWBHMP6C3ISZ4VCEUSPEV56V6NIZVAIZ4DC57OZBUM3RUFRUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
