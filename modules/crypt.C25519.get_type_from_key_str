@@ -12,6 +12,12 @@ if ( not length $C25519_keystr ) {
 }
 my $key_len   = length $C25519_keystr;
 my $size_type = <crypt.C25519.keys.sizetype>;
+
+if ( not defined $size_type ) {
+    warn 'module crypt.C25519 is not initialized yet <{C1}>';
+    return undef;
+}
+
 ##  size table has all known types  ##
 if ( not exists $size_type->{$key_len} ) {
     <[base.s_warn]>->(
@@ -141,8 +147,8 @@ if ( $key_details->{'encrypted'} == UNKNOWN ) {
 
 return $first_details;
 
-#,,.,,.,.,,..,,,.,,..,,,,,,..,,.,,..,,.,,,,..,..,,...,...,,..,..,,,,,,...,...,
-#NY47OHGIQTJKUBPD3GHS2LZHKXFEW2KQD6F5DWP322FIGABMVDQ4IEGFSCQZI6SH5JVZ27OEGQXS4
-#\\\|MVF5VDT72T6NTJ7OAFXPSDQXBOK6TEEAWVGA5ZLV67P62N57GSH \ / AMOS7 \ YOURUM ::
-#\[7]GEND3J2GLK5OILGUWKLOKUU4V7NBI4XSQKVFE3MAW7J75QWKVGCY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,...,,..,,..,...,.,,,,,,,.,,,..,,...,...,..,,,,,,.,,,.,.,,.,,
+#4LWDOW5N53HLDN7VYFRMYRJJ2LXJIFXQXH7H2VBLMSSNMJYCCW3SGGNSGRURUCTA73BLSEAWTGBAS
+#\\\|O3XJEGJXCQQZVTLEPNCFBDQBPILF7GVYNH4LMVRR4TQAUA7YOZG \ / AMOS7 \ YOURUM ::
+#\[7]TLX742ZWGMGE5WSM525EOQDIFLS67K6GIHN44ZVARLOYZN6OLUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
