@@ -1,17 +1,19 @@
 ## >:] ##
 
-# name = crypt.C25519.write_keys
+# name  = crypt.C25519.write_keys
+# descr = write keys to disk and encrypt or erase from mem [default]
 
-my $key_name_param = shift;    ##  optional  ##
-my $key_password   = shift;    ##  optional  ##
+my $name_param   = shift;            ##  optional  ##
+my $key_password = shift;            ##  optional  ##
+my $erase_keys   = shift // TRUE;    ##  set to FALSE to keep keys loaded  ##
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
 
 my $uid          = $key_vars_ref->{'uid'};
 my $gid          = $key_vars_ref->{'gid'};
 my $key_usr      = $key_vars_ref->{'usr_name'};
 my $usr_hdir     = $key_vars_ref->{'usr_home'};
-my $key_name     = $key_vars_ref->{'key_name'};
+my $name         = $key_vars_ref->{'key_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 
 foreach my $keyfile_extension (qw|  public  secret  |) {
@@ -46,12 +48,12 @@ foreach my $type (qw|  private  public  |) {
         chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
     }
 
-    my $key_bin_str = $keys{'C25519'}->{$key_name}->{$type};
+    my $key_bin_str = $keys{'C25519'}->{$name}->{$type};
 
     if ( not defined $key_bin_str or not length $key_bin_str ) {
         <[base.s_warn]>->(
             '%s key [ %s ] is not defined \ empty <{C1}>',
-            $type, $key_name
+            $type, $name
         );
         return undef;
     }
@@ -151,14 +153,29 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
             );
         }
     }
+
+    ##  erase keys from memory  ##
+    ##
+    if ($erase_keys) {
+        <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );  ##[ silent ]##
+    }
+
+    ##[  return status and key chksum  ]##
     return ( $keywrite_status, $key_checksum );
 
 } else {
-    return $keywrite_status;
+
+    ##  erase keys from memory  ##
+    ##
+    if ($erase_keys) {
+        <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );  ##[ silent ]##
+    }
+
+    return $keywrite_status;    ## return write success status ##
 }
 
-#,,..,,.,,.,,,,..,..,,,,.,.,.,.,,,,..,,.,,.,,,..,,...,..,,...,..,,,..,.,,,.,.,
-#5B7QTGQPL5U34WIREOLSMIDTXMJQOLITY224UPULOS66E4XR25UMCTXK7EOK23YLEQJS6GTAGWZBW
-#\\\|SGW2IGUP5CZQYZQ3CXLCTYCJDSVXE7PHV55HJBYEENAESMLGIHL \ / AMOS7 \ YOURUM ::
-#\[7]EEAWM2GFDKBJTWN6PLCMSDL6Q4KDPJD3L4M7MXQVJNNSSN4NHYCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,,,.,...,..,,,,.,...,...,,,,,..,,...,...,...,,,,,.,,,,,,,,.,,
+#5MVLUBZT54IMHYLKIHEYSOO5LG57FYDVQTRTIL425WEHNIV3BBP76CXNKCDZCBIHNXVX6O33WJK6G
+#\\\|IVERPS7PHLZN4U5RY6LYFUP5DXIMBIYU2WENWK6QNRR4IEVPMD7 \ / AMOS7 \ YOURUM ::
+#\[7]GWZ5X4KUJVRMVJQS64WDAFTKW53FIJZUW4Q73FXN3EDDP3YXBOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
