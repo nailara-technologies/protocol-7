@@ -2,30 +2,88 @@
 
 # name = crypt.C25519.load_keypair
 
-my $key_name_param     = shift;             ##  optional  ##
+my $name_param         = shift;             ##  optional  ##
 my $key_password       = shift;             ## optional ##
 my $pwd_retry_on_error = shift // FALSE;    ##  false  ##
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
 
 my $key_dir      = $key_vars_ref->{'key_dir'};
 my $key_usr      = $key_vars_ref->{'usr_name'};
-my $key_name     = $key_vars_ref->{'key_name'};
+my $name         = $key_vars_ref->{'key_name'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
-my $private_key_file = $key_filename->{'private'};
+my $virtual_keyfile  = $key_filename->{'virtual'};
 my $public_key_file  = $key_filename->{'public'};
+my $private_key_file = $key_filename->{'private'};
 
-if ( -r $private_key_file and -r $public_key_file ) {
+if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
 
-    my $u_str = $key_name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
-    <[base.logs]>->( ":. C25519-key .:. '%s'%s", $key_name, $u_str );
+    <[base.logs]>->( "creating seedphrase key '%s' .,", $name );
+
+    my $key_seed_entropy;
+
+    if ( not defined $key_password ) {    ## requesting user input ., ##
+
+        <[base.perlmod.load]>->('AMOS7::TERM')
+            if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+        say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
+
+        $key_seed_entropy
+            = AMOS7::TERM::read_password_repeated(
+            'generation entropy passphrase');
+
+    } else {
+        $key_seed_entropy = $key_password;    ## given ##
+    }
+
+    if ( not defined $key_seed_entropy or length $key_seed_entropy <= 1 ) {
+        <[base.log]>->(
+            0, 'cannot generate the key without seed entropy passphrase'
+        );
+        return ( FALSE, undef ) if wantarray;
+        return FALSE;
+
+    } else {
+
+        <[base.logs]>->( ':. calculating [%s] ..,', $name );
+
+        ##  generate keypair from user seed entropy  ##
+        ##
+        if ( not <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy ) ) {
+            <[base.logs]>->(
+                0, "'%s' key generation was not successful .,", $name
+            );
+            return ( FALSE, undef ) if wantarray;
+            return FALSE;
+
+        } else {    ##  key is loaded ., ##
+
+            my $key_checksum = <[crypt.C25519.key_checksums]>->(
+                $keys{'C25519'}{$name}{'private'},
+                $keys{'C25519'}{$name}{'public'}
+            );
+
+            <[base.logs]>->(
+                ':  :. generated and loaded [%s] .,',
+                $key_checksum
+            );
+
+            return ( TRUE, $key_checksum ) if wantarray;    ## <-- chksum ##
+            return TRUE;
+        }
+    }
+
+} elsif ( -r $private_key_file and -r $public_key_file ) {
+
+    my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
+    <[base.logs]>->( ":. C25519-key .:. '%s'%s", $name, $u_str );
 
     my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
     my $encoded_public_key  = <[file.slurp]>->($public_key_file)->$*  // '';
 
     if ( not length $encoded_private_key or not length $encoded_public_key ) {
-        <[base.logs]>->( 0, "cannot load '%s' key data ..,", $key_name );
+        <[base.logs]>->( 0, "cannot load '%s' key data ..,", $name );
         return FALSE;
     } else {
         chomp($encoded_public_key);
@@ -33,31 +91,31 @@ if ( -r $private_key_file and -r $public_key_file ) {
     }
 
     ## decode [ base 32 ] ##
-    $keys{'C25519'}{$key_name}{'private'} = decode_b32r($encoded_private_key);
-    $keys{'C25519'}{$key_name}{'public'}  = decode_b32r($encoded_public_key);
+    $keys{'C25519'}{$name}{'private'} = decode_b32r($encoded_private_key);
+    $keys{'C25519'}{$name}{'public'}  = decode_b32r($encoded_public_key);
 
     foreach my $type (qw|  private  public  |) {
         <[base.logs]>->( 0, "BASE32 decoding failed [ %s key ]", $type )
-            if not defined $keys{'C25519'}{$key_name}{$type};
+            if not defined $keys{'C25519'}{$name}{$type};
     }
 
-    if (   not defined $keys{'C25519'}{$key_name}{'public'}
-        or not defined $keys{'C25519'}{$key_name}{'private'} ) {
-        <[base.logs]>->( 0, "cannot load key '%s'..,", $key_name );
+    if (   not defined $keys{'C25519'}{$name}{'public'}
+        or not defined $keys{'C25519'}{$name}{'private'} ) {
+        <[base.logs]>->( 0, "cannot load key '%s'..,", $name );
         return FALSE;    ##  false  ##
     }
 
     ( my $key_status ) = <[crypt.C25519.get_type_from_key_str]>->(
-        $keys{'C25519'}{$key_name}{'private'},
-        $keys{'C25519'}{$key_name}{'public'}
+        $keys{'C25519'}{$name}{'private'},
+        $keys{'C25519'}{$name}{'public'}
     );
 
     if ( not defined $key_status ) {
-        <[base.logs]>->( 0, "cannot read key status of '%s' .,", $key_name );
+        <[base.logs]>->( 0, "cannot read key status of '%s' .,", $name );
         return FALSE;    ##  false  ##
     }
 
-    substr( $keys{'C25519'}{$key_name}{'private'}, 0, 2, '' )
+    substr( $keys{'C25519'}{$name}{'private'}, 0, 2, '' )
         if $key_status->{'prefixed'} == TRUE;
 
     ##  decrypt private key [ when password provided ]  ##
@@ -69,15 +127,15 @@ if ( -r $private_key_file and -r $public_key_file ) {
                 if not <[base.perlmod.loaded]>->('AMOS7::TERM');
             say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
             $key_password = AMOS7::TERM::read_password_single(
-                sprintf( "'%s' key decryption password", $key_name ) );
+                sprintf( "'%s' key decryption password", $name ) );
         }
 
         if ( not defined $key_password ) {
-            undef $keys{'C25519'}{$key_name}{'private'};
-            delete $keys{'C25519'}{$key_name}{'private'};
+            undef $keys{'C25519'}{$name}{'private'};
+            delete $keys{'C25519'}{$name}{'private'};
             <[base.log]>->( 0, 'cannot decrypt private key .,' );
             <[base.log]>->( 1, ':' );
-            <[base.logs]>->( ": public key loaded ['%s']", $key_name );
+            <[base.logs]>->( ": public key loaded ['%s']", $name );
             <[base.log]>->( 1, ':' );
             return 0;
         } else {
@@ -86,7 +144,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
 
         my $dec_key_32 = AMOS7::13::key_32( \$key_password );
 
-        <[base.logs]>->( ": decrypting private key ., [ %s ]", $key_name );
+        <[base.logs]>->( ": decrypting private key ., [ %s ]", $name );
 
         if ( not defined $dec_key_32 or not length $dec_key_32 ) {
             warn 'error during file dec key derivation <{C1}>';
@@ -103,7 +161,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
         }
         my $decrypted_C25519_sref
             = AMOS7::Twofish::decrypt( qw| C25519 |,
-            \$keys{'C25519'}{$key_name}{'private'} );
+            \$keys{'C25519'}{$name}{'private'} );
 
         AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
 
@@ -114,7 +172,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
             return undef;
         } elsif (
             not <[crypt.C25519.compare_keypair]>->(
-                $keys{'C25519'}{$key_name}{'public'},
+                $keys{'C25519'}{$name}{'public'},
                 $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
             ) // FALSE
         ) {
@@ -126,40 +184,40 @@ if ( -r $private_key_file and -r $public_key_file ) {
 
             goto RE_READ_PWD if $pwd_retry_on_error;
 
-            undef $keys{'C25519'}{$key_name}{'private'};
-            delete $keys{'C25519'}{$key_name}{'private'};
+            undef $keys{'C25519'}{$name}{'private'};
+            delete $keys{'C25519'}{$name}{'private'};
 
-            <[base.logs]>->( ": public key loaded ['%s']", $key_name );
+            <[base.logs]>->( ": public key loaded ['%s']", $name );
             <[base.log]>->( 1, ':' );
             return FALSE;
         }
-        $keys{'C25519'}{$key_name}{'private'} = $decrypted_C25519_sref->$*;
+        $keys{'C25519'}{$name}{'private'} = $decrypted_C25519_sref->$*;
 
         ##  calculating key pair chksum  ##
         ##
         my $key_checksum = <[crypt.C25519.key_checksums]>->(
             $decrypted_C25519_sref->$*,
-            $keys{'C25519'}{$key_name}{'public'}
+            $keys{'C25519'}{$name}{'public'}
         );
         <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
 
-    } elsif ( defined $keys{'C25519'}{$key_name}{'private'} ) {
+    } elsif ( defined $keys{'C25519'}{$name}{'private'} ) {
         ##[  verifying [ unencrypted ] key pair match  ]##
 
         if (not <[crypt.C25519.compare_keypair]>->(
-                $keys{'C25519'}{$key_name}{'public'},
-                $keys{'C25519'}{$key_name}{'private'}
+                $keys{'C25519'}{$name}{'public'},
+                $keys{'C25519'}{$name}{'private'}
             ) // FALSE
         ) {
             foreach my $type (qw| private public |) {
-                undef $keys{'C25519'}{$key_name}{$type};
-                delete $keys{'C25519'}{$key_name}{$type};
+                undef $keys{'C25519'}{$name}{$type};
+                delete $keys{'C25519'}{$name}{$type};
             }
-            delete $keys{'C25519'}{$key_name};
+            delete $keys{'C25519'}{$name};
             <[base.log]>->( 1, ':' );
             <[base.log]>->( 0, ': private and public keys do not match .,' );
             <[base.log]>->( 1, ':' );
-            <[base.logs]>->( ": none of the keys loaded for %s", $key_name );
+            <[base.logs]>->( ": none of the keys loaded for %s", $name );
             <[base.log]>->( 1, ':' );
 
             return FALSE;    ##  false  ##
@@ -168,18 +226,17 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return TRUE;             ## true ##
 
 } else {
-    delete $keys{'C25519'}{$key_name};
+    delete $keys{'C25519'}{$name};
     delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
-    <[base.logs]>->(
-        0, "'%s' key pair not found or not readable ..,", $key_name
-    );
+    <[base.logs]>
+        ->( 0, "'%s' key pair not found or not readable ..,", $name );
     <[base.logs]>->( 0, " ::[ expected in : '%s' ]::", $key_dir );
 
     return FALSE;            ##  false  ##
 }
 
-#,,,,,.,.,,..,.,.,..,,..,,.,.,,..,,,,,...,,.,,..,,...,...,.,.,.,,,,.,,.,,,.,,,
-#EYFM2SXNQR6GOTNKDWBJ3TEWXOUQHWCEZMJP4O6KPEDWCR7R22TLDA7Y6KDQPUCB24OUZ2ENDYFBI
-#\\\|F2SBMQWK2OZ5AI3AQCOCMUDSQNG6GGG252J35ZGO7YS4ICNJZEK \ / AMOS7 \ YOURUM ::
-#\[7]6ZYVAMAMQQF44ZWKNSKORO7NBKB7TA656OR7GFKI6YWAWC2YK4BY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,,..,,,,,,..,.,,,,,.,,..,,..,..,,...,...,.,.,,,,,,,.,,.,,,..,
+#3K7373LH6CKZVB3ITI6E553FSPHBHSERJWBIQZUUDH723WE5ENGJV7KYO7672H523UEHWCBP3NJMC
+#\\\|XELKA4J5YYSRMMZYPQSHHUJNLMPQZCFUIMOAUJDNY32S4PGNANT \ / AMOS7 \ YOURUM ::
+#\[7]MTB24EVV5H4ANP5NXUIA4OOFS6PFI2N26TZXHL5OT257HWDK2IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

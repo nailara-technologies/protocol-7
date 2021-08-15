@@ -11,7 +11,7 @@ my $name         = $key_vars_ref->{'key_name'};
 
 $keys{'C25519'} //= {};
 
-if ( exists $keys{'C25519'}{$name} ) {
+if ( exists $keys{'C25519'}->{$name} ) {
     <[base.s_warn]>->(
         "a C25519 key with name '%s' is already loaded [ skipped ]", $name
     );
@@ -64,7 +64,7 @@ while ( not $TRUE ) {
         my $altered_key_entropy   ##  regen secret key based on user input  ##
             = sprintf( qw| %s.:%s |, $key_seed_passphrase, $secret_key );
 
-        $secret_key = AMOS7::13::key_32( \$altered_key_entropy, $name );
+        $secret_key = AMOS7::13::key_32( \$altered_key_entropy, \$name );
     }
 }
 
@@ -77,10 +77,10 @@ $keys{'C25519'}{$name} = {
     'secret_key' => defined $key_seed_passphrase ? undef : $secret_key
 };    ##  source entropy only when not passphrase  ##
 
-return ( $keys{'C25519'}{$name}, $name );    ##[ success ]##
+return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,.,,,,,,,,,.,,,.,,,.,.,,..,,..,,,.,..,,,..,..,,...,...,...,.,,,...,,,.,,.,,
-#CFPYWTLX2XMNWYC6IYYPVTFCCT626KE5XUWIL47CVGWR5IVEFMLU7DNVP44KICQLRCZBN4LWAZC2Y
-#\\\|TVI654K7GLIZIBSH4VGG4HZDSQFLXGGFC6Q2GIM3ABLQ4XGWVLG \ / AMOS7 \ YOURUM ::
-#\[7]4DJICW4XSOMSO57T7LIHTHRLCPPVBZHNU3IVWS22LK45ICG4GSDI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,,,.,,,.,.,,,...,..,,..,,,..,..,,...,...,,,.,...,.,,,.,.,.,,,
+#TZ4KPJ6V5LJWLHJ5QG2V6CUESW3ZO3DODJPCGA736BEHAUFZLN6DNDFA2JLE7ECD2VTPJSEJVYSHO
+#\\\|NMXHNWO6ITMBRJIZNMTHMFF6KROHYHD636W56TUR2ZVCWDU4IQ5 \ / AMOS7 \ YOURUM ::
+#\[7]LTZVV5PN4TVRR2M6XNFINQ72RTKQRISJHV5AABNGWB6QQVJ2U6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
