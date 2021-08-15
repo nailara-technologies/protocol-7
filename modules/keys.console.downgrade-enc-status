@@ -24,6 +24,8 @@ if ( $key_encrypted < 0 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_encrypted == -4 ) {
         $err_reason_str = 'not a valid key format';
+    } elsif ( $key_encrypted == -5 ) {
+        $err_reason_str = 'key is virtual [ seed-phrase generated ]';
     } else {
         $err_reason_str = 'undefined error';
     }
@@ -121,8 +123,8 @@ if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
 return printf "\n  ::[  private key %s now marked unencrypted  ]::\n\n",
     $name;
 
-#,,..,...,,.,,,..,,..,.,.,...,.,.,,,,,..,,..,,..,,...,...,,.,,...,,,.,..,,..,,
-#ZH66GUM3A776YB5YXYVIYCYLYI76DAAVH4SFTAHEFQHHVYZYUGA4KQART6VH54BFJVKGD4VQ2BE3I
-#\\\|CCMAKWXHYKHHLBPPOBM4EDELCAREPGMMEDSCNOWQVHIBHQPHVCJ \ / AMOS7 \ YOURUM ::
-#\[7]LGJNB3T2XCAQQDIASKBHQ3PYZRIN5FSVMAOK6VOOWS4ER6GHOCDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,...,...,,.,,,.,,,,.,.,,,,,.,..,,...,...,...,.,,,,,.,,,,,.,.,
+#NPUU7YIZYACGBOPZHRGHVZQJGMDY2W47NLEHL647QYICD4DNTMBMKXEUMIGAVBTXW3QD2JVFAFJ4E
+#\\\|5LXZNNMBELXI5NB7WHTXRUFG3QMB5HWLD447X3PDUC6ND42F6ED \ / AMOS7 \ YOURUM ::
+#\[7]IEYTZLU3LHIXZVU3JUNBJA4XWV45TLD4VNTZ4ETQNIQX4AIN3CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
