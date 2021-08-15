@@ -11,7 +11,7 @@ my $type;
 ( $name, $type ) = split m| +|, $name if index( $name, ' ' ) != -1;
 
 return printf "\n  << key with name '%s' not found >>\n\n", $name
-    if not <[keys.key_exists]>->($name);
+    if not <[crypt.C25519.key_exists]>->($name);
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 my $maxlen
@@ -40,8 +40,8 @@ if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     say '';
 }
 
-#,,..,...,.,,,..,,.,,,,..,.,,,,.,,..,,.,.,...,..,,...,...,.,.,,,,,...,.,.,,,,,
-#2K4REVTDTAIRHFTXANHAH2YAFUT3TC47I46KLVZGGTBJBF62QRLPREDPQ4U4OQYTDGTQ37DFULNW4
-#\\\|VZVPXLBT272C7UWGIVE3U2O43MXXH73HBKZCK7KT72BK7OEFJX5 \ / AMOS7 \ YOURUM ::
-#\[7]SLG4TTZWCE2VALKTT5M64TKETOXRLPLXSVD5ZYE3ZP4GYMJXSKBY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,.,,,,,,,.,.,,,..,,,.,,,.,,,,.,..,,...,..,,,..,,..,,..,,.,,.,.,
+#CYYAFWJLS7VXLVIXNSB2EWPRFSGETSNIFS2R26AISEQ6ZB4E5QYMFGJLVU7UXMUECCSPMUDBGUT2E
+#\\\|BLE3A6RS5NPK2SJJTSAWN3IPKPSPK6JEMWFPNSWYZBOCEGGLP6G \ / AMOS7 \ YOURUM ::
+#\[7]KGZCOJIGCNTLU4B34SDXHRV7FCA43GUQBARY56JIFNXL7TOEZODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

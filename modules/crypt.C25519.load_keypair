@@ -72,19 +72,7 @@ if ( -r $private_key_file and -r $public_key_file ) {
                 sprintf( "'%s' key decryption password", $key_name ) );
         }
 
-        if ( defined $key_password and length $key_password < 13 ) {
-            say sprintf "%s:", $AMOS7::C{'0'};
-            <[base.log]>->( 0, 'password is too short, retry or abort..,' );
-
-            ## say sprintf "%s:", $AMOS7::C{'0'};
-
-            undef $key_password;
-            for ( 1 .. 7 ) {
-                <[base.sleep]>->(0.1);
-                <[event.once]>->(0.007);
-            }
-            goto RE_READ_PWD;
-        } elsif ( not defined $key_password ) {
+        if ( not defined $key_password ) {
             undef $keys{'C25519'}{$key_name}{'private'};
             delete $keys{'C25519'}{$key_name}{'private'};
             <[base.log]>->( 0, 'cannot decrypt private key .,' );
@@ -190,8 +178,8 @@ if ( -r $private_key_file and -r $public_key_file ) {
     return FALSE;            ##  false  ##
 }
 
-#,,.,,,..,,..,,,.,..,,.,,,,,.,,..,.,.,...,,.,,..,,...,.,,,.,.,,,.,,.,,.,,,,.,,
-#TCDLCP65MGLEQUL2NZDJI5OXQQQJT7FPVOKSO7DPZA7TPIVTWFC4FOX6LQY2WEBEJMTWJMW33ULV6
-#\\\|HKHN7LSJPSX2VVNJ6ZCQ3IHZ3KJLUL5TFL4BXZHOM5FHTVTIM5H \ / AMOS7 \ YOURUM ::
-#\[7]OVBYWBVGAI5ZNWD5REOF7MZPXZQH6W7JLOSTVMRUZCIOTPBJIYCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,..,,..,,.,.,,..,,,,,...,,.,,..,,...,...,.,.,.,,,,.,,.,,,.,,,
+#EYFM2SXNQR6GOTNKDWBJ3TEWXOUQHWCEZMJP4O6KPEDWCR7R22TLDA7Y6KDQPUCB24OUZ2ENDYFBI
+#\\\|F2SBMQWK2OZ5AI3AQCOCMUDSQNG6GGG252J35ZGO7YS4ICNJZEK \ / AMOS7 \ YOURUM ::
+#\[7]6ZYVAMAMQQF44ZWKNSKORO7NBKB7TA656OR7GFKI6YWAWC2YK4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

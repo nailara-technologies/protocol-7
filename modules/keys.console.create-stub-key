@@ -10,7 +10,7 @@ return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $name;
 
 return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
-    if <[keys.key_exists]>->($name);
+    if <[crypt.C25519.key_exists]>->($name);
 
 return print "\n  <<  key name contains not valid characters  >>\n\n"
     if $name !~ m|^[\w\.\-\_]+$|;
@@ -51,8 +51,8 @@ return
     printf "\n  <<  successfully created virtual key file for '%s'  >>\n\n",
     $name;
 
-#,,.,,,,,,..,,,,,,,,,,.,,,,..,,..,,..,.,.,.,.,.,.,...,...,,,,,,,,,...,,..,..,,
-#5QTIUB7B4AFPS4KEF34F6JFNEFOVCVWK27F4JL44QN6K6CCYTKZ3VMSSPEB5N7RWEVTET5LGFIVJO
-#\\\|CA53SBXJISPXKCZQWBW5BXSRGBGASFKUU76UZLVOAW3OKG3C25U \ / AMOS7 \ YOURUM ::
-#\[7]U5BFDNJKBWXT5JXYWE77AGSRYUBOJQXP2QKZ6RDJ6XTB43QVAOCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,..,,.,,,...,,,.,.,.,,,,,,,.,.,.,.,.,...,...,.,,,,..,..,,...,,,.,
+#BZ3GFAIH5NIWRTMZGBR7I3DNRPNMUXYVPOGKWLPGVZIHO3JFLYJXDNS2IVG273PZ2QKTQ5NI564CM
+#\\\|KY5B4AMOOMCWWPQ4OMOKXFNTJRVESJ4R4EDF5S7ZAMNBSMPCXJ5 \ / AMOS7 \ YOURUM ::
+#\[7]2YA6C4TZKOCPLOGWLCHJMYRZ6F7SLBD3HCDNBZRKJZWXBXOYTSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

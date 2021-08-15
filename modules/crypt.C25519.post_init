@@ -42,23 +42,24 @@ return -1 if not <[crypt.C25519.chk_key_dir]> == TRUE;
 my $private_key_file = $key_filename->{'private'};
 my $public_key_file  = $key_filename->{'public'};
 
-if (    index( <system.zenka.name>, qw| source |, 0 ) == -1
-    and <[base.cfg_bool]>->(<crypt.C25519.autocreate-user-key>)
-    and not -f $private_key_file
-    and not -f $public_key_file
-    and -w $key_dir ) {
-    <[base.logs]>->(
-        0, "generating C25519 'base' key pair for '%s' ..,", $key_usr
-    );
-    my %key_b32 = ( 'private' => '', 'public' => '' );
-    if (<[crypt.C25519.gen_keys]>) {
-        <[crypt.C25519.write_keys]>;
-    }
-    <[crypt.C25519.sign_keys]>;
+if ( index( <system.zenka.name>, qw| source |, 0 ) == -1 ) {
+    if (    <[base.cfg_bool]>->(<crypt.C25519.autocreate-user-key>)
+        and not -f $private_key_file
+        and not -f $public_key_file
+        and -w $key_dir ) {
+        <[base.logs]>->(
+            0, "generating C25519 'base' key pair for '%s' ..,", $key_usr
+        );
+        my %key_b32 = ( 'private' => '', 'public' => '' );
+        if (<[crypt.C25519.gen_keys]>) {
+            <[crypt.C25519.write_keys]>;
+        }
+        <[crypt.C25519.sign_keys]>;
 
-} elsif ( not defined $keys{'C25519'}{$key_name}
-    or keys( $keys{'C25519'}{$key_name}->%* ) != 2 ) {
-    <[crypt.C25519.load_keypair]>;
+    } elsif ( not defined $keys{'C25519'}{$key_name}
+        or keys( $keys{'C25519'}{$key_name}->%* ) != 2 ) {
+        <[crypt.C25519.load_keypair]>;
+    }
 }
 
 while ( glob $key_basepath . qw| .{rkp,sig}.* | ) {
@@ -83,8 +84,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,.,.,,,...,,..,,,,,,,.,.,,,,,,,..,,,,,,..,,..,,...,...,...,,.,,,.,,,..,.,.,
-#RQIZO4RASHEITORDNL6CSTDNPG53U3VVI5S6V7OKMTLKJYS5QSXZTMNI3UZVPPN76SLX2OCUGS3XQ
-#\\\|GE3VY7W2XYJG6TUSVCA3YCXBK6ENK335YWVMTBMKCPT4TEDDLQY \ / AMOS7 \ YOURUM ::
-#\[7]LPRT4C6O7NR5AWG4TFQ7OS66PY7UZ5JTYRPY476KLYAC225CWAAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,.,,,,..,.,.,.,.,,,,,.,,,,,.,..,,...,...,...,..,,,..,,,,,,,,,
+#E65FVUJF7MJWKYQAFLEL4TVMJJCQ7BNLDT32GM3YFG3SVNCGXCZNMJZ3J35EGSEHT7WQV4TYAZB3S
+#\\\|J3JADSRZKGAZEVGTNRJLKONCO6TFYAHSMDA6S2TR6MXZNE4WVNW \ / AMOS7 \ YOURUM ::
+#\[7]TCXJJDQRYGBHD4SDTHLPOM5CL6ZYNK4GGGHJQREPBCKDYBNE6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

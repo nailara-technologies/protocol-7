@@ -46,19 +46,21 @@ use warnings qw| once redefine |;
 ##
 
 ## init some variables ##
-
-<zenka.shutdown> //= 0;
+##
+<zenka.shutdown> //= FALSE;
 
 $data{'devmod'} //= {};
 ## reducing devmod [ verbosity >= 2 ] log output ###
 ##
-<devmod.sig_int_dump> = 0;    ## dump %data state on SIGINT in log level 2 ##
+<devmod.sig_int_dump> = FALSE; ## dump %data state on SIGINT in log level 2 ##
+
+*main::dump_var = $code{'base.devmod.dump_var'};
 
 ## skipping p7-log.append commands in log level 2 devmod output ##
-<devmod.skip_log_msg> = 1;
+<devmod.skip_log_msg> = TRUE;
 
 ## skipping p7-zenka heartbeat [zenka-status] requests and responses ##
-<devmod.skip_p7_heartbeat> = 1;
+<devmod.skip_p7_heartbeat> = TRUE;
 ##
 $data{'system'}{'process_start'} = {
     'time'  => <[base.time]>->(5),
@@ -260,8 +262,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,.,,..,,,..,.,,,,,,,..,,..,,.,,,...,,,,,,,,,..,,...,...,,..,,,.,,,.,,..,.,,,
-#AWM7254M7CD2SDPYJ2FWHUK6Y2AXQLT2KAXDQE4VFALYXMFJVEMRVIA6VFVFG37BA7EFNAVAXLMO2
-#\\\|PCHZIO3TVV32AKBVSZ3Q6XIPLM5EPC5NEXTGSEI7BZ5GXIPMSSY \ / AMOS7 \ YOURUM ::
-#\[7]3DZTUZJA2YRJYMZFLKDHDRQ7VMSEGZFSJCMMRWL4KZBDEJ7VHSCY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,,,...,.,.,..,,,.,,.,.,.,,,,.,,..,,...,...,,..,.,.,...,.,.,,,,,
+#KJY6EUKQHOJJCNGT2QTCVANI5VDH6ZFXS7RMU7PAMGGR3MLLGPITNGYY4UC66FBQGWPOJ6VWF77KC
+#\\\|KQH7GCO2MX3MZQJDZT57KM7UC2KS52276JZWKSFIAF5ZOFK4OME \ / AMOS7 \ YOURUM ::
+#\[7]MYR6KG5OFYFQK5HJ3NMDIDDIG2UTIZGTVJ27XKPLG2ZOK2ZD66BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
