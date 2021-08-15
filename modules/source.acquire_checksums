@@ -11,26 +11,22 @@ my $file_count = 0;
 my $start_time = <[base.time]>->(5);
 ( my $path_name = $src_path ) =~ s|^.*/||g;
 
-foreach my $file_path ( @{ <[file.all_files]>->($src_path) } )
-{    # <-- recurs.!
+foreach my $file_path ( <[file.all_files]>->($src_path)->@* ) { # <-- recurs.!
     ( my $file_name = $file_path ) =~ s|^.*/||;
     <source.checksums>->{$path_name}->{$file_name}
         = <[chk-sum.bmw.filesum]>->( $bit_size, $file_path );
     $file_count++;
 }
 
-<[base.log]>->(
-    2,
-    sprintf(
-        ": %s : %04d checksums in %.4f seconds.",
-        $path_name, $file_count, <[base.time]>->(5) - $start_time
-    )
+<[base.logs]>->(
+    2, ": %s : %04d checksums in %.4f seconds.",
+    $path_name, $file_count, <[base.time]>->(5) - $start_time
 );
 
 return <source.checksums>->{$path_name};
 
-#,,.,,..,,,,,,.,,,,,,,.,,,,,.,.,,,..,,.,.,,,.,..,,...,...,..,,,,.,,,.,..,,,,,,
-#5JPGFD6KZBVZRCC4TKLACEX4YVEYRGZLBZNSUQ3XBWA7IBCXA6GUR5O3U7SXOOHRO3JUNKPWFVR4C
-#\\\|RMDETH3OT7YTZC3XI2W7CZNSEWSONMHUEIYB4A4UYJ52ABSUITB \ / AMOS7 \ YOURUM ::
-#\[7]QUIBSXXFOCSVBZG6EG3DSEQCJEHGS5M2LIOOLRNKLH6JVUZWCEAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,,,,,,,,...,,,,,,..,..,,.,,,..,,...,...,,..,.,,,..,,,..,.,.,
+#JIS2HAIFH4HJ4QOM5DA3KW2GCBJRCBBWHNMKNWNNZZQTZHYBGECJCXUEF4OU3ZDQOYQSHK7J4PZ4O
+#\\\|TLGFPLXMGCZGMKDRMHSQPSBCJHUB3TXMW6FE6AS24HCGMN6RW3P \ / AMOS7 \ YOURUM ::
+#\[7]XZL5QZW4BDEMLCMHBRR7XLRPP2SJKCX2FZBPVF4OEOUJ2LRYB2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
