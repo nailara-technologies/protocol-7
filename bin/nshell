@@ -15,6 +15,11 @@ use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
 use POSIX qw| sys_wait_h WNOHANG |;
 
+##[ global constants ]##
+use constant TRUE    => 5;    ##  TRUE.  ##
+use constant FALSE   => 0;    ##  false  ##
+use constant UNKNOWN => 2;    ##  unknown  ##
+
 ##[ LOCAL PM LIB PATH ]#######################################################
 
 BEGIN {
@@ -75,29 +80,40 @@ $SIG{'CHLD'} = sub {
         if waitpid( -1, WNOHANG() ) == $stdout_pid;
 };
 
-my @args;
 my $cube_user;
-my $remember  = 0;
-my $arg_index = 0;
-foreach my $param (@ARGV) {
-    next if not defined $param;
-    if ( $param eq '-u' and defined $ARGV[ $arg_index + 1 ] ) {
-        $cube_user = $ARGV[ $arg_index + 1 ];
-        delete $ARGV[$arg_index];
-        delete $ARGV[ $arg_index + 1 ];
-    } elsif ( $param =~ m,^(-r|--remember)$, ) {
-        $remember = 1;
-    }
-    $arg_index++;
-}
-
-@args = grep {defined} @ARGV;
-
 my $cube_pass;
 my $stored_cmd;
 my $term_loop = 0;
 my $lines_up  = 3;
-my $link_type = defined $cube_user ? qw| unix | : qw| ip.tcp |;
+my $remember  = FALSE;
+my $arg_index = FALSE;
+
+my $user_unix = $ENV{'PROTOCOL_7_UNIX_PATH'};  ##  unix domain socket path  ##
+
+my $link_type = qw| ip.tcp |;
+
+my @args = @ARGV;
+
+if (@args) {
+
+    if ( @args and $args[0] =~ m,^\-u(ser)?$, and shift @args ) {
+        die ":\n:: expected name after -u[ser]\n:\n" if not @args;
+        $cube_user = shift @args;
+        $link_type = qw| unix |;
+    }
+
+    if ( @args and $args[0] =~ m,^\-(U|unix)?$, and shift @args ) {
+        die ":\n:: expected socket name after -unix\n:\n" if not @args;
+        $user_unix = shift @args;
+        $link_type = qw| unix |;
+    }
+
+    if ( @args and $args[0] =~ m,^\-r(emember)?$, and shift @args ) {
+        $remember = TRUE;
+    }
+
+}
+
 my $cube_addr = shift(@args) || qw| 127.0.0.1 |;
 my $cube_port = shift(@args) || $protocol_7_port;
 my $sckargcnt = scalar @args;
@@ -105,10 +121,10 @@ my $usock_dir = qw| /var/run/.7/UNIX |;
 
 my $prompt = "\\ $hostname \\:[?]:, ";
 
-my $connect = 1;
-my $WARNED  = 0;
+my $connect = TRUE;
+my $WARNED  = FALSE;
 
-$OUTPUT_AUTOFLUSH = 0;
+$OUTPUT_AUTOFLUSH = TRUE;
 
 # clear();
 
@@ -125,7 +141,7 @@ my $shell_sock;
 while ($connect) {
     $shell_sock = shell_connect( $cube_addr, $cube_port );
     if ( $link_type eq qw| unix | and $lnk_path =~ m|\.([^/\.]+)$| ) {
-        my $cube_user = $1;
+        my $cube_user = $LAST_PAREN_MATCH;
         $shell_sock = unix_auth( $shell_sock, $cube_user );
     } elsif ( $link_type eq qw| unix | and defined $cube_user ) {
         $shell_sock = unix_auth( $shell_sock, $cube_user );
@@ -177,9 +193,24 @@ sub login_prompt {
 
 sub shell_connect {
     my $sock;
-    if ( !$sckargcnt ) {
-        my $sock_path
-            = "$usock_dir/" . calc_unix_path( $cube_addr, $cube_port );
+    if ( not $sckargcnt ) {
+
+        my $sock_path;
+
+        if ( defined $user_unix ) {    ##[  specified or ENV  ]##
+
+            if ( index( $user_unix, qw| / | ) == -1 ) {
+                $sock_path = sprintf qw| %s/%s |, $usock_dir, $user_unix;
+            } else {
+                $sock_path = $user_unix;
+            }
+
+        } else {                       ##[ auto-calc ]##
+
+            $sock_path = sprintf qw| %s/%s |, $usock_dir,
+                calc_unix_path( $cube_addr, $cube_port );
+        }
+
         if ( -e $sock_path ) {
             $sock = IO::Socket::UNIX->new(
                 Type => SOCK_STREAM(),
@@ -459,8 +490,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,,,,..,,,.,,,,.,.,.,..,,..,,,,,,,..,..,,,,,,..,,...,...,.,,,..,,,..,,,.,,..,
-#ENPJBOFMTD3LDCBWY5OBSXXXX745KUIMOYXX6LGDGCNVACFFK7I5M4KESTO6UPRWQG3UYZYKZCMXG
-#\\\|XKY3BVVBYLTJOKYU72XQT7BYYKJG6DAAWN7UGIHDVI3UEGFHJOP \ / AMOS7 \ YOURUM ::
-#\[7]BGZEXMYCEALPVTIZ7PXHT6HYSROVW24YNXPUDZGGHTJZYICH4IAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,..,,,,.,,,.,,..,.,.,.,.,...,,,,,..,,...,...,...,,.,,,,.,,,,,.,.,
+#3PNCFVFO3N4HQNM5IJ663KDPNKAX4JBP2VKEFJ2WMXVPMEZEAY5467SJPYG27RJLFF57TUPIKSUCK
+#\\\|DXMXYGW3FL3HYNEEUYKR2OW7UKONSNWKSNUKC3IZMFJ3LMQZLNF \ / AMOS7 \ YOURUM ::
+#\[7]HBA6YTBYG3VXD256TIQB2LD6IZNEUYDO7IMJHYII77RB35LCQWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
