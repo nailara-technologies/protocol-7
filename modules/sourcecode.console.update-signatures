@@ -7,6 +7,8 @@ my $command_params = shift;
 
 my $signature_key_name = qw| nailara.source |;
 
+<[source.load_signature_key]>->($signature_key_name);
+
 if ( not exists $keys{'C25519'}{$signature_key_name}
     or keys( $keys{'C25519'}{$signature_key_name}->%* ) != 2 ) {
     <[base.logs]>->(
@@ -124,8 +126,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,,,,,.,,,,,.,.,.,.,.,.,..,,,.,,,,,,,..,.,,,..,,...,...,,.,,.,,,,,.,...,.,.,
-#55IEQJRRUU2QF4ARSOSVBEEYYIZLRJ7SW6LBUCW35TSWAFREAC37CWQGJKP2XJANLKXQW5R6SIKSO
-#\\\|WIKDTMGWZCTNQ4U7EERUYZAUB2EYEST2MIITQOZ3V3IZ5ZI2LTZ \ / AMOS7 \ YOURUM ::
-#\[7]Z3F7LYM3AR3J5MXDA2KR5RQ3QUINY2QETBOGTYCNDPZFZE3NYABI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,.,,,.,.,.,,,.,,,,..,,.,,.,,,..,,...,...,,.,,.,.,..,,,.,,,,,,
+#NJ5PZYVU72BEQJIFP7SYMXZXQT4PJSDHQNBOJ2IO5YW4DKQI3AVBPYDT5DYJXNJWJAVE3JKAP6KMQ
+#\\\|L5ZBWF6JTACCH3NBLSJZNECBZBMNP6B7EAXD23LTBZIUPURVTWT \ / AMOS7 \ YOURUM ::
+#\[7]5WFOV2S2GCXHOLIRSJBX4DSWV656T6VTO5S3HABRI53GC6FJWQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
