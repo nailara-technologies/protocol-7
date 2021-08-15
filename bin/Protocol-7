@@ -616,7 +616,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
         $code{'log.noerr'}->( qw| .\\7 | . $spaces );
     }
     ## initializing early zenka buffer capture ###
-    $data{'system'}{'start'}{'zenka-buffer'} = [];
+    $data{'system'}{'start'}{'zenka-buffer'} //= [];
     my $s_version = $data{'protocol-7'}{'src-ver'};
     my $tenki
         = length($s_version)
@@ -1795,9 +1795,17 @@ sub p7_log_hook {
         and defined $code{'base.buffer.add_line'} ) {
         my $buffer = $data{'system'}{'start'}{'zenka-buffer'};
         while ( my $log_line = shift $buffer->@* ) {
+
+            my $buffer_name = qw| zenka |;
+
+            $buffer_name = $LAST_PAREN_MATCH    ##[  alternative buffer  ]##
+                if $log_line =~ m|^:\[([\w\-_]+)\]: |;
+
             my $log_level
                 = $log_line =~ m|^\S+ (\-?\d+) | ? $LAST_PAREN_MATCH : 0;
-            $code{'base.buffer.add_line'}->( 'zenka', $log_line, $log_level )
+
+            $code{'base.buffer.add_line'}
+                ->( $buffer_name, $log_line, $log_level )
                 if $log_level <= $data{'system'}{'verbosity'}{'zenka_buffer'}
                 or $log_level
                 <= $data{'system'}{'verbosity'}{'zenka_logfile'};
@@ -3008,7 +3016,9 @@ sub p7_uncompress_subroutine_str {
         return \$output_data_str;    ##  decompression completed  ##
 
     } else {
+
         my $err_str = $AnyUncompressError // $EVAL_ERROR;
+
         $err_str =~ s|^IO::Uncompress::AnyUncompress::anyuncompress ?||;
         if ( defined $code{'base.format_error'} ) {
             $err_str = $code{'base.format_error'}->( $err_str, -1 );
@@ -3016,15 +3026,26 @@ sub p7_uncompress_subroutine_str {
         $err_str = 'unknown error reason' if not length $err_str;
         $err_str =~ s|^: ||;
         my @err_reason = (
+            '',
             '::[ decompression error ]::',
             ':',
             sprintf( ":  method '%s' not successful", $method ),
             sprintf( ':  : %s : %s', $method, lcfirst($err_str) ),
             ':',
-            ":. switching to 'pipe'-mode ..,"
+            ":. switching to 'pipe'-mode ..,",
+            ''
         );
-        my $caller_lvl = defined $code{'base.sig_warn'} ? ' <{NC}>' : "\n";
-        map { warn sprintf '%s%s', $ARG, $caller_lvl } @err_reason;
+
+        if ( not exists $ENV{'NO_ANYCOMPRESS_WARN'} ) {
+
+            my $caller_lvl = defined $code{'base.log'} ? ' <{NC}>' : "\n";
+            map { warn sprintf '%s%s', $ARG, $caller_lvl } @err_reason;
+
+        } else {
+            my $buffer = $data{'system'}{'start'}{'zenka-buffer'} //= [];
+            map { push $buffer->@*, sprintf ':[compile-errors]: %s', $ARG }
+                @err_reason;
+        }
 
         $method = qw| pipe |;    ##  trying next method  ##
 
@@ -3688,8 +3709,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,,,,,,,.,...,.,.,..,,,,,,,..,,,.,,,,,..,,...,...,.,.,,,.,.,.,,,.,,,.,
-#7L55R5367BKCB24DVAN5B42W2NYJOX5VA3UIQR2NJPTGHLTOEE2KAPOFMX6NZIF4OCN3CIT5JQRXI
-#\\\|Q7RGOVMKF54KB33NIHL44HUVWUAN3SA3C3EMRXD2KY3QR7CA4ZM \ / AMOS7 \ YOURUM ::
-#\[7]TEIUUS7OUBV3QOFNPIB67HWXTOBG5332DEFVNNXDPZKILHTAPSCA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,..,,.,,,,,.,...,.,,,.,,,.,,,..,,...,...,.,.,,,,,,..,..,,,,.,
+#ZSUJCYGVIFHWCZR373WK5VZGOOJQWZCCECG2URNED273UYEICBDRW4WAZ4N3NCJ6CWKSFXTCVBMLI
+#\\\|PBTD6ZO54WXY6C62LO3WU2DYLKWC4NBA2ITZL2BJL2YELWEM6BE \ / AMOS7 \ YOURUM ::
+#\[7]LRNXJZMJXU2P4TIBBA5DEAE5UFY2IOQCEBVPGBHROI7OSVM6WSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
