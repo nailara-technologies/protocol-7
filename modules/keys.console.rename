@@ -10,59 +10,69 @@ my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
 ( my $srckey, my $to_keyname ) = split m| +|, $param_str;
 
-my $key_dir = $key_vars_ref->{'key_dir'};
-my $key_usr = $key_vars_ref->{'usr_name'};
-
 my $keys_re = <keys.regex>;
+my $key_dir = $key_vars_ref->{'key_dir'};
 
 my $re_kfiles      = $keys_re->{'key_files'};
 my $re_public      = $keys_re->{'key_file'}->{'public'};
 my $key_re_private = $keys_re->{'key_file'}->{'private'};
 
-## warns when absent ##
-my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
-
 return print "\n  << expected <from> and <to> parameters >>\n\n"
     if not defined $srckey or not defined $to_keyname;
 
-my $match_re = qr|^(\Q$srckey\E$re_kfiles)$|;
+return printf "\n  << key with name '%s' not found >>\n\n", $srckey
+    if not <[crypt.C25519.key_exists]>->($srckey);
 
-my $key_found = 0;
-my $space_len = abs( length($key_re_private) - length($re_public) );
+my $key_filename_ref = <[crypt.C25519.key_vars]>->{'key_filename'};
+
+my @k_files
+    = grep {s|^.+/||} grep { -e $ARG }
+    <[base.sort]>->( map { $key_filename_ref->{$ARG} }
+        <[base.sort]>->($key_filename_ref) );
+
+return print "\n  <<  specified keys identical  >>\n\n"
+    if $srckey eq $to_keyname;
+return print "\n  <<  target key name contains not valid characters  >>\n\n"
+    if $to_keyname !~ m|^[\w\.\-\_]+$|;
+
+return printf "\n  << key with name '%s' not found >>\n\n", $srckey
+    if not <[crypt.C25519.key_exists]>->($srckey);
+
+return say sprintf "\n  << destination name '%s' exists >>\n", $to_keyname
+    if <[crypt.C25519.key_exists]>->($to_keyname);
+
 map {
-    $key_found = 1 if $ARG =~ $match_re;
-    my $k_path = "$key_dir/$ARG";
-    return prints "\n << no write access to %s >>\n\n", $k_path
+    my $k_path = catfile( $key_dir, $ARG );
+    return printf "\n << no write access to %s >>\n\n", $k_path
         if not -w $k_path;
 } @k_files;
-return printf "\n  << key with name '%s' not found >>\n\n", $srckey
-    if not $key_found;
 
-my $ren_count = 0;
-
-chdir($key_dir)
-    or die "<< cannot change to directory '%s' : %s >>\n", $key_dir,
-    <[base.str.os_err]>;
+my $maxlen = [ minmax map {length} @k_files ]->[1];
 
 print "\n :\n";
 
-my $len = 0;
+my $ren_count = 0;
+
 foreach my $file_name (@k_files) {
     my $target_name = $file_name;
-    next if $target_name !~ s|^$srckey\.|$to_keyname.|;
-    printf( " : %-${space_len}s  -->  %s\n", $file_name, $target_name );
-    return printf "\n rename failed : %s\n\n", <[base.str.os_err]>
-        unless rename( $file_name, $target_name );
+    next if $target_name !~ s|^$srckey|$to_keyname|;
+    printf( " : %-*s  -->  %s\n", $maxlen, $file_name, $target_name );
+    return printf "\n rename failed : %s\n\n",
+        <[base.str.os_err]>
+        unless rename(
+        catfile( $key_dir, $file_name ),
+        catfile( $key_dir, $target_name )
+        );
     $ren_count++;
 }
 
 <[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
 
-printf " :\n :. [ renamed %d file%s ]\n\n", $ren_count,
+printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,..,,,.,,..,,,,,..,,...,.,,,,..,...,,,,,,,,,..,,...,...,,..,,,.,..,,,,.,,,.,
-#HD66XURIZWEKFQHHGEDSVJAKEAU442S5RYBJXH6BY474JHEXVVOE4A6F4LITYX7H2UMSSUUNTVJ5Y
-#\\\|WJLVJD3QDACWMHTAOMTSRYXFT3OEFPB7T7TDEW3EZNTDMKX2LPJ \ / AMOS7 \ YOURUM ::
-#\[7]Y42TOZYEQC75ONZF67GN3LI3RBLU4YIV73HN3JTGXIUJROTD26DI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,,.,,..,,,,,,.,,,,..,.,,,,,.,..,,...,...,...,,..,,,,,.,,,,..,
+#UP5DVEFLAK6HNLPHBKHN744LKF4W5QQWKSI3S2QOF7DVCRV5MYGYSDPF77GRQMGXUPSGFUDLMOFOW
+#\\\|IG3LQVLTK4XT4GHPP5LSGWI5HGAR6BSLY4GDFMPOAV6KADADF5Z \ / AMOS7 \ YOURUM ::
+#\[7]HYBKXLPEM4XINJIYP2ZHQGJ6FIK2TGO4WGNLCZMYD7BEDJYUH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
