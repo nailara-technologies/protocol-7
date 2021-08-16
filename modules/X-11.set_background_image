@@ -1,0 +1,52 @@
+## >:] ##
+
+# name  = X-11.set_background_image
+
+my $bg_image = shift;
+my $bg_mode  = <X-11.bg_mode>;
+
+if ( not defined $bg_image ) {
+    warn 'expected bg_image parameter <{C1}>';
+    return undef;
+}
+
+## check local backgrounds directory first ##
+my $chk_backgrounds_path = sprintf( qw| %s/%s/%s |,
+    <system.root_path>, qw| data/gfx/backgrounds |, $bg_image );
+$bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
+##
+
+if ( not -f $bg_image ) {
+    <[base.s_warn]>->( ': image not found : %s <{C1}>', $bg_image );
+    return FALSE;
+}
+
+my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
+my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
+if ( !-x $hsetroot_bin ) {
+    <[base.logs]>->(
+        0, "cannot set bg-image : '%s' not found",
+        $hsetroot_bin
+    );
+    return undef;
+}
+( my $img_txt = $bg_image ) =~ s,^.+/,,g;
+<[base.logs]>->( "setting background image '%s'", $img_txt );
+
+##  query available hsetroot params here  ##   [LLL]
+@hsetroot_params = ( sprintf( qw| -%s |, $bg_mode ), $bg_image );
+
+if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
+    <[base.logs]>->(
+        0, "cannot execute 'hsetroot' command [ returned %s ]", $CHILD_ERROR
+    );
+    return FALSE;
+} else {
+    return TRUE;
+}
+
+#,,.,,..,,,,,,.,.,,,,,,..,,,,,,,.,..,,..,,,..,.,.,...,...,...,,,.,,,,,,,,,,..,
+#TK3WBBMKP6NI5OABZDSM5RXLZGBFZ4APJ424Q3LXGFU4PFOQN2JE3MEPK47V3GFSZRDAGLJROJKWC
+#\\\|5RTSBKGB5AXOF3BSTLKPLQ2XS4DLI4ZQFPL273YTANN2W4LUQTP \ / AMOS7 \ YOURUM ::
+#\[7]EXUBB2C56FDWUXKHLH3LFMFGA32SXXQ4MYP3RH34ELXVFKJKOWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
