@@ -273,6 +273,7 @@ sub read_password_single {
     my $read_chars_buffer;
     my $passwd_mlen     = 64;
     my $tty_read_size   = 1026;
+    my $max_XOR_chars   = 1024;
     my $autoinc_timeout = TRUE;
 
     my $colored_prompt = sprintf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'},
@@ -280,7 +281,7 @@ sub read_password_single {
         $message_prompt,
         $C{'R'}, $C{'0'}, $C{'T'};
 
-    my $XOR_buffer    = chr(127) x 64;    ##  >= 64 bytes mode  ##
+    my $XOR_buffer;    ##  >= 64 bytes mode  ##
     my $chr_remove    = join '', map {chr} ( 0 .. 9 );
     my $sequ_left     = join '', map {chr} qw| 27 91 68 |;
     my $sequ_begin    = join '', map {chr} qw| 27 91 |;
@@ -289,6 +290,9 @@ sub read_password_single {
     my $DEL           = chr 127;
     my $backspace_chr = chr 8;
     my $NAK           = chr 21;
+
+    my $XORchars_count = 0;
+    my $XOR_buffer_pos = 0;
 
 REREAD_PASSWORD:
 
@@ -308,18 +312,17 @@ REREAD_PASSWORD:
             = AMOS7::TERM::read_to_buffer_TTY( \$read_chars_buffer, undef,
             $tty_read_size, $autoinc_timeout );
 
-        ##  ignoring return on empty buffer  ##
-        $read_chars_buffer = ''
-            if $read_chars_buffer eq chr 10
-            or $read_chars_buffer eq chr 13;
-
-        ##  XOR passwd mode  ##   [  to be implemented next  ]
-
-##      $extended_processing_mode = FALSE
-##          if $extended_processing_mode
-##          and length($read_chars_buffer) >= $passwd_mlen;
+        ##  XOR passwd mode  ##
+        $extended_processing_mode = FALSE
+            if $extended_processing_mode
+            and length($read_chars_buffer) >= $passwd_mlen;
 
         if ($extended_processing_mode) {
+
+            ##  ignoring return on empty buffer  ##
+            $read_chars_buffer = ''
+                if $read_chars_buffer eq chr 10
+                or $read_chars_buffer eq chr 13;
 
             ## DEL [ or backspace ] ##
             ##
@@ -343,19 +346,46 @@ REREAD_PASSWORD:
 
             $show_stars = FALSE    ##  delete other sequences  ##
                 if $read_chars_buffer =~ s|\Q$sequ_begin\E.$seq_END?||g;
-        }
 
-        ## CTRL+U [NAK] [erase read] ##
-        ##
-        if ( $extended_processing_mode
-            and rindex( $read_chars_buffer, $NAK ) >= 0 ) {
-            ##  erase characters read so far  ##
-            AMOS7::TERM::rewind_stars();
-            $read_chars_buffer = '';
-            $show_stars        = FALSE;
-        }
+            ## CTRL+U [NAK] [erase read] ##
+            ##
+            if ( $extended_processing_mode
+                and rindex( $read_chars_buffer, $NAK ) >= 0 ) {
+                ##  erase characters read so far  ##
+                AMOS7::TERM::rewind_stars();
+                $read_chars_buffer = '';
+                $show_stars        = FALSE;
+            }
 
-        $show_stars = FALSE if not length $read_chars_buffer;
+            $show_stars = FALSE if not length $read_chars_buffer;
+
+        } elsif ($continue_reading) {    ##  XOR passwd mode  ##
+
+            $XOR_buffer //= chr(127) x 64;    ##  initializing XOR buffer  ##
+
+            while ( length $read_chars_buffer ) {
+                my $XOR_char = substr $read_chars_buffer, 0, 1, '';
+                my $code     = ord $XOR_char;
+
+                if ( $code == 10 or $code == 13 ) { ## end processing ##
+                    $read_chars_buffer = chr 10;
+                    $continue_reading  = FALSE;
+                    $show_stars        = FALSE;
+                    last;
+                }
+
+                my $XORBUF_char = substr $XOR_buffer, $XOR_buffer_pos, 1;
+
+                substr $XOR_buffer, $XOR_buffer_pos++, 1,
+                    $XORBUF_char ^ $XOR_char;
+
+                $XORchars_count++;
+                $XOR_buffer_pos = 0 if $XOR_buffer_pos == 64;
+                last                if $XORchars_count == $max_XOR_chars;
+
+                AMOS7::TERM::show_rnd_stars() if $show_stars;
+            }
+        }
 
         $continue_reading = FALSE    ##[  read end conditions  ]##
             if $read_chrs == 0 and $abort_mode = qw| timeout | ##[ timeout ]##
@@ -385,8 +415,8 @@ REREAD_PASSWORD:
             $show_stars       = FALSE;
         }
 
-        $show_stars = FALSE
-            if $continue_reading    ##  deleting all chars < asc 10  ##
+        $show_stars = FALSE    ##  deleting all chars < asc 10  ##
+            if $continue_reading
             and $read_chars_buffer =~ s|[$chr_remove]+||g;
 
         $show_stars = FALSE if $show_stars and not $continue_reading;
@@ -413,6 +443,8 @@ REREAD_PASSWORD:
     reset_stars() if not $LF_found and $extended_processing_mode;
 
     AMOS7::TERM::close_TTY_no_echo();
+
+    $read_chars_buffer = $XOR_buffer if not $extended_processing_mode;
 
     $read_chars_buffer = undef if $abort_mode ne FALSE;
 
@@ -538,8 +570,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,,..,,.,,,,,,.,,,...,..,,,..,.,,,,,.,..,,...,..,,,..,..,,.,.,,..,..,,
-#BZYWBVZY47QQ4OIHJU4HE52ZVDFEZCA2GX5M6ESXTKDYVGFQBUXFVLK5KAU6XOTF4L46AHQG73PTG
-#\\\|OBMBYPJDLBHYOEPB3OCPA46DVRNHTUTFAUYJ65DGWWAVAAHAAPU \ / AMOS7 \ YOURUM ::
-#\[7]4Y7CZFUPSFOHUXCHIJIUWFACL55F4OCRA6V2X4LGGKPLXAXOUSBQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,,..,...,,,,,..,,...,...,...,..,,...,...,..,,...,...,.,,,,..,
+#IC4VOUIKVQZIBTRGJUCMWYONMBM3WUXGFBG6QEOLI2XJONPFZPMAL7CUNI76WNUFR4A2VYCUVMMZI
+#\\\|SIK7LMMOZDVHXIPNGOWW6WRCBZ5M6KE53KLDNEAMTRFTD42UUEZ \ / AMOS7 \ YOURUM ::
+#\[7]NAKDWERUKP6BRFSTNIGXWB43VNTTGR65SILP25XATEHPN6TG7IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
