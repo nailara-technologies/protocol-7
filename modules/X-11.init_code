@@ -63,51 +63,17 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.keybd.grab_all_keys> //= qw| no |;
 <X-11.max_intel_gpu_freq>  //= qw| no |;
 
-<X-11.collect_intel_gpu_stats> //= 0;
+<X-11.collect_intel_gpu_stats> //= FALSE;
 
-if (    <X-11.mode> eq qw| xorg |
-    and <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
-    and <X-11.video_driver> =~ m|^i\d\d\d$| ) {
-    my $freq_bin_path = <X-11.bin_path.intel_gpu_frequency>;
-    if ( not length $freq_bin_path or !-x $freq_bin_path ) {
-        <[base.log]>->(
-            0,
-            '<< max_intel_gpu_freq is enabled but'
-                . ' intel_gpu_frequency binary not found., >>'
-        );
-    } else {
-        my $freq_output = qx| $freq_bin_path -g |;
-        if ( $freq_output =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
-            my ( $cur_freq, $max_freq ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
-            if ( $cur_freq ne $max_freq ) {
-                <[base.logs]>->(
-                    '<< maximizing GPU frequency [ %s --> %s ] >>',
-                    $cur_freq, $max_freq
-                );
-
-                qx| $freq_bin_path -m |;    # <-- max
-
-                if ( qx| $freq_bin_path -g |
-                    =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
-                    ( $cur_freq, $max_freq )
-                        = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
-                    <[base.logs]>->(
-                        0,
-                        '<< cannot set GPU frequency '
-                            . '[ is %s : should be %s ] >>',
-                        $cur_freq,
-                        $max_freq
-                    ) if $cur_freq ne $max_freq;
-                }
-            }
-        }
-    }
-}
+<[X-11.maximize_intel_gpu_frequency]>
+    if <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
+    and <X-11.mode> eq qw| xorg |
+    and <X-11.video_driver> =~ m|^i\d\d\d$|;
 
 0;
 
-#,,,,,.,,,,.,,,..,.,.,..,,,,,,...,.,.,,..,.,.,..,,...,...,...,,..,...,,,.,,,,,
-#Z4VOCGQN3J73FCMFD6XJVWUERHHOXDQLFXRNQ5TG7SUPQ7WTD4ERD4T4FMCAV555PYKLAG6GMIYBM
-#\\\|3VBYRD46VMI7TLL66YCQELLHBPHD7AFYU7Q635LWIAPM5O3FKM2 \ / AMOS7 \ YOURUM ::
-#\[7]OVXESYZNGCTAUZWJVMYIZVIN7Y56JJZ6X47UXWPKGAQPIHGCP2DQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,..,,.,,,.,.,..,,...,,.,,..,,,,.,..,,...,...,,,,,..,,,.,,,..,...,
+#QBOTTJ4FMYOTNHWZGOQJXMAOKEVLHG3DPMHG2LE557JJLUBWU7EC46BO7R7IL7LR6YYM2AOWPLOJM
+#\\\|5Z3HNJFHP6WJVLZTLTFEPYF53HD7BHEQVCHJIVMJSO6LKS5AZPG \ / AMOS7 \ YOURUM ::
+#\[7]JKPAPD5IZJHKZDJYJLZDZJSNYQF64U62LX3EFWNYEXRAJHWFJKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
