@@ -1,0 +1,54 @@
+## >:] ##
+
+# name  = X-11.maximize_intel_gpu_frequency
+# descr = using intel_gpu_frequency to maximize current GPU frequency
+
+return FALSE    ##  not enabled \ applicable  ##
+    if <X-11.mode> ne qw| xorg |
+    or not <[base.cfg_bool]>->(<X-11.max_intel_gpu_freq>)
+    or <X-11.video_driver> !~ m|^i\d\d\d$|;
+
+my $freq_bin_path = <X-11.bin_path.intel_gpu_frequency>;
+if ( not length $freq_bin_path or not -x $freq_bin_path ) {
+    <[base.log]>->(
+        0,
+        '<< max_intel_gpu_freq is enabled but'
+            . ' intel_gpu_frequency binary not found., >>'
+    );
+    return undef;
+} else {
+    my $freq_output = qx| $freq_bin_path -g |;
+    if ( $freq_output =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
+        my ( $cur_freq, $max_freq ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+        if ( $cur_freq ne $max_freq ) {
+            <[base.logs]>->(
+                '<< maximizing GPU frequency [ %s --> %s ] >>',
+                $cur_freq, $max_freq
+            );
+
+            qx| $freq_bin_path -m |;    # <-- max
+
+            if ( qx| $freq_bin_path -g |
+                =~ m|^cur: ([^\n]+)\n.+max: ([^\n]+)\n$|s ) {
+                ( $cur_freq, $max_freq )
+                    = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
+                <[base.logs]>->(
+                    0,
+                    '<< cannot set GPU frequency '
+                        . '[ is %s : should be %s ] >>',
+                    $cur_freq,
+                    $max_freq
+                ) if $cur_freq ne $max_freq;
+            }
+        } else {
+            return ( TRUE, $cur_freq ) if wantarray;
+            return TRUE;
+        }
+    }
+}
+
+#,,.,,.,.,..,,,..,.,,,,,.,.,,,..,,,.,,,,.,...,.,.,...,...,,,.,,,,,,,,,,.,,,,.,
+#DRYZWEV5QAPJCD33JBMA3JPAQ2KVZKLG2OHWHDPXUSEWREI7OTHABDKTDFZH6TE5APCQG62QL4XRC
+#\\\|3ODJGOSCUF42A7Q6YUWWYTF3IBYE26AGIBSXPUCOCQC5NVMR6DV \ / AMOS7 \ YOURUM ::
+#\[7]2XNSBJOY5QCK2AFICILKRQJ7JB6G4OHZD2EBDK6P34JK2SCJ72BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
