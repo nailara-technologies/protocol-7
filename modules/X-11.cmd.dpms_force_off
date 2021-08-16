@@ -8,20 +8,24 @@ return { 'mode' => qw| false |, 'data' => 'X-11 has no DPMS support' }
 
 <X-11.obj>->DPMSEnable();
 
-# <X-11.obj>->DPMSSetTimeouts( 600, 600, 600 );
+## default timeout [seconds] ##[ 13 minutes ]##
+##
+##  my $t_sec = <X-11.blank_timeout> // 780;
+##  <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
+
 <X-11.obj>->DPMSInfo();
 <X-11.obj>->DPMSForceLevel(3);
 <X-11.obj>->DPMSInfo();
 
-<[base.log]>->( 1, "display manually forced OFF, DPMS is enabled" );
+<[base.log]>->( 1, 'display manually forced OFF \ DPMS is enabled' );
 
 return {
     'mode' => qw| true |,
     'data' => 'display forced OFF, DPMS is enabled'
 };
 
-#,,.,,,..,..,,,.,,..,,,.,,.,.,,,.,.,.,.,,,..,,..,,...,...,...,,,,,...,.,.,.,,,
-#FJQIFFOGTZ67J7LTSMIFHBK2EPGHRTY3S7JKWKFMHIV5BLJDXMVNABNQTPCYMBXX6GWVA5ZHI4EIK
-#\\\|MEAVET4QV3SVU4W7LMM7VZ3QQWAEL44HFYKNPAV7O6U7ZEGFIUD \ / AMOS7 \ YOURUM ::
-#\[7]TKH74FJJKNPQMQ2IEAKEG5FPO7OOS4YXFR6OUCAVAEEGGJXVE2CI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,...,,..,..,,...,,..,,..,,,.,..,,...,.,.,.,.,,,,,...,.,.,.,,,
+#FXA7XWHIJJ5NISD2XFVX7XBIBZQCPPZDWJHX4TSYKPUFW5D3DZ27EM4VEUFKL3N7GOQ57YJYCGMIC
+#\\\|JJSWH4DRLE3LYAEZITZWIFRRY2NED52FA5U6MSM7HBM56T6RCQC \ / AMOS7 \ YOURUM ::
+#\[7]AHE6OCFPBSATWFTDVVARIQ3YWNGAVDPN5YKHZMV6QI5T25HVHUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
