@@ -1,0 +1,64 @@
+## >:] ##
+
+# name  = X-11.cmd.select-bg-image
+# descr = set image from list of background images
+
+my $img_name_chksum = $call->{'args'};
+my $bg_gfx_path     = <X-11.bg_gfx_directory>;
+
+my $err_reason_mesg;
+$err_reason_mesg = 'expected background-gfx filename chksum'
+    if not defined $img_name_chksum
+    or length($img_name_chksum) != 7;
+$err_reason_mesg = 'background-gfx directory is undefined'
+    if not defined $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory cannot be found'
+    if not defined $err_reason_mesg and not -d $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory not readable'
+    if not defined $err_reason_mesg and not -r $bg_gfx_path;
+return { 'mode' => qw| false |, 'data' => $err_reason_mesg }
+    if defined $err_reason_mesg;
+
+my $GFX_file_ref = <[file.all_files]>->($bg_gfx_path);
+return {
+    'mode' => qw| false |,
+    'data' => 'no files found in background-gfx directory'
+    }
+    if ref $GFX_file_ref ne qw| ARRAY |
+    or $GFX_file_ref->@* == 0;
+
+my %bg_images = map { <[file.path.chksum.AMOS]>->($ARG) => $ARG }
+    grep { !m|^\.| } grep {s|^.*/||} $GFX_file_ref->@*;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no such image found [ see list-backgrounds command ]'
+    }
+    if not exists $bg_images{$img_name_chksum};
+
+## setting background image ##
+##
+if ( <[X-11.set_background_image]>->( $bg_images{$img_name_chksum} ) ) {
+
+    <X-11.bg_image>        = $bg_images{$img_name_chksum};
+    <X-11.keep_background> = FALSE if <X-11.keep_background>;
+
+    return {
+        'mode' => qw| true |,
+        'data' =>
+            sprintf( 'configured background image [ %s ]', $img_name_chksum )
+    };
+
+} else {
+
+    return {
+        'mode' => qw| false |,
+        'data' => 'cannot set background image to given selection'
+    };
+}
+
+#,,,.,,,,,.,,,,,,,,,.,,,,,,..,.,.,,,,,.,,,,,.,.,.,...,...,.,.,,,.,,,,,.,,,,.,,
+#I4S4RASPS36FKS43I2KRZJVOWSYXZXCHRHSDMBYN6ZEHJJXIUTSPM2N565LD545ZMIZTTAJKWQ2RO
+#\\\|L7WD2PR6UOFJLJ6737YJHVRJMEV2NLXDNU37YPD2LODEE6BZ4O5 \ / AMOS7 \ YOURUM ::
+#\[7]PHYKCJMQQNDHTJ7NBNTCLQMRY4MP6SQOWKCGIAOYD4HJZSOTPEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

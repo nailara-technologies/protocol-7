@@ -1,0 +1,39 @@
+## >:] ##
+
+# name  = X-11.cmd.list-backgrounds
+# descr = list available X-11 desktop backgrounds
+
+my $bg_gfx_path = <X-11.bg_gfx_directory>;
+
+my $err_reason_mesg;
+$err_reason_mesg = 'background-gfx directory is undefined'
+    if not defined $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory cannot be found'
+    if not defined $err_reason_mesg and not -d $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory not readable'
+    if not defined $err_reason_mesg and not -r $bg_gfx_path;
+return { 'mode' => qw| false |, 'data' => $err_reason_mesg }
+    if defined $err_reason_mesg;
+
+my $GFX_file_ref = <[file.all_files]>->($bg_gfx_path);
+return {
+    'mode' => qw| false |,
+    'data' => 'no files found in background-gfx directory'
+    }
+    if ref $GFX_file_ref ne qw| ARRAY |
+    or $GFX_file_ref->@* == 0;
+
+my @bg_img_files = grep { !m|^\.| } grep {s|^.*/||} $GFX_file_ref->@*;
+
+return {
+    'mode' => qw| size |,
+    'data' => join '',
+    map { sprintf ":. %s .: %s\n", <[file.path.chksum.AMOS]>->($ARG), $ARG }
+        @bg_img_files
+    }
+
+#,,,.,,..,.,.,.,,,.,,,,,,,,,.,,,,,,.,,.,,,,..,..,,...,...,...,,,,,.,,,,..,...,
+#D74SPKYH3L2DEPRIPB7TW5V4XCZF3D6NVDEORHWNJUWBPXEZRZFP6SOL5LAOY5HKTLRESYSFWRMHA
+#\\\|ZQDNQ5HOPEHGEMG53LTKNGYCAZJVJDQSTY6E66WJHCQMXJBVXRS \ / AMOS7 \ YOURUM ::
+#\[7]DYMI6UKHLKWEJKRD2QBPYQ77ZPL3M4FZHZZOPXQELUO7RDUTA2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

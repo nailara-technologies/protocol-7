@@ -10,18 +10,18 @@ if ( not defined $path or not length $path ) {
 }
 
 my $old_path;
-my $recursive         = 0;
-my $recursion_entered = 0;
-$resolved //= 0;    # <-- resolve symlinks
-$resolved = 5 if $resolved eq qw| resolved |;
+my $recursive         = FALSE;
+my $recursion_entered = FALSE;
+$resolved //= FALSE;    # <-- resolve symlinks
+$resolved = TRUE if $resolved eq qw| resolved |;
 
 if ( not defined $result_aref ) {
     $result_aref = [];
 } elsif ( $result_aref eq qw| recursive | ) {
     $result_aref = [];
-    $recursive   = 5;    ## true ##
+    $recursive   = TRUE;    ## true ##
 } else {
-    $recursion_entered = 5;    ## true ##
+    $recursion_entered = TRUE;    ## true ##
 }
 
 if ( not -d $path ) {
@@ -50,8 +50,8 @@ if ( not -d $path ) {
 
 return $result_aref if not $recursion_entered;
 
-#,,,,,,.,,...,,.,,,..,...,,,.,,.,,,.,,,..,..,,..,,...,...,.,,,,..,...,.,,,..,,
-#JL7GR63VQFM2XM7OERYZLIFPI7L2QL7CKEC3YNNO5TXITNF3AU5SNJX4PRA3WNUUVILI5O7Z3UDCC
-#\\\|LHQIYC2J4Q3IGKTAEXED5F243WH3XHQO7GBDSFKDYRYUF4BS6LY \ / AMOS7 \ YOURUM ::
-#\[7]KZTFBFPEDAFJY2BOR5WIJ7I55643547YWN33IILS2W7ORQR7BKBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,.,.,,,.,..,,,,.,,.,,,..,,..,..,,...,.,.,.,.,,,.,,,.,.,,,,,.,
+#GOBNEREYKZKIJM2XSSBUMNIJCXCISPZRVWLEHKUJMQQ2DD6UHGARPXFQ6WSHKVNYKFO2LZCR3533E
+#\\\|4ALWUF7GIQ5VDQOQT54BQT24VQEXHLI75JSMTKJHGTLFE5LEDOJ \ / AMOS7 \ YOURUM ::
+#\[7]YQBL5HDNYG2VNUXGIDMVYF64FD754IMQQAI75OUZDV4AAUDUZ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
