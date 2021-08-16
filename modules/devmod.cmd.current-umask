@@ -1,12 +1,17 @@
 ## >:] ##
 
 # name  = devmod.cmd.current-umask
-# descr = current process umask value [ can change ]
+# descr = show current process umask value [can change]
 
-return { 'mode' => qw| true |, 'data' => sprintf( '%04o', umask ) };
+my $umask_value = umask;
 
-#,,,,,,,.,.,,,,.,,...,,.,,,.,,...,..,,.,.,,.,,..,,...,...,..,,..,,...,..,,.,.,
-#DBSAM2VTRCNFNTDDU3G5YW3EA43I4OLSHCNWNVRJGIXED4SRSZYAUMJKDHXNEIUPPCQPCF6DPXDU2
-#\\\|O2BLY54RHTSVPA4W4RNBFBOJQQROEJXBQU3SOAILUR6IZX77FWL \ / AMOS7 \ YOURUM ::
-#\[7]B7HFXLOG7O6I43UAOGBJKD2OEGGYU45M5E7HG3LWZU5ERF3JEACA 7  DATA SIGNATURE ::
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%04o ## [ %#o ]', $umask_value, 0777 & ~$umask_value )
+};
+
+#,,.,,.,,,,..,.,.,..,,.,.,,,,,,..,,.,,.,.,,,,,..,,...,..,,..,,.,,,,..,,..,...,
+#XAGKUQJNETUJW7QOJVLZFXLBJFSISZ4ZRCCJD2KR5QGF6SBKI7SLGNNH2YQV33QJ4OVLPURXK4QF4
+#\\\|DOA5LIYFMA4OLYOQ23P4NZNPS5JVS3BFTLJ4DOGPSB6AXUK7PC5 \ / AMOS7 \ YOURUM ::
+#\[7]6JGWXPZTMWKEUXI637IK7WWIVYO34VRMHAD4T6QEEC5A2H7J66BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
