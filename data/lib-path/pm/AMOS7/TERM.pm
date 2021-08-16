@@ -46,6 +46,7 @@ our %CC_FIELDS = (
 );
 our %CC_backup;
 
+our $pwd_cur_len           //= 0;
 our $pwd_min_len           //= 13;
 our $PASSWD_READ_TIMEOUT   //= 13;
 our $pwd_read_aborted      //= FALSE;
@@ -58,6 +59,7 @@ our $TTY_OUTPUT;
 our $READ_BUFFER;
 our $TTY_fd_restore;
 our $original_flags;
+our $currrent_pass_prompt;
 
 our @rnd_count;
 
@@ -102,6 +104,7 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
     my $prompt       = shift;                            ## optional ##
     my $read_timeout = shift // $PASSWD_READ_TIMEOUT;    ##[ in seconds ]##
     undef @rnd_count;    ## displayed * characters buffer ##
+    $pwd_cur_len = 0;
 
     my ( $in, $out ) = Term::ReadLine->findConsole;
     if ( not $in ) {
@@ -163,7 +166,7 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
 
 sub close_TTY_no_echo {
     my $send_newline = shift // TRUE;
-
+    $pwd_cur_len = 0 if $pwd_cur_len;
     if ( defined $READ_BUFFER and length $READ_BUFFER ) {
         substr(    ##  clear buffer content  ##
             $READ_BUFFER, 0,
@@ -267,10 +270,13 @@ sub read_password_single {
     my $term_title     = shift // '';
     my $output_lines   = shift // 1;
     my $input_timeout  = shift // $PASSWD_READ_TIMEOUT;
-
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
+    $currrent_pass_prompt = $message_prompt;
+    my $mprompt_length = 8 + length $message_prompt;
+
     my $read_chars_buffer;
+    $pwd_cur_len = 0;
     my $passwd_mlen     = 64;
     my $tty_read_size   = 1026;
     my $max_XOR_chars   = 1024;
@@ -291,8 +297,9 @@ sub read_password_single {
     my $backspace_chr = chr 8;
     my $NAK           = chr 21;
 
-    my $XORchars_count = 0;
-    my $XOR_buffer_pos = 0;
+    my $XORchars_count     = 0;
+    my $XOR_buffer_pos     = 0;
+    my $XOR_stars_slowdown = 1;
 
 REREAD_PASSWORD:
 
@@ -383,13 +390,21 @@ REREAD_PASSWORD:
                 $XOR_buffer_pos = 0 if $XOR_buffer_pos == 64;
                 last                if $XORchars_count == $max_XOR_chars;
 
-                AMOS7::TERM::show_rnd_stars() if $show_stars;
+                if ( $show_stars
+                    and ( $XORchars_count * $XOR_stars_slowdown ) % 3 == 0 ) {
+                    AMOS7::TERM::show_rnd_stars($mprompt_length);
+                }
+                $XOR_stars_slowdown *= 0.97 if $XOR_stars_slowdown > 0.13;
             }
         }
 
+        $pwd_cur_len = length $read_chars_buffer;
+
         $continue_reading = FALSE    ##[  read end conditions  ]##
-            if $read_chrs == 0 and $abort_mode = qw| timeout | ##[ timeout ]##
-            or length($read_chars_buffer) >= $passwd_mlen      ##[ maxlen ]##
+            if defined $read_chrs
+            and $read_chrs == 0
+            and $abort_mode = qw| timeout |                  ##[ timeout ]##
+            or length($read_chars_buffer) >= $passwd_mlen    ##[ maxlen ]##
             or length($read_chars_buffer) and (
 
             rindex( $read_chars_buffer, chr 10 ) >= 0         ##[ LF ]##
@@ -422,7 +437,7 @@ REREAD_PASSWORD:
         $show_stars = FALSE if $show_stars and not $continue_reading;
         $show_stars = FALSE if $show_stars and not $extended_processing_mode;
 
-        AMOS7::TERM::show_rnd_stars() if $show_stars;
+        AMOS7::TERM::show_rnd_stars($mprompt_length) if $show_stars;
     }
 
     my $LF_found = FALSE;
@@ -519,13 +534,49 @@ sub terminal_title {
     return TRUE;    ## true ##
 }
 
-sub show_rnd_stars {
-    my $rnd_keys = sprintf qw| %u |, 1.2 + rand(1);
-    for ( 1 .. $rnd_keys ) {    ## masking length ##
-        print {$TTY_OUTPUT} qw| * |;
-        Time::HiRes::sleep rand(0.13);
+sub term_rewind {
+    my $mprompt_length = shift // 0;
+    my $stars_count    = shift // scalar @rnd_count;
+    return if not $mprompt_length;
+
+    state $last_color //= $C{'T'};
+    $mprompt_length = 17 + $mprompt_length;
+
+    my $term_width = [AMOS7::TERM::terminal_size]->[0];
+
+    if ( ( $mprompt_length + $stars_count ) >= $term_width ) {
+        if ( $last_color eq $C{'T'} ) {
+            $last_color = $C{'g'};
+        } else {
+            $last_color = $C{'T'};
+        }
+        printf {$TTY_OUTPUT} "\r%s%s: %s%s %s %s%s :. %s",
+            $C{'R'}, $C{'0'}, $C{'T'}, $C{'B'},
+            $currrent_pass_prompt,
+            $C{'R'}, $C{'0'}, $C{'R'} . $last_color;
+        return TRUE;
+    } else {
+        return FALSE;
     }
-    push @rnd_count, $rnd_keys;
+
+}
+
+sub show_rnd_stars {
+    my $mprompt_length = shift // 0;
+    my $add_more_count = ( 13 - $pwd_cur_len ) / 5;
+    $add_more_count = 0 if $add_more_count < 0;
+    my $rnd_keys = sprintf qw| %u |, 1.2 + rand( 1 + $add_more_count );
+    my $stars_total_count = scalar @rnd_count;
+    my $add_count         = 0;
+    for ( 1 .. $rnd_keys ) {    ## masking length ##
+        if ( term_rewind( $mprompt_length, ++$stars_total_count ) ) {
+            $stars_total_count = $add_count = 0;
+            @rnd_count         = ();               ##  to be improved  ##
+        }
+        ++$add_count and print {$TTY_OUTPUT} qw| * |;
+        Time::HiRes::sleep rand( 0.13 / $rnd_keys );
+    }
+    push @rnd_count, $add_count;
 }
 
 sub del_rnd_stars {
@@ -570,8 +621,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,.,,,..,.,.,,.,,,..,...,,,,,..,,...,...,...,..,,...,...,..,,...,...,.,,,,..,
-#IC4VOUIKVQZIBTRGJUCMWYONMBM3WUXGFBG6QEOLI2XJONPFZPMAL7CUNI76WNUFR4A2VYCUVMMZI
-#\\\|SIK7LMMOZDVHXIPNGOWW6WRCBZ5M6KE53KLDNEAMTRFTD42UUEZ \ / AMOS7 \ YOURUM ::
-#\[7]NAKDWERUKP6BRFSTNIGXWB43VNTTGR65SILP25XATEHPN6TG7IDQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,...,,..,.,,,,,.,,,,,,,.,...,..,,...,...,...,,..,,,.,,,,,,..,
+#7VRTQQG5I5QPEJQVOVHUFHJO6N5HLKCE7VZYTL6IZC52N2X4VWJTG6UTBX22X2M2QTBEHFBCKAIZ2
+#\\\|B4VPYAATQKUY6ADB5VVMAO6VIT54R5JRB6LUCRJI2XAL5DOU5QD \ / AMOS7 \ YOURUM ::
+#\[7]4NHHKH2TH35YEY6HRWLA76BLEZX72FMSGIHZK4RSBPWLGE7OMEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
