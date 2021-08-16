@@ -355,45 +355,16 @@ if ( <X-11.bg_fade> //= TRUE and $bg_col ne '#000000' ) {
 }
 
 ## setting background image ##
-my $bg_mode = <X-11.bg_mode>;
-if ( defined $bg_image ) {
-
-    ## check local backgrounds directory first ##
-    my $chk_backgrounds_path = sprintf( qw| %s/%s/%s |,
-        <system.root_path>, qw| data/gfx/backgrounds |, $bg_image );
-    $bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
-    ##
-
-    my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
-    my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
-    if ( !-x $hsetroot_bin ) {
-        <[base.logs]>->(
-            0, "cannot set bg-image : '%s' not found",
-            $hsetroot_bin
-        );
-        return -1;
-    }
-    ( my $img_txt = $bg_image ) =~ s,^.+/,,g;
-    <[base.logs]>->( "setting background image '%s'", $img_txt );
-
-    ##  query available hsetroot params here  ##   [LLL]
-    @hsetroot_params = ( sprintf( '-%s', $bg_mode ), $bg_image );
-
-    if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
-        <[base.logs]>->(
-            0, "cannot execute 'hsetroot' command [ returned %s ]",
-            $CHILD_ERROR
-        );
-    }
-}
+##
+<[X-11.set_background_image]>->($bg_image) if defined $bg_image;
 
 ## all done. ##
 <X-11.initialized> = TRUE;
 
 return 0;    ## success
 
-#,,.,,.,.,.,,,,..,,,.,..,,...,...,.,.,,,,,,.,,..,,...,...,.,,,,,,,..,,,,,,,,.,
-#3Q4UC4NHBZNC5RSM6OQ634QP6RMASNLOKLGSCHFQD7MPXBELQ5YG5KQN3G6RUMQUQYKSWZA3FNAYC
-#\\\|OBRRLPUNUXODZMQTBL34ZIG2S7WIBHI3NRW2RRD3TXESWNAP74L \ / AMOS7 \ YOURUM ::
-#\[7]IRHDYYMKQMMQMRJV75QDCMREYOTX3QFHSAFF5XHALYOV7JK4GYDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,..,,...,.,.,.,.,.,,,,,.,...,..,,...,...,..,,,..,,..,...,.,.,
+#AZBLKUIJ7Q6DJG6ZFFNDXXG777O4VG5VMHXCZFPJA244MZ3HUXB5FO5DV2VOSEWAU24MO3PXWMHCA
+#\\\|ZZC2RFA6III5W2RDXKH3BR65P5QXVMTUR7E7BKL445FRUSDNZQI \ / AMOS7 \ YOURUM ::
+#\[7]RIVJIQBFO2FQACMTESL3F7QQY33YHKX2I7QO52KXKT3ML2C2OYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
