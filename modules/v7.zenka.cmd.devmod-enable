@@ -4,7 +4,9 @@
 # param = [instance|name]
 # descr = notify zenka [instance] to load devmod module
 
-my $params = $$call{'args'};
+my $params = $call->{'args'};
+
+my $devmod_signal = 53;    ##  SIGNUM53  ##
 
 return {
     'mode' => qw| false |,
@@ -21,21 +23,24 @@ foreach my $param_str ( split( m| +|, $params ) ) {
     if ( $param_str =~ m|^\d+$| ) {
         return {
             'mode' => qw| false |,
-            'data' => "instance $param_str not found"
-                . " [ use 'v7.list' to see IDs ]"
+            'data' =>
+                sprintf( "instance %s not found [ use 'v7.list' to see IDs ]",
+                $param_str )
             }
             if not exists <v7.zenka.instance>->{$param_str};
         push( @instance_ids, $param_str );    ## numerical instance id ##
     } else {
         return {
             'mode' => qw| false |,
-            'data' => "zenka name '$param_str' not valid [syntax]"
+            'data' =>
+                sprintf( "zenka name '%s' not valid [syntax]", $param_str )
             }
             if $param_str !~ $user_re and $param_str !~ $user_substr_re;
         my @results = <[v7.zenka-instances.get-ids]>->($param_str);
         return {
             'mode' => qw| false |,
-            'data' => "no instance matches for zenka '$param_str'"
+            'data' =>
+                sprintf( "no instance matches for zenka '%s'", $param_str )
             }
             if not @results;
 
@@ -51,7 +56,8 @@ foreach my $instance_id (@instance_ids) {
     my $name_of_zenka = $instance->{'zenka_name'};
     my $zenka_pid     = $instance->{'process'}{'id'};
 
-    $total_count += my $count = kill( 5, $zenka_pid );
+    $total_count += my $count = kill $devmod_signal, $zenka_pid;
+
     push( @pids, $zenka_pid ) if $count;
     <[base.logs]>->(
         0,            "< devmod-enable > notifying instance %d [ '%s' ]",
@@ -62,9 +68,9 @@ foreach my $instance_id (@instance_ids) {
 return {
     'mode' => qw| true |,
     'data' => sprintf(
-        'sent SIGNUM53 [ loads dbg mod ] to %d instance process%s [%s]',
+        'sent SIGNUM53 [load devmod module] to %d instance process%s [%s]',
         $total_count,
-        <[base.cnt_s]>->( $total_count, 'es' ),
+        <[base.cnt_s]>->( $total_count, qw| es | ),
         join( ',', @pids )
     )
     }
@@ -77,8 +83,8 @@ return {
     'data' => 'no success sending a signal to any process'
 };
 
-#,,,.,..,,.,.,,,.,,..,,,,,,,.,,,,,.,.,,,,,,.,,..,,...,...,...,...,,,.,.,.,,,.,
-#O2JQGJBRNV6DGRAHV7Z2MKNHRZ2UMGDWRJGVHNDFPTFLHZ6ED3DMLJ4BGXJEP64J7YKWA2ZF7VL4W
-#\\\|L7ZJYVSMKV65MUFA4XQ5Z3SGUYMOPPGZKEE5W76LCO42CTO6ZLP \ / AMOS7 \ YOURUM ::
-#\[7]XWNITRJHQJUXNBS6VDPXS2DR3AYSYHK3BVKW2GBHUIUOOW6JHKDA 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,,.,,.,.,..,,,,.,,,.,,.,,,,.,..,,...,...,,..,.,,,...,,,.,,.,,
+#5EFLXANFCBHQ276VYPBRFHTCADNGHX4YB4BITWTXCQHEIV6WVCOUR2Q53IIFO5EF5A7EK2D5J5MKY
+#\\\|MER5HGKLSKIXMIP4H52IFACAD5NYBZH6CZ5IXNXQKUNZ45SHTPO \ / AMOS7 \ YOURUM ::
+#\[7]G5HV5QYMAT47PTD2C4WYZPMR2WVKN6JUSIK65ABZFL2MSWK2Y4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
