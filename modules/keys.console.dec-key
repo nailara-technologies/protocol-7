@@ -4,20 +4,19 @@
 # param = <key-name>
 # descr = convert a key file to unencrypted
 
-my $key_name = shift;
+my $name = shift;
 
 return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $key_name;
+    if not defined $name;
 
-my $key_status = <[crypt.C25519.encrypted_key]>->($key_name);
+my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
 if ( $key_status < 0 ) {
     my $err_reason_str;
     if ( $key_status == -1 ) {
-        $err_reason_str = sprintf "only public key named '%s' found",
-            $key_name;
+        $err_reason_str = sprintf "only public key named '%s' found", $name;
     } elsif ( $key_status == -2 ) {
-        $err_reason_str = sprintf 'user-key %s not found', $key_name;
+        $err_reason_str = sprintf 'user-key %s not found', $name;
     } elsif ( $key_status == -3 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
@@ -31,10 +30,10 @@ if ( $key_status < 0 ) {
     <[base.exit]>->(qw| 0110 |);
 } elsif ( $key_status == 0 ) {
     return printf "\n  ::  '%s' private key is already unencrypted  ::\n\n",
-        $key_name;
+        $name;
 }
 
-my $key_filenames = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
+my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
 
 foreach my $type (qw|  private  public  |) {
     if ( not -w $key_filenames->{$type} ) {
@@ -47,7 +46,7 @@ foreach my $type (qw|  private  public  |) {
     }
 }
 
-my $load_success = <[crypt.C25519.load_keypair]>->( $key_name, undef, TRUE );
+my $load_success = <[crypt.C25519.load_keypair]>->( $name, undef, TRUE );
 
 if ( not defined $load_success ) {
     warn 'cannot load key files <{NC}>';
@@ -99,7 +98,7 @@ foreach my $type (qw|  private  public  |) {
 }
 
 ( my $keywrite_status, my $key_checksum )
-    = <[crypt.C25519.write_keys]>->($key_name);
+    = <[crypt.C25519.write_keys]>->($name);
 
 if ( defined $keywrite_status and $keywrite_status == 5 ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
@@ -116,7 +115,7 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
     <[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
 
     printf( "::[  success : private key %s %s now unencrypted  ]::\n\n",
-        $key_name, $key_checksum );
+        $name, $key_checksum );
 
     <[base.exit]>->(qw| 00000 |);
 } else {
@@ -139,8 +138,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_DECRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,.,..,,,.,,,,.,...,,,,,.,.,,.,,..,,.,.,,,.,.,.,...,...,.,.,,.,,..,,,..,...,
-#2KC4534P7MPJ2CVDFBMUPTRCZ67VYFISPLRV3EGSYWUSESGU4FLRCCOPXD3552HS7BA4E26VG7EUA
-#\\\|ODRPAWIADHMROJX2MQTPS333OZIJE3GTJUOPEUXDKL4KU3DIAXZ \ / AMOS7 \ YOURUM ::
-#\[7]UBB3VPQRATXTTWB3JDJKYXQXXDXJGYGB2XGCXW5X7EET2XNCP2BI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,,,,..,,,.,,,.,,.,,,.,.,,,,,.,.,...,..,,.,,,.,.,.,,,,,.,,.,,
+#S6FJZHBGNIQXEKGHPDY2WTJJ6LJ3DZZ2YXRGAVXIVNIJVTGYJJ3JZNEUCMN7OV4F56MJPOOAERTCK
+#\\\|4NO2XDO3HHEJQ22FVSC7NA4SCENVQWUHJBXG57QZTU3KBMHGQU2 \ / AMOS7 \ YOURUM ::
+#\[7]I33OREL3PMGM5NL3WIRMAKI62D6WTVZHCF2NK4T5O7BF2L6IPKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
