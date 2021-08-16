@@ -15,7 +15,7 @@ use constant FALSE => 0;    ##  false  ##
 use AMOS7;
 
 use Event;
-use Module::Load;
+use Term::ReadLine;
 use Time::HiRes qw| sleep |;
 use Crypt::PRNG::Fortuna qw| rand |;
 
@@ -29,12 +29,37 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
+use POSIX qw| :termios_h |;
+
+our %CC_FIELDS = (
+    VEOF   => VEOF,
+    VEOL   => VEOL,
+    VERASE => VERASE,
+    VINTR  => VINTR,
+    VKILL  => VKILL,
+    VQUIT  => VQUIT,
+    VSUSP  => VSUSP,
+    VSTART => VSTART,
+    VSTOP  => VSTOP,
+    VMIN   => VMIN,
+    VTIME  => VTIME,
+);
+our %CC_backup;
+
 our $pwd_min_len           //= 13;
+our $PASSWD_READ_TIMEOUT   //= 13;
 our $pwd_read_aborted      //= FALSE;
 our $term_read_key_support //= FALSE;
+our $TTY_read_size         //= 2048;
 
-autoload('Term::ReadKey');
-$term_read_key_support = TRUE if defined &Term::ReadKey::ReadMode;
+our $TTY_IN;
+our $TERM_ios;
+our $TTY_OUTPUT;
+our $READ_BUFFER;
+our $TTY_fd_restore;
+our $original_flags;
+
+our @rnd_count;
 
 ##[ TERMINAL [ TTY ] ]########################################################
 
@@ -52,6 +77,121 @@ sub terminal_size {
     return ( $size_aref->[1], $size_aref->[0] );
 }
 
+sub read_to_buffer_TTY {
+    my $buffer_sref     = shift // \$READ_BUFFER;
+    my $input_timeout   = shift // $PASSWD_READ_TIMEOUT;
+    my $tty_read_size   = shift // $TTY_read_size;
+    my $autoinc_timeout = shift // TRUE;
+
+    my $buffered_bytes = length( $buffer_sref->$* // '' );
+
+    if ($autoinc_timeout) {
+        my $new_timeout = $input_timeout + 0.7 * $buffered_bytes;
+        $TERM_ios->setcc( VTIME, sprintf qw| %u |, 10 * $new_timeout );
+    }
+
+    my $bytes_read_count = sysread $TTY_IN, $buffer_sref->$*, $tty_read_size,
+        $buffered_bytes;
+
+    return ( $bytes_read_count, \$READ_BUFFER ) if wantarray;
+    return $bytes_read_count;
+}
+
+sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
+
+    my $prompt       = shift;                            ## optional ##
+    my $read_timeout = shift // $PASSWD_READ_TIMEOUT;    ##[ in seconds ]##
+    undef @rnd_count;    ## displayed * characters buffer ##
+
+    my ( $in, $out ) = Term::ReadLine->findConsole;
+    if ( not $in ) {
+        warn_err('found no available console <{C1}>');
+        return undef;
+    }
+    if ( not open $TTY_IN, qw| +< |, $in ) {
+        if ( not open $TTY_IN, qw| <& |, *STDIN{IO} ) {
+            warn_err( 'cannot [re-] open STDIN [ %s ]',
+                1, lcfirst($OS_ERROR) );
+            return undef;
+        } else {
+            warn_err( 'cannot open %s [rw] [ %s ]',
+                1, $in, lcfirst($OS_ERROR) );
+            return undef;
+        }
+    }
+
+    if ( not open $TTY_OUTPUT, qw| >> |, $out ) {
+        if ( not open $TTY_OUTPUT, qw| >>& |, *STDOUT{IO} ) {
+            warn_err( 'cannot [re-] open STDOUT [ %s ]',
+                1, lcfirst($OS_ERROR) );
+            return undef;
+        } else {
+            warn_err( 'cannot open %s [writing] [ %s ]',
+                1, $out, lcfirst($OS_ERROR) );
+            return undef;
+        }
+    }
+
+    select( ( select($TTY_OUTPUT), $OUTPUT_AUTOFLUSH = TRUE )[0] );
+    print $TTY_OUTPUT $prompt if defined $prompt;
+
+    $TTY_fd_restore = fileno($TTY_IN);
+    $TERM_ios       = POSIX::Termios->new();
+
+    $TERM_ios->getattr($TTY_fd_restore);
+    $original_flags = $TERM_ios->getlflag();
+    foreach my $field ( keys %CC_FIELDS ) {
+        $CC_backup{$field} = $TERM_ios->getcc( $CC_FIELDS{$field} );
+    }
+
+    my $flags = $original_flags & ~( ISIG | ECHO | ICANON );
+
+    $TERM_ios->setlflag($flags);
+
+    if ($read_timeout) {
+        $TERM_ios->setcc( VTIME, 10 * $read_timeout );
+        $TERM_ios->setcc( VMIN,  0 );
+    } else {
+        $TERM_ios->setcc( VTIME, 0 );
+        $TERM_ios->setcc( VMIN,  1 );
+    }
+
+    $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );
+
+    return TRUE;
+}
+
+sub close_TTY_no_echo {
+    my $send_newline = shift // TRUE;
+
+    if ( defined $READ_BUFFER and length $READ_BUFFER ) {
+        substr(    ##  clear buffer content  ##
+            $READ_BUFFER, 0,
+            length $READ_BUFFER,
+            chr(127) x length $READ_BUFFER
+        );
+        $READ_BUFFER = undef;
+    }
+
+    undef @rnd_count;    ## displayed * characters buffer ##
+
+    print {$TTY_OUTPUT} chr(10) if $send_newline and defined $TTY_OUTPUT;
+    return undef                if not defined $TERM_ios;
+
+    $TERM_ios->setlflag($original_flags);
+
+    while ( my ( $field, $_val ) = each %CC_backup ) {
+        $TERM_ios->setcc( $CC_FIELDS{$field}, $_val );
+    }
+    $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );
+    close($TTY_IN);
+    close($TTY_OUTPUT);
+
+    $TTY_OUTPUT = $TTY_IN = undef;
+
+    return TRUE;
+}
+
 ##[ USER-INTERACTION ]########################################################
 
 sub read_password_repeated {
@@ -61,29 +201,23 @@ sub read_password_repeated {
     my $output_lines      = shift // 1;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
-    $OUTPUT_AUTOFLUSH = TRUE;
-
     ( my $password_0, my $password_1 );
 
     while (not defined $password_0
         or not defined $password_1
         or $password_0 ne $password_1 ) {
 
-        terminal_title($term_title) if length $term_title;
+        ( $password_0, my $abort_mode )
+            = read_password_single( sprintf( 'enter %s', $password_type_msg ),
+            $term_title );
 
-        ( $password_0, my $password_status )
-            = read_password_single(
-            sprintf( 'enter %s', $password_type_msg ) );
-
-        if (not defined $password_0
-            and (  $password_status == 0
-                or $password_status == 1 )
-        ) {
+        if ( not defined $password_0
+            and ( $abort_mode eq FALSE or $abort_mode eq qw| TIMEOUT | ) ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
 
-        } elsif ( $password_status != 1 ) {
+        } elsif ( $abort_mode ne qw| TIMEOUT | ) {
 
-            ( $password_1, my $password_status )
+            ( $password_1, my $abort_mode )
                 = read_password_single(
                 sprintf( 're-enter %s', $password_type_msg ) );
 
@@ -103,11 +237,11 @@ sub read_password_repeated {
                 sleep 1.2;
             }
 
-            if ( $password_status > 0 ) {
+            if ( $abort_mode ne FALSE ) {
                 undef $password_0;
                 undef $password_1;
                 say $C{'R'};
-                if ( $password_status != 1 ) {
+                if ( $abort_mode ne qw| timeout | ) {
                     if ( defined $main::PROTOCOL_SEVEN ) {
                         printf "%s:\n", $C{'0'};
                         $main::code{'base.log'}
@@ -131,167 +265,187 @@ sub read_password_single {
 
     my $message_prompt = shift // 'enter password';
     my $term_title     = shift // '';
-    my $output_lines   = shift // 0;
+    my $output_lines   = shift // 1;
+    my $input_timeout  = shift // $PASSWD_READ_TIMEOUT;
+
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
-    my $password_status  = 0;
-    my $pwd_read_aborted = FALSE;
-    my $autoflush        = $OUTPUT_AUTOFLUSH;
+    my $read_chars_buffer;
+    my $passwd_mlen     = 64;
+    my $tty_read_size   = 1026;
+    my $autoinc_timeout = TRUE;
 
-    $OUTPUT_AUTOFLUSH = TRUE;
-
-    terminal_title($term_title) if length $term_title;
-
-    if ( not $term_read_key_support ) {    ##  temporary  ##  [LLL]
-        say sprintf "\n %s::%s%s%s %s %s%s::%s\n", $C{'0'}, $C{'b'}, $C{'B'},
-            $C{'o'},
-            'no readkey support [ no * echoes ]',
-            $C{'R'}, $C{'0'}, $C{'R'};
-    }
-
-    my $read_pwd;
-
-REREAD_PASSWORD:
-
-    printf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'}, $C{'0'}, $C{'T'}, $C{'B'},
+    my $colored_prompt = sprintf "%s:\n%s: %s%s %s %s%s :. %s", $C{'0'},
+        $C{'0'}, $C{'T'}, $C{'B'},
         $message_prompt,
         $C{'R'}, $C{'0'}, $C{'T'};
 
-    eval 'Term::ReadKey::ReadMode(4)' if $term_read_key_support;
+    my $XOR_buffer    = chr(127) x 64;    ##  >= 64 bytes mode  ##
+    my $chr_remove    = join '', map {chr} ( 0 .. 9 );
+    my $sequ_left     = join '', map {chr} qw| 27 91 68 |;
+    my $sequ_begin    = join '', map {chr} qw| 27 91 |;
+    my $del_sequence  = join '', map {chr} qw| 27 91 51 126 |;
+    my $seq_END       = chr 126;
+    my $DEL           = chr 127;
+    my $backspace_chr = chr 8;
+    my $NAK           = chr 21;
 
-    if ( not $term_read_key_support ) {    ##  temporary  ##  [LLL]
+REREAD_PASSWORD:
 
-        autoload 'Term::ReadPassword';
-        $read_pwd = Term::ReadPassword::read_password( '', 13, TRUE );
+    terminal_title($term_title) if length $term_title;
 
-        if ( not length( $read_pwd // '' ) ) {
+    AMOS7::TERM::init_TTY_no_echo( $colored_prompt, $input_timeout );
 
-            $OUTPUT_AUTOFLUSH = $autoflush;
+    my $abort_mode               = FALSE;
+    my $continue_reading         = TRUE;
+    my $extended_processing_mode = TRUE;
 
-            if ( defined $main::PROTOCOL_SEVEN ) {
-                printf "%s:\n", $C{'0'};
-                $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
-                printf "%s:\n", $C{'0'};
-            } else {
-                error_exit(' [ password read aborted ]');
+    while ($continue_reading) {
+
+        my $show_stars = TRUE;
+
+        my $read_chrs
+            = AMOS7::TERM::read_to_buffer_TTY( \$read_chars_buffer, undef,
+            $tty_read_size, $autoinc_timeout );
+
+        ##  ignoring return on empty buffer  ##
+        $read_chars_buffer = ''
+            if $read_chars_buffer eq chr 10
+            or $read_chars_buffer eq chr 13;
+
+        ##  XOR passwd mode  ##   [  to be implemented next  ]
+
+##      $extended_processing_mode = FALSE
+##          if $extended_processing_mode
+##          and length($read_chars_buffer) >= $passwd_mlen;
+
+        if ($extended_processing_mode) {
+
+            ## DEL [ or backspace ] ##
+            ##
+            ##  make backspace  ##
+            $show_stars = FALSE
+                if $read_chars_buffer =~ s|\Q$del_sequence\E|$backspace_chr|g;
+            $show_stars = FALSE    ##[ left cursor key also ]##
+                if $read_chars_buffer =~ s|\Q$sequ_left\E|$backspace_chr|g;
+            $show_stars = FALSE
+                if $read_chars_buffer =~ s|$DEL|$backspace_chr|g;
+            $show_stars = FALSE
+                if $read_chars_buffer =~ s|^$backspace_chr||g;  ##[ silent ]##
+            ## process backspace ##
+            while ( $read_chars_buffer =~ s|.$backspace_chr|| ) {
+                $show_stars = FALSE;
+                ## one at a time ##
+                ##
+                ## remove * chars ##
+                AMOS7::TERM::del_rnd_stars();
             }
-            return ( undef, $password_status ) if wantarray;
-            return undef;
 
+            $show_stars = FALSE    ##  delete other sequences  ##
+                if $read_chars_buffer =~ s|\Q$sequ_begin\E.$seq_END?||g;
         }
-        $OUTPUT_AUTOFLUSH = $autoflush;
-
-        return $read_pwd;
-    }
-
-    my $key  = '';
-    my $code = 0;
-    my @rnd_count;
-    while ( defined $key and $key !~ m|[\r\n]|
-        or $code ) {
-        $code = 0;
-        my $read_timeout = 13 + 0.7 * length( $read_pwd // '' );
-
-        $key  = read_single_pwd_key($read_timeout);
-        $code = ord($key) if defined $key;
-
-        $code = 10 if $code == 13;    ##  linefeed \ carriage return  ##
-
-        last if $code == 0 or $code == 24;    ## [CANCEL] [ read timeout ] ##
 
         ## CTRL+U [NAK] [erase read] ##
         ##
-        if ( $code == 21 and length $read_pwd ) {
+        if ( $extended_processing_mode
+            and rindex( $read_chars_buffer, $NAK ) >= 0 ) {
             ##  erase characters read so far  ##
-            my $rewind_delay = 0.007;
-            while (@rnd_count) {
-                for ( 1 .. pop @rnd_count ) {
-                    print "\b \b";
-                    sleep( $rewind_delay *= 1.042 );
-                    Event::loop(0.07);
-                }
-            }
-            $read_pwd = '';    ##  reset password entered  ##
-
-            ##  checking min pwd length  ##
-            ###
-        } elsif ( $code == 10
-            and length( $read_pwd // '' )
-            and length($read_pwd) < $pwd_min_len ) {
-            if ( defined $main::PROTOCOL_SEVEN ) {
-                printf "\n%s:\n", $C{'0'};
-                $main::code{'base.logs'}
-                    ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
-            } else {
-                warn_err( ' <<  pasword min len is %d  >> <{NC}>',
-                    -1, $pwd_min_len );
-            }
-            sleep 1.2;
-            $read_pwd = '';    ##  reset password entered  ##
-            goto REREAD_PASSWORD;
-
-        } elsif ( $code == 10 and length $read_pwd ) {   ##  read complete  ##
-            eval 'Term::ReadKey::ReadMode(0)' if $term_read_key_support;
-
-            $OUTPUT_AUTOFLUSH = $autoflush;
-
-            say sprintf "\n%s:%s", $C{'0'}, $C{'R'};
-            return ( $read_pwd, $password_status ) if wantarray;
-
-            print sprintf( "%s:\n", $C{'0'} ) x $output_lines;
-
-            return $read_pwd;    ## return entered password ##
-
-        } elsif ( $code == 8 ) {    ##  backspace  ##
-            my $pwd_len = length $read_pwd;
-            if ($pwd_len) {
-                substr( $read_pwd, $pwd_len - 1, 1, qw| * | );
-                substr( $read_pwd, $pwd_len - 1, 1, '' );
-                if (@rnd_count) {
-                    for ( 1 .. pop @rnd_count ) {
-                        print "\b \b";
-                        sleep( rand(0.13) );
-                    }
-                }
-            }
-            ## adding one key to the password ##
-        } elsif ( defined $key and $code != 10 and $code != 24 ) {
-
-            $read_pwd .= $key;
-            $password_status = 0;    ##  resetting pwd status  ##
-
-            my $rnd_keys = sprintf qw| %u |, 1.2 + rand(1);
-            for ( 1 .. $rnd_keys ) {    ## masking length ##
-                print qw| * |;
-                sleep( rand(0.13) );
-            }
-            push @rnd_count, $rnd_keys;
-
-        } else {    ##[  read abort  ]##
-            $read_pwd = '*' x    ##  erasing password from memory  ##
-                sprintf( qw| %u |,
-                1.3 * length( $read_pwd // '' ) + rand(7) );
-            $read_pwd        = '';
-            $password_status = 2;
+            AMOS7::TERM::rewind_stars();
+            $read_chars_buffer = '';
+            $show_stars        = FALSE;
         }
+
+        $show_stars = FALSE if not length $read_chars_buffer;
+
+        $continue_reading = FALSE    ##[  read end conditions  ]##
+            if $read_chrs == 0 and $abort_mode = qw| timeout | ##[ timeout ]##
+            or length($read_chars_buffer) >= $passwd_mlen      ##[ maxlen ]##
+            or length($read_chars_buffer) and (
+
+            rindex( $read_chars_buffer, chr 10 ) >= 0         ##[ LF ]##
+            or rindex( $read_chars_buffer, chr 13 ) >= 0      ##[ CR ]##
+            or length($read_chars_buffer) >= $tty_read_size   ##[ read_len ]##
+
+            );
+
+        if ( $abort_mode eq qw| timeout | ) {
+            AMOS7::TERM::timeout_stars();
+            $show_stars = FALSE;
+        } elsif (
+            $continue_reading
+            and $extended_processing_mode
+            and length($read_chars_buffer) >= $passwd_mlen    ##[ maxlen ]##
+            or rindex( $read_chars_buffer, chr 27 ) >= 0      ## escape ##
+            or rindex( $read_chars_buffer, chr 4 ) >= 0       ## CTRL-D ##
+            or rindex( $read_chars_buffer, chr 3 ) >= 0       ## CTRL-C ##
+        ) {
+            $abort_mode = qw| user-interrupt |;
+            AMOS7::TERM::reset_stars();
+            $continue_reading = FALSE;
+            $show_stars       = FALSE;
+        }
+
+        $show_stars = FALSE
+            if $continue_reading    ##  deleting all chars < asc 10  ##
+            and $read_chars_buffer =~ s|[$chr_remove]+||g;
+
+        $show_stars = FALSE if $show_stars and not $continue_reading;
+        $show_stars = FALSE if $show_stars and not $extended_processing_mode;
+
+        AMOS7::TERM::show_rnd_stars() if $show_stars;
     }
 
-    eval 'Term::ReadKey::ReadMode(0)' if $term_read_key_support;
+    my $LF_found = FALSE;
+    foreach my $LF_chr ( chr 13, chr 10 ) {
+        my $LF_match_pos = index $read_chars_buffer, $LF_chr;
+        ## truncating pwd buffer to linefeed pos ##
+        $LF_found = TRUE and substr $read_chars_buffer, $LF_match_pos,
+            length($read_chars_buffer) - $LF_match_pos, ''
+            if $LF_match_pos >= 0;
+    }
 
-    if ( $code == 24 ) {    ##[  input timeout  ]##
+    ##  XOR passwd mode  ##
+    ##
+    if ( length($read_chars_buffer) >= $passwd_mlen ) {
+        $extended_processing_mode = FALSE;
+    }
 
-        $password_status = 1;
+    reset_stars() if not $LF_found and $extended_processing_mode;
 
-        my $rewind_delay = 0.777;
-        while (@rnd_count) {
-            for ( 1 .. pop @rnd_count ) {
-                print "\b \b";
-                sleep( $rewind_delay *= 0.84 );
-                Event::loop(0.07);
-            }
+    AMOS7::TERM::close_TTY_no_echo();
+
+    $read_chars_buffer = undef if $abort_mode ne FALSE;
+
+    ##  checking min pwd length  ##
+    ###
+    if ( defined $read_chars_buffer
+        and length($read_chars_buffer) < $pwd_min_len ) {
+        if ( defined $main::PROTOCOL_SEVEN ) {
+            printf "\n%s:\n", $C{'0'};
+            $main::code{'base.logs'}
+                ->( 0, '<<  pasword min len is %d  >>', $pwd_min_len );
+        } else {
+            warn_err( ' <<  pasword min len is %d  >> <{NC}>',
+                -1, $pwd_min_len );
         }
-        say $C{'R'};
-        if ( defined $main::PROTOCOL_SEVEN ) {    ##  zenka  ##
+        $read_chars_buffer = '';    ##  reset password entered  ##
+        Time::HiRes::sleep 1.2;
+        goto REREAD_PASSWORD;
+
+        ##  display abort reason messages  ##
+        ##
+    } elsif ( $abort_mode eq qw| user-interrupt | ) {  ##[  abort by user  ]##
+
+        if ( defined $main::PROTOCOL_SEVEN ) {
+            printf "%s:\n", $C{'0'};
+            $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
+            printf "%s:\n", $C{'0'};
+        } else {
+            error_exit(' [ password read aborted ]');
+        }
+    } elsif ( $abort_mode eq qw| timeout | ) {         ##[ timeout ]##
+
+        if ( defined $main::PROTOCOL_SEVEN ) {         ##  zenka  ##
             printf "%s:\n", $C{'0'};
             $main::code{'base.log'}->( 0, '[ password input timeout ]' );
             printf "%s:\n", $C{'0'};
@@ -302,42 +456,18 @@ REREAD_PASSWORD:
         } else {
             error_exit(' [ password input timeout ]');
         }
-
-        $OUTPUT_AUTOFLUSH = $autoflush;
-
-        return ( undef, $password_status ) if wantarray;
-        return undef;
-
-    } elsif ( not length( $key // '' ) ) {
-        while (@rnd_count) {
-            for ( 1 .. pop @rnd_count ) {
-                print "\b \b";
-                sleep 0.007;
-            }
-        }
-        say $C{'R'};
-
-        if ( defined $main::PROTOCOL_SEVEN ) {
-            printf "%s:\n", $C{'0'};
-            $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
-            printf "%s:\n", $C{'0'};
-        } else {
-            error_exit(' [ password read aborted ]');
-        }
-
-        $OUTPUT_AUTOFLUSH = $autoflush;
-
-        return ( undef, $password_status ) if wantarray;
-        return undef;
     }
-    $OUTPUT_AUTOFLUSH = $autoflush;
+
+    print sprintf( "%s:\n", $C{'0'} ) x $output_lines;
+
+    return ( $read_chars_buffer, $abort_mode ) if wantarray;
+    return $read_chars_buffer;
 }
 
 sub terminal_title {
-    my $term_title = shift // '';
-    return 0 if not length $term_title;
 
-    $OUTPUT_AUTOFLUSH = TRUE;
+    my $term_title = shift // '';
+    return FALSE if not length $term_title;
 
     my $clear_console
         = ( defined $main::PROTOCOL_SEVEN
@@ -348,7 +478,8 @@ sub terminal_title {
     ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
     my $colon_line = qw| : | x abs( $term_width - length($term_title) - 11 );
 
-    printf "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\n",
+    printf { $TTY_OUTPUT // *STDOUT{IO} }
+        "%s\n%s.:::.[%s%s %s %s%s].:%s\n%s%s:%s\n",
         $clear_console,
         $C{'0'}, $C{'T'}, $C{'B'}, $term_title, $C{'R'}, $C{'0'},
         $colon_line, $C{'R'}, $C{'0'}, $C{'R'};
@@ -356,90 +487,59 @@ sub terminal_title {
     return TRUE;    ## true ##
 }
 
-sub read_single_pwd_key {
-
-    ( my $key, my $key_sequence ) = read_single_key_press(shift);
-
-    $key //= chr(24);    ##  undef is read timeout [ make 24 [CANCEL] ]  ##
-
-    my $code = ord $key;
-
-    ## [ DEL:backspace ]
-    ##
-    if ( $key_sequence eq qw| 27:91:51:126 | ) {    ##[  DEL sequence  ]##
-        $key = chr(8);                              ##  make backspace  ##
-
-    } elsif ( $code == 127 ) {    ## DEL [ or backspace ] ##
-        $key = chr(8);            ##  make backspace  ##
+sub show_rnd_stars {
+    my $rnd_keys = sprintf qw| %u |, 1.2 + rand(1);
+    for ( 1 .. $rnd_keys ) {    ## masking length ##
+        print {$TTY_OUTPUT} qw| * |;
+        Time::HiRes::sleep rand(0.13);
     }
-
-    ## ctrl C \ escape ##
-    ##
-    $key = undef         ##  read aborted  ##
-        if $code == 3    ## CTRL-C ##
-        or $code == 4    ## CTRL-D ##
-        or $code == 27 and index( $key_sequence, qw| : | ) == -1;
-
-    return $key;         ##  return modified key for password reading  ##
+    push @rnd_count, $rnd_keys;
 }
 
-sub read_single_key_press {
+sub del_rnd_stars {
+    if (@rnd_count) {
+        for ( 1 .. pop @rnd_count ) {
+            print {$TTY_OUTPUT} "\b \b";
+            Time::HiRes::sleep( rand(0.13) );
+        }
+    }
+}
 
-    my $read_timeout = shift;
-
-    my @keycode_sequence;
-
-    my $key;
-    if ( $read_timeout == 0 ) {
-        while ( not defined $key ) {
-            $key = ReadKey(0.07);
+sub timeout_stars {
+    my $rewind_delay = 0.777;
+    while (@rnd_count) {
+        for ( 1 .. pop @rnd_count ) {
+            print {$TTY_OUTPUT} "\b \b";
+            Time::HiRes::sleep( $rewind_delay *= 0.84 );
             Event::loop(0.07);
         }
-    } else {
-        my @wait_secs;
-        my $timeout_remain = ( ( $read_timeout * 100 ) % 7 ) / 100;
-        my $count          = $read_timeout / 0.07;
-        @wait_secs = ( (0.07) x $count, $timeout_remain );
-
-        foreach my $delay (@wait_secs) {
-            $key = ReadKey($delay);
-            last if defined $key;
-            Event::loop(0.007);
-        }
     }
-
-    if ( not defined $key ) {    ## [ read timeout ] ##
-        return ( undef, '' ) if wantarray;
-        return undef;
-
-    } elsif ( $key =~ m|[\r\n]| ) {    ##  [ Return \ Enter ]  ##
-        return ( $key, '' ) if wantarray;
-        return $key;
-    }
-
-    push @keycode_sequence, ord($key);
-
-    while ( my $next_one = ReadKey(-1) ) {
-        push @keycode_sequence, ord($key);
-        $key .= $next_one;
-    }
-
-    my $key_sequence = join qw| : |, @keycode_sequence;
-
-    $key_sequence = '' if index( $key_sequence, qw| 27:91 |, 0 ) != 0;
-
-    return ( $key, $key_sequence ) if wantarray;
-    return $key;
 }
 
-sub alternate_readkey {    ##  adapt code from Term::ReadPassword  ## [ LLL ]
+sub rewind_stars {
+    my $rewind_delay = 0.007;
+    while (@rnd_count) {
+        for ( 1 .. pop @rnd_count ) {
+            print {$TTY_OUTPUT} "\b \b";
+            Time::HiRes::sleep( $rewind_delay *= 1.042 );
+            Event::loop(0.07);
+        }
+    }
+}
 
+sub reset_stars {
+    while (@rnd_count) {
+        for ( 1 .. pop @rnd_count ) {
+            print {$TTY_OUTPUT} "\b \b";
+            Time::HiRes::sleep 0.007;
+        }
+    }
 }
 
 return TRUE ##################################################################
 
-#,,.,,.,,,,..,,,.,..,,,,,,...,,,,,,,.,,,,,...,..,,...,...,..,,,..,.,,,.,.,,..,
-#RV6AUGE3R33DTNIZU7HEDU2DSHETURJ5RTMBDYG3LCXRDZ2LUDPDAKEHEKELNZMVRXPDSYHPQJ3AM
-#\\\|NDTZUZXXFLAC5UJJWSV4U3X7ITGHO77DI5ONYKXKBJHUGQAD2GB \ / AMOS7 \ YOURUM ::
-#\[7]V3D33ESEK3VYM7SV7QGOKE5LLV7YXCNDCPI55SF5RJBYNGFITYBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,,,,.,,,...,..,,,..,.,,,,,.,..,,...,..,,,..,..,,.,.,,..,..,,
+#BZYWBVZY47QQ4OIHJU4HE52ZVDFEZCA2GX5M6ESXTKDYVGFQBUXFVLK5KAU6XOTF4L46AHQG73PTG
+#\\\|OBMBYPJDLBHYOEPB3OCPA46DVRNHTUTFAUYJ65DGWWAVAAHAAPU \ / AMOS7 \ YOURUM ::
+#\[7]4Y7CZFUPSFOHUXCHIJIUWFACL55F4OCRA6V2X4LGGKPLXAXOUSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
