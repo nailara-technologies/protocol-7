@@ -563,7 +563,7 @@ sub term_rewind {
 
 sub show_rnd_stars {
     my $mprompt_length = shift // 0;
-    my $add_more_count = ( 13 - $pwd_cur_len ) / 5;
+    my $add_more_count = ( 10 - $pwd_cur_len ) / 5;
     $add_more_count = 0 if $add_more_count < 0;
     my $rnd_keys = sprintf qw| %u |, 1.2 + rand( 1 + $add_more_count );
     my $stars_total_count = scalar @rnd_count;
@@ -621,8 +621,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,..,...,...,,,.,...,,..,.,,,,,.,,,,,,,.,...,..,,...,...,...,,..,,,.,,,,,,..,
-#7VRTQQG5I5QPEJQVOVHUFHJO6N5HLKCE7VZYTL6IZC52N2X4VWJTG6UTBX22X2M2QTBEHFBCKAIZ2
-#\\\|B4VPYAATQKUY6ADB5VVMAO6VIT54R5JRB6LUCRJI2XAL5DOU5QD \ / AMOS7 \ YOURUM ::
-#\[7]4NHHKH2TH35YEY6HRWLA76BLEZX72FMSGIHZK4RSBPWLGE7OMEDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,...,.,.,,,,,,.,,...,.,.,.,.,..,,..,,...,...,...,,..,..,,.,,,.,.,
+#OWRWEXWEJ2BKML5UKJH34O4B7OSQ52QLM7K6SYNGOUKAYU5HSO2QGJRPVSQPXFWBKW7LRAJ6U3V72
+#\\\|KXY7IHCD4WD7HQFBYLFXESM7WGDAHHRM7BXMIK5XDAUIXRYSM7E \ / AMOS7 \ YOURUM ::
+#\[7]FSVZFDHCPHOIXCC6SRF6XICAVVMRNYVLFO47OP2BGUT62L5NWSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
