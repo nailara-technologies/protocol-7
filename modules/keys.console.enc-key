@@ -3,20 +3,20 @@
 # name  = keys.console.enc-key
 # param = <key-name>
 # descr = encrypt a key file with a passphrase
-my $key_name = shift;
+
+my $name = shift;
 
 return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $key_name;
+    if not defined $name;
 
-my $key_status = <[crypt.C25519.encrypted_key]>->($key_name);
+my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
 if ( $key_status < 0 ) {
     my $err_reason_str;
     if ( $key_status == -1 ) {
-        $err_reason_str = sprintf "only public key named '%s' found",
-            $key_name;
+        $err_reason_str = sprintf "only public key named '%s' found", $name;
     } elsif ( $key_status == -2 ) {
-        $err_reason_str = sprintf 'user-key %s not found', $key_name;
+        $err_reason_str = sprintf 'user-key %s not found', $name;
     } elsif ( $key_status == -3 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
@@ -29,8 +29,7 @@ if ( $key_status < 0 ) {
     return printf "\n  << %s >>\n\n", $err_reason_str;
     <[base.exit]>->(qw| 0110 |);
 } elsif ( $key_status == TRUE ) {
-    return printf "\n  :: private key ['%s'] already encrypted ::\n\n",
-        $key_name;
+    return printf "\n  :: private key ['%s'] already encrypted ::\n\n", $name;
 } elsif ( $key_status == UNKNOWN ) {
     <[base.log]>->( 0, ' ::' );
     <[base.log]>->(
@@ -40,7 +39,7 @@ if ( $key_status < 0 ) {
     <[base.sleep]>->(4.2);
 }
 
-my $key_filenames = <[crypt.C25519.key_vars]>->($key_name)->{'key_filename'};
+my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
 
 foreach my $type (qw|  private  public  |) {
     if ( not -w $key_filenames->{$type} ) {
@@ -53,7 +52,7 @@ foreach my $type (qw|  private  public  |) {
     }
 }
 
-my $load_success = <[crypt.C25519.load_keypair]>->($key_name);
+my $load_success = <[crypt.C25519.load_keypair]>->($name);
 
 if ( not defined $load_success ) {
     warn 'cannot load key files <{NC}>';
@@ -112,9 +111,9 @@ foreach my $type (qw|  private  public  |) {
 }
 
 ( my $keywrite_status, my $key_checksum )
-    = <[crypt.C25519.write_keys]>->( $key_name, $enc_pwd );
+    = <[crypt.C25519.write_keys]>->( $name, $enc_pwd );
 
-if ( defined $keywrite_status and $keywrite_status == 5 ) {
+if ( defined $keywrite_status and $keywrite_status == TRUE ) {
     <[base.log]>->( 1, 'write was successful, removing backup files..,' );
 
     foreach my $type (qw|  private  public  |) {
@@ -139,7 +138,7 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
     <[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
 
     printf( "::[  successfully encrypted key %s %s  ]::\n\n",
-        $key_name, $key_checksum );
+        $name, $key_checksum );
 
     <[base.exit]>->(qw| 00000 |);
 } else {
@@ -162,8 +161,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_KEY_ENCRYPT:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,,,,.,,,.,,,.,.,,,.,.,,,..,,,,.,,..,.,.,,..,.,.,...,...,.,.,.,.,,.,,,,,,,,.,
-#F65SFGT5652W6A3AOPB5JXZEEDAK24WUZAK6OSG3LNPQARUKLMJL2U2FSO467TUK2JJRYQJW2M7VO
-#\\\|EB5LN6E2WH7LEKHR6ODGRBQNYTOSI3LZBEGEJJ5KKH6UB6DDJMB \ / AMOS7 \ YOURUM ::
-#\[7]TUT6VU55TFGS2UR6VXMQOY3FXKEDMVJEFGQRBUQAXSSGHTYA3QAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,.,.,,,,,..,,..,,,,,,...,,,.,.,.,...,...,...,..,,,..,..,,,.,,
+#EPWPNYW4SRDWU3TTRGPSLZSAVF7333ZEFPHJQ5JORLXQ6HKEA7ORDEB267VJR64FBFDD4IW33JTL6
+#\\\|D3I6HSAHIINVCBAOVOSLZMM76GBRFD2DJVJY5OKEQ3QSB2RMVDR \ / AMOS7 \ YOURUM ::
+#\[7]Y5LI4GZFIMN4NWLT62K3ZKY6FWEEFZAO42V67KXFT2X5VDKUVICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
