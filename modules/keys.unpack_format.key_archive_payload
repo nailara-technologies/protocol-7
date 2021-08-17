@@ -3,6 +3,7 @@
 # name  = keys.unpack_format.key_archive_payload
 
 my $archive_payload_ref = shift;
+
 if ( ref $archive_payload_ref ne qw| SCALAR | ) {
     warn 'expected scalar ref to archive payload <{C1}>';
     return undef;
@@ -11,10 +12,12 @@ if ( ref $archive_payload_ref ne qw| SCALAR | ) {
     return undef;
 }
 
-my $payload_data_body;
+my $payload_data_body;    ##  archive container  ##
 my $header_str         = "## >:] ##\n#.\n";
 my $archive_footer_str = "\n#.\n#.::\n";
 
+##  unwrapping  ##
+##
 if ( $archive_payload_ref->$*
     !~ m|^\Q$header_str\E(.+)\Q$archive_footer_str\E$|s ) {
     warn 'archive format not correct [ header \ footer ] <{C1}>';
@@ -23,22 +26,43 @@ if ( $archive_payload_ref->$*
     $payload_data_body = $LAST_PAREN_MATCH;
 }
 
+###      ###
+##  keys  ##
+###      ###
+
+my $vkey = {    ## virtual [ stub ] key format regular expression ##
+    'header'    => '##  >:]  ##\n\n',  ##  file-name :: <name>:seed-phrase  ##
+    'comment'   => '##  virtual C25519 stub-key for seed-phrase prompt  ##\n',
+    'timestamp' => qr|timestamp : [A-Z2-7]{15}\\n\\n|  ##[ in network-time ]##
+};
+my $v_keys_re = qr|\Q$vkey->{header}\E$vkey->{timestamp}\Q$vkey->{comment}\E|;
+
+## extracting key lines ##
+##
 my $key_ref;
 foreach my $key_line ( split "\n", $payload_data_body ) {
-    if ( $key_line !~ m|^\['([^']+)'\]([A-Z2-7]+(\\n)?)$| ) {
+
+    if ($key_line     !~ m|^\['([^']+)'\]([A-Z2-7]+(\\n)?)$|    #[regular]#
+        and $key_line !~ m|^\['([^']+)'\]($v_keys_re)|    ##[virtual\stub]##
+    ) {
         warn 'archive format not correct [ key line error ] <{C1}>';
+        <[base.log]>->( 1, ':' );
+        <[base.logs]>->(
+            ':: not recognized line :: [%s] ::',
+            <[base.parser.ellipse_center]>->( $key_line, 42 )
+        );
         return undef;
     }
-    my $name        = ${^CAPTURE}[0];    ## C25119-key file name ##
-    my $encoded_key = ${^CAPTURE}[1];    ## base32 encoded key ##
-    $encoded_key =~ s|\\n$|\n|;          ## restoring linefeed ##
+    my $name             = ${^CAPTURE}[0];  ## C25119-key file name ##
+    my $key_payload_data = ${^CAPTURE}[1];  ## base32 encoded \ virtual key ##
+    $key_payload_data =~ s|\\n|\n|g;        ## restoring escaped linefeeds ##
 
     if ( exists $key_ref->{$name} ) {
         warn 'key archive error [ duplicate key ] <{C1}>';
         return undef;
     }
 
-    $key_ref->{$name} = $encoded_key;    ##  storing extracted user key  ##
+    $key_ref->{$name} = $key_payload_data;  ##  storing extracted user key  ##
 }
 if ( not keys $key_ref->%* ) {
     warn 'key archive error [ no keys extracted ] <{C1}>';
@@ -47,8 +71,8 @@ if ( not keys $key_ref->%* ) {
 
 return $key_ref;    ##  hash ref to keys  ##
 
-#,,,,,..,,,.,,..,,...,,..,.,,,..,,.,.,..,,,..,..,,...,...,,,,,,..,,.,,,..,,..,
-#W5W5QGHOOC3CF5WAGELRNHGN5SMVHGI5DDT37C34Z46N3QGRVZ44HTPOI5AW3ZM7454YV7X5NJCJ6
-#\\\|QYAXUSPPR4JFM6WE7PL7EYDJAK5F4Z5UQI5FPELJ22L7F6SL5H7 \ / AMOS7 \ YOURUM ::
-#\[7]KNXYDWGT3K2WU6JYA4NR7Y7NU6XXSASOYMTMZTF7BT6NQSN5O6BI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,,,,,.,,.,,,,,,,,.,,,,,,.,,..,,...,..,,..,,...,.,,,,.,,.,.,
+#IONMPHTQM6HZIMGDP7IW5CL2NKJZRYXGCXZRAJG62UMF4PUHJRCP7LVSVZ7II5ATLP4RWGZ7EF5S6
+#\\\|H7PGY32EJXDRCBXPLQHTMYS3SWDZHWZQOWIWCBA23YVJMRUDM7P \ / AMOS7 \ YOURUM ::
+#\[7]LGXVQOL7YF4BJ77RNNCPYMGZHAN2IE7DLOAUYXSOLWTVYOMHRQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
