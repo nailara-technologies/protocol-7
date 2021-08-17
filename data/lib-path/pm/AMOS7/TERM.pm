@@ -214,11 +214,10 @@ sub read_password_repeated {
             = read_password_single( sprintf( 'enter %s', $password_type_msg ),
             $term_title );
 
-        if ( not defined $password_0
-            and ( $abort_mode eq FALSE or $abort_mode eq qw| TIMEOUT | ) ) {
+        if ( not defined $password_0 and $abort_mode ne FALSE ) {
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
-
-        } elsif ( $abort_mode ne qw| TIMEOUT | ) {
+            ##[ had already exited otherwise ]##
+        } else {
 
             ( $password_1, my $abort_mode )
                 = read_password_single(
@@ -239,21 +238,10 @@ sub read_password_repeated {
                 }
                 sleep 1.2;
             }
-
             if ( $abort_mode ne FALSE ) {
                 undef $password_0;
                 undef $password_1;
-                say $C{'R'};
-                if ( $abort_mode ne qw| timeout | ) {
-                    if ( defined $main::PROTOCOL_SEVEN ) {
-                        printf "%s:\n", $C{'0'};
-                        $main::code{'base.log'}
-                            ->( 0, ' [ password read aborted ]' );
-                        printf "%s:\n", $C{'0'};
-                    } else {
-                        error_exit(' [ password read aborted ]');
-                    }
-                }
+                print $C{'R'};
                 return undef;
             }
         }
@@ -621,8 +609,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,,.,.,,,,.,,...,.,.,,,,,,.,,...,.,.,.,.,..,,..,,...,...,...,,..,..,,.,,,.,.,
-#OWRWEXWEJ2BKML5UKJH34O4B7OSQ52QLM7K6SYNGOUKAYU5HSO2QGJRPVSQPXFWBKW7LRAJ6U3V72
-#\\\|KXY7IHCD4WD7HQFBYLFXESM7WGDAHHRM7BXMIK5XDAUIXRYSM7E \ / AMOS7 \ YOURUM ::
-#\[7]FSVZFDHCPHOIXCC6SRF6XICAVVMRNYVLFO47OP2BGUT62L5NWSCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,..,,,.,,,..,,..,,,.,,,,,..,,..,,...,...,,,.,,..,.,,,..,,..,,
+#HNVIFUTMBTHHIQEQNTH7WVSRLK6I7IQ4FJWZRNW3XBKMRNAX3QJFF3R73ZHPQWCIBBFKCI7G4DGYA
+#\\\|A3TTDQFOA4M2MIVSTCHZOMYBWOCJPNA64IPRHRIFP7JLD2IOFQP \ / AMOS7 \ YOURUM ::
+#\[7]AVMGVI2FYD6POQS4GWKNGQIW24YGAIKHSGJ4VYHR3FQQOBT6LUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

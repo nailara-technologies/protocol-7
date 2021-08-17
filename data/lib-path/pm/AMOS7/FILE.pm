@@ -54,7 +54,7 @@ sub create_dir_path {
         return undef;
     }
 
-    my $mkdir_umask = 0777 &~ 0777;    ## <-- permissive setting.., ##
+    my $mkdir_umask = 0777 & ~0777;    ## <-- permissive setting.., ##
     my $previous_umask;
 
     ## optionally recursive mode array [ref] ## expand [owners] [LLL]
@@ -205,12 +205,17 @@ sub last_existing_directory {    ## returns last parent that still exists ##
     my $check_path = shift // '';
 
     if ( not length $check_path ) {
-        warn_err('expected path argument <{C1}>');
+        warn_err('expected [ absolute ] path argument <{C1}>');
         return undef;
     }
+    return $check_path if -d $check_path;
+    return undef       if index( $check_path, qw| / |, 0 ) != 0;
     ( my $last_dirpath = $check_path ) =~ s|((*plb:.)/)?[^/]+$||;
+    my $last_path_len = length $last_dirpath;
     while ( not -d $last_dirpath ) {
         $last_dirpath =~ s|((*plb:.)/)?[^/]+$||;
+        return undef if length $last_dirpath == $last_path_len;
+        my $last_path_len = length $last_dirpath;
     }
     return $last_dirpath;
 }
@@ -308,8 +313,8 @@ sub resolved_path_abs {
 
 return TRUE ##################################################################
 
-#,,.,,...,..,,,..,.,,,...,,.,,,.,,,..,,,,,...,.,.,...,...,.,,,...,.,.,,.,,.,.,
-#MFLJMPAAJLTOPYLWCT3YNEKEMAVFHD4V3WKY5QPDQ2I4ELTGT2XJCW5LCDC6KVTVUWDD3IZBWP3MS
-#\\\|Y6ZSH75E6CLWNWYEQF3UVOAPVT5BUZYNI75WP6HPYO2PA24UDIA \ / AMOS7 \ YOURUM ::
-#\[7]IVXV5LUOMF7QDKWHQE52UASSQFPQ37AGPTIFQQ4TPFEHQK775OBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,,,.,.,.,..,,,,.,..,,.,,,.,,,.,.,...,...,,..,,.,,,..,,..,.,,,
+#VCS7KWADMTFTP3CBOGBHXY5CWECUJCE2JEB2AB46HO3FWXHQV3SUNVX2GZDKH2J2E7FPEJWBNISGE
+#\\\|PMDFZIAMLFEDUTQTULXHTHVOO7423I7VC6QLZRBUPKSIBZRMPIQ \ / AMOS7 \ YOURUM ::
+#\[7]6R22OF5L3ODMOGY7AZIV7LFFZYJIYVWHFEDREK2YZCPVNQ3KU2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
