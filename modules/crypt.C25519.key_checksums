@@ -35,21 +35,27 @@ if ( @key_strings_binary == 1 ) {
     );
     push @checksums, $privkey_amos_chksum;
 } else {
+
+    AMOS7::TEMPLATE::template_timeout(42);
     my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
         $priv_key_truth_template, $key_strings_binary[0]
     );
+
+    AMOS7::TEMPLATE::template_timeout(63);
     my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
         sprintf( $pubkey_str_truth_template, ($privkey_amos_chksum) x 3 ),
         $key_strings_binary[1]
     );
+
+    AMOS7::TEMPLATE::reset_temp_valid_timeout();
     push @checksums, $privkey_amos_chksum, $pubkey_chksum;
 }
 
 ## combined key checksum ##
 return sprintf $checksum_template, join( qw| : |, @checksums );
 
-#,,,.,,.,,...,,,.,,.,,,,.,.,,,..,,,,,,,..,,.,,..,,...,...,,,.,,..,,..,,.,,.,.,
-#KABTBI7KASYHMYB3UCDBICZ3A4SIWH5OQNAWN6FSXBRTWFO72WA7PQYNKBYHGRL6AOWTKX4N7ZBCY
-#\\\|VNZOZUG66Y4RWPWQRKOKXUYKOPNZWVCZ2H5T4PGAJ6LYNFW36I5 \ / AMOS7 \ YOURUM ::
-#\[7]QD2R3BI5WQ7B37JAUREQ36RQ6UE6QZXPAPDYGEET6ENFICEJWGBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,...,,..,..,,.,.,.,,,,.,,...,..,,...,...,.,,,,.,,,..,..,,,,,,
+#EMI34GDEJFKGJPKVR5QLEO5NJOKWICCHAC5SRDQI4MUAS7GVB3BGEPURT4ZI6PKA7DH472CBDWYOY
+#\\\|FTHBWARGAX6N4AVFRFOFGLZAHPBZBPSHEYRSPDFPH4S6T7NRZD7 \ / AMOS7 \ YOURUM ::
+#\[7]EKQC3R4U5UZC6QU2MCKODXFT3UMQ225XQKRQS6FEOKBCPVBQR2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
