@@ -65,14 +65,14 @@ foreach my $file (@display_kfiles) {
 
     my $length = length $name;
 
-    if ( not $display_checksums ) {
-        my $spaces = ' ' x length $name;
-        $key_names{$file} = sprintf ' %s ', $spaces
-            if $file =~ m{$key_re_public};
-
-    } elsif ( defined $key_chksums{$name} ) {
-        $key_names{$file} = sprintf( ' %*s ', $length, $key_chksums{$name} )
-            if $file =~ m|::| or $file =~ m{$key_re_public};
+    if ( $file =~ m|::| or $file =~ m{$key_re_public} ) {
+        if ( not $display_checksums ) {
+            my $spaces = ' ' x length $name;
+            $key_names{$file} = sprintf ' %s ', $spaces;
+        } elsif ( defined $key_chksums{$name} ) {
+            $key_names{$file}
+                = sprintf( ' %*s ', $length, $key_chksums{$name} );
+        }
     }
 
     my $l = length $key_names{$file};
@@ -107,8 +107,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,,,..,,,..,.,,,.,.,..,,,..,.,,,..,,.,,,,,,,..,,...,...,...,..,,,.,,,..,..,,
-#D464QK5U5YRRQHUAKHDLT2QO6O53XFZ5WRKDJIGJDCC4HPRLDS5CBDR5CZMUV4TBINB4LHVO5Q3T6
-#\\\|YXXDZFPRKFFBRNYICIG66FNEJ454UTLUYTMFRZQ2N4CQP5ZO6Q4 \ / AMOS7 \ YOURUM ::
-#\[7]2FJVB2L2GPQJBSMS4IS3FKVH67TJXUTCNEEZO6MUGQIK4UFTRGBI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,,.,,,.,,,,,,...,,,,,..,,...,..,,...,...,,,.,..,,.,.,,,,,,,.,
+#N5MVRNZVQGLTLS37RFT26KDZY3NZUBBUOJBJQY75K3XIXHXFDEHSKHBLHX4HJ3YOWH32WI4ZQOSAA
+#\\\|CTXSJNUDJGT534J2YKKML7Z6NCKL6MP3XJT3NFUBH3XX4LSQZ6C \ / AMOS7 \ YOURUM ::
+#\[7]BBBDJC574SUIEF3VWDMYSMYN5FPZTSYYGRE7JHCB56I6AZ5KDUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
