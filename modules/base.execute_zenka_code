@@ -19,7 +19,7 @@ if (   not @zenka_perl_code
     return undef;
 }
 
-my %subs_found = map { $ARG => 5 } <base.zenka.exec_code.subs_found>->@*;
+my %subs_found = map { $ARG => TRUE } <base.zenka.exec_code.subs_found>->@*;
 
 my $stack_index = scalar(@main::ZENKA_RUN_CFG_STACK) - 1;
 my $cfg_ref     = $main::ZENKA_RUN_CFG_STACK[$stack_index] // {};
@@ -46,8 +46,8 @@ undef $main::RUN_ZENKA_CFG_WARNING_STRING;
 ## storing last return value ##
 <zenka_cfg.ret_val> = undef;
 
-my $use_aliases = 1;    ## <-- resolve config command aliases ? ##
-my $noerr       = 5;
+my $use_aliases = TRUE;    ## <-- resolve config command aliases ? ##
+my $noerr       = TRUE;
 $main::RUN_ZENKA_CFG_LINE = 0;
 
 my $event_loop_name_re = qr,\$code{'(event.loop|(base.)?zenka.loop)'},;
@@ -56,7 +56,7 @@ my $event_loop_present
 
 foreach my $code_line (@zenka_perl_code) {
     $main::RUN_ZENKA_CFG_LINE++;
-    my $error_exit = 0;
+    my $error_exit = FALSE;
 
     $main::RUN_ZENKA_CODE_LINE = $code_line;
 
@@ -85,7 +85,7 @@ foreach my $code_line (@zenka_perl_code) {
     ##[ collect encountered protocol-7 subroutine names ]##
     ##
     if ( $code_line =~ m|(*plb:\$code\{')([^']+)(*pla:'\})| ) {
-        $subs_found{$LAST_PAREN_MATCH} = 5;    ## true ##
+        $subs_found{$LAST_PAREN_MATCH} = TRUE;    ## true ##
         ## add now as may not exit eval ##
         <base.zenka.exec_code.subs_found>->@*
             = <[base.sort]>->( \%subs_found );
@@ -96,11 +96,11 @@ foreach my $code_line (@zenka_perl_code) {
     ##  evaluate zenka-code \ config line  ##
     <zenka_cfg.ret_val> = eval($code_line);
 
-    $noerr = 0 if defined $main::RUN_ZENKA_CFG_WARNING_STRING;
+    $noerr = FALSE if defined $main::RUN_ZENKA_CFG_WARNING_STRING;
 
     if ($error_exit) {    ## todo : adapt parser from below ##
         warn 'stopped processing <{C1}>';
-        $noerr = 0;
+        $noerr = FALSE;
         last;             ## exit loop ##
     }
 
@@ -116,7 +116,7 @@ foreach my $code_line (@zenka_perl_code) {
                     0,         "unknown subroutine '%s' called [ %s ]",
                     $sub_name, $sub_call
                 );
-                $noerr = 0 if $noerr;
+                $noerr = FALSE if $noerr;
             }
         }
 
@@ -152,7 +152,7 @@ foreach my $code_line (@zenka_perl_code) {
         } else {
             ## say ' < pass > has err';
         }
-        $noerr = 0 if $noerr;
+        $noerr = FALSE if $noerr;
     }
 }
 

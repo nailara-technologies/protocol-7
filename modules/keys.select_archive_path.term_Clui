@@ -1,0 +1,265 @@
+## >:] ##
+
+# name  = keys.select_archive_path.term_Clui
+# descr = select archive file to save to \ load from [ :load: mode ]
+
+my @preselect_path;
+my $load_mode  = FALSE;
+my $overwrite  = FALSE;
+my $block_size = <keys.size.archive_block>;    ##  13 K archive block size  ##
+
+if ( @ARG and defined $ARG[0] and $ARG[0] eq qw| :load: | ) {
+    $load_mode = TRUE;
+    shift @ARG;
+}
+
+if ( @ARG and defined $ARG[0] and -d $ARG[0] and -r $ARG[0] ) {
+    @preselect_path = ( qw| -Path |, shift @ARG );
+}
+
+$ENV{'CLUI_DIR'} = qw| OFF |;
+
+<[base.perlmod.load]>->('Term::Clui')
+    if not <[base.perlmod.loaded]>->('Term::Clui');
+<[base.perlmod.load]>->('Term::Clui::FileSelect')
+    if not <[base.perlmod.loaded]>->('Term::Clui::FileSelect');
+
+$OUTPUT_AUTOFLUSH = TRUE;
+
+my %C = %AMOS7::C;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $keys_user    = $key_vars_ref->{'usr_name'};
+
+my $start_filename = sprintf qw| %s.archive.p7_keys |, $keys_user;
+
+my $title_str
+    = $load_mode
+    ? 'select archive to decrypt'
+    : 'select archive filename to save to';
+
+##                              ##
+##  OPEN FILE SELECTION DIALOG  ##
+##                              ##
+
+SELECT_FILE:
+
+printf "%s%s", $colors{'B01'},
+    (       <system.verbosity.console> == 0
+        and <[base.perlmod.loaded]>->('Term::Clui') )
+    ? $colors{'clear_screen'}
+    : '';
+
+say sprintf '%s:', $C{'T'};
+
+## pausing interrupt handler [ Term::ReadKey errors ] ##
+<watcher.signal.INT>->stop if <watcher.signal.INT>->is_active;
+{
+    local $SIG{'__WARN__'} = sub {
+        if ( defined $ARG[0] and $ARG[0] eq "^C\n" ) {
+            <[base.sig_int]>;
+        } else {
+            <[base.sig_warn]>->(@ARG);
+        }
+    };
+
+    say sprintf( ":\n::[ %s ]:.\n:\n:", $title_str );
+
+    $file = Term::Clui::FileSelect::select_file(
+        -TopDir => qw| / |,
+        -FPat   => qw| * |,
+        -Title  => ':. ',
+        -Create => $load_mode ? FALSE : TRUE,
+        @preselect_path
+    );
+}
+<watcher.signal.INT>->start;    ## restarting interrupt handler ##
+
+say sprintf( "%s%s:\n:\n::[ %s ]:.\n:\n:",
+    $colors{'clear_screen'}, $C{'T'}, $title_str );
+
+printf ":\n: file : %s\n:\n", $file if defined $file;
+
+if ( defined $file ) {
+
+    ( my $file_rel      = $file ) =~ s|^.*/||;
+    ( my $file_path_dir = $file ) =~ s|$file_rel$||;
+    $file_path_dir =~ s|(*plb:.)/$|| if length $file_path_dir;
+
+    my $filename_length = length $file;
+
+    if ( $load_mode and -z $file ) {
+
+        say sprintf ":\n:........%s.,%s", '.' x $filename_length, $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< file '%s' is empty .., >>", $file ),
+
+            'select again', 'abort.,'
+
+        );
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( $load_mode and -e $file and not -r $file ) {
+
+        say sprintf ":\n:....................,%s", $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< no read permission for '%s' >>", $file ),
+
+            'select again', 'abort.,'
+        );
+
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( $load_mode
+        and File::stat::stat($file)->size % $block_size != 0 ) {
+
+        say sprintf ":\n:........%s.,%s", '.' x $filename_length, $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf(
+                "<< file '%s' is not a valid key archive .., >>", $file
+            ),
+
+            'select again',
+            'abort.,'
+        );
+
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( not $load_mode and -e $file and not -w $file ) {
+
+        say sprintf ":\n:....................,%s", $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< no write permission for '%s'.., >>", $file ),
+
+            'select again', 'abort.,'
+        );
+
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( not $load_mode and -e $file ) {
+
+        say sprintf ":\n:........%s.,%s", '.' x $filename_length, $C{'g'};
+
+        no warnings qw| redefine |;
+        local *Term::Clui::get_default = sub {'select again'};
+        use warnings qw| redefine |;
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< file '%s' exists, overwrite it ? >>", $file ),
+
+            'yes, overwrite',
+            'select again',
+            'abort.,'
+        );
+
+        if ( defined $users_selection
+            and $users_selection eq 'yes, overwrite' ) {
+
+            $overwrite = TRUE;
+
+        } elsif ( defined $users_selection
+            and $users_selection eq 'select again' ) {
+
+            goto SELECT_FILE;
+
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( not $load_mode and -d $file_path_dir and not -w $file_path_dir )
+    {
+        say sprintf ":\n:....................,%s", $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< no write permission for '%s'.., >>", $file ),
+
+            'select again', 'abort.,'
+        );
+
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( $load_mode and not -e $file ) {
+
+        say sprintf ":\n:........................,%s", $C{'g'};
+
+        my $users_selection = Term::Clui::choose(
+
+            sprintf( "<< archive file not found [ '%s' ] >>", $file ),
+
+            'select again', 'abort.,'
+        );
+
+        if ( defined $users_selection and $users_selection eq 'select again' )
+        {
+            goto SELECT_FILE;
+
+        } else {
+            goto SELECTION_ABORTED;
+        }
+
+    } elsif ( not $load_mode and <keys.archive_select.display_path> ) {
+        ##  writing success message in selection window  ##
+        my $shortened_path = <[base.parser.ellipse_center]>->( $file, 50 );
+        say sprintf "\n%s[[%s%s %s %s%s]]%s", $C{'0'}, $C{'g'},
+            $C{'b'}, $shortened_path, $C{'R'}, $C{'0'}, $C{'R'};
+        <[base.sleep]>->(1.2);
+    }
+}
+##
+goto SELECT_FILE    ##  return for questions or re-selection  ##
+    if defined $file
+    and ( not $load_mode and -e $file and not $overwrite
+    or $load_mode and not -e $file );
+
+printf qw| %s%s |, $colors{'reset'}, $colors{'clear_screen'};
+
+return ( $file, $overwrite ) if not $load_mode and wantarray;
+return $file;       ##  if save file and exists, overwrite is implied  ##
+
+SELECTION_ABORTED:
+<[base.log]>->( 0, '..' );
+<[base.log]>->( 0, ' :' );
+<[base.exit]>->( qw| 0110 |, ' :, no file selected.,', 0 );
+
+#,,,.,,,,,.,.,,,.,,,,,.,.,,.,,,..,...,,,.,.,.,.,.,...,...,..,,,..,..,,,,,,..,,
+#MMLIGVIAEABNADMNI6L2SF5V2HHU3GBX5M6PDEP3PVJ75XC6HRZIDN6WEXO5L5Q74JMEDWUKMWLC2
+#\\\|7BMM4BHG4QKYLUE4BNOF6RLNSSNHE5R6VVCBMAVOY4HKEZQCRCE \ / AMOS7 \ YOURUM ::
+#\[7]WBJL4GSAIAAE3AJOOLQDFU4I7XTXAS4TEJRAQC527Q4EK6N7GUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
