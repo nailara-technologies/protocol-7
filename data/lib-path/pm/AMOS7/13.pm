@@ -20,6 +20,7 @@ use AMOS7::INLINE;
 ## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
+use Fcntl qw| :seek |;
 use Crypt::Misc qw| encode_b32r |;
 use Crypt::PRNG::Fortuna qw| irand |;
 
@@ -87,7 +88,190 @@ sub divide_13 {    ## for short numbers only ## use Math::Bigint later too ##
 
 ##[ INIT ENTROPY ]############################################################
 
+sub gen_key_from_file_entropy {
+
+    my $file_path          = shift;   ## path to entropy file ##
+    my $seed_phrase        = shift;   ## additional user entropy [optional] ##
+    my $wants_true_B32_enc = shift // TRUE; ## binary key true as BASE 32 ? ##
+
+    my $file_read_length = 32768;
+    my $fh;
+    my $result_keybin;    ##  32 bytes key from file entropy  ##
+    my @result_values;    ##  63 numerical values  ##
+    if ( not defined $file_path or not length $file_path ) {
+        warn_err 'path param expected <{C1}>';
+        return undef;
+    } elsif ( -d $file_path ) {
+        warn_err( "is a directory [ '%s' ]", 1, $file_path );
+        return undef;
+    } elsif ( not -f $file_path ) {
+        warn_err( "path not found [ '%s' ]", 1, $file_path );
+        return undef;
+    } elsif ( not -r $file_path ) {
+        warn_err( "path not readable [ '%s' ]", 1, $file_path );
+        return undef;
+    } elsif ( not open $fh, qw| <:raw |, $file_path ) {
+        warn_err( "error on opening file path [ '%s' ]",
+            1, lcfirst $OS_ERROR );
+        return undef;
+    } elsif ( defined $seed_phrase and not length $seed_phrase ) {
+        $seed_phrase = undef;
+    }
+    my $fstat = File::stat::stat($file_path);
+    if ( not defined $fstat ) {
+        warn_err( "cannot get stat from file path [ '%s' ]",
+            1, lcfirst $OS_ERROR );
+        return undef;
+    }
+    my $fsize_total = $fstat->size;
+    my $beginning_255;
+    if (   not read( $fh, $beginning_255, 255 )
+        or not defined $beginning_255
+        or not length $beginning_255 ) {
+        warn_err( "cannot read bytes from file path [ '%s' ]",
+            1, lcfirst( $OS_ERROR // 'read error' ) );
+        return undef;
+    } elsif ( not seek $fh, 0, SEEK_SET ) {
+        warn_err( "file not seekable [ '%s' ]",
+            1, lcfirst( $OS_ERROR // 'seek failed' ) );
+        return undef;
+    }
+
+    ##  reverse string [ file headers ] ##
+    $beginning_255 = join '', reverse split '', $beginning_255;
+
+    if ( length $beginning_255 < 255 ) {
+        ##  asc 127 padding for small files  ##
+        $beginning_255 .= chr(127) x ( 255 - length $beginning_255 );
+    }
+
+    my $seed_iteration_count
+        = AMOS7::13::seed_iteration_val( \$beginning_255, 63, 77 );
+
+    my @num_63;
+
+    my $ELF7_sum = { 4 => 0, 3 => 0 };
+
+    my $nand_elf_c_int;
+    my $substring_length = 8192;
+    while ( tell($fh) < $fsize_total
+        and read( $fh, my $buffer, $file_read_length ) ) {
+
+        ##  increased in iterations for smaller files  ##
+        ##
+        my $buffer_offset = 0;
+    OFFSET_READ:
+
+        my $substr_offset = 0;
+        while ( $substr_offset < length $buffer ) {  ##[ 4 x 8K per buffer ]##
+            $substr_offset += $buffer_offset;
+            my $seed_str = substr $buffer, $substr_offset, $substring_length;
+
+            $ELF7_sum->{4}
+                = AMOS7::CHKSUM::ELF::elf_chksum( \$seed_str, $ELF7_sum->{4},
+                4 );
+            $ELF7_sum->{3}
+                = AMOS7::CHKSUM::ELF::elf_chksum( \$seed_str, $ELF7_sum->{3},
+                3 );
+
+            my $revsum_elf_mode_3 = join '', reverse split '', $ELF7_sum->{3};
+
+            my $XOR_elf_sums = unpack qw| N |,
+                $ELF7_sum->{4} |. $revsum_elf_mode_3;
+
+            $nand_elf_c_int .= pack qw| w |, $XOR_elf_sums;
+            $substr_offset += $substring_length;
+        }
+
+        ##  compensating for smaller files  ##
+        ##
+        if ( length $nand_elf_c_int < 13 and tell($fh) == $fsize_total ) {
+            $buffer_offset++;
+            goto OFFSET_READ;
+        }
+
+    }
+
+    ##[ 32 bit numbers from file entropy ]##
+    ##
+    my $status
+        = AMOS7::13::gen_entropy_values( \$nand_elf_c_int,
+        $seed_iteration_count, \@num_63 );
+
+    if ( not defined $status or not $status or @num_63 == 0 ) {
+        warn_err('cannot generate encryption key');
+        return undef;
+    }
+
+    @num_63 = sort @num_63;
+    ##  keep highest 63  ##
+    splice( @num_63, 63 - @num_63, 63 ) if @num_63 > 63;
+
+    my @quad_int;
+
+RESEED_KEY_32:
+
+    ##  harmonize numbers [ division by 13 ]  ##
+    ##
+    foreach my $result (@num_63) {
+        $result = divide_13($result);
+        while ( not AMOS7::Assert::Truth::is_true( \$result, 2, 1 ) ) {
+            $result = divide_13($result);
+        }
+    }
+
+    my @seed_values_63 = @num_63;
+
+RECALCULATE_KEY_32:
+
+    for ( 0 .. 3 ) {    ##  4 64 bit values required  ##
+        my $qint = 0;
+        while ( @seed_values_63 > 2 and length $qint < 20 ) {
+            $qint .= join '', reverse split '',
+                ##  sum of lowest and highest  ##
+                shift(@seed_values_63) + pop(@seed_values_63);
+        }
+        $qint =~ s|^0||;    ##  removing 0 prefix  ##
+
+        ##  entropy underrun [ ending iteration ]  ##
+        last if length($qint) < 19;
+
+        push @quad_int, substr $qint, 0, 19;    ##  19 digits for Q int  ##
+    }
+
+    ##  entropy  underrun  ##
+    ##
+    if ( @quad_int != 4 ) {
+        @quad_int = ();    ##  resetting  ##
+        ##[  increasing iterations  ]##
+        $seed_iteration_count *= 2;
+        goto RESEED_KEY_32;    ## reseed ., ##
+    }
+
+    $result_keybin = pack qw| Q* |, @quad_int;   ##  encode as 32 B binary  ##
+
+    if (not AMOS7::Assert::Truth::is_true( $result_keybin, FALSE, TRUE )
+        or $wants_true_B32_enc and not AMOS7::Assert::Truth::is_true(
+            Crypt::Misc::encode_b32r($result_keybin),
+            FALSE, TRUE
+        )
+    ) {
+        @quad_int = ();    ##  resetting  ##
+        goto RECALCULATE_KEY_32;
+    }
+
+    if ( not close $fh ) {
+        warn_err( "error on closing file path [ '%s' ]",
+            1, lcfirst $OS_ERROR );
+        return undef;
+    } else {
+        return ( $result_keybin, \@num_63 ) if wantarray;
+        return $result_keybin;    ##  success, return extracted key  ##
+    }
+}
+
 sub gen_entropy_string {
+
     ##  use gen_entropy_values to create harmonic [bin] entropy string  ##
     ##
     my $entropy_block      = '';
@@ -135,6 +319,7 @@ sub gen_entropy_string {
 ##  return ranged numerical float or integer value from input seed data  ##
 ##
 sub seed_iteration_val {
+
     my $seed_data_sref = shift;    ##  scalar ref to seed data  ##
     my $range_start    = shift;    ## numerical value range start ##
     my $range_limit    = shift;    ## numerical upper value range limit ##
@@ -209,6 +394,11 @@ sub seed_iteration_val {
             $ranged_int_result += $result_number;    ##[  add entropy val  ]##
             $ranged_int_result *= 1.42;    ##[  accelerate value increase  ]##
 
+            if ( $ranged_int_result < $range_start ) {
+                $ranged_int_result
+                    += $int_range_delta / ( $ranged_int_result / 13 );
+            }
+
             ## bring value back in range ##
             if ( $ranged_int_result > $range_limit ) {
                 ( my $value_remainder = $ranged_int_result ) =~ s|\d+.|0.|;
@@ -221,7 +411,9 @@ sub seed_iteration_val {
             ##
             my $last_result_val = 0;
             while (
-                $range_delta_count >= $delta_count_threshold
+                    $ranged_int_result <= $range_limit
+                and $ranged_int_result >= $range_start
+                and $range_delta_count >= $delta_count_threshold
                 and (
                     not AMOS7::Assert::Truth::true_int(
                         sprintf( qw| %u |, $ranged_int_result )
@@ -259,6 +451,7 @@ sub seed_iteration_val {
 }
 
 sub entropy_string_filter {  ##  numerical input string of arbitary length  ##
+
     my $packed_str = '';
 
     while ( length $ARG[0] ) {
@@ -361,7 +554,8 @@ sub gen_entropy_values {
         for ( 1 .. $requested_value_count || $genseed_iterations_0 ) {
 
             my $rnd_val;
-            while ( not defined $rnd_val or not is_true( $rnd_val, 2, 1 ) ) {
+            while (not defined $rnd_val
+                or not AMOS7::Assert::Truth::is_true( $rnd_val, 2, 1 ) ) {
                 $rnd_val = sprintf qw| %.10u |, irand();
             }
 
@@ -413,7 +607,7 @@ sub gen_entropy_values {
 
             $result = divide_13($result);
 
-            while ( not is_true( \$result, 2, 1 ) ) {
+            while ( not AMOS7::Assert::Truth::is_true( \$result, 2, 1 ) ) {
                 $result = divide_13($result);
             }
 
@@ -438,17 +632,20 @@ sub gen_entropy_values {
 
         $result = divide_13($result);
 
-        goto RECALC_0110 if not is_true( $result, 2, 1 );
+        goto RECALC_0110
+            if not AMOS7::Assert::Truth::is_true( $result, 2, 1 );
 
         my $encoded_result;
 
         if ($req_b32_encoded) {
 
             my $vax_bin = pack qw| V |, $result;
-            goto RECALC_0110 if not is_true( $vax_bin, 0, 1 );
+            goto RECALC_0110
+                if not AMOS7::Assert::Truth::is_true( $vax_bin, 0, 1 );
 
             $encoded_result = encode_b32r($vax_bin);
-            goto RECALC_0110 if not is_true( $encoded_result, 0, 1 );
+            goto RECALC_0110
+                if not AMOS7::Assert::Truth::is_true( $encoded_result, 0, 1 );
 
             say $C{'0'}, '< RSB32 > ', $C{'T'}, $encoded_result if $verbose;
         }
@@ -705,9 +902,11 @@ sub offset_comp_int {
 }
 
 sub get_seed_bits {
-    my $bits;
-    my $min_bit_len    = 49;
+
     my $seed_data_sref = shift;
+
+    my $min_bit_len = 49;
+    my $bits;
 
     if ( ref $seed_data_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref to seed data <{C1}>');
@@ -746,6 +945,7 @@ sub nand { $ARG[0] & $ARG[1] ? 0 : 1 }
 sub nor { $ARG[0] || $ARG[1] ? 0 : 1 }
 
 sub bin_032 {
+
     my $numerical_32 = shift // 0;
 
     return warn sprintf( 'expected 32 bit number, got %d digits %s',
@@ -768,6 +968,7 @@ sub reverse_bin_032 {
 }
 
 sub bin_056 {
+
     my $digits_056 = shift // 0;
 
     return warn sprintf( 'expected 56 bit number, got %d digits %s',
@@ -779,6 +980,7 @@ sub bin_056 {
 }
 
 sub asc_to_bin_056 {
+
     my $bytes_7 = shift // 0;
 
     return warn sprintf( 'expected 7 bytes string, got %d %s',
@@ -789,6 +991,7 @@ sub asc_to_bin_056 {
 }
 
 sub reverse_bin_056 {
+
     my $digits_056 = shift // 0;
 
     return warn sprintf( 'expected 56 bit number, got %d digits %s',
@@ -800,6 +1003,7 @@ sub reverse_bin_056 {
 }
 
 sub bin_to_comp_int {
+
     my $buffer_ref = shift;
 
     return warn sprintf( "expected scalar reference to 7 bytes string %s\n",
@@ -855,6 +1059,7 @@ sub bits_to_comp_int {    ##  takes array with 49 bit and returns comp int  ##
 ##[ UTILITY FUCTIONS ]########################################################
 
 sub padded_num {
+
     my $input_num   = shift;
     my $padding_num = shift;
 
@@ -873,6 +1078,7 @@ sub padded_num {
 ##[ STRING CONVERSIONS ]######################################################
 
 sub num_to_str {
+
     my $numerical_32 = shift;
 
     return '' if not length( $numerical_32 // '' );
@@ -892,6 +1098,7 @@ sub num_to_str {
 ##[ VERBOSE MODE ]############################################################
 
 sub visualize_bin_032 {
+
     my $index     = shift @ARG;
     my $value_num = shift @ARG;
 
@@ -907,17 +1114,16 @@ sub visualize_bin_032 {
     my $c0       = $truth_states[1] ? join( '', $C{T}, $C{B} ) : $C{0};
     my $c1       = $truth_states[2] ? join( '', $C{T}, $C{B} ) : $C{0};
 
-    printf( $result_tmpl->{$T_state},
+    printf $result_tmpl->{$T_state},
         $index, $value_num,
         join( '', $c0, $bin_0000 ),
-        join( '', $c1, $bin_0110 )
-    );
+        join( '', $c1, $bin_0110 );
 }
 
 return TRUE ##################################################################
 
-#,,,,,..,,,..,...,..,,.,,,,.,,,.,,.,,,,..,,,.,..,,...,...,,..,...,...,,.,,...,
-#IDNJ4ZR53YGGETXT6LMZ7E2USE2M33KWDULCWCFRSJOEUULZLZB62Z2KFZH4GWMVBNVHGXCZEK6RW
-#\\\|OT7K2K4LAAMKWX3YK7WLQFP5K4YIHLFT5U5SHCI5FA45CWYLULF \ / AMOS7 \ YOURUM ::
-#\[7]UKNXTYDELU3LA43BTQ4G23IVWLERXUZPU3M6PAPFCQL24OKKW6CI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,,,.,,..,,,,,.,,,..,,..,,.,.,..,,...,...,.,.,.,.,,.,,,..,,..,
+#Z7IMDSKLPRLGMXDK4LS6MWRYHHSWDJWJWAMCVWF72K7ASUCMT3UTK5TXLIZSVN2MKLCG3MZ4ENDIM
+#\\\|EPPC5X3BUBAWRLUIBG6PT4EC4O4C24FM5EAOHFFTDMVAB2CFPZE \ / AMOS7 \ YOURUM ::
+#\[7]RCDLSNZ64OLD4ZLHRE3FUTIB54GLVF4UJXGH3A4OAXLJITMQYKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
