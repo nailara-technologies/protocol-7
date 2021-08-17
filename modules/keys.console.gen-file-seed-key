@@ -1,0 +1,101 @@
+## >:] ##
+
+# name  = keys.console.gen-file-seed-key
+# param = n p
+# descr = generate seed-file entropy keys [ -U -plain ]
+
+my $file_plain  = FALSE;
+my $unencrypted = FALSE;
+
+my @params;
+
+foreach my $param_str ( split m|\s+|, shift ) {
+    $file_plain  = TRUE and next if $param_str eq qw| -plain |;
+    $unencrypted = TRUE and next if $param_str eq qw| -U |;
+    push @params, $param_str;
+}
+
+( my $name, my $file ) = @params;
+
+return print "\n  << expected <key_name> parameter >>\n\n"
+    if not defined $name;
+return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
+    if <[crypt.C25519.key_exists]>->($name);
+return    ##[ missing name parameter with path given ]##
+    print "\n  << expected name parameter before the seed-file path >>\n\n"
+    if not defined $file and -e $name;
+return print "\n  << expected seed-file path parameter >>\n\n"
+    if not defined $file;
+my $parent_dir = last_existing_directory($file);
+return print "\n  << no read perms for parent dir >>\n\n"
+    if ( defined $parent_dir and -d $parent_dir and not -r $parent_dir );
+return print "\n  <<  is a directory  >>\n\n"
+    if -d $file;
+return print "\n  <<  specified seed-file not found  >>\n\n"
+    if not -f $file;
+return print "\n  <<  specified seed-file is empty  >>\n\n"
+    if -z $file;
+return print "\n  <<  no read permissions for given seed-file path  >>\n\n"
+    if not -r $file;
+
+my $enc_pwd;
+my $seed_file_pwd;
+
+if ( not $unencrypted ) {
+    $enc_pwd = AMOS7::TERM::read_password_repeated('key encryption password');
+    goto NO_KEYGEN if not defined $enc_pwd;
+}
+if ( not $file_plain ) {
+    $seed_file_pwd
+        = AMOS7::TERM::read_password_repeated(
+        'additional file seed password');
+    goto NO_KEYGEN if not defined $seed_file_pwd;
+}
+
+<[base.log]>->( 1, 'extracting entropy from input file ..,' );
+
+my $file_entropy_bin_32 = AMOS7::13::gen_key_from_file_entropy($file);
+
+if ( defined $seed_file_pwd ) {
+    $file_entropy_bin_32 |.= AMOS7::13::key_32( \$seed_file_pwd );
+}
+
+print "\n::\n";
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+
+my $u_str
+    = index( $name, $key_usr, 0 ) == 0
+    ? ' files'
+    : sprintf( " for '%s'", $key_usr );
+
+my $success = FALSE;
+say sprintf " : << generating '%s' key%s >>", $name, $u_str;
+
+##  generate keypair from user seed entropy  ##
+##
+if ( not <[crypt.C25519.gen_keys]>->( $name, $file_entropy_bin_32 ) ) {
+    <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
+}
+
+( my $keywrite_status, my @key_chk_sums )
+    = <[crypt.C25519.write_keys]>->( $name, $enc_pwd );
+
+$success = TRUE    ## true ##
+    if defined $keywrite_status and $keywrite_status == TRUE;
+
+printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
+    $name, join( qw| : |, @key_chk_sums ), $key_dir )
+    and return TRUE    ## true ##
+    if $success;
+
+NO_KEYGEN:
+<[base.exit]>->( qw| 0110 |, 'no key generated.', 0 );
+
+#,,..,...,...,..,,.,.,...,..,,,..,,,.,...,..,,.,.,...,...,...,...,.,.,,,,,,,,,
+#ATY55ZJ7KRSBFKWC2GT3LJV2GTCMICILUWDQ2PICTGGRRDNZBNQZDKFK3TDH6RNESC53T5UB7IVVQ
+#\\\|JB6ONAL5AOBS4LFD4WK3KGPAHJOK6EX5LUUTIJX3HGV7R4VB5ZZ \ / AMOS7 \ YOURUM ::
+#\[7]VTQE3VCM7NZXIVJ7B7IVGM7F7VKH3ZSXXMZ5FM36A263E7736ACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
