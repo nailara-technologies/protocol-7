@@ -13,8 +13,11 @@ if ( @ARG and defined $ARG[0] and $ARG[0] eq qw| :load: | ) {
     shift @ARG;
 }
 
+my $had_start_path = FALSE;
+
 if ( @ARG and defined $ARG[0] and -d $ARG[0] and -r $ARG[0] ) {
     @preselect_path = ( qw| -Path |, shift @ARG );
+    $had_start_path = TRUE;
 }
 
 $ENV{'CLUI_DIR'} = qw| OFF |;
@@ -49,6 +52,9 @@ printf "%s%s", $colors{'B01'},
         and <[base.perlmod.loaded]>->('Term::Clui') )
     ? $colors{'clear_screen'}
     : '';
+
+@preselect_path = ( qw| -Path |, AMOS7::FILE::last_existing_directory($file) )
+    if not $had_start_path and defined $file;
 
 say sprintf '%s:', $C{'T'};
 
@@ -258,8 +264,8 @@ SELECTION_ABORTED:
 <[base.log]>->( 0, ' :' );
 <[base.exit]>->( qw| 0110 |, ' :, no file selected.,', 0 );
 
-#,,,.,,,,,.,.,,,.,,,,,.,.,,.,,,..,...,,,.,.,.,.,.,...,...,..,,,..,..,,,,,,..,,
-#MMLIGVIAEABNADMNI6L2SF5V2HHU3GBX5M6PDEP3PVJ75XC6HRZIDN6WEXO5L5Q74JMEDWUKMWLC2
-#\\\|7BMM4BHG4QKYLUE4BNOF6RLNSSNHE5R6VVCBMAVOY4HKEZQCRCE \ / AMOS7 \ YOURUM ::
-#\[7]WBJL4GSAIAAE3AJOOLQDFU4I7XTXAS4TEJRAQC527Q4EK6N7GUBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,,,,,.,,..,,.,,..,,,,.,...,,,.,.,.,...,...,,,,,.,.,..,,..,,.,,,
+#UQ76YDDROE6QZOKAXDBWN7NYJT6RXDSGTZSTGHRBNCA6YXMJVEMRBRMILIEDY2OJKVNQR6XWVLSVU
+#\\\|6CJI6SD3Q767KQCRN2NADXVADGGSS2FQ6LELEPEKYIGSGKDEOB2 \ / AMOS7 \ YOURUM ::
+#\[7]AJKJKM7I2KR3EEAKWVXPJBBZSRUMWELN6HCZVJ4KOWEIVMPLN6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

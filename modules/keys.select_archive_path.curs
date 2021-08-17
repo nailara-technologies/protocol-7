@@ -25,10 +25,10 @@ printf "%s%s", $colors{'B01'}, $colors{'clear_screen'};
 my %C = %AMOS7::C;
 
 my $CURSES_UI = Curses::UI->new(
-    -clear_on_exit => 5,    ## true ##
-    -color_support => 5,    ## true ##
-    -mouse_support => 5,    ## true ##
-    -compat        => 0,    ##  false  ##
+    -clear_on_exit => TRUE,     ## true ##
+    -color_support => TRUE,     ## true ##
+    -mouse_support => TRUE,     ## true ##
+    -compat        => FALSE,    ##  false  ##
 );
 
 <[terminal.curses_ui.load_lang]>->( $CURSES_UI->lang );
@@ -53,10 +53,10 @@ my $win = $CURSES_UI->add( 'window', 'Window', );
 my $container = $win->add( 'mycontainer', 'Container' );
 
 my $dialog = $container->add(
-    'filename', 'Dialog::Filebrowser',
+    qw| filename |, qw| Dialog::Filebrowser |,
     -title         => $title_str,
     -file          => $start_filename,
-    -editfilename  => 5,                 ## true ##
+    -editfilename  => TRUE,              ## true ##
     -mask_selected => 1,
     -mask          => $mask,
     @preselect_path
@@ -160,7 +160,7 @@ if ( defined $file ) {
 
         $overwrite = $CURSES_UI->dialog(
             -title    => $title,
-            -buttons  => [ 'yes', 'no' ],
+            -buttons  => [qw|  yes  no  |],
             -selected => 1,                 ##[  'no, do not' is selected  ]##
             -message  => sprintf qw| %s%s%s |,
             $pre, $file, $post,
@@ -201,8 +201,8 @@ print "%s%s", $colors{'reset'}, $colors{'clear_screen'};
 return ( $file, $overwrite ) if not $load_mode and wantarray;
 return $file;    ##  if save file and exists, overwrite is implied  ##
 
-#,,,.,.,,,...,...,.,,,.,,,...,...,,..,..,,,,.,.,.,...,...,.,.,..,,...,,..,...,
-#OSPB6264RHX553AKTA35PHQQH5MP4FXORZAGLRPWZGQDUIHVS4YLK6GYRL4UR44H2YSPCNE37TKMU
-#\\\|KABGQ54BO5CYFBKIUXJSK3LFG7ZBW3O6NOCB3QDB6T5NJXDE7GS \ / AMOS7 \ YOURUM ::
-#\[7]GNIBCMWRJP4Y45BCMH6D7VJE4EM4YHNLXIYSC4766FOJK3EPVEBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,.,,,.,..,,..,,,..,..,,,,.,,,,,.,.,...,...,.,,,.,,,...,...,.,.,
+#XODNUYMR7D2VFZAI7SILRVJSZKHXCCCNPZ5WAQ2DMFFESXIYJFXUX4P4VITLTL4SH75Y5WV3C7ZTK
+#\\\|EIUFD6UXUMU66SR5BANNUSAGKJOO44WSMO65F2SIFJZFGLTVK6P \ / AMOS7 \ YOURUM ::
+#\[7]QFKQOEWGTYZKQXHXMYXOQK6CCMSN7WVTYLJGW5HDZ2ZCOTTQOODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
