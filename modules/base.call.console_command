@@ -24,6 +24,10 @@ if (   not defined $code{$command_handler}
     return;
 }
 
+## resetting from start-up setting to zenka default handler ##
+##
+$SIG{'__WARN__'} = $code{'base.sig_warn'};
+
 <system.console.command> = $console_cmd;
 
 $code{$command_handler}->($console_params);

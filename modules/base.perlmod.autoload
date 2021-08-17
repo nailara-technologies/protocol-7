@@ -8,7 +8,7 @@ my ( $module_name, @export ) = @ARG;
 if ( not defined &Module::Load::autoload and [caller]->[1] ne __FILE__ ) {
     eval { require Module::Load };
     if ( length $EVAL_ERROR ) {
-        warn <[base.format_error]>->($EVAL_ERROR);
+        warn <[base.str.eval_error]>;
         eval <<~ 'EOT';
           sub Module::Load::autoload (*;@) { eval join ' ', qw| use |, @ARG }
         EOT
@@ -16,7 +16,7 @@ if ( not defined &Module::Load::autoload and [caller]->[1] ne __FILE__ ) {
     <[base.perlmod.autoload]>->(qw| Module::Load |);
 }
 
-<base.perlmod.auto_install> //= 0;
+<base.perlmod.auto_install> //= FALSE;
 
 ##  create [ exports ] registry  ##  [ LLL ]
 ##
@@ -34,29 +34,32 @@ eval { Module::Load::autoload( $module_name, @export ) };
 if ( not length $EVAL_ERROR ) {    # success #
     <[base.perlmod.register_loaded_module]>->($module_name);
     return TRUE;                   ## true ##
+} elsif ( delete <base.perlmod.silent_error>
+    and not <base.perlmod.auto_install> ) {
+    return FALSE;                  ##  no error messages [silenced]  ##
 }
 
-my $reason = <[base.format_error]>->($EVAL_ERROR);
+my $reason = <[base.format_error]>->( $EVAL_ERROR, -1 );
 
 # load error #
-<base.perlmod.loaded>->{$module_name} = 0;
+<base.perlmod.loaded>->{$module_name} = FALSE;
 
 if ( $reason !~ m|^\S+ locate | ) {
     <[base.logs]>->(
         0, "<< error while [auto]loading perl module '%s' >>", $module_name
     );
-    die "$reason\n";
+    die sprintf( ":: [ '%s' ]", $reason );
 }
 
-if ( !<base.perlmod.auto_install> ) {
+if ( not <base.perlmod.auto_install> ) {
     <[base.logs]>->(
         0, "<< error while [auto]loading perl module '%s' >>", $module_name
     );
-    <[base.logs]>->( 2, "  : [ '%s' ]", $reason );
+    <[base.logs]>->( 1, ":: [ '%s' ]", $reason );
     <[base.log]>->(
         2, "  :. << module auto_install is not enabled, doing nothing >>"
     );
-    return 0;    ##  no success with loading module  ##
+    return FALSE;    ##  no success with loading module  ##
 }
 
 <[base.logs]>->(
@@ -83,8 +86,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;         ## true ##  [ module loaded ]
 
-#,,,.,,.,,,..,,..,,,.,,.,,...,,..,...,...,.,.,..,,...,...,..,,,..,,,,,.,,,..,,
-#NYL3MKZOF4PTLI5XK2YGXXSZZV4OHGYTKT7SFILGHR5TRQGVDCSOCCXWTMLUEP2DY443W3Q3IUG6A
-#\\\|BJQETCHWPGOPUC2FTXDHFE2JITIRQM7MFFUXWQUIGZTFZG3FEBV \ / AMOS7 \ YOURUM ::
-#\[7]LIADXFOPHFBMQKS2YTXVCIE7RWTGWDE5AETI4Z4H4DCSYLCQUMAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,..,,,.,,...,.,.,...,,.,,,,.,..,,...,...,...,,,,,.,.,,,.,,.,,
+#FL27IEVPHYF3QBYLOFGHQDUUMGMBFVT6U7HA2CDNVCTIDIAIYFDUSGQG5MNXUZ6RIK3ZYERCP5MRS
+#\\\|XFT6RXNED2EDAGVDQBJMHCJ6RLEOEJNJ6LIGPKSGLBQE65WSW5K \ / AMOS7 \ YOURUM ::
+#\[7]GONBEO3XRCSRNRR2QQWBHUBRPNUNGYBM5ZT73HX42QSVIMCMR6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ if ( not defined &Module::Load::load and [caller]->[1] ne __FILE__ ) {
     <[base.perlmod.autoload]>->(qw| Module::Load |);
 }
 
-<base.perlmod.auto_install> //= 0;
+<base.perlmod.auto_install> //= FALSE;
 
 ##  create [ exports ] registry  ##  [ LLL ]
 ##
@@ -34,29 +34,32 @@ eval { Module::Load::load( $module_name, @export ) };
 if ( not length $EVAL_ERROR ) {    # success #
     <[base.perlmod.register_loaded_module]>->($module_name);
     return TRUE;                   ## true ##
+} elsif ( delete <base.perlmod.silent_error>
+    and not <base.perlmod.auto_install> ) {
+    return FALSE;                  ##  no error messages [silenced]  ##
 }
 
-my $reason = <[base.format_error]>->($EVAL_ERROR);
+my $reason = <[base.format_error]>->( $EVAL_ERROR, -1 );
 
 # load error #
-<base.perlmod.loaded>->{$module_name} = 0;
+<base.perlmod.loaded>->{$module_name} = FALSE;
 
 if ( $reason !~ m|^\S+ locate | ) {
     <[base.logs]>->(
         0, "<< error while loading perl module '%s' >>", $module_name
     );
-    die "$reason\n";
+    die sprintf( ":: [ '%s' ]", $reason );
 }
 
-if ( !<base.perlmod.auto_install> ) {
+if ( not <base.perlmod.auto_install> ) {
     <[base.logs]>->(
         0, "<< error while loading perl module '%s' >>", $module_name
     );
-    <[base.logs]>->( 2, "  : [ '%s' ]", $reason );
+    <[base.logs]>->( 1, ":: [ '%s' ]", $reason );
     <[base.log]>->(
         2, "  :. << module auto_install is not enabled, doing nothing >>"
     );
-    return 0;    ##  no success with loading module  ##
+    return FALSE;    ##  no success with loading module  ##
 }
 
 <[base.logs]>->(
