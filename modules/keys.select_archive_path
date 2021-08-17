@@ -3,206 +3,24 @@
 # name  = keys.select_archive_path
 # descr = select archive file to save to \ load from [ :load: mode ]
 
-my @preselect_path;
-my $load_mode  = FALSE;
-my $block_size = <keys.size.archive_block>;    ##  13 K archive block size  ##
-
-if ( @ARG and defined $ARG[0] and $ARG[0] eq qw| :load: | ) {
-    $load_mode = TRUE;
-    shift @ARG;
-}
-
-if ( @ARG and defined $ARG[0] and -d $ARG[0] and -r $ARG[0] ) {
-    @preselect_path = ( qw| -path |, shift @ARG );
-}
-
+<base.perlmod.silent_error> = TRUE;
 <[base.perlmod.load]>->('Curses::UI')
     if not <[base.perlmod.loaded]>->('Curses::UI');
 
-$OUTPUT_AUTOFLUSH = TRUE;
-printf "%s%s", $colors{'B01'}, $colors{'clear_screen'};
-
-my %C = %AMOS7::C;
-
-my $CURSES_UI = Curses::UI->new(
-    -clear_on_exit => 5,    ## true ##
-    -color_support => 5,    ## true ##
-    -mouse_support => 5,    ## true ##
-    -compat        => 0,    ##  false  ##
-);
-
-<[terminal.curses_ui.load_lang]>->( $CURSES_UI->lang );
-
-my $key_vars_ref = <[crypt.C25519.key_vars]>;
-my $keys_user    = $key_vars_ref->{'usr_name'};
-
-my $start_filename = sprintf qw| %s.archive.p7_keys |, $keys_user;
-
-my $title_str
-    = $load_mode
-    ? 'select archive to decrypt'
-    : 'select archive filename to save to';
-
-my $mask = [
-    [ qw| . |,          'all files [*]' ],
-    [ qw| \.p7_keys$ |, '[ .p7_keys ] PROTOCOL 7 key archive' ],
-];
-
-my $win = $CURSES_UI->add( 'window', 'Window', );
-
-my $container = $win->add( 'mycontainer', 'Container' );
-
-my $dialog = $container->add(
-    'filename', 'Dialog::Filebrowser',
-    -title         => $title_str,
-    -file          => $start_filename,
-    -editfilename  => 5,                 ## true ##
-    -mask_selected => 1,
-    -mask          => $mask,
-    @preselect_path
-);
-
-##[  overriding button label details  ]##
+##  preferred user interface is using Curses::UI  ##
 ##
-my $buttons = $dialog->getobj('buttons')->{'-buttons'};
+if ( <[base.perlmod.loaded]>->('Curses::UI') ) {
 
-$buttons->[0]->{'-label'}    = '[ select ]';
-$buttons->[0]->{'-shortcut'} = qw| S |;
+    return <[keys.select_archive_path.curs]>->(@ARG);
 
-$buttons->[1]->{'-label'}    = '[ abort ]';
-$buttons->[1]->{'-shortcut'} = qw| A |;
+} else {    ##[  'Term::Clui' fallback mode  ]##
 
-$dialog->getobj('dirbrowser')->{'-labels'}->{'..'} = '[,. parent dir. .,]';
+    return <[keys.select_archive_path.term_Clui]>->(@ARG);
 
-##  enabling highlighted path message display  ##
-##
-if ( not $load_mode ) {    ##  override in save file mode  ##
-    $dialog->getobj('buttons')->set_mouse_binding(
-        sub {
-            <keys.archive_select.display_path> = TRUE;  ##  enable message  ##
-            &Curses::UI::Buttonbox::mouse_button1;    ##  processing event  ##
-        },
-        Curses::BUTTON1_CLICKED()
-    );
 }
 
-##  context aware focus  ##
-##
-if ( not @preselect_path ) {
-    $dialog->getobj('dirbrowser')->focus;
-} elsif ($load_mode) {
-    if ( -e catfile( $preselect_path[1], $start_filename ) ) {
-        $dialog->getobj('buttons')->focus;
-    } elsif ( not @preselect_path ) {
-        $dialog->getobj('dirbrowser')->focus;
-    } else {
-        $dialog->getobj('filebrowser')->focus;
-    }
-} else {
-    $dialog->getobj('buttons')->focus;
-}
-
-##                              ##
-##  OPEN FILE SELECTION DIALOG  ##
-##                              ##
-
-SELECT_FILE:
-
-##  set true by mouse button press  ##
-<keys.archive_select.display_path> = FALSE;
-
-$dialog->modalfocus;    ##  blocking until selection made  ##
-
-my $overwrite = FALSE;
-
-my $file = $dialog->get();
-
-if ( defined $file ) {
-    ( my $file_rel      = $file ) =~ s|^.*/||;
-    ( my $file_path_dir = $file ) =~ s|$file_rel$||;
-    $file_path_dir =~ s|(*plb:.)/$|| if length $file_path_dir;
-
-    if ( -d $file ) {
-        $CURSES_UI->error( sprintf "'%s' is a directory.,", $file_rel );
-        $dialog->getobj('filevalue')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( $load_mode and -z $file ) {
-        $CURSES_UI->error( sprintf "file '%s' is empty ..,", $file );
-        $dialog->getobj('filebrowser')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( $load_mode and -e $file and not -r $file ) {
-        $CURSES_UI->error( sprintf "no read permission for '%s'.,",
-            $file_rel );
-        $dialog->getobj('buttons')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( $load_mode
-        and File::stat::stat($file)->size % $block_size != 0 ) {
-        $CURSES_UI->error( sprintf "file '%s' is not a valid key archive ..,",
-            $file );
-        $dialog->getobj('filebrowser')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( not $load_mode and -e $file and not -w $file ) {
-        $CURSES_UI->error( sprintf "no write permissions for '%s'.,",
-            $file_rel );
-        $dialog->getobj('filebrowser')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( not $load_mode and -e $file ) {
-
-        my $l     = $CURSES_UI->root->lang;
-        my $pre   = $l->get('file_overwrite_question_pre');
-        my $post  = $l->get('file_overwrite_question_post');
-        my $title = sprintf "replace archive file '%s'", $file_rel;
-
-        $overwrite = $CURSES_UI->dialog(
-            -title    => $title,
-            -buttons  => [ 'yes', 'no' ],
-            -selected => 1,                 ##[  'no, do not' is selected  ]##
-            -message  => sprintf qw| %s%s%s |,
-            $pre, $file, $post,
-        );
-
-    } elsif ( not $load_mode and -d $file_path_dir and not -w $file_path_dir )
-    {
-        $CURSES_UI->error( sprintf "no write permissions in '%s'.,",
-            $file_path_dir );
-        $dialog->getobj('dirbrowser')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( $load_mode and not -e $file ) {
-        $CURSES_UI->error( sprintf "archive file %s not found ..,", $file );
-        $dialog->getobj('filebrowser')->focus;
-        goto SELECT_FILE;
-
-    } elsif ( not $load_mode and <keys.archive_select.display_path> ) {
-        ##  writing success message in selection window  ##
-        my $shortened_path = <[base.parser.ellipse_center]>->( $file, 50 );
-        say sprintf "\n%s[[%s%s %s %s%s]]%s", $C{'0'}, $C{'g'},
-            $C{'b'}, $shortened_path, $C{'R'}, $C{'0'}, $C{'R'};
-        <[base.sleep]>->(1.2);
-    }
-}
-
-goto SELECT_FILE    ##  return for questions or re-selection  ##
-    if defined $file
-    and ( not $load_mode and -e $file and not $overwrite
-    or $load_mode and not -e $file );
-
-$win->delete('filename');      ##  terminate window  ##
-$CURSES_UI->leave_curses();    ##  resets terminal  ##
-$CURSES_UI->mainloopExit();    ##  exit curses  ##
-
-print "%s%s", $colors{'reset'}, $colors{'clear_screen'};
-
-return ( $file, $overwrite ) if not $load_mode and wantarray;
-return $file;    ##  if save file and exists, overwrite is implied  ##
-
-#,,,.,..,,,.,,.,.,...,..,,..,,,.,,.,,,,.,,,.,,.,.,...,...,.,.,.,.,.,.,.,,,,..,
-#WJANDIHMXKZV33RZVQLYHKBRPJWN3SL2YF3CVC5GG4WKL6EQ5OMINLW2FPKAQ4GZHUHZ63AV2RKZU
-#\\\|ZJGOYLUGAZFGLJRBEBM5EDRPGW24YFZGKYL4K44X4HI4TY4YDBO \ / AMOS7 \ YOURUM ::
-#\[7]Y5GSGMSBQUE6JBDFIVVXLYSWVMNS43ARGCGRT34INDZPCRWWHSBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,.,.,...,,..,.,.,...,..,,.,,,.,.,...,...,.,,,,..,,,.,,,,,,,.,
+#XASC3CQHOB4CNY7OME5Y57L5DYJV6PW5R745APNQV47RYCYB2L2IN6KCWFX3LNKC7ZQEWLJ7XX3BU
+#\\\|DXA3PJUGIZGM3XN6X5MIX4RFW6MVKGY2XQLW4RP5QS53DPGAHZA \ / AMOS7 \ YOURUM ::
+#\[7]S674S4UYPDL7PXA3WW4UYHTT3KJEMZZ2P2P7FWHV4T72YAEZ7MCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
