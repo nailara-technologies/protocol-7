@@ -1,0 +1,28 @@
+
+.:[ 'ext-world' connection handling zenka ]:.
+
+
+[load_config_file:'shared-params']
+
+modules.load           = auth net protocol io.unix io.ip ext-world   ## devmod
+
+access.cmd.usr.cube    = verify-instance commands heart reload subname \
+                         list show-buffer buffer-erase buffer-erase-level \
+                         list-deps cur-pid src-ver rel-ver src-age \
+                         * ## <-- devmod
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,,,,.,,.,.,...,..,,.,,,.,.,...,,,,,,.,,.,.,...,.,.,...,,,,,..,,.,,,,,,,
+#FZ6BOAYIXF4DTNAUXVYACKLINH3FTKIR7BWDUMIWB4RDYX23WQ5UMB2GDY6TT5JYVIOZKDSPIJ25A
+#\\\|M7RQXLBOTLK2CBGTBLCOV4QOF6XRUDHYSDCN57QYTFL7UF5CU3U \ / AMOS7 \ YOURUM ::
+#\[7]N5IB5DKK4RA32FW6QRBG5Q7YL73QIEKPPUYMSFAP5GFCNWZYQODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
