@@ -1,0 +1,45 @@
+## >:] ##
+
+# name  = protocol.protocol-7.protocol-version-path-set-up
+
+##  PROTOCOL CHKSUM FILES SET-UP  ##
+
+my @copy_sources = qw [
+
+    bin
+    modules
+    configuration
+    bin/dependencies
+    data/lib-path/pm
+    data/lib-path/pm/*
+    configuration/zenki/*/
+    data/lib-path/pm/AMOS7
+    data/lib-path/pm/AMOS7/*
+    data/lib-path/pm/AMOS7.pm
+    data/lib-path/pm/AMOS7/INLINE/*
+    data/lib-path/pm/AMOS7/CHKSUM/*
+    data/lib-path/pm/AMOS7/Protocol
+    data/lib-path/pm/AMOS7/INLINE/src
+
+];
+
+my $prev_path_copy = <[base.getcwd]>;
+
+if ( not chdir(<system.root_path>) ) {
+    <[base.s_warn]>
+        ->( ': cannot change workdir to : %s', <system.root_path> );
+    return undef;
+} else {
+
+    my @result_paths = <[base.source.collect_file_list]>->( \@copy_sources );
+    chdir($prev_path_copy) or warn <[base.str.os_err]>;   ##  restore path  ##
+
+    return @result_paths if wantarray;
+    return \@result_paths;    ##  return array ref in scalar context  ##
+}
+
+#,,..,.,,,.,.,...,..,,..,,,,,,.,.,.,.,.,.,.,,,..,,...,...,.,,,.,.,...,,,,,,,,,
+#TSPJAT7SF4OVGRTYEH3DLFI5X7SQ6UKWUPKQBCX3F2HC4XXUXBTGP6EYYHQ7UF3DTBNVBPON7MEK2
+#\\\|4Q2KT2B4GKFYEKOAQY5OV3VWRO6GF4JPT2PRCT3HOKTMVJAYFYL \ / AMOS7 \ YOURUM ::
+#\[7]UMQP4GTY7SG4CFTEXRQ33TJWU2HW7UREK3K5PO6QYDS2JPN7OOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
