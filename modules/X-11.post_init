@@ -356,15 +356,24 @@ if ( <X-11.bg_fade> //= TRUE and $bg_col ne '#000000' ) {
 
 ## setting background image ##
 ##
-<[X-11.set_background_image]>->($bg_image) if defined $bg_image;
+if ( defined $bg_image ) {
+    if ( $bg_image ne qw| :random: | ) {
+        <[X-11.set_background_image]>->( $bg_image, undef, TRUE );
+    } else {
+        my $amos_chksum = <[X-11.backgrounds.set_random_image]>;
+        <[base.logs]>->(
+            'selected random background image : %s', $amos_chksum
+        );
+    }
+}
 
 ## all done. ##
 <X-11.initialized> = TRUE;
 
 return 0;    ## success
 
-#,,,,,,,.,.,.,,,,,..,,...,.,.,.,.,.,,,,,.,...,..,,...,...,..,,,..,,..,...,.,.,
-#AZBLKUIJ7Q6DJG6ZFFNDXXG777O4VG5VMHXCZFPJA244MZ3HUXB5FO5DV2VOSEWAU24MO3PXWMHCA
-#\\\|ZZC2RFA6III5W2RDXKH3BR65P5QXVMTUR7E7BKL445FRUSDNZQI \ / AMOS7 \ YOURUM ::
-#\[7]RIVJIQBFO2FQACMTESL3F7QQY33YHKX2I7QO52KXKT3ML2C2OYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,,..,,,,,,,.,,..,...,.,.,.,.,..,,...,...,..,,,,.,,,,,...,..,,
+#V6WYRHHNDTDO4HHZAGAD4A77L6RQ7LSUMVDHNOXEME6CHKA55Q4NJ27SPSTGQJVBZJJFECZHYM62Q
+#\\\|T75EX2UJZJHXQLJP6HQVVUZ7CKCBD72WYN365PSZRSEDNIK6PK5 \ / AMOS7 \ YOURUM ::
+#\[7]74COVDHFPRH52T4XX4GZAPMROKHRRA4BVZ4VIX6HY6OPN7KEZCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

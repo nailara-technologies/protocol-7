@@ -1,0 +1,56 @@
+## >:] ##
+
+# name  = X-11.background-image-list
+# descr = update chksum cache and return background image list
+
+my $bg_gfx_path          = <X-11.bg_gfx_directory>;
+my $amos7_checksum_cache = <X-11.cache.bg-images.amos-path-csum> //= {};
+
+<X-11.backgrounds.path_list> //= [$bg_gfx_path];    ##  default image path  ##
+
+my $err_reason_mesg;
+$err_reason_mesg = 'background-gfx directory is undefined'
+    if not defined $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory cannot be found'
+    if not defined $err_reason_mesg and not -d $bg_gfx_path;
+$err_reason_mesg = 'background-gfx directory not readable'
+    if not defined $err_reason_mesg and not -r $bg_gfx_path;
+if ( defined $err_reason_mesg ) {
+    <[base.s_warn]>->( '%s <{C1}>', $err_reason_mesg );
+    return undef;
+}
+
+<[X-11.bg-image.clean-up-cache]>;    ##[ removing non-existing entries ]##
+
+my %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
+
+foreach $bg_gfx_path ( <X-11.backgrounds.path_list>->@* ) {
+    my $GFX_file_ref = <[file.all_files]>->($bg_gfx_path);   ## read images ##
+    foreach my $bg_image_path ( $GFX_file_ref->@* ) {
+        ( my $imagefile_name = $bg_image_path ) =~ s|^.*/||;
+        next if index( $imagefile_name, qw| . |, 0 ) == 0;
+
+        ##[ already cached ]##
+        next if exists $bg_image_pathmap{$bg_image_path};
+
+        ##[ add to cache ]##
+        my $amos_chksum = <[file.path.chksum.AMOS]>->($imagefile_name);
+        <[X-11.bg-image.cached-path.add]>->( $amos_chksum, $bg_image_path );
+    }
+}
+
+if (wantarray) {    ## returning file paths in list context ##
+
+    %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
+    return <[base.sort]>->( \%bg_image_pathmap );
+
+} else {    ##  return hashref in scalar context  ##
+
+    return $amos7_checksum_cache;
+}
+
+#,,,,,..,,,,,,.,.,,..,,..,...,..,,,.,,..,,,,,,..,,...,..,,.,.,,..,...,...,.,,,
+#M4M3ITW4SJUBW2P4ZPAJPCWWEPTNZJHSXF7Z6D4BV3T25KSDSO67RFA5UWU7NAPBHCKPPV6HZQCWK
+#\\\|DTOQCDRLPRY7EOXUNPKVDN3F5Y7NZRG4MZKVLSGGOWXP2USF6DR \ / AMOS7 \ YOURUM ::
+#\[7]UT57KHJFN6NCMUSOWQU2ZZJHBBQ6QJLO7W4XVQVJFNGHISJEUOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

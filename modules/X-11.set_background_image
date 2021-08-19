@@ -2,36 +2,73 @@
 
 # name  = X-11.set_background_image
 
-my $bg_image = shift;
-my $bg_mode  = <X-11.bg_mode>;
+my $bg_image   = shift;                      ##  image path [ chksum ]  ##
+my $bg_mode    = shift // <X-11.bg_mode>;    ##  hsetroot scaling modes  ##
+my $set_silent = shift // TRUE;              ##  changes report log level  ##
 
 if ( not defined $bg_image ) {
     warn 'expected bg_image parameter <{C1}>';
     return undef;
 }
 
-## check local backgrounds directory first ##
-my $chk_backgrounds_path = sprintf( qw| %s/%s/%s |,
-    <system.root_path>, qw| data/gfx/backgrounds |, $bg_image );
-$bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
+## amos7-chksum ##
 ##
+my $amos_chksum;
+if ( length($bg_image) == 7 and $bg_image =~ m|^[A-Z2-7]+$| ) {
+    $amos_chksum = $bg_image;
+    my $path_cached = <[X-11.bg-image.cached-path-look-up]>->($amos_chksum);
+    if ( not defined $path_cached ) {
+        <[X-11.background-image-list]>;    ##[ updated ]##
+        $path_cached = <[X-11.bg-image.cached-path-look-up]>->($amos_chksum);
+    }
+    $bg_image = $path_cached if defined $path_cached;
+}
+
+if ( index( $bg_image, qw| / |, 0 ) != 0 ) {    ##[ relative path ]##
+## check local backgrounds directory first ##
+    my $bg_gfx_path          = <X-11.bg_gfx_directory>;
+    my $chk_backgrounds_path = catfile( $bg_gfx_path, $bg_image );
+    $bg_image = $chk_backgrounds_path if -f $chk_backgrounds_path;
+##
+}
 
 if ( not -f $bg_image ) {
     <[base.s_warn]>->( ': image not found : %s <{C1}>', $bg_image );
     return FALSE;
+} elsif ( not -r $bg_image ) {
+    <[base.s_warn]>->( ': image not readable : %s <{C1}>', $bg_image );
+    return FALSE;
+} elsif ( index( $bg_image, qw| / |, 0 ) != 0 ) {    ##[ relative path ]##
+    my $bg_image_path_rel = $bg_image;
+    $bg_image = abs_path($bg_image);
+    if ( not length $bg_image ) {
+        <[base.s_warn]>->(
+            'cannot resolve abs path of %s <{C1}>',
+            $bg_image_path_rel
+        );
+    }
 }
+
+##  absolute image path available set  ##
 
 my @hsetroot_params;    ## [LLL] 'hsetroot' call to be replaced soon ..,
 my $hsetroot_bin = <[base.required_bin_path]>->('hsetroot');
-if ( !-x $hsetroot_bin ) {
+if ( not -x $hsetroot_bin ) {
     <[base.logs]>->(
         0, "cannot set bg-image : '%s' not found",
         $hsetroot_bin
     );
     return undef;
 }
-( my $img_txt = $bg_image ) =~ s,^.+/,,g;
-<[base.logs]>->( "setting background image '%s'", $img_txt );
+
+( my $bg_image_name = $bg_image ) =~ s|^.+/||g;
+my $image_setting = $amos_chksum // $bg_image_name;
+
+<[base.logs]>->(
+    $set_silent ? 2 : 1,
+    'setting background image : %s',
+    $image_setting
+);
 
 ##  query available hsetroot params here  ##   [LLL]
 @hsetroot_params = ( sprintf( qw| -%s |, $bg_mode ), $bg_image );
@@ -40,13 +77,14 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     <[base.logs]>->(
         0, "cannot execute 'hsetroot' command [ returned %s ]", $CHILD_ERROR
     );
-    return FALSE;
+    return FALSE;    ##  reporting [ not successful ]  ##
 } else {
-    return TRUE;
+    <X-11.bg_image> = $image_setting;    ##  updaing variable  ##
+    return TRUE;                         ##  return success  ##
 }
 
-#,,.,,..,,,,,,.,.,,,,,,..,,,,,,,.,..,,..,,,..,.,.,...,...,...,,,.,,,,,,,,,,..,
-#TK3WBBMKP6NI5OABZDSM5RXLZGBFZ4APJ424Q3LXGFU4PFOQN2JE3MEPK47V3GFSZRDAGLJROJKWC
-#\\\|5RTSBKGB5AXOF3BSTLKPLQ2XS4DLI4ZQFPL273YTANN2W4LUQTP \ / AMOS7 \ YOURUM ::
-#\[7]EXUBB2C56FDWUXKHLH3LFMFGA32SXXQ4MYP3RH34ELXVFKJKOWDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,,,..,,.,.,.,.,,,,,.,.,,..,.,.,...,...,,..,.,,,,,.,...,,,,,
+#HRXOYHPVJFEG6CVQ2VRXJCP7TXG6DPF6GK2PQZQSK6OTEVIUPZZNHBZIUNRNNBCA636ZAZGZK7YKO
+#\\\|DEZP3PRXLCPZB6XOPECUMW573IE5CRRWNUQRAAAYGT4HHDHEJVO \ / AMOS7 \ YOURUM ::
+#\[7]LNDSA4BOER3URJSTBM3QMHSKWF25CQXZYESPHPNR7DJZ63PYU2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

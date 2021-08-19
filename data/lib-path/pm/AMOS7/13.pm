@@ -316,6 +316,75 @@ sub gen_entropy_string {
     return \$entropy_block;    ##  return entropy of requested size  ##
 }
 
+##  create a randomized numerical sequence from input seed string entropy  ##
+##
+sub random_sequence {
+
+    my $input_seed   = shift;  ##  [ arbitary length ] seed entropy string  ##
+    my @num_sequence = @ARG;   ##  single element count or number sequence  ##
+
+    my @result_sequence;       ##  returning randomized sequence  ##
+
+    if ( not defined $input_seed ) {
+        warn_err('expected input seed string parameter <{C1}>');
+        return undef;
+    } elsif ( @num_sequence == 0 ) {
+        warn_err('expected [ at least one ] numerical sequence param <{C1}>');
+        return undef;
+    }
+    my $element_index = 0;
+    foreach my $test_val (@num_sequence) {
+        if (    @num_sequence == 1
+            and defined $test_val
+            and ( $test_val !~ m|^\d{1,5}$| or $test_val == 0 ) ) {
+            warn_err( 'element count not numerical or'
+                    . ' out of range [ <= 5 digits ] <{C1}>' );
+            return undef;
+        } elsif ( not defined $test_val or $test_val !~ m|^\d+$| ) {
+            warn_err( 'sequence element [ %03d ] is not numerical :. %s .:',
+                1, $element_index, $test_val // qw| [UNDEF] | );
+            return undef;
+        }
+        $element_index++;
+    }
+
+    ## single value = element count | otherwise num sequence list ##
+    ##
+    my $element_count
+        = @num_sequence == 1 ? shift @num_sequence : scalar @num_sequence;
+
+    if ( not @num_sequence ) {  ## number sequence from given element count ##
+        @num_sequence = ( 0 .. $element_count - 1 );
+    }
+
+    ##  input seed padding to length 13  ##
+    $input_seed .= 'Z' x ( 13 - length $input_seed )
+        if length $input_seed < 13;
+
+    my @entropy_data; ## same ammount of numerical values to select indices ##
+    if (not AMOS7::13::gen_entropy_values(
+            \$input_seed, $element_count, \@entropy_data
+        )
+    ) {
+        warn_err('cannot generate entropy values <{C1}>');
+        return undef;
+    }
+
+    while (@num_sequence) {   ##  choose the next element for the sequence  ##
+        my $next_val = shift @entropy_data;
+        $next_val %= scalar @num_sequence;
+        push @result_sequence, splice @num_sequence, $next_val, 1;
+    }
+
+    ##  returning randomized sequence  ##
+    ##
+    if (wantarray) {
+        return @result_sequence;    ##  return as array in list context  ##
+    } else {
+        return \@result_sequence;   ##  return array ref in scalar context  ##
+    }
+}
+
 ##  return ranged numerical float or integer value from input seed data  ##
 ##
 sub seed_iteration_val {
@@ -1122,8 +1191,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,..,,.,,,..,...,,,.,,..,,,,,.,,,..,,..,,.,.,..,,...,...,.,.,.,.,,.,,,..,,..,
-#Z7IMDSKLPRLGMXDK4LS6MWRYHHSWDJWJWAMCVWF72K7ASUCMT3UTK5TXLIZSVN2MKLCG3MZ4ENDIM
-#\\\|EPPC5X3BUBAWRLUIBG6PT4EC4O4C24FM5EAOHFFTDMVAB2CFPZE \ / AMOS7 \ YOURUM ::
-#\[7]RCDLSNZ64OLD4ZLHRE3FUTIB54GLVF4UJXGH3A4OAXLJITMQYKAY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,..,,.,.,,,.,,,,,,..,,.,,,..,..,,...,...,,.,,.,,,,,.,,.,,,,.,
+#W6ZSRB73RYCAY5M63YYM7ZBXWU4QHXPS7OWXPRYV4N6VYGMFM3D3FOI7OZFVVCT4KQP3E2FTFB4VY
+#\\\|RMOKA4EH7LBX4YDYUWBJVRV2YB6QTACANXHMCPTJJBS6K3ZO2RZ \ / AMOS7 \ YOURUM ::
+#\[7]4V56JDWLNOPCNMJ2PSPLOC6MMFM3FNEIJ5QDBSZNXFIC3ZXADACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

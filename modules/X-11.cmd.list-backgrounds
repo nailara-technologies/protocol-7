@@ -15,25 +15,27 @@ $err_reason_mesg = 'background-gfx directory not readable'
 return { 'mode' => qw| false |, 'data' => $err_reason_mesg }
     if defined $err_reason_mesg;
 
-my $GFX_file_ref = <[file.all_files]>->($bg_gfx_path);
-return {
-    'mode' => qw| false |,
-    'data' => 'no files found in background-gfx directory'
-    }
-    if ref $GFX_file_ref ne qw| ARRAY |
-    or $GFX_file_ref->@* == 0;
+my $amos7_checksum_cache = <[X-11.background-image-list]>;    ##[ updated ]##
 
-my @bg_img_files = grep { !m|^\.| } grep {s|^.*/||} $GFX_file_ref->@*;
+return { 'mode' => qw| false |, 'data' => 'error while reading image list' }
+    if ref $amos7_checksum_cache ne qw| HASH |;
 
-return {
-    'mode' => qw| size |,
-    'data' => join '',
-    map { sprintf ":. %s .: %s\n", <[file.path.chksum.AMOS]>->($ARG), $ARG }
-        @bg_img_files
-    }
+return { 'mode' => qw| false |, 'data' => 'no image files found' }
+    if not keys $amos7_checksum_cache->%*;
 
-#,,,.,,..,.,.,.,,,.,,,,,,,,,.,,,,,,.,,.,,,,..,..,,...,...,...,,,,,.,,,,..,...,
-#D74SPKYH3L2DEPRIPB7TW5V4XCZF3D6NVDEORHWNJUWBPXEZRZFP6SOL5LAOY5HKTLRESYSFWRMHA
-#\\\|ZQDNQ5HOPEHGEMG53LTKNGYCAZJVJDQSTY6E66WJHCQMXJBVXRS \ / AMOS7 \ YOURUM ::
-#\[7]DYMI6UKHLKWEJKRD2QBPYQ77ZPL3M4FZHZZOPXQELUO7RDUTA2CY 7  DATA SIGNATURE ::
+my @bg_img_files;    ##  amos7 image path chksums \ filename  ##
+my %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
+
+foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
+    ( my $image_path_rel = $bg_gfx_path ) =~ s|^.*/||;
+    push @bg_img_files, sprintf ":. %s .: %s\n",
+        $bg_image_pathmap{$bg_gfx_path}, $image_path_rel;
+}
+
+return { 'mode' => qw| size |, 'data' => join '', @bg_img_files }
+
+#,,,,,,,,,,,,,,,.,,.,,,,,,,,.,..,,..,,,,,,.,,,..,,...,...,...,...,.,,,.,.,,,.,
+#DI3PBCWNSMFNNI3A7WCLNGOCMQSWKBXJDBERRGHLZ6FR2OZYTFKZYESJL32MHH4QB75QMAKEYN7MO
+#\\\|BNKHMWCOULEANRERN6IS72KHFOOHKVH4BBWUEOVITLMV7MGF7ZF \ / AMOS7 \ YOURUM ::
+#\[7]ECREEG7LJSLYUU2CVUPNXIXOAIJ6WM7M6HARRC5X5NDLZYJV2WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

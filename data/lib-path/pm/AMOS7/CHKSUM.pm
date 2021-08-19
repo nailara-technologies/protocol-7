@@ -172,7 +172,7 @@ sub amos_chksum {
         if not defined $elf_csum;
     ##
 
-    $elf_bits = reverse_bin_032($elf_csum);
+    $elf_bits = AMOS7::13::reverse_bin_032($elf_csum);
 
     ## calculate blue midnight wish checksum [ if not given ] ##
     my $bmw_512b;
@@ -265,14 +265,17 @@ INVERT_TRUTH_STATE:
             = substr( $checksum_encoded, $sstr_start, $str_length );
     }
 
-    if ($algorithm_set_up{'chksum_numerical'}
-        and not is_true( $num_amos_csum, 1, 1, @elf_modes )  ##  numerical  ##
+    if ($algorithm_set_up{'chksum_numerical'}    ##  numerical  ##
+        and
+        not AMOS7::Assert::Truth::is_true( $num_amos_csum, 1, 1, @elf_modes )
 
-        or $algorithm_set_up{'chksum_bits'}    ##  binary [ as string ]  ##
-        and not is_true( bin_032($num_amos_csum), 0, 1, @elf_modes )
+        or $algorithm_set_up{'chksum_bits'}      ##  binary [ as string ]  ##
+        and not AMOS7::Assert::Truth::is_true( bin_032($num_amos_csum), 0, 1,
+            @elf_modes )
 
-        or $algorithm_set_up{'chksum_B32'}     ##  encoded result string  ##
-        and not is_true( $checksum_encoded, 0, 1, @elf_modes )
+        or $algorithm_set_up{'chksum_B32'}       ##  encoded result string  ##
+        and not AMOS7::Assert::Truth::is_true( $checksum_encoded, 0, 1,
+            @elf_modes )
 
         or AMOS7::TEMPLATE::template_count() > 0
         and not AMOS7::TEMPLATE::template_is_true(
@@ -292,7 +295,7 @@ INVERT_TRUTH_STATE:
 
             while ( $bmw_offset > 512 - 32 ) { $bmw_offset -= ( 512 - 32 ) }
 
-            $bmw_mod_bits .= bin_032(
+            $bmw_mod_bits .= AMOS7::13::bin_032(
                 AMOS7::BitConv::bit_string_to_num(
                     substr( $bmw_512b, $bmw_offset, 32 )
                 ) ^ $num_amos_csum
@@ -330,13 +333,13 @@ sub amos_template_chksum {
         return undef;
     }
 
-    return scalar amos_chksum(@ARG);
+    return scalar AMOS7::CHKSUM::amos_chksum(@ARG);
 }
 
 return TRUE ##################################################################
 
-#,,,.,.,.,...,...,,..,,,,,,..,,,.,,.,,,,.,.,.,..,,...,...,.,.,..,,..,,...,.,.,
-#MQZH4SFGYGHUAU5VHC5YQOPP37ONVBPM2MH2SHR7TGDFKAZZRFXXUT5ZWTP5CNWQF5TWXH7UKKJ7W
-#\\\|UWHO64IPNDKEXGRBPIRHMUSQLHHPOQINOSR42G5I63VHTL3IG73 \ / AMOS7 \ YOURUM ::
-#\[7]UB4BZGC7F5IRLWHU2CBKDAY6ZAVYDOYO4W5PUSEK24EAR7WMHGCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,,,,,,..,...,.,.,...,,,.,,,,,..,,...,...,..,,..,,,,.,,..,..,,
+#CIZORE57XYXW5HHEV3BBPHMFYULXLCIJJIWOMNZEU5UL33BHFN3ACAEGRELMY3BQWJCZZWG2F5SM2
+#\\\|3GHDGABYA3BT77QYCJL3KYPNJGYBKUDWACKRCCE6YOD3QUVBXNA \ / AMOS7 \ YOURUM ::
+#\[7]K2EWSB5KF2IBBD333HBQNILDB6SS3ZISWEHCM6TK5YEIQDSHCKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

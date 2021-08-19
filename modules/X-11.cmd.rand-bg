@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = X-11.cmd.rand-bg
+# descr = setting random desktop-background image
+
+my $bg_image_path_amos_checksum = <[X-11.backgrounds.set_random_image]>;
+
+return { 'mode' => qw| false |, 'data' => 'cannot change background image' }
+    if not defined $bg_image_path_amos_checksum
+    or not $bg_image_path_amos_checksum;
+
+return {    ##  success , return new image path chksum  ##
+    'mode' => qw| true |,
+    'data' => sprintf 'set to %s',
+    $bg_image_path_amos_checksum
+    }
+
+#,,,.,,..,..,,,,.,,..,.,,,.,,,,.,,,..,,,.,.,,,..,,...,...,,..,,,.,..,,..,,,,,,
+#XXK6GR7BOVBEWNU2EKJO2SS5HZVIPESVTVJKR6Y5GMDS2JPEUEZJACVDX3P7VYROJFAGQQEXPNLYM
+#\\\|ZDOFPDYKN3R2YRNPF5JSN7PC5D57HENIVUFJLY6JRWUL7SAHCJC \ / AMOS7 \ YOURUM ::
+#\[7]WW3ZE4GTJOIS4ZIXMUJZKYVGSALZEA7HHK5NADU2SGTRYHD32OAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
