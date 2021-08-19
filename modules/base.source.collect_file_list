@@ -1,13 +1,30 @@
 ## >:] ##
 
-# name  = sourcecode.collect_files
+# name  = base.source.collect_file_list
 # param = array[s] or array reference[s] to source files
 
-my $copy_sources = [];
-my @all_files;
+my @path_parameter = @ARG;    ##  optional  ##
 
-my $param_index = 0;
-foreach my $path_param (@ARG) {
+my $exclude_files = { qw| bin/p7c | => TRUE }; ## <-- expand as required., ###
+
+##  work path set-ups and fallbacks  ##
+##
+my $paths = <sourcecode.path> // <source.path>
+    // { work_tree => <system.root_path> };
+
+my $work_tree         = $paths->{'work_tree'};
+my $work_path_abs     = abs_path($work_tree);
+my $current_zenka_dir = <[base.getcwd]>;
+
+## when sourcecode zenka ##
+##
+my $error_exit = FALSE;
+
+my @all_files;
+my $param_index  = 0;
+my $copy_sources = [];
+
+foreach my $path_param (@path_parameter) {
     if ( not length ref $path_param ) {
         push( $copy_sources->@*, split m| +|, $path_param );
     } elsif ( ref $path_param eq qw| ARRAY | ) {
@@ -24,19 +41,9 @@ foreach my $path_param (@ARG) {
 warn 'missing source path [ array or reference to array ] parameter <{C1}>'
     if not scalar $copy_sources->@*;
 
-my $exclude_files = { qw| bin/p7c | => 1 };    ## <-- expand as required., ###
+my @all_dirs = grep {length} grep {defined} map {
 
-my $paths = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
-
-my $work_tree     = $paths->{'work_tree'};
-my $source_root   = $paths->{'source_dir'};
-my $version_root  = $paths->{'version_root'};
-my $work_path_abs = abs_path($work_tree);
-
-my $error_exit = 0;
-my @all_dirs   = grep {length} grep {defined} map {
-
-    my $rel_path = catfile( getcwd(), $ARG );    ## relative path ? ##
+    my $rel_path = catfile( $current_zenka_dir, $ARG );  ## relative path ? ##
     $rel_path = File::Spec->canonpath($rel_path);
 
     my $absolute_path = -e $rel_path ? abs_path($rel_path) : $rel_path;
@@ -62,7 +69,11 @@ my @all_dirs   = grep {length} grep {defined} map {
     }
     grep { !m|\*| } grep { !m|^\!| } $copy_sources->@*;
 
-<[base.exit]>->(2) if $error_exit;
+if ($error_exit) {
+    <[base.exit]>->(2) if <system.zenka.name> eq qw| sourcecode |;
+    warn 'path error <{C1}>';
+    return undef;
+}
 
 push(    ## enabling [non-recursive] wildcard matches ##
     @all_dirs,
@@ -104,12 +115,16 @@ push(    ## glob based wildcard matches ##  [ ,../*/* files ]
 
 map {
     my $source_path = $ARG;
-    die "source path '$source_path' does not exist" if !-d $source_path;
-    if ( !-w $source_path ) {
+    die "source path '$source_path' does not exist" if not -d $source_path;
+    if ( <system.zenka.name> eq qw| sourcecode | and not -w $source_path ) {
         <[base.logs]>->(
             0, "<< missing write permissions for '%s' >>", $source_path
         );
-        <[base.exit]>->(4);
+        if ($error_exit) {
+            <[base.exit]>->(4) if <system.zenka.name> eq qw| sourcecode |;
+            warn 'path error <{C1}>';
+            return undef;
+        }
     }
 } @all_dirs;
 
@@ -144,13 +159,18 @@ NXT_PATH:
     foreach my $err_path (@report_paths) {
         <[base.logs]>->( 0, ': no matches : %s', $err_path );
     }
-    <[base.exit]>->(qw| 0110 |);
+    if ($error_exit) {
+        <[base.exit]>->(qw| 0110 |)
+            if <system.zenka.name> eq qw| sourcecode |;
+        warn 'path error <{C1}>';
+        return undef;
+    }
 }
 
 return @source_paths;
 
-#,,,.,...,,,,,,,.,...,,,,,,,.,,..,,,,,,.,,,,,,..,,...,...,..,,,,,,,..,..,,,.,,
-#GDLDCFJGY2PB424RD4MGHGE4V5MHIWYPSBMQAPW7FUPNU6DRGFDNFLK6EDS3KYYUK47QUUYOFSXUA
-#\\\|BG3VN5VXXUSELS5OQKKPG7FYD7P2XHARJL4WX3PHWU2F5L4EZY2 \ / AMOS7 \ YOURUM ::
-#\[7]QHYN6Z6O37ECWUQ5UVFFXNIRI2QMSEGXNT52JHRFWFFDBPYO3GBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,..,,.,.,,.,,.,,,,,.,..,,.,.,..,,...,...,,,.,..,,.,,,..,,.,,,
+#RB7BX7N5YXP7I4PQAYPAO5IPVLYCDJBUQ26B5ADWQ6HZJTCW4VHJDLVJRTJRILRYPZQY4QLSBZ7U2
+#\\\|LSU763VKTIG6JAFRRKGNXBNBEJDDAJALUN34FBSLWVH5BICLGIH \ / AMOS7 \ YOURUM ::
+#\[7]6SKNBXG57FL4VXMBRGJDJBR2ZCHLPNGRSTXQDM3KGZOUDTJHYCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
