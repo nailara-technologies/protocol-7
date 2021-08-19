@@ -3,30 +3,36 @@
 # name  = cube.cmd.unselect
 # descr = revert base command path prefix
 
-my $sid   = $_[0]->{'session_id'};
-my $param = $_[0]->{'args'} // '';
+my $sid   = $ARG[0]->{'session_id'};
+my $param = $ARG[0]->{'args'} // '';
 
-return { 'mode' => qw| false |, 'data' => 'no base path defined' }
+return { 'mode' => qw| false |, 'data' => 'base path not defined' }
     if not defined $data{'session'}{$sid}{'base_path'};
 
 if (    $data{'session'}{$sid}{'base_path'} =~ m|\.|
     and $data{'session'}{$sid}{'base_path'} =~ s|\.([^\.]*)$|| ) {
 
-    <[base.log]>->(
-        0, "[$sid] base_path = '" . $data{'session'}{$sid}{'base_path'} . "'"
+    <[base.logs]>->(
+        0,    "[%u] base_path = '%s'",
+        $sid, $data{'session'}{$sid}{'base_path'}
     );
-    return { 'mode' => qw| true |, 'data' => "unselected '$1'" };
-} else {
-    delete $data{'session'}{$sid}{'base_path'};
-    <[base.log]>->( 1, "[$sid] <-- session base_path --> \"\"" );
     return {
         'mode' => qw| true |,
-        'data' => 'base path reset to local peer'
+        'data' => sprintf( "unselected '%s'", $LAST_PAREN_MATCH )
+    };
+} else {
+    delete $data{'session'}{$sid}{'base_path'};
+    <[base.logs]>->( "[%d] <-- session base-path <-- ''", $sid );
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            'base path reset to local %s node', <system.zenka.name>
+        )
     };
 }
 
-#,,,,,...,..,,,,,,,,.,,,.,...,...,...,,..,,.,,..,,...,...,...,,..,..,,...,,..,
-#EVMG6KFNOYHGJRVHHRT7BG4JIH2576YC27O7PJY22FU7JJHRLNHDQRITYYXCHE7EOWLMBSUPQGHFK
-#\\\|G5VJDE2QHNXTR7BMPJFDMMU6EGCYR3NPXBUDEKBPCP3PGSEEZYR \ / AMOS7 \ YOURUM ::
-#\[7]HNRTZC7J6B652JXUCZAAHBSGVQVBYJ575ABVYGHF4ZGV2B6MMSAY 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,,,,,...,,..,.,,,,,,,..,,,.,,..,,...,...,...,..,,,.,,...,,,,,
+#OY6P2SKAXQGUIPTFVW6V7WI2CLSINGKOMQWZJKOISLK4YSVD6ZSWANSQE6GC5XMZEHVXCK4IR26BS
+#\\\|WS3X2Z2IQ3VY3WJUYKJ6FSVIFWL3R3FXPRWWFXLNZ2YRMNBRIYH \ / AMOS7 \ YOURUM ::
+#\[7]TSIUOECEHQIGYVJQ34FJFALHGS35NMBH74CZSWMU2WD4T7MMVQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
