@@ -1,0 +1,116 @@
+## >:] ##
+
+# name  = base.path-set-up.check-zenka-paths
+
+my $create_zenka_subdir = shift // FALSE;
+my $zenka_dir_mode      = shift // 0750;
+
+my $create_zenka_etc  = shift // FALSE;
+my $etc_zenka_dirmode = shift // 0700;
+
+my $paths_and_modes = {
+
+    map {
+        <system.path.zenka-dirs>->{$ARG} =>
+            <system.path.zenka-dir-modes>->{$ARG}
+        } keys <system.path.zenka-dirs>->%*
+
+};
+
+if ($create_zenka_subdir) {    ## create temporary zenka output directory ##
+    my $zenka_write_dir
+        = catfile( <system.path.zenka-dirs.run_p7>, <system.zenka.name> );
+    $paths_and_modes->{$zenka_write_dir} => $zenka_dir_mode;
+}
+
+if ($create_zenka_etc) {    ## create permanent zenka config dir ##
+    my $zenka_config_dir
+        = catfile( <system.path.zenka-dirs.etc_P7>, <system.zenka.name> );
+    $paths_and_modes->{$zenka_config_dir} => $etc_zenka_dirmode;
+}
+
+my $uname = <system.amos-zenka-user>;    ## <-- protocol-7 user ##
+##
+my ( undef, undef, $uid, $gid ) = getpwnam $uname;
+
+## counting filesystem alterations ##
+my $fs_changes_made = 0;
+my $error_count     = 0;
+my $report_level    = 1;    ## reporting changes at this log level ##
+
+<[base.log]>->( $report_level + 1, 'checking configured zenka paths.,' );
+
+foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
+    my $log_level = $report_level;
+    <[base.logs]>->( $log_level + 1, ': checking path : %s ..,', $chk_path );
+
+    my $dir_mode = $paths_and_modes->{$chk_path};
+
+    if ( not -d $chk_path ) {
+        <[base.logs]>->( $log_level, ": creating., : '%s'", $chk_path );
+        <[file.make_path]>->( $chk_path, $dir_mode )
+            or ++$error_count and <[base.logs]>->(
+            0, ': :. %s [%s]', <[base.str.os_err]>, $chk_path
+            );
+        $log_level++;
+    } else {
+        $log_level = 0;
+    }
+
+    next if not -d $chk_path;
+
+    ## checking \ restoring owner and permissions ##
+
+    <[base.logs]>->( 2, ": owner : '%s'", $chk_path );
+    my $dir_stat = File::stat::stat($chk_path);
+
+    if ( $dir_stat->uid != $uid or $dir_stat->gid != $gid ) {
+        <[base.logs]>->(
+            $log_level, ": %s : change owner ['%s']",
+            $chk_path,  $uname
+        );
+        my $was = 'was';
+        chown( $uid, $gid, $chk_path )
+            or ++$error_count and <[base.logs]>->(
+            0, ': :. %s [%s]', <[base.str.os_err]>, $chk_path
+            ) and $was = 'still is';
+        <[base.logs]>->(
+            $log_level, ": :. %s  UID %d : GID %d ..,",
+            $was, $dir_stat->uid, $dir_stat->gid
+        );
+        $fs_changes_made++;
+    }
+
+    my $cur_mode = sprintf qw| %04o |, $dir_stat->mode & 07777;
+    if ( $cur_mode != sprintf qw| %04o |, $dir_mode ) {
+        <[base.logs]>->(
+            $log_level, ': %s : change  mode [ %04o ]',
+            $chk_path,  $dir_mode
+        );
+        my $was = qw| was |;
+        chmod( $dir_mode, $chk_path )
+            or ++$error_count and <[base.logs]>->(
+            0, ': :. %s [%s]', <[base.str.os_err]>, $chk_path
+            ) and $was = 'still is';
+        <[base.logs]>->(
+            $log_level, ': :. %s mode : %#o .,',
+            $was,       $cur_mode
+        );
+        $fs_changes_made++;
+    }
+}
+
+<[base.log]>->( $report_level + 1, ':.. no changes required =)' )
+    if not $fs_changes_made;
+
+return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
+    if wantarray;    ##[ returning details in list context ]##
+
+##[ success status in scalar context ]##
+return $error_count == 0 ? TRUE : FALSE;
+
+#,,..,...,,,,,.,.,,.,,,,.,,..,.,,,,,,,.,,,..,,.,.,...,...,,,.,..,,,,.,,..,,..,
+#BFGAD4WYERH24RRE3MTZOONEDJHZRVOZ4GGELKYC7GG5H6HJNSYSM4XH7JWKWDQOYKMTBULHGNUI2
+#\\\|AKE7PKV6FVFT3IUOBHHQMP2ZBVLTRYQDUYX2YZMMHFBQPP62DDV \ / AMOS7 \ YOURUM ::
+#\[7]MCQMEOY3SDTDKJ3GZSGAAQ7TJEKEFP2T2R2II32JHHA4KTIF7SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
