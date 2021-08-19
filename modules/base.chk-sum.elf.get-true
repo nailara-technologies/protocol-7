@@ -1,0 +1,49 @@
+## >:] ##
+
+# name  = base.chk-sum.elf.get-true
+# descr = return next true integer encoded elf hash value
+
+my $start_elf  = shift // 0;
+my $input_data = shift;        ## scalar reference or string ##
+
+if ( $start_elf !~ m|^\d{1,9}$| ) {
+    warn 'start elf-7-chksum needs to be the first parameter <{C1}>';
+    return undef;
+} elsif ( ref $input_data ne qw| SCALAR | ) {
+    if ( not defined $input_data ) {
+        warn 'input parameter undefined <{C1}>';
+        return undef;
+    }
+    $input_data = \join '', $input_data, @ARG;    ##  join all params  ##
+}
+if ( not defined $input_data->$* ) {
+    warn 'input parameter undefined <{C1}>';
+    return undef;
+} elsif ( not length $input_data->$* ) {
+    return sprintf qw| %09d |, 00000;
+}
+
+my %sums_encountered;
+my $elf_7_chksum = <[chk-sum.elf.inline]>->( $input_data, $start_elf );
+
+while ( not AMOS7::Assert::Truth::true_int($elf_7_chksum) ) {
+    ##  ,..230769.., ==  not true   [ division by 13 ]   ##
+
+    ## change input with entropy from previous result ## [ start elf-sum ]
+    $elf_7_chksum = <[chk-sum.elf.inline]>->( $input_data, $elf_7_chksum );
+
+    ## modify against infinite loops ##
+    $elf_7_chksum = <[chk-sum.elf.inline]>->(
+        \scalar( '.' x $sums_encountered{$elf_7_chksum} ),
+        $elf_7_chksum
+    ) if exists $sums_encountered{$elf_7_chksum};
+    $sums_encountered{$elf_7_chksum}++;
+}
+
+return $elf_7_chksum;
+
+#,,..,.,.,,.,,,,.,,.,,.,,,,,,,,,,,,,.,,..,,,,,..,,...,...,,,,,.,,,,..,,..,,.,,
+#URRZFLQ5FMTIO4X4RNN2TIVIUNKVSQ744NENZYEVZDWOEEBA7SIWGUACQO53Y7TKROUOMCUH6YLPS
+#\\\|ZY7LDF4VUM3MOMA2HJMJIV3CMQFBVQRGEAVRL3MSTRRUACW25IO \ / AMOS7 \ YOURUM ::
+#\[7]V57DFVW56LHK2IGPG2MUYHIU5PSFWBDA5PUR2RALRVAJKJK6F6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
