@@ -1,0 +1,111 @@
+## >:] ##
+
+# name  = X-11.background.next-rnd-index
+
+my $no_repeat_elements = shift // FALSE;  ##  disallow element seq. repeat  ##
+
+## initializing empty ##
+##
+my $rnd_list_ref = <X-11.background.rnd-img-seq> //= [];
+
+##  if no next element, generate a randomized sequence  ##
+##
+if ( not $rnd_list_ref->@* ) {
+
+    my @image_sequence;    ## result is numerical image index sequence list ##
+    ##
+    ## index order is base.sort result on full image paths ##
+
+    my $imagepath_chksums_href = <[X-11.background-image-list]>;
+    my %bg_image_pathmap       = reverse $imagepath_chksums_href->%*;
+    my @bg_image_paths         = <[base.sort]>->( \%bg_image_pathmap );
+    my $bg_image_count         = scalar @bg_image_paths;
+    my @image_names            = grep {s|^.*/||} @bg_image_paths;
+    my %sequence_seen;    ## elf chksums of sequences ##
+
+    return undef if $bg_image_count == 0; ##  no elements , silently undef  ##
+
+    my $image_path_sequence = qw| FALSE |;    ##  asserts as FALSE too  ##
+RECALC:
+    while (
+        not AMOS7::Assert::Truth::is_true( $image_path_sequence, FALSE, TRUE )
+    ) {
+        my $seed_entropy = sprintf( qw| %s:%s |,
+            Crypt::PRNG::Fortuna::irand, <[base.ntime.b32]>->(3) );
+
+        $image_path_sequence = '';    ##  resetting  ##
+
+        @image_sequence               ##  randomized bg image index list  ##
+            = AMOS7::13::random_sequence( $seed_entropy, $bg_image_count );
+
+        foreach my $image_element_index (@image_sequence) {
+            $image_path_sequence .= qw| : | if length $image_path_sequence;
+            $image_path_sequence .= $image_names[$image_element_index];
+        }
+
+        ##  chksums to keep track if seen already  ##
+        ##
+        my $elf_7_chksum
+            = <[chk-sum.elf.get-true]>->( 0, $image_path_sequence );
+
+        ## preventing infinite loops with network-time-stamps ##
+        ##
+        if ( not exists $sequence_seen{$elf_7_chksum} ) {    ##[ appending ]##
+            $image_path_sequence .= sprintf qw|:%s|, <[base.ntime.b32]>->(3);
+
+        } else {    ## otherwise plain path sequence for unchanged entropy ##
+            $sequence_seen{$elf_7_chksum} = TRUE;
+        }
+    }    ## [path] sequence is randomized and true ##
+
+    ## entire sequence is used when element repeat is disallowed ##
+    ##
+    if ($no_repeat_elements) {
+
+        $rnd_list_ref->@* = @image_sequence;
+
+        ## removing comparison variable ##
+        delete <X-11.background.img-seq-last-returned>
+            if exists <X-11.background.img-seq-last-returned>;
+    }
+
+    ## otherwise.., ##
+    else {    ##[30%]##
+        my $take_elements = sprintf qw| %u |, 0.3 * $bg_image_count;
+
+        if ( $take_elements == 0 ) {    ## if result less than one .., ##
+            $rnd_list_ref->@* = shift @image_sequence;  ## only one element ##
+
+            if ( defined <X-11.background.img-seq-last-returned>
+                and <X-11.background.img-seq-last-returned>
+                == $rnd_list_ref->[0] ) {
+                if ( @image_sequence == 1 ) {           ## next element ##
+                    $rnd_list_ref->@* = shift @image_sequence;
+                } else {    ##  recalculate, not retuning same element  ##
+                    $image_path_sequence = qw| FALSE |;
+                    goto RECALC;
+                }
+            }
+
+            ##  storing for comparison  ##
+            <X-11.background.img-seq-last-returned> = $rnd_list_ref->[0];
+
+        } else {    ##  first 30 percent of sequence are stored and used  ##
+            $rnd_list_ref->@* = ( splice @image_sequence, 0, $take_elements );
+
+            ## removing comparison variable ##
+            delete <X-11.background.img-seq-last-returned>
+                if exists <X-11.background.img-seq-last-returned>;
+        }
+    }
+}
+
+## return next from sequence list ##
+##
+return shift $rnd_list_ref->@*;
+
+#,,.,,..,,,,.,.,.,.,,,,.,,,.,,..,,..,,,,.,.,,,.,.,...,..,,..,,..,,.,.,...,.,,,
+#CPAPNT7SOC2O5L4ARH2P5DEDC2VVC54RROOK5JB4HK2WOGG2JTGTFL5UPFW7ERAQ7H7ARYFCFWCFM
+#\\\|NK36CH7NSO7ADU47WZ6BRI7XJHCZ6SE4VA6C43PQDONWLZSLYO2 \ / AMOS7 \ YOURUM ::
+#\[7]VTJZSMI7DR7I4C57B7WFHYVDX5ALXB6N3Y7NK2PF6IOC6UVQ24CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

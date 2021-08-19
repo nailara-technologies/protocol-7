@@ -28,9 +28,13 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
 ##[ AMOS MODULE ]#############################################################
 
-$OUTPUT_AUTOFLUSH = 1;
+$OUTPUT_AUTOFLUSH = TRUE;
 
 use AMOS7;
 use AMOS7::Assert::Truth;
@@ -53,13 +57,13 @@ $input_num =~ s|\D+||g;
 error_exit('expecting numerical [ integer ] input string <{NC}>')
     if not length $input_num;
 
-my $num_len = length $input_num;
+my $num_len       = length $input_num;
 
 my @single_digits = split '', $input_num;
 
 for ( 0 .. $num_len - 1 ) {
-    my $shifted_num = join( '', @single_digits );
-    say sprintf "\n%s%s.: %s%0*u %s:.%s%s", $C{'b'}, $C{'0'},
+    my $shifted_num = join '', @single_digits;
+    say sprintf "\n%s%s.: %s%0*s %s:.%s%s", $C{'b'}, $C{'0'},
         AMOS7::Assert::Truth::true_int($shifted_num)
         ? $C{'T'}
         : $C{'0'},
@@ -72,8 +76,8 @@ for ( 0 .. $num_len - 1 ) {
 say $C{'0'}, qw| . |,  $C{'R'};
 say $C{'0'}, qw| :. |, $C{'R'};
 
-#,,,,,,,.,...,..,,,,.,,.,,,.,,.,,,.,.,,..,,,.,.,.,...,...,...,,.,,,..,,,.,.,,,
-#ITE6BWRCB5XPEAX4HHHFGST4UVZBKRK7JJC73GZ42LNHW5HXHSUOAQZQFHW2HKQHWVQ2DWMY4RNWQ
-#\\\|AFNEOP2GSQ24OYLL3VLFFORWMCSBBBFQ6P6DM37DNL4WYZ6WODN \ / AMOS7 \ YOURUM ::
-#\[7]QM4N2T3O4ZIVQGKBBY7UIAAJ7736L2LRZCBDSW22X7ORD5WNXOBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,.,,,,,,,.,.,,,,,.,.,,.,,,.,,.,.,...,..,,.,,,.,.,,.,,,,,,,..,
+#VGFPWJOBMQBNLYJVPY2EYYV56VC55H6CMRWKZVYJ2FWIFFCPETXRC5YN2C5RSYKBOIQB6IHZ2WENE
+#\\\|ZA2DQOINEI5XPOUU3FWAMY2DHQBWTJO2K7F4KN2QECFPBBPX2Y6 \ / AMOS7 \ YOURUM ::
+#\[7]QGYYYQXI3AK6QMQDA3MR5QFC7VXQW5ZU5N7CVOKGIDEXCLJCFEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

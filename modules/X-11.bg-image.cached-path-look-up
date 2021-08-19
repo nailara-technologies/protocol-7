@@ -1,0 +1,22 @@
+## >:] ##
+
+# name  = X-11.bg-image.cached-path-look-up
+
+<X-11.cache.bg-images.amos-path-csum> //= {};
+
+my $amos_chksum = shift;
+
+if ( not defined $amos_chksum or $amos_chksum !~ m|^[A-Z2-7]{7}$| ) {
+    warn 'expected AMOS7 path chksum <{C1}>';
+    return undef;
+} elsif ( not exists <X-11.cache.bg-images.amos-path-csum>->{$amos_chksum} ) {
+    return undef;    ##  no matches  ##
+}
+
+return <X-11.cache.bg-images.amos-path-csum>->{$amos_chksum};
+
+#,,.,,...,.,,,...,..,,,..,.,,,..,,,..,..,,,,,,..,,...,...,..,,,..,..,,,,.,,,,,
+#L6QN6X34WNIWA2IN5KABCYWQCBZCR7NALLQISDEYK4NHDZ25XSXAUYL4BM5TKKK7ADVVXWGM43OPY
+#\\\|OAWB6TN2DDXUIUMI3GIJQ66Z2RUYSL4JGDJUW2H5JLJH5PLZ452 \ / AMOS7 \ YOURUM ::
+#\[7]UHNJFBU5B43BTPRD6UZDVFAQBCMU2ZFNNSXTQB445PNKCR3VWGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
