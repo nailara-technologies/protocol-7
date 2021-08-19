@@ -2,79 +2,12 @@
 
 # name = system.pre_init
 
-my $paths_and_modes = {
-    '/var/run/.7'           => 0775,
-    '/etc/protocol-7'       => 0750,
-    '/var/run/.7/UNIX'      => 0775,
-    '/var/run/protocol-7'   => 0750,
-    '/var/cache/protocol-7' => 0750
-};
-
-my $uname   = <system.amos-zenka-user>;   ## <-- nailara \ protocol-7 user ###
-my $sub_dir = 'zenki/' . <system.zenka.name>;    ## <-- disabled \ unused
-my ( undef, undef, $uid, $gid ) = getpwnam($uname);
-
-<[base.log]>->( 1, 'checking configuration paths.,' );
-
-my $changes_made = 0;
-
-foreach my $chk_path ( <[base.reverse-sort]>->($paths_and_modes) ) {
-
-    # $chk_path .= "/$sub_dir";## disabled \ unused ., ##
-
-    my $dir_mode = $paths_and_modes->{$chk_path};
-
-    my $log_level = 1;
-    if ( not -d $chk_path ) {
-        <[base.log]>->( $log_level, ": creating., : '$chk_path'" );
-        <[file.make_path]>->( $chk_path, $dir_mode )
-            or <[base.log]>->( 0, ": :. \l$OS_ERROR [$chk_path]" );
-        $log_level++;
-    } else {
-        $log_level = 0;
-    }
-
-    next if not -d $chk_path;
-
-    ## checking \ restoring owner and permissions ##
-
-    <[base.log]>->( 2, ": owner : '$chk_path'" );
-    my $dir_stat = File::stat::stat($chk_path);
-
-    if ( $dir_stat->uid != $uid or $dir_stat->gid != $gid ) {
-        <[base.log]>->( $log_level, ": $chk_path : change owner ['$uname']" );
-        my $was = 'was';
-        chown( $uid, $gid, $chk_path )
-            or <[base.log]>->( 0, ": :. \l$OS_ERROR [$chk_path]" )
-            and $was = 'still is';
-        <[base.log]>->(
-            $log_level,     sprintf ": :. $was  UID %d : GID %d ..,",
-            $dir_stat->uid, $dir_stat->gid
-        );
-        $changes_made++;
-    }
-
-    my $cur_mode = sprintf '%04o', $dir_stat->mode & 07777;
-    if ( $cur_mode != sprintf '%04o', $dir_mode ) {
-        <[base.log]>->(
-            $log_level,
-            sprintf( ': %s : change  mode [ %04o ]', $chk_path, $dir_mode )
-        );
-        my $was = 'was';
-        chmod( $dir_mode, $chk_path )
-            or <[base.log]>->( 0, ": :. \l$OS_ERROR [$chk_path]" )
-            and $was = 'still is';
-        <[base.log]>->( $log_level, sprintf ": :. $was mode : $cur_mode .," );
-        $changes_made++;
-    }
-}
-
-<[base.log]>->( 2, ':.. no changes required =)' ) if not $changes_made;
+<[base.path-set-up.check-zenka-paths]> == TRUE or return 1;
 
 0;
 
-#,,..,,,.,...,,,,,...,,..,,,.,,..,,,,,..,,,,,,..,,...,...,.,,,..,,,,,,,,,,...,
-#O5A242GQ32SBQOOO5LPKLHT4GVC5NN322NKNES4RVY7OA3TOAYSPVPOROVDSTQJ6QYU2LUGMZESTE
-#\\\|WGU34ZW3VRH7NUNNGJ7EJNDRFRYQCNF2OHLX42TWZWKOTOMJNH7 \ / AMOS7 \ YOURUM ::
-#\[7]WJA6XH2KAYBTZVOU5XY25ZMAKAZ6FDMQC5OMOHTMC3PAPQQLMYCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,,,,,,,,,...,...,.,.,,.,,.,,,..,,...,...,...,,,,,..,,..,,,,,,
+#2G2TSEDKP5E7WBT5EYKHKLN2VSY27JURB3PUABRJO53PC5QDKRZ75IA3ZVEAQ4OZJWDU6OVOYZS7U
+#\\\|M5VPXIJKU2PJUVP24N2IHLNFLHC6NYIKNPF7ZSKBPK2RQOH67QB \ / AMOS7 \ YOURUM ::
+#\[7]534JU5UYVX4CSUFVRRU67S5S2YJUFB2KVN4FWUNAEGJXEQAJLMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
