@@ -218,14 +218,14 @@ elsif ( $input->$*
     ( $cmd, $call_args->{'args'} ) = ( ${^CAPTURE}[0], ${^CAPTURE}[3] );
 
     # cube zenka 'select' command [ base path prefix handling ]
-    $cmd = qw| unselect | if $cmd eq qw| ../ |;    ## 'unselect'-alias '../'
+    $cmd = qw| unselect | if $cmd eq qw| .. |;    ## 'unselect'-alias '..'
     $cmd = join( qw| . |, $session->{'base_path'}, $cmd )
         if defined $session->{'base_path'}
         and $cmd !~ m,^(\($re->{cmd_id}\)|) *(unselect|basepath)$,
         and $cmd !~ s,^(\($re->{cmd_id}\) *| *)\.\.($re->{cmdrp}|),$1$2,;
 
-  #       ^ commands prefixed with '..' mean "parent" to 'select'ed base_path!
-  #         'unselect' and '../' are synonyms, they reset the base_path to ''!
+    ##  ^ commands prefixed with '..' mean 'parent' to 'select'ed base_path
+    ##  'unselect' and '..' are synonymous, they reset the base_path to ''
 
     $buffer_length = length $input->$*;
     $command_mode  = 1;
@@ -1134,8 +1134,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,..,...,,,.,,,.,..,,,,,,..,,,,.,.,.,.,,,..,,..,,...,..,,,.,,,.,,.,.,...,,,.,
-#GVTZIS6H4726F357UHJEJGSCWXNAWS4CQ6CRVR3JXMZWSYLTBHOYBRLPQTVONJFK4U2CNRHZ3MCOW
-#\\\|QTSI3TRZODTE4UNDXJJOL4VD47MIPHYKC3DJYWGHQCANIWIXCYA \ / AMOS7 \ YOURUM ::
-#\[7]O3YEBOS43X5G5FNP6YK3FSGQNNZOUDZXTLLOS4XVAU3PQEMZXOAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,,,.,,..,,,,,...,...,,.,,..,,..,,...,...,..,,,.,,,,,,,..,...,
+#PMH4Z5QLPTVBHSE5VN4XAHT4TGXP52C5R7DYJWGFHTYEAZVPCJFHSO4SLDNGELEWA27HEN5KXNAZ4
+#\\\|WJHCOK4G2BYX5I2Y5PNYYPTMUSQDBGBWD4575CIPT7YEMFZIZTZ \ / AMOS7 \ YOURUM ::
+#\[7]C6LHKTMURQK47FIC2KNE7TRPIHPOR5OR4GYWY5BKR5SYORUCJ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
