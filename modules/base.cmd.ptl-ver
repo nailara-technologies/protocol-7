@@ -1,0 +1,23 @@
+## >:] ##
+
+# name  = base.cmd.ptl-ver
+# descr = display current p7-ext protocol version
+
+return { 'mode' => qw| false |, 'data' => 'not defined' }
+    if not <[base.is_defined_recursive]>->(qw| system.p7.ext-proto-ver |);
+
+if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
+    ##[ translating syntax ]##
+    <[base.parser.protocol-version]>->(<system.p7.ext-proto-ver>);
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( ': protocol version : %s', <system.p7.ext-proto-ver> )
+    }
+
+#,,,,,,..,,..,,,.,.,.,.,,,,..,..,,...,...,,,,,..,,...,...,,,.,...,,..,,..,.,.,
+#LU55J5P2QGPOHDWWJSVQEDCZW3ELR7EVE3AMOXIOUOB5N5QZBVJIVYHS3CEKBFRISC2Z3SZDB7OKC
+#\\\|NB5VTZND3AMRFRD4DCRHE5CU2RILBSTZWLO2UL5Q4EUVOZSQRJZ \ / AMOS7 \ YOURUM ::
+#\[7]M2KL7EEXM6JL2BABNTX3YZEFZIVW2RM2GJKPOAKPAZJTPBRJ52AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
