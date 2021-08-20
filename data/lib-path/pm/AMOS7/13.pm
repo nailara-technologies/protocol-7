@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::13; ###########################################################
 
@@ -1191,8 +1191,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,,,.,.,,,...,..,,.,.,,,.,,,,,,..,,.,,,..,..,,...,...,,.,,.,,,,,.,,.,,,,.,
-#W6ZSRB73RYCAY5M63YYM7ZBXWU4QHXPS7OWXPRYV4N6VYGMFM3D3FOI7OZFVVCT4KQP3E2FTFB4VY
-#\\\|RMOKA4EH7LBX4YDYUWBJVRV2YB6QTACANXHMCPTJJBS6K3ZO2RZ \ / AMOS7 \ YOURUM ::
-#\[7]4V56JDWLNOPCNMJ2PSPLOC6MMFM3FNEIJ5QDBSZNXFIC3ZXADACI 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,,,,.,,,,.,,.,.,,,.,..,,,,,,..,,...,...,,..,.,,,.,.,..,,,,,,
+#56VZTPFNI5FOO4GALUR46NZXTLNIBJJ7S2CBYNKZKTJOBRZYBANLYFNPBV42CP3G5L2VGTB7UWUFO
+#\\\|A5JCB5BYEMF53G5EPNB7JTTKDMWYR7YWTYGZKPT4C4WYCQ4TZG2 \ / AMOS7 \ YOURUM ::
+#\[7]2UG7ROZKGLBRZGBQDKNDPTZD4SULOABZT4GIC2RRGCGSJLCK3UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

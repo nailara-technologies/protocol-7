@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name   = base.handler.auth
 # return = 0 <-- session authorized [ change state ]
@@ -75,15 +75,19 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
 
     } elsif ( $req_method !~ <regex.base.authmethod> ) {
         <[base.log]>->( 0, "[$id] invalid char[s] in auth method string" );
-        <[base.log]>
-            ->( 2, "[$id] :: requested auth method :: '$req_method'" );
+        <[base.logs]>->(
+            2,   "[%u] :: requested auth method :: '%s'",
+            $id, $req_method
+        );
 
         $output->$* .= $auth_method_err;
         return 2;    ## <-- disconnecting client ##
 
     } else {
         if ( $count_select->{'calls'} >= $count_select->{'limit'} ) {
-            <[base.log]>->( 0, "[$id] auth select count limit exceeded >:[" );
+            <[base.logs]>->(
+                0, '[%u] auth select count limit exceeded >:[', $id
+            );
 
             $output->$* .= $auth_method_err;
             return 2;    ## <-- disconnecting client ##
@@ -107,7 +111,7 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
 {    ## selected auth method ##
     $event->w->start;
     if ( defined $auth_method ) {
-        $output->$* .= "TRUE $auth_method\n";
+        $output->$* .= sprintf "TRUE %s\n", $auth_method;
         return 1;
     } else {
         $output->$* .= "FALSE not selected yet\n";
@@ -145,7 +149,7 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
         <[base.logs]>->( '[%d] auth method list requested', $id );
 
         my $auth_list = <[auth.auth_list]>->($id);
-        $auth_list = 'SIZE ' . length($auth_list) . "\n" . $auth_list;
+        $auth_list = sprintf "SIZE %u\n%s", length($auth_list), $auth_list;
         $count_select->{'list'}++;
         $output->$* .= $auth_list;
 
@@ -171,7 +175,7 @@ elsif ( defined $auth_method
         $$session{'user'}          = $auth_name;
         $$session{'mode'}          = qw| client |;
         $$session{'auth_time'}     = <[base.time]>->(5);
-        $$session{'initialized'}   = 1 if $auth_method ne qw| zenka |;
+        $$session{'initialized'}   = TRUE if $auth_method ne qw| zenka |;
         $$session{'authenticated'} = qw| yes |;
 
         my $unauth_client = <base.session.uname.client>;
@@ -179,11 +183,11 @@ elsif ( defined $auth_method
         <[base.clean_hashref]>->( $data{'user'}{$unauth_client} );
         <[base.clean_hashref]>->( $data{'user'} );
 
-        $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = 'client';
+        $data{'user'}{$auth_name}{'session'}{$id}{'mode'} = qw| client |;
 
         $data{'user'}{$auth_name}{'connected_since'} = time()
             if delete $data{'user'}{$auth_name}{'last_seen'}
-            or keys( %{ $data{'user'}{$auth_name}{'session'} } ) == 1;
+            or keys( $data{'user'}{$auth_name}{'session'}->%* ) == 1;
 
         <[base.session.init_state]>->( $id, 1 );
 
@@ -191,8 +195,8 @@ elsif ( defined $auth_method
         $$session{'watcher'}{'input_handler'}->timeout(undef);
 
         undef $count_select;    ## clean-up ##
-        delete $$session{'counter'}{'auth'};
-        delete $$session{'counter'} if !keys( %{ $$session{'counter'} } );
+        delete $session->{'counter'}->{'auth'};
+        delete $session->{'counter'} if !keys( %{ $$session{'counter'} } );
 
         return 0;               ## <-- authorized ##
 
@@ -225,8 +229,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,.,,,.,.,,,,,.,.,,.,,,,.,.,,,.,,,,.,,,..,..,,...,..,,,.,,,,.,.,,,,,,,..,,
-#D4OSU3FHGZBXQT7W7GBATHZGDBJX662LUG5Z3TJGDTIQ2KWLBXZB3GPUPJX7SXQTDO6Z7K5TSCPIS
-#\\\|KS4XWLHYYJIWUYZDFELK6BFZLQJMSTECCD7NYIJ5KV6NFO4AJZN \ / AMOS7 \ YOURUM ::
-#\[7]3I4IHRHEY25HLLH3FAXOZQDETUJDOJWV22VBU7QCIICTGLAV2ACA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,.,,,,,,...,.,.,.,.,,,,,,..,..,,...,...,,.,,..,,..,,,,,,,..,
+#ELUSB5IL2MATZQSAPY43CIKRAULEP4NPHBQ45VSYA4QH57DGMQZBVKEYYOWVCGFXWMYMPE7DV2D4M
+#\\\|7PRRFJC3YUJ6C4A65JRZ3KYHMLIZKIBN7TQJMA3T2L3NCFN2EVS \ / AMOS7 \ YOURUM ::
+#\[7]GY7NFLPFW74A55YRB4V7GIDTOF45EWOXFOC6IKZ6RUIRPOGIJYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,11 +1,12 @@
-## >:] ##
+## [:< ##
 
 # name  = source.create_harmonic_footer
 
 my $footer_data = shift;
 
 ## display devmod output for iteration run [ AMOS encoded ] ##
-my $verbose = 2;    ## [ 0 | 1 | 2 ] ##
+##
+my $sign_verbosity = shift // 0;    ## [ 0 | 1 | 2 ] ##
 
 my $ELFmode         = 7;   ###  ELF chksum mode for AMOS-chksum generation  ##
 my @t_elf_modes     = qw| 4 7 |;    ## elf modes for truth assertion ##
@@ -211,7 +212,7 @@ while ( not $asserted_true and $iterations_left ) {
         next;
     }
 
-    if ($verbose) {
+    if ($sign_verbosity) {
         my $binary_colored = $binary_header_start;
         $binary_colored =~ s|\.|$AMOS7::C{0}.|g;
         $binary_colored =~ s|\,|$AMOS7::C{T},|g;
@@ -224,7 +225,7 @@ while ( not $asserted_true and $iterations_left ) {
             $AMOS7::C{'0'},
             $binary_colored,
             $AMOS7::C{'R'},
-            $verbose > 2
+            $sign_verbosity > 2
             ? sprintf( '  .: %s', scalar( 07777777 - $iterations_left ) )
             : '';
     }
@@ -339,7 +340,7 @@ while ( not $asserted_true and $iterations_left ) {
     }
 }
 
-if ( $verbose > 1 ) {    ## display footer at $verbose > 1 ##
+if ( $sign_verbosity > 1 ) {    ## display footer at $sign_verbosity > 1 ##
     chomp( my $footer_str = $calc_result_href->{'signature-footer-str'} );
     my $delay = 0.007;
     foreach my $line ( split "\n", $footer_str ) {
@@ -358,8 +359,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,,.,,.,,.,,,,,.,.,,,...,,,.,.,,,,,,,...,.,.,..,,...,...,..,,,,.,..,,,.,,,..,
-#SGI7H3GUVDDZ5VQ5GCPJF7MZUU5YARLHUBW6JKTIPGPRQXBTRG2UF5JISTKVHXZ5B36BJNMF2AY7I
-#\\\|OLS2D34XTMIXWSDPDBPMFZAUTQZITDA57KZ2IYQYZ5NECBJIF62 \ / AMOS7 \ YOURUM ::
-#\[7]6PZKLVNCHINCBVLJHVXHEWN4LUDIQSMFVOS7AMAZGFWITYH3XKAI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,,,,,,,.,...,,..,,,.,.,.,.,,,..,,...,...,..,,.,.,.,.,...,,..,
+#QDM7AMIKIBLO7FURCZ2RUSRQGR6SYPUDBGN7KJMFPXEUG6HAIZAZJC24FAN37VCUBY7VMU6FSKLTC
+#\\\|A2CQ2JHNLPTMR2JDYFUT3LZ73Q3GJSGLTP4SO4PXG2R3JP3OD7W \ / AMOS7 \ YOURUM ::
+#\[7]PXT3KILLKLI3EY75FZVNYGHT4Q2ZRFD4FRXKVE4N4HGMELT5LCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

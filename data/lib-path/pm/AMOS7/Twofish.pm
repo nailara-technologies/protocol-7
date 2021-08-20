@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::Twofish; ######################################################
 
@@ -171,8 +171,8 @@ sub decrypt {
 
 return TRUE ##################################################################
 
-#,,..,,..,,,.,,,.,,..,,,.,.,,,...,.,.,.,.,.,.,..,,...,...,.,.,..,,,,.,...,..,,
-#KQ6VI3NDD2QVROOPD56OD7PRVRGGIV2MFQSYS3DO2HU4TJJIQT2CHYFYLRHYSQXKBSVDQIC5MXPK2
-#\\\|WIEME33UGLAAVZFR7XAOFUUR5LGBRSK6M5NQUZSVEEND63DBHLU \ / AMOS7 \ YOURUM ::
-#\[7]CF6S7LJ6JTDVVRFPHPPH5BVVVV7LLFC7A3MVFGDZOL7KPNMNCABI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,,,,..,.,.,,,,,.,.,,.,,..,,.,.,..,,...,...,...,.,.,,..,.,.,.,.,
+#JU2XLXRREONKGRQEK4C33EOXVSEYYAE4UBZTXYOWM7GGBJVFHLC4NZGYBYOFP6ARYL7E4ALZYNFD6
+#\\\|4UISYZPMGWN7PFTZDKSV72DT3IZIETIZ5XYWFJ5HI54SH6XKQGO \ / AMOS7 \ YOURUM ::
+#\[7]R6GRSGTWPHOGE66YI6W4MELZW6QXDVFX32GYD6PZSR3PJM6BROBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

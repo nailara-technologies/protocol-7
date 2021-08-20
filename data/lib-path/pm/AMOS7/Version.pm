@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 ## include for calculating new version ##
 
@@ -48,8 +48,8 @@ sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
 
 return TRUE ##################################################################
 
-#,,,,,...,,.,,.,.,...,,,.,..,,..,,,..,,.,,,..,..,,...,...,,..,,.,,,,.,,,,,.,.,
-#O2S7NE5LM73NRIKPOSUSRQCBI45XWDWLSJOXDPA34DZC5O5NAB3FF5R3VWXVED3BMU7WFT225OJMG
-#\\\|RTFVNLNM5ZMFVCFRWPAELDY5JCQPKEWGTK47Y4R4M6RKRAOUYM3 \ / AMOS7 \ YOURUM ::
-#\[7]T73TSQ7AR5ET3GF5NSDSNCMCWKIJJGP63HXU2XJID2I354SHTQDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,.,,,,,.,.,,,,,,,,,.,.,,,,,,,.,..,,...,...,..,,.,.,,,,,...,,.,,
+#OZDPE6RIAHVD67HLTXDOHAODVND4G72I3CXEPRMSGQ6OJFQIPPKAM3LUV4KQ622G7CFIQ6SYE7FOY
+#\\\|CNSQ5GQNWD2Y373HRN72E7ODT7MGQYYZEVX6EVMPV2H2UATHKON \ / AMOS7 \ YOURUM ::
+#\[7]YRKXQRPIVXMVC5AVZTAHTOR53KS4EZT7TOMGV4ZX35N4SDSGB6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

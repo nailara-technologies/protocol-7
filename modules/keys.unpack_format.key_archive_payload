@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = keys.unpack_format.key_archive_payload
 
@@ -13,7 +13,7 @@ if ( ref $archive_payload_ref ne qw| SCALAR | ) {
 }
 
 my $payload_data_body;    ##  archive container  ##
-my $header_str         = "## >:] ##\n#.\n";
+my $header_str         = "## [:< ##\n#.\n";
 my $archive_footer_str = "\n#.\n#.::\n";
 
 ##  unwrapping  ##
@@ -31,7 +31,7 @@ if ( $archive_payload_ref->$*
 ###      ###
 
 my $vkey = {    ## virtual [ stub ] key format regular expression ##
-    'header'    => '##  >:]  ##\n\n',  ##  file-name :: <name>:seed-phrase  ##
+    'header'    => '##  [:<  ##\n\n',  ##  file-name :: <name>:seed-phrase  ##
     'comment'   => '##  virtual C25519 stub-key for seed-phrase prompt  ##\n',
     'timestamp' => qr|timestamp : [A-Z2-7]{15}\\n\\n|  ##[ in network-time ]##
 };
@@ -71,8 +71,8 @@ if ( not keys $key_ref->%* ) {
 
 return $key_ref;    ##  hash ref to keys  ##
 
-#,,,.,,.,,,,.,,,.,,,,,,,.,,.,,,,,,,,.,,,,,,.,,..,,...,..,,..,,...,.,,,,.,,.,.,
-#IONMPHTQM6HZIMGDP7IW5CL2NKJZRYXGCXZRAJG62UMF4PUHJRCP7LVSVZ7II5ATLP4RWGZ7EF5S6
-#\\\|H7PGY32EJXDRCBXPLQHTMYS3SWDZHWZQOWIWCBA23YVJMRUDM7P \ / AMOS7 \ YOURUM ::
-#\[7]LGXVQOL7YF4BJ77RNNCPYMGZHAN2IE7DLOAUYXSOLWTVYOMHRQCI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,,,,.,.,,.,,...,,.,,...,.,,,..,,...,...,,,,,.,,,...,,,,,.,,,
+#IJ4GDC74HB3O7Q7C7Y6FBJXTJ4IRZ6EZT6KUTRZMUOFJ64Z7U2MWB2JKM7KYCIFTGOKTAZYKEH63M
+#\\\|MYU7ZIIWPIDXUXY4E4X6PFXGV4XMEALAN7JUUDWDDIYJWNS7BCL \ / AMOS7 \ YOURUM ::
+#\[7]DVTUSZ22NS6GJ4B3Z3SD4GQ6QC3XS2GWXWAYOQUPB4FGSYKE3KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

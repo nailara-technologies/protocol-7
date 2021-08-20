@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = plugin.auth.zenka
 # descr = perform 'zenka' type authentication initiated \ enabled by v7 zenka
@@ -34,7 +34,7 @@ if (   <[plugin.auth.zenka.no-keys-defined]>
             : undef;
         <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
             if defined $keyless_user;
-        $output->$* .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR `>:|\n";
     }
     return 2;
 }
@@ -65,14 +65,14 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             <[base.log]>->(
                 0, "[$id] '$auth_name' [zenka] access denied [ key ]"
             );
-            $output->$* .= "AUTH_ERROR >:[\n";
+            $output->$* .= "AUTH_ERROR `>:|\n";
             return 1;
         }
     } else {
         <[base.log]>->(
             0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
         );
-        $output->$* .= "AUTH_ERROR >:[\n";
+        $output->$* .= "AUTH_ERROR `>:|\n";
         return 1;
     }
 } else {
@@ -83,8 +83,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,,,,.,,,,,.,.,.,...,,,.,.,,,...,,,.,,.,,,.,,..,,...,.,.,...,.,.,,,.,...,..,,
-#ZTHO732CODTVSLUDBTFVLSU2ALTFA75DNQTPDG4OAR2DPLLBEOI3OGHVQXUNEXJSTENETYFEIYWXE
-#\\\|IDHY25HFVFB56UETOVMRBYSEV7OJMIR6QB6J6ECN44EA32TFHZS \ / AMOS7 \ YOURUM ::
-#\[7]5CKMOZDSXYHK7DFHZGC2IUXNC6FQLF5KPCK3E4YSRBAYIQY7SSBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,.,.,.,.,,,,,,..,,..,,,,,...,..,,...,..,,,,.,,.,,,.,,,.,,,,.,
+#WMZIWQUNXR6VLFFSQFABV3QIEUG4R6DKQ4X2DGXTRHDTMEJQS44ECHLF2WYFQNYP6RVZISEQAE264
+#\\\|AEYATYF6FDHNW2SWKWCBZ45HCR3I2T7CCSL2H5OHRRWC644XZNM \ / AMOS7 \ YOURUM ::
+#\[7]3PBF6JZHQIKI5DWTJABXAO7AGSDI6RMNMSLI7EJPQEDKVAPFLOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

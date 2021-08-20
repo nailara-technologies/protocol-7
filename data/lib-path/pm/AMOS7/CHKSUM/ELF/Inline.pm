@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::CHKSUM::ELF::Inline; ##########################################
 
@@ -219,8 +219,8 @@ sub return_elf_c_sourcecode {
 
 return TRUE ##################################################################
 
-#,,..,..,,,..,.,.,,,.,,,,,.,,,...,.,.,,,.,,..,..,,...,..,,.,.,,..,,.,,.,.,.,.,
-#HEKCVKN4MBYYR5YC27BZWTMEBVT6CCEOTKWILRUBV3EGEMV7R4SER7YX3LVTW5YXUGORDITFYJ7BI
-#\\\|WCJK3XQKPV3DRGMPOIB4T3264QMRWDED7BVHWFF2RQFWZWSLFNR \ / AMOS7 \ YOURUM ::
-#\[7]NIABUOAHIINEKV6A6SUCBSLF4MKOQ2BEQUCGAHBV3SXZUYSYJQAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,..,..,,..,,,,,,,,.,,.,,.,,,..,,...,...,..,,,,,,,..,.,.,.,,,
+#U5LYEYBINIB3KW5EPJCKT6GZS2QP3VC53WCMO4E46R2EYOV6LZO2MVXPZJN4N3332APCA46UDETMS
+#\\\|NDXU3DE7UGGELV7JIO36XE5FHL4N6WOAOGFT7JPOIFOUZNVM3IO \ / AMOS7 \ YOURUM ::
+#\[7]IQHOF6AF422HUF4L2CFFZC6CVHTB63YC6B3THFDDGKRXK7RPW6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

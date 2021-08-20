@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::FILE;    ######################################################
 
@@ -313,8 +313,8 @@ sub resolved_path_abs {
 
 return TRUE ##################################################################
 
-#,,,,,...,,,,,,..,,,.,.,.,..,,,,.,..,,.,,,.,,,.,.,...,...,,..,,.,,,..,,..,.,,,
-#VCS7KWADMTFTP3CBOGBHXY5CWECUJCE2JEB2AB46HO3FWXHQV3SUNVX2GZDKH2J2E7FPEJWBNISGE
-#\\\|PMDFZIAMLFEDUTQTULXHTHVOO7423I7VC6QLZRBUPKSIBZRMPIQ \ / AMOS7 \ YOURUM ::
-#\[7]6R22OF5L3ODMOGY7AZIV7LFFZYJIYVWHFEDREK2YZCPVNQ3KU2AA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,,..,,..,.,,,.,,,,.,,..,,,,.,.,.,...,..,,...,..,,,,.,,.,,,,,,
+#7CKWOEFEZGARRD3M3KFVC5IVTZH5V4WDXHFM5ZFMIKUTIVZZUSAZ33V7CXBNFAHGIX5FWKJ5UF2MA
+#\\\|6H7HJMUBAU566W55DFOBK2DXT2AMODAZ35TDCEEGRNBOUOMYMDZ \ / AMOS7 \ YOURUM ::
+#\[7]H7YMWHA4XZ6OBZDFN56K6OVOUQVABSLO3BKAFR7WPNLUOVBSS6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,16 +1,21 @@
-## >:] ##
+## [:< ##
 
 # name  = protocol.protocol-7.init_code
 
 ##  calc_port, calc_unix_path  ##
 <[base.perlmod.load]>->('AMOS7::Protocol::P7');
 
+if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
+    ##[ translating syntax ]##
+    <[base.parser.protocol-version]>->(<system.p7.ext-proto-ver>);
+}
+
 <protocol.protocol-7> = {
     qw| connect | => {
 
         ##  protocol reply messages  ##
         ##
-        qw| banner |          => ">:] ::-.7\\\\\n",
+        qw| banner |          => sprintf( "%s\n", <system.p7.ext-proto-ver> ),
         qw| timeout |         => ">:| timeout\n",
         qw| auth_method_wrn | => ":| auth methods\n",
         qw| auth_method_err | => ">;| auth methods\n",
@@ -60,8 +65,8 @@
 
 0;
 
-#,,,.,.,,,,.,,..,,...,,..,,.,,...,..,,.,,,..,,..,,...,...,.,.,..,,,.,,...,.,,,
-#Z2BKSC3BCLIVKOFOMEF43GBHHI6ZHU7J4FFAMQNFMRGZ7SQXLOD2KIIG4KTKYTVUMPWSY5BE3MEMQ
-#\\\|5YQFJ4IJXLGN3E3CWZQJJ3MX4NVKXVL3EYFEWVWATO264Z2AAVB \ / AMOS7 \ YOURUM ::
-#\[7]PA7WBVZFZOYUENIXQHF6YWP2YUEGUZ6WLCHIDK5B5RMZG4JEZOBY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,,,,,,,,..,,,..,,,,,..,,..,,..,,...,..,,...,..,,,.,,,.,,,,,,
+#PWFSUSLLA57R4OO3BXVKOWSWSLJFSD27LGPRLG6BHM3A2DOVOHZNCDPWRION7DDYAJOAEVSY7B6S4
+#\\\|QXJE42XQBKMAB62STJYE5LWUIQTQPHNACTA3YR7QWVV43MBDMOT \ / AMOS7 \ YOURUM ::
+#\[7]5SBMDPMZFX4P3MXZAZ6RHOAOY2NCVCZXVJICOPSSDPAI5IHHLCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

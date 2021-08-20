@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = mpv.cmd.command
 # param = [!]<mpv_cmd>
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s/^\!// ) {
 
 return { 'mode' => 'deferred' };
 
-#,,.,,.,.,.,,,...,...,,.,,,,,,,,,,,,,,.,,,...,..,,...,...,,..,,..,...,...,.,.,
-#YUXHVMW2Z3TTMXK6VPWBHMUS52UGHL5SCCWVQJCCAWCINR6H7YNE5ATOLNKBULEJG5MABTTLY7RWI
-#\\\|UYE6QVBAWGUREQQJZ64UO64U5F2AYTUTIGHGWPEKNKJ6YYUS7CR \ / AMOS7 \ YOURUM ::
-#\[7]6Z4C6OUJEXPPBJADXSKFEJBV35GGYBKDBE5JPLXGZXYD3GZ5YOAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,..,,,.,,..,,,,,.,.,.,,,.,.,...,..,,...,..,,...,,,.,..,,,,.,,,,,
+#BT2FVOO65WWX2747MUBFJT5SBYJJPANQDMJXDGRYONNMUCFKRFFVCZ2XNDL22RM6ZNCJY5BELAS5O
+#\\\|TNSYP5SFZUIGABULHHFA4KKOSKAIEMHRIHV6SKX3G6Q3J4MLCP2 \ / AMOS7 \ YOURUM ::
+#\[7]WDB3NCYPTFKCZJ2XRMQOFYBJIEBHQCNAYMRKSMSPLY3G3W356YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

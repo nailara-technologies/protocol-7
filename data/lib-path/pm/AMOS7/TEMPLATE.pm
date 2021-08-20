@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::TEMPLATE;    #################################################
 
@@ -395,8 +395,8 @@ sub TEMPLATE_exclusive_type {
 
 return TRUE ##################################################################
 
-#,,,.,,,.,,..,.,,,,,.,,.,,..,,,.,,,,.,,.,,,.,,..,,...,..,,..,,,,.,,..,..,,,,,,
-#BK4MDHK77HRMPE5O5WRIAFAG6FXBYIUHSKOBI636KCIHTOW3AC3RNCGWNCZZOLSVKFYRUJ347RGBO
-#\\\|FCDT7MIODEDXTLFCC3WUZT2GKL4374ZRA2HAIWBUDPNRD5XCRI4 \ / AMOS7 \ YOURUM ::
-#\[7]X3YWO5UWQSNAXOE4CT6D7EQUWCQMBBQCXKXUWNDZXNXHDDOKE6AI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,..,,,.,,,..,,,.,,,,,,,.,,,.,..,,...,...,...,.,.,,,,,..,,,,,,
+#7OB5FX4SZSKQD3FTW2AHS6CKDTW37OXXON4GWWESE4FEVBN6FCA44GV4KN4MN35CI6LVFM77T5UVA
+#\\\|TQRH75RTMGSQLTOOTAN3ASUOPYJJYLTONUM2FWJFKZDEOPPF5Y6 \ / AMOS7 \ YOURUM ::
+#\[7]EXGL2QVIVGQ56T6Z7M73TV4NFEYM5BRALOKRRUWE7PLQR3AJL4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

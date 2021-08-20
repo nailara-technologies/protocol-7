@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = ssl.connect_handler
 
@@ -8,7 +8,7 @@ if ( -S $_[0] ) {
         $ssl_err =~ s|\n.+||mg;
         <[base.log]>->( 0, "ssl.connect_handler: cannot accept [$ssl_err]" );
     } else {
-        if ( <[base.s_write]>->( $new_sock, ">:]\n" ) > 0 ) {
+        if ( <[base.s_write]>->( $new_sock, "[:<\n" ) > 0 ) {
             $data{'handle'}{$new_sock}{'link'}       = qw| ip.tcp |;
             $data{'handle'}{$new_sock}{'encryption'} = qw| ssl |;
             return $new_sock;
@@ -24,8 +24,8 @@ if ( -S $_[0] ) {
     return 0;
 }
 
-#,,..,...,.,,,,,.,.,,,.,.,..,,,..,.,,,...,,..,..,,...,..,,,,,,.,.,,,.,,,,,...,
-#BMNW5DNQ2JDW6YQAVB4ZLSSS73TWUPMQIXOYZ6HO2OGOEWVMNIINKI7JZ5OX2C3AZJUUDK45HV4DA
-#\\\|KMYSG5EU7FQ5KFZPFZYMHZBMLWGUHINLXVVU72GY2CQXU5UCALI \ / AMOS7 \ YOURUM ::
-#\[7]GZMXZE4IDGU6WAHKADBA4PUWWNXPZ2ST7NZGSUN6KYBVFRJX3QAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,.,,,.,.,.,,,...,..,,.,,,,,,,..,,...,...,,.,,,,.,.,,,,..,,,,,
+#XDJKSMCAN35DXRKSY2KFDJLKGJZ6XKMXCAR2B6GUADK5MLFNXMNGGWB263TPKHS6I6LSTHDYUPDIA
+#\\\|A6B3MGGWRZX3NAVIDJNLCPDMDN6DNIMZZMVC2U5PHN4AB7EJ7XY \ / AMOS7 \ YOURUM ::
+#\[7]WERYSLP45CDHD5BC2RX2RDUIIWNSUACSROPLDQRVLPTX6WQZLKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

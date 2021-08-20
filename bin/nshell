@@ -1,4 +1,5 @@
 #!/usr/bin/env -S perl -C31
+
 use utf8;
 use strict;
 use v5.10.0;
@@ -14,6 +15,8 @@ use Term::ReadPassword;
 use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
 use POSIX qw| sys_wait_h WNOHANG |;
+
+##[ nshell ]##
 
 ##[ global constants ]##
 use constant TRUE    => 5;    ##  TRUE.  ##
@@ -87,6 +90,7 @@ my $lines_up  = 3;
 my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
+my $protocol_7_version;
 
 my $user_unix = $ENV{'PROTOCOL_7_UNIX_PATH'};  ##  unix domain socket path  ##
 
@@ -238,9 +242,13 @@ sub shell_connect {
     error_exit('<< connection to peer has been lost >> <{NC}>')
         if not defined $banner_message;
     chomp($banner_message);
-    error_exit( '<< protocol mismatch [ $banner_message ] >> <{NC}>',
-        $banner_message )
-        if $banner_message ne '>:] ::-.7\\\\';
+    error_exit( '<< protocol mismatch [ %s ] >> <{NC}>', $banner_message )
+        if $banner_message
+        !~ m|^\\\\PROTOCOL-7-VERSION\\\\([A-Z2-7]{7})\\\\$|;
+
+    ##  check protocol version  ##  [ LLL ]
+
+    $protocol_7_version = $LAST_PAREN_MATCH;
 
     binmode( $sock, ':encoding(UTF-8)' );
 
@@ -388,15 +396,14 @@ sub shell_loop {
                     close($sock);
                     exit;
                 } elsif ( defined $stored_cmd
-                    or !-S $sock
-                    or !$sock->connected ) {
+                    or not -S $sock
+                    or not $sock->connected ) {
                     my $r_msg = ' :: reconnecting..,';
                     if ( not defined $stored_cmd ) {
-                        print "\e[2H\e[2J$r_msg\n";
+                        printf "\e[2H\e[2J%s\n", $r_msg;
                     } else {
-                        my $l_cmd = length($stored_cmd);
-                        printf "\033[1A\r%-" . $l_cmd . "s\n\033[2A\r",
-                            $r_msg;
+                        my $l_cmd = length $stored_cmd;
+                        printf "\033[1A\r%-*s\n\033[2A\r", $l_cmd, $r_msg;
                     }
                     last;
                 }
@@ -512,8 +519,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,..,..,,.,.,,.,,,..,...,,,,,.,,,,..,.,.,.,.,..,,...,...,...,...,..,,..,,...,
-#HAMNHOXOYJM65MXR2GVL5D5XAJ33KVJWEPM4TZDFCP2E4SAKIXWSPIHHDEZU5FUVCRZNBDBGVQOIU
-#\\\|N4U32MC2H2SINEYJ72FP6S4NQLYFP6BH5DIVLBCPRZ3JPXXHCID \ / AMOS7 \ YOURUM ::
-#\[7]HUH6E62EIVTXSOA6FBM4RQWF5I5MGCO5JJDSWB7BAZGLLWQFGOBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,...,..,,...,,..,,,,,,.,,,.,,..,,...,...,...,,,,,,,.,,,,,,.,,
+#2D2XFUCNTQP3J7QPQ4V6DC7RG2PJECATV3JQLOJNVE677JH6FWCEMMI3PWASY6R3YVDVVJR5BHG5Q
+#\\\|RKZISGHMVB3RZRJSXGIKBKKBQWNJHZTL2AJ4DMVVWY6GG6TOVJE \ / AMOS7 \ YOURUM ::
+#\[7]FCOIM5EYAX4LMZ3UHDOHZKZXYRFGFEI2AEP7RFN2IEMI3KMAL2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

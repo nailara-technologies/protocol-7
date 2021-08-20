@@ -1,9 +1,14 @@
-## >:] ##
+## [:< ##
 
 # name  = sourcecode.console.update-signatures
 # descr = regenerate source code signature sections
 
-my $command_params = shift;
+my $command_params = shift // '';
+
+my $sign_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
+
+$sign_verbosity = 0 if $command_params =~ s| *:sign-silent: *| |;
+$command_params =~ s,^ *| *$,,;
 
 my $signature_key_name = qw| nailara.source |;
 
@@ -26,7 +31,9 @@ my $work_tree = $paths->{'work_tree'};
 
 my @source_paths;
 
-if ( defined $command_params ) {
+
+
+if ( length $command_params ) {
 
     if ( not @source_paths
         = <[base.source.collect_file_list]>->($command_params) ) {
@@ -73,9 +80,12 @@ foreach my $path_rel (@source_paths) {
     my $code_data_ref;
     eval {
         use warnings FATAL => qw| all |;    ##  catches all warnings  ##
-        $code_data_ref
-            = <[source.cmd.get-code-signed]>
-            ->( { 'args' => $path_rel, 'skip-valid' => TRUE } );    ## true ##
+        $code_data_ref = <[source.cmd.get-code-signed]>->(
+            {   qw| args |       => $path_rel,
+                qw| skip-valid | => TRUE,             ## true ##
+                qw| verbosity |  => $sign_verbosity
+            }
+        );
 
         ##  displaying valid signature counter in verbose mode  ##
         printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
@@ -126,8 +136,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,.,,.,,,,..,,..,,.,,,,,,,.,,..,,,..,..,,,.,,..,,...,..,,,..,..,,,..,.,,,,,.,
-#BFGRMWZTO4EBC53DUU6MAI4VTKR74FAVLHS7UD6BERC7LTY3TIY6BN25ZCBR3QRBXUAFDXOZ4TEHQ
-#\\\|4TNLACMN6D6SUXJOUCU5T26XQIK75ITLO5PD6PEJSF2VOVCGPIA \ / AMOS7 \ YOURUM ::
-#\[7]2FZID6RSR5NTN5GWPGIOWMTKS46AEJ6NHA4W7VQURH5Z6SV4DCAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,...,.,.,,,.,.,.,,..,,,.,..,,..,,...,..,,...,,,.,..,,.,.,,,.,
+#46QACNCPQMXJ6KXJQEFKMSYVSRINAMUPMDT67ZWCZ36ZH3B54G6A23YQ73LGABEQ6H4I6J7KG7P6G
+#\\\|AOYMWRXZIHKUFZJ2RENBNQ3GY3NNJDUVHJHUG4PI26ZQMH3U5MS \ / AMOS7 \ YOURUM ::
+#\[7]P5ISU5CCGN5AXMCMMVFBNIECSMQ4PUP3PTYGZ2OY62HHQIVKMWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

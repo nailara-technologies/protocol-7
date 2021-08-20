@@ -1,4 +1,4 @@
-##  >:]  ##
+##  [:<  ##
 
 package AMOS7::Assert::Truth; ################################################
 
@@ -254,8 +254,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,,,,..,,,,,,,..,,,.,,..,..,,..,,...,.,,,,..,..,,...,...,.,.,.,,,...,..,,..,,
-#6U4ZFKGRSIRSQLXSR5FCI2AHG5RSSTO2LZ7BIFXWNNZUSB3GJMOVNTTDOGIUMHYKR7SMVPXXLMTB4
-#\\\|MJTN7Q3DVQBTX3AFIT2USMZK5G6MVPYZV2Q6W6CDCZWU3DATARM \ / AMOS7 \ YOURUM ::
-#\[7]7SK6X2KFH72YXDF7PSKRRJZKINT2Z4N53FH7VJAEWE4J7WLASSBI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,..,,..,,,.,.,.,..,,...,...,...,..,,...,...,,,,,,,.,..,,,,,,,.,,
+#3ZJZ5VIDAZ3Y2QKEYULOGR5UDBYICG6TCSXZ2CMIWXWVM5MAKSU3KB6M7X4KFCL6KUZRXAS6ERH6U
+#\\\|UABKFXER3B5XUGTTRK7DT6WA56QJOUWCILU7YNQPLITIJKNV7BU \ / AMOS7 \ YOURUM ::
+#\[7]GH32BLKGX3GUDQ2TGIXY4XWGBZUBTD2BVZ3GCLM64BIOJUAMSUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
