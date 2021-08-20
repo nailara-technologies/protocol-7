@@ -2,15 +2,15 @@
 
 # name  = nodes.cmd.add-group-user
 # descr = add a group user to associate accounts with
-# param = <grp-name> [regex]
+# param = <group> [regexp]
 
 my $groups = <nodes.group.names> //= {};
 my $gregex = <nodes.group.regex> //= {};
 my $by_id  = <nodes.group.by-id> //= {};
 
-( my $grp_name, my $regex_str ) = split( / +/, $$call{'args'} // '', 2 );
+( my $grp_name, my $regex_str ) = split( m| +|, $call->{'args'} // '', 2 );
 
-$regex_str //= "^$grp_name-";
+$regex_str //= sprintf qw| ^%s- |, $grp_name;
 
 return { 'mode' => qw| false |, 'data' => 'group name required' }
     if not defined $grp_name;
@@ -22,11 +22,15 @@ return {
     }
     if exists $gregex->{$regex_str};
 
-my $regex_qr;
-eval { $regex_qr = qr|^$regex_str| };
+( my $regex_qr, my $re_err ) = <[base.eval.comp_regex]>->($regex_str);
 
-return { 'mode' => qw| false |, 'data' => "regex invalid [ $EVAL_ERROR ]" }
-    if $EVAL_ERROR and $EVAL_ERROR =~ s| at .+$||;
+if ( not defined $regex_qr ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'group regex is not valid [ %s ]',
+            $re_err // $regex_str )
+    };
+}
 
 my $grp_id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'nodes'}{'group'}{'by-id'},
@@ -48,12 +52,14 @@ $gregex->{$regex_str} = $grp_name;
 
 return {
     'mode' => qw| true |,
-    'data' => "'$grp_name' group added, matches m'$regex_str'"
-        . " [ grp-id : $grp_id ]"
+    'data' => sprintf(
+        "'%s' group added, matches m'%s' [ grp-id : %s ]",
+        $grp_name, $regex_str, $grp_id
+    )
     }
 
-#,,,.,,,.,...,.,.,.,.,..,,,,,,,.,,.,,,,.,,,,,,..,,...,.,.,.,.,..,,,..,.,,,.,,,
-#CHF37DY5B6XKEL6MTLWEWUKOJI7AZW7Z427HLEYFQUIWFZV5DMKKRABYOBUQOZAOI42NDUIHSU2HG
-#\\\|RLWAYX2PSIKZBMBTZIVZ7SAYJ6BPMB4W7FUD4BJATHKPY3MLUVQ \ / AMOS7 \ YOURUM ::
-#\[7]SKTW6WPBYWQW4B4SGTK72FA5A2OPZY7N62ZRDLBL7A7N6IQPRCDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,..,,.,,,..,,..,,.,,,.,.,.,.,.,.,..,,...,...,.,.,,,,,.,.,,,.,,,,,
+#SLOKYZPDBJGF5D2XWMSKRJ4ST4C7M7FP7FIXJ7VWAKSRXBXILF4FJW5QZSRVFJMKOD5V64ZFQZIL2
+#\\\|BWMS4CPQNYZKJXYT7AZYIJOILPQAY4Z6WYDOP3PD3BGHPNR55DV \ / AMOS7 \ YOURUM ::
+#\[7]776CQBUC4JAWSLR4NIK5XKICV6TQLIXLYBE257VBKX4UPN4EOODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
