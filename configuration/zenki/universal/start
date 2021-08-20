@@ -23,7 +23,8 @@ modules.load  =  auth net protocol io.unix plugin.auth chk-sum universal
 ## local unix domain socket ##
 auth.supported_methods = unix
 [file.make_path:'/var/run/.7/UNIX',0775,<system.amos-zenka-user>]
-unix.sock = [base.open:'unix','input',[universal.get_unix_sock_path],0777]
+unix.sock = [base.open:'unix','input',[universal.get_unix_sock_path],\
+                                       0777,<system.amos-zenka-user>]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
@@ -43,8 +44,8 @@ cube.reroute.pattern.replace = cube.
 
 [zenka.loop]
 
-#,,..,..,,.,,,.,.,,..,,.,,..,,.,.,..,,,,,,.,.,.,.,...,...,..,,,..,,,.,,.,,,,,,
-#XC5M5NEWEBPSYR3BKVSVWK2EYKSHV2PFQAQDGGKNY7ZBWCOJAQYQWEHJ3P45ZMLJTCPXTOOEDHAFA
-#\\\|VGEG2I4QLOTJFHXUS3TSPRYMSBWDKXSMR22AXNZOTJGJBFBYIYE \ / AMOS7 \ YOURUM ::
-#\[7]GLQPOTX263PN5QG2IAR2OYH76EUIWQZHDM6PGRBQYTRRXSKU42BY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,,,,.,.,,,,,...,,..,...,,,,,.,.,...,...,.,,,,,,,.,.,,.,,...,
+#HS5UGY46QW6X4A2YSPM2XKNRMM5QXPO2YPXJH234TAUIIKEYWTYYXBTKKRGSSAK6BWQZGAL6VQGG2
+#\\\|A7MD67PBXPRSPOTWFD3L46TBHJBCLNF2L7PJSREIWDOD22XBEM2 \ / AMOS7 \ YOURUM ::
+#\[7]56RT34P2GFY5NIIPUBRMO5LX6OCOBOVHNBNIYG5U3UJ6SEH3BYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
