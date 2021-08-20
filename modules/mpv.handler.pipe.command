@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name = mpv.handler.pipe.command
 
@@ -22,8 +22,8 @@ if ( length($cmd_reply_str) and $cmd_reply_str !~ /\n/ ) {
     );
 }
 
-#,,.,,,,.,...,,,,,.,,,...,,,.,,..,,,,,,..,..,,..,,...,...,.,.,...,.,.,,..,.,.,
-#33APUF2KD3NHXFR2OHMTG5R7ASP6UAIFOHCN7XTZC4HC7U35GNZ572HJ5ACWIYAJFQ363CAOILRY4
-#\\\|ZLOPJL2ZHXBDZ7FWNQK6Z3I74GEAEXCJKVOXLCBDCHU32MRFHKR \ / AMOS7 \ YOURUM ::
-#\[7]JHYBA2QZWIANGRTUZT2PMYHJLDHM3NCXX5ESXV7A52VEX2U2H4CY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,.,.,,..,,..,,..,...,,.,,..,,..,,...,.,.,.,.,.,.,.,,,,..,,..,
+#CFXOWWDWTIBF4SOUZP2BLNHRM7F3NKQHCEC4HGHJBC26GZTUPDA5CCMJHYRGV7GG725EJCR7Q5TKC
+#\\\|5A5RICBPAHK2KXMYFKJPPJA5Y4LLFDUPGYVJRPBIHQ24HZKV7CY \ / AMOS7 \ YOURUM ::
+#\[7]7BCCGUDFGZIA7DVQFEDJJJ4BYQZNSWKRZH5EXR4FFPEW52Q5AMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

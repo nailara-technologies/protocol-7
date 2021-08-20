@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7; ###############################################################
 
@@ -251,8 +251,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,,.,,..,.,,,,..,.,.,..,,,,.,.,,,.,.,...,.,,,..,,...,...,..,,..,,.,,,..,,,,,,
-#NYE32ICPWUF4CPNYAKNTU26DTZJ72IK2OQT4RNUH4BEUNACKOHY4QKVMVTVS3RF4GLVKM5OA3YF6A
-#\\\|OEA56LR6TQSYRGAO5SX5WYS65GNQXB4UV3IIFCF3XV4GEYZOBNW \ / AMOS7 \ YOURUM ::
-#\[7]YQLMVVQQKNRDMZK3GGI3OZR2VXLBXGVFNC5NYIXQNSG2W4YCEKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,,.,,,..,.,,,,,,,.,.,,,.,,,,,..,,...,...,...,,,,,,..,,,.,.,.,
+#IQMXRWUCMFMR35545WDTTD3OVAJWKX7QHLZDEPLESDDYWYSENCRJZROPNLFADN5KMN2KWSNU4PTI2
+#\\\|RRZKLHUHO4HV5V524TW2OZFWYQOVFPLU3CYWBDH7CW3QTYWIO4J \ / AMOS7 \ YOURUM ::
+#\[7]PFOUETRYEU5VHS4Q7WWTZ6QL7Z3FBWXGCWUGHPOYN6LPDDHEZSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

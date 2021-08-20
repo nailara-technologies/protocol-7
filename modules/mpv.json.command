@@ -1,11 +1,11 @@
-## >:] ##
+## [:< ##
 
 # name = mpv.json.command
 
 return <mpv.json.parser>->encode( { 'command', [@_] } ) . "\n"
 
-#,,.,,,,.,,,.,,.,,..,,,.,,.,,,.,.,...,,,.,,,,,..,,...,...,..,,...,,,,,...,...,
-#Y7QKKI2S3RTZZKD2DDELQKS6EQYHQ3X5NF7ZD3VAYJQS6CRPT44W3YBQP3TZHLN6JIQSJZR5K4OMU
-#\\\|ODEBZ3V45ZUOSAYJC6HUTRVTMBVPCZFK2W7S7GVOS2MGB6U5J5P \ / AMOS7 \ YOURUM ::
-#\[7]WQSL355JQ63MUCFS3S4AOUABAJN4ZJ6SNLL4FQ5R4RKYBGQQ3SBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,.,,,...,.,.,.,.,,,.,.,,,..,,..,,...,..,,,.,,,,,,,,.,,..,,.,,
+#YLAMNCDZSE5IWHMKCIV2ERALZIOS6GZ427PGBMKNY7TK7IX5N426M6DIBEK3B5O3JFPBTBZZYIKWW
+#\\\|2UXWUJXXA2XWJGDMQYZABEFIV7WPJITGEQL36R3OIOG5GZFZ4IW \ / AMOS7 \ YOURUM ::
+#\[7]GGWZFH6PTDFRDVLVJK6OOS3PK7L44FCANUOJRJXE6DUO4ACPD2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

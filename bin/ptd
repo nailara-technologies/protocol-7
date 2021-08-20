@@ -92,7 +92,7 @@ sub is_perl_code {
     open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     my $first_line = '';
     while (
-        $first_line ne '## >:] ##'    ## <- protocol-7 source code header ##
+        $first_line ne '## [:< ##'    ## <- protocol-7 source code header ##
         and $first_line =~ m{^\s*($|(use|my|our)\s.+;|#(*nla:!))}
     ) {
         $first_line = readline($fh);
@@ -105,7 +105,7 @@ sub is_perl_code {
 
     if ( defined $first_line ) {
         $is_code = 5    ## true ##
-            if $first_line eq '## >:] ##'
+            if $first_line eq '## [:< ##'
             or $first_line =~ m|^#!.*perl|
             or $first_line =~ m|^package .+;(\s*#.*)?$|;
     }
@@ -137,8 +137,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,,.,...,,..,..,,..,,,,,,,,,,.,,,,,.,.,.,..,,...,..,,..,,,.,,..,,,..,,,.,
-#WVQKN4XXCLG5TW4KUQOW6FCKJ7FZXDBKU4FNY5TDH32PQYDA2ZKPUQEBZP5VXZZIFWJJXZIRDZGQK
-#\\\|WKDK6Y65LXAKVZNWFYSY3ECPTBFWZHEPGHEDVTVX3AF6QVFOHVI \ / AMOS7 \ YOURUM ::
-#\[7]4CUGLYXTATNCWBYHYNEAO2WDPEC5NSCJ6CEK4QSFXNBUITILNAAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,,..,.,.,,,.,,.,,.,.,.,.,,,.,..,,...,..,,,,,,,.,,,..,,,.,,.,,
+#3EFY62SCM7QB34B22DIQH57T6Z6YKNXLOJL4TTLMR3QMKP6PV6DMGALAKSUVFN2PPOIVJVNEUMRAU
+#\\\|VXFTRWH7OKVP2OA4RXX4GQQFQJ5PKOWKM7DEMAZ6HGQOH5L6W5S \ / AMOS7 \ YOURUM ::
+#\[7]SL5QS4ZVXG4T73IVI5T6CKLN4ERVYZ5Q5DBWPPPG2NHSSDX7OOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = base.net.client.auth_with_pwd
 # descr = plain text 'pwd' authentication mode [client]
@@ -19,7 +19,8 @@ if ( not length( $usr // '' ) ) {
 }
 
 if ( <[base.s_read]>->( $backend_socket, \$banner_string, 12 ) ) {
-    if ( $banner_string eq ">:] ::-.7\\\\\n" ) {
+    if ( $banner_string =~ m|^\\\\PROTOCOL-7-VERSION\\\\([A-Z2-7]{7})\\\\$| )
+    {    ##  check protocol version  ##  [ LLL ]
         <[base.log]>->( 2, '[*] protocol-7 banner detected.,' );
     } else {
         <[base.log]>->(
@@ -38,8 +39,8 @@ if ( <[base.s_read]>->( $backend_socket, \$banner_string, 12 ) ) {
     );
 }
 
-#,,.,,,..,.,.,..,,,..,.,.,.,.,,,,,,.,,,,,,...,..,,...,...,,.,,,,.,..,,...,.,.,
-#5SHQ3VQYEPAYMFOSX7QD4RVJECFXUO2UOACLD4NRDJQNGWZEABRG2WC3LCK5O7ZEGSSAW4U4FTLN2
-#\\\|AASGSLQNKI7A5367OKHEFU7RDMMJCUOXMGQVIXHJJDS2JCH57ZO \ / AMOS7 \ YOURUM ::
-#\[7]6F3W5IKTYXYHUEFZAAVLARNHZLE7SGHANYRN4LUNP2NG2QGQN4DI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,,,...,,,.,,,,,...,...,,,.,..,,...,...,,.,,,,.,,..,..,,,..,
+#UVZ5KILK4ISPYTB75GODK3RB6Y6NSYQ7KT3D4ZZZRGO2NBEWFLP24KHZULGZFC6VHPG5MVIUZXPYY
+#\\\|6GNN4VEGTMF27PCLO5KEJ3F6LNVZR2TV4BYRBX6ZPGIAF2UVYUF \ / AMOS7 \ YOURUM ::
+#\[7]EJFIILUP4ZYXFK7CNXWO6NPB62H6XZM5KZWBRXDO2W33ZI7EHMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
