@@ -139,7 +139,7 @@ foreach my $keyfile_abs_path (@upgradable_key_files) {
     my $umask_copy = umask( 0777 & ~0600 );
     <[file.put_bin]>->( $upgraded_filename, $encoded_keystr )
         if not -e $upgraded_filename;
-    umask($umask_copy);
+    umask($umask_copy);    ## restoring umask copy ##
 
     if ( not -f $upgraded_filename
         or -f $upgraded_filename
@@ -175,8 +175,8 @@ return say sprintf "\n  :: successfully upgraded %d key file%s ::\n",
     $upgraded_count, <[base.cnt_s]>->($upgraded_count)
     if $upgraded_count > 0;
 
-#,,..,.,.,.,.,.,,,.,.,,,.,.,,,,.,,,.,,.,.,..,,..,,...,.,.,,.,,.,,,,,,,...,.,,,
-#O35UJVCIDEHAZFUYT24IPT4EUPTQ7WHIYWMPROUGOVQZHNC7CZDCAO7R6A53KP7PLIYKLYGQAE5NM
-#\\\|T3FUSLSR3XUCLVPUEK3U7XCQ7L6CAKDNGUABVCPAYGN2IRPS3S4 \ / AMOS7 \ YOURUM ::
-#\[7]AWLVJHMROCWPX5AATROZJEJMLJPTPLJSJ2GTX4RC6EQZETKQGYDI 7  DATA SIGNATURE ::
+#,,,.,...,...,,,.,,..,,,.,...,,.,,,,,,,,.,...,..,,...,...,.,,,,,.,.,.,,,.,...,
+#CE4ERQ45W5KLDSH2O7A5PJLR55UE76T4XQMRGUHWOD4T56JVDC2SKJWW4NE3E22JWKRF3ZHPR7IOK
+#\\\|FXFQYZ4I4JUHW5WJILRGWNQJH6KVCNQULOTY6FDBWCL7IEJN3J2 \ / AMOS7 \ YOURUM ::
+#\[7]4Y5LINALIFE5UQDNO7AXWZDVAGCGTSWFV7QVHFQY7EJXXAQFQKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
