@@ -4,9 +4,26 @@
 
 my $no_repeat_elements = shift // FALSE;  ##  disallow element seq. repeat  ##
 
+##  default settings  ##
+##
+my $interval_start = <X-11.slideshow.interval.start> //= 37;
+my $interval_up_to = <X-11.slideshow.interval.end>   //= 780;
+###
+
+if ( $interval_start !~ m|^\d+$| ) {    ##  sanity check  ##
+    <[base.s_warn]>->('rnd interval start [ %s ] not numerical <{C1}>');
+    $interval_start = <X-11.slideshow.interval.start> = 37;  ##  resetting  ##
+    $interval_up_to = <X-11.slideshow.interval.end>   = 780;
+} elsif ( $interval_up_to !~ m|^\d+$| ) {
+    <[base.s_warn]>->('rnd interval limit [ %s ] not numerical <{C1}>');
+    $interval_start = <X-11.slideshow.interval.start> = 37;  ##  resetting  ##
+    $interval_up_to = <X-11.slideshow.interval.end>   = 780;
+}
+
 ## initializing empty ##
 ##
-my $rnd_list_ref = <X-11.background.rnd-img-seq> //= [];
+my $rnd_list_ref  = <X-11.background.rnd-img-seq>       //= [];
+my $rnd_delay_ref = <X-11.background.rnd-seq-intervals> //= [];
 
 ##  if no next element, generate a randomized sequence  ##
 ##
@@ -22,6 +39,7 @@ if ( not $rnd_list_ref->@* ) {
     my $bg_image_count         = scalar @bg_image_paths;
     my @image_names            = grep {s|^.*/||} @bg_image_paths;
     my %sequence_seen;    ## elf chksums of sequences ##
+    my @interval_seconds;
 
     return undef if $bg_image_count == 0; ##  no elements , silently undef  ##
 
@@ -37,6 +55,21 @@ RECALC:
 
         @image_sequence               ##  randomized bg image index list  ##
             = AMOS7::13::random_sequence( $seed_entropy, $bg_image_count );
+
+        ##  randomized using same entropy seed  ##
+        ##
+        my @interval_seed_num;
+        AMOS7::13::gen_entropy_values( \$seed_entropy, scalar @image_sequence,
+            \@interval_seed_num, undef, TRUE, TRUE );
+
+        my $interval_delta_msecs    ##  in %.2f precision  ##
+            = 100 * ( $interval_up_to - $interval_start );
+
+        foreach my $seed_num_value (@interval_seed_num) {
+            my $interval_sval = $seed_num_value % $interval_delta_msecs;
+            push @interval_seconds, $interval_start + $interval_sval / 100;
+        }
+        ##
 
         foreach my $image_element_index (@image_sequence) {
             $image_path_sequence .= qw| : | if length $image_path_sequence;
@@ -62,7 +95,8 @@ RECALC:
     ##
     if ($no_repeat_elements) {
 
-        $rnd_list_ref->@* = @image_sequence;
+        $rnd_list_ref->@*  = @image_sequence;
+        $rnd_delay_ref->@* = @interval_seconds;
 
         ## removing comparison variable ##
         delete <X-11.background.img-seq-last-returned>
@@ -74,13 +108,15 @@ RECALC:
         my $take_elements = sprintf qw| %u |, 0.3 * $bg_image_count;
 
         if ( $take_elements == 0 ) {    ## if result less than one .., ##
-            $rnd_list_ref->@* = shift @image_sequence;  ## only one element ##
+            $rnd_list_ref->@*  = shift @image_sequence; ## only one element ##
+            $rnd_delay_ref->@* = shift @interval_seconds;
 
             if ( defined <X-11.background.img-seq-last-returned>
                 and <X-11.background.img-seq-last-returned>
                 == $rnd_list_ref->[0] ) {
                 if ( @image_sequence == 1 ) {           ## next element ##
-                    $rnd_list_ref->@* = shift @image_sequence;
+                    $rnd_list_ref->@*  = shift @image_sequence;
+                    $rnd_delay_ref->@* = shift @interval_seconds;
                 } else {    ##  recalculate, not retuning same element  ##
                     $image_path_sequence = qw| FALSE |;
                     goto RECALC;
@@ -90,8 +126,16 @@ RECALC:
             ##  storing for comparison  ##
             <X-11.background.img-seq-last-returned> = $rnd_list_ref->[0];
 
+        } elsif ( defined <X-11.background.img-seq-last-returned>
+            and <X-11.background.img-seq-last-returned>
+            == $rnd_list_ref->[0] ) {    ##[  not repeating last image  ]##
+            $image_path_sequence = qw| FALSE |;
+            goto RECALC;
+
         } else {    ##  first 30 percent of sequence are stored and used  ##
             $rnd_list_ref->@* = ( splice @image_sequence, 0, $take_elements );
+            $rnd_delay_ref->@*    ##[ same for interval delay values ]##
+                = ( splice @interval_seconds, 0, $take_elements );
 
             ## removing comparison variable ##
             delete <X-11.background.img-seq-last-returned>
@@ -100,12 +144,26 @@ RECALC:
     }
 }
 
+##  storing for comparison  ##
+##
+<X-11.background.img-seq-last-returned> = $rnd_list_ref->[0]
+    if $rnd_list_ref->@* == 1;    ## when returning the last value ##
+
+##  fetching next values  ##
+##
+my $next_index             = shift $rnd_list_ref->@*;
+my $next_interval_duration = shift $rnd_delay_ref->@*;
+
+##[ returning index and duration in list context ]##
+##
+return ( $next_index, $next_interval_duration ) if wantarray;
+
 ## return next from sequence list ##
 ##
-return shift $rnd_list_ref->@*;
+return $next_index;    ##  only index value in scalar context  ##
 
-#,,.,,..,,,,.,.,.,.,,,,.,,,.,,..,,..,,,,.,.,,,.,.,...,..,,..,,..,,.,.,...,.,,,
-#CPAPNT7SOC2O5L4ARH2P5DEDC2VVC54RROOK5JB4HK2WOGG2JTGTFL5UPFW7ERAQ7H7ARYFCFWCFM
-#\\\|NK36CH7NSO7ADU47WZ6BRI7XJHCZ6SE4VA6C43PQDONWLZSLYO2 \ / AMOS7 \ YOURUM ::
-#\[7]VTJZSMI7DR7I4C57B7WFHYVDX5ALXB6N3Y7NK2PF6IOC6UVQ24CA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,.,,.,,,.,,,.,.,,,,,,,.,,..,.,.,...,...,..,,,,.,...,,..,,,,,
+#IICYMJTLHJAYSQA6PKDQCREVSGIYVUNGSOSJ5GHJ7OUGUFBWXJJJ5BVJIKLVM3EXLXZT3ESV3455U
+#\\\|OIZ23PJWDUI55TSXFSULJYQZ2IOZXVE3SWGZWQ2HTGTSWQ5ZIEB \ / AMOS7 \ YOURUM ::
+#\[7]KQXFEKJW2LARMTDXZ3OOHS5IAPUB54XDQWOYLEKWMFV5RLPUAEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
