@@ -6,9 +6,9 @@ my $type = qw| cube |;
 
 ##  set in base.auth.set_v7_key  ##
 ##
-<cube.is_v7_child> //= 0;    ##  false  ##
+<cube.is_v7_child> //= FALSE;    ##  false  ##
 
-my $cube_init = $data{'base'}{$type}{'initializing'} //= 5;    ## true ##
+my $cube_init = $data{'base'}{$type}{'initializing'} //= TRUE;    ## true ##
 
 if ( $cube_init and <system.zenka.type> eq $type and $REAL_USER_ID != 0 ) {
     <[base.logs]>
@@ -17,12 +17,12 @@ if ( $cube_init and <system.zenka.type> eq $type and $REAL_USER_ID != 0 ) {
     <[base.exit]>->('0110');
 }
 
-$data{'base'}{$type}{'initializing'} = 0;
+$data{'base'}{$type}{'initializing'} = FALSE;
 
 return 0;
 
-#,,.,,,,,,...,,..,,,,,,,.,,,.,,.,,..,,.,,,,.,,..,,...,...,...,...,...,.,.,.,.,
-#Y7UZCT7KO6OLSWOJCY6BWWNYUEOWWOZCW2N6YSRZZ4IXKWRRWOZZN225WV4K3Z5WNAQNX7XFCKE4A
-#\\\|3X5Y2RZCVRIL5OV7PYQ74BVX5LNS26YJQ73BX7RN6OA54JMLEMZ \ / AMOS7 \ YOURUM ::
-#\[7]2AYLOY67LOX2KGWF2AOHSVZBDLRNMAOOR2IC6XJEF6XYZGEL4ABY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,,,.,,,,.,,,..,...,,..,..,,.,,,..,,...,..,,...,..,,.,.,.,.,.,,,
+#BVHF5ITLL6AFEP27WHRJEJUB67MEEGW2PPLHWJRQY6ITWXMKTMT2OPW2CCXXHBUCPTJ523UX7EAHY
+#\\\|HYBT24U6V52IZ7MAGNAVSZMXXMREDCSDWRNADJR74MJXEFGFNOI \ / AMOS7 \ YOURUM ::
+#\[7]5QRVVOHQOUSRLVCACIKW2LDHDJNQIF6RSHDHRT2UERQ24UEAFYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
