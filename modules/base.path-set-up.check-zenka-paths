@@ -20,13 +20,13 @@ my $paths_and_modes = {
 if ($create_zenka_subdir) {    ## create temporary zenka output directory ##
     my $zenka_write_dir
         = catfile( <system.path.zenka-dirs.run_p7>, <system.zenka.name> );
-    $paths_and_modes->{$zenka_write_dir} => $zenka_dir_mode;
+    $paths_and_modes->{$zenka_write_dir} = $zenka_dir_mode;
 }
 
 if ($create_zenka_etc) {    ## create permanent zenka config dir ##
     my $zenka_config_dir
         = catfile( <system.path.zenka-dirs.etc_P7>, <system.zenka.name> );
-    $paths_and_modes->{$zenka_config_dir} => $etc_zenka_dirmode;
+    $paths_and_modes->{$zenka_config_dir} = $etc_zenka_dirmode;
 }
 
 my $uname = <system.amos-zenka-user>;    ## <-- protocol-7 user ##
@@ -109,8 +109,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,..,...,,,,,.,.,,.,,,,.,,..,.,,,,,,,.,,,..,,.,.,...,...,,,.,..,,,,.,,..,,..,
-#BFGAD4WYERH24RRE3MTZOONEDJHZRVOZ4GGELKYC7GG5H6HJNSYSM4XH7JWKWDQOYKMTBULHGNUI2
-#\\\|AKE7PKV6FVFT3IUOBHHQMP2ZBVLTRYQDUYX2YZMMHFBQPP62DDV \ / AMOS7 \ YOURUM ::
-#\[7]MCQMEOY3SDTDKJ3GZSGAAQ7TJEKEFP2T2R2II32JHHA4KTIF7SCI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,.,..,,.,.,,,.,...,...,,..,,,.,.,.,...,...,,.,,,..,,.,,,,.,,..,
+#3JHYUQKKVTP4UXW7A5IWXKFOJHFPXMLOCQ5UDERCABHSYTAOUG4IW5FSHNEFQLSFBCHZZFWGW3TYM
+#\\\|IQRIKNKNTGX4SLSUDHSRIYVJUJ5S6BZNFTYOHW5ER6GO5PYUBFS \ / AMOS7 \ YOURUM ::
+#\[7]GKKSBALXKEIBKOGNYMLIXXTXF6AY5PJTVJWDOKTZN252VKIJ26AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

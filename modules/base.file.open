@@ -4,13 +4,13 @@
 # args  = <file_path>[, <encoding>][, <mode>][, <create>[, perm]]
 # descr = returns file handle of to be opened file
 
-my $requested_file_path = abs_path( shift // '' );
+my $requested_file_path = File::Spec->canonpath( shift // '' );
 my @encoding = ( shift // '' );    # optional encoding type [ i.e. ':raw' ]
 my $mode     = shift // qw| < |;
 my $create   = shift // FALSE;
 my $perm     = shift // 0664;
 
-#    sysopen FILEHANDLE,FILENAME,MODE,PERMS
+## sysopen FILEHANDLE,FILENAME,MODE,PERMS ##
 
 if ( not length $requested_file_path ) {
     <[base.log]>->(
@@ -51,15 +51,15 @@ if (not
     or not fileno $req_file_fh ) {
     <[base.logs]>->(
         0, "< file.open > cannot to open file '%s' [ %s ] %s",
-        $requested_file_path, <[base.str.os_err]>, <[base.caller]>
+        $requested_file_path, <[base.str.os_err]>, scalar <[base.caller]>
     );
     return undef;
 }
 
 return $req_file_fh;
 
-#,,,,,,,,,,.,,,.,,,.,,,.,,,,.,.,.,.,,,..,,,.,,..,,...,...,...,.,.,.,,,...,,,,,
-#NTF5MFJ2B5ZTUANFMC3ERMNO3FNAHYTQEV5JKHZAWHVAGDD3ZGKPSBM4DID4SVY4Q2TAS5OSCGWMG
-#\\\|FB3MS6EQYIRTAR7SDJV2TCUQNFYMVFLATAVMFJBSTS5IPUMH27E \ / AMOS7 \ YOURUM ::
-#\[7]XN4BRCBPTYGLFUZHANTQIX7KLF2LY4IGC54DXMDN5KIR7JRRF2AY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,,.,..,,,..,...,,,,,,.,,,,,,..,,...,...,...,.,.,..,,.,.,,.,,
+#W54KGG53ZH4HW7ZNIILJC4SV73O6OGO4DKSGIHXBZX6E376IVFIE6LG25LRPQBM56BIH4ROKNI6XW
+#\\\|S7UOQUQCFSHVNLAVYDGEIFAXIHF7GR34MGSM7M4SL5PTEO6T4Y7 \ / AMOS7 \ YOURUM ::
+#\[7]IWFHKUP5B45DA2ZVJUJJAIVHIDF6VZP2TPNV3SRLMGB7W6VK7CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
