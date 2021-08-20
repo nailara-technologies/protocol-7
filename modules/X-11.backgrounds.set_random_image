@@ -24,7 +24,8 @@ my $selected_image_path         = $bg_image_paths[$background_image_index];
 my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
 
 if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
-{    ##  installing timer for random image slideshow  ##
+{
+    ##  installing timer for random image slideshow  ##
     if ( <[base.cfg_bool]>->(<X-11.random_slideshow>) ) {
         <X-11.timer.bg-img-slideshow> = <[event.add_timer]>->(
             {   'after'   => $s_interval_delay,
@@ -40,8 +41,8 @@ if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 
 return undef;                              ## or undef on error ##
 
-#,,.,,,,,,.,,,,.,,.,.,,.,,.,,,,,,,.,.,.,,,.,.,..,,...,...,.,,,...,,,,,.,,,...,
-#2HOIDHPCI67OIHTUWVKEQFAOE2WIPWGJLSUAOLDTJMMWYDT3Z7WQ6OJSO7T4SQTTQ4IWOAY5POVJU
-#\\\|NETCJM3AOQDNZYBD6YVMZO2YBPCJYFG5WTAYX6IVMPQMNKYTWR4 \ / AMOS7 \ YOURUM ::
-#\[7]WFDEOE36EAPF3XU4O4L4WM3HT4WJXQJNDPKGX74HQBKUFSPXIOAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,,,,,,,.,,.,,,,,,.,,,...,,..,..,,...,...,.,.,,..,,,,,,.,,...,
+#IG3TPQXLIPNQZYYWH5C7EMHMKDSRT34FE2ZD3EQFACPTW4T3CL3N4PJBFNV4OPKJY53H53VZ6DZSU
+#\\\|YNLKLQNOTQL343TJYEDQFQL6QECIRUUVUS4XZ7BCFF7QF6NLXMC \ / AMOS7 \ YOURUM ::
+#\[7]VXP3544E3LF3TE73677FPGTRFJQAEX733NVYTYPKMORDZ75ETCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
