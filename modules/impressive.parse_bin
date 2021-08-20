@@ -5,65 +5,67 @@
 my $params = shift // {};
 
 if ( defined $params->{'bg_col'}
-    and $params->{'bg_col'} !~ /\#[0-9A-F]{6}$/i ) {
-    <[base.log]>->(
+    and $params->{'bg_col'} !~ m|\#[0-9A-F]{6}$|i ) {
+    <[base.logs]>->(
         0,
-        "WARNING: invalid background color parameter"
-            . " '$params->{bg_col}', resetting to default!"
+        'WARNING: not valid background color parameter'
+            . " '%s', resetting to default",
+        $params->{bg_col}
     );
     undef $params->{'bg_col'};
 }
 
 $params->{'bg_col'} //= '#000013';
-$params->{'lang'}   //= 'en';
+$params->{'lang'}   //= qw| en |;
 
 my $file_content;
 
 my $impr_src = <impressive.path.impressive_src>;
 my $temp_dir = <impressive.path.impressive_tmp>;
-my $tmp_bin  = "$temp_dir/impressive.$PID";
+my $tmp_bin  = sprintf qw|%s/impressive.%u |, $temp_dir, $PID;
 
 <[file.slurp]>->( $impr_src, \$file_content );
 
 my $error_img;
-<[file.slurp]>->( <impressive.gfx.read_error>, \$error_img, ':raw' );
+<[file.slurp]>->( <impressive.gfx.read_error>, \$error_img, qw| :raw | );
 $error_img = encode_b64u($error_img);
 
-<impressive.version> = $1 if $file_content =~ /^__version__ *= *"([^"]+)"/m;
-<impressive.version> //= 'unknown';
+<impressive.version> = $1 if $file_content =~ m|^__version__ *= *"([^"]+)"|m;
+<impressive.version> //= qw| unknown |;
 
 $file_content =~ s|\\\n\s*||sg;
 
 # checking for problematic impressive version..,
 if ( File::stat::stat($impr_src)->size == 244069
-    and <[chk-sum.sha.file_hex]>->($impr_src)
-    =~ /^2d8ec79b611a0cdbc38c28787ad744c0a9af4dc1/ ) {    # v_0.11.0b
+    and <[chk-sum.bmw.filesum]>->( 224, $impr_src ) eq
+    qw| X65V237YN4FZ52WSJAWENWLFCUNKZS734NZBPC5JPUWTI | ) {    # v_0.11.0b
     <[base.log]>->(
-        0, "<< please update impressive version >> [donwload_impressive.pl]"
+        0, '<< please update impressive version >> [donwload_impressive.pl]'
     );
-    $file_content
-        =~ s|tostring\(|tobytes\(|mg;    # workaround (impressive crash)
+
+    # workaround [ impressive crashing ]
+    $file_content =~ s|tostring\(|tobytes\(|mg;
 }
 
 my $title_str = <system.zenka.name>;
-$title_str .= '[' . <system.zenka.subname> . ']'
-    if defined <system.zenka.subname> and length(<system.zenka.subname>);
+$title_str .= sprintf qw| [%s] |, <system.zenka.subname>
+    if defined <system.zenka.subname> and length <system.zenka.subname>;
 
 if (not $file_content
     =~ s|__title__ *= *"Impressive"$|__title__ = "$title_str"|m ) {
     <[base.log]>->(
-        0, "[!] unable to parse zenka title string into impressive script ..."
+        0, '[!] cannot parse zenka title string into impressive script ...'
     );
 }
 if (not $file_content
     =~ s|Image.new\((.+)\)$|Image.new\($1, "$params->{bg_col}"\)|mg ) {
     <[base.log]>->(
-        0, "[!] unable to parse background color into impressive script ..."
+        0, '[!] cannot parse background color into impressive script ...'
     );
 }
 if ( not $file_content =~ s|LOGO = """[^"]+"""|LOGO = """$error_img"""|s ) {
     <[base.log]>->(
-        0, "[!] unable to parse error image into impressive script ..."
+        0, '[!] cannot parse error image into impressive script ...'
     );
 }
 <impressive.parser.size_assert_failed> //= 0;
@@ -72,7 +74,7 @@ if (   not $file_content =~ s|assert \(ScreenWidth  >= 320\) and |assert |m
 {
     <impressive.parser.size_assert_failed> = 1;
     <[base.log]>->(
-        0, "[!] unable to parse out impressive minimum screen size limit ..."
+        0, '[!] cannot parse out impressive minimum screen size limit ...'
     );
 }
 
@@ -83,7 +85,7 @@ if (not $file_content =~ s|
         |\n$1time.sleep(0.023)\n$1$2|sx
 ) {
     <[base.log]>->(
-        0, "[!] unable to parse sleep() into Crossfade transition ..."
+        0, '[!] cannot parse sleep() into Crossfade transition ...'
     );
 }
 
@@ -92,8 +94,8 @@ if (not $file_content =~ s|
 <[file.put]>->( $tmp_bin, $file_content );
 chmod( 0755, $tmp_bin ) or die "chmod failed : \l$OS_ERROR";
 
-#,,..,.,,,,,,,..,,,..,.,.,,..,.,,,..,,.,,,.,.,..,,...,...,,..,,,,,,.,,.,,,,.,,
-#JUHS3J7Z5O3ZIU376SOUVSVIOA72FCHHUOCCZYN4335ZASYOWRMKJJYNTBZYKZ4DFEO5BHLHGJ2U6
-#\\\|MKW6PIR2QSVJX44SPHZIWIHZIG76XA2F3TA6Y2ZSOGD7WN56WM4 \ / AMOS7 \ YOURUM ::
-#\[7]VGVU7Q4RQ5PSEH6BPCFA4NWZ5ZDJD6Q5Y3JUU24AKNKBCIJDAAAY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,..,,..,..,,,,.,...,..,,...,...,..,,...,...,...,,,.,,,,,.,,,,.,,
+#FPCUZFNJACCS4AFDXBWDYLJGOUCIZELCCVPKANT2KAVNEZYY6EHSRCF3OBXVWUCB2KOLELUJCJTBK
+#\\\|DPKQG2MOXS67N4ZXIL7NSN3MTUN5W5YCZ7JPATLAPW4D3OQIODD \ / AMOS7 \ YOURUM ::
+#\[7]BOLBW3E4PFV6GL7DJYRHOKB2254RSVNXHWFEZQQZCHR2ZZQM4SCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

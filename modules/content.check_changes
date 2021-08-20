@@ -5,15 +5,15 @@
 my $file_name = shift;
 return if !-f $file_name;
 
-my $playlist_sha1 = <[chk-sum.sha.file_hex]>->($file_name);
+my $playlist_bmw = <[chk-sum.bmw.filesum]>->( 224, $file_name );
 
 <content.content_changed>++
-    if defined <content.sha1> and $playlist_sha1 ne <content.sha1>;
+    if defined <content.bmw> and $playlist_bmw ne <content.bmw>;
 
-<content.sha1> = $playlist_sha1;
+<content.bmw> = $playlist_bmw;
 
-#,,,,,...,.,.,,..,.,,,,,.,.,,,,..,..,,,.,,,,,,..,,...,...,.,.,.,,,.,,,,..,,..,
-#C55ME73UYDDBT57WZX6MQRNVHNQX4RTO7SHNO5VTNGIOMHEE4I64WZD2CRM7H4NPLM7L2HMR6KSJI
-#\\\|7OMHYXAZBY2QBS5WRNH4WH75VFSMBZ5VD3DVY6BS22H3HV7GH46 \ / AMOS7 \ YOURUM ::
-#\[7]XJEXJA22BBBTO6B4RSKWYZ3I7HDQ4VDH7VYNYOPHID2FTWQMAGBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,.,,.,.,,,.,,.,,...,,,,,,..,..,,...,...,.,.,,,,,.,.,,,,,,..,
+#ILDUUOWDRBOHPSBV73OA4DHJ4DRJGEAOABKDX7F3DHYUG4EC6IFNY4E3DVZOQNTMLCPN6OIHNNCQM
+#\\\|6YCL4RFVC4C3SJZE2DPOZG5PKLBDUZF4UH4CHSCQPFUPWZMJ3FV \ / AMOS7 \ YOURUM ::
+#\[7]2MFCD4CDIQ7NYLAKMNAITESY6WGIAEFNP6T2XOZ3KKCOPQF2R4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

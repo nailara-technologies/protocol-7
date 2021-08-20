@@ -11,19 +11,19 @@ die "cache directory '$cache_dir' does not exist!" if !-d $cache_dir;
 die "html_path_name: image file '$image_path' does not exist!\n"
     if $image_path !~ m|^https?://| and !-f $image_path;
 
-my $sha_hash
+my $bmw_hash
     = $image_path =~ m|^https?://|
-    ? <[chk-sum.sha.1]>->($image_path)
-    : <[chk-sum.sha.file_hex]>->($image_path);
+    ? <[chk-sum.bmw.224.B32]>->($image_path)
+    : <[chk-sum.bmw.filesum]>->( 224, $image_path );
 
-( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
+( my $html_path = "$cache_dir/$bmw_hash.$target_width" ) =~ s|//|/|g;
 
 $html_path .= "_$target_height" if defined $target_height;
 
 return $html_path;
 
-#,,.,,,..,,..,.,.,,,.,,..,,,,,.,.,.,.,,,,,.,.,..,,...,...,...,,.,,.,,,...,,,.,
-#7FQN44BFVG6RGNGN5SPT4QY4ETISS5P5QPLPTZPPUIXT727IATA4VFFCQJFCPFZWWFHDDGBTF3HWC
-#\\\|CCAOEWISMNTP273PU6MXZX2IRC26A6PLKLGUXETBDY54MXILG5D \ / AMOS7 \ YOURUM ::
-#\[7]IBLYL72H2COGFQ5BXLJH747D3FZYBZLGIKREYKPBPMCMKHJKQSCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,,..,,,,,,,,,,..,..,,,,,,..,,..,,...,...,..,,,..,...,,,,,,.,,
+#WYG3WFDFW7DXXRIORGO2Y7QA2ATG56K47Q3W5VTCHQHQ2KLNROEVLNDQ5SHBB4O6U767SMK3QQAHE
+#\\\|BWM4S2SPFMGIL7YQVIUZKRKMWYFUOZL4KBVI5ZWYFVHSA65GIZF \ / AMOS7 \ YOURUM ::
+#\[7]BO5MX4FE3CX5XFENLWR5JWBCV5KVBJ5LF4AN43YVGYPSGYNT2QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

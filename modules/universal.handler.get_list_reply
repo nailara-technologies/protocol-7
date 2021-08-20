@@ -4,7 +4,7 @@
 
 my $reply = shift;
 
-<universal.playlist_sha1>         //= '';
+<universal.playlist_bmw>          //= '';
 <universal.playlist.files>        //= [];
 <universal.playlist.error_logged> //= {};
 <universal.cfg.fade_on_switch>    //= 0;
@@ -34,7 +34,7 @@ foreach my $rep_line ( split( m|\n|, $reply->{'data'} ) ) {
     $file_types{$file} = $type;
     push( @file_list, $file );
 }
-my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
+my $playlist_bmw = <[chk-sum.bmw.224.B32]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
@@ -94,7 +94,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             <universal.child>->{$hide_zenka}->{'visible'} = 0;
         }
         <universal.playlist_was_empty> = 1;
-        <universal.playlist_sha1>      = $playlist_sha1;
+        <universal.playlist_bmw>       = $playlist_bmw;
         map {
             <[base.protocol-7.command.send.local]>
                 ->( { 'command' => "$ARG.playlist_update" } )
@@ -104,8 +104,8 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 }
 
 return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
-    if $playlist_sha1 eq <universal.playlist_sha1>;
-<universal.playlist_sha1> = $playlist_sha1;
+    if $playlist_bmw eq <universal.playlist_bmw>;
+<universal.playlist_bmw> = $playlist_bmw;
 
 my $last_type
     = @{<universal.playlist.files>}
@@ -191,8 +191,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,.,...,.,,,.,.,,..,..,,.,,,,,.,..,,..,,.,,,..,,...,...,.,,,.,.,,,.,,,.,...,
-#4HIVR3P7LU3OWDZ4RRMBPKWJEN7NMNR2UZA5X5VOTEWSGTHJMUS7U7S6DKQJ3XBWCMXCVXWRKDQME
-#\\\|6WOHNVCIDSYNSFO5RQE4ZECZ75VKBMUNSF7YLLPYJNYFMDBE2ZN \ / AMOS7 \ YOURUM ::
-#\[7]XYJJHFRDREDM3NFQ4T5EE3URCNWM6UXDIY5536NGKVE4ZICGBEAY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,.,.,,.,,,.,,,,,,,.,,..,,,,,,..,,...,...,...,,,.,,,,,,,,,...,
+#NJ3LEGGMVO3IUDPNG5T7ED3KGE3GESCZDWVL33WEOA2QME2LKLTNW7YNHSVQDG7SKPTCFCRARWXL2
+#\\\|VHUYHPMBXCDFJ4DXYRW2XJNXYEN4VV6JZ3XTBIFUQ76AVI6OYTU \ / AMOS7 \ YOURUM ::
+#\[7]S446WMMMCFYEOWSDYBHNIPPRW2SLQQSCMJJHYRA7IVHPFUDGXMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

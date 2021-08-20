@@ -34,22 +34,28 @@ $tmppath = abs_path($tmppath) if not defined $err_reason;
 
 $err_reason = sprintf( "specified path '%s' does not exist", $tmppath )
     if not defined $err_reason
-    and ( not defined $tmppath or !-e $tmppath );
+    and ( not defined $tmppath or not -e $tmppath );
 
 my $zenka_instance;
 if ( not defined $err_reason ) {
 
     foreach my $instance_id (<[v7.instance_ids]>) {
+
         my $instance = <v7.zenka.instance>->{$instance_id};
+
         $zenka_instance = $instance_id and last
-            if defined $instance->{'cube_sid'}
+            if exists $instance->{'cube_sid'}
+            and defined $instance->{'cube_sid'}
             and $instance->{'cube_sid'} == $zenka_sid
             or $zenka eq qw| cube |
             and $zenka_sid eq qw| 0000000 |
             and $instance->{'zenka_name'} eq $zenka;
     }
 }
-$err_reason = sprintf 'no instance matches cube-sid %s', $zenka_sid
+
+##
+##
+$err_reason = 'no instance matches cube-sid [ requested ? ]'
     if not defined $err_reason and not defined $zenka_instance;
 
 my $instance;
@@ -82,7 +88,8 @@ if ( not defined $err_reason ) {
     $err_reason //= 'could not map instance to user id' if not keys %has_uid;
 }
 
-my $uid_match = 0;    # LLL: also check gids.,
+my $uid_match = FALSE;    # LLL: also check gids.,
+
 if ( not defined $err_reason ) {
     my @match_type;
     my $stat_ref = File::stat::stat($tmppath);
@@ -137,8 +144,8 @@ my $tmppath_str = <[base.parser.ellipse_center]>->( $tmppath, $str_len );
 ##  reporting success  ##
 return { 'mode' => qw|true|, 'data' => sprintf "registered '%s'", $tmppath };
 
-#,,.,,...,.,,,,.,,.,.,,,.,,..,...,.,,,,,,,...,..,,...,...,.,.,.,.,,,.,.,.,,,.,
-#EF5C6XAS2IX6TEJFCXEMIVXL2EAPB54P4V4K2ANDYH6N3KAU6QFTWU7NDN4OE6CR7NAHUDPXOYP7S
-#\\\|DTGKV54DEMOMLGXSUICZRQFT3N4KKIL7W3NP4OL75HCUSVE3RBH \ / AMOS7 \ YOURUM ::
-#\[7]TOBORV6AD4UDCMXUK77DE5THEFIYT2MAOX2SBOBPK5OUN25OLIBA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,...,,,.,,..,...,.,,,,.,,.,.,..,,...,..,,...,.,.,.,,,.,,,.,,,
+#EXX3NMCJL7SGACWO7XYBNND7JCSE25CSIEWCU4YKBEGJ5CKSQI6CGQ6I6PMXHYUE3CCDL3UPGBOSY
+#\\\|IMH5F7V4FWYJJEYI5KNLFWSKWUOPCMYXCC774STWT6GMWS6DBML \ / AMOS7 \ YOURUM ::
+#\[7]W6IPEC4T3LI4Q2TOM4CZTRXB42Y7K7KX3M7MUCLYK7N7JN63Q6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

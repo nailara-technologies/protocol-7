@@ -4,15 +4,15 @@
 
 my $reply = shift;
 
-<impressive.playlist_sha1> //= '';
+<impressive.playlist_bmw> //= '';
 
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.log]>->( 0, ": unable to fetch playlist!" );
     return;
 }
 
-my @file_list     = split( "\n", $reply->{'data'} );
-my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
+my @file_list    = split( "\n", $reply->{'data'} );
+my $playlist_bmw = <[chk-sum.bmw.224.B32]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
@@ -33,9 +33,9 @@ my $playlist_changed = 0;
 
 return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
     if defined <impressive.pid>
-    and $playlist_sha1 eq <impressive.playlist_sha1>
+    and $playlist_bmw eq <impressive.playlist_bmw>
     and !$playlist_changed;
-<impressive.playlist_sha1> = $playlist_sha1;
+<impressive.playlist_bmw> = $playlist_bmw;
 
 <impressive.current_playlist> = \@file_list;
 
@@ -73,8 +73,8 @@ if (<impressive.cfg.use_start-anim>) {
     <[impressive.open_window]>;
 }
 
-#,,.,,.,,,,,.,...,.,.,,,.,,,.,,.,,,,,,,,,,,..,..,,...,...,.,,,,,.,.,,,,..,.,.,
-#DMNHYQDMH3SF2MUM6ORDG75Y3JK26HVUGN5LNL5RDMMRTPOI5MJ7HNHPW372KIO5SYQAYKTFF4QHC
-#\\\|E3ADMSZUSTMPWK4LFMNAVAA34JIJBOOLVFQRM4EKBCP75Y6NDWA \ / AMOS7 \ YOURUM ::
-#\[7]B2DLLWRYUXIA535FE53APKRGFE6WPJSIH36OF27SVNN2SSZ2FIBY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,,..,,,.,..,,..,,,,,,.,.,,,,,..,,...,...,...,,,,,...,.,,,...,
+#BTBTDEBELKKDMXECO6CCKO55A6KTWGQX4I4JNNBVHWLGFWBJFG52AFFUP32CGYURE7LGEZWU7LSZ2
+#\\\|O27TL4T3NWFMPAUASNJ7MYI3IJPCPAWX23J2EWVGB4AQKJML6ZG \ / AMOS7 \ YOURUM ::
+#\[7]IXKJDXJI4UOE7ESRFITLKO6ADQISZO7IYZX7GF5WCYDEI5JHP4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,8 +59,9 @@ return
 
 ## record previus status and duration ##
 $instance->{'prev-status'}          = $old_status;
-$instance->{'prev-status-duration'} = <[base.parser.duration]>
-    ->( <[base.n2u_time]>->( $instance->{'status-since'} ) );
+$instance->{'prev-status-duration'} = <[base.parser.duration]>->(
+    <[base.n2u_time]>->( $instance->{'status-since'} ), 2
+);
 
 <v7.zenka.instance>->{$instance_id}->{'status-since'}
     = <[base.ntime]>->(3);
@@ -426,8 +427,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,.,,,.,...,.,,,,.,,..,,,,,,..,,,.,,,..,.,.,..,,...,...,...,,.,,.,,,,.,,,,,,
-#G4TQSTYXTOQ6TPKRU4PMXCVURYAPF5TBS2VU7ZPK33AVZGQ27ZMHPADXZ6TXFZ5S6W3TEBEWPZMJG
-#\\\|M6FK7OWUWSXVZ5KMMNVKKBTPF7GV345VL6HJ2YBF5IXZBGLDYAI \ / AMOS7 \ YOURUM ::
-#\[7]AQEMGWVFNVG42VKPYRQ4C5U7JO33LTK4SUPP4NI2CMHZKN2BRGBY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,.,.,,.,,..,,,,,,...,.,,,,..,..,,...,..,,,,.,,,.,,,.,...,,,,,
+#FLHEH44EPQRPNVPC4KBTLBCQDVLO6KSSQL4XNRCGNDUE6P7RIDACF3X4BECEQ3LX7AMILA6TICKZ4
+#\\\|VAELUF2LBYL7RCDC3I4UAKPXYOHA7J6CLXVDLQO72OT7LC2RT4H \ / AMOS7 \ YOURUM ::
+#\[7]GBMG3OX5DCJNCG3CKNBGAO2GCRPELMBKAIUZXGMZDK5ZUXCCNSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

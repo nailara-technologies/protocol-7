@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.224.B32
+# descr = 224 bit blue midnight wish chksum [ B32 encoded ]
+
+if ( @ARG == 0 ) {
+    warn 'expected input param to checksum <{C1}>';
+    return undef;
+} elsif ( not defined $ARG[0] ) {
+    warn 'input is undefined <{C1}>';
+    return undef;
+
+} elsif ( ref $ARG[0] eq qw| SCALAR | ) {    ##  scalar ref to input data  ##
+    return encode_b32r Digest::BMW::bmw_224( $ARG[0]->$* );
+
+} elsif ( ref $ARG[0] eq qw| ARRAY | ) { ##  ARRAY reference to input data  ##
+    return encode_b32r Digest::BMW::bmw_224( $ARG[0]->@* );
+
+} elsif ( not length ref $ARG[0] ) {    ## string or array of strings ##
+    return encode_b32r Digest::BMW::bmw_224(@ARG);
+
+} else {
+    <[base.s_warn]>
+        ->( 'reference type %s not supported <{C1}>', ref $ARG[0] );
+    return undef;
+}
+
+#,,..,,.,,,..,...,,..,,..,,,,,,.,,.,.,.,.,...,..,,...,...,,..,..,,,.,,.,.,,,.,
+#FL5O3UFGAOCSP5VV5QOLAKACIP525XLRFZSJ2EWONUFE4CN25DYQFTEQTG7GNVRK4R6QWG4JMNY5K
+#\\\|TO33NT2B5CMGVVHPHNAII57PMYXNOR277X7QPE5S3S5CO3GWZ5P \ / AMOS7 \ YOURUM ::
+#\[7]7D76SKWJZKSDPH26XXCVNLS6MWDMSQTTML7G6SVY5Z6GENVNTKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

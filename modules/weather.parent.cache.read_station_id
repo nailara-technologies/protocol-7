@@ -10,7 +10,7 @@ die "expected city name parameter" if not defined $city or !length($city);
 
 <[base.log]>->( 2, "checking station id cache for '$city'.." );
 
-my $city_hash = <[chk-sum.sha.1]>->($city);
+my $city_hash = <[chk-sum.bmw.224.B32]>->($city);
 my $file_path = "$cache_dir/$city_hash";
 
 if ( !-f $file_path ) {
@@ -40,8 +40,8 @@ if ( $data_age >= $max_age ) {
     return $station_id;
 }
 
-#,,,.,.,.,...,..,,,,,,,,,,,.,,,..,.,,,,,.,,,,,..,,...,..,,,..,...,,,.,,,,,..,,
-#THOQQHCFPFYWOFUYMVFU4VVKKXQO2H6D7ECQJXMXDKSQ5Z7LNF4TTFNX4LMBJB7QOHDHKYQX343HQ
-#\\\|N6JX2XKGJTWOTWOXVDRZDJUG66AMAHOBY7SZYGU33UPZJPSAV5X \ / AMOS7 \ YOURUM ::
-#\[7]ACZF25B4LEPBHXZV3U2ZVEPQ5ALWEOCISSMSNKE3OY7OWD7D22CY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,,.,,,,,,..,,,.,.,,,,,.,,,,,,.,,..,,...,.,.,,.,,,.,,,..,,,,,,,,,
+#BRHOOGM2JVN4Z3WWBKHUSOPG56MBXEVW553EPN4IYSFWMSDSTNHUSAIUWX24CT2774R5J4HM7KZAC
+#\\\|B2I4HX25N4NJL2C6PSLY5A2GVHZCDL7QP7AEXI7TA65YNC76OEA \ / AMOS7 \ YOURUM ::
+#\[7]2JHPBF2V5XPBRQTMSZHUJHZHUFHOYIHKTUMYF66AWYVIOUSOTKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

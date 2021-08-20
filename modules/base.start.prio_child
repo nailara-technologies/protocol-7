@@ -6,8 +6,8 @@
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
 
-eval 'use IPC::Open2';
-die $EVAL_ERROR if $EVAL_ERROR;
+<[base.perlmod.load]>->('IPC::Open2')
+    if not <[base.perlmod.loaded]>->('IPC::Open2');
 
 ( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
 my $child_code = << "EOT";
@@ -22,7 +22,7 @@ EOT
 $SIG{'CHLD'} = qw| IGNORE |;
 
 <process.prio_child.pid>
-    = open2( <process.prio_child.r_fh>, <process.prio_child.w_fh>,
+    = IPC::Open2::open2( <process.prio_child.r_fh>, <process.prio_child.w_fh>,
     <system.path.perl_bin>, qw| -e |, $child_code )
     || die sprintf( "cannot start perl prio child process [ %s ]\n",
     scalar <[base.format_error]>->($OS_ERROR) );
@@ -34,8 +34,8 @@ $SIG{'CHLD'} = qw| IGNORE |;
 
 return <process.prio_child.w_fh>;
 
-#,,,.,,,.,..,,,,.,.,.,,,.,.,.,.,,,.,.,,..,,.,,..,,...,...,.,,,.,,,,,.,,..,,,.,
-#Y64X7KPOJO43APWFOOQPWR6RQ7BNGDPLRFDP5MVUVDKS6WTPCTDIQLVINCESV5WPYWAKZ24PIMXRQ
-#\\\|ROADRKOQBOESBHHDDML4PXWKOB6BLFMCIV7Z2QBJSWYRH2WZD7I \ / AMOS7 \ YOURUM ::
-#\[7]LMB75NFTQHTEFEVZZH25R2NR23TJRTITOFUS3YMKEN7GGAJMRCCA 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,,,,.,,,,,.,..,,.,,,,..,.,,,..,,...,..,,...,..,,,.,,,,,,,..,
+#VL5WTUYJLDUJHZTFYTY6APBF2P5ES74DB5G2QDPDPXAMRZCS7SUROZOWNENKIXMT4MI2SZ2YRZ4TO
+#\\\|66KQWX3NOPMMCBKB7UWUJPEFCG4FLW2TBDXO3YKBBN7ZKXUITQS \ / AMOS7 \ YOURUM ::
+#\[7]GGWEYPXFFRIGN6OSBIC6IXK43JA3LSJL2SAVVXKBTTMPSXDGO6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

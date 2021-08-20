@@ -1,45 +1,45 @@
 ## [:< ##
 
 # name  = config.ssh.example
-# descr = example ssh link configuration (fill out with your own parameters)
+# descr = example ssh link configuration [ fill out with your own parameters ]
 
 .: globals :.
 
-connections.autostart = 1
-connections.reconnect = 1
-connections.timeout   = 7
+connections.autostart = 5  ## true ##
+connections.reconnect = 5  ## true ##
+connections.timeout   = 7  ##[ in seconds ]##
 
 .: profiles :.
 
-- test
+- example_1
 
   : link1 :
     ssh.addr              = # host.name.or.ip
     ssh.port              = 22
     ssh.user              = # remote-ssh-user
     ssh.keyfile           = # /full/path/to/your/ssh_key_file
-    ssh.hostkey.md5       = # host-key-md5sum ( see ./bin/ssh.hash_hostkey )
-    ssh.hostkey.sha1      = # host-key-md5sum ( see ./bin/ssh.hash_hostkey )
-    nailara.remote.addr   = 127.0.0.1
-    nailara.remote.port   = 57
-    nailara.remote.user   = # remote-nailara-user (create with ./bin/mk.usr)
-    nailara.remote.pass   = # remote-nailara-pass
-    nailara.local.addr    = 127.0.0.1
-    nailara.local.port    = 57
-    nailara.local.user    = # local-nailara-user (create with ./bin/mk.usr)
-    nailara.local.pass    = # local-nailara-pass
+    ssh.hostkey.elf       = # host-key-elf7sum [ see ./bin/ssh.hash_hostkey ]
+    ssh.hostkey.bmw       = # host-key-bmw-sum [ see ./bin/ssh.hash_hostkey ]
+    proto-7.remote.addr   = 127.0.0.1
+    proto-7.remote.port   = 42 ##[  loopback addr port at remote end  ]##
+    proto-7.remote.user   = # remote-proto-7-user [ create with ./bin/mk.usr ]
+    proto-7.remote.pass   = # remote-proto-7-pass
+    proto-7.local.addr    = 127.0.0.1
+    proto-7.local.port    = 42 ##[  loopback addr port at local end  ]##
+    proto-7.local.user    = # local-proto-7-user [ create with ./bin/mk.usr ]
+    proto-7.local.pass    = # local-proto-7-pass
 
 # - : link2 :
 
 
-# - test2
+# - example_2
 
 # - : link1 :
 #   ssh.addr ...
 #   ...
 
-#,,,.,...,,,,,,,.,.,,,..,,,..,,..,.,.,,.,,,.,,.,.,...,...,,.,,,.,,..,,,,,,...,
-#7FN2FPBQDAMS3A3OR7PZUWFNDQXHT54JMETHPCXJ5X5IVAHQ2RWBHPETV4H7STXDUT3AF6P3HPLT4
-#\\\|XLES7PMICKX7EJMNMOATYIUVVW4WSKKSUOV42IC5NKGHWP74MOB \ / AMOS7 \ YOURUM ::
-#\[7]4W7EI4TWMGZ555MJUOEOLMQ444HFVN3ASROX7LOQHCOOHBG6TEDQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,...,.,.,...,.,.,.,,,.,.,,..,,.,,.,.,...,...,.,,,...,,,,,..,,..,,
+#WND4D65MNXCC7P6US6DMP2A2KKW7N2TGONF2JPD7OH5VLNEJH6BDN6SO7BTEZIVP5X6AGX7K6VFSG
+#\\\|OZMVA4KJTQBU7ASRGEE57CECVVRQRVDKIMHZ3NRUZKN4INJ32DH \ / AMOS7 \ YOURUM ::
+#\[7]423U2SECCBPCX27KRQEZYOXEQXRVM3YT6RPAC4CCU4M2JZAKKMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

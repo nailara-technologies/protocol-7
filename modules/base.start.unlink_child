@@ -21,9 +21,12 @@ if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
     }
     EOT
 
+    <[base.perlmod.load]>->('IPC::Open2')
+        if not <[base.perlmod.loaded]>->('IPC::Open2');
+
     <process.unlink_child.pid>
-        = open2( undef, <process.unlink_child.w_fh>, <system.path.perl_bin>,
-        qw| -e |, $child_code )
+        = IPC::Open2::open2( undef, <process.unlink_child.w_fh>,
+        <system.path.perl_bin>, qw| -e |, $child_code )
         || die sprintf( "cannot start perl unlink child process [ %s ]\n",
         scalar <[base.format_error]>->($OS_ERROR) );
     <[base.logs]>->(
@@ -34,8 +37,8 @@ if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
     return <process.unlink_child.w_fh>;
 }
 
-#,,..,.,,,,.,,..,,...,.,.,,,,,,..,...,,,.,.,.,..,,...,...,..,,,..,...,...,..,,
-#CRQP5UIS7CELI62IT5MMK4NT74V6KJY6GZTBQJ5MVOWLML3C7AJDZ7TIW7UQEE5LTVROMSINQSHEQ
-#\\\|Y3NUYRBKMQWWVFZOMVSQE6HAF2U56COW7I7MKKAKSC4SAT4ZQ4Y \ / AMOS7 \ YOURUM ::
-#\[7]LBIJUBIOEGSZZ6JCORMWBQHVZK3QQO3ZMAJML36DMFX6KHMMPUCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,...,...,..,,,,,,,.,,.,.,,,.,,,.,..,,...,...,...,,,,,...,,,,,,,,,
+#4O5YMIYVJG6RCQKO3IDKYCDL4ELXJYK4X5SNHM4IC2NT7RRYSEIWDQK7XQHZH4J7WYOJVBXFYYLNE
+#\\\|LNKTLYJD6GEFRLOM6HWUCK224NMP2YCIXPZHXTNWAEOXFVOMFCJ \ / AMOS7 \ YOURUM ::
+#\[7]X24GJZKRREZCESJ24OM6QDSRXBAXVWX7K2QJDLIWON7JA32NP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

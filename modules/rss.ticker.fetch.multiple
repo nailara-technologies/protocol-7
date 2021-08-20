@@ -53,7 +53,7 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
                 }
             };
         }
-        my $url_hash = <[chk-sum.sha.1]>->($rss_url);
+        my $url_hash = <[chk-sum.bmw.224.B32]>->($rss_url);
         if ( !-d $data_dir ) {
             mkdir($data_dir)
                 or die
@@ -91,7 +91,7 @@ my %txt_data;
 my $feed_data_count = 0;
 foreach my $index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$index};
-    my $url_hash = <[chk-sum.sha.1]>->($rss_url);
+    my $url_hash = <[chk-sum.bmw.224.B32]>->($rss_url);
     my $url_data_file .= "$data_dir/$url_hash.txt";
 
     if ( !-f $url_data_file ) {
@@ -182,8 +182,8 @@ move( $output_file . '.NEW', $output_file )
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return 1;
 
-#,,,.,.,,,,.,,,,.,...,,,.,,,.,..,,,.,,,.,,,,,,..,,...,...,,.,,...,,..,...,,.,,
-#ECJZJZVVSUIOC32LFWAMUBDFRKK2IOWP7PDERP5A5FJOHDLUBRP775JRSIMUAWQVANIQFYZYWTV5K
-#\\\|VZPJQ7YUIXUUBLDNMAA7QPAD3G5JN6KPJVPY6YR7BHZMTI3FTKZ \ / AMOS7 \ YOURUM ::
-#\[7]RTN6ERDTM573YYKBBQHRNUG5RFADZ5H7IMX4XRW2YQQ3EYIIQOBA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,.,.,,,.,.,,,,,.,.,.,,,,,..,,..,,...,...,...,,,.,,,,,,,.,,,.,
+#BL7EBNNQ7WNROFRRU3CKHVP3T2HI7HD33HYYG3AA7GF64SZGHIRMOYRGDXPEJWJDU3HJ3DFS3BN6E
+#\\\|U2UHTLSPRE373KX6TDGJBKZRIKTOVW4KX6PWVKFY2JTQUVA2Z6P \ / AMOS7 \ YOURUM ::
+#\[7]OJ2YUWPUJ64CQ3SE3SWNI4GN5XDOSMPTJ4NIJQNWRYB33O26K6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

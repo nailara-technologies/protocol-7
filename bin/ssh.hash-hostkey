@@ -1,22 +1,26 @@
 #!/usr/bin/perl
 
 use strict;
+use English;
 use warnings;
 use Net::SSH2;
 use Digest::BMW qw| bmw_256_base64 |;
 my $ssh2 = Net::SSH2->new();
 
+die '<< deprecated implementation : update code >>';
+
 die "\n usage: $PROGRAM_NAME <host>[:<port>]\n\n" if !@ARGV;
 
-my ( $ssh_host, $ssh_port ) = split( /:/, $ARGV[0], 2 );
+my ( $ssh_host, $ssh_port ) = split( qw| : |, $ARGV[0], 2 );
 
 my @args = ($ssh_host);
 push( @args, $ssh_port ) if defined $ssh_port;
 
 $ssh2->connect(@args) or die lcfirst($OS_ERROR);
 
-my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );
-my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );
+my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );   ## <-- use ELF-7
+my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );  ## <- use BMW-224
+
 my $bmw_b64u = bmw_256_base64( $ssh2->remote_hostkey );
 
 $bmw_b64u =~ s|\+|-|g;
@@ -26,8 +30,8 @@ $ssh2->disconnect;
 
 print "\n : md5  : $md5_hex\n : sha1 : $sha1_hex\n : BMW  : $bmw_b64u\n\n";
 
-#,,,.,,..,...,,,,,,.,,.,,,,..,.,,,..,,,.,,,,,,..,,...,...,.,.,,,,,,.,,,,.,,..,
-#MW2OXVDHEXZLLMS44HQB4FOAWXCQP2AFF7DPTT6KBUU4KD3KEWAGNDO2EZZDOOE7KHEQBEG73QIAQ
-#\\\|3E36F7ABWVZOGGC7BESBDD3YE7RAKJH2XZJATE2SJCV4NSSW4UN \ / AMOS7 \ YOURUM ::
-#\[7]KBQIDI5LABCP2IEAGB4O754PYUYCGOAAVHL33B5XHGYHCJWAO6BI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,,.,.,,,,,.,,,,,,,.,.,.,,,,,..,,...,...,,..,.,.,.,.,...,,.,,
+#XZJT3GVOXYDPKHZVQ7IUTQ5QTIMSRLQXSPJANQ6FEH7WU7NIUSUDMD5YQFH7JG2KSAX5NS2EFHDES
+#\\\|I5G3YH5V2BHT2RUNNQITF4PMUBE2OJE7DXKIOU6XZZBVTBVW5IS \ / AMOS7 \ YOURUM ::
+#\[7]KBYMJ4UWO6JK5SJR4QB4PI3VRMCA2DFQJ76QXXWLE4QRQB4QAYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

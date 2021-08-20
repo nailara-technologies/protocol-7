@@ -10,9 +10,34 @@ delete <system.timer>->{'send_reports'};
 return 0
     if not defined <system.init_reports>
     or ref <system.init_reports> ne qw| ARRAY |;
-my @pending_reports = @{ delete <system.init_reports> };
-my $report_count    = scalar @pending_reports;
-return 0 if $report_count == 0;
+
+my $report_count = scalar <system.init_reports>->@*;
+
+##  nothing to do \ no reports  ##
+##
+if ( $report_count == 0 ) {
+    delete <system.init_reports>;
+    return 0;
+
+} elsif ( not <[base.is_defined_recursive]>->(qw| system.zenka.initialized |)
+    or not <system.zenka.initialized> ) {
+
+    <[base.log]>->(
+        2, 'delaying sending init reports [ zenka is not initialized yet ]'
+    );
+    <system.timer>->{'send_reports'} = <[event.add_timer]>->(
+        {   'repeat'  => FALSE,
+            'after'   => 0.777,
+            'handler' => __FILE__    ##  call to self  ##
+        }
+    );
+    return;
+##
+}
+
+##  initialized , sending reports  ##
+##
+my @pending_reports = delete(<system.init_reports>)->@*;
 
 <[base.logs]>->(
     ' :. %d initialization report%s pending',
@@ -59,8 +84,8 @@ foreach my $item (@pending_reports) {
 
 return $report_count;
 
-#,,.,,..,,,..,..,,.,,,.,,,.,.,.,,,,,.,...,,..,..,,...,...,,,.,...,,,,,.,,,..,,
-#ZDJ2RUOFSHO2Z52PI3DICXIXY6NPDEQ5YZTXUZHKDN2ITO2HTQOZZKR67GDEPHHYNTNZJIQEOSKUQ
-#\\\|53TNYODZVNJAKSY64UILJBRZKDSCW7PH3TTZYO6BNW5RKTXBPKE \ / AMOS7 \ YOURUM ::
-#\[7]FJHPVGTQTARFWXLALMW2RCDRMU2NAIIUTBXVAUYSXOZE2QQFB6AA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,.,,,..,,.,,,.,,...,.,,,.,,,..,,...,...,.,.,,,,,,,,,..,,,.,,
+#LRYJTZLTPSBD4FMIXEZW3SIQNGCXP7SDDBBJGAOLFYNLTXDRIYEWZVKUPUFPWERF7322AZDNXRZDK
+#\\\|QQ3HON4O4QIUJGR2EIW2XB3HFOCGMKCN525HUXDDMDUANLDVIAI \ / AMOS7 \ YOURUM ::
+#\[7]FNOKQJWY3GZDRQQPK43CEDDFPFO7BHQX3FHK3PZLFK5VQHEGVQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

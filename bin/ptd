@@ -3,7 +3,9 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Time::HiRes;
 use Term::ReadKey;
+use Cwd qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
 use File::Which qw| which |;
 use Time::HiRes qw| sleep |;
@@ -18,7 +20,7 @@ $no_utf8 = 5
 
 $OUTPUT_AUTOFLUSH = 5;    ## true ##
 
-my @ptd_args = qw| -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup' |;
+my @ptd_args = qw|-q -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup'|;
 
 @ptd_args = grep { $ARG ne qw| -utf8 | } @ptd_args if $no_utf8;
 
@@ -57,10 +59,12 @@ my $file_count = scalar @files;
 
 ( undef, my $file_maxlen ) = minmax map {length} @files;
 
-say $blacklight. ':';
+say $blacklight, qw| : |;
 
 while ( my $file_path = shift @files ) {
     show_progress( $file_path, $file_count - scalar @files, $file_count );
+
+    ## todo : use capurex , replace ReadKey .. [ using AMOS7::TERM ] ##
 
     ReadMode 5;
     no warnings;
@@ -72,13 +76,28 @@ while ( my $file_path = shift @files ) {
 
     if ( not defined $return_code or $return_code != 0 ) {
         my $err_msg = lcfirst( $OS_ERROR // $EVAL_ERROR );
-        die "\n$blacklight:\n::[$NEON_orange $err_msg $blacklight] "
-            . ".: $NEON_orange$file_path$blacklight ::\n:$reset\n";
+        $err_msg = 'syntax error in perl code' if $return_code == 512;
+        my $colored_msg = color_msg( $err_msg, $file_path );
+        if ( $return_code == 512 ) {
+            warn $colored_msg;
+            Time::HiRes::sleep 2.1;
+        } else {
+            die $colored_msg;
+        }
     }
 }
 
 say "\n$blacklight:$reset";
 exit(0);
+
+sub color_msg {
+    my $err_msg   = shift;
+    my $file_path = shift;
+    my $color     = shift // $NEON_orange;
+    my $colored_msg
+        = "\n$blacklight:\n::[$color $err_msg $blacklight] "
+        . ".: $color$file_path$blacklight ::\n:$reset\n";
+}
 
 sub sort_files {
     return () if not @ARG;
@@ -110,6 +129,11 @@ sub is_perl_code {
             or $first_line =~ m|^package .+;(\s*#.*)?$|;
     }
 
+    print color_msg( 'skipping config.,', $file, $blacklight )
+        and return 0
+        if $is_code
+        and index( abs_path($file), qw| /configuration/ |, 0 ) != -1;
+
     close($fh) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     return $is_code;
 }
@@ -137,8 +161,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,,,..,,.,.,..,,,..,.,.,,,.,,.,,.,.,.,.,,,.,..,,...,..,,,,,,,.,,,..,,,.,,.,,
-#3EFY62SCM7QB34B22DIQH57T6Z6YKNXLOJL4TTLMR3QMKP6PV6DMGALAKSUVFN2PPOIVJVNEUMRAU
-#\\\|VXFTRWH7OKVP2OA4RXX4GQQFQJ5PKOWKM7DEMAZ6HGQOH5L6W5S \ / AMOS7 \ YOURUM ::
-#\[7]SL5QS4ZVXG4T73IVI5T6CKLN4ERVYZ5Q5DBWPPPG2NHSSDX7OOCA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,...,...,,,,,,,.,,.,,,,,,,,.,..,,...,...,..,,...,.,.,..,,,,,,
+#OVFX6RMXM4H6DRUU344D4D4TAU5JPV7M5ZIHVMHK3SY55XCDQX2YLTBBJZ5L7TKBMC4FWNKGN4KNG
+#\\\|FULQQXIPCLH5X25UVQV2XXBNZHL6S4KEEG2ZQEMTL442SRDM75D \ / AMOS7 \ YOURUM ::
+#\[7]YHFDBZKDWOY6J5SDP5I3LRRVV3US27XALE62WOZ4X4NTI5JZGSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,7 @@
 
 ## use\create protocol module registry for enabled\loaded nethods ##     [LLL]
 return warn "module 'protocol.protocol-7' not loaded <{C1}>"
-    if not defined <protocol.protocol-7>
-    or not keys %{<protocol.protocol-7>};
+    if not <[base.is_defined_recursive]>->(qw| protocol.protocol-7.connect |);
 
 my ( $backend_socket, $user ) = @ARG;
 
@@ -57,8 +56,8 @@ if ( $bytes_read > 0 ) {
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
-#,,..,.,.,...,...,..,,...,..,,.,.,.,,,...,,,.,..,,...,...,.,.,.,.,,.,,,,.,..,,
-#ZM5JNAV4VDIYTKZ6WDQ3T6LBTHBZVJ3FS7LU7WFJPKS6JEUVBX37QJ6X5OPJVSQKYZNXFOZJFQ5FW
-#\\\|ZDBOGNPUUBOQZ2JV4KSCA3YL3DT7NZFHAGYP2I7Z75MNADQZKHP \ / AMOS7 \ YOURUM ::
-#\[7]MFYI6QRLCNX52U6KH2ZZ2OTWPHXWNP2JNP7QTT4AZSUJBY7XKADI 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,,,..,,.,,,..,,,..,,.,,...,,,.,..,,...,..,,...,..,,.,.,,..,,.,,
+#WQKDJZSMX33W5ZNICXTPMVXVRYCEWGSBX6ARQOS4JHUCG6HEAJ642H5ZROQCKKKO72ZOGRYYZW5CE
+#\\\|PSN35XUFKAIKOXO4JQ6XMCRW7QBXLALSRXKJZ5RXMJYBR25EHCX \ / AMOS7 \ YOURUM ::
+#\[7]MBOEMSJBZUPLM6US4JYA2OX5VKYEEPCMZUVKPIL6TEIPZA7HYMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

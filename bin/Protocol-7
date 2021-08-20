@@ -1736,7 +1736,11 @@ sub p7_devmod_sub {
     # hiding plain text passwords in devmod output [not including conf files]
     $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
     $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
-    $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
+
+    ##  replace with new key_32 and key_56 wrappers  [ coming soon ]  ##
+    ##
+    ## $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
+
     $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
         if $sub_name eq qw| base.net.send_to_socket |;
 
@@ -3714,8 +3718,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,..,,...,.,.,.,.,,.,,...,,,.,,,,,.,,,..,,...,...,,,.,,,,,,..,,..,.,.,
-#227D45RVE5BPTBZY3NM7SHFUCUCJA74BFWRXWZVUFA4NAFEQFII3TC4J7C6ZFFVT4T7OU7FUZJBJQ
-#\\\|7B3TVQMQAK7GXQVIY7ZYHJFXN3SROYIHSD4HRWDDPDJTXIBDEI6 \ / AMOS7 \ YOURUM ::
-#\[7]HVXDGDNA4BGMYTIQNT5TBPQV7PA223IDYWZCTWFPSKM4VDUKQGAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,..,,.,,,.,,,,,.,..,,..,,,,.,..,,...,...,.,.,,.,,,,.,,,.,...,
+#KCQ6LKPLMD6XYTRRSZZIMQFUOJFU52FY3ZMSZHMG6CMI4ZRZWY466SXP46N5KWUSMAYL43L3NUAB6
+#\\\|6SY7GAXHIG4FRJMF3UVX2NANJ63DEEYWXUIDODHSLBPUL3ECYOD \ / AMOS7 \ YOURUM ::
+#\[7]KSSXNOBPTVDBE575VHZON3SPLRKJZLJINO4KESULRK4HPY626UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
