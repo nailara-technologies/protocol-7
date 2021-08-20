@@ -36,6 +36,14 @@ return {
     }
     if not exists $bg_images{$img_name_chksum};
 
+## stopping random slideshow timer ##
+##
+if ( defined <X-11.timer.bg-img-slideshow>
+    and <X-11.timer.bg-img-slideshow>->is_active ) {
+    <X-11.timer.bg-img-slideshow>->cancel;
+    delete <X-11.timer.bg-img-slideshow>;
+}
+
 ## setting background image ##
 ##
 if ( <[X-11.set_background_image]>->( $bg_images{$img_name_chksum} ) ) {
@@ -57,8 +65,8 @@ if ( <[X-11.set_background_image]>->( $bg_images{$img_name_chksum} ) ) {
     };
 }
 
-#,,,.,,,,,.,,,,,,,,,.,,,,,,..,.,.,,,,,.,,,,,.,.,.,...,...,.,.,,,.,,,,,.,,,,.,,
-#I4S4RASPS36FKS43I2KRZJVOWSYXZXCHRHSDMBYN6ZEHJJXIUTSPM2N565LD545ZMIZTTAJKWQ2RO
-#\\\|L7WD2PR6UOFJLJ6737YJHVRJMEV2NLXDNU37YPD2LODEE6BZ4O5 \ / AMOS7 \ YOURUM ::
-#\[7]PHYKCJMQQNDHTJ7NBNTCLQMRY4MP6SQOWKCGIAOYD4HJZSOTPEBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,...,.,,,,..,...,..,,,,.,,,.,.,.,...,...,..,,.,.,,,.,,.,,.,,,
+#Y7FNDILCQCPCJDXYEB6MPJXHREKB55YBYUBGJUFINSKBBRVBHD632MTLFJZHBWSZ4CFL3WYEO764W
+#\\\|FT54A52GV4CAV7D23YPSALDYPD4SBTZAOX4Y4PLNSXQT6NXDY5A \ / AMOS7 \ YOURUM ::
+#\[7]ETLK7YDED27MNOIO7GPDOSQKYGOHB3IMRDP65K7DRGRDYIGD24DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
