@@ -5,10 +5,11 @@
 my $amos7_checksum_cache = <X-11.cache.bg-images.amos-path-csum> //= {};
 
 my $removed_file_count = 0;
-
 foreach my $amos_chksum ( keys $amos7_checksum_cache->%* ) {
     my $image_path = $amos7_checksum_cache->{$amos_chksum};
+    ##  checking if still is a valid [ image ] path  ##
     if ( not -f $image_path or not -r $image_path ) {
+        ##[  removing from list if not  ]##
         delete $amos7_checksum_cache->{$amos_chksum};
         <[base.logs]>->(
             2,            ': cleaned from cache : %s : %s',
@@ -20,8 +21,8 @@ foreach my $amos_chksum ( keys $amos7_checksum_cache->%* ) {
 
 return $removed_file_count;
 
-#,,,,,,.,,.,,,,,.,..,,,,.,.,.,.,,,..,,.,,,...,..,,...,...,...,...,.,,,.,.,.,,,
-#BLV2KFCZ5JN4MCZW3ZUGVDI6BFNVJVYASB3GSSI2N6O7IITMJIYY2Y7OSZZI7TFAOTJED4ADCLAIW
-#\\\|6PXHYFS2NJRWQ3JEJTTAY26COXXLSWPHCSWJYHAOUQVTNQP6BAL \ / AMOS7 \ YOURUM ::
-#\[7]CMDNBIAMCMKWC5SZMM3X67LQZHEQU4LMUUMIUCDVXAGTBFLXNWAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,.,.,,,,,.,,,,..,,,,,.,,,,,,,..,,...,...,.,.,,,,,,,,,..,,.,,,
+#5UEPSGOTBARS25YATQTEV3QHGWVY3QVQM3CFFSQN2NYXKCAGCBM7HRBV3PCVD2ULWEDFSUPBBWL7K
+#\\\|OO3ANUXIX7DMKN53TKSSC2ZKZRD4DXOFKXVU7EEF7B5FFAINPPZ \ / AMOS7 \ YOURUM ::
+#\[7]CE66Z42GIR4OBHMT5454RTWTJIC2WFC3VQEP3J2RPPWDIT5SYIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

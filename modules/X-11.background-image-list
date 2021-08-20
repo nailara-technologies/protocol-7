@@ -33,6 +33,9 @@ foreach $bg_gfx_path ( <X-11.backgrounds.path_list>->@* ) {
         ##[ already cached ]##
         next if exists $bg_image_pathmap{$bg_image_path};
 
+        ##[ is an image ? ]##
+        next if index( mimetype($bg_image_path) // '', qw| image/ |, 0 ) != 0;
+
         ##[ add to cache ]##
         my $amos_chksum = <[file.path.chksum.AMOS]>->($imagefile_name);
         <[X-11.bg-image.cached-path.add]>->( $amos_chksum, $bg_image_path );
@@ -49,8 +52,8 @@ if (wantarray) {    ## returning file paths in list context ##
     return $amos7_checksum_cache;
 }
 
-#,,,,,..,,,,,,.,.,,..,,..,...,..,,,.,,..,,,,,,..,,...,..,,.,.,,..,...,...,.,,,
-#M4M3ITW4SJUBW2P4ZPAJPCWWEPTNZJHSXF7Z6D4BV3T25KSDSO67RFA5UWU7NAPBHCKPPV6HZQCWK
-#\\\|DTOQCDRLPRY7EOXUNPKVDN3F5Y7NZRG4MZKVLSGGOWXP2USF6DR \ / AMOS7 \ YOURUM ::
-#\[7]UT57KHJFN6NCMUSOWQU2ZZJHBBQ6QJLO7W4XVQVJFNGHISJEUOCY 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,.,...,..,,.,,,.,.,..,,,.,,,,.,..,,...,...,,,,,,..,,,.,,,.,,.,,
+#WA7XQNOBPQGK3OTV533KRRNOGVX5ZBLDHYRTJVVNJKVDOD7SK236EFYMDY2PIMGWBSIQNLXGMGTEM
+#\\\|IQVYRKML3PGHUJ3K3Q5VTKFDXM4C7T6OT67EB4Z2G5UM67U2QDZ \ / AMOS7 \ YOURUM ::
+#\[7]QPLYFFQEXVXWFI6QB2DSWQVTMSMCA3J3KCOXTKLUBW64SAQRBMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
