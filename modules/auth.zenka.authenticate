@@ -9,6 +9,11 @@ my ( $backend_socket, $zenka, $key_str ) = @ARG;
 if ( not defined $backend_socket ) {
     warn 'socket param undefined, cannot authenticate [ zenka ] <{C1}>';
     return undef;
+} elsif (
+    not <[base.is_defined_recursive]>->(qw| protocol.protocol-7.connect |) ) {
+    warn 'protocol.protocol-7 module not loaded,'
+        . ' cannot authenticate [ zenka ] <{C1}>';
+    return undef;
 }
 
 my $protocol_messages = <protocol.protocol-7.connect>;
@@ -22,7 +27,8 @@ $link_mode_str = lc($LAST_PAREN_MATCH)
 if ( defined $key_str
     or %keys
     and exists $keys{'zenka'}{'session_key'}
-    and $keys{'zenka'}{'session_key'} ne '' ) {
+    and defined $keys{'zenka'}{'session_key'}
+    and length $keys{'zenka'}{'session_key'} ) {
     $key_str //= $keys{'zenka'}{'session_key'};
     my $banner_string;
     my ( $m_len, $read_len )
@@ -83,8 +89,8 @@ if ( defined $key_str
     return undef;
 }
 
-#,,,.,...,...,.,.,,.,,,,.,.,,,,..,,.,,,.,,..,,..,,...,..,,.,,,,,,,,.,,...,,,,,
-#6FSZHA253J2JMG2EOS4GMKHWNWQKURVB5CVZTP3JVFBE5C2ZJTX76GFKUCR4DNSL5VGXUED3RFYPA
-#\\\|243CBG5WTCXTCHP3N4OQFD32EZFTJTM2DCGXIBO7MBYQYULMWT6 \ / AMOS7 \ YOURUM ::
-#\[7]FOA6ZT4P4NMPQEW4MC6HUHOZPJOCRCDBLEMF6GSQTVD2YKV7EACI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,,.,,...,.,.,,,,,,,,,,.,,,,.,..,,...,...,,..,.,.,.,,,,.,,...,
+#7MGQBEQBFDRKGVUHHLZK7NQ2HHMYRBC3XGDZQVQTRJHBIZQCEWDV5TW5IBE6TQUVUEWVMDVIOVJAA
+#\\\|XI7Q2WF3UZ32AR7ATK62XUIBYWDFAHO5MG5ZZ4YLWFPJO4QZTNS \ / AMOS7 \ YOURUM ::
+#\[7]6CZZRW3UM4JK2XNMNQ62VZSNTHLWBUDG646FXA2RT2H4KN3VFQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,45 +6,47 @@
 <[base.perlmod.autoload]>->('MIME::Base64');
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
-<impressive.cfg.language> = 'en'
+<impressive.cfg.language> = qw| en |
     if not defined <impressive.cfg.language>
     or <impressive.cfg.language> !~ /^(en|de)$/;
 
-<impressive.cfg.light_mode>     //= 0;
-<impressive.cfg.use_start-anim> //= 0;
+<impressive.cfg.light_mode>     //= FALSE;
+<impressive.cfg.use_start-anim> //= FALSE;
 
-<impressive.playlist.content_types> //= 'image';
-<impressive.path.impressive_src>  //= '/usr/local/impressive/bin/impressive';
-<impressive.path.impressive_tmp>  //= '/var/tmp/.impressive';
+<impressive.path.impressive_src>
+    //= qw| /usr/local/impressive/bin/impressive |;
+
+<impressive.path.impressive_tmp> //= qw| /var/tmp/.impressive |;
+
 <impressive.cfg.background_color> //= '#000013';
-<impressive.cfg.black_on_fullscreen> //= 1;
-<impressive.cfg.transition_delay>    //= 7;
 <impressive.cfg.background_color> =~ s|^([0-9A-F]+)$|#$1|i;
+<impressive.cfg.black_on_fullscreen> //= TRUE;
+<impressive.cfg.transition_delay>    //= 7;
+<impressive.playlist.content_types>  //= qw| image |;
 
 <base.message_parsers.child_output> = [ $code{'base.parser.xclient-errors'} ];
 
 <impressive.cfg.system_gfx_dir>
-    //= <system.root_path> . '/data/gfx/zenka/impressive';
+    //= catfile( <system.root_path>, qw| data/gfx/zenka/impressive | );
 
 <[impressive.autoinstall_check]>;
 <[impressive.check_tmp_dir]>;
 
-<impressive.process_paused> //= 0;
+<impressive.process_paused> //= FALSE;
 
 <impressive.current_playlist> //= [];
 
-<impressive.gfx.read_error>
-    = <impressive.cfg.system_gfx_dir> . '/'
-    . <impressive.cfg.language>
-    . '.failed_to_read.png';
+<impressive.gfx.read_error> = sprintf qw| %s/%s.failed_to_read.png |,
+    <impressive.cfg.system_gfx_dir>,
+    <impressive.cfg.language>;
 
 <impressive.gfx.cursor_png>
-    = <impressive.cfg.system_gfx_dir> . '/transparent.png';
+    = catfile( <impressive.cfg.system_gfx_dir>, qw| transparent.png | );
 
 0;
 
-#,,,,,,,.,,,,,,,.,..,,,..,.,.,,..,...,,,,,,..,..,,...,...,.,,,...,.,.,,,.,...,
-#CF72BVNWAFNQF324ENDSBVZFUCLZ3PRJU3D5RAMWEJT57WRWYFLEHVURQP3K3TYQTQJZ3ECQCDHAI
-#\\\|2YMBZ3CS7ECF3RLO6RX2X7W7NRO33ENZDPS4LVCQACF3MOHJB46 \ / AMOS7 \ YOURUM ::
-#\[7]GKPT6PX5LSN2WR74CFFPIETOMGPBKDSVCRFWSKO5E2UFINZ26MBI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,,,.,...,,,,,..,,..,,,,,,.,.,..,,...,.,.,,,.,,,,,.,,,.,.,.,,,
+#BQBWYEFFHZKOEHSJIZGYDXXWICHPO2ZQ5W4X65FNJLRS7UGHS3FDI2VCHEBHQ33CXITYSVRGOJOSI
+#\\\|ZCX3IBTEJHGO5BPVPD3H3BTGDARNYHXJUAIRRMX5JMUKOVZSWQI \ / AMOS7 \ YOURUM ::
+#\[7]SKEK7XBUPQNLDQQ4ETOFPQ4OVJZX5YVF4SO3WQXGKNV5S5Z7DKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

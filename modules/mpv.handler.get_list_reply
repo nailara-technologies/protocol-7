@@ -5,7 +5,7 @@
 
 my $reply = shift;
 
-<mpv.playlist_sha1> //= '';
+<mpv.playlist_bmw> //= '';
 
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     my $reason_str = $reply->{'call_args'}->{'args'};
@@ -14,7 +14,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
-    <mpv.playlist_sha1> = '';
+    <mpv.playlist_bmw> = '';
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
     push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
     <mpv.playlist_was_empty> = 1;
@@ -29,7 +29,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
 my @update_files = split( m|\n|, $reply->{'data'} );
 
 my $playlist_changed = 0;
-my $playlist_sha1    = <[chk-sum.sha.1]>->( join( ' ', @update_files ) );
+my $playlist_bmw = <[chk-sum.bmw.224.B32]>->( join( ' ', @update_files ) );
 
 if (<mpv.autorescale>) {
     <mpv.file_map.rescaled> = {};
@@ -59,8 +59,8 @@ if (<mpv.autorescale>) {
 }
 
 return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
-    if $playlist_sha1 eq <mpv.playlist_sha1> and !$playlist_changed;
-<mpv.playlist_sha1> = $playlist_sha1;
+    if $playlist_bmw eq <mpv.playlist_bmw> and !$playlist_changed;
+<mpv.playlist_bmw> = $playlist_bmw;
 
 push( @{<mpv.command.reply>}, { 'handler' => 'dev.null' } );
 <[mpv.send_command]>->('playlist_clear');
@@ -103,8 +103,8 @@ if ( <system.zenka.mode> eq 'universal-child' ) {
         @update_files;
 }
 
-#,,,,,..,,,.,,,.,,..,,,.,,.,.,,..,,,,,.,,,,,.,..,,...,...,,,.,..,,,..,,,,,,.,,
-#74JA3V2GNFSOFFXWA3VI54JJTVQTRP7X4YCI4JRO4X4R5YZDDAMWDGXOTAP7QSQUHOGUVSUTHQNQ6
-#\\\|2VBUPYXVZDLZMETS6WDDLMDTIUBTTJ3FZWT4CH4B7FJJIMW5RND \ / AMOS7 \ YOURUM ::
-#\[7]C3QLM4TOVPZ25SJ6GFR5RU4QSOF6OZB52FPWSCIYGNO6D3CSP6CI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,,,,..,.,,,,..,...,,,,,,,.,.,.,..,,...,..,,.,,,...,.,,,,,.,.,.,
+#S275A6GSYALFNGCHGY7XNVSSFDSEKWVGSQ3GP6BTIUKZCWCBTPJBU6JA3Y3X67VR6W5EBMFNJWYWE
+#\\\|4FGSDEIBNXMUWR3YQQPF7SAKT4TALOPOAMLLDPEYIHTXZQ7Z43S \ / AMOS7 \ YOURUM ::
+#\[7]PMQBJJVFM3JYQNEIMCJF5FEV67W27HS6FFXAM76SJA54B3NKN4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

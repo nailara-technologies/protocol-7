@@ -2,62 +2,63 @@
 
 # name = base.get_session_id
 
-my $usr_str   = shift // 'cube';
+my $usr_str   = shift // qw| cube |;
 my $route_str = shift // '';
-$route_str .= '.' if length($route_str);
+$route_str .= qw| . | if length $route_str;
 
-my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+my ($local_sid) = keys( $data{'user'}{$usr_str}{'session'}->%* );
 if ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
     <[base.log]>->(
-        0, "already have a cube sid, refused to request another!"
+        0, 'already have a cube sid , refused to request another'
     );
     return undef;
 }
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 
-<[base.log]>->( 2, "acquiring session id..," );
-<[base.net.send_to_socket]>->( $cube_fh, "($cmd_id)${route_str}whoami\n" );
+<[base.log]>->( 2, 'acquiring session id ..,' );
+<[base.net.send_to_socket]>->(
+    $cube_fh, sprintf( "(%u)%swhoami\n", $cmd_id, $route_str )
+);
 
 my $reply_string;
-my $matched_reply = 0;
+my $matched_reply = FALSE;
 while ( !$matched_reply ) {
     $reply_string = <$cube_fh>;
     if ( not defined $reply_string ) {
         <[base.log]>->(
-            0, "base.get_session_id: socket exception, shutting down..,"
+            0, 'base.get_session_id: socket exception, shutting down..,'
         );
-        exit(1);
+        <[base.exit]>->(qw| 0110 |);
     }
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
-    if ( !$matched_reply ) {
+    $matched_reply = TRUE if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
+    if ( not $matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE (\w[\w\-\d]*) (\d+)\n$} ) {
-    my ( $zenka_name, $cube_session_id ) = ( $1, $2 );
+    my ( $zenka_name, $cube_session_id ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1] );
     if ( $zenka_name ne <system.zenka.name> ) {
         <[base.log]>->(
-            0, "received zenka name does not match internal one!"
+            0, 'received zenka name is not matching internal one ..,'
         );
         return undef;
     }
     $data{'session'}{$local_sid}{'cube_sid'} = $cube_session_id;
-    <[base.log]>->( 1, "cube session id received [$cube_session_id]" );
-    <system.zenka.initialized> = 1;
+    <[base.logs]>->( 'cube session id received [%s]', $cube_session_id );
+    <system.zenka.initialized> = TRUE;
     return $cube_session_id;
 } else {
-    <[base.log]>->(
-        0,
-        "protocol mismatch (unexpected reply to whoami command!)"
-            . " [$reply_string]"
+    <[base.logs]>->(
+        0, "protocol mismatch [ not expected reply to whoami command ] [%s]",
+        $reply_string
     );
     return undef;
 }
 
-#,,.,,.,.,...,,,,,,,.,...,,.,,,,.,.,.,,,.,,,,,..,,...,...,..,,,..,..,,...,..,,
-#KADN3AFSJJANO7NYYAJZYWXS5LCODC2PCVW4LMAZFHIOCEX6ASLD5QU34FVSJ6E72S545K3F3F2QK
-#\\\|SIXSEOASI5YMIJCKEEIDCGKCJKRZSOPS2KUAUJSV42762OBJDLV \ / AMOS7 \ YOURUM ::
-#\[7]5DWSJ6FGTITHTEQ37XJ5ZGFEWIPANENRC5652RNXGEPAJ6GDNKDY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,,,,,...,..,,.,.,...,,..,...,..,,...,...,.,,,.,,,.,.,,..,,,,,
+#YH6O664FU3FV4FFIMT3XUFQJT5C2QBEKZPXYONT3HFCFCNRZBL7KZL2WMLE2TVFK3D2R5OVYGJ2ZK
+#\\\|DAZRIUQXYHO4UU4AH7V6BV46CP64UTIUF6GULFP3WOWEQHFMHXD \ / AMOS7 \ YOURUM ::
+#\[7]EOOKY7F2L3QJ5QQZ5XGR6ZRPTKNOSZ6KHAB7I7NBMQM4UEVKFQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

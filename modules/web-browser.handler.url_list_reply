@@ -10,13 +10,13 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
     return;
 }
 
-my $url_list_sha1 = sha1_hex( $reply->{'data'} );
-if ( defined <web-browser.url_list.sha1>
-    and <web-browser.url_list.sha1> eq $url_list_sha1 ) {
+my $url_list_bmw = <[chk-sum.bmw.224.B32]>->( $reply->{'data'} );
+if ( defined <web-browser.url_list.bmw>
+    and <web-browser.url_list.bmw> eq $url_list_bmw ) {
     <[base.log]>->( 2, "<i> received url list is unchanged, ignoring..," );
     return;
 } else {
-    <web-browser.url_list.sha1> = $url_list_sha1;
+    <web-browser.url_list.bmw> = $url_list_bmw;
 }
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
@@ -133,8 +133,8 @@ if (@{<web-browser.url.list>}
     <[web-browser.start_slideshow]>;
 }
 
-#,,.,,...,..,,.,.,,.,,.,.,,,.,..,,..,,..,,.,.,..,,...,...,,,,,,,,,,.,,,,,,,,.,
-#VTWJXGF2VGJVTXC3FQINJPVM6KGMWHOFAYKU3HPK6Y4DALFKLZDFCBAJCDT7NNMQH23M4CEB52CZM
-#\\\|YUQMFUO76UJE536UZD75OIQ75HLCNMXCGHGD3MSFS2GFUXXMEML \ / AMOS7 \ YOURUM ::
-#\[7]J4E5AEWTN2JTEUX53DLCAV56XCQFTQN2BNELBJWBFJPEABJC6WAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,.,,,...,,,.,.,.,.,,,,..,..,,..,,...,...,,.,,,..,.,.,,.,,,,.,
+#TAQ5RJQ5ZI4H6UYVREUX5FDAAADJ5HI6UQLZV4OJCVS3TJK42FXGR4TM7I3EIC4TX7RBCUNYMADQU
+#\\\|LA3OZHF2ZTC2ZLHNNJFW4UKDNCGFNQQ3KQ6ZLIDJMMHQUFPTHHU \ / AMOS7 \ YOURUM ::
+#\[7]JG7HLESI63UJMUL4JFJIR5456RAT2OTEANESUMUQTTKKOZM4CCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

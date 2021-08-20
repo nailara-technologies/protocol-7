@@ -4,15 +4,15 @@
 
 my $reply = shift;
 
-<remote-cam.playlist_sha1> //= '';
+<remote-cam.playlist_bmw> //= '';
 
 if ( $reply->{'cmd'} eq qw| FALSE | ) {
     <[base.log]>->( 0, ": unable to fetch playlist!" );
     return;
 }
 
-my @file_list     = split( "\n", $reply->{'data'} );
-my $playlist_sha1 = <[chk-sum.sha.1]>->( join( ' ', @file_list ) );
+my @file_list    = split( "\n", $reply->{'data'} );
+my $playlist_bmw = <[chk-sum.bmw.224.B32]>->( join( ' ', @file_list ) );
 
 if ( $reply->{'call_args'}->{'args'} == 0 ) {
     <[base.log]>->( 1, "<< ..received empty playlist.. >>" );
@@ -23,10 +23,10 @@ my $playlist_changed = 0;
 
 return <[base.log]>->( 1, ": playlist is unchanged, nothing to do.," )
     if defined <remote-cam.pid>
-    and $playlist_sha1 eq <remote-cam.playlist_sha1>
+    and $playlist_bmw eq <remote-cam.playlist_bmw>
     and !$playlist_changed;
 
-<remote-cam.playlist_sha1>    = $playlist_sha1;
+<remote-cam.playlist_bmw>     = $playlist_bmw;
 <remote-cam.current_playlist> = \@file_list;
 (<remote-cam.image_url>) = @file_list;
 
@@ -35,8 +35,8 @@ warn "multiple url playlist entries currently not supported"
 
 <[base.log]>->( 1, "[CAM_URL] " . <remote-cam.image_url> );
 
-#,,.,,,.,,.,.,,..,,,,,.,.,,,.,,,,,,..,.,.,,,,,..,,...,...,..,,..,,,..,,..,...,
-#ONQOW2RQS6KBSNEMAOSUB5UH3MDNTTOB5PSRN55VSI3KMJSE3LR5J4YSTJ52O5NULGNGGVRZ5F4E2
-#\\\|QTWPUHDM3OV26UPZJMQ7ZFZR6P7Z2QXXBDVI3AENWOQYZ54OX4U \ / AMOS7 \ YOURUM ::
-#\[7]MVO37CPEPWPJ7MF2MATCM4WFIPCL4DA4XZKARMWQB5Y75S75CUAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,,.,,.,,.,.,...,.,,,.,.,.,.,..,,...,...,,,,,..,,.,,,,,,,,..,
+#KD3GCXKQ5IL737M76H4CK4KRB4OGVTAFX6K4ECAC464643FOQHZQ36OCBRSKUTLUVGWJCAKW7C2HG
+#\\\|KI3KUR2ZXPWRNCAQFIGCGOBEOV4K6TZNKSDXUBH2YRGPJ2SWJBT \ / AMOS7 \ YOURUM ::
+#\[7]ZMPIIN5Y3SCR6FPDZBJGYXX7KO2WTURNP6EAHFCXMI7TCMBFV6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

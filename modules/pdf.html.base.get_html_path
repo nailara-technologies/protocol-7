@@ -10,17 +10,17 @@ die "cache directory '$cache_dir' does not exist!" if !-d $cache_dir;
 die "html_path_name: pdf file '$pdf_path' does not exist!\n"
     if $pdf_path !~ m|^https?://| and !-f $pdf_path;
 
-my $sha_hash
+my $bmw_hash
     = $pdf_path =~ m|^https?://|
-    ? <[chk-sum.sha.1]>->($pdf_path)
-    : <[chk-sum.sha.file_hex]>->($pdf_path);
+    ? <[chk-sum.bmw.224.B32]>->($pdf_path)
+    : <[chk-sum.bmw.filesum]>->( 224, $pdf_path );
 
-( my $html_path = "$cache_dir/$sha_hash.$target_width" ) =~ s|//|/|g;
+( my $html_path = "$cache_dir/$bmw_hash.$target_width" ) =~ s|//|/|g;
 
 return $html_path;
 
-#,,..,...,...,.,.,..,,,..,,..,...,...,,.,,,,.,..,,...,.,.,..,,..,,,,.,.,.,,..,
-#RNZRR7HNBQ3ZM7WZ5EU257HQ53EG3L3PIL2SUEV7MAKF5VO5HREWYBDFTBUQBYIXGBVFDDYNXGWYK
-#\\\|FDBWWJKR4U4NBUKMVMMDSVP35NF27KNCB73RHQ6JQDHZSTV3BEK \ / AMOS7 \ YOURUM ::
-#\[7]MBKSQ4XFCHAT5D5P76RUICGJZBCUUDUNJP66Y3DKJTQ4DGARUKCY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,...,.,,,,.,,...,,.,,,.,,,..,..,,...,...,...,...,,..,,,,,.,,,
+#XHC6Q7QIOTLSFTVBNCDALF2ZX6MMT2S7DR2Y3C2KE4B7ZKH5BZW5CGHOVSKU6BOQVMPSBLDMTTZCS
+#\\\|OLSBT6VP2QCNXG7HIBTUB4LJ5ISHUBG3ZBJHYZZEHL4KVLEO4IC \ / AMOS7 \ YOURUM ::
+#\[7]VA5C73W75RVML5PZXQDHGJ46APL5TO23UV4OQ3F2E434OXAY7GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

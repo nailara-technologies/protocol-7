@@ -44,7 +44,7 @@ push( @cmd_line_mods, "-C$_C" ) if defined $_C;
 
 eval {
     $pid
-        = open2( $out_fh, $in_fh, $perl_bin_path, @cmd_line_mods,
+        = IPC::Open2::open2( $out_fh, $in_fh, $perl_bin_path, @cmd_line_mods,
         $protocol_7, $zenka_sn_str, @exec_args );
 };
 
@@ -87,8 +87,8 @@ close($in_fh);
 
 return 1;
 
-#,,..,..,,.,.,,,,,...,,,,,..,,.,.,...,...,.,.,..,,...,...,.,.,..,,..,,,,,,...,
-#GEF5M32RNCEI6LDRQBBNMDXUW3OC24IP2UDXAXEHEYD2SABKUK4T5QQ3FGDPCM5Q7TNJNTEOMUSBK
-#\\\|ISRMBAT33AIEAJGNS4DCY5FNCKBRKYUBZ4W73OZPGROQGG2TL5I \ / AMOS7 \ YOURUM ::
-#\[7]IMG6GP44HZF2YZWZY7THCEVJXBESYLNB4DC7P7HSVTBGGI3S5IAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,,.,,,.,,..,,..,,,..,,,.,...,..,,...,...,.,,,,.,,..,,,,.,,..,
+#AFAJIXHY6HF7UULA42B36MZDQSXBXL3ZQKVFDEFZFUAZL5ZZVA7ADU4WG5O4DI5TUJVHZYXA2P5US
+#\\\|5B5VGRFQWQM73GLMIO4QUBHBYVP3V2LDIKAUJNZA5YCVUEZZOR5 \ / AMOS7 \ YOURUM ::
+#\[7]QV35SNGNBVM5F5MYNGS6JIYJVDF7LCRMWBFNPNPV5ZQ64D2BGGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ foreach my $param (@ARG) {
     } elsif ( $param =~ m,^(ip\.|unix), ) {
         push( @connection_types, $param );
     } elsif ( not $custom_addr ) {
-        $custom_addr = 1;
+        $custom_addr = TRUE;
         $cube_addr   = $param;
     } else {
         $cube_name = $param;
@@ -52,7 +52,7 @@ foreach my $c_type (@connection_types) {
                     'connect_to_cube[unix]: neither unix.path nor '
                         . 'net.local.{addr,port} are defined, aborting.,'
                 );
-                exit(2);
+                <[base.exit]>->(2);
             } else {
                 my $unix_chksum
                     = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
@@ -91,7 +91,7 @@ foreach my $c_type (@connection_types) {
                 and
                 <[base.is_defined_recursive]>->( ##  has zenka session key  ##
                     qw| zenka.session_key |, \%keys
-                ) == 5
+                ) == TRUE
                 ) {    ## authentication set-up ':zenka:' ##
 
                 my $auth_name = $zenka_name;
@@ -137,13 +137,14 @@ foreach my $c_type (@connection_types) {
         <[base.session.init]>->(
             $cube_sock, qw| protocol-7 client |, $cube_name
         );
+        ##  sent when zenka initialized [ it delays them ] ..,  ##
         <system.timer>->{'send_reports'} = <[event.add_timer]>->(
             {   'repeat'  => 0,
                 'after'   => 0.777,
                 'handler' => qw| base.session.send_init_reports |
             }
         );
-        <base.log.allow_buffer_send> = 1;    ## enable sending to 'p7-log' ##
+        <base.log.allow_buffer_send> = TRUE;  ## enable sending to 'p7-log' ##
         return $cube_sock;
     }
 }
@@ -153,11 +154,11 @@ if ( not defined $cube_sock ) {
         '<< not able to connect to local cube., >>',
         ' :. aborting zenka start-up ..,'
     );
-    exit(4);
+    <base.exit]>->(4);
 }
 
-#,,..,,,.,.,,,...,,,,,...,...,,.,,,,.,,.,,..,,..,,...,...,...,...,,,.,.,.,,..,
-#G5MCYJFYLCKPDIGKDGCP3NCZATUYJHRAXP3SNS63PIVM45LYA3OGATLY7UE35WBOA6NVVAEZ52YWS
-#\\\|UQ2BHPUTTUL4U5RKIT4LGY2S4KA4GMY6DA5GJ4UYM5FJTHE7CPM \ / AMOS7 \ YOURUM ::
-#\[7]4UHS2HPHOTWHPSOCXHTVLD74MYN55M2AEVQFBBZR6JTEKNNEM6AA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,...,..,,,,,,,,.,,..,,..,.,,,..,,...,...,...,...,..,,...,.,.,
+#LMT675RZGGTWUMWRTF2SKHAJHQSRJS6F77TSYYFHFV4VA5NSCEAFFHBKU3EWKPTOXC6J7FIRPHUW4
+#\\\|TAMUANZEJYQKBZMATCCI5UTQC5CY3R3N7AYHWHMV2LHZKHOFL2Q \ / AMOS7 \ YOURUM ::
+#\[7]OZLPZO3APSW2Q22ME4U4HTZ5Y3UOAQRJEJMLY7IOFFFCHE6UAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
