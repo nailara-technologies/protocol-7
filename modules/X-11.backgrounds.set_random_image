@@ -6,18 +6,42 @@ my $imagepath_chksums_href = <[X-11.background-image-list]>;
 my %bg_image_pathmap       = reverse $imagepath_chksums_href->%*;
 my @bg_image_paths         = <[base.sort]>->( \%bg_image_pathmap );
 
-my $background_image_index = <[X-11.background.next-rnd-index]>;
+##  default settings  ##
+##
+<X-11.random_slideshow> //= TRUE;
+###
+
+if ( defined <X-11.timer.bg-img-slideshow>
+    and <X-11.timer.bg-img-slideshow>->is_active ) {
+    <X-11.timer.bg-img-slideshow>->cancel;
+    delete <X-11.timer.bg-img-slideshow>;
+}
+
+( my $background_image_index, my $s_interval_delay )
+    = <[X-11.background.next-rnd-index]>;
 
 my $selected_image_path         = $bg_image_paths[$background_image_index];
 my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
 
-return $bg_image_path_amos_checksum    ##  return set image checksum  ##
-    if <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE;
+if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
+{    ##  installing timer for random image slideshow  ##
+    if ( <[base.cfg_bool]>->(<X-11.random_slideshow>) ) {
+        <X-11.timer.bg-img-slideshow> = <[event.add_timer]>->(
+            {   'after'   => $s_interval_delay,
+                'handler' => __FILE__,            ##  call to self  ##
+                'repeat'  => FALSE,
+                'prio'    => 7
+            }
+        );
+    }
 
-return undef;                          ## or undef on error ##
+    return $bg_image_path_amos_checksum    ##  return set image checksum  ##
+}
 
-#,,..,.,.,...,,..,,,,,.,.,,,.,,,.,,,.,,,,,...,..,,...,...,.,,,,,,,,.,,,,,,,,,,
-#WDXHXYGMK6LQXXT7LWF24MG6BKFEUVCGGVZ34QQL3RBJ46Y2LRAP2DAQ2NRX5YDETKOK7EAHNSM3C
-#\\\|RJ7CWWHP2LJ75JFNIW7QRRM3MVMC3VL6L52WRKOTW55IIGITIEV \ / AMOS7 \ YOURUM ::
-#\[7]ULOGPHFJW5RMVB6PRJZHY7ATFROIE47TOXVF5UOQPTPTD5OCFCAQ 7  DATA SIGNATURE ::
+return undef;                              ## or undef on error ##
+
+#,,.,,,,,,.,,,,.,,.,.,,.,,.,,,,,,,.,.,.,,,.,.,..,,...,...,.,,,...,,,,,.,,,...,
+#2HOIDHPCI67OIHTUWVKEQFAOE2WIPWGJLSUAOLDTJMMWYDT3Z7WQ6OJSO7T4SQTTQ4IWOAY5POVJU
+#\\\|NETCJM3AOQDNZYBD6YVMZO2YBPCJYFG5WTAYX6IVMPQMNKYTWR4 \ / AMOS7 \ YOURUM ::
+#\[7]WFDEOE36EAPF3XU4O4L4WM3HT4WJXQJNDPKGX74HQBKUFSPXIOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
