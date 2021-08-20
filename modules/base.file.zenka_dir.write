@@ -1,0 +1,85 @@
+## >:] ##
+
+# name  = base.file.zenka_dir.write
+# descr = create file [entry] in /var/run/protocol-7/zenka/..,
+
+my $filepath_rel  = shift // '';
+my $content_sref  = shift;
+my $open_mode_str = shift // qw| > |;
+my $file_mode     = shift // 0600;
+my $encoding_str  = shift // qw| :raw |;
+
+if (   not length $filepath_rel
+    or index( $filepath_rel, qw| / |,  0 ) == 0
+    or index( $filepath_rel, qw| .. |, 0 ) != -1 ) {
+    warn 'expected [relative] output path <{C1}>';
+    return undef;
+} elsif ( ref $content_sref ne qw| SCALAR | ) {
+    warn 'expected scalar reference to data <{C1}>';
+    return undef;
+} elsif ( not defined $content_sref->$* ) {
+    warn 'content sref points to undefined value <{C1}>';
+    return undef;
+}
+
+my $zenkaname       = <system.zenka.name>;
+my $var_run_path    = <system.path.zenka-dirs.run_p7>;
+my $zenka_write_dir = catfile $var_run_path, $zenkaname;
+
+if (    not -d $zenka_write_dir
+    and not <[base.path-set-up.check-zenka-paths]>->(TRUE)
+    or not -d $zenka_write_dir ) {
+    <[base.s_warn]>->(
+        'cannot create temporary zenka output directory [ %s ]',
+        $zenka_write_dir
+    );
+    return undef;
+} elsif ( -f $zenka_write_dir and not -w $zenka_write_dir ) {
+    <[base.s_warn]>->(
+        'no write permission to zenka output directory [ %s ]',
+        $zenka_write_dir
+    );
+    return undef;
+}
+
+##  zenka work directory  ##
+$data{$zenkaname}{'path'}{'output_dir'} //= $zenka_write_dir;
+
+my $file_abs_path = catfile( $zenka_write_dir, $filepath_rel );
+
+say '< path > ', $file_abs_path;
+
+if ( -d $file_abs_path ) {
+    <[base.s_warn]>->(
+        'file path is existing directory [ %s ] <{C1}>',
+        $file_abs_path
+    );
+    return undef;
+}
+
+my $fh = <[file.open]>->(
+    $file_abs_path, $encoding_str, $open_mode_str, $file_mode
+);
+if ( not defined $fh or not length fileno($fh) ) {
+    <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
+    return undef;
+}
+
+print {$fh} $content_sref->$*;    ##  writing content to file  ##
+
+if ( not close($fh) ) {
+    <[base.s_warn]>->(
+        "error on closing file [ %s ] <{C1}>",
+        <[base.str.os_err]>
+    );
+    return undef;
+}
+
+##  returning ammount of characters written  ##
+return length $content_sref->$*;
+
+#,,,.,,,,,,,.,,.,,.,,,.,.,.,.,,..,,..,,.,,..,,..,,...,...,.,,,..,,..,,,..,,,.,
+#R7FKGHXKVS5A56POJLXPE7N656PVNN2TUJMKE3C7DAAVG5SFQSMEQBDLJGFWDUEEKWPG4JUCIGHI2
+#\\\|UM5BURWUO4R6N4IF2U25QHCQJHWEJG3F5IUDZKCIKZX5FYI3KX3 \ / AMOS7 \ YOURUM ::
+#\[7]OE7OPZTSGSTGCJVLAFTYSN2RCTVKYWVH6BTFZD3OWCNBXLVAYYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
