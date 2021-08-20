@@ -3376,7 +3376,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                         $src_comp = qw| xz |;
                     } elsif ( index( $line, qw| D6FQQ |, 0 ) == 0 ) {
                         $src_comp = qw| gzip |;
-                    } elsif (                          ## >:] ##
+                    } elsif (                          ## [:< ##
                         index( $line, qw| EMRSAPR2LUQCGIYK |, 0 ) == 0
                     ) {
                         $src_comp = qw| none |;
@@ -3385,7 +3385,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             ->( 'unknown compression or src header', $line );
                     }
                 } elsif ( not defined $source_encoding
-                    and index( $line, ': ## >:] ##', 0 ) == 0 ) {
+                    and index( $line, ': ## [:< ##', 0 ) == 0 ) {
                     substr( $line, 0, 2, '' );         ## remove prefix ##
                     $source_encoding = qw| plain |;
                 } elsif ( not defined $source_encoding ) {
@@ -3708,14 +3708,14 @@ __DATA__
 
 .:[ base.protocol-7.source-key ]:.
 :
-: ## >:] ##
+: ## [:< ##
 :
 : qw| VM2RPWTXVNL4WGX7GEZM3CUO76MQ3MFYCDYX6XO3565637OOKFJA |
 :
 :.
 
-#,,,.,.,.,.,,,,,,,.,,,.,,,,.,,,,,,...,,..,,,.,..,,...,...,...,...,...,..,,,,,,
-#EG24FXVXX4WKWYMBB4IZ6KXCZLLDWBNDQEGVWYMOB5XDC73BBQBZERG6QDQTOXBXWHTDWZV2YVL4S
-#\\\|LP6OHN7H7D3UWHWLFMHHRYQLYZ2RQAFDL2BRQWCJYJFCBWDR77H \ / AMOS7 \ YOURUM ::
-#\[7]TTIPJF7TRESOBS53AXTX62R3HILUHXMXTKXH6JPRUSWH2PSSVMAI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,.,.,.,.,,.,,...,,,.,,,,,.,,,..,,...,...,,,.,,,,,,..,,..,.,.,
+#227D45RVE5BPTBZY3NM7SHFUCUCJA74BFWRXWZVUFA4NAFEQFII3TC4J7C6ZFFVT4T7OU7FUZJBJQ
+#\\\|7B3TVQMQAK7GXQVIY7ZYHJFXN3SROYIHSD4HRWDDPDJTXIBDEI6 \ / AMOS7 \ YOURUM ::
+#\[7]HVXDGDNA4BGMYTIQNT5TBPQV7PA223IDYWZCTWFPSKM4VDUKQGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

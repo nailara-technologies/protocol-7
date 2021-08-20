@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::Util;   #######################################################
 
@@ -227,8 +227,8 @@ sub process_key_press {
 
 return TRUE ##################################################################
 
-#,,,,,,..,.,,,,..,,,.,,.,,,,.,.,,,.,.,,.,,..,,..,,...,...,...,,,.,,.,,..,,,,,,
-#CGFQ47HMNG5GZC7XAYFB3KQCEIAOT3RRQ2OSEVE62ZPAY73PRJDKMTQPVBLMJB3I7UTJYUQP4SNIA
-#\\\|OEIWF7QH6XIH7PXAZYTEJE35KBHCMVUSLLGR7UUOPKQFJH2UWR7 \ / AMOS7 \ YOURUM ::
-#\[7]XXVGRETCZLILZ4CZOWCGHPL7IKQ6V34R7T263SIJWA7CGP6ODGDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,,.,,.,,...,..,,,,,,.,.,..,,..,,...,...,,..,,,.,,,.,,.,,,,,,
+#HS6RH3HDU6IMQ24ZXYURJPMUEDMT4KKCQNXUGBY7FRZKUSK2ETYL3WKBHIYVPLFRC4BG2PR2AP5QO
+#\\\|DIPX26FBWL3ASOACF5G2GQKLSJ6K4HSOHZEP4NFM7H5XZN4XBYA \ / AMOS7 \ YOURUM ::
+#\[7]W5EQICXAAAN43KQU5CECBYVZBMYMMFVHDXI4CV6ZVCZ7VOIWLKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

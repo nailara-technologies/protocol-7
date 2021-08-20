@@ -508,7 +508,7 @@ sub checksum_state {
 sub dump_state { checksum_state(); say YAML::XS::Dump($state) }
 
 sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
-sub cmd_clear { say clear() . "## >:] ##\n" }
+sub cmd_clear { say clear() . "## [:< ##\n" }
 sub cmd_reset { system qw| reset |; cmd_clear() }
 sub cmd_quit  { cmd_reset();        exit(0) }
 
@@ -692,8 +692,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,.,,..,,,,,,..,.,,,..,,..,,,.,,.,,,,..,,,.,..,,...,...,.,.,,,,,,.,,,,.,...,
-#47V7HWWNCUCU3ZZTQLKHKES4NAAAJP42NJR4QMLGRX7WL4V437DAFHYWQBYP7I3X6I3OPU6DFDPJK
-#\\\|S5QH2K3VIFUY3CO4WYGIGOIFLVKTGDS6TDATC6IIHU3SWZLWTIF \ / AMOS7 \ YOURUM ::
-#\[7]6MGLCOPSOHZ3267UBO223NNT33QVAOK6RWTMAWGKIKLTUV2NLYAI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,.,.,...,,,,,.,,,..,,,,.,...,..,,...,..,,...,,..,..,,,..,,..,
+#73XRSNPNTGZLXZ4TVYEVUWLWK7DUFTPFMSDCMKNRKEW5IHJM3L22F2XLD33GUB2NZ3S4GQRM7HOSQ
+#\\\|V3TVC3IF53LNV63ICNS67TK55GND7S4QPGQJWIAN3A74HXYJ6SD \ / AMOS7 \ YOURUM ::
+#\[7]E7WFVS3AX7TH2ZHS5OVFHCUNVYS4BDLSMZGGONM3YCCZTMCDDIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

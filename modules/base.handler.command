@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name    = base.handler.command
 # descr   = handling of protocol-7 syntax, calling command handlers
@@ -1134,8 +1134,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,.,,.,,,.,.,...,,,.,,..,,,,,...,...,,.,,..,,..,,...,...,..,,,.,,,,,,,..,...,
-#PMH4Z5QLPTVBHSE5VN4XAHT4TGXP52C5R7DYJWGFHTYEAZVPCJFHSO4SLDNGELEWA27HEN5KXNAZ4
-#\\\|WJHCOK4G2BYX5I2Y5PNYYPTMUSQDBGBWD4575CIPT7YEMFZIZTZ \ / AMOS7 \ YOURUM ::
-#\[7]C6LHKTMURQK47FIC2KNE7TRPIHPOR5OR4GYWY5BKR5SYORUCJ4CI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,.,,..,,..,...,..,,,,.,,,,,.,.,..,,...,...,,..,,..,,,.,.,,,,,,,
+#63APNXC7MKC4ZGD3EIXQ663TM6VQX5MUQB4OMEHODN2LCGUAJZDML65UUMSBYTZEBKF27GSQLRGOA
+#\\\|IH5YUCKHXSVHPTSWYZDUZDKOTE5LAK6D2AAM6BV33GJJF3D4UMT \ / AMOS7 \ YOURUM ::
+#\[7]7WH2ZIH5G4P6EKF37WJCTK5LUVB73TM6MG3U75222GAOT7ETIAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::CHKSUM; #######################################################
 
@@ -338,8 +338,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,.,.,...,,..,,,,,,..,...,.,.,...,,,.,,,,,..,,...,...,..,,..,,,,.,,..,..,,
-#CIZORE57XYXW5HHEV3BBPHMFYULXLCIJJIWOMNZEU5UL33BHFN3ACAEGRELMY3BQWJCZZWG2F5SM2
-#\\\|3GHDGABYA3BT77QYCJL3KYPNJGYBKUDWACKRCCE6YOD3QUVBXNA \ / AMOS7 \ YOURUM ::
-#\[7]K2EWSB5KF2IBBD333HBQNILDB6SS3ZISWEHCM6TK5YEIQDSHCKCI 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,,,,,.,.,..,,.,,,.,,,.,,,..,,..,,...,...,...,.,,,.,,,..,,,,,,
+#UBQR3GUAMYOFIVYXDHLV75EJIV52ASBMYL6KG637L7ENXQDLPKKWN77LDZCI66YRTW3GFW6FEWYVK
+#\\\|KLAK2LURXML5QWV4V3W3HPOSCCFZXLP7OCKJOGIDBP4P23AWIW2 \ / AMOS7 \ YOURUM ::
+#\[7]K5A3P5KC36SBPCK2K3KQ6THTG4MUHLZ6BCBDJY6S5GPZYAKG4UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

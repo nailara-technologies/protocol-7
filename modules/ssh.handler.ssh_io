@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 # name  = ssh.handler.ssh_io
 # descr = reads and processes output from mpv control pipe
@@ -38,7 +38,7 @@ if ( defined $bytes and $bytes ) {
 if ( !$connection->{'authorized'} ) {
     my $local_user  = $profile_data->{$link_name}->{'nailara.local.user'};
     my $remote_user = $profile_data->{$link_name}->{'nailara.remote.user'};
-    if ( $connection->{'buffer'} =~ s|^>:]\n|| ) {
+    if ( $connection->{'buffer'} =~ s|^[:<\n|| ) {
         my $remote_pass
             = $profile_data->{$link_name}->{'nailara.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
@@ -81,11 +81,12 @@ if ( !$connection->{'authorized'} ) {
         );
         $connection->{'linked'} = 1;
 
-    } elsif ( $connection->{'buffer'} =~ s|^AUTH_ERROR >:\[\n|| ) {
-        <[base.log]>
-            ->( 0, ": : remote end nailara auth. was not successful" );
+    } elsif ( $connection->{'buffer'} =~ s|^AUTH_ERROR .+\n|| ) {
+        <[base.log]>->(
+            0, ': : PROTOCOL 7 authentication was not successful'
+        );
         <[ssh.connection.stop]>->($con_id);
-    } elsif ( $connection->{'buffer'} =~ s|^.?:[\|\[]\n|| ) {   ## `:| >:[ >:|
+    } elsif ( $connection->{'buffer'} =~ s|^.?:[\|\[]\n|| ) {  ## `:| `>:| >:|
         <[base.log]>->(
             0, ": : nailara authentication timeout on remote end"
         );
@@ -121,8 +122,8 @@ if ( !$connection->{'authorized'} ) {
 
 }
 
-#,,..,,.,,,,,,...,,,,,,..,,,,,.,.,,.,,,,,,,..,..,,...,...,...,,..,.,,,.,,,,.,,
-#3SYUQ6M4ICQOV2PPIKXLEPDOA7MV4PTJSM3SYAILPPRDBDEQNLZEUIMNW2XIM7RVCNWRYXLM5RYWM
-#\\\|UN576X6IIR66L2T6BX7EPYYHX2ROXDHDMRPJV2FOZJYXM2DL53R \ / AMOS7 \ YOURUM ::
-#\[7]33DOVWHSPABDBHKVSHCOL7SWPH6BHRPIFXMRE3K353LM5MISXKBI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,,.,,,,.,,,.,,,.,.,,,,,,,.,.,..,,...,...,,..,.,.,,..,,,,,.,.,
+#GPTIWNK23IPM4B4YWTYM2SUQDABE6FVIMBIIF23QXR76Z2M2LQ6YU64UK2MBBWSGQOFMSZ4D2XTHA
+#\\\|FRSE53ALIBX4UGM5LG322I4XAZ4XWB6AXYMGABJBNHFCPOOWX6X \ / AMOS7 \ YOURUM ::
+#\[7]EDKPGXL5MXPMSBKMIELIU27RXAKDBEKHMV7HHUYVJ6RPYG66JEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

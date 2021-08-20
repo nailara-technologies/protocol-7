@@ -1,4 +1,4 @@
-## >:] ##
+## [:< ##
 
 package AMOS7::TERM; #########################################################
 
@@ -609,8 +609,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,,,,.,,,.,,,,..,..,,,.,,,..,,..,,,.,,,,,..,,..,,...,...,,,.,,..,.,,,..,,..,,
-#HNVIFUTMBTHHIQEQNTH7WVSRLK6I7IQ4FJWZRNW3XBKMRNAX3QJFF3R73ZHPQWCIBBFKCI7G4DGYA
-#\\\|A3TTDQFOA4M2MIVSTCHZOMYBWOCJPNA64IPRHRIFP7JLD2IOFQP \ / AMOS7 \ YOURUM ::
-#\[7]AVMGVI2FYD6POQS4GWKNGQIW24YGAIKHSGJ4VYHR3FQQOBT6LUAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,.,,,..,,,,.,,.,,..,,.,.,,.,,..,,...,...,...,,,,,,,.,.,.,,..,
+#2Y3ZVGT2PKKYTWPZMJRXLKCDHH472F2VRPQK3X7YSSPGLF7MVMDKPLQE6XJYD6CWTEP36IY5JGCG4
+#\\\|MYNOB5WC65HRPMLBYJZSZNTR2IMY5F7ZXVAVHRKUGEVJ7JYIHHR \ / AMOS7 \ YOURUM ::
+#\[7]F3QVWUIJKS6EXBIUVF2V65UQUD3SVSLK3JZWH4HSIC3F2EFDFOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
