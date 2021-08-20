@@ -230,6 +230,7 @@ return [ qw[
         base.cmd.src-ver
         base.cmd.src-age
         base.cmd.rel-ver
+        base.cmd.ptl-ver
         base.cmd.present
         base.cmd.cur-pid
         base.chk-sum.jha
@@ -881,7 +882,6 @@ return [ qw[
         system.process.post_init
         system.process.init_code
         system.cleanup.init_code
-        sourcecode.collect_files
         source.acquire_checksums
         set-up.cmd.export-config
         screenshot.cmd.write_png
@@ -1008,6 +1008,7 @@ return [ qw[
         base.is_defined_recursive
         base.handler.whoami_reply
         base.handler.inotify_poll
+        base.file.zenka_dir.write
         base.file.write_timestamp
         base.erase_buffer_content
         base.chk-sum.elf.pre_init
@@ -1230,6 +1231,7 @@ return [ qw[
         ssh.handler.connection_retry
         source.cmd.update-to-current
         rss.ticker.cmd.resend_update
+        protocol.protocol-7.pre_init
         pdf.html.base.write_pdf_html
         pdf.html.base.get_page_count
         osd-logo.set-up.import_rules
@@ -1257,6 +1259,7 @@ return [ qw[
         base.process-into-background
         base.perlmods.reload.refresh
         base.path.create-amos-chksum
+        base.parser.protocol-version
         base.parser.ondemand_session
         base.handler.heart_ack_reply
         base.file.callback.chown-all
@@ -1305,6 +1308,7 @@ return [ qw[
         pdf.html.base.write_stub_page
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
+        nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         mod-test.cmd.list-blacklisted
         keys.select_archive_path.curs
@@ -1591,6 +1595,8 @@ return [ qw[
         crypt.C25519.get_type_from_key_str
         content.handler.weather_urls_reply
         base.protocol-7.command.send.local
+        base.path-set-up.zenka-directories
+        base.path-set-up.check-zenka-paths
         base.file.recursive.matching_paths
         base.chk-sum.bmw.calculate_L13_sum
         USR.AMOS7-admin.sourcecode-pub-key
@@ -1700,12 +1706,13 @@ return [ qw[
         system.process.handler.pid-instance_response
         image2html.parent.handler.convert_image_reply
         mpv.handler.event.property-change.video-aspect
+        protocol.protocol-7.protocol-version-path-set-up
 
     ]
 ];
 
-#,,,.,.,,,,..,,,.,,..,...,,..,.,,,.,,,.,,,...,.,.,...,...,...,,,.,,..,,,,,,,,,
-#BIOMB74BUORTXEQFUX4K7YNSAIORBM6SABUAQAMBUFKT2WNN2ECBPXY4HW6ESHPFTKLKQF7QUSZ6A
-#\\\|5MKUDSZBMVTMR77XM4EPASCPYX2OHG4ZZRX5L4X6SVCXDIOTZN6 \ / AMOS7 \ YOURUM ::
-#\[7]HBLQKXGNMY3QF6RMIFWD5GDHZGUEOPBI3R7L6ASZQSW4YL66MICQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,.,.,,,.,,,.,...,,,.,,.,,,,.,.,.,...,.,.,.,.,...,.,.,,,,,,..,
+#E7BVPKUHJTPUNDPTTZGD32VYDMBSWSORAKMNOJ64GWSDKVOBGDOGKP6W36DMVRVKBMFJZ36UENMT2
+#\\\|LFNWHA4R27GT4AINNAG7M2QLXYG5FLPLBGG65LGWHYGIMIF2HAP \ / AMOS7 \ YOURUM ::
+#\[7]QWLDFMVEXAONQUIUNZ3QVOQ3DX4MR7CKHDJ2NIWTBWHOOCFR6QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

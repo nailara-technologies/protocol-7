@@ -1,0 +1,53 @@
+## >:] ##
+
+# name  = nodes.cmd.update-protocol-elf
+# descr = calculate new protocol version checksum
+
+my $versioncfg_file_path = qw| protocol-7.updated-protocol-version |;
+my $version_template_int = qw| PROTOCOL-7-VER[%s] |;
+my $version_template_ext = qw| \\\\PROTOCOL-7-VERSION\\\\%s\\\\ |;
+
+my $src_paths_aref = <[protocol.protocol-7.protocol-version-path-set-up]>;
+return { 'mode' => qw| false |, 'data' => 'cannot aquire path list' }
+    if ref $src_paths_aref ne qw| ARRAY |
+    or $src_paths_aref->@* == 0;
+
+my $elf_7_chksum = 0;    ##  initializing start elf-7-sum  ##
+
+foreach my $file ( map { catfile( <system.root_path>, $ARG ) }
+    $src_paths_aref->@* ) {
+
+    ##[  chksum path of file first to protect from renamed files  ]##
+    $elf_7_chksum
+        = <[chk-sum.elf.get-true]>
+        ->( $elf_7_chksum, \sprintf( "%s\n", $file ) );
+
+    $elf_7_chksum ##  visualized there are spirals in the number stream =)  ##
+        = <[chk-sum.elf.get-true]>
+        ->( $elf_7_chksum, <[file.slurp]>->($file) );   ## chksum all files ##
+}
+
+my $version_elf7_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+    join( ',', $version_template_int, $version_template_ext ),
+    \$elf_7_chksum
+);
+
+my $version_file_content = sprintf "%s\n",
+    sprintf( $version_template_int, $version_elf7_chksum );
+
+<[file.zenka_dir.write]>->( $versioncfg_file_path, \$version_file_content )
+    or return {
+    'mode' => qw| false |,
+    'data' => 'error while updating version config file'
+    };
+
+my $protocol_code_version_str
+    = sprintf( $version_template_ext, $version_elf7_chksum );
+
+return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
+
+#,,,,,,,,,,,.,,,,,,.,,.,.,.,.,...,,..,...,,,,,.,.,...,..,,...,,.,,,..,...,..,,
+#47FIKIJD5CVZ6EYCMRQKN5N3CKURB55KRN3FH4FOUPP4OPOT3AHKDRXLOWN6VHL6ROFVHXNRCKPHW
+#\\\|UU4RH5JXVC76YTKH7RIT4EIRCFQHL7YFS6WC6ORD52V57RRDWP4 \ / AMOS7 \ YOURUM ::
+#\[7]L6PUNJPVUH7LMXESPMWAKP4ND2ENVTN6B37LYJOFNXVS7JZWHUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
