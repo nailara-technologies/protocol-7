@@ -37,10 +37,10 @@ if ( defined $bytes and $bytes ) {
 
 if ( !$connection->{'authorized'} ) {
     my $local_user  = $profile_data->{$link_name}->{'nailara.local.user'};
-    my $remote_user = $profile_data->{$link_name}->{'nailara.remote.user'};
+    my $remote_user = $profile_data->{$link_name}->{'proto-7.remote.user'};
     if ( $connection->{'buffer'} =~ s|^[:<\n|| ) {
         my $remote_pass
-            = $profile_data->{$link_name}->{'nailara.remote.pass'};
+            = $profile_data->{$link_name}->{'proto-7.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
     } elsif ( $connection->{'buffer'} =~ s|^AUTH_TRUE =)\n|| ) {
         $connection->{'authorized'} = 1;
@@ -122,8 +122,8 @@ if ( !$connection->{'authorized'} ) {
 
 }
 
-#,,,.,,..,,,,,...,,.,,,,.,,,.,,,.,.,,,,,,,.,.,..,,...,...,,..,.,.,,..,,,,,.,.,
-#GPTIWNK23IPM4B4YWTYM2SUQDABE6FVIMBIIF23QXR76Z2M2LQ6YU64UK2MBBWSGQOFMSZ4D2XTHA
-#\\\|FRSE53ALIBX4UGM5LG322I4XAZ4XWB6AXYMGABJBNHFCPOOWX6X \ / AMOS7 \ YOURUM ::
-#\[7]EDKPGXL5MXPMSBKMIELIU27RXAKDBEKHMV7HHUYVJ6RPYG66JEAI 7  DATA SIGNATURE ::
+#,,..,...,,..,.,,,,,,,...,,.,,,..,...,,,.,..,,..,,...,...,..,,...,,,,,..,,,,.,
+#4MMXU54UX5ADP2KJ4IETHG5SM2HJLV3W3B72WIKM57AGIQG6MBDGPCG66QGN7BA4Q3A4T7QMKI2BY
+#\\\|YYWXB6NCUNRKCXMRHRAB2GLVKOU2IAOYJ4Y6UXCHT3GPOKG3UOA \ / AMOS7 \ YOURUM ::
+#\[7]LBGINODJTHODAOTMISZM4VSZ6UHUUL43MEZUOCSYPZ3SDCBOYACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

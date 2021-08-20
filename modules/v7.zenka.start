@@ -210,7 +210,8 @@ if ( exists $init_result_data->{'start_mode'}
         );
         eval {
             $pid
-                = open2( $out_fh, $in_fh, $EXECUTABLE_NAME, qw| -e |,
+                = IPC::Open2::open2( $out_fh, $in_fh, $EXECUTABLE_NAME,
+                qw| -e |,
                 sprintf( "%s exec '%s'", $prepare_code, $exec_bin ) );
         };
         goto SKIP_OPEN2;
@@ -246,12 +247,14 @@ if (@cmd_line_mods) {
     push( @cmd_line_mods, sprintf( qw| -C%s |, $_C ) ) if defined $_C;
     eval {
         $pid
-            = open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
+            = IPC::Open2::open2( $out_fh, $in_fh, $perl_bin, @cmd_line_mods,
             $bin_p7_path, $zenka_sn_str, @p_arg );
     };
 } else {
     eval {
-        $pid = open2( $out_fh, $in_fh, $bin_p7_path, $zenka_sn_str, @p_arg );
+        $pid
+            = IPC::Open2::open2( $out_fh, $in_fh, $bin_p7_path,
+            $zenka_sn_str, @p_arg );
     };
 }
 
@@ -333,8 +336,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,,.,,,,.,.,,,,.,,..,,,.,,,.,,.,.,.,,,,..,..,,...,..,,..,,..,,,..,,,,,...,
-#BLNJA2G75DUMH2RRJAJBUO6MEFOJ275WSAF3D6JVHELENKO3K6PXMXZA2OVW44PSUILIKYTRYSIOO
-#\\\|CR2IUFFSLSGZLV4ABPB4J24LPGGUBX45FOARLZDFRWPJFLKO63F \ / AMOS7 \ YOURUM ::
-#\[7]2X2UXC2YBQMIAPC5EUBPGEE77AUEFQJDEURTXCB2KR53UJIZQQBA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,,,.,,,.,,,,,.,.,,,,,.,,,.,,,..,,...,..,,..,,,,,,,..,,,,,...,
+#KMQXIR2P4OX5E6RCDZUQFVITRRXTNDZ5V6MNG5FIEK6M6PRO3BCXSHL223GNBAHP2V5MFUPACHHMM
+#\\\|JGQRD6FPZQE4VJ4F4KYBEIUSQYSRUKKMIPXVBKGLW65ODFLCYO7 \ / AMOS7 \ YOURUM ::
+#\[7]H3RGTUCVBTECPLQ2ZLT64S5SWUZH3Z5NV4GJSAE7FZR55TT7ICBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,14 +12,14 @@ die "cache directory '$cache_dir' does not exist" if !-d $cache_dir;
 
 <[base.log]>->( 1, "writing station id $station_id [$city] to disk cache.." );
 
-my $city_hash = <[chk-sum.sha.1]>->($city);
+my $city_hash = <[chk-sum.bmw.224.B32]>->($city);
 
 my $content_str = sprintf( "%s %s\n", time, $station_id );
 
 <[file.put]>->( "$cache_dir/$city_hash", $content_str );
 
-#,,,.,...,,.,,,,.,..,,,.,,,,,,..,,..,,.,.,.,.,..,,...,...,...,,.,,,,.,,,,,,.,,
-#B5SSBUYH2I4CIKPHOWIDYX7GO2ERL2RBNJQA2VOSENFDHS2RDAMPDB6GAVTY4Y3ECNLJNEHSKVZLO
-#\\\|HSHC7JAT2GXEOIS4Y2C2R2OXAHK5BGP3Y54ZDFCRZRJE432GBTE \ / AMOS7 \ YOURUM ::
-#\[7]QPGLPBXAAEXZJPJQ5J7RRXQ35R5OU7FWHAV545PYNNTPZVMKSGDY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,..,,..,.,.,.,,,,.,,,,,,,.,,..,,...,...,.,.,.,.,,,,,,,,,.,,,
+#O4BJYDNCBJUPHVJ3ZZDTKFFQ5ABEOEENPQSB4SQCGJVJ7HHMLFXHLKTPJ56YU4ONNGRNUPA3EHU7G
+#\\\|IOABAYKQADO5OYIAI5MA7GMEEX76KPKL67KBEEHQVSF2MVSDPR5 \ / AMOS7 \ YOURUM ::
+#\[7]F3PH766FJ2RNQ37226MXBOKRVHCVFC7QHW65SODQLPRRJFWRIQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

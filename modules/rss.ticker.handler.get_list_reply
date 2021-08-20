@@ -24,7 +24,8 @@ my $rss_index = 0;
 <rss.ticker.content_url> = {};
 map { <rss.ticker.content_url>->{ $rss_index++ } = $ARG } @rss_urls;
 
-my $ticker_sha = <[chk-sum.sha.1]>->( join( '', map {"$ARG\n"} @rss_urls ) );
+my $ticker_sha
+    = <[chk-sum.bmw.224.B32]>->( join( '', map {"$ARG\n"} @rss_urls ) );
 <rss.ticker.url_hash> //= $ticker_sha;
 
 if ( $ticker_sha ne <rss.ticker.url_hash> ) {
@@ -33,8 +34,8 @@ if ( $ticker_sha ne <rss.ticker.url_hash> ) {
     <rss.ticker.update_timer>->now;
 }
 
-#,,,.,.,.,...,.,.,,,.,..,,,..,...,.,,,...,...,..,,...,...,,,.,,,.,.,.,.,.,,..,
-#ORWVT4U6I4D5YSM2KUDA46RTEPFLLZ7O6GCZFAWJ3UL4JYTYJYB2LMLVWMEVXA2C2BVYEGZSLTNKK
-#\\\|HKK7NOQNIX2MVZVV7TXK4ORERMEUOKGPKI7KPD7ILA432XRPN5P \ / AMOS7 \ YOURUM ::
-#\[7]6XWJMB2KL2RJ7CZJDWZXYHMMLB5ST35K3OJR5F3SSGIGP7LTPQDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,,..,,..,,.,,,.,,,,.,...,.,,,..,,...,...,..,,,,,,.,,,,,.,.,,,
+#2GXXG2YDV5LXRD4YB734XYVLBCYERVAMGHUBONLNJ4FJFHGEMLH6MIXPHUBTBFO6MOAEZBWT3HP6C
+#\\\|QE2WXVWZAIZU4UY4GU4SITF5MXNQUWD4PYE5CY3TCLYHLW6USIJ \ / AMOS7 \ YOURUM ::
+#\[7]4YWXS2P4XNXNX75Y7BVUGUJG3GASNC3KJFNUNYLIX4DYH4XCBCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

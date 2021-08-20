@@ -17,7 +17,8 @@ if ( not defined <process.TERM_chld.w_fh> ) {
     EOT
 
     <process.TERM_chld.pid>
-        = open2( <process.TERM_chld.r_fh>, <process.TERM_chld.w_fh>,
+        = IPC::Open2::open2( <process.TERM_chld.r_fh>,
+        <process.TERM_chld.w_fh>,
         <system.path.perl_bin>, qw| -e |, $child_code )
         || die "cannot start perl 'term' child process [ \l$OS_ERROR ]";
 
@@ -38,8 +39,8 @@ if ( not defined <process.TERM_chld.w_fh> ) {
 
 0;
 
-#,,..,,..,..,,,,,,..,,,.,,,,.,..,,,,.,..,,,,,,..,,...,...,.,.,..,,..,,,,.,...,
-#CQ6CEI3ZMV52IL4FGHVZI5HMOFVCQETOHN477HZ54FGZPJU3KBOEP6YS5MMKER2UAQLF6ZHQKO6MU
-#\\\|ZPJRJXJQDFCMEZ7OCWDZUQWVV2IMWYLHDGJKBX7FQQGDM3ENQFO \ / AMOS7 \ YOURUM ::
-#\[7]JVPRFKV655Z7EN3YIISA6XT6WPMDZVL7G5R42CAFWZQVUUH42ABI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,,,.,,,.,,,,,,,...,..,,,..,,,.,..,,...,...,.,.,...,,,.,,..,,,,,
+#BO5RPFOJIVTQRQVX4SATHIDJF3QKZNZLSAN2CZ7OTR2RU37XY2POK3HKH2XSOWJTXNBGENZKDZNKG
+#\\\|TUEBIUGINXCS6WK6GMFJHLLH7GQ36RZPP27H2FCEKBYRT7QYHCU \ / AMOS7 \ YOURUM ::
+#\[7]RKASJD3QB2FEQHI32GNQIX5B4ABTMNBNUKULKA6J3C6VA2NDCMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

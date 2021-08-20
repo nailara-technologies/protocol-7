@@ -77,8 +77,8 @@ if ( !$ssh->connect($sock) ) {
 <[base.log]>->( 2, ": : ssh connection established.." );
 
 my $configured_hostkey = join( '+',
-    $link_setup->{'ssh.hostkey.md5'},
-    $link_setup->{'ssh.hostkey.sha1'} );
+    $link_setup->{'ssh.hostkey.elf'},
+    $link_setup->{'ssh.hostkey.bmw'} );
 
 my $host_key = join( '+',
     unpack( 'H*', $ssh->hostkey_hash('md5') ),
@@ -138,10 +138,10 @@ if ( !$ssh->auth_publickey( $ssh_user, $ssh_pubkey, $ssh_privkey ) ) {
 }
 <[base.log]>->( 1, ": : ssh auth. successful.." );
 
-my $nailara_addr = $link_setup->{'nailara.remote.addr'};
-my $nailara_port = $link_setup->{'nailara.remote.port'};
+my $proto_7_addr = $link_setup->{'proto-7.remote.addr'};
+my $proto_7_port = $link_setup->{'proto-7.remote.port'};
 
-my $channel = $ssh->tcpip( $nailara_addr, $nailara_port );
+my $channel = $ssh->tcpip( $proto_7_addr, $proto_7_port );
 if ( not defined $channel ) {
     <[base.log]>
         ->( 0, ": : remote nailara connection error [ \l$OS_ERROR ]" );
@@ -213,8 +213,8 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 
 return 0;
 
-#,,,.,.,,,.,.,,..,,,.,.,,,,,.,,,.,,,,,...,.,,,..,,...,..,,,..,.,.,.,.,,,,,,,.,
-#IRLGLGA2AJZBKOHTY6A24JXF3JBA2JYJYUANOHO2UH32GQIRG5UOLNUFNIRFZY4EBR3ZF54PWXDWK
-#\\\|CDEBC4VJBVU5MR6ESDNHEF3VXNHLEZDHTW4NQ33CU6VYAN6P6E3 \ / AMOS7 \ YOURUM ::
-#\[7]PI5M2OUZJPH4HAJF6ISD5ZRFNNPJHOYYY5SGFIDSQ7PII2TV5KBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,..,.,.,.,,,,.,,..,,.,,,...,..,,...,...,...,.,,,.,,,...,,..,
+#PERSMWDKSFEPA5VQPXQJXXNY2UHUGEZ7RKT7KH2FVO265JDC45OVE6NOYWBSJ7MQHXNN2UDSUZZ2C
+#\\\|V3RBK5EIOER6C346JE3HNS2Y3OH4Q5OL3R4ZIIBZB3YWU4LTJDO \ / AMOS7 \ YOURUM ::
+#\[7]LCQXTBEQXCOMF7BPF3IP3W2QDJO75GB4GBO7U7YEA4L6FJ4JYYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
