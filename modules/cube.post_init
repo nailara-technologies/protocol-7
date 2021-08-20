@@ -19,8 +19,8 @@ if (    not <[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
     return -1;    ##  init != 0  ##
 }
 
-my $sucessful_init           = 5;    ## true ##
-my $no_ip_socket_permissions = 0;
+my $sucessful_init           = TRUE;    ## true ##
+my $no_ip_socket_permissions = FALSE;
 
 ##  shutdown in reinit [ config changed? ]  ##
 ##
@@ -34,7 +34,7 @@ if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.unix |)
     );
 
     ##  ending server session \ socket shut-down  ##
-    $data{'session'}{$term_sid}{'shutdown'} = 1;
+    $data{'session'}{$term_sid}{'shutdown'} = TRUE;
 
     unlink(<unix.sock>)
         or <[base.s_warn]>->(
@@ -64,7 +64,7 @@ if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.ip_tcp |)
     );
 
     ##  ending server session \ socket shut-down  ##
-    $data{'session'}{$term_sid}{'shutdown'} = 1;
+    $data{'session'}{$term_sid}{'shutdown'} = TRUE;
 
     ## cleaning up ##
     delete <tcp_ip.sock>;
@@ -76,8 +76,8 @@ if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.ip_tcp |)
     and <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>) ) {
 
     if ( <cube.local.port> < 1024 and $REAL_USER_ID != 0 ) {
-        $sucessful_init           = 0;
-        $no_ip_socket_permissions = 5;
+        $sucessful_init           = FALSE;
+        $no_ip_socket_permissions = TRUE;
         <[base.logs]>->(
             0, 'ip\tcp socket re-enabled but listen on port %d needs root .,',
             <cube.local.port>
@@ -99,21 +99,21 @@ if ( <[base.is_defined_recursive]>->(qw| cube.server_sid.ip_tcp |)
 if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
     and (  not <[base.is_defined_recursive]>->(qw| unix.sock |)
         or not fileno <unix.sock>
-        or !-S <unix.sock> )    ##  re-init ?  ##
+        or not -S <unix.sock> )    ##  re-init ?  ##
 ) {
 
     if ( not defined $code{'io.unix.socket.input.open'} ) {
         <[base.log]>->(
             0, 'unix socket is enabled but the io.unix module is not loaded'
         );
-        $sucessful_init = 0;
+        $sucessful_init = FALSE;
         goto SKIP_UNIX_SOCKET;
     }
 
     <unix.owner> = <system.amos-zenka-user>;
     my $unix_sdir = qw| /var/run/.7/UNIX |;
     <[file.make_path]>->( $unix_sdir, 0775, <unix.owner> )
-        or $sucessful_init = 0;
+        or $sucessful_init = FALSE;
 
     if ( -d $unix_sdir and -w $unix_sdir ) {
 
@@ -131,7 +131,7 @@ if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
             <cube.server_sid.unix> =    ##  used for auto-shutdown  ##
                 <[base.protocol.bind]>->( <unix.sock>, qw| protocol-7 | );
 
-            $sucessful_init = 0      if not defined <cube.server_sid.unix>;
+            $sucessful_init = FALSE  if not defined <cube.server_sid.unix>;
             delete <cube.server_sid> if not keys <cube.server_sid>->%*;
         } else {
             <[base.log]>->(
@@ -139,7 +139,7 @@ if (<[base.cfg_bool]>->(<cube.set-up.use_unix_socket>)
             );
             delete <unix.sock>;
             delete $data{'unix'} if not keys $data{'tcp_ip'}->%*;
-            $sucessful_init = 0;
+            $sucessful_init = FALSE;
         }
     }
 SKIP_UNIX_SOCKET:
@@ -153,14 +153,14 @@ if (    not $no_ip_socket_permissions
     and <[base.cfg_bool]>->(<cube.set-up.use_ip_socket>)
     and (  not <[base.is_defined_recursive]>->(qw| tcp_ip.sock |)
         or not fileno <tcp_ip.sock>
-        or !-S <tcp_ip.sock> )    ##  re-init ?  ##
+        or not -S <tcp_ip.sock> )    ##  re-init ?  ##
 ) {
 
     if ( not defined $code{'io.ip.tcp.input.open'} ) {
         <[base.log]>->(
             0, 'ip\tcp socket is enabled but the io.ip module is not loaded'
         );
-        $sucessful_init = 0;
+        $sucessful_init = FALSE;
         goto SKIP_IP_SOCKET;
     }
 
@@ -175,14 +175,14 @@ if (    not $no_ip_socket_permissions
         <cube.server_sid.ip_tcp> =    ##  used for auto-shutdown  ##
             <[base.protocol.bind]>->( <tcp_ip.sock>, qw| protocol-7 | );
 
-        $sucessful_init = 0      if not defined <cube.server_sid.ip_tcp>;
+        $sucessful_init = FALSE  if not defined <cube.server_sid.ip_tcp>;
         delete <cube.server_sid> if not keys <cube.server_sid>->%*;
 
     } else {
         <[base.log]>->( 0, 'launching of ip\tcp socket was not successful' );
         delete <tcp_ip.sock>;
         undef $data{'tcp_ip'} if not keys $data{'tcp_ip'}->%*;
-        $sucessful_init = 0;
+        $sucessful_init = FALSE;
     }
 SKIP_IP_SOCKET:
 }
@@ -191,8 +191,8 @@ SKIP_IP_SOCKET:
 
 return $sucessful_init ? 0 : 1;    ##  returning 0 for success  ##
 
-#,,..,,..,.,,,,..,,,.,..,,.,.,...,,,,,,,.,,..,.,.,...,...,.,.,.,.,,..,..,,.,.,
-#DUGGBU4ALILUY6VLMFYXNCRQ5NBQ4DRRTT4FXI6CJ4A6GABQMULF4QH6LRKWQHOR7YV4IHAXLD3H2
-#\\\|NQ77PHPXPXGKGNHJ7CIHFFAIMSDZKPXMH66ZQNQHSRSNMCIJVYE \ / AMOS7 \ YOURUM ::
-#\[7]NXY5ULIDNBTXFZYZDG4NUOBKZHILS5C3X3MGHIWZWMA2ROSN74DY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,...,.,,,,.,,,.,,.,.,...,...,.,.,...,...,..,,.,,,...,...,,,,,
+#BNP66THIO4UTDSBHQQHNJCLLM6KDIAIBNJDFXDSGGDBN4ZOY6YQJDGJ2F45TISRCVEGXTG4EKWFHS
+#\\\|6XK5KDGHEHX6PURJBOALXNU7A6OPHIEKB5XW3C6OLNKVPFRKGQ4 \ / AMOS7 \ YOURUM ::
+#\[7]5C6YFA3Y6DUKBC5K2ZM4Y7TIGNTZATKZKSPK64KTQ7QL2B4DBECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
