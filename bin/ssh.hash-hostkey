@@ -1,37 +1,101 @@
 #!/usr/bin/perl
 
+use v5.24;
 use strict;
 use English;
 use warnings;
 use Net::SSH2;
-use Digest::BMW qw| bmw_256_base64 |;
+use Digest::BMW qw| bmw_224 |;
+use Crypt::Misc qw| encode_b32r |;
+
+##[ssh.hash-hostkey]##
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+use AMOS7::CHKSUM::ELF qw| elf_chksum |;
+
+##[ RUNTIME CODE ]############################################################
+
+##[ colors ]##
+##
+my %C = %AMOS7::C;
+
+my @args;
+
+my $no_colors = FALSE;
+
+foreach my $arg (@ARGV) {
+    if ( $arg eq qw| -nc | ) {
+        $no_colors = TRUE;
+    } else {
+        push @args, $arg;
+    }
+}
+
 my $ssh2 = Net::SSH2->new();
 
-die '<< deprecated implementation : update code >>';
+$PROGRAM_NAME =~ s|^.*/||;
 
-die "\n usage: $PROGRAM_NAME <host>[:<port>]\n\n" if !@ARGV;
+error_exit( 'usage: %s [-nc] <host>[:<port>]', $PROGRAM_NAME ) if not @args;
 
-my ( $ssh_host, $ssh_port ) = split( qw| : |, $ARGV[0], 2 );
+my ( $ssh_host, $ssh_port ) = split( qw| : |, shift @args, 2 );
 
-my @args = ($ssh_host);
+@args = ($ssh_host);    ## reusing @args ##
 push( @args, $ssh_port ) if defined $ssh_port;
 
 $ssh2->connect(@args) or die lcfirst($OS_ERROR);
 
-my $md5_hex  = unpack( "H*", $ssh2->hostkey_hash('md5') );   ## <-- use ELF-7
-my $sha1_hex = unpack( "H*", $ssh2->hostkey_hash('sha1') );  ## <- use BMW-224
+my $remote_hostkey_bin = $ssh2->remote_hostkey;
 
-my $bmw_b64u = bmw_256_base64( $ssh2->remote_hostkey );
+##[ ELF7 ]##
+##
+my $ELF7 = encode_b32r pack qw| w |, elf_chksum($remote_hostkey_bin);
 
-$bmw_b64u =~ s|\+|-|g;
-$bmw_b64u =~ s|/|_|g;
+##[ BMW224 ]##
+##
+my $BMW224 = encode_b32r bmw_224($remote_hostkey_bin);
 
 $ssh2->disconnect;
 
-print "\n : md5  : $md5_hex\n : sha1 : $sha1_hex\n : BMW  : $bmw_b64u\n\n";
+my $chksums_str
+    = sprintf "\n :\n : BMW    : %s \n :        :\n : ELF-7  : %s \n :\n",
+    $BMW224, $ELF7;
 
-#,,.,,.,,,...,,..,,,.,.,,,,,.,,,,,,,.,.,.,,,,,..,,...,...,,..,.,.,.,.,...,,.,,
-#XZJT3GVOXYDPKHZVQ7IUTQ5QTIMSRLQXSPJANQ6FEH7WU7NIUSUDMD5YQFH7JG2KSAX5NS2EFHDES
-#\\\|I5G3YH5V2BHT2RUNNQITF4PMUBE2OJE7DXKIOU6XZZBVTBVW5IS \ / AMOS7 \ YOURUM ::
-#\[7]KBYMJ4UWO6JK5SJR4QB4PI3VRMCA2DFQJ76QXXWLE4QRQB4QAYCI 7  DATA SIGNATURE ::
+if ( $no_colors == FALSE ) {
+    $chksums_str =~ s|( [\w\-]{3,5} +) |$C{b}$1$C{R} |mg;
+    $chksums_str =~ s|( \w{7,45} +)|$C{b}$1$C{R}|mg;
+    $chksums_str =~ s|:|$C{0}:$C{T}|mg;
+    $chksums_str =~ s|(*plb:.)$|$C{R}|mg;
+}
+
+say $chksums_str;
+
+#,,.,,.,,,..,,,,.,,..,.,.,...,.,.,..,,.,.,..,,..,,...,...,..,,.,,,,,,,,.,,,..,
+#DESN7YYUFMX4Z6A6Y63IAS6552JAF54KRO242YYGHPBGQBT4DPGYYYXDWKNTLR5X7EVYXRVKC23NE
+#\\\|GIP5IUQDXLV62JXBINB2ZYZ3DGX5CKKTFTDW5ER56U2WPPBLIIN \ / AMOS7 \ YOURUM ::
+#\[7]3YBITTPOBZYCY2B3SEUIJ4PPZVQDNMJFKKWLBHJ3OAXDXZW3ZKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

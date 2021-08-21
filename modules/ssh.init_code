@@ -5,44 +5,44 @@
 <[base.perlmod.autoload]>->('IO::Socket::IP');
 <[base.perlmod.autoload]>->('Net::SSH2');
 
-<ssh.status>             //= { 'profiles' => {}, 'connections' => {} };
+<ssh.status>             //= { qw|profiles| => {}, qw|connections| => {} };
 <ssh.profiles>           //= {};
 <ssh.connections>        //= {};
 <ssh.autostart_profiles> //= '';
 
 <ssh.cfg> = <[ssh.load_config]>->(<ssh.config_name>)
-    if exists <ssh.config_name> and length(<ssh.config_name>);
+    if exists <ssh.config_name> and length <ssh.config_name>;
 
-<ssh.cfg.globals>->{'connections.autostart'} //= 1;
-<ssh.cfg.globals>->{'connections.reconnect'} //= 1;
+<ssh.cfg.globals>->{'connections.autostart'} //= TRUE;
+<ssh.cfg.globals>->{'connections.reconnect'} //= TRUE;
 <ssh.cfg.globals>->{'connections.timeout'}   //= 10;
 
 # LLL: table alignment currently broken
 
 <list.profiles> = {
     'var'   => qw| data |,
-    'key'   => 'ssh.cfg.profiles',
+    'key'   => qw| ssh.profiles |,
     'descr' => 'ssh connection profiles',
     'mask'  => '<key>:profile <key>:status <key>:connections',
     'align' => {
-        'profile'     => 'center-2',
-        'status'      => 'left',
-        'connections' => 'center-5',
+        qw|   profile   | => qw| center-2 |,
+        qw|    status   | => qw|   left   |,
+        qw| connections | => qw| center-5 |,
     },
     'filters' => {
-        'status'      => 'ssh.parser.profile_status',
-        'connections' => 'ssh.parser.profile_connections',
+        qw|   status    | => qw| ssh.parser.profile_status |,
+        qw| connections | => qw| ssh.parser.profile_connections |,
     }
 };
 
 <list.connections> = {
     'var'     => qw| data |,
-    'key'     => 'ssh.connections',
+    'key'     => qw| ssh.connections |,
     'descr'   => 'active ssh connections',
     'mask'    => '<key>:id <key>:status <key>:target_host',
     'filters' => {
-        'status'      => 'ssh.parser.connection_status',
-        'target_host' => 'ssh.parser.connection_target',
+        qw|   status    | => qw| ssh.parser.connection_status |,
+        qw| target_host | => qw| ssh.parser.connection_target |,
     }
 };
 
@@ -51,13 +51,13 @@ if (    exists <ssh.cfg.globals>->{'connections.autostart'}
     and exists <ssh.autostart_profiles> ) {
     <[base.log]>->( 1, 'autostart is enabled..' );
     map { <[ssh.enable_profile]>->($ARG) }
-        split( / +/, <ssh.autostart_profiles> );
+        split( m| +|, <ssh.autostart_profiles> );
 }
 
 0;
 
-#,,,.,,,.,,.,,,.,,,..,..,,...,.,,,.,,,..,,,.,,..,,...,...,...,,,,,,,,,,,.,..,,
-#E6WYHDRUXGFRPD3P7QAWQAEM6YDDKJBFCFD7T6AJQR25A54WF2GNMAZIM4N67OERFTI3IIPT23KSG
-#\\\|HVR62K5S2R5VU7QYI6N4EHCALQEFZXFAWF47SJ6MAW2PGDADLV6 \ / AMOS7 \ YOURUM ::
-#\[7]GSKUCYX3CR6Y554NMLS4F3FTGNYY4CRROGWRQIEQA6PSXMVGAMBY 7  DATA SIGNATURE ::
+#,,..,..,,...,...,.,.,,..,,..,.,,,,.,,,,.,,,.,..,,...,...,,.,,,..,.,.,,,.,,..,
+#3NAWCXPZJDXXKSCJPF7OCZENF5XRGCH6GSQIRRG46W64XSAEB5NFILGJMUH63CGZKB7CQQNFG5YTA
+#\\\|BNWP3ZQCMAJOO3EAUPD2MLJ4JXQ7YE73DQAL4BV3CMVWIWO6UPC \ / AMOS7 \ YOURUM ::
+#\[7]PMTD3X6QN24P2FRBZKUWU6NCSC3HCXSJ57AAXDLAZ7W4U4UNIACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

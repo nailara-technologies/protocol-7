@@ -38,22 +38,22 @@ if ( defined $bytes and $bytes ) {
 if ( !$connection->{'authorized'} ) {
     my $local_user  = $profile_data->{$link_name}->{'nailara.local.user'};
     my $remote_user = $profile_data->{$link_name}->{'proto-7.remote.user'};
-    if ( $connection->{'buffer'} =~ s|^[:<\n|| ) {
+    if ( $connection->{'buffer'} =~ s|^\Q[:<\E\n|| ) {
         my $remote_pass
             = $profile_data->{$link_name}->{'proto-7.remote.pass'};
         $channel->write("auth $remote_user $remote_pass\n");
-    } elsif ( $connection->{'buffer'} =~ s|^AUTH_TRUE =)\n|| ) {
-        $connection->{'authorized'} = 1;
-        <[base.log]>->(
-            1, ": : successful remote end nailara auth. [$remote_user]"
+    } elsif ( $connection->{'buffer'} =~ s|^\QAUTH_TRUE =)\E\n|| ) {
+        $connection->{'authorized'} = TRUE;
+        <[base.logs]>->(
+            ': : successful remote end nailara auth. [%s]', $remote_user
         );
         $connection->{'remote_user'} = $remote_user;
 
         # LLL: check status..,
         my $l_sock
-            = <[base.open]>->( 'ip.tcp', 'output', $cube_addr, $cube_port );
-        if ( not defined $l_sock or !$l_sock->connected ) {
-            <[base.log]>->( 0, ": : tcp connection to local cube failed." );
+            = <[base.open]>->( qw| ip.tcp output |, $cube_addr, $cube_port );
+        if ( not defined $l_sock or not $l_sock->connected ) {
+            <[base.log]>->( 0, ': : tcp connection to local cube failed.' );
             return <[ssh.connection.stop]>->($con_id);
         }
         my $local_user = $profile_data->{$link_name}->{'nailara.local.user'};
@@ -62,12 +62,14 @@ if ( !$connection->{'authorized'} ) {
             $profile_data->{$link_name}->{'nailara.local.pass'}
         );
         if ( not defined $l_sock or !$l_sock->connected ) {
-            <[base.log]>->( 0, ": : local nailara auth. failed!" );
+            <[base.log]>->(
+                0, ': : local protocol 7 authentication failed ..,'
+            );
             return <[ssh.connection.stop]>->($con_id);
         }
         $connection->{'local_user'} = $local_user;
         $connection->{'local_fh'}   = $l_sock;
-        <[base.log]>->( 1, ": : local nailara auth. successful" );
+        <[base.log]>->( 1, ': : local protocol 7 authentication successful' );
         $connection->{'io'}->{'protocol-7'} = <[event.add_io]>->(
             {   'fd'      => $connection->{'local_fh'},
                 'handler' => 'ssh.handler.nailara_io',
@@ -79,7 +81,7 @@ if ( !$connection->{'authorized'} ) {
                 }
             }
         );
-        $connection->{'linked'} = 1;
+        $connection->{'linked'} = TRUE;
 
     } elsif ( $connection->{'buffer'} =~ s|^AUTH_ERROR .+\n|| ) {
         <[base.log]>->(
@@ -100,8 +102,9 @@ if ( !$connection->{'authorized'} ) {
 } else {
     if (   !$connection->{'linked'}
         and $connection->{'buffer'} =~ s|^\((\d+)\).+\n|| ) {
-        my $cmd_id = $1;
-        $channel->write("($cmd_id)FALSE link not initialized yet\n");
+        my $cmd_id = $LAST_PAREN_MATCH;
+        $channel->write(
+            sprintf( "(%u)FALSE link not initialized yet\n", $cmd_id ) );
     } else {
         my $blen  = length( $connection->{'buffer'} );
         my $bytes = <[base.s_write]>->(
@@ -116,14 +119,14 @@ if ( !$connection->{'authorized'} ) {
             );
             <[ssh.connection.stop]>->($con_id);
         } else {
-            substr( $connection->{'buffer'}, 0, $bytes, '' );
+            substr $connection->{'buffer'}, 0, $bytes, '';
         }
     }
 
 }
 
-#,,..,...,,..,.,,,,,,,...,,.,,,..,...,,,.,..,,..,,...,...,..,,...,,,,,..,,,,.,
-#4MMXU54UX5ADP2KJ4IETHG5SM2HJLV3W3B72WIKM57AGIQG6MBDGPCG66QGN7BA4Q3A4T7QMKI2BY
-#\\\|YYWXB6NCUNRKCXMRHRAB2GLVKOU2IAOYJ4Y6UXCHT3GPOKG3UOA \ / AMOS7 \ YOURUM ::
-#\[7]LBGINODJTHODAOTMISZM4VSZ6UHUUL43MEZUOCSYPZ3SDCBOYACI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,,..,...,,,.,.,,,.,.,,,.,,,,,..,,...,...,...,,.,,..,,,,.,.,.,
+#AJILC2MZWMJR7VQOOCA4RMV2CQAZ52LU5P3KMPRHC5RL5RMA6ZETK6CTA5LF4WW6DHMS4KH4NLQK4
+#\\\|NH3L76MZXGYBFJGSVJ67FQBRQRTOF2BLTE3KTPBCCAESPNGF3BU \ / AMOS7 \ YOURUM ::
+#\[7]CITC7FTRA36C2P67LJQ6LPTKWCMA2AZWHDZSJJSXEYK4RH2OGIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
