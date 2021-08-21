@@ -3,14 +3,17 @@
 # name  = ssh.parser.profile_connections
 
 my $profile_name = shift;
-my @connections  = keys %{ <ssh.cfg.profiles>->{$profile_name} };
 
-return '--' if !@connections;
+return 'not-a-profile' if not exists <ssh.cfg.profiles>->{$profile_name};
 
-return join( ' ', @connections );
+my @connections = keys <ssh.cfg.profiles>->{$profile_name}->%*;
 
-#,,,.,,.,,,,.,,..,,,,,..,,..,,,,.,,,,,..,,...,..,,...,...,..,,..,,,,,,,..,..,,
-#SIB5PHKDX5ERTLW5X6YNGCUTE6HMPNC7KN4ZHYDR5VPFSUQZYYQNETPFUFLIG33KLCKDZHZCCPEXC
-#\\\|N537QVLWYL3H3C4LB22XWWWV3ONUFITBNLC2B4G7YSXIHZQS2Z4 \ / AMOS7 \ YOURUM ::
-#\[7]CJTA7ZVGUNBFDCLGWZUTR5JB253IIEJWVG6S72RBE5FUIY34QQAQ 7  DATA SIGNATURE ::
+return qw| --- | if @connections == 0;
+
+return join ' ', @connections;
+
+#,,,,,.,.,.,.,,..,.,,,...,.,.,.,,,,,.,.,,,,..,..,,...,.,.,..,,..,,..,,,.,,.,.,
+#7QABZHHUQ75G2MGPHUWR2IVRYJKUZFIUD2XK7K6IMN75T5ELXUK5KZNACQUNOTMMAMRMEKPZFT6VK
+#\\\|HPLTQWY3CGTA4BELTK4FXFLZ6MMYPWUCN7JFL3JH7XE2HMX4GUV \ / AMOS7 \ YOURUM ::
+#\[7]QYHLCIL4S4P422UFSIASY44XRCM54BYDLKFFFHFFQYTLHAMTDMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
