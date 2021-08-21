@@ -79,18 +79,26 @@ sub terminal_size {
     return ( $size_aref->[1], $size_aref->[0] );
 }
 
+sub set_input_timeout {
+    my $input_timeout = shift // $PASSWD_READ_TIMEOUT;
+    if ( $input_timeout == 0 ) {
+        $TERM_ios->setcc( VTIME, 0 );
+    } else {
+        $TERM_ios->setcc( VTIME, sprintf qw| %u |, 10 * $input_timeout );
+    }
+    $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );    ## discards input ##
+}
+
+sub get_input_timeout {
+    return $TERM_ios->getcc(VTIME);
+}
+
 sub read_to_buffer_TTY {
-    my $buffer_sref     = shift // \$READ_BUFFER;
-    my $input_timeout   = shift // $PASSWD_READ_TIMEOUT;
-    my $tty_read_size   = shift // $TTY_read_size;
-    my $autoinc_timeout = shift // TRUE;
+
+    my $buffer_sref   = shift // \$READ_BUFFER;
+    my $tty_read_size = shift // $TTY_read_size;
 
     my $buffered_bytes = length( $buffer_sref->$* // '' );
-
-    if ($autoinc_timeout) {
-        my $new_timeout = $input_timeout + 0.7 * $buffered_bytes;
-        $TERM_ios->setcc( VTIME, sprintf qw| %u |, 10 * $new_timeout );
-    }
 
     my $bytes_read_count = sysread $TTY_IN, $buffer_sref->$*, $tty_read_size,
         $buffered_bytes;
@@ -156,7 +164,7 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
         $TERM_ios->setcc( VMIN,  0 );
     } else {
         $TERM_ios->setcc( VTIME, 0 );
-        $TERM_ios->setcc( VMIN,  1 );
+        $TERM_ios->setcc( VMIN,  1 );    ##[ minimum characters read ]##
     }
 
     $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );
@@ -164,8 +172,64 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
     return TRUE;
 }
 
-sub close_TTY_no_echo {
-    my $send_newline = shift // TRUE;
+sub wait_or_abort {
+    my $wait_delay      = shift // 1.24;
+    my $time_start      = sprintf qw|%.5f|, Time::HiRes::time;
+    my $delay_remaining = $wait_delay;
+    while ( $delay_remaining > 0 ) {
+        my $status = AMOS7::TERM::discard_buffered_input($delay_remaining);
+        return TRUE  if $status == 2;     ## abort condition ##
+        return FALSE if $status == 1;     ## waiting skipped ##
+        $delay_remaining = $wait_delay    ##[ updating delay ]##
+            - ( sprintf( qw|%.5f|, Time::HiRes::time ) - $time_start );
+    }
+    return FALSE;                         ##  not aborting  ##
+}
+
+sub discard_buffered_input {
+
+    my $input_timeout = shift // 0;       ## optional value for delays ##
+
+    ## return codes ##
+    ##  0 : input discarded
+    ##  1 : continue
+    ##  2 : interrupt
+
+    state $interrupt_re;
+    state $continue_regex;
+    state $seq_END //= chr 126;
+    state $sequ_begin //= join '', map {chr} qw| 27 91 |;
+    if ( not defined $interrupt_re or not defined $continue_regex ) {
+        my @continue_code      = qw| 10 13 |;
+        my @interrupt_asc_code = qw| 3 4 27 |;
+        $interrupt_re   = join '', map {chr} @interrupt_asc_code;
+        $continue_regex = join '', map {chr} @continue_code;
+        $interrupt_re   = qr|[$interrupt_re]|;
+        $continue_regex = qr|[$continue_regex]|;
+    }
+    if ( index( [ caller(1) ]->[3], qw| AMOS7::TERM:: |, 0 ) != 0 ) {
+        ##[ only flush it ]##
+        $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );
+        return 0;    ## input discarded \ no abort ##
+    } else {
+        my $restore_time = AMOS7::TERM::get_input_timeout() / 10;
+        AMOS7::TERM::set_input_timeout($input_timeout);
+
+        ## check for interrupt ##
+        AMOS7::TERM::read_to_buffer_TTY( \my $check_buffer );
+        AMOS7::TERM::set_input_timeout($restore_time);
+
+        ## rem. sequence encoded keys ##
+        $check_buffer =~ s|\Q$sequ_begin\E.$seq_END?||g;
+        ## check for interrupts and continuation key ##
+        return 2 if $check_buffer =~ $interrupt_re;
+        return 1 if $check_buffer =~ $continue_regex;
+    }
+    return 0;    ## regular continuation \ no abort ##
+}
+
+sub reset_read_password_buffer {
+
     $pwd_cur_len = 0 if $pwd_cur_len;
     if ( defined $READ_BUFFER and length $READ_BUFFER ) {
         substr(    ##  clear buffer content  ##
@@ -175,8 +239,15 @@ sub close_TTY_no_echo {
         );
         $READ_BUFFER = undef;
     }
-
     undef @rnd_count;    ## displayed * characters buffer ##
+    return TRUE;
+}
+
+sub close_TTY_no_echo {
+
+    my $send_newline = shift // TRUE;
+
+    AMOS7::TERM::reset_read_password_buffer();
 
     print {$TTY_OUTPUT} chr(10) if $send_newline and defined $TTY_OUTPUT;
     return undef                if not defined $TERM_ios;
@@ -202,7 +273,10 @@ sub read_password_repeated {
     my $password_type_msg = shift // qw| password |;
     my $term_title        = shift // '';
     my $output_lines      = shift // 1;
+    my $input_timeout     = shift // $PASSWD_READ_TIMEOUT;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
+
+    AMOS7::TERM::init_TTY_no_echo( undef, $input_timeout );
 
     ( my $password_0, my $password_1 );
 
@@ -215,10 +289,10 @@ sub read_password_repeated {
             $term_title );
 
         if ( not defined $password_0 and $abort_mode ne FALSE ) {
+            AMOS7::TERM::close_TTY_no_echo(FALSE);
             return undef if defined $main::PROTOCOL_SEVEN;    ##  zenka  ##
             ##[ had already exited otherwise ]##
         } else {
-
             ( $password_1, my $abort_mode )
                 = read_password_single(
                 sprintf( 're-enter %s', $password_type_msg ) );
@@ -236,12 +310,26 @@ sub read_password_repeated {
                         warn_err(' <<  paswords differ  >> <{NC}>');
                     }
                 }
-                sleep 1.2;
+                if ( AMOS7::TERM::wait_or_abort(1.24) )    ##  1.24s delay  ##
+                {    ##[  abort by user  ]##
+                    say '';
+                    if ( defined $main::PROTOCOL_SEVEN ) {
+                        printf "%s:\n", $C{'0'};
+                        $main::code{'base.log'}
+                            ->( 0, ' [ password read aborted ]' );
+                        printf "%s:\n", $C{'0'};
+                    } else {
+                        AMOS7::TERM::close_TTY_no_echo(FALSE);
+                        error_exit(' [ password read aborted ]');
+                    }
+                }
             }
             if ( $abort_mode ne FALSE ) {
                 undef $password_0;
                 undef $password_1;
                 print $C{'R'};
+
+                AMOS7::TERM::close_TTY_no_echo(FALSE);
                 return undef;
             }
         }
@@ -249,6 +337,7 @@ sub read_password_repeated {
 
     print sprintf( "%s:\n", $C{'0'} ) x $output_lines;
 
+    AMOS7::TERM::close_TTY_no_echo(TRUE);
     return $password_0;
 }
 
@@ -293,8 +382,15 @@ REREAD_PASSWORD:
 
     terminal_title($term_title) if length $term_title;
 
-    AMOS7::TERM::init_TTY_no_echo( $colored_prompt, $input_timeout );
-
+    if ( [ caller(1) ]->[3] ne qw| AMOS7::TERM::read_password_repeated | ) {
+        AMOS7::TERM::init_TTY_no_echo( $colored_prompt, $input_timeout );
+    } else {
+        ##[ flushing input again ]##
+        AMOS7::TERM::discard_buffered_input();
+        AMOS7::TERM::reset_read_password_buffer();
+        AMOS7::TERM::set_input_timeout($input_timeout);
+        print {$TTY_OUTPUT} $colored_prompt;
+    }
     my $abort_mode               = FALSE;
     my $continue_reading         = TRUE;
     my $extended_processing_mode = TRUE;
@@ -304,8 +400,8 @@ REREAD_PASSWORD:
         my $show_stars = TRUE;
 
         my $read_chrs
-            = AMOS7::TERM::read_to_buffer_TTY( \$read_chars_buffer, undef,
-            $tty_read_size, $autoinc_timeout );
+            = AMOS7::TERM::read_to_buffer_TTY( \$read_chars_buffer,
+            $tty_read_size );
 
         ##  XOR passwd mode  ##
         $extended_processing_mode = FALSE
@@ -445,7 +541,8 @@ REREAD_PASSWORD:
 
     reset_stars() if not $LF_found and $extended_processing_mode;
 
-    AMOS7::TERM::close_TTY_no_echo();
+    AMOS7::TERM::close_TTY_no_echo(TRUE)
+        if [ caller(1) ]->[3] ne qw| AMOS7::TERM::read_password_repeated |;
 
     $read_chars_buffer = $XOR_buffer if not $extended_processing_mode;
 
@@ -455,6 +552,7 @@ REREAD_PASSWORD:
     ###
     if ( defined $read_chars_buffer
         and length($read_chars_buffer) < $pwd_min_len ) {
+        say '';
         if ( defined $main::PROTOCOL_SEVEN ) {
             printf "\n%s:\n", $C{'0'};
             $main::code{'base.logs'}
@@ -464,22 +562,35 @@ REREAD_PASSWORD:
                 -1, $pwd_min_len );
         }
         $read_chars_buffer = '';    ##  reset password entered  ##
-        Time::HiRes::sleep 1.2;
-        goto REREAD_PASSWORD;
+        if ( AMOS7::TERM::wait_or_abort(1.24) )    ##  1.24s delay  ##
+        {                                          ##[  abort by user  ]##
+            say '';
+            if ( defined $main::PROTOCOL_SEVEN ) {
+                printf "%s:\n", $C{'0'};
+                $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
+                printf "%s:\n", $C{'0'};
+            } else {
+                AMOS7::TERM::close_TTY_no_echo(FALSE);
+                error_exit(' [ password read aborted ]');
+            }
+        } else {
+            goto REREAD_PASSWORD;
+        }
 
         ##  display abort reason messages  ##
         ##
     } elsif ( $abort_mode eq qw| user-interrupt | ) {  ##[  abort by user  ]##
-
+        say '';
         if ( defined $main::PROTOCOL_SEVEN ) {
             printf "%s:\n", $C{'0'};
             $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
             printf "%s:\n", $C{'0'};
         } else {
+            AMOS7::TERM::close_TTY_no_echo(FALSE);
             error_exit(' [ password read aborted ]');
         }
     } elsif ( $abort_mode eq qw| timeout | ) {         ##[ timeout ]##
-
+        say '';
         if ( defined $main::PROTOCOL_SEVEN ) {         ##  zenka  ##
             printf "%s:\n", $C{'0'};
             $main::code{'base.log'}->( 0, '[ password input timeout ]' );
@@ -489,6 +600,7 @@ REREAD_PASSWORD:
                 Event::loop(0.007);
             }
         } else {
+            AMOS7::TERM::close_TTY_no_echo(FALSE);
             error_exit(' [ password input timeout ]');
         }
     }
@@ -609,8 +721,8 @@ sub reset_stars {
 
 return TRUE ##################################################################
 
-#,,,,,.,.,,.,,..,,.,,,..,,,,.,,.,,..,,.,.,,.,,..,,...,...,...,,,,,,,.,.,.,,..,
-#2Y3ZVGT2PKKYTWPZMJRXLKCDHH472F2VRPQK3X7YSSPGLF7MVMDKPLQE6XJYD6CWTEP36IY5JGCG4
-#\\\|MYNOB5WC65HRPMLBYJZSZNTR2IMY5F7ZXVAVHRKUGEVJ7JYIHHR \ / AMOS7 \ YOURUM ::
-#\[7]F3QVWUIJKS6EXBIUVF2V65UQUD3SVSLK3JZWH4HSIC3F2EFDFOBQ 7  DATA SIGNATURE ::
+#,,,,,...,...,.,,,.,.,,,.,...,..,,.,,,,.,,,..,..,,...,...,,..,,..,,,,,..,,,.,,
+#4N22LG3F3UWBHR7LBSDZLPMVSGGSDNHDOUZTNBOUJF5OMC72BUBVUGZACZHUTSS3GGDEGI7ID7JMI
+#\\\|WTIQLAZJM5UI56P7HJ5TQBXZEBOFRSE57ZXDNNA22IF6XNJYSD2 \ / AMOS7 \ YOURUM ::
+#\[7]EQFYZAQSHFY7Q2FZUUTCP6QE3ZOXBP63EVBQSTUZJCOVAJ4F3MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
