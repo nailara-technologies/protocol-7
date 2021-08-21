@@ -3,12 +3,12 @@
 # name  = base.resolve_hash
 # descr = translate 'system.zenka.name' type key to \%data ref and return it
 
-my $key_ref      = *data{HASH};
 my $data_key_str = $ARG[0] // '';
+my $key_ref      = $ARG[1] // *data{HASH};
 
-my $quoted_key = 0;
+my $quoted_key = FALSE;
 if ( index( $data_key_str, qw| ' |, 0 ) >= 0 ) {    ## quoted '.' syntax ##
-    $quoted_key = 5                                 ## true ##
+    $quoted_key = TRUE                              ## true ##
         if $data_key_str =~ s{(^|\.)(*nlb:\\)'(.+)(*nlb:\\)'(\.|$)}{
                                 my $k = $1; $k =~ s|\.|\0|g;
                              }e;
@@ -33,8 +33,8 @@ foreach my $sub_key ( split( '\.', $data_key_str ) ) {
 
 return $key_ref;                         ## recursion return value ##
 
-#,,..,...,,.,,.,,,.,.,.,.,.,,,,.,,,.,,..,,.,.,..,,...,...,...,.,.,...,,.,,.,.,
-#5GQG7NHGT72F6BOXTKGITXX223ONIERQCI74KB7JM3OTH5NS2CJ22GR22CF5GEISQMDGMHNBE6GNM
-#\\\|4OCZQW4KYQD7CKESAW3F72IWNSNDNCKDWSE2MBL3OH5F76CC6IA \ / AMOS7 \ YOURUM ::
-#\[7]ER6JAZ243C7VCTXIQVZHB5NRKKB2XYRZNJQKIKSP6GJPD6HQ42CA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,.,,,,.,,,..,.,.,...,,,,,,,.,..,,...,...,...,..,,,.,,,,.,.,,,
+#RAKRQZKQOB3D7YNKT2XWAUSHQSKBOUX2QFPWWGYJEDUQVXF2UOO7GL2UDEOXTCM242ZJFJ5MUHXT4
+#\\\|H2VXHFNDFBLUDKY6VZ5UFD7WW3NYDLPDQJ26NDS6CKTVFQGEX7N \ / AMOS7 \ YOURUM ::
+#\[7]FZ72IVOLJBRRG6G4W754YXBFKBOUJWHE5MYOKFDLNCL7ZCLX2WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
