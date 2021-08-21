@@ -9,6 +9,14 @@ my $open_mode_str = shift // qw| > |;
 my $file_mode     = shift // 0600;
 my $encoding_str  = shift // qw| :raw |;
 
+my $global_config_path    = FALSE;
+my $zenkaname_path_prefix = TRUE;
+
+$global_config_path = TRUE if $filepath_rel =~ s|^cfg-dir:||;  ##  /etc/.., ##
+
+$zenkaname_path_prefix = FALSE    ## /etc/<zenka> ? ##
+    if $global_config_path and $filepath_rel !~ s|<zenka>/||;
+
 if (   not length $filepath_rel
     or index( $filepath_rel, qw| / |,  0 ) == 0
     or index( $filepath_rel, qw| .. |, 0 ) != -1 ) {
@@ -22,19 +30,33 @@ if (   not length $filepath_rel
     return undef;
 }
 
-my $zenkaname       = <system.zenka.name>;
-my $var_run_path    = <system.path.zenka-dirs.run_p7>;
-my $zenka_write_dir = catfile $var_run_path, $zenkaname;
+my $zenka_dir_href = <system.path.zenka-dirs>;
 
-if (    not -d $zenka_write_dir
-    and not <[base.path-set-up.check-zenka-paths]>->(TRUE)
-    or not -d $zenka_write_dir ) {
-    <[base.s_warn]>->(
-        'cannot create temporary zenka output directory [ %s ]',
-        $zenka_write_dir
-    );
-    return undef;
-} elsif ( -f $zenka_write_dir and not -w $zenka_write_dir ) {
+my $zenka_write_dir = $global_config_path
+    ? $zenka_dir_href->{'etc_P7'}     ##[  /etc/protocol-7/  ]##
+    : $zenka_dir_href->{'run_p7'};    ##[  /var/run/protocol-7  ]##
+
+if ($zenkaname_path_prefix) {    ## use zenka subdirectory ? ##
+    my $zenkaname = <system.zenka.name>;
+    $zenka_write_dir = catfile $zenka_write_dir, $zenkaname;
+}
+
+if ( not -d $zenka_write_dir ) {    ##  creating directory if missing  ##
+    my @check_zenka_paths_options = ( TRUE, undef );
+    unshift @check_zenka_paths_options, ( undef, undef )
+        if $global_config_path and $zenkaname_path_prefix;
+    if (not
+        <[base.path-set-up.check-zenka-paths]>->(@check_zenka_paths_options)
+        or not -d $zenka_write_dir ) {    ##  success creating dir ?  ##
+        <[base.s_warn]>->(
+            'cannot create temporary zenka output directory [ %s ]',
+            $zenka_write_dir
+        );
+        return undef;
+    }
+}
+
+if ( -f $zenka_write_dir and not -w $zenka_write_dir ) {
     <[base.s_warn]>->(
         'no write permission to zenka output directory [ %s ]',
         $zenka_write_dir
@@ -76,8 +98,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,.,.,.,,,.,...,.,.,,.,,...,..,,..,,,,,,.,.,..,,...,...,,.,,...,..,,.,.,,..,
-#5OPRZRHMDYZNTG3Q6Z6TZX4W4JY4YLQAGIJ7BO5FA3VNYYFMXGWUR4BQ6MVTORPA5V6SGAEEFZOTG
-#\\\|44YEV6Q3L4UZTWBHCVVC72HGCHMXWJMAHBIEBTVZA6OCVFUXUPI \ / AMOS7 \ YOURUM ::
-#\[7]YFJNDSVNPSS4ZMAY5EXQD4VZSZ7ZJHYVSQLNP7RS7ZN5FJ726OAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,..,,,.,...,,..,,.,,..,,.,,,,,.,..,,...,...,...,.,,,.,,,,,,,,..,
+#EAD2XH2VBLVYXMOLM365DREUWMF2QDVK2OH2U4Y3DGN6EDEZC4G77IPW5EVQV3VJYARM6P624DVEU
+#\\\|MWH5V7DSF7M5N4MSLKO2WBFC4FIMVBLC5HQ6TZPLGQZJ6Q7BSJM \ / AMOS7 \ YOURUM ::
+#\[7]SXBE7G7AVWY3UL44DDFTUNXUPO2G3HMUEQKZDJR7UT5MIXOPYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
