@@ -20,6 +20,7 @@ use AMOS7::INLINE;
 ## AMOS7::BitConv ##
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
+use Digest::BMW;
 use Fcntl qw| :seek |;
 use Crypt::Misc qw| encode_b32r |;
 use Crypt::PRNG::Fortuna qw| irand |;
@@ -859,7 +860,7 @@ sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
     } elsif ( not defined $pass_sref->$*
         or length( $pass_sref->$* ) < $min_seed_data_len ) {
         warn_err( 'expected password length is at least %d characters',
-            1, length( $pass_sref->$* ) );
+            1, $min_seed_data_len );
         return undef;
     }
 
@@ -921,6 +922,49 @@ RECALCULATE_KEY_32:
     }
 
     return $enc_bin;       ##  binary encryption key  ##
+}
+
+sub key_56 {    ##  BMW 384 based key [chksum] derivation function  ##
+
+    my $pass_sref    = shift;    ##  scalar ref to password or phrase  ##
+    my $keyname_seed = shift;    ##  optional name to influence entropy  ##
+
+    if ( ref $pass_sref ne qw| SCALAR | ) {
+        warn_err('expected scalar ref param to passphrase <{C1}>');
+        return undef;
+    } elsif ( not defined $pass_sref->$* ) {
+        warn_err('input data reference points to undefined value');
+        return undef;
+    }
+
+    my $pass_chksum = encode_b32r Digest::BMW::bmw_384(    ##[ length  77 ]##
+        ( defined $keyname_seed and length $keyname_seed )
+        ? sprintf( qw| %s:%s |, $keyname_seed, $pass_sref->$* )
+        : $pass_sref->$*    ##  name prefix if defined  ##
+    );
+
+    ##  removing 21b  ##
+    my $second_entropy_str = substr $pass_chksum, 56, 21, ''; ##[keeping it]##
+    my $next_round_str     = '';
+    my $xor_char_pos = 56 - 1;  ##[ harmonization using XOR and reencoding ]##
+    while ( $xor_char_pos >= 0
+        and not AMOS7::Assert::Truth::is_true( $pass_chksum, FALSE, TRUE ) ) {
+        my $pos_byte = substr $pass_chksum, $xor_char_pos, 1;
+        my $xor_byte = substr $second_entropy_str, 0, 1, '';
+        $pos_byte ^.= $xor_byte;
+        substr $pass_chksum, $xor_char_pos, 1, $pos_byte;    ## replace ##
+        $pass_chksum = encode_b32r $pass_chksum;    ## reencode the encoded ##
+        $second_entropy_str .= substr $pass_chksum, 56, 34, '';    ## of 90 ##
+        $next_round_str .= $xor_byte;    ##  store it for next round  ##
+
+        if ( not length $second_entropy_str ) {    ## char pos completed ##
+            $second_entropy_str = $next_round_str;    ## reset to stored ##
+            $xor_char_pos--;         ## advance character pos left ##
+            $next_round_str = '';    ##  resetting  for next round  ##
+        }
+    }
+
+    return $pass_chksum;    ##  returning harmonized 56 byte bmw checksum  ##
 }
 
 ##[ BINARY OPERATIONS ]#######################################################
@@ -1191,8 +1235,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,,.,...,..,,...,,,,,.,,,,.,,.,.,,,.,..,,,,,,..,,...,...,,..,.,,,.,.,..,,,,,,
-#56VZTPFNI5FOO4GALUR46NZXTLNIBJJ7S2CBYNKZKTJOBRZYBANLYFNPBV42CP3G5L2VGTB7UWUFO
-#\\\|A5JCB5BYEMF53G5EPNB7JTTKDMWYR7YWTYGZKPT4C4WYCQ4TZG2 \ / AMOS7 \ YOURUM ::
-#\[7]2UG7ROZKGLBRZGBQDKNDPTZD4SULOABZT4GIC2RRGCGSJLCK3UDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,,,,,...,,,,,.,.,.,.,,..,.,,,..,,...,...,,..,,,,,...,,..,,,.,
+#SWTA3MHWLHUUBXT4QKG2IJ5HOY2CKABILAWDDY3KKZZBHOOCKWQRWA2LWSPBQTB4EYQ3QPO3HJQEY
+#\\\|JTEJKFSDDB4PDEZOP7BG37UMJ4NJHZNUNPQTTZ23KHJOTWX5DKJ \ / AMOS7 \ YOURUM ::
+#\[7]FBHZ4IBUXYZBUKOWCUGHCQDSB53QSOYKGJBME7ATKTKEWHKMOMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
