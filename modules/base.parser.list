@@ -23,20 +23,29 @@ warn "variable name '$h_name' not valid <{C1}>" and return $list_error
     if $h_name !~ m|^[a-z][\w_]*$|i;
 
 if ( $h_key !~ m|\.| ) {
+
     no strict qw| refs |;
     $data_ref = ${$h_name}{$h_key};
     use strict qw| refs |;
+
 } elsif ( $h_key =~ m|^\w[\w\.\-]+\w$| ) {
-    $h_key =~ s|\.|'}{'|go;
+
     no strict qw| refs |;
-    eval "\$data_ref = \${'$h_name'}{'$h_key'}";
+    $data_ref = <[base.resolve_hash]>->( $h_key, \%{"$h_name"} );
     use strict qw| refs |;
-    die $EVAL_ERROR if length $EVAL_ERROR;
+
+    <[base.s_warn]>->(
+        "parser.list: no match for '%s' in '%%%s' hash <{C1}>",
+        $h_key, $h_name
+        )
+        and return $list_error
+        if not defined $data_ref;
+
 } else {
-    die "invalid list key syntax in '$h_key'";
+    die "list key syntax in '$h_key' not valid";
 }
 
-warn "parser.list: data reference '\$$h_name' not defined <{C1}>"
+warn "parser.list: hash '\%$h_name' not defined <{C1}>"
     and return $list_error
     if not defined $data_ref;
 
@@ -59,12 +68,13 @@ foreach my $key_name ( $display_keys->@* ) {
             if defined $sub_key
             and not exists $data_ref->{$key_val}->{$sub_key}; # only requested
         my $value_str = $key_val;
-        if ( !$index ) {
+        if ( $index == 0 ) {
             $value_str = $data_ref->{$key_val}->{$key_orig_str};
         }
         $value_str //= '';
         my $filtered_val
-            = <[base.call_filter]>->( $filters, $key_orig_str, $value_str );
+            = <[base.call_filter]>->( $filters, $key_orig_str, $value_str )
+            // '';    ##  <--  warn when undefined ?  [LLL]
         $max_len{$key_name} = length($filtered_val) + 4
             if length($filtered_val) > $max_len{$key_name} - 3;
     }
@@ -168,8 +178,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,..,,,,,,...,,,.,.,,,..,,..,,.,,,..,,.,.,..,,...,..,,..,,,.,,..,,,,,,.,.,
-#HICVHJJCDTJS3J6GP4SVOSPKNOBGBRPAPTI65C6DMFYILU5X2RJVTSBHP3AI3RQBALAN3A3W2ZGTO
-#\\\|F4DDSGLYETA4DPDIWSMTMBBXB7BUSER4U7YM4I65EZCPNEZEAZ2 \ / AMOS7 \ YOURUM ::
-#\[7]AN2HYKOWRDRX2X2TPCOQV2TMTZVNJO2DOKVD3VU5LM5GHTBGQGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,.,,,,..,,,.,,,.,,.,,.,,,,.,,..,,...,...,,..,.,.,.,,,,,.,,,,,
+#AYA3NN3MYYPUIXZPA4EVKHC2BNYUKTK7DVQNV52OATAX6DTIF2JLHVXAM2P4F44V4GN5JVCQ4DZBU
+#\\\|JJZ5XQ7EATTSNOXO46SJK5PI5QNFAGMZQB7TNL4YOF2AI7KUG64 \ / AMOS7 \ YOURUM ::
+#\[7]NXRHB7DW55GOSNO4ETOWNJKHX6C64EH3VRE3PCNHEGQM4DC444AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
