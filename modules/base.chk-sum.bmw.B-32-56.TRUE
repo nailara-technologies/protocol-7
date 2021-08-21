@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.B-32-56.TRUE
+# descr = returns harmonized [ to 56 truncated ] B32 BMW 384 checksum string
+
+my $input_string_sref = $ARG[0];
+my $key_name_param    = $ARG[1]; ## optional [ prefixed with ':' to input ] ##
+
+warn 'data param not defined <{C1}>' and return undef
+    if not defined $input_string_sref
+    or ref $input_string_sref eq qw| SCALAR |
+    and not defined $input_string_sref->$*;
+
+$input_string_sref = \$ARG[0] if not length ref $input_string_sref;
+
+return AMOS7::13::key_56( $input_string_sref, $key_name_param );
+
+#,,,,,.,.,...,,,.,..,,..,,,,.,..,,.,.,.,.,...,..,,...,...,,,,,.,.,...,,,.,,,.,
+#3CKURYPXR2O4GDIZDMQ4JG57CYVZ7FIBRTR5GZUFZNNXJ2BRUHL42NQNKFFBR6SAEFT6FHTBMT2DA
+#\\\|7G7TJR343UMEPKIDVSIPWHTZYZLNEECKH6E647H5ZNMTIQFJ3H6 \ / AMOS7 \ YOURUM ::
+#\[7]TX3FTEAPF2UOVN7OKLEQJZPX6TVXSKP257E45WSLH3ZFHT7K2IDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
