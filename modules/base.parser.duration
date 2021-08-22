@@ -37,7 +37,7 @@ if ( $secs >= ONE_MINUTE() ) {
     $result{'minutes'} = sprintf qw| %d |, $secs->minutes;
     $secs -= $result{'minutes'} * ONE_MINUTE();
 }
-$result{'seconds'} = $secs->seconds if $secs;
+$result{'seconds'} = sprintf qw| %.*f |, $precision, $secs->seconds if $secs;
 
 if ( $result{'years'} and not $result{'days'} ) {
     push @result, sprintf '%d year%s', $result{'years'},
@@ -84,8 +84,8 @@ $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,.,,.,,,...,..,,.,,,.,.,,..,,.,,.,.,.,,,...,..,,...,...,,.,,.,,,,,.,.,.,.,.,
-#ZDGF6RYQTGNIA2TFUKN3UGJLBG65A32LMQPYEU6BKP4PTKMC3PVQXMH7AXLBMN3K2VP3JORS2GRQA
-#\\\|ZKQRQNDIW4TGXQ4VTBYXYBBTLL5UXY2YT7FOQTUYNUIA6VN6KFH \ / AMOS7 \ YOURUM ::
-#\[7]3PWSZWZCNWTU77I6L37KIG45ZNT4Y7ARW7324CBYK2DUUWSD7ICA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,,,.,.,..,,,.,,,..,,.,,,.,,,.,,..,,...,...,,..,.,,,..,,.,,,...,
+#3FZRXQWJQKRU7YXQ6TLNPPILOEVEC7YTQNXCDJXHQCKNLBVJHQKUCRLVP6AMATWN6UWPLQXRWVEAY
+#\\\|H3Z5CQFSLHVKAW6NTVK2ZY7XOQQEH57WVSCILAWRFHIK7PPUUEE \ / AMOS7 \ YOURUM ::
+#\[7]WQ5TQWHCNG4NSTA2RBSDGU2N2RUI5NPSANW4RDYAMJ7Q67CSUAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
