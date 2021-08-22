@@ -4,21 +4,25 @@ use strict;
 use English;
 use warnings;
 use Time::HiRes;
-use Term::ReadKey;
+use Term::ReadKey;    ## <-- replace with AMOS7::TERM ##
 use Cwd qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
 use File::Which qw| which |;
 use Time::HiRes qw| sleep |;
 
-my $no_utf8 = 0;    ##  false  ##
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
-$no_utf8 = 5
+my $no_utf8 = FALSE;        ##  false  ##
+
+$no_utf8 = TRUE
     if @ARGV > 1
     and defined $ARGV[0]
     and $ARGV[0] eq qw| :noutf8: |
     and shift @ARGV;
 
-$OUTPUT_AUTOFLUSH = 5;    ## true ##
+$OUTPUT_AUTOFLUSH = TRUE;    ## true ##
 
 my @ptd_args = qw|-q -pbp -utf8 -l=78 -bar -sot -ce -nst -b -bext='/backup'|;
 
@@ -66,7 +70,7 @@ while ( my $file_path = shift @files ) {
 
     ## todo : use capurex , replace ReadKey .. [ using AMOS7::TERM ] ##
 
-    ReadMode 5;
+    ReadMode TRUE;
     no warnings;
     my $return_code = eval { system( $ptd_bin, @ptd_args, $file_path ) };
     use warnings;
@@ -106,7 +110,7 @@ sub sort_files {
 
 sub is_perl_code {
     my $file = shift;
-    return 0 if not -f $file or -z $file;
+    return FALSE if not -f $file or -z $file;
     my $is_code = 0;    ##  false  ##
     open( my $fh, qw| < |, $file ) or die ":\n:: \l$OS_ERROR :: $file\n:\n";
     my $first_line = '';
@@ -123,14 +127,15 @@ sub is_perl_code {
     }
 
     if ( defined $first_line ) {
-        $is_code = 5    ## true ##
+        $is_code = TRUE    ## true ##
             if $first_line eq '## [:< ##'
             or $first_line =~ m|^#!.*perl|
-            or $first_line =~ m|^package .+;(\s*#.*)?$|;
+            or $first_line =~ m|^package .+;(\s*#.*)?$|
+            or $file       =~ m|\.pm$|;                   ## perl module ##
     }
 
     print color_msg( 'skipping config.,', $file, $blacklight )
-        and return 0
+        and return FALSE                                  ##  false  ##
         if $is_code
         and index( abs_path($file), qw| /configuration/ |, 0 ) != -1;
 
@@ -150,7 +155,7 @@ sub show_progress {
     my $file_num    = shift;
     my $files_total = shift;
     my $chars_max   = 13;
-    my $character   = ':';
+    my $character   = qw| : |;
     my $char_count  = int( $chars_max * $file_num / $files_total );
     my $perc_chars  = $character x $char_count;
 
