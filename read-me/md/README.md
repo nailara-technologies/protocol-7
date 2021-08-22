@@ -1,15 +1,15 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZKH556NWKA-4768.0 ]
+### [ source code version : ZKH7NWMYOY-4769.0 ]
 
 ### ( this is the public domain [license](../license)d 'base' branch )
 ---
 ## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.36.3](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.36.3)
 ---
 
-#,,.,,...,,,.,,.,,..,,...,,..,,..,.,,,.,.,...,..,,...,...,.,,,..,,,.,,.,.,,..,
-#USO6OYHRKRE6MV767R5NCKGSJSSTKURT6EL3R3H7W6ZQTFX7WXL2CPXFNNHT2M7NMCR3NFOEQYVEI
-#\\\|CR26R3OEWBRLN2GJHHXAG64ETFK2L3CMV55H6FWPUN377JPFEFP \ / AMOS7 \ YOURUM ::
-#\[7]QUAG5PGLK433TX6ZCZMCORGWON4EBVVXIJPZZ3ISLYTLEY6CWGBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,...,.,,,.,.,.,.,,,.,,,.,,,,,..,,...,...,..,,.,.,,.,,.,,,,.,,
+#DQEH6K7LB6VE6WLMSNJMRUHR67WYO4F3REZLYVEWQEGP57JMFFS5FIRGETOPDGSE6OFVXCGXCTITU
+#\\\|BA3CUQNSWZ4RLMF2SGPLGO2LFKYFOAGVOCZGPBJHP3WG32VKVXO \ / AMOS7 \ YOURUM ::
+#\[7]ETNBMRFZLVJFTEALG7WSEDUXGHTSF2C6HEFX3BGTYRCJSKQCSYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

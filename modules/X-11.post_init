@@ -316,7 +316,8 @@ if (    <X-11.has_dpms>
     ## default timeout [seconds] ##[ 13 minutes ]##
     ##
     my $t_sec = <X-11.blank_timeout> //= 780;
-    <[base.logs]>->(': configured DPMS screen blanking [%03ds] ..,');
+    <[base.logs]>
+        ->( ': configured DPMS screen blanking [%03ds] ..,', $t_sec );
     <X-11.obj>->DPMSInfo();
     <X-11.obj>->DPMSSetTimeouts( $t_sec, $t_sec, $t_sec );
     <X-11.obj>->DPMSInfo();
@@ -372,8 +373,8 @@ if ( defined $bg_image ) {
 
 return 0;    ## success
 
-#,,,.,.,,,,..,.,,,.,,,...,..,,..,,,.,,,..,.,.,..,,...,...,,..,.,.,,..,,,.,,,.,
-#JDZVURBUBCV27PP7OUFT4CS35F6KP7TZXGA32FR454K5ITAQAXYGHIVOAWTVDI3SXV74F55VB6WRM
-#\\\|X6H7F4O6GSA6NYD523HCT4FPLQMRSPZJYOVQJUXEFSVNDW3LOTP \ / AMOS7 \ YOURUM ::
-#\[7]TF6YFDPYOYKF2GNIYA5YG6BL776UYDHLXIDYBXE3RCO3BKUK5CDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,.,.,,..,..,,,..,.,,,,,,,...,..,,...,..,,,,,,.,,,...,,,.,,..,
+#6T3SHRYFDMWUIJW5S3MKKBKBK5WQDK75T5C2UA3AEAQWOBH427BOPDFM2TVUB7JA6HZPIN5MIYA6E
+#\\\|RUPK6QNNPBRDOUMOQUQIE2DG7SSWDQ3MEYKWFQASPWMLSZCAU5H \ / AMOS7 \ YOURUM ::
+#\[7]RB42VXKQJHG3GAQOOK7JH3EY3L4CD5HWWI3R7RD2BLL4JRTPVGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
