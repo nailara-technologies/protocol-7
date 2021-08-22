@@ -31,8 +31,9 @@ if ( length $key_href->{'r-type'} or not defined $key_href->{'r-data'} ) {
     return 0    ##  entry type not valid \ access denied  ##
 }
 
-if ( $key_href->{'r-data'} eq <[chk-sum.bmw.B-32-56.TRUE]>->($password_str) )
-{
+if ($key_href->{'r-data'} eq    ## 'salted' with <uname>: prefix ##
+    <[chk-sum.bmw.B-32-56.TRUE]>->( $password_str, $uname_str )
+) {
 
     ##[  authorized .., ]##
     ##
@@ -42,8 +43,8 @@ if ( $key_href->{'r-data'} eq <[chk-sum.bmw.B-32-56.TRUE]>->($password_str) )
     return FALSE;    ##  false  ##
 }
 
-#,,.,,,,,,,..,,,,,...,,,,,..,,.,.,..,,..,,.,.,..,,...,.,.,.,,,,.,,.,.,...,,..,
-#PLVUZ5XMXVJI7MNTMHACMPRDSUURFDKTDCRYOBDYMNNPXKHJ5DSU724QHZJKO52F52G3LDQMVQSKQ
-#\\\|AOUTEDF54BLPHP2BQLXNDLMBOKCSVQV3FT7HPTH35NTQIJ7PXZ6 \ / AMOS7 \ YOURUM ::
-#\[7]PDJUY4KB43VFCHMROJSE6KSDMP62467SBUQKRULOTTJ663GOU6BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,,,.,,.,,,,.,,,,,.,,,.,,,,.,,..,,...,...,...,,.,,..,,..,,..,,
+#UJLCH4NDCSTLM6R5WHE677L5AW5GMAEYBE3QBBFKEXTUMCKFGZKFS3GYJ4CF2RLHRVHQV6B6DEHNU
+#\\\|BILQXQDIBU5DNVRCLRVDGIT6U2X33QHBJ3IEULVGYSTIGWK34JR \ / AMOS7 \ YOURUM ::
+#\[7]TGJQHQXFPR6Z37J3HVCRWYO2IR644I4L3QQDZE44H3WKQAZ2WWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

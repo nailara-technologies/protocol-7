@@ -73,12 +73,12 @@ die sprintf( " ::\n :::[ %saborted %s\\%s username required%s ]\n%s\n",
     or not defined $pass
     or not length $pass;
 
-$pass = key_56( \$pass );
+$pass = key_56( \$pass, $user );    ## 'salted' with <uname>: prefix ##
 
 my $new_file = FALSE;
 
 if ( !-f $DATA{'conf'}{'file'} ) {
-    $new_file = TRUE;    ## true ##
+    $new_file = TRUE;               ## true ##
     open( NEW, ">$DATA{'conf'}{'file'}" )
         or die " ::\n :::[ cannot create user config file ]\n\n";
     print NEW "\n  .: nailara user config :.\n\n";
@@ -135,8 +135,8 @@ close(CONF);
 
 print " ::\n :\n\n";
 
-#,,.,,...,..,,...,,,.,,,,,..,,..,,.,.,,,,,,..,..,,...,.,.,...,,.,,...,,,.,...,
-#CSAP3QQKRYP575GV443ZLYMQLMXMZPO6RLY2ROJH6CNWAWYGRCUU7A3DWYCPEKZH5PJ6QSU4UZAYY
-#\\\|Q363M3KHK4W6RGDA2OWKZELINJJTIGNNVJKRFVRGB3CKSKKUHYR \ / AMOS7 \ YOURUM ::
-#\[7]D2IQ44DCVCB6EHG7ELIMB7DUE7A7YAQPXZUTF2LJYNRESUQQCOCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,.,,,.,.,...,..,,.,,,.,,,,..,.,.,..,,...,...,.,.,,..,..,,.,.,,.,,
+#KI2BXW5FCNJW7SERX4ILIGLVUNPS7Y7T7K4NHHV2AEWI5E6UQCKMTNZXRWSI6PD6HCYLQXRUO7RVM
+#\\\|XJ5ICVJUAMMVXI3XQ33RCFKAIWZSQJ4MPGOLBIB5IQBFXFWEMIF \ / AMOS7 \ YOURUM ::
+#\[7]RDG3GALH7NG2PIXWP25T3IK5ZLGJQ7VLLYYPDJMM7J4IT4JGKUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
