@@ -37,6 +37,7 @@ use base qw| Exporter |;
 @EXPORT = qw[
 
     key_32
+    key_56
     divide_13
     gen_entropy_string
     gen_entropy_values
@@ -1235,8 +1236,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,..,.,,,,,,,.,.,,,,,...,,,,,.,.,.,.,,..,.,,,..,,...,...,,..,,,,,...,,..,,,.,
-#SWTA3MHWLHUUBXT4QKG2IJ5HOY2CKABILAWDDY3KKZZBHOOCKWQRWA2LWSPBQTB4EYQ3QPO3HJQEY
-#\\\|JTEJKFSDDB4PDEZOP7BG37UMJ4NJHZNUNPQTTZ23KHJOTWX5DKJ \ / AMOS7 \ YOURUM ::
-#\[7]FBHZ4IBUXYZBUKOWCUGHCQDSB53QSOYKGJBME7ATKTKEWHKMOMDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,.,,,,,,.,,,.,,,,.,,,,,,,,.,.,,,..,,...,...,...,,,,,..,,,.,,,..,
+#G4P4VFNOHFSPSIF52IX7EDOYJVIUPRFZFOC42FM2ZTDJLBEFURVYQF6PI5CA52ZSSQH33ISKEQVAA
+#\\\|HMZHAXYNYNX2QCAXPAUPL2CNHJ3UOYF4RQKHXTXM7D5RIZO4FFG \ / AMOS7 \ YOURUM ::
+#\[7]6NY4SN7SC7MG5LLFZ4MD22ECET3N55BHFJRMCXKXZYU7JXBUQGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

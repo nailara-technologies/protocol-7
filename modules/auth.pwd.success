@@ -16,11 +16,6 @@ if ( not defined $uname_str ) {
     return undef;
 }
 
-#######
-<[base.log]>->( 0, 'called deprecated auth.pwd implementation.' );
-return FALSE;
-############
-
 return 0 if not length $uname_str;    ## not authorized \ username required ##
 
 my $key_href
@@ -36,11 +31,8 @@ if ( length $key_href->{'r-type'} or not defined $key_href->{'r-data'} ) {
     return 0    ##  entry type not valid \ access denied  ##
 }
 
-if (FALSE) {
-
-    ## to be replaced with AMOS7::13::key_56 ##
-    ##
-    ## $key_href->{'r-data'} eq uc <[ chk-sum.sha.1 ]>->($password_str) ) {
+if ( $key_href->{'r-data'} eq <[chk-sum.bmw.B-32-56.TRUE]>->($password_str) )
+{
 
     ##[  authorized .., ]##
     ##
@@ -50,8 +42,8 @@ if (FALSE) {
     return FALSE;    ##  false  ##
 }
 
-#,,..,,..,.,,,,..,,..,..,,.,.,,,,,,,.,,..,..,,..,,...,...,..,,,,.,,.,,..,,,,,,
-#ZQPKX56PKMURPIMH7ITW2CVBPOHQY5WX2XMW2EQNXTWYWJB2SIYJAACPCPC3GQIQKA2AKYFEIERYW
-#\\\|5ZIVWLVZVSHHUF4D43OFRJFYY3YZDGBEGAWITTHGLAXFXJMX7JR \ / AMOS7 \ YOURUM ::
-#\[7]XJ5X3V2OVAWIQEYYAGZZ2L7QYPOYXJBKHOI3MW64OP5B73WEZWBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,...,,,,,..,,.,.,..,,..,,.,.,..,,...,.,.,.,,,,.,,.,.,...,,..,
+#PLVUZ5XMXVJI7MNTMHACMPRDSUURFDKTDCRYOBDYMNNPXKHJ5DSU724QHZJKO52F52G3LDQMVQSKQ
+#\\\|AOUTEDF54BLPHP2BQLXNDLMBOKCSVQV3FT7HPTH35NTQIJ7PXZ6 \ / AMOS7 \ YOURUM ::
+#\[7]PDJUY4KB43VFCHMROJSE6KSDMP62467SBUQKRULOTTJ663GOU6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
