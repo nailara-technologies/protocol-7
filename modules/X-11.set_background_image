@@ -73,6 +73,23 @@ my $image_setting = $amos_chksum // $bg_image_name;
 ##  query available hsetroot params here  ##   [LLL]
 @hsetroot_params = ( sprintf( qw| -%s |, $bg_mode ), $bg_image );
 
+## apply custom options if defined ##
+##
+if ( <[base.is_defined_recursive]>->(qw| X-11.hsetroot.options |) ) {
+    my $add_options_str = <X-11.hsetroot.options>;
+    $add_options_str =~ s|[\t ]{2,}| |g;    ##  clean-up spaces  ##
+
+    ##  # color prefix  ##
+    $add_options_str =~ s|(*nlb:#)([A-F0-9]{6}([A-F0-9]{2})?)|#$1|g;
+
+    <[base.logs]>->(                        ##  reporting applied values  ##
+        $set_silent ? 2 : 1, ':. custom hsetroot options [ %s ]',
+        $add_options_str
+    );
+    push @hsetroot_params, split ' ', $add_options_str; ##  adding options  ##
+}
+##
+
 if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     <[base.logs]>->(
         0, "cannot execute 'hsetroot' command [ returned %s ]", $CHILD_ERROR
@@ -83,8 +100,8 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     return TRUE;                         ##  return success  ##
 }
 
-#,,..,,..,...,,,.,,.,,..,,,.,,...,.,,,..,,,,.,.,.,...,..,,,,,,..,,.,.,,,,,,..,
-#EUGJKYTNGI33IVFWTIW6H2QCNGCPOQ2G3VHR6UAD2D6AWGKFR7SB3CYW3KXUKM3MXCOBPHEENK4FU
-#\\\|5JF45L4A7I56KJAE3NZWJU654LKZLPSPR4RJSGYKYNYZFLKZNUI \ / AMOS7 \ YOURUM ::
-#\[7]FUYJLC3QF3XBATYCCH2QISGO3ZQGPFNR5PFUNMNBZM423WYHBADI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,,..,.,,,,.,,..,,...,.,.,,,,,.,.,...,...,...,...,,.,,,..,.,.,
+#IQBUJY7FUY3T46YRPEOEWO2ILJHDG3EKEZSHETNJYWQIJX26RHHFPY236QLB27IPSH3FLYDE54MKM
+#\\\|T24LPIOCA3HBS63UDEFCE63IWNA5H5SE4PHYHZD4RNBYZZ2R4W7 \ / AMOS7 \ YOURUM ::
+#\[7]LIHTHSLHOBBKWW6ZYBZBQJQA55VC4LBBDTIP2RQARCLH6HJ2SYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
