@@ -1,14 +1,188 @@
-#!/bin/bash
+#!/usr/bin/perl
+use v5.24;
+use English;
+use Time::HiRes;
+use Time::Seconds;
+use Capture::Tiny qw| capture |;
 
-export DISPLAY=:0.0
+$ENV{'DISPLAY'} //= qw| :0.0 |;
 
-watch -c --no-title -n7 "acpi |
-    /usr/bin/aosd_cat -p 8 -l 13 -R darkcyan \
-    -S darkblue -n 'White Rabbit' -y -5 -x -13 \
-    -f 13777 -o 17777 -u 17777 -r 127 -s 3 -a 17777"
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
 
-#,,.,,...,..,,.,,,,,.,.,.,,..,,..,.,,,,..,..,,..,,...,...,...,,,.,.,.,.,,,...,
-#I7XWDCNPYYLBWUWA6OXE6J3UPZ4VF2VBQANYGS3HFSLD27MKSEAEG7HV2Z34E6E2RZZB5OOTANZPW
-#\\\|ER27KR25V5VBPFNXHBU3CK4WDXWB47AJ76W644NLYM42RN2SCBZ \ / AMOS7 \ YOURUM ::
-#\[7]4GBWQNYVOXP4IFNAQQNMQIRHNWPAF3BE4AWZ7RTLGOYG5UXQIECA 7  DATA SIGNATURE ::
+my $battery_status_cmd = qw| acpi |;
+
+my $show_interval_seconds = 7.13;
+
+my $font_name = 'White Rabbit';
+
+our @AOSD_PARAM = (
+    qw| /usr/bin/aosd_cat -p 8 -l 13 -R darkcyan -S darkblue -n |,
+    $font_name,
+    qw| -y -5 -x -13 -f 13777 -o 17777 -u 17777 -r 127 -s 3 -a 17777 |
+);
+
+my $no_error = TRUE;
+while ($no_error) {
+
+    ( my $acpi_out, my $acpi_serr, my $return_code )
+        = capture { system $battery_status_cmd };
+
+    $no_error = FALSE if $return_code != 0;
+    waitpid( 0, 0 )   if $no_error;           ##  reap child process  ##
+
+    undef $acpi_out        if not length $acpi_out;
+    $acpi_out = $acpi_serr if length $acpi_serr;
+
+    if ( $return_code == 0 ) {                ##  re-formatting message  ##
+
+        chomp $acpi_out;
+
+        $acpi_out = lc $acpi_out;
+
+        $acpi_out =~ s|(*plb: \d):| :|g;
+        $acpi_out =~ s|: unknown, | .:. |;
+        $acpi_out =~ s|,|  \\ |g;
+        $acpi_out =~ s|%| percent|g;
+
+        $acpi_out =~ s|(\d\d:\d\d:\d\d) until (\S+)|$2 in $1|;
+        $acpi_out =~ s|(\d\d:\d\d:\d\d) remaining|remaining : $1|;
+
+        ## reformat duration time format ##
+        ##
+        $acpi_out =~ s|(\d\d:\d\d:\d\d)|duration_str_parser($1)|e;
+
+        $acpi_out =~ s|^(.+)$|[  $1  ]|mg;
+    }
+
+    my $err_reason_str
+        = length $OS_ERROR ? lcfirst $OS_ERROR
+        : ( not -x $battery_status_cmd )
+        ? sprintf( 'command [ %s ] not found', $battery_status_cmd )
+        : 'unknown error';
+
+    $acpi_out //= sprintf 'cannot fetch battery status [ %s ]',
+        $err_reason_str;
+
+    osd_show_mesg($acpi_out);    ##  display the message on screen  ##
+
+    Time::HiRes::sleep $show_interval_seconds if $return_code != 0;
+}
+
+## showing osd message ##
+##
+sub osd_show_mesg {
+    my $message_str = shift // 'no message string';
+    if ( open( my $OSD, '|-', join ' ', @AOSD_PARAM ) ) {
+        print {$OSD} $message_str;
+        close($OSD);
+        waitpid( 0, 0 );    ##  reap child process  ##
+    }
+}
+
+## reformatting duration format ##
+##
+sub duration_str_parser {
+
+    my $duration_seconds;
+    my $time_duration_str = shift;
+
+    return $time_duration_str
+        if $time_duration_str !~ m|^(\d{2}):(\d{2}):(\d{2})$|;
+
+    $duration_seconds
+        = ${^CAPTURE}[2] + 60 * ${^CAPTURE}[1] + 3600 * ${^CAPTURE}[0];
+
+    my $secs = Time::Seconds->new($duration_seconds);
+
+    my @result;
+    my %result = (
+        qw| days    | => 0,
+        qw| years   | => 0,
+        qw| hours   | => 0,
+        qw| seconds | => 0,
+        qw| minutes | => 0,
+    );
+
+    if ( $secs >= ONE_YEAR() ) {
+        $result{'years'} = sprintf qw| %d |, $secs->years;
+        my $d_rest = $secs->days - $secs->years * 365;   ## no 'leap' years ##
+        $secs -= $d_rest * ONE_YEAR();
+    }
+    if ( $secs >= ONE_DAY() ) {
+        $result{'days'} = sprintf qw| %d |, $secs->days;
+        $secs -= $result{'days'} * ONE_DAY();
+    }
+    if ( $secs >= ONE_HOUR() ) {
+        $result{'hours'} = sprintf qw| %d |, $secs->hours;
+        $secs -= $result{'hours'} * ONE_HOUR();
+    }
+    if ( $secs >= ONE_MINUTE() ) {
+        $result{'minutes'} = sprintf qw| %d |, $secs->minutes;
+        $secs -= $result{'minutes'} * ONE_MINUTE();
+    }
+    $result{'seconds'} = $secs->seconds
+        if $secs;
+
+    if ( $result{'years'} and not $result{'days'} ) {
+        push @result, sprintf '%d year%s', $result{'years'},
+            cnt_s( $result{'years'} );
+    } elsif ( $result{'years'} ) {
+        push @result, sprintf( qw| %dy |, $result{'years'} );
+    }
+
+    if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
+        push @result, sprintf qw| %dd |, $result{'yday'};
+
+    } elsif ( $result{'days'} ) {
+        push @result, sprintf '%d day%s', $result{'days'},
+            cnt_s( $result{'days'} );
+    }
+
+    if ( $result{'hours'} and $result{'minutes'} == $result{'seconds'} == 0 )
+    {
+        push @result, sprintf '%d hour%s', $result{'hours'},
+            cnt_s( $result{'hours'} );
+
+    } elsif ( $result{'hours'} ) {
+        push @result, sprintf qw| %02dh |, $result{'hours'};
+    }
+
+    if ( $result{'minutes'} and $result{'seconds'} == 0 ) {
+        push @result, sprintf '%d min', $result{'minutes'};
+
+    } elsif ( $result{'minutes'} ) {
+        if ( $result{'hours'} ) {
+            push @result, sprintf qw| %02d'%02d" |, $result{'minutes'},
+                $result{'seconds'};
+        } else {
+            push @result, sprintf qw| %d'%02d" |, $result{'minutes'},
+                $result{'seconds'};
+        }
+    }
+
+    push @result, sprintf qw| %ss |, $result{seconds}
+        if $result{'seconds'} and not $result{'minutes'} or not @result;
+
+    my $result_str = join ' ', @result;
+    $result_str =~ s| days? (\d+)h |d $1 | if length $result_str >= 10;
+    $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
+
+    return $result_str;
+}
+
+sub cnt_s {
+
+    my $count    = shift // '';
+    my $plural   = shift // qw| s |;
+    my $singular = shift // '';
+
+    return $count == 1 ? $singular : $plural;
+}
+
+#,,,.,,..,...,.,.,,..,..,,.,.,,..,,.,,...,,,,,..,,...,...,,..,.,.,,,,,,,.,,,.,
+#BC55JHMA4WPV4ONELAECSKO6D4UZUGPCK3EJ2GXCJVXB3NQ5QKM7URFKWKHDAED77BBJVQY6FJZKI
+#\\\|ZCJXBWNLUHZKCNLVMPOE6MST32626L26FKOT43JIGXWG2V7GK4I \ / AMOS7 \ YOURUM ::
+#\[7]B5QE2V3JHXPNWWCM3IJVSG3IFUMV6Z67FUKSLU2NTG4QKXJJQKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
