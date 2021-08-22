@@ -48,6 +48,8 @@ our %C = (
 
 ##[ ERROR HANDLING ]##########################################################
 
+our $mesg_prefix_string = qw| : |;
+
 sub error_exit {
     my $err_str = shift // '';
 
@@ -81,7 +83,8 @@ sub error_exit {
     }
 
     $err_str =~ s|^[A-Z](*nla:[A-Z])|\l$MATCH|;
-    $err_str =~ s|(*plb:\w): (\S+)|$C{B} : $C{o}$LAST_PAREN_MATCH|;
+    $err_str =~ s|(*plb:\w)$mesg_prefix_string (\S+)
+                 |$C{B} $mesg_prefix_string $C{o}$LAST_PAREN_MATCH|x;
     $err_str =~ s|%|%%|g;    ##  reversed again in warn_err  ##
 
     warn_err($err_str);
@@ -135,9 +138,14 @@ sub warn_err {
         }
     } else {
         my $caller_str = $no_caller ? '' : caller_str($c_lvl);
-        print STDERR
-            sprintf( "$C{R}$C{g}:$C{R}\n$C{g}: $C{o}%s%s$C{R}\n$C{g}:$C{R}\n",
-            $err_str, defined $caller_str ? " $C{T}$C{B}$caller_str" : '' );
+        print STDERR sprintf(
+            "$C{R}$C{g}%s$C{R}\n$C{g}%s $C{o}%s%s$C{R}\n$C{g}%s$C{R}\n",
+            $mesg_prefix_string, $mesg_prefix_string, $err_str,
+            defined $caller_str
+            ? " $C{T}$C{B}$caller_str"
+            : '',
+            $mesg_prefix_string,
+        );
     }
     return undef;
 }
@@ -251,8 +259,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,.,,,,,,.,.,,,,,,.,,,..,.,,,,,,,.,.,,,.,,,,,..,,...,...,...,,,,,,..,,,.,.,.,
-#IQMXRWUCMFMR35545WDTTD3OVAJWKX7QHLZDEPLESDDYWYSENCRJZROPNLFADN5KMN2KWSNU4PTI2
-#\\\|RRZKLHUHO4HV5V524TW2OZFWYQOVFPLU3CYWBDH7CW3QTYWIO4J \ / AMOS7 \ YOURUM ::
-#\[7]PFOUETRYEU5VHS4Q7WWTZ6QL7Z3FBWXGCWUGHPOYN6LPDDHEZSCA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,,,,,...,.,,,,.,,..,,,..,..,,..,,...,...,...,.,.,.,.,,.,,,.,,
+#MLGOSTU52LAYFVGH4SEWCRQZRXDI4EW7PFVK6K3TSN6GAPNK27K4HFCSZBGOAUKARD3Y6RRBFSAHG
+#\\\|XW5MVTFHBFITFIBE3KKS3FTSNNQGFEIKXEEXYKDFSL5ITBDVBP2 \ / AMOS7 \ YOURUM ::
+#\[7]DI36OOYZ3N7RF7LZV4AOAYPYJ5S7KVZZ4LUF3WLWRCMKI375IQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
