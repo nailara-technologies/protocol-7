@@ -61,6 +61,7 @@ our $TTY_OUTPUT;
 our $READ_BUFFER;
 our $TTY_fd_restore;
 our $original_flags;
+our $username_regex;
 our $currrent_pass_prompt;
 our $currrent_uname_prompt;
 our $prompt_prefix_string //= qw| : |;
@@ -88,14 +89,27 @@ sub user_and_passwd {
     $term->MinLine(undef);
     Term::ReadLine->clear_history();
 
-    terminal_title($term_title) if length $term_title;
+REREAD_NAME:
 
+    terminal_title($term_title) if length $term_title;
     printf "%s%s\n", $C{'0'}, $prompt_prefix_string;
 
     override_signals();
 
     $username = $term->readline($currrent_uname_prompt);
     $username =~ s,(^[\t ]+|[\t ]+$),,g if defined $username;
+
+    if ( defined $username_regex and $username !~ $username_regex ) {
+        my $err_reason_str = '<< username contains not valid characters >>';
+        if ( defined $main::PROTOCOL_SEVEN ) {
+            printf "%s:\n", $C{'0'};
+            $main::code{'base.logs'}->( 0, $err_reason_str, $pwd_min_len );
+        } else {
+            warn_err( ' %s <{NC}>', -1, $err_reason_str );
+        }
+        Time::HiRes::sleep(1.24);
+        goto REREAD_NAME;
+    }
 
     return undef if not defined $username or not length $username;
 
@@ -807,8 +821,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,,.,..,,...,,,.,,..,,,,,.,,,,.,,.,,,,,,,...,..,,...,...,,.,,,..,,.,,,..,.,.,
-#3CQ3QL7MYIKXGCLQPEIUGWENWZIKPEPQQHNNNZ7VHXOYPRCBTOW6VPW7KHJOO7LWEQRT5WFBBQWQ4
-#\\\|JVRQBPR7AYIA2O6BGPKELXIAZF6IP2N5TPKXTRES7BRCLEYHZGT \ / AMOS7 \ YOURUM ::
-#\[7]SJNP5IJDZLLMAINSFT4XQURZ63POZGG4KQZXDQBAD5USVXM3NACQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,.,,,.,,..,,,,.,,,,,.,.,..,,,..,..,,...,...,.,,,..,,...,.,,,...,
+#42CXDKYFPTBFP4AWDQNNIM5VQLIPHQEZ6XQWC7JOYPR6YRCP4OLS3M4IJAF5NTIFFFGOKCQDR2Z4Q
+#\\\|4CV3PCR6MNGRMRRKRIALLK7VQSDYIYY5QH56KRNFLGNL327EMTR \ / AMOS7 \ YOURUM ::
+#\[7]TUBQP4U2JNEY2ZQT2GACDBBU7IPVQPORPX4RUNOZWLUFECMCRWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
