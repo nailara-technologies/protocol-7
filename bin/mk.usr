@@ -7,8 +7,42 @@ use warnings;
 
 use FindBin;
 use Sys::Hostname;
-use Term::ReadPassword;
-use Crypt::Digest::SHA1 qw( sha1_hex );    ## <-- to be replaced.., [ LLL ]
+
+##[ mk.usr ]##
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+use AMOS7::13 qw| key_56 |;
+use AMOS7::TERM qw| read_password_repeated |;
+
+$AMOS7::mesg_prefix_string = $AMOS7::TERM::prompt_prefix_string = ' ::';
+$AMOS7::TERM::title_prefix = ' .:';
+
+##[ RUNTIME CODE ]############################################################
 
 my %DATA;
 my $user;
@@ -24,32 +58,26 @@ if ( $zenka =~ s|^([^\.]+)\.|| ) {
 
 $DATA{'conf'}{'root'} = $FindBin::Bin;
 $DATA{'conf'}{'root'} =~ s|/bin$||;
-$DATA{'conf'}{'file'}
-    = $DATA{'conf'}{'root'} . "/configuration/zenki/$zenka/auth.users";
+$DATA{'conf'}{'file'} = sprintf qw| %s/configuration/zenki/%s/auth.users |,
+    $DATA{'conf'}{'root'}, $zenka;
 
-printf "\n ::[ %s.%s user generator ]\n ::\n", $node, $zenka;
+my $term_title = sprintf "%s.%s user generator", $node, $zenka;
 
-print " :: enter username :. ";
-chomp( $user = <STDIN> );
-$user =~ s,\t|\s,,g;
-while (not length( $pass // '' )
-    or not length( $re_pass // '' )
-    or $pass ne $re_pass ) {
-    $pass    = uc sha1_hex( read_password(" :: enter password :. ") );
-    $re_pass = uc sha1_hex( read_password(" :: once again..,  :. ") );
-    if ( $pass ne $re_pass ) {
-        print " ::\n :::[ passwords do not match ]\n\n";
-    }
-}
+( $user, $pass ) = AMOS7::TERM::user_and_passwd( $term_title, TRUE );
 
-if ( $pass eq qw| DA39A3EE5E6B4B0D3255BFEF95601890AFD80709 | ) {
-    die " ::\n ::. .., aborted. [ empty password ]\n\n";
-}
+die sprintf( " ::\n :::[ %saborted %s\\%s username required%s ]\n%s\n",
+    $C{'o'}, $C{0}, $C{g}, $C{0}, $C{'R'} )
+    if not defined $user
+    or not length $user
+    or not defined $pass
+    or not length $pass;
 
-my $new_file = 0;
+$pass = key_56( \$pass );
+
+my $new_file = FALSE;
 
 if ( !-f $DATA{'conf'}{'file'} ) {
-    $new_file = 5;    ## true ##
+    $new_file = TRUE;    ## true ##
     open( NEW, ">$DATA{'conf'}{'file'}" )
         or die " ::\n :::[ cannot create user config file ]\n\n";
     print NEW "\n  .: nailara user config :.\n\n";
@@ -57,7 +85,7 @@ if ( !-f $DATA{'conf'}{'file'} ) {
 }
 
 my @user_config;
-my $user_exists = 0;
+my $user_exists = FALSE;
 open( CONF, $DATA{'conf'}{'file'} )
     or die " ::\n :::[ cannot open user config file ]\n\n";
 foreach my $line (<CONF>) {
@@ -71,7 +99,7 @@ foreach my $line (<CONF>) {
         if (    not $user_exists
             and defined $found_user
             and $found_user eq $user ) {
-            $user_exists = 5;    ## true ##
+            $user_exists = TRUE;    ## true ##
             push( @user_config,
                 sprintf( "auth.setup.usr.%s  =  %s\n", $user, $pass ) );
         } else {
@@ -84,12 +112,12 @@ foreach my $line (<CONF>) {
 close(CONF);
 
 my @WRITE;
-my $found_signature = 0;    ## avoiding apend after signature footer ##
+my $found_signature = FALSE;    ## avoiding apend after signature footer ##
 
 if ( not $user_exists ) {
     my $next_line;
     while ( $next_line = shift @user_config ) {
-        if ( $next_line =~ m|^#[\.\,]{77}$| ) { $found_signature = 5; last }
+        $found_signature = TRUE and last if $next_line =~ m|^#[\.\,]{77}$|;
         push @WRITE, $next_line;
     }
     ##  appending new entry  ##
@@ -106,8 +134,8 @@ close(CONF);
 
 print " ::\n :\n\n";
 
-#,,..,.,.,,..,.,.,,..,,..,.,,,...,.,.,.,,,.,,,..,,...,...,.,.,...,.,.,,,,,...,
-#FPJYC72OMA7XRIPUOTKB6BDKJSHOEAYDTLOA7RR55277BRYVXFEHFQC3M2EV7I36YJTD2GGO3X66Q
-#\\\|MWFRKXNMO4D2FROMOP6BLY27APT5MJOAUXG3A5GVT32ISWKJXXG \ / AMOS7 \ YOURUM ::
-#\[7]W5MVB6CNF4AC63CKWMZSUAEMOKO2M33WYAF6MEF4SW7FBQJ35OAY 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,,,.,,.,,,,,,,,,,...,.,.,,.,,..,,...,..,,.,,,..,,,.,,,,,,,.,,
+#6FOOIJXXUANVJLNQIKD2WX2ASH6ASE75M6RGC53ALUKD745EP3XZJPA2FAM6FNPTBC26JGP7NWMWW
+#\\\|FGHYMDVVMEV2O67NLTHUQNLVAJFFE3G6WDZQPFVNLSHXDFMN27J \ / AMOS7 \ YOURUM ::
+#\[7]DGDS2ZQ7QVGTNZJRBC7FAHCBCVLMMZAYITVROWEHLRXCQUQ7ISBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

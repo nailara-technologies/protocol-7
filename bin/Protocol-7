@@ -1735,11 +1735,8 @@ sub p7_devmod_sub {
 
     # hiding plain text passwords in devmod output [not including conf files]
     $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
+    $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.bmw.B-32-56.TRUE |;
     $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
-
-    ##  replace with new key_32 and key_56 wrappers  [ coming soon ]  ##
-    ##
-    ## $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.sha.1 |;
 
     $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
         if $sub_name eq qw| base.net.send_to_socket |;
@@ -1747,11 +1744,11 @@ sub p7_devmod_sub {
     map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
     my @params = map {
         defined $ARG
-            ? ( $ARG =~ $quoted_chars ? "'$ARG'" : $ARG )
+            ? ( $ARG =~ $quoted_chars ? sprintf( "'%s'", $ARG ) : $ARG )
             : ''
     } @_p;
 
-    my $param_list = join( ', ', @params );
+    my $param_list = join ', ', @params;
 
     $param_list =~ s|\n|\\n|g;
     $param_list =~ s|\e|\\e|g;
@@ -3718,8 +3715,8 @@ __DATA__
 :
 :.
 
-#,,..,,,,,,,.,...,..,,.,,,.,,,,,.,..,,..,,,,.,..,,...,...,.,.,,.,,,,.,,,.,...,
-#KCQ6LKPLMD6XYTRRSZZIMQFUOJFU52FY3ZMSZHMG6CMI4ZRZWY466SXP46N5KWUSMAYL43L3NUAB6
-#\\\|6SY7GAXHIG4FRJMF3UVX2NANJ63DEEYWXUIDODHSLBPUL3ECYOD \ / AMOS7 \ YOURUM ::
-#\[7]KSSXNOBPTVDBE575VHZON3SPLRKJZLJINO4KESULRK4HPY626UAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,,.,,,,,,.,.,,,,,,..,...,..,,..,,...,...,,.,,.,.,,,,,,.,,,,,,
+#AHH7XIISQVT4NJ6DKQAADAZ4ZEZLJ57SWVPIHIJSWSJBVLTZJ5RY7IQNVCFC7SRQKS4Y2F4YBREA4
+#\\\|ARSMCKGALQTXL6HOVCHRP4A5D44KQSQW64PGXRQF2LEEHAACYAF \ / AMOS7 \ YOURUM ::
+#\[7]XZLFT5YTI2C4A4TW2IQ3NSAQYXCG4HLXKRQLP3TQMR6BDELPW2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
