@@ -3,16 +3,18 @@
 use utf8;
 use strict;
 use v5.10.0;
-use IO::AIO;
 use English;
 use warnings;
+
+use POSIX;
+use IO::AIO;
 use File::Spec;
 use IO::Socket;
+use Sys::Hostname;
 use IO::Socket::IP;
 use IO::Socket::UNIX;
 use Cwd qw| abs_path |;
 use Term::ReadPassword;
-use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
 use POSIX qw| sys_wait_h WNOHANG |;
 
@@ -46,8 +48,12 @@ my $root_path = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;    ##  error handler and colors  ##
-
+use AMOS7::TERM;
 use AMOS7::Protocol::P7 qw| calc_port calc_unix_path |;
+
+$AMOS7::TERM::title_prefix   = ' .:';
+$AMOS7::mesg_prefix_string   = $AMOS7::TERM::prompt_prefix_string = ' ::';
+$AMOS7::TERM::username_regex = qr|^[0-9a-z][0-9a-z\-_]{0,16}$|;
 
 ###                                                                      ###
 #   calculated port : /usr/local/protocol-7 : ext = 13, internal = 42      #
@@ -72,9 +78,6 @@ $SIG{'PIPE'} = qw| IGNORE |;
 
 $PROGRAM_NAME = qw| nshell |;
 
-# see override_signals ##
-map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
-
 my $stdout_pid;
 my $parent_pid = $PID;
 
@@ -91,6 +94,8 @@ my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
 my $protocol_7_version;
+our %before_readline_signals;
+our @override_signal_nums = ( SIGINT, SIGTERM, SIGQUIT, SIGABRT, SIGHUP );
 
 my $user_unix = $ENV{'PROTOCOL_7_UNIX_PATH'};  ##  unix domain socket path  ##
 
@@ -152,7 +157,12 @@ while ($connect) {
     } else {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
+
+    # see override_signals ##
+    map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
+
     if ( -S $shell_sock ) {
+        $term_loop = TRUE;
         $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
@@ -187,10 +197,29 @@ sub login_prompt {
         return ( $cube_user, $cube_pass );
     }
     my ( $user, $pass );
-    print "\n :: user :. ";
-    chop( $user = <STDIN> );
-    $pass = read_password(" :: pass :. ");
-    print "\n";
+
+    my $node;
+    my $zenka = shift // qw| cube |;
+    if ( $zenka =~ s|^([^\.]+)\.|| ) {
+        $node = $LAST_PAREN_MATCH;
+    } else {
+        $node = hostname;
+    }
+    my $term_title = sprintf "%s.%s protocol-7-terminal", $node, $zenka;
+
+    $term_loop = FALSE;
+
+    ( $user, $pass ) = AMOS7::TERM::user_and_passwd($term_title);
+
+    die sprintf( " ::\n :::[ %saborted %s\\%s username required%s ]\n%s\n",
+        $C{'o'}, $C{0}, $C{g}, $C{0}, $C{'R'} )
+        if not defined $user
+        or not length $user
+        or not defined $pass
+        or not length $pass;
+
+    print " :\n\n";
+
     ( $cube_user, $cube_pass ) = ( $user, $pass ) if $remember;
     return ( $user, $pass );
 }
@@ -260,23 +289,36 @@ sub shell_auth {
 
     s_write( $fh, "select pwd\n" );
     my $answer = <$fh>;
+
     error_exit('<< connection was prematurely terminated >> <{NC}>')
         if not defined $answer;
-    if ( $answer !~ m|^TRUE continue| ) {
+
+    if ( $answer =~ m,^\Q>:|\E, ) {
+        warn_err(" :: authentication timeout :: <{NC}>");
+        Time::HiRes::sleep(1.24);
+        return FALSE;
+    } elsif ( $answer =~ m|^FALSE not available| ) {
         error_exit(":: 'pwd' auth method not available :: <{NC}>");
+    } elsif ( $answer !~ m|^TRUE continue| ) {
+        error_exit(':: protocol mismatch >:[ <{NC}>');
     }
 
     s_write( $fh, sprintf( "auth %s %s\n", $user, $pwd ) );
     $answer = <$fh>;
+
     error_exit('<< connection was terminated prematurely >> <{NC}>')
         if not defined $answer;
     if ( $answer =~ m|^AUTH_TRUE| ) {
+
         print " :: authentication successful ::\n";
+
         return $fh;
+
     } elsif ( $answer =~ m,^AUTH_ERROR, ) {
         error_exit(':: authentication not successful :: <{NC}>');
-    } elsif ( $answer =~ m,>:|, ) {
-        print " :: authentication timeout ::\n";
+    } elsif ( $answer =~ m,^\Q>:|\E, ) {
+        warn_err(" :: authentication timeout :: <{NC}>");
+        Time::HiRes::sleep(1.24);
         return FALSE;
     } else {
         error_exit(':: protocol mismatch >:[ <{NC}>');
@@ -300,7 +342,7 @@ sub unix_auth {
         return $fh;
     } elsif ( $answer =~ m,^AUTH_ERROR, ) {
         error_exit(':: authentication not successful :: <{NC}>');
-    } elsif ( $answer =~ m,^>:|, ) {
+    } elsif ( $answer =~ m,^\Q>:|\E, ) {
         print " :: authentication timeout ::\n";
         return FALSE;
     } else {
@@ -345,8 +387,8 @@ sub shell_loop {
 
     $connect = FALSE;
     my $last_line = '';
+    override_signals();
     while ( -S $sock
-        and override_signals()
         and defined( my $line = $term->readline($prompt) ) ) {
         $WARNED  = FALSE;
         $connect = TRUE;
@@ -468,41 +510,55 @@ sub rl_filename_list_lcl
     return @files;
 }
 
-sub terminal_size {
-
-    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
-
-    return undef if not -t $handle;
-    state $size       = "\0" x 8;
-    state $TIOCGWINSZ = 21523;
-
-    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
-    my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
-
-    return ( $size_aref->[1], $size_aref->[0] );
-}
+## readline ##
 
 sub override_signals {
-    map { SigAction::SetCallBack->sig_registry( $ARG, \&readline_signals ) }
-        qw| INT TERM HUP |;
 
-    return $term_loop = TRUE;
+    my $sigset     = POSIX::SigSet->new(@override_signal_nums);
+    my $action_sig = POSIX::SigAction->new( \&readline_signals, $sigset );
+
+    foreach my $posix_signal (@override_signal_nums) {
+        my $old_action = {};
+        POSIX::sigaction( $posix_signal, $action_sig, $old_action );
+
+        $action_sig = POSIX::SigAction->new( $old_action->{'HANDLER'},
+            $old_action->{'MASK'}, $old_action->{'FLAGS'} );
+
+        $before_readline_signals{$posix_signal} = $action_sig;
+    }
+
+    return TRUE;
 }
 
 sub restore_signals {
-    map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
+
+    my $sigset = POSIX::SigSet->new(@override_signal_nums);
+
+    foreach my $posix_signal (@override_signal_nums) {
+        my $action_sig = $before_readline_signals{$posix_signal};
+        POSIX::sigaction( $posix_signal, $action_sig );
+    }
+
+    return TRUE;
 }
 
 sub readline_signals {
-    my $sig_name = shift;
+    my $SIG_name = shift;
 
-    my $line_width = [ terminal_size() ]->[1];
-    my $line_space = ' ' x abs( $line_width - length $prompt );
-    print sprintf "\r%s%s%s%s%s%s\r", $C{b}, $C{0}, $prompt, $C{R},
-        $line_space, $C{'R'};
+    $OUTPUT_AUTOFLUSH = TRUE;
+    if ( $SIG_name eq qw| HUP | ) {
+        print "\e[H\e[2J\e[3J"; ## 'clear screen' [remote trigger] : SIGHUP ##
+    } else {
+
+        my $line_width = [ terminal_size() ]->[1];
+        my $line_space = ' ' x abs( $line_width - length $prompt );
+        print sprintf "\r%s%s%s%s%s%s\r", $C{b}, $C{0}, $prompt, $C{R},
+            $line_space, $C{'R'};
+    }
 
     $term->free_line_state;
     $term->cleanup_after_signal;
+
     parent_exit();
 }
 
@@ -519,8 +575,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,,,,.,,,,,,,..,,...,..,,...,,..,,,,,,.,,,.,,..,,...,...,...,,,,,,,.,,,,,,.,,
-#2D2XFUCNTQP3J7QPQ4V6DC7RG2PJECATV3JQLOJNVE677JH6FWCEMMI3PWASY6R3YVDVVJR5BHG5Q
-#\\\|RKZISGHMVB3RZRJSXGIKBKKBQWNJHZTL2AJ4DMVVWY6GG6TOVJE \ / AMOS7 \ YOURUM ::
-#\[7]FCOIM5EYAX4LMZ3UHDOHZKZXYRFGFEI2AEP7RFN2IEMI3KMAL2CY 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,,,,.,,.,.,...,.,.,.,,,.,.,,,,,..,,...,...,..,,,..,..,,,..,,,.,
+#3FGKSSJ45WKEKG2VXJNOUPJS4UQTXBO6SAFCWNDROS3K3KRQJC5AQM7XEF3VBZ4MNF3K5NPQU7XMG
+#\\\|2MI5ZQV3YI3HUS7QSWJSSFVZMZXY2FX3CWIQTGHDPXMZ3TEE4FB \ / AMOS7 \ YOURUM ::
+#\[7]TB42GPHWDKCY3KKIGOM33B4TW3FWQ2FIMCYZIKYC44C5KCY2VWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
