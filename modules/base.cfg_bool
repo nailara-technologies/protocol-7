@@ -5,13 +5,14 @@
 
 my $option_value = shift // FALSE;
 
-##  '' | 'n' | 'no' | '0'  ##                                     <--[ 0 ]
+##  '' | 'n' | 'no' | '0' | 'false'  ##                               <--[ 0 ]
 ##
-return FALSE if not length $option_value or $option_value =~ m{^(0|\-1|no?)$};
+return FALSE
+    if not length $option_value or $option_value =~ m{^(0|\-1|no?|false)$}i;
 
-##  'y' | 'yes' | '1' | '5'  ##                                   <--[ 5 ]
+##  'y' | 'yes' | '1' | '5' | 'true'  ##                              <--[ 5 ]
 ##
-return TRUE if $option_value =~ m{^(y(es)?|1|5)$};    ##  5 == true  ##
+return TRUE if $option_value =~ m{^(y(es)?|1|5|true)$}i;    ##  5 == true  ##
 
 ## otherwise ##
 ##
@@ -19,8 +20,8 @@ return TRUE if $option_value =~ m{^(y(es)?|1|5)$};    ##  5 == true  ##
 
 return undef;
 
-#,,,,,,..,.,,,,,.,.,.,...,...,.,,,..,,...,,,.,..,,...,...,..,,..,,,..,,,,,...,
-#QZBJDYBAWJUNAEYHGAY6OVSFJMKZUNQAZGZI2EZGRAPSCU3RZ5H6U3CILMILD6TMO2EG6RC3PSVFS
-#\\\|VFAG4AWIEOHYY4KX3KWFLMZH3HPWSPCLOEEZ6BYXWOANDY6UZP6 \ / AMOS7 \ YOURUM ::
-#\[7]6SJHUQBBWW5GXX5DVSA4TCI7WMK3MNS5L3G3KJBSWJV3KDIDIICI 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,,,.,...,.,.,...,,,.,,,,,,,.,..,,...,...,,..,,.,,.,,,...,,,.,
+#IRHKUJ3MHNIXXSCQYMYOGLDQTP4OLSR4BHNBWOA3YMORH26235AE3NVTPP7ZBIBAVAMR57TSTP3AQ
+#\\\|F5V2Y4FXPL2NUGFF22DJTVBJ6YTVXGGKQ3SV4TDYTSTUTNCYBVZ \ / AMOS7 \ YOURUM ::
+#\[7]GFMTZ6AITYEZQ6FIGML2TL475DAZ22ZL7NAHJQDVJ5YMKEE5DCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
