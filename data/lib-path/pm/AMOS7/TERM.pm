@@ -15,8 +15,10 @@ use constant FALSE => 0;    ##  false  ##
 use AMOS7;
 
 use Event;
+use POSIX;
+use POSIX::SigSet;
+use POSIX::SigAction;
 use Term::ReadLine;
-use SigAction::SetCallBack;
 use Time::HiRes qw| sleep |;
 use Crypt::PRNG::Fortuna qw| rand |;
 
@@ -46,6 +48,8 @@ our %CC_FIELDS = (
     VTIME  => VTIME,
 );
 our %CC_backup;
+our %before_readline_signals;
+our @override_signal_nums = ( SIGINT, SIGTERM, SIGQUIT, SIGABRT, SIGHUP );
 
 our $pwd_cur_len           //= 0;
 our $pwd_min_len           //= 13;
@@ -78,9 +82,6 @@ sub user_and_passwd {
     my $username;
     my $read_passwd;
 
-    # see override_signals ##
-    map { $SIG{$ARG} = \&exit_user_passwd } qw| INT TERM HUP |;
-
     $currrent_uname_prompt = sprintf '%s name :. ', $prompt_prefix_string;
 
     $term = Term::ReadLine->new('user-and-pwd');
@@ -95,11 +96,15 @@ REREAD_NAME:
     printf "%s%s\n", $C{'0'}, $prompt_prefix_string;
 
     override_signals();
-
     $username = $term->readline($currrent_uname_prompt);
+    restore_signals();
+
     $username =~ s,(^[\t ]+|[\t ]+$),,g if defined $username;
 
-    if ( defined $username_regex and $username !~ $username_regex ) {
+    if (    defined $username_regex
+        and defined $username
+        and length $username
+        and $username !~ $username_regex ) {
         my $err_reason_str = '<< username contains not valid characters >>';
         if ( defined $main::PROTOCOL_SEVEN ) {
             printf "%s:\n", $C{'0'};
@@ -614,6 +619,10 @@ sub read_to_buffer_TTY {
     my $buffer_sref   = shift // \$READ_BUFFER;
     my $tty_read_size = shift // $TTY_read_size;
 
+    error_exit('TTY_IN handle not opened')
+        if not defined $TTY_IN
+        or not length fileno $TTY_IN;
+
     my $buffered_bytes = length( $buffer_sref->$* // '' );
 
     my $bytes_read_count = sysread $TTY_IN, $buffer_sref->$*, $tty_read_size,
@@ -786,24 +795,55 @@ sub close_TTY_no_echo {
 ## readline ##
 
 sub override_signals {
-    map { SigAction::SetCallBack->sig_registry( $ARG, \&readline_signals ) }
-        qw| INT TERM HUP |;
+
+    my $sigset     = POSIX::SigSet->new(@override_signal_nums);
+    my $action_sig = POSIX::SigAction->new( \&readline_signals, $sigset );
+
+    foreach my $posix_signal (@override_signal_nums) {
+        my $old_action = {};
+        POSIX::sigaction( $posix_signal, $action_sig, $old_action );
+
+        $action_sig = POSIX::SigAction->new( $old_action->{'HANDLER'},
+            $old_action->{'MASK'}, $old_action->{'FLAGS'} );
+
+        $before_readline_signals{$posix_signal} = $action_sig;
+    }
+
+    return TRUE;
 }
 
 sub restore_signals {
-    map { $SIG{$ARG} = \&exit_user_passwd } qw| INT TERM HUP |;
+
+    my $sigset = POSIX::SigSet->new(@override_signal_nums);
+
+    foreach my $posix_signal (@override_signal_nums) {
+        my $action_sig = $before_readline_signals{$posix_signal};
+        POSIX::sigaction( $posix_signal, $action_sig );
+    }
+
+    return TRUE;
 }
 
 sub readline_signals {
-    my $sig_name = shift;
+    my $SIG_name = shift;
 
     $OUTPUT_AUTOFLUSH = TRUE;
-    clear_name_line();
-    say '';
+    if ( $SIG_name eq qw| HUP | ) {
+        print "\e[H\e[2J\e[3J"; ## 'clear screen' [remote trigger] : SIGHUP ##
+    } else {
+        clear_name_line();
+        say '';
+    }
 
     $term->free_line_state;
     $term->cleanup_after_signal;
-    exit_user_passwd();
+
+    my $reason_str
+        = $SIG_name ne qw| INT |
+        ? sprintf qw| SIG%s |, $SIG_name
+        : undef;
+
+    exit_user_passwd($reason_str);
 }
 
 sub clear_name_line {
@@ -816,13 +856,17 @@ sub clear_name_line {
 }
 
 sub exit_user_passwd {
-    error_exit('user details input aborted');
+    my $abort_reason        = shift;
+    my $exit_message_string = 'user details input aborted';
+    $exit_message_string .= sprintf ' [ %s ]', $abort_reason
+        if defined $abort_reason;
+    error_exit($exit_message_string);
 }
 
 return TRUE ##################################################################
 
-#,,,.,,..,.,,,,.,,,.,,..,,,,.,,,,,.,.,..,,,..,..,,...,...,.,,,..,,...,.,,,...,
-#42CXDKYFPTBFP4AWDQNNIM5VQLIPHQEZ6XQWC7JOYPR6YRCP4OLS3M4IJAF5NTIFFFGOKCQDR2Z4Q
-#\\\|4CV3PCR6MNGRMRRKRIALLK7VQSDYIYY5QH56KRNFLGNL327EMTR \ / AMOS7 \ YOURUM ::
-#\[7]TUBQP4U2JNEY2ZQT2GACDBBU7IPVQPORPX4RUNOZWLUFECMCRWDA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,..,,,,,,.,.,.,.,..,,.,.,,..,..,,...,...,...,.,.,,..,..,,.,,,
+#BY4MEVQILL5YW4JIQJYEKGLWYBS6HJBP3TJ7DZGKDMZCTUA6ELXM4HQGISNQTBSZWYXRI3P5DZTFW
+#\\\|OHDH6JMO5YOEURFRI34BLQMHQWRMI3BKSNF7ZYT5T6PKMIDGTL4 \ / AMOS7 \ YOURUM ::
+#\[7]Y3G5N4YWUAL5E44G7OTNWP57BTTL75UJP2MPFOQCOXHXQCQK6EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
