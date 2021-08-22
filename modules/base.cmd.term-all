@@ -12,12 +12,14 @@ return {
     }
     if not defined $call->{'args'};
 
-if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
+my $call_sid      = $call->{'session_id'};
+my $call_username = $data{'session'}{$call_sid}{'user'};
+
+if ( $call->{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
     my $param      = ${^CAPTURE}[0];
     my $term_msg   = ${^CAPTURE}[2] || 'session terminated';
-    my $sid        = $call->{'session_id'};
     my $killed     = 0;
-    my $killed_own = 0;
+    my $killed_own = FALSE;
 
     if ( $param =~ m|\s| ) {
         ( $param, $term_msg ) = split( m|\s+|, $param, 2 );
@@ -28,24 +30,48 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
             and $data{'session'}{$param}{'mode'} ne qw| server | )
     ) {
         my $msg_string = $term_msg;
+
         my $uname
             = $param =~ m|^\d+$| ? $data{'session'}{$param}{'user'} : $param;
-        <[base.logs]>->( "[%d] closing all '%s' sessions >>", $sid, $uname );
-        foreach my $sid ( keys %{ $data{'session'} } ) {
-            if (   $data{'session'}{$sid}{'user'} eq $param
-                or $param =~ m|^\d+$| and $param eq $sid ) {
-                $killed_own++;
-                if ( $call->{'session_id'} eq $sid ) {
-                    $msg_string = '..terminated your own session..,';
-                } else {
-                    <[base.session.shutdown]>->( $sid, $msg_string );
-                }
-                <[base.logs]>->(
-                    0,      ': terminating session [ %s ] %d',
-                    $uname, $sid
-                );
-                $killed++;
+
+        if ( $param =~ m|^\d+$| ) {
+            <[base.logs]>->(
+                "[%d] closing '%s' session %u",
+                $call_sid, $uname, $param
+            );
+        } else {
+            <[base.logs]>->(
+                "[%d] closing all '%s' sessions",
+                $call_sid, $param
+            );
+        }
+        foreach my $term_sid ( <[base.sort-num]>->( $data{'session'} ) ) {
+
+            my $term_user_string = $data{'session'}{$term_sid}{'user'};
+            next if $term_user_string eq qw| ----- |;
+
+            if ( $param =~ m|^\d+$| ) {    ##  param is a session id  ##
+                next if $param != $term_sid;
+            } else {                       ##  param is a username  ##
+                next if $term_user_string ne $param;
             }
+
+            if (   $term_user_string eq $call_username
+                or $term_sid == $call_sid ) {
+                $killed_own++;
+                if ( $term_sid == $call_sid ) {
+                    $msg_string = '..terminated your own session..,';
+                }
+            }
+
+            <[base.session.shutdown]>->( $term_sid, $msg_string );
+
+            <[base.logs]>->(
+                0,      ': terminating %s session [ id : %d ]',
+                $uname, $term_sid
+            );
+
+            $killed++;
         }
         my $reply_string = sprintf( '%d session%s terminated',
             $killed, <[base.cnt_s]>->($killed) );
@@ -67,11 +93,12 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
             <[base.logs]>->(
                 0,
                 "[%d] rejected 'term-all' command on server-mode session ..,",
-                $sid
+                $call_sid
             );
             <[base.log]>->(
                 1,
-                ': use zenka set-up and reload to shut down server sessions..,'
+                ': use zenka config and reload '
+                    . 'to shut down server sessions..,'
             );
         }
         return { 'mode' => qw| false |, 'data' => $fail_msg };
@@ -80,14 +107,14 @@ if ( $$call{'args'} =~ m{^($re->{usr_str}|$re->{sid_str})( +(.+))?$} ) {
     ( my $term_usr = $call->{'args'} ) =~ s| .+$||;
     return {
         'mode' => qw| false |,
-        'data' => sprintf
-            '%s is not a neither a valid username nor a session id',
-        $term_usr
+        'data' =>
+            sprintf( '%s is not a neither a valid username nor a session id',
+            $term_usr )
     };
 }
 
-#,,,,,,.,,,,,,..,,...,,.,,.,,,,..,...,.,.,.,.,..,,...,...,...,...,.,.,.,,,,,.,
-#IDKJXGHXWS5LGIKGOUPOZ735FEQVMXNYURPAOMDBPWDB2UJX5IZSW2NXUJCTLVOUHDYISMVRNCKTS
-#\\\|7WGOEWU7CTKBR772YWUUHFK4LBAM3WBBUY7AKYG3ZLH6MA5JO4H \ / AMOS7 \ YOURUM ::
-#\[7]4RRX7CB2ATANM5ANVIQFAYF4PZEAQ5EKA7QM2NAMTZ5XEW7KREAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,..,,,..,,,.,.,.,.,,,,,,,,,,,.,.,..,,...,...,,,.,.,,,,.,,,..,,.,,
+#GTP2T6LTNTK7BVV34TZWYSK6YVI4GWAXWY7SJ2HKL6XPSO77KPXA3L2VEDQHD7NMD2YDB7XL5AT7C
+#\\\|CDR4AFHT3TXAGLFWOHNH6Q4FCZY5DBXUHXH2NO3VAPAC5YHT6Z3 \ / AMOS7 \ YOURUM ::
+#\[7]K5OG6TGEMQDDAL3LEXHNL7L4HLVOERMU3CSFQKCERBB2QZPOCSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
