@@ -3,9 +3,20 @@
 # name = base.logs
 # desc = 'base.log' sprintf wrapper
 
-return warn 'expecting sprintf template and parameters <{C1}>' if @ARG < 2;
-my $param_index = 0;
+if ( @ARG < 2 ) {
+    my $err_reason_str = 'expecting sprintf template and parameters';
+    if (   not <[base.is_defined_recursive]>->(qw| system.zenka.initialized |)
+        or not <system.zenka.initialized> ) {
+        <[base.logs]>->(
+            '%s %s <{NC}>', scalar <[base.caller]>,
+            $err_reason_str
+        );
+        <[base.s_warn]>->( '%s <{C1}>', $err_reason_str );
+    }
+    return undef;
+}
 
+my $param_index = 0;
 map {
     if ( not defined $ARG ) {
         my $call_lvl = 0;
@@ -41,8 +52,8 @@ if ( length $EVAL_ERROR ) {    ##  report sprintf warnings  ##
 
 <[base.log]>->( $log_level, $log_str );
 
-#,,.,,,..,,.,,..,,..,,.,,,,,,,...,..,,..,,.,.,..,,...,...,...,...,.,.,.,,,,.,,
-#ZDPHXQJWVIGJNBUBBC6NZJOXBAWFNTZIBCFKISJZDRLRHOMVZBN5GCDCNPMA222UJWQ33FW7EHMXM
-#\\\|YJX7GK45E3X4CL2AWN3GVR7ICXTLXLBET6EAUJFFMFHZNZEROV6 \ / AMOS7 \ YOURUM ::
-#\[7]2IXSNOYAY7BD4UDKQU3PX6ZBGLJLS2PMDDXAPJIJD4AYWJF4R2AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,.,,,.,,,,,.,,,.,..,,..,,,..,..,,...,...,,..,,,,,...,,..,..,,
+#OIKB7OVO6VODXWECXECDOGGRPEFQYDWNJHBBL4M7ATLV24PBCOGOCT7DNOM4WZRUWKZ72GMWCACW6
+#\\\|GITPZ6WEHEI4RR3FHVPLFG42JB3PK7LW2RUPLPTKEGUUY3HE5B3 \ / AMOS7 \ YOURUM ::
+#\[7]2S772H5C6YCBS3PYXODXT7CXAKYS3GPZXT7FFA5IDBWEC2RZSUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
