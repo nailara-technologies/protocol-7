@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = base.config.load_proto_7_version
+# descr = look for and load updated protocol version information
+
+my $p7_directories = <system.path.zenka-dirs>;
+
+##  first look for most recent version value  ##
+##
+my $first_location_path
+    = sprintf qw| %s/nodes/protocol-7.updated-protocol-version |,
+    $p7_directories->{'run_p7'};
+
+##  then the global [/etc] value  ##
+##
+my $alternative_location_path
+    = sprintf qw| %s/protocol-7.proto-version |,
+    $p7_directories->{'etc_P7'};
+
+my $loaded_cfg_file_path;
+my $version_param_string;
+
+if ( -f $first_location_path ) {
+    <[file.slurp]>->( $first_location_path, \$version_param_string );
+
+    $loaded_cfg_file_path = $first_location_path
+        if defined $version_param_string;
+
+} elsif ( -f $alternative_location_path ) {
+    <[file.slurp]>->( $alternative_location_path, \$version_param_string );
+
+    $loaded_cfg_file_path = $alternative_location_path
+        if defined $version_param_string;
+}
+
+my $previous_version_str = <system.p7.ext-proto-ver>;
+warn 'protocol-7 version parameter was not defined <{NC}>'
+    if not defined $previous_version_str;
+
+if (    defined $version_param_string
+    and length $version_param_string
+    and $version_param_string ne <system.p7.ext-proto-ver> ) {
+    if ( $version_param_string =~ m|PROTOCOL-7-VER\[([A-Z2-7]{7})\]| ) {
+
+        ## updating value ##
+        <system.p7.ext-proto-ver> = $version_param_string;
+
+        ##  converting format  ##
+        ##
+        if ( <[base.is_defined_recursive]>->(qw| system.p7.ext-proto-ver |)
+            and index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
+            <[base.parser.protocol-version]>->(<system.p7.ext-proto-ver>);
+        }
+
+        <[base.logs]>->(
+            ': updated current protocol version to %s',
+            $LAST_PAREN_MATCH
+            )
+            if <system.p7.ext-proto-ver> ne
+            scalar( $previous_version_str // '' );
+
+        ##  returning updated value string  ##
+        return <system.p7.ext-proto-ver>;
+
+    } else {
+        warn 'protocol version file content not as expected <{C1}>';
+        <[base.logs]>->( ':. from .: %s', $alternative_location_path );
+    }
+}
+
+return <system.p7.ext-proto-ver>;    ##  returning current value  ##
+
+#,,.,,,..,.,.,,,,,.,.,,,,,,..,,..,.,.,.,,,.,,,.,.,...,...,...,,,,,...,...,,,.,
+#CTLSK7VPUJRAWR7ELJNKFSKHF65IJK5GEK5XCIJXA2LW4ZSBQ4RSA2EGKT3PAGJD4MNZAJZWSUFLE
+#\\\|HMHYSSWE2EF52WRB44SGRMD43PNGSDHIFCZERROS6QTVA7I6B3Y \ / AMOS7 \ YOURUM ::
+#\[7]IGFIW5CV536J57V4ABFLQOPWHKB7FTKLGGD4BNR6EZFTBN243YAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
