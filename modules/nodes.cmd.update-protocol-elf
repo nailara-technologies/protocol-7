@@ -64,10 +64,14 @@ if (not    ## attempt writing to /etc/protocol-7 first ##
 my $protocol_code_version_str
     = sprintf( $version_template_ext, $version_elf7_chksum );
 
+##  reloading internal value from written configuration  ##
+##
+<[base.config.load_proto_7_version]>;
+
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,.,,..,,..,,.,.,...,,.,,,,,,,,,,.,,,.,,,.,.,.,.,...,...,,,,,,..,,.,,,..,,.,,
-#J6WU4QMFWV2G7467JRMWI6CVRU6XPPTBKRSFPKPQDZXFZS5PPSSKH6IHFX4HZ47AMLGUR4SYJSXHW
-#\\\|7ASABFWQF7PHKUM55TTICAGLN7JR3NAXIUVD5AJ5H2H6WRMULE6 \ / AMOS7 \ YOURUM ::
-#\[7]O6FFAXKITI4P4WO5FIWFJY3B6SGQPXG2ZUKYUAV4OQQH27MVP4BI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,,,,,,,,..,,,,,,..,,,,,,,,.,.,.,...,...,.,,,,,,,,.,,,,.,,..,
+#DCYPXDNDVDOXAWQM4EG6UABNIKKHHDUPNRUZUPKJ4IELNVB5GCVY2U6CGNUX7WJWO6ARK3U2HJ762
+#\\\|TIREZQGJ6U5EJOQO5KRZELGCNVUY73SQD2PB2JUEQ6XVUK24TSA \ / AMOS7 \ YOURUM ::
+#\[7]C3ZJJ6VFJENIATNQXZLNRXWVHE5H4LKSVTEZG4XOY5OHGYKTOODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
