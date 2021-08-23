@@ -3,6 +3,7 @@
 # name  = nodes.cmd.update-protocol-elf
 # descr = calculate new protocol version checksum
 
+my $etc_cfg_file_path    = qw| cfg-dir:protocol-7.proto-version |;
 my $versioncfg_file_path = qw| protocol-7.updated-protocol-version |;
 my $version_template_int = qw| PROTOCOL-7-VER[%s] |;
 my $version_template_ext = qw| \\\\PROTOCOL-7-VERSION\\\\%s\\\\ |;
@@ -35,19 +36,38 @@ my $version_elf7_chksum = <[chk-sum.amos.truth_template_chksum]>->(
 my $version_file_content = sprintf "%s\n",
     sprintf( $version_template_int, $version_elf7_chksum );
 
-<[file.zenka_dir.write]>->( $versioncfg_file_path, \$version_file_content )
-    or return {
-    'mode' => qw| false |,
-    'data' => 'error while updating version config file'
-    };
+if (not    ## attempt writing to /etc/protocol-7 first ##
+    <[file.zenka_dir.write]>->( $etc_cfg_file_path, \$version_file_content )
+
+    ) {    ##  write to /var/run/protocol-7/nodes/ when not successful  ##
+
+    <[file.zenka_dir.write]>->(
+        $versioncfg_file_path, \$version_file_content
+        )
+        or return {
+        'mode' => qw| false |,
+        'data' => 'error while updating version config file'
+        };
+
+} else {  ## removing any zenka path version when /etc write was successful ##
+
+    my $cfg_path_abs = sprintf qw| %s/%s/%s |,
+        <system.path.zenka-dirs.run_p7>, <system.zenka.name>,
+        $versioncfg_file_path;
+
+    <[base.s_warn]>->(
+        '[ %s ] unlink [ %s ]',
+        <[base.str.os_err]>, $cfg_path_abs
+    ) if -f $cfg_path_abs and not unlink($cfg_path_abs);
+}
 
 my $protocol_code_version_str
     = sprintf( $version_template_ext, $version_elf7_chksum );
 
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,,,,.,,,...,,,.,,..,,,,,,,.,..,,...,,.,,,..,.,.,...,...,,.,,,,,,,,,,..,,...,
-#2J7ZAWLBDKAMNT2JBA64JSGU2BJ5GMXUGRHKEXX2CL6MPV54ECSNHOUC7JRSADUUAWMQVXVGZ6LZ4
-#\\\|QQCMWYSGIJA3ZLZT3V7BIVSKVT3X737YN3BFZWC7L37ISLDI4I7 \ / AMOS7 \ YOURUM ::
-#\[7]IDJIKYEQ74J3FDQJP4LESXRWMCOF6UXETN3QF45IFO5RQUZHYMDA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,.,...,,.,,,,,,,,,,.,,,.,,,.,.,.,.,...,...,,,,,,..,,.,,,..,,.,,
+#J6WU4QMFWV2G7467JRMWI6CVRU6XPPTBKRSFPKPQDZXFZS5PPSSKH6IHFX4HZ47AMLGUR4SYJSXHW
+#\\\|7ASABFWQF7PHKUM55TTICAGLN7JR3NAXIUVD5AJ5H2H6WRMULE6 \ / AMOS7 \ YOURUM ::
+#\[7]O6FFAXKITI4P4WO5FIWFJY3B6SGQPXG2ZUKYUAV4OQQH27MVP4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
