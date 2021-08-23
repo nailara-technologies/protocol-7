@@ -27,39 +27,39 @@ if ( my $answer = readline($backend_socket) ) {
     chomp($answer) if defined $answer;
     if ( not defined $answer ) {
         <[base.log]>->( 0, '[X] connection lost :|' );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } elsif ( $answer eq 'AUTH_TRUE =)' ) {
-        <[base.log]>->( 1, "[*] $success_message" );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 1, '[*] %s',     $success_message );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return $backend_socket;
     } elsif ( $answer eq 'AUTH_ERROR `>:|' ) {
         <[base.log]>->( 0, '[#] authentication error >:|' );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } elsif ( $answer eq '>:| timeout' ) {
         <[base.log]>->( 0, '[#] authentication timeout :|' );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } elsif ( $answer eq ':| auth_methods' ) {
         <[base.log]>->( 0, '[#] server side auth nethods error :|' );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } elsif ( $answer eq '>:| auth_methods' ) {
         <[base.log]>->( 0, '[#] client side auth nethods error :|' );
-        <[base.log]>->( 2, "::: [ $plugin ]" );
+        <[base.logs]>->( 2, '::: [ %s ]', $plugin );
         return undef;
     } else {    ##  >:[ speak protocol ? .., ##
-        <[base.log]>->( 0, "[#] protocol mismatch :| [ $plugin ]" );
-        <[base.log]>->( 0, "::: '$answer'" );
+        <[base.logs]>->( 0, '[#] protocol mismatch :| [ %s ]', $plugin );
+        <[base.logs]>->( 0, '::: \'%s\'',                      $answer );
         return undef;
     }
 } else {
     <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
 }
 
-#,,,,,,,,,,.,,,,,,,.,,,.,,,,.,..,,.,.,.,,,..,,..,,...,...,.,,,.,.,,,.,.,.,...,
-#6FFPFAHYNQN4VFKE4OADS5PH7OZRDUKP54HRWIQSCVBWJGAVT2C67X5QQ6F63JAQZDUIOKOT2XSMG
-#\\\|QRNA2U3EO4OYSH3PERXCJOWBPHT7ZZYSMDUE52QXUH5RHBDRU6G \ / AMOS7 \ YOURUM ::
-#\[7]64XTEYC46SV5F4TRRSTUBK3C6BIWYXEVYH3KYIWWG65WQEKAZOBY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,.,,,.,,..,,..,,,.,.,.,,.,,..,,...,...,..,,,,.,,,.,,,,,,,.,
+#BHLN533QNSL5GVDBHOOMRGUWILHVFW4WNHDHEGBSLNVFPZCPZUUJ5TEO7BZPOCQTSQMGNDK7ZNAWK
+#\\\|QYXLS75BI44WZ3333CG4CWCGXM6EXXX3YVVAED42UFPOPQ7CUA4 \ / AMOS7 \ YOURUM ::
+#\[7]NIYVR363NNFNBG536TA7VJVEG234DXNQDBWVFCAXR4HZUAARYKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

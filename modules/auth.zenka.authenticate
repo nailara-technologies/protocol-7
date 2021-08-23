@@ -16,12 +16,21 @@ if ( not defined $backend_socket ) {
     return undef;
 }
 
+my $re_proto_banner = <protocol.protocol-7.regex.protocol-version>;
+
+if ( not defined $re_proto_banner
+    or index( ref $re_proto_banner, qw| Regexp | ) == -1 ) {
+    warn 'protocol banner regexp not defined, cannot authenticate <{C1}>';
+    return undef;
+}
+
 my $protocol_messages = <protocol.protocol-7.connect>;
 my $protocol_banner   = $protocol_messages->{'banner'};
 my $proto_msg_timeout = $protocol_messages->{'timeout'};
 
 my $link_mode_str = qw| zenka |;
-$link_mode_str = lc($LAST_PAREN_MATCH)
+
+$link_mode_str = lc $LAST_PAREN_MATCH
     if ref($backend_socket) =~ m|^IO::Socket::(\S+)$|;
 
 if ( defined $key_str
@@ -30,15 +39,36 @@ if ( defined $key_str
     and defined $keys{'zenka'}{'session_key'}
     and length $keys{'zenka'}{'session_key'} ) {
     $key_str //= $keys{'zenka'}{'session_key'};
-    my $banner_string;
-    my ( $m_len, $read_len )
-        = minmax( map {length} $protocol_banner, $proto_msg_timeout );
+
+    if (   not defined $backend_socket
+        or not -S $backend_socket
+        or not $backend_socket->connected ) {
+        <[base.log]>->(
+            0, 'auth.zenka : cannot authenticate [ have no valid socket ]'
+        );
+        return undef;
+    }
+
+    my $read_len
+        = [ minmax( map {length} $protocol_banner, $proto_msg_timeout ) ]
+        ->[1];
     my $bytes_read
-        = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len )
+        = <[base.s_read]>->( $backend_socket, \my $banner_string, $read_len )
         // 0;
+
     if ( $bytes_read > 0 ) {
-        if ( $banner_string eq $protocol_banner ) {
+        if ( $banner_string =~ $re_proto_banner ) {
             <[base.log]>->( 2, '[*] Protocol 7 banner detected.,' );
+
+            my $protocol_7_version = $LAST_PAREN_MATCH;
+            $data{'handle'}{$backend_socket}{'P7_version'}
+                = $protocol_7_version;    ## linking version with handle ##
+
+            <[base.logs]>->(
+                2, '[v] protocol 7 version %s .,',
+                $protocol_7_version
+            );
+
         } elsif ( $banner_string eq $proto_msg_timeout ) {
             <[base.log]>->( 2, '[#] authentication timeout :|' );
             return undef;
@@ -89,8 +119,8 @@ if ( defined $key_str
     return undef;
 }
 
-#,,,.,,.,,.,.,,,,,,.,,...,.,.,,,,,,,,,,.,,,,.,..,,...,...,,..,.,.,.,,,,.,,...,
-#7MGQBEQBFDRKGVUHHLZK7NQ2HHMYRBC3XGDZQVQTRJHBIZQCEWDV5TW5IBE6TQUVUEWVMDVIOVJAA
-#\\\|XI7Q2WF3UZ32AR7ATK62XUIBYWDFAHO5MG5ZZ4YLWFPJO4QZTNS \ / AMOS7 \ YOURUM ::
-#\[7]6CZZRW3UM4JK2XNMNQ62VZSNTHLWBUDG646FXA2RT2H4KN3VFQBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,,,,.,.,,..,,.,,,,.,,.,,...,..,,...,...,...,...,.,,,,..,.,.,
+#H24EPQBROZQER4B4FAIIL2W5DXL7Q5BY56BML75WLJ33TEVQXZYSGEPG5R2H7DQMTJFRERSUWWSEG
+#\\\|7XPMXBYSK33ROV6EW754H3XWCXV4TKCH23QCYAPYAIIWLG5BRTY \ / AMOS7 \ YOURUM ::
+#\[7]GVZP63R76VJEDFR3FO6JA3S5USU23CAXGS64QSBKNRNBRS2QFMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
