@@ -13,27 +13,46 @@ my ( $backend_socket, $user ) = @ARG;
 my $answer;
 my $banner_string;
 
+my $re_proto_banner = <protocol.protocol-7.regex.protocol-version>;
+
+if ( not defined $re_proto_banner
+    or index( ref $re_proto_banner, qw| Regexp | ) == -1 ) {
+    warn 'protocol banner regexp not defined, cannot authenticate <{C1}>';
+    return undef;
+}
+
 my $protocol_messages = <protocol.protocol-7.connect>;
 my $protocol_banner   = $protocol_messages->{'banner'};
 my $proto_msg_timeout = $protocol_messages->{'timeout'};
 
 if (   not defined $backend_socket
-    or !-S $backend_socket
-    or !$backend_socket->connected ) {
+    or not -S $backend_socket
+    or not $backend_socket->connected ) {
     <[base.log]>->(
         0, 'auth.unix : cannot authenticate [ have no valid socket ]'
     );
     return undef;
 }
 
-my $banner_string;
-my ( $m_len, $read_len )
-    = minmax( map {length} $protocol_banner, $proto_msg_timeout );
+my $read_len
+    = [ minmax( map {length} $protocol_banner, $proto_msg_timeout ) ]->[1];
 my $bytes_read
-    = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len ) // 0;
+    = <[base.s_read]>->( $backend_socket, \my $banner_string, $read_len )
+    // 0;
+
 if ( $bytes_read > 0 ) {
-    if ( $banner_string eq $protocol_banner ) {
+    if ( $banner_string =~ $re_proto_banner ) {
         <[base.log]>->( 2, '[*] Protocol 7 banner detected.,' );
+
+        my $protocol_7_version = $LAST_PAREN_MATCH;
+        $data{'handle'}{$backend_socket}{'P7_version'}
+            = $protocol_7_version;    ## linking version with handle ##
+
+        <[base.logs]>->(
+            2, '[v] protocol 7 version %s .,',
+            $protocol_7_version
+        );
+
     } elsif ( $banner_string eq $proto_msg_timeout ) {
         <[base.log]>->( 2, '[#] authentication timeout :|' );
         return undef;
@@ -56,8 +75,8 @@ if ( $bytes_read > 0 ) {
 
 return <[auth.zenka.process_auth_reply]>->($backend_socket);
 
-#,,.,,,..,...,.,,,..,,.,,,..,,,..,,.,,...,,,.,..,,...,..,,...,..,,.,.,,..,,.,,
-#WQKDJZSMX33W5ZNICXTPMVXVRYCEWGSBX6ARQOS4JHUCG6HEAJ642H5ZROQCKKKO72ZOGRYYZW5CE
-#\\\|PSN35XUFKAIKOXO4JQ6XMCRW7QBXLALSRXKJZ5RXMJYBR25EHCX \ / AMOS7 \ YOURUM ::
-#\[7]MBOEMSJBZUPLM6US4JYA2OX5VKYEEPCMZUVKPIL6TEIPZA7HYMCI 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,,..,...,.,,,,,.,.,,,,..,,..,..,,...,...,..,,..,,..,,...,,..,
+#4VHLFAAJE2CLCUEXM5NDJRQTE6OG7ADBW6DDQJJXZECIHUIW4RBN2N7RA2VWNND7RJ4K6BLOAVCGQ
+#\\\|R2NZ43R2NICXF5LY46GRMDHATXQHSBXVMWNCPFHLTLU5CDMH46A \ / AMOS7 \ YOURUM ::
+#\[7]T75GKLQBS5YWNLQ35DBSR7RURNICLKKJFPHBDGUJKWERNLOZT2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

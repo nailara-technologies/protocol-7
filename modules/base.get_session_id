@@ -7,7 +7,11 @@ my $route_str = shift // '';
 $route_str .= qw| . | if length $route_str;
 
 my ($local_sid) = keys( $data{'user'}{$usr_str}{'session'}->%* );
-if ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
+
+if ( not defined $local_sid ){
+    warn 'no [local] cube session id found [ connected ? ] <{C1}>';
+    return undef;
+} elsif ( exists $data{'session'}{$local_sid}{'cube_sid'} ) {
     <[base.log]>->(
         0, 'already have a cube sid , refused to request another'
     );
@@ -57,8 +61,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\w[\w\-\d]*) (\d+)\n$} ) {
     return undef;
 }
 
-#,,,.,,.,,..,,...,,,,,...,..,,.,.,...,,..,...,..,,...,...,.,,,.,,,.,.,,..,,,,,
-#YH6O664FU3FV4FFIMT3XUFQJT5C2QBEKZPXYONT3HFCFCNRZBL7KZL2WMLE2TVFK3D2R5OVYGJ2ZK
-#\\\|DAZRIUQXYHO4UU4AH7V6BV46CP64UTIUF6GULFP3WOWEQHFMHXD \ / AMOS7 \ YOURUM ::
-#\[7]EOOKY7F2L3QJ5QQZ5XGR6ZRPTKNOSZ6KHAB7I7NBMQM4UEVKFQDI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,..,,...,..,,,.,,,..,.,,,,..,..,,...,...,,..,.,.,.,,,,.,,,.,,
+#SODWNNNM5MICJ7TT3OOZ6PJQ6D3DX4KNIHXDD2F7OJFRTMGOST6DJCJ3CGPIJ4UVDKF5VGG4GKKVW
+#\\\|FJ63AYT3YXKJO2LRH74CKASQF364MG2VFWNZCGVETPNRKQF7YRJ \ / AMOS7 \ YOURUM ::
+#\[7]TK7XWMB5DRN5R3IRSBZQXJNTESYT4ZCHFE7XUZOJKK7QNHBGF2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
