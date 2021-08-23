@@ -6,6 +6,8 @@
 my $bg_gfx_path          = <X-11.bg_gfx_directory>;
 my $amos7_checksum_cache = <X-11.cache.bg-images.amos-path-csum> //= {};
 
+my %skip_formats = map { $ARG => TRUE } qw| webp |; ## hsetroot supported ? ##
+
 <X-11.backgrounds.path_list> //= [$bg_gfx_path];    ##  default image path  ##
 
 my $err_reason_mesg;
@@ -33,8 +35,9 @@ foreach $bg_gfx_path ( <X-11.backgrounds.path_list>->@* ) {
         ##[ already cached ]##
         next if exists $bg_image_pathmap{$bg_image_path};
 
-        ##[ is an image ? ]##
-        next if index( mimetype($bg_image_path) // '', qw| image/ |, 0 ) != 0;
+        next    ##[ is an image ? ]##
+            if scalar( mimetype($bg_image_path) // '' ) !~ m|^image/(.+)$|
+            or exists $skip_formats{$LAST_PAREN_MATCH};   ##[not supported?]##
 
         ##[ add to cache ]##
         my $amos_chksum = <[file.path.chksum.AMOS]>->($imagefile_name);
@@ -52,8 +55,8 @@ if (wantarray) {    ## returning file paths in list context ##
     return $amos7_checksum_cache;
 }
 
-#,,,,,...,,,.,,,.,...,..,,,,.,...,,..,,,.,...,..,,...,..,,.,.,,.,,,,.,,,.,.,.,
-#NQR4UPO76VRJZZHUI3YVJIVKYYFMCBZPPTYGCW7CRKWL6JJUJINY5227WKVUXYBUP4YV7IFUWALE4
-#\\\|JZQ2LWKFNAH2CGICTCQF5C6MICNUN3BZMANTNWNH4G4ODYJNOIS \ / AMOS7 \ YOURUM ::
-#\[7]7XCXBZKMQU2GKAZTTWMVYR7MLEICZWWM2VYYJXAU5H3SWNHSNODY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,.,,,.,.,.,.,,..,,..,...,,..,..,,...,...,..,,..,,.,,,,..,.,,,
+#CKHZX4ALPGW2ILA4EEINMZMNE7U262VKL5YO7ITP4C7UAWVNDPTPJ3IUAPSHHEWOSRQMBP3FIJUCW
+#\\\|4VL2MDQG5DWX2EKYO6VSOZ2KNALQZ6OAKHGHOOBHJKNNF26D4E4 \ / AMOS7 \ YOURUM ::
+#\[7]E7UI6WMHXD2X3TFX2SV3IZHMNSZYTD2GIFYYAASEY74VFTVRBUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
