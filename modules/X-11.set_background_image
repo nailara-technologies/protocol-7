@@ -6,6 +6,8 @@ my $bg_image   = shift;                      ##  image path [ chksum ]  ##
 my $bg_mode    = shift // <X-11.bg_mode>;    ##  hsetroot scaling modes  ##
 my $set_silent = shift // TRUE;              ##  changes report log level  ##
 
+my $image_h_flipped = delete <X-11.bg_image_flipped> // FALSE;
+
 if ( not defined $bg_image ) {
     warn 'expected bg_image parameter <{C1}>';
     return undef;
@@ -73,10 +75,12 @@ my $image_setting = $amos_chksum // $bg_image_name;
 ##  query available hsetroot params here  ##   [LLL]
 @hsetroot_params = ( sprintf( qw| -%s |, $bg_mode ), $bg_image );
 
+my $add_options_str = '';
+
 ## apply custom options if defined ##
 ##
 if ( <[base.is_defined_recursive]>->(qw| X-11.hsetroot.options |) ) {
-    my $add_options_str = <X-11.hsetroot.options>;
+    $add_options_str = <X-11.hsetroot.options>;
     $add_options_str =~ s|[\t ]{2,}| |g;    ##  clean-up spaces  ##
 
     ##  # color prefix  ##
@@ -88,6 +92,9 @@ if ( <[base.is_defined_recursive]>->(qw| X-11.hsetroot.options |) ) {
     );
     push @hsetroot_params, split ' ', $add_options_str; ##  adding options  ##
 }
+
+push @hsetroot_params, qw| -fliph |    ##  flipping image when enabled  ##
+    if $image_h_flipped and index( $add_options_str, qw| -fliph | ) == -1;
 ##
 
 if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
@@ -100,8 +107,8 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     return TRUE;                         ##  return success  ##
 }
 
-#,,,,,..,,,.,,..,,,..,.,,,,.,,..,,...,.,.,,,,,.,.,...,...,...,...,,.,,,..,.,.,
-#IQBUJY7FUY3T46YRPEOEWO2ILJHDG3EKEZSHETNJYWQIJX26RHHFPY236QLB27IPSH3FLYDE54MKM
-#\\\|T24LPIOCA3HBS63UDEFCE63IWNA5H5SE4PHYHZD4RNBYZZ2R4W7 \ / AMOS7 \ YOURUM ::
-#\[7]LIHTHSLHOBBKWW6ZYBZBQJQA55VC4LBBDTIP2RQARCLH6HJ2SYDA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,.,.,,,.,,.,,,..,...,,,,,..,,.,.,...,...,,.,,..,,.,,,,,.,,,.,
+#2TFFTOX6DKWCX6QGKXVTNZEKBLPG4FPXQAFHQQGTPM5OX3IIVXLAK7I5VPZQ6OBXFR4WPAIBQ3G5M
+#\\\|IWOQIW744CXO6GO7Y7ZHJT56HDDEQP32A4JGA3WGCTRJSOGO52U \ / AMOS7 \ YOURUM ::
+#\[7]E24ZYQTYPJOFNEWWVBBCPJYEDKT4JZJX3PHRQTEFXRYOMVESM4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

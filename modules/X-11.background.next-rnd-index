@@ -4,6 +4,11 @@
 
 my $no_repeat_elements = shift // FALSE;  ##  disallow element seq. repeat  ##
 
+##  optional randomized flipping [h]  ##
+<X-11.slideshow.rand-flip-h> // FALSE;
+
+my $rnd_flip_h = <[base.cfg_bool]>->(<X-11.slideshow.rand-flip-h>);
+
 ##  default settings  ##
 ##
 my $interval_start = <X-11.slideshow.interval.start> //= 37;
@@ -22,13 +27,15 @@ if ( $interval_start !~ m|^\d+$| ) {    ##  sanity check  ##
 
 ## initializing empty ##
 ##
-my $rnd_list_ref  = <X-11.background.rnd-img-seq>       //= [];
-my $rnd_delay_ref = <X-11.background.rnd-seq-intervals> //= [];
+my $rnd_list_ref   = <X-11.background.rnd-img-seq>       //= [];
+my $rnd_flip_x_ref = <X-11.background.rnd-flip-horiz>    //= [];
+my $rnd_delay_ref  = <X-11.background.rnd-seq-intervals> //= [];
 
 ##  if no next element, generate a randomized sequence  ##
 ##
 if ( not $rnd_list_ref->@* ) {
 
+    my @image_rnd_flip;    ## when enabled randomized horizontal flipping ##
     my @image_sequence;    ## result is numerical image index sequence list ##
     ##
     ## index order is base.sort result on full image paths ##
@@ -68,6 +75,7 @@ RECALC:
         foreach my $seed_num_value (@interval_seed_num) {
             my $interval_sval = $seed_num_value % $interval_delta_msecs;
             push @interval_seconds, $interval_start + $interval_sval / 100;
+            push @image_rnd_flip,   $seed_num_value % 3 == 0 ? FALSE : TRUE;
         }
         ##
 
@@ -95,8 +103,9 @@ RECALC:
     ##
     if ($no_repeat_elements) {
 
-        $rnd_list_ref->@*  = @image_sequence;
-        $rnd_delay_ref->@* = @interval_seconds;
+        $rnd_list_ref->@*   = @image_sequence;
+        $rnd_delay_ref->@*  = @interval_seconds;
+        $rnd_flip_x_ref->@* = @image_rnd_flip;
 
         ## removing comparison variable ##
         delete <X-11.background.img-seq-last-returned>
@@ -108,15 +117,17 @@ RECALC:
         my $take_elements = sprintf qw| %u |, 0.3 * $bg_image_count;
 
         if ( $take_elements == 0 ) {    ## if result less than one .., ##
-            $rnd_list_ref->@*  = shift @image_sequence; ## only one element ##
-            $rnd_delay_ref->@* = shift @interval_seconds;
+            $rnd_list_ref->@* = shift @image_sequence;  ## only one element ##
+            $rnd_delay_ref->@*  = shift @interval_seconds;
+            $rnd_flip_x_ref->@* = shift @image_rnd_flip;
 
             if ( defined <X-11.background.img-seq-last-returned>
                 and <X-11.background.img-seq-last-returned>
                 == $rnd_list_ref->[0] ) {
-                if ( @image_sequence == 1 ) {           ## next element ##
-                    $rnd_list_ref->@*  = shift @image_sequence;
-                    $rnd_delay_ref->@* = shift @interval_seconds;
+                if ( @image_sequence == 1 ) {    ## next element ##
+                    $rnd_list_ref->@*   = shift @image_sequence;
+                    $rnd_delay_ref->@*  = shift @interval_seconds;
+                    $rnd_flip_x_ref->@* = shift @image_rnd_flip;
                 } else {    ##  recalculate, not retuning same element  ##
                     $image_path_sequence = qw| FALSE |;
                     goto RECALC;
@@ -137,6 +148,8 @@ RECALC:
             $rnd_list_ref->@* = ( splice @image_sequence, 0, $take_elements );
             $rnd_delay_ref->@*    ##[ same for interval delay values ]##
                 = ( splice @interval_seconds, 0, $take_elements );
+            $rnd_flip_x_ref->@*    ##[ and horizontal flip status ]##
+                = ( splice @image_rnd_flip, 0, $take_elements );
 
             ## removing comparison variable ##
             delete <X-11.background.img-seq-last-returned>
@@ -154,17 +167,19 @@ RECALC:
 ##
 my $next_index             = shift $rnd_list_ref->@*;
 my $next_interval_duration = shift $rnd_delay_ref->@*;
+my $next_image_x_flipped   = shift $rnd_flip_x_ref->@*;
 
-##[ returning index and duration in list context ]##
+##[ returning index duration and flip status in list context ]##
 ##
-return ( $next_index, $next_interval_duration ) if wantarray;
+return ( $next_index, $next_interval_duration, $next_image_x_flipped )
+    if wantarray;
 
 ## return next from sequence list ##
 ##
 return $next_index;    ##  only index value in scalar context  ##
 
-#,,,.,...,..,,,,.,..,,...,...,,.,,,.,,,.,,,,.,.,.,...,...,..,,,..,.,.,,.,,,.,,
-#KYXIRZGZ66P2TBSBPBKKTGTTTOQ2GASBTIZMQJB22J2CJ6O63ONLQJD2NTDHIZ4IQC4KBJGN5P4HA
-#\\\|IRFLOMFWKERIAWV5BPEND3HA7LVUKPIMMXUO6DZV5YE5TV76VOL \ / AMOS7 \ YOURUM ::
-#\[7]TZATUWI75T4NANDWRXQGIGWWDFRVPEZXTUNTMOXPWJAV2XGQ6OBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,,,,,,.,,..,,..,,...,,,.,.,.,.,.,...,...,..,,.,.,...,,,,,,.,,
+#IBJCYSICGMZV5XVNIYIWOBA7OZHW2IA7LNEWBFC2CZTJVSOQIUATQXD2Y53CB5D6JSBZJJ37LH6MS
+#\\\|U7KVKWNXCXVFZMMOU3WRS25WJ2VAJRO4NG3W5Y3ZY23IHMMKGCO \ / AMOS7 \ YOURUM ::
+#\[7]B3UMIAJJKTH2NQC5QQ2TBLIQOJFCEWW3WPIXRB2FZF2JXJ6WHCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
