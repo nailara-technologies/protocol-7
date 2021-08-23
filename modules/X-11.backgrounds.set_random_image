@@ -18,13 +18,27 @@ if ( defined <X-11.timer.bg-img-slideshow>
     delete <X-11.timer.bg-img-slideshow>;
 }
 
-( my $background_image_index, my $s_interval_delay, my $image_h_flipped )
-    = <[X-11.background.next-rnd-index]>;
+GET_NEXT_IMAGE:
 
-<X-11.bg_image_flipped> = TRUE if $image_h_flipped;
+( my $background_image_index, my $s_interval_delay, my $image_h_flipped )
+= <[X-11.background.next-rnd-index]>;
+
+if ( not defined $background_image_index ) {    ##  no images found  ##
+    warn 'no background images found [ cannot select ] <{C1}>';
+    return undef;
+
+} elsif ( not exists $bg_image_paths[$background_image_index]
+    or not defined $bg_image_paths[$background_image_index]
+    or not -r $bg_image_paths[$background_image_index] ) {
+    ##  deleted ?  ##
+    <[X-11.bg-image.clean-up-cache]>;    ##[ removing non-existing entries ]##
+    goto GET_NEXT_IMAGE;
+}
 
 my $selected_image_path         = $bg_image_paths[$background_image_index];
 my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
+
+<X-11.bg_image_flipped> = TRUE if $image_h_flipped;
 
 if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 {
@@ -44,8 +58,8 @@ if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 
 return undef;                              ## or undef on error ##
 
-#,,..,...,.,.,.,,,.,.,...,..,,.,,,..,,,,.,.,.,..,,...,...,,,.,.,.,,.,,.,.,,,.,
-#HPEG3HNECOPOTNSQVBH7VIXNTMUTGPO27U475S2ESQ4RNIOZYNBYFGBGE46R3INS64ZESB4DFEBAE
-#\\\|YF5FDA4IEUYHK66SO3PWHUGOQRFHKYS2WW7YKTWGDVK35XXQDIC \ / AMOS7 \ YOURUM ::
-#\[7]ZTTINBEG6EVRHEMZJTJWLSWQFYO3ZZTY2ID66UFURU7R5SXKQCCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,...,.,.,,..,...,.,,,...,,,.,.,,,..,,...,...,,,,,..,,,.,,.,,,,.,,
+#JLO3CQLHIJ2RLTGHEKUDRMORC7H5IQW4IKQ4GS6LLIGVILO4YK3NBRBL6ZQOHJR7W4O3GTMXTELGE
+#\\\|HLLOADNOEDSYFU3MBUSYDHMCXUPFA5XTQXP5RGJ4RXM7T47A75Q \ / AMOS7 \ YOURUM ::
+#\[7]ISCALYVEE27ROSLTV2LSFWG2HWG6KBE7UXGT44YTHTEEOQBZGEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
