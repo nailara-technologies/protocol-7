@@ -10,7 +10,6 @@ use Encode qw| decode |;
 use Crypt::PRNG::Fortuna;
 use Digest::Elf qw| elf |;
 use Time::HiRes qw| time sleep |;
-use YAML::XS qw| DumpFile LoadFile |;
 use Crypt::Misc qw| encode_b32r decode_b32r |;
 use Unicode::UTF8 qw[ decode_utf8 encode_utf8 ];
 use warnings FATAL => 'utf8';
@@ -22,11 +21,6 @@ open( ZULUM, '>', File::Spec->devnull );
 binmode( ZULUM, ':utf8_strict' );
 ## output mode ##
 binmode( STDOUT, ':utf8_strict' );
-
-$YAML::XS::LoadBlessed = 0;
-$YAML::XS::UseCode     = 0;
-$YAML::XS::DumpCode    = 0;
-$YAML::XS::LoadCode    = 0;
 
 ###################################################
 ( my $x, my $y ) = &term_size;
@@ -490,75 +484,18 @@ sub dump_seed_state {
         . ":\n:: zulum :: $state->{'seed'}->{'zulum'}\n:\n";
 }
 
-sub checksum_state {
-    my $state_ref = shift // \$state;
-    delete $$state_ref->{'checksum'};
-    my $state_dump = YAML::XS::Dump($$state_ref);
-    my $checksums  = {
-        'elf' => elf_BASE32( \$state_dump ),
-        'bmw' => bmw_BASE32( \$state_dump )
-    };
-    $$state_ref->{'checksum'}
-        = join( '-', $checksums->{'elf'},
-        substr( $checksums->{'bmw'}, 0, 4 ) );
-
-    return $checksums;    ## B32-elf + B32-bmw-512 ##
-}
-
-sub dump_state { checksum_state(); say YAML::XS::Dump($state) }
-
 sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
 sub cmd_clear { say clear() . "## [:< ##\n" }
 sub cmd_reset { system qw| reset |; cmd_clear() }
 sub cmd_quit  { cmd_reset();        exit(0) }
-
-sub save_state {
-    checksum_state();
-    my $chk_sum = $state->{'checksum'};
-    my $file_name
-        = join( '.', $set_up->{'state-file'}, $state->{'checksum'} );
-    DumpFile( $file_name, $state );
-    unlink( $set_up->{'state-file'} ) if -e $set_up->{'state-file'};
-    symlink( $file_name, $set_up->{'state-file'} );
-}
-
-sub update_state_files {
-    opendir( DIR, '.' )
-        or return ":: opendir error : \l$OS_ERROR ::";
-    my @state_files = grep {m|^atom-delta-term\.state\.|} readdir(DIR);
-    closedir(DIR);
-    my $file_count = 0;
-    say ':';
-    foreach my $file (@state_files) {
-        next if !-r $file;
-        $file_count++;
-        say ":: $file\n:";
-        eval {
-            my $update = LoadFile($file)
-                or warn ":: $file : \l$OS_ERROR ::";
-            delete $update->{'fortuna'};
-            delete $update->{'zulum'};
-            checksum_state( \$update );
-            DumpFile( $file, $update ) or warn ":: $file : \l$OS_ERROR ::";
-        };
-        $file_count-- if $EVAL_ERROR;
-    }
-    my $err_str = $EVAL_ERROR ? "[ \l$EVAL_ERROR ]" : '::';
-    return ":\n:: $file_count files updated $err_str\n:\n";
-}
-
-sub load_state {
-    $state = LoadFile( $set_up->{'state-file'} );
-}
 
 sub sig_int_handler {
     $SIG_INT = 0;
 
     my @available_commands = (
         'exit \\ quit', 'resume \\ continue', qw|
-            clear reset checksum show-seed completed load save
-            last loop-count buffer result-13 zulum state rewind
-            [re]start run commands
+            clear reset show-seed completed last loop-count buffer
+            result-13 zulum rewind [re]start run commands
             |
     );
 
@@ -579,7 +516,7 @@ sub sig_int_handler {
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
         }
         $state->{'last-cmd'} = $cmd
-            if $cmd !~ m,^(clear|last|(save|load)-state|resume|continue)$,;
+            if $cmd !~ m,^(clear|last|resume|continue)$,;
     PROCESS_CMD:
         given ($cmd) {
             when ('last') {
@@ -666,9 +603,6 @@ sub sig_int_handler {
                     say "< key '$1' undefined >";
                 }
             }
-            when ('state') { dump_state() }
-            when ('save')  { save_state() }
-            when ('load')  { load_state() }
             when ('completed') {    ## message mode ## [ implement other., ]
                 my $len_0000 = length( scalar $math->{'zulum'} );
                 my $len_0110
@@ -692,8 +626,8 @@ sub sig_int_handler {
     }
 }
 
-#,,.,,,,.,...,,,,,.,.,...,,,,,.,,,..,,,,.,...,..,,...,..,,...,,..,..,,,..,,..,
-#73XRSNPNTGZLXZ4TVYEVUWLWK7DUFTPFMSDCMKNRKEW5IHJM3L22F2XLD33GUB2NZ3S4GQRM7HOSQ
-#\\\|V3TVC3IF53LNV63ICNS67TK55GND7S4QPGQJWIAN3A74HXYJ6SD \ / AMOS7 \ YOURUM ::
-#\[7]E7WFVS3AX7TH2ZHS5OVFHCUNVYS4BDLSMZGGONM3YCCZTMCDDIAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,,,.,.,,,,,.,,,.,...,.,.,..,,..,,...,...,.,,,...,.,.,,..,.,.,
+#QC7IUSLVC6LZDMBZVGD6C3DFD2VNCJDUDGK2KEWNZST4OGSQ7CZGFTC2MIGGA4XGQVBDHDAUHX7IM
+#\\\|AA2PKHUCQ6KMDCMBXSQKGWAWMRCGB2QHWU6LB3ZU4KABJ2JBSQD \ / AMOS7 \ YOURUM ::
+#\[7]UGPQ4HAOO2H5R5V6IBK62PVN3RVPZGK3VCI2I2GD7L5SUSRB3KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
