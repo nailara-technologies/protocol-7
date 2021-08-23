@@ -9,6 +9,7 @@ my @bg_image_paths         = <[base.sort]>->( \%bg_image_pathmap );
 ##  default settings  ##
 ##
 <X-11.random_slideshow> //= TRUE;
+<X-11.bg_image_flipped> //= FALSE;
 ###
 
 if ( defined <X-11.timer.bg-img-slideshow>
@@ -17,8 +18,10 @@ if ( defined <X-11.timer.bg-img-slideshow>
     delete <X-11.timer.bg-img-slideshow>;
 }
 
-( my $background_image_index, my $s_interval_delay )
+( my $background_image_index, my $s_interval_delay, my $image_h_flipped )
     = <[X-11.background.next-rnd-index]>;
+
+<X-11.bg_image_flipped> = TRUE if $image_h_flipped;
 
 my $selected_image_path         = $bg_image_paths[$background_image_index];
 my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
@@ -41,8 +44,8 @@ if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 
 return undef;                              ## or undef on error ##
 
-#,,,,,..,,.,,,...,...,.,.,.,.,.,,,,.,,.,,,,,.,..,,...,...,..,,,.,,.,,,,,.,,,,,
-#FGFXNGGQFOSV2E3OWZ7BE6RFDBOQ2R2ALLOQ46YJQTGVHV6NQ24C4SXF5R64NXXSDQEFAUZ5QE5RK
-#\\\|LGSR7BHXZLKWOAR24DEGV5LOHLMMTECZXNJCQEWPMJURID4SZKD \ / AMOS7 \ YOURUM ::
-#\[7]KR3BDLI3YGNHZ52S2M5UOY4VGEKGYIZV2W3JG7YYO77RBUZ722CQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,.,.,...,..,,.,,,..,,,,.,.,.,..,,...,...,,,.,.,.,,.,,.,.,,,.,
+#HPEG3HNECOPOTNSQVBH7VIXNTMUTGPO27U475S2ESQ4RNIOZYNBYFGBGE46R3INS64ZESB4DFEBAE
+#\\\|YF5FDA4IEUYHK66SO3PWHUGOQRFHKYS2WW7YKTWGDVK35XXQDIC \ / AMOS7 \ YOURUM ::
+#\[7]ZTTINBEG6EVRHEMZJTJWLSWQFYO3ZZTY2ID66UFURU7R5SXKQCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
