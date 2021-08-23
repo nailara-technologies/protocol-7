@@ -11,6 +11,12 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 }
 
 <protocol.protocol-7> = {
+
+    qw| regex | => {
+        qw| protocol-version | =>    ## protocol banner match ##
+            qr|^\\\\\QPROTOCOL-7-VERSION\E\\\\([A-Z2-7]{7})\\\\\n$|
+    },
+
     qw| connect | => {
 
         ##  protocol reply messages  ##
@@ -65,8 +71,8 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 
 0;
 
-#,,.,,,,.,.,.,,,,,,,,,,,,,..,,,..,,,,,..,,..,,..,,...,..,,...,..,,,.,,,.,,,,,,
-#PWFSUSLLA57R4OO3BXVKOWSWSLJFSD27LGPRLG6BHM3A2DOVOHZNCDPWRION7DDYAJOAEVSY7B6S4
-#\\\|QXJE42XQBKMAB62STJYE5LWUIQTQPHNACTA3YR7QWVV43MBDMOT \ / AMOS7 \ YOURUM ::
-#\[7]5SBMDPMZFX4P3MXZAZ6RHOAOY2NCVCZXVJICOPSSDPAI5IHHLCDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,,,,,,.,.,,,,,.,,,.,.,,,..,,..,,...,...,...,,,.,..,,..,,.,.,
+#TSOG6NTSN752KPUEKGDMXG4EQBOIZVUQN35STNFBGNU536OHRA2KNKQDR3MMDME3TYG6NH2NPSUTG
+#\\\|TFNAGTTS47PREW3CBZ4DOQMXYOIJIULFYKJW66VFCILJOQALPJN \ / AMOS7 \ YOURUM ::
+#\[7]2SHTKDL4RYJ7MWOK4OKXVSICBJELVVA26LQHL3DHFISNKF32TUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
