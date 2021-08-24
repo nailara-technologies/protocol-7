@@ -56,7 +56,7 @@ if ( not -d $zenka_write_dir ) {    ##  creating directory if missing  ##
     }
 }
 
-if ( -f $zenka_write_dir and not -w $zenka_write_dir ) {
+if ( -d $zenka_write_dir and not -w $zenka_write_dir ) {
     <[base.s_warn]>->(
         'no write permission to zenka output directory [ %s ]',
         $zenka_write_dir
@@ -78,7 +78,7 @@ if ( -d $file_abs_path ) {
 }
 
 my $fh = <[file.open]>->(
-    $file_abs_path, $encoding_str, $open_mode_str, $file_mode
+    $file_abs_path, $encoding_str, $open_mode_str, TRUE, $file_mode
 );
 if ( not defined $fh or not length fileno($fh) ) {
     <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
@@ -98,8 +98,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,..,,..,,,.,,..,,,.,...,,..,,.,,..,,.,,,,,.,..,,...,...,...,.,,,.,,,,,,,,..,
-#EAD2XH2VBLVYXMOLM365DREUWMF2QDVK2OH2U4Y3DGN6EDEZC4G77IPW5EVQV3VJYARM6P624DVEU
-#\\\|MWH5V7DSF7M5N4MSLKO2WBFC4FIMVBLC5HQ6TZPLGQZJ6Q7BSJM \ / AMOS7 \ YOURUM ::
-#\[7]SXBE7G7AVWY3UL44DDFTUNXUPO2G3HMUEQKZDJR7UT5MIXOPYYCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,..,,,..,..,,..,,.,,,.,.,,.,,..,,...,...,,..,...,,,.,,..,...,
+#6KE4TX3HQIMHNOM2U6KOQ7WN6ELC6GZJ46L5BE6WF33PNWGNKXVBMDD7SJMPPXOQFTKRNR4BWY62Y
+#\\\|DUCC4CZVYZDOOUY24F3AGCV25IOO4UEHDQJ5YPSJ22ATC4HI6Y2 \ / AMOS7 \ YOURUM ::
+#\[7]TGQQRK2327JIZOZ37U57VOQV7GUSXMXQXYZW6II6WPRXMVCV3UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
