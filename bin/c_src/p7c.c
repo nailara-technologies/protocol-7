@@ -125,7 +125,7 @@ int main( int argc, char * argv[] ) {
     unsigned int line = 0;
     int result;
     char byte = ' ';
-    while ( line <= 2 ) {
+    while ( line <= 3 ) {
 
         result = recv( socket_fd, &byte, 1, 0 );
 
@@ -138,14 +138,13 @@ int main( int argc, char * argv[] ) {
         } else if ( byte == '\n' )
             line++;
 
-        if ( line == 2 && byte == 'O' ) { // AUTH_ERROR in second reply line
+        if ( line == 3 && byte == 'O' ) {  // AUTH_ERR[O]R in third reply line
             fprintf( stderr,
                 "<< authentication not successful [ user '%s' ] >>\n",
                 p7_unix_user );
             return 3;
         }
     }
-
 
     /* send protocol-7 command string to socket */
     write( socket_fd, cmd_str, strlen(cmd_str) );
