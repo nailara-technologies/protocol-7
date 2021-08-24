@@ -23,14 +23,18 @@ my $version_param_string;
 if ( -f $first_location_path ) {
     <[file.slurp]>->( $first_location_path, \$version_param_string );
 
-    $loaded_cfg_file_path = $first_location_path
-        if defined $version_param_string;
+    if ( defined $version_param_string ) {
+        chomp $version_param_string;
+        $loaded_cfg_file_path = $first_location_path;
+    }
 
 } elsif ( -f $alternative_location_path ) {
     <[file.slurp]>->( $alternative_location_path, \$version_param_string );
 
-    $loaded_cfg_file_path = $alternative_location_path
-        if defined $version_param_string;
+    if ( defined $version_param_string ) {
+        chomp $version_param_string;
+        $loaded_cfg_file_path = $alternative_location_path;
+    }
 }
 
 my $previous_version_str = <system.p7.ext-proto-ver>;
@@ -70,8 +74,8 @@ if (    defined $version_param_string
 
 return <system.p7.ext-proto-ver>;    ##  returning current value  ##
 
-#,,.,,,..,.,.,,,,,.,.,,,,,,..,,..,.,.,.,,,.,,,.,.,...,...,...,,,,,...,...,,,.,
-#CTLSK7VPUJRAWR7ELJNKFSKHF65IJK5GEK5XCIJXA2LW4ZSBQ4RSA2EGKT3PAGJD4MNZAJZWSUFLE
-#\\\|HMHYSSWE2EF52WRB44SGRMD43PNGSDHIFCZERROS6QTVA7I6B3Y \ / AMOS7 \ YOURUM ::
-#\[7]IGFIW5CV536J57V4ABFLQOPWHKB7FTKLGGD4BNR6EZFTBN243YAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,.,,,..,.,,,,,,,,,.,,,.,.,.,.,.,...,...,,.,,,,.,.,.,,,.,,.,,
+#5NVVX5VUEN72J372NIO3SM7RICWDOSG5OSNLH5NGQBZAFE7LWCQT5KM47K2YGUJBWC4JQTHVFUTHY
+#\\\|NLP6PNEX3VXKNEK5F5Y3XXXCAOGAY3WCRSGFGTCYAPBJS32GWJD \ / AMOS7 \ YOURUM ::
+#\[7]22PZ2TAOONW7K5USO3R5CL52GAHMEXMDS2RRFITPTXCQ4BXWSYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
