@@ -28,7 +28,7 @@ my %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
 
 foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
     ( my $image_path_rel = $bg_gfx_path ) =~ s|^.*/||;
-    my $template = $bg_image_pathmap{$bg_gfx_path} eq <X-11.bg_image>
+    my $template = $bg_image_pathmap{$bg_gfx_path} eq <X-11.cur_bg_image>
         ? " ::[ %s ]:: %s\n"    ##  highlight the current image  ##
         : "  :  %s  :  %s\n";
     push @bg_img_files, sprintf $template,
@@ -37,8 +37,8 @@ foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
 
 return { 'mode' => qw| size |, 'data' => join '', @bg_img_files }
 
-#,,..,.,.,.,,,,,.,...,.,,,...,.,,,,,,,...,.,,,..,,...,...,.,.,,.,,...,..,,,,.,
-#FWMDBRNMQ5HRCGBAD2IXN4AU3Y5IDW2QEE3HOZF5ERVQDDQDEMCPVN5Z6Z2CDX5JOZJCVMHTWMOMS
-#\\\|AN6GYWHSWUQO7SUKXJQZ7D4EEAWPW2GW7AXBJ7HH3MK4ADL7UB3 \ / AMOS7 \ YOURUM ::
-#\[7]NRNSTUHZNL7WGPOSEJ5IGG43HB5BP37SMY2FU64ABGTKMMYTNMBA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,.,,...,,,,,,,.,..,,,,,,,.,,..,,...,...,.,,,...,.,.,...,,,,,
+#DVQIBCKVASSNDGANG2EHH3BIH2OKDWVY6IR5J4TLRHINV2H2ALZGJ623KIC75PV5EA7RF5X6K6AZ6
+#\\\|OOHQS27YCBXSHENLPDD4YKUHTGIMWKELXQGIOSS6XZGCUUL2BCW \ / AMOS7 \ YOURUM ::
+#\[7]S3MCSX23CF3QBTFTAAYAGCC5QIB6JL33LSFZIS3P3757CPHUUGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
