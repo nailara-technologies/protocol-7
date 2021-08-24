@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = X-11.background.chksum-cache.reload_from_file
+
+my $cache_filename = <X-11.path.chksum_cache_name>;
+return undef if not defined $cache_filename;
+
+my $cache_file_path_abs = sprintf qw| %s/%s/%s |,
+    <system.path.zenka-dirs.run_p7>, <system.zenka.name>,
+    $cache_filename;
+
+return undef if not -f $cache_file_path_abs;
+
+<[base.log]>->( 2, ': loading image path chksum cache from disk..,' );
+
+my $cache_content_scalar_ref = <[file.zenka_dir.load]>->($cache_filename);
+if ( ref $cache_content_scalar_ref ne qw| SCALAR | ) {
+    warn 'bg-image filename chsum cache reload failed <{C1}>';
+    return undef;
+}
+
+my $amos7_checksum_cache = {};
+
+chomp $cache_content_scalar_ref;
+
+foreach my $line ( split "\n", $cache_content_scalar_ref->$* ) {
+    if ( $line !~ m|^([A-Z2-7]{7}):(/.+)$| ) {
+        warn 'error in filename chsum cache format <{C1}>';
+        return undef;
+    } else {
+        $amos7_checksum_cache->{ ${^CAPTURE}[0] } = ${^CAPTURE}[1];
+    }
+}
+
+<[base.logs]>->(
+    2,
+    ': :. chksum cache loaded, %03d entries .,',
+    scalar $amos7_checksum_cache->%*
+);
+
+<X-11.cache.bg-images.amos-path-csum> = $amos7_checksum_cache;
+
+<[X-11.bg-image.clean-up-cache]>;    ##[ removing non-existing entries ]##
+
+return TRUE;
+
+#,,,.,,,,,,,.,...,,..,,,.,,,,,,,,,.,,,..,,,.,,.,.,...,...,..,,...,,.,,,..,,,,,
+#OJ5VMDYJXN26WYG2H4O6U3ZSO75JYIUMKMW4362C7R7WRZAUB6PDZHD7TLUPE65FQIGXH7PKHT5VM
+#\\\|65ZIY6AHZW4ERT4PTXJCT23B7OC57FIXDVLTSLMFXJGB653YAAK \ / AMOS7 \ YOURUM ::
+#\[7]H7MYTSGSITOQL25JSN4PH4E6WLBFXVTOMFFLSILXJCL2RZJY2GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
