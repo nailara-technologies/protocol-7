@@ -6,7 +6,9 @@
 my $bg_gfx_path          = <X-11.bg_gfx_directory>;
 my $amos7_checksum_cache = <X-11.cache.bg-images.amos-path-csum> //= {};
 
-my %skip_formats = map { $ARG => TRUE } qw| webp |; ## hsetroot supported ? ##
+## hsetroot supported ? ##
+##
+my %skip_formats = map { $ARG => TRUE } qw| webp x-xcf |;
 
 <X-11.backgrounds.path_list> //= [$bg_gfx_path];    ##  default image path  ##
 
@@ -55,8 +57,8 @@ if (wantarray) {    ## returning file paths in list context ##
     return $amos7_checksum_cache;
 }
 
-#,,.,,...,.,.,..,,.,,,.,.,.,.,,..,,..,...,,..,..,,...,...,..,,..,,.,,,,..,.,,,
-#CKHZX4ALPGW2ILA4EEINMZMNE7U262VKL5YO7ITP4C7UAWVNDPTPJ3IUAPSHHEWOSRQMBP3FIJUCW
-#\\\|4VL2MDQG5DWX2EKYO6VSOZ2KNALQZ6OAKHGHOOBHJKNNF26D4E4 \ / AMOS7 \ YOURUM ::
-#\[7]E7UI6WMHXD2X3TFX2SV3IZHMNSZYTD2GIFYYAASEY74VFTVRBUAA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,,.,,...,...,.,,,.,,,,,.,,,.,..,,...,...,,,.,,,,,,.,,.,,,,,.,
+#IHVNDYCHCGCNJOLLDNKLNLUD4X42MDBU3ILA3GMBQ5NDO74ZWED7BWZDJOM5GECVPOZHZE7O7VV7Y
+#\\\|FNZPG6JRHV3D6MKHNZYGRCMAAJUYR427VTCM2ROWTFU6PNYZ3P3 \ / AMOS7 \ YOURUM ::
+#\[7]2PPT6YKCT72B5W5MFTURZFYINYZWX6Z5RGEBGMRV65RXCMASSCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
