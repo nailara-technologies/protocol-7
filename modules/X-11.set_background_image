@@ -103,12 +103,19 @@ if ( system( $hsetroot_bin, @hsetroot_params ) != 0 ) {
     );
     return FALSE;    ##  reporting [ not successful ]  ##
 } else {
+    if ( $image_setting !~ m|^[A-Z2-7]{7}$| ) {    ## image path ##
+        my %bg_image_pathmap    ## look-up checksum from cache ##
+            = reverse <X-11.cache.bg-images.amos-path-csum>->%*;
+        $image_setting = $bg_image_pathmap{$image_setting}
+            if exists $bg_image_pathmap{$image_setting};
+    }
+
     <X-11.cur_bg_image> = $image_setting;    ##  updaing variable  ##
     return TRUE;                             ##  return success  ##
 }
 
-#,,,.,,,,,,,.,,..,,..,.,.,,,.,.,,,,..,,..,,.,,.,.,...,...,..,,.,.,,,.,...,.,,,
-#UKYQO4AOI37N25DRFXGY6NE4YHU6T5X5BTF6X24FP662PVTAVL57YEBX2QRO5YXEOHBAJGR5ZAGZU
-#\\\|VA5TZMZ7HH5SO4XRP4PGAFIGWIL74IQ3PDKA4WSU2REH3VINCWI \ / AMOS7 \ YOURUM ::
-#\[7]DAX5Q6ZZN3EQCS5O66VXDK4DRZPTIN44UUSLPGECEXGCTPFWWEBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,..,,...,...,,.,,..,,,,,,,.,,.,.,...,...,..,,...,.,.,,,.,,.,,
+#J6W6CFG66WTU4VFEFR4EOCLT7F4AP7RBSOJON624VPKHITP4BFPNRRB6BU24GLBYM7UZG233MVRXI
+#\\\|BLIUT5MZEWDLZSAT5TWAIDG2EWN6THUMYXFNGY4G7C5CHEVBBVB \ / AMOS7 \ YOURUM ::
+#\[7]EFWOEQ2R4G7ZHYLXMNWUZ5SAFSMLPRIWV7RUFYZSR3IVQ5OWK2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
