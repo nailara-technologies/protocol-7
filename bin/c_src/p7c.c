@@ -125,7 +125,7 @@ int main( int argc, char * argv[] ) {
     unsigned int line = 0;
     int result;
     char byte = ' ';
-    while ( line <= 3 ) {
+    while ( line <= 2 ) {   // 3 lines expected
 
         result = recv( socket_fd, &byte, 1, 0 );
 
@@ -135,10 +135,11 @@ int main( int argc, char * argv[] ) {
                 strerror(errno)
             );
             return 4;
-        } else if ( byte == '\n' )
+        } else if ( byte == '\n' ) {
             line++;
+        }
 
-        if ( line == 3 && byte == 'O' ) {  // AUTH_ERR[O]R in third reply line
+        if ( line == 2 && byte == 'O' ) {  // AUTH_ERR[O]R in third reply line
             fprintf( stderr,
                 "<< authentication not successful [ user '%s' ] >>\n",
                 p7_unix_user );
