@@ -1,15 +1,24 @@
 ## [:< ##
 
 # name  = X-11.cmd.select-bg-image
+# param = <image> [r.h]
 # descr = set image from list of background images
 
 my $img_name_chksum = $call->{'args'};
 my $bg_gfx_path     = <X-11.bg_gfx_directory>;
 
 my $err_reason_mesg;
+
+<X-11.bg_image_flipped> = TRUE if $img_name_chksum =~ s| *:reverse-h: *||;
+
+$err_reason_mesg = 'parameter not understood , mean :reverse-h: ?'
+    if defined $img_name_chksum and index( $img_name_chksum, ' ' ) >= 0;
+
 $err_reason_mesg = 'expected background-gfx filename chksum'
-    if not defined $img_name_chksum
-    or length($img_name_chksum) != 7;
+    if not defined $err_reason_mesg
+    and ( not defined $img_name_chksum
+    or length($img_name_chksum) != 7 );
+
 $err_reason_mesg = 'background-gfx directory is undefined'
     if not defined $bg_gfx_path;
 $err_reason_mesg = 'background-gfx directory cannot be found'
@@ -65,8 +74,8 @@ if ( <[X-11.set_background_image]>->( $bg_images{$img_name_chksum} ) ) {
     };
 }
 
-#,,,.,,,,,.,.,.,,,,..,.,.,...,..,,,,,,.,,,.,.,.,.,...,..,,.,.,,.,,.,,,,.,,...,
-#WHACFCCGMXUDQ45B2N6ZWY2B6OLH6KPF6LQYQHULEY5V4WHLJNGWH5HB5EBAR2YKERWITMP6TTBV2
-#\\\|INXBRFT5NL2W27O5OEMGTNIYZ4MJL6DP3WTYNVH45CKOILA7QF4 \ / AMOS7 \ YOURUM ::
-#\[7]UGYAWWRKRFVDTTLQ7BMNVZNLDTABPFXRVDF26XTGTFWTU6MKU2AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,,,.,.,,,,,.,,..,,.,,,..,...,.,.,...,...,,,.,,.,,,.,,,,.,..,,
+#I64K63XF26FTXQYJYI2T72ZFX2VNKRBMVD5VKMNSPETBX7D7KOVTXA6QXPH7MEG4UXBNFBJ2UEFYI
+#\\\|UC3BSAUZ3IYV5BJE2UGKANA43LKBSLW7IQB6T2IFEXVBYVVKZ45 \ / AMOS7 \ YOURUM ::
+#\[7]G2CJYMSPSROF6WQJEFOFEZZL2J3DGX5Z6QNYQMZP637K2ECX4ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
