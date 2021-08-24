@@ -72,17 +72,17 @@ if ( fileno $send_fh ) {
             scalar( $cid // $send_fh )
         );
 
-        $data{'session'}->{$cid}->{'flush_shutdown'} = 5 if defined $cid;
+        $data{'session'}->{$cid}->{'flush_shutdown'} = TRUE if defined $cid;
 
         eval { $send_fh->close() };    ##  forcing an exception  ##
         return 2;
 
     } else {    ##  write error \ recipient fh gone. ##
-        <[base.s_warn]>->(
+        <[base.s_warn]>->(    ##  output warning if console verbosity > 1  ##
             'write error in base.net.send_to_socket on %s <{C1}>', $send_fh
-        );
+        ) if <system.verbosity.console> > 1;
         if ( defined $cid ) {
-            $data{'session'}->{$cid}->{'shutdown'} = 5;    ## true ##
+            $data{'session'}->{$cid}->{'shutdown'} = TRUE;    ## true ##
         } else {
             eval { $send_fh->close() }    ##  forcing an exception  ##
         }
@@ -94,8 +94,8 @@ if ( fileno $send_fh ) {
     return 2;
 }
 
-#,,,,,...,,.,,.,,,,,.,..,,,..,,,,,,.,,..,,,,.,..,,...,...,...,...,,,,,.,.,,.,,
-#VTBJIMUSOG3QU4XVLTGWMAMPUQFUQ7535ZZ426KUKK5TKNLXCEMRKTBFNC5GHC5JVJZ543WKHJHNA
-#\\\|CLKQYFPD5GQGKCO7TXVJDYNSHPX4FLRCFIGEXAWQI3PMSZEKOLT \ / AMOS7 \ YOURUM ::
-#\[7]GPJNUZDT5A7OI3QYKCJGNF5RAFQHKDIEAQKP5SW4MXKJSQIB66CI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,,,.,,,.,.,,,.,.,...,...,..,,..,,...,.,,,..,,..,,,,.,,,,,.,.,
+#SYXJQ3IPXC3F2QD5DH3LTT22W4RZVZTHXEVE7ODRGAHAF3L7ZOPUPKTCOBZLVZZQJOYU4S72ZC4KY
+#\\\|QEVDA7CJ3XQSIGIXL6CCPURV3LARY4D6GDL42BBLH5EVLVPUP3O \ / AMOS7 \ YOURUM ::
+#\[7]43D343F26YQHCIGG6DJDV7F4ZL5CVGSGQBXUCVKHMFBWVDYABOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
