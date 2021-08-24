@@ -40,6 +40,15 @@ my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
 
 <X-11.bg_image_flipped> = TRUE if $image_h_flipped;
 
+##  storing current chksum for 'prev-image' param  ##
+if (    <[base.cfg_bool]>->(<X-11.random_slideshow>)
+    and exists <X-11.bg_image>
+    and defined <X-11.bg_image>
+    and <X-11.bg_image> ne qw| :random: | ) {
+    <X-11.background.prev_image.checksum> = <X-11.bg_image>;
+    <X-11.background.prev_image.flipped>  = $image_h_flipped;
+}
+
 if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 {
     ##  installing timer for random image slideshow  ##
@@ -51,15 +60,18 @@ if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
                 'prio'    => 7
             }
         );
+
+    } elsif ( exists <X-11.background.prev_image> ) {
+        delete <X-11.background.prev_image>; ## removing when not slideshow ##
     }
 
-    return $bg_image_path_amos_checksum    ##  return set image checksum  ##
+    return $bg_image_path_amos_checksum      ##  return set image checksum  ##
 }
 
-return undef;                              ## or undef on error ##
+return undef;                                ## or undef on error ##
 
-#,,,,,..,,.,,,...,.,.,,..,...,.,,,...,,,.,.,,,..,,...,...,,,,,..,,,.,,.,,,,.,,
-#JLO3CQLHIJ2RLTGHEKUDRMORC7H5IQW4IKQ4GS6LLIGVILO4YK3NBRBL6ZQOHJR7W4O3GTMXTELGE
-#\\\|HLLOADNOEDSYFU3MBUSYDHMCXUPFA5XTQXP5RGJ4RXM7T47A75Q \ / AMOS7 \ YOURUM ::
-#\[7]ISCALYVEE27ROSLTV2LSFWG2HWG6KBE7UXGT44YTHTEEOQBZGEDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,.,.,.,,,.,,,..,,,,.,..,,,.,,..,,...,...,...,.,.,,,.,,.,,...,
+#J7SPA56VJM3L4XNAWBDGFAKIGXTIENOATBPFSZPDTI57YOEDKGYWY54WQD7RE5TQWMBGZBUZY3RVQ
+#\\\|63VLPN4GADED7QEXCISYP6HWRBF44RKSEGLX2ZQTJ3HNHLNI62B \ / AMOS7 \ YOURUM ::
+#\[7]UDCQPTYYEEIJDP4BBQGX53LPTIHBNDCWYNSZAVEADNUB2LMLSIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

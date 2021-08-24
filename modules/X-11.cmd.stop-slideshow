@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = X11.cmd.stop-slideshow
+# param = [prev-image]
+# descr = stop bg-image changing [opt.,return to last]
+
+my $prev_image = FALSE;
+if ( defined $call->{'args'} ) {
+    if ( $call->{'args'} ne qw| prev-image | ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'parameter not recognized [ mean prev-image ? ]'
+        };
+    } else {
+        $prev_image = TRUE;
+    }
+}
+
+<X-11.random_slideshow> = FALSE;    ## making sure it is not enabled ##
+
+if ( $prev_image and not exists <X-11.background.prev_image> ) {
+    if ( exists <X-11.timer.bg-img-slideshow> ) {
+        ## stopping timer ##
+        <X-11.timer.bg-img-slideshow>->cancel
+            if <X-11.timer.bg-img-slideshow>->is_active;
+        delete <X-11.timer.bg-img-slideshow>;
+        return {
+            'mode' => qw| true |,
+            'data' => 'slideshow stopped \ no prev-image defined'
+        };
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'slideshow was already stopped \ no prev-image defined'
+        };
+    }
+} elsif ($prev_image) {
+
+    ##[ reusing $prev_image ]##
+    $prev_image = <X-11.background.prev_image.checksum>;
+    <X-11.bg_image_flipped> = <X-11.background.prev_image.flipped>;
+
+    delete <X-11.background.prev_image>;    ## removing prev image ##
+
+    my $success = <[X-11.set_background_image]>->($prev_image) // FALSE;
+
+    if ( exists <X-11.timer.bg-img-slideshow> ) {
+        ## stopping timer ##
+        <X-11.timer.bg-img-slideshow>->cancel
+            if <X-11.timer.bg-img-slideshow>->is_active;
+        delete <X-11.timer.bg-img-slideshow>;
+
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( 'slideshow stopped \ cannot switch to prev-image %s',
+                $prev_image )
+            }
+            if not $success;
+
+        return {
+            'mode' => qw| true |,
+            'data' => 'slideshow stopped and switching to ' . $prev_image
+        };
+
+    } else {
+
+        return {
+            'mode' => qw| false |,
+            'data' =>
+                sprintf( 'slideshow already stopped \ error switching to %s',
+                $prev_image )
+            }
+            if not $success;
+
+        return {
+            'mode' => qw| true |,
+            'data' =>
+                sprintf(
+                'slideshow was already stopped \ switching to prev-image %s',
+                $prev_image )
+        };
+    }
+} else {    ## keeping eventual prev_image variable ##
+    if ( exists <X-11.timer.bg-img-slideshow> ) {
+        ## stopping timer ##
+        <X-11.timer.bg-img-slideshow>->cancel
+            if <X-11.timer.bg-img-slideshow>->is_active;
+        delete <X-11.timer.bg-img-slideshow>;
+
+        return {
+            'mode' => qw| true |,
+            'data' => 'stopped automated background-image change'
+        };
+
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'image slideshow was not enabled'
+        };
+    }
+}
+
+#,,..,,..,,..,,,,,,,,,,,,,,,,,,,,,,..,.,,,..,,.,.,...,...,.,,,,..,...,,..,,,,,
+#E2BR6IPLWRPJO7OT75XVZMQ2CCDUD2BB6HRTWEIK7YGUMP5SUIDY533R4GWDRZEDMMSWNQYVDRKN6
+#\\\|YKMF3FK7ANB4ASID7H5Q5S6H3HV7I2QQQYRHGLF5SJDZ2HVWXDH \ / AMOS7 \ YOURUM ::
+#\[7]J6T467DTASD7QSH3QLLAZPJM37UH7C6AEQFRCQ22W6TJCJM77WCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
