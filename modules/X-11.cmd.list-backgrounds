@@ -1,14 +1,13 @@
 ## [:< ##
 
 # name  = X-11.cmd.list-backgrounds
-# param = [pattern]
+# param = [pt|:current:]
 # descr = list available X-11 desktop backgrounds
 
-my $image_match_pattern = $call->{'args'};
-
-my $bg_gfx_path = <X-11.bg_gfx_directory>;
+my $image_match_pattern = $call->{'args'};    ##  [optional] match pattern  ##
 
 my $err_reason_mesg;
+my $bg_gfx_path = <X-11.bg_gfx_directory>;
 $err_reason_mesg = 'background-gfx directory is undefined'
     if not defined $bg_gfx_path;
 $err_reason_mesg = 'background-gfx directory cannot be found'
@@ -32,27 +31,41 @@ my %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
 foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
 
     if ( defined $image_match_pattern ) {
-        ##  image name \ checksum  pattern match  ##
-        my $chksum_matches     = FALSE;
-        my $path_or_name_match = FALSE;
-        ## chksum match ##
-        $chksum_matches = TRUE
-            if $image_match_pattern =~ m|^[A-Z2-7]{7}$|
-            and $image_match_pattern eq $bg_image_pathmap{$bg_gfx_path};
-        ## image name or path match ##
-        $path_or_name_match = TRUE
-            if index( $bg_gfx_path, $image_match_pattern ) >= 0;
-        ##  skipping images with no matches  ##
-        next if not $chksum_matches and not $path_or_name_match;
+
+        ## :current: match ##
+        if ( $image_match_pattern eq qw| :current: | ) {
+
+            ## return only selected image ##
+            next if $bg_image_pathmap{$bg_gfx_path} ne <X-11.cur_bg_image>;
+
+        } else {    ##  image name \ checksum  pattern match  ##
+
+            my $chksum_matches     = FALSE;
+            my $path_or_name_match = FALSE;
+
+            ## chksum match ##
+            $chksum_matches = TRUE
+                if $image_match_pattern =~ m|^[A-Z2-7]{7}$|
+                and $image_match_pattern eq $bg_image_pathmap{$bg_gfx_path};
+
+            ## image name or path match ##
+            $path_or_name_match = TRUE
+                if index( $bg_gfx_path, $image_match_pattern ) >= 0;
+
+            ##  skipping images with no matches  ##
+            next if not $chksum_matches and not $path_or_name_match;
+        }
     }
 
     ( my $image_path_rel = $bg_gfx_path ) =~ s|^.*/||;
+
     my $template = (    ## matching name or chksum ##
         $bg_image_pathmap{$bg_gfx_path} eq <X-11.cur_bg_image>
             or <X-11.cur_bg_image> eq $image_path_rel
         )
         ? " ::[ %s ]:: %s\n"    ##  highlight the current image  ##
         : "  :  %s  :  %s\n";
+
     push @bg_img_files, sprintf $template,
         $bg_image_pathmap{$bg_gfx_path}, $image_path_rel;
 }
@@ -62,8 +75,8 @@ return { 'mode' => qw| false |, 'data' => 'no match for given pattern' }
 
 return { 'mode' => qw| size |, 'data' => join '', @bg_img_files }
 
-#,,,,,,,.,.,,,,..,.,,,,,,,.,,,,.,,,.,,..,,..,,..,,...,...,.,.,,,.,,.,,,,,,,..,
-#T5GKQQVINHP2E6RSLK7VXX6Q3VMGQI3MB4F6SX2DD47ST7WSLRJE324HSBOMEZTHGSPKAYQLFC4AE
-#\\\|ZN3QE4TMS62BP4MF6EXNU4G6G43YXBZSS2VLY2ZORHMHL5FF4KD \ / AMOS7 \ YOURUM ::
-#\[7]VYMDHIU6I5QIFVOVV4VO4FIIYYMMYVQKXNVFHLYQ6INEDUTHQOBI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,,,.,.,..,,.,.,...,,..,..,,.,.,..,,...,...,,.,,.,.,,..,,.,,,..,
+#TW5VFKPNZ52F4EKABBOEOCEJAR3SNJFC5QFLLKVYDBM56PISB6BSGRARD6IFG5IX25QYDPXFV7QB6
+#\\\|6EF35CAOGBSVZW237O5U6A6SXODIDYSWV7GAGKOCVBW2OBQVGPJ \ / AMOS7 \ YOURUM ::
+#\[7]CQDEJLX5OOWSXAZNINKPVIGDOMG3SFIWA64ME2GS4ECK4LFF5GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
