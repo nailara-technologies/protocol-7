@@ -41,11 +41,10 @@ my $bg_image_path_amos_checksum = $bg_image_pathmap{$selected_image_path};
 <X-11.bg_image_flipped> = TRUE if $image_h_flipped;
 
 ##  storing current chksum for 'prev-image' param  ##
-if (    <[base.cfg_bool]>->(<X-11.random_slideshow>)
-    and exists <X-11.bg_image>
-    and defined <X-11.bg_image>
-    and <X-11.bg_image> ne qw| :random: | ) {
-    <X-11.background.prev_image.checksum> = <X-11.bg_image>;
+if ( <[base.cfg_bool]>->(<X-11.random_slideshow>)
+    and defined <X-11.cur_bg_image> ) {
+
+    <X-11.background.prev_image.checksum> = <X-11.cur_bg_image>;
     <X-11.background.prev_image.flipped>  = $image_h_flipped;
 }
 
@@ -70,8 +69,8 @@ if ( <[X-11.set_background_image]>->($bg_image_path_amos_checksum) // FALSE )
 
 return undef;                                ## or undef on error ##
 
-#,,,.,..,,,,.,,,,,.,.,.,,,.,,,..,,,,.,..,,,.,,..,,...,...,...,.,.,,,.,,.,,...,
-#J7SPA56VJM3L4XNAWBDGFAKIGXTIENOATBPFSZPDTI57YOEDKGYWY54WQD7RE5TQWMBGZBUZY3RVQ
-#\\\|63VLPN4GADED7QEXCISYP6HWRBF44RKSEGLX2ZQTJ3HNHLNI62B \ / AMOS7 \ YOURUM ::
-#\[7]UDCQPTYYEEIJDP4BBQGX53LPTIHBNDCWYNSZAVEADNUB2LMLSIDY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,,,,.,,...,.,,,,,.,,,.,,,,,..,,...,...,.,.,..,,.,.,...,,,,,
+#6ZXI6QEMBOHLLOMKB254ZL5TDYIHNXOWBE3HNZYK4TTXGRTOWB4N6ZYPLSHVTBKBU54ZJFAYLW5Y6
+#\\\|BGUXOLWB5XRMPMN56XKOXIY3JKZHB3UZLPY7WGCNPQGBQMQEZEX \ / AMOS7 \ YOURUM ::
+#\[7]HLUYZZYBXOGX47YCAODCISFVPOJ6P7F365BM3PLJBHD4BPX74KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
