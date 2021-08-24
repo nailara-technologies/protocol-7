@@ -1,7 +1,19 @@
 ## [:< ##
 
 # name  = X-11.cmd.rand-bg
+# param = [:slideshow:]
 # descr = setting random desktop-background image
+
+if ( defined $call->{'args'} ) {
+    if ( $call->{'args'} ne qw| :slideshow: | ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'parameter not recognized [ mean :slideshow: ? ]'
+        };
+    } else {
+        <X-11.random_slideshow> = TRUE;
+    }
+}
 
 my $bg_image_path_amos_checksum = <[X-11.backgrounds.set_random_image]>;
 
@@ -9,14 +21,16 @@ return { 'mode' => qw| false |, 'data' => 'cannot change background image' }
     if not defined $bg_image_path_amos_checksum
     or not $bg_image_path_amos_checksum;
 
+my $slideshow = <X-11.random_slideshow> ? ' [ slideshow enabled ]' : '';
+
 return {    ##  success , return new image path chksum  ##
     'mode' => qw| true |,
-    'data' => sprintf 'set to %s',
-    $bg_image_path_amos_checksum
+    'data' => sprintf 'set to %s%s',
+    $bg_image_path_amos_checksum, $slideshow
     }
 
-#,,,.,,.,,...,,..,.,,,.,.,,..,,..,,.,,,,,,...,..,,...,,..,..,,.,,,,.,,,.,,.,.,
-#IEJMG63YKMLYDKU4AGC5XPGXYDKVPSATMSCQRX3SWIDBREUFTQNIWGSXUSM2TQPUQZUAZKSI5YL26
-#\\\|IUKNDWONWUXYF6NBQXF347SQFLBJ4GUIXBJ77REKQFCR7UAQNWP \ / AMOS7 \ YOURUM ::
-#\[7]Q3JIKR7ROTGWFNFQOCMUJ64COZPAQM6QF3MWST236UBSVTQXNEDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,.,.,..,,,,,,.,,,...,..,,.,.,..,,...,...,...,,,,,..,,,.,,,..,
+#7UL7N32I6EC3LSLX5XUHEVK5URL7DRKJZXD7U4B6E54V5XNZRQJMKNQRWBHOTZYXNBOMEQKDSOCG6
+#\\\|3RZSB3PCBEFF2P5AVYIRSB7PRT6AIBFEIRGPGFB3QXALLNN5KS7 \ / AMOS7 \ YOURUM ::
+#\[7]VTA44FGQ6B56CGE2TUIZB7AP6MA4DL4SQECFJ4VPA2N6ROY53UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
