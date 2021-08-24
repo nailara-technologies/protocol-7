@@ -1,7 +1,10 @@
 ## [:< ##
 
 # name  = X-11.cmd.list-backgrounds
+# param = [pattern]
 # descr = list available X-11 desktop backgrounds
+
+my $image_match_pattern = $call->{'args'};
 
 my $bg_gfx_path = <X-11.bg_gfx_directory>;
 
@@ -27,6 +30,22 @@ my @bg_img_files;    ##  amos7 image path chksums \ filename  ##
 my %bg_image_pathmap = reverse $amos7_checksum_cache->%*;
 
 foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
+
+    if ( defined $image_match_pattern ) {
+        ##  image name \ checksum  pattern match  ##
+        my $chksum_matches     = FALSE;
+        my $path_or_name_match = FALSE;
+        ## chksum match ##
+        $chksum_matches = TRUE
+            if $image_match_pattern =~ m|^[A-Z2-7]{7}$|
+            and $image_match_pattern eq $bg_image_pathmap{$bg_gfx_path};
+        ## image name or path match ##
+        $path_or_name_match = TRUE
+            if index( $bg_gfx_path, $image_match_pattern ) >= 0;
+        ##  skipping images with no matches  ##
+        next if not $chksum_matches and not $path_or_name_match;
+    }
+
     ( my $image_path_rel = $bg_gfx_path ) =~ s|^.*/||;
     my $template = (    ## matching name or chksum ##
         $bg_image_pathmap{$bg_gfx_path} eq <X-11.cur_bg_image>
@@ -38,10 +57,13 @@ foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
         $bg_image_pathmap{$bg_gfx_path}, $image_path_rel;
 }
 
+return { 'mode' => qw| false |, 'data' => 'no match for given pattern' }
+    if defined $image_match_pattern and @bg_img_files == 0;
+
 return { 'mode' => qw| size |, 'data' => join '', @bg_img_files }
 
-#,,,.,..,,.,,,,,,,.,,,..,,.,.,.,,,.,,,,,,,..,,..,,...,...,...,.,.,.,,,.,,,...,
-#XARJCW5TJGF2LIJI7UEXL5JH6NMKDSLAKWMYYJQIXKCOP4NJJBMUG5RLU47HOWBXNAFWX7YBY5GB4
-#\\\|SO2TSKRN2ZPNP6XVQBYZTHU6EUPD6TWKSATWBCMFMHZQJGADWUS \ / AMOS7 \ YOURUM ::
-#\[7]PNKD5YJRWERKI2GX2FO5JWO3G2BFNZA6TFM2YXB56BVCJUOKS2DI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,.,,,,,,,.,,,,.,,,.,,..,,..,,..,,...,...,.,.,,,.,,.,,,,,,,..,
+#T5GKQQVINHP2E6RSLK7VXX6Q3VMGQI3MB4F6SX2DD47ST7WSLRJE324HSBOMEZTHGSPKAYQLFC4AE
+#\\\|ZN3QE4TMS62BP4MF6EXNU4G6G43YXBZSS2VLY2ZORHMHL5FF4KD \ / AMOS7 \ YOURUM ::
+#\[7]VYMDHIU6I5QIFVOVV4VO4FIIYYMMYVQKXNVFHLYQ6INEDUTHQOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
