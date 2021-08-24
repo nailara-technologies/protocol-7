@@ -10,6 +10,8 @@ my $mode     = shift // qw| < |;
 my $create   = shift // FALSE;
 my $perm     = shift // 0664;
 
+$perm = oct($perm) if index( $perm, qw| 0 |, 0 ) == 0;
+
 ## sysopen FILEHANDLE,FILENAME,MODE,PERMS ##
 
 if ( not length $requested_file_path ) {
@@ -20,9 +22,7 @@ if ( not length $requested_file_path ) {
 }
 
 if ( $create and not -f $requested_file_path ) {    ##  create file  ##
-    my $fh;
-    $perm = oct($perm) if index( $perm, qw| 0 |, 0 ) == 0;
-    if ( not sysopen( $fh, $requested_file_path, O_CREAT(), $perm ) ) {
+    if ( not sysopen( my $fh, $requested_file_path, O_CREAT(), $perm ) ) {
         <[base.s_warn]>->(
             "cannot create file '%s' [ %s ]",
             $requested_file_path, <[base.str.os_err]>
@@ -56,10 +56,35 @@ if (not
     return undef;
 }
 
+if (index( $mode, qw| < | ) == -1   ##  when not read mode  ##
+    and                             ## update file permissions if different ##
+    sprintf( '%#o', File::stat::stat($requested_file_path)->mode & 0777 ) ne
+    sprintf( '%#o', $perm )
+) {
+    if ( not chmod( $perm, $requested_file_path ) ) {
+        <[base.logs]>->(
+            0,
+            "< file.open > cannot chmod[%#o] file '%s' [ %s ] %s",
+            $perm,
+            $requested_file_path,
+            <[base.str.os_err]>,
+            scalar <[base.caller]>
+        );
+        if ( index( $mode, qw| >> | ) == -1 ) {    ## when not append mode ##
+            unlink($requested_file_path)           ## remove file again ##
+                or <[base.s_warn]>->(
+                'unlink[%s] %s',
+                $requested_file_path, <[base.str.os_err]>
+                );
+        }
+        return undef;
+    }
+}
+
 return $req_file_fh;
 
-#,,,,,...,.,.,,,.,..,,.,.,...,,,.,.,.,,,,,.,,,..,,...,..,,,..,,.,,...,,.,,,,,,
-#FDIKL3H3TZUB7XTXKSFJ3QW2BNQ67O5UWMSNAUMRDU2COO4YD35FRNSNYHWHAHFGYHF5PI7AXUV2O
-#\\\|US2PVCPDSSEN3DE6M2SPPCPYV6IWS45WR23IOHTRVD6XZYCI6QR \ / AMOS7 \ YOURUM ::
-#\[7]IEG2UVAQ4LOZHSZULMJUIRYGFOC66DI2PIIO3CDRBZ5WBYDNECAA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,.,,,.,,...,...,.,,,..,,.,,,,.,,..,,...,...,,..,,.,,.,,,..,,...,
+#4N535ZRTKQ3RUOF3T6VCT755N2XO5UYYWHAXOB4FSJ3SX4TMNW7YAXHFOE4AV5SFTWHXK7JP444VE
+#\\\|2FJAMMAGE4UFUGQPPKLMYZCURKM3KABTOMBVMWO266WHJIRQ22O \ / AMOS7 \ YOURUM ::
+#\[7]NDHN35IPINXAWWHTJJKBX3CDNUWHSOVATTFS54I227OES2TXE2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
