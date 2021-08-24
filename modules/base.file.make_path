@@ -12,7 +12,7 @@ warn 'expected defined path <{C1}>' and return undef if not defined $path;
 return warn 'expected absolute path [ to create ] <{C1}>' and return undef
     if $path !~ m|^/[^/]+|;
 
-my $mkdir_umask = 0777 &~ 0777;    ## <-- permissive setting.., ##
+my $mkdir_umask = 0777 & ~0777;    ## <-- permissive setting.., ##
 my $previous_umask;
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
@@ -128,14 +128,16 @@ if ( defined $param_owner or defined $owner_group ) {
         ->( 2, ':. : [ configured uid : %d, gid : %d ]', $uid, $gid );
 }
 
-$previous_umask = umask($mkdir_umask)
-    or return <[base.s_warn]>->(
-    "umask[ %s ] : [ %s ] mkdir aborted .., <{C1}>",
-    $mkdir_umask, <[base.str.os_err]>
-    );
-
 my $current_mode;
 my $current_path = '';
+
+$previous_umask = umask($mkdir_umask);
+
+return <[base.s_warn]>->(
+    "umask[ %s ] : [ still %u ] mkdir aborted .., <{C1}>",
+    $mkdir_umask, umask
+) if umask != $mkdir_umask;
+
 foreach my $_dir ( split qw| / |, $path ) {
     next if not length $_dir;
 
@@ -155,7 +157,7 @@ foreach my $_dir ( split qw| / |, $path ) {
     if ( not chmod( $current_mode, $current_path ) ) {
         <[base.s_warn]>->(
             'chmod[ %04o ] : [ %s ] <{C1}>',
-            $param_mode, <[base.format_error]>->($OS_ERROR)
+            $param_mode, scalar <[base.format_error]>->($OS_ERROR)
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
         if ( not unlink($path) ) {
@@ -183,8 +185,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,.,,,.,,,.,,.,,,,,,,.,,,.,,,,,,.,,,,,.,.,.,..,,...,...,..,,,..,,..,.,,,,..,
-#OMZWI4M65L7VYGZBZQH4DYHAF24TNFFFX722HMYQUVGCNQYEVWPAU7ASQRMML4TOBYJ7FX6DOE5Q6
-#\\\|3WUTBYIAX7N7J3TKTBFW6S7UZVR7AFBW45MYOGQS4E4OBWNQWWF \ / AMOS7 \ YOURUM ::
-#\[7]AXZB5P3UY2AHZM33DPPFG3I3V44K4IAZDKFQ3YXJ7DT34NKKA4CA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,,.,,..,,.,.,,,,,,..,,,,,.,.,..,,...,...,...,..,,..,,,,.,,,,,
+#74TYQZ2B3SYUAM3G4JVH4H7ZUKYVMTZ3HPSZPHGEMNHSPWVLGI4TNYB6BMCNLSWH5SYWCUDMLV5F2
+#\\\|OLZ4LEI3YAT43HDXBQTINY6ZNI2N4ENHVETCCFNDLISCCQ6YMZ6 \ / AMOS7 \ YOURUM ::
+#\[7]UBVCK2VJA57PHOCUSJPKBMQB4QHZDWRCAX45RHIPSIXALQY7IUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
