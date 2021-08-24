@@ -81,21 +81,20 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
         $fs_changes_made++;
     }
 
-    my $cur_mode = sprintf qw| %04o |, $dir_stat->mode & 07777;
-    if ( $cur_mode != sprintf qw| %04o |, $dir_mode ) {
+    my $cur_mode = sprintf qw| %#o |, $dir_stat->mode & 07777;
+    if ( $cur_mode ne sprintf qw| %#o |, $dir_mode ) {
         <[base.logs]>->(
-            $log_level, ': %s : change  mode [ %04o ]',
+            $log_level, ': %s : change  mode [ %#o ]',
             $chk_path,  $dir_mode
         );
         my $was = qw| was |;
+
         chmod( $dir_mode, $chk_path )
             or ++$error_count and <[base.logs]>->(
             0, ': :. %s [%s]', <[base.str.os_err]>, $chk_path
             ) and $was = 'still is';
-        <[base.logs]>->(
-            $log_level, ': :. %s mode : %#o .,',
-            $was,       $cur_mode
-        );
+        <[base.logs]>
+            ->( $log_level, ': :. %s mode : %s .,', $was, $cur_mode );
         $fs_changes_made++;
     }
 }
@@ -109,8 +108,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,..,.,,,,..,.,.,,..,,..,,,.,.,,,,..,,,.,...,.,.,...,...,,..,,..,.,,,..,,..,,
-#6KVYY2C26PVBFI7ZZSIMENIGKTYPJMQY4QAQU4OEB4P4TREF5XX524SIYZK4WVACBHGXJDMLCKEHO
-#\\\|Z5XFRW4CI5WF42BAMHEW2R6GADIMFWGQIBWUGOG4VA2OACMGWJJ \ / AMOS7 \ YOURUM ::
-#\[7]7GPHZSGYDJ37PILGDHFO43EVR2BCQ3WMWEXHIF6ZSTR3UXQ6MCDA 7  DATA SIGNATURE ::
+#,,,.,...,...,,,,,,,.,...,,..,,..,,,.,,,.,..,,.,.,...,...,,..,...,...,.,,,..,,
+#47TK2VFVUZ4IZWANUU6VCT2CEUJTYFQP64H23YASFINODUT5XJTXBQCY2MQ5LS3BWFFDKLECZLT7W
+#\\\|VHO3AET6D6HQL4XMHGTD6575F6K2SFRZPV7ACXUT3O2ZFUGYZ7O \ / AMOS7 \ YOURUM ::
+#\[7]ODKPOUWTPAZLXW4QSGBPFSFA643KIIPG7H7PFYXNRVS3SPPI4ODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -37,7 +37,9 @@ my $version_file_content = sprintf "%s\n",
     sprintf( $version_template_int, $version_elf7_chksum );
 
 if (not    ## attempt writing to /etc/protocol-7 first ##
-    <[file.zenka_dir.write]>->( $etc_cfg_file_path, \$version_file_content )
+    <[file.zenka_dir.write]>->(
+        $etc_cfg_file_path, \$version_file_content, undef, 0755
+    )
 
     ) {    ##  write to /var/run/protocol-7/nodes/ when not successful  ##
 
@@ -70,8 +72,8 @@ my $protocol_code_version_str
 
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,..,,..,.,,,.,,,,,,,,,,,..,,,,,,..,,,,,,,,.,.,.,...,...,.,,,,,,,,.,,,,.,,..,
-#DCYPXDNDVDOXAWQM4EG6UABNIKKHHDUPNRUZUPKJ4IELNVB5GCVY2U6CGNUX7WJWO6ARK3U2HJ762
-#\\\|TIREZQGJ6U5EJOQO5KRZELGCNVUY73SQD2PB2JUEQ6XVUK24TSA \ / AMOS7 \ YOURUM ::
-#\[7]C3ZJJ6VFJENIATNQXZLNRXWVHE5H4LKSVTEZG4XOY5OHGYKTOODY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,...,...,,.,,..,,..,,.,,,.,.,.,.,...,...,..,,..,,..,,,..,..,,
+#NXOIQ2RMYGMPW44ZL2PRBYRMSII67EW7QH6ILASYC5CL4GGXSOD5YIHS5G7KVOHC2F6YBZU4XWSXW
+#\\\|4SWUNNJCN5VI4X23GPHFYWNG56NXG25UZKVTY374UBMDUFHHVIZ \ / AMOS7 \ YOURUM ::
+#\[7]UMJOZLGMR6BJVS5P2U6J2TBWFLU46ZWMNXU75GZQZTPBPHVWJWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
