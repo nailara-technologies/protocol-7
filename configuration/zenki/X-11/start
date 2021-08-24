@@ -8,6 +8,8 @@
 X-11.mode = host            # [host|xorg|xephyr|nxzenka|xnest|auto-xephyr|xvfb]
                             # override configured zenka mode using zenka subname
 
+system.amos-zenka-user = <system.AMOS-user>
+
 X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
 X-11.display.xorg    = :13
@@ -112,7 +114,7 @@ modules.load = auth net protocol io.unix io.ip X-11                  ## devmod
 ## ,..in host-mode privs are dropped before connecting in 'X-11.post-init'  ##
 
 ## move up [ auto-add desktop-user to grp. ]
-[root.drop_privs:<system.AMOS-user>]
+[root.drop_privs:<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
 
@@ -121,8 +123,8 @@ modules.load = auth net protocol io.unix io.ip X-11                  ## devmod
 
 [zenka.loop]
 
-#,,..,,..,...,,,,,,..,...,.,,,,,,,...,,.,,,..,..,,...,...,...,.,,,,,.,..,,,,,,
-#LHTOVMQSEVVB25XIQKU3HX6RCPUUTWDLSVWVBHSWHIK76OLPORQ34L2HII7JYBCPXHMBUCTYSPJZU
-#\\\|2KFS2HFHPWTKVR4EMU63DCRCOZFU6B5W6V45CXS5RGAAW4JFVV7 \ / AMOS7 \ YOURUM ::
-#\[7]XYYOUL6TELFB3QML2VYMUZQ5RPKDVJ273P6KV2PN72BKASO5A4CI 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,..,,.,,.,,,.,.,..,,,,,,,,.,..,,...,...,..,,,.,,..,,.,,,,.,,
+#KTLNNGY3OLEP2EP64SHYZB65AZD6H46WVQM7AJTEDIM5D66UV3RUJ3LQDXNBEUFJUS5CFC5FXWAPE
+#\\\|IE5ZG62VG3DOX2LC5XCADWIIA6G4NPVZXCYQUEGQK3LAVYTPI6B \ / AMOS7 \ YOURUM ::
+#\[7]AUDUF5YQMSRJR5G3DTC6WNNO7MJQMK5FUCWHU77PXYB36U32AUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

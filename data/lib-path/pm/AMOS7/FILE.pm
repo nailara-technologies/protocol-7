@@ -146,14 +146,16 @@ sub create_dir_path {
     }
 
     ##  recursively creating specified path  ##
-    if ( not $previous_umask = umask($mkdir_umask) ) {
-        warn_err( "umask[ %s ] : [ %s ] mkdir aborted ..,",
-            1, $mkdir_umask, lcfirst($OS_ERROR) );
-        return undef;
-    }
 
     my $current_mode;
     my $current_path = '';
+    $previous_umask = umask($mkdir_umask);
+
+    if ( umask != $mkdir_umask ) {
+        warn_err( "umask[ %s ] : [ still %u ] mkdir aborted ..,",
+            1, $mkdir_umask, umask );
+        return undef;
+    }
 
     foreach my $_dir ( split qw| / |, $path ) {
         next if not length $_dir;

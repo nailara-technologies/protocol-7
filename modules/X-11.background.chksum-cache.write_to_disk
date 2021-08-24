@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = X-11.background.chksum-cache.write_to_disk
+
+my $cache_filename = <X-11.path.chksum_cache_name>;
+return undef if not defined $cache_filename;
+
+return undef
+    if not <[base.is_defined_recursive]>
+    ->(qw| X-11.cache.bg-images.amos-path-csum |);
+
+<[base.log]>->( 2, 'writing bg-image path chksum cache to disk ..,' );
+
+my $amos7_checksum_cache = <X-11.cache.bg-images.amos-path-csum>;
+
+my $chksum_file_content = join '',
+    map { sprintf "%s:%s\n", $ARG, $amos7_checksum_cache->{$ARG} }
+    <[base.sort]>->($amos7_checksum_cache);
+
+return <[file.zenka_dir.write]>->( $cache_filename, \$chksum_file_content );
+
+#,,..,...,,,,,,,,,.,,,,,,,.,,,.,.,...,,,.,.,.,.,.,...,...,...,.,,,,..,,,,,,,,,
+#RDXMSBS6AVXG5LNBQ2SVXP3GOL3GX7KECZHSQEYPSQG3Z2HIZYNU5PV2TDSZJ4NNKG4PMCSR4W2VC
+#\\\|IQ5CZCZ5SALJD6XI67NKILQ2OADZ4XXNQJBLXTEQOUOJI7TEPJU \ / AMOS7 \ YOURUM ::
+#\[7]ZPN7L2USJ7HHPQXKBPNMC6IMSKHQKHK77LI6NAE3DDPSDZ2TI4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
