@@ -9,15 +9,12 @@ my ($node_zenka, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
 ) = split( m| |, $_[0]->{'args'}, 6 );
 
-## preventing duplicate entries ##   <-- usecase needs repair [ v7, verb.=0 ]
+## preventing duplicate entries ## [ repaired meanwhile ]
 <p7-log.checksums>                                     //= {};
 my $node_checksums = <p7-log.checksums>->{$node_zenka} //= {};
 $node_checksums->{$buffer_name}                        //= '';
 my $entry_checksum = <[chk-sum.elf.vax-BASE32]>->( $_[0]->{'args'} );
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
-    <[base.log]>->(
-        2, "rejected duplicate '$buffer_name' entry from '$node_zenka'.,"
-    );
     return { 'mode' => qw| false |, 'data' => 'duplicate entry, dropped.' };
 } else {
     $node_checksums->{$buffer_name} = $entry_checksum;
@@ -117,8 +114,8 @@ return { 'mode' => qw| true |, 'data' => "wrote $msg_len bytes" } if $success;
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,,.,,,,,,,.,,.,,.,.,...,..,,...,..,,,,,,,,,,..,,...,..,,.,,,,,.,,.,,,.,,,,.,
-#IMCT4Z3BOBZBKPI3ONFJI6WJDTDFS4JIHA3DPHSBUZVJGN6IK2ID7NQQSRL7ORWMDUVQLCJUYDJPO
-#\\\|LSUCAAJADLYRLUU24G4MCFCH6QOOWYAM6OGME7QSUJLNBBU5SMU \ / AMOS7 \ YOURUM ::
-#\[7]AT5JZZH2LRCXPJWLDSBFFBDSZM7CONLKLPXPPHZG6K2AJYX2YSCY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,...,.,,,,.,,,,,,,,.,..,,..,,..,,...,..,,,,.,..,,..,,..,,...,
+#XVH3J7PUZFD2KO4GHQGIHSDGT3KTSMMDID7WQJZ7LAYIMFCDWQFZY6FX3VNNRPR3RINZY2SF6MV3G
+#\\\|6ODMK2ETAAH2DOXMWANPSRIUL3O6LN3XMYEFQ4W5ZH2FMDTNVJX \ / AMOS7 \ YOURUM ::
+#\[7]FDKIWCZB3PF6TRWLFSTTDBR4V3YKEPXCTGR44M7VFLZU3RF5Y4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

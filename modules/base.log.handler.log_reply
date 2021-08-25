@@ -10,21 +10,25 @@ my $log_data     = <log.file>->{$name};
 my $retry
     = (     $reply->{'cmd'} eq qw| FALSE |
         and defined $reply->{'call_args'}->{'args'}
-        and $reply->{'call_args'}->{'args'} =~ m|^command | ) ? 1 : 0;
+        and $reply->{'call_args'}->{'args'} =~ m|^command | ) ? TRUE : FALSE;
 
 if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
 
-    $log_data->{'resend_delay'} = 0.113;
+    ## advance log buffer index ##
+    $log_data->{'start_index'}  = ++$log_data->{'next_index'};
+    $log_data->{'resend_delay'} = 0.113;    ##  resetting  ##
 
-    if ( $log_data->{'next_index'} < $buffer_count ) {    # more to send .,
+    if ( $log_data->{'next_index'} <= $buffer_count ) {    # more to send .,
+
+        ## schedule sending next line using event management ##
         $log_data->{'retry_timer'} = <[event.add_timer]>->(
             {   qw| handler | => qw| base.log.handler.send_timer |,
-                qw| after   | => 0.07,
+                qw| after   | => 0,      ## no delay, as being successful ##
                 qw| data    | => $name
             }
         );
     } else {
-        $log_data->{'complete'} = 1;
+        $log_data->{'complete'} = TRUE;    ##  mark as complete \ current  ##
     }
 } elsif ($retry) {    ##  was not written  ##  <--  use notify_online  [LLL]
 
@@ -41,8 +45,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
     ## <[base.log]>->( 0, "[ '$name' buffer ] log line $buffer_count lost" );
 }
 
-#,,..,,..,...,.,.,,,.,,,,,,..,...,,.,,,,.,..,,..,,...,..,,.,,,.,.,...,,,,,,,,,
-#WSU74UAN6VIR4JNGXPAFZFJ3UIWHIQEXDEJUPPCDYCR5A6WKSSMUVGSM7YM4OJLXYKP3TE5WHOWHW
-#\\\|HH7MC2XNZQ2LZYFONN4HHIWXZX5L7ZBUZI3O7CEPASJAZZFDOZD \ / AMOS7 \ YOURUM ::
-#\[7]WHIADHCEA5SBUHZQDLDOLIVMBNTOTXRLZI3CNXJ5EJMSUJQFDACI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,..,.,.,..,,.,.,.,.,,.,,.,,,..,,...,...,,,,,,.,,...,,,.,...,
+#PVT4UNJCK5IAPZT4YHZDTENINN5BX4X3VJJK4DTI43EEZVWWGWRH62NRMNVNNC7KZRYOTNZL7ZWRK
+#\\\|DSOFHLQUXG6QZEOWBHZ5UTCYYZKPAGKD7S6WYZR5KXDTFQZ3N3V \ / AMOS7 \ YOURUM ::
+#\[7]GMALCI3H665FISITSBB34GEVMJMUAWHF53KTC5HME6I7XTWA6OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
