@@ -11,15 +11,14 @@ return if not <[base.cfg_bool]>->(<base.log.allow_buffer_send>);
 return warn 'expected log buffer name parameter <{C1}>' if not defined $name;
 
 <log.file>->{$name} //= {
-    qw| complete        | => 1,
+    qw| complete        | => TRUE,
     qw| next_index      | => 0,
     qw| start_index     | => $buffer_index,    ##  <-- can be undef  ##
     qw| resend_delay    | => 0.1,
     qw| resend_slowdown | => 1.8,
 };
 
-my $log_data   = <log.file>->{$name};
-my $next_index = $log_data->{'next_index'};
+my $log_data = <log.file>->{$name};
 
 ##  no such buffer  ##
 return <[base.s_warn]>->(
@@ -28,8 +27,39 @@ return <[base.s_warn]>->(
 
 my $buffer_data_ref = $data{'buffer'}->{$name}->{'data'};
 
+SEND_NEXT:    ##  going back when skipping log lines  ##
+
+my $next_index = $log_data->{'next_index'};
+
 ##  no such buffer content line [ sent ]  ##
 return if not defined $buffer_data_ref->[$next_index];
+
+## filter for correct log level when buffer has higher ones ##
+##
+my $logfile_verbosity = <system.verbosity.zenka_logfile>;
+if ( <system.verbosity.zenka_buffer> > $logfile_verbosity ) {
+    ##  grab entry verbosity from buffer line  ##
+    my $log_entry_verbosity = $LAST_PAREN_MATCH
+        if $buffer_data_ref->[$next_index] =~ m|^[A-Z2-7]+ (\d) |;
+    ##  when higher than configured , do not send log message  ##
+    if ( defined $log_entry_verbosity
+        and $log_entry_verbosity > $logfile_verbosity ) {
+
+        $log_data->{'start_index'} = ++$log_data->{'next_index'};
+
+        my $buffer_count = $data{'buffer'}{$name}{'data'}->@*;
+        if ( $log_data->{'next_index'} >= $buffer_count ) {
+
+            ## mark as complete \ done ##
+            $log_data->{'complete'} = TRUE;
+            return;
+        } else {
+            ## do not send and advance buffer position ##
+            goto SEND_NEXT;
+        }
+    }
+}
+
 my @send_line;    ##  protocol line messages  ##
 
 ## path to target zenka.., ##
@@ -46,7 +76,7 @@ push @send_line, $name;
 
 ##[ t-stmp, lvl, msg ]##
 push @send_line, $buffer_data_ref->[$next_index];
-$log_data->{'complete'} = 0;
+$log_data->{'complete'} = FALSE;
 
 <[base.protocol-7.command.send.local]>->(
     {   qw| command | =>
@@ -60,7 +90,7 @@ $log_data->{'complete'} = 0;
     }
     )
     ##  no warnings during 'reload'  ##
-    or <base.silence.sprint_t> = 1 and <[base.log.handler.log_reply]>->(
+    or <base.silence.sprint_t> = TRUE and <[base.log.handler.log_reply]>->(
     {   qw| cmd |       => qw| FALSE |,    ## command does not exist ##
         qw| call_args | => {
             qw| args | => <[base.sprint_t]>->(qw| 4RVWZTY |)
@@ -70,8 +100,8 @@ $log_data->{'complete'} = 0;
     }
     );
 
-#,,.,,.,.,,,,,,..,..,,..,,,.,,.,,,,,.,.,.,,.,,..,,...,...,.,.,,.,,,,.,,,,,,,.,
-#AOLARLDAZ7EGAROLY2T6ZQ2LG7Q26FDE3DB4EV5KTVKXO5FTSQ2APQMCNEY3R56MDUL7BK3YSFBH6
-#\\\|GRMDM3RTTNFS2UUSXWEQMOCYVO5C4M3T6WR4JGQAUTXDWSM7V5P \ / AMOS7 \ YOURUM ::
-#\[7]BB5SWR66BRA7PAWDLNKECSRMTQC5TBTEFIM5AUXWZD7VRHFGWMBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,..,,.,.,,.,,.,.,,.,,.,.,,,.,,..,..,,...,...,...,,..,,,,,,.,,,,.,
+#KCKBGRRE3ZGUXIBMWZYKFNOHLWEIYDYPHIAGSNBI2SCPRTT7P2SXVVAEAUBQYUPDMOSOYMKWIFDPK
+#\\\|CRX66W2YZ2GAAQ44GMEAJG7E63SRRUA6LMNQHQ6EJECV2TKHYEO \ / AMOS7 \ YOURUM ::
+#\[7]PQ3EZ5OURUM4UPY5CXZ4F2HUD7MN5XT3RMXZ3K4EQ4DTSBDBDOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
