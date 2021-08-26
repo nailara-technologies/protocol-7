@@ -410,7 +410,7 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
     }
 
     # starting next delayed zenka of the same name ..,
-    foreach my $id ( @{ <[zenka.instance.get_ids]>->($zenka_id) } ) {
+    foreach my $id ( <[zenka.instance.get_ids]>->($zenka_id)->@* ) {
         next
             if $id == $instance_id
             or <v7.zenka.instance>->{$id}->{'status'} ne qw| delayed |;
@@ -427,8 +427,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,..,,,,,,...,.,.,,.,,..,,,,,,...,.,,,,..,..,,...,..,,,,.,,,.,,,.,...,,,,,
-#FLHEH44EPQRPNVPC4KBTLBCQDVLO6KSSQL4XNRCGNDUE6P7RIDACF3X4BECEQ3LX7AMILA6TICKZ4
-#\\\|VAELUF2LBYL7RCDC3I4UAKPXYOHA7J6CLXVDLQO72OT7LC2RT4H \ / AMOS7 \ YOURUM ::
-#\[7]GBMG3OX5DCJNCG3CKNBGAO2GCRPELMBKAIUZXGMZDK5ZUXCCNSDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,.,,..,,,..,,.,,.,,,,,,,,,,,..,,...,...,...,,,,,...,.,,,,.,,
+#GP4SJKW2EHOGO4KYB4GPZJT7SYL7DMGUQ7E7LGIOS2SFOPXMHZ7WDOM7CJAOTEVLEDFWUX75PSY4Y
+#\\\|JIOA4ZKBP5XNSPVPBICNVS4AORRYIP6N2ZIA67GOLEXLIQQCBM4 \ / AMOS7 \ YOURUM ::
+#\[7]CMIMFYKQMX3OWMGQ22BTOE6KM6AKCJEIOPJCPDVIUARXGCEHWICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

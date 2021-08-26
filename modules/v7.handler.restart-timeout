@@ -12,21 +12,22 @@ if (    defined $instance->{'status'}
     and $instance->{'status'} eq qw| restart |
     and defined $instance->{'restart_id'}
     and $instance->{'restart_id'} eq $restart_id ) {
-    <[base.log]>->(
-        0, "<< restart timed out for $zenka_name instance $instance_id ., >>"
+    <[base.logs]>->(
+        0,           '<< restart timed out for %s instance %u ., >>',
+        $zenka_name, $instance_id
     );
-    <[zenka.change_status]>->( $instance_id, 'error' );
+    <[zenka.change_status]>->( $instance_id, qw| error | );
 }    ## else { left-over restart timer ? }
 
 delete $instance->{'restart_id'};
 
 delete $instance->{'timer'}->{'restart_timeout'}->{$restart_id};
 delete $instance->{'timer'}->{'restart_timeout'}
-    if !keys %{ $instance->{'timer'}->{'restart_timeout'} };
-delete $instance->{'timer'} if !keys %{ $instance->{'timer'} };
+    if not keys $instance->{'timer'}->{'restart_timeout'}->%*;
+delete $instance->{'timer'} if not keys $instance->{'timer'}->%*;
 
-#,,,,,.,.,,.,,,..,,.,,.,,,.,,,.,,,,..,,,,,,.,,..,,...,..,,,,.,,,,,.,,,,..,,,,,
-#KD5MVEAHX353BBW7JXQYO73S234LPCN7BZX5M4CDUPQQN3MRSWZ6GF3DRNAVOLXOGSSIMXC5JEDSG
-#\\\|4V57O7SNIVH65IOS3WQQ5MZ37T5YGU4OD3FBRS3GJKNGJWFXEYU \ / AMOS7 \ YOURUM ::
-#\[7]5LXSFLI54QYL5DA3IMSCUMZNMEEB2CS5ZVHRHIV7YP3PRM3KD6DI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,..,..,,,..,,.,,,,.,.,.,,,,,.,,,..,,...,...,,.,,...,.,,,.,.,,.,,
+#GCXDUMP5IMSRYOHMLLXAQLHJAVAW2DB72RL7T7YVUUD2YTLKGOGKQBI43RP7AZRWU5AI2FUILUVY6
+#\\\|73XMFJNUNI45BA355NIL6VB7XONLKB3CUZ3UFWAAS5BHLU3Q2A7 \ / AMOS7 \ YOURUM ::
+#\[7]OCNUMJLSUFSOJTCLWSMDOIQLG3CWN332C5UUOAQAXYGI75BYLUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

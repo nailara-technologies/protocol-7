@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = base.waitpid
+
+my $wait_PID   = shift // 0;
+my $wait_FLAGS = shift // WNOHANG();
+
+my $pid_result = waitpid( $wait_PID, $wait_FLAGS );
+
+if ( <system.zenka.name> eq qw| v7 | and $pid_result > 0 )
+{    ## has terminated ##
+    my $registry_handler = qw| v7.report_collected_child_pid |;
+    $code{$registry_handler}->($pid_result);    ##  register for sig_chld  ##
+}
+
+return $pid_result;
+
+#,,,.,,,,,,,.,.,,,.,.,.,.,,,.,...,,,,,.,,,,.,,..,,...,...,,.,,,,,,.,,,,.,,,,,,
+#2OUOGCW3EWJ6ZZ5LIC6T7IO5HTT27OIEINN6ZEFHNJ6PAJFU5VRROX3NG77KENL6SLKLXT7XQREHM
+#\\\|MXWVVDUISETOESC22BKHQEQQGCVMPE7N7R7LQH2M2YEIZEUXFFB \ / AMOS7 \ YOURUM ::
+#\[7]W7SH5OLRJDS7GCY337QLUHKTEFIYGD6U4IHG67YNXDLWS6SYFKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

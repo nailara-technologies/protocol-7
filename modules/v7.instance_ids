@@ -4,25 +4,33 @@
 # descr = return [ sanitized ] zenka instance id list
 
 my @instances;
-map {
-    if (    $ARG =~ <regex.base.iid>
-        and defined <v7.zenka.instance>->{$ARG}->{'zenka_name'}
-        and defined <v7.zenka.instance>->{$ARG}->{'status'} ) {
 
-        push( @instances, $ARG );    ## valid instance ##
+foreach my $instance_id ( keys <v7.zenka.instance>->%* ) {
+    if (    $instance_id =~ <regex.base.iid>
+        and defined <v7.zenka.instance>->{$instance_id}->{'zenka_name'}
+        and defined <v7.zenka.instance>->{$instance_id}->{'status'} ) {
+
+        push @instances, $instance_id;    ## valid instance ##
+
     } else {
-        delete <v7.zenka.instance>->{$ARG};
-        warn sprintf
-            "removed not valid id '%s' from zenka instance list <{C1}>",
-            $ARG;
+        delete <v7.zenka.instance>->{$instance_id};
+        if ( $instance_id !~ <regex.base.iid> ) {
+            warn sprintf
+                "removed not valid id '%s' from zenka instance list <{C1}>",
+                $ARG;
+        } else {
+            <[base.logs]>->(
+                2,
+                'instance %u had no name or status [ removed ]', $instance_id
+            );
+        }
     }
-    }
-    keys %{<v7.zenka.instance>};
+}
 
 return @instances;
 
-#,,.,,,..,,,.,.,,,,,,,,,.,,,.,,,.,,,.,..,,,,,,..,,...,...,...,...,,,.,...,,,,,
-#MFMABEX7BV3UAKHW5HEC2FCRL73AAEI5Z6QY435CRFMEW2GOVNKCCA6ZFGAEYL66AGABQ3J4H4HRE
-#\\\|6BMFXZVAUOOKTMSTJBZ6JOYG36WXQU7PBF4464UVD5KUDLNIW5W \ / AMOS7 \ YOURUM ::
-#\[7]YY2PCXUKYKPGLJKAQE6WPQPOTQW64N74QKNYUDWVFGSM65VPL2BA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,.,.,.,,,.,.,.,.,..,,,.,,...,..,,...,...,..,,.,,,,,.,.,,,,,.,
+#4ZLZ6WHU6IERJ5JO2QR73RAXXSXCGQMXO4FB52PGOOCNO36EE66PEEYU4PYV2XYJWZQNIMV6U3ERE
+#\\\|GBCA5Z4KP53HMHRGFK5RP254GWKXVGIICFYB4DZDD2F7YG2OSOE \ / AMOS7 \ YOURUM ::
+#\[7]G5QDMQAEADLVEX7RX5R7PWFFPIPXVHYTCWBXYGRZQYG2FNI2IICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

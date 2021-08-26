@@ -3,26 +3,32 @@
 # name  = v7.sub-process.retrieve_cached_iid
 
 my $pid = shift // '';
-die "expected process id" if $pid !~ m|^\d+$|;
+if ( $pid !~ m|^\d+$| ) {
+    warn 'expected process id <{C1}>';
+    return undef;
+}
 
 my $cache_ref   = <v7.process.instance_cache> // {};
 my $instance_id = $cache_ref->{$pid};
 
-foreach my $pid ( keys %{$cache_ref} ) {
-    my $pid_stat = waitpid( $pid, WNOHANG() );
+foreach my $pid ( keys $cache_ref->%* ) {
+    my $pid_stat = <[base.waitpid]>->($pid);    ##  WNOHANG  ##
+
     if ( $pid_stat <=> 0 ) {
-        <[base.log]>->( 2, "removing process $pid from instance id cache.," );
+        <[base.logs]>->(
+            2, 'removing process %d from instance id cache.,', $pid
+        );
         delete $cache_ref->{$pid};
     }
 }
 
 delete <v7.process.instance_cache> and undef $cache_ref
-    if !keys %{$cache_ref};
+    if not keys $cache_ref->%*;
 
 return $instance_id;
 
-#,,.,,..,,.,.,.,.,,,.,.,.,.,.,.,.,,.,,,..,,.,,..,,...,...,.,.,.,.,,,,,,..,.,.,
-#S2LSL5QHOKMA6NDIARK4U5I5NHFIEWVMIOSTVADFEXJOAAME5U6STAOE46CY3EJS4QPB7WAY2FMJU
-#\\\|25Z74XKGGJJWDYE35YWU6LDGOBV5XBCQAGPG6TLWJOAW7A62B4M \ / AMOS7 \ YOURUM ::
-#\[7]7HRXIUWJV36UMCJY5WW57RGWM7WXMOFTGJGIXZYI6THW6EFCXOBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,..,,,.,,..,...,,..,,,.,.,,,,,.,..,,...,...,,,,,,,.,...,,,,,..,,
+#XNNVISH5D5NAJKCNA2BE6U4A5FOY3WPA5RWO4TXOAOJAKICD2MD74AE5VA3N5PODYQPC6BN6NLBGA
+#\\\|Q73TKH7TDIG7URWAUD6UJA3OVJIBMVVEEBWN7AS4JOLHGNML4IC \ / AMOS7 \ YOURUM ::
+#\[7]OPXHKAHARKGWVEBODVVHPN4ILSUYONQEWTRYWPALPAHJDASRQGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

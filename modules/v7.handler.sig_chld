@@ -13,26 +13,25 @@ if ( @ARG and not length ref $ARG[0] ) {
     }
 }
 
-my @waitpid_pid;    ## collection from base.exists.sub-process ##
+my @waitpid_pid;    ## collected by base.waitpid ##
 my $collected_child_pids = <base.process.waitpid_collected> //= {};
+
+##[ collecting new arrivals ]#
+##
+TRUE while <[base.waitpid]> > 0;
 
 @waitpid_pid = <[base.reverse-sort]>->($collected_child_pids)
     if keys $collected_child_pids->%*;
 
 ##[ checking collection validity ]##
 ##
-foreach my $collected_PID ( grep { abs($ARG) > 1 } @waitpid_pid ) {
+foreach my $collected_PID ( grep { $ARG < 2 } @waitpid_pid ) {
     <[base.s_warn]>->(
         '< base.process.waitpid_collected > not valid PID %04d.',
         $collected_PID
     );
 }
 
-##[ collecting new arrivals ]#
-##
-push @waitpid_pid, grep { abs($ARG) > 1 } waitpid( 0, WNOHANG() );
-
-local ( $OS_ERROR, ${^CHILD_ERROR_NATIVE} );
 while ( my $end_pid = shift @waitpid_pid ) {
 
     if ( $end_pid < 2 ) {
@@ -43,12 +42,25 @@ while ( my $end_pid = shift @waitpid_pid ) {
         return undef;
     }
 
-    my $child_error_val;
-    if ( not defined $collected_child_pids->{$end_pid} ) {
-        $child_error_val = ${^CHILD_ERROR_NATIVE};
-    } else {
-        $child_error_val = delete $collected_child_pids->{$end_pid};
+    if (<[base.is_defined_recursive]>->(
+            sprintf qw| v7.sig_chld.ignore_child_pid.%d |, $end_pid
+        )
+    ) {
+        <[base.logs]>->(
+            2, ': sig-chld : ignoring PID %d, as registered .,', $end_pid
+        );
+        delete <v7.sig_chld.ignore_child_pid>->{$end_pid};
+        <[base.clean_hashref]>->(<v7.sig_chld>);    ## cleaning up ##
+        delete <v7.sig_chld> if not keys <v7.sig_chld>->%*;
+        ## skip pid processing ##
+        next;
     }
+
+    ##  unknown  ##
+    my $child_error_val = -1;
+    ##[  collected  ]##
+    $child_error_val = delete $collected_child_pids->{$end_pid}
+        if exists $collected_child_pids->{$end_pid};
 
     my ( $instance, $zenka_name, $instance_id, $zenka_subname );
 
@@ -89,92 +101,12 @@ while ( my $end_pid = shift @waitpid_pid ) {
         $zenka_str, $end_pid, $exit_val, $exit_sig_str, $e_core_dump
     );
 
-    <[v7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
-
-    <[v7.terminate_process]>->($end_pid);
-
-    # <-- cleaning up children  .., [LLL]
-
-    if (    defined $instance_id
-        and $instance_id =~ <regex.base.iid>
-        and defined $instance
-        and my $child = <v7.child>->{$end_pid} ) {
-        <[base.logs]>->( 2, ': was instance %d', $instance_id );
-
-        delete <v7.child>->{$end_pid};
-        delete $instance->{'restart_pids'}->{$end_pid}
-            if exists $instance->{'restart_pids'};
-
-        my $current_pid = $instance->{'process'}->{'id'};
-
-        my $current_status = $instance->{'status'} // qw| undefined |;
-
-        <[base.logs]>->( 2, ": had status : '%s'", $current_status );
-
-        ## record web-browser segfaults [ for crash mitigation ] ##
-        if ( $exit_sig == 11 and $zenka_name eq qw| web-browser | ) {
-            my $web_browser_uname = <system.AMOS-user>;
-            my $subname_b32
-                = ( defined $zenka_subname and length $zenka_subname )
-                ? join( '', qw| . |, encode_b32r($zenka_subname) )
-                : '';
-            my $file_name = join( '',
-                qw| /var/run/.7/web-browser.crash_pid |, $subname_b32 );
-
-            <[file.put]>->( $file_name, sprintf( "%d\n", $end_pid ) )
-                or warn join( qq| : |,
-                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
-            chmod( 0644, $file_name )
-                or warn join( qq| : |,
-                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
-            my @pwn = getpwnam($web_browser_uname);
-            chown( $pwn[2], $pwn[3], $file_name )
-                or warn join( qq| : |,
-                $file_name, scalar <[base.format_error]>->($OS_ERROR) );
-        }
-
-        my $next_status
-            = $current_status =~ m,error|online|starting,
-            ? qw|  error  |
-            : qw| offline |;
-
-        $next_status = qw| restart | if $current_status eq qw| restart |;
-
-        if ( $current_status eq qw| online | and defined <v7.ondemand_zenki> )
-        {
-            map { $next_status = qw| offline | if $ARG eq $zenka_name }
-                <v7.ondemand_zenki>->@*;
-        }
-
-        if ( <[v7.instance_pid_count]>->($instance_id) ) {
-
-            <[zenka.change_status]>->( $instance_id, qw| delayed | )
-                if $current_status eq qw| restart |;
-
-            $instance->{'pid_check_timer'} = <[event.add_timer]>->(
-                {   'after'    => 0.07,
-                    'interval' => 0.13,
-                    'handler'  => qw| v7.handler.children_left |,
-                    'data'     => {
-                        qw| instance_id | => $instance_id,
-                        qw| next_status | => $next_status
-                    }
-                }
-            );
-        } else {
-            <[zenka.change_status]>->( $instance_id, $next_status )
-                if $current_status ne $next_status;
-
-            <[v7.init_restart_timer]>->($instance_id)
-                if $next_status !~ m,offline|shutdown,;
-        }
-    } elsif ( defined $instance_id and defined $instance ) {
-        delete <v7.zenka.instance>->{$instance_id};
-    }
+    <[v7.process_zenka_end]>->( $instance_id, $end_pid, $exit_sig )
+        if defined $instance_id or defined $end_pid;
 }
 
-#,,..,,,.,,.,,,.,,,.,,.,,,,.,,,,,,,..,,.,,,,.,..,,...,.,.,...,,..,.,,,,,,,,..,
-#DE4GOMM227GCOTUNW2WNFQD3GBUEIDJCURQPZOK42DTYUCTD26KS6FTTNSJG32V3HY3RJBUQUHVIY
-#\\\|C7HADEJCWSH3LWWJRBINJSAQW3K6R4IDAVJJAZGZWAW5WWG3JLB \ / AMOS7 \ YOURUM ::
-#\[7]OBVBXPTXOT2YPHD3PNB2OFNWVE4C37N7FQGYMJH7COEJPRZUGIDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,,,.,,,,,.,.,.,,,.,..,,,..,.,,,..,,...,...,,,.,,.,,..,,,.,,..,,
+#6EWLEAKH7YCZBWDKFK7VYK5PW46ORVZ5NZR53SQ6UWKPU5KSHIBTXW6IJNEXLJW65JTCETQV6K5M2
+#\\\|VJMTQTQU6TLB3HN6NBPETY6SBIU3VH323PLOWBQDD3B7NQFHNRL \ / AMOS7 \ YOURUM ::
+#\[7]2HGPW4YVRSGRPQ2WSZB37TWFNLPCSPFUE6ZPCR7JCEMLAPM7IKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
