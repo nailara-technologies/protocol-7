@@ -2576,9 +2576,10 @@ sub p7_sig_warn {
                     say ' < undefining > ', ${^CAPTURE}[0];
                     undef $code{ ${^CAPTURE}[0] };
                 }
-                my $msg = join( ' ',
+                my $msg = join ' ',
                     ': FATAL ERROR :',
-                    @err, $code{'base.caller'}->(3) );
+                    @err, scalar $code{'base.caller'}->(3);
+
                 $code{'log.error'}->($msg);
                 if ( $deep_recusrsion >= 5 ) {
                     $code{'log.error'}->(': terminating program .,');
@@ -2586,6 +2587,25 @@ sub p7_sig_warn {
                 }
             }
         }
+
+        if ($deep_recusrsion) {    ## second warning means not mitigated ##
+
+            if ( $data{'system'}{'zenka'}{'name'} eq qw| v7 | ) {
+                foreach my $pid (
+                    sort {
+                        $data{'v7'}{'child'}->{$b}->{'start_time'}
+                            <=> $data{'v7'}{'child'}->{$a}->{'start_time'}
+                    }
+                    keys $data{'v7'}{'child'}->%*
+                ) {
+                    my @children
+                        = <[v7.sub-process.get_children]>->($pid)->@*;
+                    kill( 15, $pid );
+                }
+            }
+            say STDERR "::\n::[ emergency exit ]::\n" and exit(qw| 0110 |);
+        }
+
         my @caller = caller;
         my ( $package, $filename, $line, $subroutine ) = @caller;
 
@@ -2695,6 +2715,7 @@ sub p7_sig_warn {
         $recent_warn_cnt = 0;
         undef $last_warning_time;
     }
+
     return TRUE;    ## true ##
 }
 
@@ -3715,8 +3736,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,,,,,.,..,,,.,,,,,,.,.,,,,,,..,...,..,,..,,...,...,,.,,.,.,,,,,,.,,,,,,
-#AHH7XIISQVT4NJ6DKQAADAZ4ZEZLJ57SWVPIHIJSWSJBVLTZJ5RY7IQNVCFC7SRQKS4Y2F4YBREA4
-#\\\|ARSMCKGALQTXL6HOVCHRP4A5D44KQSQW64PGXRQF2LEEHAACYAF \ / AMOS7 \ YOURUM ::
-#\[7]XZLFT5YTI2C4A4TW2IQ3NSAQYXCG4HLXKRQLP3TQMR6BDELPW2AQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,,,,,,,,,.,,,,,,...,,..,...,..,,...,...,.,,,,,.,,,.,.,,,.,.,
+#W2VZLSNWCO3CZTCQ57Y5I73NOTX4DM5OLDOMBUSB4Y2RZR3ZDVKRB5BHLX3M7IF5KTBXKXJVRPNX2
+#\\\|VSYARXH772I4GG4SOTC7AMGP32MUNYXGCVMGWS3L5TGNG6O2XWC \ / AMOS7 \ YOURUM ::
+#\[7]6MMUZJ6B7NR2M5PEXRI3NUM5U2ILZEPX5JFBHOVAOAWFVQDVUWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

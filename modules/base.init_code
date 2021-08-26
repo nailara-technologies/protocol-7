@@ -76,23 +76,29 @@ $data{'system'}{'process_start'} = {
 # maximizing open files limit
 my ( $of_cur, $of_max ) = getrlimit( BSD::Resource::RLIMIT_NOFILE() );
 if ( $of_cur != $of_max ) {
-    <[base.log]>->( 2, ": open files limit increased [$of_cur->$of_max]" );
+    <[base.logs]>->(
+        2,       ': open files limit increased [%u-->%u]',
+        $of_cur, $of_max
+    );
     setrlimit( BSD::Resource::RLIMIT_NOFILE(), $of_max, $of_max )
-        or warn "setrlimit <$of_max> failed [ \l$OS_ERROR ]";
+        or <[base.s_warn]>->(
+        'setrlimit <%u> failed [ %s ]',
+        $of_max, <[base.str.os_err]>
+        );
 }
 $data{'system'}{'limits'}{'ofile'}
     = [ getrlimit( BSD::Resource::RLIMIT_NOFILE() ) ]->[1];
 
 $data{'system'}{'host'} = {
-    'os'       => { 'name' => $^O },
-    'hostname' => hostname,
-    'timezone' => <[base.timezone]>
+    qw|    os    | => { qw| name | => $OSNAME },
+    qw| hostname | => hostname,
+    qw| timezone | => <[base.timezone]>
 };
 
 # LLL: + uname -r, uname -m [?]
 
 # flush / init regex cache
-$data{'regex'} = { 'base' => <[base.regex]> };
+$data{'regex'} = { qw| base | => <[base.regex]> };
 
 # init / reset lists
 $data{'list'} //= {};
@@ -150,9 +156,8 @@ if (    defined <system.zenka.type>
     and <system.zenka.name> eq qw| cube | ) {
     <[base.disable_command]>->('verify-instance');
     <zenki.virtual> //= {};
-    my $key_ref = \$data{'zenki'}{'virtual'};
-    $data{'base'}{'element'}{$key_ref}{'max_count'}
-        //= 4097;    # LLL: --> config.,
+    my $key_ref = \$data{'zenki'}->{'virtual'};
+    <base.element>->{$key_ref}->{'max_count'} //= 4097;    # LLL: --> config.,
     <list.virtual> = {
         'var'   => qw| data |,
         'key'   => qw| zenki.virtual |,
@@ -227,7 +232,7 @@ if ( ref( $data{'session'} ) ne qw| HASH | ) { $data{'session'} = {} }
 <base.timer.prefix_cache> //= <[event.add_timer]>->(
     {   'after'    => <base.cfg.interval.prefix_cache_init>,
         'interval' => <base.cfg.interval.prefix_cache_init>,
-        'repeat'   => 1,
+        'repeat'   => TRUE,
         'handler'  => qw| base.cache.refaddr-prefix.init |
     }
 );
@@ -244,10 +249,11 @@ if ( defined <setup.aliases> ) {
     if ( defined <setup.aliases.source_zenka> ) {
         foreach
             my $alias_cmd ( split( m|\s+|, <setup.aliases.source_zenka> ) ) {
-            $data{'alias'}{$alias_cmd} = "$alias_cmd SOURCE_ZENKA";
+            $data{'alias'}{$alias_cmd}
+                = sprintf( '%s SOURCE_ZENKA', $alias_cmd );
         }
     }
-    map { $data{'alias'}{$ARG} = "$ARG SOURCE_ZENKA SOURCE_SID" }
+    map { $data{'alias'}{$ARG} = sprintf '%s SOURCE_ZENKA SOURCE_SID', $ARG }
         split( m|\s+|, <setup.aliases.source_zenka_sid> )
         if defined <setup.aliases.source_zenka_sid>;
 }
@@ -262,8 +268,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,,.,,..,.,.,...,.,.,,..,..,,,,.,...,..,,,..,..,,...,...,...,,.,,,..,.,,,,.,,
-#5AGE6GZNTOLSNALYT4T4S7NN6ZSGOUEMVLFDBJKSYJJIXLPCHN34H7XIPYNHG2G4474POT3QJDZFG
-#\\\|OZGTC3W6NRTOBVZNIHM764JO5CJG4ZBBI34QGB2ISHOFZOEQ42V \ / AMOS7 \ YOURUM ::
-#\[7]VBZVIBDB2Z5VEE3IJLSBRTHYKTCS75H5DJAVNOAVWNR65SLM44AY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,.,.,,,,,...,.,.,,..,,,,,...,..,,...,.,.,...,,,,,,.,,,..,,,.,
+#3W2OTQQDRVZJOZFEYFQDZ4XNHQSORTSWUONNIQ5B5AICDHTN7YXJVBQQPXUCY2VVB56WO5V4OFATS
+#\\\|NB6VTB7XR3XGUZYLUDLYKL6SCLKNYJ2CYU7PB3QA3OMRDGZIJQY \ / AMOS7 \ YOURUM ::
+#\[7]I7YWALB2IM3DDWAYIV4MKXJCZ4EFD2OHVUVUQ27666Z6JEUXMYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

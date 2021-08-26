@@ -3,7 +3,7 @@
 # name  = base.init
 # descr = initialize zenka and run start-up code
 
-<system.zenka.init_passed> //= 0;    ##  false  ##
+<system.zenka.init_passed> //= FALSE;    ##  false  ##
 
 if (<system.zenka.init_passed>) {
     <[base.s_warn]>->(
@@ -12,7 +12,7 @@ if (<system.zenka.init_passed>) {
     );
     return undef;
 } else {
-    <system.zenka.init_passed> = 5;    ## true ##
+    <system.zenka.init_passed> = TRUE;    ## true ##
 }
 
 if ( $ARG[0] =~ m|~$| ) {
@@ -32,7 +32,7 @@ if ( $_[0] =~ m{([^\.]+)\.([\w|\.]+)$} ) {
 }
 
 if (<system.background_mode>) {
-    my $status = 0;    ##  false  ##
+    my $status = FALSE;    ##  false  ##
 
     eval { $status = <[base.process-into-background]> };
 
@@ -44,7 +44,7 @@ if (<system.background_mode>) {
 
 ## <[base.process-into-background]> if <system.background_mode>;
 
-my $success = 5;    ## true ##
+my $success = TRUE;    ## true ##
 if (    <system.start-up.stdin.read-init-code>
     and <zenka.start-up.init_code>->@* ) {
 
@@ -87,8 +87,8 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
 
 <system.sub_name> = undef;    ##  zenka code has ended  ##
 
-#,,.,,,..,.,.,..,,,,,,,,,,...,,,.,..,,.,.,,..,..,,...,...,.,.,,..,.,.,.,.,,,,,
-#AE4OWH3A2AZEEF5VP2MLXCUZP6XPMXOS2R4BWZYKKFYIGLOAYX4WANHBCF7SLQXBL6WQTHJBMENMU
-#\\\|FIFAQFBV4NWJFE5KI2THKLFV4ZOGUCZJVFO66BDWA73GEAC624Q \ / AMOS7 \ YOURUM ::
-#\[7]L2MLAK7A44GCH646J7L7CIYKEYJ4GC5FKJCZ635IXQDGYSQFTEDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,..,,,..,...,,..,...,..,,,.,,..,,...,...,.,,,...,..,,,,,,.,.,
+#CNPZM4ZOQ6GD4JNM63HNEKESTLRFMPX2MNWBPOGSOLO44OG2M2O6FCAXPR2BDLRNPJ2O3OLEF5SEI
+#\\\|SKJXCB4KF5XHOQUJMORSJS2XTWWZMJ64JI7TQPEDGWZFF6TUYMZ \ / AMOS7 \ YOURUM ::
+#\[7]HEPRI7XCBTQ2LKEESDP4KDG6ACGKUINVG72UY5EI3GQ52QLIZ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

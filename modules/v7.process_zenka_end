@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = v7.process_zenka_end
+
+my $instance_id = shift;
+my $process_id  = shift;
+my $exit_sig    = shift;
+
+my $log_level = 2;    ##[  decrease when searching errors  ]##
+
+my $instance;
+if ( defined $instance_id and exists <v7.zenka.instance>->{$instance_id} ) {
+    $instance = <v7.zenka.instance>->{$instance_id};
+    $process_id //= $instance->{'process'}->{'id'};
+} elsif ( defined $instance_id ) {
+    <[base.logs]>->(
+        $log_level, ': process_zenka_end : gone [ %u ]', $instance_id
+    );
+    return undef;
+}
+
+my $zenka_name     = $instance->{'zenka_name'};
+my $zenka_subname  = $instance->{'subname'};
+my $current_status = $instance->{'status'} // qw| undefined |;
+
+my $pid_str
+    = defined $process_id ? sprintf( ' \ pid : %u', $process_id ) : '';
+
+<[base.logs]>->(
+    $log_level,  ': processing end of %s-zenka [ instance : %u%s ]',
+    $zenka_name, $instance_id, $pid_str
+);
+
+<[v7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
+<[v7.terminate_process]>->($process_id)     if defined $process_id;
+
+####
+
+# <-- cleaning up children  .., [LLL]
+
+if (    defined $instance_id
+    and $instance_id =~ <regex.base.iid>
+    and defined $instance
+    and my $child = <v7.child>->{$process_id} ) {
+    <[base.logs]>->( $log_level, ': was instance %d', $instance_id );
+
+    delete <v7.child>->{$process_id};
+    delete $instance->{'restart_pids'}->{$process_id}
+        if exists $instance->{'restart_pids'};
+
+    <[base.logs]>->( $log_level, ": had status : '%s'", $current_status );
+
+    my $zenka_term_callback    ##  custom term handlers  ##
+        = sprintf( qw| v7.zenka.end-handler.%s |, $zenka_name );
+
+    if ( exists $code{$zenka_term_callback} ) {
+        <[base.logs]>->(
+            $log_level, ': calling term handler for %s zenka..,', $zenka_name
+        );
+        $code{$zenka_term_callback}->( $instance_id, $process_id, $exit_sig );
+    }
+
+    my $next_status
+        = $current_status =~ m,error|online|starting,
+        ? qw|  error  |
+        : qw| offline |;
+
+    $next_status = qw| restart | if $current_status eq qw| restart |;
+
+    if ( $current_status eq qw| online | and defined <v7.ondemand_zenki> ) {
+        map { $next_status = qw| offline | if $ARG eq $zenka_name }
+            <v7.ondemand_zenki>->@*;
+    }
+
+    if ( <[v7.instance_pid_count]>->($instance_id) ) {
+
+        <[zenka.change_status]>->( $instance_id, qw| delayed | )
+            if $current_status eq qw| restart |;
+
+        $instance->{'pid_check_timer'} = <[event.add_timer]>->(
+            {   'after'    => 0.07,
+                'interval' => 0.13,
+                'handler'  => qw| v7.handler.children_left |,
+                'data'     => {
+                    qw| instance_id | => $instance_id,
+                    qw| next_status | => $next_status
+                }
+            }
+        );
+    } else {
+        <[zenka.change_status]>->( $instance_id, $next_status )
+            if $current_status ne $next_status;
+
+        <[v7.init_restart_timer]>->($instance_id)
+            if $next_status !~ m,offline|shutdown,;
+    }
+} elsif ( defined $instance_id and defined $instance ) {
+    delete <v7.zenka.instance>->{$instance_id};
+}
+
+<[base.logs]>->( $log_level, ': :. reported .: %s', scalar <[base.caller]> );
+
+return TRUE;
+
+#,,.,,,,,,,,.,,,,,,.,,,..,,..,,,.,,..,,..,...,..,,...,...,..,,.,,,,..,.,,,,,.,
+#TRLLEYLQ6WC7G3D4I7JLQRCRPE6OB2DR4ZYYTBJUWICBCP22EUXGHMQHCWEGIUWZNKJ47QZG6QH7A
+#\\\|ZP3YFJSID7UOQEGQ2DAPJWHVIXUYHUVZYHEASR4RRL74E455ELF \ / AMOS7 \ YOURUM ::
+#\[7]UI6TZUHIKPXOCCS6EZBZFEQMYKR2RZC6IGWSDJT657FFKAOC24DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

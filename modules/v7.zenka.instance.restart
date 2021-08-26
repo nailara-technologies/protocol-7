@@ -20,7 +20,10 @@ if ( not defined $zenka_name ) {
     return undef;
 }
 
-<[base.log]>->( 1, "restarting instance $instance_id ['$zenka_name'].," );
+<[base.logs]>->(
+    "restarting instance %u ['%s'].,",
+    $instance_id, $zenka_name
+);
 <[base.log]>->( 2, ": <<< parent_pid not defined >>> [ race condition ]" )
     if not defined $parent_pid;
 
@@ -43,15 +46,15 @@ $instance->{'restart_pids'} = {};
 map { $instance->{'restart_pids'}->{$ARG} = 1 } ( $parent_pid, @children )
     if defined $parent_pid;
 
-$instance->{'sig_chld_ignore_pid'}->{$parent_pid} = 5;    ## set to ignore ##
+$instance->{'sig_chld_ignore_pid'}->{$parent_pid} = TRUE;  ## set to ignore ##
 
 my $dependencies_ok
     = exists <jobqueue.joblist.by_id>->{$job_id}->{'object_id'}
     ? <[dependency.ok]>
     ->( <jobqueue.joblist.by_id>->{$job_id}->{'object_id'} )
-    : 1;
+    : TRUE;
 
-$restart_timeout = 24;
+$restart_timeout = 24;    ##  <-- make configurable  ## [ LLL ]
 
 $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
     = <[event.add_timer]>->(
@@ -67,8 +70,8 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[zenka.change_status]>->( $instance_id, qw| restart | );
 <[v7.terminate_process]>->($parent_pid) if defined $parent_pid;
 
-#,,,.,.,.,,.,,,..,..,,.,.,..,,,,,,.,,,.,,,,,,,..,,...,..,,,..,...,,,,,..,,.,,,
-#HZ6HETHM6SCRT7T5NSJ4BDLGDMSLVUDF25QYHRH2DJBG5MHQFUKITMGIINLWFZF5OY4QM5DSKCZ4G
-#\\\|BXNHMRG727KAXPAEBO6ZZ6MRIJZI2XQTF3U5L6G3ZUAQ5PSHRK7 \ / AMOS7 \ YOURUM ::
-#\[7]GU7PGFSIOWTZRLDCM4VUZ2JGQEYS5NZHIMMWF6Y2H3F7GA7TLMAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,..,...,.,,,.,.,,,,,..,,...,..,,...,...,...,.,.,...,..,,.,.,
+#V5DLCMIDNAKSRGLSN7INPESVL62N4IZFEURTEOYBPQYMXQP6Z2BNCQY4BNE6H5EVI3F2MYJTZBPHA
+#\\\|DVJBD64MQBVTFE2QDYCKLMKT4BYNMYMS72R6E6UC4SU6DSXSE24 \ / AMOS7 \ YOURUM ::
+#\[7]HDAFXIX6F5XXJB4MYQ2TJUEXA34SBXW4H66NSZDY6A3GZ55UCEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

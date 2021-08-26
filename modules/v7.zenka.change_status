@@ -13,8 +13,10 @@ return warn 'no such instance defined <{C1}>'
 map {    ## validity check ##
     if ( not defined <v7.zenka.instance>->{$instance_id}->{$ARG} ) {
         delete <v7.zenka.instance>->{$instance_id};    ## cleaning up ##
-        return warn sprintf "instance entry %d had undefined '%s' <{C1}>",
-            $instance_id, $ARG;
+        return <[base.s_warn]>->(
+            "instance entry %d had undefined '%s' <{C1}>",
+            $instance_id, $ARG
+        );
     }
 } qw| status zenka_name |;
 
@@ -36,8 +38,8 @@ if ( $new_status eq qw| online | ) {
 
 <[v7.handler.zenka_status]>->( $instance_id, $new_status );
 
-#,,.,,,,,,..,,,.,,,,.,...,,..,.,,,..,,,..,,.,,..,,...,...,...,.,.,...,.,.,,,,,
-#WS6VMJWC4GAJCADMWYYIHAYQ25SEA7SHLAHOOYEMMVCPTAZMIGBVR6YHASWFFKZZGZHXZ5WXLLYVW
-#\\\|XGZMP5KZFFQG4RXSNGUODTI6FN3UVZMK7IQGA7DFISFNYWLRWPQ \ / AMOS7 \ YOURUM ::
-#\[7]A35TPH3DX3V4UZPHFNH5S3NAQH2KO65TIIREGB4MMWUMSQOPIQDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,,,,.,,,..,,.,,,..,...,,,,,.,.,..,,...,...,,.,,..,,..,,,.,,.,.,
+#EWVXZ35MH4WLATEDQKMH7VSBNXZOVEKB3XFFFFHZPILVNSO5TJCMF6BLCRIQNRP7XIOIHZNUHOVUA
+#\\\|IOMQITZO5WPZWDCXVFAFCDYFKZFJUBA6NWIXCKHUNVXXNPMTQYP \ / AMOS7 \ YOURUM ::
+#\[7]ZGFNQTZXFPW3BSWOR65TTQZFYDR6YXMJMBNV6FCSHAT2ZGKCN4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
