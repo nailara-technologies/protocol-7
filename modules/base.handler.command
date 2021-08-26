@@ -109,7 +109,7 @@ if ( $input->$*
     $cmd_id = ${^CAPTURE}[0] if length ${^CAPTURE}[0];
     $cmd_id = ''             if $cmd_id =~ m|^\(0+\)$|;
 
-    my $is_header = 5;    ## true ##
+    my $is_header = TRUE;    ## true ##
 
     while ( length $multiline_cmd ) {
         my $line_feed_pos = index( $multiline_cmd, "\n", 0 );
@@ -455,21 +455,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             } elsif ( $cmd eq qw| SIZE | ) {
                 if ( $call_args->{'args'} =~ m|^0*(\d+?)$| ) {
 
-                    ##  resetting  ##
-                    $session->{'read-mode'} = qw| linewise |
-                        if $session->{'read-mode'} ne qw| linewise |;
-
                     my $msg_len = 0 + $LAST_PAREN_MATCH;
                     $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
                     if ( $buffer_length >= $msg_len ) {
 
                         ## cut out body data ##
-
+                        ##
                         my $data_reply = substr $input->$*, 0, $msg_len, '';
 
                         ## check if reply handler is set ##
-
+                        ##
                         if ( defined $route->{'reply'}->{'handler'} ) {
                             if (defined $code{ $$route{'reply'}{'handler'} } )
                             {
@@ -493,7 +489,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 );
                             }
                         } else {    ## sending SIZE reply to target ##
-                            $data{'session'}{ $$route{'source'}{'sid'} }
+                            $data{'session'}{ $route->{'source'}->{'sid'} }
                                 {'buffer'}{'output'} .= <[base.sprint_t]>->(
                                 qw| X3QVAWA |,                   $s_cmd_id,
                                 sprintf( qw| %04d |, $msg_len ), $data_reply
@@ -1134,8 +1130,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,,..,,..,,,.,,..,,..,...,..,,,,.,,,,,.,.,..,,...,...,,..,,..,,,.,.,,,,,,,
-#63APNXC7MKC4ZGD3EIXQ663TM6VQX5MUQB4OMEHODN2LCGUAJZDML65UUMSBYTZEBKF27GSQLRGOA
-#\\\|IH5YUCKHXSVHPTSWYZDUZDKOTE5LAK6D2AAM6BV33GJJF3D4UMT \ / AMOS7 \ YOURUM ::
-#\[7]7WH2ZIH5G4P6EKF37WJCTK5LUVB73TM6MG3U75222GAOT7ETIAAY 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,,,.,,,,,.,.,.,,,...,..,,...,..,,...,...,,.,,.,,,.,.,,..,,.,,
+#225NCNGPHJSL6Q3ZSMECMEY5XFNZAIGN6TJU65WJM73DOCJBZSS6X265ABGL6QNWBRJUHLOULFMFA
+#\\\|XM3TBNS4U63TWMIXOV7AEY3N62JA6WY3A5SUFTM7PX5M7ZR32CI \ / AMOS7 \ YOURUM ::
+#\[7]VOE7Z5BNF54H5UEGX3QJDHVAQQC6JHLO4RMJWCJHZA4MN5AYGYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

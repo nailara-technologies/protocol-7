@@ -24,18 +24,18 @@ my $proto     = $session->{'protocol'};
 my $state     = $session->{'state'};
 my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
-my $start_len = length( $session->{'buffer'}->{'input'} );
+my $start_len = length $session->{'buffer'}->{'input'};
 
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
-$session->{'shutdown'}       //= 0;
-$session->{'flush_shutdown'} //= 0;
+$session->{'shutdown'}       //= FALSE;
+$session->{'flush_shutdown'} //= FALSE;
 
 ## [ linewise | bytewise | binary ] ##
 $session->{'read-mode'}     //= qw| linewise |;
 $session->{'bytes-to-read'} //= 0;
 
-if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
+if ( exists $code{$handler} ) {
 
     my $ret_code = $code{$handler}->($event);
 
@@ -54,7 +54,7 @@ if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
         if $ret_code !~ m|^\d+$|;
     ##
 
-    $session->{'complete'} = $ret_code == 1 ? 0 : 5;    ## true ##
+    $session->{'complete'} = $ret_code == 1 ? FALSE : TRUE;    ## true ##
 
     ## return code 2 ## terminate session and close connection ##
     if (   $ret_code == 2
@@ -65,7 +65,7 @@ if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
         ##  secure buffer erasing  ##
         <[base.erase_buffer_content]>->( \$session->{'buffer'}->{'input'} );
 
-        $session->{'flush_shutdown'} = 1
+        $session->{'flush_shutdown'} = TRUE
             if not $session->{'shutdown'}
             and not $session->{'flush_shutdown'};
 
@@ -91,11 +91,11 @@ if ( defined $code{$handler} and ref $code{$handler} eq qw| CODE | ) {
 
     if (   $session->{'mode'} eq qw| client |
         or $session->{'mode'} eq qw| in | ) {
-        $session->{'shutdown'} = 1;
+        $session->{'shutdown'} = TRUE;
     }
 }
 
-my $len = length( $session->{'buffer'}->{'input'} );
+my $len = length $session->{'buffer'}->{'input'};
 return $event->w->cancel if not defined $len;   ## <-- buffer 'not defined' ##
 
 if (    $len < <size.buffer.input>
@@ -109,7 +109,7 @@ if (    $len < <size.buffer.input>
     $data{'watcher'}{'io'}{'transfer'}->start
         if not $data{'watcher'}{'io'}{'transfer'}->is_active;
 
-    if ( $handle_href->{'paused'} //= 0 ) {    ##  restart reading  ##
+    if ( $handle_href->{'paused'} //= FALSE ) {    ##  restart reading  ##
         <[base.log]>->( 2, 'restarting input handler =)' );
         if ( defined $handle_href->{'paused-watcher'} ) {
             $handle_href->{'paused-watcher'}->start
@@ -118,7 +118,7 @@ if (    $len < <size.buffer.input>
         } else {
             warn 'paused input watcher not registered';
         }
-        $handle_href->{'paused'} = 0;
+        $handle_href->{'paused'} = FALSE;
     }
 }
 
@@ -135,8 +135,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,.,,,,.,.,,,...,.,.,,,,,,,,,.,,,.,,,.,.,,,,,..,,...,.,.,...,...,,,,,.,,,..,,
-#6GMZMZJZGUPGX2VJ6KOKWSLNB3MSQ4YCSUN7UWPSCW5TAYDLIUCVCC6Y7Q6JLPULZTUP4GPKUESKY
-#\\\|ELXIAU7HAZVLDJUMUFBCN5NPS7AVFXTWGCKOA6OA5HP4NZRPZTR \ / AMOS7 \ YOURUM ::
-#\[7]F2Q573QOIWILEN4MBDHSNGSG26CLGTF7BW4BMCWKTFBFARSKD4BI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,,,,,,,.,...,,..,.,,,,..,,..,..,,...,..,,,.,,,,.,..,,..,,..,,
+#5DCDI42KT5HKJ6EPRSQYU4DCYKGJU5WYI6IU42CHGZEC5ZJK6E7KR7UZQUH2Q67WH3X5WVHFRCS5C
+#\\\|HPNKYBCQ2HNM5RHFF3PAFXBLTU2WGIGZ6ZDX5KHVLCHTWIEKBYV \ / AMOS7 \ YOURUM ::
+#\[7]C6WARVMXHEECSV2ZUUWM5WBJSOIAPOONB3DKEJQWHXDGPAYETECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
