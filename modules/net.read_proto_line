@@ -10,6 +10,12 @@ return 2 if not defined $data{'session'}{$id};
 my $session = $data{'session'}{$id};
 my $target  = shift // \$session->{'buffer'}->{'input'};
 
+if ( $session->{'read-mode'} eq qw| bytewise | ) {    ## was replaced ##
+    warn 'called replaced read handler [ bytewise mode ] <{C1}>';
+    ##  disconnecting client  ##
+    return 2;
+}
+
 warn 'target parameter expected to be '
     . 'scalar_ref session id or filehandle <{C1}>'
     if ref($target) ne qw| SCALAR |
@@ -137,8 +143,8 @@ if ( ref($target) eq qw| SCALAR | ) {    ##  scalar reference target  ##
     }
 }
 
-#,,.,,...,.,.,,,,,,.,,,.,,,.,,..,,,,.,..,,.,,,..,,...,...,,.,,..,,,..,.,,,.,,,
-#3E5K4HH6K3SMRCKWQ2BGWNTMAIE6PJDWOSH25S2CRW3DL3SOZKFWYOXJW4QYCMN7R5YGMM7V7IAWG
-#\\\|MMX3QPFHB4NFWWLM5A6ZHM2IF6ZBCHELWTDJCJB5VJYPEQK6P77 \ / AMOS7 \ YOURUM ::
-#\[7]7XWXGIA2O3CEU3XJMUJGXED5GVX34A5W57CQAJ6LGIJBNEYQRQBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,,,.,.,.,,.,,,,,,.,.,...,,,,,..,,...,...,...,.,.,.,.,...,...,
+#356XTAYRLRLLAKCBL7PMCCHT4IDPNWPWUMLQCW6FBLQC4ZBSRNACFW5JS5GSJEGFWJ3NFFGCSXULO
+#\\\|KM3SJA6XTYNTL2M3YJ4MDXJRNBVSVHS6EG3GHFXQ6VDL5LFFZSW \ / AMOS7 \ YOURUM ::
+#\[7]JHP272RFYH3SMFOQ254YBOVWRCRRBMLWC72NN6B5M3M6UXGDD2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = net.read_bytewise
+
+my $id = shift;
+
+if ( not defined $id ) {
+    warn 'expected session id param <{C1}>';
+    return undef;
+}
+
+my $session     = $data{'session'}{$id};
+my $handle_href = $data{'handle'}{ $session->{'handle'} };
+
+if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
+    $session->{'fh-last-read-error'} = TRUE;
+    $session->{'last-bytes-read'}    = 0;
+    $session->{'flush_shutdown'}     = TRUE;
+    return 2;
+}
+
+if ( not defined $session->{'bytes-to-read'} ) {
+    warn 'bytes-to-read is not defined <{C1}>';
+    return undef;
+}
+
+##  set to disconnecting  ##
+my $return_code = 2;
+
+$handle_href->{'paused'} //= 0;
+
+$session->{'fh-last-read-error'} = FALSE;
+
+my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
+my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+
+return if $size_left <= 0;                  ##  no space left in buffer  ##
+
+##  calculate read length  ##
+##
+my $read_len = $session->{'bytes-to-read'}
+    if defined $session->{'bytes-to-read'}
+    and $session->{'bytes-to-read'} < $size_left;
+
+## readjust at buffer size limit ##
+$read_len = $size_left if $size_left < $read_len;
+
+my $bytecount = <[base.s_read]>->(          ##  reading into input buffer  ##
+    $session->{'handle'}, \$session->{'buffer'}->{'input'}, $read_len
+);
+
+$size_left = $data{'size'}->{'buffer'}->{'input'}
+    - length $session->{'buffer'}->{'input'};
+
+if ( $bytecount > 0 ) {
+
+    $session->{'fh-last-read-error'} = FALSE
+        if $session->{'fh-last-read-error'};
+
+    $handle_href->{'bytes'}->{'in'} += $bytecount;
+
+    ## updating bytes left counter ##
+    $session->{'bytes-to-read'} -= $bytecount;
+
+    if ( $session->{'bytes-to-read'} == 0 ) {
+
+        $return_code = 0;    ##  complete  ##
+
+    } else {    ##  buffer size limit is handled in calling routine  ##
+
+        $return_code = 1;    ##  more to read  ##
+    }
+
+} elsif ( $bytecount < 0 ) {    ##  client is gone \ error  ##
+
+    $session->{'fh-last-read-error'} = TRUE;
+}
+
+return $return_code;
+
+#,,,.,...,,.,,.,,,,,,,..,,,.,,,,.,..,,..,,..,,.,.,...,...,.,,,,,.,...,,,.,...,
+#CINXZLBC3SPQOIWOTP2T2B2PEZSAKE35G6QJBW5ZWJ5YAVVA52TRFT7O6D6VOI7WTQVWJ2EDNMTCA
+#\\\|PZEJAVQ6VUKVYRELQ7JOLKKJP5W3SBIYPXKWNWYAIFU4JQR4RWQ \ / AMOS7 \ YOURUM ::
+#\[7]2IEIODPJ57BJV4ISKPEFM5TSBA77JVMT67TFTH26JDJRGW6EYUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
