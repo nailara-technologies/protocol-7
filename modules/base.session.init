@@ -53,7 +53,7 @@ if ( not defined $data{'protocol'}{$protocol} ) {
 
 ##[ INITIALIZATION ? ]########################################################
 
-my $initialized = $mode eq qw| server | ? 1 : 0;
+my $initialized = $mode eq qw| server | ? TRUE : FALSE;
 
 my $read_mode = $data{'protocol'}{$protocol}{'state'}->{'0'}->{'read-mode'}
     // qw| linewise |;    ## [ linewise | bytewise | binary ] ##
@@ -69,14 +69,14 @@ my $id = <[base.list.element.add]>->(
             'link'       => $data{'handle'}{$fd}{'link'},
             'mode'       => $mode,
             'state'      => 0,
-            'paused'     => 0,
-            'complete'   => 1,
-            'shutdown'   => 0,
+            'paused'     => FALSE,
+            'complete'   => TRUE,
+            'shutdown'   => FALSE,
             'read-mode'  => $read_mode,                  ## [ protocol state ]
             'burst-writes'   => 13,    ## output writes before idle watcher ##
             'read-to-fh'     => undef, ##  bypass buffer when set  ##
             'initialized'    => $initialized,
-            'flush_shutdown' => 0,
+            'flush_shutdown' => FALSE,
             'user'           => $name,
             qw| size |       => {
                 qw| buffer | => {
@@ -113,7 +113,7 @@ $session->{'watcher'}{'shutdown_trigger'} = <[event.add_var]>->(
     {   'var'     => \$session->{'shutdown'},                  ## VARIABLE ##
         'poll'    => qw| w |,
         'handler' => qw| base.session.check.close |,
-        'repeat'  => 0,
+        'repeat'  => FALSE,
         'data'    => $id,
         'desc'    => sprintf( '[%d] shutdown trigger', $id )
     }
@@ -149,7 +149,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         {   'var'     => \$session->{'flush_shutdown'},      ## VARIABLE ##
             'poll'    => qw| w |,
             'handler' => qw| base.session.check.flushed |,
-            'repeat'  => 0,
+            'repeat'  => FALSE,
             'data'    => $id,
             'desc' => sprintf( '[%d] flush output and shutdown trigger', $id )
         }
@@ -161,7 +161,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         {   'var'     => \$session->{'buffer'}->{'input'},     ## VARIABLE ##
             'handler' => qw| base.handler.input |,
             'poll'    => qw| w |,
-            'repeat'  => 1,
+            'repeat'  => TRUE,
             'data'    => $id,
             'desc'    => sprintf( '[%d] input buffer', $id )
         }
@@ -172,7 +172,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
     $session->{'watcher'}{'output_buffer'} = <[event.add_var]>->(
         {   'var'     => \$session->{'buffer'}->{'output'},     ## VARIABLE ##
             'prio'    => -1,
-            'repeat'  => 0,
+            'repeat'  => FALSE,
             'poll'    => qw| w |,
             'data'    => $id,
             'handler' => qw| base.handler.write |,
@@ -199,7 +199,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         'timeout_cb' => sub {
             <[base.logs]>->( '[%d] authentication timeout.,', $id );
             $session->{'buffer'}->{'output'} .= $timeout_reply_msg;
-            $session->{'flush_shutdown'} = 1;
+            $session->{'flush_shutdown'} = TRUE;
         }
         );
 
@@ -212,7 +212,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
             'timeout'    => <httpd.timeout> || 13,
             'timeout_cb' => sub {
                 <[base.logs]>->( '[%d] ,. http timeout ..,', $id );
-                $session->{'shutdown'} = 1;
+                $session->{'shutdown'} = TRUE;
             }
         );
 
@@ -231,7 +231,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
                     $id, <net.input_timeout>,
                     <[base.cnt_s]>->(<net.input_timeout>)
                 );
-                $session->{'shutdown'} = 1;
+                $session->{'shutdown'} = TRUE;
             }
         );
     }
@@ -243,7 +243,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         'cb'     => sub { &{ $code{'base.handler.read'} } },
         'poll'   => scalar(@timeout_callback) ? qw| rt | : qw| r |,
         'prio'   => 1,
-        'repeat' => 0,
+        'repeat' => FALSE,
         'data'   => $id,
         'desc'   => sprintf( '[%d] input handler', $id ),
         @timeout_callback    # disabled eventually in 'base.handler.auth'
@@ -256,7 +256,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         'cb'     => sub { &{ $code{'base.handler.session_error'} } },
         'poll'   => qw| e |,
         'prio'   => 2,
-        'repeat' => 0,
+        'repeat' => FALSE,
         'data'   => $id,
         'desc'   => sprintf( '[%d] input exception handler', $id )
     );
@@ -269,7 +269,7 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
         'cannot initialize %s protocol session %d',
         $protocol, $id
     );
-    $session->{'shutdown'} = 1;
+    $session->{'shutdown'} = TRUE;
     return undef;
 }
 
@@ -277,8 +277,8 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 
 return $id;
 
-#,,,,,,.,,,.,,,..,,..,.,.,,,,,...,.,.,,..,,,.,..,,...,...,..,,,,,,.,,,,..,...,
-#RJ6JPPCUIFE7WLI4ESEKEJZLT7VWUKKFGSRWWC6BJRDRDRWV4BJT4X4DDE2HAFLUKLXO7KZTDXICG
-#\\\|3PUUYKMUFFMRD6AZ3E4D4UONKQLIFKK4MU2ZZ3JGDVM6G5ZH2EF \ / AMOS7 \ YOURUM ::
-#\[7]BAQR2WRB3R73FSJBIOZDYJXPQGRC4WRKGDACMP6HVBS2N5HU7EBY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,..,,..,.,.,...,...,.,.,.,.,..,,...,,..,.,.,,..,,.,,..,,,,,,
+#FQP3I2ICZ5S7X24XG36CTVDPFMIXTD2E6UOAQS6D5HHUQ6HSE4MPUMXL4P4W52EKGZRSPUWOBN5FC
+#\\\|GSZJZWYD6KJE336X7I3OZYCHWUGZPOZCYYUIVZ2EVOGRNP2H3NH \ / AMOS7 \ YOURUM ::
+#\[7]4SEN2B7B2ZFQOMJ4F763XQQHNNIM5Y3AUMVX2WZKSJBYNL5IKACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
