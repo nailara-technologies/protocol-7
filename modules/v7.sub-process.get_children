@@ -13,7 +13,7 @@ if ( not defined $chk_pid or $chk_pid !~ m|^\d+$| ) {
 ### old method ### [ heavy, non-portable, to be removed.. ]
 
 my $proc_table = <v7.process.pt>
-    //= new Proc::ProcessTable( qw| enable_ttys | => 0 );
+    //= new Proc::ProcessTable( qw| enable_ttys | => FALSE );
 
 my %ppids;
 my %start_times;
@@ -32,7 +32,7 @@ my %children;
 my $found = 0;
 foreach my $pid ( keys %ppids ) {
     if ( $ppids{$pid} == $chk_pid ) {
-        $children{$pid}->{'checked'} = 0;
+        $children{$pid}->{'checked'} = FALSE;
         $found++;
     }
 }
@@ -40,14 +40,14 @@ foreach my $pid ( keys %ppids ) {
 while ($found) {
     $found = 0;
     foreach my $child_pid ( keys %children ) {
-        next if $children{$child_pid}->{'checked'} == 1;
+        next if $children{$child_pid}->{'checked'};
         foreach my $pid ( keys %ppids ) {
             if ( $ppids{$pid} == $child_pid ) {
-                $children{$pid}->{'checked'} = 0;
+                $children{$pid}->{'checked'} = FALSE;
                 $found++;
             }
         }
-        $children{$child_pid}->{'checked'} = 1;
+        $children{$child_pid}->{'checked'} = TRUE;
     }
 }
 
@@ -60,7 +60,7 @@ foreach my $id (<[v7.instance_ids]>) {
         and $chk_pid == <v7.zenka.instance>->{$id}->{'process'}->{'id'};
 }
 if ( defined $instance_id ) {
-    map { $children{$ARG} = 1 if <[base.exists.sub-process]>->($ARG) }
+    map { $children{$ARG} = TRUE if <[base.exists.sub-process]>->($ARG) }
         ( <[v7.instance_child_pids]>->($instance_id) );
 }
 
@@ -69,8 +69,8 @@ return [
         reverse sort keys %children
 ];
 
-#,,..,..,,,,,,.,.,,,.,,.,,...,,.,,...,,..,.,,,..,,...,...,..,,,..,.,.,,,.,.,.,
-#FXZZ225M2H4ZXD55BRY2XPI4I2ZHV2C2PPK7TLHCKAFKXT62D27ZSKXIYZRJY6BXEVJNGIRDM7OKO
-#\\\|SX2O6HY33VX5KF2NMDB7OQI74H6FHSBWTDMRH34WGZRNBZTK7RG \ / AMOS7 \ YOURUM ::
-#\[7]ZJCCPC27LX26AHCVLEQA6U6UGHNN7FUQ6T6VYYRPO62CUG6B5GDY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,,,.,,.,,.,.,,.,,,,.,..,,,..,..,,...,...,.,,,.,,,,,,,.,.,,..,
+#4G3WY6UC6GPE4BXUF4HAK6L6PPTU4J3NOF3FAKCVBCI3FJLDI257Q7CMEVWJ4X4XYAHN5CSZV5IJA
+#\\\|M7Z44ENJXDQOBY2UZD7FDCAO4BUOA7MIBZMCQQSCLVYMFSZG4PE \ / AMOS7 \ YOURUM ::
+#\[7]GQE7M3MVXHJXSSPQWT3HSAAHZ6SJEI4SFMOENRPZEO3SD6M7GQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

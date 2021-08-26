@@ -5,7 +5,7 @@
 my @names;
 my $child_pid;
 do {
-    $child_pid = waitpid( -1, WNOHANG() );
+    $child_pid = <[base.waitpid]>->(-1);    ##  WNOHANG  ##
     my $e_val = $CHILD_ERROR >> 8;
     my $e_sig = $CHILD_ERROR & 127;
     if ( exists <universal.running>->{$child_pid} ) {
@@ -61,8 +61,8 @@ $SIG{'CHLD'} = qw| IGNORE |;
 
 map { kill( 15, $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
 
-#,,,,,...,,,.,,,,,.,,,,.,,..,,,,,,.,,,,,.,,,.,..,,...,...,...,.,.,.,,,,,,,...,
-#VWDEHQOY3HYEM3KY4J6M7E6ONIUYH7TLZ7HWQAE7QB4IZ4STEAUH4NBGGQY7YP36D5LQFFHG7IY4Y
-#\\\|4KGIZBVE34TFDJBNPQZYMDALIUVIUOLX5HWAEDR4WPPN2JEP76U \ / AMOS7 \ YOURUM ::
-#\[7]P3NNZDDJQACLKBBDDZ3VDY2OF6I3UQLVQWIJ5E537CLHH5XKDEAI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,...,,.,,,..,,,.,.,,,,..,.,.,..,,...,...,,..,,..,,..,.,.,.,.,
+#7QX5LCQEQWLGFUVYPK4OPZT26MBFQCT6ZSDAXCGS7FANPLNMAIRPMKUGSNI4HJ4IJMC2MZ7FHGE2M
+#\\\|SYSAIVWTCPQMFRAEF7ODVTRVGIWYLF6UQ4SPFNHWTZP6RGYLDGR \ / AMOS7 \ YOURUM ::
+#\[7]QKQMCMCKNF7ETRJCK5A6M7RPOZOQLJEXLRAPUOWKGYQPC6LWHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

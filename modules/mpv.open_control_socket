@@ -11,7 +11,7 @@ while ( $max_retries-- ) {
     <[base.log]>->( 2, ": waiting for $socket_path .," )
         if !-e $socket_path;
 
-    my $wait_res = waitpid( <mpv.pid>, WNOHANG() );
+    my $wait_res = <[base.waitpid]>->(<mpv.pid>);    ##  WNOHANG  ##
     if ( $wait_res < 0 or $wait_res == <mpv.pid> ) {
         my $level = <mpv.fh.stdout>->eof ? 0 : 1;
         <[base.log]>->(
@@ -51,8 +51,8 @@ if ( not defined <mpv.socket> or !-S <mpv.socket> ) {
     }
 );
 
-#,,..,.,,,...,...,.,.,.,,,,.,,.,.,,,,,,..,.,.,..,,...,..,,,,.,,,.,,..,,,.,...,
-#ILYHJFE5KBYA2MTWHILAPFUNKCMDW6ATT63FKZBOQSE6H2H4FBOQUXB2ANQN4GXPCN43FXA5NCOCO
-#\\\|2H3R7J6QHBQQX7LSS7SGDTYTXASIZYFI33HWPZZJBK4WGEJHEXK \ / AMOS7 \ YOURUM ::
-#\[7]LHR4W47A6OGI76AK3F2MAXJH6XKAVFHOKMDWAHNADOQO2C7BY4BA 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,.,.,...,.,,,,,.,...,.,,,,,,,..,,...,...,,.,,..,,.,.,,,.,..,,
+#XAOWYGBX2SZFVYVCDXWYB674IUUZLRUPVX7FL6WSXB3CXBX5XE56YRWYL6QTFEHBRXHPHSONKCANO
+#\\\|M34CXWIT4XPOM4WAAKJLJZJQTYWTVW5TZV4ML2WSVSSMPPHRHTP \ / AMOS7 \ YOURUM ::
+#\[7]2OQ4WHHHNHLAZLBFDWC4ZZY6TLITDC346VIBZVROJIYPIIAHTUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

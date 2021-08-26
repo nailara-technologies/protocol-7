@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = v7.handler.zenka_output
-# descr = reads zenka console output and triggers commands on matching patterns
+# descr = read zenka console output and trigger commands on pattern match
 
 <v7.patterns.zenka_output> //= {};
 <v7.patterns.log_matches>  //= 0;
@@ -53,6 +53,7 @@ if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
     close($read_fh);
 
     my $process = $zenka_instance->{'process'};
+
     <[base.logs]>->( 2, '[PID:%d] output pipe was closed', $process->{'id'} );
 
     return;
@@ -60,8 +61,8 @@ if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
 
 <[v7.handler.process_output_line]>->( $watcher, $read_bytes );
 
-#,,.,,.,,,,.,,,,,,,,.,...,...,...,,,.,..,,,,.,..,,...,...,...,.,,,.,,,,,,,,.,,
-#NH5KVYNPRPVO3YGFZV6RIP7AU4FZJAVEQOTU734XBM5T4FDNQLDQB7O4B2TIOZUKZ3SW6TRSMTPHW
-#\\\|PKSF3RVML3LSD6FQNGUFDB4RJKFNLXLRN2L35GRW2H7ZS7FQJUQ \ / AMOS7 \ YOURUM ::
-#\[7]QAWMAGP5U75LBZH764MLWHESLN6CEATQGJU6B4CFRLKJW7QATODA 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,,.,,.,,,,,,,.,,...,.,.,,,,,..,,...,...,.,.,,,.,,..,,,.,,,.,
+#3UOUMFOD3XFCYGEWCNRRLKQTNQSIDHSTWWK7SVV4LEFSUIXY5XTDR5AHXZTKV3WOTA4AEPKTRZRY2
+#\\\|HWHCT26KDIUKEXZH3W5NKN5HJVBFFE6JLOZU2OXQ6C3MU4JTOWZ \ / AMOS7 \ YOURUM ::
+#\[7]3PD3AJUNJZ2YPAWGVDUGXJ5YCQVHX6LZQTUXVZ5QNYDAAK4UCYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

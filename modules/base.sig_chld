@@ -1,17 +1,19 @@
 ## [:< ##
 
-# name       = base.sig_chld
+# name  = base.sig_chld
 
 <[base.log]>->( 2, 'SIGCHLD received. collecting children ..,' );
 local ( $OS_ERROR, $CHILD_ERROR );
-while ( ( my $pid = waitpid( -1, WNOHANG() ) ) > 0 ) {
-    <[base.log]>->(
-        2, "cleaning up child pid $pid [ exit code : \l$CHILD_ERROR ]..,"
+while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
+
+    <[base.logs]>->(
+        2,    "cleaning up child pid %s [ exit code : %d ]..,",
+        $pid, $CHILD_ERROR
     );
 }
 
-#,,,.,,,.,,,,,,..,,..,.,.,.,.,,.,,..,,..,,,..,..,,...,...,.,.,,.,,,..,,,.,,,.,
-#6V2H4CLAWG7AXHQ74LQH7QWJBW24NJ5MNPWF7UWPHXGXF6UHO57NJBT2OLFTMQRT3HNO6XQK5U6Z4
-#\\\|XXVOIT5SQRPFZ37IDUOE46PIXARSQZVM4R7LYREFOJ66DGYVUPY \ / AMOS7 \ YOURUM ::
-#\[7]7JKD2E2XE4OOOIAWNB4X2OU2OZK4YMDAQWTZRZHEJVYZJ7DLZQCA 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,.,,,,,.,,,,..,,.,,,,.,.,,,.,.,..,,...,..,,,.,,,,,,,,,,.,.,,,.,
+#47NIW4Y62DYJ7YN2NCI6JHZUX6J6CSOPUGPOGK33NC43IIFD2K3CIHS2EX57ST6QQ2FKYRMQOHFYG
+#\\\|ASSGHNLWB5JEPUBAPDDU64MHRNDA7G3EBPG7YSQ432CWJAV3MQ6 \ / AMOS7 \ YOURUM ::
+#\[7]7IEE5TTMZIHAWKBVIOKDJWRZNSKTJEOSREC7FRHVADM6NNP6NCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

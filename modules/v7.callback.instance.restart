@@ -5,9 +5,9 @@
 my $instance_id = shift->w->data;
 
 if ( not exists <v7.zenka.instance>->{$instance_id} ) {
-    <[base.log]>->(
-        2,
-        "instance $instance_id no longer exists, aborting restart callback."
+    <[base.logs]>->(
+        2, 'instance %u no longer exists, aborting restart callback.',
+        $instance_id
     );
     return;
 }
@@ -22,10 +22,10 @@ return
     and defined <zenka.instance.shutdown>->{$instance_id}
     or not defined $instance->{'job_id'};
 
-<[jobqueue.move_job]>->( $instance->{'job_id'}, 'queued' );
+<[jobqueue.move_job]>->( $instance->{'job_id'}, qw| queued | );
 
-#,,,,,.,.,,,,,,,,,...,,..,,,,,.,.,..,,,,,,,.,,..,,...,...,.,.,...,,.,,.,.,.,.,
-#XOAWJCXW2GHRIA3D4PUUURIB66OUWCKCMAPBFBCHSZ4THUOQJEW6ZTOK2NNXKP7TW3WFOBLTVN7AY
-#\\\|MIS657IITNJUBVWGRNSFKGQIN7KJEHCIQF7G5L5IJEQT3ZQJVYI \ / AMOS7 \ YOURUM ::
-#\[7]L5UBGOBTIUDUKZGSWZ3BHI3LDKOOXVC4EH2Z3HPLOMS66SKGG6CY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,,,,..,,..,..,,,.,,.,.,...,,,.,..,,...,...,.,.,,.,,,,.,,,,,,.,,
+#MMIO6A3BZTGUGQ4XGDB6RZJPIILFT7UNSPTZTD2B6F4NGT7HJE4QPMKZREL7DGVMCGZXTB2P3TBA4
+#\\\|5T4QHEGRO7VXFHUQBH422DINMW6JHHQ6ZT5VVZ43T5JZ2MOIL5A \ / AMOS7 \ YOURUM ::
+#\[7]KBE3BZNSISXUQHBQDOYCXNMAG4BD5V3YXJLWBBB4YQDGP5UZ56AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
