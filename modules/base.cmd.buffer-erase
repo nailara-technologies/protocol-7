@@ -18,10 +18,11 @@ my $bytes = $data{'buffer'}{$name}{'size'};
 return { 'mode' => qw| false |, 'data' => 'buffer was empty' } if $bytes == 0;
 
 undef $data{'buffer'}{$name}{'data'}->@*;
+
 $data{'buffer'}{$name}{'data'} = [];
 $data{'buffer'}{$name}{'size'} = 0;
-<log.file>->{$name}->{'next_index'}  = 0;
-<log.file>->{$name}->{'start_index'} = 0;
+
+<log.file>->{$name}->{'next_index'} = 0;
 
 <[base.logs]>->(
     "[%d] << cleared log buffer '%s' [ %d b ] >>",
@@ -33,8 +34,8 @@ return {
     'data' => sprintf( "buffer '%s' cleared [ %d bytes ]", $name, $bytes )
 };
 
-#,,,.,,,,,..,,,.,,,,,,..,,,.,,..,,...,,,.,,..,..,,...,...,,,.,.,,,..,,,..,.,.,
-#AV5SDGY7IM3YFS2EN27KGNFV22QQRKP76O7RIK2CWPZJZ26ZXYCS5PFFYNCIIFUNAYYSWKAY4YJ4W
-#\\\|RRHO7ZDRTKGDE4HNXHMKB276J2WOJYIFDPUCNORH232ZR6IFJGT \ / AMOS7 \ YOURUM ::
-#\[7]KUVAUA62APCKQFN3PDFK32GBMALVMVIYHJMUE6DRIY7DGRKEZUBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,,.,,,,,,,.,,.,,,.,,,.,,...,,,.,..,,...,...,...,,..,,.,,...,,,.,
+#2RNH2EEHYM26IMFSZVR3YZPCVHF4LKW3ND6C46RTH6Z3CYBYEQTXT3QYGNIBXW7B7I5UKGS7LP66C
+#\\\|NAI22YMFDU6XP654QE7JDURCO3UJYUR46QHOIAECMY6K2ZE47YP \ / AMOS7 \ YOURUM ::
+#\[7]UCL6GRFT5BGESP6IKR65PVNEU4YX6BH6HYSXFTO2SDNC4EK7W4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
