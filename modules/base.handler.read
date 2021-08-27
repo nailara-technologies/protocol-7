@@ -25,6 +25,7 @@ if (   not defined $id
 
 my $session     = $data{'session'}{$id};
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
+$session->{'buffer'}->{'input'} //= '';    ## re-init if gone ##
 
 if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
     $session->{'fh-last-read-error'} = TRUE;
@@ -32,35 +33,25 @@ if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
     $session->{'flush_shutdown'}     = TRUE;
     $event->w->cancel;
     return 2;
+} else {
+    $handle_href->{'paused'} //= 0;
+    $session->{'fh-last-read-error'} = FALSE;    ## reset error state ##
 }
 
-my $return_code = 2;                        ##  set to disconnecting  ##
+my $return_code = 2;                             ##  set to disconnecting  ##
 
 my $protocol = $session->{'protocol'};
 
 if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 
-    $session->{'fh-last-read-error'} = FALSE;
-
-    my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
-    my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
-
-    my $bytecount = <[base.s_read]>->(
-        $session->{'handle'}, \$session->{'buffer'}->{'input'}, $size_left
-    );
-    if ( $bytecount > 0 ) {
-        $session->{'fh-last-read-error'} = FALSE;
-        $handle_href->{'bytes'}->{'in'} += $bytecount;
-        $return_code = 1;
-
-    } elsif ( $bytecount < 0 ) {    ##  client is gone \ error  ##
-        $session->{'fh-last-read-error'} = TRUE;
-    }
-
-    ##  read-mode : bytewise   ##
+    ##  read-mode : binary  ##
     ##
+    $return_code = <[net.read_binary]>->($id);    ##  read known size  ##
+
 } elsif ( $session->{'read-mode'} eq qw| bytewise | ) {
 
+    ## read-mode : bytewise ##
+    ##
     $return_code = <[net.read_bytewise]>->($id);    ##  read known size  ##
 
 } else {    ##  read-mode : linewise  ##
@@ -74,20 +65,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
     $event->w->cancel;
 } else {
 
-    if ( $session->{'read-mode'} eq qw| bytewise | ) {
-
-        $session->{'bytes-to-read'} -= $session->{'last-bytes-read'};
-
-        if ( $session->{'bytes-to-read'} <= 0 ) {    ##  switching back  ##
-            $session->{'read-mode'} = qw| linewise |;
-
-            $session->{'bytes-to-read'} = 0          ## to be sure.., ##
-                if $session->{'bytes-to-read'} < 0;
-        }
-    }
-
-    my $bfs       = length( $session->{'buffer'}->{'input'} ) // 0;
-    my $size_left = $data{'size'}->{'buffer'}->{'input'} - $bfs;
+    my $size_left = $data{'size'}->{'buffer'}->{'input'}
+        - length $session->{'buffer'}->{'input'};
 
     ##  pause session input when no size left or target not reading  ##
 
@@ -107,8 +86,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,..,..,,,,,,..,,,..,,,,,.,,,..,,.,.,.,.,,.,,..,,...,...,..,,,..,.,,,,.,,.,,,
-#TKLETZ2YAPXKXHMJ7EBG2U4RHGLEDY6HEAFBG6CNHJRNLWXUVMEZS62R7LERY427MEYRDOQROYJSW
-#\\\|PYD5D6LX5JX5R4DKQA7MEP6FGOEA2QV72FFTAUUUFI73G6JJ4H5 \ / AMOS7 \ YOURUM ::
-#\[7]66MV4YFO7IAZJMQASITQOHC7ALJFVRZ3RCZPQFVRMIJ5UEF5OCAY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,.,,,.,,,,,,.,,,..,,.,,,,,,,.,,..,,...,...,,,,,..,,,,,,,..,.,,,
+#3D6KPP3ANX4AVYUE6QHGKY4IBQWHVIUE6Z7QD6T2CQ4MBRMYTVJ3T5M3AL4VFYS6MOFUAWXEWWC66
+#\\\|FHJD5G7ET5GBRGUXM2A2I3A2VCSAUIXQM5ZXCGSFEMBAHQENXLP \ / AMOS7 \ YOURUM ::
+#\[7]LGD5J3RA7TKPCJFAD7IMDWDPI7AFHBQNO437OCD3S5HGFAAQ6WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
