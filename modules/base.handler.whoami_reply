@@ -9,7 +9,9 @@ delete <base.in_progess.get_session_id>;
 
 if ( $reply->{'cmd'} ne qw| TRUE | ) {
     my $reason = $reply->{'call_args'}->{'args'};
-    <[base.log]>->( 0, "<< whoami command reply not expected [$reason] >>" );
+    <[base.logs]>->(
+        0, '<< whoami command reply not expected [%s] >>', $reason
+    );
     return undef;
 }
 
@@ -21,20 +23,21 @@ if ( $reply_str =~ m|^(\w[\w\-\d]*) (\d+)$| ) {
         <[base.log]>->( 0, "<< 'whoami' reply does not match zenka name >>" );
     }
     my $usr_str = $reply->{'params'}->{'route_user'};
-    my ($local_sid) = keys( %{ $data{'user'}{$usr_str}{'session'} } );
+    my ($local_sid) = keys $data{'user'}{$usr_str}{'session'}->%*;
     $data{'session'}{$local_sid}{'cube_sid'} = $cube_sid;
-    <[base.log]>->( 1, "cube session id received [$cube_sid]" );
-    <system.zenka.initialized> = 1;
+    <[base.logs]>->( 'cube session id received [%u]', $cube_sid );
+    <system.zenka.initialized> = TRUE;
     <[base.call_online_hooks]>;
 } else {
-    <[base.log]>->(
-        0, "protocol mismatch [ 'whoami' reply not expected ] [ $reply_str ]"
+    <[base.logs]>->(
+        0, "protocol mismatch [ 'whoami' reply not expected ] [ %s ]",
+        $reply_str
     );
     return undef;
 }
 
-#,,.,,...,.,,,,..,,..,,..,,,,,...,,,,,...,,..,..,,...,...,...,,,,,..,,,.,,,..,
-#FQU73ALZGMYGXKTRSB2GA4OAJXDDDMWUJAWVH272Z57E4QDTRYXAQCAWB5MYISH4HV2PSVVPKA3IG
-#\\\|CO4XLFU24R4AH4D3NEB37ILJMDLBKRR5HDK7AAHBFBHNIWC6EKY \ / AMOS7 \ YOURUM ::
-#\[7]MQ42QRWCFKVCTNDKPB6EN7WORKR5BC3NJ5R67NKJNBN6FW26OODA 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,.,.,.,.,.,,,...,.,,,..,,,,.,..,,...,...,..,,...,,,,,.,,,.,.,
+#3GCSKZSVI2SXCGHSF3M2BLF7VNRHKGHYPKFYGGNJCXGFMZFAZQWCAWICUDAC2LE5ZVA4FLABS47M6
+#\\\|JVNVTLOEHKO65UVE2R6CFQWMRBGINKICR3QGYEEI4ZYWITPIUDA \ / AMOS7 \ YOURUM ::
+#\[7]4CSLAPQAMVZV33D4TNNWXDYGLFTUX2IOWNHWEIU26UEXWMVM7MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
