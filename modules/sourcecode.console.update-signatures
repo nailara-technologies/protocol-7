@@ -20,7 +20,7 @@ if ( not exists $keys{'C25519'}{$signature_key_name}
         0, "source signature key '%s' not loaded, aborting..,",
         $signature_key_name
     );
-    return undef;
+    <[base.exit]>->(qw| 0110 |);
 }
 
 my $source_version  = <protocol-7.src-ver>;
@@ -30,8 +30,6 @@ my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
 my $work_tree = $paths->{'work_tree'};
 
 my @source_paths;
-
-
 
 if ( length $command_params ) {
 
@@ -136,8 +134,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,,,...,.,,,,,,,...,.,.,,,.,.,.,,..,,,.,..,,..,,...,..,,...,,,.,..,,.,.,,,.,
-#46QACNCPQMXJ6KXJQEFKMSYVSRINAMUPMDT67ZWCZ36ZH3B54G6A23YQ73LGABEQ6H4I6J7KG7P6G
-#\\\|AOYMWRXZIHKUFZJ2RENBNQ3GY3NNJDUVHJHUG4PI26ZQMH3U5MS \ / AMOS7 \ YOURUM ::
-#\[7]P5ISU5CCGN5AXMCMMVFBNIECSMQ4PUP3PTYGZ2OY62HHQIVKMWAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,.,,,,,.,,,,,,.,,,,,,..,,..,,..,,...,...,,,.,,,,,.,.,.,.,,,,,
+#FKIG5AK4NSOTZG5DRNJTFYB4VZTZYPXNPHT4KQBBNBXUFPTUHTN2VEWUFSRONW3442XUCNPPKS6HO
+#\\\|3MTZV3NVICGVZYTBTBXWR5QXAKBRYNJWZ65VFJ6XP3CC7LCTVWL \ / AMOS7 \ YOURUM ::
+#\[7]CAYMMAPQGQSW5RAYSSMYNWKC4FRMJ6PXY7QLMCYSCOMW2WWEOIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
