@@ -3,32 +3,40 @@
 # name  = p7-log.add_line
 # descr = add a log entry to specified log file
 
-my ( $log_name, $log_msg_ref ) = @_;
+my ( $log_name, $log_msg_ref ) = @ARG;
 
-my $log_file_encoding = <p7-log.log-file-encoding> // ':encoding(UTF-8)';
+my $log_file_encoding = <p7-log.log-file-encoding> // qw| :encoding(UTF-8) |;
 
-# validating input parameters
+## validating input params ##
+##
 return ( 0, 'no log file specified' )
     if not defined $log_name or !length($log_name);
-return ( 0, "invalid log file name '$log_name'" ) if $log_name =~ m|^\.|;
-return ( 0, "invalid characters in log file name '$log_name'" )
+
+return ( 0, sprintf( "log file name '%s' not valid", $log_name ) )
+    if $log_name =~ m|^\.|;
+
+return ( 0,
+    sprintf( "not valid characters in log file name '%s'", $log_name ) )
     if $log_name !~ m|^[\w\d\-\.\_\ ]+$|;
+
 return ( 0, 'empty log message' )
-    if not defined $$log_msg_ref or !length($$log_msg_ref);
+    if not defined $$log_msg_ref or not length $$log_msg_ref;
+
 $$log_msg_ref =~ s|^0 ||;    # cube-zenka source sid
 $$log_msg_ref .= "\n" if $$log_msg_ref !~ m|\n$|;
 
 my $log_path = <log.protocol_7.path>;
-my $log_file .= "$log_name.log";
+
+my $log_file .= sprintf qw| %s.log |, $log_name;
 my $file_create_mode = 0640;
 
 <log.files>->{$log_name}
-    //= { 'fh' => undef, 'locked' => 0, 'timer' => undef };
+    //= { qw| fh | => undef, qw| locked | => FALSE, qw| timer | => undef };
 
 # check log directory
-if ( !-d $log_path ) {
-    <[base.log]>->(
-        0, "log directory '$log_path' disappeared, recreating..,"
+if ( not -d $log_path ) {
+    <[base.logs]>->(
+        0, "log directory '%s' disappeared, recreating..,", $log_path
     );
     my ( $ok, $err_msg )    # LLL: use File::Path::make_path() ?
         = <[file.make_path]>->( $log_path, <log.protocol_7.dir_mask> );
@@ -37,37 +45,44 @@ if ( !-d $log_path ) {
         or return ( 0, "user '<log.protocol_7.user>' not in passwd file" );
     <log.protocol_7.path> =~ s|/+$||;
     chown( $uid, $gid, <log.protocol_7.path> )
-        or return ( 0, "chown(<log.protocol_7.path>) : \l$OS_ERROR" );
-    <log.files>->{$log_name} = { 'fh' => undef, 'locked' => 0 };
+        or return ( 0, sprintf 'chown[%s] : %s',
+        <log.protocol_7.path>, <[base.str.os_err]> );
+    <log.files>->{$log_name} = { qw| fh | => undef, qw| locked | => FALSE };
 }
 
 # manage file handle and locking
 my $log_fh;
-if ( !<log.files>->{$log_name}->{'locked'} ) {
-    <[base.log]>->( 2, "opening log '$log_name'..," );
-    open( $log_fh, ">>$log_file_encoding", "$log_path/$log_file" )
-        or return ( 0, "unable to open logfile [ \l$OS_ERROR ]" );
+if ( not <log.files>->{$log_name}->{'locked'} ) {
+    <[base.logs]>->( 2, "opening log '%s'..,", $log_name );
+    open(
+        $log_fh,
+        sprintf( qw| >>%s |, $log_file_encoding ),
+        catfile( $log_path, $log_file )
+        )
+        or return ( 0, sprintf 'cannot open logfile [ %s ]',
+        <[base.str.os_err]> );
     flock( $log_fh, 2 )    # LOCK_EX
-        or return ( 0, "unable to lock logfile [ \l$OS_ERROR ]" );
-    <log.files>->{$log_name}->{'locked'} = 1;
+        or return ( 0,
+        sprintf( 'cannot lock logfile [ %s ]', <[base.str.os_err]> ) );
+    <log.files>->{$log_name}->{'locked'} = TRUE;
     <log.files>->{$log_name}->{'fh'}     = $log_fh;
     <log.files>->{$log_name}->{'timer'}  = <[event.add_timer]>->(
-        {   'after'   => 1,
-            'handler' => 'p7-log.handler.close_log',
+        {   'after'   => 1.2,
+            'handler' => qw| p7-log.handler.close_log |,
             'data'    => $log_name
         }
     );
-    <[base.log]>->( 2, "got lock for '$log_name'.," );
+    <[base.logs]>->( 2, "got lock for '%s'.,", $log_name );
 } else {
     $log_fh = <log.files>->{$log_name}->{'fh'};
 }
 
 print {$log_fh} $$log_msg_ref;
 
-return 1;
+return TRUE;
 
-#,,,,,...,.,.,,..,,,,,.,.,,,,,.,.,.,,,.,.,,,,,..,,...,...,..,,,.,,,,,,,,.,..,,
-#C6FTOIW66UCRROPYWYBDXOWJORQ4BH3BI6JGHWJ3VGFAG7TVUJL27MKXNFAVAUO5WZIANLPXDKQWE
-#\\\|DH7IZF76HAX7OQ2FQQFI7JGI3VGEO2WSILJU2YWQWYZNXAEZFSQ \ / AMOS7 \ YOURUM ::
-#\[7]EAQETZ33KBQ7BA3L6W6B5HCHLNPHVST7MV2LZZDZRZR3QR2ZDYCQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,..,,...,,.,,,.,,.,,,..,,,.,,..,,...,...,,.,,,.,,.,.,,,.,...,
+#2LZO46LQZ4NN5OXVSXROJALQ2FHQZP3ZYSBTJ533MGJEZTVFPNCV2KW7HEFOCQ6LSBBJ4EY2Z47AA
+#\\\|WMKHGCX5TBSOC5MRWTPUIPX3YRQZGN6GEMDMIGYYTXCZ7DNHVDV \ / AMOS7 \ YOURUM ::
+#\[7]KRBI4WQDB5EG27EQQOVFWYF7CQFRAQ74277QCM7TYQS5DFFC4ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
