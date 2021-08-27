@@ -70,7 +70,7 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
     local <system.zenka.name> = qw|error|; # <-- changed zenka name to 'error'
     <system.sub_name> = undef;
     <[base.logs]>->( 0, "<< no such zenka found ['%s'] >>", $zenka_name );
-    return undef;
+    <[base.exit]>->(qw| 0010 |);
 }
 
 <system.path.rel.cur_zenka_cfg> = $zenka_cfg_path;
@@ -79,16 +79,18 @@ if ( not -e sprintf qw| %s/%s |, <system.conf_path>, $zenka_cfg_path ) {
 <base.config_parser.cfg_type> = qw| start_cfg |;
 
 # note : load_config_file will not return for zenki invoking the event loop..,
-<[base.load_config_file]>->($zenka_cfg_path)
-    or <[base.logs]>->(
-    0, "starting of '%s' zenka not successful",
-    <system.zenka.name>
+if ( not <[base.load_config_file]>->($zenka_cfg_path) ) {
+    <[base.logs]>->(
+        0, "starting of '%s' zenka not successful",
+        <system.zenka.name>
     );
+    <[base.exit]>->(qw| 0110 |);
+}
 
 <system.sub_name> = undef;    ##  zenka code has ended  ##
 
-#,,,,,.,.,,.,,,,.,..,,,..,...,,..,...,..,,,.,,..,,...,...,.,,,...,..,,,,,,.,.,
-#CNPZM4ZOQ6GD4JNM63HNEKESTLRFMPX2MNWBPOGSOLO44OG2M2O6FCAXPR2BDLRNPJ2O3OLEF5SEI
-#\\\|SKJXCB4KF5XHOQUJMORSJS2XTWWZMJ64JI7TQPEDGWZFF6TUYMZ \ / AMOS7 \ YOURUM ::
-#\[7]HEPRI7XCBTQ2LKEESDP4KDG6ACGKUINVG72UY5EI3GQ52QLIZ2AA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,,.,..,,,..,,,.,.,.,...,..,,..,,...,...,.,.,,,.,,..,.,,,.,.,
+#ULHBAKCN35L7SGS4GRS24EBRHAIKJ3MCVVA3X434JOXPDPE754CXIA7MCQNFWA2DWS6UTPOB4EFE2
+#\\\|M5Z254HGZ6WMUSQWFDDBG2NCBPC57MQDP2O2LVQGU3KNSZRQNWH \ / AMOS7 \ YOURUM ::
+#\[7]37RRRK4GIXSS2MIDWYKUKTLXGHVTUFRFU4R3EKZI4R2QO45HMUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
