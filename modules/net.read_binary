@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = net.read_binary
+
+my $id = shift;
+
+if ( not defined $id ) {
+    warn 'expected session id param <{C1}>';
+    return undef;
+}
+
+my $session     = $data{'session'}{$id};
+my $handle_href = $data{'handle'}{ $session->{'handle'} };
+
+## further error checks in base.handler.read ##
+
+if ( not defined $session->{'bytes-to-read'} ) {
+    warn 'bytes-to-read is not defined <{C1}>';
+    return undef;
+}
+
+my $return_code = 2;    ##  set to disconnecting  ##
+
+my $size_left = $data{'size'}->{'buffer'}->{'input'}
+    - length $session->{'buffer'}->{'input'};
+
+if ( $size_left <= 0 ) {    ##  no space left in buffer  ##
+    $handle_href->{'paused'} = TRUE;
+    warn 'input buffer size exceeded <{C1}>';
+    return;
+}
+
+my $bytecount = <[base.s_read]>->(    ## limit : remaining buffer size ##
+    $session->{'handle'}, \$session->{'buffer'}->{'input'}, $size_left
+);
+
+if ( $bytecount > 0 ) {
+    $session->{'fh-last-read-error'} = FALSE;
+    $handle_href->{'bytes'}->{'in'} += $bytecount;
+    $return_code = 0;    ##  reports request complete [ no size-limit ]  ##
+
+} elsif ( $bytecount < 0 ) {    ##  client is gone \ error  ##
+    $session->{'fh-last-read-error'} = TRUE;    ## return code : 2  ##
+} else {    ## nothing read [0 bytes] ##
+    $session->{'last-bytes-read'}    = 0;
+    $session->{'fh-last-read-error'} = UNKNOWN;
+}
+
+return $return_code;
+
+#,,.,,,..,,,.,.,.,,..,,.,,..,,,,.,.,,,.,.,,..,..,,...,...,,..,..,,.,,,,.,,.,,,
+#6HZOOXJHBBEBXHPN6NOBLK7EN6G2AOVAAKHNMQYU2B7ZQD2ORWFTZKADQ4GX2YB3D2HQJ3HY67GOO
+#\\\|CGQR3EW6EQEKKHUOYELY6TNSDFZMVBCASB4X7WNMV34CDP46TT3 \ / AMOS7 \ YOURUM ::
+#\[7]2MRBLNJ4AN2PLBSB5B364TR7NAE3LAVNIMY7DLX3FC7MYZ37M2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
