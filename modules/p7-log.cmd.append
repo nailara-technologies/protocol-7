@@ -3,17 +3,19 @@
 # name  = p7-log.cmd.append
 # param = <log-data>
 # descr = write a log line to the named log file
-# todo  = buffered write [ instead of line by line ], cleanup log time handling
+# todo  = buffered write [instead of line by line], cleanup log time handling
+
+my $param_str = $call->{'args'};
 
 my ($node_zenka, $instance_id, $buffer_name,
     $log_time,   $log_level,   $log_message
-) = split( m| |, $_[0]->{'args'}, 6 );
+) = split( m| |, $param_str, 6 );
 
 ## preventing duplicate entries ## [ repaired meanwhile ]
 <p7-log.checksums>                                     //= {};
 my $node_checksums = <p7-log.checksums>->{$node_zenka} //= {};
 $node_checksums->{$buffer_name}                        //= '';
-my $entry_checksum = <[chk-sum.elf.vax-BASE32]>->( $_[0]->{'args'} );
+my $entry_checksum = <[chk-sum.elf.vax-BASE32]>->($param_str);
 if ( $node_checksums->{$buffer_name} eq $entry_checksum ) {
     return { 'mode' => qw| false |, 'data' => 'duplicate entry, dropped.' };
 } else {
@@ -25,7 +27,7 @@ $log_level //= 0;
 
 my $err_msg;
 if ( not defined $log_message ) {
-    ( my $line_str = $_[0]->{'args'} ) =~ s|^$node_zenka $instance_id ||;
+    ( my $line_str = $param_str ) =~ s|^$node_zenka $instance_id ||;
     $err_msg = sprintf( 'insufficent parameters [ %s ]', $line_str );
 }
 $err_msg = 'expected <buffer-name> parameter'
@@ -38,84 +40,89 @@ $err_msg = 'numerical <log-level> expected'
 if ( defined $err_msg ) {
     my $node_name = <system.node.name>;
     $node_zenka =~ s|^$node_name\.||;
-    <p7-log.disable_err_log_dump>
-        //= 0;    ## <-- suppress err log data on demand
-    <[base.log]>->( 0, "\<$instance_id> ['$node_zenka'] $err_msg" );
+    ## suppress err log data on demand ##
+    <p7-log.disable_err_log_dump> //= FALSE;
+    <[base.logs]>->(
+        0, "\<%u> ['%s'] %s",
+        $instance_id, $node_zenka, $err_msg
+    );
     ## log offending line for devmod ###
     <[base.log]>->(
         1, " < usage >  [ <buffer> <time-stamp> <log-level> <mesg> ]"
     );
-    <[base.log]>->( 1, "< request > [ '$_[0]->{'args'}' ]" );
+    <[base.logs]>->( "< request > [ '%s' ]", $param_str );
 
-    if ( $data{'system'}{'verbosity'}{'console'}
-        and !<p7-log.disable_err_log_dump> ) {
-        my $show_line = $$call{'args'};
-        <[base.parser.ellipse_center]>->( \$show_line, 74 );
+    if ( <system.verbosity.console> and not <p7-log.disable_err_log_dump> ) {
+        <[base.parser.ellipse_center]>->( \$param_str, 74 );
         my $s = ' ' x 76;
-        printf( " /$s\\ \n > %74s < \n \\$s/ \n", $show_line );
+        printf " /%s\\ \n > %74s < \n \\%s/ \n", $s, $param_str, $s;
         return { 'mode' => qw| false |, 'data' => $err_msg };
     }
 }
 
 # note : log_time is accepted in unix or nailara network time : ntime == default
 
-my $default_mode = 'ntime-b32';
+my $default_mode = qw| ntime-b32 |;
 <log.timestamp_mode> //= $default_mode;
 
-my $log_file = "$node_zenka.$buffer_name";
+my $log_file = join qw| . |, $node_zenka, $buffer_name;
 
-## input ##
-
+##[  input  ]##
+##
 if ( <log.timestamp_mode> !~ m,^localtime|ntime-b32|ntime-num|unix, ) {
-    <[base.log]>->(
-        0, "invalid time-stamp mode '" . <log.timestamp_mode> . "' configured"
+    <[base.logs]>->(
+        0, "invalid time-stamp mode '%s' configured",
+        <log.timestamp_mode>
     );
-    <[base.log]>->(
-        1, "setting time-stamp mode '$default_mode' [ fallback ]"
+    <[base.logs]>->(
+        "setting time-stamp mode '%s' [ fallback ]",
+        $default_mode
     );
     <log.timestamp_mode> = $default_mode;
 } elsif ( $log_time !~ m|^[A-Z0-9]+$|
     and $log_time !~ m|^(\d{1,17})(\.\d+)?| )
 {    # invalid time value --> setting to current
     $log_time = <[base.ntime]>;    # [LLL] deliver warning _once_ ..,
-} elsif ( defined $1 and length($1) < 13 ) {    # unix time input value
+} elsif ( defined ${^CAPTURE}[0] and length( ${^CAPTURE}[0] ) < 13 )
+{    # unix time input value
     $log_time = <[base.ntime]>->($log_time);
 }
 
 ## output ##
-
-if ( <log.timestamp_mode> eq 'ntime-b32' ) {    # alphanumeric network time
+##
+if ( <log.timestamp_mode> eq qw| ntime-b32 | ) {   # alphanumeric network time
 
     $log_time = <[base.ntime.b32]>->($log_time) if $log_time !~ m|[A-Z]|;
 
-} elsif ( <log.timestamp_mode> eq 'unix' ) {    # output in unix time
+} elsif ( <log.timestamp_mode> eq qw| unix | ) {    # output in unix time
 
-    $log_time = <[base.n2u_time]>->( $log_time, 5 );
+    $log_time = <[base.n2u_time]>->( $log_time, TRUE );
 
-} elsif ( <log.timestamp_mode> eq 'localtime' ) { # human readable time string
-    my ( $unix, $secs_fp )
-        = split( /\./, <[base.n2u_time]>->( $log_time, 5 ) );
-    (   $log_time = join( '.',
-            <[base.parser.timestamp]>->( 'time-stamp', $unix ),
-            $secs_fp // 0 )
+} elsif ( <log.timestamp_mode> eq qw| localtime | ) {
+    my ( $unix, $secs_fp ) = split '\.',    # human readable time string
+        <[base.n2u_time]>->( $log_time, TRUE );
+    (   $log_time = join qw| . |,
+        <[base.parser.timestamp]>->( qw| time-stamp |, $unix ),
+        $secs_fp // 0
     ) =~ s{ }{|};
 }
 
 my $write_line = sprintf( "%s %07d %d %s\n",
     $log_time, $instance_id, $log_level, $log_message );
 
-my $msg_len = length($write_line);
+my $msg_len = length $write_line;
 ( my $success, $err_msg ) = <[p7-log.add_line]>->( $log_file, \$write_line );
 
 # success
-return { 'mode' => qw| true |, 'data' => "wrote $msg_len bytes" } if $success;
+return { 'mode' => qw| true |, 'data' => sprintf 'wrote %u bytes', $msg_len }
+    if $success;
 
 # error case
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,..,.,,,...,...,...,.,,,,.,,,,,,,,.,..,,..,,..,,...,..,,,,.,..,,..,,..,,...,
-#XVH3J7PUZFD2KO4GHQGIHSDGT3KTSMMDID7WQJZ7LAYIMFCDWQFZY6FX3VNNRPR3RINZY2SF6MV3G
-#\\\|6ODMK2ETAAH2DOXMWANPSRIUL3O6LN3XMYEFQ4W5ZH2FMDTNVJX \ / AMOS7 \ YOURUM ::
-#\[7]FDKIWCZB3PF6TRWLFSTTDBR4V3YKEPXCTGR44M7VFLZU3RF5Y4DI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,.,.,...,.,.,...,.,.,...,..,,..,,..,,...,...,.,.,,.,,,,,,,,,,,.,,
+#LW5QP4IXB47UGAGAZAONGYQXWQFKIE7WHGMLOUWTLDUE7PMAGXV776OQK2RNG4LXGPZJEAROE4CHG
+#\\\|HMIRNBSOGZKDSTIUGM5VBORPP5VH64V4RRHOB3QYSARKZ22G3J4 \ / AMOS7 \ YOURUM ::
+#\[7]LJITPMGZQSPFKNJC3QRIYBC2E4ZAG7ECJUHGS334MXQG5PYK5CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

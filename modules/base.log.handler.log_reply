@@ -15,7 +15,7 @@ my $retry
 if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
 
     ## advance log buffer index ##
-    $log_data->{'start_index'}  = ++$log_data->{'next_index'};
+    $log_data->{'next_index'}++;
     $log_data->{'resend_delay'} = 0.113;    ##  resetting  ##
 
     if ( $log_data->{'next_index'} <= $buffer_count ) {    # more to send .,
@@ -45,8 +45,8 @@ if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
     ## <[base.log]>->( 0, "[ '$name' buffer ] log line $buffer_count lost" );
 }
 
-#,,,,,,..,..,,...,,..,.,.,..,,.,.,.,.,,.,,.,,,..,,...,...,,,,,,.,,...,,,.,...,
-#PVT4UNJCK5IAPZT4YHZDTENINN5BX4X3VJJK4DTI43EEZVWWGWRH62NRMNVNNC7KZRYOTNZL7ZWRK
-#\\\|DSOFHLQUXG6QZEOWBHZ5UTCYYZKPAGKD7S6WYZR5KXDTFQZ3N3V \ / AMOS7 \ YOURUM ::
-#\[7]GMALCI3H665FISITSBB34GEVMJMUAWHF53KTC5HME6I7XTWA6OAA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,.,.,..,,.,,,,,.,,,,,,.,,,..,..,,...,...,,.,,..,,...,,..,,,,,
+#YKOTE5FHWL75PH47ADFVWGSY5VUJCGKT4Y6XFYKKSSXCXTGRAKMDZYJ4RGRBT6BURXTRBZCGOIL64
+#\\\|FW7MFFWPGGFWG4UQ3N2NLZUC562DYLTWYODT4Z3IXN6LFPD5INW \ / AMOS7 \ YOURUM ::
+#\[7]LWS5QRIVEMJTRL2RV2UUXQDKZBEBE2EYJBTW7WASUUG4JWCZSWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

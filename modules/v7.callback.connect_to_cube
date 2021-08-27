@@ -15,7 +15,7 @@ my $authname
 $authname = <system.zenka.auth_name> if defined <system.zenka.auth_name>;
 
 my $c_fh;    ## cube filehandle ##
-if ( not <[base.cfg_bool]>->( <v7.local_cube.connect-unix> //= 1 ) ) {
+if ( not <[base.cfg_bool]>->( <v7.local_cube.connect-unix> //= TRUE ) ) {
     <[base.logs]>->(
         'connecting to local cube [%s:%d] ..,',
         $cube_addr, $cube_port
@@ -47,16 +47,16 @@ if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
 }
 
 #[ error \ <false> ]
-return 0 if not defined $c_fh;
+return FALSE if not defined $c_fh;
 
-<base.log.allow_buffer_send> = 1;    ## enable sending to 'p7-log' ##
+<base.log.allow_buffer_send> = TRUE;    ## enable sending to 'p7-log' ##
 
 my $session_id
     = <[base.session.init]>->( $c_fh, qw|  protocol-7  client  cube  | );
 
 <[base.logs]>->( 'auth. to cube successful [ session %d ]', $session_id );
 <v7.zenka.instance>->{$instance_id}->{'root_sid'} = $session_id;
-<v7.zenka.instance>->{$instance_id}->{'is-cube'}  = 1;
+<v7.zenka.instance>->{$instance_id}->{'is-cube'}  = TRUE;
 
 <callback.session.closing_last> = {
     'name'   => qw| zenka.change_status |,
@@ -75,8 +75,8 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 #[success]
 return TRUE;
 
-#,,,.,,..,,.,,.,.,..,,.,,,.,.,.,.,.,.,,..,.,.,..,,...,...,,,,,.,,,.,,,,..,.,,,
-#A2UQH5RWTQIHP7R4JMU65OD5WPSC5XPJDWF5P537IIUMX3MHDYFOFCLNXGP4CQNZJXG2V2YEZEDPI
-#\\\|K3ENYUWJDI7LCHXZT5U5GHFY3P6ZSKARV3RKMEQAM64UGS7ED7E \ / AMOS7 \ YOURUM ::
-#\[7]FOSEMWBCLNETP4ZMKPSEVTQCG7JJLJJB65S2MT22L7A2FD7PJEAY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,,,,,...,..,,.,.,,,,,,,.,...,..,,...,...,..,,,..,..,,,,,,,,.,
+#LRZCPT6WLDBQY7JYJZNNY5ODP4GAKW3BDXS6V46CJDZQZVJZRHKPJU5BYYXJ5TO5VA5JLMYFQLDLY
+#\\\|JNRMMN6X5HF4C32E2QGHN2URERBBR2WR6Q267DQKX4YXIGG2WHH \ / AMOS7 \ YOURUM ::
+#\[7]JLWQGBTF352BZACGUTPWWEYMHNL5DSMT6OKX5VF6LVT2YONSTODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
