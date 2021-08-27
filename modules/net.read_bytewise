@@ -9,8 +9,10 @@ if ( not defined $id ) {
     return undef;
 }
 
-my $session     = $data{'session'}{$id};
-my $handle_href = $data{'handle'}{ $session->{'handle'} };
+return 2 if not exists $data{'session'}->{$id};    ## session gone. ##
+
+my $session     = $data{'session'}->{$id};
+my $handle_href = $data{'handle'}->{ $session->{'handle'} };
 
 ## further error checks in base.handler.read ##
 
@@ -64,18 +66,15 @@ if ( $bytecount > 0 ) {
         $return_code = 1;    ##  more to read  ##
     }
 
-} elsif ( $bytecount < 0 ) {    ##  client is gone \ error  ##
+} else {    ##  client is gone \ error  ##
     $session->{'last-bytes-read'}    = 0;
     $session->{'fh-last-read-error'} = TRUE;
-} else {    ## nothing read [0 bytes] ##
-    $session->{'last-bytes-read'}    = 0;
-    $session->{'fh-last-read-error'} = UNKNOWN;
 }
 
 return $return_code;
 
-#,,,,,,.,,,.,,...,..,,,.,,,,.,,.,,..,,...,,,,,.,.,...,..,,..,,..,,,,.,.,.,,..,
-#Y5V3TK7JEMWZZUK7PBZOWDNASH7LO7VJN7PGWBHG6MXCZBA6KCG3TJV3FYKL7PPLTEGYPDVANNQVC
-#\\\|ETOJVYRH5SWNZEK2I2LWT5E4YGC53R37Q3U5ZRXYZLPKWWPJ2BS \ / AMOS7 \ YOURUM ::
-#\[7]ORVSKQLR3KWBQ6PVKY5ZUCFC2EP4MY2TPZZNPVJYEOYUBUKMZEDA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,,,,,.,.,,,,,.,,,.,,.,,.,.,.,.,...,.,.,..,,.,,,,.,,,.,,,,,,
+#FIZHSMKTR7YCJMM43DTTFCG27JHCQ7WOU4Q7ZCQ6UV7OUWHMBPSZTNVROBFA4CWBLPAOWDRZQLM2E
+#\\\|DEKFA7X3PU7H3NXPONW5QBC4GCAKISQ5H3Z4PMM4NS2BYJXM32A \ / AMOS7 \ YOURUM ::
+#\[7]I2IWNVKHNZHV2YC2YLEDHSP62FJGH26Z7M76O33JP4ZVNZWXYCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

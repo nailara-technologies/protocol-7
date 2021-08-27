@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = net.read_linewise_estimated
+
+my $id = shift;
+
+if ( not defined $id ) {
+    warn 'expected session id param <{C1}>';
+    return undef;
+}
+
+return 2 if not exists $data{'session'}->{$id};    ## session gone. ##
+
+my $session     = $data{'session'}->{$id};
+my $handle_href = $data{'handle'}->{ $session->{'handle'} };
+
+my $protocol       = $session->{'protocol'};
+my $protocol_stats = $data{'protocol'}->{$protocol}->{'statistics'}
+    //= { qw| line-reads | => 0, qw| read-iterations | => 0 };    ##[ init ]##
+
+my $buffer_length = length $session->{'buffer'}->{'input'};
+my $size_left     = $data{'size'}->{'buffer'}->{'input'} - $buffer_length;
+
+##  ignore start position for endline match  ##
+##
+my $LF_match_start_offset = $buffer_length;
+
+my $avg_command_length = sprintf qw| %.0f |,    ##  tracked minus endline  ##
+    defined $session->{'command'}->{'average-length'}
+    ? $session->{'command'}->{'average-length'}
+    : $protocol_stats->{'average-command-line-length'} // 63;
+
+my $read_length ##  read length adjusts to statistical average line length  ##
+    = $size_left < $avg_command_length ? $size_left : ++$avg_command_length;
+
+##  for average calculation  ##
+my $read_bytes_total          = 0;
+my $number_of_read_iterations = 0;
+
+my $linefeed_match_position;
+
+while ($size_left) {
+
+    $read_length = $size_left if $size_left < $read_length;   ##  decrease  ##
+
+    my $num_of_read_bytes = <[base.s_read]>->(    ## reading avg. line size ##
+        $session->{'handle'}, \$session->{'buffer'}->{'input'}, $read_length
+    ) // 0;
+
+    $linefeed_match_position = index $session->{'buffer'}->{'input'}, chr 10,
+        $LF_match_start_offset;    ## check if a linefeed has been read ##
+
+    if ( $num_of_read_bytes > 0 ) {    ##  updating read [buffer] state  ##
+        $session->{'fh-last-read-error'} = FALSE;
+        $number_of_read_iterations++;
+        $buffer_length    += $num_of_read_bytes;
+        $size_left        -= $num_of_read_bytes;
+        $read_bytes_total += $num_of_read_bytes;
+
+    } else {                           ## fh read err ##
+
+        if ( $number_of_read_iterations == 0 ) {    ## first read ##
+
+            $session->{'fh-last-read-error'} = TRUE;    ##  read exception  ##
+            return 2;                                   ##  client gone  ##
+
+        } else {
+            last;    ##[  no more data to read  ]##
+        }
+    }
+
+    last if $linefeed_match_position >= 0;    ##  linefeed match  ##
+}
+
+$session->{'last-bytes-read'} = $read_bytes_total;
+
+$handle_href->{'bytes'}->{'in'} += $session->{'last-bytes-read'};
+
+$protocol_stats->{'read-iterations'} += $number_of_read_iterations;
+$protocol_stats->{'line-reads'}++;    ##  updating [avg-line] statistics  ##
+
+if ( $linefeed_match_position == -1 ) {    ##  read not complete  ##
+
+    return 1;                              ##  request not complete  ##
+
+} else {    ##  has complete line  ##
+
+    return 0;    ##  request completed  ##
+}
+
+#,,,,,,.,,,..,,,.,...,,,,,.,,,...,..,,,.,,,,.,..,,...,...,,,.,,,,,,,.,.,,,...,
+#KHUHRY2JSYQ2VKF3BJINVXXR6VNXR6QYI5TNH6WAMYDVFPIKJVX32PJ57KBMNBN475Q36C6JMHCQG
+#\\\|EHUYN2JCNUR5PLEBDKMBVSVDG6ACTNM7CLFDUAYMBSTUK742VXW \ / AMOS7 \ YOURUM ::
+#\[7]2CEIQGGXM22YTUO6OQLETO4VLJHSO7TRRULR626PYYR4GCLAFCBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
