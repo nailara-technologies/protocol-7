@@ -432,6 +432,7 @@ REREAD_PASSWORD:
                 printf "%s%s\n", $C{'0'}, $prompt_prefix_string;
                 $main::code{'base.log'}->( 0, ' [ password read aborted ]' );
                 printf "%s%s\n", $C{'0'}, $prompt_prefix_string;
+                return undef;
             } else {
                 AMOS7::TERM::close_TTY_no_echo(FALSE);
                 error_exit(' [ password read aborted ]');
@@ -698,22 +699,36 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
 }
 
 sub wait_or_abort {
+
     my $wait_delay      = shift // 1.24;
     my $time_start      = sprintf qw|%.5f|, Time::HiRes::time;
     my $delay_remaining = $wait_delay;
+    my $was_closed      = FALSE;
+
+    if ( not defined $TTY_IN or not length fileno $TTY_IN ) {
+        AMOS7::TERM::init_TTY_no_echo();    ##  reopen TTY  ##
+        $was_closed = TRUE;
+    }
+
     while ( $delay_remaining > 0 ) {
         my $status = AMOS7::TERM::discard_buffered_input($delay_remaining);
-        return TRUE  if $status == 2;     ## abort condition ##
-        return FALSE if $status == 1;     ## waiting skipped ##
-        $delay_remaining = $wait_delay    ##[ updating delay ]##
+        if ($status) {
+            AMOS7::TERM::close_TTY_no_echo() if $was_closed;
+            return TRUE  if $status == 2;    ## abort condition ##
+            return FALSE if $status == 1;    ## waiting skipped ##
+        }
+        $delay_remaining = $wait_delay       ##[ updating delay ]##
             - ( sprintf( qw|%.5f|, Time::HiRes::time ) - $time_start );
     }
-    return FALSE;                         ##  not aborting  ##
+
+    AMOS7::TERM::close_TTY_no_echo(FALSE) if $was_closed;  ## closing again ##
+
+    return FALSE;    ##  not aborting  ##
 }
 
 sub discard_buffered_input {
 
-    my $input_timeout = shift // 0;       ## optional value for delays ##
+    my $input_timeout = shift // 0;    ## optional value for delays ##
 
     ## return codes ##
     ##  0 : input discarded
@@ -724,7 +739,10 @@ sub discard_buffered_input {
     state $continue_regex;
     state $seq_END //= chr 126;
     state $sequ_begin //= join '', map {chr} qw| 27 91 |;
-    if ( not defined $interrupt_re or not defined $continue_regex ) {
+    if ( not defined $TTY_IN or not length fileno $TTY_IN ) {
+        warn_err('TTY_IN handle not opened <{C1}>');
+        return undef;
+    } elsif ( not defined $interrupt_re or not defined $continue_regex ) {
         my @continue_code      = qw| 10 13 |;
         my @interrupt_asc_code = qw| 3 4 27 |;
         $interrupt_re   = join '', map {chr} @interrupt_asc_code;
@@ -865,8 +883,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,,,,.,.,...,.,,,..,,,,,,.,.,.,.,..,,.,.,,..,..,,...,...,...,.,.,,..,..,,.,,,
-#BY4MEVQILL5YW4JIQJYEKGLWYBS6HJBP3TJ7DZGKDMZCTUA6ELXM4HQGISNQTBSZWYXRI3P5DZTFW
-#\\\|OHDH6JMO5YOEURFRI34BLQMHQWRMI3BKSNF7ZYT5T6PKMIDGTL4 \ / AMOS7 \ YOURUM ::
-#\[7]Y3G5N4YWUAL5E44G7OTNWP57BTTL75UJP2MPFOQCOXHXQCQK6EBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,..,..,,,,.,.,.,...,,,.,,,.,..,,...,...,...,.,,,...,.,.,.,.,
+#T7M4JYYQQRXIMH2UZJMQGGFO724WOX3XN6DTK6MMMUG2XQUCN7GRSQZ5RRYERBYKP4Y2WU37ZQUYY
+#\\\|2I6NFNTBVEROPBQDI3XMLBV7B4G5HZCEX7KF2JSGWHOAIABX2U3 \ / AMOS7 \ YOURUM ::
+#\[7]DBRB7ZNAMDJVUJMSX7U3NHSTLLO4WTH5PF4XRIU6OW6UX7Q7JCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
