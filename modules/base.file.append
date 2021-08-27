@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = base.file.put_bin
-# descr = writing to a file in raw mode [ overwrites if exists ]
+# name  = base.file.append
+# descr = appending to a file in :raw mode [ creates if missing ]
 
 my $write_file_path = shift // '';
 my @file_content    = @ARG;
@@ -10,7 +10,7 @@ my $fh;
 if ( not length $write_file_path ) {
     warn 'expected filename <{C1}>';
     return undef;
-} elsif ( not open( $fh, qw| > |, $write_file_path ) ) {
+} elsif ( not open( $fh, qw| >> |, $write_file_path ) ) {
     <[base.s_warn]>->(
         "cannot open '%s' for writing [ %s ] <{C1}>",
         $write_file_path, <[base.str.os_err]>
@@ -46,8 +46,8 @@ if ( not close $fh ) {
 
 return TRUE;    ## true ##
 
-#,,,,,...,,.,,.,.,.,,,..,,...,...,.,,,,..,,,.,..,,...,...,...,..,,.,.,..,,,..,
-#FZRWPNHCJZ6UESUERLX53U5SFFPFWQZOCSQB6FAFONFQYVAAH6AWWBMPE742R4JGD2LRCUZZB3EMI
-#\\\|KSORR6BPWXATY4DSUVWBDVRMSSIIKXH6JGEMMURRDAGII4NYBJQ \ / AMOS7 \ YOURUM ::
-#\[7]ZIV5FQY6K4WRZLFAKCB5XDG56GHK2JCSA6HRTPQNW33PAQTNECDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,.,.,,..,..,,,.,,.,,,,.,,,,,,..,,...,...,,,,,,.,,,..,,.,,...,
+#RW4KV74XEPGF252BPAEDKZVFM4SAPT6GZHKDY5FCWRMQNOKR7K7Z7MCZJ2HZGBI23SARFFMEGE3VU
+#\\\|7Y2YKZR7O2XQWVAXRNGQCLO5T3TSFC2IIDPRJUSPSCMFKNWWN2E \ / AMOS7 \ YOURUM ::
+#\[7]IB4U32ILUTL3JMWIHTFHK7BZY63IBRUJNY56W2LLXBCPWHXPZKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
