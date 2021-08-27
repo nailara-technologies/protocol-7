@@ -9,7 +9,8 @@ my $re     = <regex.base>;
 my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
 my $output = \$data{'session'}{$id}{'buffer'}{'output'};
 
-my $enabled_link_modes = { qw| unix | => 1, qw| ip.tcp | => 1 }; ## allow ? ##
+## allow ? ##
+my $enabled_link_modes = { qw| unix | => TRUE, qw| ip.tcp | => TRUE };
 
 my $link_type = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'link'};
 
@@ -32,8 +33,11 @@ if (   <[plugin.auth.zenka.no-keys-defined]>
             = $input->$* =~ m{^($re->{usr_str}|$re->{usr_subn_str}) }
             ? $LAST_PAREN_MATCH
             : undef;
-        <[base.logs]>->( $l, ":., attempted: %-24s ,.:", "\"$keyless_user\"" )
-            if defined $keyless_user;
+        <[base.logs]>->(
+            $l,
+            ":., attempted: %-24s ,.:",
+            sprintf( "\"%s\"", $keyless_user )
+        ) if defined $keyless_user;
         $output->$* .= "AUTH_ERROR `>:|\n";
     }
     return 2;
@@ -55,22 +59,35 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             delete $keys{'auth'}{'zenka'}{$user};
             $output->$* .= "AUTH_TRUE =)\n";
 
+            if (<[base.is_defined_recursive]>->(
+                    sprintf qw| user.%s.input-priority |, $user
+                )
+                ) {    ##  setting custom input handler priorities  ##
+                my $input_prio = $data{'user'}->{$user}->{'input-priority'};
+                $data{'session'}->{$id}->{'input_prio'} = $input_prio;
+                $data{'session'}->{$id}->{'watcher'}->{'input_handler'}
+                    ->{'prio'} = $input_prio;
+            }
+
             ## <[net.update.client_conf]>->($id);
 
-            <[base.log]>->(
-                1, "[$id] zenka '$auth_name' session authorized."
+            <[base.logs]>->(
+                "[%u] zenka '%s' session authorized.",
+                $id, $auth_name
             );
             return ( 0, $user );
         } else {
-            <[base.log]>->(
-                0, "[$id] '$auth_name' [zenka] access denied [ key ]"
+            <[base.logs]>->(
+                0,   "[%u] '%s' [zenka] access denied [ key ]",
+                $id, $auth_name
             );
             $output->$* .= "AUTH_ERROR `>:|\n";
             return 1;
         }
     } else {
-        <[base.log]>->(
-            0, "[$id] '$auth_name' [zenka] access denied [ usr ]"
+        <[base.logs]>->(
+            0,   "[%u] '%s' [zenka] access denied [ usr ]",
+            $id, $auth_name
         );
         $output->$* .= "AUTH_ERROR `>:|\n";
         return 1;
@@ -83,8 +100,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,,.,,..,.,.,.,,,.,.,.,.,,,,,,..,,..,,,,,...,..,,...,..,,,,.,,.,,,.,,,.,,,,.,
-#WMZIWQUNXR6VLFFSQFABV3QIEUG4R6DKQ4X2DGXTRHDTMEJQS44ECHLF2WYFQNYP6RVZISEQAE264
-#\\\|AEYATYF6FDHNW2SWKWCBZ45HCR3I2T7CCSL2H5OHRRWC644XZNM \ / AMOS7 \ YOURUM ::
-#\[7]3PBF6JZHQIKI5DWTJABXAO7AGSDI6RMNMSLI7EJPQEDKVAPFLOCY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,.,,,...,..,,,,.,..,,..,,.,,,..,,...,...,..,,.,,,.,.,,..,,..,
+#FKR34T53KEYJ6LBRJCUO4MZ4MVAWC4VQONEAPQWDR4QVVLDYAIK34RAOYZIXFYGIWWK3D6TYDGUWI
+#\\\|T2P6EFD7ABOLXOFEVQXAE4B3OFPKGBNWACEIKSLUMLY5YYX6ZAD \ / AMOS7 \ YOURUM ::
+#\[7]WJ7IYLRZ6VQE4CXL5EQRE4G7COGJFMPK5DMW3I76KLBVFN5XTYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
