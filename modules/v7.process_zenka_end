@@ -26,10 +26,17 @@ my $current_status = $instance->{'status'} // qw| undefined |;
 my $pid_str
     = defined $process_id ? sprintf( ' \ pid : %u', $process_id ) : '';
 
-<[base.logs]>->(
-    $log_level,  ': processing end of %s-zenka [ instance : %u%s ]',
-    $zenka_name, $instance_id, $pid_str
-);
+if ( defined $zenka_name ) {
+    <[base.logs]>->(
+        $log_level,  ': processing end of %s-zenka [ instance : %u%s ]',
+        $zenka_name, $instance_id, $pid_str
+    );
+} else {
+    <[base.logs]>->(
+        $log_level,   ': processing end of zenka-instance %u%s',
+        $instance_id, $pid_str
+    );
+}
 
 <[v7.stop_heartbeat_timer]>->($instance_id) if defined $instance_id;
 <[v7.terminate_process]>->($process_id)     if defined $process_id;
@@ -102,8 +109,8 @@ if (    defined $instance_id
 
 return TRUE;
 
-#,,.,,,,,,,,.,,,,,,.,,,..,,..,,,.,,..,,..,...,..,,...,...,..,,.,,,,..,.,,,,,.,
-#TRLLEYLQ6WC7G3D4I7JLQRCRPE6OB2DR4ZYYTBJUWICBCP22EUXGHMQHCWEGIUWZNKJ47QZG6QH7A
-#\\\|ZP3YFJSID7UOQEGQ2DAPJWHVIXUYHUVZYHEASR4RRL74E455ELF \ / AMOS7 \ YOURUM ::
-#\[7]UI6TZUHIKPXOCCS6EZBZFEQMYKR2RZC6IGWSDJT657FFKAOC24DY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,.,,..,,...,..,,.,,,,.,,.,,,,,,,..,,...,...,,.,,,.,,,..,.,,,,,.,
+#S7WWXACJLXTXLGSW3VYRQM7NIHH2PDJ7ZHJ5O3NOAZIAVKMBOH5SJHFNG6QSRIMD2BCVVXE3TT4GE
+#\\\|CJYO7NP2X44SPAHGPE66O7KPCYHSEQVCMPEPHJ6XW44HWDIGSNK \ / AMOS7 \ YOURUM ::
+#\[7]37EMW5E4DBDUFKVRVNOJBWRZZUSU22HI34FMV4KX5FGFACV5UIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
