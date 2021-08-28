@@ -5,13 +5,13 @@
 my $event   = shift;
 my $err_str = shift;
 
-my $log_warning = 1;    ##  disable to not log the error  ##
+my $log_warning = TRUE;    ##  disable to not log the error  ##
 
 ## want last subroutine stack for correct caller string here ##  [LLL]
 
 my $watcher = $event->w;
 
-return if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
+return FALSE if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
 
 my $ev_desc = 'not named';
 $ev_desc = $watcher->desc if $event and $watcher;
@@ -20,16 +20,41 @@ my $file;
 my $line;
 ( $file, $line ) = ( ${^CAPTURE}[0] // '', ${^CAPTURE}[1] // '' )
     if $err_str =~ m| at (\S+) line (\d+).*\n$|;
+
 <[base.clean_up_caller]>->( \$file );
 
 $err_str = <[base.format_error]>->($err_str)
     if defined $code{'base.format_error'};
 
+state $last_msg_chksum;    ##  deep-recursion detection [ mitigation ]  ##
+my $err_msg_chksum = eval { AMOS7::CHKSUM::ELF::elf_chksum( \$err_str ) };
+say STDERR ':: elf_chksum :: ', <[base.str.eval_error]> if length $EVAL_ERROR;
+##
+if (    defined $last_msg_chksum
+    and defined $err_msg_chksum
+    and $err_msg_chksum == $last_msg_chksum ) {
+    state $last_logged_csum;
+    if ( not defined $last_logged_csum
+        or $last_logged_csum != $err_msg_chksum ) {
+        say $AMOS7::C{'o'}, ':' if defined $AMOS7::C{'o'};
+        say STDERR ': recursive error-msg : ', $err_str;
+        say ':', $AMOS7::C{'R'} if defined $AMOS7::C{'R'};
+        $last_logged_csum = $err_msg_chksum;
+    }
+    return FALSE;
+} elsif ( defined $err_msg_chksum ) {
+    $last_msg_chksum = $err_msg_chksum;
+}
+##
+
 ## alternative handlers registered for filename:line ? ##
-my $match_param = "$file:$line";    # <-- expand .., [LLL]
-if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
-    my $cb_name
-        = $data{'base'}{'warn-match-handler'}{$match_param};
+##
+my $match_param = join qw| : |, $file, $line;    # <-- expand .., [LLL]
+if (<[base.is_defined_recursive]>->(
+        sprintf qw| base.warn-match-handler.%s |, $match_param
+    )
+) {
+    my $cb_name = <base.warn-match-handler>->{$match_param};
     $log_warning = $code{$cb_name}->( $err_str, $match_param, caller )
         if defined $code{$cb_name};
 }
@@ -38,7 +63,7 @@ if ( defined $data{'base'}{'warn-match-handler'}{$match_param} ) {
 ##  delayed log prevents segmentation faults from base.log recursion  ##
 ##
 if ($log_warning) {
-    my $caller_str = sprintf '[%s:%d]', $file, $line;
+    my $caller_str = sprintf qw| [%s:%d] |, $file, $line;
     $err_str .= sprintf( ' %s', $caller_str )
         if index( $err_str, $caller_str, 0 ) == -1;
     $err_str    ##  avoiding redundancy with caller description  ##
@@ -46,9 +71,9 @@ if ($log_warning) {
     <[base.log-delayed]>->( 0, $err_str );
 }
 
-return
-       if not $watcher
-    or !$log_warning
+return TRUE
+    if not $watcher
+    or not $log_warning
     or <system.verbosity.console> < 2 and <system.verbosity.zenka_buffer> < 2;
 
 ## detailed event parameters [ devmod log levels ]
@@ -58,19 +83,20 @@ my $lvl        = 2;
 my $mlen       = 0;
 map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
-<[base.log-delayed]>->( $lvl, ".:[ event ]:." );
+<[base.log-delayed]>->( $lvl, '.:[ event ]:.' );
 
 foreach my $akey (@attr_names) {
-    my $val = $watcher->$akey // '<undef>';
-    next if $akey eq qw| devmod | and !length($val);
-    <[base.log-delayed]>
-        ->( $lvl, sprintf( ": %${mlen}s : %s", $akey, $val ) );
+    my $val = $watcher->$akey // qw| <undef> |;
+    next if $akey eq qw| devmod | and not length $val;
+    <[base.log-delayed]>->(
+        $lvl, sprintf( ': %*s : %s', $mlen, $akey, $val )
+    );
 }
 
-say STDERR <[base.format_error]>->( $EVAL_ERROR, 1 ) if length $EVAL_ERROR;
+return TRUE;
 
-#,,,,,..,,,,.,,,,,.,.,,,,,,,,,.,.,,,,,,,,,,..,..,,...,...,,,.,,,.,,,,,...,,,.,
-#GCDCSRG4LHSQ2Y5DLHD6J54MSUQ7VRRECAZLGMOPWMEPJNIRGGE2ITTKWV3MRLYXVUNKKPLN3BH4Y
-#\\\|WEQEWUYHH4QUEFIXHVBUDMLJQ5QB4JFWF4MDMFPCI2KTPVIDAMJ \ / AMOS7 \ YOURUM ::
-#\[7]3EH2SPLXXP6RKHGNHSAO2OAM63O3T6IZWGC7GD4OC3FJZI42PUCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,.,,,.,.,,..,.,,,,,,,,.,,.,.,..,,...,..,,,.,,..,,,.,,..,,,.,,
+#YYDWHCYMEM74J45W3UVKZXHXA7QC42PYU5LGRHZVQ5P4GBL2R5GUQ2NBLICQMHPATCBZAJUCVQ45K
+#\\\|YLI3IEQ5KDVZZTVX6QIORHIPDZVTQXBQHLKW5T7S3BXC56AN67H \ / AMOS7 \ YOURUM ::
+#\[7]RIATE6VWGD56FD3ZO2R7FQ3MYJAKIOLEZESDNX7XDSEMFUCEXGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
