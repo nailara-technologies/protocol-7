@@ -4,16 +4,16 @@
 
 my $log_entry_aref = <base.log.delayed-message-buffer> //= [];
 
-while ( my $entry = shift @{$log_entry_aref} ) {
+while ( my $entry = shift $log_entry_aref->@* ) {
     <[base.log]>->( $entry->{'log-lvl'}, $entry->{'log-message'} );
 }
 
 delete <base.log.delayed-message-buffer>;
 
-return 1;
+return TRUE;
 
-#,,..,,..,.,.,,..,...,,,,,,,.,..,,,,,,,,,,,,,,..,,...,...,...,...,,..,,,.,..,,
-#FSGGVJPLUHRJAUHY4NC4CF2WD3RKPKCXKAXFTPPN7QLUXNTI3D6XZI4IIGBXDUHSANOZEGMUNUPSQ
-#\\\|IJ4EIG7IDJWGLKGNXKMDXSKJRG7B7NHWB2FVPY4OYWZHDV6AYT5 \ / AMOS7 \ YOURUM ::
-#\[7]DQRH5NAHPAKG7C7MJBSFUXGKC7MJR352VAZHPC4ZZIANZ7YPFMAA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,.,,,,,.,.,.,...,..,,.,,,,..,..,,...,..,,.,.,.,,,..,,,.,,.,,,
+#CYGBE6ZGXX2F7G5JX5PX3D66GZZVOWXKVLFK63HMRDGGLMJ7ZLRGL6I4IZXKOZMXW45IQRSPLL73I
+#\\\|AQPLG2M67W2EUKLIX2AMTF2ZWK2WXSDT6FJKMKZX7YNESD6YKCO \ / AMOS7 \ YOURUM ::
+#\[7]JBONAJRVVFJEXKGDXWNXFKZEOWLVQ72GPW42WSVRXGHGJHKDP2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

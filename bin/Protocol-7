@@ -2288,7 +2288,8 @@ sub p7_purge_code {
         if defined $data{'base.inline_subs'};
     $inline_subs //= {};
 
-    map {
+    map {    ##  subroutines required during sourcecode reload process  ##
+
         if ($ARG !~ m{\.(callback|handler)\.}
 
             and not defined $inline_subs->{$ARG}
@@ -2308,9 +2309,12 @@ sub p7_purge_code {
             and $ARG ne qw|  base.sprint_t          |
             and $ARG ne qw|  base.sig_warn          |
             and $ARG ne qw|  base.route.add         |
+            and $ARG ne qw|  base.str.os_err        |
+            and $ARG ne qw|  base.log-delayed       |
             and $ARG ne qw|  base.format_error      |
             and $ARG ne qw|  base.context.list      |
             and $ARG ne qw|  base.clean_unicode     |
+            and $ARG ne qw|  base.str.eval_error    |
             and $ARG ne qw|  base.clean_up_caller   |
             and $ARG ne qw|  base.buffer.add_line   |
             and $ARG ne qw|  base.balanced-average  |
@@ -2318,10 +2322,16 @@ sub p7_purge_code {
             and $ARG ne qw|  v7.handler.zenka_output             |
             and $ARG ne qw|  base.utf8.decode_clean              |
             and $ARG ne qw|  base.utf8.clean_not_valid           |
+            and $ARG ne qw|  base.callback.delayed-log           |
             and $ARG ne qw|  base.log.send_buffer_line           |
+            and $ARG ne qw|  base.is_defined_recursive           |
+            and $ARG ne qw|  base.parser.data_hkey_tree          |
             and $ARG ne qw|  base.log.handler.log_reply          |
             and $ARG ne qw|  base.read_from_version_file         |
             and $ARG ne qw|  base.session.calc_cmd_stats         |
+            and $ARG ne qw|  base.validate.data_key_syntax       |
+            and $ARG ne qw|  base.log.send-buffer.add-queue      |
+            and $ARG ne qw|  base.buffer.local_logfile_write     |
             and $ARG ne qw|  base.protocol-7.command.send.local  |
         ) {
             ++$purge_count
