@@ -7,14 +7,11 @@ my $l_lvl = $ARG[1] // 2;    ## log level for errors ##
 my $c_lvl = $ARG[2] // 0;    ## caller level for reporting ##
 $s_ref = \$ARG[0] if not length ref $s_ref;
 
-return 0 if not utf8::is_utf8( $s_ref->$* );    ## nothing to do here ##
+return FALSE if not utf8::is_utf8( $s_ref->$* );    ## nothing to do here ##
 
 if ( not defined <base.utf8.test_fh> ) {
     open( <base.utf8.test_fh>, qw| > |, File::Spec->devnull() )
-        or <[base.s_warn]>->(
-        '<devnull> : %s',
-        <[base.format_error]>->( $OS_ERROR, -1 )
-        );
+        or <[base.s_warn]>->( '<devnull> : %s', <[base.str.os_err]> );
     binmode( <base.utf8.test_fh>, qw| :encoding(UTF-8) | );
 }
 
@@ -24,21 +21,20 @@ eval {
 };
 
 if ( length $EVAL_ERROR ) {
-    my $err_str = <[base.format_error]>->( $EVAL_ERROR, -1 );
     <[base.log]>->(
         $l_lvl,
         join( ' ', ':: not valid UTF-8 ::', <[base.caller]>->($c_lvl) )
     );
-    <[base.logs]>->( ++$l_lvl, ':. %s', $err_str );
+    <[base.logs]>->( ++$l_lvl, ':. %s', <[base.str.eval_error]> );
 
     return <[base.clean_unicode]>->($s_ref);   ## <-- num. characters replaced
 
 } else {
-    return 0;                                  ## no changes ##
+    return FALSE;                              ## no changes ##
 }
 
-#,,..,.,.,...,,,.,..,,.,,,.,,,,..,.,.,,..,..,,..,,...,...,.,,,,,.,,,.,.,,,,..,
-#6K3UVGGYWI6CP4FSUQZJSAFYY6YP6RWAACOFZF2HKXHX4T67ZWSLNH6JVI4VONR7MUQRKVTAN6J64
-#\\\|Y36RKAPKIISOZMPEPNU77W3QALBVPX45LSNLPFJIE2L3N6OGZFJ \ / AMOS7 \ YOURUM ::
-#\[7]5W65F454LCTXTCOGLETMSRHD452MOZDCIFEUNILSQKDWMISQ7ADA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,,,,.,,,.,,.,,,,,,,.,,,,..,,..,..,,...,...,...,..,,,..,.,.,,,.,
+#YF7NWCYGGY4FMCKRTQUWJUADVQ7C4AVBHMYGHOUJ3M2RQD2VSZR3MO4GEWWC5BAQS2UOAIPGY4T26
+#\\\|6RGVM3O72INBTHW7Q26RJQP6CFFC23LVRBWC2JA6ADAUTEJZD4I \ / AMOS7 \ YOURUM ::
+#\[7]T3ANM37NOFMBEXEUSS2HZYAWPTYQNJGMNGO76RWT6ANZW4YBXUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
