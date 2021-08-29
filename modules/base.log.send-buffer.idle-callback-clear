@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = base.log.send-buffer.idle-callback-clear
+
+my $name = shift;    ## buffer name ##
+
+if ( not defined $name or not length $name ) {
+    warn 'expected buffer name <{C1}>';
+    return undef;
+} elsif (
+    not <[base.is_defined_recursive]>->(
+        sprintf qw| log.send-buffer.%s |, $name
+    )
+) {
+    <[base.s_warn]>->(
+        "send-buffer '%s' is not initialized yet <{C1}>", $name
+    );
+    return undef;
+} elsif (
+    not <[base.is_defined_recursive]>->(
+        sprintf qw| log.send-buffer.%s.wather.idle-send |, $name
+    )
+) {
+    return FALSE;    ## no callback installed ##
+}
+
+## stopping idle callback ##
+
+<log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}->cancel
+    if <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}->is_active;
+delete <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'};
+
+return TRUE;    ## callback stopped \ removed ##
+
+#,,..,.,.,.,.,.,.,.,,,...,...,,.,,,,.,.,,,,,,,..,,...,..,,.,,,,..,.,,,..,,,.,,
+#QYC2FWJFVJZ4IXC33B5UL6CXY33FPGJSLAHH53HW7EIBMLU527UZPI2XVKOODBHRAFFXLTVBRN3IU
+#\\\|HYMW7I47KKVJYEXEMMQ7LXZO67QMYF42CDCWPCVXFWBEYPJSRGD \ / AMOS7 \ YOURUM ::
+#\[7]6OF65W5ZSGJNWYJDVIFHKESMNKEJWRXD63E2MQYPMCSIOIR23SAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

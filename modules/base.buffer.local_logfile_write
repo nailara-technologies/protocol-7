@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = base.buffer.local_logfile_write
+# descr = local write to log file [ p7-log zenka ]
+
+my $name = shift // qw| zenka |;    ## buffer name ##
+
+state $local_sid //= [ keys <user.cube.session>->%* ]->[0];
+
+return FALSE                        ##  zenka not initialized yet  ##
+    if not <system.zenka.initialized>
+    or not defined $data{'session'}{$local_sid}{'cube_sid'};
+
+state $cube_sid //= $data{'session'}{$local_sid}{'cube_sid'};
+
+my $log_file_base_name = sprintf qw| %s.%s.%s |, <system.node.name>,
+    <system.zenka.name>, $name;
+
+my @log_lines;    ##  when first write all lines \ otherwise one  ##
+
+if ( not exists $data{'buffer'}->{$name}->{'local-write-mode'} )  ##[ init ]##
+{
+    ## all lines ##
+    foreach my $line ( $data{'buffer'}->{$name}->{'data'}->@* ) {
+
+        if ( $line =~ m|^\S+ (\d) | ) {    ## log level filter ##
+            next
+                if defined <system.verbosity.zenka_logfile>
+                and $LAST_PAREN_MATCH > <system.verbosity.zenka_logfile>;
+        }
+        push @log_lines, $line;
+    }
+    $data{'buffer'}->{$name}->{'local-write-mode'} = TRUE;
+
+} else {    ## only last line ##
+
+    my $last_index = $data{'buffer'}->{$name}->{'data'}->$#*;
+    @log_lines = $data{'buffer'}->{$name}->{'data'}->[$last_index];
+}
+
+foreach my $line (@log_lines) {
+
+    ( my $tstamp, my $log_line ) = split ' ', $line, 2;    ## adding sid ##
+
+    <[p7-log.add_line]>->(
+        $log_file_base_name, \join( ' ', $tstamp, $cube_sid, $log_line )
+    );
+}
+
+#,,..,..,,..,,,,,,,,.,,.,,,,.,...,.,.,,..,.,,,..,,...,..,,.,.,...,,,,,,..,,,.,
+#ZKWSL4I5FFTD3CG733L32TY7FSYLT6G6VHYM35GUXCOCMK36BOW4VD6E4GXLCDYPBRY6DEGCYJ6JK
+#\\\|SGPWACIE5I6HMBBGSSEPKNTH6GTEUYDRFORDDGZKKAUUVXWKETO \ / AMOS7 \ YOURUM ::
+#\[7]MNDAHJY5OPFCHPU54EKLXTHQFRHLPXTGAJ3UJCU4QRQT7RFOGABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

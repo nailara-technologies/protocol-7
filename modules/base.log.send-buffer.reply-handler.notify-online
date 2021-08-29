@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.log.send-buffer.reply-handler.notify-online
+
+my $reply = shift;
+my $name  = $reply->{'params'}->{'name'};    ## buffer name ##
+
+if (not <[base.is_defined_recursive]>->(
+        sprintf qw| log.send-buffer.%s |, $name
+    )
+) {
+    <[base.s_warn]>->( "send-buffer '%s' no longer exists <{C1}>", $name );
+    return undef;
+}
+
+my $b_ref = <log.send-buffer>->{$name};
+
+$b_ref->{'n.o.-asking'} = FALSE;             ##  reply arrived  ##
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {    ## zenka is present ##
+
+    $b_ref->{'paused'} = FALSE;           ## sending can begin \ resume ##
+
+} else {
+    $b_ref->{'paused'} = TRUE;    ##  some not expected error occurred  ##
+}
+
+##  retry sending or asking  ##
+<[base.log.send-buffer.idle-callback-set]>->($name)
+
+#,,..,.,,,,,.,.,,,...,.,.,..,,,..,.,,,..,,,,.,.,.,...,...,.,.,..,,,.,,..,,,,,,
+#EBCSYJRSRCBO33IQRFL4AKALK6DOQIHZND5VGTXVG5R5AIZABFXWKUOKEPXPTN3YWDATJWCUBVN4W
+#\\\|DK25SLD56E6V555GZ3LCD6FBAMSEWQ5GFS5IUG24TUTCVAALR3Y \ / AMOS7 \ YOURUM ::
+#\[7]LPKZHD54CQVCB4B446I45I7AQ7DS2HMKJQLE4LQVKK4DDAQZPKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

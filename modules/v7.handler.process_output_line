@@ -50,8 +50,8 @@ while (
     utf8::decode($zenka_output_line);
 
     ##  highlight non-standard output [ devmod lines ]  ##
-    if (    index( $zenka_output_line, "\e", 0 ) == -1
-        and index( $zenka_output_line, qw| . |, 0 ) == -1 ) {
+    if (    index( $zenka_output_line, "\e", 0 ) != 0
+        and index( $zenka_output_line, qw| . |, 0 ) != 0 ) {
         $zenka_output_line = sprintf(
             '%s%s. : <%s>  %s%s %s %s',
             $colors{'p7_fg_0001'}, $colors{'B02'},
@@ -104,8 +104,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,..,,,.,,,.,...,..,,..,,.,.,,,.,.,.,.,.,,.,,..,,...,...,..,,,.,,.,.,,..,,..,
-#4VE23WDSUZURYPM3YSNOYCSGS6HKGENDH5TJH45O7DGZHLC62HDVSBJ7WLW52VGONOGECTMUJT2VW
-#\\\|X6WTKQZGFTJYNO4JW7VPLFUHOXOMXHZT2JE6KDVB6LVSQESJLUP \ / AMOS7 \ YOURUM ::
-#\[7]Y4ORDV2U46CKOVXQLIOIJNXHW64FHVT6XY7MUJUXZDHPIDBELICI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,.,,,,,.,,,.,,,.,.,.,..,,.,.,..,,...,...,.,.,.,.,.,,,.,,,.,,,
+#USBNFHAWANH6IKNWZSSGQWUAV7OAA6M6U72ISRLCKD5V5TETDVWMKFAKH3NGMTEIJYAHXXRTNI422
+#\\\|TYAYCDH4DDYR4N46JZBQTQOI62OTNCMMB5JQLXH7ZBW6NKIDMLV \ / AMOS7 \ YOURUM ::
+#\[7]U4YZI7SZSMIDZU2FOXRESVFV5GQXYNLR5INLLGSNA7UI5QX3NOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

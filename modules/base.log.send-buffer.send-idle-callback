@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = base.log.send-buffer.send-idle-callback
+# todo  = implement alternative [non-local] ask-routes using nodes zenka
+
+my $name = length ref $ARG[0] ? shift->w->data : shift;    ## buffer name ##
+
+## path to target zenka.., ##
+my $route_prefix = <system.zenka.name> eq qw| cube | ? '' : qw| cube. |;
+my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
+
+if (not <[base.is_defined_recursive]>->(
+        sprintf qw| log.send-buffer.%s |, $name
+    )
+) {
+    <[base.s_warn]>->( "send-buffer '%s' no longer exists <{C1}>", $name );
+    return undef;
+}
+
+##  removing idle callback reference  ##
+delete <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'};
+
+my $b_ref = <log.send-buffer>->{$name};
+
+( my $target_zenka = $log_send_cmd ) =~ s|\..+$||;   ##[ only local routes ]##
+
+if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
+
+    if ( <system.zenka.name> eq qw| v7 | ) {
+
+        ##  checking v7 registry for target zenka  ##
+
+        ## check if already online ##
+
+        if ( $b_ref->{'paused'} ) {
+            <v7.status-request.log-target-zenka>->{$target_zenka} = TRUE;
+        }
+
+    } elsif ( <system.zenka.name> eq qw| cube | ) {
+
+        ##  checking cube sessions for target zenka  ##
+        $b_ref->{'paused'} = TRUE;
+        if ( ( my $session_id ) = keys $data{'user'}{$target_zenka}->%* ) {
+            $b_ref->{'paused'} = FALSE
+                if $data{'session'}->{$session_id}->{'initialized'};
+        }
+
+        if ( $b_ref->{'paused'} ) {
+            <cube.status-request.log-target-zenka>->{$target_zenka} = TRUE;
+        }
+
+    } else {    ## other zenki using 'v7.notify_online' command ##
+
+        ##  implement p7-log specific command  ## [ LLL ]
+
+        <[base.protocol-7.command.send.local]>->(
+            {   qw| command | =>
+                    join( '', $route_prefix, qw| v7.notify_online | ),
+                qw| call_args | => { qw| args | => $target_zenka },
+                qw| reply |     => {
+                    qw| handler | =>
+                        qw| base.log.send-buffer.reply-handler.notify-online |,
+                    qw| params | => { qw| name | => $name }
+                }
+            }
+        );
+    }
+
+    $b_ref->{'n.o.-asking'} = TRUE;
+
+} elsif ( scalar $b_ref->{'data'}->@* ) {
+
+    ##  target zenka online, sending log request  ##
+    my $line_sref = $b_ref->{'data'}->[0];
+
+    my @send_line;    ##  composing log message parameters  ##
+
+    ##  'source sid' command [ protocol ] mode expected  ##
+    if ( <system.zenka.type> eq qw| cube | ) {   ##  manual for cube zenka  ##
+        push @send_line,                         ##[ cube has sid 0 ]##
+            join( '.', <system.node.name>, <system.zenka.name> ), 0;
+    }
+
+    ##  log buffer name and message  ##
+    push @send_line, $name, $line_sref->$*;
+
+    <[base.protocol-7.command.send.local]>->(
+
+        {   qw| command | => join( '', $route_prefix, $log_send_cmd ),
+
+            'call_args' => { qw| args | => join ' ', @send_line },
+
+            qw| reply | => {
+
+                'handler' => 'base.log.send-buffer.reply-handler.send-reply',
+
+                qw| params | => { qw| name | => $name }
+            }
+        }
+    );
+
+    $b_ref->{'waiting'} = TRUE;    ## register outstanding request reply ##
+
+}
+
+#,,,,,..,,.,.,..,,.,.,,,.,...,,..,...,..,,,,.,.,.,...,..,,..,,,..,.,,,,,.,..,,
+#JLSCVNKB7DXPFIT4JOK7I7IPB63THPX7ZRVHNBUVHLMBSJTVKLEPBVACDMSSIDVCYQXVGTFK6KX7A
+#\\\|PIOKOY7D3AY7AUGUDPDXGSW4OFY5264YJ2XNHVHHPPNXGZF3PSC \ / AMOS7 \ YOURUM ::
+#\[7]EDPNIR5LO246NWPPXMVKNMCIA3YQHLIBLZX6EM2XEEAXNHLCUABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

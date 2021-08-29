@@ -59,6 +59,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             delete $keys{'auth'}{'zenka'}{$user};
             $output->$* .= "AUTH_TRUE =)\n";
 
+            ##  process custom input priority settings  ##
+            ##
             if (<[base.is_defined_recursive]>->(
                     sprintf qw| user.%s.input-priority |, $user
                 )
@@ -75,6 +77,33 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
                 "[%u] zenka '%s' session authorized.",
                 $id, $auth_name
             );
+
+            ## process log-target zenka coming online ##
+            ##
+            if (<[base.is_defined_recursive]>->(
+                    sprintf qw| cube.status-request.log-target-zenka.%s |,
+                    $user
+                )
+            ) {
+                foreach my $name ( keys $data{'buffer'}->%* ) {
+                    my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
+                    next
+                        if    ##  different log target zenka  ##
+                        index( $log_send_cmd, sprintf( qw| %s. |, $user ), 0 )
+                        != 0;
+                    ##  start or resume logging  ##
+                    <log.send-buffer>->{$name}->{'paused'}      = FALSE;
+                    <log.send-buffer>->{$name}->{'n.o.-asking'} = FALSE;
+                    <[base.log.send-buffer.idle-callback-set]>->($name);
+                }
+
+                ## cleaning up ##
+                delete <cube.status-request.log-target-zenka>->{$user};
+                <[base.clean_hashref]>->(<cube.status-request>);
+                delete <cube.status-request>
+                    if not keys <cube.status-request>->%*;
+            }
+
             return ( 0, $user );
         } else {
             <[base.logs]>->(
@@ -100,8 +129,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,,,,.,,,...,,.,,.,,,...,..,,,,.,..,,..,,.,,,..,,...,...,..,,.,,,.,.,,..,,..,
-#FKR34T53KEYJ6LBRJCUO4MZ4MVAWC4VQONEAPQWDR4QVVLDYAIK34RAOYZIXFYGIWWK3D6TYDGUWI
-#\\\|T2P6EFD7ABOLXOFEVQXAE4B3OFPKGBNWACEIKSLUMLY5YYX6ZAD \ / AMOS7 \ YOURUM ::
-#\[7]WJ7IYLRZ6VQE4CXL5EQRE4G7COGJFMPK5DMW3I76KLBVFN5XTYBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,,,.,,,,,,,,,.,.,...,,,,,.,.,..,,...,..,,.,,,,.,,,..,.,.,.,,,
+#S3NTCYHXC3SEYJN3IW2XGHLPEC6HHJLHL3WSKQCFOZCGKQBWLY245V7KDEK3MNGD2JHL5TB72LHBC
+#\\\|MCO4MPVTM7CNFLZNVQVVV6WE2DTNK7KYOGDTSD2E45LOG2QBKDW \ / AMOS7 \ YOURUM ::
+#\[7]QI2L7ST3CXXKWLP2MGGWZ5LZZZWWCL42RARDVEF33QRYPQQNAMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

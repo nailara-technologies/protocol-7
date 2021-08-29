@@ -13,16 +13,40 @@ if ( ref $event->w ne qw| Event::var | ) {
 my $value_ref    = $event->w->var;
 my $overflow_bit = $event->w->data;
 
+my $callback_cref;    ## optional callback ##
+my $cb_params;
+
 if ( ref $value_ref ne qw| SCALAR | ) {
     warn 'event var param does not contain scalar ref';
     return undef;
-} elsif ( not defined $overflow_bit
-    or $overflow_bit !~ m|^\d{1,2}$|
-    or $overflow_bit < 1
-    or $overflow_bit > 64 ) {
+} elsif ( ref $overflow_bit eq qw| HASH | ) {
+    my $callback_param_ref = $overflow_bit;
+    undef $overflow_bit;
+
+    $callback_cref = $callback_param_ref->{'callback'}
+        if ref $callback_param_ref->{'callback'} eq qw| CODE |;
+
+    $cb_params = $callback_param_ref->{'callback-params'}
+        if exists $callback_param_ref->{'callback-params'};
+
+    $overflow_bit = $callback_param_ref->{'overflow-bit'}
+        if exists $callback_param_ref->{'overflow-bit'};
+}
+
+$overflow_bit //= 63;
+
+if (defined $overflow_bit
+    and (  $overflow_bit !~ m|^\d{1,2}$|
+        or $overflow_bit < 1
+        or $overflow_bit > 64 )
+) {
     warn 'event data expected to contain numerical overflow bit [1..64]';
     return undef;
 }
+
+##  invoke callback when present  ##
+##
+$callback_cref->( $cb_params // $value_ref->$* ) if defined $callback_cref;
 
 ##  reset at overflow limit  ##
 #
@@ -35,8 +59,8 @@ if (index( sprintf( qw| %0*b |, $overflow_bit, $value_ref->$* ), 1, 0 ) == 0 )
 #
 ##
 
-#,,..,.,.,.,,,.,,,.,,,.,.,,,.,.,,,...,...,...,..,,...,...,...,,.,,,,.,,,.,,,.,
-#7CQ24YQ2SERBWI5TVLDUYJU4WQV2AHRRSY4U3QZW46V5CJSKKKTYVCYLZJHWJABH2B56UJ44BILV6
-#\\\|PT34VKB4OFLUXYUMGPIR5WUQFACIFAPDJFPRGNYS56XMJDESQJC \ / AMOS7 \ YOURUM ::
-#\[7]6S2EVVTS4J7R3F42TKIWYR6N3CYHUXYKOOPXKHMWQPLV276T5ABY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,..,,,,.,.,,,,.,,,,.,...,...,..,,...,..,,,.,,,,,,,.,,..,,,..,
+#DMLYZAL3ITD2WT7DQ2ICIWYCKCODCVWAUIHBTCDAR2FIREUZ4PZ3OOP5SCEIEJVH4CJCJOVSJ6BDG
+#\\\|L2CSAJPP5O5DADDUKXXX6EBRGXXO53W5UF6EWVGK4HS4KBEGW3B \ / AMOS7 \ YOURUM ::
+#\[7]3VPVEMD6UAJTDWHVFNR4WCAX3OZ2R2YBCIEOB7QELRSRNMUDJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

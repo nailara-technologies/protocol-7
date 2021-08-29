@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.buffer.add_line
-# descr = write log messages to buffer and screen
+# descr = write log messages to buffer [ optionally send ]
 
 my $name          = shift;
 my $log_message   = shift;  # <-- <t-stmp>  <lvl>   <msg>
@@ -9,15 +9,16 @@ my $log_cmd_level = shift;  # <-- [lvl] <-- optional log level [ for log_cmd ]
 
 my $min_b_size = 13747;
 
-$code{'base.log'} //= $code{'log.noerr'} // sub { say "<< $ARG[1] >>" };
+$code{'base.log'} //= $code{'log.noerr'}
+    // sub { say sprintf '<< %s >>', $ARG[1] // qw| [UNDEFINED] | };
 
 if ( not length( $name // '' ) ) {
     <[base.log]>->( 1, 'add_ram_log: no buffer name supplied' );
     warn 'expected buffer name <{C1}>';
-    return -1;
+    return undef;
 } elsif ( $name !~ m|^[\w\-_]{1,24}$| ) {
     <[base.s_warn]>->( "invalid buffer name '%s' specified <{C1}>", $name );
-    return -1;
+    return undef;
 }
 
 my $buffer_size = $data{'buffer'}->{$name}->{'max_size'};
@@ -53,7 +54,7 @@ if ( not defined $buffer_size or $buffer_size < $min_b_size ) {
             0, "<<< log buffer size too small, using %s for '%s' buffer >>>",
             $size_str, $name
         );
-    } elsif ( !$default_found ) {
+    } elsif ( not $default_found ) {
         <[base.logs]>->(
             "no log buffer size set [using %s for '%s']",
             $size_str, $name
@@ -73,7 +74,7 @@ if ( $message_len > $buffer_size ) {
         $buffer_size,
         $message_len
     );
-    return 0;
+    return FALSE;
 }
 
 my $buffrs = $data{'buffer'} //= {};
@@ -83,49 +84,53 @@ $buffrs->{$name}->{'size'} //= 0;
 push $buffrs->{$name}->{'data'}->@*, $log_message;
 $buffrs->{$name}->{'size'} += $message_len + 1;    ## <--[\n]
 
+##  handle buffer size overflow  ##
+##
 while ( $buffrs->{$name}->{'size'} + $message_len > $buffer_size ) {
 
     my $deleted_bytes = length $buffrs->{$name}->{'data'}->[0];
 
+    ##  removing first [ oldest ] line  ##
     undef $buffrs->{$name}->{'data'}->[0];
     shift $buffrs->{$name}->{'data'}->@*;
 
+    ##  updating line counter and index  ##
     $buffrs->{$name}{'overrun'}{'count'}++;
     $buffrs->{$name}{'overrun'}{'lost_bytes'} += $deleted_bytes + 1; ##<--[\n]
 
     $buffrs->{$name}->{'size'} -= ( $deleted_bytes + 1 );
-    if (    exists <log.file>->{$name}
-        and exists <log.file>->{$name}->{'start_index'} ) {
-        <log.file>->{$name}->{'start_index'}--
-            if <log.file>->{$name}->{'start_index'} > 0;
-        <log.file>->{$name}->{'next_index'}--
-            if <log.file>->{$name}->{'next_index'} > 0;
+
+}
+
+#[ LOGGING TO NETWORK \ FILE ]################################################
+
+if ( defined $buffrs->{$name}->{'log_cmd'}
+    and length $buffrs->{$name}->{'log_cmd'} ) {
+
+    return TRUE    ## skip not relevant log-level ##
+        if defined <system.verbosity.zenka_logfile>
+        and $log_cmd_level > <system.verbosity.zenka_logfile>;
+
+    if ( <system.zenka.name> eq qw| p7-log | ) {
+        ##  p7-log zenka local logging  ##
+        return <[base.buffer.local_logfile_write]>->($name);
+
+    } else {       ## logging to network ##
+
+        ##[  copy entry reference to send \ write queue  ]##
+        my $entry_index = $buffrs->{$name}->{'data'}->$#*;
+        <[base.log.send-buffer.add-queue]>->(
+            $name, \$buffrs->{$name}->{'data'}->[$entry_index]
+        );
     }
 }
 
-return if not <[base.cfg_bool]>->(<base.log.allow_buffer_send>);
+#    #########################################################################
 
-if (    defined $buffrs->{$name}->{'log_cmd'}
-    and length $buffrs->{$name}->{'log_cmd'}
-    and (  $name ne qw| zenka |
-        or not defined $log_cmd_level
-        or not defined <system.verbosity.zenka_logfile>
-        or $log_cmd_level <= <system.verbosity.zenka_logfile> )
-) {
-    my $buffer_index = scalar( $buffrs->{$name}->{'data'}->@* ) - 1;
+return TRUE;    ##  true  [ added to buffer ] ##
 
-    if ( defined $code{'base.log.send_buffer_line'} ) {
-
-        <[base.log.send_buffer_line]>->( $name, $buffer_index )
-            if not exists $data{'p7-log'}
-            or not exists <log.file>
-            or not exists <log.file>->{$name}
-            or <log.file>->{$name}->{'complete'};
-    }
-}
-
-#,,.,,.,,,,,.,..,,..,,,,,,.,.,,,.,,,,,,,.,,,,,..,,...,...,...,.,.,.,.,,.,,.,.,
-#GFQIZQGZI2LS7HJAHICOV3EIH5HJ2WPAIZH3KD4O2GIHUMBJUPEHYOF34T75FQMDQ7DVBGQRN2Y22
-#\\\|2AGDS2IZOLZE4GDE2KA5WM3FIPZJYJAON3B23AOUQ77XK33CHRV \ / AMOS7 \ YOURUM ::
-#\[7]RNPJIIO6VFVSYFVBZRBEERMMHQPUGTA5DIBLFK3VESYI7MTRDMBY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,,,,,..,,,..,.,.,..,,.,,,.,.,..,,...,...,..,,.,,,,..,,,,,.,,,
+#TMLK3LKJP62LDGJ3B75ZTSOQBMNUMLET6GR4EXAJ2IPVOU4K3NYHON3H35ZJYVKUXMXHKOEH4V47Q
+#\\\|7ABMBKVR7Q6GG6G3FSL35HFX6SFEOYAPHTDHTRTBNN3ETE5EOQJ \ / AMOS7 \ YOURUM ::
+#\[7]JPSAYGVGXZWIGIN5WNAJ7P327PT6RSMOPYJCRBHV5MK5PPO5UIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
