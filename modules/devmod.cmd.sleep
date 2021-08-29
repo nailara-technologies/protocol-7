@@ -1,4 +1,4 @@
-#![:<
+## [:< ##
 
 # name  = devmod.cmd.sleep
 # param = <seconds>
@@ -51,13 +51,15 @@ if ( not defined $seconds or $seconds !~ /^\d+(\.\d+)?$/ or !$seconds ) {
     my $slept_str = sprintf( "%.${fp}f", $slept_time );
     $woke = ' (woke up early!)' if $slept_time < $seconds;    # !hires?
     <[base.log]>->( 1, "[$session_id] (!) \\o/ .. done sleeping!$woke" );
-    $s = !$fp && $slept_str == 1 ? '' : 's';
-    $reply
-        = { 'mode' => qw| true |, 'data' => "slept $slept_str second$s" . $woke };
+    $s     = !$fp && $slept_str == 1 ? '' : 's';
+    $reply = {
+        'mode' => qw| true |,
+        'data' => "slept $slept_str second$s" . $woke
+    };
 }
 
-#,,..,,,,,...,,,.,..,,.,.,.,,,..,,..,,..,,,..,..,,...,.,.,.,.,,.,,...,..,,,..,
-#H2CTHXSPI5K6KBJTU3BE27NKGP34KTBPVCV4TKGAYE4WOK7PW5MUKMWMEVFEDSAJ6WSXY32M3PTF2
-#\\\|GZAHGPSDBNDBLRQVP4B64TTWZDRBYHYMSKO7LIXMBJ2XUW6H2X3 \ / AMOS7 \ YOURUM ::
-#\[7]W4QTE3SRHSJJSN4WAOQBJVM5UOK5N4YX4QVY3FVFFKI6NMQYDGBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,,.,,,,.,...,...,,,,,.,.,,.,,..,,...,...,,..,...,,..,..,,.,.,
+#BNXFDXULFIV32MCUT65CPGNJTXDPCYFNWVFDPTIW6ZRI5BOJ55P5P32HBEMWHW6EDOHZDYYWAZKLS
+#\\\|TSRI26GZUC3DZX5MYC33D24ID2SYN5XWDRCW5PYMADERLFCR3TG \ / AMOS7 \ YOURUM ::
+#\[7]RBFEVY56SIKBDUW7QYJ6BVUMXDTOZZHU3GUBRBF7J74PGTJAGSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
