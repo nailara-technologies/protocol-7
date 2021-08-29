@@ -77,10 +77,43 @@ if ( -d $file_abs_path ) {
     return undef;
 }
 
+if ( $open_mode_str eq qw| > | and -f $file_abs_path ) {
+
+    if ( not unlink($file_abs_path) ) { ## removing file [ overwrite mode ] ##
+        <[base.s_warn]>->(
+            'unlink[ %s ] : %s',
+            $filepath_rel, <[base.str.os_err]>
+        );
+        <[base.s_warn]>->(
+            "file write aborted [ %s ] <{C1}>",
+            $file_abs_path
+        );
+        return undef;
+    }
+}
+
 my $fh = <[file.open]>->(
     $file_abs_path, $encoding_str, $open_mode_str, TRUE, $file_mode
 );
 if ( not defined $fh or not length fileno($fh) ) {
+    <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
+    return undef;
+}
+
+my $uname = <system.amos-zenka-user>;    ## <-- protocol-7 user ##
+##
+my ( undef, undef, $uid, $gid ) = getpwnam $uname;
+
+if ( not chown( $uid, $gid, $file_abs_path ) ) {
+    <[base.s_warn]>->(
+        'chown [%d:%d] %s : [ %s ] <{C1}>',
+        $uid, $gid, $filepath_rel, <[base.str.os_err]>
+    );
+    unlink($file_abs_path)    ## removing again [ not intended owner ] ##
+        or <[base.s_warn]>->(
+        'unlink[ %s ] : %s',
+        $filepath_rel, <[base.str.os_err]>
+        );
     <[base.s_warn]>->( "file write aborted [ %s ] <{C1}>", $file_abs_path );
     return undef;
 }
@@ -98,8 +131,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,,,,.,,..,,,,.,..,,,..,..,,..,,.,,,.,.,,.,,..,,...,...,,..,...,,,.,,..,...,
-#6KE4TX3HQIMHNOM2U6KOQ7WN6ELC6GZJ46L5BE6WF33PNWGNKXVBMDD7SJMPPXOQFTKRNR4BWY62Y
-#\\\|DUCC4CZVYZDOOUY24F3AGCV25IOO4UEHDQJ5YPSJ22ATC4HI6Y2 \ / AMOS7 \ YOURUM ::
-#\[7]TGQQRK2327JIZOZ37U57VOQV7GUSXMXQXYZW6II6WPRXMVCV3UCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,.,..,,,,,,..,,,,,,,..,.,.,,..,..,,...,...,...,,,.,.,,,,,.,,,.,
+#T5DNTY54JXMGKRR4MSHXPPLGEIOJ7FLGTFBT74RXQEY5STV3C7NBEBGNFTGQCTAGDV53VCBGJZIP6
+#\\\|GUI2P3UGJUYVAWYH4KZBFT74XE2CLMRXBFZHWI4RKN5RGACDCIV \ / AMOS7 \ YOURUM ::
+#\[7]5ZOCOSSBBSP33B2BBAP3SCOXXUS6AZA3SASPZJ5VMTCKQ4HTA4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
