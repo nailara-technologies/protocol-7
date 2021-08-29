@@ -10,7 +10,7 @@ $wait_title_str .= '[' . <system.zenka.subname> . ']'
 $wait_title_str =~ s|([\[\]\.])|\\$1|g;
 if ( not defined <[base.X-11.wait_for_window]>->($wait_title_str) ) {
     <[base.log]>->( 0, "<<<!>>> mpv window creation timed out <<<!>>>" );
-    <[mpv.abort_startup]>;    # <-- exiting
+    <[mpv.callback.abort_startup]>;    # <-- exiting
 } else {
     <[base.X-11.assign_window]>->(<x11.id>);
     if ( <system.zenka.mode> eq 'universal-child' ) {
@@ -22,8 +22,8 @@ if ( not defined <[base.X-11.wait_for_window]>->($wait_title_str) ) {
     }
 }
 
-#,,..,,,,,,..,,.,,,.,,,..,,,,,...,...,..,,.,,,..,,...,...,,..,.,,,..,,,.,,.,,,
-#RL7D3S35KKPGIFQBM2G2AEQH46DOWIE3JR4VSR6BIDQEPAHV3GEDMQITMT22T5JBTBR74YZHWPUDI
-#\\\|HNZI25Q7E3U45PZG3B4XC24GKXKRQITRAARRZQC6I3XHY3ZEWBZ \ / AMOS7 \ YOURUM ::
-#\[7]AQMTHVUFDDWSBZI2YGRWHIM6IA57IA4JLBZSB5VA4FBAZCJT3IDA 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,,,..,,.,,,,.,,,,,,,,.,.,,,,..,..,,...,...,,..,.,.,.,.,..,,.,,,
+#MNEJNXZRUW4OUGHWUNXV2U5MHGILNZEQADQZQM7ZVLDLQQBHDU73LKVRVSUZIU4D462K3P6I66CQ6
+#\\\|5A2ZOC2T67PMX6VHYONML43D4NOPCWOGIGRJWLOATD5CVCOAVHL \ / AMOS7 \ YOURUM ::
+#\[7]UADVAXQHENTSW5HCNFQS2Q6YWG2RACY6ZDREEGBEU7W5OHEZRAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
