@@ -23,29 +23,21 @@ my $log_index     = 0;
 my $removed_bytes = 0;
 my $start_lines   = scalar <buffer.zenka.data>->@*;
 
-my $iteration_match = 0;
-
 while ( $log_index < scalar <buffer.zenka.data>->@* ) {
-    my $line_level = ${^CAPTURE}[0]
+
+    my $line_level = ${^CAPTURE}[0]    ## log level of current line ##
         if <buffer.zenka.data>->[$log_index] =~ m|^\S+ (\d+) |;
+
     ++$log_index and next if $line_level < $log_level;    ## keeping entry ##
     my $bytes_line = length <buffer.zenka.data>->[$log_index];
+
     ## remove current line from array ##
     splice <buffer.zenka.data>->@*, $log_index, 1;
 
-    my $line_count = scalar <buffer.zenka.data>->@*;
-    $log_index-- if $line_count <= $log_index;
-
+    ##  updating [ used ] buffer size  ##
     <buffer.zenka.size> -= $bytes_line;
     $removed_bytes += $bytes_line;
 
-    if ( <[base.is_defined_recursive]>->(qw| log.file.zenka |)
-        and ref <log.file.zenka> eq qw| HASH | ) {
-        ##  adjusting current value  ##
-        <log.file.zenka.next_index>--
-            if <log.file.zenka.next_index> > 0
-            and <log.file.zenka.next_index> >= $log_index;
-    }
 }
 
 my $cleaned_lines = $start_lines - scalar <buffer.zenka.data>->@*;
@@ -54,20 +46,18 @@ return { 'mode' => qw| false |, 'data' => 'no lines removed [ no match ]' }
     if not $cleaned_lines;
 
 <[base.logs]>->(
-    "[%d] << cleared log level %d [incl.] from zenka buffer [ %d b ] >>",
-    $id, $log_level, $removed_bytes
+    "[%d] << cleared log level %d from buffer [ %d lines ] [ %d b ] >>",
+    $id, $log_level, $cleaned_lines, $removed_bytes
 );
 
 return {
     'mode' => qw| true |,
-    'data' => sprintf(
-        '%d lines pruned from zenka buffer [ %d bytes ]',
-        $cleaned_lines, $removed_bytes
-    )
+    'data' => sprintf '%d lines pruned from zenka buffer [ %d bytes ]',
+    $cleaned_lines, $removed_bytes
 };
 
-#,,.,,..,,..,,,,,,,,,,.,,,,,.,,..,,,.,.,.,,.,,..,,...,...,,,.,.,.,.,,,.,.,,.,,
-#6QBHF2O3WT7OXHYRBYBN7N7JKV66VK5KMY2YMS5G4WPCPKSNDZRWQZ5Z2TPJFKFFRFS3S7ZVMPFOW
-#\\\|W4NSS7MUUHZ2HNFDX3SXZTW7AKX4ZPC7O7NPPNDLBDYEQ42ODBH \ / AMOS7 \ YOURUM ::
-#\[7]T3EKGA3CULZJRCE4C6ZDYEA6XSTZBGFS42V6PP4WISYSJQK3FCCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,..,,,,,,,..,,,.,,.,,.,,,...,..,,...,...,,..,..,,.,.,.,,,...,
+#F35TBU2ARVGWRJNOCVVXLVYBV7KRACUAL6RPJ5BGJXQXDF3YU3EOSYAHSWV4OXSZTZI6SCZWS5O46
+#\\\|XVR3TMLD64JRBU6A2QKB4NH2G7RRLD7S4ZUTL6ENNU2EQMPLQCX \ / AMOS7 \ YOURUM ::
+#\[7]TN35PIEXGSLVS74CL4B3HTCKE5BYWDG4JSDHTROGY2WNXF7WCWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

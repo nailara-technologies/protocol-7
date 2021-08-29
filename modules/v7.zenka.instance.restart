@@ -24,13 +24,22 @@ if ( not defined $zenka_name ) {
     "restarting instance %u ['%s'].,",
     $instance_id, $zenka_name
 );
-<[base.log]>->( 2, ": <<< parent_pid not defined >>> [ race condition ]" )
+<[base.log]>->( 2, ': <<< parent_pid not defined >>> [ race condition ]' )
     if not defined $parent_pid;
 
 <[v7.stop_heartbeat_timer]>->($instance_id);
 
 delete <callback.session.closing_last> if $instance->{'is-cube'};
 delete $instance->{'restart_delay'};    # reset
+
+##[ shortened restart delay.., ]##
+##
+if ( defined $instance->{'timer'}->{'restart'}
+    and $instance->{'timer'}->{'restart'}->is_active ) {
+    <[base.log]>->( 2, ': stopping already active restart timer..,' );
+    $instance->{'timer'}->{'restart'}->cancel;
+    delete $instance->{'timer'}->{'restart'};
+}
 
 my $restart_timeout
     = defined <sigterm.timeout>
@@ -70,8 +79,8 @@ $instance->{'timer'}->{'restart_timeout'}->{$restart_id}
 <[zenka.change_status]>->( $instance_id, qw| restart | );
 <[v7.terminate_process]>->($parent_pid) if defined $parent_pid;
 
-#,,,,,..,,.,.,,,.,,..,...,.,,,.,.,,,,,..,,...,..,,...,...,...,.,.,...,..,,.,.,
-#V5DLCMIDNAKSRGLSN7INPESVL62N4IZFEURTEOYBPQYMXQP6Z2BNCQY4BNE6H5EVI3F2MYJTZBPHA
-#\\\|DVJBD64MQBVTFE2QDYCKLMKT4BYNMYMS72R6E6UC4SU6DSXSE24 \ / AMOS7 \ YOURUM ::
-#\[7]HDAFXIX6F5XXJB4MYQ2TJUEXA34SBXW4H66NSZDY6A3GZ55UCEDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,..,,,,,,,..,,,.,,,.,...,,,.,...,..,,...,..,,...,.,.,..,,..,,,,,,
+#OJBGGZIAFKXVXYBVGTE3XZLAUU6F42KUP7ENF32R5GGFJG6WA3ZMG76ROCOX27GS4TFCWSR4MYYTQ
+#\\\|4OWO3HFXRYAF6JRZ7HDJYIOAK7K2FKDIXEYBIBRG2GMDK2T63PC \ / AMOS7 \ YOURUM ::
+#\[7]ANLIDZTDQCDCTB6DCAH5L6CMQYLA7UIN26MM6YSMFKWVBGE4M4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,33 +1,46 @@
 ## [:< ##
 
 # name  = base.event.add_var
-# descr = install variable (access) watcher
+# descr = install variable [access] watcher
 
-return undef
-    if ref( $_[0] ) ne 'HASH'
-    and warn 'base.event.add_var: expected a hash reference <{C1}>';
-my $callback = ${ $_[0] }{'handler'};
-return undef
-    if not defined $callback
-    and warn "base.event.add_var: callback ['handler'] is missing <{C1}>";
-return undef
-    if not defined $code{$callback}
-    and warn "base.event.add_var: callback '$callback' does not exist <{C1}>";
+my $params = shift;
 
-return Event->var(
-    'poll'      => ${ $_[0] }{'poll'}      // 'w',
-    'reentrant' => ${ $_[0] }{'reentrant'} // 1,
-    'repeat'    => ${ $_[0] }{'repeat'}    // 1,
-    'prio'      => ${ $_[0] }{'prio'}      // 2,
-    'async'     => ${ $_[0] }{'async'}     // 0,
-    'desc'      => ${ $_[0] }{'desc'}      // "${ $_[0] }{'var'}",
-    'var'       => ${ $_[0] }{'var'},
-    'cb'        => sub { &{ $code{$callback} } },
-    'data'      => ${ $_[0] }{'data'}
+if ( ref $params ne qw| HASH | ) {
+    warn 'base.event.add_var: expected a hash reference <{C1}>';
+    return undef;
+}
+my $callback = $params->{'handler'};
+if ( not defined $callback ) {
+    warn "base.event.add_var: callback ['handler'] is missing <{C1}>";
+    return undef;
+} elsif ( not exists $code{$callback} ) {
+    <[base.s_warn]>->(
+        "base.event.add_var: callback '%s' does not exist <{C1}>", $callback
+    );
+    return undef;
+} elsif ( not length ref $params->{'var'} ) {
+    warn 'base.event.add_var: expected reference <{C1}>';
+    return undef;
+}
+
+<[base.perlmod.autoload]>->('Event')   ##  autoload for early availability  ##
+    if not <[base.perlmod.loaded]>->('Event');
+
+return Event->var(                     ##  registering var watcher  ##
+    'poll'      => $params->{'poll'}      // qw| w |,
+    'reentrant' => $params->{'reentrant'} // TRUE,
+    'repeat'    => $params->{'repeat'}    // TRUE,
+    'prio'      => $params->{'prio'}      // 2,
+    'async'     => $params->{'async'}     // FALSE,
+    'desc'      => $params->{'desc'}      // $params->{'var'},
+    'var'       => $params->{'var'},
+    ## wrapped for code reloading ##
+    'cb'   => sub { &{ $code{$callback} } },
+    'data' => $params->{'data'}
 );
 
-#,,..,..,,...,...,,.,,...,..,,,,.,,,.,...,,,.,..,,...,..,,...,,.,,.,,,..,,.,.,
-#SSUKCY2RVAFY3FR2QBIKEE2H7O4423TI3DB5YRCN4SPVJ7CIL2GWO4EOXGWYVKYUCJTWVPUFVYESM
-#\\\|DAWYWD63ZUWREDZB5PSJEAKQPKXZKSZH5OJRNHVYSP6EYMYB4JJ \ / AMOS7 \ YOURUM ::
-#\[7]GAXZ6G42KOUSPCHZL3RO55FU4B3PMJVABNL2GK3MGZYGYTDRY6AA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,.,,,.,,,..,,,..,,.,,,.,,...,..,,...,...,..,,,,.,..,,..,,..,,
+#AROFKBROLVBELIDB674WX4I6X6EQ2JDL5FPWILPKZQKMCVBF6XRO5GUQ5ZWE3TFXNNMJGUAEACY4E
+#\\\|JF67RQUULOSI7VBHBUYKLONSHY2YMZZ5GOK7DKRUHPJJFOFDGC7 \ / AMOS7 \ YOURUM ::
+#\[7]FGJP5IRLI2YYGJYHK6UEOXVBIILXDUUHY5JWIOILOSGO4VWD6SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
