@@ -161,7 +161,10 @@ foreach my $_dir ( split qw| / |, $path ) {
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
         if ( not unlink($path) ) {
-            <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
+            <[base.s_warn]>->(
+                'unlink[ %s ] : %s',
+                $path, <[base.str.os_err]>
+            );
         }
         return undef;
     }
@@ -174,7 +177,10 @@ foreach my $_dir ( split qw| / |, $path ) {
             );
             <[base.logs]>->( 0, 'removing %s [ chown failed ]', $path );
             if ( not unlink($path) ) {
-                <[base.s_warn]>->( 'unlink[ %s ] : ', <[base.str.os_err]> );
+                <[base.s_warn]>->(
+                    'unlink[ %s ] : %s',
+                    $path, <[base.str.os_err]>
+                );
             }
             return undef;
         }
