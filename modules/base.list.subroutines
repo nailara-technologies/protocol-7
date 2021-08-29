@@ -1006,7 +1006,7 @@ return [ qw[
         base.parser.pattern_split
         base.parser.element_count
         base.ntime.epoch_to_ntime
-        base.log.send_buffer_line
+        base.log.send-buffer.init
         base.log.auto_decay_check
         base.is_defined_recursive
         base.handler.whoami_reply
@@ -1097,7 +1097,6 @@ return [ qw[
         base.parser.data_hkey_tree
         base.ntime.epoch_timestamp
         base.max-len.val-hash-keys
-        base.log.handler.log_reply
         base.handler.session_error
         base.file.read_timestamped
         base.file.path.chksum.AMOS
@@ -1187,7 +1186,6 @@ return [ qw[
         base.parser.ondemand_status
         base.ntime.harmonized_epoch
         base.log.next_buffer_tstamp
-        base.log.handler.send_timer
         base.handler.warn_nak_reply
         base.file.write_timestamped
         base.file.gen_path_linkname
@@ -1416,6 +1414,7 @@ return [ qw[
         base.root.convert-user.nailara
         base.p7refs.get_refaddr_prefix
         base.number-cache.true_upwards
+        base.log.send-buffer.add-queue
         base.handler.sig_chld.shutdown
         base.comp-int.decode_to_buffer
         base.chk-sum.amos.calc_version
@@ -1468,6 +1467,7 @@ return [ qw[
         base.number-cache.get-templates
         base.inotify.install_io_watcher
         base.chk-sum.jha.b32.harmonized
+        base.buffer.local_logfile_write
         X-11.cancel_wait_visible_timers
         X-11.callback.display_connected
         X-11-pointer.cmd.restore-cursor
@@ -1672,6 +1672,7 @@ return [ qw[
         keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
+        base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
         weather.parent.handler.station_id_reply
         ticker-sdl.parent.handler.cmd_read_file
@@ -1680,6 +1681,7 @@ return [ qw[
         base.perlmods.reload.reload_blacklisted
         base.perlmods.blacklist_collision_index
         base.parser.chk-sum.embedded-code-style
+        base.log.send-buffer.send-idle-callback
         base.init_zenka.install_signal_handlers
         base.chk-sum.amos.truth_template_chksum
         weather.parent.handler.coordinates_reply
@@ -1689,6 +1691,7 @@ return [ qw[
         protocol.sftp.handler.read_server_outout
         mpv.handler.event.property-change.volume
         mpv.handler.event.property-change.height
+        base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
         sourcecode.console.undo-checksum-symlinks
@@ -1714,15 +1717,17 @@ return [ qw[
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
         image2html.parent.handler.convert_image_reply
+        base.log.send-buffer.reply-handler.send-reply
         X-11.background.chksum-cache.reload_from_file
         mpv.handler.event.property-change.video-aspect
         protocol.protocol-7.protocol-version-path-set-up
+        base.log.send-buffer.reply-handler.notify-online
 
     ]
 ];
 
-#,,,.,,.,,..,,.,,,.,.,,..,.,.,,,,,,..,,,.,,.,,.,.,...,...,,..,,,.,,,,,...,.,,,
-#DDRF4ZADLGH5DTRJBUV2NFBGMTGBUIXYPCYKLBRSH4KVVL5GWZEXKAMGFOG4ZKME5H7ZPGS5P73XQ
-#\\\|YAFKMY327LDIWGK6PTXVAPRFK3EVIDGUMYWYINDN4GELF7ASW6O \ / AMOS7 \ YOURUM ::
-#\[7]YHNPCPLRVHKQXMOPMSZZ574M4JTH6THKTUCD447QIXOKOJQAG2DI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,,,,,.,,,.,,,...,.,,,..,,,.,,.,.,...,...,.,.,...,...,,,.,.,.,
+#PVVGHKTSBHPBTJR4R5ZZ53QSQCA6DWWYPMGRJGL3GV5F5G55VYC5UELPBSIC3RUEESZ4WCF2UAQZU
+#\\\|442DGGZKR2LHOJUZ3XKIGG2D7SVOJVI47SEL6UV435RWCEUW77Y \ / AMOS7 \ YOURUM ::
+#\[7]OCTYSHIUM3TWBD5IH5AHANIKEKQCT7WJLVIDIAQFX5FM5OG2EQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

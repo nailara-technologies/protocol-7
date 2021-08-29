@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = base.log.send-buffer.init
+
+my $name = shift;    ## buffer name ##
+
+if ( not exists $data{'buffer'}->{$name} ) {
+    <[base.s_warn]>->( "no log buffer '%s' found <{C1}>", $name );
+    return undef;
+} elsif ( exists <log.send-buffer>->{$name} ) {
+    <[base.s_warn]>->(
+        "log data send buffer '%s' is already initialized <{C1}>", $name
+    );
+    return undef;
+}
+
+## send-buffer has three times the log buffer size ##
+my $buffer_size_limit = $data{'buffer'}->{$name}->{'max_size'} * 3;
+
+my $b_ref = <log.send-buffer>->{$name} = {
+    qw|  data  |      => [],       ## array of scalar refs ##
+    qw|  size  |      => 0,        ## used buffer size ##
+    qw| paused |      => TRUE,     ## waiting for 'p7-log' presence ##
+    qw| waiting |     => FALSE,    ##  outstanding 'p7-log' reply  ##
+    qw| size-limit  | => $buffer_size_limit,    ##  total buffer size  ##
+    qw| sent-lines  | => 0,                     ##  total lines sent  ##
+    qw| lines-added | => 0,                     ##  total lines queued  ##
+    qw| n.o.-asking | => FALSE,    ##  'notify-online' request sent  ##
+    qw|   watcher   | => {}        ## references to idle \ var watchers ##
+};
+
+foreach my $var_name (qw|  lines-added  sent-lines  |) {
+
+    my $cb_data_param = $var_name ne qw| lines-added | ? undef : {
+        qw| callback | => sub {
+            <[base.log.send-buffer.idle-callback-set]>->($name)
+                if not <log.send-buffer>->{$name}->{'paused'}
+                and not <log.send-buffer>->{$name}->{'waiting'};
+        } ## lines-added triggers installation of idle callback for sending ##
+    };
+
+    <log.send-buffer>->{$name}->{'watcher'}->{$var_name}
+        = <[base.event.add_var]>->(
+        {   qw| var  |    => \$b_ref->{$var_name},
+            qw| prio |    => 4,
+            qw| data |    => $cb_data_param,
+            qw| handler | => qw| base.handler.counter_overflow_reset |
+        }
+        );
+
+}
+
+##  preparing check for log target zenka presence  ##
+<[base.log.send-buffer.idle-callback-set]>->($name);
+
+return TRUE;
+
+#,,,,,..,,.,,,,..,,..,.,,,.,.,...,.,.,,,,,,,.,..,,...,...,.,.,.,.,,,,,,.,,,.,,
+#6PX2IWIFMZ7LFTO3RO7366VKRHPQYOVEGWZUSFM5473FIQIA4W5TWDHYQPX53VG5MTAFPM2B45UTI
+#\\\|GYOBZIJHESBXK227EJOLQZ6SL432V4MXZK3WOI6VLJP43VS4J6D \ / AMOS7 \ YOURUM ::
+#\[7]QJYHYZO5PZ46I4QYWH7N75JRX4XGR2KJC3V5K77FOPV6MBGPKIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

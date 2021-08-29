@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = base.log.send-buffer.reply-handler.send-reply
+# descr = handle responses from log zenka [ 'append' command ]
+
+my $reply = shift;
+my $name  = $reply->{'params'}->{'name'};    ## buffer name ##
+
+my $b_ref = <log.send-buffer>->{$name};
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {    # success =)
+
+    ## remove current line from queue ##
+    ##
+    shift $b_ref->{'data'}->@*;
+    $b_ref->{'sent-lines'}++;
+
+    if ( scalar $b_ref->{'data'}->@* ) {    # more to send .,
+
+        ## schedule sending next line using event management ##
+        <[base.log.send-buffer.idle-callback-set]>->($name);
+
+    } else {
+        $b_ref->{'waiting'} = FALSE;        ## mark done. ##
+    }
+    delete $b_ref->{'warned-reply'} if exists $b_ref->{'warned-reply'};
+
+} else {    ##  was not written  ##
+
+    $b_ref->{'paused'} = TRUE;    ##  will wait until zenka is back online  ##
+
+    ## prepare expected protocol replies ##
+    my $client_not_present = <[base.sprint_t]>->( qw| IRW7V6A |, '' );
+    $client_not_present =~ s|^FALSE ||;
+    chomp $client_not_present;
+
+    ##  report error replies from target zenka  ##
+    ##
+    if ( $reply->{'call_args'}->{'args'} ne $client_not_present ) {
+        $b_ref->{'warned-reply'} //= FALSE;
+        ## consider slowing down [ error case ] ## [ LLL ]
+        $b_ref->{'warned-reply'} = TRUE and <[base.logs]>->(
+            0,     "[log-buffer:%s] not expected reply : '%s'",
+            $name, $reply->{'call_args'}->{'args'}
+            )    ## preventing infinite log loops ##
+            if not $b_ref->{'warned-reply'};
+    }
+
+    ## schedule sending next line using event management ##
+    <[base.log.send-buffer.idle-callback-set]>->($name);
+
+}
+
+#,,.,,,.,,,..,.,,,...,.,.,,,,,...,...,,..,,,.,..,,...,...,.,.,,,.,.,.,,.,,..,,
+#BDWRYSLJGIXKXDXEDGRDRXYRULDXD22XER52TCMHUWJEG7EEDJY6S53OE6URIAOQRYORS7ZTGRRZG
+#\\\|NMVHDD3NXSAG6ZBUMVGKNMC43PD3PGSG7UHIPLYAO7YBFU52JAE \ / AMOS7 \ YOURUM ::
+#\[7]L73PB7PYKGS4Z35AYWQZ4JSOKI3PNAFF6575IPVKYJIZJYD2ZCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,6 +30,8 @@ if ( not defined $log_message ) {
     ( my $line_str = $param_str ) =~ s|^$node_zenka $instance_id ||;
     $err_msg = sprintf( 'insufficent parameters [ %s ]', $line_str );
 }
+$err_msg = 'instance id not numerical'
+    if not defined $err_msg and $instance_id !~ m|^\d+$|;
 $err_msg = 'expected <buffer-name> parameter'
     if not defined $err_msg and not defined $buffer_name;
 $err_msg = 'expected <log-time> parameter'
@@ -43,7 +45,7 @@ if ( defined $err_msg ) {
     ## suppress err log data on demand ##
     <p7-log.disable_err_log_dump> //= FALSE;
     <[base.logs]>->(
-        0, "\<%u> ['%s'] %s",
+        0, "\<%s> ['%s'] %s",
         $instance_id, $node_zenka, $err_msg
     );
     ## log offending line for devmod ###
@@ -71,11 +73,11 @@ my $log_file = join qw| . |, $node_zenka, $buffer_name;
 ##
 if ( <log.timestamp_mode> !~ m,^localtime|ntime-b32|ntime-num|unix, ) {
     <[base.logs]>->(
-        0, "invalid time-stamp mode '%s' configured",
+        0, "configured timestamp mode '%s' not valid",
         <log.timestamp_mode>
     );
     <[base.logs]>->(
-        "setting time-stamp mode '%s' [ fallback ]",
+        "setting timestamp mode '%s' [ fallback ]",
         $default_mode
     );
     <log.timestamp_mode> = $default_mode;
@@ -121,8 +123,8 @@ return { 'mode' => qw| true |, 'data' => sprintf 'wrote %u bytes', $msg_len }
 <[base.log]>->( 0, $err_msg );
 return { 'mode' => qw| false |, 'data' => $err_msg };
 
-#,,.,,,..,.,,,.,.,...,.,.,...,.,.,...,..,,..,,..,,...,...,.,.,,.,,,,,,,,,,,.,,
-#LW5QP4IXB47UGAGAZAONGYQXWQFKIE7WHGMLOUWTLDUE7PMAGXV776OQK2RNG4LXGPZJEAROE4CHG
-#\\\|HMIRNBSOGZKDSTIUGM5VBORPP5VH64V4RRHOB3QYSARKZ22G3J4 \ / AMOS7 \ YOURUM ::
-#\[7]LJITPMGZQSPFKNJC3QRIYBC2E4ZAG7ECJUHGS334MXQG5PYK5CCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,,,,,...,.,.,,,,,,,,,,,.,.,,,..,,...,..,,...,,.,,,.,,,,,,.,.,
+#WPBOMQHC3A4MYGPVTNHPX6CY33CDQY5SJWXBE6ITK3I35AN3UVWSYC4KYRKD566NSV55O7YILFDZ6
+#\\\|QJRNAGQV6HGLC4LFFUPWCM5VE7CXKTPRK6HCDQKNN3LNDS5TNF5 \ / AMOS7 \ YOURUM ::
+#\[7]5QMQQV4EJGKNRUREGQXI6KPZMRCDZQQBO2NNUAVBLQVK5OG3E4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

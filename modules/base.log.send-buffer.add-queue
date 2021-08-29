@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = base.log.send-buffer.add-queue
+# descr = add a new entry log send-buffer queue
+
+my $name           = shift;    ## buffer name ##
+my $new_entry_sref = shift;    ## log entry scalar ref ##
+
+if ( not defined $name or not length $name ) {
+    warn 'expected log buffer name param <{C1}>';
+    return undef;
+} elsif ( ref $new_entry_sref ne qw| SCALAR | ) {
+    warn 'expected scalar ref to log message <{C1}>';
+    return undef;
+} elsif ( not defined $new_entry_sref->$* ) {
+    warn 'referenced log message line is undefined <{C1}>';
+    return undef;
+}
+
+## initializing buffer when not present ##
+if (not <[base.is_defined_recursive]>->(
+        sprintf qw| log.send-buffer.%s |, $name
+    )
+) {
+    <[base.log.send-buffer.init]>->($name);    ## creating send buffer ##
+
+    ##  checking if to add prevous buffer content  ##
+    if ( exists $data{'buffer'}{$name} ) {
+        my $b_ref = $data{'buffer'}->{$name}->{'data'};
+        if ( scalar $b_ref->@* > 1 and $b_ref->[0] =~ m|\Q 1 .\7\E$| ) {
+
+            my $own_routine_name = __FILE__;    ##  ',.add-queue'  ##
+
+            foreach my $line ( $b_ref->@* ) {   ## recursive write [call] ##
+                if ( $line =~ m|^\S+ (\d) | ) {
+                    next                        ## log level filter ##
+                        if defined <system.verbosity.zenka_logfile>
+                        and $LAST_PAREN_MATCH
+                        > <system.verbosity.zenka_logfile>;
+                }
+                $code{$own_routine_name}->( $name, \$line );   ##[take line]##
+            }
+            return TRUE;    ##  done with buffer content  ##
+        }
+    }
+
+}
+
+my $b_ref = <log.send-buffer>->{$name};
+
+my $message_length = length $new_entry_sref->$*;
+
+if ( $message_length > $b_ref->{'size-limit'} ) {
+    <[base.s_warn]>->(
+        'log line size larger than buffer size [ %u > %u ]',
+        $message_length, $b_ref->{'size-limit'}
+    );
+    return undef;
+}
+
+## checking size \ removing entries ##
+while ( $b_ref->{'size'} + $message_length > $b_ref->{'size-limit'} ) {
+    $b_ref->{'size'} -= length shift( $b_ref->{'data'}->@* )->$*;
+}
+
+push $b_ref->{'data'}->@*, $new_entry_sref;    ##  adding entry to queue  ##
+$b_ref->{'size'} += length $new_entry_sref->$*;   ##[ updating buffer size ]##
+
+$b_ref->{'lines-added'}++;                        ## triggering sending ##
+
+return TRUE;
+
+#,,..,,.,,.,,,...,,.,,,,.,,..,.,,,,,.,,..,..,,..,,...,...,...,.,.,,.,,.,,,,..,
+#KWHKF2HXGWGEO7PARKC4YVI24G2N3C4B7WRZPYQYGYNT7YBSB3NTYOXWTXHJK7KP4VODPHVA6AU5A
+#\\\|WFYOHG2BAMXUCWBJSQ5ZLYZHQQ42A6S24TYMOLJ5ROSBJ4L7YIU \ / AMOS7 \ YOURUM ::
+#\[7]J6BAXOFLV7AMX2ZW32RL4HXJ3R7FWA2P3XJXEYXIIGTJMHE5UYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
