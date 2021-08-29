@@ -10,8 +10,12 @@ my $process = $event->data;
 my $pid     = $process->{'pid'};
 
 <mpv.pipe.buffer> //= '';
-if ( defined $read_fh ) {    # LLL: needs 'safer' read method (len)
-    $bytes = <[base.s_read]>->( 16 * 1024 ) // 0;
+if ( defined $read_fh ) {
+    ## needs 'safer' read method [read len] [ LLL ]
+    $bytes = <[base.s_read]>->(
+        $read_fh, \$data{'mpv'}{'pipe'}{'buffer'},
+        16 * 1024
+    ) // 0;
 }
 
 if ( $bytes <= 0 or not defined <mpv.pipe.buffer> ) {
@@ -19,8 +23,8 @@ if ( $bytes <= 0 or not defined <mpv.pipe.buffer> ) {
     close($read_fh);
     my $exit_code = 2;
     my $log_level = 0;
-    if ( !<zenka.shutdown> ) {
-        <[base.log]>->( 0, 'mpv control pipe closed unexpectedly!' );
+    if ( not <zenka.shutdown> ) {
+        <[base.log]>->( 0, 'mpv control pipe closed unexpectedly >:|' );
         <[base.logs]>->(
             'sent kill signal to mpv-process [PID:%d] ..,', $pid
         ) if kill( 9, $pid );
@@ -50,7 +54,7 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $reply_id = shift <mpv.reply_ids>->@* ) {
 
         <[base.logs]>->(
-            0,         "[%d] pipe-FALSE [%s]",
+            0,         '[%d] pipe-FALSE [%s]',
             $reply_id, $decoded->{'error'}
         );
         <[base.callback.cmd_reply]>->(
@@ -84,7 +88,7 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
         and $reply_id = shift <mpv.reply_ids>->@* ) {
 
         <[base.logs]>->(
-            2,         "[%d] pipe-TRUE [%s]",
+            2,         '[%d] pipe-TRUE [%s]',
             $reply_id, <mpv.success_reply_str>
         );
         <[base.callback.cmd_reply]>->(
@@ -105,8 +109,8 @@ while ( <mpv.pipe.buffer> =~ s|^([^\n]*)\n||s ) {
     <[base.logs]>->( $log_level, '< mpv > %s', $output_line );
 }
 
-#,,,.,...,,,.,..,,,.,,,..,,.,,.,,,..,,..,,,.,,..,,...,...,.,.,..,,..,,,,,,...,
-#IRDX6LWPN3HK5BPKXMHWTQR3I6MK46EVLWFLNXC3QSCUEXSL537XYD5Q3S4WS5BOCXNVAAK2AOBXU
-#\\\|6GENYG2NXO5XYIDEYIW357L7IUUTZK74Q765QCZVHN3ZCTT5PKF \ / AMOS7 \ YOURUM ::
-#\[7]FQJVWSAFLV6EXHPBCGWI7EUQRW5FFYPCLHLK4AKLWL3DFGUHVCAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,...,,.,,.,,,,.,,,,,,,.,,.,,,..,,..,,...,...,...,...,,,.,,..,.,,,
+#IJT5T7MVZXB6GPVCGN7NQIJF627VNFFTDN4TQINCSAXZN4ZJVYQIA43U4IXYOMKSXJZP7RJOKJBOW
+#\\\|RR3F5KKICH4H6Q6G2FMDJJREZ4OP7JPUECPCSZSYOLB27V7NKBF \ / AMOS7 \ YOURUM ::
+#\[7]34EI4DWLVXVMRDVCSFCEDL4GFA7CEBOAMX62TT2AGCHKSX7HLMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
