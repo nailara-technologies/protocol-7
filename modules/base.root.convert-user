@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.root.convert-user
+# descr = convert one unix user to another + changing owner of all its files
+
+my $old_user = shift // qw|  nailara   |;
+my $new_user = shift // qw| protocol-7 |;
+
+my @userdel_paths = qw| /usr/sbin/userdel /sbin/userdel |;
+my $exit_codes    = <base.root.userdel.exit-codes>;
+
+my $old_user_id = getpwnam($old_user);
+
+if ( not defined $old_user_id ) {
+    <[base.logs]>->(
+        2, ":. user '%s' not existing, no conversion .,", $old_user
+    );
+    return undef;
+}
+
+<[base.logs]>->(
+    0,         ":. converting '%s' files to '%s'.,",
+    $old_user, $new_user
+);
+
+<[file.chown_all]>->( $old_user, $new_user );
+
+## removing old [nailara] user ##
+my $userdel = shift @userdel_paths;
+while ( not -x $userdel and @userdel_paths ) {
+    my $new_path = shift @userdel_paths;
+    $userdel = $new_path if -x $new_path;
+}
+
+if ( not -x $userdel ) {
+    <[base.log]>->( 0, qw| : | );
+    <[base.logs]>->(
+        0, ":: cannot find 'userdel' binary at '%s' ::", $userdel
+    );
+    return undef;
+}
+###
+<[base.logs]>->(
+    0,         ": removing old '%s' user [ UID %u ]..,",
+    $old_user, $old_user_id
+);
+
+<[base.stderr_redir]>;
+my $status = system( $userdel, $old_user ) >> 8;
+<[base.stderr_restore]>;
+
+if ( $status > 0 ) {
+    my $reason = $exit_codes->{$status} // sprintf( 'exit code %s', $status );
+    <[base.logs]>->( 0, '< userdel > %s', $reason );
+    <[base.log]>->( 0, qw| : | );
+    <[base.logs]>->( 0, "::[ cannot remove user '%s' ]", $old_user );
+    return undef;
+} else {
+    <[base.log]>->( 1, ":.. user removal was successful =)" );
+    <[base.logs]>->(
+        2, ": '%s' home directory was left existing ..,", $old_user
+    );
+    return TRUE;
+}
+
+#,,..,,,,,.,,,...,,,,,..,,..,,,,,,..,,.,,,,..,..,,...,...,,,,,,..,.,,,.,.,,,,,
+#SHZA2TYARMC7RTEFXZ6ZKYFEOS6AA6AAMICTRTCKQXUTQDBD2AVAPWUQJXBJYEKLRBSDWHSM5SLG6
+#\\\|55MLGOUQLVA7CBT4E7NRTNGCOIRD7DWUD42EFNJRAMOHCTVEIVZ \ / AMOS7 \ YOURUM ::
+#\[7]RCGS4JO655N5ZJPVPC4ATZSNE2EA5RRVPD3L7YOJUA2AOSPVDAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

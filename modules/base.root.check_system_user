@@ -3,9 +3,13 @@
 # name  = base.root.check_system_user
 # note  = also implement 'mo-group' and <group-name> options
 
-my $usr      = shift // '';
-my $not_home = shift // '';
-die 'expected username parameter' if !length($usr);
+my $usr      = shift // ''; ##  unix user to create  ##
+my $not_home = shift // ''; ##  optional 'not-home' param to skip home dir  ##
+
+if ( not length $usr ) {
+    warn 'expected user-name parameter <{C1}>';
+    return undef;
+}
 
 my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 
@@ -14,9 +18,9 @@ my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 
 my $exit_codes = <base.root.useradd.exit-codes>;
 
-my $user_created = 0;
+my $user_created = FALSE;
 my $home_setting = <[base.cfg_bool]>->(<base.root.useradd.create_home>);
-$not_home = $not_home eq 'not-home' ? 1 : $home_setting ^ 1;
+$not_home = $not_home eq qw| not-home | ? TRUE : $home_setting ^ TRUE;
 
 my $uid = getpwnam($usr);
 
@@ -27,59 +31,56 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
         and defined <base.root.pref-uid>->{$usr}
         and <base.root.pref-uid>->{$usr} =~ m|^\d{3}$| ) {
         $uid     = <base.root.pref-uid>->{$usr};
-        $uid_str = " [ UID $uid ]";
+        $uid_str = sprintf ' [ UID %u ]', $uid;
     }
     my $useradd = shift @useradd_paths;
-    while ( !-x $useradd and @useradd_paths ) {
+    while ( not -x $useradd and @useradd_paths ) {
         my $new_path = shift @useradd_paths;
         $useradd = $new_path if -x $new_path;
     }
     return map { <[base.log]>->( 0, $ARG ) } (
         '::[ check_system_user ]:.',
-        ':', ":: cannot find 'useradd' binary at '$useradd' ::"
-    ) if !-x $useradd;
+        ':', sprintf( ":: cannot find 'useradd' binary at '%s' ::", $useradd )
+    ) if not -x $useradd;
 
-    <[base.log]>->( 0, "creating system user '$usr'$uid_str.," );
-    my @useradd_opts = ( qw| --system -U |, $not_home ? '-M' : '-m' );
-    push( @useradd_opts, '-u', $uid ) if defined $uid;
+    <[base.logs]>->( 0, "creating system user '%s'%s.,", $usr, $uid_str );
+    my @useradd_opts = ( qw| --system -U |, $not_home ? qw| -M | : qw| -m | );
+    push @useradd_opts, qw| -u |, $uid if defined $uid;
 
-    push( @useradd_opts, $usr );
-    <[base.log]>->( 2, "< useradd > " . join( ' ', @useradd_opts ) );
+    push @useradd_opts, $usr;
+    <[base.logs]>->( 2, '< useradd > %s', join( ' ', @useradd_opts ) );
 
     <[base.stderr_redir]>;
     my $status = system( $useradd, @useradd_opts ) >> 8;
     <[base.stderr_restore]>;
 
     if ( $status > 0 ) {
-        my $reason = $exit_codes->{$status} // "exit code $status";
-        return
-            map { <[base.log]>->( 0, $ARG ) }
-            ( "< useradd > $reason", ':', "::[ cannot create user '$usr' ]" );
+        my $reason = $exit_codes->{$status}
+            // sprintf( 'exit code %s', $status );
+        <[base.logs]>->( 0, '< useradd > %s', $reason );
+        <[base.log]>->( 0, qw| : | );
+        <[base.logs]>->( 0, "::[ cannot create user '%s' ]", $usr );
+        return undef;
     } else {
         my $created_uid = getpwnam($usr);
-        my $new_uid_str = defined $uid ? '' : " [ UID $created_uid ]";
-        $user_created = 1;
+        my $new_uid_str
+            = defined $uid ? '' : sprintf( ' [ UID %u ]', $created_uid );
+        $user_created = TRUE;
         my $l = defined $uid ? 1 : 0;
-        <[base.log]>->(
-            $l, ":.. user creation was successful =)$new_uid_str"
+        <[base.logs]>->(
+            $l, ':.. user creation was successful =)%s', $new_uid_str,
         );
     }
 } elsif ( not defined $uid and $EFFECTIVE_USER_ID != 0 ) {
-    <[base.log]>->(
-        0, "<< am not 'root', not creating system user '$usr'., >>"
+    <[base.logs]>->(
+        0, "<< am not 'root', not creating system user '%s'., >>", $usr
     );
 } else {
-    <[base.log]>->( 2, "user '$usr' exists [ $uid ].," );
+    <[base.logs]>->( 2, "user '%s' exists [ %u ].,", $usr, $uid );
 }
 
-## [ chown all files to user 'protocol-7' + remove 'nailara' user from passwd ]
-<[base.root.convert-user.nailara]>
-    if $user_created == 1
-    and $usr eq 'protocol-7'
-    and <[base.cfg_bool]>->( <base.root.convert-usr.nailara> // 1 );
-
-#,,.,,.,.,,.,,,,,,.,,,,..,,,.,...,...,,,,,,,,,..,,...,...,.,.,,..,.,,,,.,,,,.,
-#ZIM4JXNVUWPGYNZNNU6L5X3WUWGJOVCW3GA2WC5PZJROW7BLOM2U3GVAJEWCAHGNVLLE65JKWFYNW
-#\\\|GANR2HF3UCRL4PJMWUWSDPKLNV6RVCQWZLNSZQLXA7PJZQRVIX6 \ / AMOS7 \ YOURUM ::
-#\[7]XYKLAEC7RYCAFLKXS5GY3WL2F4XDHURBNRBRGLHA3NJ2USAYZMDA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,..,...,,.,,.,.,,..,,..,...,..,,...,...,...,,,.,,,,,.,,,.,.,
+#5BSRSCQTKV64EIJUR5BIC4PHWBZRI5WJ6IJMHQTJRYYSEFHJXLZQFMEBECRTGI3YVJOKTZ4FHYFRM
+#\\\|DIUL2TCHRA3NVDQWN2CZ4VWJ5KZBG533GY2BEGNCWXDEYSGMEWM \ / AMOS7 \ YOURUM ::
+#\[7]ASWHK4K64PM4CQXOCPL5VLDGBKV5ANAGOW65QPXES4RFBFEZMQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
