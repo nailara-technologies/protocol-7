@@ -3,7 +3,7 @@
 # name = base.root.drop_privs
 # note = more cleanup required .,
 
-my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? 1 : 0;
+my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? TRUE : FALSE;
 
 my $user = shift;
 
@@ -17,7 +17,7 @@ if ( not length( $user // '' ) ) {
     <[base.log]>->(
         0, '<< cannot drop priviledges [ no user name supplied ] >>'
     );
-    <[base.exit]>->(qw| 0110 |) if !$noop;
+    <[base.exit]>->(qw| 0110 |) if not $noop;
     return -1;
 } else {
 
@@ -25,10 +25,10 @@ if ( not length( $user // '' ) ) {
         $comment, $gcos, $h_directory, $shell
     ) = getpwnam($user);
 
-    my %_gid = map { $ARG => 1 } split( ' ', $GID );
-    my %egid = map { $ARG => 1 } split( ' ', $EGID );
+    my %_gid = map { $ARG => TRUE } split( ' ', $GID );
+    my %egid = map { $ARG => TRUE } split( ' ', $EGID );
 
-    if (    !$noop
+    if (    not $noop
         and defined $name
         and exists $_gid{$gid}
         and exists $egid{$gid}    ## complete secondary group set-up.., [LLL]
@@ -42,14 +42,14 @@ if ( not length( $user // '' ) ) {
         <[base.logs]>->(
             0, "<< cannot drop privs to user '%s' [ not root ] >>", $user
         );
-        <[base.exit]>->(qw| 0110 |) if !$noop;
+        <[base.exit]>->(qw| 0110 |) if not $noop;
         return -1;
     } else {
         if ( not defined $name or $name ne $user ) {
             <[base.logs]>->(
                 0, "<< cannot drop privs to '%s' [ no such user ] >>", $user
             );
-            <[base.exit]>->(qw| 0110 |) if !$noop;
+            <[base.exit]>->(qw| 0110 |) if not $noop;
             return -1;
         } else {
             my @rgids;
@@ -58,7 +58,7 @@ if ( not length( $user // '' ) ) {
                     if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
             }
 
-            if ( !length( $h_directory // '' ) ) {
+            if ( not length( $h_directory // '' ) ) {
                 <[base.logs]>->(
                     0, "<< undefined homedir [ user '%s' ] >>", $user
                 );
@@ -77,13 +77,14 @@ if ( not length( $user // '' ) ) {
                     }
                 );
             } elsif ( !-d $h_directory or $user eq 'nobody' ) { # /nonexistent
-                <[base.log]>->(
-                    0, "<< unable to create home directory '$h_directory' >>"
+                <[base.logs]>->(
+                    0, "<< unable to create home directory '%s' >>",
+                    $h_directory
                 ) if $h_directory ne qw| /nonexistent |;
                 ### temporary home directory ###
-                <system.privs.create_temp_home> //= 0;
+                <system.privs.create_temp_home> //= FALSE;
 
-                if ( !<system.privs.create_temp_home> ) {
+                if ( not <system.privs.create_temp_home> ) {
                     $h_directory = qw| / |;
                     <[base.logs]>->(
                         "[unix:'nobody'] changing home path to '%s'",
@@ -100,14 +101,16 @@ if ( not length( $user // '' ) ) {
                         = <[base.tmp_dir]>->( qw|/var/tmp/|, $tdir_template );
                     if ( -d $h_directory ) {
                         chown( $uid, $gid, $h_directory )
-                            or warn "chown[$uid,$gid,$h_directory] : "
-                            . <[base.format_error]>->( $OS_ERROR, -1 );
+                            or <base.s_warn]>->(
+                            'chown[%u,%u,%s] : %s',
+                            $uid, $gid, $h_directory, <[base.str.os_err]>
+                            );
                         map { <[base.log]>->( 1, $ARG ) } (
                             ':. created temporary home directory',
                             " : $h_directory"
                         );
                         push(
-                            @{<system.init_reports>},
+                            <system.init_reports>->@*,
                             {   'target_command' => qw| v7.report-temp-path |,
                                 'param'          => $h_directory,
                                 'descr' => 'registering temporary directory'
@@ -133,20 +136,25 @@ if ( not length( $user // '' ) ) {
             $ENV{'USER'}            = $name;
             $ENV{'HOME'}            = $h_directory;
             $ENV{'XDG_RUNTIME_DIR'} = $h_directory;
-            $ENV{'NO_AT_BRIDGE'}    = 1;
+            $ENV{'NO_AT_BRIDGE'}    = TRUE;
             chdir($h_directory)
                 or <[base.s_warn]>->(
                 ":: %s : chdir [ %s ] ::\n",
                 <[base.str.os_err]>, $h_directory
                 );
 
+            ## recording selected username ##
+            <system.zenka-user.current> = $user
+                if not defined <system.zenka-user.current>
+                or $user ne <system.zenka-user.current>;
+
             <[base.logs]>->( "switched to unix user '%s'.,", $user );
         }
     }
 }
 
-#,,,.,,.,,.,,,.,,,.,,,.,.,,,,,,,.,...,.,.,..,,..,,...,...,.,,,,..,,.,,,,,,...,
-#QN4ZOBZB6P6QHFGIYTGT3DPVXOQTDNRRXAZLRTBQJZUGIMFSM4TL5RAYV33TGRIKIOLOUHMYQCBKS
-#\\\|EM7RTEFMYC3SDVCMZMXKTBFIAZYTOGGAYQYTJDDPCXU5L34GVP2 \ / AMOS7 \ YOURUM ::
-#\[7]A44DODOY5M4NWUXMRSQ4DKHH4QWNXGBDXRYKETRIZJKKDPTY42CQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,..,...,,..,..,,.,,,.,,,,,.,..,,...,...,..,,,..,.,,,,.,,,.,,
+#NU3Y4XHBHKXMZPETIBMVKJKXTHG3AKH6TQZHJWIQAOC7NLDMLHLUIVYIKFQD2KX3HZYDMW5I2ZPN4
+#\\\|EW7ITKSVO6TQUGKM7AG66SVFKN4X2B5GVGTBQEX5VB6VDALIFYK \ / AMOS7 \ YOURUM ::
+#\[7]7BX5XOW6CPX3OZZFXXVAGFGFXDU57JTZKWAXUFMFXN4JLUT5G6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
