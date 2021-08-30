@@ -328,10 +328,12 @@ foreach my $name_or_id (@check_keys) {
     ) {
         foreach my $name ( keys $data{'buffer'}->%* ) {
             my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
-            next
-                if    ##  different log target zenka  ##
+            next                                ##  skip set-up when..,  ##
+                if not defined $log_send_cmd    ## no remote logging set up ##
+                or    ##  different log target zenka  ##
                 index( $log_send_cmd, sprintf( qw| %s. |, $name_or_id ), 0 )
                 != 0;
+
             ##  start or resume logging  ##
             <log.send-buffer>->{$name}->{'paused'}      = FALSE;
             <log.send-buffer>->{$name}->{'n.o.-asking'} = FALSE;
@@ -451,8 +453,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,.,,,.,,,..,,,.,..,,,.,,,.,,.,,,..,,.,,,,,,,..,,...,...,.,,,...,..,,..,,,.,,
-#LJTPRX6XDUYMJR5QA2J36AUJLXLO7Q7JPQJDJ7VW74O36SOJHMA2TCMV3R747CXO55AIXD2BJX44C
-#\\\|VNAGGOMHAVF4OTUGNYWPLUX5RY335GSZZ3W4KOZCFJCCF4BOS6L \ / AMOS7 \ YOURUM ::
-#\[7]QUKA5WCF7TJFX2FMEA7RX4K26Z6C7FD4ORYLBU74ZQ667PES7ADY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,,,.,,..,.,,,,,,,,.,,...,..,,..,,...,...,.,,,...,,.,,.,.,...,
+#YSGILDAFTUCHQESZ5ZJ2TE57NDNVPSDELZ2TKZJI6NP6DRRBWXTTHUNQON6BFERKAF2G3ZZLDTD7M
+#\\\|A6W7FUAIT6DXO4FDSWB7WQV4OQ4VVKIG5FXPHXQ3X3PDAF4WHWV \ / AMOS7 \ YOURUM ::
+#\[7]BCS65PUJFCJ74Q5XBIBV2Q2QM4ZE3346ZHTITWJWQIMNQQMTIECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

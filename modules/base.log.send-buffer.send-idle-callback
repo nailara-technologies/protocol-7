@@ -7,6 +7,14 @@ my $name = length ref $ARG[0] ? shift->w->data : shift;    ## buffer name ##
 
 ## path to target zenka.., ##
 my $route_prefix = <system.zenka.name> eq qw| cube | ? '' : qw| cube. |;
+
+if ( not defined $data{'buffer'}->{$name}->{'log_cmd'} ) {
+    <[base.s_warn]>->(
+        "no send command defined for '%s' buffer <{C1}>", $name
+    );
+    return undef;
+}
+
 my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
 
 if (not <[base.is_defined_recursive]>->(
@@ -103,8 +111,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
 }
 
-#,,,.,,.,,,,,,.,.,.,,,,,,,...,,.,,..,,,,.,.,.,.,.,...,...,,.,,,,,,,,,,,.,,,,.,
-#VAL2FOZDVGSICYDBH4OD7OB2OOPN65WCINLCJCILB2BEYSVFZSBEHYBMX4MILAGZ7B2U6GCVX74AU
-#\\\|PA3BLC7NMXCVRJ6JB7IML6QOK24FU7N72PDEV6GS3FSL62A7W4N \ / AMOS7 \ YOURUM ::
-#\[7]BCFZCIZ3JHB3ORZI346GWVW5S7RI3MKKXBL62VAV2ZUWUJ57GSDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,.,.,..,,,.,,,,.,.,.,..,,.,,,.,.,...,..,,,,,,..,,,,.,.,.,,,,,
+#AP7QW7NLX6DTCFWGADUXXVW4OBAYBFPVVEW64GIEOV7LRG7P3UQLVZKB6EBO3DWOL2UCZGNP6QLJQ
+#\\\|ETHS3NUIWHTHDOZGDFON6YZBNWOA56RIUE5YUBQIRWP5QNLRCHT \ / AMOS7 \ YOURUM ::
+#\[7]AEIZZM5MN72X6M2GZSDO657LKUK2ZAWRDYJA6DYBJJHUCJIN6IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

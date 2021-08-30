@@ -12,6 +12,11 @@ if ( not exists $data{'buffer'}->{$name} ) {
         "log data send buffer '%s' is already initialized <{C1}>", $name
     );
     return undef;
+} elsif ( not defined $data{'buffer'}->{$name}->{'log_cmd'} ) {
+    <[base.s_warn]>->(
+        "no send command defined for '%s' buffer <{C1}>", $name
+    );
+    return undef;
 }
 
 ## send-buffer has three times the log buffer size ##
@@ -55,8 +60,8 @@ foreach my $var_name (qw|  lines-added  sent-lines  |) {
 
 return TRUE;
 
-#,,,,,..,,.,,,,..,,..,.,,,.,.,...,.,.,,,,,,,.,..,,...,...,.,.,.,.,,,,,,.,,,.,,
-#6PX2IWIFMZ7LFTO3RO7366VKRHPQYOVEGWZUSFM5473FIQIA4W5TWDHYQPX53VG5MTAFPM2B45UTI
-#\\\|GYOBZIJHESBXK227EJOLQZ6SL432V4MXZK3WOI6VLJP43VS4J6D \ / AMOS7 \ YOURUM ::
-#\[7]QJYHYZO5PZ46I4QYWH7N75JRX4XGR2KJC3V5K77FOPV6MBGPKIDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,...,..,,,,.,,,,,..,,,.,,,,.,..,,...,...,.,,,,,.,..,,,..,,.,,
+#VQYLMLBBZAM4EQWYHOMA4R5BOS6HXAEUB2DOEWNPDDQSQ3XLG434ZTSZNX2AGQHQTLRSWVFUHTAZO
+#\\\|RDZK3GFHL5JACW65V5Z33MN6YP6ILZTL62QYWBBV5QGOT2X4463 \ / AMOS7 \ YOURUM ::
+#\[7]IUXC3V5I34X3XGXW25RGSDBS6FYURFF77IQRRQ6IZQ52J6YFVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
