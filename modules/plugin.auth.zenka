@@ -87,10 +87,12 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             ) {
                 foreach my $name ( keys $data{'buffer'}->%* ) {
                     my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
-                    next
-                        if    ##  different log target zenka  ##
+                    next    ##  skip set-up when no remote logging set up ##
+                        if not defined $log_send_cmd
+                        or    ##  different log target zenka  ##
                         index( $log_send_cmd, sprintf( qw| %s. |, $user ), 0 )
                         != 0;
+
                     ##  start or resume logging  ##
                     <log.send-buffer>->{$name}->{'paused'}      = FALSE;
                     <log.send-buffer>->{$name}->{'n.o.-asking'} = FALSE;
@@ -129,8 +131,8 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
     return 1;
 }
 
-#,,..,...,,..,,..,,,.,,,,,,,,,.,.,...,,,,,.,.,..,,...,..,,.,,,,.,,,..,.,.,.,,,
-#S3NTCYHXC3SEYJN3IW2XGHLPEC6HHJLHL3WSKQCFOZCGKQBWLY245V7KDEK3MNGD2JHL5TB72LHBC
-#\\\|MCO4MPVTM7CNFLZNVQVVV6WE2DTNK7KYOGDTSD2E45LOG2QBKDW \ / AMOS7 \ YOURUM ::
-#\[7]QI2L7ST3CXXKWLP2MGGWZ5LZZZWWCL42RARDVEF33QRYPQQNAMCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,.,,,.,,,,.,,,..,.,.,.,,,..,,..,,...,...,...,...,.,,,...,,.,,
+#IR2XCM5S3LEDJWTJY6R4ZS3YUBAT3ZTKL3Q3CKKXBDSOO4IIOV5GOFQGFU6C3D4SBYZZ2PPUQTB74
+#\\\|IMIXK73ZMP4TQQOGZ2RFKLZT7LFEXGH2JNM4CIS6TXMFOPYFS6Y \ / AMOS7 \ YOURUM ::
+#\[7]BAUYNK4F7ZU5SQPV35GNRB7LZ6LTSE5VCFOXBEMTX42BDOOEISAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
