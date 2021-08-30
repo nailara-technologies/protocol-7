@@ -65,6 +65,9 @@ if (defined $public_key and not <[crypt.C25519.compare_keypair]>->(
     return undef;
 }
 
+##  lock key in memory to not never swap it to disk  ##
+IO::AIO::aio_mlock( $decrypted_C25519_sref->$*, 0, 64 );
+
 ##  calculating key pair chksum [ when required ] ##
 ##
 my $key_checksum;
@@ -84,8 +87,8 @@ return ( $decrypted_C25519_sref, $key_checksum ) if wantarray;
 
 return $decrypted_C25519_sref;
 
-#,,,,,,,.,..,,.,.,,,,,,..,.,.,.,,,,.,,.,,,..,,.,.,...,...,...,,.,,..,,.,,,,,,,
-#IVJ3SOKCPK425TYEEEYF6C6NNB5JWANC77XXIRGG6LHSUT6ECBMPNKYWKAOZFOZ5KIZ7ZDB56REOW
-#\\\|3ONM6BKILQ6L54BBZVXW3ITCZFXS34ID4KTIPM2A3VODVHOSW5E \ / AMOS7 \ YOURUM ::
-#\[7]GIIFN53Q2FLI6XS6OJG2G5FFVWMXKD366D63B2T5BXNBKZEGYIDQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,..,,,.,,.,.,.,,,..,,,..,,,,,.,.,...,...,..,,.,,,...,.,,,,,.,
+#7VJMFGS3AFNGWKB4KJOL5M3LP27RD7XEGZW5LSAD4ZLNZEFCITWAADC5YA2XVRPCFIJHVVTLP4A66
+#\\\|M7L4IUSAZPJH6QBVIOIH7NYOIAEXIZYHWRDIRIH2TYE764L2O7Y \ / AMOS7 \ YOURUM ::
+#\[7]EAKVMB44Q2A24P2AUQXOFJIKET34RVZEX4QQCXHBI7KTXW2ZKMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

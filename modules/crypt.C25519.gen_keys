@@ -77,10 +77,15 @@ $keys{'C25519'}{$name} = {
     'secret_key' => defined $key_seed_passphrase ? undef : $secret_key
 };    ##  source entropy only when not passphrase  ##
 
+##  lock key in memory to not never swap it to disk  ##
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'},    0, 64 );
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret_key'}, 0, 32 )
+    if defined $keys{'C25519'}{$name}{'secret_key'};
+
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,..,,.,,.,.,,.,,,..,.,,,...,,.,,.,.,..,,.,.,..,,...,...,...,.,.,,,,,..,,,..,
-#RUFAEKJAF6QIITIHRTPASIVH7ALF4IHH7LP3JQBJEJDPDT3JVTC45DE4VGAMATMGHLOVTPTYWL534
-#\\\|7CX5Y3TZK4BEIN7QUB6FK2NRNHUA3CD3WU4IS3TLY5TRUTQHGU7 \ / AMOS7 \ YOURUM ::
-#\[7]6XZ6HQRELJCVHFS7IJXZONIXVX7WKKPZN3HAYPHZIAWCRDPOKECI 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,...,...,.,,,.,.,.,.,.,,,,..,..,,...,...,..,,...,.,.,.,.,.,.,
+#XNKV3H2PLNDNYZIBSBZ2VFMBBKSNG6ADL7XGTIYY6YCZJAJYXNQE63D4RUFYRQP5FSSPHXMHPE5ZG
+#\\\|X5LPSTOOYBO3YVEB3YVEVELNRENR4NYYDPSWXCTNQZ5DWX7DPPA \ / AMOS7 \ YOURUM ::
+#\[7]IEKPKFRL4YYXYZKSZUCA3VEAC27VRITUZDRKCFPTT7MCXF5SXWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ my $creation_ntime = <[base.ntime.b32]>->(3);
 my $template       = sprintf '[%s|%%s]', $creation_ntime;
 my $key_sig = <[crypt.C25519.sign_data]>->( \sprintf $template, $public_key );
 
-return $keys{'C25519'}{$session_keyname} = {
+$keys{'C25519'}{$session_keyname} = {
     'name'      => $name,
     'public'    => $public_key,
     'private'   => $private_key,
@@ -30,8 +30,13 @@ return $keys{'C25519'}{$session_keyname} = {
     'sig-reply' => sprintf( $template, encode_b32r($key_sig) )
 };
 
-#,,,.,,,,,.,.,,,.,..,,..,,,,.,,..,,.,,.,.,.,.,..,,...,..,,..,,,,,,.,.,,..,,,,,
-#POTB32W2572THVD2IK7TR7PGD5NTOZTKW4TVMOHX6ORDJES4EO4QD7IUQGU5V26HE7MHKCJ657XW6
-#\\\|QAZB7X5AI434SQ6Q7UVSEDLWC6GZF7NGQKYDOOD7DTWM23G3MPG \ / AMOS7 \ YOURUM ::
-#\[7]DYXUPIGXXN5FNJPQ3XVMVC7NIGCOSGLNCRWPOQA4PYDI6X36AOAA 7  DATA SIGNATURE ::
+##  lock key in memory to not never swap it to disk  ##
+IO::AIO::aio_mlock( $keys{'C25519'}{$session_keyname}{'private'}, 0, 64 );
+
+return $keys{'C25519'}{$session_keyname};
+
+#,,..,.,.,,,.,.,,,,,.,.,,,.,.,..,,,.,,.,,,,.,,..,,...,...,...,,,.,.,.,,,,,...,
+#CRT435LSO6F5INGP5BEYAJDRYUL2CWTODBBD4QEW4J3YYCVHY36V7YBAL5WDENFOLRDSDH5GRZ3I6
+#\\\|7RNIHE243WEMCGZIFCTATDQIWYPAGLQ2G2Z7CEL42TOHC7ILAIC \ / AMOS7 \ YOURUM ::
+#\[7]7JMJFOKIRIZD6UOC6DXMEB5N2VIP2TYK56INVBOVURCRBGNQBGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

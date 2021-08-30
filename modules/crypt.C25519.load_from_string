@@ -152,6 +152,7 @@ foreach my $key_str (@encoded_C25119_keys) { ##  loading private key first  ##
             $keys{'C25519'}{$name}{$type} = $key_str;
 
         }
+
     } elsif ( $key_details->{'encoding'} eq qw| b32 | ) {
         my $decoded_str = decode_b32r($key_str);
         if ( not defined $decoded_str ) {
@@ -276,6 +277,10 @@ foreach my $key_str (@encoded_C25119_keys) { ##  loading private key first  ##
     }
 }
 
+##  lock key in memory to not never swap it to disk  ##
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 )
+    if exists $keys{'C25519'}{$name}{'private'};
+
 ##  calculating key pair chksum  ##
 ##
 my $key_checksum = <[crypt.C25519.key_checksums]>->(
@@ -289,8 +294,8 @@ my $key_checksum = <[crypt.C25519.key_checksums]>->(
 
 return $key_checksum;    ## success. return chksum ##
 
-#,,,,,,,,,.,,,,.,,,.,,,.,,,,.,,,.,,.,,.,,,,,.,..,,...,...,..,,,.,,,.,,,,,,...,
-#BW6WDTXFHSEF6M7IEH5IV45TJJWOZ3LWUH2TV34GOVMNYOWL7ZKLWOKPAN3GB7MCEEBH7DTTB6GPA
-#\\\|R6R3BMMYDAI2LJGHFWAZ4VVNKFV4OICXID7UFKFOADAWXUNT3BZ \ / AMOS7 \ YOURUM ::
-#\[7]EJ2O5WRYE5T4Y2CZ7UIPQO5BJ44ZNHAYEBFSLQXY5IOWLBZEGQBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,,,,,..,.,.,,,.,,..,,..,...,..,,...,...,,..,,,.,.,,,...,...,
+#6LJFF2VROWNS3ZYY6H7MYKSRN7TKKXZLWE5RZELMGNP5G2346NFKQB5GB4AF5LGGJNUUT4MGJOLUU
+#\\\|HUTCHOLDVT5ATIOYE7DJ7VYISXTSIKXH3ECAEVQK6FYY6YVOZTC \ / AMOS7 \ YOURUM ::
+#\[7]LXQM2IPXNP4XRRAZZUOX5FY64H72IC3XFQWMU7TKT66FBDRERIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

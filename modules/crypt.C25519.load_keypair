@@ -223,7 +223,12 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
             return FALSE;    ##  false  ##
         }
     }
-    return TRUE;             ## true ##
+
+    ##  lock key in memory to not never swap it to disk  ##
+    IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 )
+        if exists $keys{'C25519'}{$name}{'private'};
+
+    return TRUE;    ## true ##
 
 } else {
     delete $keys{'C25519'}{$name};
@@ -232,11 +237,11 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
         ->( 0, "'%s' key pair not found or not readable ..,", $name );
     <[base.logs]>->( 0, " ::[ expected in : '%s' ]::", $key_dir );
 
-    return FALSE;            ##  false  ##
+    return FALSE;    ##  false  ##
 }
 
-#,,,,,...,.,,,,..,.,.,,..,,,.,,..,,,,,,,,,,.,,..,,...,...,,,.,,.,,,..,,,,,,..,
-#BFS3KXOBGFVAEW6Q2OJPGZVX2VNF5IWUSIFQNYVJQ7GRPD6MVY3CKZZH7TK32BOHVBAOTKZEAATUO
-#\\\|WV7EPWVAPKLAZ544D6J2TSUPFE7C2BJK6CEGK46ROSQGFCW32TX \ / AMOS7 \ YOURUM ::
-#\[7]DER3QN7UZ2CLNSWIQDG4Q2IL4D25PQ6CU6F5NLCAWV3HX4CXAWDA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,.,...,,,,,,,.,.,.,,.,,.,.,,.,,..,,...,..,,,..,.,,,,,.,,,.,..,,
+#5S4D72K456YYRR3NCNFI3EBO74KXU7WIWYSVA534XL5DCWDENWGYZJM62T3LQNWJOEQPIBK6AZ5BS
+#\\\|IBK6TYLLFNW2C26S62JJITD56WA6572S2PT3IHCFYJ7BXPOH3LQ \ / AMOS7 \ YOURUM ::
+#\[7]JI6PWLQZFQG4ONYVJSWZ6B4HNEYDKABLOD22IEEBSWXZLCOX3MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
