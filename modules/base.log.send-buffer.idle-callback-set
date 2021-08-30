@@ -7,6 +7,11 @@ my $name = shift;    ## buffer name ##
 if ( not defined $name or not length $name ) {
     warn 'expected buffer name <{C1}>';
     return undef;
+} elsif ( not defined $data{'buffer'}->{$name}->{'log_cmd'} ) {
+    <[base.s_warn]>->(
+        "no send command defined for '%s' buffer <{C1}>", $name
+    );
+    return undef;
 } elsif (
     not <[base.is_defined_recursive]>->(
         sprintf qw| log.send-buffer.%s |, $name
@@ -33,8 +38,8 @@ if ( not defined $name or not length $name ) {
 
 return TRUE;    ## callback installed ##
 
-#,,..,..,,.,.,,,.,,..,,..,.,.,...,,,,,...,.,,,..,,...,...,,.,,,.,,,.,,.,.,.,,,
-#SLFHQ7B3PKZFMEWE5IIQURELCZQHZFRRXYQAI6Y4ULMPMTC3QZEVJWQNFYKJ2HOMLZRVTP2EPDNIU
-#\\\|BB73BOPUNW3I3Z4PSVJ6YLGBQAHRJDIRGVIYGOUISBKGVRYK2JL \ / AMOS7 \ YOURUM ::
-#\[7]P75PH3DH2HKPLHPC6J62ZO7AHMNLLEYYSBOOMJJHGXYVELTMLWAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,.,,,,.,,.,,,,,,.,,,..,,,,.,..,,...,...,,.,,,..,,,,,,,.,,,.,
+#IWLDBM2KSCRQAWDSWZ4MI76H2G5JC26WZGTA6GOVQXM6IBX3HQ5EYHV3TP6UDQD4VOA2TJGSKDAVC
+#\\\|BRXF42LGQEFAQMQFC4WO6UOTLG57IOT3E2IY3RXBJKJDDUCLQC4 \ / AMOS7 \ YOURUM ::
+#\[7]IOR7P4SRNKYVGXBC7VWS6LZ7UUWE2OTBMMTH7KRXQMWC3B4V6MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
