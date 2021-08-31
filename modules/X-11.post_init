@@ -71,14 +71,14 @@ if ( $mode ne qw| host | ) {
     $server_bin = <X-11.bin_path>->{$bin_name};
 
     die "X-11 binary '$bin_name' not found. [ installed ? ]"
-        if not defined $server_bin or !-x $server_bin;
+        if not defined $server_bin or not -x $server_bin;
 
-    <[base.log]>->( 2, ":: xsrv-bin-path :: $server_bin" );
+    <[base.logs]>->( 2, ':: xsrv-bin-path :: %s', $server_bin );
 
     $server_params
         = join( ' ', <X-11.display>->{$mode}, <X-11.params>->{$mode} );
 
-    my $bin_name_lc = lc($bin_name);
+    my $bin_name_lc = lc $bin_name;
     my $cmd_line    = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
 
     <[base.logs]>->( 1, "starting '%s' server process .,", $bin_name_lc );
@@ -86,16 +86,16 @@ if ( $mode ne qw| host | ) {
     # LLL: change uid for 'xephyr'..,
     $server_pid = open( my $out_fh, $cmd_line );
 
-    if ( not defined $server_pid or $EVAL_ERROR ) {
+    if ( not defined $server_pid or length $EVAL_ERROR ) {
         my $err_reason
-            = ( defined $OS_ERROR and length($OS_ERROR) )
-            ? ": \l$OS_ERROR"
-            : '!';
+            = length $OS_ERROR
+            ? sprintf( ': %s', <[base.str.os_err]> )
+            : qw| ! |;
         <[base.logs]>->(
-            0,            ': unable to start %s-server%s',
+            0,            ': cannot start %s-server%s',
             $bin_name_lc, $err_reason
         );
-        exit(2);
+        <[base.exit]>->(2);
     } else {
         <[base.logs]>->(
             ": '%s' process started [PID:%s]",
@@ -104,16 +104,17 @@ if ( $mode ne qw| host | ) {
         <X-11.pid> = $server_pid;
 
         ### registering server process id ###
-        push( @{<system.kill_list>}, <X-11.pid> );
+        push <system.kill_list>->@*, <X-11.pid>;
         <[base.zenki.report_child_pid]>->($server_pid);
-
-        <[base.change_prio]>->( <X-11.change_priority>, <X-11.pid> );
+        if ( $mode eq qw| xorg | and $EFFECTIVE_USER_ID == 0 ) {
+            <[base.change_prio]>->( <X-11.change_priority>, <X-11.pid> );
+        }    ## use prio child otherwise ## [ LLL ]
     }
 
     <[event.add_io]>->(
         {   'fd'      => $out_fh,
             'handler' => qw| X-11.handler.server_output |,
-            'data'    => { 'bin' => $bin_name, 'pid' => $server_pid }
+            'data'    => { qw| bin | => $bin_name, qw| pid | => $server_pid }
         }
     );
 } else {
@@ -131,7 +132,8 @@ my $bin_name_lc = lc($bin_name);
 
 ## registering custom error handlers ###
 $data{'base'}{'warn-match-handler'}{'X11/Protocol.pm:75'}
-    = 'X-11.handler.protocol-warnings';  ## $self->{'connection'}->get(@_); ##
+    = qw| X-11.handler.protocol-warnings |;
+##  $self->{'connection'}->get( @ARG )  ##
 
 <X-11.obj>->{'error_handler'} = sub {
     ( my $self, my $err_data ) = @ARG;
@@ -349,8 +351,8 @@ if (<X-11.keep_background>) {    # <-- do not touch background image and color
 }
 
 if ( not defined $bg_col or $bg_col !~ m|^\#?[0-9A-F]{6}$|i ) {
-    <[base.log]>->(
-        0, "<< no a valid background color syntax ['$bg_col'] >>"
+    <[base.logs]>->(
+        0, "<< no a valid background color syntax ['%s'] >>", $bg_col
     ) if defined $bg_col;
     $bg_col = <X-11.bg_col_default> // '#000000';    # <-- fallback color
 }
@@ -383,8 +385,8 @@ if ( defined $bg_image ) {
 
 return 0;    ## success
 
-#,,,.,,,.,...,,,,,,..,.,,,..,,,,.,,,.,...,,.,,..,,...,...,.,,,,,,,,,.,,,.,,..,
-#Z6S32EAYXDA6PFERS25G27PAQ44AOOVN4CWG7E3OEAQOCLQB7N4FCNRWYRKYPPXZNKIWAZUDBODWO
-#\\\|4DPEZPWDAGYNRVFXYFAUQKKHQOCQA477OSQCRJONOXNWVZRRBNC \ / AMOS7 \ YOURUM ::
-#\[7]FAATFBFY6MQXMSFX2AIJCMKN6SKUWOUSKJI57YSH2GGCBDTWTUAI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,..,,,,,,...,.,,,,,.,...,...,..,,...,...,,.,,,..,,.,,...,,,.,
+#77EB73ZSMGQZJYFFJQHEQ33CNT72RBBGECDTEU7JL447P7QJL7OB7DUSUUJEND4JOMKPDUWAWD6L4
+#\\\|KD43RMWWENDAPS2ZZKU2U7ZDWQ7E3TGBMZA3WN7AMMVLMJ5DYNR \ / AMOS7 \ YOURUM ::
+#\[7]M73FYSRPT62RQJKDHLMGM7XHKTQTQWKERD7DX32M33K7SBDRWWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
