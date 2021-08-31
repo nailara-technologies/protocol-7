@@ -14,6 +14,9 @@ if ( not defined <system.zenka-user.current> ) {
 
 my $X11_start_mode = <X-11.mode>;    ## configured start mode ##
 
+## required by-img path-chksum cache ##
+<[base.path-set-up.check-zenka-paths]>;
+
 if ( $X11_start_mode eq qw| auto-xephyr | ) {  ## checking auto-xephyr mode ##
     ## detect if Xorg running --> xephyr
     system('ps h -C Xorg 1>/dev/null 2>/dev/null');
@@ -44,8 +47,8 @@ if ( $X11_start_mode eq qw| xorg | ) {
 ##  dropping root priviledges to configured user  ##
 return <[base.root.drop_privs]>->($X11_user_name);
 
-#,,,.,,..,,..,,.,,.,,,.,.,.,,,,,,,,..,,.,,,.,,.,.,...,...,.,.,,,.,,.,,,.,,..,,
-#MSCEF6S3MYBKR4BG66T3XJS5OCT37HCMJN7POES6AJ2PRFJ2PKPIFZ4M3HKVTPNKXX24M4ZV2AUKY
-#\\\|YHDUENLKNGEORCJVIGLMNJTB3MX4LJ6JUYQVU5YTDQ57DFUCTC4 \ / AMOS7 \ YOURUM ::
-#\[7]UPFQ7KHGZEYYPYUELNVQO6FIMQSBLOJ6NN7LIA6SQ3OPX2ZMCYCQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,.,.,,,,,..,,...,.,.,,..,...,.,.,...,...,...,..,,..,,,.,,...,
+#4CSKHWFWLMUIVU4ABMBEFHMJTQD25JXKRYIHDFYTPRNUBOV4RGMD2DG2ANBJIOTLIZF4QCRRTQXHG
+#\\\|433LTUWR57TBIX277EIK2CPDI6ZLCJCTKFLM5CZBDXEI3VKYDZ6 \ / AMOS7 \ YOURUM ::
+#\[7]W6DS3SQQDPZX3XOIQYUNPU2BKGU7SAJBSFMOVQHKSHYNMQSIJUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

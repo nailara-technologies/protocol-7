@@ -11,6 +11,9 @@ my $etc_zenka_dirmode = shift // 0700;
 my $proto_7_user           = <system.amos-zenka-user>;  ##[  <-- def. usr  ]##
 my $current_zenka_username = <system.zenka-user.current> // $proto_7_user;
 
+##[  initializing 'base' module when called too early  ]##
+<[base.init_modules]>->(qw| base |) if not defined <system.path.zenka-dirs>;
+
 my $paths_and_modes = {
 
     map {
@@ -129,8 +132,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,..,,.,,...,,..,,.,,,..,,..,,,,,.,,,.,.,,.,,.,.,...,...,.,.,,,.,,.,,,,,,,.,,
-#FUFHWV3MJ4LMALIHUQZMQND6K6B66R247HT4CKRVD2OKZY7JLATKIU24WYW2CIZWSSTGGKMKGMZ5C
-#\\\|XXHA4QXYPUDHCHKC7SVDCKMX34BTECGFXRT4CSUZLL4ABXQFKGP \ / AMOS7 \ YOURUM ::
-#\[7]MR74YQ7KGGLFYY7OH6G353VLEUXOFQ4YLD3E4F6HQ3JMN7MA36BI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,,,,,.,.,,,.,,,,,,.,,,..,,.,,.,.,...,...,..,,,,.,...,..,,..,,
+#2OEZFSEF4TFF4OIJLNWRPUWAAIU3VI6USSFTXW5JLXGTPQUKTRZR4YSU4XOXRYOOOT7KJSJGIBLNY
+#\\\|QT7OOH2A27Y6QYXY44TBVSNDZMDF37QEPG3D2AXT56G3UNRRNY2 \ / AMOS7 \ YOURUM ::
+#\[7]7Z47UEBBINNLSGXSHFIRKS25EJQ64AXQ3X3U3M4H3SZCZD5WQSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
