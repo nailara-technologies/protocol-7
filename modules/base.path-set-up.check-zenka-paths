@@ -68,6 +68,11 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
         ( $uid, $gid ) = ( $p7_uid, $p7_gid );
     }
 
+    if ( not defined $uid ) {
+        <[base.s_warn]>->( 'unix user %s does not exist [yet?] ..,', $uname );
+        return undef;
+    }
+
     my $dir_mode = $paths_and_modes->{$chk_path};
 
     if ( not -d $chk_path ) {
@@ -132,8 +137,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,,.,.,,,.,,,..,,,,,,.,.,,,.,,,,,,.,,,..,,.,,.,.,...,...,..,,,,.,...,..,,..,,
-#2OEZFSEF4TFF4OIJLNWRPUWAAIU3VI6USSFTXW5JLXGTPQUKTRZR4YSU4XOXRYOOOT7KJSJGIBLNY
-#\\\|QT7OOH2A27Y6QYXY44TBVSNDZMDF37QEPG3D2AXT56G3UNRRNY2 \ / AMOS7 \ YOURUM ::
-#\[7]7Z47UEBBINNLSGXSHFIRKS25EJQ64AXQ3X3U3M4H3SZCZD5WQSAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,..,,.,,,.,.,,,.,.,.,,,.,,..,.,.,...,..,,,.,,,..,,,.,,,.,.,,,
+#JTKYEIS2V7NSFYZJNDANJEI5J6NBLJ3Q6SROBAEUEUCPDXBJXBJ5QNDXPN3CPLG6CCCDQ7CZSTAEG
+#\\\|AKBVZ7ANSJNH5BCIDHPKN33SIE7L3WCLGRMJX3V7WY2UBZDDOED \ / AMOS7 \ YOURUM ::
+#\[7]3X23JO6FLEFSMI5WSNEW6R7O6RXYNGKNTWWYZTNYMZVWEYPAXGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
