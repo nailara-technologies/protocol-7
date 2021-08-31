@@ -146,11 +146,13 @@ foreach my $_dir ( split qw| / |, $path ) {
 
     next if -d $current_path;    ## <-- exists \ continue ., ##
 
-    mkdir( $current_path, $current_mode )
-        or <[base.s_warn]>->(
-        'mkdir[ %s ] : [ %s ] <{C1}>',
-        $current_path, <[base.str.os_err]>
+    if ( not mkdir( $current_path, $current_mode ) ) {
+        <[base.s_warn]>->(
+            'mkdir[ %s ] : [ %s ] <{C1}>',
+            $current_path, <[base.str.os_err]>
         );
+        return undef;
+    }
 
     $current_mode = oct $current_mode if $current_mode =~ m|^0|;
 
@@ -160,9 +162,9 @@ foreach my $_dir ( split qw| / |, $path ) {
             $param_mode, scalar <[base.format_error]>->($OS_ERROR)
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
-        if ( not unlink($path) ) {
+        if ( not rmdir($path) ) {
             <[base.s_warn]>->(
-                'unlink[ %s ] : %s',
+                'rmdir[ %s ] : %s',
                 $path, <[base.str.os_err]>
             );
         }
@@ -176,9 +178,9 @@ foreach my $_dir ( split qw| / |, $path ) {
                 $uid, $gid, $current_path, <[base.str.os_err]>
             );
             <[base.logs]>->( 0, 'removing %s [ chown failed ]', $path );
-            if ( not unlink($path) ) {
+            if ( not rmdir($path) ) {
                 <[base.s_warn]>->(
-                    'unlink[ %s ] : %s',
+                    'rmdir[ %s ] : %s',
                     $path, <[base.str.os_err]>
                 );
             }
@@ -191,8 +193,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,,,,,.,,.,,.,,,,.,,..,,.,.,,,,,,..,,,,,.,.,..,,...,...,...,..,,..,,,,.,,,,,
-#74TYQZ2B3SYUAM3G4JVH4H7ZUKYVMTZ3HPSZPHGEMNHSPWVLGI4TNYB6BMCNLSWH5SYWCUDMLV5F2
-#\\\|OLZ4LEI3YAT43HDXBQTINY6ZNI2N4ENHVETCCFNDLISCCQ6YMZ6 \ / AMOS7 \ YOURUM ::
-#\[7]UBVCK2VJA57PHOCUSJPKBMQB4QHZDWRCAX45RHIPSIXALQY7IUCA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,,.,,..,.,,,.,.,...,,.,,,,,,..,,...,...,..,,.,.,.,.,,,.,.,.,
+#37Q2LVWVEF6D5ZOV3JQPGOXB7NRPONN6GKJ6BJLXE57OKBVPHRN6RI7TU5PWRLZ4UAFQ5ZRFAIW5M
+#\\\|DNIWCO2BRNPZJJ5TFHVOEZUWZSSJEAZXOZ2FYFG7FDJYBKNSNGM \ / AMOS7 \ YOURUM ::
+#\[7]CI27KARRTHUPLX27AIOGGKXE7HATEYICCXH752WHT7RKCOZ46WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
