@@ -1,0 +1,295 @@
+## [:< ##
+
+# name  = X-11.autoconfigure.non-root-start
+# descr = configuring Xserver for non-root user set-up
+
+my $requested_X11_usr = shift;    ## amos7-x11 ##
+
+## visibly announcing what is done. ##
+my $change_report_log_level = shift // 0;
+
+$change_report_log_level = 0 if $change_report_log_level !~ m|^[012]$|;
+
+if ( not defined $requested_X11_usr ) {
+    warn 'expected user param <{C1}>';
+    return undef;
+}
+
+##[ ANALYZING CURRENT SET-UP ]##############################################
+
+<[base.logs]>->(
+    2, "checking system set-up for unix user '%s' .,",
+    $requested_X11_usr
+);
+
+my $dev_tty2_path = qw| /dev/tty2 |;
+my $xwrapper_cfg  = qw| /etc/X11/Xwrapper.config |;
+
+if ( not -c $dev_tty2_path ) {
+    <[base.s_warn]>->('tty device path %s does not exist <[C1}>');
+    return undef;
+} elsif ( not -f $xwrapper_cfg ) {
+    <[base.s_warn]>->(
+        'configuration Xwrapper.config [ %s ] not found <[C1}>',
+        $xwrapper_cfg
+    );
+    return undef;
+}
+
+my $tty_readable    ##  check if tty device is group readable  ##
+    = File::stat::stat($dev_tty2_path)->mode & 0040 ? TRUE : FALSE;
+
+my $X11_users_enabled = FALSE;
+
+##  checking Xwrapper.config  ##
+##
+if ( <[file.slurp]>->( $xwrapper_cfg, \my @cfg_lines ) ) {
+    @cfg_lines = grep { index( $ARG, '#', 0 ) != 0 } @cfg_lines;
+    @cfg_lines = map  { $ARG =~ s{[\t ]*|#.*$}{}g; $ARG } @cfg_lines;
+    @cfg_lines = grep {length} @cfg_lines;
+    ## removed comments and whitespaces ##
+
+    $X11_users_enabled = TRUE ## xserver start limited to root or console ? ##
+        if grep { $ARG eq qw| allowed_users=anybody | } @cfg_lines;
+}
+
+##  checking if intended user exists already  ##
+##
+my $uname_exists   = defined getpwnam($requested_X11_usr) ? TRUE : FALSE;
+my $is_in_ttygrp   = FALSE;
+my $is_in_videogrp = FALSE;
+my $is_in_audiogrp = FALSE;
+
+if ($uname_exists) {
+    foreach my $grp (qw| tty video audio |) {
+        my @entries = getgrnam($grp);
+        if ( not @entries ) {
+            <[base.s_warn]>->( "cannot find unix group '%s'", $grp );
+            return undef;
+        }
+        foreach my $grp_usrnam ( split ' ', $entries[3] ) {
+            if ( $grp_usrnam eq $requested_X11_usr ) {
+                $is_in_ttygrp   = TRUE if $grp eq qw| tty |;
+                $is_in_videogrp = TRUE if $grp eq qw| video |;
+                $is_in_audiogrp = TRUE if $grp eq qw| audio |;
+                last;
+            }
+        }
+    }
+}
+
+if ($X11_users_enabled    ## checking set-up completeness ##
+    and $tty_readable
+    and $uname_exists
+    and $is_in_ttygrp
+    and $is_in_videogrp
+    and $is_in_audiogrp
+) {
+    <[base.log]>->( 2, ':. set-up as required, nothing to do ..,' );
+    return TRUE;
+}
+
+##[ APPLYING CHANGES ]########################################################
+
+REPORT_AGAIN:
+
+<[base.logs]>->(    ##  announcing change intention  ##
+    $change_report_log_level,
+    '.:[ [auto]configuring non-root set-up [ user %s ] ]:.',
+    $requested_X11_usr
+);
+<[base.log]>->( $change_report_log_level, qw| : | );
+
+if ( $EFFECTIVE_USER_ID != 0 ) {
+    if ( $change_report_log_level > <system.verbosity.console> ) {
+        $change_report_log_level = 0;
+        goto REPORT_AGAIN;
+    }
+    <[base.log]>->( 0, ':: require root permissions .,', $requested_X11_usr );
+    <[base.log]>->( $change_report_log_level, qw| : | );
+    <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+    return FALSE;
+}
+
+my @addgroup_bin_paths = qw| /usr/sbin/addgroup /sbin/addgroup |;
+
+my $add_group_bin = shift @addgroup_bin_paths;
+while ( not -x $add_group_bin and @addgroup_bin_paths ) {
+    my $new_path = shift @addgroup_bin_paths;
+    $add_group_bin = $new_path if -x $new_path;
+}
+if ( not -x $add_group_bin ) {
+    <[base.logs]>->(
+        0, ":: cannot find 'addgroup' binary at '%s' ::",
+        $add_group_bin
+    );
+    <[base.log]>->( 0, qw| : | );
+    <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+    return undef;    ##  missing addgroup binary  ##
+}
+
+if ( not $uname_exists ) {
+    <[base.logs]>->(
+        $change_report_log_level, ':: creating X11 user [ %s ] .,',
+        $requested_X11_usr
+    );
+
+    if (not <[base.root.check_system_user]>->(
+            $requested_X11_usr, qw| not-home |
+        )
+    ) {
+        <[base.log]>->( $change_report_log_level, ':  :' );
+        <[base.logs]>->(
+            0, ':  :. cannot create user %s .,',
+            $requested_X11_usr
+        );
+        <[base.log]>->( $change_report_log_level, qw| : | );
+        <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+        return FALSE;
+    }
+    <[base.log]>->( $change_report_log_level, qw| : | );
+}
+
+if (   not $is_in_ttygrp
+    or not $is_in_videogrp
+    or not $is_in_audiogrp ) {
+    <[base.log]>->(
+        $change_report_log_level, ':: completing user group set-up ..,'
+    );
+    <[base.log]>->( $change_report_log_level, ':  :' );
+    foreach my $grp (qw| tty video audio |) {
+        next    ## skipping what is already present ##
+            if $is_in_ttygrp   and $grp eq qw| tty |
+            or $is_in_videogrp and $grp eq qw| video |
+            or $is_in_audiogrp and $grp eq qw| audio |;
+
+        <[base.logs]>->(
+            $change_report_log_level, ":  :. adding to group '%s'", $grp
+        );
+
+        <[base.perlmod.load]>->('Capture::Tiny')
+            if not <[base.perlmod.loaded]>->('Capture::Tiny');
+
+        ( my $addgrp_output, my $status )
+            = Capture::Tiny::capture_merged(
+            sub { system( $add_group_bin, $requested_X11_usr, $grp ) } );
+
+        if ( $status > 0 ) {
+
+            <[base.log]>->( 0, qw| : | );
+            <[base.logs]>->(
+                0, "::[ cannot add user '%s' to group '%s' ]",
+                $requested_X11_usr, $grp
+            );
+            if ( defined $addgrp_output and length $addgrp_output ) {
+                <[base.log]>->( 1, '.:[ addgroup output ]:.' );
+                <[base.log]>->( 1, ':' );
+                chomp $addgrp_output;
+                map { <[base.logs]>->( 1, ': %s', lc($ARG) ) } split "\n",
+                    $addgrp_output;
+                <[base.log]>->( 1, ':.' );
+            }
+            <[base.log]>->( 0, qw| : | );
+            <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+
+            return undef;    ##  error occurred \ not added to grp  ##
+
+        }
+
+    }
+    <[base.log]>->( $change_report_log_level, qw| : | );
+}
+
+if ( not $X11_users_enabled ) {
+    <[base.log]>->(
+        $change_report_log_level, ':: changing Xwrapper.config [ anybody ]..,'
+    );
+    <[base.log]>->( $change_report_log_level, qw| : | );
+
+    ## updating Xwrapper.config ##
+    ##
+    if ( not -w $xwrapper_cfg ) {
+        <[base.logs]>->(
+            0, ":: config file is not writable [ %s ]",
+            $xwrapper_cfg
+        );
+        <[base.log]>->( 0, qw| : | );
+        <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+
+    } elsif ( <[file.slurp]>->( $xwrapper_cfg, \my @cfg_lines ) ) {
+
+        my $existing_entry_changed = FALSE;
+        foreach my $line ( reverse @cfg_lines ) {
+            if ($line
+                =~ s{^[\t ]*allowed_users[\t ]*=[\t ]*(rootonly|console)}
+                    {\nallowed_users = anybody\n}s
+            ) {
+                $existing_entry_changed = TRUE;
+            }
+        }
+        push( @cfg_lines, '', 'allowed_users = anybody', '' )
+            if not $existing_entry_changed;
+
+        if (not
+            <[file.put_bin]>->( $xwrapper_cfg, map {"$ARG\n"} @cfg_lines ) ) {
+            <[base.log]>->( 0, qw| : | );
+            <[base.logs]>->(
+                0, ":: cannot update file [ %s ]",
+                $xwrapper_cfg
+            );
+            <[base.logs]>->(
+                0, ": %s [ %-*s ]",
+                ' ' x 19, 24, <[base.str.os_err]>
+            );
+            <[base.log]>->( 0, qw| : | );
+            <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+
+            return undef;    ##  Xwrapper.config update failed  ##
+        }
+    }
+
+}
+
+if ( not $tty_readable ) {    ## changing /dev/tty2 group permissions [+r] ##
+    <[base.log]>->(
+        $change_report_log_level,
+        ':: adjusting tty2 permissions [ grp readable ]..,'
+    );
+    <[base.log]>->( $change_report_log_level, qw| : | );
+    if ( not -w $dev_tty2_path ) {
+        <[base.logs]>->(
+            0, ":: no write permissions on device file [ %s ]",
+            $dev_tty2_path
+        );
+        <[base.log]>->( 0, qw| : | );
+        <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+
+        return undef;    ##  write perm on /dev/tty2  ##
+    }
+    my $new_permissions = File::stat::stat($dev_tty2_path)->mode | 0060;
+
+    if ( not chmod( $new_permissions, $dev_tty2_path ) ) {
+        <[base.log]>->( 0, qw| : | );
+        <[base.logs]>->(
+            0,                ':: cannot chmod [ %#o .: %-*s ]',
+            $new_permissions, abs( length(<[base.str.os_err]>) - 10 ),
+            $dev_tty2_path
+        );
+        <[base.logs]>->( 0, ':: %s [ %s ]', ' ' x 12, <[base.str.os_err]> );
+        <[base.log]>->( 0, qw| : | );
+        <[base.log]>->( 0, ':. cannot complete changes .,' );
+
+        return undef;    ##  chmod error on /dev/tty2  ##
+    }
+}
+
+<[base.log]>->( $change_report_log_level, ': done.' );
+<[base.log]>->( $change_report_log_level, qw| :, | );
+
+return TRUE;
+
+#,,.,,,.,,,..,.,,,.,.,,,,,,,.,,.,,,..,..,,,,.,..,,...,...,,.,,...,,,.,,..,,.,,
+#453V2J5G5YXS2N54IBDNA2X5YMQEEX3Z4XKMS57A653RVMY2K3WGVHININPA7LWXS5GHA54MYONVK
+#\\\|XPJDA4U5OGKH6TIXSGYXABMFJ46CTBUBKMRVLV5WFYNQ6CQGLCN \ / AMOS7 \ YOURUM ::
+#\[7]EN6FFDVJLYAA2AUFHHANLY366WQNTUDUYAQKDJWOTCH3EHIXJIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

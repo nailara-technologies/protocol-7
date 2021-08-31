@@ -18,7 +18,6 @@ my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 
 my $exit_codes = <base.root.useradd.exit-codes>;
 
-my $user_created = FALSE;
 my $home_setting = <[base.cfg_bool]>->(<base.root.useradd.create_home>);
 $not_home = $not_home eq qw| not-home | ? TRUE : $home_setting ^ TRUE;
 
@@ -38,10 +37,14 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
         my $new_path = shift @useradd_paths;
         $useradd = $new_path if -x $new_path;
     }
-    return map { <[base.log]>->( 0, $ARG ) } (
-        '::[ check_system_user ]:.',
-        ':', sprintf( ":: cannot find 'useradd' binary at '%s' ::", $useradd )
-    ) if not -x $useradd;
+    if ( not -x $useradd ) {
+        map { <[base.log]>->( 0, $ARG ) } (
+            '::[ check_system_user ]:.',
+            ':',
+            sprintf( ":: cannot find 'useradd' binary at '%s' ::", $useradd )
+        );
+        return undef;    ##  missing useradd binary  ##
+    }
 
     <[base.logs]>->( 0, "creating system user '%s'%s.,", $usr, $uid_str );
     my @useradd_opts = ( qw| --system -U |, $not_home ? qw| -M | : qw| -m | );
@@ -55,32 +58,44 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
     <[base.stderr_restore]>;
 
     if ( $status > 0 ) {
+
         my $reason = $exit_codes->{$status}
             // sprintf( 'exit code %s', $status );
         <[base.logs]>->( 0, '< useradd > %s', $reason );
         <[base.log]>->( 0, qw| : | );
         <[base.logs]>->( 0, "::[ cannot create user '%s' ]", $usr );
-        return undef;
+
+        return undef;    ##  error occurred \ not created  ##
+
     } else {
+
         my $created_uid = getpwnam($usr);
         my $new_uid_str
             = defined $uid ? '' : sprintf( ' [ UID %u ]', $created_uid );
-        $user_created = TRUE;
         my $l = defined $uid ? 1 : 0;
         <[base.logs]>->(
             $l, ':.. user creation was successful =)%s', $new_uid_str,
         );
+
+        return TRUE;    ##[ success ]##
+
     }
 } elsif ( not defined $uid and $EFFECTIVE_USER_ID != 0 ) {
+
     <[base.logs]>->(
         0, "<< am not 'root', not creating system user '%s'., >>", $usr
     );
+    return FALSE;    ##  no permission \ not root  ##
+
 } else {
+
     <[base.logs]>->( 2, "user '%s' exists [ %u ].,", $usr, $uid );
+
+    return TRUE;     ##[ user already exists ]##
 }
 
-#,,,,,,..,.,,,...,,..,...,,.,,.,.,,..,,..,...,..,,...,...,...,,,.,,,,,.,,,.,.,
-#5BSRSCQTKV64EIJUR5BIC4PHWBZRI5WJ6IJMHQTJRYYSEFHJXLZQFMEBECRTGI3YVJOKTZ4FHYFRM
-#\\\|DIUL2TCHRA3NVDQWN2CZ4VWJ5KZBG533GY2BEGNCWXDEYSGMEWM \ / AMOS7 \ YOURUM ::
-#\[7]ASWHK4K64PM4CQXOCPL5VLDGBKV5ANAGOW65QPXES4RFBFEZMQBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,,,,,,..,,,.,,,,,.,.,,,.,.,,,..,,...,..,,...,..,,.,,,,,.,,..,
+#NGQFFZH4JOKGYAOHVTZWWQG7SZD3HMCTPLGANFCAXVLPAOVAX3FDT5LH6QASEZ5XXZ5TFCWU6ML2A
+#\\\|ZOI52BXNJK4PB6O2TNYKMXPVY5DQAPYYJLIZRYBVXMZON547SAZ \ / AMOS7 \ YOURUM ::
+#\[7]NIBO6JH45CJ75FRHYZ7WBQMGE6YT7UEXJOGRN375672M2HVIQSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
