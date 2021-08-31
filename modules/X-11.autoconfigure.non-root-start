@@ -22,11 +22,21 @@ if ( not defined $requested_X11_usr ) {
     $requested_X11_usr
 );
 
-my $dev_tty2_path = qw| /dev/tty2 |;
-my $xwrapper_cfg  = qw| /etc/X11/Xwrapper.config |;
+my @dev_tty_paths = map {    ## configured tty names \ paths ##
+    index( $ARG, qw| / |, 0 ) == 0 ? $ARG : sprintf( qw| /dev/%s |, $ARG )
+} split m|[\t ]+|, <X-11.auto-conf.adjust-ttys> //= 'tty2 tty3';
 
-if ( not -c $dev_tty2_path ) {
-    <[base.s_warn]>->('tty device path %s does not exist <[C1}>');
+##  tty 2 and 3 by default  ##
+@dev_tty_paths = qw| /dev/tty2 /dev/tty3 | if not @dev_tty_paths;
+
+my $xwrapper_cfg = qw| /etc/X11/Xwrapper.config |;
+
+if ( grep { not -c $ARG } @dev_tty_paths ) {
+    foreach my $ttydev_path (@dev_tty_paths) {
+        <[base.s_warn]>->(
+            'tty device path %s does not exist <[C1}>', $ttydev_path
+        ) if not -c $ttydev_path;
+    }
     return undef;
 } elsif ( not -f $xwrapper_cfg ) {
     <[base.s_warn]>->(
@@ -36,8 +46,15 @@ if ( not -c $dev_tty2_path ) {
     return undef;
 }
 
-my $tty_readable    ##  check if tty device is group readable  ##
-    = File::stat::stat($dev_tty2_path)->mode & 0040 ? TRUE : FALSE;
+my @adjust_tty_devs;
+my $ttys_req_perms = TRUE;
+foreach my $ttydev_path (@dev_tty_paths) {
+    my $ttydev_mode = File::stat::stat($ttydev_path)->mode;
+    if ( not $ttydev_mode & 0040 or not $ttydev_mode & 0020 ) {    ## g+rw ##
+        $ttys_req_perms = FALSE; ##  check if tty devices are [ group ] rw  ##
+        push @adjust_tty_devs, $ttydev_path;
+    }
+}
 
 my $X11_users_enabled = FALSE;
 
@@ -55,13 +72,14 @@ if ( <[file.slurp]>->( $xwrapper_cfg, \my @cfg_lines ) ) {
 
 ##  checking if intended user exists already  ##
 ##
-my $uname_exists   = defined getpwnam($requested_X11_usr) ? TRUE : FALSE;
-my $is_in_ttygrp   = FALSE;
-my $is_in_videogrp = FALSE;
-my $is_in_audiogrp = FALSE;
+my $uname_exists    = defined getpwnam($requested_X11_usr) ? TRUE : FALSE;
+my $is_in_ttygrp    = FALSE;
+my $is_in_input_grp = FALSE;
+my $is_in_videogrp  = FALSE;
+my $is_in_audiogrp  = FALSE;
 
 if ($uname_exists) {
-    foreach my $grp (qw| tty video audio |) {
+    foreach my $grp (qw| tty input video audio |) {
         my @entries = getgrnam($grp);
         if ( not @entries ) {
             <[base.s_warn]>->( "cannot find unix group '%s'", $grp );
@@ -69,9 +87,10 @@ if ($uname_exists) {
         }
         foreach my $grp_usrnam ( split ' ', $entries[3] ) {
             if ( $grp_usrnam eq $requested_X11_usr ) {
-                $is_in_ttygrp   = TRUE if $grp eq qw| tty |;
-                $is_in_videogrp = TRUE if $grp eq qw| video |;
-                $is_in_audiogrp = TRUE if $grp eq qw| audio |;
+                $is_in_ttygrp    = TRUE if $grp eq qw| tty |;
+                $is_in_input_grp = TRUE if $grp eq qw| input |;
+                $is_in_videogrp  = TRUE if $grp eq qw| video |;
+                $is_in_audiogrp  = TRUE if $grp eq qw| audio |;
                 last;
             }
         }
@@ -79,9 +98,10 @@ if ($uname_exists) {
 }
 
 if ($X11_users_enabled    ## checking set-up completeness ##
-    and $tty_readable
+    and $ttys_req_perms
     and $uname_exists
     and $is_in_ttygrp
+    and $is_in_input_grp
     and $is_in_videogrp
     and $is_in_audiogrp
 ) {
@@ -151,17 +171,19 @@ if ( not $uname_exists ) {
 }
 
 if (   not $is_in_ttygrp
+    or not $is_in_input_grp
     or not $is_in_videogrp
     or not $is_in_audiogrp ) {
     <[base.log]>->(
         $change_report_log_level, ':: completing user group set-up ..,'
     );
     <[base.log]>->( $change_report_log_level, ':  :' );
-    foreach my $grp (qw| tty video audio |) {
+    foreach my $grp (qw| tty input video audio |) {
         next    ## skipping what is already present ##
-            if $is_in_ttygrp   and $grp eq qw| tty |
-            or $is_in_videogrp and $grp eq qw| video |
-            or $is_in_audiogrp and $grp eq qw| audio |;
+            if $is_in_ttygrp    and $grp eq qw| tty |
+            or $is_in_input_grp and $grp eq qw| input |
+            or $is_in_videogrp  and $grp eq qw| video |
+            or $is_in_audiogrp  and $grp eq qw| audio |;
 
         <[base.logs]>->(
             $change_report_log_level, ":  :. adding to group '%s'", $grp
@@ -250,36 +272,43 @@ if ( not $X11_users_enabled ) {
 
 }
 
-if ( not $tty_readable ) {    ## changing /dev/tty2 group permissions [+r] ##
-    <[base.log]>->(
-        $change_report_log_level,
-        ':: adjusting tty2 permissions [ grp readable ]..,'
-    );
-    <[base.log]>->( $change_report_log_level, qw| : | );
-    if ( not -w $dev_tty2_path ) {
+##  changing /dev/tty<n> group permissions [+rw]  ##
+##
+if ( not $ttys_req_perms ) {
+    foreach my $ttydev_path (@adjust_tty_devs) {
+        ( my $TTY_name = $ttydev_path ) =~ s|^.+/||;
         <[base.logs]>->(
-            0, ":: no write permissions on device file [ %s ]",
-            $dev_tty2_path
+            $change_report_log_level,
+            ':: adjusting %s permissions [ grp read\write ]..,', $TTY_name
         );
-        <[base.log]>->( 0, qw| : | );
-        <[base.log]>->( 0, ':. aborting set-up changes ..,' );
+        <[base.log]>->( $change_report_log_level, qw| : | );
+        if ( not -w $ttydev_path ) {
+            <[base.logs]>->(
+                0, ":: no write permissions on device file [ %s ]",
+                $ttydev_path
+            );
+            <[base.log]>->( 0, qw| : | );
+            <[base.log]>->( 0, ':. aborting set-up changes ..,' );
 
-        return undef;    ##  write perm on /dev/tty2  ##
-    }
-    my $new_permissions = File::stat::stat($dev_tty2_path)->mode | 0060;
+            return undef;    ##  write perm on /dev/tty<n>  ##
+        }
+        my $new_permissions = File::stat::stat($ttydev_path)->mode | 0060;
 
-    if ( not chmod( $new_permissions, $dev_tty2_path ) ) {
-        <[base.log]>->( 0, qw| : | );
-        <[base.logs]>->(
-            0,                ':: cannot chmod [ %#o .: %-*s ]',
-            $new_permissions, abs( length(<[base.str.os_err]>) - 10 ),
-            $dev_tty2_path
-        );
-        <[base.logs]>->( 0, ':: %s [ %s ]', ' ' x 12, <[base.str.os_err]> );
-        <[base.log]>->( 0, qw| : | );
-        <[base.log]>->( 0, ':. cannot complete changes .,' );
+        if ( not chmod( $new_permissions, $ttydev_path ) ) {
+            <[base.log]>->( 0, qw| : | );
+            <[base.logs]>->(
+                0,                ':: cannot chmod [ %#o .: %-*s ]',
+                $new_permissions, abs( length(<[base.str.os_err]>) - 10 ),
+                $ttydev_path
+            );
+            <[base.logs]>->(
+                0, ':: %s [ %s ]', ' ' x 12, <[base.str.os_err]>
+            );
+            <[base.log]>->( 0, qw| : | );
+            <[base.log]>->( 0, ':. cannot complete changes .,' );
 
-        return undef;    ##  chmod error on /dev/tty2  ##
+            return undef;    ##  chmod error on /dev/tty<n>  ##
+        }
     }
 }
 
@@ -288,8 +317,8 @@ if ( not $tty_readable ) {    ## changing /dev/tty2 group permissions [+r] ##
 
 return TRUE;
 
-#,,.,,,.,,,..,.,,,.,.,,,,,,,.,,.,,,..,..,,,,.,..,,...,...,,.,,...,,,.,,..,,.,,
-#453V2J5G5YXS2N54IBDNA2X5YMQEEX3Z4XKMS57A653RVMY2K3WGVHININPA7LWXS5GHA54MYONVK
-#\\\|XPJDA4U5OGKH6TIXSGYXABMFJ46CTBUBKMRVLV5WFYNQ6CQGLCN \ / AMOS7 \ YOURUM ::
-#\[7]EN6FFDVJLYAA2AUFHHANLY366WQNTUDUYAQKDJWOTCH3EHIXJIAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,..,,,,,,..,.,,,,..,,..,.,.,,.,,..,,...,...,.,,,.,,,,.,,,.,,.,.,
+#C4RHZZASM2T2E7DTH5OWP6MMSVBH3KMIQFXPBQJWLHPVBNMFAM6MJBZAVVFW5YJAL5OJCZITNNTKO
+#\\\|TNQHUAKXANMCTB6KDWLHQV657IVD7C5LNZ4XIER7XXK4T4EHAGQ \ / AMOS7 \ YOURUM ::
+#\[7]2JPTK3RYC2FUSSUX4POSR4ULRUKWQ2AIXYTNVPGP4NZFKAJZ54CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
