@@ -9,6 +9,9 @@ my $open_mode_str = shift // qw| > |;
 my $file_mode     = shift // 0600;
 my $encoding_str  = shift // qw| :raw |;
 
+my $proto_7_user           = <system.amos-zenka-user>;  ##[  <-- def. usr  ]##
+my $current_zenka_username = <system.zenka-user.current> // $proto_7_user;
+
 my $global_config_path    = FALSE;
 my $zenkaname_path_prefix = TRUE;
 
@@ -100,11 +103,12 @@ if ( not defined $fh or not length fileno($fh) ) {
     return undef;
 }
 
-my $uname = <system.amos-zenka-user>;    ## <-- protocol-7 user ##
-##
-my ( undef, undef, $uid, $gid ) = getpwnam $uname;
+my ( undef, undef, $uid, $gid ) = getpwnam $current_zenka_username;
 
-if ( not chown( $uid, $gid, $file_abs_path ) ) {
+my $fstat = File::stat::stat($file_abs_path);
+
+if ( ( $fstat->uid != $uid or $fstat->gid != $gid )
+    and not chown( $uid, $gid, $file_abs_path ) ) {
     <[base.s_warn]>->(
         'chown [%d:%d] %s : [ %s ] <{C1}>',
         $uid, $gid, $filepath_rel, <[base.str.os_err]>
@@ -131,8 +135,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,,,,,,,...,.,.,..,,,,,,..,,,,,,,..,.,.,,..,..,,...,...,...,,,.,.,,,,,.,,,.,
-#T5DNTY54JXMGKRR4MSHXPPLGEIOJ7FLGTFBT74RXQEY5STV3C7NBEBGNFTGQCTAGDV53VCBGJZIP6
-#\\\|GUI2P3UGJUYVAWYH4KZBFT74XE2CLMRXBFZHWI4RKN5RGACDCIV \ / AMOS7 \ YOURUM ::
-#\[7]5ZOCOSSBBSP33B2BBAP3SCOXXUS6AZA3SASPZJ5VMTCKQ4HTA4BQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,,..,.,,,.,,,,..,,,,,,,,,,,,,..,,...,...,,,.,,..,,,,,,,.,,,.,
+#7NO5M2RRSLZEGTDDKAO3D5TJTZ3GOG7KHVVFGV44UJCDPZ23R5HKF7EK7QSG2XBCG7LKQPE4AKQSM
+#\\\|3RDU7VPLTS4C3E2KYRN3KB7T4VGWJ7L4JSELURNEUMITV57CN7M \ / AMOS7 \ YOURUM ::
+#\[7]Q33F45E66DDFBCXQ7HKQKP5IPSJDXPO25DXKKWNHXYPJKGH4SQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
