@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = X-11.chk.early-priv-drop
+
+my $X11_user_name = shift;
+
+if ( not defined <system.zenka-user.current> ) {
+    warn 'expected user param <{C1}>';
+    return undef;
+}
+
+<X-11.xorg-mode.no-root-start-up> //= FALSE;
+<X-11.auto-conf.non-root-setup>   //= FALSE;
+
+my $X11_start_mode = <X-11.mode>;    ## configured start mode ##
+
+if ( $X11_start_mode eq qw| auto-xephyr | ) {  ## checking auto-xephyr mode ##
+    ## detect if Xorg running --> xephyr
+    system('ps h -C Xorg 1>/dev/null 2>/dev/null');
+    $X11_start_mode = $CHILD_ERROR == 256 ? qw| xorg | : qw| xephyr |;
+}
+
+##  checking if system changes required  ##
+##
+if ( $X11_start_mode eq qw| xorg | ) {
+
+    ##  keep root privs when configured for root user start-up  ##
+    ##
+    return FALSE
+        if not <[base.cfg_bool]>->(<X-11.xorg-mode.no-root-start-up>);
+
+    ##  check \ perform required system changes for non-root start  ##
+    ##
+    if ( <[base.cfg_bool]>->(<X-11.auto-conf.non-root-setup>) ) {
+        ##  adjust system  ##
+        if ( not <[X-11.autoconfigure.non-root-start]>->($X11_user_name) ) {
+            <[base.log]>->( 0, 'cannot configure non-root start-up .,' );
+            <[base.log]>->( 0, ':. giving up X-11 zenka start-up..,' );
+            <[base.exit]>->(qw| 0110 |);    ## shutting down zenka ##
+        }
+    }
+}
+
+##  dropping root priviledges to configured user  ##
+return <[base.root.drop_privs]>->($X11_user_name);
+
+#,,,.,,..,,..,,.,,.,,,.,.,.,,,,,,,,..,,.,,,.,,.,.,...,...,.,.,,,.,,.,,,.,,..,,
+#MSCEF6S3MYBKR4BG66T3XJS5OCT37HCMJN7POES6AJ2PRFJ2PKPIFZ4M3HKVTPNKXX24M4ZV2AUKY
+#\\\|YHDUENLKNGEORCJVIGLMNJTB3MX4LJ6JUYQVU5YTDQ57DFUCTC4 \ / AMOS7 \ YOURUM ::
+#\[7]UPFQ7KHGZEYYPYUELNVQO6FIMQSBLOJ6NN7LIA6SQ3OPX2ZMCYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,11 @@
 X-11.mode = host          # [host|xorg|xephyr|nxzenka|xnest|auto-xephyr|xvfb]
                           # override configured zenka mode using zenka subname
 
-system.zenka-user.current = <system.AMOS-user>      ## <-- not 'protocol-7' ##
+X-11.xorg-mode.no-root-start-up = yes  ##  do not run Xserver as root  ##
+
+X-11.auto-conf.non-root-setup = yes    ## make required system changes ##
+
+system.zenka-user.current = <system.AMOS-user>   ## <-- not 'protocol-7' ##
 
 X-11.orientation = normal # <left|right|normal|inverted>[-x|-y]
 
@@ -106,25 +110,28 @@ modules.preload  =  X-11.set-up set-up.json
 
 [set-up.json.import_file:'X-11.set-up.json']
 
-modules.load = auth net protocol io.unix io.ip X-11                  ## devmod
+modules.load = auth net protocol io.unix io.ip X-11   ## devmod
 
-[load_modules:<modules.load>]
-[init_modules]
+[load_modules:<modules.load>]  ##  load sourcecode  ##
+
+[X-11.chk.early-priv-drop:<system.zenka-user.current>]  ## drop when required
+
+[init_modules]  ##  initialize modules and start xserver  ##
 
 ## ,..in host-mode privs are dropped before connecting in 'X-11.post-init'  ##
 
-## move up [ auto-add desktop-user to grp. ]
+##  drop privs [ when not already done above ]  ##
 [root.drop_privs:<system.zenka-user.current>]
 
-[base.net.connect:'unix']
+[base.net.connect:'unix']   ##  connect to local cube zenka  ##
 
 [base.get_session_id]
 [X-11.check-mouse]
 
 [zenka.loop]
 
-#,,..,,..,,,.,,,.,..,,,..,,.,,,..,.,,,...,.,.,..,,...,...,,.,,,,,,,,.,,.,,,,,,
-#7D3EVY4NRP4UBAD3LPOMSOOM2K7BM6Y7XUJZNNM7Y35HSZXQOUGODGRCL7Z2QFKEFAAPBI3L5QECY
-#\\\|GZC7ZTTDWGOZXV27VPWAYSBTVQXMJEL3FJDTFBFEQSCZZFAHQ5D \ / AMOS7 \ YOURUM ::
-#\[7]I4TPFX23OLZXOCJYLYLXQ7PFTSOFEXODIV43MZ2DCXXHXCLB54DQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,.,,,,,,,,.,,..,,..,,..,,.,.,..,,...,..,,..,,,,.,..,,,,.,,.,,
+#XZ5PO5RHTZP2DGURRQQ3CBGSWCWGPP44YQ2KDX63BH7R742DGNVZHCPS5RGEXTLLDHQ5T2ZM4BXXC
+#\\\|3MLU6RR6NFYL7GMSUXUZTLAT3W7RCE7FSONBYXZ4KDPX3OYWJN4 \ / AMOS7 \ YOURUM ::
+#\[7]ARUQOOXTQKL6TIH3QRB6APGGFUT5EB6C5OCOXFLTMCSDU65XAADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
