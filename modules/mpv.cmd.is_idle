@@ -3,25 +3,23 @@
 # name  = mpv.cmd.is_idle
 # descr = return if player cube is idle or not
 
-my $reply_id = $$call{'reply_id'};
-push( @{<mpv.reply_ids>}, $reply_id );
+my $reply_id = $call->{'reply_id'};
+push <mpv.reply_ids>->@*, $reply_id;
 
-my $mpv_property = 'cube-idle';
+my $mpv_property = qw| core-idle |;
 
-<mpv.request.property>->{$reply_id}
-    = $mpv_property;    # <-- stored for err. msgs
+##  storing value for error messages  ##
+<mpv.request.property>->{$reply_id} = $mpv_property;
 
-push(
-    @{<mpv.command.reply>},
-    { 'handler' => 'mpv.handler.pipe.single_line' }
-);
+push <mpv.command.reply>->@*,
+    { 'handler' => qw| mpv.handler.pipe.single_line | };
 
-<[mpv.send_command]>->( 'get_property_string', $mpv_property );
+<[mpv.send_command]>->( qw| get_property_string |, $mpv_property );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,,,,..,,,..,..,,,..,.,,,,.,,,,,,.,,,,,.,...,..,,...,...,..,,.,.,.,,,...,,.,,
-#Y2NHTUQCZBRLODLZAV7DVESBWMTLMVCNX5IDNJPN4PH2AMDGW6F4T4IDRN6BAPRLNAMX5BHGQUB6Q
-#\\\|ABXCI5HDPACO3HRXJWMDJSTBYVHGENG7BLDAKZMR3NIL4ZQM72I \ / AMOS7 \ YOURUM ::
-#\[7]ROHW2GXUXPZGQLL5YB2EOMDMQE4XENVOF3Y7FRC3BIQCPBUTDSDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,...,...,,,.,...,,.,,,..,..,,,,.,..,,...,...,.,.,.,,,..,,.,,,,..,
+#CFHGLZEXPSCTXESINAEUP3QAAPZVPTVYJ5XQZJRLXRF6GFOZ2MLWXYUSHOE5IDTWKSIDLZAOR3EUG
+#\\\|Z3AWLSLKBM4WZGCO3KUOOW7HIB6T7TDYDHG7XXOUHRKTXAHNDDK \ / AMOS7 \ YOURUM ::
+#\[7]N7FL3ZZQAQNT2T7GARFGMUQOOY5NMLTHWRQDTKBZTYZBWGVIPMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
