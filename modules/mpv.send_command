@@ -2,21 +2,21 @@
 
 # name = mpv.send_command
 
-my $json_string = <[mpv.json.command]>->(@_);
+my $json_string = <[mpv.json.command]>->(@ARG);
 
-return <[base.log]>->( 0, "no command defined" ) if !$json_string;
+return <[base.log]>->( 0, 'no command defined' ) if not $json_string;
 
-<[base.log]>->( 2, 'send_command: ' . $json_string );
+<[base.logs]>->( 2, '<send_command> %s', $json_string );
 
 if ( not defined <mpv.socket> ) {
-    warn "mpv control socket has been lost";
+    warn 'mpv control socket has been lost';
     exit(2);    # TERM / KILL mpv in END code
 }
 
 <[base.s_write]>->( <mpv.socket>, $json_string );
 
-#,,,.,,,,,,.,,.,,,...,.,.,...,,.,,..,,.,.,..,,..,,...,..,,.,.,.,,,...,.,,,,,,,
-#MCAP7QN3BINK5ORWZXXMLINYDG4JQ5ITCIJ24IOIEOS4XJJU5UJZDMM6XHKG3PW4UA2AUYPQY7X3W
-#\\\|7ISEUOMXKQQQPXNBG2DPYG34KGFJUNY3EHC4K5JMEQB4IPLD3Q4 \ / AMOS7 \ YOURUM ::
-#\[7]YZ6YR6TPC3JVPI2K44YENPZOA4MZZ6WQ5DCXG2VNJMSIISVBRMBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,.,...,.,,,.,,,.,,,..,,,,,,,.,,..,,...,...,.,,,.,.,..,,,,.,,..,
+#KPSXRZ5CTMYMBAOLTTGW5BGY3A7C4S2VMKUH4KTRHHK4CKLSPAZC4QUGNVDPUSBUWTYLQCLO2KSUQ
+#\\\|2ZDCGXHOXPP6TI5SGJGNHJ2VMUK5ANQGL2PH5KVJEH2NQ7COTH7 \ / AMOS7 \ YOURUM ::
+#\[7]436YPYW7D74NYHQYGQSWW2AXNR74FUWMMSUMB6OCX444U7T2B2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

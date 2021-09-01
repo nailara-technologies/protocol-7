@@ -6,15 +6,17 @@ my $params = shift;
 
 return
     if ( <mpv.audio_only>
-    and $params->{'name'} !~ /^(volume|path|cube-idle)$/ )
+    and $params->{'name'} !~ m{^(volume|path|core-idle)$} )
     or not exists $params->{'event'}
     or not exists $params->{'name'};
 
-my $handler_name = "mpv.handler.event.property-change.$params->{name}";
+my $handler_name = sprintf qw| mpv.handler.event.property-change.%s |,
+    $params->{'name'};
+
 $code{$handler_name}->($params) if exists $code{$handler_name};
 
-#,,,,,,.,,,,,,.,.,..,,...,,,.,.,,,.,.,..,,..,,..,,...,...,,..,,..,.,,,,.,,.,,,
-#OV6LIJ7AWAZUF4XS3SOQLDO7NBLZNLFO4OEY54HK5ZFET2ILSOKAJXOD4FTPAUBZGHUNG5OGAYOWE
-#\\\|K5F3S2UC32QLFOUVLQ7AFUHTI2MNZH7GVP4LI462XSG5XEA6DY5 \ / AMOS7 \ YOURUM ::
-#\[7]JJZ4TL75KNSIBUU6IU7VZTFZV4RDOJKFCN7KZIMU2QATFH7T52AI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,.,,,.,,,,..,,,,,.,,,,.,,,,.,..,,...,...,.,.,.,.,..,,,,.,...,
+#MWMFLTZPOWGNRNBHJKXFKIRYDOIHJZFQ2X6LIHU57B46RQO4QU2YFAF4M57OPG6MDXHERXNJJWWYQ
+#\\\|X3MPXBC2JE6OMDMQPYS36DWTD5J2RJCM2JMAV7NIO5SWQZDMKB3 \ / AMOS7 \ YOURUM ::
+#\[7]JKCV5OYEB4HLBT6C4Y2TJ5UBLIZSZGBYCEITMPYJEE6GZ2TAO2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

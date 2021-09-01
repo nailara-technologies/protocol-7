@@ -4,27 +4,29 @@
 
 <mpv.map.settings> = {
 
-    'aspect' =>
-        { 'key' => 'video-aspect', 'regex' => qr/^-?\d+([:\.]\d+)?$/ },
+    'aspect' => {
+        'key'   => qw| video-aspect-override |,
+        'regex' => qr|^-?\d+([:\.]\d+)?$|
+    },
     'aspect-method' => {
-        'key'   => 'video-aspect-method',
-        'regex' => qr/^(bitstream|container)$/
+        'key'   => qw| video-aspect-method |,
+        'regex' => qr[^(bitstream|container)$]
     },
 
-    'audio' => { 'regex' => qr/^(no|auto)$/ },
+    'audio' => { 'regex' => qr[^(no|auto)$] },
 
-    'mute'  => { 'regex' => qr/^(yes|no)$/ },
-    'pause' => { 'regex' => qr/^(yes|no)$/ },
+    'mute'  => { 'regex' => qr[^(yes|no)$] },
+    'pause' => { 'regex' => qr[^(yes|no)$] },
 
     'volume' => { 'float' => [ 0, 300 ] },
 
     'pitch-correction' =>
-        { 'key' => 'audio-pitch-correction', 'regex' => qr/^(yes|no)$/ },
+        { 'key' => qw| audio-pitch-correction |, 'regex' => qr[^(yes|no)$] },
 
-    'vol-max' => { 'key' => 'volume-max',  'float' => [ 100, 1000 ] },
-    'delay'   => { 'key' => 'audio-delay', 'float' => [ -42, 42 ] },
+    'vol-max' => { 'key' => qw| volume-max |,  'float' => [ 100, 1000 ] },
+    'delay'   => { 'key' => qw| audio-delay |, 'float' => [ -42, 42 ] },
 
-    'zoom' => { 'key' => 'video-zoom', 'float' => [ -10, 20 ] },
+    'zoom' => { 'key' => qw| video-zoom |, 'float' => [ -10, 20 ] },
 
     'hue'        => { 'int' => [ -100, 100 ] },
     'gamma'      => { 'int' => [ -100, 100 ] },
@@ -36,21 +38,21 @@
     'speed'   => { 'float' => [ 0.01, 100 ] },
 
     'align' => {
-        'float' => [ -1,              1 ],
-        'keys'  => [ 'video-align-x', 'video-align-y' ]
+        'float' => [ -1, 1 ],
+        'keys'  => [qw|  video-align-x  video-align-y  |]
     },
 
-    'pan-x'   => { 'key' => 'video-pan-x',   'float' => [ -1, 1 ] },
-    'pan-y'   => { 'key' => 'video-pan-y',   'float' => [ -1, 1 ] },
-    'align-x' => { 'key' => 'video-align-x', 'float' => [ -1, 1 ] },
-    'align-y' => { 'key' => 'video-align-y', 'float' => [ -1, 1 ] },
+    'pan-x'   => { 'key' => qw| video-pan-x |,   'float' => [ -1, 1 ] },
+    'pan-y'   => { 'key' => qw| video-pan-y |,   'float' => [ -1, 1 ] },
+    'align-x' => { 'key' => qw| video-align-x |, 'float' => [ -1, 1 ] },
+    'align-y' => { 'key' => qw| video-align-y |, 'float' => [ -1, 1 ] },
 
-    'rotate' => { 'key' => 'video-rotate', 'int' => [ 0, 360, 'no' ] }
+    'rotate' => { 'key' => qw| video-rotate |, 'int' => [ 0, 360, qw| no | ] }
 
 };
 
-#,,,.,.,,,.,.,...,,,,,,.,,,..,...,...,,,.,.,,,..,,...,...,.,,,...,.,,,.,.,,,.,
-#W7HU6OZFSRPEVZHUQHXDNXMW63NMLQ2ILLKGT3HYB6XL6AOTUXUTS7PMZ2M6SAURDMHW2J25RO7V6
-#\\\|Z3HCL4SXIQDYY2LEJKJDUQ6LXS52H2FDCKDCTLBXCWHCXCJLPX4 \ / AMOS7 \ YOURUM ::
-#\[7]OENT4AQEN5SA4634JORD2TDHMKXPPK3NEIVXWAJ3A2L4CCHMSCAY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,,,.,.,,,,,,,.,.,,.,,...,.,.,..,,...,...,.,,,..,,,..,.,.,...,
+#2DYP7KLMCQNIUKOQEWXVWVTHXSN4QUKAKRHBWELM3GWWLOXRLAAAK6GGL2YLZLYB3GAEHES5TLVFS
+#\\\|HCG6NVC6ETLMGRTJTNU5XG7BPBKTB6KES6OKO44LUHRVDSE4V3X \ / AMOS7 \ YOURUM ::
+#\[7]GHAJE6C3AHSGIPPLUWLLBQ7OB5DGAEH5RFVSX53PIM6HAAU4NYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

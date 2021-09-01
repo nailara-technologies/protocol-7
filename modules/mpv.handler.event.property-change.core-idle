@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = mpv.handler.event.property-change.core-idle
+
+my $cube_idle = shift->{'data'};
+return
+    if defined <mpv.status.core-idle>
+    and ( not defined $cube_idle
+    or $cube_idle !~ m,^1|0$,
+    or $cube_idle == <mpv.status.core-idle> );
+
+<mpv.status.core-idle> = $cube_idle;
+<mpv.fade_idle_volume> //= TRUE;
+
+if ( $cube_idle and <mpv.fade_idle_volume> ) {
+    <[mpv.callback.silenced]> if <mpv.fade_idle_volume>;
+} else {    # LLL: s|start|current| volume ..,
+    <[mpv.cmd.fade]>->( { qw| args | => <mpv.current.volume_target> } );
+}
+
+#,,.,,.,,,,.,,,.,,.,,,,,,,,.,,..,,..,,,,.,..,,..,,...,..,,.,,,,..,,.,,.,.,..,,
+#ZVUTYATXURKLQQI5D6ZRVDD6T2LHEE2VC5MUKS4EFN2X56GAAAWMQBJLCZFTLPCZR7CISY4ODYCAK
+#\\\|6QJ2OQR3AFAWACRXRBUJTJ6P4RC4BXAHW4NYCGW2JVWM2M4LDNV \ / AMOS7 \ YOURUM ::
+#\[7]FG4OPMQADDMM5ZFJEJQENHUGFHSOBFCO5LUTR54WGTVT4RRQQIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
