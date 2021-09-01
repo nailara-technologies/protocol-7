@@ -2,21 +2,23 @@
 
 # name = mpv.initialize.observe_properties
 
-map { <[mpv.send_command]>->( 'observe_property', 1, $ARG ) } qw/
-    video-aspect
+map { <[mpv.send_command]>->( qw| observe_property |, 1, $ARG ) } qw[
+
+    video-aspect-override
     path
     width
     height
     volume
-    /;
+
+];
 
 if (<mpv.fade_idle_volume>) {
-    <[mpv.send_command]>->( 'set_property',     'volume', '0' );
-    <[mpv.send_command]>->( 'observe_property', 1,        'cube-idle' );
+    <[mpv.send_command]>->( qw| set_property |,     qw| volume |, 0 );
+    <[mpv.send_command]>->( qw| observe_property |, 1, qw| core-idle | );
 }
 
-#,,..,,.,,,,,,,,,,,,.,.,.,,..,..,,,,.,,,.,..,,..,,...,...,,.,,,..,.,.,...,,,.,
-#HGPYQ2AYRTC7DYTA2RB6IEYA5UHIJXDJAYXYB5QOLDFFTWQPSFYFXZLLYCLIVAMBZFUSWU3SF2I3C
-#\\\|EDUAIPP77MK4WXFXBE3V72AZ4LB4E22PBE5SQQAN3PYVNP675KL \ / AMOS7 \ YOURUM ::
-#\[7]BQCGK4E5P3JSG3EFBGEYJGYOG2CHLM2S227LUEV7MXCWNL6NFGAY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,.,,,...,..,,,.,,,,,,..,,,.,,..,,...,...,.,.,.,.,..,,,,.,,..,
+#EA4EAJRDONK2PCJQTWCEHPQFEJHTCER7MVJE5BAJMSZOOSXXCAWAWBCH2W57QGPZ44MTIOSPWOUPK
+#\\\|MDDYSCUWFCAZJVNWC2Q3PAIGABXCPMHDT3MH6ES4YYIXXUZVZH3 \ / AMOS7 \ YOURUM ::
+#\[7]NKIHEOEYCHV3URD7NP6YPKFVRWFF4RAFPRG7NON54CRAI2Y2LGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
