@@ -200,7 +200,10 @@ sub is_true_with_template {
     }
     my $template = shift;
 
-    if ( not is_template_syntax_valid($template) ) {
+    if ( not defined $template ) {
+        warn_err('template parameter not defined');
+        return undef;
+    } elsif ( not is_template_syntax_valid($template) ) {
         warn_err('template syntax is not valid');
         return undef;
     }
@@ -254,8 +257,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,,,,,..,,.,,,..,,..,,,.,.,.,..,,...,...,...,..,,...,...,,,,,,,.,..,,,,,,,.,,
-#3ZJZ5VIDAZ3Y2QKEYULOGR5UDBYICG6TCSXZ2CMIWXWVM5MAKSU3KB6M7X4KFCL6KUZRXAS6ERH6U
-#\\\|UABKFXER3B5XUGTTRK7DT6WA56QJOUWCILU7YNQPLITIJKNV7BU \ / AMOS7 \ YOURUM ::
-#\[7]GH32BLKGX3GUDQ2TGIXY4XWGBZUBTD2BVZ3GCLM64BIOJUAMSUDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,.,,,.,.,..,,..,,.,,,,,.,...,..,,...,...,.,.,.,,,,,,,..,,,..,
+#IIMUEJP6HARSRRF7O7FVGIHK4RQPZ4NAMTAR4KPEF7O5B3S4TZNFADLSXM4YZ6ILCQV3BIJDT7M5C
+#\\\|GUOUDDPY5VGRRNRBWQWAH7QW2AVU7AQRTZEV7IDVDJ7HH7EPF6M \ / AMOS7 \ YOURUM ::
+#\[7]TIXTXGFTWV6DVHMVWCJQ4BUFBEHBO2VJCGVVREGPWPKV57EIDIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
