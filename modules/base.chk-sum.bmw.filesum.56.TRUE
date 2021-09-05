@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = base.chk-sum.bmw.filesum.56.TRUE
+# param = <file-path> [template]
+
+return warn 'expected file name parameter <{C1}>' if not my $fname = shift;
+my $template        = shift;       ##  optional truth template parameter  ##
+my $file_size_limit = 66060288;    ##  63M file size limit  ##
+my $content_sref;
+
+if ( -e $fname and not -f $fname ) {
+    <[base.s_warn]>->( "path '%s' not a regular file <{C1}>", $fname );
+    return undef;
+} elsif ( not -f $fname ) {
+    <[base.s_warn]>->( "file '%s' not found <{C1}>", $fname );
+    return undef;
+} elsif ( not -r $fname ) {
+    <[base.s_warn]>->( 'no read access to file %s <{C1}>', $fname );
+    return undef;
+} elsif ( -z $fname ) {
+    warn 'specified file has zero size <{C1}>';
+    return undef;
+} elsif ( -s $fname > $file_size_limit ) {
+    <[base.s_warn]>->(
+        'specified file exceeeds size limit [ %.0fM ] <{C1}>',
+        $file_size_limit / 1048576
+    );
+    return undef;
+} elsif (
+    not defined( $content_sref = <[file.slurp]>->( $fname, qw| :raw | ) ) ) {
+    <[base.s_warn]>->(
+        'cannot open requested file path [ %s ] <{C1}>',
+        <[base.str.os_err]>
+    );
+    return undef;
+}
+
+if ( not defined $template ) {    ##  without truth template  ##
+
+    return AMOS7::13::key_56($content_sref); ## true value [ elf mode 4+7 ] ##
+
+} elsif (
+    not AMOS7::Assert::Truth::is_template_syntax_valid( $template, TRUE ) ) {
+    <[base.s_warn]>->(
+        'template syntax is not valid [ %s ] <{NC}>', $template
+    );
+    return undef;
+
+} else {    ##  with truth template [ harmonize with key name parameter ]  ##
+    my $BMW56_csum;
+    my $chksum_entropy_modifier;
+    my $mod_iteration = 0;
+    while ( not defined $BMW56_csum
+        or not AMOS7::Assert::Truth::is_true_with_template( $template,
+            $BMW56_csum ) ) {    ## harmonize using last chksum ##
+
+        $BMW56_csum
+            = AMOS7::13::key_56( $content_sref, $chksum_entropy_modifier );
+
+        $chksum_entropy_modifier
+            = sprintf( qw| %05u:%s |, $mod_iteration++, $BMW56_csum );
+    }
+    return $BMW56_csum;    ##  harmonized value [ matches template ]  ##
+}
+
+#,,,,,,,.,.,,,.,,,,.,,,,,,,,,,...,,,.,,..,.,.,..,,...,...,...,.,,,,,,,..,,.,,,
+#PO5TKTU7K2HJ2FITPKLJCMI36UIYRQO7YVPKTUUJNBMDC6BVV7OD7JU245CQKIQCWWN2WEEVCWF2U
+#\\\|B2BWTJKWIJJX6A2H2NUOQAX3MICHDOW74LNBLWCUGZL5JG6XMSC \ / AMOS7 \ YOURUM ::
+#\[7]B7HQVZVSEGTPXGEPX5MKBGUYFR263PNCX3G2PB6UP4MLAXP4ZUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
