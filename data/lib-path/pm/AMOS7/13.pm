@@ -948,6 +948,7 @@ sub key_56 {    ##  BMW 384 based key [chksum] derivation function  ##
     my $second_entropy_str = substr $pass_chksum, 56, 21, ''; ##[keeping it]##
     my $next_round_str     = '';
     my $xor_char_pos = 56 - 1;  ##[ harmonization using XOR and reencoding ]##
+    my $last_round_str = '';
     while ( $xor_char_pos >= 0
         and not AMOS7::Assert::Truth::is_true( $pass_chksum, FALSE, TRUE ) ) {
         my $pos_byte = substr $pass_chksum, $xor_char_pos, 1;
@@ -955,14 +956,19 @@ sub key_56 {    ##  BMW 384 based key [chksum] derivation function  ##
         $pos_byte ^.= $xor_byte;
         substr $pass_chksum, $xor_char_pos, 1, $pos_byte;    ## replace ##
         $pass_chksum = encode_b32r $pass_chksum;    ## reencode the encoded ##
-        $second_entropy_str .= substr $pass_chksum, 56, 34, '';    ## of 90 ##
+
+        $second_entropy_str .= substr $pass_chksum, 56,    ##  length 90  ##
+            length($pass_chksum) - 56, '';
         $next_round_str .= $xor_byte;    ##  store it for next round  ##
 
-        if ( not length $second_entropy_str ) {    ## char pos completed ##
+        if (not length $second_entropy_str      ## char pos completed ##
+            or $pass_chksum eq $last_round_str  ## infinite loop protection ##
+        ) {
             $second_entropy_str = $next_round_str;    ## reset to stored ##
             $xor_char_pos--;         ## advance character pos left ##
             $next_round_str = '';    ##  resetting  for next round  ##
         }
+        $last_round_str = $pass_chksum;
     }
 
     return $pass_chksum;    ##  returning harmonized 56 byte bmw checksum  ##
@@ -1236,8 +1242,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,.,.,.,.,,.,,,,,,.,,,.,,,,.,,,,,,,,.,.,,,..,,...,...,...,,,,,..,,,.,,,..,
-#G4P4VFNOHFSPSIF52IX7EDOYJVIUPRFZFOC42FM2ZTDJLBEFURVYQF6PI5CA52ZSSQH33ISKEQVAA
-#\\\|HMZHAXYNYNX2QCAXPAUPL2CNHJ3UOYF4RQKHXTXM7D5RIZO4FFG \ / AMOS7 \ YOURUM ::
-#\[7]6NY4SN7SC7MG5LLFZ4MD22ECET3N55BHFJRMCXKXZYU7JXBUQGCY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,.,,..,,.,.,.,,,,.,,..,,,..,..,,...,...,.,,,,,.,..,,.,,,.,,,
+#5NL3Y3UOSP3BEOLKVERRSTGZOXYFUTJFA53ZEHPW7ZEZ5FFLWNVSBQZI2NODRLLD43NZH5YFKDZWI
+#\\\|4S2QP6ZZ7KD6A5XVZ7NVDWWCJH7THNST5T6UJZFKFQMSWPDQU5K \ / AMOS7 \ YOURUM ::
+#\[7]47T4TEKIXMNRLQJGIJKLJRM7Z3X3OMSLSX4DJWGEHRZKJJE7NMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
