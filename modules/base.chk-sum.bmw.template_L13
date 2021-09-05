@@ -5,7 +5,7 @@
 # descr = returns 13 character BASE32 string [ XORed BMW chk-sum segments ]
 
 if (not @ARG or not defined $ARG[0] or not    ##  silent chk  ##
-    AMOS7::Assert::Truth::is_template_syntax_valid( $ARG[0], 5 )
+    AMOS7::Assert::Truth::is_template_syntax_valid( $ARG[0], TRUE )
 ) {
     <[base.s_warn]>
         ->( 'template syntax is not valid [ %s ] <{NC}>', $ARG[0] );
@@ -51,8 +51,8 @@ while (not is_true_with_template( $template, $result_str_B32, 0, 1 )
 
 return $result_str_B32;    ##  13 characters  ##  [ a true value ]  ##
 
-#,,.,,.,.,..,,,,.,,,.,..,,..,,...,,..,,..,..,,..,,...,..,,..,,,,,,.,,,...,.,,,
-#M2BUAEX67BRFUQ34B7UFLOATFUMDSFZLJZQJZQQUZQC5J7UPXNHREZZVJFLVXRLUTZWSJU7GJQHJM
-#\\\|NL3Y2ZJCS4YXKZSZCH2EAISO5SR3OL3LJZCPLLWJYPYGOYGTS2X \ / AMOS7 \ YOURUM ::
-#\[7]QPPTSV7QPZNVV5O6FLA6CSH2LUHD3PWRG54KVJW6LRCGTIZLRCCI 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,.,.,,.,,...,.,,,,..,.,,,...,..,,...,...,,,,,,..,,.,,.,.,..,,
+#FWJCUNFLJXL4UB2JJF6AKY4VYHIDWONQMSKE6IVUSLEPG7FLHEAUSHDLYFIWHQ4XPLL6ZKXSFVRAA
+#\\\|XSBLFV3CXOVOX6DVMVRJ4EUAMSTLMN2SC6ISGW2FQ6GAUYXNFGR \ / AMOS7 \ YOURUM ::
+#\[7]SEIZVL3SDQQFV6UY7INA43K3EPQCALDCHN4C4BBK42KKGXKHUKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
