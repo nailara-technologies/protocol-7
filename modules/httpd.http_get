@@ -21,7 +21,7 @@ my $http_uri    = $request->{'uri'};
 my $link_target = <httpd.cfg.hostnames>->{$http_host}
     if defined <httpd.cfg.hostnames>->{$http_host};
 
-if (    $link_target =~ /^\d{3}$/
+if (    $link_target =~ m|^\d{3}$|
     and -l <httpd.site_dir> . '/' . $http_host
     and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
 
@@ -96,7 +96,7 @@ if ( defined $http_host and defined $link_target ) {
         }
     }
 
-    if ( $file_path =~ /\.tmpl$/ and -f $file_path )
+    if ( $file_path =~ m|\.tmpl$| and -f $file_path )
     {    # <-- nailara web template
         $request->{'query'}
             = { map { $ARG => $uri_obj->query_param($ARG) }
@@ -224,11 +224,14 @@ if ( defined $http_host and defined $link_target ) {
             open( my $content_fh, '< :raw', $file_path )
                 or warn "<< ! >> $file_path : \l$OS_ERROR"
                 ;                      # LLL: needs error handling..,
-            $session->{'buffer'}->{'output'}
+
+            $session->{'buffer'}->{'output'} ## blocking ? ##
                 .= <[httpd.new_header]>->( $reply_code, $reply_header )
                 . <$content_fh>;
             close($content_fh);
+
             return $session->{'http'}->{'close'} ? 2 : 0;
+
         } else {    # 'larger' file, transfer in pieces.,
             return <[httpd.download_init]>->(
                 {   'sid'    => $id,
@@ -246,8 +249,8 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path
     or !-f $file_path;
 
-#,,,.,,..,.,.,,..,,.,,..,,.,,,.,.,,,,,.,,,,,,,..,,...,...,,..,..,,,,.,...,,,.,
-#275RWJWKS7DB4J4SEKJVWPNN4IIV3XSUH37IDSH5J4GNKIMO2LJXYSBE2WXFWUHV6TBOEHIV365UA
-#\\\|PPGMJIVQTAFRCOIQXGVKJPYX6WZBANPJBMDOBONP2ITJLG6AMXV \ / AMOS7 \ YOURUM ::
-#\[7]V7W326PMWWFKJBZVKHTGZPNI47HENLQW6LX5ZODRI5GRIPVZV4AQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,.,.,,,,,,,.,..,,,,.,.,.,.,,,..,,...,..,,..,,.,.,,..,,,.,,,,,
+#ZA3ZWNW5QHYPMBZRQBFIAFSR77YC77HXI6TG4OIOHWHKOO7HRGRSYUOH6A3BEDPX5UVAOCGQ5R4VE
+#\\\|A6QJRQYEZ6YLAUBD7D7TQXQOIN6C5UYF73HFQAKS7PSBHKMA2V3 \ / AMOS7 \ YOURUM ::
+#\[7]MDSYIG7RJ63T74CG5UFDEFUF3WGA6JX26TULJGEU4YQRMIOUIACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
