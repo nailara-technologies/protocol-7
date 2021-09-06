@@ -1,12 +1,15 @@
 #!/usr/bin/perl
 
-$0 = '[terminal]';
-
-use v5.10.0;
+use v5.24;
 use strict;
 use English;
+use Sys::Hostname;
 
-my $font_size = 13;
+$PROGRAM_NAME = qw| [terminal] |;
+
+my $font_size = 21;
+
+$font_size = 17 if hostname eq qw| zuluma |;
 
 ## blacklight : #4427AC
 ## nalara bg  : #09052A
@@ -19,7 +22,7 @@ my @exec_args = qw|
     -xrm xterm*geometry:80x25
     -xrm *xterm*renderFont:true
     -xrm *xterm*faceName:WhiteRabbit
-    -xrm *xterm*faceSize:13
+    -xrm *xterm*faceSize:17
     -xrm *xterm*Background:#010015
     -xrm *xterm*Foreground:#0647C3
     -xrm xterm*cursorColor:#4427AC
@@ -37,19 +40,19 @@ use warnings;
 shift(@ARGV)
     and $font_size = shift(@ARGV)
     if @ARGV > 1
-    and $ARGV[0] eq '-s'
+    and $ARGV[0] eq qw| -s |
     and $ARGV[1] =~ m|^\d+$|;
 
-map { $ARG =~ s|Size:13|Size:$font_size| } @exec_args if $font_size != 13;
+map { $ARG =~ s|Size:17|Size:$font_size| } @exec_args if $font_size != 17;
 
-shift(@ARGV) if @ARGV and $ARGV[0] eq '-e';
+shift(@ARGV) if @ARGV and $ARGV[0] eq qw| -e |;
 
-push( @exec_args, '-e', @ARGV ) if @ARGV;
+push( @exec_args, qw| -e |, @ARGV ) if @ARGV;
 
 exec(@exec_args);
 
-#,,,.,.,,,...,,,,,,..,...,,,,,.,,,,..,,,,,,.,,..,,...,...,..,,,..,,,,,.,,,,.,,
-#7JAFB7NJOIQI2ON426WUIPFIHH4JLYZHDWDYKQWDRGRH7YF2YGTZXSLCQAZT26JK6LMJMNLQMFCQG
-#\\\|PUPAEIYHFPXCUFBRRVNDKQILGHNWDC2NACTSG4JEAVFUWVL2ALO \ / AMOS7 \ YOURUM ::
-#\[7]G3KA77O7I5JKQQXNHDBVNTJVBXTPDLKHNRNFVRWEJABAV464DMDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,...,..,,.,,,,..,,..,,,.,,..,..,,...,...,,..,,.,,...,,,,,.,,,
+#4H35ISALI4RDAQH32CWGX4ZMZG6VVO3JJZ6B6MGAWIV4JBTKANG54VTJJAAMA5SACEW2KTXL7AOAE
+#\\\|7PP4IEEVIB3URUIKMCEYGVEHYNN3M4RX7WT2IPNSVK6UKXR3TUF \ / AMOS7 \ YOURUM ::
+#\[7]ETPFVCNIGXE4X5CWSSBV276MFK67D2GP3AVDJA6Q46LA7UXAHADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

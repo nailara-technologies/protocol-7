@@ -3,6 +3,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Sys::Hostname;
 use Cwd qw| abs_path |;
 use FindBin qw| $RealBin |;
 use Time::HiRes qw| sleep |;
@@ -10,7 +11,12 @@ use File::Path qw| make_path |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
 
-my @window_geometry = qw|  0  347  -77  947  |;
+my @window_geometry;
+if ( hostname eq qw| zuluma | ) {
+    @window_geometry = qw|  0  347  -77  947  |;
+} else {
+    @window_geometry = qw|  0  207  -77  1200  |;
+}
 
 my $protocol_7_path = &p7_root_dir;    ## determine protocol-7 root path ##
 
@@ -110,8 +116,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,.,..,,,..,,,.,..,,...,..,,,..,,.,,..,,.,.,.,.,...,.,.,,.,,,.,,,,,,,,,,,,.,
-#DHL33IYYOXYDG33UJ5T4XEU4IIHM7BLYZ6IXC54ZKCZOBUJS4FAND2TXE2YS3ESLRGLXVNEB6TJD4
-#\\\|LZ2U2GVEARN7SL6MUNCYTXEYWNCGJEFTWKH4MF6PFGIMNKXZ53G \ / AMOS7 \ YOURUM ::
-#\[7]CJGWVES56DWCTULGQYKV2N55JNCMRNCDWMHDYJEUNI4DI2GM4OCQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,.,.,,,,,,,,,,.,,,,.,,..,,.,,.,.,...,...,,,.,,,.,...,...,.,.,
+#KRXJI3F66P2HVWXM334O7XMFOVLZ6SSRLQJPKP7AEIUC2HC24VHXNVDGQMGGMAMWWIV7KUJDCVSJY
+#\\\|NJTPYFTG4Q5TYAVAW6IMV4P66LV7CPX76VWZWAJ3RC3VE7EHXCT \ / AMOS7 \ YOURUM ::
+#\[7]YHOH6UUVOO3C2MWH5NHDPBYBDDBOBL63TG74JV7R2OMTDFWVG2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
