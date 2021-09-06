@@ -5,7 +5,7 @@
 my $id;
 my $params;
 my $file_path;
-if ( ref( $_[0] ) eq 'HASH' ) {
+if ( ref( $_[0] ) eq qw| HASH | ) {
     $params    = shift;
     $id        = $params->{'sid'};
     $file_path = $params->{'path'};
@@ -42,7 +42,7 @@ if ( exists $request->{'range'} ) {
     my $file_size = $content_size;
     $status_code  = 206;
     $content_size = 0;
-    @ranges       = @{ $request->{'range'} };
+    @ranges       = $request->{'range'}->@*;
     map {
         $content_size += $ARG->{'part_size'}
             = 1 + ( $ARG->{'end'} - $ARG->{'start'} );
@@ -59,7 +59,8 @@ if ( exists $request->{'range'} ) {
     } else {                 ## multipart byteranges ##
 
         my $h_str
-            = join( '|', map { $ARG, $header->{$ARG} } sort keys %{$header} );
+            = join( '|',
+            map { $ARG, $header->{$ARG} } sort keys $header->%* );
         $boundary = <[chk-sum.bmw.L13-str]>->($h_str);
         $header->{'Content-Type'}
             = "multipart/byteranges; boundary=$boundary";
@@ -120,13 +121,13 @@ if ( defined $boundary ) {    ## <-- byteranges request ##
 
 $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
     {   'fd'         => $client_fh,
-        'handler'    => 'httpd.handler.download_transfer',
-        'poll'       => 'w',
+        'handler'    => qw| httpd.handler.download_transfer |,
+        'poll'       => qw| w |,
         'prio'       => 4,
         'timeout'    => <httpd.timeout> * 3,
         'timeout_cb' => sub {
             <[base.log]>->( 1, "[$id] file download timed out.," );
-            $data{'session'}{$id}{'shutdown'} = 1;
+            $data{'session'}{$id}{'shutdown'} = TRUE;
         },
         'data' => { 'id' => $id }
     }
@@ -136,8 +137,8 @@ $session->{'watcher'}->{'download_handler'}->now;
 
 return 0;
 
-#,,,,,,..,,.,,.,.,,,,,...,.,.,.,.,,..,,,.,,..,..,,...,...,,,.,...,...,,,.,.,.,
-#VIDEJCIV3VJ472YLWKTOSWZJLXYDU6MDCB2S6WGATAMX5RH7UV2OBF4UGBZLWUJW4D65APNB4FS2W
-#\\\|HIABUC7UBNIWANP2EP4CB2WETUCILAML4COBN6HD6E72T5DGVH7 \ / AMOS7 \ YOURUM ::
-#\[7]JJHZO2ANURCZOSYWT6PLQXLNPFZ4TD6OZVNMEKMAIP6AOWO2U2AI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,,,,,..,,...,...,,,.,.,.,.,,,..,,...,.,,,..,,..,,..,,,,.,,,,,
+#KAV3PMH2HE77BD7H2LEAOVHGLNSTYQS5NGYBJH6LHC52F7FL7HIJ73NRSG7FELPIVT4TE4ZL2NS3W
+#\\\|GTK2C4XXIHWMWM3Z5JISU6MVZCIXP32AXBPCMWVOV4KPBQ6JPRZ \ / AMOS7 \ YOURUM ::
+#\[7]2QF6RI6ONHEZ5B23KJL2DYKXYC3GY5WS7PBRTOVAJAYLTWRKWSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

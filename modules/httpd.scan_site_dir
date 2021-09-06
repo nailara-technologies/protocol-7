@@ -19,22 +19,22 @@ if ( not opendir( $dir_fh, $site_dir ) ) {
 my @vhosts;
 my @ext_dirs;
 foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
-    ( my $dir_path = catdir( $site_dir, $dir_name ) ) =~ s|//|/|g;
+    ( my $dir_path = catfile( $site_dir, $dir_name ) ) =~ s|//|/|g;
     next
         if $dir_name =~ m|^\.|
         or (-l $dir_path
-        and !-d $dir_path
-        and !-d readlink($dir_path)
+        and not -d $dir_path
+        and not -d readlink($dir_path)
         and readlink($dir_path) !~ m|^\d{3}$| );   # <-- custom status codes.,
     if ( -l $dir_path ) {
-        my $link_target = readlink( catdir( $site_dir, $dir_name ) );
-        if (    <httpd.cfg.external_sitedirs>
+        my $link_target = readlink($dir_path);
+        if (    <[base.cfg_bool]>->(<httpd.cfg.external_sitedirs>)
             and $link_target =~ m|/|
             and -d $link_target ) {
             <httpd.cfg.hostnames>->{$dir_name} = abs_path($link_target);
             push( @ext_dirs, $dir_name, abs_path($link_target) );
         } else {
-            push( @vhosts, $dir_name );
+            push @vhosts, $dir_name;
         }
     } else {
         <[base.logs]>->( ':   host : %s', $dir_name );
@@ -52,8 +52,8 @@ while (@ext_dirs) {
     );
 }
 foreach my $link_name (@vhosts) {
-    ( my $link_target = readlink( catdir( $site_dir, $link_name ) ) )
-        =~ s|//|/|g;
+    my $link_path_abs = catfile( $site_dir, $link_name );
+    ( my $link_target = readlink($link_path_abs) ) =~ s|//|/|g;
     if ( $link_target =~ m|^\d{3}$| ) {
         <[base.logs]>->(
             ":   code : %-*s --> %s",
@@ -77,8 +77,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,,,,.,,,.,.,.,.,,,.,,,,,,,,,,.,,,,.,..,,..,,..,,...,...,,,.,..,,,..,.,,,..,,
-#B7GWNJWYGOIZHWVQXFPASQS2TVJPCTKRUMZ4YOZASIEVHOUNIYOQHLYJAXP6BWRAUTBV3JQXA27I4
-#\\\|JM5V7ZADG7LWCXVBTKW5UMLNTHPVLPCV5FVKTGIWFXB2HXHGD6I \ / AMOS7 \ YOURUM ::
-#\[7]GEHA4X6PMTYD2XF4TOJT3HC7HZ4GEBPTGI7VXQ7QUYSXSX262QBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,.,..,,..,,.,,,...,.,,,,,.,..,,...,...,.,,,...,..,,.,,,,,,,
+#AOR2P3AD4SUP37WGP2SIZLKUXINWQMNE7E6G7PWTGUQA7CIVMNRELPDUEJ4RD2LI4ID7RI7EH7KBU
+#\\\|JNID5GEWENIWXCVQU42GCQMTGJWBHABHJP24VKT6YZIUB3SHPDF \ / AMOS7 \ YOURUM ::
+#\[7]K62M4PQ2GIV57QR6P6WOWKLIXJCHAJQ6LINGWJO45OK2E5DNFGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
