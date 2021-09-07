@@ -13,7 +13,16 @@ use constant FALSE => 0;    ##  false  ##
 
 my $battery_status_cmd = qw| /usr/bin/acpi |;
 
+my $play_warning_sound    = FALSE;
+my $warn_sound_low_limit  = 7;
 my $show_interval_seconds = 7.13;
+
+$play_warning_sound   = TRUE if @ARGV > 0 and $ARGV[0] eq qw| -s |;
+$warn_sound_low_limit = $ARGV[1]
+    if @ARGV > 1
+    and $ARGV[0] eq qw| -s |
+    and $ARGV[1] =~ m|^\d+(\.\d+)?$|
+    and $ARGV[1] <= 100;
 
 my $font_name = 'White Rabbit';
 
@@ -35,6 +44,8 @@ while ($no_error) {
     undef $acpi_out        if not length $acpi_out;
     $acpi_out = $acpi_serr if length $acpi_serr;
 
+    my $current_charge;
+
     if ( $return_code == 0 ) {                ##  re-formatting message  ##
 
         chomp $acpi_out;
@@ -45,6 +56,11 @@ while ($no_error) {
         $acpi_out =~ s|: unknown, | .:. |;
         $acpi_out =~ s|,|  \\ |g;
         $acpi_out =~ s|%| percent|g;
+        $acpi_out =~ s|charging .+|100 percent|
+            if index( $acpi_out, '100 percent', 0 ) > 0;
+
+        $current_charge = $LAST_PAREN_MATCH
+            if $acpi_out =~ m|(\d+(\.\d+)?) percent|;
 
         $acpi_out =~ s|(\d\d:\d\d:\d\d) until (\S+)|$2 in $1|;
         $acpi_out =~ s|(\d\d:\d\d:\d\d) remaining|remaining : $1|;
@@ -65,9 +81,25 @@ while ($no_error) {
     $acpi_out //= sprintf 'cannot fetch battery status [ %s ]',
         $err_reason_str;
 
+    play_warn_sound()
+        if $play_warning_sound
+        and defined $current_charge
+        and $current_charge <= $warn_sound_low_limit;
+
     osd_show_mesg($acpi_out);    ##  display the message on screen  ##
 
     Time::HiRes::sleep $show_interval_seconds if $return_code != 0;
+}
+
+##  low battery charge warn sound  ##
+##
+sub play_warn_sound {
+    if (fork) {
+        my @player_param = qw| warning-sound -speed=0.777 |;
+        system @player_param;
+        waitpid( 0, 0 );    ##  reap child process  ##
+        exit(0);
+    }
 }
 
 ## showing osd message ##
@@ -181,8 +213,8 @@ sub cnt_s {
     return $count == 1 ? $singular : $plural;
 }
 
-#,,.,,,.,,...,.,,,,,.,,,,,..,,,.,,,..,..,,,..,..,,...,...,..,,...,,.,,,.,,,,,,
-#4TI4GWFYTIDMOAM2WCZZU463CNIM6LDHISZVQDR6CLCYQGTGQSRISW2PY6NL57EKVMFQSCFCSHI3U
-#\\\|AEK56J6XSRU22P4FXH3GAAW3AQEOWJ5QVVUC4KWOZKP4IYOIOZX \ / AMOS7 \ YOURUM ::
-#\[7]GFHCLYS5ST7PSHE3AMJ2VPHMFRTTFONUKUDFXI3LOMREBZF43SCQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,.,.,,,.,,,,,,,,,.,.,.,.,.,,,..,,...,...,,..,,,,,,,.,,,,,.,.,
+#UDKQEXZGXAGRS7BUXD3T6VYHBBQ7244XKCUTWWVSA55XLTSWBTV7HX267YSXEDGTLT2QKDST7P5C4
+#\\\|OIO3KRO5JD5VZ57QHGGZ4ZANYZJLJ5ZZ4TQKZ2S4G66PX4RGROV \ / AMOS7 \ YOURUM ::
+#\[7]3LJOK6HQOKB62XAHHC6OIAMABPQU5COWOSVUKM6RZS5QBHCSEQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
