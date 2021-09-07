@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+our $root_path;
+use File::Spec::Functions;
+
+##[   warning-sound   ]##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+
+##[  SOUND SET-UP  ]##########################################################
+
+my $sounds_path          = sprintf qw| %s/data/sounds/amos7 |, $root_path;
+my $warning_sound_sample = catfile( $sounds_path, qw| yourum.warning.ogg | );
+
+error_exit( 'audio file %s not found', $warning_sound_sample )
+    if not -f $warning_sound_sample;
+
+##[  PLAYER COMMAND  ]########################################################
+
+my @player_param
+    = qw| /usr/bin/mpv -really-quiet -audio-pitch-correction=no -volume=77 |;
+
+error_exit( 'command [ %s ] not found', $player_param[0] )
+    if not -x $player_param[0];
+
+##[ RUNTIME CODE ]############################################################
+
+push @player_param, @ARGV if @ARGV;    ## additional player parameters ##
+my $mpv_status = system @player_param, $warning_sound_sample;
+
+if ($mpv_status) {
+    warn_err( join ' ', @player_param, $warning_sound_sample, qw| <{NC}>| );
+    system grep { !m|quiet| } @player_param, $warning_sound_sample;
+}
+
+exit $mpv_status;
+
+#,,,.,.,,,.,.,,,,,..,,...,...,..,,...,,..,,,.,..,,...,...,.,,,...,,.,,,,.,,,,,
+#F57XUDLGRCPEKPCBYGWOGTCHTECXWG6FDJSQKC5AROEV6Q3AIGB6Q6OYH7W4E3MBYCN7NFVK6C4XI
+#\\\|CE747MC6WI6KVLSBMYF7ND3SD2KVPDGIPAPFDNBCG3RLZ5SZ3VU \ / AMOS7 \ YOURUM ::
+#\[7]5MIYNUFNGTSTI4U2T2NNIV3NXZRHVJFBKFD3RKGTFF6KS64OIIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
