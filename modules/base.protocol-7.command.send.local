@@ -2,20 +2,20 @@
 
 # name = base.protocol-7.command.send.local
 
-my $cmd       = ${ $ARG[0] }{'command'};
-my $call_args = ${ $ARG[0] }{'call_args'};
-${ $ARG[0] }{'reply'} //= {};
-$$call_args{'args'}   //= '';
+my $cmd       = $ARG[0]->{'command'};
+my $call_args = $ARG[0]->{'call_args'};
+$ARG[0]->{'reply'}   //= {};
+$call_args->{'args'} //= '';
 
 return warn 'expected <command> parameter <{C1}>' if not defined $cmd;
 
-return 0 if not exists $data{'session'} or !keys %{ $data{'session'} };
+return 0 if not exists $data{'session'} or not keys $data{'session'}->%*;
 
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
     my $cmd_id        = <[base.gen_id]>->( $data{'route'}, undef, undef, 0 );
-    my $reply_handler = ${ $_[0] }{'reply'}{'handler'} // qw| dev.null |;
-    my $reply_params  = ${ $_[0] }{'reply'}{'params'};
+    my $reply_handler = $ARG[0]->{'reply'}{'handler'} // qw| dev.null |;
+    my $reply_params  = $ARG[0]->{'reply'}{'params'};
 
     my $target_name = ${^CAPTURE}[0];
 
@@ -28,7 +28,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         and exists $data{'session'}{$target_sid} ) {   ##[ session id mode ]##
         @send_sids = ($target_sid);
     } elsif ( exists $data{'user'}{$target_name} ) {    ###[ group mode ]###
-        @send_sids = keys( %{ $data{'user'}{$target_name}{'session'} } );
+        @send_sids = keys $data{'user'}{$target_name}{'session'}->%*;
     }
 
     my $count = 0;
@@ -59,14 +59,15 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         my $target_cmd_id = $$route{'target'}{'cmd_id'};
 
         my $src_name = <system.zenka.name>;
-        $src_name .= '[' . <system.zenka.subname> . ']'
+        $src_name .= sprintf qw| [%s] |, <system.zenka.subname>
             if exists <system.zenka.subname>;
 
      # [LLL]  implement [devmod] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.zenka_buffer> >= 2 ) {
-            <[base.log]>->(
-                2, ":network: $src_name ..:. $target_name ..:. $cmd"
+            <[base.logs]>->(
+                2, ':network: %s ..:. %s ..:. %s',
+                $src_name, $target_name, $cmd
                 )
                 if ( $src_name ne qw| cube |
                 or $target_name ne qw| p7-log |
@@ -87,10 +88,10 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
         #            {
         my $args = '';
 
-        if ( $$call_args{'args'} ne '' ) { $cmd .= ' ' }
+        if ( length $call_args->{'args'} ) { $cmd .= ' ' }
 
         my $command_string    ##  prepare full command line  ##
-            = join( '', $target_cmd_id, $cmd, $$call_args{'args'}, "\n" );
+            = join( '', $target_cmd_id, $cmd, $call_args->{'args'}, "\n" );
 
         ##  append command to target buffer  ##
         $data{'session'}{$target_sid}{'buffer'}{'output'} .= $command_string;
@@ -102,24 +103,24 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
         ###  set up timeout handler ?  ###  [LLL]
 
-        # }
-        # elsif ( $command_mode == 2 )    # multi line command mode
-        # {
-        #     my $header = '';
-        #     if ( defined $$call_args{'param'}
-        #         and ref( $$call_args{'param'} ) eq
-        #         'HASH' )    # prepare parameter header
-        #     {
-        #         my ( $key, $val );
-        #         while ( ( $key, $val ) = each( %{ $$call_args{'param'} } ) )
-        #         {
-        #             $header .= $key . '=' . $val . "\n";
-        #         }
-        #     }
-        #     $data{'session'}{$target_sid}{'buffer'}{'output'} .=
-        #       $target_cmd_id . $cmd . "+\n" . $header . "\n"
-        #       . $$call_args{'data'} . ".\n";
-        # }
+        ##  }
+        ##  elsif ( $command_mode == 2 )    # multi line command mode
+        ##  {
+        ##      my $header = '';
+        ##      if ( defined $call_args->{'param'}
+        ##          and ref( $call_args->{'param'} ) eq
+        ##          'HASH' )    # prepare parameter header
+        ##      {
+        ##          my ( $key, $val );
+        ##          while ( ( $key, $val ) = each( %{ $call_args->{'param'} } ) )
+        ##          {
+        ##              $header .= $key . '=' . $val . "\n";
+        ##          }
+        ##      }
+        ##      $data{'session'}{$target_sid}{'buffer'}{'output'} .=
+        ##        $target_cmd_id . $cmd . "+\n" . $header . "\n"
+        ##        . $call_args->{'data'} . ".\n";
+        ##  }
     }
     return $count;
 } else {
@@ -127,8 +128,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,,,,,.,,,..,..,,..,,.,.,,,.,.,,,,,,,...,...,..,,...,...,.,,,..,,..,,,..,,..,
-#527EW3UA2MZDC4R3VV7JV7KTGOERFFFWFGXWSEK26J2XXZA6DWDUSO7E73K4LLU6RS4TCTXOB6DMO
-#\\\|QGUNZYGQEHFFQDXMJ5HEXH2UV52MEYR3PKO74NR5RIIHLYDJRJX \ / AMOS7 \ YOURUM ::
-#\[7]GRLAG637U2IMWWBLZSJZZRW7KN7KJPPBFUGHOVPLWCKNIFUKICCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,,,.,.,.,,,.,,,,,,..,,,,,.,,,..,,...,..,,...,,,.,,,,,...,...,
+#JGUWAAFJYRKTOI4GQ3QFJ3WAMDEPP3A7Z5DNIDGYCYAMYYHRMB5G7UJEVLDO5BIRXB2XUWDJBIOHQ
+#\\\|IDR76UQSEXHQNTILKKNEOEVE3RFCFDTHTJGKXDYDCAJUWVNCDQH \ / AMOS7 \ YOURUM ::
+#\[7]2LXRU4BFGOZJ6L6KVL5PUO56UFJ6FGVIMTBAYQLQBS6R2RTOXUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

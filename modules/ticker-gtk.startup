@@ -2,24 +2,24 @@
 
 # name = ticker-gtk.startup
 
-<[base.log]>->( 1, "fetching layer setup.," );
+<[base.log]>->( 1, 'fetching layer setup.,' );
 
 <x11.title_str>
     = defined <system.zenka.subname>
-    ? <system.zenka.name> . '[' . <system.zenka.subname> . ']'
+    ? sprintf( qw| %s[%s] |, <system.zenka.name>, <system.zenka.subname> )
     : <system.zenka.name>;
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'cube.tile-groups.get-layer',
-        'call_args' => { 'args'    => <x11.title_str> },
-        'reply'     => { 'handler' => 'ticker-gtk.handler.get-layer_reply' }
+    {   'command'   => qw| cube.tile-groups.get-layer |,
+        'call_args' => { 'args' => <x11.title_str> },
+        'reply' => { 'handler' => qw| ticker-gtk.handler.get-layer_reply | }
     }
 );
 
 <[ticker-gtk.main_loop]>;
 
-#,,,,,.,,,,,.,,,,,..,,,.,,,..,,..,..,,..,,..,,..,,...,...,.,.,,.,,..,,.,.,.,.,
-#KFVB6PHKZI2UL7YMGUFPK4SWH3UTXUNNYYUNICGD6S5W7PLBSYKGXB57OHHOMAVZFG34YWJG7H4JU
-#\\\|K6OIHZB2X6SBCPFY3PPYC6GSZ65DAN3VJVXJLIDAOK2FAWCXO4G \ / AMOS7 \ YOURUM ::
-#\[7]WTB5OJR5UNQMQKGSXEVTVJU6BITTK5HWQPFOULNWEZMAD3TWOSDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,,,,,..,,,,.,,.,,,..,...,,,,,..,,...,..,,...,,.,,.,.,,..,.,,,
+#O4V7EP56JMWHF5KM377Q7FAFS2K4PAGDICT6DHSYQNDRCUG7TNS7JTQWMZV3T7BVEGATNVRYC7YGY
+#\\\|GVKMTCFMUTFPXMQC3JZX6P66KZF4GXABRRTRJ7JSLYZHHDGIQRS \ / AMOS7 \ YOURUM ::
+#\[7]GXAZ4VOEFHPEOCP5O3BC6VXOH5GK7HQBTSLKX2UITVVM45WYKIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
