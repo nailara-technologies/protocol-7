@@ -2,32 +2,32 @@
 
 # name    = base.devmod.dump.param_hash
 # args    = hashref(call args)
-# descr   = print human readable formatted content of call argument hash to stdout
-# comment = recursion depth is only 2!
+# descr   = output formatted content of call argument hash to stdout
+# comment = recursion depth is only 2 !
 
-if ( not %{ $_[0] } ) {
-    print "\ndevmod: first argument is no hash reference!\n\n";
+if ( ref $ARG[0] ne qw| HASH | ) {
+    warn '[devmod] first argument is not a hash reference <{C1}>';
+    return undef;
 } else {
-    print "\ndevmod:\n";
-    foreach my $key ( keys( %{ $_[0] } ) ) {
+    say "\n[devmod]";
+    foreach my $key ( <[base.sort]>->( $ARG[0] ) ) {
 
-        if ( ref( $_[0]{$key} ) eq 'HASH' ) {
-            foreach my $subkey ( keys( %{ $_[0]{$key} } ) ) {
-                print "\t$key.$subkey = '"
-                    . ${ $_[0]{$key} }{$subkey} . "'\n";
+        if ( ref( $ARG[0]{$key} ) eq qw| HASH | ) {
+            foreach my $subkey ( <[base.sort]>->( $ARG[0]{$key} ) ) {
+                say "\t$key.$subkey = '" . ${ $ARG[0]{$key} }{$subkey} . "'";
             }
         } else {
-            my $val = ${ $_[0] }{$key};
-            $val =~ s/\n/\\n/g;
-            $val =~ s/\'/\\\'/g;
-            print "\t$key = '$val'\n";
+            my $val = ${ $ARG[0] }{$key};
+            $val =~ s|\n|\\n|g;
+            $val =~ s|\'|\\\'|g;
+            say "\t$key = '$val'";
         }
     }
-    print "\n";
+    say '';
 }
 
-#,,..,...,,,.,,,.,,.,,,,.,.,,,,..,,,,,.,,,,..,..,,...,...,..,,,.,,,,.,,,.,.,.,
-#223Y4ASAWAZVWLRD275JXJOJDICXAA54GCOSKZOIIZP6LPUZQ4WYJG2FO4EL3SAV7CVT7EHIN75KY
-#\\\|AC2PWNSEW5I5S56GQ7SQPNKCDLFG6QQECKBHDV2UW5AEYQQBJ73 \ / AMOS7 \ YOURUM ::
-#\[7]YO4WTRSV3YGBBKS2J2ABSKAWZXK6RFJOHJP4M5CTOYNEWTLDDKCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,.,,,..,,,,.,,,,,.,.,.,.,.,,,..,,...,...,..,,,,.,...,.,.,,.,,
+#JE6XCZ7F6FTFS4EPR7HFUR7RFVFPII7T7WOIXIVRBHPPRL57QHOKSW64WIYMNOUFW63FO4GBMQVWS
+#\\\|3DM5VJXGYRQH7H6HCNNHXZTYGLU7RCQJVVTRAOY4GXJCHPIGFC7 \ / AMOS7 \ YOURUM ::
+#\[7]ON2THQP7KOVUFJWLIOXXWQ3C6O6CWQSF46RV7Y6UAMQ6NBFFMSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
