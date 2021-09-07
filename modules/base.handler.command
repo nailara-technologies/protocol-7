@@ -26,6 +26,19 @@ my $buffer_length = length $input->$*;
 my $cmd    = '';
 my $cmd_id = 0;
 
+<system.devmod_capture> //= FALSE;
+
+## record traffic for searching protocol errors ##
+##
+if (<system.devmod_capture>) {
+
+    <[base.log]>->( 0, 'devmod capture buffer enabled' )
+        if not exists <buffer.devmod-capture>;
+    <buffer.devmod-capture.max_size> //= 63 * 1024;    ## 63K buffer size ##
+
+    <[base.buffer.add_line]>->( qw| devmod-capture |, $input->$* );
+}
+
 ##[ DROP \ SIZE REPLIES ]#####################################################
 
 if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
@@ -1130,8 +1143,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,...,..,,.,.,,,.,,,,,.,.,.,,,...,..,,...,..,,...,...,,.,,.,,,.,.,,..,,.,,
-#225NCNGPHJSL6Q3ZSMECMEY5XFNZAIGN6TJU65WJM73DOCJBZSS6X265ABGL6QNWBRJUHLOULFMFA
-#\\\|XM3TBNS4U63TWMIXOV7AEY3N62JA6WY3A5SUFTM7PX5M7ZR32CI \ / AMOS7 \ YOURUM ::
-#\[7]VOE7Z5BNF54H5UEGX3QJDHVAQQC6JHLO4RMJWCJHZA4MN5AYGYDA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,,,.,..,,.,.,,.,,..,,.,,,.,.,..,,...,...,,.,,,,.,,,.,,.,,.,,,
+#AJVJ3R3LCDOMDC6EEX3736HUCNDAUBS7YXJYDR6VGCCY6G2K6QPLUKLZUEFZNFQ7WEZIVHHCXBGPO
+#\\\|U6VT32MZHYPZZFS7L2C6SAJMLTPXHVFGCNESOQKWCFSCH7RCIHF \ / AMOS7 \ YOURUM ::
+#\[7]76PN565YDL6E7WNPYEXAT6ZOMCVBFDW3E5DPS4SYQA6IWGGTUUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
