@@ -1655,14 +1655,17 @@ sub p7_stderr_redir {
 
     my $redir_ref = shift // \my $redir_var;
 
+    $redir_ref = File::Spec->devnull if $redir_ref eq qw| :devnull: |;
+
     open( $data{'base'}{'stderr_fh'}, qw| >& |, STDERR )
         or printf "\n<< cannot clone STDERR [ %s ] >>\n\n",
         $code{'base.format_error'}->($OS_ERROR);
 
     close(STDERR);
-    open( STDERR, qw| > |, $redir_ref )
-        or say sprintf '< stderr_redir > %s',
-        $code{'base.format_error'}->($OS_ERROR);
+
+    open( STDERR, qw| >:raw |, $redir_ref )
+        or warn sprintf( '< stderr_redir > %s <{C1}>',
+        scalar $code{'base.format_error'}->( $OS_ERROR, -1 ) );
 
     return $redir_ref;
 }
@@ -3748,8 +3751,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,,,.,.,.,.,.,,,...,.,.,,..,.,,,..,,,,,,..,,...,...,...,,.,,..,,.,,,.,,,
-#R3WPS43AKDCQSVZONYMZUU7XSXOX5D7H3FSAFAQQSBFY67732Z7KYAHKX6O3X4E5NW6MVMXBL4SPA
-#\\\|SHW2WT3T5UYSCCWVB3JHI6RXCN7U6TMT4UUILVLR6XGMCDBPR3T \ / AMOS7 \ YOURUM ::
-#\[7]JHDRFM7PFC4HDGJY7U46HEQ2PRAGCUTKLFF3UIKA3VF4GHAYVKCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,,..,..,,...,,,,,,.,,,..,.,,,..,,...,...,...,,.,,,..,,,.,.,.,
+#XLAMPITIRXGSMNPHA4UKPMMHYMVQH2VWKY5572FBO7H2NFTMTCR76Y4LL6WAXGNOXFUIH62XZRGXG
+#\\\|W6RIGDMGPGVB575AHIVPJHI65XOOPUCEMUKK6VXCAKQCLE5ZP5G \ / AMOS7 \ YOURUM ::
+#\[7]IOJLLFN2XRTHZRTXNR7VIC3HM5ZTUNWFR2G5SVFPC4UB7FU43CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
