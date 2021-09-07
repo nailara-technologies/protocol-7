@@ -10,26 +10,26 @@
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 
 Glib::Object::Introspection->setup(
-    basename => 'GdkX11',
-    version  => '3.0',
-    package  => 'Gtk3::Gdk'
+    basename => qw| GdkX11 |,
+    version  => qw| 3.0 |,
+    package  => qw| Gtk3::Gdk |
 );
 
-<[base.stderr_redir]>;    ## redirect STDERR ##
+<[base.stderr_redir]>->(qw| :devnull: |);    ## redirect STDERR ##
 
-<ticker-gtk.font.path> //= <system.root_path> . '/data/ttf/droid';
-<ticker-gtk.font.name> //= 'DroidSans-Bold';    # LLL: <-- load from config!
-<ticker-gtk.font.size_percent> //= 100;         # LLL: <-- load from config!
-<ticker-gtk.use_transparency>  //= 1;
-<ticker-gtk.do_custom_fade_in> //= 1;
-<ticker-gtk.cfg.draw_outline>  //= 1;
-<ticker-gtk.animation_started> //= 0;
-<ticker-gtk.paused>            //= 0;
+<ticker-gtk.font.path> //= sprintf qw|%s/data/ttf/droid|, <system.root_path>;
+<ticker-gtk.font.name> //= qw| DroidSans-Bold |;  # LLL: <-- load from config!
+<ticker-gtk.font.size_percent> //= 100;           # LLL: <-- load from config!
+<ticker-gtk.use_transparency>  //= TRUE;
+<ticker-gtk.do_custom_fade_in> //= TRUE;
+<ticker-gtk.cfg.draw_outline>  //= TRUE;
+<ticker-gtk.animation_started> //= FALSE;
+<ticker-gtk.paused>            //= FALSE;
 <ticker-gtk.default_speed>     //= 7;
-<ticker-gtk.auto_speed_mode>   //= 0;
-<ticker-gtk.slowdown.percent>  //= 0;
+<ticker-gtk.auto_speed_mode>   //= FALSE;
+<ticker-gtk.slowdown.percent>  //= FALSE;
 
-<ticker-gtk.request_rss_updates> //= 0;
+<ticker-gtk.request_rss_updates> //= FALSE;
 
 <base.callback_hooks.async_online> = ['ticker-gtk.callback.request_updates'];
 
@@ -80,8 +80,8 @@ my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 
 0;
 
-#,,..,,..,.,.,,,,,.,.,..,,,..,.,,,,,,,.,,,.,,,..,,...,...,.,,,,..,,,,,,,,,,,.,
-#PAM7SJOVA6VET76Z6BWV4QVUC53UHIIZSR2ZL2CM4MAZYRTZ4YASABO5OGCIAYUJXUAK6BPGBAAFC
-#\\\|PFA5AOPRNSM56LZ2YITBGOWKKDVR2VONN5QPF34XSQ2LRP5RK7J \ / AMOS7 \ YOURUM ::
-#\[7]O5MNBPDO3K26Y4CAON6VPBEHNA47XGSR7DH6VNERDAJZGKRITGCQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,..,.,,,.,.,,,.,,..,.,,,...,...,..,,...,...,,..,,..,,,.,,,.,..,,
+#2UA2WY7O4YDQ2Y3VXJ5XBG37MRBS5KFQHXOEYRNRLRRJ56B7J4WRRRZB3GDENNBHWIFVPFNI7UJVQ
+#\\\|I7L4CBPB2QG4OQXSFTTPNTXCR3QT73EO5KXROQER6SG4STA5UJZ \ / AMOS7 \ YOURUM ::
+#\[7]54PW5MUFORJG62CZQ5QD4RZH2BWESQWCQUROPVQ4J2XCNAJRC2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
