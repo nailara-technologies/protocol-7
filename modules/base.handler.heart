@@ -4,17 +4,17 @@
 
 my $params = shift;
 
-if (   ref( $params->{'args'} ) ne 'SCALAR'
-    or not defined ${ $params->{'args'} }
-    or ${ $params->{'args'} } ne 'notime' ) {
-    ${ $params->{'args'} } = '';
+if (   ref( $params->{'args'} ) ne qw| SCALAR |
+    or not defined $params->{'args'}->$*
+    or $params->{'args'}->$* ne qw| notime | ) {
+    $params->{'args'}->$* = '';
     return <[base.time]>->(5);
 } else {
     return undef;
 }
 
-#,,,.,.,,,,,.,,..,,,.,,,,,,.,,,,.,,.,,..,,.,.,..,,...,...,,..,.,.,.,,,,..,,,.,
-#22SQN3IEBBLTBVR34ZRWMOJINHQPSLONPZD55OMM47TMUJ5R33AWYLJIT5CHCOIYWJSECTMHMS6RA
-#\\\|WSXQNUF7FCXL7SB67ALQZ4FEAOASBJ2OZH6UALUP74MMAUPM7IP \ / AMOS7 \ YOURUM ::
-#\[7]KSRWYHRYRXF7JK3SWIIK4Z3HNXJNSS3QEKZCZ3SUI72L7T42HOCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,,.,,,,.,.,,,,,.,...,,..,..,,..,,...,...,..,,,.,,..,,,,,,.,,,
+#FCWMZK4UVHZY3FVXATJ35UY2SBGIY4HTGP6MRZZ36R5KXONNNSINDXV3KS7GU2FDARZAD2HABZERE
+#\\\|JPD2B7B5M5QXVPJCLTBCPXRAAVU35ZTGH54AXOKGZUIEURQ62OH \ / AMOS7 \ YOURUM ::
+#\[7]ZKLVIZZYBGJNOKXFQKMYPPAMED2TH3GLM4HN3BR65RTKFGRJVQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
