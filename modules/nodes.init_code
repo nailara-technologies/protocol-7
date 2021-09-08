@@ -10,20 +10,20 @@
 
 <list.truncs> = {
     'var'      => qw| data |,
-    'key'      => 'nodes.trunc',
+    'key'      => qw| nodes.trunc |,
     'sort_key' => 'alpha-len:name',
-    'descr'    => 'nailara node setup',
+    'descr'    => 'protocol 7 node set-up',
     'mask'     => 'name:trunc_node addr:node_address pkey:public_key',
     'align'    => {
         'name' => 'right-2',
         'addr' => 'center',
         'pkey' => 'left+4'
     },
-    'filters' => { 'pkey' => 'nodes.parser.node_pkey', }
+    'filters' => { 'pkey' => qw| nodes.parser.node_pkey |, }
 };
 
 <[base.list.init]>->(
-    {   'name'         => 'truncs',
+    {   'name'         => qw| truncs |,
         'key_ref'      => \$data{'nodes'}{'trunc'},
         'max_elements' => 4097
     }
@@ -31,7 +31,7 @@
 
 <list.groups> = {
     'var'      => qw| data |,
-    'key'      => 'nodes.group.by-id',
+    'key'      => qw| nodes.group.by-id |,
     'sort_key' => 'alpha-len:name',
     'descr'    => 'account group table',
     'mask'     => 'name:group_name regex:account_regex',
@@ -40,7 +40,7 @@
 };
 
 <[base.list.init]>->(
-    {   'name'         => 'groups',
+    {   'name'         => qw| groups |,
         'key_ref'      => \$data{'nodes'}{'group'}{'by-id'},
         'max_elements' => 247
     }
@@ -48,8 +48,8 @@
 
 0;
 
-#,,,,,,,,,,..,...,,.,,.,,,,,.,,,,,,,.,,,.,...,..,,...,.,.,.,.,,,.,,.,,.,,,,,,,
-#I7GHKLYARTR5EJCRPEPPE6NOUAVA4W6EHSDGGOLGMAWSP55YKECO27BJFBHW475EOCDL3VNXZNDWS
-#\\\|4MJLJ2RYDMAMA2PVKVZUJAHWJ3GDY5IQ2K2HQ5JFW6ANOTG3QRO \ / AMOS7 \ YOURUM ::
-#\[7]5SXRPIDCHBBKXKAGTMP47GMSC6RHYKHYAZWVHQYFNLKN2NHI5UDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,.,,,.,...,.,.,.,.,,..,,,,,..,,..,,...,...,.,.,,,.,,.,,,,,,..,,
+#YOZAFJV4VDXZ5YOZMZBY5YZPSXORDSJ2Y5N6W5WQFXBUAOE5IVXHAI37HB6DLCKY5Y6JEUSD6GQMY
+#\\\|NP4ODS6E7OIT3VEPKTU7E4NDAI3QXVJQAQEY6OGOS4Y5U6V3Z4J \ / AMOS7 \ YOURUM ::
+#\[7]ZNYGHGBPK5V4ZQJNJFEYLVFUC3XPKJZJKHKK3Z2U45DE27FXZGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
