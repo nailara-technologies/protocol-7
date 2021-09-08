@@ -4,9 +4,13 @@
 
 my $name         = shift // '';    ## key name ##
 my $key_password = shift;          ## optional ##
+my $key_type     = shift;          ## optional [private|public] ##
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
+    return undef;
+} elsif ( defined $key_type and $key_type !~ m{^(private|public)$} ) {
+    <[base.s_warm]>->( "key type parameter '%s' not understood", $key_type );
     return undef;
 }
 
@@ -33,15 +37,24 @@ if ( not defined $single_key_file ) {
     warn 'key not found <{C1}>';
     return undef;
 
-} elsif ( not $single_key_file ) {
+} elsif ( not defined $key_type and not $single_key_file ) {
 
     warn 'is not a single key file <{C1}>';
+    return undef;
+
+} elsif ( defined $key_type and not -f $key_filename->{$key_type} ) {
+
+    <[base.s_warm]>->(
+        "requested key '%s' [%s] key not found",
+        $name, $key_type
+    );
     return undef;
 }
 
 my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
 
-if ( -f $public_key_file ) {
+if ( not defined $key_type and -f $public_key_file
+    or defined $key_type and $key_type eq qw| public | ) {
 
     <[base.logs]>->( ":. C25519-public-key .:. '%s'%s", $name, $u_str );
 
@@ -143,8 +156,8 @@ if ( -f $public_key_file ) {
 
 }
 
-#,,.,,,,.,,,,,,,.,.,.,,.,,...,...,,,.,.,,,,,.,..,,...,..,,,.,,.,.,.,,,,,,,..,,
-#BRCN734FZQPRYWEUADLQ7TQVEF3YJSBLWRXARC3TCA4BOSP7ALOI6NYUWINBJ57HIV7Q46CJ4JV6Y
-#\\\|BI2AP3JDHBJPBVV2XLXSK52Z7UP4BDJN5SWGNSCWGEZZG7CWFA2 \ / AMOS7 \ YOURUM ::
-#\[7]QL6TJXCY3GLCTT7OJJQ3IIRISZEYWAGJRCZUEXKWDE4FFFU4CEAI 7  DATA SIGNATURE ::
+#,,..,...,,,.,.,.,,.,,,,.,,..,..,,,.,,,.,,,,,,..,,...,..,,..,,.,,,,,.,.,.,.,,,
+#ECUJ4I5RBA7MTPPIQTNDPF365C4BHFNN3D7IHCAFLX6UCCCBJNGKIMZOKQCPLRC7X74XXMBZ53B6C
+#\\\|2QYWKH7M7J5SNCBZMO4RUPUGPRSEKXOCREJY2KVYAYBHS7SDQV5 \ / AMOS7 \ YOURUM ::
+#\[7]P2PAOCM73A4GUW466ZDPLEZGXOFUQM6NW46GS52K6AXD2HOH2UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
