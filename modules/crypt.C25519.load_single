@@ -1,0 +1,150 @@
+## [:< ##
+
+# name = crypt.C25519.load_single
+
+my $name         = shift // '';    ## key name ##
+my $key_password = shift;          ## optional ##
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+
+my $key_dir      = $key_vars_ref->{'key_dir'};
+my $key_usr      = $key_vars_ref->{'usr_name'};
+my $key_filename = $key_vars_ref->{'key_filename'};
+
+my $virtual_keyfile  = $key_filename->{'virtual'};
+my $public_key_file  = $key_filename->{'public'};
+my $private_key_file = $key_filename->{'private'};
+
+if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
+
+    warn 'key is virtual <{C1}>';
+    return undef;
+}
+
+my $single_key_file = <[crypt.C25519.single_file]>->($name);
+
+if ( not defined $single_key_file ) {
+
+    warn 'key not found <{C1}>';
+    return undef;
+
+} elsif ( not $single_key_file ) {
+
+    warn 'is not a single key file <{C1}>';
+    return undef;
+}
+
+my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
+
+if ( -f $public_key_file ) {
+
+    <[base.logs]>->( ":. C25519-public-key .:. '%s'%s", $name, $u_str );
+
+    my $encoded_public_key = <[file.slurp]>->($public_key_file)->$* // '';
+    if ( not length $encoded_public_key ) {
+        <[base.logs]>->( 0, "cannot load '%s' public key .,", $name );
+        return FALSE;
+    }
+    chomp($encoded_public_key);
+
+    ## decode [ base 32 ] ##
+    $keys{'C25519'}{$name}{'public'} = decode_b32r $encoded_public_key;
+
+    if ( not defined $keys{'C25519'}{$name}{'public'} ) {
+        <[base.log]>->( 0, 'BASE32 decoding failed [ public key ]' );
+        return undef;
+    } else {
+        <[base.log]>->( 2, ':' );
+        <[base.logs]>->( 2, ": public key loaded ['%s']", $name );
+        <[base.log]>->( 2, ':' );
+
+        return TRUE;    ##[ success ]##
+    }
+
+} else {    ##  loading single private key  ##
+
+    <[base.logs]>->( ":. C25519 [priv] key .:. '%s'%s", $name, $u_str );
+
+    my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
+
+    if ( not length $encoded_private_key ) {
+        <[base.logs]>->( 0, "cannot load '%s' [private] key .,", $name );
+        return FALSE;
+    }
+    chomp($encoded_private_key);
+
+    ## decode [ base 32 ] ##
+    $keys{'C25519'}{$name}{'private'} = decode_b32r $encoded_private_key;
+
+    if ( not defined $keys{'C25519'}{$name}{'private'} ) {
+        <[base.log]>->( 0, 'BASE32 decoding failed [ priv key ]' );
+        return undef;
+    }
+
+    ( my $key_status )
+        = <[crypt.C25519.get_type_from_key_str]>
+        ->( $keys{'C25519'}{$name}{'private'} );
+
+    if ( not defined $key_status ) {
+        <[base.logs]>->( 0, "cannot read key status of '%s' .,", $name );
+        return FALSE;    ##  false  ##
+    }
+
+    substr( $keys{'C25519'}{$name}{'private'}, 0, 2, '' )
+        if $key_status->{'prefixed'} == TRUE;
+
+    ##  decrypt private key [ when password provided ]  ##
+    ##
+    if ( $key_status->{'encrypted'} ) {
+
+        if ( not defined $key_password ) {
+            <[base.perlmod.load]>->('AMOS7::TERM')
+                if not <[base.perlmod.loaded]>->('AMOS7::TERM');
+            say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
+            $key_password = AMOS7::TERM::read_password_repeated(
+                sprintf( "'%s' key decryption password", $name ) );
+        }
+
+        if ( not defined $key_password ) {
+            undef $keys{'C25519'}{$name}{'private'};
+            delete $keys{'C25519'}{$name}{'private'};
+            <[base.log]>->( 0, 'cannot decrypt private key .,' );
+            return FALSE;
+        } else {
+            say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
+        }
+
+        $keys{'C25519'}{$name}{'private'}
+            = <[crypt.C25519.decrypt_keystr]>->(
+            $keys{'C25519'}{$name}{'private'},
+            $key_password
+            );
+    }
+
+    if ( not defined $keys{'C25519'}{$name}{'private'} ) {
+        <[base.log]>->( 1, ':' );
+        <[base.log]>->( 0, ': cannot load private key .,' );
+        <[base.log]>->( 1, ':' );
+
+        return FALSE;
+    } else {
+
+        <[base.log]>->( 1, ':' );
+        <[base.logs]>->( ": private key loaded ['%s']", $name );
+        <[base.log]>->( 1, ':' );
+
+        return TRUE;    ##[ success ]##
+    }
+
+}
+
+#,,.,,,,.,,,,,,,.,.,.,,.,,...,...,,,.,.,,,,,.,..,,...,..,,,.,,.,.,.,,,,,,,..,,
+#BRCN734FZQPRYWEUADLQ7TQVEF3YJSBLWRXARC3TCA4BOSP7ALOI6NYUWINBJ57HIV7Q46CJ4JV6Y
+#\\\|BI2AP3JDHBJPBVV2XLXSK52Z7UP4BDJN5SWGNSCWGEZZG7CWFA2 \ / AMOS7 \ YOURUM ::
+#\[7]QL6TJXCY3GLCTT7OJJQ3IIRISZEYWAGJRCZUEXKWDE4FFFU4CEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
