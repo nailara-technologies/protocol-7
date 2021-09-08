@@ -40,6 +40,7 @@ our %C = (
     qw| B02 | => "\e[48;2;9;5;42m",
     qw|  b  | => "\e[48;2;9;5;42m",      ## <-- redundant [replace]
     qw|  0  | => "\e[38;2;68;39;172m",
+    qw|  G  | => "\e[38;2;3;37;82m",
     qw|  g  | => "\e[38;2;71;195;6m",
     qw|  o  | => "\e[38;2;197;141;7m",
     qw|  B  | => "\e[1m",
@@ -48,8 +49,7 @@ our %C = (
 
 ## for later ##
 
-#023B52 ## <-- cool gray
-#269263 ## <-- light green
+#269264 ## <-- light green
 
 ##[ ERROR HANDLING ]##########################################################
 
@@ -264,8 +264,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,..,,,,,,,.,..,,...,..,,...,...,.,.,.,,,,,,,..,,...,..,,,.,,,,,,..,,,,,,,..,
-#H73BHRXSPZNT7TFXN65QOKJBQHAGND4XU4AKAKQ4GJNV4RTMRAXRLKXOYS3U7VFP4CHC3N7LT3ABS
-#\\\|JGT33B5H53JAKFYZBLGCZTBV6D5V7GP4FDV2L2AOZSI6F4KVYCY \ / AMOS7 \ YOURUM ::
-#\[7]NTUPDESYKCQKOKJMQM6G5A2DAXS3K2PJ4O4PKQYJSRK3EORLF4BI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,...,,,.,,,,,.,.,,.,,,,,,..,,..,,...,...,,.,,,..,,,.,...,,.,,
+#FQCEC6XIRW5ZSNZRECYRXAGI3TPSJWAFMOE4HTUIAOSBU6RWHEAKE6NAMEV2O5OSABWJNFIMTFZMA
+#\\\|6NRQUHFP3BERLQLMUZTUY5AYEE7RQC56S2LMQXHKJ4GKVEIEL5J \ / AMOS7 \ YOURUM ::
+#\[7]K3Z4UIMY2UR7SFCLRYWGTB2COG2MWTGFEXEE4KP5E2UQPEHJDUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
