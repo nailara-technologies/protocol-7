@@ -35,8 +35,6 @@ foreach my $file (@k_files) {
 
     if ( $key_encryption_status == -3 ) {
         $key_chksums{$name} = qw| no-r.perms |;
-    } elsif ( $key_encryption_status == TRUE ) {
-        $key_chksums{$name} = qw| <::encrypted::> |;
     } else {
         my $keystr_encoded = <[file.slurp]>->( $file, undef, qw| :raw | );
         if ( ref $keystr_encoded ne qw| SCALAR |
@@ -88,6 +86,10 @@ foreach my $file (@k_files) {
                     $key_chksums{$name} = qw| dec.err |;
                 } else {
                     substr( $key_bin, 0, 2, '' ) if $key_len == 106;
+
+                    $key_bin = qw| [enc-key] |   ##  encrypted private key  ##
+                        if $key_encryption_status == TRUE;
+
                     push @chksumkeys, $key_bin;
                     $single_chksums{$name}
                         = <[crypt.C25519.key_checksums]>->(@chksumkeys);
@@ -124,8 +126,8 @@ foreach my $name ( uniq <[base.sort]>->( \%key_chksums, \%single_chksums ) ) {
 
 return \%key_chksums;
 
-#,,..,..,,,..,..,,,,,,,.,,.,,,,,,,,,,,.,,,,,,,..,,...,...,...,.,.,,,,,.,,,,,.,
-#TUQ6QOLWQ7CKYLCAJTZBBC6MCEDFHZWWLE5JIWET5WLS5YHYZ2SVXWJM77ZEVORMQFIFW6TDC6JMK
-#\\\|AMLVLQV3EVVWLMXBPTKTQXOB3SOCDRE4ERD756DKU2GN22SSQ2P \ / AMOS7 \ YOURUM ::
-#\[7]VCRCNLNJTDYOJY6P2VY4NEKV75UWB64TXHYFOLNQVV4BURVFXQBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,,,,,,,,,,,,...,...,..,,...,..,,...,...,..,,...,,.,,,,.,...,
+#OSOYIYX5773MA2YE6RYT6GBTOVBEP2O733FUEFSFVS4K5O4LDBH63HOXOHJR7U4UKPRAVPWOXWC5S
+#\\\|TTHRLMMRIUOOH7DJ2C4XYPUNIA7XB4G3GS74TJ6UGJQTZXSDVRS \ / AMOS7 \ YOURUM ::
+#\[7]EC23UA2IDICXNCLNRMVMHZZ7SBQB6CPAB7P7SPJTSPMDIXXSZABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

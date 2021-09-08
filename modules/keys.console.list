@@ -55,48 +55,58 @@ foreach my $file (@k_files) {
     }
 }
 
-my $key_name;
-my %key_names;
-my $max_nlen = 0;
+my %key_files;
 foreach my $file (@display_kfiles) {
     my $name = <[crypt.C25519.get_keyname]>->($file);
-    $name //= qw| read.err |;
-    $key_names{$file} = sprintf qw| '%s' |, $name;
-
-    my $length = length $name;
-
-    if ( $file =~ m|::| or $file =~ m{$key_re_public} ) {
-        if ( not $display_checksums ) {
-            my $spaces = ' ' x length $name;
-            $key_names{$file} = sprintf ' %s ', $spaces;
-        } elsif ( defined $key_chksums{$name} ) {
-            $key_names{$file}
-                = sprintf( ' %*s ', $length, $key_chksums{$name} );
-        }
-    }
-
-    my $l = length $key_names{$file};
-    $max_nlen = $l if $l > $max_nlen;
-
-    $max_nlen = length $key_chksums{$name}
-        if $display_checksums
-        and length( $key_chksums{$name} // '' ) > $max_nlen;
+    $key_files{$name} //= [];
+    push $key_files{$name}->@*, $file;
 }
+
+my $names_len
+    = [ minmax( map {length} keys %key_files, values %key_chksums ) ]->[1];
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
-my $linefeed        = $display_checksums ? '' : "\n";
+my $linefeed = $display_checksums ? '' : "\n";
+
 my $key_list_string = join '',
-    $linefeed, sprintf( "%40s\r :: keys for user %s :.\n :\n", '', $key_usr ),
-    ( map { sprintf( " : %*s : %s\n", $max_nlen, $key_names{$ARG}, $ARG ) }
-        @display_kfiles ),
-    "::\n";
+    $linefeed,
+    sprintf( "%40s\r :: keys for user %s :.\n", '', $key_usr );
+
+foreach my $name ( <[base.sort]>->( \%key_files ) ) {
+
+    $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+
+    $key_list_string .= sprintf " : %*s .\n", $names_len,
+        sprintf qw| '%s' |, $name;
+
+    my $shown_chksum = FALSE;
+    foreach my $file ( $key_files{$name}->@* ) {
+
+        my $chksum_line
+            = ( not $display_checksums or $shown_chksum++ )
+            ? ''
+            : $key_chksums{$name};
+
+        $key_list_string .= sprintf " : %*s : %s\n", $names_len,
+            $chksum_line, $file;
+
+    }
+
+}
+
+$key_list_string .= sprintf " : %*s .\n", $names_len, '';
+
+$key_list_string .= "::\n";
 
 ## colorizing ##
 ##
 if ( <system.ansi_color> or <system.force_colors> ) {
+    $key_list_string =~ s|^( *)(:{1,2})|$1$C{G}$2$C{T}|mg;
+    $key_list_string =~ s|::(.+):.|$C{G}::$C{T}$1$C{G}:.$C{R}|m;
     $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
-    $key_list_string =~ s|('.+')|$C{B}$1$C{R}$C{T}|mg;
+    $key_list_string =~ s,(*plb:(  |[\>'])) ([\.:]),$C{G}$2$C{R},mg;
+    $key_list_string =~ s|'(.+)'|$C{G}'$C{T}$C{B}$1$C{R}$C{G}'$C{T}|mg;
     $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
     $key_list_string =~ s,(<:.+:>|encrypted),$C{0}$C{b}$1$C{R}$C{T},mg;
     $key_list_string
@@ -107,8 +117,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,,,,.,,,,.,,.,,,.,,...,.,.,,..,,,,,,..,,..,..,,...,...,.,,,,..,...,,..,,.,,
-#HPOEMBIEPWCHCOGI4DZ65XC435HFO2AJHA3Y62LXPGDOT3ZTO6LITO5JEWG66CZEX24ZE2EH5ZQLK
-#\\\|VMWHJ57ROTQFNNVAMZT4Z7XG2ETQ5Z67PL7AVEMMEBHPM4ADG3Y \ / AMOS7 \ YOURUM ::
-#\[7]5CBMBO3P57IAUTOUKSNFWKLGVSRAQ6F2NLXVNFCDUPWU6V53CKAI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,,,.,,,.,.,,..,..,,...,,.,,,.,,..,,...,...,,,.,,,.,.,,,.,.,,,,,
+#QUIFW4BLTM4KMQ2ST2NG75M4K6DEVARETEXZJOBD3BJYG2VFJXBEBPIMXN4JTXTGHQSL5USH35XHE
+#\\\|5MZI6WKMWTBQOZV46XXJM7KCTAATMPHDMZZG3RYCEA2HKIJ7NJH \ / AMOS7 \ YOURUM ::
+#\[7]EQZ3EE6Y2SIHVNJNWIGCKG6AJS3E5SS4KPDTPD4Y2JSQM5LB2MDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
