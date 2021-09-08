@@ -9,6 +9,9 @@ my $name = shift;
 return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $name;
 
+my $private_key_only = FALSE;    ##  'private' parameter  ##
+$private_key_only = TRUE if $name =~ s| +private$||;
+
 my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
 if ( $key_status < 0 ) {
@@ -34,9 +37,9 @@ if ( $key_status < 0 ) {
 
 my $load_success;
 
-if ( <[crypt.C25519.single_file]>->($name) ) {
+if ( <[crypt.C25519.single_file]>->($name) or $private_key_only ) {
 
-    $load_success = <[crypt.C25519.load_single]>->( $name, undef, TRUE );
+    $load_success = <[crypt.C25519.load_single]>->( $name, undef, 'private' );
 
 } else {
 
@@ -61,8 +64,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,.,,..,,..,,,.,,.,.,,..,...,,,,,,..,...,...,.,.,...,...,,.,,,..,...,,,,,.,.,
-#NB5DZ6ZAN4ZTRSOV3EI3JTVAEQYD3HYKUJMK4XXBRCJQX3Y7QGEFBGLVUAMD43PQBOBPFFQF3HHQM
-#\\\|4WIRGH75PUPJ4L6YDNJTCHERCCMCOUAPCXDJFX2RESLZF5LTY54 \ / AMOS7 \ YOURUM ::
-#\[7]HLKAAI4JNGUMNLD622O5ZQN2BDHGGUEESTS4NZLS3TYASSSSNQBQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,..,,.,.,,,,,,.,,...,,.,,...,.,.,...,...,,,,,.,.,,,.,...,,..,
+#K6LV3G7BRXTQKSSTHQZY2XTF5TTRZOHBYISI2NLGJQFS65MXFDHPJNR3CUWLBDVOIDYPINOTPZUFC
+#\\\|2EJSGNMMCGFA4GXJOHDPFE27EF4LQUFWNM27FPS4FJHTTZXGJ53 \ / AMOS7 \ YOURUM ::
+#\[7]BL7YHZRT6LAV4D6W2EGPYWVHEIGYP3EQG23LPNS5RZQYUPY6MSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
