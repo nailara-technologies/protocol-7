@@ -13,49 +13,72 @@ if ( @key_strings_binary == 0 ) {
     return undef;
 }
 
+my $priv_key_encr = FALSE;
+
 foreach my $key_bin (@key_strings_binary) {
     my $key_len = length $key_bin;
+
+    $priv_key_encr = TRUE and next    #[ encrypted ]#
+        if $key_len == 9 and $key_bin eq qw| [enc-key] |;
+
     if ( $key_len != 32 and $key_len != 64 and $key_len != 97 ) {
-        <[base.s_warn]>->(    ##  97 : virtual  ##
+        <[base.s_warn]>->(            ##  97 : virtual  ##
             'supplied key str len %d is not valid [32|64|97]', $key_len
         );
         return undef;
     }
 }
 
+##  single encrypted private key case  ##
+return qw| <::encrypted::> | if $priv_key_encr and @key_strings_binary == 1;
+
 my $checksum_template         = qw| <:%s:> |;
-my $priv_key_truth_template   = qw| <:%s:>,:%s: |;
-my $pubkey_str_truth_template = qw|<:%%s:>,:%%s:,<:%s:%%s:>,%s:%%s,:%s:%%s:|;
+my $pubkey_str_truth_template = qw| <:%s:>,:%s: |;
+
+## expanding template for encrypted priv key case [consistency] ##
+$pubkey_str_truth_template .= qw| ,<::[enc-key]::%s:>,::[enc-key]::%s: |;
+
+my $priv_key_truth_template = qw|<:%%s:>,:%%s:,<:%%s:%s:>,%%s:%s,:%%s:%s:|;
 
 my @checksums;
 
-if ( @key_strings_binary == 1 ) {
-    my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
-        $priv_key_truth_template, \$key_strings_binary[0]
-    );
-    push @checksums, $privkey_amos_chksum;
-} else {
+if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
 
-    AMOS7::TEMPLATE::template_timeout(42);
-    my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
-        $priv_key_truth_template, $key_strings_binary[0]
+    my $single_key_amos_csum = <[chk-sum.amos.truth_template_chksum]>->(
+        $pubkey_str_truth_template, \shift @key_strings_binary
     );
+    push @checksums, $single_key_amos_csum;
 
-    AMOS7::TEMPLATE::template_timeout(63);
+} elsif ($priv_key_encr) {    ##  encrypted private key [pubkey] chksum  ##
+
     my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
-        sprintf( $pubkey_str_truth_template, ($privkey_amos_chksum) x 3 ),
-        $key_strings_binary[1]
+        $pubkey_str_truth_template, \shift @key_strings_binary
+    );
+    push @checksums, qw| :[enc-key]: |, $pubkey_chksum;
+
+} else {    ## combined key checksum ##
+
+    AMOS7::TEMPLATE::template_timeout(47);    ## public key sum first ##
+    my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        $pubkey_str_truth_template, $key_strings_binary[1]
     );
 
-    AMOS7::TEMPLATE::reset_temp_valid_timeout();
+    AMOS7::TEMPLATE::template_timeout(63);   ## private key sum harmonizing ##
+    my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+        sprintf( $priv_key_truth_template, ($pubkey_chksum) x 3 ),
+        $key_strings_binary[0]
+    );
+
+    AMOS7::TEMPLATE::reset_temp_valid_timeout();  ##  storing calc results  ##
     push @checksums, $privkey_amos_chksum, $pubkey_chksum;
 }
 
-## combined key checksum ##
+##  key chksum template  ##
+##
 return sprintf $checksum_template, join( qw| : |, @checksums );
 
-#,,.,,,..,,..,.,.,,..,,,,,..,,.,.,,,,,,.,,.,,,..,,...,..,,.,.,,,,,,.,,...,,.,,
-#KCS5O7UW7XRALPEWXIVTUEOERVKB6QGEDIGWIBW4KXV7QNHIWI26SGG4I6DZNNLVZZZLZDQCKII7A
-#\\\|YMLLDIGM4JWIBEKDPREYG7BX5ESVAGBHCLRB3HDSNUUJ2P4MBNO \ / AMOS7 \ YOURUM ::
-#\[7]H23DJ6PPI23QHSC4EIAX5JRNLDVRC5HUBXVOSZUZLOZXPG5IXQAQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,,,,,.,,,.,,,,.,,,,,,,..,..,,..,,...,..,,,.,,,,,,,.,,,..,,,.,
+#JGG6ZJ42ODNTHAI2PGHEPWLDHJVKH6SWHCPXTAGSXP227IW3PCGKQCDV6ENM5KEZL72IXMPOVMKKG
+#\\\|URNLEHH5JNXDH5DVQW4MSMUWMC2XBBXZAQWGBMJN4TNKZ7QIYCU \ / AMOS7 \ YOURUM ::
+#\[7]JZOVYIETTFEODIMA5LGB32FGFCLBPAGZBXLDABV2BRIZCFWMJGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
