@@ -28,7 +28,7 @@ foreach my $id ( keys %{<nodes.trunc>} ) {
 
 $err_msg = 'specified IP address is not valid'
     if not defined $err_msg
-    and ( $addr !~ /[\.:]/ or !ip_validate($addr) );
+    and ( $addr !~ m|[\.:]| or not ip_validate($addr) );
 
 $err_msg = 'expect base32 encoded [C25519] public key'
     if length($pkey) !~ 52 or $pkey !~ m|^[A-Z0-9]+$|;
@@ -60,8 +60,8 @@ return {
     'data' => "node '$name' added"
 };
 
-#,,,,,,..,,,.,...,,.,,,,.,,..,,,.,...,..,,,,,,..,,...,.,.,.,,,,,,,.,.,..,,.,.,
-#RGAOY2BFCWSDOXHLOQX75WP2RFNGSXKCV2JRK3CFRMNVWAKHF4ZAHLLCI4E3LBEHTFO7I3QXRDNHW
-#\\\|FZ6LIAH5AHNGZN57LVCOKVSSBNQD7YZVB7CZEO5IHT7MG6URKVK \ / AMOS7 \ YOURUM ::
-#\[7]HXBTJG5QCOS57S256BDUYSQF6733EL3D5P7425DEBJXOFEVX3MAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,.,...,...,.,.,.,.,,,.,,,,,.,.,..,,...,..,,...,,,.,.,.,.,,,,,,,
+#WMT73DFFXZ7ALF36LGLDZU6GKZFFU3YPP4FNSZRRP273PSGS3O4RXY7EMUBYVSSLUMXR3623YX36E
+#\\\|SVD6OP4CTYY2O2YARZDUGHFPWXUBCIHI752DCJZQZTUXWPQ7QGR \ / AMOS7 \ YOURUM ::
+#\[7]A6GZOYECNH6HUBEXV75HB5552ZFEROH6RC5HIRIWK4E3TUIYJAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
