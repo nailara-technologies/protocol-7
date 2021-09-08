@@ -46,6 +46,11 @@ our %C = (
     qw|  R  | => "\e[0m",
 );
 
+## for later ##
+
+#023B52 ## <-- cool gray
+#269263 ## <-- light green
+
 ##[ ERROR HANDLING ]##########################################################
 
 our $mesg_prefix_string = qw| : |;
@@ -259,8 +264,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,,,,..,,...,,,,,,,,,...,.,,,,.,,..,,,..,..,,..,,...,...,...,.,.,.,.,,.,,,.,,
-#MLGOSTU52LAYFVGH4SEWCRQZRXDI4EW7PFVK6K3TSN6GAPNK27K4HFCSZBGOAUKARD3Y6RRBFSAHG
-#\\\|XW5MVTFHBFITFIBE3KKS3FTSNNQGFEIKXEEXYKDFSL5ITBDVBP2 \ / AMOS7 \ YOURUM ::
-#\[7]DI36OOYZ3N7RF7LZV4AOAYPYJ5S7KVZZ4LUF3WLWRCMKI375IQDA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,..,,...,..,,...,...,.,.,.,,,,,,,..,,...,..,,,.,,,,,,..,,,,,,,..,
+#H73BHRXSPZNT7TFXN65QOKJBQHAGND4XU4AKAKQ4GJNV4RTMRAXRLKXOYS3U7VFP4CHC3N7LT3ABS
+#\\\|JGT33B5H53JAKFYZBLGCZTBV6D5V7GP4FDV2L2AOZSI6F4KVYCY \ / AMOS7 \ YOURUM ::
+#\[7]NTUPDESYKCQKOKJMQM6G5A2DAXS3K2PJ4O4PKQYJSRK3EORLF4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
