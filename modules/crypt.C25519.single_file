@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = crypt.C25519.single_file
+# descr = return true when key is a single file [ private or public ]
+
+my $name = shift // '';
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+my $key_filename = $key_vars_ref->{'key_filename'};
+
+my $virtual_keyfile  = $key_filename->{'virtual'};
+my $public_key_file  = $key_filename->{'public'};
+my $private_key_file = $key_filename->{'private'};
+
+##  key is 'virtual' [ seed-phrase ]  ##
+return FALSE if -f $virtual_keyfile;
+
+my $num_key_files = 0;
+
+$num_key_files++ if -f $public_key_file;
+$num_key_files++ if -f $private_key_file;
+
+if ( not $num_key_files ) {
+    <[base.s_warn]>->( "key '%s' not found", $name );
+    return undef;
+} elsif ( $num_key_files == 1 ) {
+
+    return TRUE;    ##[  single key file  ]##
+
+} else {
+    return FALSE;    ##  not single file  ##
+}
+
+#,,.,,,.,,..,,,.,,.,.,,,.,...,..,,,.,,..,,..,,..,,...,...,.,.,...,,,,,,.,,,..,
+#MGUX4NDJ63XS7NWH54FZB3IBYYE4YO5KTYXSVJEM6MQS55EFVJ3LL227AR27TX7WMNLK5QGW3PQK6
+#\\\|ILKK27UIWYNI3Q6ERCBMSQRGPSS4ZINB5ZOPIKLRUF7TUTKWUEY \ / AMOS7 \ YOURUM ::
+#\[7]PJV32LMKUJEBWZYIEL5PDYZDTN2Q7E3IR2NCBZBAFBZDS3LAJ2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

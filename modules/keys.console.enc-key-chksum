@@ -4,20 +4,19 @@
 # param = <name>
 # descr = calculate and display chksum of encrypted key
 
-my $key_name_param = shift;
+my $name = shift;
 
 return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $key_name_param;
+    if not defined $name;
 
-my $key_status = <[crypt.C25519.encrypted_key]>->($key_name_param);
+my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
 if ( $key_status < 0 ) {
     my $err_reason_str;
     if ( $key_status == -1 ) {
-        $err_reason_str = sprintf "only public key named '%s' found",
-            $key_name_param;
+        $err_reason_str = sprintf "only public key named '%s' found", $name;
     } elsif ( $key_status == -2 ) {
-        $err_reason_str = sprintf 'user-key %s not found', $key_name_param;
+        $err_reason_str = sprintf 'user-key %s not found', $name;
     } elsif ( $key_status == -3 ) {
         $err_reason_str = 'error reading private keyfile';
     } elsif ( $key_status == -4 ) {
@@ -30,18 +29,25 @@ if ( $key_status < 0 ) {
     return printf "\n  << %s >>\n\n", $err_reason_str;
     <[base.exit]>->(qw| 0110 |);
 } elsif ( $key_status == FALSE ) {
-    return printf "\n  ::  '%s' key is not encrypted  ::\n\n",
-        $key_name_param;
+    return printf "\n  ::  '%s' key is not encrypted  ::\n\n", $name;
 }
 
-my $load_success
-    = <[crypt.C25519.load_keypair]>->( $key_name_param, undef, TRUE );
+my $load_success;
+
+if ( <[crypt.C25519.single_file]>->($name) ) {
+
+    $load_success = <[crypt.C25519.load_single]>->( $name, undef, TRUE );
+
+} else {
+
+    $load_success = <[crypt.C25519.load_keypair]>->( $name, undef, TRUE );
+}
 
 return print "\n  << no keys loaded >>\n\n" if not $load_success;
 
-my %keys_bin = $keys{'C25519'}{$key_name_param}->%{qw| private public |};
+my %keys_bin = $keys{'C25519'}{$name}->%{qw| private public |};
 
-my $chksum_str = sprintf "\n  ::  '%s' :  %s  ::\n", $key_name_param,
+my $chksum_str = sprintf "\n  ::  '%s' :  %s  ::\n", $name,
     <[crypt.C25519.key_checksums]>->( values %keys_bin );
 
 ## colorizing ##
@@ -55,8 +61,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,,,,,,.,,..,,,,,,..,,..,,,,,..,,,..,.,.,,,,,.,.,...,..,,.,,,,.,,,,,,.,,,...,
-#M7XQK2AX33ZQCS2XHCEZJWJLHQQQ3GHO5W24ZPCIEK27TSCBMBA6G5CQKFFXMVA3FMOTFLZZKYLIU
-#\\\|PS432NJY7UHDJMI65SAE5RTE7JJ5ADGUAZSNGSXGCRJGNCILSX5 \ / AMOS7 \ YOURUM ::
-#\[7]D3QSW2AFJ2MPUDVAUKSZH6B3DK2HM43KR63HULNBCLFO3E65KIDQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,.,.,,..,...,,,,,,..,...,...,.,.,...,...,,.,,,..,...,,,,,.,.,
+#NB5DZ6ZAN4ZTRSOV3EI3JTVAEQYD3HYKUJMK4XXBRCJQX3Y7QGEFBGLVUAMD43PQBOBPFFQF3HHQM
+#\\\|4WIRGH75PUPJ4L6YDNJTCHERCCMCOUAPCXDJFX2RESLZF5LTY54 \ / AMOS7 \ YOURUM ::
+#\[7]HLKAAI4JNGUMNLD622O5ZQN2BDHGGUEESTS4NZLS3TYASSSSNQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
