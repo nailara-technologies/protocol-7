@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = keys.console.list
-# param = [:nosums:]
+# param = [:nosums:|:sigs:]
 # descr = list C25519 key names \ files for current user
 # note  = Protocol-7 keys list | grep ' : .*:' | sed 's|.* : ||'
 
@@ -9,8 +9,12 @@ my $param = shift;
 
 ( my $display_sigs, my $display_checksums ) = ( FALSE, TRUE );
 
-$display_sigs      = TRUE  if defined $param and $param eq qw| :sigs: |;
-$display_checksums = FALSE if defined $param and $param eq qw| :nosums: |;
+if ( defined $param ) {
+    $param =~ s|-\S+||;
+    $param =~ s|\s+||g;
+    $display_sigs      = TRUE  if $param eq qw| :sigs: |;
+    $display_checksums = FALSE if $param eq qw| :nosums: |;
+}
 
 my %C            = %AMOS7::C;
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
@@ -84,18 +88,31 @@ $names_len
 
 my $linefeed = $display_checksums ? '' : "\n";
 
-my $key_list_string = join '',
-    $linefeed,
-    sprintf( "%40s\r :: keys for user %s :.\n", '', $key_usr );
+my $key_list_string = join '', $linefeed,
+    sprintf( "%40s\r :: %skeys for user %s :.\n",
+    '', $display_sigs ? '[signed] ' : '', $key_usr );
 
+my $displayed_files_count = 0;
 foreach my $name ( <[base.sort]>->( \%key_files ) ) {
+
+    next if $display_sigs and not exists $key_signed_by{$name};
+    $displayed_files_count++;
 
     $key_list_string .= sprintf " : %*s .\n", $names_len, '';
 
     $key_list_string .= sprintf " : %*s .\n", $names_len,
         sprintf qw| '%s' |, $name;
 
-    my $shown_chksum = FALSE;
+    if ($display_sigs) {    ##  display signature [root] key names per key  ##
+
+        foreach my $signature_key ( $key_signed_by{$name}->@* ) {
+            $key_list_string .= sprintf " : %*s : %s\n", $names_len,
+                '', $signature_key;
+        }
+        next;               ##  skip key filename listing  ##
+    }
+
+    my $shown_chksum = FALSE;    ##  otherwise listing key files  ##
     foreach my $file ( $key_files{$name}->@* ) {
 
         my $chksum_line
@@ -113,7 +130,13 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
 
 }
 
-$key_list_string .= sprintf " : %*s .\n", $names_len, '';
+if ( not $displayed_files_count ) {
+    $key_list_string .= sprintf " : %*s\n", $names_len, '';
+    $key_list_string .= sprintf " : %*s\n", $names_len,
+        '[ no matching files ]';
+} else {
+    $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+}
 
 $key_list_string .= "::\n";
 
@@ -128,6 +151,7 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.:])
                          , $C{G}$+{n}$C{T},mgx;
     $key_list_string =~ s|: signed \e\S+|$C{G}: signed :$C{T}|mg;
+    $key_list_string =~ s|(\[ [^\]]+ \])|$C{G}$1$C{R}|mg;    ##[ no match ]##
     $key_list_string =~ s|'(.+)'|$C{G}'$C{T}$C{B}$1$C{R}$C{G}'$C{T}|mg;
     $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
     $key_list_string =~ s,(<:.+:>|encrypted),$C{0}$C{b}$1$C{R}$C{T},mg;
@@ -139,8 +163,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,..,...,...,...,,,,,,..,..,,.,.,.,.,,..,..,,..,,...,...,...,..,,,,.,...,..,,
-#AILNJVXW5IZBX2JHW4TBZ46GYCXOWWWO7FFDSCDWPQTN2TSOH2GXPIRYIW2ZUOBKPA2UR4V7UT7FW
-#\\\|XS63FK7SYR7V4R5PYULJFM7CTZHVINZQ47U255V655CMEPYWWYQ \ / AMOS7 \ YOURUM ::
-#\[7]LVKRFOLBV3US3M5ZB4CHG2XRS7NSGLVSIO3PNYXQ57DJ72YXUKCA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,.,.,...,.,.,,.,,.,,,..,,...,..,,...,...,,.,,,,,,,,,,...,..,,
+#G744BMBB2ZB5SDF57AR7E7HUDKA7KWK3R77O66PBVFQWBSU2YSBUO7IFZ7W6XK6UZFI5SVQAU77Q4
+#\\\|BEZBAZPS75ZHMEFAYPHFXXRR5QAZJHSZCZ2TLNNQE6DQKDFD54V \ / AMOS7 \ YOURUM ::
+#\[7]FKB7RBXRFUUYAV4K7B6NCIKV57NZKNEYNLTXSUY6FTJA2YONAUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
