@@ -19,7 +19,7 @@
 ## regex ##
 ##
 my @key_ext   = qw| \.secret  \.public  :seed-phrase  |;
-my @key_types = qw| private public |;                  # virtual #
+my @key_types = qw| private public |;                      # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
@@ -29,6 +29,10 @@ delete <crypt.C25519.regex>    ##  allow updates during reload  ##
 
 const <crypt.C25519.regex> => {
     qw| key_name | => qr|^$name_regex$|,
+    qw| key_sig |  => {
+        qw| signature | => qr|^($name_regex)\.sig.(.+)$|, ## key signature ##
+        qw| pub-key |   => qr|^($name_regex)\.spk.(.+)$|  ## pub 'root' key ##
+    },
     qw| key_file | => {
         qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
         map {
@@ -166,8 +170,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,,,,..,,...,.,.,,..,,.,,...,.,,,,,.,..,,,.,,..,,...,...,...,.,,,,,.,,,,,.,.,
-#JE234AQQEBOQTDV522B3LRUSU5GVE63X5556YEVDFPTO7CSJ4XMXZ6FOJKOE5NGKDPSMAZNTDJE6E
-#\\\|PBZVSSCUZ3MQMROWLIHXB7ESX6PDG6NQQWSXZVKRYS3OG2LL63T \ / AMOS7 \ YOURUM ::
-#\[7]ZV7KWKEBFTARMLLAPQW5O5F4JWDC4DKG7FKZCTQAHZG4FHC44GBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,,,.,,.,,,..,,,.,.,,,.,.,.,.,..,,...,...,,,,,,,,,.,.,..,,.,,,
+#HAAMWYAVNJLXMMTETYQTEYF22LYMOE3YRSTKQ3UIEP4BFP72LR4TK3WOWW43G2IL2GNBMTYIHTJV2
+#\\\|ZIZWCJ6MCA726L3R5ZJ3OZNU7CTKGLL2OFAMQDDXRGW7IBLGSGJ \ / AMOS7 \ YOURUM ::
+#\[7]3YF7WO7WP6ZBNFCR37LNG6F3KLKPODZQW4DZWOAMV546NRM6WYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
