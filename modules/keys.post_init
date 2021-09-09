@@ -9,10 +9,15 @@ foreach my $type (qw|  private  public  |) {    ##  private , public  ##
         $type eq qw| private | ? qw| secret | : $type;
 }
 
+if ( length <system.args> ) {  ##  removing [ not used ] option parameters  ##
+    <system.args> =~ s|-\S+||;
+    <system.args> =~ s,^\s+|\s+$,,g;
+}
+
 0;
 
-#,,,.,,.,,..,,,,,,..,,,,,,,..,...,,.,,,,.,..,,..,,...,..,,..,,.,,,..,,,..,.,,,
-#USF5ZAWPHFUOZETJUIFJWCERQKKZBYL5XVEMGQTU2XNR3OOW5GW2MOBGZCXQZSFYO46Y2AV37223M
-#\\\|ZJC77BIPGEYZFQOE6GX2LG5ULZP2UWKMKM5QBC2ENQVOFV5GHOS \ / AMOS7 \ YOURUM ::
-#\[7]ZQXSVQFZOD5ZEHVYNAAIL5SXTHTLJ5KF7PYS577BVCPDU2GWMGDA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,...,...,.,.,.,.,...,,..,.,.,..,,...,...,,..,,.,,.,,,,..,,,,,
+#QQIGNZ6OTVCAVFZ76IA7N236ONBQTZSBNZ6LVQ7K7HAHGJIF6EWRWII6VISSXG7EHAZB2LIPWOEJ4
+#\\\|NDFOOVKBC7XNSM3JCCZSKOPOVFYTFIGW5XTQQAKLJZX2FYADTJP \ / AMOS7 \ YOURUM ::
+#\[7]UQ4ATWNSEPA4Y6ZTN5AI2UNFV25LX23G2ICYPIHJ45C6J7KLS4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
