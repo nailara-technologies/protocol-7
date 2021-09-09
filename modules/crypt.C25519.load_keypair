@@ -59,7 +59,7 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
 
         } else {    ##  key is loaded ., ##
 
-            my $key_checksum = <[crypt.C25519.key_checksums]>->(
+            my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
                 $keys{'C25519'}{$name}{'private'},
                 $keys{'C25519'}{$name}{'public'}
             );
@@ -195,7 +195,7 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
 
         ##  calculating key pair chksum  ##
         ##
-        my $key_checksum = <[crypt.C25519.key_checksums]>->(
+        my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
             $decrypted_C25519_sref->$*,
             $keys{'C25519'}{$name}{'public'}
         );
@@ -240,8 +240,8 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
     return FALSE;    ##  false  ##
 }
 
-#,,,.,.,,,,.,,..,,,.,,..,,..,,..,,...,..,,,.,,..,,...,...,...,..,,,,,,...,...,
-#GYIFDGLVYICLFUCECUAYS7I2RW2HSMVXGKYG45QEUT447LX3BEF5D7QTT4YCZZCNHLZA767YCM7O2
-#\\\|MDTRXUWBDYLGGJTB2IRVX4XC4XTUNMJ4HO5KPGBBOIKCWBM6EDX \ / AMOS7 \ YOURUM ::
-#\[7]H2SC44UQ7CAVSVX4JGLVLLMWS2EUDQ6SHG76TJWWXVFCYV2BXYAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,.,,,.,.,,.,,..,,...,..,,,..,..,,...,..,,...,..,,..,,.,.,,,,,
+#GLXFYECAULBUWCKHRABDL7PDF3RYYLQGXR6G3CGDBNOI5WUS4TLOSEPST4GCEIUHZN2I3R2TQFGH6
+#\\\|AVZZH4K2Q3I2Z7RFR5CIWPTRB7X7RDDLHXMHQOTZEUOSJX2PYO7 \ / AMOS7 \ YOURUM ::
+#\[7]HDQAJFORGJ6WQBWJBAPBHUOJXPFJ4PF7ZANEDJGQYEZLMK5WMGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
     return undef;
 } elsif ( defined $key_type and $key_type !~ m{^(private|public)$} ) {
-    <[base.s_warm]>->( "key type parameter '%s' not understood", $key_type );
+    <[base.s_warn]>->( "key type parameter '%s' not understood", $key_type );
     return undef;
 }
 
@@ -44,7 +44,7 @@ if ( not defined $single_key_file ) {
 
 } elsif ( defined $key_type and not -f $key_filename->{$key_type} ) {
 
-    <[base.s_warm]>->(
+    <[base.s_warn]>->(
         "requested key '%s' [%s] key not found",
         $name, $key_type
     );
@@ -156,8 +156,8 @@ if ( not defined $key_type and -f $public_key_file
 
 }
 
-#,,..,...,,,.,.,.,,.,,,,.,,..,..,,,.,,,.,,,,,,..,,...,..,,..,,.,,,,,.,.,.,.,,,
-#ECUJ4I5RBA7MTPPIQTNDPF365C4BHFNN3D7IHCAFLX6UCCCBJNGKIMZOKQCPLRC7X74XXMBZ53B6C
-#\\\|2QYWKH7M7J5SNCBZMO4RUPUGPRSEKXOCREJY2KVYAYBHS7SDQV5 \ / AMOS7 \ YOURUM ::
-#\[7]P2PAOCM73A4GUW466ZDPLEZGXOFUQM6NW46GS52K6AXD2HOH2UBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,.,,,,.,,.,.,,..,..,,..,,,,.,..,,...,...,.,.,,.,,...,,..,,,.,
+#4ICQQEILQ7SEWNANAHDV5KEMZLXSLNDORMQBZHQCQPKNI4YVOHE6CHFNOOQEGXIDMVKHHNMCD4336
+#\\\|OQFXPGUY7NWVJ7JTT7V267NBUQU4HBL7BJS7AAUH6E42OJDYVAZ \ / AMOS7 \ YOURUM ::
+#\[7]G7PUGKSVOMDYJMMVUNLKD525VAPAEJ3DAWPO3JEEXZY6KW5BWKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
