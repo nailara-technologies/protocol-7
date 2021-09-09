@@ -16,9 +16,16 @@ my $usr_hdir     = $key_vars_ref->{'usr_home'};
 my $name         = $key_vars_ref->{'key_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 
-foreach my $keyfile_extension (qw|  public  secret  |) {
-    my $file_name = join( qw| . |, $key_basepath, $keyfile_extension );
-    next if not -f $file_name;
+foreach my $type (qw|  secret  private  public  |) {
+    my $file_name = join( qw| . |, $key_basepath, $type );
+
+    next if $type ne qw| secret | and not -f $file_name;
+
+    next
+        if $type eq qw| secret |
+        and ( not exists $keys{'C25519'}->{$name}->{$type}
+        or not -f $file_name );
+
     $file_name =~ s|^.*\/||;
 
     say sprintf "%s :", $AMOS7::C{'0'}
@@ -31,22 +38,16 @@ foreach my $keyfile_extension (qw|  public  secret  |) {
 }
 
 my @keys_binary;
+my @key_pair_bin;
 my $pubkey_L13_sum;
 my $priv_key_L13_sum;
 my $keywrite_status = TRUE;
-foreach my $type (qw|  private  public  |) {
+foreach my $type (qw|  secret  private  public  |) {
 
-    my $keyfile_extension
-        = $type eq qw| private | ? qw| secret | : qw| public |;
-
-    my $file_name = join( qw| . |, $key_basepath, $keyfile_extension );
+    my $file_name = join( qw| . |, $key_basepath, $type );
     my $tmp_fname = join( qw| . |, $file_name,    $PID, <[base.ntime.b32]> );
-    open( my $key_fh, qw|>|, $tmp_fname ) or die "\l$OS_ERROR [ $tmp_fname ]";
-    if ( $type eq qw| public | ) {
-        chmod( 0640, $tmp_fname ) or die "< chmod 0640 > \l$OS_ERROR";
-    } else {
-        chmod( 0600, $tmp_fname ) or die "< chmod 0600 > \l$OS_ERROR";
-    }
+
+    next if not exists $keys{'C25519'}->{$name}->{$type};
 
     my $key_bin_str = $keys{'C25519'}->{$name}->{$type};
 
@@ -58,13 +59,29 @@ foreach my $type (qw|  private  public  |) {
         return undef;
     }
 
-    push @keys_binary, $key_bin_str if wantarray;  ##  for checksums below  ##
+    open( my $key_fh, qw| > |, $tmp_fname )
+        or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $tmp_fname );
 
-    ##[  encrypting key before write  ]##
+    if ( $type eq qw| public | ) {
+        chmod( 0640, $tmp_fname )
+            or die sprintf( '< chmod 0640 > %s', <[base.str.os_err]> );
+    } else {
+        chmod( 0600, $tmp_fname )
+            or die sprintf( '< chmod 0600 > %s', <[base.str.os_err]> );
+    }
+
+    if (wantarray) {
+        ##  for checksums below  ##
+        push @keys_binary,  $key_bin_str;
+        push @key_pair_bin, $key_bin_str if $type ne qw| secret |;
+    }
+    ##[  encrypting [ secret and private ] key before writing  ]##
     ##
-    if ( $type eq qw|  private  | and defined $key_password ) {
+    if ( $type ne qw|  public  | and defined $key_password ) {
 
         my $enc_key = AMOS7::13::key_32( \$key_password );
+
+        ##  my $enc_key = AMOS7::13::key_32( \$key_password, $type ); ## [LLL]
 
         if ( not defined $enc_key or not length $enc_key ) {
             warn 'error during file enc key derivation <{C1}>';
@@ -96,11 +113,11 @@ foreach my $type (qw|  private  public  |) {
 
         ##  encrypted key has '.:' prefix [ binary ]  ##
         ##
-        print {$key_fh} sprintf "%s\n", $key_str_b32;
+        say {$key_fh} $key_str_b32;
 
         ##  no cache chksum entries for encrypted key pairs  ##
 
-    } elsif ( $type eq qw|  private  | ) {
+    } elsif ( $type ne qw|  public  | ) {
 
         my $key_str_b32 = encode_b32r sprintf qw| U:%s |, $key_bin_str;
 
@@ -117,23 +134,26 @@ foreach my $type (qw|  private  public  |) {
 
     } else {
         my $key_str_b32 = encode_b32r $key_bin_str;
-        print {$key_fh} sprintf "%s\n", $key_str_b32;
+        say {$key_fh} $key_str_b32;
 
         $pubkey_L13_sum = <[chk-sum.bmw.L13-str]>->($key_str_b32);
     }
 
-    close($key_fh)                   or die "\l$OS_ERROR [ $file_name ]";
-    rename( $tmp_fname, $file_name ) or die "\l$OS_ERROR [ $file_name ]";
-    chown( $uid, $gid, $file_name )  or warn "\l$OS_ERROR [ $file_name ]";
+    close($key_fh)
+        or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
+    rename( $tmp_fname, $file_name )
+        or die sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
+    chown( $uid, $gid, $file_name )
+        or warn sprintf( '%s [ %s ]', <[base.str.os_err]>, $file_name );
 
     $keywrite_status = FALSE if not -f $file_name;    ##  false  ##
 
-    <[base.logs]>->( ": %s", $file_name );
+    <[base.logs]>->( ': %s', $file_name );
 }
 
 if (wantarray) {    ##  return key[s] checksum in list context  ##
 
-    my $key_checksum = <[crypt.C25519.key_checksums]>->(@keys_binary);
+    my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(@key_pair_bin);
 
     if ( not defined $key_password ) {    ##  when not encrypted  ##
 
@@ -174,8 +194,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;    ## return write success status ##
 }
 
-#,,,.,..,,,,.,..,,,,,,,,.,...,..,,,..,.,.,.,,,..,,...,...,...,.,,,.,,,...,,,,,
-#56Y5BON5FDSKOUAW3B2AB3GKXEHE66YYF7CYBT6WFFCWMY656SFXK5LUSN6CMNM6YJGAYSWJVTBKG
-#\\\|PLBFL7TPYDNHZS3UCBII7IE3OZMQQFGAPCGHXJFXR4I22TWOKTL \ / AMOS7 \ YOURUM ::
-#\[7]IYPDIOPJ6VR7S7GSCZQ5IY5XA4HJIETOK2UGK3YU4AOPOSOJAGDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,,,,,.,,.,,,,.,,.,,...,,..,..,,..,,...,...,...,.,.,.,,,,,.,.,,,
+#FQ3SR6LCRNCZSD73QNQQAUAFY225I2AAL3JIR2RZ72NL55PXCGWMXSNOZHJ6D7V6WSSQZL6EBBLWW
+#\\\|6JQBCF2365POTHKPQ5FOU7OEI7SYE54YKLSX4HZPP2IB3H2Q5KA \ / AMOS7 \ YOURUM ::
+#\[7]ACVM24T44M2OLRVEB4P3V4N3YEDE6BXNCMQ4RZMNWZUYK3K5XSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

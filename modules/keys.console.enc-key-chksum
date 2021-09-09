@@ -51,7 +51,7 @@ return print "\n  << no keys loaded >>\n\n" if not $load_success;
 my %keys_bin = $keys{'C25519'}{$name}->%{qw| private public |};
 
 my $chksum_str = sprintf "\n  ::  '%s' :  %s  ::\n", $name,
-    <[crypt.C25519.key_checksums]>->( values %keys_bin );
+    <[crypt.C25519.key_bin_checksums]>->( values %keys_bin );
 
 ## colorizing ##
 ##
@@ -64,8 +64,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,..,,,.,...,,,,,..,,.,.,,,,,,.,,...,,.,,...,.,.,...,...,,,,,.,.,,,.,...,,..,
-#K6LV3G7BRXTQKSSTHQZY2XTF5TTRZOHBYISI2NLGJQFS65MXFDHPJNR3CUWLBDVOIDYPINOTPZUFC
-#\\\|2EJSGNMMCGFA4GXJOHDPFE27EF4LQUFWNM27FPS4FJHTTZXGJ53 \ / AMOS7 \ YOURUM ::
-#\[7]BL7YHZRT6LAV4D6W2EGPYWVHEIGYP3EQG23LPNS5RZQYUPY6MSDI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,.,.,...,,,,,.,,,..,,.,.,..,,.,.,...,..,,.,,,.,,,,.,,,,,,...,
+#QOXJZZG3GBAQQH5TFQZ6NI35IQUSJTAWYAVMUKUPSEAINO7UU46L7DSAWSRWRBM4THGWY46XK5PG2
+#\\\|5FZ6N6ATDUVNKD2Z7HXPYPVC2OKOIFRHR3MJOLLAB6Q4DLQHUC6 \ / AMOS7 \ YOURUM ::
+#\[7]QYWT43NGVTALU6UEXRKXUXX7JYSO764WRTDLPVXR6ALLVOKIEADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

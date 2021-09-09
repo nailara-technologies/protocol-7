@@ -14,11 +14,15 @@ my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 my $key_filename = $key_vars_ref->{'key_filename'};
 
 my $virtual_keyfile  = $key_filename->{'virtual'};
+my $secret_key_file  = $key_filename->{'secret'};
 my $public_key_file  = $key_filename->{'public'};
 my $private_key_file = $key_filename->{'private'};
 
 ##  key is 'virtual' [ seed-phrase ]  ##
 return FALSE if -f $virtual_keyfile;
+
+##  secret key file [ pair can be derrived from ]  ##
+return TRUE if -f $secret_key_file;
 
 my $num_key_files = 0;
 
@@ -36,8 +40,8 @@ if ( not $num_key_files ) {
     return FALSE;    ##  not single file  ##
 }
 
-#,,.,,,.,,..,,,.,,.,.,,,.,...,..,,,.,,..,,..,,..,,...,...,.,.,...,,,,,,.,,,..,
-#MGUX4NDJ63XS7NWH54FZB3IBYYE4YO5KTYXSVJEM6MQS55EFVJ3LL227AR27TX7WMNLK5QGW3PQK6
-#\\\|ILKK27UIWYNI3Q6ERCBMSQRGPSS4ZINB5ZOPIKLRUF7TUTKWUEY \ / AMOS7 \ YOURUM ::
-#\[7]PJV32LMKUJEBWZYIEL5PDYZDTN2Q7E3IR2NCBZBAFBZDS3LAJ2AI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,..,,.,,,..,,,,,,,,.,...,,,,,..,,...,...,..,,,.,,..,,..,,..,,
+#ZDW6RY5UU6PMUUN43MRF5OU2QICHGLGKQNRPZHFAFOWLES4EQ75CM5OPIJ2ORL7OQUBOAN4KKKRHQ
+#\\\|PTYZIFSMARXLV3TTIN75KRSLZDTPJICIE4QUAEMC2XP35LDBWGI \ / AMOS7 \ YOURUM ::
+#\[7]OJWACTXDEPKLQAFD7IJSV7NG6BNBPA6NNSYDFJ27JMTIVP6MDUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

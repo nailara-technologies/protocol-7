@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = crypt.C25519.all_key_names
+
+my %keynames;
+
+foreach my $file ( grep {s|^.*/||} <[crypt.C25519.keyfiles]> ) {
+    my $name = <[crypt.C25519.get_keyname]>->($file);
+    next if exists $keynames{$name};
+    $keynames{$name}++;
+}
+
+return <[base.sort]>->( \%keynames );
+
+#,,,.,,..,,,.,,..,,,,,.,,,.,,,.,.,.,.,..,,..,,..,,...,...,...,.,,,..,,.,,,.,.,
+#H7G7J3QKJWDA7WYCVKDLCFCQJNZ6IK6QUDLPWBZP2KXRHMSNWQF6TX3OVAVOINBVRWEEN3A5Y7KYS
+#\\\|67AJZSKDXRVECTQVDN2CMWGQ24D6TNQ3FKFU4WG3ANBJCOGRHGA \ / AMOS7 \ YOURUM ::
+#\[7]TBCCYZO6PUR5FSIAVTDKG74YMOFT2AYJU7SN2L65IBKYPJVSJIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
