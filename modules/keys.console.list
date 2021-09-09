@@ -10,8 +10,6 @@ my $param = shift;
 ( my $display_sigs, my $display_checksums ) = ( FALSE, TRUE );
 
 if ( defined $param ) {
-    $param =~ s|-\S+||;
-    $param =~ s|\s+||g;
     $display_sigs      = TRUE  if $param eq qw| :sigs: |;
     $display_checksums = FALSE if $param eq qw| :nosums: |;
 }
@@ -117,11 +115,10 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
 
         my $chksum_line
             = ( not $display_checksums or $shown_chksum++ )
-            ? ''
+            ? ( $file =~ $key_re_public and exists $key_signed_by{$name} )
+                ? ': signed :'
+                : ''
             : $key_chksums{$name};
-
-        $chksum_line = ': signed :'
-            if $file =~ $key_re_public and exists $key_signed_by{$name};
 
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
             $chksum_line, $file;
@@ -163,8 +160,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,.,.,.,..,,,,.,.,.,...,.,.,,.,,.,,,..,,...,..,,...,...,,.,,,,,,,,,,...,..,,
-#G744BMBB2ZB5SDF57AR7E7HUDKA7KWK3R77O66PBVFQWBSU2YSBUO7IFZ7W6XK6UZFI5SVQAU77Q4
-#\\\|BEZBAZPS75ZHMEFAYPHFXXRR5QAZJHSZCZ2TLNNQE6DQKDFD54V \ / AMOS7 \ YOURUM ::
-#\[7]FKB7RBXRFUUYAV4K7B6NCIKV57NZKNEYNLTXSUY6FTJA2YONAUBQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,.,,...,,,.,...,.,,,..,,,.,,.,.,..,,...,...,.,.,.,,,.,.,,.,,,,,,
+#AR4R4YHTM5MYBEKF2Z77TDIARG45PNU5RY3WOVLRXIYK3PMUZ7KBR52GYNJLMJPJ7Z2UBU4C4IO2U
+#\\\|DTSSNXOW5MRLP44QGMA5T32HZLZ6BTXTY3OPMHW2XXHQRLGIHQ2 \ / AMOS7 \ YOURUM ::
+#\[7]Y64N7T2EEZJYOJER3L7YURIX2TJBYP2U45AF5QY2TZQFXQDM2YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
