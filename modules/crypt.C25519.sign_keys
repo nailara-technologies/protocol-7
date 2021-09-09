@@ -20,7 +20,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
 
     ## DOWNLOAD IF URL ## ( todo : implement local file case )
     if ( <crypt.C25519.root_key_url>
-        =~ m{^https?://.+/C25519\.B32\.(.+)\.(secret|public)$} ) {
+        =~ m{^https?://.+/([^/]+)\.(secret|public)$} ) {
         $root_key_name = ${^CAPTURE}[0] // '';
         my %root_key_url = mep { $ARG => <crypt.C25519.root_key_url> . $ARG }
         qw| secret public |;
@@ -28,7 +28,7 @@ if ( defined <crypt.C25519.root_key_url> ) {
         require LWP::UserAgent;    # use download zenka later, needs blocking
         my $ua = LWP::UserAgent->new();
 
-        foreach my $type ( 'private', 'public' ) {
+        foreach my $type (qw|  private  public  |) {
             <crypt.C25519.download_type> = $type;
             <[base.logs]>->( ": downloading '%s' ..,", $root_key_url{$type} );
             my $response = $ua->get( $root_key_url{$type} );
@@ -66,28 +66,31 @@ if ( defined <crypt.C25519.root_key_url> ) {
             # LLL: log reason ..,
             goto skip_sign;
         }
-        <[base.log]>->(
-            0, ": signing C25519 key pair with$rkst root key ..,"
+        <[base.logs]>->(
+            0, ': signing C25519 key pair with%s root key ..,', $rkst
         );
-        my $sig_file_path = $key_basepath . '.sig';
-        $sig_file_path .= ".$root_key_name" if length($root_key_name);
+        my $sig_file_path = sprintf qw| %s.sig |, $key_basepath;
+        $sig_file_path .= sprintf( qw| .%s |, $root_key_name )
+            if length $root_key_name;
         <[file.put]>->(
             $sig_file_path,
-            encode_b32r(
+            encode_b32r sprintf(
+                "%s\n",
                 Crypt::Ed25519::sign(
-                    $key_bin->{'public'} . "\n",
+                    sprintf( "%s\n", $key_bin->{'public'} ),
                     decode_b32r( $root_key{'public'} ),
                     decode_b32r( $root_key{'private'} )
-                    )
-                    . "\n"
+                )
             )
         );
-        if ( -f $sig_file_path or -r $sig_file_path ) {
+        if ( -f $sig_file_path and -r $sig_file_path ) {
             <[base.logs]>->( ': : %s', $sig_file_path );
             (   my $root_pkey_path = join qw| . |,
                 $key_basepath, qw| rkp |, $root_key_name
             ) =~ s|\.$||;
-            <[file.put]>->( $root_pkey_path, $root_key{'public'} . "\n" );
+            <[file.put]>->(
+                $root_pkey_path, sprintf( "%s\n", $root_key{'public'} )
+            );
             <[base.logs]>->( ": : %s", $root_pkey_path );
             return TRUE;
         } else {
@@ -108,8 +111,8 @@ if ( defined <crypt.C25519.root_key_url> ) {
     return FALSE;
 }
 
-#,,,.,,.,,...,,,.,...,,,.,,.,,..,,,.,,.,,,...,..,,...,..,,...,.,,,...,,..,..,,
-#3B4PJCHHNO6Q2LK6RAWQ5AJDNEENR4V4QAHSNY2HBYOTFBPXOGPP6QGOAGIN6Q6QRHTD7AUPJ5DCA
-#\\\|2I6IBAFENRHLI6IBPY7YS2QCJAAQBPJAXCOMGOJG4A5IJ4VC2H3 \ / AMOS7 \ YOURUM ::
-#\[7]6SXPDSXWANHU42U6UZMNLKJAGLQSCLJJ73YFBHUSMOAQQQ5LYEAA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,,,.,,,,,,,,,...,...,,,.,,.,,..,,...,...,...,...,.,.,.,,,..,,
+#G5VKLBQ5FXYWNZWYCLCN5ZKAK6TRBP74WRRXMMFJ7PH6RLTBASFNP4J44GMNXDNH6JWKG5LULGF76
+#\\\|ZABFVJQOF7O2ZXGKZHEKFBIH3UDPQIB52ULBO6HQQIRVOUHVLQY \ / AMOS7 \ YOURUM ::
+#\[7]PHG6FZ26DCFA7ZMZHKYLW2OSYEFNSPRYRSFZ54WK4B3EO4GE5YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

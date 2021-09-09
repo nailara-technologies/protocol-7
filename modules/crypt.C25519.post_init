@@ -58,13 +58,13 @@ if ( index( <system.zenka.name>, qw| source |, 0 ) == -1 ) {
     }
 }
 
-while ( glob $key_basepath . qw| .{rkp,sig}.* | ) {
-    if (m{([^\/]+\.(rkp|sig)\.(.+))$}) {
-        my ( $fname, $type, $rkname ) = ( $1, $2, $3 );
+while ( glob $key_basepath . qw| .{spk,sig}.* | ) {    ##  key signatures  ##
+    if (m{([^\/]+\.(spk|sig)\.(.+))$}) {
+        my ( $fname, $type, $rkname ) = @{^CAPTURE};
         <[base.logs]>->( ": : %s : '%s'", $type, $fname );
-        $type = qw|public| if $type eq qw| rkp |;  ## <-- [ root-key-pub ] ###
+        $type = qw|public| if $type eq qw| spk |;  ## <-- [ root-key-pub ] ###
         chomp( $keys{'C25519'}{$key_name}{'root'}{$rkname}{$type}
-                = ${ <[file.slurp]>->($ARG) } );
+                = <[file.slurp]>->($ARG)->$* );
     }
 }
 
@@ -80,8 +80,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,,,,..,.,.,.,,,..,,.,,,,,,,,.,,,..,,..,.,.,..,,...,...,.,,,,,,,.,,,.,,,,,.,
-#7XW47QF6TPWTP3ID45NTPA2ZVDOO3IZBZANOGHNN6WLHCMYWGPK754P4RDXFI6ORSJ4OVL2SWGVX4
-#\\\|24GYALEVZYZZ4AY6KKOCSRV6GZ4XSOIHLNEJULXERXMEB4UOW7M \ / AMOS7 \ YOURUM ::
-#\[7]YPMMT537URJB7QYTQEHBXCDDRPNJDQGG6VOPLV5O2KYD7QYXXMBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,.,,,,,.,,,,,..,,,,.,,..,,.,,..,,...,...,...,.,,,.,.,.,,,.,,,
+#LVVN3JX346JZ76BPX2GPS37ENNX4IYK7NCWH6UMAPE477E6KETK2ZZLQDVL32BJGOMBFDGLFQG2FE
+#\\\|3Q6YLMAA5Q43Z6YKE5LDL256QBQKL2W4MNRRHXBQTTQY46WC33W \ / AMOS7 \ YOURUM ::
+#\[7]E46II3MJ6G5VXLCM2XPCQSI5FHITGNDQMY6DJC5GJZ3T42H332DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
