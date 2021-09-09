@@ -14,10 +14,6 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
-##[  updating filename structure  ]##
-<[crypt.C25519.auto_convert_names]>->($key_dir)
-    if -d $key_dir and -r $key_dir;
-
 if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
     <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
     <crypt.C25519.initialized>++;
@@ -84,8 +80,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,.,,,,,,.,,,,,,.,,,.,,,,..,.,,,...,,,.,.,,,..,,...,...,..,,,.,,,.,,,,,,,,,,
-#MPZF3CA62KVKXLUM5ADVS2VLQ3VZWISQ6RMS72IGIYZ4YYDLERLG5ZMOZ2VM5LKFOY2XXWLKF77ZE
-#\\\|SUCSWR6F2Y5AOC2EPVMQRTQAEZXRULPNLVWKSYDXH6QPTPWKMCN \ / AMOS7 \ YOURUM ::
-#\[7]FX2GEK7RP4QRQ32FOOCJTQJSL3CJ3XX5WJAZKNYD6QHN6HYL6WAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,..,,.,,,,,,,,.,,,..,,..,.,.,..,,...,...,.,,,,,,,.,,,.,,,,,.,
+#7XW47QF6TPWTP3ID45NTPA2ZVDOO3IZBZANOGHNN6WLHCMYWGPK754P4RDXFI6ORSJ4OVL2SWGVX4
+#\\\|24GYALEVZYZZ4AY6KKOCSRV6GZ4XSOIHLNEJULXERXMEB4UOW7M \ / AMOS7 \ YOURUM ::
+#\[7]YPMMT537URJB7QYTQEHBXCDDRPNJDQGG6VOPLV5O2KYD7QYXXMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
