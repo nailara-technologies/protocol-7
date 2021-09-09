@@ -56,10 +56,21 @@ if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
 
 $SIG{'INT'} = $code{'base.sig_int'} if defined $code{'base.sig_int'};
 
+$data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
+
 ##  remove known parameters from <system.args>  ##
-$data{'system'}{'args'} = join( ' ', @ARGV ) // '';
-$data{'system'}{'args'} =~ s,(^| +)\-[v]+h?z?d?( +|$), ,g;
-$data{'system'}{'args'} =~ s,(^\s+|\s+$),,g;
+##
+if (@ARGV) {
+    my %remove_param = map { $ARG => TRUE }
+        qw| c B nc nb BK stdin console use-http-src export-core-subs |;
+    $data{'system'}{'args'} = join ' ',
+        grep { not exists $remove_param{$ARG} } @ARGV;
+    if ( length $data{'system'}{'args'} ) {
+        $data{'system'}{'args'}
+            =~ s<(^| +)\-([v]+h?z?d?|N\S+|lpw=(\d{1,2}))( +|$)>< >g;
+        $data{'system'}{'args'} =~ s<(^\s+|\s+$)><>g;
+    }
+}
 
 if ( defined $zenkaname and length $zenkaname ) {
 
@@ -401,7 +412,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     ## determine zenka name and subname ###
     if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.| ) {
         $data{'system'}{'zenka'}{'initialized'} = FALSE;
-        $data{'system'}{'zenka'}{'name'}        = lc($PROGRAM_NAME);
+        $data{'system'}{'zenka'}{'name'}        = lc $PROGRAM_NAME;
         $data{'system'}{'zenka'}{'name'} =~ s,^.*protocol-7\.|[\. ]$,,g;
     } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
         my $zenka_name = $LAST_PAREN_MATCH;
@@ -409,8 +420,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
             if $zenka_name =~ s|\[([^\]]+)\]$||;
         $data{'system'}{'zenka'}{'name'} = $zenka_name;
     }
-    if ( not defined $data{'system'}{'zenka'}{'name'}
-        or $data{'system'}{'zenka'}{'name'} eq '' ) {
+    if (   not defined $data{'system'}{'zenka'}{'name'}
+        or not length $data{'system'}{'zenka'}{'name'} ) {
         $data{'system'}{'zenka'}{'name'} = qw| <init> |;
     }
 
@@ -432,7 +443,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     ## process command line arguments ###
     $data{'system'}{'console-mode'} //= FALSE;
     foreach my $arg (@ARGV) {
-        $stdin_mode = 0 if $arg =~ m|^[^\-]|;
+        $stdin_mode = FALSE if $arg =~ m|^[^\-]|;
         if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
             $data{'system'}{'verbosity'}{'console'}
                 = length( ${^CAPTURE}[0] );
@@ -3751,8 +3762,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,...,.,,,,..,..,,...,,,,,,.,,,..,.,,,..,,...,...,...,,.,,,..,,,.,.,.,
-#XLAMPITIRXGSMNPHA4UKPMMHYMVQH2VWKY5572FBO7H2NFTMTCR76Y4LL6WAXGNOXFUIH62XZRGXG
-#\\\|W6RIGDMGPGVB575AHIVPJHI65XOOPUCEMUKK6VXCAKQCLE5ZP5G \ / AMOS7 \ YOURUM ::
-#\[7]IOJLLFN2XRTHZRTXNR7VIC3HM5ZTUNWFR2G5SVFPC4UB7FU43CAI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,.,.,..,,..,,,.,,.,.,,.,,,.,,..,,...,...,...,..,,,..,...,,,,,
+#IWBKZCDI3TTG6EPP5FC7TBPM64PNYPJXGQBAAESSQB4FZATU5FBN24JUL64LFNQCIHEVI67IHIZWU
+#\\\|KPMQDOIMLHJGXV344WZ47PTDKIC2JK76K4L2IKHBWO6D7WTHIV2 \ / AMOS7 \ YOURUM ::
+#\[7]E7GB6QELRUUII5GFCEFRK3HXZ7RHVJFSLKC6SKQSFFTBM3UPEIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
