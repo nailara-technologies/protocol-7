@@ -21,9 +21,10 @@ my $key_name     = $key_vars_ref->{'key_name'};
     or ( keys( $keys{'C25519'}{$key_name}->%* ) < 2
     and exists $keys{'C25519'}{$key_name}{'root'} );
 
-<[base.s_warn]>->(
-    "there is no C25519 private key with name '%s' loaded", $key_name
-) if not defined $keys{'C25519'}{$key_name}{'private'};
+if ( not defined $keys{'C25519'}{$key_name}{'private'} ) {
+    <[base.s_warn]>->( "private key '%s' is not loaded <{C1}>", $key_name );
+    return undef;
+}
 
 return Crypt::Ed25519::sign(
     $msg_ref->$*,
@@ -31,8 +32,8 @@ return Crypt::Ed25519::sign(
     $keys{'C25519'}{$key_name}{'private'}
 );
 
-#,,..,,,.,.,,,.,,,,..,,.,,,.,,,..,.,,,,,.,...,..,,...,...,.,,,,,,,,,,,.,.,,.,,
-#DE2GJPWCSE6DCNLMH3A7YTLZBEXA75DHXXSSX6CMN3BTCD6BJAIPEIE53WMPFRCXAJABK2K6ARA4G
-#\\\|RQ73GTLD3E3EFGYJHOQSU4N4GTLJX3RMG6GEBOOWFFYU4TC4HYX \ / AMOS7 \ YOURUM ::
-#\[7]NHKU7HM5RPGTKGLLMR2HJGKZCFGYYM4S3FK67PYFBBATJIHKHAAI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,.,,,,..,,,,,.,.,,,,,,..,.,.,..,,...,...,..,,,,.,.,.,.,.,.,,,
+#65ZYUNVBJQY6F5MTAMHZVIJWYXOZXJYNR3Y23CYQ334KA25NNCRXPGRSFBDPXRTN752WQFWIDC7R4
+#\\\|5CGEZNYAEDCKY745PXQL47SOMY2NLFVMZHMBHEAQTN4H7J53KJV \ / AMOS7 \ YOURUM ::
+#\[7]J72LFQOFI3JYO6UJPGJ4L6DYKCOQL7H7WVUC6X36ZVNBJNCF3WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

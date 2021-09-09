@@ -54,7 +54,7 @@ if ( not <[crypt.C25519.gen_keys]>->( $name, $key_seed_entropy ) ) {
     <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
 }
 
-my $key_checksum = <[crypt.C25519.key_checksums]>
+my $key_checksum = <[crypt.C25519.key_bin_checksums]>
     ->( map { $keys{'C25519'}->{$name}->{$ARG} } qw| private public | );
 
 my $key_display_str = sprintf( " :\n ::[ %s ]\n :\n ::[ %s ]\n :\n::\n",
@@ -76,8 +76,8 @@ say $key_display_str;
 ##[ deleting keys from memory ]##
 <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );    ##[ silent ]##
 
-#,,.,,,..,,..,...,.,.,,..,...,,,.,...,...,,,.,..,,...,...,.,.,.,,,...,,.,,..,,
-#GP2VEJFT4MRRFUSA5ULUJUOPZYWTONCH3EKDGAIYUJ2FUGT7YVWVPSWHECN4CWBHK6DMX3NTA4XK2
-#\\\|EXK3TIFY46QN4P2XHH4CJGFOEUAP3BMLT64ZESOMTPOYFQS5MDN \ / AMOS7 \ YOURUM ::
-#\[7]DJ43KTQP3N4FKGQ2ECHXQY6DPAWHHSQVXWEOUSAL62X54EWFKUBY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,,,,,,,,,,,.,,,,,.,..,,..,,,..,..,,...,...,,,.,,..,.,,,.,,,,.,,
+#4ALV2DJWAY3U4A77ZB7WDC5GKCJF52SHKZRJKVGLXJRFVMGWSGNA5RIRDHKCBXSGITVQWU5OR7VIA
+#\\\|4YJF632JTEUDOZORJUDS7FUIKJSID54BE26KKPFCSNF7T6DCMDU \ / AMOS7 \ YOURUM ::
+#\[7]RGDOBDOI745EBPNOEPMV3GH6GYN6H6ODZ3YQOETSXXFLLXKGIMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

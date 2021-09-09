@@ -19,8 +19,11 @@ $key_usr = $cur_usr if $cur_usr ne qw| root | and $cur_usr ne $ENV{'USER'};
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
-if ( defined $key_name ) {
-    <crypt.C25519.base_key_name> = $key_name;
+if ( defined $key_name ) {   ##  setting base key [ when not defined yet ]  ##
+    if ( not defined <crypt.C25519.base_key_name>
+        and <[crypt.C25519.key_exists]>->($key_name) ) {
+        <crypt.C25519.base_key_name> = $key_name;
+    }
 } else {
     $key_name //= <crypt.C25519.base_key_name>
         // join( qw| . |, $key_usr, qw| base | );
@@ -40,25 +43,19 @@ my $key_file_ext;
 my $key_filename;
 my $key_basepath = catfile( $key_dir, $key_name );
 
-foreach my $type (qw|  private  public  virtual  |) {
+foreach my $type (qw|  secret  private  public  virtual  |) {
 
     if ( $type eq qw| virtual | ) {
 
         $key_filename->{$type} = sprintf qw| %s:seed-phrase |, $key_basepath;
 
     } else {
-
-        my $key_extension
-            = $type eq qw| private | ? qw| secret | : qw| public |;
-
-        $key_file_ext->{$type} = sprintf qw| %s |, $key_extension;
-
-        $key_filename->{$type}
-            = sprintf( qw| %s.%s |, $key_basepath, $key_extension );
+        $key_file_ext->{$type} = $type;
+        $key_filename->{$type} = sprintf( qw| %s.%s |, $key_basepath, $type );
     }
 }
 
-return <crypt.C25519.key_vars> = {
+my $key_vars_ref = {
     'uid'          => $uid,
     'gid'          => $gid,
     'usr_name'     => $key_usr,
@@ -70,8 +67,14 @@ return <crypt.C25519.key_vars> = {
     'key_filename' => $key_filename
 };
 
-#,,,.,.,.,,,,,,,.,,,,,,,,,,,.,.,,,,.,,,,.,,,,,..,,...,..,,,.,,,..,.,.,,,.,,,.,
-#IDZWOERUTCT56LWMELRIL7AYJNHEMAM7GV3UNOUEP3OIJHOBVW6W6WGSU5LH5QH4SVWXWD7OEX26A
-#\\\|EHWI4NIIOWYKPQAYYIRLLNOIQPO2WIYEE64RU73WMOL2CJGBAKI \ / AMOS7 \ YOURUM ::
-#\[7]LT2RTZOAG5OPAJLNDPJQ2D6VGNWWWH36BIHDGZFUS4MCNKYUMABA 7  DATA SIGNATURE ::
+<crypt.C25519.key_vars> = $key_vars_ref  ## updating key_vars when base key ##
+    if defined <crypt.C25519.base_key_name>
+    and <crypt.C25519.base_key_name> eq $key_name;
+
+return $key_vars_ref;
+
+#,,..,...,.,.,,,.,.,.,,,,,.,,,.,,,,,,,,.,,,,,,..,,...,...,..,,..,,.,.,,..,,..,
+#DHKFJNFDE5AT5OZ4NEAK55CCGPL4XAZ4JYGMETB7GQ3FCASGCDX5G3M4WFJLBVU2TXLB54AESWFRC
+#\\\|4RRGRQTVM3QPDT2HHFKKQW5S4QX4WWR77MLLMOCGGNFBZAPD674 \ / AMOS7 \ YOURUM ::
+#\[7]VHHJMVT333CYFJW5H7UAXHVP4RDFQZGY7VYTZC7CX4O6JFDZNOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

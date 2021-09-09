@@ -71,21 +71,21 @@ while ( not $TRUE ) {
 ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
 
 $keys{'C25519'}{$name} = {
-    'name'       => $name,
-    'public'     => $public_key,
-    'private'    => $private_key,    ##[  C25519 private key  ]##
-    'secret_key' => defined $key_seed_passphrase ? undef : $secret_key
-};    ##  source entropy only when not passphrase  ##
+    qw|  name  |  => $name,
+    qw| public |  => $public_key,
+    qw| secret |  => $secret_key,     ##[  32B secret key  ]##
+    qw| private | => $private_key,    ##[  C25519 private key  ]##
+};
 
 ##  lock key in memory to not never swap it to disk  ##
-IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'},    0, 64 );
-IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret_key'}, 0, 32 )
-    if defined $keys{'C25519'}{$name}{'secret_key'};
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 );
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
+    if defined $keys{'C25519'}{$name}{'secret'};
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,.,,..,,,.,,,,,...,...,.,,,.,.,.,.,.,,,,..,..,,...,...,..,,...,.,.,.,.,.,.,
-#XNKV3H2PLNDNYZIBSBZ2VFMBBKSNG6ADL7XGTIYY6YCZJAJYXNQE63D4RUFYRQP5FSSPHXMHPE5ZG
-#\\\|X5LPSTOOYBO3YVEB3YVEVELNRENR4NYYDPSWXCTNQZ5DWX7DPPA \ / AMOS7 \ YOURUM ::
-#\[7]IEKPKFRL4YYXYZKSZUCA3VEAC27VRITUZDRKCFPTT7MCXF5SXWBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,.,,,.,,,.,.,.,.,.,,,..,,.,.,..,,...,...,...,,,,,,,,,,..,,..,
+#URFOUETJ3UEEM2DMGRXTUAN7SF3Q7PJYYDCIAUQX4W3BFAXO5FCG5XYUHDHMGUJZJYTDORTTSDSHY
+#\\\|4TLHDZWJPIYCJJ76J367NZCPK6SCFZZRPFTLT2FIIZDCCVGFKOQ \ / AMOS7 \ YOURUM ::
+#\[7]ILVCUQ4KUCVBPTXW7HUVND7U2XQYIMUEKBKI5F45GSRDS2PFTQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

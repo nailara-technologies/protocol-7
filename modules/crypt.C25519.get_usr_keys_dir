@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = crypt.C25519.get_usr_keys_dir
+
+my $requested_user = shift;
+
+my $home_dir = <crypt.C25519.key_usr_home>;
+my $key_dir  = <crypt.C25519.key_dir>;
+
+if ( defined $home_dir ) {
+    $key_dir //= sprintf( qw| %s/.n/user-keys |, $home_dir );
+}
+
+if ( not defined $requested_user ) {
+
+    my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
+
+    $requested_user = <crypt.C25519.key_usr> // <system.amos-zenka-user>
+        // $cur_usr;
+
+    $requested_user = $cur_usr
+        if $cur_usr ne qw| root | and $cur_usr ne $ENV{'USER'};
+
+    $home_dir = <[base.get_homedir]>->($requested_user);
+    $key_dir  = sprintf( qw| %s/.n/user-keys |, $home_dir );
+
+}
+
+$home_dir //= <[base.get_homedir]>->($requested_user);
+$key_dir  //= sprintf( qw| %s/.n/user-keys |, $home_dir );
+
+return $key_dir;
+
+#,,,.,...,,.,,,,.,,,.,,.,,.,,,.,.,..,,,..,,,.,..,,...,...,.,,,.,.,,.,,,..,.,,,
+#ZNTRF2UD5FC4KRWIP5ST72XUV4CZ2CCTL2E4LT3WYOWGGT3OJL6ZE2VHRDBPLDMZTJUW3G73OTOJ6
+#\\\|XEIS5LR5AXHHT42TB3LWNWRDPSKFDNFYSAEWOJCFC4YGIMIIHS3 \ / AMOS7 \ YOURUM ::
+#\[7]UM3KHNM6SGKNFXI6OQMUCCDWEW6GKAU6GK5SPFKK4IIYD7JFAOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

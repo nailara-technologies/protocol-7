@@ -18,8 +18,8 @@
 
 ## regex ##
 ##
-my @key_ext   = qw| \.secret  \.public  :seed-phrase  |;
-my @key_types = qw| private public |;                      # virtual #
+my @key_ext   = qw|  \.secret  \.private  \.public  :seed-phrase  |;
+my @key_types = qw| private public secret |;         # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
@@ -35,14 +35,7 @@ const <crypt.C25519.regex> => {
     },
     qw| key_file | => {
         qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
-        map {
-            my $type = $ARG;
-            my $xt   = $type;
-            $xt = qw| secret | if $xt eq qw| private |;
-
-            $type => qr|^($name_regex)\.$xt$|
-
-        } @key_types
+        map { $ARG => qr|^($name_regex)\.$ARG$| } @key_types
     },
     qw| key_files | => qr|$re_keyfiles|
 };
@@ -52,15 +45,28 @@ delete <crypt.C25519.keys.sizetype>    ##  allow updates during reload  ##
 
 const <crypt.C25519.keys.sizetype> => {
 
-    ##  binary [ not encoded ] public key  ##
+    ##  binary [ unencoded ] public or secret keys  ##
     ##
     32 => {
-        qw| type |        => qw| public |,
+        qw| type |        => UNKNOWN,
         qw| encoding |    => qw| bin |,
         qw| prefixed |    => FALSE,
         qw| linefeed |    => FALSE,
         qw| old-form |    => FALSE,
         qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
+    },
+
+    ##  binary secret keys  ##
+    ##
+    34 => {
+        qw| type |      => qw| secret |,
+        qw| encoding |  => qw| bin |,
+        qw| prefixed |  => TRUE,        ##  <-- remove prefix before using  ##
+        qw| linefeed |  => FALSE,
+        qw| old-form |  => FALSE,
+        qw| encrypted | => UNKNOWN,     ##  requires prefix match  ##
         qw| virtual-key | => FALSE,
         qw| seed-phrase | => FALSE
     },
@@ -84,6 +90,29 @@ const <crypt.C25519.keys.sizetype> => {
         qw| linefeed | => FALSE,
         qw| old-form | => FALSE,
         qw| encrypted |   => UNKNOWN,    ##  requires prefix match  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
+    },
+
+    ##  encoded [prefixed] secret keys  ##
+    ##
+    55 => {
+        qw| type |        => qw| secret |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => TRUE,
+        qw| old-form |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| encrypted |   => UNKNOWN,        ##  requires prefix match  ##
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
+    },
+    56 => {
+        qw| type |        => qw| secret |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => TRUE,
+        qw| old-form |    => FALSE,
+        qw| linefeed |    => TRUE,
+        qw| encrypted |   => UNKNOWN,        ##  requires prefix match  ##
         qw| virtual-key | => FALSE,
         qw| seed-phrase | => FALSE
     },
@@ -170,8 +199,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,..,..,,..,,,..,,,.,,.,,,..,,,.,.,,,.,.,.,.,..,,...,...,,,,,,,,,.,.,..,,.,,,
-#HAAMWYAVNJLXMMTETYQTEYF22LYMOE3YRSTKQ3UIEP4BFP72LR4TK3WOWW43G2IL2GNBMTYIHTJV2
-#\\\|ZIZWCJ6MCA726L3R5ZJ3OZNU7CTKGLL2OFAMQDDXRGW7IBLGSGJ \ / AMOS7 \ YOURUM ::
-#\[7]3YF7WO7WP6ZBNFCR37LNG6F3KLKPODZQW4DZWOAMV546NRM6WYBQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,...,.,.,...,,.,,..,,,,.,,,,,..,,...,...,,,,,...,..,,...,,..,
+#TEHUHSPD3BZZYXHFJQUQ54JL2JYTDFS3HVNZJQLRTIYU662DN5XCDN4BSA5LVBJ5TB7OCAKLT3LIK
+#\\\|DSIAQ3BJIURTBKIGM5F72OWE23KJK2QBB25BOMGXMONTHRH2P6D \ / AMOS7 \ YOURUM ::
+#\[7]CYDQ5OCCZZ25WCQYQ45BGAANDUBK7SGRNPBGKT4HV2VT5TQ3ACCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,10 +10,9 @@ if ( not defined $name ) {
 }
 
 my $re_kfiles = <crypt.C25519.regex.key_files>;
+my $key_dir   = <[crypt.C25519.get_usr_keys_dir]>;
 
 if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
-
-    my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
 
     my $key_found = grep { $ARG eq $name }    ##  match for key name  ##
         grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
@@ -22,9 +21,7 @@ if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
 
 } else {    ## key name syntax ##
 
-    my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
-    my $key_dir      = $key_vars_ref->{'key_dir'};
-    my $match_re     = qr|^(\Q$name\E$re_kfiles)$|;
+    my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
 
     my @keys_found = grep {m|$match_re|}    ##  match for key name  ##
         grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
@@ -34,8 +31,8 @@ if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
     return FALSE;    ##  key with that name not present  ##
 }
 
-#,,..,,.,,,..,,,.,.,.,.,,,.,.,,..,..,,.,.,.,,,..,,...,...,..,,...,.,.,.,.,,.,,
-#E6TQGQIUUV2M7KAYXEL7HAHAOG5QQKIO4CS62SWWBS3UVL6BKY7WI4OBB5NDGZQVKMGRQLBURQBJY
-#\\\|H7PTCTJ3FWWTP7PTAQ6VFPB3BAXAHHPQ5Q3YLBZVTM2KQB4YH5J \ / AMOS7 \ YOURUM ::
-#\[7]CGW2DG2W7EJ5LYK4RC2EGFMS5OLJVJCYUX6NG2BTTJSNZ5GFAYBY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,...,,..,.,.,..,,,..,,,,,..,,,.,,..,,...,...,..,,,,.,,.,,..,,...,
+#UNKINRWAKVA4Y67YM4ESJZGURHZSBHH5SSHF7JSYWBVHQ4WQ6BKSZJ6YYB46Z5F3JFVQZQMMQL7HK
+#\\\|I7GSBMA6Q2OYI2JGC2OY7TQ4FSO7AUQIILG5J3K5LHIB57II6KP \ / AMOS7 \ YOURUM ::
+#\[7]ASY4VEI7ILEVZGVTFBGPDX4X4BVS2GXDSKQJ56YAT45FFTTYZWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

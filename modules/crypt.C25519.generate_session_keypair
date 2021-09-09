@@ -14,11 +14,24 @@ my $log_level = exists $keys{'C25519'}{$session_keyname} ? 2 : 1;
 
 <[base.logs]>->( $log_level, ':[ creating %s session keys ]', $name_str );
 
+##  checking if keys [for signing] are loaded  ##
+##
+my $sigkey_name = <[crypt.C25519.key_vars]>->{'key_name'};
+foreach my $type (qw| private public |) {
+    next if exists $keys{'C25519'}{$sigkey_name}{$type};
+    <[base.s_warn]>->(
+        "%s %s-key not loaded [ aborting session key gen ] <{C1}>",
+        $sigkey_name, $type
+    );
+    return undef;
+}
+
 my ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair();
 
-my $creation_ntime = <[base.ntime.b32]>->(3);
-my $template       = sprintf '[%s|%%s]', $creation_ntime;
-my $key_sig = <[crypt.C25519.sign_data]>->( \sprintf $template, $public_key );
+my $creation_ntime      = <[base.ntime.b32]>->(3);
+my $template            = sprintf qw< [%s|%%s] >, $creation_ntime;
+my $signature_input_str = sprintf $template, $public_key;
+my $key_sig = <[crypt.C25519.sign_data]>->( \$signature_input_str );
 
 $keys{'C25519'}{$session_keyname} = {
     'name'      => $name,
@@ -26,8 +39,8 @@ $keys{'C25519'}{$session_keyname} = {
     'private'   => $private_key,
     'created'   => $creation_ntime,
     'signature' => $key_sig,
-    'key-reply' => encode_b32r($public_key),
-    'sig-reply' => sprintf( $template, encode_b32r($key_sig) )
+    'key-reply' => Crypt::Misc::encode_b32r($public_key),
+    'sig-reply' => sprintf( $template, Crypt::Misc::encode_b32r($key_sig) )
 };
 
 ##  lock key in memory to not never swap it to disk  ##
@@ -35,8 +48,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$session_keyname}{'private'}, 0, 64 );
 
 return $keys{'C25519'}{$session_keyname};
 
-#,,..,.,.,,,.,.,,,,,.,.,,,.,.,..,,,.,,.,,,,.,,..,,...,...,...,,,.,.,.,,,,,...,
-#CRT435LSO6F5INGP5BEYAJDRYUL2CWTODBBD4QEW4J3YYCVHY36V7YBAL5WDENFOLRDSDH5GRZ3I6
-#\\\|7RNIHE243WEMCGZIFCTATDQIWYPAGLQ2G2Z7CEL42TOHC7ILAIC \ / AMOS7 \ YOURUM ::
-#\[7]7JMJFOKIRIZD6UOC6DXMEB5N2VIP2TYK56INVBOVURCRBGNQBGCI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,.,,,...,.,.,...,...,,,,,,,.,..,,...,...,.,.,...,,,.,,.,,.,,,
+#X5JIVAELTTVSH2PIRSJWOZNM5F6DBKOPZOJWDEPD76TFW5TIEWX7X7ITX7JCPQ3XH3VOFHYSJRJLM
+#\\\|57VMERISIICX5GJ7X5Y6ESCZYZX6MSOCAE2MRK23S4GHACSTXXB \ / AMOS7 \ YOURUM ::
+#\[7]RVA4MK5CW6U4CEDOHJMGUR4JXHDOVLQW7BCV76SQKXH4YITAU4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
