@@ -24,9 +24,19 @@ my $key_ref = $keys{'C25519'} //= {};
 my $key_loaded = exists $key_ref->{$name} ? TRUE : FALSE;
 
 my $single_key_file       = <[crypt.C25519.single_file]>->($name);
+my $is_seedphrase_key     = <[crypt.C25519.key_is_virtual]>->($name);
 my $key_encryption_status = <[crypt.C25519.encrypted_key]>->($name);
 
-if ( not $key_loaded ) {    ##  loading  ##
+if ($is_seedphrase_key) {
+
+    my $key_filename = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
+    my $virtual_keyfile   = $key_filename->{'virtual'};
+    my $stub_file_content = <[file.slurp]>->($virtual_keyfile)->$*;
+
+    ##  checksumming stub file, not the key itself  ##
+    return <[crypt.C25519.key_bin_checksums]>->($stub_file_content);
+
+} elsif ( not $key_loaded ) {    ##  loading  ##
 
     my $keys_load_status;
     if ( $key_encryption_status != TRUE and $single_key_file ) {
@@ -70,8 +80,8 @@ delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
 
 return $key_checksum;
 
-#,,..,.,.,.,.,..,,,.,,...,,,,,,.,,...,,,,,..,,..,,...,...,...,,,.,.,,,,..,..,,
-#FFSNLUI6TRDBPPVUNRKSXFGDVEUPW37D33ZMIQF6T7EKUWKVVNTYSKGFPYKPX26EGV62SZPEDFXQ4
-#\\\|DJPP4NVUZ4YETT4JVZOSXB35MXBG5ICAQ2BDNIRRUQCYHSGGDV4 \ / AMOS7 \ YOURUM ::
-#\[7]UUYWK7QGQ4DXVOPOU5F3OFPSUMZH7AXOENN74DEUZREYUMNLSSDY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,,..,,..,,,.,.,,,...,,,,,,..,..,,...,...,,..,,,.,.,,,,,,,..,,
+#XQT5PGEW3BGSQJPU55IATKAIO2BL6KJEQJYX5SIPFUKF5QPOBMZR2NY5MSVVLHCLU4DBEYKFR5ZK2
+#\\\|V3X6WW2TSBA25DR76J26L5TCTK3ZLR4OXST6THASOGOGEJ4MM3S \ / AMOS7 \ YOURUM ::
+#\[7]E5VODR7EWIDBMRMI6ZFLJH5KDXNXPOFJTCSAWYJL5YBOD2TW7QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

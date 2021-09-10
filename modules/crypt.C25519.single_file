@@ -8,6 +8,9 @@ my $name = shift // '';
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
     return undef;
+} elsif ( not <[crypt.C25519.key_exists]>->($name) ) {
+    <[base.s_warn]>->( "key '%s' not found <{C1}>", $name );
+    return undef;
 }
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
@@ -40,8 +43,8 @@ if ( not $num_key_files ) {
     return FALSE;    ##  not single file  ##
 }
 
-#,,.,,,,.,,,.,.,.,..,,.,,,..,,,,,,,,.,...,,,,,..,,...,...,..,,,.,,..,,..,,..,,
-#ZDW6RY5UU6PMUUN43MRF5OU2QICHGLGKQNRPZHFAFOWLES4EQ75CM5OPIJ2ORL7OQUBOAN4KKKRHQ
-#\\\|PTYZIFSMARXLV3TTIN75KRSLZDTPJICIE4QUAEMC2XP35LDBWGI \ / AMOS7 \ YOURUM ::
-#\[7]OJWACTXDEPKLQAFD7IJSV7NG6BNBPA6NNSYDFJ27JMTIVP6MDUBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,.,.,..,,.,.,,.,,,.,,.,,,,,.,..,,...,...,..,,,.,,.,,,,,,,,,,,
+#5JIINSNBSTK3X5XPYRMJCVK4CLGPAQHDPLWL4I4XCGF67O2O6IL2TPP5LORHBMZZ5F265Y5ECVLMU
+#\\\|GO2ND6U6HYQCIAKCT6ZMIMGNCJSEQQFFFUCZZK6PG7K6TRTFJBS \ / AMOS7 \ YOURUM ::
+#\[7]5JVN6656UWBXMULSIKRB7NGZCRTUKX2GMZLCETIGBE6CBLT5L6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
