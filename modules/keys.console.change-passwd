@@ -71,7 +71,8 @@ goto ABORT_PWD_CHANGE
     or length $enc_pwd < $AMOS7::TERM::pwd_min_len;
 
 my $load_success
-    = <[crypt.C25519.load_keypair]>->( $key_name, $old_key_passwd, 5 );
+    = <[crypt.C25519.load_keypair]>
+    ->( $key_name, $old_key_passwd, TRUE, TRUE );
 
 if ( not defined $load_success ) {
     warn 'cannot load key files <{NC}>';
@@ -161,8 +162,8 @@ if ( defined $keywrite_status and $keywrite_status == 5 ) {
 ABORT_PWD_CHANGE:
 <[base.exit]>->( qw| 0110 |, ':, no changes.', 0 );
 
-#,,..,..,,,.,,.,,,...,,,.,...,.,,,,,,,,.,,.,,,.,.,...,...,.,.,,.,,,,.,,,.,,..,
-#4P6CGUJNSLAN2BR6PELM3SQBE7472HFN2RRKNPWBJ7VHSRI2SFYXUAZTB4B33562QVDKRSFS2HEPK
-#\\\|7AARG3C6E6QKE3LERYR2SQRQIWSE7P5IRZFUTBVQV6RR7Q3RALI \ / AMOS7 \ YOURUM ::
-#\[7]YOKO2FEDMNI3Z6K5UBQIU46DAPHYS7X4N7ILQFNVP5SBHFQXY2DI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,,,.,.,,,,,,,,,.,.,.,.,.,,.,,.,.,...,..,,,..,...,..,,,,,,.,.,
+#WEQBYFLH3LRBWEXBW6W5R2QVNH7WI5LZI2UG3WSKXK6ST22TNSNRMJ3EQJW6X3H76TFF4L2OBUDO4
+#\\\|IFZKVHIP3MFA3HLDT4NJV2VAIVG7JRMJ7H255OUILLIFFN5UG3L \ / AMOS7 \ YOURUM ::
+#\[7]7ZFA7WEBJLTQFWWOUMBDIG2SLSP6OUATU4GCQCKGUMH6CHJM3YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
