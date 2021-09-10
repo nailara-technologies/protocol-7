@@ -4,39 +4,39 @@
 # param = <key-name>
 # descr = delete the C25519 key with the specified name
 
-my $key_name_param = shift;
+my $name = shift;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $key_name_param;
-
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
 my $keys_re = <keys.regex>;
 
-my $re_kfiles      = $keys_re->{'key_files'};
-my $re_public      = $keys_re->{'key_file'}->{'public'};
-my $key_re_private = $keys_re->{'key_file'}->{'private'};
-
-my $key_dir = $key_vars_ref->{'key_dir'};
-my $key_usr = $key_vars_ref->{'usr_name'};
+my $re_kfiles = $keys_re->{'key_files'};
+my $key_dir   = $key_vars_ref->{'key_dir'};
+my $key_usr   = $key_vars_ref->{'usr_name'};
 
 my $shred_bin = <keys.bin_path.shred>;
 
 ## warns when absent ##
 my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
 
-my $match_re = qr|^(\Q$key_name_param\E$re_kfiles)$|;
+my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
 
 my $key_found = FALSE;
-map {
-    $key_found = TRUE if $ARG =~ $match_re;
-    my $k_path = "$key_dir/$ARG";
-    return sprintf "\n << no write access to '%s' >>\n\n", $k_path
-        if not -w $k_path;
-} @k_files;
+foreach my $file (@k_files) {
+    $key_found = TRUE if $file =~ $match_re;
+    next              if -w catfile( $key_dir, $file );
+    printf "\n << no write access to '%s' >>\n\n", catfile( $key_dir, $file );
+    <[base.exit]>->(qw| 0020 |);
+}
 
-return printf "\n  << specified key '%s' not found >>\n\n", $key_name_param
-    if not $key_found;
+if ( not $key_found ) {
+    printf( "\n  << specified key '%s' not found >>\n\n", $name );
+    <[base.exit]>->(qw| 0010 |);
+}
 
 my $del_count = 0;
 
@@ -44,16 +44,16 @@ chdir($key_dir)
     or die
     sprintf( "<< %s : chdir [ %s ] >>\n", <[base.str.os_err]>, $key_dir );
 
-print "\n::\n";
+say "\n::";
 
 my $len = 0;
 foreach my $file_name (@k_files) {
     next if $file_name !~ $match_re;
     printf " : purging '%s'\n", $file_name;
-    system( $shred_bin, '-fzu', $file_name )
+    system( $shred_bin, qw| -fzu |, $file_name )
         if length $shred_bin
         and -x $shred_bin;
-    return printf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
+    die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
         unless unlink($file_name)
         or not -f $file_name;
     $del_count++;
@@ -64,8 +64,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,.,.,...,,,,,,,,,.,,,,.,,,.,,,,.,.,,,,.,,..,,...,...,..,,,,.,,..,,,.,,,,,
-#5PZRRKQK7BYVKJIZL3XG2UDXJ4LSUL4L2QPIAUJSKAP2VH4MALE74ZMJHXZWZ6FX5RGSLBAX573K6
-#\\\|CZHWF2X377AIOPZ5NOAAQD4P4IYNU3ZKIXIYG54OJ6EXK74YEGU \ / AMOS7 \ YOURUM ::
-#\[7]YHQRVVPKTVNWPKOLEBBD7VQTGKX6EI5BEVEXET2U6SMOX5RDNCAY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,,.,,,..,...,.,,,,.,,,.,,,.,,..,,...,..,,..,,,.,,,.,,,.,,,,,,
+#3JT77ZQYIG7LS3VZWG2UP6NKAB5LHZAGIIWOICSCVXH4STOATOFNU7MHCE7W4WPK4T2W3KTHQRHHA
+#\\\|4B7UWDQKMASXVOECC2H46VSSMAW5WQDJ2N5RPBQJZTDRLOLAHV6 \ / AMOS7 \ YOURUM ::
+#\[7]Q5J5CKMBOFL635P4ULUA3AZWQYTFAHCVUXQXHQ7WNAYJZ2H4RCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = keys.console.remove-type
+# param = <n> <type>
+# descr = remove specified file type[s] of named key
+
+( my $name, my @del_types ) = split( m|[\t ]+|, shift // '' );
+
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not @del_types ) {
+    say "\n  << expected remove <type> parameter[s] >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+foreach my $type ( grep { !m[^(secret|private|public)$] } @del_types ) {
+    printf "\n  << specified <type> '%s' is not valid >>\n\n", $type;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+@del_types = uniq @del_types;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
+
+my $keys_re = <keys.regex>;
+
+my $re_kfiles = $keys_re->{'key_files'};
+my $key_dir   = $key_vars_ref->{'key_dir'};
+my $key_usr   = $key_vars_ref->{'usr_name'};
+
+my $shred_bin = <keys.bin_path.shred>;
+
+my $match_re = qr|^(\Q$name\E$re_kfiles)$|;
+
+## warns when absent ##
+my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
+
+##  filter for name  ##
+@k_files = grep {m|$match_re|} @k_files;
+
+if ( not @k_files ) {
+    printf( "\n  << specified key '%s' not found >>\n\n", $name );
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( <[crypt.C25519.key_is_virtual]>->($name) ) {
+    printf( "\n  << specified key '%s' is virtual [ seed-phrase ] >>\n\n",
+        $name );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+foreach my $file (@k_files) {
+    next if -w catfile( $key_dir, $file );
+    printf "\n << no write access to '%s' >>\n\n", catfile( $key_dir, $file );
+    <[base.exit]>->(qw| 0020 |);
+}
+
+foreach my $type (@del_types) {
+    return printf( "\n  <<  no '*.%s' file type in key '%s'  >>\n\n",
+        $type, $name )
+        if not grep {m|\.\Q$type\E$|} @k_files;
+}
+
+my $del_types_re = join '|', @del_types;
+$del_types_re = qr|\.($del_types_re)$|;
+
+my @del_file_paths = grep {m|$del_types_re|} @k_files;
+
+if ( @del_file_paths == @k_files ) {
+    say "\n  <<  use 'remove' command to remove _all_ files in key  >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $del_count = 0;
+
+chdir($key_dir)
+    or die
+    sprintf( "<< %s : chdir [ %s ] >>\n", <[base.str.os_err]>, $key_dir );
+
+say "\n::";
+
+my $len = 0;
+foreach my $file_name (@del_file_paths) {
+    printf " : purging '%s'\n", $file_name;
+    system( $shred_bin, qw| -fzu |, $file_name )
+        if length $shred_bin
+        and -x $shred_bin;
+    die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
+        unless unlink($file_name)
+        or not -f $file_name;
+    $del_count++;
+}
+
+<[crypt.C25519.clear_chksums]>;    ##  cleaning key chksum cache  ##
+
+printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
+    <[base.cnt_s]>->($del_count);
+
+#,,,.,,,,,,..,,..,,.,,.,.,,,.,.,.,,..,,,.,...,..,,...,...,,.,,.,.,.,,,,,.,,..,
+#UYDPG4SQYRT6VTC6PVRWY6UTS6JZU673MFCMMQMIQ2LXWN2SUKLHLWXYFJ5LTG2EK346MBOV2A5VS
+#\\\|XICUA43P56VAJ2KX44KBRRR4VSRS5QKPERRAZWBQPRTS2ZHUTCN \ / AMOS7 \ YOURUM ::
+#\[7]EEYBM4LWB77WP53HETSNVH3QURGTBF7LAOFH6XDWD3FMUAJLJ4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
