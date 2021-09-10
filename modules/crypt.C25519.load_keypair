@@ -1,9 +1,11 @@
 ## [:< ##
 
 # name = crypt.C25519.load_keypair
+# todo = load secret key [ and optionally pair from secret key ]
 
 my $name_param         = shift;             ##  optional  ##
-my $key_password       = shift;             ## optional ##
+my $key_password       = shift;             ##  optional  ##
+my $ask_for_password   = shift // TRUE;     ##  optional  ##
 my $pwd_retry_on_error = shift // FALSE;    ##  false  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
@@ -17,14 +19,17 @@ my $virtual_keyfile  = $key_filename->{'virtual'};
 my $public_key_file  = $key_filename->{'public'};
 my $private_key_file = $key_filename->{'private'};
 
-if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
+if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
+    and ( defined $key_password or $ask_for_password )
+) {
 
     <[base.logs]>->( "creating seedphrase key '%s' .,", $name );
 
     my $key_seed_entropy;
 
-    if ( not defined $key_password ) {    ## requesting user input ., ##
-
+    ## requesting user input ., ##
+    ##
+    if ( not defined $key_password ) {
         <[base.perlmod.load]>->('AMOS7::TERM')
             if not <[base.perlmod.loaded]>->('AMOS7::TERM');
         say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
@@ -33,7 +38,7 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
             = AMOS7::TERM::read_password_repeated(
             'generation entropy passphrase');
 
-    } else {
+    } elsif ( defined $key_password ) {
         $key_seed_entropy = $key_password;    ## given ##
     }
 
@@ -73,6 +78,16 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
             return TRUE;
         }
     }
+
+} elsif (
+    -r $public_key_file    ##  load public key only  ##
+    and (  not -r $private_key_file
+        or not defined $key_password
+        and not $ask_for_password
+        and <[crypt.C25519.encrypted_key]>->($name) )
+) {
+
+    return <[crypt.C25519.load_single]>->( $name, undef, qw| public | );
 
 } elsif ( -r $private_key_file and -r $public_key_file ) {
 
@@ -133,11 +148,18 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
         if ( not defined $key_password ) {
             undef $keys{'C25519'}{$name}{'private'};
             delete $keys{'C25519'}{$name}{'private'};
-            <[base.log]>->( 0, 'cannot decrypt private key .,' );
-            <[base.log]>->( 1, ':' );
-            <[base.logs]>->( ": public key loaded ['%s']", $name );
-            <[base.log]>->( 1, ':' );
-            return FALSE;
+            if ($ask_for_password) {    ## password input failed ##
+                <[base.log]>->( 0, 'cannot decrypt private key .,' );
+                <[base.log]>->( 1, ':' );
+                <[base.logs]>->( ": public key loaded ['%s']", $name );
+                <[base.log]>->( 1, ':' );
+                return FALSE;
+            } else {    ## load only public key [ no password mode ] ##
+                <[base.log]>->( 2, ':' );
+                <[base.logs]>->( 2, ": public key loaded ['%s']", $name );
+                <[base.log]>->( 2, ':' );
+                return TRUE;
+            }
         } else {
             say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
         }
@@ -240,8 +262,8 @@ if ( -r $virtual_keyfile ) {    ##  key is 'virtual' [ seed-phrase ]  ##
     return FALSE;    ##  false  ##
 }
 
-#,,,,,.,,,...,.,.,.,,,.,.,,.,,..,,...,..,,,..,..,,...,..,,...,..,,..,,.,.,,,,,
-#GLXFYECAULBUWCKHRABDL7PDF3RYYLQGXR6G3CGDBNOI5WUS4TLOSEPST4GCEIUHZN2I3R2TQFGH6
-#\\\|AVZZH4K2Q3I2Z7RFR5CIWPTRB7X7RDDLHXMHQOTZEUOSJX2PYO7 \ / AMOS7 \ YOURUM ::
-#\[7]HDQAJFORGJ6WQBWJBAPBHUOJXPFJ4PF7ZANEDJGQYEZLMK5WMGCQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,...,,,,,,.,,,.,,..,,,.,,...,..,,...,...,,,,,,,,,,,,,,,,,.,,,
+#FOXLJX627GUZK2GMJ5G4CCWBU6PIOKB6ORADUGQ5O7KJ6SGO2ZZLRAMHXEGIQS544YLSDOS5HRILC
+#\\\|OWIARSU36YXWVEXT7W2IZDZIV5QKZHNCDSYAZAOKD6NOOESBVAN \ / AMOS7 \ YOURUM ::
+#\[7]CAKHA7NVCKUUPDQHKWLPADEXA3VHRWKCJWP6QYHH7JCKENVB42AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
