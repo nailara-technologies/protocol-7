@@ -42,8 +42,8 @@ if ( <[crypt.C25519.single_file]>->($name) or $private_key_only ) {
     $load_success = <[crypt.C25519.load_single]>->( $name, undef, 'private' );
 
 } else {
-
-    $load_success = <[crypt.C25519.load_keypair]>->( $name, undef, TRUE );
+    $load_success
+        = <[crypt.C25519.load_keypair]>->( $name, undef, TRUE, TRUE );
 }
 
 return print "\n  << no keys loaded >>\n\n" if not $load_success;
@@ -64,8 +64,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,.,,,,,,..,,,..,.,.,...,,,,,.,,,..,,.,.,..,,.,.,...,..,,.,,,.,,,,.,,,,,,...,
-#QOXJZZG3GBAQQH5TFQZ6NI35IQUSJTAWYAVMUKUPSEAINO7UU46L7DSAWSRWRBM4THGWY46XK5PG2
-#\\\|5FZ6N6ATDUVNKD2Z7HXPYPVC2OKOIFRHR3MJOLLAB6Q4DLQHUC6 \ / AMOS7 \ YOURUM ::
-#\[7]QYWT43NGVTALU6UEXRKXUXX7JYSO764WRTDLPVXR6ALLVOKIEADI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,...,.,,,,.,,.,,,...,...,,.,,.,.,...,...,..,,,,.,,,.,.,.,.,.,
+#RNJ52YEL2J3HBYXOTTKPH7N3CTBHXJPLKC7SUWFT6XSG4ZETQFW6JS3RYPS2ATTQSETK7AEZTWSIW
+#\\\|BRL3OOE6FC6VRQ6P2RMAM4HSEDG7GEOTXW2RW6HLOQET2N5HBF2 \ / AMOS7 \ YOURUM ::
+#\[7]725VGW6CG3BZUIPFXFGMW2KSH6PSGYE2W7L34RATWCYTOPXEIOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
