@@ -1,10 +1,10 @@
 ## [:< ##
 
 # name  = crypt.C25519.keyfiles
-# descr = return all keyfiles of current user
-
+# descr = return all \ requested keyfiles for current user
 # todo  = root keys must be included ..,
 
+my $name       = shift;    ##  optional  ##
 my $type_param = shift;    ##  optional  ##
 
 if ( defined $type_param and $type_param !~ m{(encrypted|plain)} ) {
@@ -25,6 +25,8 @@ my $re_kfiles = $keys_re->{'key_files'};
 my @k_files;
 
 foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
+    next if defined $name and $name ne <[crypt.C25519.get_keyname]>->($file);
+
     if ( not defined $type_param ) {
         push @k_files, $file;
     } elsif ( $type_param eq qw| encrypted | ) {
@@ -32,12 +34,14 @@ foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
     } elsif ( $type_param eq qw| plain | ) {
         push @k_files, $file if not <[crypt.C25519.encrypted_key]>->($file);
     }
+
+    last if defined $name;    ## skip rest \ have matched key ##
 }
 
 return <[base.sort]>->(@k_files);
 
-#,,..,..,,..,,,..,,,,,..,,.,.,..,,,,.,,,,,,,,,..,,...,...,...,,.,,,,.,.,,,,,,,
-#FNZBFXJQ2ZN2UP2PD7YSE4HWOMZ42RWJDPUDTKYG6N2TUWEXI2NX2CKGADHRSOGJLWMK44IPBRG4W
-#\\\|HGLNJ75CRKVAG645ND4SD3D3XQROSQ2T55E7OCVOZPY4EWTEBFR \ / AMOS7 \ YOURUM ::
-#\[7]5Z7Z4DZQNL2FM62N6MRSXZVOZYPGMWIUQKPXKSFKYF54VRETGWDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,..,,.,,,.,,,,,,,,.,,,..,,,,,,.,,..,,...,...,..,,,.,,,,,,,,.,,.,,
+#OBRQ72CPRIVH6XTABW5E4IQSH44MB3PJEB6ZPWENBFFBUHDCDNDGE72XY62CW4CU3YI4MF5PS6SIM
+#\\\|42XUYNR4D2EOYBAIIDC5UL22J7IXOXLHOJZ4NJR2HGDCQI33IRU \ / AMOS7 \ YOURUM ::
+#\[7]HWGLUHKWJ5DR55ZKQIUR3ERBYMSJJJD3L2IHAFS35CCIF7HDA6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
