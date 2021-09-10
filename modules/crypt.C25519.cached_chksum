@@ -69,7 +69,12 @@ foreach my $file (@matched_keyfiles) {
 }
 
 if ( $file_scan_iter == 1 ) {
-    $key_checksum     = <[crypt.C25519.key_checksums]>->( $name, FALSE, 2 );
+
+    $key_checksum = <[crypt.C25519.key_checksums]>->( $name, FALSE, 2 );
+
+    ##  return \ not caching error  ##
+    return $key_checksum if $key_checksum eq qw| <:[load.error]:> |;
+
     @matched_keyfiles = <[crypt.C25519.keyfiles]>->($name);
     goto RESCAN;    ## naking sure all files are included ##
 }
@@ -82,8 +87,8 @@ foreach my $key_L13sum (@L13_file_sums) {
 
 return $key_checksum;
 
-#,,,,,.,,,.,.,..,,,..,.,.,,,,,.,.,,..,..,,,.,,.,.,...,...,.,.,...,...,,,,,,..,
-#DZ4MYCLJSMQ7GXPND7MZHRZ2QFXGTHYNLR6AWKNIUF2ZZC5HECPSYP7IIZQ4AQPU3WR5F4NXZO5MA
-#\\\|MLNLXF5N73YMX6IKFZB2KZVI6YBOEM6UC7MMVVFJA54A7DJXFCJ \ / AMOS7 \ YOURUM ::
-#\[7]LCJNPKLTBRPRUBKSIP7BZGQWI6CZ7263FMRGGS67CN2RC3ORTOBI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,.,,,.,.,,,.,,,.,..,,.,,,.,.,.,.,...,...,.,.,.,.,,.,,.,,,.,.,
+#UINO3DDTLJOB2APCRGDAJLD26HWWXDDTG4UJTIZDIDHP7R2NIHL5SDKARWSH67SPEVYSQ7U6E3FTK
+#\\\|DIMJPWWMQ2AKYGXF5IXVRGMFPUADS54QQWMFDEC2CE3GJ6GHF64 \ / AMOS7 \ YOURUM ::
+#\[7]4WDL7VWG6GRLHRVYEDY5QYHIWWFS5LASXONCM7I25O57QI4OWGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
