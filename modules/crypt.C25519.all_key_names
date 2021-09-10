@@ -4,7 +4,7 @@
 
 my %keynames;
 
-foreach my $file ( grep {s|^.*/||} <[crypt.C25519.keyfiles]> ) {
+foreach my $file (<[crypt.C25519.keyfiles]>) {
     my $name = <[crypt.C25519.get_keyname]>->($file);
     next if exists $keynames{$name};
     $keynames{$name}++;
@@ -12,8 +12,8 @@ foreach my $file ( grep {s|^.*/||} <[crypt.C25519.keyfiles]> ) {
 
 return <[base.sort]>->( \%keynames );
 
-#,,,.,,..,,,.,,..,,,,,.,,,.,,,.,.,.,.,..,,..,,..,,...,...,...,.,,,..,,.,,,.,.,
-#H7G7J3QKJWDA7WYCVKDLCFCQJNZ6IK6QUDLPWBZP2KXRHMSNWQF6TX3OVAVOINBVRWEEN3A5Y7KYS
-#\\\|67AJZSKDXRVECTQVDN2CMWGQ24D6TNQ3FKFU4WG3ANBJCOGRHGA \ / AMOS7 \ YOURUM ::
-#\[7]TBCCYZO6PUR5FSIAVTDKG74YMOFT2AYJU7SN2L65IBKYPJVSJIAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,.,,.,,,.,,,,,,,.,,,..,,,,,.,,,..,,...,...,...,..,,,.,,,,,,,,.,
+#TTPXDCPHBO7ZVBV2GTA2RTWWRCFV4BBIZ5LUEGILDD2NXP3GJTKZP636NT6BUSKRXUMQKN2PL457M
+#\\\|54F73K42NB5L4ACWUARZZD3RU73XCGYGWU3ZHC3KZ6RX5G2Z27I \ / AMOS7 \ YOURUM ::
+#\[7]O2WCXAV5ATM22KMWCLI6HMPHJN3YJN2QPBQKSQ2PIPG4TBGVJEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
