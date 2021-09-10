@@ -84,7 +84,8 @@ $names_len
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
-my $linefeed = $display_checksums ? '' : "\n";
+my $linefeed
+    = ( $display_checksums and not <system.verbosity.console> ) ? '' : "\n";
 
 my $key_list_string = join '', $linefeed,
     sprintf( "%40s\r :: %skeys for user %s :.\n",
@@ -160,8 +161,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,,,...,,..,,.,,...,,,.,...,.,,,..,,,.,,.,.,..,,...,...,.,.,.,,,.,.,,.,,,,,,
-#AR4R4YHTM5MYBEKF2Z77TDIARG45PNU5RY3WOVLRXIYK3PMUZ7KBR52GYNJLMJPJ7Z2UBU4C4IO2U
-#\\\|DTSSNXOW5MRLP44QGMA5T32HZLZ6BTXTY3OPMHW2XXHQRLGIHQ2 \ / AMOS7 \ YOURUM ::
-#\[7]Y64N7T2EEZJYOJER3L7YURIX2TJBYP2U45AF5QY2TZQFXQDM2YCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,...,.,,,,..,...,,.,,.,,,..,,..,,...,..,,,,,,,..,,,,,,,.,.,,,
+#45AFMGFNDVE26JBX6VRVL6F7KD4GAVUVPINK7GWHFVIV7VIZ6AIYDTMVMIOKGSXI4ZH4IGJ3SH73E
+#\\\|X4QCOVWTUFNKVSZ5TJQQVVZD374OKN5VB3OKWDNTN62BQQV5XQD \ / AMOS7 \ YOURUM ::
+#\[7]HJPJSQAN6PARFNW5LRHIAHUZJSR4UEI3BLOACAZ6ET3VFIKHRWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
