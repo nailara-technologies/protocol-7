@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = crypt.C25519.cached_chksum
+# descr = return [ cached ] key chksum [ by name look-up ]
+
+my $name = shift // '';
+
+if ( not length $name ) {
+    warn 'expected C25519 key name param <{C1}>';
+    return undef;
+} elsif ( not <[crypt.C25519.key_exists]>->($name) ) {
+    <[base.s_warn]>->( "key '%s' not found <{C1}>", $name );
+    return undef;
+}
+
+my $key_checksum;
+my @L13_file_sums;
+my @matched_keyfiles = <[crypt.C25519.keyfiles]>->( $name, qw| plain | );
+
+##  all files when no plain available  ##
+@matched_keyfiles = <[crypt.C25519.keyfiles]>->($name)
+    if not @matched_keyfiles;
+
+my $file_scan_iter = 0;
+
+RESCAN:
+$file_scan_iter++;
+my %has_L13_chksum;
+foreach my $file (@matched_keyfiles) {
+
+    next if exists $has_L13_chksum{$file};
+
+    my $key_encryption_status = <[crypt.C25519.encrypted_key]>->($file);
+
+    return qw| no-r.perms | if $key_encryption_status == -3;
+
+    my $keystr_encoded = <[file.slurp]>->( $file, undef, qw| :raw | );
+    if ( ref $keystr_encoded ne qw| SCALAR |
+        or not length $keystr_encoded->$* ) {
+        return qw| r.err |;
+    } else {
+        $keystr_encoded = $keystr_encoded->$*;
+    }
+    my $key_len = length $keystr_encoded;
+
+    if ( not exists <crypt.C25519.keys.sizetype>->{$key_len}
+        or <crypt.C25519.keys.sizetype>->{$key_len}->{'encoding'} ne
+        qw| plain | ) {    ##  <-- virtual keys only [ plain ]  ##
+        chomp $keystr_encoded;
+        $key_len = length $keystr_encoded;    ##[  updating key len  ]##
+    }
+    if ( not exists <crypt.C25519.keys.sizetype>->{$key_len} ) {
+        $file =~ s|^.*/||;
+        <[base.logs]>->(
+            0,     "length of key '%s' not valid [ %04d BYTES ]",
+            $file, $key_len
+        );
+        return qw| size.error |;
+    }
+
+    my $key_L13sum = <[chk-sum.bmw.L13-str]>->($keystr_encoded);
+
+    $key_checksum = <[crypt.C25519.chksum_cache.retr]>->($key_L13sum);
+
+    return $key_checksum if defined $key_checksum;    ##  cache hit  ##
+
+    push @L13_file_sums, $key_L13sum;
+    $has_L13_chksum{$file} = TRUE;
+}
+
+if ( $file_scan_iter == 1 ) {
+    $key_checksum     = <[crypt.C25519.key_checksums]>->( $name, FALSE, 2 );
+    @matched_keyfiles = <[crypt.C25519.keyfiles]>->($name);
+    goto RESCAN;    ## naking sure all files are included ##
+}
+
+##  adding to cache  ##
+##
+foreach my $key_L13sum (@L13_file_sums) {
+    <[crypt.C25519.chksum_cache.add]>->( $key_L13sum, $key_checksum );
+}
+
+return $key_checksum;
+
+#,,,,,.,,,.,.,..,,,..,.,.,,,,,.,.,,..,..,,,.,,.,.,...,...,.,.,...,...,,,,,,..,
+#DZ4MYCLJSMQ7GXPND7MZHRZ2QFXGTHYNLR6AWKNIUF2ZZC5HECPSYP7IIZQ4AQPU3WR5F4NXZO5MA
+#\\\|MLNLXF5N73YMX6IKFZB2KZVI6YBOEM6UC7MMVVFJA54A7DJXFCJ \ / AMOS7 \ YOURUM ::
+#\[7]LCJNPKLTBRPRUBKSIP7BZGQWI6CZ7263FMRGGS67CN2RC3ORTOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
