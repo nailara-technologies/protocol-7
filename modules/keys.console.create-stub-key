@@ -13,7 +13,7 @@ return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
     if <[crypt.C25519.key_exists]>->($name);
 
 return print "\n  <<  key name contains not valid characters  >>\n\n"
-    if $name !~ m|^[\w\.\-\_]+$|;
+    if $name !~ <keys.regex.key_name>;
 
 my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
 
@@ -51,8 +51,8 @@ return
     printf "\n  <<  successfully created virtual key file for '%s'  >>\n\n",
     $name;
 
-#,,.,,...,.,.,,,,,...,.,,,...,..,,,,.,.,.,.,,,.,.,...,...,...,,..,,.,,,..,..,,
-#HVTYFD6MPV6O7UQ5XFFZJ26DKOVJ6VX5MXEJPMD2KJHZ7GXYYSY2J6IPBPZ3G7BSS2CFT4AY2HXRQ
-#\\\|LOMK2YDNRRPWGXFYD7QPPEIP53PTNMQKXOZPCYL2NVQUBF56NN7 \ / AMOS7 \ YOURUM ::
-#\[7]YHY34HTT5HT24KXGPZLPQJAWY4KCLQVPCEHKRKEMT6BLRYC5E2DY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,.,.,,..,..,,,..,,,,,.,.,,.,,,..,.,.,...,...,...,..,,.,,,...,,,,,
+#ILN64TTSJXEM2C5L3SNLL5OO5DYKH3PTBE6BV3HVBPI73SKXFGCYETSAK5LYKEPZ6VKEGSABCU6JC
+#\\\|SOKE5SNCKYQRLHCCQX5FLU7TZDCN3BJSJZFHEECANL7LK4A5UTA \ / AMOS7 \ YOURUM ::
+#\[7]EWRFGIJ4FLU5TGDR237C4BPN4J5WH43UMHBMSKX7HQI66BHHB2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
