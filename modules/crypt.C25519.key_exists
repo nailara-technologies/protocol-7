@@ -26,13 +26,16 @@ if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
     my @keys_found = grep {m|$match_re|}    ##  match for key name  ##
         grep {s|^.*/||} <[file.get-non-dirs]>->($key_dir)->@*;
 
+    ## key is virtual [ returning 4 ] ##
+    return 4 if @keys_found == 1 and $keys_found[0] =~ m|:seed-phrase$|;
+
     return TRUE if scalar @keys_found;      ##  true \ key found  ##
 
     return FALSE;    ##  key with that name not present  ##
 }
 
-#,,,,,..,,...,,,.,.,,,,..,..,,,,.,,.,,,..,.,,,..,,...,..,,...,,,,,...,.,.,...,
-#KRTRU2GQRVE4LDJXLVXO62VP44CBKI36RPDGG3PEQOMM77WLGSNYWIBKWMWQVRR6O6X75F73RVGSW
-#\\\|5RMFFNOHBG5SAPXBUCQAM72LLLFZ3UXYYNRFI7VP5YFWFZV6PDF \ / AMOS7 \ YOURUM ::
-#\[7]EJDGE346FNUALM7SFWVATYMW3D6DBTVCRCCTZXHQJ5QL2KSG2GCY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,.,.,,.,,...,,..,,.,,...,..,,..,,...,...,...,,..,,,,,,.,,..,,
+#EQHA4JAHZIUIWDKQZ2VMAGS73HETKAGP62DSZHT2DNSI54I5R3NIPRGMPNI7AOW6Y727WPIJZP3TW
+#\\\|RMJZ63CHWWYHBZ3JZTBM3FRCU2YXMMHO4HZB4SGNSPZ7YFLDFI7 \ / AMOS7 \ YOURUM ::
+#\[7]KCKLW6NFKGTOKNSG6KCBDF2YIKYUWF2HA6QMRKHY67XKM5OOSIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
