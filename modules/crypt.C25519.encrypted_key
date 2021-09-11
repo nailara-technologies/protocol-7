@@ -11,11 +11,14 @@ if ( not length $name ) {
 
 my $re_kfiles = <crypt.C25519.regex>->{'key_files'};
 
-
 my $key_type;
-my $public_keyfile;
-my $private_keyfile;
-my $virtual_keyfile;
+
+my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
+
+my $virtual_keyfile = $key_filenames->{'virtual'} // '';
+my $public_keyfile  = $key_filenames->{'public'}  // '';
+my $secret_keyfile  = $key_filenames->{'secret'}  // '';
+my $private_keyfile = $key_filenames->{'private'} // '';
 
 if ( index( $name, qw| / |, 0 ) == 0 and $name =~ $re_kfiles ) {
     ## absolute path to keyfile ##
@@ -46,16 +49,12 @@ if ( index( $name, qw| / |, 0 ) == 0 and $name =~ $re_kfiles ) {
     }
 } else {
 
-    my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
-
-    $virtual_keyfile = $key_filenames->{'virtual'} // '';
-    $private_keyfile = $key_filenames->{'private'} // '';
-    $public_keyfile  = $key_filenames->{'public'}  // '';
-
     ##  virtual key : never encrypted  ##
     return -5 if length $virtual_keyfile and -e $virtual_keyfile;
 
-    if ( length $private_keyfile and not -f $private_keyfile ) {
+    if (    length $private_keyfile
+        and not -f $private_keyfile
+        and not -f $secret_keyfile ) {
 
         if ( length $public_keyfile and -f $public_keyfile ) {
             return -1;    ##  only public key present  ##
@@ -69,53 +68,86 @@ if ( index( $name, qw| / |, 0 ) == 0 and $name =~ $re_kfiles ) {
     }
 }
 
-my $key_file_ref = <[file.slurp]>->( $private_keyfile, undef, qw| :raw | );
+if ( -r $private_keyfile or not -r $secret_keyfile ) {
 
-if (   not defined $key_file_ref
-    or ref $key_file_ref ne qw| SCALAR |
-    or not defined $key_file_ref->$* ) {
-    return -3;    ##  cannot read file  ##
-} else {
-    chomp( $key_file_ref->$* );    ##  strip linefeed  ##
-}
+    my $key_file_ref
+        = <[file.slurp]>->( $private_keyfile, undef, qw| :raw | );
 
-( my $key_status )
-    = <[crypt.C25519.get_type_from_key_str]>->( $key_file_ref->$* );
+    if ( ref $key_file_ref ne qw| SCALAR |
+        or not defined $key_file_ref->$* ) {
+        return -3;    ##  cannot read file  ##
+    } else {
+        chomp( $key_file_ref->$* );    ##  strip linefeed  ##
+    }
 
-if ( not defined $key_status ) {
-    <[base.logs]>->( 0, ': key format not valid : %s', $name );
-    return -4;                     ##[  not a valid key format  ]##
-}
-
-my $key_encrypted = $key_status->{'encrypted'};
-
-if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
-    my $public_file_ref
-        = <[file.slurp]>->( $public_keyfile, undef, qw| :raw | );
-
-    ($key_status) = <[crypt.C25519.get_type_from_key_str]>->(
-        $key_file_ref->$*, $public_file_ref->$*
-    );
+    ( my $key_status )
+        = <[crypt.C25519.get_type_from_key_str]>->( $key_file_ref->$* );
 
     if ( not defined $key_status ) {
-        <[base.logs]>->(
-            0, '[ public ] key format not recognized : %s', $name
-        );
-        return -4;    ##[  not a valid key format  ]##
-    } else {
-        $key_encrypted = $key_status->{'encrypted'};   ##  updating status  ##
+        <[base.logs]>->( 0, ': key format not valid : %s', $name );
+        return -4;                     ##[  not a valid key format  ]##
     }
-} elsif ( $key_encrypted == UNKNOWN ) {    ##  private key only  ##
-    $name =~ s|^.*/||;
-    <[base.log]>
-        ->( 2, ': encryption status not knowable without public key' );
-    <[base.logs]>->( 2, ": :, private-key '%s'", $name );
+
+    my $key_encrypted = $key_status->{'encrypted'};
+
+    if ( $key_encrypted == UNKNOWN and -r $public_keyfile ) {
+        my $public_file_ref
+            = <[file.slurp]>->( $public_keyfile, undef, qw| :raw | );
+
+        ($key_status) = <[crypt.C25519.get_type_from_key_str]>->(
+            $key_file_ref->$*, $public_file_ref->$*
+        );
+
+        if ( not defined $key_status ) {
+            <[base.logs]>->(
+                0, '[ public ] key format not recognized : %s', $name
+            );
+            return -4;    ##[  not a valid key format  ]##
+        } else {
+            $key_encrypted
+                = $key_status->{'encrypted'};    ##  updating status  ##
+        }
+    }
+    if ( $key_encrypted == UNKNOWN and !-r $secret_keyfile ) {
+        ##  only a private key present  ##
+        $name =~ s|^.*/||;
+        <[base.log]>->(
+            2, ': encryption status not knowable without public key'
+        );
+        <[base.logs]>->( 2, ": :, private-key '%s'", $name );
+    }
+
+    ##  key encryption status  ##
+    return $key_encrypted if $key_encrypted == TRUE or !-r $secret_keyfile;
 }
 
-return $key_encrypted;                     ##  key encryption status  ##
+if ( -r $secret_keyfile ) {
+    my $secret_key_sref
+        = <[file.slurp]>->( $secret_keyfile, undef, qw| :raw | );
+    if ( ref $secret_key_sref eq qw| SCALAR | ) {
 
-#,,..,,..,.,,,...,.,.,.,,,...,,,,,,,.,,,,,.,.,..,,...,..,,..,,,.,,,,,,.,,,,.,,
-#ECXR4KP7KEBVL2C45PIALS4DSKLOXBUBIDEWVRNHLX7YO5JMKOYMZTW6UZRFH6I5QM2FIHS7ATV74
-#\\\|TFGLV5I2XCVFZMVWPJYVPPJYNSMV3O6SVHHOW75GZOLHIZ2UYPI \ / AMOS7 \ YOURUM ::
-#\[7]QZ5A47KBXJLTQ3QUUXXHCAI5PHTWZBQVJH6WBZ3PGC5BNTSD7UBA 7  DATA SIGNATURE ::
+        ( my $key_status )
+            = <[crypt.C25519.get_type_from_key_str]>
+            ->( $secret_key_sref->$* );
+
+        if ( not defined $key_status ) {
+            <[base.logs]>->(
+                0, '[ secret ] key format not recognized : %s', $name
+            );
+            return -4;    ##[  not a valid key format  ]##
+        } else {
+            ##  returning [secret] key status  ##
+            return $key_status->{'encrypted'};
+        }
+    } else {    ##  cannot read file  ##
+        return -3;
+    }
+}
+
+return UNKNOWN;    ##  key encryption status  ##
+
+#,,,.,,,,,.,,,...,...,,.,,.,,,,..,,,.,.,.,.,.,..,,...,...,.,,,,.,,,..,,..,,,,,
+#5DGXN2ZEEBTAYSA6UMKI3V5RSSKWBNWMPJTZBA5VS4U3XYVCT27K5OWKDYZND7FJVDPROOJPF3IRO
+#\\\|A4X4B6VDXCWQ2WFPBN5MONOQOZBOSJES5SSIFZL5BXVQDTL4V3C \ / AMOS7 \ YOURUM ::
+#\[7]WEYAEOH2PUBM4RJBKZ7RA5EFINSCPX3LPIB4VDVRJREPVVYCYOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

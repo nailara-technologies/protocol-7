@@ -9,9 +9,16 @@ my $name = shift;
 return print "\n  << expected <key_name> parameter >>\n\n"
     if not defined $name;
 
-if ( <[crypt.C25519.key_exists]>->($name) ) {
+my $key_exists_status = <[crypt.C25519.key_exists]>->($name);
+if ( $key_exists_status == TRUE ) {
     <[base.logs]>->( 0, "a key named '%s' exists on disk", $name );
     <[base.exit]>->(qw| 0110 |);
+} elsif ( $key_exists_status == 4 ) {
+    <[base.logs]>->( 1, "virtual key named '%s' marked on disk", $name );
+} else {
+    <[base.logs]>->(
+        1, "virtual key '%s' unregistered [ generating ]", $name
+    );
 }
 
 <[base.logs]>->( 0, ' << %s is not a valid key name >>', $name )
@@ -61,6 +68,9 @@ my $key_display_str = sprintf( " :\n ::[ %s ]\n :\n ::[ %s ]\n :\n::\n",
     $key_checksum,
     Crypt::Misc::encode_b32r( $keys{'C25519'}->{$name}->{'public'} ) );
 
+##[ deleting keys from memory ]##
+<[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );    ##[ silent ]##
+
 ## colorizing ##
 ##
 if ( <system.ansi_color> or <system.force_colors> ) {
@@ -71,13 +81,10 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 ##  displaying public key to console  ##
 ##
-say $key_display_str;
+return say $key_display_str;
 
-##[ deleting keys from memory ]##
-<[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );    ##[ silent ]##
-
-#,,,,,...,,.,,,,,,,,,,,,,,.,,,,,.,..,,..,,,..,..,,...,...,,,.,,..,.,,,.,,,,.,,
-#4ALV2DJWAY3U4A77ZB7WDC5GKCJF52SHKZRJKVGLXJRFVMGWSGNA5RIRDHKCBXSGITVQWU5OR7VIA
-#\\\|4YJF632JTEUDOZORJUDS7FUIKJSID54BE26KKPFCSNF7T6DCMDU \ / AMOS7 \ YOURUM ::
-#\[7]RGDOBDOI745EBPNOEPMV3GH6GYN6H6ODZ3YQOETSXXFLLXKGIMCI 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,..,,..,,.,.,,..,.,,,.,,,.,.,..,,...,..,,.,,,...,..,,...,,,,,
+#I3IZVANFN6UITWFP62IALM7XETY7Q2HYH5RQMZELFUUABB3OSJPE5VXNDVO4N5VSVJYWTHZTG54V2
+#\\\|CTOF6Q5QFSLA4QJVRMEBO4BBZJCQS55E3ZMH7YI5YMQX4AKZVSU \ / AMOS7 \ YOURUM ::
+#\[7]H2A4N37B4ES6NIKCIC3PXHD2KMVGT4EGJUUKBQYSP3H2LJV2GQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

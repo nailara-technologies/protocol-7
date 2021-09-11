@@ -2,9 +2,10 @@
 
 # name  = crypt.C25519.decrypt_priv_keystr
 
-my $key_str    = shift // '';
-my $dec_passwd = shift // '';
-my $public_key = shift;    ##  optional  ##
+my $key_str         = shift // '';
+my $dec_passwd      = shift // '';
+my $public_key      = shift;    ##  optional  ##
+my $test_key_chksum = shift;    ##  optional  ##
 
 if ( not length $key_str ) {
     warn 'expected key str param <{C1}>';
@@ -76,11 +77,18 @@ IO::AIO::aio_mlock( $decrypted_C25519_sref->$*, 0, 64 );
 ##  calculating key pair chksum [ when required ] ##
 ##
 my $key_checksum;
-if ( wantarray or <system.verbosity.console> ) {
+if ( wantarray or <system.verbosity.console> or defined $test_key_chksum ) {
 
     $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
         $decrypted_C25519_sref->$*, $public_key    ##  <-- if available  ##
     );
+
+    if ( defined $test_key_chksum and $test_key_chksum ne $key_checksum ) {
+        <[base.log]>->( 1, ':' );
+        <[base.log]>->( 0, ': password is not correct ..,' );
+        <[base.log]>->( 1, ':' );
+        return FALSE;
+    }
 
     <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
 
@@ -92,8 +100,8 @@ return ( $decrypted_C25519_sref, $key_checksum ) if wantarray;
 
 return $decrypted_C25519_sref;
 
-#,,..,..,,.,,,,,.,.,.,...,..,,..,,.,,,,,.,,,,,.,.,...,...,.,,,,..,...,..,,.,.,
-#ZZIQOCOC4ZYP7N7N5NIOYINP3WGWMOME6VTYY6WLN24SQAK7KGUPKXHHOZX43R5JAWTL6S2F7ZRIM
-#\\\|IKVNCLWD35JKBJ5BNPDFONNDHW3JCJA6G4YMIGYEZPR3LNVHQCM \ / AMOS7 \ YOURUM ::
-#\[7]G7Y2T6AHC5DOXJUQJBABV7WD72PZTRSZRCNDEVZ36AVPJBT5JIDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,...,..,,,,.,,,.,,,.,..,,...,.,.,...,...,...,..,,..,,,..,.,.,
+#SQXR7GPGLCKZCNMEYUI3AUYWJF6Y262QUBKZGBKKPB4Z2DYQHQ2ST2J7AUNCSQDDBM6L73ISHX64K
+#\\\|6YAZM3O5IKMMKGKC6WN3536PHKQAMP2TOHJ7PXXVMJP3GZAL4TU \ / AMOS7 \ YOURUM ::
+#\[7]HVTKHOYP3KBVTCRLQQYSBCFRTZTD4AI2O2UNMAYXY65D6Q5YZIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
