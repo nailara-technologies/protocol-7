@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = crypt.C25519.decrypt_keystr
+# name  = crypt.C25519.decrypt_priv_keystr
 
 my $key_str    = shift // '';
 my $dec_passwd = shift // '';
@@ -50,6 +50,9 @@ if (   not defined $decrypted_C25519_sref
     or not length $decrypted_C25519_sref->$* ) {
     warn 'key decryption error [ twofish::decrypt was undef ] <{C1}>';
     return undef;
+} elsif ( length( $decrypted_C25519_sref->$* ) != 64 ) {
+    warn 'key decryption failed [ decrypted key size != 64 ] <{C1}>';
+    return undef;
 }
 
 ##  need to use compare_keypair to be certain password was correct  ##
@@ -59,10 +62,12 @@ if (   not defined $decrypted_C25519_sref
 if (defined $public_key and not <[crypt.C25519.compare_keypair]>->(
         $public_key,
         $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
-    )
+    ) // FALSE
 ) {
-    warn 'key decryption error [ key comparison ] <{C1}>';
-    return undef;
+    <[base.log]>->( 1, ':' );
+    <[base.log]>->( 0, ': password is not correct ..,' );
+    <[base.log]>->( 1, ':' );
+    return FALSE;
 }
 
 ##  lock key in memory to not never swap it to disk  ##
@@ -87,8 +92,8 @@ return ( $decrypted_C25519_sref, $key_checksum ) if wantarray;
 
 return $decrypted_C25519_sref;
 
-#,,..,...,..,,..,,,,,,..,,...,,..,,,.,,.,,,..,.,.,...,...,,.,,,.,,...,.,,,,,,,
-#ADHPSJBJKHFR23KVWW5FP5RPOBJBRV6YWM4LBDIPOMCOJ3RMJWQTCCLKFSKUSKVZBA3EQGYSX37YO
-#\\\|MG5VWYNOQDDOGEJ5RVGIVK3GDWNHNYN3YDYH7PXY73SDCPPMN6A \ / AMOS7 \ YOURUM ::
-#\[7]IJM3IYW33PINVG6R3ILATYCP7JWI6KZEG7E4IFYPQY46BHEPLSBY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,.,.,...,..,,..,,.,,,,,.,,,,,.,.,...,...,.,,,,..,...,..,,.,.,
+#ZZIQOCOC4ZYP7N7N5NIOYINP3WGWMOME6VTYY6WLN24SQAK7KGUPKXHHOZX43R5JAWTL6S2F7ZRIM
+#\\\|IKVNCLWD35JKBJ5BNPDFONNDHW3JCJA6G4YMIGYEZPR3LNVHQCM \ / AMOS7 \ YOURUM ::
+#\[7]G7Y2T6AHC5DOXJUQJBABV7WD72PZTRSZRCNDEVZ36AVPJBT5JIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
