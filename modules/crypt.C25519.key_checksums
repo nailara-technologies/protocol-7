@@ -27,9 +27,10 @@ my $single_key_file       = <[crypt.C25519.single_file]>->($name);
 my $is_seedphrase_key     = <[crypt.C25519.key_is_virtual]>->($name);
 my $key_encryption_status = <[crypt.C25519.encrypted_key]>->($name);
 
+my $key_filename = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
+
 if ($is_seedphrase_key) {
 
-    my $key_filename = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
     my $virtual_keyfile   = $key_filename->{'virtual'};
     my $stub_file_content = <[file.slurp]>->($virtual_keyfile)->$*;
 
@@ -38,13 +39,23 @@ if ($is_seedphrase_key) {
 
 } elsif ( not $key_loaded ) {    ##  loading  ##
 
+    my $secret_keyfile = $key_filename->{'secret'};
+    my $public_keyfile = $key_filename->{'public'};
+
     my $keys_load_status;
     if ( $key_encryption_status != TRUE and $single_key_file ) {
 
         ## loading single key file ##
         $keys_load_status = <[crypt.C25519.load_single]>->($name);
 
-    } elsif ( not $single_key_file ) {
+    } elsif (
+        not $single_key_file
+        and (
+            -r $public_keyfile
+            or ( -r $secret_keyfile
+                and ( $key_encryption_status == FALSE or $ask_for_password ) )
+        )
+    ) {
         my @password_req = ($ask_for_password) x 2;    ##  ask , retry  ##
 
         $keys_load_status    ## loading only not encrypted files by default ##
@@ -80,8 +91,8 @@ delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
 
 return $key_checksum;
 
-#,,.,,...,.,.,.,,,,..,,..,,,.,.,,,...,,,,,,..,..,,...,...,,..,,,.,.,,,,,,,..,,
-#XQT5PGEW3BGSQJPU55IATKAIO2BL6KJEQJYX5SIPFUKF5QPOBMZR2NY5MSVVLHCLU4DBEYKFR5ZK2
-#\\\|V3X6WW2TSBA25DR76J26L5TCTK3ZLR4OXST6THASOGOGEJ4MM3S \ / AMOS7 \ YOURUM ::
-#\[7]E5VODR7EWIDBMRMI6ZFLJH5KDXNXPOFJTCSAWYJL5YBOD2TW7QBI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,,,.,,,,,,,.,,,,,.,.,,,,,,,,,..,,...,..,,,..,.,.,,,,,...,,..,
+#M3TLZHNH4WIQRPFRLMT4S2KBCBKHXQBUVQM2SN425YJ6SROJVKAA4LCDWQXFH5553SEWXZ2E7KMGQ
+#\\\|PPZ3UPOVTCR5KPE4D4BCTK6V24T2I7KWLURRXD47H7IGHD6YBFU \ / AMOS7 \ YOURUM ::
+#\[7]LST3DNIHWYCX633A2A6ZZU4Q4USAUZYK2LQ3QRRUEOCRLTLFOUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

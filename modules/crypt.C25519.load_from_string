@@ -118,7 +118,7 @@ foreach my $key_str (@encoded_C25119_keys) { ##  loading private key first  ##
 
             ##  decrypting the decoded key  ##
             ##
-            my $decrypted_keyref = <[crypt.C25519.decrypt_keystr]>->(
+            my $decrypted_keyref = <[crypt.C25519.decrypt_priv_keystr]>->(
                 $key_str, $key_password, $encoded_C25119_keys[1]
             );
             if ( ref $decrypted_keyref ne qw| SCALAR | ) {
@@ -259,7 +259,7 @@ foreach my $key_str (@encoded_C25119_keys) { ##  loading private key first  ##
             }
             ##  decrypting the decoded key  ##
             ##
-            my $decrypted_keyref = <[crypt.C25519.decrypt_keystr]>->(
+            my $decrypted_keyref = <[crypt.C25519.decrypt_priv_keystr]>->(
                 $decoded_str, $key_password, $pubkey_decoded
             );
 
@@ -294,8 +294,8 @@ my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
 
 return $key_checksum;    ## success. return chksum ##
 
-#,,.,,..,,,..,...,.,,,..,,..,,.,,,..,,..,,,,.,..,,...,...,.,.,...,..,,,..,,,.,
-#PNWYGATC5E6CE7GLA4AHTWUCJZ7PKKVLAECWPF3F4LQ23Q7MVM7AFU2PI4WJCXOQCRNI7NAVQQQ5W
-#\\\|4JXKKMEYXGPNY63ZG5AMYR5IDGYDSBAWXHJL42I4M4IES2XYGSZ \ / AMOS7 \ YOURUM ::
-#\[7]2K5LSPS646RXBURYKWY4HHM66BJU75U75PQA6RXM6QHOY2JAU2CQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,,.,,..,..,,.,.,...,..,,,,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
+#K347HHNUQSRKIQ2ARZ47QTZABD6C74JCE5DCLHMCBDJAKSMLKLTIOJMTJM3IN3A46URHFC2ABOLOS
+#\\\|HWF4EZTE2YEXZQG76UPZYS5XVDANAH46K5MVYDT6GIEIR3QO6ED \ / AMOS7 \ YOURUM ::
+#\[7]Y6KDC5DRFGLGL4NMI7EZC54VXFOPQGV7FCM64EKISNPFQJ4FVMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
