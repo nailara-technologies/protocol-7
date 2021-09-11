@@ -1,7 +1,6 @@
 ## [:< ##
 
 # name = crypt.C25519.load_keypair
-# todo = also load secret key
 
 my $name_param         = shift;             ##  optional  ##
 my $key_password       = shift;             ##  optional  ##
@@ -82,17 +81,7 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     }
 
 } elsif (
-    -r $public_key_file    ##  load public key only  ##
-    and (  not -r $private_key_file
-        or not defined $key_password
-        and not $ask_for_password
-        and <[crypt.C25519.encrypted_key]>->($name) )
-) {
-
-    return <[crypt.C25519.load_single]>->( $name, undef, qw| public | );
-
-} elsif (
-    -r $secret_key_file    ## load missing files from .secret ##
+    -r $secret_key_file    ##  abort loading .secret  ##
     and not defined $key_password and not $ask_for_password
     and not -r $public_key_file
     and <[crypt.C25519.encrypted_key]>->($name)
@@ -115,10 +104,25 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
         $name, $key_password, $pwd_retry_on_error, $test_key_chksum
     );
 
+} elsif (
+    -r $public_key_file    ##  load public key only  ##
+    and (  not -r $private_key_file
+        or not defined $key_password
+        and not $ask_for_password
+        and <[crypt.C25519.encrypted_key]>->($name) )
+) {
+
+    return <[crypt.C25519.load_single]>->( $name, undef, qw| public | );
+
 } elsif ( -r $private_key_file and -r $public_key_file ) {
 
     my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
     <[base.logs]>->( ":. C25519-key .:. '%s'%s", $name, $u_str );
+
+    my $B32_secret_key    ## load secret key if present ##
+        = -r $secret_key_file
+        ? <[file.slurp]>->($public_key_file)->$* // ''
+        : undef;
 
     my $encoded_private_key = <[file.slurp]>->($private_key_file)->$* // '';
     my $encoded_public_key  = <[file.slurp]>->($public_key_file)->$*  // '';
@@ -129,6 +133,7 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     }
     chomp $encoded_public_key;
     chomp $encoded_private_key;
+    chomp $B32_secret_key if defined $B32_secret_key;
 
     ## decode [ base 32 ] ##
     $keys{'C25519'}{$name}{'private'} = decode_b32r $encoded_private_key;
@@ -190,11 +195,11 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
         }
 
         my $decrypted_C25519_sref = <[crypt.C25519.decrypt_priv_keystr]>->(
-            $keys{'C25519'}{$name}{'private'},
-            $key_password, $keys{'C25519'}{$name}{'public'}
+            $keys{'C25519'}{$name}{'private'}, $key_password,
+            $keys{'C25519'}{$name}{'public'},  $test_key_chksum
         );
 
-        if ( not $decrypted_C25519_sref ) {
+        if ( ref $decrypted_C25519_sref ne qw| SCALAR | ) {
 
             undef $key_password;
 
@@ -238,9 +243,48 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
         }
     }
 
+    if ( defined $B32_secret_key ) {    ##[ decode \ decrypt secret key ]##
+        $keys{'C25519'}{$name}{'secret'} = decode_b32r $B32_secret_key;
+        if ( not defined $keys{'C25519'}{$name}{'secret'} ) {
+            <[base.logs]>->( 0, 'error at BASE32 decoding [ .secret key ]' );
+            goto SKIP_SECRET_KEY_LOADING;
+        }
+        ( my $key_status )
+            = <[crypt.C25519.get_type_from_key_str]>
+            ->( $keys{'C25519'}{$name}{'secret'} );
+
+        if ( not defined $key_status ) {
+            <[base.logs]>->( 0, ': secret key format not valid : %s', $name );
+            goto SKIP_SECRET_KEY_LOADING;
+        }
+        ## stripping prefix ##
+        substr( $keys{'C25519'}{$name}{'secret'}, 0, 2, '' );
+
+        if ( $key_status->{'encrypted'} == TRUE ) {
+            my $decrypted_C25519_sref
+                = <[crypt.C25519.decrypt_secret_key]>->(
+                $keys{'C25519'}{$name}{'secret'},
+                $key_password,
+                $keys{'C25519'}{$name}{'public'},
+                $keys{'C25519'}{$name}{'private'},
+                $test_key_chksum
+                );
+            if ( ref $decrypted_C25519_sref ne qw| SCALAR | ) {
+                <[base.logs]>->(
+                    0, ': secret key decryption failed : %s', $name
+                );
+                goto SKIP_SECRET_KEY_LOADING;
+            }
+            $keys{'C25519'}{$name}{'secret'} = $decrypted_C25519_sref->$*;
+        }
+    }
+SKIP_SECRET_KEY_LOADING:
+
     ##  lock key in memory to not never swap it to disk  ##
     IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 )
         if exists $keys{'C25519'}{$name}{'private'};
+    IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'}, 0, 32 )
+        if exists $keys{'C25519'}{$name}{'secret'};
 
     return TRUE;    ## true ##
 
@@ -254,8 +298,8 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     return FALSE;    ##  false  ##
 }
 
-#,,,.,,..,.,.,.,.,..,,.,,,...,..,,,,,,,.,,,,,,..,,...,...,.,,,,..,,.,,...,.,,,
-#D3WKL54H5VBPM74UIEWTM6G37NMXUZIITFPHXOHI2FIK4MDNF7IPWTE7WUYBC6TIXVP4NIUKCERAG
-#\\\|OIBEDSYITEWF53VOYLYVKKTV7L2DU5OYIRVTEUJWDULEMOU4QOS \ / AMOS7 \ YOURUM ::
-#\[7]2QGJSLTJZAEE54SV6RKDFXHXSMR7SNHE6YCFKKNJPAHAADDDW2AI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,,..,.,,,,,.,,..,..,,,.,,.,,,..,,...,...,...,..,,,.,,..,,,..,
+#AJLGF33XA6L5JM2QK2LZG5BPVDGNYQ5WG5ASL3DTUJDYL2XR5RVD4JY6H36MOIT2O2R5CUNNBSSYQ
+#\\\|GBDSJVI7UW5JQKHOHLMOHQ64IP2AA7A2ELLF55CWOGZX7ISIIV5 \ / AMOS7 \ YOURUM ::
+#\[7]XPA4EDGA6DUFOAAZ5XK46MY2NQ27L7Z3GJLLRLQ3PRV367YKFUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
