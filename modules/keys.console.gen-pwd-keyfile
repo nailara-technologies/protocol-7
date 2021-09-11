@@ -6,8 +6,10 @@
 
 my $name = shift;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
 
 if ( <[crypt.C25519.key_exists]>->($name) ) {
     <[base.logs]>->( 0, "key named '%s' already exists", $name );
@@ -79,8 +81,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,.,,..,.,.,...,.,.,,..,.,.,,,,,.,.,,,.,...,..,,...,...,...,..,,...,,.,,,.,,
-#QUPNGJFQ3AOASPGZ2XAMIK5VQOZ7X4LMWDS2EAJHWYURVUEOI3TDHR6EPGZHNN7XTILKEANGJZICA
-#\\\|6TTX4CKOCIOXPAJ72SF2CGBOV6CJ53VUH7ZTNCKB6ROHCHDMU4C \ / AMOS7 \ YOURUM ::
-#\[7]6LJTQ7VGZSMB4ZXKJP6RDOKJVY53P6MJW2FXLVTKE4ZDAYQXZQBA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,..,,,..,.,.,...,,,,,,.,,.,,,..,,...,...,,.,,,..,.,.,...,...,
+#KCLBGRJHSXYYCSABAOWTJMV6TKCEAIEETE34SJIKNNMNE564WCUTPU4CQA24MEBC36FFZMYDHS5NM
+#\\\|5BLKJC7GTM5JMXVYEWGMRV4E233UW22VNLYJPCIP3CMWNATR4J6 \ / AMOS7 \ YOURUM ::
+#\[7]DLYLSUYG4KDYZUSXRX2E472KGKTAZJZLH5T4Y6E6CHRYEAZ5FSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

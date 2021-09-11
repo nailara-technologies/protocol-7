@@ -16,15 +16,18 @@ my $usr_hdir     = $key_vars_ref->{'usr_home'};
 my $name         = $key_vars_ref->{'key_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 
+if ( not exists $keys{'C25519'}->{$name} or not keys $keys{'C25519'}->%* ) {
+    <[base.s_warn]>
+        ->( "key '%s' not loaded, nothing to write <{C1}>", $name );
+    return undef;
+}
+
 foreach my $type (qw|  secret  private  public  |) {
     my $file_name = join( qw| . |, $key_basepath, $type );
 
-    next if $type ne qw| secret | and not -f $file_name;
-
-    next
-        if $type eq qw| secret |
-        and ( not exists $keys{'C25519'}->{$name}->{$type}
-        or not -f $file_name );
+    next    ##  skip checking not loaded key file types  ##
+        if not exists $keys{'C25519'}->{$name}->{$type}
+        or not -f $file_name;
 
     $file_name =~ s|^.*\/||;
 
@@ -194,8 +197,8 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     return $keywrite_status;    ## return write success status ##
 }
 
-#,,,.,..,,,,.,,,,,,,.,,.,,,,.,,.,,...,,..,..,,..,,...,...,...,.,.,.,,,,,.,.,,,
-#FQ3SR6LCRNCZSD73QNQQAUAFY225I2AAL3JIR2RZ72NL55PXCGWMXSNOZHJ6D7V6WSSQZL6EBBLWW
-#\\\|6JQBCF2365POTHKPQ5FOU7OEI7SYE54YKLSX4HZPP2IB3H2Q5KA \ / AMOS7 \ YOURUM ::
-#\[7]ACVM24T44M2OLRVEB4P3V4N3YEDE6BXNCMQ4RZMNWZUYK3K5XSBA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,..,,.,.,.,,,,.,,.,.,,,.,..,,..,,...,...,..,,,.,,..,,,,,,,.,,
+#CZJ7ZH6ZTHSOXYGY4F6GPLMYFEQQXXEJXROU5UQQXEHWYWG7OQNEDPOULV6D7BRZ2MVIRUFZHZWNG
+#\\\|JKEOZZJKBHZFOATAL2KZRWL3KAMNMHKEHTR6UANTQRU2EF2IZA7 \ / AMOS7 \ YOURUM ::
+#\[7]PVQECEOBLXFWDY3H62DITQLR2L75UAHW4SDUIWQ6J5TRRFSCAQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

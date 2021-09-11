@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = keys.console.split-keypair
+# param = <name>
+# descr = generate public and private from secret key
+
+my $name = shift;
+
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+if ( not <[crypt.C25519.key_exists]>->($name) ) {
+    say sprintf "\n  << key with name '%s' not found >>\n", $name;
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
+
+my $virtual_keyfile = $key_filenames->{'virtual'};
+my $public_keyfile  = $key_filenames->{'public'};
+my $secret_keyfile  = $key_filenames->{'secret'};
+my $private_keyfile = $key_filenames->{'private'};
+
+if ( -f $virtual_keyfile ) {
+    say sprintf( "\n  << specified key '%s' is virtual [ seed-phrase ] >>\n",
+        $name );
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not -f $secret_keyfile ) {
+    say sprintf( "\n  <<  key '%s' has no .secret file  >>\n", $name );
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( -r $public_keyfile and -r $private_keyfile ) {
+    say sprintf(
+        "\n  <<  key '%s' already has public and private keyfile  >>\n",
+        $name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+( my $load_status, my $key_password )
+    = <[crypt.C25519.load_keys_from_secret]>->(
+    $name, undef, TRUE, undef, TRUE
+    );
+
+if ( not $load_status ) {
+    say sprintf( "\n  <<  cannot load key '%s'  >>\n", $name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+## do not attempt overwriting existing files ##
+##
+my @keeping_key_type;
+foreach my $type ( <[base.sort]>->($key_filenames) ) {
+    push @keeping_key_type, $type if -f $key_filenames->{$type};
+}
+<[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE, @keeping_key_type );
+
+say "\n::";
+print map { sprintf " : '%s.%s' .,\n", $name, $ARG }
+    <[base.sort]>->( $keys{'C25519'}->{$name} );
+
+my $files_written_count = scalar keys $keys{'C25519'}->{$name}->%*;
+
+if (   not <[crypt.C25519.write_keys]>->( $name, $key_password, TRUE )
+    or not -r $private_keyfile
+    or not -r $public_keyfile ) {
+    say sprintf( "\n  <<  cannot write keyfiles for '%s' key  >>\n", $name );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+say sprintf " :\n :: [ written %d key file%s to disk ]\n",
+    $files_written_count,
+    <[base.cnt_s]>->($files_written_count);
+
+return TRUE;
+
+#,,..,,,,,.,,,.,.,,..,,..,,.,,,..,...,,,,,,,.,..,,...,...,,,.,...,...,.,.,,..,
+#3F7FOMNGJL34UCSSUIR7MOL4JCFCTA4BVWBQ6ANNY5ARB3ORQJOTGLTXHNVDIQSKVJMS6N6AG73I6
+#\\\|PZP2U4QCCIC2RMZHSH4WXGYU56Z2XDE4SST3CRKT6IFYRYJJQ52 \ / AMOS7 \ YOURUM ::
+#\[7]XLBDOMUAZPYCKMISY634KIPM2UVHUU5UFK7SOUPQTDNTK3EMRWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

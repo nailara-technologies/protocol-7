@@ -5,20 +5,27 @@
 # descr = show encoded key string opt.: [private|public]
 
 my $name = shift;
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
 my $type;
 ( $name, $type ) = split m| +|, $name if index( $name, ' ' ) != -1;
 
-return printf "\n  << key with name '%s' not found >>\n\n", $name
-    if not <[crypt.C25519.key_exists]>->($name);
+if ( not <[crypt.C25519.key_exists]>->($name) ) {
+    say sprintf "\n  << key with name '%s' not found >>\n", $name;
+    <[base.exit]>->(qw| 0110 |);
+}
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
-my $maxlen
-    = [ minmax map {length}
-        grep { -e $key_vars_ref->{'key_filename'}->{$ARG} }
-        keys $key_vars_ref->{'key_filename'}->%* ]->[1];
+my $maxlen = [
+    minmax map {length}
+        grep   { -e $key_vars_ref->{'key_filename'}->{$ARG} }
+        keys $key_vars_ref->{'key_filename'}->%*
+]->[1];
 
 if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     my $key_file_ref = <[file.slurp]>->($file);
@@ -44,8 +51,8 @@ if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     say '';
 }
 
-#,,.,,.,.,,..,,,.,.,.,,.,,,,.,.,.,..,,.,.,,.,,..,,...,...,..,,,,.,.,,,..,,.,,,
-#VB6CMSVWH25G5KNZUMRXG64PWAK4RSDYC6R7XOT362FQB474IT3DR5O2ZUV7DYCFBLA6TRK5IATSW
-#\\\|HEYT6GEGONHAV5KDXKPMWBICGTFPJHW2T3QOOUOO7GCTCQO7RG4 \ / AMOS7 \ YOURUM ::
-#\[7]2BHDOOIUEAQ66Z5OKAJJXR3YOYD6FJY3WR35B3SC52J3ORGFJKDI 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,.,,,,,,,.,.,,,.,,,.,,,.,.,,.,,..,,...,...,...,,.,,,,.,,.,,...,
+#SB3NAL2GFK75TD7K5LHRZZYM27WQPGQFHUAXYLYHI7AOKCETSF6VB2ZCFAQOPA64R25UDFB4O4TBC
+#\\\|IB5XRV24F3LF6ZOZYTTS7Y6COYIIKXUHOMGWQ67MLY22NKCPQEG \ / AMOS7 \ YOURUM ::
+#\[7]WKWKSD6T36E5OVXZGDX4SZHUROTZWJDEOMWSCSAX6XJ6N3HRRIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
