@@ -4,7 +4,8 @@
 # descr = erase a C25519 key from memory [secure]
 
 my $name          = shift // '';
-my $silent_unload = shift // FALSE;
+my $silent_unload = shift // FALSE;    ##  optional  ##
+my @del_types     = @ARG;              ##  optional  ##
 if ( not length $name ) {
     warn 'expected C25519 key name param <{C1}>';
     return undef;
@@ -18,25 +19,30 @@ if ( not exists $keys{'C25519'}->{$name} ) {
     "unloading C25519 key '%s'.,", $name
 );
 
-my $usr_key = $keys{'C25519'}->{$name};    ## [ private , public ] ##
-foreach my $type ( <[base.reverse-sort]>->($usr_key) ) {
+my $usr_key = $keys{'C25519'}->{$name};    ##[ secret , private , public ]##
+@del_types = <[base.reverse-sort]>->($usr_key) if not @del_types;
+my $delete_count = 0;
+foreach my $type (@del_types) {
+    next if not exists $usr_key->{$type};
     <[base.erase_buffer_content]>->( \$usr_key->{$type} );
     $usr_key->{$type} = undef;
     delete $usr_key->{$type};
+    $delete_count++ if not exists $usr_key->{$type};
 }
 
 undef $usr_key;
-delete $keys{'C25519'}->{$name};
-delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
+delete $keys{'C25519'}->{$name} if not keys $keys{'C25519'}->{$name}->%*;
+delete $keys{'C25519'}          if not keys $keys{'C25519'}->%*;
 
-return TRUE                                ##  success  ##
-    if not exists $keys{'C25519'}
-    or not exists $keys{'C25519'}->{$name};
+return TRUE    ##  success  ##
+    if @ARG and ( not exists $keys{'C25519'}
+    or not exists $keys{'C25519'}->{$name} )
+    or @ARG and $delete_count == @ARG;
 
-return FALSE;                              ##  hash read-only?  ##
+return FALSE;    ##  hash read-only?  ##
 
-#,,,.,,..,..,,,,,,,.,,.,,,..,,,..,,.,,,,,,,,,,..,,...,..,,,,,,.,.,.,,,.,.,,..,
-#X66NXMMVGH5DHAQUKOA5H4CFHIGLIWLJCHF4ZJETV7XGIOY64IOWD6ZJCFWBF64XCGPK6ABQV3NNC
-#\\\|LLF2CG7S55PCMKFEERYPXLXT3OTHEXOJWB7MW7ZNVCLHHKGWZLS \ / AMOS7 \ YOURUM ::
-#\[7]RMFQRK6E3ZQZZYG3GHA77OIULKYF6SDKL5YRH25SJ3VBCDLN26BA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,,.,,..,...,.,.,,,.,,..,,..,..,,...,...,...,.,,,,..,,..,,.,,
+#QXXEQ5LPBPEN5AM7JM7DLD2FOCOR6SFX664MGLLLLRAMHUTWZT7LIIKJCMLGG7IZBQAPWGKGGIZQG
+#\\\|2TFNJ7MZTIQ6CHJWC3TSMDD5H64WPDRCFA3VCCZZV7U2KMIZYIV \ / AMOS7 \ YOURUM ::
+#\[7]QNM4EEDGH4NUUGJB3FZ7GEYDWZOMBBKNOPQNFID2IDXHQ3SIO2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

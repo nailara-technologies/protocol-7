@@ -15,6 +15,16 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $name         = $key_vars_ref->{'key_name'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
+foreach my $type ( <[base.sort]>->($key_filename) ) {
+    if ( -f $key_filename->{$type} and not -r $key_filename->{$type} ) {
+        ( my $file = $key_filename->{$type} ) =~ s|^.*/||;
+        <[base.logs]>->(
+            0, 'no read permission on %s [ aborted loading ]', $file
+        );
+        return undef;
+    }
+}
+
 my $virtual_keyfile  = $key_filename->{'virtual'};
 my $secret_key_file  = $key_filename->{'secret'};
 my $public_key_file  = $key_filename->{'public'};
@@ -298,8 +308,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,..,..,,,.,,,,,,,..,.,,,,,.,,..,..,,,.,,.,,,..,,...,...,...,..,,,.,,..,,,..,
-#AJLGF33XA6L5JM2QK2LZG5BPVDGNYQ5WG5ASL3DTUJDYL2XR5RVD4JY6H36MOIT2O2R5CUNNBSSYQ
-#\\\|GBDSJVI7UW5JQKHOHLMOHQ64IP2AA7A2ELLF55CWOGZX7ISIIV5 \ / AMOS7 \ YOURUM ::
-#\[7]XPA4EDGA6DUFOAAZ5XK46MY2NQ27L7Z3GJLLRLQ3PRV367YKFUCQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,...,.,.,.,,,,,,,.,,,,.,,,..,..,,...,...,.,,,...,,.,,,..,.,,,
+#LUT2DZKWUOP2O5UHCSM4MNUQ5YBIMUAV72TPAWQH3UFJBG723IKHAGKHFNU2LNP3SWCGL7FJPS27Y
+#\\\|TD6CXJ5OM6IOSB5CX2GKP3RQTT2HQXXB674BYPVI5TFZD7PHEN5 \ / AMOS7 \ YOURUM ::
+#\[7]GYHON6UJV4OSQYZAOOA2CM77JJE3KZ4WLVK6MNETNU5YLHSBAUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

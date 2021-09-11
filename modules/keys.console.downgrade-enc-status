@@ -6,11 +6,15 @@
 
 my $name = shift;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
 
-return say sprintf "\n  << user-key %s not found >>\n", $name
-    if defined $name and not <[crypt.C25519.key_exists]>->($name);
+if ( defined $name and not <[crypt.C25519.key_exists]>->($name) ) {
+    say sprintf "\n  << user-key %s not found >>\n", $name;
+    <[base.exit]>->(qw| 0010 |);
+}
 
 my $key_encrypted = <[crypt.C25519.encrypted_key]>->($name);
 
@@ -29,12 +33,13 @@ if ( $key_encrypted < 0 ) {
     } else {
         $err_reason_str = 'undefined error';
     }
-    return printf "\n  << %s >>\n\n", $err_reason_str;
+    printf "\n  << %s >>\n\n", $err_reason_str;
     <[base.exit]>->(qw| 0110 |);
 } elsif ( $key_encrypted == FALSE ) {
-    return say sprintf
+    say sprintf
         "\n  :: private-key %s already marked as not encrypted  ::\n",
         $name;
+    <[base.exit]>->(qw| 0010 |);
 }
 
 my $key_filenames = <[crypt.C25519.key_vars]>->($name)->{'key_filename'};
@@ -76,7 +81,7 @@ if ( length($re_encoded_keystr) != 107 ) {
         'base32 [re-]encoding error [size=%d]',
         length($re_encoded_keystr)
     );
-    return;
+    <[base.exit]>->(qw| 0110 |);
 }
 
 my $target_file = sprintf qw| %s.enc-downgrade |, $keyfile_abs;
@@ -99,7 +104,7 @@ if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
         $err_reason_str, $target_file
     );
     unlink($target_file) if -f $target_file;
-    return;
+    <[base.exit]>->(qw| 0110 |);
 } elsif ( -f $target_file and not -z $target_file ) {
     if ( -x qw| /usr/bin/shred | ) {
         system( qw| /usr/bin/shred -fzu --random-source=/dev/urandom -n 42 |,
@@ -114,7 +119,7 @@ if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
             0,            'cannot overwrite target key file %s [ %s ]',
             $keyfile_abs, <[base.str.os_err]>
         );
-        return;
+        <[base.exit]>->(qw| 0110 |);
     }
 }
 
@@ -123,8 +128,8 @@ if (   not <[file.put_bin]>->( $target_file, $re_encoded_keystr )
 return printf "\n  ::[  private key %s now marked unencrypted  ]::\n\n",
     $name;
 
-#,,.,,.,,,,..,...,,,,,.,,,,..,..,,...,,,,,.,,,..,,...,.,.,,,,,,,,,...,,,.,..,,
-#H46AS7ENYW4YWTPNS6YVCRZMREIFWO4Q5OR5RB67PV2NOFUI52HU6AGLH6KHHAEJX5NLVA7D6WEJS
-#\\\|XOZXASOP2U3V4T4D6HV4IF6TB54E3BIGPPIBFUOHCCQ4J4HDXFX \ / AMOS7 \ YOURUM ::
-#\[7]V4BCB3BDNBSWVMMYV6HDOXLMHYOBRQRWOFOSG2O2OR2GFN26GWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,..,,.,.,,..,,..,...,,.,,..,,..,,...,...,..,,...,..,,.,,,.,,,
+#YGS5L553ETUHSQTTFC4FFFSJV7TYVKVPLCCB5GZVCPPZ5LVYUQC5MX6QCK34XQTOYOVZBHSMMIWA6
+#\\\|GMH5RYWNRPV3R5DGFYRTLKKQVNXM6CF3ZEQAGEWNYVNE5XAZJOC \ / AMOS7 \ YOURUM ::
+#\[7]5SCHQPLAMF5YGTDY3JT7UK5E4GDQIEJTQF7S6Y53E6NBWHDXRADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,10 @@
 
 my $name = shift;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
 
 my $key_status = <[crypt.C25519.encrypted_key]>->($name);
 
@@ -75,8 +77,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $chksum_str;
 
-#,,.,,,,.,...,.,,,,..,,.,,..,,,,.,,.,,.,.,.,,,.,.,...,...,,.,,.,,,.,.,,.,,,.,,
-#DMQ2JDDIUITQ2KNQCRV3MOQYHJTKTGYHDGDTR7NI22IEZTMDHVCIDYWQTKWM4B57GB7O7WRQNMYOW
-#\\\|4T4M2RJSNSX2XVHNEC3W4MFGRR3W27OJ2XTZLYXLHNW2HCYV3UX \ / AMOS7 \ YOURUM ::
-#\[7]M5L6UCRWLJN7SAXAIMJBEUBWUCQYE73WNIHXS4BU4HEKNRSFQKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,.,,,,.,,...,.,.,...,,,,,...,.,.,...,...,,.,,,..,,,,,.,.,,.,,
+#DHL3NFZU5S4CNOZIIAHFEASAC3AWO4F3HEA5QJPU4MQC3HPZ4F727B5VU3XKRZZF4LKBEHMZOAH22
+#\\\|N6YBDO6JOISPE6XRICOUS7S4HHERMF73WTFSGFOWW2KYBR3FEYE \ / AMOS7 \ YOURUM ::
+#\[7]5KWEYME7ROVXV2DAW77CH6Q7FXJYW2HOMYX4KR6XZ4RSKC25KOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
