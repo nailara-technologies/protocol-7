@@ -71,7 +71,6 @@ while ( not $TRUE ) {
 ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
 
 $keys{'C25519'}{$name} = {
-    qw|  name  |  => $name,
     qw| public |  => $public_key,
     qw| secret |  => $secret_key,     ##[  32B secret key  ]##
     qw| private | => $private_key,    ##[  C25519 private key  ]##
@@ -84,8 +83,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,,.,,..,,...,.,,,.,,,.,.,.,.,.,,,..,,.,.,..,,...,...,...,,,,,,,,,,..,,..,
-#URFOUETJ3UEEM2DMGRXTUAN7SF3Q7PJYYDCIAUQX4W3BFAXO5FCG5XYUHDHMGUJZJYTDORTTSDSHY
-#\\\|4TLHDZWJPIYCJJ76J367NZCPK6SCFZZRPFTLT2FIIZDCCVGFKOQ \ / AMOS7 \ YOURUM ::
-#\[7]ILVCUQ4KUCVBPTXW7HUVND7U2XQYIMUEKBKI5F45GSRDS2PFTQBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,,.,,..,,,,,,.,.,,,.,,..,...,..,,...,...,..,,.,,,,.,,,,,,...,
+#F63EBLGMNNMTLCAZ6NVFKWX7DAQJEYCLF6NQASCDFRBLXURJ2O2OUCI2MJVAOSVFQQ4L2GRAMTJMQ
+#\\\|PGQB3KODRIGM6WBFGO3YZLHGCKDLNXLBRBOQQNEG5CP325GX4R6 \ / AMOS7 \ YOURUM ::
+#\[7]QCO6E5SQIRLGEVXIOOFG2TRO7I7GIKOOR4CDUKW2ZV6AVVGDJEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

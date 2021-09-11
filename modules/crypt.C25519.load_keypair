@@ -1,12 +1,13 @@
 ## [:< ##
 
 # name = crypt.C25519.load_keypair
-# todo = load secret key [ and optionally pair from secret key ]
+# todo = also load secret key
 
 my $name_param         = shift;             ##  optional  ##
 my $key_password       = shift;             ##  optional  ##
 my $ask_for_password   = shift // TRUE;     ##  optional  ##
-my $pwd_retry_on_error = shift // FALSE;    ##  false  ##
+my $pwd_retry_on_error = shift // FALSE;    ##  optional  ##
+my $test_key_chksum    = shift;             ##  optional  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
 
@@ -16,6 +17,7 @@ my $name         = $key_vars_ref->{'key_name'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
 my $virtual_keyfile  = $key_filename->{'virtual'};
+my $secret_key_file  = $key_filename->{'secret'};
 my $public_key_file  = $key_filename->{'public'};
 my $private_key_file = $key_filename->{'private'};
 
@@ -89,6 +91,30 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
 
     return <[crypt.C25519.load_single]>->( $name, undef, qw| public | );
 
+} elsif (
+    -r $secret_key_file    ## load missing files from .secret ##
+    and not defined $key_password and not $ask_for_password
+    and not -r $public_key_file
+    and <[crypt.C25519.encrypted_key]>->($name)
+) {
+    <[base.logs]>->(
+        0, "cannot load '%s' secret key without decryption password ..,",
+        $name
+    );
+    return FALSE;
+
+} elsif (
+    -r $secret_key_file    ## load missing files from .secret ##
+    and ( not -r $private_key_file or not -r $public_key_file )
+    and (  defined $key_password
+        or $ask_for_password
+        or not <[crypt.C25519.encrypted_key]>->($name) )
+) {
+
+    return <[crypt.C25519.load_keys_from_secret]>->(
+        $name, $key_password, $pwd_retry_on_error, $test_key_chksum
+    );
+
 } elsif ( -r $private_key_file and -r $public_key_file ) {
 
     my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
@@ -100,10 +126,9 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     if ( not length $encoded_private_key or not length $encoded_public_key ) {
         <[base.logs]>->( 0, "cannot load '%s' key data ..,", $name );
         return FALSE;
-    } else {
-        chomp($encoded_public_key);
-        chomp($encoded_private_key);
     }
+    chomp $encoded_public_key;
+    chomp $encoded_private_key;
 
     ## decode [ base 32 ] ##
     $keys{'C25519'}{$name}{'private'} = decode_b32r $encoded_private_key;
@@ -164,64 +189,31 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
             say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'};
         }
 
-        my $dec_key_32 = AMOS7::13::key_32( \$key_password );
+        my $decrypted_C25519_sref = <[crypt.C25519.decrypt_priv_keystr]>->(
+            $keys{'C25519'}{$name}{'private'},
+            $key_password, $keys{'C25519'}{$name}{'public'}
+        );
 
-        <[base.logs]>->( ': decrypting private key ., [ %s ]', $name );
-
-        if ( not defined $dec_key_32 or not length $dec_key_32 ) {
-            warn 'error during file dec key derivation <{C1}>';
-            return undef;
-        }
-        my $status
-            = AMOS7::Twofish::key_init( $dec_key_32,
-            qw| decryption C25519 | );
-
-        if ( not defined $status or not $status ) {
-            warn 'error during initializing of '
-                . 'key file decryption key <{C1}>';
-            return undef;
-        }
-        my $decrypted_C25519_sref
-            = AMOS7::Twofish::decrypt( qw| C25519 |,
-            \$keys{'C25519'}{$name}{'private'} );
-
-        AMOS7::Twofish::delete_table_entry(qw| decryption C25519 |);
-
-        if (   not defined $decrypted_C25519_sref
-            or ref $decrypted_C25519_sref ne qw| SCALAR |
-            or not length $decrypted_C25519_sref->$* ) {
-            warn 'key decryption error <{C1}>';
-            return undef;
-        } elsif (
-            not <[crypt.C25519.compare_keypair]>->(
-                $keys{'C25519'}{$name}{'public'},
-                $decrypted_C25519_sref->$*, TRUE    ##[ silent ]##
-            ) // FALSE
-        ) {
-            <[base.log]>->( 1, ':' );
-            <[base.log]>->( 0, ': password is not correct ..,' );
-            <[base.log]>->( 1, ':' );
+        if ( not $decrypted_C25519_sref ) {
 
             undef $key_password;
 
-            goto RE_READ_PWD if $pwd_retry_on_error;
+            if ( defined $decrypted_C25519_sref
+                and $decrypted_C25519_sref eq FALSE ) {
+                ##[ password ]##
+                goto RE_READ_PWD if $pwd_retry_on_error;
+
+            }    ##  error during decryption  ##
 
             undef $keys{'C25519'}{$name}{'private'};
             delete $keys{'C25519'}{$name}{'private'};
 
             <[base.logs]>->( ": public key loaded ['%s']", $name );
             <[base.log]>->( 1, ':' );
-            return FALSE;
+            return $decrypted_C25519_sref;    ##  status undef \ FALSE  ##
         }
-        $keys{'C25519'}{$name}{'private'} = $decrypted_C25519_sref->$*;
 
-        ##  calculating key pair chksum  ##
-        ##
-        my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
-            $decrypted_C25519_sref->$*,
-            $keys{'C25519'}{$name}{'public'}
-        );
-        <[base.logs]>->( ': :. done. [ %s ]', $key_checksum );
+        $keys{'C25519'}{$name}{'private'} = $decrypted_C25519_sref->$*;
 
     } elsif ( defined $keys{'C25519'}{$name}{'private'} ) {
         ##[  verifying [ unencrypted ] key pair match  ]##
@@ -262,8 +254,8 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     return FALSE;    ##  false  ##
 }
 
-#,,..,...,,.,,.,.,...,,,,,,.,,,.,,..,,,.,,...,..,,...,...,,,,,,,,,,,,,,,,,.,,,
-#FOXLJX627GUZK2GMJ5G4CCWBU6PIOKB6ORADUGQ5O7KJ6SGO2ZZLRAMHXEGIQS544YLSDOS5HRILC
-#\\\|OWIARSU36YXWVEXT7W2IZDZIV5QKZHNCDSYAZAOKD6NOOESBVAN \ / AMOS7 \ YOURUM ::
-#\[7]CAKHA7NVCKUUPDQHKWLPADEXA3VHRWKCJWP6QYHH7JCKENVB42AY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,.,..,,.,,,...,..,,,,,,,.,,,,,,..,,...,...,.,,,,..,,.,,...,.,,,
+#D3WKL54H5VBPM74UIEWTM6G37NMXUZIITFPHXOHI2FIK4MDNF7IPWTE7WUYBC6TIXVP4NIUKCERAG
+#\\\|OIBEDSYITEWF53VOYLYVKKTV7L2DU5OYIRVTEUJWDULEMOU4QOS \ / AMOS7 \ YOURUM ::
+#\[7]2QGJSLTJZAEE54SV6RKDFXHXSMR7SNHE6YCFKKNJPAHAADDDW2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
