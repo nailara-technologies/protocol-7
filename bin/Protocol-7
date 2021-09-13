@@ -12,6 +12,7 @@ our %data;
 our %keys;
 our %colors;
 our @INDEXCUBE;
+our %signatures;
 our %p7_subroutines;
 
 p7_load_time_hires();
@@ -61,7 +62,7 @@ $data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
 ##  remove known parameters from <system.args>  ##
 ##
 if (@ARGV) {
-    my %remove_param = map { $ARG => TRUE }
+    my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE }
         qw| c B nc nb BK stdin console use-http-src export-core-subs |;
     $data{'system'}{'args'} = join ' ',
         grep { not exists $remove_param{$ARG} } @ARGV;
@@ -3762,8 +3763,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,...,.,.,.,.,..,,..,,,.,,.,.,,.,,,.,,..,,...,...,...,..,,,..,...,,,,,
-#IWBKZCDI3TTG6EPP5FC7TBPM64PNYPJXGQBAAESSQB4FZATU5FBN24JUL64LFNQCIHEVI67IHIZWU
-#\\\|KPMQDOIMLHJGXV344WZ47PTDKIC2JK76K4L2IKHBWO6D7WTHIV2 \ / AMOS7 \ YOURUM ::
-#\[7]E7GB6QELRUUII5GFCEFRK3HXZ7RHVJFSLKC6SKQSFFTBM3UPEIAI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,,,,.,,,,,.,,.,,,..,,.,,.,,,..,,...,...,,,,,.,,,,,,,.,.,,,.,
+#DPEUYKHC2AFBORTN5EPW4XTIJSPIDBPREVVRG7ZBQLWKZRK4FIEPCLQAEWXX3QJTRIPO3IACUBTJI
+#\\\|7O7SE3KGQSJIW4MRM7XQLB5QNVGJ4CSEZ7XPOG6BBWZQEZ2CNEA \ / AMOS7 \ YOURUM ::
+#\[7]LFFS6IQOBU55UEUO2SQ42FF3VKPSHFO6OXKI6EYNI6J6UORK2EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

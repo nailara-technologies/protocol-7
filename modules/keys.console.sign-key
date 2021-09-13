@@ -20,6 +20,17 @@ if ( not length $rkey_name ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
+my $signature_status    ##  check number of existing signature components  ##
+    = <[crypt.C25519.signature_exists]>->( $name, $rkey_name );
+
+if ( $signature_status == 3 ) {
+    say "\n  <<  requested key signature already exists  >>\n";
+    <[base.exit]>->(qw| 0010 |);
+} elsif ($signature_status) {
+    say "\n  << incomplete key signature present >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
 <[base.logs]>->( 1, "loading signature key '%s' .,", $rkey_name );
 
 if ( not <[crypt.C25519.load_keypair]>->( $rkey_name, undef, TRUE, TRUE ) ) {
@@ -27,10 +38,20 @@ if ( not <[crypt.C25519.load_keypair]>->( $rkey_name, undef, TRUE, TRUE ) ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
+my $rq_filename
+    = <[crypt.C25519.create_signature_request]>->( $name, $rkey_name, TRUE );
+
+if ( not defined $rq_filename ) {
+    say "\n  <<  failed to create signature request file  >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
 say sprintf "\n:: signing '%s'\n :", $name;
 
 ( my $status, my @created_files )
     = <[crypt.C25519.sign_keys]>->( $rkey_name, $name );
+
+unshift @created_files, $rq_filename;
 
 if ( not $status ) {
     say "\n  <<  key signing failed  >>\n";
@@ -42,8 +63,8 @@ if ( not $status ) {
     say " :\n ::\n";
 }
 
-#,,,,,,,,,.,.,.,,,.,.,..,,,,.,,..,,,.,,,.,,,,,..,,...,...,..,,...,..,,,,,,...,
-#I64CUCJP6P3W7LL2YBM3JKGCC6OSCKZFPSXL7L6MQ5XZKDKYLGDAE3F2VGJ4D7VJUPJICN5UNR4EA
-#\\\|3IQL6T2UJZZUUN5O6A6BCVTXCKNJ5YZSNEPLWUSURP7ONRS7DSZ \ / AMOS7 \ YOURUM ::
-#\[7]EEU7EHBM5ZW5I355S63AVNUPGEVVHHYAQBZHQCJGXXLBKDAQ6QCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,,.,,,..,,,,,.,,,...,...,,,,,..,,...,...,.,,,,.,,.,,,..,,.,,,
+#X65UOVHW566BZUG4MOK5A3NZCTHWUZSLO3FGLSNMMTRK2B7CZBIDVVYE5AOCFKHKROO7B5I2CIFYM
+#\\\|KAR6RE7YZO766X6HVFARZJB7FMWCTMJ4UHU4IM6VSEYVJN6WQH5 \ / AMOS7 \ YOURUM ::
+#\[7]26XSVE7CVZ5ZJS2U6GCE7ETWY6GFKOYHQUDK6G6ZPKWXHRJSNKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

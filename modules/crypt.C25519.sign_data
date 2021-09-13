@@ -3,37 +3,44 @@
 # name = crypt.C25519.sign_data
 
 my $msg_ref        = shift;
-my $key_name_param = shift;    ##  optional  ##
+my $requested_skey = shift;    ##  optional  ##
 
 if ( ref $msg_ref ne qw| SCALAR | ) {
     warn 'expected scalar ref to message-data <{C1}>';
     return undef;
 }
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
-my $key_name     = $key_vars_ref->{'key_name'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($requested_skey);
+my $skey_name    = $key_vars_ref->{'key_name'};
 
-<[base.s_warn]>->(
-    "found no public key named '%s' [ cannot sign data ]", $key_name
-    )
-    if not exists $keys{'C25519'}{$key_name}
-    or ref( $keys{'C25519'}{$key_name} ) ne qw| HASH |
-    or ( keys( $keys{'C25519'}{$key_name}->%* ) < 2
-    and exists $keys{'C25519'}{$key_name}{'root'} );
-
-if ( not defined $keys{'C25519'}{$key_name}{'private'} ) {
-    <[base.s_warn]>->( "private key '%s' is not loaded <{C1}>", $key_name );
+if ( not exists $keys{'C25519'}->{$skey_name} ) {
+    <[base.s_warn]>->(
+        "no key '%s' loaded [ cannot sign ] <{C1}>", $skey_name
+    );
+    return undef;
+} elsif ( not exists $keys{'C25519'}->{$skey_name}
+    or not exists $keys{'C25519'}->{$skey_name}->{'public'} ) {
+    <[base.s_warn]>->(
+        "found no public key named '%s' [ cannot sign data ] <{C1}>",
+        $skey_name
+    );
+    return undef;
+} elsif ( not exists $keys{'C25519'}->{$skey_name}->{'private'} ) {
+    <[base.s_warn]>->(
+        "private key '%s' not loaded [ cannot sign without ] <{C1}>",
+        $skey_name
+    );
     return undef;
 }
 
 return Crypt::Ed25519::sign(
     $msg_ref->$*,
-    $keys{'C25519'}{$key_name}{'public'},
-    $keys{'C25519'}{$key_name}{'private'}
+    $keys{'C25519'}->{$skey_name}->{'public'},
+    $keys{'C25519'}->{$skey_name}->{'private'}
 );
 
-#,,.,,.,,,,,.,..,,.,,,,..,,,,,.,.,,,,,,..,.,.,..,,...,...,..,,,,.,.,.,.,.,.,,,
-#65ZYUNVBJQY6F5MTAMHZVIJWYXOZXJYNR3Y23CYQ334KA25NNCRXPGRSFBDPXRTN752WQFWIDC7R4
-#\\\|5CGEZNYAEDCKY745PXQL47SOMY2NLFVMZHMBHEAQTN4H7J53KJV \ / AMOS7 \ YOURUM ::
-#\[7]J72LFQOFI3JYO6UJPGJ4L6DYKCOQL7H7WVUC6X36ZVNBJNCF3WCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,...,,.,,,,.,...,...,,,.,..,,..,,...,...,,,.,.,.,,,,,,.,,,.,,
+#RJW66IXHEICLTOHAKSYBDUUDKBNCOKZBCB2FZURVF5DAHRFV34G2YTVZUCSC2OWVAGIGZUXGID7I2
+#\\\|KVJRJAQ46QL3TVLB2TJ7YMJMFRLZV2MJQJ3PM54JBACF2MBFMQX \ / AMOS7 \ YOURUM ::
+#\[7]JDIAMKYWM4OZQDYO4OLDXII5JTOMQITZDEM4EQTJQCGNXVNO5SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

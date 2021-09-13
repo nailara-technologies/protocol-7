@@ -16,23 +16,22 @@ if ( not length $name ) {
     return undef;
 }
 
-##  returning .sig , .spk filenames when no base key name  ##
+##  returning .ks and .sk filenames when no base key name  ##
 ##
 if ( not length $rkey_name ) {
-    return map { sprintf qw| %s.%s |, $name, $ARG } qw| sig spk |;
+    return map { sprintf qw| %s.%s |, $name, $ARG } qw| ks sk |;
 }
 
 ( my $rkey_fname_str = uc $rkey_name ) =~ s|\.+|_|g; ##  converting . to _  ##
 $rkey_fname_str =~ s|__+|_|g;    ## cleaning up redundancy ##
 
-##  returning .sig.<NAME> , .spk.<NAME> filenames  ##
+##  returning .ks.<NAME> and .sk.<NAME> filenames  ##
 ##
 return
-    map { sprintf qw| %s.%s.%s |, $name, $ARG, $rkey_fname_str }
-    qw| sig spk |;
+    map { sprintf qw| %s.%s.%s |, $name, $ARG, $rkey_fname_str } qw| ks sk |;
 
-#,,.,,,.,,,..,,..,.,.,.,,,,,.,.,.,.,,,...,,,.,..,,...,...,.,,,.,.,,..,,.,,..,,
-#K7BMGPZRLA6CAJQOYJJKBR46DF734LEOJTOEPMVGFR3LTKVACHFJAA3HAK6D3HPFD6SDSY3DCBK3M
-#\\\|ZMTQ4KNAQOQK6C7EWEVKQEO5NRJXW55ZLSUG63HXRWNACM6ANCO \ / AMOS7 \ YOURUM ::
-#\[7]XOMDHNWRLIR6QF6JRMQ5DIKXJFXOX5HQX5O6VYUQQKTNUF7GE2DA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,..,..,,.,,,..,,..,,,,.,.,,,,,.,..,,...,...,..,,,,,,,,,,,,.,.,.,
+#4VB25HTKSRK6MKW4SJSRDAJOSCH22XI72XVO2HFOWAZTAHOFNS5NICZEUB6TQELBK6SLP7XYJCBCO
+#\\\|WI63IAF3CQYBXQJVXKBG55DDPO2Q36QF44ESZE5GUTBQCCAWX2M \ / AMOS7 \ YOURUM ::
+#\[7]U4TH4OCTEAETUN426UPP2BSZJV2RZPUN6Y4JVDZIYIHK5KTXNKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

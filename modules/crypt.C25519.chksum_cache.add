@@ -15,8 +15,9 @@ if ( not length $key_L13_chksum ) {
     return undef;
 }
 
-return FALSE                         ##  creates directory if missing  ##
-    if not defined $chkum_cache_file or <[crypt.C25519.chk_key_dir]> != TRUE;
+return FALSE
+    if not defined $chkum_cache_file    ##  creates directory if missing  ##
+    or not defined <[crypt.C25519.chk_key_dir]>;
 
 my $start_size = 0;
 $start_size = File::stat::stat($chkum_cache_file)->size
@@ -40,8 +41,8 @@ close($cache_fh)
 
 return File::stat::stat($chkum_cache_file)->size > $start_size ? TRUE : FALSE;
 
-#,,,,,,.,,...,.,.,.,.,.,,,,,,,,..,..,,,,.,.,.,.,.,...,...,...,.,,,.,,,...,..,,
-#3DN6U5FAYAHABY52JTTTYSTDVBFGYV4FZJRLCFJY43FAKCCZRKQHSJ5ALEPECJOG7JYEMH5IM5VAI
-#\\\|6FJQY5Y3TWITU7QT54NTUB5EPOD6YPGHVAQ3VOPFD3CZFTM7FDF \ / AMOS7 \ YOURUM ::
-#\[7]KQMTLMIRVMUIEREOYD3ADYAANU5MCNBMC65CZDTB2HGWQE4PSGAY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,..,,,,,..,,.,,,.,.,...,,.,,,.,,.,.,...,...,.,,,,.,,,..,...,,,,,
+#2FNEH6X2LWVF3CJFIRIP2MUAV2BYHGRUZZUMP4DY7BYH6GCVWPARUNBZUR7MNJ42KI5MMLIFZJ42E
+#\\\|TZIBTMDAU3OWPWW7VAB5R4227YTP6MBEW3TZWMZNZZO4JE52DFX \ / AMOS7 \ YOURUM ::
+#\[7]7S347F72BYI3FU56BWZQEPOVTHBXQ4MOORS4KWJ326LFXHHEGQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
