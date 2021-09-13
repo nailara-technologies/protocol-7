@@ -105,10 +105,14 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
     if ($display_sigs) {    ##  display signature [root] key names per key  ##
 
         foreach my $signature_key ( $key_signed_by{$name}->@* ) {
+            if ( <[crypt.C25519.signature_exists]>->( $name, $signature_key )
+                < 3 ) {
+                $signature_key .= '  [incomplete]'; ##  some files missing  ##
+            }
             $key_list_string .= sprintf " : %*s : %s\n", $names_len,
                 '', $signature_key;
         }
-        next;               ##  skip key filename listing  ##
+        next;    ##  skip key filename listing  ##
     }
 
     my $shown_chksum = FALSE;    ##  otherwise listing key files  ##
@@ -148,6 +152,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
     $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.:])
                          , $C{G}$+{n}$C{T},mgx;
+    $key_list_string =~ s<(\S+)  (\[incomplete\])>
+                         <$C{0}$C{b}$1$C{R}  $C{o}$2$C{R}>mg;
     $key_list_string =~ s|: signed \e\S+|$C{G}: signed :$C{T}|mg;
     $key_list_string =~ s|(\[ [^\]]+ \])|$C{G}$1$C{R}|mg;    ##[ no match ]##
     $key_list_string =~ s|'(.+)'|$C{G}'$C{T}$C{B}$1$C{R}$C{G}'$C{T}|mg;
@@ -161,8 +167,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,..,.,,,,,,,.,.,..,,.,,,,..,...,...,,,,,.,,,..,,...,..,,..,,.,,,...,.,,,..,,
-#NARFI5C7CV4ZRLVU34U2ZPEUVSGJ3EMTVCIUEAC5FYWQ6IEH6KBXTUILELNHFD5ITF5S2GD6HBWEU
-#\\\|BSINDNISFHKFAGWIWP7OLVWHQBNL6TRUWTSDDFYMA2W7IFO3UMV \ / AMOS7 \ YOURUM ::
-#\[7]IO2TDMIWSU3M7XAYB42JSTYW3F365OUV3T24AS76FQJSLLA3PSDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,,,,.,,,,.,,..,..,,.,.,,..,..,,..,,...,,..,...,.,.,,,.,.,.,,.,,
+#CQPMWJSCUTGE4JI6L263SV3C2SMT33MIU5G4SKST7ZWWYJBHCXSNWXR2Q2OF7IS5LTLC5VYZ4XSJ2
+#\\\|32R2AFSYMPHAO53HVGEQCEQOCFORIVAI6AXJEHEYBSZMJD57PEV \ / AMOS7 \ YOURUM ::
+#\[7]X7QPP46QEFJXOWXMJKZSXIOMXWXCR2TQOEGAOOIHESLZ42E2I2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

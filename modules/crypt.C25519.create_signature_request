@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = crypt.C25519.create_signature_request
+
+my $name             = shift // '';      ## key name ##
+my $rkey_name        = shift // '';      ##  signature key name  ##
+my $ask_for_password = shift // FALSE;
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+} elsif ( $name !~ <crypt.C25519.regex.key_name> ) {
+    warn 'key name param containing not valid characters <{C1}>';
+    return undef;
+} elsif ( $rkey_name !~ <crypt.C25519.regex.key_name> ) {
+    warn 'signature key name param containing not valid characters <{C1}>';
+    return undef;
+}
+
+( my $rkey_fname_str = uc $rkey_name ) =~ s|\.+|_|g; ##  converting . to _  ##
+$rkey_fname_str =~ s|__+|_|g;    ## cleaning up redundancy ##
+
+my $key_dir = <[crypt.C25519.chk_key_dir]>;
+
+my $rq_filename = sprintf qw| %s.rq.%s |, $name, $rkey_fname_str;
+my $rq_path_abs = catfile( $key_dir, $rq_filename );
+
+if ( not defined $key_dir or not -w $key_dir ) {
+    warn 'no writable key dir , cannot create signature request file <{C1}>';
+    return undef;
+} elsif ( -f $rq_path_abs ) {
+    <[base.s_warn]>->(
+        "signature request file '%s' already exists <{C1}>", $rq_filename
+    );
+    return undef;
+}
+
+<[base.log]>->( 1, "creating key signature request.," );
+<[base.logs]>->( ":. '%s' --> '%s'", $rkey_name, $name );
+
+my $req_timestamp = <[base.ntime.b32]>->( 1, TRUE );
+
+if ( not exists $keys{'C25519'}->{$rkey_name} ) {
+    <[base.log]>->( 1, ': loading signature key [ to sign with ] .,' );
+    <[crypt.C25519.load_keypair]>->(
+        $rkey_name, undef, ($ask_for_password) x 2
+    );
+}
+
+if (   not exists $keys{'C25519'}->{$rkey_name}
+    or not exists $keys{'C25519'}->{$rkey_name}->{'public'}
+    or not exists $keys{'C25519'}->{$rkey_name}->{'private'} ) {
+    <[base.logs]>->(
+        0, "signature key '%s' not loaded \\ complete..,", $rkey_name
+    );
+    <[base.log]>->( 0, ":, cannot create signature request.," );
+    return undef;
+}
+
+my $rkey_chksum = <[crypt.C25519.key_bin_checksums]>
+    ->( $keys{'C25519'}->{$rkey_name}->{'public'} );
+
+if ( not exists $keys{'C25519'}->{$name} ) {
+    <[base.log]>->( 1, ': loading target key [ to be signed ] .,' );
+    <[crypt.C25519.load_keypair]>->( $name, undef, ($ask_for_password) x 2 );
+}
+
+if (   not exists $keys{'C25519'}->{$name}
+    or not exists $keys{'C25519'}->{$name}->{'public'} ) {
+    <[base.logs]>->( 0, "no public key for '%s' loaded..,", $name );
+    <[base.log]>->( 0, ":, cannot create signature request.," );
+    return undef;
+}
+
+my $pkey_chksum = <[crypt.C25519.key_bin_checksums]>
+    ->( $keys{'C25519'}->{$name}->{'public'} );
+
+$pkey_chksum =~ s,<:|:>,,g;
+$rkey_chksum =~ s,<:|:>,,g;
+
+my $signature_req_template = sprintf "<%s:%s:%s>%%s\n", $req_timestamp,
+    $pkey_chksum,
+    $rkey_chksum;
+( my $signature_input_str = $signature_req_template ) =~ s|%s\n$||;
+
+my $signature_str
+    = <[crypt.C25519.sign_data]>->( \$signature_input_str, $rkey_name );
+
+if ( not defined $signature_str ) {
+    <[base.log]>->( 0, "signing of request failed ..," );
+    <[base.log]>->( 0, ":, cannot create signature request.," );
+    return undef;
+}
+
+<[file.put]>->(
+    $rq_path_abs,
+    sprintf( $signature_req_template,
+        Crypt::Misc::encode_b32r($signature_str) )
+);
+
+if ( not -f $rq_path_abs or -z $rq_path_abs ) {
+    <[base.log]>->( 0, "writing request file failed ..," );
+    <[base.log]>->( 0, ":, cannot create signature request.," );
+    return undef;
+}
+
+return $rq_filename;    ##[ success ]##
+
+#,,,.,.,,,,,.,,,,,...,,.,,,..,,.,,,.,,.,,,,,,,..,,...,...,...,,.,,,,,,,..,..,,
+#AESN35MFTFMISO2YKCGN7T457I5SYWFVPKOE3WVQBHKGJUPVU4QFKOKLI4HOXYC2VLC344EG6F2KY
+#\\\|A6APVUVVLBLXR2IPL3HESN2SZIBKVRL4F564EIG5PJFODNISTDZ \ / AMOS7 \ YOURUM ::
+#\[7]LZXLTKEZOKDAL7J6NP62JQORJWMQMCJIR7BSGU4DXR2YPUNVZABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
