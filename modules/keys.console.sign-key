@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = keys.console.sign-key
+# param = <rkey> <name>
+# descr = sign the public key <name> with root key <rkey>
+
+my ( $rkey_name, $name ) = split m|[\t ]+|, shift // '';
+
+if ( not length $rkey_name ) {
+    print "\n  << expecting root-key name param >>\n\n";
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( not defined $name ) {
+    return print "\n  << expected <key_name> parameter >>\n\n";
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( not <[crypt.C25519.key_exists]>->($rkey_name) ) {
+    printf "\n  << root key named '%s' not found >>\n\n", $rkey_name;
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( not <[crypt.C25519.key_exists]>->($name) ) {
+    printf "\n  << key with name '%s' not found >>\n\n", $name;
+    <[base.exit]>->(qw| 0010 |);
+}
+
+<[base.logs]>->( 1, "loading signature key '%s' .,", $rkey_name );
+
+if ( not <[crypt.C25519.load_keypair]>->( $rkey_name, undef, TRUE, TRUE ) ) {
+    say "\n  <<  no [signature] root key loaded  >>\n";
+    <[base.exit]>->(qw| 0110 |);
+}
+
+say sprintf "\n:: signing '%s'\n :", $name;
+
+( my $status, my @created_files )
+    = <[crypt.C25519.sign_keys]>->( $rkey_name, $name );
+
+if ( not $status ) {
+    say "\n  <<  key signing failed  >>\n";
+    <[base.exit]>->(qw| 0110 |);
+} else {
+    foreach my $file (@created_files) {
+        say sprintf " : created '%s'", $file;
+    }
+    say " :\n ::\n";
+}
+
+#,,,,,,,,,.,.,.,,,.,.,..,,,,.,,..,,,.,,,.,,,,,..,,...,...,..,,...,..,,,,,,...,
+#I64CUCJP6P3W7LL2YBM3JKGCC6OSCKZFPSXL7L6MQ5XZKDKYLGDAE3F2VGJ4D7VJUPJICN5UNR4EA
+#\\\|3IQL6T2UJZZUUN5O6A6BCVTXCKNJ5YZSNEPLWUSURP7ONRS7DSZ \ / AMOS7 \ YOURUM ::
+#\[7]EEU7EHBM5ZW5I355S63AVNUPGEVVHHYAQBZHQCJGXXLBKDAQ6QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

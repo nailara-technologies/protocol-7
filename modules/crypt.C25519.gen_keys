@@ -5,13 +5,23 @@
 my $secret_key;
 my $key_name_param      = shift;    ##  optional  ##
 my $key_seed_passphrase = shift;    ##  optional  ##
+my $secret_key          = shift;    ##  optional  ##
+
+my $harmoic_public_keys = TRUE;     ##  public key truth requirement  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
 my $name         = $key_vars_ref->{'key_name'};
 
 $keys{'C25519'} //= {};
 
-if ( exists $keys{'C25519'}->{$name} ) {
+if ( defined $secret_key and length($secret_key) != 32 ) {
+    warn 'secret key must be 32 bytes long';
+    return undef;
+} elsif ( defined $secret_key
+    and ( defined $key_seed_passphrase or defined $key_name_param ) ) {
+    warn 'secret key, passphrase and key_name are mutually exclusive';
+    return undef;
+} elsif ( exists $keys{'C25519'}->{$name} ) {
     <[base.s_warn]>->(
         "a C25519 key with name '%s' is already loaded [ skipped ]", $name
     );
@@ -32,28 +42,18 @@ if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
 ##
 $secret_key //= <[base.prng.bytes]>->(32); ##  when no passphrase supplied  ##
 
-my $TRUE = FALSE;                          ##  false  ##
+my $TRUE = $harmoic_public_keys ? FALSE : TRUE;  ##  need truth assertion?  ##
+
 my ( $public_key, $private_key );
 
-while ( not $TRUE ) {
+while ( not $TRUE ) {    ##  harmonic [ true ] public keys  ##
     <[event.once]>->(0.007);
     $public_key = Crypt::Ed25519::eddsa_public_key($secret_key);
 
-    $TRUE = TRUE    ## true ##
+    $TRUE = TRUE         ## true ##
         if AMOS7::Assert::Truth::is_true( \$public_key, FALSE, TRUE )
         and AMOS7::Assert::Truth::is_true( \encode_b32r($public_key),
         FALSE, TRUE );
-
-    $TRUE = FALSE    ##  additional requirements if seed entropy given  ##
-        if $TRUE
-        and defined $key_seed_passphrase
-        and (
-        not AMOS7::Assert::Truth::is_true( \$secret_key, FALSE, TRUE )
-        or not AMOS7::Assert::Truth::is_true(
-            \unpack( qw| B* |, $secret_key ),
-            FALSE, TRUE
-        )
-        );
 
     if ( not $TRUE and not defined $key_seed_passphrase ) {
 
@@ -70,11 +70,16 @@ while ( not $TRUE ) {
 
 ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
 
-$keys{'C25519'}{$name} = {
-    qw| public |  => $public_key,
-    qw| secret |  => $secret_key,     ##[  32B secret key  ]##
-    qw| private | => $private_key,    ##[  C25519 private key  ]##
+$keys{'C25519'}->{$name} = {
+    qw| public |      => $public_key,
+    qw| secret |      => $secret_key,     ##[  32B secret key  ]##
+    qw| private |     => $private_key,    ##[  C25519 private key  ]##
+    qw| time-loaded | => <[base.ntime.b32]>->( 1, TRUE )
 };
+
+##  already filled in at start  ##
+##
+SKIP_GENERATING:
 
 ##  lock key in memory to not never swap it to disk  ##
 IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 );
@@ -83,8 +88,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,..,,.,,,..,,,.,,.,,..,,,,,,.,.,,,.,,..,...,..,,...,...,..,,.,,,,.,,,,,,...,
-#F63EBLGMNNMTLCAZ6NVFKWX7DAQJEYCLF6NQASCDFRBLXURJ2O2OUCI2MJVAOSVFQQ4L2GRAMTJMQ
-#\\\|PGQB3KODRIGM6WBFGO3YZLHGCKDLNXLBRBOQQNEG5CP325GX4R6 \ / AMOS7 \ YOURUM ::
-#\[7]QCO6E5SQIRLGEVXIOOFG2TRO7I7GIKOOR4CDUKW2ZV6AVVGDJEDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,.,,,..,,..,,,..,...,...,.,.,..,,...,...,.,,,,..,,,,,...,,.,,
+#43DABHJMUCRPVTH3O2HDRYCOJRBSSJCYXWFXBGUZRFDCOIBJH2B336US3FCAWZVLXC2AKREIR32NA
+#\\\|GY7RHIKPC6BO72FLNHKCXU54RPCWIWKG5R2IPGT3SRFED7GMWGK \ / AMOS7 \ YOURUM ::
+#\[7]TZV3Y5KCEWLOONVYATFQXFI2ADF22HV4WQXFIPKDJRLX2BWX6OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

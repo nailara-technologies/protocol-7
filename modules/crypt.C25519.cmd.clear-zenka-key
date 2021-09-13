@@ -3,7 +3,7 @@
 # name  = crypt.C25519.cmd.clear-zenka-key
 # descr = erase C25519 zenka key from memory [secure]
 
-my $name = <crypt.C25519.key_vars.key_name>;
+my $name = <[crypt.C25519.key_vars]>->{'key_name'};
 my $id   = $call->{'session_id'};
 
 return { 'mode' => qw| false |, 'data' => 'C25519 key name is not defined' }
@@ -19,7 +19,7 @@ return {
     $id, $name
 );
 
-my $success_0 = <[crypt.C25519.del_keys_hash_entry]>->($name);
+my $success_0 = <[crypt.C25519.unload_key]>->($name);
 my $success_S = TRUE;
 
 ##  deleting session key if present  ##
@@ -30,7 +30,7 @@ if ( exists $keys{'C25519'}->{$session_keyname} ) {
         "[%d] :, also erasing session key '%s'.., [ from memory ]",
         $id, <system.zenka.name>
     );
-    $success_S = <[crypt.C25519.del_keys_hash_entry]>->($session_keyname);
+    $success_S = <[crypt.C25519.unload_key]>->($session_keyname);
 }
 
 if ( $success_0 and $success_S ) {
@@ -45,8 +45,8 @@ if ( $success_0 and $success_S ) {
     };
 }
 
-#,,,.,...,.,,,..,,.,.,,,.,.,.,,..,.,.,.,.,,.,,..,,...,...,.,.,...,..,,..,,...,
-#JIBPSFWCN5MJWI3NQHB7SRIENZZT7WJU7GUXZML27RLGP3O3EJDQYZNFL7HMWCV4P2DMC24CURXDO
-#\\\|SVL5LBEXMRN7G3DZJEAHHSMLFT3TUCZ5N5ZLG3KJGMTPS2AAVC5 \ / AMOS7 \ YOURUM ::
-#\[7]JOZNLURKK56A2RPR6TRE7XOK5VN4FATOUJR2JYV4JGOU6XLS3CDY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,.,,...,,..,,,,,.,,,..,,,,.,.,.,..,,...,...,,.,,,.,,...,,,.,.,,,
+#277M5IRZHNGCVIB2ROVVCMVO2YRYNH3MBYT53CPLVUYQDFJXS7ZRWRFUNONKVGLI6Z6NASXHAITTK
+#\\\|PHMSCMOILRSW22Y4L3LYZUK2GME6TJIH4SYOPX42ANHQVRHPKWD \ / AMOS7 \ YOURUM ::
+#\[7]JY2EKUVQK22IRLVLEAWSRZSM22VHSGX6QAB3YAJ4K3TVT7ADZEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

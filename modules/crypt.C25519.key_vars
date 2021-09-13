@@ -13,7 +13,7 @@ return <crypt.C25519.key_vars>
     );
 
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
-my $key_usr = <crypt.C25519.key_usr> // <system.amos-zenka-user> // $cur_usr;
+my $key_usr = <crypt.C25519.usr_name> // <system.amos-zenka-user> // $cur_usr;
 
 $key_usr = $cur_usr if $cur_usr ne qw| root | and $cur_usr ne $ENV{'USER'};
 
@@ -73,8 +73,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,..,...,.,.,,,.,.,.,,,,,.,,,.,,,,,,,,.,,,,,,..,,...,...,..,,..,,.,.,,..,,..,
-#DHKFJNFDE5AT5OZ4NEAK55CCGPL4XAZ4JYGMETB7GQ3FCASGCDX5G3M4WFJLBVU2TXLB54AESWFRC
-#\\\|4RRGRQTVM3QPDT2HHFKKQW5S4QX4WWR77MLLMOCGGNFBZAPD674 \ / AMOS7 \ YOURUM ::
-#\[7]VHHJMVT333CYFJW5H7UAXHVP4RDFQZGY7VYTZC7CX4O6JFDZNOAA 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,,,.,..,,...,,,.,,,.,.,,,..,,...,...,,..,..,,...,,..,,,.,
+#V7G32J6IF2JLJUNYY63CNIZKJCE5GDB42NL5FQDY53TYNB2CCFAGSVYKOVP4OF7Y3D6JFIZ3TPGMK
+#\\\|LYX7MS2RRJSTKB6FIIKUJLUIX5EWZ4Z2YRLDWW57KXTBY6ES4L6 \ / AMOS7 \ YOURUM ::
+#\[7]6S4MXEFA376WAAUR3PZ54QSU2HVMYETWWONC5XOQ2U2OKT26ZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
