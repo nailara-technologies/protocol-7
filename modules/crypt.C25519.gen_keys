@@ -17,9 +17,8 @@ $keys{'C25519'} //= {};
 if ( defined $secret_key and length($secret_key) != 32 ) {
     warn 'secret key must be 32 bytes long';
     return undef;
-} elsif ( defined $secret_key
-    and ( defined $key_seed_passphrase or defined $key_name_param ) ) {
-    warn 'secret key, passphrase and key_name are mutually exclusive';
+} elsif ( defined $secret_key and defined $key_seed_passphrase ) {
+    warn 'seed-passphrase and secret-key parameters are mutually exclusive';
     return undef;
 } elsif ( exists $keys{'C25519'}->{$name} ) {
     <[base.s_warn]>->(
@@ -30,7 +29,35 @@ if ( defined $secret_key and length($secret_key) != 32 ) {
 
 <[base.logs]>->( 2, "generating '%s' C25519 key pair ..,", $name );
 
-$secret_key = AMOS7::13::key_32( \$key_seed_passphrase, \$name )
+if (defined $secret_key    ##  'global-root' key  ##
+    and $secret_key eq qw| 00000000000000000000000000000000 |
+    ) {                    ##  filling in known values for speed-up  ##
+
+    my $public_key = Crypt::Misc::decode_b32r join '', qw[
+        DOSAOW3XZHR7WPWN4FONV5JCD4
+        6BANZ6MI7XWDQ665RWNMFPOE3Q
+    ];
+    my $private_key = Crypt::Misc::decode_b32r join '', qw[
+        TC3NCKDIFYUAW5FTETF
+        IFJV243UKH5YXJYDALP
+        6VF24ZJD5NRFCIKTWAR
+        53FF4ZAKXCKT4JLNGW5
+        JBIEQHMVAOT7EISVAFT
+        R2YJEMSA
+    ];
+    $keys{'C25519'}{$name} = {
+        qw| secret |      => $secret_key,
+        qw| public |      => $public_key,
+        qw| private |     => $private_key,
+        qw| checksum |    => qw| <:VAESDLQ:22HJMWY:> |,
+        qw| time-loaded | => <[base.ntime.b32]>->( 1, TRUE )
+    };
+
+    goto SKIP_GENERATING;
+}
+##
+
+$secret_key //= AMOS7::13::key_32( \$key_seed_passphrase, \$name )
     if defined $key_seed_passphrase;    ##  using entropy of key name  ##
 
 if ( defined $key_seed_passphrase and not length( $secret_key // '' ) ) {
@@ -88,8 +115,8 @@ IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
 
 return ( $keys{'C25519'}->{$name}, $name );    ##[ success ]##
 
-#,,,,,,,.,.,.,...,.,,,..,,..,,,..,...,...,.,.,..,,...,...,.,,,,..,,,,,...,,.,,
-#43DABHJMUCRPVTH3O2HDRYCOJRBSSJCYXWFXBGUZRFDCOIBJH2B336US3FCAWZVLXC2AKREIR32NA
-#\\\|GY7RHIKPC6BO72FLNHKCXU54RPCWIWKG5R2IPGT3SRFED7GMWGK \ / AMOS7 \ YOURUM ::
-#\[7]TZV3Y5KCEWLOONVYATFQXFI2ADF22HV4WQXFIPKDJRLX2BWX6OAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,,,,.,,.,,,,,,,...,,.,,,..,.,,,..,,...,...,.,,,.,,,.,.,.,,,,,,,
+#FRXQJMGNL3HDBVP5J3YW4SUT55QLH6JAKWMCWUGFRACBNJ5XAWDCIN4I5A3JPVNZ2SLTJNMVLDI4A
+#\\\|I5XFLWJKFGOIMHE2QEARG6OQOB3JJXHBLLCPLARNEJ7ZO37YK3Y \ / AMOS7 \ YOURUM ::
+#\[7]N74HE3F27RJHEXP6NYZ5XF4LRVFGEL4X6EPD74WIDIBMAGGLJAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

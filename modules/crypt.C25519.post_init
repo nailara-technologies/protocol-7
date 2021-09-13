@@ -14,6 +14,8 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $key_basepath = $key_vars_ref->{'key_basepath'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
+<crypt.C25519.cfg.create_global_root_key> //= TRUE; ##[ enabled by default ]##
+
 if ( not <crypt.C25519.auto_load_keys> //= TRUE ) {
     <[base.log]>->( 2, ': autoload disabled, skipped key loading .,' );
     <crypt.C25519.initialized>++;
@@ -67,6 +69,21 @@ while ( glob $key_basepath . qw| .{spk,sig}.* | ) {    ##  key signatures  ##
     }
 }
 
+if (    <crypt.C25519.cfg.create_global_root_key>
+    and <system.zenka.name> eq qw| v7 |  ## first zenka to start creates it ##
+    and not <[crypt.C25519.key_exists]>->(qw| global-root |)
+) {
+    if ( not exists $keys{'C25519'}->{'global-root'} ) {
+        <[base.log]>->( 1, "creating 'global-root' C25519 key .," );
+        <[crypt.C25519.gen_keys]>->(
+            qw| global-root |,    ##  from known secret key [ '0' x 32 ]  ##
+            undef, qw| 00000000000000000000000000000000 |
+        );
+    }
+    <[base.log]>->( 1, "writing 'global-root' key to disk..," );
+    <[crypt.C25519.write_keys]>->(qw| global-root |);
+}
+
 if ( defined <system.zenka.type>
     and <system.zenka.type> eq qw| cube | )    # <<< ! >>>
 {
@@ -79,8 +96,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,,,,,..,,.,,,..,.,,,,.,,...,...,,,,,,.,,.,,,..,,...,...,,,.,...,..,,,..,..,,
-#A5OOEAMAWHN34MSAYNVLNKILYGDFYG4QAXVAXURNMFAHXZIZHSAQUXRUVBI3MVYT7HTZNG77FIFFY
-#\\\|5SJI7HUJRCE56QGVD2KI7ALBTM6I3PIDHZAYKEQK67PYV3OIJB6 \ / AMOS7 \ YOURUM ::
-#\[7]776PHYAJAIIFLXTOHI2NPVBSTJSIYHGVNXQOD6SXGYYKUFM56GDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,.,,,.,.,..,,.,.,,,.,.,.,,..,..,,...,...,.,.,,..,,.,,.,.,..,,
+#YX7QWTQSQB7CRDGCCBF73VB5QAZCXTPAEEFT5I7TWXN3XVM5PAYALBBYT3OUQQP3B33WHSU76DVDO
+#\\\|RVSZQTHLOUKZFPR76DEBLKI7VU4TVP4FAJHANUFHXRJ77Q3WMQQ \ / AMOS7 \ YOURUM ::
+#\[7]CPPYKOCVO2LIZA4C7G6SWFV4JVB3SIUEV4M6ZZUXTKLFON72GYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
