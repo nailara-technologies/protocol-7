@@ -2,117 +2,136 @@
 
 # name = crypt.C25519.sign_keys
 
-my $key_name_param = shift;    ##  optional  ##
+my $rkey_name         = shift;    ##  signature key name \ base url  ##
+my $name_param        = shift;    ##  optional  ##
+my $ask_for_password  = shift // FALSE;    ##  optional  ##
+my $is_root_signature = shift // FALSE;    ##  optional  ##
+my $use_rkey_name     = shift // FALSE;    ##  optional  ##
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+##  requires auto-download of root key in url case  ##
 
-my $uid          = $key_vars_ref->{'uid'};
-my $gid          = $key_vars_ref->{'gid'};
-my $key_usr      = $key_vars_ref->{'usr_name'};
-my $key_name     = $key_vars_ref->{'key_name'};
-my $key_basepath = $key_vars_ref->{'key_basepath'};
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name_param);
 
-my $key_bin = $keys{'C25519'}{$key_name};
+my $uid     = $key_vars_ref->{'uid'};
+my $gid     = $key_vars_ref->{'gid'};
+my $key_usr = $key_vars_ref->{'usr_name'};
+my $name    = $key_vars_ref->{'key_name'};
+my $key_dir = $key_vars_ref->{'key_dir'};
 
-if ( defined <crypt.C25519.root_key_url> ) {
-    my $root_key_name;
-    my %root_key = ( qw| private | => '', qw| public | => '' );
+my @fname_param = $name;
+push @fname_param, $rkey_name if not $is_root_signature or $use_rkey_name;
 
-    ## DOWNLOAD IF URL ## ( todo : implement local file case )
-    if ( <crypt.C25519.root_key_url>
-        =~ m{^https?://.+/([^/]+)\.(secret|public)$} ) {
-        $root_key_name = ${^CAPTURE}[0] // '';
-        my %root_key_url = mep { $ARG => <crypt.C25519.root_key_url> . $ARG }
-        qw| secret public |;
+( my $sig_file_path, my $root_pkey_path )
+    = map { catfile( $key_dir, $ARG ) }
+    <[crypt.C25519.sig_fnames]>->(@fname_param);
 
-        require LWP::UserAgent;    # use download zenka later, needs blocking
-        my $ua = LWP::UserAgent->new();
-
-        foreach my $type (qw|  private  public  |) {
-            <crypt.C25519.download_type> = $type;
-            <[base.logs]>->( ": downloading '%s' ..,", $root_key_url{$type} );
-            my $response = $ua->get( $root_key_url{$type} );
-            if ( not $response->is_success ) {
-                map { delete $root_key{$ARG} } (qw|  private  public  |);
-                my $reason = $response->status_line;
-                <[base.logs]>->(
-                    0,                    "<< download [ %s ] %s >>",
-                    $root_key_url{$type}, $reason
-                );
-                <[base.log]>->(
-                    0,
-                    '<< ! >> key signing aborted '
-                        . '[ error during download ] << ! >>'
-                );
-                return -2;
-            } else {
-                chomp( $root_key{$type} = $response->decoded_content );
-            }
-        }
-        ##
-
-        my $rkst
-            = length($root_key_name)
-            ? sprintf( " '%s'", $root_key_name )
-            : '';
-
-        my $rk_priv_len = length( $root_key{'private'} );
-        if ( length( $root_key{'public'} ) != 43 or $rk_priv_len != 86 ) {
-            <[base.log]>->(
-                0,
-                "<< ! >> root key not valid <<!>> key signing aborted << ! >>"
-            );
-
-            # LLL: log reason ..,
-            goto skip_sign;
-        }
-        <[base.logs]>->(
-            0, ': signing C25519 key pair with%s root key ..,', $rkst
-        );
-        my $sig_file_path = sprintf qw| %s.sig |, $key_basepath;
-        $sig_file_path .= sprintf( qw| .%s |, $root_key_name )
-            if length $root_key_name;
-        <[file.put]>->(
-            $sig_file_path,
-            encode_b32r sprintf(
-                "%s\n",
-                Crypt::Ed25519::sign(
-                    sprintf( "%s\n", $key_bin->{'public'} ),
-                    decode_b32r( $root_key{'public'} ),
-                    decode_b32r( $root_key{'private'} )
-                )
-            )
-        );
-        if ( -f $sig_file_path and -r $sig_file_path ) {
-            <[base.logs]>->( ': : %s', $sig_file_path );
-            (   my $root_pkey_path = join qw| . |,
-                $key_basepath, qw| rkp |, $root_key_name
-            ) =~ s|\.$||;
-            <[file.put]>->(
-                $root_pkey_path, sprintf( "%s\n", $root_key{'public'} )
-            );
-            <[base.logs]>->( ": : %s", $root_pkey_path );
-            return TRUE;
-        } else {
-            <[base.log]>->( 0, "<< unable to sign public host key >>" );
-            return -1;
-        }
-    skip_sign:
-        substr( $root_key{'private'}, 0, $rk_priv_len,
-            <[base.prng.characters]>->($rk_priv_len) );
-        map { undef $root_key{$ARG} } (qw|  private  public  |);
-    } else {
-        <[base.log]>
-            ->( 1, ': unrecognized root key url, skipped signing..,' );
-        return -1;
-    }
-} else {
-    <[base.log]>->( 1, ': no root key url defined, skipped key signing..,' );
-    return FALSE;
+if ( not exists $keys{'C25519'}->{$rkey_name} ) {
+    <[base.s_warn]>->(
+        "signature key '%s' not loaded, cannot sign <{C1}>", $rkey_name
+    );
+    return undef;
 }
 
-#,,,.,..,,,,,,,,,,,,.,,,,,,,,,...,...,,,.,,.,,..,,...,...,...,...,.,.,.,,,..,,
-#G5VKLBQ5FXYWNZWYCLCN5ZKAK6TRBP74WRRXMMFJ7PH6RLTBASFNP4J44GMNXDNH6JWKG5LULGF76
-#\\\|ZABFVJQOF7O2ZXGKZHEKFBIH3UDPQIB52ULBO6HQQIRVOUHVLQY \ / AMOS7 \ YOURUM ::
-#\[7]PHG6FZ26DCFA7ZMZHKYLW2OSYEFNSPRYRSFZ54WK4B3EO4GE5YAA 7  DATA SIGNATURE ::
+if ( not exists $keys{'C25519'}->{$name} ) {
+    my @passwd_otps = ($ask_for_password) x 2;
+    <[base.logs]>->( 1, "loading target key '%s' .,", $name );
+    if ( not <[crypt.C25519.load_keypair]>->( $name, undef, @passwd_otps ) ) {
+        <[base.s_warn]>->(
+            "target key '%s' not found \ loaded, cannot sign <{C1}>", $name
+        );
+        goto skip_sign;
+    }
+}
+
+if ( not defined $keys{'C25519'}->{$name}->{'public'} ) {
+    <[base.s_warn]>->(
+        "target key '%s' has no public key loaded .., <{C1}>", $name
+    );
+    goto skip_sign;
+}
+
+foreach my $type (qw| private public |) {
+    next if defined $keys{'C25519'}->{$rkey_name}->{$type};
+    <[base.s_warn]>->(
+        "signature [root] key '%s' has no %s-key loaded ., <{C1}>",
+        $rkey_name, $type
+    );
+    goto skip_sign;
+}
+
+if ( -f $sig_file_path ) {
+    <[base.logs]>->(
+        0,          "a signature file ['%s'] for key '%s' already exists .,",
+        $rkey_name, $name
+    );
+    goto skip_sign;
+} elsif ( -f $root_pkey_path ) {
+    <[base.logs]>->(
+        0, "root key pub key file ['%s'] for key '%s' already exists .,",
+        $rkey_name, $name
+    );
+    goto skip_sign;
+}
+
+<[base.logs]>->( ": signing key '%s' with key '%s'..,", $name, $rkey_name );
+
+<[file.put]>->(
+    $sig_file_path,
+    sprintf(
+        "%s\n",
+        Crypt::Misc::encode_b32r(
+            Crypt::Ed25519::sign(
+                $keys{'C25519'}->{$name}->{'public'},
+                $keys{'C25519'}->{$rkey_name}->{'public'},
+                $keys{'C25519'}->{$rkey_name}->{'private'}
+            )
+        )
+    )
+);
+
+if ( -f $sig_file_path and -r $sig_file_path ) {
+    <[base.logs]>->(
+        ": :. writing '%s' .,",
+        <[file.strip_path_str]>->($sig_file_path)
+    );
+    <[file.put]>->(
+        $root_pkey_path,
+        sprintf(
+            "%s\n",
+            Crypt::Misc::encode_b32r(
+                sprintf( "%s\n", $keys{'C25519'}->{$rkey_name}->{'public'} )
+            )
+        )
+    );
+    <[base.logs]>->(
+        ": :. writing '%s' .,",
+        <[file.strip_path_str]>->($root_pkey_path)
+    );
+
+    undef $keys{'C25519'}->{$rkey_name};
+
+    ##[ deleting keys from memory ]##
+    <[crypt.C25519.unload_key]>->($rkey_name);
+
+    if (wantarray) {    ##  also return created filenames in list context  ##
+        return ( TRUE, grep {s|^$key_dir/||} $sig_file_path,
+            $root_pkey_path );
+    } else {
+        return TRUE;
+    }
+} else {
+    <[base.log]>->( 0, '<< key signing failed >>' );
+}
+
+skip_sign:
+
+##[ deleting keys from memory ]##
+<[crypt.C25519.unload_key]>->($rkey_name);
+
+return FALSE;
+
+#,,..,...,,.,,,,,,..,,...,.,.,,..,,..,,.,,.,.,..,,...,...,..,,,,.,,.,,,,.,.,.,
+#LHEQKNPIHXTKQUU3UHNEE4VQ4TFLBIYLXW5JBQGN6DR5GU2TQD2PVQQKT3LR4MRC2MB2KUEL7UNNU
+#\\\|KPBMJJLJH2RRP3SZKQPI3WOSUZIDSFLPJUUQXXALZU3RHAHRLIW \ / AMOS7 \ YOURUM ::
+#\[7]I3RJIWCHXCKUG6UUURURTYI3HF5UXJMUTCHI54V3NMFSUJEFSUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

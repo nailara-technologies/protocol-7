@@ -34,15 +34,28 @@ undef $usr_key;
 delete $keys{'C25519'}->{$name} if not keys $keys{'C25519'}->{$name}->%*;
 delete $keys{'C25519'}          if not keys $keys{'C25519'}->%*;
 
+my $key_name_table = <crypt.C25519.loaded-keys> //= {};
+
+if ( not exists $keys{'C25519'}->{$name} and exists $key_name_table->{$name} )
+{
+    <[base.erase_buffer_content]>    ##  erasing key chksum from memory  ##
+        ->( \$key_name_table->{$name}->{'checksum'} );
+    $key_name_table->{$name}->{'checksum'} = undef;
+    ##  removing name from table  ##
+    delete $key_name_table->{$name};
+}
+
 return TRUE    ##  success  ##
-    if @ARG and ( not exists $keys{'C25519'}
-    or not exists $keys{'C25519'}->{$name} )
-    or @ARG and $delete_count == @ARG;
+    if not exists $keys{'C25519'}
+    or not exists $keys{'C25519'}->{$name}
+    or @ARG and $delete_count == @ARG;    ##  <-- improve reporting if not  ##
 
-return FALSE;    ##  hash read-only?  ##
+##  hash read-only?  ##
+##
+return FALSE;
 
-#,,.,,...,,.,,,,,,,,.,,..,...,.,.,,,.,,..,,..,..,,...,...,...,.,,,,..,,..,,.,,
-#QXXEQ5LPBPEN5AM7JM7DLD2FOCOR6SFX664MGLLLLRAMHUTWZT7LIIKJCMLGG7IZBQAPWGKGGIZQG
-#\\\|2TFNJ7MZTIQ6CHJWC3TSMDD5H64WPDRCFA3VCCZZV7U2KMIZYIV \ / AMOS7 \ YOURUM ::
-#\[7]QNM4EEDGH4NUUGJB3FZ7GEYDWZOMBBKNOPQNFID2IDXHQ3SIO2BA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,..,,.,.,,,.,,,.,,,,,...,,,,,..,,...,...,..,,...,.,,,,..,.,,,
+#UFVIGWWBZ3M2ZGEFWEAXLPDIDNKPZKUEWJZ7N6GO36XDQGLEL7DKV6PCVLBD24CQYTEQZ6SWXOLFW
+#\\\|PW6PAAPDYFFH37AR3K7W2IGSQTTAFLIIG62XKX6MTJPDXNJZOTH \ / AMOS7 \ YOURUM ::
+#\[7]MN4NECMTCGZBQYUK5VQTBP47VT2PKCWEU6Y6MMB7IXK7T7TMRUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.file.strip_path_str
+# descr = strip path prefix and return result string [ file or dir name ]
+
+my $path_str = shift // '';
+
+if ( not length $path_str ) {
+    warn 'expecting file path parameter <{C1}>';
+    return undef;
+}
+
+$path_str =~ s|^.*/(*pla:[^/])||;
+
+return $path_str;
+
+#,,.,,,,,,.,,,,.,,.,,,,,.,...,,.,,.,.,,,,,.,.,..,,...,...,,.,,...,,,.,,.,,,,.,
+#QZYO55LIVZWMTNFBOKKBOLGX2S7SVHZ7UFZPWILKFTDNIUKTRCM2XGDEULL7XO5HTCYKNGRT65WEA
+#\\\|3DF73QYRNXWVRU6LERDSRXHVFB3JUJXTE5FIUUGNZXNN74SKWGW \ / AMOS7 \ YOURUM ::
+#\[7]GSDRACU5WS62RUCMWKEFLPMBQ6UWLAD33VFHBYBDWPJ7VA6XY2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
