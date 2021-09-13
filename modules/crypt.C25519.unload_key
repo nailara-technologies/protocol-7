@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = crypt.C25519.unload_key
+
+my $name          = shift // '';       ## C25519 key name ##
+my $silent_unload = shift // FALSE;    ##  optional  ##
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+}
+
+$keys{'C25519'} //= {};
+<crypt.C25519.loaded-keys> //= {};
+
+return FALSE                           ##  key is already gone  ##
+    if not exists $keys{'C25519'}->{$name}
+    and not exists <crypt.C25519.loaded-keys>->{$name};
+
+return <[crypt.C25519.del_keys_hash_entry]>->( $name, $silent_unload );
+
+#,,.,,..,,,.,,...,..,,.,.,,..,,,,,,,.,..,,,,,,..,,...,...,.,,,,,,,...,,,,,,..,
+#GD7E3X3NDJ4YXZZPRPFYUBXIG2TQCMCF5DC4LUL5WBOH5CN4IT7L53WVIPEBN3QXSO2PNY5DSME4G
+#\\\|XB2QZ6ORFD4XNFQNS7OQ27BNI7S4PRBQLOYUSAYS4I5ICXMQ2FI \ / AMOS7 \ YOURUM ::
+#\[7]Z3P57U37UF45MWH7OFQ5NKYLZBOJMWR3VV2HPQALEK6QCM7ZICBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

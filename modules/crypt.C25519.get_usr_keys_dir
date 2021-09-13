@@ -15,7 +15,7 @@ if ( not defined $requested_user ) {
 
     my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
 
-    $requested_user = <crypt.C25519.key_usr> // <system.amos-zenka-user>
+    $requested_user = <crypt.C25519.usr_name> // <system.amos-zenka-user>
         // $cur_usr;
 
     $requested_user = $cur_usr
@@ -31,8 +31,8 @@ $key_dir  //= sprintf( qw| %s/.n/user-keys |, $home_dir );
 
 return $key_dir;
 
-#,,,.,...,,.,,,,.,,,.,,.,,.,,,.,.,..,,,..,,,.,..,,...,...,.,,,.,.,,.,,,..,.,,,
-#ZNTRF2UD5FC4KRWIP5ST72XUV4CZ2CCTL2E4LT3WYOWGGT3OJL6ZE2VHRDBPLDMZTJUW3G73OTOJ6
-#\\\|XEIS5LR5AXHHT42TB3LWNWRDPSKFDNFYSAEWOJCFC4YGIMIIHS3 \ / AMOS7 \ YOURUM ::
-#\[7]UM3KHNM6SGKNFXI6OQMUCCDWEW6GKAU6GK5SPFKK4IIYD7JFAOAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,..,,,,,,,.,...,,..,.,,,...,..,,...,...,..,,...,,..,,.,,,..,
+#EDOC6IVNP3JIANZN2IXDIRZ5TJ2VWYBYGXFB2GCE3ZMDUSVSCLMZA5S4VVVX4TEWGEHME54LZJ5ES
+#\\\|BH3KJ33VGCIBVZFXNRLFGI5PBFXMQMQUH7X3FH56YDLG3YZ6YPI \ / AMOS7 \ YOURUM ::
+#\[7]SS5SBXOXI66KVAIOBVQIV5ONDI2BEU52M2IX3TTJATBVFLDMVWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

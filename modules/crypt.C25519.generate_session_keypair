@@ -10,7 +10,7 @@ my $name_str
     = $name eq <system.zenka.name> ? qw| zenka | : sprintf qw| '%s' |, $name;
 
 ## regenerate? <-- log level 2 [ less noise on timer interval ]
-my $log_level = exists $keys{'C25519'}{$session_keyname} ? 2 : 1;
+my $log_level = exists $keys{'C25519'}->{$session_keyname} ? 2 : 1;
 
 <[base.logs]>->( $log_level, ':[ creating %s session keys ]', $name_str );
 
@@ -18,7 +18,7 @@ my $log_level = exists $keys{'C25519'}{$session_keyname} ? 2 : 1;
 ##
 my $sigkey_name = <[crypt.C25519.key_vars]>->{'key_name'};
 foreach my $type (qw| private public |) {
-    next if exists $keys{'C25519'}{$sigkey_name}{$type};
+    next if exists $keys{'C25519'}->{$sigkey_name}->{$type};
     <[base.s_warn]>->(
         "%s %s-key not loaded [ aborting session key gen ] <{C1}>",
         $sigkey_name, $type
@@ -26,30 +26,44 @@ foreach my $type (qw| private public |) {
     return undef;
 }
 
-my ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair();
+$keys{'C25519'} //= {};
 
-my $creation_ntime      = <[base.ntime.b32]>->(3);
+if ( exists $keys{'C25519'}->{$session_keyname} ) {
+    <[crypt.C25519.unload_key]>->( $session_keyname, TRUE );    ##[ silent ]##
+}
+
+<[crypt.C25519.gen_keys]>->($session_keyname);
+
+##  [ already reported ] error while generating keys  ##
+return undef if not exists $keys{'C25519'}->{$session_keyname};
+
+my $generated_key = $keys{'C25519'}->{$session_keyname};
+
+my $public_key     = $generated_key->{'public'};
+my $creation_ntime = $generated_key->{'time-loaded'};
+
 my $template            = sprintf qw< [%s|%%s] >, $creation_ntime;
 my $signature_input_str = sprintf $template, $public_key;
 my $key_sig = <[crypt.C25519.sign_data]>->( \$signature_input_str );
 
-$keys{'C25519'}{$session_keyname} = {
-    'name'      => $name,
-    'public'    => $public_key,
-    'private'   => $private_key,
-    'created'   => $creation_ntime,
-    'signature' => $key_sig,
-    'key-reply' => Crypt::Misc::encode_b32r($public_key),
-    'sig-reply' => sprintf( $template, Crypt::Misc::encode_b32r($key_sig) )
-};
+if ( not defined $key_sig ) {
+    <[crypt.C25519.unload_key]>->($session_keyname);
+    warn 'aborted session key generation [ signature ] <{C1}>';
+    return undef;
+}
 
-##  lock key in memory to not never swap it to disk  ##
-IO::AIO::aio_mlock( $keys{'C25519'}{$session_keyname}{'private'}, 0, 64 );
+$generated_key->{'signature'} = $key_sig;
+$generated_key->{'key-reply'} = Crypt::Misc::encode_b32r($public_key);
+$generated_key->{'sig-reply'} = sprintf $template,
+    Crypt::Misc::encode_b32r($key_sig);
 
-return $keys{'C25519'}{$session_keyname};
+undef $generated_key;    ## remove ref count ##
 
-#,,..,.,,,,.,,.,,,.,,,...,.,.,...,...,,,,,,,.,..,,...,...,.,.,...,,,.,,.,,.,,,
-#X5JIVAELTTVSH2PIRSJWOZNM5F6DBKOPZOJWDEPD76TFW5TIEWX7X7ITX7JCPQ3XH3VOFHYSJRJLM
-#\\\|57VMERISIICX5GJ7X5Y6ESCZYZX6MSOCAE2MRK23S4GHACSTXXB \ / AMOS7 \ YOURUM ::
-#\[7]RVA4MK5CW6U4CEDOHJMGUR4JXHDOVLQW7BCV76SQKXH4YITAU4BQ 7  DATA SIGNATURE ::
+##  returning ammended key hashref  ##
+return $keys{'C25519'}->{$session_keyname};    ##[ success ]##
+
+#,,,,,.,.,,..,,.,,..,,,,,,,..,,,.,.,,,,.,,.,,,..,,...,...,,..,,.,,,..,...,,,,,
+#BAOLSISX3LGVHKM7AND6ARUKEW7J2RMHT6XHXAZKDSX7STF5HY3H2KKXAK6YW3J472ATODEVPRMHQ
+#\\\|4CKNRT4VMZU4GABGA2WTBEIZXL355RY6KZQICOJ2P3E27LEGOLQ \ / AMOS7 \ YOURUM ::
+#\[7]OGUT6FCLL2MVIO3NPEPWBQB6IVNYXUGUGQ2L7OXLHIDJBTWU4MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

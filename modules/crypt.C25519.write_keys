@@ -180,7 +180,7 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     ##  erase keys from memory  ##
     ##
     if ($erase_keys) {
-        <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );  ##[ silent ]##
+        <[crypt.C25519.unload_key]>->( $name, TRUE );    ##[ silent ]##
     }
 
     ##[  return status and key chksum  ]##
@@ -191,14 +191,14 @@ if (wantarray) {    ##  return key[s] checksum in list context  ##
     ##  erase keys from memory  ##
     ##
     if ($erase_keys) {
-        <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );  ##[ silent ]##
+        <[crypt.C25519.unload_key]>->( $name, TRUE );    ##[ silent ]##
     }
 
     return $keywrite_status;    ## return write success status ##
 }
 
-#,,,,,.,,,...,,.,,..,,.,.,.,,,,.,,.,.,,,.,..,,..,,...,...,..,,,.,,..,,,,,,,.,,
-#CZJ7ZH6ZTHSOXYGY4F6GPLMYFEQQXXEJXROU5UQQXEHWYWG7OQNEDPOULV6D7BRZ2MVIRUFZHZWNG
-#\\\|JKEOZZJKBHZFOATAL2KZRWL3KAMNMHKEHTR6UANTQRU2EF2IZA7 \ / AMOS7 \ YOURUM ::
-#\[7]PVQECEOBLXFWDY3H62DITQLR2L75UAHW4SDUIWQ6J5TRRFSCAQCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,.,,,..,,.,.,,,.,,..,,,,,,,,,..,,...,..,,,,,,..,,,..,,.,,..,,
+#IOB6W3A3JKO27RDUDI5PSOJXAMWFMMJBNZK4D2JP4BRP7UMPI5Q6WOM7FJRRWK73CB6UGRQV6YDQG
+#\\\|POOGSORKAZMPGEVEZ7NHHYD3J3RU6GI74RQTT4KSQG3AS75IGCJ \ / AMOS7 \ YOURUM ::
+#\[7]KSNP3X3CDGMYIKPYMCT3NVO37SW3GSYHQBP5SMCCNVZLKSX2MEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

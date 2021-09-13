@@ -85,14 +85,17 @@ $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
 
 undef $key_ref;
 if ( not $key_loaded and keys $key_ref->%* ) {    ##  unloading  ##
-    <[crypt.C25519.del_keys_hash_entry]>->( $name, TRUE );
+    <[crypt.C25519.unload_key]>->( $name, TRUE );    ##[ silent ]##
+} else {    ##  storing chksum in %keys hash  ##
+    $key_ref->{'checksum'} = $key_checksum;
+    <crypt.C25519.loaded-keys> //= {};
+    <crypt.C25519.loaded-keys>->{$name}->{'cheksum'} = $key_checksum;
 }
-delete $keys{'C25519'} if not keys $keys{'C25519'}->%*;
 
 return $key_checksum;
 
-#,,..,,,.,,,.,..,,,,.,,,,,,,.,,,,,.,.,,,,,,,,,..,,...,..,,,..,.,.,,,,,...,,..,
-#M3TLZHNH4WIQRPFRLMT4S2KBCBKHXQBUVQM2SN425YJ6SROJVKAA4LCDWQXFH5553SEWXZ2E7KMGQ
-#\\\|PPZ3UPOVTCR5KPE4D4BCTK6V24T2I7KWLURRXD47H7IGHD6YBFU \ / AMOS7 \ YOURUM ::
-#\[7]LST3DNIHWYCX633A2A6ZZU4Q4USAUZYK2LQ3QRRUEOCRLTLFOUDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,.,...,..,,...,,.,,..,,..,,,.,,..,,...,.,,,...,,,.,.,,,.,,,.,.,
+#7FBKW56RGKTHDHL6E5VDLND3SSTFNMC7ZSVQE2KVLSRPUFODSK3DL2BFA5JPPB5YG4ZGJZG2WDHVY
+#\\\|KCTMUM6YXGIMHCS7UBSBQQIHO3DZBFFW4Q7IYD57BHDMM3BFRKP \ / AMOS7 \ YOURUM ::
+#\[7]4Q676NEXQUISFRFGMZIVLDGMKS7I7GNGBSL3NDC3Y2XI7DQD7GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
