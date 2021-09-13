@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use v5.24;
+use English;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+our $up_dir    = File::Spec->updir;
+our $Bin       = $RealBin;
+our $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+
+say sprintf qw| %s/ |, $root_path;    ##  protocol-7 sourcecode root path  ##
+
+sub c_dir  { File::Spec->catdir(@ARG) }
+sub c_file { File::Spec->catfile(@ARG) }
+sub r2_abs { File::Spec->rel2abs(@ARG) }
+
+#,,,,,...,,..,,.,,,,.,,,.,..,,.,,,,,.,,,.,,..,..,,...,...,...,.,,,..,,..,,,.,,
+#4FSBON3C7VNVY2BOPIMJLKDEQEFIKIZZQJZFBDDSXQ5BTOGI4SBGZGCIOPXTNW5J6DNNQBACS2Q5Y
+#\\\|JTL36F5BDXHALJDTNT6HP6JUL6QCYWBNIOTTY7YXYIVXMS2MTBF \ / AMOS7 \ YOURUM ::
+#\[7]OUYLMCA53YZPTRSP26KGEIDWWQYK4LG2LM24DKTKJGK3BZ2Q5OCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
