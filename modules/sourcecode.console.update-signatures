@@ -7,7 +7,10 @@ my $command_params = shift // '';
 
 my $sign_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
 
-$sign_verbosity = 0 if $command_params =~ s| *:sign-silent: *| |;
+$sign_verbosity = 0
+    if $command_params =~ s| *:sign-silent: *| |
+    or exists $ENV{'SIGN_SILENT'}
+    and <[base.cfg_bool]>->( $ENV{'SIGN_SILENT'} ) == TRUE;
 $command_params =~ s,^ *| *$,,;
 
 my $signature_key_name = qw| nailara.source |;
@@ -134,8 +137,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,,,,,.,.,.,,.,,.,,,,,.,,,,,,.,,,,,,..,,..,,..,,...,...,,,.,,,,,.,.,.,.,,,,,
-#FKIG5AK4NSOTZG5DRNJTFYB4VZTZYPXNPHT4KQBBNBXUFPTUHTN2VEWUFSRONW3442XUCNPPKS6HO
-#\\\|3MTZV3NVICGVZYTBTBXWR5QXAKBRYNJWZ65VFJ6XP3CC7LCTVWL \ / AMOS7 \ YOURUM ::
-#\[7]CAYMMAPQGQSW5RAYSSMYNWKC4FRMJ6PXY7QLMCYSCOMW2WWEOIAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,.,.,,.,,,,,,.,,,,..,..,,,,,,..,,...,...,,..,,..,.,.,,,.,,,.,
+#LOM3B3LNAH7SMJVKF4SHBSWAH5UG5RZ4SARJEE53G4GT5ID4NNRM6QRM2AVU245PFZVXIWHV34E2Y
+#\\\|HZN6TZSDR2NF7DQ4MZ42547RSBQQIHFRWD37Z3PWVMDY4OOYCE3 \ / AMOS7 \ YOURUM ::
+#\[7]BYGARS3P53Q3RPMZ5WB2TNLGD3AZHX3XPDKPEUCVB3QMISTR54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
