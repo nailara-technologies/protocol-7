@@ -44,10 +44,22 @@ my @checksums;
 
 if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
 
-    my $single_key_amos_csum = <[chk-sum.amos.truth_template_chksum]>->(
-        $pubkey_str_truth_template, \shift @key_strings_binary
-    );
-    push @checksums, $single_key_amos_csum;
+    if ( length $key_strings_binary[0] != 97 ) {
+
+        my $single_key_amos_csum = <[chk-sum.amos.truth_template_chksum]>->(
+            $pubkey_str_truth_template, \shift @key_strings_binary
+        );
+        push @checksums, $single_key_amos_csum;
+
+    } else {    ##  virtual key  ##
+        $pubkey_str_truth_template = join ',', qw[
+            <:%s:> :%s: <:virtual::%s:> :virtual::%s:
+        ];
+        my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
+            $pubkey_str_truth_template, \shift @key_strings_binary
+        );
+        push @checksums, qw| virtual: |, $pubkey_chksum;  #[stub file chksum]#
+    }
 
 } elsif ($priv_key_encr) {    ##  encrypted private key [pubkey] chksum  ##
 
@@ -77,8 +89,8 @@ if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
 ##
 return sprintf $checksum_template, join( qw| : |, @checksums );
 
-#,,..,,,,,,,.,,,,,,,,,...,.,,,..,,...,,,.,...,..,,...,...,.,,,,..,,..,..,,..,,
-#QRRIDRTS6X72RJMCFRU5OYQIVRWEIPJS2CLNS2HQ2X4JSZVS2MKUNSHH3FQRN7QBM3JU3LUIR2NR6
-#\\\|PYHFDEF67EJKJ3JEMZLMMJSYYWC4DZADBMPMBIPEMYXODD4MZHI \ / AMOS7 \ YOURUM ::
-#\[7]XCDU76JO6KKLN6AY2IE4WQVCCJKIJZV2IISX4XHYVW24FIPBVYAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,,.,,,,,,...,...,,..,,.,,,,,,..,,...,...,..,,,.,,,,,,..,,,,,,
+#ECVSHH6QVQDJRTNAOEXZKF24XIBNCANUOBOACOA5LLSIPBPCH3JLA3GUCSOLZ4TRO66MFW44L56RI
+#\\\|6UV7LPAYH5UPMJHL7P67UPDCXSYH2O25CQPQKLYOY5NQXXSYZ3O \ / AMOS7 \ YOURUM ::
+#\[7]FCE256XWC5HVQT52JI3OPTRGTDU4OUIZQUUI3YMGRGIYWLBYL2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

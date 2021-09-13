@@ -8,29 +8,36 @@ my $key_dir = $key_vars_ref->{'key_dir'};
 my $uid     = $key_vars_ref->{'uid'};
 my $gid     = $key_vars_ref->{'gid'};
 
-if ( $< == 0 or $< == $uid and ( -w "$key_dir/.." or "$key_dir/../.." ) ) {
+my $UPdir    = File::Spec->updir;
+my $parent_0 = catdir( $key_dir, ($UPdir) x 2 );
+my $parent_1 = catdir( $key_dir, $UPdir );
+
+if (   $EFFECTIVE_USER_ID == 0
+    or $EFFECTIVE_USER_ID == $uid
+    and
+    ( -d $parent_1 and -w $parent_1 or not -d $parent_1 and -w $parent_0 ) ) {
     if ( not -d $key_dir ) {
-        <[base.log]>->( 1, "creating key directory '$key_dir' .." );
+        <[base.logs]>->( 1, "creating key directory '%s' ..", $key_dir );
         eval {
             make_path( $key_dir,
                 { mode => 0700, uid => $uid, group => $gid } );
         };
-        warn $EVAL_ERROR if $EVAL_ERROR;
-        return -2        if !-d $key_dir;    # <-- return error state
-        return TRUE;                         # success [ dir exists now ]
+        warn <[base.str.eval_error]> if $EVAL_ERROR;
+        return undef if not -d $key_dir;    # <-- return error state
+        return $key_dir;                    # success [ dir exists now ]
     }
-} elsif ( !-r $key_dir or !-d $key_dir ) {
-    my $perms     = -e $key_dir ? '' : ' [ permissions ]';
+} elsif ( not -r $key_dir or not -d $key_dir ) {
+    my $perms     = -d $key_dir ? '' : ' [ permissions ]';
     my $log_level = <crypt.C25519.initialized> // 0;
     $log_level++ if $log_level;
-    <[base.log]>->( $log_level, "no key dir$perms ['$key_dir']" );
-    return -1;    # <-- error state
+    <[base.logs]>->( $log_level, "no key dir%s ['%s']", $perms, $key_dir );
+    return undef;    # <-- error state
 }
 
-return TRUE       # <-- success [ true ]
+return $key_dir      # <-- success [ true ]
 
-#,,,,,,..,.,,,,,.,,.,,.,,,,..,..,,.,.,...,,.,,..,,...,...,,.,,,..,.,,,,..,,,.,
-#PUTTLYYESD6QKO3I54QHWMARF2AYQN6ARFFYSOURS7PVDDQGTE5FKI5KUJLXJMWQPY5WYAPKX3JNG
-#\\\|DMFP3BRN5JWEDJGTBVHYQRBOCQHWHIJ7PV52ZGQGLVNXPI5QURO \ / AMOS7 \ YOURUM ::
-#\[7]LSESLSUZNEOVHUZAX6KM3IL3QYC435B3KEGNMN775VDAXD4ZSMAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,,,.,,,.,..,,,,.,...,,,,,...,..,,...,...,.,.,...,,,,,,,,,,..,
+#LO2FKBU6E3DXJMXFTA5D33JRNDRVQLCSSEDV76XLQJO7AEJROHKI5P2NJFZXSS57OK4MF55JJV77O
+#\\\|KQIBRUWMWNYOEPDI52O4HMU7GHB4C6AXYO56BDRQSKKTH32BPQE \ / AMOS7 \ YOURUM ::
+#\[7]2VXNEHETYLXOMECCWFETODYQPU4SZPPQB6BYSZY7FQQ3P6XL4QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

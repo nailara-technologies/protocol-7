@@ -108,7 +108,7 @@ my $payload_len = length $payload_str;
     2, ".. sending 'announce host' packet ., [%u payload bytes]", $payload_len
 );
 
-<[discover.cmd.mcast_send]>->( { 'args' => $payload_str } );
+<[discover.cmd.announce]>->( { 'args' => $payload_str } );
 
 <discover.timer.announce_host>->cancel
     if <discover.timer.announce_host>->is_active;
@@ -125,8 +125,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,,,,,.,,.,,,,,,.,,,...,,,,,,,,,.,.,.,.,,.,,..,,...,...,.,,,,.,,,,.,,,,,,..,
-#4ZRA55NCDC2F7UOPIWG2ZR2H4TQX5SHHCH75JS5WGJBEASBRO7D5DMVC6PAC42BWVLQPK7FILYQ7W
-#\\\|4WMYS3B3SUFME3MFIKOS6XYZ3AQLLQ7T5SNAWVMTOTSIQGCJWSR \ / AMOS7 \ YOURUM ::
-#\[7]KGBA624WU6J7KODEGNVGELMR6VRFLMBJJ2T7W7EIBE6IBCI63QCA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,.,,...,,,,,.,,,,..,.,.,,,,,.,,,..,,...,...,...,,.,,.,,,,,,,.,,,
+#WAHEG45WFXUBXOI7GDEUHT3QGS2E2K5ZGNJDVVDQOZEL2U5KOXHXKI4N4WRFIKI2S2T5WME7J2U76
+#\\\|KEBAHV6N4J5XFH7LKLLXEHBLOSXH3MAQ3A3KEBCD7GKMTLOBBZN \ / AMOS7 \ YOURUM ::
+#\[7]BNRM62NA4IVC7IEXA37RBDACKUZ24XKQ7EB2RB2UMC4H6T3OQWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

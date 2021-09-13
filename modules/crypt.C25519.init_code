@@ -30,8 +30,9 @@ delete <crypt.C25519.regex>    ##  allow updates during reload  ##
 const <crypt.C25519.regex> => {
     qw| key_name | => qr|^$name_regex$|,
     qw| key_sig |  => {
-        qw| signature | => qr|^($name_regex)\.sig.(.+)$|, ## key signature ##
-        qw| pub-key |   => qr|^($name_regex)\.spk.(.+)$|  ## pub 'root' key ##
+        qw| pub-key |   => qr|^($name_regex)\.sk.(.+)$|, ## pub 'root' key ##
+        qw| sign-req |  => qr|^($name_regex)\.rq.(.+)$|, ##  sign. request  ##
+        qw| signature | => qr|^($name_regex)\.ks.(.+)$|, ## key signature ##
     },
     qw| key_file | => {
         qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
@@ -199,8 +200,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,.,,..,,,,,,...,,,,,,,.,,..,.,,,,..,,,,,,.,,..,,...,...,...,..,,,.,,...,,.,,
-#V53H3Q2MVAEIAJYFQ3XX6T77FQNBJFR3Q444PXYSCGWVNIYS7NRPRZCI342IXEYMPGEGZ5QSGQKZE
-#\\\|2NICM6MFUEVIPIDY5C36R2NO73TAIOEKZQK7WUZL322LTEJSTCB \ / AMOS7 \ YOURUM ::
-#\[7]IIICIHXWFKGIUWCFENXTW4M2FHD7VVUUX7G4JBH7TKT4ZEAQHCAA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,.,,,...,,,.,,,.,.,.,,..,.,,,..,,...,...,..,,.,,,.,,,,..,.,,,
+#6S4ESCE2JEM3EF7XC7S77D4H6HKCGL2HOPASLTAIZXND3SENWYRDBVZAR2X5C3VCKP36A722UJG5E
+#\\\|6KNKH24MXIOLSBYQSQZ2AO4F2WWB77KXUZJLOADLVTKOTOFRBGJ \ / AMOS7 \ YOURUM ::
+#\[7]ZDG5EZXCV3S2G6VF7ZWL42IEOY2L34ZQKRGIWCCR6JYAW2JLJ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
