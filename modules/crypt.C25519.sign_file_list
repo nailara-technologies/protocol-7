@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = crypt.C25519.sign_file_list
+# descr = return filenames of requested key signature
+
+my $name      = shift // '';    ## key name ##
+my $rkey_name = shift // '';    ##  signature key name  ##
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+} elsif ( not length $rkey_name ) {
+    warn 'expecting signature key name param <{C1}>';
+    return undef;
+} elsif ( $name !~ <crypt.C25519.regex.key_name> ) {
+    warn 'key name param containing not valid characters <{C1}>';
+    return undef;
+} elsif ( $rkey_name !~ <crypt.C25519.regex.key_name> ) {
+    warn 'signature key name param containing not valid characters <{C1}>';
+    return undef;
+}
+
+( my $rkey_fname_str = uc $rkey_name ) =~ s|\.+|_|g; ##  converting . to _  ##
+$rkey_fname_str =~ s|__+|_|g;    ## cleaning up redundancy ##
+
+my $key_dir = <[crypt.C25519.chk_key_dir]>;
+
+my @found_sig_files;
+
+foreach my $type (qw| rq ks sk |) {
+    my $rq_filename = sprintf qw| %s.%s.%s |, $name, $type, $rkey_fname_str;
+    my $rq_path_abs = catfile( $key_dir, $rq_filename );
+    push @found_sig_files, $rq_filename if -f $rq_path_abs;
+}
+
+return @found_sig_files;
+
+#,,,,,,,.,.,.,,,,,...,.,.,,..,,.,,.,,,,..,.,,,..,,...,...,.,,,.,.,...,,..,,.,,
+#43QZ5SDFMEAXX43UQ6Y2Z3CVPBL7ERN4ACF6OOJ4HYM7DL6GE3PN4LH5K6FTCJWELLA6XLZUDW5TU
+#\\\|T66O266UPWYJ3REQQT3SATDJ2J7SWXQTY2W2GFRHV6MC6C7WHGE \ / AMOS7 \ YOURUM ::
+#\[7]OK5OQ3CIHCYYF5FS3HLULAJWFW62BSTLIJX5UXIFUNTDN7SCYIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

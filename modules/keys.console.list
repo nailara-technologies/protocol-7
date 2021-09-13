@@ -26,7 +26,8 @@ my $key_re_private = $keys_re->{'key_file'}->{'private'};
 my $key_re_sig     = $keys_re->{'key_sig'}->{'signature'};
 
 ## warns when absent ##
-my @k_files = grep {s|^.+/||} <[keys.get_keyfiles]> or return;
+my @k_files = grep {s|^.+/||} <[base.reverse-sort]>->(<[keys.get_keyfiles]>)
+    or return;
 
 my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
@@ -119,7 +120,7 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
     foreach my $file ( $key_files{$name}->@* ) {
 
         my $chksum_line
-            = ( not $display_checksums or $shown_chksum++ )
+            = ( not $display_checksums or $shown_chksum )
             ? ( $file =~ $key_re_public and exists $key_signed_by{$name} )
                 ? ': signed :'
                 : ''
@@ -128,6 +129,7 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
             $chksum_line, $file;
 
+        $shown_chksum++ if length $chksum_line;
     }
 
 }
@@ -167,8 +169,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,.,,.,,,,.,,,,,,.,,,,.,,..,..,,.,.,,..,..,,..,,...,,..,...,.,.,,,.,.,.,,.,,
-#CQPMWJSCUTGE4JI6L263SV3C2SMT33MIU5G4SKST7ZWWYJBHCXSNWXR2Q2OF7IS5LTLC5VYZ4XSJ2
-#\\\|32R2AFSYMPHAO53HVGEQCEQOCFORIVAI6AXJEHEYBSZMJD57PEV \ / AMOS7 \ YOURUM ::
-#\[7]X7QPP46QEFJXOWXMJKZSXIOMXWXCR2TQOEGAOOIHESLZ42E2I2BQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,.,,,,,,.,,,.,,,...,,,,,,.,,..,,...,...,.,,,,..,,.,,,,,,,,,,
+#QEGTHPKLM3HKBY2J4UJDJNA5EY3X7LOCL2SBRZE33PM6KTVYVPXQJW4MNK5SAFL2V35NQS4RFZHES
+#\\\|BFXMD2GKXAZ3CLYWNZTGZOXNNKDH33XHT76YE6U5W353BC7X37D \ / AMOS7 \ YOURUM ::
+#\[7]CFRNW2G6Q4TO54WIRIR5LBZRKJFW6H3I2KPW5PF2XABFM62OJMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

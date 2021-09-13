@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = keys.console.remove-signature
+# param = <n> sk
+# descr = remove signature from '<sk>' for named key <n>
+
+my ( $name, $rkey_name ) = split m|[\t ]+|, shift // '';
+
+if ( not defined $name ) {
+    return print "\n  << expected <key_name> parameter >>\n\n";
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( not length $rkey_name ) {
+    print "\n  <<  expecting signature key name  >>\n\n";
+    <[base.exit]>->(qw| 0010 |);
+} elsif ( not <[crypt.C25519.signature_exists]>->( $name, $rkey_name ) ) {
+    say "\n  <<  specified key signature not found  >>\n";
+    <[base.exit]>->(qw| 0010 |);
+}
+
+my $key_dir = <[crypt.C25519.chk_key_dir]>;
+
+my $shred_bin = <keys.bin_path.shred>;
+
+my @sig_files = <[crypt.C25519.sign_file_list]>->( $name, $rkey_name );
+
+foreach my $file (@sig_files) {
+    next if -w catfile( $key_dir, $file );
+    printf "\n << no write access to '%s' >>\n\n", catfile( $key_dir, $file );
+    <[base.exit]>->(qw| 0020 |);
+}
+
+chdir($key_dir)
+    or die
+    sprintf( "<< %s : chdir [ %s ] >>\n", <[base.str.os_err]>, $key_dir );
+
+say "\n::";
+my $del_count = 0;
+foreach my $file_name (@sig_files) {
+    printf " : erasing file :. %s .:\n", $file_name;
+    system( $shred_bin, qw| -fzu |, $file_name )
+        if length $shred_bin
+        and -x $shred_bin;
+    die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
+        unless unlink($file_name)
+        or not -f $file_name;
+    $del_count++;
+}
+
+printf " :\n :: [ removed %d file%s ]\n\n", $del_count,
+    <[base.cnt_s]>->($del_count);
+
+#,,.,,,..,..,,.,.,.,,,...,...,,.,,.,.,...,,..,..,,...,...,.,.,,..,.,.,...,,.,,
+#U7GFSTPKZ7WFR7JDWEYVLN5VCEJA6UCADLJOEDR7Q5FODFGQ2C7YMPDZ63T5BYRQKBTUNVPQ4JGE6
+#\\\|ETEE4P4SJL4GR3U2ZFAJETY4LALNU2KONRH3UD23NZX3JEBPBGC \ / AMOS7 \ YOURUM ::
+#\[7]YQUXYBXERFHMCGBTVW2BBQY5FRQYEEJNUBJ6KN76NXNDAG7DNQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
