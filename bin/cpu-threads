@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use v5.24;
+use English;
+
+use Capture::Tiny qw| capture |;
+
+my $output_str = capture { system qw| /usr/bin/lscpu | };
+
+my $num_cores = $LAST_PAREN_MATCH     if $output_str =~ m|^CPU.s.: +(\d+)$|m;
+my $threads_per_core = ${^CAPTURE}[0] if $output_str =~ m|^T.+core: +(\d+)$|m;
+
+die ":\n: cannot get CPU threads info\n:\n"
+    if not defined $num_cores
+    or $num_cores !~ m|^\d+$|
+    or not defined $threads_per_core
+    or $threads_per_core !~ m|^\d+$|;
+
+say $num_cores * $threads_per_core;
+
+#,,..,...,,,.,,..,,.,,,.,,..,,,..,.,,,...,,.,,.,.,...,...,..,,,,.,,,,,.,.,,.,,
+#XQE6VIGBTDXKDFDINDCVNPIQGGE4RZ57G54LGHPAFFEF35TEBKJVRJ65DXNSAQHOAVVBU7YRCS7AO
+#\\\|7QZZDXFLBMHJXS34UZLMYVR63RVF2YP7DLEJ4YEGZR24ZXN3JMR \ / AMOS7 \ YOURUM ::
+#\[7]B2IG5SBLO22SJ3HJUMFDS44V73VSX75CGGLLZ7MR4CWDDO5KNYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
