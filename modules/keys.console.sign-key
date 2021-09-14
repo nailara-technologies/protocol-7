@@ -20,10 +20,13 @@ if ( not length $rkey_name ) {
     <[base.exit]>->(qw| 0010 |);
 }
 
+my $virt_key = <[crypt.C25519.key_is_virtual]>->($name);
+my $complete = $virt_key ? 4 : 3;    ## also .vk. when virtual ##
+
 my $signature_status    ##  check number of existing signature components  ##
     = <[crypt.C25519.signature_exists]>->( $name, $rkey_name );
 
-if ( $signature_status == 3 ) {
+if ( $signature_status == $complete ) {
     say "\n  <<  requested key signature already exists  >>\n";
     <[base.exit]>->(qw| 0010 |);
 } elsif ($signature_status) {
@@ -38,20 +41,22 @@ if ( not <[crypt.C25519.load_keypair]>->( $rkey_name, undef, TRUE, TRUE ) ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-my $rq_filename
+my @created_rq_files
     = <[crypt.C25519.create_signature_request]>->( $name, $rkey_name, TRUE );
 
-if ( not defined $rq_filename ) {
+if ( @created_rq_files == 1 and not defined $created_rq_files[0] ) {
     say "\n  <<  failed to create signature request file  >>\n";
     <[base.exit]>->(qw| 0110 |);
 }
+
+my $rq_filename = $created_rq_files[0];
 
 say sprintf "\n:: signing '%s'\n :", $name;
 
 ( my $status, my @created_files )
     = <[crypt.C25519.sign_keys]>->( $rkey_name, $name );
 
-unshift @created_files, $rq_filename;
+unshift @created_files, reverse @created_rq_files;
 
 if ( not $status ) {
     say "\n  <<  key signing failed  >>\n";
@@ -63,8 +68,8 @@ if ( not $status ) {
     say " :\n ::\n";
 }
 
-#,,.,,.,,,,,,,,..,,.,,,..,,,,,.,,,...,...,,,,,..,,...,...,.,,,,.,,.,,,..,,.,,,
-#X65UOVHW566BZUG4MOK5A3NZCTHWUZSLO3FGLSNMMTRK2B7CZBIDVVYE5AOCFKHKROO7B5I2CIFYM
-#\\\|KAR6RE7YZO766X6HVFARZJB7FMWCTMJ4UHU4IM6VSEYVJN6WQH5 \ / AMOS7 \ YOURUM ::
-#\[7]26XSVE7CVZ5ZJS2U6GCE7ETWY6GFKOYHQUDK6G6ZPKWXHRJSNKAI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,..,,..,,,,,,,..,.,,,,,.,..,,..,,...,..,,.,.,,,.,,,,,...,,,.,
+#YEUWDOE5YU4KCP3W6HZRXUHHKOZUDKQ27KHFEUHXMRNLTAIMKWXCP4D45VV5UF3QI22BIIAKMGBFQ
+#\\\|UVKHH73DUS455UQZJAYJVIIDMSYEA7ZMCN4DON3N5NE4RUMLR2X \ / AMOS7 \ YOURUM ::
+#\[7]FMY6KRVCVRS75YELN7MN4FD5PTH2BEZO3XMAJUQ7KA2Y42QRX2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
