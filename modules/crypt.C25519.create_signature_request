@@ -5,6 +5,9 @@
 my $name             = shift // '';      ## key name ##
 my $rkey_name        = shift // '';      ##  signature key name  ##
 my $ask_for_password = shift // FALSE;
+my $virt_key         = shift // <[crypt.C25519.key_is_virtual]>->($name);
+
+my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
@@ -12,13 +15,10 @@ if ( not length $name ) {
 } elsif ( $name !~ <crypt.C25519.regex.key_name> ) {
     warn 'key name param containing not valid characters <{C1}>';
     return undef;
-} elsif ( $rkey_name !~ <crypt.C25519.regex.key_name> ) {
+} elsif ( $rkey_fname_str !~ <crypt.C25519.regex.signature_key_name> ) {
     warn 'signature key name param containing not valid characters <{C1}>';
     return undef;
 }
-
-( my $rkey_fname_str = uc $rkey_name ) =~ s|\.+|_|g; ##  converting . to _  ##
-$rkey_fname_str =~ s|__+|_|g;    ## cleaning up redundancy ##
 
 my $key_dir = <[crypt.C25519.chk_key_dir]>;
 
@@ -83,12 +83,12 @@ my $signature_req_template = sprintf "<%s:%s:%s>%%s\n", $req_timestamp,
     $rkey_chksum;
 ( my $signature_input_str = $signature_req_template ) =~ s|%s\n$||;
 
-my $signature_str
-    = <[crypt.C25519.sign_data]>->( \$signature_input_str, $rkey_name );
+my $signature_str    ##  key that is to be signed also signs request  ##
+    = <[crypt.C25519.sign_data]>->( \$signature_input_str, $name );
 
 if ( not defined $signature_str ) {
-    <[base.log]>->( 0, "signing of request failed ..," );
-    <[base.log]>->( 0, ":, cannot create signature request.," );
+    <[base.log]>->( 0, 'signing of request failed ..,' );
+    <[base.log]>->( 0, ':, cannot create signature request.,' );
     return undef;
 }
 
@@ -99,15 +99,32 @@ if ( not defined $signature_str ) {
 );
 
 if ( not -f $rq_path_abs or -z $rq_path_abs ) {
-    <[base.log]>->( 0, "writing request file failed ..," );
-    <[base.log]>->( 0, ":, cannot create signature request.," );
+    <[base.log]>->( 0, 'writing request file failed ..,' );
+    <[base.log]>->( 0, ':, cannot create signature request.,' );
     return undef;
 }
 
+my $vp_filename = sprintf qw| %s.vp |, $name;
+if ($virt_key) {    ##  store public key [ signed key virtual ]  ##
+    my $vp_path_abs = catfile( $key_dir, $vp_filename );
+    <[file.put]>->(
+        $vp_path_abs,
+        sprintf( "%s\n",
+            Crypt::Misc::encode_b32r( $keys{'C25519'}->{$name}->{'public'} ) )
+    );
+    if ( not -f $vp_path_abs or -z $vp_path_abs ) {
+        <[base.log]>->( 0, 'writing .vp file failed ..,' );
+        <[base.log]>->( 0, ':, cannot complete signature request..,' );
+        return undef;
+    }
+}
+
+return ( $rq_filename, $vp_filename ) if $virt_key and wantarray;
+
 return $rq_filename;    ##[ success ]##
 
-#,,,.,.,,,,,.,,,,,...,,.,,,..,,.,,,.,,.,,,,,,,..,,...,...,...,,.,,,,,,,..,..,,
-#AESN35MFTFMISO2YKCGN7T457I5SYWFVPKOE3WVQBHKGJUPVU4QFKOKLI4HOXYC2VLC344EG6F2KY
-#\\\|A6APVUVVLBLXR2IPL3HESN2SZIBKVRL4F564EIG5PJFODNISTDZ \ / AMOS7 \ YOURUM ::
-#\[7]LZXLTKEZOKDAL7J6NP62JQORJWMQMCJIR7BSGU4DXR2YPUNVZABA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,..,,,.,,.,.,,..,,.,,.,.,,,,,,..,..,,...,...,.,,,..,,.,.,,,.,.,.,
+#WAKMPCSH3KKQYIN64QB36MZOVGHKI3TBUB3P2WFNBTBIVYHG4RON3TQJBDMY65PCR47NW44KQD4S2
+#\\\|S7FTKWMNI64GRH52ZOMEG2VYC3EDQTV2HZWCNZZAJXHPYV6IQAU \ / AMOS7 \ YOURUM ::
+#\[7]BE5D3X7BDVRYZDV35TYDG2PZPUK6YPKDS2OQPYWPBG4AAWGZCQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

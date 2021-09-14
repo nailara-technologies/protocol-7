@@ -5,13 +5,15 @@
 my $name      = shift // '';    ## key name ##
 my $rkey_name = shift // '';    ##  [optional] signature [base] key name  ##
 
+my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
+
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
     return undef;
 } elsif ( $name !~ <crypt.C25519.regex.key_name> ) {
     warn 'key name param containing not valid characters <{C1}>';
     return undef;
-} elsif ( $rkey_name !~ <crypt.C25519.regex.key_name> ) {
+} elsif ( $rkey_fname_str !~ <crypt.C25519.regex.signature_key_name> ) {
     warn 'signature key name param containing not valid characters <{C1}>';
     return undef;
 }
@@ -22,16 +24,13 @@ if ( not length $rkey_name ) {
     return map { sprintf qw| %s.%s |, $name, $ARG } qw| ks sk |;
 }
 
-( my $rkey_fname_str = uc $rkey_name ) =~ s|\.+|_|g; ##  converting . to _  ##
-$rkey_fname_str =~ s|__+|_|g;    ## cleaning up redundancy ##
-
 ##  returning .ks.<NAME> and .sk.<NAME> filenames  ##
 ##
 return
     map { sprintf qw| %s.%s.%s |, $name, $ARG, $rkey_fname_str } qw| ks sk |;
 
-#,,.,,,,.,...,,..,..,,.,,,..,,..,,,,.,.,,,,,.,..,,...,...,..,,,,,,,,,,,,.,.,.,
-#4VB25HTKSRK6MKW4SJSRDAJOSCH22XI72XVO2HFOWAZTAHOFNS5NICZEUB6TQELBK6SLP7XYJCBCO
-#\\\|WI63IAF3CQYBXQJVXKBG55DDPO2Q36QF44ESZE5GUTBQCCAWX2M \ / AMOS7 \ YOURUM ::
-#\[7]U4TH4OCTEAETUN426UPP2BSZJV2RZPUN6Y4JVDZIYIHK5KTXNKCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,,.,,,,.,.,,,..,,,..,,,.,...,..,,...,...,..,,.,.,...,,,.,,,.,
+#KAACWSSIMQ5RLVU2GOXEINGUBOSDMKJBXC4RI7WBIBMZWZCMG3KIGVQH25TJWRABYJ6447KIDCXOQ
+#\\\|S37U3744BXRQQPC2G5GIDA3SWDMX2RF5GL6RS6XZGP5XLFRVSYV \ / AMOS7 \ YOURUM ::
+#\[7]FDUXZHSKDJL5ILKRE4UZITI2MISWQHABNZDKCWKQTJFYN64N4SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
