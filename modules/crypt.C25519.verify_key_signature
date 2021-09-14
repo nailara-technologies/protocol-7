@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = crypt.C25519.verify_key_signature
+
+my $signed_key_string = shift // '';  ## pkey [ base 32 encoded or binary ] ##
+my $sig_pkey          = shift // '';  ## signature pkey [ bin or base32 ] ##
+my $signature_str     = shift // '';  ## signature str [ base32 or binary ] ##
+
+if ( not length $signed_key_string ) {
+    warn 'expected signed public key param <{C1}>';
+    return undef;
+} elsif ( not length $sig_pkey ) {
+    warn 'expected signature public key param <{C1}>';
+    return undef;
+} elsif ( not length $signature_str ) {
+    warn 'expected signature string param <{C1}>';
+    return undef;
+}
+
+( my $signed_pkey_status )
+    = <[crypt.C25519.get_type_from_key_str]>->($signed_key_string);
+( my $signature_pkey_status )
+    = <[crypt.C25519.get_type_from_key_str]>->($sig_pkey);
+
+if ( not defined $signed_pkey_status ) {    ##[  not a valid key format  ]##
+    <[base.logs]>->( 0, ': signed key format not valid' );
+    return undef;
+} elsif ( not defined $signature_pkey_status ) {
+    <[base.logs]>->( 0, ': signature key format not valid' );
+    return undef;
+}
+
+##   decoding keys [ if required ]  ##
+
+chomp $signed_key_string if $signed_pkey_status->{'linefeed'};
+chomp $sig_pkey          if $signature_pkey_status->{'linefeed'};
+
+if ( $signed_pkey_status->{'encoding'} eq qw| b32 | ) {
+    $signed_key_string = Crypt::Misc::decode_b32r($signed_key_string);
+    if ( not defined $signed_key_string ) {
+        warn 'BASE 32 decoding of signed key failed <{C1}>';
+        return undef;
+    }
+} elsif ( $signature_pkey_status->{'encoding'} eq qw| b32 | ) {
+    $sig_pkey = Crypt::Misc::decode_b32r($sig_pkey);
+    if ( not defined $sig_pkey ) {
+        warn 'BASE 32 decoding of signed key failed <{C1}>';
+        return undef;
+    }
+}
+
+if ( length($signed_key_string) != 32 ) {
+    <[base.s_warn]>->(
+        'signed key length is not valid [ %u != 32 ]',
+        length($signed_key_string)
+    );
+    return undef;
+} elsif ( length($sig_pkey) != 32 ) {
+    <[base.s_warn]>->(
+        'signature key length is not valid [ %u != 32 ]',
+        length($sig_pkey)
+    );
+    return undef;
+}
+
+##  decoding signature [ if required ]  ##
+
+chomp $signature_str if length($signature_str) == 104;
+$signature_str = Crypt::Misc::decode_b32r($signature_str)
+    if length($signature_str) == 104 and $signature_str =~ m|^[A-Z2-7]+$|;
+
+if ( length($signature_str) != 64 ) {
+    <[base.s_warn]>->(
+        'key signature length is not valid [ %u != 64 ]',
+        length($signature_str)
+    );
+    return undef;
+}
+
+my $signature_status    ##  public key signed directly [ and not encoded ]  ##
+    = Crypt::Ed25519::verify( $signed_key_string, $sig_pkey, $signature_str );
+
+return $signature_status ? TRUE : FALSE;
+
+#,,,.,,..,,.,,.,.,.,,,,.,,.,,,.,,,,,,,,,.,.,.,..,,...,...,...,.,,,,,,,..,,...,
+#NC2ROUKCGZSRJUNQZ662TTZGXP4YKP7SMA27RVVKWRWHCFUHP4FXRNZWBNRCZ56W5FV6WOAECWXWY
+#\\\|CHVLYBBLX2USNPRERSMJVNLKECZDBYHYQBKEEJO4XCGAIHSJB46 \ / AMOS7 \ YOURUM ::
+#\[7]NNA57RK5IFIAUFUEMOAXAT6YKKYGFBUEDWJM7NFLUJEDINP3E6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

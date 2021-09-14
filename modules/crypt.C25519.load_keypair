@@ -45,9 +45,10 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
             if not <[base.perlmod.loaded]>->('AMOS7::TERM');
         say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
 
+        my $pwd_prompt_string = sprintf "key entropy for '%s'", $name;
+
         $key_seed_entropy
-            = AMOS7::TERM::read_password_repeated(
-            'generation entropy passphrase');
+            = AMOS7::TERM::read_password_repeated($pwd_prompt_string);
 
     } elsif ( defined $key_password ) {
         $key_seed_entropy = $key_password;    ## given ##
@@ -308,8 +309,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,.,,...,.,,,,,.,...,.,.,.,,,,,,,.,,,,.,,,..,..,,...,...,.,,,...,,.,,,..,.,,,
-#LUT2DZKWUOP2O5UHCSM4MNUQ5YBIMUAV72TPAWQH3UFJBG723IKHAGKHFNU2LNP3SWCGL7FJPS27Y
-#\\\|TD6CXJ5OM6IOSB5CX2GKP3RQTT2HQXXB674BYPVI5TFZD7PHEN5 \ / AMOS7 \ YOURUM ::
-#\[7]GYHON6UJV4OSQYZAOOA2CM77JJE3KZ4WLVK6MNETNU5YLHSBAUAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,.,.,,,.,.,,,,,,,..,,,,,,..,,..,,...,...,.,,,.,,,.,,,,,,,..,,
+#NYNRVFQBDN33GOWQE45X6KQKQ4EUPFTJKY6LL7QVKCY4KMMKCTNNKRKPKQ4HJUFUU55HUV6NNBKRK
+#\\\|MV4NLANIRVVSU7PJLMDS6FWTQXRNBGZRX4KWMNLPCHF4V7WXXHJ \ / AMOS7 \ YOURUM ::
+#\[7]4ZPEHWEFMZW2GE5VBM62HOVUCE2RB4DZD7DQXZJKOOSIKX3EGAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,186 @@
+## [:< ##
+
+# name  = crypt.C25519.load_all_signatures
+
+my $key_name_param = shift // '';    ##  optional  ##
+my $skey_name      = shift // '';    ##  optional  ##
+my $log_level      = shift // 2;     ##  optional  ##
+
+undef %signatures;                   ##  first clear all existing entries  ##
+
+my $key_dir = <[crypt.C25519.chk_key_dir]>;
+
+return FALSE if not -d $key_dir;     ## no keys, no signatures ##
+
+if ( not -r $key_dir ) {
+    warn 'user key dir not readable <{C1}>';
+    return undef;
+}
+
+$skey_name = <[crypt.C25519.key_name_to_skey]>->($skey_name)
+    if length $skey_name;
+
+if ( not defined $skey_name ) {
+    warn 'loading aborted, skey name not valid <{C1}>';
+    return undef;
+}
+
+my $signames_ref = <[crypt.C25519.list_key_signature_names]>;
+
+if ( $signames_ref->@* == 0 ) {
+    <[base.log]>->( 1, 'no signature files found .,' );
+    return FALSE;
+} elsif ( length $key_name_param ) {
+    <[base.logs]>->(
+        "loading signature file[s] for key '%s'..,",
+        $key_name_param
+    );
+} elsif ( not length $key_name_param and length $skey_name ) {
+    <[base.logs]>->(
+        "loading signature file[s] from '%s' key..,",
+        <[crypt.C25519.name_from_skey_name]>->($skey_name)
+    );
+} else {
+    <[base.log]>->( 1, 'loading signature files .,' );
+}
+
+my $skipped_count     = 0;
+my $loaded_signatures = 0;
+
+foreach my $keyname_href ( $signames_ref->@* ) {
+    ( my $name ) = keys $keyname_href->%*;
+
+    ##  filter for key name [ if specified ]  ##
+    next if length $key_name_param and $name ne $key_name_param;
+
+    my $virt_key = <[crypt.C25519.key_is_virtual]>->($name);
+    my $complete = $virt_key ? 4 : 3;    ## also .vk. when virtual ##
+
+    foreach my $s_href ( $keyname_href->{$name}->@* ) {
+        ( my $signature_key_name, my $types_aref ) = each $s_href->%*;
+
+        ## filter for signature key name [ when requested ] ##
+        next if length $skey_name and $signature_key_name ne $skey_name;
+
+        if ( $types_aref->@* != $complete ) {
+            <[base.s_warn]>->(
+                '%u sig file types expected [ got %u ] skipping %s:%s',
+                $complete, scalar $types_aref->@*,
+                $name,     $signature_key_name
+            );
+            $skipped_count++;
+            next;
+        }
+        my $ver_pkey;
+        my $rq_file_base32;
+        foreach my $_type_href ( $types_aref->@* ) {
+            ( my $type, my $file ) = each $_type_href->%*;
+            my $content_sref = <[file.slurp]>->( catfile( $key_dir, $file ) );
+            next if ref $content_sref ne qw| SCALAR |;
+            chomp $content_sref->$*;
+            my $sig_bin = $type eq qw| rq |  ## rq files decoded as hashref ##
+                ? <[crypt.C25519.decode_request_file]>->( $content_sref->$* )
+                : Crypt::Misc::decode_b32r( $content_sref->$* );
+            $signatures{$name}{$signature_key_name}{$type} = $sig_bin;
+            $rq_file_base32 = $content_sref->$* if $type eq qw| rq |;
+        }
+
+        ## verifying request signature ##
+        ##
+        my $rq_data = $signatures{$name}->{$signature_key_name}->{'rq'};
+        if ( not defined $rq_data->{'req-sig-bin'} ) {
+            <[base.s_warn]>->(
+                'have no decoded request signature [ skipping %s:%s ]',
+                $name, $signature_key_name
+            );
+            delete $signatures{$name}->{$signature_key_name};
+            delete $signatures{$name} if not keys $signatures{$name}->%*;
+            $skipped_count++;
+            next;
+        } else {
+            ( my $signature_input_str = $rq_file_base32 ) =~ s|(*plb:>).+$||;
+
+            if ($virt_key) {    ##  virtual key  ##
+                ##  public key loaded from .vp file  ##
+                $ver_pkey = $signatures{$name}{$signature_key_name}{'vp'};
+            } else {
+                if (   not exists $keys{'C25519'}->{$name}
+                    or not exists $keys{'C25519'}->{$name}->{'public'} ) {
+                    <[crypt.C25519.load_single]>->(
+                        $name, undef, qw| public |, $log_level
+                    );
+                }
+                $ver_pkey = $keys{'C25519'}->{$name}->{'public'};
+            }
+
+            if (not Crypt::Ed25519::verify(
+                    $signature_input_str, $ver_pkey,
+                    $rq_data->{'req-sig-bin'}
+                )
+            ) {
+                <[base.s_warn]>->(
+                    'request file signature not valid [ skipping %s:%s ]',
+                    $name, $signature_key_name
+                );
+                delete $signatures{$name}->{$signature_key_name};
+                delete $signatures{$name} if not keys $signatures{$name}->%*;
+                $skipped_count++;
+                next;
+            } else {
+                <[base.log]>->( $log_level, ':' );
+                <[base.logs]>->(
+                    $log_level, ': [ %s:%s ].,',
+                    $name,      $signature_key_name
+                );
+                <[base.log]>->( $log_level, ': :' );
+                <[base.log]>->(
+                    $log_level, ': :. request file signature verified =)'
+                );
+                <[base.log]>->( $log_level, ':' );
+            }
+        }
+
+        ##[  verifying key signatures  ]##
+        ##
+
+        if (not <[crypt.C25519.verify_key_signature]>->(
+                $ver_pkey,    ## signed public key ##
+                $signatures{$name}->{$signature_key_name}->{'sk'},
+                $signatures{$name}->{$signature_key_name}->{'ks'}
+            )
+        ) {
+            <[base.s_warn]>->(
+                'key signature not valid [ skipping %s:%s ]',
+                $name, $signature_key_name
+            );
+            delete $signatures{$name}->{$signature_key_name};
+            delete $signatures{$name} if not keys $signatures{$name}->%*;
+            $skipped_count++;
+            next;
+        } else {
+            <[base.log]>->( $log_level, ':' );
+            <[base.logs]>->(
+                $log_level, ': [ %s:%s ].,',
+                $name,      $signature_key_name
+            );
+            <[base.log]>->( $log_level, ': :' );
+            <[base.log]>->( $log_level, ': :. key signature verified =)' );
+            <[base.log]>->( $log_level, ':' );
+
+            $loaded_signatures++;
+        }
+    }
+}
+
+<[base.logs]>->(
+    ':. %d key signature%s loaded.',
+    $loaded_signatures, <[base.cnt_s]>->($loaded_signatures)
+);
+
+$skipped_count ? FALSE : TRUE;    ##[  all loading successful  ]##
+
+#,,..,,..,..,,,,.,,..,,.,,,.,,..,,,.,,..,,,,.,..,,...,...,,.,,...,,..,,,,,..,,
+#YAKOCAQF4SII6HZUJU5QUIS7VIQ5FCKDDPJBMFSYEXCMPDLY5NAGV7ZEIKDB7X7OKHXTVBS6FRLQ4
+#\\\|NLT6JABPFSWPE74L7BJFF7AGCIIG3GXYYWCGTUGE4F2UDFFG322 \ / AMOS7 \ YOURUM ::
+#\[7]JANO2YOMCHNSNMRWCDRLQAFHQXGEKNSQXOL3ZH42GH4NMC5R7UDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,17 +22,24 @@ my @key_ext   = qw|  \.secret  \.private  \.public  :seed-phrase  |;
 my @key_types = qw| private public secret |;           # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
-my $name_regex  = qr|[0-9a-zA-Z\._\-]+|;
+
+## lowercase names ##
+my $name_regex = qr|[0-9a-z\.\-]+|;
+
+## uppercase names ##
+my $uc_name_regex = qr|[0-9A-Z_\-]+|;
 
 delete <crypt.C25519.regex>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.regex |);
 
 const <crypt.C25519.regex> => {
-    qw| key_name | => qr|^$name_regex$|,
-    qw| key_sig |  => {
-        qw| pub-key |   => qr|^($name_regex)\.sk.(.+)$|, ## pub 'root' key ##
-        qw| sign-req |  => qr|^($name_regex)\.rq.(.+)$|, ##  sign. request  ##
-        qw| signature | => qr|^($name_regex)\.ks.(.+)$|, ## key signature ##
+    qw| key_name |           => qr|^$name_regex$|,
+    qw| signature_key_name | => qr|^$uc_name_regex|,
+    qw| key_sig |            => {
+        qw| pub-key |   => qr|^($name_regex)\.sk\.(.+)$|, ## pub 'root' key ##
+        qw| sign-req |  => qr|^($name_regex)\.rq\.(.+)$|, ## sign. req. ##
+        qw| signature | => qr|^($name_regex)\.ks\.(.+)$|, ## key signature ##
+        qw| virtualpk | => qr|^($name_regex)\.vp$|        ## virtual p.key ##
     },
     qw| key_file | => {
         qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
@@ -200,8 +207,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,.,,..,,,..,.,,,.,,,...,,,.,,,.,.,.,,..,.,,,..,,...,...,..,,.,,,.,,,,..,.,,,
-#6S4ESCE2JEM3EF7XC7S77D4H6HKCGL2HOPASLTAIZXND3SENWYRDBVZAR2X5C3VCKP36A722UJG5E
-#\\\|6KNKH24MXIOLSBYQSQZ2AO4F2WWB77KXUZJLOADLVTKOTOFRBGJ \ / AMOS7 \ YOURUM ::
-#\[7]ZDG5EZXCV3S2G6VF7ZWL42IEOY2L34ZQKRGIWCCR6JYAW2JLJ6DQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,,..,...,,,.,,.,,,..,,..,.,.,..,,...,..,,..,,,.,,.,.,...,.,,,
+#JA5MWXQ2UKPT5JKK4SJGGYBZKRZI4QTSKWAU5DZKMEXGYRBEMEY373WV3RHYDH2TSHO6HFZWF3Q6U
+#\\\|3GJYZL6KF3NOXTI7FJGXK3D4RIYU66NWUQS3NCFOZA6UVATQCPP \ / AMOS7 \ YOURUM ::
+#\[7]QISBC4IZ6COXDIUWK2SV75KRKGSDGULEIQEJ5MR4YT4X6QDBN6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

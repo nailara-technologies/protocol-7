@@ -21,6 +21,10 @@ my $key_dir = <[crypt.C25519.chk_key_dir]>;
 
 my $shred_bin = <keys.bin_path.shred>;
 
+## keep .vp files if not the last signature for key ##
+my $signature_count = <[crypt.C25519.list_key_signature_names]>->($name)->@*;
+my $remove_vp_file  = $signature_count > 1 ? TRUE : FALSE;
+
 my @sig_files = <[crypt.C25519.sign_file_list]>->( $name, $rkey_name );
 
 foreach my $file (@sig_files) {
@@ -36,21 +40,29 @@ chdir($key_dir)
 say "\n::";
 my $del_count = 0;
 foreach my $file_name (@sig_files) {
+
+    next    ## keeping key ? ##
+        if $remove_vp_file
+        and $file_name =~ <crypt.C25519.regex.key_sig.virtualpk>;
+
     printf " : erasing file :. %s .:\n", $file_name;
+
     system( $shred_bin, qw| -fzu |, $file_name )
         if length $shred_bin
         and -x $shred_bin;
+
     die sprintf( ":\n: unlink failed : %s\n:\n", <[base.str.os_err]> )
         unless unlink($file_name)
         or not -f $file_name;
+
     $del_count++;
 }
 
 printf " :\n :: [ removed %d file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,.,,,..,..,,.,.,.,,,...,...,,.,,.,.,...,,..,..,,...,...,.,.,,..,.,.,...,,.,,
-#U7GFSTPKZ7WFR7JDWEYVLN5VCEJA6UCADLJOEDR7Q5FODFGQ2C7YMPDZ63T5BYRQKBTUNVPQ4JGE6
-#\\\|ETEE4P4SJL4GR3U2ZFAJETY4LALNU2KONRH3UD23NZX3JEBPBGC \ / AMOS7 \ YOURUM ::
-#\[7]YQUXYBXERFHMCGBTVW2BBQY5FRQYEEJNUBJ6KN76NXNDAG7DNQCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,,,.,,..,,,.,.,,,.,,,...,..,,..,,...,..,,,..,,.,,,,,,,.,,..,,
+#XCKSVUSNJZ76K4YYYXEPGLVBCUS6UBC25BEGPCGOYNCYRHAP2KDF4JVXPDX7CID2FP7YVV6N52LPY
+#\\\|4COPDBNKIA5NCZPGRKOP5KK25NQI5RBYGGY7MBUHXYJC6H2JML2 \ / AMOS7 \ YOURUM ::
+#\[7]EXLGA3T2BA7RQ6TDUWA44XTME3I6GLRZH2QZAT57WPS3JK7PEUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

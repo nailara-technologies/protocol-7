@@ -37,7 +37,7 @@ if ( not exists $keys{'C25519'}->{$name} ) {
     <[base.logs]>->( 1, "loading target key '%s' .,", $name );
     if ( not <[crypt.C25519.load_keypair]>->( $name, undef, @passwd_otps ) ) {
         <[base.s_warn]>->(
-            "target key '%s' not found \ loaded, cannot sign <{C1}>", $name
+            "target key '%s' not found \\ loaded, cannot sign <{C1}>", $name
         );
         goto skip_sign;
     }
@@ -99,7 +99,7 @@ if ( -f $sig_file_path and -r $sig_file_path ) {
         sprintf(
             "%s\n",
             Crypt::Misc::encode_b32r(
-                sprintf( "%s\n", $keys{'C25519'}->{$rkey_name}->{'public'} )
+                $keys{'C25519'}->{$rkey_name}->{'public'}
             )
         )
     );
@@ -130,8 +130,8 @@ skip_sign:
 
 return FALSE;
 
-#,,..,...,,.,,,,,,..,,...,.,.,,..,,..,,.,,.,.,..,,...,...,..,,,,.,,.,,,,.,.,.,
-#LHEQKNPIHXTKQUU3UHNEE4VQ4TFLBIYLXW5JBQGN6DR5GU2TQD2PVQQKT3LR4MRC2MB2KUEL7UNNU
-#\\\|KPBMJJLJH2RRP3SZKQPI3WOSUZIDSFLPJUUQXXALZU3RHAHRLIW \ / AMOS7 \ YOURUM ::
-#\[7]I3RJIWCHXCKUG6UUURURTYI3HF5UXJMUTCHI54V3NMFSUJEFSUAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,..,,...,,..,,,.,...,.,,,,..,..,,...,...,,,,,.,.,...,..,,.,,,
+#2H66R2WAFMDB2V7SKHIN4BVHU5W5E5B7KHVSANOY7VOMX4KSMJ2LBXPNWQHPEXK2GK7UFNXIYVD5Y
+#\\\|5DB7T3ZYBSSULI3YMZE7CAW333T5GWWXNTINXE4XCWP53E6IYP7 \ / AMOS7 \ YOURUM ::
+#\[7]5EMI2GGI7JTJJEG5WKCBVUWDPHEQRND7XYTMIVL25OHJ3GWGFWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

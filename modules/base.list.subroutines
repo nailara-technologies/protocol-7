@@ -589,6 +589,7 @@ return [ qw[
         mpv.cmd.current-hwdec
         mpv.callback.silenced
         keys.read_key_archive
+        keys.console.sign-key
         jobqueue.get_next_job
         jobqueue.get_job_data
         io.ip.tcp.output.open
@@ -602,6 +603,7 @@ return [ qw[
         file-matrix.post_init
         file-matrix.init_code
         download.cmd.get_file
+        discover.cmd.announce
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
         crypt.C25519.keyfiles
@@ -807,12 +809,13 @@ return [ qw[
         file-matrix.map-dirs.fs
         ffmpeg.frame_count_slow
         events.cmd.show-enabled
-        discover.cmd.mcast_send
         devmod.cmd.deparse-code
         decoder.zenka.init_code
         dbus.cmd.socket_address
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
+        crypt.C25519.unload_key
+        crypt.C25519.sig_fnames
         crypt.C25519.key_exists
         content.cmd.reload_file
         content.cmd.clear_flags
@@ -930,6 +933,7 @@ return [ qw[
         base.import_config.plain
         base.file.zulum_tmp_file
         base.file.zenka_dir.load
+        base.file.strip_path_str
         base.file.read_timestamp
         base.dependency.pre_init
         base.code_section_exists
@@ -1178,6 +1182,7 @@ return [ qw[
         devmod.cmd.extract-line-map
         dbus.handler.process_output
         cube.chk-sum.cmd.elf-chksum
+        crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
         content.set-up.import_rules
         content.set-up.export_rules
@@ -1321,6 +1326,7 @@ return [ qw[
         mpv.handler.event.file-loaded
         mod-test.cmd.list-blacklisted
         keys.select_archive_path.curs
+        keys.console.remove-signature
         keys.console.encoding-upgrade
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
@@ -1331,7 +1337,9 @@ return [ qw[
         ffmpeg.cmd.extract_last_frame
         devmod.cmd.keep-devmod-loaded
         devmod.cmd.inline-subroutines
+        crypt.C25519.signature_exists
         crypt.C25519.load_from_string
+        crypt.C25519.key_name_to_skey
         crypt.C25519.get_usr_keys_dir
         crypt.C25519.chksum_cache.add
         content.cmd.get_playlist_path
@@ -1510,8 +1518,12 @@ return [ qw[
         image2html.base.write_image_html
         image2html.base.write_error_page
         discover.handler.incoming_packet
+        crypt.C25519.name_from_skey_name
+        crypt.C25519.load_all_signatures
+        crypt.C25519.key_signatures_list
         crypt.C25519.del_keys_hash_entry
         crypt.C25519.decrypt_priv_keystr
+        crypt.C25519.decode_request_file
         crypt.C25519.cmd.get-session-sig
         crypt.C25519.cmd.get-session-key
         crypt.C25519.cmd.clear-zenka-key
@@ -1565,6 +1577,7 @@ return [ qw[
         impressive.handler.get_list_reply
         events.cmd.get_playlist_exclusive
         events.callback.object.date_frame
+        crypt.C25519.verify_key_signature
         content.update.send_notifications
         base.sourcecode.in-mem.sub-source
         base.perlmod.get_loaded_INC_names
@@ -1668,7 +1681,9 @@ return [ qw[
         protocol.protocol-7.message-templates
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
+        crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
+        crypt.C25519.create_signature_request
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         web-browser.start-up.init_window_title
@@ -1737,8 +1752,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,,.,,..,.,,,...,,.,,,..,...,.,.,..,,.,,,.,.,...,...,...,.,.,..,,,.,,.,.,
-#IMP5NTYNQXJQQDKGDS2CGS3QHIEWCQN2QX6SEA2MSN7RUCALSGFHBSVOHVMAJBFPOTT4WNW5ZR7WI
-#\\\|KWEYSDUPAA5NUSJJUWFH5O4VW4LPF2EYCWG3TB6K6X53MKXXLLF \ / AMOS7 \ YOURUM ::
-#\[7]AFXVX5KQL3HDAYNX2NPXSZTWYLSQ5WEDUFEPISRW6K4XWAH5UEBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,,.,..,,,,.,,,,,,.,,,.,,,,,,.,.,...,...,..,,.,,,,,,,...,.,,,
+#Y4YKY4QVHAP7CGQCF3GOBPOETEEOA7JQUHGST5CSYXKWKMIPIE5OIYV4S52U5NS25AX5DCRHK2WJC
+#\\\|6PXEYUOWUL53L76MCPFLYYLFV5L5VT6GDJ3APC2OJRWEIEYB7YY \ / AMOS7 \ YOURUM ::
+#\[7]TA5WG37S6IYC3GAOKAJIDJO347LFLS32WWCQFZAUX3JWEOQCROAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

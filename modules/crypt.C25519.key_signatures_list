@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = crypt.C25519.key_signatures_list
+# descr = retrieve signatures + pub keys for key from global %signatures hash
+
+my $name          = shift;             ## C25519 key name ##
+my $only_base_sig = shift // FALSE;    ##  optional  ##
+
+return [] if not exists $signatures{$name}; ## no signatures stored for key ##
+
+if ($only_base_sig) {    ##  only base signature requested  ##
+    return [] if not exists $signatures{$name}->{'base'};
+    return [ $signatures{$name}->{'base'} ];
+}
+
+my @signatures;
+if ( not exists $signatures{'base'} ) {   ## no preference when no base sig ##
+
+    foreach my $skey_name ( <[base.sort]>->( $signatures{$name} ) ) {
+        push @signatures, $signatures{$name};
+    }
+
+} else {    ##  'base' signature entry and named matches first  ##
+
+    push @signatures, $signatures{'base'};
+
+    foreach my $skey_name ( <[base.sort]>->( $signatures{$name} ) ) {
+        next if $skey_name eq qw| base |;    ##[ skip already added entry ]##
+        next if $signatures{$name}->{'ks'} ne $signatures{'base'}->{'ks'};
+        push @signatures, $signatures{$name};
+    }
+    foreach my $skey_name ( <[base.sort]>->( $signatures{$name} ) ) {
+        next if $skey_name eq qw| base |;    ##[ skip already added entry ]##
+        next if $signatures{$name}->{'sk'} eq $signatures{'base'}->{'sk'};
+        push @signatures, $signatures{$name};
+    }
+}
+
+return \@signatures;
+
+#,,.,,,.,,..,,,..,,,.,,,.,.,,,,.,,,..,,.,,,,.,..,,...,,..,.,,,..,,,,.,..,,...,
+#2FKAM5UYNMDPMI3XF2WELSRC67PWSZMG4DEPRGGUS5YBI4IG4P5GPB5ODEI7NDH7NBOSGAB3DN2NY
+#\\\|MOCKD2XVNBMRUDNMTBG6XBLET67PCRXWCY72GJLDFRAYFESNHFD \ / AMOS7 \ YOURUM ::
+#\[7]IREN7DZ3ITB27EBDGDCXCWVN3MAG56CYY5W23UGFSQ6TBHDZZ2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

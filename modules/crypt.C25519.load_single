@@ -5,6 +5,7 @@
 my $name         = shift // '';    ## key name ##
 my $key_password = shift;          ## optional ##
 my $key_type     = shift;          ## optional [private|public] ##
+my $log_level    = shift // 1;     ##  optional  ##
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
@@ -56,7 +57,10 @@ my $u_str = $name =~ m|^$key_usr(?:\..+)$| ? '' : " [usr:$key_usr]";
 if ( not defined $key_type and -f $public_key_file
     or defined $key_type and $key_type eq qw| public | ) {
 
-    <[base.logs]>->( ":. C25519-public-key .:. '%s'%s", $name, $u_str );
+    <[base.logs]>->(
+        $log_level, ":. C25519-public-key .:. '%s'%s",
+        $name,      $u_str
+    );
 
     my $encoded_public_key = <[file.slurp]>->($public_key_file)->$* // '';
     if ( not length $encoded_public_key ) {
@@ -156,8 +160,8 @@ if ( not defined $key_type and -f $public_key_file
 
 }
 
-#,,..,,,.,,.,,,,,,.,.,,..,.,,,,,,,,.,,,,.,,,.,..,,...,...,..,,..,,.,,,,.,,,..,
-#TALCWDW6SZYFKDUAP4OPTJEHGOX4XX327YVTKINNEVD6IOZ43XPN775LALWG27EWEEKSDC2VHMBUO
-#\\\|GFY4FTLGVHBU67VA6AIOBB4MECUNYXP3CTF7K7PLHJ35BABI35E \ / AMOS7 \ YOURUM ::
-#\[7]QMXIYZD2PL6HCIFZHSDTYBOQFWTRBY3Y2CFTOT363SFNFOYTVMBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,,,,,,,.,,,.,,,,,,..,...,,,.,..,,...,...,.,.,.,.,,..,,,.,.,.,
+#PZLNK2SMGFIDNWAEY7OSF2667VRAFC4AFSBEGSJI4I77VKN5ZVHO6LUZ2X7KYOMWQTPUPSED3WLYI
+#\\\|PRZ4JJHRXHAM63NBBKUPPTK7FZKLY4B7L7A4H4AWDY4GHXWXMBI \ / AMOS7 \ YOURUM ::
+#\[7]KOZQGNZQOFTJYHI22ETYEOHBMRQOVYBR6M6QKVMVQ3VXHGYUQGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

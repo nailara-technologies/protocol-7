@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = crypt.C25519.name_from_skey_name
+# descr = convert from [signature] key name [file suffix] format to key name
+
+my $name = shift // '';
+
+if ( not length $name ) {
+    warn "expecting key name param <{C1}>";
+    return undef;
+}
+
+my $name_copy = $name;       ##  keep copy for testing  ##
+my $name      = lc $name;    ## make lowercase ##
+
+$name =~ s|\_|.|g;           ##  convert _ to .  ##
+
+if ( $name !~ m|^<crypt.C25519.regex.key_name>$| ) {
+    warn 'signature key name param containing not valid characters <{C1}>';
+    return undef;
+} elsif ( $name =~ m|__| or $name =~ m<^[\W\.]|[\W\.]$> ) {
+    warn 'key name param contains not valid character sequence[s] <{C1}>';
+    return undef;
+}
+
+if ( [ caller(0) ]->[1] ne qw| crypt.C25519.key_name_to_skey | ) {
+    ##  reverse conversion check if new name is valid  ##
+    if ( $name_copy =~ m|<crypt.C25519.regex.signature_key_name>|
+        and <[crypt.C25519.key_name_to_skey]>->($name) ne $name_copy ) {
+        warn 'signature key name not valid [ reverse conversion ] <{C1}>';
+        return undef;
+    }
+}
+
+return $name;    ##  returning converted name string  ##
+
+#,,,,,.,,,.,,,,..,,..,,..,.,,,,,.,,,,,.,,,,.,,..,,...,...,..,,.,.,..,,..,,,.,,
+#2BSOUHY2BHMEYZSDXSFATO3EOKPAFD4TMUITYWVATEJHLJON3FG7VZIHWDJCGZFPWFG34IVUTEWZA
+#\\\|HIQZ6ZK52GLNKASTIAHSZTJGIUCOTCHQHFRYILUQ6FLNKWGUEA5 \ / AMOS7 \ YOURUM ::
+#\[7]2PRFISQMWYPRSX5UEOZIPDHRUTORMEEW6PILCU22C7THBAG56YCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

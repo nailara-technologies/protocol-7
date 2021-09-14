@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = crypt.C25519.list_key_signature_names
+# descr = return list of keys with signatures \ details depending on context
+
+my $name       = shift // '';    ##  optional  ##
+my $type_param = shift // '';    ##  optional  ##
+
+if ( length $type_param and $type_param !~ m{(rq|ks|sk|vp)} ) {
+    <[base.s_warn]>->( 'type %s not recognized [rq|ks|sk|vp]', $type_param );
+    return undef;
+} elsif ( length $name and $name !~ <crypt.C25519.regex.key_name> ) {
+    warn 'key name param containing not valid characters <{C1}>';
+    return undef;
+}
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+
+my $key_dir = $key_vars_ref->{'key_dir'};
+my $key_usr = $key_vars_ref->{'usr_name'};
+
+my $s_files_regex = <crypt.C25519.regex.key_sig>;
+
+my %signames;
+my $stypes_map = {
+    qw| sk | => qw| pub-key |,
+    qw| rq | => qw| sign-req |,
+    qw| ks | => qw| signature |,
+    qw| vp | => qw| virtualpk |
+
+};
+my @all_user_key_files
+    = map { <[file.strip_path_str]>->($ARG) }
+    <[file.all_files]>->($key_dir)->@*;
+
+my %vp_key_file;
+foreach my $type (qw| vp rq ks sk |) {
+    next if length $type_param and $type_param ne $type;
+    my $re_s_files = $s_files_regex->{ $stypes_map->{$type} };
+    my $current_sk_name;
+    foreach my $file (@all_user_key_files) {
+        next if $file !~ $re_s_files;
+        my ( $key_name, $skey_name ) = @{^CAPTURE};
+        next if length $name and $name ne $key_name;    ## name parameter ##
+
+        if ( $type eq qw| vp | ) {
+            $vp_key_file{$key_name} = $file;
+            next;
+        } else {
+            $signames{$key_name}->{$skey_name} //= [];
+
+            if ( $signames{$key_name}->{$skey_name}->@* == 0
+                and exists $vp_key_file{$key_name} ) {
+                ## add .vp files when present ##
+                push $signames{$key_name}->{$skey_name}->@*,
+                    { qw| vp | => $vp_key_file{$key_name} };
+            }
+
+            push $signames{$key_name}->{$skey_name}->@*, { $type => $file };
+        }
+    }
+}
+
+if (wantarray) {    ##  key or signature names in list context  ##
+    if ( length $name ) {
+        return <[base.sort]>->( \%signames{$name} );
+    } else {
+        return <[base.sort]>->( \%signames );
+    }
+} elsif ( length $name ) {    ## details for key name if specified ##
+    return [
+        map {
+            { $ARG => $signames{$name}->{$ARG} }
+        } <[base.sort]>->( $signames{$name} )
+    ];
+}
+
+my @s_name_list;              ## returning full details in scalar context ##
+foreach my $name ( <[base.sort]>->( \%signames ) ) {
+    push @s_name_list, {
+        $name => [
+            map {
+                { $ARG => $signames{$name}->{$ARG} }
+            } <[base.sort]>->( $signames{$name} )
+        ]
+    };
+}
+return \@s_name_list;
+
+#,,.,,,,,,...,,,.,,,,,,,.,,.,,,,,,,.,,,.,,,,,,.,.,...,...,,,.,,,,,,,.,,.,,.,,,
+#IE2FY7QCYCKXEY3UHGDTHYE2MTEZQZWMTZEACOMAT4BCUBVYW5KFN7MPS7NFRGN26UNOQ4XCTU4SG
+#\\\|K42QROPP4SHIL2TZ2F3NNH37HPZPQSYZWUHYVSCKFGH27JPE53E \ / AMOS7 \ YOURUM ::
+#\[7]ABDVBNY7K2CPS4NS53TSBTTYIGWJNQQT2EKVN2SIIKV2P5HYTACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

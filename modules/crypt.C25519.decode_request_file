@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = crypt.C25519.decode_request_file
+
+my $req_file_content_string = shift // '';
+
+if ( not length $req_file_content_string ) {
+    warn 'expected request file content str <{C1}>';
+    return undef;
+} elsif ( $req_file_content_string
+    !~ m|^<([A-Z2-7]{10,14}):([A-Z2-7]{7}):([A-Z2-7]{7})>([A-Z2-7]{103})\n?$|
+) {
+    warn 'not recognized req file format <{C1}>';
+    return undef;
+}
+
+my ( $req_ntime, $nkey_chksum, $rkey_chksum, $rq_sig_BASE_32 ) = @{^CAPTURE};
+
+my @failed_req_sig_B32;
+my $rqsig_decoded = Crypt::Misc::decode_b32r($rq_sig_BASE_32);
+
+push( @failed_req_sig_B32, qw| rq-sig-BASE32 | => $rq_sig_BASE_32 )
+    and warn 'request signature [B32] decoding failed <{C1}>'
+    if not defined $rqsig_decoded;  ##  returning other data after warning  ##
+
+return {                            ##  returning values [ not verified ]  ##
+    qw| req-ntime-B32 |     => $req_ntime,
+    qw| req-sig-bin |       => $rqsig_decoded,
+    qw| rkey-chksum |       => sprintf( qw| <:%s:> |, $rkey_chksum ),
+    qw| signed-key-chksum | => sprintf( qw| <:%s:> |, $nkey_chksum ),
+    @failed_req_sig_B32
+};
+
+#,,,,,,..,..,,...,.,.,..,,...,.,,,,..,,.,,,..,..,,...,...,...,,,,,,..,,..,,,,,
+#F75Q6DV2HMGG7YICJCCRI4WE7Y2V7AJZLS5B277FOJ6H6CUSZ5YXEFDAVG3VYQY2ZHVM3BW4DIR4W
+#\\\|ALKSZMGHBDU37WVLOS5PLVT7SIMA5AOHB5I5D6DK3BBOZWUK4YU \ / AMOS7 \ YOURUM ::
+#\[7]SPNQDPAM22KUD3A53HJYEDI3UR24WCSCQFHZJ7J5YUMHRKQ734AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
