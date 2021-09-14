@@ -33,23 +33,44 @@ my $private_key_file = $key_filename->{'private'};
 if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
     and ( defined $key_password or $ask_for_password )
 ) {
+    my $pkey_file_path;    ## check if has .vp file for comparison ##
+    ( my $pkey_file_name )
+        = <[crypt.C25519.sign_file_list]>->( $name, undef, qw| vp | );
+    $pkey_file_path = catfile( $key_dir, $pkey_file_name )
+        if defined $pkey_file_name;
+    if ( defined $pkey_file_path and not -r $pkey_file_path ) {
+        <[base.log]>->( 0, qw| : | );
+        <[base.logs]>
+            ->( 0, ": no read permissions on '%s'", $pkey_file_name );
+        <[base.log]>->( 0, ':.   [ generating without comparison ] ..,' );
+        <[base.log]>->( 0, qw| : | );
+
+        undef $pkey_file_name;
+        undef $pkey_file_path;
+    }
 
     <[base.logs]>->( "creating seedphrase key '%s' .,", $name );
 
     my $key_seed_entropy;
+    my $pwd_prompt_string = sprintf "key entropy for '%s'", $name;
+
+REENTER_GEN_ENTROPY:
 
     ## requesting user input ., ##
     ##
     if ( not defined $key_password ) {
         <[base.perlmod.load]>->('AMOS7::TERM')
             if not <[base.perlmod.loaded]>->('AMOS7::TERM');
-        say sprintf "%s:%s", $AMOS7::C{'0'}, $AMOS7::C{'R'};
+        say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'}
+            if index( $pwd_prompt_string, qw| re- |, 0 ) != 0;
 
-        my $pwd_prompt_string = sprintf "key entropy for '%s'", $name;
-
-        $key_seed_entropy
-            = AMOS7::TERM::read_password_repeated($pwd_prompt_string);
-
+        if ( defined $pkey_file_name ) {
+            $key_seed_entropy    ##  has file for comparison  ##
+                = AMOS7::TERM::read_password_single($pwd_prompt_string);
+        } else {
+            $key_seed_entropy
+                = AMOS7::TERM::read_password_repeated($pwd_prompt_string);
+        }
     } elsif ( defined $key_password ) {
         $key_seed_entropy = $key_password;    ## given ##
     }
@@ -76,9 +97,64 @@ if (-r $virtual_keyfile    ##  key is 'virtual' [ seed-phrase ]  ##
 
         } else {    ##  key is loaded ., ##
 
+            my $passphrase_not_correct = FALSE;
+
+            if ( defined $pkey_file_name ) {    ## comparing publ. keys ##
+                my $pkey_str = <[file.slurp]>->($pkey_file_path)->$*;
+                chomp $pkey_str;
+                $pkey_str = Crypt::Misc::decode_b32r($pkey_str);
+
+                if ( not defined $pkey_str or not length $pkey_str ) {
+                    if ( not defined $key_password ) {   ## entropy param ? ##
+                        <[base.log]>->(
+                            0,
+                            "cannot decode '.vp' file [ re-generate without ]"
+                        );
+                        undef $pkey_file_name;
+                        undef $pkey_file_path;
+                        <[crypt.C25519.unload_key]>->( $name, TRUE );
+                        goto REENTER_GEN_ENTROPY;
+                    } else {
+                        <[base.log]>->(
+                            0, "cannot decode '.vp' file [ not comparing ]"
+                        );
+                    }
+                } else {
+
+                    $passphrase_not_correct = TRUE    ##[ comparing keys ]##
+                        if $keys{'C25519'}->{$name}->{'public'} ne $pkey_str;
+
+                    if ($passphrase_not_correct) {
+                        my $err_str
+                            = defined $key_password
+                            ? ': given seed entropy not correct ..,'
+                            : ': passphrase is not correct ..,';
+                        <[base.log]>->( 1, qw| : | );
+                        <[base.log]>->( 0, $err_str );
+                        <[base.log]>->( 1, qw| : | );
+                        if ( $ask_for_password and $pwd_retry_on_error ) {
+
+                            $pwd_prompt_string
+                                = sprintf "re-enter key entropy for '%s'",
+                                $name;
+
+                            <[crypt.C25519.unload_key]>->( $name, TRUE );
+                            goto REENTER_GEN_ENTROPY;
+
+                        } else {
+                            <[crypt.C25519.unload_key]>->($name);
+                            return FALSE;
+                        }
+                    }
+                }
+            }
+
+            say sprintf qw| %s:%s |, $AMOS7::C{'0'}, $AMOS7::C{'R'}
+                if not defined $key_password;    ##  when user input  ##
+
             my $key_checksum = <[crypt.C25519.key_bin_checksums]>->(
-                $keys{'C25519'}{$name}{'private'},
-                $keys{'C25519'}{$name}{'public'}
+                $keys{'C25519'}->{$name}->{'private'},
+                $keys{'C25519'}->{$name}->{'public'}
             );
 
             <[base.logs]>->(
@@ -309,8 +385,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,,.,,,.,,,,,..,,.,.,,,.,.,,,,,,,..,,,,,,..,,..,,...,...,.,,,.,,,.,,,,,,,..,,
-#NYNRVFQBDN33GOWQE45X6KQKQ4EUPFTJKY6LL7QVKCY4KMMKCTNNKRKPKQ4HJUFUU55HUV6NNBKRK
-#\\\|MV4NLANIRVVSU7PJLMDS6FWTQXRNBGZRX4KWMNLPCHF4V7WXXHJ \ / AMOS7 \ YOURUM ::
-#\[7]4ZPEHWEFMZW2GE5VBM62HOVUCE2RB4DZD7DQXZJKOOSIKX3EGAAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,.,,.,.,,,,,.,,,.,,,,,,,...,,.,,..,,...,...,...,,..,,.,,...,...,
+#5F5PQPC7A6KCPTTZ3ISS6NJUYU5H4XOQ2LKDZ2RYK5DGZHT2PTEV5GWDMALRBO2Q4KLM64LYPB2AI
+#\\\|JVZR5YW3UWL54IZ6OVNXRLL2JIJHMFLZYCOXDR5YXWSGXJ2WKMC \ / AMOS7 \ YOURUM ::
+#\[7]PYLP4PU5AZQUQQXZ2FSW7ACIUATRZA7I3WHMA6D6OXQZVKEPVSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

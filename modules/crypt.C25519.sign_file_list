@@ -3,22 +3,30 @@
 # name  = crypt.C25519.sign_file_list
 # descr = return filenames of requested key signature
 
-my $name      = shift // '';    ## key name ##
-my $rkey_name = shift // '';    ##  signature key name  ##
+my $name       = shift // '';    ## key name ##
+my $rkey_name  = shift // '';    ##  signature key name  ##
+my $type_param = shift // '';    ##  optional  ##
 
-my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
+my $rkey_fname_str
+    = length $rkey_name
+    ? <[crypt.C25519.key_name_to_skey]>->($rkey_name)
+    : '';
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
     return undef;
-} elsif ( not length $rkey_name ) {
+} elsif ( not length $rkey_name and $type_param ne qw| vp | ) {
     warn 'expecting signature key name param <{C1}>';
     return undef;
 } elsif ( $name !~ <crypt.C25519.regex.key_name> ) {
     warn 'key name param containing not valid characters <{C1}>';
     return undef;
-} elsif ( $rkey_fname_str !~ <crypt.C25519.regex.signature_key_name> ) {
+} elsif ( length $rkey_fname_str
+    and $rkey_fname_str !~ <crypt.C25519.regex.signature_key_name> ) {
     warn 'signature key name param containing not valid characters <{C1}>';
+    return undef;
+} elsif ( length $type_param and $type_param !~ m{(rq|ks|sk|vp)} ) {
+    <[base.s_warn]>->( 'type %s not recognized [rq|ks|sk|vp]', $type_param );
     return undef;
 }
 
@@ -27,18 +35,21 @@ my $key_dir = <[crypt.C25519.chk_key_dir]>;
 my @found_sig_files;
 
 foreach my $type (qw| rq ks sk |) {
+    next if length $type_param and $type_param ne $type;
     my $rq_filename = sprintf qw| %s.%s.%s |, $name, $type, $rkey_fname_str;
     my $rq_path_abs = catfile( $key_dir, $rq_filename );
     push @found_sig_files, $rq_filename if -f $rq_path_abs;
 }
+
+return @found_sig_files if length $type_param and $type_param ne qw| vp |;
 
 my $vp_filename = sprintf qw| %s.vp |, $name;    ##  virtual key pub-key  ##
 push @found_sig_files, $vp_filename if -f catfile( $key_dir, $vp_filename );
 
 return @found_sig_files;
 
-#,,..,...,.,,,...,.,,,,,.,..,,,..,,,,,,,,,...,..,,...,...,,..,.,,,...,..,,.,,,
-#HDHTN7G6F6ZRSIPV56Q45QM7DLIDPLYM5FWKHMU2GJP7R2SBTERLEBS5YUJEVZAL4FE4WHNXACSCA
-#\\\|STP6FZLAGJH5CIG6AFF6VY7GVPACBMYZQEM5YDBJE4V7ZIWH6FM \ / AMOS7 \ YOURUM ::
-#\[7]R4OI6DV3QDJLJUA5KOSRX6CPTLO4RVK2Y2TIMGKYTVGS5JP6LCCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,..,,,,,,,..,,.,,.,.,..,,..,,..,,...,...,.,,,.,,,,,.,,,,,,.,,
+#UD5H6QH5KMLIRVCOE23L2YGQ3W4P7TH3TGWDJKZXRQTVKRQDS3QNPBDGRB3WZ7YNOFOJXFDSMEWQA
+#\\\|K3ZU57PIZTFYCSZSCYPIVT6Y4H7UYZZENSSPO6P3M24OG6IMVWR \ / AMOS7 \ YOURUM ::
+#\[7]YLH7DB2KFTQYVHSBRUPFLTSAZH62NEK5X5ZS6SZGVD7QU6J3X2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,10 @@ my $rkey_name        = shift // '';      ##  signature key name  ##
 my $ask_for_password = shift // FALSE;
 my $virt_key         = shift // <[crypt.C25519.key_is_virtual]>->($name);
 
-my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
+my $rkey_fname_str
+    = length $rkey_name
+    ? <[crypt.C25519.key_name_to_skey]>->($rkey_name)
+    : '';
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
@@ -123,8 +126,8 @@ return ( $rq_filename, $vp_filename ) if $virt_key and wantarray;
 
 return $rq_filename;    ##[ success ]##
 
-#,,,.,...,,,.,..,,,.,,.,.,,..,,.,,.,.,,,,,,..,..,,...,...,.,,,..,,.,.,,,.,.,.,
-#WAKMPCSH3KKQYIN64QB36MZOVGHKI3TBUB3P2WFNBTBIVYHG4RON3TQJBDMY65PCR47NW44KQD4S2
-#\\\|S7FTKWMNI64GRH52ZOMEG2VYC3EDQTV2HZWCNZZAJXHPYV6IQAU \ / AMOS7 \ YOURUM ::
-#\[7]BE5D3X7BDVRYZDV35TYDG2PZPUK6YPKDS2OQPYWPBG4AAWGZCQBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,...,,,.,.,,,,,.,,,,,,.,,,.,,..,,...,...,...,,..,,,,,,..,.,,,
+#AUMGB73J43ZSTR5R55JKBHDXRG72WRVU3OWRMXGDELMUHUZYHS77727WCAP2PNP4BMAM5FLTDMHTG
+#\\\|B6UNRAGMS3NSHEXJLTE2632B57MOIFC7J3ICBWWPOB7TIWAUC5V \ / AMOS7 \ YOURUM ::
+#\[7]AUCIDR4THDU7ER5KADA62OPS7WOSSRMZZEUHEER55QCVTVK6OMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
