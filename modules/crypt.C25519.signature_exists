@@ -5,7 +5,10 @@
 my $name      = shift // '';    ## key name ##
 my $rkey_name = shift // '';    ##  signature key name  ##
 
-my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
+my $rkey_fname_str
+    = length $rkey_name
+    ? <[crypt.C25519.key_name_to_skey]>->($rkey_name)
+    : '';
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
@@ -33,8 +36,8 @@ foreach my $type (qw| rq ks sk |) {
 
 return $files_found;
 
-#,,,.,,,,,,.,,,,,,..,,.,,,,,,,,.,,.,,,,,,,..,,..,,...,...,...,,,.,...,,.,,,..,
-#E4WD2YFEU46WZVAMEKH6TGVVVXUQUSLN66ZY7BKPZ45XGKCWF5HXGFL4QAPO5GNYPFJX2EQRLJNXU
-#\\\|J5QUGMFAL5PYYR34ETGKDZLL7SR6IGZECZOHQIKE3FUILL5URUP \ / AMOS7 \ YOURUM ::
-#\[7]ODJALOITGEE44HCXJG7TGO6KSC3ZXQ5HXR3BEAOXWADL2ZIYYABQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,,,.,,..,...,.,,,...,,,,,,..,..,,...,..,,..,,,,.,,,.,,,.,..,,
+#A4QYFMPYEXEF2OCPJR3NNQMFQ4OEBOMUTETPKPDQOVWZL6P6ZDF5ZOX7WREUZCK7XWLJR4VLCJODA
+#\\\|Q6RRMHPJAEFTUHYHSOMBRRYBECFLB7MYU3ID5OE2SNBFCG75XVB \ / AMOS7 \ YOURUM ::
+#\[7]7FYYBVOEULXGG6YY5XJXGN4YOIR6N5POTD7FFPWMLVWU2G7RQ2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

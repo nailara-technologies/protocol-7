@@ -203,11 +203,13 @@ sub read_password_repeated {
 }
 
 sub read_password_single {
-
-    my $message_prompt = shift // 'enter password';
-    my $term_title     = shift // '';
-    my $output_lines   = shift // 1;
-    my $input_timeout  = shift // $PASSWD_READ_TIMEOUT;
+    ##  prefix with ':no-enter:' to avoid 'enter ' prefix  ##
+    my $message_prompt = sprintf( 'enter %s', shift // qw| password | );
+    $message_prompt =~ s|enter ((re\-)?)enter|$1enter|;  ## allows re-enter ##
+    $message_prompt =~ s|^enter :no-enter: ||;           ##  special case  ##
+    my $term_title    = shift // '';
+    my $output_lines  = shift // 1;
+    my $input_timeout = shift // $PASSWD_READ_TIMEOUT;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
     $currrent_pass_prompt = $message_prompt;
@@ -883,8 +885,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,.,,,.,,.,.,,,.,,..,..,,,,.,.,.,...,,,.,,,.,..,,...,...,...,.,,,...,.,.,.,.,
-#T7M4JYYQQRXIMH2UZJMQGGFO724WOX3XN6DTK6MMMUG2XQUCN7GRSQZ5RRYERBYKP4Y2WU37ZQUYY
-#\\\|2I6NFNTBVEROPBQDI3XMLBV7B4G5HZCEX7KF2JSGWHOAIABX2U3 \ / AMOS7 \ YOURUM ::
-#\[7]DBRB7ZNAMDJVUJMSX7U3NHSTLLO4WTH5PF4XRIU6OW6UX7Q7JCAA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,.,,,,,,.,,,..,,,,,,,,.,.,,,.,,,..,,...,...,..,,,..,,,.,.,,,.,.,
+#WDFTR5Z2IXRXOMJHOPT5LUPPAWQBZQ7CZDHQK7CRL6FHIJT7TL44NCDGY2DKFIPCKH76HLEQGVUOG
+#\\\|MWUG7B56ZOIQ3TETYHKA5YJTDII23HJDAUZGLFOQ64DHEGSHOIY \ / AMOS7 \ YOURUM ::
+#\[7]IQJLUNQPJEWPEMLDXZFPEFY7FSKUUASWUECKTICCJXBCPQIWIOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,10 @@
 my $name      = shift // '';    ## key name ##
 my $rkey_name = shift // '';    ##  [optional] signature [base] key name  ##
 
-my $rkey_fname_str = <[crypt.C25519.key_name_to_skey]>->($rkey_name);
+my $rkey_fname_str
+    = length $rkey_name
+    ? <[crypt.C25519.key_name_to_skey]>->($rkey_name)
+    : '';
 
 if ( not length $name ) {
     warn 'expecting key name param <{C1}>';
@@ -29,8 +32,8 @@ if ( not length $rkey_name ) {
 return
     map { sprintf qw| %s.%s.%s |, $name, $ARG, $rkey_fname_str } qw| ks sk |;
 
-#,,.,,,.,,,,,,,,.,,.,,,,.,.,,,..,,,..,,,.,...,..,,...,...,..,,.,.,...,,,.,,,.,
-#KAACWSSIMQ5RLVU2GOXEINGUBOSDMKJBXC4RI7WBIBMZWZCMG3KIGVQH25TJWRABYJ6447KIDCXOQ
-#\\\|S37U3744BXRQQPC2G5GIDA3SWDMX2RF5GL6RS6XZGP5XLFRVSYV \ / AMOS7 \ YOURUM ::
-#\[7]FDUXZHSKDJL5ILKRE4UZITI2MISWQHABNZDKCWKQTJFYN64N4SAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,..,,,,,,,,.,...,...,,,.,..,,..,,...,...,.,,,...,.,.,,..,,..,
+#375TLQONCVZ7JWBMX7VYQCE6ZE3ERIYXR3Q7D2ISD6MJ6IKBHCK4A44IWUQK5Q66KBHPONKWWXICS
+#\\\|6HJR7CNK6ZGTLF735JAGUNTWYIS5OA54B2EI6PXMRFV7LD3E5VE \ / AMOS7 \ YOURUM ::
+#\[7]Z5MKHUIPEF2OIC7FJY7ZQZ3JTLCSMWM4737EFCYKGVCNVGBSFOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
