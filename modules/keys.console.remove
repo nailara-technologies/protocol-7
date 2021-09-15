@@ -9,7 +9,11 @@ my $name = shift;
 if ( not defined $name ) {
     say "\n  << expected <key_name> parameter >>\n";
     <[base.exit]>->(qw| 0110 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($name) ) {
+    say sprintf "\n  <<  %s is not a valid key name  >>\n", $name;
+    <[base.exit]>->(qw| 0113 |);
 }
+
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
 my $keys_re = <keys.regex>;
@@ -64,8 +68,8 @@ foreach my $file_name (@k_files) {
 printf " :\n :: [ removed %d key file%s ]\n\n", $del_count,
     <[base.cnt_s]>->($del_count);
 
-#,,..,,,,,.,.,...,,.,,,..,...,.,,,,.,,,.,,,.,,..,,...,..,,..,,,.,,,.,,,.,,,,,,
-#3JT77ZQYIG7LS3VZWG2UP6NKAB5LHZAGIIWOICSCVXH4STOATOFNU7MHCE7W4WPK4T2W3KTHQRHHA
-#\\\|4B7UWDQKMASXVOECC2H46VSSMAW5WQDJ2N5RPBQJZTDRLOLAHV6 \ / AMOS7 \ YOURUM ::
-#\[7]Q5J5CKMBOFL635P4ULUA3AZWQYTFAHCVUXQXHQ7WNAYJZ2H4RCBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,.,,,,,.,..,,,.,,,..,.,,,,..,..,,...,..,,.,.,..,,..,,,,.,,..,
+#5VIOUVLIYVCEVSRMFYOFQKQUJPIYOSTY7ZU5NRKPVZEP7CB62KAJMZYWPUY66GISXUCSGZAQMV5B4
+#\\\|RTQ3KBGB2FH2RSBWEC4L2P2WCJNGJG3M5FGRE25NXOYTJG74E7F \ / AMOS7 \ YOURUM ::
+#\[7]V3PTDGBS4NN5RIAHQN364T22ZPDQSQE442ZMQ4DQN5U3SBLZVSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

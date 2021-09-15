@@ -6,14 +6,16 @@
 
 my $name = shift;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+if ( not defined $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($name) ) {
+    say sprintf "\n  <<  %s is not a valid key name  >>\n", $name;
+    <[base.exit]>->(qw| 0113 |);
+}
 
 return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
     if <[crypt.C25519.key_exists]>->($name);
-
-return print "\n  <<  key name contains not valid characters  >>\n\n"
-    if $name !~ <keys.regex.key_name>;
 
 my $key_dir = <[crypt.C25519.key_vars]>->{'key_dir'};
 
@@ -51,8 +53,8 @@ return
     printf "\n  <<  successfully created virtual key file for '%s'  >>\n\n",
     $name;
 
-#,,,.,,,.,,.,,.,.,,..,..,,,..,,,,,.,.,,.,,,..,.,.,...,...,...,..,,.,,,...,,,,,
-#ILN64TTSJXEM2C5L3SNLL5OO5DYKH3PTBE6BV3HVBPI73SKXFGCYETSAK5LYKEPZ6VKEGSABCU6JC
-#\\\|SOKE5SNCKYQRLHCCQX5FLU7TZDCN3BJSJZFHEECANL7LK4A5UTA \ / AMOS7 \ YOURUM ::
-#\[7]EWRFGIJ4FLU5TGDR237C4BPN4J5WH43UMHBMSKX7HQI66BHHB2DA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,,,,..,,.,,,..,...,.,,,,,,,.,.,.,.,...,...,,,.,...,...,,..,...,
+#64TRVE3RLOCNGU3NJHFVO56Z2ENAHX4RQ5UITTQVIVVPA6K7IOFGPRND5PGUKYRF2IW3Y2UJ6UCL6
+#\\\|YH3ZP2BU5SNVJ7HZ3IHSTQFDXY3IIUTYZE2N6VKED35F4PPYNTI \ / AMOS7 \ YOURUM ::
+#\[7]KYSS6EG6GWR6XHRXQPGM2UQ2R46SUZE2GPLUILO4N6UHJSGSS2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

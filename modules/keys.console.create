@@ -6,14 +6,22 @@
 
 my $unencrypted = FALSE;    ##  false  ##
 
-my $key_name = shift // qw| base |;
+my $name = shift // qw| base |;
 
-if ( length $key_name and <[crypt.C25519.key_exists]>->($key_name) ) {
-    <[base.logs]>->( 0, "key named '%s' already exists", $key_name );
+if ( not length $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
     <[base.exit]>->(qw| 0110 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($name) ) {
+    say sprintf "\n  <<  %s is not a valid key name  >>\n", $name;
+    <[base.exit]>->(qw| 0113 |);
 }
 
-$unencrypted = TRUE if $key_name =~ s|\s*\-U\s*||g;
+if ( length $name and <[crypt.C25519.key_exists]>->($name) ) {
+    <[base.logs]>->( 0, "key named '%s' already exists", $name );
+    <[base.exit]>->(qw| 0010 |);
+}
+
+$unencrypted = TRUE if $name =~ s|\s*\-U\s*||g;
 
 my $key_password;
 if ( not $unencrypted ) {
@@ -23,10 +31,10 @@ if ( not $unencrypted ) {
         );
         <[base.exit]>->(qw| 0110 |);
     }
-    $key_password
-        = AMOS7::TERM::read_password_repeated(
+    $key_password = AMOS7::TERM::read_password_repeated(
         'C25119 key encryption passphrase',
-        sprintf( "create C25519 key '%s'", $key_name ) );
+        sprintf( "create C25519 key '%s'", $name )
+    );
 
     if ( not defined $key_password or length $key_password <= 1 ) {
         <[base.log]>->( 0, 'cannot create unencrypted key without -U' );
@@ -36,44 +44,44 @@ if ( not $unencrypted ) {
     }
 }
 
-<[base.logs]>->( 0, ' << %s is not a valid key name >>', $key_name )
+<[base.logs]>->( 0, ' << %s is not a valid key name >>', $name )
     and <[base.exit]>->('0110')
-    if $key_name !~ <keys.regex.key_name>;
+    if $name !~ <keys.regex.key_name>;
 
 print "\n::\n";
 
-my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name);
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 my $key_dir      = $key_vars_ref->{'key_dir'};
 my $key_usr      = $key_vars_ref->{'usr_name'};
 
 my $u_str
-    = index( $key_name, $key_usr, 0 ) == 0
+    = index( $name, $key_usr, 0 ) == 0
     ? ' files'
     : sprintf( " for '%s'", $key_usr );
 
 my $success = FALSE;
-say sprintf " : << generating '%s' key%s >>", $key_name, $u_str;
+say sprintf " : << generating '%s' key%s >>", $name, $u_str;
 
-if ( not <[crypt.C25519.gen_keys]>->($key_name) ) {
+if ( not <[crypt.C25519.gen_keys]>->($name) ) {
     <[base.exit]>->( qw| 0110 |, 'key generation not successful .,', 0 );
 }
 
 ( my $keywrite_status, my @key_chk_sums )
-    = <[crypt.C25519.write_keys]>->( $key_name, $key_password );
+    = <[crypt.C25519.write_keys]>->( $name, $key_password );
 
 $success = TRUE    ## true ##
     if defined $keywrite_status and $keywrite_status == TRUE;
 
 printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
-    $key_name, join( qw| : |, @key_chk_sums ), $key_dir )
+    $name, join( qw| : |, @key_chk_sums ), $key_dir )
     and return TRUE    ## true ##
     if $success;
 
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,.,,,,.,,..,...,,.,,,..,,..,...,...,...,,..,..,,...,...,...,...,,,.,,,,,,,.,
-#DWMQCYXCT7O2UHZ7AJJDGLQPXNLUHOQZQOCWEX4CAXWTJGP6UO7QX6YBVUBMUPYNKS3C7OMDZCWOS
-#\\\|OOVAQ4XTDZ6FO4B4HJHN75CRA3MN3ZLEZ4IVVG6LVBYVNSCHLGS \ / AMOS7 \ YOURUM ::
-#\[7]MIRLGSC5UJQPQ7OPE3OJSEWAG4WRUJH77WJW2RZUKZRVCLDTJ2BA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,..,,,,,,..,,,,.,,.,,,,,,,.,,..,,...,...,.,,,.,,,.,.,..,,.,.,
+#ISXWBPU5XRPRH4KFMCRHLEAXPDYYJZVNMI4K7RLWIU2YJIFK33NBY7RPJXW47YDPD4VDVTU46BXL2
+#\\\|JGHHI7M4MPC5IOIADYIT4XUUV3IDQFWASOCPWPWHM25XKVSJENU \ / AMOS7 \ YOURUM ::
+#\[7]VUYL5UTQV7HXTIL7XKAI53IL3EUJ57RRUL3I3Y3QGHYHJH33VSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

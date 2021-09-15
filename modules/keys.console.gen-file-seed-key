@@ -9,7 +9,7 @@ my $unencrypted = FALSE;
 
 my @params;
 
-foreach my $param_str ( split m|\s+|, shift ) {
+foreach my $param_str ( split m|\s+|, shift // '' ) {
     $file_plain  = TRUE and next if $param_str eq qw| -plain |;
     $unencrypted = TRUE and next if $param_str eq qw| -U |;
     push @params, $param_str;
@@ -17,8 +17,14 @@ foreach my $param_str ( split m|\s+|, shift ) {
 
 ( my $name, my $file ) = @params;
 
-return print "\n  << expected <key_name> parameter >>\n\n"
-    if not defined $name;
+if ( not defined $name or not length $name ) {
+    say "\n  << expected <key_name> parameter >>\n";
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($name) ) {
+    say sprintf "\n  <<  %s is not a valid key name  >>\n", $name;
+    <[base.exit]>->(qw| 0113 |);
+}
+
 return printf "\n  <<  a key named '%s' exists already  >>\n\n", $name
     if <[crypt.C25519.key_exists]>->($name);
 return    ##[ missing name parameter with path given ]##
@@ -94,8 +100,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 NO_KEYGEN:
 <[base.exit]>->( qw| 0110 |, 'no key generated.', 0 );
 
-#,,,.,,.,,,..,,.,,,.,,..,,,,.,..,,,,,,.,,,..,,.,.,...,...,,,,,,,,,,..,.,,,...,
-#D444USILHJSLJ6VPWD4RI4CNOV33KO43PAUL4DHKQR4NIWVZGMRFVIS4FF7W4CJTXE6RNOF5SMDCO
-#\\\|WECE2EVQLU2VDFJLNHUFUK2MOUF4VBY6S6REJPIJA2A5QBJ64IN \ / AMOS7 \ YOURUM ::
-#\[7]734QPZKBKWLU6EHE7LTE6VFHJOHXFZUJMQLLVDLYB47JNWA37OBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,,.,,,.,,,.,,,,.,,,.,,,,,,.,,.,.,...,...,,,,,,..,...,,..,.,.,
+#7GVOKS6XUYC24X4YMI55HJWRM7CPRNSHI2NRUOYYJNLSMK7B54DFH4CL4CSLH5ITBLHA3LYJGZDKO
+#\\\|UL3CCZU5SV35DJRK36WSNOFJEQPE7XDO4OQIYFYZS6AZBSS756I \ / AMOS7 \ YOURUM ::
+#\[7]4IL32TTARSOGOOPFB4T5FBTE2ZHLNR2MNRYXMX3OIF2YE3PQ4KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

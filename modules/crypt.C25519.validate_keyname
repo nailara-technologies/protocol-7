@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = crypt.C25519.validate_keyname
+
+my $name = shift // '';
+
+if ( not length $name ) {
+    warn 'expecting key name param <{C1}>';
+    return undef;
+}
+
+return FALSE
+    if $name !~ m|^<crypt.C25519.regex.key_name>$|
+    or $name =~ m|\W{2,}|            ##[  not valid character sequences  ]##
+    or $name =~ m<^[\W\.]|[\W.]$>;
+
+return TRUE;
+
+#,,,.,,.,,..,,,..,..,,,..,,,,,,,,,,..,.,,,,,,,..,,...,...,,,,,..,,,.,,,..,,..,
+#EANTGMZ6HTHKL4FA2KNBDCTYI25TG3W7ZCUQQ4XTORPSUQEW6M3ML7NVQ2EIUISEAUXBVQODMFIZG
+#\\\|KGL657BSU7MSSK6PRYY4UG5KSUSNT5HBURCGUB7UK5F4KJ7R6XT \ / AMOS7 \ YOURUM ::
+#\[7]WRODHXXSG4KPODKADMN542P5TPKEVDHQKK3WITIZEVISZGTPP2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
