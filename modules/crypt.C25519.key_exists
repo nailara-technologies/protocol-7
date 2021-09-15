@@ -11,6 +11,7 @@ if ( not defined $name ) {
 
 my $re_kfiles = <crypt.C25519.regex.key_files>;
 state $key_dir //= <[crypt.C25519.get_usr_keys_dir]>;    ##[ once ]##
+return undef if not -r $key_dir;    ## warned in 'get_usr_keys_dir' ##
 
 if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
 
@@ -34,8 +35,8 @@ if ( $name =~ m|$re_kfiles$| ) {    ## key filename syntax ##
     return FALSE;    ##  key with that name not present  ##
 }
 
-#,,..,,.,,.,,,,..,.,.,,.,,...,,..,,.,,...,..,,..,,...,...,...,,..,,,,,,.,,..,,
-#EQHA4JAHZIUIWDKQZ2VMAGS73HETKAGP62DSZHT2DNSI54I5R3NIPRGMPNI7AOW6Y727WPIJZP3TW
-#\\\|RMJZ63CHWWYHBZ3JZTBM3FRCU2YXMMHO4HZB4SGNSPZ7YFLDFI7 \ / AMOS7 \ YOURUM ::
-#\[7]KCKLW6NFKGTOKNSG6KCBDF2YIKYUWF2HA6QMRKHY67XKM5OOSIBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,.,..,,,.,,..,,,,.,,..,..,,..,,..,,...,...,,..,...,...,,,.,...,
+#B74B3VESYJU6XOSSL4YKJLWIDX3GV7OELRJJL3RS7QWOUSDC3SJJYX44HORSCCMVJOFAWF7BEYEIK
+#\\\|ZZHJWOWEA65UGLOO7PNRUYIBFLY55FGIM76KL22R3W7MVD7U4JG \ / AMOS7 \ YOURUM ::
+#\[7]6YBKMOTG3DHWQ7WHPYSZKZS554CCCG47K4NFCNJYNDWB4GFGFMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

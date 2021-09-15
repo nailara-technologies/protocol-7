@@ -25,8 +25,16 @@ if ( not defined $result_aref ) {
 }
 
 if ( not -d $path ) {
-    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $path );
-    return undef;
+    my $parent_dir = <[file.last_existing_dir_path]>->($path);
+    if ( $parent_dir ne $path and not -r $path ) {
+        <[base.s_warn]>->(
+            "no read permissions to parent path [ %s ] <{C1}>", $parent_dir
+        );
+        return undef;
+    } else {
+        <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $path );
+        return undef;
+    }
 } else {
     my $dir_fh;
     $path =~ s|/+$||;
@@ -50,8 +58,8 @@ if ( not -d $path ) {
 
 return $result_aref if not $recursion_entered;
 
-#,,,,,,.,,,..,...,,.,,..,,..,,.,.,,..,.,.,...,..,,...,..,,..,,...,..,,.,,,,..,
-#DGDMCAM2W4TRRUCIR7OOI6CC7FDKZUWU7GGTVJ3EJEEB4SF56IAVCXTYFB53TIK3DSCN6PTPMS3ES
-#\\\|AFGUOBQICGI6KBN55E5LN4QADXB7POJX3LBM4OQTRISAVDI57D4 \ / AMOS7 \ YOURUM ::
-#\[7]MGX3SGUD2IESIXFQ3P2MNG4YMPYTA2YIDJPRNF27EOEIBJIUEQDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,..,..,,..,,,,.,,,.,...,,..,..,,...,..,,..,,,,,,,.,,,,,,.,,,
+#W52F4QUX6VPAEI2YZN3YPWK44BRMAQM4NYLS5VSOXBKRNRVE6KM64M3EBSARJH4ZP3MZDAOTM64JK
+#\\\|KFKCEUJMXSXM36CPFWXXRLSFMPB3XFUCBB6CSKAXFWBBHYGYKTW \ / AMOS7 \ YOURUM ::
+#\[7]6BY5WAWTSAY25VEAOCQJJET7PUVEXNVYNHEGLPTSN2XMUU7UFGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

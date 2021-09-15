@@ -2,6 +2,12 @@
 
 # name  = keys.post_init
 
+if (<crypt.C25519.key_vars_error>) {
+    <[base.exit]>->(
+        qw| 0110 |, 'zenka shutdown [ module init failed ] ..,', 0
+    );
+}
+
 <keys.regex> = <crypt.C25519.regex>;
 
 foreach my $type (qw|  secret  private  public  |) {
@@ -10,8 +16,8 @@ foreach my $type (qw|  secret  private  public  |) {
 
 0;
 
-#,,,,,.,,,,..,..,,,.,,,,,,...,.,,,.,.,.,,,...,..,,...,...,,,,,,,,,,..,.,,,..,,
-#ESXKXRZSVIWV3KLOF2Z4U3RGQYD2KHKU2D4AO2KPNMXWBJMBU7GPXINBMUPJZYMNXATULYTDRCWZO
-#\\\|FCBLNBR5XE4XSTYTYMF5COM5MQD43SBZU3JPBGSEXARMMNHS3NV \ / AMOS7 \ YOURUM ::
-#\[7]XDW7VKKX3B336FEYKGU5V6242RA6S625PZ3L4RBZD2BBOB747WCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,..,,,,,,.,,,,,,..,,...,,,,,..,,...,...,..,,.,.,..,,,..,..,,
+#V5B2JHJDUZ233SS6SB3DEO4SIS37GLSPCZEVLJDXT37FWPBRNVETHHFO7SM3D3L5CKZRGHXKDIKHC
+#\\\|4H5BEEXCOWX6KAL6CQ3LVLTCJ7WWB22R3Q65PU4BOQUQZTWS3YA \ / AMOS7 \ YOURUM ::
+#\[7]MRPFJXD6QSJ4OOIOLU4AQ234A6QEENLE6YXEO252EVHHQUUMDQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = base.file.last_existing_dir_path
+
+my $check_path = shift // '';
+
+if ( not length $check_path ) {
+    warn 'expected [ absolute ] path argument <{C1}>';
+    return undef;
+}
+return $check_path if -d $check_path;
+return undef       if index( $check_path, qw| / |, 0 ) != 0;
+( my $last_dirpath = $check_path ) =~ s|((*plb:.)/)?[^/]+$||;
+my $last_path_len = length $last_dirpath;
+while ( not -d $last_dirpath ) {
+    $last_dirpath =~ s|((*plb:.)/)?[^/]+$||;
+    return undef if length $last_dirpath == $last_path_len;
+    my $last_path_len = length $last_dirpath;
+}
+
+return $last_dirpath;

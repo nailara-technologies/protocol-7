@@ -4,6 +4,7 @@
 # note = use <crypt.C25519.base_key_name> to override the '<user>.base' pattern
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
+return -2 if ref $key_vars_ref ne qw| HASH |;
 
 my $uid          = $key_vars_ref->{'uid'};
 my $gid          = $key_vars_ref->{'gid'};
@@ -96,8 +97,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,.,,,.,,,,.,,,.,,.,,,..,,,,,,,.,.,,,.,.,,.,,..,,...,...,,.,,...,...,,,,,...,
-#7JRGV74IQHVEL3RAHS73G2R7F34ZY2IB44V4WUBL5ZL4VNEC6UQFIZNPRFTHWQ2C6RHJLEETD37YM
-#\\\|P5HYXP5FWAKHLOT3DQZTL7P4P5U2VN4QSS44IYK6FH3UTQ2EU55 \ / AMOS7 \ YOURUM ::
-#\[7]P4XVX644HZQ2DSTBRLMA2CM34I3BO4O33TR5TFRDBMEPSSXZ44DA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,.,.,,..,,.,,...,..,,.,.,,.,,..,,...,...,,..,.,,,,,,,,..,,,.,
+#OVNMOOGJQVB7NKLQRXRS4IQZZ4FPTFXZ634RSN4SDQIUYSXCVUQ7EOYCVYQXG7N7QXV7IEDRP7LAM
+#\\\|DCAXV3EMH5DCFTJDZKOJZZK2SYAR7WMXTMQWVZZAWSYYENWXSP2 \ / AMOS7 \ YOURUM ::
+#\[7]KSIIBCVBQKAJGYYPWUSWKXTN3EOXRRPFFDAXS5XNU3DDQSKANYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

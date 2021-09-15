@@ -4,6 +4,8 @@
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
 
+return undef if ref $key_vars_ref ne qw| HASH |;
+
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $uid     = $key_vars_ref->{'uid'};
 my $gid     = $key_vars_ref->{'gid'};
@@ -36,8 +38,8 @@ if (   $EFFECTIVE_USER_ID == 0
 
 return $key_dir      # <-- success [ true ]
 
-#,,,,,,.,,..,,..,,,,.,,,.,..,,,,.,...,,,,,...,..,,...,...,.,.,...,,,,,,,,,,..,
-#LO2FKBU6E3DXJMXFTA5D33JRNDRVQLCSSEDV76XLQJO7AEJROHKI5P2NJFZXSS57OK4MF55JJV77O
-#\\\|KQIBRUWMWNYOEPDI52O4HMU7GHB4C6AXYO56BDRQSKKTH32BPQE \ / AMOS7 \ YOURUM ::
-#\[7]2VXNEHETYLXOMECCWFETODYQPU4SZPPQB6BYSZY7FQQ3P6XL4QBY 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,.,.,.,.,,..,,..,,..,,.,,,..,..,,...,...,.,,,,,.,,,,,..,,,,.,
+#7SO5YY4MVQ5OHPJQQ4CF26AKP3DWZD6L7GSEKDFK4JJC3QMU6ICBM2CASJZZVBA7LNHFRXBNAJUYI
+#\\\|4NTCVNNPVPOLJ2YITAO66WB7HWXOEKCSABMKBQNHY3TBF7E3RQN \ / AMOS7 \ YOURUM ::
+#\[7]LV4AR7UAGHPMWED6WRJAIWQT3C4YVBX6Z5SIYYQ7HVJDMKK3TECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
