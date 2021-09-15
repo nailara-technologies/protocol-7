@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = discover.cmd.reset-broadcast-timer
+# descr = reset and restart announce broadcast timer
+
+<discover.announce_interval.current> = 0.19;
+<discover.announce_interval.maximum> = sprintf qw| %.2f |, 40 + rand(2);
+<discover.announce_interval.ifactor> = 1.13;
+
+<[base.log]>->( 1, "resetting 'announce host' broadcast interval ..," );
+
+if (defined <discover.timer.announce_host>    ##  resetting timer  ##
+    and <discover.timer.announce_host>->is_active
+) {
+    <discover.timer.announce_host>->cancel;
+}
+<discover.timer.announce_host> = <[event.add_timer]>->(
+    {   'after'   => 0.11,    ##  restarting broadcast timer  ##
+        'handler' => qw| discover.handler.anounce_host_addr |
+    }
+);
+
+return {
+    'mode' => qw| TRUE |,
+    'data' => 'restarting announce broadcast interval'
+    }
+
+#,,..,,,,,,,,,,.,,.,,,,..,,.,,,,,,.,,,.,.,,.,,..,,...,...,..,,.,,,.,.,...,,,,,
+#2MFJXBID7Y6IYVS777QELZUGFS7ZJD74UXA76LJCSJME45KQ4FDUAX5TV7MDWKMEO7Z2RCASS7HE4
+#\\\|T4Z7PMUHFBTEU6436V57RKGNPXYQBX5AYLOZN7DSYD75RJ2Q2JN \ / AMOS7 \ YOURUM ::
+#\[7]NZGLNQ4JHHT2DDEAWGQGO3SOIAKULCBKTG47AQUKBYZFNQDYIQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
