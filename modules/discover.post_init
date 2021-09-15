@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = discover.post_init
+
+<[crypt.C25519.load_all_signatures]>;    ##[  populating %signatures  ]##
+
+<discover.announce_msg_header> = undef;  ##[ clear cached packet header ]##
+
+if ( defined <discover.timer.announce_host>
+    and <discover.timer.announce_host>->is_active ) {
+    <discover.timer.announce_host>->cancel;    ##  resetting timer  ##
+}
+
+<discover.timer.announce_host> = <[event.add_timer]>->(
+    {   'after'   => 0.11,    ## will keep increased interval on reload ##
+        'handler' => qw| discover.handler.anounce_host_addr |
+    }
+);
+
+0;
+
+#,,,.,,,.,,,,,,..,,,.,.,.,.,.,,..,,..,.,.,...,..,,...,...,,..,,,,,,,,,,,.,,.,,
+#HMMD4T7QU3OXA4O7YS7NMRTAKX37AUTSZKKF2OHT6T5WPRZBIYOP277B374SYZUXMZRJQQTVOA4GQ
+#\\\|ZXEMAWGFZ2G4DJIN3ZYWL4BERXUIQEVSVULOLUM54A74VE62QBQ \ / AMOS7 \ YOURUM ::
+#\[7]G6FCYY4Z74G7NYMMI5COBEROEYBSS74AF6N3DJTGGP4PJHJ37MAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
