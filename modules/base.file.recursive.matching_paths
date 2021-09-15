@@ -16,13 +16,13 @@ if ( not defined $search_abs_path or not length $search_abs_path ) {
 }
 
 ##  false  ##
-my $recursion_entered = 0;
+my $recursion_entered = FALSE;
 
 if ( not defined $result_aref ) {
     $result_aref = [];
 } else {
     ## true ##
-    $recursion_entered = 5;
+    $recursion_entered = TRUE;
 }
 my $results = [];
 $results = $result_aref if defined $result_aref;    ##  [ append mode ]
@@ -36,9 +36,20 @@ my $regex_aref = shift @ARG
 if ( not defined $search_abs_path or not length $search_abs_path ) {
     warn 'path param missing or undefined <{C1}>';
     return undef;
-} elsif ( not defined $search_abs_path or not -d $search_abs_path ) {
-    <[base.s_warn]>->( "non existant path ['%s'] <{C1}>", $search_abs_path );
-    return undef;
+} elsif ( not -d $search_abs_path ) {
+    my $parent_dir = <[file.last_existing_dir_path]>->($search_abs_path);
+    if ( $parent_dir ne $search_abs_path and not -r $search_abs_path ) {
+        <[base.s_warn]>->(
+            "no read permissions to parent path [ %s ] <{C1}>", $parent_dir
+        );
+        return undef;
+    } else {
+        <[base.s_warn]>->(
+            "non existant path ['%s'] <{C1}>",
+            $search_abs_path
+        );
+        return undef;
+    }
 }
 
 if ( not defined $regex_aref ) {
@@ -107,8 +118,8 @@ if ( not $recursion_entered ) {
     return $result_aref if not $recursion_entered;
 }
 
-#,,,.,,.,,,.,,.,.,,.,,..,,,.,,,,.,,..,.,,,,,,,..,,...,...,.,,,,,,,,..,,..,.,.,
-#5N4RXI6ICLJNNJRHHYHBAZQ2QKEZORZRPVED4M7F5F7EPZNHJJGUW5OUGJVEFHP3OJHCU7PRZKLPU
-#\\\|23DFCZSSUZETSHVPZZHRVSQHP3WLNVMJKKICSSNH233NOXR3EJG \ / AMOS7 \ YOURUM ::
-#\[7]VXWXVQS2CIB2P6TCN2BZDRVJ6BTET6672JZJNSRQTW55L4K56EDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,..,,.,,,,,,,,.,,,.,,,.,,.,.,..,,...,..,,...,,,.,,,.,.,.,,.,,
+#FX5XFVAIM7FA3PJU24AZCYQDX2VZWK6SL3M2DF62NE7REZOPGWJ3ZD65QNZJJCMZXJSMUDULDWBBO
+#\\\|PI3TAFELD6SGDYATGJELHN6Z2MFEEDUDP7M7FZX4AJPPGOK7CIY \ / AMOS7 \ YOURUM ::
+#\[7]3PDWHCPTUW2LAQ7NSBVJJXVV2O2CIKFU4V3EJLBMCEERAFQDGABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

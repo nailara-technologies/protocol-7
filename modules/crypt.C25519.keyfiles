@@ -15,6 +15,7 @@ if ( defined $type_param and $type_param !~ m{(encrypted|plain)} ) {
 }
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>;
+return undef if ref $key_vars_ref ne qw| HASH |;
 
 my $key_dir = $key_vars_ref->{'key_dir'};
 my $key_usr = $key_vars_ref->{'usr_name'};
@@ -40,8 +41,8 @@ foreach my $file ( grep {m{$re_kfiles}} <[file.all_files]>->($key_dir)->@* ) {
 
 return <[base.sort]>->(@k_files);
 
-#,,.,,.,.,.,,,..,,.,,,.,,,,,,,,.,,,..,,,,,,.,,..,,...,...,..,,,.,,,,,,,,.,,.,,
-#OBRQ72CPRIVH6XTABW5E4IQSH44MB3PJEB6ZPWENBFFBUHDCDNDGE72XY62CW4CU3YI4MF5PS6SIM
-#\\\|42XUYNR4D2EOYBAIIDC5UL22J7IXOXLHOJZ4NJR2HGDCQI33IRU \ / AMOS7 \ YOURUM ::
-#\[7]HWGLUHKWJ5DR55ZKQIUR3ERBYMSJJJD3L2IHAFS35CCIF7HDA6DY 7  DATA SIGNATURE ::
+#,,.,,...,.,.,..,,.,.,.,,,,..,..,,,,,,,.,,,.,,..,,...,..,,,.,,.,.,,,,,.,.,,,,,
+#BN7EN2SGCSXSRQMAMPYTXLFABGGBQPN2KDU3FMTAY35LDVDJT7DLNV74G25WPG6G2NH2OWRJVJH2M
+#\\\|7RJFVU52AGGPVE2XCOGIYQAGSRR2R4NK4E2OENDCPQZGBRZOZAH \ / AMOS7 \ YOURUM ::
+#\[7]OS5UVRBAOALUQ5XDIZSCF5BIA266NXSMHBO2LMXUGF3NQBEN36DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
