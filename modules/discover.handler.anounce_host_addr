@@ -10,8 +10,8 @@ my $hostname = <system.host.hostname>;
 my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list');  # [LLL] Net::Interface
 
 <discover.announce_interval.current> //= 0.19;
-<discover.announce_interval.maximum> = sprintf qw| %.2f |, 40 + rand(2);
-<discover.announce_interval.ifactor> = 1.13;
+<discover.announce_interval.maximum> //= sprintf qw| %.2f |, 40 + rand(2);
+<discover.announce_interval.ifactor> //= 1.13;
 
 <discover.announce_interval.logged> //= FALSE;
 if ( not <discover.announce_interval.logged> ) {
@@ -125,8 +125,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,,,..,,,.,,,.,,...,,,,,.,,,,..,.,.,,,,,.,,,..,,...,...,...,,.,,.,,,,,,,.,,,
-#WAHEG45WFXUBXOI7GDEUHT3QGS2E2K5ZGNJDVVDQOZEL2U5KOXHXKI4N4WRFIKI2S2T5WME7J2U76
-#\\\|KEBAHV6N4J5XFH7LKLLXEHBLOSXH3MAQ3A3KEBCD7GKMTLOBBZN \ / AMOS7 \ YOURUM ::
-#\[7]BNRM62NA4IVC7IEXA37RBDACKUZ24XKQ7EB2RB2UMC4H6T3OQWAI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,,,,..,.,,,,,.,,.,,,,,,...,..,,..,,...,...,..,,...,.,.,.,,,,..,
+#KUZK3766NQCPRYA5NS4HEGAXTEUNZEPHZDS2ERGQRJIB2WRLRRRYUL23EWEXHZRQFB4RFPCN7TWDW
+#\\\|OWKL5FZ3TT2RDFWYL23NF7BSGFB6RZYS5ILK5Y24V33EQGTPPSC \ / AMOS7 \ YOURUM ::
+#\[7]5DLMUCWZY7T3TUYGDGXZLGBIOOHGM4EMKIADTQBAE2Q57LRAO6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
