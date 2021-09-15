@@ -46,13 +46,21 @@ if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
         my $key_file_ref = <[file.slurp]>->($file);
         chomp $key_file_ref->$*;
         say '';
+
+        ## no sprintf template for virtual keys ##
+        ##
+        if ( $type eq qw| virtual | ) {
+            say $key_file_ref->$*;
+            next;
+        }
+
         say sprintf ':. %-*s .: %s ::', $maxlen, $type, $key_file_ref->$*;
     }
     say '';
 }
 
-#,,.,,..,,...,.,.,,,,,,,.,.,,,.,,,.,,,.,.,,.,,..,,...,...,...,,.,,,,.,,.,,...,
-#SB3NAL2GFK75TD7K5LHRZZYM27WQPGQFHUAXYLYHI7AOKCETSF6VB2ZCFAQOPA64R25UDFB4O4TBC
-#\\\|IB5XRV24F3LF6ZOZYTTS7Y6COYIIKXUHOMGWQ67MLY22NKCPQEG \ / AMOS7 \ YOURUM ::
-#\[7]WKWKSD6T36E5OVXZGDX4SZHUROTZWJDEOMWSCSAX6XJ6N3HRRIAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,,.,.,,,.,.,.,.,...,..,,,,,,..,,...,..,,.,,,.,,,,..,,..,,,.,
+#5DEASON2UK7WMA5OYGTUIHOWR6OX342DD2COPIWJRSJKYJABGX3XAW2RO6ZPABN72WAYPV5TN76LC
+#\\\|YKE5V65KB7T2CNWJOQI7V3OVESRGKWVZHX7WVR4BALGWV5KZE6U \ / AMOS7 \ YOURUM ::
+#\[7]OVA6U4FCKCU4YQNM7UISUMRXN33VEPXLV5256RWS2ENIL62GPWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
