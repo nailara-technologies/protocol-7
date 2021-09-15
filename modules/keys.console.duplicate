@@ -6,12 +6,20 @@
 
 ( my $cp_from, my $cp_to ) = split m| +|, shift // '', 2;
 
-return print "\n  << expected <from> and <to> parameters >>\n\n"
-    if not defined $cp_from or not defined $cp_to;
-return print "\n  <<  target key name contains not valid characters  >>\n\n"
-    if $cp_to !~ m|^[\w\.\-\_]+$|;
-return print "\n  <<  specified keys identical  >>\n\n"
-    if $cp_from eq $cp_to;
+if ( not defined $cp_from or not defined $cp_to ) {
+    say "\n  << expected <from> and <to> parameters >>\n";
+    <[base.exit]>->(qw| 0110 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($cp_from) ) {
+    say "\n  <<  source key name is not valid  >>\n";
+    <[base.exit]>->(qw| 0113 |);
+} elsif ( not <[crypt.C25519.validate_keyname]>->($cp_to) ) {
+    say "\n  <<  target key name is not valid  >>\n";
+    <[base.exit]>->(qw| 0113 |);
+} elsif ( $cp_from eq $cp_to ) {
+    say "\n  <<  specified keys identical  >>\n";
+    <[base.exit]>->(qw| 0113 |);
+}
+
 return say sprintf "\n  << src key %s not found >>\n", $cp_from
     if not <[crypt.C25519.key_exists]>->($cp_from);
 return say sprintf "\n  << dst key name '%s' exists already >>\n", $cp_to
@@ -83,8 +91,8 @@ say sprintf( "\n  ::  successfully copied %d file%s  ::\n",
 
 <[base.exit]>;
 
-#,,.,,...,,..,,,,,..,,..,,,,,,,,,,,,,,.,,,..,,..,,...,...,...,,,,,,,.,,,,,...,
-#HXZ4EOYFZ5MYXWA3UGVVR2UZ3OPJ7BOHMZZUPE6265HOTM3AIVLEDMVGDGTX3QH2V56KEMC7TEXTI
-#\\\|6HDQWTGOSQ7PQUJVQTXZKP3YI6BFQNTTFRYZ7TOU2MEIPWIDSQH \ / AMOS7 \ YOURUM ::
-#\[7]YHI3256Q3YW2HXSAZ2LOJHKFUU5LW35FIILNWCK6M2FMR27IFQDA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,..,,...,,..,,,,,.,.,.,,,..,,..,,...,...,...,.,.,..,,,,,,,..,
+#HUARHX2PNH66Q7D5PLFD55RSZEAQPREIFM352KE3QBO6WFCYKACAIZ7NOXUBKMVLP6SNG4OYESCBM
+#\\\|R3ZIXMZU32FDHCD6P7254O3R7MOIJAVBV5XP6EYL7MXWFV2TKIR \ / AMOS7 \ YOURUM ::
+#\[7]BCWRAP3JWRHNFS2W5RMJKAWQG7KKS25DJOYBE5AH5DMNOJKF5UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
