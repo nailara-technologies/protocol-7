@@ -12,14 +12,24 @@
 
 <crypt.C25519.usr_name> //= <system.amos-zenka-user>;  # <-- C25519 key owner.
 
+my $key_dir = <[crypt.C25519.chk_key_dir]>;
+
+if ( not defined $key_dir ) {
+    my $key_usr = <crypt.C25519.usr_name> // <system.amos-zenka-user>
+        // $ENV{'USER'} // getpwuid($EUID);
+    <[base.s_warn]>->(
+        "user '%s' key dir not accessible, aborting init.., <{NC}>", $key_usr
+    );
+    return -2;
+}
+
 <crypt.C25519.path.key_chksums_cache_file>
-    //= sprintf qw| %s/.key-chksums.cache |,
-    <[crypt.C25519.key_vars]>->{'key_dir'};
+    //= catfile( $key_dir, qw| .key-chksums.cache | );
 
 ## regex ##
 ##
 my @key_ext   = qw|  \.secret  \.private  \.public  :seed-phrase  |;
-my @key_types = qw| private public secret |;           # virtual #
+my @key_types = qw| private public secret |;    # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 
@@ -207,8 +217,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,..,...,,..,,..,,..,...,,,.,,.,,,..,,..,.,.,..,,...,..,,..,,,.,,.,.,...,.,,,
-#JA5MWXQ2UKPT5JKK4SJGGYBZKRZI4QTSKWAU5DZKMEXGYRBEMEY373WV3RHYDH2TSHO6HFZWF3Q6U
-#\\\|3GJYZL6KF3NOXTI7FJGXK3D4RIYU66NWUQS3NCFOZA6UVATQCPP \ / AMOS7 \ YOURUM ::
-#\[7]QISBC4IZ6COXDIUWK2SV75KRKGSDGULEIQEJ5MR4YT4X6QDBN6BQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,...,,..,,.,,.,.,,..,.,,,...,..,,...,...,.,.,,,,,,..,,..,,..,
+#2XHQIEYIUDH7XO2PXSKSHH75UB4CNT5MNHCBO5L7DEW73PTV44R4HWNXQVW6AHSII3YYVZHN2BR4Y
+#\\\|35WXVWEG5BCJZLD2LITRCBOQVG7IC62GVVL3FHDFMBLVHMAYROU \ / AMOS7 \ YOURUM ::
+#\[7]OFFKVKDYI6DZIDZ6HLLDVQUJNKSR6KWANZER4ZD5IFTSGCUC3KBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

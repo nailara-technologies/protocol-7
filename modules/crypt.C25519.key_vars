@@ -4,6 +4,8 @@
 
 my $key_name = shift;
 
+<crypt.C25519.key_vars_error> //= TRUE;
+
 return <crypt.C25519.key_vars>
     if defined <crypt.C25519.key_vars>
     and (
@@ -39,6 +41,26 @@ my $home_dir = <crypt.C25519.key_usr_home>
 my $key_dir = <crypt.C25519.key_dir>
     //= sprintf( qw| %s/.n/user-keys |, $home_dir );
 
+if ( not -r $key_dir ) {
+    my $parent_dir = <[file.last_existing_dir_path]>->($key_dir);
+    if ( $parent_dir ne $key_dir and not -r $key_dir ) {
+        <[base.s_warn]>->(
+            "no read permissions to parent path [ %s ] <{C1}>", $parent_dir
+        );
+        return undef;
+    } elsif ( not -r $key_dir ) {
+        <[base.s_warn]>->(
+            "no read permission to key dir ['%s'] <{C1}>", $key_dir
+        );
+        return undef;
+    } elsif ( not -d $key_dir ) {
+        <[base.s_warn]>->(
+            "user key dir does not exist ['%s'] <{C1}>", $key_dir
+        );
+        return undef;
+    }
+}
+
 my $key_file_ext;
 my $key_filename;
 my $key_basepath = catfile( $key_dir, $key_name );
@@ -71,10 +93,12 @@ my $key_vars_ref = {
     if defined <crypt.C25519.base_key_name>
     and <crypt.C25519.base_key_name> eq $key_name;
 
+<crypt.C25519.key_vars_error> = FALSE;
+
 return $key_vars_ref;
 
-#,,..,,..,,..,,,,,,,,,,,.,..,,...,,,.,,,.,.,,,..,,...,...,,..,..,,...,,..,,,.,
-#V7G32J6IF2JLJUNYY63CNIZKJCE5GDB42NL5FQDY53TYNB2CCFAGSVYKOVP4OF7Y3D6JFIZ3TPGMK
-#\\\|LYX7MS2RRJSTKB6FIIKUJLUIX5EWZ4Z2YRLDWW57KXTBY6ES4L6 \ / AMOS7 \ YOURUM ::
-#\[7]6S4MXEFA376WAAUR3PZ54QSU2HVMYETWWONC5XOQ2U2OKT26ZAAQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,.,.,,,..,,,,,,.,.,...,,.,,...,..,,...,...,.,,,,.,,.,.,,,,,,,,,
+#6FRMSHSIZI4Q5FVTVM4KBLBHDUOTLTO626G7M7V2AIPCGK2WQGCMP7OJ7NFEJ3ELLM4M6KDAX4HFI
+#\\\|STIFWSKC3ZMABV7GCHII4WZNZUNECLGG7ZYSJEPWOJXLKSKZ427 \ / AMOS7 \ YOURUM ::
+#\[7]B2RL3V6SBV6PPSP6E2K5A2CS52ATAJGOPYJZRTNRRTXNHHTDRSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

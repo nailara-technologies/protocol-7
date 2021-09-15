@@ -2,6 +2,22 @@
 
 # name  = base.pre_init
 
+if ( defined $ENV{'USER'} or defined $ENV{'LOGNAME'} ) {
+    my $user = $ENV{'USER'} // $ENV{'LOGNAME'} // '';
+    if ( length $user ) {    ##  checking if USER exists  ##
+        my @pwnam = getpwnam($user);
+        if ( @pwnam == 0 ) {
+            my $var_name = defined $ENV{'USER'} ? qw| USER | : qw| LOGNAME |;
+            <[base.logs]>->(
+                0,     "user '%s' [ ENV{%s} ] is not in passwd file",
+                $user, $var_name
+            );
+            <[base.log]>->( 0, ':. aborting zenka start-up ..,' );
+            <[base.exit]>->(qw| 0110 |);
+        }
+    }
+}
+
 <[base.path-set-up.zenka-directories]>;
 
 if (not
@@ -11,8 +27,8 @@ if (not
 
 return 0;
 
-#,,,.,.,.,..,,,.,,.,.,,.,,..,,.,.,,,.,.,.,...,..,,...,...,..,,,.,,..,,...,.,.,
-#RFUUQKDS5GVALIRBMCFPILH74F3II5JXHPDZ2V3WZVZ46AMISYIDUAMLSVJWFAIR6P3DUWV55WQNO
-#\\\|RFT3KSOU3FLGNAF2T2PKFSUKGLKZFNZVUDIHFTZWJROFIP5K5SP \ / AMOS7 \ YOURUM ::
-#\[7]6HA4PY5L3L76GXZXI4DN5X7QQ2HWHZ4EH4LHIHZXL5GBGZ5HKEAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,.,,..,.,.,.,.,,..,,,,,.,,,..,,..,,...,...,..,,...,.,,,...,..,,
+#NTJ2GNNQ4LEUK7UQPLBJQHPO4LS7C6IBT6UXW4AXBMVHYUXHSOEMDHYQ7JZW7OIX3XPM22K43GVRC
+#\\\|IX7EVNP5A2KQSBYH3226XF7INHLDFQQC5MQ43OV5YZU3JBPDO3D \ / AMOS7 \ YOURUM ::
+#\[7]FXCHNIOPR72YKCV5TZHQYOOOSKFMQSIPYTYKQFPSZTH2MQNCAABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
