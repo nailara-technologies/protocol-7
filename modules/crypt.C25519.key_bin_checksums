@@ -46,6 +46,9 @@ if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
 
     if ( length $key_strings_binary[0] != 97 ) {
 
+        ##  incr. template validation timeout  ##
+        AMOS7::TEMPLATE::template_timeout(47);
+
         my $single_key_amos_csum = <[chk-sum.amos.truth_template_chksum]>->(
             $pubkey_str_truth_template, \shift @key_strings_binary
         );
@@ -55,6 +58,9 @@ if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
         $pubkey_str_truth_template = join ',', qw[
             <:%s:> :%s: <:virtual::%s:> :virtual::%s:
         ];
+
+        AMOS7::TEMPLATE::template_timeout(13);    ## shorter timeout ##
+
         my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
             $pubkey_str_truth_template, \shift @key_strings_binary
         );
@@ -62,6 +68,8 @@ if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
     }
 
 } elsif ($priv_key_encr) {    ##  encrypted private key [pubkey] chksum  ##
+
+    AMOS7::TEMPLATE::template_timeout(47);
 
     my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
         $pubkey_str_truth_template, \shift @key_strings_binary
@@ -71,26 +79,31 @@ if ( @key_strings_binary == 1 ) {    ##  single key checksum  ##
 } else {    ## combined key checksum ##
 
     AMOS7::TEMPLATE::template_timeout(47);    ## public key sum first ##
+
     my $pubkey_chksum = <[chk-sum.amos.truth_template_chksum]>->(
         $pubkey_str_truth_template, $key_strings_binary[1]
     );
 
     AMOS7::TEMPLATE::template_timeout(63);   ## private key sum harmonizing ##
+
     my $privkey_amos_chksum = <[chk-sum.amos.truth_template_chksum]>->(
         sprintf( $priv_key_truth_template, ($pubkey_chksum) x 3 ),
         $key_strings_binary[0]
     );
 
-    AMOS7::TEMPLATE::reset_temp_valid_timeout();  ##  storing calc results  ##
+    ##  storing calc results  ##
     push @checksums, $privkey_amos_chksum, $pubkey_chksum;
 }
+
+## resetting validation timeout ##
+AMOS7::TEMPLATE::reset_temp_valid_timeout();
 
 ##  key chksum template  ##
 ##
 return sprintf $checksum_template, join( qw| : |, @checksums );
 
-#,,,,,,..,,,,,.,.,,.,,,,,,...,...,,..,,.,,,,,,..,,...,...,..,,,.,,,,,,..,,,,,,
-#ECVSHH6QVQDJRTNAOEXZKF24XIBNCANUOBOACOA5LLSIPBPCH3JLA3GUCSOLZ4TRO66MFW44L56RI
-#\\\|6UV7LPAYH5UPMJHL7P67UPDCXSYH2O25CQPQKLYOY5NQXXSYZ3O \ / AMOS7 \ YOURUM ::
-#\[7]FCE256XWC5HVQT52JI3OPTRGTDU4OUIZQUUI3YMGRGIYWLBYL2DI 7  DATA SIGNATURE ::
+#,,,,,...,...,.,,,...,.,.,.,,,...,,..,...,.,.,..,,...,...,,.,,,,,,,,,,,..,,,.,
+#SBYAESWDJVRXDGZSUASQCRHLPQKI4ZQR55DGBTID7M6K72KYV56V2GTOJNJWLL4HPK3TIWU65IDRC
+#\\\|DUBAK5VKGENR6KUE7TD4WYZYZE7YD4IHJD6RVYBEZL54HWGGXKG \ / AMOS7 \ YOURUM ::
+#\[7]ROOGLWLGCKJPI2XNSH2TOI5H62LQF4OUWIP7HUFIY5FRXYTK4SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
