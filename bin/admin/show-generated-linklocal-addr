@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use v5.20;
+use English;
+
+my $seed;
+my $mac = shift @ARGV;
+
+if ( not defined $mac ) {
+    my $name = $PROGRAM_NAME;
+    $name =~ s|^.*/||;
+    die sprintf( "\n [ usage ] %s <mac_address>\n\n", $name );
+}
+
+say gen_addr($mac); ##  randomized linklocal address with mac addr entropy  ##
+
+sub gen_addr {
+    my $mac = lc( shift // '' );
+    die "[!] valid MAC address expected"
+        if $mac !~ m|^([0-9a-f]{2}:){5}[0-9a-f]{2}$|;
+    if ( not defined $seed ) {
+        $seed = 0;
+        map { $seed += hex($ARG) } split( qw| : |, $mac );
+        srand($seed);
+    }
+    return join '.', qw| 169.254 |, ( 1 + int( rand 254 ) ), int( rand 256 );
+}
+
+#,,.,,,,.,,,,,,.,,..,,...,,.,,,,.,,,.,,,.,.,,,.,.,...,..,,...,...,,,,,...,.,,,
+#ABMM7ON2H5NX3KDTX5ML634EXV2KPDDIUKOYKD6NMK7QWOKD7QOZ36IF2LMK5NAOP62WTOKRRSPHI
+#\\\|LNAM6PHBW22T3LJYQY7BQXAHAC4EFLTPR7NGFAFIGDJXPCJQZ7D \ / AMOS7 \ YOURUM ::
+#\[7]DPNEKPETXDAQAWEYCFFGIYTJ75A4DPVWBEH6EC3PFEI4DEYZMIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
