@@ -4,59 +4,105 @@
 
 <[base.perlmod.autoload]>->('IO::Socket::Multicast');
 
-<discover.mcast.ip4_addr>  //= '239.13.5.42'; ##  <--  protocol-7 AMOS address
+<discover.mcast.ip4_addr>  //= qw| 239.13.5.42 |;    ## <-- protocol-7 AMOS ##
 <discover.mcast.ip4_port>  //= 47;
 <discover.mcast.mesg_ttl>  //= 3;
 <discover.mcast.mesg_loop> //= 0;
 
+<discover.hosts-online> //= {};
+
+<list.hosts> = {
+    'var'      => qw| data |,
+    'key'      => qw| discover.hosts-online |,
+    'sort_key' => 'alpha:public_key',
+    'descr'    => 'protocol 7 hosts seen online',
+    'mask'     => 'pkey:public_key ip_addr:ip_address mac_addr:mac_address',
+    'align'    => {
+        'pkey'     => 'left+4',
+        'ip_addr'  => 'center',
+        'mac_addr' => 'center',
+    },
+    'filters' => { 'pkey' => qw| nodes.parser.node_pkey |, }
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| hosts |,
+        'key_ref'      => \$data{'discover'}{'hosts-online'},
+        'max_elements' => 4097
+    }
+);
+
 if (    defined <discover.mcast.obj.sock>
     and <discover.mcast.ip4_port> < 1024
     and $EUID > 0 ) {
-    <[base.log]>->( 0, ': skipping socket re-init [ not root ]' );
+    <[base.log]>->( 1, ': skipping socket re-init [ not root ]' );
     return 0;
 }
 
-<[base.log]>->(
-    1,
-    sprintf(
-        ": opening multicast socket [%s:%d]",
-        <discover.mcast.ip4_addr>, <discover.mcast.ip4_port>
-    )
+<[base.logs]>->(
+    ': opening multicast socket [%s:%d]',
+    <discover.mcast.ip4_addr>, <discover.mcast.ip4_port>
 );
 
+##  binding UDP multicast socket on protocol 7 address  ##
+##
 <discover.mcast.obj.sock> = IO::Socket::Multicast->new(
-    'Proto'     => 'udp',
+    'Proto'     => qw| udp |,
     'LocalAddr' => <discover.mcast.ip4_addr>,
     'LocalPort' => <discover.mcast.ip4_port>,
-    'ReuseAddr' => 1
-) or die lcfirst($OS_ERROR);
+    'ReuseAddr' => TRUE
+) or die <[base.str.os_err]>;
 
+##  configuring number of routers [limit] messages pass through  ##
+##
 <discover.mcast.obj.sock>->mcast_ttl(<discover.mcast.mesg_ttl>)
-    or die lcfirst($OS_ERROR);
-<discover.mcast.obj.sock>->mcast_loopback(<discover.mcast.mesg_loop>)
-    or die lcfirst($OS_ERROR);
+    or die <[base.str.os_err]>;
 
-<[base.log]>->(
-    1,
-    sprintf( ': joining local multicast group [%s]',
-        <discover.mcast.ip4_addr> )
+##  setting message loopback [echo] to configured state  ##
+##
+<discover.mcast.obj.sock>->mcast_loopback(<discover.mcast.mesg_loop>)
+    or die <[base.str.os_err]>;
+
+<[base.logs]>->(
+    ': joining local multicast group [%s]',
+    <discover.mcast.ip4_addr>
 );
 
+##  PROTOCOL 7  multicast group  ##
+##
 <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>)
-    || die lcfirst($OS_ERROR);
-<discover.mcast.obj.sock>->mcast_dest(
-    <discover.mcast.ip4_addr> . ':' . <discover.mcast.ip4_port> );
+    || die <[base.str.os_err]>;
 
+##  setting default destination address \ port for mcast_send  ##
+##
+my $mcast_addr = join qw| : |, <discover.mcast.ip4_addr>,
+    <discover.mcast.ip4_port>;
+
+<[base.logs]>
+    ->( ": setting outgoing mcast destination to '%s'", $mcast_addr );
+
+<discover.mcast.obj.sock>->mcast_dest($mcast_addr);
+
+##  testing if dest setting has worked  ##
+##
+my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
+<[base.s_warn]>->(
+    'mcast_dest[ %s ] : failed to set [ %s ]',
+    $mcast_addr, <[base.str.os_err]>
+) if join( qw| : |, inet_ntoa( pop @addr ), shift @addr ) ne $mcast_addr;
+
+##  registering event handler for incoming packets  ##
+##
 <[event.add_io]>->(
     {   'fd'      => <discover.mcast.obj.sock>,
-        'handler' => 'discover.handler.incoming_packet'
+        'handler' => qw| discover.handler.incoming_packet |
     }
 );
 
 0;
 
-#,,,,,,,.,.,,,,,,,,,,,,,,,...,...,,,,,,,,,.,.,..,,...,...,,.,,...,,,.,.,.,.,.,
-#MISNC2HVREGJSPZPVHYQT5RJ7AIP6OHATH2ZXIE3Z734AAZ4JFMWLDESGNRV357ANXHMLQ6PBJWQY
-#\\\|5EGNJZ6BESH2BT6XCS3TRBN7INCRHBEPUNMRFGFHZ4OHEDERKKI \ / AMOS7 \ YOURUM ::
-#\[7]HKZFQS54FNSA3GC735OJCR4NQAEGMOZ5WLLLWK2EQSJPNCLUYYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,...,..,,...,,..,...,,,.,...,..,,...,...,.,.,.,.,..,,,,,,,,,,
+#RMR5Y3Q64SZNRZSI54ZNZLJWGPLBOFKCPJYRH6THB3OPF5OBJZASKKUMOKGCI4VZBREXPINOGKOAS
+#\\\|DORGVQMLC4VMTCBYBLYQNHYEXZ7XLBDFNWEIVJBRSV7IZ7JT3GH \ / AMOS7 \ YOURUM ::
+#\[7]YY57UDZ2MMGI3RMHOOG4A76426EUJK46YKWZDPN4V7DWLZ4AI6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = discover.send_packet
+# descr = send 'announce' msg packet to mcast group
+
+my $type        = shift // '';
+my $payload_str = shift // '';
+
+if ( not length $type ) {
+    warn 'expected packet type parameter';
+    return undef;
+} elsif ( not length $payload_str ) {
+    warn 'expected packet payload string';
+    return undef;
+}
+
+my $packet_str    ##  compose signed packet payload string  ##
+    = <[discover.format_discover_mcast_packet]>->( $type, $payload_str );
+
+if ( not <discover.mcast.obj.sock>->mcast_send($packet_str) ) {  ## sending ##
+    <[base.s_warn]>->(
+        0, "error sending '%s' packet [ %s ] <{C1}>",
+        <[base.str.os_err]>
+    );
+    return undef;
+}
+
+## log sent packets [ when configured ] ##
+##
+if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.outgoing>) ) {
+    <[discover.log_mcast_packet]>->( qw| outgoing |, $packet_str );
+}
+
+return TRUE;
+
+#,,,.,..,,.,.,...,...,,..,,.,,,..,,.,,.,,,,,,,..,,...,.,.,,,,,.,.,..,,,..,.,,,
+#7SMERYJRDCKJO52VEPPKDEO3EFEAM7H7DRHZPFQYTH3RQB4GO6M4JBVWDKFI7CQ5MS7WXXZDBAC76
+#\\\|7B7OWTCLPQKKYEM63QJEFZWM5K6D3O2LDFVAVN3FROXI5FQ4NVP \ / AMOS7 \ YOURUM ::
+#\[7]YV7HMEI7ZTJSN62E4MIHROH3DBXNQOI6PV7GPBFRU7RZTD5O4YBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

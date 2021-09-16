@@ -346,6 +346,7 @@ return [ qw[
         filter.mount_chain
         ffmpeg.frame_count
         download.init_code
+        discover.post_init
         discover.init_code
         devmod.cmd.elf-num
         devmod.cmd.elf-b32
@@ -506,6 +507,7 @@ return [ qw[
         ffmpeg.extract_frame
         feline.teleportation
         events.set_up_timers
+        discover.send_packet
         devmod.cmd.list-subs
         devmod.cmd.eval-code
         devmod.cmd.core-subs
@@ -604,7 +606,6 @@ return [ qw[
         file-matrix.post_init
         file-matrix.init_code
         download.cmd.get_file
-        discover.cmd.announce
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
         crypt.C25519.keyfiles
@@ -1003,6 +1004,7 @@ return [ qw[
         graphics-matrix.init_code
         file-matrix.map-dirs.tree
         download.cmd.get_mimetype
+        discover.log_mcast_packet
         crypt.C25519.load_keypair
         content.cmd.resolve_b32id
         content.cmd.clear-entries
@@ -1179,6 +1181,7 @@ return [ qw[
         httpd.update_download_count
         file-matrix.map-dirs.fs.del
         file-matrix.map-dirs.fs.add
+        discover.init_packet_buffer
         devmod.cmd.permission-setup
         devmod.cmd.extract-line-map
         dbus.handler.process_output
@@ -1265,6 +1268,7 @@ return [ qw[
         graphics-matrix.filter.alpha
         download.set-up.import_rules
         download.set-up.export_rules
+        discover.process_host_packet
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
         content.cmd.entries_withheld
@@ -1519,6 +1523,7 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
+        discover.process_incoming_packet
         discover.handler.incoming_packet
         crypt.C25519.name_from_skey_name
         crypt.C25519.load_all_signatures
@@ -1626,6 +1631,7 @@ return [ qw[
         image2html.child.cmd.convert_image
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
+        discover.cmd.reset-broadcast-timer
         crypt.C25519.load_keys_from_secret
         crypt.C25519.get_type_from_key_str
         content.handler.weather_urls_reply
@@ -1684,6 +1690,7 @@ return [ qw[
         protocol.protocol-7.message-templates
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
+        discover.format_discover_mcast_packet
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
@@ -1755,8 +1762,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,.,.,.,...,,..,,..,.,,,,..,,,.,.,.,,.,,.,.,...,...,..,,,,.,,..,..,,...,
-#JOUGAL7HQTH4KZNEW67WGBGLUC6UNXFHU64NDNQNTWB5AKIHAIN5Q27SDLH2DJ2K5HA5MDN6WQBTS
-#\\\|BWB3IPOPOFNNTAFRD5UP6EGXRUVRQA3YUORSLO7RBM3CBLAGJM2 \ / AMOS7 \ YOURUM ::
-#\[7]E2IZ5UUQXESPBMIMO2LPNVZ55EQSYFJUMEUC2V6V7JPDG4FFJ2BI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,.,.,,.,,,,.,,..,,,,,,..,,,,,.,.,...,.,.,.,,,..,,,,,,.,.,..,,
+#527L5XVW245RHSFYVRYMV2GJR4PPN3PMAWVPOZ6TROCPM3MGZ4OGU5WVGBJJFZTIBRE2EV5T4OQHY
+#\\\|OVJZ47CLXLAHOE7I3LJMTF73YBQIRPZLKGRQHJTSR6PDG7M7BM6 \ / AMOS7 \ YOURUM ::
+#\[7]VW5OD2TDR6HL6ZAC7GYUBTYVRDAOXZVWN6LMZW3M272UYKTSJSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

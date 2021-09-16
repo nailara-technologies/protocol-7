@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = discover.init_packet_buffer
+
+##  packet log buffers  ##
+##
+<buffer.incoming.max_size> //= 24 * 1024;    ## 24K buffer size ##
+<buffer.outgoing.max_size> //= 24 * 1024;    ## 24K buffer size ##
+
+foreach my $type (qw| incoming outgoing |) {    ##  init buffers  ##
+    my $zenka_init
+        = defined $data{'buffer'}{$type}{'data'} ? qw| re-init | : qw| init |;
+
+    my $line    ## preparing buffer initialization message ##
+        = sprintf '.:[ zenka %s | packet collection is %s ]:.', $zenka_init,
+        <[base.cfg_bool]>->( <discover.cfg.log-packets>->{$type} )
+        ? qw| enabled |
+        : qw| disabled |;
+
+    ##  nothing logged [ reset buffer ]  ##
+    if (    $zenka_init eq qw| re-init |
+        and $data{'buffer'}{$type}{'data'}->@* == 3 ) {
+        undef $data{'buffer'}{$type}{'data'}->@*;
+        $data{'buffer'}{$type}{'size'} = 0;
+        <[base.buffer.add_line]>->( $type, '' );
+    }
+    <[base.buffer.add_line]>->( $type, '' ) if $zenka_init eq qw| init |;
+    <[base.buffer.add_line]>->( $type, $line );
+    <[base.buffer.add_line]>->( $type, '' );
+}
+
+#,,..,,..,..,,.,.,.,.,..,,,.,,.,,,,..,,.,,,,,,..,,...,...,.,.,.,,,..,,,,,,,,.,
+#XU4DJSGVRFXV2QYCVS3G36KKDKT5MCVCQ3VQXMOML46G7FKBJB2GDOFHS454N42HAZ7MW4ZLEFMZO
+#\\\|BQKYSXP7K3ZUUYSHPG5WCXWBY3PORPI2FQMTQAWIO4KIGPGDFAV \ / AMOS7 \ YOURUM ::
+#\[7]WCWAVTREAWB4ZGHLSNM5RPWUSWI45VCA2FDMUVW7TS2PYZ66IKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
