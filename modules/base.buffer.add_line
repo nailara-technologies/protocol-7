@@ -27,7 +27,8 @@ if ( defined $code{'base.utf8.clean_not_valid'} ) {
     <[base.utf8.clean_not_valid]>->( \$log_message, 3, 3 );  ## warn-lvl: 3 ##
 }
 
-$log_message =~ s{^\s+|\s+$}{};
+##  clean up space prefixes only when log level specified  ##
+$log_message =~ s{^\s+|\s+$}{} if defined $log_cmd_level;
 $log_message =~ s|\n|\\n|g;
 $log_message =~ s|\r|\\r|g;
 
@@ -129,8 +130,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
 
 return TRUE;    ##  true  [ added to buffer ] ##
 
-#,,,.,,,,,...,,..,,,,,..,,,..,.,.,..,,.,,,.,.,..,,...,...,..,,.,,,,..,,,,,.,,,
-#TMLK3LKJP62LDGJ3B75ZTSOQBMNUMLET6GR4EXAJ2IPVOU4K3NYHON3H35ZJYVKUXMXHKOEH4V47Q
-#\\\|7ABMBKVR7Q6GG6G3FSL35HFX6SFEOYAPHTDHTRTBNN3ETE5EOQJ \ / AMOS7 \ YOURUM ::
-#\[7]JPSAYGVGXZWIGIN5WNAJ7P327PT6RSMOPYJCRBHV5MK5PPO5UIDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,..,,,..,,..,,..,,,,,..,,...,..,,...,...,.,,,,.,,,.,,.,.,,.,,
+#CT3UQX6M4J3ZFA3PXTSKY3VNIMHI2U5J7YBYXENQ6LRO22XPCXFHDXGLX2V4PR7WO3Z4VU3FITAP4
+#\\\|DDQOT6HXH7VVUDA3OBFR665A6Q4TTKVETQIVNE5WWYJ6VN6V4WD \ / AMOS7 \ YOURUM ::
+#\[7]A4IVCIP36MFXXN3Y4VN2LS27FBJ3H3ISW7ZOQRP5RYL4BZI22SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
