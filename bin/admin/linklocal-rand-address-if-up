@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+
+## AMOS 7 link local zero-conf address setup script ##
+
+## usage ##                    NOTE: <!> NO COLLISION CHECKS ARE PERFORMED <!>
+#
+#  ,.. copy this script to /etc/network/if-up.d/ and set the virtual [ :1 ]
+#  interface up as 'manual', like shown below, the script will bring it up ..,
+
+#  auto eth0:1
+#  iface eth0:1 inet manual
+
+my $iface_vid = 1;    ## <-- interface name ends with ':0', ':1', ..? [!]
+
+use v5.20;
+use English;
+
+exit
+    if not defined $ENV{'IFACE'}
+    or $ENV{'IFACE'} !~ m|^[\w\d\.]+:$iface_vid$|
+    or $ENV{'ADDRFAM'} ne qw| inet |
+    or $ENV{'METHOD'} ne qw| manual |
+    or $ENV{'PHASE'} ne qw| post-up |;
+
+my $verbose = $ENV{'VERBOSITY'};
+
+( my $parent_iface = my $iface = $ENV{'IFACE'} ) =~ s|:\d+$||;
+
+my $mac_addr
+    = qx| ifconfig $parent_iface |
+    =~ m< (ether|hwaddr) (([0-9a-f]{2}:){5}[0-9a-f]{2}) >i
+    ? ${^CAPTURE}[1]
+    : undef;
+die "[!] failed to obtain MAC address for interface '$parent_iface'"
+    if not defined $mac_addr;
+
+##  randomized linklocal address with mac addr entropy  ##
+##
+my $ip_addr = gen_addr($mac_addr);
+
+system(
+    qw| ifconfig |, $iface, $ip_addr,
+    qw| netmask 255.255.0.0 |,
+    qw| broadcast 169.254.255.255 |,
+    qw| up |
+);
+die "[!] failed to configure interface '$iface' [\l$OS_ERROR]"
+    if length $OS_ERROR or $CHILD_ERROR;
+
+if ($verbose) {
+    say sprintf " .        \n : iface : %s",             $iface;
+    say sprintf " :       :\n : ether : %s",             $mac_addr;
+    say sprintf " :       :\n : iADDR : %s\n         .", $ip_addr;
+}
+
+sub gen_addr {
+    my $mac  = shift;
+    my $seed = 0;
+    map { $seed += hex($ARG) } split( qw| : |, $mac );
+    srand($seed);
+    return join '.', qw| 169.254 |, ( 1 + int( rand 254 ) ), int( rand 256 );
+}
+
+#,,,.,..,,.,.,..,,,,.,,,.,,,.,,,.,..,,.,.,...,.,.,...,...,..,,,,.,.,,,,,,,,,,,
+#L4KC2J3QYFCN6WB5N2AC7UZRT4GCCOKCP3S6A55OP4Q633ZRFT64LS4X6PUZSQTKONOWCBEMU6WWS
+#\\\|UJ2UHKWKFGP6EYNB5464NDTG4TEOYD7X5DCRRIVD7LGUFG3NHG2 \ / AMOS7 \ YOURUM ::
+#\[7]BR3DBDYWVXNYLRGEHAWKEU5UMH55POSFZCOBKCSKTHKOSEYIB4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
