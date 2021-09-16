@@ -8,6 +8,17 @@ my $key_path_owner = <crypt.C25519.usr_name> // <system.amos-zenka-user>;
 <discover.crypt.key_user> //= $key_path_owner;
 <discover.crypt.key_name> = <[crypt.C25519.key_vars]>->{'key_name'};
 
+##  disable in zenki/discover/start when required  ##
+##
+<discover.cfg.log-packets.incoming> //= TRUE;
+<discover.cfg.log-packets.outgoing> //= TRUE;
+
+##[ resetting packet count ]##
+<discover.received_packet_count> = 0;
+
+##  initialize packet log buffers  ##
+<[discover.init_packet_buffer]>;
+
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
 
 <discover.announce_interval.current> //= 0.23;
@@ -18,8 +29,8 @@ my $key_path_owner = <crypt.C25519.usr_name> // <system.amos-zenka-user>;
 
 0;
 
-#,,..,..,,,,,,,,.,..,,.,.,.,.,..,,,..,...,,.,,..,,...,...,,,.,..,,..,,..,,,..,
-#OVOKOUEDKMOALEG75CVY33IEKB6HNQBZ63FWEH2WPL4IEXES3KHLWKFXI26WMIGRDY7BQ3J324SN4
-#\\\|YF7P2JLXW7BVNCZVJ3B2GTMFLMDXAUDKCI6Z5WK4VEKA5VVPSMV \ / AMOS7 \ YOURUM ::
-#\[7]YLSJZNBX3IN6K6UCYWINL6MM6KTZCKINM3DXKYHCPLTAEZMSBKBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,,,,,,,.,.,.,,.,,,..,,.,,,.,,..,,...,..,,.,.,,..,.,.,...,,,.,
+#DTG5T2YCFA3ZQCZVW4SHLQHMOQI4H4KWHUE3AZVAEJDCN4AVSQQH5XB4Z453325GT4IVMJ3E6SAUY
+#\\\|SP27IKES35DV4TESJZFY2NZUGMSTOXD777GZ5ZNCZXCSP6JYU64 \ / AMOS7 \ YOURUM ::
+#\[7]H7IQ26B5CAG4XIRZZ3D56AS35KYEAURTZL7B6IYZ7OZ44YZZSUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

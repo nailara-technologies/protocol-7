@@ -5,58 +5,77 @@
 my $event = shift;
 my $fh    = $event->w->fd;
 
-my $key_name = qw| default |;
+my $log_level = 2;
 
-my $packet_buffer = '';
-my $read_size     = 65507;
-if ( my $bytes = <[base.s_read]>->( $fh, \$packet_buffer, $read_size ) ) {
-    $event->w->again if $bytes == $read_size;
+my $key_name = qw| default |;    ## <-- todo [LLL] ##
+
+<discover.received_packet_count> //= 0;
+<discover.buffer.input.mcast>    //= '';
+my $packet_buffer_ref = \$data{'discover'}{'buffer'}{'input'}{'mcast'};
+
+my $packet_buffer   = '';
+my $read_size       = 64512;     ## 63K read size ##
+my $max_buffer_size = 115713;    ## 113K max buffer size ##
+
+if ( my $bytes = <[base.s_read]>->( $fh, $packet_buffer_ref, $read_size ) ) {
+    $event->w->now if $bytes == $read_size;    ## more to read? ##
 }
 
-return if length $packet_buffer < 142;
+my $discover_packet_start_pos = index( $packet_buffer_ref->$*, qw| [:< |, 0 );
 
-# print "\n\n<----PACKET---->\n$packet_buffer<---/PACKET---->\n\n\n";
+RE_CHECK_BUFFER:
 
-( my $packet_copy = $packet_buffer ) =~ s|:\S+\n$|:|s;
+if ( length $packet_buffer_ref->$* and $discover_packet_start_pos == -1 ) {
+    ##  discarding entire buffer [ no packet start found ]  ##
+    <[base.logs]>->(
+        $log_level,
+        'dropping not recognized buffer content [ %d B ]',
+        length $packet_buffer_ref->$*
+    );
+    $packet_buffer_ref->$* = '';
+    return undef;
+} elsif ( $discover_packet_start_pos > 0 ) {    ##  cut out prefixing data  ##
+    <[base.logs]>->(
+        $log_level,
+        'removing not recognized prefix data from buffer [ %d B ]',
+        $discover_packet_start_pos
+    );
+    substr $packet_buffer_ref->$*, 0, $discover_packet_start_pos, '';
+}
 
-return if substr( $packet_buffer, 0, 3,  '' ) ne qw| [:< |;
-return if substr( $packet_buffer, 0, 10, '' ) ne '|ANNOUNCE|';
+while (
+    $packet_buffer_ref->$* =~ m{^\[:<\|[A-Z0-9_\-\.]{3,24}\|[A-Z2-7]{52}\n(?#
+        )( {3}[A-Z0-9_\-\.]{1,32}:[A-Z2-7]{103}\n)*(?#  key signatures
+        )( {6}[^\n]+\n)+(?#                        packet payload lines
+        )[A-Z2-7]{11,15}:[A-Z2-7]{103}\n}    #  timestamp  :  packet signature
+    ) {    ##  valid packet payload [complete]  ##
+    my $valid_packet_len = length $MATCH;
+    <[base.log]>->( 1, 'receiving discover packets.., =)' )
+        if not <discover.received_packet_count>;  ## reporting first packet ##
+    <[base.logs]>->(
+        $log_level, 'processing received discover packet [%04dB]',
+        $valid_packet_len
+    );
+    <discover.received_packet_count>++;
+    <[discover.process_incoming_packet]>->(    ##[  removing from buffer  ]##
+        substr( $packet_buffer_ref->$*, 0, $valid_packet_len, '' ), $log_level
+    );
+}
 
-chomp( my $peer_pub = substr( $packet_buffer, 0, 44, '' ) );
-
-my $keys_matched = 0;
-while ( $packet_buffer =~ s|^([^:\s]+):(\S+)\n|| ) {
-    my ( $root_name, $root_sig ) = ( $1, $2 );
-    next if not defined $keys{'C25519'}{$key_name}{'root'}{$root_name};
-    return
-        <[base.logs]>->( 2, ": '%s' root key signature [ERROR]", $root_name )
-        if not Crypt::Ed25519::verify(
-        sprintf( "%s\n", $peer_pub ),
-        decode_b32r(
-            $keys{'C25519'}{$key_name}{'root'}{$root_name}{'public'}
-        ),
-        decode_b32r($root_sig)
+if ( length $packet_buffer_ref->$* ) {
+    my $next_packet_startpos = index( $packet_buffer_ref->$*, qw| [:< |, 3 );
+    if ( $next_packet_startpos != -1 ) {
+        <[base.logs]>->(
+            $log_level, 'packet format error, dropping [%dB]',
+            $next_packet_startpos
         );
-    $keys_matched++;
+        substr $packet_buffer_ref->$*, 0, $next_packet_startpos, '';
+        goto RE_CHECK_BUFFER if length $packet_buffer_ref->$*;
+    }
 }
 
-return if not $keys_matched or substr( $packet_buffer, 0, 1, '' ) ne "\n";
-return if $packet_buffer !~ s|\n(\d+):(\S{86})\n||s;
-my ( $tstamp_str, $packet_sig ) = ( $1, $2 );
-my $payload_len = length $packet_buffer;
-return if not $payload_len;
-
-return <[base.log]>->( 0, ": packet signature verification [ERROR]" )
-    if not Crypt::Ed25519::verify( $packet_copy, decode_b32r($peer_pub),
-    decode_b32r($packet_sig) );
-
-<[base.logs]>->( 'received [valid] packet payload [%d bytes]', $payload_len );
-
-## printf " \--< peer: %s >--\n<--payload-->\n<-/payload-->\n", $peer_pub,
-##    $packet_buffer;
-
-#,,,,,..,,,,.,,,,,.,,,,,,,...,.,.,..,,,,,,.,.,..,,...,...,,,.,...,,..,.,,,.,.,
-#JMMZFQ6B33SBAR7NS2FF64IYLZN5JA2HQJB2BCP7VUX4W6PVITRDBNZKUVZPBUYIU7JRR5CSL232Y
-#\\\|MW5W5MOYWDGBVOMO3PW6K5ZF5PTAXSIWZULCAZKXF7UQXQSEVZJ \ / AMOS7 \ YOURUM ::
-#\[7]WOQ32EEPTSXHTPFMWEGKLIBOKHLHAGLOG63HTVMIYKMUYRBNYEAY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,.,.,,,,,.,.,,,,.,,..,,,,.,,,,,..,,...,...,...,,,,,..,,,,.,,,,,
+#2YI2M772A4WTHSNLSCH65DBFYGSJ7VBQTWGBUPPK7STCBNXTP636JR64AICDFU2YQKNDHDLHO2DF4
+#\\\|Q64C7DR3U3OBPPCMA5ZIIAX5SAKWCY3NUCNOC7VMV72AWAT73IS \ / AMOS7 \ YOURUM ::
+#\[7]ZSFJFOYJRNNS4XABECVFILF7KEAUIMZUVF54ID6M5NUENDM3MUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

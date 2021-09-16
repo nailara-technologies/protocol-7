@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = discover.format_discover_mcast_packet
+# descr = format and sign mcast broadcast packet string
+
+my $broadcast_packet_type = shift // '';     ##[  packet type name  ]##
+my $payload_str           = shift // '';     ## packet content string ##
+my $host_key = <discover.crypt.key_name>;    ##  loaded host key name  ##
+
+if ( not length $broadcast_packet_type ) {
+    warn 'expecting packet type param <{C1}>';
+    return undef;
+} elsif ( not length $payload_str ) {
+    warn 'expected payload str param <{C1}>';
+    return undef;
+} elsif ( not exists $keys{'C25519'}->{$host_key}
+    or not exists $keys{'C25519'}->{$host_key}->{'public'} ) {
+    <[base.logs]>->(
+        "C25519 key '%s' not loaded [ cannot sign packet ]", $host_key
+    );
+    return undef;
+}
+
+##[ packet header cached ]##
+##
+if (   not defined <discover.announce_msg_header>
+    or not defined <discover.announce_msg_header>->{$broadcast_packet_type} )
+{    ## reset in 'discover.post_init' ##
+    my $packet_stemplate = "[:<|%s|%s\n";    ## header template ##
+    <discover.announce_msg_header>->{$broadcast_packet_type}
+        = sprintf $packet_stemplate,
+        uc($broadcast_packet_type),          ##  packet type is uppercase  ##
+        Crypt::Misc::encode_b32r( $keys{'C25519'}->{$host_key}->{'public'} );
+
+    if ( exists $signatures{$host_key} ) { ##  adding available signatures  ##
+        foreach my $skey_name ( <[base.sort]>->( $signatures{$host_key} ) ) {
+            <discover.announce_msg_header>->{$broadcast_packet_type}
+                .= sprintf "   %s:%s\n",
+                $skey_name,    ## signature lines have 3 space prefix ##
+                Crypt::Misc::encode_b32r $signatures{$host_key}->{$skey_name}
+                ->{'ks'};      ##  public host key signatures  ##
+        }
+    }
+}
+
+$payload_str =~ s|^|      |mg;    ##  payload has 6 spaces prefix  ##
+$payload_str =~ s|\n+$||;         ##  striping trailing linefeed[s]  ##
+
+##  adding network time-stamp  ##
+##
+my $packet_str = sprintf "%s%s\n%s:",
+    <discover.announce_msg_header>->{$broadcast_packet_type},
+    $payload_str, <[base.ntime.b32]>->( 3, TRUE );
+
+## signing packet with host key ##
+##
+my $signature_str = <[crypt.C25519.sign_data]>->( \$packet_str, $host_key );
+if ( not defined $signature_str ) {
+    warn 'mcast packet signing failed <{C1}>';
+    return undef;
+}
+
+##  returning formatted mcast packet string  ##
+##
+return sprintf "%s%s\n", $packet_str,    ## appending packet signature ##
+    Crypt::Misc::encode_b32r($signature_str);
+
+#,,,.,..,,,.,,,.,,,,.,..,,.,.,,..,,..,.,.,,,,,.,.,...,...,,..,.,,,...,,,,,.,,,
+#J3ZQADUZ6TONEME746IOGOJRC7BDFCQJKYYTCEKFR4IYM22LZTDGC2DGZVMDYIDKELAWJJM6OHILM
+#\\\|ARP3BSKXY7KI4SDP6PRZQHMLTQN5E3OQRK2UCMYONSXHHCCKHKX \ / AMOS7 \ YOURUM ::
+#\[7]DLPAWLETKKJWRNNNTHE355D2XBTUGSFWFXS3IW2VGIAGLLLBBEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

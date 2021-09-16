@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = discover.log_mcast_packet
+# descr = add string to packet log buffer
+
+my $type       = shift // '';
+my $packet_str = shift // '';
+
+if ( not length $type ) {
+    warn 'expected packet type parameter <{C1}>';
+    return undef;
+} elsif ( $type !~ m{^(incoming|outgoing)$} ) {
+    warn 'packet type parameter not valid [incoming|outgoing] <{C1}>';
+    return undef;
+} elsif ( not length $packet_str ) {
+    warn 'expected packet string param <{C1}>';
+    return undef;
+}
+
+my @packet;
+push @packet, ( '=' x 77, '' )
+    if not defined $data{'buffer'}{$type}{'data'}
+    or $data{'buffer'}{$type}{'data'}->@* == 3;
+
+chomp $packet_str;
+push @packet, split "\n", $packet_str;
+push @packet, ( '', '=' x 77, '' );
+
+foreach my $line (@packet) {
+    <[base.buffer.add_line]>->( $type, $line );
+}
+
+return TRUE;
+
+#,,,.,,..,...,.,.,,..,.,,,.,.,,,,,.,,,,,.,.,,,..,,...,...,.,.,.,,,,,,,.,,,.,,,
+#EZNQZKWUKLINGMJ4YGP4COWN34VG6PFTRDJW4Q2UZKVY2CKEI6GRPPJNCNAGSNFRD5NOMXO7QAQ56
+#\\\|JKADHJZVY4KGU4PHPN4APWT3WTPVW6IAFXA2TGFUNP7DNI4GCCJ \ / AMOS7 \ YOURUM ::
+#\[7]KZH4DZB5CAUA5TXR7RXZJBOW44S2R6NOPEOCNA55PAF6QOHLJSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

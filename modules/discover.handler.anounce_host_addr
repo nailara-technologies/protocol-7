@@ -19,7 +19,7 @@ if ( not <discover.announce_interval.logged> ) {
     <discover.announce_interval.logged> = TRUE;
 }
 
-my $payload_str = "HOST[ $hostname ] = {\n";
+my $payload_str = sprintf "HOST[ %s ] {\n", $hostname;
 my $start_len   = length $payload_str;
 foreach my $interface_nam ( keys $ifaces->%* ) {
     foreach my $ip_addr ( keys $ifaces->{$interface_nam}->{'inet'}->%* ) {
@@ -75,42 +75,41 @@ foreach my $interface_nam ( keys $ifaces->%* ) {
 
 my $x_pos = $mlenip + $start_len + 1;
 
-##  <[base.devmod.dump_var]>->( \%ifconfig );
-
 foreach my $id (
     sort { $ifconfig{$b}{'is_local'}   <=> $ifconfig{$a}{'is_local'} }
     sort { $ifconfig{$a}{'iface_prio'} <=> $ifconfig{$b}{'iface_prio'} }
     sort {
         length( $ifconfig{$a}{'iface'} ) <=> length( $ifconfig{$b}{'iface'} )
     }
-    sort {
-        int(join( '',
-                map { sprintf qw| %03d |, $ARG } split qw| . |,
-                $ifconfig{$a}{'ip'} )
+    sort {    ##  numerical ip address sort  ##
+        int(join '',
+            map { sprintf qw| %03d |, $ARG } split qw| . |,
+            $ifconfig{$a}{'ip'}
         ) <=> int(
-            join( '',
-                map { sprintf qw| %03d |, $ARG } split qw| . |,
-                $ifconfig{$b}{'ip'} )
+            join '',
+            map { sprintf qw| %03d |, $ARG } split qw| . |,
+            $ifconfig{$b}{'ip'}
         )
-    } <[base.sort]>->( \%ifconfig )
+    } <[base.sort]>->( \%ifconfig )    ## pre-sort by interface ##
 ) {
     $payload_str .= sprintf
-        "%*s   #  %-17s \ %s\n",
-        $x_pos,
-        $ifconfig{$id}{'ip'},
-        $ifconfig{$id}{'mac'},
-        $ifconfig{$id}{'iface'};
+        "%*s  %-17s  <%s>\n",
+        $x_pos,    ##  data block indented after ip addresses  ##
+        $ifconfig{$id}{'ip'}, $ifconfig{$id}{'mac'}, $ifconfig{$id}{'iface'};
 }
-$payload_str .= "}\n" if $payload_str !~ m|}\n$|;
+
+my $c_pos = $start_len - 1;
+
+$payload_str .= sprintf "%*s\n", $c_pos, qw| } |;
 
 my $payload_len = length $payload_str;
 <[base.logs]>->(
     2, ".. sending 'announce host' packet ., [%u payload bytes]", $payload_len
 );
 
-<[discover.cmd.announce]>->( { 'args' => $payload_str } );
+<[discover.send_packet]>->( qw| announce |, $payload_str );
 
-<discover.timer.announce_host>->cancel
+<discover.timer.announce_host>->cancel    ## increasing send interval ##
     if <discover.timer.announce_host>->is_active;
 <discover.timer.announce_host> = <[event.add_timer]>->(
     {   'after'   => <discover.announce_interval.current>,
@@ -118,6 +117,7 @@ my $payload_len = length $payload_str;
     }
 );
 
+##  calculating next send interval [within configured range]  ##
 <discover.announce_interval.current> = sprintf( qw| %.2f |,
     <discover.announce_interval.current> *
         <discover.announce_interval.ifactor> );
@@ -125,8 +125,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,.,...,...,.,,,,..,.,,,,,.,,.,,,,,,...,..,,..,,...,...,..,,...,.,.,.,,,,..,
-#KUZK3766NQCPRYA5NS4HEGAXTEUNZEPHZDS2ERGQRJIB2WRLRRRYUL23EWEXHZRQFB4RFPCN7TWDW
-#\\\|OWKL5FZ3TT2RDFWYL23NF7BSGFB6RZYS5ILK5Y24V33EQGTPPSC \ / AMOS7 \ YOURUM ::
-#\[7]5DLMUCWZY7T3TUYGDGXZLGBIOOHGM4EMKIADTQBAE2Q57LRAO6CA 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,,,,,..,,.,,,,,,,,,,..,,.,.,..,,...,...,.,,,,.,,,,,,,.,,..,,
+#3RICJW7MKC2LSNT2XFNCFIC5OX2CGINWK7ASHEB7TNBWYLR7F6GN7HRGTVW6YPLA4QDD4YEDUULFS
+#\\\|NVMNEJAGHFPBTTM5QEYW3ASENEHXH3F447OAMO7LZTNOQ2XDX6H \ / AMOS7 \ YOURUM ::
+#\[7]EUFEJOLYYE2D4CDVUVI2QGOOIR3KJMKIA7WALU3H6R7FVUMXCSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
