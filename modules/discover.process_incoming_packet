@@ -10,6 +10,10 @@ if ( not length $packet_str ) {
     return undef;
 }
 
+##  discarding packets with time drift above  ##
+##
+my $time_delta_limit = 777.777;
+
 ## log packets [ when configured ] ##
 ##
 if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.incoming>) ) {
@@ -102,6 +106,30 @@ if (not Crypt::Ed25519::verify(
     delete $matched_field->{'signed_data'};    ##  done with it.  ##
 }
 
+<[base.log]>->( $log_level, ':  : checking packet timestamp ..,' );
+
+my $timestamp_num
+    = <[base.ntime_BASE32_to_numerical]>->( $matched_field->{'timestamp'} );
+
+if ( not defined $timestamp_num ) {
+    warn 'packet timestamp format not valid [ decoding error, skipping ]';
+    return FALSE;
+}
+
+my $timestamp_delta = <[base.ntime.delta_seconds]>->($timestamp_num);
+
+if ( $timestamp_delta > $time_delta_limit ) {
+    <[base.logs]>->(
+        1,
+        'packet timestamp delta above limit by %.3fs [ skipped it ]',
+        $timestamp_delta - $time_delta_limit
+    );
+    return FALSE;
+}
+
+$matched_field->{'timestamp-num'} = $timestamp_num;
+$matched_field->{'time-delta'}    = $timestamp_delta;
+
 if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
     <[base.s_warn]>->(
         "no handler for '%s' type packets [ skipping ]",
@@ -121,8 +149,8 @@ if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
     $matched_field
 );
 
-#,,,,,,..,,,,,..,,.,.,..,,,.,,,,.,,..,,,,,,,.,..,,...,...,,.,,..,,,,,,.,,,,,,,
-#WIBUA6ZD7V5NIS4EKNRODDGLOUYGDW32VRIYFND3NCTM62W4UTMO5D4BM6ABYXNPGQS4ZVAA2556U
-#\\\|BWOWPNZPOV6OBDAS7S7R5SV6M2IOCEPTEKDKR6QABV7MOR6BIKJ \ / AMOS7 \ YOURUM ::
-#\[7]AOHEM4K7KLLXYK7M3TPHXT2WMCV5Q576KH57JUHN2EYPMRZULGDY 7  DATA SIGNATURE ::
+#,,..,...,.,,,...,,,,,,,,,.,,,...,,,.,,,.,,,,,..,,...,...,...,..,,,.,,,,,,,,,,
+#ROIVFS42BJLG5UNRTUBIYIQIDNUVZBWRUW6HEBC22C3C6IUTUNGJ5B6FBO7JGJZ3A2HOIKMGO3F2M
+#\\\|CZ3YLTVEYQ2YSWMGBWASFE5QA76TKFLVKPWVEK5QUY3Q77LW2HG \ / AMOS7 \ YOURUM ::
+#\[7]EC7WGF5YAAA2UPTFGHWQK577RKGLLFNV3XOXE4AJBTNBLUYWDACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

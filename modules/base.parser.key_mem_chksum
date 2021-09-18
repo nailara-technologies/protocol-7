@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = base.parser.key_mem_chksum
+
+my @key_param = grep {defined} ( shift, shift );
+
+return qw| [UNDEF] | if not @key_param;
+
+<base.cache.key_checksum> //= {};
+
+my $L13_id = <[chk-sum.bmw.L13-str]>->( join qw| : |, @key_param );
+
+return <base.cache.key_checksum>->{$L13_id}
+    //= <[crypt.C25519.key_bin_checksums]>->(@key_param);
+
+#,,,.,,,,,,..,,.,,,,,,,.,,,,,,,.,,.,.,.,,,.,.,..,,...,...,.,,,,.,,,,.,.,.,.,,,
+#EX3QWICAFAQYZJLRYH3CBYWMOHDU5FYIDSKMOXJICAHF7SJBPTKT5LKD7SCN7AR6P7QH76F7CYEVW
+#\\\|CSJRJP6ODVRPWQCYKUQGTYLC7CUTQTE4ST7ALCMBE3ZXO6F3NTF \ / AMOS7 \ YOURUM ::
+#\[7]5E4HI6EEG3LYLRVCYYLOIAIXGVFUI3WSSRH3DGO7GRG5SY5LZOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

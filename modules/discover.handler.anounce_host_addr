@@ -7,7 +7,6 @@
 my %ifconfig;
 my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
-my $ifaces = Net::Ifconfig::Wrapper::Ifconfig('list');  # [LLL] Net::Interface
 
 <discover.announce_interval.current> //= 0.19;
 <discover.announce_interval.maximum> //= sprintf qw| %.2f |, 40 + rand(2);
@@ -21,56 +20,67 @@ if ( not <discover.announce_interval.logged> ) {
 
 my $payload_str = sprintf "HOST[ %s ] {\n", $hostname;
 my $start_len   = length $payload_str;
-foreach my $interface_nam ( keys $ifaces->%* ) {
-    foreach my $ip_addr ( keys $ifaces->{$interface_nam}->{'inet'}->%* ) {
 
-        if (<[base.is_defined_recursive]>->(
-                qw| discover.mcast.broadcast_interfaces |)
-        ) {
-            my $match = FALSE;
-            foreach my $iface_name_prefix ( split m|[\t ]+|,
-                <discover.mcast.broadcast_interfaces> ) {
-                $match = TRUE
-                    if index( $interface_nam, $iface_name_prefix, 0 ) == 0;
-            }
+foreach my $ifobj ( IO::Interface::Simple->interfaces ) {
 
-            next if not $match;    ##  skipping non-matching interfaces  ##
+    next    ## skip non-relevant ##
+        if $ifobj->is_loopback
+        or not $ifobj->is_running
+        or not defined $ifobj->address;
 
-        } else {    ##  built-in default prefixes  ##
+    my $interface_nam = $ifobj->name;
+    my $ip_addr       = $ifobj->address;
+    my $hw_addr       = $ifobj->hwaddr;
 
-            ##               ##   skipping others   ##
-            next if $interface_nam !~ m{^(cni\.|rni\.|en|\wth|wl)};
+    if (<[base.is_defined_recursive]>->(
+            qw| discover.mcast.broadcast_interfaces |)
+    ) {
+        my $match = FALSE;
+        foreach my $iface_name_prefix ( split m|[\t ]+|,
+            <discover.mcast.broadcast_interfaces> ) {
+
+            $match = TRUE
+                if index( $interface_nam, $iface_name_prefix, 0 ) == 0;
         }
 
-        $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
+        next if not $match;    ##  skipping non-matching interfaces  ##
 
-        # final sort
-        my $is_local = 0;
+    } else {    ##  built-in default prefixes  ##
 
-        # LINK-LOCAL
-        $is_local++ if $ip_addr =~ m|^169\.254\.|;
+        ##               ##   skipping others   ##
+        next if $interface_nam !~ m{^(cni\.?|rni\.?|en|\wth|wl)};
+    }
 
-        # RFC1918
-        $is_local += 2 if $ip_addr =~ m[
+    $mlenip = length($ip_addr) if length($ip_addr) > $mlenip;
+
+    # final sort
+    my $is_local = 0;
+
+    # LINK-LOCAL
+    $is_local++ if $ip_addr =~ m|^169\.254\.|;
+
+    ## add ipv6  ##  [LLL]
+
+    # RFC1918
+    $is_local += 2 if $ip_addr =~ m[
                         (^10\.)|
                         (^127\.)|
                         (^192\.168\.)|
                         (^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)
                     ]x;
 
-        # LLL: make prio patterns configurable!
-        my $iface_prio = 0;
-        $iface_prio-- if $interface_nam =~ m{^(cni\.|e(th|n))};
-        $iface_prio++ if $interface_nam =~ m{^(rni\.|ath|wl(p|an))};
+    # LLL: make prio patterns configurable!
+    my $iface_prio = 0;
+    $iface_prio-- if $interface_nam =~ m{^(cni\.?|e(th|n))};
+    $iface_prio++ if $interface_nam =~ m{^(rni\.?|ath|wl(p|an))};
 
-        $ifconfig{ <[base.gen_id]>->( \%ifconfig ) } = {
-            qw| ip |         => $ip_addr,
-            qw| mac |        => $ifaces->{$interface_nam}->{'ether'},
-            qw| iface |      => $interface_nam,
-            qw| is_local |   => $is_local,
-            qw| iface_prio | => $iface_prio
-        };
-    }
+    $ifconfig{ <[base.gen_id]>->( \%ifconfig ) } = {
+        qw| ip |         => $ip_addr,
+        qw| iface |      => $interface_nam,
+        qw| hwaddr |     => $hw_addr,
+        qw| is_local |   => $is_local,
+        qw| iface_prio | => $iface_prio
+    };
 }
 
 my $x_pos = $mlenip + $start_len + 1;
@@ -95,7 +105,9 @@ foreach my $id (
     $payload_str .= sprintf
         "%*s  %-17s  <%s>\n",
         $x_pos,    ##  data block indented after ip addresses  ##
-        $ifconfig{$id}{'ip'}, $ifconfig{$id}{'mac'}, $ifconfig{$id}{'iface'};
+        $ifconfig{$id}->{'ip'},
+        $ifconfig{$id}->{'hwaddr'},
+        $ifconfig{$id}->{'iface'};
 }
 
 my $c_pos = $start_len - 1;
@@ -125,8 +137,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,.,,...,,..,...,,,,,,..,,.,,,,,,,,,,..,,.,.,..,,...,...,.,,,,.,,,,,,,.,,..,,
-#3RICJW7MKC2LSNT2XFNCFIC5OX2CGINWK7ASHEB7TNBWYLR7F6GN7HRGTVW6YPLA4QDD4YEDUULFS
-#\\\|NVMNEJAGHFPBTTM5QEYW3ASENEHXH3F447OAMO7LZTNOQ2XDX6H \ / AMOS7 \ YOURUM ::
-#\[7]EUFEJOLYYE2D4CDVUVI2QGOOIR3KJMKIA7WALU3H6R7FVUMXCSCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,.,,..,..,,,,,,,.,,,..,...,..,,...,...,..,,.,,,,,.,,,.,.,.,
+#4QZWUS7AL4FJ77V7EPEYI2SILIZ32WQVQOM4AIGC3N2R34LKYHO4TIMWCACFJMWE35EIGD244LC6Q
+#\\\|B5HPA4LRUJPAE226OXABBFVNAR63PWIACR4NMPZ7F3545D4PH2D \ / AMOS7 \ YOURUM ::
+#\[7]E2SMMAUJWTR46Q55LMA3KROBM6KR5D44DCO3KD5CKHLUTQS6Z2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

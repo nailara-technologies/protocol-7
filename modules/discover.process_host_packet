@@ -5,10 +5,56 @@
 my $packet_payload     = shift;
 my $packet_fields_href = shift;
 
-## say sprintf "---< packet >---\n%s---< \ packet >--", $packet_payload;
+return ( warn 'HOST packet syntax error [ packet format ] <{C1}>' and undef )
+    if $packet_payload !~ m|^HOST\[ (?<hostname>\S+) \] \{\n(?#
+                           )(?<payload>(?: {10,81}(?#
+                           )[A-Fa-f\d\.:]{5,29}  (?#
+                           )(?:(?:[0-9a-f]{2}:){5}[0-9a-f]{2})  (?#
+                           )<[\w\.\:]{1,15}>\n)*)(?#
+                           ) {10,81}\}\n|;
 
-#,,,.,,.,,.,,,,,,,,.,,,,.,...,,,.,,.,,.,,,,,,,..,,...,...,,,.,.,.,...,..,,...,
-#DOR23VROIRXA7S77JJRUIBLUQV5JZBL2QUZSP6T7AIL6P4WKBURKRZLHPN7FQADUXUEX2QZOKYOTC
-#\\\|VVPS34OOJNRKH4GDWUI5DN5RUOBRSJAPUNNFH3EM4KITLPGRVNO \ / AMOS7 \ YOURUM ::
-#\[7]K4MU5HKBOULZMQXKFVLOZWQQM7DMHLDR6BJPKJ54FGAYQGNHACDI 7  DATA SIGNATURE ::
+my $hostname = $+{'hostname'};
+my $pkey     = Crypt::Misc::encode_b32r( $packet_fields_href->{'hostkey'} );
+
+if ( not length $+{'payload'} ) {
+    my $entry_id
+        = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
+    $data{'hosts'}->{$entry_id} = {
+        qw| pkey |       => $packet_fields_href->{'hostkey'},
+        qw| host |       => $hostname,
+        qw| timestamp |  => $packet_fields_href->{'timestamp-num'},
+        qw| time-delta | => $packet_fields_href->{'time-delta'}
+    };
+} else {
+    foreach my $line ( split "\n", $+{'payload'} ) {
+        next if not length $line;
+        return ( warn 'HOST packet error [ address payload line ] <{C1}>'
+                and undef )
+            if $line !~ m| {13,81}(?<ip_address>[A-Fa-f\d\.:]{5,29})  (?#
+                     )(?<hwaddr>(?:[0-9a-f]{2}:){5}[0-9a-f]{2})  (?#
+                     )<(?<iface>[\w\d\.:]{1,15})>|;
+
+        my $entry_id = join qw| : |,
+            <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} ),
+            <[chk-sum.bmw.L13-str]>->(
+            $hostname, $+{'ip_address'}, $+{'hwaddr'}, $+{'iface'},
+            );
+
+        ## add to list .., ##
+        $data{'hosts'}->{$entry_id} = {
+            qw| pkey |       => $packet_fields_href->{'hostkey'},
+            qw| host |       => $hostname,
+            qw| ip_addr |    => $+{'ip_address'},
+            qw| hwaddr |     => $+{'hwaddr'},
+            qw| iface |      => $+{'iface'},
+            qw| timestamp |  => $packet_fields_href->{'timestamp-num'},
+            qw| time-delta | => $packet_fields_href->{'time-delta'}
+        };
+    }
+}
+
+#,,,.,,.,,,,,,..,,,,.,.,,,,,.,.,,,,,,,.,,,,,.,..,,...,...,,.,,,,,,.,.,,.,,,.,,
+#VZNQCPQC3A5QL2L5JSHR4H5C4YJGJ446NJQQ5ZMMC7R7ORXABEWBCO4AVVJO3Q7HSMPYZ7A5XAQLU
+#\\\|I3ZMNZ2XKHF4LHT7YBFZODC3SR4YAOM7OU5KLXW2IUANRI7MKSE \ / AMOS7 \ YOURUM ::
+#\[7]IR4DBMQSBLY5WFTMMRREHRYISFFG3PSTUTJZE2FMIWMUZXCPEEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
