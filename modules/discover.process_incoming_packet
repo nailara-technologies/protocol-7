@@ -30,6 +30,9 @@ return ( warn 'discover packet format error <{C1}>' and undef )
         )(?<timestamp>[A-Z2-7]{11,15}):)(?<packet_sig>[A-Z2-7]{103})\n};
 
 my $matched_field = { map { $ARG => $+{$ARG} } keys %+ };
+
+$matched_field->{'tstamp-adj'} = <[base.ntime]>->(3);
+
 $matched_field->{'payload'}    =~ s|^ {6}||mg;   ##  remove space prefixes  ##
 $matched_field->{'signatures'} =~ s|^ {3}||mg;
 chomp $matched_field->{'signatures'};
@@ -69,6 +72,7 @@ foreach my $name ( <[base.sort]>->($packet_signature_ref) ) {
 
     $packet_signature_ref->{$name}
         = Crypt::Misc::decode_b32r( $packet_signature_ref->{$name} );
+
     if ( not defined $packet_signature_ref->{$name} ) {
         <[base.s_warn]>->(
             "BASE32 decoding of signature field '%s' failed <{C1}>", $name
@@ -76,7 +80,7 @@ foreach my $name ( <[base.sort]>->($packet_signature_ref) ) {
         return undef;
     }
 
-    if (not Crypt::Ed25519::verify(
+    if (not Crypt::Ed25519::verify(    ##  verifying key signatures  ##
             $matched_field->{'hostkey'}, $spkey,
             $packet_signature_ref->{$name}
         )
@@ -93,7 +97,7 @@ foreach my $name ( <[base.sort]>->($packet_signature_ref) ) {
 
 }
 
-if (not Crypt::Ed25519::verify(
+if (not Crypt::Ed25519::verify(    ## verifying packet signature ##
         $matched_field->{'signed_data'}, $matched_field->{'hostkey'},
         $matched_field->{'packet_sig'}
     )
@@ -108,7 +112,7 @@ if (not Crypt::Ed25519::verify(
 
 <[base.log]>->( $log_level, ':  : checking packet timestamp ..,' );
 
-my $timestamp_num
+my $timestamp_num    ##  converting timestamp value [ format validation ]  ##
     = <[base.ntime_BASE32_to_numerical]>->( $matched_field->{'timestamp'} );
 
 if ( not defined $timestamp_num ) {
@@ -116,19 +120,20 @@ if ( not defined $timestamp_num ) {
     return FALSE;
 }
 
-my $timestamp_delta = <[base.ntime.delta_seconds]>->($timestamp_num);
+my $timestamp_delta_secs = sprintf qw| %.3f |,    ##  ntime to seconds ##
+    ( $timestamp_num - $matched_field->{'tstamp-adj'} ) / 4200;
 
-if ( $timestamp_delta > $time_delta_limit ) {
+if ( abs($timestamp_delta_secs) > $time_delta_limit ) {
     <[base.logs]>->(
         1,
         'packet timestamp delta above limit by %.3fs [ skipped it ]',
-        $timestamp_delta - $time_delta_limit
+        $timestamp_delta_secs - $time_delta_limit
     );
     return FALSE;
 }
 
-$matched_field->{'timestamp-num'} = $timestamp_num;
-$matched_field->{'time-delta'}    = $timestamp_delta;
+## collecting host clock offset [ + network latency ] ##
+$matched_field->{'time-delta-seconds'} = $timestamp_delta_secs;
 
 if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
     <[base.s_warn]>->(
@@ -144,13 +149,15 @@ if ( $matched_field->{'type'} ne qw| ANNOUNCE | ) {
     $matched_field->{'type'}
 );
 
-<[discover.process_host_packet]>->(
+<[discover.process_host_packet]>->(    ##  packet is valid \ processing  ##
     delete $matched_field->{'payload'},
     $matched_field
 );
 
-#,,..,...,.,,,...,,,,,,,,,.,,,...,,,.,,,.,,,,,..,,...,...,...,..,,,.,,,,,,,,,,
-#ROIVFS42BJLG5UNRTUBIYIQIDNUVZBWRUW6HEBC22C3C6IUTUNGJ5B6FBO7JGJZ3A2HOIKMGO3F2M
-#\\\|CZ3YLTVEYQ2YSWMGBWASFE5QA76TKFLVKPWVEK5QUY3Q77LW2HG \ / AMOS7 \ YOURUM ::
-#\[7]EC7WGF5YAAA2UPTFGHWQK577RKGLLFNV3XOXE4AJBTNBLUYWDACI 7  DATA SIGNATURE ::
+<[discover.check_packet_timeouts]>; ##  applying timeouts \ setting timers  ##
+
+#,,,,,.,,,.,,,,,.,...,..,,,..,,.,,...,,.,,.,.,..,,...,...,.,.,,,,,,..,..,,,..,
+#3YCDBG7CY6YKMU656K3XT7CLS7PL7MHLZMVCSRGCZH6JDMHY4M4QWNM6KUR5UQJCJZ2TL2SVKJEMI
+#\\\|FYEQX7L5VKU6YMXZNVNZUCQUBOK3NBJ4HA3Y53CBP5AJ22DIEO3 \ / AMOS7 \ YOURUM ::
+#\[7]SQBFUO4G5E64YEIJSDIS4XFMK5ZPYA5XGGYEZJDFNMPXVBX3CECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
