@@ -20,10 +20,12 @@ if ( not length $+{'payload'} ) {
     my $entry_id
         = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
     $data{'hosts'}->{$entry_id} = {
-        qw| pkey |       => $packet_fields_href->{'hostkey'},
-        qw| host |       => $hostname,
-        qw| timestamp |  => $packet_fields_href->{'timestamp-num'},
-        qw| time-delta | => $packet_fields_href->{'time-delta'}
+        qw| pkey |               => $packet_fields_href->{'hostkey'},
+        qw| host |               => $hostname,
+        qw| timestamp |          => $packet_fields_href->{'timestamp'},
+        qw| tstamp-adj |         => $packet_fields_href->{'tstamp-adj'},
+        qw| time-delta-seconds | =>
+            $packet_fields_href->{'time-delta-seconds'}
     };
 } else {
     foreach my $line ( split "\n", $+{'payload'} ) {
@@ -42,19 +44,21 @@ if ( not length $+{'payload'} ) {
 
         ## add to list .., ##
         $data{'hosts'}->{$entry_id} = {
-            qw| pkey |       => $packet_fields_href->{'hostkey'},
-            qw| host |       => $hostname,
-            qw| ip_addr |    => $+{'ip_address'},
-            qw| hwaddr |     => $+{'hwaddr'},
-            qw| iface |      => $+{'iface'},
-            qw| timestamp |  => $packet_fields_href->{'timestamp-num'},
-            qw| time-delta | => $packet_fields_href->{'time-delta'}
+            qw| pkey |               => $packet_fields_href->{'hostkey'},
+            qw| host |               => $hostname,
+            qw| ip_addr |            => $+{'ip_address'},
+            qw| hwaddr |             => $+{'hwaddr'},
+            qw| iface |              => $+{'iface'},
+            qw| timestamp |          => $packet_fields_href->{'timestamp'},
+            qw| tstamp-adj |         => $packet_fields_href->{'tstamp-adj'},
+            qw| time-delta-seconds | =>
+                $packet_fields_href->{'time-delta-seconds'}
         };
     }
 }
 
-#,,,.,,.,,,,,,..,,,,.,.,,,,,.,.,,,,,,,.,,,,,.,..,,...,...,,.,,,,,,.,.,,.,,,.,,
-#VZNQCPQC3A5QL2L5JSHR4H5C4YJGJ446NJQQ5ZMMC7R7ORXABEWBCO4AVVJO3Q7HSMPYZ7A5XAQLU
-#\\\|I3ZMNZ2XKHF4LHT7YBFZODC3SR4YAOM7OU5KLXW2IUANRI7MKSE \ / AMOS7 \ YOURUM ::
-#\[7]IR4DBMQSBLY5WFTMMRREHRYISFFG3PSTUTJZE2FMIWMUZXCPEEBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,,.,,.,.,,,,,,,.,...,,,,,,,,,..,,...,...,.,.,,..,...,.,.,..,,
+#4PN2HHRDZYFGHU7ZISXNEI4C5462R3LO5RLPV5ACW2C7UUCJWJKNSBF4WLVSLESOH7QHI2DCNBKQA
+#\\\|EQAANDLEVFVDOVGZS4Z7BA6TRXDSFGN7BFYWMTLROPYABENXVMQ \ / AMOS7 \ YOURUM ::
+#\[7]2UDVTJHHX6G5LMQQYSETQAOHGNFR6GNT2YSQX3N7ZJYZ5E22LOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
