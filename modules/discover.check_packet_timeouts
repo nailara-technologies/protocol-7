@@ -2,14 +2,49 @@
 
 # name  = discover.check_packet_timeouts
 
-my $packet_timeout = <discover.announce_interval.maximum> + 0.24;
+## timeout check value increased for network latency ##
+##
+my $packet_timeout = <discover.announce_interval.maximum> + 0.777;
+my $log_level      = 2;    ## <-- reporting timeouts loglevel ##
+
+my @next_host_timeout;
 
 foreach my $id ( keys $data{'hosts'}->%* ) {
-    my $timestamp = $data{'hosts'}->{$id}->{'timestamp'};
+    my $host           = $data{'hosts'}->{$id}->{'host'};
+    my $timestamp_adj  = $data{'hosts'}->{$id}->{'tstamp-adj'};
+    my $time_delta_now = <[base.ntime.delta_seconds]>->($timestamp_adj);
+
+    if ( $time_delta_now >= $packet_timeout ) {    ##[  host timeout  ]##
+        <[base.logs]>->(
+            $log_level, "host '%s' [ %s ] timed out.",
+            $host,      $data{'hosts'}->{$id}->{'ip_addr'}
+        );
+        delete $data{'hosts'}->{$id};    ##  removing timed out entry  ##
+
+    } else {    ## collect values for setting tiners ##
+        unshift @next_host_timeout, $packet_timeout - $time_delta_now;
+    }
 }
 
-#,,.,,.,,,,,.,.,,,.,.,,,.,...,.,,,,..,,,,,..,,..,,...,...,...,,,,,...,...,..,,
-#VZA5RN2QKWC2BOQBBHGJGIUXYRINRARPJOXWLZ6ORUN3U5WUMEX24UZF5G5HTDH7SOH6QMLGKYDY6
-#\\\|JHCOBCWAOSFCAV3QCWOZRY6HBMDZEI4B2BK5EN5AWN3DXK2L4YM \ / AMOS7 \ YOURUM ::
-#\[7]2SX5FDHIUFQ4R3FRXWHJDAWYHNNOX2FD3KN22QECZQ7GNBA2XODA 7  DATA SIGNATURE ::
+if (<[base.is_defined_recursive]>->(
+        qw| discover.timer.check_host_list_timeout |)
+    ) {    ##  stopping any previous timer  ##
+    <discover.timer.check_host_list_timeout>->cancel
+        if <discover.timer.check_host_list_timeout>->is_active;
+}
+
+return if not @next_host_timeout;    ##  no new timer required  ##
+
+## get shortest timeout value ##
+my $next_timeout_in = sprintf qw| %.3f |, [ minmax @next_host_timeout ]->[0];
+
+<discover.timer.check_host_list_timeout>  ##  call to self at next timeout  ##
+    = <[event.add_timer]>->(
+    { 'after' => $next_timeout_in, 'repeat' => FALSE, 'handler' => __FILE__ }
+    ) if @next_host_timeout;
+
+#,,..,.,.,,.,,.,.,,,.,..,,..,,,.,,,,.,.,,,,..,..,,...,..,,...,,..,...,,,.,,..,
+#TIHPX3KEADK3BRKBTFQ27NY7XDIRUI62PNK2N4SIDBMCHIURRZKMUV2APZDTYRYVAWWO3KE3IPN7O
+#\\\|XSX66RKX2IFPURD7MSUWUZKP2ZEQEIHIRBVNW4K72BF4BCEW4MZ \ / AMOS7 \ YOURUM ::
+#\[7]2HEFTP3IZOYESE2INV6R2BNEEVM55RNYII36HJ25H55RLZ724QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

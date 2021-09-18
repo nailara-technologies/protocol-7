@@ -31,8 +31,10 @@ if ( not <discover.mcast.obj.sock>->mcast_send($packet_str) ) {  ## sending ##
 
 ## restart with short interval after errors [ i.e. system suspend ] ##
 ##
-<[discover.callback.resend_interval_reset]> and return undef
-    if <discover.counter.send_error> == 1;
+if ( <discover.counter.send_error> == 1 ) {
+    <[discover.check_packet_timeouts]>;
+    <[discover.callback.resend_interval_reset]> and return undef;
+}
 
 ## log sent packets [ when configured ] ##
 ##
@@ -42,8 +44,8 @@ if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.outgoing>) ) {
 
 return TRUE;
 
-#,,.,,,..,,..,,,.,.,,,,.,,,.,,..,,,,,,..,,,..,..,,...,...,.,,,..,,,..,,.,,..,,
-#7T2QSLZSJZ2G3EUTV4HLXSLKIUBFDSSQ5EIYZUQQ3IXGYHHWY7VNHLAUU6KI4IBN3ARZUZLZ2CZ3Y
-#\\\|3MCRBOKKZ2PXIBWWHRVPIKMSRKH6NGBPHUS7DO2FUY373JN5FQX \ / AMOS7 \ YOURUM ::
-#\[7]IAPF7BD5FFBAYP3P4CBFGZPY2VK6TXG6L42ZT5FAHLVAFNWPAADQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,,,.,,,,,...,,.,,,,,,,..,,..,..,,...,...,...,.,,,,,.,,.,,.,.,
+#VFTFLLSXIBU6EXJHGLD5MTFBB455OFGDVU2LWN7M44PZYMXS5PWZBCI2KXQSIRMT4VPR4D2HS2MJA
+#\\\|UYMNWYLEZVS4GCQ4CLUG7N6WLP4WV2N2IF7B52F3DKNB5FFGHWK \ / AMOS7 \ YOURUM ::
+#\[7]CCWAKSNZ42CQSM6JT3Z52ENQIWXOWPCSORHCPJ3AUU2W2GZCFECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
