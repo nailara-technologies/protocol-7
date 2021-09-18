@@ -22,6 +22,12 @@ my $table_string = "\n";
 warn "variable name '$h_name' not valid <{C1}>" and return $list_error
     if $h_name !~ m|^[a-z][\w_]*$|i;
 
+no strict qw| refs |;
+warn "parser.list: hash '\%$h_name' not defined <{C1}>"
+    and return $list_error
+    if not defined \%{"$h_name"};
+use strict qw| refs |;
+
 if ( $h_key !~ m|\.| ) {
 
     no strict qw| refs |;
@@ -45,7 +51,7 @@ if ( $h_key !~ m|\.| ) {
     die "list key syntax in '$h_key' not valid";
 }
 
-warn "parser.list: hash '\%$h_name' not defined <{C1}>"
+warn "parser.list : hash key [ or subkey ] not defined <{C1}>"
     and return $list_error
     if not defined $data_ref;
 
@@ -178,8 +184,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,,,,,,.,,,,.,.,,,,..,,,.,,,.,,.,,.,,,,.,,..,,...,...,,..,.,.,.,,,,,.,,,,,
-#AYA3NN3MYYPUIXZPA4EVKHC2BNYUKTK7DVQNV52OATAX6DTIF2JLHVXAM2P4F44V4GN5JVCQ4DZBU
-#\\\|JJZ5XQ7EATTSNOXO46SJK5PI5QNFAGMZQB7TNL4YOF2AI7KUG64 \ / AMOS7 \ YOURUM ::
-#\[7]NXRHB7DW55GOSNO4ETOWNJKHX6C64EH3VRE3PCNHEGQM4DC444AY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,.,,.,,,,..,.,.,..,,,.,,.,,,..,,...,..,,,,.,,.,,..,,,..,.,.,
+#AOOWWQTRQV3OAKMQVLCNBTZSZMMECGGCXAX3X5U2LPL6MQLNZOA4MHAOZZ2KKT22CJAWMT3UCI5YI
+#\\\|L5DCYWHDKVQVHMJHAWOFCIAFXQPLWKG34BRVDDPN3YCADDI7NNW \ / AMOS7 \ YOURUM ::
+#\[7]6W4UD2JSOM57AZJKRP7QSZFTZETM2CZ5RC3ZNBAR3U5P6OWGOWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
