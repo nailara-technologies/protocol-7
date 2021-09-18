@@ -6,37 +6,37 @@
 my $key_data_ref         = shift;
 my $max_elements_default = 13747;
 
-if ( ref($key_data_ref) ne 'HASH' ) {
-    return
-        <[base.log]>->( 0, 'base.list.init: submitted argument is no hash' );
+if ( ref $key_data_ref ne qw| HASH | ) {
+    <[base.log]>->( 0, 'base.list.init: submitted argument is no hash' );
+    return undef;
 }
 
-if ( not defined ${$key_data_ref}{'max_elements'}
-    or ${$key_data_ref}{'max_elements'} < 1 ) {
-    <[base.log]>->(
-        0,
-        "base.list.init: 'max_elements' not set,"
-            . " defaulting to $max_elements_default .,"
+if ( not defined $key_data_ref->{'max_elements'}
+    or $key_data_ref->{'max_elements'} < 1 ) {
+    <[base.logs]>->(
+        0, "base.list.init: 'max_elements' not set, defaulting to %u .,",
+        $max_elements_default
     );
-    ${$key_data_ref}{'max_elements'} = $max_elements_default;
+    $key_data_ref->{'max_elements'} = $max_elements_default;
 }
 
-if ( not defined ${$key_data_ref}{'key_ref'}
-    or ref( ${ ${$key_data_ref}{'key_ref'} } ) ne 'HASH' ) {
-    return <[base.log]>->(
+if ( not defined $key_data_ref->{'key_ref'}
+    or ref $key_data_ref->{'key_ref'}->$* ne qw| HASH | ) {
+    <[base.log]>->(
         0,
         "base.list.init: 'key_ref' is neither a hash nor a scalar reference"
     );
+    return undef;
 }
 
-$data{'base'}{'element'}{ ${$key_data_ref}{'key_ref'} } = {
-    'name'      => ${$key_data_ref}{'name'} || 'unnamed',
-    'max_count' => ${$key_data_ref}{'max_elements'},
-    'count'     => scalar keys( %{ ${ ${$key_data_ref}{'key_ref'} } } )
+<base.element>->{ $key_data_ref->{'key_ref'} } = {
+    'name'      => $key_data_ref->{'name'} // qw| unnamed |,
+    'max_count' => $key_data_ref->{'max_elements'},
+    'count'     => scalar keys $key_data_ref->{'key_ref'}->$*->%*
 };
 
-#,,.,,.,.,.,.,...,.,.,,,.,...,..,,..,,.,,,,,.,..,,...,...,..,,.,,,,.,,.,,,,.,,
-#D6FTRLZIGK33346QAHKQ63N6EWEMW4P6YC2BXFTTKIZTB3JMMF3ZL46M5NUQKCZA3LN5NPIGHZGWA
-#\\\|DAPDGRKJX5JX5QNB745RZLCWANOMBS3V5XAKKG224XEANPJPZJL \ / AMOS7 \ YOURUM ::
-#\[7]MSUP4GXBBTYK4GARF2G4NHMMCXCITCWSNFHT4R3QSPGDT2ZMXACI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,.,,,..,,...,,,,,,,.,,,.,,,,,..,,...,...,...,,,.,,,,,..,,,..,
+#TVE4HELRTCKOQCHSIBE4IUHQOTVSXY6QQBIWUHLR6ZNE7P2FXMRRBJB6ENXYADXROFEVGECE2EV6Q
+#\\\|R7RTHY24QIT33KHGVTKD7JB3PVAH54XM55EMSTRX2BRDQTK4OG4 \ / AMOS7 \ YOURUM ::
+#\[7]CIZL6R4GJNH4P5LUF3U7CVOUJIGIJNN2IXMKJIM6QSD2J577TIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
