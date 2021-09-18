@@ -2,7 +2,7 @@
 
 # name = discover.init_code
 
-<[base.perlmod.autoload]>->('Net::Ifconfig::Wrapper');
+<[base.perlmod.autoload]>->('IO::Interface::Simple');
 
 my $key_path_owner = <crypt.C25519.usr_name> // <system.amos-zenka-user>;
 <discover.crypt.key_user> //= $key_path_owner;
@@ -13,24 +13,48 @@ my $key_path_owner = <crypt.C25519.usr_name> // <system.amos-zenka-user>;
 <discover.cfg.log-packets.incoming> //= TRUE;
 <discover.cfg.log-packets.outgoing> //= TRUE;
 
-##[ resetting packet count ]##
-<discover.received_packet_count> = 0;
+$data{'hosts'} //= {};
+
+<list.nodes> = {
+    'var'      => qw| data |,
+    'key'      => qw| hosts |,
+    'sort_key' => qw| alpha:pkey |,
+    'mask'     => 'host pkey:host_key time-delta ip_addr hwaddr iface',
+    'align'    => {
+        qw| pkey  |       => qw|  left+2  |,
+        qw| host  |       => qw|  right-2 |,
+        qw| time-delta  | => qw|  right-3 |,
+        qw| ip_addr |     => qw|  left+2  |,
+        qw| hwaddr |      => qw|  center  |,
+        qw| iface  |      => qw|  left+3  |
+    },
+    'filters' => {
+        qw| pkey |       => qw| base.parser.key_mem_chksum |,
+        qw| hwaddr |     => qw| discover.parser.hwaddr |,
+    },
+    'descr' => 'protocol 7 nodes [ hosts ] seen online'
+};
+
+<[base.list.init]>->(
+    {   qw| name |     => qw| nodes |,
+        'key_ref'      => \$data{'hosts'},
+        'max_elements' => 4200
+    }
+);
 
 ##  initialize packet log buffers  ##
 <[discover.init_packet_buffer]>;
 
 <discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
 
-<discover.announce_interval.current> //= 0.23;
-<discover.announce_interval.maximum> = sprintf qw| %.2f |, 40 + rand(4);
-<discover.announce_interval.ifactor> = 1.13;
+<[discover.callback.resend_interval_reset]>;
 
 <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => qw| dev.null | } );
 
 0;
 
-#,,.,,..,,.,,,,.,,,,,,,,.,.,.,,.,,,..,,.,,,.,,..,,...,..,,.,.,,..,.,.,...,,,.,
-#DTG5T2YCFA3ZQCZVW4SHLQHMOQI4H4KWHUE3AZVAEJDCN4AVSQQH5XB4Z453325GT4IVMJ3E6SAUY
-#\\\|SP27IKES35DV4TESJZFY2NZUGMSTOXD777GZ5ZNCZXCSP6JYU64 \ / AMOS7 \ YOURUM ::
-#\[7]H7IQ26B5CAG4XIRZZ3D56AS35KYEAURTZL7B6IYZ7OZ44YZZSUDY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,,..,,..,,,.,...,,.,,.,,,,.,,..,,...,..,,..,,...,.,,,.,.,..,,
+#N56ZCU5JHCYLN25WYWNHQUWZQT6ELJVBFLZIVK4QSETHIFBKQK5T42TK27CMZ6LDZJY2BQP2B4SK4
+#\\\|SX2KBFOJHCUBOPXCJEMFAGCYUAVOOUITZNP5HQED6GSNUEQZJG4 \ / AMOS7 \ YOURUM ::
+#\[7]UCBBKNVZNIL5OAFAI7TOGK35UFA3MI6YWQSSZ4KKTWSBZQE43WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

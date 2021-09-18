@@ -5,6 +5,7 @@
 
 my $type        = shift // '';
 my $payload_str = shift // '';
+my $log_level   = shift // 2;
 
 if ( not length $type ) {
     warn 'expected packet type parameter';
@@ -14,16 +15,24 @@ if ( not length $type ) {
     return undef;
 }
 
+<discover.counter.send_error> //= 0;
+
 my $packet_str    ##  compose signed packet payload string  ##
     = <[discover.format_discover_mcast_packet]>->( $type, $payload_str );
 
 if ( not <discover.mcast.obj.sock>->mcast_send($packet_str) ) {  ## sending ##
-    <[base.s_warn]>->(
-        0, "error sending '%s' packet [ %s ] <{C1}>",
-        <[base.str.os_err]>
-    );
-    return undef;
+    <[base.logs]>->( $log_level, "error sending '%s' packet", $type );
+    <[base.logs]>->( $log_level, ':. [  %s  ]', <[base.str.os_err]> );
+    ##  counting errors for interval resets  ##
+    <discover.counter.send_error>++;
+} else {
+    <discover.counter.send_error> = 0;   ## reset error count after success ##
 }
+
+## restart with short interval after errors [ i.e. system suspend ] ##
+##
+<[discover.callback.resend_interval_reset]> and return undef
+    if <discover.counter.send_error> == 1;
 
 ## log sent packets [ when configured ] ##
 ##
@@ -33,8 +42,8 @@ if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.outgoing>) ) {
 
 return TRUE;
 
-#,,,.,..,,.,.,...,...,,..,,.,,,..,,.,,.,,,,,,,..,,...,.,.,,,,,.,.,..,,,..,.,,,
-#7SMERYJRDCKJO52VEPPKDEO3EFEAM7H7DRHZPFQYTH3RQB4GO6M4JBVWDKFI7CQ5MS7WXXZDBAC76
-#\\\|7B7OWTCLPQKKYEM63QJEFZWM5K6D3O2LDFVAVN3FROXI5FQ4NVP \ / AMOS7 \ YOURUM ::
-#\[7]YV7HMEI7ZTJSN62E4MIHROH3DBXNQOI6PV7GPBFRU7RZTD5O4YBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,.,,,,.,,,.,,..,,,,,,..,,,..,..,,...,...,.,,,..,,,..,,.,,..,,
+#7T2QSLZSJZ2G3EUTV4HLXSLKIUBFDSSQ5EIYZUQQ3IXGYHHWY7VNHLAUU6KI4IBN3ARZUZLZ2CZ3Y
+#\\\|3MCRBOKKZ2PXIBWWHRVPIKMSRKH6NGBPHUS7DO2FUY373JN5FQX \ / AMOS7 \ YOURUM ::
+#\[7]IAPF7BD5FFBAYP3P4CBFGZPY2VK6TXG6L42ZT5FAHLVAFNWPAADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

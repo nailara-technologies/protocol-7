@@ -9,29 +9,6 @@
 <discover.mcast.mesg_ttl>  //= 3;
 <discover.mcast.mesg_loop> //= 0;
 
-<discover.hosts-online> //= {};
-
-<list.hosts> = {
-    'var'      => qw| data |,
-    'key'      => qw| discover.hosts-online |,
-    'sort_key' => 'alpha:public_key',
-    'descr'    => 'protocol 7 hosts seen online',
-    'mask'     => 'pkey:public_key ip_addr:ip_address mac_addr:mac_address',
-    'align'    => {
-        'pkey'     => 'left+4',
-        'ip_addr'  => 'center',
-        'mac_addr' => 'center',
-    },
-    'filters' => { 'pkey' => qw| nodes.parser.node_pkey |, }
-};
-
-<[base.list.init]>->(
-    {   'name'         => qw| hosts |,
-        'key_ref'      => \$data{'discover'}{'hosts-online'},
-        'max_elements' => 4097
-    }
-);
-
 if (    defined <discover.mcast.obj.sock>
     and <discover.mcast.ip4_port> < 1024
     and $EUID > 0 ) {
@@ -101,8 +78,8 @@ my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
 
 0;
 
-#,,.,,,,,,,..,,,,,...,..,,...,,..,...,,,.,...,..,,...,...,.,.,.,.,..,,,,,,,,,,
-#RMR5Y3Q64SZNRZSI54ZNZLJWGPLBOFKCPJYRH6THB3OPF5OBJZASKKUMOKGCI4VZBREXPINOGKOAS
-#\\\|DORGVQMLC4VMTCBYBLYQNHYEXZ7XLBDFNWEIVJBRSV7IZ7JT3GH \ / AMOS7 \ YOURUM ::
-#\[7]YY57UDZ2MMGI3RMHOOG4A76426EUJK46YKWZDPN4V7DWLZ4AI6DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,.,,,,..,,,.,.,,,,..,..,,..,,..,,...,...,.,.,,,.,.,,,,,,,.,,,
+#7URRXEDCYAP5AXZI2CKUGBIV4CG3RYRQKSXNGZJZGOJGETWBOGSCF7P3NYMBE73BKFBJWSWARGGCG
+#\\\|U3BTFGRTYVPRRGQBWQMRC65E2IJAZFMEGBUSV5SUPULTVZ2VMW5 \ / AMOS7 \ YOURUM ::
+#\[7]VOHZDYXI2NV5GKBGP4GI5M7MNOE6HUDDJ2K3FQASYC2A6ZCZXQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
