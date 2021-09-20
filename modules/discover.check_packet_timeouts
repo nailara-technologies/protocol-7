@@ -4,8 +4,11 @@
 
 ## timeout check value increased for network latency ##
 ##
-my $packet_timeout = <discover.announce_interval.maximum> + 1.77;
-my $log_level      = 2;    ## <-- reporting timeouts loglevel ##
+my $host_timeout_delay = <discover.cfg.timeout_delay> //= 2.1;
+my $packet_timeout     = <discover.announce_interval.maximum>;
+$packet_timeout += $host_timeout_delay;   ## accounting for network latency ##
+
+my $log_level = 2;    ## <-- reporting timeouts loglevel ##
 
 my @next_host_timeout;
 
@@ -101,8 +104,8 @@ my $next_timeout_in = sprintf qw| %.3f |, [ minmax @next_host_timeout ]->[0];
     { 'after' => $next_timeout_in, 'repeat' => FALSE, 'handler' => __FILE__ }
     ) if @next_host_timeout;
 
-#,,,.,...,..,,...,,,,,..,,,.,,,,,,.,,,...,,..,..,,...,..,,.,.,.,.,,..,.,,,.,.,
-#J4TY524A4XF4EGMFQ2ODWWA67VSQKVANCEYQKP6MVD3TG44NKW4PY6OQ5AAGTAWDKNG3FYHB2EAPG
-#\\\|OVSA7SAG2MMG4GTGRY3ZKYLGFUJF6BM6FDADWPZKIV66TQITG3V \ / AMOS7 \ YOURUM ::
-#\[7]AOUVQASBKV5L4RLCTE75Z3EO3XV5ZJBQTNGNH4TMIVN6WJGMMUDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,,.,,..,,,,.,.,,,,,.,,..,,..,..,,...,.,.,.,.,.,,,,,.,...,.,,,
+#7ZYT63VNDVVSUUKJNVOSC6UVRB7P54WCCPVJHSYD5ABONF64ZLRX3KF6MBUOY2ADBAH3JLH3CC3OO
+#\\\|7ZG5MK6GMJQAMNRDDK5BLPRKYZKBGSZAMGDVAIIGET7HYCWPV4R \ / AMOS7 \ YOURUM ::
+#\[7]DEGR4PJAB5YTVMFUWQFX7IRV7APTUOYVCKTVRW7QGX5WRJHKS4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
