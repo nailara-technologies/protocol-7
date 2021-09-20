@@ -22,7 +22,13 @@ my $total_maxlen
     = [ minmax map { $max_name_length->{$ARG} } keys $max_name_length->%* ]
     ->[1];
 
+my $left_column_limit   = 24;
+my $desc_column_min_len = 50;
+
 my $wrap_len = 78 - $total_maxlen;
+$wrap_len = $desc_column_min_len if $wrap_len < $desc_column_min_len;
+
+say '< wrap len > ', $wrap_len;
 
 foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
 
@@ -53,6 +59,9 @@ foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
 
         my $config_path = $key_path_map->{$name};
 
+        $name = <[base.parser.ellipse_center]>->( $name, $left_column_limit );
+        $max_len = $left_column_limit if $max_len > $left_column_limit;
+
         $reply->{'data'} .= sprintf ": %*s :  %s\n", $max_len, $name,
             <[base.wrap_text]>->(
             $w_prefix, $wrap_len, $cfg_ref->{$cfg_type}->{$config_path}
@@ -63,10 +72,8 @@ foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
     $reply->{'data'} .= ".\n";
 }
 
-## return { 'mode' => qw| size |, 'data' => Dumper($max_name_length) };
-
-#,,..,,.,,,..,,..,,,.,...,.,.,.,,,.,,,,,.,,.,,..,,...,...,...,,..,.,.,,,.,,..,
-#UYOWEBDOHBK673OGBB7QT6F3VMX53FAGZVGUZBSIGYLPJUDWGG37GB6YH7JWX55LF4TV5SRG37VTA
-#\\\|7TM6QVSWC5OUGUJ4KN3D426JAWJ63EYFT65B3546N65HPHFBICB \ / AMOS7 \ YOURUM ::
-#\[7]BFZX55BUZ22VIZNXH4Z5THV3YQBJ5H3SVE5CS5Y5CL2EE5FPXSCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,,.,,...,,.,,.,,,..,,,,.,,..,..,,...,...,,..,,..,,.,,,,,,..,,
+#5BL35XS3RBNSB5YUSHQMXIFXSDLPM4ATREXJOWWVEGH5DO4MIG7ZPA5DXKQILK66W2CQDY3OUHJOM
+#\\\|ZAHEZLPVNSROG3EUB3MYHEWJW567XTUYTSJZQXHBALI2DEWRP55 \ / AMOS7 \ YOURUM ::
+#\[7]VJD6WLS3P2KANUWZHHJUY4CUSJL4JWTW4SCPKKQ6RQBY5FGF2SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
