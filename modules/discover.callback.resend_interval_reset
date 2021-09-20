@@ -13,10 +13,21 @@ my $reset_counter = shift // TRUE;    ##  optional  ##
 <discover.announce_interval.maximum> = sprintf qw| %.2f |, 40 + rand(4);
 <discover.announce_interval.ifactor> //= 1.24;
 
+if (defined <discover.timer.announce_host>    ##  resetting timer  ##
+    and <discover.timer.announce_host>->is_active
+) {
+    <discover.timer.announce_host>->cancel;
+}
+<discover.timer.announce_host> = <[event.add_timer]>->(
+    {   'after'   => 0.11,    ##  restarting broadcast timer  ##
+        'handler' => qw| discover.handler.anounce_host_addr |
+    }
+);
+
 return TRUE;
 
-#,,..,,..,,,,,...,,..,,,.,,,,,,,.,,.,,,,,,...,..,,...,..,,..,,..,,,.,,...,.,.,
-#CIVZGIASEUGIGWAH7WOSEBTW7RAUZ2PFRWJ5YNQ4HAUGT2YP6XFXANJG5CCPP6DYRVMOP4KSIJLD2
-#\\\|OVGCCH4AAK2LDBK52YHMHRJZD4ZNHM4OTYM4AE4SORZUBBBZFWZ \ / AMOS7 \ YOURUM ::
-#\[7]DZSBAAMCLO62DSBTKEJ3VLB7H5T5Y436E2BH5QUHRUNLYTAQTKCI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,..,,,,,,,.,,...,.,,,..,,...,..,,...,.,,,,..,...,.,.,..,,.,,,
+#H57OVGYKJTBZLZL2NKNXHAQNZDLF5WC4RNN2RJH4ZH755QC33BEJQSS3QCU2GEEWCKQ742CKC3HJQ
+#\\\|XATRN6PKJL4JSSPIV5SLNLSXO44C6LSHUPK7WXGDC5XTPYGDA5R \ / AMOS7 \ YOURUM ::
+#\[7]TMGIST66VFU7NFZ36LZIS66O2RJ6OERMHKFGFWIDB7PVG3H7UAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
