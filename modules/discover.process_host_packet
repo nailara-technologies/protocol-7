@@ -71,6 +71,59 @@ if ( not length $+{'payload'} ) {
     }
 }
 
+if ($entry_added) {    ## seperate buffer status change logging ##
+
+    my $log_level  = 1;
+    my $log_msg    = sprintf ": host status :  online .: '%s'", $hostname;
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+
+    <[base.buffer.add_line]>->(
+        qw| host-status |,
+        join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+    );
+}
+
+##  requested host status updates  ##
+##
+if ($entry_added    ##  when announce host request [re-]appears  ##
+    and defined $hostname_L13
+    and exists <discover.host-status-requests>->{$hostname_L13}
+) {
+    my @send_update_zenki
+        = <discover.host-status-requests>->{$hostname_L13}->{'zenki'}->@*;
+    if (not defined
+        <discover.host-status-requests>->{$hostname_L13}->{'host-key'}
+        or $packet_fields_href->{'hostkey'} eq    ## comparing host-keys ##
+        <discover.host-status-requests>->{$hostname_L13}->{'host-key'}
+        ) {    ## sending host status updates to configured zenki ##
+        foreach my $target_zenka (@send_update_zenki) {
+            <[base.logs]>->(
+                2, "sending host [online] status to '%s' ..,",
+                $target_zenka
+            );
+            <[base.protocol-7.command.send.local]>->(
+                {   'command' =>
+                        sprintf( qw| cube.%s.host-status |, $target_zenka ),
+                    'call_args' =>
+                        { 'args' => join ' ', qw| online |, $hostname }
+                }
+            );
+        }
+    } elsif (
+        defined
+        <discover.host-status-requests>->{$hostname_L13}->{'host-key'} ) {
+        <[base.s_warn]>->(
+            "host key mismatch , clearing status update request%s for '%s'",
+            <[base.cnt_s]>->( scalar @send_update_zenki ), $hostname
+        );
+        foreach my $zenkaname (@send_update_zenki) {
+            my $zenka_cfg_path = sprintf qw| notify-reqs/%s.%s |,
+                $hostname_L13, $zenkaname;
+            <[file.zenka_dir.unlink_file]>->( $zenka_cfg_path, TRUE );
+        }
+    }
+}
+
 ## host awareness resend-requests ##
 ##
 if ($entry_added    ##  when announce host request [re-]appears  ##
@@ -93,8 +146,8 @@ if ($entry_added    ##  when announce host request [re-]appears  ##
     }
 }
 
-#,,..,,,,,,..,,,,,,.,,.,,,..,,.,.,,,.,.,.,..,,..,,...,...,,.,,,,.,,..,...,..,,
-#56HM6JON25Q6GEKUWLH7HP5QB623ADGDJEXIILAZXXTLXG5ACH42GJWD4OBM4EE4FLZREFUFQYSNO
-#\\\|4OZAZIUMUOTMV6USGNB5X63ALS5UBL4YBXNOSRZMEEWN6P5LVWY \ / AMOS7 \ YOURUM ::
-#\[7]S7FJPVBTWYFHVAFL3C4P7AJPXQSGRCB3NYJXNMSDR7SWV2OKUKBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,,,,,,.,...,...,.,.,,,.,,..,..,,...,..,,...,..,,.,,,,,,,...,
+#2MHU5FSDTE7ZM6QVFNCXCHOWYVVECQLEBL4EXDEJBJ76U5AF43WWMBV6VWS7WW6V4QDVG3Z6VYY7C
+#\\\|6DCMX3KJ3R2E46UIFY3I4IV52AFOUPED623M7QOTV7EIBPEISUW \ / AMOS7 \ YOURUM ::
+#\[7]WFLISOVA2YQT4SQUAF4TEAT3JO2MLQ6OO4S6F52IN7S4FB6EROAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

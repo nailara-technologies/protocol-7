@@ -30,14 +30,18 @@ modules.load                    =    auth net protocol cube io.unix \ ## io.ip
 plugins.load                    =    plugin.auth
 auth.supported_methods          =    zenka unix twofish pwd
 
-setup.aliases.source_zenka_sid  =    p7-log.append v7.report-temp-path
+setup.aliases.source_zenka_sid  =    p7-log.append v7.report-temp-path \
+                                     discover.request-updates
+
 setup.aliases.source_zenka      =    notify.message v7.teardown \
                                      system.abort-reboot system.pid_autokill \
                                      system.reenable-reboot \
                                      system.report-X-11-error \
                                      tile-groups.get_geometry  \
                                      tile-groups.assign_window \
-                                     tile-groups.get_coordinates
+                                     tile-groups.get_coordinates \
+                                     discover.resend-awareness
+
 
 
 # create protocol-7 user if required.,
@@ -65,8 +69,8 @@ cube.set-up.use_unix_socket = yes
 # run zenka
 [zenka.loop]
 
-#,,,.,,,,,.,.,,..,,,,,,,,,,..,,.,,...,,,,,..,,.,.,...,...,.,.,...,.,.,,,,,,,,,
-#3E27WGC45HFYWB4F5WTUBBV27PBMYCOKDHU5ADQH4E3TZDU5OA4LUXMUALPG7KTC57B4OTGTFCCBU
-#\\\|5YHBKSRWNVIUZ42BBUNZCUXZVU64CDK4PJCRJPBSJKWUNGQSSZI \ / AMOS7 \ YOURUM ::
-#\[7]YWMLGZ5HFAUWXQE2SVGLEJ3WFCYFZ76BPCGFHSLITQGLJSFQNGDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,...,,,.,.,,,,..,...,..,,,,.,.,.,...,...,,,.,,.,,,,.,,..,,.,,
+#ZI2UBHIKVUYBFEADBAW75LRYGX3NAIORHZPH53PN2LBDBWW6QHJLWNFE5OWEDGZLMPJRQOO4VPSDO
+#\\\|ZQGA62QDNGOGYKKTAXNBSM4YG3DSO6JZ2UPV5RLPZDB2QOWS2AD \ / AMOS7 \ YOURUM ::
+#\[7]EEPHYPX5WBFPM6MHWBKNT6IX3YXFKX3TSF4S2QWGPVYR56YN5MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

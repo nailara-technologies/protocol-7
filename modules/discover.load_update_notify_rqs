@@ -1,32 +1,38 @@
 ## [:< ##
 
-# name  = discover.load_resend_requests
+# name  = discover.load_update_notify_rqs
 
-my $request_ref    = <discover.resend-host-reqs> = {};    ##  resetting  ##
+my $request_ref    = <discover.host-status-requests> = {};   ##  resetting  ##
 my $p7_directories = <system.path.zenka-dirs>;
+my $zenka_name_re  = <regex.base.usr_str>;
 
 my $zenka_path = catdir( $p7_directories->{'run_p7'},
-    <system.zenka.name>, qw| resend-reqs | );
+    <system.zenka.name>, qw| notify-reqs | );
 
 if ( not -d $zenka_path ) {
     <[base.log]>->( 2, 'no config directory, skipped loading ..,' );
     return undef;
 }
 
-<[base.log]>->( 1, 'loading saved resend requests' );
+<[base.log]>->( 1, 'loading update notification requests' );
 
 <[base.s_warn]>->( "no read access on '%s'", $zenka_path )
     if not -r $zenka_path;
 
 foreach my $file ( <[file.all_files]>->($zenka_path)->@* ) {
-    next if $file !~ m|/([A-Z2-7]{13})$|;
-    my $hostname_L13 = $LAST_PAREN_MATCH;
-    <[base.logs]>->( 2, ': loading : resend request [%s] .,', $hostname_L13 );
+    next if $file !~ m|/([A-Z2-7]{13})\.($zenka_name_re)$|;
+    my $hostname_L13 = ${^CAPTURE}[0];
+    my $zenka        = ${^CAPTURE}[1];
+    <[base.logs]>->(
+        2, ': loading : host update request [%s] .,',
+        $hostname_L13
+    ) if not exists <discover.resend-host-reqs>->{$hostname_L13};
+    <[base.logs]>->( 2, "          : zenka '%s' .,", $zenka );
     my $hostkey;
     my $key_ref = <[file.slurp]>->($file);
     if ( ref $key_ref ne qw| SCALAR | ) {
         <[base.s_warn]>
-            ->( "resend request load error ['%s']", $hostname_L13 );
+            ->( "update request load error ['%s']", $hostname_L13 );
         next;
     }
     chomp $key_ref->$*;
@@ -58,8 +64,22 @@ foreach my $file ( <[file.all_files]>->($zenka_path)->@* ) {
             next;
         }
     }
-    $request_ref->{$hostname_L13}
-        = { qw| host | => $name, qw| host-key | => $key_bin };
+
+    my @notify_req_zenki;
+
+    if ( exists <discover.host-status-requests>->{$hostname_L13} ) {
+        @notify_req_zenki = uniq $zenka,
+            <[base.sort]>->(
+            <discover.host-status-requests>->{$hostname_L13}->{'zenki'}->@* );
+    } else {
+        push @notify_req_zenki, $zenka;
+    }
+
+    $request_ref->{$hostname_L13} = {
+        qw| host |     => $name,
+        qw| zenki |    => \@notify_req_zenki,
+        qw| host-key | => $key_bin
+    };
 }
 
 my $num_reqs = keys $request_ref->%*;
@@ -68,15 +88,15 @@ if ( not $num_reqs ) {
     <[base.log]>->( 1, ':. nothing saved.,' );
 } else {
     <[base.logs]>->(
-        ':. %u resend request%s configured ..,',
+        ':. %d host update request%s configured .,',
         $num_reqs, <[base.cnt_s]>->($num_reqs)
     );
 }
 
 return $request_ref;    ##[ returning href of loaded resend requests ]##
 
-#,,,,,,..,.,,,,,,,.,.,,..,,..,...,.,.,.,.,.,.,..,,...,..,,,,.,.,.,,..,.,.,...,
-#E4ZRPA5UZKX4G2GIVRTSUXK6I5IO53GBDDDVMYQTC6YBSPZTXDWFCRJ2PWYVMKZKDKJRSJARX23WE
-#\\\|VOOF7WYWVU2WPI47UXRR2ZQJRZIP32SYQSVI7GLKOMIRXMGBU22 \ / AMOS7 \ YOURUM ::
-#\[7]VRGDVNKLPTG5FWWP363E4HI4UBJG4KSAWIPS6WRBA2OERB6GLKAI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,,..,.,,,.,.,...,,..,...,..,,..,,...,...,.,.,.,,,.,,,...,,,.,
+#NJHD2VQ3TWR5ZFVJNWAV5S2N6SBUSSNQ4LS745YAKOUNFX7FUUMF6GW23ABOELGLVMYFWURAJ77GO
+#\\\|5TQQLSJX7IAYLDKFTMRQK4EGO5VZZ5X3TOZNVIRIGHH5P7PBIKA \ / AMOS7 \ YOURUM ::
+#\[7]RFOGH6YNGBVKHF65F66WYN24PH25IVJLFXNIDJPOQRYIWX3ESCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

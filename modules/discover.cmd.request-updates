@@ -1,0 +1,99 @@
+## [:< ##
+
+# name  = discover.cmd.request-updates
+# param = <host> ['clear']
+# descr = register change notifications for <hostname>
+
+( my $zenka, my $zenka_sid, my @params ) = split m|[\t ]+|, $call->{'args'};
+
+<discover.host-status-requests> //= {};
+
+my $log_level = 1;    ##  report verbosity  ##
+
+my $type;
+my $err_reason;
+$err_reason = 'expected zenka sid from cube [ misconfigured ]'
+    if not defined $zenka_sid or $zenka_sid !~ m|^\d+$|;
+$err_reason = 'expected hostname param'
+    if not defined $err_reason and not @params;
+$err_reason = 'too many parameters'
+    if not defined $err_reason and @params > 2;
+
+$type = pop @params if @params == 2;
+my $name = shift @params;
+
+$err_reason = 'command type not recognized [clear]'
+    if defined $type and $type ne qw| clear |;
+
+return { 'mode' => qw| false |, 'data' => $err_reason }
+    if defined $err_reason;
+
+$zenka =~ s|^.+\.||;    ##  removing node name part  ##
+
+my $clear_request = ( defined $type and $type eq qw| clear | ) ? TRUE : FALSE;
+
+my $L13_name_sum = ( $clear_request and $name =~ m|^[A-Z2-7]{13}$| )
+    ? $name             ## chksum parameter case [ clearing ] ##
+    : <[chk-sum.bmw.L13-str]>->($name);
+
+my $zenka_cfg_path = sprintf qw| notify-reqs/%s.%s |, $L13_name_sum, $zenka;
+
+if ($clear_request) {
+    if ( exists <discover.host-status-requests>->{$L13_name_sum} ) {
+        <[base.logs]>->(
+            $log_level, "[usr:%s] clear resend request ['%s']",
+            $zenka,     $name
+        );
+        delete <discover.host-status-requests>->{$L13_name_sum};
+    }
+    if (not defined <[file.zenka_dir.unlink_file]>->( $zenka_cfg_path, TRUE )
+    ) {
+        return {
+            'mode' => qw| true |,
+            'data' => 'already cleared [ no suck request ]'
+        };
+    } else {
+        return { 'mode' => qw| true |, 'data' => 'request cleared' };
+    }
+}
+
+my $host_key;
+my $pkey_B32;
+foreach my $id ( <[base.sort]>->( $data{'hosts'} ) ) {
+    if ( <[chk-sum.bmw.L13-str]>->( $data{'hosts'}->{$id}->{'host'} ) eq
+        $L13_name_sum ) {    ##  checking if host exists in nodes list  ##
+        $host_key = $data{'hosts'}->{$id}->{'pkey'};
+    }
+}
+$pkey_B32 = defined $host_key ? Crypt::Misc::encode_b32r($host_key) : undef;
+
+my @notify_req_zenki;
+
+if ( exists <discover.host-status-requests>->{$L13_name_sum} ) {
+    @notify_req_zenki = uniq $zenka, <[base.sort]>
+        ->( <discover.host-status-requests>->{$L13_name_sum}->{'zenki'}->@* );
+} else {
+    push @notify_req_zenki, $zenka;
+}
+
+<discover.host-status-requests>->{$L13_name_sum} = {
+    qw| host |     => $name,
+    qw| zenki |    => \@notify_req_zenki,
+    qw| host-key | => $host_key
+};
+
+my $request_file_content = sprintf "%s\n",
+    defined $pkey_B32 ? join( qw| : |, $name, $pkey_B32 ) : $name;
+
+<[file.zenka_dir.write]>->( $zenka_cfg_path, \$request_file_content );
+
+return {
+    'mode' => qw| true |,
+    'data' => 'update notification request configured'
+    }
+
+#,,.,,...,,,,,,,.,,,,,.,.,..,,,.,,..,,.,,,...,..,,...,...,,.,,,,,,...,,,.,.,,,
+#HRSHMUL5DP2AXRDVIC5GRGEND3TG6UTWKLBPMPMMRNZFNCCXTLV6PGIFDOWQ3H2GBXGILLSVTKAZE
+#\\\|NMZDAADFMHIXDCZRWG6NY6AMKSPXLSI22MMNXPK2TF5TPWZB4F4 \ / AMOS7 \ YOURUM ::
+#\[7]3GZ4OSSXAJKIXG5NQRKIOWECHUU37GR272PLYGLRDT6YJJGMF6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

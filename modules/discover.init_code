@@ -43,7 +43,10 @@ $data{'hosts'} //= {};
     }
 );
 
+##  host awareness resend [announce] requests  ##
+##
 <discover.resend-host-reqs> //= {};
+<[discover.load_resend_requests]>;
 
 <list.resend-rqs> = {
     'var'      => qw| data |,
@@ -57,21 +60,58 @@ $data{'hosts'} //= {};
     'filters' => { qw| host-key | => qw| base.parser.key_mem_chksum |, },
     'descr'   => 'announce host resend requests'
 };
-
 <[base.list.init]>->(
     {   qw| name |     => qw| resend-rqs |,
         'key_ref'      => \$data{'discover'}{'resend-host-reqs'},
         'max_elements' => $max_nodes_entries    ## <-- implement limit [LLL]
     }
 );
+##
+
+##  host [online] status update requests  ##
+##
+<discover.host-status-requests> //= {};
+<[discover.load_update_notify_rqs]>;
+
+<list.notify-rqs> = {
+    'var'      => qw| data |,
+    'key'      => qw| discover.host-status-requests |,
+    'sort_key' => qw| host |,
+    'mask'     => 'host host-key:host_pkey zenki:requested_by_zenki',
+    'align'    => {
+        qw| host  |    => qw| right-2 |,
+        qw| zenki |    => qw| left+3 |,
+        qw| host-key | => qw| left+2 |,
+    },
+    'filters' => {
+        qw| host-key | => qw| base.parser.key_mem_chksum |,
+        qw|  zenki   | => qw| base.parser.sorted_array_ref_list |
+    },
+    'descr' => 'host presence change update requests'
+};
+<[base.list.init]>->(
+    {   qw| name |     => qw| notify-rqs |,
+        'key_ref'      => \$data{'discover'}{'host-status-requests'},
+        'max_elements' => 32    ## <-- implement limit [LLL]
+    }
+);
+##
+
+##  host status log buffers  ##
+##
+if ( not exists <buffer.host-status> ) {
+    <buffer.host-status.max_size> = 24 * 1024;    ## 24K buffer size ##
+    my $log_level  = 0;
+    my $log_msg    = 'host status buffer initialized ..,';
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| host-status |,
+        join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+    );
+}
 
 ##  initialize packet log buffers  ##
 <[discover.init_packet_buffer]>;
-
-##  host awareness resend [announce] requests  ##
-##
-<discover.resend-host-reqs> //= {};
-<[discover.load_resend_requests]>;
 
 <[discover.callback.resend_interval_reset]>;    ## reset announce interval ##
 
@@ -79,8 +119,8 @@ $data{'hosts'} //= {};
 
 0;
 
-#,,,.,.,,,,,.,,..,,,,,.,.,.,,,.,,,,..,...,,,,,..,,...,...,...,,..,..,,,..,,..,
-#BXZIZNHKQM2FZKEATDNY6PYL4BMXSS7RQXWV4PD5QAMGMMG6RHBYTWEMBGJ26E6Y2WTXDDBKKDUWU
-#\\\|XK5CGJIWAIUOY52UZOV26F22HDQSUOFO3BRE76CQR57GSHVSQIZ \ / AMOS7 \ YOURUM ::
-#\[7]GCGWPSY457TGXPZTCNWIZOJ35MOYDQ3YL5FBJVTO4OLEE6NNBQCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,,,.,.,,..,,,,,,.,,...,,.,,.,,,..,,...,...,...,,,,,.,.,,..,.,,,
+#RHPYPQVPVWKSCUTSUP5F27GNLDV7DPJM2TTUZBCQJ3TXHQ3XYFW6PZDLZZV4IC4FSGNK22XPR4X46
+#\\\|JLNEFRA7V3YHV4LPFS3F2HAZ62DTBVCSVOHMMG3HXT32BZTXAGX \ / AMOS7 \ YOURUM ::
+#\[7]GYQ2LQ7AOY3RJQWFU4D2NKGNHUUKTEADF5UCNAIFIOB3BZLDNADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,13 +13,71 @@ foreach my $id ( keys $data{'hosts'}->%* ) {
     my $host           = $data{'hosts'}->{$id}->{'host'};
     my $timestamp_adj  = $data{'hosts'}->{$id}->{'tstamp-adj'};
     my $time_delta_now = <[base.ntime.delta_seconds]>->($timestamp_adj);
+    my $host_pkey      = $data{'hosts'}->{$id}->{'pkey'};
 
     if ( $time_delta_now >= $packet_timeout ) {    ##[  host timeout  ]##
         <[base.logs]>->(
             $log_level, "host '%s' [ %s ] timed out.",
             $host,      $data{'hosts'}->{$id}->{'ip_addr'}
         );
+
+        my $timeout_log_level = 0; ## seperate buffer status change logging ##
+        my $log_msg    = sprintf ": host status : offline .: '%s'", $host;
+        my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+
+        <[base.buffer.add_line]>->(
+            qw| host-status |,
+            join( ' ', $time_stamp, $timeout_log_level, $log_msg ), $log_level
+        );
+
         delete $data{'hosts'}->{$id};    ##  removing timed out entry  ##
+
+        ##  requested host status updates  ##
+        ##
+        my $hostname_L13 = <[chk-sum.bmw.L13-str]>->($host);
+        if ( exists <discover.host-status-requests>->{$hostname_L13} ) {
+            my @send_update_zenki
+                = <discover.host-status-requests>
+                ->{$hostname_L13}->{'zenki'}->@*;
+            if (not defined
+                <discover.host-status-requests>->{$hostname_L13}->{'host-key'}
+                or $host_pkey eq    ## comparing host-keys ##
+                <discover.host-status-requests>->{$hostname_L13}->{'host-key'}
+                ) {    ## sending host status updates to configured zenki ##
+                foreach my $target_zenka (@send_update_zenki) {
+                    <[base.logs]>->(
+                        2, "sending host [timeout] status to '%s' ..,",
+                        $target_zenka
+                    );
+                    <[base.protocol-7.command.send.local]>->(
+                        {   'command' => sprintf( qw| cube.%s.host-status |,
+                                $target_zenka ),
+                            'call_args' => {
+                                'args' => join( ' ', qw| offline |, $host )
+                            }
+                        }
+                    );
+                }
+            } elsif (
+                defined
+                <discover.host-status-requests>->{$hostname_L13}->{'host-key'}
+            ) {
+                <[base.s_warn]>->(
+                    "host key mismatch , clearing "
+                        . " status update request%s for '%s'",
+                    <[base.cnt_s]>->( scalar @send_update_zenki ),
+                    $host
+                );
+                delete <discover.host-status-requests>->{$hostname_L13};
+                ## also clear configuration from disk ##
+                foreach my $zenkaname (@send_update_zenki) {
+                    my $zenka_cfg_path = sprintf qw| notify-reqs/%s.%s |,
+                        $hostname_L13, $zenkaname;
+                    <[file.zenka_dir.unlink_file]>->( $zenka_cfg_path, TRUE );
+                }
+            }
+        }
+        ##
 
     } else {    ## collect values for setting tiners ##
         unshift @next_host_timeout, $packet_timeout - $time_delta_now;
@@ -43,8 +101,8 @@ my $next_timeout_in = sprintf qw| %.3f |, [ minmax @next_host_timeout ]->[0];
     { 'after' => $next_timeout_in, 'repeat' => FALSE, 'handler' => __FILE__ }
     ) if @next_host_timeout;
 
-#,,..,,,,,..,,.,,,,,.,.,,,,..,,,,,.,.,..,,..,,..,,...,.,.,.,.,,,,,,,,,.,,,,,.,
-#2VG2HUY7E2ONM62YS2YQYQONVA6IF2Z6SFVHXUAXQHLCCPYLISBRDFBIAQUH5CQIGWKN6CKQ362DQ
-#\\\|TJGYGO5LUDMDUBA363TQKYQ5H4EHXIVE37ZXLV6TRHIFFLQW7OR \ / AMOS7 \ YOURUM ::
-#\[7]IDIAB5ERTP33V4BIPCPHGJ3NPOT4BBKFR73CSPQOQVMPYW4OZIDA 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,,,,..,,,.,,,,,,.,,,...,,..,..,,...,..,,.,.,.,.,,..,.,,,.,.,
+#J4TY524A4XF4EGMFQ2ODWWA67VSQKVANCEYQKP6MVD3TG44NKW4PY6OQ5AAGTAWDKNG3FYHB2EAPG
+#\\\|OVSA7SAG2MMG4GTGRY3ZKYLGFUJF6BM6FDADWPZKIV66TQITG3V \ / AMOS7 \ YOURUM ::
+#\[7]AOUVQASBKV5L4RLCTE75Z3EO3XV5ZJBQTNGNH4TMIVN6WJGMMUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
