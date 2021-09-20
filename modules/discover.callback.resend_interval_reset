@@ -2,19 +2,21 @@
 
 # name  = discover.callback.resend_interval_reset
 
+my $reset_counter = shift // TRUE;    ##  optional  ##
+
 ##[ resetting packet count ]##
-<discover.received_packet_count> = 0;
+<discover.received_packet_count> = 0 if $reset_counter;
 
 ## resetting send interval ##
 ##
 <discover.announce_interval.current> = 0.23;
 <discover.announce_interval.maximum> = sprintf qw| %.2f |, 40 + rand(4);
-<discover.announce_interval.ifactor> = 1.13;
+<discover.announce_interval.ifactor> //= 1.24;
 
 return TRUE;
 
-#,,..,.,,,,..,,,.,,..,,..,,,,,,,,,,,.,,,.,.,.,..,,...,.,.,.,.,..,,,,,,...,,..,
-#KTSQMKENSC4NCDNM6MNWPJTCTZHHPL6LZVKBT7MKRRXFRDOL2ECC6RNEIP7C3ROCIH4OBCQETC6CS
-#\\\|NWYEBI2JPDRB5LERGSPHK5AIB4FTWW7OWAZVSVJES444567EHB7 \ / AMOS7 \ YOURUM ::
-#\[7]YK4QSFFIXIOQ4MW57FJGQHOQQKGNRHEW6NUTLO4BGXA5YGTNKMAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,,..,,,.,,,,,,,.,,.,,,,,,...,..,,...,..,,..,,..,,,.,,...,.,.,
+#CIVZGIASEUGIGWAH7WOSEBTW7RAUZ2PFRWJ5YNQ4HAUGT2YP6XFXANJG5CCPP6DYRVMOP4KSIJLD2
+#\\\|OVGCCH4AAK2LDBK52YHMHRJZD4ZNHM4OTYM4AE4SORZUBBBZFWZ \ / AMOS7 \ YOURUM ::
+#\[7]DZSBAAMCLO62DSBTKEJ3VLB7H5T5Y436E2BH5QUHRUNLYTAQTKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

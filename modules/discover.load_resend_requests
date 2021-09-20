@@ -1,0 +1,79 @@
+## [:< ##
+
+# name  = discover.load_resend_requests
+
+my $request_ref    = <discover.resend-host-reqs> //= {};
+my $p7_directories = <system.path.zenka-dirs>;
+
+my $zenka_path = catdir( $p7_directories->{'run_p7'},
+    <system.zenka.name>, qw| resend-reqs | );
+
+if ( not -d $zenka_path ) {
+    <[base.log]>->( 2, 'no config directory, skipped loading ..,' );
+    return undef;
+}
+
+<[base.log]>->( 1, 'loading saved resend requests' );
+
+<[base.s_warn]>->( "no read access on '%s'", $zenka_path )
+    if not -r $zenka_path;
+
+foreach my $file ( <[file.all_files]>->($zenka_path)->@* ) {
+    next if $file !~ m|/([A-Z2-7]{13})$|;
+    my $hostname_L13 = $LAST_PAREN_MATCH;
+    <[base.logs]>->( 2, ': loading : resend request [%s] .,', $hostname_L13 );
+    my $hostkey;
+    my $key_ref = <[file.slurp]>->($file);
+    if ( ref $key_ref ne qw| SCALAR | ) {
+        <[base.s_warn]>
+            ->( "resend request load error ['%s']", $hostname_L13 );
+        next;
+    }
+    chomp $key_ref->$*;
+    if ( index( $key_ref->$*, qw| : |, 0 ) == -1 ) {    ## no key available ##
+        <[base.log]>->(': :. no host key.,');
+    }
+    ( my $name, my $hostkey ) = split qw| : |, $key_ref->$*, 2;
+    if ( length($hostkey) != 52 ) {
+        <[base.s_warn]>->(
+            "resend request encoded host key has wrong length ['%s']",
+            $hostname_L13
+        );
+        next;
+    } elsif ( $hostkey !~ m|^[A-Z2-7]{52}$| ) {
+        <[base.s_warn]>->(
+            "resend request encoded host key is not in BASE 32 ['%s']",
+            $hostname_L13
+        );
+        next;
+    }
+    my $key_bin = Crypt::Misc::decode_b32r($hostkey);
+    if ( not defined $key_bin ) {
+        <[base.s_warn]>->(
+            "resend request [%s] host key B32 decoding failed",
+            $hostname_L13
+        );
+        next;
+    }
+    $request_ref->{$hostname_L13}
+        = { qw| host | => $name, qw| host-key | => $key_bin };
+}
+
+my $num_reqs = keys $request_ref->%*;
+
+if ( not $num_reqs ) {
+    <[base.log]>->( 1, ':. nothing saved.,' );
+} else {
+    <[base.logs]>->(
+        ':. %u resend request%s configured ..,',
+        $num_reqs, <[base.cnt_s]>->($num_reqs)
+    );
+}
+
+return $request_ref;    ##[ returning href of loaded resend requests ]##
+
+#,,,.,,,.,,,,,.,,,..,,,,.,,.,,...,..,,...,...,..,,...,..,,,.,,,.,,..,,.,.,.,.,
+#FQLXPVJUX3YZOAICKWXG6IIXRZUSYQDCUEZYGLHBPYIRBBF7SGX6UM6WH2NZIWTNRKMDEHXMK6YS2
+#\\\|2IOLBM46LNIJDLPK2QIWRB7JHVWI2QOW6TB5JPTQWOS5OSPVCTY \ / AMOS7 \ YOURUM ::
+#\[7]RCHGF262KZ4RENRURGJXBOBZYYAL5ZGIRQHGDTACKPAYFQ54T2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
