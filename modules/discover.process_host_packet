@@ -5,6 +5,8 @@
 my $packet_payload     = shift;
 my $packet_fields_href = shift;
 
+<discover.resend-host-reqs> //= {};
+
 return ( warn 'HOST packet syntax error [ packet format ] <{C1}>' and undef )
     if $packet_payload !~ m|^HOST\[ (?<hostname>\S+) \] \{\n(?#
                            )(?<payload>(?: {10,81}(?#
@@ -16,9 +18,19 @@ return ( warn 'HOST packet syntax error [ packet format ] <{C1}>' and undef )
 my $hostname = $+{'hostname'};
 my $pkey     = Crypt::Misc::encode_b32r( $packet_fields_href->{'hostkey'} );
 
+my $hostname_L13
+    = keys <discover.resend-host-reqs>->%*
+    ? <[chk-sum.bmw.L13-str]>->($hostname)
+    : undef;
+
+my $entry_added = FALSE;    ##  host [re-]appeared ?  ##
+
 if ( not length $+{'payload'} ) {
     my $entry_id
         = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
+
+    $entry_added = TRUE if not exists $data{'hosts'}->{$entry_id};
+
     $data{'hosts'}->{$entry_id} = {
         qw| pkey |               => $packet_fields_href->{'hostkey'},
         qw| host |               => $hostname,
@@ -42,6 +54,8 @@ if ( not length $+{'payload'} ) {
             $hostname, $+{'ip_address'}, $+{'hwaddr'}, $+{'iface'},
             );
 
+        $entry_added = TRUE if not exists $data{'hosts'}->{$entry_id};
+
         ## add to list .., ##
         $data{'hosts'}->{$entry_id} = {
             qw| pkey |               => $packet_fields_href->{'hostkey'},
@@ -57,8 +71,30 @@ if ( not length $+{'payload'} ) {
     }
 }
 
-#,,,.,,.,,.,.,...,,.,,.,.,,,,,,,.,...,,,,,,,,,..,,...,...,.,.,,..,...,.,.,..,,
-#4PN2HHRDZYFGHU7ZISXNEI4C5462R3LO5RLPV5ACW2C7UUCJWJKNSBF4WLVSLESOH7QHI2DCNBKQA
-#\\\|EQAANDLEVFVDOVGZS4Z7BA6TRXDSFGN7BFYWMTLROPYABENXVMQ \ / AMOS7 \ YOURUM ::
-#\[7]2UDVTJHHX6G5LMQQYSETQAOHGNFR6GNT2YSQX3N7ZJYZ5E22LOAI 7  DATA SIGNATURE ::
+## host awareness resend-requests ##
+##
+if ($entry_added    ##  when announce host request [re-]appears  ##
+    and defined $hostname_L13
+    and exists <discover.resend-host-reqs>->{$hostname_L13}
+    ) {             ##  processing host awareness resend-requests  ##
+    if (not defined <discover.resend-host-reqs>->{$hostname_L13}->{'host-key'}
+        or $packet_fields_href->{'hostkey'} eq    ## comparing host-keys ##
+        <discover.resend-host-reqs>->{$hostname_L13}->{'host-key'}
+        ) {    ## reset announce interval ##
+        <[base.log]>->( 2, 'resend request matched [ resetting interval ]' );
+        <[discover.callback.resend_interval_reset]>->(FALSE);
+    } elsif (
+        defined <discover.resend-host-reqs>->{$hostname_L13}->{'host-key'} ) {
+        <[base.s_warn]>->(
+            "host key mismatch , clearing resend-request for '%s'", $hostname
+        );
+        my $zenka_cfg_path = sprintf qw| resend-reqs/%s |, $hostname_L13;
+        <[file.zenka_dir.unlink_file]>->( $zenka_cfg_path, TRUE );
+    }
+}
+
+#,,..,,,,,,..,,,,,,.,,.,,,..,,.,.,,,.,.,.,..,,..,,...,...,,.,,,,.,,..,...,..,,
+#56HM6JON25Q6GEKUWLH7HP5QB623ADGDJEXIILAZXXTLXG5ACH42GJWD4OBM4EE4FLZREFUFQYSNO
+#\\\|4OZAZIUMUOTMV6USGNB5X63ALS5UBL4YBXNOSRZMEEWN6P5LVWY \ / AMOS7 \ YOURUM ::
+#\[7]S7FJPVBTWYFHVAFL3C4P7AJPXQSGRCB3NYJXNMSDR7SWV2OKUKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

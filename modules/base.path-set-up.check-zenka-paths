@@ -8,6 +8,16 @@ my $zenka_dir_mode      = shift // 0750;
 my $create_zenka_etc  = shift // FALSE;
 my $etc_zenka_dirmode = shift // 0700;
 
+my $sub_directory = shift // '';  ##  optional sub directory in zenka path  ##
+
+if (length $sub_directory
+    and (  index( $sub_directory, qw| / |, 0 ) == 0
+        or index( $sub_directory, qw| .. |, 0 ) != -1 )
+) {
+    warn 'sub directory path must be relative <{C1}>';
+    return undef;
+}
+
 my $proto_7_user           = <system.amos-zenka-user>;  ##[  <-- def. usr  ]##
 my $current_zenka_username = <system.zenka-user.current> // $proto_7_user;
 
@@ -24,7 +34,11 @@ my $paths_and_modes = {
 };
 
 my $zenka_write_dir
-    = catfile( <system.path.zenka-dirs.run_p7>, <system.zenka.name> );
+    = catdir( <system.path.zenka-dirs.run_p7>, <system.zenka.name> );
+
+$zenka_write_dir = catdir( $zenka_write_dir, $sub_directory )
+    if length $sub_directory;    ##[ additional sub-dir ]##
+
 if ($create_zenka_subdir) {    ## create temporary zenka output directory ##
     $paths_and_modes->{$zenka_write_dir} = $zenka_dir_mode;
 }
@@ -137,8 +151,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,.,,,.,,,.,,,,.,..,,.,,,.,.,,,.,.,.,,,.,,..,.,.,...,..,,,.,,,..,,,.,,,.,.,,,
-#JTKYEIS2V7NSFYZJNDANJEI5J6NBLJ3Q6SROBAEUEUCPDXBJXBJ5QNDXPN3CPLG6CCCDQ7CZSTAEG
-#\\\|AKBVZ7ANSJNH5BCIDHPKN33SIE7L3WCLGRMJX3V7WY2UBZDDOED \ / AMOS7 \ YOURUM ::
-#\[7]3X23JO6FLEFSMI5WSNEW6R7O6RXYNGKNTWWYZTNYMZVWEYPAXGDA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,...,,,,,.,,,,,,,...,...,,.,,.,.,...,...,,.,,,.,,,,.,,,,,,..,
+#OP6TOY5GVFSBOQHXIR4564SRY4TOQGKK3OD2UMD4WNJSNKXTJZQCRCQBD34NPU3DTZCHY2UTLH24O
+#\\\|NS6R6UWGVSHABXCEABOFD4U5VEWHMA7RWH6SC2TCUNLQ3HUTGGQ \ / AMOS7 \ YOURUM ::
+#\[7]G3Q3P5KY6LFWLZDLWQJASS52G4LAYOOPRORF7KBLCOHKYUW3NQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

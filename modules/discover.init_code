@@ -43,19 +43,44 @@ $data{'hosts'} //= {};
     }
 );
 
+<discover.resend-host-reqs> //= {};
+
+<list.resend-rqs> = {
+    'var'      => qw| data |,
+    'key'      => qw| discover.resend-host-reqs |,
+    'sort_key' => qw| host |,
+    'mask'     => 'host host-key:host_pkey',
+    'align'    => {
+        qw| host  |    => qw| right-2 |,
+        qw| host-key | => qw| left+2  |
+    },
+    'filters' => { qw| host-key | => qw| base.parser.key_mem_chksum |, },
+    'descr'   => 'announce host resend requests'
+};
+
+<[base.list.init]>->(
+    {   qw| name |     => qw| resend-rqs |,
+        'key_ref'      => \$data{'discover'}{'resend-host-reqs'},
+        'max_elements' => $max_nodes_entries    ## <-- implement limit [LLL]
+    }
+);
+
 ##  initialize packet log buffers  ##
 <[discover.init_packet_buffer]>;
 
-<discover.cache.hosts> //= {};    # ->{..name..}->{..mac..} = ipaddr
+##  host awareness resend [announce] requests  ##
+##
+<discover.resend-host-reqs> //= {};
+<[discover.load_resend_requests]>;
 
-<[discover.callback.resend_interval_reset]>;
+<[discover.callback.resend_interval_reset]>;    ## reset announce interval ##
 
 <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => qw| dev.null | } );
 
 0;
 
-#,,,.,.,.,.,,,,,,,..,,,,,,.,.,,,.,.,,,,.,,..,,..,,...,...,.,,,,,,,.,.,,,.,...,
-#G6UDA7QKFMH4J7NNCLVFMY4QJGY72YEHUWZYGWAB2EYRY42FXR4YXYUDZQNXB5PSEEV37UVWKFOGE
-#\\\|4GZPSIK7TZAOMK63WAZ5HW7C73IS7RVLLTBMNSUPMKUZ7DWYNRH \ / AMOS7 \ YOURUM ::
-#\[7]WTJLIHI47MDW2QCESG7FN6EXZR37C4BAXONLJ4XQ6LCT7MC46YBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,,,,.,.,.,,,.,,,,..,...,,,,,..,,...,...,...,,..,..,,,..,,..,
+#BXZIZNHKQM2FZKEATDNY6PYL4BMXSS7RQXWV4PD5QAMGMMG6RHBYTWEMBGJ26E6Y2WTXDDBKKDUWU
+#\\\|XK5CGJIWAIUOY52UZOV26F22HDQSUOFO3BRE76CQR57GSHVSQIZ \ / AMOS7 \ YOURUM ::
+#\[7]GCGWPSY457TGXPZTCNWIZOJ35MOYDQ3YL5FBJVTO4OLEE6NNBQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = discover.cmd.resend-awareness
+# param = <host> [clear]
+# descr = request announce resending when peer returns
+
+( my $name, my $request ) = split( m|[\t ]+|, $call->{'args'} // '', 2 );
+
+my $log_level = 1;    ##  report verbosity  ##
+
+my $session_id = $call->{'session_id'};
+
+my $clear_request = FALSE;
+
+<discover.resend-host-reqs> //= {};
+
+if ( not length $name ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expecting hostname parameter'
+    };
+} elsif ( defined $request ) {
+    if ( $request ne qw| clear | ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "second param not recognized ['clear']"
+        };
+    } else {
+        $clear_request = TRUE;
+    }
+}
+
+my $L13_name_sum = ( $clear_request and $name =~ m|^[A-Z2-7]{13}$| )
+    ? $name    ## chksum parameter case [ clearing ] ##
+    : <[chk-sum.bmw.L13-str]>->($name);
+
+my $zenka_cfg_path = sprintf qw| resend-reqs/%s |, $L13_name_sum;
+
+if ($clear_request) {
+    if ( exists <discover.resend-host-reqs>->{$L13_name_sum} ) {
+        <[base.logs]>->(
+            $log_level,  "[%d] clearing resend request [%s]",
+            $session_id, $name
+        );
+        delete <discover.resend-host-reqs>->{$L13_name_sum};
+    }
+    if (not defined <[file.zenka_dir.unlink_file]>->( $zenka_cfg_path, TRUE )
+    ) {
+        return {
+            'mode' => qw| true |,
+            'data' => 'already cleared [ no suck request ]'
+        };
+    } else {
+        return { 'mode' => qw| true |, 'data' => 'request cleared' };
+    }
+}
+
+my $host_key;
+foreach my $id ( <[base.sort]>->( $data{'hosts'} ) ) {
+    if ( <[chk-sum.bmw.L13-str]>->( $data{'hosts'}->{$id}->{'host'} ) eq
+        $L13_name_sum ) {    ##  checking if host exists in nodes list  ##
+        $host_key = $data{'hosts'}->{$id}->{'pkey'};
+    }
+}
+
+<[base.logs]>->(
+    $log_level,  "[%u] resend host request for '%s' [ set-up ]",
+    $session_id, $name
+);
+
+my $pkey_B32
+    = defined $host_key ? Crypt::Misc::encode_b32r($host_key) : undef;
+
+<discover.resend-host-reqs>->{$L13_name_sum}
+    = { qw| host | => $name, qw| host-key | => $host_key };
+
+my $request_file_content = sprintf "%s\n",
+    defined $pkey_B32 ? join( qw| : |, $name, $pkey_B32 ) : $name;
+
+<[file.zenka_dir.write]>->( $zenka_cfg_path, \$request_file_content );
+
+return { 'mode' => qw| true |, 'data' => 'request configured' };
+
+#,,,.,...,,..,...,.,.,,,.,...,...,,..,,,.,...,.,.,...,..,,.,.,...,,..,...,,..,
+#DA2XJ22ECQJ2CDPJJ6YURL3SQB47C6YZISUSZPYFSOGD5F7XADBARHAL7TXQY2B6CT3GMC2VJV2WK
+#\\\|Z3ZTB7KPX3SJ6JMF5CLJE7SLNUMJGXU7PWBP5TB64Y534FYMANE \ / AMOS7 \ YOURUM ::
+#\[7]YVRFRRXVZIMRIRE3BLCCKP34NBQVWWSIXC7XWX7RCB7XXWWEHIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
