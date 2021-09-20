@@ -8,8 +8,10 @@
 my ( $log_level, $log_msg, $log_buffer, $time_stamp )
     = ( $ARG[0] || 0, $ARG[1] // '', $ARG[2] // '', $ARG[3] );
 
-$log_level = 0 if $log_level !~ m|^\d+$|;
-
+if ( $log_level !~ m|^\d+$| ) {
+    $log_level = 0;
+    $log_msg   = sprintf 'LOG-LEVEL not numerical %s', scalar <[base.caller]>;
+}
 <system.verbosity.console>       //= 0;
 <system.verbosity.zenka_buffer>  //= 1;
 <system.verbosity.zenka_logfile> //= 0;
@@ -22,7 +24,9 @@ return TRUE    ## true ##
 $log_buffer = qw| zenka | if not length $log_buffer;
 
 my $log_str;
-$log_msg = 'UNDEFINED LOG MESSAGE' if not length $log_msg;
+if ( not length $log_msg ) {
+    $log_msg = sprintf 'UNDEF LOG MSG %s', scalar <[base.caller]>;
+}
 
 ## reducing calculation load., ##
 ##
@@ -110,8 +114,8 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return TRUE;
 
-#,,.,,,..,,..,..,,,,,,,,.,,..,...,.,,,,..,...,..,,...,...,.,.,.,,,..,,.,.,,,,,
-#GUTRAOJL4TX2SZJSY5YF4HC5FBBXRTBBS5NZJHEVUIMLZZWTT7W6VDPWNZ2RVRKV65PIGIBRFD74G
-#\\\|ZID4IY344D5HECCMK6JS3EOTKF7GK7HQPIATMWEEDTXHJW2SZAY \ / AMOS7 \ YOURUM ::
-#\[7]3HBWZXKWENUJRP5UKJRGGCWWRGMDRV2AAGZFQPY6L4B5AJXK2MCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,.,,,,.,,.,.,..,,..,,,..,.,,,..,,...,...,,..,,.,,,,.,.,,,,,,,
+#RJOHZLCVB6F4Y6ONDSXJZ7HBBZXUPC46GLOOOBJGDTDN5KG4T3WZWWRITUZHAMXQYUMENRCPOIM5G
+#\\\|ROLWFA5OMZQ7B257NPST4QNCYKEO424PUIGH6ZJ4MZXGGYVGTZE \ / AMOS7 \ YOURUM ::
+#\[7]4F4VE3NYJTG2V6PDE5NS75RHS7IFQETORE7IBOMOM3ULVWX4HUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

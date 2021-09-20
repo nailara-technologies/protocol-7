@@ -4,17 +4,21 @@
 # param = <host> [clear]
 # descr = request announce resending when peer returns
 
-( my $name, my $request ) = split( m|[\t ]+|, $call->{'args'} // '', 2 );
+( my $zenka, my $name, my $request ) = split m|[\t ]+|,
+    $call->{'args'} // '', 3;
 
 my $log_level = 1;    ##  report verbosity  ##
-
-my $session_id = $call->{'session_id'};
 
 my $clear_request = FALSE;
 
 <discover.resend-host-reqs> //= {};
 
-if ( not length $name ) {
+if ( not length $zenka ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expecting zenka name param from cube [ misconfigured ]'
+    };
+} elsif ( not defined $name ) {
     return {
         'mode' => qw| false |,
         'data' => 'expecting hostname parameter'
@@ -30,8 +34,10 @@ if ( not length $name ) {
     }
 }
 
+$zenka =~ s|^.+\.||;    ##  removing node name part  ##
+
 my $L13_name_sum = ( $clear_request and $name =~ m|^[A-Z2-7]{13}$| )
-    ? $name    ## chksum parameter case [ clearing ] ##
+    ? $name             ## chksum parameter case [ clearing ] ##
     : <[chk-sum.bmw.L13-str]>->($name);
 
 my $zenka_cfg_path = sprintf qw| resend-reqs/%s |, $L13_name_sum;
@@ -39,8 +45,8 @@ my $zenka_cfg_path = sprintf qw| resend-reqs/%s |, $L13_name_sum;
 if ($clear_request) {
     if ( exists <discover.resend-host-reqs>->{$L13_name_sum} ) {
         <[base.logs]>->(
-            $log_level,  "[%d] clearing resend request [%s]",
-            $session_id, $name
+            $log_level, "[usr:%s] clear resend request ['%s']",
+            $zenka,     $name
         );
         delete <discover.resend-host-reqs>->{$L13_name_sum};
     }
@@ -64,8 +70,8 @@ foreach my $id ( <[base.sort]>->( $data{'hosts'} ) ) {
 }
 
 <[base.logs]>->(
-    $log_level,  "[%u] resend host request for '%s' [ set-up ]",
-    $session_id, $name
+    $log_level, "[usr:%s] resend host request set-up for '%s'",
+    $zenka,     $name
 );
 
 my $pkey_B32
@@ -81,8 +87,8 @@ my $request_file_content = sprintf "%s\n",
 
 return { 'mode' => qw| true |, 'data' => 'request configured' };
 
-#,,,.,...,,..,...,.,.,,,.,...,...,,..,,,.,...,.,.,...,..,,.,.,...,,..,...,,..,
-#DA2XJ22ECQJ2CDPJJ6YURL3SQB47C6YZISUSZPYFSOGD5F7XADBARHAL7TXQY2B6CT3GMC2VJV2WK
-#\\\|Z3ZTB7KPX3SJ6JMF5CLJE7SLNUMJGXU7PWBP5TB64Y534FYMANE \ / AMOS7 \ YOURUM ::
-#\[7]YVRFRRXVZIMRIRE3BLCCKP34NBQVWWSIXC7XWX7RCB7XXWWEHIDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,,..,,,.,.,.,.,.,,.,,,..,,..,.,.,...,...,,,,,.,,,.,.,,..,...,
+#LIIQ5UP4ZFEESOWENFNS6RUW2MW6B3FAYGRW622ASSKQD4CNBZD3WU7DLO7GIKYLLGYOC4XENZDI6
+#\\\|R3VX3GBJNYAGUYNYUZOMTY27IZX4NRPDQXJ42ZD3EJ56BBTGHUG \ / AMOS7 \ YOURUM ::
+#\[7]KCP2EJDSC4PXXQZRHXS65JCPMUW25DANRJI2HJR5COKHYMCG2GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
