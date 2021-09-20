@@ -2,15 +2,13 @@
 
 # name  = discover.handler.anounce_host_addr
 
-<[base.log]>->( 2, 'sending announce_host packet .,' );
-
 my %ifconfig;
 my $mlenip   = 0;
 my $hostname = <system.host.hostname>;
 
 <discover.announce_interval.current> //= 0.19;
 <discover.announce_interval.maximum> //= sprintf qw| %.2f |, 40 + rand(2);
-<discover.announce_interval.ifactor> //= 1.13;
+<discover.announce_interval.ifactor> //= 1.24;
 
 <discover.announce_interval.logged> //= FALSE;
 if ( not <discover.announce_interval.logged> ) {
@@ -137,8 +135,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,.,,,,,,,.,.,.,,,.,,..,..,,,,,,,.,,,..,...,..,,...,...,..,,.,,,,,.,,,.,.,.,
-#4QZWUS7AL4FJ77V7EPEYI2SILIZ32WQVQOM4AIGC3N2R34LKYHO4TIMWCACFJMWE35EIGD244LC6Q
-#\\\|B5HPA4LRUJPAE226OXABBFVNAR63PWIACR4NMPZ7F3545D4PH2D \ / AMOS7 \ YOURUM ::
-#\[7]E2SMMAUJWTR46Q55LMA3KROBM6KR5D44DCO3KD5CKHLUTQS6Z2AI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,,.,,,,,,...,..,,.,.,.,,,..,,..,,...,...,.,,,..,,,,,,,..,.,,,
+#TLRTBZTID5NORSHNQ5FZMBLSYFEJG4WZ3DIE35YA5IXYVUP4NXCPM3BE3UI4CZMHMBLNDKGYZLXPC
+#\\\|LS3CRHQTFX4ON3BM72DO35AGPA5QRL7UZZRJ6X6MYFATODPROZT \ / AMOS7 \ YOURUM ::
+#\[7]BOF55O3V5E4DAWBZDNJZRO4OFBCKMH4AEETJSEM2EQOTLZKAU4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

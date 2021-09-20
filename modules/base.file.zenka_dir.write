@@ -44,10 +44,28 @@ if ($zenkaname_path_prefix) {    ## use zenka subdirectory ? ##
     $zenka_write_dir = catfile $zenka_write_dir, $zenkaname;
 }
 
-if ( not -d $zenka_write_dir ) {    ##  creating directory if missing  ##
+my $subdir_path;
+if ( index( $filepath_rel, qw| / |, 1 ) != -1 ) {    ##  has sub-dir  ##
+    ( $subdir_path = $filepath_rel ) =~ s|/[^/]+$||;
+}
+
+##  creating directory if missing  ##
+##
+if ( not -d $zenka_write_dir
+    or defined $subdir_path
+    and not -d catdir( $zenka_write_dir, $subdir_path ) ) {
+
     my @check_zenka_paths_options = ( TRUE, undef );
     unshift @check_zenka_paths_options, ( undef, undef )
         if $global_config_path and $zenkaname_path_prefix;
+
+    if ( defined $subdir_path ) {    ##[  additional params  ]##
+        push @check_zenka_paths_options, ( undef, undef )
+            if @check_zenka_paths_options == 2;
+        ## requesting creating of subdir component ##
+        push @check_zenka_paths_options, $subdir_path;
+    }
+
     if (not
         <[base.path-set-up.check-zenka-paths]>->(@check_zenka_paths_options)
         or not -d $zenka_write_dir ) {    ##  success creating dir ?  ##
@@ -135,8 +153,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,.,,.,,,.,,,,,,,..,.,,,.,,,,..,,,,,,,,,,,,,..,,...,...,,,.,,..,,,,,,,.,,,.,
-#7NO5M2RRSLZEGTDDKAO3D5TJTZ3GOG7KHVVFGV44UJCDPZ23R5HKF7EK7QSG2XBCG7LKQPE4AKQSM
-#\\\|3RDU7VPLTS4C3E2KYRN3KB7T4VGWJ7L4JSELURNEUMITV57CN7M \ / AMOS7 \ YOURUM ::
-#\[7]Q33F45E66DDFBCXQ7HKQKP5IPSJDXPO25DXKKWNHXYPJKGH4SQDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,,,,,..,.,,,...,.,.,.,.,,,.,..,,...,...,,..,..,,...,...,.,.,
+#JWRBMPAK75ZD3PGLIXUYAAQUO3LENNTCGMHIB5OMUMGCMOMM2CX3JTCM2ESJYELUEOD5O3B4PHV5Y
+#\\\|22N35B5UXXBZIM3N33DMDCPHPOQK222NSK274N2GBV4ONJ2T6UT \ / AMOS7 \ YOURUM ::
+#\[7]4XRHTW3LLJSWJHAWPB2WPH45PAURTT7ONFTF7M256FBEKPJAKCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
