@@ -4,9 +4,16 @@
 
 <[base.log]>->( 1, "<<... starting ticker text animation ...>>" );
 
-<ticker-gtk.animation_started> = 1;
-<ticker-gtk.obj.window>->queue_draw();
+my $window = <ticker-gtk.obj.window>;
 
+<ticker-gtk.animation_started> = 1;
+
+if ( <ticker-gtk.is-iconified>-- ) {
+    <ticker-gtk.obj.window>->deiconify;
+    <[base.log]>->( 1, 'deiconifying..,' );
+}
+
+$window->queue_draw();
 <[event.add_timer]>->(
     {   'after'    => 0,
         'interval' => 0.017,
@@ -14,8 +21,8 @@
     }
 ) if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
 
-#,,.,,,..,.,.,,,,,,.,,,.,,,.,,..,,,,,,,,,,,..,..,,...,...,...,,,.,,,.,,.,,,,.,
-#2TAXUADCINPJGCXMJXUDOKYDAXUOFPMNULX5LNIA2NGNPAUXUDNIYAKSULQV7G3YDZAZVTLBI3DKE
-#\\\|SVCBUDKZ7AXBJIUQR2ANPCGQ7LWR2XA7I3SU2QPUEAZMIDBXBRU \ / AMOS7 \ YOURUM ::
-#\[7]X7VSL2ARISUZXPWNEL5ZSF55TLTRYSJ6ZCBY5PJULVV5AIRCKKAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,.,.,,.,,...,,,.,,,,,,,.,,,,,.,.,...,...,...,,.,,.,.,,,,,...,
+#IYKRIIWE765E2D5AQIDX7JTABRAC3MGBMYQDHLLVNT2CKNNOMR7UUKT6TF47PEJOJAJECCCVRCXIC
+#\\\|PGJYMXHLCI3TS5ERUTQVSCOCHDYIQOOS4DSDQYZ5W2MHC5XLD6G \ / AMOS7 \ YOURUM ::
+#\[7]5UCJQ2OQMJBUDBQP2UWJ3MMH46Z6FMET7FW72KH3EWPUSYINPIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
