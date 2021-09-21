@@ -2,26 +2,27 @@
 
 # name = ticker-gtk.open_window
 
-<[base.log]>->( 1, ': opening ticker window.,' );
+<[base.log]>->( 1, ": opening ticker window.," );
 
 $ENV{'DISPLAY'} = <x11.display>;
+Gtk3->init;
 
-Gtk3->init;    ## find way to catch exit ##  [LLL]
+<ticker-gtk.is-iconified> //= 0;
 
-my $window_mode = <ticker-gtk.window.force_above> ? qw|popup| : qw|toplevel|;
+my $window_mode = <ticker-gtk.window.force_above> ? 'popup' : 'toplevel';
 
 my $window = <ticker-gtk.obj.window> = Gtk3::Window->new($window_mode);
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
 if ( $window->is_composited ) {
-    <ticker-gtk.is_composited> = TRUE;
-    <[base.log]>->( 1, ': : compositor detected =)' );
-    $window->set_opacity(FALSE)
+    <ticker-gtk.is_composited> = 1;
+    <[base.log]>->( 1, ": : compositor detected =)" );
+    $window->set_opacity(0)
         if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
 } else {
-    <ticker-gtk.is_composited> = FALSE;
-    <[base.log]>->( 1, ': : no compositor running :|' );
+    <ticker-gtk.is_composited> = 0;
+    <[base.log]>->( 1, ": : no compositor running :|" );
 }
 
 <x11.window.width>  = <x11.coordinates.right> - <x11.coordinates.left>;
@@ -32,22 +33,23 @@ $window->set_default_size( <x11.window.width>, <x11.window.height> );
 
 $window->set_title(<x11.title_str>);
 $window->set_border_width(0);
-$window->set_decorated(FALSE);
+$window->set_decorated(0);
 $window->set_keep_above(1) if <ticker-gtk.window.force_above>;
-$window->set_app_paintable(FALSE);
+$window->set_app_paintable(1);
+$window->set_accept_focus(0);
 
-my $screen = $window->get_screen();
+my $screen = $window->get_screen;
 
 my $rgba = 0;
 $rgba = $screen->get_rgba_visual() if <ticker-gtk.use_transparency>;
 
 if ( !$rgba ) {
-    <ticker-gtk.use_transparency> = FALSE;
+    <ticker-gtk.use_transparency> = 0;
 } else {
     $window->set_visual($rgba);
 }
 
-$window->signal_connect( qw| draw | => $code{'ticker-gtk.callback.draw'} );
+$window->signal_connect( 'draw' => $code{'ticker-gtk.callback.draw'} );
 
 $window->show_all;
 
@@ -58,15 +60,15 @@ $window->show_all;
 <ticker-gtk.font.size> = 0;
 
 my $font_name = <ticker-gtk.font.name>;
-my $font_path = sprintf qw| %s/%s.ttf |, <ticker-gtk.font.path>, $font_name;
+my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
 my $freetype  = Font::FreeType->new;
 my $ft_face   = $freetype->face($font_path);
 <ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
 
-<ticker-gtk.obj.window>->queue_draw();
+<ticker-gtk.obj.window>->queue_draw;
 
-#,,,.,,..,..,,...,...,.,,,,,,,,,,,,,,,...,.,,,..,,...,...,,.,,,..,.,.,,..,..,,
-#LBZQVVMBZ35HHHYS4SSFKP2ZZKOKWULEUTVN2SG5LWMFAZNXZOHTA75YD224K2IFMT3MF2KYOY4FW
-#\\\|YSVH37KT2OUC7W2T5Y7V5HCXYPU4SYCXG7UHZZG6XUPTP6SI5JN \ / AMOS7 \ YOURUM ::
-#\[7]XCKWD5WWAXNUVGVMV5MZW4OK6EY62E5RKRLC7GDO3EHIZ5IFNKDY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,,,.,,..,..,,,..,...,...,...,.,.,...,...,,..,,..,,.,,,..,,.,,
+#WM3ODRHBM4SKZR5U3YWVTUP67O7B6NWSSS7UB6C32GRVF3KBHEJS6ZSFSRB24VBXBE2RBUIDR3P5I
+#\\\|LDUKGVBM6JUICQVTLEVUNPBFRYL2I3XLVZVCI246HZQSRAVSOCU \ / AMOS7 \ YOURUM ::
+#\[7]VJI27OSSLINKUNX7IGZQOGUZ2HKBUEFMZH2R53I7L2BPN3NSCEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
