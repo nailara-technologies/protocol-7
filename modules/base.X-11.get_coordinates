@@ -2,52 +2,68 @@
 
 # name  = base.X-11.get_coordinates
 
-my $user     = shift // qw| cube |;
-my $cmd_path = shift // '';
-$cmd_path .= '.' if length($cmd_path);
+my $user       = shift // qw| cube |;
+my $cmd_path   = shift // '';                  ##  optional  ##
 my $zenka_name = shift // <system.zenka.name>; # <-- '' == req. tile-name only
-my $zenka_subname = shift // <system.zenka.subname>;
+my $zenka_subname = shift // <system.zenka.subname>;    ##  optional  ##
 
-my ($local_sid) = keys( %{ $data{'user'}{$user}{'session'} } );
+my $fallback_vertical_pos_percent = shift;              ##  optional  ##
+my $fallback_height_percent       = shift;              ##  optional  ##
+
+$cmd_path .= qw| . | if length $cmd_path;
+
+my ($local_sid) = keys $data{'user'}{$user}{'session'}->%*;
 
 my $cmd_id = <[base.gen_id]>->( $data{'route'} );
 
 my $sn_str
     = defined $zenka_subname
-    ? ' ' . $zenka_name . "[$zenka_subname]"
+    ? sprintf( ' %s[%s]', $zenka_name, $zenka_subname )
     : '';
 
-my $sn_log_str = length($sn_str) ? " for zenka$sn_str" : '';
-<[base.log]>->( 1, "requesting coordinates$sn_log_str" );
+my $sn_log_str = length($sn_str) ? sprintf( ' for zenka%s', $sn_str ) : '';
+<[base.logs]>->( 'requesting coordinates%s', $sn_log_str );
 
 my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}tile-groups.get_coordinates$sn_str\n"
+    $cube_fh,
+    sprintf(
+        "(%u)%stile-groups.get_coordinates%s\n",
+        $cmd_id, $cmd_path, $sn_str
+    )
 );
 
 my $reply_string;
-my $matched_reply = 0;
-while ( !$matched_reply ) {
+my $matched_reply = FALSE;
+while ( not $matched_reply ) {
     $reply_string = <$cube_fh>;
-    die "cube handle had an exception!"
-        if not defined $reply_string or !length($reply_string);
+    die 'cube handle had an exception!'
+        if not defined $reply_string or not length $reply_string;
 
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
-    if ( !$matched_reply ) {
+    $matched_reply = TRUE if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
+    if ( not $matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n$} )
 {
-    <x11.coordinates>
-        = { 'left' => $1, 'top' => $2, 'right' => $3, 'bottom' => $4 };
-    <[base.log]>->( 1, "received window coordinates.. [$1,$2,$3,$4]" );
-    return [ $1, $2, $3, $4 ];
+    <x11.coordinates> = {
+        qw| left   | => ${^CAPTURE}[0],
+        qw| top    | => ${^CAPTURE}[1],
+        qw| right  | => ${^CAPTURE}[2],
+        qw| bottom | => ${^CAPTURE}[3]
+    };
+    <[base.logs]>->(
+        'received window coordinates.. [%u,%u,%u,%u]',
+        @{^CAPTURE}
+    );
+    return [ @{^CAPTURE} ];
 }
 
 # else [ tile-groups zenka not present or no coordinates for current zenka ]
-my $err_msg = "unexpected reply from tile-groups zenka ['$reply_string']";
+my $err_msg = sprintf "not expected reply from tile-groups zenka ['%s']",
+    $reply_string;
 
 $err_msg = ': coordinates undefined'
     or $reply_string =~ m|FALSE command |,
@@ -58,34 +74,63 @@ $err_msg = ': coordinates undefined'
 # use full X server geometry as window geometry..,
 $cmd_id = <[base.gen_id]>->( $data{'route'} );
 <[base.net.send_to_socket]>->(
-    $cube_fh, "($cmd_id)${cmd_path}X-11.get_screen_size\n"
+    $cube_fh, sprintf( "(%u)%sX-11.get_screen_size\n", $cmd_id, $cmd_path )
 );
 
-$matched_reply = 0;
-while ( !$matched_reply ) {
+$matched_reply = FALSE;
+while ( not $matched_reply ) {
     $reply_string = <$cube_fh>;
     die "<< 'cube' handle had an exception >>"
-        if not defined $reply_string or !length($reply_string);
+        if not defined $reply_string or not length $reply_string;
 
-    $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
-    if ( !$matched_reply ) {
+    $matched_reply = TRUE if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
+    if ( not $matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
     }
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
-    <[base.log]>->( 1, "using x11 root window coordinates [0,0,$1,$2]" );
-    <x11.coordinates>
-        = { 'left' => 0, 'top' => 0, 'right' => $1, 'bottom' => $2 };
-    <x11.coordinates_were_undefined> = 1;
-    return ( 0, 0, $1, $2 );
+    if (   not defined $fallback_vertical_pos_percent
+        or not defined $fallback_height_percent ) {
+        <[base.logs]>->(
+            'using x11 root window coordinates [0,0,%u,%u]',
+            ${^CAPTURE}[0], ${^CAPTURE}[1]
+        );
+        <x11.coordinates> = {
+            'left'   => 0,
+            'top'    => 0,
+            'right'  => ${^CAPTURE}[0],
+            'bottom' => ${^CAPTURE}[1]
+        };
+        <x11.coordinates_were_undefined> = TRUE;
+        return ( 0, 0, ${^CAPTURE}[0], ${^CAPTURE}[1] );
+    } else {
+
+        my $pos_vert = sprintf qw| %.0f |,
+            ${^CAPTURE}[1] * ( $fallback_vertical_pos_percent / 100 );
+        my $height = sprintf qw| %.0f |,
+            ( ${^CAPTURE}[1] * ( $fallback_height_percent / 100 ) );
+
+        <[base.logs]>->(
+            'using fallback window coordinates [0,0,%u,%u]',
+            $pos_vert, $pos_vert + $height
+        );
+        <x11.coordinates> = {
+            'left'   => 0,
+            'top'    => $pos_vert,
+            'right'  => ${^CAPTURE}[0],
+            'bottom' => $pos_vert + $height
+        };
+        <x11.coordinates_were_undefined> = TRUE;
+        return ( 0, $pos_vert, ${^CAPTURE}[0], $pos_vert + $height );
+    }
 } else {
     <[base.log]>->( 1, ': coordinates undefined' );
     return undef;
 }
 
-#,,,.,,..,.,,,,,.,.,.,..,,,,,,,,.,..,,,,,,.,,,..,,...,...,.,.,...,.,,,.,.,,.,,
-#JN6RLG62SQUWQONM6GQXQVFHJ3UXXPQUNYYZMREUXOYJMCRTLLEYZOCJ4ZHSMZIQZ73M2PASQRL32
-#\\\|5LXUDW5TQICNFZEH4FAUTZMSXTR3C6OWHXAT2SS4PHMAMDWYAC5 \ / AMOS7 \ YOURUM ::
-#\[7]BS4YCMLFSK6Y7FQ7ZS3DP3XX7LEOFWDJRENIIX33ZSWU2V4C2ECA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,...,,,.,.,,,.,.,,.,,...,,.,,..,,...,...,...,,,,,,.,,.,,,..,,
+#ZAIXVHS2BEZUGGV6SQD3C4UZZJL3QFR2YC4I6H7COTSAAY7K5OWLOAJWHKMDZDB6T54UGL4JOFY56
+#\\\|P6OL5IKJ3B4F7WZ2TFGTUFXER2DNVJWGCBCXNEHH4XNRNCHPTLR \ / AMOS7 \ YOURUM ::
+#\[7]SR7XWMIDP6XPYYW7LX5P2HL32IOQTH3PDKCEYQNCK6GMO5KA4CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
