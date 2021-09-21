@@ -10,26 +10,41 @@
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 
 Glib::Object::Introspection->setup(
-    basename => qw| GdkX11 |,
-    version  => qw| 3.0 |,
-    package  => qw| Gtk3::Gdk |
+    qw| basename | => qw| GdkX11 |,
+    qw| version  | => qw|  3.0   |,
+    qw| package  | => qw| Gtk3::Gdk |
 );
 
-<[base.stderr_redir]>->(qw| :devnull: |);    ## redirect STDERR ##
+<[base.stderr_redir]>;
+
+<ticker-gtk.font.known_offsets> = <[ticker-gtk.font.offsets_table]>;
 
 <ticker-gtk.font.path> //= sprintf qw|%s/data/ttf/droid|, <system.root_path>;
-<ticker-gtk.font.name> //= qw| DroidSans-Bold |;  # LLL: <-- load from config!
-<ticker-gtk.font.size_percent> //= 100;           # LLL: <-- load from config!
-<ticker-gtk.use_transparency>  //= TRUE;
-<ticker-gtk.do_custom_fade_in> //= TRUE;
-<ticker-gtk.cfg.draw_outline>  //= TRUE;
-<ticker-gtk.animation_started> //= FALSE;
-<ticker-gtk.paused>            //= FALSE;
-<ticker-gtk.default_speed>     //= 7;
-<ticker-gtk.auto_speed_mode>   //= FALSE;
-<ticker-gtk.slowdown.percent>  //= FALSE;
-
+<ticker-gtk.font.name> //= qw| DroidSans-Bold |;   # LLL: <- load from config!
+<ticker-gtk.font.size_percent>   //= 100;          # LLL: <- load from config!
+<ticker-gtk.use_transparency>    //= TRUE;
+<ticker-gtk.do_custom_fade_in>   //= TRUE;
+<ticker-gtk.cfg.draw_outline>    //= TRUE;
+<ticker-gtk.animation_started>   //= FALSE;
+<ticker-gtk.paused>              //= FALSE;
+<ticker-gtk.default_speed>       //= 7;
+<ticker-gtk.auto_speed_mode>     //= FALSE;
+<ticker-gtk.slowdown.percent>    //= 0;
 <ticker-gtk.request_rss_updates> //= FALSE;
+
+if ( exists <ticker-gtk.font.known_offsets>->{<ticker-gtk.font.name>} ) {
+    my $font_name = <ticker-gtk.font.name>;
+    my $offset_params    ##  CUSTOM FONT OFFSETS [ NEEDS AUTO-CALC ]  ##
+        = <ticker-gtk.font.known_offsets>->{$font_name};
+    next if ref $offset_params ne qw| HASH |;
+    <[base.logs]>->( "loading custom offsets for font '%s'", $font_name );
+    foreach my $type (qw| y-offset scale-offset |) {
+        ##  scale offset not implemented yet  ##
+        <ticker-gtk.font.y-offset> = $offset_params->{$type}
+            if not defined <ticker-gtk.font.y-offset>
+            and exists $offset_params->{$type};
+    }
+}
 
 <base.callback_hooks.async_online> = ['ticker-gtk.callback.request_updates'];
 
@@ -37,31 +52,35 @@ Glib::Object::Introspection->setup(
 
 <ticker-gtk.speed> = <ticker.redraw_delay>
     if defined <ticker.redraw_delay>    # LLL: change to 'speed' later
-    and <ticker.redraw_delay> =~ /^\d+$/
+    and <ticker.redraw_delay> =~ m|^\d+$|
     and <ticker.redraw_delay> >= 5
     and <ticker.redraw_delay> <= 42;
 
-# LLL fix range [1..100?]
+# [LLL] fix range [1..100???]
 <ticker-gtk.speed> = delete <ticker.speed>
     if defined <ticker.speed>
-    and <ticker.speed> =~ /^\d+$/
+    and <ticker.speed> =~ m|^\d+$|
     and <ticker.speed> >= 5
     and <ticker.speed> <= 42;
 
 <ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
 <ticker-gtk.font.color> //= [ 0, 0, 0 ];
 
-my $cfg_col_ref = <[ticker-gtk.rgb_col]>->(<ticker.color.foreground>);
+my $cfg_col_ref = <[ticker-gtk.calc-col]>->(<ticker-gtk.cfg.fg_col>);
 <ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
-<ticker-gtk.bg_col>     = <[ticker-gtk.rgb_col]>->(<ticker.cfg.bg_col>);
-<ticker-gtk.bg_alpha>   = <ticker.cfg.bg_alpha> // 100;  # transparent default
+<ticker-gtk.bg-alpha> = <ticker-gtk.cfg.bg-alpha> // 100; ## default trans. ##
+<ticker-gtk.bg-color> = <[ticker-gtk.calc-col]>
+    ->( <ticker.cfg.bg_col> // <ticker-gtk.default_background> );
 
-my $ovf = 0.94;    # <-- outline value factor
-my $c
-    = Convert::Color->new( 'rgb:' . join( ',', @{<ticker-gtk.font.color>} ) );
+my $c = Convert::Color->new(
+    'rgb:' . join( ',', <ticker-gtk.font.color>->@* ) );
 my $hc = $c->convert_to('hsv');
-my $new_value
-    = sprintf( '%.3f', abs( $ovf - sprintf( '%.0f', $hc->value ) ) );
+
+my $ovf = 0.94;    # <- outline value factor [ auto-calc ]
+
+my $new_value = <ticker-gtk.cfg.font.oval> // sprintf qw| %.3f |,
+    abs( $ovf - sprintf( qw| %.0f |, $hc->value ) );
+
 my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 
 <ticker.color.outline> = $oc->as_rgb8->hex;
@@ -80,8 +99,8 @@ my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 
 0;
 
-#,,,,,...,,.,,,..,.,,,.,.,,,.,,..,.,,,...,...,..,,...,...,,..,,..,,,.,,,.,..,,
-#2UA2WY7O4YDQ2Y3VXJ5XBG37MRBS5KFQHXOEYRNRLRRJ56B7J4WRRRZB3GDENNBHWIFVPFNI7UJVQ
-#\\\|I7L4CBPB2QG4OQXSFTTPNTXCR3QT73EO5KXROQER6SG4STA5UJZ \ / AMOS7 \ YOURUM ::
-#\[7]54PW5MUFORJG62CZQ5QD4RZH2BWESQWCQUROPVQ4J2XCNAJRC2DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,.,,,,,.,...,.,.,,.,,,.,,...,.,.,...,...,.,,,,.,,.,,,...,.,,,
+#FSY22YQRZVBW4U7MUCEJKNTA3T2X4RWHIGS2V6CELMX4EKPMKUVRQ4RYAFE5NI46SBSN7QOWWA35S
+#\\\|24VUISHZHL24L5VI6KG5NLLGTYNT7WISIS7SQSLFOXQWLLGL2RJ \ / AMOS7 \ YOURUM ::
+#\[7]MFV2CS3GTF4CGIAUTGVLR347KRSBSVQKDMO6A4FLXHPISXYGQQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

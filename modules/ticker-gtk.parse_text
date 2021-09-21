@@ -6,7 +6,7 @@ die "font size '0' is not valid <<< aborting >>>" if !<ticker-gtk.font.size>;
 
 my $scroll_text = shift;
 my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
-my $surface     = Cairo::ImageSurface->create( 'argb32', 1, 1 );
+my $surface     = Cairo::ImageSurface->create( qw| argb32 |, 1, 1 );
 my $context     = Cairo::Context->create($surface);
 my $bytes       = length($scroll_text);
 
@@ -19,14 +19,14 @@ my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
 my $txt_width   = { ' ' => $context->text_extents(' ')->{'x_advance'} };
 
 my @txt_sequence;
-while ( $scroll_text =~ s/^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})// ) {
-    my $string = $1;
-    push( @txt_sequence, $string );
+while ( $scroll_text =~ s{^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})}{} ) {
+    my $string = ${^CAPTURE}[0];
+    push @txt_sequence, $string;
     next if exists $txt_width->{$string};
     $txt_width->{$string} = $context->text_extents($string)->{'x_advance'};
 }
 
-my $parse_time = sprintf( '%.3f', <[base.time]>->(3) - $parse_start );
+my $parse_time = sprintf( qw| %.3f |, <[base.time]>->(3) - $parse_start );
 
 my $txt_map = {
     'sequence'    => \@txt_sequence,
@@ -43,17 +43,17 @@ if ( not defined <ticker-gtk.content.current.txt_map> ) {
 } else {
     <ticker-gtk.content.queued.txt_map> = $txt_map;                # ++
     <ticker-gtk.switch_at_seq>          = <ticker-gtk.draw_seq>;
-    <[base.log]>->(
-        2, "$bytes bytes of content parsed into 'queued' slot..,"
+    <[base.logs]>->(
+        2, "%u bytes of content parsed into 'queued' slot..,", $bytes
     );
 }
 
-<[base.log]>->( 2, ": parse time = $parse_time seconds." );
+<[base.logs]>->( 2, ': parse time = %s seconds.', $parse_time );
 
 <ticker-gtk.last_substr> = [];
 
-#,,,.,..,,,..,..,,.,,,,..,,,.,..,,,.,,,.,,,..,..,,...,.,.,..,,.,.,.,.,..,,.,,,
-#SFISAZDBUFWXSNXJAC4XPK7DKCRFBOVW5CMX5NZWSCGN3JDO242RFYRNJ2X7QOZBF6XGWYS2RTWHS
-#\\\|D6V5RNC6WAM5U3TN3ZUYVUIP4BJCET63PVAPKTJKLJWMNE4VVHI \ / AMOS7 \ YOURUM ::
-#\[7]AAULUQG6MQJZDJGVD2OS3RK43PZTFADLB7SP6NSW7G3XTRFUN2AY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,..,,,,.,,..,...,,,,,...,.,.,.,.,...,...,..,,...,...,,.,,,,.,
+#LK2ZVTIP3OGY4VTUT4Q6F46S2MV4XERA76SI4OPJU6BN3H76W2GF2CU5ANXVCZQPS4IHPGXJNFHN4
+#\\\|Y2GHCQKXYZG4VZYAAE5WK4RBHDVC3R3A24M6TP7OVY5V2SBD7D2 \ / AMOS7 \ YOURUM ::
+#\[7]5X4V2QWPHRA46K25KTRW63HFPZRG7HGF56XHASPYP6YBWKHCM2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
