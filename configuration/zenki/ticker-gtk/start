@@ -37,15 +37,18 @@ modules.load = auth net protocol io.unix ticker-gtk
 
 [base.net.connect:'unix']
 
+X.fb_vp = 95  ## vertical fallback position [top] ##
+X.fb_h  =  5  ## fallback height [ in percent ] ##
+
 [base.X-11.get_display]
-[base.X-11.get_coordinates]
+[base.X-11.get_coordinates:undef,undef,undef,undef,<X.fb_vp>,<X.fb_h>]
 ticker-gtk.subcfg = [base.X-11.get_subconfig]
 [ticker-gtk.process_subcfg]
 
 [ticker-gtk.startup]
 
-#,,..,.,,,...,...,.,,,,.,,,.,,.,.,,,.,.,,,.,,,.,.,...,...,...,,..,...,...,,.,,
-#P26KAK6VH75STMASFVT6Y55XK6Y6KGBNZ2MLPVNRAPYY5T2TME6FFLI6GOR3QYGRPOFAFHVBF4WKM
-#\\\|PVVYAVJTXVLEK5AARUY3UA7B5ON2232M34TCFMYDJTGLURTDX5L \ / AMOS7 \ YOURUM ::
-#\[7]2U2O73PS5UKLAHF3T6KUMEC4OS6AIWOMVK4BCF6TTFTXK4KTCODY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,.,,,,,,,,,,.,,,.,,,,,,.,,,.,.,...,...,.,.,...,,,,,,,,,...,
+#LIYSYTGJPO4HSLI6DSKUB7ZRQJGFN65ZEB2VNVMHOVZ4W24FFRL46AN7T4LOF7QY4ZMJXBOY2GA3S
+#\\\|HQNTDC5CPLSZED2AQRXRXPCR27FSE4BF5YYXQ734M7MBXBJS7UG \ / AMOS7 \ YOURUM ::
+#\[7]HZUAWUOHBILCLMCFTMCRNEL6MTIOIHO5V5FU6TMIVTNG5CWHVGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
