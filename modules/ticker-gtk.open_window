@@ -2,27 +2,27 @@
 
 # name = ticker-gtk.open_window
 
-<[base.log]>->( 1, ": opening ticker window.," );
+<[base.log]>->( 1, ': opening ticker window.,' );
 
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
 
-<ticker-gtk.is-iconified> //= 0;
+<ticker-gtk.is-iconified> //= FALSE;
 
-my $window_mode = <ticker-gtk.window.force_above> ? 'popup' : 'toplevel';
+my $window_mode = <ticker-gtk.window.force_above> ? qw|popup| : qw|toplevel|;
 
 my $window = <ticker-gtk.obj.window> = Gtk3::Window->new($window_mode);
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
 
 if ( $window->is_composited ) {
-    <ticker-gtk.is_composited> = 1;
-    <[base.log]>->( 1, ": : compositor detected =)" );
+    <ticker-gtk.is_composited> = TRUE;
+    <[base.log]>->( 1, ': : compositor detected =)' );
     $window->set_opacity(0)
         if <ticker-gtk.use_transparency> and <ticker-gtk.do_custom_fade_in>;
 } else {
-    <ticker-gtk.is_composited> = 0;
-    <[base.log]>->( 1, ": : no compositor running :|" );
+    <ticker-gtk.is_composited> = FALSE;
+    <[base.log]>->( 1, ': : no compositor running :|' );
 }
 
 <x11.window.width>  = <x11.coordinates.right> - <x11.coordinates.left>;
@@ -44,12 +44,15 @@ my $rgba = 0;
 $rgba = $screen->get_rgba_visual() if <ticker-gtk.use_transparency>;
 
 if ( !$rgba ) {
-    <ticker-gtk.use_transparency> = 0;
+    <ticker-gtk.use_transparency> = FALSE;
 } else {
     $window->set_visual($rgba);
 }
 
-$window->signal_connect( 'draw' => $code{'ticker-gtk.callback.draw'} );
+## $window->signal_connect( 'draw' => $code{'ticker-gtk.callback.draw'} );
+
+$window->signal_connect(
+    qw| draw | => sub { <[ticker-gtk.callback.draw]>->(@ARG) } );
 
 $window->show_all;
 
@@ -60,15 +63,15 @@ $window->show_all;
 <ticker-gtk.font.size> = 0;
 
 my $font_name = <ticker-gtk.font.name>;
-my $font_path = <ticker-gtk.font.path> . '/' . $font_name . '.ttf';
+my $font_path = sprintf qw| %s/%s.ttf |, <ticker-gtk.font.path>, $font_name;
 my $freetype  = Font::FreeType->new;
 my $ft_face   = $freetype->face($font_path);
 <ticker-gtk.font.face> = Cairo::FtFontFace->create($ft_face);
 
 <ticker-gtk.obj.window>->queue_draw;
 
-#,,.,,..,,..,,,.,,,,.,,..,..,,,..,...,...,...,.,.,...,...,,..,,..,,.,,,..,,.,,
-#WM3ODRHBM4SKZR5U3YWVTUP67O7B6NWSSS7UB6C32GRVF3KBHEJS6ZSFSRB24VBXBE2RBUIDR3P5I
-#\\\|LDUKGVBM6JUICQVTLEVUNPBFRYL2I3XLVZVCI246HZQSRAVSOCU \ / AMOS7 \ YOURUM ::
-#\[7]VJI27OSSLINKUNX7IGZQOGUZ2HKBUEFMZH2R53I7L2BPN3NSCEAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,...,,.,,,,.,..,,...,,..,,,.,.,.,...,..,,..,,.,,,...,.,,,,,,,
+#HY75D2UPFAV234OJMX75F7DVJZ573MHL2V2DHUFXVFOAKWDWKTBDABEBL5XNRWEROHLLWEVAYCOCW
+#\\\|CAM6CBRSQOQZKZNCJ5ZBNYCEQDZD22JFEJIDAMULMGIIXLCMLWR \ / AMOS7 \ YOURUM ::
+#\[7]LHAVRQPTTK7NWKD7JRFL7QKRHJVH2MPLRFUI4R5MHKDXCCWMF4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
