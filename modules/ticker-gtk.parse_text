@@ -8,15 +8,23 @@ my $scroll_text = shift;
 my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
 my $surface     = Cairo::ImageSurface->create( qw| argb32 |, 1, 1 );
 my $context     = Cairo::Context->create($surface);
-my $bytes       = length($scroll_text);
+my $bytes       = length $scroll_text;
 
 my $parse_start = <[base.time]>->(3);
 
 $context->set_font_face(<ticker-gtk.font.face>);
 $context->set_font_size(<ticker-gtk.font.size>);
 
+my $space_width = $context->text_extents(' ')->{'x_advance'};
+my $txt_width   = { ' ' => $space_width };
 my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
-my $txt_width   = { ' ' => $context->text_extents(' ')->{'x_advance'} };
+
+##  increasing text length to exceed window width [ avoids jumping ]  ##
+##
+while ( $total_width < ( <x11.window.width> - $space_width ) ) {
+    $scroll_text .= ' ' . $scroll_text;
+    $total_width = $context->text_extents($scroll_text)->{'x_advance'};
+}
 
 my @txt_sequence;
 while ( $scroll_text =~ s{^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})}{} ) {
@@ -37,8 +45,8 @@ my $txt_map = {
 
 if ( not defined <ticker-gtk.content.current.txt_map> ) {
     <ticker-gtk.content.current.txt_map> = $txt_map;
-    <[base.log]>->(
-        2, "$bytes bytes of content parsed into 'current' slot.,"
+    <[base.logs]>->(
+        2, "%u bytes of content parsed into 'current' slot.,", $bytes
     );
 } else {
     <ticker-gtk.content.queued.txt_map> = $txt_map;                # ++
@@ -52,8 +60,8 @@ if ( not defined <ticker-gtk.content.current.txt_map> ) {
 
 <ticker-gtk.last_substr> = [];
 
-#,,,.,...,.,,,...,..,,,,.,,..,...,,,,,...,.,.,.,.,...,...,..,,...,...,,.,,,,.,
-#LK2ZVTIP3OGY4VTUT4Q6F46S2MV4XERA76SI4OPJU6BN3H76W2GF2CU5ANXVCZQPS4IHPGXJNFHN4
-#\\\|Y2GHCQKXYZG4VZYAAE5WK4RBHDVC3R3A24M6TP7OVY5V2SBD7D2 \ / AMOS7 \ YOURUM ::
-#\[7]5X4V2QWPHRA46K25KTRW63HFPZRG7HGF56XHASPYP6YBWKHCM2CY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,..,,,.,,,..,,.,,,,,,.,.,,..,.,.,...,...,.,,,,.,,...,,,,,,.,,
+#2EUD2HPP7DCJVDASLIJE3HSPNWUQNLOLA4QD4YYKKF4KBMGBTSATRXX45EJ6ERGH77SS6GVCAESH6
+#\\\|SVP2DREGDN42LLZQ6AD7OHGELMJOK4REALJMT7BMVWVC6ALZEOC \ / AMOS7 \ YOURUM ::
+#\[7]SCITWOENIS7QN7A55FHU3DESX37X5AHIMUFXO4AQV2LWBLD7Q4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

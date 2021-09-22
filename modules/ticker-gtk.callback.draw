@@ -27,7 +27,7 @@ if (<ticker-gtk.status.initialized>
     Glib::Timeout->add(
         4200,
         sub {
-            if ( !<ticker-gtk.animation_started> ) {
+            if ( not <ticker-gtk.animation_started> ) {
 
                 <[base.log]>->(
                     1, 'no ticker content received yet, waiting ..,'
@@ -108,7 +108,9 @@ if ( not <ticker-gtk.status.initialized> ) {
     while ( (
 
             $context->font_extents->{'height'}
-## $context->font_extents->{'ascent'} + $context->font_extents->{'descent'}
+
+        ## $context->font_extents->{'ascent'} +
+        ##  $context->font_extents->{'descent'}
 
         ) < <x11.window.height> - $shadow_height
     ) {
@@ -204,12 +206,13 @@ if ( not <ticker-gtk.paused> ) {
                 ) / 842
             );
             <ticker-gtk.slowdown.percent>
-                = sprintf( qw| %.4f |,
-                <ticker-gtk.slowdown.percent> + $adjust );
+                = sprintf qw| %.4f |,
+                <ticker-gtk.slowdown.percent> + $adjust;
+
             $sl_diff = abs(
-                sprintf( qw| %.4f |,
-                          <ticker-gtk.slowdown.percent_target>
-                        - <ticker-gtk.slowdown.percent> )
+                sprintf qw| %.4f |,
+                <ticker-gtk.slowdown.percent_target>
+                    - <ticker-gtk.slowdown.percent>
             );
             <ticker-gtk.slowdown.percent>
                 = <ticker-gtk.slowdown.percent_target>
@@ -230,24 +233,24 @@ if ( not <ticker-gtk.paused> ) {
 
     <ticker-gtk.draw.x_pos> -= $ppsec * $delta_t;
 
-    if ( defined <ticker-gtk.content.current.txt_map>->{'total_width'}
-        and <ticker-gtk.draw.x_pos>
+    if ( <ticker-gtk.draw.x_pos>
         <= -<ticker-gtk.content.current.txt_map>->{'total_width'} ) {
+
         <ticker-gtk.draw.x_pos>
             = <ticker-gtk.content.current.txt_map>->{'space_width'};
+
         <ticker-gtk.last_substr> = [];
         <ticker-gtk.switch_at_seq>-- if <ticker-gtk.switch_at_seq>;
+
         <ticker-gtk.content.current.txt_map>
             = delete <ticker-gtk.content.queued.txt_map>
             if exists <ticker-gtk.content.queued.txt_map>
             and not <ticker-gtk.switch_at_seq>;
+
         delete <ticker-gtk.switch_at_seq> if not <ticker-gtk.switch_at_seq>;
     }
 
 }
-
-#<debug.draw-count>++;
-#say '< draw > ' . <debug.draw-count>;
 
 if (<ticker-gtk.animation_started>) {
     if ( not <ticker-gtk.paused> ) {
@@ -268,8 +271,8 @@ if (<ticker-gtk.animation_started>) {
 
 return TRUE;
 
-#,,,,,..,,,,,,,,,,,..,,,,,.,,,.,.,,,.,,,,,.,.,.,.,...,.,.,..,,,.,,.,,,.,.,.,.,
-#LJVLSA4TSKFEEKPJ6VYN74JJLSXLCCOM2TTJTZMN4YGS32VHDOINJUY5KYG55E75IIM7CCYWVVEIU
-#\\\|W45JRP63HSRX6Y7C6SLTY2FXKITAJQR6P4T3APKJAXU23ZATQYZ \ / AMOS7 \ YOURUM ::
-#\[7]KUHIWKB5YSYXL7CZ6ABQCJ6BYBVKAWGV77SSYBYRWFRFLACQSQAI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,.,.,.,,,,,.,,,.,,.,,..,,..,,.,.,...,...,...,,..,,,.,...,,,,,
+#FEPNSYG5SDFPLWVERJF66GFT23HIRAXZSDE4NRE5ZLPLKETJYERA4NGHCFYF2AOKIIF5YGBSOA7D6
+#\\\|A2D5YTF5TJTGGRIDYL6UQTCK7EHKKK5O5JMD2ZAT55WOJEISJIU \ / AMOS7 \ YOURUM ::
+#\[7]VCQAK3NFINGV2SJ443PGLB7VUGP7PBEKQH7UG3EO7KF4KBY4RICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
