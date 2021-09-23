@@ -15,10 +15,10 @@ if ( defined <x11.coordinates> ) {
 
 my $title_str
     = defined <system.zenka.subname>
-    ? $message_str . ' [' . <system.zenka.subname> . ']'
+    ? sprintf( qw| %s[%s] |, $message_str, <system.zenka.subname> )
     : $message_str;
 
-<[base.log]>->( 1, "opening notification message window..," );
+<[base.log]>->( 1, 'opening notification message window..,' );
 
 Gtk3->init;
 
@@ -40,16 +40,15 @@ $window->show_all();
 
 <reenc-msg.timer.shutdown> = <[event.add_timer]>->(
     {   'after'   => <reenc-msg.refresh_timeout>,
-        'handler' => 'reenc-msg.handler.shutdown_timer'
+        'handler' => qw| reenc-msg.handler.shutdown_timer |
     }
 );
 
-Gtk3->main;
-
-exit;
+<[base.gtk.main_loop]>;
 
 sub cairo_draw {
-    my ( $widget, $context, $ref_status ) = @_;
+
+    my ( $widget, $context, $ref_status ) = @ARG;
     my $message_str = <reenc-msg.display_txt>;
 
     $context->set_source_rgba( 1.0, 1.0, 1.0, 0.0 );
@@ -73,7 +72,8 @@ sub cairo_draw {
 }
 
 sub screen_changed {
-    my ( $widget, $old_screen ) = @_;
+
+    my ( $widget, $old_screen ) = @ARG;
 
     my $screen = $widget->get_screen();
     my $visual = $screen->get_rgba_visual() // $screen->get_system_visual();
@@ -81,8 +81,8 @@ sub screen_changed {
     $widget->set_visual($visual);
 }
 
-#,,..,...,.,.,...,,,,,,.,,,,,,,,.,,..,,,,,,,.,..,,...,..,,..,,..,,..,,,,,,...,
-#WQ42N53LWTFUTBGVXVEZHFMB5MEHAMCLH2TVCCFVHL5GWCXCYUF6S25YBGMWW3EI2PRQAPUSNQKRS
-#\\\|XTPZM2IPTDBB7CLZXA2R7AQ7PECEAI5FTZSOCIELJM2ER3WW6CU \ / AMOS7 \ YOURUM ::
-#\[7]43C44U5CQW5IFP3CZJDDNR4QJIKLRWBNHIIBGUK6XT7ZXWMBHCDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,..,,,..,.,,,,..,,..,,.,,.,.,..,,...,..,,..,,.,.,,.,,.,,,,..,
+#EYCEHHCOE5OFKJDUAMQL3RQGPUOW5KPSO7CH7XGX2UZ5O55CVUHPHTJGG6W6WRCEJ4NL62A3BGPFK
+#\\\|APBW6UEBKR7QYROBHIUYEWK7LDT5KCUH66AVDQ4EPNPRNPKLDXZ \ / AMOS7 \ YOURUM ::
+#\[7]E7XXWEHDDOGV462SG3PAA6FWS7CELAN53NNGWCHPI36TM7MVSSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
