@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = ticker-gtk.calc-col.RGB
+
+my $color_hex_str = shift // '';
+
+if ( not length $color_hex_str ) {
+    <[base.s_warn]>->(
+        'empty color parameter %s <{NC}>',
+        scalar <[base.caller]>
+    );
+    return undef;
+} elsif ( $color_hex_str !~ m|^\#?[0-9a-f]{6}$|i ) {
+    <[base.s_warn]>->(
+        "color string syntax not valid ['%s'] %s <{NC}>",
+        $color_hex_str, scalar <[base.caller]>
+    );
+    return undef;
+}
+
+$color_hex_str =~ s|^#||;
+
+my @rgb_col = map { sprintf( qw| %.3f |, hex($ARG) / 255 ) } (    # [0..1]
+    substr( $color_hex_str, 0, 2 ),
+    substr( $color_hex_str, 2, 2 ),
+    substr( $color_hex_str, 4, 2 )
+);
+
+return \@rgb_col;
+
+#,,.,,,..,,,,,...,.,.,,.,,,,,,,,,,,..,,,.,.,.,.,.,...,...,...,,..,,..,..,,,.,,
+#ISZE6PTV235Y3UI37EANHWXVOFZ5JDVA2PKDOV4N5QTUBMTMYV7OH5GUZJIF7H3IF25MOPESJSXMK
+#\\\|AKTLQX5MEZWV3EWTHDVBROD46SCHVUZ53PWGP4B3WHUCROQKO4N \ / AMOS7 \ YOURUM ::
+#\[7]KNIZLUD6J3JMKHEDIH7EHRLXX4S4T5TMHVMXXPKLIAA6F36H5EBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

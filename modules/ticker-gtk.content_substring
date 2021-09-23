@@ -15,13 +15,13 @@ $x_offset = <x11.window.width> - $x_offset;
 my $x_check = $x_offset - <x11.window.width> - <ticker-gtk.draw.skipped>;
 
 return <ticker-gtk.last_substr>
-    if @{<ticker-gtk.last_substr>}
+    if <ticker-gtk.last_substr>->@*
     and <ticker-gtk.last_substr>->[2]
     and $x_check <= <ticker-gtk.last_substr>->[2]
     and not exists <ticker-gtk.content.switch_at>;
 
-my $skip     = 1;
-my $complete = 0;
+my $skip     = TRUE;
+my $complete = FALSE;
 my $first_advance;
 my $last_advance = 0;
 <ticker-gtk.draw_seq> = 0;
@@ -40,12 +40,12 @@ my $next_map
     : {};
 
 if ( not defined $txt_map->{'sequence'}
-    or ref( $txt_map->{'sequence'} ) ne 'ARRAY' ) {  # LLL: fix occurences ..,
+    or ref $txt_map->{'sequence'} ne qw|ARRAY| ) {   # LLL: fix occurences ..,
     <[base.log]>
-        ->( 0, "content_substring: txt_map not defined (no content)" );
+        ->( 0, "content_substring: txt_map not defined [no content]" );
     <[base.log]>
         ->( 0, "                 : : shutting down due to errors..!" );
-    exit(2);
+    <[base.exit]>->(qw| 0110 |);
 }
 
 my $dseq;
@@ -57,17 +57,17 @@ repeat:
 $dseq
     = ( defined <ticker-gtk.switch_at_seq>
         and <ticker-gtk.draw_seq> >= <ticker-gtk.switch_at_seq> )
-    ? [ @{ $next_map->{'sequence'} } ]
-    : [ @{ $txt_map->{'sequence'} } ];
+    ? [ $next_map->{'sequence'}->@* ]
+    : [ $txt_map->{'sequence'}->@* ];
 
-while ( my $word = shift @{$dseq} ) {
+while ( my $word = shift $dseq->@* ) {
     my $advance = $txt_map->{'sizes'}->{$word}
         // $next_map->{'sizes'}->{$word};
-    $skip = 0
+    $skip = FALSE
         if $skip
         and $x_skipped
         > ( $x_offset - <x11.window.width> ) - $advance - $last_advance;
-    if ( !$skip ) {
+    if ( not $skip ) {
         $return_str .= $word;
         $x_width += $advance;
         $first_advance //= $advance;
@@ -78,7 +78,7 @@ while ( my $word = shift @{$dseq} ) {
                     + $last_advance
             )
         ) {
-            $complete = 1;
+            $complete = TRUE;
             last;
         }
     } else {
@@ -87,13 +87,13 @@ while ( my $word = shift @{$dseq} ) {
     $last_advance = $advance;
 }
 
-$complete = 1 if !length(<ticker-gtk.content.txt>);
+$complete = TRUE if not length <ticker-gtk.content.txt>;
 
-$x_skipped += $txt_map->{'space_width'} if $return_str =~ s/^ //;
+$x_skipped += $txt_map->{'space_width'} if $return_str =~ s|^ ||;
 
 <ticker-gtk.last_substr> = [ $x_skipped, $return_str, $first_advance // 0 ];
 
-if ( !$complete and $x_width ) {
+if ( not $complete and $x_width ) {
     $return_str .= ' ';
     $last_advance = $txt_map->{'space_width'};
     $x_width += $last_advance;
@@ -104,8 +104,8 @@ if ( !$complete and $x_width ) {
 
 return [ $x_skipped, $return_str ];
 
-#,,.,,.,.,.,,,.,.,.,,,...,..,,,,,,,.,,,..,,..,..,,...,...,..,,..,,,,.,...,,..,
-#VJKOSJXAY2LKUWCQKMDIGGPICQAT6GYRIB5PJIVWNDTE6ND7GJVWSTMRYNJMIYTWCIOP32OGD3EHO
-#\\\|4GDE2ICPPYQDLN7OGPKKGKIUP67L3FDEOSGEK4S7QZFT4SEW6KB \ / AMOS7 \ YOURUM ::
-#\[7]RNGE5XXQGBHLM5N5464Z4JVS6AFKPRF5P3SAKSIU4JMEQPDJIUCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,,,,,..,,..,.,,,,,.,,,,,,..,..,,...,...,...,.,,,.,.,,,.,,,.,
+#6KMKRKPNG5XHGJIXOPXV4Q5OE5KXG47ZXF57IVL25AR37CJ7LB6YBCWIO4OJWZI372H3BKJUCEVI6
+#\\\|DZGVHUNXAPDY6XW4FO2OLDAWFV62M4UZQOH3YGPM2H2AQJRFQCS \ / AMOS7 \ YOURUM ::
+#\[7]3IMFSMY26VTLK5DI6WMCEWZ67J2HCAUUIR4OUQFNSVASG6JWMSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
