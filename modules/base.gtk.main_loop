@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = web-browser.main_loop
+# name = base.gtk.main_loop
 
 if ( <[base.perlmod.loaded]>->('Glib::Event') ) {
     <[base.log]>->( 1, 'entering gtk main loop..,' );
@@ -18,7 +18,7 @@ if ( <[base.perlmod.loaded]>->('Glib::Event') ) {
 
     ##  1 / 1000 secs  ##
     ##
-    my $interval = <web-browser.main-loop.wakeup-interval> //= 240;
+    my $interval = <base.gtk.main-loop.wakeup-interval> //= 240;
     ## adding polling timer to listen to network events ##
     Glib::Timeout->add( $interval, sub { <[event.once]>; return 1 } );
 
@@ -29,8 +29,8 @@ if ( <[base.perlmod.loaded]>->('Glib::Event') ) {
     <[base.exit]>->( 'left gtk main loop ..,', 2, qw| 00000 | );
 }
 
-#,,,,,...,.,,,,..,.,,,.,,,.,,,,,.,...,...,,,,,..,,...,..,,...,,..,.,.,,,.,.,.,
-#SUBYRRX2DA45SQYGWOZDNSYX7GDI3HDHN6YNF3OKTVLQAKVH7RRJEMLATFOGY6SXWU74RFHF6IONQ
-#\\\|J3CL422ZJCRKY2SXWLPMGURNS43XGOS4P2P2HYSY33GGUCK7VCC \ / AMOS7 \ YOURUM ::
-#\[7]VSYEUCMNCPSK6S3VYEDIECC3P2Y2E27X2FJQLKUP53TIBLEZXMCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,,,,,,.,,.,,,,,,,,..,,.,,..,,..,,...,...,.,,,,..,..,,,.,,,,.,
+#JBGLW2NVFO3TH5DGCFSNQTWDLBQ6WDSTW4EK6J2GPOX5DHDZZJYEE6JDFEOUCFKO474Y7ILQPAXGA
+#\\\|IRUGPQVCQBWNDFMCLIRAGD2A4KFW6HCDYJ5CF3WK7SIKR5FK2DJ \ / AMOS7 \ YOURUM ::
+#\[7]OSHTZXUH3ENXBZS6AZC5MRUWNXY4HAXTCGEQKXKA2KA42LGE7KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
