@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = ticker.handler.fade_in
+
+my $timer  = shift->w;
+my $window = <ticker.obj.window>;
+
+if ( not defined <ticker.time.fade_view> ) {
+    <[base.log]>->( 2, ":. fade-in started.," );
+    <ticker.fade_opacity>   = 0;
+    <ticker.time.fade_view> = <[base.time]>->(3);
+}
+
+my $delta_t = sprintf( '%.3f', <[base.time]>->(3) - <ticker.time.fade_view> );
+
+<ticker.fade_opacity> += <[ticker.calc_incr]>->($delta_t);
+<ticker.fade_opacity> = 1 if <ticker.fade_opacity> >= 1;
+
+if (<ticker.is_composited>) {
+    $window->set_opacity(<ticker.fade_opacity>);
+}
+
+if ( <ticker.fade_opacity> == 1 ) {
+    <[base.log]>->( 2, ":: fade-in complete." );
+    delete <ticker.fade_opacity>;
+    $timer->cancel;
+}
+
+#,,.,,,..,...,,,,,...,.,,,.,.,..,,.,.,.,,,..,,..,,...,...,...,,,.,,,.,,..,...,
+#Q2DGQL5HW5R23LC24WQLYNJRJNWNKZFRR5B6PVXKSJIZG2XWHRBB5J2TR7XZ72EOODE6UXPSDSPNE
+#\\\|P663RK737BUDG6XKPYECCWVTLDNC2EBGL7UB77K3WYXUFXAAPWT \ / AMOS7 \ YOURUM ::
+#\[7]XJH7NXEEZGVJGA5WMUINMUCDI4INHSFPJIQHVXX6WWBKE35Y6OAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

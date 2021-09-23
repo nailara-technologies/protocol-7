@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = ticker.rgb_col
+
+my $color_hex_str = shift;
+return undef if not defined $color_hex_str;
+if ( $color_hex_str !~ m|^\#?[0-9a-f]{6}$|i ) {
+    <[base.log]>->( 0, "invalid color string syntax '$color_hex_str'" );
+    return undef;
+}
+$color_hex_str =~ s|^#||;
+
+my @rgb_col = map { sprintf( '%.3f', hex($ARG) / 255 ) } (    # [0..1]
+    substr( $color_hex_str, 0, 2 ),
+    substr( $color_hex_str, 2, 2 ),
+    substr( $color_hex_str, 4, 2 )
+);
+
+return \@rgb_col;
+
+#,,,,,...,,.,,,..,,,,,..,,.,,,,.,,,..,,.,,,..,..,,...,...,,.,,,,.,...,,.,,,,.,
+#F3SNZ6OFGNNKIA3G5DJELEYZ4JL5D4XP2KJ4WUNJTXWBBAY3LR6F4GUCBSU2MJTJX2LN4IPGJV5P4
+#\\\|PY3SABR52WCEYRAP5LJ6ODCJF7XGR42KKLJHCLPCQVZ4LANOQTD \ / AMOS7 \ YOURUM ::
+#\[7]T4MVD7KVFOWN3BQE6MDJS36PC4WRTC54QOMPHK7KYUP2UETUAOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

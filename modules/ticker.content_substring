@@ -1,0 +1,109 @@
+## [:< ##
+
+# name = ticker.content_substring
+
+my $x_skipped    = 0;
+my $x_width      = 0;
+my $x_offset     = <ticker.draw.x_pos>;
+my $window_width = <x11.window.width>;
+my $return_str   = '';
+<ticker.last_substr>   //= [];
+<ticker.draw_sequence> //= [];
+
+$x_offset = <x11.window.width> - $x_offset;
+
+my $x_check = $x_offset - <x11.window.width> - <ticker.draw.skipped>;
+
+return <ticker.last_substr>
+    if <ticker.last_substr>->@*
+    and <ticker.last_substr>->[2]
+    and $x_check <= <ticker.last_substr>->[2]
+    and not exists <ticker.content.switch_at>;
+
+my $skip     = TRUE;
+my $complete = FALSE;
+my $first_advance;
+my $last_advance = 0;
+<ticker.draw_seq> = 0;
+
+if ( defined <ticker.switch_at_seq> and <ticker.switch_at_seq> == 1 ) {
+    <ticker.content.current.txt_map> = delete <ticker.content.queued.txt_map>;
+    delete <ticker.switch_at_seq>;
+}
+
+my $txt_map = <ticker.content.current.txt_map>;
+my $next_map
+    = exists <ticker.content.queued.txt_map>
+    ? <ticker.content.queued.txt_map>
+    : {};
+
+if ( not defined $txt_map->{'sequence'}
+    or ref $txt_map->{'sequence'} ne qw|ARRAY| ) {   # LLL: fix occurences ..,
+    <[base.log]>
+        ->( 0, "content_substring: txt_map not defined [no content]" );
+    <[base.log]>
+        ->( 0, "                 : : shutting down due to errors..!" );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $dseq;
+
+repeat:
+
+<ticker.draw_seq>++;
+
+$dseq
+    = ( defined <ticker.switch_at_seq>
+        and <ticker.draw_seq> >= <ticker.switch_at_seq> )
+    ? [ $next_map->{'sequence'}->@* ]
+    : [ $txt_map->{'sequence'}->@* ];
+
+while ( my $word = shift $dseq->@* ) {
+    my $advance = $txt_map->{'sizes'}->{$word}
+        // $next_map->{'sizes'}->{$word};
+    $skip = FALSE
+        if $skip
+        and $x_skipped
+        > ( $x_offset - <x11.window.width> ) - $advance - $last_advance;
+    if ( not $skip ) {
+        $return_str .= $word;
+        $x_width += $advance;
+        $first_advance //= $advance;
+        if (( $x_width - $x_skipped ) > (
+                      <x11.window.width>
+                    + $first_advance
+                    + $advance
+                    + $last_advance
+            )
+        ) {
+            $complete = TRUE;
+            last;
+        }
+    } else {
+        $x_skipped += $advance;
+    }
+    $last_advance = $advance;
+}
+
+$complete = TRUE if not length <ticker.content.txt>;
+
+$x_skipped += $txt_map->{'space_width'} if $return_str =~ s|^ ||;
+
+<ticker.last_substr> = [ $x_skipped, $return_str, $first_advance // 0 ];
+
+if ( not $complete and $x_width ) {
+    $return_str .= ' ';
+    $last_advance = $txt_map->{'space_width'};
+    $x_width += $last_advance;
+    goto repeat;
+}
+
+<ticker.draw.skipped> = $x_skipped;
+
+return [ $x_skipped, $return_str ];
+
+#,,,.,,.,,...,,,,,...,,.,,.,,,.,.,...,,,.,.,,,..,,...,.,.,,,,,.,.,,.,,.,.,.,,,
+#5HF4BLNVOENB5OYTEJAOC3FAUDFSWFNP3EE4ZOLNPQAJYCG546VILNSWMLR7PAFTK33HCTDWZOACK
+#\\\|MRAUP3F7L52OU6SKHTCNHNS5PKUX33AKLSSBZFQL4QEK6ZXBE6N \ / AMOS7 \ YOURUM ::
+#\[7]663WHLOGWBMXC5RUWWI56SIC5R3PMDBKZOJ2R2R7LCZE5OAW2ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

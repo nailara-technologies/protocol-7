@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = ticker.cmd.set_speed
+# descr = change ticker scroll speed
+
+my $new_speed = $$call{'args'} // '';
+
+if (   !length($new_speed)
+    or $new_speed !~ /^\d+(\.\d+)?$/
+    or $new_speed < 5
+    or $new_speed > 42 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'scroll speed expected [5..42]'
+    };
+} elsif ( $new_speed == <ticker.speed> ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'scroll speed is already at ' . <ticker.speed>
+    };
+} else {
+    <ticker.speed> = $new_speed;
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf( 'scroll speed now %.1f', $new_speed )
+    };
+}
+
+#,,.,,,,,,..,,,,,,...,,..,.,.,.,.,,,.,.,,,...,..,,...,..,,..,,..,,,,.,.,.,,.,,
+#RPSNHUIMCLSRJB6WOUJYJDUTD4BSVXYYEHADNP5INEKDXJAAEBJQ2DF3DVIHHMDJJG7PJFMNSPAJW
+#\\\|JAVHJQGLFVEKGJ27J4E2RPXNFDDTUZHWI4SWIJYSJVFF4FJYFVI \ / AMOS7 \ YOURUM ::
+#\[7]XJQHAV2UCFFDRWBWQQ4M32FGWXWAMKLKLJVW73CREUP2VH3J7GAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

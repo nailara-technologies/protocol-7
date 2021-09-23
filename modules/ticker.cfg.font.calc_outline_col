@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = ticker.cfg.font.calc_outline_col
+
+my $ovf = shift // 0.94;    ## <-- HSV outline value factor [ auto-calc ] ##
+
+my $ticker_cfg_value = <ticker.cfg> // {};
+
+## degrees apart [ when rotating ] ##
+<ticker.outline-deg-step> //= $ticker_cfg_value->{'outline-deg-steps'};
+
+##  hue distance limit during rotation  ##
+<ticker.outline-hue-distance-limit>
+    //= $ticker_cfg_value->{'out-hue-distance-limit'};
+
+my @outline_RGB_colors;     ##  4 colors in rotating outline color mode  ##
+
+my $c = Convert::Color->new( sprintf qw| rgb:%s,%s,%s |,
+    <ticker.font.color>->@* );
+
+my $hc = $c->convert_to(qw| hsv |);
+
+my $new_value = $ticker_cfg_value->{'font.outl_value_factor'}
+    // sprintf qw| %.3f |,
+    abs( $ovf - sprintf( qw| %.0f |, $hc->value ) );
+
+<ticker.color.outline_deg> = $hc->hue;    ## start value ##
+
+##[ outline base color ]##
+my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
+
+if ( <[base.cfg_bool]>->( $ticker_cfg_value->{'rotate_outline_col'} ) ) {
+    my $calc_time_current = <[base.time]>->(2);
+    <ticker.outline_col_calc_time> //= $calc_time_current;
+    my $seconds_delta = $calc_time_current - <ticker.outline_col_calc_time>;
+
+    my $hue_deg = $seconds_delta * $ticker_cfg_value->{'outline_speed'};
+
+    if ( $hue_deg >= 360 ) {
+        while ( $hue_deg >= 360 ) { $hue_deg -= 360 }
+        <ticker.outline_col_calc_time> = $calc_time_current;
+    }
+
+    ##  rotate outline color  ##
+    ##
+    my $center_deg;
+    if ( <ticker.outline.rotation_direction> eq qw| CCW | ) {
+        $center_deg = <ticker.color.outline_deg> = 360 - $hue_deg;
+    } else {    ## clockwise rotation [default] ##
+        $center_deg = <ticker.color.outline_deg> = $hue_deg;
+    }
+
+    if (    $ticker_cfg_value->{'dynamic_speed'}
+        and $ticker_cfg_value->{'dynamic_speed'} != 1 ) {
+
+        my $accel_sin = sprintf qw| %.3f |,
+            abs( cos( deg2rad( $hc->hue + $hue_deg ) ) );
+
+        $center_deg -= $accel_sin * $ticker_cfg_value->{'dynamic_speed'};
+        while ( $center_deg < 0 ) { $center_deg += 360 }
+    }
+
+    my $oc = Convert::Color::HSV->new( $center_deg, $hc->saturation,
+        $new_value );
+
+    <ticker.color.outline> = $oc->as_rgb8->hex;
+    <ticker.ol_col>        = [ $oc->rgb ];
+
+    ##  four outline colors [ rotating hue ]  ##
+
+    my $color_deg = sprintf qw| %.4f |,
+        $center_deg + 1.5 * <ticker.outline-deg-step>;
+
+    while ( $color_deg >= 360 ) { $color_deg -= 360 }
+
+    for ( 0 .. 3 ) {
+
+        my @pos_RGB = $hc->rgb;    ## base color ##
+
+        my $step_HSLRGB = [
+            Convert::Color::HSV->new(
+                $color_deg, $hc->saturation,
+                <ticker.outline-hue-distance-limit>
+            )->rgb
+        ];
+
+        foreach my $c_index ( 0 .. 2 ) {
+            $pos_RGB[$c_index] += $step_HSLRGB->[$c_index];
+            $pos_RGB[$c_index] = 1 if $pos_RGB[$c_index] > 1;
+        }
+
+        push @outline_RGB_colors, \@pos_RGB;
+
+        $color_deg -= <ticker.outline-deg-step>;
+        while ( $color_deg < 0 ) { $color_deg += 360 }
+    }
+
+} else {    ##  single outline color  ##
+
+    my $oc = Convert::Color::HSV->new( <ticker.color.outline_deg>,
+        $hc->saturation, $new_value );
+
+    <ticker.color.outline> = $oc->as_rgb8->hex;
+    <ticker.ol_col>        = [ $oc->rgb ];
+
+    @outline_RGB_colors = ( [ $oc->rgb ] );    ##  single outline color  ##
+}
+
+return @outline_RGB_colors;
+
+#,,.,,,,,,.,,,,..,...,,.,,.,,,,,,,,..,.,,,..,,..,,...,...,,..,,.,,.,,,..,,,.,,
+#55NTARDLDGPP6TAIT4JAHN5I3PDH7QPPHIMSNDKL2MU2LXT7LA3QH6MDLC3XTD7KP5QOASDOD4MDU
+#\\\|3KK7XY73EE4PFZ62MIR6KIGB442R6CQUQSSNIMCMGFV2BR6JMPT \ / AMOS7 \ YOURUM ::
+#\[7]2CS2VODQBZPU3MG4KJKO7PYPZCLY5CYG3OEN5NG6SBTBW7YZHQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

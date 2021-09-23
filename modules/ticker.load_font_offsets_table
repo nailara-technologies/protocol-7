@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = ticker.load_font_offsets_table
+
+my $loaded_matching = FALSE;
+
+if ( exists <ticker.font.known_offsets>->{<ticker.font.name>} ) {
+    my $font_name = <ticker.font.name>;
+    my $offset_params    ##  CUSTOM FONT OFFSETS [ NEEDS AUTO-CALC ]  ##
+        = <ticker.font.known_offsets>->{$font_name};
+    next if ref $offset_params ne qw| HASH |;
+    <[base.logs]>->( "loading custom offsets for font '%s'", $font_name );
+    foreach my $type (qw| y-offset.percent scale-offset |) {
+
+        if ( not defined <x11.window.height> ) {
+            warn 'window height not defined';
+            return undef;
+        }
+
+        ##  scale offset not implemented yet  ##
+        next if $type eq qw| scale-offset |;
+
+        <ticker.font.y-offset> = sprintf qw| %.0f |,
+            <x11.window.height> * ( $offset_params->{$type} / 100 )
+            if not defined <ticker.font.y-offset>
+            and exists $offset_params->{$type};
+
+        $loaded_matching = TRUE if not $loaded_matching;
+    }
+}
+
+return $loaded_matching;
+
+#,,.,,,,,,,.,,.,.,,..,.,.,,.,,..,,...,...,.,.,..,,...,...,.,.,.,.,...,..,,.,,,
+#RX5OD3BQLDZHVJICR25OGEQGFPGCYGJDZULWRQMOL27IA5YHT7DEGBHEN43AUU76MBUWC2BBCGQ2W
+#\\\|2ENNHY4JRXIWVX6XX2ZCLAA7UNXPPKGPPH3PR32Q6PGSPXQHLS5 \ / AMOS7 \ YOURUM ::
+#\[7]AY5DIELU3WLTDYJ3WHMAXPHDM6IK7UIRTKQHDB52N7X6VKGX5ECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

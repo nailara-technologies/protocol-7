@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = ticker.cmd.slow_down
+# param = [target_%]
+# descr = trigger slowing down autoscroll FPS
+
+my $percent = $$call{'args'};
+$percent =~ s|%$|| if defined $percent;
+return { 'mode' => qw| false |, 'data' => 'expected percent value [0..100]' }
+    if length($percent)
+    and ( $percent !~ /^\d+$/ or $percent > 100 );
+
+my $param_str = defined $percent ? " [$percent%]" : '';
+<[base.log]>->( 1, "<i> received slow_down command" . $param_str );
+
+if ( defined $percent ) {
+
+    if ( exists <ticker.timer.auto_slowdown> ) {
+        <ticker.timer.auto_slowdown>->cancel;
+        delete <ticker.timer.auto_slowdown>;
+    }
+
+    <ticker.auto_speed_mode>         = 1;          # LLL
+    <ticker.slowdown.percent_target> = $percent;
+    <ticker.slowdown.percent_target> //= 0;
+
+    return {
+        'mode' => qw| true |,
+        'data' => "slow down target set to ${percent}%"
+    };
+} else {
+
+    undef <ticker.slowdown.percent_target>;
+    <ticker.auto_speed_mode> = 1;
+    <[ticker.enable_auto_speed]>;
+
+    return {
+        'mode' => qw| true |,
+        'data' => "slow down mode 'auto' activated"
+    };
+}
+
+#,,,.,,,.,...,.,.,.,,,.,,,.,,,,,,,.,.,,.,,.,,,..,,...,..,,...,..,,,..,,,.,...,
+#O426YF2PBRGSHA47MH4QE6YHCCKJJ6EGT7AMJW542HXUKAJDDPDZ6RTJGS7BKVFZX2W7SLHTYGAKS
+#\\\|BHHOE5PDK6G426VEGU4C5IWR6JRWECD5QYY3QQAW6OCZ25ORSIC \ / AMOS7 \ YOURUM ::
+#\[7]LHDXZPXA7ITJU353FKN6ZVSB36OEPO5WBGOOBVRLJV5426CIQQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

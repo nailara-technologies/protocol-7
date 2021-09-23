@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = ticker.cmd.reread_config
+# descr = reload json config file
+# todo  = LLL: handle only changed set-up
+
+return { 'mode' => qw| false |, 'data' => 'currently disabled! (buggy)' };
+
+<[set-up.json.import_file]>->('ticker.set-up.json');
+
+my $font_name = <ticker.font.name>;
+my $font_path = <ticker.font.path> . '/' . $font_name . '.ttf';
+my $freetype  = Font::FreeType->new;
+my $ft_face   = $freetype->face($font_path);
+
+<ticker.font.face> = Cairo::FtFontFace->create($ft_face);
+
+if ( defined <ticker.current_file> and -f <ticker.current_file> ) {
+    delete <ticker.content>;
+    delete <ticker.draw>;
+    <[ticker.cmd.read_file]>->(<ticker.current_file>);
+}
+
+<[base.init_modules]>;
+
+return { 'mode' => qw| true |, 'data' => 'config reloaded' }
+
+#,,,,,,.,,,.,,.,,,,.,,.,.,..,,,.,,..,,.,.,.,,,..,,...,...,.,,,...,.,.,.,,,.,,,
+#GY4JEOYH5IIUOLULZSNSBU4ZCL7LJGCQOU72DROW7OUIUOZ65KOPEVQ5QSMYHWUL55OJKLUOFP5O4
+#\\\|MPK4WULSTIQSQL3DTSXCGF7GQGAS65M52SP6GPUGCUEBSVTGMIA \ / AMOS7 \ YOURUM ::
+#\[7]7LOEXLKPD5RVMYQLME2XOTJ7LJAYKRFOA7DTUTFKZYGGG4UPJ6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

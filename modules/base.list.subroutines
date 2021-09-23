@@ -85,6 +85,8 @@ return [ qw[
         v7.zenka.start
         v7.start_count
         udev.init_code
+        ticker.startup
+        ticker.rgb_col
         plnx.init_code
         mpv.cmd.resume
         mpv.cmd.append
@@ -180,6 +182,10 @@ return [ qw[
         base.calc_gauss
         amos7.init_code
         X-11.ungrab_key
+        ticker.main_loop
+        ticker.init_code
+        ticker.cmd.pause
+        ticker.calc_incr
         system.init_code
         source.sign_data
         source.init_code
@@ -247,6 +253,8 @@ return [ qw[
         v7.find-AMOS-user
         universal.startup
         udev.reload_rules
+        ticker.parse_text
+        ticker.cmd.resume
         ssl.cmd.read_data
         power.save_config
         power.read_states
@@ -314,8 +322,8 @@ return [ qw[
         v7.available_zenki
         v7.autostart_zenki
         universal.pre_init
-        ticker-gtk.startup
-        ticker-gtk.rgb_col
+        ticker.open_window
+        ticker.calc_colors
         test.filter.hex.in
         ssl.client_handler
         power.cmd.show_all
@@ -390,6 +398,7 @@ return [ qw[
         v7.init_start_setup
         v7.handler.sig_chld
         universal.init_code
+        ticker.calc-col.RGB
         test.filter.hex.out
         system.cmd.hostname
         ssl.connect_handler
@@ -459,10 +468,11 @@ return [ qw[
         v7.terminate_process
         v7.process_zenka_end
         v7.parser.process_id
-        ticker-gtk.main_loop
-        ticker-gtk.init_code
-        ticker-gtk.cmd.pause
-        ticker-gtk.calc_incr
+        ticker.cmd.slow_down
+        ticker.cmd.set_speed
+        ticker.cmd.read_file
+        ticker.cmd.get_speed
+        ticker.callback.draw
         storchencam.sdl_loop
         start-anim.init_code
         sourcecode.post_init
@@ -568,8 +578,7 @@ return [ qw[
         universal.start_zenka
         universal.hide_except
         tile-groups.init_code
-        ticker-gtk.parse_text
-        ticker-gtk.cmd.resume
+        ticker.process_subcfg
         storchencam.init_code
         source.valid_src_name
         set-up.json.init_code
@@ -671,8 +680,8 @@ return [ qw[
         universal.lower_except
         universal.get_playlist
         universal.cmd.get_list
-        ticker-gtk.open_window
-        ticker-gtk.calc_colors
+        ticker.start_animation
+        ticker.handler.fade_in
         system.process.cmd.top
         start-anim.open_window
         source.signature_valid
@@ -772,7 +781,6 @@ return [ qw[
         universal.cmd.slow_down
         udev.handler.adm_stdout
         tile-groups.sort_layers
-        ticker-gtk.calc-col.RGB
         system.process.autokill
         system.cmd.pid_autokill
         system.cmd.abort-reboot
@@ -868,11 +876,9 @@ return [ qw[
         universal.cmd.dump_state
         udev.set-up.import_rules
         udev.set-up.export_rules
-        ticker-gtk.cmd.slow_down
-        ticker-gtk.cmd.set_speed
-        ticker-gtk.cmd.read_file
-        ticker-gtk.cmd.get_speed
-        ticker-gtk.callback.draw
+        ticker.enable_auto_speed
+        ticker.content_substring
+        ticker.cmd.reread_config
         system.process.post_init
         system.process.init_code
         system.cleanup.init_code
@@ -966,7 +972,9 @@ return [ qw[
         v7.cancel_instance_timers
         universal.stop_start-anim
         tile-groups.cmd.get-layer
-        ticker-gtk.process_subcfg
+        ticker.set_default_values
+        ticker.request_rss_update
+        ticker.font.offsets_table
         source.load_signature_key
         set-up.cmd.create-profile
         rss.ticker.fetch.multiple
@@ -1052,8 +1060,8 @@ return [ qw[
         universal.cmd.get_geometry
         tile-groups.merge_multiple
         tile-groups.cmd.tile-count
-        ticker-gtk.start_animation
-        ticker-gtk.handler.fade_in
+        ticker.set-up.import_rules
+        ticker.cmd.current_content
         system.memory.cmd.mem-used
         system.cmd.reenable-reboot
         system.cleanup.check_tasks
@@ -1218,9 +1226,8 @@ return [ qw[
         universal.cmd.get_list_types
         tile-groups.handler.sig_term
         tile-groups.cmd.get_geometry
-        ticker-gtk.enable_auto_speed
-        ticker-gtk.content_substring
-        ticker-gtk.cmd.reread_config
+        ticker.handler.auto_slowdown
+        ticker.cmd.current_substring
         terminal.curses_ui.load_lang
         system.cmd.report-X-11-error
         system.cmd.reload_gfx_module
@@ -1295,9 +1302,7 @@ return [ qw[
         tile-groups.cmd.get_subconfig
         tile-groups.cmd.get-underscan
         tile-groups.cmd.assign_window
-        ticker-gtk.set_default_values
-        ticker-gtk.request_rss_update
-        ticker-gtk.font.offsets_table
+        ticker.handler.gpu_load_reply
         system.handler.X-11_restarted
         system.handler.X-11_pid_reply
         system.callback.xcrash_reboot
@@ -1376,8 +1381,8 @@ return [ qw[
         tile-groups.cmd.remove_overlay
         tile-groups.cmd.gpu_load_alert
         tile-groups.cmd.get-tile-color
-        ticker-gtk.set-up.import_rules
-        ticker-gtk.cmd.current_content
+        ticker.load_font_offsets_table
+        ticker.handler.get-layer_reply
         rss.ticker.warn_urls_undefined
         rss-ticker.set-up.import_rules
         rss-ticker.set-up.export_rules
@@ -1440,6 +1445,7 @@ return [ qw[
         tile-groups.set-up.export_rules
         tile-groups.cmd.get_coordinates
         tile-groups.cmd.base-tile-group
+        ticker.callback.request_updates
         system.handler.mod_reload_reply
         screenshot.cmd.get_region_color
         osd-logo.handler.download_reply
@@ -1486,8 +1492,7 @@ return [ qw[
         universal.handler.get_list_reply
         tile-groups.cmd.show-tile-groups
         tile-groups.cmd.reset-tile-group
-        ticker-gtk.handler.auto_slowdown
-        ticker-gtk.cmd.current_substring
+        ticker.cfg.font.calc_outline_col
         system.xcrash_hostreboot_trigger
         system.process.handler.wait_gone
         system.handler.X-11_driver_reply
@@ -1542,7 +1547,6 @@ return [ qw[
         universal.callback.mpv_idle_check
         tile-groups.cmd.switch-tile-group
         tile-groups.calculate_coordinates
-        ticker-gtk.handler.gpu_load_reply
         system.process.callback.send_kill
         start-anim.callback.report_online
         rss.ticker.handler.get_list_reply
@@ -1589,8 +1593,7 @@ return [ qw[
         v7.callback.cleanup_instance_cache
         universal.handler.image2html_reply
         tile-groups.handler.bg_color_reply
-        ticker-gtk.load_font_offsets_table
-        ticker-gtk.handler.get-layer_reply
+        ticker.handler.resend_update_reply
         sourcecode.console.update-sub-list
         sourcecode.console.subroutine-list
         source.harmonize_payload_line_feed
@@ -1624,7 +1627,6 @@ return [ qw[
         v7.zenka.instance.cmd.change-status
         v7.handler.heartbeat_timer_response
         tile-groups.callback.start_osd_logo
-        ticker-gtk.callback.request_updates
         terminal.curses_ui.modified.english
         protocol.sftp.handler.session_close
         protocol.amos-chksum.ext-cmd.select
@@ -1647,7 +1649,6 @@ return [ qw[
         universal.handler.start-anim_timeout
         universal.handler.start-anim_started
         tile-groups.callback.poll_tile_color
-        ticker-gtk.cfg.font.calc_outline_col
         system.process.handler.collect_table
         sourcecode.console.update-signatures
         source.restore_payload_endline_state
@@ -1679,7 +1680,6 @@ return [ qw[
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
         tile-groups.handler.root_restart_reply
-        ticker-gtk.handler.resend_update_reply
         protocol.sftp.terminate_server_process
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
@@ -1741,8 +1741,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,..,,.,.,,,,,,,,,,..,...,.,,,.,.,...,...,.,.,...,...,,,,,,,.,.,.,,,,,...,
-#RW7HKROVKKSAC34ZCQR4QWXS2KQMORKJOBWD42U6A3DRKZ54A5ZQFREDVQMEH5RCYKY5ZYNRCIKYC
-#\\\|W5XVZ2MRSRREBVAQSZCO6JUIC3YFR34DG4L7DZDBZ47BMSR7MSF \ / AMOS7 \ YOURUM ::
-#\[7]H2GTXQI3ZUB24373GGO3QQZCQHKRHY5233DKWFMQQVVVWMTLCCCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,,.,,..,,..,.,,,.,.,.,,,.,,,.,.,...,..,,,.,,..,,.,,,..,,,.,,
+#VNM577ZRY3U4YFN2L7SLYCTF2Y6TFRN7667HZ5JYQ2VA7QJ3ENLMYNUCIWJATLYPO3MKLJQADX2BC
+#\\\|43KWSHIGWRRORKVHPEG5IY22ECI2SYJNDIFPJOKIN73PBROZRA6 \ / AMOS7 \ YOURUM ::
+#\[7]EK7UW7YWF6ZOV4LP6KFD64ZYX5HX4P2BHXT74C4IN57IVFKVY6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

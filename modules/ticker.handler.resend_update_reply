@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = ticker.handler.resend_update_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+    <[base.log]>->( 2, "'resend_update' command was successful =)" );
+} else {
+    <[base.log]>->( 0, "'resend_update' failed! retrying..." );
+    <[event.add_timer]>
+        ->( { 'after' => 1.2, 'handler' => 'ticker.request_rss_update' } );
+}
+
+#,,..,.,,,,..,.,.,...,,,,,.,.,,,.,,..,..,,,,.,..,,...,...,,,.,,.,,...,,,.,.,,,
+#7NNQTZJNSBRGWVBO4IIUZUMGQQ2LP4EREAUAZ74QHDEKB5H3MTSPLN3MAQP2T5KTJQJ35FB4HLX2Y
+#\\\|KCF4XKUBPQPOID67ZMCYL5PKMLQQXDISOI3HFQIDXQD4RX4R3TW \ / AMOS7 \ YOURUM ::
+#\[7]P4GSOVWUQEXYUJRUFSCLB7OP5ELJKQXZS7QDVZJ6DS7YH6II5UAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
