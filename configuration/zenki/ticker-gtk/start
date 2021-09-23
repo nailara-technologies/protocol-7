@@ -51,18 +51,29 @@ modules.load = auth net protocol io.unix ticker-gtk  ## devmod
 
 [base.net.connect:'unix']
 
+## fetching X-11 background color ##
+ticker-gtk.cfg.bg_col = [base.X-11.get_bg_color]
+
+# ticker-gtk.cfg.alpha.fg = 97     ##  <--  adjusted values for lighter bg  ##
+# ticker-gtk.cfg.alpha.bg = 47
+# ticker-gtk.cfg.alpha.outline = 47
+
+[ticker-gtk.calc_colors:0.63] ## recalculating ##
+##
+
 X.fb_vp = 95  ## vertical fallback position [top] ##
 X.fb_h  =  5  ## fallback height [ in percent ] ##
 
 [base.X-11.get_display]
 [base.X-11.get_coordinates:undef,undef,undef,undef,<X.fb_vp>,<X.fb_h>]
+
 ticker-gtk.subcfg = [base.X-11.get_subconfig]
 [ticker-gtk.process_subcfg]
 
 [ticker-gtk.startup]
 
-#,,.,,,.,,,..,.,.,.,,,,.,,...,,.,,...,..,,,..,.,.,...,...,...,,,,,..,,...,...,
-#NCG3C6L2X4APT24BXD4MPIR4QRR4XTVLNWP6CMO3AFYGXBXL7SAY7K7WLN2SFUEMVVP2VF5MHGURW
-#\\\|IGXP7TLGQXPDPUY34GPQIM63WB3JM7F7MSZDFAT44RHWAMWGCKP \ / AMOS7 \ YOURUM ::
-#\[7]HJ2V77QUINKTJ6DBSLCI7RLVOUS34RAFQK7YJXASXCSAM27ERKDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,..,,.,,.,.,,..,...,,..,,..,.,.,...,..,,.,.,...,...,,.,,,,.,
+#22AOCOBFWFPVUJTIK45HD2O4ZKSHGTWFBSP6EJCNHQMFPSDAP7MOAUKSI7BYUXP2A2RSUKIAFZNPA
+#\\\|UYHRKW2WWONQHVGRTSKJB5JXPS5IDOZEEJGPJRTYRAOGWISGZMV \ / AMOS7 \ YOURUM ::
+#\[7]AMTTWWO2PLF4WOLLUGEZ5P2XWF6KAMYM2T2BEWST2OK5LMLFYKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
