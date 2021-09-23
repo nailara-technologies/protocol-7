@@ -38,20 +38,6 @@ Glib::Object::Introspection->setup(
 <ticker-gtk.slowdown.percent>    //= 0;
 <ticker-gtk.request_rss_updates> //= FALSE;
 
-if ( exists <ticker-gtk.font.known_offsets>->{<ticker-gtk.font.name>} ) {
-    my $font_name = <ticker-gtk.font.name>;
-    my $offset_params    ##  CUSTOM FONT OFFSETS [ NEEDS AUTO-CALC ]  ##
-        = <ticker-gtk.font.known_offsets>->{$font_name};
-    next if ref $offset_params ne qw| HASH |;
-    <[base.logs]>->( "loading custom offsets for font '%s'", $font_name );
-    foreach my $type (qw| y-offset scale-offset |) {
-        ##  scale offset not implemented yet  ##
-        <ticker-gtk.font.y-offset> = $offset_params->{$type}
-            if not defined <ticker-gtk.font.y-offset>
-            and exists $offset_params->{$type};
-    }
-}
-
 <base.callback_hooks.async_online> = ['ticker-gtk.callback.request_updates'];
 
 ## LLL ###
@@ -88,8 +74,8 @@ if ( exists <ticker-gtk.font.known_offsets>->{<ticker-gtk.font.name>} ) {
 
 0;
 
-#,,,.,...,...,,.,,,,,,..,,.,.,.,.,,,,,,.,,,..,.,.,...,..,,...,..,,,..,.,,,.,,,
-#B4WJJDEXKRPDL2WQDYAU3KIXOG3P56AT4OY44H3RKWUMAZUGCGWORDYE3BWWSPFQALIT4Y2NZQDFK
-#\\\|VPC237VBRB75PHYODBWAK4G6KMHWXN2HAEV2LZ7IJXUVMSHDIFQ \ / AMOS7 \ YOURUM ::
-#\[7]CXL4GZTSDOKUXXRNSNT5NDJMXHJUZM7SLM3EOU2BQ22PL77NQ4BY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,.,,,.,.,,,...,.,.,..,,...,,.,,.,.,...,...,...,.,,,..,,...,..,,
+#SD3APTYAQMLNLITF4XO5Z7RDNRHXIBGUVLNGVTB26ANLDTKHEHUEW35HDBI4MWJYJXECGWPYIA4GO
+#\\\|3F5QGQZASGXHA55MP2UBS5XAW3XIVHOA47WLELOAGLOUHDIYFSJ \ / AMOS7 \ YOURUM ::
+#\[7]Y5VN5YZIG5R3EUBDUKFTVAPWN6VHN6HK6AL7KFM5H3YAFFS7Q4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
