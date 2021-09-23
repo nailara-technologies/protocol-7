@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = ticker.start_animation
+
+<[base.log]>->( 1, "<<... starting ticker text animation ...>>" );
+
+my $window = <ticker.obj.window>;
+
+<ticker.animation_started> = 1;
+
+if ( <ticker.is-iconified>-- ) {
+    <ticker.obj.window>->deiconify;
+    <[base.log]>->( 1, 'deiconifying..,' );
+}
+
+$window->queue_draw();
+<[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => 0.017,
+        'handler'  => 'ticker.handler.fade_in'
+    }
+) if <ticker.use_transparency> and <ticker.do_custom_fade_in>;
+
+#,,..,.,.,,,.,.,,,.,,,.,,,,,,,,,.,,..,.,.,.,,,.,.,...,...,,.,,,,.,.,,,.,,,...,
+#5JMTYDBQCZ2CPHJL73RYPEGLIP6XXZX4GSKYFKPL26OMH6YNRVY7KDUPX2BIEDTDSWIM375PXQIN4
+#\\\|6LGSJ44TD7BLXGWT3VRLBPUL6B3QE2NZQARGTXWYYGMT5CZ5HJ7 \ / AMOS7 \ YOURUM ::
+#\[7]GVHEXZL52BRRKOUUDTCB63J5OJPXHK2FCECIOXXZXZJNCAONCIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

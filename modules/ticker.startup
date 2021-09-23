@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = ticker.startup
+
+<[base.log]>->( 1, 'fetching layer setup.,' );
+
+<x11.title_str>
+    = defined <system.zenka.subname>
+    ? sprintf( qw| %s[%s] |, <system.zenka.name>, <system.zenka.subname> )
+    : <system.zenka.name>;
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.tile-groups.get-layer |,
+        'call_args' => { 'args'    => <x11.title_str> },
+        'reply'     => { 'handler' => qw| ticker.handler.get-layer_reply | }
+    }
+);
+
+<[ticker.set_default_values]>;
+
+<[ticker.main_loop]>;
+
+#,,,.,,,.,...,..,,,.,,,.,,,.,,...,...,...,..,,..,,...,...,..,,.,.,,,.,..,,,,,,
+#Y35AJFS76ZARB2AJ5BAFQKVLLK45K3ISAL6TTGSWUOUTCYR3WWBG2HTONNU5FZZDACMWWLFKZM2O6
+#\\\|NBRQHGMEDW6E33WUGNSCTE4AZBN2PJDLHIWOYMVDP2RBA37ZH6J \ / AMOS7 \ YOURUM ::
+#\[7]EK3PKJBI4CFZEU6UOX5DENETWFZVQUWISFDF2IEHW7H47LIZ7WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

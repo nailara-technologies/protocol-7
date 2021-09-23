@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = ticker.cmd.current_substring
+# descr = show visible content substring bracket
+
+return { 'mode' => qw| false |, 'data' => "no visible content present" }
+    if not defined <ticker.last_substr>
+    or not defined <ticker.last_substr>->[1];
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '"%s"', <ticker.last_substr>->[1] )
+    }
+
+#,,..,,..,...,.,.,,,.,,.,,.,,,.,.,,.,,.,.,,,.,..,,...,...,..,,,,,,.,,,...,.,.,
+#Z6JLSWYCQEM7BUHQGHCIWAZ3X34W3FGWUXELOBOQFZC7TXSX66OJF3ILVISSZQ3KRKHWXWRS2GGMU
+#\\\|KG3AM4AUEIQKKMWLO6343WRDYBFWWXVKAYCO3J3CX7AZ4YKXVSB \ / AMOS7 \ YOURUM ::
+#\[7]IGNHUJIQP22WTHVO3XNXPHUI45BLNHQGSMIND4PER5S3NFYIL4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

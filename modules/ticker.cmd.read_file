@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = ticker.cmd.read_file
+# param = <path>
+# descr = update ticker from file
+
+my $file_path = $call->{'args'};
+my $sid       = $call->{'session_id'};
+my $err_msg;
+$err_msg = 'no read permission on file' if -f $file_path and !-r $file_path;
+$err_msg = 'no such file path exists'   if !-f $file_path;
+
+<[base.log]>->( 0, "[$sid] $err_msg [ $file_path ]" )
+    and return { 'mode' => qw| false |, 'data' => $err_msg }
+    if defined $err_msg;
+
+<ticker.content.chksum> //= '';
+my $content_chksum = <[chk-sum.bmw.filesum]>->( 224, $file_path );
+
+if ( $content_chksum eq <ticker.content.chksum> ) {
+    <[base.log]>->( 2, "content unchanged, update skipped.," );
+    return { 'mode' => qw| true |, 'data' => 'source content unchanged' };
+}
+
+<ticker.content.chksum> = $content_chksum;
+<ticker.content.txt>    = ${ <[file.slurp]>->($file_path) };
+<ticker.content.len>    = length(<ticker.content.txt>);
+
+<ticker.content.txt> =~ s|\s+| |sg;
+<ticker.content.txt> =~ s,^ | $,,g;
+
+<[ticker.parse_text]>->(<ticker.content.txt>);
+
+<ticker.current_file> = $file_path;
+
+<[base.log]>->(
+    1,
+    sprintf( ': ticker text content updated [ %d bytes ]',
+        <ticker.content.len> )
+);
+<[base.log]>->( 2, "[ $content_chksum ]" );
+
+<[ticker.start_animation]> if !<ticker.animation_started>;
+
+return { 'mode' => qw| true |, 'data' => 'ticker display content updated' }
+
+#,,.,,,.,,.,,,,..,..,,,.,,.,.,,,.,,..,...,,..,..,,...,...,,,.,...,,..,,..,.,,,
+#7ENP4XIJSA27YS5LEGSBTCT4BS2XMFPZHE66BX5KY3VQAPXJKYOWVKYINGLNGR6YBZKB3ANLHETTO
+#\\\|XFDGL4ZTSW6C3CIXB6ZSF7QFACLOSSGLJUVU6I74TAWAV63BH6I \ / AMOS7 \ YOURUM ::
+#\[7]OM6MZJAPN655EZPGS37UPMAPU4XGZX2NIBQY56MJOCYUHWJP4OAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

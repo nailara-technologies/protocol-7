@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = ticker.enable_auto_speed
+# descr = applies GPU load limit by automatically decreasing scroll speed
+
+<ticker.interval.auto_slowdown> //= 0.63;
+<ticker.cfg.max_gpu_load>       //= 67;     # setting sane(?) defaults ..,
+
+if ( exists <ticker.timer.auto_slowdown> ) {
+    <ticker.timer.auto_slowdown>->cancel;
+} else {
+    my $target_load = <ticker.cfg.max_gpu_load>;
+    <[base.log]>->(
+        0,
+        ": activating GPU load auto-speed mode << ! >> [limit=${target_load}%]"
+    );
+    undef <ticker.slowdown.percent_target>;
+}
+<ticker.timer.auto_slowdown> = <[event.add_timer]>->(
+    {   'after'    => 0,
+        'interval' => <ticker.interval.auto_slowdown>,
+        'handler'  => 'ticker.handler.auto_slowdown'
+    }
+);
+
+#,,,.,,..,.,.,.,,,.,.,.,,,...,..,,.,.,,.,,,,.,..,,...,...,,.,,,.,,,,.,.,.,...,
+#RE2JCC6LDN4GI3RQBAFDN7XF6QPGMFWDOH77MHYXP3SOT66UFAEX4ZQ2PFO7YLVOVZYDVRQNUQHSI
+#\\\|TJKLHXWLG2SEDEYSQHQW236IXFT3CRKKZN2L2MDGI75CIT43HL2 \ / AMOS7 \ YOURUM ::
+#\[7]TABUHGTDLVT6VG5R4YLWUX6B5E4Y53MOBAMRCJ4HATPWMKSXNWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

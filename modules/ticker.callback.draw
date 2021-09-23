@@ -1,0 +1,300 @@
+## [:< ##
+
+# name = ticker.callback.draw
+
+my ( $widget, $context, $ref_status ) = @ARG;
+
+<ticker.status.initialized> //= FALSE;
+<ticker.last_time>          //= <[base.time]>->(8);
+
+##
+
+my $alpha_fg      = <ticker.alpha.fg> / 100;
+my $outline_alpha = <ticker.alpha.outline> / 100;
+
+##
+
+<ticker.draw.x_pos> //= <x11.window.width> + 64;    # <- LLL: calc.
+
+my $window = <ticker.obj.window>;
+
+#if ( <ticker.status.initialized> and $window->get_property('visible')
+#    or not <ticker.animation_started> and not <ticker.paused> ) {
+#    <ticker.obj.window>->queue_draw();
+#}
+
+if (<ticker.status.initialized>
+    and (  not $window->get_property('visible')
+        or not <ticker.animation_started> )
+) {
+
+    if ( not <ticker.is-iconified>++ ) {
+        <[base.log]>->( 1, 'iconifying window..,' );
+        <ticker.obj.window>->iconify;
+    }
+    ## investigate the need for this ., event loop ? ## [LLL]
+    Glib::Timeout->add(
+        4200,
+        sub {
+            if ( not <ticker.animation_started> ) {
+
+                <[base.log]>->(
+                    1, 'no ticker content received yet, waiting ..,'
+                ) if <ticker.count.logged-no-content>++ == 0;
+
+                <[ticker.callback.draw]>->( $widget, $context, $ref_status );
+            }
+            return FALSE;
+        }
+    );
+    return TRUE;
+}
+
+<ticker.obj.window>->queue_draw() if not <ticker.paused>;
+
+<ticker.obj.context> = $context;
+
+if ( not defined <ticker.speed> ) {
+    <ticker.speed> //= <ticker.default_speed> // 7;    # internal default
+    <[base.logs]>->(
+        'ticker scroll speed undefined [using default : %s]',
+        <ticker.speed>
+    );
+} else {
+    <ticker.speed_logged> //= FALSE;
+    <ticker.speed> = 5  if <ticker.speed> < 5;
+    <ticker.speed> = 42 if <ticker.speed> > 42;
+    <[base.logs]>->(
+        'initializing with ticker scroll speed = %s',
+        <ticker.speed>
+    ) if not <ticker.speed_logged>++;
+}
+
+<ticker.slowdown.percent> = 0
+    if <ticker.slowdown.percent> < 0
+    or <ticker.slowdown.percent> > 100;
+
+if (   not $window->is_composited
+    or not <ticker.use_transparency> ) {
+    $context->set_source_rgb( <ticker.bg-color>->@* );
+    $context->paint;
+} else {
+    my $screen = $window->get_screen();
+    my $rgba   = $screen->get_rgba_visual();    # [LLL] auto-update ?
+    if ( not $rgba ) {
+        <ticker.use_transparency> = FALSE;
+    } elsif ( <ticker.use_transparency>
+        and ref <ticker.bg-color> eq qw| ARRAY | ) {
+        $window->set_visual($rgba);
+        $context->set_source_rgba( <ticker.bg-color>->@*,
+            ( 100 - <ticker.alpha.bg> ) / 100 );
+        $context->set_operator('source');
+        $context->paint;
+        $context->set_operator('over');
+    } elsif (<ticker.use_transparency>) {
+        warn 'ticker.bg-color not defined';
+    }
+}
+
+my $speed       = <ticker.speed> // 13;
+my $draw_shadow = $speed > 16 ? FALSE : TRUE;
+
+# LLL: initialization part needs to be rewritten ..
+if ( not <ticker.status.initialized> ) {
+
+    <[base.log]>->( 1, 'calculating required font size .,' );
+    my $new_font_size = 0;
+    my $shadow_height = $draw_shadow ? 2 : 0;
+    while ( (
+
+            $context->font_extents->{'height'}
+
+            ## $context->font_extents->{'ascent'} +
+            ##  $context->font_extents->{'descent'}
+
+        ) < <x11.window.height> - $shadow_height
+    ) {
+        $new_font_size++;
+        $context->set_font_size($new_font_size);
+    }
+    <ticker.font.size> = $new_font_size - 1;
+    $context->set_font_size(<ticker.font.size>);
+    <[base.logs]>
+        ->( 'initialized window [font.size=%s]', <ticker.font.size> );
+    <ticker.status.initialized> = TRUE;
+
+    <[base.async.get_session_id]>;    # agent status -> 'online'
+
+    return FALSE;
+}
+
+$context->set_font_face(<ticker.font.face>);
+$context->set_font_size(<ticker.font.size>);
+
+my $txt = <ticker.content.txt> // '';
+
+my $width = $context->text_extents($txt)->{'width'};
+
+<ticker.draw.skipped> //= 0;
+
+my $content_substr = <[ticker.content_substring]>->(<ticker.draw.x_pos>);
+
+my $x_skipped = $content_substr->[0] // 0;
+
+<ticker.draw.skipped_offset> //= 0;
+
+my $x_offset = sprintf( qw| %.0f |,
+    <ticker.draw.x_pos> + $x_skipped - <ticker.draw.skipped_offset> );
+
+<ticker.font.y-offset> //= 0;
+
+my $y_offset    ##  requires better calculation method  ##  [LLL]
+    = <ticker.font.y-offset> + $context->font_extents->{'height'}
+    - $context->font_extents->{'descent'};
+
+if ($draw_shadow) {
+    $context->move_to( $x_offset + 2, $y_offset + 2 );
+    if (<ticker.use_transparency>) {
+        $context->set_source_rgba( 0, 0, 0, 0.13 );
+    } else {
+        $context->set_source_rgb( 0.87, 0.87, 0.87 );
+    }
+    $context->show_text( $content_substr->[1] );
+}
+
+if (<ticker.cfg.draw_outline>) {
+
+    if ( not <[base.cfg_bool]>->(<ticker.cfg.rotate_outline_col>) ) {
+        ##  single outline color  ##
+        if (<ticker.use_transparency>) {
+            $context->set_source_rgba( <ticker.ol_col>->@*, $outline_alpha );
+        } else {
+            $context->set_source_rgb( <ticker.ol_col>->@* );
+        }
+        foreach my $o_y ( -1 .. +1 ) {
+            foreach my $o_x ( -1 .. +1 ) {
+                next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+                $context->move_to( $x_offset + $o_x, $y_offset + $o_y );
+                $context->show_text( $content_substr->[1] );
+            }
+        }
+    } else {    ##  four outline colors [ rotating hue ]  ##
+
+        my @outline_col_ref = <[ticker.cfg.font.calc_outline_col]>;
+
+        foreach my $o_y ( -1 .. +1 ) {
+            foreach my $o_x ( -1 .. +1 ) {
+                next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+
+                my $outline_col_rgb = shift @outline_col_ref;
+                if (<ticker.use_transparency>) {
+                    $context->set_source_rgba( $outline_col_rgb->@*,
+                        $outline_alpha );
+                } else {
+                    $context->set_source_rgb( $outline_col_rgb->@* );
+                }
+
+                $context->move_to( $x_offset + $o_x, $y_offset + $o_y );
+                $context->show_text( $content_substr->[1] );
+            }
+        }
+
+    }
+}
+
+$context->move_to( $x_offset, $y_offset );
+
+if (<ticker.use_transparency>) {
+    $context->set_source_rgba(
+        <ticker.font.color>->[0], <ticker.font.color>->[1],
+        <ticker.font.color>->[2], $alpha_fg
+    );
+} else {
+    $context->set_source_rgb( <ticker.font.color>->@* );
+}
+
+$context->show_text( $content_substr->[1] );
+
+my $delta_t = <[base.time]>->(8) - <ticker.last_time>;
+
+if ( not <ticker.paused> ) {
+
+    if (<ticker.auto_speed_mode>) {    # LLL
+        my $adjust  = 0;
+        my $sl_diff = 0;
+        if ( <ticker.slowdown.percent> != <ticker.slowdown.percent_target> ) {
+            $adjust = sprintf(
+                qw| %.4f |,
+                (         <ticker.slowdown.percent_target>
+                        - <ticker.slowdown.percent>
+                ) / 842
+            );
+            <ticker.slowdown.percent>
+                = sprintf qw| %.4f |,
+                <ticker.slowdown.percent> + $adjust;
+
+            $sl_diff = abs(
+                sprintf qw| %.4f |,
+                <ticker.slowdown.percent_target> - <ticker.slowdown.percent>
+            );
+            <ticker.slowdown.percent> = <ticker.slowdown.percent_target>
+                if $sl_diff <= 0.05;
+        }
+        #
+        $speed -= ( $speed - 5 ) * ( <ticker.slowdown.percent> / 100 );
+    }
+
+    my $ppsec = 1.42 * $speed**1.86;
+
+    my $fps_delay = ( 1 / $ppsec ) - $delta_t;
+
+    if ( $fps_delay > 0 ) {
+        <[base.sleep]>->($fps_delay);
+        $delta_t = <[base.time]>->(8) - <ticker.last_time>;
+    }
+
+    <ticker.draw.x_pos> -= $ppsec * $delta_t;
+
+    if ( <ticker.draw.x_pos>
+        <= -<ticker.content.current.txt_map>->{'total_width'} ) {
+
+        <ticker.draw.x_pos>
+            = <ticker.content.current.txt_map>->{'space_width'};
+
+        <ticker.last_substr> = [];
+        <ticker.switch_at_seq>-- if <ticker.switch_at_seq>;
+
+        <ticker.content.current.txt_map>
+            = delete <ticker.content.queued.txt_map>
+            if exists <ticker.content.queued.txt_map>
+            and not <ticker.switch_at_seq>;
+
+        delete <ticker.switch_at_seq> if not <ticker.switch_at_seq>;
+    }
+
+}
+
+if (<ticker.animation_started>) {
+    if ( not <ticker.paused> ) {
+        $widget->queue_draw();
+    } else {
+        Glib::Timeout->add(
+            457,
+            sub {
+                <ticker.obj.window>->queue_draw();
+                return FALSE;
+            }
+        );
+    }
+}
+
+<ticker.draw.fps>  = sprintf qw| %.2f |, 1 / $delta_t;
+<ticker.last_time> = <[base.time]>->(8);
+
+return TRUE;
+
+#,,.,,,..,,.,,..,,,,.,..,,...,,,,,,,.,,..,..,,.,.,...,..,,.,.,.,.,...,,,,,,,.,
+#X5QKPTM5PC75BYOB63TFUTBWTHSX5JXCZJGTVL7T5V4UFHNCTH2KTH4X775Y3LJPVZNXGXS6TAYVC
+#\\\|ZRCCPWTFKXPCRTHGGFVRUWNHC5B6X3HB6YKQWLBYC7VLWD4HK4S \ / AMOS7 \ YOURUM ::
+#\[7]PJFEAJSNF2MOSVGO2XDEM52REUQJEOSKDIWRKGYKGEYP6QOIJMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

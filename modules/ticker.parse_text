@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = ticker.parse_text
+
+die "font size '0' is not valid <<< aborting >>>" if !<ticker.font.size>;
+
+my $scroll_text = shift;
+my $chars       = ',\.\-:\[\]\?\!\"\<\>\(\)\d';
+my $surface     = Cairo::ImageSurface->create( qw| argb32 |, 1, 1 );
+my $context     = Cairo::Context->create($surface);
+my $bytes       = length $scroll_text;
+
+my $parse_start = <[base.time]>->(3);
+
+$context->set_font_face(<ticker.font.face>);
+$context->set_font_size(<ticker.font.size>);
+
+my $space_width = $context->text_extents(' ')->{'x_advance'};
+my $txt_width   = { ' ' => $space_width };
+my $total_width = $context->text_extents($scroll_text)->{'x_advance'};
+
+##  increasing text length to exceed window width [ avoids jumping ]  ##
+##
+while ( $total_width < ( <x11.window.width> - $space_width ) ) {
+    $scroll_text .= ' ' . $scroll_text;
+    $total_width = $context->text_extents($scroll_text)->{'x_advance'};
+}
+
+my @txt_sequence;
+while ( $scroll_text =~ s{^([\s\^]|[$chars]+|[^$chars\s\^]{1,42})}{} ) {
+    my $string = ${^CAPTURE}[0];
+    push @txt_sequence, $string;
+    next if exists $txt_width->{$string};
+    $txt_width->{$string} = $context->text_extents($string)->{'x_advance'};
+}
+
+my $parse_time = sprintf( qw| %.3f |, <[base.time]>->(3) - $parse_start );
+
+my $txt_map = {
+    'sequence'    => \@txt_sequence,
+    'sizes'       => $txt_width,
+    'total_width' => $total_width,
+    'space_width' => $txt_width->{' '}
+};
+
+if ( not defined <ticker.content.current.txt_map> ) {
+    <ticker.content.current.txt_map> = $txt_map;
+    <[base.logs]>->(
+        2, "%u bytes of content parsed into 'current' slot.,", $bytes
+    );
+} else {
+    <ticker.content.queued.txt_map> = $txt_map;            # ++
+    <ticker.switch_at_seq>          = <ticker.draw_seq>;
+    <[base.logs]>->(
+        2, "%u bytes of content parsed into 'queued' slot..,", $bytes
+    );
+}
+
+<[base.logs]>->( 2, ': parse time = %s seconds.', $parse_time );
+
+<ticker.last_substr> = [];
+
+#,,,.,.,.,.,.,.,.,,..,,,.,,,,,.,,,,.,,,,,,..,,.,.,...,...,...,,..,.,,,...,.,.,
+#LUO5ASRJQYPN63BAMJQ5P5D6OYMGQGLYIYWMCCAN6S4P5BEECKHURHID422D5IHGXPBCOMJTHF33O
+#\\\|224AQ4LMIJFFNX55UU546V6G44UCZLMJLFUFZ4BG7HOMZMYNMQP \ / AMOS7 \ YOURUM ::
+#\[7]UQWZ7NMU2KFP7V3LKDYJY6ZEVTR54VTM4N22VXNSQNGVQWXAMWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
