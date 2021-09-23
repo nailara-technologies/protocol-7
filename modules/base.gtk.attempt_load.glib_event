@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.gtk.attempt_load.glib_event
+# descr = load Glib::Event module if it is installed
+
+my $opt_mod_name = qw| Glib::Event |;
+
+eval { <[base.perlmod.autoload]>->($opt_mod_name) };   ## may fail,optional ##
+
+my $log_level = length $EVAL_ERROR ? 0 : 1;
+
+if ( not <[base.perlmod.loaded]>->($opt_mod_name) ) {
+
+    <[base.logs]>->(
+        $log_level, ":.. will run without '%s', at performance cost ..,",
+        $opt_mod_name
+    );
+
+    return FALSE;    ##[  not loaded  ]##
+
+} else {
+    return TRUE;     ##[ success ]##
+}
+
+#,,.,,,..,,.,,,..,,.,,,.,,.,.,,,.,,,.,...,...,..,,...,...,...,,,.,,,.,.,.,,.,,
+#5VV4QXRDXPCDW7IIRPTHIHJQZJ2KZVLMP527PCUWU6IAS7BMQUUHZ3ACFMYVVA3BSJF6VLVTUDIMS
+#\\\|U3OJKLGJWVV6X2D7V7TX3LJ2NXQ4HZ5HCYDIBDS6AGTBDCRVDYB \ / AMOS7 \ YOURUM ::
+#\[7]DM66GGQKQIDQ4TLIRRWNT2O4XMUVZ2BUW3XXVAEEAYBDK622MGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

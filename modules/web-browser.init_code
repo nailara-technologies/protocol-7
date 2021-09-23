@@ -11,16 +11,7 @@
 <[base.perlmod.autoload]>->('Glib::Object::Introspection');
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r | );
 
-my $opt_mod_name = qw| Glib::Event |;
-
-eval { <[base.perlmod.autoload]>->($opt_mod_name) };   ## may fail,optional ##
-
-my $log_level = length $EVAL_ERROR ? 0 : 1;
-
-<[base.logs]>->(
-    $log_level, ":.. will run without '%s', at performance cost ..,",
-    $opt_mod_name
-) if not <[base.perlmod.loaded]>->($opt_mod_name);
+<[base.gtk.attempt_load.glib_event]>;  ##  load Glib::Event when installed  ##
 
 $ENV{'NO_AT_BRIDGE'} = 1;
 $ENV{'GTK_DEBUG'}    = qw| no |;
@@ -149,8 +140,8 @@ $code{'base.handler.end_code'} = sub {
 
 0;
 
-#,,,.,...,,.,,..,,.,,,.,,,..,,...,,.,,..,,.,,,..,,...,...,.,.,.,,,.,.,...,..,,
-#PWUV23J4K62BGZ3NRU55C4XWAGOBGLYDLWYDWL5M5KNSI2W2THXQVGVIJ6P7QD3W5SUWP7F6UEMFO
-#\\\|C63YZ7PP5GOF2EWZ7DCJJEMVO5XVE45J2OBVE6UD4CAC34LC7DZ \ / AMOS7 \ YOURUM ::
-#\[7]ESQDQPXWU2OBC63LL47YCW7CDRXFMIQ74QAYKFGZODNWBWAZ64CI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,.,.,.,.,.,,,..,,,,,,.,,,,,,,..,,...,...,...,,..,.,,,..,,.,,,
+#LT6QM4NP7MHGY3DOKJWFS6T7V7ZQI2JEQFWFHGD3FXCMBTSENGZCWX3HP74JRX3SQ5S6VZA45J7SA
+#\\\|57TEIOUXOSRTU4YAATSVJJEWHASHJIF5HIVDWFWSSA74ULRQYNY \ / AMOS7 \ YOURUM ::
+#\[7]MYRKWBKSVJXZQSUYVGTWCBGOGNAYMQONKR4YE7G5OJAJWL4ZDSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
