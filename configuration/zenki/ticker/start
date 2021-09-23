@@ -1,0 +1,80 @@
+
+  .:[ ticker zenka ]:.
+
+[load_config_file:'shared-params']
+[base.change_prio:-15]
+
+[load_config_file:'X11-vars']         ##  <-- <system.AMOS-user>  ##
+[root.drop_privs:<system.AMOS-user>]
+
+access.cmd.usr.cube = commands heart reload verify-instance * *.*
+
+# ask rss-ticker zenka for update on start-up
+ticker.request_rss_updates = 0
+
+[load_modules:'set-up.json ticker.set-up']
+[init_modules]
+
+[set-up.json.import_file:'ticker.set-up.json']
+
+##             known [expected] fonts:  DroidSans DroidSans-Bold DroidSansMono
+##                                      DroidSerif-Bold DroidSerif-Regular
+## ticker.font.name = DroidSans
+
+ticker.font.path = <system.root_path>/data/ttf/console
+ticker.font.name = white-rabbit.flipped
+## ticker.font.y-offset = 13
+
+ticker.cfg.draw_outline  = 1
+ticker.do_custom_fade_in = 1
+
+ticker.use_transparency = 1 # set to '0' to disable fading / transp. backgr.
+ticker.cfg.max_gpu_load = 67 # GPU load target in auto_speed mode
+
+ticker.speed = 9.47
+
+ticker.cfg.fg_col   = '00003D'
+ticker.bg_col       = '000047'
+
+ticker.cfg.alpha.bg  = 93 # [0..100] 0 == opaque, 100 == transparent
+ticker.cfg.alpha.fg  = 94 # [0..100] 0 == opaque, 100 == transparent
+
+ticker.cfg.alpha.outline = 24
+
+ticker.cfg.font.outl_value_factor = 47
+##
+## additional values to set in 'ticker.set_default_values' ##
+
+modules.load = auth net protocol io.unix ticker  ## devmod
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[base.net.connect:'unix']
+
+## fetching X-11 background color ##
+ticker.cfg.bg_col = [base.X-11.get_bg_color]
+
+# ticker.cfg.alpha.fg = 97     ##  <--  adjusted values for lighter bg  ##
+# ticker.cfg.alpha.bg = 47
+# ticker.cfg.alpha.outline = 47
+
+[ticker.calc_colors:0.63] ## recalculating ##
+##
+
+X.fb_vp = 95  ## vertical fallback position [top] ##
+X.fb_h  =  5  ## fallback height [ in percent ] ##
+
+[base.X-11.get_display]
+[base.X-11.get_coordinates:undef,undef,undef,undef,<X.fb_vp>,<X.fb_h>]
+
+ticker.subcfg = [base.X-11.get_subconfig]
+[ticker.process_subcfg]
+
+[ticker.startup]
+
+#,,,.,...,..,,.,,,,.,,,,.,...,,.,,,.,,.,,,,.,,.,.,...,...,...,.,,,...,,.,,...,
+#B2DSBZMIBNHF5ZG52IQKHOEFOE224ES2U5BCC5SXH5MIZU5B3JECXFOJMYGGYARRAFC2RZRKODFKQ
+#\\\|MAUWIUHB62GKZX5YFNWDGZKMMFYOYQK3S3TX5FPPYEHZLJFKLEY \ / AMOS7 \ YOURUM ::
+#\[7]THS2RSRQN5FTIJ5DYX7ZR2E5AQJOJXW2MWC7N7NHHPBBQISRT2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

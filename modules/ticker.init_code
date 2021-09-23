@@ -1,0 +1,81 @@
+## [:< ##
+
+# name = ticker.init_code
+
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Math::Trig');
+<[base.perlmod.autoload]>->('Glib::Event');
+<[base.perlmod.autoload]>->('Convert::Color');
+<[base.perlmod.autoload]>->('Cairo::GObject');
+<[base.perlmod.autoload]>->('Font::FreeType');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+
+Glib::Object::Introspection->setup(
+    qw| basename | => qw| GdkX11 |,
+    qw| version  | => qw|  3.0   |,
+    qw| package  | => qw| Gtk3::Gdk |
+);
+
+<[base.stderr_redir]>;
+
+<ticker.font.known_offsets> = <[ticker.font.offsets_table]>;
+
+<ticker.font.path> //= sprintf qw|%s/data/ttf/droid|, <system.root_path>;
+<ticker.font.name> //= qw| DroidSans-Bold |;    # LLL: <- load from config!
+<ticker.font.size_percent> //= 100;             # LLL: <- load from config!
+
+<ticker.use_transparency>  //= TRUE;
+<ticker.do_custom_fade_in> //= TRUE;
+
+<ticker.cfg.draw_outline>       //= TRUE;
+<ticker.cfg.rotate_outline_col> //= TRUE;
+<ticker.cfg.outline_speed>      //= 1.2;        ##  degree per second  ##
+
+<ticker.animation_started>   //= FALSE;
+<ticker.paused>              //= FALSE;
+<ticker.default_speed>       //= 7;
+<ticker.auto_speed_mode>     //= FALSE;
+<ticker.slowdown.percent>    //= 0;
+<ticker.request_rss_updates> //= FALSE;
+
+<base.callback_hooks.async_online> = ['ticker.callback.request_updates'];
+
+## LLL ###
+
+<ticker.speed> = <ticker.redraw_delay>
+    if defined <ticker.redraw_delay>    # LLL: change to 'speed' later
+    and <ticker.redraw_delay> =~ m|^\d+$|
+    and <ticker.redraw_delay> >= 5
+    and <ticker.redraw_delay> <= 42;
+
+# [LLL] fix range [1..100???]
+<ticker.speed> = delete <ticker.speed>
+    if defined <ticker.speed>
+    and <ticker.speed> =~ m|^\d+$|
+    and <ticker.speed> >= 5
+    and <ticker.speed> <= 42;
+
+<ticker.font.name> = <ticker.font.name> if defined <ticker.font.name>;
+
+<[ticker.set_default_values]>;
+
+<[ticker.calc_colors]>;
+
+##########
+
+# die "[!] font file not found [$font_path]" if !-f $font_path;
+
+# <[base.log]>->( 1, "loading ticker font '$font_name' ..." );
+# my $font_name = <ticker.font.name>;
+# my $font_path = <ticker.font.path> . '/' . $font_name . '.ttf';
+# my $freetype = Font::FreeType->new;
+# my $ft_face  = $freetype->face($font_path);
+# <ticker.font_face> = Cairo::FtFontFace->create($ft_face);
+
+0;
+
+#,,,.,,,,,,,.,,,.,,..,,,.,,,,,,..,.,.,,,.,..,,.,.,...,...,.,.,...,...,.,.,,..,
+#5XSARVFR7FT55FMTT2RTUBBSH5SROUYWFLSLDC2IE7SYX4U6Y42FPR6XSHQVZF4NA4WLS473HFV3M
+#\\\|YMQCZRMRSJFDPIOIJIGTJYFZZJUICUFUBOTDAC34XWXYW5GM2AC \ / AMOS7 \ YOURUM ::
+#\[7]N7ZUK7H7GTDSYB4CEYSPMGVT4IJ7RNRIPOUYLFCAV2TH46BEOQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

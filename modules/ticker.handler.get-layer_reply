@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = ticker.handler.get-layer_reply
+
+my $reply = shift;
+
+if ( $reply->{'cmd'} eq qw| TRUE | ) {
+    <ticker.tile-groups.layer> = $reply->{'call_args'}->{'args'};
+    if ( <ticker.tile-groups.layer> == 100 ) {
+        <[base.log]>->(
+            1, "tile-groups layer == 100 << ! >> [enabling 'force_above']"
+        );
+        <ticker.window.force_above> = TRUE;
+    }
+}
+
+<[ticker.open_window]>;
+
+#,,,.,...,,.,,,..,..,,,,.,,.,,,.,,.,,,.,.,,,.,..,,...,.,.,..,,.,.,...,,,,,...,
+#6YXCHUOSALIFOMXPA3CV4FUYBNMEQMEO2NHSP2SYIWW3ZUV252VKM6QFVPHFMIPOTUZJ3AA7JSK6I
+#\\\|MPWBPO3LBZIXVVQJVXSW53RPFFSLPEZ2DCPIVIXUZQNBUB5XP2M \ / AMOS7 \ YOURUM ::
+#\[7]KHS5S3GXR6FSWOI6BAWDQGV5TSC3JQI3DNBGHP2373Y4WRXHGKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
