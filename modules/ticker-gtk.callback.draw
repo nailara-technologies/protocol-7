@@ -7,6 +7,15 @@ my ( $widget, $context, $ref_status ) = @ARG;
 <ticker-gtk.status.initialized> //= FALSE;
 <ticker-gtk.last_time>          //= <[base.time]>->(8);
 
+##
+
+my $alpha_fg      = <ticker-gtk.alpha.fg> / 100;
+my $outline_alpha = <ticker-gtk.alpha.outline> / 100;
+
+##
+
+<ticker-gtk.draw.x_pos> //= <x11.window.width> + 64;    # <- LLL: calc.
+
 my $window = <ticker-gtk.obj.window>;
 
 #if ( <ticker-gtk.status.initialized> and $window->get_property('visible')
@@ -47,16 +56,6 @@ if (<ticker-gtk.status.initialized>
 
 <ticker-gtk.obj.context> = $context;
 
-<ticker-gtk.auto_speed_mode>         //= FALSE;
-<ticker-gtk.slowdown.percent>        //= FALSE;
-<ticker-gtk.slowdown.percent_target> //= FALSE;
-
-<ticker-gtk.draw.skipped>        //= FALSE;
-<ticker-gtk.draw.skipped_offset> //= FALSE;
-<ticker-gtk.draw.x_pos>          //= <x11.window.width> + 64;  # <- LLL: calc.
-<ticker-gtk.bg-color>            //= [ 1, 1, 1 ];
-<ticker-gtk.bg-alpha>            //= 100;    # transparent default
-
 if ( not defined <ticker-gtk.speed> ) {
     <ticker-gtk.speed> //= <ticker-gtk.default_speed> // 7; # internal default
     <[base.logs]>->(
@@ -86,13 +85,16 @@ if (   not $window->is_composited
     my $rgba   = $screen->get_rgba_visual();    # [LLL] auto-update ?
     if ( not $rgba ) {
         <ticker-gtk.use_transparency> = FALSE;
-    } elsif (<ticker-gtk.use_transparency>) {
+    } elsif ( <ticker-gtk.use_transparency>
+        and ref <ticker-gtk.bg-color> eq qw| ARRAY | ) {
         $window->set_visual($rgba);
         $context->set_source_rgba( <ticker-gtk.bg-color>->@*,
-            ( 100 - <ticker-gtk.bg-alpha> ) / 100 );
+            ( 100 - <ticker-gtk.alpha.bg> ) / 100 );
         $context->set_operator('source');
         $context->paint;
         $context->set_operator('over');
+    } elsif (<ticker-gtk.use_transparency>) {
+        warn 'ticker-gtk.bg-color not defined';
     }
 }
 
@@ -109,8 +111,8 @@ if ( not <ticker-gtk.status.initialized> ) {
 
             $context->font_extents->{'height'}
 
-        ## $context->font_extents->{'ascent'} +
-        ##  $context->font_extents->{'descent'}
+            ## $context->font_extents->{'ascent'} +
+            ##  $context->font_extents->{'descent'}
 
         ) < <x11.window.height> - $shadow_height
     ) {
@@ -137,10 +139,14 @@ my $txt = <ticker-gtk.content.txt> // '';
 
 my $width = $context->text_extents($txt)->{'width'};
 
+<ticker-gtk.draw.skipped> //= 0;
+
 my $content_substr
     = <[ticker-gtk.content_substring]>->(<ticker-gtk.draw.x_pos>);
 
 my $x_skipped = $content_substr->[0] // 0;
+
+<ticker-gtk.draw.skipped_offset> //= 0;
 
 my $x_offset = sprintf( qw| %.0f |,
     <ticker-gtk.draw.x_pos> + $x_skipped - <ticker-gtk.draw.skipped_offset> );
@@ -162,17 +168,43 @@ if ($draw_shadow) {
 }
 
 if (<ticker-gtk.cfg.draw_outline>) {
-    if (<ticker-gtk.use_transparency>) {
-        $context->set_source_rgba( <ticker-gtk.ol_col>->@*, 0.87 );  # <-- cfg
-    } else {
-        $context->set_source_rgb( <ticker-gtk.ol_col>->@* );
-    }
-    foreach my $o_y ( -1 .. +1 ) {
-        foreach my $o_x ( -1 .. +1 ) {
-            next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
-            $context->move_to( $x_offset + $o_x, $y_offset + $o_y );
-            $context->show_text( $content_substr->[1] );
+
+    if ( not <[base.cfg_bool]>->(<ticker-gtk.cfg.rotate_outline_col>) ) {
+        ##  single outline color  ##
+        if (<ticker-gtk.use_transparency>) {
+            $context->set_source_rgba( <ticker-gtk.ol_col>->@*,
+                $outline_alpha );
+        } else {
+            $context->set_source_rgb( <ticker-gtk.ol_col>->@* );
         }
+        foreach my $o_y ( -1 .. +1 ) {
+            foreach my $o_x ( -1 .. +1 ) {
+                next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+                $context->move_to( $x_offset + $o_x, $y_offset + $o_y );
+                $context->show_text( $content_substr->[1] );
+            }
+        }
+    } else {    ##  four outline colors [ rotating hue ]  ##
+
+        my @outline_col_ref = <[ticker-gtk.cfg.font.calc_outline_col]>;
+
+        foreach my $o_y ( -1 .. +1 ) {
+            foreach my $o_x ( -1 .. +1 ) {
+                next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
+
+                my $outline_col_rgb = shift @outline_col_ref;
+                if (<ticker-gtk.use_transparency>) {
+                    $context->set_source_rgba( $outline_col_rgb->@*,
+                        $outline_alpha );
+                } else {
+                    $context->set_source_rgb( $outline_col_rgb->@* );
+                }
+
+                $context->move_to( $x_offset + $o_x, $y_offset + $o_y );
+                $context->show_text( $content_substr->[1] );
+            }
+        }
+
     }
 }
 
@@ -180,9 +212,8 @@ $context->move_to( $x_offset, $y_offset );
 
 if (<ticker-gtk.use_transparency>) {
     $context->set_source_rgba(
-        <ticker-gtk.font.color>->[0],
-        <ticker-gtk.font.color>->[1],
-        <ticker-gtk.font.color>->[2], 0.88
+        <ticker-gtk.font.color>->[0], <ticker-gtk.font.color>->[1],
+        <ticker-gtk.font.color>->[2], $alpha_fg
     );
 } else {
     $context->set_source_rgb( <ticker-gtk.font.color>->@* );
@@ -271,8 +302,8 @@ if (<ticker-gtk.animation_started>) {
 
 return TRUE;
 
-#,,.,,,..,..,,.,.,.,.,.,,,,,.,,,.,,.,,..,,..,,.,.,...,...,...,,..,,,.,...,,,,,
-#FEPNSYG5SDFPLWVERJF66GFT23HIRAXZSDE4NRE5ZLPLKETJYERA4NGHCFYF2AOKIIF5YGBSOA7D6
-#\\\|A2D5YTF5TJTGGRIDYL6UQTCK7EHKKK5O5JMD2ZAT55WOJEISJIU \ / AMOS7 \ YOURUM ::
-#\[7]VCQAK3NFINGV2SJ443PGLB7VUGP7PBEKQH7UG3EO7KF4KBY4RICQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,...,,,.,,..,.,.,...,,.,,..,,.,.,...,.,.,,..,,..,.,,,.,.,...,
+#OH7LO2W5RPBDTG6ALBCRBP6HTPZ3GLHB527QJ5RAED6GT465ZFTEJXFX7JFBTZ6QCYHVB3LUQZKFA
+#\\\|LEZ342MYRHNVMSUSACVG5EN2WJKIMTMENELMQU6JDBARECVGBAU \ / AMOS7 \ YOURUM ::
+#\[7]L5ZPZSGFAEQBNLCVSX7MZ77WTP4FFXYITDYYX3ZWGD6UP62SEGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

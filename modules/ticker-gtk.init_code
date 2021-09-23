@@ -3,6 +3,7 @@
 # name = ticker-gtk.init_code
 
 <[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Math::Trig');
 <[base.perlmod.autoload]>->('Glib::Event');
 <[base.perlmod.autoload]>->('Convert::Color');
 <[base.perlmod.autoload]>->('Cairo::GObject');
@@ -21,10 +22,15 @@ Glib::Object::Introspection->setup(
 
 <ticker-gtk.font.path> //= sprintf qw|%s/data/ttf/droid|, <system.root_path>;
 <ticker-gtk.font.name> //= qw| DroidSans-Bold |;   # LLL: <- load from config!
-<ticker-gtk.font.size_percent>   //= 100;          # LLL: <- load from config!
-<ticker-gtk.use_transparency>    //= TRUE;
-<ticker-gtk.do_custom_fade_in>   //= TRUE;
-<ticker-gtk.cfg.draw_outline>    //= TRUE;
+<ticker-gtk.font.size_percent> //= 100;            # LLL: <- load from config!
+
+<ticker-gtk.use_transparency>  //= TRUE;
+<ticker-gtk.do_custom_fade_in> //= TRUE;
+
+<ticker-gtk.cfg.draw_outline>       //= TRUE;
+<ticker-gtk.cfg.rotate_outline_col> //= TRUE;
+<ticker-gtk.cfg.outline_speed>      //= 1.2;       ##  degree per second  ##
+
 <ticker-gtk.animation_started>   //= FALSE;
 <ticker-gtk.paused>              //= FALSE;
 <ticker-gtk.default_speed>       //= 7;
@@ -64,27 +70,10 @@ if ( exists <ticker-gtk.font.known_offsets>->{<ticker-gtk.font.name>} ) {
     and <ticker.speed> <= 42;
 
 <ticker-gtk.font.name> = <ticker.font.name> if defined <ticker.font.name>;
-<ticker-gtk.font.color> //= [ 0, 0, 0 ];
 
-my $cfg_col_ref = <[ticker-gtk.calc-col]>->(<ticker-gtk.cfg.fg_col>);
-<ticker-gtk.font.color> = $cfg_col_ref if defined $cfg_col_ref;
-<ticker-gtk.bg-alpha> = <ticker-gtk.cfg.bg-alpha> // 100; ## default trans. ##
-<ticker-gtk.bg-color> = <[ticker-gtk.calc-col]>
-    ->( <ticker.cfg.bg_col> // <ticker-gtk.default_background> );
+<[ticker-gtk.set_default_values]>;
 
-my $c = Convert::Color->new(
-    'rgb:' . join( ',', <ticker-gtk.font.color>->@* ) );
-my $hc = $c->convert_to('hsv');
-
-my $ovf = 0.94;    # <- outline value factor [ auto-calc ]
-
-my $new_value = <ticker-gtk.cfg.font.oval> // sprintf qw| %.3f |,
-    abs( $ovf - sprintf( qw| %.0f |, $hc->value ) );
-
-my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
-
-<ticker.color.outline> = $oc->as_rgb8->hex;
-<ticker-gtk.ol_col>    = [ $oc->rgb ];
+<[ticker-gtk.calc_colors]>;
 
 ##########
 
@@ -99,8 +88,8 @@ my $oc = Convert::Color::HSV->new( $hc->hue, $hc->saturation, $new_value );
 
 0;
 
-#,,,,,,,.,,.,,,,,,.,,,,,.,...,.,.,,.,,,.,,...,.,.,...,...,.,,,,.,,.,,,...,.,,,
-#FSY22YQRZVBW4U7MUCEJKNTA3T2X4RWHIGS2V6CELMX4EKPMKUVRQ4RYAFE5NI46SBSN7QOWWA35S
-#\\\|24VUISHZHL24L5VI6KG5NLLGTYNT7WISIS7SQSLFOXQWLLGL2RJ \ / AMOS7 \ YOURUM ::
-#\[7]MFV2CS3GTF4CGIAUTGVLR347KRSBSVQKDMO6A4FLXHPISXYGQQBI 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,..,,.,.,.,.,,,,,,.,,,..,.,.,...,..,,...,..,,,..,.,,,.,,,
+#B4WJJDEXKRPDL2WQDYAU3KIXOG3P56AT4OY44H3RKWUMAZUGCGWORDYE3BWWSPFQALIT4Y2NZQDFK
+#\\\|VPC237VBRB75PHYODBWAK4G6KMHWXN2HAEV2LZ7IJXUVMSHDIFQ \ / AMOS7 \ YOURUM ::
+#\[7]CXL4GZTSDOKUXXRNSNT5NDJMXHJUZM7SLM3EOU2BQ22PL77NQ4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
