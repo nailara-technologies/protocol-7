@@ -30,11 +30,21 @@ ticker-gtk.do_custom_fade_in = 1
 ticker-gtk.use_transparency = 1 # set to '0' to disable fading / transp. backgr.
 ticker-gtk.cfg.max_gpu_load = 67 # GPU load target in auto_speed mode
 
+ticker-gtk.speed = 9.47
 
-# ticker-gtk.bg_col   = 000013
-# ticker-gtk.bg_alpha = 100 # [0..100] 0 == opaque, 100 == transparent
+ticker-gtk.cfg.fg_col   = '00003D'
+ticker-gtk.bg_col       = '000047'
 
-modules.load = auth net protocol io.unix ticker-gtk
+ticker-gtk.cfg.alpha.bg  = 93 # [0..100] 0 == opaque, 100 == transparent
+ticker-gtk.cfg.alpha.fg  = 94 # [0..100] 0 == opaque, 100 == transparent
+
+ticker-gtk.cfg.alpha.outline = 24
+
+ticker-gtk.cfg.font.outl_value_factor = 47
+##
+## additional values to set in 'ticker-gtk.set_default_values' ##
+
+modules.load = auth net protocol io.unix ticker-gtk  ## devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -51,8 +61,8 @@ ticker-gtk.subcfg = [base.X-11.get_subconfig]
 
 [ticker-gtk.startup]
 
-#,,,,,..,,.,,,,..,...,...,.,.,,,,,,.,,.,,,.,.,.,.,...,...,...,...,,..,..,,,,.,
-#DONWPI4HG4EBOWLBPMXLYCBC3AEPC25VC227TEBOL4YIOK2GYF2F7HSJ3DLZPA7FCAUSQOFYT7Z2E
-#\\\|TWZSSK5HXQKESHZVYDKYAVXPYYHCOLVTOKFO4GHHEEJ5MKB2PJM \ / AMOS7 \ YOURUM ::
-#\[7]QPGVWKNBNOXLYHD4NYK2YRR45Z4JUWNIKIUMZACXLQDL42BLWYBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,.,.,,,,.,,...,,.,,...,..,,,..,.,.,...,...,...,,,,,..,,...,...,
+#NCG3C6L2X4APT24BXD4MPIR4QRR4XTVLNWP6CMO3AFYGXBXL7SAY7K7WLN2SFUEMVVP2VF5MHGURW
+#\\\|IGXP7TLGQXPDPUY34GPQIM63WB3JM7F7MSZDFAT44RHWAMWGCKP \ / AMOS7 \ YOURUM ::
+#\[7]HJ2V77QUINKTJ6DBSLCI7RLVOUS34RAFQK7YJXASXCSAM27ERKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
