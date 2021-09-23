@@ -14,36 +14,25 @@ return
 
 <[base.logs]>->( 1, "processing tile group '%s'.,", $tile_group_name );
 
-if ( defined <tile-groups.setup.ticker_zenka_type> ) {
-    my $ticker_type = <tile-groups.setup.ticker_zenka_type>;
+foreach my $tile_groups ( <[base.sort]>->(<tile-groups.setup.tile-groups>) ) {
+
+    my $_tile_groups_data = <tile-groups.setup.tile-groups>->{$tile_groups};
+
     foreach
-        my $tile_groups ( <[base.sort]>->(<tile-groups.setup.tile-groups>) ) {
+        my $name ( keys <tile-groups.setup.tile-groups>->{$tile_groups}->%* )
+    {
 
-        my $_tile_groups_data
-            = <tile-groups.setup.tile-groups>->{$tile_groups};
+        if ( $name =~ m{^ticker-gtk(\[[^\]]+\])?$} ) {
 
-        map {  # ticker-sdl probably won't work anymore until it was updated.,
-            if ( $ARG =~ m{^ticker(-sdl|-gtk)?(\[[^\]]+\])?$} ) {
+            ## on top. ##
+            $_tile_groups_data->{$name}->{'layer'} //= 100;
+        }
 
-                my $tile_name = ${^CAPTURE}[1] // '';
+        # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
 
-                my $new_name = sprintf qw| ticker-%s%s |, $ticker_type,
-                    $tile_name;
+        $_tile_groups_data->{$name}->{'layer'} //= 1000
+            if $tile_groups =~ m|^overlay_|;
 
-                $_tile_groups_data->{$new_name}
-                    = delete $_tile_groups_data->{$ARG}
-                    if $new_name ne $ARG;
-
-                ## on top. ##
-                $_tile_groups_data->{$new_name}->{'layer'} //= 100;
-            }
-
-            # SETTING OVERLAY DEFAULT LAYER VALUE [1000] [ if undefined ]
-
-            $_tile_groups_data->{$ARG}->{'layer'} //= 1000
-                if $tile_groups =~ m|^overlay_|;
-
-        } keys <tile-groups.setup.tile-groups>->{$tile_groups}->%*;
     }
 }
 
@@ -276,8 +265,8 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
 
 <[tile-groups.handler.transition]>;
 
-#,,.,,..,,,..,,,.,,.,,,,.,.,,,...,.,.,,,,,,.,,..,,...,...,.,,,,,.,,.,,...,,,,,
-#ZVUO6FT7OU6V4IRXZUPAFAV6V2PUSUIWWCPZTMBLBG3NCA7PLTYDAEDJ7EWHV3SKY3QNAC2RY7MZM
-#\\\|Q5SDINVT5GQL42VDCG4I5FP7NQMRMNIQMHOTWGWC56BCUA5GCXN \ / AMOS7 \ YOURUM ::
-#\[7]ZTPAF6HNCYRX566A562XSX7VHTUE2KU4B7IN6ZYFXAKBVSNUROCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,.,.,,,,,..,,..,,,.,,..,,.,,,..,,...,...,.,,,,,,,..,,.,,,..,,
+#IG5DONENBQXR2CJLAXQMKJXYIY2GVLZ637UFL4G47PNBOGMGNH6GTIUCHCLS2XYGEZBAO65OTA5NO
+#\\\|Q6UF74OTYR2OZ7ZDHVFRU7RZRMZAVBTDC6LWIESV5URYJHDUOLD \ / AMOS7 \ YOURUM ::
+#\[7]IK5AQSUSWQXXZT6PYXLGV4MX233WHSBER5746A57QIYXVYK5QEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
