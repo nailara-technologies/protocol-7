@@ -152,7 +152,7 @@ my $y_offset    ##  requires better calculation method  ##  [LLL]
     = <ticker.font.y-offset> + $context->font_extents->{'height'}
     - $context->font_extents->{'descent'};
 
-if ($draw_shadow) {
+if ($draw_shadow) {    ## add to color profile ## [LLL]
     $context->move_to( $x_offset + 2, $y_offset + 2 );
     if (<ticker.use_transparency>) {
         $context->set_source_rgba( 0, 0, 0, 0.13 );
@@ -186,7 +186,8 @@ if (<ticker.cfg.draw_outline>) {
             foreach my $o_x ( -1 .. +1 ) {
                 next if $o_x == 0 and $o_y == 0 or $o_x != 0 and $o_y != 0;
 
-                my $outline_col_rgb = shift @outline_col_ref;
+                my $outline_col_rgb = pop @outline_col_ref;    ##[ CCW ]##
+
                 if (<ticker.use_transparency>) {
                     $context->set_source_rgba( $outline_col_rgb->@*,
                         $outline_alpha );
@@ -293,8 +294,8 @@ if (<ticker.animation_started>) {
 
 return TRUE;
 
-#,,.,,,..,,.,,..,,,,.,..,,...,,,,,,,.,,..,..,,.,.,...,..,,.,.,.,.,...,,,,,,,.,
-#X5QKPTM5PC75BYOB63TFUTBWTHSX5JXCZJGTVL7T5V4UFHNCTH2KTH4X775Y3LJPVZNXGXS6TAYVC
-#\\\|ZRCCPWTFKXPCRTHGGFVRUWNHC5B6X3HB6YKQWLBYC7VLWD4HK4S \ / AMOS7 \ YOURUM ::
-#\[7]PJFEAJSNF2MOSVGO2XDEM52REUQJEOSKDIWRKGYKGEYP6QOIJMAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,..,..,,...,,,.,,,,,,..,..,,.,.,...,...,.,.,,.,,...,.,.,,,,,
+#AKKS4AV2DJDLV5IXX4UZONR6PS3AFSPVGNC34ZFT6FHJLDMHU4FUGTW7IEQI6WFG6MUKWMOLU2KK6
+#\\\|Q4IYJA23FM6DQDFNXC4ST6O6C63JFQC342ANO6MMABYTPSOQIUO \ / AMOS7 \ YOURUM ::
+#\[7]IU7ZLK4FNZPAPTIABJOWC7X5QXKNFZK5QW66FYAWQYDJIKAUYODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
