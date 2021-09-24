@@ -3,22 +3,24 @@
 # name = start-anim.init_code
 
 <[base.perlmod.autoload]>->('Gtk3');
-<[base.perlmod.autoload]>->('Glib::Event');
+<[base.gtk.attempt_load.glib_event]>;
 
 <[base.stderr_redir]>;    ## redirect STDERR ##
 
 <start-anim.image_path>
-    = <system.root_path> . '/data/gfx/anim/busy.2K.gif';    #4K
+    = sprintf( qw| %s/data/gfx/anim/busy.2K.gif |, <system.root_path> );   #4K
 
-<start-anim.do_fade_in>        //= 1;
+<start-anim.do_fade_in>        //= TRUE;
 <start-anim.min_startup_delay> //= 0.42;
 <start-anim.min_startup_time>  //= <[base.time]>->(4);
 
-<start-anim.bg-color> = 'white';
-if ( defined <start-anim.cfg.bg_col> ) {
-    if ( <start-anim.cfg.bg_col> =~ m|^#?\d+$| ) {    ## #RRGGBB ###
+<start-anim.bg-color> = qw| white |;    ##  <-- bg color default  ##
+
+if ( defined <start-anim.cfg.bg_col> ) { ##  from xserver or manual config  ##
+
+    if ( <start-anim.cfg.bg_col> =~ m|^#?\d+$| ) {    #< #RRGGBB >#
         ( <start-anim.bg-color> = <start-anim.cfg.bg_col> ) =~ s|^#||;
-        <start-anim.bg-color> = '#' . <start-anim.bg-color>;
+        <start-anim.bg-color> = sprintf '#%s', <start-anim.bg-color>;
     } else {
         <start-anim.bg-color> = <start-anim.cfg.bg_col>    ## color name ##
     }
@@ -26,8 +28,8 @@ if ( defined <start-anim.cfg.bg_col> ) {
 
 0;
 
-#,,.,,,.,,...,.,.,.,.,..,,,,,,..,,,,.,.,.,,..,..,,...,...,...,,.,,,..,...,.,.,
-#ADR4ZJ4C3IEFQ2TYYKIWRL5WZ226VZD4HPEE2KSXBTVQJY2QLSIMTVHFDMXW2YBOUM4HSPXI7W4T4
-#\\\|F6GFPFW6JWR4A2MBVDMI3KX5JDAZHV5HZ56DVIJIWJ32XQP5ODB \ / AMOS7 \ YOURUM ::
-#\[7]D5F44MZ4T22ASXIYIK7YLLCM4J2MYYMYUIWFCNHW3Q5PAGVWMQDY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,.,,,,,,,..,.,,,.,.,...,.,.,..,,...,.,.,.,.,.,.,,.,,.,.,,..,
+#ENRAVZ6EHGJCSN37KUL44ROYAFQM5PUM24F2J2H56DBKU4J2GAKPM7Q5UJWLPJS7SM6KVFYZQ4GOW
+#\\\|7SB3LASR567IKQPRQ7EAK2H75FA4KIQPEQPUNMD6VXFOBMGZH3O \ / AMOS7 \ YOURUM ::
+#\[7]HY2JHSE4AN6R2P44S4NPHJX6UNXFHICW4N4ZXCDJFDFUTVZ534DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

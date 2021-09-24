@@ -3,11 +3,13 @@
 
 [load_config_file:'shared-params']
 
-[root.drop_privs:'nobody']
+[load_config_file:'X11-vars']         ##  <-- <system.AMOS-user>  ##
+
+[root.drop_privs:<system.AMOS-user>]
 
 access.cmd.usr.cube = commands heart verify-instance cur-pid
 
-start-anim.do_fade_in        = 0    # <-- fade-in meanwhile handled by compton.,
+start-anim.do_fade_in        = 0    # <-- fade-in meanwhile handled by compton
 start-anim.min_startup_delay = 0.42
 
 modules.load = auth net protocol io.unix
@@ -17,7 +19,7 @@ modules.load = auth net protocol io.unix
 [base.net.connect:'unix']
 
 [base.X-11.get_display]
-[base.X-11.get_coordinates:undef,undef,''] #  <--  request for only ['tile-name']
+[base.X-11.get_coordinates:undef,undef,''] # <-- request for only ['tile-name']
 
 [load_modules:'start-anim']
 start-anim.cfg.bg_col = [base.X-11.get_bg_color] # <-- [#RRGGBB|<color_name>]
@@ -25,8 +27,8 @@ start-anim.cfg.bg_col = [base.X-11.get_bg_color] # <-- [#RRGGBB|<color_name>]
 
 [start-anim.open_window]
 
-#,,,.,.,.,..,,,.,,,,.,,.,,,,,,,,.,...,...,,,.,.,.,...,...,...,...,,.,,.,,,,,.,
-#3GPGGDI232DWZDMEKXE4AST43G2CWHVC6WX4FGOVOWWHPRFHBIFXW22357XFKVNBHPPWKSGSWTOOY
-#\\\|PGCDWEVTHU3S5BT56TIW6Y6MYYJDU455US34PIDGONPQF3UIKYO \ / AMOS7 \ YOURUM ::
-#\[7]REJEMBYQXIWXU6R3IOR2XE6OFALOUWXVUGVEEROWQAV67XOR5KBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,...,...,,,.,,.,,,,.,...,.,,,.,.,...,...,...,,,.,...,,..,.,.,
+#AXIGTJ66P3Z7AFRCKSZFNBAKKWM6URG7K2ZIJ6KDJJY5DGOPOYGX43XK6YP5QQS2S32MYIVZF3JX4
+#\\\|3LCDVOGAXSFWWROSS3JYLG2Z2R2LJBVCPTFBHT5MHJBMJ7LR454 \ / AMOS7 \ YOURUM ::
+#\[7]MP3O2ZJU74N7V6LN63B7FO5GPXDXF6I4RTWDV5OX7EROV4IPLOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,55 +4,56 @@
 
 my $window = shift;
 
-if ( <start-anim.composited> and !$window->is_composited )
+if ( <start-anim.composited> and not $window->is_composited )
 {    ## comp changed ##
     $window->set_visual( $window->get_screen->get_system_visual() );
-    <start-anim.composited> = 0;
+    <start-anim.composited> = FALSE;
 } elsif ( <start-anim.comp_at_startup>
-    and !<start-anim.composited>
+    and not <start-anim.composited>
     and $window->is_composited ) {
     $window->set_visual( $window->get_screen->get_rgba_visual() );
-    <start-anim.composited> = 1;
+    <start-anim.composited> = TRUE;
 }
 
-<start-anim.fade_mode> //= 'in';
+<start-anim.fade_mode> //= qw| in |;
 
-if ( <start-anim.fade_mode> eq 'in'
-    and ( !<start-anim.composited> or !<start-anim.do_fade_in> ) ) {
+if ( <start-anim.fade_mode> eq qw| in |
+    and ( not <start-anim.composited> or not <start-anim.do_fade_in> ) ) {
     $window->move( <x11.coordinates>->{'left'}, <x11.coordinates>->{'top'} );
     $window->set_size_request( <start-anim.width>, <start-anim.height> );
-    my $min_delay = sprintf( '%.4f',
+    my $min_delay = sprintf( qw| %.4f |,
         <start-anim.min_startup_delay>
             - ( <[base.time]>->(4) - <start-anim.min_startup_time> ) );
     $min_delay = 0 if $min_delay < 0;
     <[event.add_timer]>->(
         {   'after'   => $min_delay,
-            'handler' => 'start-anim.callback.report_online'
+            'handler' => qw| start-anim.callback.report_online |
         }
     );
-    <start-anim.fade_mode> = 'idle';
+    <start-anim.fade_mode> = qw| idle |;
     return;
-} elsif ( !<start-anim.composited> and <start-anim.fade_mode> eq 'out' ) {
+} elsif ( not <start-anim.composited>
+    and <start-anim.fade_mode> eq qw| out | ) {
     $window->hide;
-    <start-anim.fade_mode> = 'quit';
+    <start-anim.fade_mode> = qw| quit |;
 }
 
-if ( <start-anim.fade_mode> eq 'out' ) {    ## fade out ##
+if ( <start-anim.fade_mode> eq qw| out | ) {    ## fade out ##
 
     <start-anim.fade_out.start_time> //= <[base.time]>->(4);
     my $delta_t = <[base.time]>->(4) - <start-anim.fade_out.start_time>;
 
-    my $opacity = sprintf( '%.4f', 1 - $delta_t );
+    my $opacity = sprintf( qw| %.4f |, 1 - $delta_t );
     $opacity = 0 if $opacity < 0;
 
     if ( $opacity > 0 ) {
         $window->set_opacity($opacity);
     } else {
         $window->hide;
-        <start-anim.fade_mode> = 'quit';
+        <start-anim.fade_mode> = qw| quit |;
     }
 
-} elsif ( <start-anim.fade_mode> eq 'in' ) {    ## fade in ##
+} elsif ( <start-anim.fade_mode> eq qw| in | ) {    ## fade in ##
 
     <start-anim.fade_in.start_time> //= <[base.time]>->(6);
     my $delta_t = <[base.time]>->(6) - <start-anim.fade_in.start_time>;
@@ -63,33 +64,33 @@ if ( <start-anim.fade_mode> eq 'out' ) {    ## fade out ##
         $window->set_size_request( <start-anim.width>, <start-anim.height> );
     }
 
-    my $opacity = sprintf( '%.6f', $delta_t / 0.8 );
+    my $opacity = sprintf( qw| %.6f |, $delta_t / 0.8 );
     $opacity = 1 if $opacity > 1;
 
     $window->set_opacity($opacity);
 
     if ( $opacity >= 1 ) {
         delete <start-anim.fade_in.start_time>;
-        my $min_delay = sprintf( '%.4f',
+        my $min_delay = sprintf( qw| %.4f |,
             <start-anim.min_startup_delay>
                 - ( <[base.time]>->(4) - <start-anim.min_startup_time> ) );
         $min_delay = 0 if $min_delay < 0;
         <[event.add_timer]>->(
             {   'after'   => $min_delay,
-                'handler' => 'start-anim.callback.report_online'
+                'handler' => qw| start-anim.callback.report_online |
             }
         );
-        <start-anim.fade_mode> = 'idle';
+        <start-anim.fade_mode> = qw| idle |;
     }
 
     $window->queue_draw();
-} elsif ( <start-anim.fade_mode> eq 'quit' ) {
+} elsif ( <start-anim.fade_mode> eq qw| quit | ) {
     Gtk3->main_quit;
-    exit(0);
+    <[base.exit]>->(0);
 }
 
-#,,.,,..,,..,,,.,,,,.,..,,...,,,,,...,,,,,,..,..,,...,...,.,.,,..,...,.,,,...,
-#MJZ7NNQP7KPQRP5YZZOLXSDZJYNNELQDD6PGU3ZL2PPU3HF444NCL6Y6DA5OX2DBI7PPIBBMAABZ4
-#\\\|WVWYNKPKTXYWQTLNIOL2DQ43JQCNMJS3RJGVVPZ6AGWF2ON5UAG \ / AMOS7 \ YOURUM ::
-#\[7]2T7F7IQETDIRZR2CMWXWEQTIB2W4XKYB74QMGHKLJV3C7VHUCMBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,.,,,..,,,,,,.,.,.,.,,,.,,,,,..,,...,...,,..,,.,,,..,,..,,,.,
+#O4GCOEXGHO3KY2WP2JNSKOBEZNGSXCX4ZS6FSV6OI22P46TG547RY4YEL4NNYSBSRA2CU2CGEY7AY
+#\\\|W7EK7JUBICY677MJKJS7UUGCMHYRN6LQYS3F7QWSMKCH5SZRSTR \ / AMOS7 \ YOURUM ::
+#\[7]CLFMTN25IYVQDGGAXOOUPP2BL3QRDOIRZ3N7VWF5APUMFJI3LQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
