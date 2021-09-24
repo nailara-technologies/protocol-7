@@ -1,20 +1,31 @@
 ## [:< ##
 
 # name  = X-11.cmd.get-window-names
+# param = [pattern]
 # descr = return list of window ids and titles
 
+my $substr    = $call->{'args'};
 my $reply_str = '';
 
 foreach my $window_id (<[X-11.get_window_ids]>) {
-
     my $title = <[X-11.get_window_title]>->($window_id);
+
+    next if defined $substr and index( $title, $substr, 0 ) == -1;
+
     $reply_str .= sprintf "%d %s\n", $window_id, $title;
 }
 
+return {
+    'mode' => qw| false |,
+    'data' => sprintf "no match for '%s'",
+    $substr
+    }
+    if defined $substr and not length $reply_str;
+
 return { 'mode' => qw| size |, 'data' => $reply_str }
 
-#,,,.,,..,,.,,,.,,,,.,...,,,.,,,.,...,.,,,,..,..,,...,..,,...,.,.,,,.,,,,,,,,,
-#BUXG7EYK23XPQHYYR532B5Z3U2ZJXAPMCAZ6IP5N73ZX7NTMED3GWQBNGH7IYAJRYBGHBWZO4YSMU
-#\\\|M2OJS3V4URIWOS5CBRSBSJJRRQ2MGSBZ6KBUKO5P6SZZSNQX5AG \ / AMOS7 \ YOURUM ::
-#\[7]272CKQAVE3E6TELAZJA4NANLTYUFT2KCLDKQIBCSB7F6NRTRMEBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,,,,,...,..,,,..,...,,.,,,..,..,,...,.,.,.,,,,.,,.,.,,..,...,
+#XRM5O75KL7UHPD7K4KEUCOME7YD2L4EWL5I3GR6MBPY6GQKN3CH3U5F4THPK2S4S4L7F4BNIYTPKY
+#\\\|OMAWDVOU5SESL6DZV76JSZN6WNWDRNJTCSTWYSRFL5OUWB4BTTX \ / AMOS7 \ YOURUM ::
+#\[7]GNMUP56M6RTO64CDCIR2TM4UGPITYMTWR7UVMXA4SOG2VFEBAIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
