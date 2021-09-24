@@ -2,8 +2,8 @@
 
 # name = protocol-7-menu.init_code
 
-<protocol-7-menu.init-console>   //= 0;
-<protocol-7-menu.init-graphical> //= 0;
+<protocol-7-menu.init-console>   //= FALSE;
+<protocol-7-menu.init-graphical> //= FALSE;
 
 <protocol-7-menu.menu-tree>
     //= { 'character-console' => {}, 'graphical' => {} };
@@ -28,12 +28,12 @@ if (<protocol-7-menu.init-graphical>) {
 if (<protocol-7-menu.init-graphical>) {
 
     <[base.perlmod.autoload]>->('Gtk3');
+    <[base.gtk.attempt_load.glib_event]>;
 
     my $logo_image_path = <protocol-7-menu.image_path>
-        //= join( '/',
-        <system.root_path> . qw| data/gfx/logos/nailara.png | );
+        //= catfile( <system.root_path>, qw| data/gfx/logos/nailara.png | );
     <[base.logs]>->( 0, "[ not found ] image file '%s'", $logo_image_path )
-        if !-f <protocol-7-menu.image_path>;
+        if not -f <protocol-7-menu.image_path>;
 }
 
 ##  silence stderr console output  ##
@@ -41,8 +41,8 @@ if (<protocol-7-menu.init-graphical>) {
 
 0;
 
-#,,.,,..,,.,,,,.,,,,,,...,,,.,..,,,,.,.,.,,.,,..,,...,...,.,.,,.,,.,.,,.,,,..,
-#YLJ5C2MO2PE35N473MVJRLVPJGPN7H2WBX4MLZ7OVZGGV2LXFQYUKIVSVGS5KUHRCNALL5G55XJJQ
-#\\\|EVPAV524WFBE4O4Z6RUJGW4YCD5CRGVSYT73DCPBB5CNIZWHB3I \ / AMOS7 \ YOURUM ::
-#\[7]T55PGUXDCFQJTTWAWKU732ULT7JXFDGBVMEHM6NOCHJTN3NTROCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,.,...,,.,,...,...,,.,,,,.,.,,,..,,...,...,.,.,.,.,.,,,...,...,
+#KJCQX7YJH2KEQ3HKTVPRLJJMZWVXYOGX3Z73WEWOOV4AVNRS27DMMLZG65LPVYUYN7PIPYXWBE6BM
+#\\\|A7EZIAXZXIQKT77QKYTHTXEYDZQP4IIL5DWEBOUXN7RI6JGY7UH \ / AMOS7 \ YOURUM ::
+#\[7]IP6Q2FCO4OIK7CYJFQMFUB2NBXAWCLUG6ZHNVFEX6MX5KRAHUYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
