@@ -6,20 +6,20 @@
 my $display = <x11.display>;
 if ( not defined $display ) {
     <[base.log]>->(
-        0, "<< not able to get DISPLAY setting from X-11, aborting startup >>"
+        0, '<< cannot get DISPLAY setting from X-11, aborting startup >>'
     );
-    exit(2);
+    <[base.exit]>->(2);
 }
 
-<[base.log]>->( 1, "starting 'compton' on display $display .," );
+<[base.logs]>->( "starting 'compton' on display %s .,", $display );
 
 my $shadow_def = '#000013';
 <compton.default_shadow> //= $shadow_def;
 ( my $sh_col = <compton.shadow_color> //= <compton.default_shadow> );
 
 if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
-    <[base.log]>->(
-        0, "<< no a valid background color syntax ['$sh_col'] >>"
+    <[base.logs]>->(
+        0, "<< no a valid background color syntax ['%s'] >>", $sh_col
     ) if defined $sh_col;
     $sh_col = <compton.default_shadow>;    ## <-- fallback color ., ##
 }
@@ -28,15 +28,14 @@ if ( $sh_col !~ m|^\#?[0-9A-F]{6}$|i ) {
 my @sh_val;
 my @shadow_opts;
 while ( $sh_col =~ s|^#?(\w{2})||i ) {
-    push(
+    push
         @sh_val,
-        uc($LAST_PAREN_MATCH) eq 'FF'    ## <-- white exception ., ##
+        uc($LAST_PAREN_MATCH) eq qw| FF |    ## <-- white exception ., ##
         ? 1
-        : sprintf( '%.2f',
-            ord( pack( 'h*', $LAST_PAREN_MATCH ) ) / 100 / 2.72 )
-    );
+        : sprintf( qw| %.2f |,
+        ord( pack( qw| h* |, $LAST_PAREN_MATCH ) ) / 100 / 2.72 );
 }
-map { push( @shadow_opts, "--shadow-$ARG", pop(@sh_val) ) }
+map { push @shadow_opts, sprintf( qw| --shadow-%s |, $ARG ), pop(@sh_val) }
     qw| blue green red |;
 ##
 
@@ -44,10 +43,10 @@ map { push( @shadow_opts, "--shadow-$ARG", pop(@sh_val) ) }
 my @vsync_options = qw| --unredir-if-possible |;
 
 @vsync_options = qw| --paint-on-overlay --dbe --unredir-if-possible |
-    if <x11.driver> eq 'nvidia';
+    if <x11.driver> eq qw| nvidia |;
 
 @vsync_options = qw|--backend xrender --vsync opengl --paint-on-overlay --dbe|
-    if <x11.mode> eq 'xephyr';
+    if <x11.mode> eq qw| xephyr |;
 
 ### start-up ###
 
@@ -61,6 +60,7 @@ my @c = (
         --shadow-exclude name*='menu'
         --shadow-exclude name*='ticker'
         --shadow-exclude name*='gkrellm'
+        --shadow-exclude name*='osd-logo'
         --shadow-exclude name*='reenc-msg'
         --shadow-exclude name*='universal'
         --shadow-exclude name*='impressive'
@@ -88,28 +88,31 @@ map { <[base.log]>->( 2, $ARG ) } ( ':.', split( m|\n|, $cmd_string ), '..' );
 
 <compton.pid> = my $pid
     = open3( <compton.in_fh>, <compton.out_fh>, undef, @c );
-if ( !<compton.pid> ) {
-    <[base.log]>->( 0, "<< unable to start compton [ \l$OS_ERROR ] >>" );
+if ( <compton.pid> == 0 ) {
+    <[base.logs]>->(
+        0, '<< cannot start compton [ %s ] >>',
+        <[base.str.os_err]>
+    );
     <[base.log]>->( 1, ' : :.. aborting zenka startup .,' );
-    exit(1);
+    <[base.exit]>->(qw| 0110 |);
 }
 
-<[base.log]>->( 1, ": compton process started [PID=$pid]" );
+<[base.logs]>->( ': compton process started [PID=%u]', $pid );
 my $prio = <compton.priority>;
 
 <[base.log]>->( 1, ": :. reporting process id to 'v7' .," );
 <[base.zenki.report_child_pid]>->($pid);
 
-<[base.log]>->( 2, ": setting child priority [ $pid ] to $prio" );
-print {<compton.prio_fh>} "$pid $prio\n";
+<[base.logs]>->( 2, ": setting child priority [ %u ] to %s", $pid, $prio );
+say {<compton.prio_fh>} sprintf '%u %s', $pid, $prio;
 close(<compton.prio_fh>);
 delete <compton.prio_fh>;
 
 <[event.add_io]>->(
     {   'fd'      => <compton.out_fh>,
-        'handler' => 'base.handler.child_output.simple',
+        'handler' => qw| base.handler.child_output.simple |,
         'data'    => {
-            'bin'           => 'compton',
+            'bin'           => qw| compton |,
             'pid'           => <compton.pid>,
             'log_whitelist' => [
                 'invalid window parameter',
@@ -119,16 +122,17 @@ delete <compton.prio_fh>;
                 'another composite manager'
             ],
             'callback_patterns' => {
-                'no composite extension' => 'compton.callback.not_composited',
+                'no composite extension' =>
+                    qw| compton.callback.not_composited |,
                 'another composite manager is already running' =>
-                    'compton.callback.already_running'
+                    qw| compton.callback.already_running |
             }
         }
     }
 );
 
-#,,,.,,.,,,.,,,,,,,..,...,,..,..,,,.,,...,.,,,..,,...,...,.,,,,,.,,,,,.,.,,,.,
-#ATISW33KUBADGNMMQFRVCV76JJ4GTRFALN77TJCC7OFDK2SHYAVVWNKTJ7JQDJB7PIGRYSKZ6Z7U6
-#\\\|XDV4U34I4I3S5TRS2WR2CLLFBUIGI3L3IMAVVBWE5UZOMM7W76K \ / AMOS7 \ YOURUM ::
-#\[7]ULD463TGAVBXJ3C5UKADGUI6Y4ES4HRUX2V5RFFLQB7UHT4HBEBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,...,.,.,,,.,.,,,...,..,,,,.,..,,...,.,.,,.,,.,.,,.,,.,.,,,.,
+#4ST2FUJZGQVG43IYKY4FOBLXXEBIT7R5CYE5U4NQBXL6CWX43MP6ULXRSLFZH6UKSPMKV5BMSJFEW
+#\\\|KIEW5GTKGEUDFFKHQ5XYGSIUD56JOAW2NE5NWENRHLIIPAYY4YR \ / AMOS7 \ YOURUM ::
+#\[7]YUWBM54EMVFAMNYP5OPYRDHN2SBGSY2IPL7YML74ECSBUOSI22AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
