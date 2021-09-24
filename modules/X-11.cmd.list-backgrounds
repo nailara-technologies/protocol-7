@@ -60,8 +60,9 @@ foreach my $bg_gfx_path ( <[base.sort]>->( \%bg_image_pathmap ) ) {
     ( my $image_path_rel = $bg_gfx_path ) =~ s|^.*/||;
 
     my $template = (    ## matching name or chksum ##
-        $bg_image_pathmap{$bg_gfx_path} eq <X-11.cur_bg_image>
-            or <X-11.cur_bg_image> eq $image_path_rel
+        defined <X-11.cur_bg_image>
+            and ( $bg_image_pathmap{$bg_gfx_path} eq <X-11.cur_bg_image>
+            or <X-11.cur_bg_image> eq $image_path_rel )
         )
         ? " ::[ %s ]:: %s\n"    ##  highlight the current image  ##
         : "  :  %s  :  %s\n";
@@ -75,8 +76,8 @@ return { 'mode' => qw| false |, 'data' => 'no match for given pattern' }
 
 return { 'mode' => qw| size |, 'data' => join '', @bg_img_files }
 
-#,,..,,.,,,..,.,,,.,.,..,,.,.,...,,..,..,,.,.,..,,...,...,,.,,.,.,,..,,.,,,..,
-#TW5VFKPNZ52F4EKABBOEOCEJAR3SNJFC5QFLLKVYDBM56PISB6BSGRARD6IFG5IX25QYDPXFV7QB6
-#\\\|6EF35CAOGBSVZW237O5U6A6SXODIDYSWV7GAGKOCVBW2OBQVGPJ \ / AMOS7 \ YOURUM ::
-#\[7]CQDEJLX5OOWSXAZNINKPVIGDOMG3SFIWA64ME2GS4ECK4LFF5GCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,,.,,,,.,,,.,.,.,,,,,.,.,..,,..,,...,..,,..,,.,.,...,.,,,.,.,
+#WAHCAXX3UFXKZQBIE5FBV45WQRHQC6E6YY73GY4SGOZRNSMOEK2ZFDU5HJDQQV23RH2HHTTUCRAV4
+#\\\|UEJFSEMWCEABT5PW5QMWOZ5QXGUM5Q6TZIG2T6NYEI64BRMTFAT \ / AMOS7 \ YOURUM ::
+#\[7]AYUOGHNEWVL3H74TVXDNH5DPTY4D5FFBGZ3YATZMVTYSRUMEOKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
