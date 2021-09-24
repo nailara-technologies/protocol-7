@@ -6,7 +6,7 @@
 <[base.perlmod.load]>->( 'Time::HiRes', qw| sleep time | );
 
 <[base.perlmod.autoload]>->('Gtk3');
-<[base.perlmod.autoload]>->('Glib::Event');
+<[base.gtk.attempt_load.glib_event]>;
 
 if ( defined <tile-groups.logo> ) {
     <osd-logo.cfg> = <tile-groups.logo>;
@@ -14,7 +14,7 @@ if ( defined <tile-groups.logo> ) {
 }
 
 my $logo_path = <osd-logo.cfg.image>
-    //= <system.root_path> . '/data/gfx/logos/nailara.png';
+    //= catfile( <system.root_path>, qw| /data/gfx/logos/nailara.png | );
 
 <osd-logo.logo_path> = $logo_path;
 
@@ -22,8 +22,8 @@ my $logo_path = <osd-logo.cfg.image>
 
 0;
 
-#,,..,.,.,.,.,.,,,,.,,..,,...,,..,.,,,..,,..,,..,,...,...,.,.,.,,,,..,.,.,,,,,
-#ROGZMCDQONGPSRY7SNCVP3Z2RYJZFK5TOM7AEDCRIOBWBSAYWZXNZI544U7HRCVEW7C4J5QWOIGBE
-#\\\|6KEAMCDPEYWGKV3DRLSOWVEZOHSMG7RUBDFCQFMVHHM3PVNKZF7 \ / AMOS7 \ YOURUM ::
-#\[7]QMPRIOJXC2YEYAYJIBEQR77W2HBF7TE3QJ5ZDPQYCIJEYHNNMIDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,.,,,..,,.,,,..,.,,,..,,.,,,,,,,..,,...,...,,..,,.,,,,.,,.,,,.,,
+#UUTSC3VLLLWK2PYBUPVYTWGXCKBU3IONEJF5FC57O7SIHMJIH32LT6B5A3YIAS475TBDITHRNH3V4
+#\\\|MEWTXBGQLSCVZRLXGLE6FWVQQR57CZXUQP5TEDGLFZPX7I4FAA5 \ / AMOS7 \ YOURUM ::
+#\[7]55K4KXE5YGLGNPSGCL4XL4KEBYEFA5D3ECBXVXWZ7MXW77TTTOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

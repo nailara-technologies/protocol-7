@@ -4,12 +4,12 @@
 
 my $logo_path = <osd-logo.logo_path>;
 
-if ( !-f $logo_path ) {
-    <[base.log]>->( 0, "<< logo file '$logo_path' not found >>" );
+if ( not -f $logo_path ) {
+    <[base.logs]>->( 0, "<< logo file '%s' not found >>", $logo_path );
     <[base.exit]>->(2);
 }
 
-<[base.log]>->( 1, ":: opening window .," );
+<[base.log]>->( 1, 'opening window ..,' );
 
 $ENV{'DISPLAY'} = <x11.display>;
 Gtk3->init;
@@ -19,7 +19,7 @@ my $window = Gtk3::Window->new('popup');
 <osd-logo.obj.window> = $window;
 
 $window->signal_connect( delete_event => sub { Gtk3->main_quit } );
-my $use_transparency = $window->is_composited ? 1 : 0;
+my $use_transparency = $window->is_composited ? TRUE : FALSE;
 $window->set_opacity(0) if $use_transparency;
 $window->set_position('center');
 $window->set_border_width(0);
@@ -41,13 +41,13 @@ if ($use_transparency) {
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
-if ( !$scr_w or !$scr_h ) {    # <-- on xephyr [NEW GTK3 BUG]
+if ( not $scr_w or not $scr_h ) {    # <-- on xephyr [NEW GTK3 BUG]
     my $root_window = $screen->get_root_window();
     $scr_w = $root_window->get_width();
     $scr_h = $root_window->get_height();
 }
 
-die "unable to determine screen size" if !$scr_w or !$scr_h;
+die '[ cannot determine screen size ]' if not $scr_w or not $scr_h;
 
 ##
 <osd-logo.logo_size> = delete <osd-logo.cfg.height>
@@ -56,7 +56,7 @@ die "unable to determine screen size" if !$scr_w or !$scr_h;
 my $position
     = defined <osd-logo.cfg.position>
     ? delete <osd-logo.cfg.position>
-    : 'top-right';
+    : qw| top-right |;
 
 ##
 
@@ -66,45 +66,46 @@ my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
 my $img_w = $pbuf->get_width();
 my $img_h = $pbuf->get_height();
 
-die "unable to determine image size" if !$img_w or !$img_h;
+die '[ cannot determine image size ]' if not $img_w or not $img_h;
 
-my $scale_x = sprintf( '%.0f',
+my $scale_x = sprintf( qw| %.0f |,
     $img_w * ( ( $scr_h / $img_h ) * ( $height_percent / 100 ) ) );
-my $scale_y = sprintf( '%.0f', $scr_h * ( $height_percent / 100 ) );
+my $scale_y = sprintf( qw| %.0f |, $scr_h * ( $height_percent / 100 ) );
 
 my $pos_y = 0;                    # top-right
 my $pos_x = $scr_w - $scale_x;    # top-right
-$pos_x = 0                 if $position =~ /-left$/;
-$pos_y = $scr_h - $scale_y if $position =~ /^bottom-/;
-$pos_y = 0                 if $position =~ /^top-/;
+$pos_x = 0                 if $position =~ m|-left$|;
+$pos_y = $scr_h - $scale_y if $position =~ m|^bottom-|;
+$pos_y = 0                 if $position =~ m|^top-|;
 
 if ( defined <osd-logo.cfg>->{'offset.x'} ) {
     my $x_offset_percent = delete <osd-logo.cfg>->{'offset.x'};
-    <osd-logo.offset.x>
-        = sprintf( '%.0f', $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 ) );
+    <osd-logo.offset.x> = sprintf qw| %.0f |,
+        $scr_h * ( ( $x_offset_percent * 1.168 ) / 100 );
 }
 if ( defined <osd-logo.cfg>->{'offset.y'} ) {
     my $y_offset_percent = delete <osd-logo.cfg>->{'offset.y'};
-    <osd-logo.offset.y>
-        = sprintf( '%.0f', ( $scr_h * ( $y_offset_percent / 100 ) ) );
+    <osd-logo.offset.y> = sprintf qw| %.0f |,
+        ( $scr_h * ( $y_offset_percent / 100 ) );
 }
 
 <osd-logo.offset.y> //= $scale_y;
-<osd-logo.offset.x> //= sprintf( '%.0f', $scr_w * ( $height_percent / 100 ) )
+<osd-logo.offset.x>
+    //= sprintf( qw| %.0f |, $scr_w * ( $height_percent / 100 ) )
     * ( $scr_h / $scr_w );
 
 my $x_offset = <osd-logo.offset.x>;
 my $y_offset = <osd-logo.offset.y>;
 
-$pos_x += abs($x_offset) if $position =~ /-left$/;
-$pos_x -= abs($x_offset) if $position =~ /-right$/;
-$pos_y += abs($y_offset) if $position =~ /^top-/;
-$pos_y -= abs($y_offset) if $position =~ /^bottom-/;
+$pos_x += abs($x_offset) if $position =~ m|-left$|;
+$pos_x -= abs($x_offset) if $position =~ m|-right$|;
+$pos_y += abs($y_offset) if $position =~ m|^top-|;
+$pos_y -= abs($y_offset) if $position =~ m|^bottom-|;
 
 $window->move( $pos_x, $pos_y );
 
 my $image = Gtk3::Image->new_from_pixbuf(
-    $pbuf->scale_simple( $scale_x, $scale_y, 'hyper' ) );
+    $pbuf->scale_simple( $scale_x, $scale_y, qw| hyper | ) );
 
 $window->add($image);
 $window->show_all;
@@ -116,9 +117,9 @@ $window->show_all;
     'draw' => sub {
         my $window      = shift;
         my $old_opavity = $window->get_opacity;
-        my $new_opacity = sprintf( '%.8f',
-                  ( time - <osd-logo.fade_start> ) * 2.1
-                - ( 0.365 * ( time - <osd-logo.fade_start> ) ) );
+        my $new_opacity = sprintf qw| %.8f |,
+            ( time - <osd-logo.fade_start> ) * 2.1
+            - ( 0.365 * ( time - <osd-logo.fade_start> ) );
         my $ret = 1;
         $new_opacity = 1 if $new_opacity > 1;
 
@@ -126,7 +127,7 @@ $window->show_all;
             $window->set_opacity($new_opacity);
             $window->queue_draw;
         } else {
-            sleep 0.001;
+            <[base.sleep]>->(0.001);
         }
 
         $window->signal_handler_disconnect( delete <osd-logo.fade_signal> )
@@ -136,13 +137,10 @@ $window->show_all;
     }
 );
 
-<[base.log]>->( 1, ":: gtk main loop ..," );
+<[base.gtk.main_loop]>;
 
-Gtk3->main;
-<[base.exit]>->(1);    # <-- terminate [ X11 session gone., ]
-
-#,,.,,.,.,.,,,,,.,,,.,.,,,,,,,.,.,.,.,..,,,.,,..,,...,...,.,,,..,,,..,.,,,..,,
-#DN3N4RMSK5DHFOSSXTWHQ4PGPH34GPOY2VRPQOB7JSGDBYGQJ2LIUNQNJJUR2T4R5MBPIWJW2AAVA
-#\\\|XMGHNVRQQ7QBXKLKGEPBDSZM367U7OI6BDIIO2M7JOLVPQAQJPX \ / AMOS7 \ YOURUM ::
-#\[7]NBSFMMQZU43OOMYRJHNOYRSNLB5F4PYKJJIM3P3SNS46OH5G7MBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,...,,,,,.,.,,,,,..,,...,,.,,,.,,..,,...,...,...,.,.,,,,,...,,,.,
+#FNLMCGV5LMCBJPT7TN63GIWTJVDHYH42GCKKKKZYUTS3AQKJSPVXJGDBRLMXTF7NZKHQDKPNTQ6N4
+#\\\|TZULYJFQJQ2Z5WNCSMFEXA5IZFA5MHYGPC67QXIA74WBRCDV7NO \ / AMOS7 \ YOURUM ::
+#\[7]YA34GCZV7ZDMUXZMDTF7RMDNWFI4T7Y5YEINKXB3HNEASIUMNMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
