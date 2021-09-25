@@ -27,11 +27,16 @@ my $hostname_L13
     ? <[chk-sum.bmw.L13-str]>->($hostname)
     : undef;
 
+my %payload_id;
 my $entry_added = FALSE;    ##  host [re-]appeared ?  ##
 
+my $pkey_L13 = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
+
 if ( not length $+{'payload'} ) {
-    my $entry_id
-        = <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} );
+
+    my $entry_id = $pkey_L13;
+
+    $payload_id{$entry_id} = TRUE;    ##  protect from removing  ##
 
     $entry_added = TRUE if not exists $data{'hosts'}->{$entry_id};
 
@@ -52,11 +57,12 @@ if ( not length $+{'payload'} ) {
                      )(?<hwaddr>(?:[0-9a-f]{2}:){5}[0-9a-f]{2})  (?#
                      )<(?<iface>[\w\d\.:]{1,15})>|;
 
-        my $entry_id = join qw| : |,
-            <[chk-sum.bmw.L13-str]>->( $packet_fields_href->{'hostkey'} ),
+        my $entry_id = join qw| : |, $pkey_L13,
             <[chk-sum.bmw.L13-str]>->(
             $hostname, $+{'ip_address'}, $+{'hwaddr'}, $+{'iface'},
             );
+
+        $payload_id{$entry_id} = TRUE;    ##  protect from removing  ##
 
         $entry_added = TRUE if not exists $data{'hosts'}->{$entry_id};
 
@@ -73,6 +79,16 @@ if ( not length $+{'payload'} ) {
                 $packet_fields_href->{'time-delta-seconds'}
         };
     }
+}
+
+## clean-up previous entries ##
+##
+foreach my $id (    ## entries signed with the same host key ##
+    grep { not exists $payload_id{$ARG} }
+    grep { index( $ARG, $pkey_L13, 0 ) == 0 }
+    keys $data{'hosts'}->%*
+) {
+    delete $data{'hosts'}->{$id};    ## no longer in packet payload ##
 }
 
 if ($entry_added) {    ## seperate buffer status change logging ##
@@ -164,8 +180,8 @@ if ($entry_added    ##  when announce host request [re-]appears  ##
     }
 }
 
-#,,..,...,,..,...,.,,,.,.,...,,..,...,,,.,,,,,..,,...,...,...,,,,,.,,,,..,..,,
-#LKVPAUA6LJKPXQDXJQNB3ILTDL2LOPRJGBFMJYEID3LFQEHHFNDGQADGNN3V6TAV5Q7ALOAKLPGCY
-#\\\|5PRPP547GF2IGDFAT3IIXDIFC6O6YK7MCQRPPCOPUGRW53Y3SPB \ / AMOS7 \ YOURUM ::
-#\[7]CDZXSAYZI3YZMQSWZ5IGDNEUDA632GPWRPFEM7GTWUQTTGLAJWDA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,,..,,.,,.,.,.,.,,,,,..,,.,.,..,,...,...,,..,...,.,,,,,.,,..,
+#L5PHBZNJEL7BW7DCGPZT72ENYG4CLG5SAXPYOAWNSQ3466PZICAGAQE7LFCISAROH4FMVKE43342C
+#\\\|KSBLUEBBYA3IAKUYZPZROPZUZ4HF7RM2KKHU2YTX25ZWHH6EJVU \ / AMOS7 \ YOURUM ::
+#\[7]7ESTATQH4BG5K6JEMEQJW2RB3JVL3B24OMRNHKGABPOA5SOXCOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
