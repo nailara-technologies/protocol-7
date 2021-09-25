@@ -3,8 +3,11 @@
 # name = X-11.get_window_opacity
 
 my $window_id = shift;
-die "numerical window id expected"
-    if not defined $window_id or $window_id !~ /^\d+$/;
+
+if ( not defined $window_id or $window_id !~ m|^\d+$| ) {
+    warn 'numerical window id expected <{C1}>';
+    return undef;
+}
 
 my $X = <X-11.obj>;
 
@@ -18,15 +21,15 @@ my $opacity = 1;
             = $X->GetProperty( $window_id, <X-11.atom.opacity>,
             X11::AtomConstants::CARDINAL(),
             0, 1, 0 );
-        $opacity = sprintf( '%.5f', unpack( 'I*', $result ) / 0xffffffff )
-            if length($result);
+        $opacity = sprintf( qw|%.5f|, unpack( 'I*', $result ) / 0xffffffff )
+            if length $result;
     };
 }
 
 return $opacity;    # undef == window not found
 
-#,,,.,,..,.,,,...,,,,,.,,,,,,,,.,,,..,,,.,,,,,..,,...,...,,,,,.,,,,,,,..,,,..,
-#SJ55JGDQVOH3V44CIDB664CSD5HZPW6CWWHP5KBE2DM5AMVR3YFVQ7AXKVZ566ON7FGTGNIG4N4WC
-#\\\|OLPIZ5RHAZXIX62H4EVHWLDHJICOCROYHVXP77IY6RCIRWXOKTX \ / AMOS7 \ YOURUM ::
-#\[7]JIDWQQCXJLL7WJ4NLD6I4ICKB5ZEXM6UQAVGO6GPSPP23GTL7YDA 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,,..,,..,..,,,.,,,,.,.,,,,..,..,,...,...,...,..,,,.,,,,,,,,,,
+#GU3IAFUO25AR623HBDTGKBWHKXKZNHO4BW7YML2TXCJOVNF72BRUPKGGG3QCE3V4Y4D7KRWAVKOZE
+#\\\|6PBVST5KID4UJNN5CFVVE5APA7H7TNQTHGLK3D5PPHLGS7GDCUZ \ / AMOS7 \ YOURUM ::
+#\[7]C7MC2FM2TGRNZ6YHORSE6XJNPV34RBMZNKT2SR7VVEQNXBBNNSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
