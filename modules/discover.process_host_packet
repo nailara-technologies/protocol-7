@@ -5,6 +5,10 @@
 my $packet_payload     = shift;
 my $packet_fields_href = shift;
 
+##  target route to 'nodes' zenka  ##
+##
+my $nodes_update_cmd = <discover.cfg.nodes.host_status_command>;
+
 <discover.resend-host-reqs> //= {};
 
 return ( warn 'HOST packet syntax error [ packet format ] <{C1}>' and undef )
@@ -83,6 +87,20 @@ if ($entry_added) {    ## seperate buffer status change logging ##
     );
 }
 
+##  send status change for [all] host to 'nodes' zenka  ##
+##
+if (    $entry_added
+    and defined $nodes_update_cmd
+    and <[base.is_defined_recursive]>->(qw| discover.notify-nodes-zenka |)
+    and <[base.cfg_bool]>->(<discover.notify-nodes-zenka>) ) {
+    <[base.log]>->( 2, "sending host [online] status to 'nodes' zenka .,", );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => $nodes_update_cmd,
+            'call_args' => { 'args' => join( ' ', qw| online |, $hostname ) }
+        }
+    );
+}
+
 ##  requested host status updates  ##
 ##
 if ($entry_added    ##  when announce host request [re-]appears  ##
@@ -146,8 +164,8 @@ if ($entry_added    ##  when announce host request [re-]appears  ##
     }
 }
 
-#,,.,,,..,,.,,..,,,,,,,,.,...,...,.,.,,,.,,..,..,,...,..,,...,..,,.,,,,,,,...,
-#2MHU5FSDTE7ZM6QVFNCXCHOWYVVECQLEBL4EXDEJBJ76U5AF43WWMBV6VWS7WW6V4QDVG3Z6VYY7C
-#\\\|6DCMX3KJ3R2E46UIFY3I4IV52AFOUPED623M7QOTV7EIBPEISUW \ / AMOS7 \ YOURUM ::
-#\[7]WFLISOVA2YQT4SQUAF4TEAT3JO2MLQ6OO4S6F52IN7S4FB6EROAI 7  DATA SIGNATURE ::
+#,,..,...,,..,...,.,,,.,.,...,,..,...,,,.,,,,,..,,...,...,...,,,,,.,,,,..,..,,
+#LKVPAUA6LJKPXQDXJQNB3ILTDL2LOPRJGBFMJYEID3LFQEHHFNDGQADGNN3V6TAV5Q7ALOAKLPGCY
+#\\\|5PRPP547GF2IGDFAT3IIXDIFC6O6YK7MCQRPPCOPUGRW53Y3SPB \ / AMOS7 \ YOURUM ::
+#\[7]CDZXSAYZI3YZMQSWZ5IGDNEUDA632GPWRPFEM7GTWUQTTGLAJWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

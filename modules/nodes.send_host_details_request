@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nodes.send_host_details_request
+
+my $params = shift->w->data;    ## timer event ##
+
+if ( not defined $params->{'name'} ) {
+    warn "'name' parameter missing in timer data";
+    return undef;
+}
+
+<nodes.local-network.online-hosts> //= {};
+
+my $name = $params->{'name'};
+
+##  already present  ##
+##
+return if exists <nodes.local-network.online-hosts>->{$name};
+
+## route to 'discover' zenka ##
+##
+my $req_details_cmd = <nodes.cfg.host_details_command>;
+
+<[base.logs]>->( 2, "requesting host details for '%s'.,", $name );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $req_details_cmd,
+        'call_args' => { 'args' => $name },
+        'reply'     => {
+            'params'  => { 'name' => $name },
+            'handler' => qw| nodes.handler.discover_details_reply |
+        }
+    }
+);
+
+#,,..,,,.,,..,,,.,,..,.,.,..,,,,.,,,,,,..,..,,..,,...,...,..,,...,,.,,..,,..,,
+#NSYN3D72XJIUEJYDW2AMBD6I4QWORR3TJBIOQAVD7XSBII5VEKB37KS3JXDH3XLY7SOECKNXITMBA
+#\\\|PEYCBHFADJWVWETB2AB5WCL24DIR2GT54UAPSAVNGQ26FMAN6V2 \ / AMOS7 \ YOURUM ::
+#\[7]N2NLRA22BEYODUBWA6NTU5MIX36WFDDFSYGKI5TKGW3SBHENFMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

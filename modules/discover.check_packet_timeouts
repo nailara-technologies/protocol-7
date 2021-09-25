@@ -4,11 +4,15 @@
 
 ## timeout check value increased for network latency ##
 ##
-my $host_timeout_delay = <discover.cfg.timeout_delay> //= 2.1;
+my $host_timeout_delay = <discover.cfg.timeout_delay> //= 2.4;
 my $packet_timeout     = <discover.announce_interval.maximum>;
 $packet_timeout += $host_timeout_delay;   ## accounting for network latency ##
 
 my $log_level = 2;    ## <-- reporting timeouts loglevel ##
+
+##  target route to 'nodes' zenka  ##
+##
+my $nodes_update_cmd = <discover.cfg.nodes.host_status_command>;
 
 my @next_host_timeout;
 
@@ -34,6 +38,24 @@ foreach my $id ( keys $data{'hosts'}->%* ) {
         );
 
         delete $data{'hosts'}->{$id};    ##  removing timed out entry  ##
+
+        ##  send status change for [all] host to 'nodes' zenka  ##
+        ##
+        if (defined $nodes_update_cmd
+            and <[base.is_defined_recursive]>->(
+                qw| discover.notify-nodes-zenka |)
+            and <[base.cfg_bool]>->(<discover.notify-nodes-zenka>)
+        ) {
+            <[base.log]>->(
+                2, "sending host [timeout] status to 'nodes' zenka..,",
+            );
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => $nodes_update_cmd,
+                    'call_args' =>
+                        { 'args' => join( ' ', qw| offline |, $host ) }
+                }
+            );
+        }
 
         ##  requested host status updates  ##
         ##
@@ -104,8 +126,8 @@ my $next_timeout_in = sprintf qw| %.3f |, [ minmax @next_host_timeout ]->[0];
     { 'after' => $next_timeout_in, 'repeat' => FALSE, 'handler' => __FILE__ }
     ) if @next_host_timeout;
 
-#,,.,,,,,,.,,,...,,.,,..,,,,.,.,,,,,.,,..,,..,..,,...,.,.,.,.,.,,,,,.,...,.,,,
-#7ZYT63VNDVVSUUKJNVOSC6UVRB7P54WCCPVJHSYD5ABONF64ZLRX3KF6MBUOY2ADBAH3JLH3CC3OO
-#\\\|7ZG5MK6GMJQAMNRDDK5BLPRKYZKBGSZAMGDVAIIGET7HYCWPV4R \ / AMOS7 \ YOURUM ::
-#\[7]DEGR4PJAB5YTVMFUWQFX7IRV7APTUOYVCKTVRW7QGX5WRJHKS4BI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,.,,,,.,,..,,,,.,,,,,,,,,...,..,,...,...,,..,,..,...,.,.,..,,
+#L63SAHUL4F2JRXAVIG5R3EYE3WPFOSZB6Y72T5JCHATSYIBCPOY2ZH4VEQROQLCUO5DGENKKSUKI6
+#\\\|H3ZG3L5CEDCKNHYSD6L76ELLFF24KLOSANB57WQSATLPWJBFMH2 \ / AMOS7 \ YOURUM ::
+#\[7]ADNYO3X2VJDB4HE6RQRA7KAOHMAQYFB4OTUTJDJ5KMP5WG3R2EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

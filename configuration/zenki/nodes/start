@@ -3,12 +3,15 @@
 
 [load_config_file:'shared-params']
 
+system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
+
 access.cmd.usr.cube = commands heart reload verify-instance *-version src-age \
                       list show-buffer buffer-erase buffer-erase-level \
                       cur-pid get set del dump keep-devmod-loaded \
-                      add-trunc add-group-user update-protocol-elf
+                      add-trunc add-group-user update-protocol-elf \
+                      host-status
 
-modules.load = auth net protocol io.unix io.ip nodes ## devmod
+modules.load = auth net protocol io.unix io.ip crypt.C25519 nodes  ## devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -20,8 +23,8 @@ modules.load = auth net protocol io.unix io.ip nodes ## devmod
 
 [zenka.loop]
 
-#,,,,,,,,,.,,,...,,.,,.,.,,,.,,,.,,,.,..,,...,.,.,...,...,,..,,..,,,,,.,,,,,.,
-#OODTTLXBGCGAJVHTU7PHYCWCWFTAICBMY5EK6UWZL7PKFW7JGJPDQ6UYX3M77AAG3KX6VGTLQMPQC
-#\\\|PHKKXSQO3ZV3T2G2FSIK23LJSAV3242C4URI3RYPPM5TDMMIA4T \ / AMOS7 \ YOURUM ::
-#\[7]42YMYWH5VL7RVNZ5QK5WZHZ7APW2PDGIXVZXO4AHQUBDB6A3LSAY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,.,,,,,.,.,.,,,.,,,...,,..,,..,.,.,...,...,,.,,,..,,..,..,,,..,
+#FDNHQ3AM4JUBX2GI3IZOWU4Y5BSBJQPG7LM3DAK36IPUVGJKX4TPFUENPOE3JPHDYHJD6YVSGYHZE
+#\\\|SYVV7HVNUQ2LQCLFX4GHXMNN6BCURTAW3TLDDDWTPCBSG7G44TF \ / AMOS7 \ YOURUM ::
+#\[7]4UYQ3TS57W2MHXYW7S3N6QV2ZDKSF2ZU5TYUBN7AQFTBVRQ7VADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

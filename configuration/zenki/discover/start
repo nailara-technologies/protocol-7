@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
 
 discover.crypt.key_user = <system.amos-zenka-user>  ##  <-- key path owner
                                     # i.e.: /users/protocol-7/.n/user-keys
@@ -18,7 +18,11 @@ discover.mcast.mesg_loop = 0 # devmod echo
 
 access.cmd.usr.cube = * *.*         # <-- LLL: dev, stricter later
 
-modules.load = auth net protocol io.unix crypt.C25519 discover ## devmod
+##  send host status changes to 'nodes' zenka  ##
+##
+discover.notify-nodes-zenka = yes
+
+modules.load = auth net protocol io.unix crypt.C25519 discover  ## devmod
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -30,8 +34,8 @@ modules.load = auth net protocol io.unix crypt.C25519 discover ## devmod
 
 [zenka.loop]
 
-#,,.,,,.,,,.,,,,,,.,.,,..,.,.,,,.,,.,,,,.,...,.,.,...,...,.,,,...,,,,,.,,,.,.,
-#OAUURX33WZQZGA4QRNCUBNFLUUAZJSCB7WBICXKJUH6YMU6ENROSOWD4TQA5OIZAUJXWZFOM67MTW
-#\\\|62DOZ5IAEGGMUOER4WQUF4WIGDYSJEBXZ2LRT4LOXI6LI5ASH4Q \ / AMOS7 \ YOURUM ::
-#\[7]APLOICWICMSSYJLFL7EZND7OA5I36XZCLZ3JCLRXKK7WCDB2LWCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,.,,,,.,,,,,,...,.,,,.,.,,.,,.,.,...,...,.,,,..,,..,,..,,.,.,
+#4EM7KBX7GWV5NTHN6CT2IQF4MDKQ6MJRA3TAQZHK6TDWEGFSDL62QQHPT7EYYAQZKBZGM6LXRTSME
+#\\\|NS2HKNNYAULVUNKXYSJFIA225YMB56DRDZOMH6WH5TMPOMAEGX6 \ / AMOS7 \ YOURUM ::
+#\[7]TQRNBCQEJQOGB2AADYEURQLLVKWVRJCAJ3GJKZWW6Q6LNZQGQWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

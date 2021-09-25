@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = nodes.cmd.host-status
+# descr = local network host status updates
+# param = <status> <hostname>
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <status> and <hostname> parameters'
+    }
+    if not defined $call->{'args'}
+    or $call->{'args'} !~ m<^(online|offline)[\t ]+(\S+)$>;
+
+( my $status, my $name ) = @{^CAPTURE};
+
+my $offline_status_timeout = <nodes.local-network.offline_status_timeout>;
+
+<nodes.local-network.online-hosts> //= {};    ## added in reply handler ##
+
+<[base.logs]>->( 2, "received [%s] status for '%s'", $status, $name );
+
+if ( $status eq qw| offline | ) {
+
+    if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
+        <[base.log]>->( 2, ':, was not registered ..,' );
+        return {    ##[  no such host entry  ]##
+            'mode' => qw| false |,
+            'data' => 'not registered as online'
+        };
+    }
+
+    my $message_string = 'starting offline status timer .,';
+    <[base.logs]>->( 2, ':. %s', $message_string );
+
+    <nodes.local-network.online-hosts>->{$name}->{'timer'} //= {};
+    my $host_timers = <nodes.local-network.online-hosts>->{$name}->{'timer'};
+
+    $host_timers->{'host-offline-timeout'}->cancel
+        if defined $host_timers->{'host-offline-timeout'}
+        and $host_timers->{'host-offline-timeout'}->is_active;
+
+    $host_timers->{'host-offline-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $offline_status_timeout,
+            'handler' => qw| nodes.callback.local_network.offline-node |,
+            'desc'    => sprintf( 'host-timeout status timer [%s]', $name ),
+            'data'    => { 'name' => $name }
+        }
+    );
+
+    return { 'mode' => qw| true |, 'data' => $message_string };
+
+} elsif ( exists <nodes.local-network.online-hosts>->{$name}
+    and defined <nodes.local-network.online-hosts>
+    ->{$name}->{'timer'}->{'host-offline-timeout'} ) {    ## offline timer ##
+
+    my $host_timers = <nodes.local-network.online-hosts>->{$name}->{'timer'};
+
+    if ( defined $host_timers->{'host-offline-timeout'}
+        and $host_timers->{'host-offline-timeout'}->is_active ) {
+        <[base.log]>->( 2, ':, stopping host offline timer..,' );
+        $host_timers->{'host-offline-timeout'}->cancel;
+    }
+
+    return { 'mode' => qw| true |, 'data' => 'offline timer stopped ..,' };
+
+}
+
+if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
+
+    ##  sending request for host details  ##
+    ##
+    <[event.add_timer]>->(
+        {   'after'   => 0.13,
+            'handler' => qw| nodes.send_host_details_request |,
+            'desc' => sprintf( "host details request timer for '%s'", $name ),
+            'data' => { 'name' => $name }
+        }
+    );
+
+    return { 'mode' => qw| true |, 'data' => 'sending details request ..,' };
+
+}
+
+#,,,.,...,,,,,,..,.,,,...,.,.,.,,,...,..,,,.,,..,,...,...,...,.,,,.,.,,,.,...,
+#DM73TIDJLS6LSUOGND4APLHE2SFLUWMAOFMK4GGPU3YYOPMYJN73YG44NEMEPQEPSORULDFPQMEMC
+#\\\|XQJMYWLZYDETZVTUUIZJR7MEXY2I6J4P7SYKXZX23OG5RJN5RTE \ / AMOS7 \ YOURUM ::
+#\[7]7X5QJYW7WCHDWES74VXO6PNWHSZHLG5TLROMRADTS2QXSVQR4AAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,40 @@
 <[base.perlmod.autoload]>->('Net::IP::Lite');
 <[base.perlmod.autoload]>->('IO::Socket::IP');
 
+##  1.42 x interval delay  ##
+##[  ,..until host offline status is accepted \ applied  ]##
+<nodes.local-network.offline_status_timeout> //= 44 * 1.42;
+
+<nodes.cfg.host_details_command> //= qw| cube.discover.host_details |;
+
+<nodes.local-network.online-hosts> //= {};
+
+<list.lan-nodes> = {    ## todo : repair 'sort_key' param for '<key>' case ##
+    'var'   => qw| data |,
+    'key'   => qw| nodes.local-network.online-hosts |,
+    'descr' => 'account group table',
+    'mask'  => '<key>:host ip_addr:ip_address hwaddr pkey:host_key',
+    'align' => {
+        qw| pkey  |   => qw| left+2  |,
+        qw| host  |   => qw| right-2 |,
+        qw| ip_addr | => qw| left+2  |,
+        qw| hwaddr |  => qw|  left   |,
+        qw| pkey  |   => qw|  left   |,
+    },
+    'filters' => {
+        qw| pkey |   => qw| base.parser.key_mem_chksum |,
+        qw| hwaddr | => qw| base.parser.hwaddr |,
+    },
+    'descr' => 'protocol 7 nodes online in local network'
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| lan-nodes |,
+        'key_ref'      => \$data{'nodes'}{'local-network'}{'online-hosts'},
+        'max_elements' => 247
+    }
+);
+
 <nodes.trunc>       //= {};
 <nodes.group.by-id> //= {};
 
@@ -48,8 +82,8 @@
 
 0;
 
-#,,.,,,,,,,,.,.,.,,,.,...,.,.,.,.,,..,,,,,..,,..,,...,...,.,.,,,.,,.,,,,,,..,,
-#YOZAFJV4VDXZ5YOZMZBY5YZPSXORDSJ2Y5N6W5WQFXBUAOE5IVXHAI37HB6DLCKY5Y6JEUSD6GQMY
-#\\\|NP4ODS6E7OIT3VEPKTU7E4NDAI3QXVJQAQEY6OGOS4Y5U6V3Z4J \ / AMOS7 \ YOURUM ::
-#\[7]ZNYGHGBPK5V4ZQJNJFEYLVFUC3XPKJZJKHKK3Z2U45DE27FXZGBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,...,.,,,,.,,...,,..,,,,,.,.,..,,...,...,,..,,,,,,.,,...,,..,
+#MSGNJFUCJ6IYAKDRBQC45IKILAV6PG23IJ6P7ROXP4CYFKKJYN5YVG2DGQSUHTBPXRQLNATD2POQE
+#\\\|G4ORXKGVC63ISIFCOFCOBGNFSS4G66V6BUL765SFNCKCSQ4I5FZ \ / AMOS7 \ YOURUM ::
+#\[7]GR2BG2DU4HZ5XLLXG2UE36V3IM5PMAUNE7KRWM5OANPJFA73HEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
