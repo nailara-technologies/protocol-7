@@ -91,11 +91,11 @@ foreach my $id (
     }
     sort {    ##  numerical ip address sort  ##
         int(join '',
-            map { sprintf qw| %03d |, $ARG } split qw| . |,
+            map { sprintf qw| %03d |, $ARG } split qw| \. |,
             $ifconfig{$a}{'ip'}
         ) <=> int(
             join '',
-            map { sprintf qw| %03d |, $ARG } split qw| . |,
+            map { sprintf qw| %03d |, $ARG } split qw| \. |,
             $ifconfig{$b}{'ip'}
         )
     } <[base.sort]>->( \%ifconfig )    ## pre-sort by interface ##
@@ -135,8 +135,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,.,,,,,.,,,,,,,,.,,,,,,...,..,,.,.,.,,,..,,..,,...,...,.,,,..,,,,,,,..,.,,,
-#TLRTBZTID5NORSHNQ5FZMBLSYFEJG4WZ3DIE35YA5IXYVUP4NXCPM3BE3UI4CZMHMBLNDKGYZLXPC
-#\\\|LS3CRHQTFX4ON3BM72DO35AGPA5QRL7UZZRJ6X6MYFATODPROZT \ / AMOS7 \ YOURUM ::
-#\[7]BOF55O3V5E4DAWBZDNJZRO4OFBCKMH4AEETJSEM2EQOTLZKAU4CA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,..,,,,.,.,,,,,,,,,,,,,.,.,,,..,,...,...,.,.,.,.,,,.,.,.,.,.,
+#4J7IDHYZ4WBEJ6WT74OIDLJJMBVJNK4J3TVXPWR6X6DMGZ6DIAXWRVESCX43MCBSM4IPVOLAS4MN6
+#\\\|DUFAQUV3TSEK5BMPDAKUBRBK34YFC4JWLE2IVN73BGUOQGVCWP7 \ / AMOS7 \ YOURUM ::
+#\[7]QCN572LZUTGSNAIZUHOQOJK7OEP7P464MPJQTNKPFH5HVKRZPQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
