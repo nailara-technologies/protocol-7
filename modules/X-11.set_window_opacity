@@ -4,12 +4,16 @@
 
 my $window_id   = shift;
 my $set_opacity = shift;
-die "numerical window id expected"
-    if not defined $window_id or $window_id !~ m|^\d+$|;
-die "opacity expected [0..1]"
-    if not defined $set_opacity
-    or $set_opacity !~ m|^\d+(\.\d+)?$|
-    or $set_opacity > 1;
+
+if ( not defined $window_id or $window_id !~ m|^\d+$| ) {
+    warn 'numerical window id expected <{C1}>';
+    return undef;
+} elsif ( not defined $set_opacity
+    or $set_opacity !~ m|^\d(\.\d+)?$|
+    or $set_opacity > 1 ) {
+    warn 'opacity expected [0..1] <{C1}>';
+    return undef;
+}
 
 my $X = <X-11.obj>;
 
@@ -33,8 +37,8 @@ my $opacity;
 
 return $opacity;    # undef == window not found
 
-#,,.,,.,,,,..,..,,,.,,,,.,.,,,.,,,...,.,.,,.,,..,,...,...,...,,,,,..,,..,,.,.,
-#PAH7C3BWJU6GM2T5TA52GVFYOSHOUX645I52O7C3U6BQOXL5MVYOGDBFAM5OYQKB5O4G67RXI4HGY
-#\\\|A7BJ2NCGDDEQDO3ARNHVD56AGMSBLJZ4654MFWWMOXH3VGEOGJ5 \ / AMOS7 \ YOURUM ::
-#\[7]KRWECQAOF2Z6HL2H4CAKLQNS43B2RWPQCSVRS6O5NUIIAI5IAIBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,,..,..,,..,,,.,,..,,,..,.,.,..,,...,...,,..,.,,,,,.,.,.,,.,,
+#76FBCEJI23HDHA46YLBBAGYMOXJNOZHVIFQY2VPJHRVO77YBKRAPPOK7CMCPQG7RVCKAXDMDWPMBS
+#\\\|7734AOOIPJ3KOHPD2PNGM3YUMVMETL6DRP2O6BWOZP7I7JLRMZA \ / AMOS7 \ YOURUM ::
+#\[7]AVHLGRWXZZPCANQFCROFVV6NLXUHDYTQ7CV67CHGTSW2ZUKF6MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

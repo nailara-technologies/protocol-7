@@ -4,22 +4,27 @@
 
 my ( $key_name, $data_href ) = @ARG;
 
-warn 'expected <key_name> parameter' and return undef
-    if not defined $key_name;
-warn 'expected <data_href> parameter' and return undef
-    if not defined $data_href;
-warn 'expected hash reference [data_href]' and return undef
-    if ref($data_href) ne 'HASH';
+if ( not defined $key_name ) {
+    warn 'expected <key_name> parameter';
+    return undef;
+} elsif ( not defined $data_href ) {
+    warn 'expected <data_href> parameter';
+    return undef;
+} elsif ( ref $data_href ne qw| HASH | ) {
+    warn 'expected hash reference [data_href]';
+    return undef;
+}
 
 return sort {    ## length decending ##
     length $data_href->{$b}->{$key_name} <=>
         length $data_href->{$a}->{$key_name}
     }            ## reverse-alpha ##
     sort { $data_href->{$b}->{$key_name} cmp $data_href->{$a}->{$key_name} }
-    grep {defined} keys %{$data_href};
+    grep { exists $data_href->{$ARG}->{$key_name} }
+    grep {defined} keys $data_href->%*;
 
-#,,,,,,.,,.,,,...,...,.,,,,,.,,,,,.,,,.,.,.,.,..,,...,...,..,,..,,,,.,,..,,.,,
-#FQG3RZWJOEJ7DYOXENYX2T46BFIEBR2ANIEMEXZRSPKRXSPIV6OKSEPS2TGVUQS23WA76W3PWIVDY
-#\\\|N53O5DAGIKA4VH3T3SEGILMY43JTKCPWWQPBWMQE5S4E6ZXO5ZS \ / AMOS7 \ YOURUM ::
-#\[7]4NQ5RYWB67R33JMV5MUP256FZSN6BWMN5AT7HQKGGWPTYGDNH2CQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,,,..,,,,.,,,.,..,,,..,.,.,..,,...,...,...,.,,,.,,,,.,,,,.,
+#4OFPPI3M3OCLH3SELM7XFGA7NX2JVADBOW5BIYMNXQPM42U4CJ6SULXG7ECEMPPRKFUP5X4POIXZ2
+#\\\|GFCPNFUWA2R2HCCLPBHYT53XJUGDGFZZT6UA4S6PK4UMP455HLL \ / AMOS7 \ YOURUM ::
+#\[7]YUJ72WRTKIN4X4U5ZDY5TEI2EP5UIYXSIKZASJQQJC2GESLTLIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
