@@ -15,6 +15,10 @@ my $max_nodes_entries = <discover.cfg.max_entries.nodes> //= 4200;
 <discover.cfg.log-packets.incoming> //= TRUE;
 <discover.cfg.log-packets.outgoing> //= TRUE;
 
+##  target route to 'nodes' zenka  ##
+##
+<discover.cfg.nodes.host_status_command> //= qw| cube.nodes.host-status |;
+
 $data{'hosts'} //= {};
 
 <list.nodes> = {
@@ -31,7 +35,7 @@ $data{'hosts'} //= {};
     },
     'filters' => {
         qw| pkey |   => qw| base.parser.key_mem_chksum |,
-        qw| hwaddr | => qw| discover.parser.hwaddr |,
+        qw| hwaddr | => qw| base.parser.hwaddr |,
     },
     'descr' => 'protocol 7 nodes [ hosts ] seen online'
 };
@@ -119,8 +123,8 @@ if ( not exists <buffer.host-status> ) {
 
 0;
 
-#,,,.,.,.,,,.,.,,,.,.,,..,,,,,,.,,...,,.,,.,,,..,,...,...,...,,,,,.,.,,..,.,,,
-#RHPYPQVPVWKSCUTSUP5F27GNLDV7DPJM2TTUZBCQJ3TXHQ3XYFW6PZDLZZV4IC4FSGNK22XPR4X46
-#\\\|JLNEFRA7V3YHV4LPFS3F2HAZ62DTBVCSVOHMMG3HXT32BZTXAGX \ / AMOS7 \ YOURUM ::
-#\[7]GYQ2LQ7AOY3RJQWFU4D2NKGNHUUKTEADF5UCNAIFIOB3BZLDNADA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,.,,..,..,,.,,,.,,,,,,,..,,.,,,..,,...,.,.,...,..,,.,,,.,,,,..,
+#SE55JLE47EZ2YIAUP4DRWT7OYN4RCWVHX56PMRSA2RMV4ZYP5IA4YLPP545EQVVKTNXZX37C7GFIO
+#\\\|QGGFPHMUSZB3RUALWJFIMGC5QOKV3OZOTQPHPXC7FPWI63FSE6N \ / AMOS7 \ YOURUM ::
+#\[7]W3H3XEGHE24IG755EAMNVJ2L432UGR2JD3ZRE6CN5MP37QSPX6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

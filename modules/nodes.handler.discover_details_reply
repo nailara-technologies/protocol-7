@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = nodes.handler.discover_details_reply
+
+my $params       = shift;
+my $name         = $params->{'params'}->{'name'};
+my $reply_string = $params->{'data'};
+my $host_href    = <nodes.local-network.online-hosts>->{$name} //= {};
+
+my %reply_params;
+chomp $reply_string;
+foreach my $line ( split "\n", $reply_string ) {
+    next if $line !~ m|^ *(?<key>\S+) +: +(?<val>\S+)$|;
+    $reply_params{ $+{'key'} } = $+{'val'};
+}
+
+my $reply_packet_params;
+foreach my $key (qw| ip_addr hwaddr pkey |) {
+    if ( not defined $reply_params{$key} ) {
+        <[base.s_warn]>->( "reply packet is missing param '%s'", $key );
+        next;
+    }
+    if ( $key eq qw| pkey | ) {
+        $reply_params{$key} = Crypt::Misc::decode_b32r( $reply_params{$key} );
+        if ( not defined $reply_params{$key} ) {
+            warn 'base 32 decoding of public key failed';
+            next;
+        }
+    }
+    $host_href->{$key} = $reply_params{$key};
+}
+
+#,,.,,...,,,.,...,,,.,.,,,.,.,,,,,,,,,,..,,,,,..,,...,...,...,.,,,.,,,...,...,
+#GQZ3RC3QWO2CYMPY3EOF5V6U23N7UXUVOLRBZNU5RD6IHOED5RNS3KIN263OZ4DEV36CWFZFDFUPK
+#\\\|7CBR4QXXJCDTWVLPVANB6FGXMRO4RLT6K44COC6PAGWA7VDNQGI \ / AMOS7 \ YOURUM ::
+#\[7]4U27Q5YQB7NONV6Q4L4XBLV44L6SOIFICLBDJJFCIIDM7JDWDOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

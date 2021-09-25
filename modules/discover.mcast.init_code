@@ -68,6 +68,10 @@ my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
     $mcast_addr, <[base.str.os_err]>
 ) if join( qw| : |, inet_ntoa( pop @addr ), shift @addr ) ne $mcast_addr;
 
+##  recording selected mcast interface  ##
+##
+<discover.mcast.selected_interface> = <discover.mcast.obj.sock>->mcast_if;
+
 ##  registering event handler for incoming packets  ##
 ##
 <[event.add_io]>->(
@@ -78,8 +82,8 @@ my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
 
 0;
 
-#,,,,,.,.,..,,,,,,.,,,,..,,,.,.,,,,..,..,,..,,..,,...,...,.,.,,,.,.,,,,,,,.,,,
-#7URRXEDCYAP5AXZI2CKUGBIV4CG3RYRQKSXNGZJZGOJGETWBOGSCF7P3NYMBE73BKFBJWSWARGGCG
-#\\\|U3BTFGRTYVPRRGQBWQMRC65E2IJAZFMEGBUSV5SUPULTVZ2VMW5 \ / AMOS7 \ YOURUM ::
-#\[7]VOHZDYXI2NV5GKBGP4GI5M7MNOE6HUDDJ2K3FQASYC2A6ZCZXQCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,...,..,,,,,,.,.,...,.,.,,,,,..,,...,.,.,..,,.,,,,,,,,,,,,.,,
+#B67LBILXFZTNYKFZLF5ZIPKR5NOOL35LM5J5L2MRABII6OZWIVVCFHY453YFHU33UIIS4LMJAUDWY
+#\\\|L24JVTHOOZEGHI3EQAFH3GFGNLRPYCJ4CI6MIRHT4SYAWL5BBX6 \ / AMOS7 \ YOURUM ::
+#\[7]UDGPG4XEN47Z2R47GZCJI5DAD4ZWUS764J3F5QE5POTHNIAHNYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = nodes.callback.local_network.offline-node
+
+my $params = shift->w->data;      ## timer event ##
+my $name   = $params->{'name'};
+
+<nodes.local-network.online-hosts> //= {};
+
+if ( not defined $name ) {
+    warn 'hostname param missing in timer event';
+    return undef;
+}
+
+<[base.logs]>->(
+    2, "[timeout] removing '%s' from local network host list ..,", $name
+);
+
+if ( not exists <nodes.local-network.online-hosts>->{$name} ) {
+    <[base.s_warn]>->( ":. no host entry for '%s' present", $name );
+} else {
+
+    ##  create offline callback .., ##  [LLL]
+
+    delete <nodes.local-network.online-hosts>->{$name};
+}
+
+#,,..,,,.,...,.,.,...,,..,,,.,,..,,.,,,,,,.,.,..,,...,...,...,...,,,.,.,,,...,
+#SVEVRKNV3BTZD72623NTRQWYJVNMW4RNYNZG7V4QXYYJYHMRYNNCQFOUELBHDOAGJH53TPPTX7R7U
+#\\\|IALPF6Y7DGBQLGFDOX2FDKIFDRBZIZ3FFMW2TVSVYRCHLOCCX42 \ / AMOS7 \ YOURUM ::
+#\[7]DCIDLIZ44V7ODDBZ6B42GOCC74574AGKACKOOW5D33XFO26CY4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

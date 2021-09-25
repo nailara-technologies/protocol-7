@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = discover.cmd.host_details
+# param = <hostname>
+# descr = returning parameters from nodes list
+
+my $hostname = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'expecting hostname parameter' }
+    if not defined $hostname;
+
+my $hostname_L13;
+my $match = FALSE;
+foreach
+    my $id ( <[base.reverse-sort.key-name]>->( qw| host |, $data{'hosts'} ) )
+{
+    if ( $hostname eq $data{'hosts'}->{$id}->{'host'} ) {
+        $hostname_L13 = $id;
+        $match        = TRUE;
+        last;
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'host is not known' } if not $match;
+
+my $reply_string;
+my $host_details_ref = $data{'hosts'}->{$hostname_L13};
+
+my $key_len = [ minmax( map {length} keys $host_details_ref->%* ) ]->[1];
+
+foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
+
+    my $param_value = $param_key ne qw| pkey |
+        ? uc $host_details_ref->{$param_key}    ##  encoding host key  ##
+        : Crypt::Misc::encode_b32r( $host_details_ref->{$param_key} );
+    ##  param values are uppercased  ##
+    $reply_string .= sprintf "%*s : %s\n", $key_len, $param_key, $param_value;
+}
+
+return { 'mode' => qw| size |, 'data' => $reply_string };
+
+#,,,.,,,,,,,,,.,,,...,,,.,.,,,.,,,..,,,,.,,,.,..,,...,...,...,.,.,.,,,,..,.,.,
+#2CEZBK3OGXGJVZEVXEJBSZXCBJ7AHKLZBFCUHVWGSXFULA7KYMIMG5TXYYA6B3ENVP4QCWHMFUBPA
+#\\\|3M3TOE73DSZ4YB5CVGSWRKWE2T3RDKATMBPL7O3FZQBZZBVXOM6 \ / AMOS7 \ YOURUM ::
+#\[7]5HO4XNFUBVAP3TMOHHEK3VLK7UHDBK2CEZSTM4QILZXWNWMFASDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
