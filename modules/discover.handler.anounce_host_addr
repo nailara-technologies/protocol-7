@@ -10,6 +10,12 @@ my $hostname = <system.host.hostname>;
 <discover.announce_interval.maximum> //= sprintf qw| %.2f |, 40 + rand(2);
 <discover.announce_interval.ifactor> //= 1.24;
 
+##  send packets in groups [ of 2 ]  ##
+##
+<discover.announce_interval.send_packet_count> ||= 2;
+<discover.announce_interval.repeat_send_distance> //= 0.13;    #[  seconds  ]#
+##
+
 <discover.announce_interval.logged> //= FALSE;
 if ( not <discover.announce_interval.logged> ) {
     <[base.log]>->( 1, "starting 'announce host' broadcast interval ..," );
@@ -119,6 +125,23 @@ my $payload_len = length $payload_str;
 
 <[discover.send_packet]>->( qw| announce |, $payload_str );
 
+if ( <discover.announce_interval.send_packet_count> > 1 ) {
+    my $repeat_num = abs(<discover.announce_interval.send_packet_count>) - 1;
+    my $interval_after = <discover.announce_interval.repeat_send_distance>;
+    while ( $repeat_num-- ) {
+        ##[ setting up timer to repeat packet sending ]##
+        <[event.add_timer]>->(
+            {   'after' => $interval_after,
+                'cb'    => sub {
+                    <[discover.send_packet]>
+                        ->( qw| announce |, $payload_str );
+                }
+            }
+        );
+        $interval_after *= 2 if $repeat_num;
+    }
+}
+
 <discover.timer.announce_host>->cancel    ## increasing send interval ##
     if <discover.timer.announce_host>->is_active;
 <discover.timer.announce_host> = <[event.add_timer]>->(
@@ -135,8 +158,8 @@ my $payload_len = length $payload_str;
     if <discover.announce_interval.current>
     > <discover.announce_interval.maximum>;
 
-#,,,.,,,.,,,,,.,,,..,,,,.,.,,,,,,,,,,,,,.,.,,,..,,...,...,.,.,.,.,,,.,.,.,.,.,
-#4J7IDHYZ4WBEJ6WT74OIDLJJMBVJNK4J3TVXPWR6X6DMGZ6DIAXWRVESCX43MCBSM4IPVOLAS4MN6
-#\\\|DUFAQUV3TSEK5BMPDAKUBRBK34YFC4JWLE2IVN73BGUOQGVCWP7 \ / AMOS7 \ YOURUM ::
-#\[7]QCN572LZUTGSNAIZUHOQOJK7OEP7P464MPJQTNKPFH5HVKRZPQAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,..,,,,.,,,,,...,.,.,...,,,.,..,,...,...,...,.,.,.,.,,.,,,,,,
+#LD6PUDNFL6DUG3V75DOAFLSPM72OU2FXI63GJUS3754FQZ5PWWQPI3JJCGIGU3PZ2UA6KVDFHUDRY
+#\\\|LFRGNE7P43HCGWLXQT4TUSQ6V47R5NJKICX4SJW6NZJBGGQT236 \ / AMOS7 \ YOURUM ::
+#\[7]BMULJENOUC7ZGC77C57VJOJDJAC46UDJ4LIRAWVWH4CARHS3RACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
