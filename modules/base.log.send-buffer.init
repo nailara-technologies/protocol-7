@@ -43,15 +43,14 @@ foreach my $var_name (qw|  lines-added  sent-lines  |) {
                 and not <log.send-buffer>->{$name}->{'waiting'};
         } ## lines-added triggers installation of idle callback for sending ##
     };
-
-    <log.send-buffer>->{$name}->{'watcher'}->{$var_name}
-        = <[base.event.add_var]>->(
+    my $cref = $code{'event.add_var'} // $code{'base.event.add_var'};
+    <log.send-buffer>->{$name}->{'watcher'}->{$var_name} = $cref->(
         {   qw| var  |    => \$b_ref->{$var_name},
             qw| prio |    => 4,
             qw| data |    => $cb_data_param,
             qw| handler | => qw| base.handler.counter_overflow_reset |
         }
-        );
+    );
 
 }
 
@@ -60,8 +59,8 @@ foreach my $var_name (qw|  lines-added  sent-lines  |) {
 
 return TRUE;
 
-#,,.,,,,,,..,,,,,,...,..,,,,.,,,,,..,,,.,,,,.,..,,...,...,.,,,,,.,..,,,..,,.,,
-#VQYLMLBBZAM4EQWYHOMA4R5BOS6HXAEUB2DOEWNPDDQSQ3XLG434ZTSZNX2AGQHQTLRSWVFUHTAZO
-#\\\|RDZK3GFHL5JACW65V5Z33MN6YP6ILZTL62QYWBBV5QGOT2X4463 \ / AMOS7 \ YOURUM ::
-#\[7]IUXC3V5I34X3XGXW25RGSDBS6FYURFF77IQRRQ6IZQ52J6YFVIAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,,,.,,,.,.,,,,,,..,..,,,.,,..,,..,,...,...,.,,,.,,,,,.,,.,,..,,
+#H5SABXPN2UBIWSTHPWPX2CKNMQSA2FHLQTE42Q4JHDA36F6BCRZLZMTUJG53YRD5DXDHME763P4AY
+#\\\|RDUWG6OGEY6JSPAZDYUI5HEWWVEPGV7BULL57XHPVTVFEHD2BHX \ / AMOS7 \ YOURUM ::
+#\[7]T7NHVXMHOQOHCFQE3BRKZDZDQWSUH4H4NKNJZZZXDIY2RJUXQGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
