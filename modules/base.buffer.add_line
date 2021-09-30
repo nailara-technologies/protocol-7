@@ -109,7 +109,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
     and length $buffrs->{$name}->{'log_cmd'} ) {
 
     return TRUE    ## skip not relevant log-level ##
-        if defined <system.verbosity.zenka_logfile>
+        if defined $log_cmd_level
+        and defined <system.verbosity.zenka_logfile>
         and $log_cmd_level > <system.verbosity.zenka_logfile>;
 
     if ( <system.zenka.name> eq qw| p7-log | ) {
@@ -130,8 +131,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
 
 return TRUE;    ##  true  [ added to buffer ] ##
 
-#,,,,,,,.,,,.,.,.,..,,,..,,..,,..,,,,,..,,...,..,,...,...,.,,,,.,,,.,,.,.,,.,,
-#CT3UQX6M4J3ZFA3PXTSKY3VNIMHI2U5J7YBYXENQ6LRO22XPCXFHDXGLX2V4PR7WO3Z4VU3FITAP4
-#\\\|DDQOT6HXH7VVUDA3OBFR665A6Q4TTKVETQIVNE5WWYJ6VN6V4WD \ / AMOS7 \ YOURUM ::
-#\[7]A4IVCIP36MFXXN3Y4VN2LS27FBJ3H3ISW7ZOQRP5RYL4BZI22SBY 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,,,,,,.,,,.,...,,,.,.,,,.,,,..,,...,...,,,.,..,,,,,,.,,,..,,
+#TQKTRJH37XBU2PZTW4ZVPIF2OUVSNAJLKSGVH6IBFTZDBO6WVOWCTIGLGQCDBG4WWCE62ZWO6ZKTY
+#\\\|NPUDHUUFC6KGH36IONVX33A2JVRJVWESEBZDKTXSRK4LBOU5FCB \ / AMOS7 \ YOURUM ::
+#\[7]LIPKXQFZZERQKYXHMVHXCM6LZ4XHVO6ANTSNAJG5HPBEKKGO6EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
