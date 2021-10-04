@@ -6,29 +6,25 @@ my $X       = <X-11.obj>;
 my $display = <X-11.xlib.display>;
 my $root    = <X-11.obj>->root;
 
-my $client_list
-    = $X->InternAtom( '_NET_CLIENT_LIST', 1 );    ##  <-- caching.., [LLL]
-my $wmname    = $X->atom( 'WM_NAME', 1 );
-my $type_utf8 = $X->InternAtom( 'UTF8_STRING', 1 );
+state $client_list //= $X->InternAtom( qw| _NET_CLIENT_LIST |, 1 );
+state $wmname      //= $X->atom( qw| WM_NAME |, 1 );
+state $type_utf8   //= $X->InternAtom( qw| UTF8_STRING |, 1 );
 
-<X-11.WM>->update;                                ## make obsolete ## [ LLL ]
+<[X-11.WM.update]>;
 
 my @window_ids;
 eval {
     my ( $value, $type, $format, $bytes_after )
         = $X->GetProperty( $root, $client_list, 'AnyPropertyType', 0, -1, 0 );
-    @window_ids = unpack( 'L*', $value );
+    @window_ids = unpack( qw| L* |, $value );
 };
 
-if ($EVAL_ERROR) {
-    ( my $err_str = $EVAL_ERROR ) =~ s| at .+$||;
-    warn ' < get_window_ids > ' . $err_str;
-}
+warn <[base.str.eval_error]> if length $EVAL_ERROR;
 
 return sort @window_ids;
 
-#,,.,,,.,,,,.,,,.,,..,,..,..,,.,.,...,,.,,.,.,..,,...,...,,,.,..,,,..,.,.,,,.,
-#J5CIGYB2UQ3IVMK3RSAIXNJMNFVOGGH2EQA7D4XPY7IWMF2PIA3ZENPI4IBX6IXEEMPFATTQWFQ7O
-#\\\|PLZW6D2RGHUJM2KBEXI3D72WMA47QLEPVRHNB42XJEFGHMBONSD \ / AMOS7 \ YOURUM ::
-#\[7]SCDRDRYAFB5OBDE3P632S46YXABEZEF3C23KDELNOGXYLDAT2ACY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,.,.,..,,,..,.,,,...,.,,,,.,,..,,...,...,..,,,..,.,,,,,.,,,,,
+#DO3LABAY7LRDT6VK4YWTXGGV3LCPKZYOXFJKDIT63G6QYOO74A7DJ4HOO4TJCDBLAM6PV5NJMYUQA
+#\\\|RH3NZY3U7C6TRXHBNSLYKQJQMTKCK6HRBZLTZRSIFL7DNEAK4XD \ / AMOS7 \ YOURUM ::
+#\[7]ARBLVY3C4PTX4RVJ466JULGJZNRSBEHBDRXHSG77OLCK3ASCK6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
