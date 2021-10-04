@@ -1,16 +1,16 @@
 ## [:< ##
 
 # name  = ffmpeg.cmd.rescale_video
-# param = <src> <size> [box] [path]
+# param = src size [box] [path]
 # descr = rescale video dimensions
 
 my $params = shift->{'args'};
 my ( $video_path, $new_size, $box_size, $target_path )
-    = split( / +/, $params );
+    = split( m| +|, $params );
 
-my $format = <ffmpeg.output_format> // 'mp4';
+my $format = <ffmpeg.output_format> // qw| mp4 |;
 
-if ( not defined $target_path and $box_size !~ /^\d+x\d+$/ ) {
+if ( not defined $target_path and $box_size !~ m|^\d+x\d+$| ) {
     $target_path = $box_size;
     undef $box_size;
 }
@@ -23,21 +23,21 @@ return {
     'mode' => qw| false |,
     'data' => 'syntax error in video size parameter'
     }
-    if $new_size !~ /^\d+(x\d+)?$/;
+    if $new_size !~ m|^\d+(x\d+)?$|;
 return {
     'mode' => qw| false |,
     'data' => 'syntax error in box size parameter'
     }
-    if defined $box_size and $box_size !~ /^\d+x\d+$/;
+    if defined $box_size and $box_size !~ m|^\d+x\d+$|;
 return { 'mode' => qw| false |, 'data' => 'target_path does not exist' }
     if defined $target_path and !-d $target_path;
 return { 'mode' => qw| false |, 'data' => 'video file not found!' }
     if !-f $video_path;
 
-my ( $w, $h ) = ( $1, $3 ) if $new_size =~ /^(\d+)(x(\d+))?$/;
+my ( $w, $h ) = ( $1, $3 ) if $new_size =~ m|^(\d+)(x(\d+))?$|;
 return {
     'mode' => qw| false |,
-    'data' => 'invalid size parameters for libx264 codec'
+    'data' => 'size parameters for libx264 codec not valid'
     }
     if $w % 16
     or defined $h and $h % 2;
@@ -46,13 +46,14 @@ $box_size //= $new_size;
 ( my $video_name = $video_path ) =~ s|^.*/||;
 
 my $size_msg = $new_size;
-if ( $new_size !~ /x/ ) {
-    $size_msg = "width:$new_size";
-    $new_size = "$new_size:-1";
+if ( $new_size !~ m|x| ) {
+    $size_msg = sprintf qw| width:%s |, $new_size;
+    $new_size = sprintf qw| %s:-1 |,    $new_size;
 }
 
-<[base.log]>->(
-    1, "rescaling video '$video_name' ($size_msg) [box:$box_size] ..."
+<[base.logs]>->(
+    "rescaling video '%s' [ %s ] [box:%s]..,",
+    $video_name, $size_msg, $box_size
 );
 
 my $output_path;
@@ -64,25 +65,30 @@ if ( defined $target_path ) {
     ( $output_path = $video_path ) =~ s|/([^/]+)$|/rescaled/$1|;
 }
 
-if ( !-d $output_path ) {
+if ( not -d $output_path ) {
 
   #    make_path($output_path) or die "make_path($output_path) : \l$OS_ERROR";
-    make_path( $output_path, { chmod => 0777 } )
+
+    make_path( $output_path, { chmod => 0777 } )    ##  [LLL] fix permissions
         or die
         "make_path($output_path) : \l$OS_ERROR";    ## <<< ! >>> ## chmod ###
 
 }
 
-my $partial_output_file = "$output_path/$box_size...converting...$format";
+my $partial_output_file = sprintf qw| %s/%s...converting...%s |,
+    $output_path, $box_size, $format;
 if ( -f $partial_output_file ) {
-    <[base.log]>->( 0, ": found partial output file, cleaning up..." );
+    <[base.log]>->( 0, ': found partial output file, cleaning up..,' );
     unlink($partial_output_file)
-        or warn "unlink($partial_output_file) : \l$OS_ERROR";
+        or <[base.s_warn]>->(
+        ': unlink[ %s ] : %s',
+        $partial_output_file, <[base.str.os_err]>
+        );
 }
 unlink($partial_output_file);
-my $output_file = "$output_path/$box_size.$format";
+my $output_file = sprintf qw| %s/%s.%s |, $output_path, $box_size, $format;
 
-my @audio_codec = <ffmpeg.drop_audio> ? ('-an') : ( '-c:a', 'aac' );
+my @audio_codec = <ffmpeg.drop_audio> ? (qw| -an |) : (qw|  -c:a  aac  |);
 
 my @ffmpeg_params = (
     <ffmpeg.path.ffmpeg_bin>,  '-i',
@@ -97,15 +103,15 @@ my @ffmpeg_params = (
     <ffmpeg.threads>,          $partial_output_file
 );
 
-<[base.log]>->( 2, "executing '" . join( ' ', @ffmpeg_params ) . "'" );
+<[base.logs]>->( 2, "executing '%s'", join( ' ', @ffmpeg_params ) );
 
 new_log_name:
-my $error_log_file
-    = sprintf( "/var/tmp/.ffmpeg.$PID.%f.log", <[base.time]>->(5) );
+my $error_log_file = sprintf( qw| /var/protocol-7/.ffmpeg.%u.%f.log |,
+    $PID, <[base.time]>->(5) );
 goto new_log_name if -e $error_log_file;
 
 if ( !-f $output_file ) {
-    local $ENV{'FFREPORT'} = "file=$error_log_file:level=16";
+    local $ENV{'FFREPORT'} = sprintf qw| file=%s:level=16 |, $error_log_file;
     if (   system(@ffmpeg_params) != 0
         or $CHILD_ERROR == -1
         or $CHILD_ERROR & 127 ) {
@@ -117,21 +123,20 @@ if ( !-f $output_file ) {
             if ( scalar(@log_lines) > 3 ) {
                 $err_str = $log_lines[2];
             } elsif (@log_lines) {
-                $err_str = pop(@log_lines);
+                $err_str = pop @log_lines;
             }
         }
-        <[base.log]>->(
-            0,
-            "ffmpeg unable to execute: $err_str ("
-                . join( ' ', @ffmpeg_params ) . ")"
+        <[base.logs]>->(
+            0,        "ffmpeg cannot execute: %s [%s]",
+            $err_str, join( ' ', @ffmpeg_params )
         );
         return {
             'mode' => qw| false |,
-            'data' => "ffmpeg unable to execute [$err_str]"
+            'data' => sprintf( 'ffmpeg cannot execute [%s]', $err_str )
         };
     } else {
         rename( $partial_output_file, $output_file )
-            or warn "rename failed : \l$OS_ERROR";
+            or <[base.s_warn]>->( 'rename failed : %s', <[base.str.os_err]> );
     }
 }
 unlink($error_log_file) if -f $error_log_file;
@@ -140,8 +145,8 @@ unlink($error_log_file) if -f $error_log_file;
 
 return { 'mode' => qw| true |, 'data' => $output_file }
 
-#,,.,,..,,,,.,..,,..,,,.,,.,,,.,.,.,.,.,,,.,.,..,,...,...,..,,,..,,,.,...,..,,
-#4Y3ULGBOB5BWQUV6P6ANT7673A3WGZ2NK4ONFUG4A2IBAOEJMN4AX4Q77ATRZ3O77E52N7X7K5BZM
-#\\\|XLVKNCPONIYZXBNBNLPOLUW3DBKVABM323SUAHR6R6DZOKJAL6A \ / AMOS7 \ YOURUM ::
-#\[7]EQ23IHBVV6L63XJEFA3WNLO3RZCMYPVG7Q6UQ5R23UUUBVOM2OBY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,,,,,.,.,.,,,,.,,,,.,,,,,.,.,..,,...,...,,,,,..,,.,.,.,,,.,,,
+#J3BIIZTZ3U2V5EE27CIEMUQDFRNTYZ7VCEKP6GJYBCQZ2SNECZREOLS3TEWXJOBIQ2446DO2GW23I
+#\\\|AFGUDUNHSLJY2AIR6S2JTR5ZOSKWRTXZ4VS2KIDPAWDNNXVO2RH \ / AMOS7 \ YOURUM ::
+#\[7]DGN4ZM54OT5GH5RTUZ5WUACO4VUD72GUJDFHMZRLQXQLTIDWA6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
