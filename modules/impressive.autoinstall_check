@@ -2,19 +2,20 @@
 
 # name = impressive.autoinstall_check
 
-my $touch_file = '/var/tmp/.installing_impressive';
+my $touch_file = qw| /var/tmp/.installing_impressive |;
 
-if ( !-f <impressive.path.impressive_src> ) {
+if ( not -f <impressive.path.impressive_src> ) {
     if (    defined <impressive.cfg.autoinstall_impressive_py>
         and <impressive.cfg.autoinstall_impressive_py>
-        and !-f $touch_file ) {
+        and not -f $touch_file ) {
         my $installer_bin
-            = sprintf '%s/bin/install-scripts/download_impressive.pl',
+            = sprintf qw| %s/bin/install-scripts/download_impressive.pl |,
             <system.root_path>;
-        qx(touch $touch_file);
+        <[file.write_timestamp]>->($touch_file);
+
         <[base.log]>->(
             0,
-            "expected impressive installation not found, installing now ..."
+            'expected impressive installation not found, installing now ..,'
         );
         system($installer_bin);
         unlink($touch_file);
@@ -22,12 +23,12 @@ if ( !-f <impressive.path.impressive_src> ) {
         <[base.log]>->(
             0, "expected impressive installation not found, aborting startup!"
         );
-        exit(1);
+        <[base.exit]>->(qw| 0110 |);
     }
 }
 
-#,,,,,,,.,.,.,,..,,,.,.,,,,..,,,,,.,.,.,,,.,,,..,,...,...,..,,...,,..,,,.,.,.,
-#34OFYYQTBACXJHS2VOSWQBBH527BQL3CMXQRZ7ICJBNYFGH4DELE3PHIFNK54FWS3LUVO3OTBHPE6
-#\\\|5FABYP2EGDINVB6CO7TQRI5RWJY6F5VHJDLRCJOOHIKUMPC3RVB \ / AMOS7 \ YOURUM ::
-#\[7]366YXLAJ3NVQD43MU5YQ4BCG5AI6PWLL5WS2CYAPRNSP6NUQNCCY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,...,...,,,.,.,.,.,,,,,.,..,,,,,,..,,...,..,,.,.,...,...,,.,,,,,,
+#JE7ZWVVOEF7HEIF4QBEJBYISLV7LM3XB6VSDJUNKK76TLVG7VPUMDKA7FL32VLV4RJLC2ZGWDJ6ZY
+#\\\|ESDH5OD3BBFKXOJ5WUTCV6TFPWQW3STE5LGGPFD7Q7BMXDBIPDI \ / AMOS7 \ YOURUM ::
+#\[7]472TUQ37BJVUERHF2JUMR32YJSKTGEMTDLV764CRG63RSU6OTIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
