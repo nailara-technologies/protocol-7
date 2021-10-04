@@ -19,7 +19,7 @@ $target_dir =~ s|/$||g if defined $target_dir;
 die "target directory does not exist"
     if defined $target_dir and !-d $target_dir;
 
-$target_dir //= '/var/tmp/.video_frames';    # <-- default
+$target_dir //= '/var/protocol-7/ffmpeg/video_frames';    # <-- default
 
 if ( !-d $target_dir ) {
     make_path($target_dir)     or die "make_path($target_dir) : \l$OS_ERROR";
@@ -45,8 +45,8 @@ if (system( <ffmpeg.path.ffmpeg_bin>, '-i', $video_path, '-vf',
 
 return undef;
 
-#,,,.,,.,,,.,,,,,,.,.,,,.,...,.,,,.,.,,..,.,.,..,,...,...,,,.,.,,,.,,,.,.,.,,,
-#6VX4IVTPGCHJZLUSLPK2MIUNWUMFIHQTS6G6XXEAVE4HXGPRMMDNEOWVFUG6AAC657Q3NSEFNV7UU
-#\\\|RXGGZ5RLPXYLJZXRJRSZW2OOAHDP4HY6KRJLEEUV7O4PGEECWMK \ / AMOS7 \ YOURUM ::
-#\[7]P7DDFO6C7JTXAU2IIQEF36DRNEU65YJSMD5WIGKAUOHFUC5LS4AI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,,..,,.,,...,...,,,.,,,.,.,.,..,,...,..,,.,.,,..,,,.,.,.,..,,
+#5GUI2Y3TJFIS6W5IBZRHL56G4P7ANAXPLCEH7WIE6DQVFC7NYIEQZUKLX6A7TYBQHOOCSRKCIMDZK
+#\\\|WIFPN7FBG2GWNP4VUCCF2EPNZOFZXEV26NIEJ4PMCNHBISQAUXZ \ / AMOS7 \ YOURUM ::
+#\[7]6NFDXCZPJ6DAWF547TOFUZXZEAK6ENJO7BAEOYVUBSNOFVYJWQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
