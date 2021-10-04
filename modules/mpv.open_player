@@ -7,6 +7,9 @@ $SIG{'PIPE'} = sub {
     <[base.exit]>->(qw| 0010 |);
 };
 
+my $socket_path = <mpv.path.ipc_socket>
+    = sprintf( qw| /run/.7/.mpv.socket.%u |, $PID );
+
 my $target_geometry;
 <mpv.audio_only> = FALSE;
 my $mpv_params = <mpv.params>;
@@ -95,10 +98,7 @@ if ( not <mpv.audio_only> ) {
         qw| zoom align-x align-y change_subname |;
 }
 
-my $socket_path = <mpv.path.ipc_socket>
-    = sprintf( qw|/var/tmp/.mpv.socket.%u|, $PID );
 $mpv_params .= sprintf ' --input-ipc-server=%s', $socket_path;
-
 $mpv_params =~ s|  +| |g;
 
 my @mpv_params = split m| +|, $mpv_params;
@@ -196,8 +196,8 @@ close( delete <mpv.fh.stdin> );    # input fd not required
 
 <[base.log]>->( 1, 'player startup successful., =)' );
 
-#,,,,,...,...,,,.,.,.,..,,,.,,,,,,.,,,,,,,,,,,..,,...,...,.,.,,,.,,,.,...,...,
-#77Y634FLIDDV6YYH7NT66F6XW5S56PVHQH5FBM3AXXD2H2KKZFEKW3BX5F4HNNSGYXJU4FX4LT7DU
-#\\\|MXU2T5DRIJNMBGPEPQC6SUO43B2JV6ZVRR3YOFNE27Y36FZ7LZY \ / AMOS7 \ YOURUM ::
-#\[7]XEFJRWWB4CQY3YJYLOJT5HZ7YJO4QV7GAR2WL7AEWZRQCA6CA6BI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,..,,.,,,.,.,,,,,..,,.,.,.,.,.,,,..,,...,...,..,,,.,,,,.,...,...,
+#5EGKHBL25QFFSAPBCVYRUG3HZDANIISDKDW72O5AHOPHC73FUHYLHFGLYD4RUE2SKPAXVNU64FZZI
+#\\\|ULSD3C56IMROVMPEQT5G55V4T4JQXR3KBZENHDOVXF7O4E6RPLT \ / AMOS7 \ YOURUM ::
+#\[7]SIVNGRPHDYVFSLCRZNBSMZGVVVWRT4TZMIUFZSDJ2RBSTDZDBOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
