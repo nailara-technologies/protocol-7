@@ -20,7 +20,7 @@ while ( not defined $wmstate and not defined $err and !$retries-- ) {
         my ( undef, $parent ) = <X-11.obj>->QueryTree($window_id);
         $window_id = $parent;
     };
-    $err = $EVAL_ERROR if $EVAL_ERROR;
+    $err = <[base.str.eval_error]> if length $EVAL_ERROR;
 }
 
 eval {
@@ -30,7 +30,7 @@ eval {
         <X-11.obj>->atom('UTF8_STRING'),
         0, ~0, 0
     );
-    $err = $EVAL_ERROR if $EVAL_ERROR;
+    $err = <[base.str.eval_error]> if length $EVAL_ERROR;
 } if not defined $err;
 
 eval {
@@ -43,22 +43,22 @@ eval {
         );
     }
 } if not defined $err;
-$err = $EVAL_ERROR if $EVAL_ERROR;
+$err = <[base.str.eval_error]> if length $EVAL_ERROR;
 
 if ( defined $err and $err =~ m|^Protocol error: bad 3 \(Window\);| ) {
     return undef;
 } elsif ( defined $err ) {
-    warn "<get_window_title> $err";
+    warn $err;
 }
 
 $window_title = <[base.utf8.sanitize]>->( $window_title // '' );
 $window_title =~ s{^'|'$}{}g;
 
-return
-    length($window_title) ? $window_title : "''";  ## <-- quotes when empty..,
+##  returning single quotes when empty
+return length($window_title) ? $window_title : "''";
 
-#,,,,,,,,,..,,.,.,,.,,.,.,,,,,.,,,..,,,,,,,,,,..,,...,...,..,,..,,.,,,.,.,.,.,
-#BRRRPI77Q6WBVOS3TZHCJSHW5RYGQ2N22MN74XFIAJZDBCDJFDZB7LEU27LH35YTK46IZY5WFBXSQ
-#\\\|LHZMEDEVU7ADWJG2KDN5IA7WPFUNK5ZKLFZYCM5YQGN2UVSW374 \ / AMOS7 \ YOURUM ::
-#\[7]BGBEGZ66BX4DOM33VNFY5XYR6DI6OBK4RAUWNLLQAETOW4XYGGBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,,,.,.,,..,.,,,...,.,,,,..,..,,..,,...,...,.,.,...,.,.,,,,,,.,,
+#77S5AMRMMEXJPY4R6NORMXBXKIM3NXCINFQLJ6UYRLM3U7M6OLWLVGYOX54QELWLDVKDSX6DDHKRI
+#\\\|7NXDEJOLYK5ZVTWW3RU7VIIHUY3AZNGQOXGBEVQ53X7ICVY6PVP \ / AMOS7 \ YOURUM ::
+#\[7]TK3R7OGHW5CRHFXOBVCW453K755STE6BVLU4D3ZC23QX3ZRBOUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

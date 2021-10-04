@@ -2,61 +2,60 @@
 
 # name = X-11.connect_X11
 
-my $ok               = 0;
+my $no_err           = FALSE;
 my $attempts         = int( <X-11.connect_timeout> * 10 );
 my $bin_name         = <X-11.obj_bin_name>;
 my $retry_delay      = 0.1;
 my $max_retry_delay  = 2;
-my $host_mode_warned = 0;
+my $host_mode_warned = FALSE;
 
 my $mode = <X-11.mode>;
 
 $ENV{'DISPLAY'} = <X-11.display>->{$mode};
 
 host_retry:
-while ( !$ok and $attempts-- ) {
+while ( $no_err == FALSE and $attempts-- ) {
     eval {
         <X-11.obj> = X11::Protocol->new( <X-11.display>->{$mode} );
 
         <X-11.WM> = X11::WM->new( <X-11.display>->{$mode} );
-        <X-11.WM>->update;
+        <[X-11.WM.update]>;
     };
-    $ok = 1                        if !$EVAL_ERROR;
-    <[base.sleep]>->($retry_delay) if !$ok;
+    $no_err = TRUE                 if not length $EVAL_ERROR;
+    <[base.sleep]>->($retry_delay) if $no_err == FALSE;
 }
 
-if ( !$ok and <X-11.mode> eq 'host' ) {
-    if ( !$host_mode_warned ) {
-        <[base.log]>->(
+if ( $no_err == FALSE and <X-11.mode> eq qw| host | ) {
+    if ( not $host_mode_warned ) {
+        <[base.logs]>->(
             0,
-            ": : connection error [ display "
-                . <X-11.display>->{$mode}
-                . " ], retrying indefinetly..,"
+            ': : connection error [ display %s ], retrying indefinetly..,',
+            <X-11.display>->{$mode}
         );
-        $host_mode_warned = 1;
+        $host_mode_warned = TRUE;
     }
     $retry_delay *= 2               if $retry_delay < $max_retry_delay;
     $retry_delay = $max_retry_delay if $retry_delay > $max_retry_delay;
-    goto host_retry;    # wait for X-server indefinetly (in host mode)
+    goto host_retry;    ##  wait for X-server indefinetly [ in host mode ]
 }
 
-if ( !$ok ) {
+if ( $no_err == FALSE ) {
     ( my $err_msg = $EVAL_ERROR ) =~ s| at .+\n?$||g;
     $err_msg                      =~ s|\n$||g;
     $err_msg                      =~ s|\n| -- |g;
-    <[base.log]>->(
-        0, ": cannot connect to $bin_name-server [ $err_msg ]"
+    <[base.logs]>->(
+        0,         ': cannot connect to %s-server [ %s ]',
+        $bin_name, $err_msg
     );
     if ( $mode ne 'host' ) {
-        <[base.log]>->( 0, ": : terminating pid " . <X-11.pid> . ".." );
+        <[base.logs]>->( 0, ': : terminating pid %u..,', <X-11.pid> );
         kill( 9, <X-11.pid> );
     }
-    <[base.log]>->( 1, "done." );
-    exit(3);
+    <[base.exit]>->( 3, 'done.', 1 );
 }
 
-#,,,.,,.,,..,,,.,,..,,,.,,,.,,,,,,.,.,.,.,,,,,..,,...,...,...,.,.,,,,,.,,,,,.,
-#PLMI235RNDU2ANU65Y7ASBC2FUMV2G6RXI6DYT5ZHERS4CKEBE6Y3SJCGWGM7K5H5TNRPYTFA62DQ
-#\\\|PYRMETPXRBEJ2GZARUHI5Q6CWHIUO2FOKMZ4QC7B4BDTE3SZSOW \ / AMOS7 \ YOURUM ::
-#\[7]CF4LGFUFGLEZLDGF5HIDDD4RFOYUXMKIGY2VQYNN6ERK3V6FRYDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,,.,.,,,,,.,...,,,,,,,.,.,,,..,,...,..,,...,,..,.,.,..,,,..,
+#QX3AZXVAXOL7PWESLBIJGUBV65RMIAMKTTIHOJW3ESWEZWQUJRENFDXBU3XDTNSROQ4HVFSBIFMBM
+#\\\|JCHY2IUMGN25EFFW3TB3GBDJKXDZXFLKOF647I2O37VFCOW74U2 \ / AMOS7 \ YOURUM ::
+#\[7]GUM3ZLF7LB4K4UV7JOSKX3EBFODRBAQWRWILKOB3GOLAPHLSHAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
