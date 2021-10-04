@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.file.zenka_dir.load
-# descr = load file from in /var/run/protocol-7/zenka/.., [ or /etc/.., ]
+# descr = load file from in /var/protocol-7/zenka/.., [ or /etc/.., ]
 
 my $filepath_rel = shift // '';
 my $encoding_str = shift // qw| :raw |;
@@ -25,7 +25,7 @@ my $zenka_dir_href = <system.path.zenka-dirs>;
 
 my $zenka_write_dir = $global_config_path
     ? $zenka_dir_href->{'etc_P7'}     ##[  /etc/protocol-7/  ]##
-    : $zenka_dir_href->{'run_p7'};    ##[  /var/run/protocol-7  ]##
+    : $zenka_dir_href->{'var_P7'};    ##[  /var/protocol-7  ]##
 
 if ($zenkaname_path_prefix) {    ## use zenka subdirectory ? ##
     my $zenkaname = <system.zenka.name>;
@@ -66,8 +66,8 @@ if ( ref $content_sref ne qw| SCALAR | ) {
 
 return $content_sref;    ##  returning scalar ref to content  ##
 
-#,,.,,,,,,.,,,.,,,.,.,,.,,,..,,,,,,.,,...,,..,..,,...,...,..,,.,,,,.,,,.,,.,.,
-#GA2F7YP5ZHUDUYOWFYLCONIL72L7EFSL6IJZ4KQ62QN6M6WD3YYO7A3XUUQPUPQIVGIAX2QVA2ZFQ
-#\\\|FVVDY7A7WQ3QNE4PH7IZPD2ZETZSOUBNTYTV2CI3IKE4QXAHQDX \ / AMOS7 \ YOURUM ::
-#\[7]XV2ICRX6KWI6TDQGT45LWOHSJRKLJO2UBIVARPW66JK3DQKIDKBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,,,,,,,,,,..,,..,..,,.,,,,.,,..,,...,...,.,,,..,,...,,.,,,,,,
+#57OLA3GZ7K23DOTK2HP2JG24GOUY62A7AQ373YVMAH2QE2ABWVACKDITAGFLANXNRBICQNRXWMRLA
+#\\\|CMFINQVF7GRONQJ3Q27F2GOJJCR2KCWS6FX4STTFKJFLTTLYEX4 \ / AMOS7 \ YOURUM ::
+#\[7]F2DAIKBLXZMLVKO4QL7SZLRBKO7K4THUHZESSJG57YV7IS74JADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

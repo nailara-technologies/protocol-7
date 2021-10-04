@@ -19,7 +19,7 @@ if ( $file_name =~ m|/| ) {
     $file_path = $file_name;
 } else {
     my $zenka_name = <system.zenka.name>;
-    my $zenka_path = "/var/run/protocol-7/$zenka_name";
+    my $zenka_path = "/var/protocol-7/$zenka_name";
     <[base.log]>->( 2, ": not present :: ['$file_name']" ) and return undef
         if !-d $zenka_path;
     $file_path = catfile( $zenka_path, $file_name );
@@ -54,8 +54,8 @@ if ($unlink_file) {
 
 return ( $network_time, $value );
 
-#,,..,..,,.,,,...,,,.,,..,,.,,...,,,,,,,.,.,,,..,,...,..,,..,,.,,,,.,,,..,,,,,
-#4IEHJW735V2A7TGKJPBS77PFZ7AH36DV4IS3DLO42ILRLRAFCHWP4HIOGJIAG26IEEY2DO5NNSG6S
-#\\\|6YXEN32PL6TM4FR4KEDLED2LXBGPQV2ONPQ2PSL2GBO2WRJZFLR \ / AMOS7 \ YOURUM ::
-#\[7]LLGPDY3CXJACEA64RIE26XLTMJCKIY4OBBB7EXWI6HQ3CJY5O6AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,...,,,.,,,,,...,,.,,,.,,.,.,,,,,..,,...,...,.,,,..,,,.,,,,,,,,,,
+#CTU7YLYOLQ3FDGTXY3M2C2DTDD2TLG7MHY4MQGFQEA2MB6Q6KMSAODCOEP2TBAZHZMQJUWQTQ42JE
+#\\\|ATQ7UXUL7AS3MPY5RCLTLPBG725VYXCCSRQBB3BW667ZCOVNW6K \ / AMOS7 \ YOURUM ::
+#\[7]DKWHBTAY65JQDFOTPSM5Z2GQ2USJ6CHRVFEBQ2434QZ6B66OP4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

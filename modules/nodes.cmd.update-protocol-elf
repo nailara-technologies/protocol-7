@@ -41,7 +41,7 @@ if (not    ## attempt writing to /etc/protocol-7 first ##
         $etc_cfg_file_path, \$version_file_content, undef, 0755
     )
 
-    ) {    ##  write to /var/run/protocol-7/nodes/ when not successful  ##
+    ) {    ##  write to /var/protocol-7/nodes/ when not successful  ##
 
     <[file.zenka_dir.write]>->(
         $versioncfg_file_path, \$version_file_content
@@ -54,7 +54,7 @@ if (not    ## attempt writing to /etc/protocol-7 first ##
 } else {  ## removing any zenka path version when /etc write was successful ##
 
     my $cfg_path_abs = sprintf qw| %s/%s/%s |,
-        <system.path.zenka-dirs.run_p7>, <system.zenka.name>,
+        <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
         $versioncfg_file_path;
 
     <[base.s_warn]>->(
@@ -72,8 +72,8 @@ my $protocol_code_version_str
 
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,,,,,,,,..,,.,,,...,...,,.,,..,,..,,.,,,.,.,.,.,...,...,..,,..,,..,,,..,..,,
-#NXOIQ2RMYGMPW44ZL2PRBYRMSII67EW7QH6ILASYC5CL4GGXSOD5YIHS5G7KVOHC2F6YBZU4XWSXW
-#\\\|4SWUNNJCN5VI4X23GPHFYWNG56NXG25UZKVTY374UBMDUFHHVIZ \ / AMOS7 \ YOURUM ::
-#\[7]UMJOZLGMR6BJVS5P2U6J2TBWFLU46ZWMNXU75GZQZTPBPHVWJWDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,...,,,.,...,,,.,,,,,,.,,..,,.,.,...,...,..,,...,,.,,,,,,,,,,
+#QL7EWSUHX4NAWXD6PIUE4W2RQSM2QY2L5SWX5EDAWYUSRFTWXHZ5I5TNC2DSJAOP23LNGP4P2WZB2
+#\\\|EWVM6ORR752DTONFYGIBINELYEJGHI2JSZK5X2MNPPOYGL7FNQT \ / AMOS7 \ YOURUM ::
+#\[7]JZ7EJYUQSZJB5MXEXQ5UT7556H2I6VK7W7PYCZY5MXY7UI6PVUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

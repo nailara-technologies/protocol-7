@@ -2,28 +2,39 @@
 
 # name  = base.file.temp
 
-my $tmpl = shift // 'X' x 13;
-die "invalid template syntax [ no paths ]"
-    if $tmpl =~ m|/|;    # allow paths later
+my $tmpl       = shift // 'X' x 13;
+my @check_dirs = shift;
+my $unlink     = shift // TRUE;     ## unlink in end code callback ##
+my $register   = shift // FALSE;    ## register for unlinking at v7 zenka ##
+
+if ( $tmpl =~ m|/| ) {    # allow paths later
+    warn 'filename template syntax not valid [ no paths ] <{C1}>';
+    return undef;
+}
 
 my $first_dir;
 my $zenka_name = <system.zenka.name>;
-my @check_dirs
-    = qw| /var/run/protocol-7 /var/cache/protocol-7 /var/tmp/protocol-7 |;
+@check_dirs = qw| /var/protocol-7 | if @check_dirs == 0;
 
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | )
     if not exists &{'make_path'};
 
 foreach my $chk_dir (@check_dirs) {
-    my $subdir_path = "$chk_dir/$zenka_name";
-    <[base.log]>->( 2, ":. tmp-dir-chck :. $subdir_path" );
+    my $subdir_path = catfile( $chk_dir, $zenka_name );
+    <[base.logs]>->( 2, ':. tmp-dir-chck :. %s', $subdir_path );
     if ( -d $subdir_path and -w $subdir_path
         or make_path( $subdir_path, { 'mode' => 0750 } ) ) {
         $first_dir = $subdir_path;
         last;
     }
 }
-die "no success creating temp dir [ \l$OS_ERROR ]" if not defined $first_dir;
+if ( not defined $first_dir ) {
+    <[base.s_warn]>->(
+        'no success creating temp dir [ %s ]',
+        <[base.str.os_err]>
+    );
+    return undef;
+}
 
 my $retries = 47;
 my $tmp_file_path;
@@ -34,24 +45,44 @@ while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $tmp_file_path = catfile( $first_dir, $fname );
 }
 
-die "cannot find suitable temp file name [ exists ]" if -e $tmp_file_path;
+if ( -e $tmp_file_path ) {
+    warn 'cannot find suitable temp file name [ exists ] <{C1}>';
+    return undef;
+}
 
-<[base.log]>->( 1, " : tmp-file-path : $tmp_file_path" );
+<[base.logs]>->( ' : tmp-file-path : %s', $tmp_file_path );
 
-return $tmp_file_path
-    if !wantarray;    # <-- scalar context does not open the file
+if ( not wantarray ) {    # <-- scalar context does not open the file
+    return $tmp_file_path;
+}
 
-<[base.log]>->( 1, " :. opening file : $tmp_file_path .," );
+<[base.logs]>->( ' :. opening file : %s .,', $tmp_file_path );
 
-open( my $tmp_fh, '>', $tmp_file_path )
-    or die "> $tmp_file_path : \l$OS_ERROR";
+my $tmp_fh;
+if ( not open( $tmp_fh, qw| > |, $tmp_file_path ) ) {
+    <[base.s_warn]>->( '> %s : %s', $tmp_file_path, <[base.str.os_err]> );
+    return undef;
+}
 
-# LLL: implement optional file locking and unlink mechanism here, see File::Temp
+if ($unlink) {
+    $data{'callbacks'}{'end_code'} //= [];
+    push $data{'callbacks'}{'end_code'}->@*, sub { unlink $tmp_file_path };
+}
+if ($register) {
+    <system.init_reports> //= [];
+    push(
+        <system.init_reports>->@*,
+        {   'param'          => $tmp_file_path,
+            'descr'          => 'registering temp file path..,',
+            'target_command' => qw| v7.report-temp-path |,
+        }
+    );
+}
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,.,,.,.,,..,.,.,...,.,,,,,.,.,,,,,,,,..,,.,,..,,...,...,.,.,..,,,.,,.,.,,.,,
-#6E533EKWDUBFKPYBF6D4CVXX3XQ75S5NPYYKUPWZSTJIGFWDTT4XSBBELWIDD57ZT7WKFTOBSDWD4
-#\\\|3MV22XNH6PRIQLIYVRZUIZ2T5WNIAE253JWJHFOMZZCNTN7I6GY \ / AMOS7 \ YOURUM ::
-#\[7]HVWRXRQLWFWG7I7ZXNUD2XQIKCW2JJDDPDUOL3THEAMACDM4ZOCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,..,,.,,,.,,,,..,...,,..,,,,,..,,...,...,,,,,,.,,,,.,..,,.,.,
+#X5QED6POZTWTDKANNZUEMW5MNS4CYV2U33DYEIWSL3UQ3FKMVITNBM7R4JJ3NK2DSPMMBBZ6MUVO4
+#\\\|YISCHO54KF6JNNQVFTODM4QADIPWZBTGEUMKY6OFOXGCZVTFYB6 \ / AMOS7 \ YOURUM ::
+#\[7]5SE3JY6K32MASM7OCK4E52EEOMHLMD24XAU56ZGZ4K3OJPL2IOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

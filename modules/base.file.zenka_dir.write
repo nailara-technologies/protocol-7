@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.file.zenka_dir.write
-# descr = create file [entry] in /var/run/protocol-7/zenka/..,
+# descr = create file [entry] in /var/protocol-7/zenka/..,
 
 my $filepath_rel  = shift // '';
 my $content_sref  = shift;
@@ -37,7 +37,7 @@ my $zenka_dir_href = <system.path.zenka-dirs>;
 
 my $zenka_write_dir = $global_config_path
     ? $zenka_dir_href->{'etc_P7'}     ##[  /etc/protocol-7/  ]##
-    : $zenka_dir_href->{'run_p7'};    ##[  /var/run/protocol-7  ]##
+    : $zenka_dir_href->{'var_P7'};    ##[  /var/protocol-7  ]##
 
 if ($zenkaname_path_prefix) {    ## use zenka subdirectory ? ##
     my $zenkaname = <system.zenka.name>;
@@ -153,8 +153,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,,,,,.,.,.,,.,,,,,,,..,.,,,...,.,.,.,.,,,.,..,,...,...,,..,..,,...,...,.,.,
-#JWRBMPAK75ZD3PGLIXUYAAQUO3LENNTCGMHIB5OMUMGCMOMM2CX3JTCM2ESJYELUEOD5O3B4PHV5Y
-#\\\|22N35B5UXXBZIM3N33DMDCPHPOQK222NSK274N2GBV4ONJ2T6UT \ / AMOS7 \ YOURUM ::
-#\[7]4XRHTW3LLJSWJHAWPB2WPH45PAURTT7ONFTF7M256FBEKPJAKCCA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,..,,,,,,...,,,.,.,.,,..,,.,,..,,...,...,.,,,.,,,.,.,..,,,,.,
+#QKQTZKMOM6RZF4QXS64NZFOVZPKUESNF5DIJNQBLKZZ3YGCETAERTSRGN3AB3IKNAUZQEQBCIZABY
+#\\\|EWT4KYZIIWLPXYBBDASCFV662NC2KGRDFN4OQQWCNCUCYMLONJQ \ / AMOS7 \ YOURUM ::
+#\[7]4FJPCBTJYWIVXRNYYNTDYJB5MRPW73SCD35OEKRLB4ANKTGVXSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
