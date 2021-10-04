@@ -3,24 +3,26 @@
 # name = base.reload_plugins
 # todo = implement unload mechanism \ investigate callback order + registry ?
 
-my $success = 1;
+my $success = TRUE;
 
-## purge plugin callbacks \ to be reloaded ..,
-if ( defined <callbacks.end_code> and ref(<callbacks.end_code>) eq 'ARRAY' ) {
-    my @callbacks_copy = @{<callbacks.end_code>};
-    @{<callbacks.end_code>} = grep { !m|^plugin\.| } @callbacks_copy;
+## purging plugin callbacks \ to be reloaded ..,
+##
+if ( defined <callbacks.end_code>
+    and ref <callbacks.end_code> eq qw| ARRAY | ) {
+    my @callbacks_copy = <callbacks.end_code>->@*;
+    <callbacks.end_code>->@* = grep { !m|^plugin\.| } @callbacks_copy;
 }
 
 my @loaded_plugins = <[base.sort]>->(<plugins.status>);
 
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@loaded_plugins);
 
-$success = 0 if $subs_failed;
+$success = FALSE if $subs_failed;
 
 return $success;
 
-#,,..,,,,,..,,,..,.,,,.,.,..,,,..,..,,.,.,..,,..,,...,...,..,,,.,,,..,,.,,,.,,
-#HQ7MFLWNCNCSI3FOPWIF4EX2GKWVFRHQJEHVFTDATB4NWYBXUOFK66FPGTYG6M4A3FA7LUC3XMW2W
-#\\\|744AIG6OOVRVFYDZG726WTZZE6MBF2T5FU6TF2BQEFWW4ZKDOYT \ / AMOS7 \ YOURUM ::
-#\[7]CTIQAVH2TBQDDHCI7DFHPVDNV2JHAF3VDYFCUWGZOXFXYO6OQKBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,,.,,,..,,,,,...,.,.,,.,,.,,,..,,...,...,...,,,,,,,,,,,.,,,,,
+#HIQSUBRSJQMVA5A7YE4ZUTO5UGE7SPVSYRF5XETT7ZKWJNIZC3X7GI23CNA6KBRDG2YHGI63INR7S
+#\\\|C7X7FLMWSDN4PI4JVL7EXOU4OYI2KSZVZLI46UXRK4CU3EXLIBS \ / AMOS7 \ YOURUM ::
+#\[7]7OMYK5IXFNNP2SZVDSUOSY7QD56DPKFGQJEOOP6AAGTSDKQQGOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

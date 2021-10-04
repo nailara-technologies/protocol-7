@@ -4,16 +4,19 @@
 
 my $fifo_path   = shift // '';     ## auto-create ? ##
 my $permissions = shift // 0640;
-my $reconnect   = shift // 1;
-my $overwrite   = shift // 1;
+my $reconnect   = shift // TRUE;
+my $overwrite   = shift // TRUE;
 
-warn qq|expected path parameter for named pipe creation <{C1}>|
-    and return undef
-    if !length($fifo_path);
+my $mkmod_bin_path = qw| /bin/mknod |;
+
+if ( not length $fifo_path ) {
+    warn 'expected path parameter for named pipe creation <{C1}>';
+    return undef;
+}
 
 if ( -e $fifo_path ) {
     if ( not $reconnect and not $overwrite ) {
-        warn qq|named pipe path already exists [ no clean-up ? ] <{C1}>|;
+        warn 'named pipe path already exists [ no clean-up ? ] <{C1}>';
         return undef;
     }
     my $stat_ref = File::stat::stat($fifo_path);
@@ -22,50 +25,58 @@ if ( -e $fifo_path ) {
         and not $stat_ref->cando( S_IWGRP(), $GID )
     ) {
         warn 'named pipe path already exists and no write permission <{NC}>';
-        warn "$fifo_path <{C1}>";
+        <[base.s_warn]>->( '%s <{C1}>', $fifo_path );
         return undef;
     }
     if ( not $stat_ref->cando( S_IFIFO() ) ) {    ## S_ISFIFO ? ##
-        warn "named pipe path '$fifo_path' is not a FIFO <{C1}>";
+        <[base.s_warn]>->(
+            "named pipe path '%s' is not a FIFO <{C1}>", $fifo_path
+        );
         return undef;
     }
     if ( not $reconnect and $overwrite and not unlink($fifo_path) ) { ## rm ##
-        my $err_str = <[base.format_error]>->( $OS_ERROR, -1 );
-        warn 'cannot unlink %s : %s <{C1>', $fifo_path, $err_str;
+        <[base.s_warn]>->(
+            'cannot unlink %s : %s <{C1>',
+            $fifo_path, <[base.str.os_err]>
+        );
         return undef;
     }
 } else {    ## create named pipe when not exists ##
 
-    if ( system( qw| /bin/mknod |, $fifo_path, qw| p | ) != 0 ) {  ## mknod ##
+    if ( system( $mkmod_bin_path , $fifo_path, qw| p | ) != 0 ) {  ## mknod ##
         my $err_str = <[base.format_error]>->($OS_ERROR);
-        warn "<mknod> $fifo_path : $err_str <{C1>";
+        <[base.s_warn]>->( '<mknod> %s : %s <{C1>', $fifo_path, $err_str );
         return undef;
     }
-    if ( !-p $fifo_path ) {    ##  exists? ##
-        warn qq|cannot create fifo file path <{C1}>|;
+    if ( not -p $fifo_path ) {    ##  exists? ##
+        warn 'cannot create fifo file path <{C1}>';
         return undef;
     }
     if ( not chmod( $permissions, $fifo_path ) ) {    ## chmod ##
         my $err_str = <[base.format_error]>->($OS_ERROR);
-        warn "$fifo_path : chmod $permissions : $err_str <{C1}>";
-        ## in case of permission error, remove again ##
-        unlink($fifo_path) or warn "left existing [ $fifo_path ]";
+        <[base.s_warn]>->(
+            '%s : chmod %s : %s <{C1}>',
+            $fifo_path, $permissions, $err_str
+        );
+        unlink($fifo_path)    ## removing in case of permission error ##
+            or <[base.s_warn]>->( 'left existing [ %s ]', $fifo_path );
         return undef;
     }
 }
 
 if ( not $reconnect ) {
+    <system.init_reports> //= [];
     push(
-        @{<system.init_reports>},
+        <system.init_reports>->@*,
         {   'param'          => $fifo_path,
-            'descr'          => qq|registering fifo pipe..,|,
+            'descr'          => 'registering fifo pipe..,',
             'target_command' => qw| v7.report-temp-path |,
         }
     );
 }
 
-#,,.,,.,,,,.,,.,,,,,,,,,,,.,,,..,,,,.,..,,,.,,..,,...,...,..,,.,,,,,,,,,,,,..,
-#IH2JI7ICD7IW7PE2TXXJYUAO2QF5CRUEP5OPFCZWWUMZHUNRTUVDN63GIJVR3XHTOHSDMZQCOSRL6
-#\\\|FNFN4YDKR6QRVT4GKJISC4DDYYVCLSOBJKJBFHSLCUIZ25S4RJY \ / AMOS7 \ YOURUM ::
-#\[7]TBMTKBM6UO35WR3GOXOCPJAACCO6CVGTPYTTDP6CEVEHQCXB76AA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,.,,,,,,,,,,,.,,,.,,.,.,,.,,..,,...,...,,,.,,,.,,.,,...,...,
+#LAJCTLYYTGN24MGIVXE7SGYQ3AD2MXCABEMSRDI4WNMMPYYXCZXRFA7WUS22DJJM5IFOCHQ5PXWFO
+#\\\|6IRA3GKLRECXUHJ7P4X5BCAJEN2ZYRN5XR72IYGWZXDA65LSLOA \ / AMOS7 \ YOURUM ::
+#\[7]3GWXLOHJUJCWGR5YCC2SSCCZQBNFWML7LHSDVT4GN7UPTF24JQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
