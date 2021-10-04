@@ -6,11 +6,11 @@
 
 my $title_pattern = $call->{'args'};
 
-<X-11.WM>->update;
+<[X-11.WM.update]>;
 
 my $reply_msg = '';
 my @window_list;
-for my $win ( @{ <X-11.WM>->sorted } ) {
+for my $win ( <X-11.WM>->sorted->@* ) {
 
     my $window_title = <[base.utf8.sanitize]>->( $win->title // '' );
 
@@ -22,8 +22,8 @@ for my $win ( @{ <X-11.WM>->sorted } ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_msg };
 
-#,,..,.,.,..,,,..,,,,,,,.,...,,,,,,.,,.,,,,,.,..,,...,...,,..,..,,,..,,.,,.,.,
-#SKP6GSOTQ7GDS2SEMM4Q3SWESQ2GQDU6Z2NE6Z4XX4LQ4SHWVSNZZXDEV6XPL5LSWZOHAETMDCYIO
-#\\\|ISG24R4JO65CFDRMA22KKENETMIHMTPJQP7Z4FMQI5ATLJQ4Z4U \ / AMOS7 \ YOURUM ::
-#\[7]C7IKIDH4Q3NO4QR564P3EDTL2DWD5HK2UB5FKHLLCK7ZCBZWYSAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,..,.,,,,.,,,,,,,..,,..,,,.,..,,...,...,,.,,,..,,,.,.,,,...,
+#GU3BPPYX74EGWMN7GUFRYYBAZBYHPNIVMKKXD52MA5Q2NRJXJWRGX5U5P5CPWOW3JWSPDZOUB4PZA
+#\\\|NZLKQCHSG4L4ZT7DZGQWMWR462MRBDD7LXOYTTQY3NXTLSKLC6L \ / AMOS7 \ YOURUM ::
+#\[7]WWMR3Y4D4BLXTKC7GHCMS3ZT2CWOYOK7WHAG7U4NB6CAPZDIQIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

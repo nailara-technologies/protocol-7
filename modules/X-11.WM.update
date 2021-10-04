@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = X-11.WM.update
+# todo  = make WM->update obsolete
+
+my $rescan_retries = 13;    ##  maximum number of update call retries  ##
+my $log_level      = 2;     ## start log-level [ reduced with retries ] ##
+
+while ( $rescan_retries-- > 0 ) {
+
+    eval { <X-11.WM>->update };    ##  catching 'bad 3 (Window)' error  ##
+
+    if ( length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            $log_level,
+            'error during WM->update %s',
+            scalar <[base.caller]>
+        );
+        $log_level-- if $log_level > 0;
+    } else {
+        $rescan_retries = 0;
+    }
+}
+
+#,,,,,...,.,,,..,,...,.,,,,,.,...,..,,,,,,.,,,..,,...,...,.,.,...,...,.,,,,,.,
+#2ECIWZCOBXWLJA4E4GJMSO7KE3AXCYVXWPMFES5OVQHJAYBW5OJFHWMJAXRIDEGK22SOGFI6LPQVM
+#\\\|HMBXPMLYSUQW66B3XEVTOB2VGX75TBE7HH3PXRSXFI75QIPRQ32 \ / AMOS7 \ YOURUM ::
+#\[7]G5ZIZJWXKPYRGM5OCSOFRMLJRELUSMG2FWRNWBYETTPOQSL2QIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
