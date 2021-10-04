@@ -38,16 +38,17 @@ if ( ref( $ARG[0] ) eq qw| SCALAR | ) {
     $shift_bits = shift if @ARG and $ARG[0] =~ m|^\d{1,2}$| and $ARG[0] <= 64;
 
     ##  overflow shift threshold  ##
-    warn 'undefined overflow threshold param ' . $caller_level
-        and return undef
-        if @ARG
-        and not defined $ARG[0];
+    if ( @ARG and not defined $ARG[0] ) {
+        warn join( ' ', 'undefined overflow threshold param', $caller_level );
+        return undef;
+    }
     $overflow_threshold = shift if @ARG and $ARG[0] <= 4294967295;  #[ 32bit ]
 
     while (@ARG) {    ##  sanity check  ##
         <[base.s_warn]>->(
-            'option [%s] not expected, redundant mode parameter? '
-                . $caller_level,
+            join( ' ',
+                'option [%s] not expected, redundant mode parameter?',
+                $caller_level ),
             shift @ARG
         );
     }
@@ -63,8 +64,8 @@ return AMOS7::CHKSUM::ELF::elf_chksum(
     $shift_bits, $overflow_threshold
 );
 
-#,,,,,..,,.,,,.,,,...,...,,,,,,,.,...,,,.,.,.,..,,...,...,.,.,..,,...,...,...,
-#26EQAPUKMKEUIVQAQXJOXIXXRP66ACWVYGBVL67U4C4QLTJSQOXBRP5II7ZNP5RVIVVAOMENGYM26
-#\\\|EHV2SAAISZB4II52M5SRIOTCD3MTQNG44QWHQZ42R3G3KNYOL27 \ / AMOS7 \ YOURUM ::
-#\[7]NY3YBUHINCMTSUO3UI677SQ2N42ZWWHDZHCSD5JLJKRTK4VUGEAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,.,,,,.,,,,,,,,.,,.,,,.,,,.,,..,,...,..,,...,,.,,.,.,..,,,..,
+#EHPMDHLN5J77SOVIANYUYELGQJSMKXHK26JQED3QNHHJ247KQED47POKCI6SYONIHCAEZUEJFD3AK
+#\\\|F4OESA26VOJNBNLRUGCL4W4KW2AN3ON2M2H7KSJHQI7AOUCREXA \ / AMOS7 \ YOURUM ::
+#\[7]SFPVQ54QYT7KGG6SUSJDJ5UKTC5II6R75BLCNL2HV5F27THVTABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

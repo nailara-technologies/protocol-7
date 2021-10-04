@@ -24,6 +24,7 @@ use Crypt::Misc qw| encode_b32r |;
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;                        ## error handling ##
+use AMOS7::FILE;                  ## get_homepath ##
 
 our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
@@ -79,7 +80,7 @@ sub compile_inline_source {
     my @subroutines
         = defined $subroutine_name
         ? ($subroutine_name)
-        : reverse sort keys %{$source_registry};
+        : reverse sort keys $source_registry->%*;
 
     return warn_err( 'no inline subroutines defined', 1 )
         if not @subroutines;
@@ -157,12 +158,12 @@ sub compile_inline_source {
 
         return warn_err( "inline directory '%s' not readable [ repair ., ]",
             0, $custom_inline_dir )
-            if -d $custom_inline_dir and !-r $custom_inline_dir;
+            if -d $custom_inline_dir and not -r $custom_inline_dir;
 
         if ( !-d $custom_inline_dir ) {
 
             make_path( $custom_inline_dir, {@params} )
-                or return warn_err( ": %s : %s", 1,
+                or return warn_err( ': %s : %s', 1,
                 format_error( $OS_ERROR, -1 ),
                 $custom_inline_dir );
 
@@ -314,10 +315,18 @@ sub clean_source {
 
 sub gen_inline_path {
     my $code_name = shift;
-    ( my $base_path = shift // qw| /var/tmp | ) =~ s|/$||;
-    my $user     = getpwuid $UID;
-    my $abs_path = sprintf( qw| %s/%s/.7/inline-code/%s |,
-        $base_path, $user, $code_name );
+    my $abs_path;
+    if (@ARG) {             ## given base path ##
+        ( my $base_path = shift ) =~ s|/$||;
+        my $user = getpwuid $UID;
+        $abs_path = sprintf( qw| %s/%s/.7/inline-code/%s |,
+            $base_path, $user, $code_name );
+    } else {                ## user home dir ##
+        my $home_path = AMOS7::FILE::get_homepath();
+        $abs_path = sprintf qw| %s/.7/inline-code/%s |, $home_path,
+            $code_name;
+
+    }
     return $abs_path;
 }
 
@@ -330,15 +339,15 @@ sub encoded_bmw_chksum {
 
     ## shortened BMW chksum for path name creation ##
     my $bmw_checksum   = bmw_256( encode_b32r($subroutine_source) );
-    my $src_chksum_bin = sprintf 'BMW=%s', substr( $bmw_checksum, 0, 5 );
+    my $src_chksum_bin = sprintf qw| BMW=%s |, substr( $bmw_checksum, 0, 5 );
 
     return encode_b32r($src_chksum_bin);  ## required printable char prefix ##
 }
 
 return TRUE ##################################################################
 
-#,,,,,,,.,.,.,,,.,,..,.,,,...,.,,,,..,,,.,.,,,..,,...,...,..,,.,,,,,,,.,.,.,.,
-#JU765MIRMRX65XCSFWL2VZXIUQGW5YIDFBLTWZZGP3BLHNUUHQPVQCSX736F43RHX2P5PWC5PBBIU
-#\\\|IM5X5YFD6PDCIX5NKXSFN3QZ45A6ULJNR3Z7RNFJ5CF6ZYPPBDR \ / AMOS7 \ YOURUM ::
-#\[7]NOKJVTTTU62EN6CSHFWYESKAFLDBQ2UDRNZ6DSYORCYS4D55GOBI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,.,,,,.,,.,,,,.,,.,,,..,,,,.,..,,...,...,.,.,,..,,.,,..,,,.,,
+#X6N6UQS7XLIQJUDCQTLCCAHLVJNDQNVRCUTY5DUV5ORF36CHPW7INB3FVKSJN7JFKM6IQSBZYCTJE
+#\\\|OHCIQN25POXI6VNVT3P7GAECXEJDTYADNPPFMYC5DSJGC7PCHAL \ / AMOS7 \ YOURUM ::
+#\[7]MKPVN4HUWWHFPBOUX4LD6FZB7OGHHFGXHJEPR7N4XVKY4SK2YQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
