@@ -6,29 +6,30 @@
 <[base.perlmod.load]>->( 'IPC::Open3', qw| open3 | );
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
+<melt.out_path> = qw| /var/cache/melt |
+    if not length( <melt.out_path> // '' );
+
 <melt.bin_path> = <[base.required_bin_path]>->('melt');
+
+my $out_path = <melt.out_path>;
 
 ## auto img cleanup defaults ##
 <melt.keep_last.days>   //= 32;
 <melt.keep_last.mbytes> //= 32;
 
-open( ZULUM, '>', File::Spec->devnull );
+<[base.stderr_redir]>->(qw| :devnull: |);    ## redirect STDERR ##
 
-if ( !-x <melt.bin_path> ) {
+if ( not -x <melt.bin_path> ) {
     <[base.log]>->(
-        0, "'melt' is not installed (or in path), aborting startup.,"
+        0, "'melt' not installed [or in path], aborting start-up..,"
     );
-    exit(-1);
+    <[base.exit]>->(qw| 0010 |);
 }
 
-my $out_path = -d '/var/run' ? '/var/run/melt' : '/var/tmp/melt_out';
+<[base.logs]>->( 1, ": image path :. '%s'", $out_path );
 
-$out_path = <melt.out_path> if length( <melt.out_path> // '' );
-
-<[base.log]>->( 1, ": image path : '$out_path'" );
-
-if ( !-d $out_path ) {
-    <[base.log]>->( 1, ": : creating '$out_path'.." );
+if ( not -d $out_path ) {
+    <[base.logs]>->( 1, ": : creating '%s'.,", $out_path );
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $out_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
@@ -41,8 +42,8 @@ if ( !-d $out_path ) {
 
 0;
 
-#,,.,,,..,..,,,,,,..,,.,,,,.,,,,,,,.,,,,,,,,,,..,,...,...,...,..,,,,,,.,.,.,.,
-#IQV35ZG5IVPHIEWY3B3L7CKS63AV2FDZRNFZAKGYOSBXCJDH2WSMCQO5XNHK2B4SBVRN2B7S57RIG
-#\\\|BR2LCKST62SLLZIJYAZ7OQOHKR2P4ARXE7HSP6YPIK53MAGUBQD \ / AMOS7 \ YOURUM ::
-#\[7]UGSANYK242TPRJVARQAVN6Z4OKIYXUQEL56VXZXD7ZXEGQQD3OBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,.,.,.,.,,,.,,,,,..,,.,.,,..,..,,...,...,...,,.,,.,.,,,,,.,.,
+#XPB6WICGDYWOZHFUJIRUJQTM3SBJDSRGVK5R3VD5TPPJUUUBIQR3SUQGPQ47SOMDA22ECOZOUKZAS
+#\\\|47Q4L6PKTXTXQQLDHCB2GTTYHCHXARN6UWDKZY3VBL2AKMBRR3Q \ / AMOS7 \ YOURUM ::
+#\[7]YJPZUSVPRJBBKAXNCVN5ZFTMDCUFBT4X2JHATKKIZ346IRXARYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
