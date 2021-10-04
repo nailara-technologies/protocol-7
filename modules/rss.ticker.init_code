@@ -2,36 +2,42 @@
 
 # name = rss.ticker.init_code
 
-<rss.data.tmp_path>             //= '/var/tmp';
-<rss.ticker.txt_data_path>      //= '/var/tmp/rssdata/ticker-content.txt';
-<rss.ticker.item_seperator>     //= '.:.';
-<rss.ticker.trailing_seperator> //= 0;
-<rss.ticker.request_timeout>    //= 5;
+<rss.data.tmp_path>                  //= qw| /var/protocol-7/rss-ticker |;
+<rss.ticker.item_seperator>          //= qw| .:. |;
+<rss.ticker.trailing_seperator>      //= 0;
+<rss.ticker.request_timeout>         //= 5;
 <rss.ticker.fail_retry_min_interval> //= 0.42;
-<rss.ticker.fail_retry_max_interval> //= sprintf( '%.0f', 30 + rand(3) );
+<rss.ticker.fail_retry_max_interval> //= sprintf( qw| %.0f |, 30 + rand(3) );
+<rss.ticker.txt_data_path>
+    //= catfile( <rss.data.tmp_path>, qw| ticker-content.asc | );
+
+<[base.path-set-up.check-zenka-paths]>->(TRUE);
 
 $ENV{'TIMINGBOTPATH'} = <rss.data.tmp_path>;
 die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
-    if !-d <rss.data.tmp_path>;
+    if not -d <rss.data.tmp_path>;
 
 <[base.perlmod.autoload]>->('XML::Feed');
 <[base.perlmod.autoload]>->('File::Copy');
 <[base.perlmod.autoload]>->('XML::RSS::TimingBot');
+<[base.perlmod.load]>->( 'File::Path', qw| remove_tree | );
 
-( my $db_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
+my $db_dir = catfile( <rss.data.tmp_path>, qw| rssdata | );
+$db_dir =~ s,(/|\.\.)/,/,g;
+
 if ( -d $db_dir ) {
-    <[base.log]>->( 1, ": removing rss database directory '$db_dir'" );
-    qx(rm -rf -- $db_dir);
+    <[base.logs]>->( 'removing :. %s', $db_dir );
+    remove_tree($db_dir);
 }
 
 <rss.web-browser> = XML::RSS::TimingBot->new;
 push(
     @LWP::Protocol::http::EXTRA_SOCK_OPTS,
-    PeerHTTPVersion => "1.1",
+    PeerHTTPVersion => qw| 1.1 |,
     SendTE          => 0
 );
 <rss.web-browser>->timeout(<rss.ticker.request_timeout>);
-<rss.web-browser>->default_headers->header(
+<rss.web-browser>->default_headers->header(    ## [LLL] update user agent ##
     'User-Agent' =>
         'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
     'Accept' =>
@@ -43,20 +49,21 @@ push(
 my @rss_urls;
 <rss.ticker.url_hash> //= <[chk-sum.bmw.224.B32]>->('');
 if ( defined <rss.ticker.content_url> ) {
-    if ( ref(<rss.ticker.content_url>) ne 'HASH' ) {
+    if ( ref(<rss.ticker.content_url>) ne qw| HASH | ) {
         @rss_urls = (<rss.ticker.content_url>);
     } else {
         @rss_urls = map { <rss.ticker.content_url>->{$ARG} }
             keys %{<rss.ticker.content_url>};
     }
     <rss.ticker.url_hash>
-        = <[chk-sum.bmw.224.B32]>->( join( '', map {"$ARG\n"} @rss_urls ) );
+        = <[chk-sum.bmw.224.B32]>
+        ->( join( '', map { sprintf "%s\n", $ARG } @rss_urls ) );
 }
 
 0;
 
-#,,,.,.,,,,.,,.,.,,..,.,,,.,,,.,.,,..,,,,,,.,,..,,...,...,...,.,.,.,.,,.,,.,.,
-#Z7FNOOW7TXOR7SDUUWFZMRC6GVDM4SMAOZ73QF4ERWBQY6KCRX7NIASXLUEF62CN7SY6YTNR4TDG6
-#\\\|L2YLDLD5Y5DJAXGWFRDNFTWQWFN5UJ7CMJN5V6NQ5T52COQMNYK \ / AMOS7 \ YOURUM ::
-#\[7]RLYDOJX4YY4EVPM2JCM75JBHO7KNJBRLOG5OITK6F3BICQHNUIAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,,..,,,,,,,,,,,.,...,,,,,,..,..,,...,...,..,,.,,,...,...,.,.,
+#HXBZRSDP5LNHG4NOBLVJFUWSGVXFWKLR3OCO3H7EMYETR66DGECJTFDQAXRAP372HC2ESLT2QVROW
+#\\\|36LGNFZCRMWJ7J2XBZMVOSLIUECVK3WIOQHZ2LDCTBUYX6MNVVK \ / AMOS7 \ YOURUM ::
+#\[7]3LP3XW67X3GVB5EBEUACGOVCNFFSC5BGCBV4SOJTLH72B3NUUUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

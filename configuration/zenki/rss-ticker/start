@@ -9,7 +9,7 @@ access.cmd.usr.cube = commands message heart reload verify-instance \
                       show-buffer get-config-names get-config name subname \
                       playlist_update resend_update
 
-rss.data.tmp_path          = /var/tmp/
+rss.data.tmp_path          = /var/protocol-7/rss-ticker/
 rss.ticker.update_commands = ticker.read_file
 
 [load_config_file:'zenki/rss-ticker/config.rss-ticker.default'] # <-- .import.,
@@ -29,7 +29,9 @@ modules.preload = rss-ticker.set-up set-up.json
 [set-up.json.import_file:'rss-ticker.set-up.json']
 [set-up.json.import_file:'rss-ticker.content.json']
 
-modules.load = auth net protocol io.unix io-ip chk-sum rss.ticker set-up.json
+modules.load = auth net protocol.protocol-7 io.unix io.ip rss.ticker \
+               set-up.json
+
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -40,8 +42,8 @@ modules.load = auth net protocol io.unix io-ip chk-sum rss.ticker set-up.json
 
 [zenka.loop]
 
-#,,.,,.,,,,,.,...,,..,,,,,.,.,.,,,,,,,..,,,,.,.,.,...,.,.,.,,,,.,,,.,,,..,,,.,
-#FA57L2MQIQPDOMIXI4XIIT4QABEVCYIQKROYXDXKRSBBWAJ3RXG56AT346G4JF7AC3IBXCMUNZLN2
-#\\\|V4X7BNZOF7Q5ODA7L4Q4GM7Q27ISJ7QSLD4DOXAI5GAL3SGAIY2 \ / AMOS7 \ YOURUM ::
-#\[7]VLG4MATIX2FS5CEG3QFCWSOPBASAMQP3DG5THROSPTWCEGDGS6CQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,,,.,,,,,...,.,,,,..,,.,,,,.,.,.,...,...,.,,,,.,,.,.,,,.,,,,,
+#R5ST5GDK7CUJJGY6XRNGCJK3G2GDG7WRZ2LHPN6TFZGEATD5X6LUTK7Q3HIXGSPKC3NMRNH7FMKDW
+#\\\|F4YS4I7GGE2F3TU6EYSQ3VCHBM5JXY745SD64STNCJGUHRTNM3L \ / AMOS7 \ YOURUM ::
+#\[7]NL4KLIFKMIKEOMAB74CXI3BVD2YP2OVUTPQULKG54DOIKPBRUUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
