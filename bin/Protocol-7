@@ -1565,13 +1565,23 @@ sub p7_load_code {
             my @wrapped_error
                 = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
             $code{'log.error'}->(@wrapped_error);
-            map { $code{'base.buffer.add_line'}->( 'compile-errors', $ARG ) }
-                @wrapped_error
-                if defined $code{'base.buffer.add_line'};
+
+            if ( exists $code{'base.buffer.add_line'} ) {
+                map {
+                    $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
+                } @wrapped_error;
+            } else {
+                my $buffer = $data{'system'}{'start'}{'zenka-buffer'} //= [];
+                map {
+                    push $buffer->@*,
+                        sprintf( ':[compile-errors]: %s', $ARG )
+                } @wrapped_error;
+            }
 
             $err_str =~ s|\n| |sg;
             $err_str =~ tr| ||s;
-            $data{'code'}{$sub_name}{'status'} = "[error] $err_str";
+            $data{'code'}{$sub_name}{'status'}
+                = sprintf( '[error] %s', $err_str );
             undef $s_comp_stderr;
             undef $err_str;
             $warn_count = 0;
@@ -1582,9 +1592,19 @@ sub p7_load_code {
             my @wrapped_error
                 = map { split m|\n|, $t_wrap->($ARG) } @compile_errors;
             $code{'log.error'}->(@wrapped_error);
-            map { $code{'base.buffer.add_line'}->( 'compile-errors', $ARG ) }
-                @wrapped_error
-                if defined $code{'base.buffer.add_line'};
+
+            if ( exists $code{'base.buffer.add_line'} ) {
+                map {
+                    $code{'base.buffer.add_line'}->( 'compile-errors', $ARG )
+                } @wrapped_error;
+            } else {
+                my $buffer = $data{'system'}{'start'}{'zenka-buffer'} //= [];
+                map {
+                    push $buffer->@*,
+                        sprintf( ':[compile-errors]: %s', $ARG )
+                } @wrapped_error;
+            }
+
             $warn_count = 0;
         }
 
@@ -1722,7 +1742,7 @@ sub p7_devmod_sub {
 
     # log all used subroutines if $sub_touch_dir exist and is owned by root.
     my $sub_touch_dir = $data{'system'}{'path'}{'sub_log_dir'}
-        // qw| /var/tmp/protocol-7_devmod.sub_log |;
+        // qw| /var/protocol-7/devmod.sub_log |;
     if ( -d $sub_touch_dir
         and File::stat::stat($sub_touch_dir)->uid == 0 ) {
         my $zenka_name = $data{'system'}{'zenka'}{'name'};
@@ -1815,7 +1835,7 @@ sub p7_log_hook {
             my $buffer_name = qw| zenka |;
 
             ##[  alternative buffer  ]##
-            if ( $log_line =~ m|^:\[([\w\-_]+)\]: | ) {
+            if ( $log_line =~ s|^:\[([\w\-_]+)\]: || ) {
                 $buffer_name = $LAST_PAREN_MATCH;
                 $data{'buffer'}{$buffer_name}{'max_size'} //= 64512;    ## 63K
             }
@@ -2960,7 +2980,7 @@ sub p7_handler__end_code {
     goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
 
     my $callback_name;
-    foreach $callback_name ( reverse @{ $data{'callbacks'}{'end_code'} } ) {
+    foreach $callback_name ( reverse $data{'callbacks'}{'end_code'}->@* ) {
         if ( exists $code{$callback_name} ) {
             $code{'base.logs'}
                 ->( 2, "calling end_code callback '%s'..,", $callback_name );
@@ -3763,8 +3783,8 @@ __DATA__
 :
 :.
 
-#,,..,.,.,,.,,.,,,...,...,...,.,,,.,.,..,,.,,,..,,...,...,...,.,,,..,,,,.,,.,,
-#DV6UM74J6TLB7VGWRTFRMOXYOZRGCUS2SINRR7WDHKNJZ4TESQYEP4FYD3WNEUBJGSEX3LZSDCSRO
-#\\\|PGVOQ32BMBXTYCO6CBMJHZKHP6BPEC27X755TQ2HTLG7XPKVE3T \ / AMOS7 \ YOURUM ::
-#\[7]B46RJR7AKLGBVLH3YFF33BIWYJVG27P7E7AUVLGQW7H2V7HIUMCY 7  DATA SIGNATURE ::
+#,,..,..,,..,,,..,..,,.,,,,,,,,..,,..,,.,,.,.,..,,...,...,.,.,.,.,..,,.,.,,.,,
+#DZAZS6ACPMS2ETSUYSO5WJCO3WCY4AGWRPH5YRU7N6PUL2XHGXAAD6W7MBNLNMQOTZB72HPWGBXLU
+#\\\|FFWV5XRCHMJSWIV5BF5DPZHRLXEHPVNUXKNVNM2UY7GS36T7IG5 \ / AMOS7 \ YOURUM ::
+#\[7]2J5ESUCB5YRGMELPBICCTZNJSKZNOCOLDPQTZAGCXILUWOAK36DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
