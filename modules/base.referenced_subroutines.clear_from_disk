@@ -2,7 +2,7 @@
 
 # name  = base.referenced_subroutines.clear_from_disk
 
-state $clean_found = 5;           ## for later ##
+state $clean_found = TRUE;        ## for later ##
 return -1 if not $clean_found;    ## keep them ##
 
 my $report_not_cleared_names = qw| yes |;
@@ -150,6 +150,15 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
         my $found_in = ': :. found in .: ';
         foreach my $line ( <[base.sort]>->( $subs_ref->{$file} ) ) {
+
+            if ( not keys $subs_ref->{$file}->{$line}->%* ) {
+                <[base.logs]>->(
+                    0,     ': empty hashref entry [ %s : %d ]',
+                    $file, $line
+                );
+                next;
+            }
+
             $found_in .= ', ' if length $found_in;
             $found_in .= sprintf '%s [ line %d ]',
                 [ <[base.sort]>->( $subs_ref->{$file}->{$line} ) ]->[0],
@@ -173,8 +182,8 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,,.,,,,,.,,,...,...,...,,,,,.,,,..,,,,,,,..,.,.,...,...,...,..,,.,.,..,,.,,,
-#UBWG3OKXHI4HRF4J3OLGTRLUTUBAQ36L5DUCFOFQGKRH2E7RWBBM5LO7U4ZQUW455XMVDUP6LRGRQ
-#\\\|FO5JT3OBDDW24KYS2EY3DKQQIJ6T3C3IOCSENAUHOCRZPXSHWXT \ / AMOS7 \ YOURUM ::
-#\[7]V4KQNRJPQI72KTCQVFALSMYKIL6NMVWL5XK4NGPN3OKGU2SJIKBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,...,.,,,,.,,,,.,,,,,.,,,,,,,,,.,.,.,...,...,..,,..,,..,,...,.,,,
+#TMJA372P6RTX2W2MMGBJYRHWEVBTSBZFLCDEL6XNWAVU4347JKWXEXABJXFKK2RDIHOVCUX24IKCU
+#\\\|SPDSPFDLVVIVXVKI7JB6UJMYJONSECQIS7SWYXJBG6KNUPYPOG4 \ / AMOS7 \ YOURUM ::
+#\[7]BJC2N6JTDUHQ2U6Y7XF5Z6GLYPIP35HDUWYNEMOYRLG5EUIFWEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

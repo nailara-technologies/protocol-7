@@ -10,6 +10,8 @@ my $user = shift;
 return warn 'drop_privs : expected <user> parameter <{C2}>'
     if not defined $user;
 
+my $tmp_dir_parent = qw| /var/tmp/ |;    ##  temp homedir parent directory  ##
+
 <[base.root.check_system_user]>->($user);
 <[base.check_dependency_dirs]>->($user);
 
@@ -97,8 +99,8 @@ if ( not length( $user // '' ) ) {
                         ? sprintf 'temp-home.%s.%s.%d', <system.zenka.name>,
                         $user, $PID
                         : sprintf( qw| temp-home.%s.XXXXXXXXXX |, $user );
-                    $h_directory
-                        = <[base.tmp_dir]>->( qw|/var/tmp/|, $tdir_template );
+                    $h_directory = <[base.tmp_dir]>
+                        ->( $tmp_dir_parent, $tdir_template );
                     if ( -d $h_directory ) {
                         chown( $uid, $gid, $h_directory )
                             or <base.s_warn]>->(
@@ -107,7 +109,7 @@ if ( not length( $user // '' ) ) {
                             );
                         map { <[base.log]>->( 1, $ARG ) } (
                             ':. created temporary home directory',
-                            " : $h_directory"
+                            sprintf( ' : ', $h_directory )
                         );
                         push(
                             <system.init_reports>->@*,
@@ -153,8 +155,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,.,,..,,,..,.,,,,..,...,,..,..,,.,,,.,,,,,.,..,,...,...,..,,,..,.,,,,.,,,.,,
-#NU3Y4XHBHKXMZPETIBMVKJKXTHG3AKH6TQZHJWIQAOC7NLDMLHLUIVYIKFQD2KX3HZYDMW5I2ZPN4
-#\\\|EW7ITKSVO6TQUGKM7AG66SVFKN4X2B5GVGTBQEX5VB6VDALIFYK \ / AMOS7 \ YOURUM ::
-#\[7]7BX5XOW6CPX3OZZFXXVAGFGFXDU57JTZKWAXUFMFXN4JLUT5G6DY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,.,,,,,,,,.,,,..,...,,,.,,..,..,,...,...,.,.,.,.,,,.,,.,,,,,,
+#2TT3V6B5E54TZC5623AURIQA2Q2S3C7FXU2JYSXKYVQTOYGREWJS53XZSUYXUZOZVD6DODFQB3NOS
+#\\\|MHD345N6HNGE5BWG7QHKTQ3IR6IRD5L4URYYJ2KE6CQBL53I4V7 \ / AMOS7 \ YOURUM ::
+#\[7]D7QSDX7O6E3D6QKRLO6TSPCWDQAJIGJODUNQ3DQOIS73B5R2GEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
