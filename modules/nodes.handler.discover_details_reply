@@ -17,7 +17,10 @@ foreach my $line ( split "\n", $reply_string ) {
 my $reply_packet_params;
 foreach my $key (qw| ip_addr hwaddr pkey |) {
     if ( not defined $reply_params{$key} ) {
-        <[base.s_warn]>->( "reply packet is missing param '%s'", $key );
+        <[base.s_warn]>->(
+            "[%s] reply packet is missing '%s' parameter",
+            $name, $key
+        );
         next;
     }
     if ( $key eq qw| pkey | ) {
@@ -30,8 +33,8 @@ foreach my $key (qw| ip_addr hwaddr pkey |) {
     $host_href->{$key} = $reply_params{$key};
 }
 
-#,,.,,...,,,.,...,,,.,.,,,.,.,,,,,,,,,,..,,,,,..,,...,...,...,.,,,.,,,...,...,
-#GQZ3RC3QWO2CYMPY3EOF5V6U23N7UXUVOLRBZNU5RD6IHOED5RNS3KIN263OZ4DEV36CWFZFDFUPK
-#\\\|7CBR4QXXJCDTWVLPVANB6FGXMRO4RLT6K44COC6PAGWA7VDNQGI \ / AMOS7 \ YOURUM ::
-#\[7]4U27Q5YQB7NONV6Q4L4XBLV44L6SOIFICLBDJJFCIIDM7JDWDOCI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,,.,,.,.,,,.,..,,,.,,,,.,.,,,..,,...,...,...,,,.,,,.,..,,..,,
+#UHVQK2HJA56RGFDB34P4PGM562UPVUZ52J6AQV2QHA63WV5SUL57IBJP777U7AI5UFB5RTIH4CWE6
+#\\\|UEALCGGSPDYABHY5R4AFKLLIKRLATAJ7FIHRFITRBEKZCEWO6AT \ / AMOS7 \ YOURUM ::
+#\[7]ZIHAODZUMX5MCUPFGQCGY6OZK5DH4UOLL4IFMQFU5WKE2SRFGYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
