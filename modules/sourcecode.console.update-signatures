@@ -13,12 +13,13 @@ $sign_verbosity = 0
     and <[base.cfg_bool]>->( $ENV{'SIGN_SILENT'} ) == TRUE;
 $command_params =~ s,^ *| *$,,;
 
-my $signature_key_name = qw| nailara.source |;
+my $signature_key_name = qw| proto-7.sourcecode |;
 
 <[source.load_signature_key]>->($signature_key_name);
 
-if ( not exists $keys{'C25519'}{$signature_key_name}
-    or keys( $keys{'C25519'}{$signature_key_name}->%* ) != 2 ) {
+if (   not exists $keys{'C25519'}{$signature_key_name}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
     <[base.logs]>->(
         0, "source signature key '%s' not loaded, aborting..,",
         $signature_key_name
@@ -137,8 +138,8 @@ foreach my $path_rel (@source_paths) {
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 
-#,,,.,.,,,,.,,,..,.,.,,.,,,,,,.,,,,..,..,,,,,,..,,...,...,,..,,..,.,.,,,.,,,.,
-#LOM3B3LNAH7SMJVKF4SHBSWAH5UG5RZ4SARJEE53G4GT5ID4NNRM6QRM2AVU245PFZVXIWHV34E2Y
-#\\\|HZN6TZSDR2NF7DQ4MZ42547RSBQQIHFRWD37Z3PWVMDY4OOYCE3 \ / AMOS7 \ YOURUM ::
-#\[7]BYGARS3P53Q3RPMZ5WB2TNLGD3AZHX3XPDKPEUCVB3QMISTR54BA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,,,,,,..,..,,.,.,.,.,,.,,,,.,..,,...,...,...,,,,,..,,,,.,.,.,
+#ZEEZZUCETNFPS34NOKJ6QGNGS5COQTHFZ6DYJW2IF6WXLS7CCSZCOKC7OU4ZJURZDJO5HBBHUCM3A
+#\\\|QJQ52FHEPV6Y3HZT4PPPLBUF55JI6JJ35TRAI2BVUQBNL6TAPTH \ / AMOS7 \ YOURUM ::
+#\[7]M6NCF42AJWYUCBWP4N6PGG7DRYBZH3REGWDFRVBOOSLWZRSWWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
