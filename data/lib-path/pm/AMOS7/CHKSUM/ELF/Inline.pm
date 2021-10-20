@@ -219,8 +219,8 @@ sub return_elf_c_sourcecode {
 
 return TRUE ##################################################################
 
-#,,,,,.,,,,..,,,.,,..,..,,..,,,,,,,,.,,.,,.,,,..,,...,...,..,,,,,,,..,.,.,.,,,
-#U5LYEYBINIB3KW5EPJCKT6GZS2QP3VC53WCMO4E46R2EYOV6LZO2MVXPZJN4N3332APCA46UDETMS
-#\\\|NDXU3DE7UGGELV7JIO36XE5FHL4N6WOAOGFT7JPOIFOUZNVM3IO \ / AMOS7 \ YOURUM ::
-#\[7]IQHOF6AF422HUF4L2CFFZC6CVHTB63YC6B3THFDDGKRXK7RPW6BI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,..,..,,..,,,,,,,,.,,.,,.,,,..,,...,...,.,,,..,,,,,,,,,,.,.,
+#SWMOJTATQ7A626NAVCAIRIOKWKPCY77W4P2JJDJTIMWCTLEXHLTFDKX2GEVQDTQOHZ7WXZHFI7FNO
+#\\\|C7S5EO7XLWGY6AV3DIJU4GAKOBSOUAY5W7NVRD6AEQ3WVGKPN2C \ / AMOS7 \ YOURUM ::
+#\[7]2WVK5Q73GIU57TWXP5HXNUOK54WUZRXUY7VZGXBZ75VXHN4R2IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

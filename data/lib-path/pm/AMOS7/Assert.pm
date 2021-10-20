@@ -45,8 +45,8 @@ sub zulum_prefix_length {
 
 return TRUE ##################################################################
 
-#,,,.,,,,,,..,,,,,,..,...,,.,,,.,,,.,,.,,,,.,,..,,...,...,..,,...,.,,,,.,,...,
-#4LMA6E2Q72U4SRBSOE7P7TQCFVUDKSDB4SQSQHS4MZVARANXNXIA3S2XUOEHXFHYXC4Z7FSJICNGA
-#\\\|ZQBGCXPN2UGIQAUC5I6KA37A3EWI2DDETJSXZNWMEVMLUKDKQPV \ / AMOS7 \ YOURUM ::
-#\[7]OL6KSDZQUZ6T3OHHC6PEIPMRG2EUIHEQIV7ITNP5CTVW23LFEEDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,,..,...,,.,,,.,,,.,,.,,,,.,,..,,...,...,,..,...,.,.,,,.,..,,
+#PF3TDH4A7GY6SWVDPLOCCMEJQY6OODWN5IJ4RIYV7WRDLYXKHKKWYHQBVJOFUX7FMOJPURSFKPBUQ
+#\\\|VV7WVA35OKIDDXYFWTRZIPSCT66CFUHC6OIGXFFOVWV5OSZRQTK \ / AMOS7 \ YOURUM ::
+#\[7]XXLLITNEPEHWFRJKDG74TMS4AHDTJFOVN7JS2W53TDANXIJFCUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
