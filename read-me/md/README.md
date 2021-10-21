@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZLQJNZMCAY-4961.0 ]
+### [ source code version : ZLQZP6WYNA-4962.0 ]
 
 ### this is the public domain [license](read-me/license)d 'base' branch
 ---
@@ -26,10 +26,10 @@ implemented and functional. one of them
 others, the ['v7'](configuration/zenki/v7/start) zenka can start others
 and manage them [it would usually be
 [started](data/lib-path/systemd/system/Protocol-7.service) first].
-there are many more performing all kinds of tasks and even graphical frondends
+there are many more performing all kinds of tasks and even graphical frontends
 like one that controls the ['mpv'](configuration/zenki/mpv/start) video player
 or a [optionally] self-scrolling
-[web-browser](configuration/zenki/web-browser/start) that can be controlled
+[web-browser](configuration/zenki/web-browser/start) which can be controlled
 from other zenki.
 
 the protocol itself is human readable and there exists a
@@ -41,8 +41,8 @@ and return their output.
 
 <!--
 
-#,,,,,,..,,,,,..,,.,,,..,,..,,,,.,..,,,,.,,,,,..,,...,...,,..,.,,,..,,.,.,,,.,
-#4K4RN7WDBRHJOMKMMSZM7VGQUTWP3FYA5FDMGHXHTSIHUG555267U4P2EA7OIR5VNJ23AUSE2AQHK
-#\\\|66LBGW4W76Y74XYNVB4YNDPDBSN4QAQUMOISA656LCGEV64I23G \ / AMOS7 \ YOURUM ::
-#\[7]OY4C7NJUO7Z2XPQROZVHMLEHUKBUQQAZU3KB27VMIQNJSTVKFWDQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,..,,,,,,,,,,.,,,,..,..,,...,..,,...,...,...,.,,,...,..,,,,.,
+#R7K7W4GPJKLS6PCRP4G2QMITTSQ5MDSH4RO347NLFT27VGQ32TG66DXSKQIWT556XIZK57AWT5ZG4
+#\\\|QGA35E62O65IM5UW4LX3G5RLSFCWSMQF53NY46JYRD3TMCKTGEJ \ / AMOS7 \ YOURUM ::
+#\[7]FLWEXXSRDOGFD5QI2HBB7ABQMIDTDVI6UAAJZALMMZ6OKFMTAKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
