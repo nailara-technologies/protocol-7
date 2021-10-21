@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZLQZP6WYNA-4962.0 ]
+### [ source code version : ZLQ2DMEFNQ-4963.0 ]
 
 ### this is the public domain [license](read-me/license)d 'base' branch
 ---
@@ -37,12 +37,43 @@ the protocol itself is human readable and there exists a
 [binary](bin/c_src/p7c.c) written in C that can run single network commands
 and return their output.
 
+The ultimate project goal is to pool existing idle ressources present in
+todays networks and offer them back to its users with low latency and a lot
+of burst capacity, much like a supercomputer would, but based on advanced
+peer to peer technology. it would be a global marketplace that values and
+utilizes ressources in realtime based on what is required the most at any
+given time and in which workloads exist that are interesting to users and
+operate autonomously on their behalf.
+
+after the network is saturated with what it needs to maintain a stable
+topology, a kind of overflow becomes available that is then distributed
+equally to the individual users. not only can this even generate a form
+of basic income each user would receive but also support content creators
+based on the interests of their audience as a whole.
+
+one can imagine this like the flow of water irrigating farm land where
+each field of interest receives enough water to grow all kinds of plants
+and compensate for time and effort invested into creativity.
+
+taking part will be as simple as connecting a hard disk to the network,
+acquiring ressources using crypto currencies or creating and sharing
+something that is of interest to others.
+
+the overflow principle also makes it possible to maintain public
+ressource pools available to those who are just joining or had nothing
+to offer yet, so that there are no barriers to the global community
+for who can profit from the practical wealth that exists in the so far
+not utilized idle capacity.
+
+it will easily prove our possibilities to be limitless. it is all a
+matter of algorithms and protocols. hardware and connectivity we
+already have.
 
 
 <!--
 
-#,,..,.,.,...,,..,..,,,,,,,,,,.,,,,..,..,,...,..,,...,...,...,.,,,...,..,,,,.,
-#R7K7W4GPJKLS6PCRP4G2QMITTSQ5MDSH4RO347NLFT27VGQ32TG66DXSKQIWT556XIZK57AWT5ZG4
-#\\\|QGA35E62O65IM5UW4LX3G5RLSFCWSMQF53NY46JYRD3TMCKTGEJ \ / AMOS7 \ YOURUM ::
-#\[7]FLWEXXSRDOGFD5QI2HBB7ABQMIDTDVI6UAAJZALMMZ6OKFMTAKCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,...,,,.,.,,,,,.,.,,,.,.,,.,,..,,...,..,,,,.,,,,,,,,,,,,,,.,,
+#T6BGY5B3XUJIUC236L73KG5ZNNNKPHNJG2RJ2YIQ7FJ5BLSUOGJAQDJ6CCGAEPNFOXK6HZHDBNK3G
+#\\\|SSIUH6YI7QCRLM2H6DX36XE66JTXTPMKXDRAE66FVCQ6S7JREHU \ / AMOS7 \ YOURUM ::
+#\[7]T6FYMBOHXDSJPZFPEQA6EOIXEM4WVNR6B5DYBFJ3TGE4L2P7KIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
