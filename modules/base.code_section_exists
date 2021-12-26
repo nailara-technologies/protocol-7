@@ -9,7 +9,11 @@ my $code_data_ref    = shift;
 die "expected section name not specified!"
     if not defined $expected_section or !length($expected_section);
 die "no code data reference supplied!" if not defined $code_data_ref;
-die "expected an ARRAY reference!"     if ref($code_data_ref) ne 'ARRAY';
+
+if ( ref($code_data_ref) ne qw| ARRAY | ) {
+    warn "expected an ARRAY reference <{C1}>";
+    return undef;
+}
 
 foreach my $data_href ( @{$code_data_ref} ) {
     next if ref($data_href) ne 'HASH';
@@ -18,8 +22,8 @@ foreach my $data_href ( @{$code_data_ref} ) {
 }
 return 0;    # no such section
 
-#,,,.,...,..,,..,,..,,,.,,...,,..,.,,,,..,,,,,..,,...,...,,.,,,,.,..,,,..,.,.,
-#HNWZP6TTFEDBZMFRQSZL6KANGM6BTK3YHWREJRKY4KPR6WBUZ5CTUOKLLUQYN24ZVPA5HP6AFYNTS
-#\\\|PZAE26BFZ37KMRCEPWD7IRGT3AI2G4WG7BJZ7ITNOXN2CANXTCV \ / AMOS7 \ YOURUM ::
-#\[7]TKEZBEFC6DEJAS3PXLHK4F6JQAVPAMGOMET33Z45DQPQYX4WYADQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,.,,,...,,.,,,,,,,,.,,,,,.,,,..,,...,...,.,.,.,,,.,,,,,,,,.,,
+#WASWCO4UEQKWZSU7JGGKQWFFWLZM5LUJFPV2FAS3GTAIBFJ6UQ2PWLDFNVJDZ2D4RICH5Z5BJYGGO
+#\\\|FBD6HOAGKR5KOJJWE46YYUDDWHVWS4M5JYAO3CA5AC7OHMVXCME \ / AMOS7 \ YOURUM ::
+#\[7]ZBC65CUNELMYWDT4DTE5V2XFIJCWGSKOYRRLI5DCDHIGHVWS6MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
