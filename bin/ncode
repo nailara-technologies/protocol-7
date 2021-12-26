@@ -113,11 +113,13 @@ print "\n";
 
 # unknown parser command
 if ( not defined $commands{$cmd} ) {
-    print $C{'o'} . "\n ::"
-        . $C{'R'}
-        . " a command '$cmd' does not exist"
-        . $C{'o'} . " ::\n"
-        . $C{'R'} . "\n";
+    if ( length $cmd ) {
+        printf( "\n %s::%s a command '%s$cmd%s' does not exist %s::%s\n",
+            $C{'o'}, $C{'0'}, $C{'o'}, $C{'0'}, $C{'o'}, $C{'R'} );
+    } else {
+        printf( "\n %s::%s usage %s::%s\n",
+            $C{'0'}, $C{'g'}, $C{'0'}, $C{'R'} );
+    }
     &cmd_description;
     exit;
 }
@@ -2361,8 +2363,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,..,,.,,,.,,,,,.,.,.,,,,,,..,,.,,,,.,,,,,..,,...,...,,,.,.,,,,,,,,,.,.,,,
-#HIIJMSCMP6UHYLOXXXBIPMRDM5BNE2WLKDNYZ4JD6QK6HWR3SGGRC2PDYAHUAJRUO4HHTZL6DKTU2
-#\\\|7JPYFLEKE6B4UCRMAQJE5MGQ7HEDCEEZA3RLZPMBYDU5YBZJFPZ \ / AMOS7 \ YOURUM ::
-#\[7]DUFKNFFQMNQOT6L4T2HSEUCN4TM2WHCJ2SYJRB6ICVGJD6TFY4DI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,,,.,,.,,..,,,,,,,..,,,,,,.,,..,,...,...,,,.,,,,,,,.,,..,.,.,
+#4D6ML4FG54LZEOP37VJHQQEVJ5AUNRRZTW4G3CP7TNJGS5OIT5F5A2JXDK4POPYST6HWTQIMSG6CG
+#\\\|2QDXA2F7JGQ7Z43ZDWOCYITSXR54YU7W73ZGOL3BJLTRNGPCJY5 \ / AMOS7 \ YOURUM ::
+#\[7]QN76T5TRVZRGQ6NQF3YKYYKQOQIU6L2WQ34SH763H4I5GHX7REBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
