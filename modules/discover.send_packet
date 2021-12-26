@@ -6,6 +6,7 @@
 my $type        = shift // '';
 my $payload_str = shift // '';
 my $log_level   = shift // 2;
+<discover.counter.send_error> //= 0;
 
 if ( not length $type ) {
     warn 'expected packet type parameter';
@@ -13,9 +14,18 @@ if ( not length $type ) {
 } elsif ( not length $payload_str ) {
     warn 'expected packet payload string';
     return undef;
+
 }
 
 <discover.counter.send_error> //= 0;
+
+if ( not defined <discover.mcast.obj.sock>->mcast_dest ) {
+    $log_level = 0 if <discover.counter.send_error> == 0;
+    <[base.log]>->( $log_level, 'cannot send multicast broadcast packet' );
+    <[base.log]>->( $log_level, ':. socket not initialzed [ dest addr ]' );
+    <discover.counter.send_error>++;
+    return undef;
+}
 
 my $packet_str    ##  compose signed packet payload string  ##
     = <[discover.format_discover_mcast_packet]>->( $type, $payload_str );
@@ -44,8 +54,8 @@ if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.outgoing>) ) {
 
 return TRUE;
 
-#,,..,,..,,,,,.,.,,,.,,,,,...,,.,,,,,,,..,,..,..,,...,..,,..,,.,.,,,.,,..,,,.,
-#4GM7ZNKYYIF55UMUJNSZ7YY6DRDFIJF6Q5XMSF73OQTNIWUXWKFCRDVASHXYVF2VTK56UDCTLQYEI
-#\\\|CXLUVFHR7QUXFVWQXSC66NBH2NPPZBAULD3EF4EY5SFALOAXLR7 \ / AMOS7 \ YOURUM ::
-#\[7]36RUETQBBBWO6RYLRT57MYSSYGKTZNOOT56YES76G4D4O6RJQYCI 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,,.,,...,.,,,.,.,,,,,,,.,,,.,..,,...,...,...,,,.,,..,...,.,,,
+#VV7WSU6Z7PGCADZCPJKGIV3GO4G72YAWTWYIJMQQWCVZNIBW6IGQCP6VYPW377RSMGNY4JQNJDST2
+#\\\|QYI2V6YPV2WFAIBJLB5NMJPWZVVEDF2GDXOCURBXF6DTHUTVULX \ / AMOS7 \ YOURUM ::
+#\[7]GBIS2FMO4GACVOEYL7YP5GKWHKFSODWC5R5NL2E76MA36FDQ4IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
