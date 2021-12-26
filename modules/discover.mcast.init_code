@@ -47,8 +47,15 @@ if (    defined <discover.mcast.obj.sock>
 
 ##  PROTOCOL 7  multicast group  ##
 ##
-<discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>)
-    || die <[base.str.os_err]>;
+if ( not <discover.mcast.obj.sock>->mcast_add(<discover.mcast.ip4_addr>) ) {
+
+    my $reason_str = <[base.str.os_err]> // 'reason unknown';
+
+    <[base.logs]>->(
+        0, ':. cannot bind to multicast socket [ %s ]', $reason_str
+    );
+    return undef;
+}
 
 ##  setting default destination address \ port for mcast_send  ##
 ##
@@ -82,8 +89,8 @@ my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
 
 0;
 
-#,,.,,..,,,,.,,.,,,,.,,.,,.,,,.,.,,,.,.,.,,..,..,,...,...,.,.,...,...,...,,,,,
-#JUHLQKR4DXHBWUMZF5LCCCS3SQG7PRXZISIJ23IUYV27ZDKWIJQDX4RU2MGDAZ3BX6GHOQ5LBKQIK
-#\\\|5LTYRJT6QMII4Y632M6G55ERTEYAHSDKQOTZTGHF6SSNLX5IMKT \ / AMOS7 \ YOURUM ::
-#\[7]NWVNQJ3SWK2V3WLGRFVS2GGHJK3Q37T4ZJITIMYIWDPSBGHD2IDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,.,.,..,,,..,,..,.,,,.,.,,..,..,,...,..,,.,.,,..,.,.,.,,,.,.,
+#53EL37IRM6PRMQ2ILPGYKYVK3AVUJEXS4E7756T6IK3NZRGFOPDHCNNA7QB5BAZHDOCBIFCNWJUIK
+#\\\|Q5JO4DWZ7IWFRODF7EUFUHJRLM653YAUZBKNH2NTIIQTNCOOTWO \ / AMOS7 \ YOURUM ::
+#\[7]MNV4CQZ4EG7XVM7KCLPJYYTKSUSNYH76YAZM3EXTHRJD34TZSCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
