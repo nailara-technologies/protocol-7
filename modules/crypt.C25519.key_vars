@@ -43,7 +43,7 @@ my $key_dir = <crypt.C25519.key_dir>
 
 if ( not -r $key_dir ) {
     my $parent_dir = <[file.last_existing_dir_path]>->($key_dir);
-    if ( $parent_dir ne $key_dir and not -r $key_dir ) {
+    if ( $parent_dir ne $key_dir and not -r $parent_dir ) {
         <[base.s_warn]>->(
             "no read permissions to parent path [ %s ] <{C1}>", $parent_dir
         );
@@ -97,8 +97,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,..,.,,,..,,,,.,.,,,..,,,,,,.,.,...,,.,,...,..,,...,...,..,,..,,..,,...,,,,,
-#EOJUYXBUCOQE5VBA4TMZGEJSUNPIHPTKQNMEV2FATLWYZSGA4BEG4FNJ6HTSZW6UL2S3FKIVHR2D6
-#\\\|Z5Q7XNSLNU3657NDZCW3WKXQGQC7ISNFR7BC2GTJKHBVIGB3IIG \ / AMOS7 \ YOURUM ::
-#\[7]UN2V6B4M7QMFOCOR2HNKYW2NQZHPBQB6CGJFUNI3MIM6K6UCE2CI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,.,,,,.,,,,.,,..,,..,,,,,..,,,..,..,,...,..,,..,,...,,,.,,,,,...,
+#GBXPLSYB4IJKXJU3EZCZC3BEUVYFMRTDUMKKKRDAYCUCVOE5WAQLSG5SPW436CXWWXUYHKRBBOGPY
+#\\\|IVHHXBBCZYOK4B5MTYXHDIKOZXNKXOB5XTJW6WISRSKKZWLNQE7 \ / AMOS7 \ YOURUM ::
+#\[7]KQBXG5P2XAI3OVEBZTJ6ZOUHN5JGLYDJDYXJCACTKQVL7WW4FYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
