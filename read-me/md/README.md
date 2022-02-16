@@ -1,7 +1,7 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZSAJDZ7VCQ-4981.0 ]
+### [ source code version : ZSAJHNHEOQ-4982.0 ]
 
 ### this is the public domain [license](license)d 'base' branch
 ---
@@ -72,8 +72,8 @@ already have.
 
 <!--
 
-#,,,,,,.,,,..,,.,,,.,,,.,,..,,,,,,,.,,.,,,.,,,..,,...,...,...,...,.,,,.,,,,.,,
-#WAPPIVXJN4XPTCPXGMZZ3TJ52N3WSEYAZ2VIP3SL4OBZZZGV6KOYBNPW5MZ4OHUZBVGGD5NWTPWQ4
-#\\\|3HU56FSHNQURAI3M6D7IYOU4BSQ4JMVV7DC76SWQ3XF3OGHPVW5 \ / AMOS7 \ YOURUM ::
-#\[7]O5LCLAVUZVD7AX3S4M4V2V67GLS2U5IMTIBRRQSH6JWWKSUP6IAI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,,,.,,,...,,..,.,,,,,,,.,.,..,,..,,...,..,,,,,,..,,..,,..,,,..,
+#ESY4MB2UCPXUC5HTVP2UGKRFM5WRS3SVS2DQRJFLZXKX5MJOLCR64Z7M5S7FLR3KR3EBA6EEIZM4M
+#\\\|H6FOOQDOZXHIJCGHQGN5ZUDS3WLQAT22TYH5LAMZTZRHLEDSOV5 \ / AMOS7 \ YOURUM ::
+#\[7]RTI3SNCSCTKE6A2Y446ANQO3G3TSYWDL24OFCREL3YTSXI6RCWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
