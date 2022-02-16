@@ -11,6 +11,9 @@ my $font_size = 21;
 
 $font_size = 17 if hostname eq qw| zuluma |;
 
+my $x = 80;
+my $y = 25;
+
 ## blacklight : #4427AC
 ## nalara bg  : #09052A
 ## truth      : #0647C3
@@ -19,7 +22,6 @@ my @exec_args = qw|
 
     /usr/bin/xterm
     -itc -ulit -wf
-    -xrm xterm*geometry:80x25
     -xrm *xterm*renderFont:true
     -xrm *xterm*faceName:WhiteRabbit
     -xrm *xterm*faceSize:17
@@ -43,16 +45,30 @@ shift(@ARGV)
     and $ARGV[0] eq qw| -s |
     and $ARGV[1] =~ m|^\d+$|;
 
+shift(@ARGV)
+    and $x = shift(@ARGV)
+    if @ARGV > 1
+    and $ARGV[0] eq qw| -x |
+    and $ARGV[1] =~ m|^\d+$|;
+
+shift(@ARGV)
+    and $y = shift(@ARGV)
+    if @ARGV > 1
+    and $ARGV[0] eq qw| -y |
+    and $ARGV[1] =~ m|^\d+$|;
+
+push @exec_args, qw| -xrm |, sprintf qw| xterm*geometry:%dx%d |, $x, $y;
+
 map { $ARG =~ s|Size:17|Size:$font_size| } @exec_args if $font_size != 17;
 
 shift(@ARGV) if @ARGV and $ARGV[0] eq qw| -e |;
 
 push( @exec_args, qw| -e |, @ARGV ) if @ARGV;
 
-exec(@exec_args);
+exec @exec_args;
 
-#,,,.,.,,,,,.,,..,...,..,,.,,,,..,,..,,,.,,..,..,,...,...,,..,...,...,.,,,,,.,
-#5UVUOL6XESFX3VKPDAWEP5UK2BANWUA7QHD35755COQJHJH66UK27KGS4MVRFAKXTQD6J7ZLUAATY
-#\\\|6XHTMQTT2ZAPPGX7VK47R22MAI53EXH2WS7VVKORLWUCMKCFHWB \ / AMOS7 \ YOURUM ::
-#\[7]UPQLVKPZ2RMZGXOXHPFSVCXK6F3OC2VVIKIN5DKKMW2CCGXN4UAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,,,.,.,,,,,.,,,.,..,,,.,,,,.,..,,...,...,,,.,..,,,,,,,,,,.,.,
+#LFLY5L4GYDIPXCB6TDDGQT553BWQ7KDW3DYXDXRL66ROX2EMNPNZSEDBG7HZCCYHAI66AL7T4VNOI
+#\\\|5ROFJGRM54UQDLVTENEXLYPJH737OTWRE7JRAQRPWXGVWSOXOKL \ / AMOS7 \ YOURUM ::
+#\[7]LBI3XUWZT44GGKGRBIWHZPKW5VA4QRU5X6IRWG5KQZPA4XIPP6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
