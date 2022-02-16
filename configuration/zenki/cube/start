@@ -30,19 +30,8 @@ modules.load                    =    auth net protocol cube io.unix \ ## io.ip
 plugins.load                    =    plugin.auth
 auth.supported_methods          =    zenka unix twofish pwd
 
-setup.aliases.source_zenka_sid  =    p7-log.append v7.report-temp-path \
-                                     discover.request-updates
-
-setup.aliases.source_zenka      =    notify.message v7.teardown \
-                                     system.abort-reboot system.pid_autokill \
-                                     system.reenable-reboot \
-                                     system.report-X-11-error \
-                                     tile-groups.get_geometry  \
-                                     tile-groups.assign_window \
-                                     tile-groups.get_coordinates \
-                                     discover.resend-awareness
-
-
+## load protocol 7 cmd alias configuration
+[load_config_file:'zenki/cube/command_aliases']
 
 # create protocol-7 user if required.,
 [root.check_system_user:<system.amos-zenka-user>]
@@ -69,8 +58,8 @@ cube.set-up.use_unix_socket = yes
 # run zenka
 [zenka.loop]
 
-#,,.,,,.,,,..,,,.,...,,,.,.,,,,..,...,..,,,,.,.,.,...,..,,,.,,..,,,.,,...,,.,,
-#TU734IWNO4S2BQAEE2AXV6YSF6KKZNNTN4PPQXSBCL27OJD3EJBU2GWDSTGRWJ6KA4X4VHEWZL2DO
-#\\\|IUI6XRGTZTP3E7N35Y7NVVVRIKEQOH4TZEILD5P5ZBDO7GJD2OM \ / AMOS7 \ YOURUM ::
-#\[7]V4M6O4Y7YQM26QLYQFGRQYFD6VAQFI6XRVFQTGT3UDIKANHNIEAY 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,.,.,.,.,...,,,,,..,,...,,.,,.,.,...,...,.,,,.,,,.,.,...,...,
+#4VI75SPEIY3VJCWQG2W4BO34I3UVWHAM36JJVGO7XO3X5TXYTMPCZFDOH6ES3Q7R4QRZMUOLOC7JM
+#\\\|4T52LASNBD2LYUWE7NZURE34ISYFJTINH6QVCDPR5XCFFU7ZBGE \ / AMOS7 \ YOURUM ::
+#\[7]NONZLQZ5XKRN7J2SYAWOQFLJ7LMVUF6RG43QAZ5AUUJCH6DQWCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
