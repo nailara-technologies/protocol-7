@@ -5,7 +5,7 @@
 my $current_res_w = 1280;
 my $current_res_h = 480;
 
-<[base.log]>->( 1, "initializing..," );
+<[base.log]>->( 1, 'initialization ..,' );
 
 $ENV{'DISPLAY'}         = <x11.display>;
 $ENV{'SDL_AUDIODRIVER'} = 'disk';
@@ -59,12 +59,25 @@ my $time_offset;
 
 SDL::putenv("SDL_VIDEO_WINDOW_POS=$coord->{left},$coord->{top}");
 
-SDL::init( SDL_INIT_VIDEO() );
+<[base.log]>->( 1, ':. SDL .,' );
+
+SDL::init( SDL_INIT_TIMER() )
+    && <[base.exit]>->(    ## basic SDL initialization first .., ##
+    sprintf( 'SDL initialization error [%s]', <[base.str.os_err]> ), 0
+    );
+
+<[base.logs]>->( 1, ":  :. video [display '%s'].,", <x11.display> );
+
+<[base.sleep]>->(0.07);    ##  log message  ##
+
+SDL::init_sub_system( SDL_INIT_VIDEO() )
+    || <[base.log]>->( 1, ':  :  :. success .,' );
 
 SDL::Video::wm_set_caption( <system.zenka.name> . '(' . $PID . ')',
     <system.zenka.name> . '(' . $PID . ') [minimized]' );
 
-SDL::TTF::init();
+<[base.log]>->( 1, ':. :. font subsystem .,' );
+SDL::TTF::init() || <[base.log]>->( 1, ':  :. done.' );
 
 my $font;
 my $err_font;
@@ -73,7 +86,7 @@ my $font_color;
 my $bg_color = SDL::Color->new( 0x13, 0x13, 0x13 );
 
 if (<storchencam.display_time>) {
-    <[base.log]>->( 1, ": loading text font" );
+    <[base.log]>->( 1, ':. loading text font..,' );
     $font = SDL::TTF::open_font( $font_path, $font_size );
     warn "unable to open font [" . SDL::get_error() . "]" if !$font;
     $font_color = SDL::Color->new( 0xFF, 0xFF, 0xFF );
@@ -84,7 +97,7 @@ if ($font) {
     $err_color = SDL::Color->new( 0xFF, 0x00, 0x00 );
 }
 
-<[base.log]>->( 1, ": opening storchencam display" );
+<[base.log]>->( 1, ':. opening storchencam image display ..,' );
 
 my $screen = SDL::Video::set_video_mode( $screen_width, $screen_height, 32,
     SDL_DOUBLEBUF() | SDL_HWSURFACE() | SDL_HWACCEL() | SDL_NOFRAME()
@@ -100,7 +113,7 @@ SDL::Mouse::show_cursor( SDL_DISABLE() );
 my $bg_col_map = SDL::Video::map_RGB( $screen->format(),
     $bg_color->r, $bg_color->g, $bg_color->b );
 
-<[base.log]>->( 1, ": loading cover image" );
+<[base.log]>->( 1, ':. loading cover image.,' );
 
 my $image = SDL::Image::load($cover_image);
 die SDL::get_error() if ( !$image );
@@ -139,7 +152,7 @@ if ( not defined <[base.X-11.wait_for_window]>->($title_pattern) ) {
     <[base.X-11.assign_window]>;
 }
 
-<[base.log]>->( 1, 'entering loop .,' );
+<[base.log]>->( 1, 'entering SDL main loop .,' );
 
 # verify-instance reply
 loop_wait(0.888);
@@ -368,8 +381,8 @@ sub mask_scan {
     }
 }
 
-#,,,,,..,,.,.,..,,.,,,,..,,.,,,.,,,..,,,.,.,,,..,,...,...,,.,,,,.,,..,,,,,..,,
-#AUP2VH6V2BYKAYZWPXQ6QE3KD73IJRRT7VNTO7OXUL4RPP5GBTAN2KOZ6633IFCGQNIHCTWB2LL2C
-#\\\|TZXSAC4ARIGZBJONGNQ4MPGGDA4JT4DZ25T4EY5CZBWU55DQ7WK \ / AMOS7 \ YOURUM ::
-#\[7]QHKRTDGZX7ML7SJ7NVVVWJYAYNPMXM2XZCICGUPA5HN4HI3M3YDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,..,,.,,,,.,,,..,,,.,.,,,.,.,..,,...,...,..,,,,,,..,,...,..,,
+#JMQU5POBOKETVEL26A7Y6EE4P5ZJ2ZEGWRYXOTL5E4ODREV2THJBLFQP3FR3VT5FZOIYIDUSSYQ2E
+#\\\|S5AY4NGVDYH2VCL4ESVEUMRTY46CHJK7KN7IGTZNSTOX2XCCAEV \ / AMOS7 \ YOURUM ::
+#\[7]LQU2ADODZUMOQC5X5VWSA2S2776MX7FGYYV74VHMYTK6SN6JE2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
