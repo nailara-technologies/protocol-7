@@ -108,12 +108,12 @@ $data{'list'} //= {};
     'key'     => qw| user |,
     'sub_key' => qw| session |,
     'mask'    => '<key>:user connected_since session:sessions',
-    'align'   => { 'session' => 'center' },
+    'align'   => { 'session' => qw| center | },
     'filters' => {
         'session'         => qw| base.parser.element_count |,
         'connected_since' => qw| base.parser.timestamp |
     },
-    'descr' => 'connected users'
+    'descr' => 'connected users and zenki'
 };
 <list.sessions> = {
     'var'      => qw| data |,
@@ -132,7 +132,7 @@ $data{'list'} //= {};
         'start_time'       => qw| base.parser.duration |,
         'start_time_param' => 2    ## time float precision ##
     },
-    'descr' => 'registered / connected sessions'
+    'descr' => 'registered \ connected sessions'
 };
 <list.buffers> = {
     'var'   => qw|  data  |,
@@ -147,7 +147,7 @@ $data{'list'} //= {};
         'data'     => qw| base.parser.element_count |,
         'max_size' => qw| base.parser.size_str |
     },
-    'descr' => 'available log \ data buffers'
+    'descr' => '[log] ring buffers in use'
 };
 
 # 'verify-instance' command not required in local 'cube' zenka
@@ -172,7 +172,7 @@ if (    defined <system.zenka.type>
             'status'  => qw| base.parser.ondemand_status |,
             'session' => qw| base.parser.ondemand_session |
         },
-        'descr' => 'virtual zenka list'
+        'descr' => 'virtual \ ondemand zenki list'
     };
 
     <base.commands.cmd.src-age.descr> =~ s|installed ||;
@@ -264,8 +264,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,,,,..,,,.,,,,.,..,,,..,,,,,,,,,,,.,,,,,..,,..,,...,...,...,,,.,,.,,,.,,,..,
-#4HBOHTZ2PP3N5PVA2GNUTTYKZFDQJQ4DPMR5XXIHURYCR524BUHBKGWQ3S426RL5XSXCR4JYHXBJ6
-#\\\|LIPQA7K2PJ3YN3QJD6K4VRKF4BAOIMKFT2EQRU23AVFZYW5CCGP \ / AMOS7 \ YOURUM ::
-#\[7]F7TC6MUSUBYB2CTONQVMGAWBQ67HUSWF7V6LBXD6YK6RI3HDRWAQ 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,,.,...,...,,..,.,,,,,.,.,.,.,.,...,...,...,...,,,.,,,,,.,.,
+#TONKPQVLVKNU4BZAFGEH5YMVISOK2T5NC7SOYWS4GYE6TJ7AZ4LD6WWNG265OBS7JYVMTNSMLBSXS
+#\\\|HCQQRPYEUCG4L5VS2LTID3TAB52SI3AD22DE4SMHPKXXETN724C \ / AMOS7 \ YOURUM ::
+#\[7]4UXMORBGPYKXFPKZLWXJF6VK7LGA3QKOPWQGBGJZEOU4YLLURKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
