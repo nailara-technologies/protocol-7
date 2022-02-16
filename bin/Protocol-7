@@ -146,8 +146,10 @@ if ( defined $zenkaname and length $zenkaname ) {
     }
 
 READ_STDIN_CONFIGURATION:
-    my @zenka_code = <STDIN>;
+    my @zenka_code = p7_stdin_configuration();
+
     alarm 0;    ##  stopping timer for read reminder  ##
+
     unshift @zenka_code, $first_line if defined $first_line;
     undef $first_line;
 
@@ -188,6 +190,13 @@ exit;
 ##                          ##
 ##  early used subroutines  ##
 ##                          ##
+
+##############################################################################
+
+sub p7_stdin_configuration {
+
+    return <STDIN>;    ## LLL ##  write line based read handler  ##
+}
 
 ##############################################################################
 
@@ -496,7 +505,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $data{'system'}{'zenka'}{'log_prefix_width'} = ${^CAPTURE}[0];
         }
         if ( $arg eq qw| -use-http-src | ) {
-            $data{'system'}{'use_http_source'} = FALSE;    ## true ##
+            $data{'system'}{'use_http_source'} = TRUE;    ## true ##
         }
         if ( $arg eq qw| -export-core-subs | ) {
             $code{'dump_core_subs'}->();
@@ -1768,18 +1777,51 @@ sub p7_devmod_sub {
         }
     }
 
-    # hiding plain text passwords in devmod output [not including conf files]
-    $_p[1] = '*' x 7 if $sub_name eq qw| auth.ok |;
-    $_p[0] = '*' x 7 if $sub_name eq qw| chk-sum.bmw.B-32-56.TRUE |;
-    $_p[2] = '*' x 7 if $sub_name eq qw| base.net.client.auth_with_pwd |;
+    ##LLL## requiring switch or confguration parameter., ##
+    ##
+    my $skip_hiding   = FALSE;
+    my $quote_content = TRUE;
 
-    $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o
-        if $sub_name eq qw| base.net.send_to_socket |;
+    ## hiding plain text passwords in devmod output [not including conf files]
+
+    if ( not $skip_hiding ) {
+
+        if (   $sub_name eq qw| auth.pwd.success |
+            or $sub_name eq qw| chk-sum.bmw.B-32-56.TRUE |
+            or $sub_name eq qw| base.net.client.auth_with_pwd | ) {
+
+            $_p[1] = '*' x 7;
+            $quote_content = FALSE;
+
+        } elsif ( $sub_name eq qw| base.sort |
+            or $sub_name eq qw| base.context.list | )
+        {    ## sort and list items ##
+
+            @_p = sprintf ',.. list items : %03d ..,', scalar @_p;
+            $quote_content = FALSE;
+
+        } elsif ( $sub_name eq qw| crypt.C25519.compare_keypair|
+            or $sub_name eq qw| crypt.C25519.get_type_from_key_str | ) {
+
+            foreach my $p_idx ( 0 .. scalar @_p ) {
+
+                $_p[$p_idx] = '*' x 7;
+            }
+        } elsif ( $sub_name eq qw| base.net.send_to_socket | ) {
+            $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o;
+        } else {
+            $quote_content = TRUE;
+        }
+    }
 
     map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
     my @params = map {
         defined $ARG
-            ? ( $ARG =~ $quoted_chars ? sprintf( "'%s'", $ARG ) : $ARG )
+            ? (
+            ( $quote_content && $ARG =~ $quoted_chars )
+            ? sprintf( "'%s'", $ARG )
+            : $ARG
+            )
             : ''
     } @_p;
 
@@ -2646,7 +2688,7 @@ sub p7_sig_warn {
                     keys $data{'v7'}{'child'}->%*
                 ) {
                     my @children
-                        = <[v7.sub-process.get_children]>->($pid)->@*;
+                        = $code{'v7.sub-process.get_children'}->($pid)->@*;
                     kill( 15, $pid );
                 }
             }
@@ -3783,8 +3825,8 @@ __DATA__
 :
 :.
 
-#,,,,,.,,,,.,,,.,,,,.,..,,,..,.,,,.,.,.,.,,.,,..,,...,...,,,,,...,,..,.,,,..,,
-#BWGDK4U23KMXTJYIXWENRYUZ3QQIGH2GS63X2YCKZQQF6FNCREPBMOPKB2QC7QUDE4HKH435KZVAA
-#\\\|5PFGRUALH3ZF4KGF4T7DHHWM4RVRZQFKQASJPDAA5M3VH5UZZB4 \ / AMOS7 \ YOURUM ::
-#\[7]HEPEIPXUHMCHQPYAKCFLNDW67KTKCQKMK6S2U7D3KAGOME3DFEAI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,.,,,,.,,,.,,,,.,,.,,...,.,.,..,,...,.,.,..,,,,.,,.,,.,.,,,.,
+#ZMWMPKZRYTEI5XPF6WR3DY5DEUS44P3427WHYFDDFGA6QKZL5KGJOA2NKTGZ7KT23QCYNTRP4RCCC
+#\\\|DAUOX4HVGFMDGOFTJ3W6I6XUDUV575BYPUK7Q4457LB2OI3SQ42 \ / AMOS7 \ YOURUM ::
+#\[7]UM2NNLQOLXY2G4QQHFI4DXKWAMOUDUNHZUR7NUPN2KPJQ7F6OGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
