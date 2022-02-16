@@ -22,7 +22,7 @@ sphere{<0,0,0>,1 hollow
        texture{pigment{gradient <0,1,0>
                        color_map{[0.0 color Black  ]
                                  [0.01 color SkyBlue*0.13]
-                                 [1.0 color #000077 ] }
+                                 [1.0 color rgb<0,0,0.7>] }
                        quick_color White }
                finish {ambient 1 diffuse 0.42 phong 0.13 }
                }
