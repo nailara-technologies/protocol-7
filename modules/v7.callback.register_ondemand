@@ -5,7 +5,7 @@
 my $ondemand_zenki = shift;
 $ondemand_zenki //= <v7.ondemand_zenki>;
 
-my $cube_path = 'cube.';
+my $cube_path = qw| cube. |;
 
 ## check previous post-init command status [ 'connect_to_cube' ] ..,
 my $post_init_status = <v7.current-init-data.status.post-init> // 0;
@@ -14,25 +14,29 @@ return <[base.log]>->( 0, 'cube authentication was not successful .,' )
 ##
 return warn 'expected array reference with zenka names'
     if not defined $ondemand_zenki
-    or ref($ondemand_zenki) ne 'ARRAY';
+    or ref($ondemand_zenki) ne qw| ARRAY |;
 
-<[base.log]>->( 1, 'registering ondemand zenki at cube .,' )
-    if @{$ondemand_zenki};
+<[base.logs]>->(
+    'registering %d ondemand zenk%s at cube .,',
+    scalar $ondemand_zenki->@*,
+    <[base.cnt_s]>->( scalar $ondemand_zenki->@*, qw| i a | )
+) if $ondemand_zenki->@*;
 
-foreach my $zenka_name ( @{$ondemand_zenki} ) {
+foreach my $zenka_name ( $ondemand_zenki->@* ) {
     <[base.protocol-7.command.send.local]>->(
-        {   'command' => $cube_path . 'ondemand-zenka',
+        {   'command' => join( '', $cube_path, qw| ondemand-zenka | ),
             'reply'   => {
-                'handler' => 'base.handler.warn_nak_reply',
-                'params'  => "${cube_path}ondemand-zenka add $zenka_name"
+                'handler' => qw| base.handler.warn_nak_reply |,
+                'params'  => join '',
+                $cube_path, 'ondemand-zenka add ', $zenka_name
             },
-            'call_args' => { 'args' => "add $zenka_name" }
+            'call_args' => { 'args' => sprintf 'add %s', $zenka_name }
         }
     );
 }
 
-#,,..,,.,,.,.,...,,,.,,.,,.,,,,.,,,..,,,,,.,,,..,,...,...,..,,.,.,..,,,.,,,,.,
-#AXWDB2TGYVI7XKZTJMAYBJXB7KPV6KPQCZN7VUMPYTUYMLTU2W4QAUK5FPHHF54SK7TJEIMBLWZKO
-#\\\|ZJRXW7WHEVBTB5DOPDDINCNXXIFX6GKYPKZZ4XI5FDHLVF6HT5J \ / AMOS7 \ YOURUM ::
-#\[7]OWMSYBWMXAYA5XHGTHDVTTIPV35XMMEWYLJER4NVRNRVV367QUAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,.,.,,.,,,..,.,.,.,.,,,,,,,,,..,,...,...,...,,,,,,,,,.,.,,,.,
+#WFWIZR2NZUOAMJRU4SVQK7WY6TDZ4XUDCV7AKMSTOLEVU5UX6MHNDP4JOIE2PSWU47T3EFILQVV72
+#\\\|G5FJBL2VM3ZGU5RPFNJUEZWS7DXCPLLXG3NT34GX777NA2H2FVL \ / AMOS7 \ YOURUM ::
+#\[7]OQDR4NHRXRJR4L243APAF62N46LMLTZEYWMIZZLHNWSCOPXDLSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
