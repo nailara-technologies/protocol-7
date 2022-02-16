@@ -162,7 +162,7 @@ while ($connect) {
     map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
 
     if ( -S $shell_sock ) {
-        $term_loop = TRUE;
+        $term_loop    = TRUE;
         $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
@@ -237,6 +237,10 @@ sub shell_connect {
             } else {
                 $sock_path = $user_unix;
             }
+
+        } elsif ( $cube_port !~ m|^\d+$| or $cube_port == 0 ) {
+            error_exit( ' << parameter error : '
+                    . 'port must be numerical >> <{NC}>' );
 
         } else {                       ##[ auto-calc ]##
 
@@ -575,8 +579,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,..,..,,..,,.,,,,.,,.,.,...,.,.,.,,,.,.,,,,,..,,...,...,.,,,.,.,,.,,.,,,,..,
-#RQIDQD2VEK6R7NMQS4HNDGYIAUZTAWFLYN4DWW3NEQVZHRKKAEFY25KBBO5VIG2J7K37WJ25D4CIO
-#\\\|M76EY4BEHWPLLYFD2X53VGO2F7D6WESLWHCA3AJXFWQ64S3RXYG \ / AMOS7 \ YOURUM ::
-#\[7]PS3SHWRC7CMVK6UAFSP6YL2254FTN3ZKKARUPJULGNRGA2IDD6CY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,..,,,,,,.,,,.,.,,..,...,..,,..,,...,...,..,,,,,,...,,.,,...,
+#ZSTBWFFQWSA6ZLOLCYXUFMUSFHNLJ5IGOLZYJVRTIZTULZFQFYOJPIZJEFPQHG3BK7KLXAOB3GY2U
+#\\\|XYNLJZVBJIB3WFPW7GRTEYRAHMYJ7IUZQ6HD57VYGAF3B3SGTQI \ / AMOS7 \ YOURUM ::
+#\[7]QCXTZ6SPIFYFWR6MZ7G5NAX5MCCBHPPQ7GGYK5CRUFPRQIT5C6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
