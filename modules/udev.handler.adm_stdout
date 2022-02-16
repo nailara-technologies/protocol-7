@@ -8,7 +8,8 @@ my $read_fh = $event->fd;
 my $process = $event->data;
 my $pid     = $process->{'pid'};
 
-my $devmod_verbosity = <udev.devmod-stdout.show-events> // 0;
+my $devmod_verbosity
+    = <[base.cfg_bool]>->(<udev.devmod-stdout.show-events>) ? 1 : 0;
 
 <udev.rules> = {} if not defined <udev.rules> or ref(<udev.rules>) ne 'HASH';
 my $patterns = <udev.rules.patterns>;
@@ -119,8 +120,8 @@ while ( <udev.adm.output.buffer> =~ s|^(.+?)\n\n||s ) {
     }
 }
 
-#,,.,,..,,,..,...,,,,,..,,,..,,..,.,,,,..,.,,,..,,...,...,.,.,,,.,,,,,,.,,...,
-#ZK6C2JXFGPRCOT2O76RSKFEBE6AEIL7JIPEZRV4JWIXJYFSOCRYWP2ZNPRNOH2QM4BA72PRWABT5E
-#\\\|7QRT2G43STL2LVLONHLC2RIBLDLR4XOPWRDCSU7PEHG3MHQM6JM \ / AMOS7 \ YOURUM ::
-#\[7]XZLP5H4KD3JBZZM7SYPJRRGUSJAU6VWZG5ZMPBLAMTPGSMZ4MSDI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,,..,...,...,,,.,.,.,,,,,.,,,..,,...,..,,...,,..,.,,,.,,,,,.,
+#44FISPM5A54J4FVSIEE6C2OQV4OCJROMLAIYZXPXHGFH6X5M4Z3Y3OVAEMFFTA7BD7IKCXFFKU6XA
+#\\\|KFNAQ3GSCGSUFTZKL2GZRXA673RHIOPNDKUFORGYXZOAVXOZTHT \ / AMOS7 \ YOURUM ::
+#\[7]OSJJLLPSPYFCOICJ4NZOAFDEG6SOSQ6KYE37MS2R56XSPLOYWQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
