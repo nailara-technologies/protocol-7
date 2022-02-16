@@ -1800,12 +1800,12 @@ sub p7_devmod_sub {
             @_p = sprintf ',.. list items : %03d ..,', scalar @_p;
             $quote_content = FALSE;
 
-        } elsif ( $sub_name eq qw| crypt.C25519.compare_keypair|
+        } elsif ( $sub_name eq qw| crypt.C25519.compare_keypair |
             or $sub_name eq qw| crypt.C25519.get_type_from_key_str | ) {
 
             foreach my $p_idx ( 0 .. scalar @_p ) {
 
-                $_p[$p_idx] = '*' x 7;
+                $_p[$p_idx] = '*' x 7;    ##  hiding key elements  ##
             }
         } elsif ( $sub_name eq qw| base.net.send_to_socket | ) {
             $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o;
@@ -3825,8 +3825,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,..,,,,.,.,,,,.,,,.,,,,.,,.,,...,.,.,..,,...,.,.,..,,,,.,,.,,.,.,,,.,
-#ZMWMPKZRYTEI5XPF6WR3DY5DEUS44P3427WHYFDDFGA6QKZL5KGJOA2NKTGZ7KT23QCYNTRP4RCCC
-#\\\|DAUOX4HVGFMDGOFTJ3W6I6XUDUV575BYPUK7Q4457LB2OI3SQ42 \ / AMOS7 \ YOURUM ::
-#\[7]UM2NNLQOLXY2G4QQHFI4DXKWAMOUDUNHZUR7NUPN2KPJQ7F6OGDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,,,,,,,,,,,,,..,,..,,,..,,,.,..,,...,..,,..,,,,,,,.,,...,,,.,
+#DNB4UCXE6SVPSPOYYDJX7SZDPQ6CA6KTIXR4PWSISQEPSJ7WGV2XP6QJZMI6BJHTGFTAFCSK2LKFI
+#\\\|H6IHTVMWI4DXVNXQFH6DRQYFQQYRSD5LIYTBMVAXSEFMVPE4PLL \ / AMOS7 \ YOURUM ::
+#\[7]HEWXYC2ACWI6NLYEWZFD7D44BJMKGQEMUO4BNBTXYS7QREI64QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
