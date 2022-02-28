@@ -78,7 +78,7 @@ sub is_true {
 
     my @assertion_modes = uniq @ARG ? @ARG : @assertion_modes;
 
-    return FALSE    ## check as mumber when numerical ##
+    return FALSE                           ## check as num when numerical ##
         if $check_as_num == 1
         and AMOS7::Assert::is_number( $data_ref->$* )
         and calc_true( scalar( $data_ref->$* ) ) <= 0;
@@ -112,8 +112,8 @@ sub init_table {
 
     my $mode = shift // '';
 
-    die 'expected mode parameter [false|true]' if !length($mode);
-    my $init_sequence = $mode eq 'true' ? qw| 461538 | : qw| 230769 |;
+    die 'expected mode parameter [false|true]' if not length $mode;
+    my $init_sequence = $mode eq qw| true | ? qw| 461538 | : qw| 230769 |;
     my @pairs;
     foreach my $offset ( reverse 0 .. length($init_sequence) ) {
         my $num_t = join(
@@ -168,7 +168,7 @@ sub calc_true {
 
         $calc_result = sprintf( qw| %.7f |, $check_num / 13 * $factor );
 
-    } else { ##  gemeric division by 13 calculation [ arbitary precision ]  ##
+    } else { ##  generic division by 13 calculation [ arbitary precision ]  ##
 
         my $accuracy = 7 + length($check_num);
         Math::BigFloat->accuracy($accuracy);
@@ -257,8 +257,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,.,,.,.,...,..,,.,,,.,.,..,,..,,.,,,,,.,...,..,,...,...,.,.,.,,,,.,,.,,,,..,
-#YXDBWCRL57LH54KVFXQM2HBAAUZ5ATEPKXWMAQ7JLNTAOV7GDOTEXXMEBLNPHUHP5KITRTWPO6AL4
-#\\\|4CG72IVAHWTW2ZUEZP27M7QPCALTB3B3OPYLJ7U3JLNE5JXHGVX \ / AMOS7 \ YOURUM ::
-#\[7]IY7HW64W5NPRVCQZTYGBHBCYR4ZHAXJ2CWAQM3TCPRJF5WCO42DI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,,.,,,,,,.,,..,,,..,,.,,..,,..,,...,...,.,.,...,.,.,.,,,,,.,
+#NTQSQ5DDGK6GZBYOYU5OCJ7D275SOKH42S2VNAIKH7TDJIZOV6LBCA75SFYJ5G7P3X5JKPMCQCJSG
+#\\\|YUFXYHHTXX26OLXHBQUAN2WQE2J2XUM4H4GUSXBMAMJCVKD7T6S \ / AMOS7 \ YOURUM ::
+#\[7]G2POFAY65YZYK6NTCZFORB7HLY77DSXGOIX5SCKDNVIYRH42DABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
