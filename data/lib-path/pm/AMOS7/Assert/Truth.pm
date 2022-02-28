@@ -129,7 +129,7 @@ sub init_table {
     return @pairs;
 }
 
-##  asserts truth of arbitary len. numerical value [ division by 13 ]  ##
+##  asserts truth of arbitrary len. numerical value [ division by 13 ]  ##
 ##
 sub calc_true {
 
@@ -168,7 +168,7 @@ sub calc_true {
 
         $calc_result = sprintf( qw| %.7f |, $check_num / 13 * $factor );
 
-    } else { ##  generic division by 13 calculation [ arbitary precision ]  ##
+    } else {  ## generic division by 13 calculation [ arbitrary precision ] ##
 
         my $accuracy = 7 + length($check_num);
         Math::BigFloat->accuracy($accuracy);
@@ -257,8 +257,8 @@ sub is_template_syntax_valid {
 
 return TRUE ##################################################################
 
-#,,,.,,.,,,,,,,,,,,,.,,,,,,.,,..,,,..,,.,,..,,..,,...,...,.,.,...,.,.,.,,,,,.,
-#NTQSQ5DDGK6GZBYOYU5OCJ7D275SOKH42S2VNAIKH7TDJIZOV6LBCA75SFYJ5G7P3X5JKPMCQCJSG
-#\\\|YUFXYHHTXX26OLXHBQUAN2WQE2J2XUM4H4GUSXBMAMJCVKD7T6S \ / AMOS7 \ YOURUM ::
-#\[7]G2POFAY65YZYK6NTCZFORB7HLY77DSXGOIX5SCKDNVIYRH42DABI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,,,.,,,.,.,...,,,,,.,,,,.,,..,,...,..,,...,...,,,.,...,.,,,
+#WRDEHMGYO3EAVMDNAVPIGSYBNQSMHYYLNJBVY2C3DAAXMYUPJAT6446HU6EMS67JWNPXC5HCTVQSY
+#\\\|WNAHHSIPCMTPXWWHGQ5LHSM6Y6X32H7CMZOFTENZEOHUAN7GKWM \ / AMOS7 \ YOURUM ::
+#\[7]5D7KUL6ZHTSARBW65GW7TYQA2U67MPVRAFKS6ULVJ4ZAZPBVU2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

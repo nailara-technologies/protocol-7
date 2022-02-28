@@ -69,7 +69,7 @@ if ( defined $ntime_decoded and not $explicit_ntime ) {
         }
         if not <[base.comp-int.is_valid]>->($ntime_decoded);
 
-    ## contains network time with arbitary precision
+    ## contains network time with arbitrary precision
     my @nt_val = unpack( qw| w* |, $ntime_decoded );
     $nt_val[1] =~ s|^7|| if @nt_val == 2;    ## <-- saves 0 prefixes
     $calc_val = join( qw| . |, @nt_val );    ## needs error handling
@@ -126,8 +126,8 @@ return {
     'data' => $ltime_str
     }
 
-#,,,,,.,,,,..,,.,,,.,,,,.,...,,,,,..,,,.,,.,,,..,,...,...,...,...,,.,,..,,..,,
-#U2IWMUWPAIGZLIXR4JVBOOCWZNZRWGFW6C763DY37A4PO7VSMNGBFZSTERYL4BVII235VLEN3IN7O
-#\\\|MONJXCQGJAFSTQI2KH7B4QNW2A6MCUOF7YZU6B7DPVIFGZJVWE4 \ / AMOS7 \ YOURUM ::
-#\[7]IGXEANMP6A4AUFU2ALIJCFHJTQPHFU7Q2K6IEPDYCBCPBYAACICQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,.,...,,,.,,,.,.,.,,.,,,..,.,,,..,,...,...,...,.,.,.,,,,,.,,..,
+#M5QBDBCRF6ABYAOZUUX76ZXRQ4SD3REKVIJYN3NXPGTHA37PTJU4FEDUDAEQLWDQMEOON2ITQTJNI
+#\\\|V25DIWMGZXHFAH7W42M56O4XHZ7RDD62WRDDRYHCIJMPOCHYBX4 \ / AMOS7 \ YOURUM ::
+#\[7]2WK3P3PWBV53QI54J3BTZYEFP444QBXGT2SXEZGD4CI77PGW6UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
