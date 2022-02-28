@@ -72,8 +72,10 @@ sub clear_command_buffer {
 sub check_command {
     $command_buffer //= '';
     my $cmd_seq_str = cmd_to_sequence($command_buffer);
-    my $seq_cmd     = $cmd_seq_str =~ m|:|
-        or $command_buffer =~ m|[^[:print:]]| ? TRUE : FALSE;
+    my $seq_cmd     = (
+               $cmd_seq_str =~ m|:|
+            or $command_buffer =~ m|[^[:print:]]|
+    ) ? TRUE : FALSE;
 
     state $clear_timer;
     if ( defined $clear_timer ) {
@@ -227,8 +229,8 @@ sub process_key_press {
 
 return TRUE ##################################################################
 
-#,,,,,...,,,,,..,,,,.,,.,,...,..,,,,,,.,.,..,,..,,...,...,...,.,,,,..,...,.,.,
-#H7IWR52YO2R5FALEPUQYLSC32HYD2NWWI7U24YVALQKGVVXXWNADTN6ADOP3QMITIRN6Y35TSCEHA
-#\\\|D5TQFIQ54K6Q53YMFKRCTBA5F2NPBV3OKPYIXU3R2LHGSJCAU5V \ / AMOS7 \ YOURUM ::
-#\[7]LZPYNITYQA542M6UDL3CBGTCJMJVP4HWTIAKEMX7TNQLDSIG6UDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,..,.,.,.,,,.,.,,..,,.,,..,,...,.,.,,.,,,..,,,.,,,.,.,,,
+#HEWBX7RIZ3ZNV74VAVA6JCRAY53PTWX4DWL2JECBRIUK2OUG5SVP44JRZ3TUTDCW7PJBSLVNVF7AE
+#\\\|FWQEKDHVWKB7UEN43RCWLTYC3ZLKUYVHMMJ6DKOE6TS3I46DBTQ \ / AMOS7 \ YOURUM ::
+#\[7]WOM6DKIPG7RMYO4GSICCNM2VY7B76TAC2EBTFTDHNZTNQ5PA5UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
