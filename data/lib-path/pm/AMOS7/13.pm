@@ -322,10 +322,10 @@ sub gen_entropy_string {
 ##
 sub random_sequence {
 
-    my $input_seed   = shift;  ##  [ arbitary length ] seed entropy string  ##
-    my @num_sequence = @ARG;   ##  single element count or number sequence  ##
+    my $input_seed   = shift; ##  [ arbitrary length ] seed entropy string  ##
+    my @num_sequence = @ARG;  ##  single element count or number sequence  ##
 
-    my @result_sequence;       ##  returning randomized sequence  ##
+    my @result_sequence;      ##  returning randomized sequence  ##
 
     if ( not defined $input_seed ) {
         warn_err('expected input seed string parameter <{C1}>');
@@ -521,7 +521,7 @@ sub seed_iteration_val {
     return sprintf qw| %u |, $ranged_int_result;
 }
 
-sub entropy_string_filter {  ##  numerical input string of arbitary length  ##
+sub entropy_string_filter { ##  numerical input string of arbitrary length  ##
 
     my $packed_str = '';
 
@@ -824,7 +824,7 @@ sub gen_entropy_values {
 
 ##[ KEY DERRIVATION ]#########################################################
 
-sub key_32 { ##  create 32 bytes binary encryption key from arbitary input  ##
+sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
 
     my $enc_key;
     my $pass_sref    = shift;    ##  scalar ref to password or phrase  ##
@@ -1242,8 +1242,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,..,,.,.,...,,.,,..,,.,.,.,,,,.,,..,,,..,..,,...,..,,,.,,.,.,,..,,,,,,.,,
-#LRTBTGNSSTL2BPWJGADPASOPXDGS35OB5MTKYJHQGSUDWM3KUEY7FPH353YRDYXRRIGPFQWKFWZWG
-#\\\|CQ5XWLBS6LKWTTJDK7XRTUIW5TF4ABCFPLD4YPZLUQSV3HJYULI \ / AMOS7 \ YOURUM ::
-#\[7]IL2FMEWBNMVHJNQIUZVI6UMABZYVSV4TQ2R7PEFI4D5G355B6ODA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,.,.,..,,..,,.,.,,,,,..,,..,,..,,...,...,..,,,,.,...,.,.,.,.,
+#CV7E7TSKMIK5F5DPTSGEZX3AZMQDSTX53PP2HMEUCIS33ZXLG5L53J7YHTQ36YA24GR3XKOSNBFMY
+#\\\|HSKZOWN77VAXPZBR72H53TX22QYKIKNTTOI6W3Q3R4W33YJPQRW \ / AMOS7 \ YOURUM ::
+#\[7]YZQF2X4VVVQYPWUOGEO2PFZ7LS7OPPLFTIT7D7WQOPGH6QGGRSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
