@@ -30,6 +30,11 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
 
 # no longer found: libmodule-build-pluggable-perl
 
+## required in bin/dev/..,
+#
+apt-get -y install libterm-size-perl \
+  libunicode-string-perl libunicode-maputf8-perl
+
 cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
   File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats SigAction::SetCallBack
 
@@ -50,8 +55,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,...,,.,,..,,.,.,.,,,,,,,,,,,,.,,,..,,.,,..,,...,...,.,.,,..,,..,,,.,.,.,
-#J7JXO5F6EUYFGT2IWJXUWKX2RE7VHXI4AMMMLETT3WRCFXBCIBDOLSMTVHSDNK5RAPDKEHAQ4HLQM
-#\\\|CWVF43OSGG3XPFZQE6ID73YIYSJVGU4MKVYE7WS3GQTHWRVZAOH \ / AMOS7 \ YOURUM ::
-#\[7]VACSGATI5OI2Z7C6K22L5MABOOKEX5E4G5WAXNAA3X36S3BBM6BA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,.,.,.,,,...,.,,,,..,,..,.,.,..,,...,...,...,,..,,..,...,,..,
+#UF7ENKPJPXZKW7M6ASZHPPZUZT47NRVJBBVRJKHGFAP5E3YEGPIQCH4HMDCG7L7M4HZQNXKSJFZWY
+#\\\|MKRY2BY4ZWZZ7ES7J7J32PJNAAMN6OVPAR7GEW5NOLRAV2GT6CG \ / AMOS7 \ YOURUM ::
+#\[7]TDHHZMETAUOIJ6XJJ7K54TU3YQZCJSDSKH5FTC675WKKEZLJLCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
