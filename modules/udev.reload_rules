@@ -4,17 +4,20 @@
 
 ## [LLL] ## implement mechanism to update rule file names from config file ##
 
+my @loaded_rule_files = <[base.reverse-sort]>->(<udev.rule-files>);
+
 <[base.logs]>->(
     ":: re-loading rule%s :.",
     <[base.cnt_s]>->(
-        my @loaded_rule_files = <[base.reverse-sort]>->(<udev.rule-files>)
+        scalar @loaded_rule_files
+
     )
 );
 
 <[udev.load_rules]>->(@loaded_rule_files);
 
-#,,..,,,,,..,,,.,,,,,,,,,,.,.,.,,,...,,..,.,,,..,,...,...,,.,,,,,,.,,,,.,,.,,,
-#TTUGXRLTQP3OHTQSHZFBBROGZPGWRVJGP77RE6JUJA24BUM7LO4OP5AMYGOHFT4BZEQXPLDNZPGGS
-#\\\|JVO4FM2NLM2OR7VZM54F4DBZMPXVDYNXQ7BAP3GX3J6XNS456WF \ / AMOS7 \ YOURUM ::
-#\[7]B6PMQLRJ4FB4WQO5IXNUHL46WVV3DAJRJN5VB75DCR3B5KP4TKBY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,,,..,,,,,,..,,.,,,...,..,,.,,,..,,...,...,.,,,.,.,,,.,.,.,,,,,
+#FP7WDL3CNDQR77OVI563SOHTNSLHQX5TG6EWD7RPUKL6G35KXNX6MGRJXVBR4I24I5Q6ESDBUDIEO
+#\\\|RXOVDOHDNVO6USR4JHPGRUMVEZP5Z7T62WKOXFZDU2SWZYVPRYX \ / AMOS7 \ YOURUM ::
+#\[7]JMGVDBV5YMWDD3BBXLVP7RGV3PUAHVJTQR6P4IBN643DUD7WYCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

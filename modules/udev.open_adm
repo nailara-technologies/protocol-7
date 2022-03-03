@@ -7,23 +7,23 @@
 <udev.adm.pid>
     = open( <udev.adm.fh.stdout>, '-|:raw',
     <udev.path.unbuffer>, <udev.path.udevadm>,
-    split( / +/, <udev.adm.params> ) );
+    split( m| +|, <udev.adm.params> ) );
 
 if ( !<udev.adm.pid> ) {
-    <[base.log]>->( 0, "[!] unable to start udevadm [ \l$OS_ERROR ]" );
+    <[base.log]>->( 0, "[!] cannot start udevadm [ \l$OS_ERROR ]" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
     exit(1);
 }
 
 <[event.add_io]>->(
     {   'fd'      => <udev.adm.fh.stdout>,
-        'handler' => 'udev.handler.adm_stdout',
+        'handler' => qw| udev.handler.adm_stdout |,
         'data'    => { 'pid' => <udev.adm.pid>, }
     }
 );
 
-#,,,,,,,,,.,,,.,,,,,.,.,.,.,,,..,,.,,,,,,,,..,..,,...,..,,...,..,,.,.,,,,,.,,,
-#KZPIY3ODQCOQFAIGYUJ6S6CL7ZCITC44W36PONFGCQILY7A4E2EQXEY7RPMN2PA4QBBVY7H5ADJM4
-#\\\|EKXLRUGER73PRYQ2DK4CVMPE4TKCLMSJFDU2MVC7U7Q2O7GDJ62 \ / AMOS7 \ YOURUM ::
-#\[7]OH3R6BNBU2ZVR7UFR5R7GZKYOBRDIWOAM6EHNATWQFP2AY7OXWBI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,,.,,.,,,,,.,.,,,...,,..,...,..,,...,...,.,.,..,,...,,.,,,..,
+#7CALK4PNJJEW64I26IUWUBBSJPI62QNECENALUNF7AHJ5CTIBQJDIF5NPVZ3OY2PLSIWEUUPUYIGC
+#\\\|6V44ITRXUTJTTYZY3HG4OL3GFZXLOIW6WYORS4DJZVNNFP6XNM2 \ / AMOS7 \ YOURUM ::
+#\[7]6U4UPRLQNZNVEV2CVLJFUS2A23T3SUVGBLGOJFQE4LOTZPJKQMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
