@@ -52,12 +52,12 @@ foreach my $arg (@ARGV) {
     }
 }
 
-$input_num =~ s|\D+||g;
+$input_num =~ s|\D+||g if defined $input_num;
 
 error_exit('expecting numerical [ integer ] input string <{NC}>')
     if not length $input_num;
 
-my $num_len       = length $input_num;
+my $num_len = length $input_num;
 
 my @single_digits = split '', $input_num;
 
@@ -76,8 +76,8 @@ for ( 0 .. $num_len - 1 ) {
 say $C{'0'}, qw| . |,  $C{'R'};
 say $C{'0'}, qw| :. |, $C{'R'};
 
-#,,,,,.,,,,,,,..,,.,,,,,,,.,.,,,,,.,.,,.,,,.,,.,.,...,...,...,,..,...,.,.,..,,
-#7TBHNJ6GNZICFMZ5K3OB45C3Z5WMMWF6W5PNOQY2MVWUJF65LCWP5DSPWCU32SND7U4TNEHKR4PZS
-#\\\|J4QNQ2FKKWWZCW7JP3P4NWUSBYFVLCEGLHH2HSGFF4VU3DEM3KA \ / AMOS7 \ YOURUM ::
-#\[7]O6VZCCIABKOW7Y5545J2GF2OY7LY5Y2MSL4HNUVFBEJ5MNIV2QCY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,..,,,..,..,,.,,,,..,.,.,..,,.,.,...,...,...,...,,,,,,,.,...,
+#KF4VIL37Z6G6CKF3VXLVJNLRGRV2MBU3W7I4HMIPC24CZ3FUVWW5C7ARQLKK73LHXHFYKL2JNLNMK
+#\\\|RCCKOM5YYL2NFX7HYWM26Q7YKREXKMWUQ4U7M6CRTEU5EQEDL5M \ / AMOS7 \ YOURUM ::
+#\[7]VVAML6G3E6A756KQPAADBUHUMZXTZOPY3KC5BI3TU2FQRGVY7UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
