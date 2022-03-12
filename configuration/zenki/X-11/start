@@ -5,7 +5,7 @@
 
 [load_config_file:'X11-vars']
 
-X-11.mode = host          # [host|xorg|xephyr|nxzenka|xnest|auto-xephyr|xvfb]
+X-11.mode = host          # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
                           # override configured zenka mode using zenka subname
 
 X-11.xorg-mode.no-root-start-up = yes  ##  do not run Xserver as root  ##
@@ -21,11 +21,11 @@ X-11.display.xorg    = :13
 X-11.display.xvfb    = :7
 X-11.display.xnest   = :7
 X-11.display.xephyr  = :7
-X-11.display.nxzenka = :7
+X-11.display.nxagent = :7
 
 X-11.change_priority = -15
 
-X-11.params.xorg    = -quiet
+X-11.params.xorg     = -quiet
 
 # X-11.custom_xrandr.0 = --auto --output HDMI1 --pos 500x500 \
 #                           --mode 1920x1080 -r 60.00 --pos 1680x222
@@ -35,7 +35,7 @@ X-11.params.xorg    = -quiet
 X-11.dev.dimensions = 912x513
 
 X-11.params.xnest   = -geometry <X-11.dev.dimensions>
-X-11.params.nxzenka = -ac -geometry <X-11.dev.dimensions> \
+X-11.params.nxagent = -ac -geometry <X-11.dev.dimensions> \
                            +extension Composite +extension GLX
 #                      ^^^ tie into access control mechanisms .,   [ LLL ]
 X-11.params.xvfb    = -screen 0 <X-11.dev.dimensions>x24
@@ -131,8 +131,8 @@ modules.load = auth net protocol io.unix io.ip X-11   ## devmod
 
 [zenka.loop]
 
-#,,.,,,.,,,.,,.,,,...,,,,,,,,,.,,,,..,...,,.,,.,.,...,.,.,...,.,,,.,.,,,,,.,.,
-#XOGAPC27FGQPMUOIFNTCP22HSXB3JUIKWXMTE37KZT6NQXHQDWKN3OFUEAVTTO25Y2LZOMXBIAAZC
-#\\\|KSQ6OSMBFZ7H4DLGAP7EYBZBVMI7YRNNSBL3WBB5ZHQSQBRDA4R \ / AMOS7 \ YOURUM ::
-#\[7]SZ4FEE6BIE6SOUDGZGU5ML7IDPVAJO7R6EPJLJA6IMMZBEWRXGBA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,,,,.,,,,.,,.,,,..,,,,,,,,.,.,.,...,...,.,,,..,,..,,,..,,..,
+#47E67QG7FHWOQLJWZJUMSUXBJ343HWUGPWYLRB2W7RCUQMVUUE23F6ZWNBPNCC7D2MKB4KIWHOJJS
+#\\\|QRJ3PGDVZ4TGO3QGVQMGNU4JG5LF7VHPHEBBCC433UHORHKFPGC \ / AMOS7 \ YOURUM ::
+#\[7]VSNIIZNPKN7IWZHEDS3UWGE5FUIIOD5AJ2UF2BAP7FCHMUF4Y4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
