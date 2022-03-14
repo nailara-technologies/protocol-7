@@ -129,6 +129,7 @@ return [ qw[
         auth.auth_list
         X-11.post_init
         X-11.init_code
+        X-11.WM.update
         zulum.init_code
         web.cmd.content
         v7.zenka.get_id
@@ -390,7 +391,6 @@ return [ qw[
         base.X-11.get_mode
         X-11.update_X11_WM
         X-11.start_gpu_top
-        X-11.cmd.dpms_info
         USR.taeki.base-key
         web-browser.js_call
         v7.zenka.is_enabled
@@ -561,7 +561,8 @@ return [ qw[
         X-11.cmd.get_windows
         X-11.cmd.get_opacity
         X-11.cmd.get_display
-        X-11.cmd.enable_dpms
+        X-11.cmd.dpms-status
+        X-11.cmd.dpms-enable
         web-browser.post_init
         web-browser.init_view
         web-browser.init_code
@@ -658,8 +659,7 @@ return [ qw[
         X-11.cmd.lower_window
         X-11.cmd.get_xorg_pid
         X-11.cmd.get_geometry
-        X-11.cmd.dpms_noblank
-        X-11.cmd.disable_dpms
+        X-11.cmd.dpms-disable
         web-browser.swap_views
         web-browser.cmd.switch
         web-browser.cmd.run_js
@@ -752,8 +752,7 @@ return [ qw[
         X-11.cmd.rotate-screen
         X-11.cmd.record_hotkey
         X-11.cmd.is-composited
-        X-11.cmd.dpms_force_on
-        X-11.cmd.dpms_blanking
+        X-11.cmd.dpms-force-on
         X-11-pointer.init_code
         web-browser.proxy_setup
         web-browser.open_window
@@ -859,7 +858,7 @@ return [ qw[
         X-11.cmd.get_xauth_data
         X-11.cmd.get_window_pid
         X-11.cmd.get_window_ids
-        X-11.cmd.dpms_force_off
+        X-11.cmd.dpms-force-off
         web-browser.stop_timeout
         web-browser.scroll_start
         web-browser.get_url_list
@@ -1118,6 +1117,7 @@ return [ qw[
         auth.zenka.cmd.session-key
         X-11.handler.server_output
         X-11.cmd.mouse_over_coords
+        X-11.cmd.dpms-blanking-set
         X-11.background-image-list
         web-browser.wait_for_window
         web-browser.start_slideshow
@@ -1311,6 +1311,7 @@ return [ qw[
         source.create_harmonic_footer
         set-up.cmd.fetch-zenka-config
         protocol.protocol-7.init_code
+        plugin.image-resize.init_code
         pdf.html.base.write_stub_page
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
@@ -1429,6 +1430,7 @@ return [ qw[
         base.cache.refaddr-prefix.init
         X-11.start-up.show-screen-size
         X-11.handler.protocol-warnings
+        X-11.cmd.dpms-blanking-disable
         X-11.background.next-rnd-index
         web-browser.set-up.import_rules
         web-browser.handler.auto_scroll
@@ -1746,8 +1748,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,.,...,...,.,,,.,.,.,,,.,.,,,.,,,,,,.,,.,.,...,...,...,,,.,...,,,,,..,,
-#HDFCBQMAKI6IUVIJLY2VYAGSDOHJEOBS3U2XHOE4TUSMS7OBLM6RPCYEWANRHSVVFAUV5XGXZSQMM
-#\\\|YKP3V6PVRBTCEZBFJC2OYIUTPUT4X6DJN6CAD7THU2UKZJQNDC3 \ / AMOS7 \ YOURUM ::
-#\[7]OGD2ARWOQUY7JDGJAG3T5IJWA7DLNKGGMLO776SPSIDJNUE6GYCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,..,,,..,,..,.,.,..,,,,.,,.,,.,.,...,...,,..,,,,,,..,...,...,
+#IVMLTX5FYLOJPW6IEHRQYJVGYZKP33FOCUBIA3ICH6MCQ7PPPP5FT64JWZMT5MRLF3BJFS6DJAJ7K
+#\\\|THIV6UHPMS2N5RNY62S7PP3MPW5DAZEWLZ4DAHJHEYT6PXHCXSV \ / AMOS7 \ YOURUM ::
+#\[7]JMHONU5RHAVLWRVOJVBFROZYCW4X2IZ23SMBBVKFXHWHODNMJGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
