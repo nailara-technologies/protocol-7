@@ -106,7 +106,7 @@ if (    @params == 0
     and defined $commands{$cmd}
     and $cmd ne qw| list-targets | ) {
     &cmd_description;
-    exit;
+    exit(0010);
 }
 
 print "\n";
@@ -121,7 +121,7 @@ if ( not defined $commands{$cmd} ) {
             $C{'0'}, $C{'g'}, $C{'0'}, $C{'R'} );
     }
     &cmd_description;
-    exit;
+    exit(0010);
 }
 
 # <target> = 'all' is an alias for all target paths combined
@@ -136,7 +136,7 @@ if ( ref $commands{$cmd} eq qw| CODE | ) {
     die "\n :: callback for command '$cmd' not defined\n\n";
 }
 
-exit;
+exit(00000);
 
 # ::: parser commands :::
 
@@ -239,7 +239,7 @@ sub cmd_description {
 
     }
 
-    exit;
+    exit(0010);
 }
 
 # :: cmd_list_targets :: lists all available code targets and their paths
@@ -286,7 +286,7 @@ sub cmd_list_targets {
     }
     printf ":\n:   %7s   :.   %s\n", "'all'", "above paths except for '.'";
     print ":\n\n";
-    exit;
+    exit(0010);
 }
 
 # :: cmd_list_psubs :: lists all subroutines [ optional pattern match ]
@@ -312,7 +312,7 @@ sub cmd_list_psubs {
     if (@params) {
 
         my $target = shift(@params);
-        say "  :: '$target' not a valid target ::\n" and exit
+        say "  :: '$target' not a valid target ::\n" and exit(0010)
             if $target !~ m|\+| and not exists $targets{$target};
 
         if ( my $source = load_source($target) ) {
@@ -335,7 +335,7 @@ sub cmd_list_psubs {
                 }
             }
             print "\n:\n\n";
-            exit;
+            exit(00000);
         }
     }
 }
@@ -372,7 +372,7 @@ sub cmd_show_psub {
             print show_perl_sub( $source, $sub_name, 1 ) . "\n";
         }
     }
-    exit;
+    exit(00000);
 }
 
 # :: cmd_replace :: regular expression search\replace operation on <target>
@@ -409,10 +409,10 @@ sub cmd_replace {
     }
     if ( !@params ) {
         say "  :: <target> parameter required ::\n"
-            and exit;    ## '.' is default
+            and exit(0010);    ## '.' is default
     } else {
         my $target = shift(@params);
-        say "  :: '$target' not a valid target ::\n" and exit
+        say "  :: '$target' not a valid target ::\n" and exit(0010)
             if $target !~ m|\+| and not exists $targets{$target};
 
         my $original_source = load_source($target);
@@ -527,7 +527,7 @@ sub cmd_parse_headers {
 
     if (@params) {
         my $target = shift(@params);
-        say "  :: '$target' not a valid target ::\n" and exit
+        say "  :: '$target' not a valid target ::\n" and exit(0010)
             if $target !~ m|\+| and not exists $targets{$target};
 
         my $original_source = load_source($target);
@@ -617,11 +617,11 @@ sub cmd_search {
           ', @params
         );
     }
-    say "  :: <target> parameter required ::\n" and exit
+    say "  :: <target> parameter required ::\n" and exit(0010)
         if !@params;    ## '.' def
 
     my $target = shift(@params);
-    say "  :: '$target' not a valid target ::\n" and exit
+    say "  :: '$target' not a valid target ::\n" and exit(0010)
         if $target !~ m|\+| and not exists $targets{$target};
 
     if (@params) { $search_pattern = join( ' ', @params ) }
@@ -859,17 +859,10 @@ sub warn_apply {
 # :: aborted :: display 'aborted' message and exit program
 
 sub aborted {
-    print $C{'R'}
-        . $C{'0'}
-        . $C{'B'} . " .: "
-        . $C{'T'}
-        . ' a b o r t e d '
-        . $C{'R'}
-        . $C{'0'} . " :.\n"
-        . $C{'R'}
-        . " :\n ."
-        . $C{'R'} . "\n\n";
-    exit;
+    printf "%s%s%s .: %s a b o r t e d %s%s :.%s\n%s :%s\n%s .%s\n\n",
+        $C{'R'}, $C{'0'}, $C{'B'}, $C{'T'}, $C{'R'}, $C{'0'}, $C{'R'},
+        $C{'0'}, $C{'R'}, $C{'0'}, $C{'R'};
+    exit(0110);
 }
 
 # :: preview :: shows differences between original and modified source
@@ -1119,7 +1112,7 @@ sub check_target_files {    # LLL: incomplete
             if (user_confirmed(
                     "target file '$check_file' is missing - abort?")
             ) {
-                exit;
+                exit(0010);
             }
         } else {
             open( my $CHK_FILE, qw| < |, $check_file )
@@ -1133,10 +1126,9 @@ sub check_target_files {    # LLL: incomplete
             if ( $bmw_sum eq $chk_sum ) {
                 print "[MATCH] $check_file\n";    # devmod output
             } else {
-                if (user_confirmed("file '$check_file' has changed. abort?") )
-                {
-                    exit;
-                }
+                exit(0010)
+                    if user_confirmed(
+                    sprintf( "file '%s' has changed. abort?", $check_file ) );
             }
         }
     }
@@ -1616,7 +1608,7 @@ sub done {
         . $C{'B'}
         . "\n :\n ."
         . $C{'R'} . "\n\n";
-    exit;
+    exit(00000);
 }
 
 # :: check_links :: follow links and die if dead
@@ -2041,7 +2033,7 @@ sub replace_all {
     %{$changed_source} = %{$source};
 
     #   warn "\n\n < replace_all > fnames: $fnames === caller : "
-    #       . scalar( ( caller(1) )[3] ) . "\n\n" and exit;
+    #       . scalar( ( caller(1) )[3] ) . "\n\n" and exit(0010);
 
     # default option is to replace global
     if ( not defined $regexp{'options'} ) {
@@ -2363,8 +2355,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,,,.,.,.,..,,..,,,.,,,,.,,,.,.,,,...,,.,,..,,...,..,,...,.,.,..,,,..,,.,,
-#MR5L5PSUXRVX7JL4G5B47L46TA5QG3MS4QTQ24SU6EHQWSTXWBVOXPK6ZP4MA3R5Z6CDDG3AJRHNQ
-#\\\|HFA2QBML7XNWYEBA2DWDVB3YDHY5BGCBI3YL35S62LFUD4KBH6F \ / AMOS7 \ YOURUM ::
-#\[7]XSXEAPNALJDFLYTICCVHFEB5NKXQIQMN6EAAN2T74FF7NROQCQAY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,,,,,,,.,,,.,,..,,..,.,,,.,.,..,,...,...,.,,,.,.,,,.,,,,,,,,,
+#BDZLMVCR4VYOBOB72KE5EHFQMUO6P4ZZUDLB6FGV7FTPQMRCQG7TZTBAKNYX3QBSKCFORMMETOHKG
+#\\\|WBNYHZLFW3MZ7GFCWO6F7POTGTNDX3OSFJ4ZIVH5U4P5MXY2TG6 \ / AMOS7 \ YOURUM ::
+#\[7]V3LKZD26OQAS5STC3NZ6U25ITTEZ2WQ6TJ3BZ5LN5LYNC6LJBEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
