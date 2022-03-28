@@ -47,7 +47,7 @@ while (@ext_dirs) {
     my $dir_name    = shift @ext_dirs;
     my $link_target = shift @ext_dirs;
     <[base.logs]>->(
-        ": extdir : %-*s --> %s",
+        ': extdir : %-*s --> %s',
         $vh_max_len, $link_target, $dir_name
     );
 }
@@ -56,13 +56,13 @@ foreach my $link_name (@vhosts) {
     ( my $link_target = readlink($link_path_abs) ) =~ s|//|/|g;
     if ( $link_target =~ m|^\d{3}$| ) {
         <[base.logs]>->(
-            ":   code : %-*s --> %s",
+            ':   code : %-*s <-- %s',
             $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name} = $link_target;
     } elsif ( exists <httpd.cfg.hostnames>->{$link_target} ) {
         <[base.logs]>->(
-            ": v_host : %-*s --> %s",
+            ': v_host : %-*s  <--- %s',
             $vh_max_len, $link_target, $link_name
         );
         <httpd.cfg.hostnames>->{$link_name}
@@ -77,8 +77,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,,,,,,,,,,.,,..,.,.,..,,..,,.,,,...,.,,,,,.,..,,...,...,...,.,.,,,,,,,.,,,.,
-#7BM3DMQY2C6AGXNWWXC3UCOJA4DLG2NTDJKIF37PBVEDTY2VBACU6YSGHBJSXLA2QJIZWZPYVXEO4
-#\\\|H5BWHV7KXTEX3VIYIMGKVGCGOA2KHMRCBDX4XDUPI2GI527XB5Y \ / AMOS7 \ YOURUM ::
-#\[7]XEPOEQEHKAND57ZJEF3GW27UWCRUMRUUCZ5YIIM3YMXAHBTD34BA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,.,,,,.,,..,,.,,,,,,,,.,..,,.,,,..,,...,...,.,,,.,.,..,,...,,,,,
+#TO2KJWG2JJQF6JLO7NEZBZ44J3RFW4VEPXW6GGXCDLWR57NGLGM2WGAKOCZ7WCZD2VEQFXC4RYKAG
+#\\\|PTJDG37KDM3DDY52B5W2ISPC3DEHPFRO4TTWFGKLIP5A5UUQE7U \ / AMOS7 \ YOURUM ::
+#\[7]2ERUALROX2RPQRVUJESTQFAQ6LFDTMGDPC2U3RTM7L53XIFWZ4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
