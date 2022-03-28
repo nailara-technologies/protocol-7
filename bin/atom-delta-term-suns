@@ -1,0 +1,593 @@
+#!/usr/bin/perl
+use warnings;
+use v5.24;
+use strict;
+use English;
+use File::Spec;
+use Digest::BMW;
+use Math::BigFloat;
+use Term::ANSIColor;
+use Encode qw| decode |;
+use Crypt::PRNG::Fortuna;
+use Digest::Elf qw| elf |;
+use Time::HiRes qw| time sleep |;
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Unicode::UTF8 qw[ decode_utf8 encode_utf8 ];
+use warnings FATAL => 'utf8';
+no warnings 'experimental';
+use PerlIO::utf8_strict;
+
+## for testing character validity ##
+open( ZULUM, '>', File::Spec->devnull );
+binmode( ZULUM, ':utf8_strict' );
+## output mode ##
+binmode( STDOUT, ':utf8_strict' );
+
+###################################################
+( my $x, my $y ) = &term_size;
+my $y_com = $y - 2;    ## <-- prompt location -1 ##
+###################################################
+
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $blacklight = "\e[38;2;68;39;172m";
+
+### to implement ###
+
+# -Sprng <seed> -Szul <seed>
+
+## [ TEST SEED ]
+#
+my $restore_seed_prng  = '30879790939393258094788';
+my $restore_seed_zulum = '4085077156245892212221638888445691017'
+    . '681238712064386070392685102677';
+
+#:: prng  :: 30880122085761213302612
+#:: zulum :: 23780279151375710331653524331270981996832420990025717152182839049192
+
+###
+
+our @process_command;
+
+my $set_up = {
+    'prompt-hidden'      => 1,
+    'prompt-delay'       => 0.377,
+    'substitute-escapes' => 1,                         ##  <-- replace
+    'reseed-on-end'      => 0,                         ##  <-- replace
+    'speed-div'          => 2,                         ## [ 1 .. 7 ] ##
+    'state-file'         => 'atom-delta-term.state',
+};
+
+our $state = {
+    'devmod_page_output' => 0,
+    'network-time'       => network_time(),
+    'last-cmd'           => '',
+    'count'        => { 'zulum' => 0 },
+    'seed'         => { 'prng'  => undef, 'zulum' => undef, 'num' => undef },
+    'set-up'       => $set_up,
+    'init'         => 1,
+    'init-delay'   => 0.7,
+    'screen-bytes' => $x * $y * 6,
+    'screen-chars' => $x * $y,
+    'result-13'    => undef,
+    'page-legend'  => undef,
+    'loop-count'   => 0,
+    'iteration'    => 0,
+    'zulum-offset' => 0,
+    'screen'       => {
+        'x'         => $x,
+        'y'         => $y,
+        'tab-width' => 4
+    }
+};
+
+our $math = {
+    'zulum'   => undef,
+    'fortuna' => undef
+};
+
+sub reset_state {
+
+    $state->{'network-time'} = network_time();
+
+    $state->{'init'}       = 1;
+    $state->{'init-delay'} = 0.7;
+
+    map { $math->{$ARG} = undef } qw|  zulum fortuna |;
+
+    map { $state->{'count'}->{$ARG} = 0 } qw| zulum |;
+    map { $state->{$ARG} = 0 } qw| loop-count iteration |;
+
+    map { $state->{$ARG} = '' } qw| screen-buffer last-cmd |;
+    map { $state->{$ARG} = undef } qw| result-13 |;
+
+}
+
+###
+# $state->{'seed'}->{'zulum'} = $restore_seed_zulum;
+# $state->{'seed'}->{'prng'}  = $restore_seed_prng;
+###
+
+$SIG{__WARN__} = sub {
+    die join( ' ',
+        "\n < $state->{'iteration'} >",
+        @_, "\n [ '", $state->{'result-13'}, "' ]\n\n" );
+};
+
+my $freq = qx| /usr/bin/xrandr | =~ m|(\d+(\.\d+)?)(*pla:\*)| ? $MATCH : 30;
+
+my $SIG_INT  = 0;
+my $SIG_QUIT = 0;
+
+process_arguments();
+
+my $speed_div   = $state->{'set-up'}->{'speed-div'};
+my $frame_delay = sprintf( '%.5f', 1 / ( $freq / $speed_div ) );
+
+$| = 1;
+
+$SIG{'HUP'}  = sub { $SIG_INT = 1 };
+$SIG{'TERM'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
+$SIG{'INT'}  = sub {
+    sleep 0.13;
+    print "\b\b\b   \b\b\b\e[${y_com}H\e[J\n < awaiting command > ";
+    $SIG_INT = 1;
+};
+
+$SIG{'TRAP'} = sub { system 'reset'; dump_state(); sleep 42 };
+
+my $template = "%s%s%s";    ## <bg><fg><char>
+
+RESTART:
+
+cmd_reset();                ## clear screen \ ansi reset ##
+
+Math::BigFloat->round_mode('trunc');
+Math::BigFloat->accuracy( $state->{'screen-bytes'} + 13 );
+
+my $start_seed = $state->{'seed'}->{'zulum'};
+
+RESEED:
+
+$state->{'count'}->{'zulum'}++;
+
+( $state->{'seed'}->{'num'}
+        = sprintf( '%.13f', ( time * 4200 ) / 13 / 13 / 13 ) ) =~ s|\.||;
+
+if ( not defined $start_seed or $state->{'count'}->{'zulum'} == 1 ) {
+    $state->{'seed'}->{'prng'} //= $state->{'seed'}->{'zulum'}
+        // $state->{'seed'}->{'num'};
+} else {
+    $state->{'seed'}->{'prng'}
+        //= join( '', $start_seed, $state->{'seed'}->{'num'} );
+}
+## [ [RE]SEEDING THE PRNG .., ] ###
+$math->{'fortuna'}
+    //= Crypt::PRNG::Fortuna->new( $state->{'seed'}->{'prng'} );
+##
+
+######################## ## use '3' as test intialization [error] seed ##
+$state->{'seed'}->{'zulum'}
+    //= join( '', map { $math->{'fortuna'}->irand } ( 1 .. 7 ) )
+    ;    # <-- plain init
+$state->{'seed'}->{'zulum'}
+    = join( '', map { $math->{'fortuna'}->irand } ( 1 .. 7 ) )
+    if $state->{'count'}->{'zulum'} > 1;
+######################## ## ########################
+
+$math->{'zulum'} //= Math::BigFloat->new( $state->{'seed'}->{'zulum'} );
+
+# my $state->{'init-delay'} = 1.42;
+
+# say ' < seed > ' . scalar $math->{'zulum'}->bdiv(13) and sleep 4;
+
+my ( $LAST_BG, $LAST_FG_COL );
+while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
+
+RECALC:
+
+    my $screen_chars = $state->{'screen-chars'};
+    my $last_result  = $state->{'result-13'} // '';
+
+    ## pause signal handler ###
+    my $signal_handler = $SIG{'INT'};
+    $SIG{'INT'} = 'IGNORE';
+
+    $state->{'page-legend'} = '';
+
+    $state->{'result-13'}
+        = scalar $math->{'zulum'}->copy()
+        ->bdiv( 13, $state->{'screen-bytes'} );
+
+    ## shift for zulum prefix ##
+    my $zulum_offset = 0;
+    $zulum_offset = $state->{'zulum-offset'}
+        = match_zulum( \$state->{'result-13'} );
+    ##
+
+    my $dot_offset = $zulum_offset || index( $state->{'result-13'}, '.' );
+
+    if ( $dot_offset >= 0 ) {
+        my $result_len  = $state->{'screen-bytes'} - $dot_offset - 1;
+        my $page_offset = $state->{'page-offset'} = $dot_offset % 2;
+
+        $state->{'page-legend'}
+            = substr( $state->{'result-13'}, 0, $dot_offset - 1 )
+            if !$zulum_offset;
+
+        $state->{'result-13'} = substr(
+            scalar $math->{'zulum'}->bdiv(
+                13, $state->{'screen-bytes'} + $dot_offset + $page_offset
+            ),
+            $dot_offset + 1 + $page_offset,    ## <-- ..,
+            $state->{'screen-bytes'} + $state->{'screen-bytes'} % 2
+        );
+    } else {
+        $state->{'page-offset'} = 0;
+    }
+
+    ### remove .., ## [LLL]
+    my $result_len = length( $state->{'result-13'} );
+    die sprintf "\n  << result length %d != %d >>\n\n", $result_len,
+        $state->{'screen-bytes'}
+        if $result_len != $state->{'screen-bytes'};
+
+    $state->{'iteration'} = 0;
+
+    ## resume signal handling ###
+    $SIG{'INT'} = $signal_handler;
+
+    if ( !length( $state->{'result-13'} ) ) {
+        say '';
+        $SIG_INT = 1;
+    }
+
+    #    while ( length( $state->{'result-13'} and $screen_chars ) ) {
+    #        $state->{'iteration'}++;
+
+    my $columns = $state->{'screen'}->{'x'};
+    my $rows    = $state->{'screen'}->{'y'};
+
+    my $decoding_buffer;
+
+    for ( 1 .. $y * 2 ) {
+        $decoding_buffer = '';
+        for ( 1 .. int( $x / 2 ) ) {
+            $decoding_buffer .= decode_char( \$state->{'result-13'} );
+        }
+        print $decoding_buffer and sleep 0.007;
+    }
+
+    cmd_quit()        if $SIG_QUIT;
+    sig_int_handler() if $SIG_INT;
+
+    # sleep( $frame_delay + $state->{'init-delay'} );
+
+    $state->{'init'} = $state->{'init-delay'} = 0 if $state->{'init'};
+    $state->{'loop-count'}++;
+}
+
+sub match_zulum {
+    my $buffer = $_[0];
+
+    return 0 if index( $$buffer, '.', 1 ) == -1;
+    return 0 if index( $$buffer, '0', 0 ) != 0;
+
+    my $zulum_pos = length($$buffer);
+    foreach my $num ( 1 .. 9 ) {
+        my $match = index( $$buffer, $num, 2 );
+        $zulum_pos = $match if $match >= 0 and $match < $zulum_pos;
+    }
+
+    return $zulum_pos;
+}
+
+sub decode_char {
+    my $input = $_[0];
+    return '' if !length( $input->$* );
+    my $pos_x;
+    my $pos_y;
+    my $bg_color = '';
+    my $fg_color = '';
+
+    my $char_width = 3;
+GET_CHARACTER:
+
+    ## foreground color ##
+    $fg_color .= color(
+        sprintf( 'r%dg%db%d',
+            int( 255 * ( 0.001 * $1 ) * ( 0.001 * $4 ) ),
+            int( 255 * ( 0.001 * $2 ) * ( 0.001 * $4 ) ),
+            int( 255 * ( 0.001 * $3 ) * ( 0.001 * $4 ) ) )
+        )
+        if $input->$* =~ m|^(\d{$char_width})
+                       (\d{$char_width})
+                       (\d{$char_width})
+                       (\d{$char_width})|x;
+
+    ## background color ##
+    $bg_color
+        .= color(
+        sprintf( 'on_r%dg%db%d', 0, 0, int( 113 * ( 0.001 * $1 ) ) ) )
+        if $input->$* =~ m|^\d{6}(\d{3})|;
+
+    ( $pos_x, $pos_y ) = ( $1, $2 )
+        if $input->$* =~ m|^(\d{$char_width})(\d{$char_width})|;
+    $pos_x //= 0;
+    $pos_y //= 0;
+
+    while ( $pos_x > $x ) {
+        $pos_x = $pos_x - $x;
+        $pos_x += 1 + int( $x / 2 ) if $pos_x < 0;
+    }
+    while ( $pos_y > $y ) {
+        $pos_y = $pos_y - $y;
+        $pos_y += 1 + int( $y / 2 ) if $pos_y < 0;
+    }
+    $pos_y-- if $pos_y == $y and $pos_x == $x;
+
+    my $char_num = substr( $input->$*, 0, $char_width );
+
+    return '' if !length($char_num);
+
+    ## my $character = chr($char_num);
+    ##
+    my $character = chr(903);
+
+    #   eval { print ZULUM $character };
+
+    my $input_len = length( $input->$* ) // 0;
+    if ($input_len
+        and (  not defined $character
+            or $char_num < 32
+            or $char_num > 255
+            or $EVAL_ERROR )
+    ) {
+        substr( $input->$*, 0, $char_width, '' )
+            if $char_width == 2 and $char_num < 32;
+        $char_width-- if $char_width > 2;
+        goto GET_CHARACTER;
+    } elsif ( !$input_len ) {
+        $character = ' ';
+    }
+
+    $LAST_BG     = $bg_color;
+    $LAST_FG_COL = $fg_color;
+
+    substr( $input->$*, 0, $char_width, '' );
+
+    return
+        join( '', "\e[${pos_y};${pos_x}H", $bg_color, $fg_color, $character );
+
+}
+
+sub term_size {
+
+    my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
+
+    return undef if not -t $handle;
+    state $size       = "\0" x 8;
+    state $TIOCGWINSZ = 21523;
+
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    my $size_aref
+        = [ unpack 'S!S!S!S!', $size ];    ## <-- [<y>,<x>,<y-px>,<x-px>]
+    return ( $size_aref->[1], $size_aref->[0] );
+
+}
+
+sub process_arguments {
+
+    while (@ARGV) {
+
+## '-s <speed>' [ 1 .. 7 ] ##
+        if (    @ARGV > 1
+            and $ARGV[0] eq '-s'
+            and $ARGV[1] =~ m|^[1-7]$| ) {
+            shift(@ARGV);
+            $state->{'set-up'}->{'speed-div'} = 8 - shift(@ARGV);
+        }
+
+## restart run with new seed after message complete ##
+        elsif ( @ARGV > 0
+            and $ARGV[0] eq '-r' ) {
+            $set_up->{'reseed-on-end'} = 1;
+            shift(@ARGV);
+        }
+## '-S <SEQUENCE-SEED>' ##
+        elsif ( @ARGV > 1
+            and $ARGV[0] eq '-S' ) {
+            shift(@ARGV);
+            $state->{'seed'}->{'zulum'} = join( ' ', @ARGV );
+            $state->{'seed'}->{'zulum'} = join '',
+                map { sprintf '%03d', $ARG } unpack 'U*',
+                $state->{'seed'}->{'zulum'}
+                if $state->{'seed'}->{'zulum'} !~ m|^\d+(\.\d+)?$|;
+            @ARGV = ();
+        } elsif ( index( $ARGV[0], '-', 0 ) == 0 ) {
+            say sprintf "\n  << unknown option '%s' >>\n\n", shift(@ARGV);
+            exit(1);
+        } else {    ## a list of commands given as arguments ##
+            push( @process_command, shift(@ARGV) );
+            $SIG_INT = 1;    ##  <--  enter command processing loop .., ##
+        }
+    }
+}
+
+sub elf_BASE32 {
+    my $data_ref = shift;
+    return encode_b32r( pack( 'V*', elf($$data_ref) ) );
+}
+
+sub bmw_BASE32 {
+    my $data_ref = shift;
+    my $bmw_bits = shift // 512;
+    my $bmw      = Digest::BMW->new($bmw_bits);
+    $bmw->add($$data_ref);
+    return encode_b32r( $bmw->digest );
+}
+
+sub network_time { return encode_b32r( pack( 'w*', calc_ntime() ) ) }
+
+sub calc_ntime {    # [ network time : secs from 2002-06-05 * 4200 ]
+    my $precision      = 3;
+    my $ntime_start    = 1023228000;
+    my $unix_precision = $precision + 2;
+    my $unix_time      = sprintf( "%.0${unix_precision}f", time() );
+    my $ntime          = sprintf( "%.0${precision}f",
+        ( ( $unix_time - $ntime_start ) * 4200 ) );
+
+    return $ntime;
+}
+
+sub dump_seed_state {
+    say ":: seeds :.\n:\n::: prng :: $state->{'seed'}->{'prng'}\n"
+        . ":\n:: zulum :: $state->{'seed'}->{'zulum'}\n:\n";
+}
+
+sub clear     { return "$nailara_bg$blacklight\e[H\e[2J" }
+sub cmd_clear { say clear() . "## [:< ##\n" }
+sub cmd_reset { system qw| reset |; cmd_clear() }
+sub cmd_quit  { cmd_reset();        exit(0) }
+
+sub sig_int_handler {
+    $SIG_INT = 0;
+
+    my @available_commands = (
+        'exit \\ quit', 'resume \\ continue', qw|
+            clear reset show-seed completed last loop-count buffer
+            result-13 zulum rewind [re]start run commands
+            |
+    );
+
+    my $int_loop = 1 if !@process_command;
+
+    while ( $int_loop or @process_command ) {
+        my $cmd;
+        if (@process_command) {
+            $cmd = shift @process_command;
+        } else {
+            if ( !$set_up->{'prompt-hidden'} ) {
+                sleep $set_up->{'prompt-delay'};
+                print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
+            }
+            chomp( $cmd = <STDIN> // '' );
+            ## clean-up [ garbled by ansi ] ## [inversitgate.]
+            $cmd =~ s|^\d+||;
+            $set_up->{'prompt-hidden'} = 0 if length($cmd);
+        }
+        $state->{'last-cmd'} = $cmd
+            if $cmd !~ m,^(clear|last|resume|continue)$,;
+    PROCESS_CMD:
+        given ($cmd) {
+            when ('last') {
+                $cmd = $state->{'last-cmd'} // '';
+                goto PROCESS_CMD
+            }
+            when ('.') { $set_up->{'prompt-hidden'} = 0 }
+            when (m{^(help|commands)$}) {
+                say "\n::: available commands :.\n:\n"
+                    . join( '',
+                    map  {":: $ARG\n"}
+                    sort { length $a <=> length $b }
+                    sort @available_commands )
+                    . ':'
+            }
+            when ('loop-count') { say $state->{'loop-count'} }
+            when ('legend') {
+                say "\n\e[H\e[2J\e[3J$state->{'page-legend'}\r";
+            }
+            when ('buffer') {
+                say "\n\e[H\e[2J\e[3J$state->{'screen-buffer'}";
+                sleep 1.2131 if not $set_up->{'prompt-hidden'};
+            }
+            when ('result-13') {
+                say "\n\e[3J\n '$state->{'result-13'}'\r";
+            }
+            when ('zulum') {
+                say "\n\e[3J\n '" . scalar( $math->{'zulum'} ) . "'\r"
+            }
+            when ('clear')            { cmd_clear() }    ## clear screen ##
+            when ('reset')            { cmd_reset() }    ## restore screen ##
+            when (m{^(exit|q|quit)$}) { cmd_quit() }
+            when (m{^(resume|c|continue)$}) {            ##  continue., ##
+                printf( "%s%s", $LAST_BG, $LAST_FG_COL );
+                $SIG_INT = 0 if $SIG_INT > 0;
+                goto RESTART if not defined $state->{'result-13'};
+                last;
+            }
+            when ('network-time') { say ":\n:: $state->{'network-time'}\n:" }
+            when ('checksum') {
+                checksum_state();
+                say "\n:\n:: state-checksum :: $state->{checksum}\n:"
+            }
+
+            when ('show') { $set_up->{'prompt-hidden'} = 0 }
+            when ('hide') { $set_up->{'prompt-hidden'} = 1 }
+
+            when ('update') { say update_state_files() }
+
+            when ('restart') { reset_state(); goto RESTART }
+            when (m{^(start|run)$}) {
+                if ( $state->{'init'} ) { goto RESTART }
+                else {
+                    say ":\n:: already initialized\n"
+                        . ":: [ 'restart' or 'continue' ]";
+                }
+            }
+            when ('rewind') { reset_state() }
+            when (m{^(n(ext)?)?$}) {    ## [n]ext or <ENTER> loops once ###
+                $set_up->{'prompt-hidden'} = 1;
+                $SIG_INT                   = -1;
+                @process_command           = qw| resume |
+            }
+            when ('show-seed') { dump_seed_state() }
+
+            when (m{set( +([\w\-\.]+)( +(\S+))?)?$}) {
+                my $settings = $state->{'set-up'};
+                if ( defined $2 and not exists $settings->{$2} ) {
+                    say "<< no such key ['$2'] >>";
+                } elsif ( not defined $1 ) {
+                    say '<< expected key \\ value >>';
+                } elsif ( not defined $3 ) {
+                    say '<< expected value >>';
+                } else {
+                    $settings->{$2} = $4 if exists $settings->{$2};
+                    say "\n< '$2' = '$4' >";
+                }
+            }
+            when (m{unset +([\w\-\.]+)$}) {
+                if ( exists $set_up->{'set-up'}->{$1} ) {
+                    say '<< no such key >>';
+                } else {
+                    $set_up->{$1} = undef if exists $set_up->{$1};
+                    say "< key '$1' undefined >";
+                }
+            }
+            when ('completed') {    ## message mode ## [ implement other., ]
+                my $len_0000 = length( scalar $math->{'zulum'} );
+                my $len_0110
+                    = scalar( $math->{'zulum'} ) =~ m|^(0\.0+)|
+                    ? length($LAST_PAREN_MATCH)
+                    : 0;
+                say sprintf(
+                    "\r:\n:: $len_0110 \\ $len_0000 ::"
+                        . " %.4f percent decoded =) ::\n:\n",
+                    $len_0110 * 100 / $len_0000
+                );
+            }
+            default {
+                if ( length($cmd) ) {
+                    say ":\n:[ command '$cmd' unknown ]\n:";
+                } else {
+                    print "\r< awaiting command > ";
+                }
+            }
+        }
+    }
+}
+
+#,,,.,...,.,.,..,,..,,,,,,,,,,,,.,,..,.,.,..,,..,,...,...,...,,..,..,,,,.,.,.,
+#AWKETDVVTVXZQQ5NWDL2A6F6JMA6PDWUJTOI45WNI7LYURHFGNPDMKSLJYNIKIT2VFC7GZMRXY2DI
+#\\\|4GYZIODJAUPHH73J6LIYZA6MPRYLQMLFLXSGHVN75LT2ZU4DOIZ \ / AMOS7 \ YOURUM ::
+#\[7]CJKRYPFF2KHBSKDJPON25HJPLYAOX36FVY6333MDUIIE7KQPVUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
