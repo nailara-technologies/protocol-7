@@ -480,7 +480,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         ## check if reply handler is set ##
                         ##
                         if ( defined $route->{'reply'}->{'handler'} ) {
-                            if (defined $code{ $$route{'reply'}{'handler'} } )
+                            if ( defined $code{ $route->{reply}->{handler} } )
                             {
                                 ##  calling reply handler  ##
                                 $code{ $route->{'reply'}->{'handler'} }->(
@@ -797,7 +797,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
         } else {    ## command does not exist ##
-            <[base.logt]>->( qw| HQBG73I |, $id, $cmd );
+            <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
         }
 
         $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
@@ -1143,8 +1143,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,...,..,,,.,,,,.,..,,.,.,,.,,..,,.,,,.,.,..,,...,...,...,...,,,.,..,,,.,,
-#WTBGNEUJ3C6LNQYMJXR5ALLHRMYBKZ4G7TSK2HF4G3DCXJS5WVGJ5J2TVX2CHXP7AFHGAXLBFUUF4
-#\\\|AAKZWRKQTR4HW7KPI3YDEYIKHFAE7RASFLVC4QJQ7MTFUNHBTXV \ / AMOS7 \ YOURUM ::
-#\[7]IC6SC3BYLAR2MYXSYMLYM4RCW4XCYX34ZCNSYSFVBBQTT3FZLCDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,,,.,.,,,.,,,.,,,.,,,.,..,,,,,,..,,...,...,...,..,,.,.,,..,,,.,
+#JSM6JZTD74M2XJ5IGTEJ6KSMOEDGZD7UGD6I43YRI5LP5KUDWXPYWLWGMXM6AOQ4LXAILDCNCAK7Y
+#\\\|WQEHLOYIIWJWS5HHFQEWE4ABS2NEHBFIRB246NY722CWMSQ5FUC \ / AMOS7 \ YOURUM ::
+#\[7]4AS2AKA7SZV3TWSN7URNKC7LW5ADK3D5M2QCPFE7ZQ3LZ7STRABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
