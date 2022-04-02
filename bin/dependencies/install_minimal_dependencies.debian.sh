@@ -38,7 +38,7 @@ apt-get -y install libterm-size-perl \
 
 cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
   File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats \
-  SigAction::SetCallBack Crypt-Twofish2
+  SigAction::SetCallBack Crypt::Twofish2
 
 ## [ LLL ] ### repair path[?] ###
 
@@ -46,7 +46,7 @@ cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
 #                                                until fmul issue fixed upstream
 perl -Mv5.13 -e \
 'my$M="Crypt::Curve25519";eval"require $M";exit(1)if$@;say"$M is installed.,"'||
-  cpanm $NAILARA_ROOT/$EXT_LIB_PATH/pm-src/crypt-curve25519 &&
+  cpanm $EXT_LIB_PATH/pm-src/crypt-curve25519 &&
     cd $NAILARA_ROOT && git clean -fxd $EXT_LIB_PATH/pm-src
 
 # 'c-trade'-agent requirements..,
