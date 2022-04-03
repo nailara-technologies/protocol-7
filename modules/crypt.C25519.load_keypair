@@ -169,7 +169,8 @@ REENTER_GEN_ENTROPY:
 
 } elsif (
     -r $secret_key_file    ##  abort loading .secret  ##
-    and not defined $key_password and not $ask_for_password
+    and not defined $key_password
+    and not $ask_for_password
     and not -r $public_key_file
     and <[crypt.C25519.encrypted_key]>->($name)
 ) {

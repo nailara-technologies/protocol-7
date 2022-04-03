@@ -16,8 +16,8 @@ my $parent_1 = catdir( $key_dir, $UPdir );
 
 if (   $EFFECTIVE_USER_ID == 0
     or $EFFECTIVE_USER_ID == $uid
-    and
-    ( -d $parent_1 and -w $parent_1 or not -d $parent_1 and -w $parent_0 ) ) {
+    and ( -d $parent_1 and -w $parent_1 or not -d $parent_1 and -w $parent_0 )
+) {
     if ( not -d $key_dir ) {
         <[base.logs]>->( 1, "creating key directory '%s' ..", $key_dir );
         eval {

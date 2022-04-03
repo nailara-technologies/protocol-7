@@ -114,7 +114,7 @@ my $payload_data_ref = <[base.parser.splice_out_data]>->(
     $decrypted_C25519_sref, $matching_offset, 2, $max_payload_bit_length
 );
 
-my $archive_end_pos = rindex $payload_data_ref->$*, qw| #.:: |;
+my $archive_end_pos = rindex $payload_data_ref->$*, '#.::';
 
 if ( $archive_end_pos == -1 ) {
     <[base.log]>->( 0, '..' );
@@ -152,8 +152,8 @@ if ( ref $archive_key_ref ne qw| HASH |
 
 return $archive_key_ref;
 
-#,,..,,.,,.,.,,,,,..,,.,.,,..,,.,,,,.,...,.,.,..,,...,...,.,.,.,,,.,.,,,,,...,
-#BLBXT34PDUMDEB2RORCDLPTFZNE3R73SJIAV57X5FLGUNO2PUO5JTKKVEJTWSQ6EZU2EGJHHFPLRS
-#\\\|SSNFSVS362EB5UN4SPYWKOTGCL3UOMY3ZNZTNU5MODL2QGRFZMR \ / AMOS7 \ YOURUM ::
-#\[7]XVXISR7TTGEOB3FAJR46KB4BLXKO6MTCMRVNXOXZUHJVQO65K2BY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,..,.,,,,,.,.,.,...,,..,.,.,.,,,..,,...,...,...,..,,,..,,,,,,,.,
+#LU4X7IUAZ7FZMOBU3RIDVKKSZ52FOLSE7OYZTUPE4BSENX72CN24IQ4FQEEV4766XCQ5VR2AE6GS2
+#\\\|6APJHNTV47WJTPJ4XIREVI4KGTQUBDFAN5HAKISIUQSN5CRAAJ5 \ / AMOS7 \ YOURUM ::
+#\[7]YVXEVIT7ZP76QHTDG3VCNBGCWZVH7P4CL6SYTXHAOPYBBIC6JYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

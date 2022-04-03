@@ -34,7 +34,8 @@ return printf "\n  << key with name '%s' not found >>\n\n", $srckey
 my $key_filename_ref = <[crypt.C25519.key_vars]>->{'key_filename'};
 
 my @k_files
-    = grep {s|^.+/||} grep { -e $ARG }
+    = grep {s|^.+/||}
+    grep   { -e $ARG }
     <[base.sort]>->( map { $key_filename_ref->{$ARG} }
         <[base.sort]>->($key_filename_ref) );
 

@@ -60,8 +60,8 @@ if ( index( <system.zenka.name>, qw| source |, 0 ) == -1 ) {
     }
 }
 
-while ( glob $key_basepath . qw| .{spk,sig}.* | ) {    ##  key signatures  ##
-    if (m{([^\/]+\.(spk|sig)\.(.+))$}) {
+while ( glob sprintf '%s.{spk,sig}.*', $key_basepath ) {
+    if (m{([^\/]+\.(spk|sig)\.(.+))$}) {    ##  key signatures  ##
         my ( $fname, $type, $rkname ) = @{^CAPTURE};
         <[base.logs]>->( ": : %s : '%s'", $type, $fname );
         $type = qw|public| if $type eq qw| spk |;  ## <-- [ root-key-pub ] ###
@@ -97,8 +97,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,..,.,.,,,.,,,,,.,.,,..,,.,,...,..,,.,.,,.,,..,,...,...,,..,.,,,...,,,,,..,,
-#24VW4VBDVG6M2VZAS4QQO5P2L72OX4AGLBDPJZONCMFXS2RULCKTZR6JVO5SRPAK2JXL6PBHHV4AQ
-#\\\|I62OXFZSHXYGCWLVUPG42WHUZYVFGRL5ORAS6TS6CKQWDIGXXOH \ / AMOS7 \ YOURUM ::
-#\[7]YN6BADFH3Z2XLTVDJVWOFHUH3CBORCURW5XID63M2A7NQD5OTMAQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,.,.,,,,,,..,,.,,...,...,..,,..,,...,...,..,,...,,,.,.,.,,.,,
+#I5TO6XO2SOS3Y5CHQSUHWUV5JY2VUBVVCU7PCP47V436GBUHGCA6IIYFOHWZWV7GPWZYKOSN4YGRI
+#\\\|FNMHVI3FUPJYR5HMSHKUSPJQ35AUAW3QWQCLUWTT3FLF4Z6HC2I \ / AMOS7 \ YOURUM ::
+#\[7]RRE3IBUTSY5UGWK63HQOIJ64TME7KIUY42DNNY3FZOPSS3QRRKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
