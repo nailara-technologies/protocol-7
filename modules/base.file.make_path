@@ -6,11 +6,16 @@
 ##  owner and group are optional  ##  names not ids  ##
 my ( $path, $param_mode, $param_owner, $owner_group ) = @ARG;
 
+if ( not defined $path ) {
+    warn 'expected defined path <{C1}>';
+    return undef;
+} elsif ( $path !~ m|^/[^/]+| ) {
+    warn 'expected absolute path [ to create ] <{C1}>';
+    return undef;
+}
+
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
-warn 'expected defined path <{C1}>' and return undef if not defined $path;
-return warn 'expected absolute path [ to create ] <{C1}>' and return undef
-    if $path !~ m|^/[^/]+|;
 
 my $mkdir_umask = 0777 & ~0777;    ## <-- permissive setting.., ##
 my $previous_umask;
@@ -193,8 +198,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,..,,,,,...,,,,,,,.,,..,.,,,.,.,...,,.,,,,,,..,,...,...,,,.,,..,,..,,,.,.,,,
-#XRPRUTROWJF466BFRGVSD7IOYDCZDUARK55N6AATQ2CB3AQLRISBTO3QP6QR4TZN5MRMQWCVIMHP6
-#\\\|YDAE2M7E3BMU3UFD6QHDDM22EXOAXMMOHBAROSHZNZSFPY773A2 \ / AMOS7 \ YOURUM ::
-#\[7]QRIAVUFPDJ3WRAPEJQZHRAWSQT4KXPNWWUJI6LPC7DETYUYUPEBI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,,..,,.,,,.,,,,.,,..,,,.,,..,..,,...,...,,,,,,,.,,..,,,.,,.,,
+#EDMXT5U4DQBW2OHYPG76LROMKPY6OJT5MXSGRDXWGGNGKCV35UJY6BXZU6MEIWHRSJUU5UVJPDVXM
+#\\\|PD5IAXVMQGF7KCQOP7FPUZNWGA3VLTPMMMTYUQ3KMBL3QA3QCNP \ / AMOS7 \ YOURUM ::
+#\[7]UPHHNICLNZWJLY3T6OX2MSAZVEK4JWRLDVYOIM2N2674BY6LVQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

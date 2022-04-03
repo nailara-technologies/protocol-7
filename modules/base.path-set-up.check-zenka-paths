@@ -29,7 +29,7 @@ my $paths_and_modes = {
     map {
         <system.path.zenka-dirs>->{$ARG} =>
             <system.path.zenka-dir-modes>->{$ARG}
-        } keys <system.path.zenka-dirs>->%*
+    } keys <system.path.zenka-dirs>->%*
 
 };
 
@@ -124,8 +124,8 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
         $fs_changes_made++;
     }
 
-    my $cur_mode = sprintf qw| %#o |, $dir_stat->mode & 07777;
-    if ( $cur_mode ne sprintf qw| %#o |, $dir_mode ) {
+    my $cur_mode = sprintf '%#o', $dir_stat->mode & 07777;
+    if ( $cur_mode ne sprintf '%#o', $dir_mode ) {
         <[base.logs]>->(
             $log_level, ': %s : change  mode [ %#o ]',
             $chk_path,  $dir_mode
@@ -151,8 +151,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,.,,,..,.,,,,,,,..,,,,,,,.,,,..,,.,,..,,,.,,.,.,...,...,,..,,,.,..,,,..,,..,
-#YIS3PZEMW4JFAGQL43C3YT5WCAPAF3B3XFASNMROANGBNJP3O6OU4YDSQUYKXQBU5LBWCXRVUQJFU
-#\\\|2N6X4BXXGPBRUFBBUBDDXVRTX2K6WFVJBVRYSHHPQFCHIU2ASN6 \ / AMOS7 \ YOURUM ::
-#\[7]SNQSFFBDVC2ETGZPGLDFPNXBC3CRFL5SLCKHSVEZQL643OJOXCCY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,,,,,,,,,,,..,,.,,,,..,,,.,.,.,...,...,,,.,,.,,,..,.,.,..,,
+#IVFTJNCEAA4SFFH5HWDT6EYQJRHTX2ZPUKPGINXJARLS4LJMLUPKLZIEXA2D2KJURUWVZAM3KSJHA
+#\\\|IQDVXM5OBD5LAXNRP6DGOQAAQXIFBRQDUR2WDR2KLOEA3XBSNTZ \ / AMOS7 \ YOURUM ::
+#\[7]V546GBYS5U6IWLYKG3VQQHIID3MDMR4N5VO32TB6NPO6ZXZXZUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

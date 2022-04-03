@@ -19,8 +19,8 @@ foreach my $chk_param (@ARG) {
 my $template = shift @ARG;
 
 ##  adjusting caller level for eval and base.s_warn  ##
-if ( $template !~ s|<{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', $c_l + 2 |e
-    and $template !~ m|<{NC}>| ) {
+if ( $template !~ s|<\{C(\d+)}>$| my $c_l = $1; sprintf '<{C%d}>', $c_l + 2 |e
+    and $template !~ m|<\{NC}>| ) {
     $template .= '<{C2}>';    ##  caller of base.s_warn [ this parent ]  ##
 }
 
@@ -37,8 +37,8 @@ if ( length $EVAL_ERROR ) {
 
 return TRUE;    ## true ##
 
-#,,,,,...,.,.,.,,,..,,.,.,.,,,...,,,,,,,,,,,,,..,,...,...,,.,,...,...,.,.,,,,,
-#H2ONF3CMXL4TYTY3YTBAK2UMNZMYBL2TKE5L2BEG4J27NPCOT2S7ZVJUSV5H7QEGBI7OWXLCVOCRM
-#\\\|D542HLEO7HF5FZ6HVPFPALB7RPX4AYGU53IKMPOSL67FEBU7DER \ / AMOS7 \ YOURUM ::
-#\[7]Z6YM7ENRIES4CZ46PHPNR6J6JNNDOMVCQCJAS7YJRBFEI3X7A4DA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,.,.,..,,,,.,,,.,,..,,,.,.,,,..,,...,...,,,,,.,,,,.,,,..,.,,,
+#ABJFK3KHURMRXP5YWQOQFMQ2HIBCWPZXLUTN3VDS54RV3W67XL7A2G37RKHU7RNMWRLP2FBOMGFCS
+#\\\|DY24HRQYDJH6PD7K4XGAJ3UMJ5YQLRHG7ZMFRLDGSYQ5N7ENRSQ \ / AMOS7 \ YOURUM ::
+#\[7]QKVJP7XMIM7EMD2WCMX3ZLYJB3LMIMZVOGIRY2V73NWRQZLDVWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

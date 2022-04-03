@@ -30,8 +30,9 @@ if ( $user eq '' ) {
 
 }    # else provided as name .,
 
-my @pwnam   = getpwnam($user);
-my $homedir = $pwnam[7];
+my @pwnam = getpwnam($user);
+
+$homedir = $pwnam[7];    ## updating from pwnam ##
 
 if ( @pwnam == 0 ) {
     <[base.logs]>->( 0, "<< no such user : '%s' >>", $user );
@@ -44,8 +45,8 @@ if ( @pwnam == 0 ) {
 
 return $homedir;
 
-#,,,,,,,,,,,,,.,.,,.,,...,.,,,...,.,,,.,,,.,,,..,,...,..,,..,,.,.,,.,,,..,,,.,
-#6CBF7AWRCZH5CY43GJR4BBYPH535GXTQF4VIKFGQG7GVCW7GQ2VZKJTYB6BAPDZ54PSN6XIGNSJVA
-#\\\|4BV2X4NHOCDFODHG2BBKCUEL5R5TWHPB3RJ3CNDTWBADRAEL2RY \ / AMOS7 \ YOURUM ::
-#\[7]J5JL2GNHBQVWAVOPJZD2YU2ZM3I2SBNFESAZATCTNP2LW3GN52AI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,..,,..,,,.,,.,,.,.,,,.,,,,,,..,..,,...,...,.,.,,,.,.,.,,,.,,.,,
+#ZCO4K7Z63UUZ63KEZTHKFD3W3H5FE5L7PKXKHAXSVIG4TDNWUG3IBPVZYNXOSSIX4YO4V6VK3NXKO
+#\\\|6IK63ZGXRKCK74ZTSMBQREQWL2DLZCZC76GT6JTFCI4RU7AKSVZ \ / AMOS7 \ YOURUM ::
+#\[7]XEY6PWKB3VH7EMNFJAYYLBYOLZSOCOVRGEVMSVJN7LCGUYSGFMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

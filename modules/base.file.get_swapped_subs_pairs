@@ -22,7 +22,7 @@ foreach my $module_init_file_path (@module_initcode_files) {
         $line =~ s|#.+$||g;
         next if not length $line or $line !~ m|swap_subs|;
         $line =~ s|<\[(base.swap_subs)\]>|\$code{'$1'}|g;
-        next if $line !~ m|\$code{'base.swap_subs'}->\(([^\)]+)\)|;
+        next if $line !~ m|\$code\{'base.swap_subs'}->\(([^\)]+)\)|;
         my @swap_params = <[base.eval.get_params]>->($LAST_PAREN_MATCH);
         map { next if $ARG !~ m|^[\w\-_\d\.]+$| } @swap_params;
 
@@ -35,8 +35,8 @@ return ( \%swap_subs, +{ reverse %swap_subs } ) if wantarray;
 
 return \%swap_subs;    ##  file to target direction  ##
 
-#,,,,,...,,..,..,,,,.,,,.,,.,,,,.,.,.,,,,,,,.,..,,...,...,.,.,,,.,.,,,,..,.,,,
-#K6R23ZZC7PKHBG53QEIPCTVLEQMHOWS6NCIVTMWDSHRO4CSPFQH6UJC3IZQ5MVEDWOFIL2OBZPMGG
-#\\\|LT2XMV74CRVB6JYZFZK5BGBPJZAH6YONYZX2OVXOZYS7PDQ6DLY \ / AMOS7 \ YOURUM ::
-#\[7]Z2W6RBQ7F4H6QMY7RVQHOE2CNMMSOAO3HZ6IIFLY2TAPNCMOBABY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,.,.,,.,,...,,,.,,,,,..,,...,..,,...,...,,..,.,.,,..,,,.,...,
+#X5RLSGWX6CYQMY4CXPJ4SJRJKQJCN525HH4MPJLVYSLRQX664LNBDUHUIJUMKQ6DY35QOCMWDS2HY
+#\\\|CLO3FXJDL6WICX2YY6KRWWVZGXGWBS35LYXHOWLZT6QFJOGOJZK \ / AMOS7 \ YOURUM ::
+#\[7]GSS5LLMRIKY4HVPDPM5J67T6HNIVTIEFE2XNHSC4TUR76TLY7ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
