@@ -38,7 +38,7 @@ apt-get -y install libterm-size-perl \
 
 cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
   File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats \
-  SigAction::SetCallBack Crypt::Twofish2
+  SigAction::SetCallBack Crypt::Twofish2 Config::Hosts
 
 ## [ LLL ] ### repair path[?] ###
 
@@ -59,8 +59,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,,..,..,,...,...,...,,,.,,.,,,,,,...,.,,,..,,...,...,.,.,.,.,,..,,,,,.,,,
-#V46CLSPJ5PUUHBBD2ZCCWL5X2RDLMWNDQF2W27VGJA6S4PA6WSXDCN7PCTIXZ3SINXLXRIROYZRK6
-#\\\|MQLETMJB5HYLNJG7WP4B22I2VENSCKAWH2G3N3KAACHSG5TPQ4L \ / AMOS7 \ YOURUM ::
-#\[7]DQLYCWIGAHHDFJ3OVGL4H3X2TL3WK2YWGRQHG4DP6EHCDUVDUIAA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,.,.,.,,,,,,,,.,,,,,,.,,,...,..,,...,..,,..,,..,,..,,,,,,..,,
+#CO4Z4IQHRLO2GOARP4WHK566RFR7LGIY5JK56TKH6JX4EWH5XCE7GDU4VEYYP6EHTYYDHUGGWBXZA
+#\\\|GUNLY2U6Q3Q736D3VN6G2I3PR5I2MEJXZPHGUV6KJZIGWNCBQQ6 \ / AMOS7 \ YOURUM ::
+#\[7]RO52MU27WKPIPID7YTSBFLKFCS63QYJCU3HKBSB6FH5TTYEHJ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
