@@ -2,12 +2,12 @@
 
 # name = base.register_pm_deps
 
-my %pmods          = map { $ARG => 5 } grep { !m,^AMOS(::.+|$)$, } @ARG;
+my %pmods          = map { $ARG => TRUE } grep { !m,^AMOS(::.+|$)$, } @ARG;
 my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
-my $zenka          = <system.zenka.name>;
 my $start_cfg_name = qw| start |;
-state $access_warned = 0;
+
+state $access_warned = FALSE;
 
 my $file_perm = 0664;    ##  zenka group gets write access  ##
 my $owner     = <system.amos-zenka-user> // qw|  protocol-7  |;
@@ -53,7 +53,7 @@ if ( $mod_dir
                 if ( $EUID == 0 ) {
                     chown( $src_stat->uid, $gid, $path_abs )
                         or <[base.logs]>->(
-                        2,        ":. : cannot chown %s : %s .:",
+                        2,        ':. : cannot chown %s : %s .:',
                         $relpath, <[base.str.os_err]>
                         );
                 }
@@ -75,8 +75,8 @@ if ( $mod_dir
     }
 }
 
-#,,.,,,,.,,,.,,..,.,.,,,.,..,,...,,,,,,.,,,.,,..,,...,...,...,...,.,,,.,.,,.,,
-#Q666DTQSXUZJ6ANFEFU2RSZV2IYPPXR4AQUDIBIFQSZGZB576UGFCZ5MOYDDQNY5KJEGZTGY6WUG6
-#\\\|M23M3A2ZRDUKPEO3XQC7ZJHENYDBFTZLAWVGEBHO5K35BG6LSGO \ / AMOS7 \ YOURUM ::
-#\[7]NEJLUWEBXWMRTT4BIWFJN72PJIMTW2IHCKICEHQZLVZDVUECFSDQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,...,,.,,...,,.,,.,.,.,.,,..,..,,...,...,.,.,..,,..,,,,,,...,
+#PFZ66YNEDOIFHANC6OQRDLFGEVUF6LXFS5CZNCBRODPPXWJNG2PPSFJCELQHGCYCBCXJWYKOXOL2C
+#\\\|Z6JMI3TUE6N5UFHEI6I6L5DUU4EADGY3VKENX3WKME5CLQJ6YUU \ / AMOS7 \ YOURUM ::
+#\[7]AM7RANT3TB3AWBVZECPMJMT4NQ2PFIHSC3GOTIHVCZ4N756AUABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

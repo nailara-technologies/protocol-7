@@ -5,9 +5,12 @@
 my $s_ref = $ARG[0];
 
 my $match_count = 0;
-my $return_data = 0;
+my $return_data = FALSE;
 
-$return_data = 5 and $s_ref = \$ARG[0] if not length ref $s_ref;
+if ( not length ref $s_ref ) {
+    $return_data = TRUE;
+    $s_ref       = \$ARG[0];
+}
 
 $match_count = $$s_ref =~ s{([^\p{ASCII}])}
                            { my $v = unpack('U',$LAST_PAREN_MATCH);
@@ -22,8 +25,8 @@ return $s_ref->$* if $return_data;
 
 return $match_count;  ## return whether data replaced [ input scalar ref. ] ##
 
-#,,..,.,,,.,,,...,,..,..,,..,,,..,,,,,,,.,...,..,,...,...,..,,,,,,,,,,,.,,..,,
-#7DE6NJ5JOZPKK56BKPUB7JGVJEFPGDTKVDFUZ5MJTYSBEN3OUZWU776F7B24AHKUCRPOVW6WJ2XZG
-#\\\|SZFM42WAG7KUGN4IDJV6SB55TW2CX3CZPV63GPZ5LNI4OKFBLRV \ / AMOS7 \ YOURUM ::
-#\[7]5LCUGXL7LIURKI5O6SBORVOR3UR5HHQQRLK2B42X2OHOI2G4EYDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,.,.,,..,,..,,,,,,,.,,,,,,,,,..,,...,...,..,,..,,,.,,,..,,.,,
+#KF5MGY4BIFC7KTOHBKLTKMBMIAV53N7YHXECXIUZUY2W2FQ6SWGR2CHG5BFX263WPXBKQX3ZACISY
+#\\\|TDXG42ZOPYZG5PGHAPY5SV4LJGOZV2QA6HQLC4BO2C7QQ25XGP6 \ / AMOS7 \ YOURUM ::
+#\[7]7ZDQSQNI26NLHJ47NOMEIQS7YYFZGDZJZJ4MP22WMWPQH6NQ6QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

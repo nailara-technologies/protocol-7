@@ -48,7 +48,7 @@ my $use_aliases = TRUE;    ## <-- resolve config command aliases ? ##
 my $noerr       = TRUE;
 $main::RUN_ZENKA_CFG_LINE = 0;
 
-my $event_loop_name_re = qr,\$code{'(event.loop|(base.)?zenka.loop)'},;
+my $event_loop_name_re = qr,\$code\{'(event.loop|(base.)?zenka.loop)'},;
 my $event_loop_present
     = <[base.list_matches]>->( \@zenka_perl_code, $event_loop_name_re );
 
@@ -103,7 +103,8 @@ foreach my $code_line (@zenka_perl_code) {
     }
 
     if ( length $EVAL_ERROR ) {
-        if ($EVAL_ERROR =~ m,^Can't use (string \(""\)) as a subroutine ref, )
+        if (
+            $EVAL_ERROR =~ m,^Can't use (string \(""\)) as a subroutine ref, )
         {
             my $code_line_copy = $code_line;
             while ( $code_line_copy =~ s|(\$code\{'([^']*)'\})|| ) {
@@ -165,8 +166,8 @@ if ($noerr) {    ##  reset names when no error has occurred  ##
 }
 return $noerr;    ## return zenka cfg execution status ##
 
-#,,.,,,.,,,..,,,,,..,,..,,,..,,,.,,,.,,.,,.,,,..,,...,...,...,,,.,,.,,,,.,...,
-#GSKZODGLFZ5CSNFQA26TGTFWULPUNQ3FL2VNBSCV4VZ2W3NYSMNZ52YK2SQ4ENN4ZL76WRCSYUPOE
-#\\\|VLZCO3BMPQY3MWHY4BNABBWNBMENWI2GQ37M5MROQYKDRDIHMAH \ / AMOS7 \ YOURUM ::
-#\[7]UPT3WBJYNOUIWJP2DIIODBHU2OYWOXHHPHW2VE7JPEFOQVVGQCDY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,.,,,,,.,.,,,,.,,.,.,,..,,.,,..,,...,..,,...,,.,,,,,,,,,,..,,
+#NEDZJTA4VQ53THDGQOI7SLIFE4WKUYPNDYBXWKEIXJIKKMEKXSXFKL7IIJ5E5SQZYXQ7Y3HPNKF3E
+#\\\|WEWWPH2INXU3TCHJCNEXFPGZOEYKPLBGCF5REIZFMN7IQVP7DHV \ / AMOS7 \ YOURUM ::
+#\[7]SOX2B5XADTQ65LCQZ4TDLPA376UK6QV4SP43X3BTKMJ7K6X23MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
