@@ -9,8 +9,10 @@
 my $conf_path = <system.conf_path>;
 my $code_data = [];
 $code_data = shift @ARGV if ref $ARGV[0] eq qw| ARRAY |;
-my @code_files = @ARG;   # all files' data will be appended to the $code_data.
-my @match_filenames = <[file.match_files]>->( $conf_path, @code_files );
+my @code_files      = @ARG;   ## file list data will be appended to $code_data
+my @match_filenames = <[file.match_files]>->(
+    $conf_path, map { sprintf qw| %s$ |, $ARG } @code_files
+);
 if ( @match_filenames == 0 ) {
     warn 'no cfg file names match <{C1}>';
     return undef;
@@ -80,7 +82,7 @@ foreach my $filename (@match_filenames) {
                 );
             }
         } else {
-            push @$data_ref, $line;
+            push $data_ref->@*, $line;
         }
     }
 }

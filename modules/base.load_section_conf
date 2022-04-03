@@ -8,30 +8,34 @@
 my $conf_path   = <system.conf_path>;
 my $config_data = {};
 
-$config_data = shift if @ARG and ref( $ARG[0] ) eq 'HASH';
+$config_data = shift if @ARG and ref( $ARG[0] ) eq qw| HASH |;
 
 ## config directory supplied ##
 $conf_path = shift if @ARG > 1 and -d $ARG[0];
 
-my @cfg_files = @_;
+my @cfg_files = @ARG;
 
 return warn 'expected configuration file parameter[s] <{C1}>'
-    if !@cfg_files
+    if @cfg_files == 0
     or @ARG == 1 and -d $ARG[0];
 
 my $match_count = 0;
 my $lines_count = 0;
-foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
+foreach my $file_path (
+    <[file.match_files]>->(
+        $conf_path, map { sprintf qw| %s$ |, $ARG } @cfg_files
+    )
+) {
 
     ( my $file_name = $file_path ) =~ s|^.*/||g;
-    <[base.log]>->( 2, ": loading section config '$file_name'.," );
+    <[base.logs]>->( 2, ": loading section config '%s'.,", $file_name );
 
     my @cfg_lines;
 
     <[file.slurp]>->( $file_path, \@cfg_lines );
     if ( !@cfg_lines ) {
-        <[base.log]>->(
-            0, ": unable to load section config file '$file_name'"
+        <[base.logs]>->(
+            0, ": cannot load section config file '%s'", $file_name
         );
         return undef;
     } else {
@@ -47,14 +51,14 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
         $line =~ s|^\s+||;
         next if $line eq '';
         if ( $line =~ m|^\.:\s*([\w_\-\.]+)\s*:\.$| ) {
-            $section         = $1;
+            $section         = $LAST_PAREN_MATCH;
             $sub_section     = undef;
             $sub_sub_section = undef;
         } elsif ( $line =~ m|^-\s*([\w_\-\.]+)$| ) {
-            $sub_section     = $1;
+            $sub_section     = $LAST_PAREN_MATCH;
             $sub_sub_section = undef;
         } elsif ( $line =~ m|^:\s*([\w\[\]_\-\.]+)\s*:$| ) {
-            $sub_sub_section = $1;
+            $sub_sub_section = $LAST_PAREN_MATCH;
         } else {
             if ( $line =~ m|^([\w\.\-_]+)\s*=\s*(.+)+$| ) {
                 if (    defined $section
@@ -67,34 +71,30 @@ foreach my $file_path ( <[file.match_files]>->( $conf_path, @cfg_files ) ) {
                 } elsif ( defined $section ) {
                     $config_data->{$section}{$1} = $2;
                 } else {
-                    <[base.log]>->(
-                        0,
-                        "$file_name: "
-                            . "no section defined for "
-                            . "'$line' [ line $line_num ]"
+                    <[base.logs]>->(
+                        0, "%s: no section defined for '%s' [ line %d ]",
+                        $file_name, $line, $line_num
                     );
                 }
             } else {
-                <[base.log]>->(
-                    0,
-                    "syntax error in '$file_name' "
-                        . "at line $line_num ['$line\']"
+                <[base.logs]>->(
+                    0, "syntax error in '%s' at line %d ['%s']",
+                    $file_name, $line_num, $line
                 );
             }
         }
     }
 }
 
-if ( !$match_count ) {
+if ( $match_count == 0 ) {
     <[base.log]>->( 0, ': no configuration file loaded or found .,' );
-    <[base.log]>->( 2, ": : conf-path : '$conf_path' :." );
-    map { <[base.log]>->( 2, ": : :.. '$ARG'" ); } @cfg_files;
+    <[base.logs]>->( 2, ": : conf-path : '%s' :.", $conf_path );
+    map { <[base.logs]>->( 2, ": : :.. '%s'", $ARG ); } @cfg_files;
 } else {
     <[base.logs]>->(
-        2,
-        ": $match_count file%s loaded, $lines_count config line%s.,",
-        <[base.cnt_s]>->($match_count),
-        <[base.cnt_s]>->($lines_count)
+        2,            ": %d file%s loaded, %d config line%s.,",
+        $match_count, <[base.cnt_s]>->($match_count),
+        $lines_count, <[base.cnt_s]>->($lines_count)
     );
 }
 
