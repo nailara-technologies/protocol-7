@@ -56,7 +56,8 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     $keyword_match = TRUE;                                        ## true ##
     delete <base.commands>;
     delete <base.subroutines>;
-    <base.modules.load_errors> = 0;
+    <base.modules.load_errors>      = 0;
+    <base.modules.compile_warnings> = 0;
     $data{'callbacks'}{'end_code'} = [];
 
     <[base.logs]>->( '[%d] < reload source code >', $id );
@@ -75,7 +76,11 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     map { delete $data{'base'}->{$ARG} } (qw|  cmd  console  overwritten  |);
 
     my $load_success = <[base.load_modules]>->(@reload_modules);
-    if ( $load_success and not <base.modules.load_errors> ) {
+    if ( $load_success and <base.modules.compile_warnings> ) {
+
+        $reply->{'data'} .= "$s_str reload source  [ warning ]\n";
+        $success = TRUE;    ## [ still ] true ##
+    } elsif ( $load_success and not <base.modules.load_errors> ) {
         $reply->{'data'} .= "$s_str reload source  [ success ]\n";
         $success = TRUE;    ## true ##
     } else {
@@ -108,20 +113,20 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     ) if <protocol-7.rel-ver> ne $old_release;
 }
 if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
-    $keyword_match = TRUE;    ## true ##
+    $keyword_match = TRUE;            ## true ##
     <[base.logs]>->( '[%d] < reload plugins >', $id );
-    if (<[base.reload_plugins]>) {
+    if (<[base.reload_plugins]>) {    ## [ LLL ] add warnings
         $reply->{'data'} .= sprintf "%s plugin reload  [ success ]\n", $s_str;
-        $success = TRUE;      ## true ##
+        $success = TRUE;              ## true ##
     } else {
         $reply->{'data'} .= sprintf "%s plugin reload  [  error  ]\n", $s_str;
-        $success = FALSE;     ## false ##
+        $success = FALSE;             ## false ##
     }
 }
 if ( $arg eq qw| init | or $arg eq qw| all | ) {
-    $keyword_match = TRUE;    ## true ##
+    $keyword_match = TRUE;            ## true ##
 
-    delete <base.templates.sprintf>;   ## require automatic reload on 'src' ##
+    delete <base.templates.sprintf>;  ## require automatic reload on 'src' ##
 
     <[base.logs]>->( '[%d] < source code reinit >', $id );
 
@@ -172,8 +177,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,..,.,,,.,,,,,.,,..,.,,,,,.,,,,,,..,,.,,.,,,..,,...,...,.,,,,,.,.,,,...,.,,,
-#ZOPN4M52NYUOOVRKCFALQ26XXXC7VSEJQLZJHFZCJR2NGDAZ3P4UKZFMF5SMSMDRL6CXZR6XRZY66
-#\\\|DSAOPBWSVM7FNLXKG5UHCRID3J2GDUMDI6NMY6W7XJV3POIMXZI \ / AMOS7 \ YOURUM ::
-#\[7]ALGODKUFGIWC3NGXR7OECQL6Y3XIU6FWYYXZLRZPGFMXNPBIY6AY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,,,,,,,.,..,,,.,,.,.,...,,,.,..,,...,...,...,,.,,..,,..,,..,,
+#ZW52HHVMETXJ6L6M7ELLVVQX4K5ZYKXEZQY342ER7WU7NX2ZDXYZXDDWTE6ZDDI4S7NWLIYYKHYYM
+#\\\|O2C2IAWSCIL24PXCUIIC6NNS74P6ZLKCPY3Y5THETSL7HNTSYSC \ / AMOS7 \ YOURUM ::
+#\[7]VPATAKQM6E3FRAGMQN47OENJFPAOTXP6HZI6POQRJTY56J227OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
