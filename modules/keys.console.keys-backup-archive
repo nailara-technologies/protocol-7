@@ -7,7 +7,8 @@ return if <[keys.get_keyfiles]> == 0;    ## warns when absent ##
 
 my $path = shift;
 
-$path = qw| / | if defined $path and ( not -d $path or not -r $path );
+$path = qw| / | if defined $path and not -d $path and not -r $path;
+
 ( my $file, my $overwrite ) = <[keys.select_archive_path]>->($path);
 
 if ( not defined $file ) {
@@ -39,8 +40,8 @@ if ( not <[keys.write_key_archive_file]>->( $file, $enc_pwd, $overwrite ) ) {
 
 return printf( "::[  successfully wrote archive file %s  ]::\n\n", $file );
 
-#,,..,,..,...,,..,,,.,.,.,,,,,...,,,,,,,,,,,,,.,.,...,...,.,,,,,,,,.,,..,,.,,,
-#55KD3M5WNZI35DBZTUL3FDWHNP7GHIXBTSFU4ECSFVVLSMN6XS6QDEQXR6NBTQCJWGBWSN6DXOUTG
-#\\\|T45BSKIM64ICMHSK6NZQYVJWEAIVAEPGP7ONTKZMA2PEO7DTKCA \ / AMOS7 \ YOURUM ::
-#\[7]QKDYHUCNKHUSB2T4A2E22JEXFSBVCA7WNS6JE4ZBQJA4ZDKQRCDY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,...,,,.,..,,,,,,..,,.,,,.,.,.,.,...,...,.,,,...,...,,.,,.,.,
+#NHKIKOHOFFJDZQKBCD3J73OCRTKEGVH5CCLDMSG5ENZEKPDESNWYFLNGUKGWZA7TQHSYUOVFNYYBW
+#\\\|LG7NCKNPPEN6VFEAE47GKLHKURKPHAIH3SO6VB34G5QOD32S5E4 \ / AMOS7 \ YOURUM ::
+#\[7]H3S6VBJFSKLBZBE6J3PS4OPVQA5TBTK5G24K36LTNFX7PF47EYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
