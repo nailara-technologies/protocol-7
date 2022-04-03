@@ -18,9 +18,9 @@ use parent qw| LWPx::ParanoidAgent |;
 our $etc_hosts = Config::Hosts->new();
 
 sub read_hosts {
-    my ( $self, $hosts_file ) = @_;
-    $hosts_file //= '/etc/hosts';
-    <[base.log]>->( 1, "reading '$hosts_file' file.." );
+    my ( $self, $hosts_file ) = @ARG;
+    $hosts_file //= qw| /etc/hosts |;
+    <[base.logs]>->( 1, "reading '%s' file..", $hosts_file );
 
     my $stderr_fhcopy = *STDERR;
     my $stderr_buffer = '';
@@ -34,14 +34,14 @@ sub read_hosts {
         <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
         $etc_hosts = undef;
     }
-    map { <[base.log]>->( 0, "[ $hosts_file ] $ARG" ) } split /\n/,
+    map { <[base.log]>->( 0, "[ $hosts_file ] $ARG" ) } split m|\n|,
         $stderr_buffer;
 }
 
 sub _resolve {
-    my ( $self, $host, $request, $timeout, $depth ) = @_;
+    my ( $self, $host, $request, $timeout, $depth ) = @ARG;
 
-    <[base.log]>->( 2, "resolving host '$host'.." );
+    <[base.logs]>->( 2, "resolving host '%s'..,", $host );
 
     ## /etc/hosts ##
     if ( defined $etc_hosts ) {
@@ -49,7 +49,7 @@ sub _resolve {
         $local_result = $etc_hosts->query_host($host);
         if ( defined $local_result and defined $local_result->{'ip'} ) {
             my $ip_addr = $local_result->{'ip'};
-            <[base.log]>->( 2, ": found local entry '$ip_addr'" );
+            <[base.logs]>->( 2, ": found local entry '%s'", $ip_addr );
             return $ip_addr;
         }
     }
@@ -67,27 +67,28 @@ my $download_path = <download.cfg.download_path>;
 <download.cfg.http.user_agent>      //= '';
 
 <download.obj.ua> = Download::UserAgent->new();
+
 <download.obj.ua>->read_hosts() if <download.cfg.http.query_etc_hosts>;
 
 <download.obj.ua>->whitelisted_hosts( sub { return 1 } );
 <download.obj.ua>->agent(<download.cfg.http.user_agent>);
-<download.obj.ua>->protocols_allowed( [ 'ftp', 'http', 'https' ] );
+<download.obj.ua>->protocols_allowed( [qw|  ftp  http  https  |] );
 <download.obj.ua>->timeout(<download.cfg.http.request_timeout>);
 
 if ( !-d $download_path ) {
     my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
-    <[base.log]>->( 1, "creating download directory '$download_path'.." );
+    <[base.logs]>->( "creating download directory '%s'.,", $download_path );
     make_path( $download_path,
         { 'mode' => 0750, 'uid' => $uid, 'group' => $gid } )
         or warn
-        "unable to create download directory '$download_path' [ \l$OS_ERROR ]";
+        "cannot create download directory '$download_path' [ \l$OS_ERROR ]";
 }
 
 0;
 
-#,,..,..,,,,.,,.,,,,,,,,,,.,,,.,.,...,.,.,.,.,..,,...,...,.,.,,,,,..,,.,,,,,,,
-#5BL6XGZIRRKGNKC3F5WRYK3CMA7ITBGCJONBC62YASI3VSWJPWMLTC3RSORC66P7XCJAIBPUDSW5E
-#\\\|PHJ2ZVO6SOEVKFSCPFRZTQCVAITZ4SJDOZMCFJQLD4IRRCJFVW2 \ / AMOS7 \ YOURUM ::
-#\[7]TG3U5YUBKOMGLF45AVLRPYHWFV3ZD2Q54MCIB3BPZNAFA6QVUWCI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,,,,,..,...,,..,.,.,,.,,.,.,..,,...,..,,.,.,...,...,,.,,,,,,
+#AGJSFY4WQDY3HJVEUBBFYTQTY2LL7EDZVRXT72QPYKC7RSKOPXAHNT75FQOZTXQUVXHHFCP5O4POG
+#\\\|CDHH3RUV2MG4TGTCY4D7U5YUZ66BZTA22VEPOGLHA5H6FVDU363 \ / AMOS7 \ YOURUM ::
+#\[7]TGUDW2AZGBQONE26GO6PUKJO7OVZDOFFAXIOO5TRTVHECOASUQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
