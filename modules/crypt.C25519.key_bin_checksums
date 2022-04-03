@@ -33,12 +33,11 @@ foreach my $key_bin (@key_strings_binary) {
 return qw| <::encrypted::> | if $priv_key_encr and @key_strings_binary == 1;
 
 my $checksum_template         = qw| <:%s:> |;
-my $pubkey_str_truth_template = qw| <:%s:>,:%s: |;
+my $pubkey_str_truth_template = '<:%s:>,:%s:';
 
 ## expanding template for encrypted priv key case [consistency] ##
-$pubkey_str_truth_template .= qw| ,<::[enc-key]::%s:>,::[enc-key]::%s: |;
-
-my $priv_key_truth_template = qw|<:%%s:>,:%%s:,<:%%s:%s:>,%%s:%s,:%%s:%s:|;
+$pubkey_str_truth_template .= ',<::[enc-key]::%s:>,::[enc-key]::%s:';
+my $priv_key_truth_template = '<:%%s:>,:%%s:,<:%%s:%s:>,%%s:%s,:%%s:%s:';
 
 my @checksums;
 
@@ -102,8 +101,8 @@ AMOS7::TEMPLATE::reset_temp_valid_timeout();
 ##
 return sprintf $checksum_template, join( qw| : |, @checksums );
 
-#,,,,,...,...,.,,,...,.,.,.,,,...,,..,...,.,.,..,,...,...,...,,,.,...,.,.,...,
-#2JCGDD5WSD335JUXOWGLDUUDJQIRR56FBZUDTXHP6Y64DRDBAUGARCARD4F5P3X25Y6FWRFQKOJTM
-#\\\|S4XYTRAWZWJJPSMLFWQ5YMQGGZ5DDL25LMUXW6AZST46NPEJZXD \ / AMOS7 \ YOURUM ::
-#\[7]QDCDA4RWKPF2LK55EYSU7SULJSXCHOW7IN5TNDDVLGVOGEWGJWAY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,,.,,..,,...,...,.,,,,.,,..,,..,,...,...,,..,,,,,,,,,.,.,,..,
+#CR54O2OLCSHSQTRB7PR4AM22R3M7ZPS5QASMNH3NLGWY5C3DAGIXQJAQINY2GIW2QGBF5CKVFGQJI
+#\\\|K7GN3FJZ6ML5URPHHISKZQGT5FO2MS6Z5OTHH27AE4RDEZEN3W2 \ / AMOS7 \ YOURUM ::
+#\[7]OVZG3574J7CWWSSO6YX45REE5FAPWGRVA2DNSFEQGW6NPQNXSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
