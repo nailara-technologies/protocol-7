@@ -377,7 +377,7 @@ if ( $status eq qw| shutdown |
     delete <zenka.instance.shutdown>->{$instance_id};
     <[base.logs]>->( 2, "instance %s terminated ['shutdown']", $instance_id );
 
-    if (<[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq qw|false| )
+    if ( <[zenka.cmd.get-instance-ids]>->($zenka_name)->{'mode'} eq 'false' )
     {
         delete <v7.zenka.prefix_width>->{$zenka_name};    ## <-- improve [LLL]
         <[v7.calc_prefix_lengths]>->( keys <v7.online-zenki>->%* );
@@ -453,8 +453,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,..,..,,,.,,...,,,.,,..,.,,,,,,,,.,,...,..,,..,,...,.,.,..,,..,,.,,,...,..,,
-#VNVAJRBC72QNSBD7NSU37GDMS7Q2COOWRODNYHSLD7CQIIT4XF27I7N4P4PE5MD6SJJMML4YPJGAY
-#\\\|VZPWEKKX5IPW4FGKE47FNVR75ZUSH53LON56EVDLX275WFANSPZ \ / AMOS7 \ YOURUM ::
-#\[7]JVOWI6DJQCIL7G4RJJZWG5Q3MONDZAVQA4RXRK2VCM2WZQGX3YDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,...,,,,,..,,.,.,..,,.,.,,.,,..,,...,...,.,,,,,.,,,.,.,,,..,,
+#AWPDS27DJZTJS7N75DYOOG7R4AY3NEK5TQ7QCDUHCA4KGKIEOUA5Y6WIL6VROYYQ7WCWO2HLSTYBO
+#\\\|C7R2WOWRZOFCNPYXIJNJ5CUXFSPG6IDPK23ZNWCHA2BC7JQEIMP \ / AMOS7 \ YOURUM ::
+#\[7]AG5D72FCK7JDB5KG2LANXOOUWYPW6LAFR4EMGDO4OZCSRP4QSYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
