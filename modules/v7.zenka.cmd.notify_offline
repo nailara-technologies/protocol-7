@@ -6,9 +6,8 @@
 
 <v7.zenka.notify_offline> //= {};
 
-my $zenka_subname;
-my $query_param = $$call{'args'};
-my $reply_id    = $$call{'reply_id'};
+my $query_param = $call->{'args'};
+my $reply_id    = $call->{'reply_id'};
 
 return {
     'mode' => qw| false |,
@@ -65,12 +64,12 @@ if ( $query_param =~ <regex.base.iid> and my $id = $query_param ) {  # inst.id
     2, "shutdown notification request for zenka '%s' received", $query_copy
 );
 
-push( @{ <v7.zenka.notify_offline>->{$query_copy} }, $reply_id );
+push( <v7.zenka.notify_offline>->{$query_copy}->@*, $reply_id );
 
-return { 'mode' => 'deferred' }
+return { 'mode' => qw| deferred | }
 
-#,,,.,,..,..,,.,,,,..,,,,,,,.,,,.,...,..,,.,.,..,,...,...,..,,..,,,,,,,,,,...,
-#4CYZXR5EMLV5GY2DTUEULU5XODRB5MYBHUZYKDYM3GJWYF6TH5RT645TVHROEOCYJORUS5WCREJ7G
-#\\\|MRQJBXI4FZNLAJFEL54CVLMPKKJQHVZXDHNFI2I43S3KESIT6XS \ / AMOS7 \ YOURUM ::
-#\[7]SUNVICDF7XJBQHQXKAOT32TQKW44BMICNECAXFAMTXGJ27EJWEBY 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,.,.,,..,,,,,,..,,..,...,.,.,..,,...,...,...,,.,,.,.,,,,,,,,,
+#T6DDEKFTY5S66NBIXX4WRJWHEJ4L6GO5P3DK7RZ4YHGODEZD3SQIT47ATCGOIND7WMVLKOUU77H3Q
+#\\\|KGVBOBSOLHEPO6KBIZJQTWXR6PCXQQGPAUSO2CVBFPSSNXFFSMN \ / AMOS7 \ YOURUM ::
+#\[7]SML5235SWRQ5ISQRC4HLZZUEYJJH2NAHPIMJH56VSOLI5F4W7WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

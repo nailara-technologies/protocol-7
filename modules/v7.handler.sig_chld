@@ -18,7 +18,7 @@ my $collected_child_pids = <base.process.waitpid_collected> //= {};
 
 ##[ collecting new arrivals ]#
 ##
-TRUE while <[base.waitpid]> > 0;
+do { } while <[base.waitpid]> > 0;
 
 @waitpid_pid = <[base.reverse-sort]>->($collected_child_pids)
     if keys $collected_child_pids->%*;
@@ -105,8 +105,8 @@ while ( my $end_pid = shift @waitpid_pid ) {
         if defined $instance_id or defined $end_pid;
 }
 
-#,,,.,,,.,,.,,.,,,.,,,,,.,.,.,,,.,..,,,..,.,,,..,,...,...,,..,,..,,,,,.,,,,,.,
-#TF2QJP2MYHELRJDZL2LXE45O2CISJLKBFV6U3MZS4JB4ZQHSNO7J76NTNEXFS5DWF6F32MEBDSV6G
-#\\\|SEGUO7CMM3TC2HIH2QOKRGIHMP4KIBXA7JX2KSQIYX3AC2PTPDH \ / AMOS7 \ YOURUM ::
-#\[7]PHKJQVYC2SK4LVDZJWJQBNKGIZGFQFHGF6QPU7N4IU6MSTSVS6DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,.,,.,,,,.,.,,,,..,,.,,,..,,..,..,,...,..,,.,.,,..,,.,,...,.,,,
+#3SW2RKKXXJTYNYVBIECGRJ3HQHRKQ2PE2BYBSDYYIVX7NUWGP6GD2TSOUSKAYAI7KFTVKCE2Y4FLS
+#\\\|UUMBPQWLGRZV3UEZ23SPRXPCDV5M7OWTJ4U55N4VDYFDGF3TZBE \ / AMOS7 \ YOURUM ::
+#\[7]5KDPT6ULPOUBFNZEXNZL63LC4IZVPFYXVGQDO6KFMLSEYVSCR6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
