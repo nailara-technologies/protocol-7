@@ -950,7 +950,7 @@ sub p7_chk_nlr_path {    ## LLL: reduce calls \ exposure .,
         ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
         return $path_str if defined $f_path and -r $f_path;
     }
-    $data{'modules'}{'warned'}{$f_path} //= {};    # <-- clean-up later..,LLL
+    $data{'modules'}{'warned'} //= {};    ## <-- cleaned up later
     my $reason
         = ( -l $f_path and !-r readlink $f_path ) ? 'readable' : 'found';
     warn "<< source not $reason : '$chk_path' >> <{C1}>"
@@ -1139,8 +1139,7 @@ sub p7_load_code {
             @subroutine_names = split( m|\n|, $remote_data_str );
             $data{'base'}{'httpc'}{'remote_source'} = {};
             map {
-                $data{'base'}{'httpc'}{'remote_source'}->{"modules/$ARG"}
-                    = 1
+                $data{'base'}{'httpc'}{'remote_source'}->{"modules/$ARG"} = 1
             } @subroutine_names;
             $data{'base'}{'source'}{'code_files'} = \@subroutine_names;
         } else {
@@ -1473,8 +1472,8 @@ sub p7_load_code {
         }
 
         my $err_str = $EVAL_ERROR;
-        state $t_wrap //=
-            ( defined &wrap )
+        state $t_wrap
+            //= ( defined &wrap )
             ? sub { return wrap( '', ': ..  ', $ARG ) }
             : sub { return $ARG };
         $err_str =~ s| at $sub_name line (\d+)[\.,]
@@ -1509,6 +1508,8 @@ sub p7_load_code {
             '  :: warning ::',
             '  :',
             (   map {
+                    $warn_count++;
+                    $warn_count_total++;
                     push(
                         @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
                         "\l$ARG"
@@ -1655,6 +1656,9 @@ sub p7_load_code {
             }
         }
     }
+
+    $data{'base'}{'modules'}{'compile_warnings'} += $warn_count_total;
+
     delete $data{'callbacks'}{'end_code'}
         if not $data{'callbacks'}{'end_code'}->@*;
     map {
@@ -3825,8 +3829,8 @@ __DATA__
 :
 :.
 
-#,,.,,,.,,...,,.,,,.,,.,,,..,,,,.,.,,,,,,,,.,,..,,...,...,...,...,,,,,..,,,..,
-#4R5TNWKBJTFSPOLYAW5BM6ZUJ677DDFS4KMOOEJYH2DDKKRRDDPONCSAMYKOM7JSMVIP7EG6PKHQI
-#\\\|HHH4A6FZ7SHFQQH3T36M5X2NEG7EKVPRISYPFSDB6KORPEFXGT5 \ / AMOS7 \ YOURUM ::
-#\[7]W73TJVLMOJYYQMXQ6S5FGXURZGPW6INTFR6PHPHLX2Q6LPWWK4BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,.,,..,.,.,,..,,,,,.,,,..,,,,.,..,,...,...,,,.,.,,,..,,,,,,,,,,
+#HCADVMYS3OYOLPPCYSSI5LQMIDASNOAAZWBRWGLQPEDEXUZN3VIGB5YYIHNUH6IXBMI54BTKW7W7A
+#\\\|O4HL323EU66LCLNYJBZ464ISJLVDE3Z3L4TC4PEO3AWQ5P634PY \ / AMOS7 \ YOURUM ::
+#\[7]7OQF6SK335U5IHZPVOPU7RE2XSOBYY2W7PPI5DJWLMOQ6J45O6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
