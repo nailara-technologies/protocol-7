@@ -28,7 +28,6 @@ foreach my $file ( <[file.all_files]>->($zenka_path)->@* ) {
         $hostname_L13
     ) if not exists <discover.resend-host-reqs>->{$hostname_L13};
     <[base.logs]>->( 2, "          : zenka '%s' .,", $zenka );
-    my $hostkey;
     my $key_ref = <[file.slurp]>->($file);
     if ( ref $key_ref ne qw| SCALAR | ) {
         <[base.s_warn]>
@@ -95,8 +94,8 @@ if ( not $num_reqs ) {
 
 return $request_ref;    ##[ returning href of loaded resend requests ]##
 
-#,,.,,,.,,,,.,,.,,,..,,..,,.,,,..,.,.,.,,,..,,..,,...,.,.,..,,...,.,,,..,,...,
-#VSGKHQZCAXIC5O2GVVIDLUNVFGCZ5VWFPN2HMRTEOITAHWD2KEWTUJRNKDZ32S26O5D75HR2XZ7VK
-#\\\|PYNDVJSWLRLT7ZWX4GZZJNIGDK2NCYNI2FFXQVZKHRIXYFAXXKN \ / AMOS7 \ YOURUM ::
-#\[7]MKSR5WMOLKMDLUW6H67EEYRKTG4GBY3TR4T5ZICETXWRGHUWMGDA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,..,...,...,...,.,,,,.,,...,,..,..,,...,...,...,..,,..,,.,,,,.,,
+#VRPLTALVXQAKLW34XEL237KEGLLWREK3O6KRMTUALQTKJ3DYJGJLPQTBT5ZTUYOON7VGIHR47XFSW
+#\\\|4CIBONIIKA4B3QNMXYHSOZIKYTNRVR34LOF4IM2L65LUKTJTTEQ \ / AMOS7 \ YOURUM ::
+#\[7]OVGIN5APD4B4BWKGJ3646WP75B2MSO7QMQEC3BKP724W6R3O2SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,9 +8,9 @@ my $content_type;
 my $url = shift->{'args'} // '';
 
 return { 'mode' => qw| false |, 'data' => 'url parameter expected' }
-    if !length($url);
+    if not length $url;
 
-my $uagent = <download.obj.ua>;
+my $uagent = <download.obj.ua> or die 'useragent object not defined';
 
 $uagent->protocols_allowed( [ 'http', 'https' ] );
 $uagent->agent("Mozilla/5.0");
@@ -43,8 +43,8 @@ if ( $response->is_success ) {
 my $mode = $content_type eq 'unknown' ? qw| false | : qw| true |;
 return { 'mode' => $mode, 'data' => $content_type };
 
-#,,,.,..,,,..,,,,,,,.,,,,,,..,,.,,.,.,..,,...,..,,...,...,,,,,,.,,.,.,,.,,,..,
-#C2YLUH73VO6ZSMUPIM35WPPP6XLXTE6QFAM46FPLUZSACSYC344Z5HGPJ5XOAXZHH3SFRL375KQKE
-#\\\|VEKTXQVAEW7CWEDLB66QYDUEP44GQZFR57W2ZWDAXLISE5QQB3Y \ / AMOS7 \ YOURUM ::
-#\[7]V5QQPQ3NESN74M2HCJELKEPHI2OTOVOFEYNRQAKPGNUOLPDKWUCY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,...,..,,,,,,...,.,.,,,.,.,,,.,.,..,,...,...,,,,,..,,,..,.,.,,,.,
+#HHBWGDJM7ES2SPPBKXWPFOKOXZ7YN34EVCEHYUXSETV2WPKVKOOGVJLT2ZH3XB3PNNYVMRTCNWSM4
+#\\\|PM4QZJELQL2J5YCF7HTUOXQ2GDDY2NBV4LX6IAPQB6MXW5VFJPB \ / AMOS7 \ YOURUM ::
+#\[7]76TLVCSJCFLWLAHLJFUMJVD4MSFQ33L6FDLFVC5LCWYVH7O2QQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,6 @@ foreach my $file ( <[file.all_files]>->($zenka_path)->@* ) {
     next if $file !~ m|/([A-Z2-7]{13})$|;
     my $hostname_L13 = $LAST_PAREN_MATCH;
     <[base.logs]>->( 2, ': loading : resend request [%s] .,', $hostname_L13 );
-    my $hostkey;
     my $key_ref = <[file.slurp]>->($file);
     if ( ref $key_ref ne qw| SCALAR | ) {
         <[base.s_warn]>
@@ -75,8 +74,8 @@ if ( not $num_reqs ) {
 
 return $request_ref;    ##[ returning href of loaded resend requests ]##
 
-#,,,,,,,.,,,,,.,.,,..,...,,.,,...,.,.,,,.,..,,..,,...,..,,..,,,..,.,.,,.,,.,.,
-#VIMDKBGSGJGLBBKL32MBYQCL5FIAHJNW53SELEFNO3R45RFW2PXQIBY4EHEUXGKBBFC2ON4TRMKGW
-#\\\|5DFU7GNIJSQ6CDDSNEHJG2QLO72GMF2MXFYOWU4PDX7CGV472OW \ / AMOS7 \ YOURUM ::
-#\[7]IQNMTSEKOZFFHWXGJOLA3FL7HUMXDDXOX6VHKKFKWNFRISX2EGBY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,..,,,,,,.,,,,,.,.,,,,,,,,,.,..,,...,...,.,.,...,,..,,.,,,..,
+#64ZATXL3HQIHXHVJA34XVHGYTA3VHJZJVNDGAOXPRFL4W7KPXFYQENB6E3NDXR2GWYZTJECRJBJVK
+#\\\|HIENVL2CCYY4MVXWODH6VTG5ALRIZIZL33SFDL5BGGMKV7JM3ID \ / AMOS7 \ YOURUM ::
+#\[7]AWWHP3V2M6WMLY52ZEVT4HGGG44UDJ2NVYWCNSZO2O3HDWRSDUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
