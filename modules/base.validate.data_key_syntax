@@ -8,25 +8,34 @@ my $max_len      = 255;
 
 my $allowed_chars_regex = qr|([^A-Za-z0-9=\(\)-_\.:])|;
 
-return warn 'expected %data key string parameter <{C1}>'
-    and return ( 0, 'no data key name supplied' )
-    if not length $data_keyname;
+if ( not length $data_keyname ) {
+    warn 'expected %data key string parameter <{C1}>';
+
+    return ( FALSE, 'no data key name supplied' );
+}
 
 my $key_len = length $data_keyname;
 if ( $key_len > $max_len ) {
     my $err_msg
         = sprintf 'supplied data key too long [ limit %d and was %d ]',
         $max_len, $key_len;
-    return ( 0, $err_msg ) if wantarray;
-    return 0;
+
+    return ( FALSE, $err_msg ) if wantarray;
+    return FALSE;
 }
 
 ## reparse key string to allow quote syntax in match below ##
 
 if ( index( $data_keyname, qw| . |, 0 ) >= 0 ) {
+
     ## z.'y.x' ##
+    ##
     $data_keyname =~ s,'(([^']|\.)+)', my $k=$1; $k=~s|\.|_|g; $k,ge;
+
+    no warnings 'experimental';    ## variable width lookbehind ##
+
     ## z.<y-x> ## <-- [ at end of key ]##
+    ##
     $data_keyname
         =~ s,(*plb:(^|\.))(<[^<\.>]+>)$, my $k=$1; $k=~s|\.|_|g; $k ,ge;
 }
@@ -34,22 +43,25 @@ if ( index( $data_keyname, qw| . |, 0 ) >= 0 ) {
 if ( $data_keyname =~ m|\.+$| ) {
     ##  key syntax not valid  ##
     my $err_msg = sprintf "not permitted ['%s'] at end of key", $MATCH;
-    return ( 0, $err_msg ) if wantarray;
-    return 0;
+
+    return ( FALSE, $err_msg ) if wantarray;
+    return FALSE;
+
 } elsif ( $data_keyname =~ $allowed_chars_regex ) {
     ##  key syntax not valid  ##
     my $position_str = $MATCH =~ m|[<>]|    ? ' position' : '';
     my $in           = length $position_str ? 'at'        : 'in';
     my $err_msg      = sprintf( 'character [%s] not a valid %s data-key%s',
         $MATCH, $in, $position_str );
-    return ( 0, $err_msg ) if wantarray;
-    return 0;
+
+    return ( FALSE, $err_msg ) if wantarray;
+    return FALSE;
 }
 
 return TRUE;    ## is valid [true] ##
 
-#,,.,,,.,,,,.,,,,,,..,..,,,,,,,..,...,,,,,,..,..,,...,...,.,.,,..,.,.,,,.,...,
-#N3YXG6LDI5KYRGEN6EMSJKUVY345EB4AHHTWHKBYJJBPAUXZRAIXBGE5BPNEB3GDMOWNQWNHVHJLI
-#\\\|7ILCJC53LM6Z57TZHIGCKY3I6QNYUH5RD46KUIQTFMKSROLGGXB \ / AMOS7 \ YOURUM ::
-#\[7]3GFNNPVBHLYJ3QQJCKDQKRE7A2BYT2S3XDVRKBK6TUMJDHOCVUAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,.,,,..,,.,,,.,.,...,,,,,,,,,..,,...,.,.,,,,,,..,,,,,..,,,,.,
+#4JWFO3RH7BOFTASSRL3ATGOOPEJTLNDTVZ336JWPRXJXDJU2KPMG2GCOTM6FTUQEUNKZBJTJQODWG
+#\\\|TYHAP4S3PYLHQNVJ34IRHKPZMULP7PFEO43PEZTF6KVL4J2N52T \ / AMOS7 \ YOURUM ::
+#\[7]MBJUS2MJ52PDP5TQBHV4TYVK77CH24IFWKKTVHDOZOX4JF6AI4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

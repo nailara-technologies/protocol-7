@@ -46,8 +46,7 @@ if (   not defined $backend_socket
 my $read_len
     = [ minmax( map {length} $protocol_banner, $proto_msg_timeout ) ]->[1];
 my $bytes_read
-    = <[base.s_read]>->( $backend_socket, \my $banner_string, $read_len )
-    // 0;
+    = <[base.s_read]>->( $backend_socket, \$banner_string, $read_len ) // 0;
 
 if ( $bytes_read > 0 ) {
     if ( $banner_string =~ $re_proto_banner ) {
@@ -96,8 +95,8 @@ return <[auth.zenka.process_auth_reply]>->(
     $backend_socket, 'authentication successful. =)'
 );
 
-#,,..,,,.,...,,,,,.,,,.,,,,..,,.,,,.,,.,,,,..,..,,...,...,.,.,.,,,...,.,,,.,.,
-#JUYK4FE7DD3RU5KW4LCAE2XKEN3RF7JCB3FYGVL37SDP3Q6YECAKVMN4E6AYMGWMAHYM4QVEQWQZC
-#\\\|WC7QBJFKJKISF2A4A4OU3LFKOHKOITIAXCP4NAQBYPNGUQWO526 \ / AMOS7 \ YOURUM ::
-#\[7]4WGBN2ZXQVXO5JBG4IVK4YJDY7NT6KQQKMQBR3G62A4SGHKZ7WDY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,,,,,.,,,,,,.,,,..,,,.,,...,..,,...,...,,.,,.,.,,,.,,,,,.,.,
+#3CLY3IKINGCFUGDHHQSBTPBP37Q35C3AYLAZIIQII64THSQKZCRFQ2OZJTISOIMGSTMO45XRPZP6U
+#\\\|Y2BBIEDISZYTVMK7KDNQMHV2V3DTNHYWCRYRSWMLKLN4KVNZ3GH \ / AMOS7 \ YOURUM ::
+#\[7]ORQ4R5LEUHXHLPR5Y65SS3QA4424D74AYL7FJDDF4F4RF677P2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

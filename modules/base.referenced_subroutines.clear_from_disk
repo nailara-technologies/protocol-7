@@ -98,7 +98,7 @@ foreach my $file ( <[file.match_files]>->( $source_dir, @remaining_files ) ) {
     <[base.cnt_s]>->($removed)
 );
 
-my @remaining_files = <[base.sort]>->(<base.subroutines.referenced>);
+@remaining_files = <[base.sort]>->(<base.subroutines.referenced>); ## updating
 
 if ( @remaining_files == 0 ) {
     <[base.log]>->( $log_level, ': : done. no remaining subroutine names.' );
@@ -165,8 +165,7 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
                 $line;
         }
         map {
-            push @l_msg_ref,
-                { qw| log_msg | => $ARG, qw| log_level | => 1 }
+            push @l_msg_ref, { qw| log_msg | => $ARG, qw| log_level | => 1 }
         } ( qw| : |, $found_in, qw| : | );
     }
 
@@ -182,8 +181,8 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 return $removed;    ## return number or cleared entries ##
 
-#,,..,,..,..,,...,.,,,,.,,,,.,,,,,.,,,,,,,,,.,.,.,...,...,...,...,..,,.,,,..,,
-#E3G4HCZYYWQFRNJFKGZVDPQYCVZ4SA6AJJTPIN4J7XTTAU2Y2HEALYRYPPJSOWS3QAXGVLQ6SYMZI
-#\\\|6AA2WK3JHRDXYB6GPPGZGMIYT5L3JHTGCMB6WZ2FNOGASTJII3F \ / AMOS7 \ YOURUM ::
-#\[7]ZHW56BA74JKU7QKFPTCR3FA3IY4ZIJ4RSM44VKC7YKBXZX7YMEBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,,,...,,..,...,,,.,...,,,,,.,.,...,...,.,.,..,,,,,,,.,,.,.,
+#2H634E4A23KQIXBXJUN4AEY7KPX5JSUB5LEU4VZVKLTGYHSEPX6A452KVCV56YCEEEW4TJJED3LDW
+#\\\|ESNCQT6YPCVUAXY3MQMZSQIYEJBWPWLFYOAYXSRZZCS6GQARQZR \ / AMOS7 \ YOURUM ::
+#\[7]IMRZSQG7TSUJFA2TI2AUGSOQI3KFKGHDNTHYC7D5AQD2J5LZXYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

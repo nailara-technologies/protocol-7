@@ -32,10 +32,9 @@ if ( not length $log_msg ) {
 ##
 my $h_override   = <base.ntime-harmony> // TRUE;
 my $want_harmony = $log_level < 3 ? $h_override : FALSE;
-my $want_harmony    ##  skip harmonizing if not to disk  ##
-    = ( $log_level < 2 and <system.verbosity.zenka_logfile> < 2 )
-    ? $h_override
-    : FALSE;
+##
+$want_harmony = FALSE    ## skipping harmonizing when not to disk ##
+    if $log_level > 1 or <system.verbosity.zenka_logfile> > 1;
 
 $log_msg =~ s|\r|\\r|g;
 $log_msg =~ s|\n|\\n|g;
@@ -43,6 +42,7 @@ $log_msg =~ s|\0|\\0|g;
 $log_msg =~ s|\e|\\e|g;
 
 ## prevent deep recursions in error log system ###
+##
 my $fatal_exit
     = ( $log_msg =~ m|deep recursion |i and $log_msg =~ m,log|buffer, )
     ? TRUE
@@ -114,8 +114,8 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return TRUE;
 
-#,,,.,...,.,.,..,,.,.,,..,,..,..,,,..,,,,,..,,..,,...,...,.,.,...,.,,,..,,..,,
-#Q6LCIUKE5JU7IELBTJNRJZNW2BFSQ2LXZSDR3FFUKUHLDRYMIY3AXL7VMYVGDZMKX2H3ZEMK6GZW2
-#\\\|52O2Z7AR2ONSUZUU3KQYAZUF2GRIIRZEFEN2W4CBM62DUZAOHOH \ / AMOS7 \ YOURUM ::
-#\[7]SXQCL4FC5JPOXMLHRVSANPY7FOACKQ5DKZL34OZGLI4ZD4JGOMAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,..,,,,.,.,,,.,.,,..,,.,,.,.,.,,,..,,...,...,,..,,.,,,,.,..,,,,.,
+#NOUID6EJDOAAHHA3XSCXS4H2X6W43SJQZZWN5AKIS2B3NULAYDQXTVIYJHMXFK5P7NPREBWHO7YYC
+#\\\|MTMMLCNCJXLLM2AWZXL5SGNALN55HVZML4CRZ2IUBBKOLEIIX6E \ / AMOS7 \ YOURUM ::
+#\[7]QERSKRZ2IEU2TATCJXDPX2CWGBKRJFS74A6UTBXQBGVLBSSNNSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

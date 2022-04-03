@@ -5,13 +5,13 @@
 
 my $num_sum = Digest::JHash::jhash( join '', @ARG );
 
-my $recalc = 0;
 my $sum_encoded;
+my $recalc = FALSE;
 
 RECALC_CSUM:
 
 while ( $recalc or not AMOS7::Assert::Truth::true_int($num_sum) ) {
-    $recalc = 0;
+    $recalc = FALSE;
     my $template = sprintf qw| %%s:%s |, $num_sum;
     ##  make it a true value with entropy from previous checksum  ##
     $num_sum = Digest::JHash::jhash( sprintf( $template, join( '', @ARG ) ) );
@@ -19,13 +19,16 @@ while ( $recalc or not AMOS7::Assert::Truth::true_int($num_sum) ) {
 
 $sum_encoded = Crypt::Misc::encode_b32r( pack( qw| N |, $num_sum ) );
 
-$recalc = 1 and goto RECALC_CSUM    ##  also harmonize encoded string  ##
-    if not AMOS7::Assert::Truth::is_true( $sum_encoded, 0, 1 );
+if ( not AMOS7::Assert::Truth::is_true( $sum_encoded, 0, 1 ) ) {
+    ##  also harmonize encoded string  ##
+    $recalc = TRUE;
+    goto RECALC_CSUM;
+}
 
-return $sum_encoded;                ## true ##
+return $sum_encoded;    ## true ##
 
-#,,.,,..,,.,,,..,,..,,,.,,.,,,,,.,,..,.,.,...,..,,...,...,.,.,,,.,,,.,.,.,,,,,
-#4NAI7JNFRYCRR3W7OCFG7M5CICZIBBPZXYG4KHGWBNQREBILHDCOWDANIQ3CEUMADZFZZNG3CNUJO
-#\\\|SQZIYVEJVSJPRV2TPTODD3ISU3ULMRP2KGDI3IDVCX3Q6MN7GRB \ / AMOS7 \ YOURUM ::
-#\[7]DBBRFRBIMH5PV7ODVSKHX3NGD33M2S4ADMN6TPW7FIJZGTN55SBA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,.,,,,,..,,.,.,.,,,...,,,.,,,,,..,,...,...,..,,.,.,,..,,..,.,.,
+#SOG2F3FVDONLUKMPJF2CNP2BBN55WRHDO6VZOOWYSH7QNDOBTUZGV6HWHMSUU5MCR7QBXRIULL2OG
+#\\\|5PNAHXI6D4INFPENJ2MKVHTFAUNW3WBCAVYEV55ESAR7W6PUB4B \ / AMOS7 \ YOURUM ::
+#\[7]RN3NYGFYFIIHF43D5YJXDPZLTQMIXAQ7PZWS2QSVIACPN3LXIYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
