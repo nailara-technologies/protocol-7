@@ -22,12 +22,12 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
             libyaml-libyaml-perl libconfig-simple-perl libio-socket-ssl-perl \
             libtest-requires-perl libppix-utilities-perl shared-mime-info \
-            libtest-exception-perl libtest-sharedfork-perl \
+            libtest-exception-perl libtest-sharedfork-perl libcurses-perl \
             libhash-merge-simple-perl libproc-processtable-perl \
             libterm-readline-gnu-perl libterm-readpassword-perl \
             liblwp-protocol-https-perl libclass-accessor-lite-perl \
             libio-socket-multicast-perl libinline-c-perl libconst-fast-perl \
-            libio-compress-perl &&
+            libio-compress-perl libcapture-tiny-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
@@ -59,8 +59,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,.,.,.,.,,.,,...,.,,,.,,,,..,...,.,,,,,.,..,,...,...,.,.,,.,,.,,,,..,,.,,
-#BUCK2MMOPDI27QRGRFI6IBWDTKMOWVESOLFMARLM2QHAN4XPW7JMKLCO4XOY3IJL4DXPHK7MAYAU4
-#\\\|FANRFU3AF2PPVW7RIS4A6SAU7KP52L56M5VR6RBH5NE2MXULU32 \ / AMOS7 \ YOURUM ::
-#\[7]GCORPD6S5BMG2NUR2G3MHHFALK7CAZS5MB7ASPY4EAWK55HKPMCQ 7  DATA SIGNATURE ::
+#,,..,,..,..,,...,...,...,,,.,,.,,,,,,...,.,,,..,,...,...,.,.,.,.,,..,,,,,.,,,
+#V46CLSPJ5PUUHBBD2ZCCWL5X2RDLMWNDQF2W27VGJA6S4PA6WSXDCN7PCTIXZ3SINXLXRIROYZRK6
+#\\\|MQLETMJB5HYLNJG7WP4B22I2VENSCKAWH2G3N3KAACHSG5TPQ4L \ / AMOS7 \ YOURUM ::
+#\[7]DQLYCWIGAHHDFJ3OVGL4H3X2TL3WK2YWGRQHG4DP6EHCDUVDUIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

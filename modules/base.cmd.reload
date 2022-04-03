@@ -29,7 +29,9 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
     delete <access.cmd.usr>;
     <[base.logs]>->( '[%d] < reload config >', $id );
     if (<[base.reload_config]>) {
+
         $reply->{'data'} .= sprintf "%s reload config  [ success ]\n", $s_str;
+
     } else {
         $reply->{'data'} .= sprintf "%s reload config  [  error  ]\n", $s_str;
     }
@@ -41,8 +43,10 @@ if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
     <[base.logs]>->( '[%d] < reload perl-mods >', $id );
     eval { Module::Refresh->refresh };
     if ( not length $EVAL_ERROR ) {
+
         $success = TRUE;      ## true ##
         $reply->{'data'} .= sprintf "%s reload p-mods  [ success ]\n", $s_str;
+
     } else {
         $reply->{'data'} .= sprintf "%s reload p-mods  [  error  ]\n", $s_str;
         $success = FALSE;     ## false ##
@@ -80,9 +84,12 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
         $reply->{'data'} .= "$s_str reload source  [ warning ]\n";
         $success = TRUE;    ## [ still ] true ##
+
     } elsif ( $load_success and not <base.modules.load_errors> ) {
+
         $reply->{'data'} .= "$s_str reload source  [ success ]\n";
         $success = TRUE;    ## true ##
+
     } else {
         $reply->{'data'} .= "$s_str reload source  [  error  ]\n";
         $success = FALSE;    ## false ##
@@ -116,11 +123,15 @@ if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     $keyword_match = TRUE;            ## true ##
     <[base.logs]>->( '[%d] < reload plugins >', $id );
     if (<[base.reload_plugins]>) {    ## [ LLL ] add warnings
+
         $reply->{'data'} .= sprintf "%s plugin reload  [ success ]\n", $s_str;
         $success = TRUE;              ## true ##
+
     } else {
+
         $reply->{'data'} .= sprintf "%s plugin reload  [  error  ]\n", $s_str;
         $success = FALSE;             ## false ##
+
     }
 }
 if ( $arg eq qw| init | or $arg eq qw| all | ) {
@@ -141,9 +152,12 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
         if <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |);
 
     if ($modules_init_success) {
+
         $reply->{'data'} .= "$s_str reinit source  [ success ]\n";
         $success = TRUE;    ## true ##
+
     } else {
+
         $reply->{'data'} .= "$s_str reinit source  [  error  ]\n";
         $success = FALSE;    ## false ##
     }
@@ -177,8 +191,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,...,..,,...,,,,,,,.,..,,,.,,.,.,...,,,.,..,,...,...,...,,.,,..,,..,,..,,
-#ZW52HHVMETXJ6L6M7ELLVVQX4K5ZYKXEZQY342ER7WU7NX2ZDXYZXDDWTE6ZDDI4S7NWLIYYKHYYM
-#\\\|O2C2IAWSCIL24PXCUIIC6NNS74P6ZLKCPY3Y5THETSL7HNTSYSC \ / AMOS7 \ YOURUM ::
-#\[7]VPATAKQM6E3FRAGMQN47OENJFPAOTXP6HZI6POQRJTY56J227OAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,...,,,.,,..,,,,,,,.,,,.,,.,,..,,...,...,,.,,,,.,..,,,..,,,.,
+#UDLGIDFFD4D6ABWPOO2PHT7POYKUQ2WMPR5EFD4EWFJQLJ6OUYE4MAE6PK2QJHDEUCP4GRVFQBFAU
+#\\\|643ZGZHUPURIAFIXSIVKFV4E55DIXFFTWKZDT2YEBFBXKLFRLUI \ / AMOS7 \ YOURUM ::
+#\[7]G7ZVISXNLIBYKFPNC22UQQLMTKGNG55YMEHK424NDJFSNYGAI6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
