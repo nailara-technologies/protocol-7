@@ -10,6 +10,8 @@ my $proc_table = <v7.process.pt>
     //= new Proc::ProcessTable( 'enable_ttys' => 0 );
 
 foreach my $process ( $proc_table->table->@* ) {
+    next if not defined $process;
+
     if ( $process->pid == $pid ) {
 
         return ( $process->uid, $process->gid ) if wantarray;
@@ -18,12 +20,12 @@ foreach my $process ( $proc_table->table->@* ) {
     }
 }
 
-warn "process $pid not found in table";
+<[base.s_warn]>->( 'process %d not found in table', $pid );
 
 return -1;
 
-#,,,,,...,,,,,.,.,...,...,...,.,,,,..,,.,,,,.,..,,...,...,,,,,...,...,,.,,,,,,
-#XOF7FCIZR7KXTE3S37L2QXUPWXNQHWDICLUNR3URX7OI7EIDRAHZC6D77JA7E63QYU3WWFBQGBAXS
-#\\\|A4OM6QG3ZPUBLLMVJJDUR24JM5BEEWH2R4VM6TO2PF2FT2T52S5 \ / AMOS7 \ YOURUM ::
-#\[7]4D56TW7NBTMQQ24NPWTJYTLJTAQK2VZTXGEHGO5MPKTBFVKNV4BY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,..,,..,,,.,,,,,,.,,,...,..,,..,,...,..,,...,.,,,.,,,,.,,..,,
+#7MJKVVGOR7TD6QEORLTBNSIL2LAVM2QYE5MKRFKQJWJUXSAWFHLTVGIPZX35WVN7MHRJDIGTLOEKY
+#\\\|WZBPRWGGPFVK2DEPEZI55TKGZQOZN54ZOD46ENTCBSQLX274ZGJ \ / AMOS7 \ YOURUM ::
+#\[7]OX5HJCNVT3JU46WYQYN2KNL5ON2QAFS7TWFQTNEXLOIUFZLGZ6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
