@@ -28,7 +28,8 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             liblwp-protocol-https-perl libclass-accessor-lite-perl \
             libio-socket-multicast-perl libinline-c-perl libconst-fast-perl \
             liblwpx-paranoidagent-perl liblinux-inotify2-perl \
-            libio-compress-perl libcapture-tiny-perl libfreezethaw-perl &&
+            libio-compress-perl libcapture-tiny-perl libfreezethaw-perl \
+            libio-compress-lzma-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
@@ -60,8 +61,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,.,...,.,,,...,.,,,...,..,,.,.,,.,,.,,,...,..,,...,...,..,,,.,,..,,,..,.,,,
-#4JKBEUQGR747YMN53BIZLVRXDIJ6S3ZYQRTV4BCLV5L37JAXOZCT7MVTVXR2E3NCWI3IPH6BYUZF6
-#\\\|KLDFYS6HLSPKNJLMVIEWSXTZKEM2R3WSOHBJCDBFOUPSPIHRCNR \ / AMOS7 \ YOURUM ::
-#\[7]7NVN7SQDSROBYGHICM3SKBZQBQBNQCRFUH32QUJRKBP3PGZOTMCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,,,,,,,,,.,..,,...,.,.,.,,,.,,,..,,...,...,..,,.,,,.,.,,,,,..,,
+#BSLOE65A2COV7QEM6LCYID6GLSEIWFFFYXYYSRPO7OJ2R2CLZQDU43GHX3KL6C2QC5LIXZ43N7FH2
+#\\\|YJW5F4VOC25JT5KPZGCR3HKBTLZTMXVRQVBZXZ4DMIYQFJNCTCK \ / AMOS7 \ YOURUM ::
+#\[7]3WOAEQGGGYXVXSOI7POHGSMPZGLJ6JANGXCWB24UK436VBKJBABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
