@@ -33,9 +33,8 @@ return printf "\n  << key with name '%s' not found >>\n\n", $srckey
 
 my $key_filename_ref = <[crypt.C25519.key_vars]>->{'key_filename'};
 
-my @k_files
-    = grep {s|^.+/||}
-    grep   { -e $ARG }
+my @k_files = grep {s|^.+/||}
+    grep { -e $ARG }
     <[base.sort]>->( map { $key_filename_ref->{$ARG} }
         <[base.sort]>->($key_filename_ref) );
 
@@ -80,8 +79,8 @@ foreach my $file_name (@k_files) {
 printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,.,,,,,,.,.,,,.,...,,,,,,.,,.,,,,,,,..,,,.,,..,,...,...,.,.,,..,,..,,,.,...,
-#U3POORE32RUDQ6D3RA7DHXXOKCR374V3E4BK5O5XJIYCZL3N2S2O33EORVSMTKVLDTQBHAD6ZGEOW
-#\\\|FHZHBSR5SCNGIG5ZGVG77HLRYGWXJDM4GDKX7W7VF25XHWEQB4W \ / AMOS7 \ YOURUM ::
-#\[7]T7UP7CN6G6RYBA2OYKQNIJGRCCBOZFVKYYYSD75B32USUWG3SSBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,,..,,,,,.,.,,,.,,..,,.,,...,..,,...,...,..,,...,,.,,..,,,..,
+#IK5IYGA5JPXBUPVMY3LS6KNCIJHH2K6ITT2EQ6ACCBMBACCOQP6JYCA7WLC5QQQGYLT7CBVAIORI2
+#\\\|6JNQ64SVKHD5E2CD5R472WQJ3QQ4FN6MPKWHXPJUIXAAFYXHUNU \ / AMOS7 \ YOURUM ::
+#\[7]F57YM54DY67DTG6YCCSHMHNGK7RJY7YCWG3ID2DNFVBP2AVF7MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

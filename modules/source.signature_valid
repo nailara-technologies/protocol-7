@@ -100,7 +100,7 @@ if ( not $signature_footer_data->{'was-present'} ) {
 }
 
 my $found_footer_length = $signature_footer_data->{'footer-length-found'};
-my $footer_bmw          = $signature_footer_data->{'data-chksum'};
+## my $footer_bmw_found = $signature_footer_data->{'data-chksum'};
 
 ##  initialize elf start chksum values  ##
 my $elf_chksum = {
@@ -111,10 +111,6 @@ my $elf_chksum = {
 my $data_pos     = 0;
 my $read_length  = 4282;
 my $content_size = length $payload_sref->$*;
-
-##  array refs [ <chksum_name>, [chksum_param[s]] ],
-##
-my $chksum_parameters = shift // [];
 
 my @embedded_params;
 
@@ -218,7 +214,7 @@ if ( $AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'} ) {
 }
 
 ## add start line + # to checksum ##
-$bmw_start_ctx->add( sprintf qw| %s# |,
+$bmw_start_ctx->add( sprintf '%s#',
     $signature_footer_data->{'footer-start-line'} );
 
 ##  calculating footer BMW checksum  ##
@@ -275,8 +271,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,.,,,,,.,.,,.,,.,.,,,.,,..,..,,,,,,,..,,.,,..,,...,...,,,.,,..,..,,,,,,...,
-#AYTUUPIY3WQ6LP2JPJTIDBTLN3CQPGGCWG3MIVCNECRIPCGSN2YPSSO2DEB7VQ6JA4DIXXQGSTVEK
-#\\\|EQMK46LOY7C5QTSYTQ425DY7KXKNGSMIKMHBGXTS7WALG7GRNAB \ / AMOS7 \ YOURUM ::
-#\[7]5RPVR7DJXZP63PMARG7JMIVWIFLKDV7TS3M2MZ2D25XT4KJGJOBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,.,,...,...,...,...,,,.,...,..,,...,...,,..,..,,...,,..,,..,
+#RMDHSQBVZAKDMNFTBDZDKRIGSR56PRX55UVG6NMLBWPGIJ6YMIL4CSIVJKNEMAJXQ3MC7J5D5I2E6
+#\\\|2ZYTLUD5QMNSZCFKUF2FIPQZMJ4NZJHNDBMHOCNPGGCE3Q766XR \ / AMOS7 \ YOURUM ::
+#\[7]IRL2P7IO3HQVMURZ267PRPSFUURMPV7BRCNXEMWR2MSP2VP76GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,7 +48,7 @@ my $check_entire_footer = FALSE;
 ##  full check for external sig files  ##
 my @full_sig_elf_modes = qw| 4 7 |;
 
-my $sig_file_template = qw| .%s., |;    ## external signature file template ##
+my $sig_file_template = '.%s.,';    ## external signature file template ##
 
 #########################################################################
 
@@ -78,10 +78,6 @@ map { $start_chksum_elf{$ARG} = 0 } @t_elf_modes;
 my $data_pos     = 0;                     ##  at start of file  ##
 my $read_length  = 4282;
 my $content_size = length $src_ref->$*;
-
-##  array refs [ <chksum_name>, [chksum_param[s]] ],
-##
-my $chksum_parameters = shift // [];
 
 my @embedded_params;
 
@@ -232,7 +228,7 @@ while ( not $asserted_true and $iterations_left ) {
 
     ## include '#' character ##
     ##
-    my $footer_bmw_chksum_data = sprintf qw| %s# |, $first_header_line;
+    my $footer_bmw_chksum_data = sprintf '%s#', $first_header_line;
 
     $bmw_ctx->add($footer_bmw_chksum_data);
     my $encoded_footer_BMW = encode_b32r( $bmw_ctx->digest );
@@ -359,8 +355,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,.,,..,,.,.,.,.,,,,,,,.,...,,..,,,.,.,.,.,,,..,,...,...,.,.,.,,,,.,,...,...,
-#FAMUEQNCFLRWD3Z2JTCKSV5M64VXPOQLTBJASMBH5OWUVLUNK3TB2PGODFUDQ25QGKSRDWZAWF6IW
-#\\\|PWQ67AX6NL6DPTSA7AVXWPTOVK4GDHWSOPK4LKCT325J2P7W2ZD \ / AMOS7 \ YOURUM ::
-#\[7]2UPIG4HJFNGCXBEDTMAQSNNK5QV4BDBNC7DXZOOQJQE4CDNNCGDY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,...,...,...,..,,..,,,,,,...,..,,...,...,,.,,,.,,,.,,,..,.,.,
+#4FQEAE7VHDPJCYFLPH32Z7I343J4ER4RPRXKV23AE2263GWI2BW2LDGHG7OYNQ3J4CSVWBGSIZO72
+#\\\|SXJRVHPY2W7KJZPUSGU6JFNGA4VGXCGFNNXOTSJ6HZSGWEN6JYJ \ / AMOS7 \ YOURUM ::
+#\[7]RP4UD4EVT6ULFBSIKHUX57JLQBOBYIRWXR4B3AFSP3F37URPI6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
