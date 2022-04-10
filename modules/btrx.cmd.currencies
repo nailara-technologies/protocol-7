@@ -1,17 +1,20 @@
 ## [:< ##
 
 # name  = btrx.cmd.currencies
-# descr = return list of (active) currencies
+# param = [pattern]
+# descr = get list of active currencies [ opt. ptrn match ]
 
-my $hide_inactive   = 1;
-my $hide_restricted = 1;
+my $hide_inactive   = TRUE;
+my $hide_restricted = TRUE;
+
+my $pattern = $call->{'args'};
 
 my @currency_data;
 my $err_msg;
 {
     local $SIG{__WARN__} = undef;
     local *STDERR;
-    open( STDERR, '>', \$err_msg );
+    open( STDERR, qw| > |, \$err_msg );
     @currency_data = ( <btrx.api.pub>->getcurrencies() );
 }
 
@@ -29,10 +32,10 @@ my $err_msg;
 
 if ( !@currency_data ) {
     $err_msg //= 'no data';
-    $err_msg =~ s/ at \S+ line \d+\.|\n$//g;
+    $err_msg =~ s< at \S+ line \d+\.|\n$><>g;
     $err_msg =~ s|\n| / |g;
     my $log_msg = "API request failed ['$err_msg']";
-    <[base.log]>->( 0, 'currencies: ' . $log_msg );
+    <[base.logs]>->( 0, 'currencies: %s', $log_msg );
     return {
         'mode' => qw| false |,
         'data' => $log_msg
@@ -44,12 +47,17 @@ my @currencies;
 foreach
     my $cur ( sort { $a->{'Currency'} cmp $b->{'Currency'} } @currency_data )
 {
+    next
+        if defined $pattern
+        and $cur->{'Currency'}     !~ m{\Q$pattern\E}i
+        and $cur->{'CurrencyLong'} !~ m{\Q$pattern\E}i;
+
     push( @currencies,
         sprintf( "%-8s %s\n", $cur->{'Currency'}, $cur->{'CurrencyLong'} ) )
-        if ( !$hide_inactive
+        if ( not $hide_inactive
         or $cur->{'IsActive'} )
-        and ( !$hide_restricted
-        or !$cur->{'IsRestricted'} );
+        and ( not $hide_restricted
+        or not $cur->{'IsRestricted'} );
 }
 
 return {
@@ -57,8 +65,8 @@ return {
     'data' => join( '', @currencies )
 };
 
-#,,,,,,,.,.,,,,..,.,,,,.,,...,.,.,,,.,..,,,,.,..,,...,..,,,,.,...,...,,.,,.,,,
-#BKMUM55VZN2AFGIEFZTKF3YZD6UL3LAWPIA5IOCQ7CFZRPDABYYRQWE7NZL6ZHG2DLDG34ZLLW5HE
-#\\\|45372BGXUK6GQZZTCSCFYQ7QSICRDXXEVGNHQI4434XG42JSO5O \ / AMOS7 \ YOURUM ::
-#\[7]NASSNOUXEPVJHPGQY7NB3NSE2DN4ODWBWVF6WRYDNNHQK6DO32BI 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,.,.,.,..,,.,,,...,,,,,,,,,...,..,,...,...,...,,,.,.,.,,,.,,..,
+#63QVFM3UWANDI6F7B4T66S5QNI52HIZWCQWYR63QJ4L4C664OBVEBFNPUFN3VZCS52M5AZG2SXJE2
+#\\\|ZN6XVF7RJAKT4PUPXKKBZE5E7MRWC6JSPJVL5ZNZGOAUDPCLSLX \ / AMOS7 \ YOURUM ::
+#\[7]VK5K32HYUHOJO74YRR2OFDUSX6KDMN6W5GJOXZFYEFY4OF3UYQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
