@@ -2,12 +2,12 @@
 
 # name  = plnx.cmd.currencies
 # param = [pattern]
-# descr = return list of traded currencies
+# descr = return list of [matching] traded currencies
 
-my $api_command   = 'getCurrencies';
-my $hide_disabled = 1;
+my $api_command   = qw| getCurrencies |;
+my $hide_disabled = TRUE;
 
-my $pattern = $$call{'args'};
+my $pattern = $call->{'args'};
 
 <plnx.api.pub>->{'msg'} = 'no data';
 my $currency_list = <plnx.api.pub>->api_public('returnCurrencies');
@@ -35,18 +35,20 @@ if ( ref($currency_list) ne 'HASH' ) {
 
 my @currencies;
 
-foreach my $key_name ( sort( keys( %{$currency_list} ) ) ) {
+foreach my $key_name ( sort( keys $currency_list->%* ) ) {
     my $cur_data = $currency_list->{$key_name};
+
     next
         if defined $pattern
         and $key_name !~ m{\Q$pattern\E}i
         and $cur_data->{'name'} !~ m{\Q$pattern\E}i;
+
     push( @currencies,
         sprintf( "%-8s %s\n", $key_name, $cur_data->{'name'} ) )
-        if !$hide_disabled
-        or (!$cur_data->{'delisted'}
-        and !$cur_data->{'frozen'}
-        and !$cur_data->{'disabled'} );
+        if not $hide_disabled
+        or (not $cur_data->{'delisted'}
+        and not $cur_data->{'frozen'}
+        and not $cur_data->{'disabled'} );
 }
 
 return {
@@ -54,8 +56,8 @@ return {
     'data' => join( '', @currencies )
 };
 
-#,,,.,.,,,,..,..,,...,.,.,,,,,,.,,.,.,.,,,.,,,..,,...,...,...,.,.,,.,,..,,.,.,
-#R44ARTM6EQF2Y5CCQIDOFFBIVC42J2XGO3LBT7BZCRDRVC2D2E4HR44TOYT4F7J4VQHECTJRYO4SQ
-#\\\|SCVJSQICOS5X5GTQMDK5YWKGLGJYQF55QJYW75PZRIDXIKNTR7M \ / AMOS7 \ YOURUM ::
-#\[7]OZL4G5BAJZSX7K6343OEUFJNJ5ER7YCKIYXNZILQWE332ZIDVEDA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,,.,..,,..,,,.,,,,.,..,,,,.,..,,...,...,,..,,..,,,.,.,.,,,.,
+#PYDRFNISSL47WD5EU7BXTIDWHYMIOQMBQ7VX6YHBDM5BQUDAU546AJUNXW4I6TDPOL3XXZT7GX3PU
+#\\\|O3PU2YL7W4TOGYHDWPCSPBWCPCRYG4U2JYNABUG4TDVHQEJW3BC \ / AMOS7 \ YOURUM ::
+#\[7]2OHJYXTSVB2ZJ4KYJMIMPYL6UACVKUAACTL46OFJFCR5TNJWLQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
