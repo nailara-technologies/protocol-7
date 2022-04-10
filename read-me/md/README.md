@@ -1,11 +1,11 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : ZTD7T3XDJQ-5028.0 ]
+### [ source code version : ZTD7VJVQKA-5029.0 ]
 
 ### this is the public domain [license](license)d 'base' branch
 ---
-## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.47.0](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.47.0)
+## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.57.2](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.57.2)
 ---
 
 the protocol 7 framework is a multi agent system written in perl. it is not
@@ -72,8 +72,8 @@ already have.
 
 <!--
 
-#,,..,,.,,.,.,...,.,,,.,.,..,,,.,,...,,,.,..,,..,,...,...,..,,..,,.,,,,,.,,..,
-#HQHOBMWUDWSW4IQ6ULVTKV5YGXRBVDDBBUMGIO4E3HEWSG7JP2OD26MYSE4QZL7NGT4ODKYVIFM6I
-#\\\|DRCSWE7JJXZA2EQT4VBBVXOL4AXT6FC6FQQVPMWXVER7YH4JRAB \ / AMOS7 \ YOURUM ::
-#\[7]NNERCLHOENEWFYXHB2Y467VIMUSEBD6XSJ5FEO5RJSJXPBWCXKAA 7  DATA SIGNATURE ::
+#,,..,...,..,,.,,,,..,,..,.,,,...,.,,,,,,,,.,,..,,...,...,..,,...,,,.,...,,..,
+#2F5SGKGPHWMHWYEMN5SPLZNUFHYXE2R2FNJQRBCP6SFE4EXBXKPN3TSSMR4O55JGFMILSZN3BLLXI
+#\\\|J7C5BUIFKDVMGSG6RH3BTF5ESFZG2YTYHKLGNLUQU5HQDFACGDT \ / AMOS7 \ YOURUM ::
+#\[7]L36LZHSRASIBMFDXSA2UV3JIMSMNEGR6HI7M2EEY2THRDQNCKYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
