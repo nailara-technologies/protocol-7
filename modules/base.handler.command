@@ -678,7 +678,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             or $extracted_callerstr ne $caller );
 
                         $caller = defined $caller ? " $caller" : '';
-                        my $log_error = 1;
+                        my $log_error = TRUE;
                         ##  alternative handler for filename:line ?  ##
                         my $warn_handlers = <base.warn-match-handler> // {};
                         if ( defined $warn_handlers->{$caller} ) {
@@ -691,11 +691,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         ##
                         if ($log_error) {
                             <[base.logs]>->(
-                                0,   "[%d] <<< %s >>>%s",
+                                0,   '[%d] <<< %s >>>%s',
                                 $id, $err_str, $caller
                             );
                             my $params = $call_args->{'args'} // '';
-                            my $msg = sprintf "[%d]  \\\\\\ <%s>", $id, $cmd;
+                            my $msg = sprintf '[%d]  \\\\\\ <%s>', $id, $cmd;
                             $msg .= sprintf " [ '%s' ]", $params
                                 if length $params;
                             <[base.log]>->( 0, $msg );
@@ -775,9 +775,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
-                        qw| X3QVAWA |, $cmd_id_str,
-                        length( $reply->{'data'} ),
-                        $reply->{'data'}
+                        qw| X3QVAWA |,
+                        $cmd_id_str,
+                        length(
+                            Encode::decode( qw| UTF-8 |, $reply->{'data'} )
+                        ),
+                        Encode::decode( qw| UTF-8 |, $reply->{'data'} )
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
@@ -1143,8 +1146,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,,,.,.,,.,,,,,,.,.,,,.,,,.,,,.,,,.,..,,,,,,..,,...,...,...,..,,.,.,,..,,,.,
-#JSM6JZTD74M2XJ5IGTEJ6KSMOEDGZD7UGD6I43YRI5LP5KUDWXPYWLWGMXM6AOQ4LXAILDCNCAK7Y
-#\\\|WQEHLOYIIWJWS5HHFQEWE4ABS2NEHBFIRB246NY722CWMSQ5FUC \ / AMOS7 \ YOURUM ::
-#\[7]4AS2AKA7SZV3TWSN7URNKC7LW5ADK3D5M2QCPFE7ZQ3LZ7STRABI 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,.,,,,,.,,,,,.,,,,.,,...,,.,,..,,...,...,,..,...,...,,,,,.,,,
+#6OJFCT7UVZAMEQ6ZY6PULABTJVH7VDULM2PQHCNGUHXSXLC2J3H2OSJBMZUVMYLO4QBU6VIMUZ6KK
+#\\\|MYTLKUDNUMAYJYHC6QE5W5HOODVEMORKQJJL7EESISPJETHDHIP \ / AMOS7 \ YOURUM ::
+#\[7]X4OVUAIUHOQZW4LNXTLTM2UEXFF2NLIQ7SCYXBWI7H4NF2MRQADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
