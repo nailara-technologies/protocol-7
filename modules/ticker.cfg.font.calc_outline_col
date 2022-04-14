@@ -15,8 +15,8 @@ my $ticker_cfg_value = <ticker.cfg> // {};
 
 my @outline_RGB_colors;     ##  4 colors in rotating outline color mode  ##
 
-my $c = Convert::Color->new( sprintf qw| rgb:%s,%s,%s |,
-    <ticker.font.color>->@* );
+my $c;
+$c = Convert::Color->new( sprintf 'rgb:%s,%s,%s', <ticker.font.color>->@* );
 
 my $hc = $c->convert_to(qw| hsv |);
 
@@ -108,8 +108,8 @@ if ( <[base.cfg_bool]>->( $ticker_cfg_value->{'rotate_outline_col'} ) ) {
 
 return @outline_RGB_colors;
 
-#,,.,,,,,,.,,,,..,...,,.,,.,,,,,,,,..,.,,,..,,..,,...,..,,...,,.,,...,,..,.,.,
-#OO3NANXYHHHPXIJORD7QPFHFSK4HB2K3QB23TXOIZ2W4Y5PIED3JILKGE6NAIYW5G2QSBNBITVS2S
-#\\\|TCMV2R3UVLW3F6NOJH7ABPIMV4TONX6OV4OOLGVOGNIDRMTX7NT \ / AMOS7 \ YOURUM ::
-#\[7]ETMD4EGHNLKQHI5EYIEQGBT7277SA5AVPQHVRTZPZ7SIT3EKK4DI 7  DATA SIGNATURE ::
+#,,,,,...,,..,.,,,,.,,.,,,.,,,,.,,...,...,,.,,..,,...,...,,.,,.,.,..,,..,,...,
+#5JKF4Z3424GAVYGTU6OGGWR6NBTPODPLSGSKVACXHEEGER3KBKN32STMCYEGBWW5DHPIWPCI4QMFA
+#\\\|BLQCASPM7LQS5ANK6OU73E7M5MJV6COREQ3V66CR6MCFFNBPOCS \ / AMOS7 \ YOURUM ::
+#\[7]VVOFGZ2CNPFF6UN4LDJC6E5CZYGI7673MRHTUD2IW4QXMS4732BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
