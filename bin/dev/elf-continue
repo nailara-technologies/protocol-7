@@ -5,20 +5,35 @@ use English;
 use warnings;
 our $inline_directory;
 
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my $num     = FALSE;
+my $verbose = FALSE;
+
+if ( @ARGV > 0 and $ARGV[0] eq qw| -v | ) { shift(@ARGV); $verbose = TRUE }
+if ( @ARGV > 0 and $ARGV[0] eq qw| -n | ) { shift(@ARGV); $num     = TRUE }
+
 my $seed_val = sprintf( qw| %09d |,
     ( @ARGV > 0 and $ARGV[0] =~ m|^\d+$| ? shift(@ARGV) : 0 ) );
 
-say "\n:.   :. $seed_val .:\n:";
+printf( "\n:. %s :. %010d .:\n:\n.", $verbose ? ' ' : '', $seed_val )
+    if $verbose
+    and not $num
+    and $seed_val != 0;
 
 my $data_string = join( ' ', @ARGV );
-my $elf_chksum  = elf( $seed_val, $data_string );
+my $elf_chksum  = elf( $seed_val, $data_string, $verbose );
 
-say sprintf( ".\n     :: %s ::\n", $elf_chksum );
-
+if ($num) { say $elf_chksum }
+else {
+    say sprintf( "\n  %s ::[ %09d ]::\n", $verbose ? ' ' : '', $elf_chksum );
+}
 exit(0);
 
 BEGIN {  #[ INIT \ C-CODE ]###################################################
-    die 'ENV{USER} not set [ required ]' if !length( $ENV{'USER'} // '' );
+    die 'ENV{USER} not set [ required ]' if not length( $ENV{'USER'} // '' );
     $inline_directory = join( '.', qw| /var/tmp/.inline-elf |, $ENV{'USER'} );
     if ( not -d $inline_directory ) {
         mkdir($inline_directory)
@@ -28,7 +43,7 @@ BEGIN {  #[ INIT \ C-CODE ]###################################################
 INIT {
     use Inline ( 'C' => <<~ 'EOT', 'directory' => $inline_directory );
 
-    void elf( unsigned int seed_val, unsigned char *sval )
+    void elf( unsigned int seed_val, unsigned char *sval, unsigned int verbose )
     {
         inline_stack_vars;
         unsigned int h = 0;
@@ -45,11 +60,13 @@ INIT {
             if ( g = h & 0xF0000000 )
                 h ^= g >> right;
 
-            printf( ":   %c : %09u \t: %010lu\n", 32 , h, g );    // <-- dbg.0
+            if ( verbose )
+                printf( ":   %c : %010u\t: %010lu\n", 32 , h, g );
 
             h &= ~g;
 
-            printf( ":.. %c : %09u \t: %010lu\n", *sval , h, g ); // <-- dbg.2
+            if ( verbose )
+                printf( ":.. %c : %010u\t: %010lu\n", *sval , h, g );
             *sval++;
         }
 
@@ -61,8 +78,8 @@ INIT {
     EOT
 }
 
-#,,.,,...,..,,,..,,,,,,..,...,,.,,,.,,,,.,,..,..,,...,...,...,.,,,,,.,..,,,.,,
-#LVVTGYC7QI7RF5RQAILJZN3SJO4WYXJOIK7YESIO36YGRJ55FKCWTJDP53T5IVZA5HT7UXDK6KYLA
-#\\\|QJGVPQWSZC2AGHXBQKHXYHNNBHIRL46UFRKFLLLLSVFRZ6EADYJ \ / AMOS7 \ YOURUM ::
-#\[7]5WY4OIQA5KHKKGXGAMT6X4YOEOTSKUWHRIBX6XKCVVR2HWLI4CCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,..,,,.,,,,,,..,,,..,,..,,..,..,,...,...,.,.,..,,,..,...,.,.,
+#XF4V5KIBN5S2QHQKLWYSF7ZYCOSBQ3APLVYDQGZTNDPVOCJPKXIXDPMFR4JHQYF6FG5ENZ44TEBN4
+#\\\|VGYACT52I6XPZTVPPIRSSX5YVRNZJC2QVHBNIYJ4YX2VTDICQSX \ / AMOS7 \ YOURUM ::
+#\[7]D7TNVUBCCXFWJCTMNSQYOUVJTHJI53WIAES7AP5JGTNKF3D7Z6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
