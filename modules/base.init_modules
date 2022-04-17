@@ -7,24 +7,24 @@
 my @module_names = map { split m| +| } @ARG;
 
 my %skip_list;
-my $success = 5;    ## true ##
+my $success = TRUE;    ## true ##
 delete <base.modules.moved_to>;
 <base.init_modules.sub_list> = [];
 foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
     if (@module_names) {
-        @{<base.init_modules.sub_list>} = ();
+        <base.init_modules.sub_list>->@* = ();
         foreach my $name_pattern (@module_names) {
             push(
-                @{<base.init_modules.sub_list>},
+                <base.init_modules.sub_list>->@*,
                 grep {m|^\Q$name_pattern\E(\..+)?$|} <[base.sort]>->( \%code )
             );
         }
     } else {
         my @sorted_subroutines = <[base.sort]>->( \%code );
-        @{<base.init_modules.sub_list>}    ## <-- 'base' routines first ..,
+        <base.init_modules.sub_list>->@*    ## <-- 'base' routines first ..,
             = grep {m|^base\.|} @sorted_subroutines;
         push(
-            @{<base.init_modules.sub_list>},    ## <-- then other subroutines.
+            <base.init_modules.sub_list>->@*,   ## <-- then other subroutines.
             grep { !m|^base\.| } @sorted_subroutines
         );
     }
@@ -48,19 +48,20 @@ foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
                 $level,       "running '%s' %s code.,",
                 $module_name, $init_txt
             );
-            my $reinit = 0;
+            my $reinit = FALSE;
 
             if (not defined
                 <base.modules.initialized>->{$real_m_name}->{$init_mode} ) {
                 <base.modules.initialized>->{$real_m_name}->{$init_mode} = 0;
             } else {
-                $reinit = 1;
+                $reinit = TRUE;
             }
             if ( defined $code{$sub_name} ) {
-                my $moved_already = 0;
-                $moved_already = 1
-                    if defined <base.modules.moved_to>
-                    and defined <base.modules.moved_to>->{$module_name};
+                my $moved_already
+                    = (     defined <base.modules.moved_to>
+                        and defined <base.modules.moved_to>->{$module_name} )
+                    ? TRUE
+                    : FALSE;
 
                 # [LLL] include module version[s] in argument list ?
                 my $return_code
@@ -73,7 +74,7 @@ foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
                     my $err_msg = <[base.format_error]>->($EVAL_ERROR);
                     <[base.logs]>->( 0, ": '%s", $err_msg )
                         if length $err_msg;
-                    $success = 0;
+                    $success = FALSE;
                     <[base.logs]>->(
                         0,
                         ": module '%s'-init not successful [ %s != [0|5] ]",
@@ -89,11 +90,11 @@ foreach my $init_mode (qw|  pre_init  init_code  post_init  |) {
                             = <base.modules.moved_to>->{$module_name};
                         ( my $new_sub_name = $sub_name )
                             =~ s|^$module_name|$new_module|;
-                        $skip_list{$new_sub_name} = 1;
+                        $skip_list{$new_sub_name} = TRUE;
                     }
                 }
             } else {
-                $success = 0;
+                $success = FALSE;
                 <[base.logs]>->(
                     0,
                     ": module '%s' init not successful"
