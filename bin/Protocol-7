@@ -383,6 +383,11 @@ sub p7_init_exec {    ##  main variable initialization  ##
     ## special case when Protocol-7 code given on <STDIN> ##
     $PROGRAM_NAME = qw| Protocol-7 | if $PROGRAM_NAME eq qw| - |;
 
+    $data{'system'}{'args'}
+        = scalar( grep {m|^[^-]|} @ARGV )
+        ? join( ' ', grep {m|^[^-]|} @ARGV )
+        : '';
+
     ## early variable initialization ##
     my $actual_exec = abs_path( catfile( $RealBin, $RealScript ) );
     my $bin_path    = [ File::Spec->splitpath($actual_exec) ]->[1];
@@ -1048,36 +1053,78 @@ sub p7_referenced_subroutines__clear_found {
 
 sub p7__dump_core_subs {
 
+    my $pattern = join '|', split ' ', $data{'system'}{'args'};
+
+    if ( defined $pattern and length $pattern ) {
+        say sprintf "\n##\n#   :: pattern : '%s' ::\n##\n", $pattern;
+    }
+
     my %core_subs;
     my $bin_path = $data{'system'}{'start'}{'exec_name'};
     open( my $p7_fh, $bin_path ) or die "$bin_path : \l$OS_ERROR\n";
     my %sub_src;
     my $sub_name;
+    my $last_sub;
+    my $last_line = FALSE;
+    my $has_match = FALSE;
+
     foreach my $src_line (<$p7_fh>) {
-        $sub_name = undef
-            if defined $sub_name and $src_line =~ m|^\s*};\s*(#.*)?\n$|;
+        $sub_name =~ s|__|\.|g if defined $sub_name;
+        $sub_name =~ s|^_+||   if defined $sub_name;
         if ( defined $sub_name ) {
-            $sub_src{$sub_name} //= [];
-            push( @{ $sub_src{$sub_name} }, $src_line );
+            if ( index( $src_line, qw| } |, 0 ) == 0 ) {
+                $last_sub  = $sub_name;
+                $sub_name  = undef;
+                $last_line = TRUE;
+            }
+            if ( defined $sub_name and length $sub_name ) {
+                $sub_name = sprintf 'base.%s', $sub_name
+                    if length $sub_name and $sub_name !~ m|\.|;
+
+                next if length $pattern and $sub_name !~ m|($pattern)|;
+
+                $sub_src{$sub_name} //= [];
+                push $sub_src{$sub_name}->@*, $src_line;
+            }
         }
-        my $code_re = qr|\s*\$code\{\'([^\']+)\'\}\s*|;
-        $sub_name = ${^CAPTURE}[0]
-            if $src_line =~ m|^$code_re=\s*sub\s*\{\s*(#[^\n]*)?\n$|;
+        if (    $last_line
+            and defined $last_sub
+            and exists $sub_src{$last_sub}
+            and index( $src_line, qw| } |, 0 ) != 0 ) {
+            push $sub_src{$last_sub}->@*, $src_line
+                if index( $src_line, ' ', 0 ) != 0;
+            $last_sub = undef;
+        }
+        $sub_name //= ${^CAPTURE}[0]
+            if length $src_line
+            and $src_line =~ m|^\s*sub\s+p7_([^\n]*)\s*\{\s*?\n$|;
+
+        if ( defined $sub_name ) {
+            $has_match = TRUE if not $has_match;
+
+        }
+        close($p7_fh);
+        $last_line = FALSE;
     }
-    print "\n";
-    close($p7_fh);
     foreach my $sub_name (
         sort { length $a <=> length $b }
         sort keys %sub_src
     ) {
-        print "\n#  .::[ $sub_name ]:.\n#  ::\n";
+        next if not $has_match;
+        print "\n## .::[ $sub_name ]:.\n#  ::\n";
         foreach my $sub_line ( $sub_src{$sub_name}->@* ) {
             print $sub_line;
         }
-        print "\n#  .\n#  ::.\n";
+        print "\n#  .\n## ::.\n";
 
     }
-    exit;
+    if ( not keys %sub_src ) {
+        say "\n", '  :: no match ::', "\n";
+        exit(0110);
+    } else {
+        say '';
+        exit(00000);
+    }
 }
 
 ##############################################################################
@@ -3830,8 +3877,8 @@ __DATA__
 :
 :.
 
-#,,,,,.,,,..,,,,,,,.,,.,.,...,,,,,..,,.,.,,.,,..,,...,...,...,,,,,...,.,,,,,,,
-#GUV7RKOP3DL454UPFOUKXBWR63LVF6NXEHLJUEQAFXJA7EY7FPJRIPEF2ONJG77P7D4UR2DF5TAKY
-#\\\|IFZMYTB57UNCEEBWZHIGFEGGRKIGYFAD7PF7J2LTLA2BVWQVZYG \ / AMOS7 \ YOURUM ::
-#\[7]7MFXS2MSS4OXQ3NG52BEETCNK3QO2PXXZOQWN2IMCQERAHEIVWBA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,..,...,,,,,...,,,.,,..,,.,,..,,...,...,,,,,,.,,,..,.,,,,..,
+#R2U6WDY2Z5MPRFAFKOQ5LESI5DTNB3K5PUKRLF7DZDUNUJFADFMOQDGKST3GFNW3EDJAUSTISECCC
+#\\\|WF6QHMZPYIY6TBWSU3USFP54WFY2JM6GCD4PCLHVYQBWAABF4RK \ / AMOS7 \ YOURUM ::
+#\[7]A4BVOLFTBQJ7H7W55NCQ75YFEAHVFEUBW565XFLX5TBN5OUJE2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
