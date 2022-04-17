@@ -38,19 +38,18 @@ my $job_data = {
 <jobqueue.joblist.by_id>->{$job_id} = $job_data;
 
 my $joblist = <jobqueue.joblist>;
-push(
-    @{  $joblist->{$target_queue}{'by_priority'}{ $job_data->{'priority'} }
-    },
-    $job_id
-);
-push @{ $joblist->{$target_queue}{'by_timestamp'} }, $job_id;
+push
+    $joblist->{$target_queue}{'by_priority'}{ $job_data->{'priority'} }->@*,
+    $job_id;
+
+push $joblist->{$target_queue}{'by_timestamp'}->@*, $job_id;
 
 $joblist->{'count'}->{$target_queue}++;
 
 return $job_id;
 
-#,,,,,,..,,..,,.,,,..,.,,,..,,...,,,.,.,,,,,,,..,,...,.,.,,,,,,,,,,,,,.,.,.,,,
-#ZPMFGM2ESBHTBHKDEXMYN7JKGCAPZBVSWNWXSB37VJV4VMDIA6IXYOVRKEB36UEL2AQZIXIH523ZW
-#\\\|X5Y6QC6QMULWW6QHHR2VKIBYA7TC4IS422WPOWVCZI7TS6JNFOL \ / AMOS7 \ YOURUM ::
-#\[7]CX4NMB3OSDLXDA4QGSIGVEX2X2S3ROHA2TCQUCVM5SM36CII2KBA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,.,,.,,,.,,..,,,,.,,..,.,.,.,.,..,,...,...,.,,,,,,,,,.,,.,,..,,
+#CHAQLCNBDJKZ67TSIF2B64UXMXEJGWTZ55JSJRY4FXFQTDHO5NENDLB3BR3ESI3QQ74LNBDKSOCZA
+#\\\|QVA2SVTRDYPCV77WBPHFMZY6DBQSPUMIKWQI744N4AIC3LGIGDS \ / AMOS7 \ YOURUM ::
+#\[7]RARWSAMKXWNVLWU6UQBETGAXPMRYBWTX4ECXM32RF74NAN2F7YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
