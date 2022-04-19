@@ -3,9 +3,14 @@
 
 [load_config_file:'shared-params']
 
+
+## start SFTP unix domain socket ##
+file-matrix.use_SFTP_socket  = yes
+
+
 sftp.allowed_unix_users = <system.amos-zenka-user>  ## running as ##
 
-system.verbosity.console  = 1
+system.verbosity.console      = 1
 system.verbosity.zenka_buffer = 2
 
 modules.load          = auth net protocol io.unix file-matrix  ## devmod
@@ -16,9 +21,6 @@ access.cmd.usr.cube    = verify-instance commands heart reload cur-pid \
                          list list-deps src-ver rel-ver src-age \
                          show-buffer buffer-erase buffer-erase-level \
                          name subname                 * ## <-- devmod
-
-## start SFTP unix domain socket ##
-file-matrix.use_SFTP_socket  = yes
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -32,8 +34,8 @@ file-matrix.use_SFTP_socket  = yes
 
 [zenka.loop]
 
-#,,..,..,,,.,,.,,,,,.,,.,,,,.,...,,,.,,..,...,.,.,...,...,.,.,...,,..,..,,,.,,
-#4DSPAQWRKZAQ4UMJT7O3ISFINJC36JUK3DSSXHJMHUYCU7CYB7AHVEMKPITINCUIANIDEFRPAUST6
-#\\\|XM6DXXZNASLD2KNVAUCADBXT4H4RWKXN3GX7LC5EZUFRXUJBCSY \ / AMOS7 \ YOURUM ::
-#\[7]FHNO3WPQRT4XHKHH5AAHCBEZYSLPTFAG3U5LYH5XQIW27QR6F6AY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,.,,,,,.,..,,.,.,,.,,.,.,..,,.,.,...,...,...,...,..,,,,,,,,.,
+#CRIIQ36BWLYSIYOBN3XIKP43FOAKDATBX2MAC64WSEX2T4P2UIKJEMOMK3I6L4T5H6QDMHSUBI3AK
+#\\\|CWIOWYRLL2TMUO6INNNJU6FWALYT6ORY5TSBLY42IVSZHTIQEBN \ / AMOS7 \ YOURUM ::
+#\[7]CV7QIYHXJ6KRO7XMYKE5HMWTWJSV7HV3OE2BTLSQNOGAZKRXGMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
