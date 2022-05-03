@@ -1,10 +1,10 @@
 ## [:< ##
 
-# name  = file-matrix.protocol.SFTP.open_unix_socket
+# name  = storage.protocol.SFTP.open_unix_socket
 
 my $usock_path = shift // '';
 die 'expected fifo path parameter' if not length $usock_path;
-my $usock_perm = <file-matrix.permissions.sftp_socket_path>;
+my $usock_perm = <storage.permissions.sftp_socket_path>;
 
 <[base.log]>->( 1, ': opening SFTP unix-socket .,' );
 
@@ -15,15 +15,15 @@ my $SFTP_unx_socket = <[base.open]>->(
 
 return -3 if not -S $SFTP_unx_socket;
 
-<file-matrix.unix_socket.sftp> = $SFTP_unx_socket;
+<storage.unix_socket.sftp> = $SFTP_unx_socket;
 
 ## connecting to event management ##
 <[base.protocol.bind]>->( $SFTP_unx_socket, qw| sftp | );
 
 return TRUE;
 
-#,,,.,,,.,.,,,,.,,,,,,,,,,,..,,..,,,,,,,.,.,.,.,.,...,...,...,..,,..,,,,.,,,.,
-#GMLG6VDHTEMKYEUBHCUB6M23O5N3IN2T3G6DNKLPLHIEZRFSSCJ7OYACDFWLAE3355BJDL44BRADA
-#\\\|CCQNKN2XNFIOLHGUVNI4YXGJVVXHXRKENQWYVTCGATXPDVCBJUG \ / AMOS7 \ YOURUM ::
-#\[7]22XU7ZCASSHSUG3KFO74QTM4X7EGZ2UJH5HLYOU5XMMS5AX5MGBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,,..,.,,,,.,,,..,..,,,..,..,,.,.,...,...,.,,,..,,..,,,,.,,,,,
+#X6NA42RWUYIPILLJTES3EXOSQT7LM4X6GBNHNNCGJGEGN6MP3EM7EUAXHQKD7XJC7RDTNJQO5FQBI
+#\\\|3F4OMJTMN6ZPR7CCSLH34KXJUKNLJKMN4LGRJUT5P6EOKKXP44T \ / AMOS7 \ YOURUM ::
+#\[7]LMHTJBNS7X6CCGPQQNJTYOJZY4JDT55GO5L4LGCVWCM35X2PWGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

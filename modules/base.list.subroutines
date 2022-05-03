@@ -255,6 +255,8 @@ return [ qw[
         udev.reload_rules
         ticker.parse_text
         ticker.cmd.resume
+        storage.post_init
+        storage.init_code
         ssl.cmd.read_data
         power.save_config
         power.read_states
@@ -403,6 +405,7 @@ return [ qw[
         ticker.calc-col.RGB
         test.filter.hex.out
         system.cmd.hostname
+        storage.map-dirs.fs
         ssl.connect_handler
         sourcecode.pre_init
         source.cmd.get-code
@@ -581,6 +584,7 @@ return [ qw[
         tile-groups.init_code
         ticker.process_subcfg
         storchencam.init_code
+        storage.map-dirs.tree
         source.valid_src_name
         set-up.json.init_code
         reenc-msg.open_window
@@ -607,8 +611,6 @@ return [ qw[
         httpd.request_handler
         filter.cmd.del_filter
         filter.cmd.add_filter
-        file-matrix.post_init
-        file-matrix.init_code
         download.cmd.get_file
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
@@ -783,6 +785,8 @@ return [ qw[
         system.process.autokill
         system.cmd.pid_autokill
         system.cmd.abort-reboot
+        storage.map-dirs.fs.del
+        storage.map-dirs.fs.add
         start-anim.handler.draw
         source.extract_sig_body
         set-up.json.import_file
@@ -806,7 +810,6 @@ return [ qw[
         io.unix.socket.end_code
         io.ip.tcp.input.connect
         impressive.get_playlist
-        file-matrix.map-dirs.fs
         ffmpeg.frame_count_slow
         events.cmd.show-enabled
         devmod.cmd.deparse-code
@@ -974,6 +977,8 @@ return [ qw[
         ticker.set_default_values
         ticker.request_rss_update
         ticker.font.offsets_table
+        storage.map-dirs.tree.del
+        storage.map-dirs.tree.add
         source.load_signature_key
         set-up.cmd.create-profile
         rss.ticker.fetch.multiple
@@ -996,7 +1001,6 @@ return [ qw[
         impressive.process_subcfg
         image2html.base.init_code
         graphics-matrix.init_code
-        file-matrix.map-dirs.tree
         download.cmd.get_mimetype
         discover.log_mcast_packet
         discover.cmd.host_details
@@ -1065,6 +1069,7 @@ return [ qw[
         system.memory.cmd.mem-used
         system.cmd.reenable-reboot
         system.cleanup.check_tasks
+        storage.map-dirs.init_code
         start-anim.wait_for_window
         sourcecode.extract_modules
         sourcecode.console.version
@@ -1154,6 +1159,8 @@ return [ qw[
         system.admin_reboot_warning
         storchencam.cmd.enable_time
         storchencam.cmd.enable_temp
+        storage.sftp.unix.sock_path
+        storage.map-dirs.check-dirs
         source.fill_source_template
         source.cmd.update-src-links
         source.AMOS-center-bit.desc
@@ -1173,8 +1180,6 @@ return [ qw[
         io.unix.socket.output.close
         image2html.parent.init_code
         httpd.update_download_count
-        file-matrix.map-dirs.fs.del
-        file-matrix.map-dirs.fs.add
         discover.init_packet_buffer
         discover.cmd.show-temp-echo
         devmod.cmd.permission-setup
@@ -1326,8 +1331,6 @@ return [ qw[
         image2html.base.get_html_path
         image2html.base.download_file
         graphics-matrix.filter.c-to-a
-        file-matrix.map-dirs.tree.del
-        file-matrix.map-dirs.tree.add
         ffmpeg.cmd.extract_last_frame
         discover.load_resend_requests
         discover.cmd.resend-awareness
@@ -1410,7 +1413,6 @@ return [ qw[
         graphics-matrix.guess_bg_color
         graphics-matrix.filter.rep-col
         graphics-matrix.cmd.filter-c2a
-        file-matrix.map-dirs.init_code
         events.handler.event_triggered
         events.cmd.get_playlist_hidden
         events.callback.object.weekday
@@ -1451,6 +1453,7 @@ return [ qw[
         tile-groups.cmd.base-tile-group
         ticker.callback.request_updates
         system.handler.mod_reload_reply
+        storage.amos_chksum.open_socket
         screenshot.cmd.get_region_color
         osd-logo.handler.download_reply
         nodes.send_host_details_request
@@ -1461,8 +1464,6 @@ return [ qw[
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         httpd.handler.download_transfer
-        file-matrix.sftp.unix.sock_path
-        file-matrix.map-dirs.check-dirs
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
         devmod.cmd.change-log-verbosity
@@ -1501,6 +1502,7 @@ return [ qw[
         system.xcrash_hostreboot_trigger
         system.process.handler.wait_gone
         system.handler.X-11_driver_reply
+        storage.unix.handler.amos-chksum
         sourcecode.callback.load_modules
         set-up.json.cmd.get-config-names
         reenc-msg.handler.shutdown_timer
@@ -1642,7 +1644,6 @@ return [ qw[
         mod-test.callback.reload-test.start
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
-        file-matrix.amos_chksum.open_socket
         content.handler.get_exclusive_reply
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
@@ -1663,7 +1664,6 @@ return [ qw[
         nodes.handler.discover_details_reply
         mod-test.cmd.blacklisted-add-matches
         image2html.child.check_cache_timeout
-        file-matrix.unix.handler.amos-chksum
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -1687,6 +1687,7 @@ return [ qw[
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
         tile-groups.handler.root_restart_reply
+        storage.protocol.SFTP.open_unix_socket
         protocol.sftp.terminate_server_process
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
@@ -1725,7 +1726,6 @@ return [ qw[
         web-browser.handler.withheld_entries_reply
         tile-groups.impressive.increase_light_mode
         sourcecode.console.regen-checksum-symlinks
-        file-matrix.protocol.SFTP.open_unix_socket
         X-11.background.chksum-cache.write_to_disk
         web-browser.handler.request_starting_signal
         web-browser.disconnect_signal.received_data
@@ -1749,8 +1749,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,.,..,,,.,,...,,.,,.,.,...,,,.,,..,,.,,.,.,...,...,...,.,,,,,,,,.,,,,,,
-#A2OVVHWK735QV77VSNYDU26ZUOWZVCHBZEIAVQT3XTCDRYFSYVJQJOKBXWPTUX7DTMX2K34AZ5DQG
-#\\\|RXWBSHYVTG6MEPQFQLQGRWG5KPJNI3VJQYX4R2FR36VCFVJC5BI \ / AMOS7 \ YOURUM ::
-#\[7]OD5KOKUK2NNCNUCG5QJDVB742LM23P2CY6RJ6EYZNGNVHB72AUDI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,..,,,..,..,,,.,,...,...,,.,,.,.,...,...,,,,,.,.,..,,.,.,,,,,
+#UTKKINTSS3RFNLV45V6WJVKJNANKKRQ7NZHBRXKUUS6PV6YZ73O7X4M7MBKEUDU7NNK6OXNNVOBVO
+#\\\|4ODJ73CYVNYYW42ID23VIXVOWUFCV22C64FXSQX6JK6R6TGIQF7 \ / AMOS7 \ YOURUM ::
+#\[7]5LOCOZHJFP7P5ZEJTGQBZKG7LKXGGZPMZKPNI47BBRCWEVHOTWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
