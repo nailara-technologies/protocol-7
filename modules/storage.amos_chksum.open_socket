@@ -1,10 +1,10 @@
 ## [:< ##
 
-# name  = file-matrix.amos_chksum.open_socket
+# name  = storage.amos_chksum.open_socket
 
 my $usock_path = shift // '';
 die 'expected fifo path parameter' if not length $usock_path;
-my $usock_perm = <file-matrix.permissions.amos_chksum_socket>;
+my $usock_perm = <storage.permissions.amos_chksum_socket>;
 
 <[base.log]>->( 1, ': opening AMOS-CHKSUM unix-socket .,' );
 
@@ -15,15 +15,15 @@ my $ac_usock = <[base.open]>->(
 
 return -3 if not -S $ac_usock;
 
-<file-matrix.unix_socket.amos-chksum> = $ac_usock;
+<storage.unix_socket.amos-chksum> = $ac_usock;
 
 ## connecting to event management ##
 <[base.protocol.bind]>->( $ac_usock, qw| amos-chksum | );
 
 return TRUE;
 
-#,,.,,.,.,...,.,,,,.,,..,,...,,,.,,.,,...,,,,,..,,...,...,...,.,.,,.,,.,,,,..,
-#K6MUHN6SEK5S7XZ5PIOWI3ZPIV5W7ZM3XAHORY3LOSKDPOUOKDMB7G27NDZYTUF4RQZDS7AUSK46C
-#\\\|X3NGYPV6WKLDJQ5SYKJK6DSNXEVUYPMKPAIIPAQ5CU6V2ZL3VCN \ / AMOS7 \ YOURUM ::
-#\[7]HKC5RVPZ44ZZ6JZBW5UVSJ6CUYJXVRNMLCBMT5SGMSBUJBQKOKCY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,...,,.,,,,,,.,.,.,,,...,...,..,,...,...,...,,..,...,.,.,.,.,
+#ITTA4JWWJBUPXB245J7J7NPLQY4XLEOY6GOY3OL6X6S75IEC33X6BR2KAXW6KK7TG4GDJZ5LSNL4W
+#\\\|MP4A3YN3UIIK4XQUN4LRMLCIPMYR7DTLAEUOMGXGDGTPQI4BRQG \ / AMOS7 \ YOURUM ::
+#\[7]6H5QNQ6TT4PHFW4S3RLNUYRNRZFTGLRONLRBURDZG5AZVPXEMECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
