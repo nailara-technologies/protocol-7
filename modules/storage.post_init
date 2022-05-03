@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = storage.post_init
+
+my $socket_path_amos_chksum     = <[chk-sum.amos.unix.sock_path]>;
+my $unix_sftp_proxy_socket_path = <[storage.sftp.unix.sock_path]>;
+
+<[storage.amos_chksum.open_socket]>->($socket_path_amos_chksum)
+    or return -3;
+
+return 0 if not <[base.cfg_bool]>->(<storage.use_SFTP_socket>);
+
+<[storage.protocol.SFTP.open_unix_socket]>->($unix_sftp_proxy_socket_path)
+    or return -3;
+
+return 0;
+
+#,,,,,,..,,,,,.,,,,.,,.,,,.,.,,..,.,.,,.,,..,,..,,...,...,...,.,,,.,,,,.,,...,
+#OSK673E7XMNWSDNEV4OHVEUIW5D3KR3HTGBSUF2OXT6DT44QTK553LDTSA4JVRZSCSZMRRFAYMFBC
+#\\\|5OKCL25KZPJTYPWWWVFCS72DBYLN4RW5VRXPI4KJN4YTQX4ZGDO \ / AMOS7 \ YOURUM ::
+#\[7]QHPTBYEV2GJWKXULIWG3S7OYV2FBDX2VAKHU5DEZLK4ARPVQ4QBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

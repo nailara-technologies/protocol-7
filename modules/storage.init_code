@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = file-matrix.init_code
+# name  = storage.init_code
 
 my $usock_dir = <system.path.unix_socket_dir> //= qw| /var/run/.7/UNIX |;
 
@@ -12,13 +12,13 @@ my $fs_mountpoint = <system.path.filesystem.numerical> //= qw| /var/FS7 |;
 ##[ creating when missing ]##
 <[file.make_path]>->( $fs_mountpoint, 0775, <system.amos-zenka-user> );
 
-<file-matrix.permissions.sftp_socket_path>   //= 0666;
-<file-matrix.permissions.amos_chksum_socket> //= 0664;
+<storage.permissions.sftp_socket_path>   //= 0666;
+<storage.permissions.amos_chksum_socket> //= 0664;
 
 return 0;
 
-#,,.,,...,,.,,,,,,,..,..,,,..,.,,,..,,,,,,.,.,..,,...,...,..,,.,,,.,,,,,,,,..,
-#VCG7AQC5KUOYFZL3DHDP6IFZ3UEDHZ6BW5VRITZQ6HKMOAMMBOGFVJ5AFJ2LAUY2M3EYSV2O6SUIG
-#\\\|S2MRKCQRGOMULFLYRSLMRH2RC5NL3LN2TCSDTUO6GQHQ2PC3RJI \ / AMOS7 \ YOURUM ::
-#\[7]X3HZZYMGB3KEROYGCGXMM6LUADBIB25QWQXMZ4LT25HRR6F3VIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,.,.,,,,..,,.,,.,,,,,,,,,,,...,..,,...,...,...,,..,.,,,...,.,,,
+#MKOPP5RZCO45SUYRIZU5EYVQ4EH4NLXRV4SA37YDRK3BD2Q3TOZRK7ABDDCCC5ZC3JCDZSXURN5AK
+#\\\|5OZ3XMGT2TN2Q52DZIRMOVKTKNQMYOZWL5HGSHDBSMH2H7EDNIS \ / AMOS7 \ YOURUM ::
+#\[7]6OFC7L4ZH7UYAHS2GV3FKYOZKBJRGG7WQA5QOZIGQGMRSDWVRQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
