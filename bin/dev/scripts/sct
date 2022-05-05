@@ -90,13 +90,13 @@ my $window_name  = "' - SciTE'";
 
 my $found = 0;
 while ( not $found ) {
-    $found = 1 if qx| wmctrl -l | =~ m| SciTE( \[\d+ of \d+\])?$|ms;
+    ++$found   if qx| wmctrl -l | =~ m| SciTE( \[\d+ of \d+\])?$|ms;
     sleep 0.07 if not $found;
 }
 
 sleep 0.07;
 
-say qx[ wmctrl -e $win_geometry -r $window_name & ];
+say qx[ wmctrl -e $win_geometry -a $window_name & ];
 
 system(qw| wmctrl -a ' - SciTE' & |);
 my $accel = 0.047;
@@ -107,17 +107,17 @@ for ( my $t = 0.97; $t > 0.77; $t -= 0.01 ) {
     $accel = 0.044 - sprintf( qw| %.04f |, $accel * 0.47 );
 }
 
-sub c_dir  { File::Spec->catdir(@_) }
-sub r2_abs { File::Spec->rel2abs(@_) }
+sub c_dir  { File::Spec->catdir(@ARG) }
+sub r2_abs { File::Spec->rel2abs(@ARG) }
 
 sub p7_root_dir {
     my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 3 ) ) );
-    die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
+    die "  :\n  :: not a directory : '$root_path'\n\n" if not -d $root_path;
     return $root_path;
 }
 
-#,,,.,...,.,,,.,.,.,,,,.,,..,,.,.,,.,,,,,,...,.,.,...,...,.,.,,.,,...,,,,,.,,,
-#6VPQOCOFHLYLXMEV65QE6EMFVHHPBSREQB2AA4IJWB6ZHYX7HDHF4RTQZ4G264H2RFCGKZIXVJWKS
-#\\\|H42KSHR22V72M6ZYDFE5I4KUPQDTS2GWHIYQ3NKFC4YIRV2PQ2V \ / AMOS7 \ YOURUM ::
-#\[7]GMXKA6L5DUHASU4IDNE4P4MT6U3YBYBOKNIHDIUWLE7VYHZOQIAI 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,.,,,,..,,..,...,,,.,,,,,.,,,.,.,...,...,...,..,,,..,,,.,,..,
+#437OU35AR2R2NYX4EDWLQRHREIKRDZ6CEN6PYDQKTIBSBQDVTXAOMM375JMJWMAAG3HMF65JIC4WG
+#\\\|GNVXK34DLFAINZYT24YEOIGWLGHCXXBGZBQ5HO6GNZKS3Q5IORW \ / AMOS7 \ YOURUM ::
+#\[7]F23NZ33C6APF6CLQWKDVWYNSEQM3JDHKMOYOJKUBDS4OLV7E5OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
