@@ -1,6 +1,12 @@
 ## [:< ##
 
 # name  = storage.post_init
+# descr = launch optional amos-checksum and sftp socket as configured
+
+if (<system.zenka.initialized>) {
+    <[base.log]>->( 1, ':. sklpping amos chksum and SFTP sockets .,' );
+    return 0;    ##  implement adapting config changes to sockets  [LLL]
+}
 
 my $socket_path_amos_chksum     = <[chk-sum.amos.unix.sock_path]>;
 my $unix_sftp_proxy_socket_path = <[storage.sftp.unix.sock_path]>;
@@ -15,8 +21,8 @@ return 0 if not <[base.cfg_bool]>->(<storage.use_SFTP_socket>);
 
 return 0;
 
-#,,,,,,..,,,,,.,,,,.,,.,,,.,.,,..,.,.,,.,,..,,..,,...,...,...,.,,,.,,,,.,,...,
-#OSK673E7XMNWSDNEV4OHVEUIW5D3KR3HTGBSUF2OXT6DT44QTK553LDTSA4JVRZSCSZMRRFAYMFBC
-#\\\|5OKCL25KZPJTYPWWWVFCS72DBYLN4RW5VRXPI4KJN4YTQX4ZGDO \ / AMOS7 \ YOURUM ::
-#\[7]QHPTBYEV2GJWKXULIWG3S7OYV2FBDX2VAKHU5DEZLK4ARPVQ4QBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,.,,,.,..,,...,.,.,.,,,..,,,,.,..,,...,...,,..,..,,,..,,,.,.,.,
+#UWPIEXVIXEH7RTDKI77FTL4MEVWWW2BOPCLQT4YYJLTNESOKRBULUO6IYSLBITOCXTMCLCVZC5BUM
+#\\\|HE2IQCUAIIAIICBP7KCDUAXOHVXGDBI5JL7JI3A7VHHQMJNCE5O \ / AMOS7 \ YOURUM ::
+#\[7]7PKL4Y4N54IHKO4AJFGRRYPHCOXPBFB6NHQIYF3IYHWJ7CA7SEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
