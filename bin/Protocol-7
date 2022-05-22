@@ -1056,7 +1056,14 @@ sub p7__dump_core_subs {
     my $pattern = join '|', split ' ', $data{'system'}{'args'};
 
     if ( defined $pattern and length $pattern ) {
-        say sprintf "\n##\n#   :: pattern : '%s' ::\n##\n", $pattern;
+        if ( $data{'system'}{'ansi_color'} ) {
+            say sprintf "%s%s\n##\n#   :: pattern : '%s' ::\n##%s\n",
+                "\e[38;2;68;39;172m",
+                "\e[48;2;9;5;42m",
+                $pattern, "\e[0m";
+        } else {    ## -nc flag ..,
+            say sprintf "\n##\n#   :: pattern : '%s' ::\n##\n", $pattern;
+        }
     }
 
     my %core_subs;
@@ -1067,6 +1074,10 @@ sub p7__dump_core_subs {
     my $last_sub;
     my $last_line = FALSE;
     my $has_match = FALSE;
+
+    my $ph_bin = sprintf qw| %s/%s |, $data{'system'}{'root_path'},
+        qw| bin/dev/ph |;
+    my $has_ph = -x $ph_bin ? TRUE : FALSE;
 
     foreach my $src_line (<$p7_fh>) {
         $sub_name =~ s|__|\.|g if defined $sub_name;
@@ -1106,20 +1117,33 @@ sub p7__dump_core_subs {
         close($p7_fh);
         $last_line = FALSE;
     }
+    my $ph_in;
     foreach my $sub_name (
         sort { length $a <=> length $b }
         sort keys %sub_src
     ) {
         next if not $has_match;
-        print "\n## .::[ $sub_name ]:.\n#  ::\n";
-        foreach my $sub_line ( $sub_src{$sub_name}->@* ) {
-            print $sub_line;
-        }
-        print "\n#  .\n## ::.\n";
 
+        my $pid = -1;
+        if ( $has_ph and $data{'system'}{'ansi_color'} ) {
+            eval 'use IPC::Open3' if not defined &open3;
+            $pid = open3( $ph_in, '>&STDOUT', '>&STDERR', $ph_bin );
+        } else {
+            $ph_in = *STDOUT{IO};
+        }
+
+        print {$ph_in} "\n## .::[ $sub_name ]:.\n#  ::\n";
+        foreach my $sub_line ( $sub_src{$sub_name}->@* ) {
+            print {$ph_in} $sub_line;
+        }
+        print {$ph_in} "\n#  .\n## ::.\n";
+        if ( $has_ph and $pid > 1 ) { close($ph_in); waitpid( $pid, 0 ) }
     }
     if ( not keys %sub_src ) {
-        say "\n", '  :: no match ::', "\n";
+        say '  :: no match ::', "\n";
+
+        print "\e[0m" if $data{'system'}{'ansi_color'};
+
         exit(0110);
     } else {
         say '';
@@ -3877,8 +3901,8 @@ __DATA__
 :
 :.
 
-#,,.,,..,,,,,,,..,,..,...,,,,,...,,,.,,..,,.,,..,,...,...,,,,,,.,,,..,.,,,,..,
-#R2U6WDY2Z5MPRFAFKOQ5LESI5DTNB3K5PUKRLF7DZDUNUJFADFMOQDGKST3GFNW3EDJAUSTISECCC
-#\\\|WF6QHMZPYIY6TBWSU3USFP54WFY2JM6GCD4PCLHVYQBWAABF4RK \ / AMOS7 \ YOURUM ::
-#\[7]A4BVOLFTBQJ7H7W55NCQ75YFEAHVFEUBW565XFLX5TBN5OUJE2BA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,,,.,.,.,,.,,,,.,,,,,,,.,.,.,..,,...,...,..,,..,,,.,,.,.,.,,,
+#26DT2DNKLCQZDJWFE63R6BBSXRMD57L4OHF66ADIDV3KZINNFC2YTNVCDU7YELPJYEIOSUEOWKS5Y
+#\\\|UKKTHM5WSVGXWGHQMWV6YCNEQ46A7T4OUT37HZFDF3MEJKTAMWJ \ / AMOS7 \ YOURUM ::
+#\[7]QHQE2KTAPAEYKYGNQOJNK4Z7LQ6VDID7UGRKVDKX7XNGC744DIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
