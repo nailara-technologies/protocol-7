@@ -100,7 +100,7 @@ if ( not $signature_footer_data->{'was-present'} ) {
 }
 
 my $found_footer_length = $signature_footer_data->{'footer-length-found'};
-## my $footer_bmw_found = $signature_footer_data->{'data-chksum'};
+my $footer_bmw          = $signature_footer_data->{'data-chksum'};
 
 ##  initialize elf start chksum values  ##
 my $elf_chksum = {
@@ -112,6 +112,12 @@ my $data_pos     = 0;
 my $read_length  = 4282;
 my $content_size = length $payload_sref->$*;
 
+##  array refs [ <chksum_name>, [chksum_param[s]] ],
+##
+my $chksum_parameters = [];
+##
+## my $chksum_parameters = shift // [];
+
 my @embedded_params;
 
 ##  embedded code style syntax  ##
@@ -122,12 +128,12 @@ my @embedded_params;
     if $truth_check_settings->{'embedded-code-style'};
 ##
 
-my $chksum_parameters = [    ##  data checksum set-up  ##
+$chksum_parameters = [      ##  data checksum set-up  ##
 
     ##  FOOTER ELF CHKSUM  ## [ 4 7 ]
     ( map { [ qw| ELF-7 |, $ARG ] } @t_elf_modes ),
 
-    [qw | BMW 384 |],        ##  FOOTER BMW CHKSUM  ## [ 384 ]
+    [qw | BMW 384 |],       ##  FOOTER BMW CHKSUM  ## [ 384 ]
 
     [ qw| ELF-7 |, $ELFmode ],    ##  AMOS7 ELF CHKSUM  ## [ 7 ]
     [qw | BMW-bin 512 |],         ##  AMOS7 BMW CHKSUM  ## [ 512 ]
@@ -219,7 +225,7 @@ $bmw_start_ctx->add( sprintf '%s#',
 
 ##  calculating footer BMW checksum  ##
 my $footer_bmw_bin = $bmw_start_ctx->digest;
-my $footer_bmw     = encode_b32r($footer_bmw_bin);
+$footer_bmw = encode_b32r($footer_bmw_bin);
 
 if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
     $truth_status_report->{'bmw-chksum-matches'} = TRUE;    ## true ##
@@ -271,8 +277,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,..,.,,,.,.,.,,,,.,,...,...,...,...,,,.,...,..,,...,...,,..,..,,...,,..,,..,
-#RMDHSQBVZAKDMNFTBDZDKRIGSR56PRX55UVG6NMLBWPGIJ6YMIL4CSIVJKNEMAJXQ3MC7J5D5I2E6
-#\\\|2ZYTLUD5QMNSZCFKUF2FIPQZMJ4NZJHNDBMHOCNPGGCE3Q766XR \ / AMOS7 \ YOURUM ::
-#\[7]IRL2P7IO3HQVMURZ267PRPSFUURMPV7BRCNXEMWR2MSP2VP76GBQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,.,,,.,,,,,..,,,,,,...,...,,,.,..,,...,...,,.,,,,,,,..,..,,,,.,
+#ZVVBQ2JY73PD4ILAO4T5JVXJRBBAQT37GJBYHADXLOBQ7EBCCNCRYVQP2VIWIBDKBHXMDTYWRQ6UU
+#\\\|WIT7DIDYRSYPJGSWMP6WOUL7DMCTVO4GP5SYRO5BJKXJAVRR5RQ \ / AMOS7 \ YOURUM ::
+#\[7]3XHF24DZKMFG2ULBSBEWTYAGOLALJ6DNW3N4PFEN6GCESNDV2UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
