@@ -7,7 +7,7 @@ my $s_ref = shift;    ##[  string or scalar reference  ]##
 my @path_structure;
 my $minimum_subdir_count  = 4;
 my @subdir_modes          = qw| 5 7 |;
-my $truth_elf_mode_filter = qw| 7 9 |;
+my @truth_elf_mode_filter = qw| 7 9 |;
 
 $s_ref = \"$s_ref" if ref($s_ref) eq '';
 
@@ -32,7 +32,7 @@ while ( !@path_structure ) {
         );
         push( @path_structure, $dir_name )
             if    ## truth filtering names ##
-            is_true( $dir_name, $truth_elf_mode_filter );
+            is_true( $dir_name, join ' ', @truth_elf_mode_filter );
     }
     if ( @path_structure < $minimum_subdir_count ) {
         my $path_reseed = join( '', reverse sort ( @checksums, $$s_ref ) );
@@ -43,8 +43,8 @@ while ( !@path_structure ) {
 
 return join qw| / |, @path_structure;
 
-#,,,.,,,.,.,,,.,.,...,.,.,.,,,...,,,,,,,.,,..,..,,...,...,...,,..,,,,,,.,,,.,,
-#TE5EUQWPTMJEHP2REC4JPANHRB4OR5PYHEBSKCB54IDYG4RGDLKH2C3T7CL45JKKBICMC774XTEF4
-#\\\|KHPIZBL55ILGDQXYKYYWAWTQMKZTWBWWFGFOFOXRRJXTFD7DUPL \ / AMOS7 \ YOURUM ::
-#\[7]D75LOWEJOSF3QXHOFLHYKB2YBJECZRUEI5A4AM275DJAUAGYP4BA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,..,,,.,,,,.,..,,...,,,,,..,,..,,...,...,..,,,..,,,.,,.,,,,.,
+#342G3J6UDDYVMRLUDWI3UQ5OYFOGXFGADBE6PCPL42XWPV7VXZLU2FFWXM4ZAAL34ICCAKTH7AKNO
+#\\\|NLOVLHAMZIL66JCAYXV4OZSM2QL4Z2ZBIT7NKJDUUVRNQON33FN \ / AMOS7 \ YOURUM ::
+#\[7]RYFDXUUWBVJXRBFLNSSFOGZOKFDZ6R3XWKEY42RIRASS26V3VCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
