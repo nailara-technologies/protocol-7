@@ -79,6 +79,12 @@ my $data_pos     = 0;                     ##  at start of file  ##
 my $read_length  = 4282;
 my $content_size = length $src_ref->$*;
 
+##  array refs [ <chksum_name>, [chksum_param[s]] ],
+##
+my $chksum_parameters = [];
+##
+## my $chksum_parameters = shift // [];
+
 my @embedded_params;
 
 ##  embedded code style syntax  ##
@@ -89,12 +95,12 @@ my @embedded_params;
     if $check_enbedded_file_syntax;
 ##
 
-my $chksum_parameters = [    ##  data checksum set-up  ##
+$chksum_parameters = [      ##  data checksum set-up  ##
 
     ##  FOOTER ELF CHKSUM  ## [ 4 7 ]
     ( map { [ qw| ELF-7 |, $ARG ] } @t_elf_modes ),
 
-    [qw | BMW 384 |],        ##  FOOTER BMW CHKSUM  ## [ 384 ]
+    [qw | BMW 384 |],       ##  FOOTER BMW CHKSUM  ## [ 384 ]
 
     [ qw| ELF-7 |, $ELFmode ],    ##  AMOS7 ELF CHKSUM  ## [ 7 ]
     [qw | BMW-bin 512 |],         ##  AMOS7 BMW CHKSUM  ## [ 512 ]
@@ -355,8 +361,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,,,,,..,,..,,,.,...,...,...,..,,..,,,,,,...,..,,...,...,,.,,,.,,,.,,,..,.,.,
-#4FQEAE7VHDPJCYFLPH32Z7I343J4ER4RPRXKV23AE2263GWI2BW2LDGHG7OYNQ3J4CSVWBGSIZO72
-#\\\|SXJRVHPY2W7KJZPUSGU6JFNGA4VGXCGFNNXOTSJ6HZSGWEN6JYJ \ / AMOS7 \ YOURUM ::
-#\[7]RP4UD4EVT6ULFBSIKHUX57JLQBOBYIRWXR4B3AFSP3F37URPI6CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,...,,,,,,.,,,.,,,..,,,,,,..,..,,...,...,,,.,..,,..,,,.,,.,,,
+#IAHG5N54RZKU2COSAEVPVMGQHL2I4CWABHNHXQPXEEDRREOGLAGN6BHDRL7X3KZUV7ZH2DFOVEXSK
+#\\\|PKDHSJQ36DDMVX3MCF5VJGCCWMT2QNHABOBBXE2FD5VIEEQFKOF \ / AMOS7 \ YOURUM ::
+#\[7]OAHNFODYOSOWMCWG5FMKH4U2TNAT5KMFVNYM3IXFUZB3OT7HUQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

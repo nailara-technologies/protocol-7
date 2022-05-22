@@ -8,11 +8,11 @@ my %C = %AMOS7::C;
 my @param = split( m| +|, shift ) if defined $ARG[0];
 
 my @truth_modes = qw| 2 4 7 8 |;
-my $incl_true   = 5;               ## AND \ OR [ TRUE : AND , FALSE : OR ] ##
+my $incl_true   = TRUE;            ## AND \ OR [ TRUE : AND , FALSE : OR ] ##
 
 if ( defined $param[0] and $param[0] =~ m|^(\+?)\d+(,\d+)*$| )
 {    ##  elf truth mode  ##
-    $incl_true   = ${^CAPTURE}[0] eq qw| + | ? 5 : 0;
+    $incl_true   = ${^CAPTURE}[0] eq qw| + | ? TRUE : FALSE;
     @truth_modes = split( ',', shift @param );
     $truth_modes[0] =~ s|^\+||;
 }
@@ -39,14 +39,14 @@ if (@zenki) {
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
 foreach my $name (@p7_module_names) {
-    my $asserted_true = 0;    ##  false  ##
-    if ($incl_true) {         ## [ OR mode ] ##
+    my $asserted_true = FALSE;    ##  false  ##
+    if ($incl_true) {             ## [ OR mode ] ##
         foreach my $ELFmode (@truth_modes) {
-            $asserted_true = 5    ## true ##
+            $asserted_true = TRUE    ## true ##
                 if AMOS7::Assert::Truth::is_true( \$name, 0, 1, $ELFmode );
         }
     } else {    ##  exclusive [ AND mode ]  ##
-        $asserted_true = 5
+        $asserted_true = TRUE
             if AMOS7::Assert::Truth::is_true( \$name, 0, 1, @truth_modes );
     }
     printf "%s%s: %s%s%s %s\n", $C{'b'}, $C{'0'},
@@ -59,8 +59,8 @@ foreach my $name (@p7_module_names) {
 
 say sprintf qw| %s%s:%s |, $C{'b'}, $C{'0'}, $C{'R'};
 
-#,,.,,,,.,...,,,.,.,,,,,.,,,.,.,,,,,,,,,,,.,,,..,,...,...,,,,,..,,...,,..,,,,,
-#MCPQJ3IHYBREBAQUDJ4ZYXBGCO7XK5QCKED2AP6INDILAL6P4SK2YT66TRNC3LNEUHD7DQUQ3T342
-#\\\|HGM2Y42TWXNZXDAJRZ6D2Z3MLAJU2HZRUBXMOKJVH4L2K7HYX2E \ / AMOS7 \ YOURUM ::
-#\[7]NXBRFX3ATD4SI4V27IYOCRVAAP36A2NXABJE73FGZEJXG7BELKAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,,.,,,,.,,.,,...,.,,,,,.,,.,,..,,...,...,...,.,.,,.,,.,.,,,.,
+#57FHUPMAW5C34WYOGK6ALZDFAPNG4ZAOYVO33BPBUYR2QNTSQU5Y2CATG2EV3N6CQTLJA4CX77FHW
+#\\\|7XILQW3EJ3R2SMLWFSWJHEI7BYNAVEFBUQFVENV35JKLV3FNEE2 \ / AMOS7 \ YOURUM ::
+#\[7]OJEZR7AR3F6CN5UELCGBW3XPXKHYAPTAK2LZAOA2GGAKBGKVYSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
