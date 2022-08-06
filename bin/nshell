@@ -16,7 +16,7 @@ use IO::Socket::UNIX;
 use Cwd qw| abs_path |;
 use Term::ReadPassword;
 use Time::HiRes qw| sleep |;
-use POSIX qw| sys_wait_h WNOHANG |;
+use POSIX       qw| sys_wait_h WNOHANG |;
 
 ##[ nshell ]##
 
@@ -25,12 +25,14 @@ use constant TRUE    => 5;    ##  TRUE.  ##
 use constant FALSE   => 0;    ##  false  ##
 use constant UNKNOWN => 2;    ##  unknown  ##
 
+my $PRINT_SEPERATOR_NEWLINE = TRUE;
+
 ##[ LOCAL PM LIB PATH ]#######################################################
 
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     my $data_pm_path   = qw| data/lib-path/pm |;
     my $root_path      = abs_path( r2_abs( c_dir( $RealBin, up_dir() ) ) );
@@ -128,7 +130,9 @@ my $cube_port = shift(@args) || $protocol_7_port;
 my $sckargcnt = scalar @args;
 my $usock_dir = qw| /var/run/.7/UNIX |;
 
-my $prompt = sprintf '\ %s \:[?]:, ', $hostname;
+my $prompt_newline = $PRINT_SEPERATOR_NEWLINE ? "\n" : '';
+
+my $prompt = sprintf '%s\ %s \:[?]:, ', $prompt_newline, $hostname;
 
 my $connect = TRUE;
 my $WARNED  = FALSE;
@@ -427,11 +431,12 @@ sub shell_loop {
                     $line = '';
                     say '';
                 }
-                if (    length($line)
-                    and $line ne '[quit]'
-                    and !s_write( $sock, sprintf( "%s\n", $line ) ) ) {
-                    sleep(0.1);
-                    $stored_cmd = $line;
+                if ( length($line) and $line ne '[quit]' ) {
+                    say '' if $PRINT_SEPERATOR_NEWLINE;
+                    if ( !s_write( $sock, sprintf( "%s\n", $line ) ) ) {
+                        sleep(0.1);
+                        $stored_cmd = $line;
+                    }
                 }
                 sleep(0.2);
                 if (   $line eq '[quit]'
@@ -553,10 +558,10 @@ sub readline_signals {
     if ( $SIG_name eq qw| HUP | ) {
         print "\e[H\e[2J\e[3J"; ## 'clear screen' [remote trigger] : SIGHUP ##
     } else {
-
+        ( my $p_str = $prompt ) =~ s|^\n||;
         my $line_width = [ terminal_size() ]->[1];
-        my $line_space = ' ' x abs( $line_width - length $prompt );
-        print sprintf "\r%s%s%s%s%s%s\r", $C{b}, $C{0}, $prompt, $C{R},
+        my $line_space = ' ' x abs( $line_width - length $p_str );
+        print sprintf "\r%s%s%s%s%s%s\r", $C{b}, $C{0}, $p_str, $C{R},
             $line_space, $C{'R'};
     }
 
@@ -579,8 +584,8 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,,.,.,.,,,.,,.,,..,,,,,,.,,,.,.,,..,...,..,,..,,...,...,..,,,,,,...,,.,,...,
-#ZSTBWFFQWSA6ZLOLCYXUFMUSFHNLJ5IGOLZYJVRTIZTULZFQFYOJPIZJEFPQHG3BK7KLXAOB3GY2U
-#\\\|XYNLJZVBJIB3WFPW7GRTEYRAHMYJ7IUZQ6HD57VYGAF3B3SGTQI \ / AMOS7 \ YOURUM ::
-#\[7]QCXTZ6SPIFYFWR6MZ7G5NAX5MCCBHPPQ7GGYK5CRUFPRQIT5C6BI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,.,,.,,,,..,,,.,..,,,,.,,,.,,,,,..,,...,...,..,,,,.,...,...,.,.,
+#5KP3QHAUHSABIFDJU5YCXWVSJEEDH6MSFOL4EYOXVAOIQ7DNW5FVA5B34M23Q6EUSLBDMO3DQQCHE
+#\\\|2ZAB4VRHP2C7LESXDGTEY2EL7BB2GS3IA6V6DE4U2NQZRZ2VL74 \ / AMOS7 \ YOURUM ::
+#\[7]K2JFCLZP2FQVG2V7MWD5PYOWTCQMX7M3IYA7XUI52JH4RW4ZWGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
