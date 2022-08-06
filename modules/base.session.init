@@ -38,8 +38,8 @@ if ( defined $name and $name !~ $re->{'usr'} ) {
 
 ##[ INIT NAME ]###############################################################
 
-$name //=
-    $mode eq qw| server |
+$name
+    //= $mode eq qw| server |
     ? <base.session.uname.server>
     : <base.session.uname.client>;
 
@@ -236,7 +236,7 @@ if ( $mode eq qw| server | ) {    ##  SERVER SOCKET  ##
         );
     }
 
-##[ FILEHANDLER READING ]#####################################################
+##[ FILEHANDLE [ READ ] ]#####################################################
 
     $session->{'watcher'}->{'input_handler'} = Event->io(
         'fd'     => $fd,
@@ -277,8 +277,8 @@ if ( not <[base.session.init_state]>->( $id, 0 ) ) {
 
 return $id;
 
-#,,,,,,.,,...,,,,,,..,,..,.,.,...,...,.,.,.,.,..,,...,...,..,,.,,,,..,,,.,,,.,
-#QVWKQ6VQOGT5MKVMIPFWEVFWTA6D3G6QTQAFDHI72N3SGR4HUPSRH4IBH7RNZR5MK3PUNG4ENWMHY
-#\\\|XP4J45EKR3PEC4DKUGQY3VNCLQXDEGB3BSCQYJSBEZDKVZHYFIR \ / AMOS7 \ YOURUM ::
-#\[7]22OYPL7VFDY2IKN4RB6QDPA4ZDS34AWXCXUGX7OVURYI3D3AWICI 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,,,..,,,..,.,.,,,,,,.,,.,,,..,,...,...,,..,.,,,...,,..,,,,,
+#HXIZS6DE7ALDLLKLM4JZKZW22FOANNCM2I3AOPI5LF3LNTZX3PCJK4CAQQOA5LXQFMQ7BW7LAXYZY
+#\\\|RLKOPFN2URRUNSRN5BO6EHW7HBYWHLX3KYS3HAP2EJWONYF3XK6 \ / AMOS7 \ YOURUM ::
+#\[7]SAZL65UTLETHYS7DJN457753YKOMRBHLROZGSID5LUALJFIGHQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
