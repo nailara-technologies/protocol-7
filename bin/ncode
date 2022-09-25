@@ -14,9 +14,9 @@ use Term::ReadLine;
 use Term::ANSIColor;
 use Cwd qw| abs_path |;
 no warnings 'experimental';
-use Digest::BMW qw| bmw_256 |;
-use List::MoreUtils qw| minmax |;
-use Crypt::Misc qw| encode_b32r |;
+use Digest::BMW     qw| bmw_256 |;
+use List::MoreUtils qw| minmax uniq |;
+use Crypt::Misc     qw| encode_b32r |;
 
 my @params   = @ARGV;
 my $USE_ANSI = 1;
@@ -1568,32 +1568,31 @@ sub get_perl_subs {
     my $source = shift;    # default is to parse module source code
     my @subroutines;
 
-    foreach my $file ( keys(%$source) ) {
+    foreach my $file ( keys $source->%* ) {
         my $current_package = '';
 
         if ( defined $source->{$file} ) {
-            foreach my $source_line ( split( /\n/, $source->{$file} ) ) {
+            foreach my $source_line ( split( m|\n|, $source->{$file} ) ) {
 
                 # check for package borders
-                if ( $source_line =~ /package\s+([\w|\:]+)\s*\;/ ) {
-                    $current_package = $1;
+                if ( $source_line =~ m{package\s+([\w|\:]+)\s*\;} ) {
+                    $current_package = $LAST_PAREN_MATCH;
                 }
 
                 # check for subroutine names
-                if ( $source_line =~ /sub\s+(\w+)\s+{/sm ) {
-                    my $new_sub = $1;
-                    if ( $current_package ne '' and $new_sub ne '' ) {
+                if ( $source_line =~ m|sub\s+(\w+)\s+{|sm ) {
+                    my $new_sub = $LAST_PAREN_MATCH;
+                    if ( length $current_package and length $new_sub ) {
                         push( @subroutines,
                             $current_package . '::' . $new_sub );
-                    } elsif ( $new_sub ne '' ) {
-                        push( @subroutines, $new_sub )
-                            ;    # sub without package name
+                    } elsif ( length $new_sub ) {
+                        push @subroutines, $new_sub;   ## without package name
                     }
                 }
             }
         }
     }
-    return sort(@subroutines);
+    return uniq sort @subroutines;
 }
 
 # :: done :: print 'done' message and exit program
@@ -2355,8 +2354,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,.,,,..,,,,.,,,,,,,.,,,.,,..,,..,.,,,.,.,..,,...,...,.,,,.,.,,,.,,,,,,,,,
-#BDZLMVCR4VYOBOB72KE5EHFQMUO6P4ZZUDLB6FGV7FTPQMRCQG7TZTBAKNYX3QBSKCFORMMETOHKG
-#\\\|WBNYHZLFW3MZ7GFCWO6F7POTGTNDX3OSFJ4ZIVH5U4P5MXY2TG6 \ / AMOS7 \ YOURUM ::
-#\[7]V3LKZD26OQAS5STC3NZ6U25ITTEZ2WQ6TJ3BZ5LN5LYNC6LJBEBI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,,,,...,,,,,.,.,,.,,,..,,,,,..,,...,...,,,.,...,,,.,.,.,,,.,
+#CH7INFXMFPAJNVAFCXOZTHZUKINOAR6CX6QLSREV4RSFQNFMJWBUFWFCEZWJGEBVNUADSLQ2ISTOI
+#\\\|H4W22EJUXK3L6FQEUSUXNYN52HYKLLAM4UOEEOMEOGONQXUFDXU \ / AMOS7 \ YOURUM ::
+#\[7]PHCTE426AUABXYCI55V4TNLVFOTGMBP5JY7JWFFG4IFMOTHP4UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
