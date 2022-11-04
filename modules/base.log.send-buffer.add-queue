@@ -61,7 +61,7 @@ if ( $message_length > $b_ref->{'size-limit'} ) {
 ## checking size \ removing entries ##
 while ( $b_ref->{'size'} + $message_length > $b_ref->{'size-limit'}
     and scalar $b_ref->{'data'}->@* ) {
-    $b_ref->{'size'} -= length shift( $b_ref->{'data'}->@* )->$*;
+    $b_ref->{'size'} -= length( shift( $b_ref->{'data'}->@* )->$* // '' );
 }
 
 push $b_ref->{'data'}->@*, $new_entry_sref;    ##  adding entry to queue  ##
@@ -71,8 +71,8 @@ $b_ref->{'lines-added'}++;                        ## triggering sending ##
 
 return TRUE;
 
-#,,,.,,,,,,,,,,..,,,.,,,.,,..,,.,,,,,,.,,,.,.,..,,...,...,,,.,,..,...,...,,.,,
-#7WL6MY2UVQOSYAKF3EIGJZJ5L3VIFIN44AU6TVKFJ3DFHNMLCCUNHYKPGNK54D7CKPRSNL4JFYTN4
-#\\\|ZOR72QNSURBQ5WPMXU2HN2BNWOIKXIGGCRDCDRWXNAPUK4ABIWC \ / AMOS7 \ YOURUM ::
-#\[7]GMIQPZD7ZKP4I62PXBQ2X2XYNTQKPKIN2GXDG6P3LGGEA2ALBWAY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,,..,...,...,,..,.,,,,,,,,,,,..,,...,..,,...,,..,...,..,,,,,,
+#CFSS2H4654KGRHVAVVITZMKRP3OCKOTRLKJT355BG4JIXYGIAR4W4VN4MOT2KAJOOHEC5QZXNX7UY
+#\\\|HOUPJPIJXUH6VGMOSWM35JYMFTI3KAEQJ34NTPKFLK2G3KY47KO \ / AMOS7 \ YOURUM ::
+#\[7]ABKP64FGDMSL7EGHONAQY62OIALXT6BVKAPMJ22AOLLW7RXERQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
