@@ -32,7 +32,7 @@
     <!-- with Smart placement on a multi-monitor system, try to place new windows
        on: 'Any' - any monitor, 'Mouse' - where the mouse is, 'Active' - where
        the active window is, 'Primary' - only on the primary monitor -->
-    <primaryMonitor>1</primaryMonitor>
+    <primaryMonitor>Mouse</primaryMonitor>
     <!-- The monitor where Openbox should place popup dialogs such as the
        focus cycling popup, or the desktop switch popup.  It can be an index
        from 1, specifying a particular monitor.  Or it can be one of the
@@ -311,6 +311,11 @@
         <command>slock /usr/bin/perl -e 'select undef,undef,undef,0.3;qx(/usr/bin/xset dpms force off)'</command>
       </action>
     </keybind>
+    <keybind key="C-W-S">
+      <action name="Execute">
+        <command>/usr/local/bin/sign-term</command>
+      </action>
+    </keybind>
     <keybind key="W-Baclspace">
       <action name="Execute">
         <command>xterm -e /data/scripts/</command>
@@ -408,17 +413,17 @@
     </keybind>
     <keybind key="Shift-W-R">
       <action name="Execute">
-        <command>re.fox</command>
+        <command>~/bin/re.fox</command>
       </action>
     </keybind>
     <keybind key="A-Shift-grave">
       <action name="Execute">
-        <command>fox.on</command>
+        <command>~/bin/fox.on</command>
       </action>
     </keybind>
     <keybind key="A-grave">
       <action name="Execute">
-        <command>fox.off</command>
+        <command>~/bin/fox.off</command>
       </action>
     </keybind>
     <keybind key="A-W">
@@ -877,7 +882,7 @@
     <!-- show the manage desktops section in the client-list-(combined-)menu -->
   </menu>
   <applications>
-    <application name="mpv">
+    <application class="mpv">
       <focus>yes</focus>
       <decor>no</decor>
     </application>
@@ -907,6 +912,10 @@
       <focus>yes</focus>
       <decor>no</decor>
     </application>
+    <application class="epiphany-browser">
+      <focus>yes</focus>
+      <decor>no</decor>
+    </application>
     <application name="calcoo">
       <focus>yes</focus>
       <decor>no</decor>
@@ -933,6 +942,15 @@
       <decor>no</decor>
       <shade>no</shade>
       <layer>below</layer>
+      <skip_pager>no</skip_pager>
+      <fullscreen>no</fullscreen>
+      <maximized>false</maximized>
+      <desktop>all</desktop>
+    </application>
+    <application title="ticker">
+      <decor>no</decor>
+      <shade>no</shade>
+      <layer>above</layer>
       <skip_pager>no</skip_pager>
       <fullscreen>no</fullscreen>
       <maximized>false</maximized>
