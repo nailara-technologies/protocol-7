@@ -15,7 +15,7 @@ use Getopt::Std;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     my $up_dir         = File::Spec->updir;
     my $data_pm_path   = qw| data/lib-path/pm |;
@@ -120,7 +120,8 @@ if ( defined $option{'T'} ) {
     $truth_templates = AMOS7::TEMPLATE::split_truth_templates( $option{'T'} );
 
     if (   $truth_templates->@* == 0
-        or $option{'T'} !~ m|%s| and not defined $data_str
+        or $option{'T'} !~ m|%s|
+        and not defined $data_str
         and not $option{'S'}
         and not $option{'s'}
         and not @ARGV ) {
@@ -390,7 +391,7 @@ if ( $option{'v'} ) {
                             AMOS7::TEMPLATE::regex_src_string($ARG) )
                         : sprintf( $ARG, $checksum_encoded ),
                         $C{R}
-                        ),
+                    ),
 
                 } $truth_templates->@*
             ),
@@ -482,8 +483,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,.,.,.,.,,,..,,..,,,,,,.,.,,..,,.,,,,,,,,.,..,,...,...,,,.,..,,.,.,.,.,.,.,
-#HULTM3EAP7NEKA4F5NGCT4A7R6C466AIY55GWJFG3E2O6W275LCECTKKKMZS3ZUROMO6HAUIFBXUG
-#\\\|CW3RLXEJ34EKHB4EB4KFXLW2OMCROBXXJ3WTBGVLXZA6JHMAJRW \ / AMOS7 \ YOURUM ::
-#\[7]RPNXZU7IPR4BKJRBDEFOQKJJV3ZWALFDURCPVCQBF2OB35OG26DI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,..,,..,,,,.,,.,,,,,,..,,..,,..,,...,...,.,,,,.,,,.,,..,,..,,
+#BZLYICAKQSGYV3TFQSAFTZEB3FZJM7S4BAEBTKDK44DMLBYCEWALL3TA7MEA2ZEULHNH47SFNJMTO
+#\\\|MU4CIHLLHG6MR47JMIWBOBGL2ADPLRWZSWBACTKABZGO5FK2EP2 \ / AMOS7 \ YOURUM ::
+#\[7]L3YIXM2JPZBW37P4ZCIJGIJZQ2V2GUVACGEVTTKUV5Y76QHPHMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
