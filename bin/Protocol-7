@@ -258,18 +258,18 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
     use IO::Handle;
     use IO::Scalar;
     use Sys::Hostname;
-    use Cwd qw| abs_path |;
     use Text::Wrap qw| wrap |;
     use File::Spec::Functions;
     use List::MoreUtils qw| :all |;
-    use FindBin qw| $RealBin $RealScript |;
+    use Cwd             qw| abs_path |;
+    use FindBin         qw| $RealBin $RealScript |;
 
     ##  includes : S_IWUSR, S_IWGRP, S_ISFIFO  ##
     use Fcntl qw| :seek :mode :DEFAULT :flock |;
 
     ## MATHEMATICAL CONSTANTS ##
 
-    use constant qw| τ |   => 6.28318530717958647692;
+    use constant qw| τ | => 6.28318530717958647692;
     use constant qw| tau | => qw| τ |;
 
 ## registering loaded modules ##
@@ -1653,8 +1653,7 @@ sub p7_load_code {
             } else {
                 my $buffer = $data{'system'}{'start'}{'zenka-buffer'} //= [];
                 map {
-                    push $buffer->@*,
-                        sprintf( ':[compile-errors]: %s', $ARG )
+                    push $buffer->@*, sprintf( ':[compile-errors]: %s', $ARG )
                 } @wrapped_error;
             }
 
@@ -1680,8 +1679,7 @@ sub p7_load_code {
             } else {
                 my $buffer = $data{'system'}{'start'}{'zenka-buffer'} //= [];
                 map {
-                    push $buffer->@*,
-                        sprintf( ':[compile-errors]: %s', $ARG )
+                    push $buffer->@*, sprintf( ':[compile-errors]: %s', $ARG )
                 } @wrapped_error;
             }
 
@@ -3563,7 +3561,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                     } elsif ( index( $line, qw| D6FQQ |, 0 ) == 0 ) {
                         $src_comp = qw| gzip |;
                     } elsif (                          ## [:< ##
-                        index( $line, qw| EMRSAPR2LUQCGIYK |, 0 ) == 0
+                        index( $line, qw| EMRSAWZ2HQQCGIYK |, 0 ) == 0
                     ) {
                         $src_comp = qw| none |;
                     } else {
@@ -3900,8 +3898,8 @@ __DATA__
 :
 :.
 
-#,,..,.,,,,,,,.,.,,..,...,,.,,.,.,..,,,,,,,.,,..,,...,...,,.,,,.,,.,.,.,,,.,,,
-#UL7DRRIO2TC3K3SIG54XIVTVYWPRZRYMWUJAW6LTX4TYQ5A55DHZG42MH65OHRJUNKLNJMNCQWFUK
-#\\\|PUYVZNUD4HFFFFTM4VOPRYDUDYPAOODLB6GK3GERMAEHURD375I \ / AMOS7 \ YOURUM ::
-#\[7]PIS33FTH2ZMUCQW5TY43SYFZJXRYFTTDUJRN37PA7OD2IHPSXGBY 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,,,.,.,.,,,..,,..,,,.,,...,.,.,..,,...,...,...,,.,,,,,,...,..,,
+#L2RTTQQ2GSDS7BSW6F24BWQY6RK3Q2Z36NIY6Q7IAIORWBDTKTZ7A32GMT6EASPK5PN525ETEGQ36
+#\\\|VQQKTAFR66OU4WXQKT4VYUP5PG5NVHGCYK3W4LLV635PJCGEG4D \ / AMOS7 \ YOURUM ::
+#\[7]3E5APVXHIA6XL4OWSREVI5B3PIB7YSDDMKGEI7KMRO2HGFMGBQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
