@@ -24,8 +24,7 @@ map {
         and $ARG->pid != $PID     # and is not this process ['v7']
         and not exists $own_children{ $ARG->pid }
         and ( not defined $ARG->exec
-        or $ARG->exec ne
-        qw| /usr/bin/dbus-launch | )    ##  <--  whitelist \ config   [LLL]
+        or $ARG->exec ne qw| /usr/bin/dbus-launch | ) ## <-- whitelist\cfg LLL
     } @{ <v7.process.pt>->table };
 
 my @orphaned_pids = sort keys %orphans;
@@ -40,8 +39,8 @@ map {
 
 return @orphaned_pids;
 
-#,,,.,,,.,,,,,,,.,...,,,.,...,.,.,...,.,,,,..,..,,...,...,,.,,,,.,.,,,.,.,,..,
-#XKUO6EEUHRIONCX5WEGYVDFWLSP456LIW2HFY47SLX6O26IFF74JKCPJQBDMLOI5AJKPUKEUCRHNK
-#\\\|SDJABNHJOSOO4WMLP24TWOH2NLLE42YWJ4W2POO4LZDF5IULRSB \ / AMOS7 \ YOURUM ::
-#\[7]TP3R2SEC2GBMP3U3DPZXXWSLHB6OXPCEFUUZSEB76DJX7JI2CABQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,,..,,,,,.,.,,,.,,.,,..,,.,.,..,,...,..,,.,,,..,,...,...,,,.,
+#NMVLXKRLU7BAJBEHVCN7HN6UKBZZDD4AK7KHTXPZD26R53IIALB2UQNJMP2GPO5OQPKUF2TWVDTXO
+#\\\|NGVAXZZQFAF5O5MCAGDDF3SEU3EHU4C2M43DPUNQDBHZGTLGDXT \ / AMOS7 \ YOURUM ::
+#\[7]Y24XL6IYANR5GLUDBWD42JZIMLFA3RIBITXI3P6Y6QAL5HZECGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

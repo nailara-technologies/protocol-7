@@ -50,8 +50,7 @@ $callback_cref->( $cb_params // $value_ref->$* ) if defined $callback_cref;
 
 ##  reset at overflow limit  ##
 #
-if (index( sprintf( qw| %0*b |, $overflow_bit, $value_ref->$* ), 1, 0 ) == 0 )
-{
+if ( 0 == index sprintf( qw| %0*b |, $overflow_bit, $value_ref->$* ), 1, 0 ) {
     $event->w->stop;     ##  pause for modification  ##
     $value_ref->$* = 0;
     $event->w->start;    ##  restarting watcher  ##
@@ -59,8 +58,8 @@ if (index( sprintf( qw| %0*b |, $overflow_bit, $value_ref->$* ), 1, 0 ) == 0 )
 #
 ##
 
-#,,..,.,.,,..,..,,..,,,,.,.,,,,.,,,,.,...,...,..,,...,...,,..,,,,,...,,,.,..,,
-#UEMDZVTY6LHYKZOGK4GR4SMO4SG757YWT6X27PXUEYYXA3CK6YXK2VARHNX525XSVBXRLILJP45ZQ
-#\\\|CJO7BMYJ7AUNXRTPC72S5LDS4KCDQPBMZIFOGEQWNEUVNJ7SGP4 \ / AMOS7 \ YOURUM ::
-#\[7]KFA4TTGPBCV7M5MMVQNGXGFBRVP6OIA4FLTZODIPBDK623KMA2AY 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,..,,,,,...,,,,,...,,..,,.,,...,..,,...,...,,,,,,,,,,,.,,.,,.,.,
+#R525SHDTDRRXJYE6I57PYROENEUSMWUEZHVHBWDTGA7W5O5PNYLQLO3TZGJPOABKAQXJGXNZ6R22E
+#\\\|AOY5BMX5RIN4MHXTYTOCBV5FZMTMGPQWQLANDRLAJTB2CQWRJTP \ / AMOS7 \ YOURUM ::
+#\[7]UPOCMPZRTHQMI7ELX25Y2M3XNHMWEW4AYK5BED6RGMKNSBS5XADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -152,7 +152,7 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
     }
 
     my $chksum_template = qw| ip\\\\%s[%s:%d] |;
-    my $truth_template  = qw| /var/run/.7/UNIX/%s |;
+    my $truth_template  = qw| /var/run/.7/UNIX/%s |;   ## [LLL] <-- config
 
     my $calc_input_string
         = sprintf( $chksum_template, $ip_proto, $ip_addr, $ip_port );
@@ -162,8 +162,8 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
 
 return 5;  ###################################################################
 
-#,,,.,,..,.,.,,..,,.,,,..,.,,,.,.,,..,...,,..,..,,...,...,...,,..,...,,,,,,.,,
-#X3FMTHUGO3FUEWAY4X7BYQDELGXNPGMO2VLJ6DSH5LNIEQBYEEBJ25G4ULXGQ375MPGBT6EK23D5A
-#\\\|L2DQ2T74AC7NIGL3UQYVSH7SSEZ4ASD4XSJ76S3JCJNM4ALQVKY \ / AMOS7 \ YOURUM ::
-#\[7]I3UOEKNSKRSSXMLAEJTVZXBUMKUF5DQE6AIVOXFPLTXPZNYULWCY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,..,.,.,...,..,,,,.,.,.,..,,...,...,...,,..,.,,,,,.,,,,,
+#B4AYTRMD2YAYHXJZD3L5SYW5QSP2AEDO52UVEAKP42ISEO3GJRSYUOLWVAW4LQVUJ2RYCBFYC3SQY
+#\\\|LKNU7QPAW7C5HTE6KFAQAEQNQCLDCYUYIOKPC2WZ5DDCNLCVGS6 \ / AMOS7 \ YOURUM ::
+#\[7]RAJ4TOOK62GNAVPUV4B2GUTRNT64H42IXFRSSCCIPTN3WEZVVOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

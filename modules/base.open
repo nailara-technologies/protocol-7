@@ -17,8 +17,10 @@ if ( not defined $data{'io'}{'type'}{$type} ) {
     return undef;
 } elsif (
     not defined $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
-    or ref $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} ne
-            qw| CODE | } ) {
+    or ref $code{
+        $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} ne qw| CODE |
+    }
+) {
     <[base.logs]>->(
         0,     "base.open: '%s'-handler for mode '%s' not defined",
         $type, $mode
@@ -29,8 +31,8 @@ if ( not defined $data{'io'}{'type'}{$type} ) {
 return $code{ $data{'io'}{'type'}{$type}{'handler'}{$mode}{'open'} }
     ->(@params);
 
-#,,,.,...,,,,,.,,,...,...,.,.,,,,,,..,..,,,.,,..,,...,...,..,,.,,,.,,,,,.,.,,,
-#AMP2FTQ6GWOOHVJBGSFYBMWJ6HEKDULCMIBD2YHLSS4XUUTTGHFXYQADPZYZ4GUXTVVLODKVAM5YS
-#\\\|7SAT2VRMGD44CBJNADKHDVXQXCHTXOXMTU5VSDWMEWC5CFOHOWP \ / AMOS7 \ YOURUM ::
-#\[7]OSS757KA6SNZTPZJXCXQUNPAFXWU7ITRLMVNZN7XX4ZZYWMF2GBA 7  DATA SIGNATURE ::
+#,,..,...,,..,...,,,,,,.,,,..,,,.,,.,,.,.,,..,..,,...,..,,...,.,,,,..,,.,,.,.,
+#2QI227YEWJFLK5LJBI7B4FT7YDIQJST5FLN7IYQNK6MGZUEE4MURFGKCNZHBDPLKBI4FOJXOLGU4G
+#\\\|NTSPTY56TODLOAFSZTTF7UURJQB3HOL3IWXSUXUNDYCOTWE4L4L \ / AMOS7 \ YOURUM ::
+#\[7]F4NRX2MR4SKOU5IUMPCRMP7ICFDZLPHDT7KYLQKDHKJHSFSEXOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

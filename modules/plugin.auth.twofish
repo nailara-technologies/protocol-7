@@ -22,26 +22,29 @@ if ( $input->$* =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     my $cmd_type = $1;
     my $rep_type = $2 // $3;
     $rep_type = 'sig' if $cmd_type eq 'key-ver';
-    if (not defined $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{"$rep_type-reply"} )
-    {
+    if (not defined $keys{'C25519'}{ sprintf( qw| session:%s |, $key_name ) }
+        {"$rep_type-reply"} ) {
         $output->$* .= "FALSE not available `:|\n";
         return 2;    # <-- terminate [ error state ]
 
     } elsif ( $cmd_type eq 'srv-key' ) {   ## returns current session p.key ##
         $output->$* .= sprintf( "TRUE %s\n",
-            $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'key-reply'} );
+            $keys{'C25519'}->{ sprintf( qw| session:%s |, $key_name ) }
+                ->{'key-reply'} );
     } elsif ( $cmd_type eq 'key-sig' ) {   ## returns session key signature ##
         $output->$* .= sprintf( "TRUE %s\n",
-            $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'sig-reply'} );
+            $keys{'C25519'}->{ sprintf( qw| session:%s |, $key_name ) }
+                ->{'sig-reply'} );
     } elsif ( $cmd_type eq 'key-ver' ) {  ## return key and version chk-sum ##
-        $output->$* .= sprintf(
+        $output->$* .= sprintf
             "TRUE %s\n",
             <[chk-sum.bmw.L13-str]>->(
-                sprintf( '%s.[%d]',
-                    $keys{'C25519'}{sprintf(qw| session:%s |,$key_name)}{'sig-reply'},
-                    $auth_versn )
-            )
-        );
+            sprintf( '%s.[%d]',
+                $keys{'C25519'}->{ sprintf( qw| session:%s |, $key_name ) }
+                    ->{'sig-reply'},
+                $auth_versn )
+            );
+
     }
     return 1;                             # <-- keeping connection state
 
@@ -63,8 +66,8 @@ if ( $input->$* =~ s{^get-(srv-(key)|key-(sig|ver))\n}{} ) {
     return 1;                                    ## <-- keep connected ##
 }
 
-#,,..,...,.,,,,,.,,,,,,,,,.,.,.,.,,..,,..,..,,..,,...,.,.,.,,,.,,,,.,,,,.,...,
-#NCCPPHDD3HLLXTXJ5AHAXGZ6QEHE2B2TVMBZCXBX5BMXNBNPM57C6MR4F4GKSMMGIVCX6FN3TXAZE
-#\\\|BQEKPPKPYK4JKR6QPQTP3M6IAG72OAFRZX5EPF3KUAPSQXNSH6U \ / AMOS7 \ YOURUM ::
-#\[7]UKRMO2GG6UZJKQRIISFAANQWVOU3OLNK34PYBHHOAB75DNJIKKAA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,,..,,..,.,.,,.,,,,,,.,.,..,,..,,...,...,...,,,.,..,,.,,,,.,,
+#HXAOUF5LHIXXBPG62TIRJTBTXU3PGQTG3IFLNMHCOKEQ2H4OLFKCXGIFMPZVSIYI7ZT5LOY32DORG
+#\\\|LKOD7MB5PE6O5P2FYFABGVRGKG4FCUQAB5QPCQ5NP7GMYLZQDV3 \ / AMOS7 \ YOURUM ::
+#\[7]O43UBUH2K55PSO4HRIEOX5P2L5JO3Q64ILEAJXKIK6RKGFSMKYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
