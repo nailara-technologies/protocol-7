@@ -171,7 +171,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     <tile-groups.transition.status.waiting.stop>--;
     ( my $zenka_stripped = $zenka ) =~ s/\[.+$//;
     map {
-        if (exists <tile-groups.transition.status.zenki.concurrency>->{$ARG} )
+        if (
+            exists <tile-groups.transition.status.zenki.concurrency>->{$ARG} )
         {
             <[base.protocol-7.command.send.local]>->(
                 {   'command'   => "cube.v7.start",
@@ -282,8 +283,8 @@ if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,,.,..,,,,.,.,.,..,,.,.,..,,,,,,..,,.,.,,,.,..,,...,...,.,,,..,,,,,,,.,,,,,,
-#A7DJHTE47SUTNG7CVLOUTQCQK7O4R36ERRXHBQY7S26D2IDFUDGDSTZTNB655ADBDUCRP3TOKJIV4
-#\\\|SVK362ZG2BJBFS3I3LJKFIPGZAO4QPKH6HOHJKDTJLQLKDHZ4PU \ / AMOS7 \ YOURUM ::
-#\[7]7NJCIOFD5H4I3MRUXULRJ6STOHOTSJZ23CTFZG5MLFVDALKPYADQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,.,,,,,.,,..,,.,,,,.,,.,,..,,..,,...,...,,,,,,..,.,.,,..,.,.,
+#OLD4GQHDOBBMORXYHOBWH3WQPXZLHKDAKIG3JVU5NEAVKWCSFBTKRQSPTCUO6GAOGS7TT7GNQHBJE
+#\\\|UGD4C4JF7TFBUTAUQTBGILR5WEDBL3YKFSCARH2UWF7CFSWMAW6 \ / AMOS7 \ YOURUM ::
+#\[7]AKS3EYSNABSDZVPNZHXGT5TJDUIM7X5OHRWXAPF4PLHM2PCRVMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

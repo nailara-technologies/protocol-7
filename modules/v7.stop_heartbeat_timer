@@ -8,7 +8,7 @@ return warn 'expected instance id <{C1}>' if not defined $instance_id;
 my $instance = <v7.zenka.instance>->{$instance_id};
 return undef if not defined $instance;
 
-my $cancelled = 0;
+my $cancelled       = 0;
 my $instance_timers = $instance->{'timer'} // {};
 
 foreach my $timer_name ( keys( %{$instance_timers} ) ) {
@@ -31,8 +31,8 @@ delete $instance->{'timer'} if not keys %{ $instance->{'timer'} };
 
 return $cancelled;
 
-#,,.,,,..,,..,,..,...,...,,,.,..,,.,,,...,,.,,..,,...,...,.,.,..,,..,,,.,,..,,
-#JOZWCXDU4AAVFWXPRNOGC7MHDON42CNCQFCSRTJXQRNUS2QGLPOKMI6L7HEHMEOTHJHONVOI7NXCG
-#\\\|PENLS7754RKQ2KPMBCUCFJWF57MMXDKP2MWFBBXMB6GFYIJD33I \ / AMOS7 \ YOURUM ::
-#\[7]5ZQ7AJST2QAXKZSTLT6QR545PYBOEZVJIOWKDYQZS4GCQ37UTODI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,..,,,,.,,.,,,.,,.,.,,,,,.,,,..,,..,,...,...,.,,,,..,.,.,,.,,,,.,
+#JWMUOQWATMDHWXFPLPGCA6VKXRSUJGOVWKA5YWMBN3HW7HVQG4WAUA3IUH3XTA5SBV52ZC72AHT6O
+#\\\|CAMAVUSVLNMRZ3KB7KHBQVPVUWJE6VJTRJEGPZFIRGWDIFNJZHW \ / AMOS7 \ YOURUM ::
+#\[7]MMQKRQ2FG6MUGJJ63MAWVHRSIAPJYJ3UEWX3WKS756WXSGRQHMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -148,10 +148,14 @@ foreach my $file (@file_list) {
         }
         push( @{<universal.sequence.switch_order>}, "$switch_zenka" )
             if not defined $last_zenka
-            or $zenka ne $last_zenka and ( $index != $last_index
+            or $zenka ne $last_zenka
+            and (
+            $index != $last_index
             or <universal.content.zenka_map>->{ $file_types{ $file_list[0] } }
-            ne <universal.content.zenka_map>
-            ->{ $file_types{ $file_list[$last_index] } } );
+            ne <universal.content.zenka_map>->{
+                $file_types{ $file_list[$last_index] }
+            }
+            );
     }
     $first_zenka = $zenka if not defined $first_zenka;
     $last_zenka  = $zenka;
@@ -191,8 +195,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,.,.,,,..,,,..,.,.,,.,,,.,,,,,,,.,,..,,,,,,..,,...,...,,,.,..,,..,,.,.,,,,,
-#W7UXSYBMKOVZMSMI2YRLWGC7L45CWA4HT7H7KWOJZNEMJHJ5GBJYEDZZX4FPSZHOLY4X5U73BD2WO
-#\\\|FZ7HJMZB4HJITFEKMFU22PHQ3PBOG7US5AIT52KEPTDD4CJV4VT \ / AMOS7 \ YOURUM ::
-#\[7]7QLWOQADW2E2K2MBCUPEMSQWTSNH62LZUTWGK7EFH3CONU47CQAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,..,,,..,..,,..,,,,.,.,.,,.,,..,,...,...,,..,,.,,,,.,.,,,,.,,
+#ILKZSLH53SKTY6AQEERG347ZE4ISFB34UV5OP62LSHV3OP7L63W2AD6TDQVN6GC5P2CP7V6KNKSQC
+#\\\|VRLPNLMJBB6BDZIIGVHBZMTHIFP7KNQWA5QNCHUWBA5LOBOR2P6 \ / AMOS7 \ YOURUM ::
+#\[7]LRUTZYOU2KPP3NDFCTM5WKGV35FHRGADQUGIJNW6RIARM6EJ7SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,9 +36,9 @@ if (    defined $last_msg_chksum
     state $last_logged_csum;
     if ( not defined $last_logged_csum
         or $last_logged_csum != $err_msg_chksum ) {
-        say $AMOS7::C{'o'}, ':' if defined $AMOS7::C{'o'};
+        say $AMOS7::C{'o'}, qw| : | if defined $AMOS7::C{'o'};
         say STDERR ': recursive error-msg : ', $err_str;
-        say ':', $AMOS7::C{'R'} if defined $AMOS7::C{'R'};
+        say qw| : |, $AMOS7::C{'R'} if defined $AMOS7::C{'R'};
         $last_logged_csum = $err_msg_chksum;
     }
     return FALSE;
@@ -95,8 +95,8 @@ foreach my $akey (@attr_names) {
 
 return TRUE;
 
-#,,,.,,.,,.,.,...,.,,,.,.,,..,.,,,,,,,,.,,.,.,..,,...,...,,,.,,..,,..,.,.,...,
-#VT2E3SE53CIUFQPJ57MORPNZEBP32GAAEB2SPDNOWMP75ORFN46XDC4XFZMAYBCRQLWSAFJ2RHLLW
-#\\\|4VWWJYJ2SMISQBRQ4IQ6FCKSZTTB5TAQFXBPTXJ7FECCHLWWAAU \ / AMOS7 \ YOURUM ::
-#\[7]MZU6IMFI3A4RQDXX2DQ46YN3XMLPYJV4ORJNU3XHSLETFASJVABA 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,,,,,...,.,.,,,,,.,,,,,,,...,..,,...,...,..,,,.,,,.,,,..,.,.,
+#6HO4F5CGMLGPOYDBINV7WHR6J63IP6JRIRZO4DVVLZJT4ZHS4YGMUNVIAVV7CR6TBHYEVKNKNGZUQ
+#\\\|L6N2VJEZDVYQ5HEW7VKRZVSFUCCUAZEJXHPHVD4KNY6OSGS2B7R \ / AMOS7 \ YOURUM ::
+#\[7]PSM5LIMXF7ZGL4VY4CRKIHFBP64UZNIA23LTAWEY6NANPRNVQWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

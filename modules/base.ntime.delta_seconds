@@ -30,7 +30,7 @@ if ( $ntime_start !~ m|^\d+(\.\d+)?$| ) {
 }
 
 my $precision = 0;
-if ( defined $ntime_end ) { ## end time given ##
+if ( defined $ntime_end ) {    ## end time given ##
     if ( $ntime_end !~ m|^\d+(\.\d+)?$| ) {
         my $decoded = <[base.ntime_BASE32_to_numerical]>->($ntime_end);
         if ( not defined $decoded ) {
@@ -43,7 +43,7 @@ if ( defined $ntime_end ) { ## end time given ##
             $ntime_end = $decoded;
         }
     }
-} else { ## end time is current time ##
+} else {    ## end time is current time ##
     my $precision = defined $LAST_PAREN_MATCH ? length($LAST_PAREN_MATCH) : 0;
     $ntime_end = <[base.ntime]>->($precision);
 }
@@ -52,8 +52,8 @@ my $delta_secs = ( $ntime_end - $ntime_start ) / 4200;
 $precision += 3;
 return sprintf( qw| %.*f |, $precision, $delta_secs );
 
-#,,,,,,,,,.,.,,,.,...,,,,,.,.,..,,,..,.,.,,,.,..,,...,...,.,.,..,,.,,,..,,..,,
-#AEKSZA3TMUL5UEWFLACKVPCPGQPML6KGPWAIWNEUCS575HA2YV2ZROC3I6NLMVSEXQ2CZCWVH6TF4
-#\\\|TJXISU2P4UXCEE2ZL33PX7QLNJ52VASUGH4KGROGWWWWB7EVHPM \ / AMOS7 \ YOURUM ::
-#\[7]ZOD52I7RVIXF3FJYK3C2Y3N47JZPEFIHJUBMAAUQDBQTGEQKAQBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,.,,,,,.,,,.,,.,,.,,,.,,,..,,..,,...,...,...,,.,,,..,..,,,,.,
+#CKLXIBL45UGJ7OWB6NZZA4WBLPC3UKIWKW7USEIZQRLTMMWR3SZURPTGZ6A4BRNVHRDUU77DNCQUI
+#\\\|SKQK5F526TXX236C6XA5HUCYUYVLIABYZBPWNXZXEIVMULKTLR5 \ / AMOS7 \ YOURUM ::
+#\[7]CYLQPEWLS7R5SEYUB2NRLSMWS3CEYTFUIRMK2NXNLMH7LYB3NCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

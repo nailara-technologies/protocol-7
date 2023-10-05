@@ -65,21 +65,28 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
      # [LLL]  implement [devmod] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.zenka_buffer> >= 2 ) {
-            <[base.logs]>->(
-                2, ':network: %s ..:. %s ..:. %s',
-                $src_name, $target_name, $cmd
+
+            if (
+                (      $src_name ne qw| cube |
+                    or $target_name ne qw| p7-log |
+                    or $cmd ne qw| append |
+                    or not <devmod.skip_log_msg>
                 )
-                if ( $src_name ne qw| cube |
-                or $target_name ne qw| p7-log |
-                or $cmd ne qw| append |
-                or !<devmod.skip_log_msg> )
-                and ( $target_name ne qw| cube |
-                or $cmd ne qw| p7-log.append |
-                or !<devmod.skip_log_msg> )
-                and ( $src_name ne qw| v7 |
-                or
-                ( $cmd ne qw|heart| and substr( $cmd, -5, 5 ) ne qw|.heart| )
-                or !<devmod.skip_v7_heartbeat> );
+                and (  $target_name ne qw| cube |
+                    or $cmd ne qw| p7-log.append |
+                    or not <devmod.skip_log_msg> )
+                and (
+                    $src_name ne qw|  v7  |
+                    or ( $cmd ne qw| heart |
+                        and substr( $cmd, -5, 5 ) ne qw| .heart | )
+                    or not <devmod.skip_v7_heartbeat>
+                )
+            ) {
+                <[base.logs]>->(
+                    2, ':network: %s ..:. %s ..:. %s',
+                    $src_name, $target_name, $cmd
+                );
+            }
         }
 
         $target_cmd_id =~ s|^(\d+)$|($1)|;
@@ -128,8 +135,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,..,.,.,,,,,,,,,,,.,.,.,,,.,,,,,,..,,,,,.,,,..,,...,...,.,,,...,,,,,,,.,.,,,
-#EJ3H75NLZNN3R4E6VJZHX3VFOETYIC7O3JXFKFNDXDRPFNHYHIQ4CZHJKP2FB5ZF3S464ZIYCRQZG
-#\\\|5A2DIOGE4Y76NG7LBE3HVRM4UNSMVPSUNZCLFU3F5DXNM674AUA \ / AMOS7 \ YOURUM ::
-#\[7]ZDQASLNJVF4ADVVS5BM4YHVLLXZAQTPI4Z64VSG3FJUD2I5SUGDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,...,.,,,...,,,,,...,.,.,,,.,..,,...,...,.,.,,.,,,,,,,..,,.,,
+#FB36E74ZYRNTAMMWRMWNEIKNHKR4YG4LIQIGZGJNRPASBAXNPF5EQP734XN52SQDFTF4RFINRE3HC
+#\\\|37PA4G5TQIH33LFBGGCYFFSTMAV34AO6EL4HOTERA7QPBZ3Q6W2 \ / AMOS7 \ YOURUM ::
+#\[7]6EBQSDS74RK7PSTOHFDFDHORXMUFBKVWZLVQ3OWCHYQ5NIRIDOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
