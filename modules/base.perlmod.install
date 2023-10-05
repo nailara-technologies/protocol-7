@@ -11,53 +11,55 @@ $module_name = $known_deps->{'cpan'}
     if defined $known_deps->{'cpan'}
     and $known_deps->{'cpan'} ne $module_name;
 
-<[base.log]>->( 1, ".: installing perl module '$module_name' :." );
+<[base.logs]>->( 1, ".: installing perl module '%s' :.", $module_name );
 
-<system.host.os.dist.name> //= 'unknown';
-<system.host.os.dist.name> = 'debian'
-    if <system.host.os.dist.name> eq 'unknown'
-    and -f '/etc/os-release'
-    and <[file.content]>->('/etc/os-release') =~ /^ID(_LIKE)?=debian$/m;
+<system.host.os.dist.name> //= qw| unknown |;
+<system.host.os.dist.name> = qw| debian |
+    if <system.host.os.dist.name> eq qw| unknown |
+    and -f qw| /etc/os-release |
+    and <[file.content]>->('/etc/os-release') =~ m|^ID(_LIKE)?=debian$|m;
 
 my @cpan_list = ($module_name);
 
-if (    <system.host.os.dist.name> eq 'debian'
+if (    <system.host.os.dist.name> eq qw | debian |
     and defined $known_deps->{'debian'}
-    and ref( $known_deps->{'debian'} ) eq 'ARRAY'
-    and @{ $known_deps->{'debian'} } ) {
+    and ref( $known_deps->{'debian'} ) eq qw| ARRAY |
+    and $known_deps->{'debian'}->@* ) {
     @cpan_list = ();
     my @deb_list;
     map {
-        if ( $ARG =~ s/^cpan:// ) {
-            push( @cpan_list, $ARG );
+        if ( $ARG =~ s|^cpan:|| ) {
+            push @cpan_list, $ARG;
         } else {
-            push( @deb_list, $ARG );
+            push @deb_list, $ARG;
         }
-    } @{ $known_deps->{'debian'} };
+    } $known_deps->{'debian'}->@*;
 
     <[base.debian.install_package]>->(@deb_list);
 }
 
 if (@cpan_list) {
-    if ( !length($cpanm_path) ) {
+    if ( not length $cpanm_path ) {    ## create seperate routine ##  [LLL]
         <[base.log]>->( 0, "[AUTO_INSTALL] 'cpanminus' ..." );
-        if ( <system.host.os.dist.name> eq 'debian' ) {
-            system( 'apt-get', '-fy', 'install', 'cpanminus' );
-        } else {
-            qx( wget https://cpanmin.us -O /var/tmp/autoinst.cpanm );
-            system( '/var/tmp/autoinst.cpanm', '--self-upgrade' )
-                ;    # LLL: CHECKSUM!
+        if ( <system.host.os.dist.name> eq qw| debian | ) {
+            system qw| apt-get -fy install cpanminus |;
+        } else {                       # LLL: CHECKSUM and config !!!
+            qx'wget https://cpanmin.us -O /var/tmp/autoinst.cpanm';
+            system qw| /var/tmp/autoinst.cpanm --self-upgrade |;
+
         }
     }
+
     my $s = @cpan_list > 1 ? 's' : '';
-    <[base.log]>->(
-        0, "[AUTO_INSTALL] module$s: " . join( ', ', @cpan_list )
+    <[base.logs]>->(
+        0,  '[AUTO_INSTALL] module%s: %s',
+        $s, join( ', ', @cpan_list )
     );
-    system( 'cpanm', @cpan_list );
+    system( $cpanm_path, @cpan_list );
 }
 
-#,,.,,...,,,,,.,,,...,.,.,.,,,,,.,...,,..,,.,,..,,...,...,,..,,,,,...,.,.,,.,,
-#3WOG2RBKKZ7MZA2RPKKPJ2ZG7QLP4EKDY67GZ26UMNDDNK2X6UPXFW3VRZY3W7TI4X2LBJCREKBZK
-#\\\|UFP3HDFONTG2ONSWMAF56ZDMXPGC5D7CJHZ6U72G5QTOFZOG6SF \ / AMOS7 \ YOURUM ::
-#\[7]N2PTOTAPAVHVUUEI2MDSERFTEFAWUSPGQHQXWVPC6TQK22E4UMDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,.,,,...,,,,,.,.,,,.,,.,,.,.,..,,...,...,...,,,.,,.,,,,.,.,.,
+#6IQKT3L6V3DYG6RDQD3KRGNE2MBZA32LMQLIE3UWUTXDOZLPI4IU5MROHPAKPF32OKEUYVMD6T56Y
+#\\\|7JGWHB6ZLJJ4VBWSHQB5YD2HZR7EHM4YBKIETMOORTCREU5VAIU \ / AMOS7 \ YOURUM ::
+#\[7]A53U2L47RTT6F666WP3CZFWAF5Y3DZEMMYXFW4LLH3BMANYKFIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
