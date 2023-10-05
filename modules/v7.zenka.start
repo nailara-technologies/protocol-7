@@ -51,8 +51,7 @@ if ($starting) {    # delay zenka start-up until previous one is online ..,
 <[zenka.change_status]>->( $instance_id, qw| starting | );
 
 ### [ start-up timeout ]
-my $start_timeout
-    = <v7.start_setup.zenki.start-up.timeout>->{$zenka_name}
+my $start_timeout = <v7.start_setup.zenki.start-up.timeout>->{$zenka_name}
     // $globals->{'start-up'}->{'timeout'} // 64.707;    ##  <--  ##
 <[base.log]>->(
     2,
@@ -336,8 +335,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,..,.,,,,..,..,,,,.,,,.,,,,,.,.,,,,,.,,,.,,,..,,...,...,...,,..,,,,,...,,..,
-#DIUF6GDT2GU45BEMRREMPMXWN4BER5X23E73XA2GHFAMXX5433ZGNLFX3TA7U2GMCRRZS4HXBES44
-#\\\|RYCP2TFRDT6BG3RCBTSPUZEDU5VWH4J7BKKEYY2P5WCWROHXZJU \ / AMOS7 \ YOURUM ::
-#\[7]RTKP3NSYNTJMSXOIHPD5ELSL2QDVWP7VHOY3AJMZQRPWEBQUIOBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,,.,,,,,,.,.,...,,.,,.,,,..,,..,,...,..,,...,,.,,.,.,,,,,,..,
+#P5KG47O62H7AYTFU55KXRUCUL2EBMOX67SS54SH6W7EAHD2LDBPGTEMZDYTV62USBPDE5WWLMN4KE
+#\\\|HECXKOMVLXEUGHDOANL4BEHIYW6QGW3DEOETY4YJDONJVOOPOEW \ / AMOS7 \ YOURUM ::
+#\[7]LR72N77XY5E2D4YXJFYQ6ON6RDHD56URV6JJRFJRSFYLJCFITECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

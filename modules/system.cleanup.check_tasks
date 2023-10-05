@@ -37,7 +37,8 @@ foreach my $link_path ( keys %{$links_href} ) {
     } elsif ( $link_name =~ m|at\-version/.+$| ) {
         <[base.log]>->( 0, "mismatching format '$link_name' [ ignored ]" );
     } elsif ( $link_name =~ m|after\-ntime/($B32_re+)$| ) {    # 'after-ntime'
-        my $task_ntime = <[base.ntime_BASE32_to_numerical]>->($LAST_PAREN_MATCH);
+        my $task_ntime
+            = <[base.ntime_BASE32_to_numerical]>->($LAST_PAREN_MATCH);
         $remove_match = 1 if $ntime_current >= $task_ntime;
     }
 
@@ -70,8 +71,8 @@ if ($task_count) {
     <[base.log]>->( 2, ": no tasks found.," );
 }
 
-#,,,,,,,.,,..,.,.,,..,.,,,,,,,.,,,...,,.,,.,.,..,,...,...,.,.,.,.,..,,..,,,.,,
-#DL5GLEBRVODWRZACFXW2BGH4VWSXFQX2VOITIQ3HWNFZXFP6C24LHZFO4YKJLUSENO7OYFLBSBLPO
-#\\\|BFBHYPPXDXBCPPUYGQDSZ6NZNT43K42753YZEPZDDETNSM7D56Z \ / AMOS7 \ YOURUM ::
-#\[7]PMBRURAHAQOY5KOFOH75ZDW5FBYRRZUW7MSIQAWLGYH7BN3DVACQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,.,,,.,,,,.,.,,,,.,,,..,..,,..,,...,...,.,,,.,.,,..,.,.,...,
+#JUAP2N6LVQKXRTCIC247SYOIZYL5BXLCAHKTYRDEGJQONIRA6VR67O4IZKDI6QU2VZ6HODYRCAKNI
+#\\\|6TLP64V6HOI364T4V2ZAFBDU544C53AQNXGUKU464DNILOU4WHN \ / AMOS7 \ YOURUM ::
+#\[7]FKPD46242W57WILKLYBR5PZHX3LZIRKYEA7BBLH7IAYZGMT6H6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
