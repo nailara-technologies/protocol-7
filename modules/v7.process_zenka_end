@@ -8,6 +8,12 @@ my $exit_sig    = shift;
 
 my $log_level = 2;    ##[  decrease when searching errors  ]##
 
+return <[base.logs]>->(
+    0,
+    '[process_zenka_end] missing instance id <-- %s',
+    scalar <[base.caller]>
+) if not defined $instance_id;
+
 my $instance;
 if ( defined $instance_id and exists <v7.zenka.instance>->{$instance_id} ) {
     $instance = <v7.zenka.instance>->{$instance_id};
