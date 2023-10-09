@@ -35,7 +35,7 @@ int main( int argc, char * argv[] ) {
     int errno, socket_fd;
     struct sockaddr_un addr;
 
-    char * p7_unix_user      = secure_getenv("PROTOCOL_7_P7C_USER");
+    char * p7_unix_user      = secure_getenv("PROTOCOL_7_BIN_P7_USER");
     char * protocol_7_socket = secure_getenv("PROTOCOL_7_UNIX_PATH");
 
     if ( p7_unix_user == NULL )
@@ -50,7 +50,7 @@ int main( int argc, char * argv[] ) {
     if ( protocol_7_socket != NULL )
         socket_path = protocol_7_socket;
 
-    char * auth_P7C_USER = concat( "unix-", p7_unix_user );
+    char * auth_BIN_P7_USER = concat( "unix-", p7_unix_user );
 
     if ( argc < 2 ) {
         fprintf( stderr, "\n < usage : %s <command> [args] >\n\n",
@@ -79,7 +79,7 @@ int main( int argc, char * argv[] ) {
     }
 
     /* prepare authentication */
-    asprintf( &auth_str, "select unix\nauth %s\n", auth_P7C_USER );
+    asprintf( &auth_str, "select unix\nauth %s\n", auth_BIN_P7_USER );
 
     /* prepare command string */
     int i;
@@ -121,7 +121,7 @@ int main( int argc, char * argv[] ) {
 
     /* authenticate to protocol-7 cube */
     write( socket_fd, auth_str, strlen(auth_str) );
-    free(auth_P7C_USER);
+    free(auth_BIN_P7_USER);
     unsigned int line = 0;
     int result;
     char byte = ' ';
