@@ -4,14 +4,18 @@
 
 my $object_id = shift;
 my $name      = <dependency.object>->{$object_id}->{'name'};
-return 0 if not exists $data{'session'};
-foreach my $id ( keys %{ $data{'session'} } ) {
-    return 1 if $data{'session'}{$id}{'user'} eq $name;    # session present
-}
-return 0;                                                  # not online
 
-#,,,,,,.,,,,.,..,,.,,,,,.,.,.,.,,,,.,,,,,,..,,..,,...,...,..,,..,,,.,,.,,,...,
-#2JBFDVD65TM75WRRVZSS2OKW2P4LF5D5KBDQWMXGDKF7JCF6RF6U4DGQO2TP32KAIAV5FN6NNFSZU
-#\\\|2GVQTOWAU7N4RZRX2PKGDHIZUTINESX5G3AIFPZKUSZJ23DBLVU \ / AMOS7 \ YOURUM ::
-#\[7]DAQTHCIRRDAWH56UEDHO2MIPTRCVJF6QP7ITIQJMAVE37RXV3SAY 7  DATA SIGNATURE ::
+return FALSE if not exists $data{'session'};
+
+foreach my $id ( keys $data{'session'}->%* ) {
+
+    return TRUE if $data{'session'}{$id}{'user'} eq $name;   # session present
+}
+
+return FALSE;                                                # not online
+
+#,,,,,,..,,,,,...,,..,,,.,,..,,.,,..,,,,.,,,.,..,,...,...,..,,,..,..,,,.,,.,,,
+#6YKC2RFFB7MRQMK66TWBWLRW27IEXTQI5U64UWKNB6CEPLMR7NH2KBFKHTR3UMTDBJ55WWDNMEJZG
+#\\\|PUB2JNF2QOUOEFI6WX44N372IJDB6GVZP64BDJDLETJG3FOHPKB \ / AMOS7 \ YOURUM ::
+#\[7]2LBD62QP4PSNL6LRMB3XBJ5K3YWBVHBLPG2DGCD4KOBXYI5DQ2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
