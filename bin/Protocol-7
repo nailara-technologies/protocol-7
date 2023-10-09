@@ -929,7 +929,7 @@ sub p7_choose_true_pid {
 
 ##############################################################################
 
-sub p7_chk_p7c_path {    ## LLL: reduce calls \ exposure .,
+sub p7_check_bin_p7 {    ## LLL: reduce calls \ exposure .,
 
     my $chk_path = shift // '';
     my $d_aref   = shift // [qw| ext/ / |];
@@ -1262,7 +1262,7 @@ sub p7_load_code {
             next if not defined $file_name or not length $file_name;
             ## todo : reconcile with code_path ##
             my $src_abs_path;
-            my $src_rel = $code{'base.chk_p7c_path'}->("modules/$file_name");
+            my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
 
             $src_rel //= sprintf qw| modules/%s |, $file_name;    # <-- warn.
 
@@ -3898,8 +3898,8 @@ __DATA__
 :
 :.
 
-#,,,,,..,,...,.,,,.,.,.,,,..,,..,,,.,,...,.,.,..,,...,...,...,,.,,,,,,...,..,,
-#L2RTTQQ2GSDS7BSW6F24BWQY6RK3Q2Z36NIY6Q7IAIORWBDTKTZ7A32GMT6EASPK5PN525ETEGQ36
-#\\\|VQQKTAFR66OU4WXQKT4VYUP5PG5NVHGCYK3W4LLV635PJCGEG4D \ / AMOS7 \ YOURUM ::
-#\[7]3E5APVXHIA6XL4OWSREVI5B3PIB7YSDDMKGEI7KMRO2HGFMGBQBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,.,,,,.,,.,,,.,,,.,,,..,,,..,..,,...,...,,..,,.,,,,.,,..,,..,
+#5D2X3WEO3U624MAPV2CMR47AU5EQ2ZO3C3GMDAAKQRFGBY4GCRYZH57EPF5GM5M3WXVIQXRB7NR4M
+#\\\|MRNSFRQO5QDDLOJQR5BKMVM3MV7AJHRUXCYNRQ364DLQUJ3F6SX \ / AMOS7 \ YOURUM ::
+#\[7]SFVVMKUJEZIYMWQ5AAZD7PVDPYQZ5CEMCTAMIWPMHUN4PX4IGADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

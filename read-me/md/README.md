@@ -1,11 +1,11 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : 2KS634MKMY-5076.0 ]
+### [ source code version : 2KVZBPFPLI-5077.0 ]
 
 ### this is the public domain [license](license)d 'base' branch
 ---
-## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.57.2](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.57.2)
+## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
 
 the protocol 7 framework is a multi agent system written in perl. it is not
@@ -34,7 +34,7 @@ from other zenki.
 
 the protocol itself is human readable and there exists a
 [terminal](bin/nshell) program for interaction with it and a
-[binary](bin/c_src/p7c.c) written in C that can run single network commands
+[binary](bin/c_src/p7.c) written in C that can run single network commands
 and return their output.
 
 The ultimate project goal is to pool existing idle ressources present in
@@ -72,8 +72,8 @@ already have.
 
 <!--
 
-#,,.,,.,.,..,,.,,,..,,,,.,,.,,.,.,,..,,.,,,,,,..,,...,...,,.,,,,.,,.,,,.,,..,,
-#4DGYFQ6JOBVJUR5CYCXQQAQHVAFQLNJRATZQWP5N7JA62R2CQEUI4J7ZCKUH7YR7TFPCTSBEXKQDE
-#\\\|DIJCSNBEV2Y5DGC6CC4UHBLVNK3EBGQZK6MALKIKQAI6LAXPMUY \ / AMOS7 \ YOURUM ::
-#\[7]G2QG7GN7FQZ32FYH322ORDTVZEC2XTRAPCAJGJNLKAXIQ3QGDIBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,...,.,.,,,,,,.,,..,,...,,,,,..,,...,..,,.,.,.,.,,,,,,..,.,,,
+#5TGCAF42YIEY67HGMW7A44QNWFX6Q3WIHGTATLGUX2S2X2YKVUAD6ICMSXI2FIVRRXCNWTALAVM76
+#\\\|GZRMEYDV67KNUUBEAMYSQP6XI2QEPDCJSHGYQMEZDM56VQJ2HNH \ / AMOS7 \ YOURUM ::
+#\[7]UOHMQYFGHIEIOVDAMNI6FRHJNA2FQ4364N6IIOXV6ITGYG57SYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
