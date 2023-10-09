@@ -53,6 +53,9 @@ INIT {
 
         h = seed_val; // continuation
 
+        if ( verbose )
+            printf( "..\n" );
+
         while ( *sval ) {
 
             h = ( h << left ) + *sval;
@@ -61,12 +64,12 @@ INIT {
                 h ^= g >> right;
 
             if ( verbose )
-                printf( ":   %c : %010u\t: %010lu\n", 32 , h, g );
+                printf( ":   %c : %010u   .: %010lu\n", 32 , h, g );
 
             h &= ~g;
 
             if ( verbose )
-                printf( ":.. %c : %010u\t: %010lu\n", *sval , h, g );
+                printf( ":.. %c : %010u    : %010lu\n", *sval , h, g );
             *sval++;
         }
 
@@ -78,8 +81,8 @@ INIT {
     EOT
 }
 
-#,,,,,,.,,,.,,...,..,,,.,,,,,,..,,,..,,..,,..,..,,...,...,.,.,..,,,..,...,.,.,
-#XF4V5KIBN5S2QHQKLWYSF7ZYCOSBQ3APLVYDQGZTNDPVOCJPKXIXDPMFR4JHQYF6FG5ENZ44TEBN4
-#\\\|VGYACT52I6XPZTVPPIRSSX5YVRNZJC2QVHBNIYJ4YX2VTDICQSX \ / AMOS7 \ YOURUM ::
-#\[7]D7TNVUBCCXFWJCTMNSQYOUVJTHJI53WIAES7AP5JGTNKF3D7Z6CA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,,,,..,..,,.,.,,.,,,,,,,.,,,,,,..,,...,...,...,,..,,.,,,.,,,,,,
+#TSRVZGMK6EOYDQQ5HJ63B75YD6HCFNAGLCX5VARNA3QUQLHUR3GPOQL3GSK27YUMR4XN4JDPBMXZ6
+#\\\|TKKUMCRXVGOWRBWWUVOGDXOGC6SOUOW5FJESFSZX6Q6LBCOJU45 \ / AMOS7 \ YOURUM ::
+#\[7]CMJJ25IRGYQ6ECRKEABHQZGSWS7TUG2LDOU2YXZTQDC2XNJC4GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
