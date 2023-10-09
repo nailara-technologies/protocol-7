@@ -62,18 +62,21 @@ if ( <system.verbosity.console> > 1 ) {
 ##
 
 <v7.gcc_bin> = <v7.cfg.bin_override.gcc> // qw| /usr/bin/gcc |;
-<v7.cfg.install_bin_p7c> //= $UID == 0 ? qw| yes | : qw| no |; ## when root ##
-<v7.cfg.p7c_bin_path>    //= qw| /usr/local/bin/p7c |;
+<v7.cfg.install_bin_p7> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
+<v7.cfg.p7_bin_path>    //= qw| /usr/local/bin/p7 |;
 
-## gcc \ p7c ##
+## gcc \ bin/p7 ##
 <v7.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <v7.gcc_bin> ) {
     <v7.gcc_bin> = undef;
+
     <[base.log]>->( 0, "<< 'gcc' binary not found >>" )
-        if <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>);
-} elsif ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>)
-    and not <[v7.bin_p7c_is_current]> ) {
-    <[v7.compile_bin_p7c]>;
+        if <[base.cfg_bool]>->(<v7.cfg.install_bin_p7>);
+
+} elsif ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7>)
+    and not <[v7.bin_p7_chksum_current]> ) {
+
+    <[v7.compile_bin_p7]>;
 }
 ## modprobe ##
 <v7.modprobe_bin> = <[base.required_bin_path]>->(qw| modprobe |);
@@ -209,8 +212,8 @@ delete <list.users>;
 
 return 0;
 
-#,,.,,,,,,..,,..,,,,.,,,,,,,,,...,..,,.,,,,.,,..,,...,...,,..,,,.,,.,,...,,,.,
-#7YQ2EA6IJ7NEKOZWEQYLVK4BTRRSZ7HCJ37KLOTLCWNE3LUMZCKSFDY2PATDIIX4CHTBN2NEZ5D3A
-#\\\|PUGYAHSSOYIH47BAY2SIYWH5CDBPYQUOEUB3T7KVN7Y43HUTPA3 \ / AMOS7 \ YOURUM ::
-#\[7]IM6TGP3HOYST72NU3WGYNPQEFHOE2AIBIQNZO5L6QSR3SH6HPEAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,,,,,..,,.,.,.,,,.,,,,..,..,,..,,...,...,,.,,.,,,..,,,,,,...,
+#4E4KI52SDEJXDG2TZSDPAA3LXUD7BCI46YYRFVWBGIPJSBPWFZAXCZA6LAI74P6MFLQXXWDDWD4FG
+#\\\|RQL4AR7CDDFX7STY6QYWROMEP2SS7JXTN2SS26JUPQNNQD7KJQR \ / AMOS7 \ YOURUM ::
+#\[7]6M4UVG24AUUOVPPQ2AFWIHOZIRDRM6BJLICTZCCXZZ6NYBKTEUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

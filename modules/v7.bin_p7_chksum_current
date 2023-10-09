@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = v7.bin_p7_chksum_current
+
+my $log_level   = shift // 1;
+my $p7_bin_path = <v7.cfg.p7_bin_path>;
+my $bin_p7_src_path
+    = join( '/', <system.root_path>, <system.bin_p7_src_path> );
+return warn "[ p7-bin ] $bin_p7_src_path not found <<!>>"
+    if !-f $bin_p7_src_path;
+
+my $current_result = 0;
+my $bin_checksum   = '';
+my $src_checksum   = <[chk-sum.bmw.filesum]>->( 224, $bin_p7_src_path );
+
+if ( -e $p7_bin_path
+    and <[v7.bin_p7_comp_chksum]>->( $p7_bin_path, $src_checksum ) ) {
+    <[base.log]>->( $log_level, ": 'p7' binary installed and current =)" );
+    <[base.log]>->( 2, ":. src: $src_checksum" );
+    $current_result = 1;
+} else {
+    my $root_path = <system.root_path>;
+    ( my $bin_path_rel = $p7_bin_path ) =~ s|^$root_path/?|./|;
+    my $result_msg
+        = -e $p7_bin_path
+        ? "'p7' binary needs upgrade [ bmw checksum mismatch ].,"
+        : "'p7' binary is not installed [ $bin_path_rel ].,";
+    <[base.log]>->( --$log_level, ": $result_msg" );
+    <[base.log]>->( 2,            ":. src: $src_checksum" );
+    <[base.log]>->( 2,            ":: bin: $bin_checksum" )
+        if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
+    <v7.checksum.bin_p7_source> = $src_checksum;
+}
+
+if ( -e $p7_bin_path and not -x $p7_bin_path ) {
+    ##  automatic repair desired ? ###                                    [LLL]
+    map { <[base.log]>->( 0, $ARG ) } (
+        ':',
+        ": has no exec permission : $p7_bin_path",
+        ": please repair manually :",    ## <-- security consideration ., ###
+        ':'
+    );
+}
+
+### check \ create symbolic link to /usr/local/bin/p7 ., ###             [LLL]
+
+return $current_result;
+
+#,,,,,,..,.,,,..,,,,,,..,,,,.,,,,,.,,,...,,..,..,,...,...,...,,.,,,..,,..,,,,,
+#7U7XCMCRQGO73BMR5WNIQJHL7AUOVXRU5CEHZYPVO255B2TO37AKMNANMJE3B5CAUJQGNF5ZEEHXQ
+#\\\|TTM56V3MYDD7YDMUCFOZNT5MEGUGVJ3NC373SEO55M6KX6SW3HH \ / AMOS7 \ YOURUM ::
+#\[7]Q5USIVIXSJRM6FU4D7LRZKHTKO2RWLQHD6H3T4NLJ7TBSEOBIEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
