@@ -9,9 +9,9 @@ use Math::BigFloat;
 use Term::ANSIColor;
 use Encode qw| decode |;
 use Crypt::PRNG::Fortuna;
-use Digest::Elf qw| elf |;
-use Time::HiRes qw| time sleep |;
-use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Digest::Elf   qw| elf |;
+use Time::HiRes   qw| time sleep |;
+use Crypt::Misc   qw| encode_b32r decode_b32r |;
 use Unicode::UTF8 qw[ decode_utf8 encode_utf8 ];
 use warnings FATAL => 'utf8';
 no warnings 'experimental';
@@ -126,7 +126,7 @@ my $frame_delay = sprintf( '%.5f', 1 / ( $freq / $speed_div ) );
 $| = 1;
 
 $SIG{'HUP'}  = sub { $SIG_INT = 1 };
-$SIG{'TERM'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
+$SIG{'TERM'} = $SIG{'PIPE'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
 $SIG{'INT'}  = sub {
     sleep 0.13;
     print "\b\b\b   \b\b\b\e[${y_com}H\e[J\n < awaiting command > ";
@@ -181,7 +181,7 @@ $math->{'zulum'} //= Math::BigFloat->new( $state->{'seed'}->{'zulum'} );
 # say ' < seed > ' . scalar $math->{'zulum'}->bdiv(13) and sleep 4;
 
 my ( $LAST_BG, $LAST_FG_COL );
-while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
+while (13) {    ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
 RECALC:
 
@@ -372,7 +372,6 @@ sub term_size {
     my $size_aref
         = [ unpack 'S!S!S!S!', $size ];    ## <-- [<y>,<x>,<y-px>,<x-px>]
     return ( $size_aref->[1], $size_aref->[0] );
-
 }
 
 sub process_arguments {
@@ -470,7 +469,21 @@ sub sig_int_handler {
                 sleep $set_up->{'prompt-delay'};
                 print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
             }
-            chomp( $cmd = <STDIN> // '' );
+
+            ## ? terminal closed ? ##
+            exit(113) if not -t STDIN;
+
+            ### < READING COMMAND > ###
+            #
+            $cmd = <STDIN>;
+            #
+            ###
+
+            ###  ? terminal closed ?  ###
+            exit(113) if not defined $cmd;
+
+            chomp($cmd);
+
             ## clean-up [ garbled by ansi ] ## [inversitgate.]
             $cmd =~ s|^\d+||;
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
@@ -586,8 +599,8 @@ sub sig_int_handler {
     }
 }
 
-#,,,.,...,.,.,..,,..,,,,,,,,,,,,.,,..,.,.,..,,..,,...,...,...,,..,..,,,,.,.,.,
-#AWKETDVVTVXZQQ5NWDL2A6F6JMA6PDWUJTOI45WNI7LYURHFGNPDMKSLJYNIKIT2VFC7GZMRXY2DI
-#\\\|4GYZIODJAUPHH73J6LIYZA6MPRYLQMLFLXSGHVN75LT2ZU4DOIZ \ / AMOS7 \ YOURUM ::
-#\[7]CJKRYPFF2KHBSKDJPON25HJPLYAOX36FVY6333MDUIIE7KQPVUDY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,...,,.,,.,,,,,,,...,,..,,,,,..,,...,...,...,..,,.,.,,,,,..,,
+#PEGTUDZ5GD2FKTUE2PSDUCG65DPJALJHLUXXALFMEY3OW57C74VP2LRKFAKESM74XMI3H2KBFHOWQ
+#\\\|QN5ECFDRPUTNEDLW53CSSQPOLF26TJR7SIXJKYQN5AH75RMILKB \ / AMOS7 \ YOURUM ::
+#\[7]HRKW37EFMEJCCAJTHWXEZ7ZXOGHSQDB6MJ2OJNCSKANCG4S7JAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
