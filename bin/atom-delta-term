@@ -8,9 +8,9 @@ use Math::BigFloat;
 use Term::ANSIColor;
 use Encode qw| decode |;
 use Crypt::PRNG::Fortuna;
-use Digest::Elf qw| elf |;
-use Time::HiRes qw| time sleep |;
-use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Digest::Elf   qw| elf |;
+use Time::HiRes   qw| time sleep |;
+use Crypt::Misc   qw| encode_b32r decode_b32r |;
 use Unicode::UTF8 qw[ decode_utf8 encode_utf8 ];
 use warnings FATAL => 'utf8';
 no warnings 'experimental';
@@ -127,7 +127,7 @@ my $frame_delay = sprintf( '%.5f', 1 / ( $freq / $speed_div ) );
 $| = 1;
 
 $SIG{'HUP'}  = sub { $SIG_INT = 1 };
-$SIG{'TERM'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
+$SIG{'TERM'} = $SIG{'PIPE'} = $SIG{'QUIT'} = sub { $SIG_QUIT = 1 };
 $SIG{'INT'}  = sub {
     sleep 0.13;
     print "\b\b\b   \b\b\b\e[${y_com}H\e[J\n < awaiting command > ";
@@ -182,7 +182,7 @@ $math->{'zulum'} //= Math::BigFloat->new( $state->{'seed'}->{'zulum'} );
 # say ' < seed > ' . scalar $math->{'zulum'}->bdiv(13) and sleep 4;
 
 my ( $LAST_BG, $LAST_FG_COL );
-while (13) { ## end with CRTL+C or SIGTERM \ SIGQUIT ##
+while (13) {    ## end with CRTL+C or SIGTERM \ SIGQUIT ##
 
 RECALC:
 
@@ -511,7 +511,21 @@ sub sig_int_handler {
                 sleep $set_up->{'prompt-delay'};
                 print "\eH\e[0m\e[40m\e[34m\r\n< awaiting command > ";
             }
-            chomp( $cmd = <STDIN> // '' );
+
+            ## ? terminal closed ? ##
+            exit(113) if not -t STDIN;
+
+            ### < READING COMMAND > ###
+            #
+            $cmd = <STDIN>;
+            #
+            ###
+
+            ###  ? terminal closed ?  ###
+            exit(113) if not defined $cmd;
+
+            chomp($cmd);
+
             ## clean-up [ garbled by ansi ] ## [inversitgate.]
             $cmd =~ s|^\d+||;
             $set_up->{'prompt-hidden'} = 0 if length($cmd);
@@ -627,8 +641,8 @@ sub sig_int_handler {
     }
 }
 
-#,,..,...,.,.,...,.,.,,,.,,..,..,,.,.,,,,,,,,,..,,...,...,...,.,.,,..,.,,,.,.,
-#ZTKTQOD2LSHRG4HL7NNRE4HWRNY7QYAIKZ5UOHGJ73FJIOPA3OAYYSXNJXBJOXQZ5MW4473DGRQYA
-#\\\|E7WNDCN77BIZBZH2MEZZMHVN2EK7FXUUUNZDRDDQHNONGCR7EL3 \ / AMOS7 \ YOURUM ::
-#\[7]CULWCXNU4VXZASEO6ONVSEQY6VP4DHGKPQ7QVZ4EGVYJ4RTTGCDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,,.,,,,,...,,.,,.,,,,,,,.,.,..,,...,...,,,.,.,.,,,.,,.,,...,
+#F4HVFMFGRGM5UBRF466M6JMKREHQEZ5MYZUJRT6VPAKHL6ARVYMYCYH2UEFRYG5CORDPDAGFHQXFO
+#\\\|IM4EKCQXBOO26H2FTYUGHPOIKIOQXRPKLEWVNB2WQDSRJV64RFQ \ / AMOS7 \ YOURUM ::
+#\[7]RW3VXLNW6Y7NEGMSO7SZX3LUUQOELLAHJI5Z3HXKZFSMWDQLJICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
