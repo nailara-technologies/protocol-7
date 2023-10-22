@@ -111,7 +111,7 @@ $data{'list'} //= {};
     'align'   => { 'session' => qw| center | },
     'filters' => {
         'session'         => qw| base.parser.element_count |,
-        'connected_since' => qw| base.parser.timestamp |
+        'connected_since' => qw| base.parser.timestamp     |
     },
     'descr' => 'connected users and zenki'
 };
@@ -122,11 +122,11 @@ $data{'list'} //= {};
     'mask'     => '<key>:usid protocol link:type mode '
         . 'user:uname start_time:since',
     'align' => {
-        'user'       => 'center-2',
-        'protocol'   => 'center-1',
-        'link'       => 'center-2',
-        'mode'       => 'center-2',
-        'start_time' => 'right'
+        'user'       => qw| center-2 |,
+        'protocol'   => qw| center-1 |,
+        'link'       => qw| center-2 |,
+        'mode'       => qw| center-2 |,
+        'start_time' => qw|  right   |
     },
     'filters' => {
         'start_time'       => qw| base.parser.duration |,
@@ -163,13 +163,13 @@ if (    defined <system.zenka.type>
         'key'   => qw| zenki.virtual |,
         'mask'  => '<key>:id name type status session',
         'align' => {
-            'name'    => 'left',
-            'type'    => 'center-2',
-            'status'  => 'center-2',
-            'session' => 'center-1'
+            'name'    => qw|   left   |,
+            'type'    => qw| center-2 |,
+            'status'  => qw| center-2 |,
+            'session' => qw| center-1 |
         },
         'filters' => {
-            'status'  => qw| base.parser.ondemand_status |,
+            'status'  => qw| base.parser.ondemand_status  |,
             'session' => qw| base.parser.ondemand_session |
         },
         'descr' => 'virtual \ ondemand zenki list'
@@ -190,7 +190,7 @@ if (    defined <system.zenka.type>
 
     <base.commands.cmd.src-age.param> = "['date'] "; #<-- disable second param
 
-    if ( <system.zenka.name> ne qw| universal| ) {
+    if ( <system.zenka.name> ne qw| universal | ) {
 
         <[base.hide_list]>->(qw| sessions |);
         <[base.disable_command]>->(qw| whoami |);
@@ -224,6 +224,7 @@ if ( ref( $data{'session'} ) ne qw| HASH | ) { $data{'session'} = {} }
     2,
     ': setting prefix cache update interval to %d s..,',
     <base.cfg.interval.prefix_cache_init> //= 422   ## 7 minutes, 2 seconds ##
+##                                                  # [LLL]-+ < randomize > ##
 );
 <base.timer.prefix_cache> //= <[event.add_timer]>->(
     {   'after'    => <base.cfg.interval.prefix_cache_init>,
@@ -258,14 +259,14 @@ if ( defined <setup.aliases> ) {
 <base.callback_hooks.async_online> //= [];
 
 ## setting up command [argument] filter hooks ##
-<base.filter_hooks.command.heart.send> = qw| base.handler.heart |;
+<base.filter_hooks.command.heart.send> = qw| base.handler.heart           |;
 <base.filter_hooks.command.heart.recv> = qw| base.handler.heart_ack_reply |;
 ## \ implement permission filter hooks [ LLL ]
 
 return 0;
 
-#,,..,,,.,...,.,.,,,.,...,...,,..,.,,,,,.,.,.,.,.,...,...,...,...,,,.,,,,,.,.,
-#TONKPQVLVKNU4BZAFGEH5YMVISOK2T5NC7SOYWS4GYE6TJ7AZ4LD6WWNG265OBS7JYVMTNSMLBSXS
-#\\\|HCQQRPYEUCG4L5VS2LTID3TAB52SI3AD22DE4SMHPKXXETN724C \ / AMOS7 \ YOURUM ::
-#\[7]4UXMORBGPYKXFPKZLWXJF6VK7LGA3QKOPWQGBGJZEOU4YLLURKCA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,..,,.,,,,,.,,..,..,,,,,,,,.,.,.,...,...,.,.,.,,,..,,,,,,.,.,
+#AVUWNGMC2DUHP5332STOPA4A2JX7NDFLFR6FON437NYLBQLAFQ4F67IN46DJLGSKJGG3QI6I53GKO
+#\\\|5M34QG5GLLZ4BZNOTZS56AEV6UP7LERKBIGEEDXXJ4OGPZJULOQ \ / AMOS7 \ YOURUM ::
+#\[7]VDTTWGNTKJTHHF2BHSYUI2Z2AK6JIGDALHOOFRVTNA3BPGKD6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
