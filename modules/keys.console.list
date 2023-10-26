@@ -149,6 +149,9 @@ $key_list_string .= "::\n";
 if ( <system.ansi_color> or <system.force_colors> ) {
     my $_sn = $names_len + 2;
     no warnings qw| experimental |;    ##  variable length lookbehind  ##
+
+    $key_list_string =~ s|  (\.)$|  $C{b}$C{G}$1$C{R}|mg;
+    $key_list_string =~ s|  (\:) |  $C{b}$C{G}$1$C{R} |mg;
     $key_list_string =~ s|^( *)(:{1,2})|$1$C{G}$2$C{T}|mg;
     $key_list_string =~ s|::(.+):.|$C{G}::$C{T}$1$C{G}:.$C{R}|m;
     $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
@@ -165,12 +168,13 @@ if ( <system.ansi_color> or <system.force_colors> ) {
         =~ s,($name_regex\Q:seed-phrase\E),$C{0}$colors{B01}$1$C{R}$C{T},mg;
     $key_list_string
         =~ s,(:.virtual.::),$C{0}$colors{B01}$1$C{R}$C{T}$C{B}$C{B02},mg;
+
 }
 
 return say $key_list_string;
 
-#,,,.,..,,,..,...,,.,,,,,,.,,,.,,,...,,,,,,.,,..,,...,...,.,.,,..,,.,,,.,,...,
-#IMECOKKP5OLFM3MZTYHGK74YFG2Z2ICQGKBAZKQY3CLN7KBVDNINKNYNNPYJ3HGB3ZTTQSTHNVQ2S
-#\\\|INB6INMI6ZG4CBUFII4RNCOUEY2SB33I7SBVVP4US3LVHWCUQFR \ / AMOS7 \ YOURUM ::
-#\[7]RTICOFA34HOMRRGYHRIINLCG5W2ZSFTUVS7VLZ7IAEK6XYDSJQCY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,.,.,.,.,.,,..,,,.,.,,,.,.,.,,,..,,...,...,..,,.,.,.,.,,,,,.,,,
+#EMRKY4UFSFBITMKXGVGLBYH5TWSUPAB2A5BCR4WH6Z2QEA6S45LDGELO6KQNH5TTZU2BJYNEM7VMQ
+#\\\|WWIQMOH2YHAL2VNH7RHDLUH3VKJIDM5C3G24D6YKWLJZNRXHZLF \ / AMOS7 \ YOURUM ::
+#\[7]Y4LNVTOXHDAE34V4BNQYVS7N5AWMPQ5D6UDSXHWUAFIZWMFXFACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
