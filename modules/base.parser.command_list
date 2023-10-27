@@ -2,11 +2,11 @@
 
 # name     = base.parser.command_list
 # args     = <cmd_aref>, [section_name]
-# return   = plain(formatted client list)
 # descr    = format command list with short descriptions
+# return   = plain( formatted command list )
 
 my $cmd_aref  = shift;
-my $section   = shift // 'cmd';    # [cmd|console]
+my $section   = shift // qw| cmd |;    # [cmd|console]
 my $max_len   = shift // 0;
 my $reply_str = '';
 my @commands;
@@ -15,7 +15,7 @@ my %param;
 map {
     if ( not exists $data{'base'}{$section}{$ARG} ) {
         my $cli = " $section";
-        $cli = '' if $section eq 'cmd';
+        $cli = '' if $section eq qw| cmd |;
         warn $cli . " cmd '$ARG' does not exist! <{C1}>";
     } else {
         my $cmd_str = $ARG;
@@ -49,8 +49,8 @@ foreach my $cmd (@commands) {
 
 return ( \$reply_str, $max_len );
 
-#,,,.,.,.,,.,,.,,,,,,,,.,,,.,,..,,,..,,.,,,,.,..,,...,...,..,,...,,,,,.,.,.,,,
-#CMVQJ5LWJPDMLQEM3MDBHEQ5WXKOVB7K4HQCGS5X2FOIOQSKRLUIHBFS6OXOX7T6QZIKHNIDKMVBQ
-#\\\|C43STKF5KQFXVY46UYYFGACW3SF4PDN7DIMCORVL6JEXMZKEAMS \ / AMOS7 \ YOURUM ::
-#\[7]K6DXIWIL36ELHAGJNUIITIXY4FWZMZRDH6YOATXI3K3UUGQAJYAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,..,,..,..,,,,.,,,,,,.,,..,,.,.,..,,...,...,...,,,.,,,.,,,.,.,,,
+#4RHB57JMLYC3KKIHS7FSDHNRTDFOW3UXCNJR3LEEJF5U7BI4L2NCWAGGRHY6AWKCBUGR3G7NV3OZ2
+#\\\|VMCFB35DYFIS3S4CWVXJJUMY3O2WZ5WRNBTLACBHABNO7BKX236 \ / AMOS7 \ YOURUM ::
+#\[7]4B34E3WKHQYIC3AW6DUU335UAAI3K3UMZ4CYRDCMSE7JSOSUO2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
