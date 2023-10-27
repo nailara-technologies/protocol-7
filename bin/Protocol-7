@@ -176,8 +176,8 @@ READ_STDIN_CONFIGURATION:
 
     if (@zenka_code) {
         $data{'base'}{'config_parser'}{'cfg_type'}  = qw| start_cfg |;
-        $data{'base'}{'config_parser'}{'cfg_name'}  = qw| zenka |;
-        $data{'base'}{'config_parser'}{'cfg_descr'} = qw| <STDIN> |;
+        $data{'base'}{'config_parser'}{'cfg_name'}  = qw|   zenka   |;
+        $data{'base'}{'config_parser'}{'cfg_descr'} = qw|  <STDIN>  |;
         $code{'base.execute_zenka_code'}
             ->( $code{'base.parser.config'}->( \@zenka_code ) );
     }
@@ -238,7 +238,7 @@ sub p7_scan_main_subroutines {
     $result_aref //= [];
     my @symbol_names                         ## collect all symbol names ##
         = sort { length $a <=> length $b } reverse sort keys %main::;
-    $result_aref->@*    ## filter subroutine names [ maim:: and prefix ] ##
+    $result_aref->@*    ## filter subroutine names [ main:: and prefix ] ##
         = grep { index( $ARG, $prefix_pattern, 0 ) == 0 }
         grep { defined &{ sprintf qw| main::%s |, $ARG } } @symbol_names;
     if ($update_p7_main_subs_hash) {
@@ -281,7 +281,7 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
         File::stat
         Text::Wrap
         IO::Handle
-        IO::Scalar;
+        IO::Scalar
         Sys::Hostname
         List::MoreUtils
         File::Spec::Functions
@@ -304,9 +304,9 @@ sub p7_load_time_hires {
             \&Time::HiRes::sleep
         ];
     };
-    if ( defined $TH_aref and ref($TH_aref) eq qw| ARRAY | ) {
-        $data{'base'}{'perlmod'}{'loaded'}->{'Time::HiRes'} = 5;    ## true ##
-        $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = 5;
+    if ( defined $TH_aref and ref($TH_aref) eq qw| ARRAY | ) {    ## true ##
+        $data{'base'}{'perlmod'}{'loaded'}->{'Time::HiRes'} = TRUE;
+        $data{'system'}{'perl_module'}{'installed'}{'Time::HiRes'} = TRUE;
     }
     $TH_aref = [ sub {&time}, sub { select( undef, undef, undef, $ARG[0] ) } ]
         if length $EVAL_ERROR    ## alternative microsecond sleep version ##
@@ -1817,7 +1817,7 @@ sub p7_devmod_sub {
     my $sub_name = shift @ARG;
 
     ## $code{'base.collect_sub_stats'}->($sub_name); #<--replace touch_dir
-    my $quoted_chars = qr{[\ ;:,\.'\\]|^$};
+    my $quoted_chars = qr{[\ ,'\\]|^$};
     my @_p           = @ARG;
 
     # log all used subroutines if $sub_touch_dir exist and is owned by root.
@@ -1879,13 +1879,14 @@ sub p7_devmod_sub {
                 $_p[$p_idx] = '*' x 7;    ##  hiding key elements  ##
             }
         } elsif ( $sub_name eq qw| base.net.send_to_socket | ) {
-            $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|o;
+            $_p[1] =~ s|^(auth [^\ ]+) [^\ ]+\n$|$LAST_PAREN_MATCH *****\n|;
         } else {
             $quote_content = TRUE;
         }
     }
-
-    map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|go if defined $ARG } @_p;
+    ## escape single quotes ##
+    map { $ARG =~ s|(\')|\\$LAST_PAREN_MATCH|g if defined $ARG } @_p;
+    ## quote above listed characters ##
     my @params = map {
         defined $ARG
             ? (
@@ -1893,7 +1894,7 @@ sub p7_devmod_sub {
             ? sprintf( "'%s'", $ARG )
             : $ARG
             )
-            : ''
+            : ':. UNDEF .:'
     } @_p;
 
     my $param_list = join ', ', @params;
@@ -1905,10 +1906,6 @@ sub p7_devmod_sub {
     ## replacing perl objects ##
     eval { use Crypt::Misc qw| encode_b32r | }
         if not defined &{'encode_base32'};
-    if ( $param_list =~ s|\'?(\S+(::\S+)+)|lc(${^CAPTURE}[0])|ge ) {
-        $param_list =~ s|::|.|g;
-        $param_list =~ s|event\.event|event|g;
-    }
     $param_list =~ s{=(CODE|SCALAR|GLOB|HASH|ARRAY)}
                         {' : '.lc($LAST_PAREN_MATCH)}ige;
     $param_list =~ s{(CODE|SCALAR|GLOB|HASH|ARRAY)}
@@ -3898,8 +3895,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,.,,,,,,,,,.,,,,.,,.,,,.,,,.,,,..,,,..,..,,...,...,,..,,.,,,,.,,..,,..,
-#5D2X3WEO3U624MAPV2CMR47AU5EQ2ZO3C3GMDAAKQRFGBY4GCRYZH57EPF5GM5M3WXVIQXRB7NR4M
-#\\\|MRNSFRQO5QDDLOJQR5BKMVM3MV7AJHRUXCYNRQ364DLQUJ3F6SX \ / AMOS7 \ YOURUM ::
-#\[7]SFVVMKUJEZIYMWQ5AAZD7PVDPYQZ5CEMCTAMIWPMHUN4PX4IGADQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,,.,..,,,..,.,.,,..,..,,,.,,..,,...,...,...,,..,.,.,,,,,,.,,
+#XHHE6OHCD7BOXP6RYYGCBNOHDNDB54252UC7575OJ4ME6UJ6D5Z26Z6H63YI6T5KAPRO4WSAXAKKO
+#\\\|W2R4SNJKFYY4AR37ICETWCLTVHXA5U3ZLAWOOUXY67UH4WFS4EM \ / AMOS7 \ YOURUM ::
+#\[7]MVIO3YTVZD2SIIKFLPP45UWRLE723BB7YKBL5NXK5CUS3MPIJ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
