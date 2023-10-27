@@ -1,50 +1,53 @@
 ## [:< ##
 
 # name  = base.dependency.ok
-# descr = return 1 if dependency for given object id is fulfilled, 0 if not
+# descr = return TRUE when dependency for given object id fulfilled, or FALSE
 
 my $object_id = shift // '';
 my $event_id  = shift;         # <-- optional
 
 if ( not exists <dependency.object>->{$object_id} ) {
-    <[base.log]>->(
-        0, "base.dependency.ok: object id '$object_id' does not exist!"
+    <[base.logs]>->(
+        0, "base.dependency.ok: object id '%s' not found", $object_id
     );
     return undef;
 }
-return 1 if not exists <dependency.chain>->{$object_id};
-foreach my $chain_object_id ( @{ <dependency.chain>->{$object_id} } ) {
+return TRUE if not exists <dependency.chain>->{$object_id};
+foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
     if ( not exists <dependency.object>->{$chain_object_id} ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0,
-            "base.dependency.ok: chain object id '$object_id' does not exist!"
+            "base.dependency.ok: chain object id '%s' not found", $object_id
         );
         return undef;
     }
     my $object_type = <dependency.object>->{$chain_object_id}->{'type'};
 
     if ( not exists <dependency.setup.type>->{$object_type} ) {
-        <[base.log]>->(
-            0,
-            "base.dependency.ok: dependency setup for object type"
-                . " '$object_type' does not exist!"
+        <[base.logs]>->(
+            0, "base.dependency.ok: no dependency setup for object type '%s'",
+            $object_type
         );
         return undef;
     }
     my $callback = <dependency.setup.type>->{$object_type}->{'callback'};
-    if ( ref($callback) ne 'CODE' ) {
+    if ( ref($callback) ne qw| CODE | ) {
         <[base.log]>->(
             0,
-            "base.dependency.ok: no valid callback found in object type setup!"
+            "base.dependency.ok: no valid callback found in object type setup"
         );
         return undef;
     }
-    return 0 if !$callback->( $chain_object_id, $event_id );
+    if ( defined $event_id ) {
+        return FALSE if !$callback->( $chain_object_id, $event_id );
+    } else {
+        return FALSE if !$callback->($chain_object_id);
+    }
 }
-return 1;
+return TRUE;
 
-#,,.,,,,.,,,,,.,.,,..,,,.,,,.,.,,,.,,,,,,,...,..,,...,...,..,,...,.,,,.,.,.,.,
-#QDC6AGMC4QQUKFPUP5TOOJPICRSKSUMSVHTZFF2VYKMKKYHTWWPSZIZQXU24BWRVLYG2ITN5OPUSG
-#\\\|QPNDVNZ2KDGPXZGV77ULHWXI5YYNBMTZ5EHOGFQYRACFXEJNDDO \ / AMOS7 \ YOURUM ::
-#\[7]NIVKMNK2ME3MJ3TL2JMT2V6W6DO3VPVJ36IN2Q7N65BR6CZTUWBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,,.,,,,.,..,,,,,,...,,.,,.,.,..,,...,...,...,.,.,,,.,.,,,,,.,
+#FV4ISKJUN44RG37X64MQUYFAQDMD32ULNZQ7PDGD4RK2ZZK5HRYEMNN7D7YK3H3IYCDK6YRVO2FYK
+#\\\|AXUE35OHSX45QOGEDZ3JH4AM6TZLMEOKG3Q5GG5O6IFHVOD5NCO \ / AMOS7 \ YOURUM ::
+#\[7]YY43GLK5AQBXXL3L7DDKPNWZCEA6LASZFFZ3R6J2CSZ5ZE3Z3UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
