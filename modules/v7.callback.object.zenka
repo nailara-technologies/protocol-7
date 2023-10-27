@@ -16,17 +16,18 @@ my $zenka_id = <dependency.object>->{$object_id}->{'zenka_id'};
 return undef if not exists <v7.zenka.setup>->{$zenka_id};
 
 foreach my $id (<[v7.instance_ids]>) {
-    return 1
+    return TRUE
         if defined <v7.zenka.instance>->{$id}->{'zenka_id'}
         and defined <v7.zenka.instance>->{$id}->{'status'}
         and <v7.zenka.instance>->{$id}->{'zenka_id'} == $zenka_id
         and ( <v7.zenka.instance>->{$id}->{'status'} eq qw| online |
         or <v7.zenka.instance>->{$id}->{'status'} eq qw| extbin | );
 }
-return 0;    # not online
 
-#,,.,,..,,...,.,,,,,,,.,,,..,,.,,,.,.,,.,,...,..,,...,...,...,..,,.,,,.,,,,.,,
-#ASX6P3H27AT2ZYZPH7ROSIUCJ5QJX7GCA4I7U7U7PDE2UZED4NB3R23RHKO544XLHFRU62AF3A3HC
-#\\\|R4SSA73QS2MDLPGUCQRL2NVWNP6DAJHTU3J7BW53KE3S273YG2G \ / AMOS7 \ YOURUM ::
-#\[7]UQNXYFTWB2R4QNQMZF3HGIH32IPP5KFRBQAGXQYPWYAOZ4NDOQBA 7  DATA SIGNATURE ::
+return FALSE;    ##  zenka is not present  ##
+
+#,,.,,,..,.,.,,,,,.,.,.,.,...,,.,,.,,,..,,,,.,..,,...,.,.,.,,,.,,,.,.,,..,...,
+#T5DFJIXZZXVPU36E4HKS3SUW3BYBNYNUO3Y6KI5NY7G72EDN7GMTPPMV6HQB7T65ZQ7EBBVQVNYM6
+#\\\|PZOKJWI7R26WEZDMTYJYTFL6JG4NIPLZ2X3VK4V5Z7ZWWWDFGBF \ / AMOS7 \ YOURUM ::
+#\[7]I7MEJWJIYMFMABFUXKCURDOMO62LW6RFOXTBTPN5QOXHZPHENCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
