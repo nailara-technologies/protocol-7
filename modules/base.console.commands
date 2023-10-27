@@ -1,28 +1,46 @@
 ## [:< ##
 
 # name  = base.console.commands
+# param = [pattern]
 # descr = list [these] console commands and parameters
 
-my $description_parameter = shift;
+my $command_pattern = shift;
 
-if ( defined $description_parameter ) {
-    print <[base.parser.txt_box]>->(
-        'command specific description is not implemented yet.',
-        $description_parameter
-    );
-    return;
+my $zenka_name = <system.zenka.name>;
+my $title_str  = sprintf "'%s'-zenka commands", $zenka_name;
+my @commands   = sort keys <base.console>->%*;
+
+if ( defined $command_pattern ) {    ##[  using search pattern  ]##
+    my @matching_commands;
+
+    foreach my $cmd (@commands) {
+        push( @matching_commands, $cmd )
+            if $cmd =~ m|\Q$command_pattern\E|i
+            or <base.commands.console>->{$cmd}->{'descr'}
+            =~ m|\Q$command_pattern\E|i;
+    }
+
+    if ( @matching_commands == 0 ) {
+        my $return_msg = sprintf " found no commands matching '%s'",
+            $command_pattern;
+        print <[base.parser.txt_box]>->( $return_msg, $title_str );
+        return 1;
+    }
+
+    $title_str = sprintf( "'%s'-zenka commands matching '%s'",
+        $zenka_name, $command_pattern );
+
+    @commands = @matching_commands;
 }
 
-my $title_str = "'" . <system.zenka.name> . '\'-zenka commands';
-my @commands  = sort keys %{ $data{'base'}{'console'} };
-( my $t_ref ) = <[base.parser.command_list]>->( \@commands, 'console' );
+( my $t_ref ) = <[base.parser.command_list]>->( \@commands, qw| console | );
 
 print <[base.parser.txt_box]>->( $t_ref, $title_str );
 
 return 0;
 
-#,,.,,..,,,.,,,,.,,,,,.,,,.,.,,.,,,,.,,.,,.,,,..,,...,...,.,.,,..,,..,...,.,.,
-#7FGDR5UFJXI6IQG4MOOKCHRZT444AZLSSGLG5ABEXZJTJA3Y7LEVHMJG26KK7AZ2HFUCVS4WXMAGS
-#\\\|R5XMFBRUHHPDCX6KIANPNPXZP6JO24PKVXNOCBXMD7XTG2OEJAI \ / AMOS7 \ YOURUM ::
-#\[7]AX376BJMUNLBR3CEMDTYPSEPWIUE6MDXSBEGQ6RX2DN6ALPJJSAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,.,,,,,.,.,...,.,,,,.,,,.,,...,..,,...,...,..,,,.,,.,,,.,,,.,.,
+#XZPGPRFCMZ6PK54M5HCB5N5DSUJVONWMBIA7VWWX4WKY2KNBG3RJWGJLA5O5YN6V7PKXHI6VVFO5E
+#\\\|JQDEU2ECKXW7UOMSNH6YRFUTVO7HHAZV6RVOJP7MXZFS646YUU7 \ / AMOS7 \ YOURUM ::
+#\[7]L442WW4V35P72XQV23DFAYWGYKMU2COTRV57JKBOO6UJ3UF4EKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
