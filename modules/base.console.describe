@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = base.console.describe
+# param = <command>
+# descr = detailed command and parameter description
+
+my $command_name = shift;
+
+my $zenka_name = <system.zenka.name>;
+my $title_str  = sprintf "'%s'-zenka commands", $zenka_name;
+
+if ( defined $command_name and not defined <base.console>->{$command_name} ) {
+
+    print <[base.parser.txt_box]>->(
+        sprintf( "could not find command '%s' [ 'commands' for list ]",
+            $command_name ),
+        $title_str
+    );
+
+} else {
+
+    if ( defined $command_name ) {
+        $title_str = sprintf "'%s'-zenka command '%s'", $zenka_name,
+            $command_name;
+    }
+
+    print <[base.parser.txt_box]>->(
+        'command specific description is not implemented yet.', $title_str
+    );
+}
+
+return 2;
+
+#,,,.,..,,,.,,,.,,...,..,,.,.,...,...,,.,,,.,,..,,...,...,...,.,,,,..,..,,,..,
+#CUBTRIWBFAEH42OYBPMVJC2XPFQU5LGJZMTFVAA7JFSF5M3IK4GCDY73ULR5BZZ63GVB6OCFVAYUK
+#\\\|6KJXPTE3LT4UPG55XYM4FBIQBF7FMQRVQMF5FHSHMONWU76HVT2 \ / AMOS7 \ YOURUM ::
+#\[7]WXTIVIWCCXLAAA3WU4ZSK3AOIIZIXVM3DVCPISXGNZIUIXNUKOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
