@@ -1,11 +1,11 @@
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : 2LCNN2OJOQ-5091.0 ]
+### [ source code version : 2LCPN45MAQ-5092.0 ]
 
 ### this is the public domain [license](license)d 'base' branch
 ---
-## current [release](https://github.com/nailara-technologies/protocol-7/releases) \\\\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
+## current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
 
 the protocol 7 framework is a multi agent system written in perl. it is not
@@ -15,10 +15,10 @@ committed there will be a website with use case examples and descriptions
 of how it works and how to install and operate protocol-7 systems.
 
 
-in short, there is an interpreter like program called
-[Protocol-7](bin/Protocol-7) which can read description files in
+in short description, there is an interpreter like program called
+[Protocol-7](bin/Protocol-7) which can read 'zenka' code files from
 [configuration/zenki](configuration/zenki) either from stdin or by name
-as command line parameter. they describe what kind of 'zenka' it will become
+as command line parameter. they describe what kind of zenka it will become
 and it then loads the appropriate [modules](modules) and executes the
 callbacks in these 'start' files. there are already a lot of agents [zenki]
 implemented and functional. one of them
@@ -33,11 +33,14 @@ or a [optionally] self-scrolling
 from other zenki.
 
 the protocol itself is human readable and there exists a
-[terminal](bin/nshell) program for interaction with it and a
+[terminal](bin/nshell) program for convenient interaction with it and a
 [binary](bin/c_src/p7.c) written in C that can run single network commands
-and return their output.
+and return their output without the need to start an interpreter.
 
-The ultimate project goal is to pool existing idle ressources present in
+with the current framework and modules it is possible to implement
+appliance or interactive desktop systems, as has already been done, however,
+
+the ultimate project goal is to pool existing idle ressources present in
 todays networks and offer them back to its users with low latency and a lot
 of burst capacity, much like a supercomputer would, but based on advanced
 peer to peer technology. it would be a global marketplace that values and
@@ -72,8 +75,8 @@ already have.
 
 <!--
 
-#,,,.,..,,,,,,..,,,.,,,.,,,,,,.,,,.,.,,.,,,,,,..,,...,...,.,.,.,,,,,,,,,,,..,,
-#RQYSTP6HPGMHW2IKHFXWFFLY4POB5GLOHGWHEUIKWZ26CVK2VLWHONCMSBS3NHCZFXIVR47SVSSPU
-#\\\|7JQMUTYQR27CXEWDEIX3CXQQSDOL773QAGX4J5VKCKYAWK2XESA \ / AMOS7 \ YOURUM ::
-#\[7]BBWZEZFVOQGWAXCM2JAK3NS5547TWVVNEQDCZXRY2XQ3RWLTLUDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,,.,,,.,,.,,,..,,.,,,.,.,.,,,..,,...,...,,..,.,.,,.,,,,,,.,,,
+#PAJWN7RYCKZC67Z3RHZXIXXWX3XE3M2RH262JBDF5IUOOCJV4L6IH7CM76IGNYFTRP3PPH6Z6AQCS
+#\\\|5UK3RE22WPC7OG72CWM7TADIVL6ZHDLNJBHPWJOLHZ7EZKZ6OKD \ / AMOS7 \ YOURUM ::
+#\[7]6KEYAGFDCV4KG2UZZUI7NSOSYIHA3II2W6MV53OFAG3PPIPHJQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
