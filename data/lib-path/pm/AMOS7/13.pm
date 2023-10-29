@@ -21,8 +21,8 @@ use AMOS7::INLINE;
 compile_inline_source( { qw| subroutine-name | => qw| bit_string_to_num | } );
 
 use Digest::BMW;
-use Fcntl qw| :seek |;
-use Crypt::Misc qw| encode_b32r |;
+use Fcntl                qw| :seek |;
+use Crypt::Misc          qw| encode_b32r |;
 use Crypt::PRNG::Fortuna qw| irand |;
 
 use Time::HiRes qw| time sleep |;
@@ -95,8 +95,10 @@ sub gen_key_from_file_entropy {
     my $file_path          = shift;   ## path to entropy file ##
     my $seed_phrase        = shift;   ## additional user entropy [optional] ##
     my $wants_true_B32_enc = shift // TRUE; ## binary key true as BASE 32 ? ##
+    my $override_skip_value = shift // FALSE;  ##  read and seek <n> bytes  ##
+    my $read_buffer_length  = shift // 32768;
+    my $substring_length    = shift // 8192;   ##[ 4 x 8K per buffer ]##
 
-    my $file_read_length = 32768;
     my $fh;
     my $result_keybin;    ##  32 bytes key from file entropy  ##
     my @result_values;    ##  63 numerical values  ##
@@ -155,9 +157,18 @@ sub gen_key_from_file_entropy {
     my $ELF7_sum = { 4 => 0, 3 => 0 };
 
     my $nand_elf_c_int;
-    my $substring_length = 8192;
     while ( tell($fh) < $fsize_total
-        and read( $fh, my $buffer, $file_read_length ) ) {
+        and read( $fh, my $buffer, $read_buffer_length ) ) {
+
+        ## JUMP IN FILE IF SPECIFIED ## [ reads entire file by default ]
+        ##
+        if (    $override_skip_value
+            and tell($fh) < $fsize_total - $override_skip_value
+            and not seek $fh, $override_skip_value, SEEK_CUR ) {
+            warn_err( "file seek error [ '%s' ]",
+                1, lcfirst( $OS_ERROR // 'seek failed' ) );
+            return undef;
+        }
 
         ##  increased in iterations for smaller files  ##
         ##
@@ -1242,8 +1253,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,,.,...,,.,,.,.,.,.,..,,..,,.,.,,,,,..,,..,,..,,...,...,..,,,,.,...,.,.,.,.,
-#CV7E7TSKMIK5F5DPTSGEZX3AZMQDSTX53PP2HMEUCIS33ZXLG5L53J7YHTQ36YA24GR3XKOSNBFMY
-#\\\|HSKZOWN77VAXPZBR72H53TX22QYKIKNTTOI6W3Q3R4W33YJPQRW \ / AMOS7 \ YOURUM ::
-#\[7]YZQF2X4VVVQYPWUOGEO2PFZ7LS7OPPLFTIT7D7WQOPGH6QGGRSAA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,,,.,...,..,,,.,,.,.,.,.,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
+#PKV3BYEKHBZ7GKT24UKYEXJ5W3ZJDB3T54XPQV5NGXWCQMEJLPBMJN7HV5XVPH7MAZYW2WRZLI7I6
+#\\\|X35GSMWKE7JBO2FAYGASZZWDYAJTJMV3AQ3JDZIKPIAI5U3U4MS \ / AMOS7 \ YOURUM ::
+#\[7]FCP2646DAHLNVLJAPK76YFF4MRSBR5XRWFJLYX5NHSLXXSBCDUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
