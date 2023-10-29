@@ -163,7 +163,7 @@ READ_STDIN_CONFIGURATION:
     } else {
         $code{'log.error'}->(':: STDIN closed and no configuration read..,');
     }
-
+    END { $code{'log.devmod'}->('. . . . terminated . . . . :') }
     if ( $data{'system'}{'background_mode'} ) {    ## backgrounding parent ##
         use warnings qw| FATAL |;
 
@@ -173,7 +173,6 @@ READ_STDIN_CONFIGURATION:
             0, qw| 0110 |
         ) if length $EVAL_ERROR;
     }
-
     if (@zenka_code) {
         $data{'base'}{'config_parser'}{'cfg_type'}  = qw| start_cfg |;
         $data{'base'}{'config_parser'}{'cfg_name'}  = qw|   zenka   |;
@@ -1562,19 +1561,24 @@ sub p7_load_code {
         local $Text::Wrap::separator = "\n";
         delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
         my @compile_errors = (
-            '>',
-            ".:[ $sub_name ]:.",
-            ':',
-            (   map  { s|Can.t|cannot|g; s|"|'|g; ": :  \l$ARG" }
-                grep { !m|^BEGIN | } split( m|\n+|, $err_str )
+            qw| > |,
+            sprintf( ".:[ %s ]:.", $sub_name ),
+            qq|:|,
+            (   map {
+                    s|Can.t|cannot|g;
+                    s|\"|\'|g;
+
+                    sprintf( ": :  \l%s", $ARG )
+                    }
+                    grep { !m|^BEGIN | } split( m|\n+|, $err_str )
             ),
-            '='
+            qq|=|
             )
             if length( $err_str // '' )
             or defined $s_comp_stderr;
         push(
             @compile_errors,
-            '>',
+            qq|>|,
             '  :: warning ::',
             '  :',
             (   map {
@@ -1582,12 +1586,12 @@ sub p7_load_code {
                     $warn_count_total++;
                     push(
                         @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
-                        "\l$ARG"
-                    );
-                    "  :: \l$ARG"
+                        sprintf( "\l%s" . $ARG )
+                        ),
+                        sprintf( "  :: \l%s", $ARG )
                 } split( m|\n+|, $s_comp_stderr )
             ),
-            '..,'
+            qq|..,|
         ) if defined $s_comp_stderr;
 
         $code{'base.stderr_restore'}->();
@@ -2329,7 +2333,7 @@ sub p7_format_error {
         ( $file, $line ) = @{^CAPTURE};
     }
 
-    $err_msg =~ s,",',g;   ##  replacing all double quotes [ with single ]  ##
+    $err_msg =~ s,\",\',g; ##  replacing all double quotes [ with single ]  ##
     $err_msg =~ s|\((did[^\)]+)\?\)|[ $LAST_PAREN_MATCH ? ]|;
     $err_msg =~ s|\s+BEGIN failed.+$||sg;
     $err_msg =~ s|(*plb: in \@INC).+$||sg;
@@ -2353,13 +2357,13 @@ sub p7_format_error {
     }
     if ( index( $err_msg, qw| eval |, 0 ) > -1 ) {    ## missing closure ##
         if ( index( $err_msg, "[ '", 0 ) >= 0 and $err_msg !~ m|' ]'?$| ) {
-            $err_msg =~ s| at .+line.+$|' \]|g;       ##  amending "' ]"  ##
+            $err_msg =~ s| at .+line.+$|\' \]|g;      ##  amending "' ]"  ##
         }
     }
     $err_msg =~ s,use of ,,g;
     $err_msg =~ s,no success on ,,g;
-    $err_msg =~ s,(can't|unable to),cannot,g;
-    $err_msg =~ s|^warning : something's wrong$|:undef:|g;
+    $err_msg =~ s,(can\'t|unable to),cannot,g;
+    $err_msg =~ s|^warning : something\'s wrong$|:undef:|g;
     $err_msg =~ s|^uninitialized value in warn$|:undef:|g;
     $err_msg =~ s|uninitialized value|undef value|g;
     $err_msg =~ s|argument in sprintf|sprintf argument|g;
@@ -3771,7 +3775,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             ? scalar $code{'base.format_error'}
                             ->( $EVAL_ERROR, -1 )
                             : lcfirst($EVAL_ERROR);
-                        $err_str =~ s|"|'|g;
+                        $err_str =~ s|\"|\'|g;
                         $err_str =~ s|at \(eval \d+\) line \d, ||g;
                         my $lnum;    ## another error line number ##
                         $lnum = ${^CAPTURE}[0]
@@ -3895,8 +3899,8 @@ __DATA__
 :
 :.
 
-#,,,,,...,.,,,.,,,,,.,..,,,..,.,.,,..,..,,,.,,..,,...,...,...,,..,.,.,,,,,,.,,
-#XHHE6OHCD7BOXP6RYYGCBNOHDNDB54252UC7575OJ4ME6UJ6D5Z26Z6H63YI6T5KAPRO4WSAXAKKO
-#\\\|W2R4SNJKFYY4AR37ICETWCLTVHXA5U3ZLAWOOUXY67UH4WFS4EM \ / AMOS7 \ YOURUM ::
-#\[7]MVIO3YTVZD2SIIKFLPP45UWRLE723BB7YKBL5NXK5CUS3MPIJ2AI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,.,.,.,.,,.,,,.,,.,,,..,,.,,,..,,...,...,.,,,,.,,,..,,.,,,.,,
+#FAW4MMMNGB3M2BPRQK23NINJFXYSCUZFEI7AIGRVQZVDAPPQAXAR56AC7S5ZOCQWAVNI3QRANRLI6
+#\\\|NPBNOZ6GAZ7C35LZNIYBQKBBOF4BX4NSVZDYWKPLVNKXDW5KWJH \ / AMOS7 \ YOURUM ::
+#\[7]4QHVBO4CNWJABYHLQBAK77DNKF4ZD3ZDDQGALIZMOJQWVFOSXUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

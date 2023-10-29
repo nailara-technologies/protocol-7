@@ -24,7 +24,7 @@ error_exit('expected question') if @ARGV == 0;
 
 ( my $question = join( ' ', @ARGV, qw| ? | ) ) =~ s|(\s*\?)+$| ?|;
 
-my $question_encoded = sprintf( 'Q: %s : %s A!', network_time(), $question );
+my $question_encoded = sprintf( 'Q: %s : %s .: A!', network_time(), $question );
 
 my $exit_code = system( $check_truth_bin, qw| -silent |, $question_encoded );
 $exit_code >>= 8 if $exit_code > 0;
@@ -109,8 +109,8 @@ sub c_dir  { File::Spec->catdir(@ARG) }
 sub c_file { File::Spec->catfile(@ARG) }
 sub r2_abs { File::Spec->rel2abs(@ARG) }
 
-#,,..,,,.,.,.,.,.,,..,..,,,,,,...,,,.,,,,,,..,..,,...,...,...,.,,,,,.,.,,,...,
-#36OBADBRPQG5IIDDAHVNPPTP2L656I3LBPUPIEH6M3O73KYS32K2XDC2UBJMSSGGGBOV76E2LDL5A
-#\\\|7IT4OEFMSVOJ3SXLH26RHDT24QJM6VPHIFSSD4TNYHQN4QAIMMF \ / AMOS7 \ YOURUM ::
-#\[7]5DMJVC57PPR6YEBWNGLN3PVH5L2OI6FQQ4D5JR34L53NJ6WHJCDI 7  DATA SIGNATURE ::
+#,,.,,...,...,...,...,.,,,...,,.,,,,.,,,.,,..,..,,...,.,.,.,.,,.,,.,.,.,,,...,
+#FGXHTVYXERMPCD7AT733TLX537GCQTNH4PPV2D7UH3K4S4E4BOHA6MUSQBQAQ3JUG3JXNIYYJWE2A
+#\\\|2WHXBYAHOPCMDUDLCAEEJLKWXZDKBMLUV2QEXYY3TVOS2BOGWNY \ / AMOS7 \ YOURUM ::
+#\[7]KKMGYFDDCMXKKDC7UKPZDTALYLV2XN62OQTS5KAOZNSSHQ3Q4GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
