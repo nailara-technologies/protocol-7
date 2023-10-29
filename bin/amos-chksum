@@ -57,6 +57,7 @@ my $option_list = << 'EOL';
     -s  .......  STDIN data input mode [ single ]
     -S  .......  STDIN data input mode [ combined ]
     -n  .......  return checksum as numerical value
+    -b  .......  returns binary version of checksum
     -v  .......  visualize additional checksum data
 
     -options ..  amos-chksum command line option list
@@ -82,7 +83,7 @@ my $data_str;
 $SIG{'__WARN__'} = \&error_exit;
 use warnings FATAL => qw| all |;
 
-getopts( qw| vt:e:Snsqo:L:V:T: |, \my %option );
+getopts( qw| vt:e:Sbnsqo:L:V:T: |, \my %option );
 
 if ( defined $option{'o'} and $option{'o'} eq qw| ptions | ) {
     list_options();
@@ -231,15 +232,24 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
     while ( my $line = <STDIN> ) {
         next if not defined $line or not length $line;
         chomp($line);
-        my $checksum = AMOS7::CHKSUM::amos_chksum( \$line, @modes );
+        my $chksum = AMOS7::CHKSUM::amos_chksum( \$line, @modes );
 
-        $checksum = sprintf( qw| %010d |, $AMOS7::CHKSUM::num_amos_csum )
-            if $option{'n'};
+        ##
+        # select numerical checksum
+
+        $chksum = sprintf( qw| %010d |, $AMOS7::CHKSUM::num_amos_csum )
+            if $option{'n'} or $option{'b'};
+
+        ##
+        # or select binary checksum
+
+        $chksum = sprintf qw| %032b |, $chksum if $option{'b'};
 
         if ( $option{'q'} ) {
-            say $checksum;
+            say $chksum;
         } else {
-            say "$C{0}:\n:$C{b} $C{T}$checksum$C{0} $C{R}\n$C{0}:$C{R}";
+            say sprintf "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}",
+                $chksum;
         }
     }
     exit(00000);
@@ -247,20 +257,20 @@ if ( not defined $data_str and not $option{'s'} and not $option{'S'} ) {
 
 ##[ CHECKSUM CALCULATION ]####################################################
 
-my $checksum_encoded;
+my $chksum_encoded;
 
 if ( defined $option{'T'} ) {    ## using template for truth verification ##
     my $template = $option{'T'};
 
-    $checksum_encoded
+    $chksum_encoded
         = AMOS7::CHKSUM::amos_template_chksum( $template, \$data_str,
         @modes );
 
 } else {
-    $checksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
+    $chksum_encoded = AMOS7::CHKSUM::amos_chksum( \$data_str, @modes );
 }
 
-error_exit('cannot calculate checksum') if not defined $checksum_encoded;
+error_exit('cannot calculate checksum') if not defined $chksum_encoded;
 
 ##[ VERBOSE RESULT VALUES ]###################################################
 
@@ -389,7 +399,7 @@ if ( $option{'v'} ) {
                         length ref $ARG
                         ? sprintf( 'regexp : %s',
                             AMOS7::TEMPLATE::regex_src_string($ARG) )
-                        : sprintf( $ARG, $checksum_encoded ),
+                        : sprintf( $ARG, $chksum_encoded ),
                         $C{R}
                     ),
 
@@ -428,9 +438,9 @@ if ( $option{'v'} ) {
         sprintf(
             '%s %*s  : %s %s%s%s%s%s%s %s %s',
             $C{T},              $left_column_with,
-            qw| VAX-encoded |,  TRUE_FALSE($checksum_encoded),
+            qw| VAX-encoded |,  TRUE_FALSE($chksum_encoded),
             $C{b},              $C{T},
-            $C{B},              $checksum_encoded,
+            $C{B},              $chksum_encoded,
             $C{R},              $C{T},
             $num_amos_csum_str, $C{R}
         ),
@@ -438,19 +448,24 @@ if ( $option{'v'} ) {
         $C{R}
     );
 
-} elsif ( $option{'n'} ) {
+} elsif ( $option{'n'} or $option{'b'} ) {
 
-    ##  numerical AMOS7-chksum value  ##
+    ##  numerical AMOS7-checksum value  ##
     ##
-    say $AMOS7::CHKSUM::num_amos_csum and exit if $option{'q'};
-    say "$C{0}:\n:$C{b} $C{T}${AMOS7::CHKSUM::num_amos_csum}$C{0}"
-        . " $C{R}\n$C{0}:$C{R}";
+    my $chksum = $AMOS7::CHKSUM::num_amos_csum;
 
-##  encoded AMOS7 chksum  ##
+    ##  [ or binary AMOS7-checksum version ] ##
+    ##
+    $chksum = sprintf qw| %032b |, $chksum if $option{'b'};
+
+    say $chksum and exit if $option{'q'};
+    say sprintf "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}", $chksum;
+
+##  encoded AMOS7 checksum  ##
 ##
-} elsif ( defined $checksum_encoded ) {
-    say $checksum_encoded and exit if $option{'q'};
-    say "$C{0}:\n:$C{b} $C{T}$checksum_encoded$C{0} $C{R}\n$C{0}:$C{R}";
+} elsif ( defined $chksum_encoded ) {
+    say $chksum_encoded and exit if $option{'q'};
+    say "$C{0}:\n:$C{b} $C{T}$chksum_encoded$C{0} $C{R}\n$C{0}:$C{R}";
 } else {
     exit(qw| 0110 |);    ##  checksum calculation errors  ##
 }
@@ -483,8 +498,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,.,,,.,,...,,.,,..,,..,,,,.,,.,,,,,,..,,..,,..,,...,...,.,,,,.,,,.,,..,,..,,
-#BZLYICAKQSGYV3TFQSAFTZEB3FZJM7S4BAEBTKDK44DMLBYCEWALL3TA7MEA2ZEULHNH47SFNJMTO
-#\\\|MU4CIHLLHG6MR47JMIWBOBGL2ADPLRWZSWBACTKABZGO5FK2EP2 \ / AMOS7 \ YOURUM ::
-#\[7]L3YIXM2JPZBW37P4ZCIJGIJZQ2V2GUVACGEVTTKUV5Y76QHPHMDI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,.,,,,.,,.,,,,,,,..,,,..,.,,,..,,...,...,,..,..,,..,,...,.,,,
+#WUM2A3GVZEMVXQQIO3IMSTTG6V5BRSV2RZQB55YEYQIX5V54N6FTSX5PD2L5STE2QH322GFL4WDNW
+#\\\|KABXU6WDCD4HMJXSPLWOOABYOI6H5SDJ6RPPIKV5YFP5UZH7F3E \ / AMOS7 \ YOURUM ::
+#\[7]SQKVPFWHRISKTB3V4KLSN7G7K3X2RTRRAI3YXTKVETQNB5VWMKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
