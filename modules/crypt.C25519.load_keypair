@@ -18,9 +18,7 @@ my $key_filename = $key_vars_ref->{'key_filename'};
 foreach my $type ( <[base.sort]>->($key_filename) ) {
     if ( -f $key_filename->{$type} and not -r $key_filename->{$type} ) {
         ( my $file = $key_filename->{$type} ) =~ s|^.*/||;
-        <[base.logs]>->(
-            0, 'no read permission on %s [ aborted loading ]', $file
-        );
+        <[base.logs]>->( 0, "no read permission for key '%s'", $file );
         return undef;
     }
 }
@@ -386,8 +384,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,,,,,.,,.,.,.,.,.,,,...,..,,,.,,..,,,.,,.,,,..,,...,...,...,,.,,.,,,..,,,,.,
-#EO72UF27K2GUSWBXZ36X2GPXKKMYHYYN5TAVNYCWKFYBH3UWT5PS45DZMNN5FXXJ7SUENSIUTGPTM
-#\\\|JNTECCLO6TSD5BKUTUX5CQJZ7YBSD4VZHHHWPLIKHPD46KI5WXC \ / AMOS7 \ YOURUM ::
-#\[7]TJOFC4NLPIQDVLMSHDDXND5BQNNHHHL6TNXFX357N2DQLQCG3ACY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,,..,..,,.,,,.,,,,..,.,,,..,,..,,...,...,...,..,,,,.,,,,,,,.,
+#36BCJ62FCMKHG5ROZFCKR6WTKTDWGGAJVZW6YLAZTF4SZ6YDFTVUELZGIVDDCJ3JJKJYKZLX2YGP6
+#\\\|DX7CKTY3VBKQ3YISCQ72FGGPLQ6CJX3JANDQYCDNYWEI5U6LE5E \ / AMOS7 \ YOURUM ::
+#\[7]MUJA234LZCBGFWKFCS4CA4ITVK24S36S2QUO53R5QS7B2OMJ5ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

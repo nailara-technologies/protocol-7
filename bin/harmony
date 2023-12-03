@@ -155,7 +155,7 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
     my $calc     = Math::BigFloat->new($elf_checksum);
     my $calc_str = $calc->bdiv( 13, $accuracy + length $elf_checksum );
 
-    $calc_str = sprintf( qw| %0.*f |, $accuracy, $calc_str )
+    $calc_str = sprintf( qw| %.*f |, $accuracy, $calc_str )
         if $calc_str !~ m|\.(\d+)|
         or length($1) < $accuracy;
 
@@ -193,9 +193,9 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
 
     if ( not $option{'q'} and not $option{'N'} ) {
 
-        say "\n$space_0$q$col{'str'}$check_string"
-            . "$col{'r'}$q $col{fg} === $col{r}"
-            . " $result\n"
+        say sprintf "\n$space_0$q$col{'str'}$check_string"
+            . "$col{'r'}%s $col{fg} === $col{r}"
+            . " $result\n",$q
             if not $shown_truth_state++;
 
         say sprintf '   %97s', $line_str;
@@ -216,7 +216,6 @@ if ( not $option{'q'} ) {
         } elsif ( $option{'V'} ) {    ## first result part ##
             say $num_val;
         }
-
         display_result( $status, $result, $option{'T'}, $num_val );
 
     }
@@ -267,7 +266,7 @@ sub display_result {
         $result_1_1 = substr( $result, 0,        length($result) - $offset );
     }    # else [ 'none' ]
 
-    $result = join( '', $result_1_0, $result_1_1 );
+    $result = join '', $result_1_0, $result_1_1;
 
     @asc_enc = ( qw| asc-enc -qQM -r0 -C |, $table_name );
 
@@ -319,8 +318,8 @@ sub display_result {
 
 sub int_exit { print $reset; exit(4) }
 
-#,,..,,.,,.,.,.,.,,,,,.,.,..,,,,,,,,,,...,..,,..,,...,...,..,,,,.,,,,,...,...,
-#H3CJ6M7A6JJGN2LF2LV7AW5NCGIGOIRUQRYKA4WF4NMZ52EJNXOIHD37VIOVKWU7SOL6WMFIBKFL4
-#\\\|KOL7EOTB4Z6QKPUKHXFBYSG7UJLHB5ZK2BR5LI6BFMN57OTGFYO \ / AMOS7 \ YOURUM ::
-#\[7]FB6634V3KZ5ROEOMHOICEZKCJFY37MFDC4ZZVA2PICQ2BFW3IODI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,..,,,,,..,,,,.,,.,,,,,,..,,,..,..,,...,...,.,.,,..,..,,..,,,,.,
+#DPOWMDUN7V262GBX7VZJIX7KY5E2QCH5XXZEDPTLDQN6DYCRXVLXOQUNYOWMJVVSH55KWKX3Q2AII
+#\\\|4AZ2WHPN3HVMNC24V5DUJB2XIAZO6AHIOR2LHGISLJQMMI4QL2T \ / AMOS7 \ YOURUM ::
+#\[7]QKVZ76EFMHOXHD7TP7HUUO7YOW6K5LH3RQPVUNJPAFNS67JN7OAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

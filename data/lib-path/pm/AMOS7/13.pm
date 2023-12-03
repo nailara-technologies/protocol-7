@@ -160,7 +160,7 @@ sub gen_key_from_file_entropy {
     while ( tell($fh) < $fsize_total
         and read( $fh, my $buffer, $read_buffer_length ) ) {
 
-        ## JUMP IN FILE IF SPECIFIED ## [ reads entire file by default ]
+        ##  JUMP IN FILE IF SPECIFIED  [ reads all of it otherwise ] ##
         ##
         if (    $override_skip_value
             and tell($fh) < $fsize_total - $override_skip_value
@@ -1253,8 +1253,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,,.,,,.,.,,,..,,,,.,...,..,,,.,,.,.,.,.,,..,..,,...,...,,..,.,,,,..,,,.,,,.,
-#PKV3BYEKHBZ7GKT24UKYEXJ5W3ZJDB3T54XPQV5NGXWCQMEJLPBMJN7HV5XVPH7MAZYW2WRZLI7I6
-#\\\|X35GSMWKE7JBO2FAYGASZZWDYAJTJMV3AQ3JDZIKPIAI5U3U4MS \ / AMOS7 \ YOURUM ::
-#\[7]FCP2646DAHLNVLJAPK76YFF4MRSBR5XRWFJLYX5NHSLXXSBCDUBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,,.,,...,..,,,,,,,..,.,,,.,.,..,,...,...,..,,,,.,,,.,...,,,.,
+#IFPP4ZJ6CR2IC2RRA7644EQPHZTHU7E7LEVM7IR2IDSTX2ASQFO3ZXGUIRDQ4LIGYTWWPTDFXPPZY
+#\\\|DCOUHW2XDJYNR7HFSHQM5MVOUKCRWDXI62N73WTQDXI3WY5HU3C \ / AMOS7 \ YOURUM ::
+#\[7]TQQLOLDPUKX5HU3KKYHFUDD3P2Q5PCCMLRAPLTPMPGFPAKZQIGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
