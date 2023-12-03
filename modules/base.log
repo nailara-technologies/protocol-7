@@ -105,8 +105,9 @@ if ( defined $code{'base.buffer.add_line'} ) {
 ## console output ##
 ##
 if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
-    if ( defined $code{'base.utf8.clean_not_valid'} ) {
-        <[base.utf8.clean_not_valid]>->( \$log_str, 2, 2 ); ## warn level 2 ##
+    if ( utf8::is_utf8($log_str)
+        and defined $code{'base.utf8.clean_str'} ) {
+        <[base.utf8.clean_str]>->( \$log_str, 2, 2 ); ## warn level 2 ##
     }
     say $log_str;    ## clean UTF-8 passed through ##
 }
@@ -114,8 +115,8 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return TRUE;
 
-#,,,.,,,,,,,.,..,,,,.,.,,,.,.,,..,,.,,.,.,.,,,..,,...,...,,..,,.,,,,.,..,,,,.,
-#NOUID6EJDOAAHHA3XSCXS4H2X6W43SJQZZWN5AKIS2B3NULAYDQXTVIYJHMXFK5P7NPREBWHO7YYC
-#\\\|MTMMLCNCJXLLM2AWZXL5SGNALN55HVZML4CRZ2IUBBKOLEIIX6E \ / AMOS7 \ YOURUM ::
-#\[7]QERSKRZ2IEU2TATCJXDPX2CWGBKRJFS74A6UTBXQBGVLBSSNNSCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,..,,.,.,.,,,...,,,,,,..,...,..,,...,...,,.,,.,.,,,.,..,,...,
+#3BNBT45MOTEJUXBCZNBN7OFTGVM7LMXC6JNVMDQWSZBQUTDVQON7LEMYMMVGEZH2ZW2MRCJO34IL2
+#\\\|CL4ARQDML3WWG4SWZW757KTBCNBUN5N3KZ57YDHVMJYKTAR3QEO \ / AMOS7 \ YOURUM ::
+#\[7]E5VVLP4NDUE5D34NDCCOLHDKSXGUNP2KJVMXCS7V6ONCQNHHHCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
