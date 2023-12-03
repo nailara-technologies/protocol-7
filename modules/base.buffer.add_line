@@ -23,8 +23,9 @@ if ( not length( $name // '' ) ) {
 
 my $buffer_size = $data{'buffer'}->{$name}->{'max_size'};
 
-if ( defined $code{'base.utf8.clean_not_valid'} ) {
-    <[base.utf8.clean_not_valid]>->( \$log_message, 3, 3 );  ## warn-lvl: 3 ##
+if ( utf8::is_utf8($log_message)
+    and defined $code{'base.utf8.clean_str'} ) {
+    <[base.utf8.clean_str]>->( \$log_message, 3, 3 );  ## warn-lvl: 3 ##
 }
 
 ##  clean up space prefixes only when log level specified  ##
@@ -131,8 +132,8 @@ if ( defined $buffrs->{$name}->{'log_cmd'}
 
 return TRUE;    ##  true  [ added to buffer ] ##
 
-#,,..,...,,..,,,,,,,,,,,.,,,.,...,,,.,.,,,.,,,..,,...,...,..,,,..,.,,,.,.,,.,,
-#52DTNFSPXHOBRWAARP26ZCXKY4YGRUSJALPX4DJZ2UVEQACWQJ2YFJOI6VUOXUL3NRYTDYARWIVD2
-#\\\|TDIL37DBCKGHGFEY6NUEVWV2EGHK6HV4HWD2IIXCSCPJUH5WHDP \ / AMOS7 \ YOURUM ::
-#\[7]JXRSWDZGRDWFP6F2J7QWZ3O54DYICNJJYOWYPHUHLOI42O2F4GAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,.,,.,.,,.,,,.,,,..,.,.,.,.,..,,...,...,...,..,,,,,,...,,,.,
+#IGX2KPJUBI5PJL2OHXUCFSHQCET5DRNFCN7ZRF5X3UL36ZCCXD6S5PYZWWWSCBCBQUAQAWCNZFBVS
+#\\\|RWGPRUGOZBS2G3SNVI7QV5SLSDMJZTM3UBCQXKLTEBPN666RJF2 \ / AMOS7 \ YOURUM ::
+#\[7]JH2BIBNGA2FV52PY434TYFTR4OINKHYYIU6OF5TF4AXBMBIVDSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

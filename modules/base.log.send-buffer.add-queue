@@ -18,10 +18,10 @@ if ( not defined $name or not length $name ) {
 }
 
 ## initializing buffer when not present ##
-if (not <[base.is_defined_recursive]>->(
-        sprintf qw| log.send-buffer.%s |, $name
-    )
-) {
+if (   not defined $data{'log'}
+    or not defined <log.send-buffer>
+    or not defined <log.send-buffer>->{$name} ) {
+
     <[base.log.send-buffer.init]>->($name);    ## creating send buffer ##
 
     ##  checking if to add prevous buffer content  ##
@@ -71,8 +71,8 @@ $b_ref->{'lines-added'}++;                        ## triggering sending ##
 
 return TRUE;
 
-#,,..,,,,,..,,.,.,,..,...,...,,..,.,,,,,,,,,,,..,,...,..,,...,,..,...,..,,,,,,
-#CFSS2H4654KGRHVAVVITZMKRP3OCKOTRLKJT355BG4JIXYGIAR4W4VN4MOT2KAJOOHEC5QZXNX7UY
-#\\\|HOUPJPIJXUH6VGMOSWM35JYMFTI3KAEQJ34NTPKFLK2G3KY47KO \ / AMOS7 \ YOURUM ::
-#\[7]ABKP64FGDMSL7EGHONAQY62OIALXT6BVKAPMJ22AOLLW7RXERQAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,.,,..,,,,,,,,,...,,..,,,.,...,..,,...,..,,.,.,...,..,,,..,,,.,
+#EGK5LRDV2KABUA2BUB3GMYATSIRLIT6GIW5QRRUZ5DE4WS6TCLF5RNQ5MRXBVOU7YG5NR5MYYDBEW
+#\\\|JF4TQWK4G5EMSVNBBQLD5CCO6B2FQR6CIHBXM6QD4L7AESNCY3W \ / AMOS7 \ YOURUM ::
+#\[7]V7GHXK5IL2Z6R5QRQ3NQYFKNZCCM2X7XRB5RUL5V5AC3BFSAM2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
