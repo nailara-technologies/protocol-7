@@ -55,14 +55,11 @@ perl -Mv5.13 -e \
 perl -Mv5.13 -e \
   'my$M="Poloniex::API";eval"require $M";exit(1)if$@;say"$M is installed .,"'||
   cpanm --force Poloniex::API
-perl -Mv5.13 -e \
-  'my$M="Bittrex::API";eval"require $M";exit(1)if$@;say"$M is installed ..,"'||
-  cpanm --force https://github.com/jheddings/bittrex.git
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,,,.,.,,..,,,,,,,,,,,.,..,,...,.,.,.,,,.,,,..,,...,...,..,,.,,,.,.,,,,,..,,
-#BSLOE65A2COV7QEM6LCYID6GLSEIWFFFYXYYSRPO7OJ2R2CLZQDU43GHX3KL6C2QC5LIXZ43N7FH2
-#\\\|YJW5F4VOC25JT5KPZGCR3HKBTLZTMXVRQVBZXZ4DMIYQFJNCTCK \ / AMOS7 \ YOURUM ::
-#\[7]3WOAEQGGGYXVXSOI7POHGSMPZGLJ6JANGXCWB24UK436VBKJBABA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,.,.,.,,,...,...,,,.,,..,,,.,..,,...,...,.,.,,.,,..,,...,,,.,
+#W2KDZVZ2YW565MUIQ3N5M7REDWJCJFFR6GVWTZZPGTS2CCPTQXEGPK3YITZAA66OSO6UNS3WWWPVM
+#\\\|CHYUFU4BDJCHGJHJWQHZLFUJ44C6D5PZVQQIPX5OWIH7JQDJMDY \ / AMOS7 \ YOURUM ::
+#\[7]SYTZLVADZZVV52BK644KE7JNBPVEO54RYPOUNTPN4P3VCQESBOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
