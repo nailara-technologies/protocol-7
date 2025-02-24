@@ -1,0 +1,307 @@
+## [:< ##
+# name    = protocol.protocol-7.handler.route
+# descr   = handle protocol-7 command routing
+# comment = client routing, target resolution and ondemand zenki
+
+my $ctx = shift;    ## connection context ##
+my $cmd = shift;    ## command string ##
+
+##[ INIT \ VARIABLES ]##########################################################
+
+my $id       = $ctx->{'id'};
+my $session  = $ctx->{'session'};
+my $user     = $ctx->{'user'};
+my $output   = $ctx->{'output'};
+my $cmd_mode = $ctx->{'mode'} || 0;
+
+## returns TRUE for successful route setup, FALSE otherwise ##
+
+##[ PARENT BRANCH \ EXTERNAL CORE ]###########################################
+
+## tree upwards., ##
+if ($cmd =~ m|^\.\.([^\.]+)\.(.+)$|) {
+
+    <[base.logs]>->( "outgoing: nexthop: '%s' command: '%s'", $1, $2 );
+
+    if (exists $data{'user'}{ ${^CAPTURE}[0] }{'session'}
+        and $data{'user'}{ ${^CAPTURE}[0] }{'mode'} eq qw| link |) {
+
+        ## <[net.send_command]>->( $id, $command_id, $cmd, @params );
+    }
+    $output->$* .= "FALSE not implemented yet.,\n";
+    return FALSE;
+}
+
+##[ ABSOLUTE PATH ROUTING ]#####################################################
+
+## absolute address notation ##
+elsif ($cmd =~ m|^\^(\w+)\.([^\.]+)$|) {    ##  regex not valid : < only host >  [LLL]
+    my $network_name = ${^CAPTURE}[0];
+    my $node_name    = ${^CAPTURE}[1];
+
+    # ^ not yet implemented [ route discovery feature.., ]
+    return FALSE;
+}
+
+##[ PROCESS \ PREPARE TARGET SIDS ]###########################################
+
+elsif ($cmd =~ s|^($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.
+                ((($re->{sid_str}|$re->{usr_str}|$re->{usr_subn_str})\.)*
+                $re->{cmd_str})$|$2|gxo) {
+
+    my $target_name = ${^CAPTURE}[0];    # usr|sid
+    my $command_str = ${^CAPTURE}[1];    # [ deeper targets + ] command
+    my $target_subname = $target_name =~ s|\[($re->{subname})\]$|| 
+                      ? $LAST_PAREN_MATCH 
+                      : undef;
+
+    my @send_sids;
+
+    if ($target_name =~ $re->{'sid'}) {   ## <session_id>.<command> mode
+        my $target_sid = $target_name;
+        if (exists $data{'session'}{$target_sid}
+            and $data{'session'}{$target_sid}{'mode'} eq qw| client |) {
+            @send_sids = ($target_sid);
+        }
+    } elsif (exists $data{'user'}{$target_name}{'session'}
+            and (not defined $target_subname
+                or defined $data{'user'}{$target_name}{'subname'}{$target_subname})) {
+        ## [ online \ present ]
+        foreach my $target_sid (keys $data{'user'}{$target_name}{'session'}->%*) {
+            next if $data{'session'}{$target_sid}{'mode'} ne qw| client |;
+
+            #### 'target[subname]' syntax:
+            next if defined $target_subname
+                   and (not defined $data{'session'}{$target_sid}{'subname'}
+                   or $data{'session'}{$target_sid}{'subname'} ne $target_subname);
+
+            push @send_sids, $target_sid;
+        }
+
+##[ ONDEMAND ZENKI ]##########################################################
+
+    } elsif (my $v_id = <[base.zenki.ondemand_registered]>->($target_name)) {
+        # ondemand
+        my $target_user    = qw| v7 |;
+        my $target_command = <zenki.virtual>->{$v_id}->{'target_command'};
+        if (defined $target_command    ##  use cmd regex  ##  [ LLL ]
+            and $target_command =~ m|^([^\.]+)\.[^\.]+$|) {
+            $target_user = ${^CAPTURE}[0];
+        } elsif (defined $target_command) {
+            undef $target_user;
+        }
+
+        if (not defined $target_user
+            or exists $data{'user'}{$target_user}{'session'}) {
+            $target_command //= qw| v7.start_once |;
+
+            my @cmd_param;
+            if ($cmd_mode == 1) {   ##  single command line mode  ##
+                @cmd_param = ( 'cmd_args' => $ctx->{'args_orig'} );
+            } elsif ($cmd_mode == 2) {    ##  multiline cmd mode  ##
+                @cmd_param = (
+                    'multiline' => {
+                        'param' => delete $ctx->{'args'}->{'param'},
+                        'data'  => delete $ctx->{'args'}->{'data'}
+                    }
+                );
+            } else {
+                <[base.logs]>->(    ## FALSE reply to source .., [LLL] ##
+                    0, '[ondemand zenki] unknown command mode %d',
+                    $cmd_mode
+                );
+            }
+
+            push(
+                <zenki.virtual>->{$v_id}->{'queue'}->@*,
+                {   'source_id'   => $id,
+                    'src_cmd_id'  => $ctx->{'cmd_id'},
+                    'cmd_subname' => $target_subname,
+                    'cmd_str'     => $command_str,
+                    @cmd_param
+                }
+            );
+
+            if (not exists <zenki.virtual>->{$v_id}->{'starting'}) {
+                <zenki.virtual>->{$v_id}->{'starting'} = 5;    ## true ##
+
+                my $start_name = <zenki.virtual>->{$v_id}->{'name'};
+
+                # [LLL] subname behaviour needs refinement \ configuration.,
+                $start_name .= sprintf qw| [%s] |, $target_subname
+                    if defined $target_subname;
+
+                <[base.logs]>->(
+                    "ondemand zenka '%s' requested ..,", $start_name
+                );
+                <[base.protocol-7.command.send.local]>->(
+                    {   'command'   => $target_command,
+                        'call_args' => { 'args' => $start_name },
+                        'reply'     => {
+                            'handler' => qw| base.handler.ondemand_startup |,
+                            'params' => { 'v_id' => $v_id }
+                        }
+                    }
+                );
+            }
+            return TRUE;
+        } else {    ## needs FALSE reply to source ## [ LLL ]
+            <[base.logs]>->( ": '%s' zenka not found", $target_user );
+        }
+    }
+
+##[ 'FALSE' REPLY : CLIENT NOT PRESENT ]######################################
+
+    if (!@send_sids) {    ## FALSE client not present ##
+        $output->$* .= <[base.sprint_t]>->( qw| IRW7V6A |, $ctx->{'cmd_id_str'} );
+
+        my $llvl = $target_name eq qw| p7-log | ? 2 : 1;
+        <[base.logt]>->(    ##  offline  ##
+            $llvl, qw| HMNXQRY |, $id, $target_name, $command_str
+        );
+
+        return FALSE;
+    }
+
+##[ CHECK INITIALIZED ]#######################################################
+
+    my @send_sids_left;
+    foreach my $target_sid (@send_sids) {    # check if session initialized yet
+        if (
+            (not defined <system.zenka.mode>
+             or <system.zenka.mode> ne qw| cube |)
+            or $user eq qw| v7 |  # [LLL] improve check if really v7 zenka
+            or ($data{'session'}{$target_sid}{'initialized'} // 0)
+        ) {
+            push(@send_sids_left, $target_sid);
+            next;
+        }
+
+        # if 'zenka'-mode session and not initialized allowing replies only.
+        $output->$* .= <[base.sprint_t]>->( qw| TK67HWQ |, $ctx->{'cmd_id_str'} );
+        <[base.logt]>->(    #  session not initialized  #
+            0, qw| AI4ULPQ |, $id, $command_str, $target_name, $target_sid
+        );
+    }
+
+##[ RETURN \ CHECK NONE LEFT ]################################################
+
+    return FALSE if @send_sids_left == 0;    ##  <--  all done.,  ###
+    @send_sids = @send_sids_left if @send_sids_left != @send_sids;
+
+##[ PROCESS \ FILTER HOOKS ]##################################################
+
+    # command [argument] filter hooks  ..,
+    my $cmd_hook_data = <[base.handler.cmd_filter_hooks]>->({
+        'sid'      => $id,
+        'target'   => $target_name,
+        'command'  => $cmd,
+        'args_ref' => \$ctx->{'args'}->{'args'}
+    });
+
+##[ PROCESS \ GROUP MODE ]####################################################
+
+    # send to all clients with that username [ group mode ]
+    my $targets_denied = 0;
+    foreach my $target_sid (@send_sids) {
+
+        my $target_session = $data{'session'}{$target_sid};
+        if ($target_session->{'user'} eq <base.session.uname.server>
+            or $target_session->{'user'} eq <base.session.uname.client>
+            or not <[base.cfg_bool]>->($target_session->{'authenticated'})) {
+            $targets_denied++;
+            next;    # skip unauthorized connections
+        }
+
+##[ SET UP ROUTE ]############################################################
+
+        ## setting up route ##
+        my $route = <[base.route.add]>->({
+            'source' => { 'sid' => $id, 'cmd_id' => $ctx->{'cmd_id'} },
+            'target' => { 'sid' => $target_sid }
+        });
+        ## numerical ##
+        my $target_cmd_id = $route->{'target'}->{'cmd_id'};
+
+        $route->{'hook_data'} = $cmd_hook_data if defined $cmd_hook_data;
+
+##[ CMD LOGGING ]#############################################################
+
+        if (<system.verbosity.console> >= 2
+            or <system.verbosity.zenka_buffer> >= 2) {
+            <[base.logs]>->(
+                2,            '[%d] %s ..:. %s ..:. %s [M=%s]',
+                $id,          $session->{'user'},
+                $target_name, $cmd, $cmd_mode
+            ) if ($target_name ne qw| p7-log |
+                 or $cmd ne qw| append |
+                 or not <devmod.skip_log_msg>)
+                and ($cmd ne qw| p7-log.append |
+                     or not <devmod.skip_log_msg>)
+                and ($user ne qw| v7 |
+                     or $cmd ne qw| heart |
+                     or not <devmod.skip_v7_heartbeat>);
+        }
+
+##[ LOGGING \ DEVMOD MODE ]####################################################
+
+        if (<system.verbosity.console> >= 3
+            and defined $ctx->{'args'}->{'args'}
+            or <system.verbosity.zenka_buffer> >= 3
+            and defined $ctx->{'args'}->{'args'}) {
+            (my $args_str = $ctx->{'args'}->{'args'}) =~ s|"|\"|g;
+            <[base.logs]>->( 3, "[%d] : args ['%s']", $id, $args_str );
+        }
+
+        my $target_cmdid_str = '';
+        $target_cmdid_str = sprintf qw| (%d) |, $target_cmd_id
+            if $target_cmd_id > 0;
+
+##[ PROCESS \ SINGLE LINE CMD ]###############################################
+
+        if ($cmd_mode == 1) {    ## single line command mode ##
+            my $cmd_output = sprintf qw| %s%s |, $target_cmdid_str, $cmd;
+            $cmd_output .= sprintf ' %s', $ctx->{'args'}->{'args'}
+                if defined $ctx->{'args'}->{'args'};
+
+            $data{'session'}{$target_sid}{'buffer'}{'output'}
+                .= sprintf "%s\n", $cmd_output;
+
+            # [LLL] set up timeout handler
+
+##[ PROCESS \ MULTI-LINE ]####################################################
+
+        } elsif ($cmd_mode == 2) {    ## multi line command mode ##
+            $data{'session'}{$target_sid}{'buffer'}{'output'}
+                .= <[base.format.multiline_command]>->(
+                    $target_cmd_id, $cmd, $ctx->{'args'}
+                );
+        }
+    }
+
+##[ PROCESS \ NOTHING SENT ]##################################################
+
+    ## nothing was sent ##
+    if ($targets_denied == @send_sids) {
+        ##  no perm. .., ##
+        $output->$* .= <[base.sprint_t]>->( qw| 3BR4NRI |, $ctx->{'cmd_id_str'} );
+        <[base.logt]>->( qw| 74PTQ6Q |, $id, $user, $target_name, $cmd );
+
+        return FALSE;
+    }
+
+    ## at least one target was valid ##
+    return TRUE;
+
+##[ PROCESS \ NOT VALID SYNTAX ]##############################################
+
+} else {    ## command syntax not valid ##
+    $output->$* .= <[base.sprint_t]>->( qw| YYOPDKA |, $ctx->{'cmd_id_str'} );
+    <[base.logt]>->( qw| AXLDCOY |, $id, $cmd );    # protocol mismatch #
+    return FALSE;
+}
+
+#,.,,,.,,,,.,...,.,.,,.,,,.,,,.,,,.,,.,.,..,,.,.,..,,...,...,,.,,..,,..,,.,,,
+#ZFYXPXQEQ6LKHDHYF3BT7YSRXM4FYYV7EFXNTMEJW6EVYBLMV6NXCJGBZTL3QWAMVN2UQ75UATG2O
+#\\\|WEXG4PHFCNNKLPXK5KJVOFKR4XBTQATYGQTQIPVWNRDSXUANGRV \ / AMOS7 \ YOURUM ::
+#\[7]FJ3WBXGPV3KV5B6CFKD4U
