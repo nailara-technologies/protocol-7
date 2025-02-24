@@ -1,0 +1,203 @@
+## [:< ##
+# name    = protocol.protocol-7.handler.reply
+# descr   = handle protocol-7 command replies 
+# comment = reply routing, handlers and response processing
+
+my $ctx = shift;   ## connection context ##
+my $cmd = shift;   ## command string ##
+
+##[ INIT \ VARIABLES ]##########################################################
+
+my $id      = $ctx->{'id'};
+my $session = $ctx->{'session'};
+my $output  = $ctx->{'output'};
+
+my $cmd_id = $ctx->{'cmd_id'};
+my $route  = $session->{'route'}{$cmd_id};
+
+## returns FALSE for invalid route, TRUE otherwise ##
+
+##[ CHECK ROUTE ]##############################################################
+
+return FALSE if not defined $route;  # No route found
+
+my $target_sid = $route->{'target'}->{'sid'};
+return FALSE if not defined $target_sid or $target_sid != $id;
+
+##[ PREPARE REPLY ]##########################################################
+
+my $source_cmd_id = $route->{'source'}->{'cmd_id'};
+my $s_cmd_id = '';
+$s_cmd_id = sprintf qw| (%d) |, $source_cmd_id if $source_cmd_id > 0;
+
+##[ PROCESS REPLY TYPES ]###################################################
+
+given ($cmd) {
+
+    ##[ TRUE|FALSE|WAIT|GET|TERM REPLIES ]##################################
+    when(m|^(TRUE|FALSE|WAIT|GET|TERM)$|) {
+
+        if (defined $route->{'reply'}->{'handler'}) {
+            if (defined $code{ $route->{'reply'}->{'handler'} }) {
+
+                ##  calling reply handler  ##
+                $code{ $route->{'reply'}->{'handler'} }->({
+                    'sid'       => $id,
+                    'cmd'       => $cmd,
+                    'call_args' => $ctx->{'call_args'},
+                    'params'    => $route->{'reply'}->{'params'}
+                });
+
+            } else {
+                <[base.logs]>->(
+                    0, "[%d] called undefined reply handler [%s]",
+                    $id, $route->{'reply'}->{'handler'}
+                );
+            }
+
+        } elsif (defined $data{'session'}{ $route->{'source'}->{'sid'} }) {
+            my $source_sid = $route->{'source'}->{'sid'};
+
+            ## calling reply handler if a filter hook was applied., ##
+            $route->{'hook_data'}->{'handler'}->({
+                'mode' => $cmd,
+                'args' => \$ctx->{'call_args'}->{'args'},
+                'data' => $route->{'hook_data'}->{'data'}
+            }) if defined $route->{'hook_data'}
+                 and $cmd =~ $route->{'hook_data'}->{'mode'};
+
+            ##  routing reply packet  ##
+            $ctx->{'call_args'}->{'args'} //= qw| UNDEFINED |;
+            $data{'session'}{$source_sid}{'buffer'}{'output'}
+                .= sprintf "%s%s %s\n", 
+                   $s_cmd_id, $cmd, $ctx->{'call_args'}->{'args'};
+
+        } else {    # should never come here [ SID gone. ]
+            <[base.log]>->(
+                0,
+                sprintf(
+                    '[%s] unknown session, reply dropped., [ %d B ]',
+                    $route->{'source'}->{'sid'},
+                    length("$s_cmd_id$cmd $ctx->{call_args}->{args}\n")
+                )
+            );
+        }
+
+        ### deleting route ###
+        if ($cmd ne qw| WAIT |) {
+            my $src_sid    = $route->{'source'}->{'sid'};
+            my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+
+            delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
+            delete $data{'route'}->{ $session->{'route'}{$cmd_id} }
+                if defined $session->{'route'}{$cmd_id};
+            delete $data{'session'}{$src_sid}{'route'}
+                if not keys $data{'session'}{$src_sid}{'route'}->%*;
+            delete $session->{'route'}{$cmd_id};
+            delete $session->{'route'}
+                if not keys $session->{'route'}->%*;
+
+        } else {
+            # insert WAIT limit here
+            $route->{'counter'}{'wait'}++;
+        }
+    }
+
+    ##[ SIZE REPLIES ]#####################################################
+    when('SIZE') {
+        if ($ctx->{'call_args'}->{'args'} =~ m|^0*(\d+?)$|) {
+
+            my $msg_len = 0 + $LAST_PAREN_MATCH;
+            $ctx->{'call_args'}->{'args'} = $msg_len;  ##  removing 0 prefix  ##
+
+            if ($ctx->{'buffer_length'} >= $msg_len) {
+
+                ## cut out body data ##
+                my $data_reply = substr $ctx->{'input'}->$*, 0, $msg_len, '';
+
+                ## check if reply handler is set ##
+                if (defined $route->{'reply'}->{'handler'}) {
+                    if (defined $code{ $route->{'reply'}->{'handler'} }) {
+
+                        ##  calling reply handler  ##
+                        $code{ $route->{'reply'}->{'handler'} }->({
+                            'sid'       => $id,
+                            'cmd'       => $cmd,
+                            'call_args' => $ctx->{'call_args'},
+                            'params'    => $route->{'reply'}->{'params'},
+                            'data'      => $data_reply
+                        });
+
+                    } else {
+                        <[base.logs]>->(
+                            0, "[%d] undefined reply handler ['%s']",
+                            $id, $route->{'reply'}->{'handler'}
+                        );
+                    }
+                } else {    ## sending SIZE reply to target ##
+                    $data{'session'}{ $route->{'source'}->{'sid'} }
+                        {'buffer'}{'output'} .= <[base.sprint_t]>->(
+                        qw| X3QVAWA |, 
+                        $s_cmd_id,
+                        sprintf(qw| %04d |, $msg_len),
+                        $data_reply
+                    );
+                }
+
+                # delete route
+                my $src_sid    = $route->{'source'}->{'sid'};
+                my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+                delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
+                delete $data{'route'}->{ $session->{'route'}{$cmd_id} }
+                    if defined $session->{'route'}{$cmd_id};
+                delete $data{'session'}{$src_sid}{'route'}
+                    if !keys $data{'session'}{$src_sid}{'route'}->%*;
+                delete $session->{'route'}{$cmd_id};
+                delete $session->{'route'}
+                    if not keys $session->{'route'}->%*;
+
+            } else {    # should never reach this point
+                <[base.logt]>->(    ##  buffer missing data  ##
+                    qw| KGLJ5RY |, $id, $ctx->{'buffer_length'}, $msg_len
+                );
+                $ctx->{'input'}->$* = '';    ##  truncating buffer  ##
+                $data{'session'}->{ $route->{'source'}->{'sid'} }
+                    ->{'buffer'}->{'output'}
+                    .= <[base.sprint_t]>->( qw| ZMXCSIA |, $s_cmd_id );
+            }
+        }
+    }
+
+    ##[ STREAM REPLIES ]####################################################
+    when('STRM') {
+        if ($ctx->{'call_args'}->{'args'} =~ m|^open( (\d+))?$|) {
+            my $open_size = ${^CAPTURE}[1] || 0;
+            warn "[ STRM REPLY ] open size : $open_size";
+
+        } elsif ($ctx->{'call_args'}->{'args'} =~ m|^\d+$|) {
+            my $msg_len = $ctx->{'call_args'}->{'args'};
+            if ($ctx->{'buffer_length'} >= $msg_len) {
+                ## cut out body data ##
+                my $data_reply = substr $ctx->{'input'}->$*, 0, $msg_len, '';
+            }
+        }
+    }
+
+    ##[ UNIMPLEMENTED REPLIES ]#############################################
+    default {
+        <[base.logs]>->(
+            "[%d] called unimplemented answer type ['%s']",
+            $id, $cmd
+        );
+        $output->$* .= sprintf "[%s] answer type not implemented yet.\n", $cmd;
+        return FALSE;
+    }
+}
+
+return TRUE;
+
+#,.,,.,.,,,.,,.,,..,,,,,,...,...,..,,,,,,.,.,..,,...,...,..,,,.,,,,.,..,,,,.,
+#K4TXCCZ5CXCF3WXG2V7CCI2BKNM5IW4AMKBH7YF5YYZWWFR3XGZF5LZRM4WHUTJ5NXLVXPKJVZCYY
+#\\\|4RQ2T3Y4SK3PA45RMPV7WXMJSRM2WUSJLBKMEVDZ5SYVBWDZ4DD \ / AMOS7 \ YOURUM ::
+#\[7]RCMSGVWLNQPZ5NWKPJIQZRTAYCDNCKPF5THOJC2JBMMCQ4BNMADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
