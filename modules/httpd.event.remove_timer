@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = httpd.event.remove_timer
+# descr = remove a timer from the event loop
+
+my $timer_id = shift;
+
+# Simulate removing a timer
+if (exists $data{'event'}{'timer'}{$timer_id}) {
+    delete $data{'event'}{'timer'}{$timer_id};
+    <[base.log]>->(3, "HTTP: Removed timer $timer_id");
+    return 1;
+} else {
+    <[base.log]>->(3, "HTTP: Timer $timer_id not found");
+    return 0;
+}
+
+#,,..,..,,,..,...,,,.,..,,,..,.,,,,.,,.,.,..,,...,...,.,.,.,.,,..,.,.,.,,,.,.,
+#N2F46F7O5GG5R4IAXYJFFMN6YGFHECGM43OOPL7E4EF5W7TJN7KM3IXGCTISNX3NKM3PSZT4SO2ZM
+#\\\|2MQDEOCVEIRT2S4DXOQ3RRCB4MCCL3COZ7X3Z4F6XIXL7IDB34G \ / AMOS7 \ YOURUM ::
+#\[7]4PTEUGH6CW55NLEXUFBZH5BZBSTDT7G5WWUKESWS3ISFXBDQFGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

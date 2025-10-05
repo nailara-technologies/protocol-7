@@ -1,0 +1,76 @@
+## [:< ##
+
+# name = httpd.benchmark.sample_memory_usage
+
+# Sample memory usage for HTTP server benchmarking
+
+my $options = shift // {};
+my $log_results = $options->{'log_results'} // 0;
+
+# Skip if benchmark not enabled
+return if !$data{'httpd'}{'benchmark'}{'enabled'};
+
+# Get current memory usage
+my $memory = {};
+
+# Process memory
+my $pid = $$;
+$memory->{'process'} = {};
+
+# Read /proc/[pid]/status for memory information
+if (open(my $fh, '<', "/proc/$pid/status")) {
+    while (my $line = <$fh>) {
+        if ($line =~ /^VmRSS:\s+(\d+) kB/) {
+            $memory->{'process'}{'rss'} = $1 * 1024; # convert KB to bytes
+        }
+        elsif ($line =~ /^VmSize:\s+(\d+) kB/) {
+            $memory->{'process'}{'size'} = $1 * 1024;
+        }
+        elsif ($line =~ /^VmSwap:\s+(\d+) kB/) {
+            $memory->{'process'}{'swap'} = $1 * 1024;
+        }
+    }
+    close($fh);
+}
+
+# Get system memory information
+$memory->{'system'} = <[httpd.system.memory_stats]>();
+
+# Calculate memory per connection
+my $connection_count = scalar(keys %{$data{'httpd'}{'active_requests'} // {}});
+$memory->{'per_connection'} = $connection_count > 0 ?
+    $memory->{'process'}{'rss'} / $connection_count : 0;
+
+# Store historical memory data
+push @{$data{'httpd'}{'benchmark'}{'memory_history'}}, {
+    'timestamp' => <[base.time]>->(3),
+    'rss' => $memory->{'process'}{'rss'},
+    'connection_count' => $connection_count,
+    'per_connection' => $memory->{'per_connection'}
+};
+
+# Keep history size manageable (last 1000 entries)
+if (scalar @{$data{'httpd'}{'benchmark'}{'memory_history'}} > 1000) {
+    splice(@{$data{'httpd'}{'benchmark'}{'memory_history'}}, 0, 100);
+}
+
+# Log memory usage if requested
+if ($log_results) {
+    <[base.log]>->(
+        2, "HTTP server memory usage: " .
+           <[httpd.base.size.normalize]>->($memory->{'process'}{'rss'}) . " RSS, " .
+           "$connection_count connections, " .
+           <[httpd.base.size.normalize]>->($memory->{'per_connection'}) . " per connection"
+    );
+}
+
+# Update benchmark data
+$data{'httpd'}{'benchmark'}{'memory'} = $memory;
+
+return $memory->{'process'}{'rss'};
+
+#,,..,..,,...,...,,,.,,..,..,,,,,,.,,,,.,,,.,,..,,...,...,.,,,,,,,,..,,..,.,.,
+#BLGZHU2VM6Q5WJL5UCWDT2IEQ7WWTK37CZ6YIS5DWLUJF4PLT5RKR64T3CPWG5TESSERKOA5IN4ME
+#\\\|4LQQKMRWEK2MOHD2KW3GIBXHEK4GHBA4IPBZFAFTQQAY4T4S6S3 \ / AMOS7 \ YOURUM ::
+#\[7]XGFXDSARSOPRTPSPDKEGUTNXBCPFWP74W5TDC5W76XOS7XLYTUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

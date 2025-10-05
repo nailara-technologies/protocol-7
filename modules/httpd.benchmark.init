@@ -1,0 +1,74 @@
+## [:< ##
+
+# name = httpd.benchmark.init
+# descr = initialize benchmark tracking for http server
+
+my $config = shift // {};
+
+# Default configuration
+$config->{'enabled'} = $config->{'enabled'} // 1;
+$config->{'debug'} = $config->{'debug'} // 0;
+$config->{'interval'} = $config->{'interval'} // 30;
+$config->{'max_history'} = $config->{'max_history'} // 1000;
+
+# Initialize benchmark data structure
+$data{'httpd'}{'benchmark'} = {
+    'enabled' => $config->{'enabled'},
+    'debug' => $config->{'debug'},
+    'start_time' => <[base.time]>->(3),
+    'request_count' => 0,
+    'bytes_sent' => 0,
+    'metrics' => {},
+    'history' => [],
+    'response_times' => {
+        'total' => 0,
+        'count' => 0,
+        'avg' => 0,
+        'min' => undef,
+        'max' => undef,
+        'percentiles' => {
+            '50' => 0,
+            '90' => 0,
+            '95' => 0,
+            '99' => 0
+        }
+    },
+    'status_codes' => {}
+};
+
+# Start memory usage sampling
+$data{'httpd'}{'benchmark'}{'metrics'}{'memory_usage'} = [];
+
+# Schedule initial metrics collection
+if ($config->{'enabled'}) {
+    <[event.add_timer]>->(
+        {
+            'handler' => 'httpd.benchmark.collect_metrics',
+            'data' => {},
+            'interval' => $config->{'interval'},
+            'repeat' => 1
+        }
+    );
+
+    # Start memory usage sampling at regular intervals
+    <[event.add_timer]>->(
+        {
+            'handler' => 'httpd.benchmark.sample_memory_usage',
+            'data' => {},
+            'interval' => 5,
+            'repeat' => 1
+        }
+    );
+
+    <[base.log]>->(
+        2, "HTTP server benchmark tracking initialized (interval=$config->{'interval'}s)"
+    );
+}
+
+return 1;
+
+#,,,,,...,,..,...,,..,,,.,,.,,.,,,,,.,,,,,,..,...,...,...,..,,...,,,,,.,.,,,,,
+#IERYBXBXBZCDSJTCAOPPIIU3W4YNJTHQIHYDXZAXVD7WGG54QWSAC3XKONPWLAT7FFARCLJ6JS4K6
+#\\\|PYHATN3DA2WOZOQ2DGYQZEK2V7MC4T4GWZ2AMSUG57FWDIWQMYE \ / AMOS7 \ YOURUM ::
+#\[7]ALQJNJAB26JKU4YU4VAG42BFJ33JQEBJJTWM5445LKOERQP6JACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

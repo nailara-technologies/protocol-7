@@ -1,0 +1,19 @@
+## [:< ##
+
+# name = httpd.base.file.nonblocking
+# descr = set file handle to non-blocking mode
+
+my $fh = shift;
+
+return 0 if !defined $fh;
+
+my $flags = fcntl($fh, Fcntl::F_GETFL(), 0) or return 0;
+fcntl($fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK()) or return 0;
+
+return 1;
+
+#,,..,,,,,.,.,,,,,,,,,...,,,.,,,.,.,,,,,,,,,,,...,...,...,...,,,,,.,.,,..,..,,
+#PXZBDDOJTQZSU4LSRNXFVQA4GL2LERMRYEOSRBP7EBWGQZ6K3VFZKLPG4YOOSRPADXT3X4DRJAHTW
+#\\\|HCT3FWGVOVJWFDMWKHS6D7BKI5KRGPJGTGZ5TZ5RFEWBBNUHEM6 \ / AMOS7 \ YOURUM ::
+#\[7]UKXPIGNZ2L373M7V5KI5RMVPMIUM7NFUKX6VKI7KJSCVFRG7HODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

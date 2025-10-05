@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = httpd.diagnostic.track_operation
+
+# Track an operation for diagnostic purposes
+
+my $operation_type = shift;
+my $operation_data = shift // {};
+
+# Skip if diagnostic not enabled
+return 0 if !$data{'httpd'}{'diagnostic'}{'enabled'};
+
+# Generate a unique operation ID
+my $operation_id = <[base.gen_id]>->('httpd.diagnostic.operation');
+
+# Initialize operation tracking
+$data{'httpd'}{'diagnostic'}{'operations'}{$operation_id} = {
+    'id' => $operation_id,
+    'type' => $operation_type,
+    'start_time' => <[base.time]>->(3),
+    'data' => $operation_data,
+    'metrics' => {}
+};
+
+# Log operation start if debug enabled
+<[base.log]>->(
+    3, "Operation started: $operation_type [$operation_id]"
+) if $data{'httpd'}{'diagnostic'}{'debug'};
+
+return $operation_id;
+
+#,,,.,,.,,,.,,...,,,.,..,,...,.,,,,,,,...,...,..,,...,..,,,..,..,,,..,,,.,,.,,
+#XBJNVPCVYG7NK2FC7HZ37TYSLU4KRBBTJM7ABRQ5WEKV6EPVS47ZBL3WQSJH5IH3ZJHUAXBTCJHUG
+#\\\|YN35TP42URBG6UHTLQRKYS2VTCDSEMVEMTEIH7NXYEIMSOBIWCG \ / AMOS7 \ YOURUM ::
+#\[7]X3QMFCHBE4O6XXUEIBFQO2BIARWH27C2GQREW6JMUOLQLAPNDKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
