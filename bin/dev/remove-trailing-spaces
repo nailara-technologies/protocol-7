@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Find;
+use File::Spec;
+
+print ".\n:\n";
+
+# Check if arguments are provided
+die ":: usage :: $0 [file1 file2 ...] or [directory]\n" unless @ARGV;
+
+# Function to process a single file
+sub process_file {
+    my ($filename) = @_;
+
+    # Check if file is readable and writable
+    return unless -f $filename && -r $filename && -w $filename;
+
+    # Read the file
+    open(my $in, '<', $filename) or die ":: cannot read $filename: $!\n";
+    my @lines = <$in>;
+    close $in;
+
+    # Remove trailing whitespaces
+    chomp @lines;
+    @lines = map { $_ =~ s/\s+$//r } @lines;
+
+    # Write back to the file
+    open(my $out, '>', $filename) or die " :: cannot write $filename: $!\n";
+    print $out join("\n", @lines), "\n";
+    close $out;
+
+    print ": processed : $filename\n";
+}
+
+# If first argument is a directory or '.'
+if (@ARGV == 1 && (-d $ARGV[0] || $ARGV[0] eq '.')) {
+    my $dir = $ARGV[0];
+
+    # Use File::Find to recursively process files
+    find(
+        sub {
+            # Skip directories
+            return if -d $File::Find::name;
+
+            # Process each file
+            process_file($File::Find::name);
+        },
+        $dir
+    );
+}
+# If arguments are specific files
+else {
+    foreach my $file (@ARGV) {
+        # Validate file existence
+        die ":: file $file does not exist\n" unless -e $file;
+
+        process_file($file);
+    }
+}
+
+print ":\n:. trailing spaces removed. =)\n";
