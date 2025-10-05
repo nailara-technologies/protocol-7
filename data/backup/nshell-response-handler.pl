@@ -50,18 +50,18 @@ sub shell_loop {
             $response = <$sock>;
             if (defined $response) {
                 chomp($response);
-                
+
                 if ($response =~ /^SIZE (\d+)$/) {
                     $size_bytes_remaining = $1;
                     next;
                 }
-                
+
                 if ($response =~ /^(TRUE|FALSE) /) {
                     print "$response\n";
                     $waiting_for_response = 0;
                 }
             }
-            
+
             next if $waiting_for_response;
         }
 
