@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = httpd.benchmark.collect_metrics
+# descr = collect server performance metrics
+
+my $params = shift // {};
+
+# Skip if benchmark tracking is disabled
+return 0 if !$data{'httpd'}{'benchmark'}{'enabled'};
+
+# Get current time
+my $now = <[base.time]>->(3);
+
+# Collect current metrics
+my $metrics = {
+    'timestamp' => $now,
+    'elapsed_time' => $now - $data{'httpd'}{'benchmark'}{'start_time'},
+    'request_count' => $data{'httpd'}{'benchmark'}{'request_count'} // 0,
+    'bytes_sent' => $data{'httpd'}{'benchmark'}{'bytes_sent'} // 0,
+    'active_connections' => scalar(keys %{$data{'httpd'}{'clients'} // {}}),
+    'active_requests' => scalar(keys %{$data{'httpd'}{'active_requests'} // {}}),
+    'active_transfers' => scalar(keys %{$data{'httpd'}{'transfers'} // {}})
+};
+
+# Add system metrics
+$metrics->{'system'} = {
+    'load' => <[httpd.system.get_load]>(),
+    'cpu_usage' => <[httpd.system.cpu_usage]>(),
+    'memory_free' => <[httpd.system.memory_free]>(),
+    'network_io' => <[httpd.system.network_io]>('eth0')
+};
+
+# Calculate requests per second
+my $elapsed = $metrics->{'elapsed_time'};
+$metrics->{'requests_per_second'} = $elapsed > 0 ?
+    $metrics->{'request_count'} / $elapsed : 0;
+
+# Calculate bytes per second
+$metrics->{'bytes_per_second'} = $elapsed > 0 ?
+    $metrics->{'bytes_sent'} / $elapsed : 0;
+
+# Store metrics in history (keep last 1000)
+push @{$data{'httpd'}{'benchmark'}{'history'}}, $metrics;
+if (@{$data{'httpd'}{'benchmark'}{'history'}} > 1000) {
+    shift @{$data{'httpd'}{'benchmark'}{'history'}};
+}
+
+# Log metrics if debug mode enabled
+if ($data{'httpd'}{'benchmark'}{'debug'}) {
+    <[base.log]>->(
+        2, sprintf(
+            "HTTP benchmark: %d requests (%.2f/s), %s sent, %d connections",
+            $metrics->{'request_count'},
+            $metrics->{'requests_per_second'},
+            <[httpd.base.size.normalize]>->($metrics->{'bytes_sent'}),
+            $metrics->{'active_connections'}
+        )
+    );
+}
+
+return 1;
+
+#,,..,,,,,..,,,,,,.,,,...,.,.,.,.,,..,,,,,.,,,...,...,..,,..,,,.,,,.,,,,,,,..,
+#U32PQFREK7GAGGNDNDRINW4AUQ7AHUZETYOQOW4AUYY62N7TWRAQMCMH4FQO7U4U6GNNFCWSJEPXS
+#\\\|ZASDHZUSRUIXHBXAGZNVFG6K4S4755OQDL73FCKC2LTRMSHZXAU \ / AMOS7 \ YOURUM ::
+#\[7]EWWHLK3ZHBQ2AZJVEDPCPEPJVXH45KHJH363JY37BXZAXKEKMIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

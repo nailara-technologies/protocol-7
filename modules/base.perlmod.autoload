@@ -29,6 +29,14 @@ if ( not @export and <[base.perlmod.loaded]>->($module_name) ) {
 
 <[base.register_pm_deps]>->($module_name);
 
+## Suppress known harmless prototype mismatch warnings for List::MoreUtils functions
+## that are already loaded in bin/Protocol-7 with ':all' exports
+local $SIG{__WARN__} = sub {
+    my $warning = shift;
+    return if $warning =~ /^Prototype mismatch.*\b(?:qsort|bsearch)\b/;
+    CORE::warn($warning);
+};
+
 eval { Module::Load::autoload( $module_name, @export ) };
 
 if ( not length $EVAL_ERROR ) {    # success #
@@ -71,6 +79,14 @@ if ( not <base.perlmod.auto_install> ) {
 ## auto-install ##
 <[base.perlmod.install]>->($module_name);
 
+## Suppress known harmless prototype mismatch warnings for List::MoreUtils functions
+## that are already loaded in bin/Protocol-7 with ':all' exports
+local $SIG{__WARN__} = sub {
+    my $warning = shift;
+    return if $warning =~ /^Prototype mismatch.*\b(?:qsort|bsearch)\b/;
+    CORE::warn($warning);
+};
+
 eval { Module::Load::autoload( $module_name, @export ) }; ##  trying again  ##
 
 if ( length $EVAL_ERROR ) {
@@ -85,8 +101,8 @@ if ( length $EVAL_ERROR ) {
 }
 
 return TRUE;         ## true ##  [ module loaded ]
-#,,.,,..,,...,...,,,.,..,,,,.,.,,,,.,,.,.,,,.,..,,...,...,..,,.,.,..,,,,,,,..,
-#XNLFINGCXCM3NTS7H54A6T7JVXIRBGLQBH3Y42QY6RF5B65P7DPIUEEHHVDHS3JBXRG4NJCKW5Z5K
-#\\\|QJ26XTI26YZXXDNWIRYNWNLM6XYOKBNQYGRMTAZQSB5FSOKUCX2 \ / AMOS7 \ YOURUM ::
-#\[7]7LOARB6RCB2N377OSGLCGJVHKNBC56V2V7HM7KGIW5AIALLZX2DA 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,..,,.,.,..,,...,,,,,..,,,,,,..,,...,...,,,,,.,.,.,.,,.,,..,,
+#2PG5FXUFCSCYJNDLGCANSVIK2LSWNOVCHL2N7TKEJWHB5F6WO3ALWTSSTDZDJRQQGIC4FSPNOAV54
+#\\\|E2EF6B7M7WUTJ56HKSASCOOQZXOMDQUVPDFKZFPBJR363RAWPAY \ / AMOS7 \ YOURUM ::
+#\[7]SW666RWY77S6VJ2IK5G3GBZAFXTBGZUQET55IT6262NUV65RCYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

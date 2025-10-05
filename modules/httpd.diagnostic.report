@@ -1,0 +1,232 @@
+## [:< ##
+
+# name = httpd.diagnostic.report
+# descr = generate diagnostic report for http server performance
+
+my $params = shift // {};
+
+# Skip if diagnostic tracking is disabled
+return {} if !$data{'httpd'}{'diagnostic'}{'enabled'};
+
+# Calculate metrics
+my $metrics = {
+    'enabled' => $data{'httpd'}{'diagnostic'}{'enabled'},
+    'debug' => $data{'httpd'}{'diagnostic'}{'debug'},
+    'uptime' => time() - $data{'httpd'}{'start_time'},
+    'active_operations' => scalar(keys %{$data{'httpd'}{'diagnostic'}{'operations'}}),
+    'completed_operations' => scalar(keys %{$data{'httpd'}{'diagnostic'}{'completed_operations'}}),
+    'blocking_operations' => scalar(keys %{$data{'httpd'}{'diagnostic'}{'blocking_operations'} // {}})
+};
+
+# Get operation counts by type
+$metrics->{'operations_by_type'} = {};
+foreach my $op_id (keys %{$data{'httpd'}{'diagnostic'}{'completed_operations'}}) {
+    my $op = $data{'httpd'}{'diagnostic'}{'completed_operations'}{$op_id};
+    $metrics->{'operations_by_type'}{$op->{'type'}}++;
+}
+
+# Get operation durations
+$metrics->{'operation_durations'} = {};
+foreach my $type (keys %{$metrics->{'operations_by_type'}}) {
+    my @durations = ();
+
+    foreach my $op_id (keys %{$data{'httpd'}{'diagnostic'}{'completed_operations'}}) {
+        my $op = $data{'httpd'}{'diagnostic'}{'completed_operations'}{$op_id};
+        if ($op->{'type'} eq $type) {
+            push @durations, $op->{'elapsed'};
+        }
+    }
+
+    if (@durations) {
+        my $count = scalar @durations;
+        my $total = 0;
+        my $min = $durations[0];
+        my $max = $durations[0];
+
+        foreach my $d (@durations) {
+            $total += $d;
+            $min = $d if $d < $min;
+            $max = $d if $d > $max;
+        }
+
+        $metrics->{'operation_durations'}{$type} = {
+            'count' => $count,
+            'total' => $total,
+            'avg' => $total / $count,
+            'min' => $min,
+            'max' => $max
+        };
+    }
+}
+
+# Get threshold violations
+$metrics->{'threshold_violations'} = {};
+foreach my $type (keys %{$data{'httpd'}{'diagnostic'}{'thresholds'}}) {
+    $metrics->{'threshold_violations'}{$type} = 0;
+}
+
+foreach my $op_id (keys %{$data{'httpd'}{'diagnostic'}{'completed_operations'}}) {
+    my $op = $data{'httpd'}{'diagnostic'}{'completed_operations'}{$op_id};
+    my $type = $op->{'type'};
+    my $threshold = $data{'httpd'}{'diagnostic'}{'thresholds'}{$type} // 1.0;
+
+    if ($op->{'elapsed'} > $threshold) {
+        $metrics->{'threshold_violations'}{$type}++;
+    }
+}
+
+# Format data for output
+my $uptime_str = sprintf("%d days, %d hours, %d minutes, %d seconds",
+                        int($metrics->{'uptime'} / 86400),
+                        int(($metrics->{'uptime'} % 86400) / 3600),
+                        int(($metrics->{'uptime'} % 3600) / 60),
+                        $metrics->{'uptime'} % 60);
+
+# Format the report (HTML or plain text)
+if ($params->{'format'} && $params->{'format'} eq 'html') {
+    my $html = <<HTML;
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTTP Server Diagnostic Report</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        h1 { border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .metric-group { margin-bottom: 20px; }
+        .metric-table { border-collapse: collapse; width: 100%; }
+        .metric-table th, .metric-table td {
+            border: 1px solid #ddd; padding: 8px; text-align: left;
+        }
+        .metric-table th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>HTTP Server Diagnostic Report</h1>
+
+    <div class="metric-group">
+        <h2>Overview</h2>
+        <table class="metric-table">
+            <tr><th>Uptime</th><td>$uptime_str</td></tr>
+            <tr><th>Diagnostic Tracking</th><td>$metrics->{'enabled'} ? 'Enabled' : 'Disabled'</td></tr>
+            <tr><th>Debug Mode</th><td>$metrics->{'debug'} ? 'Enabled' : 'Disabled'</td></tr>
+            <tr><th>Active Operations</th><td>$metrics->{'active_operations'}</td></tr>
+            <tr><th>Completed Operations</th><td>$metrics->{'completed_operations'}</td></tr>
+            <tr><th>Blocking Operations</th><td>$metrics->{'blocking_operations'}</td></tr>
+        </table>
+    </div>
+HTML
+
+    # Add operations by type
+    if (%{$metrics->{'operations_by_type'}}) {
+        $html .= <<HTML;
+    <div class="metric-group">
+        <h2>Operations by Type</h2>
+        <table class="metric-table">
+            <tr><th>Type</th><th>Count</th></tr>
+HTML
+
+        foreach my $type (sort keys %{$metrics->{'operations_by_type'}}) {
+            my $count = $metrics->{'operations_by_type'}{$type};
+            $html .= "<tr><td>$type</td><td>$count</td></tr>\n";
+        }
+
+        $html .= "</table>\n    </div>\n";
+    }
+
+    # Add operation durations
+    if (%{$metrics->{'operation_durations'}}) {
+        $html .= <<HTML;
+    <div class="metric-group">
+        <h2>Operation Durations (seconds)</h2>
+        <table class="metric-table">
+            <tr><th>Type</th><th>Count</th><th>Average</th><th>Min</th><th>Max</th><th>Total</th></tr>
+HTML
+
+        foreach my $type (sort keys %{$metrics->{'operation_durations'}}) {
+            my $d = $metrics->{'operation_durations'}{$type};
+            $html .= sprintf("<tr><td>%s</td><td>%d</td><td>%.3f</td><td>%.3f</td><td>%.3f</td><td>%.3f</td></tr>\n",
+                        $type, $d->{'count'}, $d->{'avg'}, $d->{'min'}, $d->{'max'}, $d->{'total'});
+        }
+
+        $html .= "</table>\n    </div>\n";
+    }
+
+    # Add threshold violations
+    if (%{$metrics->{'threshold_violations'}}) {
+        $html .= <<HTML;
+    <div class="metric-group">
+        <h2>Threshold Violations</h2>
+        <table class="metric-table">
+            <tr><th>Type</th><th>Threshold</th><th>Violations</th></tr>
+HTML
+
+        foreach my $type (sort keys %{$metrics->{'threshold_violations'}}) {
+            my $violations = $metrics->{'threshold_violations'}{$type};
+            my $threshold = $data{'httpd'}{'diagnostic'}{'thresholds'}{$type};
+            $html .= sprintf("<tr><td>%s</td><td>%.3fs</td><td>%d</td></tr>\n",
+                        $type, $threshold, $violations);
+        }
+
+        $html .= "</table>\n    </div>\n";
+    }
+
+    # Close HTML
+    $html .= <<HTML;
+</body>
+</html>
+HTML
+
+    return {'html' => $html, 'raw' => $metrics};
+} else {
+    # Format as plain text
+    my $text = "HTTP Server Diagnostic Report\n";
+    $text .= "==========================\n\n";
+    $text .= "Uptime: $uptime_str\n";
+    $text .= "Diagnostic Tracking: " . ($metrics->{'enabled'} ? "Enabled" : "Disabled") . "\n";
+    $text .= "Debug Mode: " . ($metrics->{'debug'} ? "Enabled" : "Disabled") . "\n";
+    $text .= "Active Operations: $metrics->{'active_operations'}\n";
+    $text .= "Completed Operations: $metrics->{'completed_operations'}\n";
+    $text .= "Blocking Operations: $metrics->{'blocking_operations'}\n\n";
+
+    # Add operations by type
+    if (%{$metrics->{'operations_by_type'}}) {
+        $text .= "Operations by Type\n-----------------\n";
+        foreach my $type (sort keys %{$metrics->{'operations_by_type'}}) {
+            my $count = $metrics->{'operations_by_type'}{$type};
+            $text .= sprintf("%-20s %d\n", $type, $count);
+        }
+        $text .= "\n";
+    }
+
+    # Add operation durations
+    if (%{$metrics->{'operation_durations'}}) {
+        $text .= "Operation Durations (seconds)\n---------------------------\n";
+        $text .= sprintf("%-20s %-8s %-8s %-8s %-8s %-8s\n", "Type", "Count", "Average", "Min", "Max", "Total");
+        foreach my $type (sort keys %{$metrics->{'operation_durations'}}) {
+            my $d = $metrics->{'operation_durations'}{$type};
+            $text .= sprintf("%-20s %-8d %-8.3f %-8.3f %-8.3f %-8.3f\n",
+                        $type, $d->{'count'}, $d->{'avg'}, $d->{'min'}, $d->{'max'}, $d->{'total'});
+        }
+        $text .= "\n";
+    }
+
+    # Add threshold violations
+    if (%{$metrics->{'threshold_violations'}}) {
+        $text .= "Threshold Violations\n-------------------\n";
+        $text .= sprintf("%-20s %-10s %-10s\n", "Type", "Threshold", "Violations");
+        foreach my $type (sort keys %{$metrics->{'threshold_violations'}}) {
+            my $violations = $metrics->{'threshold_violations'}{$type};
+            my $threshold = $data{'httpd'}{'diagnostic'}{'thresholds'}{$type};
+            $text .= sprintf("%-20s %-10.3fs %-10d\n", $type, $threshold, $violations);
+        }
+        $text .= "\n";
+    }
+
+    return {'text' => $text, 'raw' => $metrics};
+}
+#,,..,,,,,,,.,.,.,,..,,.,,,,.,...,..,,,,,,.,.,...,...,...,..,,..,,,..,.,,,,..,
+#YDQPUJZQI64Y3VHOTWAXOYUHGQQWW6S4RVDAOFOXGJR7HWBB24OHH36O2SQUA4JEGKJDFHLTCDYXO
+#\\\|7NC63NDJDUZX7YNT722HQB3K6ZFYC74CJDEJBE7SA6C6WLAVOBD \ / AMOS7 \ YOURUM ::
+#\[7]MBTHZUZ3ZDKHAL356KZTXF4R65KODYCQQ44EXSNM465HSFGNCWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

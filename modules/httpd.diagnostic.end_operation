@@ -1,0 +1,74 @@
+## [:< ##
+
+# name = httpd.diagnostic.end_operation
+# descr = end tracking of a diagnostic operation and record metrics
+
+my $op_id = shift;
+my $status = shift;
+my $details = shift // {};
+
+# Skip if diagnostic tracking is disabled
+return 0 if !$data{'httpd'}{'diagnostic'}{'enabled'};
+
+# Skip if operation doesn't exist
+if (!exists $data{'httpd'}{'diagnostic'}{'operations'}{$op_id}) {
+    <[base.log]>->(
+        2, "HTTP diagnostic: Attempt to end non-existent operation ID: $op_id"
+    );
+    return 0;
+}
+
+# Get operation data
+my $operation = $data{'httpd'}{'diagnostic'}{'operations'}{$op_id};
+
+# Calculate elapsed time
+my $end_time = <[base.time]>->(4);
+my $elapsed = $end_time - $operation->{'start_time'};
+
+# Record operation completion
+$operation->{'end_time'} = $end_time;
+$operation->{'elapsed'} = $elapsed;
+$operation->{'status'} = $status;
+$operation->{'details'} = {%{$operation->{'details'}}, %$details};
+
+# Check if this operation took longer than the threshold
+my $type = $operation->{'type'};
+my $threshold = $data{'httpd'}{'diagnostic'}{'thresholds'}{$type} // 1.0;
+
+if ($elapsed > $threshold) {
+    <[base.log]>->(
+        1, "HTTP diagnostic: $type operation took " .
+           sprintf("%.3f", $elapsed) . "s (above threshold of ${threshold}s)"
+    );
+
+    # If debug is enabled, log more details
+    if ($data{'httpd'}{'diagnostic'}{'debug'}) {
+        <[base.log]>->(
+            2, "HTTP diagnostic details: " . <[httpd.json.encode]>->($operation)
+        );
+    }
+}
+
+# Move operation from active to completed
+$data{'httpd'}{'diagnostic'}{'completed_operations'}{$op_id} = $operation;
+delete $data{'httpd'}{'diagnostic'}{'operations'}{$op_id};
+
+# Clean up old completed operations (keep last 1000)
+my @op_ids = keys %{$data{'httpd'}{'diagnostic'}{'completed_operations'}};
+if (scalar @op_ids > 1000) {
+    my @sorted = sort {
+        $data{'httpd'}{'diagnostic'}{'completed_operations'}{$a}{'start_time'} <=>
+        $data{'httpd'}{'diagnostic'}{'completed_operations'}{$b}{'start_time'}
+    } @op_ids;
+
+    foreach my $old_id (@sorted[0..100]) {
+        delete $data{'httpd'}{'diagnostic'}{'completed_operations'}{$old_id};
+    }
+}
+
+return 1;
+#,,,.,..,,...,,,.,...,,.,,..,,,,.,,,.,...,,..,..,,...,..,,...,.,,,..,,,,.,,.,,
+#KDPZRDIMK3AAH5EYX3EIRCZSGI3RBIUFYZZWHSORYVENCZ23UMSYDZSO6YPOFOKUIWH3B422QYQNW
+#\\\|YYKLHY3MVM5K656LRUK7JORSHC2IBE4ZBBQ7YBMJGTNSKDCZY62 \ / AMOS7 \ YOURUM ::
+#\[7]G6KM2RXJZYBUEMEC5RV3NWUOMNJE2NROXNQD253XDYHZA7WISQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

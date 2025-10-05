@@ -1,0 +1,46 @@
+#!/bin/bash
+# Switch between broken and fixed httpd.handler.download_transfer for testing
+
+MODULE="modules/httpd.handler.download_transfer"
+
+case "$1" in
+    broken)
+        echo "Switching to BROKEN version (->stop, no cleanup)..."
+        cp "${MODULE}.broken" "${MODULE}"
+        echo "✗ Using broken version - will spin on client disconnect"
+        ;;
+    fixed)
+        echo "Switching to FIXED version (->cancel, proper cleanup)..."
+        cp "${MODULE}.fixed" "${MODULE}"
+        echo "✓ Using fixed version - clean abort on errors"
+        ;;
+    status)
+        if diff -q "${MODULE}" "${MODULE}.fixed" > /dev/null 2>&1; then
+            echo "✓ Currently using FIXED version"
+        elif diff -q "${MODULE}" "${MODULE}.broken" > /dev/null 2>&1; then
+            echo "✗ Currently using BROKEN version"
+        else
+            echo "⚠ Unknown version (manually modified?)"
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {broken|fixed|status}"
+        echo ""
+        echo "Commands:"
+        echo "  broken  - Switch to broken version (reproduces bug)"
+        echo "  fixed   - Switch to fixed version (bug fixed)"
+        echo "  status  - Show which version is active"
+        echo ""
+        echo "After switching, restart httpd: p7 v7.restart httpd"
+        exit 1
+        ;;
+esac
+
+echo ""
+echo "Restart httpd to apply: p7 v7.restart httpd"
+
+#,,,,,.,.,,,.,.,,,,.,,,,,,,,,,,,.,,,,,...,,.,,..,,...,...,,.,,,.,,,..,,,.,...,
+#3MESHCRTU7VWUPU7EARFGLDKQNHEOXCX6G7VGXDJNDPNUEISCDHXZ47555B2CAQK2SFNJ4VCDBJ3C
+#\\\|77YERKL2GSYU6PWXQMSRGUSL5CFJ7KVVWUCK5RF6JLXBNMNTOQ4 \ / AMOS7 \ YOURUM ::
+#\[7]H652X65TZSBGQH3C54GD2YPCFW4LEOAYQVIVO2RP5RTMEMZ5OYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

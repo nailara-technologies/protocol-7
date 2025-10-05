@@ -1,0 +1,125 @@
+#!/bin/bash
+# Test script to trigger the download abort bug
+# This creates a large file and aborts the download mid-transfer
+
+set -e
+
+HTTPD_DIR="/var/httpd/default"
+TEST_FILE="large-test-file.bin"
+FILE_PATH="${HTTPD_DIR}/${TEST_FILE}"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "======================================"
+echo "HTTP Download Abort Bug Test"
+echo "======================================"
+echo ""
+
+# Create large test file (>16KB to trigger download system)
+echo -e "${YELLOW}1. Creating 1MB test file...${NC}"
+if [ -w "${HTTPD_DIR}" ]; then
+    dd if=/dev/zero of="${FILE_PATH}" bs=1024 count=1024 2>/dev/null
+    echo -e "${GREEN}   ✓ Created ${FILE_PATH}${NC}"
+else
+    echo -e "${RED}   ✗ Cannot write to ${HTTPD_DIR}${NC}"
+    echo "   Run as user with write access or use sudo"
+    exit 1
+fi
+
+# Check current httpd version
+echo ""
+echo -e "${YELLOW}2. Checking httpd version...${NC}"
+cd /data/projects/protocol-7
+VERSION=$(./bin/dev/switch-httpd-version status | grep -o "BROKEN\|FIXED" || echo "UNKNOWN")
+if [ "$VERSION" == "FIXED" ]; then
+    echo -e "${GREEN}   ✓ Using FIXED version - clean abort expected${NC}"
+elif [ "$VERSION" == "BROKEN" ]; then
+    echo -e "${RED}   ✗ Using BROKEN version - spin/crash expected${NC}"
+fi
+
+# Start monitoring httpd logs in background
+echo ""
+echo -e "${YELLOW}3. Starting log monitor...${NC}"
+LOG_FILE="/tmp/httpd-abort-test-$$.log"
+p7 httpd.show-buffer zenka > /dev/null 2>&1 || true
+(
+    sleep 1
+    while true; do
+        p7 httpd.show-buffer zenka 2>/dev/null | tail -20 >> "${LOG_FILE}"
+        sleep 0.5
+    done
+) &
+LOG_PID=$!
+echo "   Log monitor PID: ${LOG_PID}"
+
+# Start download and abort it
+echo ""
+echo -e "${YELLOW}4. Starting download and aborting mid-transfer...${NC}"
+echo "   URL: http://localhost/${TEST_FILE}"
+(
+    timeout 0.5 curl -s "http://localhost/${TEST_FILE}" > /dev/null 2>&1
+) &
+CURL_PID=$!
+
+sleep 0.3
+echo "   Killing curl mid-transfer..."
+kill -9 ${CURL_PID} 2>/dev/null || true
+wait ${CURL_PID} 2>/dev/null || true
+
+# Wait and observe behavior
+echo ""
+echo -e "${YELLOW}5. Observing httpd behavior for 5 seconds...${NC}"
+sleep 5
+
+# Stop log monitor
+kill ${LOG_PID} 2>/dev/null || true
+
+# Analyze results
+echo ""
+echo -e "${YELLOW}6. Analysis:${NC}"
+
+ABORT_COUNT=$(grep -c "aborting download transfer" "${LOG_FILE}" 2>/dev/null || echo "0")
+ERROR_COUNT=$(grep -c "content filehandle\|read size was zero\|filehandle already closed" "${LOG_FILE}" 2>/dev/null || echo "0")
+WARN_COUNT=$(grep -c "warn\|error" "${LOG_FILE}" 2>/dev/null | tail -1)
+
+echo "   Abort messages: ${ABORT_COUNT}"
+echo "   Error messages: ${ERROR_COUNT}"
+echo "   Total warnings: ${WARN_COUNT}"
+
+if [ "$VERSION" == "BROKEN" ]; then
+    if [ ${ERROR_COUNT} -gt 10 ]; then
+        echo -e "${RED}   ✗ BUG CONFIRMED: Spinning on closed handle (${ERROR_COUNT} errors)${NC}"
+        echo "   Broken version shows repeated errors = watcher keeps firing"
+    else
+        echo -e "${YELLOW}   ? May need longer transfer or check logs manually${NC}"
+    fi
+elif [ "$VERSION" == "FIXED" ]; then
+    if [ ${ABORT_COUNT} -ge 1 ] && [ ${ERROR_COUNT} -lt 5 ]; then
+        echo -e "${GREEN}   ✓ BUG FIXED: Clean abort, no spinning (1 abort, ${ERROR_COUNT} errors)${NC}"
+        echo "   Fixed version shows single abort = proper cleanup"
+    else
+        echo -e "${YELLOW}   ? Check if abort was triggered, may need to adjust test${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${YELLOW}Recent httpd logs:${NC}"
+tail -15 "${LOG_FILE}"
+
+echo ""
+echo "Full log saved to: ${LOG_FILE}"
+echo ""
+echo "To test with broken version:"
+echo "  ./bin/dev/switch-httpd-version broken"
+echo "  p7 v7.restart httpd"
+echo "  ./bin/dev/test-httpd-abort-bug"
+
+#,,,,,...,.,,,,,,,,,.,..,,,,,,,,.,...,,.,,,,.,..,,...,...,,,,,,,,,...,,..,..,,
+#ZFTSFGB5MKX4O5XSY2V5NX34WNC34HNMDKVIBJ524JOH7N6MQPIIKWF7Y4SF4AIYZ3NNJESYDTUGU
+#\\\|FVFHRCBGQWBHD6GDOH6KQXAY72EJMN3Z4K3LETJP6QVEVZYVBU2 \ / AMOS7 \ YOURUM ::
+#\[7]XWFVPKC3CMB6EJMEPATSYM7DK2EIYWNXZA6L6SUQQZJON2NP5WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

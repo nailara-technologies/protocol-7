@@ -1,6 +1,7 @@
 ## [:< ##
 
-# name = httpd.handler.download_transfer
+# name = httpd.handler.download_transfer.test
+# TEST VERSION: Forcibly closes file handle after ~113MB to trigger abort
 
 my $event    = shift;
 my $id       = $event->w->data->{'id'};
@@ -23,6 +24,17 @@ my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
 my $part_id    = $download->{'part_id'};
 my $ranges     = $download->{'ranges'};
+
+# ===== TEST CODE: Force file handle close after ~113MB =====
+$download->{'test_bytes_read'} //= 0;
+my $test_trigger_at = 113 * 1024 * 1024;  # 113MB
+if ($download->{'test_bytes_read'} >= $test_trigger_at && !$download->{'test_triggered'}) {
+    <[base.log]>->( 0, "[$id] TEST: Forcibly closing file handle at %d bytes",
+        $download->{'test_bytes_read'} );
+    close($content_fh) if fileno($content_fh);
+    $download->{'test_triggered'} = 1;
+}
+# ===== END TEST CODE =====
 
 if ( not fileno( $content_fh // '' ) ) {
     <[base.s_warn]>->( '[%d] content filehandle already closed', $id );
@@ -91,6 +103,10 @@ my $bytes_read = <[base.s_read]>->(
     $content_fh, \$session->{'buffer'}->{'output'}, $read_size
 ) if $read_size;
 
+# ===== TEST CODE: Track bytes read =====
+$download->{'test_bytes_read'} += $bytes_read if $bytes_read;
+# ===== END TEST CODE =====
+
 if ( $bytes_read < 1 ) {
     <[base.s_warn]>
         ->( '[%d] unsuccessful read from content filehandle', $id );
@@ -135,30 +151,13 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
 }
 
 ABORT_DOWNLOAD:
-<[base.log]>->( 1, "[$id] aborting download transfer due to error" );
-$event->w->cancel;
-if ( fileno( $content_fh // '' ) ) {
-    close($content_fh);
-}
-# End diagnostic tracking with error status
-if ( exists $code{'httpd.diagnostic.end_operation'}
-     and defined $download->{'diagnostic_id'} ) {
-    <[httpd.diagnostic.end_operation]>->(
-        $download->{'diagnostic_id'}, 'error',
-        {
-            'completion_path' => 'abort',
-            'bytes_remaining' => $download->{'total_bytes_remaining'} // 'unknown'
-        }
-    );
-}
-delete $session->{'watcher'}->{'download_handler'};
-delete $session->{'download'};
-<[httpd.update_download_count]>;
+<[base.log]>->( 0, "[$id] TEST-BROKEN: Hit abort, using ->stop (BAD!)" );
 $session->{'flush_shutdown'} = 1;
-return 0;
+$event->w->stop;    # ✗ BROKEN: Leaves watcher registered!
+return 0;           # ✗ BROKEN: No cleanup!
 
-#,,,.,..,,...,.,.,,,,,,,,,,.,,,,.,,,,,,.,,...,..,,...,...,.,.,..,,,,,,,,,,,.,,
-#URT27MCMZ6GIKL5GYFC2KOKGMCBHQTYUOUPX6CBXZHD73A3HX6EIR7RN6ZJPMKRSUXVGH7VZU2ZD2
-#\\\|MG6N2WZUCJGXCKD5MTZ6AAWXRE6HFZTMHUVIECG4CTXSUEWAK2E \ / AMOS7 \ YOURUM ::
-#\[7]OKHKYXKVZPRDDHG6OFU7GNP7LF2HXTQHR43TOLY4BSQXGIIKRSAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,,..,.,,,.,.,...,,.,,,,,,,.,,..,,...,...,..,,.,,,.,,,,.,,,..,
+#ZG4LJJZKMP5OHPBZDLNL7FDDDCNZDEXJ5XSPKCZ5TNWVQL4AHO6Y3VDVLRFHYHG2ZTZ33F3BR6E3I
+#\\\|U4CIH3UPAQUCPXY6DG56LARGRPMMSAVCJD536M5FD5DVMYS5JXT \ / AMOS7 \ YOURUM ::
+#\[7]JIDUSZMSZHVV2IAMDJKGFMPFCTHMEY5RF3LM7NUBRCXE7SU72KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = httpd.path_info
+
+# Process path info from request
+
+my $id = shift;
+
+my $session = $data{'session'}->{$id};
+my $request = $session->{'http'}->{'request'};
+
+# Get the requested URL
+my $url = $request->{'url'};
+
+# URL decode
+$url =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+
+# Sanitize path (prevent directory traversal)
+my $path = $url;
+$path =~ s/\.\.\///g;    # Remove "../"
+$path =~ s/\/\.\.//g;    # Remove "/.."
+$path =~ s/\/\//\//g;    # Replace double slashes with single slash
+$path =~ s/^\///;        # Remove leading slash
+
+# Extract query parameters
+my $params = {};
+if ($path =~ s/\?(.*)$//) {
+    my $query_string = $1;
+
+    foreach my $pair (split(/&/, $query_string)) {
+        my ($key, $value) = split(/=/, $pair, 2);
+
+        # URL decode parameters
+        $key =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+        $value =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $value;
+
+        $params->{$key} = $value // '';
+    }
+}
+
+# Construct full filesystem path
+my $doc_root = <httpd.config.document_root> || '/tmp';
+my $full_path = "$doc_root/$path";
+
+# Handle default file if path is a directory
+if (-d $full_path) {
+    $full_path =~ s/\/$//;  # Remove trailing slash
+    $full_path .= '/';      # Add it back (ensures consistency)
+}
+
+# Check if path exists
+if (!-e $full_path && !-d $full_path) {
+    <[base.logs]>->(2, "[$id] Resource not found: %s", $full_path);
+    return (404, $full_path, $params);  # Not Found
+}
+
+# Check if path is accessible
+if (!-r $full_path) {
+    <[base.logs]>->(1, "[$id] Permission denied: %s", $full_path);
+    return (403, $full_path, $params);  # Forbidden
+}
+
+# Store parsed parameters in session
+$session->{'http'}->{'params'} = $params;
+
+return (200, $full_path, $params);  # OK
+
+#,,,,,.,,,,..,,..,...,,,,,,..,.,,,.,,,...,...,...,...,...,,.,,...,.,.,...,.,.,
+#RQRYFCXFQ4AQNSB3T53VMFITBCVUNPNMJHXZCT55KAC7JORRIFTFING6UJLZFW6ALTHWQ6UGFKFGM
+#\\\|7JON3AQHHJH5L332YBSA62HT4YIGFI3V62TZQOUA676FUMHHIR7 \ / AMOS7 \ YOURUM ::
+#\[7]PQL63I7G6NFC7G3KJIXZ4DGXUNDZXP2EYT24PAVDCPRDW2XPH2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

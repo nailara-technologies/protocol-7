@@ -59,26 +59,8 @@ if ( $read_size <= 0 ) {
             if 1 + $part_id == $part_count;    # <-- last multipart segment
 
     } else {    ## transfer was complete ##
-        <[base.log]>->( 1, "[$id] download transfer completed (multipart end)" );
-        $event->w->cancel;
-        close( $download->{'content_fh'} );
-        # End diagnostic tracking
-        if ( exists $code{'httpd.diagnostic.end_operation'}
-             and defined $download->{'diagnostic_id'} ) {
-            <[httpd.diagnostic.end_operation]>->(
-                $download->{'diagnostic_id'}, 'complete',
-                { 'completion_path' => 'multipart_end' }
-            );
-        }
-        delete $session->{'watcher'}->{'download_handler'};
-        delete $session->{'download'};
-        <[httpd.update_download_count]>;
-        if ( $session->{'http'}->{'close'} ) {
-            $session->{'flush_shutdown'} = 1;
-        } else {
-            $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
-        }
-        return 0;
+        $event->w->stop;
+        return 1;
     }
 }
 
@@ -109,14 +91,6 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
     <[base.logs]>->( '[%d] download transfer completed', $id );
     $event->w->cancel;
     close( $download->{'content_fh'} );
-    # End diagnostic tracking
-    if ( exists $code{'httpd.diagnostic.end_operation'}
-         and defined $download->{'diagnostic_id'} ) {
-        <[httpd.diagnostic.end_operation]>->(
-            $download->{'diagnostic_id'}, 'complete',
-            { 'completion_path' => 'normal' }
-        );
-    }
     delete $session->{'watcher'}->{'download_handler'};
     delete $session->{'download'};
 
@@ -135,30 +109,12 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
 }
 
 ABORT_DOWNLOAD:
-<[base.log]>->( 1, "[$id] aborting download transfer due to error" );
-$event->w->cancel;
-if ( fileno( $content_fh // '' ) ) {
-    close($content_fh);
-}
-# End diagnostic tracking with error status
-if ( exists $code{'httpd.diagnostic.end_operation'}
-     and defined $download->{'diagnostic_id'} ) {
-    <[httpd.diagnostic.end_operation]>->(
-        $download->{'diagnostic_id'}, 'error',
-        {
-            'completion_path' => 'abort',
-            'bytes_remaining' => $download->{'total_bytes_remaining'} // 'unknown'
-        }
-    );
-}
-delete $session->{'watcher'}->{'download_handler'};
-delete $session->{'download'};
-<[httpd.update_download_count]>;
 $session->{'flush_shutdown'} = 1;
+$event->w->stop;
 return 0;
 
-#,,,.,..,,...,.,.,,,,,,,,,,.,,,,.,,,,,,.,,...,..,,...,...,.,.,..,,,,,,,,,,,.,,
-#URT27MCMZ6GIKL5GYFC2KOKGMCBHQTYUOUPX6CBXZHD73A3HX6EIR7RN6ZJPMKRSUXVGH7VZU2ZD2
-#\\\|MG6N2WZUCJGXCKD5MTZ6AAWXRE6HFZTMHUVIECG4CTXSUEWAK2E \ / AMOS7 \ YOURUM ::
-#\[7]OKHKYXKVZPRDDHG6OFU7GNP7LF2HXTQHR43TOLY4BSQXGIIKRSAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,...,,.,,,..,,..,,.,,,,,,..,,..,,...,...,...,,,.,...,,,,,.,,,
+#5F6HMN4GINESBXLZINLGO7GB723NCHIH3JC3CMV5I75HJKRKOPHCRSVPGYCRFM3GASUSTGA6QVFMO
+#\\\|XBUO6CVF6AI2OMAMUVASXAUM6RIM5TGS3QTIFOCJZ6YQXZVI7DO \ / AMOS7 \ YOURUM ::
+#\[7]3IJAWSZAMZF275FJR3N4A4EUHYIXRV5JEYDY3GE76X225DNSIOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

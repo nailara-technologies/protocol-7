@@ -1,0 +1,81 @@
+## [:< ##
+
+# name = httpd.benchmark.end_request
+
+# End performance tracking for an HTTP request and record metrics
+
+my $request_id = shift;
+my $status_code = shift // 200;
+my $response_size = shift // 0;
+
+# Skip if benchmark not enabled
+return if !$data{'httpd'}{'benchmark'}{'enabled'};
+
+# Skip if request not found
+return if !exists $data{'httpd'}{'benchmark'}{'metrics'}{$request_id};
+
+# Get metrics
+my $metrics = $data{'httpd'}{'benchmark'}{'metrics'}{$request_id};
+
+# Calculate elapsed time
+my $end_time = <[base.time]>->(3);
+$metrics->{'request_duration'} = $end_time - $metrics->{'start_time'};
+
+# Record response details
+$metrics->{'status_code'} = $status_code;
+$metrics->{'response_size'} = $response_size;
+$metrics->{'bytes_per_sec'} = $response_size / $metrics->{'request_duration'}
+    if $metrics->{'request_duration'} > 0;
+
+# Get final memory usage
+$metrics->{'memory_final'} = <[httpd.benchmark.sample_memory_usage]>();
+$metrics->{'memory_delta'} = $metrics->{'memory_final'} - ($metrics->{'memory_usage'} // 0);
+
+# Add to historical data
+push @{$data{'httpd'}{'benchmark'}{'history'}}, {
+    'timestamp' => $end_time,
+    'request_id' => $request_id,
+    'duration' => $metrics->{'request_duration'},
+    'status' => $status_code,
+    'size' => $response_size,
+    'memory_delta' => $metrics->{'memory_delta'}
+};
+
+# Keep history size manageable (last 1000 entries)
+if (scalar @{$data{'httpd'}{'benchmark'}{'history'}} > 1000) {
+    splice(@{$data{'httpd'}{'benchmark'}{'history'}}, 0, 100);
+}
+
+# Calculate and update averages
+my $total_requests = scalar @{$data{'httpd'}{'benchmark'}{'history'}};
+my $sum_duration = 0;
+my $sum_size = 0;
+my $sum_memory = 0;
+
+foreach my $entry (@{$data{'httpd'}{'benchmark'}{'history'}}) {
+    $sum_duration += $entry->{'duration'};
+    $sum_size += $entry->{'size'};
+    $sum_memory += $entry->{'memory_delta'};
+}
+
+$data{'httpd'}{'benchmark'}{'avg'} = {
+    'duration' => $sum_duration / $total_requests,
+    'size' => $sum_size / $total_requests,
+    'memory_delta' => $sum_memory / $total_requests
+};
+
+# Log performance data if debugging enabled
+<[base.log]>->(
+    2, "Request $request_id completed: " .
+       "$status_code, " .
+       sprintf("%.2f", $metrics->{'request_duration'} * 1000) . "ms, " .
+       <[httpd.base.size.normalize]>->($response_size)
+) if $data{'httpd'}{'benchmark'}{'debug'};
+
+return $metrics;
+
+#,,,,,...,,..,..,,,,,,,.,,.,,,.,.,...,,.,,...,..,,...,...,..,,...,..,,..,,...,
+#OX6EI362XBUQNAPZEWQ7WPHNADWNR3FHFHHIIFH5L7GBIROKQBCXN7LWUH52VRPXM565BP6L3NU24
+#\\\|GNA6MNOMBSZK5KDWOV4UAD4LVJ7US47V5WDYTBAVU3KZV6DXM3W \ / AMOS7 \ YOURUM ::
+#\[7]Z4HCIYDSUWKRUQPQH2HWFMFY3DSP4PZYINS52GRH55GYC46ETICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

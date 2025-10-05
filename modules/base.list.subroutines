@@ -63,6 +63,7 @@ return [ qw[
         net.calc_port
         mpv.init_code
         mpv.cmd.pause
+        httpd.version
         fs.is_mounted
         events.recalc
         dbus.run_dbus
@@ -96,6 +97,7 @@ return [ qw[
         keys.init_code
         jobqueue.count
         index.gen_path
+        httpd.pre_init
         httpd.http_get
         fs.cmd.unmount
         devmod.cmd.set
@@ -155,6 +157,7 @@ return [ qw[
         mpv.cmd.align-y
         mpv.cmd.align-x
         index.init_code
+        httpd.path_info
         httpd.init_code
         httpd.http_head
         fs.cmd.re-mount
@@ -276,6 +279,8 @@ return [ qw[
         jobqueue.pre_init
         jobqueue.move_job
         jobqueue.exec_job
+        httpd.json.encode
+        httpd.json.decode
         fs.cmd.is_mounted
         filter.del_filter
         filter.add_filter
@@ -424,6 +429,7 @@ return [ qw[
         io.ip.tcp.init_code
         httpd.send_raw_html
         httpd.scan_site_dir
+        httpd.get_mime_type
         httpd.download_init
         ext-world.init_code
         devmod.console-dump
@@ -506,7 +512,9 @@ return [ qw[
         impressive.parse_bin
         impressive.init_code
         impressive.cmd.pause
+        httpd.json.init_code
         httpd.determine_host
+        httpd.benchmark.init
         filter.compile_chain
         filter.cmd.del_chain
         filter.cmd.add_chain
@@ -606,8 +614,10 @@ return [ qw[
         io.ip.tcp.input.close
         impressive.cmd.status
         impressive.cmd.resume
+        httpd.system.get_load
         httpd.send_error_page
         httpd.request_handler
+        httpd.diagnostic.init
         filter.cmd.del_filter
         filter.cmd.add_filter
         download.cmd.get_file
@@ -712,7 +722,9 @@ return [ qw[
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
+        httpd.system.cpu_usage
         httpd.process_template
+        httpd.benchmark.report
         filter.cmd.mount_chain
         ffmpeg.cmd.frame_count
         events.cmd.show-active
@@ -809,6 +821,8 @@ return [ qw[
         io.unix.socket.end_code
         io.ip.tcp.input.connect
         impressive.get_playlist
+        httpd.system.network_io
+        httpd.diagnostic.report
         ffmpeg.frame_count_slow
         events.cmd.show-enabled
         devmod.cmd.deparse-code
@@ -906,6 +920,9 @@ return [ qw[
         keys.console.remove-type
         io.unix.socket.init_code
         impressive.check_tmp_dir
+        httpd.system.memory_free
+        httpd.parse_range_header
+        httpd.event.remove_timer
         ffmpeg.cmd.rescale_video
         events.cmd.trigger_event
         event.anyevent.init_code
@@ -1000,6 +1017,8 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
+        httpd.system.memory_stats
+        httpd.base.size.normalize
         graphics-matrix.init_code
         download.cmd.get_mimetype
         discover.log_mcast_packet
@@ -1179,6 +1198,8 @@ return [ qw[
         io.unix.socket.output.close
         image2html.parent.init_code
         httpd.update_download_count
+        httpd.benchmark.end_request
+        httpd.base.file.nonblocking
         discover.init_packet_buffer
         discover.cmd.show-temp-echo
         devmod.cmd.permission-setup
@@ -1329,6 +1350,7 @@ return [ qw[
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
         image2html.base.download_file
+        httpd.benchmark.start_request
         graphics-matrix.filter.c-to-a
         ffmpeg.cmd.extract_last_frame
         discover.load_resend_requests
@@ -1409,6 +1431,7 @@ return [ qw[
         index.callback.wordlist-import
         impressive.cmd.playlist_update
         image2html.base.get_image_size
+        httpd.diagnostic.end_operation
         graphics-matrix.guess_bg_color
         graphics-matrix.filter.rep-col
         graphics-matrix.cmd.filter-c2a
@@ -1463,6 +1486,7 @@ return [ qw[
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         httpd.handler.download_transfer
+        httpd.benchmark.collect_metrics
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
         devmod.cmd.change-log-verbosity
@@ -1513,6 +1537,7 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
+        httpd.diagnostic.track_operation
         discover.process_incoming_packet
         discover.handler.incoming_packet
         crypt.C25519.name_from_skey_name
@@ -1643,6 +1668,7 @@ return [ qw[
         mod-test.callback.reload-test.start
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
+        httpd.benchmark.sample_memory_usage
         content.handler.get_exclusive_reply
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
@@ -1663,6 +1689,7 @@ return [ qw[
         nodes.handler.discover_details_reply
         mod-test.cmd.blacklisted-add-matches
         image2html.child.check_cache_timeout
+        httpd.handler.download_transfer.test
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -1676,6 +1703,7 @@ return [ qw[
         protocol.protocol-7.message-templates
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
+        httpd.handler.download_transfer.fixed
         discover.format_discover_mcast_packet
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
@@ -1694,6 +1722,8 @@ return [ qw[
         keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
+        httpd.handler.download_transfer.broken
+        httpd.benchmark.get_event_loop_metrics
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
         weather.parent.handler.station_id_reply
@@ -1717,6 +1747,7 @@ return [ qw[
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
         sourcecode.console.undo-checksum-symlinks
+        sourcecode.console.strip-signature-footer
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         mod-test.callback.reload-test.remove-link
@@ -1735,6 +1766,7 @@ return [ qw[
         tile-groups.tile_activity.change_poll_timer
         mpv.handler.event.property-change.core-idle
         mod-test.callback.reload-test.is_registered
+        httpd.handler.download_transfer.test-broken
         base.referenced_subroutines.clear_from_disk
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
@@ -1748,8 +1780,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,,.,,,..,,,,,.,,,,.,,,.,,.,.,..,,...,.,.,...,.,.,...,,..,.,,,..,,.,.,
-#4SVZVTKFGYUTZGKDADRB5GYS67MNRQZ6YIFLAVUHO6NQPOXRGCCJZN3HXW3J6IM3M7C6O2RPMYMP2
-#\\\|Z3VAX3QGT2KQ7XFJXYXMXDMNNB42WAJSEL2VQWJXYBQLVLMRBQQ \ / AMOS7 \ YOURUM ::
-#\[7]VPBQVJ5SCCK3HKQG3Y74GA5EPNJGBU5NCVMJRWXFYA2D6EMV2QDQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,...,.,,,,..,,,.,.,.,,.,,.,.,..,,.,.,...,...,...,,.,,.,.,..,,,,.,
+#POSEHH5RJ6KJC3CUVF6GJPZGVLTUJF5MQQMHS3BZHU4TVQUX5PM4CK66QL5LE2V7J6VX6I4RTJGUM
+#\\\|7BKFPTC6X6F3UNYJQMCMSUTY64T6U2TV63TV6TVW7K6L2AZDELN \ / AMOS7 \ YOURUM ::
+#\[7]QHLULM4LX4OEVKSUWJSB7W3SBJMCG5ZUK2O4JWDHAAWCAMBVSWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

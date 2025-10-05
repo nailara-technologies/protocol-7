@@ -1,18 +1,74 @@
 ## [:< ##
 
 # name = httpd.update_download_count
+# descr = track file download statistics
 
-<httpd.downloads.in_progress> = 0;
-map {
-    <httpd.downloads.in_progress>++
-        if exists $data{'session'}{$ARG}{'watcher'}{'download_handler'}
+my $file_path = shift;
+my $bytes = shift; # Optional: bytes transferred (for partial downloads)
+
+# Skip if no file path provided
+return 0 if !defined $file_path || $file_path eq '';
+
+# Skip if file doesn't exist
+return 0 if !-f $file_path;
+
+# Initialize statistics data structure if needed
+$data{'httpd'}{'downloads'} //= {};
+$data{'httpd'}{'downloads'}{'files'} //= {};
+$data{'httpd'}{'downloads'}{'totals'} //= {
+    'count' => 0,
+    'bytes' => 0,
+    'last_time' => 0
+};
+
+# Get file size if bytes not provided
+if (!defined $bytes) {
+    $bytes = -s $file_path;
+}
+
+# Update file-specific statistics
+if (!exists $data{'httpd'}{'downloads'}{'files'}{$file_path}) {
+    $data{'httpd'}{'downloads'}{'files'}{$file_path} = {
+        'count' => 0,
+        'bytes' => 0,
+        'first_time' => <[base.time]>->(3),
+        'last_time' => 0
+    };
+}
+
+$data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'}++;
+$data{'httpd'}{'downloads'}{'files'}{$file_path}{'bytes'} += $bytes;
+$data{'httpd'}{'downloads'}{'files'}{$file_path}{'last_time'} = <[base.time]>->(3);
+
+# Update global download statistics
+$data{'httpd'}{'downloads'}{'totals'}{'count'}++;
+$data{'httpd'}{'downloads'}{'totals'}{'bytes'} += $bytes;
+$data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.time]>->(3);
+
+# Log download at debug level
+<[base.log]>->(
+    3, "File download: $file_path - " . <[httpd.base.size.normalize]>->($bytes) .
+       " (Total downloads: $data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'})"
+);
+
+# Clean up old statistics if too many files are tracked
+if (scalar(keys %{$data{'httpd'}{'downloads'}{'files'}}) > 1000) {
+    # Find oldest accessed files
+    my @files = sort {
+        $data{'httpd'}{'downloads'}{'files'}{$a}{'last_time'} <=>
+        $data{'httpd'}{'downloads'}{'files'}{$b}{'last_time'}
+    } keys %{$data{'httpd'}{'downloads'}{'files'}};
+
+    # Remove oldest entries to keep only 900 entries
+    foreach my $old_file (@files[0..99]) {
+        delete $data{'httpd'}{'downloads'}{'files'}{$old_file};
     }
-    keys %{ $data{'session'} };
+}
 
-return <httpd.downloads.in_progress>;
+return 1;
 
-#,,,.,,.,,...,..,,..,,.,.,,..,,,,,,.,,,..,..,,..,,...,...,..,,,.,,,,,,.,,,,.,,
-#FEDHX7Y6TTQAWGS4OT3ZBO4EIQADV2K6XKFUKT6IKRO5H76ZYYSAQQDKXYUYGYCOCBAZC5P3KVQRG
-#\\\|NWV7U5DQDCE2CGOHJSIISEV5EDXX6Q6FOHAVMYP2X2L4TRTHAFN \ / AMOS7 \ YOURUM ::
-#\[7]RNF45EWQAD3TQHOMJJGGZJ6DRFVCIOD7D2QLB7ZDIKSFYPFTFIDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,..,,,,.,,..,...,,.,,,.,,..,,..,,...,...,..,,.,.,.,.,,.,,...,
+#JEXU3XS2SV7YLNLDNBXUOJIEIADTSY6X3ZOURA5SKCKCBHMQ5UC2GEO6RL7YAVQDZPLYPNO63RNEE
+#\\\|RJSYBDTD5RLWUGNG7P3MP6MQ5ESRG2JVZXFBQJULKNC7EGJ2BII \ / AMOS7 \ YOURUM ::
+#\[7]3RE4ZVFT7OFAXV3JDB6EVX5OQYUUH5ZPGRUVZ2AFPGR3NHPHQ4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

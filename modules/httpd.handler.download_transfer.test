@@ -1,6 +1,7 @@
 ## [:< ##
 
-# name = httpd.handler.download_transfer
+# name = httpd.handler.download_transfer.test
+# TEST VERSION: Forcibly closes file handle after ~113MB to trigger abort
 
 my $event    = shift;
 my $id       = $event->w->data->{'id'};
@@ -23,6 +24,17 @@ my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
 my $part_id    = $download->{'part_id'};
 my $ranges     = $download->{'ranges'};
+
+# ===== TEST CODE: Force file handle close after ~113MB =====
+$download->{'test_bytes_read'} //= 0;
+my $test_trigger_at = 113 * 1024 * 1024;  # 113MB
+if ($download->{'test_bytes_read'} >= $test_trigger_at && !$download->{'test_triggered'}) {
+    <[base.log]>->( 0, "[$id] TEST: Forcibly closing file handle at %d bytes",
+        $download->{'test_bytes_read'} );
+    close($content_fh) if fileno($content_fh);
+    $download->{'test_triggered'} = 1;
+}
+# ===== END TEST CODE =====
 
 if ( not fileno( $content_fh // '' ) ) {
     <[base.s_warn]>->( '[%d] content filehandle already closed', $id );
@@ -91,6 +103,10 @@ my $bytes_read = <[base.s_read]>->(
     $content_fh, \$session->{'buffer'}->{'output'}, $read_size
 ) if $read_size;
 
+# ===== TEST CODE: Track bytes read =====
+$download->{'test_bytes_read'} += $bytes_read if $bytes_read;
+# ===== END TEST CODE =====
+
 if ( $bytes_read < 1 ) {
     <[base.s_warn]>
         ->( '[%d] unsuccessful read from content filehandle', $id );
@@ -157,8 +173,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return 0;
 
-#,,,.,..,,...,.,.,,,,,,,,,,.,,,,.,,,,,,.,,...,..,,...,...,.,.,..,,,,,,,,,,,.,,
-#URT27MCMZ6GIKL5GYFC2KOKGMCBHQTYUOUPX6CBXZHD73A3HX6EIR7RN6ZJPMKRSUXVGH7VZU2ZD2
-#\\\|MG6N2WZUCJGXCKD5MTZ6AAWXRE6HFZTMHUVIECG4CTXSUEWAK2E \ / AMOS7 \ YOURUM ::
-#\[7]OKHKYXKVZPRDDHG6OFU7GNP7LF2HXTQHR43TOLY4BSQXGIIKRSAA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,,,,,,..,..,,,..,,,.,...,,.,,..,,...,...,.,.,.,.,.,,,,,.,..,,
+#ICYH6JPYQKO4RR5AKDDNAGGZDUJCJ3CQMDLLHZFZYBXECWGH7ODK2NNKUJAUQKAFNIXTEJF4MZQ5K
+#\\\|ATUETCYHD6B6KJE3V64V4LBQWKGHIB45MV6WE2GNTPXUAOWFRH3 \ / AMOS7 \ YOURUM ::
+#\[7]BMKUOBAL7XL56IBYCFPBORNDW62VTYBPF55LPRFNXF2IAIXZKUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

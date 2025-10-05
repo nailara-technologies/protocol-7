@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = httpd.json.encode
+# descr = encode Perl data structure to JSON string
+
+my $data = shift;
+
+state $json;
+if (!defined $json) {
+    $json = JSON::XS->new();
+    $json->convert_blessed(1);
+    $json->allow_nonref(1);
+    $json->canonical(1);
+    $json->relaxed(1);
+    $json->pretty(1);
+    $json->utf8(1);
+}
+
+return $json->encode($data);
+
+#,,..,.,.,,,.,,.,,.,.,,..,,,,,...,..,,,,,,,.,,...,...,...,...,.,,,...,.,,,,.,,
+#FWTPJ2R7JG3KWV6PGNATAYG4E6IRBYIE2KJ67G77574RMLWQZ5GMPMZV2D2YDYXQJGLAOTSSSWA5W
+#\\\|OB2Y3DD55F3NXQ36RMORMDPZGW3WOVKQHPEH2G5XRXMHEQMWKMI \ / AMOS7 \ YOURUM ::
+#\[7]YAHVNITHDA62UGDG4OB6V4DPXC3KJNJ2XIYMLGD6277J7FMPPQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

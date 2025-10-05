@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = httpd.base.size.normalize
+# descr = format byte size to human-readable format
+
+my $bytes = shift;
+my $precision = shift // 1;
+
+return '0B' if $bytes == 0;
+
+my @units = ('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+my $unit_index = 0;
+
+while ($bytes >= 1024 && $unit_index < scalar(@units) - 1) {
+    $bytes /= 1024;
+    $unit_index++;
+}
+
+return sprintf("%.${precision}f%s", $bytes, $units[$unit_index]);
+
+#,,,,,,.,,...,,,.,..,,.,,,,.,,,,,,...,...,,,.,...,...,..,,.,.,...,,,.,...,,,,,
+#3JHZCONEND3YK7WYMVZ5TYPG36KD4MHB5P3W6XDJISBI6CJ6I6G7SCG6FVNCMWNRMQ7GO4O3TCVSG
+#\\\|4JTKASVAU325UKUIIFDNFRSATZGQM4EEVPV4BI3KIMA5I5CUHGM \ / AMOS7 \ YOURUM ::
+#\[7]PPYI4S6CJMVCJK6ZS3274VQNYVDVTRGE5TETEJFRJG7TCHNA4SBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

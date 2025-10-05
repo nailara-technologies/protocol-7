@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = httpd.benchmark.start_request
+
+# Start performance tracking for an HTTP request
+
+my $request_id = shift;
+my $request_data = shift // {};
+
+# Skip if benchmark not enabled
+return if !$data{'httpd'}{'benchmark'}{'enabled'};
+
+# Initialize metrics for this request
+my $metrics = {
+    'start_time' => <[base.time]>->(3),
+    'req_id' => $request_id,
+    'memory_usage' => <[httpd.benchmark.sample_memory_usage]>(),
+    'request_data' => {
+        'method' => $request_data->{'method'} // 'UNKNOWN',
+        'uri' => $request_data->{'uri'} // '/',
+        'client_ip' => $request_data->{'client_ip'} // '0.0.0.0',
+        'user_agent' => $request_data->{'user_agent'} // 'Unknown'
+    }
+};
+
+# Store metrics in global data structure
+$data{'httpd'}{'benchmark'}{'metrics'}{$request_id} = $metrics;
+
+# Increment active request counter
+$data{'httpd'}{'active_requests'}{$request_id} = 1;
+
+# Log start of request if debugging enabled
+<[base.log]>->(
+    3, "Request $request_id started: " .
+       "$metrics->{'request_data'}->{'method'} $metrics->{'request_data'}->{'uri'} " .
+       "from $metrics->{'request_data'}->{'client_ip'}"
+) if $data{'httpd'}{'benchmark'}{'debug'};
+
+return $metrics;
+
+#,,,.,...,,,,,.,.,..,,...,,,.,..,,...,,,,,,,,,..,,...,...,...,,,.,,..,.,.,.,.,
+#2QKOV532AKOK3YSWOPDHE7ZLYJKIVRYFJW6NR5NH7MIDJ57JQ6CVQKLKSR2O4RB7J6PQLJXTBBVJG
+#\\\|4SRE4DFYZFQSVFYDOCPPUOP2I64PBS2I7X5AUF2O4GR67J2L6VG \ / AMOS7 \ YOURUM ::
+#\[7]CILYOVTEZJBFIBEZPTAFQIN54SET7ACLGUXQOPFNVL2YNFQ5LEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
