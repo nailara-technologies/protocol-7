@@ -34,7 +34,7 @@ if (    $input->$* =~ m|^\(([^\)]*)\)[^\n]+\n|
 ##[ MULTI-LINE ]##############################################################
 
 if ($input->$* =~ s|^(((\($re->{cmd_id}\)|)$re->{cmdp})\+[ \t]*\n([^\n]*\n)*\.\n)||o) {
-    
+
     my ($multiline_cmd, $cmd) = (${^CAPTURE}[0], ${^CAPTURE}[1]);
 
     if (not $multiline_cmd =~ s|^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n||o) {

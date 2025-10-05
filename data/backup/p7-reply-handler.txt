@@ -1,6 +1,6 @@
 ## [:< ##
 # name    = protocol.protocol-7.handler.reply
-# descr   = handle protocol-7 command replies 
+# descr   = handle protocol-7 command replies
 # comment = reply routing, handlers and response processing
 
 my $ctx = shift;   ## connection context ##
@@ -69,7 +69,7 @@ given ($cmd) {
             ##  routing reply packet  ##
             $ctx->{'call_args'}->{'args'} //= qw| UNDEFINED |;
             $data{'session'}{$source_sid}{'buffer'}{'output'}
-                .= sprintf "%s%s %s\n", 
+                .= sprintf "%s%s %s\n",
                    $s_cmd_id, $cmd, $ctx->{'call_args'}->{'args'};
 
         } else {    # should never come here [ SID gone. ]
@@ -137,7 +137,7 @@ given ($cmd) {
                 } else {    ## sending SIZE reply to target ##
                     $data{'session'}{ $route->{'source'}->{'sid'} }
                         {'buffer'}{'output'} .= <[base.sprint_t]>->(
-                        qw| X3QVAWA |, 
+                        qw| X3QVAWA |,
                         $s_cmd_id,
                         sprintf(qw| %04d |, $msg_len),
                         $data_reply
