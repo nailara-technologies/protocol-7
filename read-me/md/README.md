@@ -114,11 +114,10 @@ Protocol-7 is functional but still under active development. Several key feature
 
 ## How to Contribute
 
-We welcome contributions to Protocol-7! Please:
+Contributions to Protocol-7 are always welcome =) :
 
-1. Familiarize yourself with the codebase structure
-2. Read the additional documentation in the [read-me/documentation/](read-me/documentation/) directory
-3. Contact the maintainers to discuss potential contributions
+0. Familiarize yourself with the codebase structure
+1. Contact Taeki to discuss potential contributions
 
 ## Additional Documentation
 
