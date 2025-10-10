@@ -40,7 +40,7 @@ Run this command: `bin/dependencies/install_minimal_dependencies.debian.sh`
 
 This script installs:
 - Core Perl modules and system packages for basic functionality
-- Requirements for 'nroot', 'core', 'config', and 'events' zenki
+- Requirements for  'v7', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
 - Creates necessary symlinks and systemd service
 
 ### Full Installation

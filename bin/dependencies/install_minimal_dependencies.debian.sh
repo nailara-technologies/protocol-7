@@ -10,7 +10,8 @@ ln -f -s $NAILARA_ROOT/bin/nshell /usr/local/bin/nshell
 
 cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
 
-# dependencies for 'nroot','core','config', 'events' agents + nshell
+### dependencies for 'v7', 'cube', 'p7-log', 'system', 'httpd',
+##                   'events' and some non-X11 zenki agents + nshell
 
 apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             liburi-perl libclone-perl libevent-perl libcryptx-perl \
