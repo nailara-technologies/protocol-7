@@ -74,7 +74,66 @@ Alternatively, to use systemd:
 
 ### Interacting with the System
 
-Use the nshell terminal interface: `bin/nshell`
+Two primary methods for interacting with the Protocol-7 network:
+
+1. **nshell Terminal Interface**
+   ```bash
+   bin/nshell
+   ```
+
+2. **p7 Binary Command Execution**
+   ```bash
+   p7 <command> [args]
+   ```
+   - Automatically installed during v7 zenka startup
+   - Connects directly to the Protocol-7 network
+   - Uses current Unix user for authentication
+   - Installed at: `/usr/local/bin/p7`
+
+   ### Common Commands
+   - `p7 list sessions`: Display active network sessions
+     ```
+      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.    : since :.
+     --------------------------------------------------------------------------
+       4304425     protocol-7     unix      server       -----          57.93s
+       5790075     protocol-7     unix      client        v7            57.90s
+       ...
+     ```
+
+   - `p7 commands`: List available commands for the current zenka
+     - Displays command categories like:
+       * Zenka management
+       * Network time functions
+       * Session handling
+       * Cryptographic utilities
+
+   ### Command Routing Mechanism
+   - Local Context Commands:
+     * `p7 commands`: Commands for the currently connected zenka (local cube)
+     * `p7 <zenka>.commands`: Commands for specific zenki
+     * Recursive routing possible: `p7 weather.child.commands`
+
+   ### Zenka-Specific Command Discovery
+   - `p7 v7.list`: Lists specific to the v7 zenka
+     ```
+      : list name :.  : description :.
+     -----------------------------------------------------
+       dependency    current zenka dependency status
+       available     available zenki and descriptions
+       subnames      'subnames' of registered zenki
+       children      PIDs of zenki and their children
+     ```
+
+   ### Routing Principles
+   - No `.` in command: Routes to local context
+   - `.` in command: Routes to specified zenka or nested zenki
+   - Enables flexible, hierarchical command routing
+
+   ### Command Capabilities
+   - Discover and interact with any zenka
+   - Retrieve zenka-specific lists and information
+   - Manage network sessions
+   - Execute operations across different agents
 
 ## Key Concepts
 
