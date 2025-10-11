@@ -1,10 +1,17 @@
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
-### [ source code version : 2WGYJO5IPY-5102.0 ]
+### Source Code and Versioning
+- Detailed version information: [Source Code Versions](/read-me/project-identity/source-code-versions.md)
+- Current source code version tracking available in dedicated documentation
 
-### this is the public domain [license](license)d 'base' branch
+### Licensing
+- [Licensing Details](/read-me/project-identity/licensing-details.md)
+- This is the public domain licensed 'base' branch
+
 ---
-## current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
+## Release Information
+- Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
+- Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
 
 ## Introduction
@@ -113,15 +120,18 @@ Protocol-7 is functional but still under active development. Several key feature
 
 ## How to Contribute
 
-Contributions to Protocol-7 are always welcome =) :
+Detailed contribution guidelines are available in our [Contribution Guidelines](/read-me/project-identity/contribution-guidelines.md).
 
-0. Familiarize yourself with the codebase structure
-1. Contact Taeki to discuss potential contributions
+Contributions to Protocol-7 are always welcome:
+- Explore our [Contribution Process](/read-me/project-identity/contribution-guidelines.md)
+- Understand our project's unique approach
 
 ## Additional Documentation
 
 - [AMOS Resource Tokens](read-me/documentation/dev/NRT.NRD.asc) - Development notes on the blockchain currency
-- [Philosophical Foundation](read-me/documentation/meditation.by_T_chai.asc) - Underlying principles
+- [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md) - Deep dive into our core principles
+  - Explore our unique vision of distributed computing
+  - Understand the metaphorical framework behind Protocol-7
 
 ### AI-Generated Insights and Research
 - **[AI Insights Overview](data/asc/what-AI-thinks/)**: Organized repository of AI-generated knowledge about Protocol-7 project state, structure, and research direction
@@ -131,14 +141,17 @@ Contributions to Protocol-7 are always welcome =) :
 
 ## Vision
 
-The ultimate project goal is to pool existing idle resources present in today's networks and offer them back to its users with low latency and a lot of burst capacity, much like a supercomputer with infinite bandwidth and zero latency.
+For a comprehensive exploration of our project's philosophical foundation, please refer to our [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md).
 
-After the network is saturated with what it needs to maintain a stable topology, a kind of overflow becomes available that is then distributed equally to the individual users. Not only can this ensure fair distribution, but it also creates a positive feedback loop where more participation leads to better performance for all.
+### Core Vision Highlights
+- Pool idle network resources
+- Provide low-latency, high-burst capacity computing
+- Create a fair, distributed resource ecosystem
 
-One can imagine this like the flow of water irrigating farm land where each field of interest receives enough water to grow all kinds of plants and compensate for time and effort invested into creating value for the network.
+### Key Philosophical Principles
+- Resource distribution as network irrigation
+- Positive feedback through participation
+- Minimal barriers to entry
+- Equitable resource allocation
 
-Taking part will be as simple as connecting a hard disk to the network, acquiring resources using crypto currencies or creating and sharing something that is of interest to others.
-
-The overflow principle also makes it possible to maintain public resource pools available to those who are just joining or had nothing to offer yet, so that there are no barriers to the global community participating.
-
-It will easily prove our possibilities to be limitless. It is all a matter of algorithms and protocols. Hardware and connectivity we already have.
+The full vision document explores our unique approach to distributed computing, network participation, and the metaphorical framework of resource sharing.
