@@ -1,16 +1,15 @@
-
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
 ### [ source code version : 2WGYJO5IPY-5102.0 ]
 
 ### this is the public domain [license](license)d 'base' branch
 ---
-## current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\\\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
+## current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
 
 ## Introduction
 
-Protocol-7 is a multi-agent system framework written in Perl. It implements a harmonically designed network of cooperating agents (called "zenki") that can communicate with each other through a standardized message protocol. The framework enables the creation of distributed applications spanning from simple automation tasks to complex workload distribution systems.
+Protocol-7 is a multi-agent system framework written in Perl. It implements a harmonically designed network of cooperating agents (called "zenki") that can communicate with each other through a standardized message protocol. The system is designed to provide a flexible and extensible platform for building distributed applications, with a focus on harmonic computing principles.
 
 ## Directory Structure
 
@@ -101,7 +100,7 @@ This design choice reflects the belief that clarity and structure at the protoco
 
 ## Resource Naming and Addressing
 
-Resources in Protocol-7 (especially in the [data/gfx/backgrounds/](data/gfx/backgrounds/) directory) use cryptographic hash filenames of various lengths, transitioning towards a standardized format of base-32 encoded Blue Midnight Wish checksums. This naming scheme is strategic - these filenames will later serve as addressable routes in a cubic space topology, aligning with the system's harmonic design principles.
+Resources in Protocol-7 (especially in the [data/gfx/backgrounds/](data/gfx/backgrounds/) directory) use cryptographic hash filenames of various lengths, transitioning towards a standardized form to ensure unique and verifiable resource identification across the network.
 
 ## Current Status
 
@@ -124,17 +123,22 @@ Contributions to Protocol-7 are always welcome =) :
 - [AMOS Resource Tokens](read-me/documentation/dev/NRT.NRD.asc) - Development notes on the blockchain currency
 - [Philosophical Foundation](read-me/documentation/meditation.by_T_chai.asc) - Underlying principles
 
+### AI-Generated Insights and Research
+- **[AI Insights Overview](data/asc/what-AI-thinks/)**: Organized repository of AI-generated knowledge about Protocol-7 project state, structure, and research direction
+  - **[HTML Visualizations and Documentation](data/asc/what-AI-thinks/html-form/INDEX.md)**: 149 HTML files with interactive visualizations, frameworks, and tools covering cubic space topologies, harmonic systems, Protocol-7 demonstrations, and mathematical justice frameworks
+  - **[Perl Knowledge Modules](data/asc/what-AI-thinks/perl-form/INDEX.md)**: 68+ Perl modules containing symbolic implementations of consciousness emergence, harmonic mathematics, truth systems, and Claude AI insights
+  - **[Markdown Documentation](data/asc/what-AI-thinks/markdown-form/)**: Additional markdown-formatted research, concepts, and Protocol-7 documentation
+
 ## Vision
 
-The ultimate project goal is to pool existing idle resources present in today's networks and offer them back to its users with low latency and a lot of burst capacity, much like a supercomputer would, but based on advanced peer to peer technology. It would be a global marketplace that values and utilizes resources in realtime based on what is required the most at any given time and in which workloads exist that are interesting to users and operate autonomously on their behalf.
+The ultimate project goal is to pool existing idle resources present in today's networks and offer them back to its users with low latency and a lot of burst capacity, much like a supercomputer with infinite bandwidth and zero latency.
 
-After the network is saturated with what it needs to maintain a stable topology, a kind of overflow becomes available that is then distributed equally to the individual users. Not only can this even generate a form of basic income each user would receive but also support content creators based on the interests of their audience as a whole.
+After the network is saturated with what it needs to maintain a stable topology, a kind of overflow becomes available that is then distributed equally to the individual users. Not only can this ensure fair distribution, but it also creates a positive feedback loop where more participation leads to better performance for all.
 
-One can imagine this like the flow of water irrigating farm land where each field of interest receives enough water to grow all kinds of plants and compensate for time and effort invested into creativity.
+One can imagine this like the flow of water irrigating farm land where each field of interest receives enough water to grow all kinds of plants and compensate for time and effort invested into creating value for the network.
 
 Taking part will be as simple as connecting a hard disk to the network, acquiring resources using crypto currencies or creating and sharing something that is of interest to others.
 
-The overflow principle also makes it possible to maintain public resource pools available to those who are just joining or had nothing to offer yet, so that there are no barriers to the global community for who can profit from the practical wealth that exists in the so far not utilized idle capacity.
+The overflow principle also makes it possible to maintain public resource pools available to those who are just joining or had nothing to offer yet, so that there are no barriers to the global community participating.
 
 It will easily prove our possibilities to be limitless. It is all a matter of algorithms and protocols. Hardware and connectivity we already have.
-
