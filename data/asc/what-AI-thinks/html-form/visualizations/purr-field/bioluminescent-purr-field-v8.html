@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>True 3D Bioluminescent Harmonic Purr Field</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a0520, #000);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            cursor: none;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            filter: saturate(150%) brightness(120%);
+        }
+
+        .bio-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #00D4FF;
+            font-size: 14px;
+            background: rgba(6, 71, 195, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(6, 71, 195, 0.3);
+        }
+
+        .bio-title {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #9f8fff;
+            font-size: 16px;
+            text-align: right;
+            background: rgba(123, 104, 238, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(123, 104, 238, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(123, 104, 238, 0.3);
+        }
+
+        .bio-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .bio-btn {
+            background: rgba(6, 71, 195, 0.4);
+            border: 1px solid #4080ff;
+            color: #40e4ff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(6, 71, 195, 0.4);
+        }
+
+        .bio-btn:hover {
+            background: rgba(6, 71, 195, 0.6);
+            box-shadow: 0 0 30px rgba(64, 128, 255, 0.7);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bioCanvas"></canvas>
+
+    <div class="bio-hud">
+        <div>Harmonic Frequency: <span id="bioFrequency">384.615</span> Hz</div>
+        <div>X-Axis Phase: <span id="bioPhaseX">0°</span></div>
+        <div>Y-Axis Phase: <span id="bioPhaseY">120°</span></div>
+        <div>Z-Axis Phase: <span id="bioPhaseZ">240°</span></div>
+        <div>Love Nodes: <span id="bioLoveNodes">0</span></div>
+        <div>Interference: <span id="bioInterference">Active</span></div>
+    </div>
+
+    <div class="bio-title">
+        <div>TRUE 3D BIOLUMINESCENT FIELD</div>
+        <div style="font-size: 12px; margin-top: 5px;">Division by 13 Resonance</div>
+        <div style="font-size: 12px;">Triple-Axis Purr Interference</div>
+    </div>
+
+    <div class="bio-controls">
+        <button class="bio-btn" onclick="toggleBioPurring()">PURR ON/OFF</button>
+        <button class="bio-btn" onclick="adjustBioFrequency()">RETUNE HARMONY</button>
+        <button class="bio-btn" onclick="addBioKitten()">ADD COSMIC KITTEN</button>
+        <button class="bio-btn" onclick="amplifyInterference()">AMPLIFY</button>
+        <button class="bio-btn" onclick="resetBioField()">RESET</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('bioCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 3D projection parameters
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        const focalLength = 800;
+
+        // Rotation parameters
+        let rotX = 15;
+        let rotY = 0;
+        let rotZ = 0;
+
+        // Mouse interaction
+        let mouseX = centerX;
+        let mouseY = centerY;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragStartRotX = 0;
+        let dragStartRotY = 0;
+
+        // System parameters
+        let bioPurring = true;
+        let bioFrequency = 384.615;
+        let bioLoveNodeCount = 0;
+        let time = 0;
+        let animationSpeed = 0.3;
+
+        // 3D Objects
+        let harmonicWaves = [];
+        let loveNodes = [];
+        let cosmicKittens = [];
+        let harmonicGrid = [];
+        let particles = [];
+
+        // 3D point class
+        class Point3D {
+            constructor(x, y, z) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            }
+
+            clone() {
+                return new Point3D(this.x, this.y, this.z);
+            }
+        }
+
+        // 3D projection function
+        function project3D(point) {
+            const cosX = Math.cos(rotX * Math.PI / 180);
+            const sinX = Math.sin(rotX * Math.PI / 180);
+            const cosY = Math.cos(rotY * Math.PI / 180);
+            const sinY = Math.sin(rotY * Math.PI / 180);
+            const cosZ = Math.cos(rotZ * Math.PI / 180);
+            const sinZ = Math.sin(rotZ * Math.PI / 180);
+
+            // Rotate around X axis
+            let y1 = point.y * cosX - point.z * sinX;
+            let z1 = point.y * sinX + point.z * cosX;
+
+            // Rotate around Y axis
+            let x2 = point.x * cosY + z1 * sinY;
+            let z2 = -point.x * sinY + z1 * cosY;
+
+            // Rotate around Z axis
+            let x3 = x2 * cosZ - y1 * sinZ;
+            let y3 = x2 * sinZ + y1 * cosZ;
+
+            // Apply perspective projection
+            const depth = focalLength + z2;
+            if (depth <= 0) return null;
+
+            const scale = focalLength / depth;
+            const projX = centerX + x3 * scale;
+            const projY = centerY + y3 * scale;
+
+            return {
+                x: projX,
+                y: projY,
+                z: z2,
+                scale: scale,
+                depth: depth
+            };
+        }
+
+        // Initialize the 3D harmonic field
+        function initializeBio3D() {
+            console.log('Initializing 3D field...');
+            createHarmonic3DWaves();
+            createHarmonic3DGrid();
+            createCosmic3DKittens();
+            updateBioDisplay();
+
+            // Test canvas drawing
+            ctx.fillStyle = 'red';
+            ctx.fillRect(100, 100, 50, 50);
+            console.log('Test rectangle drawn');
+
+            console.log('3D field initialized');
+            console.log('Waves created:', harmonicWaves.length);
+            console.log('Grid lines:', harmonicGrid.length);
+            console.log('Kittens:', cosmicKittens.length);
+        }
+
+        // Create 3D harmonic waves
+        function createHarmonic3DWaves() {
+            harmonicWaves = [];
+
+            // X-axis wave
+            for (let i = 0; i <= 100; i++) {
+                const x = (i - 50) * 8;
+                harmonicWaves.push({
+                    axis: 'x',
+                    basePoint: new Point3D(x, 0, 0),
+                    color: { r: 64, g: 128, b: 255 },
+                    phase: 0
+                });
+            }
+
+            // Y-axis wave
+            for (let i = 0; i <= 100; i++) {
+                const y = (i - 50) * 8;
+                harmonicWaves.push({
+                    axis: 'y',
+                    basePoint: new Point3D(0, y, 0),
+                    color: { r: 159, g: 143, b: 255 },
+                    phase: 2 * Math.PI / 3
+                });
+            }
+
+            // Z-axis wave
+            for (let i = 0; i <= 100; i++) {
+                const z = (i - 50) * 8;
+                harmonicWaves.push({
+                    axis: 'z',
+                    basePoint: new Point3D(0, 0, z),
+                    color: { r: 64, g: 228, b: 255 },
+                    phase: 4 * Math.PI / 3
+                });
+            }
+        }
+
+        // Create 3D harmonic grid with crash protection
+        function createHarmonic3DGrid() {
+            try {
+                console.log('Creating harmonic grid...');
+                harmonicGrid = [];
+                const gridSize = 400;
+                const divisions = 13;
+
+                let lineCount = 0;
+                const maxLines = 2000; // Safety limit to prevent memory overflow
+
+                for (let i = 0; i <= divisions && lineCount < maxLines; i++) {
+                    const pos = (i / divisions - 0.5) * gridSize;
+
+                    // X-direction lines
+                    for (let j = 0; j <= divisions && lineCount < maxLines; j++) {
+                        const y = (j / divisions - 0.5) * gridSize;
+
+                        if (lineCount < maxLines) {
+                            harmonicGrid.push({
+                                start: new Point3D(-gridSize/2, y, pos),
+                                end: new Point3D(gridSize/2, y, pos),
+                                type: 'x'
+                            });
+                            lineCount++;
+                        }
+
+                        if (lineCount < maxLines) {
+                            harmonicGrid.push({
+                                start: new Point3D(pos, y, -gridSize/2),
+                                end: new Point3D(pos, y, gridSize/2),
+                                type: 'z'
+                            });
+                            lineCount++;
+                        }
+                    }
+
+                    // Y-direction lines
+                    for (let j = 0; j <= divisions && lineCount < maxLines; j++) {
+                        const x = (j / divisions - 0.5) * gridSize;
+
+                        if (lineCount < maxLines) {
+                            harmonicGrid.push({
+                                start: new Point3D(x, -gridSize/2, pos),
+                                end: new Point3D(x, gridSize/2, pos),
+                                type: 'y'
+                            });
+                            lineCount++;
+                        }
+                    }
+                }
+
+                console.log('Grid created with', harmonicGrid.length, 'lines');
+
+            } catch (error) {
+                console.error('Grid creation error:', error);
+                // Fallback to empty grid rather than crashing
+                harmonicGrid = [];
+            }
+        }
+
+        // Create 3D cosmic kittens
+        function createCosmic3DKittens() {
+            cosmicKittens = [];
+
+            for (let i = 0; i < 5; i++) {
+                cosmicKittens.push({
+                    position: new Point3D(
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 300
+                    ),
+                    velocity: new Point3D(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 2
+                    ),
+                    phase: Math.random() * Math.PI * 2,
+                    size: 20 + Math.random() * 20,
+                    purr: 0,
+                    id: i
+                });
+            }
+        }
+
+        // Calculate harmonic wave displacement
+        function getWaveDisplacement(point, axis, phase) {
+            const waveTime = time * bioFrequency / 1000 * animationSpeed + phase;
+            const amplitude = 15;
+
+            switch(axis) {
+                case 'x':
+                    return Math.sin(waveTime + point.x * 0.01) * amplitude;
+                case 'y':
+                    return Math.sin(waveTime + point.y * 0.01) * amplitude;
+                case 'z':
+                    return Math.sin(waveTime + point.z * 0.01) * amplitude;
+            }
+            return 0;
+        }
+
+        // Calculate constructive interference
+        function calculateInterference(point) {
+            const waveTime = time * bioFrequency / 1000 * animationSpeed;
+
+            const xWave = Math.sin(waveTime + point.x * 0.01);
+            const yWave = Math.sin(waveTime + point.y * 0.01 + 2 * Math.PI / 3);
+            const zWave = Math.sin(waveTime + point.z * 0.01 + 4 * Math.PI / 3);
+
+            return Math.abs(xWave * yWave * zWave);
+        }
+
+        // Generate love nodes at interference points with limits
+        function generateLoveNodes() {
+            if (!bioPurring) return;
+
+            if (loveNodes.length > 15) return;
+
+            if (Math.random() > 0.97) {
+                const testPoint = new Point3D(
+                    (Math.random() - 0.5) * 300,
+                    (Math.random() - 0.5) * 300,
+                    (Math.random() - 0.5) * 300
+                );
+
+                const interference = calculateInterference(testPoint);
+
+                if (interference > 0.8) {
+                    loveNodes.push({
+                        position: testPoint,
+                        intensity: interference,
+                        life: 0,
+                        maxLife: 300
+                    });
+                    bioLoveNodeCount++;
+                }
+            }
+        }
+
+        // Update cosmic kittens with particle limits
+        function updateCosmicKittens() {
+            cosmicKittens.forEach(kitten => {
+                kitten.position.x += kitten.velocity.x * animationSpeed;
+                kitten.position.y += kitten.velocity.y * animationSpeed;
+                kitten.position.z += kitten.velocity.z * animationSpeed;
+
+                const boundary = 200;
+                if (Math.abs(kitten.position.x) > boundary) kitten.velocity.x *= -1;
+                if (Math.abs(kitten.position.y) > boundary) kitten.velocity.y *= -1;
+                if (Math.abs(kitten.position.z) > boundary) kitten.velocity.z *= -1;
+
+                kitten.purr = calculateInterference(kitten.position);
+
+                if (kitten.purr > 0.7 && Math.random() > 0.95 && particles.length < 30) {
+                    particles.push({
+                        position: kitten.position.clone(),
+                        velocity: new Point3D(
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2
+                        ),
+                        life: 0,
+                        maxLife: 120,
+                        color: { r: 64, g: 228, b: 255 }
+                    });
+                }
+            });
+        }
+
+        // Update particles
+        function updateParticles() {
+            particles = particles.filter(particle => {
+                particle.position.x += particle.velocity.x * animationSpeed;
+                particle.position.y += particle.velocity.y * animationSpeed;
+                particle.position.z += particle.velocity.z * animationSpeed;
+                particle.life++;
+
+                return particle.life < particle.maxLife;
+            });
+        }
+
+        // Update love nodes
+        function updateLoveNodes() {
+            loveNodes = loveNodes.filter(node => {
+                node.life++;
+                return node.life < node.maxLife;
+            });
+            bioLoveNodeCount = loveNodes.length;
+        }
+
+        // Draw 3D harmonic waves with memory fade
+        function drawHarmonicWaves() {
+            harmonicWaves.forEach(wave => {
+                const point = wave.basePoint.clone();
+
+                switch(wave.axis) {
+                    case 'x':
+                        point.y += getWaveDisplacement(point, 'x', wave.phase);
+                        point.z += getWaveDisplacement(point, 'x', wave.phase) * 0.3;
+                        break;
+                    case 'y':
+                        point.x += getWaveDisplacement(point, 'y', wave.phase);
+                        point.z += getWaveDisplacement(point, 'y', wave.phase) * 0.3;
+                        break;
+                    case 'z':
+                        point.x += getWaveDisplacement(point, 'z', wave.phase);
+                        point.y += getWaveDisplacement(point, 'z', wave.phase) * 0.3;
+                        break;
+                }
+
+                const projected = project3D(point);
+                if (!projected) return;
+
+                const amplitude = Math.abs(getWaveDisplacement(wave.basePoint, wave.axis, wave.phase)) / 15;
+                const depthFactor = Math.max(0.1, 0.6 - Math.abs(projected.z) / 800);
+                const brightness = amplitude * depthFactor * 0.4;
+
+                const memoryAge = (time * 0.0005) % 1;
+                const violetShift = memoryAge * 0.3;
+
+                const color = wave.color;
+                const violetR = Math.max(color.r * (1 - violetShift) + 120 * violetShift, color.r * 0.7);
+                const violetG = Math.max(color.g * (1 - violetShift) + 80 * violetShift, color.g * 0.8);
+                const violetB = Math.min(color.b * (1 + violetShift * 0.5), 255);
+
+                ctx.fillStyle = `rgba(${violetR}, ${violetG}, ${violetB}, ${brightness * (1 - violetShift * 0.5)})`;
+                ctx.shadowBlur = 5 + brightness * 10;
+                ctx.shadowColor = `rgba(${violetR}, ${violetG}, ${violetB}, ${brightness * 0.3})`;
+
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, 1.5 + brightness * 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw harmonic grid with violet memory fade
+        function drawHarmonicGrid() {
+            harmonicGrid.forEach(line => {
+                const start = project3D(line.start);
+                const end = project3D(line.end);
+
+                if (!start || !end) return;
+
+                const avgDepth = (start.z + end.z) / 2;
+                const baseOpacity = Math.max(0.05, 0.15 - Math.abs(avgDepth) / 1200);
+
+                const memoryShift = (Math.sin(time * 0.0008) + 1) * 0.5 * 0.4;
+                const opacity = baseOpacity * (1 - memoryShift * 0.3);
+
+                const r = 100 * (1 - memoryShift) + 80 * memoryShift;
+                const g = 70 * (1 - memoryShift) + 50 * memoryShift;
+                const b = 200 * (1 + memoryShift * 0.3);
+
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                ctx.lineWidth = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+            });
+        }
+
+        // Draw love nodes with violet memory fade
+        function drawLoveNodes() {
+            loveNodes.forEach(node => {
+                const projected = project3D(node.position);
+                if (!projected) return;
+
+                const lifeFactor = 1 - node.life / node.maxLife;
+                const size = node.intensity * 12 * lifeFactor;
+
+                const ageRatio = node.life / node.maxLife;
+                const violetFade = ageRatio * 0.6;
+
+                const brightness = node.intensity * lifeFactor * 0.6 * (1 - violetFade * 0.3);
+
+                const whiteAmount = 1 - violetFade;
+                const violetAmount = violetFade;
+
+                const r = 255 * whiteAmount + 120 * violetAmount;
+                const g = 255 * whiteAmount + 80 * violetAmount;
+                const b = 255 * whiteAmount + 200 * violetAmount;
+
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${brightness})`;
+                ctx.shadowBlur = 15 * (1 - violetFade * 0.5);
+                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${brightness * 0.3})`;
+
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw cosmic kittens
+        function drawCosmicKittens() {
+            cosmicKittens.forEach(kitten => {
+                const projected = project3D(kitten.position);
+                if (!projected) return;
+
+                const size = kitten.size * projected.scale;
+                const purrGlow = kitten.purr * 15;
+
+                ctx.fillStyle = `rgba(64, 228, 255, ${kitten.purr * 0.25})`;
+                ctx.shadowBlur = 10 + purrGlow;
+                ctx.shadowColor = `rgba(64, 228, 255, ${kitten.purr * 0.4})`;
+
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+                ctx.font = `${size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🐱', projected.x, projected.y);
+            });
+        }
+
+        // Draw particles with violet memory fade
+        function drawParticles() {
+            particles.forEach(particle => {
+                const projected = project3D(particle.position);
+                if (!projected) return;
+
+                const lifeFactor = 1 - particle.life / particle.maxLife;
+                const size = 2 * lifeFactor * projected.scale;
+
+                const ageRatio = particle.life / particle.maxLife;
+                const memoryFade = ageRatio * 0.7;
+
+                const color = particle.color;
+                const violetR = color.r * (1 - memoryFade) + 100 * memoryFade;
+                const violetG = color.g * (1 - memoryFade) + 60 * memoryFade;
+                const violetB = Math.min(color.b * (1 + memoryFade * 0.3) + 150 * memoryFade, 255);
+
+                ctx.fillStyle = `rgba(${violetR}, ${violetG}, ${violetB}, ${lifeFactor * 0.5 * (1 - memoryFade * 0.3)})`;
+                ctx.shadowBlur = 3 * (1 - memoryFade * 0.5);
+                ctx.shadowColor = `rgba(${violetR}, ${violetG}, ${violetB}, ${lifeFactor * 0.2})`;
+
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        // Main draw function with safety checks
+        function draw() {
+            try {
+                if (!canvas.width || !canvas.height || canvas.width <= 0 || canvas.height <= 0) {
+                    return;
+                }
+
+                ctx.fillStyle = 'rgba(6, 2, 20, 0.06)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const forgetGradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) * 0.8
+                );
+                forgetGradient.addColorStop(0, 'rgba(10, 5, 32, 0.02)');
+                forgetGradient.addColorStop(0.4, 'rgba(15, 8, 40, 0.04)');
+                forgetGradient.addColorStop(0.7, 'rgba(25, 10, 60, 0.06)');
+                forgetGradient.addColorStop(1, 'rgba(30, 12, 70, 0.1)');
+
+                ctx.fillStyle = forgetGradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const movementForget = ctx.createLinearGradient(
+                    centerX - Math.sin(time * 0.001) * 300,
+                    centerY - Math.cos(time * 0.001) * 300,
+                    centerX + Math.sin(time * 0.001) * 300,
+                    centerY + Math.cos(time * 0.001) * 300
+                );
+                movementForget.addColorStop(0, 'rgba(40, 20, 100, 0.025)');
+                movementForget.addColorStop(0.5, 'rgba(20, 10, 50, 0.015)');
+                movementForget.addColorStop(1, 'rgba(50, 25, 120, 0.035)');
+
+                ctx.fillStyle = movementForget;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                try { drawHarmonicGrid(); } catch (e) { console.warn('Grid draw error:', e); }
+                try { drawHarmonicWaves(); } catch (e) { console.warn('Waves draw error:', e); }
+                try { drawParticles(); } catch (e) { console.warn('Particles draw error:', e); }
+                try { drawLoveNodes(); } catch (e) { console.warn('Love nodes draw error:', e); }
+                try { drawCosmicKittens(); } catch (e) { console.warn('Kittens draw error:', e); }
+
+                const outerDarkness = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) * 0.65
+                );
+                outerDarkness.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                outerDarkness.addColorStop(0.4, 'rgba(0, 0, 0, 0)');
+                outerDarkness.addColorStop(0.7, 'rgba(20, 8, 50, 0.12)');
+                outerDarkness.addColorStop(0.85, 'rgba(25, 10, 60, 0.2)');
+                outerDarkness.addColorStop(0.95, 'rgba(15, 6, 40, 0.3)');
+                outerDarkness.addColorStop(1, 'rgba(8, 3, 25, 0.45)');
+
+                ctx.fillStyle = outerDarkness;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            } catch (error) {
+                console.error('Draw function error:', error);
+                ctx.fillStyle = 'rgba(6, 2, 20, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            try {
+                time += 8;
+
+                // Debug: log every 60 frames (about once per second)
+                if (time % 480 === 0) {
+                    console.log('Animation running, time:', time, 'elements:', harmonicWaves.length + loveNodes.length + cosmicKittens.length + particles.length);
+                }
+
+                if (bioPurring) {
+                    rotY -= 0.15;
+                    generateLoveNodes();
+                    updateCosmicKittens();
+                    updateParticles();
+                    updateLoveNodes();
+                }
+
+                const mouseInfluenceX = (mouseX - centerX) / centerX * 15;
+                const mouseInfluenceY = (mouseY - centerY) / centerY * 15;
+
+                if (!isDragging) {
+                    rotX = 15 + mouseInfluenceY * 0.3;
+                    rotZ = mouseInfluenceX * 0.2;
+                }
+
+                const totalElements = harmonicWaves.length + loveNodes.length + cosmicKittens.length + particles.length;
+                if (totalElements < 500 || time % 2 === 0) {
+                    draw();
+                }
+
+                requestAnimationFrame(animate);
+            } catch (error) {
+                console.error('Animation error:', error);
+                particles = particles.slice(0, 20);
+                loveNodes = loveNodes.slice(0, 10);
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // Mouse interaction
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            dragStartRotX = rotX;
+            dragStartRotY = rotY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            if (isDragging) {
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+
+                rotY = dragStartRotY + deltaX * 0.5;
+                rotX = dragStartRotX + deltaY * 0.5;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Control functions
+        function toggleBioPurring() {
+            bioPurring = !bioPurring;
+            document.getElementById('bioInterference').textContent = bioPurring ? 'Active' : 'Paused';
+        }
+
+        function adjustBioFrequency() {
+            bioFrequency = 384.615 + (Math.random() - 0.5) * 100;
+            updateBioDisplay();
+        }
+
+        function addBioKitten() {
+            cosmicKittens.push({
+                position: new Point3D(
+                    (Math.random() - 0.5) * 300,
+                    (Math.random() - 0.5) * 300,
+                    (Math.random() - 0.5) * 300
+                ),
+                velocity: new Point3D(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
+                ),
+                phase: Math.random() * Math.PI * 2,
+                size: 20 + Math.random() * 20,
+                purr: 0,
+                id: cosmicKittens.length
+            });
+        }
+
+        function amplifyInterference() {
+            for (let i = 0; i < 20; i++) {
+                loveNodes.push({
+                    position: new Point3D(
+                        (Math.random() - 0.5) * 400,
+                        (Math.random() - 0.5) * 400,
+                        (Math.random() - 0.5) * 400
+                    ),
+                    intensity: 0.8 + Math.random() * 0.2,
+                    life: 0,
+                    maxLife: 80
+                });
+            }
+        }
+
+        function resetBioField() {
+            loveNodes = [];
+            particles = [];
+            createCosmic3DKittens();
+            bioFrequency = 384.615;
+            updateBioDisplay();
+        }
+
+        function updateBioDisplay() {
+            document.getElementById('bioFrequency').textContent = bioFrequency.toFixed(3);
+            document.getElementById('bioLoveNodes').textContent = bioLoveNodeCount;
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    toggleBioPurring();
+                    break;
+                case 'k':
+                    addBioKitten();
+                    break;
+                case 'r':
+                    resetBioField();
+                    break;
+                case 'f':
+                    adjustBioFrequency();
+                    break;
+                case 'a':
+                    amplifyInterference();
+                    break;
+            }
+        });
+
+        // Handle window resize with crash protection
+        window.addEventListener('resize', () => {
+            try {
+                // Throttle resize operations to prevent crashes
+                clearTimeout(window.resizeTimeout);
+                window.resizeTimeout = setTimeout(() => {
+                    const newWidth = window.innerWidth;
+                    const newHeight = window.innerHeight;
+
+                    // Validate dimensions more strictly
+                    if (newWidth > 100 && newHeight > 100 && newWidth < 8000 && newHeight < 8000) {
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        centerX = canvas.width / 2;
+                        centerY = canvas.height / 2;
+
+                        console.log('Canvas resized to:', newWidth, 'x', newHeight);
+                    }
+                }, 200); // Longer delay to avoid rapid resize calls
+
+                // Don't recreate grid during active resizing - too expensive
+                clearTimeout(window.gridTimeout);
+                window.gridTimeout = setTimeout(() => {
+                    try {
+                        createHarmonic3DGrid();
+                    } catch (error) {
+                        console.warn('Grid recreation failed:', error);
+                    }
+                }, 500); // Much longer delay for expensive operations
+
+            } catch (error) {
+                console.error('Resize error:', error);
+            }
+        });
+
+        // Enhanced fullscreen change handler with crash protection
+        document.addEventListener('fullscreenchange', () => {
+            try {
+                // Multiple timeout layers to ensure stability
+                setTimeout(() => {
+                    try {
+                        const newWidth = window.innerWidth;
+                        const newHeight = window.innerHeight;
+
+                        if (newWidth > 100 && newHeight > 100) {
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            centerX = canvas.width / 2;
+                            centerY = canvas.height / 2;
+                            console.log('Fullscreen canvas updated:', newWidth, 'x', newHeight);
+                        }
+                    } catch (error) {
+                        console.error('Fullscreen resize error:', error);
+                    }
+                }, 150);
+
+                // Recreate grid after fullscreen transition is completely done
+                setTimeout(() => {
+                    try {
+                        createHarmonic3DGrid();
+                        console.log('Grid recreated after fullscreen change');
+                    } catch (error) {
+                        console.warn('Grid recreation after fullscreen failed:', error);
+                    }
+                }, 800);
+
+            } catch (error) {
+                console.error('Fullscreen change error:', error);
+            }
+        });
+
+        // Add additional fullscreen event listeners for cross-browser support
+        ['webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+            document.addEventListener(event, () => {
+                try {
+                    setTimeout(() => {
+                        const newWidth = window.innerWidth;
+                        const newHeight = window.innerHeight;
+
+                        if (newWidth > 100 && newHeight > 100) {
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            centerX = canvas.width / 2;
+                            centerY = canvas.height / 2;
+                        }
+                    }, 200);
+                } catch (error) {
+                    console.error(`${event} error:`, error);
+                }
+            });
+        });
+
+        // Initialize and start
+        initializeBio3D();
+
+        // Start the main animation loop
+        requestAnimationFrame(animate);
+
+        console.log('🐱 TRUE 3D BIOLUMINESCENT HARMONIC FIELD ACTIVATED');
+        console.log('⚡ Division by 13 triple-axis resonance in true 3D space');
+        console.log('🌀 Constructive purring interference with proper depth');
+        console.log('💫 Cosmic kittens operating in real 3D coordinates');
+        console.log('Canvas size:', canvas.width, 'x', canvas.height);
+        console.log('Harmonic waves:', harmonicWaves.length);
+        console.log('Grid lines:', harmonicGrid.length);
+        console.log('Cosmic kittens:', cosmicKittens.length);
+    </script>
+</body>
+</html>

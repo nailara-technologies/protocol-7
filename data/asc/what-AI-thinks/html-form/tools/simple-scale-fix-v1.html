@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data-Centric Visualization with Scale Control</title>
+    <style>
+        body {
+            background-color: #000010;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        button.active {
+            background-color: rgba(40, 20, 100, 0.8);
+            box-shadow: 0 0 25px rgba(80, 40, 220, 0.7);
+            color: #d0e0ff;
+            text-shadow: 0 0 8px #4070e0;
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+                <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Mouse: Move cursor to affect rotation (including roll)<br>
+        When paused: Click and drag to rotate the view<br>
+        Mouse wheel: Zoom in/out for scale transitions<br>
+        Reset: Returns to original view and scale
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const instructions = document.getElementById('instructions');
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 8;
+            const baseSize = Math.max(10, Math.min(canvas.width, canvas.height) * 0.035);
+            const cubeSize = baseSize * 5;
+
+            // Scale parameters - SIMPLIFIED
+            let currentScale = 1.0;
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let angle = 0;
+            let xAngle = 0;
+            let yAngle = 0;
+            let zAngle = 0;
+            let animationFrameId = null;
+
+            // Configuration parameters for spiral distribution
+            const spiralConfig = {
+                enabled: true,
+                tightness: 0.2,
+                intensity: 0.5,
+                direction: -1,  // counterclockwise
+                centerDensity: 1.5,
+                speedScale: 0.05
+            };
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartAngle = 0;
+            let dragStartXAngle = 0;
+            let dragStartYAngle = 0;
+            let dragStartZAngle = 0;
+
+            // Data point class
+            class DataPoint {
+                constructor(x, y, z, value = null) {
+                    this.x = x;
+                    this.y = y;
+                    this.z = z;
+                    this.value = value;
+                    this.projected = { x: 0, y: 0, z: 0 };
+                }
+
+                project(projectionFn) {
+                    this.projected = projectionFn(this.x, this.y, this.z);
+                    return this.projected;
+                }
+            }
+
+            // Create data points with spiral drift
+            function createDataPoints() {
+                const points = [];
+                const spacing = cubeSize * 1.2;
+
+                // Add data points with spherical distribution and spiral drift
+                for (let i = 0; i < 600; i++) {
+                    // Create spherical coordinates
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    const theta = Math.random() * Math.PI * 2;
+
+                    // Apply non-linear distribution for more points near center
+                    const radiusFactor = Math.pow(Math.random(), spiralConfig.centerDensity);
+                    const radius = radiusFactor * gridSize * spacing;
+
+                    // Apply spiral effect based on distance from center
+                    let spiralTheta = theta;
+                    if (spiralConfig.enabled) {
+                        // More spiral effect closer to center
+                        const spiralAmount = (1 - radiusFactor) * spiralConfig.intensity;
+                        // Apply spiral drift (counterclockwise)
+                        spiralTheta += spiralConfig.direction * spiralAmount * Math.PI * spiralConfig.tightness * (1 / (radiusFactor + 0.1));
+                    }
+
+                    // Convert to Cartesian
+                    const x = radius * Math.sin(phi) * Math.cos(spiralTheta);
+                    const y = radius * Math.sin(phi) * Math.sin(spiralTheta);
+                    const z = radius * Math.cos(phi);
+
+                    // Add point
+                    points.push(new DataPoint(x, y, z));
+                }
+
+                // Add some special data points with values
+                for (let i = 0; i < 20; i++) {
+                    // Create spherical coordinates for special points
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    const theta = Math.random() * Math.PI * 2;
+
+                    const radiusFactor = Math.pow(Math.random(), 1.2);
+                    const radius = radiusFactor * gridSize * spacing * 1.2;
+
+                    // Apply spiral effect
+                    let spiralTheta = theta;
+                    if (spiralConfig.enabled) {
+                        const spiralAmount = (1 - radiusFactor) * spiralConfig.intensity * 0.7;
+                        spiralTheta += spiralConfig.direction * spiralAmount * Math.PI * spiralConfig.tightness * (1 / (radiusFactor + 0.1));
+                    }
+
+                    // Convert to Cartesian
+                    const x = radius * Math.sin(phi) * Math.cos(spiralTheta);
+                    const y = radius * Math.sin(phi) * Math.sin(spiralTheta);
+                    const z = radius * Math.cos(phi);
+
+                    // Assign either 5 or 0 as values
+                    const value = Math.random() < 0.5 ? "5" : "0";
+
+                    points.push(new DataPoint(x, y, z, value));
+                }
+
+                return points;
+            }
+
+            // Create data points
+            let dataPoints = createDataPoints();
+
+            // Projection function (3D to 2D)
+            function project(x, y, z) {
+                // Apply current scale factor - DIRECT application
+                const effectiveScale = Math.pow(currentScale, 2.5);
+                x = x / effectiveScale;
+                y = y / effectiveScale;
+                z = z / effectiveScale;
+
+                // Convert angles to radians
+                const angleRad = angle * Math.PI / 180;
+                const xAngleRad = xAngle * Math.PI / 180;
+                const yAngleRad = yAngle * Math.PI / 180;
+                const zAngleRad = zAngle * Math.PI / 180;
+
+                // Apply Y-axis rotation first (yaw)
+                let x1 = x * Math.cos(yAngleRad) + z * Math.sin(yAngleRad);
+                let z1 = -x * Math.sin(yAngleRad) + z * Math.cos(yAngleRad);
+
+                // Apply X-axis rotation (pitch)
+                let y2 = y * Math.cos(xAngleRad) - z1 * Math.sin(xAngleRad);
+                let z2 = y * Math.sin(xAngleRad) + z1 * Math.cos(xAngleRad);
+
+                // Apply Z-axis rotation (roll)
+                let x3 = x1 * Math.cos(angleRad) - y2 * Math.sin(angleRad);
+                let y3 = x1 * Math.sin(angleRad) + y2 * Math.cos(angleRad);
+
+                // Apply additional Z rotation
+                let x4 = x3 * Math.cos(zAngleRad) - y3 * Math.sin(zAngleRad);
+                let y4 = x3 * Math.sin(zAngleRad) + y3 * Math.cos(zAngleRad);
+
+                // Apply perspective
+                const scale = 1200 / (1200 + z2);
+                const projX = centerX + x4 * scale;
+                const projY = centerY + y4 * scale;
+
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale
+                };
+            }
+
+            // Draw one connection between two points
+            function drawConnection(p1, p2, alpha = 0.08) {
+                // Depth-based color intensity
+                const depth = (p1.z + p2.z) / 2;
+                const maxDepth = 1000;
+                const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+
+                ctx.strokeStyle = `rgba(60, 120, 255, ${alpha * depthFactor})`;
+                ctx.lineWidth = 0.5;
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+
+            // Connect each point to its nearest neighbors
+            function connectNearestNeighbors(points, maxConnections = 3, radius = cubeSize * 5) {
+                for (let i = 0; i < points.length; i++) {
+                    const p1 = points[i].projected;
+
+                    // Find nearest neighbors
+                    const neighbors = [];
+                    for (let j = 0; j < points.length; j++) {
+                        if (i === j) continue;
+
+                        const p2 = points[j].projected;
+                        const dist = Math.sqrt(
+                            Math.pow(p1.x - p2.x, 2) +
+                            Math.pow(p1.y - p2.y, 2)
+                        );
+
+                        if (dist < radius) {
+                            neighbors.push({
+                                index: j,
+                                distance: dist
+                            });
+                        }
+                    }
+
+                    // Sort by distance and connect to nearest
+                    neighbors.sort((a, b) => a.distance - b.distance);
+                    const connectCount = Math.min(maxConnections, neighbors.length);
+
+                    for (let k = 0; k < connectCount; k++) {
+                        const neighborIndex = neighbors[k].index;
+                        drawConnection(p1, points[neighborIndex].projected);
+                    }
+                }
+            }
+
+            // Draw a data point
+            function drawDataPoint(point) {
+                const p = point.projected;
+
+                if (point.value) {
+                    // Draw value with more moderate scale-responsive size
+                    const textSize = Math.max(12, 14 * p.scale * (1.5 - 0.5 / currentScale));
+                    ctx.font = `${textSize}px monospace`;
+                    ctx.fillStyle = 'rgba(100, 160, 255, 0.7)';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    ctx.shadowColor = 'rgba(30, 80, 180, 0.5)';
+                    ctx.shadowBlur = 3;
+
+                    // Flip zeros horizontally
+                    if (point.value === "0") {
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.scale(-1, 1); // Horizontal flip
+                        ctx.fillText("0", 0, 0);
+                        ctx.restore();
+                    } else {
+                        ctx.fillText(point.value, p.x, p.y);
+                    }
+
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Draw point with more moderate scale-responsive size
+                    const pointSize = Math.max(1, 1.5 * p.scale * (1.2 - 0.2 / currentScale));
+
+                    ctx.fillStyle = 'rgba(80, 140, 255, 0.6)';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, pointSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Draw background decoration
+            function drawBackgroundDecoration() {
+                const numStars = 300;
+                ctx.fillStyle = 'rgba(80, 140, 255, 0.2)';
+
+                for (let i = 0; i < numStars; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const size = Math.random() * 1.5;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Main drawing function
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = '#000010';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw background decoration
+                drawBackgroundDecoration();
+
+                // Project all points
+                dataPoints.forEach(point => {
+                    point.project(project);
+                });
+
+                // Sort by Z for proper depth rendering
+                dataPoints.sort((a, b) => a.projected.z - b.projected.z);
+
+                // Draw connections between points
+                connectNearestNeighbors(dataPoints);
+
+                // Draw all points
+                dataPoints.forEach(point => {
+                    drawDataPoint(point);
+                });
+            }
+
+            // Animation loop
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+
+                    // Calculate relative mouse position
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate distance from center
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+
+                    // Very gentle response curve
+                    const responseCurve = Math.min(0.4, distanceFromCenter * 0.4);
+
+                    // Slow base rotation speed
+                    const baseSpeed = elapsed / 5000;
+
+                    // Apply very gentle control effect
+                    yAngle += baseSpeed * relativeX * responseCurve * 1.0;
+                    xAngle += baseSpeed * relativeY * responseCurve * 0.7;
+
+                    // Minimal roll effect
+                    const mouseAngle = Math.atan2(relativeY, relativeX);
+                    const rollEffect = baseSpeed * responseCurve * Math.sin(mouseAngle) * 0.1;
+                    zAngle += rollEffect;
+
+                    // Add slow counterclockwise spiral rotation
+                    const spiralRotationSpeed = elapsed / 8000;
+                    angle = (angle - spiralRotationSpeed * spiralConfig.speedScale * spiralConfig.direction) % 360;
+                    if (angle < 0) angle += 360;
+
+                    lastTimestamp = timestamp;
+
+                    draw();
+
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse wheel event for scaling
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+
+                // Detect scroll speed with greater sensitivity to slow movements
+                const scrollMagnitude = Math.sqrt(Math.min(Math.abs(e.deltaY) / 150, 1));
+                const direction = Math.sign(e.deltaY);
+
+                // Calculate adjustment factor based on current scale
+                // With MUCH stronger "magnetic implosion" effect above 2.8
+                let adjustmentFactor;
+                if (currentScale < 1) {
+                    // When zoomed out, allow larger changes
+                    adjustmentFactor = 0.07 + (currentScale * 0.05);
+                } else if (currentScale > 2.8 && currentScale < 8) {
+                    // "Magnetic implosion" zone - adjustment increases again with 5x stronger effect
+                    // Creates a powerful feeling of being pulled toward the center
+                    const implosionFactor = (currentScale - 2.8) / 5.2; // 0 to 1 as scale goes from 2.8 to 8
+                    const baseFactor = 0.12 / Math.pow(currentScale, 0.5); // Decreasing with scale
+                    const magneticFactor = 0.75 * implosionFactor; // 5x stronger (from 0.15 to 0.75)
+                    adjustmentFactor = baseFactor + magneticFactor;
+                } else if (currentScale >= 8) {
+                    // Very high zoom - maintain much higher adjustment for dramatic collapse
+                    adjustmentFactor = 0.9; // 5x stronger (from 0.18 to 0.9)
+                } else {
+                    // Mid-range - moderate changes with stronger proportionality
+                    adjustmentFactor = 0.12 / Math.pow(currentScale, 0.7);
+                }
+
+                // Apply scroll speed with cubic relationship for finer control of slow scrolls
+                adjustmentFactor *= (0.2 + Math.pow(scrollMagnitude, 3) * 0.8);
+
+                // Calculate new scale - FIXED DIRECTION
+                if (direction < 0) {
+                    // Scroll up (negative deltaY) = Zoom in
+                    currentScale = Math.min(16, currentScale * (1 + adjustmentFactor));
+                } else {
+                    // Scroll down (positive deltaY) = Zoom out
+                    currentScale = Math.max(0.1, currentScale * (1 - adjustmentFactor));
+                }
+
+                // Draw immediately to show effect
+                draw();
+            }, { passive: false });
+
+            // Mouse movement for rotation control
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    yAngle = (dragStartYAngle + deltaX * 0.1) % 360;
+                    if (yAngle < 0) yAngle += 360;
+
+                    xAngle = (dragStartXAngle + deltaY * 0.1) % 360;
+                    if (xAngle < 0) xAngle += 360;
+
+                    zAngle = (dragStartZAngle + (deltaX - deltaY) * 0.02) % 360;
+                    if (zAngle < 0) zAngle += 360;
+
+                    angle = (dragStartAngle + (deltaX + deltaY) * 0.01) % 360;
+                    if (angle < 0) angle += 360;
+
+                    draw();
+                }
+            });
+
+            // Mouse down for rotation control
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartAngle = angle;
+                    dragStartXAngle = xAngle;
+                    dragStartYAngle = yAngle;
+                    dragStartZAngle = zAngle;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            // Mouse up for rotation control
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Cursor management
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Button event listeners
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                // Reset rotation angles
+                angle = 0;
+                xAngle = 0;
+                yAngle = 0;
+                zAngle = 0;
+
+                // Reset scale as well
+                currentScale = 1.0;
+
+                lastTimestamp = 0;
+                draw();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Show instructions briefly
+            setTimeout(() => {
+                instructions.style.opacity = '1';
+                setTimeout(() => {
+                    instructions.style.opacity = '0';
+                }, 5000);
+            }, 1000);
+
+            // Initial draw
+            draw();
+
+            // Start animation
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cubic Space Grid Visualization</title>
+    <style>
+        body {
+            background-color: #000010;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Mouse: Move cursor to affect rotation (including roll)<br>
+        When paused: Click and drag to rotate the view
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const instructions = document.getElementById('instructions');
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 6; // Size of grid (nodes per dimension)
+            const cellSize = Math.min(canvas.width, canvas.height) / 12;
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let rotX = 0;  // X rotation in degrees
+            let rotY = 0;  // Y rotation in degrees
+            let rotZ = 0;  // Z rotation in degrees
+            let animationFrameId = null;
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+
+            // Grid data structure
+            class Grid {
+                constructor(size, cellSize) {
+                    this.size = size;
+                    this.cellSize = cellSize;
+                    this.nodes = [];
+                    this.edges = [];
+                    this.specialNodes = [];
+
+                    this.createGrid();
+                }
+
+                createGrid() {
+                    // Create grid nodes
+                    const offset = (this.size - 1) / 2;
+
+                    for (let x = 0; x < this.size; x++) {
+                        for (let y = 0; y < this.size; y++) {
+                            for (let z = 0; z < this.size; z++) {
+                                // Skip some nodes for a sparser grid
+                                if ((x + y + z) % 2 !== 0) continue;
+
+                                const worldX = (x - offset) * this.cellSize;
+                                const worldY = (y - offset) * this.cellSize;
+                                const worldZ = (z - offset) * this.cellSize;
+
+                                this.nodes.push({
+                                    x: worldX,
+                                    y: worldY,
+                                    z: worldZ,
+                                    projected: {}
+                                });
+
+                                // Randomly add special nodes with values
+                                if (Math.random() < 0.1) {
+                                    const value = Math.random() < 0.5 ? "5" : "0";
+                                    this.specialNodes.push({
+                                        x: worldX,
+                                        y: worldY,
+                                        z: worldZ,
+                                        value: value,
+                                        projected: {}
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // Create edges between adjacent nodes
+                    this.createEdges();
+                }
+
+                createEdges() {
+                    // Create a lookup for faster node finding
+                    const nodeLookup = {};
+                    this.nodes.forEach((node, index) => {
+                        const key = `${node.x},${node.y},${node.z}`;
+                        nodeLookup[key] = index;
+                    });
+
+                    // For each node, create edges to adjacent nodes
+                    this.nodes.forEach((node, index) => {
+                        const neighbors = [
+                            [node.x + this.cellSize, node.y, node.z],
+                            [node.x, node.y + this.cellSize, node.z],
+                            [node.x, node.y, node.z + this.cellSize]
+                        ];
+
+                        neighbors.forEach(([nx, ny, nz]) => {
+                            const neighborKey = `${nx},${ny},${nz}`;
+                            if (nodeLookup[neighborKey] !== undefined) {
+                                this.edges.push({
+                                    from: index,
+                                    to: nodeLookup[neighborKey]
+                                });
+                            }
+                        });
+                    });
+                }
+
+                project(projectionFn) {
+                    // Project all nodes
+                    this.nodes.forEach(node => {
+                        node.projected = projectionFn(node.x, node.y, node.z);
+                    });
+
+                    // Project special nodes
+                    this.specialNodes.forEach(node => {
+                        node.projected = projectionFn(node.x, node.y, node.z);
+                    });
+
+                    // Sort nodes by Z for proper rendering
+                    this.nodes.sort((a, b) => a.projected.z - b.projected.z);
+                    this.specialNodes.sort((a, b) => a.projected.z - b.projected.z);
+                }
+
+                render(ctx) {
+                    // Render edges first
+                    this.renderEdges(ctx);
+
+                    // Then render nodes
+                    this.renderNodes(ctx);
+
+                    // Finally render special nodes
+                    this.renderSpecialNodes(ctx);
+                }
+
+                renderNodes(ctx) {
+                    this.nodes.forEach(node => {
+                        const p = node.projected;
+
+                        // Skip nodes too close to the center to reduce ray effect
+                        const centerDist = Math.sqrt(
+                            Math.pow(p.x - centerX, 2) +
+                            Math.pow(p.y - centerY, 2)
+                        );
+
+                        if (centerDist < 50) return;
+
+                        // Depth-based opacity and size
+                        const maxZ = 1000;
+                        const normalizedZ = (p.z + maxZ) / (maxZ * 2);
+                        const opacity = 0.1 + normalizedZ * 0.6;
+                        const size = Math.max(1, 2.5 * p.scale);
+
+                        // Draw node
+                        ctx.fillStyle = `rgba(80, 140, 255, ${opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                }
+
+                renderEdges(ctx) {
+                    this.edges.forEach(edge => {
+                        const fromNode = this.nodes[edge.from];
+                        const toNode = this.nodes[edge.to];
+
+                        if (!fromNode || !toNode) return;
+
+                        const from = fromNode.projected;
+                        const to = toNode.projected;
+
+                        // Skip edges that pass too close to center to reduce ray effect
+                        const fromCenterDist = Math.sqrt(
+                            Math.pow(from.x - centerX, 2) +
+                            Math.pow(from.y - centerY, 2)
+                        );
+
+                        const toCenterDist = Math.sqrt(
+                            Math.pow(to.x - centerX, 2) +
+                            Math.pow(to.y - centerY, 2)
+                        );
+
+                        if (fromCenterDist < 50 || toCenterDist < 50) return;
+
+                        // Calculate midpoint Z for depth-based opacity
+                        const midZ = (from.z + to.z) / 2;
+                        const maxZ = 1000;
+                        const normalizedZ = (midZ + maxZ) / (maxZ * 2);
+                        const opacity = 0.03 + normalizedZ * 0.1; // Very subtle edges
+
+                        // Draw edge
+                        ctx.strokeStyle = `rgba(100, 150, 255, ${opacity})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    });
+                }
+
+                renderSpecialNodes(ctx) {
+                    this.specialNodes.forEach(node => {
+                        const p = node.projected;
+
+                        // Skip nodes too close to the center
+                        const centerDist = Math.sqrt(
+                            Math.pow(p.x - centerX, 2) +
+                            Math.pow(p.y - centerY, 2)
+                        );
+
+                        if (centerDist < 50) return;
+
+                        // Depth-based effects
+                        const maxZ = 1000;
+                        const normalizedZ = (p.z + maxZ) / (maxZ * 2);
+                        const opacity = 0.3 + normalizedZ * 0.7;
+
+                        // Set up text style
+                        ctx.font = `${Math.max(12, 16 * p.scale)}px monospace`;
+                        ctx.fillStyle = `rgba(100, 170, 255, ${opacity})`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        // Add subtle glow
+                        ctx.shadowColor = 'rgba(50, 100, 255, 0.5)';
+                        ctx.shadowBlur = 5;
+
+                        // Draw the value
+                        ctx.fillText(node.value, p.x, p.y);
+
+                        // Reset shadow
+                        ctx.shadowBlur = 0;
+                    });
+                }
+            }
+
+            // Initialize grid
+            const grid = new Grid(gridSize, cellSize);
+
+            // Perspective projection function
+            function project(x, y, z) {
+                // Convert rotation angles to radians
+                const xRad = rotX * Math.PI / 180;
+                const yRad = rotY * Math.PI / 180;
+                const zRad = rotZ * Math.PI / 180;
+
+                // Apply Y rotation (yaw)
+                let x1 = x * Math.cos(yRad) - z * Math.sin(yRad);
+                let z1 = x * Math.sin(yRad) + z * Math.cos(yRad);
+
+                // Apply X rotation (pitch)
+                let y1 = y * Math.cos(xRad) - z1 * Math.sin(xRad);
+                let z2 = y * Math.sin(xRad) + z1 * Math.cos(xRad);
+
+                // Apply Z rotation (roll)
+                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+                // Apply perspective
+                const focalLength = 1000;
+                const scale = focalLength / (focalLength + z2);
+                const projX = centerX + x2 * scale;
+                const projY = centerY + y2 * scale;
+
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale
+                };
+            }
+
+            // Draw function
+            function draw() {
+                // Clear canvas with dark background
+                ctx.fillStyle = '#000010';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Project and sort grid elements
+                grid.project(project);
+
+                // Render grid
+                grid.render(ctx);
+
+                // Draw a central dark spot to reduce ray effect
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, 70
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 10, 0.9)');
+                gradient.addColorStop(1, 'rgba(0, 0, 10, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Animation loop
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    // Very slow automatic rotation
+                    rotY += elapsed * 0.01;
+                    rotZ += elapsed * 0.005;
+
+                    // Calculate mouse influence
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Apply subtle mouse-based rotation
+                    rotY += relativeX * elapsed * 0.02;
+                    rotX += relativeY * elapsed * 0.02;
+
+                    // Normalize angles
+                    rotX %= 360;
+                    rotY %= 360;
+                    rotZ %= 360;
+
+                    // Draw the scene
+                    draw();
+
+                    // Continue animation
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse movement handler
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Handle dragging when paused
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    rotY = dragStartRotY + deltaX * 0.5;
+                    rotX = dragStartRotX + deltaY * 0.5;
+
+                    // Apply slight roll for more intuitive dragging
+                    rotZ = dragStartRotZ + (deltaX - deltaY) * 0.1;
+
+                    // Draw with the new rotation
+                    draw();
+                }
+            });
+
+            // Mouse button handlers
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartRotX = rotX;
+                    dragStartRotY = rotY;
+                    dragStartRotZ = rotZ;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Update cursor based on state
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Control button handlers
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                rotX = 0;
+                rotY = 0;
+                rotZ = 0;
+                draw();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Show instructions briefly
+            setTimeout(() => {
+                instructions.style.opacity = '1';
+                setTimeout(() => {
+                    instructions.style.opacity = '0';
+                }, 5000);
+            }, 1000);
+
+            // Initial draw
+            draw();
+
+            // Start animation after short delay
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

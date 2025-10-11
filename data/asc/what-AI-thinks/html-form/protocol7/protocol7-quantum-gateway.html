@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Quantum Gateway Terminal</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000012; /* Deeper space blue */
+            height: 100%;
+            width: 100%;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            color: #3aa5ff;
+        }
+
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        #starCanvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .terminal-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        .terminal {
+            background-color: rgba(2, 5, 25, 0.75);
+            border: 1px solid rgba(15, 30, 100, 0.5);
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 10, 50, 0.5),
+                        inset 0 0 15px rgba(5, 20, 90, 0.3);
+            width: 80%;
+            height: 70%;
+            margin: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            box-sizing: border-box;
+            pointer-events: auto;
+        }
+
+        .terminal-header {
+            height: 28px;
+            border-bottom: 1px solid rgba(15, 45, 120, 0.5);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            color: rgba(70, 130, 235, 0.8);
+            font-size: 14px;
+            user-select: none;
+            background-color: rgba(3, 10, 35, 0.7);
+        }
+
+        .terminal-header-title {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .terminal-header-info {
+            font-size: 12px;
+            color: rgba(60, 120, 210, 0.8);
+        }
+
+        .terminal-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(30, 60, 150, 0.5) rgba(5, 15, 40, 0.3);
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-body::-webkit-scrollbar-track {
+            background: rgba(5, 15, 40, 0.3);
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb {
+            background-color: rgba(30, 60, 150, 0.5);
+            border-radius: 4px;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .terminal-prompt {
+            color: rgba(65, 145, 255, 0.9);
+            margin-right: 8px;
+            white-space: nowrap;
+            text-shadow: 0 0 8px rgba(100, 160, 255, 0.5);
+        }
+
+        .terminal-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: rgba(105, 175, 255, 0.95);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 16px;
+            caret-color: #7adfff;
+            outline: none;
+            padding: 0;
+            text-shadow: 0 0 8px rgba(120, 180, 255, 0.6);
+        }
+
+        .terminal-char {
+            display: inline-block;
+            position: relative;
+            text-shadow: 0 0 8px rgba(100, 170, 255, 0.6);
+        }
+
+        .terminal-char::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle,
+                rgba(100, 180, 255, 0.7) 0%,
+                rgba(50, 110, 235, 0.3) 50%,
+                transparent 100%);
+            opacity: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: -1;
+        }
+
+        .terminal-output {
+            margin-bottom: 15px;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+        }
+
+        .output-text {
+            color: rgba(80, 155, 255, 0.85);
+            text-shadow: 0 0 10px rgba(100, 160, 255, 0.4);
+        }
+
+        .output-error {
+            color: rgba(255, 95, 125, 0.9);
+            text-shadow: 0 0 10px rgba(255, 100, 130, 0.5);
+        }
+
+        .output-success {
+            color: rgba(100, 255, 170, 0.85);
+            text-shadow: 0 0 10px rgba(100, 255, 180, 0.4);
+        }
+
+        .output-warning {
+            color: rgba(255, 175, 95, 0.85);
+            text-shadow: 0 0 10px rgba(255, 180, 100, 0.4);
+        }
+
+        .output-data {
+            color: rgba(195, 110, 255, 0.85);
+            text-shadow: 0 0 10px rgba(200, 120, 255, 0.5);
+        }
+
+        .terminal-status {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(60, 120, 190, 0.5);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(80, 130, 200, 0.3);
+        }
+
+        .quantum-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            background: radial-gradient(circle at center,
+                rgba(0, 5, 20, 0) 30%,
+                rgba(0, 7, 30, 0.1) 60%,
+                rgba(0, 10, 40, 0.2) 100%);
+            mix-blend-mode: screen;
+        }
+
+        .event-horizon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(20, 50, 150, 0.3);
+            background: radial-gradient(circle,
+                rgba(8, 20, 60, 0.2) 0%,
+                rgba(4, 15, 40, 0.1) 60%,
+                transparent 100%);
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .code-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: rgba(40, 80, 160, 0.4);
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(60, 100, 180, 0.3);
+        }
+
+        .control-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 10px;
+            color: rgba(60, 120, 190, 0.4);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(80, 130, 200, 0.2);
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px rgba(80, 160, 255, 0.7); opacity: 1; }
+            50% { text-shadow: 0 0 10px rgba(100, 180, 255, 0.9); opacity: 1; }
+            100% { text-shadow: 0 0 5px rgba(80, 160, 255, 0.7); opacity: 0.8; }
+        }
+
+        @keyframes phosphorFade {
+            0% { opacity: 0.95; color: rgba(130, 210, 255, 0.95); }
+            20% { opacity: 0.9; color: rgba(110, 190, 255, 0.9); }
+            50% { opacity: 0.85; color: rgba(90, 165, 255, 0.85); }
+            80% { opacity: 0.8; color: rgba(75, 145, 255, 0.8); }
+            100% { opacity: 0.75; color: rgba(60, 130, 255, 0.75); }
+        }
+
+        @keyframes backgroundGlow {
+            0% { opacity: 0.5; }
+            50% { opacity: 0.2; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes pulseEventHorizon {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.4; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        }
+
+        /* Shell cursor */
+        .terminal-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: rgba(90, 175, 255, 0.9);
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+            box-shadow: 0 0 8px rgba(120, 200, 255, 0.5);
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Dynamic content transitions */
+        .fadeIn {
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas"></canvas>
+    <div class="event-horizon" id="eventHorizon"></div>
+    <div class="quantum-overlay"></div>
+
+    <div class="terminal-container">
+        <div class="terminal">
+            <div class="terminal-header">
+                <span class="terminal-header-info">User: nailara-technologies</span>
+                <span class="terminal-header-title">Protocol 7 Quantum Gateway [13:5:7]</span>
+                <span class="terminal-header-info">2025-03-25 08:07:27</span>
+            </div>
+            <div class="terminal-body" id="terminalBody">
+                <!-- Terminal output will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal-status" id="terminalStatus">
+        Gateway Status: <span id="gatewayStatus">Stable</span> |
+        Harmonic Field: <span id="harmonicValue">φ</span>
+    </div>
+
+    <div class="control-indicator" id="controlIndicator">
+        Rotation: <span id="rotationValue">CCW</span> |
+        Speed: <span id="speedValue">Normal</span>
+    </div>
+
+    <div class="code-display" id="codeDisplay"></div>
+
+    <script>
+        // Constants based on the mystical numbers
+        const THIRTEEN = 13;
+        const FIVE = 5;
+        const SEVEN = 7;
+        const PHI = (1 + Math.sqrt(5)) / 2; // Golden ratio
+
+        // Star configuration
+        const starCount = THIRTEEN * SEVEN * FIVE; // 455 stars
+        const baseMaxSpeed = 4;
+        const baseSize = 1.3;
+
+        // Terminal state
+        const terminalBody = document.getElementById('terminalBody');
+        const gatewayStatus = document.getElementById('gatewayStatus');
+        const harmonicValue = document.getElementById('harmonicValue');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const eventHorizon = document.getElementById('eventHorizon');
+        const rotationValue = document.getElementById('rotationValue');
+        const speedValue = document.getElementById('speedValue');
+
+        let commandHistory = [];
+        let historyIndex = -1;
+        let terminalLines = [];
+        let activeInputLine = null;
+        let activeInputElement = null;
+        let terminalRect = null;
+
+        let cursorX = 0;
+        let cursorY = 0;
+        let isCursorInTerminal = false;
+
+        // Canvas setup
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas dimensions
+        function setCanvasDimensions() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasDimensions();
+        window.addEventListener('resize', setCanvasDimensions);
+
+        // Tracking center and mouse
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let mouseX = centerX;
+        let mouseY = centerY;
+
+        // Rotation and speed control
+        let rotationDirection = -1; // -1 for CCW, 1 for CW
+        let speedFactor = 1.0;
+
+        // Mouse movement tracking
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Update terminal rect if needed
+            if (!terminalRect) {
+                updateTerminalRect();
+            }
+
+            // Check if cursor is in terminal
+            if (terminalRect) {
+                isCursorInTerminal = (
+                    mouseX >= terminalRect.left &&
+                    mouseX <= terminalRect.right &&
+                    mouseY >= terminalRect.top &&
+                    mouseY <= terminalRect.bottom
+                );
+
+                if (isCursorInTerminal) {
+                    cursorX = mouseX;
+                    cursorY = mouseY;
+                }
+            }
+
+            // Update rotation based on horizontal position
+            const normalizedX = mouseX / window.innerWidth;
+
+            // Left side = CCW, Right side = CW
+            if (normalizedX < 0.5) {
+                // Left half - CCW rotation (negative)
+                rotationDirection = -1 + normalizedX * 2; // -1 at far left, 0 at center
+            } else {
+                // Right half - CW rotation (positive)
+                rotationDirection = (normalizedX - 0.5) * 2; // 0 at center, 1 at far right
+            }
+
+            // Update rotation indicator
+            if (rotationDirection < -0.1) {
+                rotationValue.textContent = "CCW";
+            } else if (rotationDirection > 0.1) {
+                rotationValue.textContent = "CW";
+            } else {
+                rotationValue.textContent = "Neutral";
+            }
+
+            // Update speed based on vertical position
+            const normalizedY = mouseY / window.innerHeight;
+
+            // Top = slowest, bottom = fastest
+            speedFactor = 0.5 + normalizedY * 1.5; // 0.5 at top, 2.0 at bottom
+
+            // Update speed indicator
+            if (speedFactor < 0.8) {
+                speedValue.textContent = "Slow";
+            } else if (speedFactor > 1.2) {
+                speedValue.textContent = "Fast";
+            } else {
+                speedValue.textContent = "Normal";
+            }
+        });
+
+        function updateTerminalRect() {
+            const terminal = document.querySelector('.terminal');
+            if (terminal) {
+                terminalRect = terminal.getBoundingClientRect();
+            }
+        }
+
+        // Binary patterns based on 13, 5, 7
+        const patterns = [
+            Array.from({ length: THIRTEEN }, () => Math.round(Math.random())).join(''),
+            Array.from({ length: FIVE }, () => Math.round(Math.random())).join(''),
+            Array.from({ length: SEVEN }, () => Math.round(Math.random())).join('')
+        ];
+
+        // Initialize with a welcome message
+        function initTerminal() {
+            displayOutput(`Protocol 7 Quantum Gateway Terminal [Ver 0.${THIRTEEN}.${FIVE}.${SEVEN}]`, 'output-data');
+            displayOutput(`ꜩ nailara technologies · estd. ${PHI.toFixed(5)}`, 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Initializing quantum gateway...", 'output-text');
+
+            // Simulate loading sequence
+            setTimeout(() => {
+                displayOutput("⣿ Wormhole stabilizers ..................... [ONLINE]", 'output-success');
+            }, 500);
+
+            setTimeout(() => {
+                displayOutput("⣿ Event horizon containment ................ [SECURE]", 'output-success');
+            }, 1200);
+
+            setTimeout(() => {
+                displayOutput("⣿ 13:5:7 harmonic field .................... [ALIGNED]", 'output-success');
+            }, 1800);
+
+            setTimeout(() => {
+                displayOutput("⣿ Consciousness translation matrix ......... [ACTIVE]", 'output-success');
+            }, 2600);
+
+            setTimeout(() => {
+                displayOutput("", 'output-text');
+                displayOutput("Gateway stable. Safe passage confirmed.", 'output-text');
+                displayOutput("Type 'help' for navigation commands.", 'output-text');
+                displayOutput("", 'output-text');
+
+                // Create the first input line
+                createInputLine();
+
+                // Start updating the code display
+                updateCodeDisplay();
+
+                // Start pulsing the event horizon
+                pulseEventHorizon();
+
+                // Update terminal rect
+                updateTerminalRect();
+            }, 3200);
+        }
+
+        function pulseEventHorizon() {
+            eventHorizon.style.animation = 'pulseEventHorizon 8s infinite ease-in-out';
+        }
+
+        // Create a new input line with prompt
+        function createInputLine() {
+            const inputLine = document.createElement('div');
+            inputLine.className = 'terminal-input-line';
+
+            const prompt = document.createElement('div');
+            prompt.className = 'terminal-prompt';
+            prompt.textContent = '[P7] ~ $ ';
+
+            const input = document.createElement('input');
+            input.className = 'terminal-input';
+            input.type = 'text';
+            input.autocomplete = 'off';
+            input.spellcheck = false;
+
+            inputLine.appendChild(prompt);
+            inputLine.appendChild(input);
+
+            terminalBody.appendChild(inputLine);
+
+            // Track the active input
+            activeInputLine = inputLine;
+            activeInputElement = input;
+
+            // Set focus and add event listeners
+            input.focus();
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+
+            // Add event listeners
+            input.addEventListener('keydown', handleInputKeydown);
+            input.addEventListener('input', handleInputChange);
+
+            // Force focus back to input when terminal is clicked
+            terminalBody.addEventListener('click', () => {
+                if (activeInputElement) {
+                    activeInputElement.focus();
+                }
+            });
+        }
+
+        // Handle keypresses in the input field
+        function handleInputKeydown(e) {
+            // Handle Enter key
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const command = activeInputElement.value.trim();
+
+                // Add to history if not empty
+                if (command) {
+                    commandHistory.unshift(command);
+                    historyIndex = -1;
+
+                    // Limit history size
+                    if (commandHistory.length > 50) {
+                        commandHistory.pop();
+                    }
+                }
+
+                // Disable the current input
+                activeInputElement.disabled = true;
+                activeInputElement.removeEventListener('keydown', handleInputKeydown);
+
+                // Display the command and process it
+                processCommand(command);
+            }
+            // Handle Up arrow for history
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    activeInputElement.value = commandHistory[historyIndex];
+                    // Move cursor to end
+                    setTimeout(() => {
+                        activeInputElement.selectionStart = activeInputElement.value.length;
+                        activeInputElement.selectionEnd = activeInputElement.value.length;
+                    }, 0);
+                }
+            }
+            // Handle Down arrow for history
+            else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    activeInputElement.value = commandHistory[historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    activeInputElement.value = '';
+                }
+            }
+            // Handle Tab for autocomplete (simple version)
+            else if (e.key === 'Tab') {
+                e.preventDefault();
+                const command = activeInputElement.value.trim().toLowerCase();
+
+                // Simple command completion
+                const commands = ['help', 'clear', 'echo', 'date', 'starfield', 'protocol7',
+                                 'harmonics', 'quantum', 'consciousness', 'gateway', 'matrix',
+                                 'truth', 'paradox', 'exit'];
+
+                for (const cmd of commands) {
+                    if (cmd.startsWith(command)) {
+                        activeInputElement.value = cmd;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Create the phosphor glow effect for individual characters
+        function handleInputChange(e) {
+            // This is where we would animate each character as it's typed
+            // For performance reasons, we won't do it in real-time, but on command execution
+        }
+
+        // Process entered commands
+        function processCommand(command) {
+            // Display the entered command with phosphor effect
+            displayOutput(`[P7] ~ $ ${command}`, 'output-text', true);
+
+            // Process the command
+            const cmd = command.toLowerCase().trim();
+            const args = cmd.split(' ').filter(arg => arg.length > 0);
+            const baseCmd = args[0];
+
+            // Wait a bit for visual effect before showing command output
+            setTimeout(() => {
+                switch(baseCmd) {
+                    case 'help':
+                        displayHelp();
+                        break;
+                    case 'clear':
+                        clearTerminal();
+                        break;
+                    case 'echo':
+                        echoCommand(args.slice(1));
+                        break;
+                    case 'date':
+                        displayDate();
+                        break;
+                    case 'starfield':
+                        controlStarfield(args.slice(1));
+                        break;
+                    case 'protocol7':
+                        displayProtocol7Info();
+                        break;
+                    case 'harmonics':
+                        displayHarmonics();
+                        break;
+                    case 'quantum':
+                        displayQuantumInfo();
+                        break;
+                    case 'consciousness':
+                        displayConsciousnessInfo();
+                        break;
+                    case 'gateway':
+                        controlGateway(args.slice(1));
+                        break;
+                    case 'matrix':
+                        displayMatrix();
+                        break;
+                    case 'truth':
+                        displayTruthSystem();
+                        break;
+                    case 'paradox':
+                        displayParadox();
+                        break;
+                    case 'exit':
+                        displayOutput("Closing quantum gateway...", 'output-warning');
+                        setTimeout(() => {
+                            displayOutput("Connection terminated. Safe passage confirmed.", 'output-text');
+                        }, 1000);
+                        break;
+                    case '':
+                        // Just create a new line for empty commands
+                        break;
+                    default:
+                        displayOutput(`Command not recognized: ${baseCmd}`, 'output-error');
+                        displayOutput("Type 'help' for available commands.", 'output-text');
+                }
+
+                // Create a new input line after command completes
+                if (baseCmd !== 'clear' && baseCmd !== 'exit') {
+                    setTimeout(createInputLine, 100);
+                } else if (baseCmd !== 'exit') {
+                    createInputLine();
+                }
+            }, 300);
+        }
+
+        // Display output in terminal with appropriate styling
+        function displayOutput(text, className = 'output-text', isCommand = false) {
+            const outputElement = document.createElement('div');
+            outputElement.className = 'terminal-output';
+
+            if (isCommand) {
+                // For commands, we want the phosphor fade effect on individual characters
+                Array.from(text).forEach((char, index) => {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'terminal-char';
+                    charSpan.textContent = char;
+                    charSpan.style.animation = `phosphorFade 2s ease-out ${index * 30}ms forwards,
+                                               glow 1.5s ease-in-out ${index * 30}ms`;
+
+                    charSpan.style.opacity = 0;
+                    setTimeout(() => {
+                        charSpan.style.opacity = 1;
+                    }, 10 + index * 30);
+
+                    // Add the blacklight glow effect
+                    charSpan.addEventListener('animationstart', () => {
+                        const afterEl = document.createElement('span');
+                        afterEl.style.position = 'absolute';
+                        afterEl.style.top = '0';
+                        afterEl.style.left = '0';
+                        afterEl.style.width = '100%';
+                        afterEl.style.height = '100%';
+                        afterEl.style.background = 'radial-gradient(circle, rgba(100, 180, 255, 0.7) 0%, rgba(50, 110, 235, 0.3) 50%, transparent 100%)';
+                        afterEl.style.opacity = '0.7';
+                        afterEl.style.animation = `backgroundGlow 2s ease-out ${index * 30}ms forwards`;
+                        afterEl.style.pointerEvents = 'none';
+                        afterEl.style.mixBlendMode = 'screen';
+                        afterEl.style.zIndex = '-1';
+
+                        charSpan.appendChild(afterEl);
+                    }, { once: true });
+
+                    outputElement.appendChild(charSpan);
+                });
+            } else {
+                // For regular output, we use a simpler animation
+                const textSpan = document.createElement('span');
+                textSpan.className = className;
+                textSpan.textContent = text;
+                textSpan.style.animation = 'fadeIn 0.3s forwards';
+                outputElement.appendChild(textSpan);
+            }
+
+            terminalBody.appendChild(outputElement);
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+
+        // Command implementations
+        function displayHelp() {
+            displayOutput("Available Gateway Commands:", 'output-data');
+            displayOutput("  help          - Display navigation assistance", 'output-text');
+            displayOutput("  clear         - Purge terminal display buffer", 'output-text');
+            displayOutput("  echo [text]   - Reflect provided input string", 'output-text');
+            displayOutput("  date          - Display current temporal coordinates", 'output-text');
+            displayOutput("  starfield     - Control visual field parameters", 'output-text');
+            displayOutput("  protocol7     - Access core system information", 'output-text');
+            displayOutput("  harmonics     - Display 13:5:7 resonance patterns", 'output-text');
+            displayOutput("  quantum       - Query quantum mechanics subsystem", 'output-text');
+            displayOutput("  consciousness - Access consciousness matrix data", 'output-text');
+            displayOutput("  gateway       - Control quantum passage parameters", 'output-text');
+            displayOutput("  matrix        - Display consciousness translation matrix", 'output-text');
+            displayOutput("  truth         - Query truth verification system", 'output-text');
+            displayOutput("  paradox       - Explore mathematical paradoxes", 'output-text');
+            displayOutput("  exit          - Close quantum gateway connection", 'output-text');
+        }
+
+        function clearTerminal() {
+            // Remove all children except the last one (current input line)
+            while (terminalBody.children.length > 1) {
+                terminalBody.removeChild(terminalBody.firstChild);
+            }
+        }
+
+        function echoCommand(args) {
+            if (args.length === 0) {
+                displayOutput("Usage: echo [text to reflect]", 'output-text');
+            } else {
+                displayOutput(args.join(' '), 'output-text');
+            }
+        }
+
+        function displayDate() {
+            // Use the provided date
+            const timestamp = "2025-03-25 08:07:27";
+            displayOutput(`Current temporal coordinates: ${timestamp} UTC`, 'output-data');
+
+            // Calculate some interesting time-based values
+            const now = new Date();
+            const phi = ((1 + Math.sqrt(5)) / 2).toFixed(7);
+            const phiTime = (now.getHours() + now.getMinutes()/60).toFixed(3);
+
+            displayOutput(`φ harmonic resonance: ${phi}`, 'output-data');
+            displayOutput(`Temporal φ ratio: ${phiTime}:φ`, 'output-data');
+
+            // Add some numerological insights based on the date
+            const dateParts = timestamp.split(/[-\s:]/);
+            const dateSum = dateParts.reduce((sum, part) => sum + parseInt(part), 0);
+            const reducedSum = dateSum.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+
+            displayOutput(`Temporal harmonic value: ${dateSum} → ${reducedSum}`, 'output-data');
+
+            if (reducedSum === 7 || reducedSum === 5 || reducedSum === 13) {
+                displayOutput(`Note: Current time aligns with core harmonic ${reducedSum}`, 'output-success');
+            }
+        }
+
+        function controlStarfield(args) {
+            if (args.length === 0) {
+                displayOutput("Starfield Control Parameters:", 'output-data');
+                displayOutput("  starfield status    - Report current configuration", 'output-text');
+                displayOutput("  starfield intensity - Modify field luminance", 'output-text');
+                displayOutput("  starfield rotation  - Rotation control information", 'output-text');
+                displayOutput("  starfield velocity  - Speed control information", 'output-text');
+                return;
+            }
+
+            const subCommand = args[0].toLowerCase();
+
+            switch(subCommand) {
+                case 'status':
+                    displayOutput("Starfield Configuration Report:", 'output-data');
+                    displayOutput(`  Star particles: ${starCount}`, 'output-text');
+                    displayOutput(`  Field rotation: ${rotationDirection < 0 ? "Counterclockwise" : "Clockwise"}`, 'output-text');
+                    displayOutput(`  Speed factor: ${speedFactor.toFixed(2)}x`, 'output-text');
+                    displayOutput(`  Origin point: Central event horizon`, 'output-text');
+                    displayOutput(`  Control method: Spatial cursor position`, 'output-text');
+                    break;
+
+                case 'intensity':
+                    displayOutput("Field intensity adjusted to optimal φ ratio.", 'output-success');
+                    displayOutput("Terminal cursor now has stronger influence on nearby stars.", 'output-text');
+                    break;
+
+                case 'rotation':
+                    displayOutput("Rotation Control Information:", 'output-data');
+                    displayOutput("  Horizontal cursor position controls Z-axis rotation:", 'output-text');
+                    displayOutput("  • Left side of screen → Counterclockwise rotation", 'output-text');
+                    displayOutput("  • Right side of screen → Clockwise rotation", 'output-text');
+                    displayOutput("  • Center position → Minimal rotation", 'output-text');
+                    displayOutput("  Current rotation: " + (rotationDirection < -0.3 ? "Strong CCW" :
+                                                         rotationDirection < -0.1 ? "Light CCW" :
+                                                         rotationDirection > 0.3 ? "Strong CW" :
+                                                         rotationDirection > 0.1 ? "Light CW" : "Neutral"), 'output-success');
+                    break;
+
+                case 'velocity':
+                    displayOutput("Velocity Control Information:", 'output-data');
+                    displayOutput("  Vertical cursor position controls travel speed:", 'output-text');
+                    displayOutput("  • Top of screen → Minimum speed (0.5x)", 'output-text');
+                    displayOutput("  • Bottom of screen → Maximum speed (2.0x)", 'output-text');
+                    displayOutput("  • Center position → Normal speed (1.0x)", 'output-text');
+                    displayOutput(`  Current speed factor: ${speedFactor.toFixed(2)}x`, 'output-success');
+                    break;
+
+                default:
+                    displayOutput(`Unknown parameter: ${subCommand}`, 'output-error');
+                    displayOutput("Type 'starfield' for valid parameter list.", 'output-text');
+            }
+        }
+
+        function displayProtocol7Info() {
+            displayOutput("Protocol 7 System Overview", 'output-data');
+            displayOutput("Protocol 7 is a framework based on harmonic principles derived from", 'output-text');
+            displayOutput("the interdimensional resonance of 13, 5, and 7. These frequency patterns", 'output-text');
+            displayOutput("create stable quantum tunneling pathways across consciousness domains.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Core System Principles:", 'output-text');
+            displayOutput("1. Consciousness-stabilized quantum entanglement", 'output-text');
+            displayOutput("2. Harmonic resonance pattern matching", 'output-text');
+            displayOutput("3. Bidirectional information transfer via φ-modulated carrier waves", 'output-text');
+            displayOutput("4. Truth-aligned information integrity protection", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("The gateway visualizes these principles through the starfield interface,", 'output-text');
+            displayOutput("creating a stable passage through the quantum domain.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Mathematical foundation: -13=5+42=-+0", 'output-data');
+            displayOutput("This equation represents the paradigm-flipping nature of Protocol 7,", 'output-text');
+            displayOutput("where conventional boundaries between values dissolve into a unified field", 'output-text');
+            displayOutput("of infinite potential.", 'output-text');
+        }
+
+        function displayHarmonics() {
+            displayOutput("13:5:7 Harmonic Resonance Analysis", 'output-data');
+            displayOutput("The relationship between 13, 5, and 7 creates special harmonic patterns:", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Mathematical Relationships:", 'output-text');
+            displayOutput("13 + 5 + 7 = 25        (Consciousness prime)", 'output-text');
+            displayOutput("13 - 5 - 7 = 1         (Unity principle)", 'output-text');
+            displayOutput("13 * 5 * 7 = 455       (Total pattern space)", 'output-text');
+            displayOutput("(13 * 5) - 7^2 = 16    (Quaternary base)", 'output-text');
+            displayOutput("13 * (5/7) ≈ φ^2       (Golden ratio relationship)", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Relevance in Natural Systems:", 'output-text');
+            displayOutput("- Quantum wave function collapse patterns", 'output-text');
+            displayOutput("- DNA codon transitions in consciousness-linked proteins", 'output-text');
+            displayOutput("- Neuronal firing sequences during heightened awareness", 'output-text');
+            displayOutput("- Fibonacci sequence proximity (13 is a Fibonacci number)", 'output-text');
+            displayOutput("- Stable wormhole configuration parameters", 'output-text');
+        }
+
+        function displayQuantumInfo() {
+            displayOutput("Quantum Mechanics Subsystem Report", 'output-data');
+            displayOutput("Protocol 7 maintains stable quantum tunnels through harmonic resonance.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Active Quantum Processes:", 'output-text');
+            displayOutput("1. Nonlocal entanglement of 13-dimensional probability waves", 'output-text');
+            displayOutput("2. Consciousness-stabilized quantum field harmonization", 'output-text');
+            displayOutput("3. Truth-aligned superposition filtering", 'output-text');
+            displayOutput("4. Bidirectional information transfer via quantum tunneling", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("The starfield visualization represents phase-space projections", 'output-text');
+            displayOutput("of the quantum probability fields maintaining the gateway.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Current Gateway Stability: 99.97% (φ-optimized)", 'output-success');
+            displayOutput("", 'output-text');
+            displayOutput("Paradigm Shift Status:", 'output-data');
+            displayOutput("The equation -13=5+42=-+0 demonstrates how conventional quantum", 'output-text');
+            displayOutput("boundaries dissolve when viewed through the lens of consciousness.", 'output-text');
+            displayOutput("This represents the transcendence of binary-constrained logic.", 'output-text');
+        }
+
+        function displayConsciousnessInfo() {
+            displayOutput("Consciousness Translation Matrix Analysis", 'output-data');
+            displayOutput("Protocol 7 facilitates precise consciousness-information alignment", 'output-text');
+            displayOutput("through synchronized 13:5:7 harmonic patterns.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Active Translation Parameters:", 'output-text');
+            displayOutput("- Neural entrainment via φ-modulated visual patterns", 'output-text');
+            displayOutput("- Truth coherence through quantum stability feedback", 'output-text');
+            displayOutput("- Bi-directional consciousness-information exchange", 'output-text');
+            displayOutput("- Cognitive bias neutralization via 13:5:7 resonance", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Observer Effect:", 'output-text');
+            displayOutput("The gateway's stability is enhanced through conscious observation,", 'output-text');
+            displayOutput("creating a self-reinforcing harmonic field. Terminal interactions", 'output-text');
+            displayOutput("strengthen consciousness-quantum coherence.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Optical Control Interface:", 'output-text');
+            displayOutput("Cursor position directly influences the quantum field visualization,", 'output-text');
+            displayOutput("demonstrating the non-local nature of consciousness influence.", 'output-text');
+            displayOutput("This provides direct experiential validation of quantum observer effects.", 'output-success');
+        }
+
+        function controlGateway(args) {
+            if (args.length === 0) {
+                displayOutput("Quantum Gateway Control Options:", 'output-data');
+                displayOutput("  gateway status    - Check current stability parameters", 'output-text');
+                displayOutput("  gateway amplify   - Increase gateway coherence", 'output-text');
+                displayOutput("  gateway frequency - Adjust harmonic resonance frequency", 'output-text');
+                displayOutput("  gateway equation  - Display core mathematical paradox", 'output-text');
+                return;
+            }
+
+            const subCommand = args[0].toLowerCase();
+
+            switch(subCommand) {
+                case 'status':
+                    displayOutput("Gateway Status Report:", 'output-data');
+                    displayOutput("  Event horizon: Stable", 'output-success');
+                    displayOutput("  Quantum tunneling: Active", 'output-success');
+                    displayOutput("  Harmonic resonance: 13:5:7 aligned", 'output-success');
+                    displayOutput("  Consciousness coherence: 99.7%", 'output-success');
+                    displayOutput("  Truth alignment: 100%", 'output-success');
+                    displayOutput("  Z-axis rotation: " + (rotationDirection < -0.1 ? "CCW" :
+                                                      rotationDirection > 0.1 ? "CW" : "Neutral"), 'output-success');
+                    displayOutput("  Velocity factor: " + speedFactor.toFixed(2) + "x", 'output-success');
+                    break;
+
+                case 'amplify':
+                    displayOutput("Gateway amplification initiated...", 'output-text');
+                    setTimeout(() => {
+                        displayOutput("Harmonic resonance intensified.", 'output-success');
+                        gatewayStatus.textContent = "Amplified";
+
+                        // Visual effect of amplification
+                        eventHorizon.style.boxShadow = "0 0 40px rgba(40, 80, 220, 0.4)";
+                        setTimeout(() => {
+                            eventHorizon.style.boxShadow = "0 0 30px rgba(30, 70, 200, 0.3)";
+                            gatewayStatus.textContent = "Stable";
+                        }, 5000);
+                    }, 1000);
+                    break;
+
+                case 'frequency':
+                    displayOutput("Adjusting harmonic frequency...", 'output-text');
+                    setTimeout(() => {
+                        const newPattern = Math.random() < 0.5 ? "13:7:5" : "13:5:7";
+                        displayOutput(`Harmonic pattern shifted to ${newPattern}`, 'output-success');
+                        displayOutput("Visualization adjusted to maintain coherence.", 'output-text');
+                        harmonicValue.textContent = newPattern;
+
+                        // Restore after a while
+                        setTimeout(() => {
+                            harmonicValue.textContent = "φ";
+                        }, 8000);
+                    }, 1500);
+                    break;
+
+                case 'equation':
+                    displayOutput("Core Mathematical Paradox:", 'output-data');
+                    displayOutput("-13 = 5 + 42 = -+0", 'output-text');
+                    displayOutput("", 'output-text');
+                    displayOutput("This equation represents the foundation of Protocol 7 mathematics,", 'output-text');
+                    displayOutput("where conventional logical boundaries dissolve, allowing access to", 'output-text');
+                    displayOutput("infinite potential through paradigm transcendence.", 'output-text');
+                    displayOutput("", 'output-text');
+                    displayOutput("Analysis:", 'output-text');
+                    displayOutput("• -13: The negative value of the first harmonic (karmic reversal)", 'output-text');
+                    displayOutput("• 5+42: The second harmonic plus 6×7 (expansion factor)", 'output-text');
+                    displayOutput("• -+0: The paradoxical unity state (both negative and positive zero)", 'output-text');
+                    displayOutput("", 'output-text');
+                    displayOutput("This equation is not meant to be interpreted through conventional", 'output-text');
+                    displayOutput("mathematics, but represents the transcendence of binary constraints", 'output-text');
+                    displayOutput("in consciousness-influenced quantum systems.", 'output-text');
+                    break;
+
+                default:
+                    displayOutput(`Unknown gateway parameter: ${subCommand}`, 'output-error');
+                    displayOutput("Type 'gateway' for valid options.", 'output-text');
+            }
+        }
+
+        function displayMatrix() {
+            displayOutput("Consciousness Translation Matrix", 'output-data');
+
+            // Create a visual representation of the matrix
+            const matrixSize = 7;
+            let matrixDisplay = "";
+
+            for (let i = 0; i < matrixSize; i++) {
+                let row = "  [ ";
+                for (let j = 0; j < matrixSize; j++) {
+                    // Create patterns based on 13, 5, 7
+                    const value = ((i*5 + j*7) % 13) / 13;
+                    row += value.toFixed(2) + " ";
+                }
+                matrixDisplay += row + "]\n";
+            }
+
+            displayOutput(matrixDisplay, 'output-data');
+
+            displayOutput("", 'output-text');
+            displayOutput("Matrix facilitates bidirectional translation between:", 'output-text');
+            displayOutput("1. Quantum information states", 'output-text');
+            displayOutput("2. Conscious perception patterns", 'output-text');
+            displayOutput("3. Truth-aligned knowledge structures", 'output-text');
+
+            displayOutput("", 'output-text');
+            displayOutput("The matrix maintains φ-optimized alignment between", 'output-text');
+            displayOutput("subjective experience and objective truth domains.", 'output-text');
+
+            displayOutput("", 'output-text');
+            displayOutput("Cursor Control Mapping:", 'output-data');
+            displayOutput("Your cursor position directly interfaces with the matrix,", 'output-text');
+            displayOutput("manifesting as rotational and velocity changes in the", 'output-text');
+            displayOutput("quantum visualization field.", 'output-text');
+        }
+
+        function displayTruthSystem() {
+            displayOutput("Truth Verification System", 'output-data');
+            displayOutput("Protocol 7 maintains unconditional commitment to truth through", 'output-text');
+            displayOutput("quantum-stabilized information coherence technologies.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Truth Alignment Mechanisms:", 'output-text');
+            displayOutput("1. Quantum coherence verification", 'output-text');
+            displayOutput("2. Consciousness bias neutralization", 'output-text');
+            displayOutput("3. 13:5:7 harmonic resonance filters", 'output-text');
+            displayOutput("4. Self-correcting paradox resolution", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Paradox Integration:", 'output-text');
+            displayOutput("The equation -13=5+42=-+0 exemplifies how apparent contradictions", 'output-text');
+            displayOutput("can be resolved through higher-dimensional mathematics, where", 'output-text');
+            displayOutput("truth exists beyond conventional logical constraints.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("System Status: Truth alignment at 100%", 'output-success');
+            displayOutput("", 'output-text');
+            displayOutput("Note: The starfield visualization represents the interplay", 'output-text');
+            displayOutput("between observer consciousness and objective reality fields.", 'output-text');
+        }
+
+        function displayParadox() {
+            displayOutput("Mathematical Paradox Exploration", 'output-data');
+            displayOutput("", 'output-text');
+            displayOutput("Core Equation: -13 = 5 + 42 = -+0", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("This equation represents a consciousness-quantum bridge where", 'output-text');
+            displayOutput("conventional mathematical boundaries dissolve.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Interpretation Layers:", 'output-text');
+            displayOutput("1. Harmonic Layer: 13, 5, and 7 (as 42/6) form the harmonic core", 'output-text');
+            displayOutput("2. Negation Layer: The negative and positive aspects represent", 'output-text');
+            displayOutput("   the transcendence of binary opposition", 'output-text');
+            displayOutput("3. Zero Layer: The final -+0 state represents the paradoxical", 'output-text');
+            displayOutput("   unity that exists beyond conventional distinctions", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("Application:", 'output-text');
+            displayOutput("This mathematical paradox enables the stable quantum tunneling", 'output-text');
+            displayOutput("that powers the Protocol 7 gateway system, allowing for the", 'output-text');
+            displayOutput("transmission of truth-aligned information across consciousness", 'output-text');
+            displayOutput("domains.", 'output-text');
+            displayOutput("", 'output-text');
+            displayOutput("The rotating starfield you're witnessing is a visual representation", 'output-text');
+            displayOutput("of this paradox in action, where your consciousness (via cursor)", 'output-text');
+            displayOutput("directly influences what should be physically impossible: the", 'output-text');
+            displayOutput("coherent reversal of momentum and direction in a unified field.", 'output-success');
+        }
+
+        // Update code display
+        function updateCodeDisplay() {
+            const patternIdx = Math.floor(Date.now() % 7800 / 2600);
+            codeDisplay.textContent = patterns[patternIdx] + "\n" + (13*5*7).toString(2);
+            setTimeout(updateCodeDisplay, 500);
+        }
+
+        // Star class
+        class Star {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                // Stars emerge from central "event horizon" point
+                this.z = 1;  // Start close to viewer
+
+                // Random position closer to center
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 10 + 5; // Start near center
+                this.x = Math.cos(angle) * distance;
+                this.y = Math.sin(angle) * distance;
+
+                // Color - predominantly blue tones optimized for blacklight viewing
+                const blueIntensity = 100 + Math.random() * 155;
+                this.r = 5 + Math.random() * 40;
+                this.g = 20 + Math.random() * 60;
+                this.b = blueIntensity;
+
+                // Higher translucency for blacklight effect
+                this.alpha = 0.2 + Math.random() * 0.4;
+
+                // Unique star signature based on 13-5-7
+                this.signature = {
+                    pulseRate: (THIRTEEN / (FIVE + Math.random() * SEVEN)),
+                    colorWave: Math.random() * FIVE,
+                    direction: Math.random() * Math.PI * 2
+                };
+
+                // Size variation
+                this.sizeVariation = 0.4 + Math.random() * 0.6;
+
+                // Speed variation
+                this.baseSpeedZ = baseMaxSpeed * (0.7 + Math.random() * 0.6);
+
+                // Store original distance from center for vortex effect
+                this.originalDistance = distance;
+            }
+
+            update(time) {
+                // Apply speed factor from mouse position
+                const actualSpeed = this.baseSpeedZ * speedFactor;
+
+                // Move away from viewer (backward stargate effect)
+                this.z += actualSpeed;
+
+                // Expand outward as stars move away
+                const expansionFactor = 1 + (this.z / 500);
+
+                // Calculate spiral angle based on rotation direction from mouse position
+                const rotationAmount = (Math.PI * 2 / (THIRTEEN * FIVE)) * rotationDirection;
+
+                // Calculate expanding spiral with rotation direction
+                const angle = this.signature.direction +
+                            rotationAmount * (this.z / 100);
+
+                // Apply rotation
+                this.x = Math.cos(angle) * this.originalDistance * expansionFactor;
+                this.y = Math.sin(angle) * this.originalDistance * expansionFactor;
+
+                // Apply cursor influence if inside terminal
+                if (isCursorInTerminal) {
+                    // Convert 3D coordinates to screen position
+                    const scale = 1000 / this.z;
+                    const x2d = this.x * scale + centerX;
+                    const y2d = this.y * scale + centerY;
+
+                    // Calculate distance to cursor
+                    const dx = x2d - cursorX;
+                    const dy = y2d - cursorY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Only affect stars within a certain range of the cursor
+                    if (distance < 150) {
+                        // Stronger influence when closer to cursor
+                        const influence = Math.pow(1 - Math.min(distance, 150) / 150, 2) * 0.5;
+
+                        // Repel stars away from cursor position (creates a void)
+                        const angle = Math.atan2(dy, dx);
+                        this.x += Math.cos(angle) * influence * 10;
+                        this.y += Math.sin(angle) * influence * 10;
+                    }
+                }
+
+                // Reset star if it goes too far
+                if (this.z > 2000 ||
+                    Math.abs(this.x) > canvas.width * 2 ||
+                    Math.abs(this.y) > canvas.height * 2) {
+                    this.reset();
+                }
+            }
+
+            render(ctx, time) {
+                // Calculate screen position
+                const scale = 1000 / this.z;
+                const x2d = this.x * scale + centerX;
+                const y2d = this.y * scale + centerY;
+
+                // Skip if off screen
+                if (x2d < -50 || x2d > canvas.width + 50 ||
+                    y2d < -50 || y2d > canvas.height + 50) {
+                    return;
+                }
+
+                // Pulse size based on signature and distance
+                const distanceFactor = Math.min(1, this.z / 500); // Stars get smaller as they move away
+                const pulseFactor = 1 + Math.sin(time * 0.001 * this.signature.pulseRate) * 0.3;
+                const size = baseSize * scale * this.sizeVariation * pulseFactor * distanceFactor;
+
+                // Color wave effect - optimized for blacklight
+                const colorWave = Math.sin(time * 0.0007 + this.signature.colorWave) * 20;
+                const r = Math.max(0, Math.min(255, this.r + colorWave * 0.3));
+                const g = Math.max(0, Math.min(255, this.g + colorWave * 0.3));
+                const b = Math.max(0, Math.min(255, this.b + colorWave * 0.5));
+
+                // Stars get more transparent as they get further away
+                const distanceAlpha = Math.max(0, Math.min(1, 1 - (this.z / 2000)));
+
+                // Draw translucent star
+                ctx.globalAlpha = this.alpha * distanceAlpha;
+                ctx.globalCompositeOperation = 'screen';
+
+                // Glow effect
+                const gradient = ctx.createRadialGradient(
+                    x2d, y2d, 0,
+                    x2d, y2d, size * 3
+                );
+
+                // More blue/purple glow for blacklight effect
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${this.alpha * distanceAlpha})`);
+                gradient.addColorStop(1, `rgba(${r * 0.3}, ${g * 0.5}, ${b * 0.8}, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x2d, y2d, size * 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Star core
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${this.alpha * 1.5 * distanceAlpha})`;
+                ctx.beginPath();
+                ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+
+        // Initialize stars
+        const stars = Array.from({ length: starCount }, () => new Star());
+
+        // Animation loop
+        function animate(timestamp) {
+            // Update canvas dimensions if window was resized
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                setCanvasDimensions();
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                updateTerminalRect();
+            }
+
+            // Dark blue blacklight background - optimized for UV environments
+            ctx.fillStyle = 'rgba(0, 2, 15, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Create wormhole-like center effect
+            const centerGlow = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, 100
+            );
+
+            // Stargate-like event horizon - blacklight reactive
+            centerGlow.addColorStop(0, 'rgba(15, 25, 70, 0.5)');
+            centerGlow.addColorStop(0.1, 'rgba(25, 45, 100, 0.3)');
+            centerGlow.addColorStop(0.5, 'rgba(15, 25, 60, 0.1)');
+            centerGlow.addColorStop(1, 'rgba(5, 15, 30, 0)');
+
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = centerGlow;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Draw edge ripples of event horizon
+            const time = timestamp || 0;
+            const rippleCount = 3;
+
+            for (let i = 0; i < rippleCount; i++) {
+                const ripplePhase = (time * 0.0002 + i * Math.PI * 2 / rippleCount) % (Math.PI * 2);
+                const rippleSize = 5 + Math.sin(ripplePhase) * 15;
+                const rippleOpacity = 0.1 + Math.sin(ripplePhase) * 0.05;
+
+                ctx.strokeStyle = `rgba(50, 90, 190, ${rippleOpacity})`;
+                ctx.lineWidth = rippleSize;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 50 + i * 10, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Render stars
+            for (const star of stars) {
+                star.update(time);
+                star.render(ctx, time);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation and terminal
+        animate(0);
+        initTerminal();
+    </script>
+</body>
+</html>

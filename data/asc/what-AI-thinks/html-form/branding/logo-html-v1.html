@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive Logo - Psychedelic Construction</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000014;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: monospace;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #87CEEB;
+            z-index: 100;
+            background: rgba(0, 0, 20, 0.8);
+            padding: 15px;
+            border: 1px solid #4169E1;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(135, 206, 235, 0.3);
+        }
+
+        .controls button {
+            background: #191970;
+            color: #87CEEB;
+            border: 1px solid #6495ED;
+            padding: 5px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .controls button:hover {
+            background: #4169E1;
+            box-shadow: 0 0 15px #87CEEB;
+        }
+
+        .controls label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Psychedelic animations */
+        .glow-filter {
+            filter: url(#blueGlow);
+        }
+
+        .rotating {
+            animation: subtle-rotate 20s linear infinite;
+        }
+
+        @keyframes subtle-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .pulsing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        /* Blacklight overlay */
+        .blacklight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(
+                circle at center,
+                transparent 0%,
+                rgba(25, 25, 112, 0.2) 40%,
+                rgba(0, 0, 40, 0.4) 100%
+            );
+            mix-blend-mode: screen;
+            animation: blacklight-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes blacklight-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Fluorescent particles */
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #00FFFF;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00FFFF;
+            pointer-events: none;
+        }
+
+        .construction-line {
+            stroke: #FF00FF;
+            stroke-width: 1;
+            opacity: 0.3;
+            stroke-dasharray: 5,5;
+        }
+    </style>
+</head>
+<body>
+    <div class="blacklight-overlay"></div>
+
+    <div class="controls">
+        <h3 style="margin-top: 0; color: #00FFFF;">Logo Construction</h3>
+        <button onclick="toggleConstruction()">Toggle Construction</button>
+        <button onclick="toggleMask()">Toggle Mask</button>
+        <button onclick="toggleRotation()">Toggle Rotation</button>
+        <label>
+            <input type="checkbox" id="showRecursion" onchange="updateLogo()"> Show Recursion
+        </label>
+        <label>
+            <input type="checkbox" id="showGlow" checked onchange="updateLogo()"> Show Glow
+        </label>
+        <div style="margin-top: 15px; font-size: 12px; color: #6495ED;">
+            Circle size: <span id="circleSize">40</span>px<br>
+            Outline: <span id="outlineSize">4</span>px<br>
+            Recursion: 45° CCW
+        </div>
+    </div>
+
+    <div class="logo-container">
+        <svg viewBox="-300 -300 600 600" xmlns="http://www.w3.org/2000/svg" id="logoSvg">
+            <defs>
+                <!-- Blue glow filter -->
+                <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                    <feColorMatrix in="coloredBlur" type="matrix"
+                        values="0 0 0 0 0.4
+                                0 0 0 0 0.6
+                                0 0 0 0 1
+                                0 0 0 1 0"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+
+                <!-- Circular mask -->
+                <mask id="circleMask">
+                    <rect x="-300" y="-300" width="600" height="600" fill="black"/>
+                    <circle cx="0" cy="0" r="200" fill="white" id="maskCircle"/>
+                </mask>
+
+                <!-- Psychedelic gradient -->
+                <radialGradient id="psychGradient">
+                    <stop offset="0%" style="stop-color:#00FFFF;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#6495ED;stop-opacity:0.8" />
+                    <stop offset="100%" style="stop-color:#191970;stop-opacity:0.3" />
+                </radialGradient>
+            </defs>
+
+            <!-- Dark background -->
+            <rect x="-300" y="-300" width="600" height="600" fill="#000014"/>
+
+            <!-- Logo group -->
+            <g id="logoGroup">
+                <!-- Will be populated by JavaScript -->
+            </g>
+        </svg>
+    </div>
+
+    <script>
+        let showConstruction = false;
+        let showMask = true;
+        let rotating = false;
+        const circleRadius = 40;
+        const strokeWidth = 4;
+
+        function createSpokeUnit(x = 0, y = 0, scale = 1) {
+            const r = circleRadius * scale;
+            const d = r * 2; // Distance from center
+
+            return `
+                <g class="spoke-unit">
+                    <circle cx="${x}" cy="${y - d}" r="${r}" fill="none" stroke="#87CEEB" stroke-width="${strokeWidth}"/>
+                    <circle cx="${x + d}" cy="${y}" r="${r}" fill="none" stroke="#87CEEB" stroke-width="${strokeWidth}"/>
+                    <circle cx="${x}" cy="${y + d}" r="${r}" fill="none" stroke="#87CEEB" stroke-width="${strokeWidth}"/>
+                    <circle cx="${x - d}" cy="${y}" r="${r}" fill="none" stroke="#87CEEB" stroke-width="${strokeWidth}"/>
+                </g>
+            `;
+        }
+
+        function updateLogo() {
+            const logoGroup = document.getElementById('logoGroup');
+            const showRecursion = document.getElementById('showRecursion').checked;
+            const showGlow = document.getElementById('showGlow').checked;
+
+            let content = '';
+
+            // Add construction lines if enabled
+            if (showConstruction) {
+                content += '<g class="construction-lines">';
+                for (let i = 0; i < 8; i++) {
+                    const angle = i * 45;
+                    content += `<line x1="0" y1="0" x2="250" y2="0"
+                        transform="rotate(${angle})" class="construction-line"/>`;
+                }
+                content += '</g>';
+            }
+
+            // Main group with optional effects
+            content += `<g ${showGlow ? 'filter="url(#blueGlow)"' : ''}
+                           ${showMask ? 'mask="url(#circleMask)"' : ''}>`;
+
+            // Central circle
+            content += `<circle cx="0" cy="0" r="${circleRadius}" fill="none"
+                        stroke="#87CEEB" stroke-width="${strokeWidth}" class="pulsing"/>`;
+
+            // Outer pattern: 8 spokes
+            content += '<g id="outerPattern">';
+            for (let i = 0; i < 8; i++) {
+                content += `<g transform="rotate(${i * 45})">${createSpokeUnit()}</g>`;
+            }
+            content += '</g>';
+
+            // Inner recursive pattern (if enabled)
+            if (showRecursion) {
+                content += '<g id="innerPattern" transform="scale(0.5) rotate(45)" opacity="0.8">';
+                for (let i = 0; i < 8; i++) {
+                    content += `<g transform="rotate(${i * 45})">${createSpokeUnit()}</g>`;
+                }
+                content += '</g>';
+            }
+
+            content += '</g>';
+
+            // Mask circle outline (if visible)
+            if (!showMask && showConstruction) {
+                content += '<circle cx="0" cy="0" r="200" fill="none" stroke="#FF00FF" stroke-width="2" stroke-dasharray="10,5" opacity="0.5"/>';
+            }
+
+            logoGroup.innerHTML = content;
+
+            // Update info display
+            document.getElementById('circleSize').textContent = circleRadius;
+            document.getElementById('outlineSize').textContent = strokeWidth;
+        }
+
+        function toggleConstruction() {
+            showConstruction = !showConstruction;
+            updateLogo();
+        }
+
+        function toggleMask() {
+            showMask = !showMask;
+            updateLogo();
+        }
+
+        function toggleRotation() {
+            rotating = !rotating;
+            const logoGroup = document.getElementById('logoGroup');
+            if (rotating) {
+                logoGroup.classList.add('rotating');
+            } else {
+                logoGroup.classList.remove('rotating');
+            }
+        }
+
+        // Particle effects
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+
+            const colors = ['#00FFFF', '#87CEEB', '#6495ED', '#7B68EE'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 15px ${color}`;
+
+            document.body.appendChild(particle);
+
+            // Animate particle
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 200;
+            const duration = 2000 + Math.random() * 2000;
+
+            particle.animate([
+                {
+                    transform: 'translate(0, 0) scale(1)',
+                    opacity: 1
+                },
+                {
+                    transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                    opacity: 0
+                }
+            ], {
+                duration: duration,
+                easing: 'ease-out'
+            }).onfinish = () => particle.remove();
+        }
+
+        // Mouse interaction
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.9) {
+                createParticle(e.clientX, e.clientY);
+            }
+        });
+
+        // Initialize
+        updateLogo();
+
+        // Periodic particle generation from center
+        setInterval(() => {
+            const rect = document.querySelector('.logo-container').getBoundingClientRect();
+            createParticle(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }, 500);
+    </script>
+</body>
+</html>

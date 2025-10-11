@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenki Unified Cosmos - Resource Flow Navigator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #08030f;
+            overflow: hidden;
+            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+            height: 100vh;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Enhanced HUD with Protocol-7 styling */
+        .cosmic-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #50a0ff;
+            font-size: 12px;
+            background: rgba(12, 5, 24, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(80, 160, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(80, 160, 255, 0.2);
+            min-width: 220px;
+        }
+
+        .hud-title {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px #00d4ff;
+        }
+
+        .hud-line {
+            margin: 5px 0;
+            font-size: 11px;
+        }
+
+        .hud-value {
+            color: #9f8fff;
+            font-weight: bold;
+        }
+
+        /* Resource flow indicator */
+        .resource-flow {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(32, 0, 64, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(159, 143, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            color: #9f8fff;
+            font-size: 11px;
+            min-width: 200px;
+        }
+
+        .flow-indicator {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .flow-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(80, 160, 255, 0.2);
+            border-radius: 2px;
+            margin-left: 10px;
+            overflow: hidden;
+        }
+
+        .flow-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4080ff, #9f8fff);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Controls panel */
+        .controls-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            background: rgba(15, 5, 30, 0.6); /* More translucent */
+            border: 1px solid rgba(64, 128, 255, 0.5); /* More translucent border */
+            color: #50a0ff;
+            padding: 10px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(64, 128, 255, 0.15); /* Softer shadow */
+        }
+
+        .control-btn:hover {
+            background: rgba(32, 10, 64, 0.7); /* Still translucent on hover */
+            box-shadow: 0 0 25px rgba(128, 64, 255, 0.3);
+            transform: scale(1.05);
+            border-color: rgba(128, 80, 224, 0.6);
+        }
+
+        .control-btn.active {
+            background: rgba(64, 32, 128, 0.7); /* Active but translucent */
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.6);
+            box-shadow: 0 0 25px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Slider controls with enhanced styling */
+        .slider-controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(12, 5, 24, 0.85);
+            padding: 15px 25px;
+            border-radius: 25px;
+            border: 1px solid rgba(80, 160, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(80, 160, 255, 0.2);
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-label {
+            color: #50a0ff;
+            font-size: 10px;
+            min-width: 60px;
+        }
+
+        /* Enhanced translucent blue slider style from enhanced_zenki_purr */
+        .cosmic-slider {
+            width: 120px;
+            height: 5px;
+            background: rgba(64, 128, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+            position: relative;
+        }
+
+        .cosmic-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg,
+                rgba(100, 200, 255, 0.8) 0%,
+                rgba(64, 150, 255, 0.9) 30%,
+                rgba(30, 100, 255, 0.95) 70%,
+                rgba(20, 80, 200, 0.85) 100%);
+            border: 2px solid rgba(150, 220, 255, 0.6);
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow:
+                0 0 15px rgba(100, 200, 255, 0.7),
+                inset 0 0 8px rgba(255, 255, 255, 0.3),
+                inset 0 0 4px rgba(100, 200, 255, 0.5);
+            backdrop-filter: blur(3px);
+            transition: all 0.3s ease;
+        }
+
+        .cosmic-slider::-webkit-slider-thumb:hover {
+            background: linear-gradient(135deg,
+                rgba(120, 220, 255, 0.9) 0%,
+                rgba(80, 170, 255, 0.95) 30%,
+                rgba(50, 120, 255, 1.0) 70%,
+                rgba(30, 90, 220, 0.9) 100%);
+            border: 2px solid rgba(180, 240, 255, 0.8);
+            box-shadow:
+                0 0 20px rgba(120, 220, 255, 0.9),
+                inset 0 0 10px rgba(255, 255, 255, 0.4),
+                inset 0 0 6px rgba(120, 220, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        .cosmic-slider::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            background: linear-gradient(135deg,
+                rgba(150, 240, 255, 0.95) 0%,
+                rgba(100, 190, 255, 1.0) 30%,
+                rgba(70, 140, 255, 1.0) 70%,
+                rgba(40, 100, 240, 0.95) 100%);
+            border: 2px solid rgba(200, 250, 255, 0.9);
+            box-shadow:
+                0 0 25px rgba(150, 240, 255, 1.0),
+                inset 0 0 12px rgba(255, 255, 255, 0.5),
+                inset 0 0 8px rgba(150, 240, 255, 0.7);
+            transform: scale(1.05);
+        }
+
+        /* Firefox support */
+        .cosmic-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg,
+                rgba(100, 200, 255, 0.8) 0%,
+                rgba(64, 150, 255, 0.9) 30%,
+                rgba(30, 100, 255, 0.95) 70%,
+                rgba(20, 80, 200, 0.85) 100%);
+            border: 2px solid rgba(150, 220, 255, 0.6);
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow:
+                0 0 15px rgba(100, 200, 255, 0.7),
+                inset 0 0 8px rgba(255, 255, 255, 0.3),
+                inset 0 0 4px rgba(100, 200, 255, 0.5);
+            -moz-appearance: none;
+        }
+
+        /* Selection info panel */
+        .selection-info {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(12, 5, 24, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            color: #ff6b6b;
+            font-size: 11px;
+            min-width: 180px;
+            display: none;
+        }
+
+        .selection-info.active {
+            display: block;
+        }
+
+        /* Navigation mode indicator */
+        .nav-mode {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: rgba(32, 0, 64, 0.85);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(159, 143, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            color: #9f8fff;
+            font-size: 11px;
+            writing-mode: vertical-lr;
+            text-orientation: mixed;
+        }
+
+        /* Hyperspace scale indicator */
+        .scale-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(80, 160, 255, 0.3);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(12, 5, 24, 0.8), transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #50a0ff;
+            text-align: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .scale-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(159, 143, 255, 0.2);
+            border-radius: 50%;
+            animation: scaleRing 3s ease-in-out infinite;
+        }
+
+        @keyframes scaleRing {
+            0%, 100% { transform: scale(0.9); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cosmicCanvas"></canvas>
+
+    <!-- Enhanced HUD -->
+    <div class="cosmic-hud">
+        <div class="hud-title">UNIFIED COSMOS</div>
+        <div class="hud-line">Active Suns: <span class="hud-value" id="activeSuns">0</span></div>
+        <div class="hud-line">Scale: <span class="hud-value" id="currentScale">1.00</span></div>
+        <div class="hud-line">Mode: <span class="hud-value" id="currentMode">COSMIC</span></div>
+        <div class="hud-line">Grid: <span class="hud-value" id="gridStatus">FLUID</span></div>
+        <div class="hud-line">Selection: <span class="hud-value" id="selectionStatus">NONE</span></div>
+    </div>
+
+    <!-- Resource flow visualization -->
+    <div class="resource-flow">
+        <div class="hud-title">RESOURCE FLOW</div>
+        <div class="flow-indicator">
+            <span>CPU:</span>
+            <div class="flow-bar"><div class="flow-fill" id="cpuFlow" style="width: 30%"></div></div>
+        </div>
+        <div class="flow-indicator">
+            <span>MEM:</span>
+            <div class="flow-bar"><div class="flow-fill" id="memFlow" style="width: 45%"></div></div>
+        </div>
+        <div class="flow-indicator">
+            <span>NET:</span>
+            <div class="flow-bar"><div class="flow-fill" id="netFlow" style="width: 60%"></div></div>
+        </div>
+        <div class="flow-indicator">
+            <span>AMOS:</span>
+            <div class="flow-bar"><div class="flow-fill" id="amosFlow" style="width: 75%"></div></div>
+        </div>
+    </div>
+
+    <!-- Navigation mode -->
+    <div class="nav-mode" id="navMode">COSMIC SPACE</div>
+
+    <!-- Selection info -->
+    <div class="selection-info" id="selectionInfo">
+        <div class="hud-title">SELECTED ENTITY</div>
+        <div class="hud-line">ID: <span class="hud-value" id="selectedId">-</span></div>
+        <div class="hud-line">Type: <span class="hud-value" id="selectedType">-</span></div>
+        <div class="hud-line">Freq: <span class="hud-value" id="selectedFreq">-</span></div>
+        <div class="hud-line">Links: <span class="hud-value" id="selectedLinks">-</span></div>
+    </div>
+
+    <!-- Hyperspace scale -->
+    <div class="scale-indicator">
+        <div class="scale-ring"></div>
+        <div>
+            <div style="font-weight: bold;">SCALE</div>
+            <div id="scaleLevel">x1.00</div>
+        </div>
+    </div>
+
+    <!-- Enhanced slider controls -->
+    <div class="slider-controls">
+        <div class="slider-group">
+            <span class="slider-label">Sun Size:</span>
+            <input type="range" class="cosmic-slider" id="sunSizeSlider" min="3" max="20" value="10">
+            <span class="slider-label" id="sunSizeValue">10</span>
+        </div>
+        <div class="slider-group">
+            <span class="slider-label">Flow Rate:</span>
+            <input type="range" class="cosmic-slider" id="flowRateSlider" min="0" max="100" value="50">
+            <span class="slider-label" id="flowRateValue">50%</span>
+        </div>
+        <div class="slider-group">
+            <span class="slider-label">Grid Snap:</span>
+            <input type="range" class="cosmic-slider" id="gridSnapSlider" min="0" max="100" value="0">
+            <span class="slider-label" id="gridSnapValue">0%</span>
+        </div>
+    </div>
+
+    <!-- Control buttons -->
+    <div class="controls-panel">
+        <button class="control-btn" onclick="toggleMode('cosmic')">COSMIC</button>
+        <button class="control-btn" onclick="toggleMode('cubic')">CUBIC</button>
+        <button class="control-btn" onclick="toggleMode('starfield')">STARFIELD</button>
+        <button class="control-btn" onclick="toggleMode('resource')">RESOURCE</button>
+        <button class="control-btn" onclick="spawnEntity()">SPAWN</button>
+        <button class="control-btn" onclick="createConstellation()">CONSTELLATION</button>
+        <button class="control-btn" onclick="toggleSelection()">SELECT</button>
+        <button class="control-btn" onclick="resetView()">RESET</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('cosmicCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        // System state
+        let centerX = window.innerWidth / 2;
+        let centerY = window.innerHeight / 2;
+        let currentMode = 'cosmic';
+        let selectionMode = false;
+        let selectedEntity = null;
+        let currentScale = 1.0;
+        let gridSnapStrength = 0;
+        let sunSize = 10;
+        let flowRate = 0.5;
+
+        // Time and animation
+        let time = 0;
+        let animationId = null;
+
+        // 3D parameters
+        let rotX = 0;
+        let rotY = 0;
+        let rotZ = 0;
+        let focalLength = 600;
+
+        // Mouse state
+        let mouseX = centerX;
+        let mouseY = centerY;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0, rotX: 0, rotY: 0 };
+
+        // Entity arrays
+        let cosmicSuns = [];
+        let starField = [];
+        let cubeGrid = [];
+        let resourceFlows = [];
+        let attractionPoints = [];
+
+        // Colors
+        const colors = {
+            cosmic: {
+                sun: ['#ff1493', '#39ff14', '#00ffff', '#bf00ff', '#ff6600'],
+                axis: '#4169e1',
+                selection: '#ff6b6b',
+                attraction: ['#ff1493', '#00ffff', '#39ff14', '#bf00ff', '#ffff00']
+            },
+            grid: {
+                primary: '#203080',
+                secondary: '#102040',
+                axis: '#4080ff'
+            }
+        };
+
+        // Canvas resize
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+        }
+        resizeCanvas();
+
+        // 3D Point class
+        class Point3D {
+            constructor(x, y, z) {
+                this.x = x || 0;
+                this.y = y || 0;
+                this.z = z || 0;
+            }
+
+            clone() {
+                return new Point3D(this.x, this.y, this.z);
+            }
+
+            add(other) {
+                return new Point3D(
+                    this.x + other.x,
+                    this.y + other.y,
+                    this.z + other.z
+                );
+            }
+
+            multiply(scalar) {
+                return new Point3D(
+                    this.x * scalar,
+                    this.y * scalar,
+                    this.z * scalar
+                );
+            }
+
+            distance(other) {
+                const dx = this.x - other.x;
+                const dy = this.y - other.y;
+                const dz = this.z - other.z;
+                return Math.sqrt(dx*dx + dy*dy + dz*dz);
+            }
+        }
+
+        // Helper function for opacity
+        function addOpacity(hexColor, opacity) {
+            opacity = Math.max(0, Math.min(1, opacity));
+            const hex = hexColor.replace('#', '');
+            const alphaHex = Math.floor(opacity * 255).toString(16).padStart(2, '0');
+            return '#' + hex + alphaHex;
+        }
+
+        // Enhanced Cosmic Sun class with all features
+        class CosmicSun {
+            constructor(x, y, z) {
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.position = new Point3D(x, y, z);
+                this.velocity = new Point3D(
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5
+                );
+
+                // Core properties
+                this.size = Math.max(3, sunSize + Math.random() * 5); // Ensure minimum size
+                this.frequency = 384.615 + (Math.random() - 0.5) * 50;
+                this.intensity = 0.6 + Math.random() * 0.4;
+                this.phase = Math.random() * Math.PI * 2;
+
+                // Visual properties
+                this.color = colors.cosmic.sun[Math.floor(Math.random() * colors.cosmic.sun.length)];
+                this.rotation = 0;
+                this.rotationSpeed = -0.02 - Math.random() * 0.01; // CCW
+
+                // Selection and state
+                this.selected = false;
+                this.axisStars = this.createAxisStars();
+                this.stateRing = {
+                    radius: Math.max(10, this.size * 2), // Ensure minimum radius
+                    rotation: 0,
+                    active: false,
+                    state: 'idle'
+                };
+
+                // Trail system
+                this.trail = [];
+                this.maxTrailLength = 30;
+
+                // Connections
+                this.connections = [];
+                this.resources = {
+                    cpu: Math.random(),
+                    memory: Math.random(),
+                    network: Math.random(),
+                    amos: Math.random()
+                };
+
+                // Attraction to points
+                this.nearestAttraction = null;
+                this.attractionStrength = 0;
+            }
+
+            createAxisStars() {
+                // 6 stars for cubic axis selection
+                const stars = [];
+                const distance = Math.max(20, this.size * 2.5); // Ensure minimum distance
+                const axes = [
+                    { x: distance, y: 0, z: 0 },
+                    { x: -distance, y: 0, z: 0 },
+                    { x: 0, y: distance, z: 0 },
+                    { x: 0, y: -distance, z: 0 },
+                    { x: 0, y: 0, z: distance },
+                    { x: 0, y: 0, z: -distance }
+                ];
+
+                axes.forEach(axis => {
+                    stars.push({
+                        offset: new Point3D(axis.x, axis.y, axis.z),
+                        size: 3,
+                        pulse: Math.random() * Math.PI * 2
+                    });
+                });
+
+                return stars;
+            }
+
+            update() {
+                // Update rotation
+                this.rotation += this.rotationSpeed;
+                this.stateRing.rotation -= 0.01; // CCW
+
+                // Grid snapping
+                if (gridSnapStrength > 0) {
+                    const gridSize = 60;
+                    const targetX = Math.round(this.position.x / gridSize) * gridSize;
+                    const targetY = Math.round(this.position.y / gridSize) * gridSize;
+                    const targetZ = Math.round(this.position.z / gridSize) * gridSize;
+
+                    this.position.x += (targetX - this.position.x) * gridSnapStrength * 0.1;
+                    this.position.y += (targetY - this.position.y) * gridSnapStrength * 0.1;
+                    this.position.z += (targetZ - this.position.z) * gridSnapStrength * 0.1;
+                } else {
+                    // Fluid movement
+                    this.position.x += this.velocity.x;
+                    this.position.y += this.velocity.y;
+                    this.position.z += this.velocity.z;
+
+                    // Check for nearby attraction points
+                    this.updateAttraction();
+                }
+
+                // Boundary constraints
+                const boundary = 800;
+                ['x', 'y', 'z'].forEach(axis => {
+                    if (Math.abs(this.position[axis]) > boundary) {
+                        this.velocity[axis] *= -0.8;
+                        this.position[axis] = Math.sign(this.position[axis]) * boundary;
+                    }
+                });
+
+                // Update trail
+                this.updateTrail();
+
+                // Update connections
+                this.updateConnections();
+
+                // Update resources flow
+                this.updateResources();
+            }
+
+            updateAttraction() {
+                // Find nearest attraction point
+                let nearest = null;
+                let minDist = Infinity;
+
+                attractionPoints.forEach(point => {
+                    const dist = this.position.distance(point.position);
+                    if (dist < minDist && dist < 150) {
+                        minDist = dist;
+                        nearest = point;
+                    }
+                });
+
+                if (nearest) {
+                    this.nearestAttraction = nearest;
+                    this.attractionStrength = 1 - (minDist / 150);
+
+                    // Apply attraction force
+                    const dx = nearest.position.x - this.position.x;
+                    const dy = nearest.position.y - this.position.y;
+                    const dz = nearest.position.z - this.position.z;
+                    const force = this.attractionStrength * 0.05;
+
+                    this.velocity.x += dx * force / minDist;
+                    this.velocity.y += dy * force / minDist;
+                    this.velocity.z += dz * force / minDist;
+
+                    // Dampen velocity when very close
+                    if (minDist < 30) {
+                        this.velocity.x *= 0.9;
+                        this.velocity.y *= 0.9;
+                        this.velocity.z *= 0.9;
+                    }
+                } else {
+                    this.nearestAttraction = null;
+                    this.attractionStrength = 0;
+                }
+            }
+
+            updateTrail() {
+                this.trail.push({
+                    position: this.position.clone(),
+                    intensity: this.intensity,
+                    life: 1.0
+                });
+
+                this.trail = this.trail.filter(point => {
+                    point.life -= 0.03;
+                    return point.life > 0;
+                }).slice(-this.maxTrailLength);
+            }
+
+            updateConnections() {
+                this.connections = [];
+                cosmicSuns.forEach(other => {
+                    if (other.id !== this.id) {
+                        const distance = this.position.distance(other.position);
+                        if (distance < 200) {
+                            this.connections.push({
+                                target: other,
+                                strength: 1 - (distance / 200)
+                            });
+                        }
+                    }
+                });
+            }
+
+            updateResources() {
+                // Simulate resource flow
+                Object.keys(this.resources).forEach(key => {
+                    this.resources[key] += (Math.random() - 0.5) * 0.1 * flowRate;
+                    this.resources[key] = Math.max(0, Math.min(1, this.resources[key]));
+                });
+            }
+
+            project() {
+                return project3D(this.position);
+            }
+
+            draw() {
+                const projected = this.project();
+                if (!projected) return;
+
+                // Draw components in order
+                this.drawTrail();
+                this.drawConnections();
+                if (currentMode === 'resource') {
+                    this.drawResourceFlow();
+                }
+                this.drawCore(projected);
+                if (this.selected) {
+                    this.drawAxisStars(projected);
+                    this.drawStateRing(projected);
+                }
+                if (this.nearestAttraction && this.attractionStrength > 0.1) {
+                    this.drawAttractionConnection(projected);
+                }
+            }
+
+            drawCore(p) {
+                const size = Math.max(1, this.size * p.scale); // Ensure minimum size
+
+                // Multi-layer glow with increased translucency
+                for (let i = 3; i >= 0; i--) {
+                    const layerSize = Math.max(1, size * (1 + i * 0.3)); // Ensure positive radius
+                    const opacity = 0.15 / (i + 1); // Reduced from 0.2
+
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, layerSize);
+                    gradient.addColorStop(0, addOpacity(this.color, opacity));
+                    gradient.addColorStop(0.5, addOpacity('#8a2be2', opacity * 0.3)); // More translucent
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, layerSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Bright core with slight translucency
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // Reduced from 0.9
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, Math.max(1, size * 0.2), 0, Math.PI * 2);
+                ctx.fill();
+
+                // Selection highlight with more translucency
+                if (this.selected) {
+                    ctx.strokeStyle = addOpacity(colors.cosmic.selection, 0.6); // More translucent
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, Math.max(1, size * 1.5), 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            drawAxisStars(p) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                this.axisStars.forEach((star, index) => {
+                    const starPos = this.position.add(star.offset);
+                    const starProj = project3D(starPos);
+                    if (!starProj) return;
+
+                    const pulse = Math.sin(time * 0.02 + star.pulse) * 0.3 + 0.7;
+                    const starSize = Math.max(1, star.size * starProj.scale * pulse);
+
+                    // Star glow with more translucency
+                    const gradient = ctx.createRadialGradient(
+                        starProj.x, starProj.y, 0,
+                        starProj.x, starProj.y, Math.max(1, starSize * 3)
+                    );
+                    gradient.addColorStop(0, addOpacity(colors.cosmic.axis, 0.6)); // Reduced from 0.8
+                    gradient.addColorStop(0.5, addOpacity(colors.cosmic.axis, 0.2)); // Reduced from 0.3
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(starProj.x, starProj.y, Math.max(1, starSize * 3), 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Star core with translucency
+                    ctx.fillStyle = addOpacity(colors.cosmic.axis, 0.8); // Added translucency
+                    ctx.beginPath();
+                    ctx.arc(starProj.x, starProj.y, starSize, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ctx.restore();
+            }
+
+            drawStateRing(p) {
+                const ringRadius = Math.max(5, this.stateRing.radius * p.scale); // Ensure minimum radius
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(this.stateRing.rotation);
+
+                // Ring segments with more translucency
+                const segments = 13;
+                const segmentAngle = (Math.PI * 2) / segments;
+
+                for (let i = 0; i < segments; i++) {
+                    const angle = i * segmentAngle;
+                    const nextAngle = (i + 1) * segmentAngle;
+
+                    // Alternate colors with more translucency
+                    ctx.strokeStyle = i % 2 === 0 ?
+                        addOpacity('#ff6b6b', 0.4) : // Reduced from 0.6
+                        addOpacity('#4080ff', 0.4); // Reduced from 0.6
+                    ctx.lineWidth = 2;
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ringRadius, angle, nextAngle);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            drawTrail() {
+                if (this.trail.length < 2) return;
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                // Multi-pass fluorescent trail with more translucency
+                for (let pass = 0; pass < 2; pass++) {
+                    ctx.beginPath();
+
+                    let firstPoint = true;
+                    this.trail.forEach((point, i) => {
+                        const projected = project3D(point.position);
+                        if (!projected) return;
+
+                        if (firstPoint) {
+                            ctx.moveTo(projected.x, projected.y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(projected.x, projected.y);
+                        }
+                    });
+
+                    ctx.strokeStyle = pass === 0 ?
+                        addOpacity(this.color, 0.3) : // Reduced from 0.4
+                        addOpacity('#ffffff', 0.15); // Reduced from 0.2
+                    ctx.lineWidth = Math.max(0.5, pass === 0 ? 3 : 1); // Ensure minimum width
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            drawConnections() {
+                this.connections.forEach(conn => {
+                    const p1 = this.project();
+                    const p2 = conn.target.project();
+
+                    if (!p1 || !p2) return;
+
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'screen';
+
+                    const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+                    gradient.addColorStop(0, addOpacity(this.color, conn.strength * 0.2)); // Reduced from 0.3
+                    gradient.addColorStop(0.5, addOpacity('#8a2be2', conn.strength * 0.25)); // Reduced from 0.4
+                    gradient.addColorStop(1, addOpacity(conn.target.color, conn.strength * 0.2)); // Reduced from 0.3
+
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = Math.max(0.5, conn.strength * 2); // Ensure minimum width
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+
+                    ctx.restore();
+                });
+            }
+
+            drawResourceFlow() {
+                const p = this.project();
+                if (!p) return;
+
+                // Draw resource indicators around the sun with more translucency
+                const indicators = [
+                    { key: 'cpu', color: '#ff6b6b', angle: 0 },
+                    { key: 'memory', color: '#4080ff', angle: Math.PI / 2 },
+                    { key: 'network', color: '#39ff14', angle: Math.PI },
+                    { key: 'amos', color: '#bf00ff', angle: Math.PI * 1.5 }
+                ];
+
+                indicators.forEach(ind => {
+                    const value = this.resources[ind.key];
+                    const radius = Math.max(5, (this.size + 10 + value * 10) * p.scale);
+                    const x = p.x + Math.cos(ind.angle) * radius;
+                    const y = p.y + Math.sin(ind.angle) * radius;
+
+                    ctx.fillStyle = addOpacity(ind.color, value * 0.5); // Reduced from 0.8
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.max(1, 3 * p.scale), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            drawAttractionConnection(p) {
+                if (!this.nearestAttraction) return;
+
+                const attractProj = project3D(this.nearestAttraction.position);
+                if (!attractProj) return;
+
+                ctx.save();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = addOpacity(this.nearestAttraction.color, this.attractionStrength * 0.3); // Reduced from 0.5
+                ctx.lineWidth = Math.max(0.5, 1); // Ensure minimum width
+
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(attractProj.x, attractProj.y);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // Attraction Point class
+        class AttractionPoint {
+            constructor(x, y, z) {
+                this.position = new Point3D(x, y, z);
+                this.rotation = 0;
+                this.color = colors.cosmic.attraction[Math.floor(Math.random() * colors.cosmic.attraction.length)];
+                this.nodes = this.createNodes();
+            }
+
+            createNodes() {
+                // 5 rotating nodes
+                const nodes = [];
+                for (let i = 0; i < 5; i++) {
+                    nodes.push({
+                        angle: (i / 5) * Math.PI * 2,
+                        radius: 20,
+                        hue: i / 5
+                    });
+                }
+                return nodes;
+            }
+
+            update() {
+                this.rotation -= 0.02; // CCW rotation
+
+                // Update node colors
+                this.nodes.forEach(node => {
+                    node.hue += 0.01;
+                    if (node.hue > 1) node.hue -= 1;
+                });
+            }
+
+            draw() {
+                const p = project3D(this.position);
+                if (!p) return;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(this.rotation);
+
+                // Draw nodes with more translucency
+                this.nodes.forEach(node => {
+                    const x = Math.cos(node.angle) * Math.max(1, node.radius * p.scale);
+                    const y = Math.sin(node.angle) * Math.max(1, node.radius * p.scale);
+
+                    // Fluorescent hue with translucency
+                    const hue = node.hue * 360;
+                    ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.4)`; // Reduced from 0.6
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.max(1, 4 * p.scale), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Center with more translucency
+                ctx.fillStyle = addOpacity('#ffffff', 0.2); // Reduced from 0.3
+                ctx.beginPath();
+                ctx.arc(0, 0, Math.max(1, 5 * p.scale), 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // Star class for starfield
+        class Star {
+            constructor() {
+                this.position = new Point3D(
+                    (Math.random() - 0.5) * 2000,
+                    (Math.random() - 0.5) * 2000,
+                    (Math.random() - 0.5) * 2000
+                );
+                this.size = Math.random() * 2 + 0.5;
+                this.brightness = Math.random();
+            }
+
+            draw() {
+                const p = project3D(this.position);
+                if (!p) return;
+
+                const size = Math.max(0.5, this.size * p.scale); // Ensure minimum size
+                const opacity = Math.min(0.6, this.brightness * p.scale * 0.6); // More translucent
+
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 3D projection
+        function project3D(point) {
+            const effectiveScale = Math.pow(currentScale, 2.2);
+            let x = point.x / effectiveScale;
+            let y = point.y / effectiveScale;
+            let z = point.z / effectiveScale;
+
+            // Rotate
+            const xRad = rotX * Math.PI / 180;
+            const yRad = rotY * Math.PI / 180;
+            const zRad = rotZ * Math.PI / 180;
+
+            // Y rotation
+            let x1 = x * Math.cos(yRad) - z * Math.sin(yRad);
+            let z1 = x * Math.sin(yRad) + z * Math.cos(yRad);
+
+            // X rotation
+            let y1 = y * Math.cos(xRad) - z1 * Math.sin(xRad);
+            let z2 = y * Math.sin(xRad) + z1 * Math.cos(xRad);
+
+            // Z rotation
+            let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+            let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+            // Perspective
+            const depth = focalLength + z2;
+            if (depth <= 0) return null;
+
+            const scale = focalLength / depth;
+            return {
+                x: centerX + x2 * scale,
+                y: centerY + y2 * scale,
+                z: z2,
+                scale: scale
+            };
+        }
+
+        // Draw background based on mode
+        function drawBackground() {
+            // Base background
+            ctx.fillStyle = '#08030f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add gradient overlay
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height) * 0.8
+            );
+            gradient.addColorStop(0, 'rgba(12, 5, 24, 0)');
+            gradient.addColorStop(0.5, 'rgba(16, 8, 32, 0.3)');
+            gradient.addColorStop(1, 'rgba(32, 0, 64, 0.5)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Mode-specific background
+            switch (currentMode) {
+                case 'cubic':
+                    drawCubicGrid();
+                    break;
+                case 'starfield':
+                    drawStarfield();
+                    break;
+                case 'resource':
+                    drawResourceGrid();
+                    break;
+            }
+        }
+
+        // Draw cubic grid
+        function drawCubicGrid() {
+            const gridSize = 100;
+            const gridExtent = 1000;
+
+            ctx.strokeStyle = addOpacity(colors.grid.secondary, 0.1); // Reduced from 0.2
+            ctx.lineWidth = 0.5;
+
+            // Draw grid lines
+            for (let i = -gridExtent; i <= gridExtent; i += gridSize) {
+                // XY plane
+                const start1 = project3D(new Point3D(-gridExtent, i, 0));
+                const end1 = project3D(new Point3D(gridExtent, i, 0));
+                if (start1 && end1) {
+                    ctx.beginPath();
+                    ctx.moveTo(start1.x, start1.y);
+                    ctx.lineTo(end1.x, end1.y);
+                    ctx.stroke();
+                }
+
+                const start2 = project3D(new Point3D(i, -gridExtent, 0));
+                const end2 = project3D(new Point3D(i, gridExtent, 0));
+                if (start2 && end2) {
+                    ctx.beginPath();
+                    ctx.moveTo(start2.x, start2.y);
+                    ctx.lineTo(end2.x, end2.y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Draw starfield
+        function drawStarfield() {
+            starField.forEach(star => star.draw());
+        }
+
+        // Draw resource flow grid
+        function drawResourceGrid() {
+            // Draw flow lines between connected suns
+            cosmicSuns.forEach(sun => {
+                sun.connections.forEach(conn => {
+                    if (conn.strength > 0.5) {
+                        const p1 = sun.project();
+                        const p2 = conn.target.project();
+
+                        if (p1 && p2) {
+                            // Animated flow particles with more translucency
+                            const t = (time * 0.01) % 1;
+                            const flowX = p1.x + (p2.x - p1.x) * t;
+                            const flowY = p1.y + (p2.y - p1.y) * t;
+
+                            ctx.fillStyle = addOpacity('#bf00ff', 0.5); // Reduced from 0.8
+                            ctx.beginPath();
+                            ctx.arc(flowX, flowY, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                });
+            });
+        }
+
+        // Main render function
+        function render() {
+            drawBackground();
+
+            // Update and draw attraction points
+            attractionPoints.forEach(point => {
+                point.update();
+                point.draw();
+            });
+
+            // Update and draw cosmic suns
+            cosmicSuns.forEach(sun => {
+                sun.update();
+                sun.draw();
+            });
+
+            // Update HUD
+            updateHUD();
+
+            // Update resource flow display
+            updateResourceFlow();
+        }
+
+        // Update HUD
+        function updateHUD() {
+            document.getElementById('activeSuns').textContent = cosmicSuns.length;
+            document.getElementById('currentScale').textContent = currentScale.toFixed(2);
+            document.getElementById('currentMode').textContent = currentMode.toUpperCase();
+            document.getElementById('gridStatus').textContent = gridSnapStrength > 0 ? 'ALIGNED' : 'FLUID';
+            document.getElementById('selectionStatus').textContent = selectedEntity ? selectedEntity.id.substr(0, 6) : 'NONE';
+            document.getElementById('scaleLevel').textContent = `x${currentScale.toFixed(2)}`;
+
+            // Update navigation mode
+            const navMode = document.getElementById('navMode');
+            switch (currentMode) {
+                case 'cosmic':
+                    navMode.textContent = 'COSMIC SPACE';
+                    break;
+                case 'cubic':
+                    navMode.textContent = 'CUBIC GRID';
+                    break;
+                case 'starfield':
+                    navMode.textContent = 'STAR FIELD';
+                    break;
+                case 'resource':
+                    navMode.textContent = 'RESOURCE FLOW';
+                    break;
+            }
+
+            // Update selection info
+            if (selectedEntity) {
+                document.getElementById('selectionInfo').classList.add('active');
+                document.getElementById('selectedId').textContent = selectedEntity.id.substr(0, 8);
+                document.getElementById('selectedType').textContent = 'COSMIC SUN';
+                document.getElementById('selectedFreq').textContent = selectedEntity.frequency.toFixed(1) + ' Hz';
+                document.getElementById('selectedLinks').textContent = selectedEntity.connections.length;
+            } else {
+                document.getElementById('selectionInfo').classList.remove('active');
+            }
+        }
+
+        // Update resource flow visualization
+        function updateResourceFlow() {
+            if (selectedEntity) {
+                document.getElementById('cpuFlow').style.width = (selectedEntity.resources.cpu * 100) + '%';
+                document.getElementById('memFlow').style.width = (selectedEntity.resources.memory * 100) + '%';
+                document.getElementById('netFlow').style.width = (selectedEntity.resources.network * 100) + '%';
+                document.getElementById('amosFlow').style.width = (selectedEntity.resources.amos * 100) + '%';
+            } else {
+                // Show average
+                let avgCpu = 0, avgMem = 0, avgNet = 0, avgAmos = 0;
+                cosmicSuns.forEach(sun => {
+                    avgCpu += sun.resources.cpu;
+                    avgMem += sun.resources.memory;
+                    avgNet += sun.resources.network;
+                    avgAmos += sun.resources.amos;
+                });
+                const count = Math.max(1, cosmicSuns.length);
+
+                document.getElementById('cpuFlow').style.width = (avgCpu / count * 100) + '%';
+                document.getElementById('memFlow').style.width = (avgMem / count * 100) + '%';
+                document.getElementById('netFlow').style.width = (avgNet / count * 100) + '%';
+                document.getElementById('amosFlow').style.width = (avgAmos / count * 100) + '%';
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            time++;
+
+            // Auto-rotation (CCW)
+            rotY -= 0.2;
+            rotZ -= 0.05;
+
+            // Mouse influence
+            const relX = (mouseX - centerX) / (canvas.width / 2);
+            const relY = (mouseY - centerY) / (canvas.height / 2);
+
+            rotY -= relX * 0.1;
+            rotX += relY * 0.1;
+
+            render();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Control functions
+        function toggleMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function spawnEntity() {
+            const x = (Math.random() - 0.5) * 400;
+            const y = (Math.random() - 0.5) * 400;
+            const z = (Math.random() - 0.5) * 400;
+
+            cosmicSuns.push(new CosmicSun(x, y, z));
+        }
+
+        function createConstellation() {
+            // Create 13-point constellation
+            const points = 13;
+            const radius = 250;
+
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = (Math.random() - 0.5) * 100;
+
+                cosmicSuns.push(new CosmicSun(x, y, z));
+            }
+
+            // Add attraction points
+            for (let i = 0; i < 5; i++) {
+                const angle = (i / 5) * Math.PI * 2;
+                const x = Math.cos(angle) * radius * 0.6;
+                const y = Math.sin(angle) * radius * 0.6;
+                const z = 0;
+
+                attractionPoints.push(new AttractionPoint(x, y, z));
+            }
+        }
+
+        function toggleSelection() {
+            selectionMode = !selectionMode;
+            event.target.classList.toggle('active');
+
+            if (!selectionMode && selectedEntity) {
+                selectedEntity.selected = false;
+                selectedEntity = null;
+            }
+        }
+
+        function resetView() {
+            currentScale = 1.0;
+            rotX = 0;
+            rotY = 0;
+            rotZ = 0;
+        }
+
+        // Mouse controls
+        canvas.addEventListener('click', (e) => {
+            if (!selectionMode) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Find nearest sun
+            let nearest = null;
+            let minDist = Infinity;
+
+            cosmicSuns.forEach(sun => {
+                const p = sun.project();
+                if (!p) return;
+
+                const dist = Math.sqrt(
+                    Math.pow(clickX - p.x, 2) +
+                    Math.pow(clickY - p.y, 2)
+                );
+
+                if (dist < minDist && dist < 50) {
+                    minDist = dist;
+                    nearest = sun;
+                }
+            });
+
+            // Update selection
+            if (selectedEntity) {
+                selectedEntity.selected = false;
+            }
+
+            selectedEntity = nearest;
+            if (selectedEntity) {
+                selectedEntity.selected = true;
+            }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 1.1 : 0.9;
+            currentScale = Math.max(0.1, Math.min(32, currentScale * delta));
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStart = {
+                x: e.clientX,
+                y: e.clientY,
+                rotX: rotX,
+                rotY: rotY
+            };
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            if (isDragging) {
+                const deltaX = e.clientX - dragStart.x;
+                const deltaY = e.clientY - dragStart.y;
+
+                rotY = dragStart.rotY + deltaX * 0.5;
+                rotX = dragStart.rotX + deltaY * 0.5;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Slider controls
+        document.getElementById('sunSizeSlider').addEventListener('input', (e) => {
+            sunSize = parseFloat(e.target.value);
+            document.getElementById('sunSizeValue').textContent = sunSize;
+            cosmicSuns.forEach(sun => {
+                // Ensure minimum size to prevent negative radius
+                sun.size = Math.max(3, sunSize + (sun.size - 10));
+            });
+        });
+
+        document.getElementById('flowRateSlider').addEventListener('input', (e) => {
+            flowRate = parseFloat(e.target.value) / 100;
+            document.getElementById('flowRateValue').textContent = Math.floor(flowRate * 100) + '%';
+        });
+
+        document.getElementById('gridSnapSlider').addEventListener('input', (e) => {
+            gridSnapStrength = parseFloat(e.target.value) / 100;
+            document.getElementById('gridSnapValue').textContent = Math.floor(gridSnapStrength * 100) + '%';
+        });
+
+        // Window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+
+        // Initialize
+        function init() {
+            // Create initial starfield
+            for (let i = 0; i < 500; i++) {
+                starField.push(new Star());
+            }
+
+            // Create initial constellation
+            createConstellation();
+
+            // Start animation
+            animate();
+        }
+
+        init();
+    </script>
+</body>
+</html>

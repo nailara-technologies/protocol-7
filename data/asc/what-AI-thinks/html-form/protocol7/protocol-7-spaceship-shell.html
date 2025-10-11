@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quantum Vessel Protocol-7</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: linear-gradient(
+                135deg,
+                rgba(0,0,30,0.9),
+                rgba(0,10,50,0.8),
+                rgba(0,0,20,0.9)
+            );
+            font-family: 'Orbitron', sans-serif;
+            perspective: 1000px;
+        }
+        #terminal {
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            background: rgba(0,10,50,0.3);
+            border: 2px solid rgba(0,255,255,0.2);
+            box-shadow:
+                0 0 30px rgba(0,150,255,0.2),
+                inset 0 0 50px rgba(0,100,255,0.1);
+            padding: 20px;
+            color: rgba(0,255,255,0.7);
+            font-size: 1.2em;
+            line-height: 1.6;
+            letter-spacing: 0.07em;
+            transform: rotateX(10deg);
+            backdrop-filter: blur(10px);
+        }
+        #input-area {
+            display: flex;
+            background: rgba(0,10,50,0.4);
+            padding: 15px;
+            border-top: 1px solid rgba(0,255,255,0.1);
+        }
+        #prompt {
+            color: rgba(0,255,255,0.6);
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        #command-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: rgba(0,255,255,0.8);
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2em;
+            outline: none;
+        }
+        .terminal-line {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 0.8;
+                transform: translateY(0);
+            }
+        }
+        @keyframes characterFade {
+            0% {
+                opacity: 0;
+                text-shadow: none;
+            }
+            50% {
+                opacity: 0.7;
+                text-shadow: 0 0 10px rgba(0,255,255,0.5);
+            }
+            100% {
+                opacity: 1;
+                text-shadow: 0 0 15px rgba(0,255,255,0.7);
+            }
+        }
+        .char-reveal {
+            display: inline-block;
+            opacity: 0;
+            animation: characterFade 0.3s forwards;
+        }
+        .connection-msg {
+            color: rgba(0,255,0,0.6);
+            font-style: italic;
+        }
+        .error-msg {
+            color: rgba(255,50,50,0.7);
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <div id="input-area">
+        <span id="prompt">Quantum Vessel ⌘</span>
+        <input type="text" id="command-input" autocomplete="off">
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('command-input');
+
+        function writeToTerminal(message, className = '') {
+            const lineElement = document.createElement('div');
+            lineElement.classList.add('terminal-line');
+            if (className) lineElement.classList.add(className);
+
+            // Animate each character
+            message.split('').forEach((char, index) => {
+                const charSpan = document.createElement('span');
+                charSpan.textContent = char;
+                charSpan.classList.add('char-reveal');
+                charSpan.style.animationDelay = `${index * 0.05}s`;
+                lineElement.appendChild(charSpan);
+            });
+
+            terminal.appendChild(lineElement);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function simulateConnection() {
+            writeToTerminal('Quantum Vessel Neural Interface Activating...', 'connection-msg');
+            setTimeout(() => {
+                writeToTerminal('Establishing Quantum Entanglement Protocol', 'connection-msg');
+                writeToTerminal('\\\\PROTOCOL-7-QUANTUM-MESH\\\\AMOS7\\\\', 'connection-msg');
+            }, 1000);
+        }
+
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim();
+
+                writeToTerminal(`⌘ ${command}`);
+
+                switch(command) {
+                    case 'exit':
+                        writeToTerminal('Quantum Connection Terminating...', 'connection-msg');
+                        break;
+                    case 'clear':
+                        terminal.innerHTML = '';
+                        break;
+                    default:
+                        writeToTerminal(`Quantum Processor: Undefined Command Sequence`, 'error-msg');
+                }
+
+                commandInput.value = '';
+            }
+        });
+
+        simulateConnection();
+    </script>
+</body>
+</html>

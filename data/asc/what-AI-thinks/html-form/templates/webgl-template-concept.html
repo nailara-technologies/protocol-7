@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Template Space - Visual Continuity Concept</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #08030f;
+            font-family: monospace;
+            color: rgba(130, 160, 210, 0.75);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(20, 10, 40, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+        }
+
+        .control-group {
+            margin-bottom: 10px;
+        }
+
+        .control-label {
+            display: inline-block;
+            width: 180px;
+            background: linear-gradient(to right, rgba(120, 150, 200, 0.7), rgba(140, 170, 220, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            background: rgba(30, 15, 60, 0.7);
+        }
+
+        #template-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(20, 10, 40, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .template-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, rgba(150, 70, 235, 0.75), rgba(170, 100, 255, 0.75));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .template-property {
+            margin-left: 15px;
+            font-size: 0.9em;
+            background: linear-gradient(to right, rgba(120, 150, 200, 0.7), rgba(140, 170, 220, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .property-inherited {
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .property-override {
+            font-weight: bold;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #08030f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-text {
+            font-size: 2em;
+            background: linear-gradient(to right, rgba(150, 70, 235, 0.75), rgba(170, 100, 255, 0.75));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        button {
+            background: rgba(30, 15, 60, 0.7);
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            color: rgba(140, 170, 220, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background: rgba(40, 20, 80, 0.8);
+        }
+
+        #navigation-help {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 10, 40, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            font-size: 0.8em;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-text">Initializing Template Space...</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="controls">
+        <div class="control-group">
+            <span class="control-label">Template Opacity:</span>
+            <input type="range" id="opacity-slider" min="0.1" max="1.0" step="0.1" value="0.7">
+        </div>
+        <div class="control-group">
+            <span class="control-label">Connection Visibility:</span>
+            <input type="range" id="connection-slider" min="0.0" max="1.0" step="0.1" value="0.5">
+        </div>
+        <div class="control-group">
+            <span class="control-label">Glow Intensity:</span>
+            <input type="range" id="glow-slider" min="0.0" max="2.0" step="0.1" value="1.0">
+        </div>
+        <div class="control-group">
+            <button id="toggle-rotation">Pause Rotation</button>
+            <button id="reset-view">Reset View</button>
+        </div>
+    </div>
+
+    <div id="template-info">
+        <div class="template-name">Template Space</div>
+        <div class="template-property">Navigate to explore templates</div>
+        <div class="template-property">Click on a template to see details</div>
+    </div>
+
+    <div id="navigation-help">
+        Mouse: Rotate View | Scroll: Zoom | Right-Click: Pan | Click: Select Template
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.min.js"></script>
+    <script>
+        // Wait for DOM and resources to load
+        window.addEventListener('load', init);
+
+        let scene, camera, renderer, controls;
+        let templates = [];
+        let connections = [];
+        let raycaster, mouse;
+        let rotationEnabled = true;
+
+        // Template definitions with inheritance relationships
+        const templateData = [
+            // Base primitives
+            {
+                id: 'corner-radius',
+                type: 'primitive',
+                position: [-8, 4, 0],
+                size: [1.2, 0.8, 0.8],
+                color: [0.3, 0.4, 0.8, 0.7],
+                properties: {
+                    'border-radius': '8px',
+                    'overflow': 'hidden'
+                },
+                parent: null
+            },
+            {
+                id: 'gradient-bg',
+                type: 'primitive',
+                position: [-8, 2, 0],
+                size: [1.2, 0.8, 0.8],
+                color: [0.3, 0.5, 0.7, 0.7],
+                properties: {
+                    'background': 'linear-gradient(rgba(20,10,40,0.8), rgba(15,5,30,0.7))',
+                    'opacity': '0.8'
+                },
+                parent: null
+            },
+            {
+                id: 'shadow-glow',
+                type: 'primitive',
+                position: [-8, 0, 0],
+                size: [1.2, 0.8, 0.8],
+                color: [0.4, 0.3, 0.8, 0.7],
+                properties: {
+                    'box-shadow': '0 0 15px rgba(100,0,255,0.3)',
+                    'text-shadow': '0 0 5px rgba(68,39,140,0.4)'
+                },
+                parent: null
+            },
+            {
+                id: 'border-style',
+                type: 'primitive',
+                position: [-8, -2, 0],
+                size: [1.2, 0.8, 0.8],
+                color: [0.5, 0.3, 0.7, 0.7],
+                properties: {
+                    'border': '1px solid rgba(68,39,140,0.6)',
+                    'outline': 'none'
+                },
+                parent: null
+            },
+            {
+                id: 'text-gradient',
+                type: 'primitive',
+                position: [-8, -4, 0],
+                size: [1.2, 0.8, 0.8],
+                color: [0.6, 0.3, 0.7, 0.7],
+                properties: {
+                    'background': 'linear-gradient(to right, rgba(120,150,200,0.7), rgba(140,170,220,0.7))',
+                    '-webkit-background-clip': 'text',
+                    '-webkit-text-fill-color': 'transparent'
+                },
+                parent: null
+            },
+
+            // Components
+            {
+                id: 'card-component',
+                type: 'component',
+                position: [-4, 2, 0],
+                size: [2, 1.5, 1],
+                color: [0.3, 0.6, 0.7, 0.7],
+                properties: {
+                    'padding': '25px',
+                    'margin': '40px 0'
+                },
+                parent: ['corner-radius', 'gradient-bg', 'shadow-glow', 'border-style']
+            },
+            {
+                id: 'code-block',
+                type: 'component',
+                position: [-4, -1, 0],
+                size: [2, 1.5, 1],
+                color: [0.2, 0.5, 0.6, 0.7],
+                properties: {
+                    'padding': '15px',
+                    'margin': '20px 0',
+                    'white-space': 'pre',
+                    'font-family': 'monospace'
+                },
+                parent: ['corner-radius', 'gradient-bg', 'shadow-glow', 'border-style']
+            },
+            {
+                id: 'question-component',
+                type: 'component',
+                position: [-4, -4, 0],
+                size: [2, 1.5, 1],
+                color: [0.4, 0.3, 0.7, 0.7],
+                properties: {
+                    'padding': '20px',
+                    'margin': '20px 0',
+                    'font-weight': 'bold'
+                },
+                parent: ['corner-radius', 'gradient-bg', 'shadow-glow', 'border-style']
+            },
+
+            // Templates
+            {
+                id: 'research-template',
+                type: 'template',
+                position: [0, 0, 0],
+                size: [3, 2, 1.5],
+                color: [0.3, 0.4, 0.7, 0.7],
+                properties: {
+                    'max-width': '1200px',
+                    'margin': '0 auto',
+                    'padding': '40px 20px'
+                },
+                parent: ['card-component', 'code-block', 'question-component']
+            },
+            {
+                id: 'documentation-template',
+                type: 'template',
+                position: [4, 3, 1],
+                size: [3, 2, 1.5],
+                color: [0.4, 0.5, 0.7, 0.7],
+                properties: {
+                    'max-width': '1000px',
+                    'margin': '0 auto',
+                    'padding': '30px 15px',
+                    'line-height': '1.8'
+                },
+                parent: ['research-template']
+            },
+            {
+                id: 'presentation-template',
+                type: 'template',
+                position: [4, -3, 1],
+                size: [3, 2, 1.5],
+                color: [0.5, 0.3, 0.7, 0.7],
+                properties: {
+                    'max-width': '1600px',
+                    'margin': '0 auto',
+                    'padding': '20px',
+                    'font-size': '1.2em'
+                },
+                parent: ['research-template']
+            },
+
+            // Instances
+            {
+                id: 'token-doc',
+                type: 'instance',
+                position: [8, 4, 2],
+                size: [2, 1.5, 1],
+                color: [0.3, 0.5, 0.8, 0.7],
+                properties: {
+                    'title': 'AMOS Resource Tokens',
+                    'content-type': 'documentation',
+                    'created': '2025-04-01'
+                },
+                parent: ['documentation-template']
+            },
+            {
+                id: 'hyperspace-doc',
+                type: 'instance',
+                position: [8, 1, 2],
+                size: [2, 1.5, 1],
+                color: [0.4, 0.5, 0.7, 0.7],
+                properties: {
+                    'title': 'Recursive Hyperspace Addressing',
+                    'content-type': 'documentation',
+                    'created': '2025-04-02'
+                },
+                parent: ['documentation-template']
+            },
+            {
+                id: 'integration-slides',
+                type: 'instance',
+                position: [8, -2, 2],
+                size: [2, 1.5, 1],
+                color: [0.5, 0.4, 0.7, 0.7],
+                properties: {
+                    'title': 'Integration Opportunities',
+                    'content-type': 'presentation',
+                    'slides': '12'
+                },
+                parent: ['presentation-template']
+            }
+        ];
+
+        function init() {
+            // Initialize Three.js scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x08030f);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 15);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Raycaster for template selection
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Create templates
+            createTemplates();
+
+            // Create inheritance connections
+            createConnections();
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+            scene.add(ambientLight);
+
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1).normalize();
+            scene.add(directionalLight);
+
+            // Add point lights for glow effects
+            addPointLights();
+
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('click', onMouseClick);
+
+            // Setup control panel
+            setupControls();
+
+            // Hide loading screen after a delay
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 1500);
+
+            // Start animation loop
+            animate();
+        }
+
+        function createTemplates() {
+            templateData.forEach(data => {
+                // Create template geometry based on size
+                const geometry = new THREE.BoxGeometry(data.size[0], data.size[1], data.size[2]);
+
+                // Create material with translucent appearance
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: new THREE.Color(data.color[0], data.color[1], data.color[2]),
+                    transparent: true,
+                    opacity: data.color[3],
+                    roughness: 0.3,
+                    metalness: 0.2,
+                    clearcoat: 0.4,
+                    clearcoatRoughness: 0.2,
+                    transmission: 0.2
+                });
+
+                // Create mesh and add to scene
+                const template = new THREE.Mesh(geometry, material);
+                template.position.set(data.position[0], data.position[1], data.position[2]);
+                template.userData = {
+                    id: data.id,
+                    type: data.type,
+                    properties: data.properties,
+                    parent: data.parent
+                };
+
+                // Add subtle animation to each template
+                template.userData.animation = {
+                    basePosition: [...data.position],
+                    phaseX: Math.random() * Math.PI * 2,
+                    phaseY: Math.random() * Math.PI * 2,
+                    amplitude: 0.05,
+                    speed: 0.5 + Math.random() * 0.5,
+                    baseOpacity: data.color[3]
+                };
+
+                scene.add(template);
+                templates.push(template);
+            });
+        }
+
+        function createConnections() {
+            templateData.forEach(data => {
+                if (data.parent) {
+                    // For arrays of parents (multiple inheritance)
+                    if (Array.isArray(data.parent)) {
+                        data.parent.forEach(parentId => {
+                            createQuantizedConnection(data.id, parentId);
+                        });
+                    } else { // For single parent
+                        createQuantizedConnection(data.id, data.parent);
+                    }
+                }
+            });
+        }
+
+        function createQuantizedConnection(childId, parentId) {
+            // Find source and target templates
+            const child = templates.find(t => t.userData.id === childId);
+            const parent = templates.find(t => t.userData.id === parentId);
+
+            if (!child || !parent) return;
+
+            // Calculate path points on a grid
+            const pathPoints = calculateQuantizedPath(parent.position, child.position);
+
+            // Create small cubes along the path
+            const connectionCubes = [];
+            const cubeSize = 0.2; // Size of the connection cubes
+
+            pathPoints.forEach(point => {
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+
+                // Determine color based on template types
+                let color;
+                if (parent.userData.type === 'primitive') {
+                    color = new THREE.Color(0.3, 0.6, 0.7); // Blue-green for primitive parents
+                } else if (parent.userData.type === 'component') {
+                    color = new THREE.Color(0.5, 0.3, 0.7); // Purple for component parents
+                } else {
+                    color = new THREE.Color(0.4, 0.5, 0.7); // Blue for template parents
+                }
+
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.4,
+                    roughness: 0.3,
+                    metalness: 0.1,
+                    clearcoat: 0.4,
+                    clearcoatRoughness: 0.2,
+                    transmission: 0.3
+                });
+
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.copy(point);
+                scene.add(cube);
+
+                connectionCubes.push(cube);
+            });
+
+            // Store connection data for animation and updates
+            connections.push({
+                cubes: connectionCubes,
+                parent: parent,
+                child: child,
+                pathPoints: pathPoints
+            });
+        }
+
+        function calculateQuantizedPath(start, end) {
+            const points = [];
+            const gridSize = 0.4; // Size of the grid units
+
+            // Round positions to grid
+            const startGrid = {
+                x: Math.round(start.x / gridSize) * gridSize,
+                y: Math.round(start.y / gridSize) * gridSize,
+                z: Math.round(start.z / gridSize) * gridSize
+            };
+
+            const endGrid = {
+                x: Math.round(end.x / gridSize) * gridSize,
+                y: Math.round(end.y / gridSize) * gridSize,
+                z: Math.round(end.z / gridSize) * gridSize
+            };
+
+            // Calculate the path on grid
+            // First move in X direction
+            let currentX = startGrid.x;
+            while (currentX !== endGrid.x) {
+                currentX += (endGrid.x > startGrid.x) ? gridSize : -gridSize;
+                points.push(new THREE.Vector3(currentX, startGrid.y, startGrid.z));
+            }
+
+            // Then move in Y direction
+            let currentY = startGrid.y;
+            while (currentY !== endGrid.y) {
+                currentY += (endGrid.y > startGrid.y) ? gridSize : -gridSize;
+                points.push(new THREE.Vector3(endGrid.x, currentY, startGrid.z));
+            }
+
+            // Finally move in Z direction
+            let currentZ = startGrid.z;
+            while (currentZ !== endGrid.z) {
+                currentZ += (endGrid.z > startGrid.z) ? gridSize : -gridSize;
+                points.push(new THREE.Vector3(endGrid.x, endGrid.y, currentZ));
+            }
+
+            return points;
+        }
+
+        function addPointLights() {
+            // Add colored point lights around the scene for psychedelic effects
+            const colors = [
+                0x8844ff, // purple
+                0x4488ff, // blue
+                0xff44aa, // pink
+                0x44bbff  // light blue
+            ];
+
+            colors.forEach((color, i) => {
+                const light = new THREE.PointLight(color, 1, 20);
+                const angle = (i / colors.length) * Math.PI * 2;
+                const radius = 15;
+                light.position.set(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius,
+                    -5
+                );
+                scene.add(light);
+
+                // Add subtle animation to lights
+                light.userData = {
+                    basePosition: new THREE.Vector3().copy(light.position),
+                    phaseX: Math.random() * Math.PI * 2,
+                    phaseY: Math.random() * Math.PI * 2,
+                    amplitude: 2,
+                    speed: 0.2 + Math.random() * 0.3
+                };
+            });
+        }
+
+        function setupControls() {
+            // Opacity slider
+            document.getElementById('opacity-slider').addEventListener('input', (e) => {
+                const opacity = parseFloat(e.target.value);
+                templates.forEach(template => {
+                    template.material.opacity = opacity * template.userData.animation.baseOpacity;
+                });
+            });
+
+            // Connection visibility slider
+            document.getElementById('connection-slider').addEventListener('input', (e) => {
+                const visibility = parseFloat(e.target.value);
+                connections.forEach(conn => {
+                    conn.cubes.forEach(cube => {
+                        cube.material.opacity = visibility * 0.4; // Base opacity is 0.4
+                    });
+                });
+            });
+
+            // Glow intensity slider
+            document.getElementById('glow-slider').addEventListener('input', (e) => {
+                const intensity = parseFloat(e.target.value);
+                scene.children.forEach(child => {
+                    if (child.type === 'PointLight') {
+                        child.intensity = intensity;
+                    }
+                });
+            });
+
+            // Toggle rotation button
+            document.getElementById('toggle-rotation').addEventListener('click', () => {
+                rotationEnabled = !rotationEnabled;
+                document.getElementById('toggle-rotation').textContent =
+                    rotationEnabled ? 'Pause Rotation' : 'Resume Rotation';
+            });
+
+            // Reset view button
+            document.getElementById('reset-view').addEventListener('click', () => {
+                camera.position.set(0, 0, 15);
+                camera.lookAt(0, 0, 0);
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onMouseClick(event) {
+            // Calculate mouse position in normalized device coordinates
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the picking ray with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            // Calculate objects intersecting the picking ray
+            const intersects = raycaster.intersectObjects(templates);
+
+            if (intersects.length > 0) {
+                // Get the first intersected template
+                const template = intersects[0].object;
+
+                // Update info panel with template details
+                updateTemplateInfo(template);
+
+                // Highlight the selected template
+                highlightTemplate(template);
+            }
+        }
+
+        function updateTemplateInfo(template) {
+            const infoPanel = document.getElementById('template-info');
+            const data = template.userData;
+
+            // Clear current content
+            infoPanel.innerHTML = '';
+
+            // Add template name
+            const nameElement = document.createElement('div');
+            nameElement.className = 'template-name';
+            nameElement.textContent = `${data.id} (${data.type})`;
+            infoPanel.appendChild(nameElement);
+
+            // Add own properties
+            Object.entries(data.properties).forEach(([key, value]) => {
+                const propElement = document.createElement('div');
+                propElement.className = 'template-property property-override';
+                propElement.textContent = `${key}: ${value}`;
+                infoPanel.appendChild(propElement);
+            });
+
+            // Add a separator
+            if (data.parent) {
+                const separator = document.createElement('div');
+                separator.className = 'template-property';
+                separator.textContent = '─── Inherited Properties ───';
+                separator.style.marginTop = '10px';
+                separator.style.marginBottom = '10px';
+                infoPanel.appendChild(separator);
+
+                // Add inherited properties
+                addInheritedProperties(data, infoPanel);
+            }
+        }
+
+        function addInheritedProperties(data, infoPanel) {
+            // Handle array of parents
+            if (Array.isArray(data.parent)) {
+                data.parent.forEach(parentId => {
+                    const parent = templateData.find(t => t.id === parentId);
+                    if (parent) {
+                        // Add parent name
+                        const parentName = document.createElement('div');
+                        parentName.className = 'template-property';
+                        parentName.textContent = `From ${parentId}:`;
+                        parentName.style.fontWeight = 'bold';
+                        infoPanel.appendChild(parentName);
+
+                        // Add parent's properties
+                        Object.entries(parent.properties).forEach(([key, value]) => {
+                            // Skip if overridden by child
+                            if (!data.properties[key]) {
+                                const propElement = document.createElement('div');
+                                propElement.className = 'template-property property-inherited';
+                                propElement.textContent = `${key}: ${value}`;
+                                infoPanel.appendChild(propElement);
+                            }
+                        });
+
+                        // Recursively add parent's inherited properties
+                        if (parent.parent) {
+                            addInheritedProperties(parent, infoPanel);
+                        }
+                    }
+                });
+            } else if (data.parent) { // Single parent
+                const parent = templateData.find(t => t.id === data.parent);
+                if (parent) {
+                    // Add parent name
+                    const parentName = document.createElement('div');
+                    parentName.className = 'template-property';
+                    parentName.textContent = `From ${data.parent}:`;
+                    parentName.style.fontWeight = 'bold';
+                    infoPanel.appendChild(parentName);
+
+                    // Add parent's properties
+                    Object.entries(parent.properties).forEach(([key, value]) => {
+                        // Skip if overridden by child
+                        if (!data.properties[key]) {
+                            const propElement = document.createElement('div');
+                            propElement.className = 'template-property property-inherited';
+                            propElement.textContent = `${key}: ${value}`;
+                            infoPanel.appendChild(propElement);
+                        }
+                    });
+
+                    // Recursively add parent's inherited properties
+                    if (parent.parent) {
+                        addInheritedProperties(parent, infoPanel);
+                    }
+                }
+            }
+        }
+
+        function highlightTemplate(template) {
+            // Reset all templates to base color
+            templates.forEach(t => {
+                const data = templateData.find(td => td.id === t.userData.id);
+                if (data) {
+                    t.material.color.setRGB(data.color[0], data.color[1], data.color[2]);
+                    t.material.emissive.set(0, 0, 0);
+                }
+            });
+
+            // Highlight selected template
+            template.material.emissive.set(0.2, 0.1, 0.4);
+
+            // Highlight inherited templates (parents)
+            highlightParents(template.userData);
+
+            // Highlight inheritance path in connections
+            connections.forEach(conn => {
+                if (conn.child === template) {
+                    conn.cubes.forEach(cube => {
+                        cube.material.color.set(0xff40a0);
+                        cube.material.opacity = 0.6;
+                        cube.scale.set(1.2, 1.2, 1.2);
+                    });
+                } else {
+                    conn.cubes.forEach(cube => {
+                        // Reset color based on parent type
+                        if (conn.parent.userData.type === 'primitive') {
+                            cube.material.color.set(0x4da6c4);
+                        } else if (conn.parent.userData.type === 'component') {
+                            cube.material.color.set(0x8050b8);
+                        } else {
+                            cube.material.color.set(0x6080c0);
+                        }
+                        cube.material.opacity =
+                            0.4 * parseFloat(document.getElementById('connection-slider').value);
+                        cube.scale.set(1, 1, 1);
+                    });
+                }
+            });
+        }
+
+        function highlightParents(data) {
+            if (Array.isArray(data.parent)) {
+                data.parent.forEach(parentId => {
+                    const parentTemplate = templates.find(t => t.userData.id === parentId);
+                    if (parentTemplate) {
+                        parentTemplate.material.emissive.set(0.1, 0.05, 0.2);
+                        highlightParents(parentTemplate.userData);
+                    }
+                });
+            } else if (data.parent) {
+                const parentTemplate = templates.find(t => t.userData.id === data.parent);
+                if (parentTemplate) {
+                    parentTemplate.material.emissive.set(0.1, 0.05, 0.2);
+                    highlightParents(parentTemplate.userData);
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Subtle template floating animation
+            templates.forEach(template => {
+                const anim = template.userData.animation;
+                if (anim) {
+                    template.position.y = anim.basePosition[1] +
+                        Math.sin(Date.now() * 0.001 * anim.speed + anim.phaseY) * anim.amplitude;
+                    template.position.x = anim.basePosition[0] +
+                        Math.sin(Date.now() * 0.0005 * anim.speed + anim.phaseX) * anim.amplitude;
+
+                    // Subtle rotation
+                    if (rotationEnabled) {
+                        template.rotation.y += 0.001;
+                        template.rotation.x += 0.0005;
+                    }
+                }
+            });
+
+            // Animate connections to follow templates
+            connections.forEach(conn => {
+                // Recalculate path if templates moved significantly
+                const startPos = conn.parent.position;
+                const endPos = conn.child.position;
+
+                // Add subtle animation to connection cubes
+                conn.cubes.forEach((cube, index) => {
+                    const phase = index * 0.2;
+                    cube.rotation.x += 0.01;
+                    cube.rotation.y += 0.01;
+
+                    // Subtle pulsing effect
+                    const pulseScale = 1 + 0.1 * Math.sin(Date.now() * 0.002 + phase);
+                    cube.scale.set(pulseScale, pulseScale, pulseScale);
+                });
+            });
+
+            // Animate point lights
+            scene.children.forEach(child => {
+                if (child.type === 'PointLight' && child.userData.basePosition) {
+                    const anim = child.userData;
+                    child.position.x = anim.basePosition.x +
+                        Math.sin(Date.now() * 0.0005 * anim.speed + anim.phaseX) * anim.amplitude;
+                    child.position.y = anim.basePosition.y +
+                        Math.cos(Date.now() * 0.0005 * anim.speed + anim.phaseY) * anim.amplitude;
+                }
+            });
+
+            // Slow camera movement in a circle around the scene
+            if (rotationEnabled) {
+                const cameraRadius = 15;
+                const cameraSpeed = 0.0002;
+                camera.position.x = Math.sin(Date.now() * cameraSpeed) * cameraRadius;
+                camera.position.z = Math.cos(Date.now() * cameraSpeed) * cameraRadius;
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7 Dimensional Topologies</title>
+    <style>
+        :root {
+            --bg-deep: rgb(0, 0, 17);
+            --bg-medium: rgb(9, 5, 24);
+            --bg-light: rgb(9, 5, 42);
+            /* More translucent colors with blue filter applied */
+            --p7-purple: rgba(58, 34, 142, 0.75);
+            --p7-blue: rgba(32, 39, 130, 0.7);
+            --p7-gold: rgba(98, 70, 30, 0.65);  /* Gold toned down significantly */
+            --p7-green: rgba(35, 92, 20, 0.6);  /* Green made more bluish and translucent */
+            --p7-bright-blue: rgba(6, 61, 165, 0.75);
+
+            /* Highlight variants for text that needs to be more visible */
+            --p7-text-purple: rgba(88, 64, 172, 0.9);
+            --p7-text-blue: rgba(52, 79, 160, 0.9);
+            --p7-text-gold: rgba(128, 110, 80, 0.8);
+            --p7-text-green: rgba(65, 122, 50, 0.8);
+            --p7-text-bright-blue: rgba(46, 91, 175, 0.9);
+
+            /* Blue-tinted white text */
+            --p7-text-main: rgba(180, 190, 225, 0.75);
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--p7-text-main);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-align: center;
+            background: linear-gradient(90deg,
+                var(--p7-text-purple),
+                var(--p7-text-blue),
+                var(--p7-text-green),
+                var(--p7-text-gold),
+                var(--p7-text-bright-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(38, 46, 153, 0.4);
+        }
+
+        h2 {
+            color: var(--p7-text-blue);
+            border-bottom: 1px solid var(--p7-purple);
+            padding-bottom: 0.5rem;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(145deg,
+                rgba(9, 5, 24, 0.7),
+                rgba(9, 5, 42, 0.7));
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(38, 36, 92, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at center,
+                rgba(38, 36, 92, 0.08),
+                transparent 70%
+            );
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        section:hover {
+            transform: scale(1.02); /* Slight zoom instead of upward movement */
+        }
+
+        p {
+            color: var(--p7-text-main);
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: var(--p7-text-blue);
+            font-weight: bold;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .concept-card {
+            background: rgba(9, 5, 24, 0.6);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--p7-purple);
+            transition: all 0.3s ease;
+        }
+
+        .concept-card:hover {
+            transform: scale(1.03);
+            border-left-color: var(--p7-blue);
+        }
+
+        h3 {
+            color: var(--p7-text-blue);
+        }
+
+        .static-visualization {
+            width: 100%;
+            height: 400px;
+            margin: 2rem auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 17, 0.4);
+            border-radius: 10px;
+            border: 1px solid var(--p7-blue);
+            box-shadow: inset 0 0 30px rgba(38, 46, 153, 0.2);
+        }
+
+        .static-viz-element {
+            position: relative;
+        }
+
+        /* Static cubic space visualization */
+        .cubic-space-static {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg) rotateY(30deg);
+            animation: rotate 15s infinite linear;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--p7-blue);
+            opacity: 0.5;
+        }
+
+        .cube-face:nth-child(1) { transform: translateZ(100px); }
+        .cube-face:nth-child(2) { transform: rotateY(180deg) translateZ(100px); }
+        .cube-face:nth-child(3) { transform: rotateY(90deg) translateZ(100px); }
+        .cube-face:nth-child(4) { transform: rotateY(-90deg) translateZ(100px); }
+        .cube-face:nth-child(5) { transform: rotateX(90deg) translateZ(100px); }
+        .cube-face:nth-child(6) { transform: rotateX(-90deg) translateZ(100px); }
+
+        /* Static 5-bit truth logic visualization */
+        .five-bit-static {
+            width: 250px;
+            height: 250px;
+            position: relative;
+        }
+
+        .pentagon {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            clip-path: polygon(
+                50% 0%,
+                100% 38%,
+                82% 100%,
+                18% 100%,
+                0% 38%
+            );
+            background: linear-gradient(45deg,
+                var(--p7-purple),
+                var(--p7-blue));
+            border: 2px solid var(--p7-blue);
+            animation: pulse 3s infinite alternate;
+        }
+
+        .pentagon-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: var(--p7-blue);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--p7-blue);
+        }
+
+        .pentagon-point:nth-child(1) { top: 0%; left: 50%; }
+        .pentagon-point:nth-child(2) { top: 38%; left: 100%; }
+        .pentagon-point:nth-child(3) { top: 100%; left: 82%; }
+        .pentagon-point:nth-child(4) { top: 100%; left: 18%; }
+        .pentagon-point:nth-child(5) { top: 38%; left: 0%; }
+
+        .division-result {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: var(--p7-text-blue);
+            font-weight: bold;
+        }
+
+        .code-block {
+            background-color: rgba(0, 0, 17, 0.5);
+            border-left: 4px solid var(--p7-blue);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: rgba(145, 185, 196, 0.85);
+        }
+
+        @keyframes rotate {
+            from { transform: rotateX(-20deg) rotateY(0deg); }
+            to { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 0.8; }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            color: var(--p7-text-blue);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Protocol-7 Dimensional Topology</h1>
+
+        <section>
+            <h2>Cubic Space Topology</h2>
+            <p>
+                The foundational structure of Protocol-7 utilizes a <span class="highlight">cubic space topology</span>
+                that provides optimal node relationships with minimum peers while achieving maximum efficiency.
+                This structure acknowledges dimensional overlaps that offer unique computational advantages.
+            </p>
+            <div class="static-visualization">
+                <div class="static-viz-element">
+                    <div class="cubic-space-static">
+                        <div class="cube-face"></div>
+                        <div class="cube-face"></div>
+                        <div class="cube-face"></div>
+                        <div class="cube-face"></div>
+                        <div class="cube-face"></div>
+                        <div class="cube-face"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>5-Bit Truth Logic</h2>
+            <p>
+                Moving beyond binary and trinary logic, Protocol-7 implements a <span class="highlight">5-bit truth system</span>
+                with 5-fold sub-bit logic. This enables more nuanced state representation and creates a forensic structure
+                that prevents nodes from being able to lie or flip results.
+            </p>
+            <p>
+                The mathematical beauty emerges when dividing 5 (truth) by 13 (completion), yielding 0.384615...
+                This pattern reveals deep connections to ASCII encoding when rolled appropriately.
+            </p>
+            <div class="static-visualization">
+                <div class="static-viz-element">
+                    <div class="five-bit-static">
+                        <div class="pentagon"></div>
+                        <div class="pentagon-point"></div>
+                        <div class="pentagon-point"></div>
+                        <div class="pentagon-point"></div>
+                        <div class="pentagon-point"></div>
+                        <div class="pentagon-point"></div>
+                        <div class="division-result">5 ÷ 13 = 0.384615...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Atom-Delta Structure</h2>
+            <p>
+                The <span class="highlight">atom-delta</span> forms the inverse of the node grid, creating a larger cube
+                at the edges of the primary 3D plus-sign structure. This dual topology enables higher-dimensional
+                connections and potentially forms the basis for hyperspace computational fields.
+            </p>
+            <div class="static-visualization">
+                <div id="atom-delta-container" class="static-viz-element">
+                    <!-- SVG representation of atom-delta structure -->
+                    <svg width="300" height="300" viewBox="0 0 300 300">
+                        <!-- Outer cube -->
+                        <polygon points="50,100 250,100 250,200 50,200"
+                                 fill="none" stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+                        <polygon points="100,50 200,50 200,250 100,250"
+                                 fill="none" stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+                        <line x1="50" y1="100" x2="100" y2="50"
+                              stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+                        <line x1="250" y1="100" x2="200" y2="50"
+                              stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+                        <line x1="250" y1="200" x2="200" y2="250"
+                              stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+                        <line x1="50" y1="200" x2="100" y2="250"
+                              stroke="rgba(35, 60, 135, 0.4)" stroke-width="2" />
+
+                        <!-- Inner cube -->
+                        <polygon points="100,125 200,125 200,175 100,175"
+                                 fill="none" stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+                        <polygon points="125,100 175,100 175,200 125,200"
+                                 fill="none" stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+                        <line x1="100" y1="125" x2="125" y2="100"
+                              stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+                        <line x1="200" y1="125" x2="175" y2="100"
+                              stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+                        <line x1="200" y1="175" x2="175" y2="200"
+                              stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+                        <line x1="100" y1="175" x2="125" y2="200"
+                              stroke="rgba(32, 57, 135, 0.55)" stroke-width="2" />
+
+                        <!-- Connecting lines (atom-delta) -->
+                        <line x1="50" y1="100" x2="100" y2="125"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="250" y1="100" x2="200" y2="125"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="250" y1="200" x2="200" y2="175"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="50" y1="200" x2="100" y2="175"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+
+                        <line x1="100" y1="50" x2="125" y2="100"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="200" y1="50" x2="175" y2="100"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="200" y1="250" x2="175" y2="200"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+                        <line x1="100" y1="250" x2="125" y2="200"
+                              stroke="rgba(38, 39, 122, 0.5)" stroke-width="2" />
+
+                        <!-- Center node and plus connections -->
+                        <circle cx="150" cy="150" r="8" fill="rgba(35, 62, 130, 0.7)" />
+
+                        <line x1="150" y1="150" x2="175" y2="150"
+                              stroke="rgba(35, 62, 130, 0.6)" stroke-width="4" />
+                        <line x1="150" y1="150" x2="125" y2="150"
+                              stroke="rgba(35, 62, 130, 0.6)" stroke-width="4" />
+                        <line x1="150" y1="150" x2="150" y2="175"
+                              stroke="rgba(35, 62, 130, 0.6)" stroke-width="4" />
+                        <line x1="150" y1="150" x2="150" y2="125"
+                              stroke="rgba(35, 62, 130, 0.6)" stroke-width="4" />
+
+                        <circle cx="175" cy="150" r="5" fill="rgba(36, 51, 135, 0.65)" />
+                        <circle cx="125" cy="150" r="5" fill="rgba(36, 51, 135, 0.65)" />
+                        <circle cx="150" cy="175" r="5" fill="rgba(36, 51, 135, 0.65)" />
+                        <circle cx="150" cy="125" r="5" fill="rgba(36, 51, 135, 0.65)" />
+
+                        <!-- Outer cube vertices -->
+                        <circle cx="50" cy="100" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="250" cy="100" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="250" cy="200" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="50" cy="200" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="100" cy="50" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="200" cy="50" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="200" cy="250" r="5" fill="rgba(58, 72, 135, 0.5)" />
+                        <circle cx="100" cy="250" r="5" fill="rgba(58, 72, 135, 0.5)" />
+
+                        <!-- Inner cube vertices -->
+                        <circle cx="100" cy="125" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="200" cy="125" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="200" cy="175" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="100" cy="175" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="125" cy="100" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="175" cy="100" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="175" cy="200" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                        <circle cx="125" cy="200" r="4" fill="rgba(46, 56, 153, 0.55)" />
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Holographic Task Intelligence Language</h2>
+            <p>
+                By implementing a form of abstracted and simple task intelligence language, Protocol-7 provides
+                holographic modules of logic that, through their elementary type completeness, form a computational
+                field of higher or infinite potential.
+            </p>
+            <div class="code-block">
+                # Holographic Module Definition
+                sub create_module {
+                    my ($type, $params) = @_;
+
+                    # Verify type completeness
+                    die "Invalid module type: $type" unless is_valid_type($type);
+
+                    # Apply dimensional principles
+                    my $dimension_signature = Protocol7::Dimension::Logic::calculate_signature($type);
+
+                    # Create module with holographic properties
+                    return {
+                        type => $type,
+                        signature => $dimension_signature,
+                        state => initialize_state($type, $params),
+                        methods => bind_operators($type)
+                    };
+                }
+            </div>
+        </section>
+
+        <div class="concept-grid">
+            <div class="concept-card">
+                <h3>Dimensional Efficiency</h3>
+                <p>
+                    By dedicating bits to infrastructure instead of overlooking the immediate repayment,
+                    Protocol-7 creates efficient, stable infrastructure where everything is 'on tap'
+                    as a shared interest.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>Inversion States</h3>
+                <p>
+                    Protocol-7 utilizes inversion states to avoid nodes being able to lie or flip results,
+                    creating a more robust consensus mechanism than traditional approaches.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>Self-Similar Revelation</h3>
+                <p>
+                    The architecture follows self-similar, self-explanatory revelation chains that provide
+                    vision into when to do what and how to expand from established foundations.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>LLM Integration</h3>
+                <p>
+                    Through a hybrid approach, LLMs can be orchestrated within the multi-agent system,
+                    eventually transforming themselves to better align with the cubic space network principles.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Protocol-7 Dimensional Topology Visualization - nailara-technologies</p>
+        </div>
+    </div>
+</body>
+</html>

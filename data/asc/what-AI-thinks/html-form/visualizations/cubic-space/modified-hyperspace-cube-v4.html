@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hyperspace Cube Visualization</title>
+    <style>
+        body {
+            background-color: #000010;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+
+        .info-panel {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: opacity 0.5s ease;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Mouse: Move cursor in arcs for enhanced roll control<br>
+        When paused: Click and drag to rotate, diagonal drags control roll<br>
+        Note: Missing corner cube aligns with 63M/63K protocol 7 boundaries
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+        Scale: x10 | Visible sub-cubes: 63 | Alignment: Missing corner cube at position (1,1,1)
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const instructions = document.getElementById('instructions');
+            const infoPanel = document.getElementById('infoPanel');
+
+            // Debug helper
+            let debugMode = false; // Set to true to enable console debugging
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 25; // Background grid size
+            const gridSpacing = 60; // Distance between grid lines
+
+            // Hyperspace cube parameters
+            const currentScale = 10; // Fixed at x10 scale
+            const baseCubeSize = 200; // Base size of the central cube
+            let cubeSize = baseCubeSize * (1 + Math.log10(currentScale) * 0.5);
+
+            // Define colors with no green components as requested
+            const cubeColors = {
+                edge: '#00a0ff', // Pure blue
+                face: 'rgba(0, 50, 180, 0.08)' // Deeper blue for faces with increased transparency
+            };
+
+            // Sub-cube parameters
+            const totalSubCubes = 1000000; // 100x100x100
+            const smallestGroupSize = 5; // Smallest group has 5 units per side
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let rotX = 15;  // Initial X rotation
+            let rotY = 15;  // Initial Y rotation
+            let rotZ = 0;   // Initial Z rotation
+            let animationFrameId = null;
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+
+            // Create grid structure
+            function createGridLines() {
+                const lines = [];
+                const halfSize = (gridSize * gridSpacing) / 2;
+
+                // Create X-axis lines
+                for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x: -halfSize, y, z },
+                            end: { x: halfSize, y, z }
+                        });
+                    }
+                }
+
+                // Create Y-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x, y: -halfSize, z },
+                            end: { x, y: halfSize, z }
+                        });
+                    }
+                }
+
+                // Create Z-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                        lines.push({
+                            start: { x, y, z: -halfSize },
+                            end: { x, y, z: halfSize }
+                        });
+                    }
+                }
+
+                return lines;
+            }
+
+            const gridLines = createGridLines();
+
+            // Create cube structure
+            function createCube(size) {
+                const halfSize = size / 2;
+                const vertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize }, // 0: front bottom left
+                    { x: halfSize, y: -halfSize, z: -halfSize },  // 1: front bottom right
+                    { x: halfSize, y: halfSize, z: -halfSize },   // 2: front top right
+                    { x: -halfSize, y: halfSize, z: -halfSize },  // 3: front top left
+                    { x: -halfSize, y: -halfSize, z: halfSize },  // 4: back bottom left
+                    { x: halfSize, y: -halfSize, z: halfSize },   // 5: back bottom right
+                    { x: halfSize, y: halfSize, z: halfSize },    // 6: back top right
+                    { x: -halfSize, y: halfSize, z: halfSize }    // 7: back top left
+                ];
+
+                const edges = [
+                    { from: 0, to: 1 }, // front bottom
+                    { from: 1, to: 2 }, // front right
+                    { from: 2, to: 3 }, // front top
+                    { from: 3, to: 0 }, // front left
+                    { from: 4, to: 5 }, // back bottom
+                    { from: 5, to: 6 }, // back right
+                    { from: 6, to: 7 }, // back top
+                    { from: 7, to: 4 }, // back left
+                    { from: 0, to: 4 }, // bottom left
+                    { from: 1, to: 5 }, // bottom right
+                    { from: 2, to: 6 }, // top right
+                    { from: 3, to: 7 }  // top left
+                ];
+
+                const faces = [
+                    { vertices: [0, 1, 2, 3] }, // front
+                    { vertices: [5, 4, 7, 6] }, // back
+                    { vertices: [1, 5, 6, 2] }, // right
+                    { vertices: [4, 0, 3, 7] }, // left
+                    { vertices: [3, 2, 6, 7] }, // top
+                    { vertices: [0, 4, 5, 1] }  // bottom
+                ];
+
+                return { vertices, edges, faces };
+            }
+
+            // Create subcube structures
+            function createSubCubes(parentSize, level) {
+                const divisions = 8; // Always divide into 8 parts (2x2x2)
+                const newSize = parentSize / 2;
+                const result = [];
+
+                // Skip further division if we've reached the smallest size
+                if (level <= 0 || newSize < smallestGroupSize) {
+                    return result;
+                }
+
+                // Create 8 sub-cubes based on octants, minus one at (1,1,1) to create 63 cubes
+                for (let x = -1; x <= 1; x += 2) {
+                    for (let y = -1; y <= 1; y += 2) {
+                        for (let z = -1; z <= 1; z += 2) {
+                            const offsetX = x * newSize / 2;
+                            const offsetY = y * newSize / 2;
+                            const offsetZ = z * newSize / 2;
+
+                            // Create a smaller cube in the top-right-back position
+                            // This corresponds to a 1/64th scale cut-out for protocol 7 alignment
+                            let subCube;
+                            if (x === 1 && y === 1 && z === 1 && level === 1) {
+                                // Create a smaller cube (1/8 the size)
+                                const smallerSize = newSize / 8;
+                                subCube = createCube(smallerSize * 7);
+
+                                // Offset it slightly so it's not centered on the original position
+                                // This creates the effect of a small corner cut-out
+                                const cornerOffset = smallerSize / 2;
+                                subCube.vertices.forEach(v => {
+                                    v.x = v.x - cornerOffset;
+                                    v.y = v.y - cornerOffset;
+                                    v.z = v.z - cornerOffset;
+                                });
+                            } else {
+                                subCube = createCube(newSize);
+                            }
+
+                            // Move vertices to correct position
+                            subCube.vertices.forEach(v => {
+                                v.x += offsetX;
+                                v.y += offsetY;
+                                v.z += offsetZ;
+                            });
+
+                            // Skip adding the corner reference cube at position (1,1,1)
+                            if (x === 1 && y === 1 && z === 1 && level === 1) {
+                                // Skip adding, but we've already calculated it for reference
+                                if (debugMode) console.log("Creating smaller cube at corner position");
+                                continue;
+                            }
+
+                            result.push(subCube);
+
+                            // Recursively add smaller cubes
+                            const childCubes = createSubCubes(newSize, level - 1);
+                            childCubes.forEach(childCube => {
+                                // Move all vertices to correct position
+                                childCube.vertices.forEach(v => {
+                                    v.x += offsetX;
+                                    v.y += offsetY;
+                                    v.z += offsetZ;
+                                });
+
+                                result.push(childCube);
+                            });
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            // Create cube hierarchy based on scale
+            function generateCubeHierarchy() {
+                // Fixed at x10 scale with 2 levels of subdivision
+                const recursionLevel = 2;
+
+                // Create main cube but we'll make sure it doesn't have corners where we don't want them
+                const mainCube = createCube(cubeSize);
+
+                // Create subcubes with the top-right-back corner (1,1,1) missing
+                const subCubes = createSubCubes(cubeSize, recursionLevel);
+
+                // Debug info
+                if (debugMode) {
+                    console.log("Total subcubes created:", subCubes.length);
+                }
+
+                return { mainCube, subCubes };
+            }
+
+            let cubeHierarchy = generateCubeHierarchy();
+
+            // Perspective projection function
+            function project(point) {
+                // Convert rotation angles to radians
+                const xRad = rotX * Math.PI / 180;
+                const yRad = rotY * Math.PI / 180;
+                const zRad = rotZ * Math.PI / 180;
+
+                // Apply Y rotation (yaw)
+                let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
+                let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
+
+                // Apply X rotation (pitch)
+                let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
+                let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
+
+                // Apply Z rotation (roll)
+                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+                // Apply perspective
+                const focalLength = 500;
+                const depth = focalLength + z2;
+                if (depth <= 0) return { visible: false }; // Behind camera
+
+                const scale = focalLength / depth;
+                const projX = centerX + x2 * scale;
+                const projY = centerY + y2 * scale;
+
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale,
+                    visible: true
+                };
+            }
+
+            // Draw a single grid line
+            function drawLine(line) {
+                const start = project(line.start);
+                const end = project(line.end);
+
+                // Skip if either point is behind camera
+                if (!start.visible || !end.visible) return;
+
+                // Calculate center point of line
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                // Skip lines that pass too close to center
+                const centerDist = Math.sqrt(
+                    Math.pow(midX - centerX, 2) +
+                    Math.pow(midY - centerY, 2)
+                );
+
+                if (centerDist < 30) return;
+
+                // Depth-based color and opacity
+                const depth = (start.z + end.z) / 2;
+                const maxDepth = 2000;
+                const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+                const opacity = 0.04 + depthFactor * 0.08; // Very subtle lines
+
+                // Draw line with very subtle style
+                ctx.strokeStyle = `rgba(60, 100, 255, ${opacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+            }
+
+            // Draw cube edges
+            function drawCubeEdges(cube, color, thickness = 1) {
+                const projectedVertices = cube.vertices.map(project);
+
+                // Skip if any vertices are behind camera
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Calculate average depth for depth-based intensity
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+                const maxDepth = 1000;
+                const depthFactor = Math.min(1, Math.max(0.2, (avgZ + maxDepth) / (maxDepth * 2)));
+
+                // Draw edges with fluorescent glow
+                ctx.strokeStyle = color;
+                ctx.lineWidth = thickness;
+                ctx.lineCap = 'round';
+
+                // First pass - glow
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = color;
+                cube.edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                });
+
+                // Reset shadow for next drawing operations
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw cube faces
+            function drawCubeFaces(cube, faceColor) {
+                const projectedVertices = cube.vertices.map(project);
+
+                // Skip if any vertices are behind camera
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Calculate average depth for all vertices
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+
+                // Sort faces by depth (painter's algorithm)
+                const sortedFaces = [...cube.faces];
+                sortedFaces.sort((a, b) => {
+                    const avgZA = a.vertices.reduce((acc, v) => acc + projectedVertices[v].z, 0) / a.vertices.length;
+                    const avgZB = b.vertices.reduce((acc, v) => acc + projectedVertices[v].z, 0) / b.vertices.length;
+                    return avgZB - avgZA; // Sort back-to-front
+                });
+
+                // Draw faces
+                ctx.fillStyle = faceColor;
+
+                sortedFaces.forEach(face => {
+                    const faceVertices = face.vertices.map(v => projectedVertices[v]);
+
+                    ctx.beginPath();
+                    ctx.moveTo(faceVertices[0].x, faceVertices[0].y);
+
+                    for (let i = 1; i < faceVertices.length; i++) {
+                        ctx.lineTo(faceVertices[i].x, faceVertices[i].y);
+                    }
+
+                    ctx.closePath();
+                    ctx.fill();
+                });
+            }
+
+            // Draw the entire scene
+            function draw() {
+                // Clear canvas with dark background
+                ctx.fillStyle = '#000010';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw all grid lines
+                gridLines.forEach(drawLine);
+
+                // Draw sub-cubes (always true since we're fixed at x10)
+                // Sort sub-cubes by depth
+                const sortedSubCubes = [...cubeHierarchy.subCubes];
+
+                // Calculate average z for each cube
+                const cubeZValues = sortedSubCubes.map(cube => {
+                    const avgZ = cube.vertices.reduce((acc, v) => {
+                        const proj = project(v);
+                        return acc + (proj.visible ? proj.z : 0);
+                    }, 0) / cube.vertices.length;
+                    return avgZ;
+                });
+
+                // Sort cubes by their average z value
+                const zippedCubes = sortedSubCubes.map((cube, i) => ({ cube, z: cubeZValues[i] }));
+                zippedCubes.sort((a, b) => b.z - a.z); // Sort back-to-front
+
+                // Draw sorted cubes
+                zippedCubes.forEach(({ cube, z }) => {
+                    // Skip cubes behind camera
+                    if (z <= -500) return;
+
+                    // Check if this is a corner cube at the top right back position (1,1,1)
+                    // Get the cube's center by averaging its vertices
+                    const center = { x: 0, y: 0, z: 0 };
+                    cube.vertices.forEach(v => {
+                        center.x += v.x;
+                        center.y += v.y;
+                        center.z += v.z;
+                    });
+                    center.x /= 8;
+                    center.y /= 8;
+                    center.z /= 8;
+
+                    // Skip drawing if this is the corner cube at (1,1,1)
+                    const halfCubeSize = cubeSize / 2;
+                    const isCornerCube =
+                        Math.abs(center.x - halfCubeSize/2) < 1 &&
+                        Math.abs(center.y - halfCubeSize/2) < 1 &&
+                        Math.abs(center.z - halfCubeSize/2) < 1;
+
+                    if (isCornerCube) {
+                        if (debugMode) console.log("Skipping drawing of corner cube");
+                        return;
+                    }
+
+                    // Only draw faces for cubes that are larger (closer to main division)
+                    const isMajorCube = cube.vertices[1].x - cube.vertices[0].x > cubeSize / 8;
+
+                    if (isMajorCube) {
+                        // Scale opacity based on subcube level
+                        const subSize = cube.vertices[1].x - cube.vertices[0].x;
+                        const sizeFactor = subSize / cubeSize;
+                        let faceOpacity = 0.08 * sizeFactor; // More translucent faces
+
+                        drawCubeFaces(cube, cubeColors.face.replace('0.08', faceOpacity.toFixed(2)));
+                    }
+
+                    // Scale line weight by size
+                    const subSize = cube.vertices[1].x - cube.vertices[0].x;
+                    const sizeRatio = subSize / cubeSize;
+                    const lineWeight = Math.max(0.5, sizeRatio * 1.5);
+
+                    // Regular color with opacity based on size
+                    const edgeOpacity = Math.max(0.3, sizeRatio);
+                    const edgeColor = `rgba(0, 160, 255, ${edgeOpacity})`;
+
+                    drawCubeEdges(cube, edgeColor, lineWeight);
+                });
+
+                // Draw main cube but modify it to have a missing corner
+                // Remove the vertex 6 (top-right-back) and faces/edges connecting to it
+                const modifiedMainCube = {
+                    vertices: cubeHierarchy.mainCube.vertices,
+                    edges: cubeHierarchy.mainCube.edges.filter(edge => edge.from !== 6 && edge.to !== 6),
+                    faces: cubeHierarchy.mainCube.faces.filter(face => !face.vertices.includes(6))
+                };
+
+                // Add new edges to highlight the exposed faces where the corner was removed
+                // These connect the vertices that were adjacent to vertex 6
+                modifiedMainCube.edges.push(
+                    { from: 2, to: 5 }, // Connect top-right-front to back-bottom-right
+                    { from: 2, to: 7 }, // Connect top-right-front to back-top-left
+                    { from: 5, to: 7 }  // Connect back-bottom-right to back-top-left
+                );
+
+                // Draw main cube faces and edges
+                drawCubeFaces(modifiedMainCube, cubeColors.face);
+                drawCubeEdges(modifiedMainCube, cubeColors.edge, 2);
+
+                // Add a subtle vignette effect
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Animation loop
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    // Slower base rotation for better control, CCW bias for Z rotation
+                    rotY += elapsed * 0.002;
+                    rotZ -= elapsed * 0.0005; // Negative for CCW rotation
+
+                    // Calculate mouse influence with enhanced non-linear response
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate distance from center for stronger roll effect
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+
+                    // Enhanced non-linear response for more precision
+                    // Cubic response curve gives much better control
+                    const responseFactorX = Math.pow(Math.abs(relativeX), 1.5) * Math.sign(relativeX) * 0.01;
+                    const responseFactorY = Math.pow(Math.abs(relativeY), 1.5) * Math.sign(relativeY) * 0.01;
+
+                    rotY += elapsed * responseFactorX;
+                    rotX += elapsed * responseFactorY;
+
+                    // Much more pronounced roll based on cursor position
+                    // This allows for intentional roll control by moving the cursor in arcs
+                    const quadrantAngle = (Math.atan2(relativeY, relativeX) + Math.PI) % (Math.PI * 2); // 0 to 2π
+                    const quadrantFactor = Math.sin(quadrantAngle * 2); // -1 to 1 based on quadrant
+
+                    // Enhanced roll influence with greater magnitude
+                    const rollInfluence = -quadrantFactor * Math.pow(distanceFromCenter, 1.5) * 0.005;
+                    rotZ += elapsed * rollInfluence;
+
+                    // Normalize angles
+                    rotX %= 360;
+                    rotY %= 360;
+                    rotZ %= 360;
+
+                    // Draw the scene
+                    draw();
+
+                    // Continue animation
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse movement handler with optimized non-linear response
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Handle dragging when paused
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    // Improved non-linear response for more control
+                    // Cubic response curve gives much finer control for small movements
+                    // but still allows large movements when needed
+                    const signX = Math.sign(deltaX);
+                    const signY = Math.sign(deltaY);
+
+                    // Enhanced non-linear response curve for more intuitive control
+                    const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
+                    const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
+
+                    rotY = dragStartRotY + responseX * 30;
+                    rotX = dragStartRotX + responseY * 30;
+
+                    // Enhanced roll control based on cursor position and movement
+                    // This gives more control over roll angle
+                    const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
+                    const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate roll based on both cursor position and movement direction
+                    // This allows for more intuitive roll control
+                    const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
+                    const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
+                    const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
+
+                    // More responsive roll control (no threshold)
+                    rotZ = dragStartRotZ + rollResponse * 8;
+
+                    // Draw with the new rotation
+                    draw();
+                }
+            });
+
+            // Mouse button handlers
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartRotX = rotX;
+                    dragStartRotY = rotY;
+                    dragStartRotZ = rotZ;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Update cursor based on state
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Update info panel
+            function updateInfoPanel() {
+                infoPanel.textContent = `Scale: x${currentScale} | Visible sub-cubes: 63 | Alignment: Missing corner cube at position (1,1,1)`;
+            }
+
+            // Control button handlers
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                rotX = 15;
+                rotY = 15;
+                rotZ = 0;
+                draw();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Show instructions briefly
+            setTimeout(() => {
+                instructions.style.opacity = '1';
+                setTimeout(() => {
+                    instructions.style.opacity = '0.7';
+                }, 5000);
+            }, 1000);
+
+            // Update info panel initially
+            updateInfoPanel();
+
+            // Initial draw
+            draw();
+
+            // Start animation after short delay
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

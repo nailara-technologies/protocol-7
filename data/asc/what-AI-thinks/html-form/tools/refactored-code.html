@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Refactored ncode Development Tool</title>
+    <style>
+        :root {
+            --bg-primary: #1a1b26;
+            --bg-secondary: #24283b;
+            --text-primary: #a9b1d6;
+            --text-secondary: #9aa5ce;
+            --syntax-comment: #565f89;
+            --syntax-keyword: #bb9af7;
+            --syntax-string: #9ece6a;
+            --syntax-variable: #7dcfff;
+            --syntax-function: #f7768e;
+            --syntax-constant: #ff9e64;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        pre {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+
+        /* Shimmering effect */
+        pre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.03) 50%,
+                transparent 100%
+            );
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Perl Syntax Highlighting */
+        .pl-comment { color: var(--syntax-comment); }
+        .pl-keyword { color: var(--syntax-keyword); }
+        .pl-string { color: var(--syntax-string); }
+        .pl-variable { color: var(--syntax-variable); }
+        .pl-function { color: var(--syntax-function); }
+        .pl-constant { color: var(--syntax-constant); }
+        .pl-operator { color: #ff79c6; }
+        .pl-pragma { color: #bd93f9; }
+        .pl-builtin { color: #8be9fd; }
+        .pl-regexp { color: #ff5555; }
+        .pl-package { color: #50fa7b; }
+        .pl-number { color: #bd93f9; }
+        .pl-special { color: #ffb86c; }
+
+        h1 {
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--syntax-function);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Refactored ncode Development Tool</h1>
+    <pre><code><span class="pl-special">#!/usr/bin/perl</span>
+
+# :: ncode :: development tool for parsing [perl\protocol-7] source code
+
+use v5.30.0;
+use strict;
+use warnings;
+use English;
+use Term::ReadLine;
+use Term::ANSIColor;
+use File::Spec;
+use IO::Select;
+use Cwd qw(abs_path);
+use Digest::BMW qw(bmw_256);
+use List::MoreUtils qw(minmax uniq);
+use Crypt::Misc qw(encode_b32r);
+no warnings 'experimental';
+
+# Configuration
+BEGIN { $ENV{PERL_RL} = 'Perl' }
+
+# Constants
+use constant {
+    SUCCESS => 0,
+    ERROR => 1,
+    DEFAULT_TARGET => '.',
+    CONFIG_PATH => $ENV{HOME} . '/.code/',
+};
+
+# ANSI Color Configuration
+our %COLORS = (
+    T   => "\e[38;2;6;71;195m",    # Title
+    B00 => "\e[48;2;0;0;17m",      # Background 0
+    B01 => "\e[48;2;9;5;24m",      # Background 1
+    B02 => "\e[48;2;9;5;42m",      # Background 2
+    '0' => "\e[38;2;68;39;172m",   # Primary
+    g   => "\e[38;2;71;195;6m",    # Success
+    o   => "\e[38;2;197;141;7m",   # Warning
+    B   => "\e[1m",                # Bold
+    R   => "\e[0m",                # Reset
+);
+
+# State
+my $USE_ANSI = 1;
+my $term = Term::ReadLine->new('ncode');
+$term->ornaments('0,0,md,me');
+
+# Disable colors if requested
+map { $COLORS{$_} = '' } keys %COLORS if !$USE_ANSI;
+
+# File paths configuration
+my $root_path = File::Spec->rel2abs(readlink($PROGRAM_NAME) // $PROGRAM_NAME);
+$root_path =~ s|/[^/]+/[^/]+$||;    # relative to ./bin/ path [ parent ]
+
+my $PATHS = {
+    root => $root_path,
+    work => CONFIG_PATH,
+};
+
+# Target paths for code parsing
+my %TARGETS = (
+    '.'      => Cwd::cwd(),
+    bin      => "$PATHS->{root}/bin/",
+    dev      => "$PATHS->{root}/bin/dev/",
+    admin    => "$PATHS->{root}/bin/admin/",
+    src      => "$PATHS->{root}/modules/",
+    cfg      => "$PATHS->{root}/configuration/",
+    md       => "$PATHS->{root}/read-me/md/",
+    zenki    => "$PATHS->{root}/configuration/zenki/..,",
+    'pm-src' => "$PATHS->{root}/data/lib-path/pm",
+    amos     => "$PATHS->{root}/data/lib-path/pm/AMOS7",
+    'amos-at'  => "$PATHS->{root}/data/lib-path/pm/AMOS7/Assert",
+    'amos-in'  => "$PATHS->{root}/data/lib-path/pm/AMOS7/INLINE",
+    'amos-cs'  => "$PATHS->{root}/data/lib-path/pm/AMOS7/CHKSUM",
+    'amos-elf' => "$PATHS->{root}/data/lib-path/pm/AMOS7/CHKSUM/ELF",
+);
+
+# Command handlers
+my %COMMANDS = (
+    'list-targets'   => \&cmd_list_targets,
+    'list-psubs'     => \&cmd_list_psubs,
+    's'              => \&cmd_search,
+    'search'         => \&cmd_search,
+    'show-psub'      => \&cmd_show_psub,
+    'move-psubs'     => \&cmd_move_psubs,
+    'r'              => \&cmd_replace,
+    'replace'        => \&cmd_replace,
+    'parse'          => \&cmd_parse_headers,
+    'parse-headers'  => \&cmd_parse_headers,
+    'restore-backup' => \&cmd_restore_backup,
+    'undo'           => \&cmd_undo,
+    'undo-move'      => \&cmd_undo_move,
+    'description'    => \&cmd_description
+);
+
+# Main
+sub main {
+    my ($cmd, @params) = @ARGV;
+
+    $cmd //= '';
+
+    # Default parameters
+    push(@params, DEFAULT_TARGET) if $cmd =~ /^(?:s(?:earch)?|rep(?:lace)?)$/ && !@params;
+    push(@params, 'src') if $cmd =~ /^parse(?:-headers)?$/ && !@params;
+
+    # Setup signal handlers
+    $SIG{INT} = sub {
+        printf "%s%s\n\n", "\b" x 11, ' ' x 11;
+        aborted();
+    };
+
+    print "\n";
+
+    # Validate command
+    if (!exists $COMMANDS{$cmd}) {
+        if (length $cmd) {
+            printf("\n %s::%s a command '%s%s%s' does not exist %s::%s\n",
+                   $COLORS{o}, $COLORS{0}, $COLORS{o}, $cmd, $COLORS{0},
+                   $COLORS{o}, $COLORS{R});
+        } else {
+            printf("\n %s::%s usage %s::%s\n",
+                   $COLORS{0}, $COLORS{g}, $COLORS{0}, $COLORS{R});
+        }
+        cmd_description();
+        exit ERROR;
+    }
+
+    # Handle 'all' target alias
+    if (@params && $params[0] eq 'all') {
+        $params[0] = join('+', grep { !/\./ } keys %TARGETS);
+    }
+
+    # Execute command
+    if (ref $COMMANDS{$cmd} eq 'CODE') {
+        $COMMANDS{$cmd}->(@params);
+    } else {
+        die "\n :: callback for command '$cmd' not defined\n\n";
+    }
+
+    exit SUCCESS;
+}
+
+# Utility Functions
+sub highlight {
+    my ($text, $pattern, $open_tag, $close_tag, $case_insensitive) = @_;
+    $open_tag //= $COLORS{T};
+    $close_tag //= $COLORS{R};
+    $case_insensitive //= 1;
+
+    if ($case_insensitive) {
+        $text =~ s/($pattern)/$open_tag$1$close_tag/gi;
+    } else {
+        $text =~ s/($pattern)/$open_tag$1$close_tag/g;
+    }
+    return $text;
+}
+
+sub files {
+    my ($type) = @_;
+    my $path = $TARGETS{$type};
+    my $recursion = $path =~ s/\.\.$// ? 1 : 0;
+
+    die ":\n:: no such target :. $type\n\n" if !defined $path;
+    die ":\n:: target path not exists :. $path\n\n" if !-e $path;
+
+    my @files;
+    if (-d $path) {
+        opendir(my $dir_fh, $path) or die "cannot open dir '$path': $!\n";
+        while (my $filename = readdir($dir_fh)) {
+            next if $filename =~ /^\.{1,2}$/;
+            $filename = "$path/$filename";
+            $filename =~ s|//|/|g;
+
+            if ($filename !~ /(?:\.bak|\.orig|\~)$/i) {
+                push @files, $filename;
+
+                if ($recursion && -d $filename) {
+                    opendir(my $subdir_fh, $filename)
+                        or die "cannot open dir '$filename': $!\n";
+                    push @files, map { "$filename/$_" } readdir($subdir_fh);
+                    closedir($subdir_fh);
+                }
+            }
+        }
+        closedir($dir_fh);
+    }
+    return sort @files;
+}
+
+# Entry point
+main() unless caller;</code></pre>
+</body>
+</html>

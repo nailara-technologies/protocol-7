@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychedelic Logo Recreation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000014;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        .central-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ring {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 50%;
+            box-shadow:
+                0 0 20px currentColor,
+                0 0 40px currentColor,
+                0 0 60px currentColor,
+                inset 0 0 20px currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .ring-outer {
+            width: 50px;
+            height: 50px;
+            color: #87CEEB;
+            border-width: 4px;
+            animation-delay: 0s;
+        }
+
+        .ring-middle {
+            width: 30px;
+            height: 30px;
+            color: #6495ED;
+            left: 10px;
+            top: 10px;
+            border-width: 2px;
+            animation-delay: 0.3s;
+        }
+
+        .ring-inner {
+            width: 16px;
+            height: 16px;
+            background: #87CEEB;
+            border: none;
+            left: 17px;
+            top: 17px;
+            box-shadow:
+                0 0 30px #87CEEB,
+                0 0 60px #6495ED,
+                0 0 90px #4169E1;
+            animation: glow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 30px #87CEEB, 0 0 60px #6495ED, 0 0 90px #4169E1; }
+            50% { box-shadow: 0 0 40px #87CEEB, 0 0 80px #6495ED, 0 0 120px #4169E1; }
+        }
+
+        .spoke {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 100px;
+            transform-origin: 0 50%;
+        }
+
+        .spoke-element {
+            position: absolute;
+            border: 3px solid #87CEEB;
+            border-radius: 50%;
+            background: rgba(135, 206, 235, 0.05);
+            box-shadow:
+                0 0 15px #87CEEB,
+                0 0 30px #6495ED,
+                inset 0 0 15px rgba(135, 206, 235, 0.3);
+            animation: rotate-glow 3s linear infinite;
+        }
+
+        @keyframes rotate-glow {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(20deg) brightness(1.2); }
+            100% { filter: hue-rotate(0deg) brightness(1); }
+        }
+
+        .circle-main {
+            width: 50px;
+            height: 50px;
+            left: 60px;
+            top: 25px;
+        }
+
+        .circle-inner {
+            width: 40px;
+            height: 40px;
+            left: 35px;
+            top: 30px;
+        }
+
+        .circle-outer {
+            width: 30px;
+            height: 30px;
+            left: 80px;
+            top: 35px;
+        }
+
+        .circle-connect-top {
+            width: 20px;
+            height: 20px;
+            left: 45px;
+            top: 15px;
+            border-width: 2px;
+        }
+
+        .circle-connect-bottom {
+            width: 20px;
+            height: 20px;
+            left: 45px;
+            top: 65px;
+            border-width: 2px;
+        }
+
+        /* Blacklight effect overlay */
+        .blacklight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                rgba(25, 25, 112, 0.1) 50%,
+                rgba(0, 0, 40, 0.3) 100%
+            );
+            animation: blacklight-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes blacklight-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Fluorescent particles */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #87CEEB;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #87CEEB;
+            animation: particle-float 10s linear infinite;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translateY(400px) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-400px) translateX(50px) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="blacklight-overlay"></div>
+
+    <div class="logo-container" id="logo">
+        <!-- Central Core -->
+        <div class="central-core">
+            <div class="ring ring-outer"></div>
+            <div class="ring ring-middle"></div>
+            <div class="ring ring-inner"></div>
+        </div>
+
+        <!-- Spokes will be generated by JavaScript -->
+    </div>
+
+    <script>
+        // Generate 8 spokes
+        const logoContainer = document.getElementById('logo');
+        const numSpokes = 8;
+        const angleStep = 360 / numSpokes;
+
+        for (let i = 0; i < numSpokes; i++) {
+            const spoke = document.createElement('div');
+            spoke.className = 'spoke';
+            spoke.style.transform = `translate(-50%, -50%) rotate(${i * angleStep}deg)`;
+
+            // Add circles to each spoke
+            const circles = [
+                { class: 'circle-main spoke-element' },
+                { class: 'circle-inner spoke-element' },
+                { class: 'circle-outer spoke-element' },
+                { class: 'circle-connect-top spoke-element' },
+                { class: 'circle-connect-bottom spoke-element' }
+            ];
+
+            circles.forEach((circle, index) => {
+                const elem = document.createElement('div');
+                elem.className = circle.class;
+                // Add staggered animation delay
+                elem.style.animationDelay = `${i * 0.1 + index * 0.05}s`;
+                spoke.appendChild(elem);
+            });
+
+            logoContainer.appendChild(spoke);
+        }
+
+        // Generate floating particles for psychedelic effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+
+            // Random fluorescent colors
+            const colors = ['#87CEEB', '#6495ED', '#00FFFF', '#7B68EE', '#00CED1'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 10px ${color}`;
+
+            document.body.appendChild(particle);
+
+            // Remove particle after animation
+            setTimeout(() => {
+                particle.remove();
+            }, 12000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 300);
+
+        // Interactive glow effect on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const logo = document.querySelector('.logo-container');
+            const rect = logo.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - centerX, 2) +
+                Math.pow(e.clientY - centerY, 2)
+            );
+
+            const maxDistance = 300;
+            const intensity = Math.max(0, 1 - distance / maxDistance);
+
+            logo.style.filter = `brightness(${1 + intensity * 0.3}) contrast(${1 + intensity * 0.2})`;
+        });
+    </script>
+</body>
+</html>

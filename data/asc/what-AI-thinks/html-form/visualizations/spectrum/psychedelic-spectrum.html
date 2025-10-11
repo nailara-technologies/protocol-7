@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychedelic Color Spectrum - Fixed</title>
+    <style>
+        body {
+            background-color: #0a0020;
+            background: radial-gradient(circle at center, #0a0020 0%, #050010 85%, #030008 100%);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(80, 0, 130, 0.1) 0%, rgba(20, 0, 50, 0.05) 50%, rgba(5, 0, 20, 0) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        h1, h2 {
+            color: rgba(180, 140, 255, 0.9);
+            text-shadow: 0 0 10px rgba(155, 0, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(15, 5, 35, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(80, 0, 180, 0.25);
+            backdrop-filter: blur(3px);
+            border: 1px solid rgba(60, 20, 120, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .spectrum-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            margin: 20px 0;
+            background-color: rgba(20, 0, 50, 0.4);
+            border-radius: 50%;
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        .spectrum-wheel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                rgba(155, 0, 255, 0.9),
+                rgba(255, 0, 255, 0.8),
+                rgba(0, 255, 255, 0.7),
+                rgba(0, 255, 0, 0.7),
+                rgba(255, 255, 0, 0.8),
+                rgba(255, 165, 0, 0.8),
+                rgba(255, 0, 0, 0.8),
+                rgba(155, 0, 255, 0.9)
+            );
+            box-shadow:
+                0 0 40px rgba(128, 0, 255, 0.8),
+                inset 0 0 60px rgba(255, 0, 255, 0.5);
+            animation: rotate 120s linear infinite;
+        }
+
+        .intensity-rings {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.1) 25%,
+                rgba(128, 0, 255, 0.4) 50%,
+                rgba(0, 0, 0, 0.7) 75%,
+                rgba(0, 0, 0, 0.9) 100%
+            );
+            mix-blend-mode: overlay;
+            transition: opacity 0.5s ease;
+        }
+
+        .radial-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: repeating-conic-gradient(
+                rgba(80, 0, 255, 0) 0deg,
+                rgba(80, 0, 255, 0) 5deg,
+                rgba(120, 120, 255, 0.15) 5.5deg,
+                rgba(80, 0, 255, 0) 6deg
+            );
+            border-radius: 50%;
+            opacity: 0.9;
+            mix-blend-mode: screen;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            background-color: rgba(30, 15, 60, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: inset 0 0 10px rgba(60, 0, 120, 0.2);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: rgba(180, 140, 255, 0.9);
+            text-shadow: 0 0 5px rgba(102, 0, 204, 0.6);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            background: linear-gradient(to right, rgba(48, 0, 102, 0.7), rgba(128, 0, 204, 0.7));
+            height: 8px;
+            border-radius: 4px;
+            -webkit-appearance: none;
+            box-shadow: 0 0 15px rgba(102, 0, 204, 0.4);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(155, 0, 255, 0.7);
+            box-shadow: 0 0 10px rgba(155, 0, 255, 0.8);
+            cursor: pointer;
+        }
+
+        .flourescent-sample {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .color-box {
+            width: calc(25% - 10px);
+            height: 80px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(var(--glow-color), 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .color-info {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(20, 15, 35, 0.4);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            box-shadow: inset 0 0 15px rgba(80, 0, 150, 0.3);
+        }
+
+        #selected-color-display {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            margin-right: 15px;
+            border: 1px solid rgba(155, 0, 255, 0.2);
+            box-shadow: 0 0 15px rgba(102, 0, 204, 0.4);
+            background-color: rgba(60, 20, 90, 0.3);
+        }
+
+        #color-hex-value {
+            font-family: monospace;
+            font-size: 16px;
+            color: rgba(180, 120, 255, 0.9);
+            text-shadow: 0 0 8px rgba(155, 0, 255, 0.7);
+        }
+
+        .button {
+            background: linear-gradient(45deg, rgba(50, 0, 100, 0.8), rgba(120, 0, 180, 0.8));
+            border: none;
+            color: rgba(230, 210, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(102, 0, 204, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+
+        @keyframes ambient-pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.4; }
+        }
+
+        .ambient-light {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: -2;
+            animation: ambient-pulse 15s infinite ease-in-out;
+        }
+
+        .light-1 {
+            width: 300px;
+            height: 300px;
+            background: rgba(80, 0, 180, 0.2);
+            top: -100px;
+            left: 10%;
+        }
+
+        .light-2 {
+            width: 250px;
+            height: 250px;
+            background: rgba(120, 0, 200, 0.15);
+            bottom: -50px;
+            right: 15%;
+            animation-delay: -7s;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+    <div class="container">
+        <h1>Psychedelic Spectrum Visualization</h1>
+
+        <div class="spectrum-container">
+            <div class="spectrum-wheel" id="wheel"></div>
+            <div class="intensity-rings" id="intensity-rings"></div>
+            <div class="radial-lines" id="radial-lines"></div>
+        </div>
+
+        <div class="controls">
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Blacklight Intensity</span>
+                    <span id="blacklight-value">63%</span>
+                </div>
+                <input type="range" min="0" max="100" value="63" id="blacklight-slider">
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Fluorescence Level</span>
+                    <span id="fluorescence-value">7%</span>
+                </div>
+                <input type="range" min="0" max="100" value="7" id="fluorescence-slider">
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Rotation Speed</span>
+                    <span id="rotation-value">Glacial</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" id="rotation-slider">
+            </div>
+        </div>
+
+        <div class="color-info">
+            <div id="selected-color-display"></div>
+            <div id="color-hex-value">Click on wheel to sample color</div>
+        </div>
+
+        <h2>Fluorescent Sample Palette</h2>
+        <div class="flourescent-sample" id="sample-palette">
+            <!-- Generated dynamically -->
+        </div>
+
+        <button class="button" id="generate-button">Generate Random Palette</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const wheel = document.getElementById('wheel');
+            const blacklightSlider = document.getElementById('blacklight-slider');
+            const fluorescenceSlider = document.getElementById('fluorescence-slider');
+            const rotationSlider = document.getElementById('rotation-slider');
+            const blacklightValue = document.getElementById('blacklight-value');
+            const fluorescenceValue = document.getElementById('fluorescence-value');
+            const rotationValue = document.getElementById('rotation-value');
+            const samplePalette = document.getElementById('sample-palette');
+            const generateButton = document.getElementById('generate-button');
+            const selectedColorDisplay = document.getElementById('selected-color-display');
+            const colorHexValue = document.getElementById('color-hex-value');
+            const intensityRings = document.getElementById('intensity-rings');
+            const radialLines = document.getElementById('radial-lines');
+
+            // Color mapping for accurate sampling
+            const colorMap = [
+                { angle: 0, color: { r: 155, g: 0, b: 255 } },
+                { angle: 45, color: { r: 255, g: 0, b: 255 } },
+                { angle: 90, color: { r: 0, g: 0, b: 255 } },
+                { angle: 135, color: { r: 0, g: 255, b: 255 } },
+                { angle: 180, color: { r: 0, g: 255, b: 0 } },
+                { angle: 225, color: { r: 255, g: 255, b: 0 } },
+                { angle: 270, color: { r: 255, g: 165, b: 0 } },
+                { angle: 315, color: { r: 255, g: 0, b: 0 } },
+                { angle: 360, color: { r: 155, g: 0, b: 255 } }
+            ];
+
+            // Color memory for shift register behavior
+            const colorMemory = [];
+
+            // Initial palette colors
+            let paletteColors = [
+                { r: 155, g: 0, b: 255, a: 0.7 },
+                { r: 255, g: 105, b: 180, a: 0.7 },
+                { r: 0, g: 255, b: 255, a: 0.7 },
+                { r: 50, g: 205, b: 50, a: 0.7 },
+                { r: 255, g: 255, b: 0, a: 0.8 },
+                { r: 255, g: 105, b: 180, a: 0.6 },
+                { r: 0, g: 191, b: 255, a: 0.7 },
+                { r: 255, g: 0, b: 255, a: 0.8 }
+            ];
+
+            // FIX 1: Make sure sliders properly update values
+            blacklightSlider.addEventListener('input', function() {
+                blacklightValue.textContent = this.value + '%';
+                updateWheel();
+            });
+
+            fluorescenceSlider.addEventListener('input', function() {
+                fluorescenceValue.textContent = this.value + '%';
+                updateWheel();
+            });
+
+            rotationSlider.addEventListener('input', function() {
+                let speed;
+                if (this.value < 25) speed = 'Glacial';
+                else if (this.value < 50) speed = 'Very Slow';
+                else if (this.value < 75) speed = 'Slow';
+                else if (this.value < 90) speed = 'Medium';
+                else speed = 'Medium-Fast';
+
+                rotationValue.textContent = speed;
+
+                // Update animation duration
+                const duration = 120 - (this.value * 0.9);
+                wheel.style.animationDuration = duration + 's';
+            });
+
+            // Generate random palette button
+            generateButton.addEventListener('click', generateRandomPalette);
+
+            // FIX 2: Improved color sampling function
+            wheel.addEventListener('click', function(e) {
+                const color = getPixelColor(e.clientX, e.clientY, wheel);
+                if (color) {
+                    const hexColor = rgbaToHex(color.r, color.g, color.b, color.a);
+                    displaySelectedColor(hexColor);
+                }
+            });
+
+            // Update wheel based on slider values
+            function updateWheel() {
+                const blacklight = blacklightSlider.value / 100;
+                const fluorescence = fluorescenceSlider.value / 100;
+
+                // Update wheel with new values
+                wheel.style.background = `conic-gradient(
+                    rgba(155, 0, 255, ${blacklight}),
+                    rgba(255, 0, 255, ${fluorescence * 0.9}),
+                    rgba(0, 255, 255, ${fluorescence * 0.9}),
+                    rgba(0, 255, 0, ${fluorescence * 0.9}),
+                    rgba(255, 255, 0, ${fluorescence * 0.9}),
+                    rgba(255, 165, 0, ${fluorescence * 0.9}),
+                    rgba(255, 0, 0, ${fluorescence * 0.9}),
+                    rgba(155, 0, 255, ${blacklight})
+                )`;
+
+                wheel.style.boxShadow = `
+                    0 0 ${40 + blacklight * 30}px rgba(128, 0, 255, ${blacklight}),
+                    inset 0 0 ${40 + fluorescence * 40}px rgba(255, 0, 255, ${fluorescence})
+                `;
+
+                // Update intensity rings
+                intensityRings.style.background = `radial-gradient(
+                    circle at center,
+                    rgba(255, 255, 255, ${0.1 + fluorescence * 0.8}) 0%,
+                    rgba(255, 255, 255, ${0.05 + fluorescence * 0.05}) 25%,
+                    rgba(128, 0, 255, ${0.1 + fluorescence * 0.3}) 50%,
+                    rgba(0, 0, 0, ${0.2 + fluorescence * 0.5}) 75%,
+                    rgba(0, 0, 0, ${0.3 + fluorescence * 0.6}) 100%
+                )`;
+
+                // Update background color
+                document.querySelector('.spectrum-container').style.backgroundColor =
+                    `rgba(20, 0, 50, ${0.2 + fluorescence * 0.3})`;
+
+                // Update radial lines
+                radialLines.style.backgroundImage = `repeating-conic-gradient(
+                    rgba(80, 0, 255, 0) 0deg,
+                    rgba(80, 0, 255, 0) 5deg,
+                    rgba(120, 120, 255, ${0.1 + blacklight * 0.2}) 5.5deg,
+                    rgba(80, 0, 255, 0) 6deg
+                )`;
+
+                radialLines.style.filter = `blur(${0.3 + blacklight * 0.5}px) brightness(${1 + blacklight * 0.5})`;
+
+                // Update palette colors
+                updateSamplePalette();
+            }
+
+            // CRITICAL FIX: Wheel click handler completely rewritten
+            wheel.addEventListener('click', function(e) {
+                console.log("Wheel clicked");
+
+                // Get coordinates relative to viewport
+                const x = e.clientX;
+                const y = e.clientY;
+
+                // Get wheel dimensions and position
+                const rect = wheel.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                // Calculate distance from center
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const radius = rect.width / 2;
+
+                // Only proceed if the click is inside the wheel
+                if (distance <= radius) {
+                    console.log("Click inside wheel at distance:", distance);
+
+                    // Calculate angle in degrees (0-360)
+                    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    if (angle < 0) angle += 360;
+
+                    console.log("Angle:", angle);
+
+                    // Get color at this position
+                    const color = sampleWheelColor(angle, distance, radius);
+
+                    console.log("Sampled color:", color);
+
+                    if (color) {
+                        // Convert to hex
+                        const hexColor = rgbaToHex(color.r, color.g, color.b, color.a);
+
+                        console.log("Hex color:", hexColor);
+
+                        // Display the color and update memory
+                        displaySelectedColor(hexColor, true);
+                    }
+                } else {
+                    console.log("Click outside wheel");
+                }
+            });
+
+            // Separated wheel color sampling function
+            function sampleWheelColor(angle, distance, radius) {
+                // Get current slider values
+                const blacklight = blacklightSlider.value / 100;
+                const fluorescence = fluorescenceSlider.value / 100;
+
+                // Convert angle to hue (0-360)
+                const hue = angle;
+
+                // Calculate normalized distance (0-1)
+                const normalizedDistance = distance / radius;
+
+                // HSV to RGB conversion (better for color wheels)
+                function hsvToRgb(h, s, v) {
+                    const c = v * s;
+                    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+                    const m = v - c;
+
+                    let r, g, b;
+                    if (h >= 0 && h < 60) {
+                        [r, g, b] = [c, x, 0];
+                    } else if (h >= 60 && h < 120) {
+                        [r, g, b] = [x, c, 0];
+                    } else if (h >= 120 && h < 180) {
+                        [r, g, b] = [0, c, x];
+                    } else if (h >= 180 && h < 240) {
+                        [r, g, b] = [0, x, c];
+                    } else if (h >= 240 && h < 300) {
+                        [r, g, b] = [x, 0, c];
+                    } else {
+                        [r, g, b] = [c, 0, x];
+                    }
+
+                    return {
+                        r: Math.round((r + m) * 255),
+                        g: Math.round((g + m) * 255),
+                        b: Math.round((b + m) * 255)
+                    };
+                }
+
+                // Get base RGB color
+                const rgb = hsvToRgb(hue, 1, 1);
+                let r = rgb.r;
+                let g = rgb.g;
+                let b = rgb.b;
+
+                // Apply psychedelic color adjustments
+
+                // 1. Special handling for UV/blacklight colors
+                if ((hue >= 270 || hue <= 30) && blacklight > 0.3) {
+                    // Enhance purple/violet range
+                    b = Math.min(255, b + blacklight * 50);
+                    r = Math.min(255, r + blacklight * 30);
+                }
+
+                // 2. Center area brightness adjustment
+                if (normalizedDistance < 0.3) {
+                    // Center is brighter based on fluorescence
+                    const centerEffect = (0.3 - normalizedDistance) / 0.3;
+                    r = Math.min(255, r + (255 - r) * centerEffect * fluorescence);
+                    g = Math.min(255, g + (255 - g) * centerEffect * fluorescence);
+                    b = Math.min(255, b + (255 - b) * centerEffect * fluorescence);
+                }
+
+                // 3. Overall color intensity based on fluorescence
+                const intensityBoost = 1 + (fluorescence * 0.2);
+                r = Math.min(255, r * intensityBoost);
+                g = Math.min(255, g * intensityBoost);
+                b = Math.min(255, b * intensityBoost);
+
+                // 4. Alpha/transparency calculation
+                let alpha;
+                if (normalizedDistance < 0.2) {
+                    // Center more affected by fluorescence
+                    alpha = 0.7 + fluorescence * 0.3;
+                } else {
+                    // Outer area more affected by blacklight
+                    alpha = 0.7 + blacklight * 0.3;
+                }
+
+                return { r, g, b, a: alpha };
+            }
+
+            // Convert RGBA to hex
+            function rgbaToHex(r, g, b, a = 1) {
+                const hexR = Math.round(r).toString(16).padStart(2, '0');
+                const hexG = Math.round(g).toString(16).padStart(2, '0');
+                const hexB = Math.round(b).toString(16).padStart(2, '0');
+                const hexA = Math.round(a * 255).toString(16).padStart(2, '0');
+
+                return `#${hexR}${hexG}${hexB}${a < 1 ? hexA : ''}`;
+            }
+
+            // Display selected color with enhanced visual feedback
+            function displaySelectedColor(hexColor, sourceElement = null) {
+                // Update the color display with glow effect matching the color
+                selectedColorDisplay.style.backgroundColor = hexColor;
+
+                // Get RGB values from hex for glow
+                const r = parseInt(hexColor.substr(1, 2), 16);
+                const g = parseInt(hexColor.substr(3, 2), 16);
+                const b = parseInt(hexColor.substr(5, 2), 16);
+
+                // Add glow effect matching the color
+                selectedColorDisplay.style.boxShadow = `0 0 15px rgba(${r}, ${g}, ${b}, 0.8)`;
+
+                // Update text display
+                colorHexValue.textContent = hexColor;
+
+                // Visual feedback on text
+                colorHexValue.style.textShadow = `0 0 8px rgba(${r}, ${g}, ${b}, 0.7)`;
+
+                // Copy to clipboard with visual feedback
+                navigator.clipboard.writeText(hexColor)
+                    .then(() => {
+                        // Flash effect to indicate copying
+                        colorHexValue.style.color = '#fff';
+                        colorHexValue.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.9)';
+
+                        setTimeout(() => {
+                            colorHexValue.style.color = 'rgba(180, 120, 255, 0.9)';
+                            colorHexValue.style.textShadow = `0 0 8px rgba(${r}, ${g}, ${b}, 0.7)`;
+                        }, 300);
+                    })
+                    .catch(err => {
+                        console.error('Could not copy: ', err);
+                    });
+
+                // Add to color memory
+                if (hexColor !== '#000000') {
+                    updateColorMemory(hexColor);
+                }
+            }
+
+            // Create sample palette
+            function createSamplePalette() {
+                samplePalette.innerHTML = '';
+
+                paletteColors.forEach(color => {
+                    const box = document.createElement('div');
+                    box.className = 'color-box';
+                    box.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+                    box.style.setProperty('--glow-color', `${color.r}, ${color.g}, ${color.b}`);
+                    box.style.boxShadow = `0 0 15px rgba(${color.r}, ${color.g}, ${color.b}, 0.7)`;
+
+                    box.addEventListener('click', function() {
+                        const computedStyle = window.getComputedStyle(box);
+                        const bgColor = computedStyle.backgroundColor;
+                        const rgbaMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/);
+                        if (rgbaMatch) {
+                            const r = parseInt(rgbaMatch[1]);
+                            const g = parseInt(rgbaMatch[2]);
+                            const b = parseInt(rgbaMatch[3]);
+                            const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1;
+                            displaySelectedColor(rgbaToHex(r, g, b, a), box);
+                        }
+                    });
+
+                    samplePalette.appendChild(box);
+                });
+            }
+
+            // Update sample palette based on slider values
+            function updateSamplePalette() {
+                const blacklight = blacklightSlider.value / 100;
+                const fluorescence = fluorescenceSlider.value / 100;
+
+                const boxes = samplePalette.querySelectorAll('.color-box');
+                boxes.forEach((box, index) => {
+                    const color = paletteColors[index];
+                    const adjustedAlpha = color.a * fluorescence;
+                    const glowIntensity = blacklight;
+
+                    box.style.backgroundColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${adjustedAlpha})`;
+                    box.style.boxShadow = `0 0 ${15 + blacklight * 20}px rgba(${color.r}, ${color.g}, ${color.b}, ${glowIntensity})`;
+                });
+            }
+
+            // Enhanced update color memory function
+            function updateColorMemory(hexColor) {
+                // Parse hex color
+                const r = parseInt(hexColor.substr(1, 2), 16);
+                const g = parseInt(hexColor.substr(3, 2), 16);
+                const b = parseInt(hexColor.substr(5, 2), 16);
+
+                // Parse alpha if present
+                let a = 1;
+                if (hexColor.length > 7) {
+                    a = parseInt(hexColor.substr(7, 2), 16) / 255;
+                }
+
+                // Add new color to memory
+                colorMemory.unshift({ r, g, b, a });
+
+                // Keep only the first 8 colors
+                while (colorMemory.length > 8) {
+                    colorMemory.pop();
+                }
+
+                // Check for existing palette (could be null in first run)
+                if (!paletteColors || paletteColors.length === 0) {
+                    paletteColors = [
+                        { r: 155, g: 0, b: 255, a: 0.7 },    // Default violet
+                        { r: 255, g: 0, b: 255, a: 0.7 },     // Default magenta
+                        { r: 0, g: 255, b: 255, a: 0.7 },     // Default cyan
+                        { r: 0, g: 255, b: 0, a: 0.7 }        // Default green
+                    ];
+                }
+
+                // Update palette colors with memory
+                // Replace only as many colors as we have in memory
+                for (let i = 0; i < colorMemory.length; i++) {
+                    if (i < paletteColors.length) {
+                        paletteColors[i] = colorMemory[i];
+                    } else {
+                        paletteColors.push(colorMemory[i]);
+                    }
+                }
+
+                // Recreate palette visuals
+                createSamplePalette();
+                updateSamplePalette();
+            }
+
+            // Generate random palette
+            function generateRandomPalette() {
+                // Always include a blacklight violet
+                paletteColors = [
+                    { r: 120 + Math.floor(Math.random() * 40), g: 0, b: 220 + Math.floor(Math.random() * 35), a: 0.6 + Math.random() * 0.3 }
+                ];
+
+                // Add other fluorescent colors
+                const baseColors = [
+                    { r: 255, g: 0, b: 128 + Math.floor(Math.random() * 127), a: 0.6 + Math.random() * 0.3 },
+                    { r: 0, g: 128 + Math.floor(Math.random() * 127), b: 255, a: 0.6 + Math.random() * 0.3 },
+                    { r: 0, g: 200 + Math.floor(Math.random() * 55), b: 100 + Math.floor(Math.random() * 100), a: 0.6 + Math.random() * 0.3 },
+                    { r: 255, g: 200 + Math.floor(Math.random() * 55), b: 0, a: 0.7 + Math.random() * 0.2 }
+                ];
+
+                // Add base colors plus some variations
+                paletteColors = paletteColors.concat(baseColors);
+
+                // Add some variations
+                for (let i = 0; i < 3; i++) {
+                    const baseColor = baseColors[Math.floor(Math.random() * baseColors.length)];
+                    paletteColors.push({
+                        r: Math.max(0, Math.min(255, baseColor.r + (Math.random() - 0.5) * 100)),
+                        g: Math.max(0, Math.min(255, baseColor.g + (Math.random() - 0.5) * 100)),
+                        b: Math.max(0, Math.min(255, baseColor.b + (Math.random() - 0.5) * 100)),
+                        a: 0.6 + Math.random() * 0.3
+                    });
+                }
+
+                createSamplePalette();
+                updateSamplePalette();
+            }
+
+            // Create background stars
+            function createBackgroundStars() {
+                const body = document.querySelector('body');
+                const starCount = 40;
+
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    const size = Math.random() * 2 + 1;
+                    const opacity = Math.random() * 0.5 + 0.1;
+
+                    star.style.position = 'fixed';
+                    star.style.left = `${x}%`;
+                    star.style.top = `${y}%`;
+                    star.style.width = `${size}px`;
+                    star.style.height = `${size}px`;
+                    star.style.backgroundColor = `rgba(${150 + Math.random() * 105}, ${100 + Math.random() * 155}, ${200 + Math.random() * 55}, ${opacity})`;
+                    star.style.borderRadius = '50%';
+                    star.style.pointerEvents = 'none';
+                    star.style.zIndex = '-2';
+
+                    if (Math.random() > 0.7) {
+                        star.style.animation = `ambient-pulse ${5 + Math.random() * 10}s infinite ease-in-out`;
+                    }
+
+                    body.appendChild(star);
+                }
+            }
+
+            // Initialize the application
+            function init() {
+                createBackgroundStars();
+                createSamplePalette();
+                updateWheel();
+            }
+
+            // Run initialization
+            init();
+        });
+    </script>
+</body>
+</html>

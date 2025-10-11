@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Template System & Style Deduplication Architecture</title>
+    <style>
+        body {
+            background-color: #08030f;
+            color: rgba(130, 160, 210, 0.75);
+            font-family: monospace;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            color: rgba(80, 160, 255, 0.75);
+            text-shadow: 0 0 10px rgba(80, 160, 255, 0.5), 0 0 20px rgba(68, 39, 140, 0.3);
+            background: linear-gradient(to right, rgba(70, 140, 230, 0.75), rgba(100, 180, 255, 0.75));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px rgba(68, 39, 140, 0.4);
+            color: rgba(130, 160, 210, 0.75);
+            background: linear-gradient(to right, rgba(120, 150, 200, 0.7), rgba(140, 170, 220, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .concept-box {
+            background: rgba(20, 10, 40, 0.8);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 40px 0;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.3);
+        }
+
+        .highlight {
+            color: rgba(96, 176, 255, 0.8);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(68, 39, 140, 0.4);
+            background: linear-gradient(to right, rgba(90, 160, 240, 0.8), rgba(110, 190, 255, 0.8));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .question-section {
+            background: rgba(15, 5, 30, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            margin: 20px 0;
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.3);
+        }
+
+        .question {
+            color: rgba(160, 80, 255, 0.75);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(135, 55, 192, 0.4);
+            font-size: 1.2em;
+            background: linear-gradient(to right, rgba(150, 70, 235, 0.75), rgba(170, 100, 255, 0.75));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .known-info {
+            background: rgba(25, 10, 50, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(96, 176, 255, 0.6);
+        }
+
+        .code-block {
+            background: rgba(20, 8, 40, 0.75);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border-left: 3px solid rgba(96, 176, 255, 0.5);
+            font-family: 'Courier New', monospace;
+            color: rgba(120, 180, 160, 0.65);
+            text-shadow: 0 0 5px rgba(47, 100, 120, 0.3);
+            white-space: pre;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at center, rgba(135, 55, 192, 0.15), transparent 70%),
+                radial-gradient(ellipse at bottom left, rgba(255, 80, 120, 0.1), transparent 70%),
+                radial-gradient(ellipse at top right, rgba(80, 200, 255, 0.1), transparent 70%);
+            pointer-events: none;
+            border-radius: 8px;
+        }
+
+        /* Psychedelic syntax highlighting with softer colors */
+        .code-block .keyword {
+            color: rgba(255, 96, 200, 0.65);
+            text-shadow: 0 0 8px rgba(255, 96, 200, 0.3);
+            background: linear-gradient(to right, rgba(235, 90, 180, 0.65), rgba(255, 110, 210, 0.65));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .code-block .comment {
+            color: rgba(160, 80, 255, 0.6);
+            text-shadow: 0 0 8px rgba(160, 80, 255, 0.3);
+            font-style: italic;
+            background: linear-gradient(to right, rgba(140, 70, 235, 0.6), rgba(170, 100, 255, 0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .code-block .string {
+            color: rgba(96, 210, 180, 0.65);
+            text-shadow: 0 0 8px rgba(70, 140, 160, 0.3);
+            background: linear-gradient(to right, rgba(70, 180, 160, 0.65), rgba(90, 200, 180, 0.65));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .code-block .function {
+            color: rgba(96, 200, 255, 0.65);
+            text-shadow: 0 0 8px rgba(96, 200, 255, 0.3);
+            background: linear-gradient(to right, rgba(80, 180, 235, 0.65), rgba(110, 210, 255, 0.65));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .code-block .variable {
+            color: rgba(180, 160, 255, 0.65);
+            text-shadow: 0 0 8px rgba(180, 160, 255, 0.3);
+            background: linear-gradient(to right, rgba(160, 140, 235, 0.65), rgba(190, 170, 255, 0.65));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .code-block .number {
+            color: rgba(255, 144, 96, 0.65);
+            text-shadow: 0 0 8px rgba(255, 144, 96, 0.3);
+            background: linear-gradient(to right, rgba(235, 130, 80, 0.65), rgba(255, 160, 110, 0.65));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        ul li {
+            color: rgba(130, 160, 210, 0.7);
+            text-shadow: 0 0 3px rgba(68, 39, 140, 0.3);
+            background: linear-gradient(to right, rgba(120, 150, 200, 0.7), rgba(140, 170, 220, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .algorithm-placeholder {
+            background: rgba(20, 10, 40, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px dashed rgba(96, 176, 255, 0.6);
+            color: rgba(96, 176, 255, 0.8);
+            text-align: center;
+            background: linear-gradient(to right, rgba(90, 160, 240, 0.5), rgba(110, 190, 255, 0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(80, 0, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(80, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            opacity: 0.25;
+            background:
+                radial-gradient(ellipse at 10% 20%, rgba(135, 55, 192, 0.6) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 30%, rgba(255, 80, 180, 0.5) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(80, 160, 255, 0.5) 0%, transparent 60%);
+            filter: blur(10px);
+        }
+
+        .section-title {
+            border-bottom: 1px solid rgba(68, 39, 140, 0.6);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .template-visual {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            margin: 30px 0;
+            border-radius: 8px;
+            background: rgba(15, 5, 30, 0.5);
+            overflow: hidden;
+        }
+
+        .template-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .template-primitive {
+            position: absolute;
+            border-radius: 8px;
+            background: rgba(25, 10, 50, 0.5);
+            border: 1px solid rgba(68, 39, 140, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            transition: all 0.5s ease;
+        }
+
+        .template-primitive:hover {
+            transform: scale(1.05);
+            background: rgba(30, 15, 60, 0.6);
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.4);
+            z-index: 10;
+        }
+
+        .primitive-label {
+            background: linear-gradient(to right, rgba(90, 160, 240, 0.7), rgba(110, 190, 255, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(68, 39, 140, 0.4);
+        }
+
+        .extraction-diagram {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            margin: 30px 0;
+            border-radius: 8px;
+            background: rgba(15, 5, 30, 0.5);
+            overflow: hidden;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .diagram-step {
+            width: 28%;
+            height: 80%;
+            border-radius: 8px;
+            background: rgba(25, 10, 50, 0.5);
+            border: 1px solid rgba(68, 39, 140, 0.4);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .diagram-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.4);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(160, 80, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .step-title {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 0.9em;
+            background: linear-gradient(to right, rgba(150, 70, 235, 0.7), rgba(170, 100, 255, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .step-content {
+            width: 100%;
+            height: 70%;
+            border-radius: 5px;
+            background: rgba(15, 5, 30, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            font-size: 0.8em;
+        }
+
+        .arrow {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            color: rgba(100, 180, 255, 0.7);
+        }
+
+        .diff-visual {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+
+        .diff-block {
+            width: 48%;
+            height: 100%;
+            border-radius: 8px;
+            background: rgba(20, 8, 40, 0.6);
+            border: 1px solid rgba(68, 39, 140, 0.4);
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .diff-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            background: linear-gradient(to right, rgba(90, 160, 240, 0.7), rgba(110, 190, 255, 0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .diff-content {
+            height: 80%;
+            overflow: auto;
+            font-size: 0.8em;
+            padding: 10px;
+            background: rgba(15, 5, 30, 0.5);
+            border-radius: 5px;
+        }
+
+        .storage-efficiency {
+            width: 100%;
+            height: 50px;
+            background: rgba(15, 5, 30, 0.5);
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .efficiency-bar {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(to right, rgba(70, 180, 160, 0.4), rgba(70, 140, 160, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(80, 180, 170, 0.8);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(70, 140, 160, 0.5);
+        }
+
+        .inheritance-tree {
+            width: 100%;
+            height: 300px;
+            background: rgba(15, 5, 30, 0.5);
+            border-radius: 8px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tree-node {
+            position: absolute;
+            background: rgba(25, 10, 50, 0.6);
+            border: 1px solid rgba(68, 39, 140, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .tree-node:hover {
+            transform: scale(1.05);
+            background: rgba(30, 15, 60, 0.7);
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.4);
+            z-index: 10;
+        }
+
+        .tree-connection {
+            position: absolute;
+            border-top: 2px dashed rgba(100, 180, 255, 0.4);
+            z-index: 1;
+        }
+
+        .note {
+            background: rgba(25, 10, 50, 0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid rgba(160, 80, 255, 0.5);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="bg-effect"></div>
+
+    <div class="container">
+        <header>
+            <h1>FLUID TEMPLATE SYSTEM</h1>
+            <p>Style Deduplication Architecture & Dynamic Content Visualization</p>
+        </header>
+
+        <div class="concept-box">
+            <h2>Template Architecture Overview</h2>
+            <p>This document explores the implementation of a <span class="highlight">fluid template system</span> that separates content from style while enabling modular, reusable style components across a recursive documentation framework.</p>
+            <p>The system creates a hierarchical style representation where visual elements are deduplicated and managed as independent assets, allowing for efficient storage, liquid adaptation to new content, and dynamic recombination of content with style.</p>
+        </div>
+
+        <h2 class="section-title">I. Nested Template Structure</h2>
+
+        <div class="template-visual">
+            <div class="template-container">
+                <!-- Base Primitives Layer -->
+                <div class="template-primitive" style="width: 100px; height: 100px; left: 50px; top: 50px;">
+                    <span class="primitive-label">Rounded Corner</span>
+                </div>
+                <div class="template-primitive" style="width: 140px; height: 80px; left: 180px; top: 70px;">
+                    <span class="primitive-label">Gradient Background</span>
+                </div>
+                <div class="template-primitive" style="width: 120px; height: 80px; left: 350px; top: 50px;">
+                    <span class="primitive-label">Shadow Effect</span>
+                </div>
+
+                <!-- Component Layer -->
+                <div class="template-primitive" style="width: 220px; height: 150px; left: 100px; top: 200px; border: 2px solid rgba(70, 180, 160, 0.5);">
+                    <span class="primitive-label">Card Component</span>
+                </div>
+                <div class="template-primitive" style="width: 180px; height: 150px; left: 350px; top: 200px; border: 2px solid rgba(70, 180, 160, 0.5);">
+                    <span class="primitive-label">Code Block Component</span>
+                </div>
+
+                <!-- Template Layer -->
+                <div class="template-primitive" style="width: 360px; height: 80px; left: 130px; top: 300px; border: 2px solid rgba(160, 80, 255, 0.5);">
+                    <span class="primitive-label">Full Document Template</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q1: How should style elements be hierarchically organized for maximum reusability?</div>
+            <div class="known-info">
+                <p>The fluid template system separates style components into reusable elements that can be combined and nested to create complete document templates, allowing for deduplication of common visual features.</p>
+            </div>
+
+            <h4>Style Hierarchy Structure</h4>
+            <p>The template system organizes visual elements into a three-tier hierarchy:</p>
+
+            <ul>
+                <li><span class="highlight">Base Primitives</span> - Fundamental visual elements like rounded corners, gradient backgrounds, shadow effects, and color schemes</li>
+                <li><span class="highlight">Component Templates</span> - Combinations of primitives that form functional units like cards, code blocks, question sections, and headers</li>
+                <li><span class="highlight">Document Templates</span> - Complete assemblies of components arranged into full document layouts</li>
+            </ul>
+
+            <div class="inheritance-tree">
+                <!-- Base Primitives -->
+                <div class="tree-node" style="width: 100px; height: 40px; left: 80px; top: 40px;">
+                    <span class="primitive-label">Corner Radius</span>
+                </div>
+                <div class="tree-node" style="width: 100px; height: 40px; left: 80px; top: 100px;">
+                    <span class="primitive-label">Text Gradient</span>
+                </div>
+                <div class="tree-node" style="width: 100px; height: 40px; left: 80px; top: 160px;">
+                    <span class="primitive-label">Shadow Glow</span>
+                </div>
+                <div class="tree-node" style="width: 100px; height: 40px; left: 80px; top: 220px;">
+                    <span class="primitive-label">Border Style</span>
+                </div>
+
+                <!-- Components -->
+                <div class="tree-node" style="width: 120px; height: 50px; left: 250px; top: 70px;">
+                    <span class="primitive-label">Question Box</span>
+                </div>
+                <div class="tree-node" style="width: 120px; height: 50px; left: 250px; top: 130px;">
+                    <span class="primitive-label">Code Block</span>
+                </div>
+                <div class="tree-node" style="width: 120px; height: 50px; left: 250px; top: 190px;">
+                    <span class="primitive-label">Concept Box</span>
+                </div>
+
+                <!-- Document Template -->
+                <div class="tree-node" style="width: 150px; height: 60px; left: 450px; top: 130px;">
+                    <span class="primitive-label">Research Document</span>
+                </div>
+
+                <!-- Connections -->
+                <div class="tree-connection" style="width: 70px; height: 10px; left: 180px; top: 60px; transform: rotate(0deg);"></div>
+                <div class="tree-connection" style="width: 70px; height: 10px; left: 180px; top: 120px; transform: rotate(0deg);"></div>
+                <div class="tree-connection" style="width: 70px; height: 10px; left: 180px; top: 180px; transform: rotate(0deg);"></div>
+                <div class="tree-connection" style="width: 70px; height: 10px; left: 180px; top: 240px; transform: rotate(0deg);"></div>
+
+                <div class="tree-connection" style="width: 80px; height: 10px; left: 370px; top: 90px; transform: rotate(0deg);"></div>
+                <div class="tree-connection" style="width: 80px; height: 10px; left: 370px; top: 150px; transform: rotate(0deg);"></div>
+                <div class="tree-connection" style="width: 80px; height: 10px; left: 370px; top: 210px; transform: rotate(0deg);"></div>
+            </div>
+
+            <div class="note">
+                <p>This hierarchical structure enables different template versions to share common primitives and components while only storing the differences between them, creating an extremely efficient storage pattern.</p>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q2: How can style elements be efficiently stored and referenced?</div>
+            <div class="known-info">
+                <p>The system only needs to store the differences between templates rather than full templates, with base styles stored once and referenced by all templates that use them.</p>
+            </div>
+
+            <h4>Differential Storage Format</h4>
+            <div class="diff-visual">
+                <div class="diff-block">
+                    <div class="diff-title">Traditional Storage (Full Templates)</div>
+                    <div class="diff-content">
+                        <div class="code-block" style="padding: 10px; margin: 0;"><pre><span class="comment">/* Template A */</span>
+<span class="keyword">.card</span> {
+  <span class="variable">border-radius</span>: <span class="number">8px</span>;
+  <span class="variable">background</span>: <span class="string">rgba(20, 10, 40, 0.8)</span>;
+  <span class="variable">border</span>: <span class="number">1px</span> <span class="string">solid rgba(68, 39, 140, 0.6)</span>;
+  <span class="variable">box-shadow</span>: <span class="number">0 0 15px</span> <span class="string">rgba(100, 0, 255, 0.3)</span>;
+}
+
+<span class="comment">/* Template B */</span>
+<span class="keyword">.card</span> {
+  <span class="variable">border-radius</span>: <span class="number">8px</span>;
+  <span class="variable">background</span>: <span class="string">rgba(15, 5, 30, 0.7)</span>;
+  <span class="variable">border</span>: <span class="number">1px</span> <span class="string">solid rgba(68, 39, 140, 0.6)</span>;
+  <span class="variable">box-shadow</span>: <span class="number">0 0 15px</span> <span class="string">rgba(100, 0, 255, 0.3)</span>;
+}</pre></div>
+                    </div>
+                </div>
+                <div class="diff-block">
+                    <div class="diff-title">Differential Storage</div>
+                    <div class="diff-content">
+                        <div class="code-block" style="padding: 10px; margin: 0;"><pre><span class="comment">/* Base Card Primitive */</span>
+<span class="keyword">.card</span> {
+  <span class="variable">border-radius</span>: <span class="number">8px</span>;
+  <span class="variable">border</span>: <span class="number">1px</span> <span class="string">solid rgba(68, 39, 140, 0.6)</span>;
+  <span class="variable">box-shadow</span>: <span class="number">0 0 15px</span> <span class="string">rgba(100, 0, 255, 0.3)</span>;
+}
+
+<span class="comment">/* Template A Override */</span>
+<span class="keyword">.template-a .card</span> {
+  <span class="variable">background</span>: <span class="string">rgba(20, 10, 40, 0.8)</span>;
+}
+
+<span class="comment">/* Template B Override */</span>
+<span class="keyword">.template-b .card</span> {
+  <span class="variable">background</span>: <span class="string">rgba(15, 5, 30, 0.7)</span>;
+}</pre></div>
+                    </div>
+                </div>
+            </div>
+
+            <h4>Storage Efficiency Comparison</h4>
+            <div class="storage-efficiency">
+                <div class="efficiency-bar">75% Reduction</div>
+            </div>
+
+            <div class="code-block"><pre><span class="comment"># Implementation of differential style storage</span>
+
+<span class="keyword">sub</span> <span class="function">store_style_element</span> {
+    <span class="keyword">my</span> (<span class="variable">$element_type</span>, <span class="variable">$properties</span>, <span class="variable">$parent_references</span>) = @_;
+
