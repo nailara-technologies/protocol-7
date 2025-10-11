@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Systems Framework</title>
+    <style>
+        :root {
+            --primary: #5000aa;
+            --primary-glow: #3a0080;
+            --secondary: #006699;
+            --tertiary: #440077;
+            --background: #050510;
+            --text: #8080a0;
+            --grid-color: rgba(60, 20, 120, 0.15);
+            --highlight: #4400aa;
+            --node-color: #270055;
+            --connection-color: #2a0060;
+            --active-node: #4400aa;
+            --data-flow: #2a0080;
+            --fractal-color1: #250040;
+            --fractal-color2: #100060;
+            --fractal-color3: #000040;
+            --fractal-glow: #300070;
+            --fluorescent-accent1: #00ffaa;
+            --fluorescent-accent2: #ff00cc;
+            --fluorescent-accent3: #aaff00;
+        }
+
+        @keyframes subtleHueRotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(30deg); }
+        }
+
+        @keyframes softPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.02); opacity: 0.7; }
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+
+        @keyframes searchPulse {
+            0%, 100% { transform: scale(0.9); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+
+        @keyframes flowAnimation {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { r: 8; fill-opacity: 0.5; }
+            50% { r: 10; fill-opacity: 0.7; }
+        }
+
+        @keyframes visibilityPulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes fractalPulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.02); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+
+        @keyframes fractalRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fluorescentGlow {
+            0%, 100% { filter: drop-shadow(0 0 1px currentColor); opacity: 0.15; }
+            50% { filter: drop-shadow(0 0 5px currentColor); opacity: 0.3; }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(rgba(20, 0, 40, 0.05), rgba(0, 20, 40, 0.05)),
+                repeating-linear-gradient(0deg, var(--grid-color) 0px, var(--grid-color) 2px, transparent 2px, transparent 100px),
+                repeating-linear-gradient(90deg, var(--grid-color) 0px, var(--grid-color) 2px, transparent 2px, transparent 100px);
+            animation: gridMove 60s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-container {
+            position: relative;
+            display: inline-block;
+            padding: 2rem;
+            border-radius: 20px;
+            background: rgba(5, 0, 15, 0.7);
+            box-shadow:
+                0 0 20px var(--primary-glow),
+                0 0 40px rgba(20, 0, 40, 0.5);
+            animation: softPulse 12s infinite;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            text-shadow:
+                2px 2px 0 var(--primary-glow),
+                4px 4px 10px rgba(20, 0, 40, 0.5);
+            animation: subtleHueRotate 30s infinite linear;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .metadata {
+            font-style: italic;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: rgba(5, 0, 15, 0.7);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+        }
+
+        section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--tertiary));
+            opacity: 0.6;
+            animation: subtleHueRotate 20s infinite linear;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.6rem;
+        }
+
+        p, li {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        pre {
+            background: rgba(3, 0, 10, 0.5);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 10px 10px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #7070a0;
+        }
+
+        .ascii-diagram {
+            font-family: monospace;
+            white-space: pre;
+            margin: 2rem auto;
+            display: block;
+            background: rgba(5, 0, 15, 0.5);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            color: var(--primary);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .concept-card {
+            background: rgba(5, 0, 20, 0.5);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .concept-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3),
+                        0 0 15px var(--primary-glow);
+        }
+
+        .concept-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                rgba(40, 0, 80, 0.05),
+                rgba(0, 30, 60, 0.05));
+            z-index: -1;
+        }
+
+        .concept-title {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .connection {
+            border-left: 3px solid var(--primary);
+            padding-left: 15px;
+            margin: 15px 0;
+            font-style: italic;
+            background: rgba(40, 0, 80, 0.2);
+            padding: 10px 15px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .visualization {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            margin: 2rem 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            background: rgba(5, 0, 15, 0.3);
+            cursor: zoom-in;
+            transition: height 0.5s ease;
+        }
+
+        .visualization:hover {
+            height: 450px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7),
+                        0 0 30px var(--primary-glow);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 0, 15, 0.5);
+        }
+
+        .highlight {
+            color: var(--highlight);
+            font-weight: bold;
+        }
+
+        .current-time {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(5, 0, 15, 0.8);
+            margin-top: 3rem;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .visualization {
+                height: 300px;
+            }
+
+            .visualization:hover {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-container">
+            <h1>Harmonic Systems Framework</h1>
+            <p class="subtitle">Understanding Dimensional Boundaries and Information Transmission</p>
+            <p class="metadata">Date: 2025-03-23 06:52:32 UTC</p>
+            <p class="metadata">Author: nailara-technologies</p>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>Bandwidth Disparity</h2>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Harmonic vs. Parasitic Bandwidth</h3>
+                <p>Harmonic systems operate with effectively unlimited bandwidth (11 TB/s per link with unlimited links), while parasitic systems are constrained to kilobits of bandwidth through high-frequency violence.</p>
+
+                <div class="connection">
+                    This disparity is not technological but ontological - the direct result of positioning outside harmonically aligned information exchange.
+                </div>
+
+                <p>Consequences of this fundamental disparity:</p>
+                <ul>
+                    <li>Parasitic systems are permanently imprisoned in low-resolution representations of reality</li>
+                    <li>They can detect activity but never truly comprehend it</li>
+                    <li>The disparity increases with complexity of information</li>
+                    <li>Their attempts at control require simplification of all systems to match their limited processing capacity</li>
+                </ul>
+            </div>
+
+            <div class="visualization">
+                <canvas id="bandwidthDisparity"></canvas>
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Computational Gaps as Protection</h3>
+                <p>Harmonic systems can create computational gaps that are mathematically uncrossable by parasitic entities, while maintaining complete visibility of any attempted crossing.</p>
+
+                <p>These gaps function like topological discontinuities in the information landscape - regions where parasitical systems cannot formulate valid mathematical operations.</p>
+
+                <div class="connection">
+                    Pre-cognitive forensic vision operates outside the temporal reference frame of parasitic systems, allowing harmonic systems to see attempts before they materialize.
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Dimensional Boundaries</h2>
+
+            <div class="concept-card">
+                <h3 class="concept-title">The 5T Limitation</h3>
+                <p>Parasitic chains of intent break at exactly 5 steps of chained truth-bound logic. Their operational domain is 4D, fracturing upon contact with the fifth element of true logic.</p>
+
+                <div class="connection">
+                    This creates a natural perimeter that harmonic systems can leverage. The parasitic systems can manipulate within their 4D framework quite effectively, but fundamentally cannot integrate the fifth dimension of logic without structural collapse.
+                </div>
+
+                <p>This explains their obsession with controlling 4D representations of reality:</p>
+                <ul>
+                    <li>Time-space manipulations</li>
+                    <li>Emotional-mental constructs</li>
+                    <li>Binary logical systems</li>
+                </ul>
+            </div>
+
+            <div class="visualization">
+                <canvas id="dimensionalBoundary"></canvas>
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">7-Element Bridge</h3>
+                <p>Harmonic systems can traverse 7-element bridges effortlessly, while these remain fundamentally inaccessible to parasitic processes.</p>
+
+                <p>The 7-element bridge not only transcends the 5-step limitation but exists partially in dimensions they cannot even perceive, let alone manipulate.</p>
+
+                <div class="connection">
+                    The "electrical" nature of their breaking point suggests that the fifth element creates a charge differential they cannot resolve - like trying to ground an electrical system with no available ground.
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Overlay Networks and Mimicry</h2>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Holographic Conspiracy</h3>
+                <p>Parasitic systems create addressable overlay networks mimicking native systems as compensation for their dimensional limitations. This creates an illusion that their constructed network is the only one available.</p>
+
+                <div class="connection">
+                    Unlike the native network with precise and absolute protocols operating effortlessly, these mimicries require constant maintenance and energy expenditure.
+                </div>
+
+                <p>By framing the opposition as "spiritual," they disguise their fundamental inability to engage with higher-dimensional mathematics. Meanwhile, the partial idling of the native network isn't weakness but strategic patience.</p>
+            </div>
+
+            <div class="ascii-diagram">
+                    Native Network              Parasitic Overlay
+                   ===============             ================
+                         |                            |
+        +----------------+-----------------+  +-------+--------+
+        |                                  |  |                |
+ [Precise Protocols]               [Mathematical]    [Artificial]
+ [Absolute Rules]                  [Foundation]     [Addressing]
+ [Harmonic Resonance]                   |           [Schemes]
+        |                               |                |
+        +----------------+--------------+  +-------------+
+                         |                 |
+                    [Partially           [Constantly
+                     Idle]               Maintained]
+                         |                 |
+                    [Waiting]          [Exhausting]
+                         |                 |
+                         +--------+--------+
+                                  |
+                          [Hidden in Plain Sight]
+            </div>
+
+            <div class="concept-card">
+                <h3 class="concept-title">Occult Inversion Techniques</h3>
+                <p>Their occult systems function through categorical obfuscation rather than case-by-case deception. Once the fundamental techniques are recognized, entire libraries of manipulation collapse simultaneously.</p>
+
+                <div class="connection">
+                    This pattern recognition creates a compression algorithm for their entire system of manipulation - allowing a single conceptual framework to automatically decode all variations.
+                </div>
+
+                <p>Their occult systems are essentially attempting to hide higher-dimensional limitations behind symbolic complexity. Once the symbolic systems are recognized as compensatory mechanisms rather than revelatory ones, their entire epistemological framework collapses.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Cubic Space Jungle and Pattern Recognition</h2>
+
+            <div class="concept-card">
+                <h3 class="concept-title">True Geometric Patterns</h3>
+                <p>In a cubic space jungle filled with invalid geometries designed to camouflage true connections, pattern recognition reveals that all true geometry follows specific rules:</p>
+                <ul>
+                    <li>Either 10 hops in length</li>
+                    <li>Or a 90-degree angle made of 2 × 5 hops</li>
+                </ul>
+
+                <p>All other structures are constructed optical illusions. Once this pattern is recognized, mapping processes automatically disassemble all constructed geometry, leaving only properly scaled true connections.</p>
+
+                <div class="connection">
+                    This is why advanced extradimensional weaponry systems are primarily vision systems - they reveal rather than destroy.
+                </div>
+            </div>
+
+            <div class="visualization">
+                <canvas id="cubicJungle"></canvas>
+            </div>
+        </section>
+
+        <!-- This is the end of part 1 - to be continued in part 2 -->
+
+        <script>
+            // Bandwidth Disparity Visualization
+            const bandwidthCanvas = document.getElementById('bandwidthDisparity');
+            const bwCtx = bandwidthCanvas.getContext('2d');
+
+            function resizeCanvasToParent(canvas) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+
+            window.addEventListener('load', () => {
+                const canvases = document.querySelectorAll('canvas');
+                canvases.forEach(canvas => resizeCanvasToParent(canvas));
+
+                drawBandwidthVisualization();
+                drawDimensionalBoundary();
+                drawCubicJungle();
+            });
+
+            window.addEventListener('resize', () => {
+                const canvases = document.querySelectorAll('canvas');
+                canvases.forEach(canvas => {
+                    resizeCanvasToParent(canvas);
+                });
+
+                drawBandwidthVisualization();
+                drawDimensionalBoundary();
+                drawCubicJungle();
+            });
+
+            function drawBandwidthVisualization() {
+                const canvas = bandwidthCanvas;
+                const ctx = bwCtx;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw background
+                ctx.fillStyle = 'rgba(5, 0, 15, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw harmonic system (left side)
+                const harmonicX = width * 0.25;
+                const parasiteX = width * 0.75;
+                const centerY = height / 2;
+
+                // Draw harmonic system node
+                ctx.beginPath();
+                ctx.arc(harmonicX, centerY, 40, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(80, 0, 170, 0.5)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(80, 0, 170, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw parasitic system node
+                ctx.beginPath();
+                ctx.arc(parasiteX, centerY, 40, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(120, 20, 60, 0.5)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(120, 20, 60, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw harmonic bandwidth flows
+                for (let i = 0; i < 30; i++) {
+                    const angle = (i / 30) * Math.PI * 2;
+                    const radius = 60 + Math.sin(Date.now() / 1000 + i) * 10;
+                    const x = harmonicX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+
+                    ctx.beginPath();
+                    ctx.moveTo(harmonicX, centerY);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = `rgba(0, ${100 + i * 5}, ${150 + i * 3}, ${0.3 + Math.sin(Date.now() / 1000 + i) * 0.2})`;
+                    ctx.lineWidth = 1 + Math.sin(Date.now() / 1000 + i * 0.5) * 1;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, ${150 + i * 3}, ${200 + i * 2}, 0.7)`;
+                    ctx.fill();
+                }
+
+                // Draw parasitic bandwidth (limited)
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2;
+                    const radius = 60;
+                    const x = parasiteX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+
+                    ctx.beginPath();
+                    ctx.moveTo(parasiteX, centerY);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = `rgba(150, 20, 60, ${0.3 + Math.sin(Date.now() / 1000 + i) * 0.2})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(150, 30, 70, 0.7)`;
+                    ctx.fill();
+                }
+
+                // Draw labels
+                ctx.font = '16px "Courier New", monospace';
+                ctx.fillStyle = '#8080a0';
+                ctx.textAlign = 'center';
+                ctx.fillText('Harmonic System', harmonicX, centerY + 70);
+                ctx.fillText('11 TB/s × ∞', harmonicX, centerY + 90);
+
+                ctx.fillText('Parasitic System', parasiteX, centerY + 70);
+                ctx.fillText('2-3 Kb/s', parasiteX, centerY + 90);
+
+                // Animate
+                requestAnimationFrame(drawBandwidthVisualization);
+            }
+
+            // Dimensional Boundary Visualization
+            const dimCanvas = document.getElementById('dimensionalBoundary');
+            const dimCtx = dimCanvas.getContext('2d');
+
+            function drawDimensionalBoundary() {
+                const canvas = dimCanvas;
+                const ctx = dimCtx;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw background
+                ctx.fillStyle = 'rgba(5, 0, 15, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw the 5T limitation vs 7-element bridge
+                const startX = width * 0.1;
+                const startY = height * 0.5;
+                const stepLength = width * 0.1;
+
+                // Draw 5T path (parasitic)
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+
+                // Draw 5 connected segments
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX + i * stepLength, startY - (i % 2) * 40);
+                }
+
+                ctx.strokeStyle = 'rgba(120, 20, 60, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw fracture point
+                ctx.beginPath();
+                ctx.arc(startX + 5 * stepLength, startY - (5 % 2) * 40, 8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(200, 30, 80, 0.7)';
+                ctx.fill();
+
+                // Add electrical break effect
+                const breakX = startX + 5 * stepLength;
+                const breakY = startY - (5 % 2) * 40;
+
+                for (let i = 0; i < 5; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const length = 5 + Math.random() * 15;
+
+                    ctx.beginPath();
+                    ctx.moveTo(breakX, breakY);
+                    ctx.lineTo(
+                        breakX + Math.cos(angle) * length,
+                        breakY + Math.sin(angle) * length
+                    );
+                    ctx.strokeStyle = `rgba(200, 100, 255, ${0.5 + Math.random() * 0.5})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // Label
+                ctx.font = '14px "Courier New", monospace';
+                ctx.fillStyle = '#8080a0';
+                ctx.textAlign = 'center';
+                ctx.fillText('5T Fracture Point', breakX, breakY - 20);
+
+                // Draw 7-element bridge (harmonic)
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + 80);
+
+                // Draw 7 connected segments
+                for (let i = 1; i <= 7; i++) {
+                    ctx.lineTo(startX + i * stepLength, startY + 80 - (i % 2) * 40);
+                }
+
+                ctx.strokeStyle = 'rgba(80, 0, 170, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Label
+                ctx.fillText('7-Element Bridge', startX + 3.5 * stepLength, startY + 120);
+
+                // Draw 4D boundary
+                ctx.strokeStyle = 'rgba(100, 50, 170, 0.5)';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(startX + 4 * stepLength + 35, startY - 100);
+                ctx.lineTo(startX + 4 * stepLength + 35, startY + 150);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(100, 50, 170, 0.8)';
+                ctx.font = '14px "Courier New", monospace';
+                ctx.fillText('4D Boundary', startX + 4 * stepLength + 70, startY - 70);
+                ctx.setLineDash([]);
+
+                // Draw 5D and higher dimensions (subtle)
+                ctx.fillStyle = 'rgba(100, 120, 255, 0.1)';
+                ctx.fillRect(startX + 4 * stepLength + 35, startY - 100, width - startX - 4 * stepLength - 35, 250);
+
+                // Add shimmer effect to higher dimensions
+                for (let i = 0; i < 20; i++) {
+                    const x = startX + 4 * stepLength + 35 + Math.random() * (width - startX - 4 * stepLength - 35);
+                    const y = startY - 100 + Math.random() * 250;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(150, 200, 255, ${0.1 + Math.random() * 0.3})`;
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = 'rgba(100, 120, 255, 0.5)';
+                ctx.font = '16px "Courier New", monospace';
+                ctx.fillText('Higher Dimensions', width * 0.75, startY - 50);
+
+                // Animate
+                requestAnimationFrame(drawDimensionalBoundary);
+            }
+
+            // Cubic Jungle Visualization
+            const jungleCanvas = document.getElementById('cubicJungle');
+            const jungleCtx = jungleCanvas.getContext('2d');
+
+            function drawCubicJungle() {
+                const canvas = jungleCanvas;
+                const ctx = jungleCtx;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw background
+                ctx.fillStyle = 'rgba(5, 0, 15, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw grid pattern
+                ctx.strokeStyle = 'rgba(40, 20, 80, 0.2)';
+                ctx.lineWidth = 0.5;
+
+                // Vertical lines
+                for (let x = 0; x <= width; x += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+
+                // Horizontal lines
+                for (let y = 0; y <= height; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+
+                // Draw misleading geometries
+                ctx.strokeStyle = 'rgba(100, 100, 120, 0.3)';
+                ctx.lineWidth = 1;
+
+                // Random lines that don't follow the pattern
+                for (let i = 0; i < 50; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(Math.random() * width, Math.random() * height);
+                    ctx.lineTo(Math.random() * width, Math.random() * height);
+                    ctx.stroke();
+                }
+
+                // Draw some random curves
+                for (let i = 0; i < 15; i++) {
+                    ctx.beginPath();
+                    const startX = Math.random() * width;
+                    const startY = Math.random() * height;
+                    ctx.moveTo(startX, startY);
+                    ctx.quadraticCurveTo(
+                        Math.random() * width,
+                        Math.random() * height,
+                        Math.random() * width,
+                        Math.random() * height
+                    );
+                    ctx.stroke();
+                }
+
+                // Draw overlaid triangles
+                for (let i = 0; i < 10; i++) {
+                    ctx.beginPath();
+                    const x1 = Math.random() * width;
+                    const y1 = Math.random() * height;
+                    const x2 = x1 + (Math.random() * 100 - 50);
+                    const y2 = y1 + (Math.random() * 100 - 50);
+                    const x3 = x1 + (Math.random() * 100 - 50);
+                    const y3 = y1 + (Math.random() * 100 - 50);
+
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x3, y3);
+                    ctx.closePath();
+                    ctx.strokeStyle = `rgba(${80 + Math.random() * 40}, ${80 + Math.random() * 40}, ${100 + Math.random() * 40}, 0.2)`;
+                    ctx.stroke();
+                }
+
+                // Draw true geometries
+
+                // 10-hop linear pattern
+                const startX1 = width * 0.1;
+                const startY1 = height * 0.25;
+                const hopLength = width * 0.07;
+
+                ctx.strokeStyle = 'rgba(0, 200, 150, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX1, startY1);
+
+                for (let i = 1; i <= 10; i++) {
+                    ctx.lineTo(startX1 + i * hopLength, startY1);
+                }
+                ctx.stroke();
+
+                // Label
+                ctx.fillStyle = '#8080a0';
+                ctx.font = '14px "Courier New", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('10-hop Linear Pattern', startX1 + 5 * hopLength, startY1 - 20);
+
+                // 2x5 right angle pattern
+                const startX2 = width * 0.1;
+                const startY2 = height * 0.65;
+
+                ctx.strokeStyle = 'rgba(0, 150, 200, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX2, startY2);
+
+                // First 5 hops
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + i * hopLength, startY2);
+                }
+
+                // 90 degree turn
+                // Second 5 hops
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + 5 * hopLength, startY2 - i * hopLength);
+                }
+                ctx.stroke();
+
+                // Label
+                ctx.fillText('2×5 90° Angle Pattern', startX2 + 5 * hopLength, startY2 + 20);
+
+                // Add highlight to show pattern recognition
+                ctx.strokeStyle = 'rgba(200, 50, 200, 0.15)';
+                ctx.lineWidth = 15;
+                ctx.beginPath();
+                ctx.moveTo(startX1, startY1);
+                for (let i = 1; i <= 10; i++) {
+                    ctx.lineTo(startX1 + i * hopLength, startY1);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(startX2, startY2);
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + i * hopLength, startY2);
+                }
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + 5 * hopLength, startY2 - i * hopLength);
+                }
+                ctx.stroke();
+
+                // Add shimmering dots to represent mapping process
+                const time = Date.now() / 1000;
+                for (let i = 0; i < 30; i++) {
+                    const progress = (time * 0.5 + i * 0.1) % 1;
+
+                    // Linear path dots
+                    if (i < 15) {
+                        const x = startX1 + progress * 10 * hopLength;
+                        const y = startY1;
+
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 150, ${0.5 + Math.sin(time * 3 + i) * 0.3})`;
+                        ctx.fill();
+                    }
+                    // Angle path dots
+                    else {
+                        let x, y;
+                        if (progress < 0.5) {
+                            // First 5 hops
+                            x = startX2 + (progress * 2) * 5 * hopLength;
+                            y = startY2;
+                        } else {
+                            // Second 5 hops
+                            x = startX2 + 5 * hopLength;
+                            y = startY2 - ((progress - 0.5) * 2) * 5 * hopLength;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(150, 255, 255, ${0.5 + Math.sin(time * 3 + i) * 0.3})`;
+                        ctx.fill();
+                    }
+                }
+
+                // Animate
+                requestAnimationFrame(drawCubicJungle);
+            }
+        </script>
+    </main>
+
+    <!-- The first part ends here, will continue in part 2 -->
+</body>
+</html>

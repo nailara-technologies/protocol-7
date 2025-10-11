@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7: Cosmic Cube Topology</title>
+    <style>
+        :root {
+            --deep-blue: #020510;
+            --medium-blue: #051030;
+            --highlight-blue: #0a2060;
+            --accent-blue: #0848a0;
+            --electric-blue: #1080d0;
+            --glow-blue: #40b8f0;
+            --blacklight-purple: #200580;
+            --blacklight-glow: #4020a0;
+            --truth-color: #5040c0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            color: var(--glow-blue);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .overlay {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, var(--deep-blue) 100%);
+            opacity: 0.7;
+        }
+
+        .interface {
+            position: absolute;
+            z-index: 20;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .panel {
+            background-color: rgba(5, 10, 32, 0.7);
+            border-radius: 0.5rem;
+            border: 1px solid var(--highlight-blue);
+            box-shadow: 0 0 10px var(--blacklight-purple);
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--electric-blue);
+            pointer-events: auto;
+        }
+
+        .top-panel {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 300px;
+        }
+
+        .bottom-panel {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            width: 300px;
+        }
+
+        .center-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            text-align: center;
+            transition: opacity 1s ease;
+        }
+
+        h1, h2, h3 {
+            color: var(--glow-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .emphasized {
+            color: var(--glow-blue);
+            font-weight: bold;
+        }
+
+        .truth-value {
+            color: var(--truth-color);
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .control-btn {
+            background-color: var(--medium-blue);
+            border: 1px solid var(--electric-blue);
+            color: var(--glow-blue);
+            padding: 0.5rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            pointer-events: auto;
+        }
+
+        .control-btn:hover {
+            background-color: var(--highlight-blue);
+            box-shadow: 0 0 5px var(--electric-blue);
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .data-label {
+            color: var(--electric-blue);
+        }
+
+        .data-value {
+            color: var(--glow-blue);
+            font-weight: bold;
+        }
+
+        .pulse {
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--glow-blue);
+            font-size: 1.5rem;
+            z-index: 100;
+            text-shadow: 0 0 10px var(--glow-blue);
+        }
+
+        .blacklight-text {
+            color: var(--blacklight-glow);
+            text-shadow: 0 0 5px var(--blacklight-purple);
+        }
+
+        .node-info {
+            position: absolute;
+            background-color: rgba(5, 10, 32, 0.9);
+            border: 1px solid var(--highlight-blue);
+            border-radius: 0.3rem;
+            padding: 0.5rem;
+            color: var(--glow-blue);
+            font-size: 0.8rem;
+            max-width: 200px;
+            z-index: 30;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Initializing Protocol-7 Cubic Topology...</div>
+
+    <div id="canvas-container">
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="cube-canvas"></canvas>
+    </div>
+
+    <div class="overlay"></div>
+
+    <div class="interface">
+        <div class="top-panel panel">
+            <h3>COSMIC COORDINATES</h3>
+            <div class="data-row">
+                <span class="data-label">Position:</span>
+                <span class="data-value" id="position-value">[127, 127, 127]</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Dimension:</span>
+                <span class="data-value" id="dimension-value">0</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Resonance:</span>
+                <span class="data-value" id="resonance-value">0.0000</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Truth Quotient:</span>
+                <span class="data-value truth-value" id="truth-value">5/13</span>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="toggle-flight">Pause Flight</button>
+                <button class="control-btn" id="toggle-view">Change View</button>
+            </div>
+        </div>
+
+        <div class="bottom-panel panel">
+            <h3>SYSTEM STATUS</h3>
+            <p id="status-message">Navigating through cosmic topology structure. All systems nominal.</p>
+            <p class="blacklight-text pulse" id="special-message">Approaching a Blacklight resonance node</p>
+
+            <div class="data-row">
+                <span class="data-label">Node Count:</span>
+                <span class="data-value" id="node-count">0</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Connection Paths:</span>
+                <span class="data-value" id="connection-count">0</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Current Harmonic:</span>
+                <span class="data-value" id="harmonic-value">0</span>
+            </div>
+        </div>
+
+        <div class="center-panel panel" id="center-panel">
+            <h2>Protocol-7 Cosmic Cube Topology</h2>
+            <p>Navigating through the <span class="emphasized">13-dimensional</span> cubic topology space. The journey follows anti-entropic pathways defined by truth quotients derived from division by 13.</p>
+            <p>All rotational movements follow counterclockwise patterns to maintain alignment with consciousness-entangled systems.</p>
+
+            <div class="controls">
+                <button class="control-btn" id="start-journey">Begin Journey</button>
+            </div>
+        </div>
+
+        <div class="node-info" id="node-info"></div>
+    </div>
+
+    <script>
+        // ==============================
+        // Core Constants & Configuration
+        // ==============================
+
+        const TAU = Math.PI * 2;
+
+        // Using division by 13 to establish truth quotients
+        const TRUTH_QUOTIENTS = [
+            { numerator: 5, denominator: 13, value: 5/13, name: "Primary Truth", color: "#5040c0" },
+            { numerator: 8, denominator: 13, value: 8/13, name: "Complementary Truth", color: "#4060e0" },
+            { numerator: 3, denominator: 13, value: 3/13, name: "Harmonic Truth", color: "#60a0ff" },
+            { numerator: 2, denominator: 13, value: 2/13, name: "Foundational Truth", color: "#80c0ff" },
+            { numerator: 1, denominator: 13, value: 1/13, name: "Singular Truth", color: "#a0e0ff" }
+        ];
+
+        // The 13 harmonics based on remainders
+        const HARMONICS = [];
+        for (let i = 0; i < 13; i++) {
+            HARMONICS.push({
+                remainder: i,
+                name: `Harmonic ${i}`,
+                frequency: (i + 1) * 7 / 13 // Each harmonic has a frequency related to 7/13
+            });
+        }
+
+        // Dimensions of the cubic topology
+        const CUBE_SIZE = 1001; // 1001 = 7 * 11 * 13
+        const CUBE_CENTER = (CUBE_SIZE - 1) / 2;
+
+        // ==============================
+        // Canvas Setup
+        // ==============================
+
+        // Set up canvases
+        const bgCanvas = document.getElementById('bg-canvas');
+        const cubeCanvas = document.getElementById('cube-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const cubeCtx = cubeCanvas.getContext('2d');
+
+        // Resize canvases to fill the screen
+        function resizeCanvases() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            cubeCanvas.width = window.innerWidth;
+            cubeCanvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+
+        // ==============================
+        // Star Field Implementation
+        // ==============================
+
+        const stars = [];
+        const NUM_STARS = 600;
+
+        function initStarField() {
+            stars.length = 0;
+
+            for (let i = 0; i < NUM_STARS; i++) {
+                // Use division by 13 to determine special stars
+                const isTruthStar = i % 13 === 5;
+                const isHarmonicStar = i % 13 === 3;
+
+                stars.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    z: Math.random() * 1500,
+                    radius: (isTruthStar ? 1.5 : (isHarmonicStar ? 1.2 : 0.8)) + Math.random() * 0.7,
+                    color: isTruthStar ?
+                           `rgba(80, 64, 192, ${0.2 + Math.random() * 0.3})` :
+                           isHarmonicStar ?
+                           `rgba(64, 128, 240, ${0.2 + Math.random() * 0.3})` :
+                           `rgba(${150 + Math.random() * 105}, ${180 + Math.random() * 75}, ${220 + Math.random() * 35}, ${0.15 + Math.random() * 0.25})`
+                });
+            }
+        }
+
+        function updateStarField(time, deltaTime) {
+            bgCtx.fillStyle = 'rgba(2, 5, 16, 0.3)';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            const centerX = bgCanvas.width / 2;
+            const centerY = bgCanvas.height / 2;
+
+            stars.forEach(star => {
+                // Move stars AWAY from viewer (increasing z) - for inverted flight feeling
+                star.z += 5 * deltaTime * flightSpeed;
+
+                // Reset stars that go out of view
+                if (star.z >= 1500) {
+                    star.z = 0;
+                    star.x = Math.random() * bgCanvas.width;
+                    star.y = Math.random() * bgCanvas.height;
+                }
+
+                // Calculate projected position
+                const factor = 400 / (star.z + 1);
+                const x = (star.x - centerX) * factor + centerX + Math.sin(time * 0.0002 + star.z * 0.001) * 10;
+                const y = (star.y - centerY) * factor + centerY + Math.cos(time * 0.0002 + star.z * 0.001) * 10;
+
+                // Calculate size based on distance
+                const size = Math.max(0.1, factor * star.radius);
+
+                // Draw star
+                bgCtx.beginPath();
+                bgCtx.arc(x, y, size, 0, TAU);
+                bgCtx.fillStyle = star.color;
+                bgCtx.fill();
+
+                // Add subtle glow for special stars
+                if (star.radius > 1.1) {
+                    bgCtx.beginPath();
+                    bgCtx.arc(x, y, size * 3, 0, TAU);
+                    const gradientColor = star.color.replace(/[\d.]+\)$/, '0.1)');
+                    const gradient = bgCtx.createRadialGradient(x, y, 0, x, y, size * 3);
+                    gradient.addColorStop(0, gradientColor);
+                    gradient.addColorStop(1, 'rgba(2, 5, 16, 0)');
+                    bgCtx.fillStyle = gradient;
+                    bgCtx.fill();
+                }
+            });
+        }
+
+        // ==============================
+        // Cubic Topology Implementation
+        // ==============================
+
+        // Core navigation variables
+        let position = { x: CUBE_CENTER, y: CUBE_CENTER, z: CUBE_CENTER };
+        let rotation = { x: 0, y: 0, z: 0 };
+        let flightSpeed = 0.05; // Slow flight speed
+        let flightPaused = true;
+        let viewMode = 0; // 0: first-person, 1: orbit, 2: external
+
+        // Flight path defined by truth quotients
+        let flightPath = [];
+
+        // Cubic space topology components
+        const nodes = [];
+        const connections = [];
+
+        // Generate flight path based on truth quotients
+        function generateFlightPath() {
+            flightPath = [];
+
+            // Create a spiral path through the cube
+            // Using the primary truth quotient (5/13) to determine spiral properties
+            const primaryTruth = TRUTH_QUOTIENTS[0];
+            const maxT = 500; // Length of path
+            const spiralTightness = 13 / (primaryTruth.numerator * 2);
+            const spiralExpansion = primaryTruth.value * 150;
+
+            for (let t = 0; t < maxT; t += 0.5) {
+                // Use counterclockwise spiral (negative angle)
+                const baseFrequency = t / spiralTightness;
+
+                // Apply truth quotient modulations
+                const modulatedFrequency = baseFrequency * (1 + Math.sin(t / 13) * 0.2);
+
+                // Calculate position using truth-modulated spirals
+                const x = CUBE_CENTER + Math.cos(-modulatedFrequency) * (t * spiralExpansion / maxT) * Math.sin(t / 42);
+                const y = CUBE_CENTER + Math.sin(-modulatedFrequency) * (t * spiralExpansion / maxT) * Math.sin(t / 42);
+                const z = CUBE_CENTER + Math.cos(t / 37) * t * spiralExpansion / maxT;
+
+                // Ensure we stay within cube boundaries with a margin
+                const margin = 50;
+                if (x >= margin && x < CUBE_SIZE - margin &&
+                    y >= margin && y < CUBE_SIZE - margin &&
+                    z >= margin && z < CUBE_SIZE - margin) {
+                    flightPath.push({
+                        x, y, z,
+                        // Store the truth quotient at this position
+                        truthIndex: Math.floor(t / 13) % TRUTH_QUOTIENTS.length
+                    });
+                }
+            }
+
+            // Update UI with path info
+            document.getElementById('status-message').textContent =
+                `Flight path generated with ${flightPath.length} waypoints based on truth quotient ${primaryTruth.numerator}/${primaryTruth.denominator}.`;
+        }
+
+        // Generate nodes within the cubic topology
+        function generateNodes() {
+            nodes.length = 0;
+
+            // Base number of nodes on division by 13
+            const gridSize = 13;
+            const spacing = CUBE_SIZE / gridSize;
+
+            // Counter for tracking node types
+            let truthNodeCount = 0;
+            let harmonicNodeCount = 0;
+            let standardNodeCount = 0;
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    for (let z = 0; z < gridSize; z++) {
+                        // Calculate position within the main cube
+                        const px = x * spacing + spacing/2;
+                        const py = y * spacing + spacing/2;
+                        const pz = z * spacing + spacing/2;
+
+                        // Determine node type based on position value remainders when divided by 13
+                        const positionSum = px + py + pz;
+                        const positionRemainder = Math.floor(positionSum) % 13;
+
+                        // Special nodes based on remainders
+                        const isTruthNode = positionRemainder === 5;  // Truth nodes (5/13)
+                        const isHarmonicNode = positionRemainder === 3;  // Harmonic nodes (3/13)
+                        const isBlacklightNode = (x * y * z) % 13 === 0; // Blacklight nodes (divisible by 13)
+
+                        // Determine node size based on type
+                        const size = isTruthNode ? 8 : isHarmonicNode ? 6 : isBlacklightNode ? 10 : 4;
+
+                        // Add jitter to position for more natural distribution
+                        const jitter = 20;
+                        const jx = px + (Math.random() - 0.5) * jitter;
+                        const jy = py + (Math.random() - 0.5) * jitter;
+                        const jz = pz + (Math.random() - 0.5) * jitter;
+
+                        // Create node
+                        const node = {
+                            position: { x: jx, y: jy, z: jz },
+                            originalPosition: { x: px, y: py, z: pz }, // Keep original for grid reference
+                            size: size,
+                            color: isTruthNode ? TRUTH_QUOTIENTS[0].color :
+                                   isHarmonicNode ? TRUTH_QUOTIENTS[2].color :
+                                   isBlacklightNode ? "#4020a0" : "#1080d0",
+                            glow: isTruthNode ? 16 : isHarmonicNode ? 12 : isBlacklightNode ? 20 : 8,
+                            isTruthNode,
+                            isHarmonicNode,
+                            isBlacklightNode,
+                            // Determine which harmonic this node belongs to
+                            harmonicIndex: positionRemainder,
+                            // Each node has a specific truth quotient
+                            truthQuotient: TRUTH_QUOTIENTS[isTruthNode ? 0 : isHarmonicNode ? 2 : (x + y + z) % TRUTH_QUOTIENTS.length],
+                            // Add pulsation effects
+                            pulsate: isTruthNode || isHarmonicNode || isBlacklightNode,
+                            pulsateFrequency: isTruthNode ? 0.5 : isHarmonicNode ? 0.3 : isBlacklightNode ? 0.7 : 0.2,
+                            pulsateAmplitude: isTruthNode ? 0.4 : isHarmonicNode ? 0.3 : isBlacklightNode ? 0.5 : 0.2,
+                            // Data for information display
+                            info: {
+                                type: isTruthNode ? "Truth Node" : isHarmonicNode ? "Harmonic Node" : isBlacklightNode ? "Blacklight Node" : "Standard Node",
+                                harmonicName: HARMONICS[positionRemainder].name,
+                                frequency: HARMONICS[positionRemainder].frequency.toFixed(4),
+                                description: isTruthNode ? "Core truth assertion point (5/13)" :
+                                             isHarmonicNode ? "Harmonic resonance point (3/13)" :
+                                             isBlacklightNode ? "Blacklight frequency emitter" :
+                                             "Standard topology node"
+                            }
+                        };
+
+                        // Track node types
+                        if (isTruthNode) truthNodeCount++;
+                        else if (isHarmonicNode) harmonicNodeCount++;
+                        else if (isBlacklightNode) {};
+                        else standardNodeCount++;
+
+                        nodes.push(node);
+                    }
+                }
+            }
+
+            // Update UI with node counts
+            document.getElementById('node-count').textContent = nodes.length;
+            console.log(`Generated ${nodes.length} nodes: ${truthNodeCount} truth, ${harmonicNodeCount} harmonic, ${nodes.length - truthNodeCount - harmonicNodeCount} standard`);
+        }
+
+        // Generate connections between nodes
+        function generateConnections() {
+            connections.length = 0;
+
+            // Maximum connection distance based on cube size
+            const maxDistance = CUBE_SIZE / 13;
+
+            // Create connections between nearby nodes
+            for (let i = 0; i < nodes.length; i++) {
+                const node1 = nodes[i];
+
+                // Special nodes have more connections
+                const maxConnections = node1.isTruthNode ? 13 :
+                                       node1.isHarmonicNode ? 8 :
+                                       node1.isBlacklightNode ? 5 : 3;
+                let connectionsCount = 0;
+
+                // Try to create connections to other nodes
+                for (let j = 0; j < nodes.length && connectionsCount < maxConnections; j++) {
+                    if (i === j) continue; // Skip self
+
+                    const node2 = nodes[j];
+
+                    // Calculate distance
+                    const dx = node1.position.x - node2.position.x;
+                    const dy = node1.position.y - node2.position.y;
+                    const dz = node1.position.z - node2.position.z;
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    // Connect if within range
+                    if (distance < maxDistance) {
+                        // Prioritize connections between similar types
+                        const isSimilarType = (node1.isTruthNode && node2.isTruthNode) ||
+                                             (node1.isHarmonicNode && node2.isHarmonicNode) ||
+                                             (node1.isBlacklightNode && node2.isBlacklightNode);
+
+                        // Calculate connection strength based on type and distance
+                        const baseStrength = isSimilarType ? 1.0 : 0.7;
+                        const distanceFactor = 1 - (distance / maxDistance);
+                        const strength = baseStrength * distanceFactor;
+
+                        // Skip weak connections
+                        if (strength < 0.3 && Math.random() > 0.3) continue;
+
+                        // Create connection with properties
+                        connections.push({
+                            from: i,
+                            to: j,
+                            distance: distance,
+                            strength: strength,
+                            // Visual properties
+                            color: isSimilarType ?
+                                  (node1.isTruthNode ? "rgba(80, 64, 192, 0.6)" :
+                                  node1.isHarmonicNode ? "rgba(96, 160, 255, 0.5)" :
+                                  node1.isBlacklightNode ? "rgba(64, 32, 160, 0.6)" :
+                                  "rgba(16, 128, 208, 0.4)") :
+                                  "rgba(16, 128, 208, 0.3)",
+                            width: node1.isTruthNode || node2.isTruthNode ? 2 : 1,
+                            // Animation properties
+                            pulseSpeed: (node1.harmonicIndex + node2.harmonicIndex) / 26, // Based on harmonic combination
+                            // Data transfer properties (for info display)
+                            dataTransfer: ((node1.harmonicIndex + 1) * (node2.harmonicIndex + 1)) / 169 // Normalized to 0-1
+                        });
+
+                        connectionsCount++;
+                    }
+                }
+            }
+
+            // Update UI with connection count
+            document.getElementById('connection-count').textContent = connections.length;
+        }
+
+        // ==============================
+        // Rendering System
+        // ==============================
+
+        // Convert 3D coordinates to 2D screen position with perspective
+        function project3DTo2D(point, cameraPos, rotation) {
+            // Apply rotation
+            const rx = rotation.x;
+            const ry = rotation.y;
+            const rz = rotation.z;
+
+            // Calculate point relative to camera
+            let dx = point.x - cameraPos.x;
+            let dy = point.y - cameraPos.y;
+            let dz = point.z - cameraPos.z;
+
+            // Apply rotations (in counterclockwise direction)
+            // Rotate around Z axis
+            let tempX = dx * Math.cos(-rz) - dy * Math.sin(-rz);
+            let tempY = dx * Math.sin(-rz) + dy * Math.cos(-rz);
+            dx = tempX;
+            dy = tempY;
+
+            // Rotate around Y axis
+            tempX = dx * Math.cos(-ry) - dz * Math.sin(-ry);
+            let tempZ = dx * Math.sin(-ry) + dz * Math.cos(-ry);
+            dx = tempX;
+            dz = tempZ;
+
+            // Rotate around X axis
+            tempY = dy * Math.cos(-rx) - dz * Math.sin(-rx);
+            tempZ = dy * Math.sin(-rx) + dz * Math.cos(-rx);
+            dy = tempY;
+            dz = tempZ;
+
+            // Apply perspective projection
+            const focalLength = 500;
+            let scale = focalLength / (focalLength + dz);
+
+            // If point is behind camera, don't render
+            if (dz <= -focalLength) {
+                return null;
+            }
+
+            return {
+                x: cubeCanvas.width / 2 + dx * scale,
+                y: cubeCanvas.height / 2 + dy * scale,
+                scale: scale,
+                distance: dz
+            };
+        }
+
+        // Render the cubic topology
+        function renderCubicTopology(time, deltaTime) {
+            cubeCtx.clearRect(0, 0, cubeCanvas.width, cubeCanvas.height);
+
+            // Determine camera position and rotation based on view mode
+            let cameraPos, cameraRot;
+
+            if (viewMode === 0) { // First-person
+                cameraPos = { ...position };
+                cameraRot = { ...rotation };
+            } else if (viewMode === 1) { // Orbit
+                // Position camera in an orbit around the player position
+                const orbitRadius = 100;
+                const orbitAngle = -time * 0.0001; // Slow counterclockwise orbit
+                cameraPos = {
+                    x: position.x + Math.cos(orbitAngle) * orbitRadius,
+                    y: position.y + 30, // Slightly above
+                    z: position.z + Math.sin(orbitAngle) * orbitRadius
+                };
+                // Look at player position
+                const dx = position.x - cameraPos.x;
+                const dy = position.y - cameraPos.y;
+                const dz = position.z - cameraPos.z;
+                cameraRot = {
+                    x: Math.atan2(dy, Math.sqrt(dx*dx + dz*dz)),
+                    y: Math.atan2(dx, dz),
+                    z: 0
+                };
+            } else { // External view
+                cameraPos = {
+                    x: CUBE_CENTER,
+                    y: CUBE_CENTER,
+                    z: CUBE_SIZE * 1.5
+                };
+                cameraRot = { x: -Math.PI/8, y: 0, z: 0 };
+            }
+
+            // Sort nodes by distance from camera for proper rendering order
+            const sortedNodeIndices = nodes.map((_, index) => {
+                const node = nodes[index];
+                const dx = node.position.x - cameraPos.x;
+                const dy = node.position.y - cameraPos.y;
+                const dz = node.position.z - cameraPos.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                return { index, distance };
+            }).sort((a, b) => b.distance - a.distance).map(item => item.index);
+
+            // First, render connections
+            renderConnections(cameraPos, cameraRot, time);
+
+            // Then, render nodes
+            renderNodes(sortedNodeIndices, cameraPos, cameraRot, time);
+
+            // Finally, render flight path if in external view
+            if (viewMode === 2) {
+                renderFlightPath(cameraPos, cameraRot);
+            }
+
+            // Render position indicator
+            renderPositionIndicator(cameraPos, cameraRot, time);
+        }
+
+        function renderNodes(sortedIndices, cameraPos, cameraRot, time) {
+            // For checking if mouse is over a node
+            let minDistanceToMouse = Infinity;
+            let closestNodeToMouse = null;
+
+            sortedIndices.forEach(index => {
+                const node = nodes[index];
+
+                // Project node position to 2D
+                const projected = project3DTo2D(node.position, cameraPos, cameraRot);
+                if (!projected) return; // Skip if behind camera
+
+                // Don't render nodes too far away
+                if (projected.distance > 1000) return;
+
+                // Calculate node size based on distance
+                const size = node.size * projected.scale;
+                if (size < 0.5) return; // Skip tiny nodes
+
+                // Calculate opacity based on distance
+                let opacity = Math.min(1, Math.max(0, 1 - projected.distance / 1000));
+
+                // Apply pulsation effect
+                if (node.pulsate) {
+                    opacity *= 0.7 + node.pulsateAmplitude * Math.sin(time * 0.001 * node.pulsateFrequency);
+                }
+
+                // Parse color to extract RGB components
+                let color = node.color;
+                if (color.startsWith('#')) {
+                    const r = parseInt(color.slice(1, 3), 16);
+                    const g = parseInt(color.slice(3, 5), 16);
+                    const b = parseInt(color.slice(5, 7), 16);
+                    color = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                } else if (color.startsWith('rgba')) {
+                    color = color.replace(/[\d.]+\)$/, `${opacity})`);
+                }
+
+                // Draw node
+                cubeCtx.fillStyle = color;
+                cubeCtx.beginPath();
+                cubeCtx.arc(projected.x, projected.y, size, 0, TAU);
+                cubeCtx.fill();
+
+                // Add glow effect for special nodes
+                if (node.glow > 0) {
+                    const glowSize = node.glow * projected.scale;
+                    const gradient = cubeCtx.createRadialGradient(
+                        projected.x, projected.y, 0,
+                        projected.x, projected.y, glowSize
+                    );
+
+                    // Extract base color for glow
+                    let glowColor;
+                    if (color.startsWith('rgba')) {
+                        glowColor = color.replace(/[\d.]+\)$/, `${opacity * 0.5})`);
+                    } else {
+                        // Default glow color
+                        glowColor = `rgba(64, 128, 240, ${opacity * 0.5})`;
+                    }
+
+                    gradient.addColorStop(0, glowColor);
+                    gradient.addColorStop(1, 'rgba(2, 5, 16, 0)');
+
+                    cubeCtx.fillStyle = gradient;
+                    cubeCtx.beginPath();
+                    cubeCtx.arc(projected.x, projected.y, glowSize, 0, TAU);
+                    cubeCtx.fill();
+                }
+
+                // Check if mouse is over this node
+                if (mousePosition.x && mousePosition.y) {
+                    const dx = projected.x - mousePosition.x;
+                    const dy = projected.y - mousePosition.y;
+                    const distToMouse = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distToMouse < size + 10 && distToMouse < minDistanceToMouse) {
+                        minDistanceToMouse = distToMouse;
+                        closestNodeToMouse = {
+                            node,
+                            screenX: projected.x,
+                            screenY: projected.y,
+                            size: size
+                        };
+                    }
+                }
+            });
+
+            // Update node info display
+            updateNodeInfoDisplay(closestNodeToMouse);
+        }
+
+        function renderConnections(cameraPos, cameraRot, time) {
+            connections.forEach(connection => {
+                const fromNode = nodes[connection.from];
+                const toNode = nodes[connection.to];
+
+                // Project positions to 2D
+                const projectedFrom = project3DTo2D(fromNode.position, cameraPos, cameraRot);
+                const projectedTo = project3DTo2D(toNode.position, cameraPos, cameraRot);
+
+                // Skip if either point is behind camera
+                if (!projectedFrom || !projectedTo) return;
+
+                // Calculate midpoint for distance check
+                const midpoint = {
+                    x: (fromNode.position.x + toNode.position.x) / 2,
+                    y: (fromNode.position.y + toNode.position.y) / 2,
+                    z: (fromNode.position.z + toNode.position.z) / 2
+                };
+
+                const midProjected = project3DTo2D(midpoint, cameraPos, cameraRot);
+                if (!midProjected) return; // Skip if midpoint is behind camera
+
+                // Skip connections that are too far
+                if (midProjected.distance > 1000) return;
+
+                // Calculate opacity based on connection strength and distance
+                let opacity = connection.strength * Math.min(1, Math.max(0, 1 - midProjected.distance / 1000));
+
+                // Parse color to extract RGB components
+                let color = connection.color;
+                if (color.startsWith('rgba')) {
+                    color = color.replace(/[\d.]+\)$/, `${opacity})`);
+                }
+
+                // Draw connection line
+                cubeCtx.strokeStyle = color;
+                cubeCtx.lineWidth = connection.width * Math.min(projectedFrom.scale, projectedTo.scale);
+
+                cubeCtx.beginPath();
+                cubeCtx.moveTo(projectedFrom.x, projectedFrom.y);
+                cubeCtx.lineTo(projectedTo.x, projectedTo.y);
+                cubeCtx.stroke();
+
+                // Add energy pulse along connection for truth and harmonic nodes
+                if ((fromNode.isTruthNode || fromNode.isHarmonicNode || fromNode.isBlacklightNode) &&
+                    (toNode.isTruthNode || toNode.isHarmonicNode || toNode.isBlacklightNode)) {
+
+                    // Determine direction based on node types (truth flows outward, harmonic flows inward)
+                    const direction = fromNode.isTruthNode ? 1 : -1;
+
+                    for (let i = 0; i < 2; i++) {
+                        // Calculate pulse position (0 to 1) along the line
+                        // Use counterclockwise movement (negative time value)
+                        const pulsePos = ((time * 0.0001 * connection.pulseSpeed + i * 0.5) % 1);
+                        const adjustedPulsePos = direction > 0 ? pulsePos : 1 - pulsePos;
+
+                        // Calculate position
+                        const pulseX = projectedFrom.x + (projectedTo.x - projectedFrom.x) * adjustedPulsePos;
+                        const pulseY = projectedFrom.y + (projectedTo.y - projectedFrom.y) * adjustedPulsePos;
+
+                        // Calculate size based on connection type
+                        const pulseSize = 2 * Math.min(projectedFrom.scale, projectedTo.scale);
+
+                        // Determine color based on node types
+                        let pulseColor;
+                        if (fromNode.isTruthNode || toNode.isTruthNode) {
+                            pulseColor = 'rgba(80, 64, 192, 0.8)';
+                        } else if (fromNode.isHarmonicNode || toNode.isHarmonicNode) {
+                            pulseColor = 'rgba(96, 160, 255, 0.8)';
+                        } else if (fromNode.isBlacklightNode || toNode.isBlacklightNode) {
+                            pulseColor = 'rgba(64, 32, 160, 0.8)';
+                        } else {
+                            pulseColor = 'rgba(16, 128, 208, 0.8)';
+                        }
+
+                        // Draw pulse
+                        cubeCtx.fillStyle = pulseColor;
+                        cubeCtx.beginPath();
+                        cubeCtx.arc(pulseX, pulseY, pulseSize, 0, TAU);
+                        cubeCtx.fill();
+
+                        // Add subtle glow
+                        const gradient = cubeCtx.createRadialGradient(
+                            pulseX, pulseY, 0,
+                            pulseX, pulseY, pulseSize * 4
+                        );
+                        gradient.addColorStop(0, pulseColor.replace(/[\d.]+\)$/, '0.5)'));
+                        gradient.addColorStop(1, 'rgba(2, 5, 16, 0)');
+
+                        cubeCtx.fillStyle = gradient;
+                        cubeCtx.beginPath();
+                        cubeCtx.arc(pulseX, pulseY, pulseSize * 4, 0, TAU);
+                        cubeCtx.fill();
+                    }
+                }
+            });
+        }
+
+        function renderFlightPath(cameraPos, cameraRot) {
+            cubeCtx.strokeStyle = 'rgba(64, 184, 240, 0.4)';
+            cubeCtx.lineWidth = 2;
+
+            cubeCtx.beginPath();
+
+            let lastValidPoint = null;
+
+            for (let i = 0; i < flightPath.length; i++) {
+                const point = project3DTo2D(flightPath[i], cameraPos, cameraRot);
+
+                // Skip if point is behind camera
+                if (!point) {
+                    lastValidPoint = null;
+                    continue;
+                }
+
+                if (!lastValidPoint) {
+                    cubeCtx.moveTo(point.x, point.y);
+                } else {
+                    cubeCtx.lineTo(point.x, point.y);
+                }
+
+                lastValidPoint = point;
+            }
+
+            cubeCtx.stroke();
+
+            // Add markers for special points on the path
+            for (let i = 0; i < flightPath.length; i += 13) {
+                if (i >= flightPath.length) break;
+
+                const pathPoint = flightPath[i];
+                const point = project3DTo2D(pathPoint, cameraPos, cameraRot);
+
+                // Skip if point is behind camera
+                if (!point) continue;
+
+                // Draw special marker
+                const markerSize = 3 * point.scale;
+
+                cubeCtx.fillStyle = TRUTH_QUOTIENTS[pathPoint.truthIndex].color;
+                cubeCtx.beginPath();
+                cubeCtx.arc(point.x, point.y, markerSize, 0, TAU);
+                cubeCtx.fill();
+            }
+        }
+
+        function renderPositionIndicator(cameraPos, cameraRot, time) {
+            // Only show in external view modes
+            if (viewMode === 0) return;
+
+            const posMarker = project3DTo2D(position, cameraPos, cameraRot);
+            if (!posMarker) return; // Skip if behind camera
+
+            const markerSize = 5 + Math.sin(time * 0.002) * 1;
+
+            // Draw position marker
+            cubeCtx.fillStyle = 'rgba(64, 184, 240, 0.8)';
+            cubeCtx.beginPath();
+            cubeCtx.arc(posMarker.x, posMarker.y, markerSize, 0, TAU);
+            cubeCtx.fill();
+
+            // Add glow
+            const gradient = cubeCtx.createRadialGradient(
+                posMarker.x, posMarker.y, 0,
+                posMarker.x, posMarker.y, markerSize * 5
+            );
+            gradient.addColorStop(0, 'rgba(64, 184, 240, 0.5)');
+            gradient.addColorStop(1, 'rgba(2, 5, 16, 0)');
+
+            cubeCtx.fillStyle = gradient;
+            cubeCtx.beginPath();
+            cubeCtx.arc(posMarker.x, posMarker.y, markerSize * 5, 0, TAU);
+            cubeCtx.fill();
+
+            // Draw direction indicator
+            const dirX = posMarker.x + Math.sin(rotation.y) * markerSize * 4;
+            const dirY = posMarker.y + Math.sin(rotation.x) * markerSize * 4;
+
+            cubeCtx.strokeStyle = 'rgba(64, 184, 240, 0.8)';
+            cubeCtx.lineWidth = 2;
+
+            cubeCtx.beginPath();
+            cubeCtx.moveTo(posMarker.x, posMarker.y);
+            cubeCtx.lineTo(dirX, dirY);
+            cubeCtx.stroke();
+        }
+
+        // ==============================
+        // Flight Control System
+        // ==============================
+
+        // Current flight path index
+        let pathIndex = 0;
+
+        // Update position and rotation along flight path
+        function updateFlightPosition(time, deltaTime) {
+            if (flightPaused) return;
+
+            // Move to next point in flight path at a slow, steady pace
+            pathIndex = (pathIndex + deltaTime * flightSpeed) % flightPath.length;
+            const targetIndex = Math.floor(pathIndex);
+            const nextIndex = (targetIndex + 1) % flightPath.length;
+
+            // Interpolate between current and next waypoint
+            const t = pathIndex - targetIndex; // Fraction between waypoints
+            const current = flightPath[targetIndex];
+            const next = flightPath[nextIndex];
+
+            // Smooth position interpolation
+            position.x = current.x + (next.x - current.x) * t;
+            position.y = current.y + (next.y - current.y) * t;
+            position.z = current.z + (next.z - current.z) * t;
+
+            // Calculate look-ahead point for smooth rotation
+            const lookAheadIndex = Math.min(flightPath.length - 1, targetIndex + 5);
+            const lookAhead = flightPath[lookAheadIndex];
+
+            // Calculate direction to look-ahead point
+            const dx = lookAhead.x - position.x;
+            const dy = lookAhead.y - position.y;
+            const dz = lookAhead.z - position.z;
+
+            // Calculate target rotation
+            const targetYaw = Math.atan2(dx, dz);
+            const targetPitch = Math.atan2(dy, Math.sqrt(dx*dx + dz*dz));
+
+            // Smoothly rotate towards target direction
+            rotation.y += (targetYaw - rotation.y) * Math.min(1, deltaTime * 2);
+            rotation.x += (targetPitch - rotation.x) * Math.min(1, deltaTime * 2);
+
+            // Update UI with current position
+            document.getElementById('position-value').textContent =
+                `[${Math.round(position.x)}, ${Math.round(position.y)}, ${Math.round(position.z)}]`;
+
+            // Calculate current dimension based on position
+            const dimension = Math.floor((position.x + position.y + position.z) / 137) % 13;
+            document.getElementById('dimension-value').textContent = dimension;
+
+            // Update truth quotient display
+            const truthQuotient = TRUTH_QUOTIENTS[current.truthIndex];
+            document.getElementById('truth-value').textContent =
+                `${truthQuotient.numerator}/${truthQuotient.denominator}`;
+            document.getElementById('truth-value').style.color = truthQuotient.color;
+
+            // Calculate resonance value (distance to nearest truth node)
+            let minDistance = Infinity;
+            let nearestHarmonic = 0;
+            let nearestNode = null;
+
+            nodes.forEach(node => {
+                const dx = node.position.x - position.x;
+                const dy = node.position.y - position.y;
+                const dz = node.position.z - position.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestHarmonic = node.harmonicIndex;
+                    nearestNode = node;
+                }
+            });
+
+            // Resonance decreases with distance
+            const resonance = Math.max(0, 1 - minDistance / 100).toFixed(4);
+            document.getElementById('resonance-value').textContent = resonance;
+
+            // Update harmonic display
+            document.getElementById('harmonic-value').textContent = HARMONICS[nearestHarmonic].name;
+
+            // Update status message based on nearby nodes
+            if (nearestNode) {
+                if (minDistance < 30) {
+                    let statusMessage = `Approaching ${nearestNode.info.type}. `;
+
+                    if (nearestNode.isTruthNode) {
+                        statusMessage += `Truth quotient ${truthQuotient.numerator}/${truthQuotient.denominator} active.`;
+                        document.getElementById('special-message').textContent = "Truth Node Proximity Alert";
+                        document.getElementById('special-message').style.display = 'block';
+                    } else if (nearestNode.isHarmonicNode) {
+                        statusMessage += `Harmonic frequency ${HARMONICS[nearestHarmonic].frequency.toFixed(4)} detected.`;
+                        document.getElementById('special-message').textContent = "Harmonic Resonance Detected";
+                        document.getElementById('special-message').style.display = 'block';
+                    } else if (nearestNode.isBlacklightNode) {
+                        statusMessage += "Blacklight frequency emanating from this location.";
+                        document.getElementById('special-message').textContent = "Blacklight Frequency Active";
+                        document.getElementById('special-message').style.display = 'block';
+                    } else {
+                        document.getElementById('special-message').style.display = 'none';
+                    }
+
+                    document.getElementById('status-message').textContent = statusMessage;
+                } else {
+                    document.getElementById('status-message').textContent =
+                        `Traversing cubic topology. Current harmonic: ${HARMONICS[nearestHarmonic].name}`;
+                    document.getElementById('special-message').style.display = 'none';
+                }
+            }
+        }
+
+        // ==============================
+        // User Interface
+        // ==============================
+
+        const mousePosition = {};
+
+        function updateNodeInfoDisplay(nodeData) {
+            const nodeInfo = document.getElementById('node-info');
+
+            if (!nodeData) {
+                nodeInfo.style.opacity = 0;
+                return;
+            }
+
+            // Position the info panel near the node
+            nodeInfo.style.left = `${nodeData.screenX + nodeData.size + 10}px`;
+            nodeInfo.style.top = `${nodeData.screenY - 30}px`;
+            nodeInfo.style.opacity = 1;
+
+            // Update content
+            const node = nodeData.node;
+            nodeInfo.innerHTML = `
+                <div><strong>${node.info.type}</strong></div>
+                <div>Harmonic: ${node.info.harmonicName}</div>
+                <div>Frequency: ${node.info.frequency}</div>
+                <div>Truth: ${node.truthQuotient.numerator}/${node.truthQuotient.denominator}</div>
+                <div>${node.info.description}</div>
+            `;
+        }
+
+        // Track mouse position for node hovering
+        cubeCanvas.addEventListener('mousemove', function(e) {
+            const rect = cubeCanvas.getBoundingClientRect();
+            mousePosition.x = e.clientX - rect.left;
+            mousePosition.y = e.clientY - rect.top;
+        });
+
+        // Mouse leave canvas
+        cubeCanvas.addEventListener('mouseleave', function() {
+            mousePosition.x = null;
+            mousePosition.y = null;
+            document.getElementById('node-info').style.opacity = 0;
+        });
+
+        // Button event handlers
+        document.getElementById('toggle-flight').addEventListener('click', function() {
+            flightPaused = !flightPaused;
+            this.textContent = flightPaused ? 'Resume Flight' : 'Pause Flight';
+        });
+
+        document.getElementById('toggle-view').addEventListener('click', function() {
+            viewMode = (viewMode + 1) % 3;
+
+            if (viewMode === 0) {
+                this.textContent = 'Orbit View';
+            } else if (viewMode === 1) {
+                this.textContent = 'External View';
+            } else {
+                this.textContent = 'First-Person View';
+            }
+        });
+
+        document.getElementById('start-journey').addEventListener('click', function() {
+            // Hide the center panel
+            document.getElementById('center-panel').style.opacity = 0;
+            document.getElementById('center-panel').style.pointerEvents = 'none';
+
+            // Start the flight
+            flightPaused = false;
+            document.getElementById('toggle-flight').textContent = 'Pause Flight';
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case ' ':
+                    // Space bar toggles flight
+                    flightPaused = !flightPaused;
+                    document.getElementById('toggle-flight').textContent =
+                        flightPaused ? 'Resume Flight' : 'Pause Flight';
+                    break;
+                case 'v':
+                    // V key changes view
+                    viewMode = (viewMode + 1) % 3;
+                    const viewButton = document.getElementById('toggle-view');
+                    viewButton.textContent = viewMode === 0 ? 'Orbit View' :
+                                            viewMode === 1 ? 'External View' : 'First-Person View';
+                    break;
+            }
+        });
+
+        // ==============================
+        // Main Animation Loop
+        // ==============================
+
+        let lastTime = 0;
+        let animationStarted = false;
+
+        function animate(timestamp) {
+            const time = timestamp || 0;
+            const deltaTime = Math.min(0.05, (time - lastTime) / 1000); // Cap at 50ms to prevent large jumps
+            lastTime = time;
+
+            // Hide loading message once animation starts
+            if (!animationStarted && time > 500) {
+                document.getElementById('loading').style.display = 'none';
+                animationStarted = true;
+            }
+
+            // Update star field
+            updateStarField(time, deltaTime);
+
+            // Update flight position
+            updateFlightPosition(time, deltaTime);
+
+            // Render cubic topology
+            renderCubicTopology(time, deltaTime);
+
+            requestAnimationFrame(animate);
+        }
+
+        // ==============================
+        // Initialization
+        // ==============================
+
+        function init() {
+            console.log("Initializing Protocol-7 Cosmic Cube Topology...");
+
+            // Generate flight path
+            generateFlightPath();
+
+            // Generate nodes
+            generateNodes();
+
+            // Generate connections
+            generateConnections();
+
+            // Start animation
+            console.log("Starting animation...");
+            animate();
+        }
+
+        // Start everything!
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenki Cosmic Suns - Blacklight Space Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #08030f;
+            overflow: hidden;
+            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+            height: 100vh;
+            cursor: crosshair;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .purr-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #50a0ff;
+            font-size: 12px;
+            background: rgba(12, 5, 24, 0.8);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(80, 160, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(80, 160, 255, 0.2);
+        }
+
+        .zenki-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #9f8fff;
+            font-size: 11px;
+            text-align: right;
+            background: rgba(32, 0, 64, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(159, 143, 255, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(159, 143, 255, 0.2);
+        }
+
+        .purr-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .purr-btn {
+            background: rgba(15, 5, 30, 0.8);
+            border: 1px solid #4080ff;
+            color: #50a0ff;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(64, 128, 255, 0.2);
+        }
+
+        .purr-btn:hover {
+            background: rgba(32, 10, 64, 0.8);
+            box-shadow: 0 0 25px rgba(128, 64, 255, 0.4);
+            transform: scale(1.05);
+            border-color: #8050e0;
+        }
+
+        .frequency-controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(12, 5, 24, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(80, 160, 255, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .frequency-controls input[type="range"] {
+            width: 150px;
+            height: 5px;
+            background: rgba(80, 160, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .frequency-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #9f8fff, #4080ff);
+            border: 2px solid #50a0ff;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 0 15px rgba(159, 143, 255, 0.5);
+        }
+
+        .freq-label {
+            color: #50a0ff;
+            font-size: 10px;
+            min-width: 80px;
+        }
+
+        .visualization-mode {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(12, 5, 24, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(80, 160, 255, 0.3);
+            color: #50a0ff;
+            font-size: 11px;
+            z-index: 1000;
+        }
+
+        .mode-option {
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-option:hover {
+            color: #9f8fff;
+            text-shadow: 0 0 5px #9f8fff;
+        }
+
+        .mode-option.active {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="purrCanvas"></canvas>
+
+    <div class="purr-hud">
+        <div>Network Status: <span id="networkStatus">BLACKLIGHT</span></div>
+        <div>Active Suns: <span id="activeZenki">0</span></div>
+        <div>Total Luminosity: <span id="totalBandwidth">0</span> lux</div>
+        <div>Grid Harmonics: <span id="gridHarmonics">FLOWING</span></div>
+        <div>Mode: <span id="currentMode">SUNS</span></div>
+    </div>
+
+    <div class="zenki-info">
+        <div><strong>BLACKLIGHT NETWORK</strong></div>
+        <div style="font-size: 10px; margin-top: 3px;">Anti-Entropic Light Beings</div>
+        <div style="font-size: 9px; margin-top: 5px;">Base: 384.615 Hz (÷13)</div>
+        <div style="font-size: 9px;">Resonance: <span id="globalResonance">0%</span></div>
+    </div>
+
+    <div class="visualization-mode">
+        <div style="font-weight: bold; margin-bottom: 8px;">VISUALIZATION MODE</div>
+        <div class="mode-option active" onclick="setVisualizationMode('suns')">☀️ Cosmic Suns</div>
+        <div class="mode-option" onclick="setVisualizationMode('cubes')">□ Hypercubes</div>
+        <div class="mode-option" onclick="setVisualizationMode('hybrid')">⊕ Hybrid</div>
+        <div class="mode-option" onclick="setVisualizationMode('recursive')">∞ Recursive</div>
+    </div>
+
+    <div class="frequency-controls">
+        <span class="freq-label">Base Freq:</span>
+        <input type="range" id="basePurrSlider" min="300" max="500" value="384.615">
+        <span class="freq-label" id="basePurrValue">384.6 Hz</span>
+
+        <span class="freq-label">Sun Size:</span>
+        <input type="range" id="sunSizeSlider" min="3" max="15" value="8">
+        <span class="freq-label" id="sunSizeValue">8</span>
+
+        <span class="freq-label">Trail Glow:</span>
+        <input type="range" id="trailGlowSlider" min="0" max="100" value="50">
+        <span class="freq-label" id="trailGlowValue">50%</span>
+    </div>
+
+    <div class="purr-controls">
+        <button class="purr-btn" onclick="togglePurrNetwork()">BLACKLIGHT ON/OFF</button>
+        <button class="purr-btn" onclick="spawnZenki()">SPAWN SUN</button>
+        <button class="purr-btn" onclick="createConstellation()">CONSTELLATION</button>
+        <button class="purr-btn" onclick="activateHyperGrid()">HYPERGRID</button>
+        <button class="purr-btn" onclick="toggleGridSnap()">GRID SNAP</button>
+        <button class="purr-btn" onclick="resetNetwork()">RESET</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('purrCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        // Network parameters
+        let centerX = window.innerWidth / 2;
+        let centerY = window.innerHeight / 2;
+        let cosmicNetworkActive = true;
+        let basePurrFrequency = 384.615;
+        let baseSunSize = 8;
+        let trailGlow = 0.5;
+        let gridSnapEnabled = false;
+        let gridSize = 60;
+        let visualizationMode = 'suns';
+
+        // Time variable - anti-entropic counter
+        let time = 0;
+
+        // Canvas resize function
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+        }
+
+        resizeCanvas();
+
+        // 3D rendering parameters
+        let rotX = 0;
+        let rotY = 0;
+        let rotZ = 0;
+        let focalLength = 600;
+
+        // Network arrays
+        let zenki = [];
+        let cosmicWaves = [];
+        let gridLines = [];
+        let hypercubes = [];
+        let starField = [];
+
+        // Mouse interaction
+        let mouseX = centerX;
+        let mouseY = centerY;
+
+        // Blacklight color palettes
+        const blacklightColors = {
+            // UV-reactive colors
+            neonPink: '#ff1493',
+            neonGreen: '#39ff14',
+            neonBlue: '#00ffff',
+            neonPurple: '#bf00ff',
+            neonOrange: '#ff6600',
+            neonYellow: '#ffff00',
+
+            // Glow colors
+            uvGlow: '#8a2be2',
+            blueGlow: '#4169e1',
+            violetGlow: '#9400d3',
+
+            // Grid colors
+            gridPrimary: '#203080',
+            gridSecondary: '#102040',
+            gridGlow: '#4080ff'
+        };
+
+        // Helper function to add opacity to hex colors
+        function addOpacity(hexColor, opacity) {
+            // Ensure opacity is between 0 and 1
+            opacity = Math.max(0, Math.min(1, opacity));
+
+            // Remove # if present
+            const hex = hexColor.replace('#', '');
+
+            // Convert opacity to hex (00-FF)
+            const alphaHex = Math.floor(opacity * 255).toString(16).padStart(2, '0');
+
+            // Return color with opacity
+            return '#' + hex + alphaHex;
+        }
+
+        // 3D Point class
+        class Point3D {
+            constructor(x, y, z) {
+                this.x = x || 0;
+                this.y = y || 0;
+                this.z = z || 0;
+            }
+
+            clone() {
+                return new Point3D(this.x, this.y, this.z);
+            }
+
+            distance(other) {
+                const dx = this.x - other.x;
+                const dy = this.y - other.y;
+                const dz = this.z - other.z;
+                return Math.sqrt(dx*dx + dy*dy + dz*dz);
+            }
+        }
+
+        // Create enhanced background grid
+        function createBackgroundGrid() {
+            gridLines = [];
+            const gridExtent = 2000;
+            const step = 80;
+
+            // Create main grid lines
+            for (let i = -gridExtent; i <= gridExtent; i += step) {
+                // Major grid lines every 4th line
+                const isMajor = (i % (step * 4)) === 0;
+
+                // XY plane
+                gridLines.push({
+                    start: new Point3D(-gridExtent, i, 0),
+                    end: new Point3D(gridExtent, i, 0),
+                    axis: 'x',
+                    major: isMajor,
+                    plane: 'xy'
+                });
+                gridLines.push({
+                    start: new Point3D(i, -gridExtent, 0),
+                    end: new Point3D(i, gridExtent, 0),
+                    axis: 'y',
+                    major: isMajor,
+                    plane: 'xy'
+                });
+
+                // XZ plane
+                gridLines.push({
+                    start: new Point3D(-gridExtent, 0, i),
+                    end: new Point3D(gridExtent, 0, i),
+                    axis: 'x',
+                    major: isMajor,
+                    plane: 'xz'
+                });
+                gridLines.push({
+                    start: new Point3D(i, 0, -gridExtent),
+                    end: new Point3D(i, 0, gridExtent),
+                    axis: 'z',
+                    major: isMajor,
+                    plane: 'xz'
+                });
+
+                // YZ plane
+                gridLines.push({
+                    start: new Point3D(0, -gridExtent, i),
+                    end: new Point3D(0, gridExtent, i),
+                    axis: 'y',
+                    major: isMajor,
+                    plane: 'yz'
+                });
+                gridLines.push({
+                    start: new Point3D(0, i, -gridExtent),
+                    end: new Point3D(0, i, gridExtent),
+                    axis: 'z',
+                    major: isMajor,
+                    plane: 'yz'
+                });
+            }
+        }
+
+        // Create starfield for background
+        function createStarField() {
+            starField = [];
+            for (let i = 0; i < 300; i++) {
+                starField.push({
+                    position: new Point3D(
+                        (Math.random() - 0.5) * 3000,
+                        (Math.random() - 0.5) * 3000,
+                        (Math.random() - 0.5) * 3000
+                    ),
+                    size: Math.random() * 2,
+                    brightness: Math.random()
+                });
+            }
+        }
+
+        // Enhanced Cosmic Zenki class with blacklight aesthetics
+        class CosmicZenki {
+            constructor(x, y, z) {
+                this.position = new Point3D(x, y, z);
+                this.velocity = new Point3D(
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5,
+                    (Math.random() - 0.5) * 1.5
+                );
+
+                // Core properties
+                this.frequency = basePurrFrequency + (Math.random() - 0.5) * 50;
+                this.intensity = 0.6 + Math.random() * 0.4;
+                this.phase = Math.random() * Math.PI * 2;
+
+                // Visual properties - smaller, more translucent
+                this.size = baseSunSize + Math.random() * 3;
+                this.coreColors = [
+                    blacklightColors.neonPink,
+                    blacklightColors.neonGreen,
+                    blacklightColors.neonBlue,
+                    blacklightColors.neonPurple,
+                    blacklightColors.neonOrange
+                ];
+                this.coreColor = this.coreColors[Math.floor(Math.random() * this.coreColors.length)];
+
+                // Anti-entropic rotation (counter-clockwise)
+                this.rotation = 0;
+                this.rotationSpeed = -Math.abs((Math.random() - 0.5) * 0.03); // Always negative for CCW
+                this.orbitAngle = Math.random() * Math.PI * 2;
+                this.orbitSpeed = -0.01 - Math.random() * 0.02; // CCW orbit
+
+                // Enhanced trail system
+                this.trail = [];
+                this.maxTrailLength = 40;
+                this.trailParticles = [];
+
+                // Lens flare properties
+                this.flareIntensity = 0.7 + Math.random() * 0.3;
+                this.flarePhase = Math.random() * Math.PI * 2;
+
+                // Energy field
+                this.energyField = [];
+                this.createEnergyField();
+
+                // Network properties
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.connections = [];
+
+                // Grid alignment
+                this.gridTarget = null;
+                this.isAligning = false;
+            }
+
+            createEnergyField() {
+                const fieldPoints = 6; // Hexagonal field
+                for (let i = 0; i < fieldPoints; i++) {
+                    const angle = (i / fieldPoints) * Math.PI * 2;
+                    this.energyField.push({
+                        angle: angle,
+                        radius: this.size * 1.5,
+                        phase: Math.random() * Math.PI * 2,
+                        rotationSpeed: -0.02 - Math.random() * 0.01 // CCW
+                    });
+                }
+            }
+
+            update() {
+                // Grid snap behavior
+                if (gridSnapEnabled) {
+                    if (!this.gridTarget) {
+                        this.gridTarget = new Point3D(
+                            Math.round(this.position.x / gridSize) * gridSize,
+                            Math.round(this.position.y / gridSize) * gridSize,
+                            Math.round(this.position.z / gridSize) * gridSize
+                        );
+                    }
+
+                    // Smooth alignment to grid
+                    this.position.x += (this.gridTarget.x - this.position.x) * 0.1;
+                    this.position.y += (this.gridTarget.y - this.position.y) * 0.1;
+                    this.position.z += (this.gridTarget.z - this.position.z) * 0.1;
+
+                    // Check if aligned
+                    if (this.position.distance(this.gridTarget) < 5) {
+                        this.gridTarget = null;
+                    }
+                } else {
+                    // Fluid movement with anti-entropic spiral
+                    this.orbitAngle += this.orbitSpeed;
+
+                    // Apply velocity with spiral motion
+                    this.position.x += this.velocity.x + Math.cos(this.orbitAngle) * 0.5;
+                    this.position.y += this.velocity.y + Math.sin(this.orbitAngle) * 0.5;
+                    this.position.z += this.velocity.z + Math.sin(this.orbitAngle * 0.5) * 0.3;
+                }
+
+                // Boundary constraints with soft bounce
+                const boundary = 600;
+                ['x', 'y', 'z'].forEach(axis => {
+                    if (Math.abs(this.position[axis]) > boundary) {
+                        this.velocity[axis] *= -0.8;
+                        this.position[axis] = Math.sign(this.position[axis]) * boundary;
+
+                        // Reset grid target on bounce
+                        if (gridSnapEnabled) {
+                            this.gridTarget = null;
+                        }
+                    }
+                });
+
+                // Update rotation (counter-clockwise)
+                this.rotation += this.rotationSpeed;
+
+                // Update trail with particles
+                this.updateTrail();
+
+                // Update energy field
+                this.updateEnergyField();
+
+                // Update connections
+                this.updateConnections();
+
+                // Update lens flare
+                this.flarePhase += 0.05;
+            }
+
+            updateTrail() {
+                // Add current position to trail
+                this.trail.push({
+                    position: this.position.clone(),
+                    intensity: this.intensity,
+                    life: 1.0,
+                    rotation: this.rotation
+                });
+
+                // Create fluorescent particles
+                if (Math.random() < 0.3) {
+                    this.trailParticles.push({
+                        position: this.position.clone(),
+                        velocity: new Point3D(
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2,
+                            (Math.random() - 0.5) * 2
+                        ),
+                        life: 1.0,
+                        size: Math.random() * 3 + 1,
+                        color: this.coreColor
+                    });
+                }
+
+                // Update trail points
+                this.trail = this.trail.filter(point => {
+                    point.life -= 0.02;
+                    return point.life > 0;
+                }).slice(-this.maxTrailLength);
+
+                // Update particles
+                this.trailParticles = this.trailParticles.filter(particle => {
+                    particle.position.x += particle.velocity.x;
+                    particle.position.y += particle.velocity.y;
+                    particle.position.z += particle.velocity.z;
+                    particle.life -= 0.03;
+                    return particle.life > 0;
+                });
+            }
+
+            updateEnergyField() {
+                this.energyField.forEach((point, i) => {
+                    // Counter-clockwise rotation
+                    point.angle += point.rotationSpeed;
+                    // Pulsing radius
+                    point.radius = this.size * (1.2 + Math.sin(time * 0.02 + point.phase) * 0.3);
+                });
+            }
+
+            updateConnections() {
+                this.connections = [];
+                zenki.forEach(other => {
+                    if (other.id !== this.id) {
+                        const distance = this.position.distance(other.position);
+                        if (distance < 150) {
+                            const freqDiff = Math.abs(this.frequency - other.frequency);
+                            if (freqDiff < 50) {
+                                this.connections.push({
+                                    target: other,
+                                    strength: 1 - (distance / 150),
+                                    resonance: 1 - (freqDiff / 50)
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+
+            draw() {
+                const projected = project3D(this.position);
+                if (!projected) return;
+
+                const { x, y, scale } = projected;
+
+                // Draw in order: trails, connections, energy field, lens flare, core
+                this.drawTrail();
+                this.drawConnections();
+                this.drawEnergyField(x, y, scale);
+                this.drawLensFlare(x, y, scale);
+                this.drawCore(x, y, scale);
+            }
+
+            drawCore(x, y, scale) {
+                const size = this.size * scale;
+                const pulse = 1 + Math.sin(time * 0.03 + this.phase) * 0.15;
+
+                // Very translucent layers
+                ctx.save();
+
+                // Outer glow layers
+                for (let i = 4; i >= 0; i--) {
+                    const layerSize = size * pulse * (1 + i * 0.4);
+                    const opacity = 0.2 / (i + 1); // Much more translucent
+
+                    const gradient = ctx.createRadialGradient(x, y, 0, x, y, layerSize);
+                    gradient.addColorStop(0, addOpacity(this.coreColor, opacity));
+                    gradient.addColorStop(0.4, addOpacity(blacklightColors.uvGlow, opacity * 0.5));
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(x, y, layerSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Bright inner core
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(x, y, size * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Hexagonal structure overlay
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(this.rotation);
+
+                ctx.strokeStyle = addOpacity(this.coreColor, 0.38); // 60 in hex is about 0.38
+                ctx.lineWidth = 0.5;
+
+                const points = 6;
+                ctx.beginPath();
+                for (let i = 0; i <= points; i++) {
+                    const angle = (i / points) * Math.PI * 2;
+                    const px = Math.cos(angle) * size * 0.7;
+                    const py = Math.sin(angle) * size * 0.7;
+
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.restore();
+                ctx.restore();
+            }
+
+            drawLensFlare(x, y, scale) {
+                if (this.flareIntensity < 0.5) return;
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                // Main flare
+                const flareSize = this.size * scale * 4;
+                const flareOpacity = this.flareIntensity * 0.3 * scale;
+
+                // Horizontal flare
+                const hGradient = ctx.createLinearGradient(x - flareSize, y, x + flareSize, y);
+                hGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                hGradient.addColorStop(0.3, addOpacity(this.coreColor, flareOpacity * 0.5));
+                hGradient.addColorStop(0.5, 'rgba(255, 255, 255, ' + flareOpacity + ')');
+                hGradient.addColorStop(0.7, addOpacity(this.coreColor, flareOpacity * 0.5));
+                hGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = hGradient;
+                ctx.fillRect(x - flareSize, y - 2, flareSize * 2, 4);
+
+                // Vertical flare
+                const vGradient = ctx.createLinearGradient(x, y - flareSize, x, y + flareSize);
+                vGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                vGradient.addColorStop(0.3, addOpacity(blacklightColors.uvGlow, flareOpacity * 0.3));
+                vGradient.addColorStop(0.5, 'rgba(255, 255, 255, ' + (flareOpacity * 0.8) + ')');
+                vGradient.addColorStop(0.7, addOpacity(blacklightColors.uvGlow, flareOpacity * 0.3));
+                vGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = vGradient;
+                ctx.fillRect(x - 2, y - flareSize, 4, flareSize * 2);
+
+                // Flare spots
+                const spotCount = 3;
+                const spotDistance = flareSize * 0.6;
+                for (let i = 0; i < spotCount; i++) {
+                    const spotScale = 1 - (i / spotCount) * 0.5;
+                    const spotX = x + Math.cos(this.flarePhase + i) * spotDistance * (i + 1) * 0.3;
+                    const spotY = y + Math.sin(this.flarePhase + i) * spotDistance * (i + 1) * 0.3;
+                    const spotSize = this.size * scale * spotScale * 0.5;
+
+                    const spotGradient = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotSize);
+                    spotGradient.addColorStop(0, addOpacity(this.coreColor, flareOpacity * 0.5));
+                    spotGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = spotGradient;
+                    ctx.beginPath();
+                    ctx.arc(spotX, spotY, spotSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            drawTrail() {
+                if (this.trail.length < 2) return;
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+
+                // Draw fluorescent trail with enhanced glow
+                const glowIntensity = trailGlow;
+
+                // Multi-pass trail for fluorescent effect
+                for (let pass = 0; pass < 3; pass++) {
+                    ctx.beginPath();
+
+                    let firstPoint = true;
+                    this.trail.forEach((point, i) => {
+                        const projected = project3D(point.position);
+                        if (!projected) return;
+
+                        const { x, y, scale } = projected;
+
+                        if (firstPoint) {
+                            ctx.moveTo(x, y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+
+                    // Different color/width for each pass
+                    const passColors = [
+                        { color: this.coreColor, width: 3, opacity: 0.3 },
+                        { color: blacklightColors.uvGlow, width: 5, opacity: 0.2 },
+                        { color: '#ffffff', width: 1, opacity: 0.5 }
+                    ];
+
+                    const passInfo = passColors[pass];
+                    ctx.strokeStyle = addOpacity(passInfo.color, passInfo.opacity * glowIntensity);
+                    ctx.lineWidth = passInfo.width;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                // Draw trail particles
+                this.trailParticles.forEach(particle => {
+                    const projected = project3D(particle.position);
+                    if (!projected) return;
+
+                    const { x, y, scale } = projected;
+                    const size = particle.size * scale * particle.life;
+
+                    ctx.fillStyle = addOpacity(particle.color, particle.life * 0.5);
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ctx.restore();
+            }
+
+            drawEnergyField(x, y, scale) {
+                ctx.save();
+                ctx.globalAlpha = 0.2;
+                ctx.strokeStyle = blacklightColors.uvGlow;
+                ctx.lineWidth = 0.5;
+
+                // Draw rotating hexagonal field
+                ctx.beginPath();
+                this.energyField.forEach((point, i) => {
+                    const px = x + Math.cos(point.angle) * point.radius * scale;
+                    const py = y + Math.sin(point.angle) * point.radius * scale;
+
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            drawConnections() {
+                this.connections.forEach(conn => {
+                    const projected1 = project3D(this.position);
+                    const projected2 = project3D(conn.target.position);
+
+                    if (!projected1 || !projected2) return;
+
+                    const opacity = conn.strength * conn.resonance * 0.2;
+
+                    // UV-reactive connection beam
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'screen';
+
+                    const gradient = ctx.createLinearGradient(
+                        projected1.x, projected1.y,
+                        projected2.x, projected2.y
+                    );
+                    gradient.addColorStop(0, addOpacity(this.coreColor, opacity));
+                    gradient.addColorStop(0.5, addOpacity(blacklightColors.uvGlow, opacity * 1.5));
+                    gradient.addColorStop(1, addOpacity(conn.target.coreColor, opacity));
+
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 1 * Math.min(projected1.scale, projected2.scale);
+                    ctx.lineCap = 'round';
+
+                    ctx.beginPath();
+                    ctx.moveTo(projected1.x, projected1.y);
+                    ctx.lineTo(projected2.x, projected2.y);
+                    ctx.stroke();
+
+                    ctx.restore();
+                });
+            }
+        }
+
+        // 3D projection function
+        function project3D(point) {
+            const rotated = rotatePoint3D(point, rotX, rotY, rotZ);
+
+            if (rotated.z + focalLength <= 0) return null;
+
+            const scale = focalLength / (rotated.z + focalLength);
+            return {
+                x: centerX + rotated.x * scale,
+                y: centerY + rotated.y * scale,
+                scale: scale,
+                z: rotated.z
+            };
+        }
+
+        function rotatePoint3D(point, rotX, rotY, rotZ) {
+            let x = point.x, y = point.y, z = point.z;
+
+            // Rotate around X axis
+            let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+            let tempY = y * cosX - z * sinX;
+            let tempZ = y * sinX + z * cosX;
+            y = tempY;
+            z = tempZ;
+
+            // Rotate around Y axis
+            let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+            let tempX = x * cosY + z * sinY;
+            tempZ = -x * sinY + z * cosY;
+            x = tempX;
+            z = tempZ;
+
+            // Rotate around Z axis (counter-clockwise)
+            let cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
+            tempX = x * cosZ - y * sinZ;
+            tempY = x * sinZ + y * cosZ;
+            x = tempX;
+            y = tempY;
+
+            return new Point3D(x, y, z);
+        }
+
+        // Draw enhanced background grid
+        function drawGrid() {
+            gridLines.forEach(line => {
+                const start = project3D(line.start);
+                const end = project3D(line.end);
+
+                if (!start || !end) return;
+
+                // Calculate depth fade
+                const avgZ = (start.z + end.z) / 2;
+                const maxDepth = 2000;
+                const depthFactor = Math.max(0, Math.min(1, (avgZ + maxDepth) / (maxDepth * 2)));
+
+                // Major/minor line distinction
+                if (line.major) {
+                    ctx.strokeStyle = addOpacity(blacklightColors.gridPrimary, depthFactor * 0.3);
+                    ctx.lineWidth = 1;
+                } else {
+                    ctx.strokeStyle = addOpacity(blacklightColors.gridSecondary, depthFactor * 0.15);
+                    ctx.lineWidth = 0.5;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+            });
+        }
+
+        // Draw starfield
+        function drawStarField() {
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+
+            starField.forEach(star => {
+                const projected = project3D(star.position);
+                if (!projected) return;
+
+                const { x, y, scale } = projected;
+                const size = star.size * scale;
+                const brightness = star.brightness * scale;
+
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
+        }
+
+        // Main draw function
+        function draw() {
+            // Clear canvas with deep blacklight background
+            ctx.fillStyle = '#08030f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add subtle blue gradient
+            const bgGradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height) * 0.8
+            );
+            bgGradient.addColorStop(0, 'rgba(12, 5, 24, 0)');
+            bgGradient.addColorStop(0.5, 'rgba(16, 8, 32, 0.3)');
+            bgGradient.addColorStop(1, 'rgba(32, 0, 64, 0.5)');
+
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw layers based on visualization mode
+            if (visualizationMode === 'suns' || visualizationMode === 'hybrid') {
+                drawStarField();
+                drawGrid();
+            }
+
+            // Sort zenki by depth
+            zenki.sort((a, b) => {
+                const projA = project3D(a.position);
+                const projB = project3D(b.position);
+                if (!projA) return 1;
+                if (!projB) return -1;
+                return projB.z - projA.z;
+            });
+
+            // Draw all zenki
+            zenki.forEach(z => z.draw());
+
+            // Add screen effects
+            addScreenEffects();
+        }
+
+        function addScreenEffects() {
+            // Vignette with blacklight edge
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height) * 0.7
+            );
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient.addColorStop(0.7, 'rgba(12, 5, 24, 0.2)');
+            gradient.addColorStop(0.9, 'rgba(32, 0, 64, 0.4)');
+            gradient.addColorStop(1, 'rgba(32, 0, 64, 0.7)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // UV glow overlay
+            ctx.save();
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillStyle = 'rgba(138, 43, 226, 0.02)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        // Animation loop
+        function animate() {
+            time++;
+
+            // Anti-entropic rotation (counter-clockwise)
+            const targetRotY = (mouseX - centerX) * 0.0001;
+            const targetRotX = (mouseY - centerY) * 0.0001;
+            rotY += (targetRotY - rotY) * 0.1;
+            rotX += (targetRotX - rotX) * 0.1;
+
+            // Automatic counter-clockwise rotation
+            rotZ -= 0.002; // Negative for CCW
+
+            // Update all zenki
+            zenki.forEach(z => z.update());
+
+            // Update HUD
+            if (time % 30 === 0) {
+                updateHUD();
+            }
+
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        // HUD update
+        function updateHUD() {
+            document.getElementById('activeZenki').textContent = zenki.length;
+
+            let totalLuminosity = 0;
+            let totalResonance = 0;
+            zenki.forEach(z => {
+                totalLuminosity += z.intensity * z.size;
+                totalResonance += z.connections.length;
+            });
+
+            document.getElementById('totalBandwidth').textContent = Math.floor(totalLuminosity);
+            const avgResonance = zenki.length > 0 ? (totalResonance / zenki.length) * 20 : 0;
+            document.getElementById('globalResonance').textContent = Math.floor(avgResonance) + '%';
+
+            document.getElementById('gridHarmonics').textContent = gridSnapEnabled ? 'ALIGNED' : 'FLOWING';
+            document.getElementById('currentMode').textContent = visualizationMode.toUpperCase();
+        }
+
+        // Control functions
+        function togglePurrNetwork() {
+            cosmicNetworkActive = !cosmicNetworkActive;
+            document.getElementById('networkStatus').textContent = cosmicNetworkActive ? 'BLACKLIGHT' : 'DORMANT';
+        }
+
+        function spawnZenki() {
+            const x = (Math.random() - 0.5) * 400;
+            const y = (Math.random() - 0.5) * 400;
+            const z = (Math.random() - 0.5) * 400;
+
+            zenki.push(new CosmicZenki(x, y, z));
+        }
+
+        function createConstellation() {
+            // Create a harmonic constellation based on division by 13
+            const points = 13;
+            const radius = 250;
+            const layers = 3;
+
+            for (let layer = 0; layer < layers; layer++) {
+                const layerRadius = radius * (1 - layer * 0.3);
+                const layerZ = (layer - 1) * 100;
+
+                for (let i = 0; i < points; i++) {
+                    const angle = (i / points) * Math.PI * 2;
+                    const x = Math.cos(angle) * layerRadius;
+                    const y = Math.sin(angle) * layerRadius;
+                    const z = layerZ + (Math.random() - 0.5) * 50;
+
+                    zenki.push(new CosmicZenki(x, y, z));
+                }
+            }
+        }
+
+        function activateHyperGrid() {
+            // Create a 3D grid of suns
+            const gridCount = 4;
+            const spacing = 120;
+
+            for (let x = -gridCount; x <= gridCount; x++) {
+                for (let y = -gridCount; y <= gridCount; y++) {
+                    for (let z = -gridCount; z <= gridCount; z++) {
+                        if (Math.abs(x) + Math.abs(y) + Math.abs(z) <= gridCount * 1.5) {
+                            zenki.push(new CosmicZenki(x * spacing, y * spacing, z * spacing));
+                        }
+                    }
+                }
+            }
+        }
+
+        function toggleGridSnap() {
+            gridSnapEnabled = !gridSnapEnabled;
+            document.getElementById('gridHarmonics').textContent = gridSnapEnabled ? 'ALIGNED' : 'FLOWING';
+        }
+
+        function resetNetwork() {
+            zenki = [];
+            cosmicWaves = [];
+        }
+
+        function setVisualizationMode(mode) {
+            visualizationMode = mode;
+            document.querySelectorAll('.mode-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            document.getElementById('currentMode').textContent = mode.toUpperCase();
+        }
+
+        // Event listeners
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        document.getElementById('basePurrSlider').addEventListener('input', (e) => {
+            basePurrFrequency = parseFloat(e.target.value);
+            document.getElementById('basePurrValue').textContent = basePurrFrequency.toFixed(1) + ' Hz';
+        });
+
+        document.getElementById('sunSizeSlider').addEventListener('input', (e) => {
+            baseSunSize = parseFloat(e.target.value);
+            document.getElementById('sunSizeValue').textContent = baseSunSize;
+        });
+
+        document.getElementById('trailGlowSlider').addEventListener('input', (e) => {
+            trailGlow = parseFloat(e.target.value) / 100;
+            document.getElementById('trailGlowValue').textContent = Math.floor(trailGlow * 100) + '%';
+        });
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+
+        // Initialize
+        createBackgroundGrid();
+        createStarField();
+
+        // Spawn initial suns in harmonic pattern
+        createConstellation();
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

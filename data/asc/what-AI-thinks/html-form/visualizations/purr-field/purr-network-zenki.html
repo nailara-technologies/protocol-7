@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purr-Wave Network: Zenki Communication Protocol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a0520, #000);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            cursor: none;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            filter: saturate(200%) brightness(140%);
+        }
+
+        .purr-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #00D4FF;
+            font-size: 12px;
+            background: rgba(6, 71, 195, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(6, 71, 195, 0.4);
+        }
+
+        .purr-title {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #9f8fff;
+            font-size: 14px;
+            text-align: right;
+            background: rgba(123, 104, 238, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(123, 104, 238, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(123, 104, 238, 0.4);
+        }
+
+        .purr-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .purr-btn {
+            background: rgba(6, 71, 195, 0.3);
+            border: 1px solid #4080ff;
+            color: #40e4ff;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(6, 71, 195, 0.3);
+        }
+
+        .purr-btn:hover {
+            background: rgba(6, 71, 195, 0.5);
+            box-shadow: 0 0 25px rgba(64, 128, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .frequency-slider {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(6, 71, 195, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-label {
+            color: #40e4ff;
+            font-size: 11px;
+            min-width: 120px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            height: 5px;
+            background: rgba(64, 128, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #40e4ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(64, 228, 255, 0.8);
+        }
+
+        .zenki-info {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: rgba(123, 104, 238, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(123, 104, 238, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            color: #9f8fff;
+            font-size: 10px;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="purrCanvas"></canvas>
+
+    <div class="purr-hud">
+        <div>Network Status: <span id="networkStatus">PURRING</span></div>
+        <div>Active Zenki: <span id="activeZenki">0</span></div>
+        <div>Bandwidth: <span id="bandwidth">0</span> purr-bits/s</div>
+        <div>Resonance: <span id="resonance">0%</span></div>
+        <div>Formations: <span id="formations">0</span></div>
+    </div>
+
+    <div class="purr-title">
+        <div>PURR-WAVE NETWORK</div>
+        <div style="font-size: 11px; margin-top: 3px;">Zenki Communication Protocol</div>
+        <div style="font-size: 10px;">Hyperspace Resonance Active</div>
+    </div>
+
+    <div class="frequency-slider">
+        <div class="slider-container">
+            <span class="slider-label">Purr Frequency:</span>
+            <input type="range" id="purrSlider" min="200" max="600" value="384.615">
+            <span class="slider-label" id="freqValue">384.6 Hz</span>
+        </div>
+    </div>
+
+    <div class="zenki-info">
+        <div><strong>Zenki States:</strong></div>
+        <div id="zenkiStates"></div>
+        <div style="margin-top: 8px;"><strong>Formation Types:</strong></div>
+        <div>• Navigation Swarm</div>
+        <div>• Antenna Array (13+1)</div>
+        <div>• Resonance Bridge</div>
+        <div>• Scout Formation</div>
+    </div>
+
+    <div class="purr-controls">
+        <button class="purr-btn" onclick="togglePurrNetwork()">PURR ON/OFF</button>
+        <button class="purr-btn" onclick="spawnZenki()">SPAWN ZENKI</button>
+        <button class="purr-btn" onclick="formAntenna()">ANTENNA ARRAY</button>
+        <button class="purr-btn" onclick="activateHyperspace()">HYPERSPACE</button>
+        <button class="purr-btn" onclick="resetNetwork()">RESET</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('purrCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Network parameters
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let purrNetworkActive = true;
+        let basePurrFrequency = 384.615;
+        let hyperspaceModeActive = false;
+        let time = 0;
+
+        // Zenki network arrays
+        let zenki = [];
+        let purrWaves = [];
+        let resonanceLinks = [];
+        let formations = [];
+        let hyperspacePortals = [];
+
+        // 3D point class for zenki positioning
+        class Point3D {
+            constructor(x, y, z) {
+                this.x = x || 0;
+                this.y = y || 0;
+                this.z = z || 0;
+            }
+
+            clone() {
+                return new Point3D(this.x, this.y, this.z);
+            }
+        }
+
+        // Zenki class with purr-based functionality
+        class Zenki {
+            constructor(x, y, z) {
+                this.position = new Point3D(x, y, z);
+                this.targetPosition = this.position.clone();
+                this.velocity = new Point3D(
+                    (Math.random() - 0.5) * 1,
+                    (Math.random() - 0.5) * 1,
+                    (Math.random() - 0.5) * 1
+                );
+
+                // Purr-wave properties
+                this.purrFrequency = basePurrFrequency + (Math.random() - 0.5) * 50;
+                this.purrIntensity = 0.5 + Math.random() * 0.5;
+                this.purrPhase = Math.random() * Math.PI * 2;
+
+                // Network properties
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.state = this.getRandomState();
+                this.bandwidth = 0;
+                this.connections = [];
+                this.formationRole = 'free';
+
+                // Visual properties
+                this.size = 15 + Math.random() * 10;
+                this.color = this.getPurrColor();
+                this.trails = [];
+                this.lastPurrTime = 0;
+
+                // Geometric form (wireframe kitten)
+                this.geometry = this.createZenkiGeometry();
+            }
+
+            getRandomState() {
+                const states = ['scanning', 'hovering', 'hunting', 'resonance', 'transmitting', 'receiving'];
+                return states[Math.floor(Math.random() * states.length)];
+            }
+
+            getPurrColor() {
+                // Color based on purr frequency
+                const freqRatio = this.purrFrequency / basePurrFrequency;
+                const r = Math.floor(64 + freqRatio * 100);
+                const g = Math.floor(128 + Math.sin(freqRatio * Math.PI) * 100);
+                const b = Math.floor(255 - freqRatio * 50);
+                return { r, g, b };
+            }
+
+            createZenkiGeometry() {
+                // Create wireframe kitten shape
+                const scale = this.size / 20;
+                return {
+                    // Basic cat silhouette points
+                    body: [
+                        [-8*scale, -4*scale], [8*scale, -4*scale], [10*scale, 2*scale],
+                        [6*scale, 6*scale], [-6*scale, 6*scale], [-10*scale, 2*scale]
+                    ],
+                    ears: [
+                        [[-6*scale, -8*scale], [-3*scale, -4*scale], [-9*scale, -4*scale]],
+                        [[3*scale, -4*scale], [6*scale, -8*scale], [9*scale, -4*scale]]
+                    ],
+                    tail: [
+                        [8*scale, 0], [15*scale, -3*scale], [18*scale, -8*scale], [16*scale, -12*scale]
+                    ]
+                };
+            }
+
+            update() {
+                // Purr-frequency based navigation
+                this.navigateByPurr();
+
+                // Update position with smooth movement
+                this.position.x += (this.targetPosition.x - this.position.x) * 0.02;
+                this.position.y += (this.targetPosition.y - this.position.y) * 0.02;
+                this.position.z += (this.targetPosition.z - this.position.z) * 0.02;
+
+                // Add small random drift
+                this.position.x += (Math.random() - 0.5) * 0.5;
+                this.position.y += (Math.random() - 0.5) * 0.5;
+                this.position.z += (Math.random() - 0.5) * 0.2;
+
+                // Boundary wrapping
+                const boundary = 300;
+                if (Math.abs(this.position.x) > boundary) this.position.x *= -0.8;
+                if (Math.abs(this.position.y) > boundary) this.position.y *= -0.8;
+                if (Math.abs(this.position.z) > boundary) this.position.z *= -0.8;
+
+                // Update purr properties
+                this.updatePurr();
+
+                // Generate purr waves periodically
+                if (time - this.lastPurrTime > 60 + Math.random() * 60) {
+                    this.generatePurrWave();
+                    this.lastPurrTime = time;
+                }
+
+                // Update connections and bandwidth
+                this.updateNetworkState();
+
+                // Update trails
+                this.updateTrails();
+            }
+
+            navigateByPurr() {
+                // Frequency determines spatial positioning
+                const freqRatio = this.purrFrequency / basePurrFrequency;
+                const range = 200;
+
+                switch(this.state) {
+                    case 'scanning':
+                        // Sweep frequency creates spiral movement
+                        this.purrFrequency = basePurrFrequency + Math.sin(time * 0.01) * 100;
+                        this.targetPosition.x = Math.sin(time * 0.005 + this.purrPhase) * range;
+                        this.targetPosition.y = Math.cos(time * 0.005 + this.purrPhase) * range;
+                        break;
+
+                    case 'hovering':
+                        // Locked frequency maintains position
+                        const hoverX = Math.sin(freqRatio * Math.PI) * range;
+                        const hoverY = Math.cos(freqRatio * Math.PI * 1.618) * range;
+                        this.targetPosition.x = hoverX;
+                        this.targetPosition.y = hoverY;
+                        break;
+
+                    case 'hunting':
+                        // Follow highest interference patterns
+                        const huntTarget = this.findStrongestInterference();
+                        if (huntTarget) {
+                            this.targetPosition.x = huntTarget.x;
+                            this.targetPosition.y = huntTarget.y;
+                            this.purrFrequency = basePurrFrequency * (1 + huntTarget.intensity * 0.2);
+                        }
+                        break;
+
+                    case 'resonance':
+                        // Lock onto other zenki frequencies
+                        const nearbyZenki = this.findNearbyZenki();
+                        if (nearbyZenki.length > 0) {
+                            const avgFreq = nearbyZenki.reduce((sum, z) => sum + z.purrFrequency, 0) / nearbyZenki.length;
+                            this.purrFrequency += (avgFreq - this.purrFrequency) * 0.1;
+                        }
+                        break;
+                }
+            }
+
+            updatePurr() {
+                // Purr intensity affects visual properties
+                this.purrIntensity = 0.5 + Math.sin(time * 0.02 + this.purrPhase) * 0.3;
+
+                // Update color based on frequency
+                this.color = this.getPurrColor();
+
+                // Modulate frequency based on state
+                if (this.state === 'transmitting') {
+                    this.purrFrequency += Math.sin(time * 0.1) * 10;
+                }
+            }
+
+            generatePurrWave() {
+                if (!purrNetworkActive) return;
+
+                purrWaves.push({
+                    x: this.position.x + centerX,
+                    y: this.position.y + centerY,
+                    z: this.position.z,
+                    frequency: this.purrFrequency,
+                    intensity: this.purrIntensity,
+                    radius: 0,
+                    maxRadius: 100 + this.purrIntensity * 50,
+                    life: 0,
+                    maxLife: 120,
+                    sourceId: this.id,
+                    color: this.color
+                });
+            }
+
+            findStrongestInterference() {
+                let maxIntensity = 0;
+                let bestTarget = null;
+
+                // Sample interference at various points
+                for (let i = 0; i < 20; i++) {
+                    const testX = (Math.random() - 0.5) * 400;
+                    const testY = (Math.random() - 0.5) * 400;
+                    const intensity = this.calculateInterferenceAt(testX, testY);
+
+                    if (intensity > maxIntensity) {
+                        maxIntensity = intensity;
+                        bestTarget = { x: testX, y: testY, intensity };
+                    }
+                }
+
+                return bestTarget;
+            }
+
+            calculateInterferenceAt(x, y) {
+                let totalIntensity = 0;
+
+                zenki.forEach(z => {
+                    if (z.id !== this.id) {
+                        const dist = Math.hypot(x - z.position.x, y - z.position.y);
+                        const freqDiff = Math.abs(this.purrFrequency - z.purrFrequency);
+                        const resonance = 1 / (1 + freqDiff / 50);
+                        const proximity = 1 / (1 + dist / 100);
+                        totalIntensity += resonance * proximity * z.purrIntensity;
+                    }
+                });
+
+                return totalIntensity;
+            }
+
+            findNearbyZenki(radius = 150) {
+                return zenki.filter(z => {
+                    if (z.id === this.id) return false;
+                    const dist = Math.hypot(
+                        this.position.x - z.position.x,
+                        this.position.y - z.position.y,
+                        this.position.z - z.position.z
+                    );
+                    return dist < radius;
+                });
+            }
+
+            updateNetworkState() {
+                // Calculate bandwidth based on resonance with nearby zenki
+                const nearby = this.findNearbyZenki();
+                this.bandwidth = 0;
+                this.connections = [];
+
+                nearby.forEach(z => {
+                    const freqDiff = Math.abs(this.purrFrequency - z.purrFrequency);
+                    const resonance = Math.max(0, 1 - freqDiff / 100);
+                    const distance = Math.hypot(
+                        this.position.x - z.position.x,
+                        this.position.y - z.position.y
+                    );
+
+                    if (resonance > 0.3) {
+                        const bandwidth = (resonance * 1000) / (1 + distance / 100);
+                        this.bandwidth += bandwidth;
+
+                        this.connections.push({
+                            target: z,
+                            resonance: resonance,
+                            bandwidth: bandwidth,
+                            distance: distance
+                        });
+                    }
+                });
+            }
+
+            updateTrails() {
+                // Add position to trail
+                this.trails.push({
+                    x: this.position.x + centerX,
+                    y: this.position.y + centerY,
+                    life: 60
+                });
+
+                // Update trail life and remove old points
+                this.trails = this.trails.filter(point => {
+                    point.life--;
+                    return point.life > 0;
+                }).slice(-20); // Keep last 20 points
+            }
+
+            draw() {
+                const screenX = this.position.x + centerX;
+                const screenY = this.position.y + centerY;
+
+                // Skip if off screen
+                if (screenX < -100 || screenX > canvas.width + 100 ||
+                    screenY < -100 || screenY > canvas.height + 100) return;
+
+                // Draw trails first
+                this.drawTrails();
+
+                // Draw connections
+                this.drawConnections();
+
+                // Draw purr aura
+                this.drawPurrAura(screenX, screenY);
+
+                // Draw wireframe zenki body
+                this.drawWireframeBody(screenX, screenY);
+
+                // Draw state indicator
+                this.drawStateIndicator(screenX, screenY);
+            }
+
+            drawTrails() {
+                if (this.trails.length < 2) return;
+
+                ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.3)`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+
+                for (let i = 1; i < this.trails.length; i++) {
+                    const opacity = this.trails[i].life / 60 * 0.3;
+                    ctx.globalAlpha = opacity;
+
+                    if (i === 1) {
+                        ctx.moveTo(this.trails[i-1].x, this.trails[i-1].y);
+                    }
+                    ctx.lineTo(this.trails[i].x, this.trails[i].y);
+                }
+
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+
+            drawConnections() {
+                this.connections.forEach(conn => {
+                    const targetX = conn.target.position.x + centerX;
+                    const targetY = conn.target.position.y + centerY;
+                    const sourceX = this.position.x + centerX;
+                    const sourceY = this.position.y + centerY;
+
+                    // Draw resonance link
+                    const opacity = conn.resonance * 0.5;
+                    ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity})`;
+                    ctx.lineWidth = conn.bandwidth / 200;
+
+                    ctx.beginPath();
+                    ctx.moveTo(sourceX, sourceY);
+                    ctx.lineTo(targetX, targetY);
+                    ctx.stroke();
+
+                    // Draw bandwidth indicator
+                    if (conn.bandwidth > 500) {
+                        const midX = (sourceX + targetX) / 2;
+                        const midY = (sourceY + targetY) / 2;
+
+                        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(midX, midY, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+
+            drawPurrAura(x, y) {
+                // Purr intensity aura
+                const auraSize = this.size * (1 + this.purrIntensity);
+                const auraOpacity = this.purrIntensity * 0.3;
+
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, auraSize);
+                gradient.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${auraOpacity})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, auraSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawWireframeBody(x, y) {
+                ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.8)`;
+                ctx.lineWidth = 1.5;
+
+                // Draw main body
+                ctx.beginPath();
+                this.geometry.body.forEach((point, index) => {
+                    const px = x + point[0];
+                    const py = y + point[1];
+                    if (index === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.closePath();
+                ctx.stroke();
+
+                // Draw ears
+                this.geometry.ears.forEach(ear => {
+                    ctx.beginPath();
+                    ear.forEach((point, index) => {
+                        const px = x + point[0];
+                        const py = y + point[1];
+                        if (index === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.closePath();
+                    ctx.stroke();
+                });
+
+                // Draw tail
+                ctx.beginPath();
+                this.geometry.tail.forEach((point, index) => {
+                    const px = x + point[0];
+                    const py = y + point[1];
+                    if (index === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+
+                // Draw frequency indicator (whiskers that pulse with purr)
+                const whiskerLength = 8 + Math.sin(time * 0.1 + this.purrPhase) * 3;
+                ctx.strokeStyle = `rgba(255, 255, 255, 0.6)`;
+                ctx.lineWidth = 1;
+
+                // Left whiskers
+                ctx.beginPath();
+                ctx.moveTo(x - 8, y - 2);
+                ctx.lineTo(x - 8 - whiskerLength, y - 4);
+                ctx.moveTo(x - 8, y + 1);
+                ctx.lineTo(x - 8 - whiskerLength, y + 1);
+
+                // Right whiskers
+                ctx.moveTo(x + 8, y - 2);
+                ctx.lineTo(x + 8 + whiskerLength, y - 4);
+                ctx.moveTo(x + 8, y + 1);
+                ctx.lineTo(x + 8 + whiskerLength, y + 1);
+                ctx.stroke();
+            }
+
+            drawStateIndicator(x, y) {
+                // Small state indicator
+                let stateColor;
+                switch(this.state) {
+                    case 'scanning': stateColor = '#ff6b6b'; break;
+                    case 'hovering': stateColor = '#4ecdc4'; break;
+                    case 'hunting': stateColor = '#45b7d1'; break;
+                    case 'resonance': stateColor = '#96ceb4'; break;
+                    case 'transmitting': stateColor = '#feca57'; break;
+                    case 'receiving': stateColor = '#ff9ff3'; break;
+                    default: stateColor = '#ffffff';
+                }
+
+                ctx.fillStyle = stateColor;
+                ctx.beginPath();
+                ctx.arc(x, y - this.size - 8, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Purr wave visualization
+        function updatePurrWaves() {
+            purrWaves = purrWaves.filter(wave => {
+                wave.life++;
+                wave.radius += 2;
+
+                if (wave.life >= wave.maxLife) return false;
+
+                // Draw purr wave
+                const life = wave.life / wave.maxLife;
+                const opacity = (1 - life) * 0.5;
+
+                ctx.strokeStyle = `rgba(${wave.color.r}, ${wave.color.g}, ${wave.color.b}, ${opacity})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Draw frequency pattern
+                if (wave.radius < wave.maxRadius * 0.8) {
+                    const freqPattern = wave.frequency / basePurrFrequency;
+                    const innerRadius = wave.radius * freqPattern;
+
+                    ctx.strokeStyle = `rgba(${wave.color.r}, ${wave.color.g}, ${wave.color.b}, ${opacity * 0.5})`;
+                    ctx.beginPath();
+                    ctx.arc(wave.x, wave.y, innerRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                return true;
+            });
+        }
+
+        // Formation management
+        function createAntennaFormation() {
+            if (zenki.length < 14) {
+                // Spawn enough zenki for 13+1 formation
+                while (zenki.length < 14) {
+                    spawnZenki();
+                }
+            }
+
+            // Arrange in 13+1 stargate pattern
+            const centerZ = zenki[0];
+            centerZ.state = 'transmitting';
+            centerZ.formationRole = 'antenna-center';
+            centerZ.targetPosition = new Point3D(0, 0, 0);
+
+            for (let i = 1; i < 14 && i < zenki.length; i++) {
+                const angle = (i - 1) * (Math.PI * 2) / 13;
+                const radius = 120;
+
+                zenki[i].state = 'receiving';
+                zenki[i].formationRole = 'antenna-node';
+                zenki[i].targetPosition = new Point3D(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius,
+                    Math.sin(angle * 3) * 20
+                );
+
+                // Sync purr frequencies
+                zenki[i].purrFrequency = basePurrFrequency + i * 13;
+            }
+
+            formations.push({
+                type: 'antenna',
+                members: zenki.slice(0, 14),
+                created: time
+            });
+        }
+
+        // Main animation loop
+        function animate() {
+            time++;
+
+            // Clear canvas with violet fade
+            ctx.fillStyle = 'rgba(8, 3, 25, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background grid
+            drawHarmonicGrid();
+
+            // Update and draw zenki
+            zenki.forEach(z => {
+                z.update();
+                z.draw();
+            });
+

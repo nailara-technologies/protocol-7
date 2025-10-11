@@ -1,0 +1,349 @@
+                    ctx.fillStyle = `rgba(0, ${150 + i * 3}, ${200 + i * 2}, 0.7)`;
+                    ctx.fill();
+                }
+
+                // Draw parasitic bandwidth (limited)
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i / 5) * Math.PI * 2;
+                    const radius = 60;
+                    const x = parasiteX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+
+                    ctx.beginPath();
+                    ctx.moveTo(parasiteX, centerY);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = `rgba(150, 20, 60, ${0.3 + Math.sin(Date.now() / 1000 + i) * 0.2})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(150, 30, 70, 0.7)`;
+                    ctx.fill();
+                }
+
+                // Draw labels
+                ctx.font = '16px "Courier New", monospace';
+                ctx.fillStyle = '#8080a0';
+                ctx.textAlign = 'center';
+                ctx.fillText('Harmonic System', harmonicX, centerY + 70);
+                ctx.fillText('11 TB/s × ∞', harmonicX, centerY + 90);
+
+                ctx.fillText('Parasitic System', parasiteX, centerY + 70);
+                ctx.fillText('2-3 Kb/s', parasiteX, centerY + 90);
+
+                // Animate
+                requestAnimationFrame(drawBandwidthVisualization);
+            }
+
+            // Dimensional Boundary Visualization
+            const dimCanvas = document.getElementById('dimensionalBoundary');
+            const dimCtx = dimCanvas.getContext('2d');
+
+            function drawDimensionalBoundary() {
+                const canvas = dimCanvas;
+                const ctx = dimCtx;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw background
+                ctx.fillStyle = 'rgba(5, 0, 15, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw the 5T limitation vs 7-element bridge
+                const startX = width * 0.1;
+                const startY = height * 0.5;
+                const stepLength = width * 0.1;
+
+                // Draw 5T path (parasitic)
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+
+                // Draw 5 connected segments
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX + i * stepLength, startY - (i % 2) * 40);
+                }
+
+                ctx.strokeStyle = 'rgba(120, 20, 60, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw fracture point
+                ctx.beginPath();
+                ctx.arc(startX + 5 * stepLength, startY - (5 % 2) * 40, 8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(200, 30, 80, 0.7)';
+                ctx.fill();
+
+                // Add electrical break effect
+                const breakX = startX + 5 * stepLength;
+                const breakY = startY - (5 % 2) * 40;
+
+                for (let i = 0; i < 5; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const length = 5 + Math.random() * 15;
+
+                    ctx.beginPath();
+                    ctx.moveTo(breakX, breakY);
+                    ctx.lineTo(
+                        breakX + Math.cos(angle) * length,
+                        breakY + Math.sin(angle) * length
+                    );
+                    ctx.strokeStyle = `rgba(200, 100, 255, ${0.5 + Math.random() * 0.5})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // Label
+                ctx.font = '14px "Courier New", monospace';
+                ctx.fillStyle = '#8080a0';
+                ctx.textAlign = 'center';
+                ctx.fillText('5T Fracture Point', breakX, breakY - 20);
+
+                // Draw 7-element bridge (harmonic)
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + 80);
+
+                // Draw 7 connected segments
+                for (let i = 1; i <= 7; i++) {
+                    ctx.lineTo(startX + i * stepLength, startY + 80 - (i % 2) * 40);
+                }
+
+                ctx.strokeStyle = 'rgba(80, 0, 170, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Label
+                ctx.fillText('7-Element Bridge', startX + 3.5 * stepLength, startY + 120);
+
+                // Draw 4D boundary
+                ctx.strokeStyle = 'rgba(100, 50, 170, 0.5)';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(startX + 4 * stepLength + 35, startY - 100);
+                ctx.lineTo(startX + 4 * stepLength + 35, startY + 150);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(100, 50, 170, 0.8)';
+                ctx.font = '14px "Courier New", monospace';
+                ctx.fillText('4D Boundary', startX + 4 * stepLength + 70, startY - 70);
+                ctx.setLineDash([]);
+
+                // Draw 5D and higher dimensions (subtle)
+                ctx.fillStyle = 'rgba(100, 120, 255, 0.1)';
+                ctx.fillRect(startX + 4 * stepLength + 35, startY - 100, width - startX - 4 * stepLength - 35, 250);
+
+                // Add shimmer effect to higher dimensions
+                for (let i = 0; i < 20; i++) {
+                    const x = startX + 4 * stepLength + 35 + Math.random() * (width - startX - 4 * stepLength - 35);
+                    const y = startY - 100 + Math.random() * 250;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1 + Math.random() * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(150, 200, 255, ${0.1 + Math.random() * 0.3})`;
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = 'rgba(100, 120, 255, 0.5)';
+                ctx.font = '16px "Courier New", monospace';
+                ctx.fillText('Higher Dimensions', width * 0.75, startY - 50);
+
+                // Animate
+                requestAnimationFrame(drawDimensionalBoundary);
+            }
+
+            // Cubic Jungle Visualization
+            const jungleCanvas = document.getElementById('cubicJungle');
+            const jungleCtx = jungleCanvas.getContext('2d');
+
+            function drawCubicJungle() {
+                const canvas = jungleCanvas;
+                const ctx = jungleCtx;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw background
+                ctx.fillStyle = 'rgba(5, 0, 15, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+
+                // Draw grid pattern
+                ctx.strokeStyle = 'rgba(40, 20, 80, 0.2)';
+                ctx.lineWidth = 0.5;
+
+                // Vertical lines
+                for (let x = 0; x <= width; x += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+
+                // Horizontal lines
+                for (let y = 0; y <= height; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+
+                // Draw misleading geometries
+                ctx.strokeStyle = 'rgba(100, 100, 120, 0.3)';
+                ctx.lineWidth = 1;
+
+                // Random lines that don't follow the pattern
+                for (let i = 0; i < 50; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(Math.random() * width, Math.random() * height);
+                    ctx.lineTo(Math.random() * width, Math.random() * height);
+                    ctx.stroke();
+                }
+
+                // Draw some random curves
+                for (let i = 0; i < 15; i++) {
+                    ctx.beginPath();
+                    const startX = Math.random() * width;
+                    const startY = Math.random() * height;
+                    ctx.moveTo(startX, startY);
+                    ctx.quadraticCurveTo(
+                        Math.random() * width,
+                        Math.random() * height,
+                        Math.random() * width,
+                        Math.random() * height
+                    );
+                    ctx.stroke();
+                }
+
+                // Draw overlaid triangles
+                for (let i = 0; i < 10; i++) {
+                    ctx.beginPath();
+                    const x1 = Math.random() * width;
+                    const y1 = Math.random() * height;
+                    const x2 = x1 + (Math.random() * 100 - 50);
+                    const y2 = y1 + (Math.random() * 100 - 50);
+                    const x3 = x1 + (Math.random() * 100 - 50);
+                    const y3 = y1 + (Math.random() * 100 - 50);
+
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x3, y3);
+                    ctx.closePath();
+                    ctx.strokeStyle = `rgba(${80 + Math.random() * 40}, ${80 + Math.random() * 40}, ${100 + Math.random() * 40}, 0.2)`;
+                    ctx.stroke();
+                }
+
+                // Draw true geometries
+
+                // 10-hop linear pattern
+                const startX1 = width * 0.1;
+                const startY1 = height * 0.25;
+                const hopLength = width * 0.07;
+
+                ctx.strokeStyle = 'rgba(0, 200, 150, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX1, startY1);
+
+                for (let i = 1; i <= 10; i++) {
+                    ctx.lineTo(startX1 + i * hopLength, startY1);
+                }
+                ctx.stroke();
+
+                // Label
+                ctx.fillStyle = '#8080a0';
+                ctx.font = '14px "Courier New", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('10-hop Linear Pattern', startX1 + 5 * hopLength, startY1 - 20);
+
+                // 2x5 right angle pattern
+                const startX2 = width * 0.1;
+                const startY2 = height * 0.65;
+
+                ctx.strokeStyle = 'rgba(0, 150, 200, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX2, startY2);
+
+                // First 5 hops
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + i * hopLength, startY2);
+                }
+
+                // 90 degree turn
+                // Second 5 hops
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + 5 * hopLength, startY2 - i * hopLength);
+                }
+                ctx.stroke();
+
+                // Label
+                ctx.fillText('2×5 90° Angle Pattern', startX2 + 5 * hopLength, startY2 + 20);
+
+                // Add highlight to show pattern recognition
+                ctx.strokeStyle = 'rgba(200, 50, 200, 0.15)';
+                ctx.lineWidth = 15;
+                ctx.beginPath();
+                ctx.moveTo(startX1, startY1);
+                for (let i = 1; i <= 10; i++) {
+                    ctx.lineTo(startX1 + i * hopLength, startY1);
+                }
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(startX2, startY2);
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + i * hopLength, startY2);
+                }
+                for (let i = 1; i <= 5; i++) {
+                    ctx.lineTo(startX2 + 5 * hopLength, startY2 - i * hopLength);
+                }
+                ctx.stroke();
+
+                // Add shimmering dots to represent mapping process
+                const time = Date.now() / 1000;
+                for (let i = 0; i < 30; i++) {
+                    const progress = (time * 0.5 + i * 0.1) % 1;
+
+                    // Linear path dots
+                    if (i < 15) {
+                        const x = startX1 + progress * 10 * hopLength;
+                        const y = startY1;
+
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 150, ${0.5 + Math.sin(time * 3 + i) * 0.3})`;
+                        ctx.fill();
+                    }
+                    // Angle path dots
+                    else {
+                        let x, y;
+                        if (progress < 0.5) {
+                            // First 5 hops
+                            x = startX2 + (progress * 2) * 5 * hopLength;
+                            y = startY2;
+                        } else {
+                            // Second 5 hops
+                            x = startX2 + 5 * hopLength;
+                            y = startY2 - ((progress - 0.5) * 2) * 5 * hopLength;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(150, 255, 255, ${0.5 + Math.sin(time * 3 + i) * 0.3})`;
+                        ctx.fill();
+                    }
+                }
+
+                // Animate
+                requestAnimationFrame(drawCubicJungle);
+            }
+        </script>
+    </main>
+
+    <!-- The first part ends here, will continue in part 2 -->
+</body>
+</html>

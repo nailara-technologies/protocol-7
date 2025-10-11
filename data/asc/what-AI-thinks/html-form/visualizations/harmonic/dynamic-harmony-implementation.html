@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Harmonic Cube: Technical Implementation</title>
+    <style>
+        body {
+            background-color: #010013;
+            background-image: linear-gradient(135deg, #010013 0%, #030335 35%, #001a30 100%);
+            color: #a0c7df;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            text-shadow: 0 0 8px rgba(0, 120, 150, 0.3);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 85%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            color: #50c9ba;
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: pulse 12s infinite alternate;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            color: #8f55c9;
+            font-size: 2rem;
+            margin-top: 2.2rem;
+            border-bottom: 1px solid #2f5599;
+            padding-bottom: 0.5rem;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        h3 {
+            color: #7a80b0;
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-top: 1.5rem;
+        }
+
+        p, li {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.2px;
+            font-weight: 300;
+        }
+
+        .highlight {
+            color: #4a90d9;
+            font-weight: 400;
+        }
+
+        .section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background-color: rgba(3, 8, 30, 0.75);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 80, 120, 0.12);
+            backdrop-filter: blur(5px);
+            transition: transform 0.6s ease-in-out, box-shadow 0.6s ease-in-out;
+            transform-origin: center;
+        }
+
+        .section:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 50px rgba(0, 80, 120, 0.2);
+        }
+
+        pre {
+            background-color: rgba(2, 6, 20, 0.8);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            border-left: 4px solid #2f5599;
+            margin: 1.5rem 0;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            color: #b8d0e6;
+        }
+
+        .comment {
+            color: #618db5;
+            font-style: italic;
+        }
+
+        .keyword {
+            color: #569cd6;
+        }
+
+        .string {
+            color: #6aaa64;
+        }
+
+        .function {
+            color: #c586c0;
+        }
+
+        .type {
+            color: #4ec9b0;
+        }
+
+        .variable {
+            color: #9cdcfe;
+        }
+
+        .diagram {
+            height: 280px;
+            background: rgba(2, 6, 20, 0.6);
+            border-radius: 12px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .node {
+            width: 100px;
+            height: 50px;
+            background: rgba(40, 70, 100, 0.6);
+            border: 1px solid #2f5599;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+
+        .node:nth-child(1) { top: 20%; left: 20%; }
+        .node:nth-child(2) { top: 20%; left: 50%; }
+        .node:nth-child(3) { top: 20%; left: 80%; }
+        .node:nth-child(4) { top: 65%; left: 20%; }
+        .node:nth-child(5) { top: 65%; left: 50%; }
+        .node:nth-child(6) { top: 65%; left: 80%; }
+
+        .edge {
+            position: absolute;
+            height: 2px;
+            background: rgba(75, 100, 160, 0.7);
+            transform-origin: 0 0;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 8px rgba(0, 120, 150, 0.2); }
+            50% { text-shadow: 0 0 16px rgba(0, 120, 150, 0.3), 0 0 24px rgba(60, 150, 140, 0.15); }
+            100% { text-shadow: 0 0 8px rgba(0, 120, 150, 0.2); }
+        }
+
+        .example-box {
+            background-color: rgba(5, 15, 40, 0.6);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #4a90d9;
+        }
+
+        .example-box h4 {
+            margin-top: 0;
+            color: #60d9ca;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background-color: rgba(2, 6, 20, 0.6);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.8rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(75, 100, 160, 0.3);
+        }
+
+        th {
+            background-color: rgba(3, 8, 30, 0.8);
+            color: #60d9ca;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: rgba(3, 12, 40, 0.7);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(75, 100, 160, 0.3);
+        }
+
+        .nav-link {
+            color: #60d9ca;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(60, 150, 140, 0.2);
+        }
+
+        .glow {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 120, 150, 0.08) 0%, rgba(0, 120, 150, 0) 70%);
+            animation: move 45s linear infinite alternate;
+            filter: blur(50px);
+            z-index: -1;
+        }
+
+        .glow:nth-child(2) {
+            background: radial-gradient(circle, rgba(100, 70, 150, 0.08) 0%, rgba(100, 70, 150, 0) 70%);
+            animation-duration: 50s;
+            animation-delay: 5s;
+        }
+
+        .glow:nth-child(3) {
+            background: radial-gradient(circle, rgba(150, 70, 100, 0.08) 0%, rgba(150, 70, 100, 0) 70%);
+            animation-duration: 55s;
+            animation-delay: 10s;
+        }
+
+        @keyframes move {
+            0% { top: 10%; left: 10%; }
+            25% { top: 80%; left: 30%; }
+            50% { top: 40%; left: 70%; }
+            75% { top: 70%; left: 10%; }
+            100% { top: 10%; left: 90%; }
+        }
+
+        /* Add modern font loading */
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+        /* Ensure better text rendering */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="glow"></div>
+    <div class="glow"></div>
+
+    <div class="container">
+        <div class="navbar">
+            <a href="dynamic-harmony.html" class="nav-link">← Conceptual Overview</a>
+            <a href="#" class="nav-link">Technical Implementation</a>
+        </div>
+
+        <h1>The Harmonic Cube: Technical Implementation</h1>
+
+        <div class="section">
+            <h2>Core Architecture</h2>
+            <p>The implementation of a dynamic harmonizing code history system requires a fundamentally different data structure than traditional VCS systems. Rather than a linear chain of commits, we employ a <span class="highlight">multi-dimensional graph structure</span> that represents code state as a function of intent rather than chronology.</p>
+
+            <div class="diagram">
+                <div class="node">Intent Layer</div>
+                <div class="node">Change Layer</div>
+                <div class="node">Artifact Layer</div>
+                <div class="node">Entity Store</div>
+                <div class="node">Relation Store</div>
+                <div class="node">View Engine</div>
+
+                <!-- Edges will be drawn by JavaScript -->
+            </div>
+
+            <p>The core architecture consists of three primary conceptual layers built on a unified data store:</p>
+
+            <h3>1. Entity-Relation Graph Store</h3>
+            <p>At the foundation, all code artifacts are stored in a labeled property graph where:</p>
+            <ul>
+                <li>Nodes represent atomic units of code (tokens, expressions, statements)</li>
+                <li>Edges represent relationships (contains, depends-on, evolves-to)</li>
+                <li>Properties capture metadata (author, timestamp, intent)</li>
+            </ul>
+
+            <pre><code><span class="comment">// Core graph data structure</span>
+<span class="keyword">class</span> <span class="type">HarmonicGraph</span> {
+    <span class="keyword">private</span> <span class="variable">nodes</span>: Map&lt;<span class="type">UUID</span>, <span class="type">Node</span>&gt; = <span class="keyword">new</span> Map();
+    <span class="keyword">private</span> <span class="variable">edges</span>: Map&lt;<span class="type">UUID</span>, <span class="type">Edge</span>&gt; = <span class="keyword">new</span> Map();
+    <span class="keyword">private</span> <span class="variable">contextViews</span>: Map&lt;<span class="type">UUID</span>, <span class="type">ContextView</span>&gt; = <span class="keyword">new</span> Map();
+
+    <span class="function">addNode</span>(<span class="variable">data</span>: <span class="type">NodeData</span>, <span class="variable">metadata</span>: <span class="type">Metadata</span>): <span class="type">Node</span> {
+        <span class="comment">// Create node with unique identifier</span>
+        <span class="keyword">const</span> <span class="variable">node</span> = <span class="keyword">new</span> <span class="type">Node</span>(<span class="function">generateUUID</span>(), data, metadata);
+        <span class="keyword">this</span>.<span class="variable">nodes</span>.set(node.id, node);
+        <span class="keyword">return</span> node;
+    }
+
+    <span class="function">connectNodes</span>(<span class="variable">fromId</span>: <span class="type">UUID</span>, <span class="variable">toId</span>: <span class="type">UUID</span>,
+                <span class="variable">relationType</span>: <span class="type">RelationType</span>, <span class="variable">metadata</span>?: <span class="type">Metadata</span>): <span class="type">Edge</span> {
+        <span class="comment">// Create typed relationships between nodes</span>
+        <span class="keyword">const</span> <span class="variable">edge</span> = <span class="keyword">new</span> <span class="type">Edge</span>(<span class="function">generateUUID</span>(), fromId, toId, relationType, metadata);
+        <span class="keyword">this</span>.<span class="variable">edges</span>.set(edge.id, edge);
+        <span class="keyword">return</span> edge;
+    }
+}</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Dynamic Code Representation</h2>
+            <p>Traditional VCS systems store text files and diffs. The Harmonic Cube stores <span class="highlight">semantic code structures</span> that transcend textual representation:</p>
+
+            <pre><code><span class="comment">// Example of semantic code representation</span>
+<span class="keyword">interface</span> <span class="type">CodeEntity</span> {
+    <span class="variable">id</span>: <span class="type">UUID</span>;
+    <span class="variable">type</span>: <span class="type">EntityType</span>;  <span class="comment">// Function, Class, Variable, etc.</span>
+    <span class="variable">semanticTokens</span>: <span class="type">SemanticToken</span>[];
+    <span class="variable">relations</span>: <span class="type">Map</span>&lt;<span class="type">RelationType</span>, <span class="type">UUID</span>[]&gt;;
+    <span class="variable">version</span>: <span class="type">EvolutionVector</span>;
+    <span class="variable">properties</span>: <span class="type">Map</span>&lt;<span class="type">string</span>, <span class="type">any</span>&gt;;
+}
+
+<span class="keyword">interface</span> <span class="type">EvolutionVector</span> {
+    <span class="variable">coordinates</span>: <span class="type">Map</span>&lt;<span class="type">DimensionKey</span>, <span class="type">number</span>&gt;;
+    <span class="function">distance</span>(<span class="variable">other</span>: <span class="type">EvolutionVector</span>): <span class="type">number</span>;
+    <span class="function">merge</span>(<span class="variable">other</span>: <span class="type">EvolutionVector</span>): <span class="type">EvolutionVector</span>;
+}</code></pre>
+
+            <p>This approach enables the system to:</p>
+            <ul>
+                <li>Track the evolution of individual code entities independently</li>
+                <li>Represent code at multiple levels of abstraction simultaneously</li>
+                <li>Support dynamic restructuring without losing historical connections</li>
+            </ul>
+
+            <div class="example-box">
+                <h4>Example: Error Correction Without Permanent History</h4>
+                <p>When a developer fixes a bug, rather than recording a sequence of commits:</p>
+
+                <pre><code><span class="comment">// Traditional approach - bug lives forever in history</span>
+<span class="function">commit</span> <span class="string">"Add feature X with bug"</span>
+<span class="function">commit</span> <span class="string">"Fix bug in feature X"</span>
+
+<span class="comment">// Harmonic approach - bug is harmonically cancelled</span>
+<span class="variable">featureX</span> = <span class="function">createFeature</span>();
+<span class="variable">featureXBug</span> = <span class="function">detectBug</span>(featureX);
+<span class="variable">featureXFixed</span> = <span class="function">fixBug</span>(featureX, featureXBug);
+
+<span class="comment">// In any context view where the bug isn't relevant, it simply</span>
+<span class="comment">// doesn't exist - the feature appears to have been implemented correctly</span>
+<span class="comment">// from the beginning while still preserving the learning from the bug</span>
+<span class="variable">contextView</span>.<span class="function">defineProjection</span>({
+    <span class="variable">includeImplementationDetails</span>: <span class="keyword">false</span>,
+    <span class="variable">bugFixes</span>: <span class="string">"harmonize"</span>
+});</code></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Context-Aware Views</h2>
+            <p>A key innovation is the separation of code state from its representation. The <span class="highlight">View Engine</span> provides dynamically generated projections of the codebase optimized for specific use cases:</p>
+
+            <h3>View Types</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>View Type</th>
+                        <th>Purpose</th>
+                        <th>Key Properties</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Developer View</td>
+                        <td>Interactive development</td>
+                        <td>Error state aware, intent preservation</td>
+                    </tr>
+                    <tr>
+                        <td>Deployment View</td>
+                        <td>Production systems</td>
+                        <td>Clean intermediate states, bug harmonization</td>
+                    </tr>
+                    <tr>
+                        <td>Learning View</td>
+                        <td>Onboarding developers</td>
+                        <td>Evolution visibility, rationale exposure</td>
+                    </tr>
+                    <tr>
+                        <td>AI Analysis View</td>
+                        <td>LLM processing</td>
+                        <td>Semantic chunking, noise filtering, momentum tracking</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre><code><span class="keyword">class</span> <span class="type">ContextView</span> {
+    <span class="keyword">private</span> <span class="variable">graph</span>: <span class="type">HarmonicGraph</span>;
+    <span class="keyword">private</span> <span class="variable">viewParameters</span>: <span class="type">ViewParameters</span>;
+
+    <span class="function">constructor</span>(<span class="variable">graph</span>: <span class="type">HarmonicGraph</span>, <span class="variable">params</span>:

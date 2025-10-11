@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pure Cubic Space Grid</title>
+    <style>
+        body {
+            background-color: #000010;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Mouse: Move cursor to affect rotation (including roll)<br>
+        When paused: Click and drag to rotate the view
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const instructions = document.getElementById('instructions');
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 25; // Larger grid that extends beyond view
+            const gridSpacing = 60; // Distance between grid lines
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let rotX = 15;  // Initial X rotation
+            let rotY = 15;  // Initial Y rotation
+            let rotZ = 0;   // Initial Z rotation
+            let animationFrameId = null;
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+
+            // Create grid structure
+            function createGridLines() {
+                const lines = [];
+                const halfSize = (gridSize * gridSpacing) / 2;
+
+                // Create X-axis lines
+                for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x: -halfSize, y, z },
+                            end: { x: halfSize, y, z }
+                        });
+                    }
+                }
+
+                // Create Y-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x, y: -halfSize, z },
+                            end: { x, y: halfSize, z }
+                        });
+                    }
+                }
+
+                // Create Z-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                        lines.push({
+                            start: { x, y, z: -halfSize },
+                            end: { x, y, z: halfSize }
+                        });
+                    }
+                }
+
+                return lines;
+            }
+
+            const gridLines = createGridLines();
+
+            // Perspective projection function
+            function project(point) {
+                // Convert rotation angles to radians
+                const xRad = rotX * Math.PI / 180;
+                const yRad = rotY * Math.PI / 180;
+                const zRad = rotZ * Math.PI / 180;
+
+                // Apply Y rotation (yaw)
+                let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
+                let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
+
+                // Apply X rotation (pitch)
+                let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
+                let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
+
+                // Apply Z rotation (roll)
+                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+                // Apply perspective
+                const focalLength = 500;
+                const depth = focalLength + z2;
+                if (depth <= 0) return { visible: false }; // Behind camera
+
+                const scale = focalLength / depth;
+                const projX = centerX + x2 * scale;
+                const projY = centerY + y2 * scale;
+
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale,
+                    visible: true
+                };
+            }
+
+            // Draw a single grid line
+            function drawLine(line) {
+                const start = project(line.start);
+                const end = project(line.end);
+
+                // Skip if either point is behind camera
+                if (!start.visible || !end.visible) return;
+
+                // Calculate center point of line
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                // Skip lines that pass too close to center
+                const centerDist = Math.sqrt(
+                    Math.pow(midX - centerX, 2) +
+                    Math.pow(midY - centerY, 2)
+                );
+
+                if (centerDist < 30) return;
+
+                // Depth-based color and opacity
+                const depth = (start.z + end.z) / 2;
+                const maxDepth = 2000;
+                const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+                const opacity = 0.04 + depthFactor * 0.08; // Very subtle lines
+
+                // Draw line with very subtle style
+                ctx.strokeStyle = `rgba(60, 100, 255, ${opacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+            }
+
+            // Draw function
+            function draw() {
+                // Clear canvas with dark background
+                ctx.fillStyle = '#000010';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw all grid lines
+                gridLines.forEach(drawLine);
+
+                // Add a subtle vignette effect
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Animation loop
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    // Very slow automatic rotation - CCW bias for Z rotation
+                    rotY += elapsed * 0.004;
+                    rotZ -= elapsed * 0.001; // Negative for CCW rotation
+
+                    // Calculate mouse influence
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate distance from center for roll effect
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+                    const mouseAngle = Math.atan2(relativeY, relativeX);
+
+                    // Apply more intuitive mouse-based rotation with non-linear response
+                    // Use a gentler quadratic curve for more intuitive control
+                    const responseFactorX = relativeX * Math.abs(relativeX) * 0.008;
+                    const responseFactorY = relativeY * Math.abs(relativeY) * 0.008;
+
+                    rotY += elapsed * responseFactorX;
+                    rotX += elapsed * responseFactorY;
+
+                    // Add subtle roll based on diagonal mouse movement - adjusted for CCW bias
+                    // This creates a more intuitive "flight control" feel
+                    const rollInfluence = -Math.sin(mouseAngle * 2) * distanceFromCenter * 0.002; // Negative for CCW
+                    rotZ += elapsed * rollInfluence;
+
+                    // Normalize angles
+                    rotX %= 360;
+                    rotY %= 360;
+                    rotZ %= 360;
+
+                    // Draw the scene
+                    draw();
+
+                    // Continue animation
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse movement handler
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Handle dragging when paused
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    // Use much gentler rotation factors with non-linear response
+                    // This creates a more dampened, controlled feel
+                    const dragFactorX = 0.2;
+                    const dragFactorY = 0.2;
+
+                    // Apply non-linear response curve for more intuitive control
+                    // Small movements have less effect, larger movements have progressively more
+                    const signX = Math.sign(deltaX);
+                    const signY = Math.sign(deltaY);
+                    const responseX = Math.pow(Math.abs(deltaX) * 0.01, 1.2) * signX;
+                    const responseY = Math.pow(Math.abs(deltaY) * 0.01, 1.2) * signY;
+
+                    rotY = dragStartRotY + responseX * dragFactorX * 25;
+                    rotX = dragStartRotX + responseY * dragFactorY * 25;
+
+                    // Calculate diagonal movement for subtle roll effect
+                    // Changed to favor CCW rotation
+                    const dragDiagonal = (deltaY - deltaX) / Math.sqrt(canvas.width * canvas.height); // Reversed order for CCW
+                    const rollFactor = 0.03;
+
+                    // Only apply roll if there's significant diagonal movement
+                    if (Math.abs(dragDiagonal) > 5) {
+                        rotZ = dragStartRotZ + dragDiagonal * rollFactor;
+                    }
+
+                    // Draw with the new rotation
+                    draw();
+                }
+            });
+
+            // Mouse button handlers
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartRotX = rotX;
+                    dragStartRotY = rotY;
+                    dragStartRotZ = rotZ;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Update cursor based on state
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Control button handlers
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                rotX = 15;
+                rotY = 15;
+                rotZ = 0;
+                draw();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Show instructions briefly
+            setTimeout(() => {
+                instructions.style.opacity = '1';
+                setTimeout(() => {
+                    instructions.style.opacity = '0';
+                }, 5000);
+            }, 1000);
+
+            // Initial draw
+            draw();
+
+            // Start animation after short delay
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

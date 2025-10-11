@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Data-Centric Cube Grid</title>
+    <style>
+        body {
+            background-color: #010112;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="instructions" id="instructions">
+        Mouse: Move cursor to affect rotation (including roll)<br>
+        When paused: Click and drag to rotate the view
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            const instructions = document.getElementById('instructions');
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Detect Firefox for browser-specific optimizations
+            const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 15;
+            const baseSize = Math.max(10, Math.min(canvas.width, canvas.height) * 0.035);
+            const cubeSize = baseSize * 5;
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let angle = 0;        // Z-axis rotation (roll)
+            let xAngle = 0;       // X-axis rotation (pitch)
+            let yAngle = 0;       // Y-axis rotation (yaw)
+            let zAngle = 0;       // Additional Z-axis rotation for roll effect
+            let animationFrameId = null;
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartAngle = 0;
+            let dragStartXAngle = 0;
+            let dragStartYAngle = 0;
+            let dragStartZAngle = 0;
+
+            // CellValue - Represents a data value in a cell
+            class CellValue {
+                constructor(value, isSpecial = false) {
+                    this.value = value;
+                    this.isSpecial = isSpecial;
+                    this.displayValue = value === 3 ? '0' : value.toString();
+
+                    // Visual properties based on value - modest 13% increase in visibility
+                    if (value === 5) {
+                        this.color = 'rgba(60, 150, 255, 0.226)'; // 13% more visible than 0.2
+                        this.glowColor = 'rgba(60, 120, 200, 0.15)'; // reduced glow
+                    } else if (value === 3) {
+                        this.color = 'rgba(80, 120, 200, 0.226)'; // 13% more visible than 0.2
+                        this.glowColor = 'rgba(80, 100, 180, 0.15)'; // reduced glow
+                    } else {
+                        this.color = 'rgba(80, 120, 255, 0.226)'; // 13% more visible than 0.2
+                        this.glowColor = 'rgba(80, 100, 180, 0.15)'; // reduced glow
+                    }
+                }
+            }
+
+            // GridCell - Represents a cell in the 3D grid
+            class GridCell {
+                constructor(gridX, gridY, gridZ, value) {
+                    // Grid coordinates
+                    this.gridX = gridX;
+                    this.gridY = gridY;
+                    this.gridZ = gridZ;
+
+                    // World coordinates
+                    const gridCellSize = cubeSize * 1.5;
+                    this.x = gridX * gridCellSize;
+                    this.y = gridY * gridCellSize;
+                    this.z = gridZ * gridCellSize;
+
+                    // Cell data
+                    this.value = value;
+                    this.size = cubeSize * 0.9; // Standardized size
+
+                    // Visual properties
+                    this.baseColor = `rgba(80, 120, 255, 0.226)`; // 13% more visible than 0.2
+
+                    // Rendering state
+                    this.vertices = this.createVertices();
+                    this.edges = this.createEdges(); // Added explicit edges for better visibility
+                    this.faces = this.createFaces();
+                    this.projectedVertices = [];
+                    this.centerProj = null;
+                    this.lastProjectedZ = 0;
+                    this.visible = true;
+                }
+
+                // Create cube vertices
+                createVertices() {
+                    const halfSize = this.size / 2;
+                    return [
+                        // Front face - clockwise from bottom-left
+                        {x: this.x - halfSize, y: this.y - halfSize, z: this.z + halfSize}, // 0: front bottom-left
+                        {x: this.x + halfSize, y: this.y - halfSize, z: this.z + halfSize}, // 1: front bottom-right
+                        {x: this.x + halfSize, y: this.y + halfSize, z: this.z + halfSize}, // 2: front top-right
+                        {x: this.x - halfSize, y: this.y + halfSize, z: this.z + halfSize}, // 3: front top-left
+
+                        // Back face - clockwise from bottom-left (when looking from back)
+                        {x: this.x - halfSize, y: this.y - halfSize, z: this.z - halfSize}, // 4: back bottom-left
+                        {x: this.x + halfSize, y: this.y - halfSize, z: this.z - halfSize}, // 5: back bottom-right
+                        {x: this.x + halfSize, y: this.y + halfSize, z: this.z - halfSize}, // 6: back top-right
+                        {x: this.x - halfSize, y: this.y + halfSize, z: this.z - halfSize}  // 7: back top-left
+                    ];
+                }
+
+                // Create explicit edges for better visibility
+                createEdges() {
+                    return [
+                        [0, 1], [1, 2], [2, 3], [3, 0], // Front face
+                        [4, 5], [5, 6], [6, 7], [7, 4], // Back face
+                        [0, 4], [1, 5], [2, 6], [3, 7]  // Connecting edges
+                    ];
+                }
+
+                // Create cube faces as arrays of vertex indices
+                createFaces() {
+                    return [
+                        [0, 1, 2, 3], // Front face
+                        [5, 4, 7, 6], // Back face (note: reversed to maintain clockwise order when viewed from outside)
+                        [1, 5, 6, 2], // Right face
+                        [4, 0, 3, 7], // Left face
+                        [3, 2, 6, 7], // Top face
+                        [4, 5, 1, 0]  // Bottom face
+                    ];
+                }
+
+                // Project vertices to 2D
+                project(projectionFunction) {
+                    try {
+                        // Project center for depth sorting
+                        this.centerProj = projectionFunction({x: this.x, y: this.y, z: this.z});
+                        this.lastProjectedZ = this.centerProj.z;
+
+                        // Project all vertices
+                        this.projectedVertices = this.vertices.map(vertex => projectionFunction(vertex));
+
+                        // Calculate 3D distance to origin
+                        this.distanceTo3DOrigin = Math.sqrt(
+                            Math.pow(this.x, 2) +
+                            Math.pow(this.y, 2) +
+                            Math.pow(this.z, 2)
+                        );
+
+                        // Using a consistent fixed minimum distance that works well
+                        const min3DDistance = cubeSize * 0.75;
+                        this.visible = this.distanceTo3DOrigin >= min3DDistance;
+
+                        return this.visible;
+                    } catch (e) {
+                        console.error("Error in projection:", e);
+                        // Fallback to always visible
+                        this.visible = true;
+                        return true;
+                    }
+                }
+
+                // Render cell with proper rules
+                render(context) {
+                    if (!this.visible) return;
+
+                    // Safety check for projected vertices
+                    if (this.projectedVertices.length !== 8) return;
+
+                    // First, determine which faces are visible (backface culling)
+                    const visibleFaces = this.getVisibleFaces();
+
+                    // Draw each visible face
+                    visibleFaces.forEach(faceIndex => {
+                        this.drawFace(context, faceIndex);
+                    });
+
+                    // Draw edges for better structural visibility
+                    this.drawEdges(context);
+
+                    // Draw the value if this cell has one
+                    if (this.value && this.value.isSpecial) {
+                        this.drawValue(context);
+                    }
+                }
+
+                // Determine which faces are visible using normal vector
+                getVisibleFaces() {
+                    const visibleFaces = [];
+
+                    this.faces.forEach((face, index) => {
+                        // Get three points from the face to calculate normal
+                        const v1 = this.projectedVertices[face[0]];
+                        const v2 = this.projectedVertices[face[1]];
+                        const v3 = this.projectedVertices[face[2]];
+
+                        // Calculate normal using cross product
+                        // For 2D, we just need to check if clockwise or counter-clockwise
+                        const crossProduct = (v2.x - v1.x) * (v3.y - v2.y) - (v2.y - v1.y) * (v3.x - v2.x);
+
+                        // If cross product is negative, face is visible (clockwise in screen space)
+                        if (crossProduct < 0) {
+                            visibleFaces.push(index);
+                        }
+                    });
+
+                    return visibleFaces;
+                }
+
+                // Draw edges for better structural visibility
+                drawEdges(context) {
+                    // Set edge style - moderate brightness level
+                    context.strokeStyle = `rgba(100, 140, 255, 0.1)`; // Toned down edge visibility
+                    context.lineWidth = 1.25; // Slightly thicker lines but not too much
+
+                    // Draw each edge
+                    this.edges.forEach(edge => {
+                        const v1 = this.projectedVertices[edge[0]];
+                        const v2 = this.projectedVertices[edge[1]];
+
+                        // Draw the edge
+                        context.beginPath();
+                        context.moveTo(v1.x, v1.y);
+                        context.lineTo(v2.x, v2.y);
+                        context.stroke();
+                    });
+                }
+
+                // Draw a single face of the cube
+                drawFace(context, faceIndex) {
+                    const face = this.faces[faceIndex];
+                    const verts = face.map(i => this.projectedVertices[i]);
+
+                    // Calculate face center for depth-based opacity
+                    const faceX = verts.reduce((sum, v) => sum + v.x, 0) / verts.length;
+                    const faceY = verts.reduce((sum, v) => sum + v.y, 0) / verts.length;
+                    const faceZ = verts.reduce((sum, v) => sum + v.z, 0) / verts.length;
+
+                    // Use depth for opacity
+                    const maxDepth = 600; // Adjusted based on projection parameters
+                    const depthFactor = Math.min(1, Math.max(0, (faceZ + maxDepth) / (maxDepth * 2)));
+
+                    // Base opacity - careful balance
+                    const baseOpacity = isFirefox ? 0.065 : 0.09; // Slightly increased from original but not too much
+                    const opacity = baseOpacity * (0.3 + 0.7 * depthFactor);
+
+                    // Different color based on face orientation for better 3D perception
+                    let faceColor;
+                    if (this.value && this.value.isSpecial) {
+                        try {
+                            // Parse the base color components
+                            const colorMatch = this.value.color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+
+                            if (colorMatch && colorMatch.length >= 4) {
+                                const r = parseInt(colorMatch[1], 10);
+                                const g = parseInt(colorMatch[2], 10);
+                                const b = parseInt(colorMatch[3], 10);
+
+                                // Adjust shade based on face orientation - more subtle contrast
+                                const shadeFactor = 0.8 + (faceIndex * 0.04);
+
+                                faceColor = `rgba(${r * shadeFactor}, ${g * shadeFactor}, ${b * shadeFactor}, ${opacity})`;
+                            } else {
+                                // Fallback if regex match fails
+                                faceColor = `rgba(80, 130, 245, ${opacity})`;
+                            }
+                        } catch (e) {
+                            // Safe fallback if any error occurs during color parsing
+                            faceColor = `rgba(80, 130, 245, ${opacity})`;
+                        }
+                    } else {
+                        // More visible rendering for non-special cells, but not too bright
+                        faceColor = `rgba(85, 125, 245, ${opacity})`; // Balanced brightness
+                    }
+
+                    // Draw the face outline
+                    context.strokeStyle = faceColor;
+                    context.lineWidth = 1;
+
+                    context.beginPath();
+                    context.moveTo(verts[0].x, verts[0].y);
+
+                    for (let i = 1; i < verts.length; i++) {
+                        context.lineTo(verts[i].x, verts[i].y);
+                    }
+
+                    context.closePath();
+                    context.stroke();
+
+                    // Add subtle face fill for better visibility of structure
+                    if (!this.value || !this.value.isSpecial) {
+                        const fillColor = faceColor.replace(/[\d.]+\)$/, `${opacity * 0.2})`); // More subtle fill
+                        context.fillStyle = fillColor;
+                        context.fill();
+                    }
+                }
+
+                // Draw cell value
+                drawValue(context) {
+                    if (!this.value || !this.visible) return;
+
+                    // Extract rotation information
+                    const { rotationInfo } = this.centerProj;
+
+                    // Add subtle glow effect - REDUCED intensity
+                    context.shadowColor = this.value.glowColor;
+                    context.shadowBlur = 3; // Reduced glow intensity
+
+                    // Set text properties - balanced brightness
+                    context.fillStyle = this.value.color;
+                    const fontSize = Math.max(12, 16 * this.centerProj.scale); // Standard font size
+                    context.font = `${fontSize}px monospace`;
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+
+                    // Save current context
+                    context.save();
+
+                    // Translate to the cube's center point
+                    context.translate(this.centerProj.x, this.centerProj.y);
+
+                    // Apply rotation aligned with cube orientation
+                    context.rotate(rotationInfo.zAngle);
+
+                    // Normal display for 5, flipped for 0
+                    if (this.value.value === 5) {
+                        context.fillText(this.value.displayValue, 0, 0);
+                    } else {
+                        // For 0, also apply horizontal flip
+                        context.scale(-1, 1);
+                        context.fillText(this.value.displayValue, 0, 0);
+                    }
+
+                    // Restore context
+                    context.restore();
+
+                    context.shadowBlur = 0;
+                }
+            }
+
+            // Grid - Manages the entire 3D grid structure
+            class Grid {
+                constructor(size) {
+                    this.size = size;
+                    this.cells = [];
+                    this.cellMap = {};
+
+                    this.populateGrid();
+                }
+
+                // Create cell key for lookup
+                cellKey(x, y, z) {
+                    return `${x},${y},${z}`;
+                }
+
+                // Initialize grid with cells
+                populateGrid() {
+                    // Create a 3D grid array to track occupied positions
+                    const gridOccupancy = {};
+
+                    for (let x = 0; x < this.size; x++) {
+                        for (let y = 0; y < this.size; y++) {
+                            for (let z = 0; z < this.size; z++) {
+                                // Skip some cells to create a more interesting pattern
+                                if ((x + y + z) % 2 === 0 || (x === 7 && y === 7) ||
+                                    (x === 7 && z === 7) || (y === 7 && z === 7)) {
+
+                                    // Calculate grid position (centered)
+                                    const gridX = x - Math.floor(this.size / 2);
+                                    const gridY = y - Math.floor(this.size / 2);
+                                    const gridZ = z - Math.floor(this.size / 2);
+
+                                    // Create a unique key for this grid position
+                                    const posKey = `${gridX},${gridY},${gridZ}`;
+
+                                    // Skip if this position is already occupied
+                                    if (gridOccupancy[posKey]) {
+                                        continue;
+                                    }
+
+                                    // Mark this position as occupied
+                                    gridOccupancy[posKey] = true;
+
+                                    // Calculate cell value - create CellValue object for special values
+                                    const rawValue = (x * y * z) % 13;
+                                    let cellValue = null;
+
+                                    // Create value objects for special values
+                                    if (rawValue === 5 || rawValue === 3) {
+                                        cellValue = new CellValue(rawValue, true);
+                                    }
+
+                                    // Create the grid cell
+                                    const cell = new GridCell(gridX, gridY, gridZ, cellValue);
+
+                                    // Store the cell
+                                    this.cells.push(cell);
+                                    this.cellMap[posKey] = cell;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Project all cells using the provided projection function
+                projectCells(projectionFunction) {
+                    // Project each cell
+                    this.cells.forEach(cell => {
+                        cell.project(projectionFunction);
+                    });
+
+                    // Sort cells by Z for proper rendering (back to front)
+                    this.cells.sort((a, b) => a.lastProjectedZ - b.lastProjectedZ);
+                }
+
+                // Render all visible cells
+                render(context) {
+                    // Draw cells from back to front
+                    this.cells.forEach(cell => {
+                        cell.render(context);
+                    });
+                }
+            }
+
+            // Create the grid
+            const grid = new Grid(gridSize);
+
+            // Projection function (3D to 2D) with multi-axis rotation
+            const project = (point3D) => {
+                // Convert all angles to radians
+                const angleRad = angle * Math.PI / 180;
+                const xAngleRad = xAngle * Math.PI / 180;
+                const yAngleRad = yAngle * Math.PI / 180;
+                const zAngleRad = zAngle * Math.PI / 180;
+
+                // Clone the point to avoid modifying the original
+                let x = point3D.x;
+                let y = point3D.y;
+                let z = point3D.z;
+
+                // Apply Y-axis rotation first (yaw - left/right movement)
+                let x1 = x * Math.cos(yAngleRad) + z * Math.sin(yAngleRad);
+                let z1 = -x * Math.sin(yAngleRad) + z * Math.cos(yAngleRad);
+
+                // Apply X-axis rotation (pitch - up/down movement)
+                let y2 = y * Math.cos(xAngleRad) - z1 * Math.sin(xAngleRad);
+                let z2 = y * Math.sin(xAngleRad) + z1 * Math.cos(xAngleRad);
+
+                // Apply additional Z-axis rotation (roll)
+                let x3 = x1 * Math.cos(angleRad) - y2 * Math.sin(angleRad);
+                let y3 = x1 * Math.sin(angleRad) + y2 * Math.cos(angleRad);
+
+                // Apply additional custom Z-axis rotation (for roll effect)
+                let x4 = x3 * Math.cos(zAngleRad) - y3 * Math.sin(zAngleRad);
+                let y4 = x3 * Math.sin(zAngleRad) + y3 * Math.cos(zAngleRad);
+
+                // Calculate perspective
+                const scale = 1200 / (1200 + z2);
+
+                // Project to 2D
+                const x2D = centerX + x4 * scale;
+                const y2D = centerY + y4 * scale;
+
+                return {
+                    x: x2D,
+                    y: y2D,
+                    z: z2,
+                    scale: scale,
+                    // Return rotation info for number alignment
+                    rotationInfo: {
+                        xAngle: xAngleRad,
+                        yAngle: yAngleRad,
+                        zAngle: angleRad + zAngleRad // Combined Z rotation
+                    }
+                };
+            };
+
+            // Main drawing function - entity-based rendering approach
+            const draw = () => {
+                // Clear the canvas with solid background - always dark
+                ctx.fillStyle = '#010112';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Create a very subtle ambient glow that doesn't change with angle
+                // This creates a stable, consistent background with no flashing or jarring changes
+                const subtleGlow = ctx.createRadialGradient(
+                    centerX, centerY, canvas.width * 0.35, // Start further from center
+                    centerX, centerY, canvas.width * 0.8
+                );
+
+                // Very subtle color transition - almost imperceptible
+                subtleGlow.addColorStop(0, '#010113'); // Just slightly different from background
+                subtleGlow.addColorStop(1, '#010112'); // Back to base color
+
+                ctx.fillStyle = subtleGlow;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Project all cells with current camera parameters
+                grid.projectCells(project);
+
+                // Render the grid
+                grid.render(ctx);
+            };
+
+            // Animation loop
+            const animate = (timestamp) => {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+
+                    // Calculate relative mouse position from center (-1 to 1 range)
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate distance from center for magnitude of effect
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+
+                    // Non-linear response curve - moderate responsiveness
+                    const responseCurve = Math.min(1, distanceFromCenter) * Math.min(1, distanceFromCenter);
+
+                    // Base rotation speed
+                    const baseSpeed = elapsed / 2000;
+
+                    // Apply "flight control" effect
+                    yAngle += baseSpeed * relativeX * responseCurve * 2.0;
+                    xAngle += baseSpeed * relativeY * responseCurve * 1.5;
+
+                    // Subtle roll-like effect based on mouse position
+                    // This creates a roll effect based on mouse distance from center and angle
+                    const mouseAngle = Math.atan2(relativeY, relativeX);
+                    const rollEffect = baseSpeed * responseCurve * Math.sin(mouseAngle) * 0.5; // Reduced intensity
+                    zAngle += rollEffect;
+
+                    // Continuous slight rotation (CCW default)
+                    angle = (angle - baseSpeed * 0.5) % 360;
+                    if (angle < 0) angle += 360;
+
+                    lastTimestamp = timestamp;
+
+                    // Draw the visualization
+                    draw();
+
+                    // Continue animation if still playing
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            };
+
+            // Mouse event listeners with improved dragging functionality
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Handle dragging when paused - now affects multiple rotation angles
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    // Update Y rotation (horizontal movement)
+                    yAngle = (dragStartYAngle + deltaX * 0.1) % 360;
+                    if (yAngle < 0) yAngle += 360;
+
+                    // Update X rotation (vertical movement)
+                    xAngle = (dragStartXAngle + deltaY * 0.1) % 360;
+                    if (xAngle < 0) xAngle += 360;
+
+                    // Update Z rotation (roll) with diagonal movement - subtle effect
+                    zAngle = (dragStartZAngle + (deltaX - deltaY) * 0.03) % 360; // Reduced from 0.05
+                    if (zAngle < 0) zAngle += 360;
+
+                    // Additional rotation for more complex interaction - subtle effect
+                    angle = (dragStartAngle + (deltaX + deltaY) * 0.01) % 360; // Reduced from 0.02
+                    if (angle < 0) angle += 360;
+
+                    // Redraw
+                    draw();
+                }
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartAngle = angle;
+                    dragStartXAngle = xAngle;
+                    dragStartYAngle = yAngle;
+                    dragStartZAngle = zAngle;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Cursor management
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Control button event listeners
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                angle = 0;
+                xAngle = 0;
+                yAngle = 0;
+                zAngle = 0;
+                lastTimestamp = 0;
+                draw();
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+
+                draw();
+            });
+
+            // Show instructions briefly
+            setTimeout(() => {
+                instructions.style.opacity = '1';
+                setTimeout(() => {
+                    instructions.style.opacity = '0';
+                }, 5000);
+            }, 1000);
+
+            // Initial draw
+            draw();
+
+            // Begin animation after a short delay
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

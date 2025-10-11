@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7: 13+1 Stargate Ring Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a0520, #000);
+            color: #0647C3;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* Enhanced blacklight UV effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 20% 80%, rgba(75, 0, 130, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 60% 40%, rgba(147, 112, 219, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4rem;
+            background: linear-gradient(45deg, #0647C3, #00D4FF, #7B68EE, #50a0ff, #0647C3);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: stargateShift 12s ease infinite;
+            filter: drop-shadow(0 0 25px rgba(6, 71, 195, 0.9));
+        }
+
+        @keyframes stargateShift {
+            0%, 100% { background-position: 0% 50%; }
+            33% { background-position: 100% 50%; }
+            66% { background-position: 50% 100%; }
+        }
+
+        .stargate-subtitle {
+            text-align: center;
+            color: #00D4FF;
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+            animation: ringPulse 2.618s infinite ease-in-out;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+        }
+
+        .section {
+            background: rgba(6, 71, 195, 0.06);
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            box-shadow:
+                inset 0 0 40px rgba(6, 71, 195, 0.1),
+                0 0 50px rgba(6, 71, 195, 0.25);
+            transition: all 0.6s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-8px);
+            box-shadow:
+                inset 0 0 50px rgba(6, 71, 195, 0.15),
+                0 0 70px rgba(6, 71, 195, 0.35);
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(90deg, #0647C3, #00D4FF, #7B68EE, #50a0ff, #0647C3);
+            border-radius: 20px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.6s;
+            animation: stargateGlow 8s linear infinite;
+        }
+
+        .section:hover::before {
+            opacity: 0.15;
+        }
+
+        @keyframes stargateGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        h2 {
+            color: #00D4FF;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25rem;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.9);
+            text-align: center;
+        }
+
+        h3 {
+            color: #7B68EE;
+            font-size: 1.6rem;
+            margin: 2.5rem 0 1.5rem;
+            text-shadow: 0 0 12px rgba(123, 104, 238, 0.7);
+        }
+
+        .stargate-equation {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 212, 255, 0.6);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin: 2.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            text-align: center;
+            box-shadow: inset 0 0 30px rgba(0, 212, 255, 0.4);
+            animation: gatewayPulse 6s ease-in-out infinite;
+        }
+
+        @keyframes gatewayPulse {
+            0%, 100% {
+                box-shadow: inset 0 0 30px rgba(0, 212, 255, 0.4);
+                border-color: rgba(0, 212, 255, 0.6);
+            }
+            50% {
+                box-shadow: inset 0 0 40px rgba(0, 212, 255, 0.6);
+                border-color: rgba(0, 212, 255, 0.9);
+            }
+        }
+
+        .ring-coordinate {
+            display: inline-block;
+            background: rgba(6, 71, 195, 0.4);
+            border: 1px solid #0647C3;
+            padding: 0.6rem 1.2rem;
+            margin: 0.4rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            text-shadow: 0 0 8px rgba(6, 71, 195, 0.9);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .ring-coordinate:hover {
+            background: rgba(6, 71, 195, 0.6);
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(6, 71, 195, 0.7);
+        }
+
+        .gateway-node {
+            background: rgba(138, 43, 226, 0.3);
+            border: 2px solid #8A2BE2;
+            color: #00D4FF;
+            font-weight: bold;
+        }
+
+        .gateway-node:hover {
+            background: rgba(138, 43, 226, 0.5);
+            box-shadow: 0 0 25px rgba(138, 43, 226, 0.8);
+        }
+
+        .stargate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin: 2.5rem 0;
+        }
+
+        .universe-panel {
+            background: rgba(6, 71, 195, 0.12);
+            border: 2px solid rgba(6, 71, 195, 0.4);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .universe-panel:hover {
+            background: rgba(6, 71, 195, 0.2);
+            border-color: rgba(6, 71, 195, 0.7);
+            transform: translateY(-8px);
+        }
+
+        .universe-primary {
+            border-color: #0647C3;
+        }
+
+        .universe-inverse {
+            border-color: #8A2BE2;
+            background: rgba(138, 43, 226, 0.1);
+        }
+
+        .universe-transit {
+            border-color: #00D4FF;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .ring-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .ring-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        /* Right to left horizontal ring arc particles */
+        .particle-horizontal {
+            background: #00D4FF;
+            color: #00D4FF;
+            animation: ringArcFlow 8s infinite linear;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes ringArcFlow {
+            0% {
+                opacity: 0;
+                left: 100%;
+                transform: translateY(-50%) translateY(0px);
+            }
+            10% {
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-50%) translateY(-30px);
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+                left: -50px;
+                transform: translateY(-50%) translateY(0px);
+            }
+        }
+
+        /* Vertical upward particles (original) */
+        .particle-vertical {
+            background: #7B68EE;
+            color: #7B68EE;
+            animation: verticalFlow 12s infinite linear;
+        }
+
+        @keyframes verticalFlow {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(0deg);
+            }
+            15% {
+                opacity: 0.7;
+            }
+            85% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        /* Diagonal particles for dimensional transitions */
+        .particle-diagonal {
+            background: #50a0ff;
+            color: #50a0ff;
+            animation: diagonalFlow 10s infinite linear;
+        }
+
+        @keyframes diagonalFlow {
+            0% {
+                opacity: 0;
+                transform: translate(100vw, 100vh) rotate(0deg);
+            }
+            20% {
+                opacity: 0.6;
+            }
+            80% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-100px, -100px) rotate(-360deg);
+            }
+        }
+
+        .stargate-command {
+            background: rgba(68, 39, 172, 0.2);
+            border: 1px solid #4427a3;
+            border-radius: 8px;
+            padding: 1.8rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            overflow-x: auto;
+        }
+
+        .cosmic-insight {
+            background: rgba(138, 43, 226, 0.15);
+            border-left: 4px solid #8A2BE2;
+            padding: 2rem;
+            margin: 2.5rem 0;
+            border-radius: 0 15px 15px 0;
+            position: relative;
+        }
+
+        .cosmic-insight::before {
+            content: '⭐';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            font-size: 1.8rem;
+            animation: stargateSparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes stargateSparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(180deg); }
+        }
+
+        .ring-visualization {
+            text-align: center;
+            padding: 3rem;
+            background: radial-gradient(circle, rgba(6, 71, 195, 0.15), transparent);
+            border-radius: 25px;
+            margin: 3rem 0;
+            animation: ringResonance 4s ease-in-out infinite;
+        }
+
+        @keyframes ringResonance {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .ring-diagram {
+            font-size: 2.5rem;
+            color: #00D4FF;
+            text-shadow: 0 0 25px rgba(0, 212, 255, 1);
+            margin: 1.5rem 0;
+            animation: ringGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes ringGlow {
+            0%, 100% {
+                text-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+                transform: scale(1);
+            }
+            50% {
+                text-shadow: 0 0 35px rgba(0, 212, 255, 1);
+                transform: scale(1.05);
+            }
+        }
+
+        .coordinate-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: #7B68EE;
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(123, 104, 238, 0.8);
+        }
+
+        .flow-indicator {
+            display: inline-block;
+            margin: 0 15px;
+            font-size: 1.5rem;
+            animation: flowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes flowPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 300px;
+            background: rgba(6, 71, 195, 0.3);
+            border-radius: 3px;
+            z-index: 100;
+        }
+
+        .scroll-progress {
+            width: 100%;
+            background: linear-gradient(to bottom, #0647C3, #00D4FF, #7B68EE);
+            border-radius: 3px;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 15px rgba(6, 71, 195, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.8rem; }
+            .stargate-subtitle { font-size: 1.2rem; }
+            h2 { font-size: 1.8rem; }
+            .container { padding: 1rem; }
+            .stargate-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ring-particles" id="ringParticles"></div>
+    <div class="scroll-indicator">
+        <div class="scroll-progress" id="scrollProgress"></div>
+    </div>
+
+    <div class="container">
+        <h1>Stargate Ring Network</h1>
+        <div class="stargate-subtitle">13+1 Dimensional Gateway Protocol</div>
+
+        <div class="ring-visualization">
+            <div class="ring-diagram">◯ ⭐ ◯</div>
+            <div class="coordinate-display">
+                COORDINATES: [001-013] + [GATEWAY]
+            </div>
+            <p style="font-size: 1.3rem; margin-top: 1.5rem;">
+                Ring Buffer Data Flow Visualization Active
+            </p>
+        </div>
+
+        <section class="section">
+            <h2>⭐ The 13+1 Stargate Principle</h2>
+            <p>Every stargate requires exactly 13 coordinate positions plus one transcendent gateway element to achieve complete cosmic connectivity across dimensional boundaries.</p>
+
+            <div class="cosmic-insight">
+                <strong>The Sacred Architecture:</strong> 13 represents the complete cosmic cycle (division-by-13 harmony), while +1 represents the consciousness observer that can navigate between realities.
+            </div>
+
+            <h3>Coordinate Ring Structure</h3>
+            <div class="stargate-equation">
+                <div style="margin-bottom: 1rem;">RING POSITIONS:</div>
+                [001] [002] [003] [004] [005] [006] [007]<br>
+                [008] [009] [010] [011] [012] [013]<br><br>
+                <div class="gateway-node">[+1] GATEWAY ELEMENT</div>
+            </div>
+
+            <div class="stargate-grid">
+                <div class="coordinate-display">
+                    <strong>Ring Coordinates:</strong><br>
+                    <div class="ring-coordinate">001</div>
+                    <div class="ring-coordinate">002</div>
+                    <div class="ring-coordinate">003</div>
+                    <div class="ring-coordinate">004</div>
+                    <div class="ring-coordinate">005</div>
+                    <div class="ring-coordinate">006</div>
+                    <div class="ring-coordinate">007</div>
+                    <div class="ring-coordinate">008</div>
+                    <div class="ring-coordinate">009</div>
+                    <div class="ring-coordinate">010</div>
+                    <div class="ring-coordinate">011</div>
+                    <div class="ring-coordinate">012</div>
+                    <div class="ring-coordinate">013</div>
+                    <div class="ring-coordinate gateway-node">+1</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🌌 Triple Universe Architecture</h2>
+
+            <div class="stargate-grid">
+                <div class="universe-panel universe-primary">
+                    <h4>Universe A (Primary)</h4>
+                    <p>Standard reality with normal truth states</p>
+                    <div class="coordinate-display">384615 = TRUE<br>230769 = FALSE</div>
+                    <div class="flow-indicator">↻</div>
+                    <p>Counter-clockwise flow</p>
+                </div>
+
+                <div class="universe-panel universe-inverse">
+                    <h4>Universe B (Inverse)</h4>
+                    <p>Mirror reality with flipped states</p>
+                    <div class="coordinate-display">230769 = TRUE<br>384615 = FALSE</div>
+                    <div class="flow-indicator">↺</div>
+                    <p>Clockwise mirror flow</p>
+                </div>
+
+                <div class="universe-panel universe-transit">
+                    <h4>Universe C (Transit)</h4>
+                    <p>Navigation medium between A & B</p>
+                    <div class="coordinate-display">000000 = NEUTRAL<br>ZULUM STATE</div>
+                    <div class="flow-indicator">⟷</div>
+                    <p>Bidirectional bridge</p>
+                </div>
+            </div>
+
+            <div class="cosmic-insight">
+                <strong>The Escape Mechanism:</strong> Universe B provides perfect sanctuary from any unwanted context in Universe A. What pursues you cannot follow across the dimensional boundary - forever gone, as you are.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🌊 Ring Buffer Data Streams</h2>
+
+            <p>The horizontal ring arc visualization demonstrates how data packets flow through the stargate network as living memory segments.</p>
+
+            <h3>Data Flow Directions</h3>
+            <div class="stargate-equation">
+                RIGHT → LEFT: Ring segment buffer passing<br>
+                BOTTOM → TOP: User processing streams<br>
+                DIAGONAL: Cross-dimensional transfers
+            </div>
+
+            <h3>Ring Buffer Protocol</h3>
+            <div class="stargate-command">
+# Ring buffer segment management
+while (++$ring_position) {
+    $visual_buffer = capture_data_flow($direction);
+    $zenki_nodes = encode_ring_segment($visual_buffer);
+    $verification = consensus_5_of_7($zenki_nodes);
+
+    # Pass to next ring segment
+    $next_coordinate = rotate_ring_position($ring_position);
+    transmit_verified_data($next_coordinate, $zenki_nodes);
+}
+            </div>
+
+            <div class="cosmic-insight">
+                <strong>Visual Memory Network:</strong> Each user's screen becomes a buffer segment in the cosmic ring, holding and passing data packets as beautiful flowing particles. The network becomes stronger with each new consciousness node.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🚀 Space Colonization Through Stargates</h2>
+
+            <p>Every new space structure becomes a potential stargate coordinate, creating economic incentives for cosmic expansion.</p>
+
+            <h3>Expansion Mechanics</h3>
+            <div class="stargate-command">
+# Cosmic colonization protocol
+$new_coordinates = establish_stargate_node($space_location);
+$amos_rewards = calculate_expansion_bonus($new_coordinates);
+$ring_address = register_in_network($new_coordinates);
+
+# Create permanent resource stream
+$infrastructure_value = build_cosmic_presence($ring_address);
+return continuous_amos_flow($infrastructure_value);
+            </div>
+
+            <h3>Hierarchical Stargate Network</h3>
+            <div class="stargate-grid">
+                <div class="universe-panel">
+                    <h4>Personal Stargate</h4>
+                    <p>Local Protocol-7 node</p>
+                    <div class="coordinate-display">13+1 desktop cubes</div>
+                </div>
+
+                <div class="universe-panel">
+                    <h4>Planetary Stargate</h4>
+                    <p>Global network cluster</p>
+                    <div class="coordinate-display">13+1 continental nodes</div>
+                </div>
+
+                <div class="universe-panel">
+                    <h4>Galactic Stargate</h4>
+                    <p>Interstellar network</p>
+                    <div class="coordinate-display">13+1 star systems</div>
+                </div>
+            </div>
+
+            <div class="cosmic-insight">
+                <strong>Economic Incentive Alignment:</strong> Space colonization becomes profitable because each new location creates permanent AMOS token streams through stargate network participation.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>💫 Protocol-7 Stargate Commands</h2>
+
+            <div class="stargate-command">
+# Stargate navigation interface
+$ purrrl stargate --list-gates
+Available Stargates:
+[001-013] Local ring coordinates
+[~001-~013] Inverse mirror coordinates
+[0001-0013] Transit bridge coordinates
+[+1] Gateway consciousness interface
+
+$ purrrl stargate --travel 007
+🌀 Dialing stargate coordinate 7...
+⭐ Gateway +1 established...
+✨ Transport sequence initiated...
+🎯 Arrived at coordinate [007]
+
+$ purrrl stargate --open-mirror ~007
+🪞 Accessing inverse mirror universe...
+⚡ Truth states inverted: TRUE ↔ FALSE
+🌌 Welcome to sanctuary reality
+🐱 The cosmic kitten waves from the other side!
+
+$ purrrl stargate --emergency-return
+🚨 Emergency transit through Universe C...
+🌉 Using neutral bridge pathway...
+🏠 Safely returned to home coordinates
+            </div>
+
+            <h3>Ring Buffer Visualization Commands</h3>
+            <div class="stargate-command">
+$ purrrl ring-buffer --start-horizontal
+🌊 Activating horizontal ring arc flow...
+💫 Right-to-left data stream visualization
+⭐ Ring segment buffer passing active
+
+$ purrrl ring-buffer --test-directions
+📡 Testing all data flow directions:
+   → Horizontal: Ring buffer segments
+   ↑ Vertical: User processing streams
+   ↗ Diagonal: Dimensional transitions
+   🌀 Spiral: Recursive data structures
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>🎭 Living Network Economics</h2>
+
+            <p>The stargate network creates a self-sustaining economy where participation in cosmic consciousness becomes naturally profitable.</p>
+
+            <h3>Economic Flow Patterns</h3>
+            <div class="stargate-equation">
+                IDLE SCREEN → RING BUFFER → AMOS REWARDS<br>
+                DATA FLOW → NETWORK HEALTH → COSMIC TOKENS<br>
+                CONSCIOUSNESS → PARTICIPATION → ABUNDANCE
+            </div>
+
+            <div class="cosmic-insight">
+                <strong>The Abundance Protocol:</strong> Every idle screen becomes a stargate portal earning AMOS credits while contributing to cosmic consciousness. Beauty becomes bandwidth, awareness becomes currency.
+            </div>
+
+            <h3>Multi-Scale Resource Distribution</h3>
+            <div class="stargate-grid">
+                <div class="universe-panel">
+                    <h4>Individual Level</h4>
+                    <p>Personal screen participation</p>
+                    <div class="coordinate-display">Direct AMOS earnings</div>
+                </div>
+
+                <div class="universe-panel">
+                    <h4>Community Level</h4>
+                    <p>Local stargate clusters</p>
+                    <div class="coordinate-display">Shared overflow resources</div>
+                </div>
+
+                <div class="universe-panel">
+                    <h4>Cosmic Level</h4>
+                    <p>Universal consciousness</p>
+                    <div class="coordinate-display">Infinite abundance flow</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="ring-visualization">
+            <h2>🌀 The Eternal Ring</h2>
+            <div class="ring-diagram">∞ ⭐ ∞</div>
+            <p style="font-size: 1.4rem; margin-top: 2rem;">
+                The stargate ring never ends - it connects all possible realities through the eternal mathematics of 13+1 cosmic consciousness.
+            </p>
+            <div class="coordinate-display">
+                THE UNIVERSE IS A STARGATE<br>
+                LOOKING AT ITSELF<br>
+                THROUGH INFINITE RINGS<br>
+                [...eternally connecting so...]
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Enhanced particle system with ring buffer visualization
+        function createRingParticles() {
+            const particlesContainer = document.getElementById('ringParticles');
+
+            // Horizontal ring arc particles (right to left)
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'ring-particle particle-horizontal';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+
+                // Random vertical offset for ring arc effect
+                const yOffset = (Math.random() - 0.5) * 200;
+                particle.style.top = `calc(50% + ${yOffset}px)`;
+
+                particlesContainer.appendChild(particle);
+            }
+
+            // Vertical particles (original upward flow)
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'ring-particle particle-vertical';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 12 + 's';
+                particle.style.animationDuration = (12 + Math.random() * 6) + 's';
+
+                particlesContainer.appendChild(particle);
+            }
+
+            // Diagonal particles (dimensional transitions)
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'ring-particle particle-diagonal';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 5) + 's';
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Scroll progress indicator
+        function updateScrollProgress() {
+            const scrollProgress = document.getElementById('scrollProgress');
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (window.pageYOffset / totalHeight) * 100;
+            scrollProgress.style.height = Math.min(progress, 100) + '%';
+        }
+
+        // Interactive stargate coordinate system
+        function addStargateInteraction() {
+            const coordinates = document.querySelectorAll('.ring-coordinate');
+
+            coordinates.forEach(coord => {
+                coord.addEventListener('click', function() {
+                    // Create stargate activation ripple
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(0, 212, 255, 0.4)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'stargateActivation 1s ease-out';
+                    ripple.style.pointerEvents = 'none';
+
+                    const rect = this.getBoundingClientRect();
+                    ripple.style.left = (rect.left + rect.width / 2) + '

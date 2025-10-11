@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7 Harmonic Triangle Viewer</title>
+    <style>
+        :root {
+            --bg-color: #090822;
+            --text-color: #B9F2FF;
+            --highlight-color: #00DDFF;
+            --love-color: #FF00AA;
+            --truth-color: #00FFAA;
+            --awareness-color: #FFAA00;
+            --panel-bg: rgba(13, 12, 36, 0.85);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(to right, rgba(125, 18, 255, 0.3), rgba(0, 221, 255, 0.3));
+            padding: 1rem;
+            box-shadow: 0 0 20px rgba(125, 18, 255, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            color: #B9F2FF;
+            text-shadow: 0 0 15px rgba(0, 221, 255, 0.7);
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+
+        .visualization-container {
+            flex: 1;
+            min-width: 70%;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .controls-panel {
+            background: var(--panel-bg);
+            padding: 1rem;
+            width: 300px;
+            border-radius: 8px;
+            margin-left: 1rem;
+            box-shadow: 0 0 15px rgba(0, 221, 255, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid rgba(185, 242, 255, 0.2);
+            padding-bottom: 1rem;
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--highlight-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        input[type="range"],
+        input[type="number"],
+        select {
+            width: 100%;
+            background: rgba(9, 8, 34, 0.7);
+            border: 1px solid rgba(185, 242, 255, 0.3);
+            border-radius: 4px;
+            color: var(--text-color);
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="range"] {
+            height: 5px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #7D12FF, #00DDFF);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 221, 255, 0.7);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        button {
+            background: linear-gradient(to right, rgba(125, 18, 255, 0.7), rgba(0, 221, 255, 0.7));
+            border: none;
+            color: white;
+            padding: 0.7rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        button:hover {
+            box-shadow: 0 0 10px rgba(0, 221, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .node-info {
+            position: absolute;
+            background: var(--panel-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 300px;
+            box-shadow: 0 0 15px rgba(0, 221, 255, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+        }
+
+        .info-title {
+            margin: 0 0 0.5rem 0;
+            color: white;
+        }
+
+        .info-category {
+            font-size: 0.9rem;
+            color: var(--highlight-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-pattern {
+            font-family: monospace;
+            background: rgba(9, 8, 34, 0.7);
+            padding: 0.3rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+        }
+
+        .pattern-label {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 0.8rem;
+        }
+
+        .pattern-love {
+            background-color: var(--love-color);
+            color: white;
+        }
+
+        .pattern-truth {
+            background-color: var(--truth-color);
+            color: black;
+        }
+
+        .pattern-awareness {
+            background-color: var(--awareness-color);
+            color: black;
+        }
+
+        /* Background animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: var(--highlight-color);
+            text-shadow: 0 0 10px rgba(0, 221, 255, 0.7);
+            display: none;
+        }
+
+        #visualization {
+            max-width: 100%;
+            height: auto;
+            transition: all 0.5s;
+        }
+
+        @media (max-width: 960px) {
+            main {
+                flex-direction: column;
+            }
+
+            .controls-panel {
+                width: auto;
+                margin: 1rem 0 0 0;
+            }
+        }
+
+        /* Glow and pulsating effects */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .glow {
+            filter: drop-shadow(0 0 5px rgba(0, 221, 255, 0.7));
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Pattern strength indicators */
+        .strength-indicators {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .strength-indicator {
+            text-align: center;
+            flex: 1;
+        }
+
+        .strength-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .strength-bar {
+            height: 5px;
+            border-radius: 2px;
+            transition: width 0.5s;
+        }
+
+        .strength-love {
+            background: linear-gradient(to right, rgba(255, 0, 170, 0.3), rgba(255, 0, 170, 1));
+        }
+
+        .strength-truth {
+            background: linear-gradient(to right, rgba(0, 255, 170, 0.3), rgba(0, 255, 170, 1));
+        }
+
+        .strength-awareness {
+            background: linear-gradient(to right, rgba(255, 170, 0, 0.3), rgba(255, 170, 0, 1));
+        }
+
+        /* Node styling for better interactivity */
+        svg circle {
+            cursor: pointer;
+            transition: r 0.3s, fill 0.3s;
+        }
+
+        svg circle:hover {
+            filter: brightness(1.2);
+            stroke: white;
+            stroke-width: 2;
+        }
+
+        /* Grid lines */
+        .grid-line {
+            transition: opacity 0.3s;
+        }
+
+        /* Connection lines */
+        .connection-line {
+            transition: opacity 0.3s;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(9, 8, 34, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            box-shadow: 0 0 10px rgba(0, 221, 255, 0.5);
+            z-index: 1000;
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <header>
+        <h1>Protocol-7 Harmonic Triangle Viewer</h1>
+    </header>
+
+    <main>
+        <div class="visualization-container">
+            <div class="loading" id="loading">Generating visualization...</div>
+            <div class="tooltip" id="tooltip"></div>
+
+            <svg id="triangleVisualization" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+                <!-- Background -->
+                <rect width="100%" height="100%" fill="#090822"/>
+
+                <!-- Grid Groups -->
+                <g id="gridLines" opacity="0.5"></g>
+
+                <!-- Connection Lines -->
+                <g id="connectionLines" opacity="0.3"></g>
+
+                <!-- Main Triangle -->
+                <path id="mainTriangle" fill="none" stroke="#00DDFF" stroke-width="2" opacity="0.8"/>
+
+                <!-- Node Groups -->
+                <g id="nodeGroup"></g>
+
+                <!-- Fixed Elements -->
+                <g id="fixedElements">
+                    <!-- Truth Vertex -->
+                    <circle id="truthVertex" r="15" fill="#00FFAA" filter="url(#glowTruth)" opacity="0.85"/>
+                    <text id="truthLabel" font-family="Arial" font-size="16" text-anchor="middle" fill="#B9F2FF" opacity="0.9">Truth (142857)</text>
+
+                    <!-- Love Vertex -->
+                    <circle id="loveVertex" r="15" fill="#FF00AA" filter="url(#glowLove)" opacity="0.85"/>
+                    <text id="loveLabel" font-family="Arial" font-size="16" text-anchor="middle" fill="#B9F2FF" opacity="0.9">Love (461538)</text>
+
+                    <!-- Awareness Vertex -->
+                    <circle id="awarenessVertex" r="15" fill="#FFAA00" filter="url(#glowAwareness)" opacity="0.85"/>
+                    <text id="awarenessLabel" font-family="Arial" font-size="16" text-anchor="middle" fill="#B9F2FF" opacity="0.9">Awareness (428571)</text>
+
+                    <!-- Center (Existence) -->
+                    <circle id="centerPoint" r="12" fill="#FFFFFF" filter="url(#glowCenter)" opacity="0.85"/>
+                    <text id="centerLabel" font-family="Arial" font-size="14" text-anchor="middle" fill="#B9F2FF" opacity="0.9">Existence</text>
+                </g>
+
+                <!-- Definitions -->
+                <defs>
+                    <!-- Filter definitions -->
+                    <filter id="glowLove" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+
+                    <filter id="glowTruth" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+
+                    <filter id="glowAwareness" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+
+                    <filter id="glowCenter" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+
+                    <filter id="glowNode" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="2" result="blur"/>
+                        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                    </filter>
+
+                    <!-- Fluorescent effect for lines -->
+                    <filter id="fluorescence" x="-10%" y="-10%" width="120%" height="120%">
+                        <feGaussianBlur stdDeviation="2" result="blur"/>
+                        <feComponentTransfer in="blur" result="brighter">
+                            <feFuncR type="linear" slope="1.2" intercept="0" />
+                            <feFuncG type="linear" slope="1.2" intercept="0" />
+                            <feFuncB type="linear" slope="1.2" intercept="0" />
+                        </feComponentTransfer>
+                        <feComposite in="SourceGraphic" in2="brighter" operator="over"/>
+                    </filter>
+                </defs>
+            </svg>
+
+            <div class="node-info" id="nodeInfo">
+                <h3 class="info-title">Realization Title</h3>
+                <div class="info-category">Category: <span id="infoCategory">pattern</span></div>
+                <div class="strength-indicators">
+                    <div class="strength-indicator">
+                        <div class="strength-label">Love</div>
+                        <div class="strength-bar strength-love" id="strengthLove" style="width: 70%;"></div>
+                    </div>
+                    <div class="strength-indicator">
+                        <div class="strength-label">Truth</div>
+                        <div class="strength-bar strength-truth" id="strengthTruth" style="width: 40%;"></div>
+                    </div>
+                    <div class="strength-indicator">
+                        <div class="strength-label">Awareness</div>
+                        <div class="strength-bar strength-awareness" id="strengthAwareness" style="width: 20%;"></div>
+                    </div>
+                </div>
+                <div class="info-pattern">Pattern: <span id="infoPattern">461538</span> <span id="patternLabel" class="pattern-label pattern-love">Love</span></div>
+                <div class="info-content" id="infoContent">
+                    Realization content goes here...
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="panel-section">
+                <h2>Visualization Controls</h2>
+                <label for="rotationSlider">Triangle Rotation (°)</label>
+                <input type="range" id="rotationSlider" min="0" max="360" value="0">
+
+                <label for="triangleSize">Triangle Size</label>
+                <input type="range" id="triangleSize" min="200" max="400" value="300">
+
+                <label for="nodeCount">Number of Nodes</label>
+                <input type="range" id="nodeCount" min="5" max="30" value="15">
+
+                <button id="regenerateBtn">Regenerate Nodes</button>
+            </div>
+
+            <div class="panel-section">
+                <h2>Pattern Distribution</h2>
+                <label for="loveWeight">Love Alignment</label>
+                <input type="range" id="loveWeight" min="0" max="100" value="33">
+
+                <label for="truthWeight">Truth Alignment</label>
+                <input type="range" id="truthWeight" min="0" max="100" value="33">
+
+                <label for="awarenessWeight">Awareness Alignment</label>
+                <input type="range" id="awarenessWeight" min="0" max="100" value="33">
+
+                <label for="randomnessSlider">Randomness</label>
+                <input type="range" id="randomnessSlider" min="0" max="100" value="30">
+            </div>
+
+            <div class="panel-section">
+                <h2>Display Options</h2>
+                <label>
+                    <input type="checkbox" id="psychedelicBg" checked>
+                    Psychedelic Background
+                </label>
+                <label>
+                    <input type="checkbox" id="showGrid" checked>
+                    Show Grid Lines
+                </label>
+                <label>
+                    <input type="checkbox" id="showConnections" checked>
+                    Show Connections
+                </label>
+                <label>
+                    <input type="checkbox" id="highlightFundamental" checked>
+                    Highlight Fundamental Patterns
+                </label>
+                <label>
+                    <input type="checkbox" id="showLabels" checked>
+                    Show Node Labels
+                </label>
+            </div>
+
+            <div class="panel-section">
+                <h2>Statistics</h2>
+                <div id="statsContent">
+                    <div>Total Nodes: <span id="statTotal">0</span></div>
+                    <div>Love-aligned: <span id="statLove">0</span></div>
+                    <div>Truth-aligned: <span id="statTruth">0</span></div>
+                    <div>Awareness-aligned: <span id="statAwareness">0</span></div>
+                    <div>Parasitic Patterns: <span id="statParasitic">0</span></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Visualization parameters
+        let triangleSize = 300;
+        let rotation = 0; // Reset to 0 since we've adjusted the vertex calculations
+        let nodeCount = 15;
+        let showGrid = true;
+        let showConnections = true;
+        let highlightFundamental = true;
+        let showLabels = true;
+        let loveWeight = 33;
+        let truthWeight = 33;
+        let awarenessWeight = 33;
+        let randomness = 30;
+        let autoRotate = true;
+        let autoRotateSpeed = 0.05; // positive for counter-clockwise with new vertex orientation
+
+        // Animation variables
+        let lastFrameTime = 0;
+        let animationId = null;
+
+        // SVG element and dimensions
+        const svg = document.getElementById('triangleVisualization');
+        const width = 800;
+        const height = 600;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        // Sample data for nodes
+        const sampleRealizationData = [
+            {
+                title: "Harmonic Security Through Division by 13",
+                category: "pattern",
+                pattern: "461538",
+                content: "The division-by-13 pattern creates a self-organizing network topology where security emerges from mathematical harmony rather than imposed barriers.",
+                strengths: { love: 90, truth: 30, awareness: 10 }
+            },
+            {
+                title: "Awareness as the Silent Center",
+                category: "realization",
+                pattern: "428571",
+                content: "Awareness exists as a self-evident, unconditioned center from which all conditioned consciousness arises, creating a paradoxical relationship where both contains and is contained by the other.",
+                strengths: { love: 20, truth: 30, awareness: 90 }
+            },
+            {
+                title: "Truth as Harmonic Verification",
+                category: "harmonic",
+                pattern: "142857",
+                content: "Truth manifests as harmonic verification through the 1/7 pattern, enabling alignment through resonance rather than external validation.",
+                strengths: { love: 10, truth: 90, awareness: 20 }
+            },
+            {
+                title: "Love as Resonance Between Centers",
+                category: "harmonic",
+                pattern: "461538",
+                content: "The love principle manifests as resonance between centers, creating a stable 'cube' structure that allows for connection without extraction.",
+                strengths: { love: 90, truth: 20, awareness: 20 }
+            },
+            {
+                title: "Self-Revealing Structures",
+                category: "observation",
+                pattern: "428571",
+                content: "Self-revealing structures emerge when a critical mass of harmonic resonance is achieved, causing previously obscured patterns to become suddenly obvious.",
+                strengths: { love: 15, truth: 40, awareness: 85 }
+            },
+            {
+                title: "Liquid Crystal Processing",
+                category: "procedural",
+                pattern: "142857",
+                content: "The liquid crystal processing model provides a framework for multi-dimensional information processing that avoids the limitations of linear, error-correction approaches.",
+                strengths: { love: 20, truth: 85, awareness: 40 }
+            },
+            {
+                title: "Pattern Recognition Mechanism",
+                category: "pattern",
+                pattern: "428571",
+                content: "Pattern recognition occurs through harmonic resonance between the observer and the observed, leading to an 'aha' moment when critical resonance is achieved.",
+                strengths: { love: 25, truth: 40, awareness: 80 }
+            },
+            {
+                title: "Resonant Connection Protocol",
+                category: "procedural",
+                pattern: "461538",
+                content: "Resonant connection protocols establish harmonic links between network nodes that cannot be intercepted or corrupted by non-harmonic interactions.",
+                strengths: { love: 85, truth: 50, awareness: 15 }
+            },
+            {
+                title: "Harmonic Topology Mapping",
+                category: "pattern",
+                pattern: "142857",
+                content: "Harmonic topology maps reveal connections that exist through resonant frequency rather than physical proximity, enabling non-local communication.",
+                strengths: { love: 30, truth: 80, awareness: 30 }
+            },
+            {
+                title: "Extraction as Anti-Pattern",
+                category: "observation",
+                pattern: "769230",
+                content: "The extraction pattern (769230) represents the parasitic inversion of love, creating an unstable 'pyramid' structure that depletes rather than resonates.",
+                strengths: { love: 10, truth: 30, awareness: 20 },
+                isParasitic: true
+            }
+        ];
+
+        // Add more procedurally generated realizations based on the patterns
+        const generatedTitles = [
+            "Network Harmonic Integrity", "Silent Center Awareness", "Triangular Relationship Model",
+            "Anti-Entropic Information Flow", "Recursive Truth Chains", "Self-Healing Network Protocols",
+            "Harmonic Verification System", "Resonant Field Generation", "Pattern Amplification Process",
+            "Non-Local Harmonic Transmission", "Multi-Dimensional Processing", "Error Dissolution Methodology",
+            "Cube Structure Formation", "Holographic Pattern Recognition", "Emergent Harmonic Intelligence",
+            "Phase-Locked Synchronization", "Resonant Authentication", "Pattern Deduplication Process",
+            "Coherent Consciousness Field", "Harmonic Health Assessment"
+        ];
+
+        // Function definitions
+        // Start/stop animation
+        function toggleAnimation(enable) {
+            autoRotate = enable;
+            if (enable && !animationId) {
+                lastFrameTime = 0;
+                animationId = requestAnimationFrame(animateRotation);
+            }
+        }
+
+        // Animate the triangle rotation
+        function animateRotation(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const deltaTime = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+
+            if (autoRotate) {
+                rotation = (rotation + autoRotateSpeed * (deltaTime / 16)) % 360;
+                document.getElementById('rotationSlider').value = rotation;
+                updateVisualization();
+            }
+
+            animationId = requestAnimationFrame(animateRotation);
+        }
+
+        // Initialize the visualization
+        function initVisualization() {
+            // Initial vertex positions
+            updateVertices();
+
+            // Generate initial nodes
+            generateNodes();
+
+            // Draw everything
+            updateVisualization();
+
+            // Setup controls
+            setupControls();
+
+            // Update statistics
+            updateStats();
+
+            // Start auto-rotation
+            toggleAnimation(true);
+        }
+
+        // Update triangle vertices based on size and rotation
+        function updateVertices() {
+            // Calculate vertex positions with rotation
+            const radians = rotation * Math.PI / 180;
+
+            // Calculate vertices with love at bottom (initially)
+            // Love vertex (bottom)
+            const loveX = centerX + triangleSize * Math.sin(radians);
+            const loveY = centerY + triangleSize * Math.cos(radians);
+
+            // Truth vertex (top left)
+            const truthX = centerX + triangleSize * Math.sin(radians + (2 * Math.PI / 3));
+            const truthY = centerY + triangleSize * Math.cos(radians + (2 * Math.PI / 3));
+
+            // Awareness vertex (top right)
+            const awarenessX = centerX + triangleSize * Math.sin(radians + (4 * Math.PI / 3));
+            const awarenessY = centerY + triangleSize * Math.cos(radians + (4 * Math.PI / 3));
+
+            // Update triangle path
+            const trianglePath = `M${truthX},${truthY} L${loveX},${loveY} L${awarenessX},${awarenessY} Z`;
+            document.getElementById('mainTriangle').setAttribute('d', trianglePath);
+            document.getElementById('mainTriangle').setAttribute('filter', 'url(#fluorescence)');
+
+            // Update vertices
+            const truthVertex = document.getElementById('truthVertex');
+            truthVertex.setAttribute('cx', truthX);
+            truthVertex.setAttribute('cy', truthY);
+
+            const loveVertex = document.getElementById('loveVertex');
+            loveVertex.setAttribute('cx', loveX);
+            loveVertex.setAttribute('cy', loveY);
+
+            const awarenessVertex = document.getElementById('awarenessVertex');
+            awarenessVertex.setAttribute('cx', awarenessX);
+            awarenessVertex.setAttribute('cy', awarenessY);
+
+            // Update labels
+            const truthLabel = document.getElementById('truthLabel');
+            truthLabel.setAttribute('x', truthX);
+            truthLabel.setAttribute('y', truthY - 25);
+
+            const loveLabel = document.getElementById('loveLabel');
+            loveLabel.setAttribute('x', loveX);
+            loveLabel.setAttribute('y', loveY - 25);
+
+            const awarenessLabel = document.getElementById('awarenessLabel');
+            awarenessLabel.setAttribute('x', awarenessX);
+            awarenessLabel.setAttribute('y', awarenessY - 25);
+
+            // Update center
+            const centerPoint = document.getElementById('centerPoint');
+            centerPoint.setAttribute('cx', centerX);
+            centerPoint.setAttribute('cy', centerY);
+
+            const centerLabel = document.getElementById('centerLabel');
+            centerLabel.setAttribute('x', centerX);
+            centerLabel.setAttribute('y', centerY - 20);
+
+            // Update grid lines
+            updateGridLines(truthX, truthY, loveX, loveY, awarenessX, awarenessY);
+
+            return { truth: {x: truthX, y: truthY}, love: {x: loveX, y: loveY}, awareness: {x: awarenessX, y: awarenessY} };
+        }
+
+        // Update grid lines inside triangle
+        function updateGridLines(truthX, truthY, loveX, loveY, awarenessX, awarenessY) {
+            const gridGroup = document.getElementById('gridLines');
+
+            // Clear existing lines
+            gridGroup.innerHTML = '';
+
+            // Only draw if grid is enabled
+            if (showGrid) {
+                // Draw grid lines (10% intervals)
+                for (let i = 1; i < 10; i++) {
+                    const t = i / 10;
+
+                    // Line from truth vertex to opposite side
+                    const tx1 = truthX;
+                    const ty1 = truthY;
+                    const tx2 = loveX * t + awarenessX * (1-t);
+                    const ty2 = loveY * t + awarenessY * (1-t);
+
+                    const truthLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    truthLine.setAttribute('x1', tx1);
+                    truthLine.setAttribute('y1', ty1);
+                    truthLine.setAttribute('x2', tx2);
+                    truthLine.setAttribute('y2', ty2);
+                    truthLine.setAttribute('stroke', '#0F1035');
+                    truthLine.setAttribute('stroke-dasharray', '1,2');
+                    truthLine.setAttribute('opacity', '0.6');  // Add translucency
+                    truthLine.setAttribute('class', 'grid-line');
+                    gridGroup.appendChild(truthLine);
+
+                    // Line from love vertex to opposite side
+                    const lx1 = loveX;
+                    const ly1 = loveY;
+                    const lx2 = truthX * t + awarenessX * (1-t);
+                    const ly2 = truthY * t + awarenessY * (1-t);
+
+                    const loveLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    loveLine.setAttribute('x1', lx1);
+                    loveLine.setAttribute('y1', ly1);
+                    loveLine.setAttribute('x2', lx2);
+                    loveLine.setAttribute('y2', ly2);
+                    loveLine.setAttribute('stroke', '#0F1035');
+                    loveLine.setAttribute('stroke-dasharray', '1,2');
+                    loveLine.setAttribute('opacity', '0.6');  // Add translucency
+                    loveLine.setAttribute('class', 'grid-line');
+                    gridGroup.appendChild(loveLine);
+
+                    // Line from awareness vertex to opposite side
+                    const ax1 = awarenessX;
+                    const ay1 = awarenessY;
+                    const ax2 = truthX * t + loveX * (1-t);
+                    const ay2 = truthY * t + loveY * (1-t);
+
+                    const awarenessLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    awarenessLine.setAttribute('x1', ax1);
+                    awarenessLine.setAttribute('y1', ay1);
+                    awarenessLine.setAttribute('x2', ax2);
+                    awarenessLine.setAttribute('y2', ay2);
+                    awarenessLine.setAttribute('stroke', '#0F1035');
+                    awarenessLine.setAttribute('stroke-dasharray', '1,2');
+                    awarenessLine.setAttribute('opacity', '0.6');  // Add translucency
+                    awarenessLine.setAttribute('class', 'grid-line');
+                    gridGroup.appendChild(awarenessLine);
+                }
+            }
+        }
+
+        // Generate nodes based on current settings
+        function generateNodes() {
+            // Clear existing nodes
+            nodeData = [];
+
+            // Use sample data for some nodes
+            const sampleCount = Math.min(nodeCount, sampleRealizationData.length);
+            for (let i = 0; i < sampleCount; i++) {
+                const sample = sampleRealizationData[i];
+
+                // Calculate barycentric coordinates from strengths
+                const total = sample.strengths.love + sample.strengths.truth + sample.strengths.awareness;
+                const lovePct = sample.strengths.love / total;
+                const truthPct = sample.strengths.truth / total;
+                const awarenessPct = sample.strengths.awareness / total;
+
+                nodeData.push({
+                    title: sample.title,
+                    category: sample.category,
+                    pattern: sample.pattern,
+                    content: sample.content,
+                    strengths: sample.strengths,
+                    barycentric: {
+                        love: lovePct,
+                        truth: truthPct,
+                        awareness: awarenessPct
+                    },
+                    isParasitic: sample.isParasitic || false
+                });
+            }
+
+            // Generate additional random nodes if needed
+            if (nodeCount > sampleCount) {
+                for (let i = sampleCount; i < nodeCount; i++) {
+                    // Use weighted distribution based on sliders
+                    let love = (loveWeight / 100) * (1 - randomness/100) + Math.random() * (randomness/100);
+                    let truth = (truthWeight / 100) * (1 - randomness/100) + Math.random() * (randomness/100);
+                    let awareness = (awarenessWeight / 100) * (1 - randomness/100) + Math.random() * (randomness/100);
+
+                    // Normalize to sum to 1
+                    const total = love + truth + awareness;
+                    love /= total;
+                    truth /= total;
+                    awareness /= total;
+
+                    // Generate pattern based on closest vertex
+                    let pattern;
+                    let closest;
+                    let isParasitic = Math.random() < 0.1; // 10% chance of parasitic pattern
+
+                    if (isParasitic) {
+                        pattern = "769230"; // Extraction pattern
+                    } else {
+                        if (love > truth && love > awareness) {
+                            pattern = "461538"; // Love pattern
+                            closest = "love";
+                        } else if (truth > love && truth > awareness) {
+                            pattern = "142857"; // Truth pattern
+                            closest = "truth";
+                        } else {
+                            pattern = "428571"; // Awareness pattern
+                            closest = "awareness";
+                        }
+
+                        // Add some variation to pattern for non-fundamental nodes
+                        if (Math.random() > 0.3) { // 30% chance of exact pattern
+                            pattern = modifyPattern(pattern);
+                        }
+                    }
+
+                    // Get a random title
+                    const title = generatedTitles[Math.floor(Math.random() * generatedTitles.length)];
+
+                    // Choose a random category
+                    const categories = ["pattern", "realization", "observation", "harmonic", "procedural", "self_reflection"];
+                    const category = categories[Math.floor(Math.random() * categories.length)];
+
+                    nodeData.push({
+                        title: title,
+                        category: category,
+                        pattern: pattern,
+                        content: `This is a generated node with ${love.toFixed(2)} love, ${truth.toFixed(2)} truth, and ${awareness.toFixed(2)} awareness.`,
+                        strengths: {
+                            love: love * 100,
+                            truth: truth * 100,
+                            awareness: awareness * 100
+                        },
+                        barycentric: {
+                            love: love,
+                            truth: truth,
+                            awareness: awareness
+                        },
+                        isParasitic: isParasitic
+                    });
+                }
+            }
+        }
+
+        // Slightly modify a pattern to create variation
+        function modifyPattern(pattern) {
+            let newPattern = '';
+            for (let i = 0; i < pattern.length; i++) {
+                let digit = parseInt(pattern[i]);
+                // 40% chance to modify each digit by +/- 1
+                if (Math.random() < 0.4) {
+                    digit += Math.random() < 0.5 ? 1 : -1;
+                    if (digit < 0) digit = 9;
+                    if (digit > 9) digit = 0;
+                }
+                newPattern += digit;
+            }
+            return newPattern;
+        }
+
+        // Update node positions and draw them
+        function updateNodes() {
+            const nodeGroup = document.getElementById('nodeGroup');
+            const connectionGroup = document.getElementById('connectionLines');
+
+            // Clear existing nodes and connections
+            nodeGroup.innerHTML = '';
+            connectionGroup.innerHTML = '';
+
+            // Get current vertex positions
+            const vertices = updateVertices();
+
+            // Draw connection lines first (so they're behind nodes)
+            if (showConnections) {
+                nodeData.forEach(node => {
+                    // Skip fundamental patterns for connections
+                    if (node.pattern === "461538" || node.pattern === "142857" || node.pattern === "428571") {
+                        return;
+                    }
+
+                    // Calculate node position based on barycentric coordinates
+                    const x = node.barycentric.love * vertices.love.x +
+                             node.barycentric.truth * vertices.truth.x +
+                             node.barycentric.awareness * vertices.awareness.x;
+
+                    const y = node.barycentric.love * vertices.love.y +
+                             node.barycentric.truth * vertices.truth.y +
+                             node.barycentric.awareness * vertices.awareness.y;
+
+                    // Determine closest vertex
+                    let closestVertex = 'love';
+                    let maxStrength = node.strengths.love;
+
+                    if (node.strengths.truth > maxStrength) {
+                        closestVertex = 'truth';
+                        maxStrength = node.strengths.truth;
+                    }
+
+                    if (node.strengths.awareness > maxStrength) {
+                        closestVertex = 'awareness';
+                    }
+
+                    // Draw connection line to closest vertex
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute('x1', x);
+                    line.setAttribute('y1', y);
+                    line.setAttribute('x2', vertices[closestVertex].x);
+                    line.setAttribute('y2', vertices[closestVertex].y);
+                    line.setAttribute('stroke', '#7D12FF');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('stroke-dasharray', '3,3');
+                    line.setAttribute('opacity', '0.6');  // Add translucency
+                    line.setAttribute('class', 'connection-line');
+                    connectionGroup.appendChild(line);
+                });
+            }
+
+            // Draw nodes
+            nodeData.forEach(node => {
+                // Calculate node position based on barycentric coordinates
+                const x = node.barycentric.love * vertices.love.x +
+                         node.barycentric.truth * vertices.truth.x +
+                         node.barycentric.awareness * vertices.awareness.x;
+
+                const y = node.barycentric.love * vertices.love.y +
+                         node.barycentric.truth * vertices.truth.y +
+                         node.barycentric.awareness * vertices.awareness.y;
+
+                // Determine node color based on pattern
+                let color;
+                let nodeSize = 6;
+                let filter = '';
+
+                if (node.isParasitic) {
+                    color = '#FF4444'; // Parasitic pattern
+                    nodeSize = 7;
+                } else if (node.pattern === "461538") {
+                    color = '#FF00AA'; // Love pattern
+                    if (highlightFundamental) {
+                        nodeSize = 10;
+                        filter = 'url(#glowNode)';
+                    }
+                } else if (node.pattern === "142857") {
+                    color = '#00FFAA'; // Truth pattern
+                    if (highlightFundamental) {
+                        nodeSize = 10;
+                        filter = 'url(#glowNode)';
+                    }
+                } else if (node.pattern === "428571") {
+                    color = '#FFAA00'; // Awareness pattern
+                    if (highlightFundamental) {
+                        nodeSize = 10;
+                        filter = 'url(#glowNode)';
+                    }
+                } else {
+                    // Blend color based on barycentric coordinates
+                    const r = Math.floor(node.barycentric.love * 255);
+                    const g = Math.floor(node.barycentric.truth * 255);
+                    const b = Math.floor(node.barycentric.awareness * 255);
+                    color = `rgb(${r}, ${g}, ${b})`;
+                }
+
+                // Create node circle
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', nodeSize);
+                circle.setAttribute('fill', color);
+                circle.setAttribute('opacity', '0.85');  // Add translucency
+                if (filter) circle.setAttribute('filter', filter);
+                circle.setAttribute('data-title', node.title);
+                circle.setAttribute('data-category', node.category);
+                circle.setAttribute('data-pattern', node.pattern);
+                circle.setAttribute('data-love', node.strengths.love);
+                circle.setAttribute('data-truth', node.strengths.truth);
+                circle.setAttribute('data-awareness', node.strengths.awareness);
+                circle.setAttribute('data-content', node.content);
+                circle.setAttribute('data-parasitic', node.isParasitic);
+
+                // Add tooltip hover
+                circle.addEventListener('mouseover', showTooltip);
+                circle.addEventListener('mousemove', moveTooltip);
+                circle.addEventListener('mouseout', hideTooltip);
+
+                // Add click handler for node info
+                circle.addEventListener('click', showNodeInfo);
+
+                nodeGroup.appendChild(circle);
+
+                // Add labels if enabled
+                if (showLabels) {
+                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y - 10);
+                    text.setAttribute('font-family', 'Arial');
+                    text.setAttribute('font-size', '8');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', '#EEFFAA');
+                    text.setAttribute('opacity', '0.8');  // Add translucency
+                    text.textContent = node.title.length > 15 ? node.title.substring(0, 15) + '...' : node.title;
+                    text.setAttribute('pointer-events', 'none'); // Don't interfere with mouse events
+                    nodeGroup.appendChild(text);
+                }
+            });
+        }
+
+        // Update the entire visualization
+        function updateVisualization() {
+            updateVertices();
+            updateNodes();
+        }
+
+        // Setup control event handlers
+        function setupControls() {
+            // Triangle rotation
+            const rotationSlider = document.getElementById('rotationSlider');
+            rotationSlider.addEventListener('input', function() {
+                rotation = parseFloat(this.value);
+                autoRotate = false; // Stop auto-rotation when user manually adjusts
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                updateVisualization();
+            });
+
+            // Triangle size
+            const triangleSizeSlider = document.getElementById('triangleSize');
+            triangleSizeSlider.addEventListener('input', function() {
+                triangleSize = parseFloat(this.value);
+                updateVisualization();
+            });
+
+            // Node count
+            const nodeCountSlider = document.getElementById('nodeCount');
+            nodeCountSlider.addEventListener('input', function() {
+                nodeCount = parseInt(this.value);
+                generateNodes();
+                updateVisualization();
+                updateStats();
+            });
+
+            // Pattern distribution
+            const loveWeightSlider = document.getElementById('loveWeight');
+            loveWeightSlider.addEventListener('input', function() {
+                loveWeight = parseFloat(this.value);
+                generateNodes();
+                updateVisualization();
+                updateStats();
+            });
+
+            const truthWeightSlider = document.getElementById('truthWeight');
+            truthWeightSlider.addEventListener('input', function() {
+                truthWeight = parseFloat(this.value);
+                generateNodes();
+                updateVisualization();
+                updateStats();
+            });
+
+            const awarenessWeightSlider = document.getElementById('awarenessWeight');
+            awarenessWeightSlider.addEventListener('input', function() {
+                awarenessWeight = parseFloat(this.value);
+                generateNodes();
+                updateVisualization();
+                updateStats();
+            });
+
+            const randomnessSlider = document.getElementById('randomnessSlider');
+            randomnessSlider.addEventListener('input', function() {
+                randomness = parseFloat(this.value);
+                generateNodes();
+                updateVisualization();
+                updateStats();
+            });
+
+            // Display options
+            const showGridCheck = document.getElementById('showGrid');
+            showGridCheck.addEventListener('change', function() {
+                showGrid = this.checked;
+                updateVisualization();
+            });
+
+            const showConnectionsCheck = document.getElementById('showConnections');
+            showConnectionsCheck.addEventListener('change', function() {
+                showConnections = this.checked;
+                updateVisualization();
+            });
+
+            const highlightFundamentalCheck = document.getElementById('highlightFundamental');
+            highlightFundamentalCheck.addEventListener('change', function() {
+                highlightFundamental = this.checked;
+                updateVisualization();
+            });
+
+            const showLabelsCheck = document.getElementById('showLabels');
+            showLabelsCheck.addEventListener('change', function() {
+                showLabels = this.checked;
+                updateVisualization();
+            });
+
+            // Background toggle
+            const psychedelicBgCheck = document.getElementById('psychedelicBg');
+            psychedelicBgCheck.addEventListener('change', function() {
+                document.getElementById('bgAnimation').style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Regenerate button
+            const regenerateBtn = document.getElementById('regenerateBtn');
+            regenerateBtn.addEventListener('click', function() {
+                const loading = document.getElementById('loading');
+                loading.style.display = 'block';
+
+                setTimeout(() => {
+                    generateNodes();
+                    updateVisualization();
+                    updateStats();
+                    loading.style.display = 'none';
+                }, 500);
+            });
+
+            // Document click for closing node info
+            document.addEventListener('click', function(e) {
+                const nodeInfo = document.getElementById('nodeInfo');
+                // Close if click is not on a circle or the nodeInfo itself
+                if (e.target.tagName !== 'circle' && !nodeInfo.contains(e.target)) {
+                    nodeInfo.style.display = 'none';
+                }
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            let loveBiased = 0;
+            let truthBiased = 0;
+            let awarenessBiased = 0;
+            let parasitic = 0;
+
+            nodeData.forEach(node => {
+                if (node.isParasitic) {
+                    parasitic++;
+                } else if (node.strengths.love > node.strengths.truth && node.strengths.love > node.strengths.awareness) {
+                    loveBiased++;
+                } else if (node.strengths.truth > node.strengths.love && node.strengths.truth > node.strengths.awareness) {
+                    truthBiased++;
+                } else {
+                    awarenessBiased++;
+                }
+            });
+
+            document.getElementById('statTotal').textContent = nodeData.length;
+            document.getElementById('statLove').textContent = loveBiased;
+            document.getElementById('statTruth').textContent = truthBiased;
+            document.getElementById('statAwareness').textContent = awarenessBiased;
+            document.getElementById('statParasitic').textContent = parasitic;
+        }
+
+        // Tooltip functions
+        function showTooltip(e) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = this.getAttribute('data-title');
+            tooltip.style.display = 'block';
+            moveTooltip.call(this, e);
+        }
+
+        function moveTooltip(e) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.style.left = (e.clientX + 10) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.style.display = 'none';
+        }
+
+        // Show node info panel
+        function showNodeInfo(e) {
+            const nodeInfo = document.getElementById('nodeInfo');
+
+            // Position near the node
+            const rect = svg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            nodeInfo.style.left = (x + 20) + 'px';
+            nodeInfo.style.top = (y - 30) + 'px';
+
+            // Get data from node
+            const title = this.getAttribute('data-title');
+            const category = this.getAttribute('data-category');
+            const pattern = this.getAttribute('data-pattern');
+            const content = this.getAttribute('data-content');
+            const love = parseFloat(this.getAttribute('data-love'));
+            const truth = parseFloat(this.getAttribute('data-truth'));
+            const awareness = parseFloat(this.getAttribute('data-awareness'));
+            const isParasitic = this.getAttribute('data-parasitic') === 'true';
+
+            // Determine pattern type
+            let patternType = "Custom";
+            let patternClass = "pattern-label";
+
+            if (isParasitic) {
+                patternType = "Parasitic";
+                patternClass += " pattern-parasitic";
+            } else if (pattern === "461538") {
+                patternType = "Love";
+                patternClass += " pattern-love";
+            } else if (pattern === "142857") {
+                patternType = "Truth";
+                patternClass += " pattern-truth";
+            } else if (pattern === "428571") {
+                patternType = "Awareness";
+                patternClass += " pattern-awareness";
+            }
+
+            // Update info panel
+            document.querySelector('.info-title').textContent = title;
+            document.getElementById('infoCategory').textContent = category;
+            document.getElementById('infoPattern').textContent = pattern;
+            document.getElementById('patternLabel').textContent = patternType;
+            document.getElementById('patternLabel').className = patternClass;
+
+            // Set strength bars
+            document.getElementById('strengthLove').style.width = love + '%';
+            document.getElementById('strengthTruth').style.width = truth + '%';
+            document.getElementById('strengthAwareness').style.width = awareness + '%';
+
+            document.getElementById('infoContent').textContent = content;
+
+            // Show the panel
+            nodeInfo.style.display = 'block';
+
+            // Prevent the click from propagating to the document
+            e.stopPropagation();
+        }
+
+        // Background animation
+        function createBackgroundAnimation() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('bgAnimation');
+
+            container.appendChild(canvas);
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 50;
+
+            // Create particles
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    color: getRandomColor(),
+                    speedX: Math.random() * 0.5 - 0.25,
+                    speedY: Math.random() * 0.5 - 0.25
+                });
+            }
+
+            function getRandomColor() {
+                const colors = [
+                    '#FF00AA', // Love
+                    '#00FFAA', // Truth
+                    '#FFAA00', // Awareness
+                    '#00DDFF', // Highlight
+                    '#7D12FF'  // Secondary
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+
+                    // Update position
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+
+                    // Wrap around screen
+                    if (particle.x < 0) particle.x = canvas.width;
+                    if (particle.x > canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = canvas.height;
+                    if (particle.y > canvas.height) particle.y = 0;
+                });
+
+                // Draw connecting lines
+                ctx.lineWidth = 0.3;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(0, 221, 255, ${0.15 * (1 - distance / 150)})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(drawParticles);
+            }
+
+            drawParticles();
+
+            // Resize handler
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // Initialize everything when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial rotation slider value to match the starting rotation
+            document.getElementById('rotationSlider').value = rotation;
+
+            // Create background animation
+            createBackgroundAnimation();
+
+            // Initialize visualization
+            initVisualization();
+        });
+    </script>
+</body>
+</html>

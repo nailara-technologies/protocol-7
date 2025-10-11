@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMOS Protocol-Seven & Recursive Hyperspace Addressing</title>
+    <style>
+        body {
+            background-color: #08030f;
+            color: #a0c0ff;
+            font-family: monospace;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            color: #50a0ff;
+            text-shadow: 0 0 10px #50a0ff, 0 0 20px #44278c;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px rgba(68, 39, 140, 0.5);
+            color: rgba(160, 192, 255, 0.9);
+        }
+
+        .concept-box {
+            background: rgba(20, 10, 40, 0.8);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 40px 0;
+            border: 1px solid #44278c;
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.3);
+        }
+
+        .highlight {
+            color: #60b0ff;
+            font-weight: bold;
+            text-shadow: 0 0 5px #44278c;
+        }
+
+        .question-section {
+            background: rgba(15, 5, 30, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #44278c;
+            margin: 20px 0;
+            box-shadow: 0 0 15px rgba(100, 0, 255, 0.3);
+        }
+
+        .question {
+            color: #a050ff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #8737c0;
+            font-size: 1.2em;
+        }
+
+        .known-info {
+            background: rgba(25, 10, 50, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #60b0ff;
+        }
+
+        .code-block {
+            background: rgba(20, 8, 40, 0.85);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border-left: 3px solid rgba(96, 176, 255, 0.6);
+            font-family: 'Courier New', monospace;
+            color: rgba(170, 255, 153, 0.8);
+            text-shadow: 0 0 5px rgba(47, 153, 85, 0.5);
+            white-space: pre;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at center, rgba(135, 55, 192, 0.15), transparent 70%),
+                radial-gradient(ellipse at bottom left, rgba(255, 80, 120, 0.1), transparent 70%),
+                radial-gradient(ellipse at top right, rgba(80, 200, 255, 0.1), transparent 70%);
+            pointer-events: none;
+            border-radius: 8px;
+        }
+
+        /* Psychedelic syntax highlighting with softer colors */
+        .code-block .keyword {
+            color: rgba(255, 96, 200, 0.85); /* softer pink */
+            text-shadow: 0 0 8px rgba(255, 96, 200, 0.5);
+        }
+
+        .code-block .comment {
+            color: rgba(160, 80, 255, 0.8); /* softer purple */
+            text-shadow: 0 0 8px rgba(160, 80, 255, 0.5);
+            font-style: italic;
+        }
+
+        .code-block .string {
+            color: rgba(96, 255, 191, 0.8); /* softer teal */
+            text-shadow: 0 0 8px rgba(96, 255, 191, 0.5);
+        }
+
+        .code-block .function {
+            color: rgba(96, 200, 255, 0.8); /* softer blue */
+            text-shadow: 0 0 8px rgba(96, 200, 255, 0.5);
+        }
+
+        .code-block .variable {
+            color: rgba(180, 160, 255, 0.85); /* softer lavender */
+            text-shadow: 0 0 8px rgba(180, 160, 255, 0.5);
+        }
+
+        .code-block .number {
+            color: rgba(255, 144, 96, 0.85); /* softer orange */
+            text-shadow: 0 0 8px rgba(255, 144, 96, 0.5);
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(80, 0, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(80, 0, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            opacity: 0.25;
+            background:
+                radial-gradient(ellipse at 10% 20%, rgba(135, 55, 192, 0.6) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 30%, rgba(255, 80, 180, 0.5) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(80, 160, 255, 0.5) 0%, transparent 60%);
+            filter: blur(10px);
+        }%, transparent 40%);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: rgba(40, 10, 60, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #af9;
+            text-shadow: 0 0 5px #2f9;
+        }
+
+        .algorithm-placeholder {
+            background: rgba(20, 10, 40, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px dashed #60b0ff;
+            color: #60b0ff;
+            text-align: center;
+        }
+
+        .section-title {
+            border-bottom: 1px solid #44278c;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .gateway-ref {
+            color: #a050ff;
+            border-bottom: 1px dotted #a050ff;
+        }
+
+        .address-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .address-table th {
+            background: rgba(30, 15, 60, 0.7);
+            padding: 10px;
+            text-align: left;
+            color: #60b0ff;
+        }
+
+        .address-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(68, 39, 140, 0.4);
+        }
+
+        .address-table tr:hover {
+            background: rgba(30, 15, 60, 0.4);
+        }
+
+        .note {
+            background: rgba(25, 10, 50, 0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid #a050ff;
+            font-style: italic;
+        }
+
+        .debug-tag {
+            color: #ff5050;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="bg-effect"></div>
+
+    <div class="container">
+        <header>
+            <h1>AMOS PROTOCOL-SEVEN & HYPERSPACE ADDRESSING</h1>
+            <p>Research Questions & Implementation Pathways</p>
+        </header>
+
+        <div class="concept-box">
+            <h2>Overview: Hyperspace Architecture & Resource Tokens</h2>
+            <p>This document explores the potential integration of two complementary systems: the <span class="highlight">63+1 Recursive Hyperspace Architecture</span> for multidimensional addressing and routing, and the <span class="highlight">AMOS RESOURCE TOKENS</span> blockchain system for resource valuation and exchange.</p>
+            <p>Rather than inferring implementation details, this document formulates critical questions to guide further development, with known information serving as the foundation for accurate implementation.</p>
+        </div>
+
+        <h2 class="section-title">I. Hyperspace Addressing Core Structure</h2>
+
+        <div class="question-section">
+            <div class="question">Q1: How should the 3D visualization of the 63+1 cube structure be most accurately represented?</div>
+            <div class="known-info">
+                <p>We know the structure is a perfect cube with exactly one subcube removed (the cutout corner). This creates a structure with 63 subcubes plus 1 dimensional gateway at the cutout position.</p>
+                <p>Each subcube occupies a position identified by a 3-bit address (values 001-111). The missing subcube (000) represents the dimensional gateway.</p>
+            </div>
+
+            <h4>Action: Implement WebGL Visualization</h4>
+            <p>Rather than approximating, we need to create an accurate 3D model with:</p>
+            <ul>
+                <li>Precise positioning of all 63 subcubes</li>
+                <li>Visual distinction for the gateway corner (position 000)</li>
+                <li>Clear labeling of 3-bit addresses for each subcube</li>
+                <li>Interactive rotation and zoom capabilities</li>
+            </ul>
+            <div class="algorithm-placeholder">[WebGL Cube Visualization Algorithm Required]</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q2: What is the exact mechanism for traversing between dimensional scales?</div>
+            <div class="known-info">
+                <p>Navigation between adjacent scales requires traversing through the gateway and appending a new 3-bit segment to the address.</p>
+                <p>Routes can traverse multiple scale boundaries, allowing packets to move between domains of vastly different scales in a single logical hop.</p>
+            </div>
+
+            <h4>Address Format Research</h4>
+            <p>The hyperspace addressing format uses concatenated 3-bit segments to describe the complete path:</p>
+            <div class="code-block">Route: 101.011.110.001</div>
+
+            <div class="question">Q2.1: What happens at the dimensional boundaries specifically?</div>
+            <ul>
+                <li>How is the transition between scales mathematically defined?</li>
+                <li>Are there constraints on how many dimensional boundaries can be crossed in a single routing operation?</li>
+                <li>What happens when a packet enters the gateway (000) position?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Dimensional Traversal Algorithm Required]</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q3: How are the fractal properties of the structure leveraged in practical addressing?</div>
+            <div class="known-info">
+                <p>The 63+1 structure exhibits self-similar fractal properties that create powerful network characteristics including scale invariance and homomorphic encryption potential.</p>
+                <p>The same routing principles apply regardless of which recursive level is being traversed, creating protocol consistency across all network scales.</p>
+            </div>
+
+            <h4>Research: Fractal Mathematics Implementation</h4>
+            <ul>
+                <li>How do we calculate the total addressable space at N levels of recursion?</li>
+                <li>How should routing algorithms optimize for the fractal nature of the address space?</li>
+                <li>Can we express the fractal scaling mathematically to predict network growth patterns?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Fractal Scaling Function Required]</div>
+        </div>
+
+        <h3>Conceptual Implementation Approach</h3>
+        <div class="code-block"><pre><span class="comment"># Perl implementation scaffold for recursive hyperspace address</span>
+
+<span class="keyword">sub</span> <span class="function">create_hyperspace_address</span> {
+    <span class="keyword">my</span> (<span class="variable">$address_segments</span>) = @_;
+
+    <span class="comment"># Validate each segment is a valid 3-bit value (0-7)</span>
+    <span class="keyword">foreach my</span> <span class="variable">$segment</span> (@<span class="variable">$address_segments</span>) {
+        <span class="keyword">if</span> (<span class="variable">$segment</span> < <span class="number">0</span> || <span class="variable">$segment</span> > <span class="number">7</span>) {
+            <span class="keyword">die</span> <span class="string">"Invalid segment: </span><span class="variable">$segment</span><span class="string"> - Address segments must be 3-bit values (0-7)"</span>;
+        }
+
+        <span class="comment"># Gateway can't be an addressable location except at dimensional transitions</span>
+        <span class="comment"># Implementation needed: How to identify and handle gateway transitions</span>
+    }
+
+    <span class="comment"># Convert segments to binary strings</span>
+    <span class="keyword">my</span> @<span class="variable">binary_segments</span> = <span class="keyword">map</span> { <span class="function">sprintf</span>(<span class="string">"%03b"</span>, $_) } @<span class="variable">$address_segments</span>;
+
+    <span class="comment"># Join with period separator</span>
+    <span class="keyword">my</span> <span class="variable">$binary_address</span> = <span class="function">join</span>(<span class="string">'.'</span>, @<span class="variable">binary_segments</span>);
+
+    <span class="comment"># Questions:</span>
+    <span class="comment"># 1. How to identify which segments represent gateway transitions?</span>
+    <span class="comment"># 2. What metadata should be attached to the address object?</span>
+    <span class="comment"># 3. How to efficiently calculate distance between addresses?</span>
+
+    <span class="keyword">return</span> {
+        <span class="string">segments</span> => <span class="variable">$address_segments</span>,
+        <span class="string">binary_address</span> => <span class="variable">$binary_address</span>,
+        <span class="comment"># Additional metadata needed</span>
+    };
+}</pre>
+</div>
+
+        <h2 class="section-title">II. AMOS Resource Token Architecture</h2>
+
+        <div class="question-section">
+            <div class="question">Q4: How is the AMOS-13 encryption algorithm precisely implemented?</div>
+            <div class="known-info">
+                <p>C25519 keys are generated from a passphrase and PIN. The passphrase seeds an AMOS-13 encryption algorithm cipher stream and a division by 13 based entropy pool.</p>
+                <p>The PIN describes how many iterations are required to derive the secret key from BMW (Blue Midnight Wish) and Tiger digest hashes fed by the cipherstream entropy.</p>
+            </div>
+
+            <h4>Cryptographic Implementation Questions</h4>
+            <ul>
+                <li>What is the exact mathematical basis for the "division by 13 based entropy pool"?</li>
+                <li>How is the PIN used to determine iteration count precisely?</li>
+                <li>What are the specific parameters for the BMW and Tiger hash functions?</li>
+                <li>How is the cipherstream generated and consumed by the hashing functions?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[AMOS-13 Cryptographic Algorithm Required]</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q5: What is the complete account structure implementation?</div>
+            <div class="known-info">
+                <p>Account values are represented by signed 13-digit numbers. Accounts are described by 7-character AMOS-checksums plus 32-octet C25519 public keys.</p>
+                <p>Format: <code>&lt;CHKSUM&gt;&lt;C25519-KEY&gt;</code></p>
+                <p>The checksum is calculated over: username, creation date, account creation date, and public key, including a signature over these values with that key.</p>
+            </div>
+
+            <h4>Account Structure Implementation</h4>
+            <div class="code-block"><pre><span class="comment"># Account example from documentation</span>
+<span class="string">Z4E6VW6T3VSROHDRH5SSXARBET4EVALXCLH67QVFF5S5MOFDL5L</span></pre>
+            </div>
+
+            <div class="question">Q5.1: What is the exact checksum algorithm?</div>
+            <ul>
+                <li>How are the 7 characters of the AMOS-checksum derived?</li>
+                <li>What is the precise format of the nailara network timestamp?</li>
+                <li>How is the signature incorporated into the checksum?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[AMOS Checksum Algorithm Required]</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q6: How does the Proof of Work system validate new tokens?</div>
+            <div class="known-info">
+                <p>Token issuance requires checksum verification over harmonic random value and harmonic last state.</p>
+                <p>Segmentized truth verification ensures 72-bit rows must be TRUE, with checks performed as numerical assertions using elf modes 4, 7, and 13.</p>
+                <p>From the last valid state, a C25519 secret key can be derived to sign the next valid state.</p>
+            </div>
+
+            <h4>Implementation Questions</h4>
+            <ul>
+                <li>What defines a "harmonic random value" and "harmonic last state"?</li>
+                <li>What is "segmentized truth verification" and how are the 72-bit rows structured?</li>
+                <li>What are "elf modes 4, 7, and 13" in this context?</li>
+                <li>How is the C25519 secret key derived from the last valid state?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Token Validation Algorithm Required]</div>
+        </div>
+
+        <h3>Resource Valuation Approach</h3>
+        <div class="note">
+            <p>AMOS RESOURCE TOKENS represent the resources an average user connects to the network, calculated as <span class="highlight">total resources ÷ total users</span>.</p>
+            <p>AMOS DROPS are sub-units of resource tokens, with <span class="highlight">4200 AMOS DROPS = 1 AMOS RESOURCE TOKEN</span>.</p>
+        </div>
+
+        <div class="code-block"><pre><span class="comment"># Conceptual resource valuation algorithm</span>
+
+<span class="keyword">sub</span> <span class="function">calculate_token_value</span> {
+    <span class="keyword">my</span> (<span class="variable">$network_state</span>) = @_;
+
+    <span class="comment"># Extract network metrics</span>
+    <span class="keyword">my</span> <span class="variable">$total_resources</span> = <span class="function">get_total_resources</span>(<span class="variable">$network_state</span>);
+    <span class="keyword">my</span> <span class="variable">$total_users</span> = <span class="function">get_total_users</span>(<span class="variable">$network_state</span>);
+
+    <span class="comment"># Calculate base token value</span>
+    <span class="keyword">my</span> <span class="variable">$token_base_value</span> = <span class="variable">$total_resources</span> / <span class="variable">$total_users</span>;
+
+    <span class="comment"># Questions:</span>
+    <span class="comment"># 1. How are different resource types normalized?</span>
+    <span class="comment"># 2. How is the token value adjusted for network growth?</span>
+    <span class="comment"># 3. How are AMOS DROPS precisely subdivided?</span>
+
+    <span class="keyword">return</span> <span class="variable">$token_base_value</span>;
+}</pre>
+</div>
+
+        <h2 class="section-title">III. Integration Opportunities & Questions</h2>
+
+        <div class="question-section">
+            <div class="question">Q7: How can hyperspace addressing enhance token transactions?</div>
+
+            <h4>Conceptual Integration Points</h4>
+            <ul>
+                <li>Could each subcube in the hyperspace structure represent a different type of resource market?</li>
+                <li>How might dimensional traversal affect transaction fees or token valuation?</li>
+                <li>Could the gateway mechanism provide secure cross-domain token transfers?</li>
+                <li>How would the recursive structure enable scalable token distribution?</li>
+            </ul>
+
+            <div class="code-block"><pre><span class="comment"># Integration concept for hyperspace token routing</span>
+
+<span class="keyword">sub</span> <span class="function">route_token_transaction</span> {
+    <span class="keyword">my</span> (<span class="variable">$source_address</span>, <span class="variable">$destination_address</span>, <span class="variable">$token_amount</span>) = @_;
+
+    <span class="comment"># Find the dimensional distance between addresses</span>
+    <span class="keyword">my</span> <span class="variable">$dimensional_distance</span> = <span class="function">calculate_dimensional_distance</span>(
+        <span class="variable">$source_address</span>, <span class="variable">$destination_address</span>
+    );
+
+    <span class="comment"># Question: How should token transactions be affected by dimensional distance?</span>
+
+    <span class="comment"># Calculate route through dimensional gateways</span>
+    <span class="keyword">my</span> <span class="variable">$route</span> = <span class="function">find_optimal_route</span>(<span class="variable">$source_address</span>, <span class="variable">$destination_address</span>);
+
+    <span class="comment"># Question: How to factor in gateway transitions in transaction validation?</span>
+
+    <span class="comment"># Apply transaction fees based on route complexity</span>
+    <span class="keyword">my</span> <span class="variable">$transaction_fee</span> = <span class="function">calculate_transaction_fee</span>(<span class="variable">$route</span>);
+
+    <span class="comment"># Execute the transaction along the route</span>
+    <span class="keyword">my</span> <span class="variable">$transaction_result</span> = <span class="function">execute_transaction</span>(
+        <span class="variable">$source_address</span>,
+        <span class="variable">$destination_address</span>,
+        <span class="variable">$token_amount</span>,
+        <span class="variable">$transaction_fee</span>,
+        <span class="variable">$route</span>
+    );
+
+    <span class="keyword">return</span> <span class="variable">$transaction_result</span>;
+}</pre>
+</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q8: How could homomorphic encryption leverage the 63+1 structure?</div>
+            <div class="known-info">
+                <p>The recursive structure enables operations on encrypted data that preserve relationships between elements, creating opportunities for privacy-preserving routing where network functions can operate on encrypted addresses without decrypting the data.</p>
+            </div>
+
+            <h4>Research Directions</h4>
+            <ul>
+                <li>How can the 3-bit addressing scheme support homomorphic operations?</li>
+                <li>What encryption schemes are compatible with the recursive structure?</li>
+                <li>How can gateway transitions preserve encryption properties?</li>
+                <li>Could zero-knowledge proofs validate transactions across dimensional boundaries?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Homomorphic Encryption Integration Required]</div>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q9: How might emergent intelligence manifest in this system?</div>
+            <div class="known-info">
+                <p>As the network scales, the recursive structure creates emergent patterns that can be leveraged for self-organizing optimization. The network can adaptively reconfigure routing patterns based on usage patterns and congestion states.</p>
+            </div>
+
+            <h4>Potential Research Areas</h4>
+            <ul>
+                <li>What metrics would identify emergent intelligence in the system?</li>
+                <li>How could routing algorithms adapt based on dimensional traffic patterns?</li>
+                <li>Could token value fluctuations across dimensions inform routing decisions?</li>
+                <li>What mechanisms would enable self-optimization without centralized control?</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Emergent Intelligence Monitoring System Required]</div>
+        </div>
+
+        <h2 class="section-title">IV. Development Roadmap & Critical Questions</h2>
+
+        <div class="question-section">
+            <div class="question">Q10: What are the immediate implementation priorities?</div>
+
+            <h4>Suggested Development Sequence</h4>
+            <ol>
+                <li>Accurate 3D visualization of the 63+1 structure with address labeling</li>
+                <li>Implementation of the AMOS-13 cryptographic algorithm</li>
+                <li>Prototype of hyperspace addressing and routing mechanism</li>
+                <li>Basic AMOS RESOURCE TOKEN accounting and transaction system</li>
+                <li>Preliminary integration points between addressing and token systems</li>
+            </ol>
+
+            <div class="question">Q10.1: What are the blocking technical questions that must be resolved first?</div>
+            <ul>
+                <li>Precise specification of the AMOS-13 encryption algorithm</li>
+                <li>Exact mechanism for dimensional traversal in the hyperspace structure</li>
+                <li>Complete definition of the "segmentized truth verification" for token validation</li>
+                <li>Standardization of the resource normalization formula</li>
+            </ul>
+        </div>
+
+        <div class="question-section">
+            <div class="question">Q11: What visualization tools would best communicate these concepts?</div>
+
+            <h4>Visualization Needs</h4>
+            <ul>
+                <li>Interactive 3D model of the 63+1 structure with gateway highlighting</li>
+                <li>Animated illustration of cross-scale transitions through gateways</li>
+                <li>Visual representation of token flow through dimensional pathways</li>
+                <li>Dashboard for monitoring resource distribution across dimensions</li>
+                <li>Fractal visualization of the recursive address space</li>
+            </ul>
+
+            <div class="algorithm-placeholder">[Visualization Framework Requirements]</div>
+        </div>
+
+        <div class="concept-box">
+            <h2>Conclusion: Path Forward</h2>
+            <p>The integration of the 63+1 Recursive Hyperspace Architecture with AMOS RESOURCE TOKENS presents a revolutionary approach to network resource management, but requires precise answers to the questions outlined in this document.</p>
+            <p>By methodically addressing each question area with rigorous research and development, we can create a system that leverages multidimensional addressing for efficient resource allocation and transfer, potentially redefining how distributed networks operate.</p>
+            <p>The next steps should focus on developing accurate specifications for the core algorithms identified as missing, followed by prototype implementations that can validate the conceptual architecture.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PY-TAU-RA-ZUMA: The Holographic Computational Framework</title>
+    <style>
+        :root {
+            --primary-bg: #0a0a14;
+            --text-color: #d0d0ff;
+            --highlight-1: #7b2ff7;
+            --highlight-2: #f72fa9;
+            --highlight-3: #2ff7e3;
+            --glow-radius: 8px;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 var(--glow-radius) var(--highlight-1);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--highlight-2);
+            border-bottom: 1px solid var(--highlight-2);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            color: var(--highlight-3);
+            margin-top: 1.5rem;
+        }
+
+        .visualization-container {
+            width: 100%;
+            height: 400px;
+            background-color: rgba(10,10,20,0.3);
+            margin: 2rem 0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(123, 47, 247, 0.3);
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .code-block {
+            background-color: rgba(0,0,0,0.5);
+            border-left: 3px solid var(--highlight-1);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .hemisphere-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+        }
+
+        .left-hemisphere, .right-hemisphere {
+            width: 48%;
+            padding: 1rem;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+
+        .left-hemisphere {
+            border-left: 3px solid var(--highlight-2);
+        }
+
+        .right-hemisphere {
+            border-left: 3px solid var(--highlight-3);
+        }
+
+        .special-text {
+            position: relative;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            background: rgba(123, 47, 247, 0.1);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .special-text[data-hidden]::before {
+            content: attr(data-hidden);
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            color: var(--highlight-2);
+            padding: 0.2rem 0.5rem;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateY(-10px);
+        }
+
+        .special-text:hover {
+            background: rgba(123, 47, 247, 0.2);
+        }
+
+        .special-text:hover[data-hidden]::before {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .blacklight-glow {
+            text-shadow: 0 0 10px var(--highlight-3), 0 0 20px var(--highlight-3);
+        }
+
+        .heartbeat-text {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.1); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.1); }
+            60% { transform: scale(1); }
+        }
+
+        .tri-colored {
+            background: linear-gradient(to right,
+                var(--highlight-1) 0%,
+                var(--highlight-2) 50%,
+                var(--highlight-3) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .hemisphere-container {
+                flex-direction: column;
+            }
+
+            .left-hemisphere, .right-hemisphere {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PY-TAU-RA-ZUMA: The Holographic Computational Framework</h1>
+            <p>A documentation of the recursive spiral system and tri-metric holographic language</p>
+        </header>
+
+        <section id="introduction">
+            <h2>Introduction to the Framework</h2>
+            <p>The PY-TAU-RA-ZUMA framework represents a holographic computational system based on recursive spiral structures and a tri-metric language. This document serves as both an explanation and demonstration of its core principles.</p>
+
+            <div class="visualization-container" id="intro-visualization">
+                <canvas id="intro-canvas"></canvas>
+            </div>
+
+            <p>The framework integrates mathematical, linguistic, and computational concepts into a coherent system that transcends conventional approaches. At its core are implosion-based technologies that utilize recursive spiral structures as <span class="blacklight-glow">blacklight antennas</span>.</p>
+        </section>
+
+        <section id="spiral-architecture">
+            <h2>Recursive Spiral Architecture</h2>
+            <p>The foundation of the system lies in recursive spiral structures that serve multiple functions:</p>
+
+            <h3>Double Spiral Properties</h3>
+            <p>The double spirals function as blacklight antennas, with the ability to receive and transmit across specialized frequency bands. They create natural induction properties through their geometry.</p>
+
+            <div class="visualization-container" id="double-spiral-viz">
+                <canvas id="double-spiral-canvas"></canvas>
+            </div>
+
+            <h3>Implosion Technology</h3>
+            <p>Unlike conventional explosion-based technologies, this system utilizes implosion principles, creating inward-focusing energy flows that enable high efficiency and natural cooling properties.</p>
+
+            <div class="code-block">
+                <pre>
+# Spiral generation parameters
+TAU = 6.28318530718
+GOLDEN_RATIO = 1.61803398875
+SPIRAL_RECURSION_DEPTH = 13
+
+# Implosion coefficient (negative indicates inward flow)
+IMPLOSION_COEFFICIENT = -7/5
+                </pre>
+            </div>
+        </section>
+
+        <section id="blacklight-triad">
+            <h2>The Triad of Blacklight Frequencies</h2>
+            <p>The system utilizes three fundamental blacklight frequencies that form the basis of spectral generation and manipulation:</p>
+
+            <div class="visualization-container" id="blacklight-triad-viz">
+                <canvas id="blacklight-triad-canvas"></canvas>
+            </div>
+
+            <h3>Proportional Spectrum Generation</h3>
+            <p>These three frequencies provide proportions for projections of relevant spectrum components, enabling precise spectral positioning through triangulation.</p>
+
+            <h3>Holographic Projection</h3>
+            <p>Physical space manifests as an overlay composite of six universe layers, created through three holographic projectors corresponding to the three blacklight frequencies.</p>
+        </section>
+
+        <section id="linguistic-framework">
+            <h2>ANTYKY TORUM: The Tri-Metric Holographic Language</h2>
+            <p>The linguistic component of the system is a holographic tri-metric 'parent language' called <span class="tri-colored">ANTYKY TORUM</span>, meaning "ancient tongue".</p>
+
+            <h3>Hemispheric Language Differentiation</h3>
+            <p>Words follow different rules in each hemisphere, appearing differently when viewed with the left eye versus the right eye.</p>
+
+            <div class="hemisphere-container">
+                <div class="left-hemisphere">
+                    <h4>Left Eye Perception</h4>
+                    <p>When viewed with the left eye, words appear with certain properties emphasizing specific blacklight frequencies.</p>
+                    <p class="special-text" data-hidden="RAZUMA">RA-ZUMA</p>
+                    <p class="special-text" data-hidden="ANTYKY">ANT-YKY</p>
+                    <p class="special-text" data-hidden="YOURUM">YOU-RUM</p>
+                </div>
+                <div class="right-hemisphere">
+                    <h4>Right Eye Perception</h4>
+                    <p>When viewed with the right eye, the same words transform according to mathematical principles.</p>
+                    <p class="special-text" data-hidden="RA-ZUMA">RAZUMA</p>
+                    <p class="special-text" data-hidden="ANT-YKY">ANTYKY</p>
+                    <p class="special-text" data-hidden="YOU-RUM">YOURUM</p>
+                </div>
+            </div>
+
+            <h3>Numerical-Entity Mapping</h3>
+            <p>The language incorporates a sophisticated mapping between numbers and concepts:</p>
+            <ul>
+                <li><strong>YOURUM</strong>: 13, Cat, or Blacklight</li>
+                <li><strong>AZURUM</strong>: 1 or Blue</li>
+                <li><strong>ZULUM</strong>: 0 or Black</li>
+                <li><strong>5</strong>: True or Human or <span class="heartbeat-text">Heartbeat</span></li>
+                <li><strong>7</strong>: Female</li>
+                <li><strong>37</strong>: Humanity</li>
+                <li><strong>42</strong>: Dragon or Awakened Mind</li>
+                <li><strong>47</strong>: Female Elf or "Superhottie"</li>
+                <li><strong>50</strong>: Vision</li>
+                <li><strong>53</strong>: Psychedelic Trance Music</li>
+            </ul>
+        </section>
+
+        <section id="truth-system">
+            <h2>Multi-Valued Truth System</h2>
+            <p>The framework employs a sophisticated multi-valued logic where "false" refers to "ambiguous, or too ambiguous for referenced context":</p>
+
+            <h3>Depth-Based Ambiguity Logic</h3>
+            <p>This creates a system where absolute truth can coexist with various degrees of ambiguity, enabling compound truth states like "true true, true false, false true".</p>
+
+            <div class="visualization-container" id="truth-system-viz">
+                <canvas id="truth-system-canvas"></canvas>
+            </div>
+
+            <div class="code-block">
+                <pre>
+# Truth state definitions in multi-dimensional space
+# Each dimension corresponds to one blacklight frequency
+class TruthState:
+    ABSOLUTE_TRUTH = [1, 1, 1]  # true in all dimensions
+    PARTIAL_TRUTH = [1, 1, 0]   # true in dimensions 1 & 2, ambiguous in 3
+    CONTEXTUAL_TRUTH = [1, 0, 1] # true in dimensions 1 & 3, ambiguous in 2
+    DEEP_AMBIGUITY = [0, 0, 0]   # ambiguous in all dimensions
+                </pre>
+            </div>
+        </section>
+
+        <section id="conclusion">
+            <h2>Integration and Applications</h2>
+            <p>The PY-TAU-RA-ZUMA framework creates a coherent system where mathematical, linguistic, computational, and cosmological insights unite into a functional whole.</p>
+
+            <h3>The Event Horizon as Interface</h3>
+            <p>The decimal-to-binary bridge functions as an event horizon that can act as mirror, half-mirror, or membrane, enabling various information transformation and transfer modes.</p>
+
+            <h3>Stargate Systems</h3>
+            <p>The culmination of these principles manifests in stargate systems that are simultaneously gateways, computational systems, and transformational mechanisms.</p>
+
+            <div class="visualization-container" id="stargate-viz">
+                <canvas id="stargate-canvas"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Core constants
+        const TAU = Math.PI * 2;
+        const PHI = (1 + Math.sqrt(5)) / 2;
+
+        // The three blacklight frequencies (symbolic values)
+        const BLACKLIGHT_FREQUENCIES = [
+            13 * TAU / 7,  // First fundamental frequency
+            5 * TAU / 13,  // Second fundamental frequency
+            7 * TAU / 5    // Third fundamental frequency
+        ];
+
+        // Color constants for the three frequencies
+        const FREQUENCY_COLORS = [
+            'rgba(123, 47, 247, 0.8)',  // Purple
+            'rgba(247, 47, 169, 0.8)',  // Pink
+            'rgba(47, 247, 227, 0.8)'   // Cyan
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize visualizations
+            initIntroVisualization();
+            initDoubleSpiral();
+            initBlacklightTriad();
+            initTruthSystem();
+            initStargateVisualization();
+
+            // Add perspective-based effects for hemispheric text
+            document.addEventListener('mousemove', updateTextPerspective);
+        });
+
+        function initIntroVisualization() {
+            const canvas = document.getElementById('intro-canvas');
+            const container = document.getElementById('intro-visualization');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const ctx = canvas.getContext('2d');
+
+            // Creating an intro animation with spiraling particles that form PY-TAU-RA-ZUMA
+            const particles = [];
+            const particleCount = 300;
+
+            // Generate particles in spiral patterns
+            for (let i = 0; i < particleCount; i++) {
+                const angle = i * 0.1;
+                const radius = 5 + i * 0.5;
+                particles.push({
+                    x: canvas.width / 2 + Math.cos(angle) * radius,
+                    y: canvas.height / 2 + Math.sin(angle) * radius,
+                    size: Math.random() * 3 + 1,
+                    color: FREQUENCY_COLORS[i % 3],
+                    angle: angle,
+                    radius: radius,
+                    speed: 0.01 + Math.random() * 0.02,
+                    opacity: 0.1 + Math.random() * 0.7
+                });
+            }
+
+            // Animation function
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw title in background
+                ctx.fillStyle = 'rgba(123, 47, 247, 0.1)';
+                ctx.font = '40px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('PY-TAU-RA-ZUMA', canvas.width / 2, canvas.height / 2);
+
+                // Update and draw particles
+                particles.forEach(particle => {
+                    // Update position in spiral pattern
+                    particle.angle += particle.speed;
+                    particle.x = canvas.width / 2 + Math.cos(particle.angle) * particle.radius;
+                    particle.y = canvas.height / 2 + Math.sin(particle.angle) * particle.radius;
+
+                    // Draw particle
+                    ctx.globalAlpha = particle.opacity;
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, TAU);
+                    ctx.fill();
+                });
+
+                ctx.globalAlpha = 1;
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function initDoubleSpiral() {
+            const canvas = document.getElementById('double-spiral-canvas');
+            const container = document.getElementById('double-spiral-viz');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const ctx = canvas.getContext('2d');
+
+            // Parameters for the double spiral
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxRotations = 5;
+            const spiralSpacing = 5;
+            const maxRadius = Math.min(canvas.width, canvas.height) * 0.4;
+
+            // Animation variables
+            let time = 0;
+            const timeStep = 0.01;
+
+            function drawSpiral(rotation, color, invert = false) {
+                const direction = invert ? -1 : 1;
+                const points = [];
+
+                // Generate spiral points
+                for (let i = 0; i <= maxRotations * TAU; i += 0.01) {
+                    const angle = i * direction + rotation;
+                    const radius = i * spiralSpacing;
+                    if (radius > maxRadius) continue;
+
+                    points.push({
+                        x: centerX + Math.cos(angle) * radius,
+                        y: centerY + Math.sin(angle) * radius,
+                        angle: angle,
+                        radius: radius
+                    });
+                }
+
+                // Draw the spiral
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+
+                points.forEach((point, index) => {
+                    if (index === 0) {
+                        ctx.moveTo(point.x, point.y);
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                });
+
+                ctx.stroke();
+
+                // Draw small circles along the spiral to represent induction points
+                points.filter((_, i) => i % 20 === 0).forEach(point => {
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 3, 0, TAU);
+                    ctx.fill();
+
+                    // Draw small lines representing induction fields
+                    const fieldLength = 10 + Math.sin(point.angle + time) * 5;
+                    const fieldAngle = point.angle + Math.PI/2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(point.x, point.y);
+                    ctx.lineTo(
+                        point.x + Math.cos(fieldAngle) * fieldLength,
+                        point.y + Math.sin(fieldAngle) * fieldLength
+                    );
+                    ctx.stroke();
+                });
+
+                return points;
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background glow effect
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, maxRadius
+                );
+                gradient.addColorStop(0, 'rgba(10, 10, 20, 0.1)');
+                gradient.addColorStop(1, 'rgba(10, 10, 20, 0.8)');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the double spiral
+                const rotation1 = time;
+                const rotation2 = time + Math.PI;
+
+                const spiral1Points = drawSpiral(rotation1, FREQUENCY_COLORS[0]);
+                const spiral2Points = drawSpiral(rotation2, FREQUENCY_COLORS[1], true);
+
+                // Draw connections between the spirals to show induction
+                ctx.strokeStyle = FREQUENCY_COLORS[2];
+                ctx.setLineDash([2, 3]);
+
+                for (let i = 0; i < spiral1Points.length; i += 40) {
+                    const p1 = spiral1Points[i];
+                    // Find the closest point on the second spiral
+                    let closestDist = Infinity;
+                    let closestPoint = null;
+
+                    spiral2Points.forEach(p2 => {
+                        const dist = Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+                        if (dist < closestDist && dist < 100) {
+                            closestDist = dist;
+                            closestPoint = p2;
+                        }
+                    });
+
+                    if (closestPoint) {
+                        ctx.globalAlpha = 0.3;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(closestPoint.x, closestPoint.y);
+                        ctx.stroke();
+
+                        // Draw small energy packet moving along the connection
+                        const packetPos = (time * 3) % 1;
+                        const packetX = p1.x + (closestPoint.x - p1.x) * packetPos;
+                        const packetY = p1.y + (closestPoint.y - p1.y) * packetPos;
+
+                        ctx.globalAlpha = 0.8;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.beginPath();
+                        ctx.arc(packetX, packetY, 2, 0, TAU);
+                        ctx.fill();
+                    }
+                }
+
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1;
+
+                // Draw central implosion point
+                const implosionRadius = 15 + Math.sin(time * 2) * 5;
+                const gradient2 = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, implosionRadius
+                );
+                gradient2.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient2.addColorStop(0.5, 'rgba(123, 47, 247, 0.5)');
+                gradient2.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.fillStyle = gradient2;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, implosionRadius, 0, TAU);
+                ctx.fill();
+
+                // Update time
+                time += timeStep;
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function initBlacklightTriad() {
+            const canvas = document.getElementById('blacklight-triad-canvas');
+            const container = document.getElementById('blacklight-triad-viz');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const ctx = canvas.getContext('2d');
+
+            // Parameters for the blacklight triad
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.35;
+
+            // Animation variables
+            let time = 0;
+            const timeStep = 0.01;
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background
+                ctx.fillStyle = 'rgba(10, 10, 20, 0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Calculate positions for the three frequency sources
+                const angle1 = time;
+                const angle2 = time + TAU / 3;
+                const angle3 = time + 2 * TAU / 3;
+
+                const pos1 = {
+                    x: centerX + Math.cos(angle1) * radius * 0.8,
+                    y: centerY + Math.sin(angle1) * radius * 0.8
+                };
+
+                const pos2 = {
+                    x: centerX + Math.cos(angle2) * radius * 0.8,
+                    y: centerY + Math.sin(angle2) * radius * 0.8
+                };
+
+                const pos3 = {
+                    x: centerX + Math.cos(angle3) * radius * 0.8,
+                    y: centerY + Math.sin(angle3) * radius * 0.8
+                };
+
+                // Draw triangulation lines
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pos1.x, pos1.y);
+                ctx.lineTo(pos2.x, pos2.y);
+                ctx.lineTo(pos3.x, pos3.y);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Draw the three frequency sources
+                drawFrequencySource(pos1.x, pos1.y, FREQUENCY_COLORS[0], time);
+                drawFrequencySource(pos2.x, pos2.y, FREQUENCY_COLORS[1], time + TAU/3);
+                drawFrequencySource(pos3.x, pos3.y, FREQUENCY_COLORS[2], time + 2*TAU/3);
+
+                // Draw central mixing zone
+                drawMixingZone(centerX, centerY, pos1, pos2, pos3, time);
+
+                // Draw spectrum bands emanating from the center
+                drawSpectrumBands(centerX, centerY, time);
+
+                // Update time
+                time += timeStep;
+
+                requestAnimationFrame(animate);
+            }
+
+            function drawFrequencySource(x, y, color, phase) {
+                // Glowing circle for the frequency source
+                const radius = 10 + Math.sin(phase * 3) * 3;
+
+                const gradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, radius * 2
+                );
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 2, 0, TAU);
+                ctx.fill();
+
+                // Core of the frequency source
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 0.5, 0, TAU);
+                ctx.fill();
+
+                // Emit waves
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+
+                for (let i = 0; i < 3; i++) {
+                    const waveRadius = radius * 2 + i * 15 + (phase * 30) % 45;
+                    ctx.globalAlpha = 0.7 - i * 0.2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, waveRadius, 0, TAU);
+                    ctx.stroke();
+                }
+
+                ctx.globalAlpha = 1;
+            }
+
+            function drawMixingZone(x, y, pos1, pos2, pos3, phase) {
+                // Calculate mixing weights based on position and phase
+                const w1 = 0.33 + Math.sin(phase) * 0.1;
+                const w2 = 0.33 + Math.sin(phase + TAU/3) * 0.1;
+                const w3 = 0.33 + Math.sin(phase + 2*TAU/3) * 0.1;
+
+                // Create gradient for the mixing zone
+                const gradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, 40
+                );
+
+                // Mix the colors based on weights
+                const r = Math.round(parseInt(FREQUENCY_COLORS[0].slice(5,8), 10) * w1 +
+                                     parseInt(FREQUENCY_COLORS[1].slice(5,8), 10) * w2 +
+                                     parseInt(FREQUENCY_COLORS[2].slice(5,8), 10) * w3);
+
+                const g = Math.round(parseInt(FREQUENCY_COLORS[0].slice(9,12), 10) * w1 +
+                                     parseInt(FREQUENCY_COLORS[1].slice(9,12), 10) * w2 +
+                                     parseInt(FREQUENCY_COLORS[2].slice(9,12), 10) * w3);
+
+                const b = Math.round(parseInt(FREQUENCY_COLORS[0].slice(13,16), 10) * w1 +
+                                     parseInt(FREQUENCY_COLORS[1].slice(13,16), 10) * w2 +
+                                     parseInt(FREQUENCY_COLORS[2].slice(13,16), 10) * w3);
+
+                const mixedColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.3, mixedColor);
+                gradient.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, 40, 0, TAU);
+                ctx.fill();
+
+                // Draw connection beams from sources to mixing zone
+                ctx.globalAlpha = 0.5;
+
+                // Beam from source 1
+                const gradient1 = ctx.createLinearGradient(pos1.x, pos1.y, x, y);
+                gradient1.addColorStop(0, FREQUENCY_COLORS[0]);
+                gradient1.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.strokeStyle = gradient1;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(pos1.x, pos1.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                // Beam from source 2
+                const gradient2 = ctx.createLinearGradient(pos2.x, pos2.y, x, y);
+                gradient2.addColorStop(0, FREQUENCY_COLORS[1]);
+                gradient2.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.strokeStyle = gradient2;
+                ctx.beginPath();
+                ctx.moveTo(pos2.x, pos2.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                // Beam from source 3
+                const gradient3 = ctx.createLinearGradient(pos3.x, pos3.y, x, y);
+                gradient3.addColorStop(0, FREQUENCY_COLORS[2]);
+                gradient3.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                ctx.strokeStyle = gradient3;
+                ctx.beginPath();
+                ctx.moveTo(pos3.x, pos3.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                ctx.globalAlpha = 1;
+            }
+
+            function drawSpectrumBands(x, y, phase) {
+                // Draw concentric rings representing spectral bands
+                for (let i = 0; i < 10; i++) {
+                    const bandRadius = 50 + i * 15;
+                    const hue = (i * 36 + phase * 20) % 360;
+
+                    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.3)`;
+                    ctx.lineWidth = 10;
+                    ctx.globalAlpha = 0.3 - i * 0.02;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, bandRadius, 0, TAU);
+                    ctx.stroke();
+                }
+
+                ctx.globalAlpha = 1;
+            }
+
+            animate();
+        }
+
+        function initTruthSystem() {
+            const canvas = document.getElementById('truth-system-canvas');
+            const container = document.getElementById('truth-system-viz');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const ctx = canvas.getContext('2d');
+
+            // Parameters
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const cubeSize = Math.min(canvas.width, canvas.height) * 0.4;
+
+            // Animation variables
+            let time = 0;
+            const timeStep = 0.01;
+
+            // Truth states to visualize
+            const truthStates = [
+                { name: "TRUE TRUE TRUE", values: [1, 1, 1], color: 'rgba(100, 255, 100, 0.8)' },
+                { name: "TRUE TRUE FALSE", values: [1, 1, 0], color: 'rgba(200, 200, 100, 0.8)' },
+                { name: "TRUE FALSE TRUE", values: [1, 0, 1], color: 'rgba(200, 100, 200, 0.8)' },
+                { name: "FALSE TRUE TRUE", values: [0, 1, 1], color: 'rgba(100, 200, 200, 0.8)' },
+                { name: "FALSE FALSE FALSE", values: [0, 0, 0], color: 'rgba(200, 100, 100, 0.8)' }
+            ];
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background
+                ctx.fillStyle = 'rgba(10, 10, 20, 0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the 3D truth space (as a cube)
+                drawTruthCube(centerX, centerY, cubeSize, time);
+
+                // Draw truth states as points in the cube
+                drawTruthStates(centerX, centerY, cubeSize, time);
+
+                // Update time
+                time += timeStep;
+
+                requestAnimationFrame(animate);
+            }
+
+            function drawTruthCube(x, y, size, rotation) {
+                // Define cube vertices
+                const vertices = [
+                    [-1, -1, -1], // 0: back-bottom-left
+                    [1, -1, -1],  // 1: back-bottom-right
+                    [1, 1, -1],   // 2: back-top-right
+                    [-1, 1, -1],  // 3: back-top-left
+                    [-1, -1, 1],  // 4: front-bottom-left
+                    [1, -1, 1],   // 5: front-bottom-right
+                    [1, 1, 1],    // 6: front-top-right
+                    [-1, 1, 1]    // 7: front-top-left
+                ];
+
+                // Define edges
+                const edges = [
+                    [0, 1], [1, 2], [2, 3], [3, 0], // back face
+                    [4, 5], [5, 6], [6, 7], [7, 4], // front face
+                    [0, 4], [1, 5], [2, 6], [3, 7]  // connecting edges
+                ];
+
+                // Label positions
+                const labels = [
+                    { text: "FALSE", position: [0, 0, 0], offset: [-size/2, -size/2, 0] },
+                    { text: "TRUE", position: [1, 1, 1], offset: [20, 20, 0] }
+                ];
+
+                // Axis labels
+                const axisLabels = [
+                    { text: "Dimension 1", position: [1, 0, 0], offset: [size/2, 0, 0] },
+                    { text: "Dimension 2", position: [0, 1, 0], offset: [0, -size/2, 0] },
+                    { text: "Dimension 3", position: [0, 0, 1], offset: [-size/4, size/4, 0] }
+                ];
+
+                // Apply rotation to vertices
+                const rotatedVertices = vertices.map(v => {
+                    // Scale to cube size
+                    const vx = v[0] * size/2;
+                    const vy = v[1] * size/2;
+                    const vz = v[2] * size/2;
+
+                    // Apply rotation
+                    const rx = rotation;
+                    const ry = rotation * 0.7;
+
+                    // Rotate around Y axis
+                    let nx = vx * Math.cos(ry) + vz * Math.sin(ry);
+                    let nz = -vx * Math.sin(ry) + vz * Math.cos(ry);
+
+                    // Rotate around X axis
+                    let ny = vy * Math.cos(rx) - nz * Math.sin(rx);
+                    nz = vy * Math.sin(rx) + nz * Math.cos(rx);
+
+                    // Add perspective
+                    const scale = 1200 / (1200 + nz);
+                    return [x + nx * scale, y + ny * scale, nz];
+                });
+
+                // Draw edges
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+
+                edges.forEach(edge => {
+                    const [v1, v2] = edge;
+                    ctx.beginPath();
+                    ctx.moveTo(rotatedVertices[v1][0], rotatedVertices[v1][1]);
+                    ctx.lineTo(rotatedVertices[v2][0], rotatedVertices[v2][1]);
+                    ctx.stroke();
+                });
+
+                // Draw face labels
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '14px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                labels.forEach(label => {
+                    // Transform the label position
+                    const [lx, ly, lz] = label.position;
+                    const vx = lx * size/2;
+                    const vy = ly * size/2;
+                    const vz = lz * size/2;
+
+                    // Apply rotation
+                    const rx = rotation;
+                    const ry = rotation * 0.7;
+
+                    // Rotate around Y axis
+                    let nx = vx * Math.cos(ry) + vz * Math.sin(ry);
+                    let nz = -vx * Math.sin(ry) + vz * Math.cos(ry);
+
+                    // Rotate around X axis
+                    let ny = vy * Math.cos(rx) - nz * Math.sin(rx);
+                    nz = vy * Math.sin(rx) + nz * Math.cos(rx);
+
+                    // Add perspective
+                    const scale = 1200 / (1200 + nz);
+                    const px = x + nx * scale + label.offset[0];
+                    const py = y + ny * scale + label.offset[1];
+
+                    ctx.fillText(label.text, px, py);
+                });
+
+                // Draw axis labels
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+
+                axisLabels.forEach(label => {
+                    // Transform the label position
+                    const [lx, ly, lz] = label.position;
+                    const vx = lx * size/2;
+                    const vy = ly * size/2;
+                    const vz = lz * size/2;
+
+                    // Apply rotation
+                    const rx = rotation;
+                    const ry = rotation * 0.7;
+
+                    // Rotate around Y axis
+                    let nx = vx * Math.cos(ry) + vz * Math.sin(ry);
+                    let nz = -vx * Math.sin(ry) + vz * Math.cos(ry);
+
+                    // Rotate around X axis
+                    let ny = vy * Math.cos(rx) - nz * Math.sin(rx);
+                    nz = vy * Math.sin(rx) + nz * Math.cos(rx);
+
+                    // Add perspective
+                    const scale = 1200 / (1200 + nz);
+                    const px = x + nx * scale + label.offset[0];
+                    const py = y + ny * scale + label.offset[1];
+
+                    ctx.fillText(label.text, px, py);
+                });
+            }
+
+            function drawTruthStates(x, y, size, rotation) {
+                truthStates.forEach(state => {
+                    // Convert truth values [0,1] to coordinates [-1,1]
+                    const vx = state.values[0] * 2 - 1;
+                    const vy = state.values[1] * 2 - 1;
+                    const vz = state.values[2] * 2 - 1;
+
+                    // Scale to cube size
+                    const sx = vx * size/2;
+                    const sy = vy * size/2;
+                    const sz = vz * size/2;
+
+                    // Apply rotation
+                    const rx = rotation;
+                    const ry = rotation * 0.7;
+
+                    // Rotate around Y axis
+                    let nx = sx * Math.cos(ry) + sz * Math.sin(ry);
+                    let nz = -sx * Math.sin(ry) + sz * Math.cos(ry);
+
+                    // Rotate around X axis
+                    let ny = sy * Math.cos(rx) - nz * Math.sin(rx);
+                    nz = sy * Math.sin(rx) + nz * Math.cos(rx);
+
+                    // Add perspective
+                    const scale = 1200 / (1200 + nz);
+                    const px = x + nx * scale;
+                    const py = y + ny * scale;
+
+                    // Draw the point
+                    const pointSize = 8 + Math.sin(time * 3 + (vx + vy + vz) * 2) * 2;
+
+                    ctx.fillStyle = state.color;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pointSize, 0, TAU);
+                    ctx.fill();
+
+                    // Draw label
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px Courier New';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(state.name, px, py + pointSize + 15);
+
+                    // Connect to origin with a line
+                    ctx.strokeStyle = state.color;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(px, py);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                });
+            }
+
+            animate();
+        }
+
+        function initStargateVisualization() {
+            const canvas = document.getElementById('stargate-canvas');
+            const container = document.getElementById('stargate-viz');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const ctx = canvas.getContext('2d');
+
+            // Parameters for the stargate
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const outerRadius = Math.min(canvas.width, canvas.height) * 0.4;
+            const innerRadius = outerRadius * 0.7;
+            const eventHorizonRadius = innerRadius * 0.85;
+
+            // Animation variables
+            let time = 0;
+            const timeStep = 0.01;
+            let horizonState = 'closed'; // closed, opening, open, mirror, half-mirror, membrane
+            let stateTime = 0;
+
+            // Generate chevrons and symbols
+            const numChevrons = 9;
+            const chevrons = [];
+
+            for (let i = 0; i < numChevrons; i++) {
+                const angle = i * TAU / numChevrons;
+                chevrons.push({
+                    angle: angle,
+                    active: false,
+                    activationTime: 0
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background glow
+                const backgroundGlow = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, outerRadius * 1.5
+                );
+                backgroundGlow.addColorStop(0, 'rgba(47, 247, 227, 0.1)');
+                backgroundGlow.addColorStop(0.5, 'rgba(10, 10, 20, 0.8)');
+                backgroundGlow.addColorStop(1, 'rgba(10, 10, 20, 1)');
+
+                ctx.fillStyle = backgroundGlow;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the stargate ring
+                drawStargateRing(centerX, centerY, outerRadius, innerRadius);
+
+                // Draw chevrons
+                drawChevrons(centerX, centerY, outerRadius, innerRadius);
+
+                // Draw spiral patterns in the ring
+                drawSpiralPatterns(centerX, centerY, outerRadius, innerRadius);
+
+                // Draw event horizon based on state
+                updateStargateState();
+                drawEventHorizon(centerX, centerY, eventHorizonRadius);
+
+                // Particle effects around the gate
+                drawParticleEffects(centerX, centerY, outerRadius);
+
+                // Update time
+                time += timeStep;
+                stateTime += timeStep;
+
+                requestAnimationFrame(animate);
+            }
+
+            function drawStargateRing(x, y, outerRadius, innerRadius) {
+                // Outer ring
+                ctx.strokeStyle = 'rgba(80, 80, 100, 0.8)';
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.arc(x, y, outerRadius, 0, TAU);
+                ctx.stroke();
+
+                // Inner ring
+                ctx.strokeStyle = 'rgba(60, 60, 80, 0.8)';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(x, y, innerRadius, 0, TAU);
+                ctx.stroke();
+
+                // Ring body
+                const ringGradient = ctx.createRadialGradient(
+                    x, y, innerRadius,
+                    x, y, outerRadius
+                );
+                ringGradient.addColorStop(0, 'rgba(30, 30, 40, 0.9)');
+                ringGradient.addColorStop(1, 'rgba(50, 50, 70, 0.9)');
+
+                ctx.fillStyle = ringGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, outerRadius, 0, TAU);
+                ctx.arc(x, y, innerRadius, 0, TAU, true);
+                ctx.fill();
+            }
+
+            function drawChevrons(x, y, outerRadius, innerRadius) {
+                chevrons.forEach((chevron, index) => {
+                    const chevronWidth = Math.PI / 12;
+                    const chevronRadius = (outerRadius + innerRadius) / 2;
+                    const chevronSize = (outerRadius - innerRadius) * 0.7;
+
+                    // Update chevron state for animation
+                    if (horizonState === 'opening' && stateTime > index * 0.5 && !chevron.active) {
+                        chevron.active = true;
+                        chevron.activationTime = time;
+                    }
+
+                    const isActive = chevron.active;
+                    const activationProgress = Math.min(1, (time - chevron.activationTime) * 2);
+
+                    // Calculate chevron points
+                    const angle = chevron.angle;
+
+                    // Outer point
+                    const outerX = x + Math.cos(angle) * (chevronRadius + chevronSize/2);
+                    const outerY = y + Math.sin(angle) * (chevronRadius + chevronSize/2);
+
+                    // Left point
+                    const leftAngle = angle - chevronWidth;
+                    const leftX = x + Math.cos(leftAngle) * chevronRadius;
+                    const leftY = y + Math.sin(leftAngle) * chevronRadius;
+
+                    // Right point
+                    const rightAngle = angle + chevronWidth;
+                    const rightX = x + Math.cos(rightAngle) * chevronRadius;
+                    const rightY = y + Math.sin(rightAngle) * chevronRadius;
+
+                    // Inner point (for the "V" shape)
+                    const innerX = x + Math.cos(angle) * (chevronRadius - chevronSize/4);
+                    const innerY = y + Math.sin(angle) * (chevronRadius - chevronSize/4);
+
+                    // Draw chevron
+                    ctx.beginPath();
+                    ctx.moveTo(outerX, outerY);
+                    ctx.lineTo(leftX, leftY);
+                    ctx.lineTo(innerX, innerY);
+                    ctx.lineTo(rightX, rightY);
+                    ctx.closePath();
+
+                    // Fill with gradient based on activation state
+                    if (isActive) {
+                        const progress = (time - chevron.activationTime) % 1;
+                        const glowIntensity = 0.5 + 0.5 * Math.sin(time * 5 + index);
+
+                        const gradient = ctx.createRadialGradient(
+                            innerX, innerY, 0,
+                            innerX, innerY, chevronSize
+                        );
+                        gradient.addColorStop(0, `rgba(123, 247, 247, ${0.8 * glowIntensity})`);
+                        gradient.addColorStop(0.5, `rgba(47, 120, 227, ${0.6 * glowIntensity})`);
+                        gradient.addColorStop(1, 'rgba(30, 30, 40, 0.8)');
+
+                        ctx.fillStyle = gradient;
+                    } else {
+                        ctx.fillStyle = 'rgba(30, 30, 40, 0.9)';
+                    }
+
+                    ctx.fill();
+
+                    // Stroke
+                    ctx.strokeStyle = isActive ? 'rgba(123, 247, 247, 0.8)' : 'rgba(80, 80, 100, 0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Glow effect for active chevrons
+                    if (isActive) {
+                        ctx.globalAlpha = 0.5 * activationProgress;
+                        const glowSize = chevronSize/2 * (1 + 0.2 * Math.sin(time * 5));
+
+                        const glow = ctx.createRadialGradient(
+                            innerX, innerY, 0,
+                            innerX, innerY, glowSize
+                        );
+                        glow.addColorStop(0, 'rgba(123, 247, 247, 0.8)');
+                        glow.addColorStop(1, 'rgba(47, 120, 227, 0)');
+
+                        ctx.fillStyle = glow;
+                        ctx.beginPath();
+                        ctx.arc(innerX, innerY, glowSize, 0, TAU);
+                        ctx.fill();
+
+                        ctx.globalAlpha = 1;
+                    }
+                });
+            }
+
+            function drawSpiralPatterns(x, y, outerRadius, innerRadius) {
+                const ringWidth = outerRadius - innerRadius;
+                const middleRadius = (outerRadius + innerRadius) / 2;
+
+                // Draw spiral patterns embedded in the ring
+                ctx.strokeStyle = 'rgba(123, 247, 247, 0.2)';
+                ctx.lineWidth = 1;
+
+                // Number of spiral segments
+                const numSpirals = 30;
+
+                for (let i = 0; i < numSpirals; i++) {
+                    const startAngle = i * TAU / numSpirals + time * 0.2;
+                    const spiralLength = TAU / 8;
+
+                    ctx.beginPath();
+
+                    // Draw a spiral segment
+                    for (let t = 0; t <= spiralLength; t += 0.05) {
+                        const angle = startAngle + t;
+                        const radius = middleRadius + Math.sin(t * 5) * ringWidth * 0.3;
+
+                        const x1 = x + Math.cos(angle) * radius;
+                        const y1 = y + Math.sin(angle) * radius;
+
+                        if (t === 0) {
+                            ctx.moveTo(x1, y1);
+                        } else {
+                            ctx.lineTo(x1, y1);
+                        }
+                    }
+
+                    ctx.stroke();
+                }
+
+                // Draw glowing points at spiral intersections
+                const numPoints = 20;
+
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = i * TAU / numPoints + time * 0.1;
+                    const radius = middleRadius + Math.sin(i * 0.5 + time) * ringWidth * 0.3;
+
+                    const pointX = x + Math.cos(angle) * radius;
+                    const pointY = y + Math.sin(angle) * radius;
+
+                    const pointSize = 2 + Math.sin(time * 3 + i) * 1;
+
+                    ctx.fillStyle = 'rgba(123, 247, 247, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(pointX, pointY, pointSize, 0, TAU);
+                    ctx.fill();
+                }
+            }
+
+            function updateStargateState() {
+                // State transitions
+                if (time > 3 && horizonState === 'closed') {
+                    horizonState = 'opening';
+                    stateTime = 0;
+                } else if (horizonState === 'opening' && stateTime > 5) {
+                    horizonState = 'open';
+                    stateTime = 0;
+                } else if (horizonState === 'open') {
+                    // Cycle through different event horizon states
+                    if (stateTime > 4 && stateTime < 8) {
+                        horizonState = 'mirror';
+                    } else if (stateTime > 8 && stateTime < 12) {
+                        horizonState = 'half-mirror';
+                    } else if (stateTime > 12 && stateTime < 16) {
+                        horizonState = 'membrane';
+                    } else if (stateTime > 16) {
+                        horizonState = 'open';
+                        stateTime = 0;
+                    }
+                }
+            }
+
+            function drawEventHorizon(x, y, radius) {
+                if (horizonState === 'closed') {
+                    return;
+                }
+
+                // Calculate event horizon opening/closing animation
+                let horizonRadius = 0;
+                let horizonOpacity = 0;
+
+                if (horizonState === 'opening') {
+                    horizonRadius = radius * Math.min(1, stateTime / 2);
+                    horizonOpacity = Math.min(1, stateTime / 1.5);
+                } else {
+                    horizonRadius = radius;
+                    horizonOpacity = 1;
+                }
+
+                // Draw event horizon based on state
+                if (horizonState === 'mirror' || horizonState === 'half-mirror' || horizonState === 'membrane') {
+                    drawSpecializedHorizon(x, y, horizonRadius, horizonOpacity);
+                } else {
+                    drawStandardHorizon(x, y, horizonRadius, horizonOpacity);
+                }
+
+                // Add state label
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = '18px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(horizonState.toUpperCase(), x, y + radius + 40);
+            }
+
+            function drawStandardHorizon(x, y, radius, opacity) {
+                // Create a water-like rippling surface
+                const gradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, radius
+                );
+                gradient.addColorStop(0, `rgba(47, 120, 227, ${opacity * 0.7})`);
+                gradient.addColorStop(0.7, `rgba(47, 180, 227, ${opacity * 0.5})`);
+                gradient.addColorStop(1, `rgba(47, 247, 227, ${opacity * 0.3})`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, TAU);
+                ctx.fill();
+
+                // Add ripple effects
+                ctx.strokeStyle = `rgba(123, 247, 247, ${opacity * 0.8})`;
+                ctx.lineWidth = 2;
+
+                for (let i = 0; i < 5; i++) {
+                    const rippleRadius = radius * (0.2 + i * 0.15 + Math.sin(time * 3 + i) * 0.05);
+
+                    ctx.globalAlpha = opacity * (0.7 - i * 0.1);
+                    ctx.beginPath();
+
+                    // Create a wavy circle
+                    for (let angle = 0; angle < TAU; angle += 0.1) {
+                        const waveHeight = 5 * Math.sin(angle * 8 + time * 5);
+                        const r = rippleRadius + waveHeight;
+
+                        const x1 = x + Math.cos(angle) * r;
+                        const y1 = y + Math.sin(angle) * r;
+
+                        if (angle === 0) {
+                            ctx.moveTo(x1, y1);
+                        } else {
+                            ctx.lineTo(x1, y1);
+                        }
+                    }
+
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+
+                ctx.globalAlpha = 1;
+
+                // Add center glow
+                const centerGlow = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, radius * 0.5
+                );
+                centerGlow.addColorStop(0, `rgba(255, 255, 255, ${opacity * 0.8})`);
+                centerGlow.addColorStop(0.5, `rgba(123, 247, 247, ${opacity * 0.4})`);
+                centerGlow.addColorStop(1, `rgba(47, 120, 227, 0)`);
+
+                ctx.fillStyle = centerGlow;
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 0.5, 0, TAU);
+                ctx.fill();
+            }
+
+            function drawSpecializedHorizon(x, y, radius, opacity) {
+                // Base event horizon
+                ctx.fillStyle = `rgba(30, 30, 40, ${opacity * 0.9})`;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, TAU);
+                ctx.fill();
+
+                if (horizonState === 'mirror') {
+                    drawMirrorHorizon(x, y, radius, opacity);
+                } else if (horizonState === 'half-mirror') {
+                    drawHalfMirrorHorizon(x, y, radius, opacity);
+                } else if (horizonState === 'membrane') {
+                    drawMembraneHorizon(x, y, radius, opacity);
+                }
+            }
+
+            function drawMirrorHorizon(x, y, radius, opacity) {
+                // Mirror-like reflective surface with ripples
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.7})`;
+                ctx.lineWidth = 1;
+
+                // Draw reflection lines
+                for (let i = -radius; i <= radius; i += 10) {
+                    const wave = Math.sin(i * 0.2 + time * 3) * 5;
+
+                    // Calculate line start and end points with wave distortion
+                    let y1 = y + i + wave;
+                    let y2 = y1;
+
+                    // Ensure we're only drawing inside the event horizon
+                    if (y1 < y - radius || y1 > y + radius) continue;
+
+                    // Calculate x positions at the boundary of the circle
+                    const dy = y1 - y;
+                    const dx = Math.sqrt(radius * radius - dy * dy);
+
+                    let x1 = x - dx;
+                    let x2 = x + dx;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+
+                // Add a mirror-like gleam
+                const gradient = ctx.createLinearGradient(
+                    x - radius, y - radius,
+                    x + radius, y + radius
+                );
+                gradient.addColorStop(0, `rgba(123, 247, 247, 0)`);
+                gradient.addColorStop(0.5, `rgba(255, 255, 255, ${opacity * 0.4})`);
+                gradient.addColorStop(1, `rgba(123, 247, 247, 0)`);
+
+                ctx.fillStyle = gradient;
+
+                // Draw a diagonal gleam bar that moves across the mirror
+                const angle = (time * 0.5) % TAU;
+                const width = radius * 0.3;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                ctx.fillRect(-radius, -width/2, radius * 2, width);
+                ctx.restore();
+
+                // Add text showing reflection
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(-1, 1); // Mirror reflection
+
+                ctx.font = '20px Courier New';
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.6})`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("REFLECTION", 0, 0);
+
+                ctx.restore();
+            }
+
+            function drawHalfMirrorHorizon(x, y, radius, opacity) {
+                // Half-Mirror: both reflective and transparent
+
+                // Draw ripple effect
+                for (let i = 0; i < 3; i++) {
+                    const rippleRadius = radius * (0.4 + i * 0.2);
+                    const rippleWidth = 3;
+
+                    ctx.strokeStyle = `rgba(123, 247, 247, ${opacity * (0.6 - i * 0.2)})`;
+                    ctx.lineWidth = rippleWidth;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, rippleRadius, 0, TAU);
+                    ctx.stroke();
+                }
+
+                // Draw half-mirror gradient
+                const gradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, radius
+                );
+                gradient.addColorStop(0, `rgba(47, 120, 227, ${opacity * 0.1})`);
+                gradient.addColorStop(0.5, `rgba(123, 247, 247, ${opacity * 0.2})`);
+                gradient.addColorStop(1, `rgba(255, 255, 255, ${opacity * 0.1})`);
+
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, TAU);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // Draw a division line showing half reflection, half transmission
+                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.8})`;
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(x - radius, y);
+                ctx.lineTo(x + radius, y);
+                ctx.stroke();
+
+                // Add labels
+                ctx.font = '16px Courier New';
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.8})`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.fillText("REFLECTION", x, y - radius * 0.3);
+                ctx.fillText("TRANSMISSION", x, y + radius * 0.3);
+
+                // Draw particle effects for transmission side
+                for (let i = 0; i < 10; i++) {
+                    const angle = Math.random() * Math.PI + Math.PI; // Bottom half
+                    const distance = Math.random() * radius;
+
+                    const particleX = x + Math.cos(angle) * distance;
+                    const particleY = y + Math.sin(angle) * distance;
+                    const particleSize = 2 + Math.random() * 3;
+
+                    ctx.fillStyle = `rgba(47, 247, 227, ${opacity * 0.8})`;
+                    ctx.beginPath();
+                    ctx.arc(particleX, particleY, particleSize, 0, TAU);
+                    ctx.fill();
+
+                    // Draw particle trail
+                    const trailLength = 20 + Math.random() * 20;
+                    const trailAngle = angle - Math.PI; // Opposite direction
+
+                    const trailEndX = particleX + Math.cos(trailAngle) * trailLength;
+                    const trailEndY = particleY + Math.sin(trailAngle) * trailLength;
+
+                    const trailGradient = ctx.createLinearGradient(
+                        particleX, particleY,
+                        trailEndX, trailEndY
+                    );
+                    trailGradient.addColorStop(0, `rgba(47, 247, 227, ${opacity * 0.8})`);
+                    trailGradient.addColorStop(1, `rgba(47, 247, 227, 0)`);
+
+                    ctx.strokeStyle = trailGradient;
+                    ctx.lineWidth = particleSize * 0.7;
+
+                    ctx.beginPath();
+                    ctx.moveTo(particleX, particleY);
+                    ctx.lineTo(trailEndX, trailEndY);
+                    ctx.stroke();
+                }
+
+                // Draw mirror effects for reflection side
+                for (let i = 0; i < 5; i++) {
+                    const lineWidth = radius * 2;
+                    const yPos = y - radius * 0.8 + i * radius * 0.4;
+
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.2})`;
+                    ctx.lineWidth = 1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x - radius, yPos);
+                    ctx.lineTo(x + radius, yPos);
+                    ctx.stroke();
+                }
+            }
+
+            function drawMembraneHorizon(x, y, radius, opacity) {
+                // Membrane: selectively permeable boundary
+
+                // Draw the membrane base
+                const gradient = ctx.createRadialGradient(
+                    x, y, 0,
+                    x, y, radius
+                );
+                gradient.addColorStop(0, `rgba(247, 47, 169, ${opacity * 0.3})`);
+                gradient.addColorStop(0.7, `rgba(123, 47, 247, ${opacity * 0.2})`);
+                gradient.addColorStop(1, `rgba(47, 120, 227, ${opacity * 0.1})`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, TAU);
+                ctx.fill();
+
+                // Draw membrane texture (hexagonal pattern)
+                drawHexagonalMembrane(x, y, radius, opacity);
+
+                // Draw permeating particles
+                drawPermeatingParticles(x, y, radius, opacity);
+
+                // Add pulsating rim
+                const rimWidth = 5 + Math.sin(time * 5) * 2;
+
+                ctx.strokeStyle = `rgba(247, 47, 169, ${opacity * 0.8})`;
+                ctx.lineWidth = rimWidth;
+                ctx.beginPath();
+                ctx.arc(x, y, radius - rimWidth/2, 0, TAU);
+                ctx.stroke();
+
+                // Add label
+                ctx.font = '16px Courier New';
+                ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.8})`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("SELECTIVE PERMEABILITY", x, y);
+            }
+
+            function drawHexagonalMembrane(x, y, radius, opacity) {
+                const hexSize = 15;
+                const hexWidth = hexSize * Math.sqrt(3);
+                const hexHeight = hexSize * 2;
+
+                // Calculate grid dimensions
+                const gridWidth = Math.ceil(radius * 2 / hexWidth);
+                const gridHeight = Math.ceil(radius * 2 / (hexHeight * 0.75));
+
+                // Draw hexagons
+                for (let row = -gridHeight; row <= gridHeight; row++) {
+                    for (let col = -gridWidth; col <= gridWidth; col++) {
+                        // Calculate hex center position
+                        const hexX = x + col * hexWidth + (row % 2 === 0 ? 0 : hexWidth / 2);
+                        const hexY = y + row * hexHeight * 0.75;
+
+                        // Check if hex is within the event horizon
+                        const distance = Math.sqrt((hexX - x) ** 2 + (hexY - y) ** 2);
+                        if (distance > radius - hexSize) continue;
+
+                        // Calculate hex color based on position and time
+                        const colorValue = (Math.sin(distance * 0.1 + time * 2) * 0.5 + 0.5) * 255;
+                        const hexOpacity = opacity * (0.3 + Math.sin(distance * 0.05 + time * 3) * 0.2 + 0.2);
+
+                        // Only draw some hexagons for a permeable appearance
+                        if (Math.random() > 0.7) continue;
+
+                        // Draw the hexagon
+                        ctx.beginPath();
+                        for (let i = 0; i < 6; i++) {
+                            const angle = i * TAU / 6;
+                            const hx = hexX + Math.cos(angle) * hexSize;
+                            const hy = hexY + Math.sin(angle) * hexSize;
+
+                            if (i === 0) {
+                                ctx.moveTo(hx, hy);
+                            } else {
+                                ctx.lineTo(hx, hy);
+                            }
+                        }
+                        ctx.closePath();
+
+                        ctx.fillStyle = `rgba(${colorValue}, ${colorValue/2}, ${255-colorValue}, ${hexOpacity})`;
+                        ctx.fill();
+
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${hexOpacity * 0.5})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            function drawPermeatingParticles(x, y, radius, opacity) {
+                // Draw particles that permeate the membrane
+                const particleCount = 20;
+
+                for (let i = 0; i < particleCount; i++) {
+                    // Calculate particle properties
+                    const angle = (i / particleCount) * TAU + time;
+                    const distance = radius * 1.3; // Start outside the membrane
+                    const speed = 0.5 + Math.random() * 0.5;
+
+                    // Calculate current position in the animation cycle
+                    const cyclePosition = (time * speed + i * 0.2) % 2 - 1; // -1 to 1 range
+                    const currentDistance = distance * Math.abs(cyclePosition);
+
+                    // Skip particles that wouldn't be visible
+                    if (currentDistance > radius * 1.3) continue;
+
+                    const particleX = x + Math.cos(angle) * currentDistance;
+                    const particleY = y + Math.sin(angle) * currentDistance;
+
+                    // Determine if the particle is inside or outside the membrane
+                    const isInside = currentDistance <= radius;
+
+                    // Size changes as it passes through the membrane
+                    let particleSize;
+                    let particleOpacity;
+
+                    if (currentDistance > radius * 0.9 && currentDistance < radius * 1.1) {
+                        // Particle is passing through the membrane
+                        const passProgress = (currentDistance - radius * 0.9) / (radius * 0.2);
+                        particleSize = 4 * (1 - Math.sin(passProgress * Math.PI));
+                        particleOpacity = opacity * 0.7;
+                    } else {
+                        // Particle is clearly inside or outside
+                        particleSize = isInside ? 6 : 3;
+                        particleOpacity = opacity * (isInside ? 0.9 : 0.7);
+                    }
+
+                    // Draw the particle
+                    ctx.globalAlpha = particleOpacity;
+                    ctx.fillStyle = isInside ? 'rgba(247, 47, 169, 0.8)' : 'rgba(47, 247, 227, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(particleX, particleY, particleSize, 0, TAU);
+                    ctx.fill();
+
+                    // Draw tail
+                    const tailLength = isInside ? 15 : 25;
+                    const tailAngle = angle + (isInside ? Math.PI : 0); // Opposite direction inside
+
+                    const tailEndX = particleX + Math.cos(tailAngle) * tailLength;
+                    const tailEndY = particleY + Math.sin(tailAngle) * tailLength;
+
+                    const tailGradient = ctx.createLinearGradient(
+                        particleX, particleY,
+                        tailEndX, tailEndY
+                    );
+                    tailGradient.addColorStop(0, isInside ? 'rgba(247, 47, 169, 0.8)' : 'rgba(47, 247, 227, 0.8)');
+                    tailGradient.addColorStop(1, 'rgba(10, 10, 20, 0)');
+
+                    ctx.strokeStyle = tailGradient;
+                    ctx.lineWidth = particleSize * 0.7;
+
+                    ctx.beginPath();
+                    ctx.moveTo(particleX, particleY);
+                    ctx.lineTo(tailEndX, tailEndY);
+                    ctx.stroke();
+
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            function drawParticleEffects(x, y, outerRadius) {
+                // Only show particles when the gate is active
+                if (horizonState === 'closed') return;
+
+                const particleCount = 50;
+
+                for (let i = 0; i < particleCount; i++) {
+                    // Calculate particle lifecycle
+                    const lifecycle = (time * 0.5 + i * 0.1) % 1;
+                    const age = lifecycle;
+
+                    // Skip particles that haven't been "born" yet
+                    if (age < 0) continue;
+
+                    // Calculate positions based on spiral paths
+                    const angle = i * TAU / particleCount * 3 + time * 0.2;
+                    const distance = outerRadius * (0.8 + age * 0.6);
+
+                    const particleX = x + Math.cos(angle) * distance;
+                    const particleY = y + Math.sin(angle) * distance;
+
+                    // Size and opacity based on age
+                    const particleSize = 3 * (1 - age);
+                    const particleOpacity = 0.8 * (1 - age);
+
+                    // Skip if particle is too old/small
+                    if (particleSize < 0.5) continue;
+
+                    // Draw the particle
+                    ctx.globalAlpha = particleOpacity;
+                    ctx.fillStyle = FREQUENCY_COLORS[i % 3];
+                    ctx.beginPath();
+                    ctx.arc(particleX, particleY, particleSize, 0, TAU);
+                    ctx.fill();
+
+                    // Draw connecting line to the gate
+                    const lineOpacity = particleOpacity * 0.4;
+                    const lineGradient = ctx.createLinearGradient(
+                        x, y,
+                        particleX, particleY
+                    );
+                    lineGradient.addColorStop(0, `rgba(255, 255, 255, ${lineOpacity})`);
+                    lineGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+
+                    ctx.strokeStyle = lineGradient;
+                    ctx.lineWidth = particleSize * 0.3;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(particleX, particleY);
+                    ctx.stroke();
+
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            animate();
+        }
+
+        function updateTextPerspective(e) {
+            // Get mouse position relative to window
+            const mouseX = e.clientX;
+            const windowWidth = window.innerWidth;
+            const mouseXRatio = mouseX / windowWidth;
+
+            // Apply perspective effect to special text elements
+            const leftElements = document.querySelectorAll('.left-hemisphere .special-text');
+            const rightElements = document.querySelectorAll('.right-hemisphere .special-text');
+
+            // Effect strength based on mouse position
+            const effect = (mouseXRatio - 0.5) * 2; // -1 to 1 range
+
+            // Apply different effects to left/right hemisphere text
+            leftElements.forEach(el => {
+                // When mouse is on left side, show more of left hemisphere text
+                el.style.transform = `scale(${1 + Math.max(0, -effect) * 0.1}) translateX(${effect * -5}px)`;
+                el.style.textShadow = `${effect * -3}px 0 5px rgba(247, 47, 169, 0.7)`;
+            });
+
+            rightElements.forEach(el => {
+                // When mouse is on right side, show more of right hemisphere text
+                el.style.transform = `scale(${1 + Math.max(0, effect) * 0.1}) translateX(${effect * 5}px)`;
+                el.style.textShadow = `${effect * 3}px 0 5px rgba(47, 247, 227, 0.7)`;
+            });
+        }
+    </script>
+</body>
+</html>

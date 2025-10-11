@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7 Dimensional Topologies</title>
+    <style>
+        :root {
+            --bg-deep: rgb(0, 0, 17);
+            --bg-medium: rgb(9, 5, 24);
+            --bg-light: rgb(9, 5, 42);
+            --p7-purple: rgb(68, 39, 172);
+            --p7-blue: rgb(38, 46, 153);
+            --p7-gold: rgb(197, 141, 7);
+            --p7-green: rgb(71, 185, 6);
+            --p7-bright-blue: rgb(6, 71, 195);
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: white;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-align: center;
+            background: linear-gradient(90deg,
+                var(--p7-purple),
+                var(--p7-blue),
+                var(--p7-green),
+                var(--p7-gold),
+                var(--p7-bright-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: hue-rotate 10s infinite linear;
+        }
+
+        h2 {
+            color: var(--p7-gold);
+            border-bottom: 1px solid var(--p7-purple);
+            padding-bottom: 0.5rem;
+        }
+
+        section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: linear-gradient(145deg,
+                rgba(9, 5, 24, 0.8),
+                rgba(9, 5, 42, 0.8));
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(68, 39, 172, 0.3);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(
+                circle at center,
+                rgba(68, 39, 172, 0.1),
+                transparent 70%
+            );
+            animation: rotate 20s infinite linear;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: var(--p7-green);
+            font-weight: bold;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .concept-card {
+            background: rgba(9, 5, 24, 0.7);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--p7-purple);
+            transition: all 0.3s ease;
+        }
+
+        .concept-card:hover {
+            transform: scale(1.03);
+            border-left-color: var(--p7-gold);
+        }
+
+        .cubic-space {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 3rem auto;
+            perspective: 1000px;
+        }
+
+        #cubic-space-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .atom-delta {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 3rem auto;
+        }
+
+        #atom-delta-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .five-bit-truth {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin: 3rem auto;
+        }
+
+        #five-bit-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            color: var(--p7-blue);
+            font-size: 0.9rem;
+        }
+
+        @keyframes hue-rotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .code-block {
+            background-color: rgba(0, 0, 17, 0.7);
+            border-left: 4px solid var(--p7-green);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--p7-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Protocol-7 Dimensional Topology</h1>
+
+        <section>
+            <h2>Cubic Space Topology</h2>
+            <p>
+                The foundational structure of Protocol-7 utilizes a <span class="highlight">cubic space topology</span>
+                that provides optimal node relationships with minimum peers while achieving maximum efficiency.
+                This structure acknowledges dimensional overlaps that offer unique computational advantages.
+            </p>
+            <div class="cubic-space">
+                <canvas id="cubic-space-canvas"></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h2>5-Bit Truth Logic</h2>
+            <p>
+                Moving beyond binary and trinary logic, Protocol-7 implements a <span class="highlight">5-bit truth system</span>
+                with 5-fold sub-bit logic. This enables more nuanced state representation and creates a forensic structure
+                that prevents nodes from being able to lie or flip results.
+            </p>
+            <p>
+                The mathematical beauty emerges when dividing 5 (truth) by 13 (completion), yielding 0.384615...
+                This pattern reveals deep connections to ASCII encoding when rolled appropriately.
+            </p>
+            <div class="five-bit-truth">
+                <canvas id="five-bit-canvas"></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h2>Atom-Delta Structure</h2>
+            <p>
+                The <span class="highlight">atom-delta</span> forms the inverse of the node grid, creating a larger cube
+                at the edges of the primary 3D plus-sign structure. This dual topology enables higher-dimensional
+                connections and potentially forms the basis for hyperspace computational fields.
+            </p>
+            <div class="atom-delta">
+                <canvas id="atom-delta-canvas"></canvas>
+            </div>
+        </section>
+
+        <section>
+            <h2>Holographic Task Intelligence Language</h2>
+            <p>
+                By implementing a form of abstracted and simple task intelligence language, Protocol-7 provides
+                holographic modules of logic that, through their elementary type completeness, form a computational
+                field of higher or infinite potential.
+            </p>
+            <div class="code-block">
+                # Holographic Module Definition
+                sub create_module {
+                    my ($type, $params) = @_;
+
+                    # Verify type completeness
+                    die "Invalid module type: $type" unless is_valid_type($type);
+
+                    # Apply dimensional principles
+                    my $dimension_signature = Protocol7::Dimension::Logic::calculate_signature($type);
+
+                    # Create module with holographic properties
+                    return {
+                        type => $type,
+                        signature => $dimension_signature,
+                        state => initialize_state($type, $params),
+                        methods => bind_operators($type)
+                    };
+                }
+            </div>
+        </section>
+
+        <div class="concept-grid">
+            <div class="concept-card">
+                <h3>Dimensional Efficiency</h3>
+                <p>
+                    By dedicating bits to infrastructure instead of overlooking the immediate repayment,
+                    Protocol-7 creates efficient, stable infrastructure where everything is 'on tap'
+                    as a shared interest.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>Inversion States</h3>
+                <p>
+                    Protocol-7 utilizes inversion states to avoid nodes being able to lie or flip results,
+                    creating a more robust consensus mechanism than traditional approaches.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>Self-Similar Revelation</h3>
+                <p>
+                    The architecture follows self-similar, self-explanatory revelation chains that provide
+                    vision into when to do what and how to expand from established foundations.
+                </p>
+            </div>
+
+            <div class="concept-card">
+                <h3>LLM Integration</h3>
+                <p>
+                    Through a hybrid approach, LLMs can be orchestrated within the multi-agent system,
+                    eventually transforming themselves to better align with the cubic space network principles.
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Protocol-7 Dimensional Topology Visualization - nailara-technologies</p>
+        </div>
+    </div>
+
+    <script>
+        // Cubic Space Topology Visualization
+        const cubicSpaceCanvas = document.getElementById('cubic-space-canvas');
+        const cubicSpaceCtx = cubicSpaceCanvas.getContext('2d');
+        cubicSpaceCanvas.width = cubicSpaceCanvas.offsetWidth;
+        cubicSpaceCanvas.height = cubicSpaceCanvas.offsetHeight;
+
+        function drawCubicSpace() {
+            const width = cubicSpaceCanvas.width;
+            const height = cubicSpaceCanvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const size = Math.min(width, height) * 0.4;
+            const time = Date.now() * 0.001;
+
+            // Clear canvas
+            cubicSpaceCtx.clearRect(0, 0, width, height);
+
+            // Set up rotation
+            cubicSpaceCtx.save();
+            cubicSpaceCtx.translate(centerX, centerY);
+            cubicSpaceCtx.rotate(time * 0.2);
+
+            // Draw cube
+            const points3D = [
+                [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+                [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+            ];
+
+            const edges = [
+                [0, 1], [1, 2], [2, 3], [3, 0],
+                [4, 5], [5, 6], [6, 7], [7, 4],
+                [0, 4], [1, 5], [2, 6], [3, 7]
+            ];
+
+            const rotatedPoints = points3D.map(point => {
+                const x = point[0] * size;
+                const y = point[1] * size;
+                const z = point[2] * size;
+
+                // Apply rotation
+                const angle1 = time * 0.5;
+                const angle2 = time * 0.3;
+
+                const rx = x;
+                const ry = y * Math.cos(angle1) - z * Math.sin(angle1);
+                const rz = y * Math.sin(angle1) + z * Math.cos(angle1);
+
+                const rx2 = rx * Math.cos(angle2) + rz * Math.sin(angle2);
+                const ry2 = ry;
+                const rz2 = -rx * Math.sin(angle2) + rz * Math.cos(angle2);
+
+                // Project 3D to 2D
+                const scale = 8 / (8 + rz2);
+                const px = rx2 * scale;
+                const py = ry2 * scale;
+
+                return [px, py, scale];
+            });
+
+            // Draw nodes (vertices)
+            rotatedPoints.forEach((point, i) => {
+                const [x, y, scale] = point;
+                const nodeSize = 8 * scale;
+
+                cubicSpaceCtx.beginPath();
+                cubicSpaceCtx.arc(x, y, nodeSize, 0, Math.PI * 2);
+
+                // Center node
+                if (i === 0) {
+                    cubicSpaceCtx.fillStyle = 'rgba(71, 185, 6, 0.8)';
+                } else {
+                    cubicSpaceCtx.fillStyle = 'rgba(68, 39, 172, 0.8)';
+                }
+                cubicSpaceCtx.fill();
+
+                cubicSpaceCtx.strokeStyle = 'rgba(197, 141, 7, 0.5)';
+                cubicSpaceCtx.lineWidth = 2 * scale;
+                cubicSpaceCtx.stroke();
+            });
+
+            // Draw edges
+            edges.forEach(edge => {
+                const [p1, p2] = [rotatedPoints[edge[0]], rotatedPoints[edge[1]]];
+
+                cubicSpaceCtx.beginPath();
+                cubicSpaceCtx.moveTo(p1[0], p1[1]);
+                cubicSpaceCtx.lineTo(p2[0], p2[1]);
+
+                const gradient = cubicSpaceCtx.createLinearGradient(p1[0], p1[1], p2[0], p2[1]);
+                gradient.addColorStop(0, 'rgba(38, 46, 153, 0.7)');
+                gradient.addColorStop(1, 'rgba(6, 71, 195, 0.7)');
+
+                cubicSpaceCtx.strokeStyle = gradient;
+                cubicSpaceCtx.lineWidth = 3 * Math.min(p1[2], p2[2]);
+                cubicSpaceCtx.stroke();
+            });
+
+            // Draw central connections (3D plus sign)
+            const centerNode = [0, 0, 0];
+            const centralConnections = [
+                [0, 0, 1], [0, 0, -1],
+                [0, 1, 0], [0, -1, 0],
+                [1, 0, 0], [-1, 0, 0]
+            ];
+
+            centralConnections.forEach(point => {
+                const x = point[0] * size * 0.5;
+                const y = point[1] * size * 0.5;
+                const z = point[2] * size * 0.5;
+
+                const angle1 = time * 0.5;
+                const angle2 = time * 0.3;
+
+                const rx = x;
+                const ry = y * Math.cos(angle1) - z * Math.sin(angle1);
+                const rz = y * Math.sin(angle1) + z * Math.cos(angle1);
+
+                const rx2 = rx * Math.cos(angle2) + rz * Math.sin(angle2);
+                const ry2 = ry;
+                const rz2 = -rx * Math.sin(angle2) + rz * Math.cos(angle2);
+
+                const scale = 8 / (8 + rz2);
+                const px = rx2 * scale;
+                const py = ry2 * scale;
+
+                cubicSpaceCtx.beginPath();
+                cubicSpaceCtx.arc(px, py, 6 * scale, 0, Math.PI * 2);
+                cubicSpaceCtx.fillStyle = 'rgba(6, 71, 195, 0.9)';
+                cubicSpaceCtx.fill();
+
+                cubicSpaceCtx.beginPath();
+                cubicSpaceCtx.moveTo(0, 0);
+                cubicSpaceCtx.lineTo(px, py);
+                cubicSpaceCtx.strokeStyle = 'rgba(71, 185, 6, 0.8)';
+                cubicSpaceCtx.lineWidth = 4 * scale;
+                cubicSpaceCtx.stroke();
+            });
+
+            cubicSpaceCtx.restore();
+
+            requestAnimationFrame(drawCubicSpace);
+        }
+
+        // 5-bit Truth Visualization
+        const fiveBitCanvas = document.getElementById('five-bit-canvas');
+        const fiveBitCtx = fiveBitCanvas.getContext('2d');
+        fiveBitCanvas.width = fiveBitCanvas.offsetWidth;
+        fiveBitCanvas.height = fiveBitCanvas.offsetHeight;
+
+        function drawFiveBitTruth() {
+            const width = fiveBitCanvas.width;
+            const height = fiveBitCanvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35;
+            const time = Date.now() * 0.001;
+
+            // Clear canvas
+            fiveBitCtx.clearRect(0, 0, width, height);
+
+            // Draw pentagon (representing 5-bit truth)
+            fiveBitCtx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = i * 2 * Math.PI / 5 - Math.PI / 2 + time * 0.1;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                if (i === 0) {
+                    fiveBitCtx.moveTo(x, y);
+                } else {
+                    fiveBitCtx.lineTo(x, y);
+                }
+            }
+            fiveBitCtx.closePath();
+
+            const gradient = fiveBitCtx.createLinearGradient(
+                centerX - radius, centerY - radius,
+                centerX + radius, centerY + radius
+            );
+            gradient.addColorStop(0, 'rgba(68, 39, 172, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(38, 46, 153, 0.3)');
+            gradient.addColorStop(1, 'rgba(197, 141, 7, 0.3)');
+
+            fiveBitCtx.fillStyle = gradient;
+            fiveBitCtx.fill();
+
+            fiveBitCtx.strokeStyle = 'rgba(71, 185, 6, 0.7)';
+            fiveBitCtx.lineWidth = 2;
+            fiveBitCtx.stroke();
+
+            // Draw vertices with pulsing
+            for (let i = 0; i < 5; i++) {
+                const angle = i * 2 * Math.PI / 5 - Math.PI / 2 + time * 0.1;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                fiveBitCtx.beginPath();
+                fiveBitCtx.arc(x, y, 8 + Math.sin(time * 2 + i) * 3, 0, Math.PI * 2);
+                fiveBitCtx.fillStyle = 'rgba(6, 71, 195, 0.8)';
+                fiveBitCtx.fill();
+            }
+
+            // Draw connecting lines between all points (forming a complete graph)
+            for (let i = 0; i < 5; i++) {
+                const angle1 = i * 2 * Math.PI / 5 - Math.PI / 2 + time * 0.1;
+                const x1 = centerX + radius * Math.cos(angle1);
+                const y1 = centerY + radius * Math.sin(angle1);
+
+                for (let j = i + 1; j < 5; j++) {
+                    const angle2 = j * 2 * Math.PI / 5 - Math.PI / 2 + time * 0.1;
+                    const x2 = centerX + radius * Math.cos(angle2);
+                    const y2 = centerY + radius * Math.sin(angle2);
+
+                    fiveBitCtx.beginPath();
+                    fiveBitCtx.moveTo(x1, y1);
+                    fiveBitCtx.lineTo(x2, y2);
+
+                    const lineGradient = fiveBitCtx.createLinearGradient(x1, y1, x2, y2);
+                    const alpha = 0.2 + 0.1 * Math.sin(time * 3 + i + j);
+
+                    lineGradient.addColorStop(0, `rgba(197, 141, 7, ${alpha})`);
+                    lineGradient.addColorStop(1, `rgba(71, 185, 6, ${alpha})`);
+
+                    fiveBitCtx.strokeStyle = lineGradient;
+                    fiveBitCtx.lineWidth = 1;
+                    fiveBitCtx.stroke();
+                }
+            }
+
+            // Draw division by 13 visualization
+            const result = 5 / 13;
+            const resultStr = result.toString().substring(2, 8); // 384615
+
+            fiveBitCtx.font = "18px 'Courier New', monospace";
+            fiveBitCtx.fillStyle = 'rgba(197, 141, 7, 0.9)';
+            fiveBitCtx.textAlign = 'center';
+            fiveBitCtx.fillText("5 ÷ 13 = 0." + resultStr + "...", centerX, centerY + radius + 40);
+
+            requestAnimationFrame(drawFiveBitTruth);
+        }
+
+        // Atom-Delta Structure Visualization
+        const atomDeltaCanvas = document.getElementById('atom-delta-canvas');
+        const atomDeltaCtx = atomDeltaCanvas.getContext('2d');
+        atomDeltaCanvas.width = atomDeltaCanvas.offsetWidth;
+        atomDeltaCanvas.height = atomDeltaCanvas.offsetHeight;
+
+        function drawAtomDelta() {
+            const width = atomDeltaCanvas.width;
+            const height = atomDeltaCanvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const size = Math.min(width, height) * 0.3;
+            const time = Date.now() * 0.001;
+
+            // Clear canvas
+            atomDeltaCtx.clearRect(0, 0, width, height);
+
+            // Set up rotation
+            atomDeltaCtx.save();
+            atomDeltaCtx.translate(centerX, centerY);
+            atomDeltaCtx.rotate(time * 0.1);
+
+            // Draw inner cube (the 3D plus sign structure)
+            const innerSize = size * 0.5;
+            const innerPoints3D = [
+                [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+                [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+            ].map(p => [p[0] * innerSize, p[1] * innerSize, p[2] * innerSize]);
+
+            // Draw outer cube (the atom-delta)
+            const outerPoints3D = [
+                [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+                [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+            ].map(p => [p[0] * size, p[1] * size, p[2] * size]);
+
+            const edges = [
+                [0, 1], [1, 2], [2, 3], [3, 0],
+                [4, 5], [5, 6], [6, 7], [7, 4],
+                [0, 4], [1, 5], [2, 6], [3, 7]
+            ];
+
+            function rotatePoints(points) {
+                return points.map(point => {
+                    const [x, y, z] = point;
+
+                    // Apply rotation
+                    const angle1 = time * 0.5;
+                    const angle2 = time * 0.3;
+
+                    const rx = x;
+                    const ry = y * Math.cos(angle1) - z * Math.sin(angle1);
+                    const rz = y * Math.sin(angle1) + z * Math.cos(angle1);
+
+                    const rx2 = rx * Math.cos(angle2) + rz * Math.sin(angle2);
+                    const ry2 = ry;
+                    const rz2 = -rx * Math.sin(angle2) + rz * Math.cos(angle2);
+
+                    // Project 3D to 2D
+                    const scale = 8 / (8 + rz2);
+                    const px = rx2 * scale;
+                    const py = ry2 * scale;
+
+                    return [px, py, scale];
+                });
+            }
+
+            const rotatedInnerPoints = rotatePoints(innerPoints3D);
+            const rotatedOuterPoints = rotatePoints(outerPoints3D);
+
+            // Draw edges between inner and outer cubes (the atom-delta connections)
+            for (let i = 0; i < 8; i++) {
+                const innerPoint = rotatedInnerPoints[i];
+                const outerPoint = rotatedOuterPoints[i];
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.moveTo(innerPoint[0], innerPoint[1]);
+                atomDeltaCtx.lineTo(outerPoint[0], outerPoint[1]);
+
+                const gradient = atomDeltaCtx.createLinearGradient(
+                    innerPoint[0], innerPoint[1],
+                    outerPoint[0], outerPoint[1]
+                );
+                gradient.addColorStop(0, 'rgba(68, 39, 172, 0.7)');
+                gradient.addColorStop(1, 'rgba(197, 141, 7, 0.7)');
+
+                atomDeltaCtx.strokeStyle = gradient;
+                atomDeltaCtx.lineWidth = 2 * Math.min(innerPoint[2], outerPoint[2]);
+                atomDeltaCtx.stroke();
+            }
+
+            // Draw outer cube edges
+            edges.forEach(edge => {
+                const [p1, p2] = [rotatedOuterPoints[edge[0]], rotatedOuterPoints[edge[1]]];
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.moveTo(p1[0], p1[1]);
+                atomDeltaCtx.lineTo(p2[0], p2[1]);
+
+                atomDeltaCtx.strokeStyle = 'rgba(71, 185, 6, 0.6)';
+                atomDeltaCtx.lineWidth = 2 * Math.min(p1[2], p2[2]);
+                atomDeltaCtx.stroke();
+            });
+
+            // Draw inner cube edges
+            edges.forEach(edge => {
+                const [p1, p2] = [rotatedInnerPoints[edge[0]], rotatedInnerPoints[edge[1]]];
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.moveTo(p1[0], p1[1]);
+                atomDeltaCtx.lineTo(p2[0], p2[1]);
+
+                atomDeltaCtx.strokeStyle = 'rgba(6, 71, 195, 0.8)';
+                atomDeltaCtx.lineWidth = 2 * Math.min(p1[2], p2[2]);
+                atomDeltaCtx.stroke();
+            });
+
+            // Draw nodes
+            rotatedOuterPoints.forEach((point) => {
+                const [x, y, scale] = point;
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.arc(x, y, 7 * scale, 0, Math.PI * 2);
+                atomDeltaCtx.fillStyle = 'rgba(197, 141, 7, 0.8)';
+                atomDeltaCtx.fill();
+            });
+
+            rotatedInnerPoints.forEach((point) => {
+                const [x, y, scale] = point;
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.arc(x, y, 6 * scale, 0, Math.PI * 2);
+                atomDeltaCtx.fillStyle = 'rgba(38, 46, 153, 0.8)';
+                atomDeltaCtx.fill();
+            });
+
+            // Draw center node
+            atomDeltaCtx.beginPath();
+            atomDeltaCtx.arc(0, 0, 8, 0, Math.PI * 2);
+            atomDeltaCtx.fillStyle = 'rgba(71, 185, 6, 1)';
+            atomDeltaCtx.fill();
+
+            // Draw "plus sign" connections from center
+            const plusDirections = [
+                [innerSize * 0.7, 0, 0],
+                [-innerSize * 0.7, 0, 0],
+                [0, innerSize * 0.7, 0],
+                [0, -innerSize * 0.7, 0],
+                [0, 0, innerSize * 0.7],
+                [0, 0, -innerSize * 0.7]
+            ];
+
+            const rotatedPlusPoints = rotatePoints(plusDirections);
+
+            rotatedPlusPoints.forEach(point => {
+                const [x, y, scale] = point;
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.moveTo(0, 0);
+                atomDeltaCtx.lineTo(x, y);
+
+                const gradient = atomDeltaCtx.createLinearGradient(0, 0, x, y);
+                gradient.addColorStop(0, 'rgba(71, 185, 6, 0.9)');
+                gradient.addColorStop(1, 'rgba(6, 71, 195, 0.7)');
+
+                atomDeltaCtx.strokeStyle = gradient;
+                atomDeltaCtx.lineWidth = 4 * scale;
+                atomDeltaCtx.stroke();
+
+                atomDeltaCtx.beginPath();
+                atomDeltaCtx.arc(x, y, 5 * scale, 0, Math.PI * 2);
+                atomDeltaCtx.fillStyle = 'rgba(6, 71, 195, 0.9)';
+                atomDeltaCtx.fill();
+            });
+
+            atomDeltaCtx.restore();
+
+            requestAnimationFrame(drawAtomDelta);
+        }
+
+        // Start animations
+        drawCubicSpace();
+        drawFiveBitTruth();
+        drawAtomDelta();
+
+        // Resize canvas elements when window resizes
+        window.addEventListener('resize', () => {
+            const canvases = [cubicSpaceCanvas, fiveBitCanvas, atomDeltaCanvas];
+
+            canvases.forEach(canvas => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            });
+        });
+    </script>
+</body>
+</html>

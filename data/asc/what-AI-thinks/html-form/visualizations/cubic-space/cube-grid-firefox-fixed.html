@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #010112;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: monospace;
+            color: #80b0ff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(30, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(10, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 180, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #010112;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            color: #80b0ff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #2050c0;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 10px;
+            background-color: rgba(30, 50, 100, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #3060c0, #60a0ff);
+            box-shadow: 0 0 15px rgba(40, 80, 200, 0.6);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">Initializing Cubic Grid...</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <canvas id="mainCanvas"></canvas>
+
+        <div class="controls">
+            <button id="playBtn">Play</button>
+            <button id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size to window size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Animation state
+        let isPlaying = false;
+        let lastTimestamp = 0;
+        let angle = 0;
+        let animationFrameId = null;
+
+        // System parameters
+        const gridSize = 13; // Division by 13 pattern
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        const baseSize = Math.max(10, Math.min(canvas.width, canvas.height) * 0.035);
+
+        // Detect Firefox for special handling
+        const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+
+        // Create cube vertices
+        const cubeSize = baseSize * 5;
+        const createCube = (x, y, z, size) => {
+            const halfSize = size / 2;
+            return [
+                // Front face
+                {x: x - halfSize, y: y - halfSize, z: z + halfSize},
+                {x: x + halfSize, y: y - halfSize, z: z + halfSize},
+                {x: x + halfSize, y: y + halfSize, z: z + halfSize},
+                {x: x - halfSize, y: y + halfSize, z: z + halfSize},
+                // Back face
+                {x: x - halfSize, y: y - halfSize, z: z - halfSize},
+                {x: x + halfSize, y: y - halfSize, z: z - halfSize},
+                {x: x + halfSize, y: y + halfSize, z: z - halfSize},
+                {x: x - halfSize, y: y + halfSize, z: z - halfSize}
+            ];
+        };
+
+        // Create cube edges
+        const createCubeEdges = (vertices) => {
+            return [
+                // Front face
+                [vertices[0], vertices[1]],
+                [vertices[1], vertices[2]],
+                [vertices[2], vertices[3]],
+                [vertices[3], vertices[0]],
+                // Back face
+                [vertices[4], vertices[5]],
+                [vertices[5], vertices[6]],
+                [vertices[6], vertices[7]],
+                [vertices[7], vertices[4]],
+                // Connecting edges
+                [vertices[0], vertices[4]],
+                [vertices[1], vertices[5]],
+                [vertices[2], vertices[6]],
+                [vertices[3], vertices[7]]
+            ];
+        };
+
+        // Generate the cubic grid
+        const grid = [];
+        for (let x = 0; x < gridSize; x++) {
+            for (let y = 0; y < gridSize; y++) {
+                for (let z = 0; z < gridSize; z++) {
+                    // Skip some cubes to create a more interesting pattern
+                    if ((x + y + z) % 3 === 0 || (x === 6 && y === 6) ||
+                        (x === 6 && z === 6) || (y === 6 && z === 6)) {
+                        const offsetX = (x - (gridSize - 1) / 2) * cubeSize * 1.5;
+                        const offsetY = (y - (gridSize - 1) / 2) * cubeSize * 1.5;
+                        const offsetZ = (z - (gridSize - 1) / 2) * cubeSize * 1.5;
+
+                        // Create a blue to cyan gradient based on position
+                        const blueVal = Math.min(255, 30 + z * 12);
+                        const greenVal = Math.min(255, 40 + x * 8 + y * 8);
+                        const alpha = 0.8 + (z / gridSize) * 0.2;
+
+                        const cube = {
+                            x: offsetX,
+                            y: offsetY,
+                            z: offsetZ,
+                            size: cubeSize * (0.7 + Math.random() * 0.6),
+                            value: (x * y * z) % 13, // Division by 13 pattern
+                            energy: Math.random(),
+                            color: `rgba(${30 + x * 5}, ${greenVal}, ${blueVal}, ${alpha})`,
+                            vertices: [],
+                            edges: [],
+                            visible: true,
+                            divisibleBy13: ((x * y * z) % 13 === 0)
+                        };
+
+                        grid.push(cube);
+                    }
+                }
+            }
+        }
+
+        // Projection function (3D to 2D) - Counter-clockwise rotation
+        const project = (point3D) => {
+            // Rotate point around Y axis (counter-clockwise)
+            const cosAngle = Math.cos(angle * Math.PI / 180);
+            const sinAngle = Math.sin(angle * Math.PI / 180);
+
+            // First rotation (around Y axis) - Negative sin for counter-clockwise
+            const rotX1 = point3D.x * cosAngle + point3D.z * sinAngle;
+            const rotZ1 = -point3D.x * sinAngle + point3D.z * cosAngle;
+
+            // Second rotation (around X axis)
+            const rotY2 = point3D.y * cosAngle - rotZ1 * sinAngle;
+            const rotZ2 = point3D.y * sinAngle + rotZ1 * cosAngle;
+
+            // Calculate perspective
+            const scale = 1200 / (1200 + rotZ2);
+
+            // Project to 2D
+            const x2D = centerX + rotX1 * scale;
+            const y2D = centerY + rotY2 * scale;
+
+            return {
+                x: x2D,
+                y: y2D,
+                z: rotZ2,
+                scale: scale
+            };
+        };
+
+        // Function to check if a line passes close to center
+        const linePassesThroughCenter = (p1, p2, threshold) => {
+            // Vector from p1 to p2
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+
+            // Vector from p1 to center
+            const cx = centerX - p1.x;
+            const cy = centerY - p1.y;
+
+            // Length of line segment
+            const lineLength = Math.sqrt(dx * dx + dy * dy);
+            if (lineLength === 0) return false;
+
+            // Calculate closest point on line to center
+            const t = Math.max(0, Math.min(1, (cx * dx + cy * dy) / (lineLength * lineLength)));
+            const closestX = p1.x + t * dx;
+            const closestY = p1.y + t * dy;
+
+            // Distance from closest point to center
+            const distance = Math.sqrt(
+                Math.pow(closestX - centerX, 2) +
+                Math.pow(closestY - centerY, 2)
+            );
+
+            return distance < threshold;
+        };
+
+        // Function to find all edges that pass through center
+        const findCentralEdges = (edges, threshold) => {
+            const centralEdges = [];
+            edges.forEach(edge => {
+                if (linePassesThroughCenter(edge[0], edge[1], threshold)) {
+                    centralEdges.push(edge);
+                }
+            });
+            return centralEdges;
+        };
+
+        // Draw the cubic grid
+        const drawCubicGrid = () => {
+            // Update vertices for all cubes
+            grid.forEach(cube => {
+                cube.vertices = createCube(cube.x, cube.y, cube.z, cube.size);
+                cube.edges = createCubeEdges(cube.vertices);
+            });
+
+            // Sort cubes by Z for proper rendering (back to front)
+            const sortedGrid = [...grid].sort((a, b) => {
+                const projA = project({x: a.x, y: a.y, z: a.z});
+                const projB = project({x: b.x, y: b.y, z: b.z});
+                return projA.z - projB.z;
+            });
+
+            // Special handling for Firefox
+            const centerThreshold = isFirefox ? 100 : 50;  // Larger exclusion zone for Firefox
+            const maxEdgeOpacity = isFirefox ? 0.12 : 0.2;  // Lower max opacity for Firefox
+
+            // Collect all projected edges for analysis
+            let allProjectedEdges = [];
+            sortedGrid.forEach(cube => {
+                cube.edges.forEach(edge => {
+                    const p1 = project(edge[0]);
+                    const p2 = project(edge[1]);
+                    allProjectedEdges.push({
+                        p1: p1,
+                        p2: p2,
+                        cube: cube,
+                        edge: edge
+                    });
+                });
+            });
+
+            // Find edges that pass through center
+            const edgesCrossingCenter = allProjectedEdges.filter(e =>
+                linePassesThroughCenter(e.p1, e.p2, centerThreshold)
+            );
+
+            // Draw cubes
+            sortedGrid.forEach(cube => {
+                // Determine if this is a truth value
+                let specialValue = false;
+                let valueColor = 'rgba(100, 140, 255, 0.5)';
+
+                if (cube.value === 5) { // TRUE
+                    specialValue = true;
+                    valueColor = 'rgba(60, 120, 200, 0.5)';
+                } else if (cube.value === 3) { // FALSE
+                    specialValue = true;
+                    valueColor = 'rgba(80, 100, 180, 0.5)';
+                }
+
+                // First, draw edges that don't cross center
+                ctx.lineWidth = 1;
+
+                cube.edges.forEach(edge => {
+                    const p1 = project(edge[0]);
+                    const p2 = project(edge[1]);
+
+                    // Skip if this edge passes too close to center
+                    if (linePassesThroughCenter(p1, p2, centerThreshold)) {
+                        return;
+                    }
+
+                    // Calculate distance from midpoint to center
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    const distanceToCenter = Math.sqrt(
+                        Math.pow(midX - centerX, 2) +
+                        Math.pow(midY - centerY, 2)
+                    );
+
+                    // Fade opacity based on distance to center
+                    const maxDist = Math.max(canvas.width, canvas.height) / 2;
+                    const distFactor = Math.min(1, distanceToCenter / maxDist);
+                    const edgeOpacity = maxEdgeOpacity * distFactor;
+
+                    // Set color with adjusted opacity
+                    ctx.strokeStyle = specialValue
+                        ? `rgba(${parseInt(valueColor.match(/\d+/g)[0])}, ${parseInt(valueColor.match(/\d+/g)[1])}, ${parseInt(valueColor.match(/\d+/g)[2])}, ${edgeOpacity})`
+                        : `rgba(80, 120, 255, ${edgeOpacity})`;
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                });
+
+                // Draw central edges with even lower opacity
+                if (!isFirefox) {  // Skip drawing central edges entirely in Firefox
+                    cube.edges.forEach(edge => {
+                        const p1 = project(edge[0]);
+                        const p2 = project(edge[1]);
+
+                        if (linePassesThroughCenter(p1, p2, centerThreshold)) {
+                            // Much lower opacity for central edges
+                            const veryLowOpacity = 0.05;
+
+                            ctx.strokeStyle = specialValue
+                                ? `rgba(${parseInt(valueColor.match(/\d+/g)[0])}, ${parseInt(valueColor.match(/\d+/g)[1])}, ${parseInt(valueColor.match(/\d+/g)[2])}, ${veryLowOpacity})`
+                                : `rgba(80, 120, 255, ${veryLowOpacity})`;
+
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x, p1.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                        }
+                    });
+                }
+
+                // Draw center point with value
+                const centerProj = project({x: cube.x, y: cube.y, z: cube.z});
+
+                // Size based on perspective
+                const pointSize = Math.max(0.1, 3 * centerProj.scale);
+
+                // Draw point
+                ctx.fillStyle = specialValue ? valueColor : 'rgba(120, 180, 255, 0.4)';
+                ctx.shadowColor = specialValue ? valueColor : 'rgba(40, 100, 255, 0.5)';
+                ctx.shadowBlur = 12;
+
+                ctx.beginPath();
+                ctx.arc(centerProj.x, centerProj.y, pointSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+
+                // Draw value for special values
+                if (specialValue) {
+                    ctx.fillStyle = specialValue ? valueColor : 'rgba(200, 200, 255, 0.8)';
+                    ctx.font = `${Math.max(10, 14 * centerProj.scale)}px monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(cube.value.toString(), centerProj.x, centerProj.y);
+                }
+            });
+        };
+
+        // Main drawing function
+        const draw = () => {
+            // Clear canvas with gradient background
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, 'rgba(2, 1, 20, 0.95)');
+            gradient.addColorStop(0.4, 'rgba(5, 2, 35, 0.9)');
+            gradient.addColorStop(1, 'rgba(1, 0, 10, 0.98)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the cubic grid
+            drawCubicGrid();
+        };
+
+        // Animation loop
+        const animate = (timestamp) => {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+
+            if (isPlaying) {
+                const elapsed = timestamp - lastTimestamp;
+
+                // Update angle (counter-clockwise)
+                angle = (angle - (elapsed / 500)) % 360;
+                if (angle < 0) angle += 360;
+
+                lastTimestamp = timestamp;
+
+                // Draw the visualization
+                draw();
+
+                // Continue animation only if still playing
+                if (isPlaying) {
+                    animationFrameId = requestAnimationFrame(animate);
+                }
+            }
+        };
+
+        // Event listeners
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (!isPlaying) {
+                isPlaying = true;
+                lastTimestamp = 0;
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            isPlaying = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            angle = 0;
+            lastTimestamp = 0;
+            draw();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Update center coordinates
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+
+            draw();
+        });
+
+        // Simulate loading progress
+        const simulateLoading = () => {
+            const progress = document.getElementById('loadingProgress');
+            const loadingScreen = document.getElementById('loadingScreen');
+            let width = 0;
+
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+
+                        // Start animation
+                        isPlaying = true;
+                        animationFrameId = requestAnimationFrame(animate);
+                    }, 1000);
+                } else {
+                    width += Math.random() * 5;
+                    if (width > 100) width = 100;
+                    progress.style.width = width + '%';
+                }
+            }, 100);
+        };
+
+        // Initial draw and animation
+        window.addEventListener('load', () => {
+            // Ensure canvas dimensions are correctly set
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+
+            // Initial draw
+            setTimeout(() => {
+                draw();
+
+                // Start loading simulation
+                simulateLoading();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
