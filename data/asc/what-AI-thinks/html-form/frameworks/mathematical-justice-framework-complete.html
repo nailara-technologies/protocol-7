@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Justice Framework</title>
+    <style>
+        :root {
+            --primary: #5000aa;
+            --primary-glow: #3a0080;
+            --secondary: #006699;
+            --tertiary: #440077;
+            --background: #050510;
+            --text: #8080a0;
+            --grid-color: rgba(60, 20, 120, 0.15);
+            --highlight: #4400aa;
+            --node-color: #270055;
+            --connection-color: #2a0060;
+            --active-node: #4400aa;
+            --data-flow: #2a0080;
+            --fractal-color1: #250040;
+            --fractal-color2: #100060;
+            --fractal-color3: #000040;
+            --fractal-glow: #300070;
+        }
+
+        @keyframes subtleHueRotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(30deg); }
+        }
+
+        @keyframes softPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.02); opacity: 0.7; }
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+
+        @keyframes searchPulse {
+            0%, 100% { transform: scale(0.9); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+        }
+
+        @keyframes flowAnimation {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { r: 8; fill-opacity: 0.5; }
+            50% { r: 10; fill-opacity: 0.7; }
+        }
+
+        @keyframes visibilityPulse {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes fractalPulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.02); }
+            100% { opacity: 0.3; transform: scale(1); }
+        }
+
+        @keyframes fractalRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(rgba(20, 0, 40, 0.05), rgba(0, 20, 40, 0.05)),
+                repeating-linear-gradient(0deg, var(--grid-color) 0px, var(--grid-color) 2px, transparent 2px, transparent 100px),
+                repeating-linear-gradient(90deg, var(--grid-color) 0px, var(--grid-color) 2px, transparent 2px, transparent 100px);
+            animation: gridMove 60s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-container {
+            position: relative;
+            display: inline-block;
+            padding: 2rem;
+            border-radius: 20px;
+            background: rgba(5, 0, 15, 0.7);
+            box-shadow:
+                0 0 20px var(--primary-glow),
+                0 0 40px rgba(20, 0, 40, 0.5);
+            animation: softPulse 12s infinite;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            text-shadow:
+                2px 2px 0 var(--primary-glow),
+                4px 4px 10px rgba(20, 0, 40, 0.5);
+            animation: subtleHueRotate 30s infinite linear;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .metadata {
+            font-style: italic;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: rgba(5, 0, 15, 0.7);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+        }
+
+        section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--tertiary));
+            opacity: 0.6;
+            animation: subtleHueRotate 20s infinite linear;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.6rem;
+        }
+
+        p, li {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        pre {
+            background: rgba(3, 0, 10, 0.5);
+            border-left: 3px solid var(--primary);
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 10px 10px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #7070a0;
+        }
+
+        .ascii-diagram {
+            font-family: monospace;
+            white-space: pre;
+            margin: 2rem auto;
+            display: block;
+            background: rgba(5, 0, 15, 0.5);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            color: var(--primary);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .principles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .principle-card {
+            flex: 1 1 300px;
+            background: rgba(5, 0, 20, 0.5);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .principle-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3),
+                        0 0 15px var(--primary-glow);
+        }
+
+        .principle-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                rgba(40, 0, 80, 0.05),
+                rgba(0, 30, 60, 0.05));
+            z-index: -1;
+        }
+
+        .principle-card h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .fractal-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            margin: 2rem 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            background: rgba(5, 0, 15, 0.5);
+        }
+
+        .fractal {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fractal svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(5, 0, 15, 0.8);
+            margin-top: 3rem;
+        }
+
+        .conclusion {
+            background: rgba(5, 0, 20, 0.8);
+        }
+
+        .highlight {
+            color: var(--highlight);
+            font-weight: bold;
+        }
+
+        .grid-visualization {
+            height: 400px;
+            margin: 2rem 0;
+            position: relative;
+            background: rgba(5, 0, 15, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .svg-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            fill: var(--node-color);
+            stroke: var(--primary);
+            stroke-width: 1;
+            filter: drop-shadow(0 0 3px var(--primary-glow));
+        }
+
+        .connection {
+            stroke: var(--connection-color);
+            stroke-width: 1.5;
+            stroke-opacity: 0.4;
+        }
+
+        .data-flow {
+            stroke: var(--data-flow);
+            stroke-width: 2;
+            stroke-dasharray: 5, 10;
+            stroke-opacity: 0.6;
+            animation: flowAnimation 10s linear infinite;
+        }
+
+        .visibility-radius {
+            fill: var(--primary);
+            fill-opacity: 0.05;
+            stroke: var(--primary);
+            stroke-opacity: 0.1;
+            stroke-width: 1;
+            stroke-dasharray: 3, 3;
+        }
+
+        .interest-overlap {
+            fill: var(--secondary);
+            fill-opacity: 0.1;
+            stroke: var(--secondary);
+            stroke-opacity: 0.2;
+            stroke-width: 1;
+        }
+
+        .active-node {
+            fill: var(--active-node);
+        }
+
+        .label {
+            fill: var(--text);
+            font-size: 9px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .fractal-element {
+            fill: none;
+            stroke-opacity: 0.5;
+            animation: fractalPulse 10s infinite;
+        }
+
+        .fractal-spiral {
+            animation: fractalRotate 120s linear infinite;
+            transform-origin: center;
+        }
+
+        .fractal-node {
+            fill: var(--fractal-color1);
+            stroke: var(--fractal-color2);
+            animation: fractalPulse 8s infinite;
+        }
+
+        .fractal-connection {
+            stroke: var(--fractal-color2);
+            stroke-opacity: 0.3;
+            stroke-width: 0.5;
+        }
+
+        .fractal-glow {
+            filter: drop-shadow(0 0 2px var(--fractal-glow));
+        }
+
+        .current-time {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .principle-card {
+                flex: 1 1 100%;
+            }
+
+            .grid-visualization {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-container">
+            <h1>Mathematical Justice Framework</h1>
+            <p class="subtitle">A Network Architecture for Harmonic Equilibrium</p>
+            <p class="metadata">Date: 2025-03-22 14:18:37 UTC</p>
+            <p class="metadata">Author: nailara-technologies</p>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <h2>Core Principles</h2>
+            <div class="principles">
+                <div class="principle-card">
+                    <h4>Justice as Algorithm</h4>
+                    <p>Mathematical properties create inherent fairness through deterministic computation and universal application.</p>
+                </div>
+                <div class="principle-card">
+                    <h4>Integration as Protection</h4>
+                    <p>Security through connection rather than isolation, creating resilience through redundancy and shared interest.</p>
+                </div>
+                <div class="principle-card">
+                    <h4>Geometric Honesty</h4>
+                    <p>Visible security margins at each layer, providing transparent verification of system integrity.</p>
+                </div>
+                <div class="principle-card">
+                    <h4>Division by 13 Mathematics</h4>
+                    <p>Harmonic foundation for truth assertions, creating consistent validation across disparate systems.</p>
+                </div>
+                <div class="principle-card">
+                    <h4>Entropy Synchronization</h4>
+                    <p>Parallel streams from known seeds enable coordination without explicit communication.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Implementation Architecture</h2>
+
+            <h3>Branch Point Evaluation System</h3>
+            <pre><code># Branch point weight calculation with loves_it parameter
+sub calculate_branch_weight {
+    my ($branch_id, $iteration_count, $loves_it_score) = @_;
+
+    # Division by 13 mathematics for harmonic resonance
+    my $weight = ($iteration_count * $loves_it_score) / 13;
+
+    # Truth validation
+    return 0 unless is_true($weight, 2, 1);
+
+    return $weight;
+}</code></pre>
+
+            <h3>Entropy Flow Diagram</h3>
+            <div class="ascii-diagram">
+                      [Computational Sun]
+                             |
+                             v
+     +---------------------[Seed]----------------------+
+     |                       |                         |
+     v                       v                         v
+[42-bit entropy] --> [7-bit decoded] --> [15-bit auxiliary]
+     |                       |                         |
+     v                       v                         v
+[Route Discovery]   [Character Encoding]     [Precision Control]
+     |                       |                         |
+     +-------------------[Output]---------------------+
+                             |
+                             v
+                    [Grid Dispatch Pattern]
+                    /       |       \
+                   /        |        \
+                  /         |         \
+          [Local Search] [Local Search] [Local Search]
+            </div>
+
+            <h3>Security Layer Cross-Mapping</h3>
+            <p>When adding security layers, the system automatically discovers functionalities:</p>
+            <pre><code>sub add_security_layer {
+    my ($context, $layer_type) = @_;
+
+    # Add the explicit security function
+    my $layer_id = register_security_layer($context, $layer_type);
+
+    # Discover implicit functionality through contextual analysis
+    my @implicit_functions = discover_context_functions($context, $layer_type);
+
+    # Register discovered functions with the layer
+    foreach my $function (@implicit_functions) {
+        register_layer_function($layer_id, $function);
+    }
+
+    # Update loves_it parameter (can only be positive)
+    increment_loves_it($layer_id, 1);
+
+    return $layer_id;
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>Localized Route Search Algorithm</h2>
+
+            <p>The grid-based search algorithm maintains fixed computation cycles regardless of coverage area:</p>
+
+            <pre><code>sub grid_dispatch_search {
+    my ($search_space, $truth_params, $grid_density) = @_;
+
+    # Create grid pattern based on density
+    my @grid_points = distribute_grid_points($search_space, $grid_density);
+
+    # Fixed number of computation cycles
+    my $max_cycles = 13;
+
+    # Parallel dispatch to all grid points
+    my @results = parallel_map {
+        my $point = $_;
+        my $local_result = search_from_point($point, $truth_params, $max_cycles);
+
+        # Calculate interest overlap for this result
+        my $interest_score = calculate_shared_interest($local_result);
+
+        # Adjust visibility based on distance
+        my $visibility = compensate_for_distance($point, $interest_score);
+
+        return {
+            point => $point,
+            result => $local_result,
+            visibility => $visibility
+        };
+    } @grid_points;
+
+    return optimize_results(@results);
+}</code></pre>
+
+            <h3>Grid Pattern Visualization</h3>
+            <div class="grid-visualization">
+                <svg class="svg-container" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet">
+                    <!-- Grid background -->
+                    <defs>
+                        <pattern id="smallGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+                            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(60, 20, 120, 0.15)" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#smallGrid)"/>
+
+                    <!-- Interest overlap regions -->
+                    <ellipse class="interest-overlap" cx="300" cy="400" rx="200" ry="200">
+                        <animate attributeName="opacity" values="0.1;0.15;0.1" dur="10s" repeatCount="indefinite"/>
+                    </ellipse>
+                    <ellipse class="interest-overlap" cx="700" cy="400" rx="200" ry="200">
+                        <animate attributeName="opacity" values="0.1;0.15;0.1" dur="13s" repeatCount="indefinite"/>
+                    </ellipse>
+                    <ellipse class="interest-overlap" cx="500" cy="200" rx="150" ry="150">
+                        <animate attributeName="opacity" values="0.1;0.15;0.1" dur="15s" repeatCount="indefinite"/>
+                    </ellipse>
+
+                    <!-- Visibility radii -->
+                    <circle class="visibility-radius" cx="300" cy="300" r="180">
+                        <animate attributeName="opacity" values="0.05;0.1;0.05" dur="17s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="visibility-radius" cx="700" cy="300" r="180">
+                        <animate attributeName="opacity" values="0.05;0.1;0.05" dur="19s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="visibility-radius" cx="300" cy="600" r="120">
+                        <animate attributeName="opacity" values="0.05;0.1;0.05" dur="14s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="visibility-radius" cx="700" cy="600" r="120">
+                        <animate attributeName="opacity" values="0.05;0.1;0.05" dur="16s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Grid connections -->
+                    <!-- Row 1 -->
+                    <line class="connection" x1="200" y1="200" x2="400" y2="200"/>
+                    <line class="connection" x1="400" y1="200" x2="600" y2="200"/>
+                    <line class="connection" x1="600" y1="200" x2="800" y2="200"/>
+
+                    <!-- Row 2 -->
+                    <line class="connection" x1="200" y1="400" x2="400" y2="400"/>
+                    <line class="connection" x1="400" y1="400" x2="600" y2="400"/>
+                    <line class="connection" x1="600" y1="400" x2="800" y2="400"/>
+
+                    <!-- Row 3 -->
+                    <line class="connection" x1="200" y1="600" x2="400" y2="600"/>
+                    <line class="connection" x1="400" y1="600" x2="600" y2="600"/>
+                    <line class="connection" x1="600" y1="600" x2="800" y2="600"/>
+
+                    <!-- Column 1 -->
+                    <line class="connection" x1="200" y1="200" x2="200" y2="400"/>
+                    <line class="connection" x1="200" y1="400" x2="200" y2="600"/>
+
+                    <!-- Column 2 -->
+                    <line class="connection" x1="400" y1="200" x2="400" y2="400"/>
+                    <line class="connection" x1="400" y1="400" x2="400" y2="600"/>
+
+                    <!-- Column 3 -->
+                    <line class="connection" x1="600" y1="200" x2="600" y2="400"/>
+                    <line class="connection" x1="600" y1="400" x2="600" y2="600"/>
+
+                    <!-- Column 4 -->
+                    <line class="connection" x1="800" y1="200" x2="800" y2="400"/>
+                    <line class="connection" x1="800" y1="400" x2="800" y2="600"/>
+
+                    <!-- Cross connections -->
+                    <line class="connection" x1="200" y1="200" x2="400" y2="400" stroke-dasharray="5,5"/>
+                    <line class="connection" x1="400" y1="200" x2="600" y2="400" stroke-dasharray="5,5"/>
+                    <line class="connection" x1="600" y1="200" x2="800" y2="400" stroke-dasharray="5,5"/>
+                    <line class="connection" x1="200" y1="400" x2="400" y2="600" stroke-dasharray="5,5"/>
+                    <line class="connection" x1="400" y1="400" x2="600" y2="600" stroke-dasharray="5,5"/>
+                    <line class="connection" x1="600" y1="400" x2="800" y2="600" stroke-dasharray="5,5"/>
+
+                    <!-- Data flows -->
+                    <path class="data-flow" d="M200,200 L400,200 L600,200" stroke-dasharray="5,10">
+                        <animate attributeName="stroke-dashoffset" values="15;0" dur="3s" repeatCount="indefinite"/>
+                    </path>
+                    <path class="data-flow" d="M200,200 L200,400 L400,400" stroke-dasharray="5,10">
+                        <animate attributeName="stroke-dashoffset" values="15;0" dur="4s" repeatCount="indefinite"/>
+                    </path>
+                    <path class="data-flow" d="M800,200 L600,400 L400,600" stroke-dasharray="5,10">
+                        <animate attributeName="stroke-dashoffset" values="15;0" dur="5s" repeatCount="indefinite"/>
+                    </path>
+                    <path class="data-flow" d="M800,600 L600,600 L400,400 L200,400" stroke-dasharray="5,10">
+                        <animate attributeName="stroke-dashoffset" values="15;0" dur="6s" repeatCount="indefinite"/>
+                    </path>
+
+                    <!-- Grid nodes -->
+                    <!-- Row 1 -->
+                    <circle class="node" cx="200" cy="200" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="3s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node" cx="400" cy="200" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="4s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="4s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node active-node" cx="600" cy="200" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="3.5s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.6;0.8;0.6" dur="3.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node" cx="800" cy="200" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="5s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="5s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Row 2 -->
+                    <circle class="node active-node" cx="200" cy="400" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.6;0.8;0.6" dur="4.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node" cx="400" cy="400" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="3.2s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="3.2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node active-node" cx="600" cy="400" r="8">
+                        <animate attributeName="r" values="8;11;8" dur="2.8s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.6;0.8;0.6" dur="2.8s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node" cx="800" cy="400" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="5.5s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="5.5s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Row 3 -->
+                    <circle class="node" cx="200" cy="600" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="6s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="6s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node active-node" cx="400" cy="600" r="8">
+                        <animate attributeName="r" values="8;11;8" dur="3.7s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.6;0.8;0.6" dur="3.7s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node" cx="600" cy="600" r="8">
+                        <animate attributeName="r" values="8;10;8" dur="4.2s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.5;0.7;0.5" dur="4.2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle class="node active-node" cx="800" cy="600" r="8">
+                        <animate attributeName="r" values="8;11;8" dur="3.9s" repeatCount="indefinite"/>
+                        <animate attributeName="fill-opacity" values="0.6;0.8;0.6" dur="3.9s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- Labels -->
+                    <text class="label" x="300" y="300">Visibility radius (d/13)</text>
+                    <text class="label" x="500" y="200">Shared interest region</text>
+                    <text class="label" x="600" y="400">Active computation node</text>
+                    <text class="label" x="800" y="400">Data flow (fixed cycles)</text>
+                    <text class="label" x="500" y="700">Grid density: optimal for search space</text>
+
+                    <!-- Legend -->
+                    <rect x="800" y="680" width="150" height="100" fill="rgba(5, 0, 15, 0.7)" rx="5" ry="5"/>
+                    <text class="label" x="875" y="700">Legend</text>
+                    <circle cx="820" cy="720" r="5" class="node"/>
+                    <text class="label" x="880" y="723" text-anchor="start">Grid node</text>
+                    <circle cx="820" cy="740" r="5" class="node active-node"/>
+                    <text class="label" x="880" y="743" text-anchor="start">Active node</text>
+                    <line x1="820" y1="760" x2="840" y2="760" class="data-flow"/>
+                    <text class="label" x="880" y="763" text-anchor="start">Data flow</text>
+                </svg>
+            </div>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Fractal background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Division by 13 spiral pattern -->
+                        <g class="fractal-spiral" transform="translate(500, 200)">
+                            <path class="fractal-element" d="M0,0
+                                C30,-50 80,-60 120,-30
+                                C160,0 180,80 150,130
+                                C120,180 60,190 0,170
+                                C-60,150 -100,80 -90,0
+                                C-80,-80 -30,-120 30,-100
+                                C90,-80 120,-30 110,30
+                                C100,90 50,120 0,110
+                                C-50,100 -80,50 -70,0
+                                C-60,-50 -20,-80 20,-70
+                                C60,-60 80,-20 70,20
+                                C60,60 20,80 -10,70
+                                C-40,60 -60,30 -50,0"
+                                stroke="#350060" stroke-width="2"/>
+
+                            <path class="fractal-element" d="M0,0
+                                C20,-40 70,-50 100,-20
+                                C130,10 140,70 110,110
+                                C80,150 30,150 -20,130
+                                C-70,110 -90,60 -80,0
+                                C-70,-60 -20,-90 30,-70
+                                C80,-50 100,-10 90,40
+                                C80,90 30,100 -10,80
+                                C-50,60 -70,20 -60,-10
+                                C-50,-40 -10,-60 30,-40
+                                C70,-20 80,20 60,50
+                                C40,80 0,90 -30,70"
+                                stroke="#200060" stroke-width="1.5"/>
+
+                            <path class="fractal-element" d="M0,0
+                                C10,-20 40,-30 60,-10
+                                C80,10 90,40 70,60
+                                C50,80 20,80 0,70
+                                C-20,60 -40,30 -30,0
+                                C-20,-30 0,-40 20,-30
+                                C40,-20 50,0 40,20
+                                C30,40 10,50 -10,40
+                                C-30,30 -40,10 -30,-10
+                                C-20,-30 0,-40 20,-30"
+                                stroke="#150040" stroke-width="1"/>
+                        </g>
+
+                        <!-- Division by 13 table pattern -->
+                        <g transform="translate(200, 200)">
+                            <!-- Mathematical pattern nodes -->
+                            <g class="fractal-glow">
+                                <circle class="fractal-node" cx="0" cy="0" r="13">
+                                    <animate attributeName="r" values="13;15;13" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="91" cy="0" r="7">
+                                    <animate attributeName="r" values="7;9;7" dur="6s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="45.5" cy="78.8" r="7">
+                                    <animate attributeName="r" values="7;9;7" dur="7s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="-45.5" cy="78.8" r="7">
+                                    <animate attributeName="r" values="7;9;7" dur="9s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="-91" cy="0" r="7">
+                                    <animate attributeName="r" values="7;9;7" dur="5s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="-45.5" cy="-78.8" r="7">
+                                    <animate attributeName="r" values="7;9;7" dur="10s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <circle class="fractal-node" cx="45.5" cy="-78.8" r="7">
+                                    <animate attributeName="r" values="7;8;7" dur="6.5s" repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+
+                            <!-- Connecting lines -->
+                            <line class="fractal-connection" x1="0" y1="0" x2="91" y2="0"/>
+                            <line class="fractal-connection" x1="0" y1="0" x2="45.5" y2="78.8"/>
+                            <line class="fractal-connection" x1="0" y1="0" x2="-45.5" y2="78.8"/>
+                            <line class="fractal-connection" x1="0" y1="0" x2="-91" y2="0"/>
+                            <line class="fractal-connection" x1="0" y1="0" x2="-45.5" y2="-78.8"/>
+                            <line class="fractal-connection" x1="0" y1="0" x2="45.5" y2="-78.8"/>
+
+                            <!-- Hexagon outline -->
+                            <path class="fractal-connection" d="M91,0 L45.5,78.8 L-45.5,78.8 L-91,0 L-45.5,-78.8 L45.5,-78.8 Z"/>
+                        </g>
+
+                        <!-- Division by 13 matrix pattern -->
+                        <g transform="translate(800, 200)">
+                            <!-- 13x13 dot matrix visualization -->
+                            <g>
+                                <!-- Only showing select dots to create a pattern -->
+                                <circle class="fractal-node" cx="-90" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="-60" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="-30" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="30" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="60" cy="-90" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="-90" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="-60" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="-60" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="-60" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="-30" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="-30" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="-30" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="0" r="3"/>
+                                <circle class="fractal-node active-node" cx="0" cy="0" r="5">
+                                    <animate attributeName="r" values="5;7;5" dur="4s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle class="fractal-node" cx="90" cy="0" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="30" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="30" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="30" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="60" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="60" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="60" r="3"/>
+
+                                <circle class="fractal-node" cx="-90" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="-60" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="-30" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="0" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="30" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="60" cy="90" r="3"/>
+                                <circle class="fractal-node" cx="90" cy="90" r="3"/>
+                            </g>
+
+                            <!-- Data flow visualization -->
+                            <path class="data-flow" d="M0,0 L-60,-60 L0,-90 L60,-60 L0,0 L-60,60 L0,90 L60,60 Z" stroke-width="1">
+                                <animate attributeName="stroke-dashoffset" values="50;0" dur="13s" repeatCount="indefinite"/>
+                            </path>
+
+                            <!-- Division lines -->
+                            <line class="fractal-connection" x1="-90" y1="0" x2="90" y2="0"/>
+                            <line class="fractal-connection" x1="0" y1="-90" x2="0" y2="90"/>
+                            <line class="fractal-connection" x1="-90" y1="-90" x2="90" y2="90"/>
+                            <line class="fractal-connection" x1="90" y1="-90" x2="-90" y2="90"/>
+                        </g>
+
+                        <!-- Text labels -->
+                        <text class="label" x="200" y="350">Hexagonal Division-13 Geometry</text>
+                        <text class="label" x="500" y="350">Harmonic Spiral Pattern</text>
+                        <text class="label" x="800" y="350">Truth Matrix (13x13)</text>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Division-13 Entropy Stream Implementation</h2>
+
+            <p>Based on the division-13-table algorithm, this implementation creates harmonically synchronized entropy:</p>
+
+            <pre><code>sub generate_entropy_stream {
+    my ($seed, $cycles) = @_;
+
+    my $Z = $seed;
+    my $iteration = 0;
+    my @entropy_stream;
+
+    # Initial shift to prime the entropy
+    $Z <<= 4;
+
+    while ($iteration++ < $cycles) {
+        # Apply division by 13 mathematics
+        $Z /= 13;
+
+        # Truth-preserving shift based on validation
+        $Z <<= is_true($Z) ? 2 : 1;
+
+        # Extract the 42-bit entropy body
+        my $num_bits_64 = sprintf( '%064b', $Z );
+        my $main_entropy = substr( $num_bits_64, 0, 42 );
+        my $decoded = substr( $num_bits_64, 42, 7 );
+        my $auxiliary = substr( $num_bits_64, 49, 15 );
+
+        # Validate entropy quality
+        next unless is_true($Z, 2, 1) && is_true($main_entropy, 0, 1);
+
+        # Store the valid entropy state
+        push @entropy_stream, {
+            main => $main_entropy,
+            decoded => $decoded,
+            auxiliary => $auxiliary,
+            iteration => $iteration
+        };
+    }
+
+    return @entropy_stream;
+}</code></pre>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Entropy streams visualization -->
+
+                        <!-- Main entropy stream (42-bit) -->
+                        <g transform="translate(500, 100)">
+                            <text class="label" x="0" y="-50">42-bit Main Entropy</text>
+
+                            <!-- Binary representation -->
+                            <g transform="translate(0, 0)">
+                                <!-- Only visualizing part of the 42 bits -->
+                                <g id="entropy-bits">
+                                    <!-- Row 1 -->
+                                    <rect x="-210" y="-20" width="10" height="10" fill="#270045" opacity="0.7">
+                                        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="4s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="-195" y="-20" width="10" height="10" fill="#270045" opacity="0.6"/>
+                                    <rect x="-180" y="-20" width="10" height="10" fill="#270045" opacity="0.8">
+                                        <animate attributeName="opacity" values="0.6;1.0;0.6" dur="5s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="-165" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                    <rect x="-150" y="-20" width="10" height="10" fill="#270045" opacity="0.5"/>
+                                    <rect x="-135" y="-20" width="10" height="10" fill="#270045" opacity="0.6">
+                                        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="6s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="-120" y="-20" width="10" height="10" fill="#270045" opacity="0.8"/>
+                                    <rect x="-105" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                    <rect x="-90" y="-20" width="10" height="10" fill="#270045" opacity="0.5">
+                                        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="7s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="-75" y="-20" width="10" height="10" fill="#270045" opacity="0.6"/>
+                                    <rect x="-60" y="-20" width="10" height="10" fill="#270045" opacity="0.8"/>
+                                    <rect x="-45" y="-20" width="10" height="10" fill="#270045" opacity="0.7">
+                                        <animate attributeName="opacity" values="0.6;1.0;0.6" dur="8s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="-30" y="-20" width="10" height="10" fill="#270045" opacity="0.5"/>
+                                    <rect x="-15" y="-20" width="10" height="10" fill="#270045" opacity="0.6"/>
+                                    <rect x="0" y="-20" width="10" height="10" fill="#270045" opacity="0.8">
+                                        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="4.5s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="15" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                    <rect x="30" y="-20" width="10" height="10" fill="#270045" opacity="0.5"/>
+                                    <rect x="45" y="-20" width="10" height="10" fill="#270045" opacity="0.6">
+                                        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="5.5s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="60" y="-20" width="10" height="10" fill="#270045" opacity="0.8"/>
+                                    <rect x="75" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                    <rect x="90" y="-20" width="10" height="10" fill="#270045" opacity="0.5"/>
+                                    <rect x="105" y="-20" width="10" height="10" fill="#270045" opacity="0.6">
+                                        <animate attributeName="opacity" values="0.5;0.9;0.5" dur="6.5s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="120" y="-20" width="10" height="10" fill="#270045" opacity="0.8"/>
+                                    <rect x="135" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                    <rect x="150" y="-20" width="10" height="10" fill="#270045" opacity="0.5">
+                                        <animate attributeName="opacity" values="0.4;0.8;0.4" dur="7.5s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <rect x="165" y="-20" width="10" height="10" fill="#270045" opacity="0.6"/>
+                                    <rect x="180" y="-20" width="10" height="10" fill="#270045" opacity="0.8"/>
+                                    <rect x="195" y="-20" width="10" height="10" fill="#270045" opacity="0.7"/>
+                                </g>
+                            </g>
+                        </g>
+
+                        <!-- 7-bit decoded section -->
+                        <g transform="translate(320, 180)">
+                            <text class="label" x="0" y="-30">7-bit Decoded</text>
+
+                            <rect x="-45" y="-10" width="12" height="12" fill="#350070" opacity="0.7">
+                                <animate attributeName="opacity" values="0.5;0.9;0.5" dur="4s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="-30" y="-10" width="12" height="12" fill="#350070" opacity="0.8"/>
+                            <rect x="-15" y="-10" width="12" height="12" fill="#350070" opacity="0.9">
+                                <animate attributeName="opacity" values="0.7;1.0;0.7" dur="5s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="0" y="-10" width="12" height="12" fill="#350070" opacity="1.0"/>
+                            <rect x="15" y="-10" width="12" height="12" fill="#350070" opacity="0.9">
+                                <animate attributeName="opacity" values="0.7;1.0;0.7" dur="6s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="30" y="-10" width="12" height="12" fill="#350070" opacity="0.8"/>
+                            <rect x="45" y="-10" width="12" height="12" fill="#350070" opacity="0.7"/>
+
+                            <!-- Connecting line to main entropy -->
+                            <line x1="0" y1="-40" x2="0" y2="-20" stroke="#250050" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="2,2"/>
+                        </g>
+
+                        <!-- 15-bit auxiliary section -->
+                        <g transform="translate(680, 180)">
+                            <text class="label" x="0" y="-30">15-bit Auxiliary</text>
+
+                            <!-- Only visualizing part of the 15 bits -->
+                            <rect x="-105" y="-10" width="12" height="12" fill="#1a0060" opacity="0.6"/>
+                            <rect x="-90" y="-10" width="12" height="12" fill="#1a0060" opacity="0.7">
+                                <animate attributeName="opacity" values="0.5;0.8;0.5" dur="4s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="-75" y="-10" width="12" height="12" fill="#1a0060" opacity="0.8"/>
+                            <rect x="-60" y="-10" width="12" height="12" fill="#1a0060" opacity="0.6">
+                                <animate attributeName="opacity" values="0.4;0.7;0.4" dur="5s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="-45" y="-10" width="12" height="12" fill="#1a0060" opacity="0.7"/>
+                            <rect x="-30" y="-10" width="12" height="12" fill="#1a0060" opacity="0.8"/>
+                            <rect x="-15" y="-10" width="12" height="12" fill="#1a0060" opacity="0.6">
+                                <animate attributeName="opacity" values="0.5;0.8;0.5" dur="6s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="0" y="-10" width="12" height="12" fill="#1a0060" opacity="0.7"/>
+                            <rect x="15" y="-10" width="12" height="12" fill="#1a0060" opacity="0.8"/>
+                            <rect x="30" y="-10" width="12" height="12" fill="#1a0060" opacity="0.6"/>
+                            <rect x="45" y="-10" width="12" height="12" fill="#1a0060" opacity="0.7">
+                                <animate attributeName="opacity" values="0.5;0.8;0.5" dur="7s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="60" y="-10" width="12" height="12" fill="#1a0060" opacity="0.8"/>
+                            <rect x="75" y="-10" width="12" height="12" fill="#1a0060" opacity="0.6"/>
+                            <rect x="90" y="-10" width="12" height="12" fill="#1a0060" opacity="0.7"/>
+                            <rect x="105" y="-10" width="12" height="12" fill="#1a0060" opacity="0.8">
+                                <animate attributeName="opacity" values="0.6;0.9;0.6" dur="8s" repeatCount="indefinite"/>
+                            </rect>
+
+                            <!-- Connecting line to main entropy -->
+                            <line x1="0" y1="-40" x2="0" y2="-20" stroke="#250050" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="2,2"/>
+                        </g>
+
+                        <!-- Output of entropy streams -->
+                        <g transform="translate(500, 270)">
+                            <text class="label" x="0" y="-30">Combined Entropy Output</text>
+
+                            <!-- Connecting lines from entropy sections -->
+                            <line x1="-180" y1="-80" x2="0" y2="-40" stroke="#250050" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="2,2"/>
+                            <line x1="180" y1="-80" x2="0" y2="-40" stroke="#250050" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="2,2"/>
+
+                            <!-- Output visualization -->
+                            <rect x="-250" y="0" width="500" height="20" fill="url(#entropyGradient)" rx="3" ry="3">
+                                <animate attributeName="opacity" values="0.6;0.9;0.6" dur="13s" repeatCount="indefinite"/>
+                            </rect>
+
+                            <!-- Entropy flow markers -->
+                            <defs>
+                                <linearGradient id="entropyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#150040;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#350070;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#150040;stop-opacity:1" />
+                                </linearGradient>
+
+                                <filter id="entropyGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="2" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                            </defs>
+
+                            <!-- Flow markers -->
+                            <circle cx="-200" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="-150" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="1s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="-100" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="2s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="-50" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="3s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="0" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="4s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="50" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="5s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="100" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="6s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="150" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="7s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <circle cx="200" cy="10" r="3" fill="#350070" filter="url(#entropyGlow)">
+                                <animate attributeName="cx" values="-250;250;-250" dur="13s" begin="8s" repeatCount="indefinite"/>
+                            </circle>
+                        </g>
+
+                        <!-- Division by 13 marker -->
+                        <text class="label" x="500" y="370">Division by 13 Entropy Stream (Fixed Cycles)</text>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Shared Interest Computation Model</h2>
+
+            <p>The economic layer that makes operations affordable at scale:</p>
+
+            <pre><code>sub calculate_shared_interest {
+    my ($result_a, $result_b) = @_;
+
+    # Extract interest vectors
+    my $vector_a = extract_interest_vector($result_a);
+    my $vector_b = extract_interest_vector($result_b);
+
+    # Calculate overlap score (dot product)
+    my $overlap = vector_dot_product($vector_a, $vector_b);
+
+    # Apply distance compensation
+    my $distance = calculate_network_distance($result_a, $result_b);
+    my $visibility = 1 - ($distance / 13); # Normalize to [0,1]
+
+    # Calculate affordability factor
+    my $affordability = ($overlap * $visibility) / calculate_resource_cost($distance);
+
+    # Higher values mean more affordable computation
+    return $affordability;
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>Truth Validation Methodology</h2>
+
+            <p>The system relies on mathematical truth assertions to maintain integrity:</p>
+
+            <pre><code>sub is_true {
+    my ($value, $position, $context) = @_;
+
+    # Extract binary representation
+    my $binary = sprintf('%064b', $value);
+
+    # Truth validation based on position
+    my $relevant_bit = substr($binary, $position, 1);
+
+    # Context-aware truth validation
+    if ($context == 1) {
+        # Basic truth - simple bit check
+        return $relevant_bit eq '1';
+    } elsif ($context == 2) {
+        # Harmonic truth - check bit relationships
+        my $preceding_bit = substr($binary, $position-1, 1);
+        my $following_bit = substr($binary, $position+1, 1);
+
+        # True when creates harmonic pattern
+        return $preceding_bit ne $relevant_bit && $relevant_bit eq $following_bit;
+    } elsif ($context == 3) {
+        # Pattern truth - validate larger patterns
+        my $segment = substr($binary, $position, 7);
+        my $segment_value = oct("0b$segment");
+
+        # True when divisible by 13
+        return $segment_value % 13 == 0;
+    }
+
+    return 0; # False by default
+}</code></pre>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Truth validation visualization -->
+                        <g transform="translate(500, 200)">
+                            <!-- Layer 1: Context 1 - Basic Truth -->
+                            <circle cx="0" cy="0" r="100" fill="none" stroke="#150040" stroke-width="1" stroke-opacity="0.3"/>
+                            <text class="label" x="0" y="-110">Context 1: Basic Truth</text>
+                            <path d="M0,0 L70,70" stroke="#250050" stroke-width="1.5" stroke-opacity="0.5"/>
+                            <circle cx="70" cy="70" r="15" fill="#2a0060" fill-opacity="0.4" stroke="#2a0060" stroke-width="1">
+                                <animate attributeName="r" values="15;18;15" dur="5s" repeatCount="indefinite"/>
+                                <animate attributeName="fill-opacity" values="0.4;0.6;0.4" dur="5s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="70" y="90">bit = 1</text>
+
+                            <!-- Layer 2: Context 2 - Harmonic Truth -->
+                            <circle cx="0" cy="0" r="150" fill="none" stroke="#1a0050" stroke-width="1" stroke-opacity="0.3"/>
+                            <text class="label" x="0" y="-160">Context 2: Harmonic Truth</text>
+                            <path d="M0,0 L-106,106" stroke="#2a0060" stroke-width="1.5" stroke-opacity="0.5"/>
+                            <circle cx="-106" cy="106" r="20" fill="#350070" fill-opacity="0.3" stroke="#350070" stroke-width="1">
+                                <animate attributeName="r" values="20;24;20" dur="8s" repeatCount="indefinite"/>
+                                <animate attributeName="fill-opacity" values="0.3;0.5;0.3" dur="8s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="-106" y="135">B ≠ A ∧ A = C</text>
+
+                            <!-- Layer 3: Context 3 - Pattern Truth -->
+                            <circle cx="0" cy="0" r="200" fill="none" stroke="#1f0060" stroke-width="1" stroke-opacity="0.3"/>
+                            <text class="label" x="0" y="-210">Context 3: Pattern Truth</text>
+                            <path d="M0,0 L141,-141" stroke="#2a0080" stroke-width="1.5" stroke-opacity="0.5"/>
+                            <circle cx="141" cy="-141" r="25" fill="#300070" fill-opacity="0.3" stroke="#300070" stroke-width="1">
+                                <animate attributeName="r" values="25;30;25" dur="10s" repeatCount="indefinite"/>
+                                <animate attributeName="fill-opacity" values="0.3;0.5;0.3" dur="10s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="141" y="-110">Pattern % 13 = 0</text>
+
+                            <!-- Core bit value -->
+                            <circle cx="0" cy="0" r="30" fill="#400080" fill-opacity="0.4" stroke="#400080" stroke-width="2">
+                                <animate attributeName="r" values="30;34;30" dur="13s" repeatCount="indefinite"/>
+                                <animate attributeName="fill-opacity" values="0.4;0.6;0.4" dur="13s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="0" y="5" font-size="14">Value</text>
+
+                            <!-- Binary representation flowing out -->
+                            <text class="label" x="0" y="40" font-size="8" letter-spacing="1">
+                                <tspan opacity="0.5">...01</tspan><tspan fill="#5000aa">1</tspan><tspan opacity="0.5">0111...</tspan>
+                            </text>
+
+                            <!-- Position marker -->
+                            <line x1="0" y1="30" x2="0" y2="45" stroke="#5000aa" stroke-width="1"/>
+                            <text class="label" x="0" y="60" font-size="8">position=2</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Practical Implementation Examples</h2>
+
+            <h3>Network Route Discovery</h3>
+
+            <pre><code>sub discover_network_routes {
+    my ($source_node, $destination_node, $noise_pattern) = @_;
+
+    # Extract infrastructure noise characteristics
+    my $noise_encoding = analyze_infrastructure_noise($noise_pattern);
+
+    # Seed from noise pattern hash
+    my $seed = generate_seed_from_noise($noise_encoding);
+
+    # Create entropy stream with fixed cycles
+    my @entropy = generate_entropy_stream($seed, 13);
+
+    # Interpret entropy as routes
+    my @potential_routes;
+    foreach my $entropy_state (@entropy) {
+        my $decoded = $entropy_state->{decoded};
+
+        # Convert 7-bit decoded section to route instruction
+        my $route_instruction = decoded_bits_route($decoded);
+
+        # Add to potential routes if valid
+        if (is_valid_route_step($route_instruction, $source_node)) {
+            push @potential_routes, $route_instruction;
+        }
+    }
+
+    # Apply truth validation to filter routes
+    my @validated_routes = grep {
+        validate_route_truth($_, $source_node, $destination_node)
+    } @potential_routes;
+
+    return optimize_routes(\@validated_routes);
+}</code></pre>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Network route visualization -->
+                        <g transform="translate(500, 200)">
+                            <!-- Network nodes -->
+                            <circle cx="-350" cy="-100" r="20" class="fractal-node" stroke-width="1.5">
+                                <animate attributeName="r" values="20;22;20" dur="5s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="-350" y="-120">Source</text>
+
+                            <circle cx="350" cy="100" r="20" class="fractal-node" stroke-width="1.5">
+                                <animate attributeName="r" values="20;22;20" dur="5s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="350" y="130">Destination</text>
+
+                            <!-- Network infrastructure -->
+                            <circle cx="-200" cy="-150" r="12" class="fractal-node"/>
+                            <circle cx="-100" cy="-80" r="12" class="fractal-node"/>
+                            <circle cx="0" cy="-50" r="12" class="fractal-node"/>
+                            <circle cx="100" cy="0" r="12" class="fractal-node"/>
+                            <circle cx="250" cy="50" r="12" class="fractal-node"/>
+
+                            <circle cx="-250" cy="0" r="12" class="fractal-node"/>
+                            <circle cx="-150" cy="80" r="12" class="fractal-node"/>
+                            <circle cx="-50" cy="130" r="12" class="fractal-node"/>
+                            <circle cx="150" cy="150" r="12" class="fractal-node"/>
+
+                            <circle cx="-200" cy="-50" r="12" class="fractal-node"/>
+                            <circle cx="-50" cy="30" r="12" class="fractal-node"/>
+                            <circle cx="200" cy="-80" r="12" class="fractal-node"/>
+
+                            <!-- Infrastructure connections -->
+                            <g class="fractal-connection">
+                                <line x1="-350" y1="-100" x2="-250" y2="0"/>
+                                <line x1="-350" y1="-100" x2="-200" y2="-150"/>
+                                <line x1="-350" y1="-100" x2="-200" y2="-50"/>
+
+                                <line x1="-250" y1="0" x2="-150" y2="80"/>
+                                <line x1="-250" y1="0" x2="-200" y2="-50"/>
+
+                                <line x1="-200" y1="-150" x2="-100" y2="-80"/>
+                                <line x1="-200" y1="-150" x2="-200" y2="-50"/>
+
+                                <line x1="-200" y1="-50" x2="-100" y2="-80"/>
+                                <line x1="-200" y1="-50" x2="-50" y2="30"/>
+
+                                <line x1="-150" y1="80" x2="-50" y2="130"/>
+                                <line x1="-150" y1="80" x2="-50" y2="30"/>
+
+                                <line x1="-100" y1="-80" x2="0" y2="-50"/>
+                                <line x1="-100" y1="-80" x2="-50" y2="30"/>
+
+                                <line x1="-50" y1="30" x2="0" y2="-50"/>
+                                <line x1="-50" y1="30" x2="-50" y2="130"/>
+                                <line x1="-50" y1="30" x2="100" y2="0"/>
+
+                                <line x1="-50" y1="130" x2="150" y2="150"/>
+
+                                <line x1="0" y1="-50" x2="100" y2="0"/>
+                                <line x1="0" y1="-50" x2="200" y2="-80"/>
+
+                                <line x1="100" y1="0" x2="200" y2="-80"/>
+                                <line x1="100" y1="0" x2="250" y2="50"/>
+                                <line x1="100" y1="0" x2="150" y2="150"/>
+
+                                <line x1="150" y1="150" x2="250" y2="50"/>
+                                <line x1="150" y1="150" x2="350" y2="100"/>
+
+                                <line x1="200" y1="-80" x2="250" y2="50"/>
+
+                                <line x1="250" y1="50" x2="350" y2="100"/>
+                            </g>
+
+                            <!-- Route 1 -->
+                            <path class="data-flow" d="M-350,-100 L-200,-150 L-100,-80 L0,-50 L200,-80 L250,50 L350,100"
+                                stroke="#3a0080" stroke-width="3" stroke-dasharray="10,5">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="8s" repeatCount="indefinite"/>
+                            </path>
+
+                            <!-- Route 2 -->
+                            <path class="data-flow" d="M-350,-100 L-200,-50 L-50,30 L100,0 L250,50 L350,100"
+                                stroke="#450090" stroke-width="3" stroke-dasharray="10,5">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="10s" repeatCount="indefinite"/>
+                            </path>
+
+                            <!-- Route 3 -->
+                            <path class="data-flow" d="M-350,-100 L-250,0 L-150,80 L-50,130 L150,150 L350,100"
+                                stroke="#300080" stroke-width="3" stroke-dasharray="10,5">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="13s" repeatCount="indefinite"/>
+                            </path>
+
+                            <!-- Labels -->
+                            <text class="label" x="0" y="-170">Network Routes Generated from Entropy Streams</text>
+                            <text class="label" x="-200" y="180">Infrastructure Noise Pattern as Seed</text>
+                            <text class="label" x="200" y="180">Truth-validated Routes</text>
+
+                            <!-- Noise pattern -->
+                            <g transform="translate(-280, 160) scale(0.5)">
+                                <path d="M0,0 Q10,-10 20,0 Q30,10 40,0 Q50,-10 60,0" stroke="#200050" stroke-width="1" fill="none"/>
+                                <path d="M0,10 Q15,0 30,10 Q45,20 60,10" stroke="#200050" stroke-width="1" fill="none"/>
+                                <path d="M0,20 Q20,10 40,20 Q60,30 80,20" stroke="#200050" stroke-width="1" fill="none"/>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <h3>Grid-Based Search Implementation</h3>
+
+            <pre><code>sub deploy_grid_search {
+    my ($target_area, $search_parameters) = @_;
+
+    # Determine optimal grid density
+    my $grid_density = calculate_optimal_density($target_area);
+
+    # Distribute grid points
+    my @search_points = create_grid_pattern($target_area, $grid_density);
+
+    # Create truth parameters for each grid point
+    my @truth_params = map {
+        my $point = $_;
+        create_localized_truth_params($point, $search_parameters);
+    } @search_points;
+
+    # Run parallel searches with fixed cycle count
+    my @search_results = parallel_map {
+        my ($point, $params) = @$_;
+        execute_fixed_cycle_search($point, $params, 13);
+    } zip(\@search_points, \@truth_params);
+
+    # Apply interest-based result filtering
+    return filter_by_shared_interest(\@search_results);
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>System Integration Guidelines</h2>
+
+            <p>When integrating with existing systems, follow these principles:</p>
+
+            <ul>
+                <li><span class="highlight">Truth Preservation</span> - All transformations must maintain mathematical truth properties</li>
+                <li><span class="highlight">Cycle Consistency</span> - Operations must complete in fixed number of cycles regardless of input size</li>
+                <li><span class="highlight">Harmonic Resonance</span> - Division by 13 mathematics must be applied at boundary interfaces</li>
+                <li><span class="highlight">Grid Distribution</span> - Computational load must distribute geometrically across infrastructure</li>
+                <li><span class="highlight">Noise Utilization</span> - System must leverage existing infrastructure noise as encoding channel</li>
+            </ul>
+
+            <pre><code>sub integrate_with_existing_system {
+    my ($legacy_system, $integration_points) = @_;
+
+    # Create noise profile of existing system
+    my $noise_profile = analyze_system_noise($legacy_system);
+
+    # Identify harmonic opportunities
+    my @harmonic_points = find_division_13_harmonics($noise_profile);
+
+    # Create adapter layer at each integration point
+    foreach my $point (@$integration_points) {
+        # Find nearest harmonic point
+        my $harmonic = find_nearest_harmonic($point, \@harmonic_points);
+
+        # Create truth-preserving adapter
+        install_truth_adapter($legacy_system, $point, $harmonic);
+
+        # Verify cycle consistency
+        verify_fixed_cycles($point, 13);
+    }
+
+    # Deploy grid-based observers
+    deploy_observer_grid($legacy_system, calculate_optimal_density($legacy_system));
+
+    return 1; # Success
+}</code></pre>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- System integration visualization -->
+                        <g transform="translate(500, 200)">
+                            <!-- Legacy system -->
+                            <rect x="-300" y="-150" width="200" height="300" rx="10" ry="10"
+                                fill="#150030" stroke="#200040" stroke-width="2"/>
+                            <text class="label" x="-200" y="-170">Legacy System</text>
+
+                            <!-- Mathematical justice layer -->
+                            <rect x="100" y="-150" width="200" height="300" rx="10" ry="10"
+                                fill="#250050" stroke="#300060" stroke-width="2"/>
+                            <text class="label" x="200" y="-170">Mathematical Justice Layer</text>
+
+                            <!-- Integration points -->
+                            <circle cx="-100" cy="-100" r="15" fill="#200040" stroke="#300060" stroke-width="2"/>
+                            <circle cx="-100" cy="0" r="15" fill="#200040" stroke="#300060" stroke-width="2"/>
+                            <circle cx="-100" cy="100" r="15" fill="#200040" stroke="#300060" stroke-width="2"/>
+
+                            <!-- Harmonic points -->
+                            <circle cx="-30" cy="-100" r="8" fill="#400080" stroke="#500090" stroke-width="1">
+                                <animate attributeName="r" values="8;10;8" dur="7s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="-30" y="-115">Harmonic</text>
+
+                            <circle cx="-30" cy="0" r="8" fill="#400080" stroke="#500090" stroke-width="1">
+                                <animate attributeName="r" values="8;10;8" dur="6s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="-30" y="-15">Harmonic</text>
+
+                            <circle cx="-30" cy="100" r="8" fill="#400080" stroke="#500090" stroke-width="1">
+                                <animate attributeName="r" values="8;10;8" dur="8s" repeatCount="indefinite"/>
+                            </circle>
+                            <text class="label" x="-30" y="85">Harmonic</text>
+
+                            <!-- Adapters -->
+                            <rect x="30" y="-115" width="30" height="30" rx="5" ry="5"
+                                fill="#300060" stroke="#400080" stroke-width="1"/>
+                            <text class="label" x="45" y="-95">÷13</text>
+
+                            <rect x="30" y="-15" width="30" height="30" rx="5" ry="5"
+                                fill="#300060" stroke="#400080" stroke-width="1"/>
+                            <text class="label" x="45" y="5">÷13</text>
+
+                            <rect x="30" y="85" width="30" height="30" rx="5" ry="5"
+                                fill="#300060" stroke="#400080" stroke-width="1"/>
+                            <text class="label" x="45" y="105">÷13</text>
+
+                            <!-- Connections -->
+                            <line x1="-100" y1="-100" x2="-30" y2="-100" class="fractal-connection" stroke-width="2"/>
+                            <line x1="-30" y1="-100" x2="30" y2="-100" class="fractal-connection" stroke-width="2"/>
+                            <line x1="60" y1="-100" x2="100" y2="-100" class="fractal-connection" stroke-width="2"/>
+
+                            <line x1="-100" y1="0" x2="-30" y2="0" class="fractal-connection" stroke-width="2"/>
+                            <line x1="-30" y1="0" x2="30" y2="0" class="fractal-connection" stroke-width="2"/>
+                            <line x1="60" y1="0" x2="100" y2="0" class="fractal-connection" stroke-width="2"/>
+
+                            <line x1="-100" y1="100" x2="-30" y2="100" class="fractal-connection" stroke-width="2"/>
+                            <line x1="-30" y1="100" x2="30" y2="100" class="fractal-connection" stroke-width="2"/>
+                            <line x1="60" y1="100" x2="100" y2="100" class="fractal-connection" stroke-width="2"/>
+
+                            <!-- Data flows -->
+                            <path class="data-flow" d="M-100,-100 L-30,-100 L30,-100 L60,-100 L100,-100"
+                                stroke-width="3">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="3s" repeatCount="indefinite"/>
+                            </path>
+
+                            <path class="data-flow" d="M-100,0 L-30,0 L30,0 L60,0 L100,0"
+                                stroke-width="3">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="5s" repeatCount="indefinite"/>
+                            </path>
+
+                            <path class="data-flow" d="M-100,100 L-30,100 L30,100 L60,100 L100,100"
+                                stroke-width="3">
+                                <animate attributeName="stroke-dashoffset" values="30;0" dur="7s" repeatCount="indefinite"/>
+                            </path>
+
+                            <!-- Grid observer -->
+                            <rect x="-250" y="-40" width="80" height="80" stroke="#300060" stroke-width="1" fill="none" stroke-dasharray="5,5"/>
+                            <text class="label" x="-210" y="60">Observer Grid</text>
+
+                            <!-- Labels -->
+                            <text class="label" x="0" y="-180">System Integration with Harmonic Points</text>
+                            <text class="label" x="0" y="170">Division by 13 Adapter Interfaces</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Future Research Directions</h2>
+
+            <ul>
+                <li><span class="highlight">Multi-Dimensional Entropy</span> - Extending the entropy stream concept to multiple interconnected dimensions</li>
+                <li><span class="highlight">Quantum-Verified Truth</span> - Implementing truth validation using quantum superposition properties</li>
+                <li><span class="highlight">Self-Healing Grid Patterns</span> - Creating grid distributions that automatically repair broken patterns</li>
+                <li><span class="highlight">Noise-Derived Cryptography</span> - Developing cryptographic schemes based on infrastructure noise patterns</li>
+                <li><span class="highlight">Zero-Latency Routing</span> - Achieving true zero-latency routing through predictive entropy synchronization</li>
+            </ul>
+
+            <pre><code>sub experimental_zero_latency_routing {
+    my ($source, $destination, $prediction_window) = @_;
+
+    # Generate ahead-of-time entropy streams
+    my @future_entropy = generate_predictive_entropy($source, $prediction_window);
+
+    # Create synchronized oscillation patterns
+    my $oscillator = create_harmonic_oscillator(\@future_entropy);
+
+    # Install at both endpoints
+    install_predictive_oscillator($source, $oscillator);
+    install_predictive_oscillator($destination, $oscillator);
+
+    # Verify synchronization
+    my $sync_verification = verify_oscillator_sync($source, $destination);
+
+    # Create virtual zero-latency channel
+    if ($sync_verification >= 0.99) {
+        return establish_virtual_zero_latency_channel($source, $destination);
+    }
+
+    return undef; # Failed to establish
+}</code></pre>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Future research visualization -->
+                        <g transform="translate(500, 200)">
+                            <g transform="translate(-300, 0)">
+                                <text class="label" x="0" y="-90">Multi-Dimensional Entropy</text>
+                                <circle cx="0" cy="0" r="60" fill="none" stroke="#250040" stroke-width="1" stroke-opacity="0.5"/>
+                                <circle cx="0" cy="0" r="40" fill="none" stroke="#250040" stroke-width="1" stroke-opacity="0.5"/>
+                                <circle cx="0" cy="0" r="20" fill="none" stroke="#250040" stroke-width="1" stroke-opacity="0.5"/>
+
+                                <path d="M0,0 L0,60" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+                                <path d="M0,0 L51.96,30" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+                                <path d="M0,0 L51.96,-30" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+                                <path d="M0,0 L0,-60" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+                                <path d="M0,0 L-51.96,-30" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+                                <path d="M0,0 L-51.96,30" stroke="#350060" stroke-width="1" stroke-opacity="0.5"/>
+
+                                <circle cx="0" cy="0" r="5" fill="#400080" fill-opacity="0.6">
+                                    <animate attributeName="r" values="5;7;5" dur="5s" repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+
+                            <g transform="translate(-100, 0)">
+                                <text class="label" x="0" y="-90">Quantum-Verified Truth</text>
+                                <circle cx="-20" cy="0" r="8" fill="#350060" fill-opacity="0.6"/>
+                                <circle cx="20" cy="0" r="8" fill="#350060" fill-opacity="0.6"/>
+
+                                <path d="M-20,0 C-20,-40 20,-40 20,0 C20,40 -20,40 -20,0 Z" fill="none" stroke="#250050" stroke-width="1" stroke-opacity="0.5">
+                                    <animate attributeName="d"
+                                        values="M-20,0 C-20,-40 20,-40 20,0 C20,40 -20,40 -20,0 Z;
+                                                M-20,0 C-20,-20 20,-60 20,0 C20,60 -20,20 -20,0 Z;
+                                                M-20,0 C-20,-40 20,-40 20,0 C20,40 -20,40 -20,0 Z"
+                                        dur="10s" repeatCount="indefinite"/>
+                                </path>
+
+                                <circle cx="0" cy="0" r="25" fill="none" stroke="#400080" stroke-width="1" stroke-opacity="0.3">
+                                    <animate attributeName="r" values="25;30;25" dur="7s" repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+
+                            <g transform="translate(100, 0)">
+                                <text class="label" x="0" y="-90">Self-Healing Grid</text>
+
+                                <line x1="-40" y1="-40" x2="40" y2="-40" stroke="#250050" stroke-width="1"/>
+                                <line x1="-40" y1="0" x2="40" y2="0" stroke="#250050" stroke-width="1"/>
+                                <line x1="-40" y1="40" x2="40" y2="40" stroke="#250050" stroke-width="1"/>
+
+                                <line x1="-40" y1="-40" x2="-40" y2="40" stroke="#250050" stroke-width="1"/>
+                                <line x1="0" y1="-40" x2="0" y2="40" stroke="#250050" stroke-width="1"/>
+                                <line x1="40" y1="-40" x2="40" y2="40" stroke="#250050" stroke-width="1"/>
+
+                                <circle cx="-40" cy="-40" r="5" fill="#300060" fill-opacity="0.6"/>
+                                <circle cx="0" cy="-40" r="5" fill="#300060" fill-opacity="0.6"/>
+                                <circle cx="40" cy="-40" r="5" fill="#300060" fill-opacity="0.6"/>
+
+                                <circle cx="-40" cy="0" r="5" fill="#300060" fill-opacity="0.6"/>
+                                <circle cx="0" cy="0" r="5" fill="#300060" fill-opacity="0.6"/>
+                                <circle cx="40" cy="0" r="5" fill="#300060" fill-opacity="0.6"/>
+
+                                <circle cx="-40" cy="40" r="5" fill="#300060" fill-opacity="0.6"/>
+                                <circle cx="0" cy="40" r="5" fill="#300060" fill-opacity="0.6"/>
+
+                                <!-- Missing node that self-heals -->
+                                <circle cx="40" cy="40" r="5" fill="#500090" fill-opacity="0.2">
+                                    <animate attributeName="fill-opacity" values="0.2;0.8;0.2" dur="3s" repeatCount="indefinite"/>
+                                    <animate attributeName="r" values="3;6;3" dur="3s" repeatCount="indefinite"/>
+                                </circle>
+
+                                <!-- Self-healing connections -->
+                                <line x1="0" y1="40" x2="40" y2="40" stroke="#500090" stroke-width="1" stroke-dasharray="3,3">
+                                    <animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="3s" repeatCount="indefinite"/>
+                                </line>
+                                <line x1="40" y1="0" x2="40" y2="40" stroke="#500090" stroke-width="1" stroke-dasharray="3,3">
+                                    <animate attributeName="stroke-opacity" values="0.3;0.8;0.3" dur="3s" repeatCount="indefinite"/>
+                                </line>
+                            </g>
+
+                            <g transform="translate(300, 0)">
+                                <text class="label" x="0" y="-90">Zero-Latency Routing</text>
+
+                                <circle cx="-60" cy="0" r="15" fill="#250040" stroke="#350060" stroke-width="1"/>
+                                <text class="label" x="-60" y="5">A</text>
+
+                                <circle cx="60" cy="0" r="15" fill="#250040" stroke="#350060" stroke-width="1"/>
+                                <text class="label" x="60" y="5">B</text>
+
+                                <!-- Synchronized oscillation pattern -->
+                                <path d="M-40,0 C-30,-30 30,-30 40,0 C30,30 -30,30 -40,0" fill="none" stroke="#400080" stroke-width="2" stroke-opacity="0.5">
+                                    <animate attributeName="d"
+                                        values="M-40,0 C-30,-30 30,-30 40,0 C30,30 -30,30 -40,0;
+                                                M-40,0 C-30,30 30,30 40,0 C30,-30 -30,-30 -40,0;
+                                                M-40,0 C-30,-30 30,-30 40,0 C30,30 -30,30 -40,0"
+                                        dur="3s" repeatCount="indefinite"/>
+                                </path>
+
+                                <!-- Virtual channel -->
+                                <line x1="-60" y1="0" x2="60" y2="0" stroke="#500090" stroke-width="2" stroke-dasharray="5,5" stroke-opacity="0.7">
+                                    <animate attributeName="stroke-opacity" values="0.5;0.9;0.5" dur="2s" repeatCount="indefinite"/>
+                                </line>
+                            </g>
+
+                            <text class="label" x="0" y="120">Future Research Directions</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section class="conclusion">
+            <h2>Conclusion</h2>
+
+            <p>The mathematical justice framework creates a system where:</p>
+
+            <ol>
+                <li>Integration provides protection as a functional consequence</li>
+                <li>Security becomes visible through geometric honesty</li>
+                <li>Division by 13 creates harmonic truth validation</li>
+                <li>Entropy streams enable synchronization with minimal overhead</li>
+                <li>Grid-based algorithms provide scalable processing with fixed cycles</li>
+                <li>Shared interest calculations make operations affordable at scale</li>
+            </ol>
+
+            <div class="fractal-container">
+                <div class="fractal">
+                    <svg viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <!-- Background -->
+                        <rect width="100%" height="100%" fill="rgba(5, 0, 20, 0.3)"/>
+
+                        <!-- Final conclusion visualization -->
+                        <g transform="translate(500, 200)">
+                            <!-- Central concept -->
+                            <circle cx="0" cy="0" r="70" fill="#200040" fill-opacity="0.3" stroke="#300060" stroke-width="2">
+                                <animate attributeName="r" values="70;75;70" dur="13s" repeatCount="indefinite"/>
+                            </circle>
+
+                            <text class="label" x="0" y="5" font-size="14">Mathematical</text>
+                            <text class="label" x="0" y="25" font-size="14">Justice</text>
+
+                            <!-- Principle orbits -->
+                            <g transform="rotate(0)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="7s" repeatCount="indefinite"/>
+                                </circle>
+                                <text class="label" x="0" y="-145">Justice as</text>
+                                <text class="label" x="0" y="-130">Algorithm</text>
+                            </g>
+
+                            <g transform="rotate(60)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="9s" repeatCount="indefinite"/>
+                                </circle>
+                                <g transform="rotate(-60)">
+                                    <text class="label" x="130" y="-75">Integration as</text>
+                                    <text class="label" x="130" y="-60">Protection</text>
+                                </g>
+                            </g>
+
+                            <g transform="rotate(120)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+                                <g transform="rotate(-120)">
+                                    <text class="label" x="75" y="130">Geometric</text>
+                                    <text class="label" x="75" y="145">Honesty</text>
+                                </g>
+                            </g>
+
+                            <g transform="rotate(180)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="10s" repeatCount="indefinite"/>
+                                </circle>
+                                <g transform="rotate(-180)">
+                                    <text class="label" x="0" y="145">Division by 13</text>
+                                    <text class="label" x="0" y="160">Mathematics</text>
+                                </g>
+                            </g>
+
+                            <g transform="rotate(240)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="11s" repeatCount="indefinite"/>
+                                </circle>
+                                <g transform="rotate(-240)">
+                                    <text class="label" x="-75" y="130">Entropy</text>
+                                    <text class="label" x="-75" y="145">Synchronization</text>
+                                </g>
+                            </g>
+
+                            <g transform="rotate(300)">
+                                <line x1="0" y1="0" x2="0" y2="-150" stroke="#250050" stroke-width="1" stroke-opacity="0.3"/>
+                                <circle cx="0" cy="-150" r="30" fill="#300060" fill-opacity="0.3" stroke="#400080" stroke-width="1">
+                                    <animate attributeName="cy" values="-150;-155;-150" dur="12s" repeatCount="indefinite"/>
+                                </circle>
+                                <g transform="rotate(-300)">
+                                    <text class="label" x="-130" y="-75">Shared</text>
+                                    <text class="label" x="-130" y="-60">Interest</text>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 nailara-technologies</p>
+        <p>Justice through Mathematics • Security through Integration • Truth through Division</p>
+        <p class="current-time">2025-03-22 14:24:53 UTC</p>
+    </footer>
+
+    <script>
+        // Function to update the current time
+        function updateTime() {
+            const date = new Date();
+            const formattedDate = date.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+            document.querySelector('.current-time').textContent = formattedDate;
+        }
+
+        // No need to actually run this since it's just a static example
+        // setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>

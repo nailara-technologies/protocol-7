@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Protocol :: 7-Bit Decoded States</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #09052A;
+            color: #0647C3;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Blacklight UV effect overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(75, 0, 130, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(147, 112, 219, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5rem;
+            background: linear-gradient(45deg, #0647C3, #00D4FF, #7B68EE, #0647C3);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 30s ease infinite;
+            filter: drop-shadow(0 0 20px rgba(6, 71, 195, 0.8));
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00D4FF;
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+        }
+
+        .section {
+            background: rgba(6, 71, 195, 0.05);
+            border: 1px solid rgba(6, 71, 195, 0.3);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            box-shadow:
+                inset 0 0 30px rgba(6, 71, 195, 0.1),
+                0 0 40px rgba(6, 71, 195, 0.2);
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #0647C3, #00D4FF, #7B68EE, #4A9FFF);
+            border-radius: 8px;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.5s;
+        }
+
+        .section:hover::before {
+            opacity: 0.08;
+            animation: borderGlow 12s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.08; }
+            50% { opacity: 0.12; }
+        }
+
+        h2 {
+            color: #00D4FF;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);
+        }
+
+        h3 {
+            color: #7B68EE;
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(123, 104, 238, 0.6);
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .bit-pattern {
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #00C5FF;
+            text-shadow: 0 0 5px rgba(0, 197, 255, 0.6);
+            letter-spacing: 0.1rem;
+        }
+
+        .highlight {
+            color: #4A9FFF;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(74, 159, 255, 0.8);
+        }
+
+        .matrix-grid {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00D4FF;
+            padding: 0.5rem;
+            margin: 0.5rem;
+            border-radius: 4px;
+            box-shadow:
+                inset 0 0 10px rgba(0, 212, 255, 0.3),
+                0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            border: 1px solid rgba(6, 71, 195, 0.3);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(6, 71, 195, 0.2);
+            color: #00D4FF;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            text-shadow: 0 0 5px rgba(0, 212, 255, 0.6);
+        }
+
+        tr:hover {
+            background: rgba(6, 71, 195, 0.05);
+        }
+
+        .protocol-state {
+            display: inline-block;
+            background: rgba(147, 112, 219, 0.2);
+            border: 1px solid #9370DB;
+            padding: 0.3rem 0.8rem;
+            margin: 0.2rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-shadow: 0 0 5px rgba(147, 112, 219, 0.6);
+            transition: box-shadow 0.3s;
+        }
+
+        .warning {
+            background: rgba(74, 159, 255, 0.1);
+            border: 1px solid #4A9FFF;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #4A9FFF;
+        }
+
+        .priority-note {
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid #8A2BE2;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #9370DB;
+        }
+
+        /* Floating particles effect */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #00D4FF;
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 60s infinite linear;
+            box-shadow: 0 0 6px rgba(0, 212, 255, 0.4);
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(0deg);
+            }
+            15% {
+                opacity: 0.6;
+            }
+            85% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <h1>Holographic Protocol</h1>
+        <p class="subtitle">7-Bit Decoded State Specification</p>
+
+        <section class="section">
+            <h2>Protocol Overview</h2>
+            <p>The Holographic Protocol operates on 7-bit decoded states using a cascading pattern detection system. Patterns are matched in hierarchical order, with unmatched sequences falling back to directional navigation mode.</p>
+
+            <div class="code-block">
+                <p class="bit-pattern">[ <span class="highlight">7-bit decoded state</span> ] → Protocol Operation</p>
+            </div>
+
+            <div class="priority-note">
+                <strong>Pattern Detection Order:</strong> The protocol uses progressive bit examination, building pattern types from left to right until a match is found or directional mode is used as fallback.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Pattern Detection Hierarchy</h2>
+
+            <h3>Detection Algorithm</h3>
+            <div class="code-block">
+                <p><strong>Step-by-step pattern matching:</strong></p>
+                <p>1. Examine first bit → if <span class="highlight">1</span>: Graphical Matrix Mode (6-bit)</p>
+                <p>2. If <span class="highlight">0</span>, examine second bit → if <span class="highlight">01</span>: 5×7 Pixel Mode (5-bit)</p>
+                <p>3. If <span class="highlight">01</span>, examine third bit → if <span class="highlight">010</span>: BASE32 Mode (4-bit)</p>
+                <p>4. If <span class="highlight">011</span>, examine fourth bit → if <span class="highlight">0110</span>: Monochrome Doc</p>
+                <p>5. If <span class="highlight">0111</span>: Color Document</p>
+                <p>6. <strong>Fallback:</strong> All other patterns → Directional Navigation</p>
+            </div>
+
+            <h3>Pattern Priority Table</h3>
+            <table>
+                <tr>
+                    <th>Priority</th>
+                    <th>Pattern</th>
+                    <th>Remaining Bits</th>
+                    <th>Mode</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td class="bit-pattern">1______</td>
+                    <td>6 bits</td>
+                    <td>Graphical Matrix</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td class="bit-pattern">01_____</td>
+                    <td>5 bits</td>
+                    <td>5×7 Pixel Operations</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td class="bit-pattern">010____</td>
+                    <td>4 bits</td>
+                    <td>BASE32 Character</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td class="bit-pattern">0110___</td>
+                    <td>3 bits</td>
+                    <td>Monochrome Document</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td class="bit-pattern">0111___</td>
+                    <td>3 bits</td>
+                    <td>Color Document</td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td class="bit-pattern">*******</td>
+                    <td>7 bits</td>
+                    <td>Directional Navigation (fallback)</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>Graphical Matrix Mode</h2>
+            <p>Pattern: <span class="bit-pattern">1 GGGGGG</span> (6-bit operations)</p>
+
+            <h3>Matrix Operations</h3>
+            <p>The 6-bit value encodes position data or color/transparency operations within a graphical context.</p>
+
+            <h3>Position Encoding</h3>
+            <p>Values <span class="bit-pattern">0-47</span> represent positions within a 5×7 matrix using octal notation.</p>
+
+            <div class="matrix-grid">
+                <pre style="color: #00C5FF; margin: 0;">
+00 01 02 03 04
+05 06 07 10 11
+12 13 14 15 16
+17 20 21 22 23
+24 25 26 27 30
+31 32 33 34 35
+36 37 40 41 42
+                </pre>
+            </div>
+
+            <h3>Color Control Commands</h3>
+            <table>
+                <tr>
+                    <th>Decimal</th>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>48</td>
+                    <td class="protocol-state">=0</td>
+                    <td>Set to background color</td>
+                </tr>
+                <tr>
+                    <td>49</td>
+                    <td class="protocol-state">=1</td>
+                    <td>Set to foreground/monochrome color</td>
+                </tr>
+                <tr>
+                    <td>50</td>
+                    <td class="protocol-state">RC</td>
+                    <td>Reset color to monochrome</td>
+                </tr>
+                <tr>
+                    <td>51</td>
+                    <td class="protocol-state">RA</td>
+                    <td>Reset alpha to opaque</td>
+                </tr>
+                <tr>
+                    <td>52</td>
+                    <td class="protocol-state">+C</td>
+                    <td>Add color (additive blend)</td>
+                </tr>
+                <tr>
+                    <td>53</td>
+                    <td class="protocol-state">-C</td>
+                    <td>Subtract color</td>
+                </tr>
+            </table>
+
+            <h3>Channel-Specific Operations</h3>
+            <table>
+                <tr>
+                    <th>Range</th>
+                    <th>Channel</th>
+                    <th>Low (0)</th>
+                    <th>High (1)</th>
+                    <th>Effect</th>
+                </tr>
+                <tr>
+                    <td>54-55</td>
+                    <td>Black/Gray</td>
+                    <td class="protocol-state">K0</td>
+                    <td class="protocol-state">K1</td>
+                    <td>RGB channel adjustment</td>
+                </tr>
+                <tr>
+                    <td>56-57</td>
+                    <td>Blue</td>
+                    <td class="protocol-state">B0</td>
+                    <td class="protocol-state">B1</td>
+                    <td>Blue channel adjustment</td>
+                </tr>
+                <tr>
+                    <td>58-59</td>
+                    <td>Green</td>
+                    <td class="protocol-state">G0</td>
+                    <td class="protocol-state">G1</td>
+                    <td>Green channel adjustment</td>
+                </tr>
+                <tr>
+                    <td>60-61</td>
+                    <td>Red</td>
+                    <td class="protocol-state">R0</td>
+                    <td class="protocol-state">R1</td>
+                    <td>Red channel adjustment</td>
+                </tr>
+                <tr>
+                    <td>62-63</td>
+                    <td>Alpha</td>
+                    <td class="protocol-state">A0</td>
+                    <td class="protocol-state">A1</td>
+                    <td>Alpha channel adjustment</td>
+                </tr>
+            </table>
+
+            <h3>Color Mathematics</h3>
+            <div class="code-block">
+                <p><strong>Channel Adjustment Values:</strong></p>
+                <p>• Low operations (X0): <span class="highlight">±0x0001</span> (minimal adjustment)</p>
+                <p>• High operations (X1): <span class="highlight">±0x3D70</span> (24% foreground intensity)</p>
+                <p>• Value 0x3D70 represents 24% (0.24) of maximum intensity</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>5×7 Pixel Mode</h2>
+            <p>Pattern: <span class="bit-pattern">01 GGGGG</span> (5-bit operations)</p>
+
+            <div class="warning">
+                <strong>Specialized Graphics Mode:</strong> This mode uses the same color control system as Graphical Matrix Mode but operates with 5-bit values (0-31 range).
+            </div>
+
+            <h3>Operation Range</h3>
+            <p>With 5 bits available, this mode supports:</p>
+            <ul style="list-style: none; padding-left: 1rem;">
+                <li>• Values <span class="highlight">0-31</span>: Matrix positions (subset of 5×7 grid)</li>
+                <li>• <strong>Note:</strong> Color control commands (48-63) are not available in this mode due to 5-bit limitation</li>
+            </ul>
+
+            <div class="code-block">
+                <p><strong>Position Mapping:</strong></p>
+                <p>Values 0-31 map to the first 32 positions of the 5×7 matrix (00-37 in octal)</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>BASE32 Character Mode</h2>
+            <p>Pattern: <span class="bit-pattern">010 CCCC</span> (4-bit encoding)</p>
+
+            <h3>Encoding Scheme</h3>
+            <p>This mode encodes RFC 4648 BASE32 characters for UTF-7 protocol-7 payloads using 4-bit values (0-15 range).</p>
+
+            <div class="code-block">
+                <p><strong>Character Mapping Algorithm:</strong></p>
+                <p>• Values 0-5: <span class="highlight">value + 2</span> → Characters <span class="highlight">2-7</span></p>
+                <p>• Values 6-15: <span class="highlight">chr(59 + value)</span> → Characters <span class="highlight">A-J</span></p>
+            </div>
+
+            <h3>Implementation Details</h3>
+            <table>
+                <tr>
+                    <th>Value Range</th>
+                    <th>Calculation</th>
+                    <th>Result Characters</th>
+                </tr>
+                <tr>
+                    <td>0-5</td>
+                    <td>value + 2</td>
+                    <td>2, 3, 4, 5, 6, 7</td>
+                </tr>
+                <tr>
+                    <td>6-15</td>
+                    <td>chr(59 + value)</td>
+                    <td>A, B, C, D, E, F, G, H, I, J</td>
+                </tr>
+            </table>
+
+            <div class="warning">
+                <strong>Limited Range:</strong> Due to 4-bit constraint, this mode only supports the first 16 BASE32 characters, not the full A-Z range.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Document Headers</h2>
+
+            <h3>Monochrome Documents</h3>
+            <p>Pattern: <span class="bit-pattern">0110 DDD</span> (3-bit specification)</p>
+            <p>Identifier: <span class="protocol-state">D-</span></p>
+
+            <div class="code-block">
+                <p><strong>Header Structure:</strong></p>
+                <p>The remaining 3 bits after the <span class="highlight">0110</span> prefix specify monochrome document attributes.</p>
+            </div>
+
+            <h3>Color Documents</h3>
+            <p>Pattern: <span class="bit-pattern">0111 DDD</span> (3-bit specification)</p>
+            <p>Identifier: <span class="protocol-state">D+</span></p>
+
+            <div class="code-block">
+                <p><strong>Header Structure:</strong></p>
+                <p>The remaining 3 bits after the <span class="highlight">0111</span> prefix specify color document attributes.</p>
+            </div>
+
+            <div class="warning">
+                <strong>Note:</strong> Document headers use only the 7-bit decoded state for type identification. Extended document metadata is handled by separate protocol layers.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Directional Navigation Mode</h2>
+            <p>Pattern: <span class="bit-pattern">All other patterns</span> (fallback mode)</p>
+
+            <h3>Structure Interpretation</h3>
+            <p>When no specific pattern is matched, the full 7 bits are interpreted as directional navigation:</p>
+            <ul style="list-style: none; padding-left: 1rem;">
+                <li>• <span class="highlight">Bits 0-1</span> - Directional nominator (2 bits)</li>
+                <li>• <span class="highlight">Bits 2-3</span> - Direction bits (2 bits)</li>
+                <li>• <span class="highlight">Bits 4-6</span> - Hop count (3 bits, decimal value)</li>
+            </ul>
+
+            <h3>Directional Nominator</h3>
+            <table>
+                <tr>
+                    <th>Bits</th>
+                    <th>Mode</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">00</td>
+                    <td>Forward</td>
+                    <td>Direct movement in specified direction</td>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">01</td>
+                    <td>90° Angle</td>
+                    <td>Angular turn followed by movement</td>
+                </tr>
+            </table>
+
+            <h3>Direction Encoding</h3>
+            <table>
+                <tr>
+                    <th>Bits</th>
+                    <th>Direction</th>
+                    <th>Symbol</th>
+                    <th>Vector</th>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">00</td>
+                    <td>UP</td>
+                    <td class="protocol-state">U</td>
+                    <td>+Y axis</td>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">10</td>
+                    <td>LEFT</td>
+                    <td class="protocol-state">L</td>
+                    <td>-X axis</td>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">01</td>
+                    <td>RIGHT</td>
+                    <td class="protocol-state">R</td>
+                    <td>+X axis</td>
+                </tr>
+                <tr>
+                    <td class="bit-pattern">11</td>
+                    <td>DOWN</td>
+                    <td class="protocol-state">D</td>
+                    <td>-Y axis</td>
+                </tr>
+            </table>
+
+            <p>The hop count ranges from 0-7, where 0 represents a stationary position (displayed as <span class="protocol-state">=</span>).</p>
+
+            <div class="priority-note">
+                <strong>Fallback Behavior:</strong> Any 7-bit pattern that doesn't match the specific modes above is automatically interpreted as directional navigation, ensuring all possible inputs have defined behavior.
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Protocol Implementation Summary</h2>
+            <p>The Holographic Protocol provides a hierarchical encoding system within a 7-bit space, enabling:</p>
+
+            <ul style="list-style: none; padding-left: 1rem;">
+                <li>• <span class="highlight">Graphical operations</span> with 6-bit precision (64 commands)</li>
+                <li>• <span class="highlight">Pixel manipulation</span> with 5-bit precision (32 positions)</li>
+                <li>• <span class="highlight">Character encoding</span> via 4-bit BASE32 subset (16 characters)</li>
+                <li>• <span class="highlight">Document classification</span> with 3-bit type specification</li>
+                <li>• <span class="highlight">Spatial navigation</span> as universal fallback with full 7-bit addressing</li>
+            </ul>
+
+            <div class="code-block">
+                <p><strong>Key Design Principles:</strong></p>
+                <p>• Progressive pattern matching ensures optimal bit utilization</p>
+                <p>• Fallback to directional mode guarantees universal input handling</p>
+                <p>• Hierarchical priority prevents pattern conflicts</p>
+                <p>• Each mode maximizes its available bit space for operations</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 35;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 60 + 's';
+            particle.style.animationDuration = (60 + Math.random() * 30) + 's';
+
+            // More subtle particle colors with lower opacity
+            const colors = ['#00D4FF', '#0647C3', '#7B68EE', '#4A9FFF', '#00C5FF'];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.boxShadow = `0 0 6px ${particle.style.background}`;
+
+            particlesContainer.appendChild(particle);
+        }
+
+        // Very subtle hover glow effect
+        document.querySelectorAll('.protocol-state').forEach(element => {
+            element.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 0 4px ' + window.getComputedStyle(this).color;
+            });
+            element.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>

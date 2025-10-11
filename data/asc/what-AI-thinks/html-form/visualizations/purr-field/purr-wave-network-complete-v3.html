@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purr-Wave Network: Advanced Zenki Protocol</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0a0520, #000);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            cursor: auto;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            filter: saturate(180%) brightness(120%);
+            cursor: crosshair;
+        }
+
+        .purr-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #00D4FF;
+            font-size: 12px;
+            background: rgba(6, 71, 195, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(6, 71, 195, 0.4);
+        }
+
+        .zenki-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #9f8fff;
+            font-size: 11px;
+            text-align: right;
+            background: rgba(123, 104, 238, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(123, 104, 238, 0.4);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            box-shadow: 0 0 25px rgba(123, 104, 238, 0.4);
+        }
+
+        .purr-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .purr-btn {
+            background: rgba(6, 71, 195, 0.3);
+            border: 1px solid #4080ff;
+            color: #40e4ff;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(6, 71, 195, 0.3);
+        }
+
+        .purr-btn:hover {
+            background: rgba(6, 71, 195, 0.5);
+            box-shadow: 0 0 25px rgba(64, 128, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .frequency-controls {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(6, 71, 195, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(6, 71, 195, 0.4);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .frequency-controls input[type="range"] {
+            width: 150px;
+            height: 5px;
+            background: rgba(64, 128, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .frequency-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #40e4ff;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 0 10px rgba(64, 228, 255, 0.8);
+        }
+
+        .frequency-controls input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .freq-label {
+            color: #40e4ff;
+            font-size: 10px;
+            min-width: 80px;
+        }
+
+        .formation-status {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: rgba(123, 104, 238, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(123, 104, 238, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            color: #9f8fff;
+            font-size: 10px;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="purrCanvas"></canvas>
+
+    <div class="purr-hud">
+        <div>Network Status: <span id="networkStatus">PURRING</span></div>
+        <div>Active Zenki: <span id="activeZenki">0</span></div>
+        <div>Total Bandwidth: <span id="totalBandwidth">0</span> purr-bits/s</div>
+        <div>Hyperspace Links: <span id="hyperspaceLinks">0</span></div>
+        <div>Formation Arrays: <span id="formations">0</span></div>
+    </div>
+
+    <div class="zenki-info">
+        <div><strong>PURR-WAVE PROTOCOL</strong></div>
+        <div style="font-size: 10px; margin-top: 3px;">Zenki Communication Network</div>
+        <div style="font-size: 9px; margin-top: 5px;">Base: 384.615 Hz (÷13)</div>
+        <div style="font-size: 9px;">Resonance: <span id="globalResonance">0%</span></div>
+        <div style="font-size: 9px; margin-top: 5px;">Hyperspace: <span id="hyperspaceStatus">STANDBY</span></div>
+    </div>
+
+    <div class="frequency-controls">
+        <span class="freq-label">Base Purr:</span>
+        <input type="range" id="basePurrSlider" min="300" max="500" value="384.615">
+        <span class="freq-label" id="basePurrValue">384.6 Hz</span>
+
+        <span class="freq-label">Scan Range:</span>
+        <input type="range" id="scanRangeSlider" min="10" max="100" value="50">
+        <span class="freq-label" id="scanRangeValue">±50 Hz</span>
+    </div>
+
+    <div class="formation-status">
+        <div><strong>Formation Status:</strong></div>
+        <div id="formationDetails">No formations active</div>
+        <div style="margin-top: 8px;"><strong>Zenki States:</strong></div>
+        <div id="zenkiStates">• Scanning: 0<br>• Hovering: 0<br>• Resonance: 0<br>• Hunting: 0</div>
+        <div style="margin-top: 8px;"><strong>Purr Protocols:</strong></div>
+        <div style="font-size: 9px;">• Frequency Navigation<br>• Harmonic Resonance<br>• Myau Modulation<br>• Hyperspace Relay</div>
+    </div>
+
+    <div class="purr-controls">
+        <button class="purr-btn" onclick="togglePurrNetwork()">PURR ON/OFF</button>
+        <button class="purr-btn" onclick="spawnZenki()">SPAWN ZENKI</button>
+        <button class="purr-btn" onclick="formAntennaArray()">13+1 ARRAY</button>
+        <button class="purr-btn" onclick="activateHyperspace()">HYPERSPACE</button>
+        <button class="purr-btn" onclick="testMyauMessage()">MYAU MSG</button>
+        <button class="purr-btn" onclick="resetNetwork()">RESET</button>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('purrCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Network parameters - declare first
+        let centerX = window.innerWidth / 2;
+        let centerY = window.innerHeight / 2;
+        let purrNetworkActive = true;
+        let basePurrFrequency = 384.615;
+        let scanRange = 50;
+        let hyperspaceModeActive = false;
+        let time = 0;
+
+        // Canvas resize function
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+        }
+
+        // Initialize canvas size
+        resizeCanvas();
+
+        // 3D rendering parameters
+        let rotX = 0;
+        let rotY = 0;
+        let rotZ = 0;
+        let focalLength = 300;
+
+        // Network arrays
+        let zenki = [];
+        let purrWaves = [];
+        let myauMessages = [];
+        let hyperspaceLinks = [];
+        let formations = [];
+        let harmonic3DGrid = [];
+        let loveNodes = [];
+
+        // Mouse interaction
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        // 3D Point class
+        class Point3D {
+            constructor(x, y, z) {
+                this.x = x || 0;
+                this.y = y || 0;
+                this.z = z || 0;
+            }
+
+            clone() {
+                return new Point3D(this.x, this.y, this.z);
+            }
+
+            add(other) {
+                return new Point3D(this.x + other.x, this.y + other.y, this.z + other.z);
+            }
+
+            multiply(scalar) {
+                return new Point3D(this.x * scalar, this.y * scalar, this.z * scalar);
+            }
+
+            distance(other) {
+                const dx = this.x - other.x;
+                const dy = this.y - other.y;
+                const dz = this.z - other.z;
+                return Math.sqrt(dx*dx + dy*dy + dz*dz);
+            }
+        }
+
+        // Create 3D harmonic grid with division-by-13 resonance
+        function createHarmonic3DGrid() {
+            harmonic3DGrid = [];
+
+            try {
+                const gridSize = 200;
+                const divisions = 13; // Division by 13 for harmonic resonance
+                const step = (gridSize * 2) / divisions;
+
+                console.log('Creating harmonic 3D grid with', divisions, 'divisions...');
+
+                // Create grid lines for three-axis harmonic interference
+                for (let i = 0; i <= divisions; i++) {
+                    const pos = -gridSize + (i * step);
+
+                    // X-axis harmonic lines (Electric Blue)
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(pos, -gridSize, -gridSize),
+                            new Point3D(pos, gridSize, gridSize)
+                        ],
+                        color: { r: 0, g: 100, b: 255 },
+                        phase: 0,
+                        axis: 'x'
+                    });
+
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(pos, -gridSize, gridSize),
+                            new Point3D(pos, gridSize, -gridSize)
+                        ],
+                        color: { r: 0, g: 100, b: 255 },
+                        phase: 0,
+                        axis: 'x'
+                    });
+
+                    // Y-axis harmonic lines (Violet, 120° phase shift)
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(-gridSize, pos, -gridSize),
+                            new Point3D(gridSize, pos, gridSize)
+                        ],
+                        color: { r: 150, g: 50, b: 255 },
+                        phase: Math.PI * 2 / 3,
+                        axis: 'y'
+                    });
+
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(-gridSize, pos, gridSize),
+                            new Point3D(gridSize, pos, -gridSize)
+                        ],
+                        color: { r: 150, g: 50, b: 255 },
+                        phase: Math.PI * 2 / 3,
+                        axis: 'y'
+                    });
+
+                    // Z-axis harmonic lines (Cyan, 240° phase shift)
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(-gridSize, -gridSize, pos),
+                            new Point3D(gridSize, gridSize, pos)
+                        ],
+                        color: { r: 0, g: 255, b: 200 },
+                        phase: Math.PI * 4 / 3,
+                        axis: 'z'
+                    });
+
+                    harmonic3DGrid.push({
+                        type: 'line',
+                        points: [
+                            new Point3D(-gridSize, gridSize, pos),
+                            new Point3D(gridSize, -gridSize, pos)
+                        ],
+                        color: { r: 0, g: 255, b: 200 },
+                        phase: Math.PI * 4 / 3,
+                        axis: 'z'
+                    });
+                }
+
+                console.log(`Created ${harmonic3DGrid.length} harmonic grid lines`);
+
+            } catch (error) {
+                console.error('Error creating harmonic grid:', error);
+                harmonic3DGrid = [];
+            }
+        }
+
+        // 3D projection and rotation functions
+        function rotatePoint3D(point, rotX, rotY, rotZ) {
+            let x = point.x, y = point.y, z = point.z;
+
+            // Rotate around X axis
+            let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+            let tempY = y * cosX - z * sinX;
+            let tempZ = y * sinX + z * cosX;
+            y = tempY;
+            z = tempZ;
+
+            // Rotate around Y axis
+            let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+            let tempX = x * cosY + z * sinY;
+            tempZ = -x * sinY + z * cosY;
+            x = tempX;
+            z = tempZ;
+
+            // Rotate around Z axis
+            let cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
+            tempX = x * cosZ - y * sinZ;
+            tempY = x * sinZ + y * cosZ;
+            x = tempX;
+            y = tempY;
+
+            return new Point3D(x, y, z);
+        }
+
+        function project3D(point) {
+            const rotated = rotatePoint3D(point, rotX, rotY, rotZ);
+
+            if (rotated.z + focalLength <= 0) return null;
+
+            const scale = focalLength / (rotated.z + focalLength);
+            return {
+                x: centerX + rotated.x * scale,
+                y: centerY + rotated.y * scale,
+                scale: scale,
+                z: rotated.z
+            };
+        }
+
+        // Zenki class with advanced purr functionality
+        class Zenki {
+            constructor(x, y, z) {
+                this.position = new Point3D(x, y, z);
+                this.targetPosition = this.position.clone();
+                this.velocity = new Point3D(
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5
+                );
+
+                // Purr-wave properties
+                this.purrFrequency = basePurrFrequency + (Math.random() - 0.5) * scanRange;
+                this.purrIntensity = 0.5 + Math.random() * 0.5;
+                this.purrPhase = Math.random() * Math.PI * 2;
+                this.lastPurrTime = 0;
+
+                // Network properties
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.state = this.getRandomState();
+                this.bandwidth = 0;
+                this.connections = [];
+                this.formationRole = 'free';
+                this.formationId = null;
+
+                // Visual properties
+                this.size = 12 + Math.random() * 8;
+                this.color = this.getPurrColor();
+                this.trails = [];
+                this.auraIntensity = 0;
+
+                // Hyperspace properties
+                this.hyperspaceCapable = Math.random() > 0.7;
+                this.hyperspaceCharge = 0;
+
+                // Myau message queue
+                this.myauQueue = [];
+
+                this.age = 0;
+            }
+
+            getRandomState() {
+                const states = ['scanning', 'hovering', 'hunting', 'resonance', 'transmitting', 'receiving'];
+                return states[Math.floor(Math.random() * states.length)];
+            }
+
+            getPurrColor() {
+                const freqRatio = this.purrFrequency / basePurrFrequency;
+                const r = Math.max(0, Math.min(255, 64 + freqRatio * 120));
+                const g = Math.max(0, Math.min(255, 128 + Math.sin(freqRatio * Math.PI) * 100));
+                const b = Math.max(0, Math.min(255, 255 - freqRatio * 80));
+                return { r, g, b };
+            }
+
+            // Frequency-to-position navigation
+            frequencyToPosition(frequency) {
+                const baseFreq = basePurrFrequency;
+                const freqRatio = frequency / baseFreq;
+
+                const range = 180;
+                const x = Math.sin(freqRatio * Math.PI) * range;
+                const y = Math.cos(freqRatio * Math.PI * 1.618) * range;
+                const z = Math.sin(freqRatio * Math.PI * 0.618) * range * 0.5;
+
+                return new Point3D(x, y, z);
+            }
+
+            update() {
+                this.age++;
+
+                // Update purr properties
+                this.updatePurr();
+
+                // State-based behavior
+                this.updateBehaviorByState();
+
+                // Frequency-based navigation
+                const targetPos = this.frequencyToPosition(this.purrFrequency);
+                this.targetPosition = targetPos;
+
+                // Smooth movement
+                const smoothing = 0.02;
+                this.position.x += (this.targetPosition.x - this.position.x) * smoothing;
+                this.position.y += (this.targetPosition.y - this.position.y) * smoothing;
+                this.position.z += (this.targetPosition.z - this.position.z) * smoothing;
+
+                // Add drift for organic movement
+                this.position.x += (Math.random() - 0.5) * 0.3;
+                this.position.y += (Math.random() - 0.5) * 0.3;
+                this.position.z += (Math.random() - 0.5) * 0.2;
+
+                // Boundary containment
+                const boundary = 250;
+                if (Math.abs(this.position.x) > boundary) this.position.x *= 0.9;
+                if (Math.abs(this.position.y) > boundary) this.position.y *= 0.9;
+                if (Math.abs(this.position.z) > boundary) this.position.z *= 0.9;
+
+                // Generate purr waves
+                if (time - this.lastPurrTime > 80 + Math.random() * 80) {
+                    this.generatePurrWave();
+                    this.lastPurrTime = time;
+                }
+
+                // Update network connections
+                this.updateNetworkConnections();
+
+                // Update trails
+                this.updateTrails();
+
+                // Process myau messages
+                this.processMyauMessages();
+
+                // Update hyperspace charge
+                if (this.hyperspaceCapable) {
+                    this.hyperspaceCharge = Math.min(1, this.hyperspaceCharge + 0.01);
+                }
+            }
+
+            updatePurr() {
+                // Purr intensity oscillation (slowed to 0.47x)
+                this.purrIntensity = 0.6 + Math.sin(time * 0.03 * 0.47 + this.purrPhase) * 0.4;
+
+                // Update color based on frequency
+                this.color = this.getPurrColor();
+
+                // State-based frequency modulation (slowed)
+                switch(this.state) {
+                    case 'scanning':
+                        this.purrFrequency = basePurrFrequency + Math.sin(time * 0.02 * 0.47) * scanRange;
+                        break;
+                    case 'transmitting':
+                        this.purrFrequency += Math.sin(time * 0.1 * 0.47) * 5;
+                        break;
+                    case 'resonance':
+                        const nearby = this.findNearbyZenki(100);
+                        if (nearby.length > 0) {
+                            const avgFreq = nearby.reduce((sum, z) => sum + z.purrFrequency, 0) / nearby.length;
+                            this.purrFrequency += (avgFreq - this.purrFrequency) * 0.1 * 0.47;
+                        }
+                        break;
+                }
+            }
+
+            updateBehaviorByState() {
+                switch(this.state) {
+                    case 'hunting':
+                        const bestTarget = this.findStrongestInterference();
+                        if (bestTarget && Math.random() > 0.95) {
+                            this.purrFrequency += (bestTarget.frequency - this.purrFrequency) * 0.1;
+                        }
+                        break;
+
+                    case 'hovering':
+                        const drift = (Math.random() - 0.5) * 2;
+                        this.purrFrequency += drift;
+                        break;
+                }
+
+                // Random state changes
+                if (Math.random() > 0.998) {
+                    this.state = this.getRandomState();
+                }
+            }
+
+            generatePurrWave() {
+                if (!purrNetworkActive) return;
+
+                purrWaves.push({
+                    source: this,
+                    position: this.position.clone(),
+                    frequency: this.purrFrequency,
+                    intensity: this.purrIntensity,
+                    radius: 0,
+                    maxRadius: 80 + this.purrIntensity * 40,
+                    life: 0,
+                    maxLife: 120,
+                    color: this.color
+                });
+            }
+
+            findNearbyZenki(radius = 120) {
+                return zenki.filter(z => {
+                    if (z.id === this.id) return false;
+                    return this.position.distance(z.position) < radius;
+                });
+            }
+
+            findStrongestInterference() {
+                let maxIntensity = 0;
+                let bestTarget = null;
+
+                for (let i = 0; i < 15; i++) {
+                    const testFreq = basePurrFrequency + (Math.random() - 0.5) * scanRange * 2;
+                    const intensity = this.calculateInterferenceAtFrequency(testFreq);
+
+                    if (intensity > maxIntensity) {
+                        maxIntensity = intensity;
+                        bestTarget = { frequency: testFreq, intensity };
+                    }
+                }
+
+                return bestTarget;
+            }
+
+            calculateInterferenceAtFrequency(frequency) {
+                let totalIntensity = 0;
+
+                zenki.forEach(z => {
+                    if (z.id !== this.id) {
+                        const freqDiff = Math.abs(frequency - z.purrFrequency);
+                        const resonance = Math.max(0, 1 - freqDiff / 50);
+                        const distance = this.position.distance(z.position);
+                        const proximity = 1 / (1 + distance / 100);
+                        totalIntensity += resonance * proximity * z.purrIntensity;
+                    }
+                });
+
+                return totalIntensity;
+            }
+
+            updateNetworkConnections() {
+                const nearby = this.findNearbyZenki(150);
+                this.bandwidth = 0;
+                this.connections = [];
+
+                nearby.forEach(z => {
+                    const freqDiff = Math.abs(this.purrFrequency - z.purrFrequency);
+                    const resonance = Math.max(0, 1 - freqDiff / 100);
+                    const distance = this.position.distance(z.position);
+
+                    if (resonance > 0.3) {
+                        const bandwidth = (resonance * 1000) / Math.max(1, distance / 100);
+                        this.bandwidth += bandwidth;
+
+                        this.connections.push({
+                            target: z,
+                            resonance: resonance,
+                            bandwidth: bandwidth,
+                            distance: distance
+                        });
+                    }
+                });
+            }
+
+            updateTrails() {
+                const projected = project3D(this.position);
+                if (projected) {
+                    this.trails.push({
+                        x: projected.x,
+                        y: projected.y,
+                        life: 40
+                    });
+                }
+
+                this.trails = this.trails.filter(point => {
+                    point.life--;
+                    return point.life > 0;
+                }).slice(-15);
+            }
+
+            processMyauMessages() {
+                this.myauQueue = this.myauQueue.filter(msg => {
+                    msg.life--;
+                    return msg.life > 0;
+                });
+            }
+
+            sendMyauMessage(targetZenki, message) {
+                if (!targetZenki) return;
+
+                myauMessages.push({
+                    from: this,
+                    to: targetZenki,
+                    message: message,
+                    carrierFrequency: this.purrFrequency,
+                    transmitTime: time,
+                    distance: this.position.distance(targetZenki.position),
+                    intensity: this.purrIntensity,
+                    life: 180
+                });
+            }
+
+            draw() {
+                const projected = project3D(this.position);
+                if (!projected) return;
+
+                const { x, y, scale } = projected;
+
+                if (x < -100 || x > canvas.width + 100 || y < -100 || y > canvas.height + 100) return;
+
+                this.drawTrails();
+                this.drawConnections();
+                this.drawPurrAura(x, y, scale);
+                this.drawWireframeBody(x, y, scale);
+                this.drawFrequencyIndicator(x, y, scale);
+                this.drawStateIndicator(x, y, scale);
+
+                if (this.hyperspaceCapable) {
+                    this.drawHyperspaceIndicator(x, y, scale);
+                }
+            }
+
+            drawTrails() {
+                if (this.trails.length < 2) return;
+
+                ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.3)`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+
+                for (let i = 1; i < this.trails.length; i++) {
+                    const opacity = this.trails[i].life / 40 * 0.3;
+                    ctx.globalAlpha = opacity;
+
+                    if (i === 1) {
+                        ctx.moveTo(this.trails[i-1].x, this.trails[i-1].y);
+                    }
+                    ctx.lineTo(this.trails[i].x, this.trails[i].y);
+                }
+
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+
+            drawConnections() {
+                this.connections.forEach(conn => {
+                    const targetProjected = project3D(conn.target.position);
+                    if (!targetProjected) return;
+
+                    const sourceProjected = project3D(this.position);
+                    if (!sourceProjected) return;
+
+                    const opacity = conn.resonance * 0.4;
+                    ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity})`;
+                    ctx.lineWidth = Math.max(0.5, conn.bandwidth / 300);
+
+                    ctx.beginPath();
+                    ctx.moveTo(sourceProjected.x, sourceProjected.y);
+                    ctx.lineTo(targetProjected.x, targetProjected.y);
+                    ctx.stroke();
+
+                    if (conn.bandwidth > 400) {
+                        const midX = (sourceProjected.x + targetProjected.x) / 2;
+                        const midY = (sourceProjected.y + targetProjected.y) / 2;
+
+                        ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.8})`;
+                        ctx.beginPath();
+                        ctx.arc(midX, midY, 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+
+            drawPurrAura(x, y, scale) {
+                const auraSize = this.size * scale * (1 + this.purrIntensity * 0.5);
+                const auraOpacity = this.purrIntensity * 0.2 * scale;
+
+                const violetShift = Math.min(1, this.age / 300);
+                const r = this.color.r * (1 - violetShift) + 123 * violetShift;
+                const g = this.color.g * (1 - violetShift) + 104 * violetShift;
+                const b = this.color.b * (1 - violetShift) + 238 * violetShift;
+
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, auraSize);
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${auraOpacity})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, auraSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawWireframeBody(x, y, scale) {
+                const size = this.size * scale;
+
+                const violetShift = Math.min(1, this.age / 400);
+                const r = this.color.r * (1 - violetShift) + 150 * violetShift;
+                const g = this.color.g * (1 - violetShift) + 120 * violetShift;
+                const b = this.color.b * (1 - violetShift) + 255 * violetShift;
+
+                // Purr-modulated flickering for visibility
+                const purrFlicker = 0.7 + Math.sin(time * 0.1 * 0.47 + this.purrPhase) * 0.3;
+                const baseOpacity = 0.6 * scale * purrFlicker;
+
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${baseOpacity})`;
+                ctx.lineWidth = Math.max(0.8, 1.2 * scale);
+
+                // More rounded, kitten-like body shape
+                ctx.beginPath();
+                // Main body - more oval/rounded
+                ctx.ellipse(x, y, size * 0.45, size * 0.35, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Kitten head - smaller circle overlapping body
+                ctx.beginPath();
+                ctx.arc(x, y - size * 0.25, size * 0.25, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Triangular ears - more kitten-like
+                const earSize = size * 0.15;
+                ctx.beginPath();
+                // Left ear
+                ctx.moveTo(x - earSize, y - size * 0.4);
+                ctx.lineTo(x - earSize * 0.3, y - size * 0.25);
+                ctx.lineTo(x - earSize * 1.2, y - size * 0.15);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Right ear
+                ctx.beginPath();
+                ctx.moveTo(x + earSize, y - size * 0.4);
+                ctx.lineTo(x + earSize * 0.3, y - size * 0.25);
+                ctx.lineTo(x + earSize * 1.2, y - size * 0.15);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Curved tail - more graceful
+                ctx.beginPath();
+                ctx.moveTo(x + size * 0.4, y + size * 0.1);
+                ctx.quadraticCurveTo(x + size * 0.8, y - size * 0.2, x + size * 0.9, y - size * 0.6);
+                ctx.quadraticCurveTo(x + size * 0.85, y - size * 0.8, x + size * 0.7, y - size * 0.75);
+                ctx.stroke();
+
+                // Paws - small circles
+                const pawSize = size * 0.08;
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${baseOpacity * 0.8})`;
+
+                // Front paws
+                ctx.beginPath();
+                ctx.arc(x - size * 0.2, y + size * 0.3, pawSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + size * 0.2, y + size * 0.3, pawSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Back paws
+                ctx.beginPath();
+                ctx.arc(x - size * 0.15, y + size * 0.25, pawSize * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + size * 0.15, y + size * 0.25, pawSize * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Kitten features - eyes and nose
+                if (scale > 0.3) { // Only draw details when large enough
+                    // Eyes
+                    ctx.fillStyle = `rgba(255, 255, 255, ${baseOpacity})`;
+                    ctx.beginPath();
+                    ctx.arc(x - size * 0.1, y - size * 0.3, size * 0.04, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(x + size * 0.1, y - size * 0.3, size * 0.04, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Nose - small triangle
+                    ctx.fillStyle = `rgba(255, 200, 200, ${baseOpacity})`;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - size * 0.2);
+                    ctx.lineTo(x - size * 0.03, y - size * 0.15);
+                    ctx.lineTo(x + size * 0.03, y - size * 0.15);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Crystalline network nodes on key points (shoulders, hips)
+                const nodeOpacity = baseOpacity * 0.6;
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${nodeOpacity})`;
+
+                // Network connection points
+                const connectionPoints = [
+                    [x - size * 0.3, y - size * 0.1], // Left shoulder
+                    [x + size * 0.3, y - size * 0.1], // Right shoulder
+                    [x - size * 0.2, y + size * 0.2], // Left hip
+                    [x + size * 0.2, y + size * 0.2], // Right hip
+                    [x, y - size * 0.25] // Head center
+                ];
+
+                connectionPoints.forEach(point => {
+                    ctx.beginPath();
+                    ctx.arc(point[0], point[1], 1.5 * scale * purrFlicker, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Purr visualization - subtle glow around body when purring intensely
+                if (this.purrIntensity > 0.7) {
+                    const purrGlow = (this.purrIntensity - 0.7) * 3;
+                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${purrGlow * 0.3})`;
+                    ctx.lineWidth = 3 * scale;
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, size * 0.6, size * 0.5, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            drawFrequencyIndicator(x, y, scale) {
+                const whiskerLength = (8 + Math.sin(time * 0.1 + this.purrPhase) * 3) * scale;
+                const freqIntensity = this.purrIntensity * 0.6 * scale;
+
+                ctx.strokeStyle = `rgba(255, 255, 255, ${freqIntensity})`;
+                ctx.lineWidth = 1 * scale;
+
+                // Left whiskers
+                ctx.beginPath();
+                ctx.moveTo(x - 8*scale, y - 2*scale);
+                ctx.lineTo(x - 8*scale - whiskerLength, y - 4*scale);
+                ctx.moveTo(x - 8*scale, y + 1*scale);
+                ctx.lineTo(x - 8*scale - whiskerLength, y + 1*scale);
+
+                // Right whiskers
+                ctx.moveTo(x + 8*scale, y - 2*scale);
+                ctx.lineTo(x + 8*scale + whiskerLength, y - 4*scale);
+                ctx.moveTo(x + 8*scale, y + 1*scale);
+                ctx.lineTo(x + 8*scale + whiskerLength, y + 1*scale);
+                ctx.stroke();
+
+                // Frequency display ring
+                const freqRadius = this.size * scale * 1.5;
+                const freqOpacity = (this.purrIntensity * 0.3) * scale;
+
+                ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${freqOpacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.arc(x, y, freqRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            drawStateIndicator(x, y, scale) {
+                let stateColor;
+                switch(this.state) {
+                    case 'scanning': stateColor = '#ff6b6b'; break;
+                    case 'hovering': stateColor = '#4ecdc4'; break;
+                    case 'hunting': stateColor = '#45b7d1'; break;
+                    case 'resonance': stateColor = '#96ceb4'; break;
+                    case 'transmitting': stateColor = '#feca57'; break;
+                    case 'receiving': stateColor = '#ff9ff3'; break;
+                    default: stateColor = '#ffffff';
+                }
+
+                ctx.fillStyle = stateColor;
+                ctx.beginPath();
+                ctx.arc(x, y - this.size * scale - 8*scale, 2*scale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawHyperspaceIndicator(x, y, scale) {
+                if (this.hyperspaceCharge < 0.1) return;
+
+                const chargeRadius = this.size * scale * 2;
+                const chargeOpacity = this.hyperspaceCharge * 0.3 * scale;
+
+                ctx.strokeStyle = `rgba(255, 0, 255, ${chargeOpacity})`;
+                ctx.lineWidth = 1.5 * scale;
+                ctx.beginPath();
+                ctx.arc(x, y, chargeRadius, 0, Math.PI * 2 * this.hyperspaceCharge);
+                ctx.stroke();
+
+                if (this.hyperspaceCharge > 0.9) {
+                    ctx.fillStyle = `rgba(255, 0, 255, ${0.6 * scale})`;
+                    ctx.beginPath();
+                    ctx.arc(x + this.size * scale, y - this.size * scale, 3*scale, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Update purr waves
+        function updatePurrWaves() {
+            purrWaves = purrWaves.filter(wave => {
+                wave.life++;
+                wave.radius += 1.5 * 0.47; // Slowed expansion
+
+                if (wave.life >= wave.maxLife) return false;
+
+                const projected = project3D(wave.position);
+                if (!projected) return true;
+
+                const life = wave.life / wave.maxLife;
+                const opacity = (1 - life) * 0.4;
+                const adjustedRadius = wave.radius * projected.scale;
+
+                const violetShift = Math.min(1, wave.life / wave.maxLife);
+                const r = wave.color.r * (1 - violetShift) + 123 * violetShift;
+                const g = wave.color.g * (1 - violetShift) + 104 * violetShift;
+                const b = wave.color.b * (1 - violetShift) + 238 * violetShift;
+
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, adjustedRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                if (wave.radius < wave.maxRadius * 0.7) {
+                    const freqPattern = wave.frequency / basePurrFrequency;
+                    const innerRadius = adjustedRadius * freqPattern * 0.6;
+
+                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`;
+                    ctx.beginPath();
+                    ctx.arc(projected.x, projected.y, innerRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                return true;
+            });
+        }
+
+        // Update myau messages
+        function updateMyauMessages() {
+            myauMessages = myauMessages.filter(msg => {
+                msg.life--;
+
+                if (msg.life <= 0) return false;
+
+                const progress = 1 - (msg.life / 180);
+                const sourcePos = msg.from.position;
+                const targetPos = msg.to.position;
+
+                const msgPos = new Point3D(
+                    sourcePos.x + (targetPos.x - sourcePos.x) * progress,
+                    sourcePos.y + (targetPos.y - sourcePos.y) * progress,
+                    sourcePos.z + (targetPos.z - sourcePos.z) * progress
+                );
+
+                const projected = project3D(msgPos);
+                if (!projected) return true;
+
+                const opacity = Math.sin(progress * Math.PI) * 0.6;
+
+                ctx.strokeStyle = `rgba(255, 200, 100, ${opacity})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, 4 * projected.scale, 0, Math.PI * 2);
+                ctx.stroke();
+
+                const carrierRadius = 8 * projected.scale;
+                ctx.strokeStyle = `rgba(255, 200, 100, ${opacity * 0.3})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, carrierRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                return true;
+            });
+        }
+
+        // Calculate constructive interference and create love nodes
+        function updateInterferencePatterns() {
+            if (time % 10 === 0 && zenki.length >= 2) {
+                for (let i = 0; i < 50; i++) {
+                    const testPos = new Point3D(
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 300,
+                        (Math.random() - 0.5) * 300
+                    );
+
+                    let totalInterference = 0;
+                    let waveCount = 0;
+
+                    zenki.forEach(z => {
+                        const distance = testPos.distance(z.position);
+                        if (distance < 150) {
+                            const waveAmp = z.purrIntensity / (1 + distance / 50);
+                            const phase = (distance / 20) + (time * 0.05);
+                            const wave = waveAmp * Math.sin(phase + z.purrPhase);
+                            totalInterference += wave;
+                            waveCount++;
+                        }
+                    });
+
+                    if (waveCount >= 2 && Math.abs(totalInterference) > 1.2) {
+                        const intensity = Math.abs(totalInterference);
+
+                        loveNodes.push({
+                            position: testPos,
+                            intensity: intensity,
+                            life: 0,
+                            maxLife: 200,
+                            size: 5 + intensity * 3
+                        });
+                    }
+                }
+            }
+
+            loveNodes = loveNodes.filter(node => {
+                node.life++;
+
+                if (node.life >= node.maxLife) return false;
+
+                const projected = project3D(node.position);
+                if (!projected) return true;
+
+                const life = node.life / node.maxLife;
+                const opacity = Math.sin(life * Math.PI) * 0.6;
+                const size = node.size * projected.scale * (1 - life * 0.5);
+
+                const violetShift = life;
+                const r = 255 * (1 - violetShift) + 180 * violetShift;
+                const g = 255 * (1 - violetShift) + 150 * violetShift;
+                const b = 255 * (1 - violetShift) + 255 * violetShift;
+
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, size, 0, Math.PI * 2);
+                ctx.fill();
+
+                const auraSize = size * 2;
+                const gradient = ctx.createRadialGradient(
+                    projected.x, projected.y, 0,
+                    projected.x, projected.y, auraSize
+                );
+                gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${opacity * 0.3})`);
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(projected.x, projected.y, auraSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                return true;
+            });
+        }
+
+        // Draw 3D harmonic grid
+        function drawHarmonic3DGrid() {
+            harmonic3DGrid.forEach(gridLine => {
+                const projected1 = project3D(gridLine.points[0]);
+                const projected2 = project3D(gridLine.points[1]);
+
+                if (!projected1 || !projected2) return;
+
+                const waveTime = time * 0.3 + gridLine.phase;
+                const wave = Math.sin(waveTime) * 0.3;
+                const opacity = (0.15 + wave * 0.1) * Math.min(projected1.scale, projected2.scale);
+
+                const breathe = Math.sin(time * 0.05) * 0.1;
+                const violetShift = 0.3 + breathe;
+                const r = gridLine.color.r * (1 - violetShift) + 150 * violetShift;
+                const g = gridLine.color.g * (1 - violetShift) + 100 * violetShift;
+                const b = gridLine.color.b * (1 - violetShift) + 255 * violetShift;
+
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(projected1.x, projected1.y);
+                ctx.lineTo(projected2.x, projected2.y);
+                ctx.stroke();
+            });
+        }
+
+        // Draw violet forgetting background with enhanced spherical blacklight
+        function drawVioletForgetting() {
+            const centerRadius = Math.min(canvas.width, canvas.height) * 0.3;
+            const outerRadius = Math.max(canvas.width, canvas.height) * 0.8;
+
+            // Enhanced spherical blacklight base layer
+            const gradient1 = ctx.createRadialGradient(
+                centerX, centerY, centerRadius,
+                centerX, centerY, outerRadius
+            );
+            gradient1.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient1.addColorStop(0.6, 'rgba(30, 12, 70, 0.08)');
+            gradient1.addColorStop(0.8, 'rgba(15, 5, 50, 0.12)');
+            gradient1.addColorStop(1, 'rgba(6, 2, 20, 0.15)');
+
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Slower breathing violet effect
+            const breathe = Math.sin(time * 0.02 * 0.47) * 0.02;
+            const gradient2 = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, outerRadius * (0.65 + breathe)
+            );
+            gradient2.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient2.addColorStop(0.7, 'rgba(25, 10, 60, 0.05)');
+            gradient2.addColorStop(0.9, 'rgba(15, 5, 40, 0.08)');
+            gradient2.addColorStop(1, 'rgba(8, 3, 25, 0.12)');
+
+            ctx.fillStyle = gradient2;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Additional rotational clearing effect
+            const rotationalClear = Math.sin(time * 0.01 * 0.47) * 0.03;
+            ctx.fillStyle = `rgba(8, 3, 25, ${0.05 + rotationalClear})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Control functions
+        function togglePurrNetwork() {
+            purrNetworkActive = !purrNetworkActive;
+            document.getElementById('networkStatus').textContent = purrNetworkActive ? 'PURRING' : 'SILENT';
+        }
+
+        function spawnZenki() {
+            const x = (Math.random() - 0.5) * 200;
+            const y = (Math.random() - 0.5) * 200;
+            const z = (Math.random() - 0.5) * 200;
+
+            zenki.push(new Zenki(x, y, z));
+            document.getElementById('activeZenki').textContent = zenki.length;
+        }
+
+        function formAntennaArray() {
+            while (zenki.length < 14) {
+                spawnZenki();
+            }
+
+            const centerZenki = zenki[0];
+            centerZenki.state = 'transmitting';
+            centerZenki.formationRole = 'antenna-center';
+            centerZenki.purrFrequency = basePurrFrequency;
+            centerZenki.targetPosition = new Point3D(0, 0, 0);
+
+            for (let i = 1; i < 14 && i < zenki.length; i++) {
+                const angle = (i - 1) * (Math.PI * 2) / 13;
+                const radius = 100;
+
+                zenki[i].state = 'receiving';
+                zenki[i].formationRole = 'antenna-node';
+                zenki[i].purrFrequency = basePurrFrequency + (i * 13);
+                zenki[i].targetPosition = new Point3D(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius,
+                    Math.sin(angle * 3) * 15
+                );
+            }
+
+            const formationId = 'antenna-' + Date.now();
+            formations.push({
+                id: formationId,
+                type: 'antenna',
+                members: zenki.slice(0, 14),
+                created: time,
+                purpose: 'hyperspace-communication'
+            });
+
+            document.getElementById('formations').textContent = formations.length;
+            document.getElementById('formationDetails').innerHTML =
+                '• 13+1 Antenna Array<br>• Hyperspace Ready<br>• Members: 14';
+        }
+
+        function activateHyperspace() {
+            hyperspaceModeActive = !hyperspaceModeActive;
+
+            if (hyperspaceModeActive) {
+                zenki.forEach(z => {
+                    if (z.hyperspaceCapable && z.hyperspaceCharge > 0.8) {
+                        z.state = 'transmitting';
+                        hyperspaceLinks.push({
+                            zenki: z,
+                            target: new Point3D(
+                                (Math.random() - 0.5) * 400,
+                                (Math.random() - 0.5) * 400,
+                                (Math.random() - 0.5) * 400
+                            ),
+                            strength: z.hyperspaceCharge,
+                            life: 0,
+                            maxLife: 300
+                        });
+                    }
+                });
+
+                document.getElementById('hyperspaceStatus').textContent = 'ACTIVE';
+            } else {
+                hyperspaceLinks = [];
+                document.getElementById('hyperspaceStatus').textContent = 'STANDBY';
+            }
+
+            document.getElementById('hyperspaceLinks').textContent = hyperspaceLinks.length;
+        }
+
+        function testMyauMessage() {
+            if (zenki.length < 2) {
+                spawnZenki();
+                spawnZenki();
+            }
+
+            const sender = zenki[Math.floor(Math.random() * zenki.length)];
+            const receiver = zenki[Math.floor(Math.random() * zenki.length)];
+
+            if (sender !== receiver) {
+                sender.sendMyauMessage(receiver, 'MYAU~PURR~TEST');
+            }
+        }
+
+        function resetNetwork() {
+            zenki = [];
+            purrWaves = [];
+            myauMessages = [];
+            hyperspaceLinks = [];
+            formations = [];
+            loveNodes = [];
+            hyperspaceModeActive = false;
+
+            document.getElementById('activeZenki').textContent = '0';
+            document.getElementById('formations').textContent = '0';
+            document.getElementById('hyperspaceLinks').textContent = '0';
+            document.getElementById('hyperspaceStatus').textContent = 'STANDBY';
+            document.getElementById('formationDetails').textContent = 'No formations active';
+        }
+
+        // Update HUD information
+        function updateHUD() {
+            if (time % 30 === 0) {
+                let totalBandwidth = 0;
+                zenki.forEach(z => totalBandwidth += z.bandwidth);
+                document.getElementById('totalBandwidth').textContent = Math.floor(totalBandwidth);
+
+                let totalResonance = 0;
+                let connectionCount = 0;
+                zenki.forEach(z => {
+                    z.connections.forEach(conn => {
+                        totalResonance += conn.resonance;
+                        connectionCount++;
+                    });
+                });
+                const avgResonance = connectionCount > 0 ? (totalResonance / connectionCount) * 100 : 0;
+                document.getElementById('globalResonance').textContent = Math.floor(avgResonance) + '%';
+
+                const stateCounts = { scanning: 0, hovering: 0, hunting: 0, resonance: 0, transmitting: 0, receiving: 0 };
+                zenki.forEach(z => stateCounts[z.state]++);
+
+                document.getElementById('zenkiStates').innerHTML =
+                    `• Scanning: ${stateCounts.scanning}<br>` +
+                    `• Hovering: ${stateCounts.hovering}<br>` +
+                    `• Resonance: ${stateCounts.resonance}<br>` +
+                    `• Hunting: ${stateCounts.hunting}`;
+            }
+        }
+
+        // Main animation loop
+        function animate() {
+            time++;
+
+            // Enhanced canvas clearing with slower rotation effect
+            const rotationalAlpha = 0.05 + Math.sin(time * 0.01 * 0.47) * 0.02;
+            ctx.fillStyle = `rgba(8, 3, 25, ${rotationalAlpha})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw violet forgetting background
+            drawVioletForgetting();
+
+            // Update 3D rotation (slowed to 0.47x counter-clockwise)
+            rotY -= 0.15 * Math.PI / 180 * 0.47;
+
+            drawHarmonic3DGrid();
+
+            zenki.forEach(z => {
+                z.update();
+                z.draw();
+            });
+
+            updatePurrWaves();
+            updateMyauMessages();
+            updateInterferencePatterns();
+
+            hyperspaceLinks = hyperspaceLinks.filter(link => {
+                link.life++;
+
+                if (link.life >= link.maxLife) return false;
+
+                const sourceProjected = project3D(link.zenki.position);
+                const targetProjected = project3D(link.target);
+
+                if (sourceProjected && targetProjected) {
+                    const opacity = link.strength * (1 - link.life / link.maxLife) * 0.6;
+
+                    ctx.strokeStyle = `rgba(255, 0, 255, ${opacity})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(sourceProjected.x, sourceProjected.y);
+                    ctx.lineTo(targetProjected.x, targetProjected.y);
+                    ctx.stroke();
+
+                    for (let i = 0; i < 5; i++) {
+                        const progress = (i / 5 + link.life / link.maxLife) % 1;
+                        const particleX = sourceProjected.x + (targetProjected.x - sourceProjected.x) * progress;
+                        const particleY = sourceProjected.y + (targetProjected.y - sourceProjected.y) * progress;
+
+                        ctx.fillStyle = `rgba(255, 0, 255, ${opacity * 0.8})`;
+                        ctx.beginPath();
+                        ctx.arc(particleX, particleY, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                return true;
+            });
+
+            updateHUD();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+
+                rotY += deltaX * 0.01;
+                rotX += deltaY * 0.01;
+
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Frequency controls
+        document.getElementById('basePurrSlider').addEventListener('input', (e) => {
+            basePurrFrequency = parseFloat(e.target.value);
+            document.getElementById('basePurrValue').textContent = basePurrFrequency.toFixed(1) + ' Hz';
+
+            zenki.forEach(z => {
+                z.purrFrequency = basePurrFrequency + (Math.random() - 0.5) * scanRange;
+            });
+        });
+
+        document.getElementById('scanRangeSlider').addEventListener('input', (e) => {
+            scanRange = parseFloat(e.target.value);
+            document.getElementById('scanRangeValue').textContent = '±' + scanRange + ' Hz';
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                    e.preventDefault();
+                    togglePurrNetwork();
+                    break;
+                case 'k':
+                    spawnZenki();
+                    break;
+                case 'a':
+                    formAntennaArray();
+                    break;
+                case 'h':
+                    activateHyperspace();
+                    break;
+                case 'm':
+                    testMyauMessage();
+                    break;
+                case 'r':
+                    resetNetwork();
+                    break;
+            }
+        });
+
+        // Resize handling
+        function handleResize() {
+            try {
+                const currentWidth = window.innerWidth;
+                const currentHeight = window.innerHeight;
+
+                if (currentWidth > 0 && currentHeight > 0 &&
+                    currentWidth < 8000 && currentHeight < 8000) {
+                    canvas.width = currentWidth;
+                    canvas.height = currentHeight;
+                    centerX = canvas.width / 2;
+                    centerY = canvas.height / 2;
+                }
+            } catch (error) {
+                console.log('Resize error:', error);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            setTimeout(handleResize, 70);
+        });
+
+        // Fullscreen handling
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+            document.addEventListener(event, () => {
+                setTimeout(handleResize, 75);
+            });
+        });
+
+        // Initialize the network
+        function initializeNetwork() {
+            console.log('Initializing Purr-Wave Network...');
+
+            createHarmonic3DGrid();
+
+            for (let i = 0; i < 3; i++) {
+                spawnZenki();
+            }
+
+            console.log(`Network initialized with ${zenki.length} zenki and ${harmonic3DGrid.length} grid lines`);
+
+            animate();
+        }
+
+        // Start the network
+        initializeNetwork();
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Template Space</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #08030f;
+            font-family: monospace;
+            color: rgba(130, 160, 210, 0.75);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            background: rgba(20, 10, 40, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(68, 39, 140, 0.6);
+            color: rgba(120, 150, 200, 0.7);
+            z-index: 100;
+        }
+
+        .template-name {
+            color: rgba(150, 70, 235, 0.75);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="info-panel">
+        <div class="template-name">Template Visualization</div>
+        <div>
+            Very simple implementation with minimal dependencies.
+            <br><br>
+            Click to select a template.
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.getElementById('canvas-container').appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+
+        // Templates data
+        const templates = [
+            { id: 'corner-radius', type: 'primitive', x: 200, y: 100, width: 80, height: 50, color: 'rgba(80, 100, 200, 0.6)' },
+            { id: 'gradient-bg', type: 'primitive', x: 200, y: 180, width: 80, height: 50, color: 'rgba(80, 120, 180, 0.6)' },
+            { id: 'shadow-effect', type: 'primitive', x: 200, y: 260, width: 80, height: 50, color: 'rgba(100, 80, 200, 0.6)' },
+
+            { id: 'card-component', type: 'component', x: 400, y: 150, width: 120, height: 80, color: 'rgba(80, 150, 180, 0.6)' },
+            { id: 'code-block', type: 'component', x: 400, y: 260, width: 120, height: 80, color: 'rgba(60, 130, 150, 0.6)' },
+
+            { id: 'research-template', type: 'template', x: 600, y: 200, width: 150, height: 100, color: 'rgba(80, 100, 180, 0.6)' },
+
+            { id: 'doc-instance', type: 'instance', x: 800, y: 150, width: 100, height: 70, color: 'rgba(100, 120, 180, 0.6)' },
+            { id: 'slides-instance', type: 'instance', x: 800, y: 250, width: 100, height: 70, color: 'rgba(120, 100, 180, 0.6)' }
+        ];
+
+        // Define connections
+        const connections = [
+            { from: 'corner-radius', to: 'card-component' },
+            { from: 'gradient-bg', to: 'card-component' },
+            { from: 'shadow-effect', to: 'card-component' },
+            { from: 'shadow-effect', to: 'code-block' },
+            { from: 'gradient-bg', to: 'code-block' },
+            { from: 'card-component', to: 'research-template' },
+            { from: 'code-block', to: 'research-template' },
+            { from: 'research-template', to: 'doc-instance' },
+            { from: 'research-template', to: 'slides-instance' }
+        ];
+
+        // Animation variables
+        let animationFrame = 0;
+        let selectedTemplate = null;
+
+        // Draw function
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#08030f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw connections
+            drawConnections();
+
+            // Draw templates
+            templates.forEach(template => {
+                drawTemplate(template);
+            });
+
+            // Continue animation
+            animationFrame++;
+            requestAnimationFrame(draw);
+        }
+
+        function drawTemplate(template) {
+            // Apply subtle animation
+            const offsetY = Math.sin(animationFrame * 0.02 + templates.indexOf(template) * 0.5) * 3;
+
+            // Determine if selected
+            const isSelected = selectedTemplate === template.id;
+
+            // Draw glow effect if selected
+            if (isSelected) {
+                ctx.shadowColor = 'rgba(150, 70, 235, 0.6)';
+                ctx.shadowBlur = 15;
+            } else {
+                ctx.shadowColor = 'rgba(80, 100, 200, 0.3)';
+                ctx.shadowBlur = 5;
+            }
+
+            // Draw template box
+            ctx.fillStyle = isSelected ? template.color.replace('0.6', '0.8') : template.color;
+            ctx.beginPath();
+            ctx.roundRect(template.x, template.y + offsetY, template.width, template.height, 8);
+            ctx.fill();
+
+            // Reset shadow
+            ctx.shadowBlur = 0;
+
+            // Draw text
+            ctx.fillStyle = 'rgba(220, 230, 255, 0.8)';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(template.id, template.x + template.width/2, template.y + template.height/2 + 5 + offsetY);
+
+            // Draw type label
+            ctx.fillStyle = 'rgba(180, 200, 255, 0.6)';
+            ctx.font = '10px monospace';
+            ctx.fillText(template.type, template.x + template.width/2, template.y + template.height/2 + 20 + offsetY);
+        }
+
+        function drawConnections() {
+            connections.forEach(connection => {
+                const from = templates.find(t => t.id === connection.from);
+                const to = templates.find(t => t.id === connection.to);
+
+                if (!from || !to) return;
+
+                const isHighlighted = selectedTemplate === from.id || selectedTemplate === to.id;
+
+                // Calculate connection points
+                const startX = from.x + from.width;
+                const startY = from.y + from.height/2;
+                const endX = to.x;
+                const endY = to.y + to.height/2;
+
+                // Draw path with boxes
+                const pathPoints = getQuantizedPath(startX, startY, endX, endY);
+
+                // Draw small boxes along path
+                pathPoints.forEach(point => {
+                    ctx.fillStyle = isHighlighted
+                        ? 'rgba(150, 70, 235, 0.6)'
+                        : 'rgba(80, 110, 180, 0.4)';
+
+                    ctx.beginPath();
+                    ctx.roundRect(point.x - 5, point.y - 5, 10, 10, 2);
+                    ctx.fill();
+                });
+            });
+        }
+
+        function getQuantizedPath(startX, startY, endX, endY) {
+            const points = [];
+            const stepSize = 20;
+
+            // Move in X first, then Y
+            let currentX = startX;
+            while (Math.abs(currentX - endX) > stepSize) {
+                currentX += (endX > startX) ? stepSize : -stepSize;
+                points.push({ x: currentX, y: startY });
+            }
+
+            // Final X step
+            if (Math.abs(currentX - endX) > 0) {
+                points.push({ x: endX, y: startY });
+            }
+
+            // Move in Y
+            let currentY = startY;
+            while (Math.abs(currentY - endY) > stepSize) {
+                currentY += (endY > startY) ? stepSize : -stepSize;
+                points.push({ x: endX, y: currentY });
+            }
+
+            // Final Y step
+            if (Math.abs(currentY - endY) > 0) {
+                points.push({ x: endX, y: endY });
+            }
+
+            return points;
+        }
+
+        // Handle mouse events
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            // Check if clicked on a template
+            let clicked = false;
+            templates.forEach(template => {
+                // Add offsetY for accuracy
+                const offsetY = Math.sin(animationFrame * 0.02 + templates.indexOf(template) * 0.5) * 3;
+
+                if (mouseX >= template.x &&
+                    mouseX <= template.x + template.width &&
+                    mouseY >= template.y + offsetY &&
+                    mouseY <= template.y + template.height + offsetY) {
+                    selectedTemplate = template.id;
+                    updateInfoPanel(template);
+                    clicked = true;
+                }
+            });
+
+            // If clicked on empty space, clear selection
+            if (!clicked) {
+                selectedTemplate = null;
+                updateInfoPanel(null);
+            }
+        });
+
+        function updateInfoPanel(template) {
+            const panel = document.getElementById('info-panel');
+
+            if (!template) {
+                panel.innerHTML = `
+                    <div class="template-name">Template Visualization</div>
+                    <div>
+                        Very simple implementation with minimal dependencies.
+                        <br><br>
+                        Click to select a template.
+                    </div>
+                `;
+                return;
+            }
+
+            let content = `
+                <div class="template-name">${template.id} (${template.type})</div>
+                <div>
+                    <b>Properties:</b><br>
+                    - x: ${template.x}<br>
+                    - y: ${template.y}<br>
+                    - width: ${template.width}<br>
+                    - height: ${template.height}<br>
+                    - color: ${template.color}<br>
+                </div>
+            `;
+
+            // Add connections info
+            const childConnections = connections.filter(c => c.from === template.id);
+            const parentConnections = connections.filter(c => c.to === template.id);
+
+            if (parentConnections.length > 0) {
+                content += `<div><b>Inherits from:</b><br>`;
+                parentConnections.forEach(conn => {
+                    content += `- ${conn.from}<br>`;
+                });
+                content += `</div>`;
+            }
+
+            if (childConnections.length > 0) {
+                content += `<div><b>Extended by:</b><br>`;
+                childConnections.forEach(conn => {
+                    content += `- ${conn.to}<br>`;
+                });
+                content += `</div>`;
+            }
+
+            panel.innerHTML = content;
+        }
+
+        // Add roundRect method if not available in browser
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                if (radius === undefined) {
+                    radius = 5;
+                }
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+                return this;
+            };
+        }
+
+        // Start the animation
+        draw();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>

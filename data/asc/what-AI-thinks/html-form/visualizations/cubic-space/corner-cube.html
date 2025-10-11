@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hyperspace Cube with Missing Corner</title>
+    <style>
+        body {
+            background-color: #000010;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #80b0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(5, 2, 20, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #a0c0ff;
+            text-align: center;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cubeCanvas"></canvas>
+    <div class="info">Missing corner edges at position (1,1,1) align with 63M/63K protocol 7 boundaries</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('cubeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Center of canvas
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Cube properties
+            const cubeSize = 200;
+
+            // Rotation angles
+            let rotationX = 25 * Math.PI / 180;
+            let rotationY = 45 * Math.PI / 180;
+            let rotationZ = 0;
+
+            // Define cube vertices
+            const vertices = [
+                {x: -cubeSize/2, y: -cubeSize/2, z: -cubeSize/2}, // 0: front bottom left
+                {x: cubeSize/2, y: -cubeSize/2, z: -cubeSize/2},  // 1: front bottom right
+                {x: cubeSize/2, y: cubeSize/2, z: -cubeSize/2},   // 2: front top right
+                {x: -cubeSize/2, y: cubeSize/2, z: -cubeSize/2},  // 3: front top left
+                {x: -cubeSize/2, y: -cubeSize/2, z: cubeSize/2},  // 4: back bottom left
+                {x: cubeSize/2, y: -cubeSize/2, z: cubeSize/2},   // 5: back bottom right
+                {x: cubeSize/2, y: cubeSize/2, z: cubeSize/2},    // 6: back top right (this corner will be "missing")
+                {x: -cubeSize/2, y: cubeSize/2, z: cubeSize/2}    // 7: back top left
+            ];
+
+            // Define edges - explicitly exclude edges connected to vertex 6
+            const edges = [
+                {from: 0, to: 1}, // front bottom
+                {from: 1, to: 2}, // front right
+                {from: 2, to: 3}, // front top
+                {from: 3, to: 0}, // front left
+                {from: 4, to: 5}, // back bottom
+                {from: 7, to: 4}, // back left
+                {from: 0, to: 4}, // bottom left
+                {from: 1, to: 5}, // bottom right
+                {from: 3, to: 7}  // top left
+            ];
+
+            // Define internal grid lines (reduced for clarity)
+            const gridLines = [];
+            const gridSize = 50;
+
+            // Apply 3D projection
+            function project(point) {
+                // Apply rotations
+                let x1 = point.x;
+                let y1 = point.y;
+                let z1 = point.z;
+
+                // Rotate around X-axis
+                let y2 = y1 * Math.cos(rotationX) - z1 * Math.sin(rotationX);
+                let z2 = y1 * Math.sin(rotationX) + z1 * Math.cos(rotationX);
+
+                // Rotate around Y-axis
+                let x2 = x1 * Math.cos(rotationY) + z2 * Math.sin(rotationY);
+                let z3 = -x1 * Math.sin(rotationY) + z2 * Math.cos(rotationY);
+
+                // Rotate around Z-axis
+                let x3 = x2 * Math.cos(rotationZ) - y2 * Math.sin(rotationZ);
+                let y3 = x2 * Math.sin(rotationZ) + y2 * Math.cos(rotationZ);
+
+                // Apply perspective
+                const focalLength = 500;
+                const depth = focalLength + z3;
+
+                // Skip if behind camera
+                if (depth <= 0) return null;
+
+                const scale = focalLength / depth;
+                return {
+                    x: centerX + x3 * scale,
+                    y: centerY + y3 * scale,
+                    z: z3
+                };
+            }
+
+            // Draw the scene
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = '#000010';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Project vertices
+                const projectedVertices = vertices.map(project);
+
+                // Draw internal grid lines
+                ctx.strokeStyle = 'rgba(60, 100, 255, 0.1)';
+                ctx.lineWidth = 0.5;
+                for (let i = -2; i <= 2; i++) {
+                    for (let j = -2; j <= 2; j++) {
+                        // Skip if i and j are both 0
+                        if (i === 0 && j === 0) continue;
+
+                        const lineX = project({x: i * gridSize, y: -cubeSize/2, z: j * gridSize});
+                        const lineX2 = project({x: i * gridSize, y: cubeSize/2, z: j * gridSize});
+
+                        if (lineX && lineX2) {
+                            ctx.beginPath();
+                            ctx.moveTo(lineX.x, lineX.y);
+                            ctx.lineTo(lineX2.x, lineX2.y);
+                            ctx.stroke();
+                        }
+
+                        const lineY = project({x: i * gridSize, y: j * gridSize, z: -cubeSize/2});
+                        const lineY2 = project({x: i * gridSize, y: j * gridSize, z: cubeSize/2});
+
+                        if (lineY && lineY2) {
+                            ctx.beginPath();
+                            ctx.moveTo(lineY.x, lineY.y);
+                            ctx.lineTo(lineY2.x, lineY2.y);
+                            ctx.stroke();
+                        }
+
+                        const lineZ = project({x: -cubeSize/2, y: i * gridSize, z: j * gridSize});
+                        const lineZ2 = project({x: cubeSize/2, y: i * gridSize, z: j * gridSize});
+
+                        if (lineZ && lineZ2) {
+                            ctx.beginPath();
+                            ctx.moveTo(lineZ.x, lineZ.y);
+                            ctx.lineTo(lineZ2.x, lineZ2.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Draw faces with transparency
+                ctx.fillStyle = 'rgba(0, 50, 180, 0.08)';
+
+                // Front face
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[0].x, projectedVertices[0].y);
+                ctx.lineTo(projectedVertices[1].x, projectedVertices[1].y);
+                ctx.lineTo(projectedVertices[2].x, projectedVertices[2].y);
+                ctx.lineTo(projectedVertices[3].x, projectedVertices[3].y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Bottom face
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[0].x, projectedVertices[0].y);
+                ctx.lineTo(projectedVertices[1].x, projectedVertices[1].y);
+                ctx.lineTo(projectedVertices[5].x, projectedVertices[5].y);
+                ctx.lineTo(projectedVertices[4].x, projectedVertices[4].y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Left face
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[0].x, projectedVertices[0].y);
+                ctx.lineTo(projectedVertices[3].x, projectedVertices[3].y);
+                ctx.lineTo(projectedVertices[7].x, projectedVertices[7].y);
+                ctx.lineTo(projectedVertices[4].x, projectedVertices[4].y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Right face (excluding vertex 6)
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[1].x, projectedVertices[1].y);
+                ctx.lineTo(projectedVertices[2].x, projectedVertices[2].y);
+                // Skip line to vertex 6
+                ctx.lineTo(projectedVertices[5].x, projectedVertices[5].y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Top face (excluding vertex 6)
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[2].x, projectedVertices[2].y);
+                ctx.lineTo(projectedVertices[3].x, projectedVertices[3].y);
+                ctx.lineTo(projectedVertices[7].x, projectedVertices[7].y);
+                // Skip line to vertex 6
+                ctx.closePath();
+                ctx.fill();
+
+                // Back face (excluding vertex 6)
+                ctx.beginPath();
+                ctx.moveTo(projectedVertices[4].x, projectedVertices[4].y);
+                ctx.lineTo(projectedVertices[5].x, projectedVertices[5].y);
+                // Skip line to vertex 6
+                ctx.lineTo(projectedVertices[7].x, projectedVertices[7].y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw cube edges with glow
+                ctx.strokeStyle = '#00a0ff';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00a0ff';
+
+                edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+
+                    if (from && to) {
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    }
+                });
+
+                // Reset shadow
+                ctx.shadowBlur = 0;
+
+                // Add vignette effect
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Animation
+            let lastTime = 0;
+            function animate(time) {
+                if (!lastTime) lastTime = time;
+                const elapsed = time - lastTime;
+                lastTime = time;
+
+                // Slowly rotate
+                rotationY += 0.0005 * elapsed;
+
+                draw();
+                requestAnimationFrame(animate);
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Start animation
+            requestAnimationFrame(animate);
+        });
+    </script>
+</body>
+</html>

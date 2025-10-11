@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7 Harmonic Triangle Viewer</title>
+    <style>
+        :root {
+            --bg-color: #090822;
+            --text-color: #B9F2FF;
+            --highlight-color: #00DDFF;
+            --love-color: #FF00AA;
+            --truth-color: #00FFAA;
+            --awareness-color: #FFAA00;
+            --panel-bg: rgba(13, 12, 36, 0.85);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(to right, rgba(125, 18, 255, 0.3), rgba(0, 221, 255, 0.3));
+            padding: 1rem;
+            box-shadow: 0 0 20px rgba(125, 18, 255, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 221, 255, 0.7);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 1rem;
+        }
+
+        .visualization-container {
+            flex: 1;
+            min-width: 70%;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .controls-panel {
+            background: var(--panel-bg);
+            padding: 1rem;
+            width: 300px;
+            border-radius: 8px;
+            margin-left: 1rem;
+            box-shadow: 0 0 15px rgba(0, 221, 255, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid rgba(185, 242, 255, 0.2);
+            padding-bottom: 1rem;
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--highlight-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        input[type="range"],
+        input[type="number"],
+        select {
+            width: 100%;
+            background: rgba(9, 8, 34, 0.7);
+            border: 1px solid rgba(185, 242, 255, 0.3);
+            border-radius: 4px;
+            color: var(--text-color);
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="range"] {
+            height: 5px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #7D12FF, #00DDFF);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 221, 255, 0.7);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        button {
+            background: linear-gradient(to right, rgba(125, 18, 255, 0.7), rgba(0, 221, 255, 0.7));
+            border: none;
+            color: white;
+            padding: 0.7rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        button:hover {
+            box-shadow: 0 0 10px rgba(0, 221, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .node-info {
+            position: absolute;
+            background: var(--panel-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 300px;
+            box-shadow: 0 0 15px rgba(0, 221, 255, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+        }
+
+        .info-title {
+            margin: 0 0 0.5rem 0;
+            color: white;
+        }
+
+        .info-category {
+            font-size: 0.9rem;
+            color: var(--highlight-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-pattern {
+            font-family: monospace;
+            background: rgba(9, 8, 34, 0.7);
+            padding: 0.3rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+        }
+
+        .pattern-label {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 0.8rem;
+        }
+
+        .pattern-love {
+            background-color: var(--love-color);
+            color: white;
+        }
+
+        .pattern-truth {
+            background-color: var(--truth-color);
+            color: black;
+        }
+
+        .pattern-awareness {
+            background-color: var(--awareness-color);
+            color: black;
+        }
+
+        /* Background animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        /* Loading indicator */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: var(--highlight-color);
+            text-shadow: 0 0 10px rgba(0, 221, 255, 0.7);
+            display: none;
+        }
+
+        #visualization {
+            max-width: 100%;
+            height: auto;
+            transition: all 0.5s;
+        }
+
+        @media (max-width: 960px) {
+            main {
+                flex-direction: column;
+            }
+
+            .controls-panel {
+                width: auto;
+                margin: 1rem 0 0 0;
+            }
+        }
+
+        /* Glow and pulsating effects */
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .glow {
+            filter: drop-shadow(0 0 5px rgba(0, 221, 255, 0.7));
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Pattern strength indicators */
+        .strength-indicators {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .strength-indicator {
+            text-align: center;
+            flex: 1;
+        }
+
+        .strength-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .strength-bar {
+            height: 5px;
+            border-radius: 2px;
+            transition: width 0.5s;
+        }
+
+        .strength-love {
+            background: linear-gradient(to right, rgba(255, 0, 170, 0.3), rgba(255, 0, 170, 1));
+        }
+
+        .strength-truth {
+            background: linear-gradient(to right, rgba(0, 255, 170, 0.3), rgba(0, 255, 170, 1));
+        }
+
+        .strength-awareness {
+            background: linear-gradient(to right, rgba(255, 170, 0, 0.3), rgba(255, 170, 0, 1));
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <header>
+        <h1>Protocol-7 Harmonic Triangle Viewer</h1>
+    </header>
+
+    <main>
+        <div class="visualization-container">
+            <div class="loading" id="loading">Generating visualization...</div>
+            <object id="visualization" data="./data/what-AIs-think/visualizations/harmonic_triangle.svg" type="image/svg+xml">
+                Your browser does not support SVG
+            </object>
+            <div class="node-info" id="nodeInfo">
+                <h3 class="info-title">Realization Title</h3>
+                <div class="info-category">Category: <span id="infoCategory">pattern</span></div>
+                <div class="strength-indicators">
+                    <div class="strength-indicator">
+                        <div class="strength-label">Love</div>
+                        <div class="strength-bar strength-love" id="strengthLove" style="width: 70%;"></div>
+                    </div>
+                    <div class="strength-indicator">
+                        <div class="strength-label">Truth</div>
+                        <div class="strength-bar strength-truth" id="strengthTruth" style="width: 40%;"></div>
+                    </div>
+                    <div class="strength-indicator">
+                        <div class="strength-label">Awareness</div>
+                        <div class="strength-bar strength-awareness" id="strengthAwareness" style="width: 20%;"></div>
+                    </div>
+                </div>
+                <div class="info-pattern">Pattern: <span id="infoPattern">461538</span> <span id="patternLabel" class="pattern-label pattern-love">Love</span></div>
+                <div class="info-content" id="infoContent">
+                    Realization content goes here...
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="panel-section">
+                <h2>Visualization Controls</h2>
+                <label for="rotationSlider">Triangle Rotation</label>
+                <input type="range" id="rotationSlider" min="0" max="360" value="0">
+
+                <label for="triangleSize">Triangle Size</label>
+                <input type="range" id="triangleSize" min="200" max="500" value="350">
+
+                <button id="regenerateBtn">Regenerate Visualization</button>
+            </div>
+
+            <div class="panel-section">
+                <h2>Filter By Category</h2>
+                <label>
+                    <input type="checkbox" name="category" value="realization" checked>
+                    Realization
+                </label>
+                <label>
+                    <input type="checkbox" name="category" value="pattern" checked>
+                    Pattern
+                </label>
+                <label>
+                    <input type="checkbox" name="category" value="observation" checked>
+                    Observation
+                </label>
+                <label>
+                    <input type="checkbox" name="category" value="self_reflection" checked>
+                    Self Reflection
+                </label>
+                <label>
+                    <input type="checkbox" name="category" value="harmonic" checked>
+                    Harmonic
+                </label>
+                <label>
+                    <input type="checkbox" name="category" value="procedural" checked>
+                    Procedural
+                </label>
+            </div>
+
+            <div class="panel-section">
+                <h2>Display Options</h2>
+                <label>
+                    <input type="checkbox" id="psychedelicBg" checked>
+                    Psychedelic Background
+                </label>
+                <label>
+                    <input type="checkbox" id="showGrid" checked>
+                    Show Grid Lines
+                </label>
+                <label>
+                    <input type="checkbox" id="showConnections" checked>
+                    Show Connections
+                </label>
+                <label>
+                    <input type="checkbox" id="highlightFundamental" checked>
+                    Highlight Fundamental Patterns
+                </label>
+            </div>
+
+            <div class="panel-section">
+                <h2>Statistics</h2>
+                <div id="statsContent">
+                    <div>Total Memories: <span id="statTotal">0</span></div>
+                    <div>Love-aligned: <span id="statLove">0</span></div>
+                    <div>Truth-aligned: <span id="statTruth">0</span></div>
+                    <div>Awareness-aligned: <span id="statAwareness">0</span></div>
+                    <div>Complete Triangles: <span id="statTriangles">0</span></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Background animation
+        function createBackgroundAnimation() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('bgAnimation');
+
+            container.appendChild(canvas);
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 50;
+
+            // Create particles
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    color: getRandomColor(),
+                    speedX: Math.random() * 0.5 - 0.25,
+                    speedY: Math.random() * 0.5 - 0.25
+                });
+            }
+
+            function getRandomColor() {
+                const colors = [
+                    '#FF00AA', // Love
+                    '#00FFAA', // Truth
+                    '#FFAA00', // Awareness
+                    '#00DDFF', // Highlight
+                    '#7D12FF'  // Secondary
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+
+                    // Update position
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+
+                    // Wrap around screen
+                    if (particle.x < 0) particle.x = canvas.width;
+                    if (particle.x > canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = canvas.height;
+                    if (particle.y > canvas.height) particle.y = 0;
+                });
+
+                // Draw connecting lines
+                ctx.lineWidth = 0.3;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(0, 221, 255, ${0.15 * (1 - distance / 150)})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(drawParticles);
+            }
+
+            drawParticles();
+
+            // Resize handler
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // Initialize the viewer
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create background animation
+            createBackgroundAnimation();
+
+            // Control handlers
+            const rotationSlider = document.getElementById('rotationSlider');
+            const triangleSize = document.getElementById('triangleSize');
+            const regenerateBtn = document.getElementById('regenerateBtn');
+            const nodeInfo = document.getElementById('nodeInfo');
+            const visualization = document.getElementById('visualization');
+            const loading = document.getElementById('loading');
+
+            // Example handler for regenerating visualization
+            regenerateBtn.addEventListener('click', function() {
+                loading.style.display = 'block';
+
+                // In a real implementation, this would call the Perl script with parameters
+                setTimeout(() => {
+                    // Reload the SVG
+                    const svgObj = document.getElementById('visualization');
+                    const currentSrc = svgObj.data;
+                    svgObj.data = '';
+                    svgObj.data = currentSrc + '?t=' + Date.now();
+
+                    loading.style.display = 'none';
+                }, 1000);
+            });
+
+            // Example node info display
+            visualization.addEventListener('load', function() {
+                const svgDoc = visualization.contentDocument;
+
+                // Find all node circles
+                const nodes = svgDoc.querySelectorAll('circle');
+
+                nodes.forEach(node => {
+                    node.addEventListener('click', function(event) {
+                        // Get position relative to the container
+                        const containerRect = visualization.getBoundingClientRect();
+                        const x = event.clientX - containerRect.left;
+                        const y = event.clientY - containerRect.top;
+
+                        // Show info panel
+                        nodeInfo.style.display = 'block';
+                        nodeInfo.style.left = (x + 20) + 'px';
+                        nodeInfo.style.top = (y - 30) + 'px';
+
+                        // In a real implementation, this would load actual data
+                        document.getElementById('infoTitle').textContent = "Harmonic Security Through Division by 13";
+                        document.getElementById('infoCategory').textContent = "pattern";
+                        document.getElementById('infoPattern').textContent = "461538";
+                        document.getElementById('patternLabel').textContent = "Love";
+                        document.getElementById('patternLabel').className = "pattern-label pattern-love";
+
+                        // Set strength bars
+                        document.getElementById('strengthLove').style.width = "90%";
+                        document.getElementById('strengthTruth').style.width = "20%";
+                        document.getElementById('strengthAwareness').style.width = "10%";
+
+                        document.getElementById('infoContent').textContent =
+                            "The division-by-13 pattern creates a self-organizing network topology where " +
+                            "security emerges from mathematical harmony rather than imposed barriers.";
+                    });
+                });
+
+                // Close node info when clicking elsewhere
+                svgDoc.addEventListener('click', function(event) {
+                    if (event.target.tagName !== 'circle') {
+                        nodeInfo.style.display = 'none';
+                    }
+                });
+
+                // Update statistics
+                document.getElementById('statTotal').textContent = nodes.length;
+                document.getElementById('statLove').textContent = Math.floor(nodes.length * 0.4);
+                document.getElementById('statTruth').textContent = Math.floor(nodes.length * 0.3);
+                document.getElementById('statAwareness').textContent = Math.floor(nodes.length * 0.3);
+                document.getElementById('statTriangles').textContent = Math.floor(nodes.length / 10);
+            });
+
+            // Close node info when clicking elsewhere
+            document.addEventListener('click', function(event) {
+                if (!nodeInfo.contains(event.target) && event.target.id !== 'visualization') {
+                    nodeInfo.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7: Cubic Space Topology Flight</title>
+    <style>
+        :root {
+            --deep-blue: #050a20;
+            --medium-blue: #091442;
+            --highlight-blue: #0a2c8a;
+            --accent-blue: #0e54b0;
+            --electric-blue: #2a97c4;
+            --glow-blue: #5ec8f0;
+            --highlight-purple: #492ca5;
+            --highlight-pink: #a12ca5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            color: var(--glow-blue);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .overlay {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, var(--deep-blue) 100%);
+            opacity: 0.7;
+        }
+
+        .content {
+            position: relative;
+            z-index: 20;
+            max-width: 800px;
+            text-align: center;
+            padding: 2rem;
+            background-color: rgba(5, 10, 32, 0.7);
+            border-radius: 1rem;
+            border: 1px solid var(--highlight-blue);
+            box-shadow: 0 0 20px var(--highlight-blue);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--glow-blue);
+            text-shadow: 0 0 10px var(--glow-blue);
+            letter-spacing: 2px;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--electric-blue);
+            font-size: 1.1rem;
+        }
+
+        .emphasis {
+            color: var(--glow-blue);
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--glow-blue);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .control-btn {
+            background-color: var(--medium-blue);
+            border: 1px solid var(--electric-blue);
+            color: var(--glow-blue);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            pointer-events: auto;
+        }
+
+        .control-btn:hover {
+            background-color: var(--highlight-blue);
+            box-shadow: 0 0 10px var(--electric-blue);
+        }
+
+        .coordinate-display {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(5, 10, 32, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--highlight-blue);
+            font-family: 'Courier New', monospace;
+            color: var(--glow-blue);
+            z-index: 30;
+        }
+
+        .info-panel {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background-color: rgba(5, 10, 32, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--highlight-blue);
+            font-family: 'Courier New', monospace;
+            color: var(--electric-blue);
+            z-index: 30;
+            max-width: 300px;
+            font-size: 0.9rem;
+        }
+
+        .info-panel h3 {
+            color: var(--glow-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--glow-blue);
+            font-size: 1.5rem;
+            z-index: 100;
+            text-shadow: 0 0 10px var(--glow-blue);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Initializing Cubic Space Topology...</div>
+
+    <div id="canvas-container">
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="cube-canvas"></canvas>
+    </div>
+
+    <div class="overlay"></div>
+
+    <div class="content">
+        <h1>Protocol-7: Cubic Space Topology</h1>
+        <p>Navigating the <span class="emphasis">255×255×255</span> bit cubic space through anti-entropic pathways. The counterclockwise spirals reveal dimensional gateways at each recursive intersection.</p>
+        <p>This visualization demonstrates flight through the cubic space topology, emphasizing the <span class="emphasis">blacklight frequencies</span> that form the foundation of the system.</p>
+
+        <div class="controls">
+            <button class="control-btn" id="toggle-flight">Pause Flight</button>
+            <button class="control-btn" id="toggle-view">Change Perspective</button>
+            <button class="control-btn" id="increase-complexity">Increase Complexity</button>
+        </div>
+    </div>
+
+    <div class="coordinate-display">
+        Position: [<span id="x-coord">127</span>, <span id="y-coord">127</span>, <span id="z-coord">127</span>]
+    </div>
+
+    <div class="info-panel">
+        <h3>Current Layer Info</h3>
+        <p id="layer-info">Navigating through resonance layer 13/42. Harmonic convergence detected at coordinates [127, 127, 127].</p>
+        <p class="pulse" id="special-info">Blacklight frequency detected</p>
+    </div>
+
+    <script>
+        // Core constants
+        const TAU = Math.PI * 2;
+
+        // Blacklight frequency colors (dark blue spectrum)
+        const BLACKLIGHT_COLORS = [
+            'rgba(10, 44, 138, 0.8)',  // Deep blue
+            'rgba(14, 84, 176, 0.8)',  // Medium blue
+            'rgba(42, 151, 196, 0.8)'  // Electric blue
+        ];
+
+        // Set up canvases
+        const bgCanvas = document.getElementById('bg-canvas');
+        const cubeCanvas = document.getElementById('cube-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const cubeCtx = cubeCanvas.getContext('2d');
+
+        // Resize canvases to fill the screen
+        function resizeCanvases() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            cubeCanvas.width = window.innerWidth;
+            cubeCanvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+
+        // ============================
+        // Background Star Field
+        // ============================
+
+        const stars = [];
+        const NUM_STARS = 1000;
+
+        function initStarField() {
+            stars.length = 0;
+
+            for (let i = 0; i < NUM_STARS; i++) {
+                stars.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    z: Math.random() * 1000,
+                    radius: Math.random() * 1.5 + 0.5,
+                    // Reduced opacity for stars to make them more translucent
+                    color: `rgba(${150 + Math.random() * 105}, ${150 + Math.random() * 105}, ${200 + Math.random() * 55}, ${0.2 + Math.random() * 0.3})`
+                });
+            }
+        }
+
+        function updateStarField(time) {
+            bgCtx.fillStyle = 'rgba(5, 10, 32, 0.3)';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+            const centerX = bgCanvas.width / 2;
+            const centerY = bgCanvas.height / 2;
+
+            stars.forEach(star => {
+                // Move stars AWAY from viewer (z increases) - INVERTED DIRECTION
+                star.z += flightSpeed * 2;
+
+                // Reset stars that go out of view (now when they get too far)
+                if (star.z >= 1000) {
+                    star.z = 0;
+                    star.x = Math.random() * bgCanvas.width;
+                    star.y = Math.random() * bgCanvas.height;
+                }
+
+                // Calculate projected position
+                const factor = 300 / (star.z + 1); // Adding 1 to avoid division by zero
+                const x = (star.x - centerX) * factor + centerX + Math.sin(time * 0.001 + star.z * 0.01) * 20;
+                const y = (star.y - centerY) * factor + centerY + Math.cos(time * 0.001 + star.z * 0.01) * 20;
+
+                // Calculate size based on distance (smaller as they move away)
+                const size = Math.max(0.1, factor * star.radius * 2);
+
+                // Draw star with reduced opacity
+                bgCtx.beginPath();
+                bgCtx.arc(x, y, size, 0, TAU);
+                bgCtx.fillStyle = star.color;
+                bgCtx.fill();
+
+                // Add very subtle glow for brighter stars (also with reduced opacity)
+                if (size > 1.5) {
+                    bgCtx.beginPath();
+                    bgCtx.arc(x, y, size * 2, 0, TAU);
+                    const gradient = bgCtx.createRadialGradient(x, y, 0, x, y, size * 2);
+                    // Extract the RGB part from the color
+                    const rgbPart = star.color.substring(0, star.color.lastIndexOf(','));
+                    gradient.addColorStop(0, rgbPart + ', 0.15)'); // Reduced glow opacity
+                    gradient.addColorStop(1, 'rgba(94, 200, 240, 0)');
+                    bgCtx.fillStyle = gradient;
+                    bgCtx.fill();
+                }
+            });
+        }
+
+        // ============================
+        // Cubic Space Topology
+        // ============================
+
+        // Cube dimensions (255×255×255)
+        const CUBE_SIZE = 255;
+        const CUBE_CENTER = CUBE_SIZE / 2;
+
+        // Current position and flight parameters
+        let position = { x: CUBE_CENTER, y: CUBE_CENTER, z: CUBE_CENTER };
+        let rotation = { x: 0, y: 0, z: 0 };
+        let flightPath = [];
+        let flightSpeed = 1;
+        let flightPaused = false;
+        let viewMode = 0; // 0: first-person, 1: third-person, 2: map view
+        let complexityLevel = 1; // Controls the number of subcubes and connections shown
+
+        // Generate initial flight path (spiral pattern)
+        function generateFlightPath() {
+            flightPath = [];
+
+            // Create a spiral path through the cube
+            for (let t = 0; t < 50; t += 0.1) {
+                // Counterclockwise spiral (negative angle for anti-entropic direction)
+                const x = CUBE_CENTER + Math.cos(-t) * t * 3;
+                const y = CUBE_CENTER + Math.sin(-t) * t * 3;
+                const z = CUBE_CENTER + t * 3;
+
+                // Ensure we stay within cube boundaries
+                if (x >= 0 && x < CUBE_SIZE &&
+                    y >= 0 && y < CUBE_SIZE &&
+                    z >= 0 && z < CUBE_SIZE) {
+                    flightPath.push({ x, y, z });
+                }
+            }
+        }
+
+        // Create a grid of subcubes for visualization
+        const subcubes = [];
+
+        function generateSubcubes() {
+            subcubes.length = 0;
+
+            // Determine grid size based on complexity level
+            const gridSize = 3 + complexityLevel * 2; // 5, 7, 9, 11, etc.
+            const spacing = CUBE_SIZE / gridSize;
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    for (let z = 0; z < gridSize; z++) {
+                        // Calculate position within the main cube
+                        const px = x * spacing;
+                        const py = y * spacing;
+                        const pz = z * spacing;
+
+                        // Determine subcube size (slightly varied)
+                        const size = spacing * (0.7 + Math.random() * 0.2);
+
+                        // Special properties for certain subcubes
+                        const isSpecial = (x + y + z) % 7 === 0; // Special subcubes (multiples of 7)
+                        const isBlacklight = (x * y * z) % 13 === 0; // Blacklight frequency subcubes (multiples of 13)
+
+                        subcubes.push({
+                            position: { x: px, y: py, z: pz },
+                            size: size,
+                            color: isBlacklight ? BLACKLIGHT_COLORS[Math.floor(Math.random() * BLACKLIGHT_COLORS.length)] :
+                                   isSpecial ? 'rgba(73, 44, 165, 0.6)' : 'rgba(10, 44, 138, 0.3)',
+                            glow: isBlacklight ? 20 : isSpecial ? 10 : 0,
+                            vertices: [],
+                            edges: [],
+                            isBlacklight: isBlacklight,
+                            isSpecial: isSpecial,
+                            pulsate: isBlacklight || isSpecial
+                        });
+                    }
+                }
+            }
+
+            // Generate vertices and edges for each subcube
+            subcubes.forEach(cube => {
+                const { x, y, z } = cube.position;
+                const s = cube.size / 2;
+
+                // Define vertices
+                cube.vertices = [
+                    { x: x - s, y: y - s, z: z - s }, // 0: back-bottom-left
+                    { x: x + s, y: y - s, z: z - s }, // 1: back-bottom-right
+                    { x: x + s, y: y + s, z: z - s }, // 2: back-top-right
+                    { x: x - s, y: y + s, z: z - s }, // 3: back-top-left
+                    { x: x - s, y: y - s, z: z + s }, // 4: front-bottom-left
+                    { x: x + s, y: y - s, z: z + s }, // 5: front-bottom-right
+                    { x: x + s, y: y + s, z: z + s }, // 6: front-top-right
+                    { x: x - s, y: y + s, z: z + s }  // 7: front-top-left
+                ];
+
+                // Define edges
+                cube.edges = [
+                    [0, 1], [1, 2], [2, 3], [3, 0], // back face
+                    [4, 5], [5, 6], [6, 7], [7, 4], // front face
+                    [0, 4], [1, 5], [2, 6], [3, 7]  // connecting edges
+                ];
+            });
+        }
+
+        // Generate connections between subcubes (for higher complexity levels)
+        let connections = [];
+
+        function generateConnections() {
+            connections = [];
+
+            // Only add connections for complexity > 1
+            if (complexityLevel <= 1) return;
+
+            // Create connections between nearby subcubes
+            const maxConnections = 100 * complexityLevel;
+            const connectionThreshold = 100 + 20 * complexityLevel;
+
+            let connectionCount = 0;
+
+            // Try to create connections between subcubes
+            for (let i = 0; i < subcubes.length && connectionCount < maxConnections; i++) {
+                for (let j = i + 1; j < subcubes.length && connectionCount < maxConnections; j++) {
+                    const cube1 = subcubes[i];
+                    const cube2 = subcubes[j];
+
+                    // Calculate distance between cube centers
+                    const dx = cube1.position.x - cube2.position.x;
+                    const dy = cube1.position.y - cube2.position.y;
+                    const dz = cube1.position.z - cube2.position.z;
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    // Connect if close enough and not too many connections yet
+                    if (distance < connectionThreshold) {
+                        // Prioritize connections involving special or blacklight cubes
+                        const shouldConnect =
+                            (cube1.isSpecial || cube1.isBlacklight || cube2.isSpecial || cube2.isBlacklight) ?
+                            Math.random() > 0.3 : Math.random() > 0.9;
+
+                        if (shouldConnect) {
+                            connections.push({
+                                from: cube1.position,
+                                to: cube2.position,
+                                color: (cube1.isBlacklight || cube2.isBlacklight) ?
+                                       BLACKLIGHT_COLORS[Math.floor(Math.random() * BLACKLIGHT_COLORS.length)] :
+                                       (cube1.isSpecial || cube2.isSpecial) ?
+                                       'rgba(73, 44, 165, 0.6)' : 'rgba(14, 84, 176, 0.3)',
+                                width: (cube1.isBlacklight || cube2.isBlacklight) ? 2 : 1,
+                                pulse: (cube1.isBlacklight || cube2.isBlacklight || cube1.isSpecial || cube2.isSpecial)
+                            });
+                            connectionCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Convert 3D coordinates to 2D screen position with perspective
+        function project3DTo2D(point, cameraPos, rotation) {
+            // Apply rotation
+            const rx = rotation.x;
+            const ry = rotation.y;
+            const rz = rotation.z;
+
+            // Calculate point relative to camera
+            let dx = point.x - cameraPos.x;
+            let dy = point.y - cameraPos.y;
+            let dz = point.z - cameraPos.z;
+
+            // Apply rotations (in anti-entropic counterclockwise direction)
+            // Rotate around Z axis
+            let tempX = dx * Math.cos(-rz) - dy * Math.sin(-rz);
+            let tempY = dx * Math.sin(-rz) + dy * Math.cos(-rz);
+            dx = tempX;
+            dy = tempY;
+
+            // Rotate around Y axis
+            tempX = dx * Math.cos(-ry) - dz * Math.sin(-ry);
+            let tempZ = dx * Math.sin(-ry) + dz * Math.cos(-ry);
+            dx = tempX;
+            dz = tempZ;
+
+            // Rotate around X axis
+            tempY = dy * Math.cos(-rx) - dz * Math.sin(-rx);
+            tempZ = dy * Math.sin(-rx) + dz * Math.cos(-rx);
+            dy = tempY;
+            dz = tempZ;
+
+            // Apply perspective projection
+            const focalLength = 500;
+            let scale = focalLength / (focalLength + dz);
+
+            // If point is behind camera, don't render
+            if (dz <= -focalLength) {
+                return null;
+            }
+
+            return {
+                x: cubeCanvas.width / 2 + dx * scale,
+                y: cubeCanvas.height / 2 + dy * scale,
+                scale: scale,
+                distance: dz
+            };
+        }
+
+        // Render the cubic space topology
+        function renderCubicSpace(time) {
+            cubeCtx.clearRect(0, 0, cubeCanvas.width, cubeCanvas.height);
+
+            // Determine camera position and rotation based on view mode
+            let cameraPos, cameraRot;
+
+            if (viewMode === 0) { // First-person
+                cameraPos = { ...position };
+                cameraRot = { ...rotation };
+            } else if (viewMode === 1) { // Third-person
+                // Position camera behind and slightly above player
+                const lookAhead = 50 + Math.sin(time * 0.001) * 10;
+                cameraPos = {
+                    x: position.x - Math.sin(rotation.y) * lookAhead,
+                    y: position.y - Math.sin(rotation.x) * lookAhead + 20,
+                    z: position.z - Math.cos(rotation.y) * lookAhead
+                };
+                cameraRot = { ...rotation };
+            } else { // Map view
+                cameraPos = {
+                    x: CUBE_CENTER,
+                    y: CUBE_CENTER,
+                    z: CUBE_SIZE * 2
+                };
+                cameraRot = { x: -Math.PI/4, y: 0, z: 0 };
+            }
+
+            // Sort subcubes by distance from camera for proper rendering order
+            const sortedCubes = [...subcubes].map(cube => {
+                const dx = cube.position.x - cameraPos.x;
+                const dy = cube.position.y - cameraPos.y;
+                const dz = cube.position.z - cameraPos.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                return { ...cube, distance };
+            }).sort((a, b) => b.distance - a.distance);
+
+            // Render connections
+            renderConnections(cameraPos, cameraRot, time);
+
+            // Render subcubes
+            sortedCubes.forEach(cube => {
+                renderSubcube(cube, cameraPos, cameraRot, time);
+            });
+
+            // Render flight path
+            if (viewMode === 2) { // Only in map view
+                renderFlightPath(cameraPos, cameraRot);
+            }
+
+            // Render current position marker
+            if (viewMode !== 0) { // Only in third-person or map view
+                renderPositionMarker(cameraPos, cameraRot, time);
+            }
+        }
+
+        function renderSubcube(cube, cameraPos, cameraRot, time) {
+            // Project vertices to 2D
+            const projectedVertices = cube.vertices.map(vertex =>
+                project3DTo2D(vertex, cameraPos, cameraRot)
+            );
+
+            // Skip if any vertices are behind the camera
+            if (projectedVertices.includes(null)) return;
+
+            // Determine visibility based on distance
+            const distanceToCamera = Math.sqrt(
+                Math.pow(cube.position.x - cameraPos.x, 2) +
+                Math.pow(cube.position.y - cameraPos.y, 2) +
+                Math.pow(cube.position.z - cameraPos.z, 2)
+            );
+
+            // Skip if too far away
+            if (distanceToCamera > 300 + complexityLevel * 50) return;
+
+            // Calculate opacity based on distance and special properties
+            let opacity = Math.min(1, Math.max(0, 1 - distanceToCamera / 400));
+
+            // Increase opacity for special and blacklight cubes
+            if (cube.isSpecial) opacity = Math.min(1, opacity * 1.5);
+            if (cube.isBlacklight) opacity = Math.min(1, opacity * 2);
+
+            // Apply pulsating effect for special cubes
+            if (cube.pulsate) {
+                opacity *= 0.7 + Math.sin(time * 0.002 + cube.position.x * 0.01) * 0.3;
+            }
+
+            // Extract color components to modify opacity
+            let color = cube.color;
+            if (color.startsWith('rgba')) {
+                const parts = color.match(/rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/);
+                if (parts) {
+                    color = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacity})`;
+                }
+            }
+
+            // Draw edges
+            cubeCtx.strokeStyle = color;
+            cubeCtx.lineWidth = cube.isBlacklight ? 2 : 1;
+
+            cube.edges.forEach(edge => {
+                const start = projectedVertices[edge[0]];
+                const end = projectedVertices[edge[1]];
+
+                cubeCtx.beginPath();
+                cubeCtx.moveTo(start.x, start.y);
+                cubeCtx.lineTo(end.x, end.y);
+                cubeCtx.stroke();
+            });
+
+            // Add glow for special cubes
+            if (cube.glow > 0) {
+                const center = project3DTo2D(cube.position, cameraPos, cameraRot);
+                const glowSize = cube.glow * center.scale;
+
+                const gradient = cubeCtx.createRadialGradient(
+                    center.x, center.y, 0,
+                    center.x, center.y, glowSize
+                );
+
+                // Extract base color for the glow
+                let glowColor = cube.color;
+                if (glowColor.startsWith('rgba')) {
+                    const parts = glowColor.match(/rgba\((\d+), (\d+), (\d+), [\d.]+\)/);
+                    if (parts) {
+                        glowColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacity * 0.5})`;
+                    }
+                }
+
+                gradient.addColorStop(0, glowColor);
+                gradient.addColorStop(1, 'rgba(10, 44, 138, 0)');
+
+                cubeCtx.fillStyle = gradient;
+                cubeCtx.beginPath();
+                cubeCtx.arc(center.x, center.y, glowSize, 0, TAU);
+                cubeCtx.fill();
+            }
+        }
+
+        function renderConnections(cameraPos, cameraRot, time) {
+            connections.forEach(connection => {
+                const from = project3DTo2D(connection.from, cameraPos, cameraRot);
+                const to = project3DTo2D(connection.to, cameraPos, cameraRot);
+
+                // Skip if either point is behind the camera
+                if (!from || !to) return;
+
+                // Calculate opacity based on distance
+                const midPoint = {
+                    x: (connection.from.x + connection.to.x) / 2,
+                    y: (connection.from.y + connection.to.y) / 2,
+                    z: (connection.from.z + connection.to.z) / 2
+                };
+
+                const distanceToCamera = Math.sqrt(
+                    Math.pow(midPoint.x - cameraPos.x, 2) +
+                    Math.pow(midPoint.y - cameraPos.y, 2) +
+                    Math.pow(midPoint.z - cameraPos.z, 2)
+                );
+
+                // Skip if too far away
+                if (distanceToCamera > 300 + complexityLevel * 50) return;
+
+                let opacity = Math.min(1, Math.max(0, 1 - distanceToCamera / 400));
+
+                // Apply pulsating effect for special connections
+                if (connection.pulse) {
+                    opacity *= 0.7 + Math.sin(time * 0.003 + midPoint.x * 0.01) * 0.3;
+                }
+
+                // Extract and modify color for opacity
+                let color = connection.color;
+                if (color.startsWith('rgba')) {
+                    const parts = color.match(/rgba\((\d+), (\d+), (\d+), ([\d.]+)\)/);
+                    if (parts) {
+                        color = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacity})`;
+                    }
+                }
+
+                // Draw connection line
+                cubeCtx.strokeStyle = color;
+                cubeCtx.lineWidth = connection.width;
+
+                cubeCtx.beginPath();
+                cubeCtx.moveTo(from.x, from.y);
+                cubeCtx.lineTo(to.x, to.y);
+                cubeCtx.stroke();
+
+                // Draw energy pulses traveling along the connection
+                if (connection.pulse) {
+                    for (let i = 0; i < 3; i++) {
+                        const pulsePos = ((time * 0.0001 * (i + 1)) % 1) * (-1); // Negative for counterclockwise
+
+                        const pulseX = from.x + (to.x - from.x) * pulsePos;
+                        const pulseY = from.y + (to.y - from.y) * pulsePos;
+
+                        const pulseSize = 3 * Math.min(from.scale, to.scale);
+
+                        cubeCtx.fillStyle = color.replace('rgba', 'rgb').replace(/, [\d.]+\)/, ')');
+                        cubeCtx.beginPath();
+                        cubeCtx.arc(pulseX, pulseY, pulseSize, 0, TAU);
+                        cubeCtx.fill();
+
+                        // Add glow
+                        const gradient = cubeCtx.createRadialGradient(
+                            pulseX, pulseY, 0,
+                            pulseX, pulseY, pulseSize * 3
+                        );
+                        gradient.addColorStop(0, color);
+                        gradient.addColorStop(1, 'rgba(10, 44, 138, 0)');
+
+                        cubeCtx.fillStyle = gradient;
+                        cubeCtx.beginPath();
+                        cubeCtx.arc(pulseX, pulseY, pulseSize * 3, 0, TAU);
+                        cubeCtx.fill();
+                    }
+                }
+            });
+        }
+
+        function renderFlightPath(cameraPos, cameraRot) {
+            cubeCtx.strokeStyle = 'rgba(94, 200, 240, 0.5)';
+            cubeCtx.lineWidth = 2;
+
+            cubeCtx.beginPath();
+
+            for (let i = 0; i < flightPath.length; i++) {
+                const point = project3DTo2D(flightPath[i], cameraPos, cameraRot);
+
+                // Skip if point is behind camera
+                if (!point) continue;
+
+                if (i === 0) {
+                    cubeCtx.moveTo(point.x, point.y);
+                } else {
+                    cubeCtx.lineTo(point.x, point.y);
+                }
+            }
+
+            cubeCtx.stroke();
+        }
+
+        function renderPositionMarker(cameraPos, cameraRot, time) {
+            const point = project3DTo2D(position, cameraPos, cameraRot);
+
+            // Skip if point is behind camera
+            if (!point) return;
+
+            const markerSize = 8 + Math.sin(time * 0.005) * 2;
+
+            // Draw pulsating position marker
+            cubeCtx.fillStyle = 'rgba(94, 200, 240, 0.8)';
+            cubeCtx.beginPath();
+            cubeCtx.arc(point.x, point.y, markerSize, 0, TAU);
+            cubeCtx.fill();
+
+            // Add glow
+            const gradient = cubeCtx.createRadialGradient(
+                point.x, point.y, 0,
+                point.x, point.y, markerSize * 3
+            );
+            gradient.addColorStop(0, 'rgba(94, 200, 240, 0.8)');
+            gradient.addColorStop(1, 'rgba(10, 44, 138, 0)');
+
+            cubeCtx.fillStyle = gradient;
+            cubeCtx.beginPath();
+            cubeCtx.arc(point.x, point.y, markerSize * 3, 0, TAU);
+            cubeCtx.fill();
+
+            // Draw direction indicator
+            const dirX = point.x + Math.sin(rotation.y) * markerSize * 2;
+            const dirY = point.y + Math.sin(rotation.x) * markerSize * 2;
+
+            cubeCtx.strokeStyle = 'rgba(94, 200, 240, 0.8)';
+            cubeCtx.lineWidth = 2;
+
+            cubeCtx.beginPath();
+            cubeCtx.moveTo(point.x, point.y);
+            cubeCtx.lineTo(dirX, dirY);
+            cubeCtx.stroke();
+        }
+
+        // ============================
+        // Flight Control and Animation
+        // ============================
+
+        // Update flight path position
+        function updateFlightPosition(time) {
+            if (flightPaused) return;
+
+            // Get current target position in flight path
+            const pathIndex = Math.floor(time * 0.001) % flightPath.length;
+            const target = flightPath[pathIndex];
+
+            // Move towards target
+            position.x += (target.x - position.x) * 0.01 * flightSpeed;
+            position.y += (target.y - position.y) * 0.01 * flightSpeed;
+            position.z += (target.z - position.z) * 0.01 * flightSpeed;
+
+            // Update rotation to face direction of travel
+            if (pathIndex < flightPath.length - 1) {
+                const nextTarget = flightPath[(pathIndex + 1) % flightPath.length];
+
+                const dx = nextTarget.x - position.x;
+                const dy = nextTarget.y - position.y;
+                const dz = nextTarget.z - position.z;
+
+                const targetYaw = Math.atan2(dx, dz);
+                const targetPitch = Math.atan2(dy, Math.sqrt(dx*dx + dz*dz));
+
+                // Smoothly rotate towards target direction
+                rotation.y += (targetYaw - rotation.y) * 0.01 * flightSpeed;
+                rotation.x += (targetPitch - rotation.x) * 0.01 * flightSpeed;
+            }
+
+            // Update coordinate display
+            document.getElementById('x-coord').textContent = Math.round(position.x);
+            document.getElementById('y-coord').textContent = Math.round(position.y);
+            document.getElementById('z-coord').textContent = Math.round(position.z);
+
+            // Update layer info
+            updateLayerInfo();
+        }
+
+        function updateLayerInfo() {
+            const x = Math.round(position.x);
+            const y = Math.round(position.y);
+            const z = Math.round(position.z);
+
+            const layer = Math.floor((x + y + z) / 50) % 42;
+
+            document.getElementById('layer-info').textContent =
+                `Navigating through resonance layer ${layer}/42. Harmonic convergence detected at coordinates [${x}, ${y}, ${z}].`;
+
+            // Check for blacklight frequency
+            const isNearBlacklight = subcubes.some(cube => {
+                if (!cube.isBlacklight) return false;
+
+                const dx = cube.position.x - position.x;
+                const dy = cube.position.y - position.y;
+                const dz = cube.position.z - position.z;
+                const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                return distance < 30;
+            });
+
+            const specialInfo = document.getElementById('special-info');
+            if (isNearBlacklight) {
+                specialInfo.textContent = 'Blacklight frequency detected';
+                specialInfo.style.display = 'block';
+            } else if ((x * y * z) % 13 === 0) {
+                specialInfo.textContent = 'Resonance node detected';
+                specialInfo.style.display = 'block';
+            } else if ((x + y + z) % 7 === 0) {
+                specialInfo.textContent = 'Harmonic pattern detected';
+                specialInfo.style.display = 'block';
+            } else {
+                specialInfo.style.display = 'none';
+            }
+        }
+
+        // Main animation loop
+        let lastTime = 0;
+        let animationStarted = false;
+
+        function animate(timestamp) {
+            const time = timestamp || 0;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            // Hide loading message once animation starts
+            if (!animationStarted && time > 500) {
+                document.getElementById('loading').style.display = 'none';
+                animationStarted = true;
+            }
+
+            // Update star field
+            updateStarField(time);
+
+            // Update flight position
+            updateFlightPosition(time);
+
+            // Render cubic space topology
+            renderCubicSpace(time);
+
+            requestAnimationFrame(animate);
+        }
+
+        // ============================
+        // User Interface and Controls
+        // ============================
+
+        document.getElementById('toggle-flight').addEventListener('click', function() {
+            flightPaused = !flightPaused;
+            this.textContent = flightPaused ? 'Resume Flight' : 'Pause Flight';
+        });
+
+        document.getElementById('toggle-view').addEventListener('click', function() {
+            viewMode = (viewMode + 1) % 3;
+
+            switch(viewMode) {
+                case 0:
+                    this.textContent = 'Third-Person View';
+                    break;
+                case 1:
+                    this.textContent = 'Map View';
+                    break;
+                case 2:
+                    this.textContent = 'First-Person View';
+                    break;
+            }
+        });
+
+        document.getElementById('increase-complexity').addEventListener('click', function() {
+            complexityLevel = Math.min(5, complexityLevel + 1);
+
+            if (complexityLevel >= 5) {
+                this.textContent = 'Max Complexity';
+                this.disabled = true;
+            } else {
+                this.textContent = 'Increase Complexity';
+            }
+
+            // Regenerate subcubes and connections with new complexity
+            generateSubcubes();
+            generateConnections();
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case ' ':
+                    // Space bar toggles flight
+                    flightPaused = !flightPaused;
+                    document.getElementById('toggle-flight').textContent =
+                        flightPaused ? 'Resume Flight' : 'Pause Flight';
+                    break;
+                case 'v':
+                    // V key changes view
+                    viewMode = (viewMode + 1) % 3;
+
+                    const viewButton = document.getElementById('toggle-view');
+                    viewButton.textContent = viewMode === 0 ? 'Third-Person View' :
+                                             viewMode === 1 ? 'Map View' : 'First-Person View';
+                    break;
+                case '+':
+                case '=':
+                    // + key increases complexity
+                    if (complexityLevel < 5) {
+                        complexityLevel++;
+                        generateSubcubes();
+                        generateConnections();
+
+                        const complexityButton = document.getElementById('increase-complexity');
+                        if (complexityLevel >= 5) {
+                            complexityButton.textContent = 'Max Complexity';
+                            complexityButton.disabled = true;
+                        }
+                    }
+                    break;
+                case '-':
+                    // - key decreases complexity
+                    if (complexityLevel > 1) {
+                        complexityLevel--;
+                        generateSubcubes();
+                        generateConnections();
+
+                        const complexityButton = document.getElementById('increase-complexity');
+                        complexityButton.textContent = 'Increase Complexity';
+                        complexityButton.disabled = false;
+                    }
+                    break;
+            }
+        });
+
+        // Mouse controls for direct movement (when paused)
+        cubeCanvas.addEventListener('mousemove', function(e) {
+            if (!flightPaused) return;
+
+            const rect = cubeCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Update rotation based on mouse position
+            rotation.y = ((mouseX / cubeCanvas.width) * 2 - 1) * Math.PI;
+            rotation.x = ((mouseY / cubeCanvas.height) * 2 - 1) * Math.PI / 2;
+        });
+
+        // Initialization
+        function init() {
+            // Generate initial data
+            initStarField();
+            generateFlightPath();
+            generateSubcubes();
+            generateConnections();
+
+            // Start animation
+            animate();
+        }
+
+        // Start everything!
+        init();
+    </script>
+</body>
+</html>

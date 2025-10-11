@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7: Snake-Formation Zenki</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: rgb(0, 0, 17);
+            color: rgba(180, 190, 225, 0.75);
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: rgba(180, 190, 225, 0.85);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(58, 34, 142, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: rgba(145, 185, 196, 0.85);
+            margin-bottom: 20px;
+        }
+
+        .visualization {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin: 20px auto;
+            background: rgba(0, 0, 17, 0.9);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(6, 61, 165, 0.3);
+            perspective: 1200px;
+        }
+
+        /* Main container with perspective */
+        .snake-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        /* Cubic space route */
+        .route-path {
+            position: absolute;
+            height: 2px;
+            background: rgba(32, 39, 130, 0.2);
+            transform-style: preserve-3d;
+        }
+
+        /* Snake formation group */
+        .snake-formation {
+            position: absolute;
+            transform-style: preserve-3d;
+        }
+
+        /* Base entity style */
+        .entity {
+            position: absolute;
+            transform-style: preserve-3d;
+            width: 16px;
+            height: 16px;
+            margin-left: -8px;
+            margin-top: -8px;
+            border-radius: 3px;
+            background: rgba(115, 44, 170, 0.8);
+            box-shadow: 0 0 15px 3px rgba(140, 70, 220, 0.5);
+            transition: all 0.1s ease-out;
+        }
+
+        /* Special entities */
+        .entity.lead {
+            background: rgba(6, 100, 165, 0.8);
+            box-shadow: 0 0 15px 3px rgba(6, 100, 220, 0.6);
+            border-radius: 50% 50% 3px 3px;
+            width: 18px;
+            height: 18px;
+            margin-left: -9px;
+            margin-top: -9px;
+        }
+
+        .entity.cleanup {
+            background: rgba(58, 142, 75, 0.8);
+            box-shadow: 0 0 15px 3px rgba(58, 142, 75, 0.6);
+            border-radius: 3px 3px 50% 50%;
+            width: 18px;
+            height: 18px;
+            margin-left: -9px;
+            margin-top: -9px;
+        }
+
+        /* Connection between entities */
+        .entity-trail {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg,
+                rgba(140, 70, 220, 0.3),
+                rgba(140, 70, 220, 0.1));
+            transform-origin: left center;
+            transform-style: preserve-3d;
+        }
+
+        /* Environmental influence */
+        .environment-path {
+            position: absolute;
+            height: 4px;
+            background: rgba(6, 100, 165, 0.2);
+            transform-style: preserve-3d;
+            border-radius: 2px;
+        }
+
+        /* Data operation */
+        .data-operation {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            margin-left: -15px;
+            margin-top: -15px;
+            background: rgba(32, 39, 130, 0.3);
+            border: 1px solid rgba(140, 70, 220, 0.3);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(32, 39, 130, 0.5);
+            transform-style: preserve-3d;
+        }
+
+        /* Activity particles */
+        .activity-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(140, 70, 220, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(9, 5, 24, 0.7);
+            border-radius: 4px;
+            padding: 15px;
+            font-size: 0.9rem;
+            color: rgba(145, 185, 196, 0.85);
+            z-index: 10;
+            width: 220px;
+        }
+
+        .formation-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(32, 39, 130, 0.5);
+        }
+
+        .entity-indicator {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .indicator-dot.lead {
+            background: rgba(6, 100, 165, 0.8);
+        }
+
+        .indicator-dot.core {
+            background: rgba(140, 70, 220, 0.8);
+        }
+
+        .indicator-dot.cleanup {
+            background: rgba(58, 142, 75, 0.8);
+        }
+
+        .cycle-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(32, 39, 130, 0.5);
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(32, 39, 130, 0.7);
+            color: rgba(180, 190, 225, 0.85);
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(58, 34, 142, 0.75);
+        }
+
+        .description {
+            max-width: 800px;
+            margin-top: 20px;
+            text-align: center;
+            padding: 0 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Protocol-7: Snake-Formation Zenki</h1>
+            <div class="subtitle">Path Inheritance Architecture</div>
+        </header>
+
+        <div class="visualization" id="snake-viz">
+            <div class="snake-container" id="snake-container">
+                <!-- Generated by JS -->
+            </div>
+
+            <div class="info-panel">
+                <div>Current Cycle: <span id="cycle-number">1</span></div>
+                <div>Environment State: <span id="state-persistence">Active</span></div>
+
+                <div class="formation-info">
+                    <div class="entity-indicator">
+                        <div class="indicator-dot lead"></div>
+                        <div>Environment Setup (1)</div>
+                    </div>
+                    <div class="entity-indicator">
+                        <div class="indicator-dot core"></div>
+                        <div>Truth Zenki (5)</div>
+                    </div>
+                    <div class="entity-indicator">
+                        <div class="indicator-dot cleanup"></div>
+                        <div>Route Cleanup (1)</div>
+                    </div>
+                </div>
+
+                <div class="cycle-info">
+                    <div>Multi-cycle computation: <span id="computation-status">In progress</span></div>
+                    <div>Computation progress: <span id="computation-progress">43%</span></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="toggle-view">Rotate View</button>
+                <button class="control-btn" id="toggle-movement">Pause Movement</button>
+            </div>
+        </div>
+
+        <div class="description">
+            Snake-like 7-entity formations travel along cubic space routes, with each zenki inheriting the exact position and environment of the entity ahead of it. The lead entity (blue) creates the environment path, which the 5 core truth zenki (purple) inherit as they follow, maintaining state across cycles. The trailing entity (green) finalizes computations and cleans up, enabling multi-cycle operations through path inheritance.
+        </div>
+    </div>
+
+    <script>
+        // Main elements
+        const snakeContainer = document.getElementById('snake-container');
+        const cycleNumberEl = document.getElementById('cycle-number');
+        const statePersistenceEl = document.getElementById('state-persistence');
+        const computationStatusEl = document.getElementById('computation-status');
+        const computationProgressEl = document.getElementById('computation-progress');
+
+        // Configuration
+        const NUM_FORMATIONS = 2;
+        const ENTITIES_PER_FORMATION = 7;
+        const PATH_HISTORY_LENGTH = 100; // Number of positions to remember
+        const ENTITY_SPACING = 5; // Space between entities in the formation
+
+        // State
+        let isRotating = false;
+        let isMoving = true;
+        let rotationInterval;
+        let viewAngleX = 15;
+        let viewAngleY = 0;
+        let currentCycle = 1;
+        let computationProgress = 43;
+        let snakeFormations = [];
+        let dataOperations = [];
+
+        // Initialize the visualization
+        function initialize() {
+            // Create snake formations
+            for (let i = 0; i < NUM_FORMATIONS; i++) {
+                createSnakeFormation(i);
+            }
+
+            // Create data operations (computation targets)
+            createDataOperations();
+
+            // Initial view
+            updateView();
+
+            // Start animation loop
+            animate();
+        }
+
+        // Create a snake formation
+        function createSnakeFormation(index) {
+            // Create formation container
+            const formationEl = document.createElement('div');
+            formationEl.className = 'snake-formation';
+            snakeContainer.appendChild(formationEl);
+
+            // Initialize formation data
+            const formation = {
+                el: formationEl,
+                entities: [],
+                pathHistory: [], // Array of previous positions
+                environmentPaths: [], // Visual elements showing environment along path
+                currentX: 200 + index * 150,
+                currentY: 200 + index * 80,
+                currentZ: -50 + index * 30,
+                direction: { x: 1, y: 0, z: 0 }, // Initial direction
+                speed: 1.5,
+                turnProbability: 0.02,
+                lastTurnTime: 0,
+                active: true
+            };
+
+            // Create entities
+            for (let i = 0; i < ENTITIES_PER_FORMATION; i++) {
+                let entityClass = 'entity';
+
+                // Special entities
+                if (i === 0) entityClass += ' lead';
+                else if (i === ENTITIES_PER_FORMATION - 1) entityClass += ' cleanup';
+
+                const entity = document.createElement('div');
+                entity.className = entityClass;
+
+                // Initial position (all stacked at start point)
+                entity.style.left = formation.currentX + 'px';
+                entity.style.top = formation.currentY + 'px';
+                entity.style.transform = `translate3d(0, 0, ${formation.currentZ}px)`;
+
+                formationEl.appendChild(entity);
+
+                formation.entities.push({
+                    el: entity,
+                    x: formation.currentX,
+                    y: formation.currentY,
+                    z: formation.currentZ,
+                    pathIndex: i * ENTITY_SPACING // Position in path history
+                });
+            }
+
+            // Initialize path history with starting point
+            for (let i = 0; i < PATH_HISTORY_LENGTH; i++) {
+                formation.pathHistory.push({
+                    x: formation.currentX,
+                    y: formation.currentY,
+                    z: formation.currentZ
+                });
+            }
+
+            snakeFormations.push(formation);
+            return formation;
+        }
+
+        // Update the snake formation movement
+        function updateSnakeFormation(formation) {
+            if (!isMoving || !formation.active) return;
+
+            // Move the head (lead entity)
+            moveSnakeHead(formation);
+
+            // Update path history
+            formation.pathHistory.unshift({
+                x: formation.currentX,
+                y: formation.currentY,
+                z: formation.currentZ
+            });
+
+            // Trim history to keep it at fixed length
+            if (formation.pathHistory.length > PATH_HISTORY_LENGTH) {
+                formation.pathHistory.pop();
+            }
+
+            // Update entity positions along the path
+            updateEntityPositions(formation);
+
+            // Create environment path visual if needed
+            if (Math.random() < 0.3) {
+                createEnvironmentPath(formation);
+            }
+
+            // Check for interaction with data operations
+            checkOperationInteractions(formation);
+        }
+
+        // Move the snake head (lead entity) according to cubic space rules
+        function moveSnakeHead(formation) {
+            const now = Date.now();
+
+            // Decide if changing direction
+            if (now - formation.lastTurnTime > 1000 && Math.random() < formation.turnProbability) {
+                // Change direction according to cubic space rules (only one dimension at a time)
+                const availableDirections = [];
+
+                // Only consider directions where we're not already moving
+                if (formation.direction.x === 0) availableDirections.push({x: 1, y: 0, z: 0}, {x: -1, y: 0, z: 0});
+                if (formation.direction.y === 0) availableDirections.push({x: 0, y: 1, z: 0}, {x: 0, y: -1, z: 0});
+                if (formation.direction.z === 0) availableDirections.push({x: 0, y: 0, z: 1}, {x: 0, y: 0, z: -1});
+
+                if (availableDirections.length > 0) {
+                    const newDirection = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+                    formation.direction = newDirection;
+                    formation.lastTurnTime = now;
+                }
+            }
+
+            // Boundary checking and possible direction reversal
+            const nextX = formation.currentX + formation.direction.x * formation.speed;
+            const nextY = formation.currentY + formation.direction.y * formation.speed;
+            const nextZ = formation.currentZ + formation.direction.z * formation.speed;
+
+            if (nextX < 50 || nextX > window.innerWidth - 50) {
+                formation.direction.x *= -1; // Reverse X direction
+            }
+
+            if (nextY < 50 || nextY > window.innerHeight - 50) {
+                formation.direction.y *= -1; // Reverse Y direction
+            }
+
+            if (nextZ < -200 || nextZ > 200) {
+                formation.direction.z *= -1; // Reverse Z direction
+            }
+
+            // Update current position
+            formation.currentX += formation.direction.x * formation.speed;
+            formation.currentY += formation.direction.y * formation.speed;
+            formation.currentZ += formation.direction.z * formation.speed;
+        }
+
+        // Update all entities in the formation based on path history
+        function updateEntityPositions(formation) {
+            formation.entities.forEach((entity, index) => {
+                // Calculate position in path history
+                let pathIndex = entity.pathIndex;
+                if (pathIndex >= formation.pathHistory.length) {
+                    pathIndex = formation.pathHistory.length - 1;
+                }
+
+                // Get position from path history
+                const position = formation.pathHistory[pathIndex];
+
+                // Update entity position
+                entity.x = position.x;
+                entity.y = position.y;
+                entity.z = position.z;
+
+                entity.el.style.left = position.x + 'px';
+                entity.el.style.top = position.y + 'px';
+                entity.el.style.transform = `translate3d(0, 0, ${position.z}px)`;
+            });
+        }
+
+        // Create visual environment path element
+        function createEnvironmentPath(formation) {
+            // Only create path behind lead entity
+            if (formation.pathHistory.length < 2) return;
+
+            const start = formation.pathHistory[0]; // Current position
+            const end = formation.pathHistory[1]; // Previous position
+
+            // Calculate path length and angle
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const dz = end.z - start.z;
+
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < 0.1) return; // Avoid tiny segments
+
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            // Create path element
+            const pathEl = document.createElement('div');
+            pathEl.className = 'environment-path';
+            pathEl.style.width = distance + 'px';
+            pathEl.style.left = start.x + 'px';
+            pathEl.style.top = start.y + 'px';
+            pathEl.style.transform = `translate3d(0, 0, ${start.z}px) rotate(${angle}deg)`;
+            pathEl.style.opacity = 0.8;
+
+            snakeContainer.appendChild(pathEl);
+
+            // Add to environment paths array
+            formation.environmentPaths.push({
+                el: pathEl,
+                createdAt: Date.now()
+            });
+
+            // Fade out and remove old paths
+            setTimeout(() => {
+                pathEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (pathEl.parentNode) {
+                        pathEl.parentNode.removeChild(pathEl);
+                    }
+
+                    // Remove from array
+                    const index = formation.environmentPaths.findIndex(p => p.el === pathEl);
+                    if (index !== -1) {
+                        formation.environmentPaths.splice(index, 1);
+                    }
+                }, 2000);
+            }, 3000);
+        }
+
+        // Create data operations
+        function createDataOperations() {
+            // Create several data operation points
+            for (let i = 0; i < 4; i++) {
+                // Position randomly in the space
+                const x = 100 + Math.random() * (window.innerWidth - 200);
+                const y = 100 + Math.random() * (window.innerHeight - 200);
+                const z = -100 + Math.random() * 200;
+
+                // Create operation element
+                const operation = document.createElement('div');
+                operation.className = 'data-operation';
+                operation.style.left = x + 'px';
+                operation.style.top = y + 'px';
+                operation.style.transform = `translate3d(0, 0, ${z}px)`;
+                snakeContainer.appendChild(operation);
+
+                dataOperations.push({
+                    el: operation,
+                    x, y, z,
+                    progress: 0,
+                    complete: false,
+                    lastEntityIndex: -1 // Track which entity last interacted
+                });
+            }
+        }
+
+        // Check for interactions with data operations
+        function checkOperationInteractions(formation) {
+            dataOperations.forEach(operation => {
+                if (operation.complete) return;
+
+                // Check each entity in the formation for interaction
+                formation.entities.forEach((entity, index) => {
+                    // Calculate distance
+                    const dx = operation.x - entity.x;
+                    const dy = operation.y - entity.y;
+                    const dz = operation.z - entity.z;
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    // If entity is close and it's a new entity (not the one that last interacted)
+                    if (distance < 30 && operation.lastEntityIndex !== index) {
+                        // Record this entity as the last to interact
+                        operation.lastEntityIndex = index;
+
+                        // Different interaction based on entity type
+                        if (index === 0) {
+                            // Lead entity prepares the operation
+                            operation.el.style.boxShadow = `0 0 15px rgba(6, 100, 165, 0.6)`;
+
+                        } else if (index >= 1 && index <= 5) {
+                            // Core entities process the operation
+                            operation.progress += 0.08; // Each core entity adds progress
+                            createActivityParticle(entity, operation);
+
+                            // Update visual indication
+                            const intensity = Math.min(1, operation.progress);
+                            operation.el.style.boxShadow = `0 0 ${10 + intensity * 15}px rgba(140, 70, 220, ${0.3 + intensity * 0.5})`;
+
+                        } else if (index === 6) {
+                            // Cleanup entity finalizes if progress is sufficient
+                            if (operation.progress >= 0.95) {
+                                operation.complete = true;
+                                operation.el.style.border = '1px solid rgba(58, 142, 75, 0.7)';
+                                operation.el.style.boxShadow = `0 0 15px rgba(58, 142, 75, 0.6)`;
+
+                                // Update computation progress
+                                computationProgress = Math.min(100, computationProgress + 15);
+                                computationProgressEl.textContent = computationProgress + '%';
+
+                                if (computationProgress >= 100) {
+                                    computationStatusEl.textContent = 'Complete';
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Create activity particle showing data processing
+        function createActivityParticle(entity, operation) {
+            // Create particle
+            const particle = document.createElement('div');
+            particle.className = 'activity-particle';
+            snakeContainer.appendChild(particle);
+
+            // Initial position at entity
+            particle.style.left = entity.x + 'px';
+            particle.style.top = entity.y + 'px';
+            particle.style.transform = `translate3d(0, 0, ${entity.z}px)`;
+
+            // Animate particle
+            const startTime = Date.now();
+            const duration = 500 + Math.random() * 300;
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(1, elapsed / duration);
+
+                // Simple arc motion
+                const t = progress;
+                const x = entity.x + (operation.x - entity.x) * t;
+                const y = entity.y + (operation.y - entity.y) * t - Math.sin(Math.PI * t) * 30;
+                const z = entity.z + (operation.z - entity.z) * t;
+
+                // Update position
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.transform = `translate3d(0, 0, ${z}px)`;
+
+                // Continue animation if not complete
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Remove particle when animation completes
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }
+            };
+
+            // Start animation
+            requestAnimationFrame(animate);
+        }
+
+        // Update the 3D view
+        function updateView() {
+            snakeContainer.style.transform = `rotateX(${viewAngleX}deg) rotateY(${viewAngleY}deg)`;
+        }
+
+        // Animation loop
+        function animate() {
+            // Update all formations
+            snakeFormations.forEach(updateSnakeFormation);
+
+            // Continue animation loop
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize the visualization
+        initialize();
+
+        // Set up event listeners
+        document.getElementById('toggle-view').addEventListener('click', function() {
+            isRotating = !isRotating;
+            this.textContent = isRotating ? 'Stop Rotation' : 'Rotate View';
+
+            if (isRotating) {
+                rotationInterval = setInterval(() => {
+                    viewAngleY += 0.5;
+                    if (viewAngleY > 360) viewAngleY -= 360;
+                    updateView();
+                }, 30);
+            } else {
+                clearInterval(rotationInterval);
+            }
+        });
+
+        document.getElementById('toggle-movement').addEventListener('click', function() {
+            isMoving = !isMoving;
+            this.textContent = isMoving ? 'Pause Movement' : 'Resume Movement';
+
+            // Update status display
+            statePersistenceEl.textContent = isMoving ? 'Active' : 'Paused';
+        });
+    </script>
+</body>
+</html>

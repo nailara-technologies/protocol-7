@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexander Taute - Lebenslauf</title>
+    <style>
+    /* Base colors */
+    :root {
+        --background: #d0d5e0;
+        --container: #e0e4ed;
+        --section: #e8ecf5;
+        --job-entry: #eaeff9;
+        --text: #242f46;
+        --highlight: #2c5895;
+        --accent: #5a9cda;
+        --shadow: rgba(44, 88, 149, 0.15);
+        --border: rgba(90, 156, 218, 0.3);
+    }
+
+    html, body {
+        background-color: var(--background);
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        color: var(--text);
+        margin: 0;
+        padding: 13px;
+        font-size: 9pt;
+        line-height: 1.3;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: var(--container);
+        border-radius: 10px;
+        box-shadow: 0 5px 15px var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    h1, h2 {
+        color: var(--highlight);
+        border-bottom: 1.5px solid var(--accent);
+        padding-bottom: 5px;
+        margin-top: 18px;
+        margin-bottom: 12px;
+        text-shadow: 0 1px 1px var(--shadow);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 1.7em;
+        margin-top: 0;
+        padding-bottom: 8px;
+    }
+
+    h2 {
+        font-size: 1.1em;
+    }
+
+    a, a:link, a:visited, a:hover, a:active, a:focus {
+        color: var(--highlight);
+        text-decoration: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    p {
+        margin: 0 0 15px 0;
+    }
+
+    ul {
+        list-style-type: none;
+        padding-left: 15px;
+        margin: 0 0 15px 0;
+    }
+
+    li {
+        margin-bottom: 4px;
+        position: relative;
+        padding-left: 15px;
+    }
+
+    li:before {
+        content: "»";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        text-shadow: 0 1px 1px var(--shadow);
+    }
+
+    .indent-block {
+        margin-left: 15px;
+        display: block;
+        font-size: 8.5pt;
+    }
+
+    .job-entry {
+        background-color: var(--job-entry);
+        border-left: 2px solid var(--accent);
+        padding: 12px 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    .job-title {
+        font-weight: bold;
+        color: var(--highlight);
+        margin-bottom: 8px;
+        text-shadow: 0 1px 1px var(--shadow);
+        font-size: 9pt;
+    }
+
+    .nested-ul {
+        padding-left: 18px;
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 10px;
+        border-top: 1px solid var(--accent);
+        color: var(--highlight);
+        text-shadow: 0 1px 1px var(--shadow);
+        font-size: 8.5pt;
+        background-color: transparent;
+    }
+
+    strong {
+        color: var(--highlight);
+        text-shadow: 0 1px 1px var(--shadow);
+    }
+
+    .contact-info {
+        text-align: center;
+        margin-bottom: 18px;
+        font-size: 8.7pt;
+    }
+
+    .section-container {
+        background-color: var(--section);
+        border-radius: 8px;
+        padding: 13px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 5px var(--shadow);
+    }
+
+    /* Print-specific styles */
+    @media print {
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            background-color: white !important;
+        }
+
+        html {
+            background-color: white !important;
+        }
+
+        body {
+            background-color: white !important;
+            padding: 0 !important;
+            font-size: 9pt !important;
+            margin: 0 !important;
+        }
+
+        .container {
+            background-color: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+
+        .section-container {
+            background-color: #f5f7fa !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            page-break-inside: avoid !important;
+            border: 1px solid #e0e4ed !important;
+            margin-bottom: 15px !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+        }
+
+        h1, h2, strong, .job-title, footer {
+            color: var(--highlight) !important;
+        }
+
+        a, a:link, a:visited, a:hover, a:active, a:focus {
+            text-decoration: none !important;
+            background-color: transparent !important;
+            color: var(--highlight) !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* Additional fixes for PDF link highlighting and styling */
+        a * {
+            background-color: transparent !important;
+        }
+
+        /* Disable all hover effects in print */
+        *:hover {
+            background-color: transparent !important;
+            color: inherit !important;
+            text-decoration: none !important;
+        }
+
+        li:before {
+            color: var(--accent) !important;
+        }
+
+        .job-entry {
+            background-color: #f8fafd !important;
+            page-break-inside: avoid !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            border: 1px solid #eaeff9 !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+        }
+
+        /* Force breaks to respect <br> tags */
+        br {
+            display: block !important;
+            content: "" !important;
+            margin-top: 3px !important;
+        }
+
+        /* Force page break before BERUFSERFAHRUNG section */
+        .page-break {
+            page-break-before: always !important;
+            break-before: always !important;
+        }
+
+        /* Remove any extra spaces or margins at the bottom of the page */
+        footer {
+            border-top: 1px solid var(--accent) !important;
+            margin-top: 20px !important;
+            background-color: transparent !important;
+            padding-bottom: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Improve print background coverage */
+        html, body, .container, .section-container, .job-entry, footer {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        /* Fix for any potential footer background issues */
+        body::after {
+            display: none !important;
+            content: none !important;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Alexander Taute</h1>
+        <div class="contact-info">
+            <a href="mailto:jobs@alex.taute.re">jobs@alex.taute.re</a> | +49[0]176 5839 2477 | Vogesenstr. 1-3, 77652 Offenburg
+        </div>
+
+        <div class="section-container">
+            <h2>[PROFIL]</h2>
+            <p style="white-space: pre-line;">
+                Engagierter Security Engineer mit fundiertem Verständnis für Netzwerkarchitektur und Unix-Systeme.
+                Spezialisiert auf die Entwicklung robuster Sicherheitsmaßnahmen und effizienter Netzwerkprotokolle.
+                Diversifizierte Erfahrung im 'Dev-Ops'-Bereich und der Netzwerkadministration.
+                Ergebnisorientierte Denk- und Arbeitsweise mit zukunftsfähigen Lösungsansätzen.
+            </p>
+        </div>
+
+        <div class="section-container">
+            <h2>[KERNKOMPETENZEN]</h2>
+            <ul>
+                <li><strong>NETZWERK & SICHERHEIT:</strong>
+                    <span class="indent-block">Systemadministration, Firewall-Design, Systemhärtung, 'Pentests' ['blackbox' oder Code-Analyse]</span>
+                </li>
+                <li><strong>ENTWICKLUNG:</strong>
+                    <span class="indent-block">Perl, Unix\Linux-Systeme, Design und Entwicklung von UI-Frontends, Middleware und Backends,
+                    Programmierung von Netzwerktools und verteilten Systemen, Protokolldesign, KI-Integration,
+                    weitere Sprachen und Formate wie PHP, C, C++, HTML, JS und einige Template-Frameworks.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section-container">
+            <h2>[AUSBILDUNG]</h2>
+            <ul>
+                <li>Technischer Assistent für Informatik, Bremen [1999]
+                    <span class="indent-block">[09/1999] frühzeitig beendet: Berufseinstieg während Praktikum ['Axol-IT' in 'BERUFSERFAHRUNG']</span>
+                </li>
+                <li>Technisches Gymnasium, Lahr [Bis 11. Klasse]</li>
+                <li>Berufsfachschule Elektrotechnik, Lahr [1995]</li>
+            </ul>
+        </div>
+
+        <div class="section-container">
+            <h2>[SPRACHEN]</h2>
+            <p>DE [native] | BG [native] | EN [fluent]</p>
+        </div>
+
+        <div class="section-container">
+            <h2>[PROJEKTE]</h2>
+            <p>freies [public domain] Multiagenten-System: <a href="https://github.com/nailara-technologies/protocol-7.git">https://github.com/nailara-technologies/protocol-7.git</a></p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="section-container">
+            <h2>[BERUFSERFAHRUNG]</h2>
+
+            <div class="job-entry">
+                <div class="job-title">Get IT Green GmbH | IT-Sec., DevOps (extern) | Freiburg | 06/2022 - 03/2023</div>
+                <ul>
+                    <li>System- und Firewall-Administration für Waschbär GmbH</li>
+                    <li>Scripting zur Automatisierung von Datenextraktion und -migrationen</li>
+                    <li>Aktive Unterstützung des Admin-Teams [Scripting, Remote-Arbeit [RDP], Security]</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">TWC GmbH | Softwareentwickler, Systemadministration | Freiburg | 02/2015 - 04/2020</div>
+                <ul>
+                    <li>Design: DiBoSYS Backend [nailara|protocol-7]</li>
+                    <li>Implementierung: Dynamische Display-Systeme</li>
+                    <li>Fernwartung und Weiterentwicklung von 'dibosys-x11' [v.4.2.2-v.4.4.0]</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">MVZ-Clotten Labor [Lab.H.,R.,Koll.GbR] | Operating, Systementw. | Freiburg | 04/2014 - 09/2014</div>
+                <ul>
+                    <li>Implementierung eines Abrechnungssystems als 'protocol-7'-Netzwerk</li>
+                    <li>Virtualisierung von Legacy-Systemen mit KVM und Raspberry Pi's</li>
+                    <li>Operating und [interner] Kundensupport</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">genua mbH | Security-Systementwickler | Kirchheim bei München | 07/2008 - 04/2013</div>
+                <ul>
+                    <li>Softwareentwicklung in der Auftragsentwicklung
+                        <ul class="nested-ul">
+                            <li>Code-Refactoring und Entwicklung von Netzwerktools in Perl</li>
+                            <li>Design und Entwicklung von 'Mailgitter' [Auswärtiges Amt]</li>
+                        </ul>
+                    </li>
+                    <li>Code-Review und Integration [AEGIS]</li>
+                    <li>Mitentwicklung an 'Anoubis' Sandbox System für Desktops [C, C++, Perl]</li>
+                    <li>'genucenter'-Mitentwicklung [Firewall-Management]</li>
+                    <li>Grafische Testmonitoring-Matrix [perl\standalone\HTTP]</li>
+                    <li>Netzwerktools-Entwicklung und Security-Systemarchitektur</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">Delticom AG | Webentwickler | Hannover | 05/2006 - 06/2006</div>
+                <ul>
+                    <li>Planung und Entwicklung einer Intranet-Schnittstelle für Paketdienstleistungen</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">.vantronix secure systems GmbH | Mitgründer, Entwickler | Hannover | 02/2004 - 04/2005</div>
+                <ul>
+                    <li>Unternehmensmitgründung und Tätigkeit als Geschäftsführer</li>
+                    <li>Breites Spektrum an Verantwortlichkeiten im Unternehmensaufbau</li>
+                    <li>Netzwerkanalyse und Reorganisation [IST-Analyse[n]]</li>
+                    <li>Blackbox Penetration Testing von vernetzten Komponenten/Produkten</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">.vantronix secure systems [Flöter GbR] | Netz.tech., Freib.fl. | Hannover | 06/2002 - 02/2004</div>
+                <ul>
+                    <li>Forschung, Entwicklung und Beratung im Bereich Netzwerksicherheit + Consulting</li>
+                    <li>.vantronix Corporate-Design mit Implementation [Websites, Cards, Businessplan]</li>
+                    <li>System- und Netzwerkadministration [.vantronix intern]</li>
+                    <li>Programmierung an der .vantronix 'Start-Up'-Toolchain</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">Internet-POP Hannover GmbH | Webentwickler | Bremen | 12/2001 - 06/2002</div>
+                <ul>
+                    <li>Design und Entwicklung einer Domain-Verwaltungs Web-Frontend und Middleware in PHP und Perl</li>
+                    <li>Security Incident Responses [Aktiv und Forensik]</li>
+                    <li>Programmierung von internen Netzwerktools [in Perl]</li>
+                    <li>Kundensupport [Mail, Backend, Auftragsentwicklung]</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">Zerodegree OHG | Softwareentwickler | Bremen | 10/2000 - 10/2001</div>
+                <ul>
+                    <li>System und Netwerkadministration</li>
+                    <li>Entwicklung von Unix und Linux Netzwerksoftware und -werkzeugen</li>
+                    <li>Webdesign und Grafik-Programmierung für Projekte mit/für Bremer Werbeagentur 'Gruppe für Gestaltung'</li>
+                    <li>Als erster Angestellter im Start-Up Unternehmen, die Gründer mit gleicher Arbeitsteilung unterstützt</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">Allgeier IT Solutions | Softwareentwickler | Bremen | 09/2000 - 10/2000</div>
+                <ul>
+                    <li>Frontend-Entwicklung an einer Dokumentenmanagement-Schnittstelle in Java [Tomcat]</li>
+                </ul>
+            </div>
+
+            <div class="job-entry">
+                <div class="job-title">Axol-IT Kommunikations-GmbH | Softwareentwickler | Bremen | 09/1999 - 09/2000</div>
+                <ul>
+                    <li>Einführung in die betrieblichen Abläufe eines Internet-Providers</li>
+                    <li>Design und Entwicklung einer 'Honeypot' \ IDS-Anwendung in Perl</li>
+                    <li>direkter Berufseinstieg während Schulpraktikum</li>
+                    <li>Übernahme nach Kauf des Providers durch Allgeier Computer AG</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            CV | Alexander Taute | Softwaredesign, Netzwerksicherheit und -administration
+        </footer>
+    </div>
+</body>
+</html>
