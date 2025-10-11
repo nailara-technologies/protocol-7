@@ -1,18 +1,27 @@
 # Task: Organize html-unsorted/ into html-form/
 
-**Status:** PENDING (waiting for html-unsorted/ directory to be populated)
+**Status:** TEMPLATE for future reorganization tasks
 **Created:** 2025-10-10
-**Similar Completed Task:** perl-form reorganization (see git history)
+**Purpose:** Provide a comprehensive guide for organizing unstructured files into structured directories
 
 ---
 
 ## Objective
 
-Import and organize AI-generated HTML files from `html-unsorted/` into the structured `html-form/` directory with:
+Generic task to import and organize files from an unsorted directory into a structured form directory with:
 1. Topic-based categorization
 2. Optimized file naming
-3. INDEX.md files for fast AI retrieval
-4. No remote git commits during reorganization
+3. INDEX.md files for fast retrieval
+4. Careful git handling
+5. Minimal remote git commits
+
+### Adaptable for Various File Types
+- HTML files
+- Markdown documents
+- Perl scripts
+- Python modules
+- Configuration files
+- Any text-based content
 
 ---
 
