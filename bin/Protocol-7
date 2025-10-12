@@ -525,7 +525,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
             # Look for format in all remaining arguments
             foreach my $argv_arg (@ARGV) {
-                if ($argv_arg =~ /^-format=(original|decoded)$/) {
+                if ($argv_arg =~ /^-format=(as-is|decoded)$/) {
                     $format = $1;
                 }
             }
@@ -582,7 +582,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
                 # Output confirmation
                 print "Test function 'base.test.function' created for export format testing.\n";
-                print "Try: $0 -export-inline-subs base.test.function -format=original\n";
+                print "Try: $0 -export-inline-subs base.test.function -format=as-is\n";
                 print "and: $0 -export-inline-subs base.test.function -format=decoded\n";
                 exit(0);
             }
@@ -4077,7 +4077,7 @@ sub p7_export_inline_subroutines {
 
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'original' && defined $original_encoded) {
+            if ($content_format eq 'as-is' && defined $original_encoded) {
                 # Print the original encoded data with proper prefix
                 my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
                 print ": $prefix$original_encoded\n";
@@ -4175,7 +4175,7 @@ sub p7_export_subroutine {
             );
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'original' && defined $original_encoded) {
+            if ($content_format eq 'as-is' && defined $original_encoded) {
                 # Add the original encoded data with proper prefix
                 my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
                 $output .= ": $prefix$original_encoded\n";
