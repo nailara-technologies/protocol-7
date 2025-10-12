@@ -523,10 +523,18 @@ sub p7_init_exec {    ##  main variable initialization  ##
             my $args = $data{'system'}{'args'} // '';
             my $format = 'decoded'; # Default format
 
+            # Debug raw args
+            print "Raw args: '$args'\n";
+
             # Check if format is specified with --format=original or --format=decoded
-            if ($args =~ s/\s+--format=(original|decoded)//) {
+            if ($args =~ s/--format=(original|decoded)//g) {
                 $format = $1;
+                # Clean up any remaining spaces
+                $args =~ s/^\s+//;
+                $args =~ s/\s+$//;
             }
+
+            print "Format specified: '$format', remaining args: '$args'\n";
 
             # Extract pattern (remaining part after format removed)
             my $pattern = join '|', split ' ', $args;
