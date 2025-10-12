@@ -531,6 +531,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
             # Extract pattern (remaining part after format removed)
             my $pattern = join '|', split ' ', $args;
 
+            # Debugging: Print available subroutines
+            print "Available subroutines:\n";
+            foreach my $sub_key (sort keys %{$data{'base'}{'inline_subs'}{'sub-name'}}) {
+                print "  - $sub_key\n";
+            }
+
             # Export based on pattern and format
             if (defined $pattern && length $pattern) {
                 $code{'log.noerr'}->(sprintf(': exporting inline subroutines matching pattern: %s (format: %s)', $pattern, $format));
@@ -4038,6 +4044,13 @@ sub p7_export_inline_subroutines {
         @subs_to_export = keys %$inline_subs;
     }
 
+    # Print debug info about subroutines to export
+    print "# Debug: Found " . scalar(@subs_to_export) . " subroutines matching the filter\n";
+    foreach my $sub_name (sort @subs_to_export) {
+        print "# - $sub_name (has code ref: " . (defined $code{$sub_name} ? "yes" : "no") . ")\n";
+    }
+    print "\n";
+
     # Process each subroutine for export
     foreach my $sub_name (@subs_to_export) {
         my $sub_ref = $inline_subs->{$sub_name};
@@ -4071,6 +4084,12 @@ sub p7_export_inline_subroutines {
             print p7_build_export_metadata(
                 $checksum, $line_count, $byte_count, $word_count
             );
+
+            # Debug format info
+            print "# Debug format info for $export_name:\n";
+            print "#   - Using format: $content_format\n";
+            print "#   - Compression: $compression\n";
+            print "#   - Has original encoding: " . (defined $original_encoded ? "yes" : "no") . "\n\n";
 
             # Choose format based on content_format parameter
             if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
