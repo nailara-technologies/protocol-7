@@ -4020,29 +4020,9 @@ sub p7_export_inline_subroutines {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Handle compression if needed
-            if ($compression eq 'xz' || $compression eq 'gzip') {
-                # Indicate compression with proper marker
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
-
-                # First encode in BASE32
-                my $encoded;
-                eval {
-                    p7_load_B32_routines();
-                    $encoded = encode_b32r($source_code);
-                };
-
-                if (defined $encoded) {
-                    print ": $prefix$encoded\n";
-                } else {
-                    $code{'base.error_exit.inline_loading'}
-                        ->('BASE32 encoding error', $sub_name);
-                }
-            } else {
-                # Print source code directly for uncompressed routines
-                foreach my $line (split /\n/, $source_code) {
-                    print "$line\n";
-                }
+            # Always print source code in decoded form, regardless of original compression
+            foreach my $line (split /\n/, $source_code) {
+                print "$line\n";
             }
         } else {
             # No stored source available - explain the limitation
@@ -4121,30 +4101,9 @@ sub p7_export_subroutine {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Handle compression if needed
-            if ($compression eq 'xz' || $compression eq 'gzip') {
-                # Indicate compression with proper marker
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
-
-                # Encode in BASE32
-                my $encoded;
-                eval {
-                    p7_load_B32_routines();
-                    $encoded = encode_b32r($source_code);
-                };
-
-                if (defined $encoded) {
-                    $output .= ": $prefix$encoded\n";
-                } else {
-                    $code{'base.error_exit.inline_loading'}
-                        ->('BASE32 encoding error', $sub_name);
-                    return;
-                }
-            } else {
-                # Add source code directly for uncompressed routines
-                foreach my $line (split /\n/, $source_code) {
-                    $output .= "$line\n";
-                }
+            # Always export source code in decoded form, regardless of original compression
+            foreach my $line (split /\n/, $source_code) {
+                $output .= "$line\n";
             }
         } else {
             # Checksum calculation failed
