@@ -214,4 +214,9 @@ For a comprehensive exploration of our project's philosophical foundation, pleas
 - Minimal barriers to entry
 - Equitable resource allocation
 
+### The Overflow Principle
+After the network is saturated with what it needs to maintain a stable topology, a kind of overflow becomes available that is then distributed equally to the individual users. This ensures fair distribution and creates a positive feedback loop where more participation leads to better performance for all. Like water irrigating farmland, each participant receives resources proportional to their contribution, while public resource pools ensure that even newcomers can participate without barriers.
+
+What makes this approach elegantly simple is the use of statistical average user metrics (e.g., total network disk space divided by number of users) to determine optimal resource allocation. This statistical approach enables calculating resource values and costs without needing to look up specific accounts, thereby enhancing anonymization throughout the network.
+
 The full vision document explores our unique approach to distributed computing, network participation, and the metaphorical framework of resource sharing.
