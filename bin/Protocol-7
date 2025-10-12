@@ -63,7 +63,7 @@ $data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
 ##
 if (@ARGV) {
     my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE }
-        qw| c B nc nb BK stdin console use-http-src core-subs export-inline-subs |;
+        qw| c B nc nb BK stdin console use-http-src core-subs export-inline-subs encode-inline-sub |;
     $data{'system'}{'args'} = join ' ',
         grep { not exists $remove_param{$ARG} } @ARGV;
     if ( length $data{'system'}{'args'} ) {
@@ -522,12 +522,42 @@ sub p7_init_exec {    ##  main variable initialization  ##
             # Export based on pattern (if provided in args)
             my $pattern = join '|', split ' ', $data{'system'}{'args'};
             if (defined $pattern && length $pattern) {
-                print "Exporting inline subroutines matching pattern: '$pattern'\n\n";
+                $code{'log.noerr'}->(sprintf(': exporting inline subroutines matching pattern: %s', $pattern));
+                $code{'log.noerr'}->(':');
                 p7_export_inline_subroutines('stdout', $pattern);
             } else {
-                print "Exporting all inline subroutines:\n\n";
+                $code{'log.noerr'}->(':');
+                $code{'log.noerr'}->(': exporting all inline subroutines:');
+                $code{'log.noerr'}->(':');
                 p7_export_inline_subroutines();
             }
+            exit(0);
+        }
+        if ( $arg eq qw| -encode-inline-sub | ) {
+            # Import main subroutines first
+            p7_import_main_subroutines();
+
+            # Get subroutine name from args
+            my $sub_name = $data{'system'}{'args'};
+            if (!defined $sub_name || !length $sub_name) {
+                map { $code{'log.error'}->($ARG) } (
+                    ':',
+                    ': no subroutine name provided.,',
+                    sprintf(': usage: %s -encode-inline-sub subroutine_name [compression_type]', $0),
+                    ': compression types: xz (default), gzip',
+                    ':'
+                );
+                exit(1);
+            }
+
+            # Check for compression type option
+            my $compression_type = 'xz';  # Default
+            if ($sub_name =~ s/\s+(xz|gzip)$//) {
+                $compression_type = $1;
+            }
+
+            # Encode and output the subroutine
+            p7_encode_subroutine($sub_name, $compression_type);
             exit(0);
         }
     }
@@ -4215,6 +4245,97 @@ sub p7_export_subroutines_to_file {
     close $fh;
 
     return $count;
+}
+
+##############################################################################
+sub p7_encode_subroutine {
+    my ($sub_name, $compression_type) = @_;
+    $compression_type //= 'xz';  # Default to XZ compression
+
+    # Get source code
+    my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
+    if (!defined $source_code) {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            sprintf(': source code not available for %s.,', $sub_name),
+            ':'
+        );
+        return;
+    }
+
+    # Compress source code
+    my $compressed_data;
+    if ($compression_type eq 'xz') {
+        eval {
+            require Compress::Raw::Lzma;
+            my ($lzma, $status) = Compress::Raw::Lzma::EasyEncoder->new();
+            $status == Compress::Raw::Lzma::LZMA_OK
+               or die "Cannot create lzma encoder: $status\n";
+            $compressed_data = '';
+            $status = $lzma->code(\$source_code, \$compressed_data);
+            $status == Compress::Raw::Lzma::LZMA_OK
+               or die "Compression failed: $status\n";
+        };
+    } elsif ($compression_type eq 'gzip') {
+        eval {
+            require Compress::Raw::Zlib;
+            my ($deflate, $status) = Compress::Raw::Zlib::Deflate->new(
+                -WindowBits => Compress::Raw::Zlib::MAX_WBITS() );
+            $status == Compress::Raw::Zlib::Z_OK
+               or die "Cannot create deflate stream: $status\n";
+            $compressed_data = '';
+            $status = $deflate->deflate(\$source_code, \$compressed_data);
+            $status == Compress::Raw::Zlib::Z_OK
+               or die "Deflation failed: $status\n";
+            $status = $deflate->flush(\$compressed_data);
+            $status == Compress::Raw::Zlib::Z_OK
+               or die "Flush failed: $status\n";
+        };
+    } else {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            sprintf(': unsupported compression type: %s.,', $compression_type),
+            ': supported types: xz, gzip',
+            ':'
+        );
+        return;
+    }
+
+    if ($@) {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            ': compression error:',
+            sprintf(': :. %s', $@),
+            ':'
+        );
+        return;
+    }
+
+    # Encode compressed data in BASE32
+    p7_load_B32_routines() if not defined &encode_b32r;
+    my $encoded = encode_b32r($compressed_data);
+
+    # Generate metadata
+    my $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
+    my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+    my $byte_count = length($source_code);
+    my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
+    my $metadata = p7_build_export_metadata(
+        $checksum, $line_count, $byte_count, $word_count);
+
+    # Determine prefix based on compression type
+    my $prefix = ($compression_type eq 'xz') ? '7U3XU' : 'D6FQQ';
+
+    # Format output
+    my $export_name = $sub_name;
+    $export_name =~ s|^p7__||g;
+    $export_name =~ s|__|\.|g;
+
+    print ":[$export_name]:\n";
+    print $metadata;
+    print ": $prefix$encoded\n";
+
+    return 1;
 }
 
 ## keep CHECK for error handling in STDIN mode ##
