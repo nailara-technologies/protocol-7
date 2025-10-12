@@ -1,0 +1,519 @@
+```yaml
+# Task file for Claude Code to implement export functionality for inline subroutines
+# Using Claude Sonnet 4.5 model with current code style and conventions
+
+name: "Inline Subroutine Export Implementation"
+description: "Implement functionality to export inline subroutines from DATA block back out to STDOUT"
+sections:
+  - name: "Main Export Implementation"
+    description: "Primary export implementation following existing code patterns"
+    code: |
+      #===========================================================================
+      # Export Subroutines to STDOUT
+      #===========================================================================
+
+      sub p7_export_inline_subroutines {
+          my $export_format = shift // 'stdout';
+          my $pattern_filter = shift; # Optional regex pattern to filter subs
+
+          # Check if inline subs are available
+          my $inline_subs = $data{'base'}{'inline_subs'}{'sub-name'}
+              if defined $data{'base.inline_subs'};
+          $inline_subs //= {};
+
+          # Get all loaded subroutines from data structure
+          my @subs_to_export;
+
+          if (defined $pattern_filter) {
+              # Filter subroutines based on pattern
+              @subs_to_export = grep {
+                  my $export_name = $_;
+                  $export_name =~ s|^p7__||g;
+                  $export_name =~ s|__|\.|g;
+                  $export_name =~ /$pattern_filter/;
+              } keys %$inline_subs;
+          } else {
+              @subs_to_export = keys %$inline_subs;
+          }
+
+          # Process each subroutine for export
+          foreach my $sub_name (@subs_to_export) {
+              my $sub_ref = $inline_subs->{$sub_name};
+              my $sub_code = $code{$sub_name};
+
+              next unless defined $sub_code;
+
+              # Format subroutine name for output
+              my $export_name = $sub_name;
+              $export_name =~ s|^p7__||g;
+              $export_name =~ s|__|\.|g;
+
+              # Generate header line
+              print ":[$export_name]:\n";
+
+              # Check if we have stored source code for this subroutine
+              my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
+              my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
+
+              if (defined $source_code) {
+                  # Generate and print metadata
+                  my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+                  my $byte_count = length($source_code);
+                  my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
+
+                  # Calculate checksum
+                  my $checksum = $code{'p7_generate_subroutine_checksum'}->($source_code, $sub_name);
+
+                  # Print metadata line
+                  print $code{'p7_build_export_metadata'}->(
+                      $checksum, $line_count, $byte_count, $word_count
+                  );
+
+                  # Handle compression if needed
+                  if ($compression eq 'xz' || $compression eq 'gzip') {
+                      # Indicate compression with proper marker
+                      my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+
+                      # First encode in BASE32
+                      my $encoded;
+                      eval {
+                          $code{'base.load_B32_routines'}->();
+                          $encoded = encode_b32r($source_code);
+                      };
+
+                      if (defined $encoded) {
+                          print ": $prefix$encoded\n";
+                      } else {
+                          $code{'base.error_exit.inline_loading'}
+                              ->('BASE32 encoding error', $sub_name);
+                      }
+                  } else {
+                      # Print source code directly for uncompressed routines
+                      foreach my $line (split /\n/, $source_code) {
+                          print "$line\n";
+                      }
+                  }
+              } else {
+                  # No stored source available - explain the limitation
+                  print "# Exported subroutine: $export_name\n";
+                  print "# NOTE: Original source code not available.\n";
+                  print "# This subroutine was imported before source tracking was enabled.\n";
+                  print "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+
+                  if (ref($sub_code) eq 'CODE') {
+                      print "# Code reference type: " . ref($sub_code) . "\n";
+                  }
+              }
+
+              print "### End of $export_name ###\n\n";
+          }
+
+          print "# Export completed: " . scalar(@subs_to_export) . " subroutine(s)\n";
+
+          return scalar(@subs_to_export);
+      }
+      
+      #===========================================================================
+      # Export specific subroutine with validation
+      #===========================================================================
+
+      sub p7_export_subroutine {
+          my $sub_name = shift;
+          my $export_file = shift;  # Optional filename
+
+          # Validate input
+          return unless defined $sub_name;
+
+          my $inline_subs = $data{'base'}{'inline_subs'}{'sub-name'}
+              if defined $data{'base.inline_subs'};
+          $inline_subs //= {};
+
+          # Ensure subroutine exists
+          unless (defined $inline_subs->{$sub_name}) {
+              $code{'base.logs'}->("Error: Subroutine $sub_name not found in inline_subs registry")
+                  if defined $code{'base.logs'};
+              return;
+          }
+
+          unless (defined $code{$sub_name}) {
+              $code{'base.logs'}->("Error: Subroutine $sub_name not found in code hash")
+                  if defined $code{'base.logs'};
+              return;
+          }
+
+          # Format name for export
+          my $export_name = $sub_name;
+          $export_name =~ s|^p7__||g;
+          $export_name =~ s|__|\.|g;
+
+          # Setup export output
+          my $output = '';
+          $output .= ":[$export_name]:\n";
+
+          # Check if we have stored source code
+          my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
+          my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
+          my $sub_code = $code{$sub_name};
+
+          if (defined $source_code) {
+              # Generate metadata for the subroutine
+              my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+              my $byte_count = length($source_code);
+              my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
+
+              # Calculate checksum
+              my $checksum;
+              eval {
+                  $checksum = $code{'p7_generate_subroutine_checksum'}->($source_code, $sub_name);
+              };
+
+              if (defined $checksum) {
+                  # Add metadata line to output
+                  $output .= $code{'p7_build_export_metadata'}->(
+                      $checksum, $line_count, $byte_count, $word_count
+                  );
+
+                  # Handle compression if needed
+                  if ($compression eq 'xz' || $compression eq 'gzip') {
+                      # Indicate compression with proper marker
+                      my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+
+                      # Encode in BASE32
+                      my $encoded;
+                      eval {
+                          $code{'base.load_B32_routines'}->();
+                          $encoded = encode_b32r($source_code);
+                      };
+
+                      if (defined $encoded) {
+                          $output .= ": $prefix$encoded\n";
+                      } else {
+                          $code{'base.error_exit.inline_loading'}
+                              ->('BASE32 encoding error', $sub_name);
+                          return;
+                      }
+                  } else {
+                      # Add source code directly for uncompressed routines
+                      foreach my $line (split /\n/, $source_code) {
+                          $output .= "$line\n";
+                      }
+                  }
+              } else {
+                  # Checksum calculation failed
+                  $output .= "# ERROR: Failed to calculate checksum\n";
+                  $output .= "# Exported from: $sub_name (without validation)\n";
+
+                  # Add source code anyway
+                  foreach my $line (split /\n/, $source_code) {
+                      $output .= "$line\n";
+                  }
+              }
+          } else {
+              # No source code available
+              $output .= "# Exported from: $sub_name\n";
+              $output .= "# NOTE: Original source code not available.\n";
+              $output .= "# This subroutine was imported before source tracking was enabled.\n";
+              $output .= "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+
+              if (ref($sub_code) eq 'CODE') {
+                  $output .= "# Code reference type: " . ref($sub_code) . "\n";
+                  $output .= "sub {\n    # Source code would be here - not available\n    return 1;\n}\n";
+              }
+          }
+
+          $output .= "### End of $export_name ###\n\n";
+
+          # Handle output to file if specified
+          if (defined $export_file && length($export_file) > 0) {
+              my $result = eval {
+                  open my $fh, '>', $export_file
+                      or die "Could not open file $export_file for writing: $!";
+                  print $fh $output;
+                  close $fh;
+                  return 1;
+              };
+
+              unless ($result) {
+                  my $error = $@ // "unknown error";
+                  $code{'base.logs'}->("Error writing to file $export_file: $error")
+                      if defined $code{'base.logs'};
+                  # Still print to stdout as fallback
+                  print $output;
+              }
+
+              return $result ? $output : undef;
+          } else {
+              # Print to stdout (as requested)
+              print $output;
+              return $output;
+          }
+      }
+      
+      #===========================================================================
+      # Export to file support (for future implementation)
+      #===========================================================================
+
+      sub p7_export_subroutines_to_file {
+          my $file_path = shift;
+          my $pattern_filter = shift; # Optional regex pattern to filter subs
+
+          # Validate file path
+          unless (defined $file_path) {
+              $code{'base.logs'}->("Error: No file path provided for export")
+                  if defined $code{'base.logs'};
+              return;
+          }
+
+          # Ensure directory exists
+          my $dir = dirname($file_path);
+          unless (-d $dir) {
+              my $mkdir_result = eval {
+                  require File::Path;
+                  File::Path::make_path($dir);
+                  return 1;
+              };
+
+              unless ($mkdir_result) {
+                  my $error = $@ // "unknown error";
+                  $code{'base.logs'}->("Error creating directory $dir: $error")
+                      if defined $code{'base.logs'};
+                  return;
+              }
+          }
+
+          # Open the file
+          my $fh;
+          unless (open $fh, '>', $file_path) {
+              $code{'base.logs'}->("Error opening file $file_path for writing: $!")
+                  if defined $code{'base.logs'};
+              return;
+          }
+
+          # Redirect STDOUT to the file temporarily
+          my $old_fh = select($fh);
+
+          # Use the existing export function
+          my $count = $code{'p7_export_inline_subroutines'}->('file', $pattern_filter);
+
+          # Restore STDOUT
+          select($old_fh);
+          close $fh;
+
+          return $count;
+      }
+  - name: "Helper Functions for Export"
+    description: "Additional helper functions needed for export functionality"
+    code: |
+      #===========================================================================
+      # Generate checksum for exported subroutines
+      #===========================================================================
+
+      sub p7_generate_subroutine_checksum {
+          my ($source_code, $sub_name) = @_;
+          
+          # Calculate checksum using BMW algorithm
+          my $checksum = eval {
+              encode_b32r(
+                  Digest::BMW::bmw_256($source_code)
+              );
+          };
+          
+          if (not defined $checksum or length $EVAL_ERROR) {
+              $code{'base.error_exit.inline_loading'}
+                  ->('checksum calculation failed', $sub_name);
+              return;
+          }
+          
+          return $checksum;
+      }
+      
+      #===========================================================================
+      # Helper function to capture original source during import
+      #===========================================================================
+
+      sub p7_store_original_source {
+          my ($sub_name, $source_code, $compression_type) = @_;
+
+          # Store original source code for later export
+          # This needs to be integrated in p7_load_inline_subroutines function
+          # around line where decompressed source is available before compilation
+          $data{'base'}{'inline_subs'}{'source'}{$sub_name} = $source_code;
+
+          # Store compression type if provided (xz, gzip, none)
+          $data{'base'}{'inline_subs'}{'compression'}{$sub_name} = $compression_type
+              if defined $compression_type;
+      }
+      
+      #===========================================================================
+      # Export metadata structure builder
+      #===========================================================================
+
+      sub p7_build_export_metadata {
+          my ($checksum, $line_count, $byte_count, $word_count) = @_;
+          
+          # Construct the metadata line (matching the format in citations)
+          my $metadata = sprintf(
+              ": <%s:%04d:%05d:%08d>\n",
+              $checksum,
+              $line_count,
+              $byte_count,
+              $word_count
+          );
+          
+          return $metadata;
+      }
+  - name: "Code Style Integration Points"
+    description: "Where to look in current code for integration points"
+    references:
+      - "Section 2 in Citation 1 shows file positioning mechanisms"
+      - "Section 4 in Citation 2 shows the validation logic"
+      - "Section 1 in Citation 3 shows the main structure"
+
+  - name: "Suggested Implementation Path"
+    description: "Step-by-step suggestions for implementation with references to existing code"
+    steps:
+      - "First, examine `p7_scan_main_subroutines` function to understand current subroutine discovery and the pattern matching mechanism"
+      - "Study `p7_load_inline_subroutines` function in detail to understand how subroutines are loaded from DATA block, especially the handling of compressed subroutines"
+      - "Examine the BASE32 handling in `p7_load_B32_routines` and how it's used for decompressing encoded subroutines"
+      - "Understand the checksum validation process using BMW algorithm - look for `Digest::BMW::bmw_256` usage"
+      - "Identify the exact point where source code is available before compilation in `p7_load_inline_subroutines` - this is where we'll integrate `p7_store_original_source`"
+
+      - "Modify `p7_load_inline_subroutines` to store original source code in `$data{'base'}{'inline_subs'}{'source'}{$sub_name}` - this code is available before the eval in the current implementation"
+      - "Track compression type used for each subroutine in `$data{'base'}{'inline_subs'}{'compression'}{$sub_name}`"
+      - "Implement `p7_generate_subroutine_checksum` function to calculate BMW checksums consistently"
+      - "Implement `p7_build_export_metadata` to format metadata lines matching existing format"
+      - "Implement `p7_export_inline_subroutines` with pattern filter support and compression handling"
+      - "Add specific subroutine export capability with `p7_export_subroutine` with file output option"
+      - "Implement export to file functionality using File::Path for directory creation if needed"
+
+      - "Add a specific integration point in `p7_load_inline_subroutines` around line where `my $srcstr_decoded = eval { decode_b32r($sub_source_line) };` is used - this is where source is available"
+      - "The call to store source should be: `$code{'p7_store_original_source'}->($subroutine, $srcstr_decoded, $src_comp);`"
+
+  - name: "Integration Design for Next Phase"
+    description: "Future extension plan for modules directory structure"
+    code: |
+      #===========================================================================
+      # Future implementation: Module export to filesystem
+      #===========================================================================
+      
+      sub p7_export_subroutines_to_modules {
+          my $module_directory = shift // './modules';
+          my @sub_names = @_;
+          
+          # Create directory if not exists
+          unless (-d $module_directory) {
+              mkdir $module_directory or die "Could not create directory $module_directory: $!";
+          }
+          
+          foreach my $sub_name (@sub_names) {
+              # Generate module filename (e.g., handler.end_code.pm)
+              my $module_name = $sub_name;
+              $module_name =~ s|^p7__||g;
+              $module_name =~ s|__|\.|g;
+              $module_name =~ s|\.|/|g;
+              $module_name .= '.pm';
+              
+              my $module_path = "$module_directory/$module_name";
+              
+              # Ensure directory structure exists  
+              my $dir = dirname($module_path);
+              unless (-d $dir) {
+                  mkdir $dir or die "Could not create directory $dir: $!";
+              }
+              
+              # Export to file
+              open my $fh, '>', $module_path or die "Could not open $module_path: $!";
+              print $fh "# Exported subroutine: $sub_name\n";
+              print $fh "# File: $module_path\n";
+              # ... add content here
+              close $fh;
+          }
+      }
+
+  - name: "Usage Examples"
+    description: "How to use the new export functionality"
+    examples:
+      - |
+        # Export all inline subroutines to STDOUT
+        &{ $code{'p7_export_inline_subroutines'} }();
+
+        # Export subroutines matching a pattern (e.g., all handler subroutines)
+        &{ $code{'p7_export_inline_subroutines'} }('stdout', 'handler\.');
+
+        # Export specific subroutine
+        &{ $code{'p7_export_subroutine'} }('p7_handler__end_code');
+
+        # Export specific subroutine to file
+        &{ $code{'p7_export_subroutine'} }('p7_handler__end_code', './exports/handler.end_code.pl');
+
+        # Export all subroutines to a single file
+        &{ $code{'p7_export_subroutines_to_file'} }('./exports/all_subroutines.pl');
+
+        # Export subroutines matching a pattern to a file
+        &{ $code{'p7_export_subroutines_to_file'} }('./exports/handlers.pl', 'handler\.');
+
+        # Export subroutines and check how many were exported
+        my $count = &{ $code{'p7_export_inline_subroutines'} }();
+        print "Exported $count subroutines\n";
+
+        # Verify export functionality by comparing original and exported
+        my $sub_name = 'p7_handler__end_code';
+        my $exported = &{ $code{'p7_export_subroutine'} }($sub_name);
+
+        # Export to modular directory structure
+        &{ $code{'p7_export_subroutines_to_modules'} }('./modules', qw(
+            p7_handler__end_code
+            p7_handler__start_code
+            p7_config__load
+        ));
+
+  - name: "Key Implementation Details"
+    description: "Important notes about the implementation based on existing code patterns"
+    details:
+      - "Follow existing convention: `p7_` prefix removed, `__` replaced by `.` for dot notation"
+      - "Maintain the same metadata line format used in BASE32 encoding: `:<CHECKSUM>:LINES:WORD_COUNT:BYTES>`"
+      - "Use existing error handling pattern from `base.error_exit.inline_loading`"
+      - "Preserve existing structure for checksum validation using Digest::BMW::bmw_256"
+      - "Implement same compression handling as shown in `load_B32_routines`"
+      - "Support the same file positioning and seeking logic as in current DATA block handling"
+
+  - name: "References for Implementation"
+    references:
+      - "Based on Citations 1, 2, 3 from current codebase"
+      - "Citation 1 shows data block positioning and seeking logic"
+      - "Citation 2 shows validation and compilation steps, including checksum handling"
+      - "Citation 3 shows main function structure and naming conventions"
+      
+  - name: "Required Modifications"
+    description: "Changes needed to current codebase for export support"
+    modifications:
+      - "Store original source code during subroutine import to enable re-export"
+      - "Implement export format that matches current DATA block structure"
+      - "Ensure checksum handling is available for export validation"
+      - "Add proper error handling and logging consistency"
+      - "Maintain compatibility with existing subroutine registry system"
+      - "Integrate with current inline subroutine tracking mechanisms"
+      - "Support both STDOUT export (as requested) and file export (future enhancement)"
+
+  - name: "Testing Considerations"
+    description: "How to verify export functionality works properly"
+    tests:
+      - "Verify exported subroutines match original in structure and content by comparing checksums"
+      - "Test checksum generation and validation consistency across different source code formats"
+      - "Verify naming convention conversion works correctly (p7_handler__end_code → handler.end_code)"
+      - "Test export to both STDOUT and file formats with proper file handling"
+      - "Ensure compressed subroutines (xz, gzip) maintain their compression type during export"
+      - "Validate that only defined subroutines are exported, with proper filtering"
+      - "Check error handling for missing or invalid subroutines with appropriate error messages"
+      - "Test pattern matching filter functionality with various regex patterns"
+      - "Verify metadata line format matches expected format: `:<CHECKSUM>:LINES:WORD_COUNT:BYTES>`"
+      - "Ensure exported subroutines can be reimported without modification"
+      - "Test round-trip export and import of all subroutines to verify data integrity"
+      - "Verify file path handling in export to file functions, including directory creation"
+      - "Test exporting to both absolute and relative file paths"
+      - "Check for appropriate error handling when file paths are invalid or not writable"
+      - "Test exporting large subroutines to ensure performance is acceptable"
+      - "Verify exported subroutines preserve original code comments and formatting"
+      - "Test handling of subroutines with special characters in their names"
+      - "Ensure exports work correctly for subroutines with non-ASCII characters"
+```
