@@ -330,8 +330,7 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
         my $char_map = qr|([^0-9a-zA-Z\-\+\.:_\[\]\/]+)|;
         ## checking program name ##
         die "\n\n << not valid characters [ '%s' ]"
-            . " in program name '%s' >>\n\n\n",
-            , ${^CAPTURE}[0], $PROGRAM_NAME
+            . " in program name '%s' >>\n\n\n", ${^CAPTURE}[0], $PROGRAM_NAME
             if $PROGRAM_NAME =~ $char_map;
         ##  verified clean  ##
         my $bin_path = $PROGRAM_NAME;
@@ -511,92 +510,6 @@ sub p7_init_exec {    ##  main variable initialization  ##
         if ( $arg eq qw| -use-http-src | ) {
             $data{'system'}{'use_http_source'} = TRUE;    ## true ##
         }
-        if ( $arg eq qw| -core-subs | ) {
-            $code{'dump_core_subs'}->();
-            exit(0);
-        }
-        if ( $arg eq qw| -export-inline-subs | ) {
-            # Import main subroutines first
-            p7_import_main_subroutines();
-
-            # Get all arguments
-            my $args = $data{'system'}{'args'} // '';
-            my $format = 'decoded'; # Default format
-
-            # Look for format in all remaining arguments
-            foreach my $argv_arg (@ARGV) {
-                if ($argv_arg =~ /^-format=(as-is|decoded)$/) {
-                    $format = $1;
-                }
-            }
-
-            # Extract pattern (remaining part after format removed)
-            my $pattern = join '|', split ' ', $args;
-
-            # Export based on pattern and format
-            if (defined $pattern && length $pattern) {
-                $code{'log.noerr'}->(sprintf(': exporting inline subroutines matching pattern: %s (format: %s)', $pattern, $format));
-                $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines('stdout', $pattern, $format);
-            } else {
-                $code{'log.noerr'}->(':');
-                $code{'log.noerr'}->(sprintf(': exporting all inline subroutines (format: %s):', $format));
-                $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines('stdout', undef, $format);
-            }
-            exit(0);
-        }
-        if ( $arg eq qw| -encode-inline-sub | ) {
-            # Import main subroutines first
-            p7_import_main_subroutines();
-
-            # Get subroutine name from args
-            my $sub_name = $data{'system'}{'args'};
-            if (!defined $sub_name || !length $sub_name) {
-                map { $code{'log.error'}->($ARG) } (
-                    ':',
-                    ': no subroutine name provided.,',
-                    sprintf(': usage: %s -encode-inline-sub subroutine_name [compression_type]', $0),
-                    ': compression types: xz (default), gzip',
-                    ':'
-                );
-                exit(1);
-            }
-
-            # Special case for testing the export format feature
-            if ($sub_name eq 'test-export-format') {
-                # Create a simple test subroutine
-                my $test_source = 'sub test_function { return "Hello, World!"; }';
-                # Store it with original_encoded data for testing
-                $data{'base'}{'inline_subs'}{'source'}{'base.test.function'} = $test_source;
-                $data{'base'}{'inline_subs'}{'compression'}{'base.test.function'} = 'xz';
-                # Create fake original encoding
-                p7_load_B32_routines() if not defined &encode_b32r;
-                my $encoded = encode_b32r($test_source);
-                $data{'base'}{'inline_subs'}{'original_encoded'}{'base.test.function'} = $encoded;
-                # Register the subroutine in the name registry
-                $data{'base'}{'inline_subs'}{'sub-name'}{'base.test.function'} = { 'loaded' => time() };
-
-                # Create an actual function reference
-                $code{'base.test.function'} = sub { return "Hello, World!"; };
-
-                # Output confirmation
-                print "Test function 'base.test.function' created for export format testing.\n";
-                print "Try: $0 -export-inline-subs base.test.function -format=as-is\n";
-                print "and: $0 -export-inline-subs base.test.function -format=decoded\n";
-                exit(0);
-            }
-
-            # Check for compression type option
-            my $compression_type = 'xz';  # Default
-            if ($sub_name =~ s/\s+(xz|gzip)$//) {
-                $compression_type = $1;
-            }
-
-            # Encode and output the subroutine
-            p7_encode_subroutine($sub_name, $compression_type);
-            exit(0);
-        }
     }
 
     ## setting log prefix width values \ defaults ##
@@ -709,7 +622,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             or $show_banner_mode ) {
             say $prefix, $colors{'B02'}, $colors{'p7_fg_0000'},
                 $start_string,
-                , $colors{'B00'},
+                $colors{'B00'},
                 ' ' x 77, $colors{'B02'} . $colors{'p7_fg_0000'}, qw| / |,
                 $colors{'reset'};
             ## centered-xy ## ..,
@@ -743,6 +656,137 @@ sub p7_init_exec {    ##  main variable initialization  ##
         $code{'base.anum_log_time'}->()
             . sprintf( ' 0 . version %s', $s_version )
     );
+
+    ### PROCESSING ADDITIONAL COMMAND LINE SWITCHES AFTER COLOR INITIALIZATION
+    ##
+    foreach my $arg (@ARGV) {
+        if ( $arg eq qw| -core-subs | ) {
+            $code{'dump_core_subs'}->();
+            exit(0);
+        }
+        if ( $arg eq qw| -export-inline-subs | ) {
+
+            # Import main subroutines first
+            p7_import_main_subroutines();
+
+            # Get all arguments
+            my $args   = $data{'system'}{'args'} // '';
+            my $format = 'decoded';                       # Default format
+
+            # Look for format in all remaining arguments
+            foreach my $argv_arg (@ARGV) {
+                if ( $argv_arg =~ /^-format=(.+)$/ ) {
+                    my $requested_format = $1;
+                    if (   $requested_format eq 'as-is'
+                        || $requested_format eq 'decoded' ) {
+                        $format = $requested_format;
+                    } else {
+                        map { $code{'log.error'}->($ARG) } (
+                            '.:[ -export-inline-subs parameters ]:.',
+                            ':',
+                            sprintf( ": invalid -format value : '%s'",
+                                $requested_format ),
+                            ":. .. valid formats are :. 'as-is' and 'decoded'",
+                            ':'
+                        );
+                        exit(1);
+                    }
+                }
+            }
+
+            # Extract pattern (remaining part after format removed)
+            my $pattern = join '|', split ' ', $args;
+
+            # Export based on pattern and format
+            if ( defined $pattern && length $pattern ) {
+                $code{'log.noerr'}->(
+                    sprintf(
+                        ': exporting inline subroutines matching pattern: %s (format: %s)',
+                        $pattern, $format
+                    )
+                );
+                $code{'log.noerr'}->(':');
+                p7_export_inline_subroutines( 'stdout', $pattern, $format );
+            } else {
+                $code{'log.noerr'}->(':');
+                $code{'log.noerr'}->(
+                    sprintf(
+                        ': exporting all inline subroutines (format: %s):',
+                        $format )
+                );
+                $code{'log.noerr'}->(':');
+                p7_export_inline_subroutines( 'stdout', undef, $format );
+            }
+            exit(0);
+        }
+        if ( $arg eq qw| -encode-inline-sub | ) {
+
+            # Import main subroutines first
+            p7_import_main_subroutines();
+
+            # Get subroutine name from args
+            my $sub_name = $data{'system'}{'args'};
+            if ( !defined $sub_name || !length $sub_name ) {
+                map { $code{'log.error'}->($ARG) } (
+                    ':',
+                    ': no subroutine name provided.,',
+                    sprintf(
+                        ': usage: %s -encode-inline-sub subroutine_name [compression_type]',
+                        $0 ),
+                    ': compression types: xz (default), gzip',
+                    ':'
+                );
+                exit(1);
+            }
+
+            # Special case for testing the export format feature
+            if ( $sub_name eq 'test-export-format' ) {
+
+                # Create a simple test subroutine
+                my $test_source
+                    = 'sub test_function { return "Hello, World!"; }';
+
+                # Store it with original_encoded data for testing
+                $data{'base'}{'inline_subs'}{'source'}{'base.test.function'}
+                    = $test_source;
+                $data{'base'}{'inline_subs'}{'compression'}
+                    {'base.test.function'} = 'xz';
+
+                # Create fake original encoding
+                p7_load_B32_routines() if not defined &encode_b32r;
+                my $encoded = encode_b32r($test_source);
+                $data{'base'}{'inline_subs'}{'original_encoded'}
+                    {'base.test.function'} = $encoded;
+
+                # Register the subroutine in the name registry
+                $data{'base'}{'inline_subs'}{'sub-name'}{'base.test.function'}
+                    = { 'loaded' => time() };
+
+                # Create an actual function reference
+                $code{'base.test.function'} = sub { return "Hello, World!"; };
+
+                # Output confirmation
+                print
+                    "Test function 'base.test.function' created for export format testing.\n";
+                print
+                    "Try: $0 -export-inline-subs base.test.function -format=as-is\n";
+                print
+                    "and: $0 -export-inline-subs base.test.function -format=decoded\n";
+                exit(0);
+            }
+
+            # Check for compression type option
+            my $compression_type = 'xz';    # Default
+            if ( $sub_name =~ s/\s+(xz|gzip)$// ) {
+                $compression_type = $1;
+            }
+
+            # Encode and output the subroutine
+            p7_encode_subroutine( $sub_name, $compression_type );
+            exit(0);
+        }
+    }
+
 }
 
 ##############################################################################
@@ -1535,7 +1579,7 @@ sub p7_load_code {
             if ( $cmd_type eq qw| cmd | ) {    ## not for console commands ##
 
                 ## command type routine code header ##
-                my $code_header = <<~ "EOC";
+                my $code_header = <<~"EOC";
 
                     ##                                 ##
                     ##  compiled-in .cmd. code header  ##
@@ -1558,7 +1602,7 @@ sub p7_load_code {
                     EOC
 
                 ##  command type routine code footer  ##
-                my $code_footer = <<~ 'EOC';
+                my $code_footer = <<~'EOC';
 
                     ##                               ##
                     ## compiled-in .cmd. code-footer ##
@@ -1584,19 +1628,19 @@ sub p7_load_code {
 
                 $data{'code'}{$sub_name}{'source'} = join( '',
                     $code_header, $data{'code'}{$sub_name}{'source'},
-                    ,             $code_footer );
+                    $code_footer );
             }
         }
 
         if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
-            $sub_code = <<~ "EOC";
+            $sub_code = <<~"EOC";
                 sub {
                 # line 1 "$sub_name"
                 \$code{'base.devmod_sub'}->( qw| $sub_name |, \@ARG );
                 $data{'code'}{$sub_name}{'source'}}
                 EOC
         } else {
-            $sub_code = <<~ "EOC";
+            $sub_code = <<~"EOC";
                 sub {
                 # line 1 "$sub_name"
                 $data{'code'}{$sub_name}{'source'}}
@@ -1651,8 +1695,8 @@ sub p7_load_code {
                     s|\"|\'|g;
 
                     sprintf( ": :  \l%s", $ARG )
-                    }
-                    grep { !m|^BEGIN | } split( m|\n+|, $err_str )
+                }
+                grep { !m|^BEGIN | } split( m|\n+|, $err_str )
             ),
             qq|=|
             )
@@ -3712,6 +3756,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
 
                 } elsif ($end_of_subsrc) {
                     if ( $source_encoding eq qw| BASE32 | ) {
+
                         # Save the original encoded form before modification
                         my $original_encoded = $sub_source_line;
                         $sub_source_line =~ s|[01]||g;
@@ -3826,16 +3871,20 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             $sub_source_line = $decomp_buffer_sref->$*;
 
                             # Store original source code for later export
-                            p7_store_original_source($subroutine, $sub_source_line, $src_comp, $original_encoded);
+                            p7_store_original_source(
+                                $subroutine, $sub_source_line,
+                                $src_comp,   $original_encoded
+                            );
 
                         }
                     }
                     $EVAL_ERROR = '';
 
-                    # Store original source code for later export if not already stored
-                    # (BASE32 encoded subroutines are already stored within that block)
-                    if ($source_encoding ne qw| BASE32 |) {
-                        p7_store_original_source($subroutine, $sub_source_line, 'none');
+           # Store original source code for later export if not already stored
+           # (BASE32 encoded subroutines are already stored within that block)
+                    if ( $source_encoding ne qw| BASE32 | ) {
+                        p7_store_original_source( $subroutine,
+                            $sub_source_line, 'none' );
                     }
 
                     ### compiling subroutine into %code reference ###
@@ -3953,7 +4002,7 @@ END {
 
 ##############################################################################
 sub p7_store_original_source {
-    my ($sub_name, $source_code, $compression_type, $original_encoded) = @_;
+    my ( $sub_name, $source_code, $compression_type, $original_encoded ) = @_;
 
     # Store original source code for later export
     # This is integrated in p7_load_inline_subroutines function
@@ -3965,24 +4014,22 @@ sub p7_store_original_source {
         if defined $compression_type;
 
     # Store original encoded data if provided
-    $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name} = $original_encoded
+    $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name}
+        = $original_encoded
         if defined $original_encoded;
 }
 
 ##############################################################################
 sub p7_generate_subroutine_checksum {
-    my ($source_code, $sub_name) = @_;
+    my ( $source_code, $sub_name ) = @_;
 
     # Calculate checksum using BMW algorithm
-    my $checksum = eval {
-        encode_b32r(
-            Digest::BMW::bmw_256($source_code)
-        );
-    };
+    my $checksum
+        = eval { encode_b32r( Digest::BMW::bmw_256($source_code) ); };
 
-    if (not defined $checksum or length $EVAL_ERROR) {
+    if ( not defined $checksum or length $EVAL_ERROR ) {
         $code{'base.error_exit.inline_loading'}
-            ->('checksum calculation failed', $sub_name);
+            ->( 'checksum calculation failed', $sub_name );
         return;
     }
 
@@ -3991,16 +4038,11 @@ sub p7_generate_subroutine_checksum {
 
 ##############################################################################
 sub p7_build_export_metadata {
-    my ($checksum, $line_count, $byte_count, $word_count) = @_;
+    my ( $checksum, $line_count, $byte_count, $word_count ) = @_;
 
     # Construct the metadata line (matching the format used in imports)
-    my $metadata = sprintf(
-        ": <%s:%04d:%05d:%08d>\n",
-        $checksum,
-        $line_count,
-        $byte_count,
-        $word_count
-    );
+    my $metadata = sprintf( ": <%s:%04d:%05d:%08d>\n",
+        $checksum, $line_count, $byte_count, $word_count );
 
     return $metadata;
 }
@@ -4012,13 +4054,23 @@ sub p7_build_export_metadata {
 # Parameters:
 #   $export_format: 'stdout' (default) or 'file' to indicate where output goes
 #   $pattern_filter: Optional regex pattern to filter which subroutines to export
-#   $content_format: Export format - 'decoded' (default) for human-readable or 'original' for original encoded format
+#   $content_format: Export format - 'decoded' (default) for human-readable or 'as-is' for encoded format as stored
 # Returns: Number of exported subroutines
 ##############################################################################
 sub p7_export_inline_subroutines {
-    my $export_format = shift // 'stdout';
-    my $pattern_filter = shift; # Optional regex pattern to filter subs
-    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
+    my $export_format  = shift // 'stdout';
+    my $pattern_filter = shift;    # Optional regex pattern to filter subs
+    my $content_format = shift // 'decoded';    # 'as-is' or 'decoded'
+
+    # Validate content format
+    if ( $content_format ne 'as-is' && $content_format ne 'decoded' ) {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            sprintf( ': invalid content format: %s', $content_format ),
+            ': valid formats are: as-is, decoded', ':'
+        );
+        return 0;
+    }
 
     # Check if inline subs are available
     my $inline_subs = $data{'base'}{'inline_subs'}{'sub-name'}
@@ -4028,7 +4080,8 @@ sub p7_export_inline_subroutines {
     # Get all loaded subroutines from data structure
     my @subs_to_export;
 
-    if (defined $pattern_filter) {
+    if ( defined $pattern_filter ) {
+
         # Filter subroutines based on pattern
         @subs_to_export = grep {
             my $export_name = $_;
@@ -4040,10 +4093,9 @@ sub p7_export_inline_subroutines {
         @subs_to_export = keys %$inline_subs;
     }
 
-
     # Process each subroutine for export
     foreach my $sub_name (@subs_to_export) {
-        my $sub_ref = $inline_subs->{$sub_name};
+        my $sub_ref  = $inline_subs->{$sub_name};
         my $sub_code = $code{$sub_name};
 
         next unless defined $sub_code;
@@ -4058,43 +4110,54 @@ sub p7_export_inline_subroutines {
 
         # Check if we have stored source code for this subroutine
         my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
-        my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
-        my $original_encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
+        my $compression
+            = $data{'base'}{'inline_subs'}{'compression'}{$sub_name}
+            // 'none';
+        my $original_encoded
+            = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
 
-        if (defined $source_code) {
+        if ( defined $source_code ) {
+
             # Generate and print metadata
-            my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+            my $line_count = ( $source_code =~ tr/\n/\n/ ) + 1;
             my $byte_count = length($source_code);
-            my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
+            my $word_count = ( $source_code =~ tr/ \t\n/ \t\n/ );
 
             # Calculate checksum
-            my $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
+            my $checksum
+                = p7_generate_subroutine_checksum( $source_code, $sub_name );
 
             # Print metadata line
-            print p7_build_export_metadata(
-                $checksum, $line_count, $byte_count, $word_count
-            );
-
+            print p7_build_export_metadata( $checksum, $line_count,
+                $byte_count, $word_count );
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'as-is' && defined $original_encoded) {
+            if ( $content_format eq 'as-is' && defined $original_encoded ) {
+
                 # Print the original encoded data with proper prefix
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
+                my $prefix
+                    = ( $compression eq 'xz' )
+                    ? '7U3XU'
+                    : ( ( $compression eq 'gzip' ) ? 'D6FQQ' : '' );
                 print ": $prefix$original_encoded\n";
             } else {
+
                 # Print source code in decoded form
-                foreach my $line (split /\n/, $source_code) {
+                foreach my $line ( split /\n/, $source_code ) {
                     print "$line\n";
                 }
             }
         } else {
+
             # No stored source available - explain the limitation
             print "# Exported subroutine: $export_name\n";
             print "# NOTE: Original source code not available.\n";
-            print "# This subroutine was imported before source tracking was enabled.\n";
-            print "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+            print
+                "# This subroutine was imported before source tracking was enabled.\n";
+            print
+                "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
 
-            if (ref($sub_code) eq 'CODE') {
+            if ( ref($sub_code) eq 'CODE' ) {
                 print "# Code reference type: " . ref($sub_code) . "\n";
             }
         }
@@ -4102,7 +4165,9 @@ sub p7_export_inline_subroutines {
         print "### End of $export_name ###\n\n";
     }
 
-    print "# Export completed: " . scalar(@subs_to_export) . " subroutine(s)\n";
+    print "# Export completed: "
+        . scalar(@subs_to_export)
+        . " subroutine(s)\n";
 
     return scalar(@subs_to_export);
 }
@@ -4114,12 +4179,22 @@ sub p7_export_inline_subroutines {
 # Parameters:
 #   $sub_name: Name of the subroutine to export
 #   $export_file: Optional file path to write export to (outputs to STDOUT if not provided)
-#   $content_format: Export format - 'decoded' for human-readable or 'original' for original encoded format
+#   $content_format: Export format - 'decoded' for human-readable or 'as-is' for encoded format as stored
 ##############################################################################
 sub p7_export_subroutine {
-    my $sub_name = shift;
-    my $export_file = shift;  # Optional filename
-    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
+    my $sub_name       = shift;
+    my $export_file    = shift;                 # Optional filename
+    my $content_format = shift // 'decoded';    # 'as-is' or 'decoded'
+
+    # Validate content format
+    if ( $content_format ne 'as-is' && $content_format ne 'decoded' ) {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            sprintf( ': invalid content format: %s', $content_format ),
+            ': valid formats are: as-is, decoded', ':'
+        );
+        return undef;
+    }
 
     # Validate input
     return unless defined $sub_name;
@@ -4129,14 +4204,16 @@ sub p7_export_subroutine {
     $inline_subs //= {};
 
     # Ensure subroutine exists
-    unless (defined $inline_subs->{$sub_name}) {
-        $code{'base.logs'}->("Error: Subroutine $sub_name not found in inline_subs registry")
+    unless ( defined $inline_subs->{$sub_name} ) {
+        $code{'base.logs'}->(
+            "Error: Subroutine $sub_name not found in inline_subs registry")
             if defined $code{'base.logs'};
         return;
     }
 
-    unless (defined $code{$sub_name}) {
-        $code{'base.logs'}->("Error: Subroutine $sub_name not found in code hash")
+    unless ( defined $code{$sub_name} ) {
+        $code{'base.logs'}
+            ->("Error: Subroutine $sub_name not found in code hash")
             if defined $code{'base.logs'};
         return;
     }
@@ -4152,66 +4229,80 @@ sub p7_export_subroutine {
 
     # Check if we have stored source code
     my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
-    my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
-    my $original_encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
+    my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name}
+        // 'none';
+    my $original_encoded
+        = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
     my $sub_code = $code{$sub_name};
 
-    if (defined $source_code) {
+    if ( defined $source_code ) {
+
         # Generate metadata for the subroutine
-        my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+        my $line_count = ( $source_code =~ tr/\n/\n/ ) + 1;
         my $byte_count = length($source_code);
-        my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
+        my $word_count = ( $source_code =~ tr/ \t\n/ \t\n/ );
 
         # Calculate checksum
         my $checksum;
         eval {
-            $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
+            $checksum
+                = p7_generate_subroutine_checksum( $source_code, $sub_name );
         };
 
-        if (defined $checksum) {
+        if ( defined $checksum ) {
+
             # Add metadata line to output
-            $output .= p7_build_export_metadata(
-                $checksum, $line_count, $byte_count, $word_count
-            );
+            $output .= p7_build_export_metadata( $checksum, $line_count,
+                $byte_count, $word_count );
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'as-is' && defined $original_encoded) {
+            if ( $content_format eq 'as-is' && defined $original_encoded ) {
+
                 # Add the original encoded data with proper prefix
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
+                my $prefix
+                    = ( $compression eq 'xz' )
+                    ? '7U3XU'
+                    : ( ( $compression eq 'gzip' ) ? 'D6FQQ' : '' );
                 $output .= ": $prefix$original_encoded\n";
             } else {
+
                 # Add source code in decoded form
-                foreach my $line (split /\n/, $source_code) {
+                foreach my $line ( split /\n/, $source_code ) {
                     $output .= "$line\n";
                 }
             }
         } else {
+
             # Checksum calculation failed
             $output .= "# ERROR: Failed to calculate checksum\n";
             $output .= "# Exported from: $sub_name (without validation)\n";
 
             # Add source code anyway
-            foreach my $line (split /\n/, $source_code) {
+            foreach my $line ( split /\n/, $source_code ) {
                 $output .= "$line\n";
             }
         }
     } else {
+
         # No source code available
         $output .= "# Exported from: $sub_name\n";
         $output .= "# NOTE: Original source code not available.\n";
-        $output .= "# This subroutine was imported before source tracking was enabled.\n";
-        $output .= "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+        $output
+            .= "# This subroutine was imported before source tracking was enabled.\n";
+        $output
+            .= "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
 
-        if (ref($sub_code) eq 'CODE') {
+        if ( ref($sub_code) eq 'CODE' ) {
             $output .= "# Code reference type: " . ref($sub_code) . "\n";
-            $output .= "sub {\n    # Source code would be here - not available\n    return 1;\n}\n";
+            $output
+                .= "sub {\n    # Source code would be here - not available\n    return 1;\n}\n";
         }
     }
 
     $output .= "### End of $export_name ###\n\n";
 
     # Handle output to file if specified
-    if (defined $export_file && length($export_file) > 0) {
+    if ( defined $export_file && length($export_file) > 0 ) {
         my $result = eval {
             open my $fh, '>', $export_file
                 or die "Could not open file $export_file for writing: $!";
@@ -4224,12 +4315,14 @@ sub p7_export_subroutine {
             my $error = $@ // "unknown error";
             $code{'base.logs'}->("Error writing to file $export_file: $error")
                 if defined $code{'base.logs'};
+
             # Still print to stdout as fallback
             print $output;
         }
 
         return $result ? $output : undef;
     } else {
+
         # Print to stdout (as requested)
         print $output;
         return $output;
@@ -4243,16 +4336,26 @@ sub p7_export_subroutine {
 # Parameters:
 #   $file_path: Path to the file where subroutines will be exported
 #   $pattern_filter: Optional regex pattern to filter which subroutines to export
-#   $content_format: Export format - 'decoded' (default) for human-readable or 'original' for original encoded format
+#   $content_format: Export format - 'decoded' (default) for human-readable or 'as-is' for encoded format as stored
 # Returns: Number of exported subroutines, or undef on error
 ##############################################################################
 sub p7_export_subroutines_to_file {
-    my $file_path = shift;
-    my $pattern_filter = shift; # Optional regex pattern to filter subs
-    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
+    my $file_path      = shift;
+    my $pattern_filter = shift;    # Optional regex pattern to filter subs
+    my $content_format = shift // 'decoded';    # 'as-is' or 'decoded'
+
+    # Validate content format
+    if ( $content_format ne 'as-is' && $content_format ne 'decoded' ) {
+        map { $code{'log.error'}->($ARG) } (
+            ':',
+            sprintf( ': invalid content format: %s', $content_format ),
+            ': valid formats are: as-is, decoded', ':'
+        );
+        return undef;
+    }
 
     # Validate file path
-    unless (defined $file_path) {
+    unless ( defined $file_path ) {
         $code{'base.logs'}->("Error: No file path provided for export")
             if defined $code{'base.logs'};
         return;
@@ -4260,7 +4363,7 @@ sub p7_export_subroutines_to_file {
 
     # Ensure directory exists
     my $dir = dirname($file_path);
-    unless (-d $dir) {
+    unless ( -d $dir ) {
         my $mkdir_result = eval {
             require File::Path;
             File::Path::make_path($dir);
@@ -4277,7 +4380,7 @@ sub p7_export_subroutines_to_file {
 
     # Open the file
     my $fh;
-    unless (open $fh, '>', $file_path) {
+    unless ( open $fh, '>', $file_path ) {
         $code{'base.logs'}->("Error opening file $file_path for writing: $!")
             if defined $code{'base.logs'};
         return;
@@ -4287,7 +4390,8 @@ sub p7_export_subroutines_to_file {
     my $old_fh = select($fh);
 
     # Use the existing export function
-    my $count = p7_export_inline_subroutines('file', $pattern_filter, $content_format);
+    my $count = p7_export_inline_subroutines( 'file', $pattern_filter,
+        $content_format );
 
     # Restore STDOUT
     select($old_fh);
@@ -4298,15 +4402,14 @@ sub p7_export_subroutines_to_file {
 
 ##############################################################################
 sub p7_encode_subroutine {
-    my ($sub_name, $compression_type) = @_;
-    $compression_type //= 'xz';  # Default to XZ compression
+    my ( $sub_name, $compression_type ) = @_;
+    $compression_type //= 'xz';    # Default to XZ compression
 
     # Get source code
     my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
-    if (!defined $source_code) {
+    if ( !defined $source_code ) {
         map { $code{'log.error'}->($ARG) } (
-            ':',
-            sprintf(': source code not available for %s.,', $sub_name),
+            ':', sprintf( ': source code not available for %s.,', $sub_name ),
             ':'
         );
         return;
@@ -4314,45 +4417,49 @@ sub p7_encode_subroutine {
 
     # Compress source code
     my $compressed_data;
-    if ($compression_type eq 'xz') {
+    if ( $compression_type eq 'xz' ) {
         eval {
             require Compress::Raw::Lzma;
+
             # Define the constant locally (LZMA_OK is 0)
             my $LZMA_OK = 0;
 
-            my ($lzma, $status) = Compress::Raw::Lzma::EasyEncoder->new();
+            my ( $lzma, $status ) = Compress::Raw::Lzma::EasyEncoder->new();
             $status == $LZMA_OK
-               or die "Cannot create lzma encoder: $status\n";
+                or die "Cannot create lzma encoder: $status\n";
             $compressed_data = '';
-            $status = $lzma->code(\$source_code, \$compressed_data);
+            $status = $lzma->code( \$source_code, \$compressed_data );
             $status == $LZMA_OK
-               or die "Compression failed: $status\n";
+                or die "Compression failed: $status\n";
         };
-    } elsif ($compression_type eq 'gzip') {
+    } elsif ( $compression_type eq 'gzip' ) {
         eval {
             require Compress::Raw::Zlib;
+
             # Define constants locally
-            my $Z_OK = 0;  # Z_OK is 0
+            my $Z_OK = 0;    # Z_OK is 0
 
             # Use hardcoded value for MAX_WBITS (15) or import it properly
             my $MAX_WBITS = 15;
 
-            my ($deflate, $status) = Compress::Raw::Zlib::Deflate->new(
+            my ( $deflate, $status )
+                = Compress::Raw::Zlib::Deflate->new(
                 -WindowBits => $MAX_WBITS );
             $status == $Z_OK
-               or die "Cannot create deflate stream: $status\n";
+                or die "Cannot create deflate stream: $status\n";
             $compressed_data = '';
-            $status = $deflate->deflate(\$source_code, \$compressed_data);
+            $status = $deflate->deflate( \$source_code, \$compressed_data );
             $status == $Z_OK
-               or die "Deflation failed: $status\n";
-            $status = $deflate->flush(\$compressed_data);
+                or die "Deflation failed: $status\n";
+            $status = $deflate->flush( \$compressed_data );
             $status == $Z_OK
-               or die "Flush failed: $status\n";
+                or die "Flush failed: $status\n";
         };
     } else {
         map { $code{'log.error'}->($ARG) } (
             ':',
-            sprintf(': unsupported compression type: %s.,', $compression_type),
+            sprintf( ': unsupported compression type: %s.,',
+                $compression_type ),
             ': supported types: xz, gzip',
             ':'
         );
@@ -4360,12 +4467,8 @@ sub p7_encode_subroutine {
     }
 
     if ($@) {
-        map { $code{'log.error'}->($ARG) } (
-            ':',
-            ': compression error:',
-            sprintf(': :. %s', $@),
-            ':'
-        );
+        map { $code{'log.error'}->($ARG) }
+            ( ':', ': compression error:', sprintf( ': :. %s', $@ ), ':' );
         return;
     }
 
@@ -4374,15 +4477,16 @@ sub p7_encode_subroutine {
     my $encoded = encode_b32r($compressed_data);
 
     # Generate metadata
-    my $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
-    my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+    my $checksum = p7_generate_subroutine_checksum( $source_code, $sub_name );
+    my $line_count = ( $source_code =~ tr/\n/\n/ ) + 1;
     my $byte_count = length($source_code);
-    my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
-    my $metadata = p7_build_export_metadata(
-        $checksum, $line_count, $byte_count, $word_count);
+    my $word_count = ( $source_code =~ tr/ \t\n/ \t\n/ );
+    my $metadata
+        = p7_build_export_metadata( $checksum, $line_count, $byte_count,
+        $word_count );
 
     # Determine prefix based on compression type
-    my $prefix = ($compression_type eq 'xz') ? '7U3XU' : 'D6FQQ';
+    my $prefix = ( $compression_type eq 'xz' ) ? '7U3XU' : 'D6FQQ';
 
     # Format output
     my $export_name = $sub_name;
