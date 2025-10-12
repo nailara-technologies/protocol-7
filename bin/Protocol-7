@@ -523,28 +523,15 @@ sub p7_init_exec {    ##  main variable initialization  ##
             my $args = $data{'system'}{'args'} // '';
             my $format = 'decoded'; # Default format
 
-            # Debug raw args and ARGV
-            print "Raw args: '$args'\n";
-            print "Raw ARGV: '", join("', '", @ARGV), "'\n";
-
             # Look for format in all remaining arguments
             foreach my $argv_arg (@ARGV) {
                 if ($argv_arg =~ /^-format=(original|decoded)$/) {
                     $format = $1;
-                    print "Found format in ARGV: $format\n";
                 }
             }
 
-            print "Format specified: '$format', remaining args: '$args'\n";
-
             # Extract pattern (remaining part after format removed)
             my $pattern = join '|', split ' ', $args;
-
-            # Debugging: Print available subroutines
-            print "Available subroutines:\n";
-            foreach my $sub_key (sort keys %{$data{'base'}{'inline_subs'}{'sub-name'}}) {
-                print "  - $sub_key\n";
-            }
 
             # Export based on pattern and format
             if (defined $pattern && length $pattern) {
@@ -4053,12 +4040,6 @@ sub p7_export_inline_subroutines {
         @subs_to_export = keys %$inline_subs;
     }
 
-    # Print debug info about subroutines to export
-    print "# Debug: Found " . scalar(@subs_to_export) . " subroutines matching the filter\n";
-    foreach my $sub_name (sort @subs_to_export) {
-        print "# - $sub_name (has code ref: " . (defined $code{$sub_name} ? "yes" : "no") . ")\n";
-    }
-    print "\n";
 
     # Process each subroutine for export
     foreach my $sub_name (@subs_to_export) {
@@ -4094,14 +4075,6 @@ sub p7_export_inline_subroutines {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Debug format info
-            print "# Debug format info for $export_name:\n";
-            print "#   - Using format: $content_format\n";
-            print "#   - Compression: $compression\n";
-            print "#   - Has original encoding: " . (defined $original_encoded ? "yes" : "no") . "\n";
-            print "#   - Format check: " . ($content_format eq 'original' ? "true" : "false") . "\n";
-            print "#   - Original encoding check: " . (defined $original_encoded ? "true" : "false") . "\n";
-            print "#   - Use original format: " . (($content_format eq 'original' && defined $original_encoded) ? "true" : "false") . "\n\n";
 
             # Choose format based on content_format parameter
             if ($content_format eq 'original' && defined $original_encoded) {
