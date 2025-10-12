@@ -519,17 +519,28 @@ sub p7_init_exec {    ##  main variable initialization  ##
             # Import main subroutines first
             p7_import_main_subroutines();
 
-            # Export based on pattern (if provided in args)
-            my $pattern = join '|', split ' ', $data{'system'}{'args'};
+            # Parse args for pattern and format
+            my $args = $data{'system'}{'args'} // '';
+            my $format = 'decoded'; # Default format
+
+            # Check if format is specified with --format=original or --format=decoded
+            if ($args =~ s/\s+--format=(original|decoded)//) {
+                $format = $1;
+            }
+
+            # Extract pattern (remaining part after format removed)
+            my $pattern = join '|', split ' ', $args;
+
+            # Export based on pattern and format
             if (defined $pattern && length $pattern) {
-                $code{'log.noerr'}->(sprintf(': exporting inline subroutines matching pattern: %s', $pattern));
+                $code{'log.noerr'}->(sprintf(': exporting inline subroutines matching pattern: %s (format: %s)', $pattern, $format));
                 $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines('stdout', $pattern);
+                p7_export_inline_subroutines('stdout', $pattern, $format);
             } else {
                 $code{'log.noerr'}->(':');
-                $code{'log.noerr'}->(': exporting all inline subroutines:');
+                $code{'log.noerr'}->(sprintf(': exporting all inline subroutines (format: %s):', $format));
                 $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines();
+                p7_export_inline_subroutines('stdout', undef, $format);
             }
             exit(0);
         }
@@ -3969,9 +3980,19 @@ sub p7_build_export_metadata {
 }
 
 ##############################################################################
+##############################################################################
+# Export Multiple Inline Subroutines
+# Usage: p7_export_inline_subroutines([$export_format], [$pattern_filter], [$content_format])
+# Parameters:
+#   $export_format: 'stdout' (default) or 'file' to indicate where output goes
+#   $pattern_filter: Optional regex pattern to filter which subroutines to export
+#   $content_format: Export format - 'decoded' (default) for human-readable or 'original' for original encoded format
+# Returns: Number of exported subroutines
+##############################################################################
 sub p7_export_inline_subroutines {
     my $export_format = shift // 'stdout';
     my $pattern_filter = shift; # Optional regex pattern to filter subs
+    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
 
     # Check if inline subs are available
     my $inline_subs = $data{'base'}{'inline_subs'}{'sub-name'}
@@ -4027,8 +4048,8 @@ sub p7_export_inline_subroutines {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Use original encoded format if available, otherwise use decoded form
-            if ($compression ne 'none' && defined $original_encoded) {
+            # Choose format based on content_format parameter
+            if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
                 # Print the original encoded data with prefix
                 my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
                 print ": $prefix$original_encoded\n";
@@ -4059,9 +4080,18 @@ sub p7_export_inline_subroutines {
 }
 
 ##############################################################################
+##############################################################################
+# Export Inline Subroutines
+# Usage: p7_export_subroutine($sub_name, [$export_file], [$content_format])
+# Parameters:
+#   $sub_name: Name of the subroutine to export
+#   $export_file: Optional file path to write export to (outputs to STDOUT if not provided)
+#   $content_format: Export format - 'decoded' for human-readable or 'original' for original encoded format
+##############################################################################
 sub p7_export_subroutine {
     my $sub_name = shift;
     my $export_file = shift;  # Optional filename
+    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
 
     # Validate input
     return unless defined $sub_name;
@@ -4116,8 +4146,8 @@ sub p7_export_subroutine {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Use original encoded format if available, otherwise use decoded form
-            if ($compression ne 'none' && defined $original_encoded) {
+            # Choose format based on content_format parameter
+            if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
                 # Add the original encoded data with prefix
                 my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
                 $output .= ": $prefix$original_encoded\n";
@@ -4179,9 +4209,19 @@ sub p7_export_subroutine {
 }
 
 ##############################################################################
+##############################################################################
+# Export Subroutines to a File
+# Usage: p7_export_subroutines_to_file($file_path, [$pattern_filter], [$content_format])
+# Parameters:
+#   $file_path: Path to the file where subroutines will be exported
+#   $pattern_filter: Optional regex pattern to filter which subroutines to export
+#   $content_format: Export format - 'decoded' (default) for human-readable or 'original' for original encoded format
+# Returns: Number of exported subroutines, or undef on error
+##############################################################################
 sub p7_export_subroutines_to_file {
     my $file_path = shift;
     my $pattern_filter = shift; # Optional regex pattern to filter subs
+    my $content_format = shift // 'decoded'; # 'original' or 'decoded'
 
     # Validate file path
     unless (defined $file_path) {
@@ -4219,7 +4259,7 @@ sub p7_export_subroutines_to_file {
     my $old_fh = select($fh);
 
     # Use the existing export function
-    my $count = p7_export_inline_subroutines('file', $pattern_filter);
+    my $count = p7_export_inline_subroutines('file', $pattern_filter, $content_format);
 
     # Restore STDOUT
     select($old_fh);
