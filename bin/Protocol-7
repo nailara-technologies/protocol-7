@@ -575,6 +575,9 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 # Register the subroutine in the name registry
                 $data{'base'}{'inline_subs'}{'sub-name'}{'base.test.function'} = { 'loaded' => time() };
 
+                # Create an actual function reference
+                $code{'base.test.function'} = sub { return "Hello, World!"; };
+
                 # Output confirmation
                 print "Test function 'base.test.function' created for export format testing.\n";
                 print "Try: $0 -export-inline-subs base.test.function --format=original\n";
