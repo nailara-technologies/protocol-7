@@ -53,6 +53,7 @@ Generic task to import and organize files from an unsorted directory into a stru
   - Category-specific INDEX.md files
   - Include keywords, topics, and search patterns
   - Add visual/interactive feature descriptions
+  - Update top-level INDEX.md in what-AI-thinks/ with links to all categories
 
 - [ ] **Step 6:** Verify and document
   - Confirm html-unsorted/ is empty
@@ -225,6 +226,7 @@ Before marking complete:
 - [ ] All moved files have optimized names
 - [ ] Each major category has INDEX.md
 - [ ] Master html-form/INDEX.md created
+- [ ] Top-level what-AI-thinks/INDEX.md updated with comprehensive tree view
 - [ ] Cross-references to perl-form/ added where appropriate
 - [ ] Git status shows only intended changes
 - [ ] No remote commits made
