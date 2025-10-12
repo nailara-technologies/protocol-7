@@ -4089,7 +4089,11 @@ sub p7_export_inline_subroutines {
             print "# Debug format info for $export_name:\n";
             print "#   - Using format: $content_format\n";
             print "#   - Compression: $compression\n";
-            print "#   - Has original encoding: " . (defined $original_encoded ? "yes" : "no") . "\n\n";
+            print "#   - Has original encoding: " . (defined $original_encoded ? "yes" : "no") . "\n";
+            print "#   - Format check: " . ($content_format eq 'original' ? "true" : "false") . "\n";
+            print "#   - Compression check: " . ($compression ne 'none' ? "true" : "false") . "\n";
+            print "#   - Original encoding check: " . (defined $original_encoded ? "true" : "false") . "\n";
+            print "#   - Use original format: " . (($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) ? "true" : "false") . "\n\n";
 
             # Choose format based on content_format parameter
             if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
