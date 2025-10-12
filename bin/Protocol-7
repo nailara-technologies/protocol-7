@@ -561,6 +561,27 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 exit(1);
             }
 
+            # Special case for testing the export format feature
+            if ($sub_name eq 'test-export-format') {
+                # Create a simple test subroutine
+                my $test_source = 'sub test_function { return "Hello, World!"; }';
+                # Store it with original_encoded data for testing
+                $data{'base'}{'inline_subs'}{'source'}{'base.test.function'} = $test_source;
+                $data{'base'}{'inline_subs'}{'compression'}{'base.test.function'} = 'xz';
+                # Create fake original encoding
+                p7_load_B32_routines() if not defined &encode_b32r;
+                my $encoded = encode_b32r($test_source);
+                $data{'base'}{'inline_subs'}{'original_encoded'}{'base.test.function'} = $encoded;
+                # Register the subroutine in the name registry
+                $data{'base'}{'inline_subs'}{'sub-name'}{'base.test.function'} = { 'loaded' => time() };
+
+                # Output confirmation
+                print "Test function 'base.test.function' created for export format testing.\n";
+                print "Try: $0 -export-inline-subs base.test.function --format=original\n";
+                print "and: $0 -export-inline-subs base.test.function --format=decoded\n";
+                exit(0);
+            }
+
             # Check for compression type option
             my $compression_type = 'xz';  # Default
             if ($sub_name =~ s/\s+(xz|gzip)$//) {
