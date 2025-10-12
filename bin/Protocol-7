@@ -519,19 +519,20 @@ sub p7_init_exec {    ##  main variable initialization  ##
             # Import main subroutines first
             p7_import_main_subroutines();
 
-            # Parse args for pattern and format
+            # Get all arguments
             my $args = $data{'system'}{'args'} // '';
             my $format = 'decoded'; # Default format
 
-            # Debug raw args
+            # Debug raw args and ARGV
             print "Raw args: '$args'\n";
+            print "Raw ARGV: '", join("', '", @ARGV), "'\n";
 
-            # Check if format is specified with --format=original or --format=decoded
-            if ($args =~ s/--format=(original|decoded)//g) {
-                $format = $1;
-                # Clean up any remaining spaces
-                $args =~ s/^\s+//;
-                $args =~ s/\s+$//;
+            # Look for format in all remaining arguments
+            foreach my $argv_arg (@ARGV) {
+                if ($argv_arg =~ /^-format=(original|decoded)$/) {
+                    $format = $1;
+                    print "Found format in ARGV: $format\n";
+                }
             }
 
             print "Format specified: '$format', remaining args: '$args'\n";
@@ -594,8 +595,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
                 # Output confirmation
                 print "Test function 'base.test.function' created for export format testing.\n";
-                print "Try: $0 -export-inline-subs base.test.function --format=original\n";
-                print "and: $0 -export-inline-subs base.test.function --format=decoded\n";
+                print "Try: $0 -export-inline-subs base.test.function -format=original\n";
+                print "and: $0 -export-inline-subs base.test.function -format=decoded\n";
                 exit(0);
             }
 
@@ -4099,14 +4100,13 @@ sub p7_export_inline_subroutines {
             print "#   - Compression: $compression\n";
             print "#   - Has original encoding: " . (defined $original_encoded ? "yes" : "no") . "\n";
             print "#   - Format check: " . ($content_format eq 'original' ? "true" : "false") . "\n";
-            print "#   - Compression check: " . ($compression ne 'none' ? "true" : "false") . "\n";
             print "#   - Original encoding check: " . (defined $original_encoded ? "true" : "false") . "\n";
-            print "#   - Use original format: " . (($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) ? "true" : "false") . "\n\n";
+            print "#   - Use original format: " . (($content_format eq 'original' && defined $original_encoded) ? "true" : "false") . "\n\n";
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
-                # Print the original encoded data with prefix
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+            if ($content_format eq 'original' && defined $original_encoded) {
+                # Print the original encoded data with proper prefix
+                my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
                 print ": $prefix$original_encoded\n";
             } else {
                 # Print source code in decoded form
@@ -4202,9 +4202,9 @@ sub p7_export_subroutine {
             );
 
             # Choose format based on content_format parameter
-            if ($content_format eq 'original' && $compression ne 'none' && defined $original_encoded) {
-                # Add the original encoded data with prefix
-                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+            if ($content_format eq 'original' && defined $original_encoded) {
+                # Add the original encoded data with proper prefix
+                my $prefix = ($compression eq 'xz') ? '7U3XU' : (($compression eq 'gzip') ? 'D6FQQ' : '');
                 $output .= ": $prefix$original_encoded\n";
             } else {
                 # Add source code in decoded form
