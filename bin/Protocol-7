@@ -63,7 +63,7 @@ $data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
 ##
 if (@ARGV) {
     my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE }
-        qw| c B nc nb BK stdin console use-http-src export-core-subs export-subs |;
+        qw| c B nc nb BK stdin console use-http-src core-subs export-inline-subs |;
     $data{'system'}{'args'} = join ' ',
         grep { not exists $remove_param{$ARG} } @ARGV;
     if ( length $data{'system'}{'args'} ) {
@@ -515,14 +515,14 @@ sub p7_init_exec {    ##  main variable initialization  ##
             $code{'dump_core_subs'}->();
             exit(0);
         }
-        if ( $arg eq qw| -export-subs | ) {
+        if ( $arg eq qw| -export-inline-subs | ) {
             # Import main subroutines first
             p7_import_main_subroutines();
 
             # Export based on pattern (if provided in args)
             my $pattern = join '|', split ' ', $data{'system'}{'args'};
             if (defined $pattern && length $pattern) {
-                print "Exporting subroutines matching pattern: '$pattern'\n\n";
+                print "Exporting inline subroutines matching pattern: '$pattern'\n\n";
                 p7_export_inline_subroutines('stdout', $pattern);
             } else {
                 print "Exporting all inline subroutines:\n\n";
