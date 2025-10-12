@@ -3675,6 +3675,8 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
 
                 } elsif ($end_of_subsrc) {
                     if ( $source_encoding eq qw| BASE32 | ) {
+                        # Save the original encoded form before modification
+                        my $original_encoded = $sub_source_line;
                         $sub_source_line =~ s|[01]||g;
 
                         ## load module first if not done ##
@@ -3787,7 +3789,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                             $sub_source_line = $decomp_buffer_sref->$*;
 
                             # Store original source code for later export
-                            p7_store_original_source($subroutine, $sub_source_line, $src_comp);
+                            p7_store_original_source($subroutine, $sub_source_line, $src_comp, $original_encoded);
 
                         }
                     }
@@ -3914,7 +3916,7 @@ END {
 
 ##############################################################################
 sub p7_store_original_source {
-    my ($sub_name, $source_code, $compression_type) = @_;
+    my ($sub_name, $source_code, $compression_type, $original_encoded) = @_;
 
     # Store original source code for later export
     # This is integrated in p7_load_inline_subroutines function
@@ -3924,6 +3926,10 @@ sub p7_store_original_source {
     # Store compression type if provided (xz, gzip, none)
     $data{'base'}{'inline_subs'}{'compression'}{$sub_name} = $compression_type
         if defined $compression_type;
+
+    # Store original encoded data if provided
+    $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name} = $original_encoded
+        if defined $original_encoded;
 }
 
 ##############################################################################
@@ -4005,6 +4011,7 @@ sub p7_export_inline_subroutines {
         # Check if we have stored source code for this subroutine
         my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
         my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
+        my $original_encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
 
         if (defined $source_code) {
             # Generate and print metadata
@@ -4020,9 +4027,16 @@ sub p7_export_inline_subroutines {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Always print source code in decoded form, regardless of original compression
-            foreach my $line (split /\n/, $source_code) {
-                print "$line\n";
+            # Use original encoded format if available, otherwise use decoded form
+            if ($compression ne 'none' && defined $original_encoded) {
+                # Print the original encoded data with prefix
+                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+                print ": $prefix$original_encoded\n";
+            } else {
+                # Print source code in decoded form
+                foreach my $line (split /\n/, $source_code) {
+                    print "$line\n";
+                }
             }
         } else {
             # No stored source available - explain the limitation
@@ -4081,6 +4095,7 @@ sub p7_export_subroutine {
     # Check if we have stored source code
     my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
     my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
+    my $original_encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
     my $sub_code = $code{$sub_name};
 
     if (defined $source_code) {
@@ -4101,9 +4116,16 @@ sub p7_export_subroutine {
                 $checksum, $line_count, $byte_count, $word_count
             );
 
-            # Always export source code in decoded form, regardless of original compression
-            foreach my $line (split /\n/, $source_code) {
-                $output .= "$line\n";
+            # Use original encoded format if available, otherwise use decoded form
+            if ($compression ne 'none' && defined $original_encoded) {
+                # Add the original encoded data with prefix
+                my $prefix = ($compression eq 'xz') ? '7U3XU' : 'D6FQQ';
+                $output .= ": $prefix$original_encoded\n";
+            } else {
+                # Add source code in decoded form
+                foreach my $line (split /\n/, $source_code) {
+                    $output .= "$line\n";
+                }
             }
         } else {
             # Checksum calculation failed
