@@ -4268,27 +4268,36 @@ sub p7_encode_subroutine {
     if ($compression_type eq 'xz') {
         eval {
             require Compress::Raw::Lzma;
+            # Define the constant locally (LZMA_OK is 0)
+            my $LZMA_OK = 0;
+
             my ($lzma, $status) = Compress::Raw::Lzma::EasyEncoder->new();
-            $status == Compress::Raw::Lzma::LZMA_OK
+            $status == $LZMA_OK
                or die "Cannot create lzma encoder: $status\n";
             $compressed_data = '';
             $status = $lzma->code(\$source_code, \$compressed_data);
-            $status == Compress::Raw::Lzma::LZMA_OK
+            $status == $LZMA_OK
                or die "Compression failed: $status\n";
         };
     } elsif ($compression_type eq 'gzip') {
         eval {
             require Compress::Raw::Zlib;
+            # Define constants locally
+            my $Z_OK = 0;  # Z_OK is 0
+
+            # Use hardcoded value for MAX_WBITS (15) or import it properly
+            my $MAX_WBITS = 15;
+
             my ($deflate, $status) = Compress::Raw::Zlib::Deflate->new(
-                -WindowBits => Compress::Raw::Zlib::MAX_WBITS() );
-            $status == Compress::Raw::Zlib::Z_OK
+                -WindowBits => $MAX_WBITS );
+            $status == $Z_OK
                or die "Cannot create deflate stream: $status\n";
             $compressed_data = '';
             $status = $deflate->deflate(\$source_code, \$compressed_data);
-            $status == Compress::Raw::Zlib::Z_OK
+            $status == $Z_OK
                or die "Deflation failed: $status\n";
             $status = $deflate->flush(\$compressed_data);
-            $status == Compress::Raw::Zlib::Z_OK
+            $status == $Z_OK
                or die "Flush failed: $status\n";
         };
     } else {
