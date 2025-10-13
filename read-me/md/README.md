@@ -1,16 +1,20 @@
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
 ### Source Code and Versioning
-: 3KG43U42DQ-5175.0
+
+:: 3KG6HQ42PY-5176.0 ::
+
 - Detailed version information: [Source Code Versions](/read-me/project-identity/source-code-versions.md)
 - Current source code version tracking available in dedicated documentation
 
 ### Licensing
+
 - [Licensing Details](/read-me/project-identity/licensing-details.md)
 - This is the public domain licensed 'base' branch
 
 ---
 ## Release Information
+
 - Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
 - Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
 ---
@@ -46,6 +50,7 @@ The minimal installation provides core functionality without GUI components.
 Run this command: `bin/dependencies/install_minimal_dependencies.debian.sh`
 
 This script installs:
+
 - Core Perl modules and system packages for basic functionality
 - Requirements for  'v7', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
 - Creates necessary symlinks and systemd service
@@ -59,6 +64,7 @@ First: `bin/dependencies/install_minimal_dependencies.debian.sh`
 Then: `bin/dependencies/install_dependencies.debian.sh`
 
 The full installation adds:
+
 - GUI-related packages (mpv, Xvfb, OpenBox, etc.)
 - Additional Perl modules for graphical zenki
 
@@ -69,6 +75,7 @@ Note: For browser agent functionality, see additional dependencies in the browse
 To start Protocol-7 with the v7 zenka, run: `bin/Protocol-7 v7`
 
 Alternatively, to use systemd:
+
 - Enable: `systemctl enable Protocol-7`
 - Start: `systemctl start Protocol-7`
 
@@ -91,6 +98,7 @@ Two primary methods for interacting with the Protocol-7 network:
    - Installed at: `/usr/local/bin/p7`
 
    ### Common Commands
+
    - `p7 list sessions`: Display active network sessions
      ```
       : usid :.  : protocol :.  : type :.  : mode :.  : uname :.    : since :.
@@ -101,6 +109,7 @@ Two primary methods for interacting with the Protocol-7 network:
      ```
 
    - `p7 commands`: List available commands for the current zenka
+
      - Displays command categories like:
        * Zenka management
        * Network time functions
@@ -108,12 +117,14 @@ Two primary methods for interacting with the Protocol-7 network:
        * Cryptographic utilities
 
    ### Command Routing Mechanism
+
    - Local Context Commands:
      * `p7 commands`: Commands for the currently connected zenka (local cube)
      * `p7 <zenka>.commands`: Commands for specific zenki
      * Recursive routing possible: `p7 weather.child.commands`
 
    ### Zenka-Specific Command Discovery
+
    - `p7 v7.list`: Lists specific to the v7 zenka
      ```
       : list name :.  : description :.
@@ -125,11 +136,13 @@ Two primary methods for interacting with the Protocol-7 network:
      ```
 
    ### Routing Principles
+
    - No `.` in command: Routes to local context
    - `.` in command: Routes to specified zenka or nested zenki
    - Enables flexible, hierarchical command routing
 
    ### Command Capabilities
+
    - Discover and interact with any zenka
    - Retrieve zenka-specific lists and information
    - Manage network sessions
@@ -180,20 +193,22 @@ Protocol-7 is functional but still under active development. Several key feature
 
 ## How to Contribute
 
-Detailed contribution guidelines are available in our [Contribution Guidelines](/read-me/project-identity/contribution-guidelines.md).
+Detailed contribution guidelines are available in [Contribution Guidelines](/read-me/project-identity/contribution-guidelines.md).
 
 Contributions to Protocol-7 are always welcome:
-- Explore our [Contribution Process](/read-me/project-identity/contribution-guidelines.md)
-- Understand our project's unique approach
+
+- Explore the [Contribution Process](/read-me/project-identity/contribution-guidelines.md)
+- Understand the project's unique approach
 
 ## Additional Documentation
 
 - [AMOS Resource Tokens](read-me/documentation/dev/NRT.NRD.asc) - Development notes on the blockchain currency
-- [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md) - Deep dive into our core principles
-  - Explore our unique vision of distributed computing
+- [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md) - Deep dive into core principles
+  - Explore the unique vision of distributed computing
   - Understand the metaphorical framework behind Protocol-7
 
 ### AI-Generated Insights and Research
+
 - **[AI Insights Overview](data/asc/what-AI-thinks/)**: Organized repository of AI-generated knowledge about Protocol-7 project state, structure, and research direction
   - **[HTML Visualizations and Documentation](data/asc/what-AI-thinks/html-form/INDEX.md)**: 149 HTML files with interactive visualizations, frameworks, and tools covering cubic space topologies, harmonic systems, Protocol-7 demonstrations, and mathematical justice frameworks
   - **[Perl Knowledge Modules](data/asc/what-AI-thinks/perl-form/INDEX.md)**: 68+ Perl modules containing symbolic implementations of consciousness emergence, harmonic mathematics, truth systems, and Claude AI insights
@@ -201,22 +216,43 @@ Contributions to Protocol-7 are always welcome:
 
 ## Vision
 
-For a comprehensive exploration of our project's philosophical foundation, please refer to our [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md).
+For a comprehensive exploration of the project's philosophical context, please refer to [Philosophical Foundation](/read-me/project-identity/philosophical-foundation.md).
 
 ### Core Vision Highlights
+
 - Pool idle network resources
 - Provide low-latency, high-burst capacity computing
 - Create a fair, distributed resource ecosystem
 
 ### Key Philosophical Principles
+
 - Resource distribution as network irrigation
 - Positive feedback through participation
 - Minimal barriers to entry
 - Equitable resource allocation
 
 ### The Overflow Principle
-After the network is saturated with what it needs to maintain a stable topology, a kind of overflow becomes available that is then distributed equally to the individual users. This ensures fair distribution and creates a positive feedback loop where more participation leads to better performance for all. Like water irrigating farmland, each participant receives resources proportional to their contribution, while public resource pools ensure that even newcomers can participate without barriers.
 
-What makes this approach elegantly simple is the use of statistical average user metrics (e.g., total network disk space divided by number of users) to determine optimal resource allocation. This statistical approach enables calculating resource values and costs without needing to look up specific accounts, thereby enhancing anonymization throughout the network.
+After the network is saturated with what it needs to maintain a stable
+topology, a kind of overflow becomes available that is then distributed
+equally to the individual users.  This ensures fair distribution and creates
+a positive feedback loop where more participation leads to better
+performance for all.  Like water irrigating farmland, each participant
+receives resources proportional to their contribution, while public resource
+pools ensure that even newcomers can participate without barriers.
 
-The full vision document explores our unique approach to distributed computing, network participation, and the metaphorical framework of resource sharing.
+What makes this approach elegantly simple is the use of statistical average
+user metrics (e.g., total network disk space divided by number of users) to
+determine optimal resource allocation.  This statistical approach enables
+calculating resource values and costs without needing to look up specific
+accounts, thereby enhancing anonymization throughout the network.
+
+The full vision document explores Protocol-7's unique approach to
+distributed computing, network participation, and the metaphorical framework
+of resource sharing.
+
+#,,..,,.,,,.,,,.,,,,,,..,,,,,,,..,,.,,,,,,,..,...,...,...,.,,,..,,.,.,.,,,.,,,
+#I2OCNTVEZX2ZBJVDYW3RNCNDTSMQY6DKIQAHUTMJLDTG6SVSI7BZY56BXB7QT3EHYGMECVXB2BQAO
+#\\\|ZGTMO64PWVYFRNUZ7U2H7N6S2TYZASSVSY4RQKKJAJYGOU5JTLT \ / AMOS7 \ YOURUM ::
+#\[7]7JZH56AN2D6FXOXCXP4KDU6VVPIKSYJEKSSED2YAIL77C5BEW2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
