@@ -7,6 +7,7 @@ task_manager:
   description: "Parent task file for managing Protocol-7 export functionality enhancement tasks"
   version: 1.0
   last_updated: "2025-10-13"
+  status: "completed"
 
 tasks:
   - id: "inline_subroutine_export"
@@ -27,28 +28,32 @@ tasks:
     description: "Fix missing colon prefixes in decoded format export output"
     file: "coding-tasks/bin_Protocol-7.fix-decoded-format-prefixes.yaml"
     priority: medium
-    state: "pending"
-    assignee: "Pending Assignment"
+    state: "completed"
+    completed_date: "2025-10-13"
+    assignee: "Claude"
     dependencies:
       - "inline_subroutine_export"
     notes: >
       This task addresses a specific style issue with the decoded format where code lines
-      are not properly prefixed with a colon (': '). The implementation will add a helper
-      function to ensure all code lines have the correct prefix.
+      were not properly prefixed with a colon (': '). The implementation adds a helper
+      function p7_print_decoded_with_colon_prefixes to ensure all code lines have the
+      correct prefix for consistency across all output formats.
 
   - id: "remove_redundant_end_markers"
     name: "Remove Redundant End Marker Comments"
     description: "Remove the '### End of subroutine_name ###' comment lines from export output"
     file: "coding-tasks/bin_Protocol-7.remove-redundant-end-markers.yaml"
     priority: medium
-    state: "pending"
-    assignee: "Pending Assignment"
+    state: "completed"
+    completed_date: "2025-10-13"
+    assignee: "Claude"
     dependencies:
       - "inline_subroutine_export"
     notes: >
       Since the ':.' line now implicitly marks the end of a subroutine, the additional
-      '### End of subroutine_name ###' comment line is redundant and should be removed
-      to maintain a cleaner output format.
+      '### End of subroutine_name ###' comment line was redundant and has been removed
+      to maintain a cleaner output format. The implementation comments out the print
+      statements that added these end marker comments.
 
 state_management:
   states:
@@ -105,11 +110,11 @@ transitions:
 
 metrics:
   total_tasks: 3
-  completed_tasks: 1
+  completed_tasks: 3
   in_progress_tasks: 0
-  pending_tasks: 2
+  pending_tasks: 0
   blocked_tasks: 0
-  completion_percentage: 33
+  completion_percentage: 100
 
 how_to_use:
   - "To change task state: Update the 'state' field of the task"
