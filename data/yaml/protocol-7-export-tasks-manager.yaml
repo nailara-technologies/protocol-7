@@ -36,6 +36,20 @@ tasks:
       are not properly prefixed with a colon (': '). The implementation will add a helper
       function to ensure all code lines have the correct prefix.
 
+  - id: "remove_redundant_end_markers"
+    name: "Remove Redundant End Marker Comments"
+    description: "Remove the '### End of subroutine_name ###' comment lines from export output"
+    file: "coding-tasks/bin_Protocol-7.remove-redundant-end-markers.yaml"
+    priority: medium
+    state: "pending"
+    assignee: "Pending Assignment"
+    dependencies:
+      - "inline_subroutine_export"
+    notes: >
+      Since the ':.' line now implicitly marks the end of a subroutine, the additional
+      '### End of subroutine_name ###' comment line is redundant and should be removed
+      to maintain a cleaner output format.
+
 state_management:
   states:
     - name: "pending"
@@ -90,12 +104,12 @@ transitions:
       - "External blocker identified"
 
 metrics:
-  total_tasks: 2
+  total_tasks: 3
   completed_tasks: 1
   in_progress_tasks: 0
-  pending_tasks: 1
+  pending_tasks: 2
   blocked_tasks: 0
-  completion_percentage: 50
+  completion_percentage: 33
 
 how_to_use:
   - "To change task state: Update the 'state' field of the task"

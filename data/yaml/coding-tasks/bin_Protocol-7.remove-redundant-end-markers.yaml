@@ -1,0 +1,114 @@
+---
+task:
+  name: "Remove Redundant End Marker Comments"
+  description: "Remove the '### End of subroutine_name ###' comment lines from Protocol-7's export functionality"
+  priority: medium
+  version: 1.0
+
+issue:
+  type: "code-cleanup"
+  severity: "low"
+  affects:
+    - "export-inline-subs functionality"
+    - "all export formats (decoded, as-is, encoded)"
+
+details:
+  description: >
+    In the current Protocol-7 export functionality, we have redundant end markers for subroutines.
+    Each subroutine is properly terminated with a ":." line, but we're also adding a
+    "### End of subroutine_name ###" comment line after that. Since the ":." line now implicitly
+    marks the end of a subroutine, the comment line is redundant and should be removed
+    to maintain a cleaner output format.
+
+  current_format: |
+    .:[base.parser.pattern_split] (DATA-format: encoded-xz, prefix: 7U3XU, output: decoded):.
+    :
+    : {
+    :     ... code lines ...
+    : }
+    :
+    : <PXU4LI6PAGTEUFVZANWFGP3KACXZ3N6CMQO2IT5Z7FOMFYKBJCEQ:0070:03104:00000683>
+    :.
+
+    ### End of base.parser.pattern_split ###
+    # Export completed: 1 subroutine(s)
+
+  expected_format: |
+    .:[base.parser.pattern_split] (DATA-format: encoded-xz, prefix: 7U3XU, output: decoded):.
+    :
+    : {
+    :     ... code lines ...
+    : }
+    :
+    : <PXU4LI6PAGTEUFVZANWFGP3KACXZ3N6CMQO2IT5Z7FOMFYKBJCEQ:0070:03104:00000683>
+    :.
+
+    # Export completed: 1 subroutine(s)
+
+action_plan:
+  steps:
+    - id: "locate_export_functions"
+      description: "Locate the export functions in Protocol-7"
+      details: "Find the functions that handle the export functionality, specifically p7_export_inline_subroutines or similar"
+
+    - id: "identify_end_marker_lines"
+      description: "Identify lines that add the end marker comments"
+      details: "Look for print statements that add the '### End of $export_name ###' lines in the export functions"
+
+    - id: "remove_end_marker_lines"
+      description: "Remove or comment out the lines that add the end marker comments"
+      details: "Remove the print statements that add the redundant end markers while preserving the ':.' line"
+
+    - id: "test_changes"
+      description: "Test export functionality with all formats"
+      details: "Verify that the export functionality works correctly without the end marker comments for all formats (decoded, as-is, encoded)"
+
+    - id: "update_documentation"
+      description: "Update any documentation referring to the end marker format"
+      details: "Update documentation to reflect that subroutines end with a ':.' line and no additional end marker is present"
+
+implementation:
+  approach: "direct_modification"
+  files_to_modify:
+    - path: "/data/projects/protocol-7/bin/Protocol-7"
+      changes:
+        - type: "remove"
+          location: "export_function"
+          content: |
+            print "### End of $export_name ###\\n";
+          replacement: |
+            # End marker now implicit with ':.' line
+            # The following line was removed:
+            # print "### End of $export_name ###\\n";
+
+  compatibility_notes: >
+    If there are any tools or scripts that depend on the presence of the "### End of" comments,
+    they will need to be updated to recognize the ":." line as the end marker instead.
+
+testing:
+  test_cases:
+    - name: "decoded_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.parser.pattern_split -format=decoded"
+      expected: "Output should end with ':.' line and not include '### End of base.parser.pattern_split ###'"
+
+    - name: "as-is_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.parser.pattern_split -format=as-is"
+      expected: "Output should end with ':.' line and not include '### End of base.parser.pattern_split ###'"
+
+    - name: "encoded_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.parser.pattern_split -format=encoded"
+      expected: "Output should end with ':.' line and not include '### End of base.parser.pattern_split ###'"
+
+    - name: "multiple_subroutine_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs 'base.*' -format=decoded"
+      expected: "Each subroutine should end with its own ':.' line without any '### End of' comments"
+
+documentation:
+  update_required: true
+  sections_to_update:
+    - "Protocol-7 Export Functionality Documentation"
+    - "Protocol-7 Style Guide"
+
+  notes: >
+    The documentation should be updated to clarify that the ':.' line now serves as the
+    definitive end marker for subroutines in exported content, without additional comment markers.
