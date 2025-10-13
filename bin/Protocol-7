@@ -4842,8 +4842,8 @@ sub p7_export_inline_subroutines_with_exact_style {
         # Generate header with DATA block format info in Protocol-7 style
         print ".:[";
         print " $export_name";
-        print " ]";
-        print ":.\n";
+        print " ]:.";  # Fixed missing colon
+        print "\n";
 
         # Show format info if available in new style
         if (defined $data_format && $data_format->{data_format} ne 'unknown' &&
