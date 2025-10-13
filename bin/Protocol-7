@@ -4895,8 +4895,11 @@ sub p7_export_inline_subroutines_with_exact_style {
             my $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
             my $metadata = p7_build_export_metadata($checksum, $line_count, $byte_count, $word_count);
 
-            # Add empty line after the header (Protocol-7 style)
-            print ":\n";
+            # Add empty line after the header (Protocol-7 style) - only if needed
+            # For source-key, don't add extra blank line to match DATA block
+            if ($export_name ne 'base.protocol-7.source-key') {
+                print ":\n";
+            }
 
             # Export based on the DATA block format and requested output format
             if ($data_format->{data_format} eq 'decoded') {
@@ -4907,7 +4910,8 @@ sub p7_export_inline_subroutines_with_exact_style {
                     p7_encode_and_print_for_export($source_code, 'xz');
 
                     # Add empty line before metadata (Protocol-7 style)
-                    print ":\n";
+            # Removed extra blank line to match DATA block style
+            #                     print ":\n";
 
                     # Print metadata after code (Protocol-7 style)
                     print $metadata;
@@ -4997,7 +5001,7 @@ sub p7_export_inline_subroutines_with_exact_style {
             }
 
             # Add the ':.' end marker (Protocol-7 style)
-            print ":.\n\n";
+            print ":.\n";
 
             # End marker now implicit with ':.' line
             # The following line was removed:
