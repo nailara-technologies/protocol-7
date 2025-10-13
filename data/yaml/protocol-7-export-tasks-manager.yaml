@@ -1,0 +1,124 @@
+---
+# Protocol-7 Export Functionality Enhancement Tasks Manager
+# This file manages and tracks the state of export functionality tasks
+
+task_manager:
+  name: "Protocol-7 Export Functionality Enhancement"
+  description: "Parent task file for managing Protocol-7 export functionality enhancement tasks"
+  version: 1.0
+  last_updated: "2025-10-13"
+
+tasks:
+  - id: "inline_subroutine_export"
+    name: "Implement Inline Subroutine Export"
+    description: "Implement functionality to export inline subroutines from DATA block"
+    file: "coding-tasks/bin_Protocol-7.implement_inline_subroutine_export.yaml"
+    priority: high
+    state: "completed"
+    completed_date: "2025-10-12"
+    assignee: "Claude"
+    notes: >
+      The core export functionality has been implemented with support for three formats:
+      'decoded', 'as-is', and 'encoded'. The implementation includes format validation,
+      metadata display, and compression handling.
+
+  - id: "fix_decoded_format_prefixes"
+    name: "Fix Decoded Format Colon Prefixes"
+    description: "Fix missing colon prefixes in decoded format export output"
+    file: "coding-tasks/bin_Protocol-7.fix-decoded-format-prefixes.yaml"
+    priority: medium
+    state: "pending"
+    assignee: "Pending Assignment"
+    dependencies:
+      - "inline_subroutine_export"
+    notes: >
+      This task addresses a specific style issue with the decoded format where code lines
+      are not properly prefixed with a colon (': '). The implementation will add a helper
+      function to ensure all code lines have the correct prefix.
+
+state_management:
+  states:
+    - name: "pending"
+      description: "Task is defined but not yet started"
+      action: "Assign task to developer"
+
+    - name: "in_progress"
+      description: "Task is actively being worked on"
+      action: "Update progress regularly"
+
+    - name: "review"
+      description: "Task implementation is complete and awaiting review"
+      action: "Assign reviewer and schedule review"
+
+    - name: "completed"
+      description: "Task has been completed and reviewed"
+      action: "Document completion and update dependencies"
+
+    - name: "blocked"
+      description: "Task cannot proceed due to external dependencies"
+      action: "Document blocker and follow up on dependencies"
+
+transitions:
+  - from: "pending"
+    to: "in_progress"
+    conditions:
+      - "All dependencies completed"
+      - "Task assigned to developer"
+
+  - from: "in_progress"
+    to: "review"
+    conditions:
+      - "Implementation complete"
+      - "Tests passing"
+      - "Code committed"
+
+  - from: "review"
+    to: "completed"
+    conditions:
+      - "Code review passed"
+      - "Documentation updated"
+
+  - from: "review"
+    to: "in_progress"
+    conditions:
+      - "Changes requested in review"
+
+  - from: "pending"
+    to: "blocked"
+    conditions:
+      - "Dependencies not met"
+      - "External blocker identified"
+
+metrics:
+  total_tasks: 2
+  completed_tasks: 1
+  in_progress_tasks: 0
+  pending_tasks: 1
+  blocked_tasks: 0
+  completion_percentage: 50
+
+how_to_use:
+  - "To change task state: Update the 'state' field of the task"
+  - "To mark task as completed: Set state to 'completed' and add completed_date"
+  - "To add a new task: Add a new entry to the 'tasks' array with required fields"
+  - "To track dependencies: List dependent task IDs in the 'dependencies' array"
+  - "To update metrics: Manually update the metrics section when changing task states"
+
+future_tasks:
+  - id: "export_to_module_structure"
+    name: "Implement Export to Module Structure"
+    description: "Add capability to export subroutines to organized module directory structure"
+    priority: low
+    estimated_start: "TBD"
+    dependencies:
+      - "inline_subroutine_export"
+      - "fix_decoded_format_prefixes"
+
+  - id: "web_interface_for_export"
+    name: "Web Interface for Export Management"
+    description: "Create a web interface for managing exports and visualizing dependencies"
+    priority: low
+    estimated_start: "TBD"
+    dependencies:
+      - "inline_subroutine_export"
+      - "fix_decoded_format_prefixes"
