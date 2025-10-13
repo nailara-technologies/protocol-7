@@ -1,23 +1,5 @@
 #!/usr/bin/perl
 
-# Function to print decoded content with colon prefixes
-sub p7_print_decoded_with_colon_prefixes {
-    my ($content) = @_;
-    foreach my $line (split("\n", $content)) {
-        print ": $line\n";
-    }
-    return 1;
-}
-
-# Function to print decoded content with colon prefixes
-sub p7_print_decoded_with_colon_prefixes {
-    my ($content) = @_;
-    foreach my $line (split("\n", $content)) {
-        print ": $line\n";
-    }
-    return 1;
-}
-
 use utf8;
 use strict;
 use v5.28.0;
@@ -725,7 +707,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
                     )
                 );
                 $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines_with_exact_style( 'stdout', $pattern, $format );
+                p7_export_inline_subroutines_with_exact_style( 'stdout',
+                    $pattern, $format );
             } else {
                 $code{'log.noerr'}->(':');
                 $code{'log.noerr'}->(
@@ -734,7 +717,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
                         $format )
                 );
                 $code{'log.noerr'}->(':');
-                p7_export_inline_subroutines_with_exact_style( 'stdout', undef, $format );
+                p7_export_inline_subroutines_with_exact_style( 'stdout',
+                    undef, $format );
             }
             exit(0);
         }
@@ -4537,99 +4521,108 @@ sub p7_detect_exact_data_block_format {
 
     # Default response
     my $result = {
-        data_format => 'unknown',   # Format in DATA block
-        compression => 'none',      # Compression type used
-        prefix => '',               # Prefix used in encoded form
-        is_encoded => 0,            # Whether it's encoded
-        code_style => 'standard',   # How code is formatted in DATA block
-        metadata_position => 'before' # Where metadata appears (before/after code)
+        data_format       => 'unknown',  # Format in DATA block
+        compression       => 'none',     # Compression type used
+        prefix            => '',         # Prefix used in encoded form
+        is_encoded        => 0,          # Whether it's encoded
+        code_style        => 'standard', # How code is formatted in DATA block
+        metadata_position =>
+            'before'    # Where metadata appears (before/after code)
     };
 
     # First check if we have metadata in our data structure
-    if (defined $data{'base'}{'inline_subs'}{'compression'}{$sub_name}) {
-        $result->{compression} = $data{'base'}{'inline_subs'}{'compression'}{$sub_name};
+    if ( defined $data{'base'}{'inline_subs'}{'compression'}{$sub_name} ) {
+        $result->{compression}
+            = $data{'base'}{'inline_subs'}{'compression'}{$sub_name};
 
-        if ($result->{compression} eq 'xz') {
-            $result->{prefix} = '7U3XU';
+        if ( $result->{compression} eq 'xz' ) {
+            $result->{prefix}      = '7U3XU';
             $result->{data_format} = 'encoded-xz';
-            $result->{is_encoded} = 1;
-        } elsif ($result->{compression} eq 'gzip') {
-            $result->{prefix} = 'D6FQQ';
+            $result->{is_encoded}  = 1;
+        } elsif ( $result->{compression} eq 'gzip' ) {
+            $result->{prefix}      = 'D6FQQ';
             $result->{data_format} = 'encoded-gzip';
-            $result->{is_encoded} = 1;
+            $result->{is_encoded}  = 1;
         }
     }
 
     # If we have original encoded form, check it
-    if ($result->{data_format} eq 'unknown' &&
-        defined $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name}) {
+    if ( $result->{data_format} eq 'unknown'
+        && defined $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name}
+    ) {
 
-        my $encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
+        my $encoded
+            = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
 
         # Look for compression prefixes in the encoded data
-        if ($encoded =~ /^7U3XU/) {
+        if ( $encoded =~ /^7U3XU/ ) {
             $result->{data_format} = 'encoded-xz';
             $result->{compression} = 'xz';
-            $result->{prefix} = '7U3XU';
-            $result->{is_encoded} = 1;
-        } elsif ($encoded =~ /^D6FQQ/) {
+            $result->{prefix}      = '7U3XU';
+            $result->{is_encoded}  = 1;
+        } elsif ( $encoded =~ /^D6FQQ/ ) {
             $result->{data_format} = 'encoded-gzip';
             $result->{compression} = 'gzip';
-            $result->{prefix} = 'D6FQQ';
-            $result->{is_encoded} = 1;
+            $result->{prefix}      = 'D6FQQ';
+            $result->{is_encoded}  = 1;
         } else {
+
             # Likely just BASE32 encoded
             $result->{data_format} = 'encoded-base32';
-            $result->{is_encoded} = 1;
+            $result->{is_encoded}  = 1;
         }
     }
 
     # If we still don't know but have source, it's probably decoded
-    if ($result->{data_format} eq 'unknown' &&
-        exists $data{'base'}{'inline_subs'}{'source'}{$sub_name}) {
+    if ( $result->{data_format} eq 'unknown'
+        && exists $data{'base'}{'inline_subs'}{'source'}{$sub_name} ) {
         $result->{data_format} = 'decoded';
     }
 
     # Try to examine the DATA block to find the exact colon style
-    seek(DATA, 0, 0);
+    seek( DATA, 0, 0 );
     my $in_target_sub = 0;
-    my $sub_content = '';
+    my $sub_content   = '';
     my $sub_name_safe = $sub_name;
-    $sub_name_safe =~ s|^p7__||g;  # Remove prefix if present
-    $sub_name_safe =~ s|__|\.|g;   # Convert double underscore to dot
+    $sub_name_safe =~ s|^p7__||g;    # Remove prefix if present
+    $sub_name_safe =~ s|__|\.|g;     # Convert double underscore to dot
 
     # Escape special regex characters in the subroutine name
     $sub_name_safe = quotemeta($sub_name_safe);
 
-    my $sub_marker = ":\\[" . $sub_name_safe . "\\]:"; # How subroutines are marked in DATA
+    my $sub_marker
+        = ":\\["
+        . $sub_name_safe
+        . "\\]:";                    # How subroutines are marked in DATA
 
     # Variables to track line prefixes and structure
-    my $line_prefix = '';
-    my $has_metadata = 0;
-    my $metadata_line = '';
+    my $line_prefix     = '';
+    my $has_metadata    = 0;
+    my $metadata_line   = '';
     my $first_code_line = '';
-    my $code_prefix = '';
-    my $code_suffix = '';
-    my $line_count = 0;
+    my $code_prefix     = '';
+    my $code_suffix     = '';
+    my $line_count      = 0;
 
     # Search through DATA
-    while (my $line = <DATA>) {
+    while ( my $line = <DATA> ) {
         chomp $line;
 
         # Check for start of our target subroutine
-        if ($line =~ /^$sub_marker$/ || $line =~ /^$sub_marker\s+\(/) {
+        if ( $line =~ /^$sub_marker$/ || $line =~ /^$sub_marker\s+\(/ ) {
             $in_target_sub = 1;
             next;
         }
 
         # Check for end of our target subroutine
         if ($in_target_sub) {
-            # Use original sub_name for the end marker (not the escaped version)
-            my $end_sub_name = $sub_name;
-            $end_sub_name =~ s|^p7__||g;  # Remove prefix if present
-            $end_sub_name =~ s|__|.|g;    # Convert double underscore to dot
 
-            if ($line =~ /^### End of $end_sub_name ###$/) {
+          # Use original sub_name for the end marker (not the escaped version)
+            my $end_sub_name = $sub_name;
+            $end_sub_name =~ s|^p7__||g;    # Remove prefix if present
+            $end_sub_name =~ s|__|.|g;      # Convert double underscore to dot
+
+            if ( $line =~ /^### End of $end_sub_name ###$/ ) {
                 last;
             }
         }
@@ -4640,61 +4633,70 @@ sub p7_detect_exact_data_block_format {
             $line_count++;
 
             # Detect metadata line (usually starts with ": <")
-            if ($line =~ /^:\s+<.+>$/) {
+            if ( $line =~ /^:\s+<.+>$/ ) {
                 $metadata_line = $line;
-                $has_metadata = 1;
+                $has_metadata  = 1;
             }
-            # Detect if this is encoded data (starts with ": 7U3XU" or ": D6FQQ")
-            elsif ($line =~ /^:\s+(7U3XU|D6FQQ)/) {
+
+         # Detect if this is encoded data (starts with ": 7U3XU" or ": D6FQQ")
+            elsif ( $line =~ /^:\s+(7U3XU|D6FQQ)/ ) {
                 $first_code_line = $line;
-                $line_prefix = ': ';
+                $line_prefix     = ': ';
 
                 # If metadata came before this, metadata is before code
                 if ($has_metadata) {
                     $result->{metadata_position} = 'before';
                 } else {
+
                     # Keep collecting to determine if metadata comes after
                 }
             }
+
             # Detect if this is the first line of decoded source
-            elsif ($line_count == 1 && !$has_metadata && $line =~ /^\{/) {
+            elsif ( $line_count == 1 && !$has_metadata && $line =~ /^\{/ ) {
                 $first_code_line = $line;
-                $code_prefix = '';
+                $code_prefix     = '';
 
                 # In this case, the metadata might come after the code
                 # We'll need to keep checking
             }
+
             # Detect if code lines have a prefix (": ")
-            elsif (!$has_metadata && $line =~ /^:\s+(.+)$/) {
+            elsif ( !$has_metadata && $line =~ /^:\s+(.+)$/ ) {
                 $code_prefix = ': ';
             }
+
             # If we find metadata after we've seen code, note it
-            elsif ($line =~ /^:\s+<.+>$/ && defined($first_code_line) && length($first_code_line)) {
-                $metadata_line = $line;
-                $has_metadata = 1;
+            elsif ( $line =~ /^:\s+<.+>$/
+                && defined($first_code_line)
+                && length($first_code_line) ) {
+                $metadata_line               = $line;
+                $has_metadata                = 1;
                 $result->{metadata_position} = 'after';
             }
+
             # Detect end-of-code marker for colon style
-            elsif ($line =~ /^:.$/) {
+            elsif ( $line =~ /^:.$/ ) {
                 $code_suffix = ':.';
             }
         }
     }
 
     # Reset DATA handle
-    seek(DATA, 0, 0);
+    seek( DATA, 0, 0 );
 
     # Set code style based on what we found
-    if ($line_prefix eq ': ' || $code_prefix eq ': ') {
+    if ( $line_prefix eq ': ' || $code_prefix eq ': ' ) {
         $result->{code_style} = 'colon_prefixed';
     } else {
         $result->{code_style} = 'standard';
     }
 
     # Update our understanding of the format
-    if ($result->{code_style} eq 'colon_prefixed' && $result->{data_format} eq 'unknown') {
+    if (   $result->{code_style} eq 'colon_prefixed'
+        && $result->{data_format} eq 'unknown' ) {
         $result->{data_format} = 'encoded';
-    } elsif ($result->{data_format} eq 'unknown') {
+    } elsif ( $result->{data_format} eq 'unknown' ) {
         $result->{data_format} = 'decoded';
     }
 
@@ -4710,36 +4712,38 @@ sub p7_detect_exact_data_block_format {
 # Returns: 1 on success
 ##############################################################################
 sub p7_encode_and_print_for_export {
-    my ($source_code, $compression_type) = @_;
-    $compression_type //= 'xz'; # Default to XZ
+    my ( $source_code, $compression_type ) = @_;
+    $compression_type //= 'xz';    # Default to XZ
 
     my $compressed_data = '';
-    my $prefix = '';
+    my $prefix          = '';
 
-    if ($compression_type eq 'xz') {
+    if ( $compression_type eq 'xz' ) {
         eval {
             require Compress::Raw::Lzma;
             my $LZMA_OK = 0;
-            my ($lzma, $status) = Compress::Raw::Lzma::EasyEncoder->new();
-            if (defined $lzma && $status == $LZMA_OK) {
-                $status = $lzma->code(\$source_code, \$compressed_data);
-                if ($status == $LZMA_OK && length($compressed_data)) {
+            my ( $lzma, $status ) = Compress::Raw::Lzma::EasyEncoder->new();
+            if ( defined $lzma && $status == $LZMA_OK ) {
+                $status = $lzma->code( \$source_code, \$compressed_data );
+                if ( $status == $LZMA_OK && length($compressed_data) ) {
                     $prefix = '7U3XU';
                 }
             }
         };
-    } elsif ($compression_type eq 'gzip') {
+    } elsif ( $compression_type eq 'gzip' ) {
         eval {
             require Compress::Raw::Zlib;
-            my $Z_OK = 0;
+            my $Z_OK      = 0;
             my $MAX_WBITS = 15;
-            my ($deflate, $status) = Compress::Raw::Zlib::Deflate->new(
-                -WindowBits => $MAX_WBITS);
-            if (defined $deflate && $status == $Z_OK) {
-                $status = $deflate->deflate(\$source_code, \$compressed_data);
-                if ($status == $Z_OK) {
-                    $status = $deflate->flush(\$compressed_data);
-                    if ($status == $Z_OK && length($compressed_data)) {
+            my ( $deflate, $status )
+                = Compress::Raw::Zlib::Deflate->new(
+                -WindowBits => $MAX_WBITS );
+            if ( defined $deflate && $status == $Z_OK ) {
+                $status
+                    = $deflate->deflate( \$source_code, \$compressed_data );
+                if ( $status == $Z_OK ) {
+                    $status = $deflate->flush( \$compressed_data );
+                    if ( $status == $Z_OK && length($compressed_data) ) {
                         $prefix = 'D6FQQ';
                     }
                 }
@@ -4749,33 +4753,39 @@ sub p7_encode_and_print_for_export {
 
     # Encode and print with the correct colon style
     p7_load_B32_routines() if not defined &encode_b32r;
-    if (!length($compressed_data)) {
+    if ( !length($compressed_data) ) {
+
         # Fall back to BASE32 encoding without compression
         my $encoded = encode_b32r($source_code);
+
         # Split into reasonable chunk lengths
         my $line_length = 80;
-        for (my $i = 0; $i < length($encoded); $i += $line_length) {
-            my $chunk_length = ($i + $line_length <= length($encoded))
+        for ( my $i = 0; $i < length($encoded); $i += $line_length ) {
+            my $chunk_length
+                = ( $i + $line_length <= length($encoded) )
                 ? $line_length
-                : (length($encoded) - $i);
-            my $chunk = substr($encoded, $i, $chunk_length);
+                : ( length($encoded) - $i );
+            my $chunk = substr( $encoded, $i, $chunk_length );
             print ": $chunk\n";
         }
     } else {
+
         # Compressed data with appropriate prefix
         my $encoded = $prefix . encode_b32r($compressed_data);
+
         # Split into reasonable chunk lengths
         my $line_length = 80;
-        for (my $i = 0; $i < length($encoded); $i += $line_length) {
-            my $chunk_length = ($i + $line_length <= length($encoded))
+        for ( my $i = 0; $i < length($encoded); $i += $line_length ) {
+            my $chunk_length
+                = ( $i + $line_length <= length($encoded) )
                 ? $line_length
-                : (length($encoded) - $i);
-            my $chunk = substr($encoded, $i, $chunk_length);
+                : ( length($encoded) - $i );
+            my $chunk = substr( $encoded, $i, $chunk_length );
             print ": $chunk\n";
         }
     }
 
-        # Add colon line after the encoded data for consistency
+    # Add colon line after the encoded data for consistency
     print ":\n";
     return 1;
 }
@@ -4788,18 +4798,31 @@ sub p7_encode_and_print_for_export {
 #   $content_format: Export format - 'decoded' (default), 'as-is', or 'encoded'
 # Returns: Number of exported subroutines
 ##############################################################################
+
+# Function to print decoded content with colon prefixes
+sub p7_print_decoded_with_colon_prefixes {
+    my ($content) = @_;
+    foreach my $line ( split( "\n", $content ) ) {
+        print ": $line\n";
+    }
+    return 1;
+}
+
+##############################################################################
 sub p7_export_inline_subroutines_with_exact_style {
-    my $export_format = shift // 'stdout';
-    my $pattern_filter = shift; # Optional regex pattern to filter subs
-    my $content_format = shift // 'decoded'; # 'as-is', 'decoded', or 'encoded'
+    my $export_format  = shift // 'stdout';
+    my $pattern_filter = shift;    # Optional regex pattern to filter subs
+    my $content_format = shift
+        // 'decoded';              # 'as-is', 'decoded', or 'encoded'
 
     # Validate content format
-    if ($content_format ne 'as-is' && $content_format ne 'decoded' && $content_format ne 'encoded') {
+    if (   $content_format ne 'as-is'
+        && $content_format ne 'decoded'
+        && $content_format ne 'encoded' ) {
         map { $code{'log.error'}->($ARG) } (
             ':',
-            sprintf(': invalid content format: %s', $content_format),
-            ': valid formats are: as-is, decoded, encoded',
-            ':'
+            sprintf( ': invalid content format: %s', $content_format ),
+            ': valid formats are: as-is, decoded, encoded', ':'
         );
         return 0;
     }
@@ -4811,7 +4834,8 @@ sub p7_export_inline_subroutines_with_exact_style {
 
     # Get all loaded subroutines from data structure
     my @subs_to_export;
-    if (defined $pattern_filter && length($pattern_filter)) {
+    if ( defined $pattern_filter && length($pattern_filter) ) {
+
         # Filter subroutines based on pattern
         @subs_to_export = grep {
             my $export_name = $_;
@@ -4829,7 +4853,7 @@ sub p7_export_inline_subroutines_with_exact_style {
     # Process each subroutine
     my $export_count = 0;
     foreach my $sub_name (@subs_to_export) {
-        my $sub_ref = $inline_subs->{$sub_name};
+        my $sub_ref  = $inline_subs->{$sub_name};
         my $sub_code = $code{$sub_name};
         next unless defined $sub_code;
 
@@ -4844,41 +4868,59 @@ sub p7_export_inline_subroutines_with_exact_style {
         # Generate header with DATA block format info in Protocol-7 style
         print ".:[";
         print " $export_name";
-        print " ]:.";  # Fixed missing colon
+        print " ]:.";    # Fixed missing colon
         print "\n";
 
         # Show format info if available in new style
-        if (defined $data_format && $data_format->{data_format} ne 'unknown' &&
-            ($content_format ne 'as-is' || $ENV{'P7_SHOW_FORMAT_INFO'})) {
+        if (   defined $data_format
+            && $data_format->{data_format} ne 'unknown'
+            && ( $content_format ne 'as-is' || $ENV{'P7_SHOW_FORMAT_INFO'} ) )
+        {
             print ":\n";
 
             # Check if there will be more than one key-value pair
-            my $has_multiple_keys =
-                ($data_format->{is_encoded} && $data_format->{prefix}) ||
-                ($content_format ne 'as-is' &&
-                 (($data_format->{data_format} eq 'decoded' && $content_format eq 'encoded') ||
-                  ($data_format->{data_format} =~ /^encoded/ && $content_format eq 'decoded')));
+            my $has_multiple_keys
+                = ( $data_format->{is_encoded} && $data_format->{prefix} )
+                || (
+                $content_format ne 'as-is'
+                && (
+                    (      $data_format->{data_format} eq 'decoded'
+                        && $content_format eq 'encoded'
+                    )
+                    || (   $data_format->{data_format} =~ /^encoded/
+                        && $content_format eq 'decoded' )
+                )
+                );
 
             # Format differently based on number of key-value pairs
             if ($has_multiple_keys) {
+
                 # Multiple key-value pairs - use separators
                 print ":: data format : " . $data_format->{data_format};
 
-                if ($data_format->{is_encoded} && $data_format->{prefix}) {
+                if ( $data_format->{is_encoded} && $data_format->{prefix} ) {
                     print " :: prefix : " . $data_format->{prefix};
                 }
 
                 # Show output format if different from DATA format
-                if ($content_format ne 'as-is' &&
-                    (($data_format->{data_format} eq 'decoded' && $content_format eq 'encoded') ||
-                     ($data_format->{data_format} =~ /^encoded/ && $content_format eq 'decoded'))) {
+                if ($content_format ne 'as-is'
+                    && (
+                        (      $data_format->{data_format} eq 'decoded'
+                            && $content_format eq 'encoded'
+                        )
+                        || (   $data_format->{data_format} =~ /^encoded/
+                            && $content_format eq 'decoded' )
+                    )
+                ) {
                     print " :: output : $content_format";
                 }
 
                 print " ::";
             } else {
+
                 # Only one key-value pair - use direct closing
-                print ":: data format : " . $data_format->{data_format} . " ::";
+                print ":: data format : "
+                    . $data_format->{data_format} . " ::";
             }
 
             print "\n";
@@ -4886,45 +4928,56 @@ sub p7_export_inline_subroutines_with_exact_style {
 
         # Check if we have stored source code
         my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
-        my $compression = $data{'base'}{'inline_subs'}{'compression'}{$sub_name} // 'none';
-        my $original_encoded = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
+        my $compression
+            = $data{'base'}{'inline_subs'}{'compression'}{$sub_name}
+            // 'none';
+        my $original_encoded
+            = $data{'base'}{'inline_subs'}{'original_encoded'}{$sub_name};
 
-        if (defined $source_code) {
+        if ( defined $source_code ) {
+
             # Generate metadata
-            my $line_count = ($source_code =~ tr/\n/\n/) + 1;
+            my $line_count = ( $source_code =~ tr/\n/\n/ ) + 1;
             my $byte_count = length($source_code);
-            my $word_count = ($source_code =~ tr/ \t\n/ \t\n/);
-            my $checksum = p7_generate_subroutine_checksum($source_code, $sub_name);
-            my $metadata = p7_build_export_metadata($checksum, $line_count, $byte_count, $word_count);
+            my $word_count = ( $source_code =~ tr/ \t\n/ \t\n/ );
+            my $checksum
+                = p7_generate_subroutine_checksum( $source_code, $sub_name );
+            my $metadata = p7_build_export_metadata( $checksum, $line_count,
+                $byte_count, $word_count );
 
-            # Add empty line after the header (Protocol-7 style) - only if needed
-            # For source-key, don't add extra blank line to match DATA block
-            if ($export_name ne 'base.protocol-7.source-key') {
+         # Add empty line after the header (Protocol-7 style) - only if needed
+         # For source-key, don't add extra blank line to match DATA block
+            if ( $export_name ne 'base.protocol-7.source-key' ) {
                 print ":\n";
             }
 
-            # Export based on the DATA block format and requested output format
-            if ($data_format->{data_format} eq 'decoded') {
+           # Export based on the DATA block format and requested output format
+            if ( $data_format->{data_format} eq 'decoded' ) {
+
                 # DATA block has decoded format - use standard code style
 
-                if ($content_format eq 'encoded') {
-                    # Output encoded despite DATA block being decoded
-                    p7_encode_and_print_for_export($source_code, 'xz');
+                if ( $content_format eq 'encoded' ) {
 
-                    # Add empty line before metadata (Protocol-7 style)
-                    # Add empty line before the encoded content (Protocol-7 style)
+                    # Output encoded despite DATA block being decoded
+                    p7_encode_and_print_for_export( $source_code, 'xz' );
+
+                # Add empty line before metadata (Protocol-7 style)
+                # Add empty line before the encoded content (Protocol-7 style)
                     print ":\n";
 
                     # Print metadata after code (Protocol-7 style)
                     print $metadata;
                 } else {
+
                     # Output decoded to match DATA block
-                    if ($data_format->{code_style} eq 'colon_prefixed') {
+                    if ( $data_format->{code_style} eq 'colon_prefixed' ) {
+
                         # Use colon-prefixed style
-                        foreach my $line (split /\n/, $source_code) {
+                        foreach my $line ( split /\n/, $source_code ) {
                             print ": $line\n";
                         }
                     } else {
+
                         # Standard style
                         p7_print_decoded_with_colon_prefixes($source_code);
 
@@ -4941,16 +4994,20 @@ sub p7_export_inline_subroutines_with_exact_style {
                     print $metadata;
                 }
             } else {
+
                 # DATA block has encoded format
 
-                if ($content_format eq 'decoded') {
+                if ( $content_format eq 'decoded' ) {
+
                     # Output decoded despite DATA block being encoded
-                    if ($data_format->{code_style} eq 'colon_prefixed') {
+                    if ( $data_format->{code_style} eq 'colon_prefixed' ) {
+
                         # Use colon-prefixed style
-                        foreach my $line (split /\n/, $source_code) {
+                        foreach my $line ( split /\n/, $source_code ) {
                             print ": $line\n";
                         }
                     } else {
+
                         # Standard style
                         p7_print_decoded_with_colon_prefixes($source_code);
 
@@ -4966,32 +5023,47 @@ sub p7_export_inline_subroutines_with_exact_style {
                     # Print metadata
                     print $metadata;
                 } else {
+
                     # Output as-is or encoded
-                    if ($content_format eq 'as-is' && defined $original_encoded) {
+                    if ( $content_format eq 'as-is'
+                        && defined $original_encoded ) {
+
                         # Show original encoded form with proper formatting
-                        my $prefix = ($compression eq 'xz') ? '7U3XU' :
-                                    (($compression eq 'gzip') ? 'D6FQQ' : '');
+                        my $prefix
+                            = ( $compression eq 'xz' )
+                            ? '7U3XU'
+                            : ( ( $compression eq 'gzip' ) ? 'D6FQQ' : '' );
 
-                        # Format the original encoded data into lines of reasonable length
-                        if (defined $original_encoded && length($original_encoded) > 0) {
+            # Format the original encoded data into lines of reasonable length
+                        if ( defined $original_encoded
+                            && length($original_encoded) > 0 ) {
                             my $encoded_text = $prefix . $original_encoded;
-                            my $line_length = 80;  # standard length per line
+                            my $line_length  = 80;  # standard length per line
 
-                            for (my $i = 0; $i < length($encoded_text); $i += $line_length) {
-                                my $chunk_length = ($i + $line_length <= length($encoded_text))
+                            for (
+                                my $i = 0;
+                                $i < length($encoded_text);
+                                $i += $line_length
+                            ) {
+                                my $chunk_length
+                                    = ( $i + $line_length
+                                        <= length($encoded_text) )
                                     ? $line_length
-                                    : (length($encoded_text) - $i);
+                                    : ( length($encoded_text) - $i );
 
-                                my $chunk = substr($encoded_text, $i, $chunk_length);
+                                my $chunk = substr( $encoded_text, $i,
+                                    $chunk_length );
                                 print ": $chunk\n";
                             }
                         } else {
-                            # Fallback if original encoded data is not available
+
+                          # Fallback if original encoded data is not available
                             print ": $prefix\n";
                         }
                     } else {
+
                         # Generate fresh encoded version
-                        p7_encode_and_print_for_export($source_code, 'xz');
+                        p7_encode_and_print_for_export( $source_code, 'xz' );
                     }
 
                     # Add empty line before metadata (Protocol-7 style)
@@ -5016,6 +5088,7 @@ sub p7_export_inline_subroutines_with_exact_style {
 
     # Add an empty line before the export completion message
     print "\n";
+
     # Print summary
     print "# Export completed: $export_count subroutine(s)\n";
     return $export_count;
@@ -5058,12 +5131,12 @@ __DATA__
 :
 : ## [:< ##
 :
-: qw| VP7BDEHFDRI4VQTIUV7LRJAXVD7KFPQAEPBGKOCNLY2MLSR2HAIA |
+: qw| JXA7AXE6PUORNNRI2F6PEFQKZSGUL2PKIOTXIGMHDUI6GHA4YWRA |
 :
 :.
 
-#,,,.,,.,,..,,,.,,,.,,,,,,...,,,,,.,.,,..,.,.,..,,...,...,,.,,.,.,.,.,.,,,...,
-#YBNS6OH5EU62ODDYRMA2WBXMCK3NIJOG76VTNXJ3AGOHYFOG6ZAKGFT64CJEIZ2TNX5IYYWK47JOO
-#\\\|M7Y55SNHYCFNSAGPLIPRS7BQ7MN4REGUU252YUC3TMFJKDZFUP6 \ / AMOS7 \ YOURUM ::
-#\[7]XHUTHXC6KULCKMX5FIDYRK4NCBVR5XZ2D7I4JQBTM6B3VAEXYUBY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,,,,,,.,,,,.,,..,,,.,,,,,,,.,..,,...,...,.,.,.,.,...,,..,.,.,
+#GLY6DIE7BIGZOG3DQJW57ECBYNVW4XFI6ALUHZHUW3FJA5IV4PQ6IGZXLJHNS6WAFLEI5C5C6MU6U
+#\\\|CQD4TR4MHQLMIC6YOGQ2WBSL7MCSVOKDNR7MT6JLBA4DWPWUSBI \ / AMOS7 \ YOURUM ::
+#\[7]XE436E77JWVLMACWL3JMFQTZSNOHGCXJFQEU4DMHT4JWBS2GSGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
