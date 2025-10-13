@@ -29,8 +29,8 @@ $data{'handle'}{ $_[0]->{'handle'} }{'cmd'}{ $_[0]->{'target_cid'} }{'params'}
 
 # return $command_id;
 
-#,,,.,,,.,,,.,.,,,,,,,,..,.,,,,,,,,..,..,,,..,..,,...,...,,.,,.,.,,,,,,,,,,,.,
-#IZVLFQW6JC3BZ7NWNRGFQ2PXLF6NMOEXEYYCBAAJ5SSEDU2JDOMT7U3RSARRDPKLYSXZLZ3FLD5W2
-#\\\|WXJZIKANB6PH5XRFOQODPXXQ2ITPWOIB7VRR7Y4CB4L6C5UGNMG \ / AMOS7 \ YOURUM ::
-#\[7]BK3SSPJBQH5XPZ357SK4VWH3MDY2BO6XPAXTUC25YD5W7ZKXXEDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,,,,,..,.,,,,,,,,..,..,,,..,..,,...,...,,,,,,..,.,.,,..,,.,,
+#X7FA4SCPQE2QDKIHJVOHLSE6AOICX3PVLJ4BI7IHNDQ6IS2OMQOI4MSYLSEKI2G4BGCK5QLK44EGC
+#\\\|SNKTNSNLBSUIAPMDH22YSKDLVT6GOZ34CJBXSGOYIY4XYJFT2J7 \ / AMOS7 \ YOURUM ::
+#\[7]TZ6Q7FNQT6SBKI2BPHW7BM6UCNG2FFYU6EET2XV5PCYRS32DQMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

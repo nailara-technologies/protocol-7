@@ -49,3 +49,9 @@ sub bmw_checksum_with_resume {
 }
 
 1;
+
+#,,.,,.,,,.,,,..,,.,,,,.,,,,.,..,,,,,,,.,,...,..,,...,...,,,.,.,,,...,,.,,.,,,
+#AB2R3IWB5BSJNEAGTJFUFGIPHK33RUKA4Q3BBML6L5XBEY4PPSUQPQNQIA2226JFDRZHL7S53MBGS
+#\\\|FIXQ4N5MMM5UXANYEZHE6FASH5EJEM4INQANPUPPC4TQEL6DV2U \ / AMOS7 \ YOURUM ::
+#\[7]WIRWTZ6IRT3W4EXNXYD4YKEDLPQQIYK3OYVJSPO3E7F4ZV5FRMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

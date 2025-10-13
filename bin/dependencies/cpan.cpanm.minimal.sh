@@ -6,8 +6,8 @@ cpanm Event IO::Handle::Record JSON::XS\
         Date::Parse Proc::ProcessTable Digest::JHash\
         Term::ReadKey Term::ReadPassword Term::ReadLine::Perl
 
-#,,.,,,..,,,.,,,,,.,.,,,,,.,.,.,,,,,,,.,,,.,.,..,,...,..,,..,,,..,..,,,,.,,.,,
-#7SSY2EM6TUIHVJAJK5OGIGMO3HNAA2SRRWXYF2HENDTGCZTFYYSJSYGEQ5W3UDOSRXZWSS6TGMEIS
-#\\\|ULL7J32JHN6QBP4OFVUIWRQHDKLMQTORHJRGOERDZDQISQJ2AKR \ / AMOS7 \ YOURUM ::
-#\[7]NC64EWON5U3A52R3XWVDD6KW5GERJMJE5ILWOM2V27A7QLLIUQAA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,.,.,,,,,.,.,.,,,,,,,.,,,.,.,..,,...,..,,...,,,.,,,.,..,,,,.,
+#6VKYTHMYKCGIWBMDSGMZYAXZ7RV76LJ5GDTO2ECV27KXSXK62M3YCY25427R4C4VTKBXSBGNOR4DM
+#\\\|Y42RFO3NYRZ42Q6H3LOPAV3SC5WK3SGB24LCJTZG6K5NMKFI5FR \ / AMOS7 \ YOURUM ::
+#\[7]G2DFL2XQLJJ5DK3JNKXJXFM6HWYBHDGGSVNR72YYW46ENNTJ5KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

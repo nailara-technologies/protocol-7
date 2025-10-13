@@ -162,8 +162,8 @@ sub calc_unix_path {    ## calc unix socket path for ip address port pair ##
 
 return 5;  ###################################################################
 
-#,,..,..,,,..,,.,,.,,,,..,.,.,...,..,,,,.,.,.,..,,...,...,...,,..,.,,,,,.,,,,,
-#B4AYTRMD2YAYHXJZD3L5SYW5QSP2AEDO52UVEAKP42ISEO3GJRSYUOLWVAW4LQVUJ2RYCBFYC3SQY
-#\\\|LKNU7QPAW7C5HTE6KFAQAEQNQCLDCYUYIOKPC2WZ5DDCNLCVGS6 \ / AMOS7 \ YOURUM ::
-#\[7]RAJ4TOOK62GNAVPUV4B2GUTRNT64H42IXFRSSCCIPTN3WEZVVOCY 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,.,,,,..,.,.,...,..,,,,.,.,.,..,,...,...,..,,..,,,.,,...,,,,,
+#JHF337DOHEC6PEGCO426CNLX65KQJYYPK5AZOJPDT3PF36RYCORGXXWW6CAXLNDBBPJLBKTIAKGTC
+#\\\|HQVNWB7XNJP7AEQZRLYWKYI67BILQI3AALK5FB6MEPI24VR2RUQ \ / AMOS7 \ YOURUM ::
+#\[7]IUBKZAG55DDQJXVVPZDWX3TFH5FA5DFXUALIE6VGDT4YNIWQYCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

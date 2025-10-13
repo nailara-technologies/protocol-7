@@ -229,8 +229,8 @@ sub process_key_press {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,,..,,,.,,,,,,..,.,.,.,,,.,.,,..,,.,,..,,...,.,.,,.,,,..,,,.,,,.,.,,,
-#HEWBX7RIZ3ZNV74VAVA6JCRAY53PTWX4DWL2JECBRIUK2OUG5SVP44JRZ3TUTDCW7PJBSLVNVF7AE
-#\\\|FWQEKDHVWKB7UEN43RCWLTYC3ZLKUYVHMMJ6DKOE6TS3I46DBTQ \ / AMOS7 \ YOURUM ::
-#\[7]WOM6DKIPG7RMYO4GSICCNM2VY7B76TAC2EBTFTDHNZTNQ5PA5UAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,..,.,.,.,,,.,.,,..,,.,,..,,...,...,.,.,.,,,.,,,...,,.,,
+#MNLPXI5KPTEWBLYTW3O4GXDHBH4YAVDCJUUTNUOBHM5AVARFBH4L6AWZPF5SLGESELBMNOP5645ZQ
+#\\\|KILXCHDKN4VSCHS4DNPSWFNYSJPR6TC6EPN4VWGO5JQOY5GCG77 \ / AMOS7 \ YOURUM ::
+#\[7]JBVYR743YMGELX6ZP2PTKNWSKRCJEWJ6LEQ2LGWV5NNBQFMCB6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
