@@ -1,5 +1,23 @@
 #!/usr/bin/perl
 
+# Function to print decoded content with colon prefixes
+sub p7_print_decoded_with_colon_prefixes {
+    my ($content) = @_;
+    foreach my $line (split("\n", $content)) {
+        print ": $line\n";
+    }
+    return 1;
+}
+
+# Function to print decoded content with colon prefixes
+sub p7_print_decoded_with_colon_prefixes {
+    my ($content) = @_;
+    foreach my $line (split("\n", $content)) {
+        print ": $line\n";
+    }
+    return 1;
+}
+
 use utf8;
 use strict;
 use v5.28.0;
@@ -4163,7 +4181,8 @@ sub p7_export_inline_subroutines {
             }
         }
 
-        print "### End of $export_name ###\n\n";
+        # End marker now implicit with ':.' line
+        # print "### End of $export_name ###\n\n";
     }
 
     print "# Export completed: "
@@ -4300,7 +4319,8 @@ sub p7_export_subroutine {
         }
     }
 
-    $output .= "### End of $export_name ###\n\n";
+    # End marker now implicit with ':.' line
+    # $output .= "### End of $export_name ###\n\n";
 
     # Handle output to file if specified
     if ( defined $export_file && length($export_file) > 0 ) {
@@ -4878,9 +4898,12 @@ sub p7_export_inline_subroutines_with_exact_style {
                         }
                     } else {
                         # Standard style
-                        foreach my $line (split /\n/, $source_code) {
-                            print "$line\n";
-                        }
+                        p7_print_decoded_with_colon_prefixes($source_code);
+
+                        # Original code (commented out)
+                        # foreach my $line (split /\n/, $source_code) {
+                        #     print "$line\n";
+                        # }
                     }
 
                     # Add empty line before metadata (Protocol-7 style)
@@ -4901,9 +4924,12 @@ sub p7_export_inline_subroutines_with_exact_style {
                         }
                     } else {
                         # Standard style
-                        foreach my $line (split /\n/, $source_code) {
-                            print "$line\n";
-                        }
+                        p7_print_decoded_with_colon_prefixes($source_code);
+
+                        # Original code (commented out)
+                        # foreach my $line (split /\n/, $source_code) {
+                        #     print "$line\n";
+                        # }
                     }
 
                     # Add empty line before metadata (Protocol-7 style)
@@ -4951,8 +4977,9 @@ sub p7_export_inline_subroutines_with_exact_style {
             # Add the ':.' end marker (Protocol-7 style)
             print ":.\n\n";
 
-            # Print end marker (hidden in comment, for compatibility)
-            print "### End of $export_name ###\n";
+            # End marker now implicit with ':.' line
+            # The following line was removed:
+            # print "### End of $export_name ###\n";
             $export_count++;
         } else {
             print "# Source code not available for $export_name\n\n";
