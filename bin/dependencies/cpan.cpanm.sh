@@ -34,8 +34,8 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
 # Graphics::Magick : http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/
 #                    ..or check your distribution packages!
 
-#,,,,,,..,..,,.,,,,,.,,,.,..,,,..,,..,...,...,..,,...,...,.,,,,..,..,,,,.,,,,,
-#ZH6Q7G4JP2RFREEPGWXVAALEA5TMUNKS5DB42OF4Q3TEDPCUV4WKVQYJXRY72KIQW35BINTKXN3RQ
-#\\\|N4M34RMM4YXRXHSVN5G7D7CACK555R6SLWXZTDW4SNRHGFP3AXF \ / AMOS7 \ YOURUM ::
-#\[7]QWL3HX6SJJ662BQLSF4XODS4LVERKMMYI2OMYCTFR54WRGHGRWAY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,.,,,,,.,,,.,..,,,..,,..,...,...,..,,...,...,..,,,..,.,,,,,,,,,.,
+#IIS4HVRZER7C7QRRMU7ZI5OJWFHBXMRKSMADIXQMRAXD7SPIXCVOIO5OKUVRFF5GBIBABID3KNSTO
+#\\\|B7SHBTEY3WM332IU7S3ZJW4GOIPCDBQAUOSZH4UJT7RQM2CE3YR \ / AMOS7 \ YOURUM ::
+#\[7]LV7R554ZSGQ5HFWNTDHR3KV7TCAHWMCD4UODJKGGYAKTZSWMN6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
