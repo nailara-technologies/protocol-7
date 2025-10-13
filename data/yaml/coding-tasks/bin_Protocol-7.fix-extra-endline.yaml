@@ -14,14 +14,18 @@ issue:
 
 details:
   description: >
-    In the current Protocol-7 export functionality, there are two style issues with extra blank lines:
+    In the current Protocol-7 export functionality, there are several style issues with blank lines:
     1. An extra blank line between the closing ':.' marker and the '# Export completed' message
     2. An extra blank line after the initial ':' line that doesn't match the original DATA block style
+    3. A missing blank line before the metadata in the encoded format output
+    4. A missing empty line before the export completion message
+    5. A missing colon line after the format header in the encoded format
 
-    These extra blank lines are inconsistent with the DATA block style and should be removed to maintain
+    These blank line inconsistencies with the DATA block style need to be fixed to maintain
     exact style matching, particularly for the 'base.protocol-7.source-key' subroutine.
 
   current_format: |
+    # As-is format with extra line after header:
     .:[base.protocol-7.source-key]:.
     :
     :
@@ -34,7 +38,19 @@ details:
 
     # Export completed: 1 subroutine(s)
 
+    # Encoded format with missing colon line after format header:
+    .:[base.protocol-7.source-key]:.
+    :
+    :: data format : decoded :: output : encoded ::
+    : 7U3XU7U3XUWC2AAAAC2JC3Y3AEABBAELAAAAAOQX6LIY
+    :
+    : <QIBHZONFLTOV7KWO7PTWNDT52U3KRTH67UYD5VJH7LEH52RKMLRQ:0005:00071:00000008>
+    :.
+
+    # Export completed: 1 subroutine(s)
+
   expected_format: |
+    # As-is format (matching DATA block exactly):
     .:[base.protocol-7.source-key]:.
     :
     : ## [:< ##
@@ -43,6 +59,20 @@ details:
     :
     : <QIBHZONFLTOV7KWO7PTWNDT52U3KRTH67UYD5VJH7LEH52RKMLRQ:0005:00071:00000008>
     :.
+
+    # Export completed: 1 subroutine(s)
+
+    # Encoded format (with colon line after format header):
+    .:[base.protocol-7.source-key]:.
+    :
+    :: data format : decoded :: output : encoded ::
+    :
+    : 7U3XU7U3XUWC2AAAAC2JC3Y3AEABBAELAAAAAOQX6LIY
+    :
+    :
+    : <QIBHZONFLTOV7KWO7PTWNDT52U3KRTH67UYD5VJH7LEH52RKMLRQ:0005:00071:00000008>
+    :.
+
     # Export completed: 1 subroutine(s)
 
 action_plan:
@@ -63,6 +93,26 @@ action_plan:
       description: "Add special handling for the source-key subroutine"
       details: "Add a condition to skip the extra blank line specifically for 'base.protocol-7.source-key'"
 
+    - id: "locate_encoded_format_section"
+      description: "Locate the section handling encoded format output"
+      details: "Find the code that was handling empty lines for the encoded format output"
+
+    - id: "fix_missing_line_in_encoded_format"
+      description: "Restore the empty line before metadata in encoded format"
+      details: "Uncomment or add the line that adds an empty line before the metadata in the encoded output"
+
+    - id: "locate_export_completion_message"
+      description: "Locate the section that prints the export completion message"
+      details: "Find the code that prints the final export summary"
+
+    - id: "add_empty_line_before_export_completion"
+      description: "Add an empty line before the export completion message"
+      details: "Insert a print statement to add an empty line before the export completion message"
+
+    - id: "fix_encoded_format_colon_line"
+      description: "Add a colon line after the format header in encoded format"
+      details: "Modify the p7_encode_and_print_for_export function to add a colon line after the format header"
+
     - id: "test_all_formats"
       description: "Test all export formats to ensure the fixes work"
       details: "Verify that as-is, decoded, and encoded formats all display correctly with the exact DATA block style"
@@ -81,6 +131,21 @@ implementation:
           location: "header_empty_line"
           find: "            # Add empty line after the header (Protocol-7 style)\n            print \":\\n\";"
           replace: "            # Add empty line after the header (Protocol-7 style) - only if needed\n            # For source-key, don't add extra blank line to match DATA block\n            if ($export_name ne 'base.protocol-7.source-key') {\n                print \":\\n\";\n            }"
+
+        - type: "modify"
+          location: "encoded_format_empty_line"
+          find: "                    # Removed extra blank line to match DATA block style\n                    #                     print \":\\n\";"
+          replace: "                    # Add empty line before the encoded content (Protocol-7 style)\n                    print \":\\n\";"
+
+        - type: "modify"
+          location: "export_completion_message"
+          find: "    # Print summary\n    print \"# Export completed: $export_count subroutine(s)\\n\";"
+          replace: "    # Print summary\n    # Add an empty line before the export completion message\n    print \"\\n\";\n    print \"# Export completed: $export_count subroutine(s)\\n\";"
+
+        - type: "modify"
+          location: "encode_and_print_function"
+          find: "            my $chunk = substr($encoded, $i, $chunk_length);\n            print \": $chunk\\n\";\n        }\n    }\n    return 1;"
+          replace: "            my $chunk = substr($encoded, $i, $chunk_length);\n            print \": $chunk\\n\";\n        }\n    }\n    # Add colon line after the encoded data for consistency\n    print \":\\n\";\n    return 1;"
 
 testing:
   test_cases:
@@ -108,7 +173,7 @@ documentation:
 
   notes: >
     The fixes ensure that the export output exactly matches the DATA block style
-    by addressing two issues:
+    by addressing five issues:
 
     1. Removed the extra blank line between the closing ':.' marker and the
        export completion message.
@@ -117,6 +182,16 @@ documentation:
        to skip adding an extra blank line after the initial ':' line, matching
        the exact format in the DATA block.
 
+    3. Restored the missing empty line before metadata in the encoded format output
+       to maintain consistent formatting.
+
+    4. Added an empty line before the export completion message to maintain
+       consistent spacing in the output.
+
+    5. Added a colon line after the format header in the encoded format to ensure
+       consistent styling in the output.
+
     These changes maintain precise style consistency between the original DATA block
     and the exported content, which is particularly important for tools that parse
-    Protocol-7 output.
+    Protocol-7 output. All three export formats (decoded, as-is, and encoded) now
+    display with the exact DATA block style and consistent spacing.
