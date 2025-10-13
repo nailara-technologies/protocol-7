@@ -4849,20 +4849,20 @@ sub p7_export_inline_subroutines_with_exact_style {
         if (defined $data_format && $data_format->{data_format} ne 'unknown' &&
             ($content_format ne 'as-is' || $ENV{'P7_SHOW_FORMAT_INFO'})) {
             print ":\n";
-            print ":: data format :. " . $data_format->{data_format};
+            print ":: data format :.: " . $data_format->{data_format} . " .:.";
 
             if ($data_format->{is_encoded} && $data_format->{prefix}) {
-                print " .: prefix :. " . $data_format->{prefix};
+                print " prefix :.: " . $data_format->{prefix} . " .:.";
             }
 
             # Show output format if different from DATA format
             if ($content_format ne 'as-is' &&
                 (($data_format->{data_format} eq 'decoded' && $content_format eq 'encoded') ||
                  ($data_format->{data_format} =~ /^encoded/ && $content_format eq 'decoded'))) {
-                print " .: output :. $content_format";
+                print " output :.: $content_format .:.";
             }
 
-            print " .:\n";
+            print "\n";
         }
 
         # Check if we have stored source code
