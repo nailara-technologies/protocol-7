@@ -1,0 +1,142 @@
+---
+task:
+  name: "Fix Protocol-7 Decoded Format Colon Prefixes"
+  description: "Fix the issue with missing colon prefixes in Protocol-7's decoded format export"
+  priority: high
+  version: 1.0
+
+issue:
+  type: "style-format"
+  severity: "medium"
+  affects:
+    - "export-inline-subs functionality"
+    - "decoded format output"
+
+details:
+  description: >
+    When exporting inline subroutines using Protocol-7's -export-inline-subs command with -format=decoded,
+    the output is missing colon prefixes before each line of code. In the correct Protocol-7 style,
+    every line of code should be prefixed with ": " (colon space), but currently some lines
+    are output without this prefix. This inconsistency breaks the expected format and may cause
+    issues with tools that depend on the Protocol-7 style.
+
+  expected_format: |
+    .:[base.parser.pattern_split] (DATA-format: encoded-xz, prefix: 7U3XU, output: decoded):.
+    :
+    : {
+    :     BEGIN {${^WARNING_BITS} = "\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x45\x55\x55\x55\x55\x55"}
+    :     use strict;
+    :     ... more code lines ...
+    : }
+    :
+    : <CHECKSUM:LINE_COUNT:BYTE_COUNT:WORD_COUNT>
+    :.
+
+  actual_format: |
+    .:[base.parser.pattern_split] (DATA-format: encoded-xz, prefix: 7U3XU, output: decoded):.
+    :
+    {
+        BEGIN {${^WARNING_BITS} = "\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x55\x45\x55\x55\x55\x55\x55"}
+        use strict;
+        ... more code lines ...
+    }
+    :
+    : <PXU4LI6PAGTEUFVZANWFGP3KACXZ3N6CMQO2IT5Z7FOMFYKBJCEQ:0070:03104:00000683>
+    :.
+
+action_plan:
+  steps:
+    - id: "locate_export_function"
+      description: "Locate the export inline subroutines function in the Protocol-7 codebase"
+      details: "Find the function named p7_export_inline_subroutines or similar that handles the export functionality"
+
+    - id: "identify_decoded_section"
+      description: "Identify the section that handles the 'decoded' format output"
+      details: "Look for a conditional block that processes the decoded format specifically"
+
+    - id: "modify_print_statements"
+      description: "Modify the print statements to add colon prefixes to each line"
+      details: >
+        Create a helper function to print decoded content with colon prefixes:
+        ```perl
+        sub p7_print_decoded_with_colon_prefixes {
+            my ($content) = @_;
+            foreach my $line (split("\n", $content)) {
+                print ": $line\n";
+            }
+            return 1;
+        }
+        ```
+
+    - id: "replace_print_calls"
+      description: "Replace direct print calls with the helper function"
+      details: >
+        Find where the decoded source code is printed and replace it with a call to the helper function:
+        ```perl
+        # Original: print $decoded_source;
+        p7_print_decoded_with_colon_prefixes($decoded_source);
+        ```
+
+    - id: "test_changes"
+      description: "Test the changes with different subroutines and formats"
+      details: "Verify that the fixed decoded format output includes colon prefixes for all code lines"
+
+    - id: "commit_changes"
+      description: "Commit the changes to the repository"
+      details: "Add a detailed commit message explaining the fix for the decoded format prefixes"
+
+implementation:
+  approach: "direct_modification"
+  files_to_modify:
+    - path: "/data/projects/protocol-7/bin/Protocol-7"
+      changes:
+        - type: "add_function"
+          location: "before_export_function"
+          content: |
+            # Function to print decoded content with colon prefixes
+            sub p7_print_decoded_with_colon_prefixes {
+                my ($content) = @_;
+                foreach my $line (split("\n", $content)) {
+                    print ": $line\n";
+                }
+                return 1;
+            }
+
+        - type: "modify"
+          location: "decoded_format_section"
+          find: "print $decoded_source;"
+          replace: "p7_print_decoded_with_colon_prefixes($decoded_source);"
+
+  alternative_approach:
+    - description: "Post-processing script"
+      details: >
+        If direct modification of Protocol-7 is not feasible, create a post-processing script
+        that can be piped with the output to add the colon prefixes:
+        ```bash
+        /data/projects/protocol-7/bin/Protocol-7 -export-inline-subs -format=decoded | fix_colon_prefixes.pl
+        ```
+
+testing:
+  test_cases:
+    - name: "base.parser.pattern_split"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.parser.pattern_split -format=decoded"
+      expected: "All code lines should be prefixed with ': '"
+
+    - name: "base.protocol-7.source-key"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.protocol-7.source-key -format=decoded"
+      expected: "All code lines should be prefixed with ': '"
+
+    - name: "Multiple subroutines"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs 'base.*' -format=decoded"
+      expected: "All code lines in all exported subroutines should be prefixed with ': '"
+
+documentation:
+  update_required: true
+  sections_to_update:
+    - "Protocol-7 Export Functionality Documentation"
+    - "Protocol-7 Style Guide"
+
+  notes: >
+    The fix ensures that all code lines in decoded format output are properly prefixed with ': ' (colon space),
+    maintaining consistency with the Protocol-7 style guidelines. This is important for tools that parse
+    Protocol-7 output and depend on the specific format.
