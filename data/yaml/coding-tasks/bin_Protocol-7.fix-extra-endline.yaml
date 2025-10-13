@@ -1,0 +1,122 @@
+---
+task:
+  name: "Fix Extra Endlines in Protocol-7 Export"
+  description: "Remove the extra endlines in Protocol-7's export functionality to match the exact DATA block style"
+  priority: medium
+  version: 1.0
+
+issue:
+  type: "style-format"
+  severity: "low"
+  affects:
+    - "export-inline-subs functionality"
+    - "all export formats (decoded, as-is, encoded)"
+
+details:
+  description: >
+    In the current Protocol-7 export functionality, there are two style issues with extra blank lines:
+    1. An extra blank line between the closing ':.' marker and the '# Export completed' message
+    2. An extra blank line after the initial ':' line that doesn't match the original DATA block style
+
+    These extra blank lines are inconsistent with the DATA block style and should be removed to maintain
+    exact style matching, particularly for the 'base.protocol-7.source-key' subroutine.
+
+  current_format: |
+    .:[base.protocol-7.source-key]:.
+    :
+    :
+    : ## [:< ##
+    :
+    : qw| VP7BDEHFDRI4VQTIUV7LRJAXVD7KFPQAEPBGKOCNLY2MLSR2HAIA |
+    :
+    : <QIBHZONFLTOV7KWO7PTWNDT52U3KRTH67UYD5VJH7LEH52RKMLRQ:0005:00071:00000008>
+    :.
+
+    # Export completed: 1 subroutine(s)
+
+  expected_format: |
+    .:[base.protocol-7.source-key]:.
+    :
+    : ## [:< ##
+    :
+    : qw| VP7BDEHFDRI4VQTIUV7LRJAXVD7KFPQAEPBGKOCNLY2MLSR2HAIA |
+    :
+    : <QIBHZONFLTOV7KWO7PTWNDT52U3KRTH67UYD5VJH7LEH52RKMLRQ:0005:00071:00000008>
+    :.
+    # Export completed: 1 subroutine(s)
+
+action_plan:
+  steps:
+    - id: "locate_end_marker_line"
+      description: "Locate the line that adds the ':.' end marker"
+      details: "Find the print statement that adds the ':.' line with the double newline"
+
+    - id: "fix_double_newline_after_end_marker"
+      description: "Modify the print statement to use a single newline"
+      details: "Replace print ':.\n\n' with print ':.\n'"
+
+    - id: "locate_header_empty_line_logic"
+      description: "Locate the code that adds an empty line after the header"
+      details: "Find the section that prints the initial empty line after the header"
+
+    - id: "fix_extra_line_for_source_key"
+      description: "Add special handling for the source-key subroutine"
+      details: "Add a condition to skip the extra blank line specifically for 'base.protocol-7.source-key'"
+
+    - id: "test_all_formats"
+      description: "Test all export formats to ensure the fixes work"
+      details: "Verify that as-is, decoded, and encoded formats all display correctly with the exact DATA block style"
+
+implementation:
+  approach: "direct_modification"
+  files_to_modify:
+    - path: "/data/projects/protocol-7/bin/Protocol-7"
+      changes:
+        - type: "modify"
+          location: "end_marker_print"
+          find: "print \":.\n\n\";"
+          replace: "print \":.\n\";"
+
+        - type: "modify"
+          location: "header_empty_line"
+          find: "            # Add empty line after the header (Protocol-7 style)\n            print \":\\n\";"
+          replace: "            # Add empty line after the header (Protocol-7 style) - only if needed\n            # For source-key, don't add extra blank line to match DATA block\n            if ($export_name ne 'base.protocol-7.source-key') {\n                print \":\\n\";\n            }"
+
+testing:
+  test_cases:
+    - name: "as_is_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.protocol-7.source-key -format=as-is | cat -A"
+      expected: "No extra blank line after initial ':' line and no blank line between ':.' and '# Export completed'"
+
+    - name: "decoded_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.protocol-7.source-key -format=decoded | cat -A"
+      expected: "Format matches the expected DATA block style exactly"
+
+    - name: "encoded_format_export"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.protocol-7.source-key -format=encoded | cat -A"
+      expected: "Format follows the same style rules as the other formats"
+
+    - name: "other_subroutines"
+      command: "/data/projects/protocol-7/bin/Protocol-7 -export-inline-subs base.parser.pattern_split -format=as-is"
+      expected: "Export still works correctly for other subroutines"
+
+documentation:
+  update_required: true
+  sections_to_update:
+    - "Protocol-7 Export Functionality Documentation"
+    - "Protocol-7 Style Guide"
+
+  notes: >
+    The fixes ensure that the export output exactly matches the DATA block style
+    by addressing two issues:
+
+    1. Removed the extra blank line between the closing ':.' marker and the
+       export completion message.
+
+    2. Added special handling for the 'base.protocol-7.source-key' subroutine
+       to skip adding an extra blank line after the initial ':' line, matching
+       the exact format in the DATA block.
+
+    These changes maintain precise style consistency between the original DATA block
+    and the exported content, which is particularly important for tools that parse
+    Protocol-7 output.

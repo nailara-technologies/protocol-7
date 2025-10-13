@@ -55,6 +55,25 @@ tasks:
       to maintain a cleaner output format. The implementation comments out the print
       statements that added these end marker comments.
 
+  - id: "fix_extra_endlines"
+    name: "Fix Extra Endlines in Export"
+    description: "Remove extra endlines in the export functionality to match the exact DATA block style"
+    file: "coding-tasks/bin_Protocol-7.fix-extra-endline.yaml"
+    priority: medium
+    state: "completed"
+    completed_date: "2025-10-13"
+    assignee: "Claude"
+    dependencies:
+      - "inline_subroutine_export"
+      - "fix_decoded_format_prefixes"
+      - "remove_redundant_end_markers"
+    notes: >
+      This task fixes two style issues with extra blank lines in the export output:
+      1) Removed the extra blank line between the closing ':.' marker and the export completion message
+      2) Added special handling for the 'base.protocol-7.source-key' subroutine to avoid adding an extra
+      blank line after the initial ':' line. These changes ensure the export output exactly matches
+      the DATA block style, maintaining precise consistency for tools that parse Protocol-7 output.
+
 state_management:
   states:
     - name: "pending"
@@ -109,8 +128,8 @@ transitions:
       - "External blocker identified"
 
 metrics:
-  total_tasks: 3
-  completed_tasks: 3
+  total_tasks: 4
+  completed_tasks: 4
   in_progress_tasks: 0
   pending_tasks: 0
   blocked_tasks: 0
