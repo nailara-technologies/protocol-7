@@ -1,7 +1,7 @@
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
 ### Source Code and Versioning
-: 2WGYJO5IPY-5102.0
+: 3KG43U42DQ-5175.0
 - Detailed version information: [Source Code Versions](/read-me/project-identity/source-code-versions.md)
 - Current source code version tracking available in dedicated documentation
 
