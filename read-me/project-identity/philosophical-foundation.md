@@ -38,3 +38,9 @@ Like water irrigating farmland:
 - Each "field" gets enough to grow
 - Compensation for value creation
 - Sustainable, dynamic ecosystem of shared resources
+
+#,,,.,..,,,..,,,,,,..,...,,.,,...,,,,,,.,,..,,...,...,...,...,...,...,,..,,,.,
+#ICU6YIWBMBMRHZTPEFPMBBFYD6OLOHM2AKZPK6YGQSZXKBLCYQQE4ZXUBP6CWNEOQ3U6L6CPXXDLS
+#\\\|DIYRFAX65CYRHBBRXQ56KD75ITXDV3L3KYT2NSNKFCNXO73BYKK \ / AMOS7 \ YOURUM ::
+#\[7]LSHPVCGNZA5ZQDXO6Y34LP2UXHCHCVRN3WUVKF32HORBJMQ7MIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
