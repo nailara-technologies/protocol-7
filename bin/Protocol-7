@@ -4775,6 +4775,8 @@ sub p7_encode_and_print_for_export {
         }
     }
 
+        # Add colon line after the encoded data for consistency
+    print ":\n";
     return 1;
 }
 ##############################################################################
@@ -4910,8 +4912,8 @@ sub p7_export_inline_subroutines_with_exact_style {
                     p7_encode_and_print_for_export($source_code, 'xz');
 
                     # Add empty line before metadata (Protocol-7 style)
-            # Removed extra blank line to match DATA block style
-            #                     print ":\n";
+                    # Add empty line before the encoded content (Protocol-7 style)
+                    print ":\n";
 
                     # Print metadata after code (Protocol-7 style)
                     print $metadata;
@@ -5012,6 +5014,8 @@ sub p7_export_inline_subroutines_with_exact_style {
         }
     }
 
+    # Add an empty line before the export completion message
+    print "\n";
     # Print summary
     print "# Export completed: $export_count subroutine(s)\n";
     return $export_count;
