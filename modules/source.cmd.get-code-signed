@@ -119,7 +119,9 @@ my $recalc_data
 
 if (   not defined $present_checksum
     or not defined $present_signature
-    or $present_signature ne $recalc_data->{'signature'} ) {
+    or $present_signature ne $recalc_data->{'signature'}
+    or $footer_data->{'needs_separator_endline'} )
+{    # Always update if endlines need fixing
     if ( not defined $present_signature ) {
 
         <[base.log]>->( 2, ': : was not signed yet ..,' );
@@ -132,6 +134,35 @@ if (   not defined $present_checksum
         <[base.logs]>->( 2, ': %s .,', $present_checksum );
 
     }
+
+    # Before appending the signature, ensure proper endline handling
+    my $ends_with_newline = $src_str =~ m/\n$/;
+    my $needs_endline_fix = !$ends_with_newline
+        || ( $footer_data && $footer_data->{'needs_separator_endline'} );
+
+    if ($needs_endline_fix) {
+
+        # Determine how many endlines to add based on the specific conditions
+        if (!$ends_with_newline
+            && (   $footer_data
+                && $footer_data->{'last_line_incomplete'} )
+        ) {
+            $src_str
+                =~ s/\n*$/\n\n/s;  # Add 2 endlines: complete line + separator
+            <[base.log]>->(
+                2, ': : adding 2 endlines: line completion + separator'
+            );
+        } elsif ( $footer_data && $footer_data->{'needs_separator_endline'} )
+        {
+            $src_str =~ s/\n*$/\n/s;    # Add 1 endline (separator only)
+            <[base.log]>->( 2, ': : adding separator endline' );
+        } elsif ( !$ends_with_newline ) {
+            $src_str .= "\n";           # Complete the last line
+            <[base.log]>->( 2, ': : completing last line' );
+        }
+    }
+
+    # Now append the signature
     $src_str .= $recalc_data->{'signature-footer-str'};
     <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
     <[base.logs]>->( 2, ': %s .,', $recalc_data->{'data-chksum'} );
@@ -156,8 +187,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,.,,,..,...,,,.,,,,,,,,,,..,..,,,,,,,,,,.,.,..,,...,..,,..,,.,.,,..,,.,,..,,
-#XDMH26ILU5PKMHQQQUAFQHWVLTQEEESTE4DMAZP7YQWKS23FBXP3X3H5Y6O46MHVJVMF5COQ2LRNY
-#\\\|DSRZVGJUM5I6CRAZD3SE64YIW5WDYJWKVG33DIUHV6FFWKLBXZ4 \ / AMOS7 \ YOURUM ::
-#\[7]GUK25A2RT4LDUYBCV6XHSR7TAKEY7RLXXMLK3RCCTNJMT2LTMCCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,.,,..,,.,,,,,,,,.,,,,,...,.,,,..,,...,...,.,.,.,.,..,,..,,,..,
+#HURVXW6LO77TPSG76OC6QVVZ7UIORQISPDEJAFGNPZRWXX4JSURIK4LNFF2ZS3ZKUPQ73I4UUD77C
+#\\\|3QOF2VS2S6M27MIOYBGMWTAMPUQL5GMSDDRI2RZIMVRECYBS2OO \ / AMOS7 \ YOURUM ::
+#\[7]23IFNBWEH2FNROW47HT5Q5TX5D23REJY7DJTT3IPQSGB376XIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
