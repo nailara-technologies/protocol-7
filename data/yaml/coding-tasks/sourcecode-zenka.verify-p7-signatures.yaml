@@ -1,0 +1,280 @@
+---
+title: Implement sourcecode.console.verify-p7-signatures
+description: |
+  Create a new module to verify Protocol-7 source code signatures without modifying files,
+  similar to sourcecode.console.update-signatures but focused on verification only.
+
+  This module will leverage a key security advantage: signature verification requires only
+  the public key (stored in the DATA block), whereas signing requires access to the private key
+  (which is often secured with a passphrase or generated on demand). This distinction allows
+  verification to be performed in more contexts without exposing sensitive cryptographic material.
+
+affected_files:
+  - modules/sourcecode.console.verify-p7-signatures (new)
+  - modules/base.list.subroutines (update)
+  - modules/sourcecode.init_code (update)
+
+dependencies:
+  - modules/source.signature_valid
+  - modules/source.extract_sig_body
+  - modules/sourcecode.console.update-signatures (reference)
+  - modules/sourcecode.source_path_set_up
+  - modules/base.resolve_data_key.regex (for variable resolution)
+  - modules/base.resolve_hash (for key-to-hash translation)
+  - modules/base.resolve_key (for hash key resolution)
+  - modules/base.parser.data_hkey_tree (for parsing data keys)
+  - modules/base.validate.data_key_syntax (for validating data keys)
+
+requirements:
+  - Must verify signatures without modifying any files
+  - Should only require the public key for verification (stored in DATA block), not the private key
+  - Should work with the same file selection logic as update-signatures
+  - Should report validity status for each file
+  - Should provide detailed error information when signatures are invalid
+  - Must support verbosity levels similar to update-signatures
+
+implementation_plan: |
+  1. Study the existing `sourcecode.console.update-signatures` module thoroughly to understand:
+     - Exact code style and structure patterns
+     - Interaction with Protocol-7's %data and %code hash structures
+     - Parser requirements (bin/Protocol-7, line 1434)
+     - All intricacies specific to Protocol-7's code pattern
+  2. Create a new module `modules/sourcecode.console.verify-p7-signatures` that exactly
+     matches the style and functional structure of update-signatures
+  3. Remove any code that modifies files while maintaining identical structure and patterns
+  4. Enhance the reporting functionality to provide clear status for each file
+  5. Add to the subroutines list in `modules/base.list.subroutines`
+  6. Update any necessary references in `modules/sourcecode.init_code`
+
+  Note: Maintaining exact style and structural similarity to the existing code is critical
+  for proper functioning with Protocol-7's parser and code management system.
+
+  The Protocol-7 parser handles multiple syntax conversions:
+
+  1. **Subroutine calls**: `<[sub_name]>->()` is converted to `$code{'sub_name'}->()`
+
+  2. **Variable references**:
+     - Basic: `<base.sub-key.deeper.levels>` is converted to `$data{'base'}{'sub-key'}{'deeper'}{'levels'}` (arbitrary depth)
+     - With dereferencing: `<has_some.hash_ref_here>->%` for hash dereferencing, following Perl's standard reference syntax
+     - With quoted keys: `<base.'key.with.dots'>` for keys containing dots
+
+  These parser-specific syntax patterns are fundamental to Protocol-7's operation and rely on several core modules:
+
+  - **base.resolve_key**: Resolves hash keys and returns references to values at arbitrary depths
+  - **base.resolve_hash**: Translates 'system.zenka.name' type keys to \%data references
+  - **base.parser.data_hkey_tree**: Parses data hash key strings into tree structures
+  - **base.validate.data_key_syntax**: Validates data key syntax with support for quoted keys
+  - **base.resolve_data_key.regex**: Handles regex-based key resolution
+
+  These modules work together to implement Protocol-7's sophisticated variable reference system, which enables:
+  - Arbitrary depth hash access
+  - Special handling for keys containing dots (via quoting)
+  - Regular expression based key matching
+  - Various dereferencing operations
+
+  This means that:
+
+  1. All subroutine calls must use the `<[sub_name]>->()` pattern consistently
+  2. All data references must use the `<base.sub-key>` syntax consistently
+  3. Variables and code structure must match existing patterns exactly
+  4. The same variable naming and initialization patterns must be maintained
+  5. The overall code flow should parallel the update-signatures module as closely as possible
+
+detailed_implementation: |
+  The module should follow this general structure, with careful attention to matching the exact style
+  and patterns of the existing update-signatures module to ensure compatibility with Protocol-7's
+  parser (bin/Protocol-7, line 1434) and %data/%code hash structures:
+
+  ```perl
+  ## [:< ##
+
+  # name  = sourcecode.console.verify-p7-signatures
+  # descr = verify source code signature sections
+
+  my $command_params = shift // '';
+
+  my $verify_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
+
+  $verify_verbosity = 0
+      if $command_params =~ s| *:verify-silent: *| |
+      or exists $ENV{'VERIFY_SILENT'}
+      and <[base.cfg_bool]>->( $ENV{'VERIFY_SILENT'} ) == TRUE;
+  $command_params =~ s,^ *| *$,,;
+
+  my $signature_key_name = qw| proto-7.sourcecode |;
+
+  <[source.load_signature_key]>->($signature_key_name);
+
+  # For verification, we only need the public key, not the private key
+if (not exists $keys{'C25519'}{$signature_key_name}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
+    <[base.logs]>->(
+        0, "source signature public key '%s' not loaded, aborting..,",
+        $signature_key_name
+    );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+  # Collect source paths using the same logic as update-signatures
+  # Note the Protocol-7 syntax patterns:
+  # - <[base.source.collect_file_list]>->() for subroutine calls (converted to $code{})
+  # - <sourcecode.path.work_tree> for variable references (converted to $data{'sourcecode'}{'path'}{'work_tree'} at arbitrary depth)
+  # - <base.'key.with.dots'> for keys containing dots (special quoting syntax)
+  my @source_paths;
+
+  if ( length $command_params ) {
+      if ( not @source_paths
+          = <[base.source.collect_file_list]>->($command_params) ) {
+          <[base.logs]>->( 0, ": no files found for '%s'", $command_params );
+          <[base.exit]>;
+      } else {
+          my $file_count = scalar @source_paths;
+          <[base.logs]>->(
+              ": %d file%s match%s '%s'",
+              $file_count,
+              <[base.cnt_s]>->($file_count),
+              <[base.cnt_s]>->( $file_count, '', 'es' ),
+              <[base.parser.ellipse_center]>->( $command_params, 19 )
+          );
+      }
+  } else {
+      @source_paths = <[sourcecode.source_path_set_up]>;
+  }
+
+  if (   @source_paths == 0
+      or @source_paths == 1 and not defined $source_paths[0] ) {
+      <[base.log]>->(
+          0, 'no matching source files, cannot verify signatures..,'
+      );
+      <[base.exit]>->('0110');
+  }
+
+  <[base.log]>->( 1, '.:[ VERIFYING SOURCE SIGNATURES ]:.' );
+
+  my $true_count = 0;
+  my $false_count = 0;
+  my $file_count = scalar @source_paths;
+
+  <[base.logs]>->( '* verifying %s source file signatures..,', $file_count );
+
+  foreach my $path_rel (@source_paths) {
+      # Example of <sourcecode.path.work_tree> variable reference syntax
+      # This will be parsed as $data{'sourcecode'}{'path'}{'work_tree'} (at arbitrary depth)
+      # You can also dereference hash references: <hash_ref>->% or <hash_ref>->{'key'}
+      my $path_abs = catfile( <sourcecode.path.work_tree>, $path_rel );
+      <[base.log]>->( 2, qw| : | );
+
+      # Read file and extract signature data
+      <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
+      my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+      <[base.logs]>->( 2, ':::[ %s ]:.', $path_rel );
+
+      # Check signature status
+      my $is_valid = 0;
+      my $report_ref;
+
+      if ($footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
+          ($is_valid, $report_ref) = <[source.signature_valid]>->( \$src_str, $footer_data );
+      }
+
+      if ($is_valid) {
+          $true_count++;
+          <[base.log]>->( 1, ':.: signature valid' );
+      } else {
+          $false_count++;
+          <[base.log]>->( 1, ':!: signature INVALID' );
+
+          # Provide detailed error report
+          # Example of dereferencing a hash reference in Protocol-7 syntax
+          if (not $footer_data->{'was-present'}) {
+              <[base.log]>->( 1, ':E: no signature found' );
+          } elsif (not $footer_data->{'structure-was-valid'}) {
+              # Access hash reference keys using ->{'key'} syntax
+              my $footer_error = $footer_data->{'encountered-error'};
+              <[base.logs]>->(
+                  0, ':E: %s',
+                  $footer_error // 'unspecified error in footer structure'
+              );
+          } elsif ($footer_data->{'needs_separator_endline'}) {
+              <[base.log]>->( 1, ':E: missing separator endline before signature' );
+          } else {
+              <[base.log]>->( 1, ':E: signature verification failed' );
+
+              # Show detailed report in higher verbosity
+              if ($verify_verbosity > 1 && defined $report_ref) {
+                  # Example of hash dereferencing with ->% syntax in foreach loop
+                  # This would be parsed as: foreach my $type (<[base.sort]>->($report_ref->%))
+                  foreach my $type (<[base.sort]>->($report_ref)) {
+                      if (not length ref $report_ref->{$type}) {
+                          <[base.logs]>->(
+                              2, ': :. %30s : %s',
+                              $type,
+                              $report_ref->{$type} ? 'true' : 'false'
+                          );
+                      } else {
+                          foreach my $mode (<[base.sort]>->($report_ref->{$type})) {
+                              <[base.logs]>->(
+                                  2, ': :. %30s [%s] : %s',
+                                  $type, $mode,
+                                  $report_ref->{$type}->{$mode} ? 'true' : 'false'
+                              );
+                          }
+                      }
+                  }
+              }
+          }
+      }
+
+      # Allow for SIGINT
+      <[event.once]>;
+  }
+
+  # Final summary
+  <[base.log]>->( 1, qw| : | );
+  <[base.logs]>->( 1, ':.: %d valid, %d invalid signatures (total: %d)',
+                  $true_count, $false_count, $file_count );
+
+  # Return true count in scalar context
+  return $true_count;
+
+  #,,..,,,.,,..,,,.,...,,.,,.,.,,.,,...,,.,,,..,..,,...,...,...,...,.,,,...,.,.,.,
+  #<SIGNATURE_PLACEHOLDER>
+  ```
+
+  This implementation will:
+  1. Parse command parameters the same way as update-signatures
+  2. Use the same file selection logic
+  3. Only require the public key for verification (not the secured private key)
+  4. Verify signatures without modifying any files
+  5. Provide detailed error information when signatures are invalid
+  6. Support different verbosity levels
+  7. Track and report valid and invalid signature counts
+
+  Note on key handling security:
+  - The verification module only needs the public key, which is safe to distribute
+  - The signing module requires the private key, which must be secured
+  - This separation allows verification to be performed in more contexts (CI/CD, public builds, etc.)
+  - The public key is readily available in the DATA block, making verification more accessible
+
+testing_plan: |
+  1. Test with no parameters to verify all default source files
+  2. Test with specific file/directory parameters
+  3. Test with files known to have valid signatures
+  4. Test with files known to have invalid signatures
+  5. Test with files that have no signatures
+  6. Test with files that have structural issues in signatures
+  7. Test with files that have missing separator endlines
+  8. Test with different verbosity levels
+  9. Verify code is parsed correctly by Protocol-7's parser (line 1434)
+  10. Confirm proper integration with %data and %code hash structures
+  11. Compare behavior to update-signatures to ensure functional parity (minus file modifications)
+
+priority: high
+estimated_effort: medium
+assignee: to be determined
+tags:
+  - feature
+  - signature
+  - verification
+  - sourcecode
