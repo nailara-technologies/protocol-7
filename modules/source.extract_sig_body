@@ -13,11 +13,11 @@ warn 'expected source_str scalar reference <{C1}>' and return undef
     if ref $src_ref ne qw| SCALAR |;
 
 my $footer_data = {
-    qw| was-present               | => 0,
-    qw| structure-was-valid       | => 0,
-    qw| footer-length-found       | => 0,
+    qw| was-present               | =>  0,
+    qw| structure-was-valid       | =>  0,
+    qw| footer-length-found       | =>  0,
     qw| amos-iterations-remaining | => -1,
-    qw| endline-state-encoded     | => 5,      ##  endline state unchanged  ##
+    qw| endline-state-encoded     | =>  5,     ##  endline state unchanged  ##
     qw| amos-payload-checksum     | => undef,
     qw| checksum-type             | => undef,
     qw| bmw-chksum                | => undef,
@@ -135,10 +135,20 @@ if ( $match_footer ne $match_template ) {    ## [ ERR: structural ]
     return $footer_data;
 }
 
-if ($seperator_endline_absent) {    ## [ ERR: policy ]
-    $footer_data->{'encountered-error'}
-        = 'data signature footer not valid [ no seperator endline ]';
-    return $footer_data;
+if ($seperator_endline_absent) {
+
+    # Store information instead of treating as error
+    $footer_data->{'needs_separator_endline'} = TRUE;
+
+    # Check if the last line is also incomplete
+    my $last_line_incomplete = ( $$src_ref !~ m/\n$/ );
+    $footer_data->{'last_line_incomplete'} = $last_line_incomplete;
+
+    # Issue warning but do not set 'encountered-error' or return early
+    map { <[base.log]>->( 0, ": $ARG" ) }
+        ( 'data-signature footer has no', ': separator endline : fixing' );
+
+    # Continue processing to allow proper restoration
 }
 
 ##############################################################################
@@ -189,8 +199,8 @@ $footer_data->{'signature'}      = $signature_B32;
 
 return $footer_data;
 
-#,,..,,,,,,..,,.,,..,,...,,,.,.,,,...,,..,,,.,..,,...,...,,.,,...,,,,,...,.,,,
-#KI5FJHQIP656YM3U3NK7C2MY24UYRCSOBBMWYBG6DDUZPI7P7UF3EX4T2DR5EBC5J2IPHQT3CIXWK
-#\\\|D7JSSNWYU74J6AM3V2YOTA6ZHBQPM742TMQXAJ3KHRQPTO6GIDM \ / AMOS7 \ YOURUM ::
-#\[7]7OFB6TJGLFO5VD7GCW34AV246G72Y6F6P2AOTKWUQC5DCWDMACDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,..,,..,,,.,,..,,.,,,,.,,,,,..,,..,,...,.,,,...,.,,,,,,,,..,.,.,
+#TWWWA4PZMIBSCQBRTKH7VVKDA7JVKWJGODFMEN4I6KM46T5M344P2HZDLULJP4N2IEBB3E3P6AF4C
+#\\\|AKHTR7J6HVPL2AUBKKEAODUSVXHPN2OTPGVNCW2TRP2ZF6GKMZS \ / AMOS7 \ YOURUM ::
+#\[7]Z4D7DNYJQ44VS3IQCD22BSECYY5MEN62OYU2OTWZH4VPTUPHDUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

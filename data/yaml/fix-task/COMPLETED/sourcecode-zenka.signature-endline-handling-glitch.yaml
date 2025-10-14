@@ -1,0 +1,195 @@
+---
+title: Fix endline handling bug in signature footer
+description: |
+  Fix a bug where the signature footer is not properly separated from document content
+  in Markdown files, causing the signature block to be appended directly to the last line
+  of content without a proper newline separator.
+
+affected_files:
+  - read-me/project-identity/source-code-versions.md
+  - potentially other Markdown files with signatures
+
+bug_details:
+  observed_behavior: |
+    The signature footer is appended directly to the last line of content without a proper
+    newline separator. This occurs specifically in Markdown files where the signature block
+    should be properly separated from the document content.
+
+    Example (from source-code-versions.md):
+    ```
+    - Reflects the project's commitment to transparent, traceable development#,,,.,..,,,,,,,,.,,..,,,.,.,,,.,.,...,,,,,.,,,...,...,..,,...,,..,,..,,.,,,.,,,
+    #CB7HVLCYZNVKS2HLGAP2OG4DF4YBFF6JLFF3LPA7IEY7NIUUSONWZEQQFO6NRN3R4D57Y6SPMO55C
+    #\\\|4FDJQV5AB4WXRSYFSN4Q65VN4XSOYJXRJ3JCE6Y4CX4NNIGFRUE \ / AMOS7 \ YOURUM ::
+    #\[7]M3DY3T53JUUVNDDRJ7GK5Q2ZCI6CCYIGVLBZ6OBBO5WMOOEM2CAY 7  DATA SIGNATURE ::
+    #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    ```
+
+  expected_behavior: |
+    The signature footer should be properly separated from the document content with a newline,
+    as seen in other properly formatted files:
+
+    ```
+    - Reflects the project's commitment to transparent, traceable development
+
+    #,,,.,..,,,,,,,,.,,..,,,.,.,,,.,.,...,,,,,.,,,...,...,..,,...,,..,,..,,.,,,.,,,
+    #CB7HVLCYZNVKS2HLGAP2OG4DF4YBFF6JLFF3LPA7IEY7NIUUSONWZEQQFO6NRN3R4D57Y6SPMO55C
+    #\\\|4FDJQV5AB4WXRSYFSN4Q65VN4XSOYJXRJ3JCE6Y4CX4NNIGFRUE \ / AMOS7 \ YOURUM ::
+    #\[7]M3DY3T53JUUVNDDRJ7GK5Q2ZCI6CCYIGVLBZ6OBBO5WMOOEM2CAY 7  DATA SIGNATURE ::
+    #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    ```
+
+relevant_modules:
+  - modules/sourcecode.console.update-signatures: Main module that updates signatures
+  - modules/source.extract_sig_body: Extracts and strips existing signature footers
+  - modules/source.fill_source_template: Fills the signature template with data
+  - modules/source.create_harmonic_footer: Creates the harmonized signature footer
+  - modules/source.cmd.get-code-signed: Processes files and applies signatures
+
+root_cause_analysis: |
+  The issue involves a combination of two critical factors:
+
+  1. **Premature Error Termination**: In source.extract_sig_body, when a missing separator endline
+     is detected, the code treats this as a fatal error rather than as information to be used
+     for proper restoration:
+
+     ```perl
+     if ($seperator_endline_absent) {    ## [ ERR: policy ]
+         $footer_data->{'encountered-error'}
+             = 'data signature footer not valid [ no seperator endline ]';
+         return $footer_data;
+     }
+     ```
+
+     This early return prevents further processing that might otherwise properly handle the
+     endline state. The warning message "data signature footer not valid [ no seperator endline ]"
+     is visible in the console when this occurs.
+
+  2. **Missing Endline Verification**: When appending the signature in source.cmd.get-code-signed,
+     the code doesn't verify if the content already ends with proper newlines:
+
+     ```perl
+     $src_str .= $recalc_data->{'signature-footer-str'};
+     ```
+
+  The bug affects two related scenarios:
+
+  - **Files with no signature yet** that don't end with a newline
+  - **Files with broken signatures** where the first line of the signature footer was
+    appended directly to the last content line (no separator endline)
+
+  Both scenarios are restorable but require different handling.
+
+proposed_solution: |
+  The optimal approach addresses both scenarios while working within the existing endline
+  state encoding system (values 0-7):
+
+  1. **Fix Premature Error Termination in source.extract_sig_body**:
+     Instead of treating missing separator endlines as a fatal error, use it as information
+     for proper restoration:
+
+     ```perl
+     if ($seperator_endline_absent) {
+         # Store information instead of treating as error
+         $footer_data->{'needs_separator_endline'} = TRUE;
+
+         # Check if the last line is also incomplete
+         my $last_line_incomplete = ($src_ref->$* !~ m/\n$/);
+         $footer_data->{'last_line_incomplete'} = $last_line_incomplete;
+
+         # DO NOT set 'encountered-error' or return early
+         # Continue processing to allow proper restoration
+     }
+     ```
+
+  2. **Enhance Incomplete Line Detection**:
+     Add detection for files without endline termination even if they don't have
+     existing signatures:
+
+     ```perl
+     # In source.cmd.get-code-signed, before harmonizing or appending signatures
+     my $ends_with_newline = $src_str =~ m/\n$/;
+     my $needs_endline_fix = !$ends_with_newline ||
+                            ($footer_data && $footer_data->{'needs_separator_endline'});
+     ```
+
+  3. **Leverage Existing Endline State Encoding**:
+     Use the appropriate endline state value (e.g., 7 for "2 endlines added") based on
+     the detected conditions:
+
+     ```perl
+     # When calculating endline_modification_state in source.create_harmonic_footer
+     my $endline_modification_state;
+     if ($footer_data->{'needs_separator_endline'} &&
+         $footer_data->{'last_line_incomplete'}) {
+         $endline_modification_state = 7;  # Add 2 endlines (complete line + separator)
+     } elsif ($footer_data->{'needs_separator_endline'}) {
+         $endline_modification_state = 6;  # Add 1 endline (separator only)
+     } else {
+         # Use existing state or default
+         $endline_modification_state = $footer_data->{'endline-state-encoded'} // 5;
+     }
+     ```
+
+  4. **Ensure Proper Endlines Before Appending Signature**:
+     In source.cmd.get-code-signed, verify and correct endlines before appending:
+
+     ```perl
+     # Before appending the signature (line 135)
+     if ($needs_endline_fix) {
+         # Determine how many endlines to add based on the specific conditions
+         if (!$ends_with_newline && ($footer_data &&
+             $footer_data->{'needs_separator_endline'})) {
+             $src_str =~ s/\n*$/\n\n/s;  # Add 2 endlines: complete line + separator
+         } elsif ($footer_data && $footer_data->{'needs_separator_endline'}) {
+             $src_str =~ s/\n*$/\n/s;    # Add 1 endline (separator only)
+         } elsif (!$ends_with_newline) {
+             $src_str .= "\n";           # Complete the last line
+         }
+     }
+
+     # Now append the signature
+     $src_str .= $recalc_data->{'signature-footer-str'};
+     ```
+
+  This comprehensive solution:
+  - Handles both unsigned files and files with broken signatures
+  - Doesn't prematurely terminate processing when issues are detected
+  - Preserves information needed for proper restoration
+  - Uses the existing endline state encoding system
+  - Does not rely on file type detection, making it format-agnostic
+  - Ensures proper endline handling in all scenarios
+
+test_plan: |
+  1. Apply the changes to the relevant modules
+  2. Create a comprehensive test suite covering:
+     - Markdown files (especially those in read-me/project-identity/)
+     - Files with different line ending styles (LF, CRLF)
+     - Files with existing signatures and without signatures
+     - Files with different endline states as encoded in the AMOS7 header
+     - Edge cases like empty files or files with only whitespace before signatures
+
+  3. Execute tests by:
+     - Running signature updates on test files
+     - Comparing before/after state of endlines
+     - Verifying signature validation still works correctly
+     - Testing with different endline state encodings
+
+  4. Automate testing where possible to detect regressions:
+     - Create a script that verifies proper signature separation for different file types
+     - Include this verification in the existing signature validation logic
+
+  5. Detailed verification checklist:
+     - Markdown files should have a blank line before signatures
+     - Code files should have at least one newline before signatures
+     - Endline state encoding/decoding should work with the modified logic
+     - Signatures should remain valid after the endline modifications
+     - No unintended side-effects on file content or structure
+
+priority: medium
+estimated_effort: low
+assignee: to be determined
+tags:
+  - bug
+  - signature
+  - markdown
+  - endline-handling

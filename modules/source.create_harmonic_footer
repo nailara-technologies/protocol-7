@@ -144,8 +144,32 @@ if ($check_enbedded_file_syntax) {
 }
 
 ##  prepare payload endlines for signature-footer  ##
-my $endline_modification_state = <[source.harmonize_payload_line_feed]>->(
-    $src_ref, $footer_data->{'endline-state-encoded'}
+
+# Determine endline state based on detected conditions
+my $endline_modification_state;
+
+# Check for special cases that need endline adjustments
+if (   $footer_data->{'needs_separator_endline'}
+    && $footer_data->{'last_line_incomplete'} ) {
+
+    # State 7: Add 2 endlines (complete line + separator)
+    $endline_modification_state = 7;
+    <[base.log]>->( 2, ': : using endline state 7 (add 2 endlines)' );
+} elsif ( $footer_data->{'needs_separator_endline'} ) {
+
+    # State 6: Add 1 endline (separator only)
+    $endline_modification_state = 6;
+    <[base.log]>->( 2, ': : using endline state 6 (add separator endline)' );
+} else {
+
+    # Use existing state or default
+    $endline_modification_state = $footer_data->{'endline-state-encoded'}
+        // 5;
+}
+
+# Call the harmonize function with our determined state
+$endline_modification_state = <[source.harmonize_payload_line_feed]>->(
+    $src_ref, $endline_modification_state
 );
 
 ### override for import encoding [ requires command line parameter ] ###
@@ -317,7 +341,7 @@ while ( not $asserted_true and $iterations_left ) {
         if $check_entire_footer
         and not AMOS7::Assert::Truth::is_true(
         \$calc_result_href->{'signature-footer-str'},
-        , 0, 1, @t_elf_modes );
+        0, 1, @t_elf_modes );
     next if not $asserted_true;            ##  aborting iteration  ##
 
     ## add footer to embedded style assertion ##
@@ -361,8 +385,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,,.,.,,,...,,..,...,,,,,,.,,,.,,,..,,,,,,..,..,,...,.,.,...,,.,,.,.,,,,,,..,
-#KVVSBRBWATRUPRW7RQO3DQIKINNRC5DDMDGOQMWCOQYEFXC6DDZGHXYSDIGNZFSM6IV6V73V4LKWE
-#\\\|HZRT3HYP6PG6JSITUXJGZRXWJOIPACW652XKDIRYLK2RGVGLVK5 \ / AMOS7 \ YOURUM ::
-#\[7]5E4LKFPYWWKSXZC3PTVTU3VM4MRGYNBYGTON5DRMCNIIAPHWVCAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,,..,.,,,..,,..,,.,,,,,,,..,,..,,...,...,,,,,,,.,..,,.,.,.,,,
+#XBVYYTGYVJDBOGTIBYDILBWFZPAYYU4SK4WOATSCLQ2PB3PTVXSII6YQET2ZBUILA7M7XWI7IYBBG
+#\\\|JMDPBMQWKQN3JNYUAWBKJKJ7UFRZNVVJGHVAGWNF7CBUSZQ44J3 \ / AMOS7 \ YOURUM ::
+#\[7]4B4RKGFNY6NWTNYSYWR6WXUKX4WVP3IH3II6SKTS4E23HAJ5LYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

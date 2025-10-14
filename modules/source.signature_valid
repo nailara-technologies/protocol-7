@@ -87,6 +87,9 @@ if ( not defined $signature_footer_data
 
     $signature_footer_data    ##  endline state is restored during strip  ##
         = <[source.extract_sig_body]>->( $payload_sref, qw| strip | );
+
+    # Check for missing separator endline
+    # (no debug output needed in normal operation)
 }
 
 ## no valid signature footer was found ##
@@ -96,6 +99,13 @@ if ( not $signature_footer_data->{'was-present'} ) {
     return FALSE;
 } elsif ( not $signature_footer_data->{'structure-was-valid'} ) {
     return ( FALSE, { 'footer-structure-was-valid' => FALSE } ) if wantarray;
+    return FALSE;
+} elsif ( $signature_footer_data->{'needs_separator_endline'} ) {
+
+    # Consider signatures with missing separator endlines as invalid
+    # so they will be updated by the signature process
+    return ( FALSE, { 'footer-needs-separator-endline' => TRUE } )
+        if wantarray;
     return FALSE;
 }
 
@@ -277,8 +287,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,,,,..,.,.,.,.,,,.,,,,,..,,,,,,...,...,,,.,..,,...,...,..,,...,,..,,..,,.,,
-#TSWRWJH6ASP5AEFER7XBVADWNLH3UEA5T5H4GQ4WVOA4LGK5ZVS4W4AKVVJZSQGIBVQV2V4THN2D4
-#\\\|VNCNVF6BRRNPPKNODYPP7LAQXJFGDXQ5LFMX2H5YIRWO6DPSGVD \ / AMOS7 \ YOURUM ::
-#\[7]MY5PVQIHX6DZNIMMUXI44BM72OHEUXUPXJRFNQ664GM3ZJIRUWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,.,,,,..,.,,,..,,,,.,.,.,..,,..,,...,..,,,.,,.,.,,.,,,.,,...,
+#2LRMF6VS26GZDAR3W4XDKN6SD3KDO7TS5ZVWZYOTFBCB4376P5POPGW447HC53PNTLLBA7BUP7YNU
+#\\\|VC5R74XK3D6RCLSC2WZL3JNOW5O7GWRNEDSD2KOSY3P7RHSHMOA \ / AMOS7 \ YOURUM ::
+#\[7]7BBFPU2DXJ7ASSDXWCCPMI4SX7BKRAP2MEP5ENQUSNFLA2EDQ4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
