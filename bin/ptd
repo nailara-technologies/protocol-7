@@ -5,10 +5,10 @@ use English;
 use warnings;
 use Time::HiRes;
 use Term::ReadKey;    ## <-- replace with AMOS7::TERM ##
-use Cwd qw| abs_path |;
+use Cwd             qw| abs_path |;
 use List::MoreUtils qw| minmax uniq |;
-use File::Which qw| which |;
-use Time::HiRes qw| sleep |;
+use File::Which     qw| which |;
+use Time::HiRes     qw| sleep |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -43,9 +43,13 @@ die ":\n:: < ptd > : 'perltidy' executable not found in current path .,\n\n"
     if not length($ptd_bin)
     or not -x $ptd_bin;
 
+##
+my @clean_argv = grep { !m|.+~$| } @ARGV;    ### remove backup files ###
+##
 ## filter filenames for protocol-7 \ perl code ##
+#
 my @files = grep { is_perl_code($ARG) }
-    uniq sort { length $a <=> length $b } reverse sort @ARGV;
+    uniq sort { length $a <=> length $b } reverse sort @clean_argv;
 
 die ":\n:: < ${NEON_green_yellow}ptd$reset > $reset:$NEON_orange "
     . "expected ${NEON_green_yellow}[${NEON_orange}perl"
@@ -166,8 +170,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,,.,,,,,,.,,...,,,,,,,,,,.,,...,,..,,,.,,,,,..,,...,...,.,.,.,,,,,,,,,,,,..,
-#2GXHWL5S3YZCFVZ7UEZM73WAUMYT7WZCQJDW4HESV7NPMVJC2ZIKB43S3GD3LDRHAEHDDHNVZ6462
-#\\\|BP5Y6SDTRNSWLEUU3JHTQP7EL42G47BBIBWYDEODSTVPMLROO6A \ / AMOS7 \ YOURUM ::
-#\[7]4N5OCC6FOTQCIE4S7T3UCT7VS32JXZGFNE327RC7A6GUYE5FKAAA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,,.,,.,,,,..,...,..,,.,,,,,,,..,,...,..,,,,.,.,.,.,.,.,,,,,.,
+#SUPCCZYF7EJE4ESEGO633DDUD4BK624E6CNY72K5ZNVQ65KQXK5HX7TRSU6NOKNCB7ANYL5PJQ2XE
+#\\\|SP274QQEYSZPO5K3OSHKP6T6FHJCLAJN6LBBLHFWHF5TN7V7NQT \ / AMOS7 \ YOURUM ::
+#\[7]R3RK5RCMJ6X6ARB7UTYD64HZC32NMMJYB6KL74Z7QSD7AGPM2UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
