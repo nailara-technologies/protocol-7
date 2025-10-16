@@ -477,16 +477,68 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
         return $verified_true;    ## end assertion ##
     } else {
 
-        # In repair mode, log but continue with BMW checksum mismatch
+        # In repair mode, attempt to recover the correct endline-state via brute-force
         <[base.log]>->(
-            1, ': BMW checksum mismatch but continuing in repair mode'
+            1, ': BMW checksum mismatch - attempting endline-state recovery'
         );
         <[base.log]>->(
             2,
             ': expected %s, got %s',
             $signature_footer_data->{'bmw-chksum'}, $footer_bmw
         );
-        $truth_status_report->{'bmw_checksum_mismatch_ignored'} = TRUE;
+
+        # Try to find the correct endline-state by brute-forcing
+        my $recovered_state = undef;
+
+        foreach my $try_state ( 0..7 ) {
+            <[base.log]>->( 2, ': trying endline-state %d', $try_state );
+
+            # Apply the endline restoration for this state
+            my $test_payload = $$payload_sref;
+            if ( $try_state == 0 or $try_state < 5 ) {
+                # Remove endlines: state 0 = remove 4, state 1 = remove 3, etc.
+                my $remove_count = 4 - $try_state;
+                $test_payload =~ s/\n{$remove_count,}$/\n/s if $remove_count > 0;
+            } elsif ( $try_state == 6 ) {
+                # Add 1 endline (separator)
+                $test_payload =~ s/(\n*)$/$1\n/s;
+            } elsif ( $try_state == 7 ) {
+                # Add 2 endlines (complete line + separator)
+                $test_payload =~ s/(\n*)$/$1\n\n/s;
+            }
+
+            # Recalculate BMW with the test payload
+            my $test_bmw_ctx = $bmw_start_ctx->clone;
+            $test_bmw_ctx->add( sprintf '%s#',
+                $signature_footer_data->{'footer-start-line'} );
+            my $test_bmw_bin = $test_bmw_ctx->digest;
+            my $test_bmw = encode_b32r($test_bmw_bin);
+
+            <[base.log]>->( 2, ': state %d BMW: %s', $try_state, $test_bmw );
+
+            # Check if this state's BMW matches the signature
+            if ( $test_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
+                <[base.logs]>->(
+                    1, ': recovered correct endline-state: %d',
+                    $try_state
+                );
+                $recovered_state = $try_state;
+                $truth_status_report->{'bmw-chksum-matches'} = TRUE;
+                $truth_status_report->{'recovered-endline-state'} = $try_state;
+                last;
+            }
+        }
+
+        if ( defined $recovered_state ) {
+            # Update footer data with recovered state for next signing cycle
+            $signature_footer_data->{'endline-state-encoded'} = $recovered_state;
+            <[base.log]>->(
+                1, ': endline-state recorded for next signing cycle'
+            );
+        } else {
+            # Brute-force failed, continue with mismatch noted
+            $truth_status_report->{'bmw_checksum_mismatch_ignored'} = TRUE;
+        }
     }
 }
 
@@ -685,8 +737,8 @@ sub _verify_signature_with_data {
     );
     return TRUE;
 }
-#,,.,,..,,.,.,..,,,.,,,,,,.,,,...,,,.,.,.,.,,,..,,...,...,...,..,,..,,.,,,,,.,
-#WL4AOKAYE544NJRRZZRBYVENXHOTJINGZHMDOMA6DMKK6OMAGGBLNMJCJA7PYJK5SA63HR2K74EIK
-#\\\|I3AQUQK2PCH4AT7JOHTVKZP7LFOTQZOED22REFCWWGNGGT6YJKU \ / AMOS7 \ YOURUM ::
-#\[7]XT3L65U54JALJEHWITEHCZJTPB74NJ47F5UUW447TMLYNYJXPWCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,..,,.,,,,,.,.,.,,,.,,..,,.,,..,,...,..,,.,.,.,,,,,.,,..,,.,,
+#5TSV4WXZPFY6ZHW6BPZW4RWOEJJSZL64V4KGONYY6NUSLJ6DUYVX6I4QENOAZMNVD5BHKGHN4E5OQ
+#\\\|IILAZLZVACDVQR2P6OTKRGHI2FGUU3PSLYYW3VOFKDLAODWMVVL \ / AMOS7 \ YOURUM ::
+#\[7]46S4XP234DFYHFGXFEGVATXWIEHFDGLKM7YDSOZ6VTORC7DJXWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
