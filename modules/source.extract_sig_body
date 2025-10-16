@@ -4,6 +4,7 @@
 
 my $src_ref = shift;
 my $strip   = shift // '';
+my $mode    = shift // 'strict';    # Options: 'strict', 'repair', 'info'
 
 warn 'expected source_str scalar reference <{C1}>' and return undef
     if not length ref $src_ref;
@@ -43,32 +44,240 @@ my $footer_start;
 my $footer_start_regex = qr|#[\.,]{77}|;    #.......,.......,......., [..,]
 my $footer_start_regex_length = 78;         ##  manually acquired  ##
 
+<[base.logs]>->(
+    3,     ': source.extract_sig_body called with mode: %s, strip: %s',
+    $mode, $strip ? 'TRUE' : 'FALSE'
+);
+
 my $seperator_endline_absent = 0;
 
 if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
-    my $lf_re = qr|(*nlb:[^\n])\n|;
-    $footer_body = ${^CAPTURE}[2]
-        if $$src_ref
-        =~ s,($lf_re)?(# _{78}|$footer_start_regex)\n((#[^\n]+\n){4})$,,sg;
+       # Try the standard pattern first (for backward compatibility)
+       # Match blank line separator: just a newline before the signature start
+       # This represents the blank line between content and signature
 
-    $seperator_endline_absent = 1
-        if length($$src_ref)    ## missing endline ##
-        and not length( ${^CAPTURE}[0] // '' );
+    # Define signature patterns for standard extraction
+    my @signature_line_patterns = (
+        qr|#.*?AMOS7.*?DATA-SIGNATURE.*|,       # DATA signature
+        qr|#.*?AMOS7.*?TEXT-SIGNATURE.*|,       # TEXT signature
+        qr|#.*?AMOS7.*?TRANSIT-SIGNATURE.*|,    # TRANSIT signature
+        qr|#.*?AMOS7.*?CODE-SIGNATURE.*|,       # CODE signature
+        qr|#.*?AMOS7.*?YOURUM\s*::|,            # Classic format
+        qr|#.*?SIGNATURE.*|                     # Generic signature mention
+    );
 
-    if ( length( ${^CAPTURE}[0] // '' ) ) {    ##  amend removed  ##
-        $$src_ref .= "\n";
+    my $standard_regex_matched = 0;
+    my $matched_signature_type = "";
+
+    # Try each pattern
+    foreach my $sig_pattern (@signature_line_patterns) {
+        <[base.logs]>->( 3, ': trying standard pattern: %s', $sig_pattern );
+
+# Match from footer start marker through all content lines to the colon line (end marker)
+# This ensures we capture the complete signature block regardless of line count
+# The pattern captures: (separator)(start marker) then (all body lines including colon with final newline)
+# The separator is a blank line: optional newline before the footer start
+        my $pattern
+            = qr/(\n)?(# _{78}|$footer_start_regex)\n((?:#[^\n]+\n)+)$/s;
+
+        <[base.logs]>->( 3, ': attempting complete signature extraction' );
+
+        # Use match-only first to capture groups correctly
+        if ( $$src_ref =~ m/$pattern/ ) {
+
+            # Capture groups immediately while they're valid
+            my $capture_separator = $1 // '';
+            my $capture_start     = $2 // '';
+            my $capture_body      = $3 // '';
+
+            # Now do the substitution
+            my $matched = ( $$src_ref =~ s/$pattern//sg );
+
+            if ($matched) {
+                $standard_regex_matched = 1;
+                $matched_signature_type = $sig_pattern;
+                $footer_start           = $capture_start;
+                $footer_body            = $capture_body;
+
+                # Check for missing separator endline
+                $seperator_endline_absent = 1
+                    if length($$src_ref)    # content remains
+                    and not length($capture_separator)
+                    ;                       # no separator was found
+
+                # Restore separator if it was present
+                if ( length($capture_separator) ) {
+                    $$src_ref .= "\n";
+                }
+
+                <[base.logs]>->(
+                    3, ': standard extraction matched signature type: %s',
+                    $matched_signature_type
+                );
+                $footer_data->{'signature_type_detected'}
+                    = $matched_signature_type;
+                last;
+            }
+        }
     }
-    $footer_start = ${^CAPTURE}[1] if defined $footer_body;
 
+    # If in repair mode, try a more flexible approach when standard fails
+    if ( !$standard_regex_matched && $mode ne 'strict' ) {
+        <[base.logs]>->(
+            3, ': attempting flexible signature extraction for repair'
+        );
+
+        # Define more comprehensive signature marker patterns
+        my @signature_markers = (
+            qr|DATA[-\s]SIGNATURE|,       # Standard pattern
+            qr|TEXT[-\s]SIGNATURE|,       # Text signature
+            qr|TRANSIT[-\s]SIGNATURE|,    # Transit signature
+            qr|CODE[-\s]SIGNATURE|,       # Code signature
+            qr|SIGNATURE|                 # Generic signature
+        );
+
+        my $start_marker = qr|#[\s\.,_]{70,80}|
+            ;    # More flexible start marker for start line
+        my $end_marker
+            = qr|#[:\.]+[\s\n]*|;    # End line pattern (colons or periods)
+
+        # Look for signature parts in the content
+        my $content_copy
+            = $$src_ref;    # Work on a copy to avoid modifying original yet
+        my $found_signature = 0;
+
+        <[base.logs]>->(
+            3, ': flexible repair mode searching for signatures'
+        );
+
+        # Try each signature marker pattern
+        foreach my $signature_marker (@signature_markers) {
+            <[base.logs]>->(
+                3, ': trying flexible signature marker: %s',
+                $signature_marker
+            );
+
+            # Try different patterns - from specific to more general
+            my @extraction_patterns = (
+
+                # Most specific pattern
+                qr|(.*?)($start_marker[\s\n].*?$signature_marker.*?[\s\n]$end_marker)$|s,
+
+              # More general pattern - just look for signature line and ending
+                qr|(.*?)(#.*?\n.*?$signature_marker.*?\n#[:\.]+[\s\n]*)$|s,
+
+         # Most general - just grab anything that looks like a signature block
+                qr|(.*?)(#.*?AMOS7.*?\n.*?$signature_marker.*?\n#[:\.]+[\s\n]*)$|s
+            );
+
+            foreach my $pattern (@extraction_patterns) {
+                if ( $content_copy =~ m/$pattern/ ) {
+                    my $content_part = $1;
+                    my $sig_part     = $2;
+
+                    <[base.logs]>->(
+                        3, ': found signature with marker: %s',
+                        $signature_marker
+                    );
+                    <[base.logs]>->( 3, ': signature part: %s', $sig_part );
+
+                    # Extract the footer start line and body
+                    if ( $sig_part =~ m|^(#[^\n]+)\n(.*?)$|s ) {
+                        $footer_start = $1;
+                        $footer_body  = $2;
+
+                        # Remove signature from content
+                        $$src_ref = $content_part;
+
+                        # Set flags for repair
+                        $seperator_endline_absent                = 1;
+                        $footer_data->{'needs_signature_repair'} = TRUE;
+                        $footer_data->{'original_signature'}     = $sig_part;
+                        $footer_data->{'signature_type_detected'}
+                            = $signature_marker;
+
+                        <[base.logs]>->(
+                            3,
+                            ': successfully extracted signature for repair with marker: %s',
+                            $signature_marker
+                        );
+                        $found_signature = 1;
+                        last;    # Exit the inner loop
+                    }
+                }
+            }
+
+            last if $found_signature;    # Exit the outer loop if found
+        }
+
+        # If flexible extraction also failed, log it
+        if ( !$found_signature && $mode eq 'repair' ) {
+            <[base.logs]>->( 0, ': flexible signature extraction failed' );
+        }
+    }
 } else {
-    $footer_body = ${^CAPTURE}[2]
-        if $$src_ref
-        =~ m|((*nlb:[^\n])\n)($footer_start_regex)\n((#[^\n]+\n){4})$|;
-    $footer_start = ${^CAPTURE}[1] if defined $footer_body;
 
-    $seperator_endline_absent = 1              ## missing endline ##
-        if length($$src_ref) > ( length($footer_start) + $footer_body )
-        and not length( ${^CAPTURE}[0] // '' );
+    # Non-strip path - just detect signature without stripping
+
+    # Define signature patterns for detection
+    my @signature_line_patterns = (
+        qr|#.*?AMOS7.*?DATA-SIGNATURE.*|,       # DATA signature
+        qr|#.*?AMOS7.*?TEXT-SIGNATURE.*|,       # TEXT signature
+        qr|#.*?AMOS7.*?TRANSIT-SIGNATURE.*|,    # TRANSIT signature
+        qr|#.*?AMOS7.*?CODE-SIGNATURE.*|,       # CODE signature
+        qr|#.*?AMOS7.*?YOURUM\s*::|,            # Classic format
+        qr|#.*?SIGNATURE.*|                     # Generic signature mention
+    );
+
+    my $found_signature        = 0;
+    my $matched_signature_type = "";
+    my $capture_separator      = '';
+
+    <[base.logs]>->( 3, ': non-strip mode, searching for signatures' );
+
+    # Try each pattern
+    foreach my $sig_pattern (@signature_line_patterns) {
+        <[base.logs]>->( 3, ': non-strip trying pattern: %s', $sig_pattern );
+
+# Match from separator+start marker through all content lines to the colon line (end marker)
+# This ensures we detect the complete signature block regardless of line count
+# Captures all body lines (including colon line) with their trailing newlines
+# The separator is a blank line: optional newline before the footer start
+        my $pattern = qr/(\n)?($footer_start_regex)\n((?:#[^\n]+\n)+)$/s;
+
+        <[base.logs]>->(
+            3, ': non-strip attempting complete signature detection'
+        );
+
+        if ( $$src_ref =~ m/$pattern/ ) {
+
+            # Capture groups immediately while they're valid
+            $capture_separator = $1 // '';    # Separator endline (optional)
+            $footer_start      = $2 // ''
+                ; # Start marker (capture group 2, since group 1 is separator)
+            $footer_body = $3 // ''
+                ;   # All content lines including colon line (capture group 3)
+            $found_signature        = 1;
+            $matched_signature_type = $sig_pattern;
+            <[base.logs]>->(
+                2, ': non-strip mode found signature, type: %s',
+                $matched_signature_type
+            );
+            last;
+        }
+
+        # Break outer loop if found
+        last if $found_signature;
+    }
+
+    $footer_body //= '';
+    $footer_data->{'signature_type_detected'} = $matched_signature_type
+        if $found_signature;
+
+    $seperator_endline_absent = 1    ## missing endline ##
+        if length($$src_ref)
+        > ( length( $footer_start // '' ) + length( $footer_body // '' ) )
+        and not length($capture_separator);
 }
 
 #### [ remove ? # missing ? ]  [LLL]
@@ -93,11 +302,25 @@ my $footer_length = 1 + $footer_start_regex_length + length $footer_body;
 
 $footer_data->{'footer-length-found'} = $footer_length;
 
-if ( $footer_length != length <source.sign_template> ) {    ## [ ERR: length ]
+## Multiple signature templates may have different sizes
+## We completely bypass size check in repair mode - any size is acceptable
+if ( $mode eq 'strict' && $footer_length != length <source.sign_template> )
+{    ## [ ERR: length ]
     $footer_data->{'encountered-error'}
         = sprintf 'data signature footer size mismatch [ %d != %d ]',
         $footer_length, length <source.sign_template>;
     return $footer_data;
+} elsif ( $mode ne 'strict'
+    && $footer_length != length <source.sign_template> ) {
+
+    # In repair mode, we allow any size and continue without error
+    <[base.logs]>->(
+        3, ': size mismatch but allowing in repair mode [%d vs %d]',
+        $footer_length, length <source.sign_template>
+    );
+    $footer_data->{'template_size_mismatch'} = TRUE;
+    $footer_data->{'footer_length'}          = $footer_length;
+    $footer_data->{'template_length'}        = length <source.sign_template>;
 }
 
 my $signed_chksum;
@@ -107,46 +330,153 @@ my $signature_B32;
 
 my $match_template = <source.sign_template>;
 
-if ( not defined $footer_start
-    or $match_template !~ s|^$footer_start_regex|| ) {  ## [ ERR: structural ]
+## In repair mode, we'll continue regardless of footer start pattern
+if ($mode eq 'strict'
+    && ( not defined $footer_start
+        || $match_template !~ s|^$footer_start_regex\n|| )
+) {
     $footer_data->{'encountered-error'}
         = 'data signature footer structure not valid'
         . ' [ footer-start not matched ]';
     return $footer_data;
+} elsif (
+    $mode ne 'strict'
+    && ( not defined $footer_start
+        || $match_template !~ s|^$footer_start_regex\n|| )
+) {
+    <[base.logs]>->( 2, ': footer start pattern mismatch' );
+    <[base.logs]>->( 2, ': :. continuing in repair mode' );
+    $footer_data->{'footer_start_mismatch'} = TRUE;
+
+    # Try a more flexible start line regex for repair mode
+    if ( defined $footer_start && $match_template !~ s|^#[\s\.,_]{70,}|| ) {
+        <[base.logs]>->(
+            3, ': attempting with more flexible footer start pattern'
+        );
+    } else {
+        <[base.logs]>->(
+            3, ': continuing with structure validation despite mismatch'
+        );
+    }
 }
 my $emptied_footer = $footer_data->{'signature-footer-str'};
 
+# Different signature templates might have different offsets and lengths
+# We'll try to adapt if in repair mode
 my @subst_params = ( ( 80, 77 ), ( 163, 51 ), ( 242, 52 ) );
 my $line_num     = 0;
-while (@subst_params) {
-    my $pos = shift @subst_params;
-    my $len = shift @subst_params;
 
-    $signature_B32 .= substr $emptied_footer, $pos, $len, '_' x $len;
-    $signed_chksum = $signature_B32 and $signature_B32 = ''
-        if 0 == $line_num++;
+# Check if repair mode needed for substr processing
+my $empty_footer_len = length($emptied_footer);
+my $need_repair      = 0;
+
+# In repair mode, adapt to different signature formats
+if ( $mode ne 'strict' ) {
+
+    # Check if any position is beyond the footer length
+    foreach my $i ( 0, 2, 4 ) {
+        if (   $i < scalar(@subst_params)
+            && $subst_params[$i] >= $empty_footer_len ) {
+            $need_repair = 1;
+            <[base.logs]>->(
+                3, ': param position %d exceeds footer length %d, adapting',
+                $subst_params[$i], $empty_footer_len
+            );
+            last;
+        }
+    }
 }
 
-( my $match_footer = $emptied_footer ) =~ s|^$footer_start_regex||;
+# Extract signature parts safely
+if ( $need_repair && $mode ne 'strict' ) {
 
-if ( $match_footer ne $match_template ) {    ## [ ERR: structural ]
+    # Simple alternative: try to extract based on patterns
+    <[base.logs]>->(
+        3, ': using alternative signature extraction in repair mode'
+    );
+
+    # Look for the patterns typical in signatures
+    if ( $emptied_footer =~ m/#\\\\\\\\([A-Z0-9]+)/ ) {
+        $signed_chksum = $1;
+        <[base.logs]>->( 3, ': found checksum: %s', $signed_chksum );
+    }
+
+    if ( $emptied_footer =~ m/#\\\\\[7\]([A-Z0-9]+)/ ) {
+        $signature_B32 = $1;
+        <[base.logs]>->( 3, ': found signature: %s', $signature_B32 );
+    }
+
+    # Mark as repaired
+    $footer_data->{'signature_extracted_by_pattern'} = TRUE;
+} else {
+
+    # Standard extraction
+    while (@subst_params) {
+        my $pos = shift @subst_params;
+        my $len = shift @subst_params;
+
+        # Safety check to prevent substr errors
+        if ( $pos >= $empty_footer_len ) {
+            <[base.logs]>->(
+                3,    ': position %d exceeds footer length %d, skipping',
+                $pos, $empty_footer_len
+            );
+            next;
+        }
+
+        # Adjust length if needed to prevent going past end of string
+        if ( $pos + $len > $empty_footer_len ) {
+            $len = $empty_footer_len - $pos;
+            <[base.logs]>->(
+                3, ': adjusted length to %d to stay within footer', $len
+            );
+        }
+
+        $signature_B32 .= substr $emptied_footer, $pos, $len, '_' x $len;
+        $signed_chksum = $signature_B32 and $signature_B32 = ''
+            if 0 == $line_num++;
+    }
+}
+
+## Remove the actual extracted first line from the footer copy for comparison
+( my $match_footer = $emptied_footer ) =~ s|^\Q$footer_start\E\n||;
+
+## Also remove the template's first line for fair comparison
+$match_template =~ s|^[^\n]+\n||;
+
+## In repair mode, we completely bypass the template comparison
+if ( $mode eq 'strict' && $match_footer ne $match_template )
+{    ## [ ERR: structural ]
     $footer_data->{'encountered-error'}
         = 'data signature footer structure not valid [ template mismatch ]';
     return $footer_data;
+} elsif ( $mode ne 'strict' && $match_footer ne $match_template ) {
+    <[base.logs]>->( 2, ': template mismatch but continuing in repair mode' );
+    $footer_data->{'template_mismatch'} = TRUE;
 }
 
 if ($seperator_endline_absent) {
 
-    # Store information instead of treating as error
+    # Always store the information regardless of mode
     $footer_data->{'needs_separator_endline'} = TRUE;
 
     # Check if the last line is also incomplete
     my $last_line_incomplete = ( $$src_ref !~ m/\n$/ );
     $footer_data->{'last_line_incomplete'} = $last_line_incomplete;
 
-    # Issue warning but do not set 'encountered-error' or return early
-    map { <[base.log]>->( 0, ": $ARG" ) }
-        ( 'data-signature footer has no', ': separator endline : fixing' );
+    # Issue warning
+    map { <[base.logs]>->( 0, ": $ARG" ) }
+        ( 'data-signature footer has no', ': separator endline' );
+
+    # Only treat as error in strict mode
+    if ( $mode eq 'strict' ) {
+        $footer_data->{'encountered-error'}
+            = 'data signature footer not valid [ no separator endline ]';
+        return $footer_data;    # Early return only in strict mode
+    }
+
+    # In repair mode, continue but note we're fixing
+    <[base.logs]>->( 0, ": fixing in $mode mode" ) if $mode ne 'strict';
 
     # Continue processing to allow proper restoration
 }
@@ -155,21 +485,45 @@ if ($seperator_endline_absent) {
 
 ## decoding AMOS7 [ first ] footer line ##
 
-my $amos7_header = <[amos7.decode_octal_bit_header]>->($footer_start);
+# Try decoding the AMOS7 header, but handle errors gracefully in repair mode
+my $amos7_header;
+eval { $amos7_header = <[amos7.decode_octal_bit_header]>->($footer_start); };
 
-if ( not $amos7_header->{'structure-was-valid'} ) {    ## [ ERR: structural ]
+# Check for errors or invalid structure
+if (   defined $@ && length($@)
+    || !defined $amos7_header
+    || ( defined $amos7_header && !$amos7_header->{'structure-was-valid'} ) )
+{
 
-    $footer_data->{'encountered-error'}
-        = $amos7_header->{'encountered-error'}
-        // 'unspecified error in amos bit-header';
-    return $footer_data;
+    # In strict mode, treat as error
+    if ( $mode eq 'strict' ) {
+        $footer_data->{'encountered-error'}
+            = $amos7_header
+            ? ( $amos7_header->{'encountered-error'}
+                // 'unspecified error in amos bit-header' )
+            : 'failed to decode AMOS7 header';
+        return $footer_data;
+    } else {
 
-} else {    ##  decoding was successful  ##
+        # In repair mode, log but continue
+        <[base.logs]>->(
+            2, ': AMOS7 header decode error but continuing in repair mode'
+        );
 
+        # Set default values
+        $footer_data->{'amos7_header_error'}    = TRUE;
+        $footer_data->{'amos-payload-checksum'} = 'REPAIRMODE';
+        $footer_data->{'endline-state-encoded'} = 5;   # Default endline state
+        $footer_data->{'amos-iterations-remaining'} = -1;
+    }
+} else {
+
+    # Decoding was successful
     <[source.restore_payload_endline_state]>->(
         $src_ref, $amos7_header->{'endline-state-encoded'}
     );
 
+    # Copy data from header
     map { $footer_data->{$ARG} = $amos7_header->{$ARG}; } qw[
         amos-payload-checksum
         endline-state-encoded
@@ -180,14 +534,31 @@ if ( not $amos7_header->{'structure-was-valid'} ) {    ## [ ERR: structural ]
 ##############################################################################
 
 my @err_loc;
-push( @err_loc, qw| bmw-chksum | ) if $signed_chksum !~ m|^[0-9A-Z]+$|;
-push( @err_loc, qw| c25519-b32 | ) if $signature_B32 !~ m|^[0-9A-Z]+$|;
+push( @err_loc, qw| bmw-chksum | )
+    if defined $signed_chksum && $signed_chksum !~ m|^[0-9A-Z]+$|;
+push( @err_loc, qw| c25519-b32 | )
+    if defined $signature_B32 && $signature_B32 !~ m|^[0-9A-Z]+$|;
 
 if (@err_loc) {    ## [E: alien characters ]
-    $footer_data->{'encountered-error'}
-        = sprintf 'not valid characters in signature data [ %s ]',
-        join( ' and ', @err_loc );
-    return $footer_data;
+                   # In strict mode, treat as error
+    if ( $mode eq 'strict' ) {
+        $footer_data->{'encountered-error'}
+            = sprintf 'not valid characters in signature data [ %s ]',
+            join( ' and ', @err_loc );
+        return $footer_data;
+    } else {
+
+        # In repair mode, log but continue
+        <[base.logs]>->(
+            2,
+            ': signature contains invalid characters but continuing in repair mode'
+        );
+        $footer_data->{'invalid_characters'} = TRUE;
+
+        # Try to clean up the signature and checksum if needed
+        $signed_chksum =~ s|[^0-9A-Z]||g if defined $signed_chksum;
+        $signature_B32 =~ s|[^0-9A-Z]||g if defined $signature_B32;
+    }
 }
 
 $footer_data->{'structure-was-valid'} = 1;
@@ -197,10 +568,26 @@ $footer_data->{'signature-type'} = qw| C25519-B32 |; # <-- ###################
 $footer_data->{'bmw-chksum'}     = $signed_chksum;
 $footer_data->{'signature'}      = $signature_B32;
 
-return $footer_data;
+# In repair mode, store the template for signature reconstruction
+if ( $mode eq 'repair' ) {
+    $footer_data->{'template'} = <source.sign_template>;
+    $footer_data->{'original_separator_endline_absent'}
+        = $seperator_endline_absent;
 
-#,,,,,.,.,.,.,,..,,..,,,.,,..,,.,,,,.,,,,,..,,..,,...,.,,,...,.,,,,,,,,..,.,.,
-#TWWWA4PZMIBSCQBRTKH7VVKDA7JVKWJGODFMEN4I6KM46T5M344P2HZDLULJP4N2IEBB3E3P6AF4C
-#\\\|AKHTR7J6HVPL2AUBKKEAODUSVXHPN2OTPGVNCW2TRP2ZF6GKMZS \ / AMOS7 \ YOURUM ::
-#\[7]Z4D7DNYJQ44VS3IQCD22BSECYY5MEN62OYU2OTWZH4VPTUPHDUCQ 7  DATA SIGNATURE ::
+    # Use footer_data signature-footer-str instead of direct variable
+    $footer_data->{'original_signature_footer_str'}
+        = $footer_data->{'signature-footer-str'}
+        if defined $footer_data->{'signature-footer-str'};
+
+    # Log what we're doing
+    <[base.logs]>->(
+        3, ': storing signature template for possible reconstruction'
+    );
+}
+
+return $footer_data;
+#,,,.,...,,,.,,..,...,,.,,,,.,,,,,,,.,,..,,.,,..,,...,...,,,.,.,.,,..,,.,,,,.,
+#YQAGFWWIGDFIF3JKY6MEG4DWFONBA5IVO6YWHD6E2NPC4NTALG4XDXLOCYESSQ375JKKQQ35JPQXY
+#\\\|N2JXBGMP4LXN66D7UGOZHZZBKPFCY6BD2LCDPYK324UHOV2FJ7Q \ / AMOS7 \ YOURUM ::
+#\[7]5DNBEGSFGATBT6XRZOXRSRB7VVYPSS2INCDNO4MFU2EOKN5E4GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
