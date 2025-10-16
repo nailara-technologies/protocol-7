@@ -5,9 +5,9 @@
 ## input parameters ##
 my $payload_sref          = shift // '';
 my $signature_footer_data = shift;
-my $truth_checks          = shift // {};    ##  optional  ##
-my $key_name_param        = shift;          ##  optional  ##
-my $mode                  = shift // 'strict';  # Options: 'strict', 'repair'
+my $truth_checks          = shift // {};         ##  optional  ##
+my $key_name_param        = shift;               ##  optional  ##
+my $mode                  = shift // 'strict';   # Options: 'strict', 'repair'
 
 map {    ## early exit without further validation ##
     if ( defined $signature_footer_data->{$ARG}
@@ -88,8 +88,9 @@ if ( not defined $signature_footer_data
     and $payload_sref->$* =~ m|$footer_as_string$| ) {
 
     $signature_footer_data    ##  endline state is restored during strip  ##
-#        = <[source.extract_sig_body]>->( $payload_sref, , $mode );
-       = <[source.extract_sig_body]>->( $payload_sref, qw| strip |, $mode );
+
+        #        = <[source.extract_sig_body]>->( $payload_sref, , $mode );
+        = <[source.extract_sig_body]>->( $payload_sref, qw| strip |, $mode );
 
     # Check for missing separator endline with appropriate mode handling
     # (no debug output needed in normal operation)
@@ -109,7 +110,8 @@ if ( not $signature_footer_data->{'was-present'} ) {
     $truth_status_report->{'footer-needs-separator-endline'} = TRUE;
 
     # Only fail in strict mode
-    if ($mode eq 'strict') {
+    if ( $mode eq 'strict' ) {
+
         # Consider signatures with missing separator endlines as invalid
         # so they will be updated by the signature process
         $verified_true = FALSE;
@@ -119,91 +121,117 @@ if ( not $signature_footer_data->{'was-present'} ) {
     }
 
     # In repair mode, try different endline states
-    if ($mode eq 'repair') {
-        <[base.log]>->( 1, ': attempting to repair by trying different endline states' );
-        <[base.log]>->( 2, ': needs_separator_endline = %s',
-                       $signature_footer_data->{'needs_separator_endline'} ? 'TRUE' : 'FALSE' );
+    if ( $mode eq 'repair' ) {
+        <[base.log]>->(
+            1, ': attempting to repair by trying different endline states'
+        );
+        <[base.log]>->(
+            2,
+            ': needs_separator_endline = %s',
+            $signature_footer_data->{'needs_separator_endline'}
+            ? 'TRUE'
+            : 'FALSE'
+        );
 
         # Store original reference and content
-        my $original_ref = $payload_sref;
+        my $original_ref     = $payload_sref;
         my $original_content = $$original_ref;
 
         # Track if we found a valid repair
-        my $repaired = FALSE;
-        my $repaired_state = 5; # Default state
+        my $repaired       = FALSE;
+        my $repaired_state = 5;       # Default state
 
         # Try different endline states
-        foreach my $test_state (6, 7, 5) { # Order by likelihood of success
+        foreach my $test_state ( 6, 7, 5 ) {  # Order by likelihood of success
             <[base.logs]>->( 2, ': : testing endline state %d', $test_state );
 
             # Create a temporary copy of the content
             my $test_content = $original_content;
 
             # Apply the endline state
-            if ($test_state == 6) {
+            if ( $test_state == 6 ) {
+
                 # Add separator endline only
                 $test_content =~ s/(\n*)$/$1\n/;
                 <[base.log]>->( 2, ': : adding separator endline' );
-            } elsif ($test_state == 7) {
+            } elsif ( $test_state == 7 ) {
+
                 # Add both complete line and separator endlines
                 $test_content =~ s/(\n*)$/$1\n\n/;
-                <[base.log]>->( 2, ': : adding complete line and separator endlines' );
+                <[base.log]>->(
+                    2, ': : adding complete line and separator endlines'
+                );
             }
 
-            <[base.log]>->( 2, ': : testing with endline state %d content length %d',
-                $test_state, length($test_content) );
+            <[base.log]>->(
+                2, ': : testing with endline state %d content length %d',
+                $test_state, length($test_content)
+            );
 
             # Create a temporary reference for testing
             my $temp_ref = \$test_content;
 
             # Create a copy of the footer data for testing
             my %test_footer_data = %$signature_footer_data;
-            $test_footer_data{'data-reference'} = $temp_ref;
-            $test_footer_data{'endline-state-encoded'} = $test_state;
+            $test_footer_data{'data-reference'}          = $temp_ref;
+            $test_footer_data{'endline-state-encoded'}   = $test_state;
             $test_footer_data{'needs_separator_endline'} = FALSE;
 
             # Extract the signature again with the modified content
-            my $test_sig_data = <[source.extract_sig_body]>->(
-                $temp_ref, qw| strip |, $mode
-            );
+            my $test_sig_data = <[source.extract_sig_body]>
+                ->( $temp_ref, qw| strip |, $mode );
 
             # Log extraction results
             <[base.log]>->( 2, ': : signature extraction results:' );
-            <[base.log]>->( 2, ': : : was-present: %s',
-                $test_sig_data->{'was-present'} ? 'TRUE' : 'FALSE' );
-            <[base.log]>->( 2, ': : : structure-was-valid: %s',
-                $test_sig_data->{'structure-was-valid'} ? 'TRUE' : 'FALSE' );
+            <[base.log]>->(
+                2,
+                ': : : was-present: %s',
+                $test_sig_data->{'was-present'} ? 'TRUE' : 'FALSE'
+            );
+            <[base.log]>->(
+                2,
+                ': : : structure-was-valid: %s',
+                $test_sig_data->{'structure-was-valid'} ? 'TRUE' : 'FALSE'
+            );
 
-            if ($test_sig_data->{'encountered-error'}) {
-                <[base.log]>->( 2, ': : : error: %s', $test_sig_data->{'encountered-error'} );
+            if ( $test_sig_data->{'encountered-error'} ) {
+                <[base.log]>->(
+                    2,
+                    ': : : error: %s',
+                    $test_sig_data->{'encountered-error'}
+                );
             }
 
             # Skip if extraction failed
-            next if not $test_sig_data->{'was-present'}
-                 or not $test_sig_data->{'structure-was-valid'};
+            next
+                if not $test_sig_data->{'was-present'}
+                or not $test_sig_data->{'structure-was-valid'};
 
             # Try full verification with the extracted signature
-            my $test_verified = _verify_signature_with_data(
-                $temp_ref, $test_sig_data, $truth_checks, $key_name_param
-            );
+            my $test_verified
+                = _verify_signature_with_data( $temp_ref, $test_sig_data,
+                $truth_checks, $key_name_param );
 
             if ($test_verified) {
-                <[base.logs]>->( 1, ': successfully repaired with endline state %d', $test_state );
+                <[base.logs]>->(
+                    1, ': successfully repaired with endline state %d',
+                    $test_state
+                );
 
                 # Update the original data with the fixed version
                 $$original_ref = $test_content;
 
                 # Update footer data with the fixed values
-                $signature_footer_data = $test_sig_data;
+                $signature_footer_data               = $test_sig_data;
                 $signature_footer_data->{'repaired'} = TRUE;
                 $signature_footer_data->{'repaired-with-state'} = $test_state;
 
-                $repaired = TRUE;
+                $repaired       = TRUE;
                 $repaired_state = $test_state;
 
                 # Set verification result to true
-                $verified_true = TRUE;
-                $truth_status_report->{'repaired'} = TRUE;
+                $verified_true                                = TRUE;
+                $truth_status_report->{'repaired'}            = TRUE;
                 $truth_status_report->{'repaired-with-state'} = $test_state;
 
                 # Break out of the loop
@@ -212,69 +240,85 @@ if ( not $signature_footer_data->{'was-present'} ) {
         }
 
         # If endline state changes didn't work, try signature reconstruction
-        if (!$repaired && $signature_footer_data->{'template'}) {
+        if ( !$repaired && $signature_footer_data->{'template'} ) {
             <[base.log]>->( 1, ': attempting signature reconstruction' );
 
             # Get the template and other stored data
-            my $template = $signature_footer_data->{'template'};
+            my $template     = $signature_footer_data->{'template'};
             my $footer_start = $signature_footer_data->{'footer-start-line'};
-            my $bmw_chksum = $signature_footer_data->{'bmw-chksum'} // '';
-            my $signature = $signature_footer_data->{'signature'} // '';
+            my $bmw_chksum   = $signature_footer_data->{'bmw-chksum'} // '';
+            my $signature    = $signature_footer_data->{'signature'}  // '';
 
             # If we have the needed components, try reconstruction
-            if ($footer_start && $bmw_chksum && $signature) {
-                <[base.log]>->( 2, ': reconstructing signature from components' );
+            if ( $footer_start && $bmw_chksum && $signature ) {
+                <[base.log]>->(
+                    2, ': reconstructing signature from components'
+                );
 
-                # Create the reconstructed footer, following the template format
-                # but using our extracted values
+              # Create the reconstructed footer, following the template format
+              # but using our extracted values
                 my $reconstructed_footer = $footer_start;
 
                 # Insert the checksums and signature into the right positions
                 my $template_copy = $template;
-                # We need to carefully quote the replacement patterns to avoid syntax errors
-                # Use simple string replacement instead of regex for these complex strings
-                $template_copy =~ s/\\\\\\\\//;  # Remove first backslash sequence
-                $template_copy =~ s/\\\\\\\\/$bmw_chksum\\\\\\\\/; # Insert BMW checksum
+
+  # We need to carefully quote the replacement patterns to avoid syntax errors
+  # Use simple string replacement instead of regex for these complex strings
+                $template_copy
+                    =~ s/\\\\\\\\//;    # Remove first backslash sequence
+                $template_copy
+                    =~ s/\\\\\\\\/$bmw_chksum\\\\\\\\/;  # Insert BMW checksum
                 $template_copy =~ s/\\\\\\\\\[7\]//; # Remove signature marker
-                $template_copy =~ s/\\\\\\\\\[7\]/$signature\\\\\\\[7\]/; # Insert signature
+                $template_copy =~ s/\\\\\\\\\[7\]/$signature\\\\\\\[7\]/
+                    ;                                # Insert signature
 
                 # Attach the reconstructed footer
-                if ($signature_footer_data->{'original_separator_endline_absent'}) {
+                if ($signature_footer_data->{
+                        'original_separator_endline_absent'}
+                ) {
                     # Add a separator endline if it was missing
                     $$original_ref .= "\n" . $template_copy;
                 } else {
                     $$original_ref .= $template_copy;
                 }
 
-                <[base.log]>->( 1, ': signature reconstructed and appended to file' );
+                <[base.log]>->(
+                    1, ': signature reconstructed and appended to file'
+                );
 
                 # Update footer data with the reconstructed values
                 $signature_footer_data->{'reconstructed'} = TRUE;
-                $signature_footer_data->{'repaired'} = TRUE;
+                $signature_footer_data->{'repaired'}      = TRUE;
 
                 # Set verification result to true
-                $verified_true = TRUE;
+                $verified_true                          = TRUE;
                 $truth_status_report->{'reconstructed'} = TRUE;
-                $truth_status_report->{'repaired'} = TRUE;
+                $truth_status_report->{'repaired'}      = TRUE;
 
                 # Return with success
-                return (TRUE, $truth_status_report) if wantarray;
+                return ( TRUE, $truth_status_report ) if wantarray;
                 return TRUE;
             }
         }
 
         if ($repaired) {
+
             # Continue with successful repair
-            return (TRUE, $truth_status_report) if wantarray;
+            return ( TRUE, $truth_status_report ) if wantarray;
             return TRUE;
         } else {
-            <[base.log]>->( 1, ': repair attempts failed, allowing validation despite issues' );
+            <[base.log]>->(
+                1,
+                ': repair attempts failed, allowing validation despite issues'
+            );
         }
     }
 
     # If we get here, repair mode couldn't fix it or we're in a different mode
-    <[base.log]>->( 1, ': allowing validation despite missing separator endline (repair mode)' )
-        if $mode ne 'strict';
+    <[base.log]>->(
+        1,
+        ': allowing validation despite missing separator endline (repair mode)'
+    ) if $mode ne 'strict';
 }
 
 my $found_footer_length = $signature_footer_data->{'footer-length-found'};
@@ -388,21 +432,27 @@ my $AMOS_B32 = AMOS7::CHKSUM::amos_chksum(   ##[  AMOS7-elf chksum mode 7  ]##
     }
 );
 
-if ($AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'}) {
+if ( $AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'} ) {
     $truth_status_report->{'AMOS-chksum-matches'} = TRUE;    ## true ##
 } else {
     $truth_status_report->{'AMOS-chksum-matches'} = FALSE;    ##  false  ##
 
     # In strict mode, reject any checksum mismatch
-    if ($mode eq 'strict') {
-        $verified_true = FALSE;                                   ##  false  ##
-        return ($verified_true, $truth_status_report) if wantarray;
+    if ( $mode eq 'strict' ) {
+        $verified_true = FALSE;                               ##  false  ##
+        return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
     } else {
+
         # In repair mode, log but continue with AMOS checksum mismatch
-        <[base.log]>->(1, ': AMOS checksum mismatch but continuing in repair mode');
-        <[base.log]>->(2, ': expected %s, got %s',
-                     $signature_footer_data->{'amos-payload-checksum'}, $AMOS_B32);
+        <[base.log]>->(
+            1, ': AMOS checksum mismatch but continuing in repair mode'
+        );
+        <[base.log]>->(
+            2,
+            ': expected %s, got %s',
+            $signature_footer_data->{'amos-payload-checksum'}, $AMOS_B32
+        );
         $truth_status_report->{'amos_checksum_mismatch_ignored'} = TRUE;
     }
 }
@@ -415,21 +465,27 @@ $bmw_start_ctx->add( sprintf '%s#',
 my $footer_bmw_bin = $bmw_start_ctx->digest;
 $footer_bmw = encode_b32r($footer_bmw_bin);
 
-if ($footer_bmw eq $signature_footer_data->{'bmw-chksum'}) {
+if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
     $truth_status_report->{'bmw-chksum-matches'} = TRUE;    ## true ##
 } else {
     $truth_status_report->{'bmw-chksum-matches'} = FALSE;    ##  false  ##
 
     # In strict mode, reject any checksum mismatch
-    if ($mode eq 'strict') {
-        $verified_true = FALSE;                                  ##  false  ##
-        return ($verified_true, $truth_status_report) if wantarray;
+    if ( $mode eq 'strict' ) {
+        $verified_true = FALSE;                              ##  false  ##
+        return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
     } else {
+
         # In repair mode, log but continue with BMW checksum mismatch
-        <[base.log]>->(1, ': BMW checksum mismatch but continuing in repair mode');
-        <[base.log]>->(2, ': expected %s, got %s',
-                     $signature_footer_data->{'bmw-chksum'}, $footer_bmw);
+        <[base.log]>->(
+            1, ': BMW checksum mismatch but continuing in repair mode'
+        );
+        <[base.log]>->(
+            2,
+            ': expected %s, got %s',
+            $signature_footer_data->{'bmw-chksum'}, $footer_bmw
+        );
         $truth_status_report->{'bmw_checksum_mismatch_ignored'} = TRUE;
     }
 }
@@ -452,13 +508,17 @@ if ($sig_valid) {
     $truth_status_report->{'signature-is-valid'} = FALSE;    ##  false  ##
 
     # In strict mode, reject invalid signatures
-    if ($mode eq 'strict') {
-        $verified_true = FALSE;                                  ##  false  ##
-        return ($verified_true, $truth_status_report) if wantarray;
+    if ( $mode eq 'strict' ) {
+        $verified_true = FALSE;                              ##  false  ##
+        return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
     } else {
+
         # In repair mode, log but continue with signature verification issues
-        <[base.log]>->(1, ': C25519 signature verification failed but continuing in repair mode');
+        <[base.log]>->(
+            1,
+            ': C25519 signature verification failed but continuing in repair mode'
+        );
         $truth_status_report->{'signature_verification_ignored'} = TRUE;
     }
 }
@@ -510,7 +570,7 @@ sub _verify_signature_with_data {
 
     # Get the elf modes from the main function
     my @test_elf_modes = qw| 4 7 |;
-    my $test_ELFmode = 7;
+    my $test_ELFmode   = 7;
 
     # Initialize elf checksum values
     my $test_elf_chksum = {
@@ -525,14 +585,13 @@ sub _verify_signature_with_data {
 
     my $test_chksum_params = [
         ( map { [ qw| ELF-7 |, $ARG ] } @test_elf_modes ),
-        [qw| BMW 384 |],
-        [ qw| ELF-7 |, $test_ELFmode ],
+        [qw| BMW 384 |], [ qw| ELF-7 |, $test_ELFmode ],
         [qw| BMW-bin 512 |],
     ];
 
     # Calculate checksums
     my @test_chksum_results = <[base.chk-sum.from_substr]>->(
-        $test_payload_sref, $test_data_pos, $test_content_size,
+        $test_payload_sref,  $test_data_pos, $test_content_size,
         $test_chksum_params, $test_read_length
     );
 
@@ -543,11 +602,12 @@ sub _verify_signature_with_data {
 
     # Get ELF checksums
     foreach my $mode (@test_elf_modes) {
-        $test_elf_chksum->{'entire-payload'}->{$mode} = shift @test_chksum_results;
+        $test_elf_chksum->{'entire-payload'}->{$mode}
+            = shift @test_chksum_results;
     }
 
-    shift @test_chksum_results; # strip footer BMW checksum
-    shift @test_chksum_results; # strip AMOS-ELF checksum
+    shift @test_chksum_results;    # strip footer BMW checksum
+    shift @test_chksum_results;    # strip AMOS-ELF checksum
 
     # Get AMOS BMW checksum
     my $test_amos_digest_bin = shift @test_chksum_results;
@@ -556,35 +616,51 @@ sub _verify_signature_with_data {
     my $test_AMOS_B32 = AMOS7::CHKSUM::amos_chksum(
         {   qw| elf-shift-bits | => 13,
             qw| elf-modes      | => [ 4, 7 ],
-            qw| elf_checksum   | => $test_elf_chksum->{'entire-payload'}->{$test_ELFmode},
+            qw| elf_checksum   | =>
+                $test_elf_chksum->{'entire-payload'}->{$test_ELFmode},
             qw| BMW_checksum   | => $test_amos_digest_bin
         }
     );
 
     # Verify AMOS checksum
-    if ($test_AMOS_B32 ne $test_footer_data->{'amos-payload-checksum'}) {
-        <[base.log]>->(2, ': test: AMOS checksum mismatch but allowing in repair mode');
-        <[base.log]>->(3, ': test: expected %s, got %s',
-                   $test_footer_data->{'amos-payload-checksum'}, $test_AMOS_B32);
+    if ( $test_AMOS_B32 ne $test_footer_data->{'amos-payload-checksum'} ) {
+        <[base.log]>->(
+            2, ': test: AMOS checksum mismatch but allowing in repair mode'
+        );
+        <[base.log]>->(
+            3,
+            ': test: expected %s, got %s',
+            $test_footer_data->{'amos-payload-checksum'},
+            $test_AMOS_B32
+        );
+
         # Don't fail in repair mode
     }
 
     # Calculate footer BMW checksum
-    $test_bmw_start->add(sprintf '%s#', $test_footer_data->{'footer-start-line'});
+    $test_bmw_start->add( sprintf '%s#',
+        $test_footer_data->{'footer-start-line'} );
     my $test_footer_bmw_bin = $test_bmw_start->digest;
-    my $test_bmw_result = encode_b32r($test_footer_bmw_bin);
+    my $test_bmw_result     = encode_b32r($test_footer_bmw_bin);
 
     # Verify BMW checksum
-    if ($test_bmw_result ne $test_footer_data->{'bmw-chksum'}) {
-        <[base.log]>->(2, ': test: BMW checksum mismatch but allowing in repair mode');
-        <[base.log]>->(3, ': test: expected %s, got %s',
-                   $test_footer_data->{'bmw-chksum'}, $test_bmw_result);
+    if ( $test_bmw_result ne $test_footer_data->{'bmw-chksum'} ) {
+        <[base.log]>->(
+            2, ': test: BMW checksum mismatch but allowing in repair mode'
+        );
+        <[base.log]>->(
+            3,
+            ': test: expected %s, got %s',
+            $test_footer_data->{'bmw-chksum'},
+            $test_bmw_result
+        );
+
         # Don't fail in repair mode
     }
 
     # Verify signature
-    my $test_signed_data = substr($test_footer_as_string, 0, 163);
-    my $test_signature = $test_footer_data->{'signature'};
+    my $test_signed_data = substr( $test_footer_as_string, 0, 163 );
+    my $test_signature   = $test_footer_data->{'signature'};
 
     my $test_sig_valid = 0;
     eval {
@@ -593,18 +669,24 @@ sub _verify_signature_with_data {
         ) ? 1 : 0;
     };
 
-    if (!$test_sig_valid) {
-        <[base.log]>->(2, ': test: C25519 signature verification failed but allowing in repair mode');
+    if ( !$test_sig_valid ) {
+        <[base.log]>->(
+            2,
+            ': test: C25519 signature verification failed but allowing in repair mode'
+        );
+
         # Don't fail in repair mode
     }
 
     # In repair mode, all checks are considered passed
-    <[base.log]>->(2, ': test: repair mode allowing validation despite checksum or signature issues');
+    <[base.log]>->(
+        2,
+        ': test: repair mode allowing validation despite checksum or signature issues'
+    );
     return TRUE;
 }
-
-#,,,.,,..,...,.,.,.,.,,..,,,,,,,.,,..,.,.,...,..,,...,..,,.,.,.,,,,,,,,,,,.,.,
-#FVGLEY2VXA3LVOPG6SHWPOYN7AV3I5IDBJSQ4FZP7JKVC7OAZAEHMCEO3334X3S6DVWCO3BSKEUWA
-#\\\|ZO2VLXUGAKB7DRK3U5Z57JS3KOHJ2DTAZU2IEZUXBDW75OMUSY4 \ / AMOS7 \ YOURUM ::
-#\[7]UPYXU4FML6VKHZT6LV67MBW3YIN3VWNEHY3ZDOL5GICOJPX5D2AY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,.,,,,,,.,,,...,,,.,.,.,.,,,..,,...,...,...,..,,..,,.,,,,,.,
+#WL4AOKAYE544NJRRZZRBYVENXHOTJINGZHMDOMA6DMKK6OMAGGBLNMJCJA7PYJK5SA63HR2K74EIK
+#\\\|I3AQUQK2PCH4AT7JOHTVKZP7LFOTQZOED22REFCWWGNGGT6YJKU \ / AMOS7 \ YOURUM ::
+#\[7]XT3L65U54JALJEHWITEHCZJTPB74NJ47F5UUW447TMLYNYJXPWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

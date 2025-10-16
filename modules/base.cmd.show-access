@@ -18,9 +18,9 @@ return {
     and $user !~ m|^<$usr_re>$|;
 
 my $special_users = {
-    map      { $ARG => $data{'system'}->{$ARG} }
-        grep { !m|^amos-zenka-user$| }    ## <-- seperate namespace [LLL]
-        grep {m|\-user$|} keys $data{'system'}->%*
+    map  { $ARG => $data{'system'}->{$ARG} }
+    grep { !m|^amos-zenka-user$| }             ## <-- seperate namespace [LLL]
+    grep {m|\-user$|} keys $data{'system'}->%*
 };
 
 my @mapped_users;
@@ -102,7 +102,7 @@ if ( defined $user ) {
         $reply_str .= sprintf ":\n:  %*s  :  %s\n", $max_len, $user,
             <[base.wrap_text]>->(
             $w_prefix, $wrap_len,
-            , <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) )
+            <[base.sort]>->( split( m|\s+|, <access.cmd.usr>->{$user} ) )
             );
     }
 
@@ -116,9 +116,8 @@ if ( defined $user ) {
         'data' => 'no access permissions have been set up'
     };
 }
-
-#,,,.,,.,,.,.,..,,,,.,,,.,..,,..,,.,.,.,,,.,,,..,,...,...,...,..,,,.,,,,.,..,,
-#2DFBV23B6CRCX7QLDTGUQJOZS6EYI3YA762BEV3CFJQBVK4LAFS5DZVYFD4P4I5WQ2ATMTQX3RBUA
-#\\\|H5L5AYT3D5Z2PBSRMNC4MY53YGFVU32IJ2GUEQQH5OBSWJUP2KC \ / AMOS7 \ YOURUM ::
-#\[7]UY3FVBN3X6K5URV5FDJMX6F6HVRXSYF6FX363WY3KWKYBZFZL6AI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,.,,,..,,.,,,,,,,..,,..,,.,.,..,,...,...,.,.,,,.,..,,,.,,.,,,
+#5KXSHW2P5QE73A7OGETHYGTCBR5ACWA6FVO2XG4UJ64TCVWPNZEX2OM6JFUKRSRCLZBZ6F7VWAZQQ
+#\\\|FQS4JM5ELKF2HF74WHBLMY7CEK3ITQ3OYUEGDPFLFVXCJWG7KQ7 \ / AMOS7 \ YOURUM ::
+#\[7]Q2DCGPSDNNSRTMZTI4WIEIPBBLY6G62RN22WICP2DBMXA5AC46AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

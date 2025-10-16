@@ -10,7 +10,7 @@
     if not <[base.perlmod.loaded]>->('IPC::Open2');
 
 ( my $zenka_name = <system.zenka.name> ) =~ s|[^_\.\-\w]+||g;
-my $child_code = << "EOT";
+my $child_code = <<"EOT";
 use strict; use warnings; use English;
 map { \$SIG{\$ARG} = 'IGNORE' } qw| INT TERM QUIT |;
 \$PROGRAM_NAME = q|$zenka_name-<root>-'prio'-child|;
@@ -33,9 +33,8 @@ $SIG{'CHLD'} = qw| IGNORE |;
 );
 
 return <process.prio_child.w_fh>;
-
-#,,..,...,...,..,,,,,,.,,,,,.,..,,.,,,,..,.,,,..,,...,...,,..,..,,.,,,...,,,,,
-#7YRQIGJJCQARQIEUQM53TGCB74TB35RO2EWRKAP3VZAOTRG5MK73HTL42E42ZHWODWFDXLJCMOTWO
-#\\\|6GGZX4WLAQZX6KAEVQO6I65CPFOXZDZBTRHM2PDX7EXMFJWPIS6 \ / AMOS7 \ YOURUM ::
-#\[7]3YC4ZGXPX6NNTMKSI5SAUCBUYKJ2TEAQ5CY3ITU4NBGZEXFE5OBY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,.,.,.,,,..,,.,,,,..,,.,,,,,,..,,...,..,,..,,..,,,.,,.,,,,,,,
+#RCN6PXJGXLCDGZS37YWGWGK2NSIUEKUF4FHL5NNTZPPOJD5MTCOOPRZCPBMVUMSEBUX36NN4PDXOC
+#\\\|JPCLM4KLST42JCKAVKL4D7AV5WMA46ZQFOXCMJC6KMWRGTXEQM4 \ / AMOS7 \ YOURUM ::
+#\[7]RFDUJJ7AAGHVTKY3DW4LJHAALBO54HXOAQ7AV7U6O4WJHSE3WAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

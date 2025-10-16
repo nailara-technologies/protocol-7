@@ -41,7 +41,8 @@ return {
     and substr( $src_str, 0, 5 ) ne "## [:< ##\n";
 
 ## Extract signature in repair mode to handle endline issues and still allow re-signing
-my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip repair | );
+my $footer_data
+    = <[source.extract_sig_body]>->( \$src_str, qw| strip repair | );
 
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
@@ -136,14 +137,18 @@ if (   not defined $present_checksum
 
     }
 
-    # Use the encoded endline state from the signature to preemptively restore correct state
-    if ( defined $footer_data->{'endline-state-encoded'} && $footer_data->{'endline-state-encoded'} != 5 ) {
+# Use the encoded endline state from the signature to preemptively restore correct state
+    if ( defined $footer_data->{'endline-state-encoded'}
+        && $footer_data->{'endline-state-encoded'} != 5 ) {
         ## The signature had encoded endline state, use it to restore correct state now
         <[source.restore_payload_endline_state]>->(
             \$src_str, $footer_data->{'endline-state-encoded'}
         );
-        <[base.logs]>->( 2, ': preemptively restoring endline state %d from signature',
-            $footer_data->{'endline-state-encoded'} );
+        <[base.logs]>->(
+            2,
+            ': preemptively restoring endline state %d from signature',
+            $footer_data->{'endline-state-encoded'}
+        );
     }
 
     # Before appending the signature, ensure proper endline handling
@@ -168,7 +173,7 @@ if (   not defined $present_checksum
             $src_str =~ s/\n*$/\n\n/s;    # Add blank line separator
             <[base.log]>->( 2, ': : adding separator blank line' );
         } elsif ( !$ends_with_newline ) {
-            $src_str .= "\n";           # Complete the last line
+            $src_str .= "\n";             # Complete the last line
             <[base.log]>->( 2, ': : completing last line' );
         }
     }
@@ -197,8 +202,8 @@ if (   not defined $present_checksum
 
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
-#,,..,.,.,.,,,.,.,,,.,,,.,.,,,,.,,...,,.,,,.,,..,,...,.,.,.,.,,.,,,..,.,.,.,.,
-#5FZ6ATTFFHGZ3ZQVEQQL34VY7AEID77WVBUDGOZ7PR6CQVPP7KODLGYFWKDO3FPDBKLBS5S2PWXTM
-#\\\|SYHUE4JLHOLDE2655V2EH7PVFXCNRGXGQMEP3GVROQSULTTYRFQ \ / AMOS7 \ YOURUM ::
-#\[7]P3HVIIZKLWIQNZGSYWF3G7E7QHDZ4FXUTSS2DX376GV2VODFU6BA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,...,,,.,...,,.,,,,.,,.,,,,.,,,.,..,,...,...,.,,,...,,,.,,,.,..,,
+#II4H7YPLDOHTA2CS6LC5XAWZK4I2QBCW3IDK25LO6O4X24N6OXIUMI4FPHWESCJEUHRTUSGQT5PHW
+#\\\|WSLM4DDGPAKWDJXYLPC4OEXWETBORZ3MZZJTHAUT4F5Z6JSXTRY \ / AMOS7 \ YOURUM ::
+#\[7]SFDQU2CGMATJDPCHK3TFIDRB5OMA5AQZDUY6AMIZ4IH3ECWHG2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

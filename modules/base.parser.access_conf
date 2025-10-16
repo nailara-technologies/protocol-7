@@ -194,7 +194,7 @@ if ($disallowed_count) {
         map {
             <[base.logs]>->(
                 0, ":   removed   :   %*s   .:.  '%s'",
-                ,  $pm_len, $ARG, $user
+                $pm_len, $ARG, $user
             )
         } <[base.sort]>->( $disallowed_match->{$user} );
     }
@@ -215,9 +215,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 }
 
 return $errors;
-
-#,,..,,..,.,.,.,.,.,,,...,,,.,,,,,,,,,...,...,..,,...,...,.,,,..,,,,,,,.,,,.,,
-#3SHTKUX5WU6SFTV2MF6452N7TIXIP6PNBOJXVBHRLOW36H4OZBMYIR5TLKIJVMLKZ3WCVFQ4XDXN2
-#\\\|D54UINZXNGSIZITVGU45KQZICZCLUJZNICWKWFJVB252NEEPUNX \ / AMOS7 \ YOURUM ::
-#\[7]5HMMYH3CMYKOURYI6H7WBPHHLCL4T2DKJ3RKBJUXEJBPFCSZTGCQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,.,,..,,..,.,.,,,.,.,,,,..,,,,,..,,...,...,.,.,.,,,,,,,.,,,,..,
+#BXRA66PTJATU7HPE5UTBAI6QT4AROSLBLKLYZK3TJMK44B5SQ2XNR4ELLITWBNGSHYAY2FGRNAOVI
+#\\\|TX4HCDQDCNR44LKXYKPF3VUNYESVD4IN6DMRJ6P5E6IMUBNF2HK \ / AMOS7 \ YOURUM ::
+#\[7]67MZ4O2HOKEQPNSXDQDJR4MFQ4RVNBE4VUUJXGXSISSTUM3N6IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

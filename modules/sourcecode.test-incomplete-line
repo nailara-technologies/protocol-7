@@ -5,18 +5,20 @@
 
 my $command_params = shift // '';
 
-my $test_mode = 'incomplete_line';  # Options: normal, no_separator, incomplete_line
+my $test_mode
+    = 'incomplete_line';    # Options: normal, no_separator, incomplete_line
 
-<[base.log]>->( 1, '.:[ TESTING SIGNATURE ENDLINE HANDLING - INCOMPLETE LINE ]:.' );
+<[base.log]>->(
+    1, '.:[ TESTING SIGNATURE ENDLINE HANDLING - INCOMPLETE LINE ]:.'
+);
 
 # Report current test mode
 <[base.logs]>->( 1, ': test mode: %s', $test_mode );
 
 # Return test mode in scalar context
 return $test_mode;
-
-#,,.,,.,,,...,.,,,..,,,,.,,.,,,..,...,...,,..,..,,...,..,,.,.,,,,,,,,,,..,.,,,
-#IPOPDLGKMXU32OFBZ2Y7KQ6CWTCHE5S3QWIOFBSLLSP5HLKEMBJLLNJ5ZVPFUNHTSJSTNCOXMXZCO
-#\\\|52DHISU36YSJ62VY6CB2IZJVOLMKPWAO4C63LF5WD5BOFHZUPMA \ / AMOS7 \ YOURUM ::
-#\[7]BRHQDLCEGZ75TGB5HBMA3IGERDAJQUBOFJAJ2TY7P5FBVIIYCWDY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,,.,,,,,,..,...,,,.,,,,,,,.,..,,...,...,.,,,,.,,,..,.,.,,.,,
+#QM73G2TJDFM77ZAGISNOMELYEVZLHYBLKKXFTRKUDZSWGZLI5C6SCSNY5B5VI2WVDGPHI6NO5FXWA
+#\\\|FUWGDAMUOZ4AMJQFE5O446IKSUXCFVUGSPG4WRBTVDTC6NEQQ7M \ / AMOS7 \ YOURUM ::
+#\[7]YRHTFD3JZXIDIHANOJGFPAPMR66POVXQDPMBYMMBDDIX63OIHCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

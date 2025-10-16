@@ -7,7 +7,7 @@ my $source_version = <protocol-7.src-ver>;
 
 my $command_cache = <protocol.amos-chksum.commands-cache> //= {};
 
-map      { delete $command_cache->{$ARG} }    ## clean-up old caches ##
+map { delete $command_cache->{$ARG} }    ## clean-up old caches ##
     grep { !m|^$source_version$| } keys $command_cache->%*;
 
 if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
@@ -24,9 +24,8 @@ if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
 }
 
 return { 'mode' => qw| data |, 'data' => $command_cache->{$source_version} };
-
-#,,,,,,.,,..,,..,,,..,.,.,,.,,.,,,.,,,..,,..,,..,,...,...,.,.,.,.,,.,,.,,,,.,,
-#DPTW5QD3QVYH3NIMUHMIC3UKWS6KJLK6LQ25TELYFJ4DTKKRH6ASKXSEKS5AXJCMV4Q2QI4QXMMNU
-#\\\|TZXLDPHQAF73APOCGW7YJV55TXH7CV3674NSV6PMHJ43QK2TDD6 \ / AMOS7 \ YOURUM ::
-#\[7]QLMBVQV44YUF4EC5FK2NCS73DIY4IPERYE5JZXCEJLW5E5RDNUAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,.,,,,,,,,,.,.,,,...,,,,,,,.,..,,...,...,,..,..,,...,,.,,.,,,
+#J5FDW5LSF5MP5YE3ELRYHBJLCQCUOT4VOTTDPAG2ZZDZPRBAVROZALG7QHOYH6Q6M6FOH6PEI7IHA
+#\\\|IAAFF3R263ZNYB4C7EPLDD7FGOWFQ4M6UIOOD4JYNXEWPXSUSTY \ / AMOS7 \ YOURUM ::
+#\[7]HGD5G5UX7AOELM7ZMBCOW6JAPBER4RRDQV4M4UJQVXKAY7WEGMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

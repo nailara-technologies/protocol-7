@@ -162,9 +162,11 @@ if (   $footer_data->{'needs_separator_endline'}
     <[base.log]>->( 2, ': : using endline state 6 (add separator endline)' );
 } else {
 
-    # Use existing state or default
-    $endline_modification_state = $footer_data->{'endline-state-encoded'}
-        // 5;
+    # Use safe default state (5 = untouched) instead of blindly reusing stale endline-state-encoded
+    # When content changes but endline state doesn't, the old endline-state-encoded becomes
+    # incorrect and causes extraction to fail. Better to recalculate based on current state.
+    $endline_modification_state = 5;
+    <[base.log]>->( 2, ': : using endline state 5 (untouched - default safe state)' );
 }
 
 # Call the harmonize function with our determined state
@@ -285,7 +287,8 @@ while ( not $asserted_true and $iterations_left ) {
 
     ## Use the cached footer data from before the loop, not extract again ##
     ## This prevents modifying $src_ref on every iteration ##
-    my $sign_params = { %$sign_params_base };  # Make a shallow copy for this iteration
+    my $sign_params
+        = {%$sign_params_base};    # Make a shallow copy for this iteration
 
     $sign_params->{'data-chksum'} = $encoded_footer_BMW;
 
@@ -390,9 +393,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 }
 
 return $calc_result_href;        ##  return harmonized result data href  ##
-
-#,,,,,..,,.,,,,.,,..,,.,,,..,,..,,.,.,.,,,...,..,,...,...,.,,,..,,.,.,,..,...,
-#UTG6UOANJGGPL73G5RB56GWU3TJCLTE3TNCTLYOCZYL2Y473YQ3KQDGGRW47Y63HOIKO5CLWZJUAY
-#\\\|7UH5AYP6FF45ATJHKK5VX3REFVGP3HYYMGKZV2GRO225O34WSYX \ / AMOS7 \ YOURUM ::
-#\[7]FB6FX76ZJBDIK4YPTWIVGG5TEOUTUD6TM4UK52ICTE2MHZKWSAAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,,.,,,..,...,,.,,,,.,...,..,,..,,...,...,..,,...,...,.,,,,.,,
+#DHZKSXJYRZOEJWA35R5N3FTYTCA5IQDPK2PIWMJ4VP5XXTXIWR4PYTQ5RJYFZHMVJEIE3XC5MYHQK
+#\\\|73LC3BEWSTX73UWCFMDNE2OVOBVKPQHXZBHFWHH6Z6TX6RFH2WK \ / AMOS7 \ YOURUM ::
+#\[7]FTV2ZLUBJIE7ONUZMDH4XXECC4UZSPLJC765F2NOLWHWN74COOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
