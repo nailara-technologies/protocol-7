@@ -40,7 +40,14 @@ return {
     and $src_path =~ m|/modules/|
     and substr( $src_str, 0, 5 ) ne "## [:< ##\n";
 
-## Extract signature in repair mode to handle endline issues and still allow re-signing
+## Extract signature in repair mode to trigger intelligent recovery
+## When BMW checksum mismatches, source.signature_valid will:
+##  1. Brute-force endline-states 0-7
+##  2. Recalculate BMW for each state
+##  3. Find state where BMW matches signature (ground truth)
+##  4. Record recovered state in footer_data
+## Then this module re-signs with the corrected endline-state
+## This prevents oscillation and auto-heals format issues
 my $footer_data
     = <[source.extract_sig_body]>->( \$src_str, qw| strip repair | );
 
@@ -202,8 +209,8 @@ if (   not defined $present_checksum
 
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
-#,,.,,..,,..,,...,,,.,...,,.,,,,.,,.,,,,.,,,.,..,,...,...,.,,,...,,,.,,,.,..,,
-#II4H7YPLDOHTA2CS6LC5XAWZK4I2QBCW3IDK25LO6O4X24N6OXIUMI4FPHWESCJEUHRTUSGQT5PHW
-#\\\|WSLM4DDGPAKWDJXYLPC4OEXWETBORZ3MZZJTHAUT4F5Z6JSXTRY \ / AMOS7 \ YOURUM ::
-#\[7]SFDQU2CGMATJDPCHK3TFIDRB5OMA5AQZDUY6AMIZ4IH3ECWHG2AI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,,..,,.,,,.,,...,,..,,,,,...,..,,...,...,,,,,,,,,.,,,.,,,,.,,
+#AYAWQDM5FUOMYAVSCTB2LMHJS7HIQ2FDZCP2M4MDBMZ2OWRQ32OEIYZSGGGURPV44KRTVYJUSXDD4
+#\\\|P3D5GQUBY36OVDYL43T4OT6275SBDL52I5Z6CJB23ZWT2NCGJ2P \ / AMOS7 \ YOURUM ::
+#\[7]PMUB2OXNYKHG35KCLFCI6QPO6XDBUTHM5MMIROI46QI45IEMEECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
