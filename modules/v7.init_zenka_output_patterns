@@ -31,7 +31,7 @@ foreach my $p_ref (@$zenka_pattern_data) {
                     ? qr|$pattern_string|i
                     : qr|$pattern_string|;
                 my $sub_code = join(
-                    '', <<~ 'EOT'
+                    '', <<~'EOT'
                     sub {
 
                         my $instance_id = shift;
@@ -41,8 +41,8 @@ foreach my $p_ref (@$zenka_pattern_data) {
 
                     EOT
                     ,
-                    (   map      {"    $ARG;\n"}
-                            grep {length}
+                    (   map  {"    $ARG;\n"}
+                        grep {length}
                             <[base.parser.config]>->($pattern_code_aref)
                     ),
                     qw| } |,
@@ -64,9 +64,8 @@ foreach my $p_ref (@$zenka_pattern_data) {
         }
     }
 }
-
-#,,,.,.,,,...,...,...,,.,,.,,,,.,,.,,,,,,,,,.,..,,...,..,,,,,,..,,,,.,...,,,,,
-#2QXS27LUKXPS4XUHN47EA5PIFVOCRK64BIGKOYKXMYQPEEBY5WLV7L7S67VDBHENF7CJVQ37EXEH2
-#\\\|TAKBH7PORAIQDLPJ37AIJXSYXULNYHCOI7W6LYQ2CDNJWFYYT44 \ / AMOS7 \ YOURUM ::
-#\[7]P3IAGBESIYII5UPTXODJATWWFXETRFAQNN2OHRFYLIMYPUPX7YCA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,,.,,..,,,..,...,.,.,.,,,..,,..,,...,...,.,.,.,.,.,.,..,,,,.,
+#LCDKW3CMAJ54TRQTIVJ7G7LKQF2CKEUIF53YQ2RM6EIZ5XI6JACDSVSITRURWPH5LSL3V6FIQMIIE
+#\\\|HI2EHBYM4ZLGU4TF7HLZBUXO5QSYO666AVUXLAN2LSR6BZPFC4A \ / AMOS7 \ YOURUM ::
+#\[7]JV6IG7Y5HV4WPQZCJZSRJ5P7C4TP3RPLFHPXGCLMRBA2WG5WLACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

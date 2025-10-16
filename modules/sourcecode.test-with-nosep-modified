@@ -5,17 +5,22 @@
 
 my $command_params = shift // '';
 
-my $test_mode = 'no_separator_modified';  # Modified test file with changed content
+my $test_mode
+    = 'no_separator_modified';    # Modified test file with changed content
 
-<[base.log]>->( 1, '.:[ TESTING SIGNATURE ENDLINE HANDLING - NO SEPARATOR (MODIFIED) ]:.' );
+<[base.log]>->(
+    1, '.:[ TESTING SIGNATURE ENDLINE HANDLING - NO SEPARATOR (MODIFIED) ]:.'
+);
 
 # Report current test mode
-<[base.logs]>->( 1, ': test mode: %s (content has been modified)', $test_mode );
+<[base.logs]>->(
+    1, ': test mode: %s (content has been modified)', $test_mode
+);
 
 # Return test mode in scalar context
 return $test_mode;
-#,,..,,.,,...,,,.,..,,.,,,.,.,,..,,.,,,..,.,.,..,,...,...,,..,,,,,...,.,.,.,,,
-#L47MZ6GBUEDKIGOWRCAL73UEEPMXVE7QHCGBY3SQHHGFXOCDKXDSMSGT4PYYTUBIDDXOCREDC2TIS
-#\\\|ZE6PZBK62UFEJINC3HJ56ZM5VU32ZP5DYCJUYK5TPOJVB4QTG3K \ / AMOS7 \ YOURUM ::
-#\[7]HSEPRT4VEV6OAUHB3UOUA73377QCPRLO25Y4NTHJFR5UNMMHRACY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,,.,.,.,..,,,,,,,.,,,..,,.,,,.,,..,,...,.,.,,.,,..,,.,,,...,..,,
+#6TA3GNIJDLUU23777ZNCYI4XUNLQZJ24AB2DXJCL4ZRJEXHNWVSNIZWNV46O4BQIO6SNUV7ABP4PU
+#\\\|Q45436ABKOBITPM4XV3KW7KSHWAOSO7BBD6QPRKDMIYRV7XMP2Y \ / AMOS7 \ YOURUM ::
+#\[7]IA24DTGSRRIE3EZCE6YAWBDOWFHR2TSEC6DHVCWVMKQZ5QXUGOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

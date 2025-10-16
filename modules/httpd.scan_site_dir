@@ -22,7 +22,7 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     ( my $dir_path = catfile( $site_dir, $dir_name ) ) =~ s|//|/|g;
     next
         if $dir_name =~ m|^\.|
-        or (-l $dir_path
+        or ( -l $dir_path
         and not -d $dir_path
         and not -d readlink($dir_path)
         and readlink($dir_path) !~ m|^\d{3}$| );   # <-- custom status codes.,
@@ -76,9 +76,8 @@ foreach my $link_name (@vhosts) {
 }
 
 0;
-
-#,,.,,,..,,,.,,.,,,,.,,..,,.,,,,,,,,.,..,,.,,,..,,...,..,,...,.,.,,..,,..,,,.,
-#Z3QMRYFBFATQHVADI7RXJB4XV6WFAR6UIH3C55YKH2PUHJJKU7U3NVNYMHRCYHJTA6AQYVFSM237M
-#\\\|4DFMLSXOTEBR2HW4BPID5ATKQ2OH632XEZPPI2WNF2DZOG3VUKD \ / AMOS7 \ YOURUM ::
-#\[7]YPXXGFISGUK7T6SFLVLBAILTCFB6EG5WTSOER7IYSEGMQSFUQMAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,.,.,,.,,..,,.,.,,..,,..,.,,,..,,...,...,..,,,,.,,,.,,..,.,.,
+#7QZ3QRF4HRCOIDKBQKMV2HJI6UDAH6H72IBFQDBGA4ZA64BVGJMLABWNAX2ZW33UYBZHTJ7TUDLES
+#\\\|JJLZZUUWGWQIKNBPQWJB62GUE2FLERVRHOLCVEYKCKZFG4FS64R \ / AMOS7 \ YOURUM ::
+#\[7]FZSYY533IPK4LW74JNIO2TC34JHU6KTNW4XGOHSGNSPHEIFXSEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

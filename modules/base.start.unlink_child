@@ -10,7 +10,7 @@ if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
     <[base.log]>->( 2, ': : starting unlink-child ..,' );
     ( my $zenka_name = <system.zenka.name> ) =~ s|[^$zenka_name_chars]+||g;
 
-    my $child_code = <<~ "EOT";
+    my $child_code = <<~"EOT";
     use v5.24; use strict; use warnings; use English;
     map { \$SIG{\$ARG} = qw| IGNORE | } qw| INT TERM QUIT |;
     \$PROGRAM_NAME = q|$zenka_name-<root>-unlink-child|;
@@ -36,9 +36,8 @@ if ( not defined <process.unlink_child.w_fh> and ( $EUID == 0 or $UID == 0 ) )
 
     return <process.unlink_child.w_fh>;
 }
-
-#,,,,,,,.,,,.,...,...,..,,,,,,,.,,.,.,,,.,,,.,..,,...,...,.,,,.,.,.,,,,.,,,,.,
-#EF4I42A77G3IWAH2NTL4EMDSXUB3QRAAOQ5RKN26OEFYAZABVOBVDQB52V76QIMJUYBUQTH2Z4E5U
-#\\\|CXYIRK2J6MOST5XOHXK2UXFNUYETPZO7IBADANDBYXNUOI4HRF7 \ / AMOS7 \ YOURUM ::
-#\[7]EKQJ3GBSARHGNTNIJY6W47ZSXKWQVZ3YSVLEGKKY2P4OZI4GU6AY 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,,,,,,,.,.,,,.,.,,.,,,,.,..,,..,,...,...,..,,,.,,..,,.,.,.,,,
+#7WH4A74ANLJQKVMDLIKCNOVKSSJGEJGTFAEDCHSXL37JZT64EY2RVG3EWFIYOBUWMZ6KS2FSNJAOM
+#\\\|ZC5PLKMSWWXNHNXB4OARD252AWMW2HGYOOFA5VD67GW7K6QTZQH \ / AMOS7 \ YOURUM ::
+#\[7]IRUAZXWJQ7PZONQV5K7JSY23G5AXWWMGFJFZHN22Q74C7OTJSADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

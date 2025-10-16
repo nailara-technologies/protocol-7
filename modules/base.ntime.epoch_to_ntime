@@ -80,15 +80,16 @@ if ( $result_prec <= 5 ) {    ##  regular precision  ##
     $ntime_val
         = Math::BigFloat->new($current_epoch)
         ->bmuladd( $epoch_multi, $zulum_offset_base,
-        $result_prec + $input_len )->bstr();
+        $result_prec + $input_len )
+        ->bstr();
 }
 
 $ntime_val =~ s|\.?0+$||;    ##  sanitizing output precision  ##
 
 return $ntime_val;           ##  return V7 network time value  ##
 
-#,,.,,...,,.,,,,.,,,.,.,,,..,,,.,,.,,,.,.,..,,.,.,...,...,..,,..,,.,,,.,.,,,,,
-#G6CHMBQ4P2KDRTPWMPJFNDMVYJL6HCENMGNCQ4QRIJHFOTFEYW75VJBCLX7UNPELCE4OU4OW2KVJW
-#\\\|R6VAPKP6KXNDGU6SJV3XDU2ARJWUISIYVZRR2GNIWDAPOWMTPRL \ / AMOS7 \ YOURUM ::
-#\[7]H35X7BTXXNCRSLWIZOH6VCPBRTEBN7KQFJ4VZ4FD46QKPDAURIAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,,,,,.,,.,.,,..,..,,,,,,..,,.,.,...,...,,,.,,,,,.,.,.,,,,..,
+#SPEDS5PTACVPEZS73AOR2A54OJL33RFKQ75UZIAANRPS653BWIVMHYV5ZUTAJ7FCARAFKVNV7LAYK
+#\\\|UTEN7MVOC4VEDA7J6UWKPFSOY54JCT4F7KCOBEAYCZ5FK45RXLU \ / AMOS7 \ YOURUM ::
+#\[7]QKY6OHXVGYZIA6TPQLERFY6INECM7YYEKMVKH3MKG3HOAPVTUSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

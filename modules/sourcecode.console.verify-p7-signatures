@@ -5,8 +5,8 @@
 
 my $command_params = shift // '';
 
-my $verify_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
-my $verify_mode = 'strict';  ## [ 'strict', 'repair' ] ##
+my $verify_verbosity = 2;           ## [ 0 | 1 | 2 ] ##
+my $verify_mode      = 'strict';    ## [ 'strict', 'repair' ] ##
 
 $verify_verbosity = 0
     if $command_params =~ s| *:verify-silent: *| |
@@ -14,9 +14,11 @@ $verify_verbosity = 0
     and <[base.cfg_bool]>->( $ENV{'VERIFY_SILENT'} ) == TRUE;
 
 # Parse repair mode flag from command
-if ($command_params =~ s| *:repair-mode: *| |i) {
+if ( $command_params =~ s| *:repair-mode: *| |i ) {
     $verify_mode = 'repair';
-    <[base.log]>->( 1, ': running in repair mode (will not fail on fixable issues)' );
+    <[base.log]>->(
+        1, ': running in repair mode (will not fail on fixable issues)'
+    );
 }
 
 $command_params =~ s,^ *| *$,,;
@@ -82,10 +84,11 @@ if (   @source_paths == 0
 
 <[base.log]>->( 1, '.:[ VERIFYING SOURCE SIGNATURES ]:.' );
 
-my $valid_count       = 0;
-my $invalid_count     = 0;
-my $repair_needed_count = 0; # Count files that need repair but could still verify
-my $file_count        = scalar @source_paths;
+my $valid_count   = 0;
+my $invalid_count = 0;
+my $repair_needed_count
+    = 0;    # Count files that need repair but could still verify
+my $file_count = scalar @source_paths;
 
 <[base.logs]>->( '* verifying %s source file signatures..,', $file_count );
 
@@ -95,7 +98,8 @@ foreach my $path_rel (@source_paths) {
 
     # Read file and extract signature data
     <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
-    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, $verify_mode );
+    my $footer_data = <[source.extract_sig_body]>
+        ->( \$src_str, qw| strip |, $verify_mode );
 
     <[base.logs]>->( 2, ':::[ %s ]:.', $path_rel );
 
@@ -121,11 +125,12 @@ foreach my $path_rel (@source_paths) {
     if ( $footer_data->{'needs_separator_endline'} ) {
         <[base.log]>->( 1, ':E: missing separator endline before signature' );
 
-        if ($verify_mode eq 'strict') {
+        if ( $verify_mode eq 'strict' ) {
             $invalid_count++;
             next;
         } else {
             <[base.log]>->( 1, ': continuing in repair mode' );
+
             # Track files that need repair but allow verification to continue
             $repair_needed_count++;
         }
@@ -133,7 +138,8 @@ foreach my $path_rel (@source_paths) {
 
     # Verify signature using source.signature_valid
     my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
-        \$src_str, $footer_data, {}, $signature_key_name, $verify_mode  ##{}<--TRUTH_CHECKS.
+        \$src_str, $footer_data, {}, $signature_key_name,
+        $verify_mode    ##{}<--TRUTH_CHECKS.
     );
 
     if ($is_valid) {
@@ -187,7 +193,7 @@ foreach my $path_rel (@source_paths) {
 
 # Final summary
 <[base.log]>->( 1, qw| : | );
-if ($verify_mode eq 'repair' && $repair_needed_count > 0) {
+if ( $verify_mode eq 'repair' && $repair_needed_count > 0 ) {
     <[base.logs]>->(
         1, ':.: %d valid, %d invalid, %d need repair (total: %d)',
         $valid_count, $invalid_count, $repair_needed_count, $file_count
@@ -201,9 +207,8 @@ if ($verify_mode eq 'repair' && $repair_needed_count > 0) {
 
 # Return valid count in scalar context
 return $valid_count;
-
-#,,,,,,,.,,,.,,,,,,,.,,..,,..,,..,,,,,,,.,,.,,..,,...,...,...,...,.,.,..,,,,.,
-#DF3NUTSDMN2L5J4TPI7MVKOSBQW6NVVSU6WM23Y4PVCGMPW7ND7HN33XADH2K4FCEB222SDBLJY22
-#\\\|PTEJEPP3L5G35K63POIPHOEIWEH4DMA5RCTPGTF7KFFUZYZF7Z2 \ / AMOS7 \ YOURUM ::
-#\[7]P5XE6T3GRW4SBB3NNIAGWNANX56FLFZB5X5VRE7ARXFVFSRCGIDA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,.,.,.,,,,,,.,,,..,,,.,.,,,..,,..,,...,...,...,.,,,,..,..,,...,
+#5LZW26OX36I2TNYCNNLO7O37JLZ3URE6MGOLBSHS2SU7UXLYCYDK57T4JHFMZYYJMERN5JI57GKQE
+#\\\|CB7MIQYAZ4PUTAD4FGI7RYPEJGECTXWOLV4D4XYQQK2QQD2G6FG \ / AMOS7 \ YOURUM ::
+#\[7]C5IT5SKCW647IPXKPLMEDIUI6RSUHXO5XGBW4HZCMAIWND3M22BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

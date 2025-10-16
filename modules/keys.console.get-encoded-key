@@ -23,7 +23,7 @@ my $key_vars_ref = <[crypt.C25519.key_vars]>->($name);
 
 my $maxlen = [
     minmax map {length}
-        grep   { -e $key_vars_ref->{'key_filename'}->{$ARG} }
+        grep { -e $key_vars_ref->{'key_filename'}->{$ARG} }
         keys $key_vars_ref->{'key_filename'}->%*
 ]->[1];
 
@@ -58,9 +58,8 @@ if ( defined $type and my $file = $key_vars_ref->{'key_filename'}->{$type} ) {
     }
     say '';
 }
-
-#,,..,,..,,,.,,,,,,,.,.,,,.,.,.,.,...,..,,,,,,..,,...,...,...,,,,,..,,,.,,,..,
-#ZDZACCTWB4366LS4LFAE3XJ2MJWHZPSLKSTSP3INDOGUVA4LTEMD7X3FRXAQ5PCSBGEGOC4AKTYSS
-#\\\|LWDRXZRW4PRQOVLDBVQSJWZGEOVRACPNDB47B7UWXCQKYBFEDQE \ / AMOS7 \ YOURUM ::
-#\[7]QWQ66XJALADVNFH3J3XYS7Q5UIPVVUPBTQH5DBHDCDYVNQ6FJ6AY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,.,,,,,.,,,,..,,,,,,,,,,.,,,,,,..,,...,..,,,,.,,..,..,,..,,,..,
+#EX42MWY4CL4OO2ZUKANKCFU3X7S2CZ4ZBQ3C3XHZR67XAVJNMVSNUMBNESJJZHE5PY4M4JGPNITLK
+#\\\|MNSE3YCLIPOCQCWTFZYE32R6JRYZ634UOXAECJGK6UA65P5TR7W \ / AMOS7 \ YOURUM ::
+#\[7]T7VBKYEO2YB4MV4XPRDLYWRJCCHEZYQ75AYF7IP6R54JHIK3WEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
