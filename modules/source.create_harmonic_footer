@@ -187,6 +187,10 @@ my $AMOS_chksum_num = unpack qw| V* |, decode_b32r($AMOS_chksum_enc);
 
 my $length_checked = FALSE;
 
+## Extract signature footer ONCE before the loop, not repeatedly during iteration ##
+## This ensures endline state is consistent throughout all iterations ##
+my $sign_params_base = <[source.extract_sig_body]>->( $src_ref, qw| strip | );
+
 ##  initializing assertion run  ##
 #
 my $calc_result_href;
@@ -279,7 +283,9 @@ while ( not $asserted_true and $iterations_left ) {
     ##  final step :: checksum and full template  ##
     ##                                            ##
 
-    my $sign_params = <[source.extract_sig_body]>->( $src_ref, qw| strip | );
+    ## Use the cached footer data from before the loop, not extract again ##
+    ## This prevents modifying $src_ref on every iteration ##
+    my $sign_params = { %$sign_params_base };  # Make a shallow copy for this iteration
 
     $sign_params->{'data-chksum'} = $encoded_footer_BMW;
 
@@ -385,8 +391,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,..,,,.,.,,,,..,,..,.,,,..,,..,,.,,,,,,,..,,..,,...,...,,,,,,,.,..,,.,.,.,,,
-#XBVYYTGYVJDBOGTIBYDILBWFZPAYYU4SK4WOATSCLQ2PB3PTVXSII6YQET2ZBUILA7M7XWI7IYBBG
-#\\\|JMDPBMQWKQN3JNYUAWBKJKJ7UFRZNVVJGHVAGWNF7CBUSZQ44J3 \ / AMOS7 \ YOURUM ::
-#\[7]4B4RKGFNY6NWTNYSYWR6WXUKX4WVP3IH3II6SKTS4E23HAJ5LYCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,..,,.,,,..,,..,,.,.,.,,,...,..,,...,...,.,,,..,,.,.,,..,...,
+#UTG6UOANJGGPL73G5RB56GWU3TJCLTE3TNCTLYOCZYL2Y473YQ3KQDGGRW47Y63HOIKO5CLWZJUAY
+#\\\|7UH5AYP6FF45ATJHKK5VX3REFVGP3HYYMGKZV2GRO225O34WSYX \ / AMOS7 \ YOURUM ::
+#\[7]FB6FX76ZJBDIK4YPTWIVGG5TEOUTUD6TM4UK52ICTE2MHZKWSAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,12 +1,209 @@
 ## [:< ##
 
 # name  = sourcecode.console.verify-p7-signatures
-# descr = verify all protocol-7 sourcecode signatures
+# descr = verify source code signature sections
 
-0;
+my $command_params = shift // '';
 
-#,,,,,..,,,,.,,,.,,.,,,..,,.,,,,,,,,.,.,.,..,,..,,...,...,.,.,,.,,.,,,.,.,..,,
-#E57GPNIWWXTHKLOQIDPQCS5KWVHE2E3BS2BWHF35NMVTL3HAKEV4BQEIZZSRMJVPWAA522R3CI5FU
-#\\\|JQMCJYHRWN6ZQID2DBGZN67WL7LHUX27GXI3KBHL4FTVOINLYMN \ / AMOS7 \ YOURUM ::
-#\[7]ARK2QID3JBJVR4YO7J5KKHTKK4S5PYOF7C4763MKSBGGAZB5WSCQ 7  DATA SIGNATURE ::
+my $verify_verbosity = 2;    ## [ 0 | 1 | 2 ] ##
+my $verify_mode = 'strict';  ## [ 'strict', 'repair' ] ##
+
+$verify_verbosity = 0
+    if $command_params =~ s| *:verify-silent: *| |
+    or exists $ENV{'VERIFY_SILENT'}
+    and <[base.cfg_bool]>->( $ENV{'VERIFY_SILENT'} ) == TRUE;
+
+# Parse repair mode flag from command
+if ($command_params =~ s| *:repair-mode: *| |i) {
+    $verify_mode = 'repair';
+    <[base.log]>->( 1, ': running in repair mode (will not fail on fixable issues)' );
+}
+
+$command_params =~ s,^ *| *$,,;
+
+my $signature_key_name = qw| proto-7.sourcecode |;
+
+### needs passphrase for implicit secret key loading ###
+##
+## <[source.load_signature_key]>->($signature_key_name);
+
+### LOADING PUBLIC KEY FROM DATA BLOCK IN bin/Protocol-7 ##
+## [ - silent - no passphrase required. ]
+##
+<[crypt.C25519.load_from_string]>->(
+    $signature_key_name, <[base.protocol-7.source-key]>
+);
+###
+
+# For verification, we only need the public key
+if (   not exists $keys{'C25519'}{$signature_key_name}
+    or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
+    <[base.logs]>->(
+        0, "source signature public key '%s' not loaded, aborting..,",
+        $signature_key_name
+    );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+my $source_version  = <protocol-7.src-ver>;
+my $release_version = <protocol-7.rel-ver>;
+
+my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+my $work_tree = $paths->{'work_tree'};
+
+my @source_paths;
+
+if ( length $command_params ) {
+    if ( not @source_paths
+        = <[base.source.collect_file_list]>->($command_params) ) {
+        <[base.logs]>->( 0, ": no files found for '%s'", $command_params );
+        <[base.exit]>;
+    } else {
+        my $file_count = scalar @source_paths;
+        <[base.logs]>->(
+            ": %d file%s match%s '%s'",
+            $file_count,
+            <[base.cnt_s]>->($file_count),
+            <[base.cnt_s]>->( $file_count, '', 'es' ),
+            <[base.parser.ellipse_center]>->( $command_params, 19 )
+        );
+    }
+} else {
+    @source_paths = <[sourcecode.source_path_set_up]>;
+}
+
+if (   @source_paths == 0
+    or @source_paths == 1 and not defined $source_paths[0] ) {
+    <[base.log]>->(
+        0, 'no matching source files, cannot verify signatures..,'
+    );
+    <[base.exit]>->('0110');
+}
+
+<[base.log]>->( 1, '.:[ VERIFYING SOURCE SIGNATURES ]:.' );
+
+my $valid_count       = 0;
+my $invalid_count     = 0;
+my $repair_needed_count = 0; # Count files that need repair but could still verify
+my $file_count        = scalar @source_paths;
+
+<[base.logs]>->( '* verifying %s source file signatures..,', $file_count );
+
+foreach my $path_rel (@source_paths) {
+    my $path_abs = catfile( $work_tree, $path_rel );
+    <[base.log]>->( 2, qw| : | );
+
+    # Read file and extract signature data
+    <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
+    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, $verify_mode );
+
+    <[base.logs]>->( 2, ':::[ %s ]:.', $path_rel );
+
+    # Check if signature exists
+    if ( not $footer_data->{'was-present'} ) {
+        <[base.log]>->( 1, ':E: no signature found' );
+        $invalid_count++;
+        next;
+    }
+
+    # Check signature structure
+    if ( not $footer_data->{'structure-was-valid'} ) {
+        my $footer_error = $footer_data->{'encountered-error'};
+        <[base.logs]>->(
+            0, ':E: %s',
+            $footer_error // 'unspecified error in footer structure'
+        );
+        $invalid_count++;
+        next;
+    }
+
+    # Check if signature has missing separator endline
+    if ( $footer_data->{'needs_separator_endline'} ) {
+        <[base.log]>->( 1, ':E: missing separator endline before signature' );
+
+        if ($verify_mode eq 'strict') {
+            $invalid_count++;
+            next;
+        } else {
+            <[base.log]>->( 1, ': continuing in repair mode' );
+            # Track files that need repair but allow verification to continue
+            $repair_needed_count++;
+        }
+    }
+
+    # Verify signature using source.signature_valid
+    my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+        \$src_str, $footer_data, {}, $signature_key_name, $verify_mode  ##{}<--TRUTH_CHECKS.
+    );
+
+    if ($is_valid) {
+        $valid_count++;
+        <[base.logs]>->(
+            1,
+            ':+: valid :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 37 )
+        );
+
+        # Display valid signature counter in verbose mode
+        printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
+            $colors{'p7_fg_0003'},
+            $colors{'B01'}, $valid_count, $colors{'reset'}
+            if <system.verbosity.console> == 1;
+    } else {
+        $invalid_count++;
+        <[base.log]>->( 0, ':!: NOT-VALID ::' );
+        <[base.logs]>->(
+            0, ' : %s', <[base.parser.ellipse_center]>->( $path_rel, 47 )
+        );
+
+        # Provide detailed error report in higher verbosity
+        if ( $verify_verbosity > 1 && defined $report_ref ) {
+            <[base.log]>->( 2, ': : signature verification details:' );
+            foreach my $type ( <[base.sort]>->($report_ref) ) {
+                if ( not length ref $report_ref->{$type} ) {
+                    <[base.logs]>->(
+                        2,     ': :. %30s : %s',
+                        $type, $report_ref->{$type} ? 'true' : 'false'
+                    );
+                } else {
+                    foreach
+                        my $mode ( <[base.sort]>->( $report_ref->{$type} ) ) {
+                        <[base.logs]>->(
+                            2,
+                            ': :. %30s [%s] : %s',
+                            $type,
+                            $mode,
+                            $report_ref->{$type}->{$mode} ? 'true' : 'false'
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    # Allow for SIGINT
+    <[event.once]>;
+}
+
+# Final summary
+<[base.log]>->( 1, qw| : | );
+if ($verify_mode eq 'repair' && $repair_needed_count > 0) {
+    <[base.logs]>->(
+        1, ':.: %d valid, %d invalid, %d need repair (total: %d)',
+        $valid_count, $invalid_count, $repair_needed_count, $file_count
+    );
+} else {
+    <[base.logs]>->(
+        1, ':.: %d valid, %d invalid signatures (total: %d)',
+        $valid_count, $invalid_count, $file_count
+    );
+}
+
+# Return valid count in scalar context
+return $valid_count;
+
+#,,,,,,,.,,,.,,,,,,,.,,..,,..,,..,,,,,,,.,,.,,..,,...,...,...,...,.,.,..,,,,.,
+#DF3NUTSDMN2L5J4TPI7MVKOSBQW6NVVSU6WM23Y4PVCGMPW7ND7HN33XADH2K4FCEB222SDBLJY22
+#\\\|PTEJEPP3L5G35K63POIPHOEIWEH4DMA5RCTPGTF7KFFUZYZF7Z2 \ / AMOS7 \ YOURUM ::
+#\[7]P5XE6T3GRW4SBB3NNIAGWNANX56FLFZB5X5VRE7ARXFVFSRCGIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
