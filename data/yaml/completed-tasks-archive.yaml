@@ -1,0 +1,214 @@
+---
+# Protocol-7 Completed Tasks Archive and Lessons Learned
+# This file consolidates key learnings and patterns from completed tasks
+# Individual detailed task specifications remain in respective COMPLETED/ directories
+
+archive_overview:
+  name: "Protocol-7 Completed Tasks Archive"
+  description: "Consolidated lessons learned and architectural patterns from completed development tasks"
+  version: 1.0
+  last_updated: "2025-10-17"
+  purpose: "Preserve institutional knowledge and avoid context loss across development sessions"
+
+completed_task_groups:
+  signature_system_tasks:
+    title: "Signature System Enhancements"
+    description: "Tasks related to fixing and improving Protocol-7's cryptographic signature system"
+
+    tasks:
+      - id: "signature_endline_handling_glitch"
+        name: "Fix endline handling bug in signature footer"
+        file: "archive/completed-fix-tasks/sourcecode-zenka.signature-endline-handling-glitch.yaml"
+        completed_date: "2025-10-14"
+        status: "RESOLVED AND IMPLEMENTED"
+        key_learnings:
+          - "Missing separator endlines between content and signature footer cause immediate re-validation failures"
+          - "Root cause: premature error termination in extract_sig_body prevented proper restoration"
+          - "Solution: detect endline issues and flag for repair rather than failing immediately"
+          - "Implementation uses endline state encoding (states 1, 5, 6) for delta recording"
+
+      - id: "verify_p7_signatures"
+        name: "Implement sourcecode.console.verify-p7-signatures"
+        file: "archive/completed-coding-tasks/sourcecode-zenka.verify-p7-signatures.yaml"
+        completed_date: "2025-10-14"
+        status: "IMPLEMENTED"
+        key_learnings:
+          - "Verification requires only public key (no private key needed)"
+          - "Verification can be used in more contexts (CI/CD, public builds) due to public-key-only requirement"
+          - "Module structure must exactly match Protocol-7 parser syntax patterns"
+
+  export_functionality_tasks:
+    title: "Export Functionality Enhancement"
+    description: "Tasks related to bin/Protocol-7 inline subroutine export features (4 completed tasks archived)"
+    manager_file: "protocol-7-export-tasks-manager.yaml"
+    archived_tasks:
+      - "archive/completed-coding-tasks/bin_Protocol-7.implement_inline_subroutine_export.yaml"
+      - "archive/completed-coding-tasks/bin_Protocol-7.fix-decoded-format-prefixes.yaml"
+      - "archive/completed-coding-tasks/bin_Protocol-7.remove-redundant-end-markers.yaml"
+      - "archive/completed-coding-tasks/bin_Protocol-7.fix-extra-endline.yaml"
+    note: "See protocol-7-export-tasks-manager.yaml for comprehensive task tracking. Detailed specs in archive/completed-coding-tasks/"
+
+key_architectural_patterns:
+  protocol_7_parser_syntax:
+    title: "Protocol-7 Code Syntax Patterns"
+    description: "Critical patterns required for code to work with Protocol-7's parser"
+    patterns:
+      - name: "Subroutine Calls"
+        pattern: "<[sub_name]->()"
+        converts_to: "$code{'sub_name'}->()"
+        example: "<[source.extract_sig_body]>->()"
+
+      - name: "Variable References (Basic)"
+        pattern: "<base.sub-key.deeper.levels>"
+        converts_to: "$data{'base'}{'sub-key'}{'deeper'}{'levels'}"
+        supports: "Arbitrary depth hash access"
+        example: "<source.cmd.get-code-signed>"
+
+      - name: "Variable References (with Dereferencing)"
+        pattern: "<hash_ref>->%"
+        converts_to: "Hash dereferencing following Perl reference syntax"
+        example: "foreach my $type (<[base.sort]>->($report_ref))"
+
+      - name: "Quoted Keys (Keys with Dots)"
+        pattern: "<base.'key.with.dots'>"
+        converts_to: "$data{'base'}{'key.with.dots'}"
+        purpose: "Handle keys containing dots"
+        example: "<base.'key.with.dots'>"
+
+    dependency_modules:
+      - "base.resolve_key: Resolves hash keys at arbitrary depths"
+      - "base.resolve_hash: Translates system.zenka.name type keys to references"
+      - "base.parser.data_hkey_tree: Parses data hash key strings into trees"
+      - "base.validate.data_key_syntax: Validates data key syntax with quoting"
+      - "base.resolve_data_key.regex: Regex-based key resolution"
+
+  signature_system_architecture:
+    title: "Endline Normalization System"
+    description: "Simplified endline handling with deterministic behavior"
+
+    core_principles:
+      - "Normalize all files to canonical format: content\n#signature (exactly 1 separator endline)"
+      - "Delta encoding records what transformation was applied for reversibility"
+      - "Deterministic: same input always produces same output (no oscillation)"
+      - "Self-healing: files converge to canonical format through normalization"
+
+    active_states:
+      state_1: "Normalize excess endlines (2+ → 1)"
+      state_5: "No change (already had exactly 1)"
+      state_6: "Add separator (0 → 1)"
+
+    reserved_states: "0, 2, 3, 4, 7 available for future enhancements"
+
+    implementation_location: "modules/source.cmd.get-code-signed:161-195"
+
+    key_benefits:
+      - "Cleaner: only 3 active states vs complex 8-state recovery system"
+      - "Deterministic: eliminates oscillation on repeated operations"
+      - "Reversible: delta encoding preserves transformation information"
+      - "Self-healing: files normalize on re-signing"
+
+    related_modules:
+      - "modules/source.cmd.get-code-signed: Core normalization logic"
+      - "modules/source.create_harmonic_footer: Encodes delta in signature"
+      - "modules/source.extract_sig_body: Detects current endline state"
+      - "modules/amos7.encode_octal_header: Stores state in AMOS7 header position 11"
+
+  verification_and_validation:
+    title: "Signature Verification Strategy"
+    description: "How signatures are validated without modifying files"
+
+    verification_levels:
+      - "Header validation: Ensures header structure is valid"
+      - "Payload checksum validation: AMOS payload checksum matches"
+      - "BMW checksum validation: Footer BMW checksum matches"
+      - "Cryptographic validation: C25519 signatures are valid"
+      - "Format validation: File is in canonical format (exactly 1 separator)"
+
+    canonical_format_requirement: "Exactly one newline between content and signature footer"
+
+    self_healing_process:
+      - "Detect files not in canonical format"
+      - "Mark as invalid during verification"
+      - "Run bin/Protocol-7 sourcecode update-signatures"
+      - "Normalization process converts to canonical format"
+      - "Re-verification passes"
+
+common_issues_and_solutions:
+  issue_missing_separator_endline:
+    symptom: "Signature footer appended directly to last content line without separator"
+    root_cause: "extract_sig_body treating missing endlines as fatal error"
+    solution: "Flag endline issues for repair instead of failing immediately"
+    affected_code: "modules/source.extract_sig_body, modules/source.cmd.get-code-signed"
+
+  issue_oscillation_on_resigning:
+    symptom: "Signatures invalidate after content changes and re-signing"
+    root_cause: "Stale endline-state values not matching current file format"
+    solution: "Detect current endline state and normalize to exactly 1 before signing"
+    affected_code: "modules/source.cmd.get-code-signed:161-195"
+
+  issue_verification_requires_key_access:
+    symptom: "Cannot verify signatures in restricted environments (CI/CD)"
+    root_cause: "Old system required full signing key access"
+    solution: "Implement separate verify module that only needs public key"
+    affected_code: "modules/sourcecode.console.verify-p7-signatures"
+
+testing_strategies_learned:
+  comprehensive_test_coverage:
+    - "Test with files of different types (code, markdown, yaml)"
+    - "Test with different line ending styles (LF, CRLF)"
+    - "Test with existing vs missing signatures"
+    - "Test with different endline state encodings (0-7)"
+    - "Test edge cases: empty files, whitespace-only content"
+    - "Automate regression detection with validation scripts"
+
+  verification_checklist:
+    - "Files have proper separator endlines (exactly 1)"
+    - "Endline state encoding/decoding works correctly"
+    - "Signatures remain valid after endline modifications"
+    - "No unintended side-effects on content"
+    - "Format validation catches malformed signatures"
+
+documentation_structure:
+  docs_workflows:
+    file: "data/yaml/docs/workflows/git-commit-versioning-signing.yaml"
+    purpose: "Complete git workflow including version and signature management"
+
+  docs_processing:
+    file: "data/yaml/docs/processing/signature-endline-handling.yaml"
+    purpose: "Technical details of endline normalization and delta encoding"
+
+  docs_formats:
+    file: "data/yaml/docs/formats/signature-footer.yaml"
+    purpose: "AMOS7 signature format structure and verification process"
+
+  consolidation_approach: "Three-tier documentation: workflow level, processing level, format level"
+
+recommendations_for_future_work:
+  - "States 2, 3, 4, 0, 7 are reserved for future endline handling enhancements"
+  - "Consider implementing export functionality for recovered endline states"
+  - "Monitor for edge cases that might require additional state definitions"
+  - "Maintain backward compatibility with existing signature formats"
+  - "Consider adding forensic tools to analyze signature corruption patterns"
+
+how_to_reference_completed_tasks:
+  - "Individual detailed task specifications remain in COMPLETED/ directories"
+  - "Use this archive file for quick reference and lessons learned"
+  - "Cross-reference implementation details with source code comments"
+  - "Update this archive when new patterns emerge from development work"
+
+git_commits_implementing_changes:
+  commit_7aafc6072:
+    title: "Add comprehensive workflow documentation for git commit, versioning, and signing"
+    date: "2025-10-17"
+    version: "3KJOBMOGBQ-5192.0"
+
+  commit_ec76074d6:
+    title: "Update endline normalization documentation to reflect simplified system"
+    date: "2025-10-17"
+    version: "3KJOD64SNI-5193.0"
+
+#,,..,..,,..,,,,.,,.,,...,,.,,,.,,..,,...,.,.,..,,...,...,.,.,,,.,...,.,,,.,,,
+#C5GSTSUUH6VZKZDHAMV3DN477W6NB36LMCD74LIF6P7ZLESO5LFVR3WCEXWWVKA5SIZVPR3GYPB6O
+#\\\|4JHV6POXVBC4JICIUPTPVPYFFSM57PIRW7PKRUF54VH2X5FRRBG \ / AMOS7 \ YOURUM ::
+#\[7]VYCHWZ2T5B6ZEPWZHVXSMDGPKAEWMQJTNFLV3AEYOQP4Z7XAMIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
