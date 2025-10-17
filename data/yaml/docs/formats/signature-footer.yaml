@@ -166,6 +166,10 @@ When a file is signed, its endline-state value determines how the payload is nor
 checksumming. If the wrong state is used, the BMW checksum will not match on verification.
 The recovery mechanism uses this fact: only the correct state produces a matching BMW.
 
+**Symmetry Principle (commit b90bbbbff)**: States 6 and 7 are LOCKED and cannot be overwritten
+by harmonize_payload_line_feed. This ensures separator endlines detected in one operation are
+preserved through the harmonization step and correctly encoded in the signature header.
+
 ## Technical Details
 
 ### Bit Encoding Scheme
@@ -285,6 +289,13 @@ signature_format:
     create_signature: "source.sign_data"
     extract_signature: "source.extract_sig_body"
     create_footer: "source.create_harmonic_footer"
+    extract_signature_notes: |
+      Improved in commit b90bbbbff with 4-tier flexible extraction pattern hierarchy:
+      - Uses concrete regex anchors for reliable matching
+      - Patterns from most specific to most lenient
+      - Handles edge cases where standard patterns fail
+      - Critical bug fix: Sets needs_separator_endline for first-time signing
+      - See signature-endline-handling.yaml for pattern details
   validation:
     character_sets:
       valid_chars: "[0-9A-Z]"

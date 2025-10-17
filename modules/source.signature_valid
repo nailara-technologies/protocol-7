@@ -479,6 +479,9 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
 
         # In repair mode, attempt to recover the correct endline-state via brute-force
         <[base.log]>->(
+            1, ': [ file checksum changed ]'
+        );
+        <[base.log]>->(
             1, ': BMW checksum mismatch - attempting endline-state recovery'
         );
         <[base.log]>->(
@@ -561,6 +564,9 @@ if ($sig_valid) {
 
     # In strict mode, reject invalid signatures
     if ( $mode eq 'strict' ) {
+        <[base.log]>->(
+            0, ': [ checksum correct but signature not valid ]'
+        );
         $verified_true = FALSE;                              ##  false  ##
         return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
@@ -737,8 +743,8 @@ sub _verify_signature_with_data {
     );
     return TRUE;
 }
-#,,.,,...,,,,,.,.,..,,.,,,,,.,.,.,,,.,,..,,.,,..,,...,..,,.,.,.,,,,,.,,..,,.,,
-#5TSV4WXZPFY6ZHW6BPZW4RWOEJJSZL64V4KGONYY6NUSLJ6DUYVX6I4QENOAZMNVD5BHKGHN4E5OQ
-#\\\|IILAZLZVACDVQR2P6OTKRGHI2FGUU3PSLYYW3VOFKDLAODWMVVL \ / AMOS7 \ YOURUM ::
-#\[7]46S4XP234DFYHFGXFEGVATXWIEHFDGLKM7YDSOZ6VTORC7DJXWCI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,.,,,,,.,,..,,,.,...,.,,,,,.,..,,...,...,.,.,..,,..,,...,,..,
+#32KTQPZHRFHQVUQLGG5FXMJ4DTGZ7DC7INDBUPGXXAX7BABDBGT3XGJ5GQV3XIOWAHOW6F2S3VLIS
+#\\\|OWHXD27MOAIRFNR44SZTVNSNZXNPI3CO4FSZNTIHMHAMOKSA25Q \ / AMOS7 \ YOURUM ::
+#\[7]VTFS67G5JJSQCOZNK6KBMKH5DRIU2VOGC7CEIP5OJ4XGBBQFWEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
