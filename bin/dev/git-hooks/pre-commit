@@ -1,10 +1,11 @@
 #!/usr/bin/perl
+
 use v5.24;
 use strict;
 use English;
 use warnings;
 use File::Spec;
-use Cwd qw| abs_path |;
+use Cwd     qw| abs_path |;
 use FindBin qw| $RealBin |;
 our $up_dir = File::Spec->updir;
 our $Bin    = $RealBin;
@@ -44,18 +45,34 @@ sub p7_root_dir {
     return $root_path;
 }
 
+sub is_amend_commit {
+    my $is_amend = 0;
+
+    ## check environment first ##                   [ need unsetting again ]
+    $is_amend = 1 if defined $ENV{'GIT_AMEND'} and $ENV{'GIT_AMEND'} ne '0';
+    $is_amend = 1 if defined $ENV{'AMEND'}     and $ENV{'AMEND'} ne '0';
+
+    ## check .amend file next ##
+    my $amend_file_path = c_dir( $p7_root, qw| .amend | );
+    if ( -e $amend_file_path and -z $amend_file_path ) {
+        $is_amend = 1;
+        unlink($amend_file_path);
+    }
+    return $is_amend;
+}
+
 sub check_version_numbers {
     my ($p7_root) = @_;
 
-    my $vers_file = c_dir($p7_root, 'configuration', 'protocol-7.src-ver');
+    my $vers_file = c_dir( $p7_root, 'configuration', 'protocol-7.src-ver' );
     return unless -f $vers_file;
 
-    # Detect if we're amending by checking GIT_REFLOG_ACTION environment variable
-    # This is set by git during --amend operations
-    my $is_amend = (exists $ENV{'GIT_REFLOG_ACTION'} && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/) ? 1 : 0;
+    # Detect if we're amending
+    my $is_amend = is_amend_commit();
 
     # Count commits via git rev-list for accuracy
-    my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null` // 0;
+    my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null`
+        // 0;
     chomp($commit_count);
     $commit_count ||= 0;
 
@@ -66,30 +83,38 @@ sub check_version_numbers {
 
     # Extract version (format: XXXXX-CCCC.R)
     my $version = $version_content;
-    $version =~ s/\n.+$//sg;  # Strip signature
+    $version =~ s/\n.+$//sg;    # Strip signature
 
-    return unless $version =~ /-(\d+)\.(\d+)$/;
-    my ($file_count, $file_rev) = ($1, $2);
+    return unless $version =~ m|-(\d+)\.(\d+)$|;
+    my ( $file_count, $file_rev ) = ( $1, $2 );
 
     # Determine expected version based on actual operation
     my $expected_count;
     if ($is_amend) {
-        # Amending: version should be commit_count - 1 (the amended commit's number)
+
+  # Amending: version should be commit_count - 1 (the amended commit's number)
         $expected_count = $commit_count - 1;
     } else {
+
         # New commit: version should be commit_count (the new commit's number)
         $expected_count = $commit_count;
     }
 
-    if ($file_count != $expected_count) {
-        print STDERR ": version mismatch detected\n";
+    if ( $file_count != $expected_count ) {
+        print STDERR ":::: version mismatch detected ::::\n:\n";
         print STDERR ": version file  : $version\n";
         print STDERR ": current commit: $commit_count\n";
-        print STDERR ": operation     : " . ($is_amend ? "amend" : "new commit") . "\n";
+        print STDERR ": operation     : "
+            . ( $is_amend ? "amend" : "new commit" ) . "\n";
         print STDERR ": expected      : *-$expected_count.$file_rev\n";
-        my $update_cmd = $is_amend ? './bin/dev/update-version reset' : './bin/dev/update-version';
+        my $update_cmd
+            = $is_amend
+            ? './bin/dev/update-version reset'
+            : './bin/dev/update-version';
         print STDERR ": suggestion    : run '$update_cmd' to fix\n";
-        print STDERR ": valid options : *-" . ($commit_count - 1) . ".$file_rev (amend) or *-$commit_count.$file_rev (new)\n";
+        print STDERR ": valid options : *-"
+            . ( $commit_count - 1 )
+            . ".$file_rev (amend) or *-$commit_count.$file_rev (new)\n";
         print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n";
         exit 1;
     }
@@ -98,33 +123,38 @@ sub check_version_numbers {
 sub check_file_signatures {
     my ($p7_root) = @_;
 
-    # Detect if we're amending by checking GIT_REFLOG_ACTION environment variable
-    # This is set by git during --amend operations
-    my $is_amend = (exists $ENV{'GIT_REFLOG_ACTION'} && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/) ? 1 : 0;
+    ## Detect if we're amending ##
+    #
+    my $is_amend = ( exists $ENV{'GIT_REFLOG_ACTION'}
+            && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/ ) ? 1 : 0;
 
     # Check if there are any staged files at all
-    my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null` // '';
+    my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null`
+        // '';
     return unless length($git_diff) || $is_amend;
 
-    # Use bin/Protocol-7 sourcecode verify-p7-signatures to verify all signatures
-    # This command uses modules/sourcecode.source_path_set_up for proper path configuration
-    # and knows which files need signature verification
-    # The embedded public key is used, no passphrase required
-    my $verify_cmd = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures 2>&1};
+    ## Use bin/Protocol-7 sourcecode verify-p7-signatures to verify all
+    ## signatures This command uses modules/sourcecode.source_path_set_up
+    ## for proper path configuration and knows which files need signature
+    ## verification The embedded public key is used, no passphrase required
+
+    my $verify_cmd
+        = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures 2>&1};
     my $verify_output = `$verify_cmd`;
     my $verify_status = $? >> 8;
 
-    if ($verify_status != 0) {
-        print STDERR ": signature verification failed:\n";
+    if ( $verify_status != 0 ) {
+        print STDERR ": signature verification failed :\n:\n";
         print STDERR $verify_output;
-        print STDERR ": suggestion    : run 'bin/Protocol-7 sourcecode update-signatures'\n";
+        print STDERR ": suggestion    :"
+            . " run 'bin/Protocol-7 sourcecode update-signatures'\n";
         print STDERR ": to override   : SKIP_SIGNATURE_CHECK=1 git commit\n";
         exit 1;
     }
 }
 
-#,,,.,,..,...,.,.,.,,,...,.,.,,,.,..,,,,,,,,.,..,,...,..,,..,,.,.,..,,.,,,,,,,
-#ETW3ZJQWTRNSH5DQXGK6QHSISEDZAAIMQQBLCHMU3MDOSP22BHJ7USE66GKAVAXTVUGLFAYJDAQJ4
-#\\\|YMLW7GTF6YSTX25OR5ZIRD6IH2KBLW4J4Q4WCBXRF5PY4KZEADY \ / AMOS7 \ YOURUM ::
-#\[7]DNEO2I67E5D2CQ52PYALNFBYTQGHQDOUF72HK7XU3MNM3ARTOQAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,...,,,,,.,,,,,,,,,,,,..,,,.,..,,...,...,.,,,.,,,.,.,,,.,,..,
+#3DVUCMAJK6HD43P522AJQ5EMKM4FX7PGS6UY5FYFG7TJVSZX743NACM7SSDT5UIMOKG57VO2B7YBQ
+#\\\|X4MD4JVRZ4YJQ6C73Z3FZJLN5HENNFUCB4THBNKNJM5MUDGEKKF \ / AMOS7 \ YOURUM ::
+#\[7]VNS6ICC3TOTMRVGEXHUX2WYEAEUFPFRKBU34GI42WIFTKGK7IWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
