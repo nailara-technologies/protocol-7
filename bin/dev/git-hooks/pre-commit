@@ -50,9 +50,9 @@ sub check_version_numbers {
     my $vers_file = c_dir($p7_root, 'configuration', 'protocol-7.src-ver');
     return unless -f $vers_file;
 
-    # Detect if we're amending by checking if ORIG_HEAD exists
-    my $orig_head_check = `git -C '$p7_root' rev-parse ORIG_HEAD 2>&1`;
-    my $is_amend = ($? == 0) ? 1 : 0;
+    # Detect if we're amending by checking GIT_REFLOG_ACTION environment variable
+    # This is set by git during --amend operations
+    my $is_amend = (exists $ENV{'GIT_REFLOG_ACTION'} && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/) ? 1 : 0;
 
     # Count commits via git rev-list for accuracy
     my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null` // 0;
@@ -98,9 +98,9 @@ sub check_version_numbers {
 sub check_file_signatures {
     my ($p7_root) = @_;
 
-    # Detect if we're amending
-    my $orig_head_check = `git -C '$p7_root' rev-parse ORIG_HEAD 2>&1`;
-    my $is_amend = ($? == 0) ? 1 : 0;
+    # Detect if we're amending by checking GIT_REFLOG_ACTION environment variable
+    # This is set by git during --amend operations
+    my $is_amend = (exists $ENV{'GIT_REFLOG_ACTION'} && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/) ? 1 : 0;
 
     # Check if there are any staged files at all
     my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null` // '';
@@ -123,8 +123,8 @@ sub check_file_signatures {
     }
 }
 
-#,,,.,,,.,,.,,.,.,,,.,,,.,...,.,,,,..,.,.,...,...,...,...,,.,,.,,,..,,,..,,,.,
-#462WRDPYTF4FZZEPAAKE5LL5RQKWFZUCD4R5JGNAS46IM5XM3CAGD5FXFRV3P675XQMXMM2H65KSE
-#\\\|MS6D44KTZSNSF2CV7S4K464PGYIRSPKQXHP6C4MEWCYED2UAG7B \ / AMOS7 \ YOURUM ::
-#\[7]TZ5IQ2USAU77IH7BOPRIWNJVQPTIF2DMHUK4PANB7J63WFYFOCAI 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,.,,,...,.,.,,,.,..,,,,,,,,.,..,,...,..,,..,,.,.,..,,.,,,,,,,
+#ETW3ZJQWTRNSH5DQXGK6QHSISEDZAAIMQQBLCHMU3MDOSP22BHJ7USE66GKAVAXTVUGLFAYJDAQJ4
+#\\\|YMLW7GTF6YSTX25OR5ZIRD6IH2KBLW4J4Q4WCBXRF5PY4KZEADY \ / AMOS7 \ YOURUM ::
+#\[7]DNEO2I67E5D2CQ52PYALNFBYTQGHQDOUF72HK7XU3MNM3ARTOQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
