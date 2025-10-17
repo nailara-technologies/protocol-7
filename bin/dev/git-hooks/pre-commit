@@ -98,9 +98,13 @@ sub check_version_numbers {
 sub check_file_signatures {
     my ($p7_root) = @_;
 
+    # Detect if we're amending
+    my $orig_head_check = `git -C '$p7_root' rev-parse ORIG_HEAD 2>&1`;
+    my $is_amend = ($? == 0) ? 1 : 0;
+
     # Check if there are any staged files at all
     my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null` // '';
-    return unless length($git_diff);
+    return unless length($git_diff) || $is_amend;
 
     # Use bin/Protocol-7 sourcecode verify-p7-signatures to verify all signatures
     # This command uses modules/sourcecode.source_path_set_up for proper path configuration
@@ -118,8 +122,9 @@ sub check_file_signatures {
         exit 1;
     }
 }
-#,,,.,,,,,,,,,.,.,,,.,,,.,.,.,,,.,.,.,.,.,...,...,...,..,,.,.,...,..,,..,,,..,
-#IZU4Q6UBTBRQVUP6IANH35ROWOXKYG26WACDIGJITWSBPDGZMMOIDS23Y3MKERXAOO3LY2GN73U54
-#\\\|S4ZMPEMGSMKF2BJDBEGGWGDVZS5SR4DTGXXPPHNUJF7IZEC7Z33 \ / AMOS7 \ YOURUM ::
-#\[7]LX55OQX7PSO2IIFMZ7FBQMR7MJSQIB7XLWNEWSXC44CUFJWBZCCI 7  DATA SIGNATURE ::
+
+#,,,.,,,.,,.,,.,.,,,.,,,.,...,.,,,,..,.,.,...,...,...,...,,.,,.,,,..,,,..,,,.,
+#462WRDPYTF4FZZEPAAKE5LL5RQKWFZUCD4R5JGNAS46IM5XM3CAGD5FXFRV3P675XQMXMM2H65KSE
+#\\\|MS6D44KTZSNSF2CV7S4K464PGYIRSPKQXHP6C4MEWCYED2UAG7B \ / AMOS7 \ YOURUM ::
+#\[7]TZ5IQ2USAU77IH7BOPRIWNJVQPTIF2DMHUK4PANB7J63WFYFOCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
