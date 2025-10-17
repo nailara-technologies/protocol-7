@@ -1,0 +1,320 @@
+# AMOS7 Data Signature Format Documentation
+
+This document provides a comprehensive overview of the AMOS7 data signature format, including its structure, encoding methods, and processing workflow.
+
+## Overview
+
+The AMOS7 signature format is a structured approach to embedding cryptographic signatures within source code files. It combines header metadata encoding with signature data to provide both verification capabilities and metadata storage.
+
+## Signature Structure
+
+### Header Line
+The signature begins with a specially formatted header line that contains encoded metadata:
+
+- **Format**: `#[,,,,,,,,,,,,,,,,,,,]`
+- **Characters**: Uses `.` (represents binary 1) and `,` (represents binary 0)
+- **Total Bits**: 57 bits encoded in 19 octal digits
+- **Encoding Process**: Converts numerical values to octal and then encodes bits
+
+### Header Components
+The 19 octal digits are organized as:
+1. **Digits 0-10**: AMOS payload checksum (11 bits)
+2. **Digit 11**: Stripped endline state (1 bit)
+3. **Digits 12-18**: AMOS footer iteration counter (8 bits)
+
+### Special Cases
+- **All Zeros Mode**: When all values are zero, the binary encoding mode is inverted:
+  - All `0` bits become `.`
+  - All `1` bits become `,`
+
+### Signature Body
+The signature body contains:
+- **Checksum**: BMW-384-B32 encoded
+- **Signature**: C25519-B32 encoded
+- **Components**:
+  - `sig-part-0`: first 51 characters
+  - `sig-part-1`: next 52 characters
+
+### Footer Template Structure
+The complete footer follows a template structure with variable substitutions:
+- Position 80: 77-character data checksum
+- Position 163: 51-character signature part 0
+- Position 242: 52-character signature part 1
+- Position 298: 4-character "DATA"
+- Position (233 - length $sig_name_str): Signature type identifier
+
+## Encoding Functions
+
+### Header Encoding
+- **Function**: `amos7.encode_octal_header`
+- **Inputs**:
+  - `amos-checksum-num`: AMOS payload checksum value
+  - `endline-state-encoded`: Endline state value
+  - `amos-iterations-remaining`: Iteration counter value
+
+### Header Decoding
+- **Function**: `amos7.decode_octal_bit_header`
+- **Output**: Hash containing decoded metadata:
+  - `amos-payload-checksum`: Decoded checksum
+  - `endline-state-encoded`: Endline state
+  - `amos-iterations-remaining`: Iteration count
+  - `structure-was-valid`: Validation status
+
+## Validation Process
+
+The signature processing involves multiple validation steps:
+
+1. **Structural Validity**: Checking header format match
+2. **Length Matching**: Verifying sizes match templates
+3. **Character Validation**: Ensuring valid characters in data
+4. **Checksum Verification**: Validating BMW checksums
+5. **Template Validation**: Checking signature templates
+6. **Signature File Template Checking**: Validating external signature formats
+
+## Processing Workflow
+
+The signature creation and verification workflow is designed for automatic recovery and healing:
+
+1. **Extraction** (`source.extract_sig_body`): Parses existing signature information
+   - Flags endline issues for repair instead of failing
+   - Provides all metadata including BMW checksum to verification layer
+
+2. **Verification** (`source.signature_valid`): Validates signature integrity
+   - **Strict mode**: Fails on any checksum mismatch
+   - **Repair mode**: Activates BMW checksum-based recovery
+     - Tries all 8 endline-states (0-7)
+     - Finds state where BMW matches signature's BMW
+     - Records recovered state for next cycle
+
+3. **Encoding**: Creates new header using recovered/confirmed endline-state
+   - Uses `amos7.encode_octal_header` with correct endline-state-encoded value
+   - Includes iteration counter and payload checksum
+
+4. **Creation**: Generates complete signature footer using `source.create_harmonic_footer`
+   - Applies endline state normalization to payload
+   - Creates new BMW checksum with normalized payload
+   - Generates cryptographic signature of normalized payload
+
+5. **Update**: Applies signature to source files using `source.cmd.get-code-signed`
+   - Uses recovered endline-state to ensure consistency
+   - File now has correct state recorded for future operations
+   - Next signing cycle will use this state (no oscillation)
+
+## Verification Process
+
+The verification system performs checks at multiple levels with automatic recovery:
+
+### Standard Strict Verification
+- **File System**: Checks write permissions and file existence
+- **Header Validation**: Ensures header structure is valid and decodes correctly
+- **Payload Checksum**: Validates AMOS payload checksum matches
+- **BMW Checksum**: Validates footer BMW checksum matches
+- **Signature Validation**: Verifies C25519 cryptographic signatures
+- **Template Validation**: Checks formatting of signature elements
+
+### BMW Checksum Recovery (Repair Mode)
+When BMW checksum mismatch occurs in repair mode:
+1. **Mismatch Detection**: Footer BMW doesn't match calculated BMW
+2. **Recovery Activation**: Instead of failing, activate brute-force recovery
+3. **State Enumeration**: Try all 8 endline-states (0-7)
+4. **BMW Recalculation**: For each state:
+   - Apply endline normalization to payload
+   - Recalculate BMW with normalized payload
+   - Compare to signature's BMW checksum
+5. **State Match**: When BMW matches:
+   - Record the recovered state
+   - Update footer_data->{'endline-state-encoded'}
+   - Return with recovery metadata
+6. **Stable Re-signing**: Next signing cycle uses recovered state
+   - File maintains consistent signatures
+   - No oscillation on repeated operations
+
+### Why BMW Checksum is Reliable Ground Truth
+- BMW is calculated from payload content AFTER endline normalization
+- The checksum embeds information about endline handling
+- Brute-forcing all 8 states guarantees finding the correct one
+- Cryptographic verification ensures recovered state is mathematically valid
+
+## Key Constants and Values
+
+### Iteration Limits
+- **Iteration Counter**: Managed in the header, decreases with each operation
+- **Validation Limits**: Includes checking for iteration limits exceeded
+
+### Configuration Values
+- **Verbosity**: Controls display of signature details
+- **Check Modes**: Multiple validation modes for different checks
+- **Template Patterns**: Format strings used for signature validation
+
+## Endline-State Encoding Mapping
+
+The header digit 11 encodes the endline-state-encoded value (1 bit of the 57-bit header):
+
+| State | Binary | Hex | Meaning | Payload Modification |
+|-------|--------|-----|---------|----------------------|
+| 0 | 000 | 0x0 | Remove 4 trailing newlines | `s/\n{4,}$/\n/s` |
+| 1 | 001 | 0x1 | Remove 3 trailing newlines | `s/\n{3,}$/\n/s` |
+| 2 | 010 | 0x2 | Remove 2 trailing newlines | `s/\n{2,}$/\n/s` |
+| 3 | 011 | 0x3 | Remove 1 trailing newline | `s/\n{1,}$/\n/s` |
+| 4 | 100 | 0x4 | Remove 0 newlines (no change) | No change |
+| 5 | 101 | 0x5 | Preserve current state (default) | No change |
+| 6 | 110 | 0x6 | Add 1 newline (separator) | `s/(\n*)$/$1\n/s` |
+| 7 | 111 | 0x7 | Add 2 newlines (complete + separator) | `s/(\n*)$/$1\n\n/s` |
+
+**Critical**: The endline state is encoded in the header BEFORE the BMW checksum is calculated.
+When a file is signed, its endline-state value determines how the payload is normalized before
+checksumming. If the wrong state is used, the BMW checksum will not match on verification.
+The recovery mechanism uses this fact: only the correct state produces a matching BMW.
+
+## Technical Details
+
+### Bit Encoding Scheme
+The system encodes 57 bits of information using 19 octal digits:
+- Digit 0-10 (11 bits): AMOS payload checksum
+- Digit 11 (1 bit): Stripped endline state (the 3-bit endline-state-encoded value)
+- Digit 12-18 (8 bits): AMOS footer iteration counter
+- Each octal digit represents 3 binary bits
+- Binary data is directly mapped to character representation (`.` for 1, `,` for 0)
+- Special handling for 0-value cases (inverts encoding)
+
+### File Operations
+The process handles:
+- File path resolution (`abs_path`)
+- File reading (`file.slurp`)
+- File writing operations
+- Permission checking (`-w` test)
+- Logging and verbose output
+
+## Error Handling
+
+The system provides extensive error reporting including:
+- **Structural Errors**: Header format mismatches
+- **Validation Errors**: Checksum and length mismatches
+- **Character Errors**: Invalid characters in signature data
+- **Template Errors**: Format violations in signature templates
+- **Iteration Errors**: Maximum iteration limits exceeded
+
+## Processing Examples
+
+### Header Example
+```
+#,,.,,...,..,,.,.,,.,,,,.,,,,,,..,.,.,,..,,..,..,,...,..,,...,,.,,.,,,,,.,.,.,
+```
+This represents a header with all `0` bits set, illustrating the inverse encoding mode.
+
+### File Processing
+The system processes multiple source files through this workflow:
+1. Read file using `file.slurp`
+2. Extract signature information using `extract_sig_body`
+3. Validate signature using `Assert::Truth` checks
+4. Create new signature when needed
+5. Update file with new signature using `get-code-signed`
+
+## YAML Configuration Representation
+
+```yaml
+signature_format:
+  name: "AMOS7 Data Signature Format"
+  version: "1.0"
+  structure:
+    header:
+      name: "First Header Line"
+      format: "Encoded octal bit header"
+      representation: "#[,,,,,,,,,,,,,,,,,,,]"
+      characters:
+        ".": "binary 1"
+        ",": "binary 0"
+      bits: 57
+      octal_digits: 19
+      encoding:
+        digits_0_10: "AMOS payload checksum (11 bits)"
+        digit_11: "Stripped endline state (1 bit)"
+        digits_12_18: "AMOS footer iteration counter (8 bits)"
+      special_cases:
+        all_zeros: "Inverts binary encoding mode"
+    signature:
+      name: "Signature Body"
+      format: "BMW-384-B32 checksum + C25519-B32 signature"
+      components:
+        checksum:
+          type: "BMW-384-B32"
+          encoding: "Base32"
+        signature:
+          type: "C25519-B32"
+          encoding: "Base32"
+      parts:
+        sig-part-0: "first 51 characters"
+        sig-part-1: "next 52 characters"
+    footer:
+      name: "Footer Structure"
+      format: "Signature template with substituted variables"
+      components:
+        - header_line: "First line with encoded header bits"
+        - signature_line: "Base32 encoded signature data"
+      variables:
+        'data-chksum':
+          pos: 80
+          len: 77
+          str_ref: "payload_data_ref->{'data-chksum'}"
+        'signature':
+          parts:
+            - pos: 163
+              len: 51
+              str_ref: "calc_result_href->{'sig-part-0'}"
+            - pos: 242
+              len: 52
+              str_ref: "calc_result_href->{'sig-part-1'}"
+        'data-type':
+          pos: 298
+          len: 4
+          str: "DATA"
+        'signature-type':
+          pos: 233 - length $sig_name_str
+          len: length $sig_name_str
+          str_ref: "$sig_name_str"
+      validation:
+        length_check: true
+        structural_check: true
+        character_validation: true
+        checksum_verification: true
+        template_validation: true
+        signature_template_check: true
+  encoding_functions:
+    decode_header: "amos7.decode_octal_bit_header"
+    encode_header: "amos7.encode_octal_header"
+    create_signature: "source.sign_data"
+    extract_signature: "source.extract_sig_body"
+    create_footer: "source.create_harmonic_footer"
+  validation:
+    character_sets:
+      valid_chars: "[0-9A-Z]"
+      header_chars: "[.,]"
+    checks:
+      - "structural validity"
+      - "length matching"
+      - "character validity"
+      - "checksum verification"
+      - "template validation"
+      - "signature file template checking"
+  metadata:
+    payload_checksum: "AMOS payload checksum"
+    endline_state: "Stripped endline state encoded in header"
+    iterations_remaining: "AMOS footer iteration counter encoded in header"
+    signature_type: "C25519-B32 signature format"
+    checksum_type: "BMW-384-B32 checksum format"
+  processing_flow:
+    extraction: "source.extract_sig_body - parses existing signatures"
+    creation: "source.create_harmonic_footer - generates new signatures"
+    validation: "Multiple validation steps including template checking"
+    updating: "source.cmd.get-code-signed - updates signatures in files"
+  configuration:
+    mode: "harmonic footer creation"
+    verbosity: "1-2 for detailed output"
+    file_validation: "checks write permissions and file existence"
+    iterations: "iteration counter stored in header"
+    template: "signature template with variable substitution"
+  file_operations:
+    source_paths: "array of file paths to process"
+    work_tree: "working directory path"
+    file_count: "total number of files to process"
+    true_count: "count of valid signatures found"
