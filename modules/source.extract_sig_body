@@ -206,7 +206,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                             = $signature_marker;
 
                         <[base.logs]>->(
-                            3,
+                            0,
                             ': successfully extracted signature for repair with marker: %s',
                             $signature_marker
                         );
@@ -221,9 +221,9 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
         # If flexible extraction also failed, log it with debug details
         if ( !$found_signature && $mode eq 'repair' ) {
-            <[base.logs]>->( 0, ': flexible signature extraction failed' );
+            <[base.logs]>->( 2, ': flexible signature extraction failed' );
 
-            # Debug output to STDERR (shows in neon-orange)
+            # Debug output at verbosity level 3 only (use -vvv to see)
             my $content_len = length($content_copy);
             my $has_amos7 = ($content_copy =~ /AMOS7/) ? 'YES' : 'NO';
             my $has_signature = ($content_copy =~ /SIGNATURE/) ? 'YES' : 'NO';
@@ -231,18 +231,33 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             my $has_data_sig = ($content_copy =~ /DATA[-\s]SIGNATURE/) ? 'YES' : 'NO';
             my $last_200_chars = substr($content_copy, -200);
 
-            print STDERR "\n";
-            print STDERR "DEBUG: Flexible extraction failure details:\n";
-            print STDERR "  Content length: $content_len bytes\n";
-            print STDERR "  Contains AMOS7: $has_amos7\n";
-            print STDERR "  Contains SIGNATURE: $has_signature\n";
-            print STDERR "  Contains YOURUM: $has_yourum\n";
-            print STDERR "  Contains DATA-SIGNATURE: $has_data_sig\n";
-            print STDERR "  Last 200 chars:\n";
+            <[base.logs]>->( 3, ': flexible extraction failure details:' );
+            <[base.logs]>->( 3, ':   Content length: %d bytes', $content_len );
+            <[base.logs]>->( 3, ':   Contains AMOS7: %s', $has_amos7 );
+            <[base.logs]>->( 3, ':   Contains SIGNATURE: %s', $has_signature );
+            <[base.logs]>->( 3, ':   Contains YOURUM: %s', $has_yourum );
+            <[base.logs]>->( 3, ':   Contains DATA-SIGNATURE: %s', $has_data_sig );
+            <[base.logs]>->( 3, ':   Last 200 chars:' );
             foreach my $line (split /\n/, $last_200_chars) {
-                print STDERR "    | $line\n";
+                <[base.logs]>->( 3, ':     | %s', $line );
             }
-            print STDERR "\n";
+
+            # CRITICAL FIX: When flexible extraction fails BUT the original file
+            # contains signature markers, we should NOT treat this as "no signature"
+            # Instead, return with recovery flags so verification phase can handle it
+            if ($has_signature eq 'YES') {
+                <[base.logs]>->( 2, ': signature markers found but flexible extraction failed - returning for recovery' );
+                <[base.logs]>->( 2, ': :. proceeding with recovery mode' );
+
+                # Mark that we found signatures but couldn't extract them
+                $footer_data->{'extraction_failed_with_markers'} = TRUE;
+                $footer_data->{'flexible_extraction_failed'} = TRUE;
+                $footer_data->{'was-present'} = 1;
+
+                # Return early so verification phase can attempt BMW recovery
+                # This prevents treating the file as first-time signing
+                return $footer_data;
+            }
         }
     }
 } else {
@@ -321,9 +336,41 @@ $footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
 # If NO signature was found at all, we're doing first signing
 # In that case, ensure separator endline will be added
 if ( not defined $footer_body ) {
-    # Mark that separator endline is needed (first signing should have one)
+    # Before claiming "no signature present", verify the content doesn't have markers
+    # This check must happen REGARDLESS OF MODE to correctly detect existing signatures
+    my $content_has_markers = $$src_ref =~ /SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE/;
+
+    if ( $content_has_markers ) {
+        # Check if file has signature marker but missing separator endline before it
+        # This happens when signature exists but is directly at end without blank line
+        my $has_separator_issue = ( $$src_ref =~ /#[\.,]{70,80}\n(?:#[^\n]+\n)+#[:]{70,80}/ &&
+                                   $$src_ref !~ /\n#[\.,]{70,80}\n/ );
+
+        if ( $has_separator_issue ) {
+            # Signature exists but missing separator endline
+            <[base.logs]>->( 2, ': [ no separator endline present ]' );
+            <[base.logs]>->( 2, ': [ signature footer at end without blank line ]' );
+            $footer_data->{'extraction_failed_with_markers'} = TRUE;
+            $footer_data->{'flexible_extraction_failed'} = TRUE;
+            $footer_data->{'was-present'} = 1;
+            $footer_data->{'needs_separator_endline'} = TRUE;
+            return $footer_data;
+        }
+
+        # File contains signature markers but extraction failed
+        # Set recovery flags so verification can handle it (in all modes)
+        $footer_data->{'extraction_failed_with_markers'} = TRUE;
+        $footer_data->{'flexible_extraction_failed'} = TRUE;
+        $footer_data->{'was-present'} = 1;
+        <[base.logs]>->( 2, ': [ existing signature but extraction failed - marking for recovery ]' );
+        return $footer_data;
+    }
+
+    # Only now claim "no signature present" if truly no markers found
     $footer_data->{'needs_separator_endline'} = TRUE;
-    <[base.logs]>->( 2, ': no old signature found - first signing, will add separator endline' );
+    <[base.logs]>->( 2, ': [ no signature present ]' );
+    <[base.logs]>->( 2, ': [ initial signing ]' );
+    <[base.logs]>->( 2, '+ < adding separator endline >' );
     return $footer_data;    ## keeping current checksum ##
 }
 
@@ -622,8 +669,8 @@ if ( $mode eq 'repair' ) {
 }
 
 return $footer_data;
-#,,.,,,.,,..,,...,,,.,,.,,,.,,,..,,..,..,,,..,..,,...,..,,,.,,...,.,.,,,,,,..,
-#RVXH6C5QPAVUY5VVTSHPENOPFGKPKA5XBUMLWYOHE5LYVAD3DPOS7UV7GQ3Z47XEPRQ3M6O6V2KFM
-#\\\|QK5X6UZTAKGAAPIPP4JLF34WZ35GHD7JFK7CE53MGGFO73OBNII \ / AMOS7 \ YOURUM ::
-#\[7]YCGGOP4R3SHKSMGQPINDNBVONXKHPMAGMP43Y7RJTYIXQYZHTCBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,..,,,,,,,.,,,,,,,,.,,..,...,..,,...,...,..,,,..,,,.,,,.,.,.,
+#GAEWD2LCDBOLNDSLIVFDCP3YN5F7LCOCFE4ZWCRWPS5OHXL4K3KLI6L6CZ5FFNKWHL6XDEM5NKQCM
+#\\\|YB2OAEPABRGCP4LRQDTFUEE4HPHRPF6OB3UPRBAWSAKYWLBNUV6 \ / AMOS7 \ YOURUM ::
+#\[7]YPRNOTDDT2Y67RB32JTNELYEPKNTRT4MPBHTPRRDCQRWKHLIDWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

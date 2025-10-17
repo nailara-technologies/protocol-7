@@ -25,6 +25,12 @@ chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 system("$p7_root/$admin_path/restore-p7-permissions") == 0
     or die ":\n:: \l$OS_ERROR\n\n";
 
+## Check version numbers are updated
+check_version_numbers($p7_root) unless $ENV{SKIP_VERSION_CHECK};
+
+## Check for signatures on modified files
+check_file_signatures($p7_root) unless $ENV{SKIP_SIGNATURE_CHECK};
+
 print ":\n: done.\n:\n";
 
 #[ SUBROUTINES ]##############################################################
@@ -36,6 +42,88 @@ sub p7_root_dir {
     my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 3 ) ) );
     die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
     return $root_path;
+}
+
+sub check_version_numbers {
+    my ($p7_root) = @_;
+
+    my $vers_file = c_dir($p7_root, 'configuration', 'protocol-7.src-ver');
+    return unless -f $vers_file;
+
+    # Count commits via git rev-list for accuracy
+    my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null` // 0;
+    chomp($commit_count);
+    $commit_count ||= 0;
+
+    # Read version file
+    open my $fh, '<', $vers_file or return;
+    my $version_content = <$fh>;
+    close $fh;
+
+    # Extract version (format: XXXXX-CCCC.R)
+    my $version = $version_content;
+    $version =~ s/\n.+$//sg;  # Strip signature
+
+    return unless $version =~ /-(\d+)\.(\d+)$/;
+    my ($file_count, $file_rev) = ($1, $2);
+
+    if ($file_count != $commit_count) {
+        print STDERR ": version mismatch detected\n";
+        print STDERR ": version file  : $version\n";
+        print STDERR ": expected      : *-$commit_count.$file_rev\n";
+        print STDERR ": suggestion    : run './bin/dev/update-version' to fix\n";
+        print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n";
+        exit 1;
+    }
+}
+
+sub check_file_signatures {
+    my ($p7_root) = @_;
+
+    # Get list of staged files that are source code
+    my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null` // '';
+    my @staged_files = split /\n/, $git_diff;
+
+    my @source_files;
+
+    for my $file (@staged_files) {
+        next unless $file;
+        next if $file =~ /^\./ || $file =~ /\.(sample|swp|~|bak)$/;
+
+        my $file_path = c_dir($p7_root, $file);
+        next unless -f $file_path;
+
+        # Check if it's a source file that needs signatures
+        next unless $file =~ /\.(?:pl|pm|sh|md|yaml|asc)$/ ||
+                    $file =~ m{^(?:modules|bin|configuration)/};
+
+        # Read file content to verify it looks like source
+        open my $fh, '<', $file_path or next;
+        my $content = do { local $/; <$fh> };
+        close $fh;
+
+        # Only check if it looks like source code
+        if ($content =~ /^#!/ || $content =~ /^\s*(?:use|require|my|sub|if)\s/ ||
+            $content =~ /^---/ || $content =~ /^#\s+/ ) {
+            push @source_files, $file;
+        }
+    }
+
+    return unless @source_files;
+
+    # Use bin/Protocol-7 sourcecode verify-p7-signatures to verify signatures
+    # This uses the embedded public key and requires no passphrase
+    my $verify_cmd = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures @source_files 2>&1};
+    my $verify_output = `$verify_cmd`;
+    my $verify_status = $? >> 8;
+
+    if ($verify_status != 0) {
+        print STDERR ": signature verification failed:\n";
+        print STDERR $verify_output;
+        print STDERR ": suggestion    : run 'bin/Protocol-7 sourcecode update-signatures'\n";
+        print STDERR ": to override   : SKIP_SIGNATURE_CHECK=1 git commit\n";
+        exit 1;
+    }
 }
 
 #,,,.,,.,,,.,,...,,,,,...,.,.,,,,,.,.,...,...,..,,...,...,,..,.,.,,,,,..,,..,,
