@@ -158,16 +158,25 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             );
 
             # Try different patterns - from specific to more general
+            # These patterns use concrete regex anchors without variable interpolation
+            # Using {} delimiter to avoid conflicts with | in file content
             my @extraction_patterns = (
 
-                # Most specific pattern
-                qr|(.*?)($start_marker[\s\n].*?$signature_marker.*?[\s\n]$end_marker)$|s,
+                # Pattern 1: Require separator + AMOS7 keyword + data/signature indicators
+                # Most specific: needs newline separator, AMOS7 presence, and colon footer
+                qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*AMOS7[^\n]*\n)*?(?:#[^\n]*SIGNATURE[^\n]*\n)*?#[:]{70,80}\n?)$}s,
 
-              # More general pattern - just look for signature line and ending
-                qr|(.*?)(#.*?\n.*?$signature_marker.*?\n#[:\.]+[\s\n]*)$|s,
+                # Pattern 2: With separator, require either AMOS7 or YOURUM marker
+                # Requires exact marker structure: separator + dot/comma start + end
+                qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM)[^\n]*\n)*?#[:]{70,80}[\s\n]*?)$}s,
 
-         # Most general - just grab anything that looks like a signature block
-                qr|(.*?)(#.*?AMOS7.*?\n.*?$signature_marker.*?\n#[:\.]+[\s\n]*)$|s
+                # Pattern 3: No separator required, but require clear signature markers
+                # Fallback when separator missing: require YOURUM or SIGNATURE in content
+                qr{(.*?)(#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM|SIGNATURE)[^\n]*\n)*?#[:]{70,80}[\s\n]*)$}s,
+
+                # Pattern 4: Most lenient but strict on markers
+                # Last resort: just need recognizable footer markers and some content
+                qr{(.*?)(#[\.,\s\.]{70,80}\n(?:#[^\n]+\n)*?#[:]{65,}[\s\n]*)$}s
             );
 
             foreach my $pattern (@extraction_patterns) {
@@ -210,9 +219,30 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             last if $found_signature;    # Exit the outer loop if found
         }
 
-        # If flexible extraction also failed, log it
+        # If flexible extraction also failed, log it with debug details
         if ( !$found_signature && $mode eq 'repair' ) {
             <[base.logs]>->( 0, ': flexible signature extraction failed' );
+
+            # Debug output to STDERR (shows in neon-orange)
+            my $content_len = length($content_copy);
+            my $has_amos7 = ($content_copy =~ /AMOS7/) ? 'YES' : 'NO';
+            my $has_signature = ($content_copy =~ /SIGNATURE/) ? 'YES' : 'NO';
+            my $has_yourum = ($content_copy =~ /YOURUM/) ? 'YES' : 'NO';
+            my $has_data_sig = ($content_copy =~ /DATA[-\s]SIGNATURE/) ? 'YES' : 'NO';
+            my $last_200_chars = substr($content_copy, -200);
+
+            print STDERR "\n";
+            print STDERR "DEBUG: Flexible extraction failure details:\n";
+            print STDERR "  Content length: $content_len bytes\n";
+            print STDERR "  Contains AMOS7: $has_amos7\n";
+            print STDERR "  Contains SIGNATURE: $has_signature\n";
+            print STDERR "  Contains YOURUM: $has_yourum\n";
+            print STDERR "  Contains DATA-SIGNATURE: $has_data_sig\n";
+            print STDERR "  Last 200 chars:\n";
+            foreach my $line (split /\n/, $last_200_chars) {
+                print STDERR "    | $line\n";
+            }
+            print STDERR "\n";
         }
     }
 } else {
@@ -288,8 +318,14 @@ $footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
 
 ####
 
-return $footer_data
-    if not defined $footer_body;    ## keeping current checksum ##
+# If NO signature was found at all, we're doing first signing
+# In that case, ensure separator endline will be added
+if ( not defined $footer_body ) {
+    # Mark that separator endline is needed (first signing should have one)
+    $footer_data->{'needs_separator_endline'} = TRUE;
+    <[base.logs]>->( 2, ': no old signature found - first signing, will add separator endline' );
+    return $footer_data;    ## keeping current checksum ##
+}
 
 $footer_data->{'was-present'} = 1;  ## had a signature footer ##
 
@@ -586,9 +622,8 @@ if ( $mode eq 'repair' ) {
 }
 
 return $footer_data;
-
-#,,,.,...,,,.,,..,...,,.,,,,.,,,,,,,.,,..,,.,,..,,...,...,,,.,.,.,,..,,.,,,,.,
-#YQAGFWWIGDFIF3JKY6MEG4DWFONBA5IVO6YWHD6E2NPC4NTALG4XDXLOCYESSQ375JKKQQ35JPQXY
-#\\\|N2JXBGMP4LXN66D7UGOZHZZBKPFCY6BD2LCDPYK324UHOV2FJ7Q \ / AMOS7 \ YOURUM ::
-#\[7]5DNBEGSFGATBT6XRZOXRSRB7VVYPSS2INCDNO4MFU2EOKN5E4GDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,,,.,,.,,,.,,,..,,..,..,,,..,..,,...,..,,,.,,...,.,.,,,,,,..,
+#RVXH6C5QPAVUY5VVTSHPENOPFGKPKA5XBUMLWYOHE5LYVAD3DPOS7UV7GQ3Z47XEPRQ3M6O6V2KFM
+#\\\|QK5X6UZTAKGAAPIPP4JLF34WZ35GHD7JFK7CE53MGGFO73OBNII \ / AMOS7 \ YOURUM ::
+#\[7]YCGGOP4R3SHKSMGQPINDNBVONXKHPMAGMP43Y7RJTYIXQYZHTCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
