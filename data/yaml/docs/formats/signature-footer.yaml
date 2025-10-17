@@ -80,60 +80,60 @@ The signature creation and verification workflow is designed for automatic recov
    - Provides all metadata including BMW checksum to verification layer
 
 2. **Verification** (`source.signature_valid`): Validates signature integrity
-   - **Strict mode**: Fails on any checksum mismatch
-   - **Repair mode**: Activates BMW checksum-based recovery
-     - Tries all 8 endline-states (0-7)
-     - Finds state where BMW matches signature's BMW
-     - Records recovered state for next cycle
+   - Checks BMW checksum and cryptographic signature
+   - Marks files not in canonical format as invalid
+   - Files in canonical format (exactly 1 separator endline) pass verification
 
-3. **Encoding**: Creates new header using recovered/confirmed endline-state
-   - Uses `amos7.encode_octal_header` with correct endline-state-encoded value
+3. **Encoding**: Creates new header using detected endline-state
+   - Uses `amos7.encode_octal_header` with endline-state-encoded value
    - Includes iteration counter and payload checksum
 
 4. **Creation**: Generates complete signature footer using `source.create_harmonic_footer`
-   - Applies endline state normalization to payload
+   - Detects current endline state from file
+   - Normalizes payload to exactly 1 separator endline
    - Creates new BMW checksum with normalized payload
    - Generates cryptographic signature of normalized payload
+   - Encodes transformation delta in header for reversibility
 
-5. **Update**: Applies signature to source files using `source.cmd.get-code-signed`
-   - Uses recovered endline-state to ensure consistency
-   - File now has correct state recorded for future operations
-   - Next signing cycle will use this state (no oscillation)
+5. **Update**: Applies signature to source files using `source.cmd.get-code-signed` (lines 161-195)
+   - Detects original trailing endlines
+   - Calculates transformation delta (states 1, 5, or 6)
+   - Normalizes to exactly 1 separator endline
+   - Recalculates signature with normalized content
+   - Appends signature in canonical format
+   - Files converge to stable state (no oscillation)
 
 ## Verification Process
 
-The verification system performs checks at multiple levels with automatic recovery:
+The verification system performs checks at multiple levels:
 
-### Standard Strict Verification
+### Standard Verification
 - **File System**: Checks write permissions and file existence
 - **Header Validation**: Ensures header structure is valid and decodes correctly
 - **Payload Checksum**: Validates AMOS payload checksum matches
 - **BMW Checksum**: Validates footer BMW checksum matches
 - **Signature Validation**: Verifies C25519 cryptographic signatures
 - **Template Validation**: Checks formatting of signature elements
+- **Format Validation**: Confirms file is in canonical format (exactly 1 separator endline)
 
-### BMW Checksum Recovery (Repair Mode)
-When BMW checksum mismatch occurs in repair mode:
-1. **Mismatch Detection**: Footer BMW doesn't match calculated BMW
-2. **Recovery Activation**: Instead of failing, activate brute-force recovery
-3. **State Enumeration**: Try all 8 endline-states (0-7)
-4. **BMW Recalculation**: For each state:
-   - Apply endline normalization to payload
-   - Recalculate BMW with normalized payload
-   - Compare to signature's BMW checksum
-5. **State Match**: When BMW matches:
-   - Record the recovered state
-   - Update footer_data->{'endline-state-encoded'}
-   - Return with recovery metadata
-6. **Stable Re-signing**: Next signing cycle uses recovered state
-   - File maintains consistent signatures
-   - No oscillation on repeated operations
+### Format Validation Details
+Files in canonical format have:
+- Exactly one newline between file content and signature footer
+- Format: `<content>\n#<signature_footer>`
+- Any file not matching this format is marked as invalid
+- Invalid files are automatically fixed by `update-signatures` command
 
-### Why BMW Checksum is Reliable Ground Truth
-- BMW is calculated from payload content AFTER endline normalization
-- The checksum embeds information about endline handling
-- Brute-forcing all 8 states guarantees finding the correct one
-- Cryptographic verification ensures recovered state is mathematically valid
+### Self-Healing via Normalization
+When verification detects a file not in canonical format:
+1. File is marked as invalid
+2. Running `bin/Protocol-7 sourcecode update-signatures` normalizes it
+3. Normalization process:
+   - Detects current trailing endlines (0, 1, or 2+)
+   - Calculates transformation delta (state 1, 5, or 6)
+   - Normalizes to exactly 1 separator endline
+   - Recalculates signature
+4. File converges to canonical format
+5. Subsequent verifications pass
 
 ## Key Constants and Values
 
@@ -148,27 +148,32 @@ When BMW checksum mismatch occurs in repair mode:
 
 ## Endline-State Encoding Mapping
 
-The header digit 11 encodes the endline-state-encoded value (1 bit of the 57-bit header):
+The header digit 11 encodes the endline-state-encoded value as a transformation delta.
+The system uses only 3 active states; others are reserved for future use:
 
-| State | Binary | Hex | Meaning | Payload Modification |
-|-------|--------|-----|---------|----------------------|
-| 0 | 000 | 0x0 | Remove 4 trailing newlines | `s/\n{4,}$/\n/s` |
-| 1 | 001 | 0x1 | Remove 3 trailing newlines | `s/\n{3,}$/\n/s` |
-| 2 | 010 | 0x2 | Remove 2 trailing newlines | `s/\n{2,}$/\n/s` |
-| 3 | 011 | 0x3 | Remove 1 trailing newline | `s/\n{1,}$/\n/s` |
-| 4 | 100 | 0x4 | Remove 0 newlines (no change) | No change |
-| 5 | 101 | 0x5 | Preserve current state (default) | No change |
-| 6 | 110 | 0x6 | Add 1 newline (separator) | `s/(\n*)$/$1\n/s` |
-| 7 | 111 | 0x7 | Add 2 newlines (complete + separator) | `s/(\n*)$/$1\n\n/s` |
+| State | Binary | Hex | Meaning | Transformation | Detection |
+|-------|--------|-----|---------|-----------------|-----------|
+| 1 | 001 | 0x1 | Normalize excess endlines | File had 2+ newlines → normalized to 1 | `original_trailing >= 2` |
+| 5 | 101 | 0x5 | No change (already canonical) | File already had exactly 1 newline | `original_trailing == 1` |
+| 6 | 110 | 0x6 | Add separator endline | File had 0 newlines → added 1 separator | `original_trailing == 0` |
+| 0,2,3,4,7 | — | — | Reserved for future use | — | — |
 
-**Critical**: The endline state is encoded in the header BEFORE the BMW checksum is calculated.
-When a file is signed, its endline-state value determines how the payload is normalized before
-checksumming. If the wrong state is used, the BMW checksum will not match on verification.
-The recovery mechanism uses this fact: only the correct state produces a matching BMW.
+**Delta Encoding Purpose**: The state records WHAT TRANSFORMATION WAS APPLIED to normalize the file.
+This enables reversibility - by knowing the delta, we can reconstruct the original file state if needed.
 
-**Symmetry Principle (commit b90bbbbff)**: States 6 and 7 are LOCKED and cannot be overwritten
-by harmonize_payload_line_feed. This ensures separator endlines detected in one operation are
-preserved through the harmonization step and correctly encoded in the signature header.
+**Canonical Format**: All signed files follow the format `<content>\n#<signature_footer>` with exactly
+one newline separating content from signature. The endline-state encodes how we achieved this format:
+
+- State 1: File had excess newlines (2+), we removed them to get exactly 1
+- State 5: File was already canonical (had exactly 1)
+- State 6: File was missing separator (had 0), we added exactly 1
+
+**Deterministic Normalization**: The endline state is set during signing based on what the file had,
+not based on complex recovery logic. Same input always produces same normalized format, preventing
+oscillation on repeated signing operations.
+
+**Verification**: When verifying, we check that the file is in canonical format (exactly 1 separator
+newline). If not, the file is marked invalid and will be normalized on next `update-signatures`.
 
 ## Technical Details
 
