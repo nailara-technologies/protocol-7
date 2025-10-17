@@ -50,6 +50,10 @@ sub check_version_numbers {
     my $vers_file = c_dir($p7_root, 'configuration', 'protocol-7.src-ver');
     return unless -f $vers_file;
 
+    # Detect if we're amending by checking if ORIG_HEAD exists
+    my $orig_head_check = `git -C '$p7_root' rev-parse ORIG_HEAD 2>&1`;
+    my $is_amend = ($? == 0) ? 1 : 0;
+
     # Count commits via git rev-list for accuracy
     my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null` // 0;
     chomp($commit_count);
@@ -67,11 +71,25 @@ sub check_version_numbers {
     return unless $version =~ /-(\d+)\.(\d+)$/;
     my ($file_count, $file_rev) = ($1, $2);
 
-    if ($file_count != $commit_count) {
+    # Determine expected version based on actual operation
+    my $expected_count;
+    if ($is_amend) {
+        # Amending: version should be commit_count - 1 (the amended commit's number)
+        $expected_count = $commit_count - 1;
+    } else {
+        # New commit: version should be commit_count (the new commit's number)
+        $expected_count = $commit_count;
+    }
+
+    if ($file_count != $expected_count) {
         print STDERR ": version mismatch detected\n";
         print STDERR ": version file  : $version\n";
-        print STDERR ": expected      : *-$commit_count.$file_rev\n";
-        print STDERR ": suggestion    : run './bin/dev/update-version' to fix\n";
+        print STDERR ": current commit: $commit_count\n";
+        print STDERR ": operation     : " . ($is_amend ? "amend" : "new commit") . "\n";
+        print STDERR ": expected      : *-$expected_count.$file_rev\n";
+        my $update_cmd = $is_amend ? './bin/dev/update-version reset' : './bin/dev/update-version';
+        print STDERR ": suggestion    : run '$update_cmd' to fix\n";
+        print STDERR ": valid options : *-" . ($commit_count - 1) . ".$file_rev (amend) or *-$commit_count.$file_rev (new)\n";
         print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n";
         exit 1;
     }
@@ -80,40 +98,15 @@ sub check_version_numbers {
 sub check_file_signatures {
     my ($p7_root) = @_;
 
-    # Get list of staged files that are source code
+    # Check if there are any staged files at all
     my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null` // '';
-    my @staged_files = split /\n/, $git_diff;
+    return unless length($git_diff);
 
-    my @source_files;
-
-    for my $file (@staged_files) {
-        next unless $file;
-        next if $file =~ /^\./ || $file =~ /\.(sample|swp|~|bak)$/;
-
-        my $file_path = c_dir($p7_root, $file);
-        next unless -f $file_path;
-
-        # Check if it's a source file that needs signatures
-        next unless $file =~ /\.(?:pl|pm|sh|md|yaml|asc)$/ ||
-                    $file =~ m{^(?:modules|bin|configuration)/};
-
-        # Read file content to verify it looks like source
-        open my $fh, '<', $file_path or next;
-        my $content = do { local $/; <$fh> };
-        close $fh;
-
-        # Only check if it looks like source code
-        if ($content =~ /^#!/ || $content =~ /^\s*(?:use|require|my|sub|if)\s/ ||
-            $content =~ /^---/ || $content =~ /^#\s+/ ) {
-            push @source_files, $file;
-        }
-    }
-
-    return unless @source_files;
-
-    # Use bin/Protocol-7 sourcecode verify-p7-signatures to verify signatures
-    # This uses the embedded public key and requires no passphrase
-    my $verify_cmd = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures @source_files 2>&1};
+    # Use bin/Protocol-7 sourcecode verify-p7-signatures to verify all signatures
+    # This command uses modules/sourcecode.source_path_set_up for proper path configuration
+    # and knows which files need signature verification
+    # The embedded public key is used, no passphrase required
+    my $verify_cmd = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures 2>&1};
     my $verify_output = `$verify_cmd`;
     my $verify_status = $? >> 8;
 
@@ -125,9 +118,8 @@ sub check_file_signatures {
         exit 1;
     }
 }
-
-#,,,.,,.,,,.,,...,,,,,...,.,.,,,,,.,.,...,...,..,,...,...,,..,.,.,,,,,..,,..,,
-#2OJHTJURPSSWNZ5YUVCIXLPO5NIHQU5NYIZDLBKAPUHZNSQK7DPH3TE42YGBL2KU2IBGNLYDNV3ME
-#\\\|QZZEXBIFSYLCI2E7DEQBPTF2TBNORDOVQHLDZFW2HH43GJWWJTS \ / AMOS7 \ YOURUM ::
-#\[7]GXUNJW3N4IGYBMN23R4LA7WWC5FRKYFZ64724XCIQBW4IBVW26AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,,,.,,,.,.,.,,,.,.,.,.,.,...,...,...,..,,.,.,...,..,,..,,,..,
+#IZU4Q6UBTBRQVUP6IANH35ROWOXKYG26WACDIGJITWSBPDGZMMOIDS23Y3MKERXAOO3LY2GN73U54
+#\\\|S4ZMPEMGSMKF2BJDBEGGWGDVZS5SR4DTGXXPPHNUJF7IZEC7Z33 \ / AMOS7 \ YOURUM ::
+#\[7]LX55OQX7PSO2IIFMZ7FBQMR7MJSQIB7XLWNEWSXC44CUFJWBZCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
