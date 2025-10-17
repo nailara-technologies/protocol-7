@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3KJMLUV4EA-5188.0 :::
+::: SOURCE-CODE VERSION :: 3KJM5LO6PQ-5189.0 :::
 
 # [ [nailara 'protocol seven' project](http://nailara.network/) ]
 
@@ -251,8 +251,8 @@ accounts, thereby enhancing anonymization throughout the network.
 The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
-#,,,.,,.,,,.,,,,,,.,,,.,,,.,.,,.,,,..,..,,..,,..,,...,..,,..,,,.,,.,.,.,,,,..,
-#Y4QPGTKVRILS5HDZKQ5GEAH6TYCLIL7TSB52WI7BHSMUYYXUSNCLGYRU4DAEBNDXZ2SY2WAU7ODIY
-#\\\|B4XWFSM3J65PWICJTWTESUK6GRYNZ4WCW2XVCUXGFJM4ZBZTSX7 \ / AMOS7 \ YOURUM ::
-#\[7]VWGR4T5Z7OB2UZTSAYUZERMU2MHR2ENJ37DE7YCU76XB2JFGWSCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,,.,,,,,,,,,,,.,,,.,,,,,,.,,..,,..,,...,...,.,.,.,.,,..,,,.,,..,
+#T35YXPR6W7BSPE5ILAQOPCRRTU24U4QNRM72FCPQBSZWUMVHOJQFH7RIAABRTJREGH4AJXLZHCT6I
+#\\\|66QHV2ZDP5VWHJM7L72KXZJAJEDHEXOFV6SACL4L5PBPA2FTY73 \ / AMOS7 \ YOURUM ::
+#\[7]UMTTCKZJT55IMHUHEILQ2FOUA5SNJA6J2ZWFHFE75DP7IOAYQCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
