@@ -1,0 +1,215 @@
+---
+# Protocol-7 Git Commit, Versioning, and Signing Workflow Documentation
+# This workflow integrates version management, cryptographic signatures,
+# and endline normalization into a self-healing, reversible system.
+
+workflow:
+  name: "Git Commit & Source Code Versioning/Signing"
+  purpose: "Maintain coherent version numbers, valid cryptographic signatures, and normalized endline states across commits"
+
+version_numbering:
+  format: "XXXXX-CCCC.R"
+  components:
+    XXXXX: "Network timestamp (BASE32 encoded)"
+    CCCC: "Commit count (total commits in project history)"
+    R: "Revision number (0 = no revisions)"
+
+  update_commands:
+    new_commit: "./bin/dev/update-version"
+    amend_commit: "./bin/dev/update-version reset"
+
+  current_version_file: "configuration/protocol-7.src-ver"
+  tracking_file: "read-me/project-identity/source-code-versions.md"
+
+pre_commit_hook:
+  path: "bin/dev/git-hooks/pre-commit"
+  configured_via: "git config core.hooksPath = bin/dev/git-hooks"
+
+  checks_performed:
+    - version_number_validation
+    - file_permission_restoration
+    - source_code_signature_verification
+
+  version_check:
+    operation_detection:
+      method: "GIT_REFLOG_ACTION environment variable"
+      amend_detection: "Check if GIT_REFLOG_ACTION contains 'amend'"
+      reason: "ORIG_HEAD persists after amend, so it's not reliable for current operation detection"
+
+    amend_operation:
+      expected_version: "commit_count - 1"
+      example: "At commit 5191, version should be 5190"
+      rationale: "Amended commit number is the current commit's number, not the next commit"
+
+    new_commit_operation:
+      expected_version: "commit_count"
+      example: "At commit 5191, version should be 5191"
+      rationale: "New commit number is the current total commit count"
+
+  signature_check:
+    runs_on:
+      - staged_file_changes
+      - amend_operations (even without staged changes)
+
+    command: "bin/Protocol-7 sourcecode verify-p7-signatures"
+    exit_code_semantics:
+      "0": "All signatures valid"
+      "N": "N invalid signatures (failure)"
+
+    recovery: "SKIP_SIGNATURE_CHECK=1 git commit"
+
+endline_state_normalization:
+  purpose: "Normalize separator endlines to exactly 1, encoding transformation as delta for reversibility"
+
+  canonical_format: "content\\n#signature_footer"
+
+  delta_encoding:
+    state_5: "No change (file already has exactly 1 trailing endline)"
+    state_6: "Add separator (file had 0 endlines, need to add 1)"
+    state_1: "Normalize excess (file had 2+ endlines, normalize to 1)"
+    reserved_1_4: "Future transformation types (currently state 1 is used)"
+
+  encoding_location:
+    module: "modules/amos7.encode_octal_header"
+    field: "endline-state-encoded (1 octal digit in position 11)"
+    reversibility: "Delta allows reconstruction of original file-as-found state"
+
+  implementation_location: "modules/source.cmd.get-code-signed (lines 161-195)"
+
+signature_system:
+  components:
+    verify: "modules/sourcecode.console.verify-p7-signatures"
+    update: "modules/sourcecode.console.update-signatures"
+    sign: "modules/source.cmd.get-code-signed"
+    harmonize: "modules/source.create_harmonic_footer"
+    extract: "modules/source.extract_sig_body"
+
+  self_healing:
+    trigger: "bin/Protocol-7 sourcecode update-signatures"
+    behavior:
+      - Detects current endline state
+      - Calculates normalization delta
+      - Normalizes to exactly 1 separator endline
+      - Recalculates signature with normalized content
+      - Encodes delta in harmonic footer for reversibility
+      - Fixes files with incorrect separators automatically
+
+  key_encoding:
+    public_key_location: "Embedded in bin/Protocol-7"
+    secret_key_location: "configuration/zenki/keys/ (requires passphrase)"
+    verification: "No passphrase needed (public key only)"
+
+workflow_procedures:
+  new_commit:
+    steps:
+      - "Make code changes"
+      - "Stage changes: git add ..."
+      - "Update version: ./bin/dev/update-version"
+      - "Commit: git commit -m 'message'"
+      - "Pre-commit hook validates:"
+        - "Version = commit_count"
+        - "All signatures valid"
+      - "If signatures fail: bin/Protocol-7 sourcecode update-signatures"
+
+    version_behavior:
+      - "Expected version automatically increments to match commit count"
+      - "Old commit stays at N, new commit at N+1"
+
+  amend_commit:
+    steps:
+      - "Make additional changes"
+      - "Stage changes: git add ..."
+      - "Update version: ./bin/dev/update-version reset"
+      - "Amend: git commit --amend --no-edit"
+      - "Pre-commit hook validates:"
+        - "Version = commit_count - 1"
+        - "All signatures valid (GIT_REFLOG_ACTION detects amend)"
+
+    version_behavior:
+      - "Version decrements by 1"
+      - "Amended commit keeps same version as original"
+
+  signature_recovery:
+    when: "Signatures fail verification after changes"
+    command: "bin/Protocol-7 sourcecode update-signatures"
+
+    important_note: "User action required - this command needs the private key"
+    requirement: "AI agents cannot perform this step - requires user to run the command"
+    reason: "Private signing key is protected and only available to the user"
+    workflow: "When pre-commit hook fails signatures: user must run 'bin/Protocol-7 sourcecode update-signatures'"
+
+    what_it_does:
+      - "Re-signs all source files"
+      - "Normalizes separator endlines to exactly 1"
+      - "Encodes normalization delta for reversibility"
+      - "Fixes files with missing or excess endlines"
+
+    optional_flags:
+      ":sign-silent:": "Suppress verbose output"
+      "path_pattern": "Sign only matching files (e.g., 'modules/*')"
+
+common_issues:
+  version_mismatch:
+    symptom: "Pre-commit rejects: 'version mismatch detected'"
+    cause: "Version doesn't match expected commit count for operation type"
+    solution_amend: "./bin/dev/update-version reset"
+    solution_new: "./bin/dev/update-version"
+
+  signature_invalid:
+    symptom: "Pre-commit rejects: 'signature verification failed'"
+    cause: "File signatures don't match content"
+    solution: "User must run 'bin/Protocol-7 sourcecode update-signatures' (with access to private key)"
+    note: "AI agents cannot perform this - requires the user's cryptographic signing key"
+
+  double_endlines:
+    symptom: "Files have 2 newlines before signature instead of 1"
+    cause: "Normalization adding endline when recalculating footer"
+    fix_location: "modules/source.cmd.get-code-signed line 195"
+    solution: "Append footer directly without extra newline prefix"
+
+  amend_incorrectly_detected:
+    symptom: "Hook thinks new commit is an amend (wrong version expected)"
+    cause: "ORIG_HEAD exists from previous amend"
+    solution: "Use GIT_REFLOG_ACTION instead of ORIG_HEAD check"
+
+debugging:
+  check_current_version:
+    command: "head -1 configuration/protocol-7.src-ver"
+
+  check_commit_count:
+    command: "git rev-list --count HEAD"
+
+  check_signature_status:
+    command: "bin/Protocol-7 sourcecode verify-p7-signatures"
+
+  check_git_operation_type:
+    command: "echo $GIT_REFLOG_ACTION"
+    notes: "Will show 'commit (amend)' during amend, 'commit' during new commit"
+
+  run_hook_manually:
+    command: "SKIP_VERSION_CHECK=1 SKIP_SIGNATURE_CHECK=1 git commit -m 'test'"
+    flags:
+      SKIP_VERSION_CHECK: "Skip version validation"
+      SKIP_SIGNATURE_CHECK: "Skip signature validation"
+
+technical_details:
+  endline_state_encoding:
+    location: "AMOS7 header (modules/amos7.encode_octal_header)"
+    format: "Single octal digit (0-7) at position 11 of encoded header"
+    reversal: "Apply inverse transformation using encoded delta to restore original state"
+
+  bmw_checksum_truth:
+    purpose: "Ground truth for endline state recovery"
+    calculation: "Based on file-as-found with original endline state"
+    use_case: "During verification, can brute-force endline states 0-7 to find which produces matching BMW checksum"
+
+  signature_validity_invariant:
+    rule: "File remains valid as long as endlines match encoded state"
+    consequence: "Normalization encodes what transformation was applied"
+    recovery: "If endlines corrupted, re-running update-signatures restores canonical state"
+
+versioning_philosophy:
+  holistic_fingerprint: "Version captures exact moment + developmental progression + revision state"
+  multi_dimensional: "Beyond semantic versioning - includes timestamp, commit count, revision"
+  traceable: "Enables forensic analysis and precise code reproduction across distributed development"
+  self_documenting: "Version identifier encodes full project state context"
