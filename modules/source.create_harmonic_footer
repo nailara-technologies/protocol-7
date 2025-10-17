@@ -145,32 +145,76 @@ if ($check_enbedded_file_syntax) {
 
 ##  prepare payload endlines for signature-footer  ##
 
-# Determine endline state based on detected conditions
+## Extract signature footer FIRST before determining endline state ##
+## Use repair mode to detect separator endline status ##
+## This must happen before endline state determination to ensure separator endline is properly detected ##
+my $sign_params_base = <[source.extract_sig_body]>->( $src_ref, qw| strip repair | );
+
+# Determine endline state based on detected conditions from extracted footer
 my $endline_modification_state;
 
+# DEBUG: Log extraction results (level 3 = verbose only)
+<[base.log]>->( 3, ': extract_sig_body results:' );
+<[base.logs]>->( 3, ':   needs_separator_endline: %s',
+    $sign_params_base->{'needs_separator_endline'} ? 'YES' : 'NO' );
+<[base.logs]>->( 3, ':   last_line_incomplete: %s',
+    $sign_params_base->{'last_line_incomplete'} ? 'YES' : 'NO' );
+<[base.logs]>->( 3, ':   endline-state-encoded: %s',
+    $sign_params_base->{'endline-state-encoded'} // 'UNDEF' );
+
 # Check for special cases that need endline adjustments
-if (   $footer_data->{'needs_separator_endline'}
-    && $footer_data->{'last_line_incomplete'} ) {
+if (   $sign_params_base->{'needs_separator_endline'}
+    && $sign_params_base->{'last_line_incomplete'} ) {
 
     # State 7: Add 2 endlines (complete line + separator)
     $endline_modification_state = 7;
-    <[base.log]>->( 2, ': : using endline state 7 (add 2 endlines)' );
-} elsif ( $footer_data->{'needs_separator_endline'} ) {
+    <[base.log]>->( 3, ': : using endline state 7 (add 2 endlines)' );
+} elsif ( $sign_params_base->{'needs_separator_endline'} ) {
 
     # State 6: Add 1 endline (separator only)
     $endline_modification_state = 6;
-    <[base.log]>->( 2, ': : using endline state 6 (add separator endline)' );
+    <[base.log]>->( 3, ': : using endline state 6 (add separator endline)' );
 } else {
 
-    # Use existing state or default
-    $endline_modification_state = $footer_data->{'endline-state-encoded'}
-        // 5;
+    # Use existing state, but preserve 6 or 7 if they were set
+    # (prevents stripping separator endlines from previously stabilized files)
+    my $previous_state = $sign_params_base->{'endline-state-encoded'} // 5;
+    if ( $previous_state >= 6 ) {
+        # File previously had separator endline requirement, preserve it
+        $endline_modification_state = $previous_state;
+        <[base.log]>->( 3, ': : preserving endline state ' . $previous_state . ' (separator endline)' );
+    } else {
+        $endline_modification_state = $previous_state;
+        <[base.logs]>->( 3, ': : using extracted endline state: %d', $endline_modification_state );
+    }
 }
 
 # Call the harmonize function with our determined state
-$endline_modification_state = <[source.harmonize_payload_line_feed]>->(
+# BUT: lock state 6 or 7 - don't let harmonize overwrite separator endline requirements
+my $locked_state = ($endline_modification_state >= 6) ? 1 : 0;
+my $content_before_harmonize = $$src_ref;
+my $harmonized_state = <[source.harmonize_payload_line_feed]>->(
     $src_ref, $endline_modification_state
 );
+
+# Only accept harmonize's state if we didn't explicitly require separator endline (6 or 7)
+$endline_modification_state = $locked_state ? $endline_modification_state : $harmonized_state;
+
+# DEBUG: Log the final state that will be encoded (level 3 = verbose only)
+<[base.logs]>->( 3, ': FINAL state to encode in signature: %d (locked: %s)',
+    $endline_modification_state, $locked_state ? 'YES' : 'NO' );
+
+# DEBUG: Check if harmonize modified the content (level 3 = verbose only)
+my $content_after_harmonize = $$src_ref;
+if ($content_before_harmonize ne $content_after_harmonize) {
+    <[base.log]>->( 3, ': harmonize MODIFIED content (added/removed endlines)' );
+    <[base.logs]>->( 3, ': size before: %d, after: %d (delta: %d)',
+        length($content_before_harmonize), length($content_after_harmonize),
+        length($content_after_harmonize) - length($content_before_harmonize)
+    );
+} else {
+    <[base.log]>->( 3, ': harmonize did NOT modify content' );
+}
 
 ### override for import encoding [ requires command line parameter ] ###
 ## $endline_modification_state = 6;
@@ -186,10 +230,6 @@ my $AMOS_chksum_enc = <[chk-sum.amos]>->(
 my $AMOS_chksum_num = unpack qw| V* |, decode_b32r($AMOS_chksum_enc);
 
 my $length_checked = FALSE;
-
-## Extract signature footer ONCE before the loop, not repeatedly during iteration ##
-## This ensures endline state is consistent throughout all iterations ##
-my $sign_params_base = <[source.extract_sig_body]>->( $src_ref, qw| strip | );
 
 ##  initializing assertion run  ##
 #
@@ -390,9 +430,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 }
 
 return $calc_result_href;        ##  return harmonized result data href  ##
-
-#,,,,,..,,.,,,,.,,..,,.,,,..,,..,,.,.,.,,,...,..,,...,...,.,,,..,,.,.,,..,...,
-#UTG6UOANJGGPL73G5RB56GWU3TJCLTE3TNCTLYOCZYL2Y473YQ3KQDGGRW47Y63HOIKO5CLWZJUAY
-#\\\|7UH5AYP6FF45ATJHKK5VX3REFVGP3HYYMGKZV2GRO225O34WSYX \ / AMOS7 \ YOURUM ::
-#\[7]FB6FX76ZJBDIK4YPTWIVGG5TEOUTUD6TM4UK52ICTE2MHZKWSAAI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,..,,.,.,.,,,..,,.,,,.,.,,.,,..,,...,.,.,..,,,..,,,.,...,,,.,
+#HM7W4MNKAUOE4IBKU45V7YA3QAW55CSFZCAGIHAJI3IT3LD7YZYHA7CMJLHYOSN74BNWQJDD36E4S
+#\\\|JLTGT5YEJD4IPUEUUTZLREYG5RER7T5RVUEAKJ3GQT6QQOZMW3H \ / AMOS7 \ YOURUM ::
+#\[7]K5GXJJ55BGTUKAOOQIUP22UCY5VXM3IBLJR3LNMQ7INDY26GYWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
