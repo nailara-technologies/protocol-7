@@ -205,10 +205,11 @@ if ( $verify_mode eq 'repair' && $repair_needed_count > 0 ) {
     );
 }
 
-# Return valid count in scalar context
-return $valid_count;
-#,,,,,..,,..,,.,.,.,.,,,,,,.,,,..,,,.,.,,,..,,..,,...,...,...,.,,,,..,..,,...,
-#5LZW26OX36I2TNYCNNLO7O37JLZ3URE6MGOLBSHS2SU7UXLYCYDK57T4JHFMZYYJMERN5JI57GKQE
-#\\\|CB7MIQYAZ4PUTAD4FGI7RYPEJGECTXWOLV4D4XYQQK2QQD2G6FG \ / AMOS7 \ YOURUM ::
-#\[7]C5IT5SKCW647IPXKPLMEDIUI6RSUHXO5XGBW4HZCMAIWND3M22BY 7  DATA SIGNATURE ::
+# Exit with count of invalid signatures (0 = success)
+<[base.exit]>->( sprintf( '%04d', $invalid_count ) );
+
+#,,,.,.,.,.,,,,..,,.,,,,.,,..,,.,,,.,,...,.,.,..,,...,...,..,,,,,,.,,,..,,,.,,
+#GK42H6N6S4EDQFX5XJR2N3TQ3MUV2HCCZEZITZFFGQVBTZATSTIQTRUKTE2RO6H2FO4D4S6NSEZHY
+#\\\|CTJICJWJVURZCUZIONIBE4B7PBHUKFTL5NOHG5GWSNHXFW7VS2Y \ / AMOS7 \ YOURUM ::
+#\[7]DQWQHAOQUNXSIBD6JUETBIKUHXTWRKBCDA2U2DXR5I3Y3R6EASBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
