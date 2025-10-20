@@ -9,7 +9,7 @@
 ## Contribution Process
 
 ### Communication
-- Reach out directly to Taeki (hub@taeki.v7.ax) to discuss:
+- Reach out directly to Taeki ( p7-src@taeki.v7.ax ) to discuss:
   - Proposed changes
   - Project alignment
   - Potential implementation approaches
@@ -28,8 +28,8 @@ Contributions should resonate with the project's core principles:
 - Zenki (agent) development
 - Infrastructure optimization
 
-#,,..,,,,,,.,,.,.,..,,,,,,,,,,.,.,..,,,,,,,,,,...,...,...,.,.,..,,.,,,.,,,,.,,
-#STSHDOUQQB64MRXVUPZ24CU46NIZTWLTGFNVRERG7CLN6JHLODV5MW43S3E2MTMO3IO2GNVQXN54M
-#\\\|EGWOI35DWECDG53DBHY6ENAN6SQ2PJGRRNKXCEGVOSXBRGMJ4YG \ / AMOS7 \ YOURUM ::
-#\[7]O2DAYV4VSTESEJV4PO4ZWKDDECKH2WNGAXZZTGXCJPFFWYZUHODY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,..,,,,,,,,,,,,.,.,,,.,,,.,,,..,,...,...,...,.,.,..,,..,,,,.,
+#I6H4BPODYWWT22HUI5KZO5EBG72ZZORMNYRIMBAPQXHA2KYIPU5PCJ4OLSDQQ2ZSQD4KC4VGYJS7C
+#\\\|3RVXNCDASF5HYBEAEBSHDOHAWYMOWG4B2JZRIZYWTGKOC3PGS7A \ / AMOS7 \ YOURUM ::
+#\[7]4AE4ERQTTTQN7NQO34M7TFHTXOL2RTV7YW2XRQOGF5W6W5T6CIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
