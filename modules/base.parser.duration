@@ -2,6 +2,7 @@
 
 # name  = base.parser.duration
 # descr = return duration since given unix time [ days hours mins + seconds ]
+# note  = this subroutine version is ignoring 'leap years' entirely
 
 my @result;
 my $start_time = shift;
@@ -21,20 +22,21 @@ my %result = (
 );
 
 if ( $secs >= ONE_YEAR() ) {
-    $result{'years'} = sprintf qw| %d |, $secs->years;
-    my $d_rest = $secs->days - $secs->years * 365;    ## no 'leap' years ##
-    $secs -= $d_rest * ONE_YEAR();
+    $result{'years'} = int( $secs / ONE_YEAR() );
+    $secs -= $result{'years'} * ONE_YEAR();
 }
+
 if ( $secs >= ONE_DAY() ) {
-    $result{'days'} = sprintf qw| %d |, $secs->days;
+    $result{'days'} = int( $secs->days );
     $secs -= $result{'days'} * ONE_DAY();
 }
+
 if ( $secs >= ONE_HOUR() ) {
-    $result{'hours'} = sprintf qw| %d |, $secs->hours;
+    $result{'hours'} = int( $secs->hours );
     $secs -= $result{'hours'} * ONE_HOUR();
 }
 if ( $secs >= ONE_MINUTE() ) {
-    $result{'minutes'} = sprintf qw| %d |, $secs->minutes;
+    $result{'minutes'} = int( $secs->minutes );
     $secs -= $result{'minutes'} * ONE_MINUTE();
 }
 $result{'seconds'} = sprintf qw| %.*f |, $precision, $secs->seconds if $secs;
@@ -84,8 +86,8 @@ $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
 
 return $result_str;
 
-#,,,.,,.,,.,,,.,,,.,.,..,,,.,,,..,,.,,,.,,,.,,..,,...,..,,..,,...,,.,,,,.,,,.,
-#RUKE7SNOMFYBBDBQXVLHOSR5L5BM7IQZNSPR6RVTOFY37M7HBAGUDXAIT63J3HTRTNFYQLWVYVQAW
-#\\\|B6I23URS5GYG62BMIW4AIYDMX7TCSY7BLPLY26WMTFKTPIT55GN \ / AMOS7 \ YOURUM ::
-#\[7]VWG5KBSACVNJALDTRHMN44JRMNZ74DQRFIBIUZ6V7SNSCHSW2UDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,...,,..,,.,,,,.,.,,,,,.,.,.,..,,...,...,.,,,.,,,.,,,.,,,...,
+#GBAYXCL25MEYPCT6LLFK2K6SYFPBOVTF3ARF6KSO2U2ONMVZOHS6JEFEBQ22RJF4EOFVMFRBIKBSO
+#\\\|LAU4357Q5GC2GHL2FDMSSQ56ZFQESKAYGSQHYSL65SOU4W6KX6W \ / AMOS7 \ YOURUM ::
+#\[7]BQC6AMXY2PDMTM2VNH4Z45BOLXGKWUTWZBAKYPOXFSBBMOCFBCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
