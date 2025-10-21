@@ -45,17 +45,30 @@ This category contains the largest collection of visualizations, exploring:
 - Firefox compatibility fixes
 - Flight mechanics
 
-### Cubis Space Visualization Series (13 files)
+### Cubic Space Visualization Series (13 files)
 **Largest coherent series in this category**
 
-- `cubis-space-visualization.html` - Base implementation
-- `cubis-space-visualization-v1.html` through `v12.html` - 12 iterations
+- `cubic-space-visualization-base.html` - Base implementation
+- Iterations with specific focus:
+  1. `rotation-transparency.html`
+  2. `rotation-view-depth.html`
+  3. `rotation-view-opacity.html`
+  4. `cube-distance-filter.html`
+  5. `face-opacity-tweaks.html`
+  6. `canvas-event-refinement.html`
+  7. `mouse-interaction.html`
+  8. `rotation-smoothing.html`
+  9. `center-projection.html`
+  10. `multi-axis-rotation.html`
+  11. `viewport-crosshair.html`
+  12. `performance-optimized.html`
 
 **Features:**
 - Extensive iterative development (13 versions)
 - Progressive enhancements through versions
 - Refined rendering and interaction
 - Optimized spatial algorithms
+- Each iteration focuses on a specific technical refinement
 
 ### Enhanced Cubes (3 files)
 - `enhanced-cube.html` - Enhanced single cube
