@@ -94,7 +94,9 @@
         <h3>Hyperspace Field</h3>
         <p>8-cube formation with central void</p>
         <p>Mouse wheel to zoom</p>
+        <p>Shift+wheel to adjust perspective</p>
         <p>Zoom: <span id="zoomLevel">100%</span></p>
+        <p>Focal: <span id="focalDisplay">500</span></p>
         <p>FPS: <span id="fpsDisplay">--</span> (Blur: <span id="blurDisplay">100%</span>)</p>
     </div>
 
@@ -116,6 +118,12 @@
             const minZoom = 0.074923;
             const maxZoom = 63.0;
             const zoomSpeed = 0.24;
+
+            // Perspective control (focalLength)
+            let focalLength = 500;
+            const minFocalLength = 100;
+            const maxFocalLength = 2000;
+            const focalSpeed = 20;
 
             // Field configuration - 8 cubes in 2x2x2 formation
             const currentScale = 10;
@@ -581,7 +589,6 @@
                 y2 *= zoomLevel;
                 z2 *= zoomLevel;
 
-                const focalLength = 500;
                 const depth = focalLength + z2;
                 if (depth <= 0) return { visible: false };
                 const scale = focalLength / depth;
@@ -778,6 +785,10 @@
                 document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
             }
 
+            function updateFocalDisplay() {
+                document.getElementById('focalDisplay').textContent = Math.round(focalLength);
+            }
+
             // Calculate adaptive blur multiplier based on current FPS with hysteresis
             function calculateBlurMultiplier(fps, currentBlur) {
                 // Use hysteresis to prevent oscillation:
@@ -953,12 +964,29 @@
                 }
             }
 
-            // Mouse wheel zoom
+            // Mouse wheel zoom and perspective control
             canvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                const delta = -Math.sign(e.deltaY) * zoomSpeed * zoomLevel * 1.2;
-                zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
-                updateZoomDisplay();
+
+                // Scroll speed sensitivity: faster scrolling = bigger steps, slower = fine control
+                // Normalize deltaY (typical range: 1-120) and apply power curve for natural feel
+                const scrollSpeed = Math.min(1.0, Math.abs(e.deltaY) / 100); // 0.01 to 1.0
+                const speedMultiplier = Math.pow(scrollSpeed, 0.7); // Smooth curve: 0.01 -> 0.04, 1.0 -> 1.0
+
+                if (e.shiftKey) {
+                    // Shift+wheel: adjust focal length (perspective)
+                    const baseDelta = Math.sign(e.deltaY) * focalSpeed; // Inverted direction
+                    const delta = baseDelta * speedMultiplier * 1.2; // Gentler multiplier for smoother control
+                    focalLength = Math.max(minFocalLength, Math.min(maxFocalLength, focalLength + delta));
+                    updateFocalDisplay();
+                } else {
+                    // Normal wheel: zoom (keep original direction)
+                    const baseDelta = -Math.sign(e.deltaY) * zoomSpeed * zoomLevel * 1.2;
+                    const delta = baseDelta * speedMultiplier * 0.8; // Reduced for finer control
+                    zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
+                    updateZoomDisplay();
+                }
+
                 if (!isPlaying) {
                     draw();
                 }
@@ -1034,7 +1062,9 @@
                 rotY = 15;
                 rotZ = 0;
                 zoomLevel = 1.0;
+                focalLength = 500;
                 updateZoomDisplay();
+                updateFocalDisplay();
                 draw();
             });
 
@@ -1048,6 +1078,7 @@
             });
 
             updateZoomDisplay();
+            updateFocalDisplay();
             draw();
             setTimeout(() => {
                 isPlaying = false; // set to true for autplay //
