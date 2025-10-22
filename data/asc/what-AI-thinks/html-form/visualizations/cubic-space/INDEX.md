@@ -2,7 +2,7 @@
 
 **Purpose:** Interactive 3D cube and hyperspace topology visualizations exploring dimensional geometry, data-centric grids, and spatial navigation.
 
-**File Count:** 58 HTML files (+ 1 YAML spec, + 1 symlink)
+**File Count:** 59 HTML files (+ 1 YAML spec, + 1 symlink)
 
 ---
 
@@ -136,7 +136,7 @@ This category contains the largest collection of visualizations, exploring:
 - Interactive address selection (keyboard: 1-7, Shift+1-7)
 - Toggle recursion mode (R key)
 
-### Hyperspace Field 8-Cube Series (7 files)
+### Hyperspace Field 8-Cube Series (8 files)
 **Latest development - 8-cube formations with central void**
 
 - `hyperspace-field-8cube-basic.html` - Basic 8-cube 2×2×2 formation
@@ -144,7 +144,8 @@ This category contains the largest collection of visualizations, exploring:
 - `hyperspace-field-8cube-dark-psytrance.html` - Dark psytrance aesthetic with filled faces
 - `hyperspace-field-8cube-cyan-ambient.html` - Cyan ambient filled faces variant
 - `hyperspace-field-8cube-extreme-zoom.html` - Experimental extreme zoom capabilities
-- `hyperspace-field.latest.html` → symlink to `hyperspace-field-8cube-extreme-zoom.html`
+- `hyperspace-field-8cube-adaptive-blur.html` - Framerate-adaptive shadowBlur with anti-oscillation
+- `hyperspace-field.latest.html` → symlink to `hyperspace-field-8cube-adaptive-blur.html`
 - `hyperspace-field-8cube-task-spec.yaml` - Complete task specification document
 
 **Features:**
@@ -157,6 +158,10 @@ This category contains the largest collection of visualizations, exploring:
 - Bi-directional hyperspace lanes (1.5× cube spacing variant)
 - Filled face rendering with ambient blue/cyan effects
 - Performance optimized for ~6,000+ edges at 30+ FPS
+- Adaptive shadowBlur: FPS-based dynamic blur scaling with hysteresis
+- Anti-oscillation: Smooth exponential interpolation prevents feedback loops
+- Configurable blur ranges per element category (subcubes, cutout neighbors, outer edges)
+- Real-time FPS monitoring with visual feedback
 
 ---
 
@@ -216,7 +221,7 @@ This category contains the largest collection of visualizations, exploring:
 ### Major Series
 1. **Cubic Space Visualization** (13 files) - Most iterations
 2. **Modified Hyperspace** (12 files) - Extensive modifications
-3. **Hyperspace Field 8-Cube** (7 files) - Latest development
+3. **Hyperspace Field 8-Cube** (8 files) - Latest development
 4. **Hyperspace Fixed** (7 files) - Progressive fixes
 5. **Cubic Space Grid** (7 files) - Grid foundations
 6. **Fixed Data-Centric** (4 files) - Data focus
@@ -285,8 +290,8 @@ grep -r "WebGL\|webgl\|gl\.\" html-form/visualizations/cubic-space/
 ---
 
 **Category:** Visualizations > Cubic Space
-**Total Files:** 58 HTML + 1 YAML + 1 symlink
-**Technologies:** Canvas API, WebGL, 3D Mathematics, Grid Systems, HSL Color Manipulation
+**Total Files:** 59 HTML + 1 YAML + 1 symlink
+**Technologies:** Canvas API, WebGL, 3D Mathematics, Grid Systems, HSL Color Manipulation, Adaptive Performance
 **Themes:** Cubic Topology, Hyperspace, Data Grids, Dimensional Navigation, Psychedelic Effects
 
 ---
@@ -294,6 +299,10 @@ grep -r "WebGL\|webgl\|gl\.\" html-form/visualizations/cubic-space/
 ## Latest Development
 
 **Current Focus:** Hyperspace Field 8-Cube Series
-**Latest Version:** `hyperspace-field.latest.html` → `hyperspace-field-8cube-extreme-zoom.html`
-**Key Innovation:** Central void formation through inward-facing corner cutouts
+**Latest Version:** `hyperspace-field.latest.html` → `hyperspace-field-8cube-adaptive-blur.html`
+**Key Innovations:**
+- Central void formation through inward-facing corner cutouts
+- Framerate-adaptive shadowBlur with hysteresis anti-oscillation
+- Configurable blur ranges per element category for performance tuning
 **Visual Style:** Psychedelic blacklight aesthetic with dynamic hue rotation
+**Performance:** Real-time FPS monitoring with automatic quality scaling (30+ FPS target)
