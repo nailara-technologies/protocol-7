@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hyperspace Cube - Balanced Halo Effect</title>
+    <style>
+        body {
+            background-color: #0c0518;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #a0c0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(15, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .info-panel h3 {
+            margin-top: 0;
+            color: #b0c0ff;
+        }
+
+        .info-panel p {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+        <button id="toggleRecursionBtn">Toggle Recursion</button>
+    </div>
+
+    <div class="info-panel">
+        <h3>Hyperspace Address Cube</h3>
+        <p>Recursive 3-bit addressing system for multidimensional routing</p>
+        <p>Current recursion: <span id="recursionLevel">1</span></p>
+        <p>Active address: <span id="activeAddressDisplay">001</span></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            // Debug helper
+            let debugMode = false; // Set to true to enable console debugging
+
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // System parameters
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 25; // Background grid size
+            const gridSpacing = 60; // Distance between grid lines
+
+            // Hyperspace cube parameters
+            const currentScale = 10; // Fixed at x10 scale
+            const baseCubeSize = 210; // Base size
+            let cubeSize = baseCubeSize * (1 + Math.log10(currentScale) * 0.5);
+			// Define colors with precisely tuned spectrum for optimal halo effect
+            const cubeColors = {
+                // Main structure colors - neon blue spectrum
+                // // primaryEdge: '#44278c',    // Standard blue for main edges
+                primaryEdge: '#50a0ff',    // Standard blue for main edges
+                secondaryEdge: '#60b0ff',  // Lighter blue for secondary edges
+                tertiaryEdge: '#44278c',   // Bright blue for highlights
+
+                // Structural element colors
+                outerCube: '#60b0ff',       // Outer cube edges - bright blue
+                innerCube: '#50a0ff',       // Inner cube edges - standard blue
+                cutoutEdge: '#70c0ff',      // Changed to match tertiaryEdge
+                positionIndicator: '#80c0ff', // Position cube - bright highlight blue
+
+                // Depth colors - subtle blue to violet gradient
+                nearColor: '#50a0ff',      // Near elements (blue)
+                midColor: '#7070ff',       // Mid-distance elements (blue-violet)
+                farColor: '#9060ff',       // Far elements (violet)
+
+                // Glow colors - key to the halo effect
+                blueGlow: '#4080ff',       // Subtle blue glow
+
+                // // violetGlow: '#9040c0',     // Violet halo glow - adjusted to be slightly darker
+                violetGlow: '#8737c0',     // Violet halo glow - adjusted to be slightly darker
+
+                blueVioletGlow: '#8050e0',  // Blue-violet intermediate glow
+
+                // Background and environmental colors
+                background: '#08030f',     // Deep blue-black background (darker for contrast)
+                vignette: '#200040',       // Dark violet vignette
+                ambientGlow: '#300050',    // Ambient violet glow
+                gridLines: '#203080'       // Dark blue grid lines
+            };
+
+
+            // Efficient but lightweight line intersection tracking
+			const lineIntersectionTracker = {
+				// Store information about which screen regions have lines
+				regions: {},
+
+				// Add recursion mode flag
+				recursionMode: false,
+
+				// Clear the regions (call at beginning of each frame)
+				clear: function() {
+					this.regions = {};
+				},
+
+				// Register a line's presence in regions it passes through
+				registerLine: function(x1, y1, x2, y2) {
+					// In recursion mode, use a coarser grid for better performance
+					const gridSize = this.recursionMode ? 50 : 30;
+
+					// If in recursion mode, we can also sample the line less frequently
+					// by only registering a fixed number of points along the line
+					if (this.recursionMode) {
+						// Simplified registration for recursion mode - just register endpoints and middle
+						// This dramatically reduces the number of registrations
+
+						// Start point
+						this.registerPoint(x1, y1, gridSize);
+
+						// Middle point
+						const midX = (x1 + x2) / 2;
+						const midY = (y1 + y2) / 2;
+						this.registerPoint(midX, midY, gridSize);
+
+						// End point
+						this.registerPoint(x2, y2, gridSize);
+						return;
+					}
+
+					// Regular registration for non-recursion mode
+					// Calculate the grid cells this line passes through
+					const cellX1 = Math.floor(x1 / gridSize);
+					const cellY1 = Math.floor(y1 / gridSize);
+					const cellX2 = Math.floor(x2 / gridSize);
+					const cellY2 = Math.floor(y2 / gridSize);
+
+					// Simple line rasterization to find cells the line passes through
+					const dx = Math.abs(cellX2 - cellX1);
+					const dy = Math.abs(cellY2 - cellY1);
+					const sx = cellX1 < cellX2 ? 1 : -1;
+					const sy = cellY1 < cellY2 ? 1 : -1;
+					let err = dx - dy;
+
+					let x = cellX1;
+					let y = cellY1;
+
+					while (true) {
+						// Create key for this cell
+						const key = `${x},${y}`;
+
+						// Increment counter for this cell
+						if (!this.regions[key]) {
+							this.regions[key] = 1;
+						} else {
+							this.regions[key]++;
+						}
+
+						// Exit condition
+						if (x === cellX2 && y === cellY2) break;
+
+						// Calculate next point
+						const e2 = 2 * err;
+						if (e2 > -dy) {
+							err -= dy;
+							x += sx;
+						}
+						if (e2 < dx) {
+							err += dx;
+							y += sy;
+						}
+					}
+				},
+
+				// Helper method to register a single point
+				registerPoint: function(x, y, gridSize) {
+					const cellX = Math.floor(x / gridSize);
+					const cellY = Math.floor(y / gridSize);
+					const key = `${cellX},${cellY}`;
+
+					if (!this.regions[key]) {
+						this.regions[key] = 1;
+					} else {
+						this.regions[key]++;
+					}
+				},
+
+				// Get the overlap factor for a specific line
+				getOverlapFactor: function(x1, y1, x2, y2) {
+					// Calculate the midpoint of the line
+					const midX = Math.floor((x1 + x2) / 2);
+					const midY = Math.floor((y1 + y2) / 2);
+
+					// Get the cell for this midpoint
+					const gridSize = this.recursionMode ? 50 : 30;
+					const cellX = Math.floor(midX / gridSize);
+					const cellY = Math.floor(midY / gridSize);
+
+					// Create key for this cell
+					const key = `${cellX},${cellY}`;
+
+					// Get the base overlap factor
+					let overlapFactor = this.regions[key] || 1;
+
+					// In recursion mode, apply a scaling factor to reduce the overall effect
+					if (this.recursionMode) {
+						// Cap the maximum overlap and reduce the overall intensity
+						overlapFactor = Math.min(overlapFactor, 3);
+						overlapFactor = 1 + (overlapFactor - 1) * 0.4; // Scale down the effect in recursion mode
+					}
+
+					// Return the overlap factor (1 for single line, higher for overlapping)
+					return overlapFactor;
+				}
+			};
+
+            // Color blending utility function
+            function blendColors(color1, color2, ratio) {
+                // Parse the hex colors
+                const r1 = parseInt(color1.slice(1, 3), 16);
+                const g1 = parseInt(color1.slice(3, 5), 16);
+                const b1 = parseInt(color1.slice(5, 7), 16);
+
+                const r2 = parseInt(color2.slice(1, 3), 16);
+                const g2 = parseInt(color2.slice(3, 5), 16);
+                const b2 = parseInt(color2.slice(5, 7), 16);
+
+                // Blend the colors
+                const r = Math.round(r1 * (1 - ratio) + r2 * ratio);
+                const g = Math.round(g1 * (1 - ratio) + g2 * ratio);
+                const b = Math.round(b1 * (1 - ratio) + b2 * ratio);
+
+                // Convert back to hex
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+
+            // Recursion parameters
+            let showRecursion = false;
+            let maxRecursionLevel = 2; // Maximum recursion depth to render
+            let recursionLevel = 1; // Current recursion level (updated in UI)
+            document.getElementById('recursionLevel').textContent = recursionLevel;
+
+            // Animation states
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let rotX = 15;  // Initial X rotation
+            let rotY = 15;  // Initial Y rotation
+            let rotZ = 0;   // Initial Z rotation
+            let animationFrameId = null;
+
+            // Mouse interaction
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+
+            // Current active address for visualization (3-bit address for each level)
+            // Format: array of 3-bit addresses [level1Address, level2Address, ...]
+            // 0b000 is the cutout corner, 0b001 to 0b111 are the 7 destination subcubes
+            let activeAddress = [0b001]; // Default to first destination cube
+            updateAddressDisplay();
+
+			// Create grid structure
+            function createGridLines() {
+                const lines = [];
+                const halfSize = (gridSize * gridSpacing) / 2;
+
+                // Create X-axis lines
+                for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x: -halfSize, y, z },
+                            end: { x: halfSize, y, z }
+                        });
+                    }
+                }
+
+                // Create Y-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x, y: -halfSize, z },
+                            end: { x, y: halfSize, z }
+                        });
+                    }
+                }
+
+                // Create Z-axis lines
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                        lines.push({
+                            start: { x, y, z: -halfSize },
+                            end: { x, y, z: halfSize }
+                        });
+                    }
+                }
+
+                return lines;
+            }
+
+            const gridLines = createGridLines();
+
+            // Create binary grid lines (8x8x8) - for addressing visualization
+            function createBinaryGridLines() {
+                const lines = [];
+                const halfSize = cubeSize / 2;
+                const gridDimension = 8; // 8x8x8 grid for binary addressing
+
+                // Create grid lines for each dimension
+                for (let i = 0; i <= gridDimension; i++) {
+                    const pos = (i / gridDimension) * cubeSize - halfSize;
+
+                    // X planes (YZ)
+                    for (let j = 0; j <= gridDimension; j++) {
+                        const linePos = (j / gridDimension) * cubeSize - halfSize;
+
+                        // X plane, horizontal lines (along Z)
+                        lines.push({
+                            start: { x: pos, y: linePos, z: -halfSize },
+                            end: { x: pos, y: linePos, z: halfSize }
+                        });
+
+                        // X plane, vertical lines (along Y)
+                        lines.push({
+                            start: { x: pos, y: -halfSize, z: linePos },
+                            end: { x: pos, y: halfSize, z: linePos }
+                        });
+                    }
+
+                    // Y planes (XZ)
+                    for (let j = 0; j <= gridDimension; j++) {
+                        const linePos = (j / gridDimension) * cubeSize - halfSize;
+
+                        // Y plane, horizontal lines (along Z)
+                        lines.push({
+                            start: { x: linePos, y: pos, z: -halfSize },
+                            end: { x: linePos, y: pos, z: halfSize }
+                        });
+
+                        // Y plane, vertical lines (along X)
+                        lines.push({
+                            start: { x: -halfSize, y: pos, z: linePos },
+                            end: { x: halfSize, y: pos, z: linePos }
+                        });
+                    }
+
+                    // Z planes (XY)
+                    for (let j = 0; j <= gridDimension; j++) {
+                        const linePos = (j / gridDimension) * cubeSize - halfSize;
+
+                        // Z plane, horizontal lines (along X)
+                        lines.push({
+                            start: { x: -halfSize, y: linePos, z: pos },
+                            end: { x: halfSize, y: linePos, z: pos }
+                        });
+
+                        // Z plane, vertical lines (along Y)
+                        lines.push({
+                            start: { x: linePos, y: -halfSize, z: pos },
+                            end: { x: linePos, y: halfSize, z: pos }
+                        });
+                    }
+                }
+
+                return lines;
+            }
+
+            const binaryGridLines = createBinaryGridLines();
+
+            // Create cube structure
+            function createCube(size) {
+                const halfSize = size / 2;
+                const vertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize }, // 0: front bottom left
+                    { x: halfSize, y: -halfSize, z: -halfSize },  // 1: front bottom right
+                    { x: halfSize, y: halfSize, z: -halfSize },   // 2: front top right
+                    { x: -halfSize, y: halfSize, z: -halfSize },  // 3: front top left
+                    { x: -halfSize, y: -halfSize, z: halfSize },  // 4: back bottom left
+                    { x: halfSize, y: -halfSize, z: halfSize },   // 5: back bottom right
+                    { x: halfSize, y: halfSize, z: halfSize },    // 6: back top right
+                    { x: -halfSize, y: halfSize, z: halfSize }    // 7: back top left
+                ];
+
+                const edges = [
+                    { from: 0, to: 1 }, // front bottom
+                    { from: 1, to: 2 }, // front right
+                    { from: 2, to: 3 }, // front top
+                    { from: 3, to: 0 }, // front left
+                    { from: 4, to: 5 }, // back bottom
+                    { from: 5, to: 6 }, // back right
+                    { from: 6, to: 7 }, // back top
+                    { from: 7, to: 4 }, // back left
+                    { from: 0, to: 4 }, // bottom left
+                    { from: 1, to: 5 }, // bottom right
+                    { from: 2, to: 6 }, // top right
+                    { from: 3, to: 7 }  // top left
+                ];
+
+                const faces = [
+                    { vertices: [0, 1, 2, 3] }, // front
+                    { vertices: [5, 4, 7, 6] }, // back
+                    { vertices: [1, 5, 6, 2] }, // right
+                    { vertices: [4, 0, 3, 7] }, // left
+                    { vertices: [3, 2, 6, 7] }, // top
+                    { vertices: [0, 4, 5, 1] }  // bottom
+                ];
+
+                return { vertices, edges, faces };
+            }
+
+            // Position calculator for the 3-bit addressing system
+            // Convert a 3-bit address (0-7) to x,y,z coordinates in the cube
+            function getPositionFromAddress(address) {
+                // Extract the 3 bits from the address (0-7)
+                const x = (address & 0b001) ? 1 : 0; // rightmost bit (x-axis: right=1, left=0)
+                const y = (address & 0b010) ? 1 : 0; // middle bit (y-axis: top=1, bottom=0)
+                const z = (address & 0b100) ? 1 : 0; // leftmost bit (z-axis: back=1, front=0)
+
+                return { x, y, z };
+            }
+
+            // Create subcube structures with 63 visible subcubes (one missing from corner)
+            function createSubCubes(parentSize, parentPosition = { x: 0, y: 0, z: 0 }) {
+                const result = [];
+
+                // For each level, we create a 4x4x4 grid with exactly 63 subcubes (one missing corner)
+                const subSize = parentSize / 4; // Size of each subcube in a 4×4×4 grid
+
+                // Loop through a 4×4×4 grid of positions
+                for (let x = 0; x < 4; x++) {
+                    for (let y = 0; y < 4; y++) {
+                        for (let z = 0; z < 4; z++) {
+                            // Skip the front-bottom-left corner cube (0,0,0 in 0-based indexing)
+                            if (x === 0 && y === 0 && z === 0) {
+                                if (debugMode) console.log("Skipping corner subcube at (0,0,0)");
+                                continue;
+                            }
+
+                            // Calculate position offset from center
+                            const offsetX = (x - 1.5) * subSize;
+                            const offsetY = (y - 1.5) * subSize;
+                            const offsetZ = (z - 1.5) * subSize;
+
+                            // Create subcube with the correct size
+                            const subCube = createCube(subSize);
+
+                            // Position the subcube correctly
+                            subCube.vertices.forEach(v => {
+                                v.x += offsetX + parentPosition.x;
+                                v.y += offsetY + parentPosition.y;
+                                v.z += offsetZ + parentPosition.z;
+                            });
+
+                            // Calculate address for this subcube (1-7, with 0 being the missing corner)
+                            // Convert from 0-3 range to 0-1 binary representation
+                            const addressX = x > 0 ? 1 : 0;
+                            const addressY = y > 0 ? 1 : 0;
+                            const addressZ = z > 0 ? 1 : 0;
+                            const address = (addressZ << 2) | (addressY << 1) | addressX;
+
+                            // Add the address to the subcube for later reference
+                            subCube.address = address;
+
+                            // Flag for identifying cutout neighbors specifically
+                            // These are the three subcubes that share a face with the cutout corner
+                            subCube.isCutoutNeighbor =
+                                (x === 1 && y === 0 && z === 0) || // X-neighbor
+                                (x === 0 && y === 1 && z === 0) || // Y-neighbor
+                                (x === 0 && y === 0 && z === 1);   // Z-neighbor
+
+                            result.push(subCube);
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            // Create a position indicator cube for the active address
+            function createPositionCube(address, cubeSize, level = 0) {
+                // Get 3D position based on the 3-bit address
+                const pos = getPositionFromAddress(address);
+
+                // Calculate the cut-out region size (1/4 of the cube)
+                const cutoutSize = cubeSize / 4;
+
+                // Size of the position indicator (1/4 of a subcube)
+                const positionCubeSize = cutoutSize * 0.25;
+
+                // Calculate the absolute position in the cube
+                // Need to position relative to the front-bottom-left cutout
+                const halfCubeSize = cubeSize / 2;
+
+                // Base position is the corner of the cutout
+                let baseX = -halfCubeSize;
+                let baseY = -halfCubeSize;
+                let baseZ = -halfCubeSize;
+
+                // Adjust position based on the 3-bit address
+                // We want to place it in the center of the appropriate subcube
+                const posX = baseX + (pos.x ? cutoutSize * 1.5 : cutoutSize * 0.5);
+                const posY = baseY + (pos.y ? cutoutSize * 1.5 : cutoutSize * 0.5);
+                const posZ = baseZ + (pos.z ? cutoutSize * 1.5 : cutoutSize * 0.5);
+
+                // Create position cube
+                const posCube = createCube(positionCubeSize);
+
+                // Position the cube
+                posCube.vertices.forEach(v => {
+                    v.x += posX;
+                    v.y += posY;
+                    v.z += posZ;
+                });
+
+                return posCube;
+            }
+
+            // Create the edges needed to complete the main cube outline with missing corner
+            function createOuterCubeEdges(cubeSize, cubePosition = { x: 0, y: 0, z: 0 }) {
+                const halfSize = cubeSize / 2;
+
+                // Calculate exact size for 1/64 subcube (4×4×4 grid)
+                const subSize = cubeSize / 4;
+
+                // Corner position where the subcube is missing (front-bottom-left)
+                const cornerX = -halfSize + subSize/2;
+                const cornerY = -halfSize + subSize/2;
+                const cornerZ = -halfSize + subSize/2;
+
+                // Create vertices for cube with properly cut corner (cubic, not triangular)
+                const vertices = [
+                    // Main cube vertices (skipping the vertex at the cut corner)
+                    { x: halfSize, y: -halfSize, z: -halfSize },  // 0: front bottom right
+                    { x: halfSize, y: halfSize, z: -halfSize },   // 1: front top right
+                    { x: -halfSize, y: halfSize, z: -halfSize },  // 2: front top left
+                    { x: -halfSize, y: -halfSize, z: halfSize },  // 3: back bottom left
+                    { x: halfSize, y: -halfSize, z: halfSize },   // 4: back bottom right
+                    { x: halfSize, y: halfSize, z: halfSize },    // 5: back top right
+                    { x: -halfSize, y: halfSize, z: halfSize },   // 6: back top left
+
+                    // Define the cubic cutout vertices
+                    { x: -halfSize+subSize, y: -halfSize, z: -halfSize },     // 7: X edge of cutout
+                    { x: -halfSize, y: -halfSize+subSize, z: -halfSize },     // 8: Y edge of cutout
+                    { x: -halfSize, y: -halfSize, z: -halfSize+subSize },     // 9: Z edge of cutout
+
+                    // Corner points of the cut cube
+                    { x: -halfSize+subSize, y: -halfSize+subSize, z: -halfSize },     // 10: XY corner of cutout
+                    { x: -halfSize+subSize, y: -halfSize, z: -halfSize+subSize },     // 11: XZ corner of cutout
+                    { x: -halfSize, y: -halfSize+subSize, z: -halfSize+subSize },     // 12: YZ corner of cutout
+                    { x: -halfSize+subSize, y: -halfSize+subSize, z: -halfSize+subSize }  // 13: XYZ inner corner of cutout
+                ];
+
+                // Apply the cube position to all vertices
+                vertices.forEach(v => {
+                    v.x += cubePosition.x;
+                    v.y += cubePosition.y;
+                    v.z += cubePosition.z;
+                });
+
+                // Define the edges for the cube with cubic corner cutout
+                const edges = [
+                    // Base cube outer edges (skipping edges that involve the cut corner)
+                    { from: 0, to: 1 },  // front right vertical
+                    { from: 1, to: 2 },  // front top horizontal
+                    { from: 3, to: 4 },  // back bottom horizontal
+                    { from: 4, to: 5 },  // back right vertical
+                    { from: 5, to: 6 },  // back top horizontal
+                    { from: 6, to: 3 },  // back left vertical
+                    { from: 0, to: 4 },  // right bottom depth
+                    { from: 1, to: 5 },  // right top depth
+                    { from: 2, to: 6 },  // left top depth
+
+                    // Edges for the cubic cutout - connecting to main cube
+                    { from: 7, to: 0 },  // X edge to front bottom right
+                    { from: 8, to: 2 },  // Y edge to front top left
+                    { from: 9, to: 3 },  // Z edge to back bottom left
+
+                    // Inner cutout edges - form the cubic shape
+                    { from: 7, to: 10 },  // X edge to XY corner
+                    { from: 7, to: 11 },  // X edge to XZ corner
+                    { from: 8, to: 10 },  // Y edge to XY corner
+                    { from: 8, to: 12 },  // Y edge to YZ corner
+                    { from: 9, to: 11 },  // Z edge to XZ corner
+                    { from: 9, to: 12 },  // Z edge to YZ corner
+
+                    // Connect inner corners to form the cubic cutout
+                    { from: 10, to: 13 },  // XY corner to inner corner
+                    { from: 11, to: 13 },  // XZ corner to inner corner
+                    { from: 12, to: 13 },  // YZ corner to inner corner
+                ];
+
+                return { vertices, edges };
+            }
+
+            // Recursive cube generator for multi-level visualization
+            function generateRecursiveCubes(level, maxLevel, parentSize, parentPos = { x: 0, y: 0, z: 0 }) {
+                if (level > maxLevel) return null;
+
+                // Create the current level cube
+                const cubeStructure = {
+                    level: level,
+                    size: parentSize,
+                    position: { ...parentPos },
+                    outerEdges: createOuterCubeEdges(parentSize, parentPos),
+                    subCubes: createSubCubes(parentSize, parentPos)
+                };
+
+                // If we need to go deeper and we have room in the activeAddress array
+                if (level < maxLevel && activeAddress.length >= level) {
+                    // Get the active subcube address for this level
+                    const address = activeAddress[level - 1];
+
+                    // Only recurse if this is not the cutout corner (address 0)
+                    if (address > 0) {
+                        // Calculate the position of the subcube for the next level
+                        const pos = getPositionFromAddress(address);
+
+                        // Calculate the size and position of the next level cube
+                        const nextSize = parentSize / 4;
+                        const offset = nextSize / 2; // Half the subcube size
+
+                        // Calculate position offset from parent center
+                        // Need to adjust since the coordinate system is -1.5 to 1.5 in subcube space
+                        const offsetX = (pos.x ? 1 : -1) * offset;
+                        const offsetY = (pos.y ? 1 : -1) * offset;
+                        const offsetZ = (pos.z ? 1 : -1) * offset;
+
+                        // The new position is the parent position plus the offset
+                        const nextPos = {
+                            x: parentPos.x + offsetX,
+                            y: parentPos.y + offsetY,
+                            z: parentPos.z + offsetZ
+                        };
+
+                        // Add the next level recursively
+                        cubeStructure.child = generateRecursiveCubes(level + 1, maxLevel, nextSize, nextPos);
+                    }
+                }
+
+                return cubeStructure;
+            }
+
+            // Generate the cube hierarchy with recursion if enabled
+            function generateCubeHierarchy() {
+                // Set the maximum recursion level based on UI setting
+                const maxLevel = showRecursion ? maxRecursionLevel : 1;
+
+                // Generate the recursive cube structure
+                const rootCube = generateRecursiveCubes(1, maxLevel, cubeSize);
+
+                // Create position indicators for all active levels
+                const positionCubes = [];
+                for (let i = 0; i < activeAddress.length && i < maxLevel; i++) {
+                    // Only create position cubes for non-zero addresses (not for cutout corners)
+                    if (activeAddress[i] > 0) {
+                        // Calculate the size for this level
+                        const levelSize = cubeSize / Math.pow(4, i);
+                        positionCubes.push(createPositionCube(activeAddress[i], levelSize, i));
+                    }
+                }
+
+                return { rootCube, positionCubes };
+            }
+
+            // Initialize cube hierarchy
+            let cubeHierarchy = generateCubeHierarchy();
+
+            // Update the address display in the UI
+            function updateAddressDisplay() {
+                const addressDisplay = document.getElementById('activeAddressDisplay');
+                let addressText = '';
+                for (let i = 0; i < activeAddress.length; i++) {
+                    // Convert to binary and pad to 3 bits
+                    const binAddress = activeAddress[i].toString(2).padStart(3, '0');
+                    addressText += (i > 0 ? ' → ' : '') + binAddress;
+                }
+                addressDisplay.textContent = addressText;
+            }
+
+            // Perspective projection function
+            function project(point) {
+                // Convert rotation angles to radians
+                const xRad = rotX * Math.PI / 180;
+                const yRad = rotY * Math.PI / 180;
+                const zRad = rotZ * Math.PI / 180;
+
+                // Apply Y rotation (yaw)
+                let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
+                let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
+
+                // Apply X rotation (pitch)
+                let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
+                let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
+
+                // Apply Z rotation (roll)
+                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+                // Apply perspective with proper focal length
+                const focalLength = 500;
+                const depth = focalLength + z2;
+                if (depth <= 0) return { visible: false }; // Behind camera
+
+                const scale = focalLength / depth;
+                const projX = centerX + x2 * scale;
+                const projY = centerY + y2 * scale;
+
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale,
+                    visible: true
+                };
+            }
+
+			function getOptimizedColor(avgZ, type, cutoutNeighbor, isActive, lineOverlap = 1) {
+				// Normalize depth to 0-1 range
+				const maxZ = 1000;
+				const depthFactor = Math.min(1, Math.max(0, (avgZ + maxZ) / (maxZ * 2)));
+
+				// For active edges, always use a consistent color
+				if (isActive) {
+					return cubeColors.tertiaryEdge;
+				}
+
+				// Handle line overlap factor (for halo effect)
+				// This creates a subtle shift to violet when lines are supposed to overlap
+				const overlapFactor = Math.min(lineOverlap, 3) - 1; // 0 for single line, up to 2 for heavily overlapped
+
+				// Further reduce the effect if in recursion mode
+				const recursionScaling = lineIntersectionTracker.recursionMode ? 0.5 : 1.0;
+				const reducedOverlapFactor = overlapFactor * 0.8 * recursionScaling;
+
+				// Use depth to blend between near and far colors for normal elements
+				if (!cutoutNeighbor) {
+					if (type === 'outer') {
+						// Outer cube edges - always use the main color
+						// Apply subtle halo shift for overlapping lines
+						if (reducedOverlapFactor > 0.1) {
+							// Blend between blue and violet based on overlap
+							return blendColors(
+								cubeColors.outerCube,
+								cubeColors.violetGlow,
+								reducedOverlapFactor * 0.3
+							);
+						}
+						return cubeColors.outerCube;
+					} else if (type === 'position') {
+						// Position indicator - always use the highlight color
+						return cubeColors.positionIndicator;
+					} else {
+						// Regular structural elements use depth-based coloring
+						// But now also influenced by line overlap
+						let baseColor;
+
+						if (depthFactor < 0.4) {
+							baseColor = cubeColors.nearColor; // Close elements are blue
+						} else if (depthFactor < 0.7) {
+							baseColor = cubeColors.midColor; // Mid-distance elements are blue-violet
+						} else {
+							baseColor = cubeColors.farColor; // Far elements are violet
+						}
+
+						// Apply violet shift for overlapping lines
+						if (reducedOverlapFactor > 0.1) {
+							return blendColors(
+								baseColor,
+								cubeColors.violetGlow,
+								reducedOverlapFactor * 0.4
+							);
+						}
+
+						return baseColor;
+					}
+				} else {
+					// Cutout neighbors always use consistent blue
+					// But can also show overlap effect
+					if (reducedOverlapFactor > 0.1) {
+						return blendColors(
+							cubeColors.cutoutEdge,
+							cubeColors.violetGlow,
+							reducedOverlapFactor * 0.3
+						);
+					}
+					return cubeColors.cutoutEdge;
+				}
+			}
+
+            // Draw a single grid line
+            function draw() {
+				// Clear canvas with dark background
+				ctx.fillStyle = cubeColors.background;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				// Clear intersection tracker at start of frame
+				lineIntersectionTracker.clear();
+
+				// Set recursion-based optimization flag
+				// This will be used to reduce the effect when recursion is enabled
+				lineIntersectionTracker.recursionMode = showRecursion;
+
+				// Draw all background grid lines
+				gridLines.forEach(drawLine);
+
+				// Draw binary grid lines (8x8x8 divisions) if we're showing recursion
+				if (showRecursion) {
+					binaryGridLines.forEach(drawBinaryGridLine);
+				}
+
+				// Pre-scan pass to register all lines for intersection tracking
+				// This helps identify overlapping regions before actual drawing
+				prescanCubeHierarchy(cubeHierarchy.rootCube);
+
+				// Preregister position cubes
+				cubeHierarchy.positionCubes.forEach(cube => {
+					const vertices = cube.vertices.map(project);
+					if (!vertices.some(v => !v.visible)) {
+						cube.edges.forEach(edge => {
+							const from = vertices[edge.from];
+							const to = vertices[edge.to];
+							lineIntersectionTracker.registerLine(from.x, from.y, to.x, to.y);
+						});
+					}
+				});
+
+				// Now draw the cube hierarchy with overlap information
+				drawCubeHierarchy(cubeHierarchy.rootCube);
+
+				// Draw position cubes
+				cubeHierarchy.positionCubes.forEach(drawPositionCube);
+
+				// Add a subtle vignette effect with dark violet
+				const gradient = ctx.createRadialGradient(
+					centerX, centerY, 0,
+					centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+				);
+				gradient.addColorStop(0.6, 'rgba(0, 0, 10, 0)');
+				gradient.addColorStop(1, 'rgba(32, 0, 64, 0.7)'); // Subtle dark violet vignette
+
+				ctx.fillStyle = gradient;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+			}
+
+
+			// Draw a single grid line
+			function drawLine(line) {
+				const start = project(line.start);
+				const end = project(line.end);
+
+				// Skip if either point is behind camera
+				if (!start.visible || !end.visible) return;
+
+				// Calculate center point of line
+				const midX = (start.x + end.x) / 2;
+				const midY = (start.y + end.y) / 2;
+
+				// Skip lines that pass too close to center
+				const centerDist = Math.sqrt(
+					Math.pow(midX - centerX, 2) +
+					Math.pow(midY - centerY, 2)
+				);
+
+				if (centerDist < 30) return;
+
+				// Depth-based color and opacity
+				const depth = (start.z + end.z) / 2;
+				const maxDepth = 2000;
+				const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+				const opacity = 0.04 + depthFactor * 0.08; // Very subtle lines
+
+				// Draw line with very subtle style
+				ctx.strokeStyle = `rgba(80, 60, 120, ${opacity})`;
+				ctx.lineWidth = 0.5;
+				ctx.beginPath();
+				ctx.moveTo(start.x, start.y);
+				ctx.lineTo(end.x, end.y);
+				ctx.stroke();
+
+				// Register this line for intersection tracking if it's part of the main structure
+				// We don't need to for background grid lines as they don't contribute to the glow effect
+				// This reduces the number of lines being processed
+				if (lineIntersectionTracker.recursionMode) {
+					// In recursion mode, we skip registering background grid lines entirely
+					return;
+				}
+			}
+
+			// Similarly make sure the drawBinaryGridLine function doesn't try to register lines
+			function drawBinaryGridLine(line) {
+				const start = project(line.start);
+				const end = project(line.end);
+
+				// Skip if either point is behind camera
+				if (!start.visible || !end.visible) return;
+
+				// Calculate depth for opacity
+				const depth = (start.z + end.z) / 2;
+				const maxDepth = 2000;
+				const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+				const opacity = 0.05 + depthFactor * 0.1; // Slightly more visible than background grid
+
+				// Draw line with subtle color
+				ctx.strokeStyle = `rgba(100, 80, 160, ${opacity})`;
+				ctx.lineWidth = 0.5;
+				ctx.beginPath();
+				ctx.moveTo(start.x, start.y);
+				ctx.lineTo(end.x, end.y);
+				ctx.stroke();
+
+				// Again, we don't register binary grid lines for intersection tracking
+				// This reduces computational load
+			}
+
+            // Draw cube edges with enhanced halo effect
+			function drawCubeEdges(cube, thickness = 1, level = 0, isCutoutNeighbor = false, isActive = false) {
+				const projectedVertices = cube.vertices.map(project);
+
+				// Skip if any vertices are behind camera
+				if (projectedVertices.some(v => !v.visible)) return;
+
+				// Calculate average depth for depth-based coloring
+				const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+
+				// Draw edges with fluorescent glow
+				ctx.lineCap = 'round';
+
+				cube.edges.forEach(edge => {
+					const from = projectedVertices[edge.from];
+					const to = projectedVertices[edge.to];
+
+					// Get overlap factor for this line
+					const overlapFactor = lineIntersectionTracker.getOverlapFactor(from.x, from.y, to.x, to.y);
+
+					// Get optimized color based on depth, properties, and line overlap
+					const edgeColor = getOptimizedColor(avgZ, 'inner', isCutoutNeighbor, isActive, overlapFactor);
+
+					// Calculate glow intensity based on depth and overlap
+					const maxDepth = 1000;
+					const depthFactor = Math.min(1, Math.max(0.2, (avgZ + maxDepth) / (maxDepth * 2)));
+
+					// More glow for overlapping elements, but reduce in recursion mode
+					const recursionScaling = lineIntersectionTracker.recursionMode ? 0.7 : 1.0;
+					const glowIntensity = 5.42; // Math.max(5, (7 + overlapFactor * 2.0) * recursionScaling);
+
+					// Apply color with glow
+					ctx.strokeStyle = edgeColor;
+					ctx.lineWidth = thickness;
+
+					// Apply violet-shifted glow for overlapping lines
+					ctx.shadowBlur = glowIntensity;
+					if (overlapFactor > 1.5) {
+						// More violet glow for heavily overlapped areas
+						ctx.shadowColor = blendColors(
+							cubeColors.blueGlow,
+							cubeColors.violetGlow,
+							Math.min(1, (overlapFactor - 1) * 0.6 * recursionScaling)
+						);
+					} else {
+						// Default glow based on depth
+						ctx.shadowColor = depthFactor > 0.6 ? cubeColors.violetGlow : cubeColors.blueGlow;
+					}
+
+					// Draw the line
+					ctx.beginPath();
+					ctx.moveTo(from.x, from.y);
+					ctx.lineTo(to.x, to.y);
+					ctx.stroke();
+				});
+
+				// Reset shadow for next drawing operations
+				ctx.shadowBlur = 0;
+			}
+
+            // Draw the outer cube edges with enhanced halo effect
+            function drawOuterCubeEdges(outerEdges, thickness = 2, level = 0) {
+                const projectedVertices = outerEdges.vertices.map(project);
+
+                // Skip if any vertices are behind camera
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Calculate average depth for all vertices
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+
+                // Draw edges with enhanced glow
+                ctx.lineCap = 'round';
+
+                outerEdges.edges.forEach(edge => {
+                    // Check if the vertices exist before trying to use them
+                    if (projectedVertices[edge.from] && projectedVertices[edge.to]) {
+                        const from = projectedVertices[edge.from];
+                        const to = projectedVertices[edge.to];
+
+                        // Get overlap factor for this line
+                        const overlapFactor = lineIntersectionTracker.getOverlapFactor(from.x, from.y, to.x, to.y);
+
+                        // Get optimized color based on depth and overlap
+                        const edgeColor = getOptimizedColor(avgZ, 'outer', false, false, overlapFactor);
+
+                        // Enhanced glow for outer edges
+                        //   const glowIntensity = 7 + overlapFactor * 1.8; // Reduced from 8 + overlapFactor * 2
+
+						// Add recursion scaling to glow intensity:
+						const recursionScaling = lineIntersectionTracker.recursionMode ? 0.7 : 1.0;
+						const glowIntensity = (7 + overlapFactor * 1.8) * recursionScaling;
+
+                        // Apply color with enhanced glow
+                        ctx.strokeStyle = edgeColor;
+                        ctx.lineWidth = thickness;
+
+                        // Apply glow effect - violet shift for overlapping areas
+                        ctx.shadowBlur = glowIntensity;
+                        if (overlapFactor > 1.5) {
+                            // More violet for overlapped areas
+                            ctx.shadowColor = blendColors(
+                                cubeColors.blueGlow,
+                                cubeColors.violetGlow,
+                                Math.min(1, (overlapFactor - 1) * 0.6)
+                            );
+                        } else {
+                            ctx.shadowColor = cubeColors.blueGlow;
+                        }
+
+                        // Draw the line
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    }
+                });
+
+                // Reset shadow for next drawing operations
+                ctx.shadowBlur = 0;
+            }
+
+            // Pre-scan the cube hierarchy to track line intersections
+            function prescanCubeHierarchy(cube, level = 0) {
+                if (!cube) return;
+
+                // Preregister outer edges
+                const outerVertices = cube.outerEdges.vertices.map(project);
+                if (!outerVertices.some(v => !v.visible)) {
+                    cube.outerEdges.edges.forEach(edge => {
+                        if (outerVertices[edge.from] && outerVertices[edge.to]) {
+                            const from = outerVertices[edge.from];
+                            const to = outerVertices[edge.to];
+                            lineIntersectionTracker.registerLine(from.x, from.y, to.x, to.y);
+                        }
+                    });
+                }
+
+                // Preregister subcube edges
+                cube.subCubes.forEach(subcube => {
+                    const vertices = subcube.vertices.map(project);
+                    if (!vertices.some(v => !v.visible)) {
+                        subcube.edges.forEach(edge => {
+                            const from = vertices[edge.from];
+                            const to = vertices[edge.to];
+                            lineIntersectionTracker.registerLine(from.x, from.y, to.x, to.y);
+                        });
+                    }
+                });
+
+                // Preregister child cube if it exists
+                if (cube.child) {
+                    prescanCubeHierarchy(cube.child, level + 1);
+                }
+            }
+
+			// Recursive function to draw the cube hierarchy
+            function drawCubeHierarchy(cube, level = 0) {
+                if (!cube) return;
+
+                // Calculate thickness based on level
+                const outerThickness = Math.max(0.5, 2 - level * 0.3);
+                const innerThickness = Math.max(0.5, 1 - level * 0.2);
+
+                // Draw outer edges first
+                drawOuterCubeEdges(cube.outerEdges, outerThickness, level);
+
+                // Draw subcubes
+                const sortedSubCubes = [...cube.subCubes];
+
+                // Calculate average z for each cube for depth sorting
+                const cubeZValues = sortedSubCubes.map(subcube => {
+                    const avgZ = subcube.vertices.reduce((acc, v) => {
+                        const proj = project(v);
+                        return acc + (proj.visible ? proj.z : 0);
+                    }, 0) / subcube.vertices.length;
+                    return avgZ;
+                });
+
+                // Sort cubes by their average z value
+                const zippedCubes = sortedSubCubes.map((subcube, i) => ({ cube: subcube, z: cubeZValues[i] }));
+                zippedCubes.sort((a, b) => b.z - a.z); // Sort back-to-front
+
+                // Draw sorted subcubes
+                zippedCubes.forEach(({ cube, z }) => {
+                    // Skip cubes behind camera
+                    if (z <= -500) return;
+
+                    // Check if this cube is active for this level
+                    const isActive = level < activeAddress.length && cube.address === activeAddress[level];
+
+                    // Draw edges with precise color handling
+                    drawCubeEdges(
+                        cube,
+                        innerThickness,
+                        level,
+                        cube.isCutoutNeighbor,
+                        isActive
+                    );
+                });
+
+                // Recursively draw child cube if it exists
+                if (cube.child) {
+                    drawCubeHierarchy(cube.child, level + 1);
+                }
+            }
+
+            // Draw position indicator cube with enhanced glow
+            function drawPositionCube(cube) {
+                const projectedVertices = cube.vertices.map(project);
+
+                // Skip if any vertices are behind camera
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Calculate average depth
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+
+                // Get optimized color for position indicator
+                const edgeColor = getOptimizedColor(avgZ, 'position', false, true);
+
+                // Draw with bright appearance
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = 1.5;
+                ctx.lineCap = 'round';
+
+                // Apply enhanced glow for position indicator
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = cubeColors.blueGlow;
+
+                cube.edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                });
+
+                // Reset shadow for next drawing operations
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw the entire scene with intersection tracking
+            function draw() {
+                // Clear canvas with dark background
+                ctx.fillStyle = cubeColors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Clear intersection tracker at start of frame
+                lineIntersectionTracker.clear();
+
+                // Draw all background grid lines
+                gridLines.forEach(drawLine);
+
+                // Draw binary grid lines (8x8x8 divisions) if we're showing recursion
+                if (showRecursion) {
+                    binaryGridLines.forEach(drawBinaryGridLine);
+                }
+
+                // Pre-scan pass to register all lines for intersection tracking
+                // This helps identify overlapping regions before actual drawing
+                prescanCubeHierarchy(cubeHierarchy.rootCube);
+
+                // Preregister position cubes
+                cubeHierarchy.positionCubes.forEach(cube => {
+                    const vertices = cube.vertices.map(project);
+                    if (!vertices.some(v => !v.visible)) {
+                        cube.edges.forEach(edge => {
+                            const from = vertices[edge.from];
+                            const to = vertices[edge.to];
+                            lineIntersectionTracker.registerLine(from.x, from.y, to.x, to.y);
+                        });
+                    }
+                });
+
+                // Now draw the cube hierarchy with overlap information
+                drawCubeHierarchy(cubeHierarchy.rootCube);
+
+                // Draw position cubes
+                cubeHierarchy.positionCubes.forEach(drawPositionCube);
+
+                // Add a subtle vignette effect with dark violet
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0.6, 'rgba(0, 0, 10, 0)');
+                gradient.addColorStop(1, 'rgba(32, 0, 64, 0.7)'); // Subtle dark violet vignette
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Animation loop
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    // Slower base rotation for better control, CCW bias for Z rotation
+                    rotY += elapsed * 0.002;
+                    rotZ -= elapsed * 0.0005; // Negative for CCW rotation
+
+                    // Calculate mouse influence with enhanced non-linear response
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate distance from center for stronger roll effect
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+
+                    // Enhanced non-linear response for more precision
+                    // Cubic response curve gives much better control
+                    const responseFactorX = Math.pow(Math.abs(relativeX), 1.5) * Math.sign(relativeX) * 0.01;
+                    const responseFactorY = Math.pow(Math.abs(relativeY), 1.5) * Math.sign(relativeY) * 0.01;
+
+                    rotY += elapsed * responseFactorX;
+                    rotX += elapsed * responseFactorY;
+
+                    // Roll effect based on cursor position
+                    const quadrantAngle = (Math.atan2(relativeY, relativeX) + Math.PI) % (Math.PI * 2); // 0 to 2π
+                    const quadrantFactor = Math.sin(quadrantAngle * 2); // -1 to 1 based on quadrant
+
+                    // Roll influence based on distance and angle
+                    const rollInfluence = -quadrantFactor * Math.pow(distanceFromCenter, 1.5) * 0.005;
+                    rotZ += elapsed * rollInfluence;
+
+                    // Normalize angles
+                    rotX %= 360;
+                    rotY %= 360;
+                    rotZ %= 360;
+
+                    // Draw the scene
+                    draw();
+
+                    // Continue animation
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse movement handler with optimized non-linear response
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+
+                // Handle dragging when paused
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    // Improved non-linear response for more control
+                    // Cubic response curve gives much finer control for small movements
+                    // but still allows large movements when needed
+                    const signX = Math.sign(deltaX);
+                    const signY = Math.sign(deltaY);
+
+                    // Enhanced non-linear response curve for more intuitive control
+                    const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
+                    const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
+
+                    rotY = dragStartRotY + responseX * 30;
+                    rotX = dragStartRotX + responseY * 30;
+
+                    // Enhanced roll control based on cursor position and movement
+                    // This gives more control over roll angle
+                    const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
+                    const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
+
+                    // Calculate roll based on both cursor position and movement direction
+                    // This allows for more intuitive roll control
+                    const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
+                    const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
+                    const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
+
+                    // More responsive roll control (no threshold)
+                    rotZ = dragStartRotZ + rollResponse * 8;
+
+                    // Draw with the new rotation
+                    draw();
+                }
+            });
+
+            // Mouse button handlers
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartRotX = rotX;
+                    dragStartRotY = rotY;
+                    dragStartRotZ = rotZ;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            // Update cursor based on state
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused');
+                    canvas.classList.remove('dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            // Helper function to update the address for a specific level
+            function setActiveAddress(level, address) {
+                // Make sure the address array is long enough
+                while (activeAddress.length < level) {
+                    activeAddress.push(0);
+                }
+
+                // Set the address for this level
+                activeAddress[level - 1] = address;
+
+                // Truncate any deeper addresses if we're changing a higher level
+                activeAddress = activeAddress.slice(0, level);
+
+                // Update recursion level display
+                recursionLevel = Math.min(activeAddress.length, maxRecursionLevel);
+                document.getElementById('recursionLevel').textContent = recursionLevel;
+
+                // Update address display
+                updateAddressDisplay();
+
+                // Regenerate the cube hierarchy with the new address
+                cubeHierarchy = generateCubeHierarchy();
+
+                // Redraw
+                draw();
+            }
+
+            // Helper function to toggle recursion visualization
+            function toggleRecursion() {
+                showRecursion = !showRecursion;
+
+                // Update recursion level
+                if (showRecursion) {
+                    recursionLevel = Math.min(activeAddress.length, maxRecursionLevel);
+                } else {
+                    recursionLevel = 1;
+                }
+                document.getElementById('recursionLevel').textContent = recursionLevel;
+
+				// Regenerate the cube hierarchy
+                cubeHierarchy = generateCubeHierarchy();
+
+                // Redraw
+                draw();
+            }
+
+            // Control button handlers
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                rotX = 15;
+                rotY = 15;
+                rotZ = 0;
+                draw();
+            });
+
+            document.getElementById('toggleRecursionBtn').addEventListener('click', toggleRecursion);
+
+            // Add keyboard controls for address navigation
+            document.addEventListener('keydown', (e) => {
+                // Number keys 1-7 set active address for first level
+                if (e.key >= '1' && e.key <= '7') {
+                    setActiveAddress(1, parseInt(e.key));
+                }
+
+                // Shift + number keys 1-7 set active address for second level
+                if (e.shiftKey && e.key >= '1' && e.key <= '7') {
+                    setActiveAddress(2, parseInt(e.key));
+                }
+
+                // R key toggles recursion
+                if (e.key === 'r' || e.key === 'R') {
+                    toggleRecursion();
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                draw();
+            });
+
+            // Initial draw
+            draw();
+
+            // Start animation after short delay
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hyperspace Field - 8-Cube Formation with Central Void</title>
+    <style>
+        body {
+            background-color: #0c0518;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #a0c0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(15, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .info-panel h3 {
+            margin-top: 0;
+            color: #b0c0ff;
+        }
+
+        .info-panel p {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="info-panel">
+        <h3>Hyperspace Field</h3>
+        <p>8-cube formation with central void</p>
+        <p>Mouse wheel to zoom</p>
+        <p>Zoom: <span id="zoomLevel">100%</span></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 25;
+            const gridSpacing = 60;
+
+            // Zoom control
+            let zoomLevel = 1.0;
+            const minZoom = 0.3;
+            const maxZoom = 3.0;
+            const zoomSpeed = 0.1;
+
+            // Field configuration - 8 cubes in 2x2x2 formation
+            const currentScale = 10;
+            const baseCubeSize = 140;
+            let cubeSize = baseCubeSize * (1 + Math.log10(currentScale) * 0.5);
+            const fieldSpacing = cubeSize * 1.5;  // 2 subcube widths for bi-directional hyperspace lanes
+
+            const cubeColors = {
+                // Dark psytrance blacklight aesthetic - subdued violet/blue
+                primaryEdge: '#4050a0',
+                outerCube: '#5060b0',
+                innerCube: '#4050a0',
+                cutoutEdge: '#6070c0',
+
+                // Depth gradient: dark blue-violet spectrum (no pink/magenta)
+                nearColor: '#4050a0',      // Close: dark blue-violet
+                midColor: '#5060b0',       // Mid: violet-blue
+                farColor: '#6070c0',       // Far: brighter violet-blue
+
+                // Subdued blacklight glow colors (psytrance party atmosphere)
+                blueGlow: '#3050b0',       // Deep blue glow
+                violetGlow: '#5060c0',     // Subdued violet halo
+                magentaGlow: '#6070d0',    // Blue-violet accent (no pink)
+                cyanGlow: '#4080d0',       // Cyan-blue highlight
+
+                // Environment
+                background: '#08030f',
+                vignette: '#200040'
+            };
+
+            function blendColors(color1, color2, ratio) {
+                const r1 = parseInt(color1.slice(1, 3), 16);
+                const g1 = parseInt(color1.slice(3, 5), 16);
+                const b1 = parseInt(color1.slice(5, 7), 16);
+                const r2 = parseInt(color2.slice(1, 3), 16);
+                const g2 = parseInt(color2.slice(3, 5), 16);
+                const b2 = parseInt(color2.slice(5, 7), 16);
+                const r = Math.round(r1 * (1 - ratio) + r2 * ratio);
+                const g = Math.round(g1 * (1 - ratio) + g2 * ratio);
+                const b = Math.round(b1 * (1 - ratio) + b2 * ratio);
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+
+            // Convert hex color to HSL
+            function hexToHSL(hex) {
+                const r = parseInt(hex.slice(1, 3), 16) / 255;
+                const g = parseInt(hex.slice(3, 5), 16) / 255;
+                const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                const l = (max + min) / 2;
+
+                if (max === min) {
+                    return { h: 0, s: 0, l: l };
+                }
+
+                const d = max - min;
+                const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                let h;
+                if (max === r) {
+                    h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                } else if (max === g) {
+                    h = ((b - r) / d + 2) / 6;
+                } else {
+                    h = ((r - g) / d + 4) / 6;
+                }
+
+                return { h: h * 360, s: s, l: l };
+            }
+
+            // Convert HSL to hex color
+            function hslToHex(h, s, l) {
+                h = h / 360;
+
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+
+                let r, g, b;
+                if (s === 0) {
+                    r = g = b = l;
+                } else {
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+
+                const toHex = x => {
+                    const hex = Math.round(x * 255).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+            }
+
+            // Rotate hue of a color by specified degrees
+            function rotateHue(hexColor, hueShift, satBoost = 0, brightBoost = 0) {
+                const hsl = hexToHSL(hexColor);
+                hsl.h = (hsl.h + hueShift) % 360;
+                if (hsl.h < 0) hsl.h += 360;
+
+                // Apply optional saturation and brightness boosts
+                const s = Math.min(1, hsl.s + satBoost);
+                const l = Math.min(1, hsl.l + brightBoost);
+
+                return hslToHex(hsl.h, s, l);
+            }
+
+            let isPlaying = false;
+            let lastTimestamp = 0;
+            let rotX = 15;
+            let rotY = 15;
+            let rotZ = 0;
+            let animationFrameId = null;
+
+            // Track previous rotation angles for speed calculation
+            let prevRotX = rotX;
+            let prevRotY = rotY;
+            let prevRotZ = rotZ;
+
+            // Cache for rotated colors (updated each frame)
+            let rotatedColors = {};
+
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+
+            function createGridLines() {
+                const lines = [];
+                const halfSize = (gridSize * gridSpacing) / 2;
+                for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x: -halfSize, y, z },
+                            end: { x: halfSize, y, z }
+                        });
+                    }
+                }
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x, y: -halfSize, z },
+                            end: { x, y: halfSize, z }
+                        });
+                    }
+                }
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                        lines.push({
+                            start: { x, y, z: -halfSize },
+                            end: { x, y, z: halfSize }
+                        });
+                    }
+                }
+                return lines;
+            }
+
+            const gridLines = createGridLines();
+
+            function createCube(size) {
+                const halfSize = size / 2;
+                const vertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize },
+                    { x: halfSize, y: -halfSize, z: -halfSize },
+                    { x: halfSize, y: halfSize, z: -halfSize },
+                    { x: -halfSize, y: halfSize, z: -halfSize },
+                    { x: -halfSize, y: -halfSize, z: halfSize },
+                    { x: halfSize, y: -halfSize, z: halfSize },
+                    { x: halfSize, y: halfSize, z: halfSize },
+                    { x: -halfSize, y: halfSize, z: halfSize }
+                ];
+                const edges = [
+                    { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 }, { from: 3, to: 0 },
+                    { from: 4, to: 5 }, { from: 5, to: 6 }, { from: 6, to: 7 }, { from: 7, to: 4 },
+                    { from: 0, to: 4 }, { from: 1, to: 5 }, { from: 2, to: 6 }, { from: 3, to: 7 }
+                ];
+                return { vertices, edges };
+            }
+
+            // Create subcubes with correct orientation for each position in 2x2x2 grid
+            function createSubCubes(parentSize, parentPosition, cubeIndex) {
+                const result = [];
+                const subSize = parentSize / 4;
+
+                // Determine which corner should be missing based on cube position
+                // Each cube's missing corner should point toward the center (0,0,0)
+                // This is the corner that is CLOSEST to the origin in the 2x2x2 formation
+                const missingCorner = [
+                    { x: 3, y: 3, z: 3 },  // 0: cube at (-,-,-) -> missing at (+,+,+) local corner
+                    { x: 0, y: 3, z: 3 },  // 1: cube at (+,-,-) -> missing at (-,+,+) local corner
+                    { x: 3, y: 0, z: 3 },  // 2: cube at (-,+,-) -> missing at (+,-,+) local corner
+                    { x: 0, y: 0, z: 3 },  // 3: cube at (+,+,-) -> missing at (-,-,+) local corner
+                    { x: 3, y: 3, z: 0 },  // 4: cube at (-,-,+) -> missing at (+,+,-) local corner
+                    { x: 0, y: 3, z: 0 },  // 5: cube at (+,-,+) -> missing at (-,+,-) local corner
+                    { x: 3, y: 0, z: 0 },  // 6: cube at (-,+,+) -> missing at (+,-,-) local corner
+                    { x: 0, y: 0, z: 0 }   // 7: cube at (+,+,+) -> missing at (-,-,-) local corner
+                ][cubeIndex];
+
+                for (let x = 0; x < 4; x++) {
+                    for (let y = 0; y < 4; y++) {
+                        for (let z = 0; z < 4; z++) {
+                            // Skip the corner that points to center
+                            if (x === missingCorner.x && y === missingCorner.y && z === missingCorner.z) {
+                                continue;
+                            }
+
+                            const offsetX = (x - 1.5) * subSize;
+                            const offsetY = (y - 1.5) * subSize;
+                            const offsetZ = (z - 1.5) * subSize;
+                            const subCube = createCube(subSize);
+                            subCube.vertices.forEach(v => {
+                                v.x += offsetX + parentPosition.x;
+                                v.y += offsetY + parentPosition.y;
+                                v.z += offsetZ + parentPosition.z;
+                            });
+
+                            // Identify neighbors of the missing corner
+                            const dx = Math.abs(x - missingCorner.x);
+                            const dy = Math.abs(y - missingCorner.y);
+                            const dz = Math.abs(z - missingCorner.z);
+                            subCube.isCutoutNeighbor = (dx + dy + dz === 1);
+
+                            result.push(subCube);
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function createOuterCubeEdges(cubeSize, cubePosition, cubeIndex) {
+                const halfSize = cubeSize / 2;
+                const subSize = cubeSize / 4;
+
+                // Define the 8 corner vertices of the full cube
+                const fullCubeVertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize },  // 0
+                    { x: halfSize, y: -halfSize, z: -halfSize },   // 1
+                    { x: halfSize, y: halfSize, z: -halfSize },    // 2
+                    { x: -halfSize, y: halfSize, z: -halfSize },   // 3
+                    { x: -halfSize, y: -halfSize, z: halfSize },   // 4
+                    { x: halfSize, y: -halfSize, z: halfSize },    // 5
+                    { x: halfSize, y: halfSize, z: halfSize },     // 6
+                    { x: -halfSize, y: halfSize, z: halfSize }     // 7
+                ];
+
+                // Determine which corner is cut out based on cube index (inward-facing cutouts)
+                const cutoutCornerIndices = [6, 7, 5, 4, 2, 3, 1, 0];
+                const cutoutVertexIndex = cutoutCornerIndices[cubeIndex];
+                const cutoutVertex = fullCubeVertices[cutoutVertexIndex];
+
+                // Find the 3 adjacent vertices (connected by edges to the cutout corner)
+                const adjacentIndices = [];
+                for (let i = 0; i < 8; i++) {
+                    if (i === cutoutVertexIndex) continue;
+                    const v = fullCubeVertices[i];
+                    const diff = Math.abs(v.x - cutoutVertex.x) + Math.abs(v.y - cutoutVertex.y) + Math.abs(v.z - cutoutVertex.z);
+                    if (diff === halfSize * 2) {
+                        adjacentIndices.push(i);
+                    }
+                }
+
+                // Create vertices for cube with properly cut corner (cubic, not triangular)
+                const vertices = [];
+                const vertexMap = {}; // Maps full cube vertex index to new vertex array index
+
+                // Add the 7 main cube vertices (excluding the cutout corner)
+                for (let i = 0; i < 8; i++) {
+                    if (i !== cutoutVertexIndex) {
+                        vertexMap[i] = vertices.length;
+                        vertices.push({ ...fullCubeVertices[i] });
+                    }
+                }
+
+                // Add the 3 edge vertices (on edges adjacent to the missing corner)
+                const edgeVertexIndices = [];
+                adjacentIndices.forEach(adjIdx => {
+                    const adjVertex = fullCubeVertices[adjIdx];
+                    edgeVertexIndices.push(vertices.length);
+                    vertices.push({
+                        x: cutoutVertex.x + (adjVertex.x - cutoutVertex.x) * 0.25,
+                        y: cutoutVertex.y + (adjVertex.y - cutoutVertex.y) * 0.25,
+                        z: cutoutVertex.z + (adjVertex.z - cutoutVertex.z) * 0.25
+                    });
+                });
+
+                // Add the 3 corner vertices of the cubic cutout
+                // These are at the intersections of the cutout faces (combining 2 edge directions)
+                const cornerVertexIndices = [];
+
+                // Corner 0: combining adjacent[0] and adjacent[1]
+                const v0 = fullCubeVertices[adjacentIndices[0]];
+                const v1 = fullCubeVertices[adjacentIndices[1]];
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v1.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v1.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v1.z - cutoutVertex.z) * 0.25
+                });
+
+                // Corner 1: combining adjacent[0] and adjacent[2]
+                const v2 = fullCubeVertices[adjacentIndices[2]];
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Corner 2: combining adjacent[1] and adjacent[2]
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v1.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v1.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v1.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Add the inner corner vertex (opposite corner of the cutout cube)
+                // This combines all three adjacent vertex directions
+                const innerCornerIndex = vertices.length;
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v1.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v1.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v1.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Apply position offset
+                vertices.forEach(v => {
+                    v.x += cubePosition.x;
+                    v.y += cubePosition.y;
+                    v.z += cubePosition.z;
+                });
+
+                // Create edges for the cube with cubic corner cutout
+                const edges = [];
+                const fullCubeEdges = [
+                    [0, 1], [1, 2], [2, 3], [3, 0],  // Front face
+                    [4, 5], [5, 6], [6, 7], [7, 4],  // Back face
+                    [0, 4], [1, 5], [2, 6], [3, 7]   // Connecting edges
+                ];
+
+                // Add main cube outer edges (skipping edges that involve the cut corner)
+                fullCubeEdges.forEach(([from, to]) => {
+                    if (from !== cutoutVertexIndex && to !== cutoutVertexIndex) {
+                        edges.push({ from: vertexMap[from], to: vertexMap[to] });
+                    } else if (from === cutoutVertexIndex || to === cutoutVertexIndex) {
+                        // Edge involves cutout corner - connect to edge vertex
+                        const normalVertex = from === cutoutVertexIndex ? to : from;
+                        const edgeVertexIdx = adjacentIndices.indexOf(normalVertex);
+                        if (edgeVertexIdx !== -1) {
+                            edges.push({ from: vertexMap[normalVertex], to: edgeVertexIndices[edgeVertexIdx] });
+                        }
+                    }
+                });
+
+                // Inner cutout edges - form the cubic shape
+                // Edge 0 connects to corners 0 (formed by edges 0,1) and 1 (formed by edges 0,2)
+                // Edge 1 connects to corners 0 (formed by edges 0,1) and 2 (formed by edges 1,2)
+                // Edge 2 connects to corners 1 (formed by edges 0,2) and 2 (formed by edges 1,2)
+                edges.push({ from: edgeVertexIndices[0], to: cornerVertexIndices[0] });  // edge 0 to corner 0,1
+                edges.push({ from: edgeVertexIndices[0], to: cornerVertexIndices[1] });  // edge 0 to corner 0,2
+                edges.push({ from: edgeVertexIndices[1], to: cornerVertexIndices[0] });  // edge 1 to corner 0,1
+                edges.push({ from: edgeVertexIndices[1], to: cornerVertexIndices[2] });  // edge 1 to corner 1,2
+                edges.push({ from: edgeVertexIndices[2], to: cornerVertexIndices[1] });  // edge 2 to corner 0,2
+                edges.push({ from: edgeVertexIndices[2], to: cornerVertexIndices[2] });  // edge 2 to corner 1,2
+
+                // Connect inner corners to form the cubic cutout
+                edges.push({ from: cornerVertexIndices[0], to: innerCornerIndex });  // corner 0,1 to inner
+                edges.push({ from: cornerVertexIndices[1], to: innerCornerIndex });  // corner 0,2 to inner
+                edges.push({ from: cornerVertexIndices[2], to: innerCornerIndex });  // corner 1,2 to inner
+
+                return { vertices, edges };
+            }
+
+            // Generate 8 cubes in a 2x2x2 formation with cutouts pointing to center
+            function generateCubeField() {
+                const field = [];
+                const offset = fieldSpacing / 2;
+
+                const positions = [
+                    { x: -offset, y: -offset, z: -offset },  // 0
+                    { x: offset, y: -offset, z: -offset },   // 1
+                    { x: -offset, y: offset, z: -offset },   // 2
+                    { x: offset, y: offset, z: -offset },    // 3
+                    { x: -offset, y: -offset, z: offset },   // 4
+                    { x: offset, y: -offset, z: offset },    // 5
+                    { x: -offset, y: offset, z: offset },    // 6
+                    { x: offset, y: offset, z: offset }      // 7
+                ];
+
+                positions.forEach((pos, index) => {
+                    field.push({
+                        outerEdges: createOuterCubeEdges(cubeSize, pos, index),
+                        subCubes: createSubCubes(cubeSize, pos, index),
+                        offset: pos
+                    });
+                });
+
+                return field;
+            }
+
+            let cubeField = generateCubeField();
+
+            function project(point) {
+                const xRad = rotX * Math.PI / 180;
+                const yRad = rotY * Math.PI / 180;
+                const zRad = rotZ * Math.PI / 180;
+                let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
+                let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
+                let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
+                let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
+                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
+                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+
+                // Apply zoom
+                x2 *= zoomLevel;
+                y2 *= zoomLevel;
+                z2 *= zoomLevel;
+
+                const focalLength = 500;
+                const depth = focalLength + z2;
+                if (depth <= 0) return { visible: false };
+                const scale = focalLength / depth;
+                const projX = centerX + x2 * scale;
+                const projY = centerY + y2 * scale;
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z2,
+                    scale: scale,
+                    visible: true
+                };
+            }
+
+            function getColorByDepth(avgZ, isCutoutNeighbor) {
+                const maxZ = 1000;
+                const depthFactor = Math.min(1, Math.max(0, (avgZ + maxZ) / (maxZ * 2)));
+
+                if (isCutoutNeighbor) {
+                    // Cutout neighbors get intense violet-magenta blend with hue rotation
+                    return blendColors(rotatedColors.cyanGlow, rotatedColors.magentaGlow, depthFactor * 0.7);
+                }
+
+                // Main structure: blue-violet -> violet -> magenta gradient with hue rotation
+                if (depthFactor < 0.4) {
+                    return rotatedColors.nearColor;
+                } else if (depthFactor < 0.7) {
+                    return blendColors(rotatedColors.midColor, rotatedColors.farColor, (depthFactor - 0.4) / 0.3);
+                } else {
+                    return rotatedColors.farColor;
+                }
+            }
+
+            function getGlowColor(avgZ, isCutoutNeighbor) {
+                const maxZ = 1000;
+                const depthFactor = Math.min(1, Math.max(0, (avgZ + maxZ) / (maxZ * 2)));
+
+                if (isCutoutNeighbor) {
+                    // Intense magenta-violet glow for cutout edges with hue rotation
+                    return blendColors(rotatedColors.magentaGlow, rotatedColors.violetGlow, depthFactor * 0.6);
+                }
+
+                // Regular glow: violet gradient with hue rotation
+                return blendColors(rotatedColors.blueGlow, rotatedColors.violetGlow, depthFactor * 0.8);
+            }
+
+            function drawLine(line) {
+                const start = project(line.start);
+                const end = project(line.end);
+                if (!start.visible || !end.visible) return;
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+                const centerDist = Math.sqrt(
+                    Math.pow(midX - centerX, 2) +
+                    Math.pow(midY - centerY, 2)
+                );
+                if (centerDist < 30) return;
+                const depth = (start.z + end.z) / 2;
+                const maxDepth = 2000;
+                const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+                const opacity = 0.04 + depthFactor * 0.08;
+                ctx.strokeStyle = `rgba(80, 60, 120, ${opacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+            }
+
+            function drawCubeFaces(cube, isCutoutNeighbor) {
+                const projectedVertices = cube.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Define the 6 faces of a cube
+                const faces = [
+                    [0, 1, 2, 3], // Front face
+                    [4, 5, 6, 7], // Back face
+                    [0, 3, 7, 4], // Left face
+                    [1, 2, 6, 5], // Right face
+                    [3, 2, 6, 7], // Top face
+                    [0, 1, 5, 4]  // Bottom face
+                ];
+
+                // Calculate average Z for each face and sort back-to-front
+                const facesWithDepth = faces.map(face => {
+                    const avgZ = face.reduce((sum, idx) => sum + projectedVertices[idx].z, 0) / face.length;
+                    return { face, avgZ };
+                }).sort((a, b) => a.avgZ - b.avgZ); // Draw back faces first
+
+                // Deep mood ring blue ambient - "0-bit" reference
+                // Rich indigo-blue tint in contrast with dark violet blacklight edges
+                const ambientBlue = 'rgba(20, 40, 140, 0.12)';
+
+                facesWithDepth.forEach(({ face, avgZ }) => {
+                    ctx.fillStyle = ambientBlue;
+                    ctx.beginPath();
+                    const first = projectedVertices[face[0]];
+                    ctx.moveTo(first.x, first.y);
+                    for (let i = 1; i < face.length; i++) {
+                        const vertex = projectedVertices[face[i]];
+                        ctx.lineTo(vertex.x, vertex.y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                });
+            }
+
+            function drawCubeEdges(cube, thickness, isCutoutNeighbor) {
+                const projectedVertices = cube.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+                const edgeColor = getColorByDepth(avgZ, isCutoutNeighbor);
+                const glowColor = getGlowColor(avgZ, isCutoutNeighbor);
+
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = thickness;
+                // Reduced glow for inner subcubes to improve performance and enhance 3D effect
+                ctx.shadowBlur = isCutoutNeighbor ? 3 : 2;
+                ctx.shadowColor = glowColor;
+
+                cube.edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                });
+                ctx.shadowBlur = 0;
+            }
+
+            function drawOuterCubeEdges(outerEdges, thickness) {
+                const projectedVertices = outerEdges.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+                const glowColor = getGlowColor(avgZ, false);
+
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = rotatedColors.outerCube;
+                ctx.lineWidth = thickness;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = glowColor;
+
+                outerEdges.edges.forEach(edge => {
+                    if (projectedVertices[edge.from] && projectedVertices[edge.to]) {
+                        const from = projectedVertices[edge.from];
+                        const to = projectedVertices[edge.to];
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    }
+                });
+                ctx.shadowBlur = 0;
+            }
+
+            function updateZoomDisplay() {
+                document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+            }
+
+            function draw() {
+                // Calculate zoom factor for hue shift intensity
+                // Less intense when zoomed in, more intense when zoomed out
+                const zoomFactor = 1 / zoomLevel; // 1.0 at normal zoom, ~0.33 at max zoom, ~3.33 at min zoom
+
+                // Calculate hue shift based on rotation angles (psychedelic effect)
+                // Use sine wave to create smooth, gentle oscillation limited to ±30 degrees
+                // Modulated by zoom level for subtler effect when examining details
+                const rotationFactor = (rotY * 0.7 + rotX * 0.4 + rotZ * 0.3) * Math.PI / 180;
+                const hueShift = Math.sin(rotationFactor) * 30 * zoomFactor; // Less intense when zoomed in
+
+                // Calculate rotation speed for saturation/brightness boost
+                const rotSpeed = Math.abs(rotX - prevRotX) + Math.abs(rotY - prevRotY) + Math.abs(rotZ - prevRotZ);
+                const isRotatingFast = rotSpeed > 0.5;
+                const satBoost = isRotatingFast ? 0.02 : 0;  // Reduced from 0.05
+                const brightBoost = isRotatingFast ? 0.01 : 0;  // Reduced from 0.03
+
+                // Update previous rotation values
+                prevRotX = rotX;
+                prevRotY = rotY;
+                prevRotZ = rotZ;
+
+                // Create rotated color cache for this frame
+                rotatedColors = {
+                    primaryEdge: rotateHue(cubeColors.primaryEdge, hueShift, satBoost, brightBoost),
+                    outerCube: rotateHue(cubeColors.outerCube, hueShift, satBoost, brightBoost),
+                    innerCube: rotateHue(cubeColors.innerCube, hueShift, satBoost, brightBoost),
+                    cutoutEdge: rotateHue(cubeColors.cutoutEdge, hueShift, satBoost, brightBoost),
+                    nearColor: rotateHue(cubeColors.nearColor, hueShift, satBoost, brightBoost),
+                    midColor: rotateHue(cubeColors.midColor, hueShift, satBoost, brightBoost),
+                    farColor: rotateHue(cubeColors.farColor, hueShift, satBoost, brightBoost),
+                    blueGlow: rotateHue(cubeColors.blueGlow, hueShift, satBoost, brightBoost),
+                    violetGlow: rotateHue(cubeColors.violetGlow, hueShift, satBoost, brightBoost),
+                    magentaGlow: rotateHue(cubeColors.magentaGlow, hueShift, satBoost, brightBoost),
+                    cyanGlow: rotateHue(cubeColors.cyanGlow, hueShift, satBoost, brightBoost)
+                };
+
+                ctx.fillStyle = cubeColors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                gridLines.forEach(drawLine);
+
+                // First pass: draw all subcube faces (translucent blue ambient for "0-bit" reference)
+                cubeField.forEach(({ subCubes }) => {
+                    subCubes.forEach(subcube => {
+                        drawCubeFaces(subcube, subcube.isCutoutNeighbor);
+                    });
+                });
+
+                // Second pass: draw all edges on top
+                cubeField.forEach(({ outerEdges, subCubes }) => {
+                    drawOuterCubeEdges(outerEdges, 1.5);
+
+                    subCubes.forEach(subcube => {
+                        drawCubeEdges(subcube, 0.8, subcube.isCutoutNeighbor);
+                    });
+                });
+
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+                gradient.addColorStop(0.6, 'rgba(0, 0, 10, 0)');
+                gradient.addColorStop(1, 'rgba(32, 0, 64, 0.7)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                if (isPlaying) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+                    rotY += elapsed * 0.002;
+                    rotZ -= elapsed * 0.0005;
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+                    const responseFactorX = Math.pow(Math.abs(relativeX), 1.5) * Math.sign(relativeX) * 0.01;
+                    const responseFactorY = Math.pow(Math.abs(relativeY), 1.5) * Math.sign(relativeY) * 0.01;
+                    rotY += elapsed * responseFactorX;
+                    rotX += elapsed * responseFactorY;
+                    const quadrantAngle = (Math.atan2(relativeY, relativeX) + Math.PI) % (Math.PI * 2);
+                    const quadrantFactor = Math.sin(quadrantAngle * 2);
+                    const rollInfluence = -quadrantFactor * Math.pow(distanceFromCenter, 1.5) * 0.005;
+                    rotZ += elapsed * rollInfluence;
+                    rotX %= 360;
+                    rotY %= 360;
+                    rotZ %= 360;
+                    draw();
+                    if (isPlaying) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }
+
+            // Mouse wheel zoom
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = -Math.sign(e.deltaY) * zoomSpeed;
+                zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
+                updateZoomDisplay();
+                if (!isPlaying) {
+                    draw();
+                }
+            }, { passive: false });
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (isDragging && !isPlaying) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+                    const signX = Math.sign(deltaX);
+                    const signY = Math.sign(deltaY);
+                    const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
+                    const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
+                    rotY = dragStartRotY + responseX * 30;
+                    rotX = dragStartRotX + responseY * 30;
+                    const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
+                    const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
+                    const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
+                    const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
+                    const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
+                    rotZ = dragStartRotZ + rollResponse * 8;
+                    draw();
+                }
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isPlaying) {
+                    isDragging = true;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    dragStartRotX = rotX;
+                    dragStartRotY = rotY;
+                    dragStartRotZ = rotZ;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            function updateCursor() {
+                if (isPlaying) {
+                    canvas.classList.remove('paused', 'dragging');
+                } else {
+                    canvas.classList.add('paused');
+                }
+            }
+
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isPlaying = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                rotX = 15;
+                rotY = 15;
+                rotZ = 0;
+                zoomLevel = 1.0;
+                updateZoomDisplay();
+                draw();
+            });
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                cubeField = generateCubeField();
+                draw();
+            });
+
+            updateZoomDisplay();
+            draw();
+            setTimeout(() => {
+                isPlaying = true;
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

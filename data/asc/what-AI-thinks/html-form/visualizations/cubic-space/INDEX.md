@@ -2,7 +2,7 @@
 
 **Purpose:** Interactive 3D cube and hyperspace topology visualizations exploring dimensional geometry, data-centric grids, and spatial navigation.
 
-**File Count:** 51 HTML files
+**File Count:** 58 HTML files (+ 1 YAML spec, + 1 symlink)
 
 ---
 
@@ -125,6 +125,39 @@ This category contains the largest collection of visualizations, exploring:
 - Alternative approaches to hyperspace rendering
 - Experimental features
 
+### Hyperspace Address Cube Series (1 file)
+- `hyperspace-address-cube-balanced-halo.html` - Recursive 3-bit addressing system with balanced halo effect
+
+**Features:**
+- 4×4×4 subcube grid (63 visible subcubes, 1 missing corner)
+- Recursive navigation with multi-level addressing
+- 3-bit binary addressing for spatial coordinates
+- Line intersection tracking for balanced violet halo effect
+- Interactive address selection (keyboard: 1-7, Shift+1-7)
+- Toggle recursion mode (R key)
+
+### Hyperspace Field 8-Cube Series (7 files)
+**Latest development - 8-cube formations with central void**
+
+- `hyperspace-field-8cube-basic.html` - Basic 8-cube 2×2×2 formation
+- `hyperspace-field-8cube-hue-rotation.html` - With psychedelic hue rotation effects
+- `hyperspace-field-8cube-dark-psytrance.html` - Dark psytrance aesthetic with filled faces
+- `hyperspace-field-8cube-cyan-ambient.html` - Cyan ambient filled faces variant
+- `hyperspace-field-8cube-extreme-zoom.html` - Experimental extreme zoom capabilities
+- `hyperspace-field.latest.html` → symlink to `hyperspace-field-8cube-extreme-zoom.html`
+- `hyperspace-field-8cube-task-spec.yaml` - Complete task specification document
+
+**Features:**
+- 8 cubes arranged in 2×2×2 formation around origin (0,0,0)
+- Each cube has 63 subcubes (4×4×4 grid with one corner removed)
+- All cutout corners point INWARD toward center, creating unified central void
+- Psychedelic blacklight aesthetic with fluid color shifts
+- Hue rotation based on viewing angle (blue-violet → cyan → violet spectrum)
+- Mouse-influenced rotation with zoom support (0.3× to 3.0×)
+- Bi-directional hyperspace lanes (1.5× cube spacing variant)
+- Filled face rendering with ambient blue/cyan effects
+- Performance optimized for ~6,000+ edges at 30+ FPS
+
 ---
 
 ## Common Technologies
@@ -181,11 +214,12 @@ This category contains the largest collection of visualizations, exploring:
 ## Version Series Analysis
 
 ### Major Series
-1. **Cubis Space** (13 files) - Most iterations
+1. **Cubic Space Visualization** (13 files) - Most iterations
 2. **Modified Hyperspace** (12 files) - Extensive modifications
-3. **Hyperspace Fixed** (7 files) - Progressive fixes
-4. **Fixed Data-Centric** (4 files) - Data focus
+3. **Hyperspace Field 8-Cube** (7 files) - Latest development
+4. **Hyperspace Fixed** (7 files) - Progressive fixes
 5. **Cubic Space Grid** (7 files) - Grid foundations
+6. **Fixed Data-Centric** (4 files) - Data focus
 
 ### Development Patterns
 - **Iterative refinement:** Most series show progressive enhancement
@@ -251,6 +285,15 @@ grep -r "WebGL\|webgl\|gl\.\" html-form/visualizations/cubic-space/
 ---
 
 **Category:** Visualizations > Cubic Space
-**Total Files:** 51
-**Technologies:** Canvas API, WebGL, 3D Mathematics, Grid Systems
-**Themes:** Cubic Topology, Hyperspace, Data Grids, Dimensional Navigation
+**Total Files:** 58 HTML + 1 YAML + 1 symlink
+**Technologies:** Canvas API, WebGL, 3D Mathematics, Grid Systems, HSL Color Manipulation
+**Themes:** Cubic Topology, Hyperspace, Data Grids, Dimensional Navigation, Psychedelic Effects
+
+---
+
+## Latest Development
+
+**Current Focus:** Hyperspace Field 8-Cube Series
+**Latest Version:** `hyperspace-field.latest.html` → `hyperspace-field-8cube-extreme-zoom.html`
+**Key Innovation:** Central void formation through inward-facing corner cutouts
+**Visual Style:** Psychedelic blacklight aesthetic with dynamic hue rotation
