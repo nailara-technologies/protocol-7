@@ -1,0 +1,294 @@
+# Hyperspace Field: 8-Cube Formation Task Specification
+# For Claude Code CLI execution
+
+project_name: "Hyperspace Field - 8-Cube Formation with Central Void"
+based_on: "Previous hyperspace cube visualizations"
+goal: "Create a clean 8-cube formation in 2×2×2 arrangement with all cutout corners pointing INWARD toward the center, combining to form a large central void with psychedelic blacklight hue rotation effects"
+
+requirements:
+  structure:
+    - Exactly 8 cubes arranged in 2×2×2 formation around origin (0,0,0)
+    - Each cube has 63 subcubes (4×4×4 grid minus one corner subcube)
+    - CRITICAL: Missing corner for each cube points INWARD toward global center (0,0,0)
+    - This creates a combined central void where all 8 cutouts meet
+    - Cube spacing: offset = (cubeSize × 1.2) / 2
+
+  cube_positioning:
+    explanation: |
+      The 8 cubes form vertices of a larger cube.
+      Each cube's missing corner must face the CENTER.
+
+      For each cube, the missing corner is the one CLOSEST to origin (0,0,0).
+
+      Cube at (-offset, -offset, -offset):
+        - Center is at negative X, Y, Z
+        - Corner closest to (0,0,0) is at LOCAL (+halfSize, +halfSize, +halfSize)
+        - This corner should be MISSING
+        - In 4×4×4 subcube grid: position (3, 3, 3) should be missing
+
+      Similar logic for all 8 positions.
+
+    positions_and_missing_corners:
+      - position: [-offset, -offset, -offset]
+        missing_subcube: [3, 3, 3]  # inner corner toward center
+        missing_vertex: 6  # vertex (+X, +Y, +Z) in standard cube
+
+      - position: [+offset, -offset, -offset]
+        missing_subcube: [0, 3, 3]  # inner corner toward center
+        missing_vertex: 7  # vertex (-X, +Y, +Z)
+
+      - position: [-offset, +offset, -offset]
+        missing_subcube: [3, 0, 3]  # inner corner toward center
+        missing_vertex: 5  # vertex (+X, -Y, +Z)
+
+      - position: [+offset, +offset, -offset]
+        missing_subcube: [0, 0, 3]  # inner corner toward center
+        missing_vertex: 4  # vertex (-X, -Y, +Z)
+
+      - position: [-offset, -offset, +offset]
+        missing_subcube: [3, 3, 0]  # inner corner toward center
+        missing_vertex: 2  # vertex (+X, +Y, -Z)
+
+      - position: [+offset, -offset, +offset]
+        missing_subcube: [0, 3, 0]  # inner corner toward center
+        missing_vertex: 3  # vertex (-X, +Y, -Z)
+
+      - position: [-offset, +offset, +offset]
+        missing_subcube: [3, 0, 0]  # inner corner toward center
+        missing_vertex: 1  # vertex (+X, -Y, -Z)
+
+      - position: [+offset, +offset, +offset]
+        missing_subcube: [0, 0, 0]  # inner corner toward center
+        missing_vertex: 0  # vertex (-X, -Y, -Z)
+
+  subcube_generation:
+    logic: |
+      For each parent cube at position (cubeX, cubeY, cubeZ):
+        1. Determine which corner is closest to origin (0,0,0)
+        2. In 4×4×4 grid (indices 0-3 for each axis):
+           - If cubeX < 0, skip subcubes where x = 3 (rightmost)
+           - If cubeX > 0, skip subcubes where x = 0 (leftmost)
+           - If cubeY < 0, skip subcubes where y = 3 (topmost)
+           - If cubeY > 0, skip subcubes where y = 0 (bottommost)
+           - If cubeZ < 0, skip subcubes where z = 3 (backmost)
+           - If cubeZ > 0, skip subcubes where z = 0 (frontmost)
+        3. The single subcube at this position should be skipped
+        4. All other 63 subcubes are created
+
+  outer_cube_edges:
+    approach: "Simplified - draw only existing edges of the 7-vertex structure"
+    steps:
+      - "Standard cube has 8 vertices indexed 0-7"
+      - "Vertex layout: 0=(-X,-Y,-Z), 1=(+X,-Y,-Z), 2=(+X,+Y,-Z), 3=(-X,+Y,-Z), 4=(-X,-Y,+Z), 5=(+X,-Y,+Z), 6=(+X,+Y,+Z), 7=(-X,+Y,+Z)"
+      - "For each cube, identify which vertex is closest to origin (see positions_and_missing_corners)"
+      - "Create vertex array excluding that vertex"
+      - "Filter standard edges to only include edges where both vertices exist"
+      - "Result: clean cube outline with one open corner facing center"
+
+  colors:
+    base_palette:
+      background: "#08030f"
+      # Base colors (before hue rotation)
+      nearColor: "#6080ff"      # blue-violet
+      midColor: "#8060ff"       # violet
+      farColor: "#b050ff"       # magenta-violet
+      blueGlow: "#5080ff"
+      violetGlow: "#a040ff"
+      magentaGlow: "#d040d0"
+      cyanGlow: "#40c0ff"
+
+    hue_rotation:
+      enabled: true
+      description: "Colors shift based on current rotation angles for psychedelic blacklight effect"
+
+      rotation_mapping:
+        - axis: "Y"
+          influence: 0.7
+          description: "Primary hue rotation - smoothly cycles through spectrum as Y rotation changes"
+
+        - axis: "X"
+          influence: 0.4
+          description: "Secondary hue shift - adds subtle variation"
+
+        - axis: "Z"
+          influence: 0.3
+          description: "Tertiary accent - minor color temperature shift"
+
+      calculation: |
+        // Calculate hue shift based on current rotation angles
+        hueShift = (rotY * 0.7 + rotX * 0.4 + rotZ * 0.3) % 360
+
+        // Apply to all colors dynamically
+        adjustedColor = rotateHue(baseColor, hueShift)
+
+      hue_shift_range: [-30, +30]  # degrees from base hue
+      description: |
+        As the structure rotates, colors cycle through the spectrum:
+        - Blue-violet → Cyan → Green-cyan → Blue (and back)
+        - Violet → Magenta → Red-violet → Blue-violet (and back)
+        - Creates fluid, fluorescent blacklight effect
+        - Smooth transitions, never jarring
+
+      implementation_notes:
+        - "Convert hex colors to HSL"
+        - "Adjust hue component based on rotation angles"
+        - "Convert back to RGB/hex for rendering"
+        - "Cache rotated colors per frame to avoid repeated calculations"
+        - "Use smooth modulo for seamless 360° wrapping"
+
+      intensity_modulation:
+        description: "Slight saturation/brightness boost during rotation"
+        saturation_boost: "+5% when rotating fast"
+        brightness_boost: "+3% when rotating fast"
+        speed_threshold: "0.5 degrees per frame"
+
+    color_application:
+      - "Depth-based gradient: near (blue-violet) → mid (violet) → far (magenta)"
+      - "Apply hue rotation on top of base depth gradient"
+      - "Cutout neighbor subcubes: cyan-magenta blend with hue shift"
+      - "Glow colors also shift with rotation angles"
+      - "Enhanced glow (shadowBlur: 8) for cutout neighbor edges"
+      - "Standard glow (shadowBlur: 5-6) for regular edges"
+
+    psychedelic_enhancements:
+      - "Hue rotation creates 'breathing' color effect as structure spins"
+      - "Colors appear to pulse and shift like under blacklight"
+      - "Maintain high saturation (80-95%) for fluorescent appearance"
+      - "Keep brightness in 50-70% range for that 'glowing in darkness' feel"
+      - "Avoid pure white or pure black - always tinted"
+
+  interaction:
+    - "Mouse drag when paused: rotate structure"
+    - "Mouse wheel: zoom (30% - 300%)"
+    - "Play: continuous rotation with mouse-position influence"
+    - "Pause: freeze for manual rotation (hue rotation continues based on final angle)"
+    - "Reset: return to initial rotation (15°, 15°, 0°) and zoom (100%)"
+
+  performance:
+    - "Target: ≥30 FPS on mid-tier hardware (Intel Iris Xe, M1 MacBook)"
+    - "8 cubes × 63 subcubes × 12 edges = ~6,048 subcube edges"
+    - "8 cubes × ~9 outer edges = ~72 outer edges"
+    - "Total: ~6,120 edges (within performance budget)"
+    - "Hue rotation: calculate once per frame, cache results"
+    - "Use HSL manipulation for efficiency"
+    - "Minimize shadowBlur calls where possible"
+    - "Background grid: very subtle, low opacity"
+
+  visual_quality:
+    - "Central void must be clearly visible when viewed from multiple angles"
+    - "All 8 missing corners point inward, creating unified central void"
+    - "Void appears as a darker region where 8 cutouts converge"
+    - "Psychedelic blacklight aesthetic with fluid color shifts"
+    - "Colors appear to breathe and pulse with rotation"
+    - "Fluorescent appearance - highly saturated, glowing edges"
+    - "Cutout neighbors highlighted with shifting cyan-magenta-violet spectrum"
+    - "Smooth depth gradient shifts through spectrum as structure rotates"
+    - "Dark vignette around viewport edges"
+
+technical_specs:
+  canvas: "Full viewport, 2D context with alpha: false"
+  projection: "Perspective projection, focal length: 500"
+  rotation: "3-axis rotation (X, Y, Z) with mouse influence on drag and auto-rotation"
+  base_cube_size: 140
+  field_spacing: "cubeSize × 1.2"
+  subcube_count_per_cube: 63
+  total_subcubes: 504
+  total_cubes: 8
+
+  color_utilities:
+    required_functions:
+      - "hexToHSL(hexColor) - convert hex to HSL"
+      - "hslToHex(h, s, l) - convert HSL back to hex"
+      - "rotateHue(baseColor, degrees) - apply hue rotation"
+      - "blendColors(color1, color2, ratio) - existing function"
+
+    example_implementation: |
+      function rotateHue(hexColor, hueShift) {
+        const hsl = hexToHSL(hexColor);
+        hsl.h = (hsl.h + hueShift) % 360;
+        if (hsl.h < 0) hsl.h += 360;
+        return hslToHex(hsl.h, hsl.s, hsl.l);
+      }
+
+output_format:
+  - "Single self-contained HTML file"
+  - "All CSS and JavaScript inline"
+  - "No external dependencies"
+  - "No localStorage or external APIs"
+  - "Modern browser compatible (Chrome, Firefox, Safari)"
+  - "Clean, commented code"
+
+validation:
+  must_have:
+    - "Opens without console errors"
+    - "8 cubes visible in 2×2×2 formation"
+    - "All missing corners point INWARD toward center"
+    - "Central void visible and prominent"
+    - "Smooth rotation and zoom"
+    - "Colors shift smoothly as structure rotates"
+    - "No erroneous edge lines connecting across voids"
+    - "Clean edge geometry on outer cubes"
+    - "Cutout neighbors highlighted distinctly"
+    - "Psychedelic blacklight color effect clearly visible"
+
+  visual_test:
+    - "Rotate to view down X axis: should see 4 cubes with inward-facing voids"
+    - "Rotate to view down Y axis: should see 4 cubes with inward-facing voids"
+    - "Rotate to view down Z axis: should see 4 cubes with inward-facing voids"
+    - "View at 45° angles: should see central void where all cutouts meet"
+    - "Zoom in: central void becomes more prominent"
+    - "Colors should visibly shift as rotation changes"
+    - "Blue-violet → cyan → blue spectrum cycling"
+    - "Fluorescent glow effect maintained throughout"
+    - "Hue shifts smooth, not jarring"
+
+critical_requirement:
+  title: "INWARD-FACING CUTOUTS FOR CENTRAL VOID"
+  explanation: |
+    The entire point of this visualization is that the 8 missing corners
+    combine to create a LARGER central void. This only works if all cutouts
+    point INWARD toward the center.
+
+    Think of it like 8 people standing in a circle, each taking a step
+    backward - they create a larger empty space in the middle.
+
+    If cutouts pointed outward, they would just be 8 separate voids with
+    no connection - defeating the "hyperspace corridor" concept.
+
+    The combined central void should be approximately:
+      - Size: ~(cubeSize/4) × 2 = cubeSize/2 in each dimension
+      - This creates a substantial "hole in space" at the origin
+
+implementation_hints:
+  - "Use Math.sign() to determine which direction is toward center for each cube position"
+  - "For cube at position (x, y, z), the vertex closest to (0,0,0) has signs: (-sign(x), -sign(y), -sign(z))"
+  - "In 4×4×4 grid, subcube (0,0,0) is at corner (-X,-Y,-Z), subcube (3,3,3) is at corner (+X,+Y,+Z)"
+  - "Cutout neighbors: the 3 subcubes that share a face with the missing subcube"
+  - "Calculate hue shift once per frame at start of draw() function"
+  - "Apply hue rotation to all base colors before using them"
+  - "Consider caching rotated colors in frame-level variables"
+
+psychedelic_style_notes:
+  inspiration: "1960s-70s blacklight posters, psychedelic trance visuals, UV-reactive art"
+  key_characteristics:
+    - "High saturation colors (80-95%)"
+    - "Fluid color transitions"
+    - "Glowing neon edges"
+    - "Dark background for contrast"
+    - "Colors that 'breathe' and pulse"
+    - "Violet/magenta dominance with cyan accents"
+    - "Appearance of depth through color alone"
+
+  color_psychology:
+    - "Blue-violet: mysterious, dimensional"
+    - "Cyan: energy, portals"
+    - "Magenta: otherworldly, transcendent"
+    - "Transitions create sense of movement through hyperspace"
+
+notes:
+  - "This creates a 'hyperspatial nexus' where all 8 dimensional corridors meet"
+  - "Hue rotation adds temporal dimension to the visualization"
+  - "Colors shift as if viewing through a rotating dimensional lens"
+  - "With more cubes, could create a lattice field effect, but need better performance first"
+  - "Current design prioritizes clear visualization of the central void concept"
+  - "Psychedelic effects enhance the 'otherworldly portal' aesthetic"
