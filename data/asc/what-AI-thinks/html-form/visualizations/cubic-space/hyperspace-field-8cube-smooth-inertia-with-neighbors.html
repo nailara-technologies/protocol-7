@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hyperspace Field - 8-Cube Formation with Central Void</title>
+    <style>
+        body {
+            background-color: #0c0518;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: monospace;
+            color: #a0c0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: default;
+        }
+
+        canvas.paused {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 15px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background-color: rgba(15, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #2050c0;
+            box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+        }
+
+        button:hover {
+            background-color: rgba(20, 10, 50, 0.7);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(12, 5, 24, 0.7);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            max-width: 300px;
+            z-index: 100;
+        }
+
+        .info-panel h3 {
+            margin-top: 0;
+            color: #b0c0ff;
+        }
+
+        .info-panel p {
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+
+        .info-panel p.dimmed {
+            opacity: 0.3;
+            color: #505070;
+        }
+
+        /* Medium brightness for modifier key names in dimmed controls */
+        /* This highlights which keys to press for discoverability */
+        .info-panel p.dimmed .meta-key {
+            opacity: 1;
+            color: #7080b0;
+            font-weight: bold;
+        }
+
+        button:disabled,
+        button.dimmed {
+            opacity: 0.3;
+            color: #505070;
+            cursor: not-allowed;
+            box-shadow: 0 0 5px rgba(20, 0, 60, 0.2);
+        }
+
+        button:disabled:hover,
+        button.dimmed:hover {
+            background-color: rgba(15, 5, 30, 0.7);
+            box-shadow: 0 0 5px rgba(20, 0, 60, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mainCanvas"></canvas>
+
+    <div class="controls">
+        <button id="playBtn">Rotate</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <div class="info-panel">
+        <h3>Hyperspace Field</h3>
+        <p style="font-size: 12px; color: #8090d0;">Critically damped inertia + coupled parameters</p>
+        <p><strong>Mouse Controls:</strong></p>
+        <p id="ctrl-drag">• Drag: <strong>rotate object</strong> (cube spins in place)</p>
+        <p id="ctrl-ctrl-drag">• <span class="meta-key">Ctrl</span>+drag: rotate camera (FPS view)</p>
+        <p id="ctrl-shift-drag">• <span class="meta-key">Shift</span>+drag: pan (cube 1st-axis)</p>
+        <p id="ctrl-altshift-drag">• <span class="meta-key">Alt</span>+<span class="meta-key">Shift</span>+drag: pan (cube 2nd-axis)</p>
+        <p id="ctrl-ctrlshift-drag">• <span class="meta-key">Ctrl</span>+<span class="meta-key">Shift</span>+drag: pan (cube 3rd-axis)</p>
+        <p><strong>Wheel Controls:</strong></p>
+        <p id="ctrl-wheel">• Wheel: move forward/backward</p>
+        <p id="ctrl-alt-wheel">• <span class="meta-key">Alt</span>+wheel: move up/down</p>
+        <p id="ctrl-ctrl-wheel">• <span class="meta-key">Ctrl</span>+wheel: zoom</p>
+        <p id="ctrl-shift-wheel">• <span class="meta-key">Shift</span>+wheel: perspective (focal)</p>
+        <p id="ctrl-shiftctrl-wheel">• <span class="meta-key">Shift</span>+<span class="meta-key">Ctrl</span>+wheel: cube Z-axis (depth)</p>
+        <p><strong>Keyboard:</strong></p>
+        <p>• <span class="meta-key">D</span>: toggle damping (smooth/bouncy)</p>
+        <p>• <span class="meta-key">Ctrl</span>+Arrows: 90° grid-aligned turns</p>
+        <p>• <span class="meta-key">Ctrl</span>+<span class="meta-key">Q</span>/<span class="meta-key">E</span>: 90° roll (Z-axis)</p>
+        <p style="font-size: 11px; color: #7080c0;">Pure navigation: no rotation coupling. Scale/focal adapt automatically.</p>
+        <p>Zoom: <span id="zoomLevel">100%</span></p>
+        <p>Focal: <span id="focalDisplay">500</span></p>
+        <p>Position: <span id="depthDisplay">0</span>, <span id="heightDisplay">0</span></p>
+        <p>FPS: <span id="fpsDisplay">--</span> (Blur: <span id="blurDisplay">100%</span>)</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            const gridSize = 25;
+            const gridSpacing = 60;
+
+            // Constants for limits and speeds
+            const minZoom = 0.074923;
+            const maxZoom = 63.0;
+            const zoomSpeed = 0.24;
+            const minFocalLength = 100;
+            const maxFocalLength = 2000;
+            const focalSpeed = 20;
+            const minCameraPos = -3000;
+            const maxCameraPos = 3000;
+            const cameraSpeed = 15;
+
+            // State management with inertia-based smooth transitions
+            // Separates "intended changes" (target) from "applied changes" (current)
+            // This provides smooth acceleration/deceleration and allows both user and network to influence state
+            const state = {
+                // Current state (what's actually rendered)
+                current: {
+                    objectRotX: 0,  // Grid-aligned starting position
+                    objectRotY: 0,  // Grid-aligned starting position
+                    objectRotZ: 0,  // Grid-aligned starting position
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.18,  // Better starting zoom - in between min and comfortable viewing
+                    focalLength: 500
+                },
+
+                // Target state (intended changes from user/network/animation)
+                target: {
+                    objectRotX: 0,  // Grid-aligned starting position
+                    objectRotY: 0,  // Grid-aligned starting position
+                    objectRotZ: 0,  // Grid-aligned starting position
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.18,  // Better starting zoom - in between min and comfortable viewing
+                    focalLength: 500
+                },
+
+                // Velocity for each property (provides inertia/momentum)
+                velocity: {
+                    objectRotX: 0,
+                    objectRotY: 0,
+                    objectRotZ: 0,
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0,
+                    focalLength: 0
+                },
+
+                // Smoothing parameters (tune these for different feel)
+                smoothing: 0.25,      // Acceleration towards target (0-1, higher = faster response)
+                friction: 0.65,       // Velocity damping (0-1, lower = more damping/slower)
+
+                // Damping mode: 'critical' (smooth stop) or 'spring' (bouncy, for space jumps)
+                dampingMode: 'critical'
+            };
+
+            // Compatibility aliases for legacy code (gradually migrate away from these)
+            let objectRotX = state.current.objectRotX;
+            let objectRotY = state.current.objectRotY;
+            let objectRotZ = state.current.objectRotZ;
+            let cameraRotX = state.current.cameraRotX;
+            let cameraRotY = state.current.cameraRotY;
+            let cameraRotZ = state.current.cameraRotZ;
+            let cameraX = state.current.cameraX;
+            let cameraY = state.current.cameraY;
+            let cameraZ = state.current.cameraZ;
+            let zoomLevel = state.current.zoomLevel;
+            let focalLength = state.current.focalLength;
+
+            // Parent cube alignment - stable grid reference that only remembers 90° increments
+            // Uses 45° threshold for switching to prevent drift and maintain true grid alignment
+            // This provides a reference frame for sustainable grid-aligned navigation
+            let parentAlignmentX = 0;  // Grid-aligned rotation (0°, 90°, 180°, 270°)
+            let parentAlignmentY = 0;
+            let parentAlignmentZ = 0;
+
+            // Calculate parent-aligned angle (snaps to 90° increments with 45° threshold)
+            function getParentAlignment(angle) {
+                // Normalize angle to 0-360
+                let normalized = angle % 360;
+                if (normalized < 0) normalized += 360;
+
+                // Round to nearest 90° using 45° threshold
+                // 0-44° → 0°, 45-134° → 90°, 135-224° → 180°, 225-314° → 270°, 315-360° → 0°
+                return Math.round(normalized / 90) * 90 % 360;
+            }
+
+            // Update parent alignments based on current rotation
+            function updateParentAlignments() {
+                parentAlignmentX = getParentAlignment(state.current.objectRotX);
+                parentAlignmentY = getParentAlignment(state.current.objectRotY);
+                parentAlignmentZ = getParentAlignment(state.current.objectRotZ);
+            }
+
+            // Coupled parameter adjustments - when one value changes, related values adjust subtly
+            // This creates more intuitive, organic navigation while maintaining distinct control
+            // Strength values are 5-10% of primary change for subtle, natural feel
+            // Can be disabled for precise control by holding Alt+Shift
+            function applyCoupledAdjustments(primaryKey, primaryDelta, enableCoupling = true) {
+                // Skip if coupling is disabled (for precise, uncoupled control)
+                if (!enableCoupling) return;
+                // Define coupling relationships: { primary: { secondary: strength } }
+                // Positive strength = same direction, negative = opposite direction
+                const couplings = {
+                    // Zoom couples with focal length - zooming in increases perspective drama
+                    'zoomLevel': {
+                        'focalLength': 50 * Math.sign(primaryDelta) * 0.08  // Zoom in = more focal length
+                    },
+
+                    // Forward/back movement - NO coupling, let distance-relative scaling handle it
+                    // Removed cameraZ → zoomLevel coupling - was fighting with scale-adaptive physics
+                    //'cameraZ': {
+                    //    'zoomLevel': -primaryDelta * 0.00015
+                    //},
+
+                    // Removed panning→rotation couplings - keep panning pure for predictable navigation
+
+                    // Removed object↔camera rotation couplings - were causing unexpected interactions
+                    // Keep rotation controls pure and predictable
+
+                    // Focal length couples with zoom for coordinated perspective changes
+                    'focalLength': {
+                        'zoomLevel': primaryDelta * 0.0003     // Increase focal = slight zoom
+                    }
+                };
+
+                if (couplings[primaryKey]) {
+                    for (let secondaryKey in couplings[primaryKey]) {
+                        const adjustment = couplings[primaryKey][secondaryKey];
+                        state.target[secondaryKey] += adjustment;
+
+                        // Apply bounds to coupled adjustments
+                        if (secondaryKey === 'zoomLevel') {
+                            state.target.zoomLevel = Math.max(minZoom, Math.min(maxZoom, state.target.zoomLevel));
+                        } else if (secondaryKey === 'focalLength') {
+                            state.target.focalLength = Math.max(minFocalLength, Math.min(maxFocalLength, state.target.focalLength));
+                        } else if (secondaryKey.startsWith('camera') && !secondaryKey.includes('Rot')) {
+                            state.target[secondaryKey] = Math.max(minCameraPos, Math.min(maxCameraPos, state.target[secondaryKey]));
+                        }
+                        // Rotate values wrap naturally, no bounds needed
+                    }
+                }
+            }
+
+            // Dynamic change implementation with inertia
+            // This function buffers the difference between intended and applied changes
+            // and smoothly applies remaining changes with natural acceleration/deceleration
+            function applyChanges() {
+                for (let key in state.current) {
+                    // For rotation angles, normalize both target and current FIRST to 0-360 range
+                    // This ensures they're in the same coordinate system before calculating diff
+                    if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                        key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                        // Normalize target to 0-360
+                        let normalizedTarget = state.target[key] % 360;
+                        if (normalizedTarget < 0) normalizedTarget += 360;
+                        state.target[key] = normalizedTarget;
+
+                        // Normalize current to 0-360
+                        let normalizedCurrent = state.current[key] % 360;
+                        if (normalizedCurrent < 0) normalizedCurrent += 360;
+                        state.current[key] = normalizedCurrent;
+                    }
+
+                    // Calculate difference between target and current (the "intent gap")
+                    // For rotation angles, use shortest angular path to prevent "rewinding"
+                    let diff = state.target[key] - state.current[key];
+
+                    // Angular difference for rotation properties (take shortest path around circle)
+                    if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                        key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                        // Normalize difference to -180 to +180 range for shortest path
+                        while (diff > 180) diff -= 360;
+                        while (diff < -180) diff += 360;
+                    }
+
+                    if (state.dampingMode === 'critical') {
+                        // Critical damping: smooth deceleration without overshoot or back-swing
+
+                        // SCALE-ADAPTIVE THRESHOLDS
+                        // Calculate effective scale from zoom level for adaptive damping
+                        const zoomScaling = 1.0 / Math.max(0.1, state.current.zoomLevel);
+                        const scaleAdaptiveFactor = Math.min(10, Math.max(1, zoomScaling * 0.5)); // Range: 1x to 10x
+
+                        // FOCAL-ADAPTIVE DAMPING
+                        // Zoomed in (high focal) = tighter control, less inertia
+                        // Zoomed out (low focal) = more momentum, smoother flow
+                        const focalNormalized = (state.current.focalLength - minFocalLength) / (maxFocalLength - minFocalLength);
+                        const focalFactor = 0.7 + focalNormalized * 0.3; // Range: 0.7 (zoomed out) to 1.0 (zoomed in)
+
+                        // DIRECTION REVERSAL DETECTION (for continuous movement like panning)
+                        // If velocity opposes the direction we need to go, kill it aggressively
+                        const velocitySign = Math.sign(state.velocity[key]);
+                        const diffSign = Math.sign(diff);
+
+                        if (velocitySign !== 0 && diffSign !== 0 && velocitySign !== diffSign) {
+                            // Direction reversal! Old momentum opposes new direction
+                            // More aggressive cancellation when zoomed in (need precision)
+                            const reversalDamping = 0.05 + (1.0 - focalFactor) * 0.15; // 0.05 to 0.2
+                            state.velocity[key] *= reversalDamping;
+                        }
+
+                        // Scale-adaptive acceleration: reduce smoothing when zoomed out to prevent over-acceleration
+                        // When steps are huge (zoomed out), we need gentler acceleration
+                        const adaptiveSmoothing = state.smoothing / Math.sqrt(scaleAdaptiveFactor);
+                        state.velocity[key] += diff * adaptiveSmoothing;
+
+                        // Apply focal-adaptive friction
+                        // More friction when zoomed in for tighter control
+                        const adaptiveFriction = state.friction * focalFactor;
+                        state.velocity[key] *= adaptiveFriction;
+
+                        // Aggressive overshoot prevention: check if we're approaching target
+                        const nextPos = state.current[key] + state.velocity[key];
+                        const nextDiff = state.target[key] - nextPos;
+
+                        // Scale-adaptive threshold for overshoot detection
+                        const overshootThreshold = 0.001 * scaleAdaptiveFactor;
+                        if (Math.sign(diff) !== Math.sign(nextDiff) && Math.abs(diff) > overshootThreshold) {
+                            // Clamp velocity to exactly reach target
+                            state.velocity[key] = diff * 0.5;  // More conservative approach
+                        }
+
+                        // Extra damping when very close to prevent back-swing
+                        // Scale threshold with zoom level (larger threshold when zoomed out)
+                        const closenessThreshold = 1.0 * scaleAdaptiveFactor;
+                        if (Math.abs(diff) < closenessThreshold) {
+                            state.velocity[key] *= 0.5;  // Heavy damping near target
+                        }
+
+                        // Apply velocity to current position
+                        state.current[key] += state.velocity[key];
+
+                        // Normalize rotation angles to 0-360 range to prevent wrapping issues
+                        if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                            key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                            let normalized = state.current[key] % 360;
+                            if (normalized < 0) normalized += 360;
+                            state.current[key] = normalized;
+                        }
+
+                        // Earlier snap to target (scale threshold with zoom level)
+                        const snapDistanceThreshold = 0.1 * scaleAdaptiveFactor;
+                        const snapVelocityThreshold = 0.05 * scaleAdaptiveFactor;
+                        if (Math.abs(diff) < snapDistanceThreshold && Math.abs(state.velocity[key]) < snapVelocityThreshold) {
+                            // Snap to target and normalize rotation angles
+                            state.current[key] = state.target[key];
+                            if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                                key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                                let normalized = state.current[key] % 360;
+                                if (normalized < 0) normalized += 360;
+                                state.current[key] = normalized;
+                            }
+                            state.velocity[key] = 0;
+                        }
+                    } else if (state.dampingMode === 'spring') {
+                        // Spring damping: bouncy, oscillating motion (for space jumps, etc.)
+                        // Lower friction allows oscillation
+                        const springSmoothing = 0.15;
+                        const springFriction = 0.88;
+
+                        state.velocity[key] += diff * springSmoothing;
+                        state.velocity[key] *= springFriction;
+                        state.current[key] += state.velocity[key];
+
+                        // Magnetic attraction to parent alignment for rotation angles
+                        // Provides sustainable grid alignment in bounce mode
+                        if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ') {
+                            const parentAlignment = getParentAlignment(state.current[key]);
+                            let distToParent = parentAlignment - state.current[key];
+
+                            // Shortest path to parent alignment
+                            while (distToParent > 180) distToParent -= 360;
+                            while (distToParent < -180) distToParent += 360;
+
+                            // Magnetic pull strength increases near grid alignment (within 10°)
+                            const distAbs = Math.abs(distToParent);
+                            if (distAbs < 10) {
+                                // Stronger pull when close, gentler when far
+                                const magneticStrength = 0.15 * (1 - distAbs / 10); // 0.15 at 0°, 0.0 at 10°
+                                state.velocity[key] += distToParent * magneticStrength;
+                            }
+                        }
+
+                        // Normalize rotation angles to 0-360 range to prevent wrapping issues
+                        if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                            key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                            let normalized = state.current[key] % 360;
+                            if (normalized < 0) normalized += 360;
+                            state.current[key] = normalized;
+                        }
+
+                        // Only snap when very close
+                        if (Math.abs(diff) < 0.001 && Math.abs(state.velocity[key]) < 0.001) {
+                            // Snap to target and normalize rotation angles
+                            state.current[key] = state.target[key];
+                            if (key === 'objectRotX' || key === 'objectRotY' || key === 'objectRotZ' ||
+                                key === 'cameraRotX' || key === 'cameraRotY' || key === 'cameraRotZ') {
+                                let normalized = state.current[key] % 360;
+                                if (normalized < 0) normalized += 360;
+                                state.current[key] = normalized;
+                            }
+                            state.velocity[key] = 0;
+                        }
+                    }
+                }
+
+                // Update legacy variable aliases
+                objectRotX = state.current.objectRotX;
+                objectRotY = state.current.objectRotY;
+                objectRotZ = state.current.objectRotZ;
+                cameraRotX = state.current.cameraRotX;
+                cameraRotY = state.current.cameraRotY;
+                cameraRotZ = state.current.cameraRotZ;
+                cameraX = state.current.cameraX;
+                cameraY = state.current.cameraY;
+                cameraZ = state.current.cameraZ;
+                zoomLevel = state.current.zoomLevel;
+                focalLength = state.current.focalLength;
+            }
+
+            // Field configuration - 8 cubes in 2x2x2 formation
+            const currentScale = 10;
+            const baseCubeSize = 140;
+            let cubeSize = baseCubeSize * (1 + Math.log10(currentScale) * 0.5);
+            const fieldSpacing = cubeSize * 1.5;  // 2 subcube widths for bi-directional hyperspace lanes
+
+            const cubeColors = {
+                // Dark psytrance blacklight aesthetic - subdued violet/blue
+                primaryEdge: '#4050a0',
+                outerCube: '#5060b0',
+                innerCube: '#1507C0',
+                cutoutEdge: '#6070c0',
+
+                // Depth gradient: dark blue-violet spectrum (no pink/magenta)
+                nearColor: '#4050C0',      // Close: dark blue-violet
+                midColor: '#5060b0',       // Mid: violet-blue
+                farColor: '#6070c0',       // Far: brighter violet-blue
+
+                // Subdued blacklight glow colors (psytrance party atmosphere)
+                blueGlow: '#0101FF',       // Deep blue glow
+                violetGlow: '#5060E2',     // Subdued violet halo
+                magentaGlow: '#4270E4',    // Blue-violet accent (no pink)
+                cyanGlow: '#400bc0',       // Cyan-blue highlight
+
+                // Environment (dynamic with hue rotation)
+                background: '#10050F',
+                gridColor: '#6050C0',      // Violet-blue grid (rotates with hue)
+                vignetteColor: '#300060'   // Deep violet vignette (rotates with hue, zoom-responsive)
+            };
+
+            function blendColors(color1, color2, ratio) {
+                const r1 = parseInt(color1.slice(1, 3), 16);
+                const g1 = parseInt(color1.slice(3, 5), 16);
+                const b1 = parseInt(color1.slice(5, 7), 16);
+                const r2 = parseInt(color2.slice(1, 3), 16);
+                const g2 = parseInt(color2.slice(3, 5), 16);
+                const b2 = parseInt(color2.slice(5, 7), 16);
+                const r = Math.round(r1 * (1 - ratio) + r2 * ratio);
+                const g = Math.round(g1 * (1 - ratio) + g2 * ratio);
+                const b = Math.round(b1 * (1 - ratio) + b2 * ratio);
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+
+            // Convert hex color to HSL
+            function hexToHSL(hex) {
+                const r = parseInt(hex.slice(1, 3), 16) / 255;
+                const g = parseInt(hex.slice(3, 5), 16) / 255;
+                const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                const l = (max + min) / 2;
+
+                if (max === min) {
+                    return { h: 0, s: 0, l: l };
+                }
+
+                const d = max - min;
+                const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+                let h;
+                if (max === r) {
+                    h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                } else if (max === g) {
+                    h = ((b - r) / d + 2) / 6;
+                } else {
+                    h = ((r - g) / d + 4) / 6;
+                }
+
+                return { h: h * 360, s: s, l: l };
+            }
+
+            // Convert HSL to hex color
+            function hslToHex(h, s, l) {
+                h = h / 360;
+
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+
+                let r, g, b;
+                if (s === 0) {
+                    r = g = b = l;
+                } else {
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+
+                const toHex = x => {
+                    const hex = Math.round(x * 255).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+
+                return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+            }
+
+            // Rotate hue of a color by specified degrees
+            function rotateHue(hexColor, hueShift, satBoost = 0, brightBoost = 0) {
+                const hsl = hexToHSL(hexColor);
+                hsl.h = (hsl.h + hueShift) % 360;
+                if (hsl.h < 0) hsl.h += 360;
+
+                // Apply optional saturation and brightness boosts
+                const s = Math.min(1, hsl.s + satBoost);
+                const l = Math.min(1, hsl.l + brightBoost);
+
+                return hslToHex(hsl.h, s, l);
+            }
+
+            let isRotating = false;
+            let lastTimestamp = 0;
+            let animationFrameId = null;
+
+            // Track previous rotation angles for speed calculation (for color effects)
+            let prevRotX = objectRotX;
+            let prevRotY = objectRotY;
+            let prevRotZ = objectRotZ;
+
+            // Cache for rotated colors (updated each frame)
+            let rotatedColors = {};
+
+            // Performance monitoring for adaptive shadowBlur
+            let fpsHistory = [];
+            const fpsHistorySize = 30; // Track last 30 frames for smoothing
+            let currentFPS = 60;
+            let blurMultiplier = 1.0; // Adaptive shadowBlur scaling factor (0.0 to 1.0)
+            let targetBlurMultiplier = 1.0; // Target blur (calculated from FPS)
+            let lastDrawTimestamp = 0; // Track last draw call for FPS calculation
+            let frameCount = 0; // Count frames for periodic display updates
+            const blurSmoothingFactor = 0.02; // How fast blur adapts (lower = smoother, less oscillation)
+            const minBlurChange = 0.005; // Minimum change threshold to prevent micro-oscillations
+
+            // Configurable blur ranges for each element category
+            // Format: { min: low-performance blur, max: high-performance blur }
+            // When FPS < 20: uses 'min' value (0.0 = no blur)
+            // When FPS >= 30: uses 'max' value (configurable per category)
+            // Between 20-30 FPS: interpolates smoothly with hysteresis
+            //
+            // Tune these values to balance performance vs visual quality:
+            // - Lower max values = better performance, less glow
+            // - Higher max values = more visual impact, may reduce FPS
+            const blurConfig = {
+                subcubeNormal: { min: 0.0, max: 0.3 },      // Regular subcube edges (504 cubes × 12 edges = ~6K edges)
+                subcubeCutout: { min: 0.0, max: 0.5 },      // Cutout neighbor edges (more prominent, fewer in count)
+                outerEdges: { min: 0.0, max: 0.4 },         // Outer cube frame edges (8 cubes × ~15 edges = ~120 edges)
+                neighborCubes: { min: 0.0, max: 0.6 }       // Neighboring cubes (6 cubes × 12 edges = 72 edges, more glow for depth)
+            };
+
+            // Helper function to scale blur multiplier to configured range
+            function getScaledBlur(category) {
+                const config = blurConfig[category];
+                return config.min + (config.max - config.min) * blurMultiplier;
+            }
+
+            let mouseX = centerX;
+            let mouseY = centerY;
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let dragStartRotX = 0;
+            let dragStartRotY = 0;
+            let dragStartRotZ = 0;
+            let dragStartCameraX = 0;
+            let dragStartCameraY = 0;
+            let dragStartCameraZ = 0;
+            let dragMode = 'camera'; // 'camera', 'object', 'pan', 'pan-screen', or 'pan-third'
+            let currentLockedAxis = null; // Tracks which axis is currently locked for panning ('X', 'Y', or 'Z')
+            let currentLockedAxisSecond = null; // For Alt+Shift+drag second-axis mode
+            let currentLockedAxisThird = null; // For Ctrl+Shift+drag third-axis mode (unreachable axis)
+
+            // Modifier key state tracking for UI updates
+            let modifierKeys = {
+                shift: false,
+                ctrl: false,
+                alt: false
+            };
+
+            // Update UI to reflect available/unavailable controls based on modifier keys
+            function updateControlsUI() {
+                const shift = modifierKeys.shift;
+                const ctrl = modifierKeys.ctrl;
+                const alt = modifierKeys.alt;
+
+                // Drag controls
+                document.getElementById('ctrl-drag').classList.toggle('dimmed', shift || ctrl || alt);
+                document.getElementById('ctrl-ctrl-drag').classList.toggle('dimmed', !ctrl || shift || alt || (ctrl && shift));
+                document.getElementById('ctrl-shift-drag').classList.toggle('dimmed', !shift || (shift && alt) || (shift && ctrl));
+                document.getElementById('ctrl-altshift-drag').classList.toggle('dimmed', !(alt && shift) || ctrl);
+                document.getElementById('ctrl-ctrlshift-drag').classList.toggle('dimmed', !(ctrl && shift) || alt);
+
+                // Wheel controls
+                document.getElementById('ctrl-wheel').classList.toggle('dimmed', shift || ctrl || alt);
+                document.getElementById('ctrl-alt-wheel').classList.toggle('dimmed', !alt || shift || ctrl);
+                document.getElementById('ctrl-ctrl-wheel').classList.toggle('dimmed', !ctrl || shift || (ctrl && shift));
+                document.getElementById('ctrl-shift-wheel').classList.toggle('dimmed', !shift || (shift && ctrl) || alt);
+                document.getElementById('ctrl-shiftctrl-wheel').classList.toggle('dimmed', !(shift && ctrl) || alt);
+
+                // Update button states based on animation
+                const playBtn = document.getElementById('playBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+
+                if (isRotating) {
+                    playBtn.classList.add('dimmed');
+                    pauseBtn.classList.remove('dimmed');
+                } else {
+                    playBtn.classList.remove('dimmed');
+                    pauseBtn.classList.add('dimmed');
+                }
+            }
+
+            // Track modifier keys
+            document.addEventListener('keydown', (e) => {
+                let changed = false;
+                if (e.key === 'Shift' && !modifierKeys.shift) {
+                    modifierKeys.shift = true;
+                    changed = true;
+                }
+                if ((e.key === 'Control' || e.key === 'Meta') && !modifierKeys.ctrl) {
+                    modifierKeys.ctrl = true;
+                    changed = true;
+                }
+                if (e.key === 'Alt' && !modifierKeys.alt) {
+                    modifierKeys.alt = true;
+                    changed = true;
+                }
+                if (changed) updateControlsUI();
+            });
+
+            document.addEventListener('keyup', (e) => {
+                let changed = false;
+                if (e.key === 'Shift' && modifierKeys.shift) {
+                    modifierKeys.shift = false;
+                    changed = true;
+                }
+                if ((e.key === 'Control' || e.key === 'Meta') && modifierKeys.ctrl) {
+                    modifierKeys.ctrl = false;
+                    changed = true;
+                }
+                if (e.key === 'Alt' && modifierKeys.alt) {
+                    modifierKeys.alt = false;
+                    changed = true;
+                }
+                if (changed) updateControlsUI();
+            });
+
+            // Update UI on window blur (clear modifier states)
+            window.addEventListener('blur', () => {
+                modifierKeys.shift = false;
+                modifierKeys.ctrl = false;
+                modifierKeys.alt = false;
+                updateControlsUI();
+            });
+
+            function createGridLines() {
+                const lines = [];
+                const halfSize = (gridSize * gridSpacing) / 2;
+                for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x: -halfSize, y, z },
+                            end: { x: halfSize, y, z }
+                        });
+                    }
+                }
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let z = -halfSize; z <= halfSize; z += gridSpacing) {
+                        lines.push({
+                            start: { x, y: -halfSize, z },
+                            end: { x, y: halfSize, z }
+                        });
+                    }
+                }
+                for (let x = -halfSize; x <= halfSize; x += gridSpacing) {
+                    for (let y = -halfSize; y <= halfSize; y += gridSpacing) {
+                        lines.push({
+                            start: { x, y, z: -halfSize },
+                            end: { x, y, z: halfSize }
+                        });
+                    }
+                }
+                return lines;
+            }
+
+            const gridLines = createGridLines();
+
+            function createCube(size) {
+                const halfSize = size / 2;
+                const vertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize },
+                    { x: halfSize, y: -halfSize, z: -halfSize },
+                    { x: halfSize, y: halfSize, z: -halfSize },
+                    { x: -halfSize, y: halfSize, z: -halfSize },
+                    { x: -halfSize, y: -halfSize, z: halfSize },
+                    { x: halfSize, y: -halfSize, z: halfSize },
+                    { x: halfSize, y: halfSize, z: halfSize },
+                    { x: -halfSize, y: halfSize, z: halfSize }
+                ];
+                const edges = [
+                    { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 }, { from: 3, to: 0 },
+                    { from: 4, to: 5 }, { from: 5, to: 6 }, { from: 6, to: 7 }, { from: 7, to: 4 },
+                    { from: 0, to: 4 }, { from: 1, to: 5 }, { from: 2, to: 6 }, { from: 3, to: 7 }
+                ];
+                return { vertices, edges };
+            }
+
+            // Create subcubes with correct orientation for each position in 2x2x2 grid
+            function createSubCubes(parentSize, parentPosition, cubeIndex) {
+                const result = [];
+                const subSize = parentSize / 4;
+
+                // Determine which corner should be missing based on cube position
+                // Each cube's missing corner should point toward the center (0,0,0)
+                // This is the corner that is CLOSEST to the origin in the 2x2x2 formation
+                const missingCorner = [
+                    { x: 3, y: 3, z: 3 },  // 0: cube at (-,-,-) -> missing at (+,+,+) local corner
+                    { x: 0, y: 3, z: 3 },  // 1: cube at (+,-,-) -> missing at (-,+,+) local corner
+                    { x: 3, y: 0, z: 3 },  // 2: cube at (-,+,-) -> missing at (+,-,+) local corner
+                    { x: 0, y: 0, z: 3 },  // 3: cube at (+,+,-) -> missing at (-,-,+) local corner
+                    { x: 3, y: 3, z: 0 },  // 4: cube at (-,-,+) -> missing at (+,+,-) local corner
+                    { x: 0, y: 3, z: 0 },  // 5: cube at (+,-,+) -> missing at (-,+,-) local corner
+                    { x: 3, y: 0, z: 0 },  // 6: cube at (-,+,+) -> missing at (+,-,-) local corner
+                    { x: 0, y: 0, z: 0 }   // 7: cube at (+,+,+) -> missing at (-,-,-) local corner
+                ][cubeIndex];
+
+                for (let x = 0; x < 4; x++) {
+                    for (let y = 0; y < 4; y++) {
+                        for (let z = 0; z < 4; z++) {
+                            // Skip the corner that points to center
+                            if (x === missingCorner.x && y === missingCorner.y && z === missingCorner.z) {
+                                continue;
+                            }
+
+                            const offsetX = (x - 1.5) * subSize;
+                            const offsetY = (y - 1.5) * subSize;
+                            const offsetZ = (z - 1.5) * subSize;
+                            const subCube = createCube(subSize);
+                            subCube.vertices.forEach(v => {
+                                v.x += offsetX + parentPosition.x;
+                                v.y += offsetY + parentPosition.y;
+                                v.z += offsetZ + parentPosition.z;
+                            });
+
+                            // Identify neighbors of the missing corner
+                            const dx = Math.abs(x - missingCorner.x);
+                            const dy = Math.abs(y - missingCorner.y);
+                            const dz = Math.abs(z - missingCorner.z);
+                            subCube.isCutoutNeighbor = (dx + dy + dz === 1);
+
+                            result.push(subCube);
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function createOuterCubeEdges(cubeSize, cubePosition, cubeIndex) {
+                const halfSize = cubeSize / 2;
+                const subSize = cubeSize / 4;
+
+                // Define the 8 corner vertices of the full cube
+                const fullCubeVertices = [
+                    { x: -halfSize, y: -halfSize, z: -halfSize },  // 0
+                    { x: halfSize, y: -halfSize, z: -halfSize },   // 1
+                    { x: halfSize, y: halfSize, z: -halfSize },    // 2
+                    { x: -halfSize, y: halfSize, z: -halfSize },   // 3
+                    { x: -halfSize, y: -halfSize, z: halfSize },   // 4
+                    { x: halfSize, y: -halfSize, z: halfSize },    // 5
+                    { x: halfSize, y: halfSize, z: halfSize },     // 6
+                    { x: -halfSize, y: halfSize, z: halfSize }     // 7
+                ];
+
+                // Determine which corner is cut out based on cube index (inward-facing cutouts)
+                const cutoutCornerIndices = [6, 7, 5, 4, 2, 3, 1, 0];
+                const cutoutVertexIndex = cutoutCornerIndices[cubeIndex];
+                const cutoutVertex = fullCubeVertices[cutoutVertexIndex];
+
+                // Find the 3 adjacent vertices (connected by edges to the cutout corner)
+                const adjacentIndices = [];
+                for (let i = 0; i < 8; i++) {
+                    if (i === cutoutVertexIndex) continue;
+                    const v = fullCubeVertices[i];
+                    const diff = Math.abs(v.x - cutoutVertex.x) + Math.abs(v.y - cutoutVertex.y) + Math.abs(v.z - cutoutVertex.z);
+                    if (diff === halfSize * 2) {
+                        adjacentIndices.push(i);
+                    }
+                }
+
+                // Create vertices for cube with properly cut corner (cubic, not triangular)
+                const vertices = [];
+                const vertexMap = {}; // Maps full cube vertex index to new vertex array index
+
+                // Add the 7 main cube vertices (excluding the cutout corner)
+                for (let i = 0; i < 8; i++) {
+                    if (i !== cutoutVertexIndex) {
+                        vertexMap[i] = vertices.length;
+                        vertices.push({ ...fullCubeVertices[i] });
+                    }
+                }
+
+                // Add the 3 edge vertices (on edges adjacent to the missing corner)
+                const edgeVertexIndices = [];
+                adjacentIndices.forEach(adjIdx => {
+                    const adjVertex = fullCubeVertices[adjIdx];
+                    edgeVertexIndices.push(vertices.length);
+                    vertices.push({
+                        x: cutoutVertex.x + (adjVertex.x - cutoutVertex.x) * 0.25,
+                        y: cutoutVertex.y + (adjVertex.y - cutoutVertex.y) * 0.25,
+                        z: cutoutVertex.z + (adjVertex.z - cutoutVertex.z) * 0.25
+                    });
+                });
+
+                // Add the 3 corner vertices of the cubic cutout
+                // These are at the intersections of the cutout faces (combining 2 edge directions)
+                const cornerVertexIndices = [];
+
+                // Corner 0: combining adjacent[0] and adjacent[1]
+                const v0 = fullCubeVertices[adjacentIndices[0]];
+                const v1 = fullCubeVertices[adjacentIndices[1]];
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v1.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v1.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v1.z - cutoutVertex.z) * 0.25
+                });
+
+                // Corner 1: combining adjacent[0] and adjacent[2]
+                const v2 = fullCubeVertices[adjacentIndices[2]];
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Corner 2: combining adjacent[1] and adjacent[2]
+                cornerVertexIndices.push(vertices.length);
+                vertices.push({
+                    x: cutoutVertex.x + (v1.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v1.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v1.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Add the inner corner vertex (opposite corner of the cutout cube)
+                // This combines all three adjacent vertex directions
+                const innerCornerIndex = vertices.length;
+                vertices.push({
+                    x: cutoutVertex.x + (v0.x - cutoutVertex.x) * 0.25 + (v1.x - cutoutVertex.x) * 0.25 + (v2.x - cutoutVertex.x) * 0.25,
+                    y: cutoutVertex.y + (v0.y - cutoutVertex.y) * 0.25 + (v1.y - cutoutVertex.y) * 0.25 + (v2.y - cutoutVertex.y) * 0.25,
+                    z: cutoutVertex.z + (v0.z - cutoutVertex.z) * 0.25 + (v1.z - cutoutVertex.z) * 0.25 + (v2.z - cutoutVertex.z) * 0.25
+                });
+
+                // Apply position offset
+                vertices.forEach(v => {
+                    v.x += cubePosition.x;
+                    v.y += cubePosition.y;
+                    v.z += cubePosition.z;
+                });
+
+                // Create edges for the cube with cubic corner cutout
+                const edges = [];
+                const fullCubeEdges = [
+                    [0, 1], [1, 2], [2, 3], [3, 0],  // Front face
+                    [4, 5], [5, 6], [6, 7], [7, 4],  // Back face
+                    [0, 4], [1, 5], [2, 6], [3, 7]   // Connecting edges
+                ];
+
+                // Add main cube outer edges (skipping edges that involve the cut corner)
+                fullCubeEdges.forEach(([from, to]) => {
+                    if (from !== cutoutVertexIndex && to !== cutoutVertexIndex) {
+                        edges.push({ from: vertexMap[from], to: vertexMap[to] });
+                    } else if (from === cutoutVertexIndex || to === cutoutVertexIndex) {
+                        // Edge involves cutout corner - connect to edge vertex
+                        const normalVertex = from === cutoutVertexIndex ? to : from;
+                        const edgeVertexIdx = adjacentIndices.indexOf(normalVertex);
+                        if (edgeVertexIdx !== -1) {
+                            edges.push({ from: vertexMap[normalVertex], to: edgeVertexIndices[edgeVertexIdx] });
+                        }
+                    }
+                });
+
+                // Inner cutout edges - form the cubic shape
+                // Edge 0 connects to corners 0 (formed by edges 0,1) and 1 (formed by edges 0,2)
+                // Edge 1 connects to corners 0 (formed by edges 0,1) and 2 (formed by edges 1,2)
+                // Edge 2 connects to corners 1 (formed by edges 0,2) and 2 (formed by edges 1,2)
+                edges.push({ from: edgeVertexIndices[0], to: cornerVertexIndices[0] });  // edge 0 to corner 0,1
+                edges.push({ from: edgeVertexIndices[0], to: cornerVertexIndices[1] });  // edge 0 to corner 0,2
+                edges.push({ from: edgeVertexIndices[1], to: cornerVertexIndices[0] });  // edge 1 to corner 0,1
+                edges.push({ from: edgeVertexIndices[1], to: cornerVertexIndices[2] });  // edge 1 to corner 1,2
+                edges.push({ from: edgeVertexIndices[2], to: cornerVertexIndices[1] });  // edge 2 to corner 0,2
+                edges.push({ from: edgeVertexIndices[2], to: cornerVertexIndices[2] });  // edge 2 to corner 1,2
+
+                // Connect inner corners to form the cubic cutout
+                edges.push({ from: cornerVertexIndices[0], to: innerCornerIndex });  // corner 0,1 to inner
+                edges.push({ from: cornerVertexIndices[1], to: innerCornerIndex });  // corner 0,2 to inner
+                edges.push({ from: cornerVertexIndices[2], to: innerCornerIndex });  // corner 1,2 to inner
+
+                return { vertices, edges };
+            }
+
+            // Generate 8 cubes in a 2x2x2 formation with cutouts pointing to center
+            function generateCubeField() {
+                const field = [];
+                const offset = fieldSpacing / 2;
+
+                const positions = [
+                    { x: -offset, y: -offset, z: -offset },  // 0
+                    { x: offset, y: -offset, z: -offset },   // 1
+                    { x: -offset, y: offset, z: -offset },   // 2
+                    { x: offset, y: offset, z: -offset },    // 3
+                    { x: -offset, y: -offset, z: offset },   // 4
+                    { x: offset, y: -offset, z: offset },    // 5
+                    { x: -offset, y: offset, z: offset },    // 6
+                    { x: offset, y: offset, z: offset }      // 7
+                ];
+
+                positions.forEach((pos, index) => {
+                    field.push({
+                        outerEdges: createOuterCubeEdges(cubeSize, pos, index),
+                        subCubes: createSubCubes(cubeSize, pos, index),
+                        offset: pos
+                    });
+                });
+
+                return field;
+            }
+
+            let cubeField = generateCubeField();
+
+            // Generate neighboring cubes - simplified rendering (outer edges only, no subcubes)
+            // Positioned around the main 2x2x2 cube formation for spatial context
+            function generateNeighboringCubes() {
+                const neighbors = [];
+                const neighboringSpacing = fieldSpacing * 2; // One cube width away from center
+
+                // 6 face-adjacent neighbors (±X, ±Y, ±Z directions)
+                const neighborPositions = [
+                    { x: neighboringSpacing, y: 0, z: 0 },   // +X
+                    { x: -neighboringSpacing, y: 0, z: 0 },  // -X
+                    { x: 0, y: neighboringSpacing, z: 0 },   // +Y
+                    { x: 0, y: -neighboringSpacing, z: 0 },  // -Y
+                    { x: 0, y: 0, z: neighboringSpacing },   // +Z
+                    { x: 0, y: 0, z: -neighboringSpacing }   // -Z
+                ];
+
+                neighborPositions.forEach(pos => {
+                    const cube = createCube(cubeSize);
+
+                    // Apply position offset to vertices
+                    cube.vertices.forEach(v => {
+                        v.x += pos.x;
+                        v.y += pos.y;
+                        v.z += pos.z;
+                    });
+
+                    neighbors.push({
+                        cube: cube,
+                        position: pos
+                    });
+                });
+
+                return neighbors;
+            }
+
+            let neighboringCubes = generateNeighboringCubes();
+
+            function project(point) {
+                // Step 1: Apply object rotation (cube-centric)
+                const objXRad = objectRotX * Math.PI / 180;
+                const objYRad = objectRotY * Math.PI / 180;
+                const objZRad = objectRotZ * Math.PI / 180;
+                let x1 = point.x * Math.cos(objYRad) - point.z * Math.sin(objYRad);
+                let z1 = point.x * Math.sin(objYRad) + point.z * Math.cos(objYRad);
+                let y1 = point.y * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                let z2 = point.y * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                let x2 = x1 * Math.cos(objZRad) - y1 * Math.sin(objZRad);
+                let y2 = x1 * Math.sin(objZRad) + y1 * Math.cos(objZRad);
+
+                // Step 2: Translate by camera position
+                x2 -= cameraX;
+                y2 -= cameraY;
+                z2 -= cameraZ;
+
+                // Step 3: Apply inverse camera rotation (FPS-style view)
+                const camXRad = -cameraRotX * Math.PI / 180;
+                const camYRad = -cameraRotY * Math.PI / 180;
+                const camZRad = -cameraRotZ * Math.PI / 180;
+
+                // Rotate around camera's Z axis
+                let x3 = x2 * Math.cos(camZRad) - y2 * Math.sin(camZRad);
+                let y3 = x2 * Math.sin(camZRad) + y2 * Math.cos(camZRad);
+                let z3 = z2;
+
+                // Rotate around camera's X axis
+                let y4 = y3 * Math.cos(camXRad) - z3 * Math.sin(camXRad);
+                let z4 = y3 * Math.sin(camXRad) + z3 * Math.cos(camXRad);
+                let x4 = x3;
+
+                // Rotate around camera's Y axis
+                let x5 = x4 * Math.cos(camYRad) - z4 * Math.sin(camYRad);
+                let z5 = x4 * Math.sin(camYRad) + z4 * Math.cos(camYRad);
+                let y5 = y4;
+
+                // Step 4: Apply zoom
+                x5 *= zoomLevel;
+                y5 *= zoomLevel;
+                z5 *= zoomLevel;
+
+                // Step 5: Perspective projection
+                const depth = focalLength + z5;
+                if (depth <= 0) return { visible: false };
+                const scale = focalLength / depth;
+                const projX = centerX + x5 * scale;
+                const projY = centerY + y5 * scale;
+                return {
+                    x: projX,
+                    y: projY,
+                    z: z5,
+                    scale: scale,
+                    visible: true
+                };
+            }
+
+            function getColorByDepth(avgZ, isCutoutNeighbor) {
+                const maxZ = 1000;
+                const depthFactor = Math.min(1, Math.max(0, (avgZ + maxZ) / (maxZ * 2)));
+
+                if (isCutoutNeighbor) {
+                    // Cutout neighbors get intense violet-magenta blend with hue rotation
+                    return blendColors(rotatedColors.cyanGlow, rotatedColors.magentaGlow, depthFactor * 0.7);
+                }
+
+                // Main structure: blue-violet -> violet -> magenta gradient with hue rotation
+                if (depthFactor < 0.4) {
+                    return rotatedColors.nearColor;
+                } else if (depthFactor < 0.7) {
+                    return blendColors(rotatedColors.midColor, rotatedColors.farColor, (depthFactor - 0.4) / 0.3);
+                } else {
+                    return rotatedColors.farColor;
+                }
+            }
+
+            function getGlowColor(avgZ, isCutoutNeighbor) {
+                const maxZ = 1000;
+                const depthFactor = Math.min(1, Math.max(0, (avgZ + maxZ) / (maxZ * 2)));
+
+                if (isCutoutNeighbor) {
+                    // Intense magenta-violet glow for cutout edges with hue rotation
+                    return blendColors(rotatedColors.magentaGlow, rotatedColors.violetGlow, depthFactor * 0.6);
+                }
+
+                // Regular glow: violet gradient with hue rotation
+                return blendColors(rotatedColors.blueGlow, rotatedColors.violetGlow, depthFactor * 0.8);
+            }
+
+            function drawLine(line) {
+                const start = project(line.start);
+                const end = project(line.end);
+                if (!start.visible || !end.visible) return;
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+                const centerDist = Math.sqrt(
+                    Math.pow(midX - centerX, 2) +
+                    Math.pow(midY - centerY, 2)
+                );
+                if (centerDist < 30) return;
+                const depth = (start.z + end.z) / 2;
+                const maxDepth = 2000;
+                const depthFactor = Math.min(1, Math.max(0, (depth + maxDepth) / (maxDepth * 2)));
+
+                // Zoom-responsive opacity: reduce at extremes but stay visible in normal range
+                // Subtle at max zoom out (don't overpower edges), reduce at max zoom in (clarity)
+                const zoomNormalized = Math.log10(zoomLevel + 0.1) / Math.log10(maxZoom + 0.1); // 0.0 to 1.0
+                const gridBellCurve = Math.sin(zoomNormalized * Math.PI); // Peaks at middle
+                const zoomOpacityFactor = 0.5 + gridBellCurve * 0.5; // Range: 0.5 to 1.0 (more visible)
+                const baseOpacity = 0.03 + depthFactor * 0.06;
+                const opacity = baseOpacity * zoomOpacityFactor;
+
+                // Use rotated grid color with blacklight hue
+                const gridHex = rotatedColors.gridColor;
+                const r = parseInt(gridHex.slice(1, 3), 16);
+                const g = parseInt(gridHex.slice(3, 5), 16);
+                const b = parseInt(gridHex.slice(5, 7), 16);
+
+                // Calculate saturation from BOTH base color and rotated color
+                // This considers the original saturation (before limiting) and final saturation
+                const baseHsl = hexToHSL(cubeColors.gridColor); // Original grid color
+                const rotatedHsl = hexToHSL(gridHex); // After hue rotation and sat limiting
+
+                // Use the higher of the two saturations for transparency calculation
+                // This prevents over-aggressive fading when satBoost is limited
+                const saturation = Math.max(baseHsl.s, rotatedHsl.s);
+
+                // Saturation-based opacity modulation
+                // Low saturation (silver/desaturated) = more transparent (show blue glow)
+                // High saturation (neon colors) = keep opacity (show vibrant grid)
+                // Use quadratic curve (^2) for aggressive transparency on desaturated colors
+                const saturationFactor = Math.pow(saturation, 2.0); // Square for aggressive fade
+                const finalOpacity = opacity * saturationFactor;
+
+                // Apply glow to grid lines (shadowBlur) for psychedelic effect
+                // Glow uses same color as line, fades with saturation
+                ctx.shadowBlur = 5 * saturationFactor; // Glow fades with saturation
+                ctx.shadowColor = `rgba(${r}, ${g}, ${b}, ${finalOpacity * 0.8})`;
+
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${finalOpacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+
+                // Clear shadow for next draw operations
+                ctx.shadowBlur = 0;
+            }
+
+            function drawCubeFaces(cube, isCutoutNeighbor) {
+                const projectedVertices = cube.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Define the 6 faces of a cube
+                const faces = [
+                    [0, 1, 2, 3], // Front face
+                    [4, 5, 6, 7], // Back face
+                    [0, 3, 7, 4], // Left face
+                    [1, 2, 6, 5], // Right face
+                    [3, 2, 6, 7], // Top face
+                    [0, 1, 5, 4]  // Bottom face
+                ];
+
+                // Calculate average Z for each face and sort back-to-front
+                const facesWithDepth = faces.map(face => {
+                    const avgZ = face.reduce((sum, idx) => sum + projectedVertices[idx].z, 0) / face.length;
+                    return { face, avgZ };
+                }).sort((a, b) => a.avgZ - b.avgZ); // Draw back faces first
+
+                // Deep mood ring blue ambient - "0-bit" reference
+                // Rich indigo-blue tint in contrast with dark violet blacklight edges
+                const ambientBlue = 'rgba(14, 07, 255, 0.015)';
+
+                facesWithDepth.forEach(({ face, avgZ }) => {
+                    ctx.fillStyle = ambientBlue;
+                    ctx.beginPath();
+                    const first = projectedVertices[face[0]];
+                    ctx.moveTo(first.x, first.y);
+                    for (let i = 1; i < face.length; i++) {
+                        const vertex = projectedVertices[face[i]];
+                        ctx.lineTo(vertex.x, vertex.y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                });
+            }
+
+            function drawCubeEdges(cube, thickness, isCutoutNeighbor) {
+                const projectedVertices = cube.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+                const edgeColor = getColorByDepth(avgZ, isCutoutNeighbor);
+                const glowColor = getGlowColor(avgZ, isCutoutNeighbor);
+
+                ctx.lineCap = 'round';
+                ctx.globalAlpha = 0.42 / ( 0.07 + zoomLevel * 7 );  // Make subcube grid lines more translucent
+                if (ctx.globalAlpha > 0.042){
+                    ctx.globalAlpha = 0.042;
+                }
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = thickness;
+                // Reduced glow for inner subcubes to improve performance and enhance 3D effect
+                // Apply adaptive blur with configurable ranges for each category
+                const baseBlur = ( isCutoutNeighbor ? 3 : 2 ) / 32;
+                const category = isCutoutNeighbor ? 'subcubeCutout' : 'subcubeNormal';
+
+                // Zoom-responsive glow: reduce at both extremes (zoomed out and zoomed in)
+                // Bell curve: subtle when zoomed out (edge clarity), peaks at medium zoom, reduces when zoomed in
+                const zoomNormalized = Math.log10(zoomLevel + 0.1) / Math.log10(maxZoom + 0.1); // 0.0 to 1.0
+                const glowBellCurve = Math.sin(zoomNormalized * Math.PI); // Peaks at middle
+                const zoomGlowFactor = 0.4 + glowBellCurve * 0.6; // Range: 0.4 to 1.0
+
+                ctx.shadowBlur = baseBlur * getScaledBlur(category) * zoomGlowFactor;
+                ctx.shadowColor = glowColor;
+
+                cube.edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.stroke();
+                });
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;  // Reset opacity
+            }
+
+            function drawOuterCubeEdges(outerEdges, thickness) {
+                const projectedVertices = outerEdges.vertices.map(project);
+                if (projectedVertices.some(v => !v.visible)) return;
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+                const glowColor = getGlowColor(avgZ, false);
+
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = rotatedColors.outerCube;
+                ctx.lineWidth = thickness;
+                // Apply adaptive blur with configurable range for outer edges
+                ctx.shadowBlur = (0.7 / zoomLevel) * getScaledBlur('outerEdges');
+                ctx.shadowColor = glowColor;
+                ctx.globalAlpha = 0.32 / zoomLevel / 1.53;
+                if (ctx.globalAlpha > 0.15){
+                    ctx.globalAlpha = 0.15;
+                }
+
+
+                outerEdges.edges.forEach(edge => {
+                    if (projectedVertices[edge.from] && projectedVertices[edge.to]) {
+                        const from = projectedVertices[edge.from];
+                        const to = projectedVertices[edge.to];
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    }
+                });
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw neighboring cubes with distance-based fading and single averaged glow
+            // Simplified rendering: outer edges only, no subcubes, performance-optimized with culling
+            function drawNeighboringCube(neighborData) {
+                const cube = neighborData.cube;
+                const projectedVertices = cube.vertices.map(project);
+
+                // Skip if not visible
+                if (projectedVertices.some(v => !v.visible)) return;
+
+                // Calculate average Z depth for distance-based effects
+                const avgZ = projectedVertices.reduce((acc, v) => acc + v.z, 0) / projectedVertices.length;
+
+                // Calculate distance from camera for fading
+                // Positive avgZ = in front of camera (closer), negative = behind
+                const distanceFromCamera = Math.abs(avgZ);
+                const maxVisibleDistance = 2500; // Start fading beyond this distance
+                const cullDistance = 4000; // Don't render beyond this distance
+
+                // Render culling - skip if too far away
+                if (distanceFromCamera > cullDistance) return;
+
+                // Distance-based opacity: fade out gradually
+                // Range: 1.0 at close distance, 0.0 at cull distance
+                const distanceFactor = Math.max(0, 1 - (distanceFromCamera - maxVisibleDistance) / (cullDistance - maxVisibleDistance));
+
+                // Skip rendering if fully transparent (performance optimization)
+                if (distanceFactor < 0.01) return;
+
+                // Calculate colors
+                const edgeColor = getColorByDepth(avgZ, false);
+                const glowColor = getGlowColor(avgZ, false);
+
+                // Edge opacity: fades earlier than glow (as requested)
+                // Edges become transparent sooner to emphasize the glow in distance
+                const edgeOpacity = Math.pow(distanceFactor, 2.0) * 0.08; // Quadratic fade for edges
+                const glowOpacity = Math.pow(distanceFactor, 1.5) * 0.35; // Slower fade for glow
+
+                // Skip if both are too transparent
+                if (edgeOpacity < 0.005 && glowOpacity < 0.005) return;
+
+                // Draw edges with distance-based fading
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = 1.2;
+                ctx.globalAlpha = edgeOpacity;
+
+                // Single averaged glow for entire cube (not per-edge)
+                // Glow intensity based on distance factor
+                ctx.shadowBlur = 8 * glowOpacity * getScaledBlur('neighborCubes');
+                ctx.shadowColor = glowColor;
+
+                // Draw all 12 edges of the cube
+                cube.edges.forEach(edge => {
+                    const from = projectedVertices[edge.from];
+                    const to = projectedVertices[edge.to];
+                    if (from && to) {
+                        ctx.beginPath();
+                        ctx.moveTo(from.x, from.y);
+                        ctx.lineTo(to.x, to.y);
+                        ctx.stroke();
+                    }
+                });
+
+                // Reset rendering state
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+            }
+
+            function updateZoomDisplay() {
+                document.getElementById('zoomLevel').textContent = Math.round(state.current.zoomLevel * 100) + '%';
+            }
+
+            function updateFocalDisplay() {
+                document.getElementById('focalDisplay').textContent = Math.round(state.current.focalLength);
+            }
+
+            function updateDepthDisplay() {
+                document.getElementById('depthDisplay').textContent = Math.round(state.current.cameraZ);
+            }
+
+            function updateHeightDisplay() {
+                document.getElementById('heightDisplay').textContent = Math.round(state.current.cameraY);
+            }
+
+            // Calculate adaptive blur multiplier based on current FPS with hysteresis
+            function calculateBlurMultiplier(fps, currentBlur) {
+                // Use hysteresis to prevent oscillation:
+                // - Wider deadband gaps to prevent hunting behavior
+                // - When reducing blur (performance issue): wider threshold range
+                // - When increasing blur (performance good): wider threshold range
+
+                const isCurrentlyReduced = currentBlur < 0.9; // Are we already in reduced-blur mode?
+
+                if (isCurrentlyReduced) {
+                    // Performance was bad, don't restore blur until we're well above target
+                    if (fps >= 40) return 1.0;        // Restore full blur (wider gap)
+                    if (fps <= 15) return 0.0;        // Still bad, keep blur off
+                    return (fps - 15) / 25;           // Interpolate 15-40 FPS (wider range)
+                } else {
+                    // Performance is currently good, only reduce if it drops significantly
+                    if (fps >= 35) return 1.0;        // Full blur (wider gap)
+                    if (fps <= 18) return 0.0;        // No blur
+                    return (fps - 18) / 17;           // Interpolate 18-35 FPS (wider range)
+                }
+            }
+
+            function draw() {
+                // Track FPS for adaptive shadowBlur (works during both animation and manual rotation)
+                const now = performance.now();
+                if (lastDrawTimestamp > 0) {
+                    const elapsed = now - lastDrawTimestamp;
+                    if (elapsed > 0) {
+                        const instantFPS = 1000 / elapsed;
+                        fpsHistory.push(instantFPS);
+                        if (fpsHistory.length > fpsHistorySize) {
+                            fpsHistory.shift();
+                        }
+                        // Calculate average FPS from history
+                        currentFPS = fpsHistory.reduce((sum, fps) => sum + fps, 0) / fpsHistory.length;
+
+                        // Calculate target blur with hysteresis
+                        targetBlurMultiplier = calculateBlurMultiplier(currentFPS, blurMultiplier);
+
+                        // Smooth interpolation to prevent oscillation
+                        // Gradually move current blur toward target instead of jumping instantly
+                        const blurDelta = (targetBlurMultiplier - blurMultiplier) * blurSmoothingFactor;
+
+                        // Only apply change if it exceeds minimum threshold (prevents micro-oscillations)
+                        if (Math.abs(blurDelta) >= minBlurChange) {
+                            blurMultiplier += blurDelta;
+                        }
+
+                        // Update display every 10 frames
+                        frameCount++;
+                        if (frameCount % 10 === 0) {
+                            document.getElementById('fpsDisplay').textContent = Math.round(currentFPS);
+                            document.getElementById('blurDisplay').textContent = Math.round(blurMultiplier * 100) + '%';
+
+                            // Update state displays to show smooth transitions
+                            updateZoomDisplay();
+                            updateFocalDisplay();
+                            updateDepthDisplay();
+                            updateHeightDisplay();
+                        }
+                    }
+                }
+                lastDrawTimestamp = now;
+
+                // Calculate zoom factor for hue shift intensity
+                // Less intense when zoomed in, more intense when zoomed out
+                const zoomFactor = 0.07 / zoomLevel; // 1.0 at normal zoom, ~0.33 at max zoom, ~3.33 at min zoom
+
+                // Calculate hue shift based on rotation angles (psychedelic effect)
+                // Use sine wave to create smooth, gentle oscillation limited to ±30 degrees
+                // Modulated by zoom level for subtler effect when examining details
+                const rotationFactor = (objectRotY * 7 + objectRotX * 4 + objectRotZ * 3) * Math.PI / 180;
+                const hueShift = Math.sin(rotationFactor) * 30 * zoomFactor; // Less intense when zoomed in
+
+                // Calculate rotation speed for saturation/brightness boost (proportional, not binary)
+                const rotSpeed = Math.abs(objectRotX - prevRotX) + Math.abs(objectRotY - prevRotY) + Math.abs(objectRotZ - prevRotZ);
+
+                // Smooth curve: gradual increase with rotation speed
+                // Using power function for non-linear response (faster rotation = more boost)
+                const speedFactor = Math.min(1.0, Math.pow(rotSpeed / 3.0, 0.7)); // Range: 0.0 to 1.0
+
+                // Apply proportional boosts (smooth ramp instead of on/off switch)
+                const satBoost = speedFactor * 0.113;           // 0.0 to 0.113
+                const brightBoost = -0.07 + speedFactor * 0.0813; // -0.07 to +0.0113
+
+                // Update previous rotation values
+                prevRotX = objectRotX;
+                prevRotY = objectRotY;
+                prevRotZ = objectRotZ;
+
+                // Create rotated color cache for this frame
+                rotatedColors = {
+                    primaryEdge: rotateHue(cubeColors.primaryEdge, hueShift, satBoost, brightBoost),
+                    outerCube: rotateHue(cubeColors.outerCube, hueShift, satBoost, brightBoost),
+                    innerCube: rotateHue(cubeColors.innerCube, hueShift, satBoost, brightBoost),
+                    cutoutEdge: rotateHue(cubeColors.cutoutEdge, hueShift, satBoost, brightBoost),
+                    nearColor: rotateHue(cubeColors.nearColor, hueShift, satBoost, brightBoost),
+                    midColor: rotateHue(cubeColors.midColor, hueShift, satBoost, brightBoost),
+                    farColor: rotateHue(cubeColors.farColor, hueShift, satBoost, brightBoost),
+                    blueGlow: rotateHue(cubeColors.blueGlow, hueShift, satBoost, brightBoost),
+                    violetGlow: rotateHue(cubeColors.violetGlow, hueShift, satBoost, brightBoost),
+                    magentaGlow: rotateHue(cubeColors.magentaGlow, hueShift, satBoost, brightBoost),
+                    cyanGlow: rotateHue(cubeColors.cyanGlow, hueShift, satBoost, brightBoost),
+                    // Environment colors with hue rotation
+                    gridColor: rotateHue(cubeColors.gridColor, hueShift, satBoost * 0.5, brightBoost * 0.5),
+                    vignetteColor: rotateHue(cubeColors.vignetteColor, hueShift, satBoost * 0.3, brightBoost * 0.3)
+                };
+
+                ctx.fillStyle = cubeColors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                gridLines.forEach(drawLine);
+
+                // First pass: draw all subcube faces (translucent blue ambient for "0-bit" reference)
+                cubeField.forEach(({ subCubes }) => {
+                    subCubes.forEach(subcube => {
+                        drawCubeFaces(subcube, subcube.isCutoutNeighbor);
+                    });
+                });
+
+                // Second pass: draw all edges on top
+                cubeField.forEach(({ outerEdges, subCubes }) => {
+                    drawOuterCubeEdges(outerEdges, 1.5);
+
+                    subCubes.forEach(subcube => {
+                        drawCubeEdges(subcube, 0.7, subcube.isCutoutNeighbor);
+                    });
+                });
+
+                // Third pass: draw neighboring cubes with distance-based fading
+                // Renders simplified outer cubes (no subcubes) to show spatial context
+                neighboringCubes.forEach(neighbor => {
+                    drawNeighboringCube(neighbor);
+                });
+
+                // Dynamic vignette with hue rotation and zoom-responsive intensity
+                const gradient = ctx.createRadialGradient(
+                    centerX, centerY, 0,
+                    centerX, centerY, Math.max(canvas.width, canvas.height) / 2
+                );
+
+                // Zoom-responsive vignette: very subtle at extremes, moderate in middle range
+                // Bell curve: subtle when zoomed out, peaks at medium zoom, reduces again when zoomed in
+                const zoomNormalized = Math.log10(zoomLevel + 0.1) / Math.log10(maxZoom + 0.1); // 0.0 to 1.0
+                const bellCurve = Math.sin(zoomNormalized * Math.PI); // Peaks at middle, reduces at extremes
+                const vignetteIntensity = 0.1 + bellCurve * 0.5; // Range: 0.1 to 0.6
+
+                // Use rotated vignette color with blacklight hue
+                const vignetteHex = rotatedColors.vignetteColor;
+                const vr = parseInt(vignetteHex.slice(1, 3), 16);
+                const vg = parseInt(vignetteHex.slice(3, 5), 16);
+                const vb = parseInt(vignetteHex.slice(5, 7), 16);
+
+                gradient.addColorStop(0.5, 'rgba(0, 0, 10, 0)');
+                gradient.addColorStop(1, `rgba(${vr}, ${vg}, ${vb}, ${vignetteIntensity})`);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function animate(timestamp) {
+                if (!lastTimestamp) lastTimestamp = timestamp;
+                if (isRotating) {
+                    const elapsed = timestamp - lastTimestamp;
+                    lastTimestamp = timestamp;
+
+                    // Update target state (not current) - smooth transition will follow
+                    state.target.objectRotY += elapsed * 0.0002;
+                    state.target.objectRotZ -= elapsed * 0.0005;
+
+                    // Mouse influence on rotation (modifies target)
+                    const relativeX = (mouseX - centerX) / (canvas.width / 2);
+                    const relativeY = (mouseY - centerY) / (canvas.height / 2);
+                    const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
+                    const responseFactorX = Math.pow(Math.abs(relativeX), 1.5) * Math.sign(relativeX) * 0.01;
+                    const responseFactorY = Math.pow(Math.abs(relativeY), 1.5) * Math.sign(relativeY) * 0.01;
+                    state.target.objectRotY += elapsed * responseFactorX;
+                    state.target.objectRotX += elapsed * responseFactorY;
+
+                    // Roll influence based on quadrant (modifies target)
+                    const quadrantAngle = (Math.atan2(relativeY, relativeX) + Math.PI) % (Math.PI * 2);
+                    const quadrantFactor = Math.sin(quadrantAngle * 2);
+                    const rollInfluence = -quadrantFactor * Math.pow(distanceFromCenter, 1.5) * 0.005;
+                    state.target.objectRotZ += elapsed * rollInfluence;
+
+                    // Normalize target angles to 0-360 range (prevent negative angles and overflow)
+                    const normalizeAngle = (angle) => {
+                        angle = angle % 360;
+                        if (angle < 0) angle += 360;
+                        return angle;
+                    };
+                    state.target.objectRotX = normalizeAngle(state.target.objectRotX);
+                    state.target.objectRotY = normalizeAngle(state.target.objectRotY);
+                    state.target.objectRotZ = normalizeAngle(state.target.objectRotZ);
+                }
+
+                // Always apply smooth transitions (even when paused, for manual interactions)
+                applyChanges();
+
+                // Update parent alignments after applying changes
+                updateParentAlignments();
+
+                draw();
+
+                // Check if we need to keep animating
+                // Continue if playing OR if there's significant velocity (smooth transitions in progress)
+                const hasVelocity = Object.values(state.velocity).some(v => Math.abs(v) > 0.001);
+
+                if (isRotating || hasVelocity) {
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    // No more motion, clear the animation frame ID
+                    animationFrameId = null;
+                }
+            }
+
+            // Mouse wheel: camera movement, zoom, and perspective control
+            // Modifies target state for smooth inertia-based transitions with coupled adjustments
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+
+                // Scroll speed sensitivity: faster scrolling = bigger steps, slower = fine control
+                // Normalize deltaY (typical range: 1-120) and apply power curve for natural feel
+                const scrollSpeed = Math.min(1.0, Math.abs(e.deltaY) / 100); // 0.01 to 1.0
+                const speedMultiplier = Math.pow(scrollSpeed, 0.7); // Smooth curve: 0.01 -> 0.04, 1.0 -> 1.0
+
+                // Distance-to-cube scaling: Steps proportional to distance from cube center
+                // Close to cube = smaller steps for fine positioning
+                // Far from cube = larger steps for faster navigation
+                const distanceToCube = Math.sqrt(
+                    state.target.cameraX ** 2 +
+                    state.target.cameraY ** 2 +
+                    state.target.cameraZ ** 2
+                );
+                // Gentler distance scaling with floor and ceiling
+                // Floor varies with zoom: higher floor when zoomed out (allows reaching cube at 7% zoom)
+                // Ceiling of 2.5 prevents "rocket launch" when far away
+                const rawDistanceScale = (Math.abs(distanceToCube) + 50) / 150;
+
+                // Dynamic floor based on zoom level
+                // At 100% zoom (1.0): floor = 0.3 (fine control when close)
+                // At 7% zoom (0.07): floor = 0.7 (still responsive when close and zoomed out)
+                const zoomNormalized = Math.max(0.07, Math.min(1.0, state.target.zoomLevel));
+                const dynamicFloor = 0.3 + (1.0 - zoomNormalized) * 0.5; // 0.3 to 0.8 range
+
+                const distanceScale = Math.max(dynamicFloor, Math.min(2.5, rawDistanceScale));
+
+                // Combine with zoom-based scaling
+                // Zoomed in = smaller view, need finer control
+                const zoomScale = 1.0 / Math.max(0.1, state.target.zoomLevel);
+
+                // Final scale: gentler combined damping
+                // Use cube root of zoom for less aggressive damping
+                const fineControlScale = distanceScale * Math.pow(zoomScale, 0.33);
+
+                // Forward movement gets more aggressive zoom scaling
+                // When zoomed out, you need faster movement to navigate toward distant objects
+                // Use square root (0.5 exponent) for forward movement instead of cube root (0.33)
+                const forwardMovementScale = distanceScale * Math.pow(zoomScale, 0.55);
+
+                if (e.shiftKey && (e.ctrlKey || e.metaKey)) {
+                    // Shift+Ctrl+wheel: move along CUBE's local Z-axis (cube-aligned depth)
+                    // Advanced control: completes 3-axis grid-aligned navigation
+                    // Shift+drag gives X/Y, Shift+Ctrl+wheel gives Z
+                    const baseDelta = -Math.sign(e.deltaY) * cameraSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.5 * fineControlScale;
+
+                    // Movement in cube's local space (0, 0, delta along cube's Z)
+                    let dx = 0;
+                    let dy = 0;
+                    let dz = delta;
+
+                    // Get object rotation angles in radians (inverse for transformation)
+                    const objXRad = -state.current.objectRotX * Math.PI / 180;
+                    const objYRad = -state.current.objectRotY * Math.PI / 180;
+                    const objZRad = -state.current.objectRotZ * Math.PI / 180;
+
+                    // Apply inverse rotation: -Z, -X, -Y (transform cube-local to camera space)
+                    // Inverse rotation: apply -Z rotation
+                    let x1 = dx * Math.cos(objZRad) - dy * Math.sin(objZRad);
+                    let y1 = dx * Math.sin(objZRad) + dy * Math.cos(objZRad);
+                    let z1 = dz;
+
+                    // Inverse rotation: apply -X rotation
+                    let y2 = y1 * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                    let z2 = y1 * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                    let x2 = x1;
+
+                    // Inverse rotation: apply -Y rotation (final cube-local coordinates)
+                    let x3 = x2 * Math.cos(objYRad) - z2 * Math.sin(objYRad);
+                    let z3 = x2 * Math.sin(objYRad) + z2 * Math.cos(objYRad);
+                    let y3 = y2;
+
+                    // Transform cube-local coordinates back to world space
+                    const objXRadFwd = state.current.objectRotX * Math.PI / 180;
+                    const objYRadFwd = state.current.objectRotY * Math.PI / 180;
+                    const objZRadFwd = state.current.objectRotZ * Math.PI / 180;
+
+                    // Forward rotation: Y, then X, then Z
+                    let xW1 = x3 * Math.cos(objYRadFwd) + z3 * Math.sin(objYRadFwd);
+                    let zW1 = -x3 * Math.sin(objYRadFwd) + z3 * Math.cos(objYRadFwd);
+                    let yW1 = y3;
+
+                    let yW2 = yW1 * Math.cos(objXRadFwd) + zW1 * Math.sin(objXRadFwd);
+                    let zW2 = -yW1 * Math.sin(objXRadFwd) + zW1 * Math.cos(objXRadFwd);
+                    let xW2 = xW1;
+
+                    let xW3 = xW2 * Math.cos(objZRadFwd) + yW2 * Math.sin(objZRadFwd);
+                    let yW3 = -xW2 * Math.sin(objZRadFwd) + yW2 * Math.cos(objZRadFwd);
+                    let zW3 = zW2;
+
+                    // Apply world-space movement to camera position (no coupled adjustments - keep pure)
+                    state.target.cameraX = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraX + xW3));
+                    state.target.cameraY = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraY + yW3));
+                    state.target.cameraZ = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraZ + zW3));
+
+                    updateDepthDisplay();
+                    updateHeightDisplay();
+                } else if (e.shiftKey) {
+                    // Shift+wheel: adjust focal length (perspective)
+                    // Simple, accessible control for field-of-view adjustments
+                    const baseDelta = Math.sign(e.deltaY) * focalSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.2;
+                    state.target.focalLength = Math.max(minFocalLength, Math.min(maxFocalLength, state.target.focalLength + delta));
+                    applyCoupledAdjustments('focalLength', delta);
+                    updateFocalDisplay();
+                } else if (e.altKey || (e.getModifierState && e.getModifierState('AltGraph'))) {
+                    // Alt+wheel or AltGr+wheel: vertical movement (up/down) with fine control when zoomed in
+                    const baseDelta = -Math.sign(e.deltaY) * cameraSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.5 * fineControlScale;
+                    state.target.cameraY = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraY + delta));
+                    applyCoupledAdjustments('cameraY', delta);
+                    updateHeightDisplay();
+                } else if (e.ctrlKey || e.metaKey) {
+                    // Ctrl+wheel (or Cmd+wheel on Mac): zoom control
+                    // Extra damping when zoomed out for finer control at extreme zoom levels
+                    // Use sqrt to make steps even smaller when zoomed way out (e.g., 7% zoom)
+                    const zoomDamping = Math.sqrt(Math.max(0.07, state.target.zoomLevel));
+                    const baseDelta = -Math.sign(e.deltaY) * zoomSpeed * state.target.zoomLevel * zoomDamping * 1.2;
+                    const delta = baseDelta * speedMultiplier * 0.8;
+                    state.target.zoomLevel = Math.max(minZoom, Math.min(maxZoom, state.target.zoomLevel + delta));
+                    applyCoupledAdjustments('zoomLevel', delta);
+                    updateZoomDisplay();
+                } else {
+                    // Regular wheel: camera movement (forward/backward) with more aggressive zoom scaling
+                    // Uses forwardMovementScale which is more responsive to zoom than other movements
+                    const baseDelta = -Math.sign(e.deltaY) * cameraSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.5 * forwardMovementScale;
+                    state.target.cameraZ = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraZ + delta));
+                    // No coupled adjustments for forward movement (removed cameraZ → zoomLevel coupling)
+                    updateDepthDisplay();
+                }
+
+                // Trigger smooth animation if not already playing
+                if (!isRotating) {
+                    if (!animationFrameId) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            }, { passive: false });
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (isDragging) {
+                    const deltaX = mouseX - dragStartX;
+                    const deltaY = mouseY - dragStartY;
+
+                    if (dragMode === 'object') {
+                        // Regular drag: rotate object (cube rotates in place - intuitive examination)
+                        const signX = Math.sign(deltaX);
+                        const signY = Math.sign(deltaY);
+                        const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
+                        const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
+                        const newRotY = dragStartRotY + responseX * 30;
+                        const newRotX = dragStartRotX + responseY * 30;
+
+                        if (isRotating) {
+                            // During animation: make drag additive/influential to auto-rotation
+                            // Add the drag delta relative to where we started dragging
+                            const dragDeltaY = newRotY - dragStartRotY;
+                            const dragDeltaX = newRotX - dragStartRotX;
+
+                            // Apply drag influence as adjustment to current target
+                            state.target.objectRotY = state.current.objectRotY + dragDeltaY * 0.5;
+                            state.target.objectRotX = state.current.objectRotX + dragDeltaX * 0.5;
+                        } else {
+                            // When paused: absolute positioning from drag start
+                            state.target.objectRotY = newRotY;
+                            state.target.objectRotX = newRotX;
+                        }
+
+                        // Roll based on diagonal movement
+                        const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
+                        const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
+                        const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
+                        const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
+                        const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
+
+                        if (isRotating) {
+                            // During animation: additive roll influence
+                            const dragDeltaZ = (dragStartRotZ + rollResponse * 7) - dragStartRotZ;
+                            state.target.objectRotZ = state.current.objectRotZ + dragDeltaZ * 0.5;
+                        } else {
+                            // When paused: absolute positioning
+                            state.target.objectRotZ = dragStartRotZ + rollResponse * 7;
+                        }
+                    } else if (dragMode === 'camera') {
+                        // Ctrl+drag: rotate camera (FPS-style view for advanced navigation)
+                        const newRotY = dragStartRotY + deltaX * 0.3;
+                        const newRotX = dragStartRotX + deltaY * 0.3;
+
+                        // NO coupled adjustments for drag - keep it pure
+                        state.target.cameraRotY = newRotY;
+                        state.target.cameraRotX = newRotX;
+                    } else if (dragMode === 'pan') {
+                        // Shift+drag: pan camera (CUBE-ALIGNED with axis detection and locking)
+                        // Transform screen-space drag into cube's local coordinate system
+                        // Then lock to the dominant axis for precise grid-aligned movement
+
+                        const panSpeed = 2; // Sensitivity multiplier
+                        let dx = -deltaX * panSpeed;
+                        let dy = -deltaY * panSpeed;  // Negative: drag down = move down
+                        let dz = 0; // Screen drag doesn't affect Z in this mode
+
+                        // Get object rotation angles in radians (inverse for panning)
+                        const objXRad = -state.current.objectRotX * Math.PI / 180;
+                        const objYRad = -state.current.objectRotY * Math.PI / 180;
+                        const objZRad = -state.current.objectRotZ * Math.PI / 180;
+
+                        // Apply inverse rotation: -Z, -X, -Y (reverse order of projection)
+                        // This transforms screen-space movement into cube's local coordinate system
+
+                        // Inverse rotation: apply -Z rotation
+                        let x1 = dx * Math.cos(objZRad) - dy * Math.sin(objZRad);
+                        let y1 = dx * Math.sin(objZRad) + dy * Math.cos(objZRad);
+                        let z1 = dz;
+
+                        // Inverse rotation: apply -X rotation
+                        let y2 = y1 * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                        let z2 = y1 * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                        let x2 = x1;
+
+                        // Inverse rotation: apply -Y rotation (final cube-local coordinates)
+                        let x3 = x2 * Math.cos(objYRad) - z2 * Math.sin(objYRad);
+                        let z3 = x2 * Math.sin(objYRad) + z2 * Math.cos(objYRad);
+                        let y3 = y2;
+
+                        // DYNAMIC AXIS DETECTION AND LOCKING WITH HYSTERESIS
+                        // Determine which cube axis the drag is most aligned with
+                        const absX = Math.abs(x3);
+                        const absY = Math.abs(y3);
+                        const absZ = Math.abs(z3);
+
+                        // Find the dominant axis
+                        let dominantAxis;
+                        if (absX >= absY && absX >= absZ) {
+                            dominantAxis = 'X';
+                        } else if (absY >= absX && absY >= absZ) {
+                            dominantAxis = 'Y';
+                        } else {
+                            dominantAxis = 'Z';
+                        }
+
+                        // Hysteresis: only switch axes if new axis is significantly stronger (1.3x threshold)
+                        if (currentLockedAxis && currentLockedAxis !== dominantAxis) {
+                            const currentAxisStrength = currentLockedAxis === 'X' ? absX : (currentLockedAxis === 'Y' ? absY : absZ);
+                            const dominantAxisStrength = dominantAxis === 'X' ? absX : (dominantAxis === 'Y' ? absY : absZ);
+
+                            // Only switch if new axis is 30% stronger
+                            if (dominantAxisStrength < currentAxisStrength * 1.3) {
+                                dominantAxis = currentLockedAxis; // Keep current axis
+                            }
+                        }
+
+                        // Update locked axis
+                        currentLockedAxis = dominantAxis;
+
+                        // Lock to the selected axis
+                        if (dominantAxis === 'X') {
+                            y3 = 0;
+                            z3 = 0;
+                        } else if (dominantAxis === 'Y') {
+                            x3 = 0;
+                            z3 = 0;
+                        } else {
+                            x3 = 0;
+                            y3 = 0;
+                        }
+
+                        // Transform locked cube-local coordinates back to world space
+                        // Apply FORWARD rotation (opposite of inverse used above)
+                        const objXRadFwd = state.current.objectRotX * Math.PI / 180;
+                        const objYRadFwd = state.current.objectRotY * Math.PI / 180;
+                        const objZRadFwd = state.current.objectRotZ * Math.PI / 180;
+
+                        // Forward rotation: Y, then X, then Z (same order as projection)
+                        // Rotate around Y axis
+                        let xW1 = x3 * Math.cos(objYRadFwd) + z3 * Math.sin(objYRadFwd);
+                        let zW1 = -x3 * Math.sin(objYRadFwd) + z3 * Math.cos(objYRadFwd);
+                        let yW1 = y3;
+
+                        // Rotate around X axis
+                        let yW2 = yW1 * Math.cos(objXRadFwd) + zW1 * Math.sin(objXRadFwd);
+                        let zW2 = -yW1 * Math.sin(objXRadFwd) + zW1 * Math.cos(objXRadFwd);
+                        let xW2 = xW1;
+
+                        // Rotate around Z axis
+                        let xW3 = xW2 * Math.cos(objZRadFwd) + yW2 * Math.sin(objZRadFwd);
+                        let yW3 = -xW2 * Math.sin(objZRadFwd) + yW2 * Math.cos(objZRadFwd);
+                        let zW3 = zW2;
+
+                        // Apply world-space movement to camera position
+                        // NO coupled adjustments for drag - keep it pure
+                        state.target.cameraX = dragStartCameraX + xW3;
+                        state.target.cameraY = dragStartCameraY + yW3;
+                        state.target.cameraZ = dragStartCameraZ + zW3;
+                    } else if (dragMode === 'pan-screen') {
+                        // Alt+Shift+drag: pan camera (CUBE-ALIGNED, SECOND-CLOSEST axis)
+                        // This solves edge cases where the dominant axis is hard to engage
+                        // Provides access to the "next best" cube axis based on drag direction
+
+                        const panSpeed = 2;
+                        let dx = -deltaX * panSpeed;
+                        let dy = -deltaY * panSpeed;
+                        let dz = 0;
+
+                        // Get object rotation angles in radians (inverse for panning)
+                        const objXRad = -state.current.objectRotX * Math.PI / 180;
+                        const objYRad = -state.current.objectRotY * Math.PI / 180;
+                        const objZRad = -state.current.objectRotZ * Math.PI / 180;
+
+                        // Apply inverse rotation to get cube-local coordinates
+                        let x1 = dx * Math.cos(objZRad) - dy * Math.sin(objZRad);
+                        let y1 = dx * Math.sin(objZRad) + dy * Math.cos(objZRad);
+                        let z1 = dz;
+
+                        let y2 = y1 * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                        let z2 = y1 * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                        let x2 = x1;
+
+                        let x3 = x2 * Math.cos(objYRad) - z2 * Math.sin(objYRad);
+                        let z3 = x2 * Math.sin(objYRad) + z2 * Math.cos(objYRad);
+                        let y3 = y2;
+
+                        // DYNAMIC AXIS DETECTION WITH HYSTERESIS: Find second-closest axis
+                        const absX = Math.abs(x3);
+                        const absY = Math.abs(y3);
+                        const absZ = Math.abs(z3);
+
+                        // Sort axes by magnitude to find second-closest
+                        const axes = [
+                            { name: 'X', value: x3, abs: absX },
+                            { name: 'Y', value: y3, abs: absY },
+                            { name: 'Z', value: z3, abs: absZ }
+                        ].sort((a, b) => b.abs - a.abs);
+
+                        // Get the second-strongest axis (index 1)
+                        let secondAxis = axes[1].name;
+
+                        // Hysteresis: only switch axes if new axis is significantly stronger (1.3x threshold)
+                        if (currentLockedAxisSecond && currentLockedAxisSecond !== secondAxis) {
+                            const currentAxisStrength = currentLockedAxisSecond === 'X' ? absX : (currentLockedAxisSecond === 'Y' ? absY : absZ);
+                            const secondAxisStrength = secondAxis === 'X' ? absX : (secondAxis === 'Y' ? absY : absZ);
+
+                            // Only switch if new axis is 30% stronger
+                            if (secondAxisStrength < currentAxisStrength * 1.3) {
+                                secondAxis = currentLockedAxisSecond; // Keep current axis
+                            }
+                        }
+
+                        // Update locked second axis
+                        currentLockedAxisSecond = secondAxis;
+
+                        // Lock to the selected second-closest axis
+                        if (secondAxis === 'X') {
+                            y3 = 0;
+                            z3 = 0;
+                        } else if (secondAxis === 'Y') {
+                            x3 = 0;
+                            z3 = 0;
+                        } else {
+                            x3 = 0;
+                            y3 = 0;
+                        }
+
+                        // Transform locked cube-local coordinates back to world space
+                        const objXRadFwd = state.current.objectRotX * Math.PI / 180;
+                        const objYRadFwd = state.current.objectRotY * Math.PI / 180;
+                        const objZRadFwd = state.current.objectRotZ * Math.PI / 180;
+
+                        // Forward rotation: Y, then X, then Z
+                        let xW1 = x3 * Math.cos(objYRadFwd) + z3 * Math.sin(objYRadFwd);
+                        let zW1 = -x3 * Math.sin(objYRadFwd) + z3 * Math.cos(objYRadFwd);
+                        let yW1 = y3;
+
+                        let yW2 = yW1 * Math.cos(objXRadFwd) + zW1 * Math.sin(objXRadFwd);
+                        let zW2 = -yW1 * Math.sin(objXRadFwd) + zW1 * Math.cos(objXRadFwd);
+                        let xW2 = xW1;
+
+                        let xW3 = xW2 * Math.cos(objZRadFwd) + yW2 * Math.sin(objZRadFwd);
+                        let yW3 = -xW2 * Math.sin(objZRadFwd) + yW2 * Math.cos(objZRadFwd);
+                        let zW3 = zW2;
+
+                        // Apply world-space movement to camera position
+                        state.target.cameraX = dragStartCameraX + xW3;
+                        state.target.cameraY = dragStartCameraY + yW3;
+                        state.target.cameraZ = dragStartCameraZ + zW3;
+                    } else if (dragMode === 'pan-third') {
+                        // Ctrl+Shift+drag: pan camera (CUBE-ALIGNED, THIRD-CLOSEST axis)
+                        // Completes the trio - gives access to the "unreachable" axis
+                        // Perfect for grid-aligned navigation when the 3rd axis is needed
+
+                        const panSpeed = 2;
+                        let dx = -deltaX * panSpeed;
+                        let dy = -deltaY * panSpeed;
+                        let dz = 0;
+
+                        // Get object rotation angles in radians (inverse for panning)
+                        const objXRad = -state.current.objectRotX * Math.PI / 180;
+                        const objYRad = -state.current.objectRotY * Math.PI / 180;
+                        const objZRad = -state.current.objectRotZ * Math.PI / 180;
+
+                        // Apply inverse rotation to get cube-local coordinates
+                        let x1 = dx * Math.cos(objZRad) - dy * Math.sin(objZRad);
+                        let y1 = dx * Math.sin(objZRad) + dy * Math.cos(objZRad);
+                        let z1 = dz;
+
+                        let y2 = y1 * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                        let z2 = y1 * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                        let x2 = x1;
+
+                        let x3 = x2 * Math.cos(objYRad) - z2 * Math.sin(objYRad);
+                        let z3 = x2 * Math.sin(objYRad) + z2 * Math.cos(objYRad);
+                        let y3 = y2;
+
+                        // DYNAMIC AXIS DETECTION WITH HYSTERESIS: Find third-closest axis
+                        const absX = Math.abs(x3);
+                        const absY = Math.abs(y3);
+                        const absZ = Math.abs(z3);
+
+                        // Sort axes by magnitude to find third-closest (weakest)
+                        const axes = [
+                            { name: 'X', value: x3, abs: absX },
+                            { name: 'Y', value: y3, abs: absY },
+                            { name: 'Z', value: z3, abs: absZ }
+                        ].sort((a, b) => b.abs - a.abs);
+
+                        // Get the third-weakest axis (index 2) - the "unreachable" one
+                        let thirdAxis = axes[2].name;
+
+                        // Hysteresis: only switch axes if new axis is significantly stronger (1.3x threshold)
+                        if (currentLockedAxisThird && currentLockedAxisThird !== thirdAxis) {
+                            const currentAxisStrength = currentLockedAxisThird === 'X' ? absX : (currentLockedAxisThird === 'Y' ? absY : absZ);
+                            const thirdAxisStrength = thirdAxis === 'X' ? absX : (thirdAxis === 'Y' ? absY : absZ);
+
+                            // Only switch if new axis is 30% stronger
+                            if (thirdAxisStrength < currentAxisStrength * 1.3) {
+                                thirdAxis = currentLockedAxisThird; // Keep current axis
+                            }
+                        }
+
+                        // Update locked third axis
+                        currentLockedAxisThird = thirdAxis;
+
+                        // Lock to the selected third-closest axis
+                        if (thirdAxis === 'X') {
+                            y3 = 0;
+                            z3 = 0;
+                        } else if (thirdAxis === 'Y') {
+                            x3 = 0;
+                            z3 = 0;
+                        } else {
+                            x3 = 0;
+                            y3 = 0;
+                        }
+
+                        // Transform locked cube-local coordinates back to world space
+                        const objXRadFwd = state.current.objectRotX * Math.PI / 180;
+                        const objYRadFwd = state.current.objectRotY * Math.PI / 180;
+                        const objZRadFwd = state.current.objectRotZ * Math.PI / 180;
+
+                        // Forward rotation: Y, then X, then Z
+                        let xW1 = x3 * Math.cos(objYRadFwd) + z3 * Math.sin(objYRadFwd);
+                        let zW1 = -x3 * Math.sin(objYRadFwd) + z3 * Math.cos(objYRadFwd);
+                        let yW1 = y3;
+
+                        let yW2 = yW1 * Math.cos(objXRadFwd) + zW1 * Math.sin(objXRadFwd);
+                        let zW2 = -yW1 * Math.sin(objXRadFwd) + zW1 * Math.cos(objXRadFwd);
+                        let xW2 = xW1;
+
+                        let xW3 = xW2 * Math.cos(objZRadFwd) + yW2 * Math.sin(objZRadFwd);
+                        let yW3 = -xW2 * Math.sin(objZRadFwd) + yW2 * Math.cos(objZRadFwd);
+                        let zW3 = zW2;
+
+                        // Apply world-space movement to camera position
+                        state.target.cameraX = dragStartCameraX + xW3;
+                        state.target.cameraY = dragStartCameraY + yW3;
+                        state.target.cameraZ = dragStartCameraZ + zW3;
+                    }
+
+                    // Trigger smooth animation
+                    if (!animationFrameId) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+                }
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                // Allow dragging even during animation - drag becomes additive to auto-rotation
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+
+                // Determine drag mode based on modifier keys
+                // Priority: Ctrl+Shift > Alt+Shift > Ctrl > Shift > Default
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+                    // Ctrl+Shift+drag: cube-aligned panning on 3rd-closest axis (unreachable axis)
+                    // Completes the trio: Shift=1st, Alt+Shift=2nd, Ctrl+Shift=3rd
+                    dragMode = 'pan-third';
+                    dragStartCameraX = state.target.cameraX;
+                    dragStartCameraY = state.target.cameraY;
+                    dragStartCameraZ = state.target.cameraZ;
+                    // Reset locked axis for fresh detection based on current orientation
+                    currentLockedAxisThird = null;
+                } else if ((e.altKey || (e.getModifierState && e.getModifierState('AltGraph'))) && e.shiftKey) {
+                    // Alt+Shift+drag: cube-aligned panning on 2nd-closest axis
+                    dragMode = 'pan-screen';
+                    dragStartCameraX = state.target.cameraX;
+                    dragStartCameraY = state.target.cameraY;
+                    dragStartCameraZ = state.target.cameraZ;
+                    // Reset locked axis for fresh detection based on current orientation
+                    currentLockedAxisSecond = null;
+                } else if (e.ctrlKey || e.metaKey) {
+                    // Ctrl+drag: rotate camera (FPS view)
+                    dragMode = 'camera';
+                    dragStartRotX = state.target.cameraRotX;
+                    dragStartRotY = state.target.cameraRotY;
+                } else if (e.shiftKey) {
+                    // Shift+drag: cube-aligned panning with axis locking (1st-closest)
+                    dragMode = 'pan';
+                    dragStartCameraX = state.target.cameraX;
+                    dragStartCameraY = state.target.cameraY;
+                    dragStartCameraZ = state.target.cameraZ;
+                    // Reset locked axis for fresh detection based on current orientation
+                    currentLockedAxis = null;
+                } else {
+                    // Default drag: rotate object (cube rotates in place)
+                    // During animation, this becomes additive - you can influence the auto-rotation
+                    dragMode = 'object';
+                    dragStartRotX = state.target.objectRotX;
+                    dragStartRotY = state.target.objectRotY;
+                    dragStartRotZ = state.target.objectRotZ;
+                }
+
+                canvas.classList.add('dragging');
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('dragging');
+            });
+
+            function updateCursor() {
+                // Cursor is now always interactive since dragging is allowed during animation
+                // The 'paused' class just indicates that auto-rotation is off
+                if (isRotating) {
+                    canvas.classList.remove('paused');
+                } else {
+                    canvas.classList.add('paused');
+                }
+                // 'dragging' class is managed by mousedown/mouseup, not affected by animation state
+            }
+
+            document.getElementById('playBtn').addEventListener('click', () => {
+                if (!isRotating) {
+                    isRotating = true;
+                    lastTimestamp = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                    updateCursor();
+                    updateControlsUI();
+                }
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isRotating = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                updateCursor();
+                updateControlsUI();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                // Reset both target and current state to grid-aligned values
+                // Uses parent alignment for sustainable grid alignment
+                const resetValues = {
+                    objectRotX: 0,  // Grid-aligned: nearest 90° from 15° is 0°
+                    objectRotY: 0,  // Grid-aligned: nearest 90° from 15° is 0°
+                    objectRotZ: 0,  // Already grid-aligned
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.18,
+                    focalLength: 500
+                };
+
+                // Reset target state
+                Object.assign(state.target, resetValues);
+
+                // Reset current state (instant reset, no smooth transition)
+                Object.assign(state.current, resetValues);
+
+                // Update parent alignments to match reset
+                updateParentAlignments();
+
+                // Clear all velocities
+                for (let key in state.velocity) {
+                    state.velocity[key] = 0;
+                }
+
+                // Update legacy aliases
+                objectRotX = state.current.objectRotX;
+                objectRotY = state.current.objectRotY;
+                objectRotZ = state.current.objectRotZ;
+                cameraRotX = state.current.cameraRotX;
+                cameraRotY = state.current.cameraRotY;
+                cameraRotZ = state.current.cameraRotZ;
+                cameraX = state.current.cameraX;
+                cameraY = state.current.cameraY;
+                cameraZ = state.current.cameraZ;
+                zoomLevel = state.current.zoomLevel;
+                focalLength = state.current.focalLength;
+
+                updateZoomDisplay();
+                updateFocalDisplay();
+                updateDepthDisplay();
+                updateHeightDisplay();
+                draw();
+            });
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                centerX = canvas.width / 2;
+                centerY = canvas.height / 2;
+                cubeField = generateCubeField();
+                draw();
+            });
+
+            // Keyboard controls for damping mode toggle and 90-degree rotations
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'd' || e.key === 'D') {
+                    // Toggle between critical and spring damping
+                    state.dampingMode = state.dampingMode === 'critical' ? 'spring' : 'critical';
+                    console.log(`Damping mode: ${state.dampingMode} (${state.dampingMode === 'critical' ? 'smooth stop' : 'bouncy'})`);
+
+                    // Show brief notification
+                    const mode = state.dampingMode === 'critical' ? 'Smooth' : 'Bouncy';
+                    const indicator = document.createElement('div');
+                    indicator.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(12, 5, 24, 0.9);
+                        color: #a0c0ff;
+                        padding: 20px 40px;
+                        border-radius: 15px;
+                        border: 1px solid #3030a0;
+                        box-shadow: 0 0 30px rgba(60, 20, 200, 0.6);
+                        font-family: monospace;
+                        font-size: 18px;
+                        z-index: 1000;
+                        pointer-events: none;
+                    `;
+                    indicator.textContent = `${mode} Mode`;
+                    document.body.appendChild(indicator);
+                    setTimeout(() => indicator.remove(), 1000);
+                } else if ((e.ctrlKey || e.metaKey) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'q', 'Q', 'e', 'E'].includes(e.key)) {
+                    // 90-degree grid-aligned snap rotations for axis-aligned navigation
+                    // Perfect for navigating like an agent following a route with right-angle turns
+                    e.preventDefault();
+
+                    // Reset all axis locks for fresh detection after rotation
+                    currentLockedAxis = null;
+                    currentLockedAxisSecond = null;
+                    currentLockedAxisThird = null;
+
+                    // Helper to normalize angle to 0-360 range
+                    const normalizeAngle = (angle) => {
+                        angle = angle % 360;
+                        if (angle < 0) angle += 360;
+                        return angle;
+                    };
+
+                    // Determine rotation based on key
+                    if (e.key === 'ArrowLeft') {
+                        // Rotate 90° left around Y axis (yaw left)
+                        const current = normalizeAngle(state.current.objectRotY);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotY = normalizeAngle(snapped - 90);
+                        state.current.objectRotY = current; // Ensure current is normalized too
+                    } else if (e.key === 'ArrowRight') {
+                        // Rotate 90° right around Y axis (yaw right)
+                        const current = normalizeAngle(state.current.objectRotY);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotY = normalizeAngle(snapped + 90);
+                        state.current.objectRotY = current;
+                    } else if (e.key === 'ArrowUp') {
+                        // Rotate 90° up around X axis (pitch up)
+                        const current = normalizeAngle(state.current.objectRotX);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotX = normalizeAngle(snapped - 90);
+                        state.current.objectRotX = current;
+                    } else if (e.key === 'ArrowDown') {
+                        // Rotate 90° down around X axis (pitch down)
+                        const current = normalizeAngle(state.current.objectRotX);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotX = normalizeAngle(snapped + 90);
+                        state.current.objectRotX = current;
+                    } else if (e.key === 'q' || e.key === 'Q') {
+                        // Rotate 90° counter-clockwise around Z axis (roll left)
+                        const current = normalizeAngle(state.current.objectRotZ);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotZ = normalizeAngle(snapped - 90);
+                        state.current.objectRotZ = current;
+                    } else if (e.key === 'e' || e.key === 'E') {
+                        // Rotate 90° clockwise around Z axis (roll right)
+                        const current = normalizeAngle(state.current.objectRotZ);
+                        const snapped = Math.round(current / 90) * 90;
+                        state.target.objectRotZ = normalizeAngle(snapped + 90);
+                        state.current.objectRotZ = current;
+                    }
+
+                    // Trigger animation for smooth rotation
+                    if (!animationFrameId) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
+
+                    // Show brief notification
+                    let rotationDesc = '';
+                    if (e.key === 'ArrowLeft') rotationDesc = 'Yaw Left';
+                    else if (e.key === 'ArrowRight') rotationDesc = 'Yaw Right';
+                    else if (e.key === 'ArrowUp') rotationDesc = 'Pitch Up';
+                    else if (e.key === 'ArrowDown') rotationDesc = 'Pitch Down';
+                    else if (e.key === 'q' || e.key === 'Q') rotationDesc = 'Roll Left';
+                    else if (e.key === 'e' || e.key === 'E') rotationDesc = 'Roll Right';
+
+                    const indicator = document.createElement('div');
+                    indicator.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(12, 5, 24, 0.9);
+                        color: #a0c0ff;
+                        padding: 20px 40px;
+                        border-radius: 15px;
+                        border: 1px solid #3030a0;
+                        box-shadow: 0 0 30px rgba(60, 20, 200, 0.6);
+                        font-family: monospace;
+                        font-size: 18px;
+                        z-index: 1000;
+                        pointer-events: none;
+                    `;
+                    indicator.textContent = `90° ${rotationDesc}`;
+                    document.body.appendChild(indicator);
+                    setTimeout(() => indicator.remove(), 800);
+                }
+            });
+
+            updateZoomDisplay();
+            updateFocalDisplay();
+            updateDepthDisplay();
+            updateHeightDisplay();
+            updateControlsUI(); // Initialize button states
+            draw();
+            setTimeout(() => {
+                isRotating = false; // set to true for autplay //
+                animationFrameId = requestAnimationFrame(animate);
+                updateCursor();
+                updateControlsUI(); // Update after setting initial rotation state
+            }, 500);
+        });
+    </script>
+</body>
+</html>

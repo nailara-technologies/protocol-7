@@ -93,10 +93,18 @@
     <div class="info-panel">
         <h3>Hyperspace Field</h3>
         <p>8-cube formation with central void</p>
-        <p>Mouse wheel to zoom</p>
-        <p>Shift+wheel to adjust perspective</p>
+        <p><strong>Mouse Controls (Pause first):</strong></p>
+        <p>• Drag: rotate camera (FPS view)</p>
+        <p>• Ctrl+drag: rotate object</p>
+        <p>• Shift+drag: pan camera</p>
+        <p><strong>Wheel Controls:</strong></p>
+        <p>• Wheel: move forward/backward</p>
+        <p>• Alt+wheel: move up/down</p>
+        <p>• Ctrl+wheel: zoom</p>
+        <p>• Shift+wheel: perspective</p>
         <p>Zoom: <span id="zoomLevel">100%</span></p>
         <p>Focal: <span id="focalDisplay">500</span></p>
+        <p>Position: <span id="depthDisplay">0</span>, <span id="heightDisplay">0</span></p>
         <p>FPS: <span id="fpsDisplay">--</span> (Blur: <span id="blurDisplay">100%</span>)</p>
     </div>
 
@@ -113,17 +121,123 @@
             const gridSize = 25;
             const gridSpacing = 60;
 
-            // Zoom control
-            let zoomLevel = 0.076923;
+            // Constants for limits and speeds
             const minZoom = 0.074923;
             const maxZoom = 63.0;
             const zoomSpeed = 0.24;
-
-            // Perspective control (focalLength)
-            let focalLength = 500;
             const minFocalLength = 100;
             const maxFocalLength = 2000;
             const focalSpeed = 20;
+            const minCameraPos = -3000;
+            const maxCameraPos = 3000;
+            const cameraSpeed = 15;
+
+            // State management with inertia-based smooth transitions
+            // Separates "intended changes" (target) from "applied changes" (current)
+            // This provides smooth acceleration/deceleration and allows both user and network to influence state
+            const state = {
+                // Current state (what's actually rendered)
+                current: {
+                    objectRotX: 15,
+                    objectRotY: 15,
+                    objectRotZ: 0,
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.076923,
+                    focalLength: 500
+                },
+
+                // Target state (intended changes from user/network/animation)
+                target: {
+                    objectRotX: 15,
+                    objectRotY: 15,
+                    objectRotZ: 0,
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.076923,
+                    focalLength: 500
+                },
+
+                // Velocity for each property (provides inertia/momentum)
+                velocity: {
+                    objectRotX: 0,
+                    objectRotY: 0,
+                    objectRotZ: 0,
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0,
+                    focalLength: 0
+                },
+
+                // Smoothing parameters (tune these for different feel)
+                smoothing: 0.15,      // Acceleration towards target (0-1, higher = faster response)
+                friction: 0.85        // Velocity damping (0-1, lower = more damping/slower)
+            };
+
+            // Compatibility aliases for legacy code (gradually migrate away from these)
+            let objectRotX = state.current.objectRotX;
+            let objectRotY = state.current.objectRotY;
+            let objectRotZ = state.current.objectRotZ;
+            let cameraRotX = state.current.cameraRotX;
+            let cameraRotY = state.current.cameraRotY;
+            let cameraRotZ = state.current.cameraRotZ;
+            let cameraX = state.current.cameraX;
+            let cameraY = state.current.cameraY;
+            let cameraZ = state.current.cameraZ;
+            let zoomLevel = state.current.zoomLevel;
+            let focalLength = state.current.focalLength;
+
+            // Dynamic change implementation with inertia
+            // This function buffers the difference between intended and applied changes
+            // and smoothly applies remaining changes with natural acceleration/deceleration
+            function applyChanges() {
+                for (let key in state.current) {
+                    // Calculate difference between target and current (the "intent gap")
+                    const diff = state.target[key] - state.current[key];
+
+                    // Accelerate velocity towards target (spring-like behavior)
+                    // The larger the gap, the stronger the acceleration
+                    state.velocity[key] += diff * state.smoothing;
+
+                    // Apply friction/damping to velocity (simulates air resistance)
+                    // This creates natural deceleration as we approach target
+                    state.velocity[key] *= state.friction;
+
+                    // Apply velocity to current position
+                    state.current[key] += state.velocity[key];
+
+                    // Snap to target if very close (prevents infinite tiny movements)
+                    if (Math.abs(diff) < 0.001 && Math.abs(state.velocity[key]) < 0.001) {
+                        state.current[key] = state.target[key];
+                        state.velocity[key] = 0;
+                    }
+                }
+
+                // Update legacy variable aliases
+                objectRotX = state.current.objectRotX;
+                objectRotY = state.current.objectRotY;
+                objectRotZ = state.current.objectRotZ;
+                cameraRotX = state.current.cameraRotX;
+                cameraRotY = state.current.cameraRotY;
+                cameraRotZ = state.current.cameraRotZ;
+                cameraX = state.current.cameraX;
+                cameraY = state.current.cameraY;
+                cameraZ = state.current.cameraZ;
+                zoomLevel = state.current.zoomLevel;
+                focalLength = state.current.focalLength;
+            }
 
             // Field configuration - 8 cubes in 2x2x2 formation
             const currentScale = 10;
@@ -244,15 +358,12 @@
 
             let isPlaying = false;
             let lastTimestamp = 0;
-            let rotX = 15;
-            let rotY = 15;
-            let rotZ = 0;
             let animationFrameId = null;
 
-            // Track previous rotation angles for speed calculation
-            let prevRotX = rotX;
-            let prevRotY = rotY;
-            let prevRotZ = rotZ;
+            // Track previous rotation angles for speed calculation (for color effects)
+            let prevRotX = objectRotX;
+            let prevRotY = objectRotY;
+            let prevRotZ = objectRotZ;
 
             // Cache for rotated colors (updated each frame)
             let rotatedColors = {};
@@ -297,6 +408,10 @@
             let dragStartRotX = 0;
             let dragStartRotY = 0;
             let dragStartRotZ = 0;
+            let dragStartCameraX = 0;
+            let dragStartCameraY = 0;
+            let dragStartCameraZ = 0;
+            let dragMode = 'camera'; // 'camera', 'object', or 'pan'
 
             function createGridLines() {
                 const lines = [];
@@ -574,30 +689,57 @@
             let cubeField = generateCubeField();
 
             function project(point) {
-                const xRad = rotX * Math.PI / 180;
-                const yRad = rotY * Math.PI / 180;
-                const zRad = rotZ * Math.PI / 180;
-                let x1 = point.x * Math.cos(yRad) - point.z * Math.sin(yRad);
-                let z1 = point.x * Math.sin(yRad) + point.z * Math.cos(yRad);
-                let y1 = point.y * Math.cos(xRad) - z1 * Math.sin(xRad);
-                let z2 = point.y * Math.sin(xRad) + z1 * Math.cos(xRad);
-                let x2 = x1 * Math.cos(zRad) - y1 * Math.sin(zRad);
-                let y2 = x1 * Math.sin(zRad) + y1 * Math.cos(zRad);
+                // Step 1: Apply object rotation (cube-centric)
+                const objXRad = objectRotX * Math.PI / 180;
+                const objYRad = objectRotY * Math.PI / 180;
+                const objZRad = objectRotZ * Math.PI / 180;
+                let x1 = point.x * Math.cos(objYRad) - point.z * Math.sin(objYRad);
+                let z1 = point.x * Math.sin(objYRad) + point.z * Math.cos(objYRad);
+                let y1 = point.y * Math.cos(objXRad) - z1 * Math.sin(objXRad);
+                let z2 = point.y * Math.sin(objXRad) + z1 * Math.cos(objXRad);
+                let x2 = x1 * Math.cos(objZRad) - y1 * Math.sin(objZRad);
+                let y2 = x1 * Math.sin(objZRad) + y1 * Math.cos(objZRad);
 
-                // Apply zoom
-                x2 *= zoomLevel;
-                y2 *= zoomLevel;
-                z2 *= zoomLevel;
+                // Step 2: Translate by camera position
+                x2 -= cameraX;
+                y2 -= cameraY;
+                z2 -= cameraZ;
 
-                const depth = focalLength + z2;
+                // Step 3: Apply inverse camera rotation (FPS-style view)
+                const camXRad = -cameraRotX * Math.PI / 180;
+                const camYRad = -cameraRotY * Math.PI / 180;
+                const camZRad = -cameraRotZ * Math.PI / 180;
+
+                // Rotate around camera's Z axis
+                let x3 = x2 * Math.cos(camZRad) - y2 * Math.sin(camZRad);
+                let y3 = x2 * Math.sin(camZRad) + y2 * Math.cos(camZRad);
+                let z3 = z2;
+
+                // Rotate around camera's X axis
+                let y4 = y3 * Math.cos(camXRad) - z3 * Math.sin(camXRad);
+                let z4 = y3 * Math.sin(camXRad) + z3 * Math.cos(camXRad);
+                let x4 = x3;
+
+                // Rotate around camera's Y axis
+                let x5 = x4 * Math.cos(camYRad) - z4 * Math.sin(camYRad);
+                let z5 = x4 * Math.sin(camYRad) + z4 * Math.cos(camYRad);
+                let y5 = y4;
+
+                // Step 4: Apply zoom
+                x5 *= zoomLevel;
+                y5 *= zoomLevel;
+                z5 *= zoomLevel;
+
+                // Step 5: Perspective projection
+                const depth = focalLength + z5;
                 if (depth <= 0) return { visible: false };
                 const scale = focalLength / depth;
-                const projX = centerX + x2 * scale;
-                const projY = centerY + y2 * scale;
+                const projX = centerX + x5 * scale;
+                const projY = centerY + y5 * scale;
                 return {
                     x: projX,
                     y: projY,
-                    z: z2,
+                    z: z5,
                     scale: scale,
                     visible: true
                 };
@@ -782,11 +924,19 @@
             }
 
             function updateZoomDisplay() {
-                document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+                document.getElementById('zoomLevel').textContent = Math.round(state.current.zoomLevel * 100) + '%';
             }
 
             function updateFocalDisplay() {
-                document.getElementById('focalDisplay').textContent = Math.round(focalLength);
+                document.getElementById('focalDisplay').textContent = Math.round(state.current.focalLength);
+            }
+
+            function updateDepthDisplay() {
+                document.getElementById('depthDisplay').textContent = Math.round(state.current.cameraZ);
+            }
+
+            function updateHeightDisplay() {
+                document.getElementById('heightDisplay').textContent = Math.round(state.current.cameraY);
             }
 
             // Calculate adaptive blur multiplier based on current FPS with hysteresis
@@ -842,6 +992,12 @@
                         if (frameCount % 10 === 0) {
                             document.getElementById('fpsDisplay').textContent = Math.round(currentFPS);
                             document.getElementById('blurDisplay').textContent = Math.round(blurMultiplier * 100) + '%';
+
+                            // Update state displays to show smooth transitions
+                            updateZoomDisplay();
+                            updateFocalDisplay();
+                            updateDepthDisplay();
+                            updateHeightDisplay();
                         }
                     }
                 }
@@ -854,11 +1010,11 @@
                 // Calculate hue shift based on rotation angles (psychedelic effect)
                 // Use sine wave to create smooth, gentle oscillation limited to ±30 degrees
                 // Modulated by zoom level for subtler effect when examining details
-                const rotationFactor = (rotY * 7 + rotX * 4 + rotZ * 3) * Math.PI / 180;
+                const rotationFactor = (objectRotY * 7 + objectRotX * 4 + objectRotZ * 3) * Math.PI / 180;
                 const hueShift = Math.sin(rotationFactor) * 30 * zoomFactor; // Less intense when zoomed in
 
                 // Calculate rotation speed for saturation/brightness boost (proportional, not binary)
-                const rotSpeed = Math.abs(rotX - prevRotX) + Math.abs(rotY - prevRotY) + Math.abs(rotZ - prevRotZ);
+                const rotSpeed = Math.abs(objectRotX - prevRotX) + Math.abs(objectRotY - prevRotY) + Math.abs(objectRotZ - prevRotZ);
 
                 // Smooth curve: gradual increase with rotation speed
                 // Using power function for non-linear response (faster rotation = more boost)
@@ -869,9 +1025,9 @@
                 const brightBoost = -0.07 + speedFactor * 0.0813; // -0.07 to +0.0113
 
                 // Update previous rotation values
-                prevRotX = rotX;
-                prevRotY = rotY;
-                prevRotZ = rotZ;
+                prevRotX = objectRotX;
+                prevRotY = objectRotY;
+                prevRotZ = objectRotZ;
 
                 // Create rotated color cache for this frame
                 rotatedColors = {
@@ -941,30 +1097,50 @@
                 if (isPlaying) {
                     const elapsed = timestamp - lastTimestamp;
                     lastTimestamp = timestamp;
-                    rotY += elapsed * 0.0002;
-                    rotZ -= elapsed * 0.0005;
+
+                    // Update target state (not current) - smooth transition will follow
+                    state.target.objectRotY += elapsed * 0.0002;
+                    state.target.objectRotZ -= elapsed * 0.0005;
+
+                    // Mouse influence on rotation (modifies target)
                     const relativeX = (mouseX - centerX) / (canvas.width / 2);
                     const relativeY = (mouseY - centerY) / (canvas.height / 2);
                     const distanceFromCenter = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
                     const responseFactorX = Math.pow(Math.abs(relativeX), 1.5) * Math.sign(relativeX) * 0.01;
                     const responseFactorY = Math.pow(Math.abs(relativeY), 1.5) * Math.sign(relativeY) * 0.01;
-                    rotY += elapsed * responseFactorX;
-                    rotX += elapsed * responseFactorY;
+                    state.target.objectRotY += elapsed * responseFactorX;
+                    state.target.objectRotX += elapsed * responseFactorY;
+
+                    // Roll influence based on quadrant (modifies target)
                     const quadrantAngle = (Math.atan2(relativeY, relativeX) + Math.PI) % (Math.PI * 2);
                     const quadrantFactor = Math.sin(quadrantAngle * 2);
                     const rollInfluence = -quadrantFactor * Math.pow(distanceFromCenter, 1.5) * 0.005;
-                    rotZ += elapsed * rollInfluence;
-                    rotX %= 360;
-                    rotY %= 360;
-                    rotZ %= 360;
-                    draw();
-                    if (isPlaying) {
-                        animationFrameId = requestAnimationFrame(animate);
-                    }
+                    state.target.objectRotZ += elapsed * rollInfluence;
+
+                    // Wrap target angles to prevent overflow
+                    state.target.objectRotX %= 360;
+                    state.target.objectRotY %= 360;
+                    state.target.objectRotZ %= 360;
+                }
+
+                // Always apply smooth transitions (even when paused, for manual interactions)
+                applyChanges();
+                draw();
+
+                // Check if we need to keep animating
+                // Continue if playing OR if there's significant velocity (smooth transitions in progress)
+                const hasVelocity = Object.values(state.velocity).some(v => Math.abs(v) > 0.001);
+
+                if (isPlaying || hasVelocity) {
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    // No more motion, clear the animation frame ID
+                    animationFrameId = null;
                 }
             }
 
-            // Mouse wheel zoom and perspective control
+            // Mouse wheel: camera movement, zoom, and perspective control
+            // Modifies target state for smooth inertia-based transitions
             canvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
 
@@ -975,20 +1151,35 @@
 
                 if (e.shiftKey) {
                     // Shift+wheel: adjust focal length (perspective)
-                    const baseDelta = Math.sign(e.deltaY) * focalSpeed; // Inverted direction
-                    const delta = baseDelta * speedMultiplier * 1.2; // Gentler multiplier for smoother control
-                    focalLength = Math.max(minFocalLength, Math.min(maxFocalLength, focalLength + delta));
+                    const baseDelta = Math.sign(e.deltaY) * focalSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.2;
+                    state.target.focalLength = Math.max(minFocalLength, Math.min(maxFocalLength, state.target.focalLength + delta));
                     updateFocalDisplay();
-                } else {
-                    // Normal wheel: zoom (keep original direction)
-                    const baseDelta = -Math.sign(e.deltaY) * zoomSpeed * zoomLevel * 1.2;
-                    const delta = baseDelta * speedMultiplier * 0.8; // Reduced for finer control
-                    zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
+                } else if (e.altKey || (e.getModifierState && e.getModifierState('AltGraph'))) {
+                    // Alt+wheel or AltGr+wheel: vertical movement (up/down) - supports both left Alt and right AltGr
+                    const baseDelta = -Math.sign(e.deltaY) * cameraSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.5;
+                    state.target.cameraY = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraY + delta));
+                    updateHeightDisplay();
+                } else if (e.ctrlKey || e.metaKey) {
+                    // Ctrl+wheel (or Cmd+wheel on Mac): zoom
+                    const baseDelta = -Math.sign(e.deltaY) * zoomSpeed * state.target.zoomLevel * 1.2;
+                    const delta = baseDelta * speedMultiplier * 0.8;
+                    state.target.zoomLevel = Math.max(minZoom, Math.min(maxZoom, state.target.zoomLevel + delta));
                     updateZoomDisplay();
+                } else {
+                    // Regular wheel: camera movement (forward/backward)
+                    const baseDelta = -Math.sign(e.deltaY) * cameraSpeed;
+                    const delta = baseDelta * speedMultiplier * 1.5;
+                    state.target.cameraZ = Math.max(minCameraPos, Math.min(maxCameraPos, state.target.cameraZ + delta));
+                    updateDepthDisplay();
                 }
 
+                // Trigger smooth animation if not already playing
                 if (!isPlaying) {
-                    draw();
+                    if (!animationFrameId) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
                 }
             }, { passive: false });
 
@@ -998,19 +1189,37 @@
                 if (isDragging && !isPlaying) {
                     const deltaX = mouseX - dragStartX;
                     const deltaY = mouseY - dragStartY;
-                    const signX = Math.sign(deltaX);
-                    const signY = Math.sign(deltaY);
-                    const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
-                    const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
-                    rotY = dragStartRotY + responseX * 30;
-                    rotX = dragStartRotX + responseY * 30;
-                    const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
-                    const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
-                    const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
-                    const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
-                    const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
-                    rotZ = dragStartRotZ + rollResponse * 7;
-                    draw();
+
+                    if (dragMode === 'object') {
+                        // Ctrl+drag: rotate object (cube-centric examination)
+                        const signX = Math.sign(deltaX);
+                        const signY = Math.sign(deltaY);
+                        const responseX = Math.pow(Math.abs(deltaX) * 0.005, 1.5) * signX;
+                        const responseY = Math.pow(Math.abs(deltaY) * 0.005, 1.5) * signY;
+                        state.target.objectRotY = dragStartRotY + responseX * 30;
+                        state.target.objectRotX = dragStartRotX + responseY * 30;
+
+                        // Roll based on diagonal movement
+                        const centerDistanceX = (mouseX - centerX) / (canvas.width / 2);
+                        const centerDistanceY = (mouseY - centerY) / (canvas.height / 2);
+                        const diagonalMovement = (deltaY * centerDistanceX - deltaX * centerDistanceY);
+                        const normalizedDiagonal = diagonalMovement / Math.sqrt(canvas.width * canvas.height);
+                        const rollResponse = Math.pow(Math.abs(normalizedDiagonal) * 3, 1.2) * Math.sign(normalizedDiagonal);
+                        state.target.objectRotZ = dragStartRotZ + rollResponse * 7;
+                    } else if (dragMode === 'camera') {
+                        // Regular drag: rotate camera (FPS-style view)
+                        state.target.cameraRotY = dragStartRotY + deltaX * 0.3;
+                        state.target.cameraRotX = dragStartRotX + deltaY * 0.3;
+                    } else if (dragMode === 'pan') {
+                        // Shift+drag: pan camera (grid-aligned movement)
+                        state.target.cameraX = dragStartCameraX - deltaX * 2;
+                        state.target.cameraY = dragStartCameraY - deltaY * 2;
+                    }
+
+                    // Trigger smooth animation
+                    if (!animationFrameId) {
+                        animationFrameId = requestAnimationFrame(animate);
+                    }
                 }
             });
 
@@ -1019,9 +1228,23 @@
                     isDragging = true;
                     dragStartX = e.clientX;
                     dragStartY = e.clientY;
-                    dragStartRotX = rotX;
-                    dragStartRotY = rotY;
-                    dragStartRotZ = rotZ;
+
+                    // Determine drag mode based on modifier keys
+                    if (e.ctrlKey || e.metaKey) {
+                        dragMode = 'object';
+                        dragStartRotX = state.target.objectRotX;
+                        dragStartRotY = state.target.objectRotY;
+                        dragStartRotZ = state.target.objectRotZ;
+                    } else if (e.shiftKey) {
+                        dragMode = 'pan';
+                        dragStartCameraX = state.target.cameraX;
+                        dragStartCameraY = state.target.cameraY;
+                    } else {
+                        dragMode = 'camera';
+                        dragStartRotX = state.target.cameraRotX;
+                        dragStartRotY = state.target.cameraRotY;
+                    }
+
                     canvas.classList.add('dragging');
                 }
             });
@@ -1058,13 +1281,49 @@
             });
 
             document.getElementById('resetBtn').addEventListener('click', () => {
-                rotX = 15;
-                rotY = 15;
-                rotZ = 0;
-                zoomLevel = 1.0;
-                focalLength = 500;
+                // Reset both target and current state to initial values
+                const resetValues = {
+                    objectRotX: 15,
+                    objectRotY: 15,
+                    objectRotZ: 0,
+                    cameraRotX: 0,
+                    cameraRotY: 0,
+                    cameraRotZ: 0,
+                    cameraX: 0,
+                    cameraY: 0,
+                    cameraZ: 0,
+                    zoomLevel: 0.076923,
+                    focalLength: 500
+                };
+
+                // Reset target state
+                Object.assign(state.target, resetValues);
+
+                // Reset current state (instant reset, no smooth transition)
+                Object.assign(state.current, resetValues);
+
+                // Clear all velocities
+                for (let key in state.velocity) {
+                    state.velocity[key] = 0;
+                }
+
+                // Update legacy aliases
+                objectRotX = state.current.objectRotX;
+                objectRotY = state.current.objectRotY;
+                objectRotZ = state.current.objectRotZ;
+                cameraRotX = state.current.cameraRotX;
+                cameraRotY = state.current.cameraRotY;
+                cameraRotZ = state.current.cameraRotZ;
+                cameraX = state.current.cameraX;
+                cameraY = state.current.cameraY;
+                cameraZ = state.current.cameraZ;
+                zoomLevel = state.current.zoomLevel;
+                focalLength = state.current.focalLength;
+
                 updateZoomDisplay();
                 updateFocalDisplay();
+                updateDepthDisplay();
+                updateHeightDisplay();
                 draw();
             });
 
@@ -1079,6 +1338,8 @@
 
             updateZoomDisplay();
             updateFocalDisplay();
+            updateDepthDisplay();
+            updateHeightDisplay();
             draw();
             setTimeout(() => {
                 isPlaying = false; // set to true for autplay //
