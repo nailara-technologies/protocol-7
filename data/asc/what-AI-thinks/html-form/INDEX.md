@@ -14,6 +14,10 @@
 
 ### **[http://visual.v7.ax/](http://visual.v7.ax/)**
 
+[![Hyperspace Field Demo](visualizations/cubic-space/remote/screen.0.png)](http://visual.v7.ax/)
+
+*Click the screenshot above to launch the interactive demo*
+
 Experience the 8-cube hyperspace formation with:
 - Real-time 3D navigation with critically damped inertia physics
 - Dynamic neighbor layers with speed-based reduction
@@ -21,7 +25,7 @@ Experience the 8-cube hyperspace formation with:
 - Multi-axis grid-aligned panning controls
 - Bilingual interface (English/German)
 
-This live demo showcases the cubic-space visualization system developed as part of Protocol-7's harmonic computing research.
+This live demo showcases the cubic-space visualization system developed as part of Protocol-7's harmonic computing research. The deployed version corresponds to [hyperspace-field-8cube-with-speed-based-layers.html](visualizations/cubic-space/hyperspace-field-8cube-with-speed-based-layers.html) and is accessible via the symlink at [remote/hyperspace-field-demo.html](visualizations/cubic-space/remote/hyperspace-field-demo.html) → `hyperspace-field-8cube-interactive-latest.html`.
 
 ---
 
