@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hyperspace Field – 8-Cube Formation Demo</title>
+  <style>
+    body {
+      background-color: #0c0518;
+      color: #a0c0ff;
+      font-family: monospace;
+      font-size:1.87em;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #b0c0ff;
+    }
+    a {
+      color: #7080e0;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .lang-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 200;
+    }
+    .lang-toggle button {
+      background: rgba(15, 5, 30, 0.7);
+      border: 1px solid #3030a0;
+      color: #a0c0ff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 1.70em;
+    }
+    .demo-link {
+      display: inline-block;
+      margin: 1.5rem 0;
+      padding: 0.6rem 1.2rem;
+      background: rgba(15, 5, 30, 0.7);
+      border: 1px solid #3030a0;
+      border-radius: 12px;
+      color: #a0c0ff;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+      transition: all 0.3s ease;
+      font-size:1.68em;
+    }
+    .demo-link:hover {
+      background: rgba(25, 10, 50, 0.7);
+      box-shadow: 0 0 25px rgba(60, 20, 200, 0.6);
+    }
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .screenshot-card {
+      background: rgba(12, 5, 24, 0.6);
+      border: 1px solid #3030a0;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 0 15px rgba(40, 0, 120, 0.3);
+    }
+    .screenshot {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #100520, #201040);
+      border: 1px dashed #5050a0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7080c0;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 0.8rem;
+    }
+    .caption {
+      font-size: 0.95rem;
+      color: #8090d0;
+    }
+    .info-panel {
+      max-width: 97%;
+      margin-top: 2rem;
+      padding: 1.2rem;
+      background: rgba(12, 5, 24, 0.7);
+      border-radius: 15px;
+      border: 1px solid #3030a0;
+      box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+    }
+    [lang="de"] {
+      display: none;
+    }
+    [lang="en"] {
+      display: block;
+    }
+    body.de [lang="de"] {
+      display: block;
+      max-width:77%;
+    }
+    body.de [lang="en"] {
+      display: none;
+      max-width:77%;
+    }
+
+
+
+/* Language switching */
+html:not([lang="en"]) [lang="de"] {
+    display: none !important;
+}
+
+html[lang="de"] [lang="en"] {
+    display: none !important;
+}
+
+
+    
+  </style>
+</head>
+<body>
+
+  <div class="lang-toggle">
+    <button onclick="setLang('en')">EN</button>
+    <button onclick="setLang('de')">DE</button>
+  </div>
+
+  <h1 lang="en">Hyperspace Field - 8-Cube Formation with Central Void</h1>
+  <h1 lang="de">Hyperraum-Feld - 8-W&uuml;rfel-Anordnung mit zentralem Hohlraum</h1>
+
+  <p lang="en">
+    An interactive 3D visualization of a cubic hyperspace network composed of 8 inward-cut cubes arranged in a 2x2x2 lattice.
+    Designed for intuitive navigation through coupled inertia-based controls, dynamic depth-aware rendering,
+    and psychedelic color modulation based on rotation and zoom.
+  </p>
+  <p lang="de">
+    Eine interaktive 3D-Visualisierung eines kubischen Hyperraum-Netzwerks aus 8 nach innen geschnittenen
+    W&uuml;rfeln in einer 2x2x2-Gitteranordnung.
+    Entwickelt f&uuml;r intuitive Navigation mittels tr&auml;gheitsbasierter Steuerung, dynamischem tiefenbewusstem Rendering
+    und psychedelischer Farbmodulation abh&auml;ngig von Rotation und Zoom.
+  </p>
+
+  <a href="hyperspace-field-demo.html" class="demo-link" target="_blank" lang="en">* Launch Interactive Visualization</a>
+  <a href="hyperspace-field-demo.html" class="demo-link" target="_blank" lang="de">* Interaktive Visualisierung starten</a>
+
+  <div class="info-panel">
+    <h2 lang="en">Key Features</h2>
+    <h2 lang="de">Hauptmerkmale</h2>
+    <ul>
+      <li lang="en"><strong>8-Cube Field</strong>: Central void with inward-facing cubic cutouts pointing toward origin.</li>
+      <li lang="de"><strong>8-W&uuml;rfel-Feld</strong>: Zentraler Hohlraum mit nach innen gerichteten, w&uuml;rfelförmigen Aussparungen, die zum Ursprung zeigen.</li>
+
+      <li lang="en"><strong>Inertia-Based Navigation</strong>: Critically damped or spring-mode physics for smooth transitions.</li>
+      <li lang="de"><strong>Tr&auml;gheitsbasierte Navigation</strong>: Kritisch ged&auml;mpfte oder federelastische Physik f&uuml;r fl&uuml;ssige Überg&auml;nge.</li>
+
+      <li lang="en"><strong>Multi-Axis Panning</strong>: Grid-aligned movement using Shift, Alt+Shift, and Ctrl+Shift drag.</li>
+      <li lang="de"><strong>Mehrfachachsen-Panning</strong>: Gitterausgerichtete Bewegung per Shift-, Alt+Shift- und Strg+Shift-Ziehen.</li>
+
+      <li lang="en"><strong>Dynamic Neighbor Layers</strong>: Adjustable concentric cube layers that fade with distance and speed.</li>
+      <li lang="de"><strong>Dynamische Nachbarschichten</strong>: Einstellbare konzentrische W&uuml;rfelschichten, die mit Distanz und Geschwindigkeit verblassen.</li>
+
+      <li lang="en"><strong>Adaptive Glow & Blur</strong>: Performance-aware shadowBlur scaling based on real-time FPS.</li>
+      <li lang="de"><strong>Adaptives Leuchten & Unsch&auml;rfe</strong>: Leistungsabh&auml;ngige shadowBlur-Skalierung basierend auf Echtzeit-FPS.</li>
+
+      <li lang="en"><strong>Psychedelic Hue Modulation</strong>: Colors shift with rotation angle and zoom level.</li>
+      <li lang="de"><strong>Psychedelische Farbtonmodulation</strong>: Farben ver&auml;ndern sich mit Rotationswinkel und Zoomstufe.</li>
+
+      <li lang="en"><strong>Vignette & Grid</strong>: Zoom-responsive ambient grid and radial vignette for depth context.</li>
+      <li lang="de"><strong>Vignette & Gitter</strong>: Zoom-abh&auml;ngiges Umgebungs-Gitter und radiale Vignette f&uuml;r Tiefenkontext.</li>
+
+      <li lang="en"><strong>Keyboard Shortcuts</strong>: 90&deg; grid-aligned rotations, damping toggle, layer adjustment.</li>
+      <li lang="de"><strong>Tastaturk&uuml;rzel</strong>: 90&deg; gitterausgerichtete Rotationen, D&auml;mpfungs-Umschaltung, Schichtanpassung.</li>
+    </ul>
+  </div>
+
+  <h2 lang="en">Screenshots</h2>
+  <h2 lang="de">Bildschirmfotos</h2>
+  <div class="screenshot-grid">
+
+    <div class="screenshot-card">
+      <img src="screen.0.png" alt="default-view" class="screenshot">
+      <p class="caption">
+        <strong lang="en">Default View<br>Initial orientation showing the full 2x2x2 field with inward cutouts and central
+        void.<br></strong>
+        <strong lang="de">Standardansicht<br>Initiale Orientierung des vollst&auml;ndigen 2x2x2-Felds mit Innen-Aussparungen und zentralem
+        Hohlraum.</strong>
+      </p>
+    </div>
+
+    <div class="screenshot-card">
+      <img src="screen.1.png" alt="zoomed-in" class="screenshot">
+      <p class="caption">
+        <strong lang="en">Subcube Detail<br>Close-up of a single cube revealing the 4x4x4 subcube lattice with one corner
+        removed.<br></strong>
+        <strong lang="de">Unterw&uuml;rfel-Detail<br>Nahaufnahme eines einzelnen W&uuml;rfels mit 4x4x4-Untergitter und einer entfernten
+        Ecke.</strong>
+      </p>
+    </div>
+
+    <div class="screenshot-card">
+      <img src="screen.2.png" alt="neighbor-layers" class="screenshot">
+      <p class="caption">
+        <strong lang="en">Neighbor Layers<br>Concentric surrounding cubes rendered with distance-based translucency and
+        glow.<br></strong>
+        <strong lang="de">Nachbarschichten<br>Konzentrische umgebende W&uuml;rfel mit distanzbasiertem Transparenz- und
+        Leuchteffekt.</strong>
+      </p>
+    </div>
+
+    <div class="screenshot-card">
+      <img src="screen.3.png" alt="spring-damping" class="screenshot">
+      <p class="caption">
+        <strong lang="en">Spring Mode<br>Bouncy inertia with magnetic grid alignment as rotation settles into 90&deg;
+        increments.<br></strong>
+        <strong lang="de">Federmodus<br>Elastische Tr&auml;gheit mit magnetischer Gitterausrichtung, sobald Rotation in 90&deg;-Schritten
+        einrastet.</strong>
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.body.className = lang;
+      localStorage.setItem('preferredLang', lang);
+    }
+    // Load saved language preference
+    const saved = localStorage.getItem('preferredLang');
+    if (saved === 'de') {
+      document.body.className = 'de';
+    }
+  </script>
+</body>
+</html>

@@ -4,7 +4,24 @@
 
 **Total Files:** 149 HTML files + 13 INDEX.md files
 
-**Last Updated:** 2025-10-11
+**Last Updated:** 2025-10-23
+
+---
+
+## 🌐 Live Demo
+
+**Interactive Hyperspace Field Visualization** is now live at:
+
+### **[http://visual.v7.ax/](http://visual.v7.ax/)**
+
+Experience the 8-cube hyperspace formation with:
+- Real-time 3D navigation with critically damped inertia physics
+- Dynamic neighbor layers with speed-based reduction
+- Psychedelic hue rotation and adaptive rendering
+- Multi-axis grid-aligned panning controls
+- Bilingual interface (English/German)
+
+This live demo showcases the cubic-space visualization system developed as part of Protocol-7's harmonic computing research.
 
 ---
 
