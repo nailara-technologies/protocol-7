@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3KNOVGPQNY-5204.0 :::
+::: SOURCE-CODE VERSION :: 3KNOXEWEGI-5205.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -18,6 +18,20 @@
 
 - Detailed release history: [Release Versions](/read-me/project-identity/release-versions.md)
 - Current [release](https://github.com/nailara-technologies/protocol-7/tags) version \\// [AMOS7-v2.79.7](https://github.com/nailara-technologies/protocol-7/releases/tag/AMOS7-v2.79.7)
+---
+
+## 🌐 Live Demo
+
+**Interactive Hyperspace Field Visualization** - Experience Protocol-7's cubic space topology in real-time:
+
+### **[http://visual.v7.ax/](http://visual.v7.ax/)**
+
+[![Hyperspace Field Demo](data/asc/what-AI-thinks/html-form/visualizations/cubic-space/remote/screen.0.png)](http://visual.v7.ax/)
+
+*Click the screenshot above to launch the interactive demo*
+
+Features real-time 3D navigation, dynamic neighbor layers, psychedelic hue rotation, and adaptive rendering. Showcases the harmonic computing principles of cubic space topology with critically damped inertia physics and multi-axis grid-aligned navigation. Bilingual interface (English/German).
+
 ---
 
 ## Introduction
@@ -252,8 +266,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,,,,.,,,.,,,,,,,.,,,...,.,,,.,.,...,,..,.,,,..,,...,...,..,,.,,,...,,,.,,..,
-#5AKEF2P7U3PEEKSCQ6Y6BDOWOTUOW75WWY36ESXHVADQB6YOHS6DJ6U3L4ARVJV5KAWPH7OAXERLO
-#\\\|OJSSWBVZYYII4BVK6ZC5T4ALZ3MGPT4P4ZFNZPSFNFM6A4F3CR6 \ / AMOS7 \ YOURUM ::
-#\[7]SOF7BQ3ANK5GOADIONNFETX2S4JDQ3F7WWRKAMVBDBTGYTR7OWDY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,...,...,..,,,,,,,..,.,,,,,.,,.,,..,,...,...,,,,,,,.,,..,,.,,...,
+#5VRSWIQ2PDKXKYUNL5EAEW3RO4DNQ5PZK6SV4HQD5OW2YBSOCYQYBO6KRUUFFSPQJYWG6FWM4HYKK
+#\\\|J23WMHGRA5454SCFL2UHRVXGND3ADICAAD2AEQSMLRB4QJMAMR2 \ / AMOS7 \ YOURUM ::
+#\[7]7AQXJIIT5DCNHBY2HSSIDOWYZI33CN3UHZUZ7UR2JIGPAJRNOODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
