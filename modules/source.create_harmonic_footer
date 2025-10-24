@@ -145,16 +145,17 @@ if ($check_enbedded_file_syntax) {
 
 ##  prepare payload endlines for signature-footer  ##
 
-## Extract signature footer FIRST before determining endline state ##
-## Use repair mode to detect separator endline status ##
-## This must happen before endline state determination to ensure separator endline is properly detected ##
-my $sign_params_base = <[source.extract_sig_body]>->( $src_ref, qw| strip repair | );
+## Use footer_data passed from caller instead of re-extracting
+## The caller (source.cmd.get-code-signed) already extracted and stripped the signature,
+## so re-extracting here would find nothing and give wrong endline state information.
+## This was causing double-signing because wrong endline state created different footers.
+my $sign_params_base = $footer_data;
 
 # Determine endline state based on detected conditions from extracted footer
 my $endline_modification_state;
 
 # DEBUG: Log extraction results (level 3 = verbose only)
-<[base.log]>->( 3, ': extract_sig_body results:' );
+<[base.log]>->( 3, ': using footer_data from caller:' );
 <[base.logs]>->( 3, ':   needs_separator_endline: %s',
     $sign_params_base->{'needs_separator_endline'} ? 'YES' : 'NO' );
 <[base.logs]>->( 3, ':   last_line_incomplete: %s',
@@ -430,9 +431,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 }
 
 return $calc_result_href;        ##  return harmonized result data href  ##
-
-#,,..,,.,,..,,,.,,..,,.,.,.,,,..,,.,,,.,.,,.,,...,...,..,,,,.,,..,.,.,..,,,,.,
-#4WNELNZUC4XUS7SR5JXKZOIK2DJPQNXD56XKMFZTG4DGLHR3OVTRLSBM2A52ORGDSRS3WDWKOOKQC
-#\\\|UVY5TRCIXDVKO2BHN7L5W6D5Y5G56UESKHAUWG5OUS7IFB4OIFM \ / AMOS7 \ YOURUM ::
-#\[7]7YGC6CLNXBERRGPKFPALI2DE4HQHCQ7ER7UNE5MOSIO5TGW7I6DY 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,..,.,,,.,,,..,,,,,,.,,,.,.,...,...,...,.,.,,,.,,,,,.,.,.,.,
+#2Q7FFFDF3FW4E3F4ICA5JNFSDFC46LE77MWXJN47CMWIKSTYITCLU3VXKVAIMOC26E2CN53DWT5U4
+#\\\|I3ENI3NLY7KUV3NWFKEOH7XFL6AVYR5LQQY6T3SVZXHJI74JIZ6 \ / AMOS7 \ YOURUM ::
+#\[7]4MZKVYFHV64DH7OOZ5L3TEMIF3VD4J6GNML2SKXJF3M36SPH7EDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
