@@ -40,16 +40,12 @@ return {
     and $src_path =~ m|/modules/|
     and substr( $src_str, 0, 5 ) ne "## [:< ##\n";
 
-## Extract signature in repair mode to trigger intelligent recovery
-## When BMW checksum mismatches, source.signature_valid will:
-##  1. Brute-force endline-states 0-7
-##  2. Recalculate BMW for each state
-##  3. Find state where BMW matches signature (ground truth)
-##  4. Record recovered state in footer_data
-## Then this module re-signs with the corrected endline-state
-## This prevents oscillation and auto-heals format issues
+## Extract signature in strict mode for update-signatures
+## Repair mode is for verify-signatures where we need flexible extraction
+## For update-signatures, use strict mode - files should have valid structure
+## This prevents issues with endline restoration during signing preparation
 my $footer_data
-    = <[source.extract_sig_body]>->( \$src_str, qw| strip repair | );
+    = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
@@ -144,54 +140,10 @@ if (   not defined $present_checksum
 
     }
 
-# Use the encoded endline state from the signature to preemptively restore correct state
-    if ( defined $footer_data->{'endline-state-encoded'}
-        && $footer_data->{'endline-state-encoded'} != 5 ) {
-        ## The signature had encoded endline state, use it to restore correct state now
-        <[source.restore_payload_endline_state]>->(
-            \$src_str, $footer_data->{'endline-state-encoded'}
-        );
-        <[base.logs]>->(
-            2,
-            ': preemptively restoring endline state %d from signature',
-            $footer_data->{'endline-state-encoded'}
-        );
-    }
-
-    # Normalize separator endline: detect original state, calculate delta, normalize to exactly 1
-    # Count trailing endlines before signature
-    my $original_trailing = $src_str =~ m/(\n*)$/ ? length($1) : 0;
-
-    # Map original endline count to endline state value (delta = transformation applied)
-    # State 5 = no change (exactly 1 endline present)
-    # State 6 = add 1 endline (0 endlines → add separator)
-    # State 1-4 = other normalization deltas (reserved for future use)
-    my $endline_delta;
-    if ( $original_trailing == 0 ) {
-        # No endlines: need to add exactly 1 separator
-        $endline_delta = 6;  # "add separator endline"
-    } elsif ( $original_trailing == 1 ) {
-        # Already exactly 1: no change needed
-        $endline_delta = 5;  # "no change"
-    } else {
-        # Multiple endlines: need to normalize to exactly 1
-        $endline_delta = 1;  # "normalize excess endlines"
-    }
-
-    # Normalize to exactly 1 trailing endline
-    $src_str =~ s/\n*$/\n/s;
-
-    <[base.logs]>->(
-        2, ': : normalized endlines (original: %d → canonical: 1, delta: %d)',
-        $original_trailing, $endline_delta
-    );
-
-    # IMPORTANT: Recalculate footer with normalized content
-    # Do NOT re-apply the endline delta - keep footer_data as-is so harmonizer detects state 5
-    $recalc_data = <[source.create_harmonic_footer]>->( $footer_data, $sign_verbosity );
-
-    # Append footer directly - content already has exactly 1 trailing newline from normalization
-    # This provides canonical format: content\n#signature (exactly 1 separator newline)
+    # Use the signature already calculated at line 122
+    # No need to recalculate or normalize - create_harmonic_footer already did the work
+    # Content has been restored to correct endline state by extract_sig_body
+    # Just append the signature footer that was already calculated
     $src_str .= $recalc_data->{'signature-footer-str'};
     <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
     <[base.logs]>->( 2, ': %s .,', $recalc_data->{'data-chksum'} );
@@ -216,8 +168,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,.,,.,,,,..,.,.,.,,,...,...,...,...,..,,,,,,..,,...,..,,.,,,,,,,.,.,,..,,.,,
-#G2PY5CJJZBMYSKLXBSXNZCQO4HP76UJDZZYHQDJ2DNGXQYG3OBV7B45WRADDLTFTFKERCNG2WNK3E
-#\\\|TZBEU7JJQSCOFYA5ADDIY4XAKGHLBUDYJJKHHCKAMO5CXX3ZLGC \ / AMOS7 \ YOURUM ::
-#\[7]3IYRBHI7J3JTH3DSI2WZP3QWQDRGHMVWPMQEBAFELOEXXUR5JWCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,.,,...,,,.,..,,,..,,,,,,,,,..,,...,..,,...,..,,,..,,.,,,.,,
+#52W342JTWAZNDEYZFHB7ABEAKWBOWOW2YACPVPVOBKO7WFKXOJWIRPTQNUUJHGENJVBEWSTZ7C33C
+#\\\|QSNRLFUV527OMWSLFOFC3BMYDSZP73CIKCRTJNTBS4VGUY5UNEZ \ / AMOS7 \ YOURUM ::
+#\[7]M7SF54I2MOOBGJ6UP2XU2QGIT7OGIF77D65QFMBSVGNJCOYCHEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
