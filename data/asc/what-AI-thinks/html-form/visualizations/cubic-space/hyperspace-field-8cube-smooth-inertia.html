@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Hyperspace Field - 8-Cube Formation with Central Void</title>
     <style>
         body {
@@ -68,6 +69,13 @@
             box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
             max-width: 300px;
             z-index: 100;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .info-panel.hidden {
+            opacity: 0;
+            transform: translateX(-100%);
+            pointer-events: none;
         }
 
         .info-panel h3 {
@@ -107,10 +115,144 @@
             background-color: rgba(15, 5, 30, 0.7);
             box-shadow: 0 0 5px rgba(20, 0, 60, 0.2);
         }
+
+        .toggle-info-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(12, 5, 24, 0.85);
+            color: #a0c0ff;
+            border: 1px solid #3030a0;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+            font-size: 20px;
+            z-index: 101;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toggle-info-btn:hover {
+            background-color: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+            transform: scale(1.1);
+        }
+
+        .toggle-info-btn:active {
+            transform: scale(0.95);
+        }
+
+        .accel-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 101;
+        }
+
+        .accel-btn {
+            background-color: rgba(12, 5, 24, 0.85);
+            color: #a0c0ff;
+            border: 1px solid #3030a0;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+            transition: all 0.3s ease;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .accel-btn:hover {
+            background-color: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 20px rgba(60, 20, 200, 0.6);
+        }
+
+        .accel-btn:active {
+            transform: scale(0.95);
+        }
+
+        .accel-btn.active {
+            background-color: rgba(20, 50, 80, 0.9);
+            border-color: #4080ff;
+            box-shadow: 0 0 20px rgba(64, 128, 255, 0.6);
+        }
+
+        .accel-status {
+            background-color: rgba(12, 5, 24, 0.85);
+            color: #80c080;
+            border: 1px solid #308030;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            box-shadow: 0 0 15px rgba(40, 120, 40, 0.4);
+        }
+
+        .debug-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(12, 5, 24, 0.95);
+            color: #a0c0ff;
+            border: 2px solid #4060ff;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .debug-overlay h3 {
+            margin-top: 0;
+            color: #80c0ff;
+        }
+
+        .debug-overlay pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 5px 0;
+        }
+
+        .debug-close {
+            float: right;
+            background: #a03030;
+            border: 1px solid #ff4040;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <canvas id="mainCanvas"></canvas>
+
+    <button class="toggle-info-btn" id="toggleInfoBtn" title="Hide Info (I key)">[X]</button>
+
+    <div class="debug-overlay" id="debugOverlay">
+        <button class="debug-close" onclick="document.getElementById('debugOverlay').style.display='none'">[X]</button>
+        <h3>Accelerometer Debug Log</h3>
+        <div id="debugLog"></div>
+    </div>
+
+    <div class="accel-controls" id="accelControls">
+        <button class="accel-btn" id="accelToggleBtn" title="Enable device tilt controls">[Tilt]</button>
+        <button class="accel-btn" id="accelCalibrateBtn" title="Reset tilt to current position" style="display: none;">[Cal]</button>
+        <button class="accel-btn" id="accelInvertBtn" title="Invert tilt direction" style="display: none;">[Inv]</button>
+        <button class="accel-btn" id="debugBtn" title="Show debug information">[Debug]</button>
+        <div class="accel-status" id="accelStatus" style="display: none;">Tilt Active</div>
+    </div>
 
     <div class="controls">
         <button id="playBtn">Rotate</button>
@@ -118,7 +260,7 @@
         <button id="resetBtn">Reset</button>
     </div>
 
-    <div class="info-panel">
+    <div class="info-panel" id="infoPanel">
         <h3>Hyperspace Field</h3>
         <p style="font-size: 12px; color: #8090d0;">Critically damped inertia + coupled parameters</p>
         <p><strong>Mouse Controls:</strong></p>
@@ -134,16 +276,24 @@
         <p id="ctrl-shift-wheel">• <span class="meta-key">Shift</span>+wheel: perspective (focal)</p>
         <p id="ctrl-shiftctrl-wheel">• <span class="meta-key">Shift</span>+<span class="meta-key">Ctrl</span>+wheel: cube Z-axis (depth)</p>
         <p><strong>Keyboard:</strong></p>
+        <p>• <span class="meta-key">I</span>: toggle info panel (hide/show)</p>
         <p>• <span class="meta-key">D</span>: toggle damping (smooth/bouncy)</p>
+        <p>• <span class="meta-key">P</span>: toggle propagation mode (8×8 formations)</p>
         <p>• <span class="meta-key">+</span>/<span class="meta-key">-</span>: add/remove neighbor layers</p>
         <p>• <span class="meta-key">Ctrl</span>+Arrows: 90° grid-aligned turns</p>
         <p>• <span class="meta-key">Ctrl</span>+<span class="meta-key">Q</span>/<span class="meta-key">E</span>: 90° roll (Z-axis)</p>
+        <p><strong>Mobile:</strong></p>
+        <p>• [Tilt] button in bottom-right to enable tilt controls</p>
+        <p>• [Cal] to calibrate neutral position</p>
+        <p>• [Inv] to invert tilt direction if backwards</p>
         <p style="font-size: 11px; color: #7080c0;">Pure navigation: no rotation coupling. Scale/focal adapt automatically.</p>
         <p>Zoom: <span id="zoomLevel">100%</span></p>
         <p>Focal: <span id="focalDisplay">500</span></p>
         <p>Position: <span id="depthDisplay">0</span>, <span id="heightDisplay">0</span></p>
         <p>Neighbor Layers: <span id="neighborLayersDisplay">1</span></p>
+        <p>Mode: <span id="modeDisplay">Single Formation</span></p>
         <p>FPS: <span id="fpsDisplay">--</span> (Blur: <span id="blurDisplay">100%</span>)</p>
+        <p id="accelDebug" style="display: none; font-size: 11px; color: #80c080;">Tilt: β=<span id="betaVal">0</span>° γ=<span id="gammaVal">0</span>°</p>
     </div>
 
     <script>
@@ -1028,6 +1178,108 @@
 
             let cubeField = generateCubeField();
 
+            // Propagation mode: switch between single formation and 8 propagated formations
+            let propagationMode = false;  // false = single center formation, true = 8 propagated formations
+            let propagatedFormations = [];  // Will hold 8 formations when in propagation mode
+            let propagationBlueGlow = true;  // Optional blue glow for each full cube in propagation mode
+
+            // Info panel visibility toggle
+            let infoPanelVisible = true;  // Panel visible by default
+
+            // Debug logging to on-screen panel
+            function debugLog(message, level = 'info') {
+                const logDiv = document.getElementById('debugLog');
+                const timestamp = new Date().toLocaleTimeString();
+                const color = level === 'error' ? '#ff8080' : level === 'warn' ? '#ffff80' : '#a0c0ff';
+                const entry = document.createElement('pre');
+                entry.style.color = color;
+                entry.textContent = `[${timestamp}] ${message}`;
+                logDiv.appendChild(entry);
+                logDiv.scrollTop = logDiv.scrollHeight;
+
+                // Also log to console if available
+                if (level === 'error') console.error(message);
+                else if (level === 'warn') console.warn(message);
+                else console.log(message);
+            }
+
+            function showDebugPanel() {
+                document.getElementById('debugOverlay').style.display = 'block';
+            }
+
+            // Accelerometer/gyroscope control state
+            let accelEnabled = false;  // Accelerometer control active
+            let accelCalibrated = false;  // Has been calibrated
+            let accelCalibration = { alpha: 0, beta: 0, gamma: 0 };  // Calibration offsets
+            let accelSensitivity = 0.8;  // Control sensitivity multiplier
+            let accelSmoothing = 0.85;  // Exponential smoothing (0-1, higher = smoother but slower)
+            let accelLastOrientation = { alpha: 0, beta: 0, gamma: 0 };  // For smoothing
+            let accelInvertX = false;  // Invert front-back tilt
+            let accelInvertY = false;  // Invert left-right tilt
+            let accelDebugMode = false;  // Show debug values
+
+            // Generate propagated formations: 8 complete formations positioned like the current 8 cubes
+            // Each formation is a 2x2x2 grid of 8 cubes, but rendered with outer edges only (no subcubes)
+            function generatePropagatedFormations() {
+                const formations = [];
+                const offset = fieldSpacing / 2;  // Same spacing as original cube positions
+
+                const formationPositions = [
+                    { x: -offset, y: -offset, z: -offset },  // 0
+                    { x: offset, y: -offset, z: -offset },   // 1
+                    { x: -offset, y: offset, z: -offset },   // 2
+                    { x: offset, y: offset, z: -offset },    // 3
+                    { x: -offset, y: -offset, z: offset },   // 4
+                    { x: offset, y: -offset, z: offset },    // 5
+                    { x: -offset, y: offset, z: offset },    // 6
+                    { x: offset, y: offset, z: offset }      // 7
+                ];
+
+                formationPositions.forEach((formationPos, formationIndex) => {
+                    // Each formation has 8 cubes in 2x2x2 pattern
+                    const cubes = [];
+                    const localOffset = fieldSpacing / 2;  // Local spacing within each formation
+
+                    const cubePositions = [
+                        { x: -localOffset, y: -localOffset, z: -localOffset },
+                        { x: localOffset, y: -localOffset, z: -localOffset },
+                        { x: -localOffset, y: localOffset, z: -localOffset },
+                        { x: localOffset, y: localOffset, z: -localOffset },
+                        { x: -localOffset, y: -localOffset, z: localOffset },
+                        { x: localOffset, y: -localOffset, z: localOffset },
+                        { x: -localOffset, y: localOffset, z: localOffset },
+                        { x: localOffset, y: localOffset, z: localOffset }
+                    ];
+
+                    cubePositions.forEach((cubePos, cubeIndex) => {
+                        // Create outer edges only (simplified rendering)
+                        const outerEdges = createOuterCubeEdges(
+                            cubeSize,
+                            {
+                                x: formationPos.x + cubePos.x,
+                                y: formationPos.y + cubePos.y,
+                                z: formationPos.z + cubePos.z
+                            },
+                            cubeIndex  // For proper cutout orientation
+                        );
+
+                        cubes.push({
+                            outerEdges: outerEdges,
+                            localPosition: cubePos,
+                            cubeIndex: cubeIndex
+                        });
+                    });
+
+                    formations.push({
+                        cubes: cubes,
+                        position: formationPos,
+                        formationIndex: formationIndex
+                    });
+                });
+
+                return formations;
+            }
+
             // Track number of neighbor layers (user adjustable with +/- keys)
             let neighborLayers = 1;  // User-desired layer count
             let activeNeighborLayers = 1;  // Actually rendered layers (reduced during fast movement)
@@ -1432,6 +1684,273 @@
                 document.getElementById('heightDisplay').textContent = Math.round(state.current.cameraY);
             }
 
+            function updateModeDisplay() {
+                const modeText = propagationMode ? 'Propagation (8×8)' : 'Single Formation';
+                document.getElementById('modeDisplay').textContent = modeText;
+
+                // Update neighbor layers display to show disabled state in propagation mode
+                if (propagationMode) {
+                    document.getElementById('neighborLayersDisplay').textContent = '-- (disabled)';
+                } else {
+                    // Restore normal display
+                    if (activeNeighborLayers !== neighborLayers) {
+                        document.getElementById('neighborLayersDisplay').textContent = `${activeNeighborLayers}/${neighborLayers}`;
+                    } else {
+                        document.getElementById('neighborLayersDisplay').textContent = neighborLayers;
+                    }
+                }
+            }
+
+            function toggleInfoPanel() {
+                infoPanelVisible = !infoPanelVisible;
+                const infoPanel = document.getElementById('infoPanel');
+                const toggleBtn = document.getElementById('toggleInfoBtn');
+
+                if (infoPanelVisible) {
+                    infoPanel.classList.remove('hidden');
+                    toggleBtn.textContent = '[X]';
+                    toggleBtn.title = 'Hide Info (I key)';
+                } else {
+                    infoPanel.classList.add('hidden');
+                    toggleBtn.textContent = '[i]';
+                    toggleBtn.title = 'Show Info (I key)';
+                }
+            }
+
+            // Accelerometer control functions
+            function handleDeviceOrientation(event) {
+                if (!accelEnabled) return;
+
+                // Get raw orientation values
+                let alpha = event.alpha || 0;  // Z-axis rotation (compass, 0-360)
+                let beta = event.beta || 0;    // X-axis rotation (front-back tilt, -180 to 180)
+                let gamma = event.gamma || 0;  // Y-axis rotation (left-right tilt, -90 to 90)
+
+                // Log first few events for debugging
+                if (!window.orientationEventCount) window.orientationEventCount = 0;
+                if (window.orientationEventCount < 10) {
+                    debugLog(`Orientation event ${window.orientationEventCount}: alpha=${alpha.toFixed(1)}, beta=${beta.toFixed(1)}, gamma=${gamma.toFixed(1)}`);
+                    window.orientationEventCount++;
+                }
+
+                // Apply calibration offsets
+                alpha -= accelCalibration.alpha;
+                beta -= accelCalibration.beta;
+                gamma -= accelCalibration.gamma;
+
+                // Apply exponential smoothing to reduce jitter
+                alpha = accelLastOrientation.alpha * accelSmoothing + alpha * (1 - accelSmoothing);
+                beta = accelLastOrientation.beta * accelSmoothing + beta * (1 - accelSmoothing);
+                gamma = accelLastOrientation.gamma * accelSmoothing + gamma * (1 - accelSmoothing);
+
+                accelLastOrientation = { alpha, beta, gamma };
+
+                // Map device orientation to camera/object rotation
+                // Beta (front-back tilt) -> Camera rotation X (pitch)
+                // Gamma (left-right tilt) -> Camera rotation Y (yaw)
+                // Alpha (compass) -> Camera rotation Z (roll) - optional
+
+                // Convert to radians and apply sensitivity
+                const pitchDelta = (beta * Math.PI / 180) * accelSensitivity * (accelInvertX ? -1 : 1);
+                const yawDelta = (gamma * Math.PI / 180) * accelSensitivity * (accelInvertY ? -1 : 1);
+
+                // Update camera rotation targets (hybrid mode - works with existing inertia system)
+                state.target.cameraRotX = pitchDelta * 60;  // Scale to reasonable rotation range
+                state.target.cameraRotY = yawDelta * 60;
+
+                // Debug display (if enabled)
+                if (accelDebugMode) {
+                    document.getElementById('betaVal').textContent = beta.toFixed(1);
+                    document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+                }
+
+                // Note: Animation loop runs continuously when accelEnabled is true,
+                // so no need to manually trigger draw() here
+            }
+
+            async function requestAccelerometerPermission() {
+                debugLog('Checking accelerometer permission...');
+                debugLog('DeviceOrientationEvent available: ' + (typeof DeviceOrientationEvent !== 'undefined'));
+                debugLog('requestPermission function available: ' + (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'));
+
+                // iOS 13+ requires explicit permission
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        debugLog('Requesting iOS permission...');
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        debugLog('Permission result: ' + permission);
+                        if (permission === 'granted') {
+                            return true;
+                        } else {
+                            debugLog('Accelerometer permission denied', 'warn');
+                            return false;
+                        }
+                    } catch (error) {
+                        debugLog('Error requesting permission: ' + error.message, 'error');
+                        return false;
+                    }
+                } else {
+                    // Non-iOS 13+ device, no permission needed
+                    debugLog('No permission needed - non-iOS device');
+                    return true;
+                }
+            }
+
+            async function toggleAccelerometer() {
+                debugLog('Toggle accelerometer clicked. Current state: ' + accelEnabled);
+                showDebugPanel();  // Auto-show debug panel
+
+                if (!accelEnabled) {
+                    // Try to enable
+                    const permitted = await requestAccelerometerPermission();
+                    debugLog('Permission granted: ' + permitted);
+
+                    if (permitted) {
+                        accelEnabled = true;
+                        debugLog('Adding deviceorientation event listener...');
+                        window.addEventListener('deviceorientation', handleDeviceOrientation);
+
+                        // Test listener to verify events are firing
+                        window.testOrientationHandler = (event) => {
+                            debugLog('TEST: Orientation event received: alpha=' + event.alpha + ', beta=' + event.beta + ', gamma=' + event.gamma);
+                        };
+                        window.addEventListener('deviceorientation', window.testOrientationHandler, { once: true });
+
+                        // Auto-calibrate on first enable
+                        if (!accelCalibrated) {
+                            setTimeout(() => calibrateAccelerometer(), 500);
+                        }
+
+                        // Update UI
+                        document.getElementById('accelToggleBtn').classList.add('active');
+                        document.getElementById('accelToggleBtn').textContent = '[Tilt ON]';
+                        document.getElementById('accelCalibrateBtn').style.display = 'block';
+                        document.getElementById('accelInvertBtn').style.display = 'block';
+                        document.getElementById('accelStatus').style.display = 'block';
+
+                        // Enable debug display
+                        accelDebugMode = true;
+                        document.getElementById('accelDebug').style.display = 'block';
+
+                        // Start animation loop if not already running
+                        if (!animationFrameId) {
+                            console.log('Starting animation loop for accelerometer');
+                            animationFrameId = requestAnimationFrame(animate);
+                        } else {
+                            console.log('Animation loop already running');
+                        }
+
+                        debugLog('Accelerometer enabled! Tilt device now...');
+                    } else {
+                        alert('Could not enable accelerometer. Please grant permission in browser settings.');
+                    }
+                } else {
+                    // Disable
+                    accelEnabled = false;
+                    window.removeEventListener('deviceorientation', handleDeviceOrientation);
+
+                    // Update UI
+                    document.getElementById('accelToggleBtn').classList.remove('active');
+                    document.getElementById('accelToggleBtn').textContent = '[Tilt]';
+                    document.getElementById('accelCalibrateBtn').style.display = 'none';
+                    document.getElementById('accelInvertBtn').style.display = 'none';
+                    document.getElementById('accelStatus').style.display = 'none';
+
+                    // Disable debug display
+                    accelDebugMode = false;
+                    document.getElementById('accelDebug').style.display = 'none';
+
+                    console.log('Accelerometer control disabled');
+                }
+            }
+
+            function calibrateAccelerometer() {
+                // Store current orientation as calibration zero point
+                accelCalibration = { ...accelLastOrientation };
+                accelCalibrated = true;
+
+                // Show notification
+                const indicator = document.createElement('div');
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(12, 5, 24, 0.9);
+                    color: #80c080;
+                    padding: 20px 40px;
+                    border-radius: 15px;
+                    border: 1px solid #308030;
+                    box-shadow: 0 0 30px rgba(40, 120, 40, 0.6);
+                    font-family: monospace;
+                    font-size: 18px;
+                    z-index: 1000;
+                    pointer-events: none;
+                `;
+                indicator.textContent = 'Tilt Calibrated';
+                document.body.appendChild(indicator);
+                setTimeout(() => indicator.remove(), 1000);
+
+                console.log('Accelerometer calibrated:', accelCalibration);
+            }
+
+            function invertAccelerometer() {
+                // Toggle inversion for both axes
+                accelInvertX = !accelInvertX;
+                accelInvertY = !accelInvertY;
+
+                // Show notification
+                const indicator = document.createElement('div');
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(12, 5, 24, 0.9);
+                    color: #80c080;
+                    padding: 20px 40px;
+                    border-radius: 15px;
+                    border: 1px solid #308030;
+                    box-shadow: 0 0 30px rgba(40, 120, 40, 0.6);
+                    font-family: monospace;
+                    font-size: 18px;
+                    z-index: 1000;
+                    pointer-events: none;
+                `;
+                indicator.textContent = accelInvertX ? 'Tilt Inverted' : 'Tilt Normal';
+                document.body.appendChild(indicator);
+                setTimeout(() => indicator.remove(), 1000);
+
+                console.log('Accelerometer inversion:', accelInvertX ? 'ON' : 'OFF');
+            }
+
+            // Detect if device has accelerometer support and is likely mobile
+            function detectAccelerometerSupport() {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const hasOrientation = 'DeviceOrientationEvent' in window;
+
+                debugLog('=== Accelerometer Detection ===');
+                debugLog('User Agent: ' + navigator.userAgent);
+                debugLog('Detected as mobile: ' + isMobile);
+                debugLog('DeviceOrientationEvent in window: ' + hasOrientation);
+                debugLog('DeviceMotionEvent in window: ' + ('DeviceMotionEvent' in window));
+
+                // Controls are now always visible (set in HTML)
+                // Just log detection results and auto-hide panel on mobile
+                if (isMobile) {
+                    infoPanelVisible = false;
+                    document.getElementById('infoPanel').classList.add('hidden');
+                    document.getElementById('toggleInfoBtn').textContent = '[i]';
+                    document.getElementById('toggleInfoBtn').title = 'Show Info (I key)';
+                    debugLog('Mobile device - info panel auto-hidden');
+                }
+
+                if (!hasOrientation) {
+                    debugLog('WARNING: Device orientation API not available!', 'warn');
+                }
+            }
+
             // Update neighbor layers dynamically based on movement speed
             // Reduces layers during fast forward movement for performance and acceleration effect
             function updateDynamicNeighborLayers() {
@@ -1592,27 +2111,86 @@
 
                 gridLines.forEach(drawLine);
 
-                // First pass: draw all subcube faces (translucent blue ambient for "0-bit" reference)
-                cubeField.forEach(({ subCubes }) => {
-                    subCubes.forEach(subcube => {
-                        drawCubeFaces(subcube, subcube.isCutoutNeighbor);
-                    });
-                });
+                if (propagationMode) {
+                    // Propagation mode: render 8 formations with outer edges only
+                    propagatedFormations.forEach(formation => {
+                        // Optional: draw blue glow for each full cube formation
+                        if (propagationBlueGlow) {
+                            // Calculate formation's bounding cube center and size
+                            const formationSize = fieldSpacing;  // The full size of one formation
+                            const glowVertices = [
+                                // 8 vertices of the formation's bounding cube
+                                { x: formation.position.x - formationSize/2, y: formation.position.y - formationSize/2, z: formation.position.z - formationSize/2 },
+                                { x: formation.position.x + formationSize/2, y: formation.position.y - formationSize/2, z: formation.position.z - formationSize/2 },
+                                { x: formation.position.x - formationSize/2, y: formation.position.y + formationSize/2, z: formation.position.z - formationSize/2 },
+                                { x: formation.position.x + formationSize/2, y: formation.position.y + formationSize/2, z: formation.position.z - formationSize/2 },
+                                { x: formation.position.x - formationSize/2, y: formation.position.y - formationSize/2, z: formation.position.z + formationSize/2 },
+                                { x: formation.position.x + formationSize/2, y: formation.position.y - formationSize/2, z: formation.position.z + formationSize/2 },
+                                { x: formation.position.x - formationSize/2, y: formation.position.y + formationSize/2, z: formation.position.z + formationSize/2 },
+                                { x: formation.position.x + formationSize/2, y: formation.position.y + formationSize/2, z: formation.position.z + formationSize/2 }
+                            ].map(project);
 
-                // Second pass: draw all edges on top
-                cubeField.forEach(({ outerEdges, subCubes }) => {
-                    drawOuterCubeEdges(outerEdges, 1.5);
+                            // Calculate average Z depth for glow intensity
+                            const avgZ = glowVertices.reduce((sum, v) => sum + v.z, 0) / glowVertices.length;
+                            const depthFade = Math.max(0.1, Math.min(1, 1 - avgZ / 3000));
 
-                    subCubes.forEach(subcube => {
-                        drawCubeEdges(subcube, 0.7, subcube.isCutoutNeighbor);
+                            // Draw subtle blue glow around the formation
+                            ctx.save();
+                            ctx.globalAlpha = 0.15 * depthFade * blurMultiplier;
+                            ctx.shadowBlur = 40 * blurMultiplier;
+                            ctx.shadowColor = `rgba(60, 120, 255, ${0.6 * depthFade})`;
+                            ctx.strokeStyle = `rgba(80, 140, 255, ${0.4 * depthFade})`;
+                            ctx.lineWidth = 2;
+
+                            // Draw bounding box outline with glow
+                            const glowEdges = [
+                                [0,1], [2,3], [4,5], [6,7],  // X edges
+                                [0,2], [1,3], [4,6], [5,7],  // Y edges
+                                [0,4], [1,5], [2,6], [3,7]   // Z edges
+                            ];
+
+                            glowEdges.forEach(([i, j]) => {
+                                ctx.beginPath();
+                                ctx.moveTo(glowVertices[i].x, glowVertices[i].y);
+                                ctx.lineTo(glowVertices[j].x, glowVertices[j].y);
+                                ctx.stroke();
+                            });
+
+                            ctx.restore();
+                        }
+
+                        // Draw the cube edges
+                        formation.cubes.forEach(cubeData => {
+                            drawOuterCubeEdges(cubeData.outerEdges, 1.5);
+                        });
                     });
-                });
+                } else {
+                    // Single formation mode: render detailed center formation with subcubes
+                    // First pass: draw all subcube faces (translucent blue ambient for "0-bit" reference)
+                    cubeField.forEach(({ subCubes }) => {
+                        subCubes.forEach(subcube => {
+                            drawCubeFaces(subcube, subcube.isCutoutNeighbor);
+                        });
+                    });
+
+                    // Second pass: draw all edges on top
+                    cubeField.forEach(({ outerEdges, subCubes }) => {
+                        drawOuterCubeEdges(outerEdges, 1.5);
+
+                        subCubes.forEach(subcube => {
+                            drawCubeEdges(subcube, 0.7, subcube.isCutoutNeighbor);
+                        });
+                    });
+                }
 
                 // Third pass: draw neighboring cubes with distance-based fading
                 // Renders simplified outer cubes (no subcubes) to show spatial context
-                neighboringCubes.forEach(neighbor => {
-                    drawNeighboringCube(neighbor);
-                });
+                // Only render neighbor cubes in single formation mode (not in propagation mode)
+                if (!propagationMode) {
+                    neighboringCubes.forEach(neighbor => {
+                        drawNeighboringCube(neighbor);
+                    });
+                }
 
                 // Dynamic vignette with hue rotation and zoom-responsive intensity
                 const gradient = ctx.createRadialGradient(
@@ -1683,13 +2261,16 @@
                 draw();
 
                 // Check if we need to keep animating
-                // Continue if playing OR if there's significant velocity (smooth transitions in progress)
+                // Continue if playing OR if there's significant velocity (smooth transitions in progress) OR if accelerometer is active
                 const hasVelocity = Object.values(state.velocity).some(v => Math.abs(v) > 0.001);
 
-                if (isRotating || hasVelocity) {
+                if (isRotating || hasVelocity || accelEnabled) {
                     animationFrameId = requestAnimationFrame(animate);
                 } else {
                     // No more motion, clear the animation frame ID
+                    if (animationFrameId !== null) {
+                        console.log('Animation loop stopped - no motion detected');
+                    }
                     animationFrameId = null;
                 }
             }
@@ -2323,6 +2904,11 @@
                 draw();
             });
 
+            // Info panel toggle button click handler (especially useful for mobile)
+            document.getElementById('toggleInfoBtn').addEventListener('click', () => {
+                toggleInfoPanel();
+            });
+
             window.addEventListener('resize', () => {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
@@ -2334,7 +2920,10 @@
 
             // Keyboard controls for damping mode toggle and 90-degree rotations
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'd' || e.key === 'D') {
+                if (e.key === 'i' || e.key === 'I') {
+                    // Toggle info panel visibility (I key)
+                    toggleInfoPanel();
+                } else if (e.key === 'd' || e.key === 'D') {
                     // Toggle between critical and spring damping
                     state.dampingMode = state.dampingMode === 'critical' ? 'spring' : 'critical';
                     console.log(`Damping mode: ${state.dampingMode} (${state.dampingMode === 'critical' ? 'smooth stop' : 'bouncy'})`);
@@ -2363,6 +2952,32 @@
                     setTimeout(() => indicator.remove(), 1000);
                 } else if (e.key === '+' || e.key === '=') {
                     // Add neighbor layer (+ key, or = which is + without shift)
+                    // Disabled in propagation mode (already showing 64 cubes)
+                    if (propagationMode) {
+                        // Show message that neighbor layers are disabled in propagation mode
+                        const indicator = document.createElement('div');
+                        indicator.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: rgba(12, 5, 24, 0.9);
+                            color: #c08080;
+                            padding: 20px 40px;
+                            border-radius: 15px;
+                            border: 1px solid #a03030;
+                            box-shadow: 0 0 30px rgba(200, 20, 60, 0.6);
+                            font-family: monospace;
+                            font-size: 16px;
+                            z-index: 1000;
+                            pointer-events: none;
+                        `;
+                        indicator.textContent = 'Neighbor layers disabled in propagation mode';
+                        document.body.appendChild(indicator);
+                        setTimeout(() => indicator.remove(), 1500);
+                        return;
+                    }
+
                     if (neighborLayers < maxNeighborLayers) {
                         neighborLayers++;
                         // Update active layers (will be adjusted by speed in next draw)
@@ -2398,6 +3013,32 @@
                     }
                 } else if (e.key === '-' || e.key === '_') {
                     // Remove neighbor layer (- key)
+                    // Disabled in propagation mode (already showing 64 cubes)
+                    if (propagationMode) {
+                        // Show message that neighbor layers are disabled in propagation mode
+                        const indicator = document.createElement('div');
+                        indicator.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: rgba(12, 5, 24, 0.9);
+                            color: #c08080;
+                            padding: 20px 40px;
+                            border-radius: 15px;
+                            border: 1px solid #a03030;
+                            box-shadow: 0 0 30px rgba(200, 20, 60, 0.6);
+                            font-family: monospace;
+                            font-size: 16px;
+                            z-index: 1000;
+                            pointer-events: none;
+                        `;
+                        indicator.textContent = 'Neighbor layers disabled in propagation mode';
+                        document.body.appendChild(indicator);
+                        setTimeout(() => indicator.remove(), 1500);
+                        return;
+                    }
+
                     if (neighborLayers > 0) {
                         neighborLayers--;
                         // Update active layers (will be adjusted by speed in next draw)
@@ -2431,6 +3072,46 @@
                         document.body.appendChild(indicator);
                         setTimeout(() => indicator.remove(), 1000);
                     }
+                } else if (e.key === 'p' || e.key === 'P') {
+                    // Toggle propagation mode (P key)
+                    propagationMode = !propagationMode;
+
+                    // Generate propagated formations if entering propagation mode
+                    if (propagationMode) {
+                        propagatedFormations = generatePropagatedFormations();
+                        console.log('Propagation mode: ON (8×8 formations)');
+                    } else {
+                        console.log('Propagation mode: OFF (single formation)');
+                    }
+
+                    // Update mode display
+                    updateModeDisplay();
+
+                    // Trigger immediate redraw
+                    draw();
+
+                    // Show notification
+                    const mode = propagationMode ? 'Propagation (8×8)' : 'Single Formation';
+                    const indicator = document.createElement('div');
+                    indicator.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(12, 5, 24, 0.9);
+                        color: #a0c0ff;
+                        padding: 20px 40px;
+                        border-radius: 15px;
+                        border: 1px solid #3030a0;
+                        box-shadow: 0 0 30px rgba(60, 20, 200, 0.6);
+                        font-family: monospace;
+                        font-size: 18px;
+                        z-index: 1000;
+                        pointer-events: none;
+                    `;
+                    indicator.textContent = `Mode: ${mode}`;
+                    document.body.appendChild(indicator);
+                    setTimeout(() => indicator.remove(), 1000);
                 } else if ((e.ctrlKey || e.metaKey) && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'q', 'Q', 'e', 'E'].includes(e.key)) {
                     // 90-degree grid-aligned snap rotations for axis-aligned navigation
                     // Perfect for navigating like an agent following a route with right-angle turns
@@ -2523,6 +3204,15 @@
                     setTimeout(() => indicator.remove(), 800);
                 }
             });
+
+            // Accelerometer button event listeners
+            document.getElementById('accelToggleBtn').addEventListener('click', toggleAccelerometer);
+            document.getElementById('accelCalibrateBtn').addEventListener('click', calibrateAccelerometer);
+            document.getElementById('accelInvertBtn').addEventListener('click', invertAccelerometer);
+            document.getElementById('debugBtn').addEventListener('click', showDebugPanel);
+
+            // Detect accelerometer support and show controls on mobile
+            detectAccelerometerSupport();
 
             updateZoomDisplay();
             updateFocalDisplay();
