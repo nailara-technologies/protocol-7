@@ -3,6 +3,10 @@
 # name  = sourcecode.console.update-sub-list
 # descr = update list of official protocol-7 subroutines
 
+my $skip_backups = TRUE;
+my $skip_regex   = qr|.+~$|;    ## skips backup files ##
+my $skip_count   = 0;
+
 my $subfile_header_str = sprintf "## [:< ##\n\n# name  = %s\n\n",
     my $sub_list_filename = qw| base.list.subroutines |;
 
@@ -30,7 +34,8 @@ my $sub_file_fh = <[file.open]>->(
 say {$sub_file_fh} sprintf "%sreturn [ qw[\n", $subfile_header_str;
 
 foreach my $file ( <[base.sort]>->($subroutine_files) ) {
-    $file =~ s|^.*/||;
+    ## removing directory path prefix ##
+    ++$skip_count and next if $skip_backups and $file =~ $skip_regex;
     say {$sub_file_fh} sprintf qw| %s%s |, ' ' x 8, $file;
     <[base.logs]>->( 2, ': :. %s', $file );
 }
@@ -39,11 +44,13 @@ say {$sub_file_fh} sprintf "\n    ]\n];\n";
 close($sub_file_fh);
 
 <[base.logs]>->( ': : wrote %05d entries..,', $subroutine_count );
+<[base.logs]>->( 2, ': : : %03d files skipped .:', $skip_count )
+    if $skip_count;
 
 return 0;
 
-#,,,.,...,...,...,.,.,.,,,,..,,,.,,,.,,,.,..,,..,,...,...,.,,,,..,...,,,,,..,,
-#CQP5TCNV3KBGBFMZZ2IYDYXHOIPHKCLZ3VA6AO6MOVGEJ2HC5OVJT4Y2SPQM4WBBMFRJWMTB7LFCS
-#\\\|V7BTXYXVZZNVM4H2PGONQ4ALJUXAUFIHTOOV727GH4AVL42RVSA \ / AMOS7 \ YOURUM ::
-#\[7]AAJFSAW4GQOYLB2U3KFWH3CUJNYQKDXZUWMQ4ZFD2SASWXCOMWAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,...,,,,,.,,,..,,..,,..,,.,,,,,,,..,,...,...,.,.,.,.,,..,,,.,.,.,
+#QVY22CF5XT5VTWWQE4FQMBFM5GIOYKXTJK3ETCFM5QNEPHTGARPGQDMIGHWYMNBNJNL6OAMZ2TGX2
+#\\\|RMZ4DMXABWJDOID2EBFBOUYDBBM6E37PG2H6ZGXFSPNHWEM7CD6 \ / AMOS7 \ YOURUM ::
+#\[7]UWO4JCVRQIRYCL2VH347OYLBTENECWTZIDHUDG3XWF7YHDMKKABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
