@@ -1,9 +1,138 @@
-#!/bin/sh
+#!/usr/bin/perl
 
-git log --pretty=format:"--- .: %ad :.------%s---" --date=iso8601 | sort -r | sed 's/\+0\d00 //g' | sed -es/---/\\n/g
+use strict;
+use English;
+use warnings;
+use Time::Piece;
+use Time::Seconds;
+use feature 'state';
+use Cwd 'abs_path';               # resolving absolute paths
+use FindBin '$RealBin';           # determining script path
+use File::Spec;                   # manipulating file paths
+use Git::Wrapper;                 # interacting with git repositories
+use POSIX qw(strftime mktime);    # For date manipulations
 
-#,,,.,,.,,,,.,.,,,..,,..,,,..,.,,,,,.,.,,,,..,.,.,...,...,.,.,,.,,.,,,,,,,.,.,
-#ITUFNTCFHEEAI7HOCVK3VRHTOFH4G3VJE4X33ZN4GPPOULFRWAJ7KFTMPOZHGAYDZTSIJMROPWAQ2
-#\\\|XZ4QCJPRU4WSK2AQV6NFPSGCHHHIMDS5CZGHBJINN5HVHB7AKXC \ / AMOS7 \ YOURUM ::
-#\[7]GL2HS6WLI2FLIZAOQPFCOYD3HRMA5SR3LHUHJZOKU45HXUS4BWCI 7  DATA SIGNATURE ::
+# Determine script path and deduce repository root directory accurately
+my $root_path = abs_path(
+    File::Spec->rel2abs(
+        File::Spec->catdir( $RealBin, ( File::Spec->updir ) x 3 )
+    )
+);
+
+## initializing git interaction for the resolved repository root path
+my $git  = Git::Wrapper->new($root_path);
+my @logs = $git->log(
+    { pretty => 'format:%ad %s', date => 'unix', reverse => 1 } );
+
+foreach my $entry (@logs) {
+
+    my $formatted_date = format_relative_time( $entry->date );
+    ( my $message = $entry->message ) =~ s|\n||;
+
+    if ( $message =~ m|\n| ) {
+        $message =~ s|\n| ::\n\n|;
+        $message =~ s|\n|\n  :  |g;
+
+        printf "\n  :: %s\n",     $message;
+        printf "  ::. %s .:\n\n", $formatted_date;
+
+    } else {
+        printf "\n  :: %s ::\n",       $message;
+        printf "  :\n  ::. %s .:\n\n", $formatted_date;
+    }
+
+}
+
+sub format_relative_time {
+
+    my @result;
+    my $start_time = shift;
+    my $precision  = shift; ## optional [ overrides input param precision ] ##
+
+    return qw|n/a|
+        if not defined $start_time or $start_time !~ m|^\d+(\.\d+)?$|;
+    $precision //= defined $LAST_PAREN_MATCH ? length $LAST_PAREN_MATCH : 2;
+    my $secs = Time::Seconds->new( sprintf qw| %.*f |,
+        $precision, time() - $start_time );
+
+    my %result = (
+        qw| days    | => 0,
+        qw| years   | => 0,
+        qw| hours   | => 0,
+        qw| seconds | => 0,
+        qw| minutes | => 0,
+    );
+
+    if ( $secs >= ONE_YEAR() ) {
+        $result{'years'} = int( $secs / ONE_YEAR() );
+        $secs -= $result{'years'} * ONE_YEAR();
+    }
+
+    if ( $secs >= ONE_DAY() ) {
+        $result{'days'} = int( $secs->days );
+        $secs -= $result{'days'} * ONE_DAY();
+    }
+
+    if ( $secs >= ONE_HOUR() ) {
+        $result{'hours'} = int( $secs->hours );
+        $secs -= $result{'hours'} * ONE_HOUR();
+    }
+    if ( $secs >= ONE_MINUTE() ) {
+        $result{'minutes'} = int( $secs->minutes );
+        $secs -= $result{'minutes'} * ONE_MINUTE();
+    }
+    $result{'seconds'} = sprintf qw| %.*f |, $precision, $secs->seconds
+        if $secs;
+
+    if ( $result{'years'} and not $result{'days'} ) {
+        push @result, sprintf '%d year%s', $result{'years'},
+            $result{'years'} == 1 ? '' : 's';
+    } elsif ( $result{'years'} ) {
+        push @result, sprintf( qw| %dy |, $result{'years'} );
+    }
+
+    if ( $result{'days'} and $result{'years'} and defined $result{'yday'} ) {
+        push @result, sprintf qw| %dd |, $result{'yday'};
+
+    } elsif ( $result{'days'} ) {
+        push @result, sprintf '%d day%s', $result{'days'},
+            $result{'days'} == 1 ? '' : 's';
+    }
+
+    if ( $result{'hours'} and $result{'minutes'} == $result{'seconds'} == 0 )
+    {
+        push @result, sprintf '%d hour%s', $result{'hours'},
+            $result{'hours'} == 1 ? '' : 's';
+
+    } elsif ( $result{'hours'} ) {
+        push @result, sprintf qw| %02dh |, $result{'hours'};
+    }
+
+    if ( $result{'minutes'} and $result{'seconds'} == 0 ) {
+        push @result, sprintf '%d min', $result{'minutes'};
+
+    } elsif ( $result{'minutes'} ) {
+        if ( $result{'hours'} ) {
+            push @result, sprintf qw| %02d'%02d" |, $result{'minutes'},
+                $result{'seconds'};
+        } else {
+            push @result, sprintf qw| %d'%02d" |, $result{'minutes'},
+                $result{'seconds'};
+        }
+    }
+
+    push @result, sprintf qw| %ss |, $result{seconds}
+        if $result{'seconds'} and not $result{'minutes'} or not @result;
+
+    my $result_str = join ' ', @result;
+    $result_str =~ s| days? (\d+)h |d $1 | if length $result_str >= 10;
+    $result_str =~ s|(\d+d)(\d+ hours)|$1 $2 |;
+
+    return $result_str;
+}
+
+#,,.,,,,,,.,,,..,,.,,,.,.,..,,,,,,,,,,,..,,,,,..,,...,...,,.,,...,.,,,.,.,..,,
+#YQ7WTPGSMMNMHYPH65X5LUJN3RWNHOWHBWIOBDUWTRSWQDAZRZGTURA3ENJ5L3RCUR7DBBU456TGG
+#\\\|WKR64LXNIT6GDP2WESGVFFU55RAS7H2YS6HDG3T3QRAPAJ3K73G \ / AMOS7 \ YOURUM ::
+#\[7]AYNBG7PZQV6TMMBMUTX7MRWONMYEIBGSWQLKKK7A3SHLJL4R5ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
