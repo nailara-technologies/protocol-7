@@ -1,0 +1,159 @@
+# Protocol-7 System Architecture Overview
+# Extracted from AI documentation for LLM context efficiency
+#
+# Note to Claude: This file is maintained for LLM context loading.
+# You are encouraged to update it as you learn more about the project.
+# Keep it structured, concise, and token-efficient.
+
+core_concepts:
+  zenki:
+    description: Autonomous network participants/agents
+    capabilities:
+      - Process and route messages
+      - Provide and consume computational resources
+      - Start and manage other zenki
+      - Self-organize into network topologies
+
+  zenka:
+    description: Named class or instance of a zenka
+    singular: zenka
+    plural: zenki
+
+core_components:
+  cube:
+    role: Message routing and session management
+    responsibilities:
+      - Route messages between zenki
+      - Manage authentication and sessions
+      - Maintain network topology
+      - Handle zenka lifecycle
+
+  v7:
+    role: System manager and control system
+    responsibilities:
+      - Manage zenki lifecycle (start/stop/restart)
+      - Handle job queues
+      - Manage authentication
+      - Control system state
+
+  p7-log:
+    role: Centralized logging system
+    responsibilities:
+      - Collect logs from all zenki
+      - Route log messages
+      - Support multiple log levels
+
+directory_structure:
+  modules:
+    purpose: Perl module code
+    pattern: "module-name.function-name"
+    note: "Functions separated into individual files"
+
+  configuration:
+    zenki: "configuration/zenki/<zenka-name>/"
+    startup: "start-set-up.*"
+    shared: "shared-params"
+
+  data:
+    gfx: Graphics resources (icons, backgrounds, gradients)
+    html: HTML templates per zenka
+    locales: Internationalization files
+    lib-path: Additional Perl modules
+    ttf: TrueType fonts
+    sounds: Audio resources
+
+authentication:
+  methods:
+    - unix      # Unix domain socket
+    - pwd       # Password-based
+    - zenka     # Session key-based
+    - twofish   # Twofish encryption
+
+  c25519:
+    algorithm: Curve25519
+    uses:
+      - Secure communication
+      - Key generation/management
+      - Zenki authentication
+
+command_structure:
+  format: "(command_id) target.command [args]"
+  components:
+    command_id: Optional numeric tracking identifier
+    target: Destination zenka or session ID
+    command: Command to execute
+    args: Optional arguments
+
+  response_types:
+    - TRUE    # Boolean success
+    - FALSE   # Boolean failure
+    - WAIT    # Async operation acknowledgment
+    - SIZE    # Binary data transfer
+    - STRM    # Streaming data marker
+
+tools:
+  nshell:
+    description: Interactive shell for Protocol-7
+    usage: "Direct interaction with running system"
+
+  p7c:
+    description: Command-line tool for single commands
+    usage: "p7c <command> [args]"
+    examples:
+      - "p7c whoami"
+      - "p7c list sessions"
+      - "p7c v7.list zenki"
+
+key_commands:
+  system_info:
+    - whoami          # Current user/session
+    - commands        # List available commands
+    - src-ver         # Source code version
+    - rel-ver         # Release version
+
+  session_mgmt:
+    - list sessions   # Active sessions
+    - present         # Check zenka connectivity
+    - when-present    # Queue command for zenka
+
+  zenki_mgmt:
+    - v7.list zenki   # List running zenki
+    - v7.start        # Start zenka
+    - v7.stop         # Stop zenka
+    - v7.restart      # Restart zenka
+
+module_patterns:
+  variable_syntax:
+    global_data: "<key.subkey.element>"
+    function_ref: "<[module.function.name]>"
+    compile_time: "Resolved during compilation"
+    data_hash: "$data{'key'}{'subkey'}{'element'}"
+    code_hash: "$code{'module.function.name'}->()"
+
+  initialization:
+    pattern: "module-name.init_code"
+    purpose: "Run during module initialization after all modules compiled"
+    execution: "Post-compilation, pre-runtime phase"
+
+  configuration:
+    format: "key = value"
+    multiline: ": key :\n  subkey = value"
+    loading: "[load_config_file:'filename']"
+
+development_notes:
+  language: Perl (primary)
+  architecture: Modular
+  error_handling: Extensive logging and error codes
+  debugging: Built-in verbosity controls
+  signatures: AMOS7 data signatures on source files
+
+references:
+  full_docs:
+    - "data/asc/what-AI-thinks/markdown-form/protocol7/docs/p7-startup-guide.md"
+    - "data/asc/what-AI-thinks/markdown-form/protocol7/docs/p7-protocol-desc.md"
+    - "data/asc/what-AI-thinks/markdown-form/protocol7/docs/data_.context.md"
+
+  code_examples:
+    zenki_config: "configuration/zenki/"
+    modules: "modules/"
+    startup: "configuration/zenki/*/start-set-up.*"

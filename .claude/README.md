@@ -1,10 +1,20 @@
 # Claude Code Configuration
 
-This directory contains Claude Code configuration files:
+This directory contains Claude Code configuration files and project context.
+
+## Configuration Files
 
 - `settings.local.json` - Local settings (tracked with defaults, changes show in diffs)
 - `commands/` - Custom slash commands (untracked, add as needed)
 - `hooks/` - Git hooks and automation scripts (untracked, add as needed)
+
+## Project Context
+
+- `project-context.md` - Quick navigation to Protocol-7 documentation
+  - Points to YAML extracts for token efficiency
+  - References comprehensive markdown documentation
+  - Explains module patterns and development workflow
+  - **Claude: You may update and improve these context files as needed**
 
 ## Protection Strategy
 
