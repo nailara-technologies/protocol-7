@@ -33,9 +33,13 @@ my $sub_file_fh = <[file.open]>->(
 
 say {$sub_file_fh} sprintf "%sreturn [ qw[\n", $subfile_header_str;
 
+my $path_prefix = <source.path.modules>;
 foreach my $file ( <[base.sort]>->($subroutine_files) ) {
-    ## removing directory path prefix ##
     ++$skip_count and next if $skip_backups and $file =~ $skip_regex;
+
+    ## removing directory path prefix ##
+    $file =~ s|^$path_prefix/||;
+
     say {$sub_file_fh} sprintf qw| %s%s |, ' ' x 8, $file;
     <[base.logs]>->( 2, ': :. %s', $file );
 }
@@ -49,8 +53,8 @@ close($sub_file_fh);
 
 return 0;
 
-#,,,.,.,,,,,.,...,,,,,.,,,..,,..,,..,,.,,,,,,,..,,...,...,.,.,.,.,,..,,,.,.,.,
-#QVY22CF5XT5VTWWQE4FQMBFM5GIOYKXTJK3ETCFM5QNEPHTGARPGQDMIGHWYMNBNJNL6OAMZ2TGX2
-#\\\|RMZ4DMXABWJDOID2EBFBOUYDBBM6E37PG2H6ZGXFSPNHWEM7CD6 \ / AMOS7 \ YOURUM ::
-#\[7]UWO4JCVRQIRYCL2VH347OYLBTENECWTZIDHUDG3XWF7YHDMKKABY 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,..,,,,,,..,,,,.,.,,,.,,,.,,,..,,...,...,...,,..,.,.,.,.,,,.,
+#UX67DQMOMVLPERDITTZHPLI2J7WDA4OJPIQBAF4QQ4HA3EFLM4QYH4JDXMHQIPZKRM2MKE6EBDNUG
+#\\\|Y2HEZXXUDT6VMRLIMEH4NXHKC4BFQFEHPMQBCIKYGADIBDXLDWG \ / AMOS7 \ YOURUM ::
+#\[7]C4CRZWSOWT6R4YOHFVRNEPAMWBFRZD6H3JMLOPHYKAZ46RPMZYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
