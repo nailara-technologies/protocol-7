@@ -1,0 +1,298 @@
+task:
+  name: code_review_documentation
+  version: "2.0"
+  description: "Generate structured documentation for code modules"
+
+input:
+  target: "[modules/]crypt.C25519.init_code"
+  language: "perl"
+  analysis_depth: "comprehensive"
+
+output:
+  format: "yaml"
+  structure_version: "2.0"
+  processing_mode: "silent"
+
+required_sections:
+  metadata:
+    fields:
+      - module_name
+      - module_type
+      - language
+      - version
+      - file_path
+      - last_modified
+      - dependencies
+
+  functionality:
+    fields:
+      - primary_purpose
+      - secondary_functions
+      - input_parameters
+      - return_values
+      - side_effects
+
+  api_interface:
+    fields:
+      - exported_functions
+      - function_signatures
+      - error_codes
+      - global_variables
+      - configuration_options
+
+  data_structures:
+    fields:
+      - regex_patterns
+      - constants
+      - mappings
+      - file_formats
+      - validation_rules
+
+  implementation_details:
+    fields:
+      - algorithm_overview
+      - key_operations
+      - error_handling
+      - performance_considerations
+      - security_implications
+
+  dependencies:
+    fields:
+      - required_modules
+      - system_dependencies
+      - file_system_requirements
+      - external_tools
+
+  testing:
+    fields:
+      - test_scenarios
+      - edge_cases
+      - validation_methods
+      - mock_requirements
+
+formatting_rules:
+  data_representation:
+    - use_structured_objects_not_prose
+    - separate_code_from_description
+    - include_type_information
+    - provide_examples_where_applicable
+
+  consistency:
+    - use_snake_case_for_keys
+    - standardize_boolean_values
+    - normalize_error_code_format
+    - consistent_array_vs_object_usage
+
+  code_elements:
+    - extract_regex_patterns_verbatim
+    - preserve_function_signatures
+    - document_magic_numbers
+    - identify_hardcoded_values
+
+analysis_instructions:
+  code_parsing:
+    - identify_all_subroutines
+    - extract_variable_declarations
+    - map_control_flow
+    - document_external_calls
+
+  pattern_recognition:
+    - find_configuration_patterns
+    - identify_error_handling_strategies
+    - locate_validation_logic
+    - detect_security_measures
+
+  documentation_focus:
+    - prioritize_public_interface
+    - document_side_effects
+    - explain_complex_logic
+    - highlight_assumptions
+
+quality_criteria:
+  completeness:
+    - all_functions_documented
+    - all_variables_identified
+    - all_dependencies_listed
+    - error_paths_covered
+
+  accuracy:
+    - code_elements_exact
+    - behavior_descriptions_precise
+    - examples_functional
+    - references_valid
+
+  usability:
+    - llm_parseable_structure
+    - human_readable_descriptions
+    - searchable_content
+    - maintainable_format
+
+output_template:
+  module:
+    name: "string"
+    type: "string"
+    language: "string"
+    version: "string"
+    file_path: "string"
+
+  purpose:
+    primary: "string"
+    secondary: ["array_of_strings"]
+
+  interface:
+    functions:
+      - name: "string"
+        signature: "string"
+        parameters:
+          - name: "string"
+            type: "string"
+            required: "boolean"
+        returns:
+          type: "string"
+          description: "string"
+        error_codes: {"integer": "string"}
+
+    variables:
+      - name: "string"
+        type: "string"
+        scope: "string"
+        default: "any"
+        description: "string"
+
+  patterns:
+    regex:
+      - name: "string"
+        pattern: "string"
+        purpose: "string"
+        matches: ["array_of_examples"]
+
+    constants:
+      - name: "string"
+        value: "any"
+        type: "string"
+        usage: "string"
+
+    mappings:
+      - name: "string"
+        structure: "object"
+        key_type: "string"
+        value_type: "string"
+        examples: {"key": "value"}
+
+  implementation:
+    algorithm:
+      overview: "string"
+      steps: ["array_of_strings"]
+      complexity: "string"
+
+    operations:
+      - name: "string"
+        type: "string"
+        description: "string"
+        dependencies: ["array_of_strings"]
+
+    error_handling:
+      strategy: "string"
+      error_codes:
+        - code: "integer"
+          meaning: "string"
+          recovery: "string"
+
+    security:
+      measures: ["array_of_strings"]
+      vulnerabilities: ["array_of_strings"]
+      recommendations: ["array_of_strings"]
+
+  dependencies:
+    modules:
+      - name: "string"
+        version: "string"
+        purpose: "string"
+        functions_used: ["array_of_strings"]
+
+    system:
+      - type: "string"
+        requirement: "string"
+        optional: "boolean"
+
+    filesystem:
+      - path: "string"
+        permissions: "string"
+        purpose: "string"
+
+  testing:
+    scenarios:
+      - name: "string"
+        input: "any"
+        expected_output: "any"
+        description: "string"
+
+    edge_cases:
+      - condition: "string"
+        behavior: "string"
+        handling: "string"
+
+    validation:
+      - method: "string"
+        criteria: "string"
+        tools: ["array_of_strings"]
+
+validation_rules:
+  required_fields:
+    - "module.name must be present"
+    - "purpose.primary must be non-empty"
+    - "interface.functions must contain at least one function"
+
+  data_quality:
+    - "regex patterns must be valid and escaped properly"
+    - "error codes must be integers with string descriptions"
+    - "function signatures must match actual code"
+    - "dependencies must specify actual module names"
+
+  structure_validation:
+    - "all arrays must contain homogeneous object types"
+    - "all objects must have consistent key naming"
+    - "nested structures must not exceed 4 levels deep"
+
+processing_hints:
+  code_analysis:
+    - "scan for 'sub' keyword to identify subroutines"
+    - "look for 'use' statements to find dependencies"
+    - "extract qr// and m// patterns for regex documentation"
+    - "identify hash and array declarations for data structures"
+
+  documentation_extraction:
+    - "parse inline comments for function descriptions"
+    - "extract POD documentation if present"
+    - "identify TODO and FIXME comments"
+    - "look for version information in comments"
+
+  pattern_matching:
+    - "identify configuration variables by naming patterns"
+    - "find error handling by looking for die/warn/return patterns"
+    - "locate file operations by system calls and file handles"
+    - "detect cryptographic operations by function names"
+
+output_validation:
+  syntax_check:
+    - "ensure valid YAML syntax"
+    - "verify all required sections present"
+    - "validate data types match template"
+
+  content_verification:
+    - "cross-reference function names with code"
+    - "verify regex patterns are properly escaped"
+    - "ensure error codes are documented consistently"
+    - "check that examples are realistic and functional"
+
+  completeness_audit:
+    - "all exported functions documented"
+    - "all global variables identified"
+    - "all external dependencies listed"
+    - "all error conditions covered"
+
+#,,,,,...,...,,,,,,..,,,.,..,,.,.,,,,,...,,,.,..,,...,...,.,.,,..,,.,,.,,,.,,,
+#HWRLGHHUQJSXBCP4HWF4XXVH2G2A7LNFAGJLGPPWXKTYWNQY3O4M7M4C3J44PCBM36VPCH5W7T4OG
+#\\\|UUOLZNVJS24W6F44NOSIBU6S43HMXSCHVTPCRCWBO2CG454VZWJ \ / AMOS7 \ YOURUM ::
+#\[7]PIBITOWPC36DBZOCM7VNEN3ARSWUEXHKQ7HQV6HSNPFYPV2OA2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
