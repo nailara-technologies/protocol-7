@@ -1,0 +1,139 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename;
+use File::Path qw(make_path);
+
+# Extract YAML/JSON code blocks from duck.ai chat exports
+# Note: May have issues with nested code blocks or incomplete extracts
+# For complex extracts, manual processing may be preferable
+
+# Check command line arguments
+if ( @ARGV != 1 ) {
+    die "Usage: $0 <duck.ai_chat_file>\n";
+}
+
+my $input_file = $ARGV[0];
+my ( $name, $path, $suffix ) = fileparse( $input_file, qr/\.[^.]*/ );
+
+# Create output directory name based on input filename
+my $output_dir = "$path$name";
+
+# Create output directory if it doesn't exist
+make_path($output_dir) unless -d $output_dir;
+
+print "Processing: $input_file\n";
+print "Output directory: $output_dir\n";
+
+# Read input file
+open my $fh, '<', $input_file or die "Could not open '$input_file': $!";
+my @content_lines;
+while ( my $line = <$fh> ) {
+    chomp $line;
+    push @content_lines, $line;
+}
+close $fh;
+
+# Process to extract YAML sections with line number tracking
+my @yaml_sections      = ();
+my @non_yaml_sections  = ();
+my $current_content    = '';
+my $in_yaml_block      = 0;
+my $section_number     = 1;
+my $section_start_line = 0;
+my $line_num           = 0;
+
+for my $line (@content_lines) {
+    $line_num++;
+
+    if ( $line =~ /^```yaml$/ ) {
+
+        # Start of YAML block
+        $in_yaml_block      = 1;
+        $current_content    = '';
+        $section_start_line = $line_num;
+    } elsif ( $line =~ /^```$/ ) {
+
+        # End of code block (could be YAML or regular code)
+        if ($in_yaml_block) {
+            push @yaml_sections,
+                {
+                content    => $current_content,
+                number     => $section_number++,
+                start_line => $section_start_line,
+                end_line   => $line_num
+                };
+        } else {
+            push @non_yaml_sections,
+                {
+                content    => $current_content,
+                number     => $section_number++,
+                start_line => $section_start_line,
+                end_line   => $line_num
+                };
+        }
+        $in_yaml_block   = 0;
+        $current_content = '';
+    } elsif ($in_yaml_block) {
+
+        # Inside YAML block
+        $current_content .= "$line\n";
+    } else {
+
+        # Outside any code block - accumulate regular content
+        if ( $current_content eq '' ) {
+            $section_start_line = $line_num;
+        }
+        $current_content .= "$line\n";
+    }
+}
+
+# Handle final pending content
+if ( !$in_yaml_block && $current_content ne '' ) {
+    push @non_yaml_sections,
+        {
+        content    => $current_content,
+        number     => $section_number++,
+        start_line => $section_start_line,
+        end_line   => $line_num
+        };
+}
+
+print "Found "
+    . scalar(@yaml_sections)
+    . " YAML sections and "
+    . scalar(@non_yaml_sections)
+    . " non-YAML sections\n";
+
+# Write all files to the proper subdirectory with line number prefixes
+for my $section (@yaml_sections) {
+    my $filename = sprintf(
+        "%s/%05d-%05d.yaml",
+        $output_dir, $section->{start_line},
+        $section->{end_line}
+    );
+    open( my $fh_out, '>', $filename )
+        or die "Could not write to '$filename': $!";
+    print $fh_out $section->{content};
+    close $fh_out;
+}
+
+for my $section (@non_yaml_sections) {
+    my $filename = sprintf(
+        "%s/%05d-%05d.txt",
+        $output_dir, $section->{start_line},
+        $section->{end_line}
+    );
+    open( my $fh_out, '>', $filename )
+        or die "Could not write to '$filename': $!";
+    print $fh_out $section->{content};
+    close $fh_out;
+}
+
+print "Successfully extracted files into directory: $output_dir\n";
+
+#,,,.,,.,,,,,,.,,,,,.,,..,,.,,.,.,,.,,..,,.,,,..,,...,...,,..,,..,..,,,,.,,.,,
+#X4YCNCC2YPMKWDT2KWDZXAE5DTPWU3RURRD34V3OMUZOQHUJ7QXPBSK2NNORPZEICCU4N2O5RMTNK
+#\\\|6DFFKY6SDVZNVWLTFFNOVZT72IPWOZXU7ZHI7VIOHSVQCGFSVQE \ / AMOS7 \ YOURUM ::
+#\[7]LH2JZ6VWJ3PU5SRYPYXIC2PTLDJS4GQWI2TGACTBNYTFGSLCDCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
