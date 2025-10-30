@@ -170,6 +170,18 @@ my $word_count = grep { $element_type{$_} eq 'w' } keys %element_freq;
 my $sent_count = grep { $element_type{$_} eq 's' } keys %element_freq;
 my $para_count = grep { $element_type{$_} eq 'p' } keys %element_freq;
 
+## Calculate total input size ##
+my $total_input_bytes = 0;
+foreach my $item (@all_content) {
+    $total_input_bytes += length( $item->{content} );
+}
+
+## Track total output size for compression ratio ##
+my $total_output_bytes = 0;
+
+## Calculate theoretical output size (for stats mode) ##
+my $theoretical_output_bytes = 0;
+
 ## Don't output stats yet - we'll show them at the end with compression stats ##
 
 ## Sort ALL elements by frequency in unified number space ##
@@ -281,6 +293,7 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
         my $padded_line
             = "$prefix$id_part$content_part$reset$padding$marker$freq_part";
         push @index_lines, $padded_line;
+        $theoretical_output_bytes += 79;    ## Count for stats ##
     } else {
         ## Need to wrap - calculate continuation indent
         my $id_len      = length($b32);     ## id length only
@@ -289,7 +302,28 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
         ## Wrap the content at 77 chars payload + 1 trailing 0
         my $wrapped = wrap_at_77_padded( $b32, $display, $freq, $type_color );
         push @index_lines, $wrapped;
+        ## Count wrapped lines ##
+        my $line_count = ( $wrapped =~ tr/\n// ) + 1;
+        $theoretical_output_bytes += 79 * $line_count;
     }
+}
+
+## Count theoretical document lines for stats mode ##
+foreach my $file_data (@processed_files) {
+    my @paragraphs = @{ $file_data->{paragraphs} };
+
+    foreach my $para (@paragraphs) {
+        next if $para =~ /^\s*$/;
+        $para =~ s/^\s+|\s+$//g;
+
+        my @sentences = split /(?<=[.!?])\s+/, $para;
+        foreach my $sent (@sentences) {
+            next if $sent =~ /^\s*$/;
+            $theoretical_output_bytes += 79;    ## Word-level line ##
+        }
+        $theoretical_output_bytes += 79;    ## Sentence-level line ##
+    }
+    $theoretical_output_bytes += 79;    ## Document-level line ##
 }
 
 ## Build directory index: 0<length>0<filename>0<length>0<filename>0... ##
@@ -323,12 +357,14 @@ while ( length($remaining) > 0 ) {
         my $padding = '0' x ( 77 - length($remaining) );
         my $marker  = get_harmonization_marker($remaining);
         push @directory_lines, "$remaining$padding$marker";
+        $theoretical_output_bytes += 79;    ## Count for stats ##
         last;
     } else {
         ## Take 77 chars, add marker, continue ##
         my $chunk = substr( $remaining, 0, 77 );
         my $marker = get_harmonization_marker($chunk);
         push @directory_lines, "$chunk$marker";
+        $theoretical_output_bytes += 79;    ## Count for stats ##
         $remaining = "0" . substr( $remaining, 77 );  ## Continue with 0 prefix ##
     }
 }
@@ -343,6 +379,7 @@ if ( $mode eq 'compress' ) {
     say "$blacklight:";
     foreach my $dir_line (@directory_lines) {
         say "$cyan$dir_line$reset";
+        $total_output_bytes += 79;    ## 78 chars + newline ##
     }
     say "";
 
@@ -404,6 +441,7 @@ foreach my $file_data (@processed_files) {
             say "    ${NEON_orange}$sent_b32$blacklight${cyan}"
                 . $word_line
                 . "$reset$word_padding$marker";
+            $total_output_bytes += 79;    ## 78 chars + newline ##
         }
 
         ## Print sentence level (paragraph composed of VAX-encoded sentence indices) ##
@@ -421,6 +459,7 @@ foreach my $file_data (@processed_files) {
         say "  ${NEON_green_yellow}$para_b32$blacklight${NEON_orange}"
             . $sent_line
             . "$reset$sent_padding$sent_marker";
+        $total_output_bytes += 79;    ## 78 chars + newline ##
     }
 
     ## Print paragraph level (document composed of VAX-encoded paragraph indices) ##
@@ -433,6 +472,7 @@ foreach my $file_data (@processed_files) {
     say "\n${TRUE_color}Document$blacklight${NEON_green_yellow}"
         . $doc_line
         . "$reset$doc_padding$doc_marker\n";
+    $total_output_bytes += 79;    ## 78 chars + newline ##
 }
 
     ## Empty line separator ##
@@ -446,12 +486,22 @@ foreach my $file_data (@processed_files) {
 
     foreach my $line (@index_lines) {
         say $line;
+        $total_output_bytes += 79;    ## 78 chars + newline ##
     }
 }    ## End compress mode ##
 
 ## Clear progress line in stats mode ##
 if ( $mode eq 'stats' ) {
     print "\r" . ( " " x 80 ) . "\r";    ## Clear progress bar ##
+}
+
+## Calculate compression ratio ##
+my $output_for_ratio
+    = $mode eq 'compress' ? $total_output_bytes : $theoretical_output_bytes;
+my $compression_ratio = 0;
+if ( $total_input_bytes > 0 && $output_for_ratio > 0 ) {
+    $compression_ratio
+        = int( ( $output_for_ratio / $total_input_bytes ) * 10000 );
 }
 
 ## Output statistics (both modes) ##
@@ -467,6 +517,16 @@ say "::[$NEON_green_yellow unique $blacklight]:. "
     . " total elements$blacklight";
 say "::[$NEON_green_yellow encoding $blacklight]:. "
     . "${TRUE_color}BASE32$blacklight ${violet}[${cyan}2-7A-Z${violet}]$blacklight with repetition compression";
+
+## Display compression ratio ##
+if ( $output_for_ratio > 0 ) {
+    my $ratio_str = sprintf( "i%04d", $compression_ratio );
+    say "::[$NEON_green_yellow compression $blacklight]:. "
+        . "${TRUE_color}$total_input_bytes bytes$blacklight → "
+        . "${TRUE_color}$output_for_ratio bytes$blacklight "
+        . "${violet}[$cyan$ratio_str$violet]$blacklight";
+}
+
 say "$blacklight:$reset\n";
 exit(0);
 
@@ -605,7 +665,12 @@ sub encode_base32_text {
         my $byte = ord($char);
         my $high = int( $byte / 32 );    ## first base32 digit
         my $low  = $byte % 32;           ## second base32 digit
-        $result .= $alphabet[$high] . $alphabet[$low];
+
+        ## Validate indices are within alphabet range ##
+        $high = 0 if $high < 0 or $high > 31;
+        $low  = 0 if $low < 0 or $low > 31;
+
+        $result .= ( $alphabet[$high] // '2' ) . ( $alphabet[$low] // '2' );
     }
 
     return $result;
@@ -818,8 +883,8 @@ sub unpack_mode {
     die "Unpack mode coming soon!\n";
 }
 
-#,,.,,.,.,,,.,.,,,...,..,,,,.,..,,..,,.,.,,.,,.,.,...,...,...,,,,,...,,,,,.,,,
-#3Y6DDZNY65Y5SPB4H33R7Q6GWHQZYA7X3TU6FRUYERVLUYQEM5CCDGZU7GFFUE2S6XECHW7RDAX6U
-#\\\|GM7CBLHC4MUVPOACSNM25NIK3UQJIM35WLZDNLCGNLEZB4HCEZL \ / AMOS7 \ YOURUM ::
-#\[7]XCVL2CU6HSK6MYL5WO3CVWVKGLLNG2OM7TL3NWNVLOZCKO52W6DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,,,,,.,.,...,..,,,,.,,,.,...,.,.,...,...,.,.,..,,,,,,...,.,,,
+#UBF2HAEWACG4SDXWQBINKWDTJCTXWA7ADOXGDPOMDHBJ747QWCV6L7MRWQP3WZVLWFDGKJSI7U57M
+#\\\|IDDVK436W6MBZG7OX5SLPJOZDX5YAYXBRP2F5QKF7EFNJNRH7II \ / AMOS7 \ YOURUM ::
+#\[7]A2PI7CLLNCUFRTOTOAMX5KAM732ULRRIZAJQT6MWG5HQFWNBGUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
