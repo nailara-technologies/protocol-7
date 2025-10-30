@@ -651,7 +651,7 @@ sub get_harmonization_marker {
     return $marker;
 }
 
-## Simplified division-by-13 truth check ##
+## Simplified division-by-13 truth check (based on AMOS7::Assert::Truth) ##
 sub calc_true_simple {
     my $num = shift;
     return 0 if not defined $num or $num eq '';
@@ -661,24 +661,41 @@ sub calc_true_simple {
     return 0 if $len == 0;
 
     my $factor = '1' . ( '0' x $len );
-    my $calc   = $num / 13 * $factor;
-    my $result = sprintf( '%.6f', $calc );
 
-    ## Remove decimal point and extract last 6 digits ##
-    $result =~ s/\.//g;
-    my $last_6 = substr( $result, -6 );
+    ## Use Math::BigInt for proper integer arithmetic ##
+    require Math::BigInt;
+    my $bignum    = Math::BigInt->new($num);
+    my $bigfactor = Math::BigInt->new($factor);
+    my $product   = $bignum->copy()->bmul($bigfactor);
+    my $quotient  = $product->copy()->bdiv(13);  ## Integer division ##
+
+    ## Get last 6 digits of the quotient ##
+    my $quotient_str = $quotient->bstr();
+    my $last_6       = substr( $quotient_str, -6 );
+
+    ## Pad with leading zeros if needed ##
+    $last_6 = sprintf('%06d', $last_6) if length($last_6) < 6;
 
     ## Check against true/false patterns from init_table ##
-    ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153, 461537, 461539
-    ## FALSE: 230769, 307692, 076923, 769230, 692307, 923076, 230768, 230770
+    ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153 (+ variants ±1)
+    ## FALSE: 230769, 307692, 076923, 769230, 692307, 923076 (+ variants ±1)
 
     return 0
         if $last_6 =~ /^230769$|^307692$|^076923$|^769230$|^692307$|^923076$/;
+    return 0
+        if $last_6 =~ /^230768$|^307691$|^076922$|^769229$|^692306$|^923075$/;
+    return 0
+        if $last_6 =~ /^230770$|^307693$|^076924$|^769231$|^692308$|^923077$/;
+
     return 1
         if $last_6 =~ /^461538$|^615384$|^153846$|^538461$|^384615$|^846153$/;
+    return 1
+        if $last_6 =~ /^461537$|^615383$|^153845$|^538460$|^384614$|^846152$/;
+    return 1
+        if $last_6 =~ /^461539$|^615385$|^153847$|^538462$|^384616$|^846154$/;
 
-    ## Default: check if divisible patterns exist ##
-    return 0;    ## Default to false (needs harmonization)
+    ## Default: true (as per Truth.pm line 193) ##
+    return 1;
 }
 
 ## Decode mode: decompress encoded input ##
@@ -691,8 +708,8 @@ sub decode_mode {
     die "Decode mode coming soon!\n";
 }
 
-#,,..,,..,,,.,..,,...,..,,..,,...,,,.,,..,.,,,.,.,...,...,,.,,.,.,..,,.,.,.,.,
-#46V3XNS3QBSVSUTZQEHET3ZY4OHHMOVUDNMVIWSS7TP63MAOFH6HIK5S3WWHS6W7OGBHPAFN74S6C
-#\\\|S6VUJEZUT5K2KIXDP3YLTNPQ32AV5KBD57UH4KD5IYRPM7RJJQ6 \ / AMOS7 \ YOURUM ::
-#\[7]RVFUEXESX6QWQHMCP4MLFB4ZQ3VV3XUSVNCLSSCTK3KQD2FQZUAI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,.,,.,.,..,,,.,,.,,,..,,.,,,.,.,...,.,.,.,.,,..,.,.,.,.,,,,,
+#GFKH65KEMIATIMRECN35EUSUEU4OZWYFCBJZ6DLANHO6LWN32D374Q6CPYI4ERHMNJ4UD7D664XDS
+#\\\|P5B54WMRF4ZYV42EAQLXJP4NYGCUJYAGVX4WJHSWIXSG6ZAVF32 \ / AMOS7 \ YOURUM ::
+#\[7]XTQ2NFPMJ4YIHL3YE6NDJ5BLHEDVVLBUPL6TUUUMSSQ66CAUUEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
