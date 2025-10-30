@@ -25,8 +25,8 @@ if ( $key_exists_status == TRUE ) {
     and <[base.exit]>->('0110')
     if $name !~ <keys.regex.key_name>;
 
-if ( not defined &Crypt::Twofish2::MODE_CBC ) {
-    <[base.log]>->( 0, ":, missing 'Crypt::Twofish2' module, aborted ..," );
+if ( not defined &Crypt::Mode::CBC::new ) {
+    <[base.log]>->( 0, ":, missing 'Crypt::Mode::CBC' module, aborted ..," );
     <[base.exit]>->(qw| 0110 |);
 }
 
@@ -83,8 +83,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 ##
 return say $key_display_str;
 
-#,,,,,...,.,,,..,,,..,,,.,,.,,...,,..,...,,.,,..,,...,..,,,..,,..,...,...,..,,
-#WUFK46W6M3R5OOJ2CZL2PY74AVGOX25SBYQNIQYJGCGKLBNAHALK3BHVANLWBMSNFUDG3USEL7UD4
-#\\\|JJLJZXXSKWBXUMW3PELPJ7TPE54V2XYJQ7RCG5VLUHM4KJJAVJG \ / AMOS7 \ YOURUM ::
-#\[7]HO3IN633Y54DFBBIGMBQJW2NFJAT2YWMR4ASC5Z77357VDUD36DI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,.,,,..,,,,,,.,,,..,,...,,,.,..,,...,...,..,,..,,,,,,..,,.,,,
+#UGASHFXT7BDR7WATWHIF6XYT4DG6BTXCJNQTFZ2YIMJWM3OW5PDXEJS27CTQN54Q2W6RHSIHLK5M4
+#\\\|43AZILDFFLVRAHM2FCZWZZWPPXWOERY5VKFG37NETYE4QVIPFWE \ / AMOS7 \ YOURUM ::
+#\[7]7LD5FQW645TFKFO4TCV3TSK6G7EUWRMLRGHPXVN2YFPEE2TYR6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

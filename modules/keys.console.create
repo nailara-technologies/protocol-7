@@ -25,9 +25,9 @@ if ( length $name and <[crypt.C25519.key_exists]>->($name) ) {
 
 my $key_password;
 if ( not $unencrypted ) {
-    if ( not defined &Crypt::Twofish2::MODE_CBC ) {
+    if ( not defined &Crypt::Mode::CBC::new ) {
         <[base.log]>->(
-            0, ":, missing 'Crypt::Twofish2' module, aborted ..,"
+            0, ":, missing 'Crypt::Mode::CBC' module, aborted ..,"
         );
         <[base.exit]>->(qw| 0110 |);
     }
@@ -80,8 +80,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,,,,..,...,...,..,,,,,,...,.,.,.,.,...,..,,..,,...,...,.,,,...,,..,,,.,.,.,
-#3FPMTLFODDY5IWSCOVDYKUPVV3QQFQK6UMGQGD4WF27WUJMA7APSWV4FIOR2BTBDTY2MZTTNDBX3W
-#\\\|HOHATL5DB2YIKANDANK5BSWWOODSQKOS2CAZEPCSY43DZHKWE73 \ / AMOS7 \ YOURUM ::
-#\[7]GD6HFUD24CVGNILQ4B5QWIZNFV5ALJMD5XVEUY537RKWCOJ2BODQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,,.,,..,,,..,..,,,,.,..,,...,..,,...,...,.,.,,,.,,,.,...,,..,
+#5QWWZBTTBUK4IYN2LVXFKWH7TRJEOQ2FT663YYKPZKVXAO63SYLIK5HP5IMCLBHPPHMQSRDYU47GC
+#\\\|7RO4ALQN4YF7F42HOX7LWXKHMW4WQPRZ67K5FGKUPFTJZPUQHO3 \ / AMOS7 \ YOURUM ::
+#\[7]3AJG5MXFQCCJEGWGWLU6AZWYHLERLXCL2GI2JCSO2E66F6GVUACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

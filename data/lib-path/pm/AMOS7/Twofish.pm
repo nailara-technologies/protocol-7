@@ -14,7 +14,7 @@ use constant FALSE => 0;    ##  false  ##
 
 use AMOS7;
 
-use Crypt::Twofish2;
+use Crypt::Mode::CBC;
 
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
@@ -27,8 +27,8 @@ use base qw| Exporter |;
 
 my $VERSION = qw| AMOS7::Twofish-VERSION.2EXJJ7Q |;
 
-error_exit("perl module 'Crypt::Twofish2' not loaded")
-    if not defined &Crypt::Twofish2::MODE_CBC;
+error_exit("perl module 'Crypt::Mode::CBC' not loaded")
+    if not defined &Crypt::Mode::CBC::new;
 
 ##[ INIT ]####################################################################
 
@@ -56,11 +56,21 @@ sub key_init {
         warn_err('expected twofish object name <{C1}>');
         return undef;
     } elsif ( $o_type eq qw| encryption | ) {
-        $encryption_table{$o_name}    ##  encryption table  ##
-            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC() );
+        ##  encryption table with cipher object, key, and IV  ##
+        ##  Second parameter 0 = no padding (matches Crypt::Twofish2 behavior)  ##
+        $encryption_table{$o_name} = {
+            cipher => Crypt::Mode::CBC->new( 'Twofish', 0 ),
+            key    => $crypt_key,
+            iv     => "\0" x 16,    ## Initialize IV to zero vector ##
+        };
     } else {
-        $decryption_table{$o_name}    ##  decryption table  ##
-            = Crypt::Twofish2->new( $crypt_key, Crypt::Twofish2::MODE_CBC() );
+        ##  decryption table with cipher object, key, and IV  ##
+        ##  Second parameter 0 = no padding (matches Crypt::Twofish2 behavior)  ##
+        $decryption_table{$o_name} = {
+            cipher => Crypt::Mode::CBC->new( 'Twofish', 0 ),
+            key    => $crypt_key,
+            iv     => "\0" x 16,    ## Initialize IV to zero vector ##
+        };
     }
     ## true ##
     return TRUE;
@@ -136,8 +146,13 @@ sub encrypt {
         return undef;
     }
 
+    my $obj = $encryption_table{$o_name};
     my $encrypted_data
-        = $encryption_table{$o_name}->encrypt( $payload_data_ref->$* );
+        = $obj->{cipher}
+        ->encrypt( $payload_data_ref->$*, $obj->{key}, $obj->{iv} );
+
+    ## Update IV to last ciphertext block for stateful CBC ##
+    $obj->{iv} = substr( $encrypted_data, -16 );
 
     return \$encrypted_data;
 }
@@ -163,16 +178,25 @@ sub decrypt {
         return undef;
     }
 
+    my $obj = $decryption_table{$o_name};
+
+    ## Save last ciphertext block before decrypting for IV update ##
+    my $last_ct_block = substr( $payload_data_ref->$*, -16 );
+
     my $decrypted_data
-        = $decryption_table{$o_name}->decrypt( $payload_data_ref->$* );
+        = $obj->{cipher}
+        ->decrypt( $payload_data_ref->$*, $obj->{key}, $obj->{iv} );
+
+    ## Update IV to last ciphertext block for stateful CBC ##
+    $obj->{iv} = $last_ct_block;
 
     return \$decrypted_data;
 }
 
 return TRUE ##################################################################
 
-#,,.,,.,.,,..,,,,,,..,.,.,,,,,.,.,,.,,..,,.,.,..,,...,...,.,.,.,,,,,,,..,,.,.,
-#L27SXGB32NBZHETCQYSFMIKVNM2WMQKWGKFB5A7PT77WBWILYKJACUYOLO56QRTAQ6ZZH3BGVYUS4
-#\\\|B3LJTUNYRGWQNTXCXK7G4LLKEUANJB4OWFIH742O2DU2HLXA744 \ / AMOS7 \ YOURUM ::
-#\[7]EQBRUW5OWUUSNC4TCDBQPJ46V3ESGE43RFEY2JHGGSIJWYOKPECY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,,.,,,,,,,,.,,.,,.,,,,..,,.,,..,,...,...,,.,,,,.,..,,.,,,,,.,
+#FHKVZ6YIOMZMLXQIQRAZPILLGKJWH2UPSPTQWBMPEJ7FOIPRQLOTVWAL55RVS2SYZQQ3Z6R7CXVKA
+#\\\|6DZDEPZMYPFWQ7TYUY5YWDIZ5PWQR2FBRQLYZW3ZWDIMGHJXRRL \ / AMOS7 \ YOURUM ::
+#\[7]M755QCR7EDMMAXELR2GCKCEMV727MOVK4S5BYMTNMQRDUL3W7EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
