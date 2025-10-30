@@ -6,6 +6,8 @@ use warnings;
 use utf8;
 use open qw(:std :utf8);
 use Crypt::Misc qw| encode_b32r decode_b32r |;
+use Time::HiRes qw| sleep |;
+use List::MoreUtils qw| minmax |;
 
 ## Add AMOS7 lib path for truth checking ##
 BEGIN {
@@ -32,20 +34,31 @@ my $NEON_green_yellow = "\e[38;2;71;195;6m";
 my $violet            = "\e[38;2;138;43;226m";
 my $cyan              = "\e[38;2;0;255;255m";
 
-## Check for decode mode ##
-my $decode_mode = 0;
-if ( @ARGV && $ARGV[0] eq '-d' ) {
-    $decode_mode = 1;
-    shift @ARGV;
+## Parse mode switches ##
+my $mode = 'stats';    ## Default: statistics only ##
+
+if ( @ARGV && $ARGV[0] =~ /^-/ ) {
+    my $switch = shift @ARGV;
+    if ( $switch eq '-compress' ) {
+        $mode = 'compress';
+    } elsif ( $switch eq '-unpack' ) {
+        $mode = 'unpack';
+    } elsif ( $switch eq '-d' ) {
+        ## Legacy support for -d ##
+        $mode = 'unpack';
+    } else {
+        die ":\n:: < ${NEON_green_yellow}ddcompress$reset > "
+            . "$reset:$NEON_orange unknown switch $reset : "
+            . "'$NEON_green_yellow$switch$reset'$reset\n"
+            . ":: valid switches: -compress, -unpack\n:\n";
+    }
 }
 
-if ($decode_mode) {
-    ## DECODE MODE: Decompress encoded input ##
-    decode_mode();
+if ( $mode eq 'unpack' ) {
+    ## UNPACK MODE: Decompress encoded input ##
+    unpack_mode();
     exit(0);
 }
-
-## ENCODE MODE: Compress and deduplicate content ##
 
 ## Data structures for unified deduplication ##
 my %element_freq;     ## Unified frequency count for all elements
@@ -76,17 +89,38 @@ if (@ARGV) {
     push @all_content, { file => '<stdin>', content => $content };
 }
 
+## Calculate max filename length for progress display ##
+my $file_maxlen = 10;
+if (@all_content) {
+    ( undef, $file_maxlen )
+        = minmax map { length( $_->{file} ) } @all_content;
+}
+
 say "${blacklight}:";
-say "::[$NEON_green_yellow research-dedup $blacklight]:. "
-    . "${TRUE_color}analyzing content$blacklight ..,";
-say "$blacklight:";
+if ( $mode eq 'stats' ) {
+    ## Stats mode: show progress animation ##
+} else {
+    ## Compress mode: show simple message ##
+    say "::[$NEON_green_yellow ddcompress $blacklight]:. "
+        . "${TRUE_color}analyzing content$blacklight ..,";
+    say "$blacklight:";
+}
 
 ## Process all content ##
 my @processed_files;
+my $file_count = scalar @all_content;
+my $file_num   = 0;
 
 foreach my $item (@all_content) {
     my $file = $item->{file};
     my $text = $item->{content};
+
+    ## Show progress in stats mode ##
+    if ( $mode eq 'stats' ) {
+        show_progress( $file, $file_num, $file_count );
+        sleep 0.05;    ## Brief pause for animation visibility ##
+    }
+    $file_num++;
 
     ## Split into paragraphs (separated by blank lines) ##
     my @paragraphs = split /\n\s*\n/, $text;
@@ -299,19 +333,22 @@ while ( length($remaining) > 0 ) {
     }
 }
 
-## Now output in the correct order: Directory, Documents, then index ##
+## Output mode-specific content ##
 
-say "$blacklight:";
-say "::[$NEON_orange DIRECTORY $blacklight]:.";
-say "$blacklight:";
-foreach my $dir_line (@directory_lines) {
-    say "$cyan$dir_line$reset";
-}
-say "";
+if ( $mode eq 'compress' ) {
+    ## COMPRESS MODE: Output encoded format ##
 
-say "$blacklight:";
-say "::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.";
-say "$blacklight:";
+    say "$blacklight:";
+    say "::[$NEON_orange DIRECTORY $blacklight]:.";
+    say "$blacklight:";
+    foreach my $dir_line (@directory_lines) {
+        say "$cyan$dir_line$reset";
+    }
+    say "";
+
+    say "$blacklight:";
+    say "::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.";
+    say "$blacklight:";
 
 foreach my $file_data (@processed_files) {
     my $filename = $file_data->{file};
@@ -398,20 +435,26 @@ foreach my $file_data (@processed_files) {
         . "$reset$doc_padding$doc_marker\n";
 }
 
-## Empty line separator ##
-say "";
+    ## Empty line separator ##
+    say "";
 
-## Output index sorted by usage (descending, short IDs first) ##
-say "$blacklight:";
-say
-    "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight";
-say "$blacklight:";
+    ## Output index sorted by usage (descending, short IDs first) ##
+    say "$blacklight:";
+    say
+        "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight";
+    say "$blacklight:";
 
-foreach my $line (@index_lines) {
-    say $line;
+    foreach my $line (@index_lines) {
+        say $line;
+    }
+}    ## End compress mode ##
+
+## Clear progress line in stats mode ##
+if ( $mode eq 'stats' ) {
+    print "\r" . ( " " x 80 ) . "\r";    ## Clear progress bar ##
 }
 
-## Output statistics ##
+## Output statistics (both modes) ##
 say "\n$blacklight:";
 say "::[$NEON_orange STATISTICS $blacklight]:.";
 say "::[$NEON_green_yellow elements $blacklight]:. "
@@ -748,17 +791,35 @@ sub calc_true_simple {
 }
 
 ## Decode mode: decompress encoded input ##
-sub decode_mode {
-    say "${blacklight}:";
-    say "::[$NEON_green_yellow research-dedup $blacklight]:. "
-        . "${TRUE_color}decode mode$blacklight - not yet implemented";
-    say "$blacklight:$reset";
+## Show progress animation (ptd style) ##
+sub show_progress {
+    my $filename    = shift;
+    my $file_num    = shift;
+    my $files_total = shift;
+    my $chars_max   = 13;
+    my $character   = qw| : |;
+    my $char_count  = int( $chars_max * $file_num / $files_total );
+    my $perc_chars  = $character x $char_count;
 
-    die "Decode mode coming soon!\n";
+    printf( "\r${blacklight}:::[$nailara_bg$TRUE_color%-${chars_max}s"
+            . "$reset$blacklight]:"
+            . "::[$nailara_bg$TRUE_color %-${file_maxlen}s"
+            . " $reset$blacklight]:.$reset\r",
+        $perc_chars, $filename );
 }
 
-#,,.,,.,,,.,.,,,,,,..,,..,,,.,..,,,,,,,,.,,.,,.,.,...,..,,.,,,,.,,,..,.,.,,,.,
-#MHAVDHDI4H3PDQ47MJYPR745G3WAWV6E3PBQVP22TK2SVMOSYFA26WERP2TN7S4KMLOBKVVYZT2GY
-#\\\|N7TRIZEXUE7NHMX6CXOACW7PNCGWDNNQ6EDMAVUJ3TK2JFN4X3W \ / AMOS7 \ YOURUM ::
-#\[7]Q76A6PXB736MQGALO2S42KTPW34NBRV42VJ2JIHH2PFJA3N4JGAY 7  DATA SIGNATURE ::
+## Unpack mode: decompress encoded input ##
+sub unpack_mode {
+    say "${blacklight}:";
+    say "::[$NEON_green_yellow ddcompress $blacklight]:. "
+        . "${TRUE_color}unpack mode$blacklight - not yet implemented";
+    say "$blacklight:$reset";
+
+    die "Unpack mode coming soon!\n";
+}
+
+#,,.,,.,.,,,.,.,,,...,..,,,,.,..,,..,,.,.,,.,,.,.,...,...,...,,,,,...,,,,,.,,,
+#3Y6DDZNY65Y5SPB4H33R7Q6GWHQZYA7X3TU6FRUYERVLUYQEM5CCDGZU7GFFUE2S6XECHW7RDAX6U
+#\\\|GM7CBLHC4MUVPOACSNM25NIK3UQJIM35WLZDNLCGNLEZB4HCEZL \ / AMOS7 \ YOURUM ::
+#\[7]XCVL2CU6HSK6MYL5WO3CVWVKGLLNG2OM7TL3NWNVLOZCKO52W6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
