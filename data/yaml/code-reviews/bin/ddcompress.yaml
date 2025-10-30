@@ -1,0 +1,523 @@
+---
+# Code Review: bin/ddcompress
+# Deduplication and Compression Tool with Harmonization Markers
+# Last Updated: 2025-10-30
+# Review Version: 1.0
+
+module:
+  name: "ddcompress"
+  type: "executable_script"
+  language: "perl"
+  version: "5220"
+  file_path: "bin/ddcompress"
+  original_name: "research-dedup"
+  status: "active_development"
+  completion: "~70%"
+
+purpose:
+  primary: "Compress and deduplicate text content using BASE32 encoding with frequency-based indexing and AMOS7-style harmonization markers"
+  secondary:
+    - "Analyze compression potential without encoding (statistics mode)"
+    - "Generate bidirectionally testable format with division-by-13 truth assertions"
+    - "Support container format for multiple files (tar-like)"
+    - "Provide deduplication at word, sentence, and paragraph levels"
+
+operation_modes:
+  stats:
+    switch: "none (default)"
+    behavior: "Analyzes files and displays compression statistics only"
+    output: "PTD-style progress animation + statistics"
+    use_case: "Quick analysis without generating encoded output"
+
+  compress:
+    switch: "-compress"
+    behavior: "Full compression with encoded output"
+    output: "Directory index + encoded documents + element index + statistics"
+    use_case: "Generate compressed archive for storage or transmission"
+
+  unpack:
+    switch: "-unpack"
+    status: "stub (not yet implemented)"
+    behavior: "Decompress and restore original files"
+    output: "Original files reconstructed from encoded format"
+    use_case: "Extract files from compressed archive"
+
+format_specification:
+  line_structure:
+    total_length: 78
+    payload_length: 77
+    marker_length: 1
+    marker_position: 78
+
+  line_types:
+    payload:
+      start_char: "2-7A-Z (BASE32 range)"
+      content: "Encoded data (77 bytes)"
+      marker: "0 or 1 (harmonization state)"
+
+    directory:
+      start_char: "0 (delimiter)"
+      content: "Directory index with 0-delimited fields"
+      marker: "0 or 1 (harmonization state)"
+      overflow: "Continuation lines also start with 0"
+
+  harmonization_markers:
+    "0":
+      meaning: "Naturally TRUE (no harmonization needed)"
+      calculation: "ELF checksum passes division-by-13 truth check"
+
+    "1":
+      meaning: "Harmonization applied (conceptual bitshift left)"
+      calculation: "ELF checksum fails division-by-13 truth check"
+
+  directory_index_format:
+    pattern: "0<length>0<filename>0<length>0<filename>0..."
+    encoding:
+      length: "BASE32 (except 0 which uses literal '0' character)"
+      filename: "BASE32 encoded"
+      delimiter: "0 character"
+
+    special_cases:
+      zero_length_file: "000<filename_base32>0"
+      stdin: "Filename becomes 'stdin' (angle brackets removed)"
+
+    example: "0F05N5O565D5I0"
+    decoded: "length=11(F), filename=stdin"
+
+encoding_system:
+  alphabet:
+    base32: "2-7A-Z (32 symbols)"
+    freed_chars:
+      "0": "Delimiter and directory line marker"
+      "1": "Harmonization marker (position 78 only)"
+
+  index_assignment:
+    strategy: "Frequency-based (most common = shortest ID)"
+    starting_index: 0
+    encoding: "BASE32 using to_base32() function"
+    padding: "Leading zeros for uniform width"
+
+  element_types:
+    word:
+      encoding: "BASE32 text (encode_base32_text)"
+      example: "5R5J5M5G563I = 'world'"
+
+    sentence:
+      encoding: "VAX-encoded word indices (to_vax_base32)"
+      separator: "none (BER compression)"
+
+    paragraph:
+      encoding: "VAX-encoded sentence indices"
+      separator: "none (BER compression)"
+
+  repetition_compression:
+    format: "0<count>0<length>0<pattern>"
+    algorithm: "Greedy best-savings across pattern lengths 1-20"
+    example: "03H0403U = 77 repetitions of '3U'"
+
+interface:
+  command_line:
+    usage: "ddcompress [SWITCH] [files...]"
+    switches:
+      - switch: "(none)"
+        mode: "stats"
+      - switch: "-compress"
+        mode: "compress"
+      - switch: "-unpack"
+        mode: "unpack"
+      - switch: "-d"
+        mode: "unpack (legacy alias)"
+
+    input:
+      files: "One or more file paths"
+      stdin: "When no files specified (reads until EOF)"
+
+    output:
+      destination: "stdout"
+      encoding: "UTF-8"
+
+  exit_codes:
+    0: "Success"
+    1: "File not found"
+    2: "Invalid switch"
+
+key_functions:
+  encoding:
+    - name: "to_base32"
+      purpose: "Convert integer index to BASE32 string (2-7A-Z)"
+      signature: "to_base32($num) -> $string"
+
+    - name: "encode_base32_text"
+      purpose: "Encode arbitrary text as BASE32 (2 chars per byte)"
+      signature: "encode_base32_text($text) -> $base32_string"
+
+    - name: "to_vax_base32"
+      purpose: "BER-compress integer and encode as BASE32"
+      signature: "to_vax_base32($num) -> $ber_base32_string"
+      uses: "pack('w') for variable-length integer encoding"
+
+    - name: "compress_repetitions"
+      purpose: "Find and compress repeated patterns"
+      signature: "compress_repetitions($str) -> $compressed_str"
+      algorithm: "Greedy search for best savings across all positions/lengths"
+
+  harmonization:
+    - name: "get_harmonization_marker"
+      purpose: "Calculate harmonization marker for line payload"
+      signature: "get_harmonization_marker($line_content) -> '0' or '1'"
+      algorithm: "ELF checksum (mode=7, shift_bits=13) + division-by-13 truth"
+
+    - name: "calc_true_simple"
+      purpose: "Division-by-13 truth check (AMOS7 style)"
+      signature: "calc_true_simple($num) -> 0 or 1"
+      implementation: "Math::BigInt for integer division, check last 6 digits"
+      patterns:
+        true: "461538, 615384, 153846, 538461, 384615, 846153 (±1)"
+        false: "230769, 307692, 076923, 769230, 692307, 923076 (±1)"
+      default: "Returns 1 (TRUE) for unmatched patterns"
+
+  text_processing:
+    - name: "prefix_numbers"
+      purpose: "Prefix numeric literals with # to distinguish from indices"
+      signature: "prefix_numbers($text) -> $prefixed_text"
+      pattern: "s/\\b(\\d+)\\b/#$1/g"
+
+  progress_display:
+    - name: "show_progress"
+      purpose: "Display PTD-style animated progress bar"
+      signature: "show_progress($filename, $file_num, $files_total)"
+      style: "Matching bin/ptd with nailara background colors"
+
+  wrapping:
+    - name: "wrap_at_77_padded"
+      purpose: "Wrap long index lines at 77 bytes with harmonization markers"
+      signature: "wrap_at_77_padded($id, $content, $freq, $color) -> $output"
+
+  decompression:
+    - name: "unpack_mode"
+      status: "stub"
+      purpose: "Decompress encoded input (future implementation)"
+
+data_structures:
+  global_state:
+    element_freq:
+      type: "hash"
+      purpose: "Count occurrences of each unique element"
+      keys: "Word/sentence/paragraph text"
+      values: "Integer frequency count"
+
+    element_type:
+      type: "hash"
+      purpose: "Track element type for each unique element"
+      keys: "Word/sentence/paragraph text"
+      values: "'w', 's', or 'p'"
+
+    element_index:
+      type: "hash"
+      purpose: "Map elements to their assigned indices"
+      keys: "Word/sentence/paragraph text"
+      values: "Integer index (0-based)"
+
+    all_content:
+      type: "array of hashes"
+      structure:
+        - file: "Filename string"
+          content: "File content string"
+
+    processed_files:
+      type: "array of hashes"
+      structure:
+        - file: "Filename string"
+          text: "Original content"
+          paragraphs: "Array of paragraph strings"
+
+  constants:
+    TRUE: 5
+    FALSE: 0
+
+  colors:
+    purpose: "ANSI color codes matching protocol-7 style"
+    codes:
+      - reset: "\\e[0m"
+      - nailara_bg: "\\e[48;2;9;5;42m"
+      - blacklight: "\\e[38;2;68;39;172m"
+      - TRUE_color: "\\e[38;2;6;71;195m"
+      - NEON_orange: "\\e[38;2;197;141;7m"
+      - NEON_green_yellow: "\\e[38;2;71;195;6m"
+      - violet: "\\e[38;2;138;43;226m"
+      - cyan: "\\e[38;2;0;255;255m"
+
+implementation:
+  algorithm:
+    overview: "Frequency-based deduplication with hierarchical encoding"
+    steps:
+      - "Parse input files or stdin"
+      - "Split content into paragraphs (\\n\\n delimiter)"
+      - "Split paragraphs into sentences (. ! ? delimiters)"
+      - "Split sentences into words (whitespace delimiter)"
+      - "Count frequency of all unique elements"
+      - "Assign indices by frequency (most frequent = lowest/shortest)"
+      - "Encode words as BASE32 text"
+      - "Encode sentences as VAX-compressed word indices"
+      - "Encode paragraphs as VAX-compressed sentence indices"
+      - "Apply repetition compression to all encoded sequences"
+      - "Build directory index with file lengths and names"
+      - "Calculate harmonization markers for all lines"
+      - "Output based on operation mode"
+
+  output_sections:
+    compress_mode:
+      order:
+        - "DIRECTORY (with overflow if needed)"
+        - "ENCODED DOCUMENTS (hierarchical: words → sentences → paragraphs → document)"
+        - "INDEX (sorted by usage, short IDs first)"
+        - "STATISTICS"
+
+    stats_mode:
+      order:
+        - "STATISTICS (only)"
+
+  text_splitting:
+    paragraphs: "split /\\n\\s*\\n/"
+    sentences: "split /(?<=[.!?])\\s+/"
+    words: "split /\\s+/"
+
+  encoding_flow:
+    words: "Raw text → prefix_numbers → BASE32 encode"
+    sentences: "Words → indices → VAX encode → compress repetitions"
+    paragraphs: "Sentences → indices → VAX encode → compress repetitions"
+    documents: "Paragraphs → indices → VAX encode"
+
+  error_handling:
+    file_not_found: "Die with formatted error message"
+    invalid_switch: "Die with usage information"
+    unpack_mode: "Die with 'not yet implemented' message"
+
+dependencies:
+  perl_modules:
+    - name: "Crypt::Misc"
+      functions: ["encode_b32r", "decode_b32r"]
+      purpose: "BASE32 encoding for BER-compressed integers"
+
+    - name: "AMOS7::CHKSUM::ELF"
+      functions: ["elf_chksum"]
+      purpose: "Calculate ELF checksums for harmonization"
+      mode: 7
+      shift_bits: 13
+
+    - name: "Math::BigInt"
+      purpose: "Arbitrary precision integer arithmetic for division-by-13"
+      usage: "Dynamic require in calc_true_simple()"
+
+    - name: "Time::HiRes"
+      functions: ["sleep"]
+      purpose: "Sub-second delays for progress animation"
+
+    - name: "List::MoreUtils"
+      functions: ["minmax"]
+      purpose: "Calculate max filename length for progress display"
+
+  system:
+    - type: "perl"
+      version: "v5.24+"
+      features: ["say", "state", "unicode"]
+
+implementation_status:
+  completed:
+    - "Three operation modes (stats, compress, unpack stub)"
+    - "Frequency-based indexing with BASE32 encoding"
+    - "Hierarchical encoding (word → sentence → paragraph → document)"
+    - "Repetition compression with greedy algorithm"
+    - "Directory index with 0-delimited format"
+    - "Harmonization markers using ELF checksum + division-by-13"
+    - "PTD-style progress animation in stats mode"
+    - "Uniform 78-character line format (77 payload + 1 marker)"
+    - "Special handling for stdin and zero-length files"
+    - "Color-coded output matching protocol-7 style"
+
+  pending:
+    - "Unpack mode implementation (full decompression)"
+    - "Decode BASE32 text and indices"
+    - "Reconstruct hierarchical structure from indices"
+    - "Parse directory index and restore files"
+    - "Verify harmonization markers during unpack"
+    - "Handle multi-file containers"
+    - "Error recovery for corrupted archives"
+    - "Streaming compression for large files"
+    - "Compression ratio reporting"
+    - "Benchmark mode for performance testing"
+
+known_issues:
+  none_currently: "All implemented features working as expected"
+
+  potential_improvements:
+    - "Add streaming mode for large file processing"
+    - "Implement parallel processing for multiple files"
+    - "Add compression level parameter (trade speed vs ratio)"
+    - "Support binary file detection and handling"
+    - "Add integrity verification (checksums for entire archive)"
+    - "Implement incremental compression (delta updates)"
+
+testing:
+  scenarios:
+    - name: "Single file stats mode"
+      command: "ddcompress file.txt"
+      expected: "Progress bar + statistics output"
+
+    - name: "Multi-file stats mode"
+      command: "ddcompress file1.txt file2.txt"
+      expected: "Animated progress through files + statistics"
+
+    - name: "Stdin compression"
+      command: "echo 'test' | ddcompress -compress"
+      expected: "Directory (stdin) + encoded output + index"
+
+    - name: "Empty file handling"
+      command: "touch empty.txt && ddcompress -compress empty.txt"
+      expected: "Directory shows 000<filename> pattern"
+
+    - name: "Repetition compression"
+      input: "Long string with repeated patterns"
+      expected: "0<count>0<length>0<pattern> format applied"
+
+  edge_cases:
+    - condition: "File with only whitespace"
+      behavior: "Splits into zero paragraphs"
+      handling: "Empty document entry"
+
+    - condition: "Text with no sentence terminators"
+      behavior: "Entire text becomes one sentence"
+      handling: "Single sentence encoding"
+
+    - condition: "Numbers in text"
+      behavior: "Numbers prefixed with #"
+      handling: "Distinguishes from element indices"
+
+    - condition: "Very long words"
+      behavior: "Encoded as BASE32 (2 bytes per char)"
+      handling: "May create very long index lines"
+
+format_examples:
+  directory_line:
+    example: "0F05N5O565D5I00...0001"
+    decoded:
+      field1: "0 (delimiter)"
+      field2: "F (length 11 in BASE32)"
+      field3: "0 (delimiter)"
+      field4: "5N5O565D5I (BASE32 for 'stdin')"
+      field5: "0 (trailing delimiter)"
+      padding: "0s to reach 77 bytes"
+      marker: "1 (harmonization needed)"
+
+  encoded_word:
+    example: "02AEAI"
+    decoded:
+      id: "02 (index 2 in BASE32)"
+      content: "AEAI (BASE32 for 'is')"
+
+  encoded_sentence:
+    example: "03AAAEAAAQ"
+    decoded:
+      id: "03 (index 3)"
+      content: "AAAEAAAQ (VAX-encoded word indices)"
+
+  repetition:
+    example: "03H0403U"
+    decoded:
+      count: "3H (77 in BASE32)"
+      length: "04 (4 in BASE32)"
+      pattern: "3U (repeated content)"
+      meaning: "Repeat '3U' 77 times"
+
+related_files:
+  modules:
+    - "data/lib-path/pm/AMOS7/CHKSUM/ELF.pm"
+    - "data/lib-path/pm/AMOS7/Assert/Truth.pm"
+
+  utilities:
+    - "bin/ptd (progress animation style reference)"
+    - "bin/amos-chksum (ELF checksum reference)"
+    - "bin/comp-int (VAX encoding reference)"
+
+  documentation:
+    - "data/yaml/docs/workflows/git-commit-versioning-signing.yaml"
+
+session_context:
+  development_history:
+    - phase: "Initial implementation"
+      features: "Basic compression with separate indices"
+
+    - phase: "Unified indexing"
+      features: "Frequency-based indexing starting at 0"
+
+    - phase: "Format optimization"
+      features: "BASE32 encoding, freed 0 and 1 characters"
+
+    - phase: "Repetition compression"
+      features: "0-delimited repetition operators"
+
+    - phase: "Frame effect"
+      features: "Uniform 78-char lines with harmonization markers"
+
+    - phase: "Directory index"
+      features: "Container format with file metadata"
+
+    - phase: "Three-mode operation"
+      features: "Stats, compress, unpack modes"
+
+  key_decisions:
+    - decision: "Use BASE32 (2-7A-Z) instead of full alphabet"
+      rationale: "Frees 0 and 1 for structural purposes"
+
+    - decision: "77 bytes payload + 1 marker = 78 chars"
+      rationale: "Matches code signature width, adds frame effect"
+
+    - decision: "Default behavior is stats mode"
+      rationale: "Safe, non-destructive analysis without output overhead"
+
+    - decision: "Math::BigInt for division-by-13"
+      rationale: "Floating point precision issues with sprintf"
+
+    - decision: "stdin becomes 'stdin' in directory"
+      rationale: "Remove angle brackets for cleaner encoding"
+
+resume_instructions:
+  for_next_session: "When resuming work on ddcompress, focus on implementing unpack mode"
+
+  unpack_mode_steps:
+    - "Parse directory index to get file list and lengths"
+    - "Locate and parse element index section"
+    - "Build reverse mappings (index → content)"
+    - "Process encoded documents line by line"
+    - "Expand repetition operators (0count0length0pattern)"
+    - "Decode VAX-compressed indices to get element references"
+    - "Reconstruct hierarchical structure (indices → elements → text)"
+    - "Verify harmonization markers match line contents"
+    - "Write restored files to filesystem or stdout"
+    - "Handle special cases (stdin, zero-length files)"
+
+  context_keywords:
+    - "ddcompress"
+    - "deduplication"
+    - "BASE32 encoding"
+    - "harmonization markers"
+    - "division by 13"
+    - "frequency-based indexing"
+    - "repetition compression"
+    - "directory index"
+    - "AMOS7 style"
+
+notes:
+  performance: "Current implementation prioritizes correctness over speed; suitable for text files < 1MB"
+
+  memory_usage: "All content loaded into memory; not suitable for very large files without streaming implementation"
+
+  compatibility: "Output format is stable and self-describing; safe to archive"
+
+  extensibility: "Format supports future additions via reserved characters and states"
+
+#,,,.,..,,..,,,,.,.,.,,,,,,,,,,..,,..,,.,,.,,,..,,...,...,,.,,,,.,,..,,,.,,,.,
+#KQNRER5CHVOFWDFYRNWDQ5GTXHOPUEZ6DQQ5WCAZQC7ND4GUBC4DRUH326IKIRTQAL3W7LQFD2FTY
+#\\\|7Y2IOLZCNYUH44XRKRHOBNITRDTLO3NZGJJ52MBTUC23QSUH3XD \ / AMOS7 \ YOURUM ::
+#\[7]CGZEYGOKSQMSV346U3IISZNCE3DL566CXJNAU4BXZQFNJZODNADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
