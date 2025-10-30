@@ -1,0 +1,698 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use utf8;
+use open qw(:std :utf8);
+use Crypt::Misc qw| encode_b32r decode_b32r |;
+
+## Add AMOS7 lib path for truth checking ##
+BEGIN {
+    my $lib_path = '/data/projects/protocol-7/data/lib-path/pm';
+    unshift @INC, $lib_path if -d $lib_path;
+}
+
+use AMOS7::CHKSUM::ELF qw| elf_chksum |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+$OUTPUT_AUTOFLUSH = TRUE;   ## true ##
+
+## Color definitions (matching ptd style) ##
+my $reset             = "\e[0m";
+my $nailara_bg        = "\e[48;2;9;5;42m";
+my $blacklight        = "\e[38;2;68;39;172m";
+my $nailara_fg        = "\e[38;2;38;46;153m";
+my $TRUE_color        = "\e[38;2;6;71;195m";
+my $NEON_orange       = "\e[38;2;197;141;7m";
+my $NEON_green_yellow = "\e[38;2;71;195;6m";
+my $violet            = "\e[38;2;138;43;226m";
+my $cyan              = "\e[38;2;0;255;255m";
+
+## Check for decode mode ##
+my $decode_mode = 0;
+if ( @ARGV && $ARGV[0] eq '-d' ) {
+    $decode_mode = 1;
+    shift @ARGV;
+}
+
+if ($decode_mode) {
+    ## DECODE MODE: Decompress encoded input ##
+    decode_mode();
+    exit(0);
+}
+
+## ENCODE MODE: Compress and deduplicate content ##
+
+## Data structures for unified deduplication ##
+my %element_freq;     ## Unified frequency count for all elements
+my %element_type;     ## Track type: 'w', 's', or 'p'
+my %element_index;    ## Unified index mapping
+
+my @all_content;
+
+## Read input from files or stdin ##
+if (@ARGV) {
+    foreach my $file (@ARGV) {
+        die ":\n:: < ${NEON_green_yellow}research-dedup$reset > "
+            . "$reset:$NEON_orange file not found $reset : "
+            . "'$NEON_green_yellow$file$reset'$reset\n:\n"
+            if not -f $file;
+
+        open( my $fh, '<:utf8', $file )
+            or die ":\n:: Cannot open file: $file :: $OS_ERROR\n:\n";
+        local $/;
+        my $content = <$fh>;
+        close($fh);
+        push @all_content, { file => $file, content => $content };
+    }
+} else {
+    ## Read from STDIN ##
+    local $/;
+    my $content = <STDIN>;
+    push @all_content, { file => '<stdin>', content => $content };
+}
+
+say "${blacklight}:";
+say "::[$NEON_green_yellow research-dedup $blacklight]:. "
+    . "${TRUE_color}analyzing content$blacklight ..,";
+say "$blacklight:";
+
+## Process all content ##
+my @processed_files;
+
+foreach my $item (@all_content) {
+    my $file = $item->{file};
+    my $text = $item->{content};
+
+    ## Split into paragraphs (separated by blank lines) ##
+    my @paragraphs = split /\n\s*\n/, $text;
+
+    foreach my $para (@paragraphs) {
+        next if $para =~ /^\s*$/;
+        $para =~ s/^\s+|\s+$//g;            ## trim
+
+        ## Prefix numeric literals in paragraphs ##
+        my $para_key = prefix_numbers($para);
+        $element_freq{$para_key}++;
+        $element_type{$para_key} = 'p';
+
+        ## Split into sentences ##
+        my @sentences = split /(?<=[.!?])\s+/, $para;
+
+        foreach my $sent (@sentences) {
+            next if $sent =~ /^\s*$/;
+            $sent =~ s/^\s+|\s+$//g;
+
+            my $sent_key = prefix_numbers($sent);
+            $element_freq{$sent_key}++;
+            $element_type{$sent_key} = 's';
+
+            ## Split into words ##
+            my @words = split /\s+/, $sent;
+
+            foreach my $word (@words) {
+                next if $word =~ /^\s*$/;
+
+                my $word_key = prefix_numbers($word);
+                $element_freq{$word_key}++;
+                $element_type{$word_key} = 'w';
+            }
+        }
+    }
+
+    push @processed_files,
+        {
+        file       => $file,
+        text       => $text,
+        paragraphs => \@paragraphs
+        };
+}
+
+my $word_count = grep { $element_type{$_} eq 'w' } keys %element_freq;
+my $sent_count = grep { $element_type{$_} eq 's' } keys %element_freq;
+my $para_count = grep { $element_type{$_} eq 'p' } keys %element_freq;
+
+## Don't output stats yet - we'll show them at the end with compression stats ##
+
+## Sort ALL elements by frequency in unified number space ##
+## Most frequent elements get lowest indices (most efficient) ##
+my @sorted_elements = sort {
+    $element_freq{$b} <=> $element_freq{$a}    ## frequency first
+        || length($a) <=> length($b)           ## then by length
+        || $a cmp $b                           ## then alphabetically
+} keys %element_freq;
+
+## Assign unified indices (starting at 0) ##
+for ( my $i = 0; $i < @sorted_elements; $i++ ) {
+    $element_index{ $sorted_elements[$i] } = $i;
+}
+
+## Build the index in memory first ##
+my $type_colors = {
+    'w' => $violet,
+    's' => $NEON_orange,
+    'p' => $NEON_green_yellow,
+};
+
+my $type_labels = {
+    'w' => 'word',
+    's' => 'sent',
+    'p' => 'para',
+};
+
+my @index_lines;
+my $total_index_chars      = 0;
+my $total_compressed_chars = 0;
+
+## Calculate maximum ID width for uniform padding ##
+my $max_id_width = length( to_base32( scalar(@sorted_elements) - 1 ) );
+$max_id_width = 2 if $max_id_width < 2;    ## minimum 2 chars for 0-padding
+
+for ( my $i = 0; $i < @sorted_elements; $i++ ) {
+    my $elem       = $sorted_elements[$i];
+    my $freq       = $element_freq{$elem};
+    my $type       = $element_type{$elem};
+    my $type_color = $type_colors->{$type};
+    my $type_label = $type_labels->{$type};
+    my $index      = $i;                      ## Start at 0
+    my $b32        = to_base32($index);
+
+    ## Pad all IDs to uniform width with leading 0s ##
+    while ( length($b32) < $max_id_width ) {
+        $b32 = "0$b32";
+    }
+
+    my $display;
+    if ( $type eq 'w' ) {
+        ## Words: show as BASE32 encoded text
+        $display = encode_base32_text($elem);
+    } elsif ( $type eq 's' ) {
+        ## Sentences: show as VAX-encoded word references (separator-free)
+        my @words = split /\s+/, $elem;
+        my @word_refs;
+        foreach my $word (@words) {
+            next if $word =~ /^\s*$/;
+            my $word_key = prefix_numbers($word);
+            my $word_idx = $element_index{$word_key};
+            push @word_refs, to_vax_base32($word_idx);
+        }
+        $display = join( "", @word_refs );    ## VAX encoding, no separators
+    } elsif ( $type eq 'p' ) {
+        ## Paragraphs: show as VAX-encoded sentence references (separator-free)
+        my @sentences = split /(?<=[.!?])\s+/, $elem;
+        my @sent_refs;
+        foreach my $sent (@sentences) {
+            next if $sent =~ /^\s*$/;
+            $sent =~ s/^\s+|\s+$//g;
+            my $sent_key = prefix_numbers($sent);
+            my $sent_idx = $element_index{$sent_key};
+            push @sent_refs, to_vax_base32($sent_idx);
+        }
+        $display = join( "", @sent_refs );    ## VAX encoding, no separators
+    }
+
+    ## Apply repetition compression ##
+    $display = compress_repetitions($display);
+
+    ## Format with line wrapping at 78 characters (code signature width)
+    my $prefix       = "";                            ## no initial indent
+    my $id_part      = "$cyan$b32$blacklight";        ## no colon delimiter
+    my $content_part = "$type_color$display$reset";
+    my $freq_part    = " ${blacklight}[$TRUE_color×$freq$blacklight]$reset";
+
+    my $first_line = "$prefix$id_part$content_part$freq_part";
+
+    ## Calculate visible length (without ANSI codes)
+    my $visible = $first_line;
+    $visible =~ s/\e\[[0-9;]+m//g;                    ## strip ANSI codes
+
+    ## Track stats ##
+    my $original_display = $display;
+    $original_display =~ s/0[^0]+0[^0]+0//g
+        ;    ## Remove repetition operators to get original size
+    $total_compressed_chars += length($display);
+
+    if ( length($visible) <= 77 ) {
+        ## Fits on one line - add 0-padding (max 77 bytes payload + 1 harmonization marker)
+        my $content_len    = length($b32) + length($display);
+        my $payload        = "$b32$display";
+        my $marker         = get_harmonization_marker($payload);
+        my $padding_needed = 77 - $content_len - length(" [×$freq]");
+        my $padding        = '0' x $padding_needed;
+
+        my $padded_line
+            = "$prefix$id_part$content_part$reset$padding$marker$freq_part";
+        push @index_lines, $padded_line;
+    } else {
+        ## Need to wrap - calculate continuation indent
+        my $id_len      = length($b32);     ## id length only
+        my $cont_indent = ' ' x $id_len;    ## indent to match ID
+
+        ## Wrap the content at 77 chars payload + 1 trailing 0
+        my $wrapped = wrap_at_77_padded( $b32, $display, $freq, $type_color );
+        push @index_lines, $wrapped;
+    }
+}
+
+## Now output in the correct order: Documents first, then index ##
+
+say "$blacklight:";
+say "::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.";
+say "$blacklight:";
+
+foreach my $file_data (@processed_files) {
+    my $filename = $file_data->{file};
+    say "\n::[$NEON_green_yellow $filename $blacklight]:.\n";
+
+    my @paragraphs = @{ $file_data->{paragraphs} };
+    my @para_output;
+
+    foreach my $para (@paragraphs) {
+        next if $para =~ /^\s*$/;
+        $para =~ s/^\s+|\s+$//g;
+
+        my $para_key = prefix_numbers($para);
+        my $para_id  = $element_index{$para_key};
+        push @para_output, $para_id;
+
+        ## Also show sentence-level breakdown ##
+        my @sentences = split /(?<=[.!?])\s+/, $para;
+        my @sent_output;
+
+        foreach my $sent (@sentences) {
+            next if $sent =~ /^\s*$/;
+            $sent =~ s/^\s+|\s+$//g;
+
+            my $sent_key = prefix_numbers($sent);
+            my $sent_id  = $element_index{$sent_key};
+            push @sent_output, $sent_id;
+
+            ## Also show word-level breakdown ##
+            my @words = split /\s+/, $sent;
+            my @word_output;
+
+            foreach my $word (@words) {
+                next if $word =~ /^\s*$/;
+
+                my $word_key = prefix_numbers($word);
+                my $word_id  = $element_index{$word_key};
+                push @word_output, $word_id;
+            }
+
+            ## Print word level (sentence composed of VAX-encoded word indices) ##
+            my $sent_b32 = to_base32($sent_id);
+            ## Pad sent_b32 to max width
+            while ( length($sent_b32) < $max_id_width ) {
+                $sent_b32 = "0$sent_b32";
+            }
+            my @word_vax         = map { to_vax_base32($_) } @word_output;
+            my $word_line        = join( "", @word_vax );
+            my $word_visible_len = 4 + length($sent_b32) + length($word_line);
+            my $payload          = "    $sent_b32$word_line";
+            my $marker           = get_harmonization_marker($payload);
+            my $word_padding = '0' x ( 77 - $word_visible_len );  ## Pad to 77
+            say "    ${NEON_orange}$sent_b32$blacklight${cyan}"
+                . $word_line
+                . "$reset$word_padding$marker";
+        }
+
+        ## Print sentence level (paragraph composed of VAX-encoded sentence indices) ##
+        my $para_b32 = to_base32($para_id);
+        ## Pad para_b32 to max width
+        while ( length($para_b32) < $max_id_width ) {
+            $para_b32 = "0$para_b32";
+        }
+        my @sent_vax         = map { to_vax_base32($_) } @sent_output;
+        my $sent_line        = join( "", @sent_vax );
+        my $sent_visible_len = 2 + length($para_b32) + length($sent_line);
+        my $sent_payload     = "  $para_b32$sent_line";
+        my $sent_marker      = get_harmonization_marker($sent_payload);
+        my $sent_padding     = '0' x ( 77 - $sent_visible_len );  ## Pad to 77
+        say "  ${NEON_green_yellow}$para_b32$blacklight${NEON_orange}"
+            . $sent_line
+            . "$reset$sent_padding$sent_marker";
+    }
+
+    ## Print paragraph level (document composed of VAX-encoded paragraph indices) ##
+    my @para_vax        = map { to_vax_base32($_) } @para_output;
+    my $doc_line        = join( "", @para_vax );
+    my $doc_visible_len = length("Document") + length($doc_line);
+    my $doc_payload     = "Document$doc_line";
+    my $doc_marker      = get_harmonization_marker($doc_payload);
+    my $doc_padding     = '0' x ( 77 - $doc_visible_len );        ## Pad to 77
+    say "\n${TRUE_color}Document$blacklight${NEON_green_yellow}"
+        . $doc_line
+        . "$reset$doc_padding$doc_marker\n";
+}
+
+## Empty line separator ##
+say "";
+
+## Output index sorted by usage (descending, short IDs first) ##
+say "$blacklight:";
+say
+    "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight";
+say "$blacklight:";
+
+foreach my $line (@index_lines) {
+    say $line;
+}
+
+## Output statistics ##
+say "\n$blacklight:";
+say "::[$NEON_orange STATISTICS $blacklight]:.";
+say "::[$NEON_green_yellow elements $blacklight]:. "
+    . "${TRUE_color}$word_count words$blacklight, "
+    . "${TRUE_color}$sent_count sentences$blacklight, "
+    . "${TRUE_color}$para_count paragraphs$blacklight";
+say "::[$NEON_green_yellow unique $blacklight]:. "
+    . "${TRUE_color}"
+    . ( scalar keys %element_freq )
+    . " total elements$blacklight";
+say "::[$NEON_green_yellow encoding $blacklight]:. "
+    . "${TRUE_color}BASE32$blacklight ${violet}[${cyan}2-7A-Z${violet}]$blacklight with repetition compression";
+say "$blacklight:$reset\n";
+exit(0);
+
+## Wrap index line at 78 characters (code signature width) with aligned continuation ##
+sub wrap_at_78 {
+    my ( $id, $content, $freq, $color ) = @_;
+
+    my $prefix      = "";               ## no prefix
+    my $id_len      = length($id);      ## id length only
+    my $cont_indent = ' ' x $id_len;    ## indent to match ID
+
+    ## Color codes
+    my $id_part   = "$cyan$id$blacklight";    ## no colon
+    my $freq_part = " ${blacklight}[$TRUE_color×$freq$blacklight]$reset";
+
+    ## Calculate available space for content on first line
+    ## Account for: "ID" + content + " [×N]"
+    my $freq_str_len = length(" [×$freq]");
+    my $first_avail  = 78 - $id_len - $freq_str_len;
+
+    ## For BER encoding (variable length), no fixed chunk size
+    ## Just wrap at available space
+    my @lines;
+    my $remaining = $content;
+    my $avail     = $first_avail;
+
+    while ( length($remaining) > 0 ) {
+        if ( length($remaining) <= $avail ) {
+            ## Fits entirely
+            push @lines, $remaining;
+            last;
+        } else {
+            ## Take what fits
+            my $chunk = substr( $remaining, 0, $avail );
+            push @lines, $chunk;
+            $remaining = substr( $remaining, $avail );
+            $avail     = 78 - length($cont_indent); ## continuation line space
+        }
+    }
+
+    ## Build output
+    my $output = '';
+    for my $i ( 0 .. $#lines ) {
+        if ( $i == 0 ) {
+            ## First line with id and freq
+            $output .= "$id_part$color$lines[$i]$reset$freq_part\n";
+        } else {
+            ## Continuation lines
+            $output .= "$cont_indent$color$lines[$i]$reset\n";
+        }
+    }
+
+    chomp($output);
+    return $output;
+}
+
+## Wrap index line at 77 chars payload + 1 trailing 0 ##
+sub wrap_at_77_padded {
+    my ( $id, $content, $freq, $color ) = @_;
+
+    my $id_len      = length($id);
+    my $cont_indent = ' ' x $id_len;
+
+    ## Color codes
+    my $id_part   = "$cyan$id$blacklight";
+    my $freq_part = " ${blacklight}[$TRUE_color×$freq$blacklight]$reset";
+
+    ## Calculate available space for content on first line (77 max payload)
+    my $freq_str_len = length(" [×$freq]");
+    my $first_avail  = 77 - $id_len - $freq_str_len;
+
+    ## Split content into lines
+    my @lines;
+    my $remaining = $content;
+    my $avail     = $first_avail;
+
+    while ( length($remaining) > 0 ) {
+        if ( length($remaining) <= $avail ) {
+            push @lines, $remaining;
+            last;
+        } else {
+            my $chunk = substr( $remaining, 0, $avail );
+            push @lines, $chunk;
+            $remaining = substr( $remaining, $avail );
+            $avail     = 77
+                - length($cont_indent);   ## continuation line: 77 max payload
+        }
+    }
+
+    ## Build output with 0-padding + harmonization marker
+    my $output = '';
+    for my $i ( 0 .. $#lines ) {
+        if ( $i == 0 ) {
+            ## First line with id, content, padding, marker, and freq
+            my $content_len = $id_len + length( $lines[$i] );
+            my $payload     = "$id$lines[$i]";
+            my $marker      = get_harmonization_marker($payload);
+            my $padding_len = 77 - $content_len - $freq_str_len;
+            my $padding     = '0' x $padding_len;
+            $output
+                .= "$id_part$color$lines[$i]$reset$padding$marker$freq_part\n";
+        } else {
+            ## Continuation lines with padding + harmonization marker
+            my $content_len = length($cont_indent) + length( $lines[$i] );
+            my $payload     = $cont_indent . $lines[$i];
+            my $marker      = get_harmonization_marker($payload);
+            my $padding_len = 77 - $content_len;
+            my $padding     = '0' x $padding_len;
+            $output .= "$cont_indent$color$lines[$i]$reset$padding$marker\n";
+        }
+    }
+
+    chomp($output);
+    return $output;
+}
+
+## Prefix numeric literals with # to distinguish from element references ##
+sub prefix_numbers {
+    my $text = shift;
+    ## Replace standalone numbers with #-prefixed versions
+    $text =~ s/\b(\d+)\b/#$1/g;
+    return $text;
+}
+
+## Encode arbitrary text as BASE32 ##
+sub encode_base32_text {
+    my $text = shift;
+    return '' if not defined $text or $text eq '';
+
+    my @alphabet
+        = qw(2 3 4 5 6 7 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z);
+    my $result = '';
+
+    ## Convert each byte to BASE32 (2 chars per byte: 32*32 = 1024 > 256)
+    for my $char ( split //, $text ) {
+        my $byte = ord($char);
+        my $high = int( $byte / 32 );    ## first base32 digit
+        my $low  = $byte % 32;           ## second base32 digit
+        $result .= $alphabet[$high] . $alphabet[$low];
+    }
+
+    return $result;
+}
+
+## Encode index using BER compression (variable-length) + BASE32 ##
+## This creates optimal separator-free encoding like comp-int ##
+sub to_vax_base32 {
+    my $num = shift;
+    return '?' if not defined $num;
+
+    ## Pack as BER-compressed integer (variable length) and encode to BASE32
+    my $packed  = pack( 'w', $num );      ## 'w' = BER compression
+    my $encoded = encode_b32r($packed);
+
+    return $encoded;
+}
+
+## Convert index to BASE32 encoding (2-7A-Z) for display ##
+## All indices 0+ use BASE32 encoding ##
+sub to_base32 {
+    my $num = shift;
+
+    return '?' if not defined $num;    ## undefined index (shouldn't happen)
+
+    ## BASE32 alphabet: 2-7A-Z (32 symbols) ##
+    my @alphabet
+        = qw(2 3 4 5 6 7 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z);
+
+    return $alphabet[$num] if $num < 32;
+
+    ## Multi-character BASE32 for larger numbers ##
+    my $result = '';
+    while ( $num >= 0 ) {
+        $result = $alphabet[ $num % 32 ] . $result;
+        $num    = int( $num / 32 ) - 1;
+        last if $num < 0;
+    }
+
+    return $result;
+}
+
+## Compress repetitions using :count:length:pattern syntax ##
+sub compress_repetitions {
+    my $str = shift;
+    return $str if not defined $str or $str eq '';
+
+    my $changed = 1;
+    while ($changed) {
+        $changed = 0;
+
+        ## Find the best compression opportunity in the string ##
+        my $best_savings    = 0;
+        my $best_pos        = -1;
+        my $best_plen       = 0;
+        my $best_count      = 0;
+        my $best_compressed = '';
+
+        ## Try all positions ##
+        for my $pos ( 0 .. length($str) - 2 ) {
+            ## Try all pattern lengths at this position ##
+            for my $plen ( 1 .. 20 ) {
+                last if $pos + $plen > length($str);
+
+                my $pattern = substr( $str, $pos, $plen );
+
+                ## Count consecutive repetitions ##
+                my $count     = 1;
+                my $check_pos = $pos + $plen;
+                while ( $check_pos + $plen <= length($str) ) {
+                    my $next = substr( $str, $check_pos, $plen );
+                    last if $next ne $pattern;
+                    $count++;
+                    $check_pos += $plen;
+                }
+
+                ## Check if compression is beneficial ##
+                if ( $count >= 2 ) {
+                    my $original_len = $plen * $count;
+                    my $count_b32    = to_base32($count);
+                    my $len_b32      = to_base32($plen);
+                    my $compressed
+                        = "0$count_b32" . "0$len_b32" . "0$pattern";
+                    my $compressed_len = length($compressed);
+
+                    my $savings = $original_len - $compressed_len;
+
+                    ## Keep track of best compression ##
+                    if ( $savings > $best_savings ) {
+                        $best_savings    = $savings;
+                        $best_pos        = $pos;
+                        $best_plen       = $plen;
+                        $best_count      = $count;
+                        $best_compressed = $compressed;
+                    }
+                }
+            }
+        }
+
+        ## Apply best compression if found ##
+        if ( $best_savings > 0 ) {
+            my $before = substr( $str, 0, $best_pos );
+            my $after
+                = substr( $str, $best_pos + ( $best_plen * $best_count ) );
+            $str     = $before . $best_compressed . $after;
+            $changed = 1;
+        }
+    }
+
+    return $str;
+}
+
+## Calculate harmonization marker based on division-by-13 truth ##
+## Bitshift left flips truth assertion - use trailing 1 to mark harmonization ##
+## Line should be true both pre and post encoding + trailing marker ##
+sub get_harmonization_marker {
+    my $line_content = shift;    ## 77 bytes payload
+
+    ## Calculate ELF checksum (mode 7, shift_bits 13) ##
+    my $elf_mode   = 7;
+    my $shift_bits = 13;
+
+    my $marker = '0';            ## Default
+    eval {
+        my $chksum = elf_chksum( \$line_content, 0, $elf_mode, $shift_bits );
+
+        ## Check division by 13 truth ##
+        my $is_true = calc_true_simple($chksum);
+
+        ## Set marker: 0 if naturally true, 1 if harmonization needed ##
+        $marker = $is_true ? '0' : '1';
+    };
+
+    ## Return marker (0 or 1) ##
+    return $marker;
+}
+
+## Simplified division-by-13 truth check ##
+sub calc_true_simple {
+    my $num = shift;
+    return 0 if not defined $num or $num eq '';
+
+    ## Division by 13 with 6-digit pattern check ##
+    my $len = length($num);
+    return 0 if $len == 0;
+
+    my $factor = '1' . ( '0' x $len );
+    my $calc   = $num / 13 * $factor;
+    my $result = sprintf( '%.6f', $calc );
+
+    ## Remove decimal point and extract last 6 digits ##
+    $result =~ s/\.//g;
+    my $last_6 = substr( $result, -6 );
+
+    ## Check against true/false patterns from init_table ##
+    ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153, 461537, 461539
+    ## FALSE: 230769, 307692, 076923, 769230, 692307, 923076, 230768, 230770
+
+    return 0
+        if $last_6 =~ /^230769$|^307692$|^076923$|^769230$|^692307$|^923076$/;
+    return 1
+        if $last_6 =~ /^461538$|^615384$|^153846$|^538461$|^384615$|^846153$/;
+
+    ## Default: check if divisible patterns exist ##
+    return 0;    ## Default to false (needs harmonization)
+}
+
+## Decode mode: decompress encoded input ##
+sub decode_mode {
+    say "${blacklight}:";
+    say "::[$NEON_green_yellow research-dedup $blacklight]:. "
+        . "${TRUE_color}decode mode$blacklight - not yet implemented";
+    say "$blacklight:$reset";
+
+    die "Decode mode coming soon!\n";
+}
+
+#,,..,,..,,,.,..,,...,..,,..,,...,,,.,,..,.,,,.,.,...,...,,.,,.,.,..,,.,.,.,.,
+#46V3XNS3QBSVSUTZQEHET3ZY4OHHMOVUDNMVIWSS7TP63MAOFH6HIK5S3WWHS6W7OGBHPAFN74S6C
+#\\\|S6VUJEZUT5K2KIXDP3YLTNPQ32AV5KBD57UH4KD5IYRPM7RJJQ6 \ / AMOS7 \ YOURUM ::
+#\[7]RVFUEXESX6QWQHMCP4MLFB4ZQ3VV3XUSVNCLSSCTK3KQD2FQZUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
