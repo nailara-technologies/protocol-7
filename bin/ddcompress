@@ -258,7 +258,56 @@ for ( my $i = 0; $i < @sorted_elements; $i++ ) {
     }
 }
 
-## Now output in the correct order: Documents first, then index ##
+## Build directory index: 0<length>0<filename>0<length>0<filename>0... ##
+my $directory_content = '';
+foreach my $file_data (@processed_files) {
+    my $filename    = $file_data->{file};
+    my $content     = $file_data->{text};
+    my $content_len = length($content);
+
+    ## Special case: stdin outputs to stdout, escape filename ##
+    if ( $filename eq '<stdin>' ) {
+        $filename = 'stdin';    ## Remove angle brackets ##
+    }
+
+    ## Encode length and filename in BASE32 ##
+    ## Special case: length=0 uses character '0' instead of BASE32 '2' ##
+    my $len_b32  = $content_len == 0 ? '0' : to_base32($content_len);
+    my $name_b32 = encode_base32_text($filename);
+
+    ## Append to directory: 0<len>0<name> ##
+    $directory_content .= "0$len_b32" . "0$name_b32";
+}
+$directory_content .= "0";    ## Trailing delimiter ##
+
+## Wrap directory into 77-byte lines (overflow lines also start with 0) ##
+my @directory_lines;
+my $remaining = $directory_content;
+while ( length($remaining) > 0 ) {
+    if ( length($remaining) <= 77 ) {
+        ## Fits on one line - pad and add marker ##
+        my $padding = '0' x ( 77 - length($remaining) );
+        my $marker  = get_harmonization_marker($remaining);
+        push @directory_lines, "$remaining$padding$marker";
+        last;
+    } else {
+        ## Take 77 chars, add marker, continue ##
+        my $chunk = substr( $remaining, 0, 77 );
+        my $marker = get_harmonization_marker($chunk);
+        push @directory_lines, "$chunk$marker";
+        $remaining = "0" . substr( $remaining, 77 );  ## Continue with 0 prefix ##
+    }
+}
+
+## Now output in the correct order: Directory, Documents, then index ##
+
+say "$blacklight:";
+say "::[$NEON_orange DIRECTORY $blacklight]:.";
+say "$blacklight:";
+foreach my $dir_line (@directory_lines) {
+    say "$cyan$dir_line$reset";
+}
+say "";
 
 say "$blacklight:";
 say "::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.";
@@ -708,8 +757,8 @@ sub decode_mode {
     die "Decode mode coming soon!\n";
 }
 
-#,,.,,...,,.,,,,,,,.,,.,.,..,,,.,,.,,,..,,.,,,.,.,...,.,.,.,.,,..,.,.,.,.,,,,,
-#GFKH65KEMIATIMRECN35EUSUEU4OZWYFCBJZ6DLANHO6LWN32D374Q6CPYI4ERHMNJ4UD7D664XDS
-#\\\|P5B54WMRF4ZYV42EAQLXJP4NYGCUJYAGVX4WJHSWIXSG6ZAVF32 \ / AMOS7 \ YOURUM ::
-#\[7]XTQ2NFPMJ4YIHL3YE6NDJ5BLHEDVVLBUPL6TUUUMSSQ66CAUUEAA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,,,,..,,..,,,.,..,,,,,,,,.,,.,,.,.,...,..,,.,,,,.,,,..,.,.,,,.,
+#MHAVDHDI4H3PDQ47MJYPR745G3WAWV6E3PBQVP22TK2SVMOSYFA26WERP2TN7S4KMLOBKVVYZT2GY
+#\\\|N7TRIZEXUE7NHMX6CXOACW7PNCGWDNNQ6EDMAVUJ3TK2JFN4X3W \ / AMOS7 \ YOURUM ::
+#\[7]Q76A6PXB736MQGALO2S42KTPW34NBRV42VJ2JIHH2PFJA3N4JGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
