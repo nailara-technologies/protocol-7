@@ -4,9 +4,9 @@ use strict;
 use English;
 use warnings;
 use utf8;
-use open qw(:std :utf8);
-use Crypt::Misc qw| encode_b32r decode_b32r |;
-use Time::HiRes qw| sleep |;
+use open            qw(:std :utf8);
+use Crypt::Misc     qw| encode_b32r decode_b32r |;
+use Time::HiRes     qw| sleep |;
 use List::MoreUtils qw| minmax |;
 
 ## Add AMOS7 lib path for truth checking ##
@@ -35,9 +35,10 @@ my $violet            = "\e[38;2;138;43;226m";
 my $cyan              = "\e[38;2;0;255;255m";
 
 ## Parse mode switches ##
-my $mode = 'stats';    ## Default: statistics only ##
+my $mode   = 'stats';    ## Default: statistics only ##
+my $use_xz = FALSE;      ## XZ compression flag ##
 
-if ( @ARGV && $ARGV[0] =~ /^-/ ) {
+while ( @ARGV && $ARGV[0] =~ /^-/ ) {
     my $switch = shift @ARGV;
     if ( $switch eq '-compress' ) {
         $mode = 'compress';
@@ -46,11 +47,13 @@ if ( @ARGV && $ARGV[0] =~ /^-/ ) {
     } elsif ( $switch eq '-d' ) {
         ## Legacy support for -d ##
         $mode = 'unpack';
+    } elsif ( $switch eq '-xz' ) {
+        $use_xz = TRUE;
     } else {
         die ":\n:: < ${NEON_green_yellow}ddcompress$reset > "
             . "$reset:$NEON_orange unknown switch $reset : "
             . "'$NEON_green_yellow$switch$reset'$reset\n"
-            . ":: valid switches: -compress, -unpack\n:\n";
+            . ":: valid switches: -compress, -unpack, -xz\n:\n";
     }
 }
 
@@ -58,6 +61,23 @@ if ( $mode eq 'unpack' ) {
     ## UNPACK MODE: Decompress encoded input ##
     unpack_mode();
     exit(0);
+}
+
+## If XZ compression is enabled, send UI to STDERR ##
+my $ui_fh = ( $use_xz && $mode eq 'compress' ) ? \*STDERR : \*STDOUT;
+
+## Output capture for XZ compression ##
+my $capture_output = ( $use_xz && $mode eq 'compress' );
+my $output_buffer  = '';
+
+## Output function: either print or capture to buffer ##
+sub output_line {
+    my $line = shift;
+    if ($capture_output) {
+        $output_buffer .= $line . "\n";
+    } else {
+        say $line;
+    }
 }
 
 ## Data structures for unified deduplication ##
@@ -96,14 +116,14 @@ if (@all_content) {
         = minmax map { length( $_->{file} ) } @all_content;
 }
 
-say "${blacklight}:";
+say {$ui_fh} "${blacklight}:";
 if ( $mode eq 'stats' ) {
     ## Stats mode: show progress animation ##
 } else {
     ## Compress mode: show simple message ##
-    say "::[$NEON_green_yellow ddcompress $blacklight]:. "
+    say {$ui_fh} "::[$NEON_green_yellow ddcompress $blacklight]:. "
         . "${TRUE_color}analyzing content$blacklight ..,";
-    say "$blacklight:";
+    say {$ui_fh} "$blacklight:";
 }
 
 ## Process all content ##
@@ -321,9 +341,9 @@ foreach my $file_data (@processed_files) {
             next if $sent =~ /^\s*$/;
             $theoretical_output_bytes += 79;    ## Word-level line ##
         }
-        $theoretical_output_bytes += 79;    ## Sentence-level line ##
+        $theoretical_output_bytes += 79;        ## Sentence-level line ##
     }
-    $theoretical_output_bytes += 79;    ## Document-level line ##
+    $theoretical_output_bytes += 79;            ## Document-level line ##
 }
 
 ## Build directory index: 0<length>0<filename>0<length>0<filename>0... ##
@@ -361,134 +381,179 @@ while ( length($remaining) > 0 ) {
         last;
     } else {
         ## Take 77 chars, add marker, continue ##
-        my $chunk = substr( $remaining, 0, 77 );
+        my $chunk  = substr( $remaining, 0, 77 );
         my $marker = get_harmonization_marker($chunk);
         push @directory_lines, "$chunk$marker";
         $theoretical_output_bytes += 79;    ## Count for stats ##
-        $remaining = "0" . substr( $remaining, 77 );  ## Continue with 0 prefix ##
+        $remaining
+            = "0" . substr( $remaining, 77 );    ## Continue with 0 prefix ##
     }
 }
 
 ## Output mode-specific content ##
 
+## XZ compression tracking ##
+my $pre_xz_output_bytes  = 0;
+my $post_xz_output_bytes = 0;
+
 if ( $mode eq 'compress' ) {
     ## COMPRESS MODE: Output encoded format ##
 
-    say "$blacklight:";
-    say "::[$NEON_orange DIRECTORY $blacklight]:.";
-    say "$blacklight:";
+    output_line("$blacklight:");
+    output_line("::[$NEON_orange DIRECTORY $blacklight]:.");
+    output_line("$blacklight:");
     foreach my $dir_line (@directory_lines) {
-        say "$cyan$dir_line$reset";
+        output_line("$cyan$dir_line$reset");
         $total_output_bytes += 79;    ## 78 chars + newline ##
     }
-    say "";
+    output_line("");
 
-    say "$blacklight:";
-    say "::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.";
-    say "$blacklight:";
+    output_line("$blacklight:");
+    output_line("::[$NEON_orange ENCODED DOCUMENTS $blacklight]:.");
+    output_line("$blacklight:");
 
-foreach my $file_data (@processed_files) {
-    my $filename = $file_data->{file};
-    say "\n::[$NEON_green_yellow $filename $blacklight]:.\n";
+    foreach my $file_data (@processed_files) {
+        my $filename = $file_data->{file};
+        output_line("\n::[$NEON_green_yellow $filename $blacklight]:.\n");
 
-    my @paragraphs = @{ $file_data->{paragraphs} };
-    my @para_output;
+        my @paragraphs = @{ $file_data->{paragraphs} };
+        my @para_output;
 
-    foreach my $para (@paragraphs) {
-        next if $para =~ /^\s*$/;
-        $para =~ s/^\s+|\s+$//g;
+        foreach my $para (@paragraphs) {
+            next if $para =~ /^\s*$/;
+            $para =~ s/^\s+|\s+$//g;
 
-        my $para_key = prefix_numbers($para);
-        my $para_id  = $element_index{$para_key};
-        push @para_output, $para_id;
+            my $para_key = prefix_numbers($para);
+            my $para_id  = $element_index{$para_key};
+            push @para_output, $para_id;
 
-        ## Also show sentence-level breakdown ##
-        my @sentences = split /(?<=[.!?])\s+/, $para;
-        my @sent_output;
+            ## Also show sentence-level breakdown ##
+            my @sentences = split /(?<=[.!?])\s+/, $para;
+            my @sent_output;
 
-        foreach my $sent (@sentences) {
-            next if $sent =~ /^\s*$/;
-            $sent =~ s/^\s+|\s+$//g;
+            foreach my $sent (@sentences) {
+                next if $sent =~ /^\s*$/;
+                $sent =~ s/^\s+|\s+$//g;
 
-            my $sent_key = prefix_numbers($sent);
-            my $sent_id  = $element_index{$sent_key};
-            push @sent_output, $sent_id;
+                my $sent_key = prefix_numbers($sent);
+                my $sent_id  = $element_index{$sent_key};
+                push @sent_output, $sent_id;
 
-            ## Also show word-level breakdown ##
-            my @words = split /\s+/, $sent;
-            my @word_output;
+                ## Also show word-level breakdown ##
+                my @words = split /\s+/, $sent;
+                my @word_output;
 
-            foreach my $word (@words) {
-                next if $word =~ /^\s*$/;
+                foreach my $word (@words) {
+                    next if $word =~ /^\s*$/;
 
-                my $word_key = prefix_numbers($word);
-                my $word_id  = $element_index{$word_key};
-                push @word_output, $word_id;
+                    my $word_key = prefix_numbers($word);
+                    my $word_id  = $element_index{$word_key};
+                    push @word_output, $word_id;
+                }
+
+                ## Print word level (sentence composed of VAX-encoded word indices) ##
+                my $sent_b32 = to_base32($sent_id);
+                ## Pad sent_b32 to max width
+                while ( length($sent_b32) < $max_id_width ) {
+                    $sent_b32 = "0$sent_b32";
+                }
+                my @word_vax  = map { to_vax_base32($_) } @word_output;
+                my $word_line = join( "", @word_vax );
+                my $word_visible_len
+                    = 4 + length($sent_b32) + length($word_line);
+                my $payload = "    $sent_b32$word_line";
+                my $marker  = get_harmonization_marker($payload);
+                my $word_padding
+                    = '0' x ( 77 - $word_visible_len );    ## Pad to 77
+                output_line( "    ${NEON_orange}$sent_b32$blacklight${cyan}"
+                        . $word_line
+                        . "$reset$word_padding$marker" );
+                $total_output_bytes += 79;    ## 78 chars + newline ##
             }
 
-            ## Print word level (sentence composed of VAX-encoded word indices) ##
-            my $sent_b32 = to_base32($sent_id);
-            ## Pad sent_b32 to max width
-            while ( length($sent_b32) < $max_id_width ) {
-                $sent_b32 = "0$sent_b32";
+            ## Print sentence level (paragraph composed of VAX-encoded sentence indices) ##
+            my $para_b32 = to_base32($para_id);
+            ## Pad para_b32 to max width
+            while ( length($para_b32) < $max_id_width ) {
+                $para_b32 = "0$para_b32";
             }
-            my @word_vax         = map { to_vax_base32($_) } @word_output;
-            my $word_line        = join( "", @word_vax );
-            my $word_visible_len = 4 + length($sent_b32) + length($word_line);
-            my $payload          = "    $sent_b32$word_line";
-            my $marker           = get_harmonization_marker($payload);
-            my $word_padding = '0' x ( 77 - $word_visible_len );  ## Pad to 77
-            say "    ${NEON_orange}$sent_b32$blacklight${cyan}"
-                . $word_line
-                . "$reset$word_padding$marker";
+            my @sent_vax         = map { to_vax_base32($_) } @sent_output;
+            my $sent_line        = join( "", @sent_vax );
+            my $sent_visible_len = 2 + length($para_b32) + length($sent_line);
+            my $sent_payload     = "  $para_b32$sent_line";
+            my $sent_marker      = get_harmonization_marker($sent_payload);
+            my $sent_padding = '0' x ( 77 - $sent_visible_len );  ## Pad to 77
+            output_line(
+                "  ${NEON_green_yellow}$para_b32$blacklight${NEON_orange}"
+                    . $sent_line
+                    . "$reset$sent_padding$sent_marker" );
             $total_output_bytes += 79;    ## 78 chars + newline ##
         }
 
-        ## Print sentence level (paragraph composed of VAX-encoded sentence indices) ##
-        my $para_b32 = to_base32($para_id);
-        ## Pad para_b32 to max width
-        while ( length($para_b32) < $max_id_width ) {
-            $para_b32 = "0$para_b32";
-        }
-        my @sent_vax         = map { to_vax_base32($_) } @sent_output;
-        my $sent_line        = join( "", @sent_vax );
-        my $sent_visible_len = 2 + length($para_b32) + length($sent_line);
-        my $sent_payload     = "  $para_b32$sent_line";
-        my $sent_marker      = get_harmonization_marker($sent_payload);
-        my $sent_padding     = '0' x ( 77 - $sent_visible_len );  ## Pad to 77
-        say "  ${NEON_green_yellow}$para_b32$blacklight${NEON_orange}"
-            . $sent_line
-            . "$reset$sent_padding$sent_marker";
+        ## Print paragraph level (document composed of VAX-encoded paragraph indices) ##
+        my @para_vax        = map { to_vax_base32($_) } @para_output;
+        my $doc_line        = join( "", @para_vax );
+        my $doc_visible_len = length("Document") + length($doc_line);
+        my $doc_payload     = "Document$doc_line";
+        my $doc_marker      = get_harmonization_marker($doc_payload);
+        my $doc_padding     = '0' x ( 77 - $doc_visible_len );    ## Pad to 77
+        output_line( "\n${TRUE_color}Document$blacklight${NEON_green_yellow}"
+                . $doc_line
+                . "$reset$doc_padding$doc_marker\n" );
         $total_output_bytes += 79;    ## 78 chars + newline ##
     }
 
-    ## Print paragraph level (document composed of VAX-encoded paragraph indices) ##
-    my @para_vax        = map { to_vax_base32($_) } @para_output;
-    my $doc_line        = join( "", @para_vax );
-    my $doc_visible_len = length("Document") + length($doc_line);
-    my $doc_payload     = "Document$doc_line";
-    my $doc_marker      = get_harmonization_marker($doc_payload);
-    my $doc_padding     = '0' x ( 77 - $doc_visible_len );        ## Pad to 77
-    say "\n${TRUE_color}Document$blacklight${NEON_green_yellow}"
-        . $doc_line
-        . "$reset$doc_padding$doc_marker\n";
-    $total_output_bytes += 79;    ## 78 chars + newline ##
-}
-
     ## Empty line separator ##
-    say "";
+    output_line("");
 
     ## Output index sorted by usage (descending, short IDs first) ##
-    say "$blacklight:";
-    say
-        "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight";
-    say "$blacklight:";
+    output_line("$blacklight:");
+    output_line(
+        "::[$NEON_orange INDEX $blacklight]:. ${TRUE_color}sorted by usage$blacklight, ${violet}short IDs first$blacklight"
+    );
+    output_line("$blacklight:");
 
     foreach my $line (@index_lines) {
-        say $line;
+        output_line($line);
         $total_output_bytes += 79;    ## 78 chars + newline ##
     }
 }    ## End compress mode ##
+
+## If XZ compression is enabled, compress the output buffer ##
+if ( $mode eq 'compress' && $use_xz ) {
+    ## Strip ANSI color codes from buffer for compression ##
+    my $plain_output = $output_buffer;
+    $plain_output =~ s/\e\[[0-9;]+m//g;    ## Remove ANSI codes ##
+    $plain_output =~ s/\e\[0m//g;          ## Remove reset codes ##
+
+    $pre_xz_output_bytes = length($plain_output);
+
+    ## Compress with LZMA (xz) ##
+    eval {
+        require Compress::Raw::Lzma;
+
+        my $LZMA_OK = 0;    ## LZMA_OK constant ##
+
+        my ( $lzma, $status ) = Compress::Raw::Lzma::EasyEncoder->new();
+        die "Cannot create LZMA encoder: $status\n" if $status != $LZMA_OK;
+
+        my $compressed_data = '';
+        $status = $lzma->code( \$plain_output, \$compressed_data );
+        die "LZMA compression failed: $status\n" if $status != $LZMA_OK;
+
+        $post_xz_output_bytes = length($compressed_data);
+
+        ## Output with xz prefix marker ##
+        print "7U3XU";      ## XZ compression prefix ##
+        print $compressed_data;
+    };
+
+    if ($EVAL_ERROR) {
+        say {*STDERR} ":\n:: ${NEON_orange}XZ compression error$reset :: "
+            . "$EVAL_ERROR\n:\n";
+        exit(1);
+    }
+}
 
 ## Clear progress line in stats mode ##
 if ( $mode eq 'stats' ) {
@@ -505,29 +570,50 @@ if ( $total_input_bytes > 0 && $output_for_ratio > 0 ) {
 }
 
 ## Output statistics (both modes) ##
-say "\n$blacklight:";
-say "::[$NEON_orange STATISTICS $blacklight]:.";
-say "::[$NEON_green_yellow elements $blacklight]:. "
+## When XZ is enabled, send statistics to STDERR to avoid mixing with binary output ##
+my $stats_fh = ( $use_xz && $mode eq 'compress' ) ? \*STDERR : \*STDOUT;
+
+say {$stats_fh} "\n$blacklight:";
+say {$stats_fh} "::[$NEON_orange STATISTICS $blacklight]:.";
+say {$stats_fh} "::[$NEON_green_yellow elements $blacklight]:. "
     . "${TRUE_color}$word_count words$blacklight, "
     . "${TRUE_color}$sent_count sentences$blacklight, "
     . "${TRUE_color}$para_count paragraphs$blacklight";
-say "::[$NEON_green_yellow unique $blacklight]:. "
+say {$stats_fh} "::[$NEON_green_yellow unique $blacklight]:. "
     . "${TRUE_color}"
     . ( scalar keys %element_freq )
     . " total elements$blacklight";
-say "::[$NEON_green_yellow encoding $blacklight]:. "
+say {$stats_fh} "::[$NEON_green_yellow encoding $blacklight]:. "
     . "${TRUE_color}BASE32$blacklight ${violet}[${cyan}2-7A-Z${violet}]$blacklight with repetition compression";
 
 ## Display compression ratio ##
 if ( $output_for_ratio > 0 ) {
     my $ratio_str = sprintf( "i%04d", $compression_ratio );
-    say "::[$NEON_green_yellow compression $blacklight]:. "
+    say {$stats_fh} "::[$NEON_green_yellow compression $blacklight]:. "
         . "${TRUE_color}$total_input_bytes bytes$blacklight → "
         . "${TRUE_color}$output_for_ratio bytes$blacklight "
         . "${violet}[$cyan$ratio_str$violet]$blacklight";
 }
 
-say "$blacklight:$reset\n";
+## Display XZ compression ratio if enabled ##
+if ( $use_xz && $mode eq 'compress' && $post_xz_output_bytes > 0 ) {
+    my $xz_ratio
+        = int( ( $post_xz_output_bytes / $total_input_bytes ) * 10000 );
+    my $xz_ratio_str = sprintf( "i%04d", $xz_ratio );
+    my $xz_savings_pct
+        = $pre_xz_output_bytes > 0
+        ? int(
+        ( 1 - ( $post_xz_output_bytes / $pre_xz_output_bytes ) ) * 10000 )
+        / 100
+        : 0;
+    say {$stats_fh} "::[$NEON_green_yellow xz compression $blacklight]:. "
+        . "${TRUE_color}$pre_xz_output_bytes bytes$blacklight → "
+        . "${TRUE_color}$post_xz_output_bytes bytes$blacklight "
+        . "${violet}[$cyan$xz_ratio_str$violet]$blacklight "
+        . "${TRUE_color}(${xz_savings_pct}% reduction)$blacklight";
+}
+
+say {$stats_fh} "$blacklight:$reset\n";
 exit(0);
 
 ## Wrap index line at 78 characters (code signature width) with aligned continuation ##
@@ -668,7 +754,7 @@ sub encode_base32_text {
 
         ## Validate indices are within alphabet range ##
         $high = 0 if $high < 0 or $high > 31;
-        $low  = 0 if $low < 0 or $low > 31;
+        $low  = 0 if $low < 0  or $low > 31;
 
         $result .= ( $alphabet[$high] // '2' ) . ( $alphabet[$low] // '2' );
     }
@@ -824,14 +910,14 @@ sub calc_true_simple {
     my $bignum    = Math::BigInt->new($num);
     my $bigfactor = Math::BigInt->new($factor);
     my $product   = $bignum->copy()->bmul($bigfactor);
-    my $quotient  = $product->copy()->bdiv(13);  ## Integer division ##
+    my $quotient  = $product->copy()->bdiv(13);         ## Integer division ##
 
     ## Get last 6 digits of the quotient ##
     my $quotient_str = $quotient->bstr();
     my $last_6       = substr( $quotient_str, -6 );
 
     ## Pad with leading zeros if needed ##
-    $last_6 = sprintf('%06d', $last_6) if length($last_6) < 6;
+    $last_6 = sprintf( '%06d', $last_6 ) if length($last_6) < 6;
 
     ## Check against true/false patterns from init_table ##
     ## TRUE: 461538, 615384, 153846, 538461, 384615, 846153 (+ variants ±1)
@@ -883,8 +969,8 @@ sub unpack_mode {
     die "Unpack mode coming soon!\n";
 }
 
-#,,,,,,,.,,,,,.,.,,,,,.,.,...,..,,,,.,,,.,...,.,.,...,...,.,.,..,,,,,,...,.,,,
-#UBF2HAEWACG4SDXWQBINKWDTJCTXWA7ADOXGDPOMDHBJ747QWCV6L7MRWQP3WZVLWFDGKJSI7U57M
-#\\\|IDDVK436W6MBZG7OX5SLPJOZDX5YAYXBRP2F5QKF7EFNJNRH7II \ / AMOS7 \ YOURUM ::
-#\[7]A2PI7CLLNCUFRTOTOAMX5KAM732ULRRIZAJQT6MWG5HQFWNBGUAY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,.,.,.,.,,..,..,,.,.,,..,,..,.,.,...,...,.,,,,..,,,,,,..,..,,
+#JK5SPTZ7GFQYKJXPJFCBJQMULX4UNT5FXDQK44R4SOIWRGV72XLKNTRDF2DTSKV35O4AOKJSZBXDW
+#\\\|G3UJ5R2PNIGJJH3UQCYNXIP7S4U4ZY3HIN2JLGR557ZWF42WJTV \ / AMOS7 \ YOURUM ::
+#\[7]7RKHKVWQIZIJ56PWWMVZ3EDF2LAHENONT7JA4N2D7NDYJRSOKCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
