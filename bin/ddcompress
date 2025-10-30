@@ -595,22 +595,61 @@ if ( $output_for_ratio > 0 ) {
         . "${violet}[$cyan$ratio_str$violet]$blacklight";
 }
 
-## Display XZ compression ratio if enabled ##
-if ( $use_xz && $mode eq 'compress' && $post_xz_output_bytes > 0 ) {
-    my $xz_ratio
-        = int( ( $post_xz_output_bytes / $total_input_bytes ) * 10000 );
+## Calculate and display XZ compression ratio (for both modes) ##
+my $theoretical_xz_bytes = 0;
+if ( $output_for_ratio > 0 ) {
+    ## For stats mode, calculate theoretical xz compression ##
+    ## For compress mode with xz, use actual compressed size ##
+    if ( $use_xz && $mode eq 'compress' && $post_xz_output_bytes > 0 ) {
+        $theoretical_xz_bytes = $post_xz_output_bytes;
+    } else {
+        ## Build theoretical output buffer (similar to compress mode output) ##
+        my $theoretical_buffer = '';
+
+        ## Use the output_buffer if we have it from compress mode ##
+        if ( $output_buffer ne '' ) {
+            $theoretical_buffer = $output_buffer;
+        } else {
+            ## Build theoretical buffer for stats mode ##
+            ## Approximate the format structure ##
+            foreach my $dir_line (@directory_lines) {
+                $theoretical_buffer .= $dir_line . "\n";
+            }
+            ## Add approximate document/index size ##
+            $theoretical_buffer .= "X" x ( $theoretical_output_bytes - length($theoretical_buffer) );
+        }
+
+        ## Strip ANSI codes and compress to calculate theoretical size ##
+        my $plain = $theoretical_buffer;
+        $plain =~ s/\e\[[0-9;]+m//g;
+        $plain =~ s/\e\[0m//g;
+
+        eval {
+            require Compress::Raw::Lzma;
+            my $LZMA_OK = 0;
+            my ( $lzma, $status ) = Compress::Raw::Lzma::EasyEncoder->new();
+            if ( $status == $LZMA_OK ) {
+                my $compressed = '';
+                $status = $lzma->code( \$plain, \$compressed );
+                $theoretical_xz_bytes = length($compressed) if $status == $LZMA_OK;
+            }
+        };
+    }
+}
+
+## Display XZ compression ratio ##
+if ( $theoretical_xz_bytes > 0 && $total_input_bytes > 0 ) {
+    my $base_bytes = $use_xz && $mode eq 'compress' ? $pre_xz_output_bytes : length($output_buffer) || $theoretical_output_bytes;
+    my $xz_ratio = $base_bytes > 0 ? int( ( $theoretical_xz_bytes / $base_bytes ) * 10000 ) : 0;
     my $xz_ratio_str = sprintf( "i%04d", $xz_ratio );
     my $xz_savings_pct
-        = $pre_xz_output_bytes > 0
-        ? int(
-        ( 1 - ( $post_xz_output_bytes / $pre_xz_output_bytes ) ) * 10000 )
-        / 100
+        = $base_bytes > 0
+        ? int( ( 1 - ( $theoretical_xz_bytes / $base_bytes ) ) * 10000 ) / 100
         : 0;
     say {$stats_fh} "::[$NEON_green_yellow xz compression $blacklight]:. "
-        . "${TRUE_color}$pre_xz_output_bytes bytes$blacklight → "
-        . "${TRUE_color}$post_xz_output_bytes bytes$blacklight "
-        . "${violet}[$cyan$xz_ratio_str$violet]$blacklight "
-        . "${TRUE_color}(${xz_savings_pct}% reduction)$blacklight";
+        . "${TRUE_color}$base_bytes bytes$blacklight → "
+        . "${TRUE_color}$theoretical_xz_bytes bytes$blacklight "
+        . "${violet}[$cyan$xz_ratio_str$violet]$blacklight";
 }
 
 say {$stats_fh} "$blacklight:$reset\n";
@@ -969,8 +1008,8 @@ sub unpack_mode {
     die "Unpack mode coming soon!\n";
 }
 
-#,,.,,..,,.,.,,..,.,.,.,.,,..,..,,.,.,,..,,..,.,.,...,...,.,,,,..,,,,,,..,..,,
-#JK5SPTZ7GFQYKJXPJFCBJQMULX4UNT5FXDQK44R4SOIWRGV72XLKNTRDF2DTSKV35O4AOKJSZBXDW
-#\\\|G3UJ5R2PNIGJJH3UQCYNXIP7S4U4ZY3HIN2JLGR557ZWF42WJTV \ / AMOS7 \ YOURUM ::
-#\[7]7RKHKVWQIZIJ56PWWMVZ3EDF2LAHENONT7JA4N2D7NDYJRSOKCAI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,.,,,.,,,,.,,.,.,...,.,.,..,,.,.,...,...,.,,,...,.,,,...,.,,,
+#ZZGWEFK2JQNA7MAQYIWESCN7UMIGZY2MUCJRXICFERCFFPDMWR7MYSB2DFSPXYL3JHHQQSUIUOJ2O
+#\\\|777FHEHGVCHDJHA7JEIMJ2F2VUBMVFYR5PDIZY75BBN7URRAQSW \ / AMOS7 \ YOURUM ::
+#\[7]CMBWK4WPTCBU6WFVABMAX5QDYRYHV4VQ7FWQVEPCC3VYE6AZV6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
