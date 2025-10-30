@@ -19,8 +19,8 @@ if ( <[crypt.C25519.key_exists]>->($name) ) {
     <[base.exit]>->(qw| 0110 |);
 }
 
-if ( not defined &Crypt::Twofish2::MODE_CBC ) {
-    <[base.log]>->( 0, ":, missing 'Crypt::Twofish2' module, aborted ..," );
+if ( not defined &Crypt::Mode::CBC::new ) {
+    <[base.log]>->( 0, ":, missing 'Crypt::Mode::CBC' module, aborted ..," );
     <[base.exit]>->(qw| 0110 |);
 }
 
@@ -80,8 +80,8 @@ printf( " :\n :: [ created key '%s' %s in '%s' ]\n\n",
 print " :\n :: [ no keys created ]\n\n";
 <[base.exit]>->('0110');
 
-#,,,.,..,,,..,..,,...,,,,,...,.,,,.,,,..,,.,.,..,,...,...,,..,,..,,,.,,.,,..,,
-#C2OQJ74PX6PA4CCHIJMW5K4PFF5KYKNVFZMS62532Y3AAXJJXDAMIWMSFY65GAOIJIEMUEWTSHFMC
-#\\\|SR4AVVGUGG4IS2NUYQDPVKL3KTQC7FRYGBGDPCSF7S4N26QENY4 \ / AMOS7 \ YOURUM ::
-#\[7]LSPU47EKVCYVR37QQ7UI53X5RZ5EFVD7XJX5L3QWGNJVQSHFEGCA 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,.,,,,,,,.,.,..,,...,..,,...,..,,...,...,...,,,,,,,.,...,,,,,
+#YMOGHX2TZRC7LCTRISXJWM7RQJBSPZ5LU6WE56VOQKGCBMUS5P5ZJTMGLUPWQR4I7XFKYVHQWHXCW
+#\\\|M7KUG7EVQBW7VD7BKHXLPVRCFLO2YJXMSNIWCVRXQRT2X5M7C2V \ / AMOS7 \ YOURUM ::
+#\[7]2DTQRAHICVDXHHDNMKUX63TZ6LCPFK3EBGDL53R5JR7S5DWPH2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
