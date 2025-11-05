@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = sourcecode.test-endline-handling
+# descr = test module for signature endline handling
+
+my $command_params = shift // '';
+
+my $test_mode = 'normal';  # Options: normal, no_separator, incomplete_line
+
+# Parse test mode from command
+if ($command_params =~ s| *:no-separator: *| |i) {
+    $test_mode = 'no_separator';
+    <[base.log]>->( 1, ': running in no_separator test mode' );
+} elsif ($command_params =~ s| *:incomplete-line: *| |i) {
+    $test_mode = 'incomplete_line';
+    <[base.log]>->( 1, ': running in incomplete_line test mode' );
+}
+
+<[base.log]>->( 1, '.:[ TESTING SIGNATURE ENDLINE HANDLING ]:.' );
+
+# Report current test mode
+<[base.logs]>->( 1, ': test mode: %s', $test_mode );
+
+# Return test mode in scalar context
+return $test_mode;
+
+#,,,,,.,.,,,.,..,,,..,,.,,,..,,.,,,.,,.,,,.,.,..,,...,...,...,,..,,..,...,.,,,
+#TZIWXPADTKNFNOXPKTLJARVXY5LQHAR3ITJM3YZXULKQUMFYX5UXS3OFDBXS4TENMQZ7BXW3QSBXA
+#\\\|WRMH3XMPKP2WW4PMIKS2O5JE4X6QSNMYQRI65JE7JK6MXNTNZVB \ / AMOS7 \ YOURUM ::
+#\[7]CYJEO6Y5ZJLCMKPJFPYZ35SLPEF73GP7I76JUWBEYPOHVPGW5IDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -31,12 +31,14 @@ if ( $mod_dir
     if (    -d $mod_dir
         and -r $mod_dir ) {
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
-            next if -e catdir( $mod_dir, $mod_name );
+            ## Convert :: to __ for Windows filesystem compatibility
+            ( my $mod_name_fs = $mod_name ) =~ s|::|__|g;
+            next if -e catdir( $mod_dir, $mod_name_fs );
             eval 'use Module::CoreList'
                 if not defined &Module::CoreList::is_core;
             next if $EVAL_ERROR or Module::CoreList::is_core($mod_name);
             if ( -w $mod_dir ) {
-                my $path_abs = catfile( $mod_dir, $mod_name );
+                my $path_abs = catfile( $mod_dir, $mod_name_fs );
                 ( my $relpath = $path_abs ) =~ s|^.*/||;
                 my $fh;
                 open( $fh, qw| > |, $path_abs )
@@ -75,8 +77,8 @@ if ( $mod_dir
     }
 }
 
-#,,,.,...,,.,,..,,...,,.,,...,,.,,.,.,.,.,,..,..,,...,...,...,..,,.,,,.,,,...,
-#62MWPKGPUOTWMUOQBDJWRRD3QPV3S73ZDGFP2OV23ZY4GRIMEPJCLI3FRJ6R52CN6Q7ZDCCVRPLUY
-#\\\|5ZNWCMR3TD7XR4GCZ5YVKJZWO6Z2TDYL4PWN4OFLHLD3GSAQCHA \ / AMOS7 \ YOURUM ::
-#\[7]M2BX267QT35GFI26AXTJ6TZTQZWLV73MCJFOWQKJHK22EL7SACAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,..,.,,,..,,.,,,,,.,.,.,,,,,..,,...,...,..,,..,,.,,,,,,,,.,,
+#JBQBGOGZNDLIAZRFXQYIJN46RS2P33UMPUNZ2OSBJCDKHDV74C6U6ZMROKOPAIRQOJRP7CULF7GGM
+#\\\|TKAVAKQAUV4HPEMVFO7SWV6HLYRWBN2G5LVK75LCDX3H2PQZBQE \ / AMOS7 \ YOURUM ::
+#\[7]RR7EZOB5DCPLO6U4X4VJU45TZ6COTF5VI63K2FPQUIBY3FYRBSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

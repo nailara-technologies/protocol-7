@@ -1,0 +1,54 @@
+#!/bin/bash
+# One-time migration script for pm-dep files: :: to __ for Windows compatibility
+# Triggered via cleanup-on-upgrade mechanism
+
+cd /data/projects/protocol-7 || exit 1
+
+# Find all pm-dep directories
+PM_DEP_DIRS=$(find configuration/zenki/*/pm-dep -type d 2>/dev/null)
+
+if [ -z "$PM_DEP_DIRS" ]; then
+    echo "No pm-dep directories found, migration skipped"
+    exit 0
+fi
+
+TOTAL_MIGRATED=0
+
+for DIR in $PM_DEP_DIRS; do
+    # Find files with :: in names within this directory
+    find "$DIR" -maxdepth 1 -type f -name '*::*' 2>/dev/null | while read -r OLD_PATH; do
+        OLD_NAME=$(basename "$OLD_PATH")
+        # Convert :: to __
+        NEW_NAME="${OLD_NAME//::/__}"
+        NEW_PATH="$DIR/$NEW_NAME"
+
+        # Skip if target exists
+        if [ -e "$NEW_PATH" ]; then
+            rm -f "$OLD_PATH" 2>/dev/null
+            continue
+        fi
+
+        # Rename file
+        if mv "$OLD_PATH" "$NEW_PATH" 2>/dev/null; then
+            TOTAL_MIGRATED=$((TOTAL_MIGRATED + 1))
+        fi
+    done
+done
+
+if [ $TOTAL_MIGRATED -gt 0 ]; then
+    echo "pm-dep migration: renamed $TOTAL_MIGRATED files from :: to __ naming"
+fi
+
+exit 0
+
+#,,,,.,,.,,,,.,,,,,.,,,,,...,,.,,,,,,,..,,..,,...,...,.,,,.,,,.,..,,.,.,,,,,,,,
+#3MPDKECPPQ7NBQDJGVTQSMPJUDJOGIDNFAFMUHQCGNPOPX6RME7YNMQOLHV3DDLPZWRZQD4MJG6YE
+#\\\|DUFAPCBKJYDYGFTUVYHHSSDJ7B43AWQXMBJAZSZOWFLTJLLJ4XV6 \ / AMOS7 \ YOURUM ::
+#\[7]NJVBR5IGVQFG5MTKDRGSVPGZ264GIYSPVFMQZWMPJ5UA2L6KVYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,..,.,.,,..,,,.,.,,,,,,,.,,,.,.,.,,,..,,..,,...,...,,..,...,...,,.,,,..,
+#ELH67ZKBFN5BZ4PXX2EUCDZ7VOT4FIIA5VRJKKRGAYO3IEHKJNI3JPBIGNALO53RQF4DKZOS2DHXI
+#\\\|YGU6KY3XYPCAEZJRHXHSCDCTCQ2L3TXF53ISIRNOBW2AAPX6E4J \ / AMOS7 \ YOURUM ::
+#\[7]HZMVQ7WBF5O3U3GHRIEXNCEZ47LVDY2TCOM5SDZIZT6JWC7QXCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

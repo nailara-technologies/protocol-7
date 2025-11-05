@@ -38,7 +38,10 @@ if ( not -d $conf_path ) {
         = <[file.match_files]>->( $zenka_cfg_path, qw|  recursive pm-dep  | );
 }
 
-foreach my $path_abs ( $perlmods_found_aref->@* ) { $path_abs =~ s|^.+/|| }
+foreach my $path_abs ( $perlmods_found_aref->@* ) {
+    $path_abs =~ s|^.+/||;         ##  strip directory path  ##
+    $path_abs =~ s|__|::|g;        ##  convert __ back to :: for module names  ##
+}
 
 $perlmods_found_aref->@*    ##  exclude .placeholder  ##
     = uniq grep { index( $ARG, qw| . |, 0 ) != 0 } $perlmods_found_aref->@*;
@@ -49,8 +52,8 @@ if (wantarray) {    ##  perlmod list  ##
     return [ <[base.sort]>->($perlmods_found_aref) ];    ##  ARRAY ref  ##
 }
 
-#,,.,,..,,.,.,.,,,,..,,,,,,..,...,.,.,,,.,,..,.,.,...,...,...,.,.,,,.,.,,,,..,
-#ELCUK3UQRDR2AQZ62EFCKM4QP6ZF5NE2FV6KAPXJGWKVGY3AT6TTGCDHMK3G3ZAYXHDUBMVGXS6MK
-#\\\|AUP2SKASUXA2DXE2BT3GLOXZ3F34NUCF3LIUOKHVXJ3DHTOM4IE \ / AMOS7 \ YOURUM ::
-#\[7]E6DL3UKCINNXT6RGAOYSDZC2BEC2ELZDYPAUPJIIMB4J3EOPBMAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,..,,,,,,,,,,.,,,...,..,,...,..,,...,...,..,,...,.,,,,..,..,,
+#VWAMJLG6D4MMCNR7B5II6UZIGY244RKLHGZQPHW5MW4MYG4FMEUQ2O64XAF7AUGSRKYDUPGBXZEEI
+#\\\|KTMGXRYDWXLULAME5ATTYG3PZQ7P2FZKSWLSOCHFJJF57PR64EK \ / AMOS7 \ YOURUM ::
+#\[7]H54A3ULAHXQHXCCRQEC2QQ53NMTBZN3FMCIZU76AUMHFLNQAWYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

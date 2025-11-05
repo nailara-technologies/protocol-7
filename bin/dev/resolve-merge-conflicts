@@ -1,0 +1,216 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+use File::Find;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+$OUTPUT_AUTOFLUSH = TRUE;
+
+my $keep            = 'theirs';
+my $dry_run         = FALSE;
+my $verbose         = FALSE;
+my $help            = FALSE;
+
+GetOptions(
+    'keep=s'      => \$keep,
+    'dry-run'     => \$dry_run,
+    'verbose|v'   => \$verbose,
+    'help|h'      => \$help,
+) or die ":\n:: error in command line arguments\n:\n";
+
+if ($help) {
+    print_help();
+    exit 0;
+}
+
+unless ($keep =~ /^(ours|theirs)$/) {
+    die ":\n:: error: --keep must be 'ours' or 'theirs'\n:\n";
+}
+
+##[ colors ]##
+my $reset             = "\e[0m";
+my $nailara_bg        = "\e[48;2;9;5;42m";
+my $blacklight        = "\e[38;2;68;39;172m";
+my $nailara_fg        = "\e[38;2;38;46;153m";
+my $TRUE_color        = "\e[38;2;6;71;195m";
+my $NEON_orange       = "\e[38;2;197;141;7m";
+my $NEON_green_yellow = "\e[38;2;71;195;6m";
+
+my @conflict_files;
+my $search_dir = '.';
+
+## Find all files with conflict markers
+find(sub {
+    return unless -f $ARG;
+    return if $File::Find::name =~ m{^\./\.git/};
+
+    open my $fh, '<', $ARG or return;
+    my $has_conflict = FALSE;
+    while (<$fh>) {
+        if (/^<<<<<<< /) {
+            $has_conflict = TRUE;
+            last;
+        }
+    }
+    close $fh;
+
+    push @conflict_files, $File::Find::name if $has_conflict;
+}, $search_dir);
+
+unless (@conflict_files) {
+    say "$blacklight:";
+    say ":: ${NEON_green_yellow}no conflict markers found$blacklight .,";
+    say ":$reset";
+    exit 0;
+}
+
+say "$blacklight:";
+say ":: found $NEON_green_yellow" . scalar(@conflict_files)
+    . "$blacklight file" . (@conflict_files > 1 ? 's' : '')
+    . " with conflict markers:";
+
+foreach my $file (@conflict_files) {
+    my $display = $file;
+    $display =~ s|^\./||;
+    say "::   $NEON_orange$display$blacklight";
+}
+say ":$reset";
+
+if ($dry_run) {
+    say "${blacklight}:: ${NEON_green_yellow}DRY RUN$blacklight: would resolve by keeping '$NEON_orange$keep$blacklight' version";
+    say ":$reset";
+    exit 0;
+}
+
+say "${blacklight}:: resolving conflicts (keeping: $NEON_orange$keep$blacklight)..,";
+say "$blacklight:$reset";
+
+my $resolved_count = 0;
+my $failed_count   = 0;
+
+foreach my $file (@conflict_files) {
+    my $display = $file;
+    $display =~ s|^\./||;
+
+    print "$blacklight:: $TRUE_color$display$blacklight " if $verbose;
+
+    if (resolve_conflicts($file, $keep)) {
+        $resolved_count++;
+        say "$NEON_green_yellow✓$blacklight resolved$reset" if $verbose;
+        print "\r${blacklight}:: ${NEON_green_yellow}resolved${blacklight}: "
+            . "$TRUE_color$display$reset             \n" unless $verbose;
+    } else {
+        $failed_count++;
+        say "$NEON_orange✗$blacklight failed$reset" if $verbose;
+        warn "${blacklight}:: ${NEON_orange}failed${blacklight}: "
+            . "$TRUE_color$display$reset\n" unless $verbose;
+    }
+}
+
+say "$blacklight:";
+say ":: ${NEON_green_yellow}summary$blacklight:";
+say "::   resolved: $NEON_green_yellow$resolved_count$blacklight";
+say "::   failed:   $NEON_orange$failed_count$blacklight" if $failed_count;
+say ":";
+
+if ($resolved_count > 0) {
+    say ":: ${NEON_green_yellow}remember to stage the resolved files$blacklight:";
+    say "::   ${TRUE_color}git add <files>$blacklight";
+    say ":$reset";
+}
+
+exit($failed_count > 0 ? 1 : 0);
+
+sub resolve_conflicts {
+    my ($file, $keep_version) = @_;
+
+    open my $fh, '<', $file or do {
+        warn ":: cannot read $file: $OS_ERROR\n" if $verbose;
+        return FALSE;
+    };
+
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $content = <$fh>;
+    close $fh;
+
+    my $original = $content;
+
+    ## Resolve conflicts based on which version to keep
+    if ($keep_version eq 'theirs') {
+        ## Keep "Stashed changes" / incoming / theirs
+        $content =~ s/<<<<<<< Updated upstream.*?=======\n(.*?)>>>>>>> Stashed changes/$1/gs;
+        $content =~ s/<<<<<<< HEAD.*?=======\n(.*?)>>>>>>> .*?\n/$1/gs;
+    } elsif ($keep_version eq 'ours') {
+        ## Keep "Updated upstream" / current / ours
+        $content =~ s/<<<<<<< Updated upstream\n(.*?)=======.*?>>>>>>> Stashed changes/$1/gs;
+        $content =~ s/<<<<<<< HEAD\n(.*?)=======.*?>>>>>>> .*?\n/$1/gs;
+    }
+
+    ## Check if anything changed
+    if ($content eq $original) {
+        warn ":: no conflicts resolved in $file\n" if $verbose;
+        return FALSE;
+    }
+
+    ## Write back
+    open my $out, '>', $file or do {
+        warn ":: cannot write $file: $OS_ERROR\n" if $verbose;
+        return FALSE;
+    };
+    print $out $content;
+    close $out;
+
+    return TRUE;
+}
+
+sub print_help {
+    say "$blacklight:";
+    say ":: ${NEON_green_yellow}resolve-merge-conflicts$blacklight - Auto-resolve git merge conflicts";
+    say ":";
+    say ":: ${NEON_green_yellow}USAGE$blacklight:";
+    say "::   ${TRUE_color}resolve-merge-conflicts$blacklight [OPTIONS]";
+    say ":";
+    say ":: ${NEON_green_yellow}OPTIONS$blacklight:";
+    say "::   ${TRUE_color}--keep=VERSION$blacklight";
+    say "::       Which version to keep: ${NEON_orange}ours$blacklight or ${NEON_orange}theirs$blacklight (default: theirs)";
+    say "::       ${NEON_orange}ours$blacklight   = Keep 'Updated upstream' / current branch";
+    say "::       ${NEON_orange}theirs$blacklight = Keep 'Stashed changes' / incoming changes";
+    say ":";
+    say "::   ${TRUE_color}--dry-run$blacklight";
+    say "::       Show what would be done without making changes";
+    say ":";
+    say "::   ${TRUE_color}--verbose, -v$blacklight";
+    say "::       Verbose output";
+    say ":";
+    say "::   ${TRUE_color}--help, -h$blacklight";
+    say "::       Show this help";
+    say ":";
+    say ":: ${NEON_green_yellow}EXAMPLES$blacklight:";
+    say "::   ${TRUE_color}# Keep incoming changes (stashed/theirs) - default";
+    say "::   resolve-merge-conflicts$blacklight";
+    say ":";
+    say "::   ${TRUE_color}# Keep current branch changes (ours)";
+    say "::   resolve-merge-conflicts --keep=ours$blacklight";
+    say ":";
+    say "::   ${TRUE_color}# Preview what would be done";
+    say "::   resolve-merge-conflicts --dry-run$blacklight";
+    say ":";
+    say ":: ${NEON_green_yellow}DESCRIPTION$blacklight:";
+    say "::   Finds all files with git conflict markers and automatically";
+    say "::   resolves them by keeping either the current branch version (ours)";
+    say "::   or the incoming version (theirs/stashed). Particularly useful";
+    say "::   when conflicts are primarily in signatures or auto-generated content.";
+    say ":$reset";
+}
+
+#,,,,,,,.,..,,...,..,,,,,,,.,,...,.,.,.,,,.,.,..,,...,...,..,,,,,,..,,,,,,,.,,
+#WXZ3DTMJHGTRMAEQ3LMJP2K4ZZFPKU4P5EULBFLRYJBU4T3V5HHOCLR5YZPEJHBZGHRVV345NWVAK
+#\\\|KAA7QKBZBHJ3ZENZD7WAJ5Q22N5GYEF5NDWWQFSCWZFRQIOT635 \ / AMOS7 \ YOURUM ::
+#\[7]AWGYOA7FVPJ6T7KXNXFVO3V7AQFE7EC57BW5OCG3PM6IA6NGC2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
