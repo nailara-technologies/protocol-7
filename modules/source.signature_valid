@@ -5,9 +5,9 @@
 ## input parameters ##
 my $payload_sref          = shift // '';
 my $signature_footer_data = shift;
-my $truth_checks          = shift // {};         ##  optional  ##
-my $key_name_param        = shift;               ##  optional  ##
-my $mode                  = shift // 'strict';   # Options: 'strict', 'repair'
+my $truth_checks          = shift // {};    ##  optional  ##
+my $key_name_param        = shift;          ##  optional  ##
+my $mode = shift // 'strict';    # Options: 'strict', 'repair', 'update'
 
 map {    ## early exit without further validation ##
     if ( defined $signature_footer_data->{$ARG}
@@ -437,22 +437,24 @@ if ( $AMOS_B32 eq $signature_footer_data->{'amos-payload-checksum'} ) {
 } else {
     $truth_status_report->{'AMOS-chksum-matches'} = FALSE;    ##  false  ##
 
-    # In strict mode, reject any checksum mismatch
-    if ( $mode eq 'strict' ) {
+    # In strict or update mode, reject any checksum mismatch
+    if ( $mode eq 'strict' or $mode eq 'update' ) {
         $verified_true = FALSE;                               ##  false  ##
         return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
     } else {
 
-        # In repair mode, log but continue with AMOS checksum mismatch
-        <[base.log]>->(
-            1, ': AMOS checksum mismatch but continuing in repair mode'
-        );
-        <[base.log]>->(
-            2,
-            ': expected %s, got %s',
-            $signature_footer_data->{'amos-payload-checksum'}, $AMOS_B32
-        );
+        # In repair mode, log and continue with mismatch
+        if ( $mode eq 'repair' ) {
+            <[base.logs]>->(
+                1, ': AMOS checksum mismatch but continuing in repair mode'
+            );
+            <[base.logs]>->(
+                2,
+                ': expected %s, got %s',
+                $signature_footer_data->{'amos-payload-checksum'}, $AMOS_B32
+            );
+        }
         $truth_status_report->{'amos_checksum_mismatch_ignored'} = TRUE;
     }
 }
@@ -470,42 +472,48 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
 } else {
     $truth_status_report->{'bmw-chksum-matches'} = FALSE;    ##  false  ##
 
-    # In strict mode, reject any checksum mismatch
-    if ( $mode eq 'strict' ) {
+    # In strict or update mode, reject any checksum mismatch
+    if ( $mode eq 'strict' or $mode eq 'update' ) {
         $verified_true = FALSE;                              ##  false  ##
         return ( $verified_true, $truth_status_report ) if wantarray;
         return $verified_true;    ## end assertion ##
     } else {
 
-        # In repair mode, attempt to recover the correct endline-state via brute-force
-        <[base.log]>->(
-            1, ': [ file checksum changed ]'
-        );
-        <[base.log]>->(
-            1, ': BMW checksum mismatch - attempting endline-state recovery'
-        );
-        <[base.log]>->(
-            2,
-            ': expected %s, got %s',
-            $signature_footer_data->{'bmw-chksum'}, $footer_bmw
-        );
+# In repair mode, attempt to recover the correct endline-state via brute-force
+        if ( $mode eq 'repair' ) {
+            <[base.logs]>->( 1, ': [ file checksum changed ]' );
+            <[base.logs]>->(
+                1,
+                ': BMW checksum mismatch - attempting endline-state recovery'
+            );
+            <[base.logs]>->(
+                2,
+                ': expected %s, got %s',
+                $signature_footer_data->{'bmw-chksum'}, $footer_bmw
+            );
+        }
 
         # Try to find the correct endline-state by brute-forcing
         my $recovered_state = undef;
 
-        foreach my $try_state ( 0..7 ) {
-            <[base.log]>->( 2, ': trying endline-state %d', $try_state );
+        foreach my $try_state ( 0 .. 7 ) {
+            <[base.logs]>->( 2, ': trying endline-state %d', $try_state )
+                if $mode eq 'repair';
 
             # Apply the endline restoration for this state
             my $test_payload = $$payload_sref;
             if ( $try_state == 0 or $try_state < 5 ) {
-                # Remove endlines: state 0 = remove 4, state 1 = remove 3, etc.
+
+               # Remove endlines: state 0 = remove 4, state 1 = remove 3, etc.
                 my $remove_count = 4 - $try_state;
-                $test_payload =~ s/\n{$remove_count,}$/\n/s if $remove_count > 0;
+                $test_payload =~ s/\n{$remove_count,}$/\n/s
+                    if $remove_count > 0;
             } elsif ( $try_state == 6 ) {
+
                 # Add 1 endline (separator)
                 $test_payload =~ s/(\n*)$/$1\n/s;
             } elsif ( $try_state == 7 ) {
+
                 # Add 2 endlines (complete line + separator)
                 $test_payload =~ s/(\n*)$/$1\n\n/s;
             }
@@ -515,30 +523,39 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
             $test_bmw_ctx->add( sprintf '%s#',
                 $signature_footer_data->{'footer-start-line'} );
             my $test_bmw_bin = $test_bmw_ctx->digest;
-            my $test_bmw = encode_b32r($test_bmw_bin);
+            my $test_bmw     = encode_b32r($test_bmw_bin);
 
-            <[base.log]>->( 2, ': state %d BMW: %s', $try_state, $test_bmw );
+            <[base.logs]>->( 2, ': state %d BMW: %s', $try_state, $test_bmw )
+                if $mode eq 'repair';
 
             # Check if this state's BMW matches the signature
             if ( $test_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
-                <[base.logs]>->(
-                    1, ': recovered correct endline-state: %d',
-                    $try_state
-                );
+                if ( $mode eq 'repair' ) {
+                    <[base.logs]>->(
+                        1, ': recovered correct endline-state: %d',
+                        $try_state
+                    );
+                }
                 $recovered_state = $try_state;
                 $truth_status_report->{'bmw-chksum-matches'} = TRUE;
-                $truth_status_report->{'recovered-endline-state'} = $try_state;
+                $truth_status_report->{'recovered-endline-state'}
+                    = $try_state;
                 last;
             }
         }
 
         if ( defined $recovered_state ) {
+
             # Update footer data with recovered state for next signing cycle
-            $signature_footer_data->{'endline-state-encoded'} = $recovered_state;
-            <[base.log]>->(
-                1, ': endline-state recorded for next signing cycle'
-            );
+            $signature_footer_data->{'endline-state-encoded'}
+                = $recovered_state;
+            if ( $mode eq 'repair' ) {
+                <[base.logs]>->(
+                    1, ': endline-state recorded for next signing cycle'
+                );
+            }
         } else {
+
             # Brute-force failed, continue with mismatch noted
             $truth_status_report->{'bmw_checksum_mismatch_ignored'} = TRUE;
         }
@@ -562,21 +579,24 @@ if ($sig_valid) {
 } else {
     $truth_status_report->{'signature-is-valid'} = FALSE;    ##  false  ##
 
-    # In strict mode, reject invalid signatures
-    if ( $mode eq 'strict' ) {
-        <[base.log]>->(
-            0, ': [ checksum correct but signature not valid ]'
-        );
-        $verified_true = FALSE;                              ##  false  ##
+    # In strict or update mode, reject invalid signatures
+    if ( $mode eq 'strict' or $mode eq 'update' ) {
+        <[base.logs]>
+            ->( 0, ': [ checksum correct but signature not valid ]' );
+        $verified_true = FALSE;    ##  false  ##
         return ( $verified_true, $truth_status_report ) if wantarray;
-        return $verified_true;    ## end assertion ##
+        return $verified_true;     ## end assertion ##
     } else {
 
-        # In repair mode, log but continue with signature verification issues
-        <[base.log]>->(
-            1,
-            ': C25519 signature verification failed but continuing in repair mode'
-        );
+        # In repair mode, log and continue with signature verification issues
+        if ( $mode eq 'repair' ) {
+            <[base.logs]>->(
+                1, ':!: C25519 signature verification failed but :'
+            );
+            <[base.logs]>->(
+                1, ':!: :.     ..continuing in repair mode ..   .:'
+            );
+        }
         $truth_status_report->{'signature_verification_ignored'} = TRUE;
     }
 }
@@ -685,7 +705,7 @@ sub _verify_signature_with_data {
         <[base.log]>->(
             2, ': test: AMOS checksum mismatch but allowing in repair mode'
         );
-        <[base.log]>->(
+        <[base.logs]>->(
             3,
             ': test: expected %s, got %s',
             $test_footer_data->{'amos-payload-checksum'},
@@ -703,10 +723,10 @@ sub _verify_signature_with_data {
 
     # Verify BMW checksum
     if ( $test_bmw_result ne $test_footer_data->{'bmw-chksum'} ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             2, ': test: BMW checksum mismatch but allowing in repair mode'
         );
-        <[base.log]>->(
+        <[base.logs]>->(
             3,
             ': test: expected %s, got %s',
             $test_footer_data->{'bmw-chksum'},
@@ -743,8 +763,9 @@ sub _verify_signature_with_data {
     );
     return TRUE;
 }
-#,,..,...,,.,,,,,,.,,,,,.,,..,,,.,...,.,,,,,.,..,,...,...,.,.,..,,..,,...,,..,
-#32KTQPZHRFHQVUQLGG5FXMJ4DTGZ7DC7INDBUPGXXAX7BABDBGT3XGJ5GQV3XIOWAHOW6F2S3VLIS
-#\\\|OWHXD27MOAIRFNR44SZTVNSNZXNPI3CO4FSZNTIHMHAMOKSA25Q \ / AMOS7 \ YOURUM ::
-#\[7]VTFS67G5JJSQCOZNK6KBMKH5DRIU2VOGC7CEIP5OJ4XGBBQFWEBQ 7  DATA SIGNATURE ::
+
+#,,..,..,,.,.,,..,.,.,.,,,,,,,.,.,.,,,,,.,,.,,..,,...,...,,.,,,..,.,.,,,,,.,,,
+#NZQIMCQT6G3O2X4BRUIPM5G2DQQWMBFSVPMKXFGH3WKC2X3IU3PAVA43IZBZ7FFM2N6JLP6RTQBXM
+#\\\|2U6FYGTVCPE74MCZB7LMSMLT2EIR6DOCS7PFB2B427F23CZCKE5 \ / AMOS7 \ YOURUM ::
+#\[7]JAXE4OCARWXZEPFSPVBIC4FY7YGV63ARPJ2VF5J2NVDQHWI2FSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

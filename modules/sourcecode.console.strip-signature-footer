@@ -1,0 +1,166 @@
+## [:< ##
+
+# name  = sourcecode.console.strip-signature-footer
+# descr = strip signature footers and restore files to pre-signature state
+
+my $command_params = shift // '';
+
+my $strip_verbosity = 2;    ## [ 0 | 1 | 2 | 3 ] ##
+
+$strip_verbosity = 0
+    if $command_params =~ s| *:silent: *| |
+    or exists $ENV{'STRIP_SILENT'}
+    and <[base.cfg_bool]>->( $ENV{'STRIP_SILENT'} ) == TRUE;
+
+$strip_verbosity = 3
+    if $command_params =~ s| *:verbose: *| |
+    or exists $ENV{'STRIP_VERBOSE'}
+    and <[base.cfg_bool]>->( $ENV{'STRIP_VERBOSE'} ) == TRUE;
+
+$command_params =~ s,^ *| *$,,;
+
+my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
+my $work_tree = $paths->{'work_tree'};
+
+my @source_paths;
+
+if ( length $command_params ) {
+    if ( not @source_paths
+        = <[base.source.collect_file_list]>->($command_params) ) {
+        <[base.log]>->(
+            0, ': no files found matching pattern: %s',
+            $command_params
+        );
+        <[base.exit]>->(qw| 0110 |);
+    }
+} else {
+    <[base.log]>->( 0, ': no file pattern specified' );
+    <[base.log]>->( 0, ': usage: strip-signature-footer <file-pattern>' );
+    <[base.exit]>->(qw| 0110 |);
+}
+
+<[base.log]>->( 1, ':' );
+<[base.log]>->( 1, ':::[ stripping signature footers ]::.::' );
+<[base.log]>->( 1, ':' );
+
+my $files_processed = 0;
+my $files_stripped  = 0;
+my $files_no_sig    = 0;
+my $files_error     = 0;
+
+foreach my $source_path (@source_paths) {
+    $files_processed++;
+
+    my $path_rel = $source_path;
+    $path_rel =~ s|^$work_tree/?||;
+
+    <[base.log]>->( 2, ':::[ %s ]:.<+>.::', $path_rel )
+        if $strip_verbosity >= 2;
+
+    # Read the file
+    my $src_str;
+    if ( not <[file.slurp]>->( $source_path, \$src_str, qw| :raw | ) ) {
+        <[base.log]>->( 0, ':E: unable to read file: %s', $path_rel );
+        $files_error++;
+        next;
+    }
+
+    # Extract signature footer in strict mode (strip operation)
+    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+    if ( not $footer_data->{'was-present'} ) {
+        <[base.log]>->( 2, ': no signature footer found' )
+            if $strip_verbosity >= 2;
+        $files_no_sig++;
+        next;
+    }
+
+    if ( not $footer_data->{'structure-was-valid'} ) {
+        my $footer_error = $footer_data->{'encountered-error'};
+        <[base.log]>->(
+            0,
+            ':E: invalid signature structure: %s',
+            $footer_error // 'unspecified error'
+        );
+        $files_error++;
+        next;
+    }
+
+    # The payload in $src_str has now been restored to pre-signature state
+    # using the endline-state-encoded information
+
+# Handle broken state: footer concatenated directly to last code line (no endlines)
+# This happens when signing failed to add separator endlines
+    if ( $src_str !~ /\n$/s ) {
+        <[base.log]>->(
+            1, ': : fixing broken state - last line had no endline'
+        ) if $strip_verbosity >= 1;
+        $src_str .= "\n";
+    }
+
+    if ( $strip_verbosity >= 2 ) {
+        <[base.log]>->( 2, ': signature footer found and stripped' );
+        <[base.log]>->(
+            2,
+            ': : endline state encoded: %s',
+            $footer_data->{'endline-state-encoded'} // 'not specified'
+        );
+
+        if ( $footer_data->{'needs_separator_endline'} ) {
+            <[base.log]>->(
+                2, ': : note: file was missing separator endline'
+            );
+        }
+    }
+
+    if ( $strip_verbosity >= 3 ) {
+        <[base.log]>->(
+            3,
+            ': : AMOS checksum: %s',
+            $footer_data->{'amos-payload-checksum'} // 'N/A'
+        );
+        <[base.log]>->(
+            3,
+            ': : BMW checksum: %s',
+            $footer_data->{'bmw-chksum'} // 'N/A'
+        );
+        <[base.log]>->(
+            3,
+            ': : signature: %s',
+            substr( $footer_data->{'signature'} // '', 0, 40 ) . '...'
+        );
+    }
+
+    # Write the restored content back to the file
+    if ( not <[file.put_bin]>->( $source_path, $src_str ) ) {
+        <[base.log]>->( 0, ':E: unable to write file: %s', $path_rel );
+        $files_error++;
+        next;
+    }
+
+    $files_stripped++;
+    <[base.log]>->( 2, ': restored to pre-signature state' )
+        if $strip_verbosity >= 2;
+}
+
+<[base.log]>->( 1, ':' );
+<[base.log]>->( 1, ':::[ summary ]::.::' );
+<[base.log]>->( 1, ': files processed: %d',          $files_processed );
+<[base.log]>->( 1, ': files stripped: %d',           $files_stripped );
+<[base.log]>->( 1, ': files without signatures: %d', $files_no_sig )
+    if $files_no_sig > 0;
+<[base.log]>->( 1, ': files with errors: %d', $files_error )
+    if $files_error > 0;
+<[base.log]>->( 1, ':' );
+
+if ( $files_error > 0 ) {
+    <[base.exit]>->(qw| 0110 |);
+}
+
+return 0;
+
+#,,..,,.,,.,,,,.,,,..,,.,,,,,,..,,.,.,.,.,.,.,..,,...,...,..,,...,..,,,.,,,.,,
+#TLYENDLSAQ5P6SLPMPGFUQQVMQGYHZ4ZX3RSDXMXXSMYDPEWYMG56Q5L776QZ3FURQNRV2SK7PUNQ
+#\\\|JWYXK5AML6F7G64ETK76FIIRE3KLBBU2VPRXFHSHZUQQEYBHUHB \ / AMOS7 \ YOURUM ::
+#\[7]5QFDMYTYIOG4FWVPVQDZ6ZIO4ZKUTSLWTE27DBBFX6SXL3ZXBCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

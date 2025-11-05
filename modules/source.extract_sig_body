@@ -157,25 +157,25 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
                 $signature_marker
             );
 
-            # Try different patterns - from specific to more general
-            # These patterns use concrete regex anchors without variable interpolation
-            # Using {} delimiter to avoid conflicts with | in file content
+    # Try different patterns - from specific to more general
+    # These patterns use concrete regex anchors without variable interpolation
+    # Using {} delimiter to avoid conflicts with | in file content
             my @extraction_patterns = (
 
-                # Pattern 1: Require separator + AMOS7 keyword + data/signature indicators
-                # Most specific: needs newline separator, AMOS7 presence, and colon footer
+    # Pattern 1: Require separator + AMOS7 keyword + data/signature indicators
+    # Most specific: needs newline separator, AMOS7 presence, and colon footer
                 qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*AMOS7[^\n]*\n)*?(?:#[^\n]*SIGNATURE[^\n]*\n)*?#[:]{70,80}\n?)$}s,
 
-                # Pattern 2: With separator, require either AMOS7 or YOURUM marker
-                # Requires exact marker structure: separator + dot/comma start + end
+          # Pattern 2: With separator, require either AMOS7 or YOURUM marker
+          # Requires exact marker structure: separator + dot/comma start + end
                 qr{(.*?)(\n#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM)[^\n]*\n)*?#[:]{70,80}[\s\n]*?)$}s,
 
-                # Pattern 3: No separator required, but require clear signature markers
-                # Fallback when separator missing: require YOURUM or SIGNATURE in content
+     # Pattern 3: No separator required, but require clear signature markers
+     # Fallback when separator missing: require YOURUM or SIGNATURE in content
                 qr{(.*?)(#[\.,]{70,80}\n(?:#[^\n]*(?:AMOS7|YOURUM|SIGNATURE)[^\n]*\n)*?#[:]{70,80}[\s\n]*)$}s,
 
-                # Pattern 4: Most lenient but strict on markers
-                # Last resort: just need recognizable footer markers and some content
+         # Pattern 4: Most lenient but strict on markers
+         # Last resort: just need recognizable footer markers and some content
                 qr{(.*?)(#[\.,\s\.]{70,80}\n(?:#[^\n]+\n)*?#[:]{65,}[\s\n]*)$}s
             );
 
@@ -225,34 +225,45 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 
             # Debug output at verbosity level 3 only (use -vvv to see)
             my $content_len = length($content_copy);
-            my $has_amos7 = ($content_copy =~ /AMOS7/) ? 'YES' : 'NO';
-            my $has_signature = ($content_copy =~ /SIGNATURE/) ? 'YES' : 'NO';
-            my $has_yourum = ($content_copy =~ /YOURUM/) ? 'YES' : 'NO';
-            my $has_data_sig = ($content_copy =~ /DATA[-\s]SIGNATURE/) ? 'YES' : 'NO';
-            my $last_200_chars = substr($content_copy, -200);
+            my $has_amos7   = ( $content_copy =~ /AMOS7/ ) ? 'YES' : 'NO';
+            my $has_signature
+                = ( $content_copy =~ /SIGNATURE/ ) ? 'YES' : 'NO';
+            my $has_yourum = ( $content_copy =~ /YOURUM/ ) ? 'YES' : 'NO';
+            my $has_data_sig
+                = ( $content_copy =~ /DATA[-\s]SIGNATURE/ ) ? 'YES' : 'NO';
+            my $last_200_chars = substr( $content_copy, -200 );
 
             <[base.logs]>->( 3, ': flexible extraction failure details:' );
-            <[base.logs]>->( 3, ':   Content length: %d bytes', $content_len );
+            <[base.logs]>
+                ->( 3, ':   Content length: %d bytes', $content_len );
             <[base.logs]>->( 3, ':   Contains AMOS7: %s', $has_amos7 );
-            <[base.logs]>->( 3, ':   Contains SIGNATURE: %s', $has_signature );
+            <[base.logs]>
+                ->( 3, ':   Contains SIGNATURE: %s', $has_signature );
             <[base.logs]>->( 3, ':   Contains YOURUM: %s', $has_yourum );
-            <[base.logs]>->( 3, ':   Contains DATA-SIGNATURE: %s', $has_data_sig );
+            <[base.logs]>->(
+                3, ':   Contains DATA-SIGNATURE: %s',
+                $has_data_sig
+            );
             <[base.logs]>->( 3, ':   Last 200 chars:' );
-            foreach my $line (split /\n/, $last_200_chars) {
+
+            foreach my $line ( split /\n/, $last_200_chars ) {
                 <[base.logs]>->( 3, ':     | %s', $line );
             }
 
-            # CRITICAL FIX: When flexible extraction fails BUT the original file
-            # contains signature markers, we should NOT treat this as "no signature"
-            # Instead, return with recovery flags so verification phase can handle it
-            if ($has_signature eq 'YES') {
-                <[base.logs]>->( 2, ': signature markers found but flexible extraction failed - returning for recovery' );
+     # CRITICAL FIX: When flexible extraction fails BUT the original file
+     # contains signature markers, we should NOT treat this as "no signature"
+     # Instead, return with recovery flags so verification phase can handle it
+            if ( $has_signature eq 'YES' ) {
+                <[base.logs]>->(
+                    2,
+                    ': signature markers found but flexible extraction failed - returning for recovery'
+                );
                 <[base.logs]>->( 2, ': :. proceeding with recovery mode' );
 
                 # Mark that we found signatures but couldn't extract them
                 $footer_data->{'extraction_failed_with_markers'} = TRUE;
-                $footer_data->{'flexible_extraction_failed'} = TRUE;
-                $footer_data->{'was-present'} = 1;
+                $footer_data->{'flexible_extraction_failed'}     = TRUE;
+                $footer_data->{'was-present'}                    = 1;
 
                 # Return early so verification phase can attempt BMW recovery
                 # This prevents treating the file as first-time signing
@@ -336,33 +347,43 @@ $footer_data->{'data-chksum'}    ## adding first footer line to BMW-chksum ##
 # If NO signature was found at all, we're doing first signing
 # In that case, ensure separator endline will be added
 if ( not defined $footer_body ) {
-    # Before claiming "no signature present", verify the content doesn't have markers
-    # This check must happen REGARDLESS OF MODE to correctly detect existing signatures
-    my $content_has_markers = $$src_ref =~ /SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE/;
 
-    if ( $content_has_markers ) {
-        # Check if file has signature marker but missing separator endline before it
-        # This happens when signature exists but is directly at end without blank line
-        my $has_separator_issue = ( $$src_ref =~ /#[\.,]{70,80}\n(?:#[^\n]+\n)+#[:]{70,80}/ &&
-                                   $$src_ref !~ /\n#[\.,]{70,80}\n/ );
+# Before claiming "no signature present", verify the content doesn't have markers
+# This check must happen REGARDLESS OF MODE to correctly detect existing signatures
+    my $content_has_markers
+        = $$src_ref =~ /SIGNATURE|YOURUM|AMOS7|DATA[-\s]SIGNATURE/;
 
-        if ( $has_separator_issue ) {
+    if ($content_has_markers) {
+
+# Check if file has signature marker but missing separator endline before it
+# This happens when signature exists but is directly at end without blank line
+        my $has_separator_issue
+            = (    $$src_ref =~ /#[\.,]{70,80}\n(?:#[^\n]+\n)+#[:]{70,80}/
+                && $$src_ref !~ /\n#[\.,]{70,80}\n/ );
+
+        if ($has_separator_issue) {
+
             # Signature exists but missing separator endline
             <[base.logs]>->( 2, ': [ no separator endline present ]' );
-            <[base.logs]>->( 2, ': [ signature footer at end without blank line ]' );
+            <[base.logs]>->(
+                2, ': [ signature footer at end without blank line ]'
+            );
             $footer_data->{'extraction_failed_with_markers'} = TRUE;
-            $footer_data->{'flexible_extraction_failed'} = TRUE;
-            $footer_data->{'was-present'} = 1;
-            $footer_data->{'needs_separator_endline'} = TRUE;
+            $footer_data->{'flexible_extraction_failed'}     = TRUE;
+            $footer_data->{'was-present'}                    = 1;
+            $footer_data->{'needs_separator_endline'}        = TRUE;
             return $footer_data;
         }
 
         # File contains signature markers but extraction failed
         # Set recovery flags so verification can handle it (in all modes)
         $footer_data->{'extraction_failed_with_markers'} = TRUE;
-        $footer_data->{'flexible_extraction_failed'} = TRUE;
-        $footer_data->{'was-present'} = 1;
-        <[base.logs]>->( 2, ': [ existing signature but extraction failed - marking for recovery ]' );
+        $footer_data->{'flexible_extraction_failed'}     = TRUE;
+        $footer_data->{'was-present'}                    = 1;
+        <[base.logs]>->(
+            2,
+            ': [ existing signature but extraction failed - marking for recovery ]'
+        );
         return $footer_data;
     }
 
@@ -374,7 +395,7 @@ if ( not defined $footer_body ) {
     return $footer_data;    ## keeping current checksum ##
 }
 
-$footer_data->{'was-present'} = 1;  ## had a signature footer ##
+$footer_data->{'was-present'} = 1;    ## had a signature footer ##
 
 $footer_data->{'footer-start-line'} = sprintf "%s\n", $footer_start;
 
@@ -670,8 +691,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,,.,.,.,,,.,,,,,,.,,,,.,..,,.,,,,..,,,,,,..,...,...,..,,,,,,...,,,.,,.,,,.,,
-#FUSCQJPZA3RSNSDZTTXCGFY54FYQRL2E72QGUGOXMPUG53JFBWBBAIIM63S4L2XOU2HPQ6HM2DEHS
-#\\\|C6OF4OKGPN4EVKDZUOF3O6F7AWUQYBYOKGEBDNMLEA33BM2TXJ7 \ / AMOS7 \ YOURUM ::
-#\[7]UNJJDF6X7LKGZS7P7KIMHTRIF6NUSUN7A4ZVII3CUARL3PH5VUBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,.,,.,.,...,,,.,.,.,.,.,...,,,.,...,...,.,.,...,,,.,.,,,..,,,,.,
+#3IRAK5NFTBJJPZ7BCIWSXJFVDPDKMBK7KRFMREXOR5VQTH55YCIIS6HSC3V7P2W5YHZXPN5HASBQ6
+#\\\|T527NBTGXNS3HVTKGGCNOJXNTP2ZMFBVIRIL2MPV3VDP7Z4NJBE \ / AMOS7 \ YOURUM ::
+#\[7]IM27ITXJUUO4KSLBHQGEGGFG5TXHDXAMFCQDZY6IIP2Z7OHL44BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
