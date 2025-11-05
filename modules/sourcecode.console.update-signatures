@@ -64,8 +64,6 @@ if (   @source_paths == 0
 }
 
 <[base.log]>->( 1, '.:[ UPDATING SOURCE SIGNATURES ]:.' );
-<[base.log]>->( 2, ': intelligently recovering endline-states via BMW checksum brute-force' );
-<[base.log]>->( 2, ': and regenerating signatures with corrected format states' );
 
 map {
     <[base.logs]>->( 0, 'file ./%s is not writable', $ARG )
@@ -134,15 +132,20 @@ foreach my $path_rel (@source_paths) {
     <[base.logs]>->( ':::[ %s ]:.<+>.::', $path_rel );
     <[base.log]>->( 1, qw| : | );
 
+    # Write the updated file with signature
+    if ( not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} ) ) {
+        <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
+        next;
+    }
+
     $file_count--;
-    <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} );
 }
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,,,,,,.,,,..,,..,.,,,...,,.,,,,.,,,.,.,.,..,,...,...,..,,.,,,...,.,.,,..,
-#AYGA5RMGEWZKBOTSINJLE2ZPTO5E2333VLUO5LZHWEDUFFMNKXS5XDAYGEM43NNIDWPA767CDXO62
-#\\\|QULH6QICQMGFY3USSFOYAQFL7YORFGQEMNDZOGWBYBH422HEMNB \ / AMOS7 \ YOURUM ::
-#\[7]XW2FCZIRRXJPRCWR4THNBTV7JKNYZAP2CJAVS5HTHRQMPXOTZKBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,,,,,...,,,.,,..,,,.,.,,,...,..,,...,...,.,.,,..,.,,,,,,,..,,
+#3V4LZTS7LMT3KZ45LFFLEQHWJJ3OGJVFWXSHNVLRZ4XP35Q2CZX33GEQARDYHTLVIHXQYVXTCRCRM
+#\\\|XLHKI6RS2VSAHMJ2CTPWQ2TIVJCE4YWFMHAAPJ3UJFASDJATHMQ \ / AMOS7 \ YOURUM ::
+#\[7]4XKKEZO5V3O5BZ4H7KQWUR766JQWQHAREHPATWKGFRYVQTZY72BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

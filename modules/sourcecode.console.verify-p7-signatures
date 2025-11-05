@@ -192,24 +192,25 @@ foreach my $path_rel (@source_paths) {
 }
 
 # Final summary
-<[base.log]>->( 1, qw| : | );
+<[base.log]>->( 1, qw| . | );
 if ( $verify_mode eq 'repair' && $repair_needed_count > 0 ) {
     <[base.logs]>->(
-        1, ':.: %d valid, %d invalid, %d need repair (total: %d)',
-        $valid_count, $invalid_count, $repair_needed_count, $file_count
+        1, ':. %d files .: signed valid: %d, re-sign: %d, repair: %d',
+        $file_count, $valid_count, $invalid_count, $repair_needed_count
     );
 } else {
     <[base.logs]>->(
-        1, ':.: %d valid, %d invalid signatures (total: %d)',
-        $valid_count, $invalid_count, $file_count
+        1, ':. %d files .: signed valid : %d, re-sign : %d',
+        $file_count, $valid_count, $invalid_count
     );
 }
+<[base.log]>->( 1, $invalid_count == 0 ? ':.  .    .     .' : qw| . | );
 
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,.,.,.,.,,,,..,,.,,,,.,,..,,.,,,.,,...,.,.,..,,...,...,..,,,,,,.,,,..,,,.,,
-#GK42H6N6S4EDQFX5XJR2N3TQ3MUV2HCCZEZITZFFGQVBTZATSTIQTRUKTE2RO6H2FO4D4S6NSEZHY
-#\\\|CTJICJWJVURZCUZIONIBE4B7PBHUKFTL5NOHG5GWSNHXFW7VS2Y \ / AMOS7 \ YOURUM ::
-#\[7]DQWQHAOQUNXSIBD6JUETBIKUHXTWRKBCDA2U2DXR5I3Y3R6EASBI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,..,,,..,.,,,,.,,..,,.,.,,,.,..,,...,...,.,.,,,.,.,,,,,.,,.,,
+#H6NLKHGBEDLDYZOJFA2NVOFYPFQZZQRK5DVLHHX7YHIFANXMZINCFLCSNSEH3SKUJWKBNHOF27G2C
+#\\\|3QZPDDZZG47YS75FU5GRWVP3YN73JZQGPPM7DAA2I6APDZYM4VY \ / AMOS7 \ YOURUM ::
+#\[7]HEABETCSXUO4NX6OJKOB3ETTTXXUXZ6UQRQDJ34ZJ2IDAKL5EOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

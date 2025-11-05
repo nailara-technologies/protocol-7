@@ -44,8 +44,7 @@ return {
 ## Repair mode is for verify-signatures where we need flexible extraction
 ## For update-signatures, use strict mode - files should have valid structure
 ## This prevents issues with endline restoration during signing preparation
-my $footer_data
-    = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
 my $footer_found        = $footer_data->{'was-present'};
 my $found_footer_valid  = $footer_data->{'structure-was-valid'};
@@ -77,9 +76,11 @@ if ( $footer_found and $found_footer_valid ) {
 }
 
 ## checksum and signature verification ##
+## Use 'update' mode for update-signatures - allows recovery without repair mode messages
 ##
-( my $is_valid, my $report_ref )
-    = <[source.signature_valid]>->( \$src_str, $footer_data );
+( my $is_valid, my $report_ref ) = <[source.signature_valid]>->(
+    \$src_str, $footer_data, {}, undef, 'update'
+);
 
 if ($is_valid) {
     <[base.log]>->( 2, ':.: checksums and signature still valid. =)' );
@@ -108,9 +109,12 @@ if ($is_valid) {
                 next
                     if not $report_true_on_failure
                     and $report_ref->{$type}->{$mode};
+
+                # Format numeric modes as ELF-N for clarity
+                my $mode_display = $mode =~ /^\d+$/ ? "ELF-$mode" : $mode;
                 <[base.logs]>->(
-                    2,     ': :. %30s [%s] : %s',
-                    $type, $mode,
+                    2,     ': :. %22s [%s] : %s',
+                    $type, $mode_display,
                     $report_ref->{$type}->{$mode} ? 'true  =)' : 'false :|'
                 );
             }
@@ -118,6 +122,12 @@ if ($is_valid) {
     }
     <[base.log]>->( 2, ':' );
 }
+
+# Don't interfere with create_harmonic_footer - let it determine and use the correct state.
+# The needs_separator_endline and last_line_incomplete flags tell it what to do.
+# It will call harmonize_payload_line_feed which modifies $src_str via the data-reference.
+
+# Now calculate signature - harmonize will add separator if needed
 my $recalc_data
     = <[source.create_harmonic_footer]>->( $footer_data, $sign_verbosity );
 ##
@@ -140,10 +150,8 @@ if (   not defined $present_checksum
 
     }
 
-    # Use the signature already calculated at line 122
-    # No need to recalculate or normalize - create_harmonic_footer already did the work
-    # Content has been restored to correct endline state by extract_sig_body
-    # Just append the signature footer that was already calculated
+    # Signature was calculated on normalized content above
+    # Just append the signature footer
     $src_str .= $recalc_data->{'signature-footer-str'};
     <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
     <[base.logs]>->( 2, ': %s .,', $recalc_data->{'data-chksum'} );
@@ -168,8 +176,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,..,,..,.,,,,..,,.,,...,,,.,..,,,..,,,,,,,,,..,,...,..,,...,..,,,..,,.,,,.,,
-#52W342JTWAZNDEYZFHB7ABEAKWBOWOW2YACPVPVOBKO7WFKXOJWIRPTQNUUJHGENJVBEWSTZ7C33C
-#\\\|QSNRLFUV527OMWSLFOFC3BMYDSZP73CIKCRTJNTBS4VGUY5UNEZ \ / AMOS7 \ YOURUM ::
-#\[7]M7SF54I2MOOBGJ6UP2XU2QGIT7OGIF77D65QFMBSVGNJCOYCHEAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,,,.,,,.,...,,..,,,.,,..,..,,..,,...,...,..,,.,.,...,.,.,,.,,
+#OPUESILTSIKPMZG7JQ3OVCTABH4QNJRRQW3TITZ7VCIH6HT6JLVPWA5SHTRCJZGRA6KWKSZDMX6VO
+#\\\|EA27HJHRLMAEU5U4EZMZSK5RDSLDPFD4IGUPJFNYHSMTVTURCN3 \ / AMOS7 \ YOURUM ::
+#\[7]XPVCZZE6MOBBPYCTL5XXDPDYDMGIIOTGZJHW62N6FM2GP7QNZGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

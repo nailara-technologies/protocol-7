@@ -78,11 +78,33 @@ if ($error_exit) {
 push(    ## enabling [non-recursive] wildcard matches ##
     @all_dirs,
     map {
+        my $original_pattern = $ARG;
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
         my $absolute_path = catfile( $work_tree, $base_path );
-        $absolute_path = abs_path($absolute_path) if -e $absolute_path;
-        <[file.match_dirs]>->( $absolute_path, $pattern );
+
+        # Check if base path exists before attempting match
+        if ( not -e $absolute_path ) {
+            <[base.logs]>->(
+                0, ': pattern \'%s\' - base path does not exist',
+                $original_pattern
+            );
+            ();    # return empty list for this pattern
+        } else {
+            $absolute_path = abs_path($absolute_path);
+
+# Special case: pattern ending with /* means scan immediate files non-recursively
+# This is different from /*/ which means find subdirectories
+            if ( $original_pattern =~ m|/\*$| and $pattern eq '*' ) {
+
+        # Add the base directory itself to be scanned for immediate files only
+                ($absolute_path);
+            } else {
+
+                # Return directory matches for other wildcard patterns
+                <[file.match_dirs]>->( $absolute_path, $pattern );
+            }
+        }
         }
         grep { !m|\*/| }
         grep {m|\*|} $copy_sources->@*
@@ -90,7 +112,8 @@ push(    ## enabling [non-recursive] wildcard matches ##
 
 push(    ## glob based wildcard matches ##  [ ,../*/ ]
     @all_dirs,
-    map {
+    grep { defined $_ }    ## filter out undef from non-existent paths ##
+        map {
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
         my $absolute_path = catfile( $work_tree, $base_path );
@@ -103,7 +126,8 @@ push(    ## glob based wildcard matches ##  [ ,../*/ ]
 
 push(    ## glob based wildcard matches ##  [ ,../*/* files ]
     @all_files,
-    map {
+    grep { defined $_ }    ## filter out undef from non-existent paths ##
+        map {
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
         my $absolute_path = catfile( $work_tree, $base_path );
@@ -131,6 +155,9 @@ map {
 foreach my $absolute_path (@all_dirs) {
     <[file.all_files]>->( $absolute_path, \@all_files );
 }
+
+# Deduplicate absolute paths before converting to relative paths
+@all_files = uniq @all_files;
 
 my @source_paths
     = grep { $ARG =~ s|^$work_tree/?||; not exists $exclude_files->{$ARG} }
@@ -169,8 +196,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,,.,...,,.,,..,,...,,,.,.,.,,..,..,,,.,,...,..,,...,...,.,.,..,,,,,,,.,,,.,,
-#G5XPCAPMYGUBJOLMS4BWMMQ7E3ZMDRLBKI4IN3HPIII325XD4WO2T3SO2NAZRIVHM5LJHKIETYTLK
-#\\\|YW675VX63G3KLYW6W7ILSYDSJDASG2GENTEB6BJGW4M6ECHYH56 \ / AMOS7 \ YOURUM ::
-#\[7]YSY3F7YQ44XLAXZ23XZKED3ZUJVHMBFZPSTDTFKOITPOXI63JAAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,..,,,..,,..,,,.,..,,...,.,.,,,,,..,,...,..,,.,,,,.,,,,,,,.,,.,.,
+#4H7OM7BFC27E55BFUHQDZ4G6YQMGJC23YSV5UPVU4XJ4HAO7JNJLYBPQ6XIEWWZJ4WDPDAZOMYQNU
+#\\\|VM2U7NPAFKYB4AVMKWV3JMJHKEUNTZDPGBBPE6G7PWW65N2NIDF \ / AMOS7 \ YOURUM ::
+#\[7]ES7JORWRQ24AQUPMEACYQTD4UTEQWBSVO6LNHV6J35RKWV7G7ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

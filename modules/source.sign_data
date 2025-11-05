@@ -7,14 +7,14 @@ warn 'expected scalar reference to content buffer <{C1}>' and return undef
     if ref $src_data_ref ne qw| SCALAR |;
 
 <[base.logs]>->(
-    2, ':-: signing %03d bytes data ..,',
+    3, ':-: signing %03d bytes data ..,',
     length($$src_data_ref)
 );
 
 return encode_b32r( <[crypt.C25519.sign_data]>->($src_data_ref) );
 
-#,,,,,,,,,,,,,,.,,.,,,...,,..,,..,.,.,.,.,,,,,..,,...,...,.,,,..,,,,,,.,.,.,,,
-#KE5PJM2YRXK6GTH6KVN7OQ3KR6HH5VGX4SHSXQJLMC4QRCFBNI32BBETYOAE6QGXBPY4BUIYURWPE
-#\\\|F6LEL5UEZ5BFAJYMRPJSW33JQZ2LR3SP5XJDMQOEDKBIQDZQ6BU \ / AMOS7 \ YOURUM ::
-#\[7]R2YWLYBCPUOGMXMTW5NNRIAVBEUOQ3EAS5ESKISGYXUKNRMMKGCI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,.,,,.,,,.,,,..,,,.,,.,,,,..,..,,...,..,,...,.,.,.,,,.,,,,..,
+#7XCWY77GBLODSJ33WCA7PXC5PKJGF473F7HPI5UGJJYNFPMIOVJDESYOOGBUS26GYCT7ZAJLP4Q5M
+#\\\|4KEOEK5BDT23FHVTL7GOUMQMNDF7KB7C6IM56DYNBZ7VQR6V3DK \ / AMOS7 \ YOURUM ::
+#\[7]R6H3WXTE4CKKTMZZPSKIPGVWMZNYIWCE4YCHVFIL43FFR4VP64CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
