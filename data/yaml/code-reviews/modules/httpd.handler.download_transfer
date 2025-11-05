@@ -1,0 +1,98 @@
+---
+module: httpd.handler.download_transfer
+review_date: 2025-11-05
+reviewed_by: Claude Code (AI Assistant)
+status: FIXED
+
+bug_fixed:
+  title: "Watcher spinning on client disconnect causing heartbeat timeout crashes"
+  severity: critical
+
+  description: |
+    When clients disconnected mid-transfer (MPV seeking, Ctrl+C, network drops),
+    the download handler would enter an infinite loop causing CPU spinning and
+    eventually httpd heartbeat timeout crashes.
+
+  root_cause:
+    - Used ->stop instead of ->cancel in ABORT_DOWNLOAD path
+    - ->stop pauses watcher but leaves it registered
+    - Incomplete cleanup of file handles and session data
+    - Closed file handle triggered repeated watcher firing
+    - Each watcher callback re-entered ABORT_DOWNLOAD
+    - Recursive error loop consumed CPU until heartbeat timeout
+
+  trigger_scenarios:
+    - Client disconnects during large file transfer
+    - MPV video player seeking (frequent disconnect/reconnect)
+    - Network interruptions during transfer
+    - Client-side Ctrl+C during download
+    - Output buffer fills when client stops reading (backpressure)
+
+  fix_implemented:
+    changes:
+      - "Changed ->stop to ->cancel to fully destroy watcher"
+      - "Added proper file handle cleanup with close()"
+      - "Delete session download data to prevent stale references"
+      - "Delete watcher reference from session"
+      - "Set flush_shutdown flag for connection cleanup"
+
+    critical_pattern: |
+      ABORT_DOWNLOAD:
+        $event->w->cancel;              # ✓ Destroy watcher completely
+        close($download->{'content_fh'}) if fileno($download->{'content_fh'});
+        delete $session->{'watcher'}->{'download_handler'};
+        delete $session->{'download'};
+        $session->{'flush_shutdown'} = 1;
+        return 0;
+
+  test_infrastructure:
+    scripts:
+      - bin/dev/test-httpd-abort-bug: "Simple 1MB abort test"
+      - bin/dev/test-forced-abort: "113MB forced abort trigger"
+      - bin/dev/test-backpressure: "Client stops reading scenario"
+      - bin/dev/test-httpd-blocking: "Heartbeat responsiveness check"
+      - bin/dev/test-httpd-spinning: "Watcher spinning detection"
+      - bin/dev/switch-httpd-version: "Switch between broken/fixed/test versions"
+
+    module_versions:
+      - httpd.handler.download_transfer.fixed: "Production (active)"
+      - httpd.handler.download_transfer.broken: "Bug reproduction"
+      - httpd.handler.download_transfer.test: "Test with forced abort at 113MB"
+      - httpd.handler.download_transfer.test-broken: "Test broken version"
+
+  verification:
+    - "All 5 test suites pass"
+    - "httpd remains responsive after client disconnect"
+    - "No watcher spinning detected"
+    - "Clean single abort with proper cleanup"
+    - "Production deployment: 2025-11-05"
+
+regression_prevention:
+  watch_for:
+    - "Any use of ->stop on IO watchers (should use ->cancel)"
+    - "Missing cleanup in error paths"
+    - "File handle operations without corresponding close()"
+    - "Session data not deleted on abort"
+
+  best_practices:
+    - "Always use ->cancel to destroy watchers, not ->stop"
+    - "Implement complete cleanup in all error paths"
+    - "Close file handles before deleting references"
+    - "Delete session data to prevent stale references"
+    - "Test with client disconnect scenarios"
+    - "Monitor heartbeat responsiveness under load"
+
+notes: |
+  This bug was particularly insidious because it only manifested under
+  production conditions with real clients. The test infrastructure now
+  allows reproduction and regression testing. The forced abort at 113MB
+  reliably triggers the code path.
+
+  The .test and .test-broken versions should be maintained for future
+  regression testing.
+
+#,,..,...,..,,.,,,,,,,...,..,,.,.,...,.,,,.,,,..,,...,...,.,.,,,,,.,,,,..,.,.,
+#GNTBHIFCZ3S4MLUV4R5D5DEIQAZAYOXRULNRYKKXNBXI3X6N6DPNX3URABXOYSUCKODDXQ5VMNY5A
+#\\\|CDRCQQIRSJFHHFD74A6S2ASUMLFOF5TMIRLIDQREE74GW3K6G7F \ / AMOS7 \ YOURUM ::
+#\[7]SQVUVCWQWISTEDE4FSPUNC6JQETTF2VS6G4JJHK54SRMAAY4EYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
