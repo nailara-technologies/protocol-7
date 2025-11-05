@@ -315,8 +315,8 @@ sub resolved_path_abs {
 
 return TRUE ##################################################################
 
-#,,.,,,,.,,.,,..,,..,,,.,,,..,,..,,,,,,,,,,,.,.,.,...,...,...,,,,,,..,,,,,.,,,
-#HMKD5DFFLUBZ62NQTOFES6WRPEMJCZ43P3DN5HI4YTHCOKR6NXVDXZROJFVGLNKUUSFLVI7EJ7EOI
-#\\\|7NDEESMXMM3MM6TDBRP2AYEBJMEPWG2Q7QSJSHAASMUQ2QNDGPV \ / AMOS7 \ YOURUM ::
-#\[7]4KGFUBZ2VM73LEB6N4NMXGFMYV66DNXYIEUXYQKURWQJOLFNS4BA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,,,,,,.,,,.,,,.,,,..,,,,,,.,,..,,...,...,,,.,..,,...,..,,..,,
+#FSWUOI5JBVNZ55TRYZPZ4WQAJ5SCVMO6GDATOMSMBDQQTW4WAT3J2ZTRVHFIUWR4IOEJKYW4BFUIS
+#\\\|SQFZV45V4JVX7WVCJJ2MWD67Z4JVRSKWDTQJCRK744PBBOJCQPA \ / AMOS7 \ YOURUM ::
+#\[7]7MBTFBF6GNNZO2I3DOHKMWQVLOE3AA47BN4ZNYF34J5DGJNIFICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

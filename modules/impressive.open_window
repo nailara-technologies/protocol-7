@@ -75,18 +75,22 @@ if ( defined <x11.geometry>
     and <x11.geometry> =~ /^(\d+)x(\d+)/i ) {    # min size
     ( my $width, my $height ) = ( $1, $2 );
     if ( $width < $min_width ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0,
-            "<< ! >> configured window width $1 is too small --> forcing 320!"
+            "<< ! >> configured window width %d is too small --> forcing %d!",
+            $1,
+            $min_width
         );
-        <x11.geometry> =~ s/^$1x/${min_width}x/i;
+        <x11.geometry> =~ s|^$1x|${min_width}x|i;
     }
     if ( $height < $min_height ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0,
-            "<< ! >> configured window height $2 is too small --> forcing 200!"
+            "<< ! >> configured window height %d is too small --> forcing %d!",
+            $2,
+            $min_height
         );
-        <x11.geometry> =~ s/x$2/x$min_height/i;
+        <x11.geometry> =~ s|x$2|x$min_height|i;
     }
 }
 
@@ -99,10 +103,16 @@ if ( @{<impressive.current_playlist>} > 1 ) {
         '--auto', $trans_delay, '--transtime', $rnd_trans, '--fade',
         '--wrap' );
 }
-push( @exec_params,
-    '--bind',   'clearall', '--mousedelay', '1', '--nologo', '--scale',
-    '--cursor', <impressive.gfx.cursor_png>,
-    @{<impressive.current_playlist>} );
+push(
+    @exec_params, qw|
+        --bind  clearall
+        --mousedelay 1
+        --nologo
+        --scale
+        --cursor
+        |,
+    <impressive.gfx.cursor_png>, @{<impressive.current_playlist>}
+);
 
 ## start up impressive window ##
 
@@ -119,7 +129,7 @@ if (<impressive.pid>) {  # waiting for python interpreter to read $tmp_bin ..,
 unlink($tmp_bin) or warn "unable to delete '$tmp_bin' [ \l$OS_ERROR ]";
 
 if ( opendir( my $tdir_fh, $temp_dir ) ) {
-    my @t_files = grep { !/^\./ } ( readdir($tdir_fh) );
+    my @t_files = grep { !m|^\.| } ( readdir($tdir_fh) );
     if ( !@t_files ) {
         <[base.log]>->( 1, "removing temp dir '$temp_dir'.." );
         rmdir($temp_dir)
@@ -157,16 +167,16 @@ if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
                 'bin'           => 'impressive',
                 'pid'           => <impressive.pid>,
                 'log_whitelist' => [
-                    qr/^Welcome to impressive/,
-                    qr/^Total presentation time/,
-                    qr/^Background rendering finished/,
-                    qr/opengl (software )?renderer/i,
-                    qr/likely be too slow/i,
+                    qr|^Welcome to impressive|,
+                    qr|^Total presentation time|,
+                    qr|^Background rendering finished|,
+                    qr|opengl (software )?renderer|i,
+                    qr|likely be too slow|i,
                     'XIO:  fatal IO error ',
                     'after \d+ requests'
                 ],
                 'callback_patterns' => {
-                    qr/^Background rendering finished/ =>
+                    qr|^Background rendering finished| =>
                         'impressive.callback.rendering_finished'
                 }
             }
@@ -174,7 +184,7 @@ if ( not defined <[base.X-11.wait_for_window]> or !<impressive.pid> ) {
     );
 
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "cube.X-11.raise_window",
+        {   'command'   => qw| cube.X-11.raise_window |,
             'call_args' => { 'args' => <x11.id> }
         }
     );
@@ -203,8 +213,8 @@ if (    <impressive.cfg.use_start-anim>
     );
 }
 
-#,,..,,.,,,..,,,,,.,.,...,,,,,,..,...,...,.,,,..,,...,...,...,.,.,,.,,,,.,,..,
-#LF4BZ7A5F4L3GGL454TWAMCZY4NK4O646THLCPXVUIN75XQCGPQG6PRCN6FF75WDZRXHZFHV5DU2I
-#\\\|VOFYYGMNMG3IZT22GSFN6I75MOHH3JWE4UZDIB5OPOALVHQ2A5B \ / AMOS7 \ YOURUM ::
-#\[7]X3UUJGIK3JOCV4NWQ2B6PYE6YE7ZNYE6MLVV2YS4XEV3LVM6E4CI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,.,,..,.,,,..,,..,,..,,..,,..,,...,...,,..,,.,,...,.,.,.,.,
+#YWM56NGWFV6UIHJEXHYUC4PFKNDQRSYFPISLJ4AP2NJQ2YSV5P5A2WBPTJXLQIML546NF3VWAZOQY
+#\\\|PMRYGG3J73NET3QM44CBSCXHJUHA6UVI3USFUGUKGLRF5HPG455 \ / AMOS7 \ YOURUM ::
+#\[7]KDTQK2FGP73YUF6N3WLTVSOOR3HWN6KQZIIFKMVTB6BB5NMAXGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

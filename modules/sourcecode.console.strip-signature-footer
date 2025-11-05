@@ -19,6 +19,9 @@ $strip_verbosity = 3
 
 $command_params =~ s,^ *| *$,,;
 
+## Strip vim-style line number suffix (e.g., file.txt:42) ##
+$command_params =~ s|:\d+$||;
+
 my $paths     = <sourcecode.path>;    # <-- prepared in 'sourcecode.init_code'
 my $work_tree = $paths->{'work_tree'};
 
@@ -27,7 +30,7 @@ my @source_paths;
 if ( length $command_params ) {
     if ( not @source_paths
         = <[base.source.collect_file_list]>->($command_params) ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0, ': no files found matching pattern: %s',
             $command_params
         );
@@ -54,13 +57,13 @@ foreach my $source_path (@source_paths) {
     my $path_rel = $source_path;
     $path_rel =~ s|^$work_tree/?||;
 
-    <[base.log]>->( 2, ':::[ %s ]:.<+>.::', $path_rel )
+    <[base.logs]>->( 2, ':::[ %s ]:.<+>.::', $path_rel )
         if $strip_verbosity >= 2;
 
     # Read the file
     my $src_str;
     if ( not <[file.slurp]>->( $source_path, \$src_str, qw| :raw | ) ) {
-        <[base.log]>->( 0, ':E: unable to read file: %s', $path_rel );
+        <[base.logs]>->( 0, ':E: unable to read file: %s', $path_rel );
         $files_error++;
         next;
     }
@@ -77,10 +80,13 @@ foreach my $source_path (@source_paths) {
 
     if ( not $footer_data->{'structure-was-valid'} ) {
         my $footer_error = $footer_data->{'encountered-error'};
-        <[base.log]>->(
+        if ( not defined $footer_error or not length $footer_error ) {
+            $footer_error = 'signature footer present but could not be validated';
+        }
+        <[base.logs]>->(
             0,
             ':E: invalid signature structure: %s',
-            $footer_error // 'unspecified error'
+            $footer_error
         );
         $files_error++;
         next;
@@ -100,7 +106,7 @@ foreach my $source_path (@source_paths) {
 
     if ( $strip_verbosity >= 2 ) {
         <[base.log]>->( 2, ': signature footer found and stripped' );
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
             ': : endline state encoded: %s',
             $footer_data->{'endline-state-encoded'} // 'not specified'
@@ -114,17 +120,17 @@ foreach my $source_path (@source_paths) {
     }
 
     if ( $strip_verbosity >= 3 ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             3,
             ': : AMOS checksum: %s',
             $footer_data->{'amos-payload-checksum'} // 'N/A'
         );
-        <[base.log]>->(
+        <[base.logs]>->(
             3,
             ': : BMW checksum: %s',
             $footer_data->{'bmw-chksum'} // 'N/A'
         );
-        <[base.log]>->(
+        <[base.logs]>->(
             3,
             ': : signature: %s',
             substr( $footer_data->{'signature'} // '', 0, 40 ) . '...'
@@ -133,7 +139,7 @@ foreach my $source_path (@source_paths) {
 
     # Write the restored content back to the file
     if ( not <[file.put_bin]>->( $source_path, $src_str ) ) {
-        <[base.log]>->( 0, ':E: unable to write file: %s', $path_rel );
+        <[base.logs]>->( 0, ':E: unable to write file: %s', $path_rel );
         $files_error++;
         next;
     }
@@ -145,11 +151,11 @@ foreach my $source_path (@source_paths) {
 
 <[base.log]>->( 1, ':' );
 <[base.log]>->( 1, ':::[ summary ]::.::' );
-<[base.log]>->( 1, ': files processed: %d',          $files_processed );
-<[base.log]>->( 1, ': files stripped: %d',           $files_stripped );
-<[base.log]>->( 1, ': files without signatures: %d', $files_no_sig )
+<[base.logs]>->( 1, ': files processed: %d',          $files_processed );
+<[base.logs]>->( 1, ': files stripped: %d',           $files_stripped );
+<[base.logs]>->( 1, ': files without signatures: %d', $files_no_sig )
     if $files_no_sig > 0;
-<[base.log]>->( 1, ': files with errors: %d', $files_error )
+<[base.logs]>->( 1, ': files with errors: %d', $files_error )
     if $files_error > 0;
 <[base.log]>->( 1, ':' );
 
@@ -159,8 +165,8 @@ if ( $files_error > 0 ) {
 
 return 0;
 
-#,,..,,.,,.,,,,.,,,..,,.,,,,,,..,,.,.,.,.,.,.,..,,...,...,..,,...,..,,,.,,,.,,
-#TLYENDLSAQ5P6SLPMPGFUQQVMQGYHZ4ZX3RSDXMXXSMYDPEWYMG56Q5L776QZ3FURQNRV2SK7PUNQ
-#\\\|JWYXK5AML6F7G64ETK76FIIRE3KLBBU2VPRXFHSHZUQQEYBHUHB \ / AMOS7 \ YOURUM ::
-#\[7]5QFDMYTYIOG4FWVPVQDZ6ZIO4ZKUTSLWTE27DBBFX6SXL3ZXBCDY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,,.,,.,,.,.,.,,,..,,.,.,,.,,..,,...,...,,,.,..,,.,,,.,.,...,
+#LOU57J5XBURU6UQKMBRCWZBEUXKVTHBHBYZ37X7VIPX4AA7JX67IPZRF2CY5DLO3QBMKYDEHZ2AGU
+#\\\|27IIYJ6CQI4G2ELNZ7DTSCN47GP6I4QDXIL223VJVZBJQ36PUCQ \ / AMOS7 \ YOURUM ::
+#\[7]MA24RDQXCFP2QFCMP4TKB5JBR3IZRRJABZJ7RC2J4XD5P5AQA4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
