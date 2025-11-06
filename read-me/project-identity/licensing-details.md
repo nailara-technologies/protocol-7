@@ -42,8 +42,8 @@ Any derivative works based on this code must:
 2. Retain appropriate attribution and licensing notes
 3. Preserve the original license terms where applicable
 
-#,,.,,,..,,.,,,,,,,,.,,..,,..,.,,,..,,.,,,..,,..,,...,...,..,,..,,,,.,,,,,,,.,
-#GHAXELFGYRYR5JAHN7SECNCVVZZVM6C72EILRFPGFUARLBGRSUTAXGIA375DOE7FISRJ57G3T4T7W
-#\\\|3LKLV5ZD4BRDZF6PZGQTBE7GA67THJ6HSQ2RVZLTVMRJCENIXWS \ / AMOS7 \ YOURUM ::
-#\[7]GOKUBNVAXRCQNIWSUUOX7M4EUAOXIEHH2WZ4WYMM5QJWQECRVQAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,,..,,,.,...,,,.,...,..,,.,.,..,,...,...,..,,,.,,,,.,,,,,,.,,
+#J4HAIRWMTQOV4VIITHG6D4GVCZQ2T5LKQWE6HVVBXVUXJP52TAZ2PCVZY6FSMUVIPZFCK6HLA3234
+#\\\|AWIH6J4CHBXAHV53FZBKG7YEP4TZLHXU5WSGAMVBCTBU5ZKF5JJ \ / AMOS7 \ YOURUM ::
+#\[7]J5JXZDGHIUOM26Y5AMMPKAP2TQO4VPBSY5MN7HGN5TAT2NUMWADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

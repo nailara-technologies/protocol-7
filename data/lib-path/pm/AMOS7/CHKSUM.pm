@@ -338,8 +338,8 @@ sub amos_template_chksum {
 
 return TRUE ##################################################################
 
-#,,,,,,..,...,.,,,,,,,.,.,..,,.,,,.,,,.,,,..,,..,,...,...,,.,,..,,,.,,.,,,,.,,
-#KRZF7TMIIBK5UZZZGRRR5XNHVP2KB55MCID6B6CV45SRPNY44QEHYVJE5FP7NHV5X5CPV2IQULXWS
-#\\\|6I2GEKE6UZCXDTRDRFN5U3F4G2HRSQH4NBEIO3SWKKQJ25CIK2S \ / AMOS7 \ YOURUM ::
-#\[7]G2F2GIPVWYRPR454UXZF7SNVRZLQQD2RO7GWYPJWMLWMWS5X6WDI 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,,,.,,..,.,,,,,.,,,,,..,,,.,,..,,...,...,..,,,,.,,,,,...,,..,
+#ZNKYK5DT46MCYLKDQ3TT3AZALUKAO4DKN3HUJFDCEWP3U7YUKIXIPFTBJDY5S5GVKS4JKVGXFFQIE
+#\\\|VZQR6U6TMR3HDROFO5R64CLHTFI4KG73NSOG4SCVROMXVYA7DYP \ / AMOS7 \ YOURUM ::
+#\[7]UCKTZYO6L6W2S7UNHRK46UY7O5UFQCNZPNBV4YCLXQ2HLWBFICAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
