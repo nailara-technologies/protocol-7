@@ -48,8 +48,8 @@ git config core.hooksPath
 
 The `.git/hooks/` directory contains sample hooks provided by git. The actual hooks used are in this directory (`bin/dev/git-hooks/`) and are version controlled, so all developers have the same hooks.
 
-#,,..,,,.,.,,,.,.,,,,,.,,,..,,.,.,,,.,,..,.,.,..,,...,...,,..,,,.,,,,,...,.,.,
-#KT5TFF2SJM54LGXK5HEUT3PUCDUUQQ4C6OEYJL53A2RH7MZQQ5K2PX3I3JLY3LFDDJQVJVHEDJQ6W
-#\\\|T7I2NZK2HLE6PWK7Z7ESYQKCQJU25XYINJWCYBYEPKEUTV7IDEA \ / AMOS7 \ YOURUM ::
-#\[7]Z6O2XYNDKDFRQQ6ITNQEXXFI663N2YYFFXPRL4E5R45NK2GC7KDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,.,,,,,,...,,..,.,.,,..,,,,,..,,...,...,..,,,.,,,,,,,,,,,.,,
+#U7KE4XENDOUX4AR3DEHGGM4KPC7BV6SHHEM22BWBNHCO7BZDGR6IMFCJ3YMG6PXKWEV6ZNO76PED4
+#\\\|HQORLPCUR3AZH6ZWEZO3OAHNNG4DL4XSI2IUA3FFWNHNPDEENFS \ / AMOS7 \ YOURUM ::
+#\[7]U7V6EJHGLDCWMBBI32OZFMBEHSND6OQ5ZWMWP6HIPLVV7I4D2GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

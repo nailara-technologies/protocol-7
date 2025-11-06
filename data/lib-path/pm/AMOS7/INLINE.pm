@@ -346,8 +346,8 @@ sub encoded_bmw_chksum {
 
 return TRUE ##################################################################
 
-#,,,.,...,,,,,,..,.,,,,.,,.,,,,.,,.,,,..,,,,.,..,,...,...,..,,...,,,.,.,.,.,,,
-#2U3O6NEHNDELO6RUOPBXZYTTYZHXDRWWZQUYHSEIRWNYML3G6C3HOZNO52VAQ23TS4F2ISCREZ6AG
-#\\\|R6L7NU7WUEM4EGU2WHOD56XYDID5G2E2H3QRHJEJ7RA6LKS6NRM \ / AMOS7 \ YOURUM ::
-#\[7]GO33LH7GEHWN5CHDHUMBNWLW5M7VZ4WDTMPO3MKFGEQCR5BOMQBA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,...,.,.,,,.,,,,,,.,,,..,,..,..,,...,...,,..,...,,.,,,,,,..,,
+#DUZSXXQRNZTHE34J3L67CKJXAZF2KC7YGG57MRQEE72Q5QXEK3BWU3RNIR5PXRZDR2CTCRLPJKFBG
+#\\\|XL352RSAJVDAOVZGLCCA2DAGQ25ZNZCFXKUJM2F43R4KAD2TPCU \ / AMOS7 \ YOURUM ::
+#\[7]4IUVECQMMIG3NNALJOXOZJJI2XDNCL3F2VUNYAV5F67TLR6A6WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
