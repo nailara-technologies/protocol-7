@@ -140,29 +140,49 @@ if (   not defined $present_checksum
     if ( not defined $present_signature ) {
 
         <[base.log]>->( 2, ': : was not signed yet ..,' );
-        <[base.log]>->( 2, ': :' );
+        <[base.log]>->( 2, ':' );
     } else {
 
         <[base.log]>->( 2, ':*: body data checksum has changed ..,' );
         <[base.log]>->( 2, ': :' );
         <[base.log]>->( 2, ':-: [ BMW data checksum ] < ..found >' );
-        <[base.logs]>->( 2, ': %s .,', $present_checksum );
+        <[base.log]>->( 2, ':' );
+        <[base.logs]>->(
+            2, ':: %s',
+            <[base.parser.ellipse_center]>->( $present_checksum, 43 )
+        );
 
     }
 
     # Signature was calculated on normalized content above
     # Just append the signature footer
     $src_str .= $recalc_data->{'signature-footer-str'};
-    <[base.log]>->( 2, ':\\: [ BMW data checksum ] < current. >' );
-    <[base.logs]>->( 2, ': %s .,', $recalc_data->{'data-chksum'} );
-    <[base.log]>->( 2, ': :' );
+    <[base.log]>->( 2, ':' );
+    <[base.log]>->( 2, ':=: [ BMW data checksum ] < current. >' );
+    <[base.log]>->( 2, ':' );
+    <[base.logs]>->(
+        2,
+        ':: %s',
+        <[base.parser.ellipse_center]>->( $recalc_data->{'data-chksum'}, 43 )
+    );
+    <[base.log]>->( 2, ':' );
 
     if ( defined $present_signature ) {
         <[base.log]>->( 2, ':+: [ previous signature ]' );
-        <[base.logs]>->( 2, ':.%s .,', $present_signature );
+        <[base.log]>->( 2, ':' );
+        <[base.logs]>->(
+            2, ':: %s',
+            <[base.parser.ellipse_center]>->( $present_signature, 43 )
+        );
     }
+    <[base.log]>->( 2, ':' );
     <[base.log]>->( 2, ':+: [ current checksum signature ]' );
-    <[base.logs]>->( 2, ':.%s .,', $recalc_data->{'signature'} );
+    <[base.log]>->( 2, ':' );
+    <[base.logs]>->(
+        2, ':: %s',
+        <[base.parser.ellipse_center]>->( $recalc_data->{'signature'}, 43 )
+    );
+    <[base.log]>->( 2, ':' );
 
 } else {
     <[base.log]>->( 2, ':.: blue midnight wish C25519 signature valid. =)' );
@@ -176,8 +196,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,..,.,.,.,,,.,,,,.,,..,,...,,,.,,,.,,..,..,,..,,...,...,.,.,.,.,,..,.,.,...,
-#UYEDH7J2YDZH2W2MX5FGJWJPXU6BVL6XAHBEB4BP3Y7PNCBIJQBQ7ERKWPUGAG6IXXF2TK2LRISNE
-#\\\|ETCC47IB5YHMOXUOHOXYMNBNP4REM3TV6ZLSCVWOFBAGPAOCCJW \ / AMOS7 \ YOURUM ::
-#\[7]W7LDEDEHPTOEAG3RDTAALO42FUP5DTUTE5BCD4XX45K364MSOKDI 7  DATA SIGNATURE ::
+#,,,,,...,...,.,,,,..,,,.,...,..,,,,,,,.,,,.,,..,,...,..,,,..,,,,,,,,,.,,,,,.,
+#DCDKMHWDUFJZW3J2WZ2KVE5RW5ESBQTHFX6WQM4BWJLTDHICMDFX7UCKV75R5AV35RDYJMHA5YWRQ
+#\\\|XANBCFTYXB7UJILBEPQM7G3MHUYF72I6XZBZ5LGSE2ICXKV4BFA \ / AMOS7 \ YOURUM ::
+#\[7]XAAASOSJ53KGNOIVN5UW5WHQFPYD7QU2BZBWZJMRI4F5MIDPN4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
