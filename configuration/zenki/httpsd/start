@@ -1,0 +1,61 @@
+
+ .:[ nailara 'httpsd' HTTPS server zenka - TLS/SSL encrypted ]:.
+
+[load_config_file:'shared-params']
+
+## Load httpd modules + httpsd wrappers
+modules.load         =  auth net protocol io.unix io.ip httpd httpsd   ## devmod
+
+net.https.addr       =  0:0:0:0:0:0:0:0
+net.https.port       =  443
+
+## TLS/Certificate configuration
+httpsd.cfg.tls_version              = TLSv1_2
+httpsd.cfg.cipher_suite             = DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK
+httpsd.cfg.certificate_path         = /etc/protocol-7/certs/current.pem
+httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
+httpsd.cfg.hsts_max_age             = 31536000
+httpsd.cfg.hsts_include_subdomains  = 1
+
+## HTTP handlers (reuse httpd handlers wrapped by httpsd)
+https.handler.get     =  httpsd.request_handler
+https.handler.head    =  httpsd.request_handler
+https.handler.options =  httpsd.request_handler
+
+## Shared settings with httpd (site content)
+httpsd.site_dir    = '/var/httpd/'
+httpsd.upload_dir  = '/var/protocol-7/httpd/uploads'
+
+httpsd.cfg.default_site_name = default
+httpsd.cfg.external_sitedirs = 1
+httpsd.cfg.uploads_enabled   = 1
+httpsd.cfg.allow_range_overlap = 1
+
+access.cmd.usr.cube  =  *
+
+httpsd.system.user    =  httpsd
+httpsd.system.group   =  httpsd
+
+max.connections     =  1024
+httpsd.timeout      =  23
+
+[load_modules:<modules.load>]
+
+[init_modules]
+
+[base.net.connect:'unix']
+
+httpsd.sock = [base.open:'ip.tcp','input',<net.https.addr>,<net.https.port>]
+[base.protocol.bind:<httpsd.sock>,'https','server']
+
+[root.drop_privs:<httpsd.system.user>]
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,,,.,,.,,,.,,.,,,,.,,..,,,,.,.,,,.,,,,..,..,,...,...,...,.,,,...,,.,,,,.,
+#35IX3I7FE4U6IOLGWKGFSKPWCMMMWUPBPXHU5E2EZX5RJEUOILYOARWWXCRDHUMHKDS564ZI4U2FG
+#\\\|TMDT3LA2R5ZETKSNJZB7KMX4DIFQM2OSMQYOVNGHCTJTJDY2KDJ \ / AMOS7 \ YOURUM ::
+#\[7]UKGFNRBRVZRZFPBMHWF2QIQQ3E4FW7ZJSYXNTZOGCWOL4DMOKUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

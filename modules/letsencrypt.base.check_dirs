@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = letsencrypt.base.check_dirs
+# descr = Validate and create required directories for Let's Encrypt operations
+
+## Check and create certificate directories
+my @dirs = (
+    <letsencrypt.certs.dir>, <letsencrypt.certs.backup>,
+    <letsencrypt.cache.dir>,
+);
+
+foreach my $dir (@dirs) {
+    next unless $dir;
+
+    if ( !-d $dir ) {
+        <[base.log]>->( 2, "creating directory: $dir" );
+        mkdir( $dir, 0700 )
+            or <[base.log]>->( 1, "error: failed to create $dir: $!" );
+    } elsif ( !-w $dir ) {
+        <[base.log]>->( 1, "error: directory not writable: $dir" );
+    }
+}
+
+<[base.log]>->( 2, 'certificate directories validated' );
+
+#,,..,..,,.,.,,,.,...,...,..,,,,.,..,,,..,.,,,..,,...,...,...,,..,,..,,..,..,,
+#K4EOMI6MVHBM6LMDS27VKIN7RILQXH2UDL6WHMA4OAND5YUSIUAL747ZMGTRN3UH7RL23DTYSA3EI
+#\\\|4RHQU2OKHFTFNC3C7VRIRWGHIHYEPADRF56QOPHOQSUORYSTCLR \ / AMOS7 \ YOURUM ::
+#\[7]MC7S3OEWHXDGDLIL4CYJ4T77Z6HEBLJKRDVXLZTEV3CYKXTAFIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

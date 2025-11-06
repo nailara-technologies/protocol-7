@@ -1,0 +1,161 @@
+## [:< ##
+
+# name  = letsencrypt.child.acme_finalize_order
+# descr = Finalize ACME order by submitting CSR and polling for certificate
+
+use JSON::XS;
+
+<[base.log]>->( 2, 'finalizing ACME order' );
+
+## Ensure we have order and CSR
+my $current_order = <letsencrypt.child.current_order>;
+my $csr           = <letsencrypt.child.current_csr>;
+
+unless ( $current_order && $csr ) {
+    <[base.log]>->( 1, 'error: no current order or CSR' );
+    return undef;
+}
+
+my $finalize_url = $current_order->{finalize_url};
+
+unless ($finalize_url) {
+    <[base.log]>->( 1, 'error: no finalize URL in order' );
+    return undef;
+}
+
+## Get fresh nonce
+my $nonce = <[letsencrypt.child.get_fresh_nonce]>->();
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+    return undef;
+}
+
+## Create finalization payload with CSR
+my $payload = { csr => $csr->{b64url}, };
+
+## Submit finalization request
+my $response = <[letsencrypt.child.acme_http_request]>->(
+    'POST', $finalize_url, $payload, $nonce,
+    <letsencrypt.child.acme_client> {account_url}
+);
+
+unless ($response) {
+    <[base.log]>->( 1, 'error: finalization request failed' );
+    return undef;
+}
+
+unless ( $response->{status} == 200 ) {
+    <[base.log]>->(
+        1, "error: finalization returned status $response->{status}"
+    );
+    return undef;
+}
+
+<[base.log]>->( 2, 'finalization request submitted' );
+<[base.log]>->( 2, "  order status: $response->{data}{status}" );
+
+## Update nonce
+<letsencrypt.child.acme_client> {nonce} = $response->{nonce};
+
+## Store finalization response
+<letsencrypt.child.current_order> {finalized_at} = time();
+
+## Poll for certificate (order processing)
+<[base.log]>->( 2, 'polling for certificate issuance...' );
+
+my $order_url = <letsencrypt.child.current_order> {order_url};
+my $cert_url;
+
+## Poll until certificate is ready
+my $max_polls  = 60;
+my $poll_count = 0;
+my $backoff    = 1;
+
+while ( $poll_count < $max_polls ) {
+    $poll_count++;
+
+    ## Get fresh nonce
+    $nonce = <[letsencrypt.child.get_fresh_nonce]>->();
+    unless ($nonce) {
+        <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+        last;
+    }
+
+    ## Check order status (POST-as-GET)
+    my $order_response = <[letsencrypt.child.acme_http_request]>->(
+        'POST',
+        $order_url,
+        '',    # empty payload
+        $nonce,
+        <letsencrypt.child.acme_client> {account_url}
+    );
+
+    unless ($order_response) {
+        <[base.log]>->( 2, "poll $poll_count: request failed" );
+        sleep($backoff);
+        $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+        next;
+    }
+
+    my $order_data   = $order_response->{data};
+    my $order_status = $order_data->{status};
+
+    <[base.log]>->( 2, "poll $poll_count: order status = $order_status" );
+
+    if ( $order_status eq 'valid' ) {
+        $cert_url = $order_data->{certificate};
+        <[base.log]>->( 2, 'certificate ready!' );
+        <letsencrypt.child.acme_client> {nonce} = $order_response->{nonce};
+        last;
+    } elsif ( $order_status eq 'invalid' ) {
+        <[base.log]>->( 1, 'order became invalid during processing' );
+        return undef;
+    }
+
+    sleep($backoff);
+    $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+}
+
+unless ($cert_url) {
+    <[base.log]>->( 1, 'error: certificate URL not obtained within timeout' );
+    return undef;
+}
+
+## Download certificate
+<[base.log]>->( 2, "downloading certificate from $cert_url" );
+
+my $cert_response = <[letsencrypt.child.acme_http_request]>->(
+    'POST',
+    $cert_url,
+    '',    # empty payload for POST-as-GET
+    <[letsencrypt.child.get_fresh_nonce]>->(),
+    <letsencrypt.child.acme_client> {account_url}
+);
+
+unless ( $cert_response && $cert_response->{status} == 200 ) {
+    <[base.log]>->( 1, 'error: failed to download certificate' );
+    return undef;
+}
+
+my $cert_pem
+    = $cert_response->{headers}{'content-type'} eq
+    'application/pem-certificate-chain'
+    ? $cert_response->{data}
+    : $cert_response->{data};
+
+<[base.log]>->( 2, 'certificate downloaded successfully' );
+
+## Return certificate and key
+return {
+    certificate   => $cert_pem,
+    key           => <letsencrypt.child.cert_key>      {pem},
+    domains       => <letsencrypt.child.current_order> {domains},
+    cert_url      => $cert_url,
+    poll_attempts => $poll_count,
+};
+
+#,,..,,.,,,.,,...,...,,,.,.,,,.,,,.,.,,..,.,,,..,,...,..,,,,,,,..,...,..,,,,.,
+#CHNG4F3GS2DXK5MO3HQ7KXI56G25LPSZSOWVONFMW4ZSMWAGEV673XZJOQSZBCRWVTLMYJ6HHXE7C
+#\\\|72UEVJ4FNFEEY7P5DVHDQQXFAOGPPPJOTYXW7NLQYOABIKONMCX \ / AMOS7 \ YOURUM ::
+#\[7]OWEYGFWZ6EB6QVN25A5HUPV3GD4CSJ2AEPAPXBWQB3CL3PWIFCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

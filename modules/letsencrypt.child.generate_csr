@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = letsencrypt.child.generate_csr
+# descr = Generate Certificate Signing Request (CSR) for certificate issuance
+
+use Crypt::OpenSSL::RSA;
+use Crypt::OpenSSL::X509;
+
+my $domains = shift;    # arrayref of domains
+
+return undef unless $domains && @$domains;
+
+<[base.log]>->( 2, 'generating certificate signing request (CSR)' );
+
+my $primary_domain = $domains->[0];
+
+## Generate new certificate key (RSA-2048)
+<[base.log]>->( 2, 'generating certificate key...' );
+my $cert_key = Crypt::OpenSSL::RSA->generate_key(2048);
+$cert_key->use_sha256_hash();
+
+my $key_pem = $cert_key->get_private_key_string();
+
+<[base.log]>->( 2, 'generating CSR...' );
+
+## Create X509 request
+my $x509_req = Crypt::OpenSSL::X509::Request->new();
+
+## Set subject name (CN = primary domain)
+$x509_req->set_subject_name(
+    Crypt::OpenSSL::X509::Name->new(
+        C  => 'US',
+        ST => 'State',
+        L  => 'City',
+        O  => 'Organization',
+        CN => $primary_domain,
+    )
+);
+
+## Add Subject Alternative Names (SANs)
+if ( @$domains > 1 ) {
+    <[base.log]>->(
+        2, 'adding Subject Alternative Names: ' . join( ', ', @$domains )
+    );
+
+    my $san_string = join( ', ', map {"DNS:$_"} @$domains );
+
+    ## Create extension for SAN
+    my $ext = Crypt::OpenSSL::X509::Extension->new(
+        'subjectAltName' => $san_string );
+
+    $x509_req->add_extensions( [$ext] );
+}
+
+## Set public key from certificate key
+$x509_req->set_public_key($cert_key);
+
+## Sign CSR with the certificate key
+$x509_req->sign( $cert_key, 'sha256' );
+
+## Get CSR in PEM format
+my $csr_pem = $x509_req->as_string();
+
+<[base.log]>->( 2, 'CSR generated successfully' );
+
+## Extract DER for ACME submission (base64url encoded)
+my $csr_der    = $x509_req->as_DER();
+my $csr_b64url = <[letsencrypt.child.encode_base64url]>->($csr_der);
+
+## Store in child state
+<letsencrypt.child.current_csr> = {
+    pem        => $csr_pem,
+    der        => $csr_der,
+    b64url     => $csr_b64url,
+    domains    => $domains,
+    created_at => time(),
+};
+
+## Store certificate key in child state (will be saved to disk after cert issued)
+<letsencrypt.child.cert_key> = {
+    pem    => $key_pem,
+    object => $cert_key,
+};
+
+return {
+    csr_pem    => $csr_pem,
+    csr_b64url => $csr_b64url,
+    key_pem    => $key_pem,
+    domains    => $domains,
+};
+
+#,,,.,,..,.,.,..,,,..,..,,,..,,,.,..,,.,.,,,,,..,,...,...,.,,,,..,,,.,,,.,,,,,
+#B7NJZ5SVAI7REMPVOCX3KTWUHOL6BFAZFZZOKSM2KX7C3XIGTLAHQFSQJGYZP2CGSWC26SK7L7BBQ
+#\\\|NH52AAH6ACHHXBSKFWGLDLL7NGPOTLLPBECJJIYDVRKBCE4AO3A \ / AMOS7 \ YOURUM ::
+#\[7]I5QHJBGWDXIUGMYWQECNBOLJGW5QC2ODVKMJHRRZNRR272OMPICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

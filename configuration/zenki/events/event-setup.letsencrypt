@@ -1,0 +1,48 @@
+
+# name  = events-setup.letsencrypt
+# descr = Event handlers for Let's Encrypt certificate management
+
+.: events :.
+
+    enabled = letsencrypt-cert-updated letsencrypt-renewal-failed letsencrypt-renewal-check
+
+    - letsencrypt-cert-updated
+
+      : action :
+        type    = send-command
+        command = httpsd.reload_certificates
+
+    - letsencrypt-renewal-failed
+
+      : action :
+        type    = send-command
+        command = log.error
+        params  = "Certificate renewal failed"
+
+    - letsencrypt-renewal-check
+
+      : action :
+        type    = send-command
+        command = letsencrypt.status
+
+    - letsencrypt-critical-failure
+
+      : action :
+        type    = zenka-present
+        zenka-name = letsencrypt
+
+.: timetable :.
+
+  - letsencrypt-renewal-check
+    at  =  HH:05:00
+    # runs 5 minutes past each hour to check certificate expiration
+
+  - letsencrypt-renewal-failed
+    at  =  HH:15:00
+    # runs 15 minutes past each hour to retry failed renewals
+
+#,,,.,...,...,,,,,,,,,,.,,,,.,,,,,..,,.,.,,.,,.,.,...,..,,...,.,,,..,,,..,,.,,
+#BZ7SQTDZZCX33YZIF6NMBQLHZMDTNJGHXU2RANXGDUPCS2ZWEQP6UWHUJ7QDHSZQAPWYNBGTX6KW2
+#\\\|DXV32KBUO7J6SEM36SIMUIQMY2Y6I77EYAIDSWCXRYCSL6BB6DE \ / AMOS7 \ YOURUM ::
+#\[7]24L5THAWLZLRKHVQFZGJUNBHPYXXCH4DPZZNDIHUM6NAJD7672CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

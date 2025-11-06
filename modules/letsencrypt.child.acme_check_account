@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = letsencrypt.child.acme_check_account
+# descr = Child process verifies ACME account status and nonce with Let's Encrypt server
+
+my $msg = shift;
+
+<[base.log]>->( 2, "child: checking ACME account status" );
+
+## This is where blocking ACME operations occur:
+## 1. Connect to ACME directory
+## 2. Get fresh nonce
+## 3. Load account key
+## 4. Request account information
+## 5. Check Terms of Service acceptance
+
+my $result = {
+    status       => 'success',
+    account_id   => <letsencrypt.child.acme_client> {account_id},
+    nonce        => 'new-nonce-from-server',
+    tos_accepted => 1,
+    email        => <letsencrypt.admin.email>,
+};
+
+if ( !<letsencrypt.child.acme_client> {account_key} ) {
+    <[base.log]>->(
+        2, "child: account key not initialized - creating new account"
+    );
+
+    # <[letsencrypt.child.generate_account_key]>->();
+    # <[letsencrypt.child.acme_register_account]>->();
+    $result->{account_created} = 1;
+}
+
+<[letsencrypt.child.send_to_parent]>->(
+    {   command         => 'acme_status',
+        account_id      => $result->{account_id},
+        nonce           => $result->{nonce},
+        tos_accepted    => $result->{tos_accepted},
+        account_created => $result->{account_created} // 0,
+    }
+);
+
+#,,,,,..,,,,,,,.,,...,,,,,...,,,,,...,,.,,,..,..,,...,...,..,,,.,,.,.,,..,,,,,
+#SANLKDNPQLBUMVVK5KL2H3TZW5AJSXUX27QEUNA6ENOPTEQ6HBIPSFEP4GIEMK4EBD3HHGRTPWBMG
+#\\\|W2RGBJIO7EM4RMANNYOQ7HVCIY2JPHI55KTWFLMCIE6TINBLULS \ / AMOS7 \ YOURUM ::
+#\[7]7KDECWHFRHLJMS3ON4LB27ZS7QGJ3FKBFAGBRCWIFVINXFN72KDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

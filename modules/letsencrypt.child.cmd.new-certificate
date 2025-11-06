@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = letsencrypt.child.cmd.new-certificate
+# param = <domain>
+# descr = Obtain new certificate for domain - performs full ACME enrollment
+
+## $call is provided by compiled-in code header
+my $domain = $call->{'args'};
+
+return {
+    'mode' => 'false',
+    'data' => 'domain parameter required'
+    }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "child: obtaining new certificate for domain: $domain" );
+
+## TODO: Implement ACME new certificate workflow
+## 1. Register account (if not already done)
+## 2. Create order
+## 3. Get authorizations
+## 4. Respond to HTTP-01 challenges
+## 5. Finalize order with CSR
+## 6. Download certificate and chain
+
+return {
+    'mode' => 'true',
+    'data' =>
+        "new certificate workflow initiated for $domain (not yet implemented)"
+};
+
+#,,..,..,,.,,,,.,,,..,...,,.,,.,,,.,,,.,,,...,.,.,...,.,.,,..,..,,..,,.,.,,,.,
+#GSFZ3YFOOQSY43VNMU33SISEF3KLXHRPA5YPCIJ5UEMUIKQT7UDXY2NMI2NNZ4SZZPDUIZ66P77OM
+#\\\|TPQQLEDIWDGZUEYXCHPLUM3RRE27APGYQCOJVQLDWPRQYAD6IOU \ / AMOS7 \ YOURUM ::
+#\[7]6O55MHCHYF6W6OWYY6BEZZJYA4FGQLIGEWDFT23YW6QA5C6AWMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

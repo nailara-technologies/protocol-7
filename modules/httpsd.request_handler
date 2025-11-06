@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = httpsd.request_handler
+# descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
+
+my $request = shift;
+my $session = shift;
+
+<[base.log]>
+    ->( 3, "httpsd: processing HTTPS request for <$request->{path}>" );
+
+# Track that this is HTTPS
+$request->{is_secure}        = 5;         # TRUE
+$request->{protocol_version} = 'HTTPS';
+
+# Delegate to httpd request handler for actual processing
+my $response = <[httpd.request_handler]>->( $request, $session );
+
+# Add HSTS header to response
+if ( defined $response ) {
+    my $hsts_max_age = <httpsd.cfg.hsts_max_age> // 31536000;
+    my $hsts_header  = "Strict-Transport-Security: max-age=$hsts_max_age";
+
+    if (<httpsd.cfg.hsts_include_subdomains>) {
+        $hsts_header .= "; includeSubDomains";
+    }
+
+    $response->{headers} //= {};
+    $response->{headers}->{'Strict-Transport-Security'} = $hsts_max_age;
+
+    <[base.log]>->( 3, "httpsd: added HSTS header" );
+}
+
+return $response;
+
+#,,..,.,.,...,...,.,.,,..,,,.,,.,,,,,,...,,.,,..,,...,...,,.,,,,,,,,.,,..,,,.,
+#EMCAUAGAGEWKD2GKQA55RURRCKXASLRP7T7EW5I23SICQTFAPPWEJ2HYPNZLMN55EJBYOHME2RT5O
+#\\\|KWXX3KPA7AFKKIHZWVNK462JAN3LXRQLXRFFX4QWRFVDFIEYKD4 \ / AMOS7 \ YOURUM ::
+#\[7]B7ENEDTLG6YEADGYXRW3E5KSUN7KYJ5HHJUUBWSW6RH5XNRWIADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

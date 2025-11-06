@@ -1,5 +1,6 @@
 # HTTP Asynchronous Implementation Checklist
 **Date: 2025-03-01 03:19:31**
+**Last Updated: 2025-11-07 (Code-Review Integration)**
 
 ## Core Implementation
 - [x] Non-blocking file operations
@@ -46,6 +47,70 @@
 6. Generate benchmark report
 7. Verify memory usage improvements
 
+## Bug Fixes & Production Stability (Deployed 2025-11-05)
+
+### Critical: Watcher Spinning on Client Disconnect
+- [x] **Status**: FIXED (2025-11-05)
+- [x] **Module**: `modules/httpd.handler.download_transfer`
+- [x] **Issue**: Clients disconnecting mid-transfer caused infinite watcher loop → CPU spinning → heartbeat timeout crashes
+- [x] **Root Cause**: Used `->stop()` instead of `->cancel()` in ABORT_DOWNLOAD path, leaving watchers registered
+- [x] **Trigger Scenarios**:
+  - Client disconnects during large file transfer
+  - MPV video player seeking (frequent disconnect/reconnect)
+  - Network interruptions during transfer
+  - Client-side Ctrl+C during download
+  - Output buffer backpressure when client stops reading
+- [x] **Fix**: Changed `->stop` to `->cancel`, added proper file handle cleanup, deleted session data, set flush_shutdown flag
+- [x] **Test Infrastructure**: 5 test suites validate the fix (see Test Infrastructure section below)
+
+### Critical: Signature Endline Policy System
+- [x] **Status**: FIXED (2025-11-05)
+- [x] **Module**: `modules/source.create_harmonic_footer`, `modules/source.cmd.get-code-signed`
+- [x] **New Modules**: `modules/source.policy.should_normalize_endlines`, `modules/source.normalize_endlines`
+- [x] **Issue**: Signatures appended directly to code lines without separator endlines after perltidy formatting
+- [x] **Root Cause**: State 6 (add separator endline) logic failed when content had NO trailing newlines
+- [x] **Impact**: Broken endlines perpetuated through preserve/restore system
+- [x] **Fix**:
+  1. Ensure last line is complete: `$$src_ref .= "\n" if $$src_ref !~ /\n$/;`
+  2. Then add separator: `$$src_ref .= "\n" if $$src_ref !~ /\n\n$/;`
+  3. New policy system handles endline normalization consistently
+
+### Minor: List::MoreUtils Prototype Warnings
+- [x] **Status**: FIXED (2025-11-05)
+- [x] **Module**: `modules/base.perlmod.autoload`
+- [x] **Issue**: Neon-colored prototype mismatch warnings for qsort/bsearch during httpd startup
+- [x] **Violation**: Protocol-7's zero-warnings policy for zenki
+- [x] **Root Cause**: List::MoreUtils loaded with ':all' exports in bin/Protocol-7:262, function prototypes already in place
+- [x] **Fix**: Localized `$SIG{__WARN__}` handler with targeted regex filter: `/^Prototype mismatch.*\b(?:qsort|bsearch)\b/`
+- [x] **Applied To**: Both normal autoload and auto-install retry paths
+
+## Test Infrastructure (5 Test Suites)
+- [x] **bin/dev/test-httpd-abort-bug** - Simple 1MB abort test
+- [x] **bin/dev/test-forced-abort** - 113MB forced abort trigger (reliably triggers code path)
+- [x] **bin/dev/test-backpressure** - Client stops reading scenario
+- [x] **bin/dev/test-httpd-blocking** - Heartbeat responsiveness check
+- [x] **bin/dev/test-httpd-spinning** - Watcher spinning detection
+- [x] **bin/dev/switch-httpd-version** - Switch between broken/fixed/test versions
+
+## Module Versions for Regression Testing
+- [x] **httpd.handler.download_transfer.fixed** - Production (active)
+- [x] **httpd.handler.download_transfer.broken** - Bug reproduction
+- [x] **httpd.handler.download_transfer.test** - Test with forced abort at 113MB
+- [x] **httpd.handler.download_transfer.test-broken** - Test broken version
+
+## Code Review Documentation
+All code-review findings documented in:
+```
+/data/projects/protocol-7/data/yaml/code-reviews/modules/
+  ├── httpd.handler.download_transfer (98 lines)
+  ├── base.perlmod.autoload (103 lines)
+  ├── crypt.C25519.init_code (335 lines)
+  └── source.signature-endline-policy-system.yaml (177 lines)
+
+/data/projects/protocol-7/data/yaml/code-reviews/bin/
+  └── ddcompress.yaml (523 lines, 70% complete)
+```
+
 ## Future Enhancements
 - [ ] HTTP/2 support
 - [ ] WebSocket implementation
@@ -54,10 +119,32 @@
 - [ ] Request throttling/rate limiting
 - [ ] Dynamic compression
 
-## Notes
-All core components have been implemented. The next step is to conduct
-thorough testing with various file sizes and connection loads to verify
-the performance improvements.
+## In-Development Tools
+- **bin/ddcompress** (70% complete) - Deduplication/compression with BASE32 encoding and harmonization markers
+  - [x] Stats mode - Analyze files and display compression statistics
+  - [x] Compress mode - Full compression with encoded output
+  - [ ] Unpack mode - Decompress and restore original files (stub)
 
-## Contributor
-nailara-technologies
+## Notes
+All core HTTP async components completed and tested. Critical bugs fixed and documented.
+The system is production-ready with comprehensive regression testing in place.
+
+Recent deployments (2025-11-05):
+- Watcher spinning fix prevents httpd crashes on client disconnect
+- Signature endline policy ensures clean code after formatting
+- Prototype warning suppression maintains zero-warnings policy
+- Test infrastructure enables future regression prevention
+
+Next phase priorities:
+1. Complete ddcompress unpack mode (30% remaining)
+2. Plan new zenka architecture (HTTPS, template parsing, Let's Encrypt)
+3. Implement HTTP/2 support for modern client compatibility
+
+## Contributors
+- nailara-technologies (original implementation)
+- Claude Code (code-reviews, bug fixes, test infrastructure - 2025-11-05)
+
+## Revision History
+- **2025-03-01**: Initial checklist with core HTTP async implementation
+- **2025-11-05**: Added critical bug fixes, test infrastructure, code-reviews
+- **2025-11-07**: Integrated all code-review findings and organized documentation

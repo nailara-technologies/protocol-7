@@ -1,0 +1,276 @@
+---
+task: "Implement Self-Test System for Signature Validation"
+priority: high
+status: planning
+created: 2025-01-06
+branch: dev/httpd-async-implementation
+
+context:
+  background: |
+    The Protocol-7 signature system uses AMOS7 encoding with BMW (Blue Midnight Wish)
+    checksums and C25519 signatures to ensure code integrity. A policy-based dual-mode
+    system was recently implemented:
+    - Normalize mode: code files (modules/, bin/) always get state 7 (2 trailing newlines)
+    - Preserve mode: data files record original endline state for reversibility
+
+  current_problem: |
+    After implementing normalization, we discovered files can have mismatched signatures:
+    - Old signatures created before normalization don't match new normalized content
+    - Fast-path optimization was incorrectly skipping files that needed re-signing
+    - 193 files had invalid signatures after the normalization changes
+
+  fixes_applied: |
+    In modules/source.cmd.get-code-signed:
+    1. Changed extract_sig_body mode from 'strict' to 'repair' (line 47)
+    2. Removed fast-path check (lines 154-162) that was skipping signature comparison
+    3. Added normalization BEFORE signature calculation (lines 164-177)
+    4. Ensured all files go through signature comparison (line 186-205)
+
+    In modules/sourcecode.console.verify-p7-signatures:
+    1. Added normalization during verification to match signing (lines 139-147)
+
+  bootstrap_issue: |
+    Modified source.cmd.get-code-signed now has invalid signature, preventing
+    sourcecode zenka from starting. Need passphrase to sign it, but automated
+    testing requires a passphrase-free solution.
+
+implementation_plan:
+  overview: |
+    Create a self-contained testing system that generates its own C25519 keypair
+    and validates the signature system logic without requiring the production keys.
+
+  phases:
+    - phase: 1
+      name: "Create Self-Test Module"
+      tasks:
+        - name: "Generate test keypair"
+          file: "modules/sourcecode.test.generate_test_keys"
+          description: |
+            Create ephemeral C25519 keypair in memory for testing.
+            No passphrase required. Keys discarded after test.
+          implementation_notes:
+            - Use Crypt::PK::Ed25519 or similar
+            - Generate fresh keys each test run
+            - Store in temporary $test_keys hash
+
+        - name: "Create test signing function"
+          file: "modules/sourcecode.test.sign_with_test_key"
+          description: |
+            Sign test content using the generated test keys.
+            Mirror the production signing logic but use test keys.
+          implementation_notes:
+            - Call source.normalize_endlines
+            - Call source.create_harmonic_footer with test key
+            - Return signed content and signature data
+
+        - name: "Create test verification function"
+          file: "modules/sourcecode.test.verify_with_test_key"
+          description: |
+            Verify test signatures using the generated public key.
+            Mirror production verification logic.
+          implementation_notes:
+            - Extract signature footer
+            - Apply normalization (match signing)
+            - Verify BMW checksum and C25519 signature
+
+    - phase: 2
+      name: "Test Suite Implementation"
+      tasks:
+        - name: "Test state encoding variations"
+          file: "modules/sourcecode.test.state_encoding_tests"
+          test_cases:
+            - name: "State 5 (unchanged)"
+              input: "content\n"
+              expected_state: 5
+
+            - name: "State 6 (added 2, file had 0)"
+              input: "content"
+              expected_state: 6
+              after_normalize: "content\n\n"
+
+            - name: "State 7 (added 2, incomplete line)"
+              input: "content"
+              expected_state: 7
+              after_normalize: "content\n\n"
+
+        - name: "Test normalization modes"
+          test_cases:
+            - name: "Code files normalize"
+              paths:
+                - "modules/test.example"
+                - "bin/test-script"
+              should_normalize: true
+
+            - name: "Data files preserve"
+              paths:
+                - "configuration/test.conf"
+                - "data/test.txt"
+              should_normalize: false
+
+        - name: "Test signature stability"
+          description: |
+            Verify that signing the same content twice produces identical signatures.
+
+        - name: "Test signature mismatch detection"
+          description: |
+            Modify content slightly and verify signature becomes invalid.
+
+    - phase: 3
+      name: "Integration Test"
+      tasks:
+        - name: "Full cycle test"
+          description: |
+            1. Create test content with various endline states
+            2. Sign with test keys
+            3. Verify signatures
+            4. Modify content
+            5. Detect invalid signatures
+            6. Re-sign
+            7. Verify again
+
+        - name: "Performance baseline"
+          description: |
+            Test signing/verification speed on various file sizes to establish
+            baseline for future optimizations.
+
+  module_structure:
+    base_module: "modules/sourcecode.test"
+    submodules:
+      - "sourcecode.test.generate_test_keys"
+      - "sourcecode.test.sign_with_test_key"
+      - "sourcecode.test.verify_with_test_key"
+      - "sourcecode.test.state_encoding_tests"
+      - "sourcecode.test.run_all_tests"
+
+  console_command:
+    name: "sourcecode.console.test-signatures"
+    usage: "./bin/Protocol-7 sourcecode test-signatures"
+    flags:
+      - "--verbose / -v : Show detailed test output"
+      - "--quick : Run only fast tests"
+      - "--full : Run complete test suite including performance tests"
+
+technical_details:
+  key_modules_to_understand:
+    - file: "modules/source.cmd.get-code-signed"
+      purpose: "Main signing logic"
+      key_functions:
+        - "Lines 47-76: Footer extraction"
+        - "Lines 78-87: Policy check and state validation"
+        - "Lines 164-177: Normalization before signing"
+        - "Lines 182-205: Signature calculation and comparison"
+
+    - file: "modules/source.extract_sig_body"
+      purpose: "Extract and validate signature footers"
+      key_concepts:
+        - "Strip mode vs info mode"
+        - "Strict mode vs repair mode"
+        - "Separator endline detection (line 102-106)"
+        - "Endline state restoration (line 627)"
+
+    - file: "modules/source.create_harmonic_footer"
+      purpose: "Generate AMOS7 signature footer"
+      key_concepts:
+        - "BMW checksum calculation (line 342)"
+        - "AMOS checksum from ELF+BMW (lines 259-263)"
+        - "Endline state encoding (line 286-292)"
+        - "Iterative harmonization for truth assertions"
+
+    - file: "modules/source.normalize_endlines"
+      purpose: "Normalize to exactly 1 trailing newline"
+      implementation: "Single regex: s|\\n*$|\\n|s"
+
+    - file: "modules/source.restore_payload_endline_state"
+      purpose: "Restore original endline state from encoded value"
+      key_logic:
+        - "State < 5: Add newlines"
+        - "State 5: No change"
+        - "State 6/7: Remove 2 newlines"
+
+    - file: "modules/source.policy.should_normalize_endlines"
+      purpose: "Determine which files should be normalized vs preserved"
+      logic:
+        - "Path-based: modules/, bin/, data/lib-path/pm/"
+        - "Type-based: .pl, .pm, .sh, .py, .md, .html"
+        - "Default: preserve for data files"
+
+  signature_format:
+    structure: |
+      <content with N trailing newlines>
+      <blank separator line>
+      #,,,.,.,,,...  (77 chars - AMOS7 header with state/checksums)
+      #XXXXXXXXX...  (BMW checksum in base32)
+      #\\\|XXXXX... \ / AMOS7 \ YOURUM ::
+      #\[N]XXXXX... N  DATA SIGNATURE ::
+      #:::::::::::::::::::::::::::::::::::::::::
+
+    endline_states:
+      0-4: "Removed N newlines during signing"
+      5: "No change (canonical - 1 trailing newline)"
+      6: "Added 2 newlines (file had 0)"
+      7: "Added 2 newlines (incomplete line + separator)"
+
+  test_dependencies:
+    required_modules:
+      - "Crypt::PK::Ed25519 or compatible"
+      - "Digest::BlueMidnightWish"
+      - "Digest::Elf"
+      - "Crypt::Misc (for base32)"
+      - "AMOS7::Assert::Truth"
+      - "AMOS7::CHKSUM::*"
+
+expected_benefits:
+  - "Automated testing without production keys"
+  - "Faster development iteration"
+  - "Regression prevention for future changes"
+  - "Documentation through test cases"
+  - "Performance benchmarking baseline"
+
+success_criteria:
+  - "Test suite runs without passphrase prompts"
+  - "All test cases pass"
+  - "Test keypair generation takes < 1 second"
+  - "1000-file signing simulation completes in reasonable time"
+  - "Tests can run in CI/CD pipeline"
+
+next_steps:
+  immediate:
+    - "Sign modules/source.cmd.get-code-signed with production key (manual)"
+    - "Run update-signatures to fix 193 files"
+    - "Verify all signatures pass"
+
+  future:
+    - "Implement self-test system per this plan"
+    - "Add to automated test suite"
+    - "Consider adding to pre-commit hooks"
+
+notes:
+  - "The fast-path optimization was removed to ensure signature comparison happens"
+  - "This makes signing slower but correct - self-test can help optimize later"
+  - "Normalization must happen in both signing AND verification for consistency"
+  - "The data-reference in footer_data points to the actual content string"
+  - "State 7 is special: it encodes '2 trailing newlines' and bypasses harmonize"
+
+related_files:
+  modified:
+    - "modules/source.cmd.get-code-signed"
+    - "modules/sourcecode.console.verify-p7-signatures"
+
+  created_previously:
+    - "modules/source.normalize_endlines"
+    - "modules/source.policy.should_normalize_endlines"
+
+  need_to_create:
+    - "modules/sourcecode.test.*"
+    - "modules/sourcecode.console.test-signatures"
+
+references:
+  - "CLAUDE.md - Project overview and architecture"
+  - "bin/elf - ELF checksum utility"
+  - "bin/amos-chksum - AMOS checksum utility"
+  - "data/lib-path/pm/AMOS7/*.pm - AMOS7 library"
+#,,,.,,,,,,,,,.,,,..,,.,.,,,.,...,,.,,,,,,.,,,..,,...,..,,.,,,,,.,,..,,,.,..,,
+#J3C6ZWLCJJNWHK44I3VS4JSBOMBO7XZJVSOO55LJ4KNFIKV4T47XHNVYI2YV4LGJ5PMP3C47CCJSK
+#\\\|7PIRLD7B5JQGWQHGFFKHQBXR2QFU4JDJYDZR5ME5JYD25ALCYDG \ / AMOS7 \ YOURUM ::
+#\[7]MOPP7CJEJ2N4DWGNM2F5AC3YRQLIKKM7VVTWDAPHDRW4BPFQGIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = httpsd.pre_init
+# descr = Pre-initialization for HTTPSD zenka before main httpd init
+
+<[base.perlmod.autoload]>->('IO::Socket::SSL');
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509');
+
+<[base.log]>->( 2, 'httpsd pre-initialization: loading TLS libraries..,' );
+
+# Certificate paths
+<httpsd.cfg.certificate_path> //= '/etc/protocol-7/certs/current.pem';
+<httpsd.cfg.key_path>         //= '/etc/protocol-7/certs/current.key';
+<httpsd.cfg.tls_version>      //= 'TLSv1_2';
+
+# Validate certificate and key exist
+if ( !-f <httpsd.cfg.certificate_path> ) {
+    <[base.log]>->(
+        1,
+        "warning: HTTPSD certificate not found at <httpsd.cfg.certificate_path>"
+    );
+}
+
+if ( !-f <httpsd.cfg.key_path> ) {
+    <[base.log]>->(
+        1, "warning: HTTPSD key not found at <httpsd.cfg.key_path>"
+    );
+}
+
+<[base.log]>->( 2, 'httpsd pre-init complete' );
+
+0;
+
+#,,.,,,,,,,..,.,,,,..,,,.,.,,,,,,,...,.,.,,.,,..,,...,...,,..,,..,..,,.,,,,.,,
+#YKCSBRZ6O7TD4H3YL54LT2GOZFYJIN7GCLBKBK3TCETWE5W6ZN6IHXSCUJ2MSAPTSAJ6JB62JJZVQ
+#\\\|Y64WYYO7DTVZRPM2CTGP7ARZSGC36XP6YML5RDZG7B3VG2B4KTL \ / AMOS7 \ YOURUM ::
+#\[7]L2Q7NO6KBY5IMRVDY7RFN7W55YKMGOQSXDNXG65R5A7VTCLYPQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

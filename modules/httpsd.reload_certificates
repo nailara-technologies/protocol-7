@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = httpsd.reload_certificates
+# descr = Reload TLS certificates in HTTPSD when Let's Encrypt updates them
+
+<[base.log]>->( 2, 'HTTPSD: reloading TLS certificates' );
+
+my $cert_dir = <httpsd.cfg.certificate_path>;
+my $key_dir  = <httpsd.cfg.key_path>;
+
+## Verify updated certificates exist
+if ( !-f $cert_dir ) {
+    <[base.log]>->( 1, "error: certificate file not found: $cert_dir" );
+    return 0;
+}
+
+if ( !-f $key_dir ) {
+    <[base.log]>->( 1, "error: key file not found: $key_dir" );
+    return 0;
+}
+
+## Update certificate cache in HTTPSD state
+# Clear old certificate data
+delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
+
+## Load new certificates
+<[file.slurp]>->( $cert_dir, \my $cert_pem, qw| :raw | );
+<[file.slurp]>->( $key_dir,  \my $key_pem,  qw| :raw | );
+
+<httpsd.cert_cache> = {
+    cert_path => $cert_dir,
+    key_path  => $key_dir,
+    cert_pem  => $cert_pem,
+    key_pem   => $key_pem,
+    loaded_at => time(),
+};
+
+<[base.log]>->( 2, 'HTTPSD: certificates reloaded successfully' );
+
+## Optional: Perform graceful reload
+## This would close and reopen the TLS socket, or signal child processes to do so
+# <[httpsd.graceful_reload]>->();
+
+return 1;
+
+#,,.,,.,.,,,.,,,.,.,.,.,,,.,,,,,,,,..,.,,,.,.,..,,...,...,.,.,,,.,,..,,.,,..,,
+#V465DR2HOJL63RKCMZHDUIL6DXCBUCRDUS6HHMPZWI4JSDUY43XFYZDQHHSEQITEE4NPPROQVNYPK
+#\\\|OTCONQRJP73RCCC25V3MVPHSWFZFHE4T53T4MLEI7DXY4P6NSD5 \ / AMOS7 \ YOURUM ::
+#\[7]V4DD6GMGQ4GW7Y7HVK3ABOK64WFWEM2ZOHK6LLPKSVHIPLG44SAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

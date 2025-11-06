@@ -1,0 +1,42 @@
+
+ .:[ nailara 'template' engine zenka - Dynamic Content Rendering ]:.
+
+[load_config_file:'shared-params']
+
+modules.load         =  auth base template
+
+template.cfg.engine                 = mustache
+template.cfg.cache_enabled          = 1
+template.cfg.cache_ttl              = 3600
+template.cfg.template_dir           = /var/protocol-7/templates
+template.cfg.max_cache_size         = 104857600
+template.cfg.safe_mode              = 1
+template.cfg.precompile_on_load     = 1
+template.cfg.parallel_renders       = 8
+
+# Mustache-specific configuration
+template.cfg.mustache.partials_dir  = /var/protocol-7/templates/partials
+template.cfg.mustache.lambdas_enabled = 0
+
+access.cmd.usr.cube  =  *
+
+template.system.user   =  template
+template.system.group  =  template
+
+[load_modules:<modules.load>]
+
+[init_modules]
+
+[base.net.connect:'unix']
+
+[root.drop_privs:<template.system.user>]
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,,,,.,,.,.,...,.,,,..,,,..,,,,,,,,,.,,,,.,,.,.,...,...,.,.,...,...,,..,..,,
+#UWXXON32GFEYI6K74NPMVU6RYK75TF6FR4Z3ZAONU6U6IOLVIWILHR5JESXZ3EY4HI27VROQASTEO
+#\\\|UGGPNUVALOCKV7GZ2Y3FIQAKLTUJ3FSPBTVWM2YJD55KJ2HAEQA \ / AMOS7 \ YOURUM ::
+#\[7]SC4I557D62G7S6467EBJOIZU4BDHQENXVYITR7WMJB2SPAQA7UBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

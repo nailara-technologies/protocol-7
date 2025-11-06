@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = letsencrypt.child.get_jwk
+# descr = Get public key in JWK (JSON Web Key) format for ACME (RFC 8037 - EdDSA)
+
+use JSON::XS;
+use MIME::Base64 qw(encode_base64url);
+
+<[base.log]>->( 3, 'generating JWK from Ed25519 account key (RFC 8037)' );
+
+my $account_key = <letsencrypt.child.acme_client>->{account_key};
+return undef unless $account_key;
+
+## Validate key type
+my $key_type = <letsencrypt.child.acme_client>->{account_key_type};
+unless ( $key_type && $key_type eq 'Ed25519' ) {
+    <[base.log]>->( 1, "error: expected Ed25519 account key, got $key_type" );
+    return undef;
+}
+
+## Create JWK structure per RFC 8037 (CFRG Elliptic Curve Signatures in JOSE)
+## Format: Octet Key Pair (OKP) with Ed25519 curve
+my $jwk = {
+    crv => 'Ed25519',    # Curve designation
+    kty => 'OKP',        # Key type: Octet Key Pair
+    x => encode_base64url( $account_key->{public} ),  # Public key (Base64url)
+};
+
+## Sort keys for consistent ordering (required by ACME spec)
+my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
+
+<[base.log]>->( 3, 'JWK (EdDSA/OKP) generated successfully for ACME' );
+
+return JSON::XS::decode_json($jwk_json);
+
+#,,,.,,,.,.,,,,.,,..,,,,,,,,.,..,,,.,,,..,,.,,..,,...,...,.,.,,,.,.,.,..,,.,.,
+#OMATOYASU7GKX5WLFSWI2WXHY3EOQVJV3MW5JRUKLXSFGY7TBTDJFR5LSJRD5ZOFDF66D7RERFZBI
+#\\\|WX7KWVWZFUNGVMTIGZSE6DEUPHMWP636JDECR7SSHUJ54QWJL4L \ / AMOS7 \ YOURUM ::
+#\[7]YQNVXHR4H3DPXBZNMC4UQ3U4ZXANF5C65EIDF67NVJP47VBR6CCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

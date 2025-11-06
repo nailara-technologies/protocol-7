@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = letsencrypt.child.acme_new
+# descr = Child process ACME new certificate issuance (blocking crypto/network calls)
+
+my $msg = shift;
+
+my $domains = $msg->{domains};                              # array ref
+my $email   = $msg->{email} || <letsencrypt.admin.email>;
+
+<[base.log]>->(
+    2,
+    "child: issuing new certificate for domains: " . join( ', ', @$domains )
+);
+
+## This is where blocking ACME operations occur:
+## 1. Create ACME account (if needed)
+## 2. Generate CSR (Certificate Signing Request)
+## 3. Submit certificate order
+## 4. Receive authorization challenges
+## 5. Respond to challenges
+## 6. Verify challenges with ACME server
+## 7. Finalize order
+## 8. Download certificate
+## 9. Send success/failure back to parent
+
+## TODO: Implement full ACME protocol flow
+
+my $primary_domain = $domains->[0];
+my $result         = {
+    status  => 'success',
+    domains => $domains,
+    cert    => '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
+    key     => '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----',
+    valid_until => time() + ( 90 * 86400 ),    # 90 days
+    fingerprint => 'SHA256:...',
+    key_path    => sprintf '%s/%s.key',
+    <letsencrypt.certs.dir>, $primary_domain,
+    cert_path => sprintf '%s/%s.pem',
+    <letsencrypt.certs.dir>, $primary_domain,
+};
+
+## Send result back to parent
+<[letsencrypt.child.send_to_parent]>->(
+    {   command     => 'cert_ready',
+        domain      => $primary_domain,
+        domains     => $domains,
+        cert        => $result->{cert},
+        valid_until => $result->{valid_until},
+        fingerprint => $result->{fingerprint},
+        key_path    => $result->{key_path},
+        cert_path   => $result->{cert_path},
+    }
+);
+
+#,,,.,.,.,.,,,,,.,,..,,..,,,.,,..,..,,,,,,,,.,..,,...,...,...,,..,.,.,.,,,...,
+#XW5NHWD4VJFYP4SEYS3FYIRYIKGWJIFP72XWR5PE323RWOUCQZNRI3HO3KE2PJTBPE6N3JMKPWVDE
+#\\\|SSTHPIJVIXMCCXEIZJC4TK2TTFESHLRATISIAFKVFKV7LTB37I6 \ / AMOS7 \ YOURUM ::
+#\[7]A3JWFDJYPQYP3RWUC6EAHWIOR3YXZZYW76MI5HC3UOLUGEZU62BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

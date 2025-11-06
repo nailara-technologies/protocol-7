@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_renewal_check
+# descr = Periodically check which certificates need renewal and queue them
+
+my $timer_data = shift;
+
+<[base.log]>->( 3, 'renewal check timer fired' );
+
+## Get current time
+my $now = time();
+<letsencrypt.stats.last_renewal_check> = $now;
+
+## Iterate through certificates
+for my $domain ( keys <letsencrypt.parent.certs>->%* ) {
+    my $cert_info = <letsencrypt.parent.certs> {$domain};
+
+    next unless $cert_info->{valid_until};
+
+    my $days_remaining    = ( $cert_info->{valid_until} - $now ) / 86400;
+    my $renewal_threshold = <letsencrypt.renewal.days-before>;
+
+    if ( $days_remaining <= $renewal_threshold ) {
+        <[base.log]>->(
+            2,
+            "certificate for [$domain] needs renewal (expires in $days_remaining days)"
+        );
+
+        ## Queue renewal with child via Protocol-7 command protocol
+        ## Format: letsencrypt.child.cmd.renew-certificate domain_name
+        ## Child will handle via base.handler.command
+        my $renewal_cmd
+            = sprintf 'letsencrypt.child.cmd.renew-certificate %s', $domain;
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => $renewal_cmd,
+                'call_args' => { 'args' => '' },
+                'reply'     => {
+                    'handler' => 'letsencrypt.parent.handler_renewal_reply',
+                    'params'  => { 'domain' => $domain }
+                }
+            }
+        );
+        <[base.log]>->( 3, "sent renewal command to child: $renewal_cmd" );
+
+        ## Record that renewal was initiated
+        if ( !exists <letsencrypt.parent.renewal_timers> {$domain} ) {
+            <letsencrypt.parent.renewal_timers> {$domain} = {
+                started  => $now,
+                attempts => 0,
+            };
+        }
+        <letsencrypt.parent.renewal_timers> {$domain}{attempts}
+        ++;
+    }
+}
+
+return 0;
+
+#,,,.,,,,,.,.,..,,..,,...,.,,,,,,,..,,..,,..,,..,,...,...,.,.,...,,.,,,,.,,,.,
+#5FVFO23Y5BRA5I2NEF3ZL3D2DK5CMLDMDDPLCEMX7PJ3TFK3NWNWFQNOSJ44I4T2L6FBJT7QP5OZ4
+#\\\|4FX3XJUZSAJMMR27NAOZZN4ZIO2JQKK7JVBSLBKPG3J6JZCHVXO \ / AMOS7 \ YOURUM ::
+#\[7]NNVWIRL6H5KKHEH6QILIR6O3Z3G7ISHTTDXBO6GXFAFV2EBM32CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

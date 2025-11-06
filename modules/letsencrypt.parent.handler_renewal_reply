@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_renewal_reply
+# descr = Handle renewal command reply from child process (processes TRUE/FALSE/SIZE responses)
+
+my $reply_data = shift;
+
+my $domain = $reply_data->{'params'}{'domain'};
+my $mode   = $reply_data->{'cmd'};
+my $args   = $reply_data->{'call_args'}{'args'};
+my $data   = $reply_data->{'data'};
+
+<[base.log]>->( 2, "renewal reply for domain: $domain, mode: $mode" );
+
+if ( $mode eq 'TRUE' ) {
+    <[base.log]>->( 2, "renewal succeeded for $domain: $args" );
+
+    ## Mark successful renewal
+    if ( exists <letsencrypt.parent.renewal_timers> {$domain} ) {
+        delete <letsencrypt.parent.renewal_timers> {$domain};
+    }
+    <letsencrypt.stats.renewals_completed>++;
+
+} elsif ( $mode eq 'FALSE' ) {
+    <[base.log]>->( 1, "renewal failed for $domain: $args" );
+
+    ## Schedule retry with exponential backoff
+    my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
+
+    if ( $attempt <= 5 ) {
+        my @backoff_delays = ( 300, 600, 1200, 2400, 4800 )
+            ;    ## 5min, 10min, 20min, 40min, 80min
+        my $delay = $backoff_delays[ $attempt - 1 ] // 4800;
+
+        <[base.log]>->(
+            2,
+            "scheduling retry for $domain in $delay seconds (attempt $attempt)"
+        );
+
+        <[event.add_timer]>->(
+            {   'delay'   => $delay,
+                'handler' => 'letsencrypt.parent.handler_renewal_retry',
+                'data'    => {
+                    'domain'  => $domain,
+                    'attempt' => $attempt,
+                }
+            }
+        );
+    } else {
+        <[base.log]>->(
+            0, "renewal failed for $domain after 5 attempts - giving up"
+        );
+        <letsencrypt.stats.renewals_failed>++;
+    }
+
+} elsif ( $mode eq 'SIZE' ) {
+    <[base.log]>->(
+        2,
+        "renewal returned certificate data for $domain ("
+            . length($data)
+            . " bytes)"
+    );
+
+    ## Certificate data returned - save it
+    my $cert_path = sprintf '%s/%s.pem', <letsencrypt.certs.dir>, $domain;
+    <[file.put]>->( $cert_path, $data, qw| :raw | );
+
+    <[base.log]>->( 2, "saved certificate for $domain to $cert_path" );
+
+    ## Update stats
+    <letsencrypt.parent.certs> {$domain} = { issued_at => time(), };
+
+    if ( exists <letsencrypt.parent.renewal_timers> {$domain} ) {
+        delete <letsencrypt.parent.renewal_timers> {$domain};
+    }
+    <letsencrypt.stats.renewals_completed>++;
+
+} else {
+    <[base.log]>->( 1, "renewal got unexpected mode: $mode for $domain" );
+}
+
+return 0;
+
+#,,,,,,,.,,,,,...,.,,,,..,..,,,,.,,..,.,.,,,,,.,.,...,...,...,.,.,,,.,..,,..,,
+#ZZPNVSJF7KZ2ZBJ3LDWKGIMRHZMQNWWQUXUBQEH3ZSV6WK4B7FJEQG23FWJLGFV6YNJZVYYEQ76K2
+#\\\|XFDPPDVC6CVIMBITDWSWXWK7KBB2NK5TVSDQP3HAXPBZB4AP54J \ / AMOS7 \ YOURUM ::
+#\[7]T4LZALFAFM7O6BYGRQUILP62ZL7TYSBME55C3TLQRQYUHSKTUADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,363 @@
+---
+task: "Fix Signature Verification Mismatch for Configuration/Read-me Files"
+priority: high
+status: active
+assigned_to: claude-code-web-instance
+created: 2025-01-06
+branch: dev/httpd-async-implementation
+
+## EXECUTIVE SUMMARY
+
+After implementing policy-based normalization for the Protocol-7 signature system,
+most files (1891+) now verify correctly. However, approximately 193 files still
+fail verification, primarily in:
+- configuration/ directories (zenki configs, system configs)
+- read-me/ directories (documentation files)
+
+Manual re-signing of affected files (e.g., read-me/author) has NO EFFECT - they
+immediately fail verification again. This indicates a systematic mismatch between
+how signing and verification process these specific files.
+
+## CURRENT STATE
+
+### What Works ✓
+- Most code files (modules/, bin/) sign and verify correctly
+- Normalization policy correctly identifies which files to normalize
+- State 7 encoding works for normalized files
+- Signature calculation and generation functions correctly
+- Fast-path optimization (currently disabled) works when signatures match
+
+### What's Broken ✗
+- ~193 files in configuration/ and read-me/ fail verification
+- Re-signing these files doesn't fix them (they immediately fail again)
+- This suggests verification is processing content DIFFERENTLY than signing
+
+### Files Modified in This Session
+1. **modules/source.cmd.get-code-signed**
+   - Changed extract_sig_body mode: 'strict' → 'repair' (line 47)
+   - Disabled fast-path temporarily (lines 150-162)
+   - Added normalization before signature calculation (lines 164-196)
+   - Ensured signature comparison happens (lines 203-257)
+
+2. **modules/sourcecode.console.verify-p7-signatures**
+   - Added normalization during verification (lines 139-147)
+
+3. **Created Previously:**
+   - modules/source.normalize_endlines
+   - modules/source.policy.should_normalize_endlines
+
+## THE PROBLEM
+
+### Symptom
+```bash
+./bin/Protocol-7 sourcecode update-signatures read-me/author
+# Completes successfully
+
+./bin/Protocol-7 sourcecode verify-p7-signatures read-me/author
+# FAILS: bmw-chksum-matches: false, AMOS-chksum-matches: false
+```
+
+### Oscillation Bug Discovery
+User observed that re-signing **swallows the separator endline**, creating an oscillation:
+
+**Expected format:**
+```
+<[p7-src@protocol-7.network]>
+                                    <-- blank separator line
+#,,..,,..,,,,,..,,...,.,.,,..,,,.,.
+```
+
+**Actual format after re-signing:**
+```
+<[p7-src@protocol-7.network]>
+#,,..,,..,,,,,..,,...,.,.,,..,,,.,.  <-- NO blank separator line!
+```
+
+This explains why manually re-signing doesn't fix the problem:
+1. Sign: loses separator endline
+2. Verify: detects missing separator
+3. Re-sign: loses separator endline again
+4. Repeat infinitely...
+
+**The separator newline added at line 172 of source.cmd.get-code-signed is being lost somewhere!**
+
+### Root Cause Hypothesis
+There is a MISMATCH in content processing between signing and verification:
+
+**During Signing:**
+- Uses `extract_sig_body(..., 'strip', 'repair')` (line 47 in source.cmd.get-code-signed)
+- Applies `source.normalize_endlines` (line 167)
+- Adds separator newline (line 172)
+- Sets state to 7 (line 176)
+- Calculates checksums on THIS content
+
+**During Verification:**
+- Uses `extract_sig_body(..., 'strip', 'strict')` (line 101 in verify-p7-signatures)
+- Applies `source.normalize_endlines` (line 141)
+- Adds separator newline (line 143)
+- Sets state to 7 (line 144)
+- Calculates checksums on THIS content
+
+**The difference in extraction mode ('repair' vs 'strict') might cause different
+content restoration, leading to different checksums!**
+
+## INVESTIGATION NEEDED
+
+### Step 1: Verify the Hypothesis
+Compare the exact byte-level content that signing vs verification produces:
+
+```perl
+# In modules/source.cmd.get-code-signed, after line 172:
+use Data::Dumper;
+open my $debug_sign, '>>', '/tmp/sign-content-debug.txt';
+print $debug_sign "FILE: $code_name\n";
+print $debug_sign "LENGTH: " . length($src_str) . "\n";
+print $debug_sign "LAST 50 BYTES: " . unpack("H*", substr($src_str, -50)) . "\n";
+print $debug_sign "ENDS WITH: " . ($src_str =~ /\n\n$/s ? "\\n\\n" : "OTHER") . "\n\n";
+close $debug_sign;
+```
+
+```perl
+# In modules/sourcecode.console.verify-p7-signatures, after line 143:
+use Data::Dumper;
+open my $debug_verify, '>>', '/tmp/verify-content-debug.txt';
+print $debug_verify "FILE: $path_rel\n";
+print $debug_verify "LENGTH: " . length($src_str) . "\n";
+print $debug_verify "LAST 50 BYTES: " . unpack("H*", substr($src_str, -50)) . "\n";
+print $debug_verify "ENDS WITH: " . ($src_str =~ /\n\n$/s ? "\\n\\n" : "OTHER") . "\n\n";
+close $debug_verify;
+```
+
+Then:
+```bash
+rm /tmp/sign-content-debug.txt /tmp/verify-content-debug.txt
+./bin/Protocol-7 sourcecode update-signatures read-me/author
+./bin/Protocol-7 sourcecode verify-p7-signatures read-me/author
+diff /tmp/sign-content-debug.txt /tmp/verify-content-debug.txt
+```
+
+### Step 2: Check Policy Application
+Verify that both signing and verification apply the same policy:
+
+```bash
+# Check if read-me/author should be normalized
+grep -A50 "should_normalize_endlines" modules/source.policy.should_normalize_endlines
+```
+
+### Step 3: Compare Extraction Modes
+The key difference is extraction mode:
+- Signing: 'repair' mode (more lenient)
+- Verification: 'strict' mode (more stringent)
+
+Check `modules/source.extract_sig_body` around lines 7, 576-580 to see how
+'strict' vs 'repair' affects content restoration.
+
+### Step 4: Check State Restoration
+For files with existing state 7 signatures:
+- Does 'repair' mode restore differently than 'strict' mode?
+- Check `modules/source.restore_payload_endline_state` lines 40-45
+
+## POTENTIAL FIXES
+
+### Fix Option 1: Make Verification Use 'repair' Mode
+Change line 101 in `sourcecode.console.verify-p7-signatures`:
+```perl
+# FROM:
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, $verify_mode );
+
+# TO:
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, qw| repair | );
+```
+
+This makes verification match signing's extraction behavior.
+
+### Fix Option 2: Make Signing Use 'strict' Mode
+Change line 47 in `source.cmd.get-code-signed`:
+```perl
+# FROM:
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, qw| repair | );
+
+# TO:
+my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, qw| strict | );
+```
+
+But this might prevent signing files with minor issues.
+
+### Fix Option 3: Special Handling for Configuration Files
+If configuration/read-me files need special treatment:
+
+```perl
+# Check if these files should use preserve mode instead of normalize mode
+# In modules/source.policy.should_normalize_endlines
+
+# Current logic might incorrectly normalize configuration files
+# that should be preserved
+```
+
+### Fix Option 4: Two-Phase Signing
+1. First sign with exact content preservation
+2. Then optionally normalize for consistency
+3. Store which approach was used in metadata
+
+## TESTING PROCEDURE
+
+After implementing a fix:
+
+1. **Strip and re-sign a failing file:**
+```bash
+./bin/Protocol-7 sourcecode strip-signature-footer read-me/author
+./bin/Protocol-7 sourcecode update-signatures read-me/author
+```
+
+2. **Verify immediately:**
+```bash
+./bin/Protocol-7 sourcecode verify-p7-signatures read-me/author
+```
+
+3. **Check verbose output:**
+```bash
+./bin/Protocol-7 sourcecode verify-p7-signatures read-me/author -vv
+```
+
+4. **If it passes, test on all failing files:**
+```bash
+./bin/Protocol-7 sourcecode update-signatures
+./bin/Protocol-7 sourcecode verify-p7-signatures
+```
+
+5. **Verify count should be:**
+   - Valid: ~2084 (all files)
+   - Invalid: 0
+
+6. **After successful verification, re-enable fast-path:**
+   Uncomment lines 158-162 in `modules/source.cmd.get-code-signed`
+
+## TECHNICAL DETAILS
+
+### Signature Process Flow
+
+**Signing (source.cmd.get-code-signed):**
+```
+1. Read file                           (line 29)
+2. Extract footer in 'repair' mode     (line 47)
+3. Check policy for normalization      (line 78-80)
+4. Get extracted content with state    (extract_sig_body restores endlines)
+5. Apply normalization if needed       (lines 167-177)
+6. Calculate AMOS/BMW checksums        (in create_harmonic_footer)
+7. Generate signature                  (in create_harmonic_footer)
+8. Write file with new signature       (line 260)
+```
+
+**Verification (sourcecode.console.verify-p7-signatures):**
+```
+1. Read file                           (line 100)
+2. Extract footer in 'strict' mode     (line 101)
+3. Check policy for normalization      (line 140)
+4. Get extracted content with state    (extract_sig_body restores endlines)
+5. Apply normalization if needed       (lines 141-147)
+6. Verify AMOS/BMW checksums           (in source.signature_valid)
+7. Verify C25519 signature             (in source.signature_valid)
+```
+
+**The mismatch likely occurs at step 2 or 4.**
+
+### Endline State Encoding
+```
+State 0-4: Removed N newlines during signing
+State 5:   No change (canonical - 1 trailing newline)
+State 6:   Added 2 newlines (file had 0 newlines originally)
+State 7:   Added 2 newlines (incomplete line + separator)
+```
+
+### Restore Logic (source.restore_payload_endline_state)
+```perl
+# State 5: No change
+return 0 if $endline_state_oct == 5;
+
+# State < 5: Add newlines back
+if ( $endline_state_oct < 5 ) {
+    my $endline_count = abs( $endline_state_oct - 4 );
+    $payload_sref->$* .= "\n" x $endline_count;
+}
+
+# State 6/7: Remove 2 newlines
+if ( $endline_state_oct == 6 or $endline_state_oct == 7 ) {
+    $endline_count = 2;
+}
+$payload_sref->$* =~ s|(\n){$endline_count}$||s;
+```
+
+### Normalize Logic (source.normalize_endlines)
+```perl
+# Simply: ensure exactly 1 trailing newline
+$src_ref =~ s|\n*$|\n|s;
+```
+
+## FILES TO EXAMINE
+
+### Primary Files
+- `modules/source.cmd.get-code-signed` - Signing logic
+- `modules/sourcecode.console.verify-p7-signatures` - Verification logic
+- `modules/source.extract_sig_body` - Footer extraction and restoration
+- `modules/source.restore_payload_endline_state` - State restoration
+- `modules/source.policy.should_normalize_endlines` - Policy determination
+
+### Supporting Files
+- `modules/source.normalize_endlines` - Normalization implementation
+- `modules/source.create_harmonic_footer` - Signature generation
+- `modules/source.signature_valid` - Signature verification
+
+### Test Files (failing verification)
+- `read-me/author`
+- `read-me/license`
+- `configuration/X11-vars`
+- `configuration/shared-params`
+- `configuration/zenki/*/start`
+- `configuration/zenki/*/zenka-startup.v7`
+
+## SUCCESS CRITERIA
+
+- [ ] All 2084+ files pass verification
+- [ ] Files can be re-signed without immediately failing verification
+- [ ] Fast-path optimization can be safely re-enabled
+- [ ] No difference in behavior between signing and verification
+- [ ] Test suite validates the fix (once implemented per signature-system-self-test-implementation.yaml)
+
+## RELATED DOCUMENTATION
+
+- `/data/projects/protocol-7/data/yaml/signature-system-self-test-implementation.yaml`
+  - Comprehensive plan for self-test system implementation
+  - Use this AFTER fixing the verification mismatch
+  - 250 USD token budget available for new Claude Code instance
+
+- `/data/projects/protocol-7/CLAUDE.md`
+  - Project overview and architecture
+  - Module system explanation
+  - Zenka (agent) system overview
+
+## NEXT ACTIONS
+
+1. **Immediate**: Add debug logging to compare signing vs verification content
+2. **Investigate**: Determine exact byte differences between modes
+3. **Fix**: Apply appropriate fix based on investigation results
+4. **Test**: Verify all files pass after fix
+5. **Optimize**: Re-enable fast-path optimization
+6. **Future**: Implement self-test system per separate YAML spec
+
+## NOTES
+
+- The user has no passphrase issues (keys loaded without passphrase prompt)
+- Fast-path is currently disabled to force full signature recalculation
+- Most files (modules/, bin/) work correctly - only config/doc files fail
+- The signature system itself works - this is purely a content processing mismatch
+- Branch: dev/httpd-async-implementation (has other async work, be careful with merges)
+
+## CONTACT/HANDOFF
+
+Previous work done by: Claude Code CLI instance (Sonnet 4.5)
+Current session ended at: ~93k tokens used
+Handoff to: Claude Code Web instance (with 250 USD research token budget)
+
+Key insight: The problem is NOT in the signature crypto or the normalization
+logic itself - it's in how 'strict' vs 'repair' mode affects content extraction
+and restoration. Fix the extraction mode consistency and everything should work.

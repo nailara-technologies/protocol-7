@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_child_ready
+# descr = Handle child process ready notification - completes parent initialization
+
+my $msg = shift;
+
+my $child_pid = $msg->{pid};
+
+<[base.log]>->(
+    2, "letsencrypt parent: child process ready (PID: $child_pid)"
+);
+
+## Check for any pending operations
+<[letsencrypt.parent.process_pending_ops]>->()
+    if defined <[letsencrypt.parent.process_pending_ops]>;
+
+#,,.,,.,.,.,.,.,.,..,,,.,,.,,,...,.,,,..,,,,.,..,,...,...,,,,,.,,,.,,,.,.,,..,
+#FDRSKUMWHJ5PE4PGMPZMRJ6MEJO2YMVALJG7W2RMGVONYT73LGMXJFVLKLDXUZADMII62RY6Q5POO
+#\\\|JQP6UGBGYJYETDSQMFRLMM7WGRS3GVS374D6UX5I3NXBSEU6SQW \ / AMOS7 \ YOURUM ::
+#\[7]FABSNQ3RDVWB7TVD36BCAS74G6VACPYHQADJWVMAFI6FUXOAB4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

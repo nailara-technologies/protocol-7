@@ -1,0 +1,49 @@
+## [:< ##
+
+# name = httpsd.init_code
+# descr = Initialize HTTPS/TLS server zenka - wraps httpd with TLS encryption
+# todo = IO::Socket::SSL integration with httpd socket, TLS handshake layer, cert reload
+
+<[base.log]>->( 2, 'initializing HTTPSD (HTTPS server) zenka..,' );
+
+# Load HTTPD initialization (core HTTP handling)
+<[httpd.init_code]>;
+
+# HTTPSD-specific TLS configuration (added to httpd config)
+<httpsd.cfg.tls_version> //= 'TLSv1_2';
+<httpsd.cfg.cipher_suite>
+    //= 'DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK';
+<httpsd.cfg.certificate_path>        //= '/etc/protocol-7/certs/current.pem';
+<httpsd.cfg.key_path>                //= '/etc/protocol-7/certs/current.key';
+<httpsd.cfg.hsts_max_age>            //= 31536000;
+<httpsd.cfg.hsts_include_subdomains> //= 1;
+
+# Protocol state for HTTPS (using 'https' protocol instead of 'http')
+<protocol.https.state> = <protocol.http.state>;  # Inherit HTTP state handlers
+<protocol.https.connect.banner> = '';
+
+# Session management for HTTPS
+<httpsd.sessions>         = {};
+<httpsd.connection_count> = 0;
+
+# Performance metrics
+<httpsd.metrics> = {
+    handshakes_successful => 0,
+    handshakes_failed     => 0,
+    connections_active    => 0,
+    total_bytes_encrypted => 0,
+    total_bytes_decrypted => 0,
+    avg_handshake_time    => 0,
+};
+
+<[base.log]>->( 2, 'HTTPSD initialization complete' );
+<[base.log]>->( 2, "  TLS Version: " . <httpsd.cfg.tls_version> );
+<[base.log]>->( 2, "  Certificate: " . <httpsd.cfg.certificate_path> );
+
+0;
+
+#,,,.,...,,..,,.,,.,,,.,,,.,,,,,,,,,,,...,...,..,,...,..,,,,.,,,,,.,.,,,,,,,.,
+#PWJGSPOAMVYMOT53EJT36VJKV4RL36F4XRPOJPFRHLOMQ2IJPJ5X52UQPAE7QSHNHFV2DRM4PFGAQ
+#\\\|QPBZGKCUIJ36AFHU74XH4XFV33PQ7R6KDIYIV3ZIKJ75U2YMC6J \ / AMOS7 \ YOURUM ::
+#\[7]67WE7SNM2NHOHWERC3ZPHCZ2HFVJXDU7ICLGHQF2B6WJ564RXABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
