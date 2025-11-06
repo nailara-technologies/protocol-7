@@ -1,0 +1,79 @@
+## [:< ##
+
+# name = template.init_code
+# descr = Initialize template engine zenka with caching, rendering, and sanitization
+# todo = Template loader implementation, Mustache integration, cache invalidation
+
+<[base.perlmod.autoload]>->('Template');
+<[base.perlmod.autoload]>->('HTML::Escape');
+
+<[base.log]>->( 2, 'initializing template engine zenka..,' );
+
+# Initialize template configuration
+<template.cfg.engine>             //= 'mustache';
+<template.cfg.cache_enabled>      //= 1;
+<template.cfg.cache_ttl>          //= 3600;
+<template.cfg.template_dir>       //= '/var/protocol-7/templates';
+<template.cfg.max_cache_size>     //= 104857600;                     # 100MB
+<template.cfg.safe_mode>          //= 1;
+<template.cfg.precompile_on_load> //= 1;
+<template.cfg.parallel_renders>   //= 8;
+
+# Template cache
+<template.cache>       = {};
+<template.cache_stats> = {
+    hits         => 0,
+    misses       => 0,
+    evictions    => 0,
+    current_size => 0,
+};
+
+# Template registry
+<template.registry>     = {};
+<template.dependencies> = {};    # For cascade invalidation
+
+# Performance tracking
+<template.metrics> = {
+    total_renders     => 0,
+    total_render_time => 0,
+    avg_render_time   => 0,
+    max_render_time   => 0,
+    template_count    => 0,
+    cache_ratio       => 0,
+};
+
+# Error handling
+<template.errors>     = [];
+<template.last_error> = undef;
+
+# Vhost support
+<template.vhost_templates> = {};
+<template.vhost_skins>     = {};
+
+# Ensure template directory exists
+my $template_dir = <template.cfg.template_dir>;
+if ( !-d $template_dir ) {
+    <[base.log]>->( 0, "creating template directory '$template_dir'..," );
+    system( 'mkdir', '-p', $template_dir ) == 0
+        or <[base.log]>->(
+        1, "warning: could not create template dir '$template_dir'"
+        );
+}
+
+<[base.log]>->( 2, 'template engine initialization complete' );
+<[base.log]>->( 2, "  Engine: " . <template.cfg.engine> );
+<[base.log]>->(
+    2, "  Cache: " . ( <template.cfg.cache_enabled> ? 'enabled' : 'disabled' )
+);
+<[base.log]>->( 2, "  Template Directory: " . $template_dir );
+<[base.log]>->(
+    2, "  Safe Mode: " . ( <template.cfg.safe_mode> ? 'enabled' : 'disabled' )
+);
+
+0;
+
+#,,.,,,..,,..,,,,,.,,,..,,..,,.,,,,,.,.,.,,..,..,,...,...,...,,..,...,.,.,,..,
+#HAOLVKW7WF5CZYQOI5RZLYYGTST5YE5N5CVGMWBQTTK3XJZNWVS2CA7RKLJ6RBQEMYCOEIXF576FW
+#\\\|HK7BI4EKQAA6ALW3L63OX6FCU6KN7OT3WXBXAEYYPQNGYWBDI6M \ / AMOS7 \ YOURUM ::
+#\[7]ZNZ5C6BWNTDFQQTOLA3YWCKZO3AOBJ7E46NA2RAFVUHNUHGTKGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

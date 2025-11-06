@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = letsencrypt.parent.init_code
+# descr = Initialize parent process for Let's Encrypt ACME operations - manages state, cache, and renewal scheduling
+
+<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME parent process..,' );
+
+## Load parent-specific modules
+<[base.load_modules]>->('letsencrypt.base');
+<[base.init_modules]>->('letsencrypt.base');
+
+## Initialize parent-side certificate registry and cache
+<letsencrypt.parent.certs>          = {};
+<letsencrypt.parent.acme_account>   = {};
+<letsencrypt.parent.renewal_timers> = {};
+
+## Load cached certificate data if available
+my $cache_dir  = <letsencrypt.cache.dir>;
+my $cert_cache = sprintf '%s/cert.cache', $cache_dir;
+if ( -f $cert_cache && <letsencrypt.cache.loaded> ) {
+    <[base.log]>->( 2, 'loading certificate cache from disk' );
+    <[file.content]>->( $cert_cache, \my $cache_str, qw| :raw | );
+
+    # Deserialize and load certificates (implementation deferred)
+    # <[letsencrypt.parent.deserialize_cache]>->($cache_str);
+}
+
+## Initialize renewal check timer using event system
+## Fires every <letsencrypt.renewal.check-interval> seconds (86400 = 24 hours)
+<letsencrypt.parent.renewal_check_timer> = <[event.add_timer]>->(
+    {   'interval' => <letsencrypt.renewal.check-interval>,
+        'handler'  => qw| letsencrypt.parent.handler_renewal_check |,
+        'repeat'   => 1,
+        'data'     => {},
+    }
+);
+
+## Initialize rate limiter for ACME requests
+<letsencrypt.parent.ratelimit> = {
+    enabled  => <letsencrypt.ratelimit.enabled>      // 1,
+    max_hour => <letsencrypt.ratelimit.max-per-hour> // 5,
+    history  => [],    # timestamps of recent requests
+};
+
+## Initialize event handlers for child-to-parent communication
+<letsencrypt.parent.handlers> = {
+    'cert_ready'       => 'letsencrypt.parent.handler_cert_ready',
+    'challenge_needed' => 'letsencrypt.parent.handler_challenge_needed',
+    'renewal_failed'   => 'letsencrypt.parent.handler_renewal_failed',
+    'acme_status'      => 'letsencrypt.parent.handler_acme_status',
+    'child_ready'      => 'letsencrypt.parent.handler_child_ready',
+};
+
+## NOTE: Message handler is registered by fork_letsencrypt_child via base.handler.command
+## Child-to-parent communication uses Protocol-7's command protocol (TRUE/FALSE replies)
+## Do NOT register custom handler here - base.handler.command is already set up by fork
+
+<[base.log]>
+    ->( 2, 'Let\x27s Encrypt parent process initialization complete' );
+<[base.log]>->( 2, '  Certificate cache: ' . <letsencrypt.cache.dir> );
+<[base.log]>->(
+    2,
+    '  Renewal check interval: '
+        . <letsencrypt.renewal.check-interval>
+        . ' seconds'
+);
+
+## Mark parent as fully initialized (child is ready via IPC pipe)
+<letsencrypt.parent.initialized> = 1;
+
+0;
+
+#,,..,,,,,.,,,...,.,,,,,.,,.,,...,.,,,...,..,,..,,...,...,.,,,.,,,,,.,...,...,
+#Q5TP3L52A7CDQ4IDIZCS7HBUKTZZFCISDMTOSNPPGWDQYYMNHYDZHF3RJCTLNJZ23YH46H33UGAG4
+#\\\|OLH25UPWKPVBBW34R2W44EJHYHDYJ33NSYPCFIY6E4TLQ3L6WMF \ / AMOS7 \ YOURUM ::
+#\[7]QQEIWW2QMWNNMESSJDF7LX5VNSJPZW4X5HNWXQTC5ZW7DREJ5CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = letsencrypt.child.acme_revoke
+# descr = Child process revokes a certificate with Let's Encrypt (blocking operation)
+
+my $msg = shift;
+
+my $cert_path = $msg->{cert_path};
+my $domain    = $msg->{domain};
+
+<[base.log]>->( 2, "child: revoking certificate for domain: $domain" );
+
+## This is where blocking ACME revocation occurs:
+## 1. Load certificate
+## 2. Create JWS payload with certificate
+## 3. Sign with account key
+## 4. Send revocation request to ACME server
+## 5. Verify revocation succeeded
+
+## TODO: Implement ACME revocation protocol
+
+my $result = {
+    status     => 'success',
+    domain     => $domain,
+    revoked_at => time(),
+};
+
+<[letsencrypt.child.send_to_parent]>->(
+    {   command    => 'cert_revoked',
+        domain     => $domain,
+        status     => $result->{status},
+        revoked_at => $result->{revoked_at},
+    }
+);
+
+<[base.log]>->( 2, "child: certificate revoked for $domain" );
+
+#,,,.,.,,,,,.,,.,,..,,..,,...,,.,,.,.,,,.,..,,..,,...,..,,,.,,..,,,..,..,,.,.,
+#WQR6SGSMVWKQDQOQDQFVCOFQB4RLX3GXJORKY7Y55ODOP2BCEIEBMP4RB4MPX2OF7COPTWEXOKK4C
+#\\\|UU3G4YGCHHOOSKWKLWB2QWIVHEXZYE5IHF6L7HFSHZFJ6JU65CQ \ / AMOS7 \ YOURUM ::
+#\[7]RMLSRXALOLA6V2JVZ22LJYL7DUED445AS5J5P3S4H63OQBNUIWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

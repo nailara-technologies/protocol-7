@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = letsencrypt.child.extract_rsa_modulus
+# descr = Extract RSA modulus (n) from RSA key object
+
+my $rsa = shift;
+
+<[base.log]>->( 3, 'extracting RSA modulus' );
+
+## Get public key in DER format (binary)
+my $pub_der = $rsa->get_public_key_x509_string();
+
+## Extract modulus using OpenSSL command (safer than manual parsing)
+## Alternative: Use Crypt::OpenSSL::RSA internal methods if available
+
+## For now, use a simplified approach:
+## The public key DER format contains the modulus as SEQUENCE { modulus, exponent }
+## We'll use OpenSSL to extract it
+
+open( my $fh, '|-', 'openssl', 'pkey', '-pubin', '-text', '-noout' )
+    or return undef;
+
+print $fh $rsa->get_public_key_string();
+close($fh);
+
+## Parse OpenSSL output to find modulus
+## This is a fallback - ideally use Crypt::OpenSSL::RSA native methods
+
+## NOTE: This module is legacy RSA-specific code not used by Ed25519 ACME flow
+## The helper functions get_rsa_n and get_rsa_e are not implemented
+## Ed25519 flow uses RFC 8037 OKP format instead of RSA JWK format
+## This module left for backward compatibility but should not be called
+
+<[base.log]>->(
+    1,
+    'warning: extract_rsa_modulus called but not implemented for Ed25519 flow'
+);
+return undef;
+
+#,,..,.,.,,.,,.,.,,,,,..,,,..,...,...,,,,,,.,,..,,...,...,...,...,,,,,.,.,...,
+#7EK6IB436DMN3QEY6SL6LJCNWO4GPJDA2ZTLFYED6PLZ6NXQ3CWET4UZGIMKZPQ6VFOP72EDJXTSW
+#\\\|PTQARE7EE3NUWK7EON37MOBCAFCVBUORPXBV5MBWZWYB74E22RT \ / AMOS7 \ YOURUM ::
+#\[7]UWZQS457TUJBPPXK6WXMJ4ASP5LMRKU57YA26V5PJBESNPUJXUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

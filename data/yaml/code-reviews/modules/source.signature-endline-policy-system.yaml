@@ -1,0 +1,177 @@
+---
+title: "Signature Endline Policy System and Bug Fixes"
+date: "2025-11-05"
+type: "bug-fix-and-enhancement"
+severity: "critical"
+status: "fixed"
+
+summary: |
+  Fixed critical signature endline regression and implemented policy-based normalization
+  system to prevent future occurrences. The bug caused signatures to be appended directly
+  to code lines without separator endlines after perltidy formatting.
+
+affected_modules:
+  - modules/source.create_harmonic_footer
+  - modules/source.cmd.get-code-signed
+  - modules/source.policy.should_normalize_endlines (new)
+  - modules/source.normalize_endlines (new)
+
+problem_description:
+  root_cause: |
+    Two separate issues:
+
+    1. ORIGINAL BUG (source.create_harmonic_footer:188):
+       When state 6 (add separator endline) was triggered, the code checked:
+       `$$src_ref .= "\n" if $$src_ref !~ /\n\n$/;`
+
+       This fails when content has NO trailing newlines:
+       - Content: `return 1;` (0 newlines)
+       - Check: doesn't end with `\n\n` → TRUE
+       - Action: add ONE newline → `return 1;\n`
+       - Result: Only 1 newline total, signature appends directly to the line!
+
+       The fix requires TWO operations:
+       - First ensure last line is complete: `$$src_ref .= "\n" if $$src_ref !~ /\n$/;`
+       - Then add separator: `$$src_ref .= "\n" if $$src_ref !~ /\n\n$/;`
+
+    2. ARCHITECTURAL ISSUE:
+       The current preserve/restore system conflicts with code files that have
+       broken/missing endlines. The system tried to record and preserve the broken
+       state, which perpetuated the problem.
+
+  trigger_scenario: |
+    1. Run perltidy on modules/ files (which may reformat spacing)
+    2. Re-sign files with update-signatures
+    3. For files where perltidy removed blank lines, state 6 was triggered
+    4. Bug in state 6 handling caused signatures to append without separator
+    5. Result: `return 1;#signature` instead of `return 1;\n\n#signature`
+
+  impact: |
+    - Signatures appended directly to code lines (no separator endline)
+    - Files became malformed and hard to read
+    - Second signing would repair them (repair mode detected and fixed)
+    - But the bug would recur on next perltidy+signing cycle
+
+solution_implemented:
+  approach: "Policy-based dual-mode system"
+
+  components:
+    - component: "Bug Fix"
+      module: "modules/source.create_harmonic_footer"
+      location: "lines 186-189"
+      fix: |
+        Changed from single-step endline addition to two-step:
+        ```perl
+        # OLD (broken):
+        $$src_ref .= "\n" if $$src_ref !~ /\n\n$/;
+
+        # NEW (fixed):
+        $$src_ref .= "\n" if $$src_ref !~ /\n$/;    # Complete last line
+        $$src_ref .= "\n" if $$src_ref !~ /\n\n$/;  # Add separator
+        ```
+
+    - component: "Policy Module"
+      module: "modules/source.policy.should_normalize_endlines"
+      purpose: "Determine which files use normalize vs preserve mode"
+      logic: |
+        - Normalize mode (code files): Always use canonical format
+        - Preserve mode (data files): Record original endline state
+
+        Path-based rules:
+        - modules/ → normalize
+        - bin/ → normalize
+        - data/lib-path/pm/ → normalize
+
+        Type-based rules:
+        - .html, .md, .markdown, .txt → normalize
+        - Shebang #!/usr/bin/perl → normalize
+        - Shebang #!/bin/bash → normalize
+
+        Default: preserve mode
+
+    - component: "Normalization Subroutine"
+      module: "modules/source.normalize_endlines"
+      purpose: "Clean normalization logic separate from state tracking"
+      implementation: |
+        Simple regex normalization:
+        ```perl
+        $$src_ref =~ s|\n*$|\n|s;
+        ```
+        Always normalizes to exactly 1 trailing endline.
+
+    - component: "Integration"
+      module: "modules/source.cmd.get-code-signed"
+      location: "lines 126-149"
+      logic: |
+        ```perl
+        my $should_normalize = <[source.policy.should_normalize_endlines]>->($code_name);
+
+        if ($should_normalize) {
+            # Normalize mode: canonical format, don't record broken states
+            <[source.normalize_endlines]>->( \$src_str );
+            $footer_data->{'endline-state-encoded'}  = 5;  # canonical
+            $footer_data->{'needs_separator_endline'} = FALSE;
+            $footer_data->{'last_line_incomplete'}    = FALSE;
+        } else {
+            # Preserve mode: record original endline state
+            # (existing harmonize logic)
+        }
+        ```
+
+benefits:
+  - separation_of_concerns: "Normalization logic separate from state tracking"
+  - policy_flexibility: "Easy to add new file types or paths to normalize"
+  - deterministic: "Code files always converge to canonical format"
+  - no_oscillation: "Normalized files stay normalized across multiple signings"
+  - data_preservation: "Data files still preserve original endline state"
+  - maintainable: "Clear, simple logic in dedicated modules"
+
+testing:
+  test_files:
+    - "modules/httpd.base.file.nonblocking"
+    - "modules/httpd.base.size.normalize"
+
+  procedure: |
+    1. Hard reset to HEAD (before perltidy)
+    2. Run perltidy on test files
+    3. Sign with new policy system
+    4. Verify proper blank line separator in output
+
+  results: |
+    ✓ All files signed successfully without warnings
+    ✓ Both test files have correct format: `code\n\n#signature`
+    ✓ No regression in existing functionality
+    ✓ Policy correctly identified files as normalize mode
+
+lessons_learned:
+  - issue: "Complex endline state preservation conflicts with broken files"
+    solution: "Use policy-based approach: normalize code, preserve data"
+
+  - issue: "Single-step endline addition fails for files with 0 endlines"
+    solution: "Two-step process: complete line first, then add separator"
+
+  - issue: "Regex delimiter conflicts (using | with alternation)"
+    solution: "Use m{ } variant for complex patterns with alternation"
+
+future_considerations:
+  - "Consider adding :normalize: override flag (opposite of :sign-silent:)"
+  - "May want to make policy configurable per-project in config files"
+  - "Could extend to other file operations beyond signing"
+
+related_documentation:
+  - "data/yaml/docs/processing/signature-endline-handling.yaml"
+  - "data/yaml/docs/formats/signature-footer.yaml"
+
+commit_info:
+  branch: "dev/httpd-async-implementation"
+  files_modified:
+    - modules/source.create_harmonic_footer
+    - modules/source.cmd.get-code-signed
+    - modules/source.policy.should_normalize_endlines (created)
+    - modules/source.normalize_endlines (created)
+
+#,,..,,..,,.,,,..,,..,.,,,,,,,..,,...,...,.,,,..,,...,..,,,..,,,,,.,.,..,,..,,
+#L7ECHUZ2Z63Y22RGL3BDYG2MN7BZ4Q6NPHZTVIKUP5WWSXPT7C7A5CVQQLZBWRS4UAVEDGCIQ5RKW
+#\\\|4OUVL2YKYS3HJVO653AZUB6KRWM6OC5R6GR2UQVLNN5LOUDMRE7 \ / AMOS7 \ YOURUM ::
+#\[7]FBRWP53XU3CM24RRFEBZLT2PZYBVXBVBOYZBTNCLVUU5PHISEWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

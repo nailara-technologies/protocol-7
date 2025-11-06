@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = letsencrypt.child.fetch_acme_directory
+# descr = Fetch ACME directory from Let's Encrypt server and get initial nonce
+
+use JSON::XS;
+use LWPx::ParanoidAgent;
+
+my $server_url = shift || <letsencrypt.acme.server>;
+
+return undef unless $server_url;
+
+<[base.log]>->( 2, "fetching ACME directory from $server_url" );
+
+## Create HTTPS client
+my $ua = LWPx::ParanoidAgent->new(
+    timeout  => 10,
+    ssl_opts => {
+        verify_hostname => 1,
+        SSL_verify_mode => 1,
+    },
+);
+
+## Fetch directory
+my $response = $ua->get($server_url);
+
+unless ( $response->is_success ) {
+    <[base.log]>->(
+        1, "error fetching ACME directory: " . $response->status_line
+    );
+    return undef;
+}
+
+## Parse directory JSON
+my $directory;
+eval { $directory = JSON::XS::decode_json( $response->decoded_content() ); };
+if ($@) {
+    <[base.log]>->( 1, "error parsing ACME directory: $@" );
+    return undef;
+}
+
+## Extract important URLs
+unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
+    <[base.log]>->( 1, "error: ACME directory missing required endpoints" );
+    return undef;
+}
+
+## Get initial nonce from header
+my $initial_nonce = $response->header('Replay-Nonce');
+unless ($initial_nonce) {
+    <[base.log]>->( 1, "error: no Replay-Nonce in directory response" );
+    return undef;
+}
+
+<[base.log]>->( 2, 'ACME directory fetched successfully' );
+
+## Store in child state
+<letsencrypt.child.acme_client> {directory} = $directory;
+<letsencrypt.child.acme_client> {nonce}     = $initial_nonce;
+<letsencrypt.child.acme_client> {server}    = $server_url;
+
+## Return directory info
+return {
+    directory => $directory,
+    nonce     => $initial_nonce,
+    endpoints => {
+        newAccount => $directory->{newAccount},
+        newOrder   => $directory->{newOrder},
+        revokeCert => $directory->{revokeCert},
+        keyChange  => $directory->{keyChange},
+    },
+};
+
+#,,,.,,,,,..,,,,.,,..,,,,,,..,,..,...,,.,,,,,,..,,...,..,,,..,.,.,,,.,,.,,,,,,
+#RAO6ED6A3CS5WFSNJ3L3LGQMRWUJF4TWUJ2PWRXRXRTVAKKYLOMUL6ZAUBSGZYJ2DSWHNTL3IJVSU
+#\\\|LIM7EMPPZWBGZE4RII57YBQL25LXKVP2ECYS4NZSBIYKJXLR32H \ / AMOS7 \ YOURUM ::
+#\[7]RZ4AKRULZJL73BPEZMXELXKN5XA6U5SF3RDUUPPLCO2AD6AXNOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

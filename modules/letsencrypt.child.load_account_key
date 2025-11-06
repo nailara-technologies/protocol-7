@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = letsencrypt.child.load_account_key
+# descr = Load existing Ed25519 account key from Base32r cache
+
+use Crypt::Ed25519;
+use Crypt::Misc qw(decode_b32r);
+
+my $key_path = shift || sprintf '%s/account.key', <letsencrypt.cache.dir>;
+
+return undef unless -f $key_path;
+
+<[base.log]>->( 2, "loading Ed25519 account key from $key_path" );
+
+## Load Base32r-encoded secret key from cache
+<[file.content]>->( $key_path, \my $secret_b32, qw| :raw | );
+
+## Decode from Base32r to binary secret key
+my $secret_key = decode_b32r($secret_b32);
+
+## Validate secret key length (should be 32 bytes for Ed25519)
+unless ( $secret_key && length($secret_key) == 32 ) {
+    <[base.log]>->(
+        1, 'error: invalid or corrupted account key (invalid length)'
+    );
+    return undef;
+}
+
+## Regenerate keypair from secret
+## Crypt::Ed25519 can reconstruct the full keypair from the seed/secret
+my ( $public_key, $private_key )
+    = Crypt::Ed25519::generate_keypair($secret_key);
+
+## Store keypair in child state
+<letsencrypt.child.acme_client>->{account_key} = {
+    secret  => $secret_key,
+    public  => $public_key,
+    private => $private_key,
+};
+<letsencrypt.child.acme_client>->{account_key_type} = 'Ed25519';
+
+<[base.log]>
+    ->( 2, 'Ed25519 account key loaded and regenerated successfully' );
+
+return <letsencrypt.child.acme_client>->{account_key};
+
+#,,,,,...,,.,,.,.,.,,,...,..,,..,,,,.,,,.,..,,..,,...,..,,...,,..,...,.,,,,,.,
+#OICC66ARL2BAYT3MXCHIIU7Z7NNDMY2BY5NE3IDFD7WCGQ4T6GZA5LEBCSSB2BIXQKZHRHP5AJJ72
+#\\\|FE6HFYWWI7NO7OC4O33R6YNU6XYF74N75GU5ZY7QP7BWSL7V7QZ \ / AMOS7 \ YOURUM ::
+#\[7]4BKICRNACG27ZUK4GCIT2RRNUOQ762P6LYAV5K32HOP7F5ACA2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

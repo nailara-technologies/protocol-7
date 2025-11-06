@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = letsencrypt.child.create_http01_challenge
+# descr = Create HTTP-01 challenge response and write to well-known directory
+
+use JSON::XS;
+use Digest::SHA  qw(sha256);
+use MIME::Base64 qw(encode_base64url);
+
+my $challenge = shift;    # challenge data from authorization
+my $domain    = shift;
+
+return undef unless $challenge && $domain;
+
+<[base.log]>->( 2, "creating HTTP-01 challenge response for $domain" );
+
+## Extract challenge token
+my $token = $challenge->{token};
+
+unless ($token) {
+    <[base.log]>->( 1, 'error: no token in challenge' );
+    return undef;
+}
+
+## Get account key thumbprint
+my $jwk = <[letsencrypt.child.get_jwk]>->();
+unless ($jwk) {
+    <[base.log]>->( 1, 'error: failed to get JWK' );
+    return undef;
+}
+
+## Create JWK thumbprint (RFC 7638)
+my $jwk_ordered = JSON::XS->new->canonical(1)->encode($jwk);
+my $thumbprint  = encode_base64url( sha256($jwk_ordered) );
+
+<[base.log]>->( 3, "JWK thumbprint: $thumbprint" );
+
+## Create key authorization: token.thumbprint
+my $key_auth = "$token.$thumbprint";
+
+<[base.log]>->( 3, "key authorization: $key_auth" );
+
+## For HTTP-01, we need to serve key auth at:
+## http://example.com/.well-known/acme-challenge/{token}
+
+## Create challenge directory
+my $well_known_dir      = '/.well-known/acme-challenge';
+my $challenge_file_path = sprintf '%s/%s/%s/%s',
+    <httpsd.site_dir>,            # /var/httpd/
+    <httpsd.cfg.default_site>,    # default vhost
+    $well_known_dir, $token;
+
+my $challenge_dir = sprintf '%s/%s/%s',
+    <httpsd.site_dir>,
+    <httpsd.cfg.default_site>,
+    $well_known_dir;
+
+unless ( -d $challenge_dir ) {
+    <[base.log]>->( 2, "creating challenge directory: $challenge_dir" );
+    mkdir( $challenge_dir, 0755 ) or do {
+        <[base.log]>
+            ->( 1, "error: could not create challenge directory: $!" );
+        return undef;
+    };
+}
+
+## Write key authorization to file
+<[file.put]>->( $challenge_file_path, $key_auth, qw| :raw | );
+chmod( 0644, $challenge_file_path );
+
+<[base.log]>->( 2, "challenge response written to $challenge_file_path" );
+
+## Store challenge info in child state for later verification
+<letsencrypt.child.active_challenges> {$token} = {
+    domain        => $domain,
+    token         => $token,
+    key_auth      => $key_auth,
+    challenge_url => $challenge->{url},
+    file_path     => $challenge_file_path,
+    created_at    => time(),
+};
+
+return {
+    token          => $token,
+    key_auth       => $key_auth,
+    file_path      => $challenge_file_path,
+    well_known_url => "http://$domain/.well-known/acme-challenge/$token",
+    challenge_url  => $challenge->{url},
+};
+
+#,,,.,...,.,,,.,.,.,,,..,,.,,,,..,...,,,,,,,.,..,,...,...,,,.,.,,,,,.,.,,,,.,,
+#6C4EEPT4F7VGUFNSBZYDMV6E5MYNSM62BQ3K636NCJCFJ3F4L7EGOWWO6T6PFFEJTPB2OMG4OJGOU
+#\\\|I4YJ3SE6JWL27A7NEDSGAZYTRPMQ2W3H54LDCXLXMXAUXOBRS5U \ / AMOS7 \ YOURUM ::
+#\[7]HXK7BZDVJEIQBZL3EVZABDVQF2RRA7MCKV5VDH7TU3UNE7ZJ26BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

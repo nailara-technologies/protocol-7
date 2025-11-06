@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = letsencrypt.parent.send_from_child
+# descr = Handle messages sent from child process to parent
+
+my $msg = shift;
+
+return undef unless $msg;
+
+<[base.log]>->( 3, 'received message from child: ' . $msg->{command} );
+
+## Route message to appropriate handler
+my $command = $msg->{command};
+
+if ( $command eq 'child_ready' ) {
+    <[letsencrypt.parent.handler_child_ready]>->($msg);
+} elsif ( $command eq 'cert_ready' ) {
+    <[letsencrypt.parent.handler_cert_ready]>->($msg);
+} elsif ( $command eq 'renewal_check' ) {
+    <[letsencrypt.parent.handler_renewal_check]>->($msg);
+} elsif ( $command eq 'renewal_failed' ) {
+    <[letsencrypt.parent.handler_renewal_failed]>->($msg);
+} else {
+    <[base.log]>->( 1, "unknown command from child: $command" );
+    return undef;
+}
+
+return 1;
+
+#,,,,,,,,,.,.,,..,..,,...,...,.,,,.,.,,..,...,..,,...,...,..,,..,,,.,,.,,,,,.,
+#TROXPW3AMQFCBI7GRGATUUXC6U74IMHPTSSJCETFXY4W7KKF2QFTFVYIKHCTD6KSG54OVNXZ4DGNC
+#\\\|5O2YZO5PHVYTV63B3Z2LCPBCOCAN2GCPSKH2Q5RW4ZEZZGTKBLM \ / AMOS7 \ YOURUM ::
+#\[7]N6CXTY2R4GXQSGHRSA2WV7GQPCTMCNB3S6DI3O4QKJXMYVP57ECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

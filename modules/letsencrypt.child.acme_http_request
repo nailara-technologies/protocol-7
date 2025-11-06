@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = letsencrypt.child.acme_http_request
+# descr = Make authenticated ACME request to Let's Encrypt server
+
+use JSON::XS;
+use LWPx::ParanoidAgent;
+use HTTP::Request;
+
+my $method  = shift;    # GET, POST
+my $url     = shift;
+my $payload = shift;    # hashref or string (for POST)
+my $nonce   = shift;
+my $kid     = shift;    # Key ID for authenticated requests
+
+<[base.log]>->( 3, "ACME HTTP $method to " . substr( $url, 0, 50 ) . '...' );
+
+## Create HTTPS client with paranoid checks
+my $ua = LWPx::ParanoidAgent->new(
+    timeout  => 10,
+    ssl_opts => {
+        verify_hostname => 1,
+        SSL_verify_mode => 1,    # SSL_VERIFY_PEER
+    },
+);
+
+my $request;
+
+if ( $method eq 'POST' ) {
+    ## Create JWS wrapper for authenticated request
+    my $jws = <[letsencrypt.child.create_jws]>->( $payload, $nonce, $kid );
+
+    unless ($jws) {
+        <[base.log]>->( 1, 'error: failed to create JWS' );
+        return undef;
+    }
+
+    ## Create request with JWS body
+    my $jws_json = JSON::XS::encode_json($jws);
+
+    $request = HTTP::Request->new( POST => $url );
+    $request->header( 'Content-Type' => 'application/jose+json' );
+    $request->content($jws_json);
+
+} elsif ( $method eq 'GET' ) {
+    $request = HTTP::Request->new( GET => $url );
+    $request->header( 'Accept' => 'application/json' );
+} else {
+    <[base.log]>->( 1, "error: unsupported method: $method" );
+    return undef;
+}
+
+## Execute request
+my $response = $ua->request($request);
+
+unless ( $response->is_success ) {
+    <[base.log]>->( 1, "ACME request failed: " . $response->status_line );
+    return undef;
+}
+
+## Extract response headers (especially Replay-Nonce)
+my $replay_nonce = $response->header('Replay-Nonce');
+
+## Parse JSON response
+my $body = $response->decoded_content();
+my $data;
+
+eval { $data = JSON::XS::decode_json($body); };
+if ($@) {
+    <[base.log]>->( 1, "error parsing ACME response: $@" );
+    return undef;
+}
+
+## Return response with fresh nonce
+return {
+    status  => $response->code,
+    data    => $data,
+    nonce   => $replay_nonce,
+    headers => $response->headers_as_hash,
+};
+
+#,,,.,,,,,,.,,..,,.,,,.,.,...,.,,,,,,,..,,,,.,..,,...,...,...,...,.,,,,,,,,,,,
+#MFOYIM6TLDGFBTLDHY4TH73L6JVIU36M2HYRJ57IRNKQE7DOLRD4YHRNHXUXRWYI2O7N7CSAW3KXM
+#\\\|UCFQVAGHLMKUIXVICFZWCDXQ66AQ63TF7PE5QOGO7XET3SVCXO3 \ / AMOS7 \ YOURUM ::
+#\[7]JNRYXSFAQGN2SNVXBKLUJ7SL2W76KQGJC53NNYFEZSS64LSJBWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

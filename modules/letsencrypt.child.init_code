@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = letsencrypt.child.init_code
+# descr = Initialize child process for Let's Encrypt ACME operations - handles blocking crypto and network calls
+
+<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME child process..,' );
+
+## Load child-specific modules
+<[base.load_modules]>->('letsencrypt.base');
+<[base.init_modules]>->('letsencrypt.base');
+
+## Initialize ACME client state (child-side)
+<letsencrypt.child.acme_client> = {
+    server           => <letsencrypt.acme.server>,
+    account_key      => undef,
+    account_key_type => 'Ed25519',    ## Track key type for signing (EdDSA)
+    account_id       => undef,
+    nonce            => undef,
+};
+
+## Initialize certificate request queue (for blocking operations)
+<letsencrypt.child.cert_queue> = [];
+
+## Initialize challenge handlers (child performs actual challenge)
+<letsencrypt.child.active_challenges> = {};
+
+## Load cryptographic modules for ACME
+<[base.perlmod.autoload]>->('Crypt::Ed25519');  ## Account key signing (EdDSA)
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509')
+    ;                                           ## CSR certificate generation
+<[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.autoload]>->('Digest::SHA');
+<[base.perlmod.autoload]>->('MIME::Base64');    ## Base64url encoding
+<[base.perlmod.autoload]>->('Crypt::Misc');     ## Base32r encoding/decoding
+
+## NOTE: Message handler is registered by fork_letsencrypt_child via base.handler.command
+## Do NOT register custom handler here - use Protocol-7's command protocol
+
+## Initialize ACME account (blocking operation - safe in child)
+my $account_key_path = sprintf '%s/account.key', <letsencrypt.cache.dir>;
+if ( -f $account_key_path ) {
+    <[base.log]>->( 2, 'loading existing ACME account key' );
+
+    # Load account key (deferred)
+    # <[letsencrypt.child.load_account_key]>->($account_key_path);
+} else {
+    <[base.log]>->( 2, 'generating new ACME account key' );
+
+    # Generate Ed25519 key (blocking - safe in child)
+    # <[letsencrypt.child.generate_account_key]>->();
+}
+
+<[base.log]>->( 2, "Let's Encrypt child process initialization complete" );
+<[base.logs]>->( 2, '  ACME Server: %s', <letsencrypt.acme.server> );
+<[base.logs]>->( 2, '  Account Key: %s', $account_key_path );
+
+0;
+
+#,,,,,,..,,,.,,.,,,,.,.,,,..,,,,.,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,...,.,,,
+#64HNQZC4NZR7AZ5UQ2WGO4J4OMFW22HYZKXZXTA2HNCYSHT4VCHMX45IFJZP5I65VFCN6PCUUZS7Q
+#\\\|6NH2Q7V5OFNLUEVTSEHZZNFHBCRZADJR7WDKTFHCO55XG6R2TZR \ / AMOS7 \ YOURUM ::
+#\[7]VFJTCD3Y4BVTGNDBA6TOFQSHUBM2IVNO2LUZKUQZHXPBATE6ZSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

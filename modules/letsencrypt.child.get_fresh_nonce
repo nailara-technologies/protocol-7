@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = letsencrypt.child.get_fresh_nonce
+# descr = Get fresh nonce from Let's Encrypt server for next ACME request
+
+use LWPx::ParanoidAgent;
+
+<[base.log]>->( 3, 'requesting fresh nonce from ACME server' );
+
+## Get nonce URL from directory
+my $directory = <letsencrypt.child.acme_client> {directory};
+my $nonce_url = $directory->{newNonce};
+
+unless ($nonce_url) {
+    <[base.log]>->( 1, 'error: newNonce endpoint not in directory' );
+    return undef;
+}
+
+## Create HTTPS client
+my $ua = LWPx::ParanoidAgent->new(
+    timeout  => 10,
+    ssl_opts => {
+        verify_hostname => 1,
+        SSL_verify_mode => 1,
+    },
+);
+
+## HEAD request to nonce endpoint
+my $response = $ua->head($nonce_url);
+
+unless ( $response->is_success ) {
+    <[base.log]>->( 1, "error fetching nonce: " . $response->status_line );
+    return undef;
+}
+
+## Extract nonce from Replay-Nonce header
+my $nonce = $response->header('Replay-Nonce');
+
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: no Replay-Nonce header in response' );
+    return undef;
+}
+
+<[base.log]>->( 3, 'fresh nonce obtained' );
+
+## Update current nonce in state
+<letsencrypt.child.acme_client> {nonce} = $nonce;
+
+return $nonce;
+
+#,,,.,,.,,..,,,,.,..,,.,,,,,.,,,.,,,,,,,,,,,.,..,,...,...,,,,,,..,.,.,.,.,.,,,
+#6X52ZMZXKZHI75FB3ZMWUIUCXCRUBYGBZA6HBA5MNW3ENXBRRU4C5ZPKSHKNSGOXYADYQPMQUTZZK
+#\\\|G6Z3ZDIJXZDY4PP7HTCFC4ISM6FDUYXJ2O33ZQ3RQCDC5WH32SP \ / AMOS7 \ YOURUM ::
+#\[7]RBGEYLA2R4PZZTKEF2AXFCLRST66MIPL7A57WSF4CDW6MQAPPICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

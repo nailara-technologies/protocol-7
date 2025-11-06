@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = letsencrypt.child.create_jws
+# descr = Create JSON Web Signature (JWS) for ACME requests (Ed25519/EdDSA signing)
+
+use Crypt::Ed25519;
+use JSON::XS;
+use MIME::Base64 qw(encode_base64url);
+
+my $payload = shift;  # hashref or JSON string
+my $nonce   = shift;
+my $kid     = shift;  # Key ID (optional, for account requests use thumbprint)
+
+return undef unless defined $nonce;
+
+<[base.log]>->( 3, 'creating JWS for ACME request (EdDSA/Ed25519)' );
+
+## Ensure we have payload as string
+my $payload_json = ref($payload) ? JSON::XS::encode_json($payload) : $payload;
+
+## URL-safe base64 encode payload
+my $payload_b64 = encode_base64url($payload_json);
+
+## Create JOSE header per RFC 8037 (EdDSA)
+my $header = {
+    alg   => 'EdDSA',    # EdDSA signing algorithm
+    nonce => $nonce,
+};
+
+## Add either 'kid' (Key ID) or 'jwk' (public key)
+if ( defined $kid ) {
+    $header->{kid} = $kid;
+} else {
+    ## Include public key for account creation (RFC 8037 format)
+    $header->{jwk} = <[letsencrypt.child.get_jwk]>->();
+}
+
+my $header_json = JSON::XS::encode_json($header);
+my $header_b64  = encode_base64url($header_json);
+
+## Create signing input: header.payload
+my $signing_input = $header_b64 . '.' . $payload_b64;
+
+## Sign with Ed25519 account key
+my $account_key = <letsencrypt.child.acme_client>->{account_key};
+unless ( $account_key && $account_key->{secret} && $account_key->{public} ) {
+    <[base.log]>->(
+        1, 'error: account key not properly initialized for signing'
+    );
+    return undef;
+}
+
+my $signature = Crypt::Ed25519::sign(
+    $signing_input,
+    $account_key->{secret},
+    $account_key->{public}
+);
+
+## URL-safe base64 encode signature
+my $signature_b64 = encode_base64url($signature);
+
+## Return complete JWS (same structure as RSA JWS)
+return {
+    protected => $header_b64,
+    payload   => $payload_b64,
+    signature => $signature_b64,
+};
+
+#,,..,..,,,.,,..,,.,.,...,,,.,,..,,..,.,,,,.,,..,,...,...,...,,,,,,.,,...,,,,,
+#PRUWC2DE4Y7FLNEH35QMXEOPQUWJU5BI4FUZDXVHUHMVDG5P2YCTAKGKUVAXNMM526PYQAN5B7GR6
+#\\\|QFLML3LLULBS2SQZW6LPCPMSOFOENAPNSRDR7AWOKM4BGCPX4NK \ / AMOS7 \ YOURUM ::
+#\[7]L23MK4OWLTEXQSK7CKDLQFM2JOMYIBPNRM3YD2DGRFORTHM7KIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
