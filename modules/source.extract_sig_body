@@ -623,9 +623,13 @@ if (   defined $@ && length($@)
 } else {
 
     # Decoding was successful
-    <[source.restore_payload_endline_state]>->(
-        $src_ref, $amos7_header->{'endline-state-encoded'}
-    );
+    # For state 6/7 with separator restored, skip endline restoration to preserve separator
+    my $separator_was_restored = $strip && !$seperator_endline_absent;
+    my $state = $amos7_header->{'endline-state-encoded'};
+
+    if (!($separator_was_restored && ($state == 6 || $state == 7))) {
+        <[source.restore_payload_endline_state]>->($src_ref, $state);
+    }
 
     # Copy data from header
     map { $footer_data->{$ARG} = $amos7_header->{$ARG}; } qw[
