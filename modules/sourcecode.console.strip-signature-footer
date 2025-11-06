@@ -81,11 +81,11 @@ foreach my $source_path (@source_paths) {
     if ( not $footer_data->{'structure-was-valid'} ) {
         my $footer_error = $footer_data->{'encountered-error'};
         if ( not defined $footer_error or not length $footer_error ) {
-            $footer_error = 'signature footer present but could not be validated';
+            $footer_error
+                = 'signature footer present but could not be validated';
         }
         <[base.logs]>->(
-            0,
-            ':E: invalid signature structure: %s',
+            0, ':E: invalid signature structure: %s',
             $footer_error
         );
         $files_error++;
@@ -165,8 +165,8 @@ if ( $files_error > 0 ) {
 
 return 0;
 
-#,,..,...,..,,,.,,.,.,.,.,..,,,..,.,.,,..,.,,,..,,...,...,,.,,.,,,...,,..,..,,
-#6ICAL3RG5B5Q6VZTWVFNGOQV3HE3UCU7GZLCMVSCDNNWHKZG6DOE32EIYGR7ZRV7B6ZKPCTEP6JFK
-#\\\|TB5SHAAQ5KL7R3E4IZSGSGDIQNBHZGM3JBI6GNEST6H7VWR6Z34 \ / AMOS7 \ YOURUM ::
-#\[7]IHERK57VHYM36FFBYCEJTK4ZFLNFV6KMRJECDIVANEV3ZVOEXCBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,..,,,.,,..,,...,,,.,,,.,.,.,..,,...,...,.,,,,..,,,.,.,.,,,.,
+#TB2G25RIQYIG4X2UIS6XNHEJRABIQR3KKU2UNSW24VVZN32PZCLCPDAKOHS5LIDC6G3TPOQKNUFPE
+#\\\|HMOMPNGYH3DIGO2JBAOYH3IISOBAPDIYDUB42LOKS7A73UCI5BT \ / AMOS7 \ YOURUM ::
+#\[7]VRDDELWV3EQAC3SE7Y6T4JAULEFEAUMGOM2VYEMAHWKPLTV3VMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

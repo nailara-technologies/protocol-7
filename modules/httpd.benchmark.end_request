@@ -4,8 +4,8 @@
 
 # End performance tracking for an HTTP request and record metrics
 
-my $request_id = shift;
-my $status_code = shift // 200;
+my $request_id    = shift;
+my $status_code   = shift // 200;
 my $response_size = shift // 0;
 
 # Skip if benchmark not enabled
@@ -22,60 +22,63 @@ my $end_time = <[base.time]>->(3);
 $metrics->{'request_duration'} = $end_time - $metrics->{'start_time'};
 
 # Record response details
-$metrics->{'status_code'} = $status_code;
+$metrics->{'status_code'}   = $status_code;
 $metrics->{'response_size'} = $response_size;
 $metrics->{'bytes_per_sec'} = $response_size / $metrics->{'request_duration'}
     if $metrics->{'request_duration'} > 0;
 
 # Get final memory usage
-$metrics->{'memory_final'} = <[httpd.benchmark.sample_memory_usage]>();
-$metrics->{'memory_delta'} = $metrics->{'memory_final'} - ($metrics->{'memory_usage'} // 0);
+$metrics->{'memory_final'} = <[httpd.benchmark.sample_memory_usage]>;
+$metrics->{'memory_delta'}
+    = $metrics->{'memory_final'} - ( $metrics->{'memory_usage'} // 0 );
 
 # Add to historical data
-push @{$data{'httpd'}{'benchmark'}{'history'}}, {
-    'timestamp' => $end_time,
-    'request_id' => $request_id,
-    'duration' => $metrics->{'request_duration'},
-    'status' => $status_code,
-    'size' => $response_size,
+push @{ $data{'httpd'}{'benchmark'}{'history'} },
+    {
+    'timestamp'    => $end_time,
+    'request_id'   => $request_id,
+    'duration'     => $metrics->{'request_duration'},
+    'status'       => $status_code,
+    'size'         => $response_size,
     'memory_delta' => $metrics->{'memory_delta'}
-};
+    };
 
 # Keep history size manageable (last 1000 entries)
-if (scalar @{$data{'httpd'}{'benchmark'}{'history'}} > 1000) {
-    splice(@{$data{'httpd'}{'benchmark'}{'history'}}, 0, 100);
+if ( scalar @{ $data{'httpd'}{'benchmark'}{'history'} } > 1000 ) {
+    splice( @{ $data{'httpd'}{'benchmark'}{'history'} }, 0, 100 );
 }
 
 # Calculate and update averages
-my $total_requests = scalar @{$data{'httpd'}{'benchmark'}{'history'}};
-my $sum_duration = 0;
-my $sum_size = 0;
-my $sum_memory = 0;
+my $total_requests = scalar @{ $data{'httpd'}{'benchmark'}{'history'} };
+my $sum_duration   = 0;
+my $sum_size       = 0;
+my $sum_memory     = 0;
 
-foreach my $entry (@{$data{'httpd'}{'benchmark'}{'history'}}) {
+foreach my $entry ( @{ $data{'httpd'}{'benchmark'}{'history'} } ) {
     $sum_duration += $entry->{'duration'};
-    $sum_size += $entry->{'size'};
-    $sum_memory += $entry->{'memory_delta'};
+    $sum_size     += $entry->{'size'};
+    $sum_memory   += $entry->{'memory_delta'};
 }
 
 $data{'httpd'}{'benchmark'}{'avg'} = {
-    'duration' => $sum_duration / $total_requests,
-    'size' => $sum_size / $total_requests,
+    'duration'     => $sum_duration / $total_requests,
+    'size'         => $sum_size / $total_requests,
     'memory_delta' => $sum_memory / $total_requests
 };
 
 # Log performance data if debugging enabled
 <[base.log]>->(
-    2, "Request $request_id completed: " .
-       "$status_code, " .
-       sprintf("%.2f", $metrics->{'request_duration'} * 1000) . "ms, " .
-       <[httpd.base.size.normalize]>->($response_size)
+    2,
+    "Request $request_id completed: "
+        . "$status_code, "
+        . sprintf( "%.2f", $metrics->{'request_duration'} * 1000 ) . "ms, "
+        . <[httpd.base.size.normalize]>->($response_size)
 ) if $data{'httpd'}{'benchmark'}{'debug'};
 
 return $metrics;
 
-#,,,.,,..,..,,.,,,,,,,,,,,,..,..,,,.,,,..,,.,,..,,...,..,,...,,,,,,,.,.,,,,..,
-#RLBETN72CFRJ4ATVE44OG5BK5KR4NXT2JQB2EBWTA23JDNFOCH43BMMCMFUSEJUDPZYIGU66WMN7Q
-#\\\|T5CX24D6RP7ASHU5I7HOZLKLKYGQB6KNRPGLUHYCVCXFCPMQIGA \ / AMOS7 \ YOURUM ::
-#\[7]6OZMK63FIFOP4BBVQJ6AOS6STPIWXTJZOVL62GGGLZZAYUOASSDQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,...,...,.,.,..,,.,,,,..,,..,..,,...,...,..,,..,,,,.,,,.,,..,
+#EH756XQYMDKRCNDX5AYMD4MQFQIJDT7IAH2Q6DS5WP3TZ6BOR2GCKQ7JP773QQMMCU53FBZYHL3NY
+#\\\|FAUAN24KHSROEI55TBV5TWZWYZQGXQCJ3EHQLYN2GS4PACXFB6X \ / AMOS7 \ YOURUM ::
+#\[7]JSTPK7PJ5H2L6QAUO7J53KZ7BIQXL5Z2ISSCFPGZ4OQRPI3S76BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

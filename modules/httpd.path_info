@@ -24,14 +24,14 @@ $path =~ s/^\///;        # Remove leading slash
 
 # Extract query parameters
 my $params = {};
-if ($path =~ s/\?(.*)$//) {
+if ( $path =~ s/\?(.*)$// ) {
     my $query_string = $1;
 
-    foreach my $pair (split(/&/, $query_string)) {
-        my ($key, $value) = split(/=/, $pair, 2);
+    foreach my $pair ( split( /&/, $query_string ) ) {
+        my ( $key, $value ) = split( /=/, $pair, 2 );
 
         # URL decode parameters
-        $key =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+        $key   =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
         $value =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $value;
 
         $params->{$key} = $value // '';
@@ -39,34 +39,34 @@ if ($path =~ s/\?(.*)$//) {
 }
 
 # Construct full filesystem path
-my $doc_root = <httpd.config.document_root> || '/tmp';
+my $doc_root  = <httpd.config.document_root> || '/tmp';
 my $full_path = "$doc_root/$path";
 
 # Handle default file if path is a directory
-if (-d $full_path) {
-    $full_path =~ s/\/$//;  # Remove trailing slash
-    $full_path .= '/';      # Add it back (ensures consistency)
+if ( -d $full_path ) {
+    $full_path =~ s/\/$//;    # Remove trailing slash
+    $full_path .= '/';        # Add it back (ensures consistency)
 }
 
 # Check if path exists
-if (!-e $full_path && !-d $full_path) {
-    <[base.logs]>->(2, "[$id] Resource not found: %s", $full_path);
-    return (404, $full_path, $params);  # Not Found
+if ( !-e $full_path && !-d $full_path ) {
+    <[base.logs]>->( 2, "[$id] Resource not found: %s", $full_path );
+    return ( 404, $full_path, $params );    # Not Found
 }
 
 # Check if path is accessible
-if (!-r $full_path) {
-    <[base.logs]>->(1, "[$id] Permission denied: %s", $full_path);
-    return (403, $full_path, $params);  # Forbidden
+if ( !-r $full_path ) {
+    <[base.logs]>->( 1, "[$id] Permission denied: %s", $full_path );
+    return ( 403, $full_path, $params );    # Forbidden
 }
 
 # Store parsed parameters in session
 $session->{'http'}->{'params'} = $params;
 
-return (200, $full_path, $params);  # OK
+return ( 200, $full_path, $params );        # OK
 
-#,,..,..,,,,,,...,.,.,,,,,,..,,,,,.,,,,.,,...,...,...,..,,,.,,.,.,.,,,.,.,,..,
-#GBWR3A2SHWCXU6S43QKYWWRXIHGHT7T63AJQ2U6PBNMOZ27EQJJR2UK27Q4QSRDFXSZVZ7CFFABHG
-#\\\|QX7FG2WI3RGFTD3ZVJLD3W7RFWIYLCXA3M2INXTJB5WUYYVR3Y3 \ / AMOS7 \ YOURUM ::
-#\[7]KIVUJEZCPFQ4E6PSEOI4EN54EJTJ3VXL7EWJO4PPDJPZVLJXFUCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,.,.,,,.,,,..,,.,,,..,,,.,,,,.,...,...,...,...,,,,,..,,...,,,.,
+#GI2OWK5LXRL36WIAARFDBC3P3CWMSRO3LDOL5VUV2HWGAFEDMWHRKZ26R2IGVVOTDXL3LNMSN4JB4
+#\\\|NOBQPPBREF7VYPTLV5K3WX75XGMMEM2VGLLM6X6THTZJ4ZN3EJS \ / AMOS7 \ YOURUM ::
+#\[7]2UIMWYHDHQ4XX4KLEIAPJIV4NCYN7NV3RNKSGC33ODSBOEKH4MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

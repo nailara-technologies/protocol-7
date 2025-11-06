@@ -15,22 +15,21 @@ my $operation_id = <[base.gen_id]>->('httpd.diagnostic.operation');
 
 # Initialize operation tracking
 $data{'httpd'}{'diagnostic'}{'operations'}{$operation_id} = {
-    'id' => $operation_id,
-    'type' => $operation_type,
+    'id'         => $operation_id,
+    'type'       => $operation_type,
     'start_time' => <[base.time]>->(3),
-    'data' => $operation_data,
-    'metrics' => {}
+    'data'       => $operation_data,
+    'metrics'    => {}
 };
 
 # Log operation start if debug enabled
-<[base.log]>->(
-    3, "Operation started: $operation_type [$operation_id]"
-) if $data{'httpd'}{'diagnostic'}{'debug'};
+<[base.log]>->( 3, "Operation started: $operation_type [$operation_id]" )
+    if $data{'httpd'}{'diagnostic'}{'debug'};
 
 return $operation_id;
 
-#,,,,,.,,,.,,,,..,...,,,,,,..,...,,,.,.,.,,.,,..,,...,...,.,,,,.,,,.,,.,,,..,,
-#NWYB7LU6R4VSRC5KS7MTXJJCIYRCVQGGQR4CUK3SHP46HA4INX5CPOQ5WGQY77MJGEUN2TLO5SZHQ
-#\\\|PUWHE2CTBLZPWGVCAMCB74HG5XXKLQ3YMKUWWYWHTSLZJQGYJTE \ / AMOS7 \ YOURUM ::
-#\[7]DGXUTE3S2FQGNWIT34WQ63VRR6C4N7X55GB56GG5TEHUC2DOFMBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,..,...,,..,..,,.,,,.,,,...,..,,..,,...,...,,..,,..,,,,,..,,,.,,
+#GKIMHFNPQTXN3QUMDZIB65G7PES6W3WLB42DRUVLDCHUXZCHM7RXL37YLIKKMRGP6GGZHCSHAF36M
+#\\\|QWR3M3QHT2HIV37XJXOZGOZ3X6TLSXV7OAO5PIUXPQHFCBKFHZF \ / AMOS7 \ YOURUM ::
+#\[7]QMCYC7WTTEUBXH5HEKLZHQL6KZPRZBIOB6FZB22WJ7W4WXSHZCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

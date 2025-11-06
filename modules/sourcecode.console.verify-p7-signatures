@@ -143,19 +143,28 @@ foreach my $path_rel (@source_paths) {
     );
 
     # Track if the file was repaired
-    my $was_repaired = ($report_ref && $report_ref->{'repaired'}) ? TRUE : FALSE;
-    my $was_reconstructed = ($report_ref && $report_ref->{'reconstructed'}) ? TRUE : FALSE;
-    my $repaired_state = ($was_repaired && $report_ref->{'repaired-with-state'})
-                         ? $report_ref->{'repaired-with-state'} : 5;
+    my $was_repaired
+        = ( $report_ref && $report_ref->{'repaired'} ) ? TRUE : FALSE;
+    my $was_reconstructed
+        = ( $report_ref && $report_ref->{'reconstructed'} ) ? TRUE : FALSE;
+    my $repaired_state
+        = ( $was_repaired && $report_ref->{'repaired-with-state'} )
+        ? $report_ref->{'repaired-with-state'}
+        : 5;
 
-    # If the signature was repaired, update the file with the corrected content
-    if (($was_repaired || $was_reconstructed) && $verify_mode eq 'repair') {
-        # The content has already been modified in memory by source.signature_valid
-        # Write it back to the file
-        <[base.logs]>->( 2, ': writing %s file: %s',
-                         $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs );
-        <[file.put]>->($path_abs, \$src_str, ':raw');
-        $footer_data->{'repaired'} = TRUE;  # Mark as repaired in the footer data
+   # If the signature was repaired, update the file with the corrected content
+    if ( ( $was_repaired || $was_reconstructed ) && $verify_mode eq 'repair' )
+    {
+   # The content has already been modified in memory by source.signature_valid
+   # Write it back to the file
+        <[base.logs]>->(
+            2,
+            ': writing %s file: %s',
+            $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs
+        );
+        <[file.put]>->( $path_abs, \$src_str, ':raw' );
+        $footer_data->{'repaired'}
+            = TRUE;    # Mark as repaired in the footer data
         $footer_data->{'reconstructed'} = TRUE if $was_reconstructed;
     }
 
@@ -163,12 +172,14 @@ foreach my $path_rel (@source_paths) {
         $valid_count++;
 
         # If it was repaired or reconstructed, show special message
-        if ($was_repaired || $was_reconstructed) {
+        if ( $was_repaired || $was_reconstructed ) {
             <[base.logs]>->(
                 1,
                 ':+: valid (%s%s) :: %s',
                 $was_reconstructed ? 'reconstructed' : 'repaired',
-                $was_repaired && !$was_reconstructed ? " with state $repaired_state" : '',
+                $was_repaired && !$was_reconstructed
+                ? " with state $repaired_state"
+                : '',
                 <[base.parser.ellipse_center]>->( $path_rel, 28 )
             );
 
@@ -227,23 +238,31 @@ foreach my $path_rel (@source_paths) {
 <[base.log]>->( 0, qw| : | );
 
 # Count repaired and reconstructed files - we don't need to re-read files as we already track this
-my $repaired_count = 0;
+my $repaired_count      = 0;
 my $reconstructed_count = 0;
 foreach my $path_rel (@source_paths) {
     my $path_abs = catfile( $work_tree, $path_rel );
     <[file.slurp]>->( $path_abs, \my $src_str, qw| :raw | );
-    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip |, $verify_mode );
-    $repaired_count++ if $footer_data->{'repaired'} && !$footer_data->{'reconstructed'};
+    my $footer_data = <[source.extract_sig_body]>
+        ->( \$src_str, qw| strip |, $verify_mode );
+    $repaired_count++
+        if $footer_data->{'repaired'} && !$footer_data->{'reconstructed'};
     $reconstructed_count++ if $footer_data->{'reconstructed'};
 }
 
-if ($verify_mode eq 'repair') {
-    if ($repaired_count > 0 || $reconstructed_count > 0) {
+if ( $verify_mode eq 'repair' ) {
+    if ( $repaired_count > 0 || $reconstructed_count > 0 ) {
         <[base.logs]>->(
-            1, ':.: %d valid (%d repaired, %d reconstructed), %d invalid, %d need repair (total: %d)',
-            $valid_count, $repaired_count, $reconstructed_count, $invalid_count, $repair_needed_count, $file_count
+            1,
+            ':.: %d valid (%d repaired, %d reconstructed), %d invalid, %d need repair (total: %d)',
+            $valid_count,
+            $repaired_count,
+            $reconstructed_count,
+            $invalid_count,
+            $repair_needed_count,
+            $file_count
         );
-    } elsif ($repair_needed_count > 0) {
+    } elsif ( $repair_needed_count > 0 ) {
         <[base.logs]>->(
             1, ':.: %d valid, %d invalid, %d need repair (total: %d)',
             $valid_count, $invalid_count, $repair_needed_count, $file_count
@@ -265,8 +284,8 @@ if ($verify_mode eq 'repair') {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,..,,.,,...,..,,,,.,.,,,,,.,,,.,..,,.,.,.,,,..,,...,...,..,,.,.,,,,,..,,.,,,
-#XQDE2ZT7RLPI2RUMYMDSZ72HVRCG233VSLCUP624WOEY6B3D7MTFQDT2T2FEP5SZ7AJ5R34FZZ3XI
-#\\\|674UJYJMKEJSBKJAO2RMAUEUNXAKGRCYCPHQMITGCX2XMFHCHUK \ / AMOS7 \ YOURUM ::
-#\[7]7KVUP3OSXIQNWVUXHUX7UATLNCVZOBV7DFLEUGV74ISB2RVDOGCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,,.,.,.,...,,.,,,,.,,,.,..,,,,,,..,,...,.,.,..,,.,,,...,,,.,,.,,
+#KHTHXRXG2K2JBYMBB6UVUQPORZ7A4VYEHYGTHYIZVM5NAEUVXQ5TNHYCXWXSO3VCSHB4EIOM7SSZE
+#\\\|FDALJTLWJ5PEUTPFDEDWNKRNI6SC2VRAQA76X56HDGNJ7FY3ZDS \ / AMOS7 \ YOURUM ::
+#\[7]ARLCO6NDRTXUWXH7PF2CYKX2QRXO252ARWX4U3F4R352LJRLR4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

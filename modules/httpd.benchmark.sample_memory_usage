@@ -4,7 +4,7 @@
 
 # Sample memory usage for HTTP server benchmarking
 
-my $options = shift // {};
+my $options     = shift                     // {};
 my $log_results = $options->{'log_results'} // 0;
 
 # Skip if benchmark not enabled
@@ -18,15 +18,13 @@ my $pid = $$;
 $memory->{'process'} = {};
 
 # Read /proc/[pid]/status for memory information
-if (open(my $fh, '<', "/proc/$pid/status")) {
-    while (my $line = <$fh>) {
-        if ($line =~ /^VmRSS:\s+(\d+) kB/) {
-            $memory->{'process'}{'rss'} = $1 * 1024; # convert KB to bytes
-        }
-        elsif ($line =~ /^VmSize:\s+(\d+) kB/) {
+if ( open( my $fh, '<', "/proc/$pid/status" ) ) {
+    while ( my $line = <$fh> ) {
+        if ( $line =~ /^VmRSS:\s+(\d+) kB/ ) {
+            $memory->{'process'}{'rss'} = $1 * 1024;    # convert KB to bytes
+        } elsif ( $line =~ /^VmSize:\s+(\d+) kB/ ) {
             $memory->{'process'}{'size'} = $1 * 1024;
-        }
-        elsif ($line =~ /^VmSwap:\s+(\d+) kB/) {
+        } elsif ( $line =~ /^VmSwap:\s+(\d+) kB/ ) {
             $memory->{'process'}{'swap'} = $1 * 1024;
         }
     }
@@ -34,33 +32,40 @@ if (open(my $fh, '<', "/proc/$pid/status")) {
 }
 
 # Get system memory information
-$memory->{'system'} = <[httpd.system.memory_stats]>();
+$memory->{'system'} = <[httpd.system.memory_stats]>;
 
 # Calculate memory per connection
-my $connection_count = scalar(keys %{$data{'httpd'}{'active_requests'} // {}});
-$memory->{'per_connection'} = $connection_count > 0 ?
-    $memory->{'process'}{'rss'} / $connection_count : 0;
+my $connection_count
+    = scalar( keys %{ $data{'httpd'}{'active_requests'} // {} } );
+$memory->{'per_connection'}
+    = $connection_count > 0
+    ? $memory->{'process'}{'rss'} / $connection_count
+    : 0;
 
 # Store historical memory data
-push @{$data{'httpd'}{'benchmark'}{'memory_history'}}, {
-    'timestamp' => <[base.time]>->(3),
-    'rss' => $memory->{'process'}{'rss'},
+push @{ $data{'httpd'}{'benchmark'}{'memory_history'} },
+    {
+    'timestamp'        => <[base.time]>->(3),
+    'rss'              => $memory->{'process'}{'rss'},
     'connection_count' => $connection_count,
-    'per_connection' => $memory->{'per_connection'}
-};
+    'per_connection'   => $memory->{'per_connection'}
+    };
 
 # Keep history size manageable (last 1000 entries)
-if (scalar @{$data{'httpd'}{'benchmark'}{'memory_history'}} > 1000) {
-    splice(@{$data{'httpd'}{'benchmark'}{'memory_history'}}, 0, 100);
+if ( scalar @{ $data{'httpd'}{'benchmark'}{'memory_history'} } > 1000 ) {
+    splice( @{ $data{'httpd'}{'benchmark'}{'memory_history'} }, 0, 100 );
 }
 
 # Log memory usage if requested
 if ($log_results) {
     <[base.log]>->(
-        2, "HTTP server memory usage: " .
-           <[httpd.base.size.normalize]>->($memory->{'process'}{'rss'}) . " RSS, " .
-           "$connection_count connections, " .
-           <[httpd.base.size.normalize]>->($memory->{'per_connection'}) . " per connection"
+        2,
+        "HTTP server memory usage: "
+            . <[httpd.base.size.normalize]>->( $memory->{'process'}{'rss'} )
+            . " RSS, "
+            . "$connection_count connections, "
+            . <[httpd.base.size.normalize]>->( $memory->{'per_connection'} )
+            . " per connection"
     );
 }
 
@@ -69,8 +74,8 @@ $data{'httpd'}{'benchmark'}{'memory'} = $memory;
 
 return $memory->{'process'}{'rss'};
 
-#,,,,,.,.,.,,,...,.,.,.,,,,,.,,,.,,.,,,,,,...,..,,...,...,.,.,..,,,.,,.,.,.,.,
-#MX7PI4YG3UDNS47IPDQCN4HAGTMJILCLDQDL63HPLSKGKKCQOKC3KAULTWTZHE2T23MQAKDY6CCHU
-#\\\|N4YOGDVZGPBPRBSSRHZH5OBSJNSZPUOIKPS4IRM54QFGUG4DLSB \ / AMOS7 \ YOURUM ::
-#\[7]QYKHWDH6GFUAUS7OJL427BVUWGTTU3F2YAZY5VB55UT7PXBCGAAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,,,,,,,.,.,,,,,,,,,.,,,.,.,,,..,,...,...,,,,,.,,,...,...,.,,,
+#OGYKGHPXFHYAPFQWYPWVQEJERTUROXMUUX762L7ARYVHMJULX543DPS2PBWFXPYGFPHZDLBJL2GOS
+#\\\|4WDVLRVILYWQQ4MGTVL5AB7L5OKDHAVHPEY7B5RTOSYA62BSDM6 \ / AMOS7 \ YOURUM ::
+#\[7]IJBVWO5PZI2QXA2BKOALDICQ7RJB6U2O5A7UNWAIC2G357MDJYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

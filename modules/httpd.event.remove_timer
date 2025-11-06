@@ -6,17 +6,17 @@
 my $timer_id = shift;
 
 # Simulate removing a timer
-if (exists $data{'event'}{'timer'}{$timer_id}) {
+if ( exists $data{'event'}{'timer'}{$timer_id} ) {
     delete $data{'event'}{'timer'}{$timer_id};
-    <[base.log]>->(3, "HTTP: Removed timer $timer_id");
+    <[base.log]>->( 3, "HTTP: Removed timer $timer_id" );
     return 1;
 } else {
-    <[base.log]>->(3, "HTTP: Timer $timer_id not found");
+    <[base.log]>->( 3, "HTTP: Timer $timer_id not found" );
     return 0;
 }
 
-#,,..,,..,,,.,,,,,.,,,.,.,..,,,.,,,.,,...,,,,,...,...,...,,.,,..,,...,,.,,,..,
-#Y6OSEAU6TFWSVAZBCOQEOEADNQ6TCQW6DKLXQI4EKXRE3WAHAT3ELSTQIR7MSCYGVWB4GHBYWM7UK
-#\\\|ACFBZOHUXLHBO773FZ4Y2W2DV2HABPDU4H2PK6WG7P572GNTAEU \ / AMOS7 \ YOURUM ::
-#\[7]3ES5YPR2YBLZZCO5IO5YHMXZBC23MYOTBJ7RZKFMPCMK54EQBSDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,,..,.,,,...,,..,.,.,..,,,..,...,...,...,.,.,.,.,,..,.,,,..,,
+#C2NI5OEPKCSLMSSMOZDNZ65XIKBGYLZYBPQ2T4I3LOU2RFK7W3WGKKDJ2COF3JS42FAUP6BZZO7KG
+#\\\|243WDJW7AORMDU5S4QI75IUILO46ZRZEYFSGPIXPK6LCOIWRHSP \ / AMOS7 \ YOURUM ::
+#\[7]LVJWM3DEBBCYPP452QXC7B6CYD6GT6VMY4H6BHTF6DA3P2AYD4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

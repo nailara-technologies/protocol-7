@@ -7,13 +7,13 @@ my $fh = shift;
 
 return 0 if !defined $fh;
 
-my $flags = fcntl($fh, Fcntl::F_GETFL(), 0) or return 0;
-fcntl($fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK()) or return 0;
+my $flags = fcntl( $fh, Fcntl::F_GETFL(), 0 )                or return 0;
+fcntl( $fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() ) or return 0;
 
 return 1;
 
-#,,,,,..,,...,...,..,,,.,,,..,..,,...,.,.,,..,...,...,.,,,..,,.,,,,,,,,..,..,,
-#57JSEQLLTLBWAITE4BUBM4EDQH5MHNHA5J47TK7CRQD3AZSZ5F5QWIFKPM762CXVSHWIVLICE2VSA
-#\\\|47TCMUVVWRABLLGUJXHXEWDUYAE7RBQQL26OXGI6IY7PFDICQFI \ / AMOS7 \ YOURUM ::
-#\[7]VC5URR3GVGUZL2ZDHOK3ZSAAHYTPVBO76U2FEZ46V3NTE4LIF6DI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,.,,..,,...,,,.,,..,.,.,.,,,...,...,...,..,,..,,..,,.,.,...,
+#EABTIDC3M3PFF2YY2TA2WKX6ZPL3UFNUA4SZBFW7RDNRJM3JPNOJMLLUZONHJV3NECS4APLEYFDPO
+#\\\|6DE6WZYSLVOR5Q3GLWLQJ3DKYHCI44MZE2GIIK3W4NOJBB25QWF \ / AMOS7 \ YOURUM ::
+#\[7]EB46M7PTRZ3WQP2DCQMXVBMJCCJWNMKZNJ43NOTTYYBHE2VHBWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
