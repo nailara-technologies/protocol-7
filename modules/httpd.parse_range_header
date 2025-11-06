@@ -4,20 +4,23 @@
 # descr = parse http range header and return byte ranges
 
 my $range_header = shift;
-my $file_size = shift;
+my $file_size    = shift;
 
 # Skip if no range header or invalid file size
-return undef if !defined $range_header || !defined $file_size || $file_size <= 0;
+return undef
+    if !defined $range_header || !defined $file_size || $file_size <= 0;
 
 # Parse the range header (format: "bytes=0-499" or "bytes=500-999" or "bytes=500-")
-if ($range_header =~ /^bytes=(\d*)-(\d*)$/) {
+if ( $range_header =~ /^bytes=(\d*)-(\d*)$/ ) {
     my $start = $1;
-    my $end = $2;
+    my $end   = $2;
 
     # Handle empty start (e.g., "bytes=-500")
-    if ($start eq '') {
+    if ( $start eq '' ) {
+
         # If no start specified, interpret as last N bytes
-        if ($end eq '') {
+        if ( $end eq '' ) {
+
             # Both start and end empty, invalid range
             return undef;
         }
@@ -25,35 +28,40 @@ if ($range_header =~ /^bytes=(\d*)-(\d*)$/) {
         # Calculate start from end (e.g., bytes=-500 means last 500 bytes)
         $start = $file_size - $end;
         $start = 0 if $start < 0;
-        $end = $file_size - 1;
+        $end   = $file_size - 1;
     } else {
+
         # Handle empty end (e.g., "bytes=500-")
         $end = $file_size - 1 if $end eq '';
     }
 
     # Validate range
-    if ($start > $end || $start >= $file_size || $end >= $file_size) {
+    if ( $start > $end || $start >= $file_size || $end >= $file_size ) {
+
         # Range not satisfiable
         return undef;
     }
 
     # Return the range
-    return [{'start' => $start, 'end' => $end}];
-} elsif ($range_header =~ /^bytes=(.+)$/) {
+    return [ { 'start' => $start, 'end' => $end } ];
+} elsif ( $range_header =~ /^bytes=(.+)$/ ) {
+
     # Multiple ranges (e.g., "bytes=0-499,500-999")
     my $ranges_str = $1;
-    my @ranges = split(',', $ranges_str);
-    my @result = ();
+    my @ranges     = split( ',', $ranges_str );
+    my @result     = ();
 
     foreach my $range (@ranges) {
-        if ($range =~ /^(\d*)-(\d*)$/) {
+        if ( $range =~ /^(\d*)-(\d*)$/ ) {
             my $start = $1;
-            my $end = $2;
+            my $end   = $2;
 
             # Handle empty start (e.g., "-500")
-            if ($start eq '') {
+            if ( $start eq '' ) {
+
                 # If no start specified, interpret as last N bytes
-                if ($end eq '') {
+                if ( $end eq '' ) {
+
                     # Both start and end empty, invalid range
                     next;
                 }
@@ -61,20 +69,22 @@ if ($range_header =~ /^bytes=(\d*)-(\d*)$/) {
                 # Calculate start from end
                 $start = $file_size - $end;
                 $start = 0 if $start < 0;
-                $end = $file_size - 1;
+                $end   = $file_size - 1;
             } else {
+
                 # Handle empty end (e.g., "500-")
                 $end = $file_size - 1 if $end eq '';
             }
 
             # Validate range
-            if ($start > $end || $start >= $file_size || $end >= $file_size) {
+            if ( $start > $end || $start >= $file_size || $end >= $file_size )
+            {
                 # Range not satisfiable for this segment
                 next;
             }
 
             # Add to result
-            push @result, {'start' => $start, 'end' => $end};
+            push @result, { 'start' => $start, 'end' => $end };
         }
     }
 
@@ -84,8 +94,8 @@ if ($range_header =~ /^bytes=(\d*)-(\d*)$/) {
 # Invalid range format
 return undef;
 
-#,,,,,...,,,,,...,,,,,,.,,,,.,,..,,,,,..,,.,,,..,,...,...,.,.,,..,..,,,,.,,.,,
-#I2I47MZGSFMG3C6DH7K3O4CD4CAE2PWWQBWSXZQ5QZM5YDK442POESLIHC3N4UX2ZPEN5HSFHF652
-#\\\|6KIRD64U4QJEZITGZISKL3IWUWFVWWJGJQDWH64OJJO6MTOMBIU \ / AMOS7 \ YOURUM ::
-#\[7]ISNIPJPQLVMGMSO77EJE5WE6GJS5WU6ZODHCLGLLYLWZYLAKUWAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,.,.,,,,,.,.,,.,,,.,,..,,,,.,..,,...,..,,...,.,.,,..,.,.,...,
+#BOC4GWTFOHKXNOEV4L5WHIXBQNYCGIUBKYXHUOQDHSOEPMHDHS4CJNZHTC7LYVGOQOOGDHTA7KEG6
+#\\\|SYXV3V6HYVCV37XJ5KZZQOPRDLUPDMNN4ULUR7RCO3YDRJVU3H2 \ / AMOS7 \ YOURUM ::
+#\[7]V3WGCQMXPOP6EUVXA6DHBH6HEU4TFEXZGGHKCADV24GEUP6F3WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

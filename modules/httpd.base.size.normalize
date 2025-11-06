@@ -3,23 +3,23 @@
 # name = httpd.base.size.normalize
 # descr = format byte size to human-readable format
 
-my $bytes = shift;
+my $bytes     = shift;
 my $precision = shift // 1;
 
 return '0B' if $bytes == 0;
 
-my @units = ('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+my @units      = ( 'B', 'KB', 'MB', 'GB', 'TB', 'PB' );
 my $unit_index = 0;
 
-while ($bytes >= 1024 && $unit_index < scalar(@units) - 1) {
+while ( $bytes >= 1024 && $unit_index < scalar(@units) - 1 ) {
     $bytes /= 1024;
     $unit_index++;
 }
 
-return sprintf("%.${precision}f%s", $bytes, $units[$unit_index]);
+return sprintf( "%.${precision}f%s", $bytes, $units[$unit_index] );
 
-#,,.,,..,,,,,,,,.,..,,,..,,.,,,.,,.,.,,..,,.,,...,...,...,..,,,,,,,..,,.,,.,,,
-#YDUODPO4EVX67OLO76TX4GFOBOH726HZKJM6HJJAFWI5PJAZI3WS3IRTKFPL5H7MM63SZIHQIMTMC
-#\\\|AKT5UWVSZKANOKVIKRVMB66VUO4G2RDLFZJEMR6OXAJ6NSEP724 \ / AMOS7 \ YOURUM ::
-#\[7]7RSHOZHMQXAO6BMF2MCEQEG4746JOFHNCKDBBL655LT5ARSCDGBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,,,.,...,,,.,.,.,,,.,.,.,.,,,...,...,...,.,.,,..,..,,,..,.,.,
+#476VZKHB3JK2RRFHJC4RJ4KM5H2KQURS7EOBYYG2VN7KQTPVA4K2MMHRTPP4MYZDDEAR2HQF5JKOM
+#\\\|KYTYL5CMJPSJWWWJIJWHHZGIM4ZB4XKTHAI5D46TBWLSVETYEQT \ / AMOS7 \ YOURUM ::
+#\[7]5VYMDIOQQX5R2XYX4MTLGJTCFTER2K7OG7JKNF46HSJ7X5GD5GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

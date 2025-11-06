@@ -4,7 +4,7 @@
 
 # Start performance tracking for an HTTP request
 
-my $request_id = shift;
+my $request_id   = shift;
 my $request_data = shift // {};
 
 # Skip if benchmark not enabled
@@ -12,13 +12,13 @@ return if !$data{'httpd'}{'benchmark'}{'enabled'};
 
 # Initialize metrics for this request
 my $metrics = {
-    'start_time' => <[base.time]>->(3),
-    'req_id' => $request_id,
-    'memory_usage' => <[httpd.benchmark.sample_memory_usage]>(),
+    'start_time'   => <[base.time]>->(3),
+    'req_id'       => $request_id,
+    'memory_usage' => <[httpd.benchmark.sample_memory_usage]>,
     'request_data' => {
-        'method' => $request_data->{'method'} // 'UNKNOWN',
-        'uri' => $request_data->{'uri'} // '/',
-        'client_ip' => $request_data->{'client_ip'} // '0.0.0.0',
+        'method'     => $request_data->{'method'}     // 'UNKNOWN',
+        'uri'        => $request_data->{'uri'}        // '/',
+        'client_ip'  => $request_data->{'client_ip'}  // '0.0.0.0',
         'user_agent' => $request_data->{'user_agent'} // 'Unknown'
     }
 };
@@ -31,15 +31,16 @@ $data{'httpd'}{'active_requests'}{$request_id} = 1;
 
 # Log start of request if debugging enabled
 <[base.log]>->(
-    3, "Request $request_id started: " .
-       "$metrics->{'request_data'}->{'method'} $metrics->{'request_data'}->{'uri'} " .
-       "from $metrics->{'request_data'}->{'client_ip'}"
+    3,
+    "Request $request_id started: "
+        . "$metrics->{'request_data'}->{'method'} $metrics->{'request_data'}->{'uri'} "
+        . "from $metrics->{'request_data'}->{'client_ip'}"
 ) if $data{'httpd'}{'benchmark'}{'debug'};
 
 return $metrics;
 
-#,,,,,,,.,,..,,,.,,,.,,..,,,.,...,...,.,.,,..,..,,...,...,,,.,,.,,.,,,,.,,.,.,
-#Q3IPNGKHV2ZPFEBLUOEVZFB64XTJYO73V5JOIR5M4ZOEM2ZPPOXIVGQKFZUVOIWK42EPRHEIVMKFK
-#\\\|OIDVPOAB24IRS2X5HH7HU22JBDDNN5QPUIEEQADMP7GIWA3SNOW \ / AMOS7 \ YOURUM ::
-#\[7]6766MH5URHIBD2WYZZKMQAFEINZ4L6LGUJ5MJEXQHEYZKAR6KKDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,.,.,,,,,,,,,,,.,,,.,.,.,..,,..,,...,...,..,,,,,,,.,,,,.,,..,
+#Q3TBEFWBTCZSIIW64GENKFAA2DVYK6C5T3QDTZYPDVX65GHOFMBS5QM7HQQ3ELZTDAD6HWIEFJTCW
+#\\\|BDBRSI2JCNIEBJCR56YCAUNUXUY5AIJ5PXNDMSCMS3S26ZT45UO \ / AMOS7 \ YOURUM ::
+#\[7]XK2NZBXN6JIONZ7DGXSPIRQ3U2YTFQK667OVTDQVRI4ZFN2VHCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

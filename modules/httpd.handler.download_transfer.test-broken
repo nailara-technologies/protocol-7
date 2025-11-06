@@ -27,13 +27,18 @@ my $ranges     = $download->{'ranges'};
 
 # ===== TEST CODE: Force file handle close after ~113MB =====
 $download->{'test_bytes_read'} //= 0;
-my $test_trigger_at = 113 * 1024 * 1024;  # 113MB
-if ($download->{'test_bytes_read'} >= $test_trigger_at && !$download->{'test_triggered'}) {
-    <[base.log]>->( 0, "[$id] TEST: Forcibly closing file handle at %d bytes",
-        $download->{'test_bytes_read'} );
+my $test_trigger_at = 113 * 1024 * 1024;    # 113MB
+if ( $download->{'test_bytes_read'} >= $test_trigger_at
+    && !$download->{'test_triggered'} ) {
+    <[base.log]>->(
+        0,
+        "[$id] TEST: Forcibly closing file handle at %d bytes",
+        $download->{'test_bytes_read'}
+    );
     close($content_fh) if fileno($content_fh);
     $download->{'test_triggered'} = 1;
 }
+
 # ===== END TEST CODE =====
 
 if ( not fileno( $content_fh // '' ) ) {
@@ -71,15 +76,18 @@ if ( $read_size <= 0 ) {
             if 1 + $part_id == $part_count;    # <-- last multipart segment
 
     } else {    ## transfer was complete ##
-        <[base.log]>->( 1, "[$id] download transfer completed (multipart end)" );
+        <[base.log]>->(
+            1, "[$id] download transfer completed (multipart end)"
+        );
         $event->w->cancel;
         close( $download->{'content_fh'} );
+
         # End diagnostic tracking
         if ( exists $code{'httpd.diagnostic.end_operation'}
-             and defined $download->{'diagnostic_id'} ) {
+            and defined $download->{'diagnostic_id'} ) {
             <[httpd.diagnostic.end_operation]>->(
-                $download->{'diagnostic_id'}, 'complete',
-                { 'completion_path' => 'multipart_end' }
+                $download->{'diagnostic_id'},
+                'complete', { 'completion_path' => 'multipart_end' }
             );
         }
         delete $session->{'watcher'}->{'download_handler'};
@@ -88,7 +96,8 @@ if ( $read_size <= 0 ) {
         if ( $session->{'http'}->{'close'} ) {
             $session->{'flush_shutdown'} = 1;
         } else {
-            $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
+            $session->{'watcher'}->{'input_handler'}
+                ->timeout(<httpd.timeout>);
         }
         return 0;
     }
@@ -105,6 +114,7 @@ my $bytes_read = <[base.s_read]>->(
 
 # ===== TEST CODE: Track bytes read =====
 $download->{'test_bytes_read'} += $bytes_read if $bytes_read;
+
 # ===== END TEST CODE =====
 
 if ( $bytes_read < 1 ) {
@@ -125,12 +135,13 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
     <[base.logs]>->( '[%d] download transfer completed', $id );
     $event->w->cancel;
     close( $download->{'content_fh'} );
+
     # End diagnostic tracking
     if ( exists $code{'httpd.diagnostic.end_operation'}
-         and defined $download->{'diagnostic_id'} ) {
+        and defined $download->{'diagnostic_id'} ) {
         <[httpd.diagnostic.end_operation]>->(
-            $download->{'diagnostic_id'}, 'complete',
-            { 'completion_path' => 'normal' }
+            $download->{'diagnostic_id'},
+            'complete', { 'completion_path' => 'normal' }
         );
     }
     delete $session->{'watcher'}->{'download_handler'};
@@ -156,8 +167,8 @@ $session->{'flush_shutdown'} = 1;
 $event->w->stop;    # ✗ BROKEN: Leaves watcher registered!
 return 0;           # ✗ BROKEN: No cleanup!
 
-#,,,,,,,,,...,,,,,..,,...,.,.,..,,,,.,,,,,...,..,,...,...,.,,,,.,,..,,.,.,,..,
-#FFTSACQ64E3OKNIHVBDV6BFCOOGSQN66S73XSOOD74D4VBIOC2YQHUORDXXHSAT7CQNG3XNMITQDE
-#\\\|AAKYE74OQLJJPEUBH5OYL5YW5GW5MEUXSXJSU6WYZ7QVVIS5T7F \ / AMOS7 \ YOURUM ::
-#\[7]OYWWSTOYPGBM5AKLVGHO2UQBIRKKCN3E3HKJYMAG2JX6J5R6HSDI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,..,,,,.,,.,,,,,,.,.,,,.,...,..,,...,..,,,,.,,,.,,,,,,,.,..,,
+#2UX3DB3TGYJG3TLIQZLMEVACE2PVJNRF3O2PFGY7TZ6X6HD455YQ2BGE77JIAO6ZCDAH44WTONPTM
+#\\\|X24NTPNFVAYTZBPKWV5N6EF4KD3O2UA3G5K7DNAPZWPQBQCLU6A \ / AMOS7 \ YOURUM ::
+#\[7]VKSMLASDC3R4XZXEWK2QWBICVCFORU5I7HVY6JUXOHDJ7W4D32AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

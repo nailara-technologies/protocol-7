@@ -13,46 +13,50 @@ my $now = <[base.time]>->(3);
 
 # Collect current metrics
 my $metrics = {
-    'timestamp' => $now,
-    'elapsed_time' => $now - $data{'httpd'}{'benchmark'}{'start_time'},
-    'request_count' => $data{'httpd'}{'benchmark'}{'request_count'} // 0,
-    'bytes_sent' => $data{'httpd'}{'benchmark'}{'bytes_sent'} // 0,
-    'active_connections' => scalar(keys %{$data{'httpd'}{'clients'} // {}}),
-    'active_requests' => scalar(keys %{$data{'httpd'}{'active_requests'} // {}}),
-    'active_transfers' => scalar(keys %{$data{'httpd'}{'transfers'} // {}})
+    'timestamp'          => $now,
+    'elapsed_time'       => $now - $data{'httpd'}{'benchmark'}{'start_time'},
+    'request_count'      => $data{'httpd'}{'benchmark'}{'request_count'} // 0,
+    'bytes_sent'         => $data{'httpd'}{'benchmark'}{'bytes_sent'}    // 0,
+    'active_connections' =>
+        scalar( keys %{ $data{'httpd'}{'clients'} // {} } ),
+    'active_requests' =>
+        scalar( keys %{ $data{'httpd'}{'active_requests'} // {} } ),
+    'active_transfers' =>
+        scalar( keys %{ $data{'httpd'}{'transfers'} // {} } )
 };
 
 # Add system metrics
 $metrics->{'system'} = {
-    'load' => <[httpd.system.get_load]>(),
-    'cpu_usage' => <[httpd.system.cpu_usage]>(),
-    'memory_free' => <[httpd.system.memory_free]>(),
-    'network_io' => <[httpd.system.network_io]>('eth0')
+    'load'        => <[httpd.system.get_load]>,
+    'cpu_usage'   => <[httpd.system.cpu_usage]>,
+    'memory_free' => <[httpd.system.memory_free]>,
+    'network_io'  => <[httpd.system.network_io]>->('eth0')
 };
 
 # Calculate requests per second
 my $elapsed = $metrics->{'elapsed_time'};
-$metrics->{'requests_per_second'} = $elapsed > 0 ?
-    $metrics->{'request_count'} / $elapsed : 0;
+$metrics->{'requests_per_second'}
+    = $elapsed > 0 ? $metrics->{'request_count'} / $elapsed : 0;
 
 # Calculate bytes per second
-$metrics->{'bytes_per_second'} = $elapsed > 0 ?
-    $metrics->{'bytes_sent'} / $elapsed : 0;
+$metrics->{'bytes_per_second'}
+    = $elapsed > 0 ? $metrics->{'bytes_sent'} / $elapsed : 0;
 
 # Store metrics in history (keep last 1000)
-push @{$data{'httpd'}{'benchmark'}{'history'}}, $metrics;
-if (@{$data{'httpd'}{'benchmark'}{'history'}} > 1000) {
-    shift @{$data{'httpd'}{'benchmark'}{'history'}};
+push @{ $data{'httpd'}{'benchmark'}{'history'} }, $metrics;
+if ( @{ $data{'httpd'}{'benchmark'}{'history'} } > 1000 ) {
+    shift @{ $data{'httpd'}{'benchmark'}{'history'} };
 }
 
 # Log metrics if debug mode enabled
-if ($data{'httpd'}{'benchmark'}{'debug'}) {
+if ( $data{'httpd'}{'benchmark'}{'debug'} ) {
     <[base.log]>->(
-        2, sprintf(
+        2,
+        sprintf(
             "HTTP benchmark: %d requests (%.2f/s), %s sent, %d connections",
             $metrics->{'request_count'},
             $metrics->{'requests_per_second'},
-            <[httpd.base.size.normalize]>->($metrics->{'bytes_sent'}),
+            <[httpd.base.size.normalize]>->( $metrics->{'bytes_sent'} ),
             $metrics->{'active_connections'}
         )
     );
@@ -60,8 +64,8 @@ if ($data{'httpd'}{'benchmark'}{'debug'}) {
 
 return 1;
 
-#,,.,,,,,,.,.,,,,,..,,,,.,.,,,.,,,.,.,..,,,,.,...,...,.,.,,,,,.,.,,.,,,.,,.,,,
-#4YLS7XIJGACOMTRLMGGVMUNZRQ27OH7E7OJ5QACDPRXZY6EHYN4DUKNZUTR2YKMZWIJ7NQLCQCUVW
-#\\\|NFOGFHQ25SO4Q44IAOVU4OUW25Z7Z7SSRLCOCXRK75T2NJYY4IE \ / AMOS7 \ YOURUM ::
-#\[7]2CNIHTGXQTGAQZZUHLQNC6TGVDKBPYPCXLG4XWJOGAX4YUUMZUAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,,.,,...,,..,,..,...,,,.,..,,...,...,...,...,...,,.,,,,,,,,,,
+#VCHFLMGUGCNKUF5HPISOQ53HZNRIQH7VDUE43466H5KRRHJNT3LKHH73DPDL3FOSXFKZH52CEYBLE
+#\\\|TODCVS7F5BML7UVMBEZLEW6F7XGHIP2YPZ6YWXCTRHXNTYKYK5X \ / AMOS7 \ YOURUM ::
+#\[7]ECKSVZY5PJMV6KORXFSWN5O5O5WEF6NIIBRFSQJPKOIDKF5F4KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

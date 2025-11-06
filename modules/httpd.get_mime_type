@@ -7,6 +7,7 @@
 my $path = shift;
 
 my %mime_types = (
+
     # Text formats
     'html' => 'text/html; charset=UTF-8',
     'htm'  => 'text/html; charset=UTF-8',
@@ -45,18 +46,21 @@ my %mime_types = (
     # Document formats
     'pdf'  => 'application/pdf',
     'doc'  => 'application/msword',
-    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'docx' =>
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'xls'  => 'application/vnd.ms-excel',
-    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'xlsx' =>
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'ppt'  => 'application/vnd.ms-powerpoint',
-    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'pptx' =>
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 
     # Archive formats
-    'zip'  => 'application/zip',
-    'tar'  => 'application/x-tar',
-    'gz'   => 'application/gzip',
-    'rar'  => 'application/x-rar-compressed',
-    '7z'   => 'application/x-7z-compressed',
+    'zip' => 'application/zip',
+    'tar' => 'application/x-tar',
+    'gz'  => 'application/gzip',
+    'rar' => 'application/x-rar-compressed',
+    '7z'  => 'application/x-7z-compressed',
 
     # Font formats
     'woff'  => 'font/woff',
@@ -66,26 +70,27 @@ my %mime_types = (
     'eot'   => 'application/vnd.ms-fontobject',
 
     # Other common formats
-    'swf'   => 'application/x-shockwave-flash',
-    'wasm'  => 'application/wasm',
-    'jar'   => 'application/java-archive',
-    'bin'   => 'application/octet-stream',
-    'exe'   => 'application/octet-stream',
-    'dll'   => 'application/octet-stream',
-    'iso'   => 'application/x-iso9660-image',
-    'apk'   => 'application/vnd.android.package-archive'
+    'swf'  => 'application/x-shockwave-flash',
+    'wasm' => 'application/wasm',
+    'jar'  => 'application/java-archive',
+    'bin'  => 'application/octet-stream',
+    'exe'  => 'application/octet-stream',
+    'dll'  => 'application/octet-stream',
+    'iso'  => 'application/x-iso9660-image',
+    'apk'  => 'application/vnd.android.package-archive'
 );
 
 # Extract extension (lowercase)
 my $ext = '';
-if ($path =~ /\.([^.]+)$/) {
+if ( $path =~ /\.([^.]+)$/ ) {
     $ext = lc($1);
 }
 
 # Return MIME type or default
 return $mime_types{$ext} // 'application/octet-stream';
-#,,..,,..,,,,,,..,.,.,.,.,...,,.,,,,,,.,,,.,.,...,...,...,...,.,,,...,,,,,,..,
-#UMOJLHMXPP3U4NOGOSIMUIDM75H3Q4ZZDXU5N3I4NHVQQ4D5SAILF4737AYDS3JCWUVZDMYSVDD3Q
-#\\\|LLRPTVALSRV7SWWKE37NDJQ56LU4LOJZ24LQ3MKGCUXCPQ24YKA \ / AMOS7 \ YOURUM ::
-#\[7]3EHW4OYB52CL4NTBMRJJASMOXOJS5QLFEZ5UELQ4S7O2L4FSIODI 7  DATA SIGNATURE ::
+
+#,,..,,.,,,.,,.,.,,,.,,,.,.,.,,.,,,,,,,,.,,..,...,...,...,,,.,,,.,,.,,,,.,,.,,
+#2APXQL6CKECAI5FYPWMVUX2YAREW7LQJQNYCK4Z63Y6BRXRPVZWBGEGSETDJ4JAUS227PAB7PGCMK
+#\\\|4456D7SVM6NVUGKDQGWCGQ7GKDO5HGJC5WFGHJUKDHGCTWC252W \ / AMOS7 \ YOURUM ::
+#\[7]6ZD3EM5SGQBJLN7EBQ5WKKWA34DRUVVVKUG3ITDXH3UFBOFUEWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

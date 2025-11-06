@@ -4,7 +4,7 @@
 # descr = track file download statistics
 
 my $file_path = shift;
-my $bytes = shift; # Optional: bytes transferred (for partial downloads)
+my $bytes     = shift;   # Optional: bytes transferred (for partial downloads)
 
 # Skip if no file path provided
 return 0 if !defined $file_path || $file_path eq '';
@@ -13,32 +13,33 @@ return 0 if !defined $file_path || $file_path eq '';
 return 0 if !-f $file_path;
 
 # Initialize statistics data structure if needed
-$data{'httpd'}{'downloads'} //= {};
-$data{'httpd'}{'downloads'}{'files'} //= {};
+$data{'httpd'}{'downloads'}           //= {};
+$data{'httpd'}{'downloads'}{'files'}  //= {};
 $data{'httpd'}{'downloads'}{'totals'} //= {
-    'count' => 0,
-    'bytes' => 0,
+    'count'     => 0,
+    'bytes'     => 0,
     'last_time' => 0
 };
 
 # Get file size if bytes not provided
-if (!defined $bytes) {
+if ( !defined $bytes ) {
     $bytes = -s $file_path;
 }
 
 # Update file-specific statistics
-if (!exists $data{'httpd'}{'downloads'}{'files'}{$file_path}) {
+if ( !exists $data{'httpd'}{'downloads'}{'files'}{$file_path} ) {
     $data{'httpd'}{'downloads'}{'files'}{$file_path} = {
-        'count' => 0,
-        'bytes' => 0,
+        'count'      => 0,
+        'bytes'      => 0,
         'first_time' => <[base.time]>->(3),
-        'last_time' => 0
+        'last_time'  => 0
     };
 }
 
 $data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'}++;
 $data{'httpd'}{'downloads'}{'files'}{$file_path}{'bytes'} += $bytes;
-$data{'httpd'}{'downloads'}{'files'}{$file_path}{'last_time'} = <[base.time]>->(3);
+$data{'httpd'}{'downloads'}{'files'}{$file_path}{'last_time'}
+    = <[base.time]>->(3);
 
 # Update global download statistics
 $data{'httpd'}{'downloads'}{'totals'}{'count'}++;
@@ -47,28 +48,31 @@ $data{'httpd'}{'downloads'}{'totals'}{'last_time'} = <[base.time]>->(3);
 
 # Log download at debug level
 <[base.log]>->(
-    3, "File download: $file_path - " . <[httpd.base.size.normalize]>->($bytes) .
-       " (Total downloads: $data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'})"
+    3,
+    "File download: $file_path - "
+        . <[httpd.base.size.normalize]>->($bytes)
+        . " (Total downloads: $data{'httpd'}{'downloads'}{'files'}{$file_path}{'count'})"
 );
 
 # Clean up old statistics if too many files are tracked
-if (scalar(keys %{$data{'httpd'}{'downloads'}{'files'}}) > 1000) {
+if ( scalar( keys %{ $data{'httpd'}{'downloads'}{'files'} } ) > 1000 ) {
+
     # Find oldest accessed files
     my @files = sort {
-        $data{'httpd'}{'downloads'}{'files'}{$a}{'last_time'} <=>
-        $data{'httpd'}{'downloads'}{'files'}{$b}{'last_time'}
-    } keys %{$data{'httpd'}{'downloads'}{'files'}};
+        $data{'httpd'}{'downloads'}{'files'}{$a}{'last_time'}
+            <=> $data{'httpd'}{'downloads'}{'files'}{$b}{'last_time'}
+    } keys %{ $data{'httpd'}{'downloads'}{'files'} };
 
     # Remove oldest entries to keep only 900 entries
-    foreach my $old_file (@files[0..99]) {
+    foreach my $old_file ( @files[ 0 .. 99 ] ) {
         delete $data{'httpd'}{'downloads'}{'files'}{$old_file};
     }
 }
 
 return 1;
 
-#,,,.,.,,,,,.,,,,,.,,,..,,...,,,.,,..,.,.,...,..,,...,...,,.,,.,,,,.,,,,,,...,
-#ZY2N2VA7V6M2PIKVUVC4IEFMTZMALHLPDTPL3JUV4IQI7EHTAK7GBPX2NZIYIQL4AP6YKM3QLVTKG
-#\\\|DVP2G4TQE3OEH4QFRMZM4IHBOZGHJTC52CZO5DNJV7V3IPZRAU2 \ / AMOS7 \ YOURUM ::
-#\[7]B26AZCMD66L3FUKSTTDJI7ECY2GOMNG6NLZZVNHPICQXBZULAODY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,.,.,.,,,.,.,..,,,.,,...,.,,,..,,...,...,,.,,...,.,,,,..,...,
+#L7FO5OKODHPZJGS5DB5NGOHWH2FH4TNDZOVOJSQNC6UQWOCL2BA2RBM7FR4PQOZ33K23ZI542MMFC
+#\\\|UBKE4BHX2AAX732C43QINXYPKGT5UQSEY4EX7JUTVGEDFD2IFU6 \ / AMOS7 \ YOURUM ::
+#\[7]DK4YBK47PJ6HW3EMDZJJUN3NQEBAEKZMBPGN3ESHDPM77TDAUSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

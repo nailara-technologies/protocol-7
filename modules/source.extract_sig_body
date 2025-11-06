@@ -622,13 +622,13 @@ if (   defined $@ && length($@)
     }
 } else {
 
-    # Decoding was successful
-    # For state 6/7 with separator restored, skip endline restoration to preserve separator
+# Decoding was successful
+# For state 6/7 with separator restored, skip endline restoration to preserve separator
     my $separator_was_restored = $strip && !$seperator_endline_absent;
-    my $state = $amos7_header->{'endline-state-encoded'};
+    my $state                  = $amos7_header->{'endline-state-encoded'};
 
-    if (!($separator_was_restored && ($state == 6 || $state == 7))) {
-        <[source.restore_payload_endline_state]>->($src_ref, $state);
+    if ( !( $separator_was_restored && ( $state == 6 || $state == 7 ) ) ) {
+        <[source.restore_payload_endline_state]>->( $src_ref, $state );
     }
 
     # Copy data from header
@@ -695,8 +695,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,.,,...,,,,,...,.,.,,.,,..,,...,..,,,,.,..,,...,...,...,.,.,,..,,,,,..,,.,.,
-#CXYLWETHKAMJWZFAYLF3HKU6IDEJ5SYE5WFWLI6B4R4ER52E4Z4UEGHFMAPLYJT3NBUVN6KNXJ4UY
-#\\\|CNHB6OB2DGWGE6M65TLVJDKBDZIV7D6STDOACHMD3IFZGQL6HOJ \ / AMOS7 \ YOURUM ::
-#\[7]EKX2EJ5SY2PUZWZBX5LCVBGK2OADXFF4Z34WJB6HIUZYQB63P2AI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,.,,..,,..,,..,,...,,.,,,.,,...,...,.,.,.,,,..,,,,,,..,,,,,,
+#L54OB3BJMPAUD7TOIIMZ6PYOA2ROVHBXTB2V7EWFBJSMXYNI7JFTWQEKAV2BRG7GZFIJEHN7GL5LE
+#\\\|MZ5H7YNPPB5UYW5JMRBELNIAEU6BCIZP62SVFN43T6PCUEYZH5P \ / AMOS7 \ YOURUM ::
+#\[7]NTN2PVAEDEKLDSOYWVCIBCTSQC2OYHFXI4MDNLWROEIQ5AXVAKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

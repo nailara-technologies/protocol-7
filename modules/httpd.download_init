@@ -121,17 +121,17 @@ if ( defined $boundary ) {    ## <-- byteranges request ##
 
 # Track download operation for diagnostics
 if ( exists $code{'httpd.diagnostic.track_operation'} ) {
-    $session->{'download'}->{'diagnostic_id'} = <[httpd.diagnostic.track_operation]>->(
+    $session->{'download'}->{'diagnostic_id'}
+        = <[httpd.diagnostic.track_operation]>->(
         'file_download',
-        {
-            'session_id' => $id,
-            'file_path' => $file_path,
+        {   'session_id'   => $id,
+            'file_path'    => $file_path,
             'content_size' => $content_size,
-            'status_code' => $status_code,
-            'has_ranges' => scalar(@ranges) > 0 ? 1 : 0,
-            'range_count' => scalar(@ranges)
+            'status_code'  => $status_code,
+            'has_ranges'   => scalar(@ranges) > 0 ? 1 : 0,
+            'range_count'  => scalar(@ranges)
         }
-    );
+        );
 }
 
 $session->{'watcher'}->{'download_handler'} = <[event.add_io]>->(
@@ -152,8 +152,8 @@ $session->{'watcher'}->{'download_handler'}->now;
 
 return 0;
 
-#,,,.,,,,,.,.,,,.,..,,.,,,,.,,,,.,,,.,.,,,.,.,..,,...,...,...,.,,,,,,,..,,..,,
-#K2LUSSRNVXH2ZSEVGACXZWKLXTDDRJ3SAIUERX2Z3JMMFUKVOGXXLAD32N3R6T7QBEGGAEHZUFOCY
-#\\\|BWIOS5JHQ62QNC3IG5OXFIUSMPVMOURHAAGFWLW7VM4JTWS34JJ \ / AMOS7 \ YOURUM ::
-#\[7]MBIEVPOTFMWCH5GFKIPLLEGDO56HTTVO6C3JLPJFTBOM56JVDCBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,.,,.,.,,..,.,,,.,.,.,,,,,.,.,,,..,,...,...,,,,,...,,..,..,,,,.,
+#Y6Z2OCR2VSBOMEQICMMY4C2FWDVNICVWVVWWHTANLH4J3TU6JMAY55JC43HVQZLSI345JF4UH6FLW
+#\\\|P6DV6LLLVULCTG3NJIJWU4YBS2QTFCOFBN4UMRFB7AR5MHVRJIU \ / AMOS7 \ YOURUM ::
+#\[7]ODFLYJHFG45V5LZNEMI4XNDWPEUM45E7GC2QMINI2MGJJIEYV4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

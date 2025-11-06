@@ -8,48 +8,44 @@ my $detail_level = shift // 0;
 
 # Basic version information
 my $version_info = {
-    'version' => '2.5.3',
-    'codename' => 'Async Performance',
+    'version'    => '2.5.3',
+    'codename'   => 'Async Performance',
     'build_date' => '2025-03-01',
-    'protocol' => 'HTTP/1.1'
+    'protocol'   => 'HTTP/1.1'
 };
 
 # Add extended information if requested
-if ($detail_level > 0) {
+if ( $detail_level > 0 ) {
     $version_info->{'features'} = {
-        'async_io' => 1,
-        'range_requests' => 1,
+        'async_io'         => 1,
+        'range_requests'   => 1,
         'chunked_transfer' => 1,
-        'keepalive' => 1,
-        'tls' => 0,  # Planned for future
-        'http2' => 0  # Planned for future
+        'keepalive'        => 1,
+        'tls'              => 0,    # Planned for future
+        'http2'            => 0     # Planned for future
     };
 
     $version_info->{'performance'} = {
-        'max_connections' => 200,
+        'max_connections'      => 200,
         'avg_response_time_ms' => 28
     };
 }
 
 # Add full diagnostic information if requested
-if ($detail_level > 1) {
+if ( $detail_level > 1 ) {
     $version_info->{'modules'} = [
-        'httpd.benchmark',
-        'httpd.diagnostic',
-        'httpd.file_transfer',
-        'httpd.http_get',
+        'httpd.benchmark',     'httpd.diagnostic',
+        'httpd.file_transfer', 'httpd.http_get',
         'httpd.http_head'
     ];
 
-    $version_info->{'developers'} = [
-        'nailara-technologies'
-    ];
+    $version_info->{'developers'} = ['nailara-technologies'];
 }
 
 return $version_info;
 
-#,,.,,,..,.,.,,,.,,.,,...,,,,,.,.,,,.,,..,.,,,...,...,...,..,,..,,.,.,.,,,,,,,
-#KOP46GKDRQ3VAW5PQCDDH54LPVQ4YOZ6BRGGJGDIRPQJS3ZCJCLHIQOX76K6EL4CLORAHIYM6JPXY
-#\\\|TSDYTCD6UX2CZVO3YVCAML2JKMHV4DNO6FIVYRY775U4BF6CMFA \ / AMOS7 \ YOURUM ::
-#\[7]7MKAKK3WGGM2H7ZJ3SYPAUMXVA65BTUTUDCX2JTVIF5IRVAIE2BY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,..,,,.,,.,.,,.,,.,.,.,.,.,,,...,...,.,.,.,,,,..,,,,,,,,,,,.,
+#2WTKLZMWO6NRTI4YIDEOIFUO5KX2OEGVAZ6MWO2LR2OREWI6YKFWQJPFRSFSH63F7SWYXNWSO3RFW
+#\\\|7BJY2RPYF44VYSXREOUVPER4WR6D3EXA7I4LPFP7DM5UI4HPXBD \ / AMOS7 \ YOURUM ::
+#\[7]IIS4UJFEZZV2CF2SM6Y3TJOVGNEVRGCJ5C7GOZNASATC5JEL3UAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

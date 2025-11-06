@@ -5,36 +5,39 @@
 
 # Initialize metrics
 my $metrics = {
-    'watchers' => 0,
-    'io_watchers' => 0,
-    'timer_watchers' => 0,
-    'idle_watchers' => 0,
-    'child_watchers' => 0,
+    'watchers'        => 0,
+    'io_watchers'     => 0,
+    'timer_watchers'  => 0,
+    'idle_watchers'   => 0,
+    'child_watchers'  => 0,
     'signal_watchers' => 0,
-    'loop_time' => 0
+    'loop_time'       => 0
 };
 
 # Check if Event module is loaded
-if (defined &Event::loop_time) {
+if ( defined &Event::loop_time ) {
     $metrics->{'loop_time'} = Event::loop_time();
 
     # Count watchers by type if available
-    $metrics->{'watchers'} = Event::all_watchers() if defined &Event::all_watchers;
+    $metrics->{'watchers'} = Event::all_watchers()
+        if defined &Event::all_watchers;
 
     # Count IO watchers
-    if (exists $data{'event'} && exists $data{'event'}{'io'}) {
-        $metrics->{'io_watchers'} = scalar(keys %{$data{'event'}{'io'}});
+    if ( exists $data{'event'} && exists $data{'event'}{'io'} ) {
+        $metrics->{'io_watchers'} = scalar( keys %{ $data{'event'}{'io'} } );
     }
 
     # Count timer watchers
-    if (exists $data{'event'} && exists $data{'event'}{'timer'}) {
-        $metrics->{'timer_watchers'} = scalar(keys %{$data{'event'}{'timer'}});
+    if ( exists $data{'event'} && exists $data{'event'}{'timer'} ) {
+        $metrics->{'timer_watchers'}
+            = scalar( keys %{ $data{'event'}{'timer'} } );
     }
 }
 
 return $metrics;
-#,,..,,..,,,.,.,,,,,.,,,,,,..,,..,...,,,.,,,,,...,...,...,..,,,.,,,.,,.,,,,,,,
-#N4BXLZ4YLYXWXDAXVEFC26UICQB4ZF2U344EM3VKY3643PNERDBK73FQKWATISJDYCXFMQX62SDDQ
-#\\\|UWWDSOGMFVVLUOCUQL7TM5CLZ3X4L3GVDN3EDGF5KDF3FMSEDZZ \ / AMOS7 \ YOURUM ::
-#\[7]ZRXLW5R6U7WRLBDN72CWF2MS3NLHBLEVPLY5K5ZFWIWZJOCL4UCY 7  DATA SIGNATURE ::
+
+#,,,,,,,,,..,,,..,,,.,.,.,,..,..,,,,.,,..,,,.,...,...,...,..,,,,.,...,,,.,.,,,
+#OK3UN5VPB2IJLDWKGXONVP55766PSDNBFMTNSFMARCVUPSUQMH745N52WBZBBOIAHJCQHH57BYWYI
+#\\\|5FLTQY6BBJTZOU65PUSCOGSA2KTHEEMOSI3E6CNERBOSRPHOW75 \ / AMOS7 \ YOURUM ::
+#\[7]QHQEH5RTVOHWFUSJG2NIOW6J4IDWAYRHZAP3SK5UODRN6B5YRGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,13 +5,13 @@
 
 my $command_params = shift // '';
 
-my $test_mode = 'normal';  # Options: normal, no_separator, incomplete_line
+my $test_mode = 'normal';    # Options: normal, no_separator, incomplete_line
 
 # Parse test mode from command
-if ($command_params =~ s| *:no-separator: *| |i) {
+if ( $command_params =~ s| *:no-separator: *| |i ) {
     $test_mode = 'no_separator';
     <[base.log]>->( 1, ': running in no_separator test mode' );
-} elsif ($command_params =~ s| *:incomplete-line: *| |i) {
+} elsif ( $command_params =~ s| *:incomplete-line: *| |i ) {
     $test_mode = 'incomplete_line';
     <[base.log]>->( 1, ': running in incomplete_line test mode' );
 }
@@ -24,8 +24,8 @@ if ($command_params =~ s| *:no-separator: *| |i) {
 # Return test mode in scalar context
 return $test_mode;
 
-#,,.,,..,,,,,,..,,...,,..,...,,,.,,,.,,.,,.,.,..,,...,.,,,...,.,.,..,,,..,,,,,
-#5CZZD6A2NR72MJLIKQUT7BMHAKP3DWZKUICHTHTLKKFEENARH2PTJ6EINF73ISVLAT2PBXOQ5ZE3M
-#\\\|SMOWBAX243NCE6UZHQFRQM62YM3MW42NTU4NSAXNWHLCXHBP4Q5 \ / AMOS7 \ YOURUM ::
-#\[7]K4UL5ZP5OHLUTLEQF3HY6TJFOIH75UYBCFMD2NJKOWAUQNZOJWDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,..,,..,,..,,...,...,.,.,,..,..,,...,...,...,.,.,,..,,,,,,..,
+#PV65CTRIJFFE7VZLWQYWQNQC3P6J4XJZ76ANIH5DI6CMHZUPODNYYRSMYRZ2EPF4YZVEERXRN7SIQ
+#\\\|7UXWFNHNTZUARFRWRWKGVTQEPRTKJBGZ7MAS7NNRAJ2VWMKGDQF \ / AMOS7 \ YOURUM ::
+#\[7]JJFQLZ34I7F3WB5ZZEFGFM4CLYYP7F6SVE6FZ66GWRBUIF7GL2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
