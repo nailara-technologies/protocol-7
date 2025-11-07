@@ -1,0 +1,498 @@
+---
+task_id: letsencrypt_acme_phase1
+category: letsencrypt_zenka
+status: ready_for_implementation
+priority: high
+session_created: 2C
+estimated_effort: 8-12 hours
+
+title: "Letsencrypt Zenka: Implement ACME Protocol Operations (Phase 1)"
+
+overview: |
+  The letsencrypt zenka skeleton has been created with full parent-child architecture
+  and command protocol integration (see docs/SESSION_2C_LETSENCRYPT_ZENKA_CREATION.md).
+
+  This task implements the ACME protocol operations in the child process, enabling
+  actual certificate enrollment, renewal, and validation with Let's Encrypt servers.
+
+architecture_context: |
+  Parent Process (zenka-main):
+  - Manages certificate registry
+  - Schedules renewal checks (hourly)
+  - Routes commands to child via IPC pipe
+  - Handles statistics and rate limiting
+  - NOT blocking on crypto operations
+
+  Child Process (listening on IPC pipe):
+  - Performs all blocking ACME operations
+  - Ed25519 cryptography for account signing
+  - HTTP requests to ACME server
+  - Challenge response generation
+  - Returns results via Protocol-7 command replies
+
+  Command Protocol:
+  - Parent sends: letsencrypt.child.cmd.renew-certificate <domain>
+  - Child receives via base.handler.command
+  - Child replies with: { mode => 'true|false|size', data => '...' }
+  - Parent processes reply in handler_renewal_reply
+
+implementation_phases:
+  phase1: "ACME protocol core operations (THIS TASK)"
+  phase2: "Certificate storage and renewal workflow"
+  phase3: "HTTP-01 challenge handling and validation"
+  phase4: "Integration with httpd for certificate reloading"
+  phase5: "DNS-01 challenge support (optional)"
+
+## PHASE 1: ACME Protocol Core Operations
+
+required_modules_to_implement:
+
+  1. "letsencrypt.child.fetch_acme_directory"
+     purpose: "Fetch ACME server directory and discover endpoints"
+     input: "None (uses <letsencrypt.acme.server> config)"
+     output: "{ directory_url => '...', new_nonce => '...', new_account => '...', ... }"
+     notes: |
+       - HTTP GET to https://acme-v02.api.letsencrypt.org/directory
+       - Cache result with 24-hour TTL
+       - Extract URLs for new-nonce, new-account, new-order endpoints
+       - Return as hash with all ACME endpoints
+
+  2. "letsencrypt.child.get_fresh_nonce"
+     purpose: "Get fresh nonce from ACME server for request signing"
+     input: "{ directory => {...} }"
+     output: "{ nonce => '...', status => 'success|error', error_msg => '...' }"
+     notes: |
+       - HTTP HEAD to directory.new-nonce endpoint
+       - Extract Replay-Nonce header
+       - Store nonce for next JWS signature
+       - Handle rate limit errors (429)
+
+  3. "letsencrypt.child.generate_account_key"
+     purpose: "Generate Ed25519 account key for account creation"
+     input: "None"
+     output: "{ private_key_pem => '...', public_key_pem => '...', status => 'success|error' }"
+     notes: |
+       - Use Crypt::Ed25519 to generate Ed25519 keypair
+       - Account key is reused for all ACME operations
+       - Should be stored in <letsencrypt.cache.dir>/account.key
+       - Load existing key if available (letsencrypt.child.load_account_key)
+
+  4. "letsencrypt.child.get_jwk"
+     purpose: "Extract JWK (JSON Web Key) from Ed25519 public key"
+     input: "{ public_key_pem => '...' }"
+     output: "{ jwk => {...JWK fields...}, thumbprint => '...' }"
+     notes: |
+       - Extract public key coordinates from Ed25519 public key
+       - Format as JWK: { kty => 'OKP', crv => 'Ed25519', x => '...' }
+       - Calculate SHA256 thumbprint of JWK for challenges
+       - Base64url encode key material
+
+  5. "letsencrypt.child.create_jws"
+     purpose: "Create JWS (JSON Web Signature) for ACME requests"
+     input: |
+       {
+         payload => 'base64url_encoded_json',
+         private_key => '...',
+         nonce => '...',
+         url => 'acme_request_url',
+         jwk => {...} or kid => '...'
+       }
+     output: "{ jws => '...', status => 'success|error' }"
+     notes: |
+       - Sign payload with Ed25519 private key
+       - JWS format: base64url(header).base64url(payload).base64url(signature)
+       - Header includes: alg=EdDSA, nonce, url, jwk (or kid)
+       - Use Crypt::Digest and Crypt::Ed25519 for signing
+
+  6. "letsencrypt.child.acme_register_account"
+     purpose: "Register or retrieve ACME account with Let's Encrypt"
+     input: |
+       {
+         directory => {...},
+         account_key => {...},
+         email => 'admin@example.com',
+         nonce => '...'
+       }
+     output: |
+       {
+         account_id => '12345...',
+         account_url => 'https://acme.../acme/acct/12345',
+         status => 'success|error',
+         error_msg => '...'
+       }
+     notes: |
+       - POST to directory.new-account endpoint
+       - Payload: { termsOfServiceAgreed => true, contact => ['mailto:email'] }
+       - Account ID extracted from response Location header
+       - Errors (409) indicate account already exists - use existing
+
+  7. "letsencrypt.child.acme_create_order"
+     purpose: "Create certificate order for domain(s)"
+     input: |
+       {
+         account_url => '...',
+         domain => 'example.com',
+         alt_names => ['*.example.com', 'www.example.com'],
+         nonce => '...'
+       }
+     output: |
+       {
+         order_url => '...',
+         authorizations => [...urls...],
+         finalize_url => '...',
+         status => 'pending|success|error'
+       }
+     notes: |
+       - POST to directory.new-order endpoint
+       - Identifiers: [ { type => 'dns', value => 'domain' }, ... ]
+       - Extract order URL from Location header
+       - Get authorization URLs from response
+
+  8. "letsencrypt.child.acme_get_authorization"
+     purpose: "Get authorization challenges for domain"
+     input: |
+       {
+         auth_url => '...',
+         nonce => '...'
+       }
+     output: |
+       {
+         challenges => [ { type => 'http-01', url => '...', token => '...' }, ... ],
+         domain => '...',
+         status => 'pending|valid|error'
+       }
+     notes: |
+       - POST-as-GET to authorization URL (empty JWS payload)
+       - Extract challenge URLs and tokens
+       - Filter for http-01 challenge type
+
+  9. "letsencrypt.child.create_http01_challenge"
+     purpose: "Generate HTTP-01 challenge response"
+     input: |
+       {
+         token => '...',
+         jwk_thumbprint => '...'
+       }
+     output: |
+       {
+         key_auth => 'token.thumbprint',
+         well_known_path => '/.well-known/acme-challenge/token',
+         status => 'success'
+       }
+     notes: |
+       - Key Authorization = token + '.' + base64url(sha256(jwk))
+       - HTTP-01 response served at /.well-known/acme-challenge/{token}
+       - Content must be exactly: token + '.' + thumbprint
+
+  10. "letsencrypt.child.respond_to_challenge"
+      purpose: "Notify ACME server that challenge is ready"
+      input: |
+        {
+          challenge_url => '...',
+          nonce => '...',
+          account_url => '...'
+        }
+      output: |
+        {
+          status => 'processing|invalid|error',
+          error_msg => '...'
+        }
+      notes: |
+        - POST to challenge URL with empty payload
+        - Server will poll HTTP endpoint to verify
+        - Status 202 means processing
+
+  11. "letsencrypt.child.poll_challenge_status"
+      purpose: "Poll authorization status until challenge is validated"
+      input: |
+        {
+          auth_url => '...',
+          nonce => '...',
+          max_wait => 300
+        }
+      output: |
+        {
+          status => 'valid|invalid|error',
+          domain => '...',
+          error_msg => '...'
+        }
+      notes: |
+        - Poll every 2-5 seconds with exponential backoff
+        - Timeout after 5 minutes (300 seconds)
+        - Stop polling when status is 'valid' or 'invalid'
+
+  12. "letsencrypt.child.generate_csr"
+      purpose: "Generate Certificate Signing Request with domain names"
+      input: |
+        {
+          domain => 'example.com',
+          alt_names => ['*.example.com', 'www.example.com']
+        }
+      output: |
+        {
+          csr_pem => '...',
+          private_key_pem => '...',
+          status => 'success|error'
+        }
+      notes: |
+        - Generate 2048-bit RSA key for certificate (separate from account key)
+        - Create X509 CSR with SAN extension for all domains
+        - Return both CSR and private key PEM
+        - Use Crypt::OpenSSL::X509 and Crypt::OpenSSL::RSA
+
+  13. "letsencrypt.child.acme_finalize_order"
+      purpose: "Submit CSR to finalize order and get certificate"
+      input: |
+        {
+          finalize_url => '...',
+          csr_pem => '...',
+          nonce => '...',
+          account_url => '...'
+        }
+      output: |
+        {
+          certificate_url => '...',
+          status => 'processing|valid|error',
+          error_msg => '...'
+        }
+      notes: |
+        - POST CSR (base64url encoded DER) to finalize URL
+        - Extract certificate URL from response
+        - May need to poll until ready
+
+  14. "letsencrypt.child.acme_verify_challenge"
+      purpose: "Verify challenge is valid before finalizing"
+      input: |
+        {
+          domain => '...',
+          auth_urls => [...],
+          nonce => '...'
+        }
+      output: |
+        {
+          all_valid => true|false,
+          invalid_domains => ['...'],
+          status => 'success|error'
+        }
+      notes: |
+        - Poll all authorization URLs until all are 'valid'
+        - Handle partial failures gracefully
+        - Return which domains failed
+
+  15. "letsencrypt.child.acme_new"
+      purpose: "Full ACME certificate enrollment workflow (high-level)"
+      input: |
+        {
+          domain => 'example.com',
+          alt_names => [],
+          challenge_handler => 'http_01_callback'
+        }
+      output: |
+        {
+          certificate_pem => '...',
+          certificate_url => '...',
+          private_key_pem => '...',
+          status => 'success|error|challenge_failed',
+          error_msg => '...'
+        }
+      notes: |
+        - Orchestrates: directory → account → order → challenges → CSR → finalize
+        - Calls HTTP-01 challenge handler for verification
+        - Handles errors at each step with clear messages
+        - Returns complete certificate + key or error
+
+  16. "letsencrypt.child.acme_renew"
+      purpose: "High-level certificate renewal (similar to acme_new)"
+      input: |
+        {
+          domain => '...',
+          existing_cert_pem => '...'
+        }
+      output: "Same as acme_new"
+      notes: |
+        - Similar to acme_new but reuses existing account
+        - May optimize by reusing nonce/account context
+        - For now, can be nearly identical to acme_new
+
+integration_with_command_protocol:
+
+  child_command_handlers: |
+    The following command modules already exist as stubs and need implementation:
+
+    letsencrypt.child.cmd.new-certificate:
+    - Called by: parent via cube routing
+    - Arguments: domain (required), alt_names (optional)
+    - Flow: $call->{'args'} contains domain
+    - Returns: { mode => 'size', data => 'base32r_encoded_cert_bundle' }
+
+    letsencrypt.child.cmd.renew-certificate:
+    - Similar to new-certificate
+    - May have existing_cert_pem in $call->{'params'}
+    - Returns same format
+
+    Reply Modes:
+    - 'true' => success, data is string message
+    - 'false' => failure, data is error message
+    - 'size' => success with binary data, data is base32r encoded certificate
+
+certificate_format_returned:
+
+  base32r_encoding: |
+    Binary certificate data should be base32r encoded for transmission:
+    - Use Crypt::Misc::encode_b32r() for encoding
+    - Decode on parent side with Crypt::Misc::decode_b32r()
+    - Makes certificate data human-readable and safe for text protocol
+
+  certificate_bundle_format: |
+    Return format when using 'size' reply mode:
+
+    base32r_encoded(JSON({
+      certificate => '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
+      chain => '-----BEGIN CERTIFICATE-----\n...',
+      private_key => '-----BEGIN PRIVATE KEY-----\n...',
+      issued_at => unix_timestamp,
+      expires_at => unix_timestamp,
+      domain => 'example.com'
+    }))
+
+error_handling:
+
+  acme_error_codes: |
+    Let's Encrypt ACME error types to handle:
+    - 400: Bad Request (malformed payload)
+    - 401: Unauthorized (account issues)
+    - 403: Forbidden (access denied)
+    - 429: Rate Limited (too many requests)
+    - 500: Server Error (ACME server issue)
+
+  recommended_error_messages: |
+    Return descriptive errors:
+    - "ACME server not reachable"
+    - "Account registration failed: {reason}"
+    - "Domain validation failed: {domain} challenge error"
+    - "Rate limited by ACME server (429)"
+    - "CSR generation failed"
+
+testing_strategy:
+
+  against_staging_server: |
+    For development/testing:
+    - Change letsencrypt.acme.server to staging URL
+    - Staging: https://acme-staging-v02.api.letsencrypt.org/directory
+    - No rate limits, safe for testing
+    - Requires HTTP-01 challenge to work (needs httpd integration)
+
+  unit_test_approach: |
+    Each module should handle:
+    - Network errors gracefully
+    - Invalid inputs with clear error messages
+    - Timeout scenarios (5 minute max for challenges)
+    - Return consistent hash structures
+
+files_to_modify:
+
+  core_implementations:
+    - modules/letsencrypt.child.fetch_acme_directory
+    - modules/letsencrypt.child.get_fresh_nonce
+    - modules/letsencrypt.child.generate_account_key
+    - modules/letsencrypt.child.get_jwk
+    - modules/letsencrypt.child.create_jws
+    - modules/letsencrypt.child.acme_register_account
+    - modules/letsencrypt.child.acme_create_order
+    - modules/letsencrypt.child.acme_get_authorization
+    - modules/letsencrypt.child.create_http01_challenge
+    - modules/letsencrypt.child.respond_to_challenge
+    - modules/letsencrypt.child.poll_challenge_status
+    - modules/letsencrypt.child.generate_csr
+    - modules/letsencrypt.child.acme_finalize_order
+    - modules/letsencrypt.child.acme_verify_challenge
+    - modules/letsencrypt.child.acme_new
+    - modules/letsencrypt.child.acme_renew
+
+  command_handlers_to_update:
+    - modules/letsencrypt.child.cmd.new-certificate (call acme_new)
+    - modules/letsencrypt.child.cmd.renew-certificate (call acme_renew)
+
+dependencies_already_loaded:
+
+  cryptography: |
+    - Crypt::Ed25519 (account key signing)
+    - Crypt::OpenSSL::X509 (CSR and cert parsing)
+    - Crypt::OpenSSL::RSA (certificate key generation)
+    - Crypt::Misc (base32r encoding/decoding)
+    - Digest::SHA (for JWK thumbprint)
+
+  http_client: |
+    - LWP::UserAgent (HTTP requests)
+    - LWPx::ParanoidAgent (paranoid agent for security)
+    - JSON::XS (JSON encoding/decoding)
+    - MIME::Base64 (base64 encoding)
+
+success_criteria:
+
+  minimum_viable: |
+    ✓ Can fetch ACME directory from Let's Encrypt
+    ✓ Can register account (or retrieve existing)
+    ✓ Can create order for domain
+    ✓ Can generate CSR for domain(s)
+    ✓ Handlers return correct reply format
+    ✓ Error messages are descriptive
+    ✓ No blocking operations in parent
+    ✓ All operations work over IPC pipe
+
+  verification: |
+    Test by:
+    1. Call parent command: p7 letsencrypt.child.cmd.new-certificate example.com
+    2. Check parent handler receives proper reply (size mode with certificate)
+    3. Verify no startup errors
+    4. Confirm child stays alive after operations
+    5. Test error handling (invalid domain, network error, etc)
+
+next_phase_depends_on: |
+  Phase 2 (certificate storage and renewal) depends on Phase 1 being complete.
+  Phase 1 can be tested standalone with parent command handlers.
+
+cleanup_on_completion: |
+  Once Phase 1 implementation is complete and verified working:
+
+  1. Remove all markdown documentation files from root directory:
+     - ACME_*.md
+     - BASE32R_ENCODING_BEST_PRACTICE.md
+     - COMMAND_*.md
+     - CRYPTX_*.md
+     - CURVE25519_*.md
+     - DOCUMENTATION_INDEX.md
+     - ED25519_*.md
+     - FINAL_VALIDATION_CHECKLIST.md
+     - HYBRID_ARCHITECTURE_CLARIFICATION.md
+     - INTEGRATION_FIXES_SESSION_2.md
+     - LETSENCRYPT_*.md
+     - MIGRATION_QUICK_REFERENCE.md
+     - PHASE2_COMPLETION_SUMMARY.md
+     - PROTOCOL_7_COMMAND_PROTOCOL_FIX.md
+     - READY_FOR_ACME_TESTING.md
+     - RESTART_FIXES_SESSION_2B.md
+     - RUNTIME_FIXES_SUMMARY.md
+     - SESSION_*.md
+     - SUBROUTINE_FIXES_APPLIED.md
+     - UNDERSTANDING_PROTOCOL_7_REPLIES.md
+     - CRYPTX_SEARCH_RESULTS.txt
+
+  2. These files were created as session documentation and notes during development.
+     The essential architecture is documented in docs/SESSION_2C_LETSENCRYPT_ZENKA_CREATION.md
+
+  3. Use: git rm <files> && git commit -m "cleanup: Remove session documentation markdown files"
+
+  4. Optional: Keep only docs/SESSION_2C_LETSENCRYPT_ZENKA_CREATION.md as the permanent
+     architecture reference for future developers.
+
+references:
+
+  rfc8555: "ACME Protocol (Let's Encrypt)"
+  letsencrypt_docs: "https://letsencrypt.org/docs/"
+  session_2c_docs: "docs/SESSION_2C_LETSENCRYPT_ZENKA_CREATION.md"
+  command_protocol: "COMMAND_PROTOCOL_QUICK_CARD.md"
+
+created_date: 2025-11-07
+ready_for_implementation: true
+recommended_for: claude_code_web_instance
