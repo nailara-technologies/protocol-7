@@ -8,50 +8,194 @@ my $msg = shift;
 my $domains = $msg->{domains};                              # array ref
 my $email   = $msg->{email} || <letsencrypt.admin.email>;
 
+return {
+    status => 'error',
+    error  => 'domains array required'
+    }
+    unless $domains && ref($domains) eq 'ARRAY' && @$domains;
+
+my $primary_domain = $domains->[0];
+
 <[base.log]>->(
     2,
     "child: issuing new certificate for domains: " . join( ', ', @$domains )
 );
 
-## This is where blocking ACME operations occur:
-## 1. Create ACME account (if needed)
-## 2. Generate CSR (Certificate Signing Request)
-## 3. Submit certificate order
-## 4. Receive authorization challenges
-## 5. Respond to challenges
-## 6. Verify challenges with ACME server
-## 7. Finalize order
-## 8. Download certificate
-## 9. Send success/failure back to parent
+## STEP 1: Fetch ACME directory (if not already cached)
+unless ( <letsencrypt.child.acme_client> {directory} ) {
+    <[base.log]>->( 2, 'step 1: fetching ACME directory' );
+    my $dir_info = <[letsencrypt.child.fetch_acme_directory]>->();
+    unless ($dir_info) {
+        return {
+            status => 'error',
+            error  => 'Failed to fetch ACME directory'
+        };
+    }
+}
 
-## TODO: Implement full ACME protocol flow
+## STEP 2: Load or generate account key
+<[base.log]>->( 2, 'step 2: loading or generating account key' );
+my $account_key = <[letsencrypt.child.load_account_key]>->();
+unless ($account_key) {
+    $account_key = <[letsencrypt.child.generate_account_key]>->();
+    unless ($account_key) {
+        return {
+            status => 'error',
+            error  => 'Failed to generate account key'
+        };
+    }
+}
 
-my $primary_domain = $domains->[0];
-my $result         = {
-    status  => 'success',
-    domains => $domains,
-    cert    => '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----',
-    key     => '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----',
-    valid_until => time() + ( 90 * 86400 ),    # 90 days
-    fingerprint => 'SHA256:...',
-    key_path    => sprintf '%s/%s.key',
-    <letsencrypt.certs.dir>, $primary_domain,
-    cert_path => sprintf '%s/%s.pem',
-    <letsencrypt.certs.dir>, $primary_domain,
-};
+## STEP 3: Register ACME account (or retrieve existing)
+unless ( <letsencrypt.child.acme_client> {account_url} ) {
+    <[base.log]>->( 2, 'step 3: registering ACME account' );
+    my $account_info = <[letsencrypt.child.acme_register_account]>->();
+    unless ($account_info) {
+        ## Try checking if account already exists
+        my $existing = <[letsencrypt.child.acme_check_account]>->();
+        unless ($existing) {
+            return {
+                status => 'error',
+                error  => 'Failed to register ACME account'
+            };
+        }
+    }
+}
 
-## Send result back to parent
+## STEP 4: Create certificate order
+<[base.log]>->( 2, 'step 4: creating certificate order' );
+my $order = <[letsencrypt.child.acme_create_order]>->($domains);
+unless ($order) {
+    return {
+        status => 'error',
+        error  => 'Failed to create certificate order'
+    };
+}
+
+<[base.log]>->( 2, "  order URL: $order->{order_url}" );
+<[base.log]>->( 2, "  authorizations: " . scalar( @{ $order->{authorizations} } ) );
+
+## STEP 5: Process authorizations for each domain
+<[base.log]>->( 2, 'step 5: processing authorizations' );
+my @auth_urls;
+my $auth_index = 0;
+
+foreach my $auth_url ( @{ $order->{authorizations} } ) {
+    $auth_index++;
+    my $domain = $domains->[ $auth_index - 1 ];
+
+    <[base.log]>->( 2, "  authorization $auth_index/${\(scalar @{$order->{authorizations}})}: $domain" );
+
+    ## Get authorization and challenges
+    my $auth = <[letsencrypt.child.acme_get_authorization]>->($auth_url);
+    unless ($auth) {
+        return {
+            status => 'error',
+            error  => "Failed to get authorization for $domain"
+        };
+    }
+
+    ## Create HTTP-01 challenge response
+    my $challenge_response
+        = <[letsencrypt.child.create_http01_challenge]>->(
+        $auth->{http01}, $domain );
+
+    unless ($challenge_response) {
+        return {
+            status => 'error',
+            error  => "Failed to create HTTP-01 challenge for $domain"
+        };
+    }
+
+    <[base.log]>->( 2, "    challenge file: $challenge_response->{file_path}" );
+
+    ## Notify ACME server that challenge is ready
+    my $respond_result
+        = <[letsencrypt.child.respond_to_challenge]>->(
+        $challenge_response->{challenge_url},
+        $challenge_response->{token} );
+
+    unless ($respond_result) {
+        return {
+            status => 'error',
+            error  => "Failed to respond to challenge for $domain"
+        };
+    }
+
+    push @auth_urls, { url => $auth_url, domain => $domain };
+}
+
+## STEP 6: Poll all authorizations until valid
+<[base.log]>->( 2, 'step 6: polling authorization status' );
+foreach my $auth_info (@auth_urls) {
+    my $validation
+        = <[letsencrypt.child.poll_challenge_status]>->(
+        $auth_info->{url}, $auth_info->{domain} );
+
+    unless ( $validation && $validation->{valid} ) {
+        my $error = $validation->{error} || 'Challenge validation failed';
+        return {
+            status => 'error',
+            error  => "Domain validation failed for $auth_info->{domain}: $error"
+        };
+    }
+
+    <[base.log]>->(
+        2,
+        "    $auth_info->{domain}: validated in $validation->{attempts} attempts"
+    );
+}
+
+## STEP 7: Generate CSR
+<[base.log]>->( 2, 'step 7: generating certificate signing request' );
+my $csr = <[letsencrypt.child.generate_csr]>->($domains);
+unless ($csr) {
+    return {
+        status => 'error',
+        error  => 'Failed to generate CSR'
+    };
+}
+
+## STEP 8: Finalize order and download certificate
+<[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
+my $cert_result = <[letsencrypt.child.acme_finalize_order]>->();
+unless ($cert_result) {
+    return {
+        status => 'error',
+        error  => 'Failed to finalize order or download certificate'
+    };
+}
+
+<[base.log]>->( 2, "certificate obtained successfully!" );
+<[base.log]>->( 2, "  polled $cert_result->{poll_attempts} times" );
+
+## STEP 9: Parse certificate expiration
+my $valid_until = time() + ( 90 * 86400 );    # Default 90 days
+## TODO: Parse certificate to get actual expiration date
+
+## STEP 10: Send result back to parent
+<[base.log]>->( 2, 'sending certificate to parent process' );
+
 <[letsencrypt.child.send_to_parent]>->(
     {   command     => 'cert_ready',
         domain      => $primary_domain,
         domains     => $domains,
-        cert        => $result->{cert},
-        valid_until => $result->{valid_until},
-        fingerprint => $result->{fingerprint},
-        key_path    => $result->{key_path},
-        cert_path   => $result->{cert_path},
+        cert        => $cert_result->{certificate},
+        key         => $cert_result->{key},
+        valid_until => $valid_until,
+        fingerprint => 'SHA256:...',               # TODO: Calculate fingerprint
+        cert_url    => $cert_result->{cert_url},
     }
 );
+
+return {
+    status      => 'success',
+    domains     => $domains,
+    cert        => $cert_result->{certificate},
+    key         => $cert_result->{key},
+    valid_until => $valid_until,
+    cert_url    => $cert_result->{cert_url},
+};
 
 #,,,.,.,.,.,,,,,.,,..,,..,,,.,,..,..,,,,,,,,.,..,,...,...,...,,..,.,.,.,,,...,
 #XW5NHWD4VJFYP4SEYS3FYIRYIKGWJIFP72XWR5PE323RWOUCQZNRI3HO3KE2PJTBPE6N3JMKPWVDE
