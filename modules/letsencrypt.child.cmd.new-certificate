@@ -20,7 +20,7 @@ return {
 
 ## Parse additional domains from parameters (if provided)
 my $alt_names = $call->{'param'}{'alt_names'} // [];
-my @domains = ($domain);
+my @domains   = ($domain);
 push @domains, @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
 
 ## Get admin email from config or parameters
@@ -38,7 +38,8 @@ my $result = <[letsencrypt.child.acme_new]>->(
 
 ## Check result status
 unless ( $result && $result->{status} eq 'success' ) {
-    my $error = $result->{error} || 'Unknown error during certificate enrollment';
+    my $error
+        = $result->{error} || 'Unknown error during certificate enrollment';
     <[base.log]>->( 1, "certificate enrollment failed: $error" );
     return {
         'mode' => 'false',
@@ -72,8 +73,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,,,.,,,.,,..,.,,,.,,,,,,,,,,,,.,,,.,,.,,,.,.,...,...,.,.,...,,..,,..,..,,
-#T6UQBE2YNBB5MWBZIEXPDVVEQ7FQIDNZB7QPD7P7KZLDEVC2X7QGZVYTWGI46YQM4L7VNTASK54U6
-#\\\|SN2ZMUQFP2HK6IFZVR5ATY75KFE63P7EYV3RKUJCWTDPKYUKL6B \ / AMOS7 \ YOURUM ::
-#\[7]5QPJJPUBJF2OF4O4FPPX3V4Z64ZJ3O3ZNGG3D74SD3K6NMUUGOAA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,...,,.,,...,...,..,,.,,,,..,.,.,.,.,...,...,...,...,.,.,.,,,,,.,
+#OB5WDMQLT6T3PUQA25BNGL22I77AROMPGR4TL7QFGXUZU52DMNBFNXPSOH6BFPL5ZGJR2BVIGLZNQ
+#\\\|RZKNXP3E73WOEUX4GY5AHBL6EPISR4D4PWOHZBWM6JPOKZO32PA \ / AMOS7 \ YOURUM ::
+#\[7]LVUA4W4HQ35UWXKBCQZ562U6HHRTWUFM5K3JPMIWXD6VRV4MBYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = letsencrypt.parent.queue_renewal_requests
+# descr = Create renewal requests for expiring certificates and send to child
+
+my $renewal_list = shift;
+
+return {
+    status => 'error',
+    error  => 'renewal list array required',
+    queued => 0,
+    }
+    unless $renewal_list && ref($renewal_list) eq 'ARRAY';
+
+<[base.log]>
+    ->( 2, "queuing " . scalar(@$renewal_list) . " renewal requests" );
+
+## Initialize renewal timers hash if not present
+<letsencrypt.parent.renewal_timers> = {}
+    unless <letsencrypt.parent.renewal_timers>;
+
+my $queued_count = 0;
+my $now          = time();
+
+foreach my $renewal_info (@$renewal_list) {
+    my $domain          = $renewal_info->{domain};
+    my $alt_names       = $renewal_info->{alt_names} // [];
+    my $days_remaining  = $renewal_info->{days_remaining};
+    my $account_id      = $renewal_info->{account_id};
+    my $certificate_url = $renewal_info->{certificate_url};
+
+    next unless $domain;
+
+    ## Check if already in renewal process
+    if ( exists <letsencrypt.parent.renewal_timers> {$domain} ) {
+        my $timer_info = <letsencrypt.parent.renewal_timers> {$domain};
+        if ( $timer_info->{started}
+            && ( $now - $timer_info->{started} ) < 300 ) {
+            ## Already queued within last 5 minutes - skip duplicate
+            <[base.log]>->(
+                3, "renewal already queued for $domain - skipping"
+            );
+            next;
+        }
+    }
+
+    ## Send renewal command to child
+    my $cmd = 'letsencrypt.child.cmd.renew-certificate ' . $domain;
+
+    <[base.log]>->( 2, "sending renewal command to child for: $domain" );
+
+    my $result = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => $cmd,
+            'call_args' => {
+                'args'  => $domain,
+                'param' => {
+                    'alt_names'       => $alt_names,
+                    'account_id'      => $account_id,
+                    'certificate_url' => $certificate_url,
+                    'retry_attempt'   => 0,
+                }
+            },
+            'reply' => {
+                'handler' => 'letsencrypt.parent.handler_renewal_reply',
+                'params'  => { 'domain' => $domain }
+            }
+        }
+    );
+
+    if ($result) {
+        <[base.log]>->( 3, "renewal command queued for $domain" );
+
+        ## Track renewal attempt
+        <letsencrypt.parent.renewal_timers> {$domain} = {
+            started  => $now,
+            attempts => 1,
+            status   => 'pending',
+        };
+
+        $queued_count++;
+    } else {
+        <[base.log]>->( 1, "error: failed to queue renewal for $domain" );
+    }
+}
+
+<[base.log]>->( 2, "queued $queued_count renewal requests" );
+
+return {
+    status => 'success',
+    queued => $queued_count,
+};
+
+#,,,.,..,,,,,,,,,,,.,,,,.,,,.,...,,..,..,,,..,..,,...,...,...,.,.,,,,,,..,..,,
+#PY7XZDRX3NON2G4P3ZDA3DYPR4KUXAG7HLCG7JIHH7LKNSTLBDCJKKSGFVY7KEUJ4FCGIVNI6W5YC
+#\\\|Z5KUQ7PHNGVTAQX3SXMRVHC53RANW5ADQFTKLLP4NMKOO2NLX6F \ / AMOS7 \ YOURUM ::
+#\[7]GNSFI3GTPMWBK2RP6TGG3NRADPB3JXWWL65SXMYIX6AZPYLXRWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

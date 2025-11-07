@@ -14,15 +14,20 @@
 <letsencrypt.parent.acme_account>   = {};
 <letsencrypt.parent.renewal_timers> = {};
 
-## Load cached certificate data if available
-my $cache_dir  = <letsencrypt.cache.dir>;
-my $cert_cache = sprintf '%s/cert.cache', $cache_dir;
-if ( -f $cert_cache && <letsencrypt.cache.loaded> ) {
-    <[base.log]>->( 2, 'loading certificate cache from disk' );
-    <[file.content]>->( $cert_cache, \my $cache_str, qw| :raw | );
-
-    # Deserialize and load certificates (implementation deferred)
-    # <[letsencrypt.parent.deserialize_cache]>->($cache_str);
+## Load stored certificates from disk into memory registry
+my $load_result = <[letsencrypt.parent.load_certificate_registry]>->();
+if ( $load_result && $load_result->{status} eq 'success' ) {
+    <[base.log]>->(
+        2, 'loaded ' . $load_result->{loaded} . ' certificates from disk'
+    );
+} elsif ( $load_result && $load_result->{status} eq 'partial' ) {
+    <[base.log]>->(
+        1, 'warning: partial certificate load - ' . $load_result->{error_msg}
+    );
+} else {
+    <[base.log]>->(
+        1, 'warning: no stored certificates found on disk (first run)'
+    );
 }
 
 ## Initialize renewal check timer using event system
@@ -70,8 +75,8 @@ if ( -f $cert_cache && <letsencrypt.cache.loaded> ) {
 
 0;
 
-#,,..,,,,,.,,,...,.,,,,,.,,.,,...,.,,,...,..,,..,,...,...,.,,,.,,,,,.,...,...,
-#Q5TP3L52A7CDQ4IDIZCS7HBUKTZZFCISDMTOSNPPGWDQYYMNHYDZHF3RJCTLNJZ23YH46H33UGAG4
-#\\\|OLH25UPWKPVBBW34R2W44EJHYHDYJ33NSYPCFIY6E4TLQ3L6WMF \ / AMOS7 \ YOURUM ::
-#\[7]QQEIWW2QMWNNMESSJDF7LX5VNSJPZW4X5HNWXQTC5ZW7DREJ5CAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,,,,,.,,.,,,,,,,,,.,,,.,,..,..,,...,...,..,,,,,,,,.,..,,,..,
+#TGKQYYVS5MSUDZNDNU7JRNGH5OLCLLQ4XRMJ4576QM5XFW7TQYTGQ5EDEHDGOBOKQIZAXZJRVXQRO
+#\\\|V2MSOQ2ZAYV43XKCILBTB63BM5BJES7URVVOVZHPGVQRUNXEO7H \ / AMOS7 \ YOURUM ::
+#\[7]GMVN5ZJO5LCLDMVCQ4VJCZOXKQQTGN7ZED3G7GVQ3PU5SXXBRQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

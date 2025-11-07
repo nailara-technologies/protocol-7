@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = letsencrypt.parent.notify_httpd_certificate_update
+# descr = Notify httpd zenka that certificate has been updated and needs reload
+
+use File::Spec::Functions qw(catfile);
+
+my $cert_data = shift;
+
+my $domain    = $cert_data->{domain};
+my $cert_path = $cert_data->{cert_path};
+my $key_path  = $cert_data->{key_path};
+
+unless ( $domain && $cert_path && $key_path ) {
+    <[base.log]>
+        ->( 1, "error: domain, cert_path, and key_path are required" );
+    return {
+        status => 'error',
+        error  => 'Missing required certificate data'
+    };
+}
+
+<[base.log]>->( 2, "notifying httpd of certificate update for: $domain" );
+
+## Send notification to httpd via Protocol-7 command protocol
+## HTTPd can refresh its loaded certificate cache for this domain
+my $notify_cmd = 'httpd.cmd.reload-certificate ' . $domain;
+
+my $result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => $notify_cmd,
+        'call_args' => {
+            'args'  => $domain,
+            'param' => {
+                'cert_path' => $cert_path,
+                'key_path'  => $key_path,
+            }
+        },
+        'reply' => {
+            'handler' => 'letsencrypt.parent.handler_httpd_reload_reply',
+            'params'  => { 'domain' => $domain }
+        }
+    }
+);
+
+if ($result) {
+    <[base.log]>->(
+        2, "certificate update notification sent to httpd for: $domain"
+    );
+    return {
+        status => 'success',
+        domain => $domain,
+        msg    => 'Notification sent to httpd'
+    };
+} else {
+    <[base.log]>->(
+        1,
+        "warning: failed to notify httpd of certificate update for: $domain"
+    );
+    return {
+        status => 'error',
+        error  => 'Failed to send notification to httpd'
+    };
+}
+
+#,,,,,,,,,,,.,,,.,...,..,,.,,,,,,,...,..,,...,..,,...,...,,..,,.,,.,,,,..,,..,
+#OAIWCRUIYK2MFSSLJ62AG5PFLNUXL4XPS4UQW465WAOY7QD3O65WZFRP5ADYQEPDQX3ZF7O4LHODO
+#\\\|WJKVHHNYW6E5V6NSRDBTAOQ7IDWXHD6ADIJ7XBKAMLS64SOPDU5 \ / AMOS7 \ YOURUM ::
+#\[7]NHPTW42O3HEM7SBZ526B4OGLMRIQYPAWN756XKJVD2NWI5WRQWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

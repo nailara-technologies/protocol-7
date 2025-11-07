@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = letsencrypt.parent.query_httpd_vhosts
+# descr = Query httpd zenka for list of configured virtual hosts
+
+use Scalar::Util qw(blessed);
+
+<[base.log]>->( 2, "querying httpd for vhost list" );
+
+## Check if httpd is available via cube
+my $vhost_list;
+
+## Use base command sending to query httpd.vhost-list
+my $reply = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'httpd.vhost-list',
+        'call_args' => { 'args' => '' },
+    }
+);
+
+unless ($reply) {
+    <[base.log]>->(
+        1, "warning: httpd.vhost-list command returned no response"
+    );
+    return {
+        status => 'error',
+        error  => 'No response from httpd',
+        vhosts => [],
+    };
+}
+
+## Parse reply based on mode
+my $mode = $reply->{cmd}  // $reply->{mode};
+my $data = $reply->{data} // '';
+
+<[base.log]>->( 3, "httpd reply mode: $mode, data length: " . length($data) );
+
+## The vhost-list returns multiple lines of vhost names
+my @vhosts;
+if ( $mode eq 'SIZE' ) {
+    ## SIZE mode means multi-line output
+    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
+} elsif ( $mode eq 'TRUE' ) {
+    ## TRUE mode with data contains vhost names separated by newlines
+    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
+} else {
+    <[base.log]>->( 1, "warning: unexpected reply mode from httpd: $mode" );
+    return {
+        status => 'error',
+        error  => "Unexpected reply mode: $mode",
+        vhosts => [],
+    };
+}
+
+## Remove whitespace
+@vhosts = map  { s/^\s+|\s+$//g; $_ } @vhosts;
+@vhosts = grep { length($_) > 0 } @vhosts;
+
+if ( @vhosts == 0 ) {
+    <[base.log]>->( 1, "warning: httpd returned no vhosts" );
+    return {
+        status => 'error',
+        error  => 'No vhosts from httpd',
+        vhosts => [],
+    };
+}
+
+<[base.log]>->( 2, "found " . scalar(@vhosts) . " vhosts from httpd" );
+foreach my $vh (@vhosts) {
+    <[base.log]>->( 3, "  - $vh" );
+}
+
+## Cache the vhost list with timestamp
+<letsencrypt.parent.vhosts_cache> = {
+    vhosts    => \@vhosts,
+    timestamp => time(),
+    ttl       => 3600,       # 1 hour cache TTL
+};
+
+return {
+    status => 'success',
+    vhosts => \@vhosts,
+};
+
+#,,.,,,.,,..,,,,.,,.,,.,,,.,,,,.,,..,,,,.,,,.,..,,...,...,,,.,.,,,.,,,...,.,,,
+#M7O4U7PIH2KDYANQAF3TJ6LSSMIIP2O4W6VLTSDPGGBXZHLKI6IQYIRRSVWUTQJOPHHI2PHGGYZOQ
+#\\\|NZWZYH76AWHC2ZP4NAP7K3QLKJHJ2KB3ZZNBZGBICBYUVQSEFTH \ / AMOS7 \ YOURUM ::
+#\[7]MYFI6BWMMFCBAKEA5UGOYGSHYKPFNYYDFOCG6XLDE475EBXJ7IAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

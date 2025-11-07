@@ -1,0 +1,127 @@
+## [:< ##
+
+# name  = letsencrypt.parent.load_certificate_registry
+# descr = Load stored certificates from disk into memory registry
+
+use JSON::XS;
+use File::Spec::Functions qw(catfile);
+
+my $certs_dir = <letsencrypt.certs.dir>;
+
+<[base.log]>->( 2, "loading certificate registry from: $certs_dir" );
+
+## Initialize registry if not already present
+<letsencrypt.parent.certs> = {} unless <letsencrypt.parent.certs>;
+
+my $loaded_count = 0;
+my $error_count  = 0;
+
+## Open certificate directory
+my $dir_handle;
+unless ( opendir( $dir_handle, $certs_dir ) ) {
+    <[base.log]>->( 1, "warning: cannot open certificates directory: $!" );
+    return {
+        status    => 'error',
+        error_msg => "Cannot open directory: $!",
+        loaded    => 0,
+        errors    => 1
+    };
+}
+
+## Scan for .meta files (certificate metadata)
+my @meta_files = grep {/\.meta$/} readdir($dir_handle);
+closedir($dir_handle);
+
+foreach my $meta_file ( sort @meta_files ) {
+    my $meta_path = catfile( $certs_dir, $meta_file );
+
+    ## Extract domain from filename (domain.meta)
+    my ($domain) = $meta_file =~ /^(.+)\.meta$/;
+    next unless $domain;
+
+    ## Read and parse metadata JSON
+    my $meta_content;
+    my $fh;
+    unless ( open( $fh, '<', $meta_path ) ) {
+        <[base.log]>->(
+            1, "warning: cannot read metadata file: $meta_path ($!)"
+        );
+        $error_count++;
+        next;
+    }
+
+    {
+        local $/;
+        $meta_content = <$fh>;
+    }
+    close($fh);
+
+    ## Parse JSON metadata
+    my $metadata;
+    unless ( eval { $metadata = JSON::XS::decode_json($meta_content); 1 } ) {
+        <[base.log]>->( 1, "warning: invalid JSON in $meta_path: $@" );
+        $error_count++;
+        next;
+    }
+
+    ## Verify required fields
+    unless ( $metadata->{issued_at} && $metadata->{expires_at} ) {
+        <[base.log]>->( 1, "warning: missing required fields in $meta_path" );
+        $error_count++;
+        next;
+    }
+
+    ## Verify certificate file exists
+    my $cert_path = catfile( $certs_dir, "$domain.pem" );
+    unless ( -f $cert_path ) {
+        <[base.log]>->(
+            1, "warning: certificate file missing for domain: $domain"
+        );
+        $error_count++;
+        next;
+    }
+
+    ## Load certificate into registry
+    <letsencrypt.parent.certs> {$domain} = {
+        issued_at       => $metadata->{issued_at},
+        expires_at      => $metadata->{expires_at},
+        domain          => $metadata->{domain}    // $domain,
+        alt_names       => $metadata->{alt_names} // [],
+        certificate_url => $metadata->{certificate_url},
+        account_id      => $metadata->{account_id},
+        status          => $metadata->{status} // 'valid',
+        key_path        => catfile( $certs_dir, "$domain.key" ),
+        cert_path       => catfile( $certs_dir, "$domain.cert" ),
+        chain_path      => catfile( $certs_dir, "$domain.chain" ),
+        pem_path        => catfile( $certs_dir, "$domain.pem" ),
+        meta_path       => $meta_path,
+    };
+
+    $loaded_count++;
+
+    my $days_remaining = ( $metadata->{expires_at} - time() ) / 86400;
+    <[base.log]>->(
+        2,
+        "loaded certificate: $domain (expires in "
+            . sprintf( "%.1f", $days_remaining )
+            . " days)"
+    );
+}
+
+<[base.log]>->(
+    2,
+    "certificate registry loaded: $loaded_count certificates, $error_count errors"
+);
+
+return {
+    status    => ( $error_count > 0 ? 'partial' : 'success' ),
+    loaded    => $loaded_count,
+    errors    => $error_count,
+    error_msg => $error_count > 0 ? "$error_count errors during load" : undef
+};
+
+#,,,.,.,.,.,,,,.,,.,.,,,.,,,.,,..,,..,.,.,,..,..,,...,...,..,,,..,.,,,.,,,,.,,
+#V33BN3H37RS6QPVHOK5U2MNBTRTBNSP3M5CEBLSQP35S2OYHXNEVUBFQ4P7WUPJ5X774DIUNTSY4W
+#\\\|QG3P5TKB4CF4NKP5HV7ZPW6R62XNSX4UAWFYHKBAISYVMGZ2VVO \ / AMOS7 \ YOURUM ::
+#\[7]TIWC4F5WTXZFDQWSDWVNOF47PF6FVNITGL4U5QJDSDNSU4WQMODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
