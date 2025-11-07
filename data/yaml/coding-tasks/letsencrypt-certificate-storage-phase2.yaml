@@ -1,0 +1,414 @@
+---
+task_id: letsencrypt_certificate_storage_phase2
+category: letsencrypt_zenka
+status: ready_for_implementation
+priority: high
+session_created: 2C
+estimated_effort: 10-14 hours
+depends_on: letsencrypt_acme_phase1
+
+title: "Letsencrypt Zenka: Certificate Storage and HTTPd Integration (Phase 2)"
+
+overview: |
+  Phase 1 implemented the ACME protocol core (certificate enrollment workflow).
+  Phase 2 implements certificate storage, management, and integration with HTTPd zenka
+  to automatically deploy certificates to web virtual hosts.
+
+  New capability: httpd.vhost-list command provides list of active vhosts.
+  Integration: Letsencrypt will request certificates for httpd vhosts and store them
+  in locations where httpd can access them.
+
+architecture_context: |
+  Parent Process:
+  - Maintains certificate registry with expiration tracking
+  - Periodically checks which certificates need renewal
+  - Queries httpd for vhost list
+  - Routes certificate requests to child
+  - Stores certificates and notifies httpd on updates
+  - Implements retry logic with exponential backoff
+
+  Child Process (Phase 1):
+  - Already implements ACME protocol
+  - Returns certificates from acme_new and acme_renew
+  - Ready to serve command requests
+
+  HTTPd Integration:
+  - httpd.vhost-list command returns: default, wpad.net, 127.0.0.1, etc.
+  - Letsencrypt reads this list
+  - For each vhost with a domain name, request certificate
+  - Store at: /etc/protocol-7/certs/{domain}.pem
+  - Notify httpd when certificates change
+
+certificate_storage_structure: |
+  Files stored in: <letsencrypt.certs.dir> = /etc/protocol-7/certs/
+
+  Per-domain storage:
+  - domain.pem          → Full certificate + chain + private key
+  - domain.cert         → Certificate only
+  - domain.key          → Private key only
+  - domain.chain        → CA chain only
+  - domain.meta         → Metadata JSON
+
+  Metadata format:
+  {
+    domain: "example.com",
+    alt_names: ["*.example.com", "www.example.com"],
+    issued_at: unix_timestamp,
+    expires_at: unix_timestamp,
+    certificate_url: "https://acme.../acme/cert/...",
+    account_id: "...",
+    status: "valid|expiring|revoked"
+  }
+
+## PHASE 2: CERTIFICATE STORAGE AND RENEWAL
+
+required_modules_to_implement:
+
+  1. "letsencrypt.parent.query_httpd_vhosts"
+     purpose: "Get list of configured vhosts from httpd zenka"
+     input: "None"
+     output: "{ vhosts => ['default', 'example.com', ...], status => 'success|error' }"
+     notes: |
+       - Query httpd via cube routing: p7 httpd.vhost-list
+       - Parse output as list of vhost names
+       - Handle httpd unavailable gracefully
+       - Cache vhost list for 1 hour
+       - Called by renewal check timer
+
+  2. "letsencrypt.parent.determine_certificate_domains"
+     purpose: "Map vhost names to domains for certificate requests"
+     input: "{ vhosts => ['default', 'example.com', 'www'] }"
+     output: "{ 'example.com' => {vhosts: [...]}, ... }"
+     notes: |
+       - 'default' vhost might be localhost or generic - skip
+       - IPv4 addresses (127.0.0.1) - don't request certs
+       - Domain names - queue for certificate
+       - Handle wildcard domains (*.example.com)
+       - Group vhosts by domain (e.g., www.example.com → example.com)
+
+  3. "letsencrypt.parent.load_certificate_registry"
+     purpose: "Load stored certificates from disk into memory"
+     input: "None"
+     output: "{ 'example.com' => {issued_at: ..., expires_at: ..., ...}, ... }"
+     notes: |
+       - Read all .meta files from <letsencrypt.certs.dir>
+       - Parse JSON metadata
+       - Populate <letsencrypt.parent.certs> hash
+       - Called during parent initialization
+       - Handle missing/corrupt files gracefully
+
+  4. "letsencrypt.parent.save_certificate"
+     purpose: "Store certificate bundle to disk with metadata"
+     input: |
+       {
+         domain: 'example.com',
+         certificate_pem: '-----BEGIN CERTIFICATE-----\n...',
+         chain_pem: '...',
+         private_key_pem: '...',
+         issued_at: unix_timestamp,
+         expires_at: unix_timestamp,
+         certificate_url: 'https://...'
+       }
+     output: "{ status => 'success|error', error_msg => '...' }"
+     notes: |
+       - Write certificate files to /etc/protocol-7/certs/
+       - domain.pem contains full bundle (cert + chain + key)
+       - domain.cert contains certificate only
+       - domain.key contains private key only
+       - domain.chain contains CA chain only
+       - domain.meta contains JSON metadata
+       - Set permissions: 0644 for certs, 0600 for keys
+       - Backup old cert to <letsencrypt.certs.backup>
+
+  5. "letsencrypt.parent.request_certificate"
+     purpose: "Queue certificate request and send to child"
+     input: |
+       {
+         domain: 'example.com',
+         alt_names: ['*.example.com', 'www.example.com'],
+         force_renew: false
+       }
+     output: "{ request_id => '...', status => 'queued|error' }"
+     notes: |
+       - Create request ID (unique identifier)
+       - Store request in queue with metadata
+       - Send command to child: letsencrypt.child.cmd.new-certificate
+       - Handle already-requested domains gracefully
+       - Track request timing for retries
+
+  6. "letsencrypt.parent.process_certificate_reply"
+     purpose: "Handle child response when certificate received"
+     input: |
+       {
+         request_id: '...',
+         status: 'success|error',
+         certificate_bundle: '...',
+         error_msg: '...'
+       }
+     output: "{ processed => true|false, error => '...' }"
+     notes: |
+       - Decode base32r certificate data from child
+       - Extract certificate, chain, key from bundle
+       - Calculate expiration date from certificate
+       - Save to disk using letsencrypt.parent.save_certificate
+       - Update registry with new cert info
+       - Queue httpd notification on success
+       - Queue retry on failure (exponential backoff)
+
+  7. "letsencrypt.parent.notify_httpd_certificate_update"
+     purpose: "Tell httpd to reload certificate for domain"
+     input: |
+       {
+         domain: 'example.com',
+         cert_path: '/etc/protocol-7/certs/example.com.pem'
+       }
+     output: "{ status => 'notified|error', error_msg => '...' }"
+     notes: |
+       - Send command to httpd: httpd.cmd.reload-certificate domain cert_path
+       - TODO: Implement this command in httpd if not present
+       - Non-blocking (fire and forget)
+       - Log success/failure
+       - Handle httpd unavailable gracefully
+
+  8. "letsencrypt.parent.check_certificate_expiration"
+     purpose: "Evaluate which certificates need renewal"
+     input: "{ 'example.com' => {expires_at: ..., ...}, ... }"
+     output: |
+       {
+         needs_renewal: ['example.com', ...],
+         expiring_soon: ['*.example.com', ...],
+         status: 'success'
+       }
+     notes: |
+       - Check each certificate in registry
+       - Renewal needed if: expires_at - now <= days-before
+       - Days-before: <letsencrypt.renewal.days-before> (default 30)
+       - Also return "expiring_soon" list (7 days)
+       - Sort by urgency (most urgent first)
+
+  9. "letsencrypt.parent.queue_renewal_requests"
+     purpose: "Create renewal requests for expiring certificates"
+     input: "{ needs_renewal => ['example.com', ...] }"
+     output: "{ queued => 3, status => 'success' }"
+     notes: |
+       - For each domain in needs_renewal
+       - Create renewal request with request_id
+       - Check if already in queue (don't duplicate)
+       - Get alt_names from existing certificate metadata
+       - Send to child for renewal
+       - Track renewal attempt count
+
+  10. "letsencrypt.parent.renewal_check_timer"
+      purpose: "Periodically check for certificates needing renewal"
+      input: "(called by event timer)"
+      output: "Triggers renewal workflow if needed"
+      notes: |
+       - Already exists as renewal check handler
+       - Now needs to call new Phase 2 modules:
+         1. Query httpd for vhosts
+         2. Determine domains to manage
+         3. Check expiration status
+         4. Queue renewals
+       - Default interval: 3600 seconds (1 hour)
+       - Can be changed via <letsencrypt.renewal.check-interval>
+
+  11. "letsencrypt.parent.retry_failed_renewal"
+      purpose: "Retry failed certificate requests with backoff"
+      input: |
+       {
+         request_id: '...',
+         domain: 'example.com',
+         attempt: 1,
+         last_error: '...'
+       }
+      output: "{ status => 'retrying|abandoned', error => '...' }"
+      notes: |
+       - Already implemented in Phase 1 as handler_renewal_retry
+       - Verify it works with new certificate storage flow
+       - Exponential backoff: 5min → 10min → 20min → 40min → 80min
+       - Max 5 attempts per domain
+       - Log each attempt with error message
+
+  12. "letsencrypt.parent.update_registry_from_disk"
+      purpose: "Resync certificate registry with disk files"
+      input: "None"
+      output: "{ synced => true, count => 5 }"
+      notes: |
+       - Compare disk files with memory registry
+       - Update metadata if certificate changed on disk
+       - Remove registry entries for deleted certificates
+       - Called after loading certificates
+       - Useful for recovery if registry becomes stale
+
+statistics_and_monitoring: |
+  Track and expose via parent handler:
+  - certificates_active: count of valid certificates
+  - certificates_expiring: count expiring within 7 days
+  - renewals_completed: total successful renewals
+  - renewals_failed: total failed renewal attempts
+  - last_renewal_check: timestamp of last check
+  - acme_account_created: account registration status
+
+  Update <letsencrypt.stats> hash during operations.
+
+integration_with_parent_command_protocol:
+
+  new_parent_commands: |
+    These commands can be called via cube to manage letsencrypt:
+
+    letsencrypt.request-certificate domain [alt_names...]
+    - Request new certificate for domain
+    - Optional alt names: --alt *.example.com www.example.com
+    - Returns: { request_id => '...', status => '...' }
+
+    letsencrypt.renew-certificate domain
+    - Force renewal of specific domain
+    - Returns: { status => 'queued|error' }
+
+    letsencrypt.certificate-status domain
+    - Check certificate status and expiration
+    - Returns: { expires_at => timestamp, days_remaining => N, status => '...' }
+
+    letsencrypt.revoke-certificate domain
+    - Revoke certificate via ACME
+    - Removes from storage
+    - Returns: { status => 'success|error' }
+
+error_handling_strategy:
+
+  httpd_unavailable: |
+    - Don't block certificate requests
+    - Cache vhost list for up to 1 hour
+    - Try httpd again at next renewal check
+    - Log warning but continue
+
+  domain_validation_failed: |
+    - HTTP-01 challenge failed
+    - Queue retry with backoff
+    - Max 5 attempts per domain
+    - Log detailed error with challenge failure reason
+
+  acme_server_errors: |
+    - 429 (rate limited): Wait 1 hour before retry
+    - 400/401: Log error, don't retry (config issue)
+    - 500: Retry with backoff (server issue)
+    - Network error: Retry with backoff
+
+  disk_write_errors: |
+    - Can't write to /etc/protocol-7/certs
+    - Don't update registry if write fails
+    - Log critical error
+    - Alert operator (future)
+
+testing_strategy:
+
+  manual_testing: |
+    1. Start letsencrypt zenka
+    2. Query vhost list: p7 httpd.vhost-list
+    3. Check renewal timer fires hourly
+    4. Manually trigger renewal: p7 letsencrypt.renew-certificate example.com
+    5. Verify certificate saved to /etc/protocol-7/certs/
+    6. Check metadata file created
+    7. Monitor logs for httpd notification
+
+  with_staging_server: |
+    - Change letsencrypt.acme.server to staging URL
+    - Request real certificates that work
+    - No rate limiting on staging
+    - Certificates won't validate in browsers (self-signed)
+    - Perfect for testing renewal workflow
+
+  verification_checklist: |
+    ✓ Certificates stored with correct permissions (0644 cert, 0600 key)
+    ✓ Metadata JSON created and parseable
+    ✓ Renewal timer fires and requests renewals
+    ✓ Failed requests retry with backoff
+    ✓ HTTPd notified when certificates change
+    ✓ Registry syncs with disk files
+    ✓ Statistics updated correctly
+    ✓ Command handlers work via cube routing
+
+files_to_modify:
+
+  parent_process_modules:
+    - modules/letsencrypt.parent.init_code (add load_registry call)
+    - modules/letsencrypt.parent.handler_renewal_check (add Phase 2 workflow)
+    - modules/letsencrypt.parent.handler_renewal_reply (add save_certificate call)
+    - modules/letsencrypt.parent.handler_renewal_failed (already exists, use as-is)
+
+  new_modules_to_create:
+    - modules/letsencrypt.parent.query_httpd_vhosts
+    - modules/letsencrypt.parent.determine_certificate_domains
+    - modules/letsencrypt.parent.load_certificate_registry
+    - modules/letsencrypt.parent.save_certificate
+    - modules/letsencrypt.parent.request_certificate
+    - modules/letsencrypt.parent.process_certificate_reply
+    - modules/letsencrypt.parent.notify_httpd_certificate_update
+    - modules/letsencrypt.parent.check_certificate_expiration
+    - modules/letsencrypt.parent.queue_renewal_requests
+    - modules/letsencrypt.parent.update_registry_from_disk
+
+  command_handlers_to_create:
+    - modules/letsencrypt.cmd.request-certificate
+    - modules/letsencrypt.cmd.renew-certificate
+    - modules/letsencrypt.cmd.certificate-status
+    - modules/letsencrypt.cmd.revoke-certificate
+
+  optional_httpd_integration:
+    - modules/httpd.cmd.reload-certificate (if not present)
+      Purpose: Reload certificate for specific domain
+      Input: domain, cert_path
+      Output: { status => 'reloaded|error' }
+
+dependencies: |
+  File operations:
+  - File::Spec::Functions (catfile, abs_path)
+  - File::Path (make_path)
+  - JSON::XS (metadata parsing)
+
+  All required modules already in configuration.
+
+success_criteria:
+
+  minimum_viable: |
+    ✓ Can query httpd for vhost list
+    ✓ Can save certificates with metadata
+    ✓ Renewal check finds expiring certificates
+    ✓ Certificate requests queued and sent to child
+    ✓ Child responses processed and saved
+    ✓ Retry logic works with exponential backoff
+    ✓ Registry persists across restarts
+    ✓ Statistics tracked and accessible
+
+  full_integration: |
+    ✓ All above, plus:
+    ✓ HTTPd notified when certificates change
+    ✓ Manual commands work (request, renew, revoke, status)
+    ✓ Handles httpd unavailable gracefully
+    ✓ Disk space management for backups
+    ✓ Comprehensive error logging
+
+next_phase: |
+  Phase 3: HTTP-01 Challenge Implementation
+  - Currently Phase 1 assumes challenges are handled elsewhere
+  - Phase 3 will:
+    1. Set up HTTP-01 endpoint in parent or separate service
+    2. Send challenge tokens to httpd for serving
+    3. Poll for challenge validation
+    4. Handle challenges for multiple domains in parallel
+
+  Phase 4: HTTPd Certificate Reload
+  - Implement httpd.cmd.reload-certificate
+  - Reload certificates without httpd restart
+  - Handle zero-downtime updates
+
+references:
+
+  phase1: "letsencrypt-acme-implementation-phase1.yaml"
+  httpd_vhost_docs: "docs/architecture/VHOST_TEMPLATE_HIERARCHY.md"
+  session_2c_architecture: "docs/SESSION_2C_LETSENCRYPT_ZENKA_CREATION.md"
+  rfc8555: "ACME Protocol specification"
+
+created_date: 2025-11-07
+ready_for_implementation: true
+recommended_for: claude_code_web_instance or local_continuation
