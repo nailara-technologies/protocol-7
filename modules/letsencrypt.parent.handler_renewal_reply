@@ -61,19 +61,41 @@ if ( $mode eq 'TRUE' ) {
             . " bytes)"
     );
 
-    ## Certificate data returned - save it
+    ## Certificate data returned - decode and save it
+    ## NOTE: Data should come from child as base32r encoded if needed,
+    ## but for now we expect raw certificate PEM
     my $cert_path = sprintf '%s/%s.pem', <letsencrypt.certs.dir>, $domain;
     <[file.put]>->( $cert_path, $data, qw| :raw | );
 
     <[base.log]>->( 2, "saved certificate for $domain to $cert_path" );
 
     ## Update stats
-    <letsencrypt.parent.certs> {$domain} = { issued_at => time(), };
+    <letsencrypt.parent.certs> {$domain} = {
+        issued_at => time(),
+        domain    => $domain,
+    };
 
     if ( exists <letsencrypt.parent.renewal_timers> {$domain} ) {
         delete <letsencrypt.parent.renewal_timers> {$domain};
     }
     <letsencrypt.stats.renewals_completed>++;
+
+    ## Notify HTTPd that certificate has been updated
+    my $notify_result
+        = <[letsencrypt.parent.notify_httpd_certificate_update]>->(
+        {   domain    => $domain,
+            cert_path => $cert_path,
+            key_path  =>
+                sprintf( '%s/%s.key', <letsencrypt.certs.dir>, $domain ),
+        }
+        );
+
+    if ( !$notify_result || $notify_result->{status} ne 'success' ) {
+        <[base.log]>->(
+            1,
+            "warning: failed to notify httpd of certificate update for $domain"
+        );
+    }
 
 } else {
     <[base.log]>->( 1, "renewal got unexpected mode: $mode for $domain" );
@@ -81,8 +103,8 @@ if ( $mode eq 'TRUE' ) {
 
 return 0;
 
-#,,,,,,,.,,,,,...,.,,,,..,..,,,,.,,..,.,.,,,,,.,.,...,...,...,.,.,,,.,..,,..,,
-#ZZPNVSJF7KZ2ZBJ3LDWKGIMRHZMQNWWQUXUBQEH3ZSV6WK4B7FJEQG23FWJLGFV6YNJZVYYEQ76K2
-#\\\|XFDPPDVC6CVIMBITDWSWXWK7KBB2NK5TVSDQP3HAXPBZB4AP54J \ / AMOS7 \ YOURUM ::
-#\[7]T4LZALFAFM7O6BYGRQUILP62ZL7TYSBME55C3TLQRQYUHSKTUADY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,,,,,..,,,.,,,..,...,.,.,.,.,.,.,...,...,...,,,,,,.,,...,,.,,
+#3GCPSAJ7QZHAVWNDJY3FHO4CT4L74JIQZSXM5COPFDBUNLJHEVVUVUO5NGI5SFFRFCUIMHGVIXNWG
+#\\\|2HGHJN4TI55264VCO2ORZQMOEIW6HY5J5V7MSP4V43BOXIVSPPV \ / AMOS7 \ YOURUM ::
+#\[7]VDVSEEE72BCGS4T7FAOIWKU2YJWIOTPLGRWOCEEVTK2QWV3IDYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

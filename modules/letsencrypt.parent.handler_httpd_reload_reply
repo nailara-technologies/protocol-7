@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_httpd_reload_reply
+# descr = Handle reply from httpd when certificate reload request completes
+
+my $reply_data = shift;
+
+my $domain = $reply_data->{params}{domain} // 'unknown';
+my $mode   = $reply_data->{reply}{mode};
+my $data   = $reply_data->{reply}{data};
+
+<[base.log]>->(
+    3, "received httpd reload reply for domain: $domain (mode: $mode)"
+);
+
+if ( $mode eq 'TRUE' ) {
+    <[base.log]>->(
+        2, "httpd successfully reloaded certificate for: $domain"
+    );
+    return {
+        status => 'success',
+        domain => $domain,
+        msg    => 'Certificate reloaded successfully'
+    };
+} elsif ( $mode eq 'FALSE' ) {
+    <[base.log]>->(
+        1, "error: httpd failed to reload certificate for: $domain"
+    );
+    if ($data) {
+        <[base.log]>->( 1, "  error details: $data" );
+    }
+    return {
+        status  => 'error',
+        domain  => $domain,
+        error   => 'HTTPd reload failed',
+        details => $data
+    };
+} else {
+    <[base.log]>->( 1, "warning: unexpected reply mode from httpd: $mode" );
+    return {
+        status => 'error',
+        domain => $domain,
+        error  => "Unexpected reply mode: $mode"
+    };
+}
+
+#,,.,,.,,,,.,,,,,,,,.,,,.,..,,...,.,,,.,.,,..,..,,...,...,...,,,,,,..,...,.,.,
+#SPDG4KRHVYDXLWKNQ4WREXS2IOLNHBTNQ6RHFPSBBOPQSDJCWLSC5CCRHB7VGJUUIYN2W6QY3HHLM
+#\\\|LDBJLSPLN5D277OT7C4WTRC6Q7BAJCDADLOJPGOJ6MXUQBFQG3W \ / AMOS7 \ YOURUM ::
+#\[7]T55ASR4KUPLQ6BVV6AA3HXHQJHB6N7RLTCUFS2K3SCOOYG4L6QBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,7 +73,9 @@ unless ($order) {
 }
 
 <[base.log]>->( 2, "  order URL: $order->{order_url}" );
-<[base.log]>->( 2, "  authorizations: " . scalar( @{ $order->{authorizations} } ) );
+<[base.log]>->(
+    2, "  authorizations: " . scalar( @{ $order->{authorizations} } )
+);
 
 ## STEP 5: Process authorizations for each domain
 <[base.log]>->( 2, 'step 5: processing authorizations' );
@@ -84,7 +86,10 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
     $auth_index++;
     my $domain = $domains->[ $auth_index - 1 ];
 
-    <[base.log]>->( 2, "  authorization $auth_index/${\(scalar @{$order->{authorizations}})}: $domain" );
+    <[base.log]>->(
+        2,
+        "  authorization $auth_index/${\(scalar @{$order->{authorizations}})}: $domain"
+    );
 
     ## Get authorization and challenges
     my $auth = <[letsencrypt.child.acme_get_authorization]>->($auth_url);
@@ -96,9 +101,9 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
     }
 
     ## Create HTTP-01 challenge response
-    my $challenge_response
-        = <[letsencrypt.child.create_http01_challenge]>->(
-        $auth->{http01}, $domain );
+    my $challenge_response = <[letsencrypt.child.create_http01_challenge]>->(
+        $auth->{http01}, $domain
+    );
 
     unless ($challenge_response) {
         return {
@@ -107,13 +112,15 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
         };
     }
 
-    <[base.log]>->( 2, "    challenge file: $challenge_response->{file_path}" );
+    <[base.log]>->(
+        2, "    challenge file: $challenge_response->{file_path}"
+    );
 
     ## Notify ACME server that challenge is ready
-    my $respond_result
-        = <[letsencrypt.child.respond_to_challenge]>->(
+    my $respond_result = <[letsencrypt.child.respond_to_challenge]>->(
         $challenge_response->{challenge_url},
-        $challenge_response->{token} );
+        $challenge_response->{token}
+    );
 
     unless ($respond_result) {
         return {
@@ -128,15 +135,16 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 ## STEP 6: Poll all authorizations until valid
 <[base.log]>->( 2, 'step 6: polling authorization status' );
 foreach my $auth_info (@auth_urls) {
-    my $validation
-        = <[letsencrypt.child.poll_challenge_status]>->(
-        $auth_info->{url}, $auth_info->{domain} );
+    my $validation = <[letsencrypt.child.poll_challenge_status]>->(
+        $auth_info->{url}, $auth_info->{domain}
+    );
 
     unless ( $validation && $validation->{valid} ) {
         my $error = $validation->{error} || 'Challenge validation failed';
         return {
             status => 'error',
-            error  => "Domain validation failed for $auth_info->{domain}: $error"
+            error  =>
+                "Domain validation failed for $auth_info->{domain}: $error"
         };
     }
 
@@ -183,7 +191,7 @@ my $valid_until = time() + ( 90 * 86400 );    # Default 90 days
         cert        => $cert_result->{certificate},
         key         => $cert_result->{key},
         valid_until => $valid_until,
-        fingerprint => 'SHA256:...',               # TODO: Calculate fingerprint
+        fingerprint => 'SHA256:...',             # TODO: Calculate fingerprint
         cert_url    => $cert_result->{cert_url},
     }
 );
@@ -197,8 +205,8 @@ return {
     cert_url    => $cert_result->{cert_url},
 };
 
-#,,..,.,,,,.,,.,,,,,,,.,.,.,,,.,,,,.,,...,...,..,,...,...,..,,,,.,,..,.,.,.,,,
-#6ZXSRXY23TI6AFCJ4CW7WQRXGFO4KPQ7ZN6LRSHYQSB2CDNIALETOQUXJUX3Y34ZTOTUHKXPWL7OI
-#\\\|T6QKF7EYCETAQNZRN3R5HYCRF3JT7CB43GVRIGK3MVUZ7IWDPRJ \ / AMOS7 \ YOURUM ::
-#\[7]ZGIV5IMF5N4KXUNVCWGS3SKMRCVX4EE5B3EEBFHWM3SAFXKWJMBA 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,.,,..,.,.,...,.,.,...,.,,,,..,..,,...,...,...,,,.,,.,,,,.,.,,,
+#G2VSDT2A7AIVF3MQONR4UTLIBWEQJBCWT2XIBIM5LZTXCPTA5BZGOMWETABCISOIVYCX2N6YA4ISY
+#\\\|BY6SBP2OM4QBX5IAA5YO2BVKCZVI5WWRG3HHZKATGNL66X4C25A \ / AMOS7 \ YOURUM ::
+#\[7]IOB3F4VHZDSC43T6ON4JPH6Y3ZMLBVIE2YOTUXMSQHI4AHAAXWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

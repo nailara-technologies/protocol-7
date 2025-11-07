@@ -46,7 +46,8 @@ my $result = <[letsencrypt.child.acme_new]>->(
 
 ## Check result status
 unless ( $result && $result->{status} eq 'success' ) {
-    my $error = $result->{error} || 'Unknown error during certificate renewal';
+    my $error
+        = $result->{error} || 'Unknown error during certificate renewal';
     <[base.log]>->( 1, "certificate renewal failed: $error" );
     return {
         'mode' => 'false',
@@ -82,8 +83,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,.,,,..,,.,,.,.,,.,,.,.,,..,,,.,...,,,,,.,.,.,.,...,.,.,.,.,.,.,,,.,..,,,,.,
-#BNHSXXIAD4BEOPECMPJEBLFA64AJ4ZKE6OXZDM2UIBPY4YX6DEPYPGWTEOGI4KF6CBHJEEDP6JXN6
-#\\\|5RSJPHXDSE5K2OR4Z63LVIR2R6JTLXY5D3GJ4DBOEISRIN7PWG3 \ / AMOS7 \ YOURUM ::
-#\[7]IGJCDUTRZC6G5R3PDWCBS6GC7RDOZZDCFZEEZHN6VAPOURIZZKCA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,.,.,.,,,,,,,...,..,,..,,,..,.,.,...,...,...,.,,,.,,,,,.,,.,,
+#OMJZJOISOB4CDCBV6WL57NC2VDG44MZKFQO233C6C7DJ3BD5PYCSMVBUYJ5N7TWYUEE7EXOJCGHLA
+#\\\|XIUXIBVVDBG2SKSPNI3BE23NQW32DHJUFOTS5BKGIY4A43R5ICT \ / AMOS7 \ YOURUM ::
+#\[7]5N7ZVR7TGZYLSUSVC56BDTUX6KCGQ36QCV46HJQQLNDCVGZ2AIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

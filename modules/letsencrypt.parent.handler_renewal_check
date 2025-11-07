@@ -5,59 +5,107 @@
 
 my $timer_data = shift;
 
-<[base.log]>->( 3, 'renewal check timer fired' );
+<[base.log]>->(
+    2, 'renewal check timer fired - starting certificate renewal workflow'
+);
 
-## Get current time
 my $now = time();
 <letsencrypt.stats.last_renewal_check> = $now;
 
-## Iterate through certificates
-for my $domain ( keys <letsencrypt.parent.certs>->%* ) {
-    my $cert_info = <letsencrypt.parent.certs> {$domain};
+## Phase 2 Workflow:
+## 1. Query HTTPd for configured virtual hosts
+## 2. Determine certificate domains from vhosts
+## 3. Load registry (already loaded in init, but refresh in case of manual updates)
+## 4. Check which certificates need renewal
+## 5. Queue renewal requests for child
 
-    next unless $cert_info->{valid_until};
+## Step 1: Query HTTPd for vhost list
+my $vhost_result = <[letsencrypt.parent.query_httpd_vhosts]>->();
+unless ( $vhost_result && $vhost_result->{status} eq 'success' ) {
+    <[base.log]>->(
+        1, "error: cannot query vhosts from httpd - skipping renewal check"
+    );
+    return 0;
+}
 
-    my $days_remaining    = ( $cert_info->{valid_until} - $now ) / 86400;
-    my $renewal_threshold = <letsencrypt.renewal.days-before>;
+my @vhosts = @{ $vhost_result->{vhosts} // [] };
+<[base.log]>->( 3, "retrieved " . scalar(@vhosts) . " vhosts from httpd" );
 
-    if ( $days_remaining <= $renewal_threshold ) {
-        <[base.log]>->(
-            2,
-            "certificate for [$domain] needs renewal (expires in $days_remaining days)"
-        );
+## Step 2: Determine certificate domains from vhosts
+my $domain_result
+    = <[letsencrypt.parent.determine_certificate_domains]>->( \@vhosts );
+unless ( $domain_result && $domain_result->{status} eq 'success' ) {
+    <[base.log]>->(
+        1,
+        "error: cannot determine certificate domains - skipping renewal check"
+    );
+    return 0;
+}
 
-        ## Queue renewal with child via Protocol-7 command protocol
-        ## Format: letsencrypt.child.cmd.renew-certificate domain_name
-        ## Child will handle via base.handler.command
-        my $renewal_cmd
-            = sprintf 'letsencrypt.child.cmd.renew-certificate %s', $domain;
-        <[base.protocol-7.command.send.local]>->(
-            {   'command'   => $renewal_cmd,
-                'call_args' => { 'args' => '' },
-                'reply'     => {
-                    'handler' => 'letsencrypt.parent.handler_renewal_reply',
-                    'params'  => { 'domain' => $domain }
-                }
-            }
-        );
-        <[base.log]>->( 3, "sent renewal command to child: $renewal_cmd" );
+my %domains_map = %{ $domain_result->{domains} // {} };
+<[base.log]>->(
+    3, "determined " . scalar( keys %domains_map ) . " certificate domains"
+);
 
-        ## Record that renewal was initiated
-        if ( !exists <letsencrypt.parent.renewal_timers> {$domain} ) {
-            <letsencrypt.parent.renewal_timers> {$domain} = {
-                started  => $now,
-                attempts => 0,
-            };
-        }
-        <letsencrypt.parent.renewal_timers> {$domain}{attempts}
-        ++;
+## Step 3: Refresh registry (load from disk in case of external updates)
+my $refresh_result = <[letsencrypt.parent.load_certificate_registry]>->();
+if ( !$refresh_result || $refresh_result->{status} eq 'error' ) {
+    <[base.log]>->(
+        2, "note: no stored certificates yet (first renewal check)"
+    );
+    ## Not an error - continue with enrollment for new domains
+}
+
+## Step 4: Check which certificates need renewal
+my $check_result = <[letsencrypt.parent.check_certificate_expiration]>
+    ->(<letsencrypt.parent.certs>);
+unless ( $check_result && ref($check_result) eq 'HASH' ) {
+    <[base.log]>->( 1, "error: cannot check certificate expiration" );
+    return 0;
+}
+
+my @needs_renewal = @{ $check_result->{needs_renewal} // [] };
+my @expiring_soon = @{ $check_result->{expiring_soon} // [] };
+
+if ( @expiring_soon > 0 ) {
+    <[base.log]>->(
+        1,
+        "warning: " . scalar(@expiring_soon) . " certificates expiring soon"
+    );
+}
+
+## Step 5: Queue renewal requests for domains needing renewal
+my $queue_result
+    = <[letsencrypt.parent.queue_renewal_requests]>->( \@needs_renewal );
+if ( $queue_result && $queue_result->{status} eq 'success' ) {
+    <[base.log]>->(
+        2, "queued " . $queue_result->{queued} . " renewal requests"
+    );
+}
+
+## Also check for new domains that need certificates (have vhosts but no certificate)
+my @new_domains;
+foreach my $domain ( keys %domains_map ) {
+    unless ( exists <letsencrypt.parent.certs> {$domain} ) {
+        push @new_domains, $domain;
     }
 }
 
+if ( @new_domains > 0 ) {
+    <[base.log]>->(
+        2,
+        "found " . scalar(@new_domains) . " new domains needing certificates"
+    );
+    ## TODO: Implement automatic enrollment for new domains
+    ## For now, just log that they need certificates
+}
+
+<[base.log]>->( 3, 'renewal check complete' );
+
 return 0;
 
-#,,,.,,,,,.,.,..,,..,,...,.,,,,,,,..,,..,,..,,..,,...,...,.,.,...,,.,,,,.,,,.,
-#5FVFO23Y5BRA5I2NEF3ZL3D2DK5CMLDMDDPLCEMX7PJ3TFK3NWNWFQNOSJ44I4T2L6FBJT7QP5OZ4
-#\\\|4FX3XJUZSAJMMR27NAOZZN4ZIO2JQKK7JVBSLBKPG3J6JZCHVXO \ / AMOS7 \ YOURUM ::
-#\[7]NNVWIRL6H5KKHEH6QILIR6O3Z3G7ISHTTDXBO6GXFAFV2EBM32CA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,...,...,...,,..,,.,,..,,.,.,..,,...,...,...,,..,,.,,.,.,.,,,
+#2CCSQPWV7F7L75VIU2NE5L5JH4E3E4ZZFQFN3H3T5RMOTDQUCQGZG343W6UZDXO2VWUHVOJNTGFCA
+#\\\|IVP3AR4BUQYNIVRMV2IFO53DED6P4L4O26WDQJCYWRDZZSFDGXT \ / AMOS7 \ YOURUM ::
+#\[7]O7RABAQZ3QXRHK3JWY7JPIGFYJVPZ2RC44M3RLRZHQC7LVBBSWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
