@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = httpd.cmd.vhost-list
+# descr = return list of all active known vhosts
+
+return { 'mode' => 'false', 'data' => 'no vhosts are currently configured' }
+    if not keys <httpd.cfg.hostnames>->%*;
+
+my $reply_string;
+
+foreach my $vhost_name (
+    sort { length $a <=> length $b } sort { $b cmp $a }
+    keys <httpd.cfg.hostnames>->%*
+) {
+    next if not length $vhost_name;
+    $reply_string .= sprintf "%s\n", $vhost_name;
+}
+
+return { 'mode' => 'size', 'data' => $reply_string }
+
+#,,,,,,..,,..,.,.,,,,,,,,,...,,.,,..,,,,.,,.,,..,,...,...,...,,..,,,.,..,,.,,,
+#VGJUACONEAY746VFQMMVY66BZJLHFNLPZ7W7UNJQLSGMAZH5GVYEII6ETGK3CMF63CACRT6W2HUZO
+#\\\|NCGCNBJICA4C2DSWWYSKVVTNNGOIKXZXRSTHL3MSE6WMHZT7O2U \ / AMOS7 \ YOURUM ::
+#\[7]CHLWQGG35YEKFHJ4NBA6DRKMKGGJ52MYXQU5P2L7R3EVI2RFVYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
