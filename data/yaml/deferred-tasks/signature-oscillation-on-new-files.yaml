@@ -1,0 +1,63 @@
+---
+task_id: signature_oscillation_new_files
+category: signature_system
+status: deferred
+priority: low
+discovered_session: 2C
+
+title: "Signature system oscillation when file has no prior signature"
+
+description: |
+  When the signature system processes a file that previously had no signature,
+  it triggers an oscillation that requires additional resign cycles. This occurs
+  only once per file and appears to be related to the initial signature generation
+  and verification cycle.
+
+symptoms:
+  - File gets signed
+  - Signature verification shows mismatch
+  - Requires second resign to stabilize
+  - Only happens on first signature generation for a file
+  - Subsequent changes to the file work normally
+
+impact:
+  - Minor inconvenience during initial zenka creation
+  - Requires extra resign pass when new modules/files are added
+  - Does not affect system stability or functionality
+  - Workaround: Run `update-signatures` twice for new files
+
+affected_files:
+  - configuration/protocol-7.src-ver (observed during Session 2C)
+  - Any newly created module files getting signatures for first time
+
+technical_notes: |
+  The oscillation likely stems from:
+  - Initial hash calculation vs. signature block insertion
+  - Signature block changing file content, affecting hash
+  - Need for re-verification after initial signature placement
+
+  May be related to how the signature system handles:
+  - Files transitioning from unsigned to signed state
+  - Version file updates concurrent with module signing
+  - Timing of hash calculation vs. signature injection
+
+investigation_needed:
+  - Review signature generation algorithm for new files
+  - Check if oscillation is deterministic or random
+  - Verify it stabilizes after second pass
+  - Optimize to single-pass signing if possible
+
+workaround: |
+  Run signature update twice when adding new files:
+    ./bin/Protocol-7 sourcecode update-signatures
+    ./bin/Protocol-7 sourcecode update-signatures
+
+future_resolution:
+  - Implement detection for new vs. existing files
+  - Optimize hash calculation to account for signature block
+  - Consider pre-calculating final signature size
+  - May require changes to bin/Protocol-7 signature module
+
+created_date: 2025-11-07
+last_updated: 2025-11-07
+assigned_to: null
