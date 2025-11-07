@@ -4,6 +4,9 @@
 # param = <domain>
 # descr = Renew certificate for domain - fetches new cert from Let's Encrypt via ACME
 
+use JSON::XS;
+use Crypt::Misc qw(encode_b32r);
+
 ## $call is provided by compiled-in code header
 my $domain = $call->{'args'};
 
@@ -15,27 +18,68 @@ return {
 
 <[base.log]>->( 2, "child: renewing certificate for domain: $domain" );
 
-## Get certificate info from parameters if provided
+## Get certificate info and retry attempt from parameters
 my $cert_info     = $call->{'param'}{'cert_info'}     // {};
 my $retry_attempt = $call->{'param'}{'retry_attempt'} // 0;
+my $alt_names     = $call->{'param'}{'alt_names'}     // [];
 
 if ($retry_attempt) {
     <[base.log]>->( 2, "  (retry attempt: $retry_attempt)" );
 }
 
-## TODO: Implement actual ACME renewal workflow
-## 1. Fetch current nonce
-## 2. Create order
-## 3. Get authorizations
-## 4. Respond to challenges
-## 5. Finalize order with CSR
-## 6. Download certificate
-## 7. Return to parent via send_to_parent
+## Build domains list (primary + alt names)
+my @domains = ($domain);
+push @domains, @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
 
-## For now, return success placeholder
+## Get admin email from config or parameters
+my $email = $call->{'param'}{'email'} || <letsencrypt.admin.email>;
+
+<[base.log]>->( 2, "  domains: " . join( ', ', @domains ) );
+<[base.log]>->( 2, "  email: $email" );
+
+## Call ACME new certificate workflow (renewal uses same process as new)
+my $result = <[letsencrypt.child.acme_new]>->(
+    {   domains => \@domains,
+        email   => $email,
+    }
+);
+
+## Check result status
+unless ( $result && $result->{status} eq 'success' ) {
+    my $error = $result->{error} || 'Unknown error during certificate renewal';
+    <[base.log]>->( 1, "certificate renewal failed: $error" );
+    return {
+        'mode' => 'false',
+        'data' => $error
+    };
+}
+
+<[base.log]>->( 2, "certificate renewed successfully for $domain" );
+
+## Create certificate bundle for parent
+my $cert_bundle = {
+    certificate => $result->{cert},
+    key         => $result->{key},
+    issued_at   => time(),
+    expires_at  => $result->{valid_until},
+    domain      => $domain,
+    domains     => \@domains,
+    cert_url    => $result->{cert_url},
+    renewed     => 1,                        # Mark as renewal
+    retry_count => $retry_attempt,
+};
+
+## Encode as JSON then base32r for transmission
+my $bundle_json = JSON::XS::encode_json($cert_bundle);
+my $bundle_b32r = encode_b32r($bundle_json);
+
+<[base.log]>->( 2, "certificate bundle encoded (base32r)" );
+<[base.log]>->( 3, "  bundle size: " . length($bundle_b32r) . " bytes" );
+
+## Return certificate bundle to parent (mode='size' for binary/encoded data)
 return {
-    'mode' => 'true',
-    'data' => "renewal initiated for $domain (not yet implemented)"
+    'mode' => 'size',
+    'data' => $bundle_b32r
 };
 
 #,,..,.,,,..,,...,...,,..,.,.,..,,,.,,.,.,,,.,.,.,...,...,..,,,..,,,.,,,.,,,,,
