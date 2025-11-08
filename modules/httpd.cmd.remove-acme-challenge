@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = httpd.cmd.remove-acme-challenge
+# param = <domain>
+# descr = Remove ACME challenge response file after validation completes
+
+my $domain = shift;
+
+return { 'mode' => 'false', 'data' => 'domain parameter required' }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "removing ACME challenge file for domain: $domain" );
+
+## Get challenge token from call context
+my $token = <{call.param.token}>;
+
+return { 'mode' => 'false', 'data' => 'token parameter required' }
+    unless $token && length($token);
+
+<[base.log]>->( 2, "  token: $token" );
+
+## Build challenge file path
+my $httpd_site_dir = <httpd.cfg.site_dir> // '/var/httpd';
+my $default_site   = <httpd.cfg.default_site> // 'default';
+my $well_known_dir = '/.well-known/acme-challenge';
+
+my $challenge_file = sprintf '%s/%s%s/%s',
+    $httpd_site_dir,
+    $default_site,
+    $well_known_dir,
+    $token;
+
+<[base.log]>->( 2, "challenge file path: $challenge_file" );
+
+## Check if file exists
+unless ( -f $challenge_file ) {
+    <[base.log]>->( 2, "challenge file not found (already removed or never created)" );
+    return { 'mode' => 'true', 'data' => "challenge file not found (OK)" };
+}
+
+## Remove the file
+unless ( unlink($challenge_file) ) {
+    <[base.log]>->(
+        1,
+        "failed to remove challenge file $challenge_file: $!"
+    );
+    return {
+        'mode' => 'false',
+        'data' => "failed to remove challenge file: $!"
+    };
+}
+
+<[base.log]>->( 2, "challenge file removed successfully" );
+
+## Check if directory is now empty and remove it if so
+my $challenge_dir = sprintf '%s/%s%s',
+    $httpd_site_dir,
+    $default_site,
+    $well_known_dir;
+
+if ( -d $challenge_dir ) {
+    if ( opendir( my $dh, $challenge_dir ) ) {
+        my @files = grep { !/^\./ } readdir($dh);
+        closedir($dh);
+
+        if ( @files == 0 ) {
+            <[base.log]>->( 2, "removing empty challenge directory" );
+            unless ( rmdir($challenge_dir) ) {
+                <[base.log]>->(
+                    2,
+                    "could not remove empty directory $challenge_dir: $! (non-critical)"
+                );
+            } else {
+                <[base.log]>->( 2, "challenge directory removed" );
+            }
+        }
+    }
+}
+
+return {
+    'mode' => 'true',
+    'data' => "ACME challenge file removed for $domain"
+};
+
+#,,..,.,,,,,.,,,.,,..,,,.,.,,,.,.,.,,,.,.,..,,..,,...,...,..,,,.,,,,.,,,.,,.,,
+#XJ4RLKLKJYGRLEEKRYUOOLLXDSVFINV6WHJ3FYXVHXCTIW4N6GNMNNNDMND757TP3WT3PWOLA7IHW
+#\\\|7BQ5EGYH3MMBOEBTIS5MTJE7JLNWMCCGCXITH4TFSJZ6R6Q7TTK \ / AMOS7 \ YOURUM ::
+#\[7]BBDSE2HN72P6E6TDYKRLE2SYZCD3V5JF6Q3SZEEF6SPNZ7LWFICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
