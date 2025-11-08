@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = letsencrypt.parent.cmd.request-certificate
+# descr = Request new SSL certificate from Let's Encrypt for domain(s)
+
+my $domain = shift;
+
+unless ($domain) {
+    return {
+        mode => 'false',
+        data => 'error: domain name required',
+    };
+}
+
+<[base.log]>->( 2, "request-certificate command received for: $domain" );
+
+## Log activity start
+<[letsencrypt.parent.activity_logger]>->(
+    'enrollment', $domain, 'pending', 'initiated by user'
+);
+
+## Check if certificate already exists for this domain
+my $certs = <letsencrypt.parent.certs>;
+if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
+    my $expires_at = $certs->{$domain}{expires_at};
+    <[base.log]>->(
+        2, "certificate already exists for $domain (expires: $expires_at)"
+    );
+    <[letsencrypt.parent.activity_logger]>->(
+        'enrollment', $domain, 'pending',
+        'certificate already exists (not requesting new)'
+    );
+
+    return {
+        mode => 'true',
+        data => "certificate already exists for '$domain'",
+    };
+}
+
+## Determine domains to request (primary + discovered alternatives)
+my @domains_to_request = ($domain);
+
+## Check if HTTPd has this domain registered with alternatives
+my $vhosts = <[letsencrypt.parent.query_httpd_vhosts]>->();
+if ($vhosts) {
+    foreach my $vhost (@$vhosts) {
+        if ( $vhost eq $domain || $vhost eq "www.$domain" ) {
+            push @domains_to_request, "www.$domain"
+                if $vhost eq $domain
+                && !grep { $_ eq "www.$domain" } @domains_to_request;
+        }
+    }
+}
+
+<[base.log]>->(
+    2,
+    "requesting certificate for domains: " . join( ', ', @domains_to_request )
+);
+
+## Send enrollment command to child process
+my $request_cmd = 'letsencrypt.child.cmd.request-certificate ' . $domain;
+
+<[base.log]>->( 2, "sending enrollment command to child for: $domain" );
+
+my $result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => $request_cmd,
+        'call_args' => {
+            'args'  => $domain,
+            'param' => {
+                'domains' => \@domains_to_request,
+                'email'   => <letsencrypt.admin.email>,
+                'attempt' => 1,
+            }
+        },
+        'reply' => {
+            'handler' => 'letsencrypt.parent.handler_enrollment_reply',
+            'params'  => { 'domain' => $domain, 'attempt' => 1 }
+        }
+    }
+);
+
+if ($result) {
+    <[base.log]>->( 2, "enrollment command queued for: $domain" );
+    <[letsencrypt.parent.activity_logger]>->(
+        'enrollment', $domain, 'pending', 'queued to child'
+    );
+
+    return {
+        mode => 'true',
+        data => "certificate request initiated for '$domain' - processing...",
+    };
+} else {
+    <[base.log]>->( 1, "error: failed to queue enrollment for: $domain" );
+    <[letsencrypt.parent.activity_logger]>->(
+        'enrollment', $domain, 'failed', 'failed to queue to child'
+    );
+
+    return {
+        mode => 'false',
+        data => "error: failed to queue certificate request for '$domain'",
+    };
+}
+
+#,,..,,,,,,,,,,,.,,,.,..,,..,,,.,,.,.,..,,,.,,..,,...,...,,.,,,,.,,,.,,,,,,,.,
+#ARUD7EVF2E3GQT46PN7WZDXJO77YPYSDOFP6XP6FZJCGKAVM4DSRCTWOJH6TEGCI6RW7LH7EP4F2W
+#\\\|N2GDE4KVCRRONVMBZLYPSZJXNDXFE3P7YDLKI5OHFT4E42L55GW \ / AMOS7 \ YOURUM ::
+#\[7]U5D65PSTKNGNQ2IMDZHPIAM2E2ZIVI52KH7B6FJXFDQVMK3UTKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
