@@ -1,0 +1,208 @@
+---
+# Phase 3: ACME Enrollment, Revocation, and Activity Logging
+# Priority: Certificate revocation for testing, comprehensive activity logging
+
+task_name: "Let's Encrypt ACME Enrollment and Revocation - Phase 3"
+task_id: "letsencrypt-phase-3"
+status: "pending"
+created: "2025-11-08"
+
+description: |
+  Implement automatic domain enrollment, certificate revocation for testing,
+  and comprehensive logging/visibility of ACME operations.
+
+priorities:
+  - "Certificate revocation (immediate testing without cert stacking)"
+  - "Comprehensive activity logging (all ACME operations)"
+  - "Visibility of ACME state and challenges"
+
+## Phase 3 Modules (Estimated 12-15 new modules)
+
+### Child Process ACME Operations
+modules:
+  - name: "letsencrypt.child.cmd.request-certificate"
+    description: "Request new certificate from ACME server for domain(s)"
+    depends_on:
+      - "letsencrypt.child.acme_new"
+      - "letsencrypt.child.acme_authorize"
+      - "letsencrypt.child.acme_finalize"
+    key_features:
+      - "Handle domain validation (HTTP-01, DNS-01)"
+      - "Create certificate request"
+      - "Return certificate bundle to parent"
+      - "Implement exponential backoff on ACME errors"
+
+  - name: "letsencrypt.child.cmd.revoke-certificate"
+    description: "Revoke certificate with ACME server"
+    depends_on:
+      - "letsencrypt.child.acme_revoke"
+      - "letsencrypt.parent.load_certificate_registry"
+    key_features:
+      - "Retrieve certificate from disk"
+      - "Call ACME revoke endpoint"
+      - "Mark certificate as revoked in metadata"
+      - "Clean up certificate files"
+
+  - name: "letsencrypt.child.handle_challenge"
+    description: "Process domain validation challenges"
+    key_features:
+      - "HTTP-01: Create challenge response file"
+      - "DNS-01: Return challenge token for DNS update"
+      - "Poll for challenge completion"
+      - "Handle timeout/retry logic"
+
+  - name: "letsencrypt.child.acme_authorize"
+    description: "Perform ACME authorization for domains"
+    key_features:
+      - "Request authorization from ACME"
+      - "Handle multiple challenge types"
+      - "Return challenge details to parent"
+
+  - name: "letsencrypt.child.acme_finalize"
+    description: "Finalize certificate with ACME"
+    key_features:
+      - "Submit CSR to ACME"
+      - "Poll for certificate readiness"
+      - "Retrieve certificate chain"
+
+  - name: "letsencrypt.child.acme_revoke"
+    description: "Revoke certificate with ACME server"
+    key_features:
+      - "Authenticate with ACME account"
+      - "Send revocation request"
+      - "Handle revocation responses"
+
+### Parent Process Management
+modules:
+  - name: "letsencrypt.parent.cmd.request-certificate"
+    description: "User-facing command to request new certificate"
+    depends_on:
+      - "letsencrypt.parent.determine_certificate_domains"
+      - "letsencrypt.parent.queue_renewal_requests"
+    key_features:
+      - "Accept domain list or auto-discover from HTTPd"
+      - "Validate domains not already registered"
+      - "Queue request to child"
+      - "Return status/tracking info"
+
+  - name: "letsencrypt.parent.cmd.revoke-certificate"
+    description: "User-facing command to revoke certificate"
+    depends_on:
+      - "letsencrypt.parent.load_certificate_registry"
+      - "letsencrypt.parent.save_certificate"
+    key_features:
+      - "Verify certificate exists"
+      - "Send revocation to child"
+      - "Update certificate status"
+      - "Remove from renewal schedule"
+
+  - name: "letsencrypt.parent.handler_challenge_required"
+    description: "Handle challenge completion from child"
+    key_features:
+      - "Notify HTTPd to serve challenge response (HTTP-01)"
+      - "OR return DNS challenge info for manual/automated update"
+      - "Track challenge state"
+
+  - name: "letsencrypt.parent.handler_enrollment_reply"
+    description: "Handle enrollment response from child"
+    key_features:
+      - "Process certificate data (SUCCESS/FAILURE)"
+      - "Call save_certificate on success"
+      - "Implement retry with exponential backoff on failure"
+      - "Update enrollment status"
+
+  - name: "letsencrypt.parent.handler_revocation_reply"
+    description: "Handle revocation response from child"
+    key_features:
+      - "Update certificate status to 'revoked'"
+      - "Log revocation completion"
+      - "Clean up renewal timers"
+
+### Activity Logging & Visibility
+modules:
+  - name: "letsencrypt.parent.cmd.activity-log"
+    description: "Display recent ACME activity log"
+    key_features:
+      - "Enrollment requests (timestamp, domain, result)"
+      - "Revocation operations (timestamp, domain, status)"
+      - "Challenge completions (timestamp, method, result)"
+      - "ACME errors (timestamp, error code, domain)"
+      - "Pagination/filtering by domain or date"
+
+  - name: "letsencrypt.parent.activity_logger"
+    description: "Log all ACME operations to activity record"
+    key_features:
+      - "Structured activity entries"
+      - "Timestamp all operations"
+      - "Include success/failure status"
+      - "Store error details for debugging"
+      - "In-memory ring buffer + optional persistent log"
+
+### Challenge Management
+modules:
+  - name: "letsencrypt.parent.handler_challenge_needed"
+    description: "Store and manage pending challenges"
+    depends_on:
+      - "letsencrypt.parent.activity_logger"
+    key_features:
+      - "Track HTTP-01 challenges awaiting response"
+      - "Track DNS-01 challenges awaiting validation"
+      - "Store challenge tokens and keys"
+      - "Implement challenge timeout (usually 300s)"
+
+  - name: "letsencrypt.parent.notify_httpd_challenge"
+    description: "Notify HTTPd to serve HTTP-01 challenge"
+    key_features:
+      - "Send challenge token/path to HTTPd"
+      - "HTTPd serves from /.well-known/acme-challenge/"
+      - "Wait for ACME validation"
+
+## Data Structures to Track
+
+activity_log:
+  - timestamp: Unix epoch
+  - operation: "enrollment|revocation|challenge|error"
+  - domain: "example.com"
+  - status: "pending|success|failed"
+  - details: "error message or challenge info"
+  - attempt: "attempt number for retries"
+
+pending_challenges:
+  - domain: "example.com"
+  - type: "http-01|dns-01"
+  - token: "ACME challenge token"
+  - key_auth: "key authorization string"
+  - created_at: "timestamp"
+  - expires_at: "timestamp"
+  - status: "pending|validated|failed"
+
+## Key Testing Scenarios
+
+test_revocation:
+  - Request certificate for test domain
+  - Verify certificate saved
+  - Revoke certificate
+  - Verify status changed to revoked
+  - Verify removed from renewal schedule
+  - Request new certificate for same domain (should work)
+
+test_activity_visibility:
+  - Perform series of operations
+  - Check activity log shows all operations
+  - Verify timestamps and status
+  - Check filtering by domain
+
+test_error_handling:
+  - Simulate ACME errors (rate limit, validation failure)
+  - Verify retry logic with backoff
+  - Check activity log captures errors
+  - Verify user can see error details
+
+## Success Criteria
+
+- Certificate revocation works cleanly without leaving artifacts
+- All ACME operations logged with timestamps and details
+- Activity log queryable and filterable
+- Users can see real-time status of enrollment/revocation/challenges
+- Error messages provide actionable debugging info
+- No certificate stacking during testing (old certs properly cleaned up)
