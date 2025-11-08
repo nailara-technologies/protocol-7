@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = letsencrypt.dns.inwx_delete_txt
+# descr = Delete TXT record from INWX DNS after ACME validation
+
+use JSON::XS;
+use XMLRPC::Lite;
+use Digest::MD5 qw(md5_hex);
+
+my $dns_record_name = shift;
+
+return undef unless $dns_record_name;
+
+<[base.log]>->( 2, "deleting INWX TXT record: $dns_record_name" );
+
+## Get INWX API credentials from config
+my $username = <letsencrypt.dns.inwx.username>;
+my $password = <letsencrypt.dns.inwx.password>;
+my $api_url  = <letsencrypt.dns.inwx.api_url>
+    // 'https://api.domrobot.com/xmlrpc/';
+
+unless ( $username && $password ) {
+    <[base.log]>->( 1, 'error: INWX username or password not configured' );
+    return undef;
+}
+
+## Extract base domain from record name
+my $base_domain = $dns_record_name;
+$base_domain =~ s/^_acme-challenge\.//;
+
+<[base.log]>->( 3, "base domain: $base_domain" );
+
+## Create XMLRPC client
+my $client = XMLRPC::Lite->proxy($api_url);
+
+## Login to INWX API
+<[base.log]>->( 3, "authenticating with INWX API..." );
+
+my $login_result = $client->call(
+    'account.login',
+    {   user => $username,
+        pass => $password,
+    }
+)->result;
+
+unless ( $login_result && $login_result->{code} == 1000 ) {
+    my $error = $login_result->{msg} || 'unknown error';
+    <[base.log]>->( 1, "INWX authentication failed: $error" );
+    return undef;
+}
+
+<[base.log]>->( 3, "INWX authentication successful" );
+
+## Find the record to delete
+<[base.log]>->( 3, "finding TXT record to delete..." );
+
+my $info_result = $client->call(
+    'nameserver.info',
+    {   domain => $base_domain,
+        type   => 'TXT',
+        name   => $dns_record_name,
+    }
+)->result;
+
+my $record_id;
+
+if (   $info_result
+    && $info_result->{code} == 1000
+    && $info_result->{resData}
+    && $info_result->{resData}{record} )
+{
+    my $records = $info_result->{resData}{record};
+    $records = [$records] unless ref($records) eq 'ARRAY';
+
+    foreach my $record (@$records) {
+        if ( $record->{name} eq $dns_record_name && $record->{type} eq 'TXT' )
+        {
+            $record_id = $record->{id};
+            <[base.log]>->( 2, "found TXT record to delete: $record_id" );
+            last;
+        }
+    }
+}
+
+unless ($record_id) {
+    <[base.log]>->( 2, "TXT record not found (may already be deleted)" );
+    $client->call('account.logout');
+    return { success => 1, message => 'record not found' };
+}
+
+## Delete the record
+<[base.log]>->( 2, "deleting record ID: $record_id" );
+
+my $delete_result = $client->call(
+    'nameserver.deleteRecord',
+    { id => $record_id }
+)->result;
+
+## Logout
+$client->call('account.logout');
+
+## Check result
+unless ( $delete_result && $delete_result->{code} == 1000 ) {
+    my $error = $delete_result->{msg} || 'unknown error';
+    <[base.log]>->( 1, "INWX delete request failed: $error" );
+    return undef;
+}
+
+<[base.log]>->( 2, "INWX TXT record deleted successfully" );
+
+return {
+    success => 1,
+    deleted => 1,
+};
+
+#,,,.,,,.,..,,,,.,,.,,,,.,,..,..,,.,,,.,.,.,,,..,,...,...,,,,,..,,.,,,...,,,,,
+#4QWWN3Z6HC5DTNMSM4SNJZ6G3VEYFHYWWZZHRL3P7TJYM2UMF5JP7GV3D3KECWY2DGMPD676HA5GY
+#\\\|SGKMSURZP6QG6N4NOGCEVBKCGWCBKJGVUQX6N5QGK74CE4CC6PL \ / AMOS7 \ YOURUM ::
+#\[7]WGU4SC4KRZM4QRU7UHNWQY5CLYMXXOOXZQWD6LRRNF6PK6XXWWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

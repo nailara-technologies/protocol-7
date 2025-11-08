@@ -59,14 +59,18 @@ my $dns_record_name = "_acme-challenge.$base_domain";
 <[base.log]>->( 2, "DNS TXT record name: $dns_record_name" );
 
 ## Determine DNS provider from configuration
-my $dns_provider = <letsencrypt.dns.provider> // 'cloudflare';
+my $dns_provider = <letsencrypt.dns.provider> // 'inwx';
 
 <[base.log]>->( 2, "DNS provider: $dns_provider" );
 
 ## Create DNS TXT record via provider API
 my $dns_result;
 
-if ( $dns_provider eq 'cloudflare' ) {
+if ( $dns_provider eq 'inwx' ) {
+    $dns_result = <[letsencrypt.dns.inwx_create_txt]>->(
+        $dns_record_name, $dns_value
+    );
+} elsif ( $dns_provider eq 'cloudflare' ) {
     $dns_result = <[letsencrypt.dns.cloudflare_create_txt]>->(
         $dns_record_name, $dns_value
     );
@@ -127,8 +131,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,,.,,,,,...,,,,,,.,,.,,,.,.,,,,,,,,,..,,.,,,..,,...,...,.,.,..,,,..,..,,,.,,
-#4J65OAV2ZBNY2MYFEHKV5OMGCWD6G2SM2VW5YUHNVYGMVOZRQKKIYPLRTUL4KFG2RP2DMGMHURRF4
-#\\\|A4KZA7TRCXWWG6V6VYLBUOVDBAJTUERMWKD2UYLS33CFEN77WXM \ / AMOS7 \ YOURUM ::
-#\[7]5Z2EBTEQK77DIRMUSBP7ZBDKAENMFV35TOTO6UUUX6PYU5DHA6BQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,.,,,,,,,...,.,.,..,,,,,,,..,..,,...,...,,.,,,,.,,,.,,,,,...,
+#FBUE736CJY3NRHBTSL6TJUYICE36CXE3JHJGBZYJEZGOY2LMQ6ALX3PFMHKXAWMK24VISJMR5CZOC
+#\\\|PI46EIKVJZUXXKRG4KNMC25ESMYMSBDLGFSVRJ3QM3RSX5SKV5D \ / AMOS7 \ YOURUM ::
+#\[7]6PHX3FUCBYCQNU6QYIK75IJGJBJU44NCF3W6VY2ZE447OALRTADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
