@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = letsencrypt.parent.notify_httpd_challenge
+# descr = Notify HTTPd to serve HTTP-01 ACME challenge response
+
+my $challenge_info = shift;
+
+my $domain   = $challenge_info->{domain};
+my $token    = $challenge_info->{token};
+my $key_auth = $challenge_info->{key_auth};
+my $type     = $challenge_info->{type} // 'http-01';
+
+unless ( $domain && $token && $key_auth ) {
+    <[base.log]>->( 1, 'error: missing required challenge parameters' );
+    return {
+        status => 'failed',
+        error  => 'missing domain, token, or key_auth'
+    };
+}
+
+<[base.log]>->( 2, "notifying HTTPd to serve $type challenge for $domain" );
+
+## Send challenge setup command to HTTPd
+my $challenge_cmd = 'httpd.cmd.setup-acme-challenge';
+
+my $result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => $challenge_cmd,
+        'call_args' => {
+            'args'  => $domain,
+            'param' => {
+                'token'    => $token,
+                'key_auth' => $key_auth,
+                'type'     => $type,
+            }
+        }
+    }
+);
+
+if ($result) {
+    <[base.log]>->( 2, "HTTPd challenge setup queued for $domain" );
+    return {
+        status  => 'success',
+        message => "challenge response setup sent to HTTPd for $domain"
+    };
+} else {
+    <[base.log]>->(
+        1, "failed to queue challenge setup command to HTTPd for $domain"
+    );
+    return {
+        status => 'failed',
+        error  => 'failed to queue command to HTTPd'
+    };
+}
+
+#,,.,,.,.,,,,,,..,.,,,,,.,,,,,.,.,.,,,...,,,.,..,,...,...,,..,.,.,...,,,.,.,,,
+#H5PG27BP4QPT6ZSEYQ7XXUIM4QC7L2ETERHUSTKD2SMY2XGU5KCN5BPBSDKY3OVKTO6OK6KV7QTYC
+#\\\|BYLJHKJ3S45K7IHMTZEDJ3CHCY3IYAQ46PMGTSDAKTWDFNOK3G5 \ / AMOS7 \ YOURUM ::
+#\[7]RHQFVFK54CZLRJ7RA4JWO7KWLMZ7RTYT4O3O7FMYEW6HW5EUQIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

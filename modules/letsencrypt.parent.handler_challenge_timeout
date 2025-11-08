@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_challenge_timeout
+# descr = Handle challenge timeout - clean up pending challenge if validation doesn't complete
+
+my $data = shift;
+
+my $token  = $data->{token};
+my $domain = $data->{domain};
+
+<[base.log]>->(
+    2, "challenge timeout handler for token: $token (domain: $domain)"
+);
+
+unless ( defined <letsencrypt.parent.pending_challenges> ) {
+    <[base.log]>->( 3, "no pending challenges found" );
+    return 0;
+}
+
+if ( exists <letsencrypt.parent.pending_challenges> {$token} ) {
+    my $challenge = <letsencrypt.parent.pending_challenges> {$token};
+
+    ## Check if challenge has been validated
+    if ( $challenge->{status} eq 'valid' ) {
+        <[base.log]>->(
+            2, "challenge was validated before timeout, keeping record"
+        );
+        return 0;
+    }
+
+    ## Challenge has timed out - remove it
+    <[base.log]>->(
+        1,
+        "challenge timeout: token=$token for $domain (no validation received)"
+    );
+
+    <[letsencrypt.parent.activity_logger]>->(
+        'challenge', $domain, 'failed',
+        'challenge validation timeout (5 minutes)'
+    );
+
+    delete <letsencrypt.parent.pending_challenges> {$token};
+
+    ## Notify HTTPd to remove the challenge file
+    <[base.log]>->(
+        2, "requesting HTTPd to clean up challenge file for $domain"
+    );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'httpd.cmd.remove-acme-challenge',
+            'call_args' => {
+                'args'  => $domain,
+                'param' => { 'token' => $token, }
+            }
+        }
+    );
+
+} else {
+    <[base.log]>->( 3, "token $token not found in pending challenges" );
+}
+
+return 0;
+
+#,,..,,.,,..,,,..,,..,.,.,...,.,.,,,.,..,,,,.,..,,...,..,,,.,,...,..,,...,,,.,
+#AUP7HYRADFZ4TUQZKKRVJT4BA4RML26NRNCPEFOQY6CKK4TLRAG2L53SQRBLP25G4ALUDIEZDF5JA
+#\\\|2GCWJ2AH3S4P3ZDBYFLGTEP5UKYYQCQIVZJJBRFMLGITVNVYO7M \ / AMOS7 \ YOURUM ::
+#\[7]AMNW2H2JEBGUM5VEGXZOTDCSOKSCIWDLQR2ZHDI2J2OGMTLHVYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
