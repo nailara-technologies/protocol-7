@@ -92,6 +92,18 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
     qw| filters | => { qw| started | => qw| base.parser.timestamp | }
 };
 
+## Initialize ACME activity buffer
+if ( not exists <buffer.acme-activity> ) {
+    <buffer.acme-activity.max_size> = 100 * 1024;    ## 100K buffer size ##
+    my $log_level  = 2;
+    my $log_msg    = 'ACME activity buffer initialized ..,';
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| acme-activity |,
+        join( ' ', $time_stamp, $log_level, $log_msg ), $log_level
+    );
+}
+
 <[base.log]>
     ->( 2, 'Let\x27s Encrypt parent process initialization complete' );
 <[base.log]>->( 2, '  Certificate cache: ' . <letsencrypt.cache.dir> );
@@ -101,14 +113,15 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
         . <letsencrypt.renewal.check-interval>
         . ' seconds'
 );
+<[base.log]>->( 2, '  Activity logging: enabled (acme-activity buffer)' );
 
 ## Mark parent as fully initialized (child is ready via IPC pipe)
 <letsencrypt.parent.initialized> = 1;
 
 0;
 
-#,,,,,,,,,,,.,,..,,..,.,,,.,,,.,,,,,.,,,.,,.,,..,,...,...,...,,.,,...,,..,,..,
-#AJTDC3Z6HNDLR7YXWSDRSW5YQG6KFCB5L2TGPLXZ3HTDFO3Q3CQNHURY2GDTAZCCC2JVLS73DOL76
-#\\\|GDKZRZXGTUUUCYC22FIMDGBIAW5V5BRZ2T5OT2XJ6CS2L473XLG \ / AMOS7 \ YOURUM ::
-#\[7]7SKMMFY7IGWIDM3GIWIRYRWGLV6EL62NYYDMBJDQGNFTZXWHMODI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,..,.,,,.,.,,,.,...,,.,,,,.,,,.,..,,...,...,..,,,.,,,,.,.,.,.,,,
+#NA55CEENAXHR2X7D4B6RLUZRNJTLE6O5SC3X5RLO4BOCH6TMCBALFF4777ZOXEO6QQFEVX5Q45O2C
+#\\\|NMQR33B5MW3OYLJHJDNTD6KYAYGNGRUOG64FWEWA26YH7MOVK2B \ / AMOS7 \ YOURUM ::
+#\[7]KIRLIZ2DO23CCKEOIYY6APMTTLZGTB6ONWW4AI3FDQVQTRHNBCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
