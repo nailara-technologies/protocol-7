@@ -1,0 +1,146 @@
+## [:< ##
+
+# name  = letsencrypt.dns.cloudflare_create_txt
+# descr = Create TXT record in Cloudflare DNS for ACME DNS-01 challenge
+
+use JSON::XS;
+use LWP::UserAgent;
+
+my $dns_record_name = shift;
+my $dns_value       = shift;
+
+return undef unless $dns_record_name && $dns_value;
+
+<[base.log]>->(
+    2,
+    "creating Cloudflare TXT record: $dns_record_name = $dns_value"
+);
+
+## Get Cloudflare API credentials from config
+my $api_token = <letsencrypt.dns.cloudflare.api_token>;
+my $zone_id   = <letsencrypt.dns.cloudflare.zone_id>;
+
+unless ( $api_token && $zone_id ) {
+    <[base.log]>->(
+        1,
+        'error: Cloudflare API token or zone ID not configured'
+    );
+    <[base.log]>->(
+        1,
+        'configure: letsencrypt.dns.cloudflare.api_token and zone_id'
+    );
+    return undef;
+}
+
+## Extract base domain and record name
+## For _acme-challenge.example.com, we want just _acme-challenge
+my $record_name = $dns_record_name;
+
+## Create HTTP client
+my $ua = LWP::UserAgent->new(
+    timeout  => 10,
+    ssl_opts => {
+        verify_hostname => 1,
+        SSL_verify_mode => 1,
+    },
+);
+
+## Cloudflare API endpoint
+my $api_endpoint = "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records";
+
+## Check if record already exists
+<[base.log]>->( 3, "checking for existing TXT record..." );
+
+my $list_response = $ua->get(
+    "$api_endpoint?type=TXT&name=$record_name",
+    'Authorization' => "Bearer $api_token",
+    'Content-Type'  => 'application/json',
+);
+
+my $existing_record_id;
+
+if ( $list_response->is_success ) {
+    my $list_data = JSON::XS::decode_json( $list_response->decoded_content );
+
+    if ( $list_data->{success} && @{ $list_data->{result} } ) {
+        $existing_record_id = $list_data->{result}[0]{id};
+        <[base.log]>->(
+            2, "found existing TXT record: $existing_record_id"
+        );
+    }
+}
+
+## Prepare record data
+my $record_data = {
+    type    => 'TXT',
+    name    => $record_name,
+    content => $dns_value,
+    ttl     => 120,            # 2 minutes for fast propagation
+    proxied => JSON::XS::false(),
+};
+
+my $response;
+
+if ($existing_record_id) {
+    ## Update existing record
+    <[base.log]>->( 2, "updating existing TXT record..." );
+
+    $response = $ua->request(
+        HTTP::Request->new(
+            'PUT',
+            "$api_endpoint/$existing_record_id",
+            [   'Authorization' => "Bearer $api_token",
+                'Content-Type'  => 'application/json',
+            ],
+            JSON::XS::encode_json($record_data)
+        )
+    );
+
+} else {
+    ## Create new record
+    <[base.log]>->( 2, "creating new TXT record..." );
+
+    $response = $ua->request(
+        HTTP::Request->new(
+            'POST',
+            $api_endpoint,
+            [   'Authorization' => "Bearer $api_token",
+                'Content-Type'  => 'application/json',
+            ],
+            JSON::XS::encode_json($record_data)
+        )
+    );
+}
+
+## Check response
+unless ( $response->is_success ) {
+    <[base.log]>->(
+        1,
+        "Cloudflare API request failed: " . $response->status_line
+    );
+    return undef;
+}
+
+my $result = JSON::XS::decode_json( $response->decoded_content );
+
+unless ( $result->{success} ) {
+    my $errors = join( ', ', map { $_->{message} } @{ $result->{errors} } );
+    <[base.log]>->( 1, "Cloudflare API error: $errors" );
+    return undef;
+}
+
+<[base.log]>->( 2, "Cloudflare TXT record created successfully" );
+<[base.log]>->( 3, "  record ID: $result->{result}{id}" );
+
+return {
+    success   => 1,
+    record_id => $result->{result}{id},
+    name      => $record_name,
+    value     => $dns_value,
+};
+
+#,,.,,..,,,,,,,,.,..,,,,.,,,.,.,.,.,,,,.,,,.,,..,,...,...,..,,,..,..,,...,,,.,
+#XU4CVTVIKQWL2YJBLPWBMBMNUA2JMTCBRX23OBRM3Q7JMXYQRA5YBWB3CDOGG3NJ53BRHFNTM2SMI
+#\\\|MRVBESOJ7IN2Y4OZM76LFQL6CDXMPM26AHILSSMMFK4ELKWQFUX \ / AMOS7 \ YOURUM ::
+#\[7]4ZWNDYH5ICVJ34UX2EA5Z3S7GGTHVH6TUPE5XECR2Y72KGADDQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
