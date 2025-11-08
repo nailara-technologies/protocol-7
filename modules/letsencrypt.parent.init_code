@@ -60,6 +60,38 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
 ## Child-to-parent communication uses Protocol-7's command protocol (TRUE/FALSE replies)
 ## Do NOT register custom handler here - base.handler.command is already set up by fork
 
+## Initialize visibility lists for monitoring
+<list.certificates> = {
+    qw| var |   => qw| data |,
+    qw| key |   => qw| letsencrypt.parent.certs |,
+    qw| descr | => 'Installed SSL certificates and expiration status',
+    qw| mask |  => '<key>:domain issued_at expires_at status',
+    qw| align | => {
+        qw| domain |     => qw| left+2 |,
+        qw| issued_at |  => qw| center-1 |,
+        qw| expires_at | => qw| center-1 |,
+        qw| status |     => qw| center-1 |
+    },
+    qw| filters | => {
+        qw| issued_at |  => qw| base.parser.timestamp |,
+        qw| expires_at | => qw| base.parser.timestamp |
+    }
+};
+
+<list.renewals> = {
+    qw| var |   => qw| data |,
+    qw| key |   => qw| letsencrypt.parent.renewal_timers |,
+    qw| descr | => 'Active certificate renewal operations',
+    qw| mask |  => '<key>:domain started attempts status',
+    qw| align | => {
+        qw| domain |   => qw| left+2 |,
+        qw| started |  => qw| center-1 |,
+        qw| attempts | => qw| right-1 |,
+        qw| status |   => qw| center-1 |
+    },
+    qw| filters | => { qw| started | => qw| base.parser.timestamp | }
+};
+
 <[base.log]>
     ->( 2, 'Let\x27s Encrypt parent process initialization complete' );
 <[base.log]>->( 2, '  Certificate cache: ' . <letsencrypt.cache.dir> );
@@ -75,8 +107,8 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
 
 0;
 
-#,,.,,.,.,.,,,.,.,,,,,,.,,.,,,,,,,,,.,,,.,,..,..,,...,...,..,,,,,,,,.,..,,,..,
-#TGKQYYVS5MSUDZNDNU7JRNGH5OLCLLQ4XRMJ4576QM5XFW7TQYTGQ5EDEHDGOBOKQIZAXZJRVXQRO
-#\\\|V2MSOQ2ZAYV43XKCILBTB63BM5BJES7URVVOVZHPGVQRUNXEO7H \ / AMOS7 \ YOURUM ::
-#\[7]GMVN5ZJO5LCLDMVCQ4VJCZOXKQQTGN7ZED3G7GVQ3PU5SXXBRQAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,..,.,,,.,,,.,,,,,.,,,.,,.,,..,,...,...,...,,.,,...,,..,,..,
+#AJTDC3Z6HNDLR7YXWSDRSW5YQG6KFCB5L2TGPLXZ3HTDFO3Q3CQNHURY2GDTAZCCC2JVLS73DOL76
+#\\\|GDKZRZXGTUUUCYC22FIMDGBIAW5V5BRZ2T5OT2XJ6CS2L473XLG \ / AMOS7 \ YOURUM ::
+#\[7]7SKMMFY7IGWIDM3GIWIRYRWGLV6EL62NYYDMBJDQGNFTZXWHMODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
