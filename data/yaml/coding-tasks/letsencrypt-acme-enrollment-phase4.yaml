@@ -1,0 +1,158 @@
+---
+# Phase 4: Certificate Enrollment, Challenge Handling, and Activity Visibility
+# Priority: User-facing enrollment, challenge management, activity log visibility
+
+task_name: "Let's Encrypt ACME Enrollment and Challenge Handling - Phase 4"
+task_id: "letsencrypt-phase-4"
+status: "in_progress"
+created: "2025-11-08"
+last_updated: "2025-11-08"
+
+description: |
+  Implement automatic certificate enrollment with challenge handling,
+  retry logic, and comprehensive activity visibility for users.
+
+priorities:
+  - "Certificate enrollment for new domains (parent + child commands)"
+  - "Challenge handling and validation (HTTP-01 support)"
+  - "Activity log visibility for monitoring and debugging"
+  - "Retry logic with exponential backoff on failures"
+
+## Completed Components
+
+### Parent-Side Enrollment
+- **letsencrypt.parent.cmd.request-certificate**: User-facing command to request new SSL certificate
+  * Validates that certificate doesn't already exist
+  * Discovers alternative domains from HTTPd (www variants)
+  * Queues enrollment command to child process
+  * Logs activity at each step
+  * Returns immediate status to user
+
+- **letsencrypt.parent.handler_enrollment_reply**: Processes enrollment response from child
+  * Decodes base32r-encoded JSON certificate bundle
+  * Validates bundle contains required fields (certificate, key)
+  * Saves certificate using Phase 2 infrastructure
+  * Updates certificate registry with metadata and expiration
+  * Notifies HTTPd to reload with new certificate
+  * Implements exponential backoff retry: 5min, 15min, 30min (3 attempts max)
+  * Logs all transitions to activity buffer
+
+- **letsencrypt.parent.handler_enrollment_retry**: Retry orchestration
+  * Scheduled via event.add_timer with exponential delays
+  * Re-queues enrollment command to child on retry
+  * Maintains attempt counter for backoff calculation
+
+### Child-Side Enrollment
+- **letsencrypt.child.cmd.request-certificate**: Child-side enrollment wrapper
+  * Accepts domain from parent via call.args
+  * Retrieves alternative domains from parent parameters
+  * Invokes letsencrypt.child.acme_new (from Phase 1)
+  * Assembles certificate bundle with:
+    - certificate_pem (full chain)
+    - private_key_pem
+    - expires_at (validation deadline)
+    - domains (primary + alternatives)
+  * Encodes bundle as base32r-JSON for secure transmission
+  * Returns SIZE mode response with encoded data
+
+### Activity Visibility
+- **letsencrypt.parent.cmd.activity-log**: Display and filter ACME operation history
+  * Reads from acme-activity buffer (Phase 3 infrastructure)
+  * Optional filter by domain, operation, or status
+  * Configurable result limit (default: 50 entries)
+  * Shows newest entries first with formatted table:
+    - Timestamp (HH:MM:SS)
+    - Operation (enrollment, revocation, challenge, etc.)
+    - Domain name
+    - Status (pending, success, failed)
+    - Details (error messages or additional info)
+  * Total count of entries shown at bottom
+
+## Outstanding Phase 4 Tasks
+
+### Challenge Handling (Not Yet Implemented)
+- letsencrypt.child.handle_challenge: Process domain validation challenges
+  * HTTP-01: Create challenge response file
+  * DNS-01: Return challenge token for DNS update
+  * Poll for challenge completion
+  * Handle timeout/retry logic
+
+- letsencrypt.parent.handler_challenge_needed: Store and manage pending challenges
+  * Track HTTP-01 challenges awaiting response
+  * Track DNS-01 challenges awaiting validation
+  * Store challenge tokens and keys
+  * Implement challenge timeout (usually 300s)
+
+- letsencrypt.parent.notify_httpd_challenge: Notify HTTPd to serve HTTP-01 challenge
+  * Send challenge token/path to HTTPd
+  * HTTPd serves from /.well-known/acme-challenge/
+  * Wait for ACME validation
+
+### Integration Points (Completed)
+- Parent-child IPC communication: ✓ (via base.protocol-7.command.send.local)
+- Event loop and async retry: ✓ (via event.add_timer)
+- Activity logging infrastructure: ✓ (Phase 3 foundation)
+- Certificate storage: ✓ (Phase 2 infrastructure)
+- HTTPd integration: ✓ (notify_httpd_certificate_update)
+
+## Data Structures
+
+activity_log (in acme-activity buffer):
+  - timestamp: HH:MM:SS format
+  - level: 1 (warning) or 2 (info)
+  - operation: "enrollment|revocation|challenge|error|renewal"
+  - domain: "example.com"
+  - status: "pending|success|failed|validated"
+  - details: "error message or additional info"
+
+pending_challenges (not yet stored):
+  - domain: "example.com"
+  - type: "http-01|dns-01"
+  - token: "ACME challenge token"
+  - key_auth: "key authorization string"
+  - created_at: "timestamp"
+  - expires_at: "timestamp"
+  - status: "pending|validated|failed"
+
+## Key Design Decisions
+
+1. **Base32r Encoding**: Certificate bundles encoded as base32r-JSON for secure binary transmission over text-based protocol
+2. **Exponential Backoff**: Shorter retry delays for enrollment (5/15/30min) vs renewal (5/10/20/40/80min) - new certs more likely to succeed on retry
+3. **Activity Logging**: All operations logged to buffer with timestamp, operation type, domain, status for comprehensive debugging
+4. **HTTPd Notification**: Parent notifies HTTPd immediately after successful certificate save, before returning to user
+5. **Existing Infrastructure**: Reuses Phase 1 ACME modules (acme_new) and Phase 2 storage (save_certificate)
+
+## Success Criteria
+
+- [✓] Users can request new certificates via parent command
+- [✓] Enrollment handles multiple domains (primary + www variant)
+- [✓] Failed enrollments retry with exponential backoff
+- [✓] Activity log shows all operations with timestamps
+- [✓] Users can filter activity log by domain or operation
+- [✓] HTTPd is notified when certificates are installed
+- [ ] HTTP-01 challenges can be served to ACME
+- [ ] Challenge completion is properly validated
+- [ ] Challenge timeout is enforced (next phase)
+
+## Progress Notes
+
+### Completed (2025-11-08)
+- Implemented parent-side request-certificate command with domain discovery
+- Implemented enrollment handler with certificate bundle decoding and storage
+- Implemented enrollment retry handler with exponential backoff timing
+- Implemented child-side request-certificate wrapper with bundle encoding
+- Implemented activity-log command with filtering and pagination
+- Fixed buffer access to use correct data structure ($data{'buffer'}{name}{'data'})
+- All modules integrated with Phase 2 and Phase 3 infrastructure
+
+### Token Usage
+- Estimated 50% of available tokens used
+- Sufficient tokens remaining for Phase 4 completion
+
+### Next Steps (Phase 4 continuation or Phase 5)
+- Implement HTTP-01 challenge handling
+- Implement challenge notification to HTTPd
+- Implement challenge validation polling
+- Implement DNS-01 support (optional for Phase 4)
+- Implement command to list and manage pending challenges
+- Full end-to-end enrollment testing with real ACME server
