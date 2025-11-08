@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_enrollment_retry
+# descr = Retry handler for failed certificate enrollment with exponential backoff
+
+my $data = shift;
+
+my $domain  = $data->{domain};
+my $attempt = $data->{attempt} // 1;
+
+<[base.log]>->(
+    2, "retrying certificate enrollment for $domain (attempt $attempt)"
+);
+
+<[letsencrypt.parent.activity_logger]>->(
+    'enrollment', $domain, 'pending', "retry attempt $attempt"
+);
+
+## Send enrollment command to child process
+my $request_cmd = 'letsencrypt.child.cmd.request-certificate ' . $domain;
+
+my $result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => $request_cmd,
+        'call_args' => {
+            'args'  => $domain,
+            'param' => {
+                'email'   => <letsencrypt.admin.email>,
+                'attempt' => $attempt,
+            }
+        },
+        'reply' => {
+            'handler' => 'letsencrypt.parent.handler_enrollment_reply',
+            'params'  => { 'domain' => $domain, 'attempt' => $attempt }
+        }
+    }
+);
+
+if ($result) {
+    <[base.log]>->( 2, "enrollment retry queued for: $domain" );
+} else {
+    <[base.log]>->(
+        1, "failed to queue enrollment retry for: $domain (attempt $attempt)"
+    );
+    <[letsencrypt.parent.activity_logger]>->(
+        'enrollment', $domain, 'failed',
+        "failed to queue retry attempt $attempt"
+    );
+}
+
+return 0;
+
+#,,,,,..,,.,,,...,.,.,,..,...,,..,,.,,,,.,,,.,.,.,...,...,..,,,,.,,..,,.,,,.,,
+#NI5ZSEJT23C7JAB3LONMQW5RDBL6P67QZTXEPJ4L5AUSAT4KBOBR5ROCGW3REM2WXWXI62T32YDW4
+#\\\|64THTWSFVXBNVK3YRH2OMS3HPIQVBQ3IIGUMBFLQ7BFQ6PJ572A \ / AMOS7 \ YOURUM ::
+#\[7]AHUN2QC54Z2WKGC5H3VRHWQZ43FJDZ6VFO3OL6AEPXCXHZVXZUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
