@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = httpd.cmd.setup-acme-challenge
+# param = <domain>
+# descr = Create ACME challenge response file for HTTP-01 validation
+
+my $domain = shift;
+
+return { 'mode' => 'false', 'data' => 'domain parameter required' }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "setting up ACME HTTP-01 challenge for domain: $domain" );
+
+## Get challenge parameters from call context
+my $token     = <{call.param.token}>;
+my $key_auth  = <{call.param.key_auth}>;
+my $type      = <{call.param.type}> // 'http-01';
+
+return {
+    'mode' => 'false',
+    'data' => 'missing token or key_auth'
+}
+    unless $token && $key_auth;
+
+<[base.log]>->( 2, "  token: $token" );
+<[base.log]>->( 3, "  key_auth: $key_auth" );
+<[base.log]>->( 2, "  type: $type" );
+
+## Only handle HTTP-01 (DNS-01 doesn't need file creation)
+if ( $type ne 'http-01' ) {
+    <[base.log]>->( 2, "challenge type $type does not require file setup" );
+    return { 'mode' => 'true', 'data' => "challenge type $type registered" };
+}
+
+## Create challenge directory path
+## Path: /var/httpd/default/.well-known/acme-challenge/
+my $httpd_site_dir = <httpd.cfg.site_dir> // '/var/httpd';
+my $default_site   = <httpd.cfg.default_site> // 'default';
+my $well_known_dir = '/.well-known/acme-challenge';
+
+my $challenge_dir = sprintf '%s/%s%s',
+    $httpd_site_dir,
+    $default_site,
+    $well_known_dir;
+
+<[base.log]>->( 2, "challenge directory: $challenge_dir" );
+
+## Create directory if it doesn't exist
+unless ( -d $challenge_dir ) {
+    <[base.log]>->( 2, "creating challenge directory..." );
+    mkdir( $challenge_dir, 0755 ) or do {
+        <[base.log]>->(
+            1,
+            "failed to create challenge directory $challenge_dir: $!"
+        );
+        return {
+            'mode' => 'false',
+            'data' => "failed to create challenge directory: $!"
+        };
+    };
+    <[base.log]>->( 2, "challenge directory created" );
+}
+
+## Write challenge response file
+my $challenge_file = sprintf '%s/%s', $challenge_dir, $token;
+
+<[base.log]>->( 2, "writing challenge file: $challenge_file" );
+
+my $fh;
+unless ( open( $fh, '>', $challenge_file ) ) {
+    <[base.log]>->(
+        1,
+        "failed to open challenge file $challenge_file: $!"
+    );
+    return {
+        'mode' => 'false',
+        'data' => "failed to create challenge file: $!"
+    };
+}
+
+## Write key_auth content
+print $fh $key_auth or do {
+    <[base.log]>->( 1, "failed to write to challenge file: $!" );
+    close($fh);
+    return {
+        'mode' => 'false',
+        'data' => "failed to write challenge file: $!"
+    };
+};
+
+close($fh);
+
+## Set proper permissions (644: readable by everyone, writable only by owner)
+chmod( 0644, $challenge_file ) or do {
+    <[base.log]>->( 1, "failed to set permissions on challenge file: $!" );
+    return {
+        'mode' => 'false',
+        'data' => "failed to set permissions: $!"
+    };
+};
+
+<[base.log]>->( 2, "challenge file created successfully" );
+<[base.log]>->( 3, "file: $challenge_file" );
+<[base.log]>->( 3, "size: " . length($key_auth) . " bytes" );
+
+return {
+    'mode' => 'true',
+    'data' => "ACME HTTP-01 challenge ready for $domain at /.well-known/acme-challenge/$token"
+};
+
+#,,..,,,.,,,.,...,..,,..,,...,...,,,,,,..,...,..,,...,...,,..,.,.,.,.,..,,.,,,
+#COZIWSWEXD7RUJYNTYL6VPPKU7BYUIFOBEEYV7OQEA52YQDVABJUHX6LYLAFUCQAVRNMHS5HC5JNA
+#\\\|LX4RMAIKJA7MINHL4Y23OWVIJ76BG2VVWP7DBQ4ASA4WC6A3HRI \ / AMOS7 \ YOURUM ::
+#\[7]6HGYHMFOB5OSFMLDEL2L3IWRGD27GCWKOAMQJDPWQZDV4RI23ECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
