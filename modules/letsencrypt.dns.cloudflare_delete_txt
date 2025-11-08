@@ -1,0 +1,105 @@
+## [:< ##
+
+# name  = letsencrypt.dns.cloudflare_delete_txt
+# descr = Delete TXT record from Cloudflare DNS after ACME validation
+
+use JSON::XS;
+use LWP::UserAgent;
+
+my $dns_record_name = shift;
+
+return undef unless $dns_record_name;
+
+<[base.log]>->( 2, "deleting Cloudflare TXT record: $dns_record_name" );
+
+## Get Cloudflare API credentials from config
+my $api_token = <letsencrypt.dns.cloudflare.api_token>;
+my $zone_id   = <letsencrypt.dns.cloudflare.zone_id>;
+
+unless ( $api_token && $zone_id ) {
+    <[base.log]>->(
+        1,
+        'error: Cloudflare API token or zone ID not configured'
+    );
+    return undef;
+}
+
+## Create HTTP client
+my $ua = LWP::UserAgent->new(
+    timeout  => 10,
+    ssl_opts => {
+        verify_hostname => 1,
+        SSL_verify_mode => 1,
+    },
+);
+
+## Cloudflare API endpoint
+my $api_endpoint = "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records";
+
+## Find the record ID
+<[base.log]>->( 3, "finding TXT record to delete..." );
+
+my $list_response = $ua->get(
+    "$api_endpoint?type=TXT&name=$dns_record_name",
+    'Authorization' => "Bearer $api_token",
+    'Content-Type'  => 'application/json',
+);
+
+unless ( $list_response->is_success ) {
+    <[base.log]>->(
+        2,
+        "could not query Cloudflare records: " . $list_response->status_line
+    );
+    return undef;
+}
+
+my $list_data = JSON::XS::decode_json( $list_response->decoded_content );
+
+unless ( $list_data->{success} && @{ $list_data->{result} } ) {
+    <[base.log]>->( 2, "TXT record not found (may already be deleted)" );
+    return { success => 1, message => 'record not found' };
+}
+
+my $record_id = $list_data->{result}[0]{id};
+
+<[base.log]>->( 2, "deleting record ID: $record_id" );
+
+## Delete the record
+my $delete_response = $ua->request(
+    HTTP::Request->new(
+        'DELETE',
+        "$api_endpoint/$record_id",
+        [   'Authorization' => "Bearer $api_token",
+            'Content-Type'  => 'application/json',
+        ],
+    )
+);
+
+unless ( $delete_response->is_success ) {
+    <[base.log]>->(
+        1,
+        "Cloudflare delete request failed: " . $delete_response->status_line
+    );
+    return undef;
+}
+
+my $result = JSON::XS::decode_json( $delete_response->decoded_content );
+
+unless ( $result->{success} ) {
+    my $errors = join( ', ', map { $_->{message} } @{ $result->{errors} } );
+    <[base.log]>->( 1, "Cloudflare API error: $errors" );
+    return undef;
+}
+
+<[base.log]>->( 2, "Cloudflare TXT record deleted successfully" );
+
+return {
+    success => 1,
+    deleted => 1,
+};
+
+#,,.,,.,.,.,.,,..,,,,,...,,.,,,.,,,,,,,..,..,,..,,...,...,.,,,..,,.,.,,..,.,,,
+#PGPGJGSSOCTICBFEVMXT43A3WBTLUQXED6QNUKGHZBC2GWGWB6C4AKVQTCCEUYLAXTJSNKWNHWR4I
+#\\\|3Z6DNZK6TEOJMXB22DJCO6YJRS6SQC5CFKPKEA7O73RPWDRC52N \ / AMOS7 \ YOURUM ::
+#\[7]UVD7QQJSNV4FHKBMYZ6C2FFCB5JI2R22TMRE3GLTOZOZNCNTSCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
