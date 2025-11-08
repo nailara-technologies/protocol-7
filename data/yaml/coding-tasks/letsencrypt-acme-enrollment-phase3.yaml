@@ -4,8 +4,9 @@
 
 task_name: "Let's Encrypt ACME Enrollment and Revocation - Phase 3"
 task_id: "letsencrypt-phase-3"
-status: "pending"
+status: "in_progress"
 created: "2025-11-08"
+last_updated: "2025-11-08"
 
 description: |
   Implement automatic domain enrollment, certificate revocation for testing,
@@ -16,7 +17,26 @@ priorities:
   - "Comprehensive activity logging (all ACME operations)"
   - "Visibility of ACME state and challenges"
 
-## Phase 3 Modules (Estimated 12-15 new modules)
+## Completed Components
+
+### Foundation (Implemented)
+- **letsencrypt.parent.activity_logger**: Structured logging of all ACME operations to acme-activity buffer with timestamp, operation type, domain, status, and details
+- **letsencrypt.parent.cmd.revoke-certificate**: User-facing command to initiate certificate revocation with validation and activity logging
+- **letsencrypt.parent.handler_revocation_reply**: Handles revocation response from child, updates certificate status, removes from renewal schedule, cleans up files
+- **Activity buffer (acme-activity)**: 100KB ring buffer initialized in parent init_code with proper existence check and max_size configuration
+
+### Child-Side Revocation (Implemented)
+- **letsencrypt.child.cmd.revoke-certificate**: Command wrapper validating certificate paths and invoking ACME revocation workflow
+- **letsencrypt.child.acme_revoke**: Full ACME revocation protocol implementation:
+  * Certificate loading and X509 parsing (PEM to DER)
+  * Base64url encoding for ACME transmission
+  * ACME account verification (directory fetch, account registration/lookup)
+  * Fresh nonce retrieval for JWS signing
+  * HTTP POST to ACME revoke endpoint with JWS signature
+  * HTTP status validation and error handling with detailed error messages
+  * Success/failure result return with timestamp
+
+## Phase 3 Modules (Estimated 12-15 new modules, ~2 completed)
 
 ### Child Process ACME Operations
 modules:
@@ -200,9 +220,26 @@ test_error_handling:
 
 ## Success Criteria
 
-- Certificate revocation works cleanly without leaving artifacts
-- All ACME operations logged with timestamps and details
-- Activity log queryable and filterable
-- Users can see real-time status of enrollment/revocation/challenges
-- Error messages provide actionable debugging info
-- No certificate stacking during testing (old certs properly cleaned up)
+- Certificate revocation works cleanly without leaving artifacts ✓ (implemented)
+- All ACME operations logged with timestamps and details ✓ (activity_logger + buffer)
+- Activity log queryable and filterable (future: implement activity-log command for filtering)
+- Users can see real-time status of enrollment/revocation/challenges ✓ (status command shows activity)
+- Error messages provide actionable debugging info ✓ (detailed error handling in ACME ops)
+- No certificate stacking during testing (old certs properly cleaned up) ✓ (revocation cleans files)
+
+## Progress Notes
+
+### Completed (2025-11-08)
+- Implemented parent-side revocation foundation with activity logging infrastructure
+- Implemented child-side ACME revocation protocol with full certificate handling
+- Activity buffer initialization following proper Protocol-7 pattern (discover module style)
+- End-to-end revocation workflow: parent command → child ACME → parent handler → activity log
+- Rebased local commits on remote to resolve branch divergence
+
+### Outstanding Tasks
+- letsencrypt.child.cmd.request-certificate (new certificate enrollment)
+- letsencrypt.child.acme_authorize (domain authorization handling)
+- letsencrypt.child.acme_finalize (CSR finalization and cert download)
+- Challenge handling (HTTP-01, DNS-01)
+- Parent-side enrollment handlers
+- Activity log filtering/display command
