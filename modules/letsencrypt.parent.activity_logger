@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = letsencrypt.parent.activity_logger
+# descr = Log ACME operations to activity buffer for visibility and debugging
+
+my $operation = shift;    # enrollment|revocation|challenge|error|renewal
+my $domain    = shift;
+my $status    = shift;    # pending|success|failed|validated
+my $details   = shift;    # optional error message or additional info
+
+unless ( $operation && $domain && $status ) {
+    <[base.log]>->(
+        1, "error: activity_logger requires operation, domain, and status"
+    );
+    return 0;
+}
+
+## Format activity entry with timestamp and log level
+my $log_level
+    = $status eq 'failed' ? 1 : 2;    # WARNING for failures, INFO otherwise
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+
+## Build activity message
+my $activity_msg = sprintf( ": acme activity : %-12s : %-35s : %-10s",
+    $operation, $domain, $status );
+
+## Add details if present
+if ($details) {
+    $activity_msg .= " : $details";
+}
+
+## Log to activity buffer (visible via "show-buffer acme-activity")
+<[base.buffer.add_line]>->(
+    qw| acme-activity |,
+    join( ' ', $time_stamp, $log_level, $activity_msg ), $log_level
+);
+
+## Also log to main letsencrypt log at appropriate level
+if ( $status eq 'failed' ) {
+    <[base.log]>->( 1, "ACME $operation failed for $domain: $details" );
+} elsif ( $status eq 'pending' ) {
+    <[base.log]>->( 3, "ACME $operation pending for $domain" );
+} else {
+    <[base.log]>->( 2, "ACME $operation $status for $domain" );
+}
+
+return 1;
+
+#,,,.,...,..,,...,,,.,,.,,..,,,,.,.,,,...,,.,,..,,...,..,,...,.,,,.,.,,,,,.,.,
+#2EY2NNTBLHBSDY6H5R4AZ4QJNUNMW32BEMURI4UA3U3Y4WVCQPMK7I7PGLFZLR7ESHC4UORUQ3ZX4
+#\\\|NLZYJDDEE34AO5Z536RMYBTJBTJDWZ3OM6Q27YXCVGNN3HE5GAP \ / AMOS7 \ YOURUM ::
+#\[7]CJDRFIP7KIIMUAPPR5BEPKF5ETHEHXHUSZQB7L33R4GLM43FYIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
