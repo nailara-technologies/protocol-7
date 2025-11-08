@@ -1,0 +1,221 @@
+---
+# Phase 5: Challenge Handling and ACME Challenge Validation
+# Priority: HTTP-01 challenge serving and validation, challenge lifecycle management
+
+task_name: "Let's Encrypt ACME Challenge Handling - Phase 5"
+task_id: "letsencrypt-phase-5"
+status: "in_progress"
+created: "2025-11-08"
+last_updated: "2025-11-08"
+
+description: |
+  Implement HTTP-01 and DNS-01 challenge handling with ACME server validation,
+  challenge lifecycle management, and timeout enforcement.
+
+priorities:
+  - "HTTP-01 challenge response serving (HTTPd integration)"
+  - "Challenge validation polling and completion"
+  - "Challenge timeout management (5 minute limit)"
+  - "Activity logging for challenge lifecycle"
+
+## Completed Components
+
+### Parent-Side Challenge Management
+- **letsencrypt.parent.handler_challenge_needed**: Receives challenge from child
+  * Stores pending challenge data (token, key_auth, domain)
+  * Sets up challenge timeout (5 minutes via event.add_timer)
+  * Notifies HTTPd to serve HTTP-01 response
+  * Supports both HTTP-01 and DNS-01 (DNS-01 manual for now)
+  * Activity logging at each step
+
+- **letsencrypt.parent.notify_httpd_challenge**: Notifies HTTPd to serve challenge
+  * Queues httpd.cmd.setup-acme-challenge command
+  * Provides token, key_auth, challenge type to HTTPd
+  * Returns success/failure status
+  * On failure, cleans up stored challenge
+
+- **letsencrypt.parent.handler_challenge_timeout**: Enforces 5-minute timeout
+  * Called via event.add_timer after challenge stored
+  * Checks if challenge was validated before timeout
+  * Removes timed-out challenges from pending storage
+  * Requests HTTPd to clean up challenge file
+  * Logs timeout event to activity buffer
+
+- **letsencrypt.parent.handler_challenge_validated**: Updates challenge status
+  * Called by child when ACME reports validation complete
+  * TRUE mode: marks challenge as 'valid', records timestamp
+  * FALSE mode: marks challenge as 'failed', records error message
+  * FALSE mode also requests HTTPd to remove challenge file
+  * Activity logging for validation result
+
+### Challenge Storage Structure
+```
+pending_challenges = {
+  'token_abc123' => {
+    domain      => 'example.com',
+    type        => 'http-01',
+    token       => 'token_abc123',
+    key_auth    => 'token.thumbprint',  # for HTTP-01
+    created_at  => timestamp,
+    expires_at  => timestamp + 300,
+    status      => 'pending|valid|failed',
+    validated_at => timestamp,
+    error       => 'error message if failed',
+  }
+}
+```
+
+## Outstanding Phase 5 Tasks
+
+### HTTPd Integration Commands (Not Yet Implemented)
+- httpd.cmd.setup-acme-challenge: Create challenge response file
+  * Create directory: /var/httpd/default/.well-known/acme-challenge/
+  * Write file: {token} with content: {key_auth}
+  * Set permissions: 0644
+  * Return success/failure status
+
+- httpd.cmd.remove-acme-challenge: Clean up challenge file
+  * Remove file: /var/httpd/default/.well-known/acme-challenge/{token}
+  * Handle file not found gracefully
+  * Return success status
+
+### Integration Points (Completed)
+- Challenge notification from child: ✓ (via base.protocol-7 handler)
+- Challenge storage: ✓ (pending_challenges hash in parent)
+- Challenge timeout enforcement: ✓ (event.add_timer)
+- Activity logging: ✓ (activity_logger)
+- HTTPd command interface: ✓ (protocol-7 command.send.local)
+
+## Challenge Lifecycle Flow
+
+1. **Child sends challenge notification**
+   - Via base.protocol-7 command protocol
+   - Contains: domain, token, key_auth, type
+   - Handler: letsencrypt.parent.handler_challenge_needed
+
+2. **Parent stores challenge**
+   - Adds to pending_challenges hash
+   - Sets expiration: current_time + 300 seconds
+   - Logs to activity buffer: 'pending'
+
+3. **Parent notifies HTTPd**
+   - Calls httpd.cmd.setup-acme-challenge
+   - HTTPd creates challenge response file
+   - HTTPd serves at /.well-known/acme-challenge/{token}
+
+4. **ACME server validates challenge**
+   - Child polls challenge status (from Phase 1)
+   - Child waits for 'valid' status
+   - Child notifies parent of completion
+
+5. **Parent receives validation result**
+   - Via letsencrypt.parent.handler_challenge_validated
+   - Updates challenge status: 'pending' → 'valid' or 'failed'
+   - Logs result to activity buffer
+   - On failure: requests HTTPd cleanup
+
+6. **Challenge timeout or completion**
+   - Valid challenges kept in storage for reference
+   - Failed/timed-out challenges removed
+   - Challenge file cleaned up by HTTPd
+   - Activity logged with timestamp
+
+## Data Flow
+
+```
+Child (ACME Process):
+  1. Handles ACME challenge from server
+  2. Creates HTTP-01 response file
+  3. Sends challenge notification to parent:
+     letsencrypt.parent.handler_challenge_needed
+
+Parent:
+  4. Stores challenge in pending_challenges
+  5. Notifies HTTPd to serve challenge response
+  6. Sets up 5-minute timeout
+  7. Logs activity: 'challenge', domain, 'pending'
+
+HTTPd:
+  8. Creates challenge file: /.well-known/acme-challenge/{token}
+  9. Serves key_auth content when ACME requests it
+  10. Returns success to parent
+
+Child (continued):
+  11. Polls challenge status from ACME server
+  12. Waits for 'valid' status (up to 60 attempts, 1-10 sec intervals)
+  13. Notifies parent: letsencrypt.parent.handler_challenge_validated
+
+Parent:
+  14. Updates challenge status: 'pending' → 'valid'
+  15. Logs activity: 'challenge', domain, 'success'
+  16. Continues with certificate finalization
+```
+
+## Key Design Decisions
+
+1. **5-Minute Timeout**: Standard ACME challenge timeout (300 seconds)
+   - Enforced via event.add_timer
+   - Challenge removed if not validated within timeout
+   - Activity logged when timeout occurs
+
+2. **Challenge Token as Key**: Pending challenges keyed by token
+   - Allows quick lookup when validation completes
+   - Prevents duplicate challenges
+   - Easy timeout cleanup
+
+3. **HTTPd Decoupling**: Parent doesn't create challenge files directly
+   - Delegates to HTTPd via command protocol
+   - Allows HTTPd to handle vhost-specific paths
+   - Clean separation of concerns
+
+4. **Activity Logging**: All challenge events logged
+   - Challenge received: 'pending'
+   - HTTPd notified: 'pending'
+   - Validation completed: 'success' or 'failed'
+   - Timeout occurred: 'failed'
+   - Provides complete audit trail
+
+5. **DNS-01 Support**: Stored but not fully automated
+   - DNS-01 challenges stored in pending_challenges
+   - Manual update required for DNS TXT record
+   - Future phase: integrate with DNS provider API
+
+## Success Criteria
+
+- [✓] Challenges stored with token, key_auth, domain, expiration
+- [✓] HTTPd notified to serve HTTP-01 responses
+- [✓] 5-minute timeout enforced for all challenges
+- [✓] Challenge validation status tracked
+- [✓] Activity logged for all challenge events
+- [✓] Failed challenges cleaned up properly
+- [ ] HTTPd commands implemented (setup/remove challenge)
+- [ ] Full integration testing with ACME server
+- [ ] DNS-01 support (optional, future phase)
+
+## Progress Notes
+
+### Completed (2025-11-08)
+- Implemented parent-side challenge handler with pending challenge storage
+- Implemented challenge timeout mechanism with event-based scheduling
+- Implemented HTTPd notification interface (command queuing)
+- Implemented challenge validation handler (status updates)
+- Challenge lifecycle fully tracked with activity logging
+- Support for both HTTP-01 and DNS-01 (DNS-01 manual for now)
+
+### Remaining (Phase 5 continuation or Phase 6)
+- HTTPd integration: setup-acme-challenge command
+- HTTPd integration: remove-acme-challenge command
+- Full integration testing with real ACME server
+- DNS-01 automated support via DNS provider integration
+- Challenge status display command
+
+### Token Usage
+- Estimated 60% of available tokens used
+- Sufficient tokens remaining for Phase 5 completion
+
+### Next Phase Recommendation
+After HTTPd integration and testing, could focus on:
+- Challenge status visibility command
+- DNS provider integration for DNS-01 automation
+- Integration testing with staging ACME server
+- Performance optimization if needed
