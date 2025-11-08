@@ -6,18 +6,130 @@
 my $msg = shift;
 
 my $cert_path = $msg->{cert_path};
+my $key_path  = $msg->{key_path};
 my $domain    = $msg->{domain};
 
 <[base.log]>->( 2, "child: revoking certificate for domain: $domain" );
 
-## This is where blocking ACME revocation occurs:
-## 1. Load certificate
-## 2. Create JWS payload with certificate
-## 3. Sign with account key
-## 4. Send revocation request to ACME server
-## 5. Verify revocation succeeded
+## STEP 1: Load certificate from disk
+unless ( -f $cert_path ) {
+    return {
+        status => 'error',
+        error  => "Certificate file not found: $cert_path"
+    };
+}
 
-## TODO: Implement ACME revocation protocol
+<[base.log]>->( 2, 'step 1: loading certificate' );
+
+my $cert_content;
+open( my $cert_fh, '<', $cert_path )
+    or return {
+    status => 'error',
+    error  => "Failed to read certificate: $!"
+    };
+{
+    local $/;
+    $cert_content = <$cert_fh>;
+}
+close($cert_fh);
+
+## Extract certificate DER encoding for revocation request
+my $x509 = Crypt::OpenSSL::X509->new_from_string( $cert_content,
+    Crypt::OpenSSL::X509::FORMAT_PEM );
+unless ($x509) {
+    return {
+        status => 'error',
+        error  => 'Failed to parse certificate'
+    };
+}
+
+## Get DER format for ACME revocation
+my $cert_der  = $x509->as_string(Crypt::OpenSSL::X509::FORMAT_ASN1);
+my $cert_b64u = <[letsencrypt.child.encode_base64url]>->($cert_der);
+
+<[base.log]>->( 2, "certificate loaded and encoded for revocation" );
+
+## STEP 2: Ensure ACME account is set up
+<[base.log]>->( 2, 'step 2: verifying ACME account' );
+
+unless ( <letsencrypt.child.acme_client> {directory} ) {
+    my $dir_info = <[letsencrypt.child.fetch_acme_directory]>->();
+    unless ($dir_info) {
+        return {
+            status => 'error',
+            error  => 'Failed to fetch ACME directory'
+        };
+    }
+}
+
+unless ( <letsencrypt.child.acme_client> {account_url} ) {
+    ## Try to get or register account
+    my $account_info = <[letsencrypt.child.acme_check_account]>->();
+    unless ($account_info) {
+        $account_info = <[letsencrypt.child.acme_register_account]>->();
+        unless ($account_info) {
+            return {
+                status => 'error',
+                error  => 'Failed to register ACME account'
+            };
+        }
+    }
+}
+
+## STEP 3: Get fresh nonce
+<[base.log]>->( 2, 'step 3: obtaining fresh nonce' );
+
+my $nonce = <[letsencrypt.child.get_fresh_nonce]>->();
+unless ($nonce) {
+    return {
+        status => 'error',
+        error  => 'Failed to obtain fresh nonce'
+    };
+}
+
+## STEP 4: Create revocation request
+<[base.log]>->( 2, 'step 4: creating revocation request' );
+
+my $revoke_url = <letsencrypt.child.acme_client> {directory}{revoke};
+unless ($revoke_url) {
+    return {
+        status => 'error',
+        error  => 'ACME directory missing revoke endpoint'
+    };
+}
+
+## Revocation payload contains just the certificate in DER+base64url format
+my $revoke_payload = { certificate => $cert_b64u };
+
+## STEP 5: Send revocation request to ACME
+<[base.log]>->( 2, 'step 5: sending revocation request to ACME server' );
+
+my $revoke_response = <[letsencrypt.child.acme_http_request]>->(
+    'POST', $revoke_url, $revoke_payload, $nonce,
+    <letsencrypt.child.acme_client> {kid}
+);
+
+unless ($revoke_response) {
+    return {
+        status => 'error',
+        error  => 'Failed to send revocation request'
+    };
+}
+
+## Check HTTP status
+my $http_status = $revoke_response->{status};
+if ( $http_status != 200 ) {
+    my $error_msg = $revoke_response->{error_detail} || 'Unknown ACME error';
+    <[base.log]>->(
+        1, "revocation failed with HTTP $http_status: $error_msg"
+    );
+    return {
+        status => 'error',
+        error  => "ACME revocation error: $error_msg"
+    };
+}
+
+<[base.log]>->( 2, 'certificate successfully revoked with ACME server' );
 
 my $result = {
     status     => 'success',
@@ -25,18 +137,12 @@ my $result = {
     revoked_at => time(),
 };
 
-<[letsencrypt.child.send_to_parent]>->(
-    {   command    => 'cert_revoked',
-        domain     => $domain,
-        status     => $result->{status},
-        revoked_at => $result->{revoked_at},
-    }
-);
-
 <[base.log]>->( 2, "child: certificate revoked for $domain" );
 
-#,,,.,.,,,,,.,,.,,..,,..,,...,,.,,.,.,,,.,..,,..,,...,..,,,.,,..,,,..,..,,.,.,
-#WQR6SGSMVWKQDQOQDQFVCOFQB4RLX3GXJORKY7Y55ODOP2BCEIEBMP4RB4MPX2OF7COPTWEXOKK4C
-#\\\|UU3G4YGCHHOOSKWKLWB2QWIVHEXZYE5IHF6L7HFSHZFJ6JU65CQ \ / AMOS7 \ YOURUM ::
-#\[7]RMLSRXALOLA6V2JVZ22LJYL7DUED445AS5J5P3S4H63OQBNUIWCQ 7  DATA SIGNATURE ::
+return $result;
+
+#,,,.,.,.,,.,,,,,,,..,,,.,,,.,.,,,..,,...,,,,,..,,...,..,,...,..,,,,.,..,,..,,
+#XJYWJPDP2ZUBUNT26ANZOY5QVRHNEWBF656FCL7NON74H6UP4BDRZSZSWVIQLXWGBV5TKPXP77R2U
+#\\\|YWG5EREI7EIZJCH5IXKUOW6B5RCN7BRCZXATJIIVT4PGCPYZN53 \ / AMOS7 \ YOURUM ::
+#\[7]MSX6P6U5B2IUJGIKYFCRU56JTBOIZ5DO35IXQO62XTAT7AYE2QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
