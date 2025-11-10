@@ -6,17 +6,18 @@ A comprehensive guide to coding conventions, best practices, and patterns for Pr
 
 1. [Module Structure](#module-structure)
 2. [Function Calls and Data Access](#function-calls-and-data-access)
-3. [String Literals and Quoting](#string-literals-and-quoting)
-4. [Exception Handling](#exception-handling)
-5. [Logging and Debugging](#logging-and-debugging)
-6. [Variable Management](#variable-management)
-7. [JSON Processing](#json-processing)
-8. [Asynchronous I/O and Event Handling](#asynchronous-io-and-event-handling)
-9. [HTTP Request Handling](#http-request-handling)
-10. [File Operations](#file-operations)
-11. [Console Commands](#console-commands)
-12. [Init Code Constraints](#init-code-constraints)
-13. [Code Organization](#code-organization)
+3. [Configuration Management](#configuration-management)
+4. [String Literals and Quoting](#string-literals-and-quoting)
+5. [Exception Handling](#exception-handling)
+6. [Logging and Debugging](#logging-and-debugging)
+7. [Variable Management](#variable-management)
+8. [JSON Processing](#json-processing)
+9. [Asynchronous I/O and Event Handling](#asynchronous-io-and-event-handling)
+10. [HTTP Request Handling](#http-request-handling)
+11. [File Operations](#file-operations)
+12. [Console Commands](#console-commands)
+13. [Init Code Constraints](#init-code-constraints)
+14. [Code Organization](#code-organization)
 
 ---
 
@@ -129,6 +130,210 @@ my $val = $data{'service'}{'data'}{'value'}; # ✓ Correct
 ## MISTAKE 3: Trying to use <...> for code
 <service.function>();  # ✗ Wrong - <...> is for data
 <[service.function]>(); # ✓ Correct - <[...]> is for code
+```
+
+---
+
+## Configuration Management
+
+### The Elegant Pattern: Define Once, Reference Everywhere
+
+Protocol-7 uses the `%data` hash with the `//=` operator to create **elegantly overridable** configuration. This pattern ensures:
+
+- **Single source of truth**: Configuration defined once in `init_code`
+- **Overridable anywhere**: Can be overridden before module initialization
+- **Consistent references**: All code references the same `<namespace.cfg.key>` path
+- **No redundant fallbacks**: Default values never repeated in functions
+
+### Pattern Overview
+
+```perl
+## In modules/service.parent.init_code
+## Define configuration ONCE with overridable defaults
+<service.cfg.listen_port>      //= 8080;
+<service.cfg.max_connections>  //= 100;
+<service.cfg.enable_logging>   //= 1;
+<service.cfg.data_directory>   //= '/var/lib/service';
+
+## In all other modules - reference consistently
+## modules/service.parent.start_server
+sub service_parent_start_server {
+    my $port = <service.cfg.listen_port>;      ## No fallback needed
+    my $max_conn = <service.cfg.max_connections>;
+
+    # Server startup logic using config values...
+}
+
+## modules/service.cmd.configure
+sub service_cmd_configure {
+    my $params = shift || {};
+
+    ## Use config as default, allow parameter override
+    my $log = $params->{logging} // <service.cfg.enable_logging>;
+    my $dir = $params->{directory} // <service.cfg.data_directory>;
+}
+```
+
+### Why This is Elegant
+
+Like `<system.zenka.name>` which is set once and used everywhere, configuration should follow the same principle:
+
+**✓ Elegant (Protocol-7 style):**
+```perl
+## In init_code
+<debian.cfg.prefer_debian> //= 1;
+<debian.cfg.use_cpanm> //= 1;
+
+## In function
+my $prefer = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
+```
+
+**✗ Inelegant (hardcoded fallbacks):**
+```perl
+## In init_code
+<debian.cfg.prefer_debian> //= 1;
+
+## In function - repeats default!
+my $prefer = $params->{prefer_debian} // 1;  # Hardcoded!
+```
+
+### Configuration Override Examples
+
+Users can override configuration in several ways:
+
+#### 1. In Zenka Configuration Files
+
+```perl
+## configuration/zenki/myservice/start
+debian.cfg.prefer_debian = 0    ## Prefer cpanm over debian packages
+debian.cfg.auto_install = 1     ## Enable auto-install even as non-root
+```
+
+#### 2. At Runtime via IPC Commands
+
+```perl
+## In a .cmd.* module
+$data{'debian'}{'cfg'}{'prefer_debian'} = 0;
+```
+
+#### 3. In Other Modules' init_code
+
+```perl
+## modules/custom.init_code (loaded before debian)
+<debian.cfg.zenki_config_base> = '/custom/path/zenki';
+```
+
+### Real-World Example: debian Module
+
+**Before refactoring (inelegant):**
+
+```perl
+## modules/debian.parent.init_code
+<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
+<debian.cfg.prefer_debian>     //= 1;
+## Missing: use_cpanm not in config!
+
+## modules/debian.parent.scan_zenki_dependencies
+sub scan {
+    ## Redundant hardcoded fallback!
+    my $base = <debian.cfg.zenki_config_base> || '/data/projects/protocol-7/configuration/zenki';
+}
+
+## modules/debian.parent.install_missing
+sub install {
+    my $prefer = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
+    my $cpanm = $params->{use_cpanm} // 1;  # Hardcoded! Not in config!
+}
+
+## modules/debian.console.install-deps
+my $result = <[debian.parent.install_missing]>->({
+    prefer_debian => 1,  # Hardcoded!
+    use_cpanm => 1       # Hardcoded!
+});
+```
+
+**After refactoring (elegant):**
+
+```perl
+## modules/debian.parent.init_code
+<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
+<debian.cfg.auto_install>      //= ($UID == 0 ? 1 : 0);
+<debian.cfg.prefer_debian>     //= 1;
+<debian.cfg.use_cpanm>         //= 1;  ## Complete config set
+
+## modules/debian.parent.scan_zenki_dependencies
+sub scan {
+    my $base = <debian.cfg.zenki_config_base>;  ## No fallback needed
+}
+
+## modules/debian.parent.install_missing
+sub install {
+    my $prefer = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
+    my $cpanm = $params->{use_cpanm} // <debian.cfg.use_cpanm>;
+}
+
+## modules/debian.console.install-deps
+my $result = <[debian.parent.install_missing]>->({
+    prefer_debian => <debian.cfg.prefer_debian>,
+    use_cpanm => <debian.cfg.use_cpanm>
+});
+```
+
+### Configuration Naming Conventions
+
+**Namespace Structure:**
+```
+<module.cfg.setting_name>
+```
+
+**Examples:**
+- `<debian.cfg.prefer_debian>` - Preference setting
+- `<debian.cfg.zenki_config_base>` - Path configuration
+- `<httpd.cfg.listen_port>` - Service parameter
+- `<v7.cfg.install_bin_p7>` - Feature toggle
+
+**Best Practices:**
+- Always use `.cfg.` in the path for configuration values
+- Use descriptive names: `max_retries` not `max_r`
+- Group related settings under same namespace
+- Use `//=` for overridable defaults
+- Boolean configs: use 1/0, not true/false
+- Path configs: use absolute paths as defaults
+
+### Anti-Patterns to Avoid
+
+**❌ Repeated Hardcoded Defaults:**
+```perl
+## BAD - Default repeated in multiple places
+my $port = $params->{port} // 8080;  # In function A
+my $port = $config->{port} // 8080;  # In function B
+```
+
+**❌ Missing Config Entries:**
+```perl
+## BAD - Some settings in config, others hardcoded
+<service.cfg.port> //= 8080;
+## But in code:
+my $timeout = $params->{timeout} // 30;  # Should be in config!
+```
+
+**❌ Redundant Fallback Chains:**
+```perl
+## BAD - Config has default, but code repeats it
+my $val = <service.cfg.value> || '/default/path';  # Already defaulted in init!
+```
+
+**✅ Correct Pattern:**
+```perl
+## In init_code - Define complete config
+<service.cfg.port>    //= 8080;
+<service.cfg.timeout> //= 30;
+<service.cfg.path>    //= '/default/path';
+
+## In functions - Reference directly
+my $port = <service.cfg.port>;      # No fallback needed
+my $timeout = <service.cfg.timeout>;
+my $path = <service.cfg.path>;
 ```
 
 ---
