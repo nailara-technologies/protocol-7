@@ -134,21 +134,8 @@
 <[base.log]>->( 2, "  Loaded known dependencies: " .
     scalar(keys %{<debian.known_deps>{perlmod}}) . " modules mapped" );
 
-## Perform initial scan of zenki
-<[base.log]>->( 2, "  Scanning zenki for dependencies..." );
-
-my $scan_result = <[debian.parent.scan_zenki_dependencies]>();
-
-if ($scan_result && ref($scan_result) eq 'HASH' && $scan_result->{success}) {
-    <[base.log]>->( 2, "  Scan complete: " .
-        $scan_result->{zenki_count} . " zenki, " .
-        $scan_result->{deps_count} . " dependencies" );
-} else {
-    my $error = (ref($scan_result) eq 'HASH' && $scan_result->{error})
-        ? $scan_result->{error}
-        : 'unknown error';
-    <[base.log]>->( 0, "  Scan failed: $error" );
-}
+## Note: Initial scan skipped during init to avoid circular dependencies
+## Scan will be performed on first command use
 
 <[base.log]>->( 2, 'debian zenka initialization complete' );
 
