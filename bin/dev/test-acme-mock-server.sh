@@ -34,8 +34,8 @@ echo "Tests complete!"
 echo "To start the server, run: ./bin/dev/acme-mock-server.pl"
 echo "To view full logs: tail -f $LOG_FILE"
 
-#,,,.,..,,...,,..,,..,..,,,,.,.,.,,,.,..,,,..,..,,...,...,..,,,,,,..,,,,,,,.,,
-#4QZUDJ32BH6K7JAU2BU7UIW6VY5UNYXDFSXGZACXYNYODXN7WZUWDNS5A3NWL3LFTEBVTOLKMXAS2
-#\\\|NAHSQ7HT4U4277PE3EUSATTLPCAETUUKLBJ6ZCVNOVGNVFTWWWA \ / AMOS7 \ YOURUM ::
-#\[7]RZ3EU2TCJBNKYFOJDN4ZZJPW6HLE4TSIXQQXSBNSELX2JDIBLQBI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,.,,,,.,.,.,..,,.,,,..,,.,,,..,,..,,...,..,,...,,,,,...,.,,,,,,,
+#7NVGAGPMUM5YERWTIVD75WJL6AUFQFAVBYUWQACUTWNNAV27QOFRKZDQ7BGFHX6U4NSPTPO24VDCC
+#\\\|YUBCYQ2FSGD4V63JCSAIPAE27ILNTKSUQBX4BTASVTA5RWKDQDF \ / AMOS7 \ YOURUM ::
+#\[7]UTIH5JLN3D6UV7MNTZXEBBHGVWQZ4ADR4NZMAGKYG6ZJ4ITHEMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
