@@ -1,0 +1,75 @@
+## [:< ##
+
+# name = zenki.parent.resolve_dependencies
+# descr = Resolve and ensure all dependencies in the chain are running
+
+sub zenki_parent_resolve_dependencies {
+    my $params = shift || {};
+
+    my $zenka_name = $params->{zenka};
+
+    unless ($zenka_name) {
+        return { success => 0, error => 'zenka name required' };
+    }
+
+    <[base.log]>->( 3, "zenki.resolve: resolving dependencies for '$zenka_name'" );
+
+    ## Determine dependency chain
+    my @chain;
+
+    ## All zenki (except v7 and cube) depend on: cube → v7
+    if ($zenka_name eq 'v7') {
+        @chain = qw| v7 |;
+    } elsif ($zenka_name eq 'cube') {
+        @chain = qw| v7 cube |;
+    } else {
+        @chain = qw| v7 cube |;
+    }
+
+    <[base.log]>->( 3, "  Dependency chain: " . join(' → ', @chain) );
+
+    ## Resolve each dependency in order
+    foreach my $dep (@chain) {
+        my $result;
+
+        if ($dep eq 'v7') {
+            $result = <[zenki.parent.ensure_v7]>();
+        } elsif ($dep eq 'cube') {
+            $result = <[zenki.parent.ensure_cube]>();
+        } else {
+            $result = <[zenki.parent.ensure_zenka]>->({ zenka => $dep });
+        }
+
+        unless ($result->{success}) {
+            <[base.log]>->( 0, "  Failed to ensure '$dep': " .
+                ($result->{error} || 'unknown') );
+
+            return {
+                success => 0,
+                error   => "dependency '$dep' failed: " . ($result->{error} || 'unknown'),
+                failed_at => $dep,
+                chain   => \@chain
+            };
+        }
+
+        <[base.log]>->( 3, "  ✓ '$dep' available" );
+    }
+
+    return {
+        success => 1,
+        chain   => \@chain,
+        resolved => scalar(@chain)
+    };
+}
+
+## Export
+$code{qw| zenki.parent.resolve_dependencies |} = \&zenki_parent_resolve_dependencies;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

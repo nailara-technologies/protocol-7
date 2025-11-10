@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = zenki.parent.request_v7_start
+# descr = Request v7 to start a specific zenka via IPC
+
+sub zenki_parent_request_v7_start {
+    my $params = shift || {};
+
+    my $zenka_name = $params->{zenka};
+
+    unless ($zenka_name) {
+        return { success => 0, error => 'zenka name required' };
+    }
+
+    <[base.log]>->( 3, "zenki.request: asking v7 to start '$zenka_name'..." );
+
+    ## TODO: Implement IPC call to v7
+    ## For now, use direct process start as fallback
+
+    my $v7_binary = <zenki.cfg.v7_binary>;
+
+    unless (-x $v7_binary) {
+        return {
+            success => 0,
+            error   => "v7 binary not found: $v7_binary"
+        };
+    }
+
+    ## Start zenka directly for now
+    ## TODO: Replace with IPC command to running v7
+    <[base.log]>->( 2, "  Starting '$zenka_name' directly (IPC not yet implemented)" );
+
+    my $pid = fork();
+
+    if (!defined $pid) {
+        return {
+            success => 0,
+            error   => "fork failed: $!"
+        };
+    }
+
+    if ($pid == 0) {
+        ## Child process - exec zenka
+        exec($v7_binary, $zenka_name);
+        exit(1);  ## Should never reach here
+    }
+
+    ## Parent process
+    <[base.log]>->( 3, "  Started '$zenka_name' with PID: $pid" );
+
+    return {
+        success => 1,
+        method  => qw| direct_fork |,  ## TODO: Change to 'ipc' when implemented
+        pid     => $pid
+    };
+}
+
+## Export
+$code{qw| zenki.parent.request_v7_start |} = \&zenki_parent_request_v7_start;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

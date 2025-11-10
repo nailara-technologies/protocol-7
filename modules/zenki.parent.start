@@ -1,0 +1,77 @@
+## [:< ##
+
+# name = zenki.parent.start
+# descr = Smart zenka launcher with automatic dependency resolution
+
+sub zenki_parent_start {
+    my $params = shift || {};
+
+    my $zenka_name = $params->{zenka} || $params->{name};
+    my $auto_resolve = $params->{auto_resolve} // 1;
+    my $wait_ready = $params->{wait_ready} // 1;
+
+    unless ($zenka_name) {
+        return {
+            success => 0,
+            error   => 'zenka name required'
+        };
+    }
+
+    <[base.log]>->( 2, "zenki.start: launching '$zenka_name' with auto-resolution..." );
+
+    ## Increment statistics
+    $data{'zenki'}{'stats'}{'auto_resolutions'}++;
+
+    ## Step 1: Resolve dependencies
+    if ($auto_resolve) {
+        my $deps_result = <[zenki.parent.resolve_dependencies]>->({
+            zenka => $zenka_name
+        });
+
+        unless ($deps_result->{success}) {
+            <[base.log]>->( 0, "  Failed to resolve dependencies: " . $deps_result->{error} );
+            return $deps_result;
+        }
+
+        <[base.log]>->( 2, "  Dependencies resolved: " .
+            join(' → ', @{$deps_result->{chain} || []}) );
+    }
+
+    ## Step 2: Ensure zenka is running
+    my $start_result = <[zenki.parent.ensure_zenka]>->({
+        zenka => $zenka_name,
+        wait_ready => $wait_ready
+    });
+
+    if ($start_result->{success}) {
+        <[base.log]>->( 2, "  ✓ Zenka '$zenka_name' is running (PID: " .
+            ($start_result->{pid} || 'unknown') . ")" );
+
+        return {
+            success => 1,
+            zenka   => $zenka_name,
+            pid     => $start_result->{pid},
+            status  => $start_result->{status},
+            socket  => $start_result->{socket}
+        };
+    } else {
+        <[base.log]>->( 0, "  ✗ Failed to start '$zenka_name': " .
+            ($start_result->{error} || 'unknown error') );
+
+        $data{'zenki'}{'stats'}{'failed_starts'}++;
+
+        return $start_result;
+    }
+}
+
+## Export
+$code{qw| zenki.parent.start |} = \&zenki_parent_start;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

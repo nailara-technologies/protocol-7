@@ -1,0 +1,123 @@
+## [:< ##
+
+# name = zenki.parent.ensure_v7
+# descr = Ensure v7 zenka is running (required for managing cube and other zenki)
+
+sub zenki_parent_ensure_v7 {
+    my $params = shift || {};
+
+    <[base.log]>->( 3, "zenki.ensure: checking v7 zenka..." );
+
+    ## Check if v7 is already running
+    my $v7_check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
+
+    if ($v7_check->{running}) {
+        <[base.log]>->( 3, "  ✓ v7 already running (PID: " . $v7_check->{pid} . ")" );
+
+        ## Update registry
+        $data{'zenki'}{'running'}{'v7'} = {
+            pid     => $v7_check->{pid},
+            started => $data{'zenki'}{'running'}{'v7'}{'started'} || time(),
+            status  => qw| running |
+        };
+
+        return {
+            success => 1,
+            already_running => 1,
+            pid => $v7_check->{pid}
+        };
+    }
+
+    ## v7 not running - need to start it
+    <[base.log]>->( 2, "  v7 not running - attempting to start..." );
+
+    ## Check if we have permission (need root for v7)
+    unless (<zenki.cfg.auto_start_v7>) {
+        <[base.log]>->( 0, "  Cannot auto-start v7: requires root permissions (UID=$UID)" );
+
+        return {
+            success => 0,
+            error   => 'v7 requires root permissions - run as root or start v7 manually',
+            requires_root => 1
+        };
+    }
+
+    ## Start v7
+    my $v7_binary = <zenki.cfg.v7_binary>;
+
+    unless (-x $v7_binary) {
+        return {
+            success => 0,
+            error   => "v7 binary not found or not executable: $v7_binary"
+        };
+    }
+
+    <[base.log]>->( 2, "  Starting v7: $v7_binary v7 &" );
+
+    ## Fork and start v7 in background
+    my $pid = fork();
+
+    if (!defined $pid) {
+        return {
+            success => 0,
+            error   => "fork failed: $!"
+        };
+    }
+
+    if ($pid == 0) {
+        ## Child process - exec v7
+        exec($v7_binary, 'v7');
+        exit(1);  ## Should never reach here
+    }
+
+    ## Parent process - wait for v7 to be ready
+    <[base.log]>->( 2, "  Waiting for v7 to start (PID: $pid)..." );
+
+    my $timeout = <zenki.cfg.v7_startup_timeout>;
+    my $start_time = time();
+
+    while (time() - $start_time < $timeout) {
+        sleep 1;
+
+        my $check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
+
+        if ($check->{running}) {
+            <[base.log]>->( 2, "  ✓ v7 started successfully" );
+
+            ## Update registry and statistics
+            $data{'zenki'}{'running'}{'v7'} = {
+                pid     => $pid,
+                started => time(),
+                status  => qw| running |
+            };
+
+            $data{'zenki'}{'stats'}{'v7_starts'}++;
+
+            return {
+                success => 1,
+                started => 1,
+                pid     => $pid
+            };
+        }
+    }
+
+    <[base.log]>->( 0, "  ✗ v7 startup timeout after ${timeout}s" );
+
+    return {
+        success => 0,
+        error   => "v7 startup timeout after ${timeout}s",
+        pid     => $pid
+    };
+}
+
+## Export
+$code{qw| zenki.parent.ensure_v7 |} = \&zenki_parent_ensure_v7;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

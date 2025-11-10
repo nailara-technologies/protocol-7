@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = zenki.console.status
+# param = [zenka_name]
+# descr = show status of running zenki
+
+my $filter = shift;
+
+<[base.log]>->( 1, "Checking zenki status..." );
+
+## Get list of zenki to check
+my @zenki_to_check = $filter ? ($filter) : qw| v7 cube |;
+
+## Add other zenki from running registry
+if (!$filter && $data{'zenki'}{'running'}{'zenki'}) {
+    push @zenki_to_check, keys %{$data{'zenki'}{'running'}{'zenki'}};
+}
+
+my @output;
+push @output, "::\n: Zenki Status\n:";
+push @output, sprintf(": %-20s  %-10s  %s", 'Zenka', 'Status', 'PID');
+push @output, ": " . ("-" x 50);
+
+foreach my $zenka_name (@zenki_to_check) {
+    my $check = <[zenki.parent.check_running]>->({ zenka => $zenka_name });
+
+    my $status = $check->{running} ? '✓ running' : '✗ stopped';
+    my $pid = $check->{pid} || '-';
+
+    push @output, sprintf(": %-20s  %-10s  %s", $zenka_name, $status, $pid);
+}
+
+## Show statistics
+push @output, ":";
+push @output, ": Statistics:";
+push @output, ":   Auto-resolutions: " . ($data{'zenki'}{'stats'}{'auto_resolutions'} || 0);
+push @output, ":   v7 starts:        " . ($data{'zenki'}{'stats'}{'v7_starts'} || 0);
+push @output, ":   cube starts:      " . ($data{'zenki'}{'stats'}{'cube_starts'} || 0);
+push @output, ":   zenka starts:     " . ($data{'zenki'}{'stats'}{'zenka_starts'} || 0);
+push @output, ":   failed starts:    " . ($data{'zenki'}{'stats'}{'failed_starts'} || 0);
+
+push @output, "::";
+
+return say join("\n", @output);
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

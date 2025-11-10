@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = zenki.parent.init_code
+# descr = Initialize zenki dependency resolution and smart launcher
+
+<[base.log]>->( 2, 'initializing zenki dependency resolution system..,' );
+
+## Configuration
+<zenki.cfg.v7_binary>           //= '/data/projects/protocol-7/bin/Protocol-7';
+<zenki.cfg.v7_startup_timeout>  //= 10;   ## Seconds to wait for v7 startup
+<zenki.cfg.cube_startup_timeout> //= 5;   ## Seconds to wait for cube startup
+<zenki.cfg.zenka_startup_timeout> //= 8;  ## Seconds to wait for zenka startup
+<zenki.cfg.auto_start_v7>       //= ($UID == 0 ? 1 : 0);  ## Auto-start v7 when root
+<zenki.cfg.cube_socket_path>    //= '/var/run/.7/UNIX';   ## Cube socket directory
+
+## Registries for tracking running processes
+<zenki.running.v7>    //= {};  ## v7 process info
+<zenki.running.cube>  //= {};  ## cube process info
+<zenki.running.zenki> //= {};  ## Other zenki processes
+
+## Dependency chain: zenka → cube → v7
+<zenki.deps.chain> = {
+    v7   => [],           ## v7 has no dependencies
+    cube => [qw| v7 |],   ## cube requires v7
+    '*'  => [qw| cube |]  ## All other zenki require cube
+};
+
+## Initialize statistics
+<zenki.stats> = {
+    v7_starts       => 0,
+    cube_starts     => 0,
+    zenka_starts    => 0,
+    auto_resolutions => 0,
+    failed_starts   => 0
+};
+
+<[base.log]>->( 2, 'zenki dependency resolution system initialized' );
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

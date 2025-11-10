@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = zenki.parent.check_running
+# descr = Check if a specific zenka is currently running
+
+sub zenki_parent_check_running {
+    my $params = shift || {};
+
+    my $zenka_name = $params->{zenka};
+
+    unless ($zenka_name) {
+        return { running => 0, error => 'zenka name required' };
+    }
+
+    ## Use ps to check for running process
+    ## Look for: "Protocol-7 <zenka_name>" or "perl.*<zenka_name>"
+
+    my $ps_output = `ps aux 2>/dev/null`;
+
+    ## Pattern: Protocol-7 zenka_name OR bin/Protocol-7 zenka_name
+    my $pattern = qr/Protocol-7\s+$zenka_name(?:\s|$)/;
+
+    foreach my $line (split /\n/, $ps_output) {
+        if ($line =~ $pattern) {
+            ## Extract PID (second column in ps aux output)
+            my @fields = split /\s+/, $line;
+            my $pid = $fields[1];
+
+            if ($pid && $pid =~ /^\d+$/) {
+                ## Verify process still exists
+                if (kill 0, $pid) {
+                    return {
+                        running => 1,
+                        pid     => $pid,
+                        cmdline => $line
+                    };
+                }
+            }
+        }
+    }
+
+    ## Not found
+    return {
+        running => 0,
+        zenka   => $zenka_name
+    };
+}
+
+## Export
+$code{qw| zenki.parent.check_running |} = \&zenki_parent_check_running;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

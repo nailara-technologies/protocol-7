@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = zenki.console.start
+# param = <zenka_name>
+# descr = start zenka with automatic dependency resolution
+
+my $zenka_name = shift;
+
+unless ($zenka_name) {
+    <[base.log]>->( 0, "Error: zenka name required" );
+    return say "::\n: Usage: start <zenka_name>\n::";
+}
+
+<[base.log]>->( 1, "Starting zenka: $zenka_name (with auto-resolution)" );
+
+## Use smart launcher
+my $result = <[zenki.parent.start]>->({
+    zenka => $zenka_name,
+    auto_resolve => 1,
+    wait_ready => 1
+});
+
+if ($result->{success}) {
+    my $pid = $result->{pid} || 'unknown';
+    my $status = $result->{already_running} ? 'already running' : 'started';
+
+    <[base.log]>->( 1, "✓ Zenka '$zenka_name' $status (PID: $pid)" );
+
+    return say "::\n: ✓ Zenka '$zenka_name' is running\n: PID: $pid\n::";
+} else {
+    my $error = $result->{error} || 'unknown error';
+
+    <[base.log]>->( 0, "✗ Failed to start '$zenka_name': $error" );
+
+    return say "::\n: ✗ Failed to start zenka\n: Error: $error\n::";
+}
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
