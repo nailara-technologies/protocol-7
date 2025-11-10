@@ -95,6 +95,26 @@ if ( !-x <v7.rmmod_bin> ) {
 <[v7.load_start_setup]>->(<load.start_setup>)
     if defined <load.start_setup>;
 
+## Check and install dependencies (development mode)
+if ($UID == 0) {
+    <[base.log]>->( 2, "v7: checking dependencies..." );
+
+    ## Check if debian module is available
+    if (exists $code{'debian.parent.ensure_zenka_dependencies'}) {
+        my $deps_ok = <[debian.parent.ensure_zenka_dependencies]>->('v7', 1);
+
+        if ($deps_ok) {
+            <[base.log]>->( 2, "v7: ✓ all dependencies satisfied" );
+        } else {
+            <[base.log]>->( 0, "v7: ⚠ some dependencies missing - continuing anyway" );
+        }
+    } elsif (exists $code{'base.ensure_zenka_dependencies'}) {
+        <[base.ensure_zenka_dependencies]>->('v7');
+    } else {
+        <[base.log]>->( 2, "v7: debian zenka not available - skipping dependency check" );
+    }
+}
+
 ## zenka dir based startup configs #
 <[v7.load_zenka_startup_cfgs]>;
 

@@ -9,7 +9,7 @@
 
 ## Configuration
 <debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
-<debian.cfg.auto_install>      //= 0;  ## Don't auto-install by default
+<debian.cfg.auto_install>      //= ($UID == 0 ? 1 : 0);  ## Auto-install when root
 <debian.cfg.prefer_debian>     //= 1;  ## Prefer debian packages over cpanm
 
 ## Detect OS
