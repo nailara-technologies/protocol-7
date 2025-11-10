@@ -1,0 +1,103 @@
+<h1>Weather Information</h1>
+
+<p>This page demonstrates inter-zenka communication through template tags. The weather widget below calls the <code>weather.cmd.widget</code> module, which formats weather data with psychedelic blacklight styling.</p>
+
+<div class="info-box">
+    <h3>Inter-Zenka Communication Pattern</h3>
+    <p>Template tags like <code>&lt;[weather.cmd.widget]&gt;</code> are processed by the <strong>web zenka</strong>, which can communicate with other zenki (such as the <strong>weather zenka</strong>) via IPC to fetch real-time data.</p>
+
+    <p>Architecture flow:</p>
+    <ol>
+        <li><strong>httpd zenka</strong> receives request for <code>/weather/</code></li>
+        <li>Loads content from <code>/data/web/default/04_weather/index.txt</code></li>
+        <li>Offloads template processing to <strong>web zenka</strong> via IPC</li>
+        <li><strong>web zenka</strong> encounters <code>&lt;[weather.cmd.widget]&gt;</code> tag</li>
+        <li>Calls weather module, which can query <strong>weather zenka</strong> for data</li>
+        <li>Returns formatted HTML with psychedelic styling</li>
+        <li>Result wrapped in skin template and returned to client</li>
+    </ol>
+</div>
+
+<h2>Live Weather Widget</h2>
+
+<[weather.cmd.widget]>
+
+<div class="tech-notes">
+    <h3>Technical Implementation</h3>
+    <ul>
+        <li><strong>Recursive template parsing</strong> using <code>base.parser.pattern_split</code></li>
+        <li><strong>Psychedelic CSS</strong> with dark blue (#000014) background, cyan (#22d3ee) and purple (#a78bfa) neon glows</li>
+        <li><strong>Icon handling</strong> with alpha-transparent borders and drop-shadow filters</li>
+        <li><strong>Animated effects</strong>: border-pulse, text-glow, icon-pulse animations</li>
+        <li><strong>IPC communication</strong> via <code>base.protocol-7.command.send.local</code></li>
+    </ul>
+
+    <p>The widget currently displays example data. When the weather zenka is fully operational, it will fetch real-time data from the OpenWeatherMap API configured in <code>configuration/zenki/weather/start</code>.</p>
+</div>
+
+<h2>Individual Components</h2>
+
+<p>You can also call specific weather components separately:</p>
+
+<h3>Current Conditions Only</h3>
+<[weather.cmd.current]>
+
+<div style="margin: 30px 0;"></div>
+
+<h3>Forecast Only</h3>
+<[weather.cmd.forecast]>
+
+<style>
+/* Content page styling */
+.info-box {
+    background: rgba(0, 20, 51, 0.3);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.info-box h3 {
+    color: #22d3ee;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    margin-top: 0;
+}
+
+.info-box ol, .info-box ul {
+    color: rgba(139, 192, 253, 0.9);
+    line-height: 1.8;
+}
+
+.info-box ol li strong, .info-box ul li strong {
+    color: #a78bfa;
+    text-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+}
+
+.tech-notes {
+    background: rgba(0, 10, 31, 0.5);
+    border: 1px solid rgba(168, 139, 250, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 30px 0;
+}
+
+.tech-notes h3 {
+    color: #a78bfa;
+    text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+    margin-top: 0;
+}
+
+.tech-notes ul {
+    color: rgba(139, 192, 253, 0.9);
+    line-height: 1.8;
+}
+
+.tech-notes code {
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #22d3ee;
+    font-family: 'Courier New', monospace;
+}
+</style>
