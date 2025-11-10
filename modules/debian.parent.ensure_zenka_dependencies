@@ -17,7 +17,7 @@ sub debian_parent_ensure_zenka_dependencies {
     unless ($zenka_id) {
         ## Zenka not in registry - rescan
         <[base.log]>->( 2, "  Zenka not in registry, rescanning..." );
-        <[debian.parent.scan_zenki_dependencies]>;
+        <[debian.parent.scan_zenki_dependencies]>();
 
         $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
 
@@ -30,7 +30,7 @@ sub debian_parent_ensure_zenka_dependencies {
     my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 
     ## Check current status
-    <[debian.parent.check_installed]>;
+    <[debian.parent.check_installed]>();
 
     my $missing = $zenka->{missing_count} || 0;
 

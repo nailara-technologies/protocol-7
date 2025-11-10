@@ -137,7 +137,7 @@
 ## Perform initial scan of zenki
 <[base.log]>->( 2, "  Scanning zenki for dependencies..." );
 
-my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
+my $scan_result = <[debian.parent.scan_zenki_dependencies]>();
 
 if ($scan_result && ref($scan_result) eq 'HASH' && $scan_result->{success}) {
     <[base.log]>->( 2, "  Scan complete: " .

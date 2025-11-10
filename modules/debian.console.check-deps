@@ -17,11 +17,11 @@ if (defined $param) {
 
 ## Rescan to ensure latest info
 <[base.log]>->( 2, "Rescanning zenki dependencies..." );
-<[debian.parent.scan_zenki_dependencies]>;
+<[debian.parent.scan_zenki_dependencies]>();
 
 ## Run check
 <[base.log]>->( 2, "Checking installation status..." );
-my $result = <[debian.parent.check_installed]>;
+my $result = <[debian.parent.check_installed]>();
 
 unless ($result->{success}) {
     <[base.log]>->( 0, "Check failed: " . ($result->{error} || 'unknown') );
