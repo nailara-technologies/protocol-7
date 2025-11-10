@@ -1,0 +1,117 @@
+## [:< ##
+
+# name = web.process-template-ipc
+# descr = IPC command handler for processing templates from httpd zenka
+# args  = template_id:template_content_b32r:meta_vars_b32r:session_id
+
+my $args_str = shift // '';
+
+unless ( length($args_str) ) {
+    return ( 0, qq| usage: template_id:template_b32r:meta_b32r:session_id | );
+}
+
+my ( $template_id, $template_b32r, $meta_b32r, $session_id )
+    = split( /:/, $args_str, 4 );
+
+unless ( defined $template_id and defined $template_b32r ) {
+    return ( 0, qq| missing required parameters | );
+}
+
+<[base.log]>->(
+    2,
+    "web.process-template-ipc: received template $template_id from httpd session $session_id"
+);
+
+## Decode template content from base32r ##
+my $template_content = <[base.decode.base32r]>->($template_b32r);
+
+unless ( defined $template_content ) {
+    <[base.log]>->(
+        0,
+        "web.process-template-ipc: failed to decode template content for $template_id"
+    );
+    return ( 0, qq| failed to decode template content | );
+}
+
+## Decode meta variables from base32r-encoded JSON ##
+my $meta_vars = {};
+if ( defined $meta_b32r and length($meta_b32r) ) {
+    my $meta_json = <[base.decode.base32r]>->($meta_b32r);
+    if ( defined $meta_json ) {
+        $meta_vars = <[base.json.decode]>->($meta_json) // {};
+    }
+}
+
+<[base.log]>->(
+    2,
+    "web.process-template-ipc: processing template $template_id ("
+        . length($template_content)
+        . " bytes, "
+        . scalar( keys %{$meta_vars} )
+        . " meta vars)"
+);
+
+## Track active template processing ##
+<web.templates.active>{$template_id} = {
+    template_id => $template_id,
+    client_id   => $session_id,
+    status      => qw| processing |,
+    depth       => 0,
+    started_at  => time(),
+};
+
+## Process template recursively ##
+my $start_time = <[base.time]>->(4);
+
+my $result = <[web.process_template_recursive]>->(
+    {   content     => $template_content,
+        meta        => $meta_vars,
+        depth       => 0,
+        template_id => $template_id,
+        session_id  => $session_id,
+    }
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+## Clean up active template tracking ##
+delete <web.templates.active>{$template_id};
+
+## Update metrics ##
+<web.templates.processed>++;
+my $prev_avg = <web.metrics>->{avg_processing_time_ms};
+<web.metrics>->{avg_processing_time_ms} =
+    ( $prev_avg * ( <web.templates.processed> - 1 ) + $elapsed_ms )
+    / <web.templates.processed>;
+
+if ( $result->{status} eq qw| success | ) {
+    <[base.log]>->(
+        2,
+        sprintf(
+            "web.process-template-ipc: completed $template_id in %.2fms (depth: %d, size: %d bytes)",
+            $elapsed_ms,
+            $result->{depth},
+            length( $result->{content} )
+        )
+    );
+
+    ## Return processed content as SIZE response ##
+    ## This will send the content back to httpd via IPC ##
+    return ( 5, $result->{content} );    ## 5 = TRUE + SIZE (return data)
+
+} else {
+    <[base.log]>->(
+        0,
+        "web.process-template-ipc: processing failed for $template_id: "
+            . $result->{message}
+    );
+
+    ## Return error as FALSE response ##
+    return ( 0, qq| template processing failed: | . $result->{message} );
+}
+
+#,,.,,,,,.,,,.,,,.,.,...,,.,,,,.,.,,,,,.,,.,,...,.,.,,,.,,..,...,...,...,,.,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

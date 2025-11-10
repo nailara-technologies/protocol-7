@@ -1,0 +1,261 @@
+task:
+  id: recursive-template-parsing-phase9
+  title: "Phase 9: Recursive Template Parsing with Web Zenka Offloading"
+  status: completed
+  priority: high
+  created: 2025-11-10
+  completed: 2025-11-10
+
+description: |
+  Implement recursive template parsing system using base.parser.pattern_split
+  and offload template processing from httpd to web zenka for better performance
+  and support for nested template commands.
+
+objectives:
+  - Create web zenka infrastructure for template processing
+  - Implement recursive template parsing using base.parser.pattern_split
+  - Support nested template commands like <[outer:<[inner]>]>
+  - Offload template processing from httpd to web zenka via IPC
+  - Maintain backward compatibility with existing templates
+
+components_created:
+  - module: web.init_code
+    description: Initialize web content zenka with template processing infrastructure
+    features:
+      - Configuration for recursion depth limits (max 8 levels)
+      - Template command pattern using regex for base.parser.pattern_split
+      - Meta variable pattern for <{variable_name}> syntax
+      - Performance metrics tracking
+      - Visibility lists for active templates and pending commands
+      - Cache configuration (1800s TTL, 5MB max template size)
+    location: modules/web.init_code
+
+  - module: web.process_template_recursive
+    description: Core recursive template processor using base.parser.pattern_split
+    features:
+      - Recursive parsing of template commands with depth tracking
+      - Meta variable substitution (<{var_name}>)
+      - Command extraction using base.parser.pattern_split with callbacks
+      - Nested command detection and recursive processing
+      - Command execution via web.execute_template_command
+      - Result substitution back into template
+      - Multi-pass recursion for generated commands
+    location: modules/web.process_template_recursive
+    algorithm: |
+      1. Check recursion depth limit
+      2. Process meta variables <{var_name}>
+      3. Extract commands using base.parser.pattern_split
+      4. Identify nested commands (containing <[...)
+      5. Recursively process nested commands first
+      6. Execute all commands via web.execute_template_command
+      7. Substitute command results into template
+      8. If new commands generated, recurse again
+      9. Return processed content
+
+  - module: web.execute_template_command
+    description: Execute individual template commands with timeout protection
+    features:
+      - Command string parsing (module.name:arg1:arg2:...)
+      - Module name validation (alphanumeric, dots, dashes, underscores)
+      - Timeout protection (configurable, default 15s)
+      - Pending command tracking in <web.commands.pending>
+      - Error handling for missing modules
+      - Result type validation and conversion
+      - Support for structured data (hash with 'content' key)
+    location: modules/web.execute_template_command
+
+  - module: web.cmd.process-template
+    description: Operator command for manual template processing
+    features:
+      - Load template file from filesystem
+      - Parse meta variable assignments (var=value)
+      - File size validation (5MB limit)
+      - Template processing via web.process_template_recursive
+      - Performance metrics (processing time, recursion depth)
+      - Return processed content as SIZE response
+    usage: "process-template <template-path> [meta-var=value ...]"
+    location: modules/web.cmd.process-template
+
+  - module: web.process-template-ipc
+    description: IPC command handler for httpd-to-web template processing
+    features:
+      - Decode base32r-encoded template content and meta variables
+      - JSON deserialization for meta variables
+      - Call web.process_template_recursive
+      - Track active template processing
+      - Performance metrics collection
+      - Return SIZE response with processed content
+    ipc_format: "template_id:template_b32r:meta_b32r:session_id"
+    location: modules/web.process-template-ipc
+
+components_modified:
+  - module: httpd.process_template
+    description: Updated to offload template processing to web zenka
+    changes:
+      - Removed inline template parsing and command splitting
+      - Load template content via file.get
+      - Serialize meta variables to JSON and base32r encode
+      - Encode template content as base32r
+      - Send to web zenka via base.protocol-7.command.send.local
+      - Register httpd.handler.web_template_reply for async response
+      - Simplified from 153 lines to 90 lines
+    location: modules/httpd.process_template
+    ipc_call: "cube.web.process-template-ipc"
+
+  - module: httpd.handler.web_template_reply
+    description: New reply handler for web zenka template processing results
+    features:
+      - Handle SIZE response (success with processed content)
+      - Handle FALSE response (processing error)
+      - Build HTTP response headers
+      - Set content type and length
+      - Trigger output flush
+      - Error handling with 500 Internal Server Error
+    location: modules/httpd.handler.web_template_reply
+
+technical_architecture:
+  flow: |
+    1. Client requests .tmpl file from httpd/httpsd
+    2. httpd.http_get detects .tmpl extension
+    3. httpd.http_get calls httpd.process_template
+    4. httpd.process_template:
+       a. Loads template content
+       b. Encodes template + meta vars to base32r
+       c. Sends to web zenka via IPC
+       d. Returns 1 (keep connection alive)
+    5. Web zenka receives via web.process-template-ipc
+    6. web.process_template_recursive:
+       a. Processes meta variables
+       b. Extracts commands using base.parser.pattern_split
+       c. Recursively processes nested commands
+       d. Executes commands via web.execute_template_command
+       e. Substitutes results
+       f. Recurses if new commands generated
+    7. Web zenka returns processed content (SIZE response)
+    8. httpd.handler.web_template_reply receives result
+    9. Builds HTTP response with processed content
+    10. Sends to client
+
+  ipc_mechanism:
+    protocol: base.protocol-7.command.send.local
+    encoding: base32r for binary-safe transport
+    serialization: JSON for structured data (meta variables)
+    response_modes:
+      - "SIZE (5)": Success with data
+      - "FALSE (0)": Error with message
+      - "TRUE (1)": Success without data (not used here)
+
+  recursion_control:
+    max_depth: 8
+    guard: "if (depth >= max_depth) return error"
+    tracking: Depth passed through recursive calls
+    metrics: recursion_depth_max_hit counter
+
+  patterns_supported:
+    commands: "<[module.name:arg1:arg2]>"
+    nested_commands: "<[outer:<[inner:param]>:more]>"
+    meta_variables: "<{variable_name}>"
+    escaped: "\\<[not_a_command]>"
+
+  performance:
+    template_cache: 1800s TTL
+    command_timeout: 15s per command
+    max_template_size: 5MB
+    parallel_commands_max: 16
+    metrics_tracked:
+      - templates_processed
+      - templates_cached
+      - commands_executed
+      - commands_nested
+      - recursion_depth_max_hit
+      - avg_processing_time_ms
+      - cache_hits
+      - cache_misses
+
+benefits:
+  - Recursive template parsing supports complex nested structures
+  - Offloading to web zenka improves httpd performance
+  - base.parser.pattern_split provides robust parsing with callbacks
+  - Proper recursion depth limiting prevents infinite loops
+  - Timeout protection prevents hanging commands
+  - Metrics provide visibility into template processing
+  - Visibility lists enable real-time monitoring
+  - IPC-based architecture enables horizontal scaling
+
+backward_compatibility:
+  - Existing template command syntax <[module:params]> still works
+  - Meta variables <{var_name}> work as before
+  - httpd API unchanged (httpd.process_template signature same)
+  - Error handling improved (500 instead of hanging)
+
+testing_scenarios:
+  - Simple template with no commands (passthrough)
+  - Template with single command
+  - Template with multiple sequential commands
+  - Template with nested commands (2 levels)
+  - Template with deeply nested commands (8 levels)
+  - Template exceeding recursion depth (should error)
+  - Template with undefined meta variables
+  - Template with command timeout
+  - Template with missing command module
+  - Large template near 5MB size limit
+  - Template with special characters and escaping
+
+next_steps:
+  - Create test templates for validation
+  - Update web zenka configuration to load new modules
+  - Test httpd-to-web IPC communication
+  - Verify HTTPS works with recursive templates
+  - Performance testing with concurrent requests
+  - Create documentation for template command authors
+
+integration_points:
+  httpd: "httpd.process_template calls web zenka"
+  httpsd: "httpsd inherits httpd template processing"
+  letsencrypt: "Uses template system for status pages"
+  monitoring: "Visibility lists for active templates and commands"
+
+metrics_visibility:
+  lists:
+    - web-templates: "Active template processing operations"
+    - web-commands: "Pending template command executions"
+  commands:
+    - "list web-templates"
+    - "list web-commands"
+    - "show web.metrics"
+
+files_created:
+  - modules/web.init_code
+  - modules/web.process_template_recursive
+  - modules/web.execute_template_command
+  - modules/web.cmd.process-template
+  - modules/web.process-template-ipc
+  - modules/httpd.handler.web_template_reply
+  - data/yaml/coding-tasks/recursive-template-parsing-phase9.yaml
+
+files_modified:
+  - modules/httpd.process_template
+
+notes: |
+  This implementation provides a robust, scalable template processing system
+  that leverages the upgraded base.parser.pattern_split routine for recursive
+  parsing. The offloading to web zenka improves httpd performance and enables
+  horizontal scaling by running multiple web zenka instances.
+
+  The recursive parsing allows for powerful template composition where
+  commands can generate other commands, which are then processed in turn.
+  This enables dynamic content generation with proper depth limiting to
+  prevent infinite loops.
+
+  The IPC-based architecture maintains clean separation of concerns between
+  httpd (HTTP protocol handling) and web zenka (content processing), following
+  the Protocol-7 zenka design pattern.
+
+related_tasks:
+  - letsencrypt-acme-enrollment-phase1: ACME client foundation
+  - letsencrypt-acme-enrollment-phase2: Challenge handling
+  - letsencrypt-acme-enrollment-phase3: Certificate enrollment
+  - letsencrypt-acme-enrollment-phase4: Renewal system
+  - letsencrypt-acme-enrollment-phase5: Monitoring and activity logging
+  - letsencrypt-httpsd-integration-phase8: HTTPS server integration
+  - recursive-template-parsing-phase9: Template processing (this task)

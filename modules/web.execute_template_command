@@ -1,0 +1,161 @@
+## [:< ##
+
+# name = web.execute_template_command
+# descr = Execute a single template command and return result
+
+my $params = shift;
+
+my $command_str = $params->{command};
+my $template_id = $params->{template_id};
+my $session_id  = $params->{session_id};
+my $depth       = $params->{depth} // 0;
+
+<[base.log]>->(
+    3,
+    "[$session_id] executing template command: $command_str (depth: $depth)"
+);
+
+## Parse command string: module.name:arg1:arg2:... ##
+my ( $module_path, @args ) = split( /:/, $command_str );
+
+## Validate module name ##
+unless ($module_path) {
+    return {
+        status  => qw| error |,
+        message => qq| empty command |,
+        result  => '',
+    };
+}
+
+## Remove leading/trailing whitespace ##
+$module_path =~ s/^\s+|\s+$//g;
+
+## Validate module name format (alphanumeric, dots, dashes, underscores) ##
+unless ( $module_path =~ /^[\w\-_.]+$/ ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] invalid command format: $module_path"
+    );
+    return {
+        status  => qw| error |,
+        message => qq| invalid command format |,
+        result  => '',
+    };
+}
+
+## Track pending command ##
+my $cmd_id = sprintf( '%s_%s_%d', $template_id, $module_path, time() );
+<web.commands.pending>{$cmd_id} = {
+    command_name => $module_path,
+    template_id  => $template_id,
+    status       => qw| executing |,
+    created_at   => time(),
+};
+
+## Check if module exists ##
+unless ( exists $code{$module_path} ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] template command not found: $module_path"
+    );
+
+    delete <web.commands.pending>{$cmd_id};
+
+    return {
+        status  => qw| error |,
+        message => qq| command module not found: $module_path |,
+        result  => qq| <!-- command not found: $module_path --> |,
+    };
+}
+
+## Execute command with timeout protection ##
+my $timeout       = <web.cfg.command_timeout> // 15;
+my $result        = '';
+my $exec_status   = qw| success |;
+my $exec_message  = '';
+my $timed_out     = 0;
+
+eval {
+    local $SIG{ALRM} = sub { die "timeout\n" };
+    alarm($timeout);
+
+    ## Execute the command module ##
+    $result = $code{$module_path}->(@args);
+
+    alarm(0);
+};
+
+if ($@) {
+    if ( $@ eq "timeout\n" ) {
+        <[base.log]>->(
+            1,
+            "[$session_id] command timed out after ${timeout}s: $module_path"
+        );
+        $exec_status  = qw| error |;
+        $exec_message = qq| command execution timed out |;
+        $result = qq| <!-- command timed out: $module_path --> |;
+        $timed_out = 1;
+    } else {
+        <[base.log]>->(
+            1,
+            "[$session_id] command execution error: $module_path - $@"
+        );
+        $exec_status  = qw| error |;
+        $exec_message = qq| command execution error: $@ |;
+        $result       = qq| <!-- command error: $module_path --> |;
+    }
+    alarm(0);
+}
+
+## Clean up pending command tracking ##
+delete <web.commands.pending>{$cmd_id};
+
+## Validate result type ##
+unless ( defined $result ) {
+    <[base.log]>->(
+        2,
+        "[$session_id] command returned undefined result: $module_path"
+    );
+    $result = '';
+}
+
+## Convert non-string results to strings ##
+if ( ref($result) eq 'HASH' ) {
+    ## If command returns structured data, check for 'content' key ##
+    if ( exists $result->{content} ) {
+        $result = $result->{content};
+    } else {
+        <[base.log]>->(
+            2,
+            "[$session_id] command returned hash without 'content' key: $module_path"
+        );
+        $result = '';
+    }
+} elsif ( ref($result) ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] command returned unsupported type: "
+            . ref($result)
+            . " for $module_path"
+    );
+    $result = '';
+}
+
+<[base.log]>->(
+    3,
+    "[$session_id] command execution complete: $module_path ("
+        . length($result)
+        . " bytes)"
+);
+
+return {
+    status  => $exec_status,
+    message => $exec_message,
+    result  => $result,
+};
+
+#,,,.,,,.,,,.,,,,,.,.,,,,,.,.,.,...,,,.,,,.,...,.,.,.,,..,,..,.,,,...,.,,,,,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
