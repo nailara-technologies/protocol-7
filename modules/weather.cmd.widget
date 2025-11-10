@@ -16,11 +16,11 @@ sub weather_cmd_widget {
     $html .= _get_weather_widget_css();
 
     if ($show_current) {
-        $html .= <[weather.cmd.current]>->($params);
+        $html .= <[weather.current]>->($params);
     }
 
     if ($show_forecast) {
-        $html .= <[weather.cmd.forecast]>->( { days => $forecast_days } );
+        $html .= <[weather.forecast]>->( { days => $forecast_days } );
     }
 
     $html .= qq|</div>|;
