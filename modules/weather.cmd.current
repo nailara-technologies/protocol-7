@@ -1,0 +1,112 @@
+## [:< ##
+
+# name = weather.cmd.current
+# descr = Format current weather conditions for web display with psychedelic styling
+
+sub weather_cmd_current {
+    my $params = shift || {};
+
+    my $location = $params->{location} || <weather.location> || qw| Offenburg,DE |;
+
+    ## In future, fetch from weather zenka via IPC:
+    ## <[base.protocol-7.command.send.local]>->(
+    ##     { 'command' => 'weather.present', 'zenka' => 'weather', ... }
+    ## );
+
+    ## For now, use example data to demonstrate the UI pattern
+    my $weather_data = {
+        location     => $location,
+        temperature  => 18,
+        feels_like   => 16,
+        description  => qw| partly cloudy |,
+        clouds       => 65,
+        humidity     => 72,
+        pressure     => 1013,
+        wind_speed   => 12,
+        wind_dir     => qw| NW |,
+        icon         => qw| 02d |,
+        updated      => time(),
+    };
+
+    ## Generate psychedelic HTML
+    my $html = _format_current_widget($weather_data);
+
+    return $html;
+}
+
+sub _format_current_widget {
+    my ($data) = @_;
+
+    my $location    = $data->{location};
+    my $temp        = $data->{temperature};
+    my $feels_like  = $data->{feels_like};
+    my $description = $data->{description};
+    my $clouds      = $data->{clouds};
+    my $humidity    = $data->{humidity};
+    my $pressure    = $data->{pressure};
+    my $wind_speed  = $data->{wind_speed};
+    my $wind_dir    = $data->{wind_dir};
+
+    my $html = qq|
+<div class="weather-current">
+    <div class="weather-header">
+        <div class="weather-location">$location</div>
+        <div class="weather-updated">Updated: <span class="time-ago">just now</span></div>
+    </div>
+
+    <div class="weather-main">
+        <div class="temp-display">
+            <div class="temp-value">$temp°C</div>
+            <div class="feels-like">Feels like $feels_like°C</div>
+            <div class="weather-desc">$description</div>
+        </div>
+
+        <div class="weather-icon-container">
+            <div class="weather-icon-glow"></div>
+        </div>
+    </div>
+
+    <div class="weather-details">
+        <div class="detail-row">
+            <span class="detail-label">Cloudiness</span>
+            <div class="detail-bar-container">
+                <div class="detail-bar" style="width: ${clouds}%"></div>
+            </div>
+            <span class="detail-value">$clouds%</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Humidity</span>
+            <div class="detail-bar-container">
+                <div class="detail-bar humidity-bar" style="width: ${humidity}%"></div>
+            </div>
+            <span class="detail-value">$humidity%</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Pressure</span>
+            <span class="detail-value">$pressure hPa</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Wind</span>
+            <span class="detail-value">$wind_speed km/h $wind_dir</span>
+        </div>
+    </div>
+</div>
+|;
+
+    return $html;
+}
+
+## Export command ##
+$code{qw| weather.cmd.current |} = \\&weather_cmd_current;
+
+0;
+
+#,,,.,,.,.,.,.,.,.,,,,.,,.,,,.,,,.,,,.,,,.,.,.,.,.,.,.,,,.,.,.,,,,,.,...,...,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

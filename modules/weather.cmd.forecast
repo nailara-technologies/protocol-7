@@ -1,0 +1,86 @@
+## [:< ##
+
+# name = weather.cmd.forecast
+# descr = Format weather forecast for web display with psychedelic styling
+
+sub weather_cmd_forecast {
+    my $params = shift || {};
+
+    my $days = $params->{days} || 5;
+
+    ## In future, fetch from weather zenka via IPC:
+    ## <[base.protocol-7.command.send.local]>->(
+    ##     { 'command' => 'weather.forecast', 'zenka' => 'weather', ... }
+    ## );
+
+    ## For now, use example data
+    my @forecast = (
+        { day => qw| Mon |, temp_min => 12, temp_max => 19, desc => qw| sunny |,        clouds => 20, icon => qw| 01d | },
+        { day => qw| Tue |, temp_min => 14, temp_max => 21, desc => qw| clear |,         clouds => 15, icon => qw| 01d | },
+        { day => qw| Wed |, temp_min => 13, temp_max => 18, desc => qw| cloudy |,        clouds => 75, icon => qw| 03d | },
+        { day => qw| Thu |, temp_min => 11, temp_max => 16, desc => qw| rain |,          clouds => 90, icon => qw| 10d | },
+        { day => qw| Fri |, temp_min => 10, temp_max => 15, desc => qw| light rain |,    clouds => 80, icon => qw| 09d | },
+    );
+
+    ## Limit to requested days
+    @forecast = @forecast[ 0 .. ( $days - 1 ) ] if $days < scalar(@forecast);
+
+    my $html = _format_forecast_widget( \\@forecast );
+
+    return $html;
+}
+
+sub _format_forecast_widget {
+    my ($forecast_ref) = @_;
+
+    my $html = qq|
+<div class="weather-forecast">
+    <div class="forecast-header">5-Day Forecast</div>
+    <div class="forecast-grid">
+|;
+
+    foreach my $day_data ( @{$forecast_ref} ) {
+        my $day      = $day_data->{day};
+        my $temp_min = $day_data->{temp_min};
+        my $temp_max = $day_data->{temp_max};
+        my $desc     = $day_data->{desc};
+        my $clouds   = $day_data->{clouds};
+
+        $html .= qq|
+        <div class="forecast-day">
+            <div class="forecast-day-name">$day</div>
+            <div class="forecast-icon-container">
+                <div class="forecast-icon-glow"></div>
+            </div>
+            <div class="forecast-temps">
+                <span class="temp-max">$temp_max°</span>
+                <span class="temp-separator">/</span>
+                <span class="temp-min">$temp_min°</span>
+            </div>
+            <div class="forecast-desc">$desc</div>
+            <div class="forecast-clouds">
+                <div class="clouds-bar-mini" style="width: ${clouds}%"></div>
+            </div>
+        </div>
+|;
+    }
+
+    $html .= qq|
+    </div>
+</div>
+|;
+
+    return $html;
+}
+
+## Export command ##
+$code{qw| weather.cmd.forecast |} = \\&weather_cmd_forecast;
+
+0;
+
+#,,,.,,.,,,.,.,.,.,.,,,.,.,.,.,.,,,,,.,,.,,,.,,.,.,,,,,.,.,,,.,...,,,,,.,,..,,,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
