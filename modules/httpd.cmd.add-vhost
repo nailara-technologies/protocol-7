@@ -1,0 +1,225 @@
+## [:< ##
+
+# name = httpd.cmd.add-vhost
+# descr = Add virtual host with automatic Let's Encrypt enrollment and HTTPS configuration
+
+use File::Path qw| make_path |;
+use Cwd qw| abs_path |;
+
+sub httpd_cmd_add_vhost {
+    my $params = shift || {};
+
+    my $domain = $params->{domain} || $params->{host};
+
+    if (!$domain) {
+        return {
+            success => 0,
+            error   => qw| domain parameter required |,
+            usage   => qw| httpd.add-vhost domain=example.com [skip_cert=1] |
+        };
+    }
+
+    ## Validate domain format
+    if ($domain !~ /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/) {
+        return {
+            success => 0,
+            error   => qq| invalid domain format: $domain |
+        };
+    }
+
+    my $skip_cert = $params->{skip_cert} || $params->{no_cert} || 0;
+    my $skip_rescan = $params->{skip_rescan} || 0;
+
+    <[base.log]>->( 2, "httpd.cmd.add-vhost: Adding vhost for domain '$domain'" );
+
+    ## Configuration
+    my $site_dir    = <httpd.site_dir>    || '/var/httpd';
+    my $content_dir = <web.cfg.base_dir>  || '/data/web';
+    my $httpd_user  = <httpd.system.user> || 'httpd';
+    my $httpd_group = <httpd.system.group> || 'httpd';
+
+    my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
+
+    if (!defined $httpd_uid) {
+        return {
+            success => 0,
+            error   => qq| httpd user '$httpd_user' does not exist |
+        };
+    }
+
+    ## Paths
+    my $vhost_link    = "$site_dir/$domain";
+    my $content_path  = "$content_dir/$domain";
+
+    ## Check if vhost already exists
+    if (-e $vhost_link) {
+        <[base.log]>->( 1, "httpd.cmd.add-vhost: vhost '$domain' already exists" );
+
+        ## Check if cert exists
+        my $has_cert = -f "/etc/protocol-7/certs/$domain.pem"
+                    && -f "/etc/protocol-7/certs/$domain.key";
+
+        return {
+            success     => 1,
+            status      => qw| exists |,
+            domain      => $domain,
+            vhost_path  => $vhost_link,
+            content_path => $content_path,
+            has_cert    => $has_cert ? 1 : 0
+        };
+    }
+
+    ## Step 1: Create content directory
+    <[base.log]>->( 2, "  Creating content directory: $content_path" );
+
+    if (!-d $content_path) {
+        eval {
+            make_path($content_path, {
+                mode  => 0755,
+                uid   => $httpd_uid,
+                group => $httpd_gid
+            });
+        };
+
+        if ($@) {
+            return {
+                success => 0,
+                error   => qq| failed to create content directory: $@ |
+            };
+        }
+
+        ## Create default index page
+        my $index_path = "$content_path/index.txt";
+        if (!-f $index_path) {
+            my $default_content = qq|<h1>Welcome to $domain</h1>
+
+<p>This is the default page for <strong>$domain</strong>.</p>
+
+<p>This page is being served via HTTPS with automatic Let's Encrypt certificates.</p>
+
+<h2>Protocol-7 Web Infrastructure</h2>
+
+<ul>
+    <li>Content directory: <code>/data/web/$domain/</code></li>
+    <li>Skin templates: <code>/var/httpd/skins/</code></li>
+    <li>HTTPS enabled with TLS 1.2+</li>
+    <li>Recursive template processing</li>
+</ul>
+
+<p>Edit <code>/data/web/$domain/index.txt</code> to customize this page.</p>
+|;
+
+            if (open my $fh, '>', $index_path) {
+                print $fh $default_content;
+                close $fh;
+                chown $httpd_uid, $httpd_gid, $index_path;
+                chmod 0644, $index_path;
+                <[base.log]>->( 2, "  Created default index page" );
+            }
+        }
+    }
+
+    ## Step 2: Create symlink from /var/httpd/domain → /data/web/domain
+    <[base.log]>->( 2, "  Creating symlink: $vhost_link → $content_path" );
+
+    if (!symlink($content_path, $vhost_link)) {
+        return {
+            success => 0,
+            error   => qq| failed to create symlink: $! |
+        };
+    }
+
+    ## Step 3: Rescan site directory (unless skip_rescan)
+    unless ($skip_rescan) {
+        <[base.log]>->( 2, "  Rescanning site directory" );
+        <[httpd.scan_site_dir]>;
+
+        ## Verify vhost was discovered
+        if (!exists <httpd.cfg.hostnames>->{$domain}) {
+            return {
+                success => 0,
+                error   => qq| vhost created but not discovered in scan |
+            };
+        }
+
+        <[base.log]>->( 2, "  Vhost '$domain' registered successfully" );
+    }
+
+    ## Step 4: Add to vhost registry list
+    my $vhost_id = <[base.list.element.add]>->({
+        'key_ref' => \$data{'httpd'}{'vhosts'}{'registry'},
+        'val_ref' => \{
+            'domain'    => $domain,
+            'path'      => $content_path,
+            'cert'      => 0,
+            'status'    => qw| active |,
+            'added_at'  => time()
+        }
+    });
+
+    if (!defined $vhost_id) {
+        <[base.log]>->( 0, "  Failed to add vhost to registry list" );
+    } else {
+        <httpd.vhosts.by_domain>->{$domain} = $vhost_id;
+        <[base.log]>->( 2, "  Vhost added to registry [id=$vhost_id]" );
+    }
+
+    my $result = {
+        success      => 1,
+        status       => qw| created |,
+        domain       => $domain,
+        vhost_path   => $vhost_link,
+        content_path => $content_path,
+        vhost_id     => $vhost_id,
+        has_cert     => 0
+    };
+
+    ## Step 5: Trigger Let's Encrypt enrollment (unless skip_cert)
+    unless ($skip_cert) {
+        <[base.log]>->( 2, "  Triggering Let's Encrypt enrollment for '$domain'" );
+
+        ## Check if letsencrypt zenka is available
+        if (exists $code{'letsencrypt.cmd.enroll'}) {
+            my $cert_result = <[letsencrypt.cmd.enroll]>->({
+                domain => $domain,
+                auto_install => 1  ## Automatically install to httpsd
+            });
+
+            if ($cert_result->{success}) {
+                <[base.log]>->( 2, "  Certificate enrolled and installed successfully" );
+                $result->{has_cert} = 1;
+                $result->{cert_status} = $cert_result->{status};
+
+                ## Update vhost registry with cert status
+                if (defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id}) {
+                    <httpd.vhosts.registry>->{$vhost_id}->{'cert'} = 1;
+                }
+            } else {
+                <[base.log]>->( 0, "  Certificate enrollment failed: " . ($cert_result->{error} || 'unknown error') );
+                $result->{cert_error} = $cert_result->{error};
+            }
+        } else {
+            <[base.log]>->( 1, "  Let's Encrypt module not available, skipping cert enrollment" );
+            $result->{cert_status} = qw| skipped_module_unavailable |;
+        }
+    } else {
+        <[base.log]>->( 2, "  Skipping certificate enrollment (skip_cert=1)" );
+        $result->{cert_status} = qw| skipped_by_request |;
+    }
+
+    <[base.log]>->( 2, "httpd.cmd.add-vhost: Vhost '$domain' setup complete" );
+
+    return $result;
+}
+
+## Export command ##
+$code{qw| httpd.cmd.add-vhost |} = \\&httpd_cmd_add_vhost;
+
+0;
+
+#,,,,,.,,,,.,.,...,,,,.,,,.,,,.,,.,.,,.,...,,,,,,,,,,,..,,...,...,.,,,,,.,,.,,,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

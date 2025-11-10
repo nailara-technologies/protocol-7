@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = httpd.cmd.vhosts
+# descr = List configured virtual hosts with status
+# param = [domain]
+
+my $domain_filter = $$call{'args'} // '';
+
+if ($domain_filter) {
+    ## Show specific vhost details
+    my $vhost_id = <httpd.vhosts.by_domain>->{$domain_filter};
+
+    if (!defined $vhost_id) {
+        return {
+            'mode' => qw| false |,
+            'data' => "vhost '$domain_filter' not found in registry"
+        };
+    }
+
+    my $vhost = <httpd.vhosts.registry>->{$vhost_id};
+
+    my $cert_status = $vhost->{cert} ? 'active' : 'none';
+    my $age = time() - ($vhost->{added_at} || 0);
+    my $age_str = sprintf("%dd %dh", int($age / 86400), int(($age % 86400) / 3600));
+
+    my $output = sprintf(
+        "VHost: %s\n  ID: %s\n  Path: %s\n  Certificate: %s\n  Status: %s\n  Added: %s ago",
+        $domain_filter,
+        $vhost_id,
+        $vhost->{path},
+        $cert_status,
+        $vhost->{status},
+        $age_str
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => $output
+    };
+}
+
+## List all vhosts using list infrastructure
+my @output;
+my $count = scalar keys %{<httpd.vhosts.registry>};
+
+if ($count == 0) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'no virtual hosts configured'
+    };
+}
+
+push @output, sprintf("Configured virtual hosts: %d\n", $count);
+
+## Use list display
+my $list_output = <[base.list.formatted.show]>->('httpd-vhosts');
+
+if ($list_output) {
+    push @output, $list_output;
+} else {
+    ## Fallback to manual display
+    foreach my $id (sort { <httpd.vhosts.registry>->{$a}->{domain} cmp <httpd.vhosts.registry>->{$b}->{domain} }
+                    keys %{<httpd.vhosts.registry>}) {
+        my $vh = <httpd.vhosts.registry>->{$id};
+        my $cert = $vh->{cert} ? '✓' : '✗';
+        push @output, sprintf("  [%s] %s (cert: %s)",
+            $id, $vh->{domain}, $cert);
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join("\n", @output)
+};
+
+#,,.,,.,,.,...,.,.,,,.,...,...,.,.,,,,,.,.,.,,,..,,...,...,..,,,.,...,,.,,,,.,,,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

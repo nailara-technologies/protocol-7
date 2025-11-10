@@ -65,6 +65,35 @@ if ( !-d $site_dir ) {
 
 <[httpd.scan_site_dir]>;
 
+## Initialize vhost list infrastructure
+<httpd.vhosts.registry> //= {};
+<httpd.vhosts.by_domain> //= {};
+
+<list.httpd-vhosts> = {
+    'var'      => qw| data |,
+    'key'      => qw| httpd.vhosts.registry |,
+    'sort_key' => 'alpha-len:domain',
+    'mask'     => 'id domain path cert status added_at',
+    'align'    => {
+        'id'       => 'right',
+        'domain'   => 'left+2',
+        'path'     => 'left+1',
+        'cert'     => 'center',
+        'status'   => 'center',
+        'added_at' => 'center-1'
+    },
+    'filters'  => {
+        'added_at' => qw| base.parser.timestamp |,
+        'cert'     => sub { $_[0] ? '✓' : '✗' }
+    }
+};
+
+<[base.list.init]>->({
+    'name'         => qw| httpd-vhosts |,
+    'key_ref'      => \$data{'httpd'}{'vhosts'}{'registry'},
+    'max_elements' => 512
+});
+
 my $upload_dir = <httpd.upload_dir> //= '/var/httpd/..incoming..';
 if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
