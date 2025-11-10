@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = workflow.console.release
+# param = <version> [execute]
+# descr = create a new release (replaces bin/dev/release-version)
+
+my $param = shift;
+
+unless ($param) {
+    <[base.log]>->( 0, "Error: version number required" );
+    return say "::\n: Usage: workflow release <version> [execute]\n: Example: workflow release 3.11.10\n::";
+}
+
+## Parse parameters
+my ($version, $execute_flag) = split /\s+/, $param, 2;
+my $dry_run = (!$execute_flag || $execute_flag ne 'execute') ? 1 : 0;
+
+<[base.log]>->( 1, "Creating release: $version" );
+
+if ($dry_run) {
+    <[base.log]>->( 1, "DRY RUN mode - use 'release $version execute' to create" );
+}
+
+## Trigger release creation
+my $result = <[workflow.parent.create_release]>->({
+    version => $version,
+    dry_run => $dry_run
+});
+
+if ($result->{dry_run}) {
+    my @output;
+    push @output, "::";
+    push @output, ": Release Plan (DRY RUN)";
+    push @output, ":";
+    push @output, sprintf(": Version: %s", $result->{version});
+    push @output, sprintf(": Tag: %s", $result->{tag_name});
+    push @output, sprintf(": Current HEAD: %s", substr($result->{head_sha}, 0, 8));
+    push @output, ":";
+    push @output, ": Steps that would be performed:";
+    push @output, ":   1. Update README.md with version";
+    push @output, ":   2. Update source-code-versions.md";
+    push @output, ":   3. Commit changes with AMOS7 signature";
+    push @output, ":   4. Create git tag: $result->{tag_name}";
+    push @output, ":";
+    push @output, ": To create release:";
+    push @output, ":   workflow release $version execute";
+    push @output, "::";
+
+    return say join("\n", @output);
+}
+
+unless ($result->{success}) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Release failed: $error\n::";
+}
+
+return say "::\n: ✓ Release $result->{tag_name} created successfully\n::";
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
