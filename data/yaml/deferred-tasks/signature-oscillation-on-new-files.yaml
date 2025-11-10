@@ -30,34 +30,119 @@ affected_files:
   - configuration/protocol-7.src-ver (observed during Session 2C)
   - Any newly created module files getting signatures for first time
 
-technical_notes: |
-  The oscillation likely stems from:
-  - Initial hash calculation vs. signature block insertion
-  - Signature block changing file content, affecting hash
-  - Need for re-verification after initial signature placement
+root_causes:
+  - issue_1: |
+      CRITICAL: needs_separator_endline flag never cleared (source.cmd.get-code-signed:138)
 
-  May be related to how the signature system handles:
-  - Files transitioning from unsigned to signed state
-  - Version file updates concurrent with module signing
-  - Timing of hash calculation vs. signature injection
+      The flag is set during signature extraction when separator endline is missing.
+      However, after the separator is added during signing, the flag is NEVER RESET.
+      This causes verification to always see the flag as set, triggering re-sign on every cycle.
 
-investigation_needed:
-  - Review signature generation algorithm for new files
-  - Check if oscillation is deterministic or random
-  - Verify it stabilizes after second pass
-  - Optimize to single-pass signing if possible
+      Location: modules/source.cmd.get-code-signed line 138
+      Impact: Direct cause of oscillation loop
+      Fix: Clear flag after separator endline is successfully added
+
+  - issue_2: |
+      CRITICAL: Inverted endline restoration logic (source.extract_sig_body:627-632)
+
+      The condition for skipping endline restoration is backwards:
+      - Current: skip restoration ONLY if separator was PRESENT
+      - Correct: skip restoration ONLY if separator was ABSENT
+
+      This causes content endlines to be modified in opposite directions on successive cycles.
+
+      Location: modules/source.extract_sig_body lines 627-632
+      Impact: Causes signatures to change on every cycle
+      Logic: if ($seperator_endline_absent) { # condition backwards, should be: if ($seperator_endline_present) {
+
+  - issue_3: |
+      HIGH: Inconsistent endline harmonization (source.harmonize_payload_line_feed:36-55)
+
+      Function only removes extra endlines if 3+ present, but adds if less than 2.
+      Creates asymmetry where:
+      - Files with 1 endline → adds to 2
+      - Same file on next cycle sees 2 → keeps 2
+      - But state calculation differs → signature changes
+
+      Location: modules/source.harmonize_payload_line_feed lines 36-55
+      Impact: Prevents convergence to stable state
+
+  - issue_4: |
+      HIGH: State encoding vs actual modification mismatch (source.create_harmonic_footer:175-213)
+
+      The endline_modification_state (0-7) computed during footer creation often doesn't
+      match the actual endline modifications made by harmonization. Verification then
+      attempts to restore with wrong state values.
+
+      Location: modules/source.create_harmonic_footer lines 175-213
+      Impact: Verification restores incorrect endline states
+
+  - issue_5: |
+      MEDIUM: Restoration assumes symmetric modifications (source.restore_payload_endline_state:27-39)
+
+      Code assumes endline modifications are symmetric (what was added can be exactly removed).
+      But harmonization may have changed endlines differently than encoded, causing
+      restoration to create different content than original.
+
+      Location: modules/source.restore_payload_endline_state lines 27-39
+      Impact: Contributes to signature changes
+
+investigation_status: "COMPLETED - Root causes identified and documented"
+fix_priority: "HIGH - Recommend immediate fix in next release"
+
+proposed_fixes:
+  fix_1: |
+    Clear needs_separator_endline flag after adding separator
+
+    Module: modules/source.cmd.get-code-signed
+    Location: After line 138 (after separator is added)
+    Action: Set $footer_data->{'needs_separator_endline'} = FALSE;
+
+  fix_2: |
+    Correct inverted endline restoration condition
+
+    Module: modules/source.extract_sig_body
+    Location: Lines 627-632
+    Change: if ($seperator_endline_absent) → if ($seperator_endline_present)
+    Reason: Only skip restoration when separator was already present
+
+  fix_3: |
+    Standardize endline harmonization logic
+
+    Module: modules/source.harmonize_payload_line_feed
+    Location: Lines 36-55
+    Action: Make removal and addition symmetrical:
+    - Remove if 2+ endlines (not 3+)
+    - Add if 0-1 endlines (current behavior)
+    - This ensures files converge to exactly 1 separator endline
+
+  fix_4: |
+    Sync state encoding with actual modifications
+
+    Module: modules/source.create_harmonic_footer
+    Location: Lines 175-213
+    Action: Recalculate endline_modification_state AFTER harmonization
+    Current: calculated before modifications applied
+    Proposed: track actual modifications and encode match
+
+  fix_5: |
+    Simplify restoration logic
+
+    Module: modules/source.restore_payload_endline_state
+    Location: Lines 27-39
+    Action: Rather than restoring previous state, enforce canonical format
+    Reason: Aligns with documented "deterministic normalization" approach
 
 workaround: |
-  Run signature update twice when adding new files:
+  Current workaround: Run signature update twice when adding new files:
     ./bin/Protocol-7 sourcecode update-signatures
     ./bin/Protocol-7 sourcecode update-signatures
 
-future_resolution:
-  - Implement detection for new vs. existing files
-  - Optimize hash calculation to account for signature block
-  - Consider pre-calculating final signature size
-  - May require changes to bin/Protocol-7 signature module
+  After fixes applied: Single pass will be sufficient
 
 created_date: 2025-11-07
-last_updated: 2025-11-07
+last_updated: 2025-11-10
+updated_session: Current
 assigned_to: null
+target_version: "3KZNJAMXLQ-5259.0"
+status_update: "Root causes identified. Fix plan prepared for version 3KZNJAMXLQ-5259.0"

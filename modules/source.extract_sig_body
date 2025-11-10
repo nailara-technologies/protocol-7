@@ -623,11 +623,16 @@ if (   defined $@ && length($@)
 } else {
 
 # Decoding was successful
-# For state 6/7 with separator restored, skip endline restoration to preserve separator
-    my $separator_was_restored = $strip && !$seperator_endline_absent;
-    my $state                  = $amos7_header->{'endline-state-encoded'};
+# Fix #2: Correct inverted restoration condition
+# Skip restoration ONLY if separator is ABSENT (file wasn't canonical before)
+# Otherwise, do restore to reverse the endline modifications
+    my $state = $amos7_header->{'endline-state-encoded'};
 
-    if ( !( $separator_was_restored && ( $state == 6 || $state == 7 ) ) ) {
+    if ( $seperator_endline_absent ) {
+        # Separator was absent before - skip restoration, keep file as-is
+        # This prevents modifying content in opposite directions on successive cycles
+    } else {
+        # Separator was present - file was canonical, restore endline state
         <[source.restore_payload_endline_state]>->( $src_ref, $state );
     }
 
