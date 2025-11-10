@@ -14,11 +14,6 @@ my $mode   = $validation_data->{'cmd'};
     "challenge validation notification: token=$token, domain=$domain, mode=$mode"
 );
 
-unless ( defined <letsencrypt.parent.pending_challenges> ) {
-    <[base.log]>->( 1, "no pending challenges found" );
-    return 0;
-}
-
 unless ( exists <letsencrypt.parent.pending_challenges> {$token} ) {
     <[base.log]>->(
         1, "challenge token $token not found in pending challenges"
@@ -69,8 +64,8 @@ if ( $mode eq 'TRUE' ) {
 
 return 0;
 
-#,,.,,,.,,,,,,.,,,,,.,.,,,...,,.,,..,,,,.,.,.,..,,...,..,,,.,,,,.,...,.,.,.,.,
-#MZ2QYHMD63H2JE7J6JOMJX57UHGUTRLWJ6MTCBX3HKPOMHJHBJZZPFLOAW5WYI3TACAXYNYFBRSHW
-#\\\|WP24HXRQSRHPYKJ233XD2C4ILYDR3EYCLOCGO54UER7U3SLEHBC \ / AMOS7 \ YOURUM ::
-#\[7]CNIA7WXVHFOJDVIS4NV4N52ITSFZMDCZN3F36TVPXHTYGWW2AODA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,,,,.,,,.,.,,.,,.,,,,,,,,.,,...,..,,...,...,.,,,.,.,.,,,,..,,,,,
+#7PXWAXBI36TRXPVAJROLJYHXS6TYESGXMCJ722UF7OZYLRFJA4OB4ICWJRJCDWPSSSSMYRG6S3GOU
+#\\\|XKUGKB5UST5PWZW3SUCJYHSILOFIXJCPUMJPTDMDOBTZFOKWDSY \ / AMOS7 \ YOURUM ::
+#\[7]ADZJEYUSJCSHNEK25Y2SDHH3NOWNLHITX3N3NS5PX4VEZSGV6SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

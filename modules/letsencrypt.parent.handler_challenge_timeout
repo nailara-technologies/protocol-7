@@ -12,11 +12,6 @@ my $domain = $data->{domain};
     2, "challenge timeout handler for token: $token (domain: $domain)"
 );
 
-unless ( defined <letsencrypt.parent.pending_challenges> ) {
-    <[base.log]>->( 3, "no pending challenges found" );
-    return 0;
-}
-
 if ( exists <letsencrypt.parent.pending_challenges> {$token} ) {
     my $challenge = <letsencrypt.parent.pending_challenges> {$token};
 
@@ -61,8 +56,8 @@ if ( exists <letsencrypt.parent.pending_challenges> {$token} ) {
 
 return 0;
 
-#,,.,,...,,..,...,.,.,,,,,..,,.,,,...,,,,,,,,,..,,...,...,,..,..,,,,.,,..,,,.,
-#UBTWWKSJ3PEH7XTOTFMZTRKJVQ2E7DQMENL7S4ZLYDY2IVIFFR5TCLM5BREZSV3MIKTFHZP3FJIZ2
-#\\\|EVB4GRM5UAG6JQEOQDJG3FG3ZHTPBSYDP4C6W5ARGJ6PTNKQJOY \ / AMOS7 \ YOURUM ::
-#\[7]WYWO3WJCPO7AQ33VN5AW5FQ37XQZF5JDQWMRDKCLDVSQHGAXAKDY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,,,,,.,,..,,,,,,,..,,,,,.,.,..,,...,...,,,.,,,,,,.,,,..,.,,,
+#ZBTYAODSII4JYQJWZZQNHYNAVHHQGAP5TVC4SH77TNVQ6ETGQQ7NEKTXHZZSYHRTFCGRIDVFIPNAC
+#\\\|ZUOWBQRTHC6RQ4SUMC7HQ22HN5U34PX2LZC5KXNPOIISVJ7BR3K \ / AMOS7 \ YOURUM ::
+#\[7]UZHQ4UJL5JFZUJKDE3ALTD7ZCV6F7B5647PET5ZZER6RJN7UBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,10 +16,6 @@ my $data   = $challenge_data->{'data'};
     'challenge', $domain, 'pending', "challenge received: $mode"
 );
 
-unless ( defined <letsencrypt.parent.pending_challenges> ) {
-    <letsencrypt.parent.pending_challenges> = {};
-}
-
 if ( $mode eq 'http-01' ) {
     <[base.log]>->( 2, "storing HTTP-01 challenge for $domain" );
 
@@ -133,8 +129,8 @@ if ( $mode eq 'http-01' ) {
 
 return 0;
 
-#,,.,,,,,,...,,,.,.,,,,,.,...,.,.,...,,,,,.,.,.,.,...,...,,..,.,.,..,,,.,,,..,
-#4LMRQJBTUAY6OTPGV2EDEF6V2OQN5A2HAG5LMTX7ETL72FEGYCUDQFVXRMVCVXMCDUFTRKVVZX4EY
-#\\\|JP4FNQTAWWK4TXT6TT4R2ZBPBKILQC4VPI5NM7PZXEZQ25O5XSS \ / AMOS7 \ YOURUM ::
-#\[7]QHMCFDI34AX4VBAU3JGYNYVE5H7SIKGIIC2IFU7CEQV3LIHUOYCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,,.,,...,.,,,.,.,..,,,..,.,,,..,,...,...,.,,,,,.,...,,,.,..,,
+#X26UHY54NXLLZMA2U27AHHRHLPFO246A3KGH4LPQSEUVMCAZDGSWHETESU2REMQICJEJCP32H5PBM
+#\\\|BC7NYEOZFDXQDATUM2UBHIDKDLGIRVPG765OZQ2KXTROBQMQFQ2 \ / AMOS7 \ YOURUM ::
+#\[7]GFITVPLBTUAGDDTZDYQ43PEGMOSAGEJPKWW2PGMFLO3PYMBG34AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
