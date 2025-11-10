@@ -338,6 +338,307 @@ my $path = <service.cfg.path>;
 
 ---
 
+## Zenki Dependency Resolution
+
+### The Problem: Complex Startup Hierarchy
+
+Protocol-7 zenki have a strict dependency chain:
+```
+v7 (root process manager)
+ └─> cube (IPC router)
+      └─> zenka (application processes: httpd, zulum, terminal, etc.)
+```
+
+**Challenges:**
+- Users/LLMs may try to start zenki directly without understanding the workflow
+- Manual startup is error-prone: "Did I start v7? Is cube running? Which permissions?"
+- Need transparent "just works" behavior
+
+### The Solution: Smart Launcher with Auto-Resolution
+
+The `zenki.parent.start` system automatically resolves dependencies:
+
+```perl
+## User/LLM simply requests:
+<[zenki.parent.start]>->({ zenka => 'httpd' });
+
+## System automatically:
+## 1. Checks if v7 is running → starts if needed (requires root)
+## 2. Checks if cube is running → waits for v7 to start it
+## 3. Checks if httpd is running → requests v7 to start it
+## 4. Returns when httpd is ready
+```
+
+### Architecture Overview
+
+**Core Modules:**
+
+| Module | Purpose |
+|--------|---------|
+| `zenki.parent.init_code` | Configuration and registries |
+| `zenki.parent.start` | Main entry point - smart launcher |
+| `zenki.parent.resolve_dependencies` | Resolves dependency chain |
+| `zenki.parent.ensure_v7` | Ensures v7 running (needs root) |
+| `zenki.parent.ensure_cube` | Ensures cube running |
+| `zenki.parent.ensure_zenka` | Ensures specific zenka running |
+| `zenki.parent.check_running` | Process detection via ps |
+| `zenki.parent.request_v7_start` | Requests v7 to start zenka |
+
+**Console Commands:**
+
+```perl
+## Start zenka with automatic dependency resolution
+zenki start httpd
+
+## Show status of all running zenki
+zenki status
+
+## Show status of specific zenka
+zenki status cube
+```
+
+### Configuration
+
+All zenki configuration follows the elegant `%data` pattern:
+
+```perl
+## modules/zenki.parent.init_code
+
+<zenki.cfg.v7_binary>            //= '/data/projects/protocol-7/bin/Protocol-7';
+<zenki.cfg.v7_startup_timeout>   //= 10;   ## Seconds
+<zenki.cfg.cube_startup_timeout> //= 5;
+<zenki.cfg.zenka_startup_timeout> //= 8;
+<zenki.cfg.auto_start_v7>        //= ($UID == 0 ? 1 : 0);
+<zenki.cfg.cube_socket_path>     //= '/var/run/.7/UNIX';
+```
+
+**Override Example:**
+
+```perl
+## In configuration/zenki/myservice/start
+zenki.cfg.v7_startup_timeout = 20   ## Longer timeout for slow systems
+zenki.cfg.auto_start_v7 = 0         ## Never auto-start v7
+```
+
+### Dependency Chain Resolution
+
+```perl
+## modules/zenki.parent.resolve_dependencies
+
+sub zenki_parent_resolve_dependencies {
+    my $params = shift || {};
+    my $zenka_name = $params->{zenka};
+
+    ## Determine dependency chain
+    my @chain;
+
+    if ($zenka_name eq 'v7') {
+        @chain = qw| v7 |;
+    } elsif ($zenka_name eq 'cube') {
+        @chain = qw| v7 cube |;
+    } else {
+        @chain = qw| v7 cube |;  ## All other zenki need both
+    }
+
+    ## Resolve each dependency in order
+    foreach my $dep (@chain) {
+        if ($dep eq 'v7') {
+            $result = <[zenki.parent.ensure_v7]>();
+        } elsif ($dep eq 'cube') {
+            $result = <[zenki.parent.ensure_cube]>();
+        } else {
+            $result = <[zenki.parent.ensure_zenka]>->({ zenka => $dep });
+        }
+
+        return { success => 0, failed_at => $dep } unless $result->{success};
+    }
+
+    return { success => 1, chain => \@chain };
+}
+```
+
+### Process Detection
+
+```perl
+## modules/zenki.parent.check_running
+
+sub zenki_parent_check_running {
+    my $params = shift || {};
+    my $zenka_name = $params->{zenka};
+
+    ## Use ps to check for running process
+    my $ps_output = `ps aux 2>/dev/null`;
+    my $pattern = qr/Protocol-7\s+$zenka_name(?:\s|$)/;
+
+    foreach my $line (split /\n/, $ps_output) {
+        if ($line =~ $pattern) {
+            my @fields = split /\s+/, $line;
+            my $pid = $fields[1];
+
+            if ($pid && kill 0, $pid) {  ## Verify process exists
+                return { running => 1, pid => $pid };
+            }
+        }
+    }
+
+    return { running => 0, zenka => $zenka_name };
+}
+```
+
+### Statistics Tracking
+
+The system tracks usage statistics in `<zenki.stats>`:
+
+```perl
+<zenki.stats> = {
+    v7_starts       => 0,   ## How many times v7 was started
+    cube_starts     => 0,   ## How many times cube was started
+    zenka_starts    => 0,   ## How many zenki were started
+    auto_resolutions => 0,  ## How many auto-resolutions performed
+    failed_starts   => 0    ## How many starts failed
+};
+```
+
+View with: `zenki status`
+
+### Log Streaming Architecture
+
+**Problem:** V7 captures zenki stdout/stderr but needs to share logs with observers
+
+**Existing Infrastructure:**
+- `v7.handler.zenka_output` - Event watcher reading zenka pipes
+- `v7.handler.process_output_line` - Line-by-line processor
+- `v7.init_zenka_output_patterns` - Pattern matching on output
+- `$zenka_instance->{'output_buffer'}` - Buffered output
+
+**Planned Enhancement:** Unix domain socket log streaming
+
+```perl
+## modules/v7.parent.stream_zenka_log
+
+## Features:
+## 1. Create unix socket: /var/run/.7/logs/<zenka>.<instance_id>
+## 2. Stream output_buffer to all connected observers
+## 3. Support multiple simultaneous observers (clone)
+## 4. Support detach/reattach (like tmux/screen)
+## 5. Stop v7 console pass-through when terminal zenka attached
+
+<v7.log_streams>->{$instance_id} = {
+    zenka       => $zenka_name,
+    socket_path => "/var/run/.7/logs/$zenka_name.$instance_id",
+    created     => time(),
+    observers   => [],        ## List of connected observer IDs
+    passthrough => 1          ## v7 shows logs by default
+};
+```
+
+**Use Cases:**
+
+```perl
+## Human in terminal:
+$ zenki start httpd
+$ zenki attach-logs httpd    ## Attach to httpd log stream
+
+## LLM observer:
+<[v7.parent.stream_zenka_log]>->({
+    instance_id => $id,
+    zenka => 'httpd',
+    observer => 'llm_session_12345'
+});
+
+## Multiple observers simultaneously (clone):
+## Terminal 1: zenki attach-logs httpd
+## Terminal 2: zenki attach-logs httpd
+## LLM: <[v7.parent.stream_zenka_log]>->({...})
+## All three see the same log stream in real-time
+
+## Detach and reattach:
+## Ctrl+D to detach, logs keep streaming
+## zenki attach-logs httpd  ## Reattach later, see history
+
+## Terminal zenka takes over:
+## When terminal zenka with ANSI buffer starts:
+##   - v7 stops showing its logs in v7 console
+##   - Logs route only to terminal zenka's buffer
+##   - Observers can attach to terminal zenka instead
+```
+
+### Error Handling
+
+The system provides clear, actionable error messages:
+
+```perl
+## Example: Try to start zenka without root
+{
+    success => 0,
+    error => 'v7 requires root permissions - run as root or start v7 manually',
+    requires_root => 1
+}
+
+## Example: Dependency failed
+{
+    success => 0,
+    error => "dependency 'cube' failed: cube startup timeout",
+    dependency_failed => 'cube',
+    failed_at => 'cube'
+}
+
+## Example: Process detection timeout
+{
+    success => 0,
+    error => "v7 startup timeout after 10s",
+    pid => 12345  ## Process was started but not responding
+}
+```
+
+### Best Practices
+
+**✓ Do:**
+- Use `zenki.parent.start` for all zenka launches
+- Let the system handle dependency resolution automatically
+- Check return values for `success` field
+- Use `zenki status` to verify running processes
+- Configure timeouts based on system performance
+- Track statistics for debugging
+
+**✗ Don't:**
+- Manually start v7 → cube → zenka sequence
+- Assume v7 is running without checking
+- Hardcode process IDs or socket paths
+- Start multiple v7 instances simultaneously
+- Ignore error messages about permissions
+- Skip dependency resolution with `auto_resolve => 0` unless necessary
+
+### Integration with Existing Systems
+
+**Session IDs:**
+```perl
+## After zenka connects to cube, it gets a session ID
+## See: modules/base.get_session_id
+## See: modules/base.async.get_session_id
+
+my ($local_sid) = keys( $data{'user'}{$usr_str}{'session'}->%* );
+$data{'session'}{$local_sid}{'cube_sid'} = $cube_session_id;
+```
+
+**Output Patterns:**
+```perl
+## V7 already has pattern matching for zenka output
+## See: modules/v7.init_zenka_output_patterns
+
+## Format: zenka_name::regex_pattern::flags
+<v7.patterns.zenka_output>->{$zenka_name}->{$pattern_re} = $code_ref;
+```
+
+**IPC Commands:**
+```perl
+## TODO: Replace direct fork with IPC commands to v7
+## Current: fork() → exec Protocol-7 zenka_name
+## Future: IPC → v7.cmd.start_zenka → v7 manages process
+```
+
+---
+
 ## String Literals and Quoting
 
 ### Word Constants (Single Words)
