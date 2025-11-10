@@ -1020,7 +1020,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         foreach my $target_sid (@send_sids) {
 
             my $target_session = $data{'session'}{$target_sid};
-            if (   $target_session->{'user'} eq <base.session.uname.server>
+            if ( $target_session->{'user'} eq <base.session.uname.server>
                 or $target_session->{'user'} eq <base.session.uname.client>
                 or not
                 <[base.cfg_bool]>->( $target_session->{'authenticated'} ) ) {
@@ -1146,8 +1146,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,,,..,,,..,,,.,,,.,.,.,,,,,,.,,,,.,.,.,,,.,..,,...,..,,,,.,,,.,,,.,,..,,..,
-#YWTR6L7UOBYCFAH3QBZHK4UDA4O5Z7IE3ZL7IPIC3ZB6G4ZQAEHWOOH3VHZDS3SFUBDE75GRKIGMW
-#\\\|TRTDQEJ2KYB3YDBIURPVXY3LIRDI36NMZOTPYYMXTN3GZYOZPTZ \ / AMOS7 \ YOURUM ::
-#\[7]YTGC6IX3D44Z6BSBBPN6JVEMKCTKXAG3EN7ATHAHPP57YEZHH2BQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,.,,,...,,.,,,.,,.,.,,.,,,,.,..,,...,...,,,.,...,,..,,.,,,..,
+#NRLTZ5SWLMD64YHQW4U6M3CQQXQNW2UT25LABX553L3IXQZH7VMBPQQWHPTOGWFVX5LK2G4B2GFZG
+#\\\|WCY7E6FZG6UQSWUIPYIC4J2UVRHNUUSOIKFGIXJHOWEO5B7AQBZ \ / AMOS7 \ YOURUM ::
+#\[7]OP5ODCLQWQJAKHVHYNOO4J2SNJEEIAMRHSVKS3CMDCX4AJRAOADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

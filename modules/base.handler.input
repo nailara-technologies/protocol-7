@@ -35,7 +35,7 @@ $session->{'flush_shutdown'} //= FALSE;
 $session->{'read-mode'}     //= qw| linewise |;
 $session->{'bytes-to-read'} //= 0;
 
-if ( exists $code{$handler} ) {
+if ( defined $handler and exists $code{$handler} ) {
 
     my $ret_code = $code{$handler}->($event);
 
@@ -85,8 +85,8 @@ if ( exists $code{$handler} ) {
     $event->w->start;    ##  modification complete restarting watcher  ##
 
     <[base.logs]>->(
-        0,   "[%d] input handler '%s' not defined, buffer emptied.,",
-        $id, $handler
+        0,   "[%d] input handler %s not defined, buffer emptied.,",
+        $id, defined $handler ? sprintf "'%s'" : qw| is |
     );
 
     if (   $session->{'mode'} eq qw| client |
@@ -135,8 +135,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,.,,.,,,,.,,..,,,,.,,,.,,..,.,,,,,,,..,,.,.,..,,...,...,.,,,,.,,.,.,,.,,,,,,
-#RALBLPWOX4COWA4TGIV4ZALLJHMDJ5J2TR32QRKSTDPE6OLIEEGWCPULJQEOLTYJVNWZ6A3RDUN44
-#\\\|EHNZPIZQA63VOLZ3X3ZRLSLG4WORXJB6653ZT2746KRUFDKIQJP \ / AMOS7 \ YOURUM ::
-#\[7]347UAD6YRZEGOPHTT557RT6WPRN7K5OKAITMXFDLYDVORG3NJ6DA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,..,,.,,...,.,.,.,.,.,.,.,.,..,,...,...,,,,,.,,,...,.,,,...,
+#P4QBNSJM6VBPAT65LRWJOAW5AVTPX4NQOVGCYSKMB4OBGXUKUVZGMGTCNMFBETZIUUFS33JLLKACO
+#\\\|CWBVO6WVULRWTGB7ZEP2U3BYMW3BZOKRNKJXSWEUEM2IVY24AFU \ / AMOS7 \ YOURUM ::
+#\[7]NUGU6CO6IIVSQ3BF7QEQ3R5PMPJASTMCKJAP7JQOJUB465KJSYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,9 @@ my $handler = $params->{'handler'};
 
 my $callback;
 
-if ( defined $handler and defined $code{$handler} ) {
+if (    defined $handler
+    and exists $code{$handler}
+    and ref $code{$handler} eq qw| CODE | ) {
 
     ##  wrapped for reloading source code  ##
     $callback = sub { $code{$handler}->() };
@@ -61,8 +63,8 @@ if ( length $EVAL_ERROR ) {
 
 return <watcher.signal>->{$signal};
 
-#,,.,,.,.,.,,,.,.,.,.,..,,...,,.,,,..,,..,,..,..,,...,..,,..,,,..,...,,.,,.,.,
-#2BITSQW6ZZDYP5MHTOYBHFAZDHU32O7Q7W7CANXECZ26ZZUTPXPNHZXZWBG6SZZEYVC67W4QQCO2S
-#\\\|HCFIT2N3H5LUJI5HHKFRDYSUBE2M2NT7F7EEN4YHLFQFBQCNE5T \ / AMOS7 \ YOURUM ::
-#\[7]GYHEXZ6OJNVN6XHEPVI3IFPT52EI5ROCDIUG5EDQ2ENLRLQ47ADQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,,..,...,,,.,..,,.,,,,,,,,,,,..,,...,...,...,.,.,.,.,,..,...,
+#MQ7D4E2AUQTEB6V43VUSTDQZFO27MVVTZ5BJE2WAEG2XPPWBYPRHRP2VYPR6I73LABIWOGBEYDTJ4
+#\\\|OZYTGQDQAAMXQONGDVBXBM7NJ35BWGJQXW362COFJ3PAPHHSATS \ / AMOS7 \ YOURUM ::
+#\[7]PKRK4CN4C3JMQ6IQDJJA2FT35V3ZOMS2H6PMIAQMRGHPZYHOPEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
