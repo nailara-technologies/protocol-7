@@ -9,7 +9,7 @@ sub debian_parent_resolve_cpan_to_debian {
     return undef unless $cpan_module;
 
     ## Look up in known_dependencies
-    my $known = <debian.known_deps>{perlmod}{$cpan_module};
+    my $known = $data{'debian'}{'known_deps'}{perlmod}{$cpan_module};
 
     if ($known && $known->{debian}) {
         ## Handle array of debian packages

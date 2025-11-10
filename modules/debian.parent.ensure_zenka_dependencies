@@ -12,14 +12,14 @@ sub debian_parent_ensure_zenka_dependencies {
     <[base.log]>->( 2, "debian.ensure: checking dependencies for zenka '$zenka_name'" );
 
     ## Check if zenka is in registry
-    my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_name};
+    my $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
 
     unless ($zenka_id) {
         ## Zenka not in registry - rescan
         <[base.log]>->( 2, "  Zenka not in registry, rescanning..." );
         <[debian.parent.scan_zenki_dependencies]>;
 
-        $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_name};
+        $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
 
         unless ($zenka_id) {
             <[base.log]>->( 1, "  No dependencies found for zenka '$zenka_name'" );
@@ -27,7 +27,7 @@ sub debian_parent_ensure_zenka_dependencies {
         }
     }
 
-    my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+    my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 
     ## Check current status
     <[debian.parent.check_installed]>;
@@ -50,7 +50,7 @@ sub debian_parent_ensure_zenka_dependencies {
     ## Auto-install missing dependencies
     <[base.log]>->( 2, "  Auto-installing missing dependencies..." );
 
-    my $result = <[debian.parent.install_missing]->({
+    my $result = <[debian.parent.install_missing]>->({
         zenka => $zenka_name,
         prefer_debian => 1,
         use_cpanm => 1

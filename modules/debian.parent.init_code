@@ -139,12 +139,15 @@
 
 my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
 
-if ($scan_result && $scan_result->{success}) {
+if ($scan_result && ref($scan_result) eq 'HASH' && $scan_result->{success}) {
     <[base.log]>->( 2, "  Scan complete: " .
         $scan_result->{zenki_count} . " zenki, " .
         $scan_result->{deps_count} . " dependencies" );
 } else {
-    <[base.log]>->( 0, "  Scan failed: " . ($scan_result->{error} || 'unknown error') );
+    my $error = (ref($scan_result) eq 'HASH' && $scan_result->{error})
+        ? $scan_result->{error}
+        : 'unknown error';
+    <[base.log]>->( 0, "  Scan failed: $error" );
 }
 
 <[base.log]>->( 2, 'debian zenka initialization complete' );

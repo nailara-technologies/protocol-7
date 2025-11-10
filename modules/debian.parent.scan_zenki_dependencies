@@ -85,7 +85,7 @@ sub debian_parent_scan_zenki_dependencies {
         });
 
         if (defined $zenka_id) {
-            <debian.zenki_deps.by_zenka>->{$zenka} = $zenka_id;
+            $data{'debian'}{'zenki_deps'}{'by_zenka'}->{$zenka} = $zenka_id;
 
             ## Register each Perl module dependency
             foreach my $pm_module (@pm_deps) {
@@ -100,10 +100,10 @@ sub debian_parent_scan_zenki_dependencies {
     }
 
     ## Update statistics
-    <debian.stats>{zenki_scanned} = $zenki_count;
-    <debian.stats>{total_pm_deps} = $total_pm_deps;
-    <debian.stats>{total_os_deps} = $total_os_deps;
-    <debian.stats>{last_scan} = time();
+    $data{'debian'}{'stats'}{zenki_scanned} = $zenki_count;
+    $data{'debian'}{'stats'}{total_pm_deps} = $total_pm_deps;
+    $data{'debian'}{'stats'}{total_os_deps} = $total_os_deps;
+    $data{'debian'}{'stats'}{last_scan} = time();
 
     <[base.log]>->( 2, "debian.scan: complete" );
     <[base.log]>->( 2, "  Zenki scanned: $zenki_count" );
@@ -121,11 +121,11 @@ sub _register_cpan_module {
     my ($module, $zenka) = @_;
 
     ## Check if already registered
-    my $module_id = <debian.cpan_modules.by_name>->{$module};
+    my $module_id = $data{'debian'}{'cpan_modules'}{'by_name'}->{$module};
 
     if (defined $module_id) {
         ## Update zenki list
-        my $reg = <debian.cpan_modules.registry>{$module_id};
+        my $reg = $data{'debian'}{'cpan_modules'}{'registry'}{$module_id};
         push @{$reg->{zenki_list}}, $zenka
             unless grep { $_ eq $zenka } @{$reg->{zenki_list} || []};
         return $module_id;
@@ -146,7 +146,7 @@ sub _register_cpan_module {
     });
 
     if (defined $module_id) {
-        <debian.cpan_modules.by_name>->{$module} = $module_id;
+        $data{'debian'}{'cpan_modules'}{'by_name'}->{$module} = $module_id;
     }
 
     return $module_id;
@@ -156,11 +156,11 @@ sub _register_debian_package {
     my ($package, $zenka) = @_;
 
     ## Check if already registered
-    my $pkg_id = <debian.packages.by_name>->{$package};
+    my $pkg_id = $data{'debian'}{'packages'}{'by_name'}->{$package};
 
     if (defined $pkg_id) {
         ## Increment zenki count
-        <debian.packages.registry>{$pkg_id}{zenki_count}++;
+        $data{'debian'}{'packages'}{'registry'}{$pkg_id}{zenki_count}++;
         return $pkg_id;
     }
 
@@ -177,7 +177,7 @@ sub _register_debian_package {
     });
 
     if (defined $pkg_id) {
-        <debian.packages.by_name>->{$package} = $pkg_id;
+        $data{'debian'}{'packages'}{'by_name'}->{$package} = $pkg_id;
     }
 
     return $pkg_id;
