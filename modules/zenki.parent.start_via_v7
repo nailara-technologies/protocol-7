@@ -1,0 +1,89 @@
+## [:< ##
+
+# name = zenki.parent.start_via_v7
+# descr = Start zenka via v7's jobqueue system (integrates with v7's dependency resolution)
+
+sub zenki_parent_start_via_v7 {
+    my $params = shift || {};
+
+    my $zenka_name = $params->{zenka_name} || $params->{zenka};
+
+    unless ($zenka_name) {
+        return {
+            success => 0,
+            error   => 'zenka_name parameter required'
+        };
+    }
+
+    <[base.log]>->( 2, "zenki.start_via_v7: requesting v7 to start '$zenka_name'..." );
+
+    ## Ensure v7 is running (this is the dependency resolution entry point)
+    my $v7_result = <[zenki.parent.ensure_v7]>->();
+
+    unless ($v7_result->{success}) {
+        return {
+            success => 0,
+            error   => "cannot start $zenka_name: v7 not available - " .
+                       ($v7_result->{error} || 'unknown error'),
+            v7_error => $v7_result
+        };
+    }
+
+    <[base.log]>->( 3, "  ✓ v7 is running (PID: " . $v7_result->{pid} . ")" )
+        if exists $v7_result->{pid};
+
+    ## Now v7 is running - check if we're running INSIDE v7 or outside
+    my $inside_v7 = (
+        exists $code{'zenka.cmd.start'} ||     # v7-specific function
+        exists $data{'v7'}{'zenka'}{'setup'}   # v7 data structures
+    );
+
+    if ($inside_v7) {
+        ## We're inside v7 - use v7's native start mechanism
+        <[base.log]>->( 3, "  Using v7's native zenka.cmd.start" );
+
+        ## Call v7's start command (with dependency resolution)
+        my $result = <[zenka.cmd.start]>->({ args => $zenka_name });
+
+        if ($result->{mode} eq 'true') {
+            return {
+                success => 1,
+                via_v7  => 1,
+                message => $result->{data}
+            };
+        } else {
+            return {
+                success => 0,
+                via_v7  => 1,
+                error   => $result->{data}
+            };
+        }
+    } else {
+        ## We're outside v7 - need to use IPC to request start
+        ## TODO: Implement IPC command to v7 via cube
+        ##
+        ## For now, provide helpful error message
+        <[base.log]>->( 1, "  ⚠ IPC to v7 not yet implemented" );
+        <[base.log]>->( 1, "    v7 is running - connect to it to start zenka" );
+        <[base.log]>->( 1, "    Or run: Protocol-7 v7 -- start $zenka_name" );
+
+        return {
+            success => 0,
+            error   => 'IPC to running v7 not yet implemented - use: Protocol-7 v7 -- start ' . $zenka_name,
+            v7_running => 1,
+            todo => 'implement cube IPC for zenki -> v7 communication'
+        };
+    }
+}
+
+## Export
+$code{qw| zenki.parent.start_via_v7 |} = \&zenki_parent_start_via_v7;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,.,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

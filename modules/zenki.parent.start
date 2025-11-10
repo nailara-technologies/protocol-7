@@ -7,8 +7,6 @@ sub zenki_parent_start {
     my $params = shift || {};
 
     my $zenka_name = $params->{zenka} || $params->{name};
-    my $auto_resolve = $params->{auto_resolve} // 1;
-    my $wait_ready = $params->{wait_ready} // 1;
 
     unless ($zenka_name) {
         return {
@@ -17,50 +15,26 @@ sub zenki_parent_start {
         };
     }
 
-    <[base.log]>->( 2, "zenki.start: launching '$zenka_name' with auto-resolution..." );
+    <[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
 
     ## Increment statistics
-    $data{'zenki'}{'stats'}{'auto_resolutions'}++;
+    $data{'zenki'}{'stats'}{'start_requests'}++;
 
-    ## Step 1: Resolve dependencies
-    if ($auto_resolve) {
-        my $deps_result = <[zenki.parent.resolve_dependencies]>->({
-            zenka => $zenka_name
-        });
-
-        unless ($deps_result->{success}) {
-            <[base.log]>->( 0, "  Failed to resolve dependencies: " . $deps_result->{error} );
-            return $deps_result;
-        }
-
-        <[base.log]>->( 2, "  Dependencies resolved: " .
-            join(' → ', @{$deps_result->{chain} || []}) );
-    }
-
-    ## Step 2: Ensure zenka is running
-    my $start_result = <[zenki.parent.ensure_zenka]>->({
-        zenka => $zenka_name,
-        wait_ready => $wait_ready
+    ## Use v7's dependency resolution system
+    ## This automatically handles:
+    ## - Ensuring v7 is running (if needed)
+    ## - Resolving all dependencies (cube, etc.)
+    ## - Starting zenka via proper jobqueue mechanism
+    my $result = <[zenki.parent.start_via_v7]>->({
+        zenka_name => $zenka_name
     });
 
-    if ($start_result->{success}) {
-        <[base.log]>->( 2, "  ✓ Zenka '$zenka_name' is running (PID: " .
-            ($start_result->{pid} || 'unknown') . ")" );
-
-        return {
-            success => 1,
-            zenka   => $zenka_name,
-            pid     => $start_result->{pid},
-            status  => $start_result->{status},
-            socket  => $start_result->{socket}
-        };
+    if ($result->{success}) {
+        $data{'zenki'}{'stats'}{'successful_starts'}++;
+        return $result;
     } else {
-        <[base.log]>->( 0, "  ✗ Failed to start '$zenka_name': " .
-            ($start_result->{error} || 'unknown error') );
-
         $data{'zenki'}{'stats'}{'failed_starts'}++;
-
-        return $start_result;
+        return $result;
     }
 }
 
