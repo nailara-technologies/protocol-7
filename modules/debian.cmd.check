@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = debian.cmd.check
+# descr = Check installation status of dependencies
+# param = [zenka=<name>]
+
+my $call = shift;
+my $zenka_filter = $$call{'args'};
+
+## Run check
+my $result = <[debian.parent.check_installed]>;
+
+if (!$result->{success}) {
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{error} || 'check failed'
+    };
+}
+
+## Format output
+my @output;
+
+push @output, "Dependency Check Results:";
+push @output, "";
+push @output, sprintf("Debian Packages: %d installed, %d missing",
+    $result->{installed_pkgs}, $result->{missing_pkgs});
+push @output, sprintf("CPAN Modules: %d checked, %d missing",
+    $result->{checked_modules}, $result->{missing_modules});
+push @output, "";
+
+if ($zenka_filter) {
+    ## Show specific zenka status
+    my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_filter};
+
+    if (!$zenka_id) {
+        return {
+            'mode' => qw| false |,
+            'data' => "zenka '$zenka_filter' not found"
+        };
+    }
+
+    my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+
+    push @output, "Zenka: $zenka_filter";
+    push @output, sprintf("  PM deps: %d (%d missing)",
+        $zenka->{pm_deps_count}, scalar(grep {
+            my $mod_id = <debian.cpan_modules.by_name>{$_};
+            $mod_id && <debian.cpan_modules.registry>{$mod_id}{status} eq 'missing'
+        } @{$zenka->{pm_deps} || []}));
+    push @output, sprintf("  OS deps: %d (%d missing)",
+        $zenka->{os_deps_count}, scalar(grep {
+            my $pkg_id = <debian.packages.by_name>{$_};
+            $pkg_id && <debian.packages.registry>{$pkg_id}{status} eq 'missing'
+        } @{$zenka->{os_deps} || []}));
+    push @output, "  Status: " . $zenka->{status};
+
+} else {
+    ## Show overall statistics
+    push @output, "Statistics:";
+    push @output, sprintf("  Zenki scanned: %d", <debian.stats>{zenki_scanned});
+    push @output, sprintf("  Total PM deps: %d", <debian.stats>{total_pm_deps});
+    push @output, sprintf("  Total OS deps: %d", <debian.stats>{total_os_deps});
+    push @output, sprintf("  Missing deps: %d", <debian.stats>{missing_deps});
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join("\n", @output)
+};
+
+#,..,.,.,,,.,,,.,.,.,,,.,...,,.,,,,.,,,.,,.,,,..,,...,...,.,,,.,.,,...,,,.,.,,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

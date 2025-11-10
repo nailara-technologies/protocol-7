@@ -1,0 +1,196 @@
+## [:< ##
+
+# name = debian.parent.scan_zenki_dependencies
+# descr = Recursively scan all zenki for dependencies
+
+use File::Find qw| find |;
+
+sub debian_parent_scan_zenki_dependencies {
+    my $base_path = <debian.cfg.zenki_config_base> || '/data/projects/protocol-7/configuration/zenki';
+
+    unless (-d $base_path) {
+        return {
+            success => 0,
+            error   => qq| zenki config base not found: $base_path |
+        };
+    }
+
+    <[base.log]>->( 2, "debian.scan: scanning zenki at $base_path" );
+
+    my $zenki_count = 0;
+    my $total_pm_deps = 0;
+    my $total_os_deps = 0;
+
+    ## Find all zenka directories
+    opendir(my $dh, $base_path) or return {
+        success => 0,
+        error   => qq| cannot read zenki base: $! |
+    };
+
+    my @zenki = grep { -d "$base_path/$_" && $_ !~ /^\./ } readdir($dh);
+    closedir($dh);
+
+    <[base.log]>->( 2, "  Found " . scalar(@zenki) . " zenki to scan" );
+
+    ## Scan each zenka
+    foreach my $zenka (@zenki) {
+        my $zenka_path = "$base_path/$zenka";
+
+        ## Check for pm-dep directory
+        my $pm_dep_path = "$zenka_path/pm-dep";
+        my $os_dep_path = "$zenka_path/os-dep/debian";
+
+        my @pm_deps;
+        my @os_deps;
+
+        ## Scan Perl module dependencies
+        if (-d $pm_dep_path) {
+            opendir(my $pm_dh, $pm_dep_path) or next;
+            @pm_deps = grep { $_ !~ /^\./ && -f "$pm_dep_path/$_" } readdir($pm_dh);
+            closedir($pm_dh);
+
+            ## Convert file names back to module names (File__Spec => File::Spec)
+            @pm_deps = map { s/__/::/gr } @pm_deps;
+        }
+
+        ## Scan OS (Debian) dependencies
+        if (-d $os_dep_path) {
+            opendir(my $os_dh, $os_dep_path) or next;
+            @os_deps = grep { $_ !~ /^\./ && -f "$os_dep_path/$_" } readdir($os_dh);
+            closedir($os_dh);
+        }
+
+        next unless @pm_deps || @os_deps;
+
+        $zenki_count++;
+        $total_pm_deps += scalar(@pm_deps);
+        $total_os_deps += scalar(@os_deps);
+
+        <[base.log]>->( 3, "  zenka '$zenka': " .
+            scalar(@pm_deps) . " pm-dep, " .
+            scalar(@os_deps) . " os-dep" );
+
+        ## Register zenka dependencies
+        my $zenka_id = <[base.list.element.add]>->({
+            'key_ref' => \$data{'debian'}{'zenki_deps'}{'registry'},
+            'val_ref' => \{
+                zenka          => $zenka,
+                pm_deps        => [@pm_deps],
+                os_deps        => [@os_deps],
+                pm_deps_count  => scalar(@pm_deps),
+                os_deps_count  => scalar(@os_deps),
+                missing_count  => 0,  ## Will be calculated
+                status         => qw| unknown |
+            }
+        });
+
+        if (defined $zenka_id) {
+            <debian.zenki_deps.by_zenka>->{$zenka} = $zenka_id;
+
+            ## Register each Perl module dependency
+            foreach my $pm_module (@pm_deps) {
+                _register_cpan_module($pm_module, $zenka);
+            }
+
+            ## Register each Debian package dependency
+            foreach my $deb_pkg (@os_deps) {
+                _register_debian_package($deb_pkg, $zenka);
+            }
+        }
+    }
+
+    ## Update statistics
+    <debian.stats>{zenki_scanned} = $zenki_count;
+    <debian.stats>{total_pm_deps} = $total_pm_deps;
+    <debian.stats>{total_os_deps} = $total_os_deps;
+    <debian.stats>{last_scan} = time();
+
+    <[base.log]>->( 2, "debian.scan: complete" );
+    <[base.log]>->( 2, "  Zenki scanned: $zenki_count" );
+    <[base.log]>->( 2, "  PM dependencies: $total_pm_deps" );
+    <[base.log]>->( 2, "  OS dependencies: $total_os_deps" );
+
+    return {
+        success     => 1,
+        zenki_count => $zenki_count,
+        deps_count  => $total_pm_deps + $total_os_deps
+    };
+}
+
+sub _register_cpan_module {
+    my ($module, $zenka) = @_;
+
+    ## Check if already registered
+    my $module_id = <debian.cpan_modules.by_name>->{$module};
+
+    if (defined $module_id) {
+        ## Update zenki list
+        my $reg = <debian.cpan_modules.registry>{$module_id};
+        push @{$reg->{zenki_list}}, $zenka
+            unless grep { $_ eq $zenka } @{$reg->{zenki_list} || []};
+        return $module_id;
+    }
+
+    ## Resolve to debian package
+    my $debian_pkg = <[debian.parent.resolve_cpan_to_debian]>->($module);
+
+    ## Add to registry
+    $module_id = <[base.list.element.add]>->({
+        'key_ref' => \$data{'debian'}{'cpan_modules'}{'registry'},
+        'val_ref' => \{
+            module         => $module,
+            debian_package => $debian_pkg,
+            status         => qw| unknown |,
+            zenki_list     => [$zenka]
+        }
+    });
+
+    if (defined $module_id) {
+        <debian.cpan_modules.by_name>->{$module} = $module_id;
+    }
+
+    return $module_id;
+}
+
+sub _register_debian_package {
+    my ($package, $zenka) = @_;
+
+    ## Check if already registered
+    my $pkg_id = <debian.packages.by_name>->{$package};
+
+    if (defined $pkg_id) {
+        ## Increment zenki count
+        <debian.packages.registry>{$pkg_id}{zenki_count}++;
+        return $pkg_id;
+    }
+
+    ## Add to registry
+    $pkg_id = <[base.list.element.add]>->({
+        'key_ref' => \$data{'debian'}{'packages'}{'registry'},
+        'val_ref' => \{
+            package     => $package,
+            status      => qw| unknown |,
+            installed_version => undef,
+            cpan_modules => [],
+            zenki_count => 1
+        }
+    });
+
+    if (defined $pkg_id) {
+        <debian.packages.by_name>->{$package} = $pkg_id;
+    }
+
+    return $pkg_id;
+}
+
+## Export
+$code{qw| debian.parent.scan_zenki_dependencies |} = \\&debian_parent_scan_zenki_dependencies;
+
+0;
+
+#,,,.,,.,,,.,,.,...,.,,,.,,,,,.,.,.,.,.,,..,..,,...,...,.,.,.,,,,.,.,,...,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

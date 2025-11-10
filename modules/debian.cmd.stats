@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = debian.cmd.stats
+# descr = Show dependency statistics
+
+## Format output
+my @output;
+
+push @output, "Debian Dependency Management Statistics:";
+push @output, "";
+push @output, sprintf("Zenki Scanned:        %d", <debian.stats>{zenki_scanned});
+push @output, sprintf("Last Scan:            %s",
+    <debian.stats>{last_scan} ?
+    scalar(localtime(<debian.stats>{last_scan})) : 'never');
+push @output, "";
+push @output, "Dependencies:";
+push @output, sprintf("  Total PM deps:      %d", <debian.stats>{total_pm_deps});
+push @output, sprintf("  Total OS deps:      %d", <debian.stats>{total_os_deps});
+push @output, sprintf("  Missing deps:       %d", <debian.stats>{missing_deps});
+push @output, "";
+push @output, "Debian Packages:";
+push @output, sprintf("  Available:          %d", <debian.stats>{debian_available});
+push @output, sprintf("  Installed:          %d", <debian.stats>{debian_installed});
+push @output, "";
+push @output, "CPAN Modules:";
+push @output, sprintf("  Via Debian:         %d",
+    scalar(grep { $_->{status} eq 'via_debian' }
+        values %{<debian.cpan_modules.registry>}));
+push @output, sprintf("  Via CPAN only:      %d", <debian.stats>{cpan_only});
+push @output, sprintf("  Missing:            %d",
+    scalar(grep { $_->{status} eq 'missing' }
+        values %{<debian.cpan_modules.registry>}));
+
+return {
+    'mode' => qw| true |,
+    'data' => join("\n", @output)
+};
+
+#,.,.,,,.,.,.,,,,..,.,.,...,,.,,,.,,,,,.,,,..,,...,...,...,,,.,,.,,.,,,,..,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = debian.parent.resolve_cpan_to_debian
+# descr = Resolve CPAN module name to Debian package name
+
+sub debian_parent_resolve_cpan_to_debian {
+    my $cpan_module = shift;
+
+    return undef unless $cpan_module;
+
+    ## Look up in known_dependencies
+    my $known = <debian.known_deps>{perlmod}{$cpan_module};
+
+    if ($known && $known->{debian}) {
+        ## Handle array of debian packages
+        if (ref($known->{debian}) eq 'ARRAY') {
+            ## Return first non-cpan: package
+            foreach my $pkg (@{$known->{debian}}) {
+                next if $pkg =~ /^cpan:/;
+                return $pkg;
+            }
+        }
+    }
+
+    ## Fallback: apply naming convention (Foo::Bar => libfoo-bar-perl)
+    my $debian_name = lc($cpan_module);
+    $debian_name =~ s/::/-/g;
+
+    ## Don't add lib prefix if already there
+    $debian_name = "lib$debian_name-perl" unless $debian_name =~ /^lib/;
+
+    return $debian_name;
+}
+
+## Export
+$code{qw| debian.parent.resolve_cpan_to_debian |} = \\&debian_parent_resolve_cpan_to_debian;
+
+0;
+
+#,.,,,.,,,.,.,.,.,,,.,,,.,,,,,...,,,.,...,,,..,,...,...,.,,,.,...,.,.,,,,,.,,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

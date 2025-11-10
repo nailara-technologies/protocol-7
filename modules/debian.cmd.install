@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = debian.cmd.install
+# descr = Install missing dependencies for zenka or all
+# param = [zenka=<name>] [dry_run=1]
+
+my $call = shift;
+my $args = $$call{'args'} // '';
+
+my %params;
+foreach my $pair (split(/\s+/, $args)) {
+    if ($pair =~ /^(\w+)=(.+)$/) {
+        $params{$1} = $2;
+    } elsif ($pair =~ /^(\w+)$/) {
+        $params{zenka} = $1;
+    }
+}
+
+## Run installation
+my $result = <[debian.parent.install_missing]>->(\%params);
+
+if (!$result->{success}) {
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{error} || 'installation failed'
+    };
+}
+
+## Format output
+my @output;
+
+if ($params{dry_run}) {
+    push @output, "Dry run - would install:";
+    push @output, "";
+    if (@{$result->{debian_packages}}) {
+        push @output, "Debian packages (" . scalar(@{$result->{debian_packages}}) . "):";
+        push @output, "  " . join(', ', @{$result->{debian_packages}});
+        push @output, "";
+    }
+    if (@{$result->{cpan_modules}}) {
+        push @output, "CPAN modules (" . scalar(@{$result->{cpan_modules}}) . "):";
+        push @output, "  " . join(', ', @{$result->{cpan_modules}});
+    }
+} else {
+    push @output, "Installation complete:";
+    push @output, "";
+    push @output, sprintf("  Debian: %d installed, %d failed",
+        $result->{installed_debian}, $result->{failed_debian});
+    push @output, sprintf("  CPAN:   %d installed, %d failed",
+        $result->{installed_cpan}, $result->{failed_cpan});
+
+    if ($result->{failed_debian} + $result->{failed_cpan} > 0) {
+        push @output, "";
+        push @output, "⚠ Some installations failed - check logs";
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join("\n", @output)
+};
+
+#,,,.,.,.,.,,,.,.,.,,.,,...,.,,,.,,,.,,,..,,...,...,.,,,,,.,.,.,.,,.,,.,,.,..,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
