@@ -45,7 +45,7 @@ httpsd.timeout      =  23
 
 [base.net.connect:'unix']
 
-httpsd.sock = [base.open:'ip.tcp','input',<net.https.addr>,<net.https.port>]
+httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
 [base.protocol.bind:<httpsd.sock>,'https','server']
 
 [root.drop_privs:<httpsd.system.user>]
