@@ -72,8 +72,8 @@ if ($install_type eq 'minimal') {
     ## Install for zenka
     my $result = <[debian.parent.install_missing]>->({
         zenka => $zenka_name,
-        prefer_debian => 1,
-        use_cpanm => 1
+        prefer_debian => <debian.cfg.prefer_debian>,
+        use_cpanm => <debian.cfg.use_cpanm>
     });
 
     if ($result->{success}) {
