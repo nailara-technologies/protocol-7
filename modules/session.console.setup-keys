@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = session.console.setup-keys
+# param =
+# descr = setup user key directories (one-time setup for AMOS7 signatures)
+
+<[base.log]>->( 1, "Setting up AMOS7 key directories..." );
+
+## Determine user and paths
+my $user = $ENV{USER} || 'root';
+my $home = $ENV{HOME} || "/root";
+
+my $key_dir = "$home/.n/user-keys";
+
+<[base.log]>->( 2, "  User: $user" );
+<[base.log]>->( 2, "  Home: $home" );
+<[base.log]>->( 2, "  Key directory: $key_dir" );
+
+## Check if already exists
+if (-d $key_dir) {
+    my $perms = (stat($key_dir))[2] & 0777;
+    my $perms_oct = sprintf("%04o", $perms);
+
+    <[base.log]>->( 2, "  ✓ Key directory already exists (permissions: $perms_oct)" );
+
+    if ($perms != 0700) {
+        <[base.log]>->( 1, "  ⚠ Fixing permissions to 0700..." );
+
+        chmod(0700, $key_dir) or do {
+            <[base.log]>->( 0, "  ✗ Failed to chmod: $!" );
+            return say "::\n: ✗ Failed to fix permissions\n: Error: $!\n::";
+        };
+
+        <[base.log]>->( 2, "  ✓ Permissions fixed" );
+    }
+
+    return say "::\n: ✓ Key directory already configured\n: Path: $key_dir\n::";
+}
+
+## Create directory hierarchy
+<[base.log]>->( 2, "  Creating directory: $key_dir" );
+
+## Create parent directory first
+my $n_dir = "$home/.n";
+
+unless (-d $n_dir) {
+    mkdir($n_dir, 0700) or do {
+        <[base.log]>->( 0, "  ✗ Failed to create $n_dir: $!" );
+        return say "::\n: ✗ Failed to create .n directory\n: Error: $!\n::";
+    };
+
+    <[base.log]>->( 2, "  ✓ Created $n_dir" );
+}
+
+## Create user-keys directory
+mkdir($key_dir, 0700) or do {
+    <[base.log]>->( 0, "  ✗ Failed to create $key_dir: $!" );
+    return say "::\n: ✗ Failed to create key directory\n: Error: $!\n::";
+};
+
+<[base.log]>->( 2, "  ✓ Created $key_dir" );
+
+## Verify permissions
+my $perms = (stat($key_dir))[2] & 0777;
+my $perms_oct = sprintf("%04o", $perms);
+
+<[base.log]>->( 2, "  Permissions: $perms_oct" );
+
+if ($perms != 0700) {
+    <[base.log]>->( 1, "  ⚠ Fixing permissions..." );
+    chmod(0700, $key_dir);
+}
+
+<[base.log]>->( 1, "  ✓ Key directory setup complete" );
+
+my @output;
+push @output, "::";
+push @output, ": ✓ AMOS7 Key Directory Setup Complete";
+push @output, ":";
+push @output, ": Path: $key_dir";
+push @output, ": Permissions: 0700 (owner only)";
+push @output, ":";
+push @output, ": You can now use:";
+push @output, ":   Protocol-7 sourcecode <command>";
+push @output, ":   Protocol-7 workflow commit <message>";
+push @output, "::";
+
+return say join("\n", @output);
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
