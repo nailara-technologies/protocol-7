@@ -9,9 +9,10 @@
 ## No need to reload/reinitialize here
 
 ## Initialize parent-side certificate registry and cache
-<letsencrypt.parent.certs>          = {};
-<letsencrypt.parent.acme_account>   = {};
-<letsencrypt.parent.renewal_timers> = {};
+<letsencrypt.parent.certs>              = {};
+<letsencrypt.parent.acme_account>       = {};
+<letsencrypt.parent.renewal_timers>     = {};
+<letsencrypt.parent.pending_challenges> = {};
 
 ## Load stored certificates from disk into memory registry
 my $load_result = <[letsencrypt.parent.load_certificate_registry]>->();
@@ -91,6 +92,24 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
     qw| filters | => { qw| started | => qw| base.parser.timestamp | }
 };
 
+<list.challenges> = {
+    qw| var |   => qw| data |,
+    qw| key |   => qw| letsencrypt.parent.pending_challenges |,
+    qw| descr | => 'Pending ACME challenge validations',
+    qw| mask |  => '<key>:domain type status created_at expires_at',
+    qw| align | => {
+        qw| domain |     => qw| left+2 |,
+        qw| type |       => qw| center-1 |,
+        qw| status |     => qw| center-1 |,
+        qw| created_at | => qw| center-1 |,
+        qw| expires_at | => qw| center-1 |
+    },
+    qw| filters | => {
+        qw| created_at | => qw| base.parser.timestamp |,
+        qw| expires_at | => qw| base.parser.timestamp |
+    }
+};
+
 ## Initialize ACME activity buffer
 if ( not exists <buffer.acme-activity> ) {
     <buffer.acme-activity.max_size> = 100 * 1024;    ## 100K buffer size ##
@@ -117,8 +136,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,,.,,.,,.,,,,.,,,,.,,,.,.,.,..,,,..,..,,,,.,..,,...,..,,.,,,..,,,.,,...,.,,,
-#AHLQJXLH62FQARB3RSUTNZCM5C3KTJI2BCFTKEKGBV6Y5VBYNSLVHR6M34Z7XMYDDZFRHE3RNECB6
-#\\\|GWCRPL54EF5UNKUUERXD4GV3YRX2DV5S2TK5JTOVTGPGG4GBOMC \ / AMOS7 \ YOURUM ::
-#\[7]65E5FNMIBUUU66ZHH5V3FAG362H2JZQ3UIP64LPQV6YTIDY2SYBA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,.,,,,.,,,..,.,.,...,...,..,,..,,...,.,.,.,.,...,,..,,,,,.,,,
+#P7AGEYLBJL7D7FQBCRYF43KT6PPY56ZF3ICMMY2RVMXLWBAXNPVA7EPNNEFVY4OWCAKHYAYUW2NCO
+#\\\|HDPV6FGUTPDBM3S5S6TQWSXJEIFNVIDO5IUNAADRRQVIVM23QO7 \ / AMOS7 \ YOURUM ::
+#\[7]KFXBPJHDOA4EUPRZNTONXRYSIPAFLRAUG6OZYJ5S43RI6KOV4QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
