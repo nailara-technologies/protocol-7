@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = debian.cmd.zenka
+# descr = Show dependencies for specific zenka
+# param = <zenka_name>
+
+my $call = shift;
+my $zenka_name = $$call{'args'};
+
+unless ($zenka_name) {
+    ## List all zenki
+    my @output = ("Available zenki:");
+
+    foreach my $zenka_id (sort {
+        <debian.zenki_deps.registry>{$a}{zenka} cmp
+        <debian.zenki_deps.registry>{$b}{zenka}
+    } keys %{<debian.zenki_deps.registry>}) {
+        my $z = <debian.zenki_deps.registry>{$zenka_id};
+        my $status_icon = $z->{status} eq 'complete' ? '✓' :
+                          $z->{status} eq 'partial' ? '⚠' : '✗';
+
+        push @output, sprintf("  [%s] %-20s  pm:%2d  os:%2d  missing:%2d",
+            $status_icon, $z->{zenka},
+            $z->{pm_deps_count}, $z->{os_deps_count}, $z->{missing_count});
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => join("\n", @output)
+    };
+}
+
+## Show specific zenka
+my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_name};
+
+unless ($zenka_id) {
+    return {
+        'mode' => qw| false |,
+        'data' => "zenka '$zenka_name' not found in registry"
+    };
+}
+
+my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+my @output;
+
+push @output, "Zenka: $zenka_name";
+push @output, "Status: " . $zenka->{status};
+push @output, "";
+
+## Show Perl module dependencies
+if (@{$zenka->{pm_deps} || []}) {
+    push @output, "Perl Module Dependencies (" . $zenka->{pm_deps_count} . "):";
+
+    foreach my $pm (@{$zenka->{pm_deps}}) {
+        my $mod_id = <debian.cpan_modules.by_name>{$pm};
+        if ($mod_id) {
+            my $mod = <debian.cpan_modules.registry>{$mod_id};
+            my $status_icon = $mod->{status} eq 'via_debian' ? '✓deb' :
+                              $mod->{status} eq 'via_cpan' ? '✓cpan' : '✗';
+
+            my $deb_pkg = $mod->{debian_package} || 'N/A';
+            push @output, sprintf("  [%5s] %-30s  → %s",
+                $status_icon, $pm, $deb_pkg);
+        } else {
+            push @output, "  [    ?] $pm  (not in registry)";
+        }
+    }
+
+    push @output, "";
+}
+
+## Show OS dependencies
+if (@{$zenka->{os_deps} || []}) {
+    push @output, "OS Dependencies (" . $zenka->{os_deps_count} . "):";
+
+    foreach my $os (@{$zenka->{os_deps}}) {
+        my $pkg_id = <debian.packages.by_name>{$os};
+        if ($pkg_id) {
+            my $pkg = <debian.packages.registry>{$pkg_id};
+            my $status_icon = $pkg->{status} eq 'installed' ? '✓' : '✗';
+            my $version = $pkg->{installed_version} || 'N/A';
+
+            push @output, sprintf("  [%s] %-40s  %s",
+                $status_icon, $os, $version);
+        } else {
+            push @output, "  [?] $os  (not in registry)";
+        }
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join("\n", @output)
+};
+
+#,,.,,.,.,,,.,.,,,...,,,.,.,.,.,.,,,.,.,,,..,,...,...,...,,,,.,...,...,...,.,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

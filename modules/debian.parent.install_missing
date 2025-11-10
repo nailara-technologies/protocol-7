@@ -1,0 +1,171 @@
+## [:< ##
+
+# name = debian.parent.install_missing
+# descr = Install missing dependencies (debian packages and/or cpanm modules)
+
+sub debian_parent_install_missing {
+    my $params = shift || {};
+
+    my $zenka_filter = $params->{zenka};
+    my $prefer_debian = $params->{prefer_debian} // <debian.cfg.prefer_debian>;
+    my $use_cpanm = $params->{use_cpanm} // 1;
+    my $dry_run = $params->{dry_run} // 0;
+
+    <[base.log]>->( 2, "debian.install: installing missing dependencies..." );
+    <[base.log]>->( 2, "  Prefer debian: $prefer_debian" );
+    <[base.log]>->( 2, "  Use cpanm: $use_cpanm" );
+    <[base.log]>->( 2, "  Dry run: $dry_run" ) if $dry_run;
+
+    ## Collect missing packages
+    my @missing_debian;
+    my @missing_cpan;
+
+    if ($zenka_filter) {
+        ## Install only for specific zenka
+        my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_filter};
+
+        unless ($zenka_id) {
+            return {
+                success => 0,
+                error   => qq| zenka '$zenka_filter' not found in registry |
+            };
+        }
+
+        my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+
+        ## Check PM dependencies
+        foreach my $pm (@{$zenka->{pm_deps} || []}) {
+            my $mod_id = <debian.cpan_modules.by_name>{$pm};
+            next unless $mod_id;
+
+            my $mod = <debian.cpan_modules.registry>{$mod_id};
+            next unless $mod->{status} eq 'missing';
+
+            if ($prefer_debian && $mod->{debian_package}) {
+                push @missing_debian, $mod->{debian_package};
+            } elsif ($use_cpanm) {
+                push @missing_cpan, $pm;
+            }
+        }
+
+        ## Check OS dependencies
+        foreach my $os (@{$zenka->{os_deps} || []}) {
+            my $pkg_id = <debian.packages.by_name>{$os};
+            next unless $pkg_id;
+
+            my $pkg = <debian.packages.registry>{$pkg_id};
+            next unless $pkg->{status} eq 'missing';
+
+            push @missing_debian, $os;
+        }
+
+    } else {
+        ## Install all missing dependencies
+
+        ## Collect missing debian packages
+        foreach my $pkg_id (keys %{<debian.packages.registry>}) {
+            my $pkg = <debian.packages.registry>{$pkg_id};
+            next unless $pkg->{status} eq 'missing';
+
+            push @missing_debian, $pkg->{package};
+        }
+
+        ## Collect missing CPAN modules
+        foreach my $mod_id (keys %{<debian.cpan_modules.registry>}) {
+            my $mod = <debian.cpan_modules.registry>{$mod_id};
+            next unless $mod->{status} eq 'missing';
+
+            if ($prefer_debian && $mod->{debian_package}) {
+                ## Try debian first
+                my $pkg_id = <debian.packages.by_name>{$mod->{debian_package}};
+                if (!$pkg_id || <debian.packages.registry>{$pkg_id}{status} eq 'missing') {
+                    push @missing_debian, $mod->{debian_package};
+                    next;
+                }
+            }
+
+            if ($use_cpanm) {
+                push @missing_cpan, $mod->{module};
+            }
+        }
+    }
+
+    ## Remove duplicates
+    @missing_debian = do { my %seen; grep { !$seen{$_}++ } @missing_debian };
+    @missing_cpan = do { my %seen; grep { !$seen{$_}++ } @missing_cpan };
+
+    <[base.log]>->( 2, "  Missing debian packages: " . scalar(@missing_debian) );
+    <[base.log]>->( 2, "  Missing CPAN modules: " . scalar(@missing_cpan) );
+
+    my $result = {
+        success         => 1,
+        debian_packages => [@missing_debian],
+        cpan_modules    => [@missing_cpan],
+        installed_debian => 0,
+        installed_cpan => 0,
+        failed_debian => 0,
+        failed_cpan => 0
+    };
+
+    return $result if $dry_run;
+
+    ## Install debian packages
+    if (@missing_debian) {
+        <[base.log]>->( 2, "  Installing " . scalar(@missing_debian) . " debian packages..." );
+
+        my $errors = <[base.debian.install_package]>->(@missing_debian);
+
+        if ($errors == 0) {
+            $result->{installed_debian} = scalar(@missing_debian);
+            <[base.log]>->( 2, "  ✓ Debian packages installed successfully" );
+        } else {
+            $result->{failed_debian} = $errors;
+            <[base.log]>->( 0, "  ✗ Debian package installation had $errors errors" );
+        }
+    }
+
+    ## Install CPAN modules via cpanm
+    if (@missing_cpan && $use_cpanm) {
+        <[base.log]>->( 2, "  Installing " . scalar(@missing_cpan) . " CPAN modules..." );
+
+        my $installed = 0;
+        my $failed = 0;
+
+        foreach my $module (@missing_cpan) {
+            <[base.log]>->( 2, "    cpanm $module" );
+
+            my $exit_code = system('cpanm', '--quiet', '--notest', $module);
+
+            if ($exit_code == 0) {
+                $installed++;
+            } else {
+                $failed++;
+                <[base.log]>->( 0, "    ✗ Failed to install $module" );
+            }
+        }
+
+        $result->{installed_cpan} = $installed;
+        $result->{failed_cpan} = $failed;
+
+        <[base.log]>->( 2, "  ✓ CPAN: $installed installed, $failed failed" );
+    }
+
+    ## Re-check installation status
+    <[debian.parent.check_installed]>;
+
+    <[base.log]>->( 2, "debian.install: complete" );
+
+    return $result;
+}
+
+## Export
+$code{qw| debian.parent.install_missing |} = \\&debian_parent_install_missing;
+
+0;
+
+#,,.,,,.,...,,..,,,,,.,,,.,.,.,.,,..,,.,,..,,...,...,.,,,,.,...,.,.,.,,.,.,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

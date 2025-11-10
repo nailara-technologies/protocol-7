@@ -1,0 +1,159 @@
+## [:< ##
+
+# name = debian.parent.init_code
+# descr = Initialize debian dependency management zenka
+
+<[base.perlmod.autoload]>->('File::Find');
+
+<[base.log]>->( 2, 'initializing debian dependency management zenka..,' );
+
+## Configuration
+<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
+<debian.cfg.auto_install>      //= 0;  ## Don't auto-install by default
+<debian.cfg.prefer_debian>     //= 1;  ## Prefer debian packages over cpanm
+
+## Detect OS
+<system.host.os.dist.name> = qw| debian |
+    if -f '/etc/debian_version'
+    and <[file.content]>->('/etc/os-release') =~ m|^ID(_LIKE)?=debian$|m;
+
+<[base.log]>->( 2, "  Detected OS: " . <system.host.os.dist.name> );
+
+## Initialize registries
+<debian.packages.by_name>     //= {};  ## debian_package_name => package_id
+<debian.cpan_modules.by_name> //= {};  ## CPAN::Module => module_id
+<debian.zenki_deps.by_zenka>  //= {};  ## zenka_name => zenka_id
+
+## Debian packages registry
+<debian.packages.registry> //= {};
+
+<list.debian-packages> = {
+    'var'      => qw| data |,
+    'key'      => qw| debian.packages.registry |,
+    'sort_key' => 'alpha-len:package',
+    'mask'     => 'id package status installed_version cpan_modules zenki_count',
+    'align'    => {
+        'id'        => 'right',
+        'package'   => 'left+2',
+        'status'    => 'center',
+        'installed_version' => 'center',
+        'cpan_modules' => 'left+1',
+        'zenki_count' => 'center'
+    },
+    'filters'  => {
+        'status' => sub {
+            $_[0] eq 'installed' ? '✓' :
+            $_[0] eq 'missing' ? '✗' :
+            $_[0] eq 'unknown' ? '?' : $_[0]
+        }
+    }
+};
+
+<[base.list.init]>->({
+    'name'         => qw| debian-packages |,
+    'key_ref'      => \$data{'debian'}{'packages'}{'registry'},
+    'max_elements' => 2048
+});
+
+## CPAN modules registry
+<debian.cpan_modules.registry> //= {};
+
+<list.cpan-modules> = {
+    'var'      => qw| data |,
+    'key'      => qw| debian.cpan_modules.registry |,
+    'sort_key' => 'alpha-len:module',
+    'mask'     => 'id module debian_package status zenki_list',
+    'align'    => {
+        'id'             => 'right',
+        'module'         => 'left+2',
+        'debian_package' => 'left+1',
+        'status'         => 'center',
+        'zenki_list'     => 'left+1'
+    },
+    'filters'  => {
+        'status' => sub {
+            $_[0] eq 'via_debian' ? '✓deb' :
+            $_[0] eq 'via_cpan' ? '✓cpan' :
+            $_[0] eq 'missing' ? '✗' : $_[0]
+        }
+    }
+};
+
+<[base.list.init]>->({
+    'name'         => qw| cpan-modules |,
+    'key_ref'      => \$data{'debian'}{'cpan_modules'}{'registry'},
+    'max_elements' => 4096
+});
+
+## Per-zenka dependencies registry
+<debian.zenki_deps.registry> //= {};
+
+<list.zenka-deps> = {
+    'var'      => qw| data |,
+    'key'      => qw| debian.zenki_deps.registry |,
+    'sort_key' => 'alpha-len:zenka',
+    'mask'     => 'id zenka pm_deps_count os_deps_count missing_count status',
+    'align'    => {
+        'id'             => 'right',
+        'zenka'          => 'left+2',
+        'pm_deps_count'  => 'center',
+        'os_deps_count'  => 'center',
+        'missing_count'  => 'center',
+        'status'         => 'center'
+    },
+    'filters'  => {
+        'status' => sub {
+            $_[0] eq 'complete' ? '✓' :
+            $_[0] eq 'partial' ? '⚠' :
+            $_[0] eq 'missing' ? '✗' : $_[0]
+        }
+    }
+};
+
+<[base.list.init]>->({
+    'name'         => qw| zenka-deps |,
+    'key_ref'      => \$data{'debian'}{'zenki_deps'}{'registry'},
+    'max_elements' => 256
+});
+
+## Statistics
+<debian.stats> = {
+    zenki_scanned       => 0,
+    total_pm_deps       => 0,
+    total_os_deps       => 0,
+    debian_available    => 0,
+    debian_installed    => 0,
+    cpan_only           => 0,
+    missing_deps        => 0,
+    last_scan           => 0
+};
+
+## Load known dependencies mapping
+<debian.known_deps> = <[base.known_dependencies]>;
+
+<[base.log]>->( 2, "  Loaded known dependencies: " .
+    scalar(keys %{<debian.known_deps>{perlmod}}) . " modules mapped" );
+
+## Perform initial scan of zenki
+<[base.log]>->( 2, "  Scanning zenki for dependencies..." );
+
+my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
+
+if ($scan_result && $scan_result->{success}) {
+    <[base.log]>->( 2, "  Scan complete: " .
+        $scan_result->{zenki_count} . " zenki, " .
+        $scan_result->{deps_count} . " dependencies" );
+} else {
+    <[base.log]>->( 0, "  Scan failed: " . ($scan_result->{error} || 'unknown error') );
+}
+
+<[base.log]>->( 2, 'debian zenka initialization complete' );
+
+0;
+
+#,,.,.,.,.,,..,.,.,.,.,,.,,,,.,.,.,,,.,,,..,,...,...,.,,,,,.,...,,,.,,.,,.,,,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

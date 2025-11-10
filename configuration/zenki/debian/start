@@ -1,0 +1,31 @@
+
+ .:[ protocol-7 debian package manager zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_logfile = 2
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      scan-zenki deps check install zenka resolve \
+                      stats packages *
+
+modules.load = auth net protocol io.unix debian  ## devmod
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

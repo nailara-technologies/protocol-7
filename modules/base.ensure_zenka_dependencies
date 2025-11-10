@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = base.ensure_zenka_dependencies
+# descr = Wrapper to ensure zenka dependencies (calls debian zenka if available)
+
+sub base_ensure_zenka_dependencies {
+    my $zenka_name = shift // <system.zenka.name>;
+
+    ## Check if debian zenka is available
+    if (exists $code{'debian.parent.ensure_zenka_dependencies'}) {
+        <[base.log]>->( 2, "Checking dependencies via debian zenka for '$zenka_name'" );
+        return <[debian.parent.ensure_zenka_dependencies]>->($zenka_name, 1);
+    }
+
+    ## Check via IPC if debian zenka is running
+    ## (Not implemented yet - would use base.protocol-7.command.send.local)
+
+    <[base.log]>->( 2, "debian zenka not available - skipping dependency check" );
+
+    return 1;  ## Continue anyway
+}
+
+## Export
+$code{qw| base.ensure_zenka_dependencies |} = \\&base_ensure_zenka_dependencies;
+
+0;
+
+#,,.,,,.,,,.,.,.,,,.,,..,.,,,,..,,,.,,,,,..,,...,...,..,,...,...,.,.,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
