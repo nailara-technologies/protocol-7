@@ -5,7 +5,7 @@
 
 <[base.log]>->( 2, "debian: rescanning zenki..." );
 
-my $result = <[debian.parent.scan_zenki_dependencies]>;
+my $result = <[debian.parent.scan_zenki_dependencies]>();
 
 if (!$result->{success}) {
     return {
@@ -15,7 +15,7 @@ if (!$result->{success}) {
 }
 
 ## Re-check installation status
-<[debian.parent.check_installed]>;
+<[debian.parent.check_installed]>();
 
 my @output;
 push @output, "Rescan complete:";
