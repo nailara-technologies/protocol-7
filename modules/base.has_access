@@ -11,16 +11,16 @@ return warn 'has_access : expected <user> parameter <{C1}>'
 return warn 'has_access :expected <command> parameter <{C1}>'
     if not defined $cmnd or not length $cmnd;
 
-return 1    ## <-- has access ###
+return TRUE    ## <-- has access ###
     if defined <access.cmd.regex.usr>->{$user}
     and $cmnd =~ <access.cmd.regex.usr>->{$user}
     or defined <access.cmd.regex.usr>->{'*'}
     and $cmnd =~ <access.cmd.regex.usr>->{'*'};
 
-return 0;    ## <-- no access ###
+return FALSE;    ## <-- no access ###
 
-#,,.,,,,,,.,,,.,,,.,.,,,.,,..,,..,.,,,,,,,...,..,,...,..,,...,.,,,,,,,..,,,.,,
-#DZSOKHEIKUZ2N3SNKGR5X52VCKTVVM34YOYP4LLCXQGV35JQ2B2E4DVVNQWMPJWTT2JNX5VGXAGQ2
-#\\\|4JZVQ2NUBEUFVAHR3P3SHMQ4MVX75UCVCVL7QOB5EBJBGH5RY65 \ / AMOS7 \ YOURUM ::
-#\[7]UIPQ4TPYQ4WAU7AUWKWKFWHT3M6FHU327OFPIDB7UXVRTD7MWOBI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,..,.,,,...,.,,,,..,,,,,,,,,..,,...,...,.,,,.,.,..,,..,,...,
+#7ZWMES24P4VS4SROI6YCJ2IGT57QFU44YVYA4C636M5MAMJPVLDPKGBEFGCUWCZ3I5QNN3BBI2ONC
+#\\\|7K77OBNBLL7JHM4WUUHVU2JJLUPGOPS3QVC72IB27ZX24GZI6FI \ / AMOS7 \ YOURUM ::
+#\[7]DD6SPRF667LE5QGDRY46J5TMSVHAD5WEMAV5SONMTHJA6XJ3IUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
