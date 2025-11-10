@@ -3,23 +3,29 @@
 
 [load_config_file:'shared-params']
 
+system.verbosity.zenka_buffer = 3
+system.verbosity.console      = 2
+
 access.cmd.usr.cube = commands heart verify-instance reload name \
                       list show-buffer buffer-erase buffer-erase-level \
-                      child.* status renew force-renew list-domains \
-                      list-certificates dump echo # <-- require devmod module
+                      status renew force-renew list-domains child.commands \
+                      list-certificates dump echo request-certificate \
+                      revoke-certificate activity-log # \ # <-- require devmod module
+                                                      # child.* 
 
                       # reload command currently disabled [ drops parent cmds ]
 
 access.cmd.usr.parent = commands reload show-buffer \
                         status renew force-renew \
-                        * # <-- LLL
+                        list ## * ** # <-- LLL
 
 ## ACME Server Configuration
-letsencrypt.acme.server = https://acme-v02.api.letsencrypt.org/directory
+#letsencrypt.acme.server = https://acme-v02.api.letsencrypt.org/directory
+letsencrypt.acme.server = http://localhost:8555/directory
 #letsencrypt.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory  # staging server
 
 ## Email for Let's Encrypt account and notifications
-letsencrypt.admin.email = admin@example.com  # [!] update to your admin email
+letsencrypt.admin.email = admin@yourdomain.local   # [!] update to your admin email
 
 ## Certificate Storage
 letsencrypt.certs.dir = /etc/protocol-7/certs
@@ -37,27 +43,27 @@ letsencrypt.cache.timeout = 86400  # 24 hours
 ## Challenge Configuration
 letsencrypt.challenge.type = http-01  # http-01 or dns-01
 letsencrypt.challenge.timeout = 300  # 5 minutes for challenge completion
+letsencrypt.challenge.site_dir = /var/httpd/  # web server document root for challenges
+letsencrypt.challenge.site_name = default  # default virtual host directory
 
 ## Rate Limiting Protection
 letsencrypt.ratelimit.enabled = 1
 letsencrypt.ratelimit.max-per-hour = 5
 
-modules.load = auth net protocol io.unix io.ip letsencrypt.base
+modules.load = auth net protocol io.unix io.ip letsencrypt.base      ## devmod
 [load_modules:<modules.load>]
 [init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
 
 [letsencrypt.base.fork_letsencrypt_child]
 
-[root.drop_privs:<system.amos-zenka-user>]
-
-[base.get_session_id]
-
 [zenka.loop]
 
-#,,,.,.,,,...,.,,,,..,.,,,,,.,.,.,,,.,.,.,..,,..,,...,...,,,.,,..,,,.,.,.,,,,,
-#JI4VBZ7HEH6K76TSBA3TSZ7ZSMYERJSDL4EVKZDPNPEY5LPDDZURC5A6TYEWEKLBTQQME2DV32WO4
-#\\\|GTDEBEBXUHLTPKE4DH47E4I53FYDTLXLE6PBLBACL6FBLKH6X2X \ / AMOS7 \ YOURUM ::
-#\[7]YGXGKQCV6PKFIRPPGIUMJ3AA6BISKXGSR45NWMMHFISLJQTF72AQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,.,.,.,.,.,.,...,,.,,...,...,..,,...,...,.,,,,.,,..,,.,.,.,.,
+#35HOWZSEU4GXY2E2SQEP4GQX4AM5D35DFUPFQHZIBYFVWSI55DPGBG2654VFSRCI5P2XZCCFVX376
+#\\\|W5BWIY3XXVSYZ6RH6NFRCMGJMXJCFHWI4ZTQIGOIQDIY75DO47K \ / AMOS7 \ YOURUM ::
+#\[7]Y7HMGWISZMEORHQ7566KPET2BEGTILXLRWYITBORVWB6KHOSQICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

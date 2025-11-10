@@ -1,0 +1,113 @@
+## [:< ##
+
+# name = httpd.http_post
+# descr = Handle HTTP POST requests - routes to appropriate handlers (ACME, file upload, etc.)
+
+my $id      = shift;
+my $session = $data{'session'}->{$id};
+
+my $request  = $session->{'http'}->{'request'};
+my $response = $session->{'response'};
+my $headers  = $request->{'headers'};
+my $http_uri = $request->{'uri'};
+
+## Log POST request
+<[base.logs]>->( 2, '[%d] POST request: %s (content-length: %s)',
+    $id, $http_uri, $headers->{'content-length'} // 'unknown' );
+
+## Check Content-Length to prevent massive uploads
+my $content_length = $headers->{'content-length'} // 0;
+my $max_post_size = <httpd.cfg.max_post_size> // ( 1024 * 1024 );  ## 1MB default
+
+if ( $content_length > $max_post_size ) {
+    <[base.logs]>->(
+        1, '[%d] POST body too large: %d bytes (max: %d)',
+        $id, $content_length, $max_post_size
+    );
+    return <[httpd.send_error_page]>->( $id, 413 );  ## Payload Too Large
+}
+
+## For ACME endpoints, wait for complete body before processing
+if ( $http_uri =~ m|^/api/certificate| || $http_uri =~ m|^/\.well-known/acme-challenge| ) {
+
+    ## Check if we have the complete body in the input buffer
+    my $current_body = $session->{'buffer'}->{'input'} // '';
+    my $bytes_received = length($current_body);
+
+    <[base.logs]>->( 2, '[%d] ACME POST body check: %d bytes received (expected: %d)',
+        $id, $bytes_received, $content_length );
+
+    ## If we don't have the complete body yet, set up a variable watcher
+    ## to trigger when more data arrives
+    if ( $bytes_received < $content_length ) {
+
+        ## Initialize body accumulation state if not already done
+        unless ( defined $session->{'http'}->{'body_watcher'} ) {
+
+            <[base.logs]>->( 2, '[%d] setting up body accumulation watcher',
+                $id );
+
+            ## Create a variable watcher on the input buffer
+            ## This will trigger again when more data arrives
+            $session->{'http'}->{'body_watcher'} = <[event.add_var]>->(
+                {   'var'     => \$session->{'buffer'}->{'input'},
+                    'handler' => qq| httpd.handler.acme_request |,
+                    'poll'    => qq| w |,
+                    'repeat'  => TRUE,
+                    'data'    => $id,
+                    'desc'    => sprintf( '[%d] body accumulation watcher', $id )
+                }
+            );
+        }
+
+        ## Return control to event loop - handler will be called again when body grows
+        return 0;
+    }
+
+    ## Body is complete - extract it and process
+    $session->{'http'}->{'body'} = $current_body;
+    $session->{'buffer'}->{'input'} = '';
+
+    ## Remove the watcher if it exists
+    if ( defined $session->{'http'}->{'body_watcher'} ) {
+        <[base.logs]>->( 2, '[%d] body complete, removing watcher', $id );
+        $session->{'http'}->{'body_watcher'}->stop();
+        delete $session->{'http'}->{'body_watcher'};
+    }
+
+    <[base.logs]>->( 2, '[%d] ACME POST body complete: %d bytes',
+        $id, length($current_body) );
+
+    ## Route based on URI path
+    if ( $http_uri =~ m|^/\.well-known/acme-challenge| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    }
+    elsif ( $http_uri =~ m|^/api/certificate/request| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    }
+    elsif ( $http_uri =~ m|^/api/certificate/status| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    }
+    elsif ( $http_uri =~ m|^/api/certificate/list| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    }
+}
+else {
+    ## Unsupported POST endpoint
+    <[base.logs]>->( 1, '[%d] POST not supported for: %s', $id, $http_uri );
+    return <[httpd.send_error_page]>->( $id, 405 );  ## Method Not Allowed
+}
+
+return 2;  ## Should not reach here
+
+#,,,,..,..,,..,,,.,,.,..,,,,,,,..,,,.,,,,,.,,,,,...,,...,...,.,.,..,...,..,,,...,
+#HHJSFVHVLBHYJ52F6EJZFMG7CWCGAXN3J7I5K5FJFTKD6JYMLNPQMX3LKLWG63X4YMK5XWLNB6A25HM
+#\\\|7DZIXNQEPWBVPB7OH6P7EU2TJJ3F4C4Y7C6KFBFVDJXQSBWCABUP \ / AMOS7 \ YOURUM ::
+#\[7]MGKQ5DZVLKPXQ5WZ2SPUWSOXC4GTBDDZXFKJVBFQ3MLYRVXPTWFIQ 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,,,,,.,..,,,,,,,..,,,.,...,,.,,.,,,,,,,..,,...,...,.,.,.,.,.,,,,.,,,.,,
+#RWQZUESVBYN33BXMRKUIQEDSPNQRB4DJCL3PFSIH26LMPZ7QFFL6UD4KJQM4TMR5RS3UIAQ6QUKFU
+#\\\|JVRK7XH6WB7S4BICXBQSVDVEU3YGNYQMVXVAYRIZBJPYJK7G332 \ / AMOS7 \ YOURUM ::
+#\[7]ROYX2X7RIX5DGQA5UIB5XXPQPR7BMB7FWSVOAPI6IF2DFMZJW2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

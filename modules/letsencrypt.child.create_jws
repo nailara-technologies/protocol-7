@@ -3,7 +3,6 @@
 # name  = letsencrypt.child.create_jws
 # descr = Create JSON Web Signature (JWS) for ACME requests (Ed25519/EdDSA signing)
 
-use Crypt::Ed25519;
 use JSON::XS;
 use MIME::Base64 qw(encode_base64url);
 
@@ -41,20 +40,19 @@ my $header_b64  = encode_base64url($header_json);
 ## Create signing input: header.payload
 my $signing_input = $header_b64 . '.' . $payload_b64;
 
-## Sign with Ed25519 account key
-my $account_key = <letsencrypt.child.acme_client>->{account_key};
-unless ( $account_key && $account_key->{secret} && $account_key->{public} ) {
+## Sign with Ed25519 account key using Protocol-7 signing infrastructure
+my $account_key_name = <letsencrypt.child.acme_client>->{account_key_name};
+unless ($account_key_name) {
     <[base.log]>->(
-        1, 'error: account key not properly initialized for signing'
+        1, 'error: account key name not properly initialized for signing'
     );
     return undef;
 }
 
-my $signature = Crypt::Ed25519::sign(
-    $signing_input,
-    $account_key->{secret},
-    $account_key->{public}
-);
+<[base.log]>->( 3, "signing JWS with account key: $account_key_name" );
+
+## Use Protocol-7 signing function which accesses key from global %keys{'C25519'} hash
+my $signature = <[crypt.C25519.sign_data]>->( \$signing_input, $account_key_name );
 
 ## URL-safe base64 encode signature
 my $signature_b64 = encode_base64url($signature);
@@ -66,8 +64,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,..,..,,,.,,..,,.,.,...,,,.,,..,,..,.,,,,.,,..,,...,...,...,,,,,,.,,...,,,,,
-#PRUWC2DE4Y7FLNEH35QMXEOPQUWJU5BI4FUZDXVHUHMVDG5P2YCTAKGKUVAXNMM526PYQAN5B7GR6
-#\\\|QFLML3LLULBS2SQZW6LPCPMSOFOENAPNSRDR7AWOKM4BGCPX4NK \ / AMOS7 \ YOURUM ::
-#\[7]L23MK4OWLTEXQSK7CKDLQFM2JOMYIBPNRM3YD2DGRFORTHM7KIDI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,,,.,...,.,.,.,,,,,,,...,,..,..,,...,...,..,,...,.,.,,,,,..,,
+#WFTJKNWVIBYDZF2HO6KRVA37T5LVGDUC75T44VBJXCSGVZI2MHYQEL6DGHJQEDHHVLVRKNCKKQH3M
+#\\\|KPZQSNBR2BSJK54WPOZMNWJC3YOHDOCPO27QRK7FYDJMGYV4IH6 \ / AMOS7 \ YOURUM ::
+#\[7]27YHDSUCGH3PHGC7J34CAUQYAXYGRTPZHQ66TOXF5TXOOBQUVMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

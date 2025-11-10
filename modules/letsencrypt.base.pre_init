@@ -7,24 +7,23 @@
     2, 'letsencrypt pre-initialization: loading ACME libraries..,'
 );
 
-## Load cryptographic and ACME libraries
-<[base.perlmod.autoload]>->('Crypt::Ed25519');  ## Account key signing (EdDSA)
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509')
-    ;                                           ## CSR certificate generation
+## Load ACME-required libraries (Crypt::Ed25519 loaded via crypt.C25519 module)
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA');     ## RSA key generation
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509');    ## CSR certificate generation
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('LWP::UserAgent');
 <[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
 <[base.perlmod.autoload]>->('Encode');
 <[base.perlmod.autoload]>->('MIME::Base64');    ## Base64url encoding for JWK
-<[base.perlmod.autoload]>->('Crypt::Misc');     ## Base32r encoding/decoding
+<[base.perlmod.autoload]>->('Digest::SHA');     ## SHA hashing for JWK thumbprint
 
 ## Validate ACME server configuration
-if ( !<letsencrypt.acme.server> ) {
-    <[base.log]>->( 1, "warning: LETSENCRYPT ACME server not configured" );
+if ( not defined <letsencrypt.acme.server> ) {
+    <[base.log]>->( 0, ": warning : LETSENCRYPT ACME server not configured" );
 }
 
-if ( !<letsencrypt.admin.email> ) {
-    <[base.log]>->( 1, "warning: LETSENCRYPT admin email not configured" );
+if ( not defined <letsencrypt.admin.email> ) {
+    <[base.log]>->( 0, ": warning : LETSENCRYPT admin email not configured" );
 }
 
 ## Note: Certificate directories are created/validated in
@@ -34,8 +33,8 @@ if ( !<letsencrypt.admin.email> ) {
 
 0;
 
-#,,.,,,,,,,..,,,,,,,,,,,.,,,.,,,.,.,,,.,,,,,.,..,,...,.,.,,.,,,..,.,.,,..,.,,,
-#HVLDLI4UVYBGLCW3ROYZ3XIM4HGAXTB32TXEQCYO53VI464UAIRWP6VXXJIHBXEOCFWHF7J52KQGM
-#\\\|FCR57RXRLG3237ZBCK6J3UR3OGRFTLSUAA5MFSPLGYPXBNTOHI3 \ / AMOS7 \ YOURUM ::
-#\[7]O2SI7OMM5LD3SZANBMODJLSO7IZKCTVO77OPPJXG7T4DFI65JWCI 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,,,.,.,,,.,,,,,,,,,,,.,,,..,,..,,...,..,,...,,..,,,,,,,.,.,,,
+#CHDULIRCSB6JFJXQKEGBMJDWULBT2RLZRBLRYQFM3U2MC4U3GKAGMEZSGWAUL6DQ3UV7E6VFRYUQQ
+#\\\|H4FDAGNXGABAPK3H4ASFMSKNYIC7KFNN4EYFVO2NOZJARTFMFM7 \ / AMOS7 \ YOURUM ::
+#\[7]MX6BGKZCWUVYLZY5OSPSFNOVWLLLZROYSEIHD4NUOZACSWHVISBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

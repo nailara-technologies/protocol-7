@@ -3,8 +3,8 @@
 # name  = letsencrypt.child.generate_csr
 # descr = Generate Certificate Signing Request (CSR) for certificate issuance
 
-use Crypt::OpenSSL::RSA;
-use Crypt::OpenSSL::X509;
+use File::Temp qw(tempfile);
+use MIME::Base64 qw(encode_base64);
 
 my $domains = shift;    # arrayref of domains
 
@@ -14,57 +14,74 @@ return undef unless $domains && @$domains;
 
 my $primary_domain = $domains->[0];
 
-## Generate new certificate key (RSA-2048)
+## Generate new certificate key (RSA-2048) using openssl
 <[base.log]>->( 2, 'generating certificate key...' );
-my $cert_key = Crypt::OpenSSL::RSA->generate_key(2048);
-$cert_key->use_sha256_hash();
 
-my $key_pem = $cert_key->get_private_key_string();
+my ( $key_fh, $key_file ) = tempfile( UNLINK => 1 );
+system("openssl genrsa -out '$key_file' 2048 2>/dev/null");
+
+unless ( -f $key_file && -s $key_file ) {
+    <[base.log]>->( 1, 'error: failed to generate RSA key' );
+    return undef;
+}
+
+open( my $kfh, '<', $key_file ) or return undef;
+local $/;
+my $key_pem = <$kfh>;
+close($kfh);
 
 <[base.log]>->( 2, 'generating CSR...' );
 
-## Create X509 request
-my $x509_req = Crypt::OpenSSL::X509::Request->new();
+## Create openssl config for CSR with SAN extension
+my ( $conf_fh, $conf_file ) = tempfile( UNLINK => 1 );
+print $conf_fh <<"EOF";
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
 
-## Set subject name (CN = primary domain)
-$x509_req->set_subject_name(
-    Crypt::OpenSSL::X509::Name->new(
-        C  => 'US',
-        ST => 'State',
-        L  => 'City',
-        O  => 'Organization',
-        CN => $primary_domain,
-    )
-);
+[req_distinguished_name]
+C = US
+ST = State
+L = City
+O = Organization
+CN = $primary_domain
 
-## Add Subject Alternative Names (SANs)
+[v3_req]
+EOF
+
 if ( @$domains > 1 ) {
-    <[base.log]>->(
-        2, 'adding Subject Alternative Names: ' . join( ', ', @$domains )
-    );
-
     my $san_string = join( ', ', map {"DNS:$_"} @$domains );
-
-    ## Create extension for SAN
-    my $ext = Crypt::OpenSSL::X509::Extension->new(
-        'subjectAltName' => $san_string );
-
-    $x509_req->add_extensions( [$ext] );
+    print $conf_fh "subjectAltName = $san_string\n";
 }
 
-## Set public key from certificate key
-$x509_req->set_public_key($cert_key);
+close($conf_fh);
 
-## Sign CSR with the certificate key
-$x509_req->sign( $cert_key, 'sha256' );
+## Generate CSR using openssl
+my ( $csr_fh, $csr_file ) = tempfile( UNLINK => 1 );
+system("openssl req -new -key '$key_file' -out '$csr_file' -config '$conf_file' 2>/dev/null");
 
-## Get CSR in PEM format
-my $csr_pem = $x509_req->as_string();
+unless ( -f $csr_file && -s $csr_file ) {
+    <[base.log]>->( 1, 'error: failed to generate CSR' );
+    return undef;
+}
+
+open( my $cfh, '<', $csr_file ) or return undef;
+local $/;
+my $csr_pem = <$cfh>;
+close($cfh);
 
 <[base.log]>->( 2, 'CSR generated successfully' );
 
-## Extract DER for ACME submission (base64url encoded)
-my $csr_der    = $x509_req->as_DER();
+## Extract DER and encode for ACME submission
+my ( $der_fh, $der_file ) = tempfile( UNLINK => 1 );
+system("openssl req -in '$csr_file' -outform DER -out '$der_file' 2>/dev/null");
+
+open( my $dfh, '<:raw', $der_file ) or return undef;
+local $/;
+my $csr_der = <$dfh>;
+close($dfh);
+
 my $csr_b64url = <[letsencrypt.child.encode_base64url]>->($csr_der);
 
 ## Store in child state
@@ -78,8 +95,7 @@ my $csr_b64url = <[letsencrypt.child.encode_base64url]>->($csr_der);
 
 ## Store certificate key in child state (will be saved to disk after cert issued)
 <letsencrypt.child.cert_key> = {
-    pem    => $key_pem,
-    object => $cert_key,
+    pem => $key_pem,
 };
 
 return {
@@ -89,8 +105,8 @@ return {
     domains    => $domains,
 };
 
-#,,,.,,..,.,.,..,,,..,..,,,..,,,.,..,,.,.,,,,,..,,...,...,.,,,,..,,,.,,,.,,,,,
-#B7NJZ5SVAI7REMPVOCX3KTWUHOL6BFAZFZZOKSM2KX7C3XIGTLAHQFSQJGYZP2CGSWC26SK7L7BBQ
-#\\\|NH52AAH6ACHHXBSKFWGLDLL7NGPOTLLPBECJJIYDVRKBCE4AO3A \ / AMOS7 \ YOURUM ::
-#\[7]I5QHJBGWDXIUGMYWQECNBOLJGW5QC2ODVKMJHRRZNRR272OMPICY 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,.,.,,..,,,.,,.,,,..,,..,,.,,..,,...,..,,..,,..,,...,,..,,,,,
+#L7Q4FR72HYCSAU2KRCVCCFWRUEC4AOUQTZD34EQGYW2BWBDT5W6J3XXRE6WHSS6COAIR6V47ZE2A4
+#\\\|FVMQINRSDGM3O4KY2MMOPI3MW5MUZ2XSNCR5MTRCY7AFGSAKBGX \ / AMOS7 \ YOURUM ::
+#\[7]H7C46CKTYRHYTXTFVHQ5KTI7YTN7GPZOKW2VPA7E5RN6RIOJ5WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

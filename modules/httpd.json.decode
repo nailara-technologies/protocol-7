@@ -1,14 +1,44 @@
 ## [:< ##
 
 # name = httpd.json.decode
-# descr = decode json string to perl data structure
+# descr = decode JSON string to perl data structure with error handling
 
 my $json_string = shift;
 
-return <httpd.json.parser>->decode($json_string);
+## Handle empty input
+unless ( defined $json_string && length($json_string) > 0 ) {
+    <[base.logs]>->( 3, 'json.decode: empty input' );
+    return {};
+}
 
-#,,,.,,,.,,,,,.,.,..,,,..,.,,,.,.,,..,.,,,...,...,...,...,..,,.,.,..,,,,,,,.,,
-#JCNCGCYNLWJDZFFVVKE2F5KX2CFGFSAJWLPBMML7HXILPKFJ5A2TSQ7AEGHSWBGZXKTRLGG3WCJUE
-#\\\|LZA6LJOZXS64FTQ3BLDRSWZ3RTEAK5F4L6N35SXWYVVTUBKUPC5 \ / AMOS7 \ YOURUM ::
-#\[7]FJLGSF6PI4U2H4BHL6Z5VW4OZ5E7KHXU7JAWKXBYWMAGQKUVVEDQ 7  DATA SIGNATURE ::
+## Use cached parser or create new one
+state $json;
+if ( !defined $json ) {
+    $json = JSON::XS->new();
+    $json->convert_blessed(1);
+    $json->allow_nonref(1);
+    $json->canonical(1);
+    $json->relaxed(1);
+    $json->pretty(1);
+    $json->utf8(1);
+}
+
+## Decode with error handling
+my $parsed_data;
+eval {
+    $parsed_data = $json->decode($json_string);
+};
+
+if ( $@ ) {
+    <[base.logs]>->( 1, 'json.decode error: %s [input: %s]',
+        $@, substr( $json_string, 0, 100 ) );
+    return {};
+}
+
+return defined $parsed_data ? $parsed_data : {};
+
+#,,..,.,.,.,.,,.,,.,.,,,,,,,,,,..,..,,,..,.,.,...,...,...,...,...,,,,,..,,,,.,
+#SC5P55LG65N2VDAN5URACD4IZHHIMCOCNM7LRKEOXKFV5GY2TC34S6OHEMINNNHQ4GRCJUXPKYNIY
+#\\\|ZN723VXU5IG4MGMFTT427KSDYHCJ3ZP3H6K7JJOVD3A4NHHPZ5Y \ / AMOS7 \ YOURUM ::
+#\[7]SSN37F372FBVESKVLI2ZBVF4Q7TWQLP7LBCBSWTAF7FTTDENJSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

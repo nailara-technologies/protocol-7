@@ -1,0 +1,658 @@
+# Web Infrastructure Expansion Task Plan
+# Protocol-7 HTTP Server & Template Engine Architecture
+# Focus: HTTPS, Dynamic Templates, Modular Design with Future Scalability
+
+---
+metadata:
+  title: "Web Infrastructure Expansion: HTTPS, Dynamic Templates, and Modular Architecture"
+  description: |
+    Comprehensive expansion of Protocol-7 web infrastructure to support HTTPS connections,
+    dynamic template parsing via dedicated template engine zenka, and create a clean,
+    elegant architecture that supports future growth.
+
+    NOTE: Template engine zenka (configuration/zenki/template/) and template.init_code
+    already exist as started work (AI-written, needs refinement and implementation of
+    actual commands). This plan builds upon and refines existing work.
+
+  status: "planning"
+  priority: "high"
+  scope: "architecture-level"
+  estimated_phases: 4
+
+  created_at: "2025-11-09"
+
+  existing_work:
+    - "template zenka configuration and start file (incomplete)"
+    - "template.init_code module (AI-generated, needs review and refinement)"
+    - "base.parser.pattern_split (already implemented and working)"
+    - "httpd.process_template (existing static template handler)"
+    - "httpd.handler.template_reply (existing async template handler)"
+
+  related_tickets:
+    - "ACME Certificate Integration"
+    - "HTTP Handler Refactoring"
+    - "Template Engine Implementation (refinement of existing work)"
+
+---
+# PHASE 1: Analysis & Architecture Design (Foundation)
+phase_1_analysis:
+  title: "Architecture Analysis & Clean Design"
+  description: |
+    Analyze current HTTP handler structure, template system, session management,
+    and error handling patterns. Design clean, extensible architecture that matches
+    Protocol-7's design philosophy.
+
+  analysis_tasks:
+    - name: "Current HTTP Handler Architecture Review"
+      description: "Examine httpd.http_get, httpd.http_head, httpd.http_options patterns"
+      scope: |
+        - Request routing pattern and URI parsing style (httpd.path_info, httpd.request_handler)
+        - Session management structure and lifecycle
+        - Header parsing and response construction patterns
+        - Error handling and status code patterns
+        - Virtual host/domain routing logic
+        - Module naming conventions and code organization style
+
+      files_to_review:
+        - modules/httpd.http_get
+        - modules/httpd.http_head
+        - modules/httpd.http_options
+        - modules/httpd.request_handler
+        - modules/httpd.determine_host
+        - modules/httpd.path_info
+        - configuration/zenki/httpd/start
+        - modules/httpd.send_error_page
+        - modules/httpd.new_header
+
+      output: "HTTP Handler Architecture Document"
+
+    - name: "Template System Architecture Review"
+      description: "Analyze existing template processing, nailara syntax, and handler patterns"
+      scope: |
+        - Current template syntax and parsing rules (nailara format)
+        - Template variable substitution mechanism (<{var_name}>)
+        - Command injection syntax and execution pattern (<[command]>)
+        - Session-based template content sequence management
+        - Error handling in template processing
+        - Template reply handler pattern and callback mechanism
+
+      files_to_review:
+        - modules/httpd.process_template
+        - modules/httpd.handler.template_reply
+        - Any existing *.tmpl files in /var/httpd/
+        - httpd.http_get template detection logic (lines 84-98)
+
+      output: "Template System Architecture Document"
+
+    - name: "Zenka Communication & Session Patterns"
+      description: "Study how other zenki handle external requests and replies"
+      scope: |
+        - Child/parent communication patterns (letsencrypt.base.fork_letsencrypt_child)
+        - Deferred reply patterns (letsencrypt.parent.cmd.query-vhosts)
+        - Session lifecycle and cleanup in multi-zenka setups
+        - Command routing and callback mechanism
+        - Error handling across zenka boundaries
+
+      files_to_review:
+        - modules/letsencrypt.base.fork_letsencrypt_child
+        - modules/letsencrypt.parent.cmd.query-vhosts
+        - modules/base.callback.cmd_reply
+        - modules/base.session.send_init_reports
+        - Any reply handler patterns in the codebase
+
+      output: "Zenka Communication Patterns Document"
+
+    - name: "Recover Template Parser Routine"
+      description: |
+        Extract and restore the original template parser (base.parser.pattern_split)
+        from the deparsed version embedded in ./bin/Protocol-7 binary
+      scope: |
+        - Export base.parser.pattern_split subroutine from Protocol-7 binary
+        - De-obfuscate and restore to readable form
+        - Understand pattern splitting with capture group handling
+        - Understand callback injection mechanism
+        - Document original algorithm and design intent
+        - Create clean, readable version for new template engine
+
+      command: "./bin/Protocol-7 -export-inline-subs base.parser.pattern_split"
+
+      output: "Restored base.parser.pattern_split module"
+
+      notes: |
+        This subroutine is critical for efficient template parsing with:
+        - Regex pattern splitting on delimiters
+        - Capture group extraction and handling
+        - Callback injection for processed segments
+        - Already available as deparsed version with full logic preserved
+
+---
+# PHASE 2: Clean Design & Architecture Documentation
+phase_2_design:
+  title: "Design Clean, Elegant Web Architecture"
+  description: |
+    Based on Phase 1 analysis, design a clean, modular architecture that:
+    - Maintains compatibility with existing HTTP handler patterns
+    - Supports HTTPS alongside HTTP
+    - Offloads template processing to dedicated zenka
+    - Provides elegant routing for dynamic content
+    - Maintains separation of concerns
+
+  design_components:
+
+    - name: "HTTP Handler Expansion Architecture"
+      description: |
+        Design pattern for extending httpd.http_get to support:
+        - Routing to special handlers (HTTPS redirect, API endpoints, template processing)
+        - Dispatch to external zenka for dynamic content
+        - Backward compatibility with existing static file serving
+
+      considerations:
+        - Route matching priority (special paths vs static files)
+        - Handler registration pattern
+        - Error handling and fallback
+        - Performance implications of route matching
+
+      design_documents:
+        - "HTTP Handler Extension Pattern"
+        - "Route Matching & Dispatch Design"
+        - "Backward Compatibility Strategy"
+
+    - name: "Template Engine Zenka Architecture"
+      description: |
+        Design dedicated template processing zenka (similar to weather, image2html):
+        - Receives template path + variable context from httpd
+        - Processes templates asynchronously
+        - Returns rendered content via callback
+        - Handles complex template logic, includes, conditionals
+
+      architectural_pattern:
+        - "parent/child fork pattern (like letsencrypt)"
+        - "async command/reply with deferred pattern"
+        - "session-based template rendering"
+
+      design_documents:
+        - "Template Engine Zenka Layout"
+        - "Command Interface Design"
+        - "Template Processing Pipeline"
+        - "Error Handling & Timeouts"
+
+    - name: "HTTPS Support Architecture"
+      description: |
+        Design pattern for HTTPS alongside HTTP:
+        - TLS/SSL socket handling
+        - Certificate management (via ACME integration)
+        - HTTP to HTTPS redirect handling
+        - Port configuration (443 vs 80)
+
+      considerations:
+        - Separate socket for HTTPS or single socket with protocol detection
+        - Certificate loading and hot-reload capability
+        - Session security (HTTPS-only cookies, HSTS headers)
+        - Integration with ACME certificate renewal
+
+      design_documents:
+        - "HTTPS Implementation Pattern"
+        - "Certificate Integration Design"
+        - "Dual-Port Architecture"
+
+    - name: "API Endpoint Architecture"
+      description: |
+        Design pattern for adding API endpoints (JSON responses):
+        - Route prefix matching (/api/*, /acme/*, etc.)
+        - JSON request/response handling
+        - Parameter validation and routing
+        - Integration with zenka commands
+
+      considerations:
+        - Route specificity and matching order
+        - Error response format
+        - Parameter encoding/decoding
+        - Rate limiting and security
+
+      design_documents:
+        - "API Endpoint Design"
+        - "Route Matching for APIs"
+        - "JSON Request/Response Handling"
+
+---
+# PHASE 3: Implementation (Modular, Incremental)
+phase_3_implementation:
+  title: "Implement Web Infrastructure Expansion"
+  description: |
+    Implement the designed architecture in clean, modular stages:
+    1. Create restored base.parser.pattern_split module
+    2. Create new web.* modules for HTTP handler extensions
+    3. Create template-engine zenka
+    4. Extend httpd for HTTPS support
+    5. Create API endpoint handlers
+
+  stage_3_1_parser_restoration:
+    title: "Restore Template Parser Routine"
+
+    tasks:
+      - name: "Create base.parser.pattern_split module"
+        description: |
+          Write clean, well-documented version of the recovered parser subroutine.
+          Original functionality:
+          - Splits string by pattern with capture group handling
+          - Optional callback for processed segments
+          - Returns array of alternating text/callback_result segments
+
+        output: "modules/base.parser.pattern_split"
+
+        include:
+          - Comprehensive documentation of algorithm
+          - Parameter validation
+          - Error handling
+          - Callback parameter generation with capture groups
+          - Performance considerations
+
+    - name: "Create base.parser.pattern_split tests"
+      description: "Test coverage for pattern splitter with various patterns and callbacks"
+      output: "Test cases for template parsing pipeline"
+
+  stage_3_2_http_handler_extension:
+    title: "Extend HTTP Handler for Dynamic Content"
+
+    tasks:
+      - name: "Create web.http.route_dispatcher module"
+        description: |
+          Route dispatcher for special paths:
+          - Check for special route patterns before static file serving
+          - Return appropriate handler identifier
+          - Fallback to static file serving
+
+        route_patterns:
+          - HTTPS redirect: /^(?:http:\/\/)?([^\/]+)(\/.*)?$/
+          - API endpoints: /^\/api\/(.+)$/
+          - ACME challenges: /^\/\.well-known\/acme-challenge\/(.+)$/
+          - Template endpoints: /^\/dynamic\/(.+)$/
+
+        output: "modules/web.http.route_dispatcher"
+
+      - name: "Create web.http.handler_api module"
+        description: |
+          Handler for API requests:
+          - Parse API path and parameters
+          - Route to appropriate zenka command
+          - Handle async replies
+          - Format JSON responses
+
+        output: "modules/web.http.handler_api"
+
+      - name: "Create web.http.handler_acme module"
+        description: |
+          Handler for ACME certificate requests:
+          - Extract domain parameter
+          - Route to letsencrypt.parent.cmd.request-certificate
+          - Handle deferred replies
+          - Return status/certificate data
+
+        output: "modules/web.http.handler_acme"
+
+      - name: "Create web.http.handler_dynamic_template module"
+        description: |
+          Handler for dynamic template processing:
+          - Parse template path from request
+          - Extract variables from query/body
+          - Route to template-engine zenka
+          - Handle async template rendering
+
+        output: "modules/web.http.handler_dynamic_template"
+
+      - name: "Modify httpd.http_get to use route_dispatcher"
+        description: |
+          Integrate route dispatcher into HTTP GET handler:
+          - Call dispatcher before file serving logic
+          - Route to appropriate handler
+          - Maintain backward compatibility
+
+        modification: "modules/httpd.http_get"
+        approach: "Add route check at beginning, fallback to existing file serving"
+
+  stage_3_3_template_engine_zenka:
+    title: "Refine & Complete Template Engine Zenka"
+
+    note: |
+      Template zenka already exists at configuration/zenki/template/ with basic
+      configuration and template.init_code. This stage refines the existing work
+      and implements missing command handlers and functionality.
+
+    structure:
+      location: "configuration/zenki/template/"
+      modules: "modules/template.*"
+      start_file: "configuration/zenki/template/start (already exists)"
+
+    tasks:
+      - name: "Review and refine template.init_code"
+        description: |
+          Review existing template.init_code (AI-generated) and refine:
+          - Validate architecture against Protocol-7 patterns
+          - Ensure proper module loading and initialization
+          - Implement missing template directory creation using file.make_path
+          - Add proper error handling and logging patterns
+          - Review Mustache engine integration approach
+
+        current_status: "AI-generated, needs manual refinement"
+        files_to_refine:
+          - modules/template.init_code
+          - configuration/zenki/template/start
+
+        output: "Refined template.init_code with proper patterns"
+
+      - name: "Create template.base.pre_init (or review if exists)"
+        description: |
+          Preload required Perl modules for template processing:
+          - File::Spec, File::Basename for path handling
+          - Template processing utilities (Mustache/Template::Toolkit)
+          - Character encoding/decoding modules
+          - HTML escaping and security modules
+
+        output: "modules/template.base.pre_init"
+
+      - name: "Create template.cmd.process_template command"
+        description: |
+          Main command for template processing:
+          - Accepts template path + variable context
+          - Returns deferred reply indicator
+          - Stores reply_id for async processing
+          - Validates template path (security/path traversal)
+
+        parameters:
+          - template_path: Path to template file
+          - context: Hash of template variables
+          - options: Processing options (syntax engine, filters, etc.)
+
+        response:
+          - Rendered HTML content
+          - HTTP status code
+          - Content-Type header
+          - Cache metadata (if applicable)
+
+        output: "modules/template.cmd.process_template"
+
+      - name: "Create template.handler.render_complete"
+        description: |
+          Handler for template rendering completion:
+          - Receives rendered content from async renderer
+          - Sends callback reply to httpd with deferred pattern
+          - Handles errors and timeouts
+          - Updates cache statistics
+
+        output: "modules/template.handler.render_complete"
+
+      - name: "Create template.processor.nailara_syntax"
+        description: |
+          Nailara template syntax processor:
+          - Variable substitution (<{var_name}>)
+          - Command injection (<[command_str]>) with proper escaping
+          - Conditional blocks and loops
+          - Template includes and imports
+          - Filter application
+
+        uses: "base.parser.pattern_split for efficient pattern-based parsing"
+
+        output: "modules/template.processor.nailara_syntax"
+
+      - name: "Create template.lib.filters module"
+        description: |
+          Library of template filters:
+          - HTML entity escaping (security)
+          - URL encoding/decoding
+          - Case conversion (upper, lower, title)
+          - Date/time formatting
+          - JSON encoding/decoding
+          - Custom filter registration system
+
+        output: "modules/template.lib.filters"
+
+      - name: "Create template.cache.manager module"
+        description: |
+          Cache management for compiled templates:
+          - Compile template on first use
+          - Cache compiled template with TTL
+          - Invalidate cache on template file changes
+          - Cache statistics and monitoring
+          - Size-based eviction policy
+
+        uses: "<template.cfg.cache_enabled>, <template.cfg.cache_ttl>, <template.cfg.max_cache_size>"
+
+        output: "modules/template.cache.manager"
+
+      - name: "Create template.lib.security module"
+        description: |
+          Security functions for template processing:
+          - Path traversal prevention (validate template paths)
+          - XSS protection (HTML escaping)
+          - CSRF token handling
+          - Safe variable interpolation
+          - Sandboxing for template execution (if needed)
+
+        output: "modules/template.lib.security"
+
+  stage_3_4_https_support:
+    title: "Add HTTPS Support"
+
+    tasks:
+      - name: "Extend httpd start configuration for HTTPS"
+        description: |
+          Add HTTPS socket and certificate configuration:
+          - Load TLS/SSL Perl modules
+          - Configure HTTPS port (443)
+          - Setup certificate loading
+          - HSTS header configuration
+
+        modifications:
+          - configuration/zenki/httpd/start
+          - Add: net.https.port = 443
+          - Add: httpd.tls.cert_file configuration
+          - Add: httpd.tls.key_file configuration
+          - Add: httpd.hsts.enabled = 1 (optional)
+
+      - name: "Create httpd.tls.pre_init"
+        description: |
+          Preload TLS/SSL modules:
+          - IO::Socket::SSL or similar
+          - Crypt::OpenSSL::X509
+          - Certificate utilities
+
+        output: "modules/httpd.tls.pre_init"
+
+      - name: "Create httpd.tls.init_code"
+        description: |
+          Initialize TLS support:
+          - Load certificates from configured paths
+          - Setup SSL context
+          - Configure cipher suites (security hardening)
+
+        output: "modules/httpd.tls.init_code"
+
+      - name: "Create httpd.https_listener module"
+        description: |
+          Setup HTTPS socket listener:
+          - Bind to HTTPS port
+          - Register SSL protocol
+          - Setup TLS context
+
+        output: "modules/httpd.https_listener"
+
+      - name: "Create httpd.http_redirect_https handler"
+        description: |
+          Handler for HTTP-to-HTTPS redirect:
+          - Detect non-HTTPS request
+          - Generate 301/302 redirect response
+          - Preserve request path in redirect
+
+        output: "modules/httpd.http_redirect_https"
+
+      - name: "Extend httpd.http_get for HTTPS"
+        description: |
+          Add HTTPS support to main handler:
+          - Detect HTTPS context
+          - Optional HSTS header injection
+          - Handle client certificates (future)
+
+        modifications: "modules/httpd.http_get"
+
+      - name: "Create httpd.tls.certificate_loader"
+        description: |
+          Certificate loading utility:
+          - Load certificates from disk
+          - Validate certificate/key pair
+          - Support certificate renewal (ACME integration)
+          - Hot-reload capability
+
+        output: "modules/httpd.tls.certificate_loader"
+
+---
+# PHASE 4: Integration & Refinement
+phase_4_integration:
+  title: "Integration, Testing, and Optimization"
+  description: |
+    Integrate all components, test thoroughly, and optimize for production use.
+
+  integration_tasks:
+    - name: "ACME & HTTPS Integration"
+      description: |
+        Integrate ACME certificate enrollment with HTTPS:
+        - Automatic certificate loading after renewal
+        - Certificate hot-reload in httpd
+        - ACME challenge serving via HTTP
+        - Renewal automation
+
+    - name: "Template Engine Integration"
+      description: |
+        Integrate template-engine zenka with httpd:
+        - Session management across zenka boundaries
+        - Error handling and timeout management
+        - Performance optimization and caching
+        - Logging and debugging
+
+    - name: "Backward Compatibility Testing"
+      description: |
+        Ensure existing functionality continues to work:
+        - Static file serving
+        - Existing template files (*.tmpl)
+        - Virtual host handling
+        - Range requests and benchmarking
+
+    - name: "Security Hardening"
+      description: |
+        Security review and hardening:
+        - Path traversal protection in template paths
+        - XSS protection in template variables
+        - CSRF token handling
+        - Rate limiting and DDoS protection
+        - Session security (secure cookies, HSTS)
+
+    - name: "Performance Optimization"
+      description: |
+        Performance testing and optimization:
+        - Template caching strategy
+        - Static asset compression (gzip)
+        - Connection pooling for inter-zenka communication
+        - Benchmark comparison (before/after)
+
+    - name: "Documentation"
+      description: |
+        Comprehensive documentation:
+        - Architecture overview diagram
+        - API endpoint documentation
+        - Template syntax reference
+        - HTTPS/ACME setup guide
+        - Deployment guide
+        - Performance tuning guide
+
+---
+# PHASE 5: Future Extensions (Design Notes)
+future_extensions:
+  title: "Designed-In Support for Future Growth"
+  description: |
+    Architecture supports these future extensions without redesign:
+
+  potential_future_features:
+    - "Database connectivity layer (query results in templates)"
+    - "WebSocket support for real-time updates"
+    - "Server-Sent Events (SSE) for push notifications"
+    - "Multi-language/i18n template support"
+    - "Template inheritance and block overriding"
+    - "Custom filter/function registration system"
+    - "Caching layer (Redis, Memcached integration)"
+    - "Load balancing across multiple httpd instances"
+    - "Session clustering for multi-server deployments"
+    - "Content delivery network (CDN) integration"
+
+---
+# Implementation Guidelines
+implementation_guidelines:
+  code_style:
+    - "Follow existing Protocol-7 module naming and structure conventions"
+    - "Use existing base.* modules for common operations"
+    - "Maintain compatibility with existing zenka patterns"
+    - "Document patterns and design decisions in code comments"
+
+  testing:
+    - "Unit tests for each module"
+    - "Integration tests for cross-zenka communication"
+    - "Load tests for concurrent template processing"
+    - "Security tests for input validation and XSS/CSRF"
+    - "Backward compatibility tests with existing templates"
+
+  documentation:
+    - "Architecture overview with diagrams"
+    - "Module interface specifications"
+    - "Example usage for each feature"
+    - "Troubleshooting guide"
+    - "Performance tuning guide"
+
+  incremental_delivery:
+    - "Phase 1: Analysis (1-2 weeks)"
+    - "Phase 2: Design (1 week)"
+    - "Phase 3: Implementation (3-4 weeks, in stages)"
+    - "Phase 4: Integration (2 weeks)"
+    - "Total: ~8-10 weeks for full implementation"
+
+---
+# Success Criteria
+success_criteria:
+  - "HTTPS fully functional with ACME certificate integration"
+  - "Template engine zenka operates independently and asynchronously"
+  - "API endpoints operational for certificate requests and other services"
+  - "All existing static file serving continues to work"
+  - "Performance impact minimal or improved"
+  - "Security review passed with no critical issues"
+  - "Comprehensive documentation available"
+  - "Architecture supports designed-in future extensions"
+
+---
+# Notes for Implementation
+implementation_notes:
+  - |
+    The base.parser.pattern_split recovered from Protocol-7 binary is crucial for
+    efficient template parsing. It handles pattern splitting with capture groups
+    and callback injection - exactly what we need for clean template processing.
+
+  - |
+    Template processing should be offloaded to separate zenka to avoid blocking
+    the main HTTP handler. This allows:
+    - Concurrent template rendering
+    - Better error isolation
+    - Easier scaling (multiple template engine instances)
+    - Cleaner separation of concerns
+
+  - |
+    HTTPS should leverage existing ACME integration so certificates are:
+    - Automatically obtained
+    - Automatically renewed before expiration
+    - Automatically loaded into httpd
+    - This creates a self-managing, automated HTTPS infrastructure
+
+  - |
+    The design maintains backward compatibility by routing special paths first,
+    then falling back to static file serving. This allows gradual migration
+    from static templates to dynamic processing.
+
+  - |
+    Consider performance: template caching, compiled patterns, and async processing
+    will be critical for production deployment. The async/deferred pattern used
+    throughout Protocol-7 is well-suited for this.

@@ -10,6 +10,7 @@ net.http.port        =  80
 
 http.handler.get     =  httpd.http_get
 http.handler.head    =  httpd.http_head
+http.handler.post    =  httpd.http_post
 http.handler.options =  httpd.http_options
 
 access.cmd.usr.cube  =  *
@@ -30,6 +31,11 @@ httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
 max.connections     =  1024
 httpd.timeout       =  23
 
+## Development: enable debug logging for ACME endpoints (buffer, file, console)
+system.verbosity.zenka_buffer   = 3
+system.verbosity.zenka_logfile  = 3
+system.verbosity.zenka_console  = 3
+
 [load_modules:<modules.load>]
 
 [init_modules]
@@ -45,8 +51,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,.,,..,,,.,,,,.,.,,,,..,,,,,.,,,,.,,.,,,,,,,..,,...,...,.,.,...,...,...,.,,,
-#Y2I52CLVAN57WI6ONDOFYOAQZB72UG3KLJ7RAOKLPP5DTYFWFKMCXL3H5TJ64MOS2WZGXO6OTWR62
-#\\\|JXGZULQHNP6YR36SDVVTB3EIYRWM6BVAEWSPNXWYXH6EBUXGCFU \ / AMOS7 \ YOURUM ::
-#\[7]ZUU3UIN5M5LF3QIKVGC4OOOTJNLTOLZLCS4COOJYO5GRVJZSDGAI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,,.,,.,.,,..,.,.,.,.,.,.,,..,..,,...,...,..,,.,,,,,,,,,,,,,.,
+#5PIIZQ4PD6WWVJC7IO65TILCYSDWDIZDWRMULMKGTWP73LGNA5H6LPC67M5QXCEDTZLD5FVFXZW4C
+#\\\|M2VTJFAP4WFPVBOZJTTJOR664CNOIBQPA4QKIODVWMRSJ5MQA5T \ / AMOS7 \ YOURUM ::
+#\[7]NB75BQD5LMIOZIKH2YLSH2LVCUOFSOLTL4NIVJXNQJTPVJUF7EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

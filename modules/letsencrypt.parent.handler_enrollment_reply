@@ -8,7 +8,12 @@ my $reply_data = shift;
 my $domain = $reply_data->{'params'}{'domain'};
 my $mode   = $reply_data->{'cmd'};
 my $args   = $reply_data->{'call_args'}{'args'};
-my $data   = $reply_data->{'data'};
+my $data   = $reply_data->{'data'} // '';
+
+unless ($domain) {
+    <[base.log]>->( 1, "error: enrollment reply handler missing domain in params" );
+    return 0;
+}
 
 <[base.log]>->( 2, "enrollment reply for domain: $domain, mode: $mode" );
 
@@ -46,13 +51,16 @@ if ( $mode eq 'TRUE' ) {
             "retry scheduled in $delay seconds (attempt $attempt)"
         );
 
+        ## Store retry data in a module variable for the handler to retrieve
+        <letsencrypt.parent.pending_retry>->{$domain} = {
+            'domain'  => $domain,
+            'attempt' => $attempt,
+        };
+
         <[event.add_timer]>->(
             {   'delay'   => $delay,
                 'handler' => 'letsencrypt.parent.handler_enrollment_retry',
-                'data'    => {
-                    'domain'  => $domain,
-                    'attempt' => $attempt,
-                }
+                'cb_data' => $domain,
             }
         );
     } else {
@@ -174,8 +182,8 @@ if ( $mode eq 'TRUE' ) {
 
 return 0;
 
-#,,..,..,,...,,.,,..,,.,,,,,,,...,..,,...,.,,,.,.,...,...,...,,.,,.,.,..,,.,.,
-#ZIXNL6P2RJE23N6BKCZGTARHSE4O4KACVDOXVCNL36DSKPYB5RYRC7OYY4C5VXBFUJQS3PYIFTMY4
-#\\\|ABOY7DTBQVDFOAVIAL4HO5GNMDIYAMFQHZV5WDFKFM3ZVACNL64 \ / AMOS7 \ YOURUM ::
-#\[7]US6VGP6E5F47DAAFVOMZEVOEXFZXJDSKHFONSEURF6LLNJNIHQDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,.,.,,.,,.,,,,..,,,,,,,,,,,.,.,.,...,...,..,,.,,,,,,,,.,,.,,,
+#IYAFB225IWGT6PEMCF2D44AAP6ASVAGY2LNDKPMO3TD5TVCMVYVM2WAWCL5LDC6PYC2H6J5A5CMTU
+#\\\|6STQ77IXACMTQGWISEJQ2G3ARM4ESHAJK3QE2S74SWS46TY6W2B \ / AMOS7 \ YOURUM ::
+#\[7]RIZRDDRRJEWR4X2TGD7KLAA4H4H3DQHG6RZ5WZ66ZGKHOPLMXUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

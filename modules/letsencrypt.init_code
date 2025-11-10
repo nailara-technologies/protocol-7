@@ -6,50 +6,50 @@
 
 <[base.perlmod.autoload]>->('JSON::PP');
 <[base.perlmod.autoload]>->('LWP::UserAgent');
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA')
-    ;    ## CSR certificate key generation (RSA-2048)
+## CSR certificate key generation [ RSA-2048 ]
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA');
 
 <[base.log]>
     ->( 2, "initializing Let's Encrypt certificate manager zenka..," );
 
 # Initialize Let's Encrypt configuration
-<letsencrypt.cfg.enabled>     = <letsencrypt.cfg.enabled>     || 1;
-<letsencrypt.cfg.environment> = <letsencrypt.cfg.environment> || 'production';
-<letsencrypt.cfg.email>   = <letsencrypt.cfg.email>   || 'admin@localhost';
-<letsencrypt.cfg.domains> = <letsencrypt.cfg.domains> || '';
+<letsencrypt.cfg.enabled>     = <letsencrypt.cfg.enabled>     // TRUE;
+<letsencrypt.cfg.environment> = <letsencrypt.cfg.environment> // 'production';
+<letsencrypt.cfg.email>   = <letsencrypt.cfg.email>   // 'admin@localhost';
+<letsencrypt.cfg.domains> = <letsencrypt.cfg.domains> // '';
 <letsencrypt.cfg.renewal_check_interval>
     = <letsencrypt.cfg.renewal_check_interval> || 86400;
 
 # ACME server configuration
 my $acme_base
-    = <letsencrypt.cfg.environment> eq 'staging'
+    = <letsencrypt.cfg.environment> eq qw| staging |
     ? 'https://acme-staging-v02.api.letsencrypt.org/directory'
     : 'https://acme-v02.api.letsencrypt.org/directory';
 
 <letsencrypt.cfg.acme_server> = <letsencrypt.cfg.acme_server> || $acme_base;
 <letsencrypt.cfg.challenge_type>
-    = <letsencrypt.cfg.challenge_type> || 'http-01';
-<letsencrypt.cfg.challenge_port> = <letsencrypt.cfg.challenge_port> || 80;
+    = <letsencrypt.cfg.challenge_type> // qw| http-01 |;
+<letsencrypt.cfg.challenge_port> = <letsencrypt.cfg.challenge_port> // 80;
 
 # Paths
 <letsencrypt.cfg.cert_dir>
-    = <letsencrypt.cfg.cert_dir> || '/etc/protocol-7/certs';
+    = <letsencrypt.cfg.cert_dir> // '/etc/protocol-7/certs';
 <letsencrypt.cfg.key_dir>
-    = <letsencrypt.cfg.key_dir> || '/etc/protocol-7/keys';
+    = <letsencrypt.cfg.key_dir> // '/etc/protocol-7/keys';
 <letsencrypt.cfg.account_key_path> = <letsencrypt.cfg.account_key_path>
-    || '/etc/protocol-7/letsencrypt/account.key';
+    // '/etc/protocol-7/letsencrypt/account.key';
 
 # Renewal settings
 <letsencrypt.cfg.auto_renewal_enabled>
-    = <letsencrypt.cfg.auto_renewal_enabled> || 1;
+    = <letsencrypt.cfg.auto_renewal_enabled> // TRUE;
 <letsencrypt.cfg.renewal_threshold>
-    = <letsencrypt.cfg.renewal_threshold> || 2592000;
+    = <letsencrypt.cfg.renewal_threshold> // 2592000;
 <letsencrypt.cfg.notify_renewal_start>
-    = <letsencrypt.cfg.notify_renewal_start> || 1;
+    = <letsencrypt.cfg.notify_renewal_start> // TRUE;
 <letsencrypt.cfg.notify_renewal_complete>
-    = <letsencrypt.cfg.notify_renewal_complete> || 1;
+    = <letsencrypt.cfg.notify_renewal_complete> // TRUE;
 <letsencrypt.cfg.notify_renewal_failure>
-    = <letsencrypt.cfg.notify_renewal_failure> || 1;
+    = <letsencrypt.cfg.notify_renewal_failure> // TRUE;
 
 # Certificate registry
 <letsencrypt.certificates> = {};    # Domain => cert info mapping
@@ -88,20 +88,20 @@ foreach my $dir ( $cert_dir, $key_dir ) {
 }
 
 <[base.log]>->( 2, "Let's Encrypt manager initialization complete" );
-<[base.log]>->( 2, "  Environment: " . <letsencrypt.cfg.environment> );
-<[base.log]>->( 2, "  ACME Server: " . <letsencrypt.cfg.acme_server> );
-<[base.log]>->( 2, "  Challenge Type: " . <letsencrypt.cfg.challenge_type> );
-<[base.log]>->(
+<[base.logs]>->( 2, ": Environment    : %s" , <letsencrypt.cfg.environment> );
+<[base.logs]>->( 2, ": ACME Server    : %s" , <letsencrypt.cfg.acme_server> );
+<[base.logs]>->( 2, ": Challenge Type : %s" , <letsencrypt.cfg.challenge_type> );
+<[base.logs]>->(
     2,
-    "  Auto-Renewal: "
+    ": Auto-Renewal : %s",
         . ( <letsencrypt.cfg.auto_renewal_enabled> ? 'enabled' : 'disabled' )
 );
-<[base.log]>->( 2, "  Certificate Directory: " . $cert_dir );
+<[base.logs]>->( 2, ": Certificate Directory : " , $cert_dir );
 
 0;
 
-#,,,.,..,,,..,,..,.,,,,,.,,..,.,,,.,,,,,.,,,,,..,,...,...,...,,..,,..,.,.,..,,
-#BNR4DWTXE66E6NDS2UIA4E5IXHY7KHWN7KKW276SYSAWOZDCXPIUX3J65BHUGKRXTWWXMZNQCERBK
-#\\\|CEVSTJPZOM6G4YSD2FCCELL5XJ3IIM7DHEK73V4PGOHEUPR7HDP \ / AMOS7 \ YOURUM ::
-#\[7]WMNA5BH4QT6ZJT7JXSUPZVVVSV7NJQOTRV7QUQP66I4QPTEG7UCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,,,.,.,.,.,...,,,,,...,,,,,..,,..,,...,...,,,.,,.,,.,.,...,,,,,
+#ZOERV3QI4QRHGKYRREXT3WCQYXMBJGJA6WNNHK3AK46PC3SJJT6UXDZM3ID4EYLSEZNHUMK7YNL6E
+#\\\|3MDFTZCERR4VMRUOSZXAPDDSKBN55LNDN3PGTBA5FJP7EO4LL4C \ / AMOS7 \ YOURUM ::
+#\[7]4TIGTVJRMGBE3ZRRCE5ZFT2D6Z5SJJ6HC666NAAKEHAOBZEA2UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -80,24 +80,17 @@ foreach my $config (@dir_configs) {
     }
 }
 
-## Load ACME protocol modules
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA')
-    ;    ## CSR certificate key generation (RSA-2048)
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509')
-    ;    ## X509 certificate and CSR handling
-<[base.perlmod.autoload]>->('JSON::XS');
-<[base.perlmod.autoload]>->('LWP::UserAgent');
-<[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
+## All ACME protocol modules are loaded in letsencrypt.base.pre_init
 
-<[base.log]>->( 2, 'Let\x27s Encrypt ACME client initialization complete' );
-<[base.log]>->( 2, "  ACME Server: " . <letsencrypt.acme.server> );
-<[base.log]>->( 2, "  Certificate Dir: " . <letsencrypt.certs.dir> );
-<[base.log]>->( 2, "  Admin Email: " . <letsencrypt.admin.email> );
+<[base.log]>->( 2, "Let's Encrypt ACME client initialization complete" );
+<[base.logs]>->( 2, ": ACME Server     : %s", <letsencrypt.acme.server> );
+<[base.logs]>->( 2, ": Certificate Dir : %s", <letsencrypt.certs.dir> );
+<[base.logs]>->( 2, ": Admin Email     : %s", <letsencrypt.admin.email> );
 
 0;
 
-#,,,.,.,,,..,,..,,..,,...,.,.,,..,,.,,.,,,.,,,..,,...,...,.,.,,,.,.,,,,..,,..,
-#2LSQZHZ37VJM3PGM4PVT4EP7CXWAVN7D75OWCMIOKKVIJPLGJ5LV6OMDQ3FDZSQAXU2ILSISGBM4M
-#\\\|HJL5QEI7NZ27WNLFGIYKOKFIJMIVSNWL54MB5E6ANPRHXFI7F3R \ / AMOS7 \ YOURUM ::
-#\[7]KXDDJKS4V5P7R7TIB4WQWKQQ2KFNCBIEYN6EDNK3WNEEVNLPLCAI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,,,,,,,,.,,,.,,,..,,,,.,,,,,..,,...,...,,,,,.,.,,.,,.,.,,,,,
+#GVRM5C7IUEQCIPXAWZCWGIVZGTZOX4OFZ5AZIA2PMLJ2LQ7JC3TAWWOBBOOQUGMMLIDGYHUU766SU
+#\\\|BNERFPQ4O6QVK4ELTSRFZUNPZM6JPDG74AQTOLNPLJYSFUGW7OR \ / AMOS7 \ YOURUM ::
+#\[7]PLM3EIUX76R5MTVQYC3D76OKWO5IE5EZ3FL7OBX4OWXBI7AWQOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = letsencrypt.parent.handler_httpd_vhost_error
+# descr = Handle errors in httpd vhost list query - stores error state and triggers recovery
+
+my ( $error_msg, $reply_data ) = @_;
+
+<[base.log]>->( 1, "httpd vhost query error: $error_msg" );
+
+## Store error state for consumer
+<letsencrypt.parent.pending_vhosts> = {
+    status  => 'error',
+    error   => $error_msg,
+    reply   => $reply_data,
+    vhosts  => [],
+};
+
+## Log reply details for debugging if available
+if ( $reply_data && ref($reply_data) eq 'HASH' ) {
+    <[base.log]>->( 3, "error reply data: " . join( ', ', keys %$reply_data ) );
+}
+
+## TODO: Implement retry mechanism or fallback strategy
+## Options:
+## 1. Retry with exponential backoff
+## 2. Use cached vhost list from previous successful query
+## 3. Use hardcoded fallback list or primary domain only
+## 4. Skip renewal check and try again next cycle
+
+if ( exists <letsencrypt.parent.vhosts_cache> ) {
+    <[base.log]>->(
+        2, "using cached vhost list from " .
+        scalar( gmtime( <letsencrypt.parent.vhosts_cache>{timestamp} ) )
+    );
+
+    ## Fall back to cached list
+    <letsencrypt.parent.pending_vhosts> = {
+        status => 'cached',
+        vhosts => <letsencrypt.parent.vhosts_cache>{vhosts},
+    };
+} else {
+    <[base.log]>->(
+        1, "no cached vhost list available, renewal check will be skipped"
+    );
+}
+
+return 0;
+
+#,,,,,,,,,...,..,,,..,.,.,,.,,,,.,.,.,.,.,,,.,.,.,...,...,..,,..,,.,,,..,,,,.,
+#EAAJSJBVKP3IFA4UFHPOWEF2IRLLMVW3MQH3EDH4OCACZQSFES7B4JSGISTBTNQQNQU4CZICFUJGA
+#\\\|5HJLOENJZ6B4J5C4QOAPC5HDIMZCTFE4HHLKBD75XL25C7FJ3BB \ / AMOS7 \ YOURUM ::
+#\[7]6NZSZE55IMDPWFMPXMUNZFEE4T3SLZAN2QP2OFWSJ5HBVUZHVUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

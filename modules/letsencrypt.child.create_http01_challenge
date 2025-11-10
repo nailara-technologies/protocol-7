@@ -44,15 +44,20 @@ my $key_auth = "$token.$thumbprint";
 ## http://example.com/.well-known/acme-challenge/{token}
 
 ## Create challenge directory
-my $well_known_dir      = '/.well-known/acme-challenge';
+## For child process: use site_dir from letsencrypt config or default to /var/httpd/
+my $site_dir = <letsencrypt.challenge.site_dir> || '/var/httpd/';
+my $site_name = <letsencrypt.challenge.site_name> || 'default';
+my $well_known_dir = '/.well-known/acme-challenge';
+
 my $challenge_file_path = sprintf '%s/%s/%s/%s',
-    <httpsd.site_dir>,            # /var/httpd/
-    <httpsd.cfg.default_site>,    # default vhost
-    $well_known_dir, $token;
+    $site_dir,
+    $site_name,
+    $well_known_dir,
+    $token;
 
 my $challenge_dir = sprintf '%s/%s/%s',
-    <httpsd.site_dir>,
-    <httpsd.cfg.default_site>,
+    $site_dir,
+    $site_name,
     $well_known_dir;
 
 unless ( -d $challenge_dir ) {
@@ -88,8 +93,8 @@ return {
     challenge_url  => $challenge->{url},
 };
 
-#,,,.,...,.,,,.,.,.,,,..,,.,,,,..,...,,,,,,,.,..,,...,...,,,.,.,,,,,.,.,,,,.,,
-#6C4EEPT4F7VGUFNSBZYDMV6E5MYNSM62BQ3K636NCJCFJ3F4L7EGOWWO6T6PFFEJTPB2OMG4OJGOU
-#\\\|I4YJ3SE6JWL27A7NEDSGAZYTRPMQ2W3H54LDCXLXMXAUXOBRS5U \ / AMOS7 \ YOURUM ::
-#\[7]HXK7BZDVJEIQBZL3EVZABDVQF2RRA7MCKV5VDH7TU3UNE7ZJ26BY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,...,,..,.,.,,,.,..,,,,,,,..,..,,..,,...,...,..,,..,,,,,,,,,,,,,,
+#A2SYRRWNUYQRKEKTT57NALGQBDUR6J5H2XNZJFRKZSL62RZLNPYYTBFLRBNIMQFTCKZWJQWGYFVTG
+#\\\|PF6VJF3SHVKLZMZKMSFOEAFDMRG7KTC6TM7UCZGIM2CWW2IONHI \ / AMOS7 \ YOURUM ::
+#\[7]QPGMRLPR7IJF2TKUKW5FBK2QG2LRXH6QYYUDNH4M3BNXQVVE6YCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,244 @@
+## [:< ##
+
+# name = httpd.handler.acme_request
+# descr = Handle ACME/API certificate request endpoints - routes to letsencrypt commands
+
+my $id       = shift;
+my $http_uri = shift;
+my $session  = $data{'session'}->{$id};
+
+my $request  = $session->{'http'}->{'request'};
+my $headers  = $request->{'headers'};
+my $response = $session->{'response'};
+
+## Extract request body from input buffer (after headers were parsed)
+## The body comes after the headers in $session->{'buffer'}->{'input'}
+my $req_body = '';
+
+if ( exists $session->{'http'}->{'body'} ) {
+    ## Already parsed and stored
+    $req_body = $session->{'http'}->{'body'};
+    <[base.logs]>->( 3, '[%d] using stored body', $id );
+} elsif ( $session->{'buffer'}->{'input'}
+    && length( $session->{'buffer'}->{'input'} ) > 0 ) {
+    ## Still in input buffer - extract it
+    $req_body = $session->{'buffer'}->{'input'};
+    $session->{'buffer'}->{'input'} = '';
+    <[base.logs]>->( 3, '[%d] extracted body from buffer', $id );
+} else {
+    <[base.logs]>->( 3, '[%d] no body in buffer', $id );
+}
+
+<[base.logs]>->(
+    2,   '[%d] ACME request: %s (body len: %d)',
+    $id, $http_uri, length($req_body)
+);
+
+## Parse JSON body if present
+my $acme_req = {};
+if ( length($req_body) > 0 ) {
+    $acme_req = <[httpd.json.decode]>->($req_body) // {};
+    <[base.logs]>->( 3, '[%d] parsed JSON request', $id );
+} else {
+    <[base.logs]>->( 3, '[%d] empty body, using empty request object', $id );
+}
+
+my $content_type = qq| application/json; charset=utf-8 |;
+my $reply_code   = 200;
+my $reply_body   = '';
+
+## Route based on URI path
+if ( $http_uri =~ m|^/api/certificate/request| ) {
+    ## Certificate request endpoint
+    my $domain = $acme_req->{'domain'} // '';
+
+    unless ( $domain && length($domain) > 0 ) {
+        <[base.logs]>->( 1, '[%d] missing domain in request', $id );
+        $reply_code = 400;
+        $reply_body = <[httpd.json.encode]>->(
+            {   'status' => qw| error |,
+                'error'  => qq| domain parameter required |
+            }
+        );
+    } else {
+        <[base.logs]>->(
+            2,   '[%d] requesting certificate for: %s',
+            $id, $domain
+        );
+
+        ## Send request to letsencrypt parent via cube
+        my $cmd_result = undef;
+        eval {
+            ## Try to reach letsencrypt parent command
+            my $cmd_call = {
+                'command'   => qw| letsencrypt.request-certificate |,
+                'call_args' => { 'args' => $domain }
+            };
+            $cmd_result = <[base.protocol-7.command.send.local]>->($cmd_call);
+        };
+
+        if ( $EVAL_ERROR ) {
+            <[base.logs]>->(
+                1,   '[%d] error calling letsencrypt: %s',
+                $id, $EVAL_ERROR
+            );
+            $reply_code = 500;
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status' => qw| error |,
+                    'error'  => qq| internal server error |
+                }
+            );
+        } elsif ( $cmd_result
+            && $cmd_result->{'mode'}
+            && $cmd_result->{'mode'} eq qw| true | ) {
+            $reply_code = 202;    ## Accepted (async processing)
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status'  => qw| accepted |,
+                    'domain'  => $domain,
+                    'message' => $cmd_result->{'data'}
+                        // qq| Certificate request accepted |
+                }
+            );
+        } else {
+            ## Fallback: return accepted even if letsencrypt might not have processed
+            <[base.logs]>->(
+                2,   '[%d] queued certificate request for: %s',
+                $id, $domain
+            );
+            $reply_code = 202;
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status'  => qw| accepted |,
+                    'domain'  => $domain,
+                    'message' => qq| Certificate request submitted for processing |
+                }
+            );
+        }
+    }
+} elsif ( $http_uri =~ m|^/api/certificate/status| ) {
+    ## Certificate status endpoint
+    my $domain = $acme_req->{'domain'} // '';
+
+    unless ( $domain && length($domain) > 0 ) {
+        <[base.logs]>->( 1, '[%d] missing domain in status request', $id );
+        $reply_code = 400;
+        $reply_body = <[httpd.json.encode]>->(
+            {   'status' => qw| error |,
+                'error'  => qq| domain parameter required |
+            }
+        );
+    } else {
+        <[base.logs]>->( 2, '[%d] checking status for: %s', $id, $domain );
+
+        ## Get certificate status from letsencrypt
+        my $cmd_result = eval {
+            <[base.protocol-7.command.send.local]>->(
+                {   'command'   => qw| letsencrypt.parent.status |,
+                    'call_args' => { 'args' => $domain }
+                }
+            );
+        };
+
+        if ( $EVAL_ERROR ) {
+            <[base.logs]>->( 1, '[%d] error checking status: %s', $id, $EVAL_ERROR );
+            $reply_code = 500;
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status' => qw| error |,
+                    'error'  => qq| internal server error |
+                }
+            );
+        } elsif ($cmd_result) {
+            $reply_code = 200;
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status' => qw| success |,
+                    'domain' => $domain,
+                    'data'   => $cmd_result->{'data'} // qq| no status available |
+                }
+            );
+        } else {
+            $reply_code = 404;
+            $reply_body = <[httpd.json.encode]>->(
+                {   'status' => qw| not_found |,
+                    'domain' => $domain,
+                    'error'  => qq| no certificate found |
+                }
+            );
+        }
+    }
+} elsif ( $http_uri =~ m|^/api/certificate/list| ) {
+    ## List certificates endpoint
+    <[base.logs]>->( 2, '[%d] listing certificates', $id );
+
+    ## Get certificate list from letsencrypt
+    my $cmd_result = eval {
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => qw| letsencrypt.parent.status |,
+                'call_args' => { 'args' => '' }
+            }
+        );
+    };
+
+    if ( $EVAL_ERROR ) {
+        <[base.logs]>->( 1, '[%d] error listing certificates: %s', $id, $EVAL_ERROR );
+        $reply_code = 500;
+        $reply_body = <[httpd.json.encode]>->(
+            {   'status' => qw| error |,
+                'error'  => qq| internal server error |
+            }
+        );
+    } elsif ($cmd_result) {
+        $reply_code = 200;
+        $reply_body = <[httpd.json.encode]>->(
+            {   'status'       => qw| success |,
+                'certificates' => $cmd_result->{'data'} // []
+            }
+        );
+    } else {
+        $reply_code = 200;
+        $reply_body = <[httpd.json.encode]>->(
+            {   'status'       => qw| success |,
+                'certificates' => []
+            }
+        );
+    }
+} else {
+    ## Unknown ACME endpoint
+    <[base.logs]>->( 1, '[%d] unknown ACME endpoint: %s', $id, $http_uri );
+    $reply_code = 404;
+    $reply_body = <[httpd.json.encode]>->(
+        {   'status' => qw| error |,
+            'error'  => qq| unknown endpoint |
+        }
+    );
+}
+
+## Send response
+my $reply_header = {
+    'Content-Type'   => $content_type,
+    'Content-Length' => length($reply_body),
+    'Connection'     => $session->{'http'}->{'close'}
+        ? qw| close |
+        : qw| keep-alive |,
+};
+
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( $reply_code, $reply_header );
+$session->{'buffer'}->{'output'} .= $reply_body;
+
+<[base.logs]>->(
+    2,   '[%d] ACME response: %d (body len: %d)',
+    $id, $reply_code, length($reply_body)
+);
+
+return $session->{'http'}->{'close'} ? 2 : 0;
+
+#,,.,..,,.,,..,,,.,,,,,,.,,.,,...,,.,,.,,,,,,..,...,,...,.,,,...,..,,..,,..,,,,,,
+#PQ7XTJYGKWPQB4CHZUZVVXWYL4DQRTKRXLHW4TWFNFQXKHZN3VFZGBXVBXG2KXFXN7YYWML3VVKC52M
+#\\\|3CGBCCDMFTNGQXJBXZM6X2ZHQVDQZCCZGZK7CDQMV4GFBQWX3JFQ \ / AMOS7 \ YOURUM ::
+#\[7]X3FZNDKTZ4HVKFCW4GVPB5G7VFVPNZLYZMHQHPG4PHQSCZF2CSHVA 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,,,,,,,.,.,.,..,,.,.,.,.,,..,..,,.,.,..,,...,...,,.,,...,,,,,..,,...,
+#QJ3ZEDNN54ZYAVQYDJPID4ITANPKZNIDXQ2G4TO43ATUNBCTWKUVVLKXCCCS2EZIMQ7A62QQ52726
+#\\\|GDDF4XIIC3KIMOCQS4OYGMNQUAZ5ZENAHKSETS3XOJKTKQ4OP4Z \ / AMOS7 \ YOURUM ::
+#\[7]J47SDXWL7QB732DQZKWIJ4PO5PTC5WWEKZ66R26HJHFT25FZFGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

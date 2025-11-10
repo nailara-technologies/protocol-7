@@ -52,7 +52,11 @@ unless ( $response->{status} == 200 ) {
 }
 
 <[base.log]>->( 2, 'finalization request submitted' );
-<[base.log]>->( 2, "  order status: $response->{data}{status}" );
+if ( $response->{data}{status} ) {
+    <[base.log]>->( 2, "  order status: $response->{data}{status}" );
+} elsif ( $response->{data}{type} ) {
+    <[base.log]>->( 1, "  error response: $response->{data}{detail}" );
+}
 
 ## Update nonce
 <letsencrypt.child.acme_client> {nonce} = $response->{nonce};
@@ -98,6 +102,14 @@ while ( $poll_count < $max_polls ) {
     }
 
     my $order_data   = $order_response->{data};
+    unless ( $order_data && ref($order_data) eq 'HASH' && defined $order_data->{status} ) {
+        <[base.log]>->( 1, "error: invalid order response - missing or invalid status field" );
+        <[base.log]>->( 2, "response data: " . ($order_data ? ref($order_data) : 'undefined') );
+        sleep($backoff);
+        $backoff = $backoff < 10 ? $backoff * 1.5 : 10;
+        next;
+    }
+
     my $order_status = $order_data->{status};
 
     <[base.log]>->( 2, "poll $poll_count: order status = $order_status" );
@@ -154,8 +166,8 @@ return {
     poll_attempts => $poll_count,
 };
 
-#,,..,,.,,,.,,...,...,,,.,.,,,.,,,.,.,,..,.,,,..,,...,..,,,,,,,..,...,..,,,,.,
-#CHNG4F3GS2DXK5MO3HQ7KXI56G25LPSZSOWVONFMW4ZSMWAGEV673XZJOQSZBCRWVTLMYJ6HHXE7C
-#\\\|72UEVJ4FNFEEY7P5DVHDQQXFAOGPPPJOTYXW7NLQYOABIKONMCX \ / AMOS7 \ YOURUM ::
-#\[7]OWEYGFWZ6EB6QVN25A5HUPV3GD4CSJ2AEPAPXBWQB3CL3PWIFCDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,.,,,.,.,,.,,...,.,.,...,...,..,,...,...,,,,,.,.,.,,,,..,.,,,
+#GSTYH6VDHFTY5GHOJFTI2NOQT4G63NNI4R7HU6HBCIRCTDDBMJSJDZXNDZAAEXKLY53FHIJVLB77K
+#\\\|ONCESZLJ7QO4ECLQYBNRXDD4PYTNK4PQNCOR3HSXCTIIKYJKUSA \ / AMOS7 \ YOURUM ::
+#\[7]CVIQO7FZO2ITH4YBRWKSUW7B62XG4VLIR54IAKDAINDLDYL4KIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

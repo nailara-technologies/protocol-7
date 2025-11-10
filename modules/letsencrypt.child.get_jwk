@@ -8,8 +8,8 @@ use MIME::Base64 qw(encode_base64url);
 
 <[base.log]>->( 3, 'generating JWK from Ed25519 account key (RFC 8037)' );
 
-my $account_key = <letsencrypt.child.acme_client>->{account_key};
-return undef unless $account_key;
+my $account_key_name = <letsencrypt.child.acme_client>->{account_key_name};
+return undef unless $account_key_name;
 
 ## Validate key type
 my $key_type = <letsencrypt.child.acme_client>->{account_key_type};
@@ -18,12 +18,21 @@ unless ( $key_type && $key_type eq 'Ed25519' ) {
     return undef;
 }
 
+## Get public key from global %keys{'C25519'} hash
+unless ( exists $keys{'C25519'}->{$account_key_name}
+    && exists $keys{'C25519'}->{$account_key_name}->{'public'} ) {
+    <[base.log]>->( 1, "error: account key '$account_key_name' not found or missing public key" );
+    return undef;
+}
+
+my $public_key_binary = $keys{'C25519'}->{$account_key_name}->{'public'};
+
 ## Create JWK structure per RFC 8037 (CFRG Elliptic Curve Signatures in JOSE)
 ## Format: Octet Key Pair (OKP) with Ed25519 curve
 my $jwk = {
     crv => 'Ed25519',    # Curve designation
     kty => 'OKP',        # Key type: Octet Key Pair
-    x => encode_base64url( $account_key->{public} ),  # Public key (Base64url)
+    x => encode_base64url($public_key_binary),  # Public key (Base64url for ACME)
 };
 
 ## Sort keys for consistent ordering (required by ACME spec)
@@ -33,8 +42,8 @@ my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
 
 return JSON::XS::decode_json($jwk_json);
 
-#,,,.,,,.,.,,,,.,,..,,,,,,,,.,..,,,.,,,..,,.,,..,,...,...,.,.,,,.,.,.,..,,.,.,
-#OMATOYASU7GKX5WLFSWI2WXHY3EOQVJV3MW5JRUKLXSFGY7TBTDJFR5LSJRD5ZOFDF66D7RERFZBI
-#\\\|WX7KWVWZFUNGVMTIGZSE6DEUPHMWP636JDECR7SSHUJ54QWJL4L \ / AMOS7 \ YOURUM ::
-#\[7]YQNVXHR4H3DPXBZNMC4UQ3U4ZXANF5C65EIDF67NVJP47VBR6CCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,...,,,,,.,.,.,.,,,.,,..,...,..,,...,.,.,...,,,.,.,,,..,,,,.,
+#VVGXHTWRBI7XMAWOXPGTMUAROPIA25NPNAX2RZKGRBZF4OTQ4C2UNHUI34Y3ZKX7TODAUFMT2XICC
+#\\\|ZEYCG6DBBVHD5DLFBAZM47XIXS2DX4Z3SYOVY5CIBBJ6BF7YQ4Z \ / AMOS7 \ YOURUM ::
+#\[7]UYUUZQHKZMNH54D5COR5K2DRRXR4VVNW5L3KKCLZS2DNITDZIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
