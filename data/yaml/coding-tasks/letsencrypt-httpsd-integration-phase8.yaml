@@ -1,0 +1,280 @@
+---
+# Phase 8: HTTPSD Integration - Automatic Certificate Installation for TLS
+# Priority: Complete Let's Encrypt → HTTPSD integration for production HTTPS
+
+task_name: "Let's Encrypt HTTPSD Integration - Phase 8"
+task_id: "letsencrypt-phase-8"
+status: "completed"
+created: "2025-11-10"
+completed: "2025-11-10"
+implemented_by: "Claude Code web instance"
+
+description: |
+  Integrate Let's Encrypt certificate management with httpsd (HTTPS daemon)
+  for automatic certificate installation, symlink management, and TLS reload.
+
+## Objectives
+
+- Automatic certificate installation to httpsd after enrollment/renewal
+- Secure certificate and key file handling with proper permissions
+- Symlink management for current active certificate
+- HTTPSD TLS reload after certificate updates
+- Manual installation command for operators
+- Complete activity logging for installation operations
+
+## Completed Components
+
+### Certificate Installation Module
+- **letsencrypt.parent.install_certificate_to_httpsd**: Core installation logic
+  * Validates certificate exists in letsencrypt registry
+  * Verifies source certificate and key files in cache
+  * Creates httpsd certificate directory if needed (`/etc/protocol-7/certs/`)
+  * Copies certificate file with permissions 0644 (readable by all)
+  * Copies private key file with permissions 0600 (owner read/write only)
+  * Updates symlinks: `current.pem` → `domain.pem`, `current.key` → `domain.key`
+  * Calls `httpsd.reload_certificates` to reload TLS
+  * Returns structured result: `{ status => 'success'|'partial'|'error', message => ... }`
+  * Logs all operations to ACME activity buffer
+  * Handles errors gracefully with detailed error messages
+
+### Automatic Installation Integration
+- **letsencrypt.parent.handler_enrollment_reply**: Updated for new cert installation
+  * After successful certificate enrollment and save
+  * Calls `install_certificate_to_httpsd` automatically
+  * Logs installation result (success/partial/failed)
+  * Updates activity log with httpsd installation status
+  * Falls back gracefully if httpsd installation fails (cert still saved)
+
+- **letsencrypt.parent.handler_renewal_reply**: Updated for renewed cert installation
+  * After successful certificate renewal
+  * Installs renewed certificate to httpsd automatically
+  * Reloads HTTPSD TLS with new certificate
+  * Activity logging for renewal → installation flow
+  * Graceful handling of installation failures
+
+### Manual Installation Command
+- **letsencrypt.parent.cmd.install-certificate**: Operator command
+  * Usage: `p7 letsencrypt.parent.cmd.install-certificate <domain>`
+  * Validates domain exists in certificate registry
+  * Calls installation module
+  * Returns TRUE/FALSE with descriptive message
+  * Allows manual installation/reinstallation when needed
+
+## Certificate Path Structure
+
+```
+/etc/protocol-7/certs/
+├── current.pem          → example.com.pem (symlink - active cert)
+├── current.key          → example.com.key (symlink - active key)
+├── example.com.pem      (full chain certificate)
+├── example.com.key      (private key, mode 0600)
+├── *.example.com.pem    (wildcard certificate)
+└── *.example.com.key    (wildcard key, mode 0600)
+```
+
+## Integration Flow
+
+### New Certificate Enrollment
+1. User: `p7 letsencrypt.parent.cmd.request-certificate example.com`
+2. Child performs ACME enrollment (HTTP-01 or DNS-01)
+3. Parent receives certificate bundle from child
+4. Parent saves certificate to cache (`/var/protocol-7/letsencrypt/certs/`)
+5. **Parent installs to httpsd** (`/etc/protocol-7/certs/`)
+6. **Parent creates/updates symlinks** (`current.pem` → `example.com.pem`)
+7. **Parent calls httpsd.reload_certificates**
+8. HTTPSD reloads TLS with new certificate
+9. HTTPS connections now use new certificate
+
+### Certificate Renewal
+1. Renewal check timer fires (24 hours)
+2. Parent detects certificate expiring within 30 days
+3. Child performs ACME renewal
+4. Parent saves renewed certificate to cache
+5. **Parent installs renewed cert to httpsd**
+6. **HTTPSD reloads TLS** (seamless, no downtime)
+7. Activity log updated with renewal success
+
+### Manual Installation
+1. Operator: `p7 letsencrypt.parent.cmd.install-certificate example.com`
+2. Module validates certificate exists
+3. Copies certificate and key to httpsd paths
+4. Updates symlinks
+5. Reloads HTTPSD TLS
+6. Returns status to operator
+
+## Security Features
+
+### File Permissions
+- Certificates (`.pem`): **0644** - World readable (certificates are public)
+- Private keys (`.key`): **0600** - Owner read/write only (keys are secret)
+- Certificate directory: **0755** - Standard directory permissions
+
+### Error Handling
+- Validates source files exist before copying
+- Creates directories with proper permissions
+- Atomic symlink updates (unlink old, create new)
+- Graceful fallback if httpsd reload fails
+- Detailed error logging for debugging
+
+### Activity Logging
+All operations logged to `buffer.acme-activity`:
+- `install | domain | pending | installing to httpsd`
+- `install | domain | success | installed to httpsd`
+- `install | domain | partial | installed but reload failed`
+- `install | domain | failed | certificate not found`
+
+## HTTPSD Configuration
+
+From `configuration/zenki/httpsd/start`:
+```perl
+httpsd.cfg.tls_version              = TLSv1_2
+httpsd.cfg.cipher_suite             = DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4
+httpsd.cfg.certificate_path         = /etc/protocol-7/certs/current.pem
+httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
+httpsd.cfg.hsts_max_age             = 31536000    ## 1 year
+httpsd.cfg.hsts_include_subdomains  = 1
+```
+
+HTTPSD reads certificates from symlinks `current.pem` and `current.key`,
+allowing seamless certificate updates without configuration changes.
+
+## Success Criteria
+
+- [✓] Certificate files copied to httpsd directory
+- [✓] Private keys secured with 0600 permissions
+- [✓] Symlinks created for current certificate
+- [✓] HTTPSD reloads TLS after installation
+- [✓] Automatic installation after enrollment
+- [✓] Automatic installation after renewal
+- [✓] Manual installation command available
+- [✓] Activity logging for all operations
+- [✓] Graceful error handling
+- [✓] Following Protocol-7 coding style guide
+
+## Testing Scenarios
+
+### Test 1: New Certificate Enrollment
+```
+p7 letsencrypt.parent.cmd.request-certificate example.com
+# Verify:
+# - Certificate saved to cache
+# - Certificate installed to /etc/protocol-7/certs/
+# - Symlinks created: current.pem → example.com.pem
+# - HTTPSD reloaded TLS
+# - HTTPS works with new certificate
+```
+
+### Test 2: Certificate Renewal
+```
+# Wait for renewal check or force renewal
+# Verify:
+# - Renewed certificate installed to httpsd
+# - Symlinks updated (may be same domain)
+# - HTTPSD reloaded without downtime
+# - Activity log shows renewal → install flow
+```
+
+### Test 3: Manual Installation
+```
+p7 letsencrypt.parent.cmd.install-certificate example.com
+# Verify:
+# - Returns TRUE with success message
+# - Certificate and key copied
+# - Symlinks updated
+# - HTTPSD reloaded
+```
+
+### Test 4: Wildcard Certificate
+```
+p7 letsencrypt.parent.cmd.request-certificate *.example.com
+# Uses DNS-01 challenge (from Phase 6)
+# Verify:
+# - Wildcard cert installed to httpsd
+# - HTTPS works for any subdomain
+```
+
+### Test 5: Error Handling
+```
+# Test missing certificate
+p7 letsencrypt.parent.cmd.install-certificate nonexistent.com
+# Verify: Returns FALSE with "certificate not found" message
+
+# Test permission denied
+# chmod 000 /etc/protocol-7/certs
+# p7 letsencrypt.parent.cmd.install-certificate example.com
+# Verify: Returns FALSE with "failed to write" error
+```
+
+## Integration with Previous Phases
+
+- Phase 1: ACME protocol implementation
+- Phase 2: Certificate storage (letsencrypt cache)
+- Phase 3: Activity logging (used for install operations)
+- Phase 4: Enrollment workflow (now installs to httpsd)
+- Phase 5: Challenge handling (HTTP-01, DNS-01)
+- Phase 6: DNS-01 wildcard support
+- Phase 7: HTTP API integration
+- **Phase 8: HTTPSD certificate installation**
+
+## Modules Created
+
+1. `letsencrypt.parent.install_certificate_to_httpsd` - Core installation logic
+2. `letsencrypt.parent.cmd.install-certificate` - Manual installation command
+
+## Modules Modified
+
+1. `letsencrypt.parent.handler_enrollment_reply` - Added httpsd installation
+2. `letsencrypt.parent.handler_renewal_reply` - Added httpsd installation
+
+Total: 2 new modules, 2 modified modules
+
+## Dependencies
+
+- `httpsd.reload_certificates` - HTTPSD TLS reload function (existing)
+- `httpsd.cfg.certificate_dir` - Target directory configuration
+- `letsencrypt.cache.dir` - Source certificate cache
+- `letsencrypt.parent.certs` - Certificate registry
+
+## Documentation
+
+All modules follow Protocol-7 coding style guide:
+- Use `qw|...|` for single-word strings
+- Use `qq|...|` for multi-word strings
+- Lowercase log messages
+- Descriptive variable names (no shadowing of global %data)
+- Proper error handling with $EVAL_ERROR
+- Structured logging with activity buffer
+
+## Next Steps (Optional Enhancements)
+
+- Multi-certificate support (multiple domains, A/B testing)
+- Certificate health monitoring (expiry warnings)
+- Automatic rollback on httpsd reload failure
+- Webhook notifications for certificate installation
+- Integration with monitoring systems (Prometheus, etc.)
+- Support for ECC certificates (in addition to RSA)
+- Certificate pinning (HPKP) support
+
+---
+
+## Summary
+
+Phase 8 completes the Let's Encrypt → HTTPSD integration, enabling fully
+automatic TLS certificate management. Certificates enrolled via ACME are now
+automatically installed to httpsd, symlinks are managed transparently, and
+HTTPSD reloads TLS seamlessly. Operators can also manually install certificates
+when needed. The system is production-ready for serving HTTPS traffic with
+automatically managed Let's Encrypt certificates.
+
+**Status: ✓ COMPLETE**
+
+Phases 1-8 complete the entire Let's Encrypt ACME implementation for Protocol-7:
+- ✅ ACME protocol (enrollment, renewal, revocation)
+- ✅ Certificate storage and management
+- ✅ HTTP-01 challenges (with httpd integration)
+- ✅ DNS-01 challenges (INWX, Cloudflare providers)
+- ✅ Wildcard certificate support
+- ✅ HTTP API for certificate operations
+- ✅ **HTTPSD automatic certificate installation**
+
+The Let's Encrypt zenka is feature-complete and ready for production deployment.
