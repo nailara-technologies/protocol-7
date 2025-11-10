@@ -1,0 +1,48 @@
+<h1>Welcome to Protocol-7 Web Content System</h1>
+
+<p>This is the Protocol-7 <strong>skinnable content system</strong>, restored from the 2004 architecture and modernized with recursive template processing.</p>
+
+<h2>Architecture</h2>
+
+<p>The system separates <em>content</em> from <em>presentation</em>:</p>
+
+<ul>
+<li><code>/data/web/vhost/path/</code> - Plain text content files with template tags</li>
+<li><code>/var/httpd/skins/</code> - HTML skin templates</li>
+<li>Arbitrary directory depth with automatic navigation</li>
+<li>Content processed through recursive template parser</li>
+</ul>
+
+<h2>Features</h2>
+
+<p>✓ Directory structure becomes navigation menu<br>
+✓ Numeric prefixes control sort order (01_, 02_, etc.)<br>
+✓ Index files (index.txt/md/html) for directory defaults<br>
+✓ Automatic directory listings if no index<br>
+✓ Recursive template processing with <code>&lt;[plugin.name]&gt;</code> syntax<br>
+✓ Meta variables: <code>&lt;{title}&gt;</code>, <code>&lt;{menu}&gt;</code>, <code>&lt;{content}&gt;</code></p>
+
+<h2>Navigate</h2>
+
+<p>Use the navigation menu on the left to explore:</p>
+
+<ul>
+<li><a href="/01_docs">Documentation</a> - Technical documentation and guides</li>
+<li><a href="/02_about">About</a> - Information about Protocol-7</li>
+<li><a href="/03_downloads">Downloads</a> - Files and resources</li>
+</ul>
+
+<h2>Template Tags</h2>
+
+<p>Content files can include:</p>
+
+<pre><code>&lt;[plugin.web.menu.tree]&gt;           - Navigation menu
+&lt;[plugin.web.content.dirlist]&gt;    - Directory listing
+&lt;{variable_name}&gt;                  - Meta variables
+&lt;[command.name:params]&gt;           - Any template command</code></pre>
+
+<p>The recursive parser supports nested commands like:</p>
+
+<pre><code>&lt;[outer:&lt;[inner:param]&gt;:more]&gt;</code></pre>
+
+<p class="info">This page was generated from <code>data/web/default/index.txt</code> and wrapped in the <code>var/httpd/skins/default.tmpl</code> skin template.</p>

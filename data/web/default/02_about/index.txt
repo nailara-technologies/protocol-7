@@ -1,0 +1,69 @@
+<h1>About Protocol-7</h1>
+
+<p>Protocol-7 is a distributed network framework and content management system developed by Nailara Technologies.</p>
+
+<h2>History</h2>
+
+<p>The web content system architecture dates back to <strong>2004</strong>, featuring:</p>
+
+<ul>
+<li>Separation of content (data) from presentation (skins)</li>
+<li>Directory-based navigation</li>
+<li>Plugin system for dynamic content</li>
+<li>Template processing</li>
+</ul>
+
+<p>In 2014, these modules were moved to backup as the system evolved. In 2025, the architecture was <strong>restored and modernized</strong> with:</p>
+
+<ul>
+<li>Recursive template parsing using <code>base.parser.pattern_split</code></li>
+<li>IPC-based web zenka for content processing</li>
+<li>Modern blacklight neon aesthetic</li>
+<li>HTTPS support with Let's Encrypt automation</li>
+</ul>
+
+<h2>Architecture</h2>
+
+<h3>Zenka (Service) Model</h3>
+
+<p>Protocol-7 uses a zenka-based architecture where each service is a separate process:</p>
+
+<ul>
+<li><strong>httpd</strong> - HTTP protocol handling</li>
+<li><strong>httpsd</strong> - HTTPS/TLS wrapper</li>
+<li><strong>web</strong> - Content processing and template rendering</li>
+<li><strong>letsencrypt</strong> - Certificate management</li>
+<li><strong>template</strong> - Mustache template engine</li>
+</ul>
+
+<h3>Content Flow</h3>
+
+<pre><code>Client Request
+    ↓
+HTTPSD (TLS)
+    ↓
+HTTPD (HTTP Protocol)
+    ↓
+Web Zenka (Content Processing)
+    ↓
+Recursive Template Parser
+    ↓
+Skin Wrapper
+    ↓
+Final HTML Response</code></pre>
+
+<h2>Technology</h2>
+
+<ul>
+<li><strong>Language:</strong> Perl with custom module system</li>
+<li><strong>Networking:</strong> Event-driven I/O with IO::Socket::SSL</li>
+<li><strong>Templates:</strong> Recursive parser with <code>&lt;[command]&gt;</code> syntax</li>
+<li><strong>Signatures:</strong> AMOS7 cryptographic verification</li>
+<li><strong>Protocols:</strong> HTTP/HTTPS, ACME (Let's Encrypt)</li>
+</ul>
+
+<h2>Current Path</h2>
+
+<p>You are viewing: <code><{path}></code></p>
+<p>Virtual host: <code><{vhost}></code></p>
+<p>Skin template: <code><{skin}>.tmpl</code></p>

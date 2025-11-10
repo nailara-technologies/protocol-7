@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><{title}> | Protocol-7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Blacklight neon aesthetic from existing protocol-7 */
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #111111;
+
+            --text-primary: rgba(147, 197, 253, 0.95);
+            --text-secondary: rgba(147, 197, 253, 0.75);
+            --text-muted: rgba(147, 197, 253, 0.5);
+
+            --neon-blue: #60a5fa;
+            --neon-cyan: #22d3ee;
+            --neon-purple: #a78bfa;
+            --neon-pink: #f472b6;
+
+            --border-color: rgba(96, 165, 250, 0.2);
+            --hover-bg: rgba(96, 165, 250, 0.1);
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 30px;
+        }
+
+        header h1 {
+            color: var(--neon-cyan);
+            font-size: 24px;
+            font-weight: normal;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        header .subtitle {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        nav h2 {
+            color: var(--neon-purple);
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .web-menu-tree ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .web-menu-tree li {
+            margin: 0;
+        }
+
+        .web-menu-tree .menu-link {
+            display: block;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .web-menu-tree .menu-link:hover {
+            background: var(--hover-bg);
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .web-menu-tree .menu-link.active {
+            color: var(--neon-cyan);
+            background: var(--hover-bg);
+        }
+
+        .web-menu-tree .submenu {
+            margin-left: 20px;
+            border-left: 1px solid var(--border-color);
+            padding-left: 5px;
+            margin-top: 5px;
+        }
+
+        /* Main Content */
+        main {
+            padding: 40px 50px;
+            overflow-y: auto;
+        }
+
+        main h1 {
+            color: var(--neon-cyan);
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        main h2 {
+            color: var(--neon-blue);
+            font-size: 24px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        main h3 {
+            color: var(--neon-purple);
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        main p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        main a {
+            color: var(--neon-blue);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        main a:hover {
+            border-bottom-color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        main code {
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--neon-pink);
+            font-size: 13px;
+        }
+
+        main pre {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        main pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        /* Directory Listings */
+        .dirlist {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .dirlist thead th {
+            background: var(--bg-secondary);
+            color: var(--neon-purple);
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .dirlist tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+        }
+
+        .dirlist tbody tr:hover {
+            background: var(--hover-bg);
+        }
+
+        .dirlist tbody td {
+            padding: 10px 12px;
+        }
+
+        .dirlist-link {
+            color: var(--neon-blue);
+            text-decoration: none;
+        }
+
+        .dirlist-link:hover {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        /* Footer */
+        footer {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 30px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        footer a {
+            color: var(--neon-purple);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-shadow: 0 0 8px var(--neon-purple);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>.:[ Protocol-7 ]:.   </h1>
+            <div class="subtitle">Nailara Technologies · Distributed Content System</div>
+        </header>
+
+        <nav>
+            <h2>Navigation</h2>
+            <{menu}>
+        </nav>
+
+        <main>
+            <{content}>
+        </main>
+
+        <footer>
+            <p>
+                Powered by <a href="https://github.com/nailara-technologies/protocol-7">Protocol-7</a>
+                | Web Zenka with Recursive Template Processing
+                | <a href="/about">About</a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
