@@ -1,0 +1,189 @@
+## [:< ##
+
+# name = plugin.web.content.dirlist
+# descr = Generate directory listing table with files and subdirectories
+# args  = $directory_path, $base_dir, $show_checksums
+
+my $directory_path = shift // '';
+my $base_dir       = shift // '/data/web';
+my $show_checksums = shift // 0;
+
+## Clean up path ##
+$directory_path =~ s/^\/+|\/+$//g;
+$directory_path =~ s/\.\.+/./g;
+
+<[base.log]>->(
+    3,
+    "plugin.web.content.dirlist: listing directory '$directory_path'"
+);
+
+## Scan directory ##
+my $scan = <[web.scan_directory]>->(
+    $base_dir,
+    $directory_path,
+    { show_all => 1 }    ## Show all files, not just content
+);
+
+if ( $scan->{status} ne qw| success | ) {
+    <[base.log]>->(
+        1,
+        "plugin.web.content.dirlist: failed to scan: " . $scan->{error}
+    );
+    return qq| <p class="error">Directory listing not available</p> |;
+}
+
+my @items = @{ $scan->{items} };
+
+unless (@items) {
+    return qq| <p class="info">Directory is empty</p> |;
+}
+
+<[base.log]>->(
+    2,
+    "plugin.web.content.dirlist: generating listing for "
+        . scalar(@items)
+        . " items"
+);
+
+## Build HTML table ##
+my @html;
+push @html,
+    qq|<div class="dirlist-container">|;
+push @html,
+    qq|<table class="dirlist" border="0" cellpadding="4" cellspacing="0">|;
+
+## Table header ##
+push @html, qq|<thead>|;
+push @html, qq|  <tr>|;
+push @html,
+    qq|    <th class="dirlist-name" align="left">Name</th>|;
+push @html,
+    qq|    <th class="dirlist-type" align="left">Type</th>|;
+push @html,
+    qq|    <th class="dirlist-size" align="right">Size</th>|;
+push @html,
+    qq|    <th class="dirlist-modified" align="right">Modified</th>|;
+
+if ($show_checksums) {
+    push @html,
+        qq|    <th class="dirlist-checksum" align="left">Checksum</th>|;
+}
+
+push @html, qq|  </tr>|;
+push @html, qq|</thead>|;
+
+## Table body ##
+push @html, qq|<tbody>|;
+
+foreach my $item (@items) {
+    my $name         = $item->{display_name};
+    my $path         = $item->{path};
+    my $type         = $item->{type};
+    my $size         = $item->{size};
+    my $mtime        = $item->{mtime};
+    my $content_type = $item->{content_type};
+
+    ## Format display name ##
+    $name =~ s/_/ /g;
+
+    ## Format size ##
+    my $size_str = _format_size($size);
+
+    ## Format date ##
+    my ( $sec, $min, $hour, $mday, $mon, $year ) = localtime($mtime);
+    $year += 1900;
+    $mon  += 1;
+    my $date_str = sprintf( '%04d-%02d-%02d %02d:%02d', $year, $mon, $mday, $hour, $min );
+
+    ## Type description ##
+    my $type_str = $type eq 'dir' ? 'Directory' : $content_type || 'File';
+
+    ## CSS class ##
+    my $row_class = "dirlist-row dirlist-$type";
+
+    push @html, qq|  <tr class="$row_class">|;
+
+    ## Name column with link ##
+    if ( $type eq 'dir' ) {
+        push @html,
+            qq|    <td class="dirlist-name"><a href="/$path/" class="dirlist-link dir-link">📁 $name</a></td>|;
+    } elsif ( $content_type =~ /^(txt|md|html?)$/ ) {
+        push @html,
+            qq|    <td class="dirlist-name"><a href="/$path" class="dirlist-link file-link">📄 $name</a></td>|;
+    } else {
+        push @html,
+            qq|    <td class="dirlist-name"><a href="/$path" class="dirlist-link file-link">📎 $name</a></td>|;
+    }
+
+    ## Type column ##
+    push @html, qq|    <td class="dirlist-type">$type_str</td>|;
+
+    ## Size column ##
+    if ( $type eq 'dir' ) {
+        push @html, qq|    <td class="dirlist-size" align="right">—</td>|;
+    } else {
+        push @html,
+            qq|    <td class="dirlist-size" align="right">$size_str</td>|;
+    }
+
+    ## Modified column ##
+    push @html,
+        qq|    <td class="dirlist-modified" align="right">$date_str</td>|;
+
+    ## Checksum column (if enabled) ##
+    if ($show_checksums) {
+        if ( $type eq 'file' ) {
+            my $checksum = _calculate_checksum( $item->{full_path} );
+            push @html,
+                qq|    <td class="dirlist-checksum"><code>$checksum</code></td>|;
+        } else {
+            push @html, qq|    <td class="dirlist-checksum">—</td>|;
+        }
+    }
+
+    push @html, qq|  </tr>|;
+}
+
+push @html, qq|</tbody>|;
+push @html, qq|</table>|;
+push @html, qq|</div>|;
+
+my $listing_html = join( "\n", @html );
+
+return $listing_html;
+
+## Helper: Format file size ##
+sub _format_size {
+    my $bytes = shift;
+
+    return '0 B' if $bytes == 0;
+
+    my @units = qw( B KB MB GB TB );
+    my $unit  = 0;
+    my $size  = $bytes;
+
+    while ( $size >= 1024 and $unit < @units - 1 ) {
+        $size /= 1024;
+        $unit++;
+    }
+
+    return sprintf( '%.1f %s', $size, $units[$unit] );
+}
+
+## Helper: Calculate file checksum ##
+sub _calculate_checksum {
+    my $file_path = shift;
+
+    return 'n/a' unless -f $file_path and -r $file_path;
+
+    ## Use elf.vax-BASE32 checksum ##
+    my $checksum = <[chk-sum.elf.vax-BASE32]>->($file_path);
+
+    return $checksum // 'error';
+}
+
+#,,,,,.,,,.,,,.,,,.,.,.,.,.,,,,,.,.,.,,,.,.,.,.,,,,,.,.,,,.,,..,...,,.,.,,,..,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
