@@ -1,17 +1,18 @@
 <h1>Weather Information</h1>
 
-<p>This page demonstrates inter-zenka communication through template tags. The weather widget below calls the <code>weather.cmd.widget</code> module, which formats weather data with psychedelic blacklight styling.</p>
+<p>This page demonstrates inter-zenka communication through template tags. The weather widget below calls the <code>weather.widget</code> command, which formats weather data with psychedelic blacklight styling.</p>
 
 <div class="info-box">
     <h3>Inter-Zenka Communication Pattern</h3>
-    <p>Template tags like <code>&lt;[weather.cmd.widget]&gt;</code> are processed by the <strong>web zenka</strong>, which can communicate with other zenki (such as the <strong>weather zenka</strong>) via IPC to fetch real-time data.</p>
+    <p>Template tags like <code>&lt;[weather.widget]&gt;</code> are processed by the <strong>web zenka</strong>, which can communicate with other zenki (such as the <strong>weather zenka</strong>) via IPC to fetch real-time data.</p>
 
     <p>Architecture flow:</p>
     <ol>
         <li><strong>httpd zenka</strong> receives request for <code>/weather/</code></li>
         <li>Loads content from <code>/data/web/default/04_weather/index.txt</code></li>
         <li>Offloads template processing to <strong>web zenka</strong> via IPC</li>
-        <li><strong>web zenka</strong> encounters <code>&lt;[weather.cmd.widget]&gt;</code> tag</li>
+        <li><strong>web zenka</strong> encounters <code>&lt;[weather.widget]&gt;</code> tag</li>
+        <li>Resolves to <code>weather.cmd.widget</code> module automatically</li>
         <li>Calls weather module, which can query <strong>weather zenka</strong> for data</li>
         <li>Returns formatted HTML with psychedelic styling</li>
         <li>Result wrapped in skin template and returned to client</li>
@@ -20,7 +21,7 @@
 
 <h2>Live Weather Widget</h2>
 
-<[weather.cmd.widget]>
+<[weather.widget]>
 
 <div class="tech-notes">
     <h3>Technical Implementation</h3>
@@ -40,12 +41,12 @@
 <p>You can also call specific weather components separately:</p>
 
 <h3>Current Conditions Only</h3>
-<[weather.cmd.current]>
+<[weather.current]>
 
 <div style="margin: 30px 0;"></div>
 
 <h3>Forecast Only</h3>
-<[weather.cmd.forecast]>
+<[weather.forecast]>
 
 <style>
 /* Content page styling */
