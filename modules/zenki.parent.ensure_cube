@@ -1,0 +1,92 @@
+## [:< ##
+
+# name = zenki.parent.ensure_cube
+# descr = Ensure cube zenka is running (required for zenki IPC)
+
+sub zenki_parent_ensure_cube {
+    my $params = shift || {};
+
+    <[base.log]>->( 3, "zenki.ensure: checking cube zenka..." );
+
+    ## First ensure v7 is running (cube depends on v7)
+    my $v7_result = <[zenki.parent.ensure_v7]>();
+
+    unless ($v7_result->{success}) {
+        return {
+            success => 0,
+            error   => 'v7 dependency failed: ' . ($v7_result->{error} || 'unknown'),
+            dependency_failed => 'v7'
+        };
+    }
+
+    ## Check if cube is already running
+    my $cube_check = <[zenki.parent.check_running]>->({ zenka => 'cube' });
+
+    if ($cube_check->{running}) {
+        <[base.log]>->( 3, "  ✓ cube already running (PID: " . $cube_check->{pid} . ")" );
+
+        ## Update registry
+        $data{'zenki'}{'running'}{'cube'} = {
+            pid     => $cube_check->{pid},
+            started => $data{'zenki'}{'running'}{'cube'}{'started'} || time(),
+            status  => qw| running |
+        };
+
+        return {
+            success => 1,
+            already_running => 1,
+            pid => $cube_check->{pid}
+        };
+    }
+
+    ## Cube not running - v7 should start it automatically
+    <[base.log]>->( 2, "  cube not running - v7 should start it..." );
+
+    ## Wait for v7 to start cube (v7.init_code starts cube automatically)
+    my $timeout = <zenki.cfg.cube_startup_timeout>;
+    my $start_time = time();
+
+    while (time() - $start_time < $timeout) {
+        sleep 1;
+
+        my $check = <[zenki.parent.check_running]>->({ zenka => 'cube' });
+
+        if ($check->{running}) {
+            <[base.log]>->( 2, "  ✓ cube started by v7" );
+
+            ## Update registry and statistics
+            $data{'zenki'}{'running'}{'cube'} = {
+                pid     => $check->{pid},
+                started => time(),
+                status  => qw| running |
+            };
+
+            $data{'zenki'}{'stats'}{'cube_starts'}++;
+
+            return {
+                success => 1,
+                started_by_v7 => 1,
+                pid => $check->{pid}
+            };
+        }
+    }
+
+    <[base.log]>->( 0, "  ✗ cube startup timeout after ${timeout}s" );
+
+    return {
+        success => 0,
+        error   => "cube startup timeout - v7 may have issues starting cube"
+    };
+}
+
+## Export
+$code{qw| zenki.parent.ensure_cube |} = \&zenki_parent_ensure_cube;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
